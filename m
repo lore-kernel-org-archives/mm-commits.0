@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 66F4336C9DF
-	for <mm-commits@vger.kernel.org>; Fri, 29 May 2026 04:05:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 37DD034D3B2
+	for <mm-commits@vger.kernel.org>; Fri, 29 May 2026 04:05:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780027556; cv=none; b=a+4Jdo4oLchvtIPJwl0GtwRVPMlZr+tRZMzKc1yiKv5eUFmq0FMBpUDjn6q3VcDAsVytfEwbjw7Wi1SR9i16sr1mUn51F26T/QaWbVuyS19qMCdG+1bPbmXRa9R5X1p3F7HMcYsE2VBxz03hMBddFo7G/u+kSiWMChWLy4eJ9ME=
+	t=1780027558; cv=none; b=DQmZh2GgoNVjRproSBWvdl4ZK94Bgwfs8gS+QDcW0bRsPxT+GjGlkfWRo3216WKyI8lmjYaQGJJOadVVA2Zd8G8xiKO4SZwDmrdqe+KoDO++eQl2P51sjoJ+iNWb8tjqKuDv58ZeoOMvxzYGvmk1op13HjukFJW2JsOgyBC9uGw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780027556; c=relaxed/simple;
-	bh=YuBzhvI0FeP+63+nDCSjtxRDl2ANlRTLdKXtpjXE1H4=;
-	h=Date:To:From:Subject:Message-Id; b=mrNiNU+GxnHFhjktYMCtXnrAPXmttYgxRwRkug7kBGdpONdDBr4c/fGN3CKlPB1bbg2x5miVjN+j95D/+CsGGiCbsIDYVQUMHuA4oOgLys+iGHWRYp2rYoTcOE3swPJn5u/kq5fpjfDmK/YoW8qxyVtnJd2zo9Ss1hCXIIQksl4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BCqOHGcD; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1780027558; c=relaxed/simple;
+	bh=6IsELoolEHQcgb8J0nc5/SX9zn0YH4u/k6MycduWeG8=;
+	h=Date:To:From:Subject:Message-Id; b=Nc7qDofOj3IW95013nbZrQwjUj5LqqozxYJSDGG1XwRKqvN0fq/vnqqs9BEA2vEtw7rFk2zfNJyVgoKMLRtgdG4k9Txx/bHTz7HJOhK6mjAfMwo0ZupjK1go9Sw2rTxfBIDSAxbXYMKDY9vwaiDxPaM+pa5TeUhAVk+xbD1tHnE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bvCqQnbW; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BCqOHGcD"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1DD821F00893;
-	Fri, 29 May 2026 04:05:55 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bvCqQnbW"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BB5681F00893;
+	Fri, 29 May 2026 04:05:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1780027555;
-	bh=ywjVcy4w+nDAqODZo/16M4LR1GVY8QzDutbAS2+Kg80=;
+	d=linux-foundation.org; s=korg; t=1780027556;
+	bh=+yivTM1FfJ2SKaElQ1YlFyUCaxzirsgS2POFAj8c784=;
 	h=Date:To:From:Subject;
-	b=BCqOHGcDODGJ9exqJKoCQ7VOSr6ON8ODf7O//WNbrK1ngyUqyId1XiQ8nEBFmnxZq
-	 QnfFj9tFA144DsjpFvCQpJSLZjv6bR6+8bVPE2YQxn/Szeo32BPOPxrx49QYIePH1m
-	 5deyRr+zoPopX1mRMMlusiW1rH6j4TEVTcNt56qg=
-Date: Thu, 28 May 2026 21:05:54 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,shuah@kernel.org,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam.howlett@oracle.com,david@kernel.org,akpm@linux-foundation.org,wangli.ahau@gmail.com,akpm@linux-foundation.org
+	b=bvCqQnbW3yBN5LlWsicbCOc08HGYgS0kFjGd+LVp5uoArsYMgPX73800ej1vpR/At
+	 mOyZL+vxqFT0Hpu/EtbMoTkwHBy6Dg0qvzFl0f0ywcxfU11BjyRv0tnx2kuUO4sVQd
+	 rPqsspHIKYHBOh3EEplmlGJZd0NrTfnXnbsORrCg=
+Date: Thu, 28 May 2026 21:05:56 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,shuah@kernel.org,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam.howlett@oracle.com,david@kernel.org,wangli.ahau@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-mm-respect-build-verbosity-settings-for-32-64-bit-targets.patch removed from -mm tree
-Message-Id: <20260529040555.1DD821F00893@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-mm-suppress-compiler-error-in-liburing-check.patch removed from -mm tree
+Message-Id: <20260529040556.BB5681F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,70 +35,42 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests/mm: respect build verbosity settings for 32/64-bit targets
+     Subject: selftests/mm: suppress compiler error in liburing check
 has been removed from the -mm tree.  Its filename was
-     selftests-mm-respect-build-verbosity-settings-for-32-64-bit-targets.patch
+     selftests-mm-suppress-compiler-error-in-liburing-check.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Li Wang <wangli.ahau@gmail.com>
-Subject: selftests/mm: respect build verbosity settings for 32/64-bit targets
-Date: Wed, 22 Apr 2026 16:04:45 +0800
+Subject: selftests/mm: suppress compiler error in liburing check
+Date: Wed, 22 Apr 2026 16:04:46 +0800
 
-Patch series "selftests/mm: clean up build output and verbosity", v3.
+When building the mm selftests on a system without liburing development
+headers, check_config.sh leaks a raw compiler error:
 
-Currently, the build process for the mm selftests is unnecessarily noisy.
+  /tmp/tmp.kIIOIqwe3n.c:2:10: fatal error: liburing.h: No such file or directory
+      2 | #include <liburing.h>
+        |          ^~~~~~~~~~~~
 
-First, it leaks raw compiler errors during the liburing feature probe if
-the headers are missing, which is confusing since the build system already
-handles this gracefully with a clear warning.
+Since this is an expected failure during the configuration probe,
+redirect the compiler output to /dev/null to hide it.
 
-Second, the specific 32-bit and 64-bit compilation targets ignore the
-standard kbuild verbosity settings, always printing their full compiler
-commands even during a default quiet build.
+And the build system prints a clear warning when this occurs:
 
+  Warning: missing liburing support. Some tests will be skipped.
 
-This patch (of 2):
+Because the user is properly notified about the missing dependency, the
+raw compiler error is redundant and only confuse users.
 
-The 32-bit and 64-bit compilation rules invoke $(CC) directly, bypassing
-the $(Q) quiet prefix and $(call msg,...) helper used by the rest of the
-selftests build system.  This causes these rules to always print the full
-compiler command line, even when V=0 (the default).
+Additionally, update the Makefile to use $(Q) and $(call msg,...) for the
+check_config.sh execution.  This aligns the probe with standard kbuild
+output formatting, providing a clean "CHK" message instead of printing the
+raw command during the build.
 
-Wrap the commands with $(Q) and $(call msg,CC,,$@) to match the convention
-used by lib.mk, so that quiet and verbose builds behave consistently
-across all targets.
-
-==== Build logs ====
-  ...
-  CC       merge
-  CC       rmap
-  CC       soft-dirty
-  gcc -Wall -O2 -I /usr/src/25/tools/testing/selftests/../../..
-                -isystem /usr/src/25/tools/testing/selftests/../../../usr/include
-                -isystem /usr/src/25/tools/testing/selftests/../../../tools/include/uapi
-                -Wunreachable-code -U_FORTIFY_SOURCE -no-pie -D_GNU_SOURCE=
-                -I/usr/src/25/tools/testing/selftests/../../../tools/testing/selftests
-                -m32 -mxsave  protection_keys.c vm_util.c thp_settings.c pkey_util.c
-                -lrt -lpthread -lm -lrt -ldl -lm
-                -o /usr/src/25/tools/testing/selftests/mm/protection_keys_32
-  gcc -Wall -O2 -I /usr/src/25/tools/testing/selftests/../../..
-                -isystem /usr/src/25/tools/testing/selftests/../../../usr/include
-                -isystem /usr/src/25/tools/testing/selftests/../../../tools/include/uapi
-                -Wunreachable-code -U_FORTIFY_SOURCE -no-pie -D_GNU_SOURCE=
-                -I/usr/src/25/tools/testing/selftests/../../../tools/testing/selftests
-                -m32 -mxsave  pkey_sighandler_tests.c vm_util.c thp_settings.c pkey_util.c
-                -lrt -lpthread -lm -lrt -ldl -lm
-                -o /usr/src/25/tools/testing/selftests/mm/pkey_sighandler_tests_32
-  ...
-
-Link: https://lore.kernel.org/20260422080446.26020-1-wangli.ahau@gmail.com
-Link: https://lore.kernel.org/20260422080446.26020-2-wangli.ahau@gmail.com
+Link: https://lore.kernel.org/20260422080446.26020-3-wangli.ahau@gmail.com
 Signed-off-by: Li Wang <wangli.ahau@gmail.com>
-Reported-by: Andrew Morton <akpm@linux-foundation.org>
-Tested-by: Andrew Morton <akpm@linux-foundation.org>
 Tested-by: David Hildenbrand (Arm) <david@kernel.org>
 Acked-by: David Hildenbrand (Arm) <david@kernel.org>
 Cc: Liam Howlett <liam.howlett@oracle.com>
@@ -111,30 +83,32 @@ Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/Makefile |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ tools/testing/selftests/mm/Makefile        |    3 ++-
+ tools/testing/selftests/mm/check_config.sh |    2 +-
+ 2 files changed, 3 insertions(+), 2 deletions(-)
 
---- a/tools/testing/selftests/mm/Makefile~selftests-mm-respect-build-verbosity-settings-for-32-64-bit-targets
-+++ a/tools/testing/selftests/mm/Makefile
-@@ -216,7 +216,8 @@ ifeq ($(CAN_BUILD_I386),1)
- $(BINARIES_32): CFLAGS += -m32 -mxsave
- $(BINARIES_32): LDLIBS += -lrt -ldl -lm
- $(BINARIES_32): $(OUTPUT)/%_32: %.c
--	$(CC) $(CFLAGS) $(EXTRA_CFLAGS) $(notdir $^) $(LDLIBS) -o $@
-+	$(call msg,CC,,$@)
-+	$(Q)$(CC) $(CFLAGS) $(EXTRA_CFLAGS) $(notdir $^) $(LDLIBS) -o $@
- $(foreach t,$(VMTARGETS),$(eval $(call gen-target-rule-32,$(t))))
- endif
+--- a/tools/testing/selftests/mm/check_config.sh~selftests-mm-suppress-compiler-error-in-liburing-check
++++ a/tools/testing/selftests/mm/check_config.sh
+@@ -16,7 +16,7 @@ echo "#include <sys/types.h>"        > $
+ echo "#include <liburing.h>"        >> $tmpfile_c
+ echo "int func(void) { return 0; }" >> $tmpfile_c
  
-@@ -224,7 +225,8 @@ ifeq ($(CAN_BUILD_X86_64),1)
- $(BINARIES_64): CFLAGS += -m64 -mxsave
- $(BINARIES_64): LDLIBS += -lrt -ldl
- $(BINARIES_64): $(OUTPUT)/%_64: %.c
--	$(CC) $(CFLAGS) $(EXTRA_CFLAGS) $(notdir $^) $(LDLIBS) -o $@
-+	$(call msg,CC,,$@)
-+	$(Q)$(CC) $(CFLAGS) $(EXTRA_CFLAGS) $(notdir $^) $(LDLIBS) -o $@
- $(foreach t,$(VMTARGETS),$(eval $(call gen-target-rule-64,$(t))))
- endif
+-$CC $CFLAGS -c $tmpfile_c -o $tmpfile_o
++$CC $CFLAGS -c $tmpfile_c -o $tmpfile_o >/dev/null 2>&1
+ 
+ if [ -f $tmpfile_o ]; then
+     echo "#define LOCAL_CONFIG_HAVE_LIBURING 1"  > $OUTPUT_H_FILE
+--- a/tools/testing/selftests/mm/Makefile~selftests-mm-suppress-compiler-error-in-liburing-check
++++ a/tools/testing/selftests/mm/Makefile
+@@ -263,7 +263,8 @@ $(OUTPUT)/migration: LDLIBS += -lnuma
+ $(OUTPUT)/rmap: LDLIBS += -lnuma
+ 
+ local_config.mk local_config.h: check_config.sh
+-	CC="$(CC)" CFLAGS="$(CFLAGS)" ./check_config.sh
++	$(call msg,CHK,config,$@)
++	$(Q)CC="$(CC)" CFLAGS="$(CFLAGS)" ./check_config.sh
+ 
+ EXTRA_CLEAN += local_config.mk local_config.h
  
 _
 
