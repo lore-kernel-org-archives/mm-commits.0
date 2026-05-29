@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9234C36DA1A
-	for <mm-commits@vger.kernel.org>; Fri, 29 May 2026 04:06:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D505836E466
+	for <mm-commits@vger.kernel.org>; Fri, 29 May 2026 04:06:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780027611; cv=none; b=nsI7pr9qd1e4SiQoQJlEGMHv125CznqMwf2Og0osboM0ib2DNlUmJ4c2PTp15Z8YXvo8bvs7wC61t/JLuW40RpEcsBPftIlsU5vp83u1hK1gNuxFwLojRHOJ7TBn8oawSPstN4NnWMTCk5dtHeAIXBr9c9kF//6JQRzyjBGSvE0=
+	t=1780027613; cv=none; b=cRxHtiz8p/JBKdXUGDssymXuQCM5Are8uQP8fuGiFhhpV1SJm1ST9Hm5SWlkfrV9eongMFKdBG9oswDxRCfWebnZ3LjkO5vh827oI1y/M/RwY8waty3of+bgQBwYa305ULS/erzkAHRk59JI4rvP2D4fAJAmPwRRUMwCnkwmdNk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780027611; c=relaxed/simple;
-	bh=2vEdHZf76HWVoizhSTP6QR/25gi01E6jMc8vnJ1UTuc=;
-	h=Date:To:From:Subject:Message-Id; b=DthYOn0wmuaLNiw//XRdjiutFSU03Dpi+71kYZT54oRuLJRQvfSmtD7/lFeeZL1j8ldbyD9ZHTrz6fKmuBPdhdEYFew3/S0Xgt77gXB4tYTGAY87eK6zKacqHPCjMxWyKxWVcMdHNmuxfxMaHnPHnHBTQAYtd78gLnYiWkwBLLo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EUXUb5qc; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1780027613; c=relaxed/simple;
+	bh=KJuk1Ac/vSZ7AGXMHT3nVksjhu2b7crNLe76FNOR4Yo=;
+	h=Date:To:From:Subject:Message-Id; b=ATdEQqiWjk3PCS2+tw/IrLzErRuAM4hu3pcB0OsLkHwAEgadcCTDDTCz26L2OgLUsZjDn13Z43Q0YGx+6zLSxlDeSSSxMLlL74DIhoEXTKraw2z7qIMr81dbyYWfWlYs99n4ZN/qSHSnvvce22JXGr1/vWEoQjhfPLWhE4mnsbk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=F1DGedJP; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EUXUb5qc"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 662921F00893;
-	Fri, 29 May 2026 04:06:50 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="F1DGedJP"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A73D61F00898;
+	Fri, 29 May 2026 04:06:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1780027610;
-	bh=tQgnp6OIG4fLuqYEJMm3iEmebVuPsKRculZSTOeIZKs=;
+	d=linux-foundation.org; s=korg; t=1780027611;
+	bh=NGhFa7J60Yre6EGjXrhCd9aYGwTJE9fnQa7ZLasKKIA=;
 	h=Date:To:From:Subject;
-	b=EUXUb5qc5e583nCCUeD+hXfZBiAUsQZEEoSJoMUZt5G/8KueR0SyeUF1Q1xpjpbjP
-	 S+nR9xGcGfRMIWKIq8RLRj8Cn7Wtb2PxVsqhzPU8yomb1to5ef81K4dwrIbBqkaLST
-	 aPBIUPr4Tpuomthp7OO3rywxhkwRsGwHAGY3kPqM=
-Date: Thu, 28 May 2026 21:06:50 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,sj@kernel.org,ryan.roberts@arm.com,npache@redhat.com,ljs@kernel.org,liam@infradead.org,lance.yang@linux.dev,dev.jain@arm.com,david@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,liuye@kylinos.cn,akpm@linux-foundation.org
+	b=F1DGedJPsGLOfbQMKFTPn6P0EIuTChQf67gucY+z64fPx6bEPHMvEfjnlSYT6jRZ+
+	 yO6UoMPRawyPfjkKmpExQA3TMGAJspLP8m6Fv58TJ45qY65Xrd1RXEC3VDxE5g/+qw
+	 xjaCiNF/DHY1dPq12G8zLUXK4BcTWeAy9LeS0za8=
+Date: Thu, 28 May 2026 21:06:51 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,ryan.roberts@arm.com,npache@redhat.com,ljs@kernel.org,liam@infradead.org,lance.yang@linux.dev,dev.jain@arm.com,david@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,leitao@debian.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-khugepaged-use-align-helpers-for-pmd-alignment.patch removed from -mm tree
-Message-Id: <20260529040650.662921F00893@smtp.kernel.org>
+Subject: [merged mm-stable] mm-huge_memory-use-sysfs_match_string-in-defrag_store.patch removed from -mm tree
+Message-Id: <20260529040651.A73D61F00898@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,77 +35,156 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/khugepaged: use ALIGN helpers for PMD alignment
+     Subject: mm: huge_memory: use sysfs_match_string() in defrag_store()
 has been removed from the -mm tree.  Its filename was
-     mm-khugepaged-use-align-helpers-for-pmd-alignment.patch
+     mm-huge_memory-use-sysfs_match_string-in-defrag_store.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Ye Liu <liuye@kylinos.cn>
-Subject: mm/khugepaged: use ALIGN helpers for PMD alignment
-Date: Thu, 9 Apr 2026 09:43:22 +0800
+From: Breno Leitao <leitao@debian.org>
+Subject: mm: huge_memory: use sysfs_match_string() in defrag_store()
+Date: Wed, 08 Apr 2026 08:47:00 -0700
 
-PMD alignment in khugepaged is currently implemented using a mix of
-rounding helpers and open-coded bitmask operations.
+Patch series "mm: huge_memory: clean up defrag sysfs with shared", v2.
 
-Use ALIGN() and ALIGN_DOWN() consistently for PMD-sized address range
-alignment, matching the preferred style for address and size handling.
+Refactor defrag_store() and defrag_show() to use shared data tables
+instead of duplicated if/else chains.
 
-No functional change intended.
+Patch 1 introduces an enum defrag_mode, a defrag_mode_strings[] table, and
+a defrag_flags[] mapping array, then rewrites defrag_store() to use
+sysfs_match_string() with a loop over defrag_flags[].
 
-Link: https://lore.kernel.org/20260409014323.2385982-1-ye.liu@linux.dev
-Signed-off-by: Ye Liu <liuye@kylinos.cn>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
+Patch 2 refactors defrag_show() to use the same arrays, replacing its
+hardcoded if/else chain of test_bit() calls and string literals.
+
+This follows the same pattern applied to anon_enabled_store() in commit
+522dfb4ba71f ("mm: huge_memory: refactor anon_enabled_store() with
+change_anon_orders()").
+
+
+This patch (of 2):
+
+Replace the if/else chain of sysfs_streq() calls in defrag_store() with
+sysfs_match_string() and a defrag_mode_strings[] table.
+
+Introduce enum defrag_mode and defrag_flags[] array mapping each mode to
+its corresponding transparent_hugepage_flag.  The store function now loops
+over defrag_flags[], setting the bit for the selected mode and clearing
+the others.  When mode is DEFRAG_NEVER (index 4), no index in the
+4-element defrag_flags[] matches, so all flags are cleared.
+
+Note that the enum ordering (always, defer, defer+madvise, madvise, never)
+differs from the original if/else chain order in defrag_store() (always,
+defer+madvise, defer, madvise, never).  This is intentional to match the
+display order used by defrag_show().
+
+This is a follow-up cleanup to commit 522dfb4ba71f ("mm: huge_memory:
+refactor anon_enabled_store() with change_anon_orders()") which applied
+the same sysfs_match_string() pattern to anon_enabled_store().
+
+Link: https://lore.kernel.org/20260408-thp_defrag-v2-0-bc544c1bde4e@debian.org
+Link: https://lore.kernel.org/20260408-thp_defrag-v2-1-bc544c1bde4e@debian.org
+Signed-off-by: Breno Leitao <leitao@debian.org>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Tested-by: Lance Yang <lance.yang@linux.dev>
+Reviewed-by: Lance Yang <lance.yang@linux.dev>
 Reviewed-by: Barry Song <baohua@kernel.org>
 Reviewed-by: Lorenzo Stoakes <ljs@kernel.org>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Reviewed-by: SeongJae Park <sj@kernel.org>
+Tested-by: Zi Yan <ziy@nvidia.com>
+Acked-by: Zi Yan <ziy@nvidia.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Dev Jain <dev.jain@arm.com>
-Cc: Lance Yang <lance.yang@linux.dev>
 Cc: Liam Howlett <liam@infradead.org>
-Cc: Liu Ye <liuye@kylinos.cn>
 Cc: Nico Pache <npache@redhat.com>
 Cc: Ryan Roberts <ryan.roberts@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ mm/huge_memory.c |   60 +++++++++++++++++++++++++--------------------
+ 1 file changed, 34 insertions(+), 26 deletions(-)
 
---- a/mm/khugepaged.c~mm-khugepaged-use-align-helpers-for-pmd-alignment
-+++ a/mm/khugepaged.c
-@@ -2528,8 +2528,8 @@ static void collapse_scan_mm_slot(unsign
- 			cc->progress++;
- 			continue;
- 		}
--		hstart = round_up(vma->vm_start, HPAGE_PMD_SIZE);
--		hend = round_down(vma->vm_end, HPAGE_PMD_SIZE);
-+		hstart = ALIGN(vma->vm_start, HPAGE_PMD_SIZE);
-+		hend = ALIGN_DOWN(vma->vm_end, HPAGE_PMD_SIZE);
- 		if (khugepaged_scan.address > hend) {
- 			cc->progress++;
- 			continue;
-@@ -2845,8 +2845,8 @@ int madvise_collapse(struct vm_area_stru
- 	mmgrab(mm);
- 	lru_add_drain_all();
+--- a/mm/huge_memory.c~mm-huge_memory-use-sysfs_match_string-in-defrag_store
++++ a/mm/huge_memory.c
+@@ -429,6 +429,29 @@ ssize_t single_hugepage_flag_store(struc
+ 	return count;
+ }
  
--	hstart = (start + ~HPAGE_PMD_MASK) & HPAGE_PMD_MASK;
--	hend = end & HPAGE_PMD_MASK;
-+	hstart = ALIGN(start, HPAGE_PMD_SIZE);
-+	hend = ALIGN_DOWN(end, HPAGE_PMD_SIZE);
++enum defrag_mode {
++	DEFRAG_ALWAYS = 0,
++	DEFRAG_DEFER,
++	DEFRAG_DEFER_MADVISE,
++	DEFRAG_MADVISE,
++	DEFRAG_NEVER,
++};
++
++static const char * const defrag_mode_strings[] = {
++	[DEFRAG_ALWAYS]		= "always",
++	[DEFRAG_DEFER]		= "defer",
++	[DEFRAG_DEFER_MADVISE]	= "defer+madvise",
++	[DEFRAG_MADVISE]	= "madvise",
++	[DEFRAG_NEVER]		= "never",
++};
++
++static const enum transparent_hugepage_flag defrag_flags[] = {
++	[DEFRAG_ALWAYS]		= TRANSPARENT_HUGEPAGE_DEFRAG_DIRECT_FLAG,
++	[DEFRAG_DEFER]		= TRANSPARENT_HUGEPAGE_DEFRAG_KSWAPD_FLAG,
++	[DEFRAG_DEFER_MADVISE]	= TRANSPARENT_HUGEPAGE_DEFRAG_KSWAPD_OR_MADV_FLAG,
++	[DEFRAG_MADVISE]	= TRANSPARENT_HUGEPAGE_DEFRAG_REQ_MADV_FLAG,
++};
++
+ static ssize_t defrag_show(struct kobject *kobj,
+ 			   struct kobj_attribute *attr, char *buf)
+ {
+@@ -456,34 +479,19 @@ static ssize_t defrag_store(struct kobje
+ 			    struct kobj_attribute *attr,
+ 			    const char *buf, size_t count)
+ {
+-	if (sysfs_streq(buf, "always")) {
+-		clear_bit(TRANSPARENT_HUGEPAGE_DEFRAG_KSWAPD_FLAG, &transparent_hugepage_flags);
+-		clear_bit(TRANSPARENT_HUGEPAGE_DEFRAG_KSWAPD_OR_MADV_FLAG, &transparent_hugepage_flags);
+-		clear_bit(TRANSPARENT_HUGEPAGE_DEFRAG_REQ_MADV_FLAG, &transparent_hugepage_flags);
+-		set_bit(TRANSPARENT_HUGEPAGE_DEFRAG_DIRECT_FLAG, &transparent_hugepage_flags);
+-	} else if (sysfs_streq(buf, "defer+madvise")) {
+-		clear_bit(TRANSPARENT_HUGEPAGE_DEFRAG_DIRECT_FLAG, &transparent_hugepage_flags);
+-		clear_bit(TRANSPARENT_HUGEPAGE_DEFRAG_KSWAPD_FLAG, &transparent_hugepage_flags);
+-		clear_bit(TRANSPARENT_HUGEPAGE_DEFRAG_REQ_MADV_FLAG, &transparent_hugepage_flags);
+-		set_bit(TRANSPARENT_HUGEPAGE_DEFRAG_KSWAPD_OR_MADV_FLAG, &transparent_hugepage_flags);
+-	} else if (sysfs_streq(buf, "defer")) {
+-		clear_bit(TRANSPARENT_HUGEPAGE_DEFRAG_DIRECT_FLAG, &transparent_hugepage_flags);
+-		clear_bit(TRANSPARENT_HUGEPAGE_DEFRAG_KSWAPD_OR_MADV_FLAG, &transparent_hugepage_flags);
+-		clear_bit(TRANSPARENT_HUGEPAGE_DEFRAG_REQ_MADV_FLAG, &transparent_hugepage_flags);
+-		set_bit(TRANSPARENT_HUGEPAGE_DEFRAG_KSWAPD_FLAG, &transparent_hugepage_flags);
+-	} else if (sysfs_streq(buf, "madvise")) {
+-		clear_bit(TRANSPARENT_HUGEPAGE_DEFRAG_DIRECT_FLAG, &transparent_hugepage_flags);
+-		clear_bit(TRANSPARENT_HUGEPAGE_DEFRAG_KSWAPD_FLAG, &transparent_hugepage_flags);
+-		clear_bit(TRANSPARENT_HUGEPAGE_DEFRAG_KSWAPD_OR_MADV_FLAG, &transparent_hugepage_flags);
+-		set_bit(TRANSPARENT_HUGEPAGE_DEFRAG_REQ_MADV_FLAG, &transparent_hugepage_flags);
+-	} else if (sysfs_streq(buf, "never")) {
+-		clear_bit(TRANSPARENT_HUGEPAGE_DEFRAG_DIRECT_FLAG, &transparent_hugepage_flags);
+-		clear_bit(TRANSPARENT_HUGEPAGE_DEFRAG_KSWAPD_FLAG, &transparent_hugepage_flags);
+-		clear_bit(TRANSPARENT_HUGEPAGE_DEFRAG_KSWAPD_OR_MADV_FLAG, &transparent_hugepage_flags);
+-		clear_bit(TRANSPARENT_HUGEPAGE_DEFRAG_REQ_MADV_FLAG, &transparent_hugepage_flags);
+-	} else
++	int mode, m;
++
++	mode = sysfs_match_string(defrag_mode_strings, buf);
++	if (mode < 0)
+ 		return -EINVAL;
  
- 	for (addr = hstart; addr < hend; addr += HPAGE_PMD_SIZE) {
- 		enum scan_result result = SCAN_FAIL;
++	for (m = 0; m < ARRAY_SIZE(defrag_flags); m++) {
++		if (m == mode)
++			set_bit(defrag_flags[m], &transparent_hugepage_flags);
++		else
++			clear_bit(defrag_flags[m], &transparent_hugepage_flags);
++	}
++
+ 	return count;
+ }
+ static struct kobj_attribute defrag_attr = __ATTR_RW(defrag);
 _
 
-Patches currently in -mm which might be from liuye@kylinos.cn are
+Patches currently in -mm which might be from leitao@debian.org are
 
-mm-khugepaged-fix-inconsistent-mmf_vm_hugepage-flag-due-to-allocation-failure-order.patch
-tools-mm-page-types-fix-typo-in-madvise-error-message.patch
-tools-mm-page-types-fix-ternary-operator-precedence-in-sigbus-handler.patch
-tools-mm-page-types-fix-kpageflags-option-argument-in-getopt_long.patch
-mm-memory-failure-remove-hugetlb-output-parameter-from-try_memory_failure_hugetlb.patch
 
