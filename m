@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8AC3036F418
-	for <mm-commits@vger.kernel.org>; Fri, 29 May 2026 04:06:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 98A5236F8F5
+	for <mm-commits@vger.kernel.org>; Fri, 29 May 2026 04:06:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780027616; cv=none; b=CB8P8O+U//tKPI7OxqQVwt372Ufi/kK58f95k64ysO9qlhe1n8ChU/MMkIhmB4G6ZpG3/VPFUywb9OYoyQkddUfdoaDNjfgEUjVCFi5WQ5UgEaSd16aXcIQLrfaGpL9xYM0WyPrTSRwlQhYQlCCRWub9uO71gEJYhaIHue7+X0w=
+	t=1780027617; cv=none; b=Uwcn+wrQDTnqR65cIRfvvodetS+oibS8JlLFXnsxEp9oAvk91LNXvi1MO1LJc2QZmYygDNGl9/Du5KOAomprz8pKH/sfaRLCjIuq921vuVzPwmAAK/bWK6SwXyhJ8wRjGYZJeUVmBTrRmdSBQqB6XUg3woowBXb4o6VAV+Gk/EU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780027616; c=relaxed/simple;
-	bh=Yb6gflobZd9GU/pfFfeRXzlYOR2MryMKB3ni/f0enD8=;
-	h=Date:To:From:Subject:Message-Id; b=Fakk6O/8hQ1TKPYQcZQYjKO4LuqBEHUHxB0tHEXoW3/Yo+fze5LKmrFT3GkiUu1NFS6sqKnf66r0X4Usce+UJPuc2+W/7CPKky5DHHZ0Az8FSwjCvo5bWX50a+67jajURB4mWeCymh1CNG/QN3YgiHF5X6QOo6fmh76pdD3+TcM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UGK8TN0t; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1780027617; c=relaxed/simple;
+	bh=W0lN0SChJ6HDGwdFtjzqk7emGiEFgRdsukMouhxQ0GU=;
+	h=Date:To:From:Subject:Message-Id; b=YJLhLqApWmPL7hssbaKigFVGX4GCe9zKt00lne0Qcb4vAHq1815BsqpigdH8mxFgnfnFgo3BU3xJs4opbRJ8jovl4QxFjbjJG1dKFdiGcz4vPKfk9Ir6+483j0BQ6YcZF1s5KZsIQwBhW/3w0f5GOA1Pz6t1aiIFOQIAYRaQF+M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mNqdrGPW; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UGK8TN0t"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5E8591F00893;
-	Fri, 29 May 2026 04:06:55 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mNqdrGPW"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6FA5E1F00898;
+	Fri, 29 May 2026 04:06:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1780027615;
-	bh=UH72E3gsHrqDmzsQSj1GA64lzvEbnEaLg+L7ePoXDYQ=;
+	d=linux-foundation.org; s=korg; t=1780027616;
+	bh=r3ntmQ9pF9xDlzyixeAw7swKRQHeCx+OWlb6Qim9AQs=;
 	h=Date:To:From:Subject;
-	b=UGK8TN0tACzfTgaTRZ5EZnz5U3OyWDjPHKW0xJ/z0tQJybFMjKNe8xG0guLRkgJqC
-	 6XSLEQV65vSkr4hXCjWKeTvfe8i/NZkSOj2XTZZ4HgyblwFHAIX2nK6pqSdGab4Vey
-	 2znVS88aj2yuF8i6SAg70uNg4ByCew0JVm/EYEUg=
-Date: Thu, 28 May 2026 21:06:54 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,shikemeng@huaweicloud.com,nphamcs@gmail.com,neil@brown.name,kasong@tencent.com,david@redhat.com,david@kernel.org,chrisl@kernel.org,bhe@redhat.com,devnexen@gmail.com,akpm@linux-foundation.org
+	b=mNqdrGPW7dOgDkTNm7SbgrtJ17LX5oFVNUGm0cNiPHOC5orl769H7rtSjWWQ0j8tO
+	 sRXTq2eGbk1UATbY5Rc8LN7IKD5rMY2VjU2zaZ9AhBhs79fwRZuMchD+E0/lI7mxAs
+	 6GdTBCViE9LsH005NqwNa1cN8siEZj2J2Q9ZEMB4=
+Date: Thu, 28 May 2026 21:06:56 -0700
+To: mm-commits@vger.kernel.org,sj@kernel.org,nao.horiguchi@gmail.com,linmiaohe@huawei.com,wangxuewen@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-page_io-rename-swap_iocb-fields-for-clarity.patch removed from -mm tree
-Message-Id: <20260529040655.5E8591F00893@smtp.kernel.org>
+Subject: [merged mm-stable] mm-memory-failure-replace-magic-number-3-with-get_page_max_retry_num.patch removed from -mm tree
+Message-Id: <20260529040656.6FA5E1F00898@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,161 +35,48 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/page_io: rename swap_iocb fields for clarity
+     Subject: mm/memory-failure: replace magic number 3 with GET_PAGE_MAX_RETRY_NUM
 has been removed from the -mm tree.  Its filename was
-     mm-page_io-rename-swap_iocb-fields-for-clarity.patch
+     mm-memory-failure-replace-magic-number-3-with-get_page_max_retry_num.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: David Carlier <devnexen@gmail.com>
-Subject: mm/page_io: rename swap_iocb fields for clarity
-Date: Thu, 2 Apr 2026 08:26:50 +0100
+From: wangxuewen <wangxuewen@kylinos.cn>
+Subject: mm/memory-failure: replace magic number 3 with GET_PAGE_MAX_RETRY_NUM
+Date: Thu, 2 Apr 2026 14:49:46 +0800
 
-swap_iocb->pages tracks the number of bvec entries (folios), not base
-pages.  Rename the array from bvec to bvecs and the counter from pages to
-nr_bvecs to accurately reflect their purpose.
+Replace the hardcoded magic number 3 in get_any_page() with the existing
+GET_PAGE_MAX_RETRY_NUM macro for code consistency and maintainability.
 
-Link: https://lore.kernel.org/20260402072650.48811-1-devnexen@gmail.com
-Signed-off-by: David Carlier <devnexen@gmail.com>
-Suggested-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Suggested-by: David Hildenbrand <david@redhat.com>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Acked-by: Chris Li <chrisl@kernel.org>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Kairui Song <kasong@tencent.com>
-Cc: Kemeng Shi <shikemeng@huaweicloud.com>
-Cc: NeilBrown <neil@brown.name>
-Cc: Nhat Pham <nphamcs@gmail.com>
+This change has no functional impact, only improves code readability and
+unifies the retry limit configuration.
+
+Link: https://lore.kernel.org/20260402064946.1124250-1-18810879172@163.com
+Signed-off-by: wangxuewen <wangxuewen@kylinos.cn>
+Acked-by: SeongJae Park <sj@kernel.org>
+Acked-by: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_io.c |   42 +++++++++++++++++++++---------------------
- 1 file changed, 21 insertions(+), 21 deletions(-)
+ mm/memory-failure.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/page_io.c~mm-page_io-rename-swap_iocb-fields-for-clarity
-+++ a/mm/page_io.c
-@@ -326,8 +326,8 @@ static void bio_associate_blkg_from_page
- 
- struct swap_iocb {
- 	struct kiocb		iocb;
--	struct bio_vec		bvec[SWAP_CLUSTER_MAX];
--	int			pages;
-+	struct bio_vec		bvecs[SWAP_CLUSTER_MAX];
-+	int			nr_bvecs;
- 	int			len;
- };
- static mempool_t *sio_pool;
-@@ -348,7 +348,7 @@ int sio_pool_init(void)
- static void sio_write_complete(struct kiocb *iocb, long ret)
- {
- 	struct swap_iocb *sio = container_of(iocb, struct swap_iocb, iocb);
--	struct page *page = sio->bvec[0].bv_page;
-+	struct page *page = sio->bvecs[0].bv_page;
- 	int p;
- 
- 	if (ret != sio->len) {
-@@ -362,15 +362,15 @@ static void sio_write_complete(struct ki
- 		 */
- 		pr_err_ratelimited("Write error %ld on dio swapfile (%llu)\n",
- 				   ret, swap_dev_pos(page_swap_entry(page)));
--		for (p = 0; p < sio->pages; p++) {
--			page = sio->bvec[p].bv_page;
-+		for (p = 0; p < sio->nr_bvecs; p++) {
-+			page = sio->bvecs[p].bv_page;
- 			set_page_dirty(page);
- 			ClearPageReclaim(page);
- 		}
- 	}
- 
--	for (p = 0; p < sio->pages; p++)
--		end_page_writeback(sio->bvec[p].bv_page);
-+	for (p = 0; p < sio->nr_bvecs; p++)
-+		end_page_writeback(sio->bvecs[p].bv_page);
- 
- 	mempool_free(sio, sio_pool);
- }
-@@ -397,13 +397,13 @@ static void swap_writepage_fs(struct fol
- 		init_sync_kiocb(&sio->iocb, swap_file);
- 		sio->iocb.ki_complete = sio_write_complete;
- 		sio->iocb.ki_pos = pos;
--		sio->pages = 0;
-+		sio->nr_bvecs = 0;
- 		sio->len = 0;
- 	}
--	bvec_set_folio(&sio->bvec[sio->pages], folio, folio_size(folio), 0);
-+	bvec_set_folio(&sio->bvecs[sio->nr_bvecs], folio, folio_size(folio), 0);
- 	sio->len += folio_size(folio);
--	sio->pages += 1;
--	if (sio->pages == ARRAY_SIZE(sio->bvec) || !swap_plug) {
-+	sio->nr_bvecs += 1;
-+	if (sio->nr_bvecs == ARRAY_SIZE(sio->bvecs) || !swap_plug) {
- 		swap_write_unplug(sio);
- 		sio = NULL;
- 	}
-@@ -477,7 +477,7 @@ void swap_write_unplug(struct swap_iocb
- 	struct address_space *mapping = sio->iocb.ki_filp->f_mapping;
- 	int ret;
- 
--	iov_iter_bvec(&from, ITER_SOURCE, sio->bvec, sio->pages, sio->len);
-+	iov_iter_bvec(&from, ITER_SOURCE, sio->bvecs, sio->nr_bvecs, sio->len);
- 	ret = mapping->a_ops->swap_rw(&sio->iocb, &from);
- 	if (ret != -EIOCBQUEUED)
- 		sio_write_complete(&sio->iocb, ret);
-@@ -489,8 +489,8 @@ static void sio_read_complete(struct kio
- 	int p;
- 
- 	if (ret == sio->len) {
--		for (p = 0; p < sio->pages; p++) {
--			struct folio *folio = page_folio(sio->bvec[p].bv_page);
-+		for (p = 0; p < sio->nr_bvecs; p++) {
-+			struct folio *folio = page_folio(sio->bvecs[p].bv_page);
- 
- 			count_mthp_stat(folio_order(folio), MTHP_STAT_SWPIN);
- 			count_memcg_folio_events(folio, PSWPIN, folio_nr_pages(folio));
-@@ -499,8 +499,8 @@ static void sio_read_complete(struct kio
- 		}
- 		count_vm_events(PSWPIN, sio->len >> PAGE_SHIFT);
- 	} else {
--		for (p = 0; p < sio->pages; p++) {
--			struct folio *folio = page_folio(sio->bvec[p].bv_page);
-+		for (p = 0; p < sio->nr_bvecs; p++) {
-+			struct folio *folio = page_folio(sio->bvecs[p].bv_page);
- 
- 			folio_unlock(folio);
- 		}
-@@ -559,13 +559,13 @@ static void swap_read_folio_fs(struct fo
- 		init_sync_kiocb(&sio->iocb, sis->swap_file);
- 		sio->iocb.ki_pos = pos;
- 		sio->iocb.ki_complete = sio_read_complete;
--		sio->pages = 0;
-+		sio->nr_bvecs = 0;
- 		sio->len = 0;
- 	}
--	bvec_set_folio(&sio->bvec[sio->pages], folio, folio_size(folio), 0);
-+	bvec_set_folio(&sio->bvecs[sio->nr_bvecs], folio, folio_size(folio), 0);
- 	sio->len += folio_size(folio);
--	sio->pages += 1;
--	if (sio->pages == ARRAY_SIZE(sio->bvec) || !plug) {
-+	sio->nr_bvecs += 1;
-+	if (sio->nr_bvecs == ARRAY_SIZE(sio->bvecs) || !plug) {
- 		swap_read_unplug(sio);
- 		sio = NULL;
- 	}
-@@ -666,7 +666,7 @@ void __swap_read_unplug(struct swap_iocb
- 	struct address_space *mapping = sio->iocb.ki_filp->f_mapping;
- 	int ret;
- 
--	iov_iter_bvec(&from, ITER_DEST, sio->bvec, sio->pages, sio->len);
-+	iov_iter_bvec(&from, ITER_DEST, sio->bvecs, sio->nr_bvecs, sio->len);
- 	ret = mapping->a_ops->swap_rw(&sio->iocb, &from);
- 	if (ret != -EIOCBQUEUED)
- 		sio_read_complete(&sio->iocb, ret);
+--- a/mm/memory-failure.c~mm-memory-failure-replace-magic-number-3-with-get_page_max_retry_num
++++ a/mm/memory-failure.c
+@@ -1418,7 +1418,7 @@ try_again:
+ 			 * We raced with (possibly temporary) unhandlable
+ 			 * page, retry.
+ 			 */
+-			if (pass++ < 3) {
++			if (pass++ < GET_PAGE_MAX_RETRY_NUM) {
+ 				shake_page(p);
+ 				goto try_again;
+ 			}
 _
 
-Patches currently in -mm which might be from devnexen@gmail.com are
+Patches currently in -mm which might be from wangxuewen@kylinos.cn are
 
-mm-shrinker-avoid-out-of-bounds-read-in-set_shrinker_bit.patch
-mm-swap-pm-hibernate-atomically-replace-hibernation-pin.patch
 
