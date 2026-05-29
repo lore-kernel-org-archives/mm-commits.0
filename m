@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AEA5D36F8FE
-	for <mm-commits@vger.kernel.org>; Fri, 29 May 2026 04:07:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5565A36F8F3
+	for <mm-commits@vger.kernel.org>; Fri, 29 May 2026 04:07:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780027648; cv=none; b=NRbB+GZgSYvH6XKLigpYVO1q0NmE+1CDds6Es6UekV/CeL8mK+xNs18pPL9NO//5MdMzORnjkNQHYTsgE2vRopu8+o/RSpxnSA/VmL6NnD4yNCg+KH2ZTmza/6a31wBrjhjmfWI5vF4jodGO8tUsL+h/t9oJYwFu/XQHP+6ojh8=
+	t=1780027649; cv=none; b=DDQNYqTwP4mhdRwSzHojiWwL5AXcMlTNp1O5lvRvBg5epxWwrf5kRejyRI71bC+M4GgaRKoWReePqw8Qez8W4myrlyvvfJ6vMbzawiMELIp9RT7TnAHx408IQPXplA/Yy49AaRKZTPjrgkdJyNw3s+6Vyu98o3ht+nfggu0zNMY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780027648; c=relaxed/simple;
-	bh=lmu07rsWIom8LklPOSsn7KbZxQEIeIXrl6zcv5W6QHI=;
-	h=Date:To:From:Subject:Message-Id; b=YvmNRvVPG24lPCqqw+L4hCVFCcKJhPQIF9xs2EN77IK1N/3xhKkCJvTpif9P5CnxhiZ/E18r85N93J8B0Weal9iluFWBX+Kk5nKK5S0JKa/bRAlwcjTvB6AQ7uhniIqjGdlDBcLPMlOh3nz2sVmpFxdnYTU0gYvIV2X6u9U/T+Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jrsngvrj; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1780027649; c=relaxed/simple;
+	bh=puGNJ6GINhuQdRxc4P2xT3ywY7OaUZJrO5Wt9IfWMt0=;
+	h=Date:To:From:Subject:Message-Id; b=tqBFE5nVdfHpWykxLfYt3NpB3uvkERPyaR/AnnR69L7uIr2eYdwykqN2hsEsTjQA3TQ23ENtrv4i6sbqnwGHo8KSEYaAHUda8X4BhgA3e7lPpTQv+dunwxtCjkQjyULmbs5EvqQ0MfdO52PyZ9qF/5CziutmGLZct5BxJCsClXo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bSY1Bbpg; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jrsngvrj"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8168F1F00893;
-	Fri, 29 May 2026 04:07:26 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bSY1Bbpg"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D86591F00898;
+	Fri, 29 May 2026 04:07:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1780027646;
-	bh=l749mlOKy7z6XB12oKDoyr8iupVeD2OaScyCtYc3DCA=;
+	d=linux-foundation.org; s=korg; t=1780027647;
+	bh=unJ4pscIq64Bf9sB0/yobpwmP3V/ZY7f25ziFmfHnzQ=;
 	h=Date:To:From:Subject;
-	b=jrsngvrjkxaRcUgwJ3l8va/7nTgEFZvv2orkEVQ6hiISNsyBhZnJn90RXmosp482z
-	 QWiQbbvUk0RdpkIpuutICdMfvi61MMPM3tvDFde6pY75rG6h4zDcGMDvDjH1zx1iyK
-	 TE90EsAzsS8yHJvCgKZQZCVqFnBs8ZDvxE7CCIOo=
-Date: Thu, 28 May 2026 21:07:26 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,skhan@linuxfoundation.org,sj@kernel.org,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,hank20010209@gmail.com,david@kernel.org,corbet@lwn.net,aethernet65535@gmail.com,gutierrez.asier@huawei-partners.com,akpm@linux-foundation.org
+	b=bSY1BbpgsjM2e/emAJErEVnUfJQnmMrCRUa+ipQ05ebuc9kDMI8pyEVcajHGtsET+
+	 4WWy6RWeDMS1qbNXHykuNMciXrcxCLKMkpg3sW5YJFrSCUSLdP1IGvwWJJi9ADZmv5
+	 /v4t2zUaBuLoB822rl6Lm1SdP0h2Q3fGRIuR8LYs=
+Date: Thu, 28 May 2026 21:07:27 -0700
+To: mm-commits@vger.kernel.org,ysato@users.sourceforge.jp,yonghong.song@linux.dev,willy@infradead.org,vbabka@kernel.org,surenb@google.com,song@kernel.org,rppt@kernel.org,riel@surriel.com,mhocko@suse.com,memxor@gmail.com,martin.lau@linux.dev,ljs@kernel.org,liam@infradead.org,jolsa@kernel.org,jannh@google.com,harry@kernel.org,glaubitz@physik.fu-berlin.de,eddyz87@gmail.com,dalias@libc.org,ast@kernel.org,andrii@kernel.org,david@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-support-madv_collapse-via-damos_collapse-scheme-action.patch removed from -mm tree
-Message-Id: <20260529040726.8168F1F00893@smtp.kernel.org>
+Subject: [merged mm-stable] sh-use-folio_mapped-instead-of-page_mapped-in-sh4_flush_cache_page.patch removed from -mm tree
+Message-Id: <20260529040727.D86591F00898@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,275 +35,85 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/damon: support MADV_COLLAPSE via DAMOS_COLLAPSE scheme action
+     Subject: sh: use folio_mapped() instead of page_mapped() in sh4_flush_cache_page()
 has been removed from the -mm tree.  Its filename was
-     mm-damon-support-madv_collapse-via-damos_collapse-scheme-action.patch
+     sh-use-folio_mapped-instead-of-page_mapped-in-sh4_flush_cache_page.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Asier Gutierrez <gutierrez.asier@huawei-partners.com>
-Subject: mm/damon: support MADV_COLLAPSE via DAMOS_COLLAPSE scheme action
-Date: Sun, 26 Apr 2026 16:16:17 -0700
+From: "David Hildenbrand (Arm)" <david@kernel.org>
+Subject: sh: use folio_mapped() instead of page_mapped() in sh4_flush_cache_page()
+Date: Mon, 27 Apr 2026 13:43:14 +0200
 
-This patch set introces a new action:  DAMOS_COLLAPSE.
+Patch series "mm: remove page_mapped()".
 
-For DAMOS_HUGEPAGE and DAMOS_NOHUGEPAGE to work, khugepaged should be
-working, since it relies on hugepage_madvise to add a new slot.  This slot
-should be picked up by khugepaged and eventually collapse (or not, if we
-are using DAMOS_NOHUGEPAGE) the pages.  If THP is not enabled, khugepaged
-will not be working, and therefore no collapse will happen.
+While preparing my slides for an LSF/MM talk, I realized that I did not
+yet remove page_mapped().
 
-DAMOS_COLLAPSE eventually calls madvise_collapse, which will collapse the
-address range synchronously.  In cases where there is a large VMA
-(databases, for example), DAMOS_COLLAPSE allows us to collapse only the
-hot region, and not the entire VMA.
+So let's do that.  In the BPF arena code it's unclear which memdesc we
+would want to allocate in the future: certainly something with a refcount,
+but likely none with a mapcount.  So let's just rely on the page refcount
+instead to decide whether we want to try zapping the page from user page
+tables.
 
-This new action may be required to support autotuning with hugepage
-as a goal[1].
 
-=========
-Benchmarks:
-=========
+This patch (of 3):
 
-MySQL
-=====
+We already have the folio in our hands, so let's just use folio_mapped().
 
-Tests were performed in an ARM physical server with MariaDB 10.5 and
-sysbench. Read only benchmark was perform with gaussian row hitting,
-which follows a normal distribution.
-
-T n, D h: THP set to never, DAMON action set to hugepage
-T m, D h: THP set to madvise, DAMON action set to hugepage
-T n, D c: THP set to never, DAMON action set to collapse
-
-Memory consumption. Lower is better.
-
-+------------------+----------+----------+----------+
-|                  | T n, D h | T m, D h | T n, D c |
-+------------------+----------+----------+----------+
-| Total memory use | 2.13     | 2.20     | 2.20     |
-| Huge pages       | 0        | 1.3      | 1.27     |
-+------------------+----------+----------+----------+
-
-Performance in TPS (Transactions Per Second). Higher is better.
-
-T n, D h: 18225.58
-T m, D h 18252.93
-T n, D c: 18270.21
-
-Performance counter
-
-I got the number of L1 D/I TLB accesses and the number a D/I TLB
-accesses that triggered a page walk. I divided the second by the
-first to get the percentage of page walkes per TLB access. The
-lower the better.
-
-+---------------+--------------+--------------+--------------+
-|               | T n, D h     | T m, D h     | T n, D c     |
-+---------------+--------------+--------------+--------------+
-| L1 DTLB       | 127248242753 | 125431020479 | 125327001821 |
-| L1 ITLB       | 80332558619  | 79346759071  | 79298139590  |
-| DTLB walk     | 75011087     | 52800418     | 55895794     |
-| ITLB walk     | 71577076     | 71505137     | 67262140     |
-| DTLB % misses | 0.058948623  | 0.042095183  | 0.044599961  |
-| ITLB % misses | 0.089100954  | 0.090117275  | 0.084821839  |
-+---------------+--------------+--------------+--------------+
-
-Masim
-=====
-
-I used masim with the "demo" configuration, but changing the times
-to 100 seconds for the initial phase and 50 seconds for the rest of
-the phases.
-
-Memory consumption:
-
-+------------------+----------+----------+----------+
-|                  | T n, D h | T m, D h | T n, D c |
-+------------------+----------+----------+----------+
-| Total memory use | 2.38 GB  | 2.36 GB  | 2.37 GB  |
-| Huge pages       | 0        | 190 MB   | 188 MB   |
-+------------------+----------+----------+----------+
-
-Performance:
-
-THP never, DAMOS_HUGEPAGE
-initial phase:                40,491 accesses/msec, 100001 msecs run
-low phase 0:                  39,658 accesses/msec, 50002 msecs run
-high phase 0:                 41,678 accesses/msec, 50000 msecs run
-low phase 1:                  39,625 accesses/msec, 50003 msecs run
-high phase 1:                 41,658 accesses/msec, 50002 msecs run
-low phase 2:                  39,642 accesses/msec, 50002 msecs run
-high phase 2:                 41,640 accesses/msec, 50001 msecs run
-
-THP madvise, DAMOS_HUGEPAGE
-initial phase:                51,977 accesses/msec, 100000 msecs run
-low phase 0:                  86,953 accesses/msec, 50000 msecs run
-high phase 0:                 94,812 accesses/msec, 50000 msecs run
-low phase 1:                 101,017 accesses/msec, 50000 msecs run
-high phase 1:                 94,841 accesses/msec, 50000 msecs run
-low phase 2:                 100,993 accesses/msec, 50000 msecs run
-high phase 2:                 94,791 accesses/msec, 50001 msecs run
-
-THP never, DAMOS_COLLAPSE
-initial phase:                93,678 accesses/msec, 100001 msecs run
-low phase 0:                 101,475 accesses/msec, 50000 msecs run
-high phase 0:                 98,589 accesses/msec, 50000 msecs run
-low phase 1:                 101,531 accesses/msec, 50001 msecs run
-high phase 1:                 98,506 accesses/msec, 50001 msecs run
-low phase 2:                 101,458 accesses/msec, 50001 msecs run
-high phase 2:                 98,555 accesses/msec, 50000 msecs run
-
-Memory consumption dynamic (how quickly collapses occur):
-
-It shows in seconds how many huge pages are allocated.
-
-+----+----------+----------+
-|    | T m, D h | T n, D c |
-+----+----------+----------+
-| 5  | 32       | 188      |
-| 10 | 48       | 188      |
-| 15 | 64       | 188      |
-| 20 | 96       | 188      |
-| 30 | 112      | 188      |
-| 35 | 144      | 188      |
-| 40 | 160      | 188      |
-| 45 | 190      | 188      |
-| 50 | 190      | 188      |
-| 55 | 190      | 188      |
-| 60 | 190      | 188      |
-+----+----------+----------+
-
-=========
-
-- We can see that DAMOS "hugepage" action works only when THP is set
-  to madvise. "collapse" action works even when THP is set to never.
-- Performance for "collapse" action is slightly lower than "hugepage"
-  action and THP madvise. This is due to the fact that collapases
-  occur synchronously. With "hugepage" they may occur during page
-  faults.
-- Memory consumption is slighly lower for "collapse" than "hugepage"
-  with THP madvise. This is due to the khugepage collapses all VMAs,
-  while "collapse" action only collapses the VMAs in the hot region.
-- There is an improvement in TLB utilization when collapse through
-  "hugepage" or "collapse" actions are triggered. The amount of
-  TLB misses is lower.
-- "collapse" action is performance synchronously, which means that
-  page collapses happen earlier and more rapidly. This can be
-  useful or not, depending on the scenario.
-- "hugepage" action may trigger a VMA split in some scenarios, since
-  it needs to change the flag of the VMA to THP enabled. This may
-  lead to additional overhead.
-
-Collapse action just adds a new option to chose the correct system
-balance.
-
-Link: https://lore.kernel.org/20260426231619.107231-5-sj@kernel.org
-Link: https://lore.kernel.org/damon/20260313000816.79933-1-sj@kernel.org/ [1]
-Signed-off-by: Asier Gutierrez <gutierrez.asier@huawei-partners.com>
-Signed-off-by: SeongJae Park <sj@kernel.org>
-Reviewed-by: SeongJae Park <sj@kernel.org>
-Cc: Cheng-Han Wu <hank20010209@gmail.com>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
+Link: https://lore.kernel.org/20260427-page_mapped-v1-0-e89c3592c74c@kernel.org
+Link: https://lore.kernel.org/20260427-page_mapped-v1-1-e89c3592c74c@kernel.org
+Signed-off-by: David Hildenbrand (Arm) <david@kernel.org>
+Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Alexei Starovoitov <ast@kernel.org>
+Cc: Andrii Nakryiko <andrii@kernel.org>
+Cc: Eduard Zingerman <eddyz87@gmail.com>
+Cc: Harry Yoo <harry@kernel.org>
+Cc: Jann Horn <jannh@google.com>
+Cc: Jiri Olsa <jolsa@kernel.org>
+Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
+Cc: Kumar Kartikeya Dwivedi <memxor@gmail.com>
 Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Liew Rui Yan <aethernet65535@gmail.com>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Martin KaFai Lau <martin.lau@linux.dev>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Shuah Khan <skhan@linuxfoundation.org>
+Cc: Rich Felker <dalias@libc.org>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: Song Liu <song@kernel.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Yonghong Song <yonghong.song@linux.dev>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/mm/damon/design.rst      |    4 ++++
- include/linux/damon.h                  |    2 ++
- mm/damon/sysfs-schemes.c               |    4 ++++
- mm/damon/vaddr.c                       |    3 +++
- tools/testing/selftests/damon/sysfs.py |   11 ++++++-----
- 5 files changed, 19 insertions(+), 5 deletions(-)
+ arch/sh/mm/cache-sh4.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/Documentation/mm/damon/design.rst~mm-damon-support-madv_collapse-via-damos_collapse-scheme-action
-+++ a/Documentation/mm/damon/design.rst
-@@ -474,6 +474,10 @@ that supports each action are as below.
-    Supported by ``vaddr`` and ``fvaddr`` operations set. When
-    TRANSPARENT_HUGEPAGE is disabled, the application of the action will just
-    fail.
-+ - ``collapse``: Call ``madvise()`` for the region with ``MADV_COLLAPSE``.
-+   Supported by ``vaddr`` and ``fvaddr`` operations set. When
-+   TRANSPARENT_HUGEPAGE is disabled, the application of the action will just
-+   fail.
-  - ``lru_prio``: Prioritize the region on its LRU lists.
-    Supported by ``paddr`` operations set.
-  - ``lru_deprio``: Deprioritize the region on its LRU lists.
---- a/include/linux/damon.h~mm-damon-support-madv_collapse-via-damos_collapse-scheme-action
-+++ a/include/linux/damon.h
-@@ -121,6 +121,7 @@ struct damon_target {
-  * @DAMOS_PAGEOUT:	Reclaim the region.
-  * @DAMOS_HUGEPAGE:	Call ``madvise()`` for the region with MADV_HUGEPAGE.
-  * @DAMOS_NOHUGEPAGE:	Call ``madvise()`` for the region with MADV_NOHUGEPAGE.
-+ * @DAMOS_COLLAPSE:	Call ``madvise()`` for the region with MADV_COLLAPSE.
-  * @DAMOS_LRU_PRIO:	Prioritize the region on its LRU lists.
-  * @DAMOS_LRU_DEPRIO:	Deprioritize the region on its LRU lists.
-  * @DAMOS_MIGRATE_HOT:  Migrate the regions prioritizing warmer regions.
-@@ -140,6 +141,7 @@ enum damos_action {
- 	DAMOS_PAGEOUT,
- 	DAMOS_HUGEPAGE,
- 	DAMOS_NOHUGEPAGE,
-+	DAMOS_COLLAPSE,
- 	DAMOS_LRU_PRIO,
- 	DAMOS_LRU_DEPRIO,
- 	DAMOS_MIGRATE_HOT,
---- a/mm/damon/sysfs-schemes.c~mm-damon-support-madv_collapse-via-damos_collapse-scheme-action
-+++ a/mm/damon/sysfs-schemes.c
-@@ -2117,6 +2117,10 @@ static struct damos_sysfs_action_name da
- 		.name = "nohugepage",
- 	},
- 	{
-+		.action = DAMOS_COLLAPSE,
-+		.name = "collapse",
-+	},
-+	{
- 		.action = DAMOS_LRU_PRIO,
- 		.name = "lru_prio",
- 	},
---- a/mm/damon/vaddr.c~mm-damon-support-madv_collapse-via-damos_collapse-scheme-action
-+++ a/mm/damon/vaddr.c
-@@ -903,6 +903,9 @@ static unsigned long damon_va_apply_sche
- 	case DAMOS_NOHUGEPAGE:
- 		madv_action = MADV_NOHUGEPAGE;
- 		break;
-+	case DAMOS_COLLAPSE:
-+		madv_action = MADV_COLLAPSE;
-+		break;
- 	case DAMOS_MIGRATE_HOT:
- 	case DAMOS_MIGRATE_COLD:
- 		return damos_va_migrate(t, r, scheme, sz_filter_passed);
---- a/tools/testing/selftests/damon/sysfs.py~mm-damon-support-madv_collapse-via-damos_collapse-scheme-action
-+++ a/tools/testing/selftests/damon/sysfs.py
-@@ -127,11 +127,12 @@ def assert_scheme_committed(scheme, dump
-             'pageout': 2,
-             'hugepage': 3,
-             'nohugeapge': 4,
--            'lru_prio': 5,
--            'lru_deprio': 6,
--            'migrate_hot': 7,
--            'migrate_cold': 8,
--            'stat': 9,
-+            'collapse': 5,
-+            'lru_prio': 6,
-+            'lru_deprio': 7,
-+            'migrate_hot': 8,
-+            'migrate_cold': 9,
-+            'stat': 10,
-             }
-     assert_true(dump['action'] == action_val[scheme.action], 'action', dump)
-     assert_true(dump['apply_interval_us'] == scheme. apply_interval_us,
+--- a/arch/sh/mm/cache-sh4.c~sh-use-folio_mapped-instead-of-page_mapped-in-sh4_flush_cache_page
++++ a/arch/sh/mm/cache-sh4.c
+@@ -248,7 +248,7 @@ static void sh4_flush_cache_page(void *a
+ 		 */
+ 		map_coherent = (current_cpu_data.dcache.n_aliases &&
+ 			test_bit(PG_dcache_clean, folio_flags(folio, 0)) &&
+-			page_mapped(page));
++			folio_mapped(folio));
+ 		if (map_coherent)
+ 			vaddr = kmap_coherent(page, address);
+ 		else
 _
 
-Patches currently in -mm which might be from gutierrez.asier@huawei-partners.com are
+Patches currently in -mm which might be from david@kernel.org are
 
+sparc-mm-remove-register_page_bootmem_info.patch
+mm-bootmem_info-drop-initialization-of-page-lru.patch
+mm-bootmem_info-stop-using-pg_private.patch
+mm-bootmem_info-remove-call-to-kmemleak_free_part_phys.patch
+mm-bootmem_info-stop-marking-the-pgdat-as-node_info.patch
+mm-bootmem_info-stop-marking-mem_section_usage-as-mix_section_info.patch
+s390-mm-use-free_reserved_page-in-vmem_free_pages.patch
+powerpc-mm-remove-config_have_bootmem_info_node.patch
 
