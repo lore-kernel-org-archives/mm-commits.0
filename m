@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D05CB370AC6;
-	Fri, 29 May 2026 04:07:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5839A36F8F5;
+	Fri, 29 May 2026 04:07:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780027642; cv=none; b=gtXbGNYZH419mSCsl5uJG//IhKd1MVb1nWDBfCPLg1zo75mGOfxfl8fe5kt3R7sdcdCR2oJFctyp8okLpvrXt3SKrxrQcp3GFZpmnfqaoGxKR+2Z5QYmIXM1G27tEmQ0baYSVrY7lqk2UPi3eX6cNSKTKOZJyiH2TUWt1ObG/xU=
+	t=1780027642; cv=none; b=VAy+q8CYhhtC07FHrGIHSXHmgUUDJHrB7y8dawjxTCIRgLyUOcodoedV2vmBNzpLQAF/SMyn3RwbnXaRvcC4xTXAqHFXKTS+W23tGsa9OLUP4pEZzz+HShhCapm4mdpCdafVYVndUZw4I/vqqcWh90V7/+bGRXJ8toZyF9n818s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1780027642; c=relaxed/simple;
-	bh=iCZSkhe4mvprrmCaqOU6Gbgd03mutY3Oog8YoipJnIM=;
-	h=Date:To:From:Subject:Message-Id; b=gTCicroBdlJ9zKiSHUJtUzJ7OL/vlgaETQozByu3ih9Q5r/hgkthraQLnQJV+G6g6OtLaaMd2OyrmNtrPQv33iIS0bvsCwkUjoW3+qz8xQ/gdekhLUwUes9bR8XaYw/U8l5/F4JDnRbBjr0REdbs+PE8Y3drEZOTLLEWq11QwMw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XHf/VFzl; arc=none smtp.client-ip=100.103.45.18
+	bh=FfdzHRqYB+XTWElYdeTjfB/ZQdbyCDX1PsQF0i1OMgI=;
+	h=Date:To:From:Subject:Message-Id; b=RK/b1cwjrC8RaC4b90ArSMvREO1r+XpTQAQ6uQMwIw8m0EVUtfu70/JJRQU0+90xtdvAFZ1hQlgMCJDstoHm6idjJXQu6+EbPDRR4pX8oe7PcSJvdNZG2Ui05e0XykFxiyFxGSE4nsGhrBayR89FFWz3RcM8tU/KaaDQ6Ht8v+E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bEeB8elk; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XHf/VFzl"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9AE361F00893;
-	Fri, 29 May 2026 04:07:17 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bEeB8elk"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E0B7D1F0089A;
+	Fri, 29 May 2026 04:07:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1780027637;
-	bh=N25n1aFW3f/k4p6+vehWQmYJcgOLqaemhjr1rj4IoIA=;
+	d=linux-foundation.org; s=korg; t=1780027641;
+	bh=GgakimoZkaHGXwmFHtIgZx/9yIc/Nm/sJrpjaYsL0z0=;
 	h=Date:To:From:Subject;
-	b=XHf/VFzl43ViyAKOyYKk9pVBa8sopAoAKB1lWcZ+EePPt9eF4CByDw/IYdH4XAmme
-	 pORW6pGf+opdfU1a6gxpTiq9/Up8NSs/KbZDzbiHpSDSE9+/LUwic+5BNgWjf59xRv
-	 l5MeHSaVo8G6ACTxENWWceAZyTUZrXJtuag3sofA=
-Date: Thu, 28 May 2026 21:07:17 -0700
+	b=bEeB8elkXhQpHeQoLkzyzaimBh5VRP0o3TiHwaumEmdamA9PAGQUoGDZ6YvUNF64A
+	 toI2UZEdLfufrlxIKV14DMSXHjBs5IdEV5saQmZlwI7ZpYu/+s6fFRiduuMDzDQ8CS
+	 ft0U8XhsZiprLemYih4+l6GdHn+xr8Bs6t1lx62s=
+Date: Thu, 28 May 2026 21:07:20 -0700
 To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,stable@vger.kernel.org,rppt@kernel.org,osalvador@suse.de,npiggin@gmail.com,mpe@ellerman.id.au,mhocko@suse.com,maddy@linux.ibm.com,ljs@kernel.org,liam@infradead.org,joao.m.martins@oracle.com,david@kernel.org,aneesh.kumar@linux.ibm.com,songmuchun@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-sparse-vmemmap-fix-dax-vmemmap-accounting-with-optimization.patch removed from -mm tree
-Message-Id: <20260529040717.9AE361F00893@smtp.kernel.org>
+Subject: [merged mm-stable] mm-mm_init-fix-uninitialized-struct-pages-for-zone_device.patch removed from -mm tree
+Message-Id: <20260529040720.E0B7D1F0089A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,35 +35,33 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/sparse-vmemmap: fix DAX vmemmap accounting with optimization
+     Subject: mm/mm_init: fix uninitialized struct pages for ZONE_DEVICE
 has been removed from the -mm tree.  Its filename was
-     mm-sparse-vmemmap-fix-dax-vmemmap-accounting-with-optimization.patch
+     mm-mm_init-fix-uninitialized-struct-pages-for-zone_device.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm/sparse-vmemmap: fix DAX vmemmap accounting with optimization
-Date: Tue, 28 Apr 2026 16:18:53 +0800
+Subject: mm/mm_init: fix uninitialized struct pages for ZONE_DEVICE
+Date: Tue, 28 Apr 2026 16:18:55 +0800
 
-When vmemmap optimization is enabled for DAX, the nr_memmap_pages counter
-in /proc/vmstat is incorrect.  The current code always accounts for the
-full, non-optimized vmemmap size, but vmemmap optimization reduces the
-actual number of vmemmap pages by reusing tail pages.  This causes the
-system to overcount vmemmap usage, leading to inaccurate page statistics
-in /proc/vmstat.
+If DAX memory is hotplugged into an unoccupied subsection of an early
+section, section_activate() reuses the unoptimized boot memmap.  However,
+compound_nr_pages() still assumes that vmemmap optimization is in effect
+and initializes only the reduced number of struct pages.  As a result, the
+remaining tail struct pages are left uninitialized, which can later lead
+to unexpected behavior or crashes.
 
-Fix this by introducing section_nr_vmemmap_pages(), which returns the
-exact vmemmap page count for a given pfn range based on whether
-optimization is in effect.
+Fix this by treating early sections as unoptimized when calculating how
+many struct pages to initialize.
 
-Link: https://lore.kernel.org/20260428081855.1249045-5-songmuchun@bytedance.com
-Fixes: 15995a352474 ("mm: report per-page metadata information")
+Link: https://lore.kernel.org/20260428081855.1249045-7-songmuchun@bytedance.com
+Fixes: 6fd3620b3428 ("mm/page_alloc: reuse tail struct pages for compound devmaps")
 Signed-off-by: Muchun Song <songmuchun@bytedance.com>
-Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Acked-by: Oscar Salvador <osalvador@suse.de>
 Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Acked-by: Liam R. Howlett <liam@infradead.org>
 Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
 Cc: Joao Martins <joao.m.martins@oracle.com>
@@ -72,80 +70,47 @@ Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Oscar Salvador <osalvador@suse.de>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@kernel.org>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/sparse-vmemmap.c |   34 ++++++++++++++++++++++++++++++----
- 1 file changed, 30 insertions(+), 4 deletions(-)
+ mm/mm_init.c |   13 ++++++++++---
+ 1 file changed, 10 insertions(+), 3 deletions(-)
 
---- a/mm/sparse-vmemmap.c~mm-sparse-vmemmap-fix-dax-vmemmap-accounting-with-optimization
-+++ a/mm/sparse-vmemmap.c
-@@ -647,6 +647,31 @@ void offline_mem_sections(unsigned long
- 	}
- }
- 
-+static int __meminit section_nr_vmemmap_pages(unsigned long pfn, unsigned long nr_pages,
-+		struct vmem_altmap *altmap, struct dev_pagemap *pgmap)
-+{
-+	const unsigned int order = pgmap ? pgmap->vmemmap_shift : 0;
-+	const unsigned long pages_per_compound = 1UL << order;
-+
-+	VM_WARN_ON_ONCE(!IS_ALIGNED(pfn | nr_pages, PAGES_PER_SUBSECTION));
-+	VM_WARN_ON_ONCE(nr_pages > PAGES_PER_SECTION);
-+
-+	if (!vmemmap_can_optimize(altmap, pgmap))
-+		return DIV_ROUND_UP(nr_pages * sizeof(struct page), PAGE_SIZE);
-+
-+	if (order < PFN_SECTION_SHIFT) {
-+		VM_WARN_ON_ONCE(!IS_ALIGNED(pfn | nr_pages, pages_per_compound));
-+		return VMEMMAP_RESERVE_NR * nr_pages / pages_per_compound;
-+	}
-+
-+	VM_WARN_ON_ONCE(!IS_ALIGNED(pfn | nr_pages, PAGES_PER_SECTION));
-+
-+	if (IS_ALIGNED(pfn, pages_per_compound))
-+		return VMEMMAP_RESERVE_NR;
-+
-+	return 0;
-+}
-+
- static struct page * __meminit populate_section_memmap(unsigned long pfn,
- 		unsigned long nr_pages, int nid, struct vmem_altmap *altmap,
- 		struct dev_pagemap *pgmap)
-@@ -654,7 +679,7 @@ static struct page * __meminit populate_
- 	struct page *page = __populate_section_memmap(pfn, nr_pages, nid, altmap,
- 						      pgmap);
- 
--	memmap_pages_add(DIV_ROUND_UP(nr_pages * sizeof(struct page), PAGE_SIZE));
-+	memmap_pages_add(section_nr_vmemmap_pages(pfn, nr_pages, altmap, pgmap));
- 
- 	return page;
- }
-@@ -665,7 +690,7 @@ static void depopulate_section_memmap(un
- 	unsigned long start = (unsigned long) pfn_to_page(pfn);
- 	unsigned long end = start + nr_pages * sizeof(struct page);
- 
--	memmap_pages_add(-1L * (DIV_ROUND_UP(nr_pages * sizeof(struct page), PAGE_SIZE)));
-+	memmap_pages_add(-section_nr_vmemmap_pages(pfn, nr_pages, altmap, pgmap));
- 	vmemmap_free(start, end, altmap);
- }
- 
-@@ -673,9 +698,10 @@ static void free_map_bootmem(struct page
+--- a/mm/mm_init.c~mm-mm_init-fix-uninitialized-struct-pages-for-zone_device
++++ a/mm/mm_init.c
+@@ -1055,10 +1055,17 @@ static void __ref __init_zone_device_pag
+  * of how the sparse_vmemmap internals handle compound pages in the lack
+  * of an altmap. See vmemmap_populate_compound_pages().
+  */
+-static inline unsigned long compound_nr_pages(struct vmem_altmap *altmap,
++static inline unsigned long compound_nr_pages(unsigned long pfn,
++					      struct vmem_altmap *altmap,
+ 					      struct dev_pagemap *pgmap)
  {
- 	unsigned long start = (unsigned long)memmap;
- 	unsigned long end = (unsigned long)(memmap + PAGES_PER_SECTION);
-+	unsigned long pfn = page_to_pfn(memmap);
+-	if (!vmemmap_can_optimize(altmap, pgmap))
++	/*
++	 * If DAX memory is hot-plugged into an unoccupied subsection
++	 * of an early section, the unoptimized boot memmap is reused.
++	 * See section_activate().
++	 */
++	if (early_section(__pfn_to_section(pfn)) ||
++	    !vmemmap_can_optimize(altmap, pgmap))
+ 		return pgmap_vmemmap_nr(pgmap);
  
--	memmap_boot_pages_add(-1L * (DIV_ROUND_UP(PAGES_PER_SECTION * sizeof(struct page),
--						  PAGE_SIZE)));
-+	memmap_boot_pages_add(-section_nr_vmemmap_pages(pfn, PAGES_PER_SECTION,
-+							NULL, NULL));
- 	vmemmap_free(start, end, NULL);
- }
+ 	return VMEMMAP_RESERVE_NR * (PAGE_SIZE / sizeof(struct page));
+@@ -1128,7 +1135,7 @@ void __ref memmap_init_zone_device(struc
+ 			continue;
  
+ 		memmap_init_compound(page, pfn, zone_idx, nid, pgmap,
+-				     compound_nr_pages(altmap, pgmap));
++				     compound_nr_pages(pfn, altmap, pgmap));
+ 	}
+ 
+ 	pageblock_migratetype_init_range(start_pfn, nr_pages, MIGRATE_MOVABLE);
 _
 
 Patches currently in -mm which might be from songmuchun@bytedance.com are
