@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3EC2536A033
-	for <mm-commits@vger.kernel.org>; Fri, 29 May 2026 03:54:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 66F4336C9DF
+	for <mm-commits@vger.kernel.org>; Fri, 29 May 2026 04:05:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780026861; cv=none; b=DPjShTJLTUilsVwN2gB3aaQj0h9GHQyAXkutfegNbCHqAUg+zU+ZfZHN+FGD77oTMBxTVaP8YFiki8+hJVKTj43fRL8QunGqq8Pu7CfCJEvA6xIne2Bw4+YLcbUNFBPp2HDRrufp8m0f4XRvqM7XtcK1/UwSJNfhr4t1jrN8PB0=
+	t=1780027556; cv=none; b=a+4Jdo4oLchvtIPJwl0GtwRVPMlZr+tRZMzKc1yiKv5eUFmq0FMBpUDjn6q3VcDAsVytfEwbjw7Wi1SR9i16sr1mUn51F26T/QaWbVuyS19qMCdG+1bPbmXRa9R5X1p3F7HMcYsE2VBxz03hMBddFo7G/u+kSiWMChWLy4eJ9ME=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780026861; c=relaxed/simple;
-	bh=nJAKPjcP5ht1WOaGl3VgLY8Dqg0d4WzDyLrqcrdNLSg=;
-	h=Date:To:From:Subject:Message-Id; b=pQ72/c0lhFzdKkRg/iBw9M1AQP4+X2VqaE1efMr7x/LlKXU4sIawhrz/Mfytega/0iviaaFA547ix4nlp9T4F4l6wkV3UX4S0lq/2GCLrGEbhp1wzSyRIa4Xritecj4Q99nzDfhN5NhvHTEat7M3fckCa0a/j569x0NVNhG0Vt0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FtGyfFJ/; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1780027556; c=relaxed/simple;
+	bh=YuBzhvI0FeP+63+nDCSjtxRDl2ANlRTLdKXtpjXE1H4=;
+	h=Date:To:From:Subject:Message-Id; b=mrNiNU+GxnHFhjktYMCtXnrAPXmttYgxRwRkug7kBGdpONdDBr4c/fGN3CKlPB1bbg2x5miVjN+j95D/+CsGGiCbsIDYVQUMHuA4oOgLys+iGHWRYp2rYoTcOE3swPJn5u/kq5fpjfDmK/YoW8qxyVtnJd2zo9Ss1hCXIIQksl4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BCqOHGcD; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FtGyfFJ/"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C27451F00893;
-	Fri, 29 May 2026 03:54:19 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BCqOHGcD"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1DD821F00893;
+	Fri, 29 May 2026 04:05:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1780026859;
-	bh=9V+VHw39WMPRrNpW6zxaHh6R2fAujgq9pZMckWqqxQA=;
+	d=linux-foundation.org; s=korg; t=1780027555;
+	bh=ywjVcy4w+nDAqODZo/16M4LR1GVY8QzDutbAS2+Kg80=;
 	h=Date:To:From:Subject;
-	b=FtGyfFJ/EQpKNHCYSSQJCntZYBYsizcvSxSmOz26L/qpDTep4VPOtcP+qNGiiAlkx
-	 S1nniyJMCJ0ycSmAApdAF191h/hJFoXj4OQIJU8iYoVXsIYNwgV30wxfy03QLaSY8B
-	 ogzTvFptdge7ZudriogbyWt2coaeGih0EG8mfqY0=
-Date: Thu, 28 May 2026 20:54:19 -0700
-To: mm-commits@vger.kernel.org,urezki@gmail.com,dakr@kernel.org,aliceryhl@google.com,shivamkalra98@zohomail.in,akpm@linux-foundation.org
+	b=BCqOHGcDODGJ9exqJKoCQ7VOSr6ON8ODf7O//WNbrK1ngyUqyId1XiQ8nEBFmnxZq
+	 QnfFj9tFA144DsjpFvCQpJSLZjv6bR6+8bVPE2YQxn/Szeo32BPOPxrx49QYIePH1m
+	 5deyRr+zoPopX1mRMMlusiW1rH6j4TEVTcNt56qg=
+Date: Thu, 28 May 2026 21:05:54 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,shuah@kernel.org,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam.howlett@oracle.com,david@kernel.org,akpm@linux-foundation.org,wangli.ahau@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-vmalloc-use-physical-page-count-in-vread_iter-for-vm_alloc-areas-fix.patch removed from -mm tree
-Message-Id: <20260529035419.C27451F00893@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-mm-respect-build-verbosity-settings-for-32-64-bit-targets.patch removed from -mm tree
+Message-Id: <20260529040555.1DD821F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,50 +35,109 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm-vmalloc-use-physical-page-count-in-vread_iter-for-vm_alloc-areas-fix
+     Subject: selftests/mm: respect build verbosity settings for 32/64-bit targets
 has been removed from the -mm tree.  Its filename was
-     mm-vmalloc-use-physical-page-count-in-vread_iter-for-vm_alloc-areas-fix.patch
+     selftests-mm-respect-build-verbosity-settings-for-32-64-bit-targets.patch
 
-This patch was dropped because it was folded into mm-vmalloc-use-physical-page-count-in-vread_iter-for-vm_alloc-areas.patch
+This patch was dropped because it was merged into the mm-stable branch
+of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Shivam Kalra <shivamkalra98@zohomail.in>
-Subject: mm-vmalloc-use-physical-page-count-in-vread_iter-for-vm_alloc-areas-fix
-Date: Mon, 25 May 2026 16:17:47 +0530
+From: Li Wang <wangli.ahau@gmail.com>
+Subject: selftests/mm: respect build verbosity settings for 32/64-bit targets
+Date: Wed, 22 Apr 2026 16:04:45 +0800
 
-pcpu_get_vm_areas() creates VM_ALLOC areas without setting nr_pages.
-Add an nr_pages check to fall back to get_vm_area_size() for these
-areas.
+Patch series "selftests/mm: clean up build output and verbosity", v3.
 
-Link: https://lore.kernel.org/aff47da5-4fd5-481d-be18-e1eb99639490@zohomail.in
-Signed-off-by: Shivam Kalra <shivamkalra98@zohomail.in>
-Cc: Alice Ryhl <aliceryhl@google.com>
-Cc: Danilo Krummrich <dakr@kernel.org>
-Cc: Uladzislau Rezki (Sony) <urezki@gmail.com>
+Currently, the build process for the mm selftests is unnecessarily noisy.
+
+First, it leaks raw compiler errors during the liburing feature probe if
+the headers are missing, which is confusing since the build system already
+handles this gracefully with a clear warning.
+
+Second, the specific 32-bit and 64-bit compilation targets ignore the
+standard kbuild verbosity settings, always printing their full compiler
+commands even during a default quiet build.
+
+
+This patch (of 2):
+
+The 32-bit and 64-bit compilation rules invoke $(CC) directly, bypassing
+the $(Q) quiet prefix and $(call msg,...) helper used by the rest of the
+selftests build system.  This causes these rules to always print the full
+compiler command line, even when V=0 (the default).
+
+Wrap the commands with $(Q) and $(call msg,CC,,$@) to match the convention
+used by lib.mk, so that quiet and verbose builds behave consistently
+across all targets.
+
+==== Build logs ====
+  ...
+  CC       merge
+  CC       rmap
+  CC       soft-dirty
+  gcc -Wall -O2 -I /usr/src/25/tools/testing/selftests/../../..
+                -isystem /usr/src/25/tools/testing/selftests/../../../usr/include
+                -isystem /usr/src/25/tools/testing/selftests/../../../tools/include/uapi
+                -Wunreachable-code -U_FORTIFY_SOURCE -no-pie -D_GNU_SOURCE=
+                -I/usr/src/25/tools/testing/selftests/../../../tools/testing/selftests
+                -m32 -mxsave  protection_keys.c vm_util.c thp_settings.c pkey_util.c
+                -lrt -lpthread -lm -lrt -ldl -lm
+                -o /usr/src/25/tools/testing/selftests/mm/protection_keys_32
+  gcc -Wall -O2 -I /usr/src/25/tools/testing/selftests/../../..
+                -isystem /usr/src/25/tools/testing/selftests/../../../usr/include
+                -isystem /usr/src/25/tools/testing/selftests/../../../tools/include/uapi
+                -Wunreachable-code -U_FORTIFY_SOURCE -no-pie -D_GNU_SOURCE=
+                -I/usr/src/25/tools/testing/selftests/../../../tools/testing/selftests
+                -m32 -mxsave  pkey_sighandler_tests.c vm_util.c thp_settings.c pkey_util.c
+                -lrt -lpthread -lm -lrt -ldl -lm
+                -o /usr/src/25/tools/testing/selftests/mm/pkey_sighandler_tests_32
+  ...
+
+Link: https://lore.kernel.org/20260422080446.26020-1-wangli.ahau@gmail.com
+Link: https://lore.kernel.org/20260422080446.26020-2-wangli.ahau@gmail.com
+Signed-off-by: Li Wang <wangli.ahau@gmail.com>
+Reported-by: Andrew Morton <akpm@linux-foundation.org>
+Tested-by: Andrew Morton <akpm@linux-foundation.org>
+Tested-by: David Hildenbrand (Arm) <david@kernel.org>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ tools/testing/selftests/mm/Makefile |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
---- a/mm/vmalloc.c~mm-vmalloc-use-physical-page-count-in-vread_iter-for-vm_alloc-areas-fix
-+++ a/mm/vmalloc.c
-@@ -4673,7 +4673,7 @@ long vread_iter(struct iov_iter *iter, c
- 			 * the mapping without updating area->size. Other
- 			 * mapping types (vmap, ioremap) don't set nr_pages.
- 			 */
--			size = (vm->flags & VM_ALLOC) ?
-+			size = (vm->flags & VM_ALLOC && vm->nr_pages) ?
- 				       (vm->nr_pages << PAGE_SHIFT) :
- 				       get_vm_area_size(vm);
- 		else
+--- a/tools/testing/selftests/mm/Makefile~selftests-mm-respect-build-verbosity-settings-for-32-64-bit-targets
++++ a/tools/testing/selftests/mm/Makefile
+@@ -216,7 +216,8 @@ ifeq ($(CAN_BUILD_I386),1)
+ $(BINARIES_32): CFLAGS += -m32 -mxsave
+ $(BINARIES_32): LDLIBS += -lrt -ldl -lm
+ $(BINARIES_32): $(OUTPUT)/%_32: %.c
+-	$(CC) $(CFLAGS) $(EXTRA_CFLAGS) $(notdir $^) $(LDLIBS) -o $@
++	$(call msg,CC,,$@)
++	$(Q)$(CC) $(CFLAGS) $(EXTRA_CFLAGS) $(notdir $^) $(LDLIBS) -o $@
+ $(foreach t,$(VMTARGETS),$(eval $(call gen-target-rule-32,$(t))))
+ endif
+ 
+@@ -224,7 +225,8 @@ ifeq ($(CAN_BUILD_X86_64),1)
+ $(BINARIES_64): CFLAGS += -m64 -mxsave
+ $(BINARIES_64): LDLIBS += -lrt -ldl
+ $(BINARIES_64): $(OUTPUT)/%_64: %.c
+-	$(CC) $(CFLAGS) $(EXTRA_CFLAGS) $(notdir $^) $(LDLIBS) -o $@
++	$(call msg,CC,,$@)
++	$(Q)$(CC) $(CFLAGS) $(EXTRA_CFLAGS) $(notdir $^) $(LDLIBS) -o $@
+ $(foreach t,$(VMTARGETS),$(eval $(call gen-target-rule-64,$(t))))
+ endif
+ 
 _
 
-Patches currently in -mm which might be from shivamkalra98@zohomail.in are
+Patches currently in -mm which might be from wangli.ahau@gmail.com are
 
-mm-vmalloc-extract-vm_area_free_pages-helper-from-vfree.patch
-mm-vmalloc-use-physical-page-count-for-vrealloc-grow-in-place-check.patch
-mm-vmalloc-use-physical-page-count-in-vread_iter-for-vm_alloc-areas.patch
-mm-vmalloc-free-unused-pages-on-vrealloc-shrink.patch
-lib-test_vmalloc-add-vrealloc-test-case.patch
 
