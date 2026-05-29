@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 61D292E4257
-	for <mm-commits@vger.kernel.org>; Fri, 29 May 2026 04:18:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 76A102E739A
+	for <mm-commits@vger.kernel.org>; Fri, 29 May 2026 04:19:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780028329; cv=none; b=ppTnoiYYSKdvaX0nRfU4QO5D5YqZc/VC+PPERzD6D4GhebnnjEZd3LoFYASke9um1ngc/3pASCh6dUDTqwJZ2aKObfonRDQbBRrIMpkvGbFnP628pNJ4UGqK4brNUWUJ6O9EjizzvETZsR/Yo0CNxpQsdhGUFnBPUm48sHQ1lr8=
+	t=1780028372; cv=none; b=qoN/PWk3ZTaAoJsqmLFRG1iXJKndRlwmWK7/QMbzCxMwYkasFKtnx/Sjfypjb9kVMWD/5XdZKhMACjlXa94uUm66VP2waA39OhFROV2cAOTrcfe8fwRZj+oKeo+j5Obg9X2vWTMGsmVbK21dAzx+lkvVHJClUHiv0Vjvi+OiV+U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780028329; c=relaxed/simple;
-	bh=9ZFv71Fi5HUdUlCUexg1YeZDAcPPQ9EeY3GbGKor5Zg=;
-	h=Date:To:From:Subject:Message-Id; b=Dqa4TBfdd0ATY6cgMtNV59SVEDZ6oNNQuKoBPbl20sKGw2aVOe5zTSZN13iRXAGF3pghLUm2cdcF/QKcp8lvAhOos4yqW901ZofZHXmuP/MUz2hr1uo+s0mczIswPgUig4qUgB3jqJWpH4CHYHo43R4bozwBR+TItdEQ7OprPDY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YbUbgqrK; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1780028372; c=relaxed/simple;
+	bh=BuSlTmXWQdg6zwYxNSGFzpDmMDaldCYNAXgmGQyoNVs=;
+	h=Date:To:From:Subject:Message-Id; b=gfvxEo+62GOfsTvUWxZea+5+sPCZYFMBa/1MVFiWaxmFJvCllFItMo5aFxgLr90daskbKftSRRnBA5FCwOkfGoR6PzQ4a2LrcP2UmvkRvJlioM0mk8h26MW7YyTLds/P5afDbSuGzwvp2TmzEj222MHQ680YUL5p+NagR4uuADE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DKiDLv7B; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YbUbgqrK"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CBFC71F00893;
-	Fri, 29 May 2026 04:18:47 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DKiDLv7B"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0605A1F00893;
+	Fri, 29 May 2026 04:19:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1780028327;
-	bh=XtWs/R30BpIzaAMQcKHfPVXqS+OyHyW0iALab2YVyKw=;
+	d=linux-foundation.org; s=korg; t=1780028371;
+	bh=QsrTz1hoEvpqY/xaECS11nhMEX3XS1mQiHxH+l+dtQw=;
 	h=Date:To:From:Subject;
-	b=YbUbgqrKflD9s95RNOVR7XnCsN/yZXpFhDk3liD/bYQuAXZyNEdbj19b6gHUmkFpY
-	 3EWHpTP8zJXWW1XNs+P7QiC3He6WCrbCdK8/v+mKsG1eu3HAg5H9COnbLEX+Z+7QMW
-	 iGKnktB69dZ0mjYrZP6BpRMRuwV4m8Dgvj3OaAu8=
-Date: Thu, 28 May 2026 21:18:47 -0700
-To: mm-commits@vger.kernel.org,hch@lst.de,akpm@linux-foundation.org
+	b=DKiDLv7BYZUxLzYKPX5p0B40AF35kkrPTOI0H2IfU1XNoP5rwPKcc1stxIukK8Dfl
+	 X51Cp800+RYQspz97+zSVJs7qmv4syah7zotl9NjV6TdJbfe+tC3lXyzMK+Ksp4uPU
+	 l+CliwXCIu6RmiJTgGa1eTp7NuaoIJ2ZwTp8qwmo=
+Date: Thu, 28 May 2026 21:19:30 -0700
+To: mm-commits@vger.kernel.org,pmladek@suse.com,paulmck@kernel.org,feng.tang@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] raid6-rework-registration-of-optimized-algorithms-fix.patch removed from -mm tree
-Message-Id: <20260529041847.CBFC71F00893@smtp.kernel.org>
+Subject: [folded-merged] lib-nmi_backtrace-print-out-the-cpus-which-fail-to-respond-to-nmi-fix.patch removed from -mm tree
+Message-Id: <20260529041931.0605A1F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,70 +35,65 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: raid6/x86: register avx512 after avx2
+     Subject: lib-nmi_backtrace-print-out-the-cpus-which-fail-to-respond-to-nmi-fix
 has been removed from the -mm tree.  Its filename was
-     raid6-rework-registration-of-optimized-algorithms-fix.patch
+     lib-nmi_backtrace-print-out-the-cpus-which-fail-to-respond-to-nmi-fix.patch
 
-This patch was dropped because it was folded into raid6-rework-registration-of-optimized-algorithms.patch
+This patch was dropped because it was folded into lib-nmi_backtrace-print-out-the-cpus-which-fail-to-respond-to-nmi.patch
 
 ------------------------------------------------------
-From: Christoph Hellwig <hch@lst.de>
-Subject: raid6/x86: register avx512 after avx2
-Date: Wed, 27 May 2026 09:45:26 +0200
+From: Feng Tang <feng.tang@linux.alibaba.com>
+Subject: lib-nmi_backtrace-print-out-the-cpus-which-fail-to-respond-to-nmi-fix
+Date: Fri, 22 May 2026 09:46:26 +0800
 
-This way non-benchmarks configs still get avx512 if supported.
+avoid hard-coding "10" in two places and in a comment
 
-Link: https://lore.kernel.org/20260527074539.2292913-3-hch@lst.de
-Signed-off-by: Christoph Hellwig <hch@lst.de>
+Link: https://lore.kernel.org/ag-1ciG0FSomBf7q@U-2FWC9VHC-2323.local
+Signed-off-by: Feng Tang <feng.tang@linux.alibaba.com>
+Cc: "Paul E . McKenney" <paulmck@kernel.org>
+Cc: Petr Mladek <pmladek@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/raid/raid6/x86/pq_arch.h |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ lib/nmi_backtrace.c |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
---- a/lib/raid/raid6/x86/pq_arch.h~raid6-rework-registration-of-optimized-algorithms-fix
-+++ a/lib/raid/raid6/x86/pq_arch.h
-@@ -60,16 +60,16 @@ static inline bool raid6_has_sse1_or_mmx
- static __always_inline void __init arch_raid6_init(void)
- {
- 	if (raid6_has_avx2()) {
-+		raid6_algo_add(&raid6_avx2x1);
-+		raid6_algo_add(&raid6_avx2x2);
-+		if (IS_ENABLED(CONFIG_X86_64))
-+			raid6_algo_add(&raid6_avx2x4);
- 		if (raid6_has_avx512()) {
- 			raid6_algo_add(&raid6_avx512x1);
- 			raid6_algo_add(&raid6_avx512x2);
- 			if (IS_ENABLED(CONFIG_X86_64))
- 				raid6_algo_add(&raid6_avx512x4);
- 		}
--		raid6_algo_add(&raid6_avx2x1);
--		raid6_algo_add(&raid6_avx2x2);
--		if (IS_ENABLED(CONFIG_X86_64))
--			raid6_algo_add(&raid6_avx2x4);
- 	} else if (IS_ENABLED(CONFIG_X86_64) || raid6_has_sse2()) {
- 		/* x86_64 can assume SSE2 as baseline */
- 		raid6_algo_add(&raid6_sse2x1);
+--- a/lib/nmi_backtrace.c~lib-nmi_backtrace-print-out-the-cpus-which-fail-to-respond-to-nmi-fix
++++ a/lib/nmi_backtrace.c
+@@ -27,6 +27,8 @@ static DECLARE_BITMAP(backtrace_mask, NR
+ /* "in progress" flag of arch_trigger_cpumask_backtrace */
+ static unsigned long backtrace_flag;
+ 
++#define NMI_BT_TIMEOUT_SEC	10
++
+ /*
+  * When raise() is called it will be passed a pointer to the
+  * backtrace_mask. Architectures that call nmi_cpu_backtrace()
+@@ -68,8 +70,8 @@ void nmi_trigger_cpumask_backtrace(const
+ 		raise(to_cpumask(backtrace_mask));
+ 	}
+ 
+-	/* Wait for up to 10 seconds for all CPUs to do the backtrace */
+-	for (i = 0; i < 10 * 1000; i++) {
++	/* Wait for up to NMI_BT_TIMEOUT_SEC seconds for all CPUs to do the backtrace */
++	for (i = 0; i < NMI_BT_TIMEOUT_SEC * 1000; i++) {
+ 		if (cpumask_empty(to_cpumask(backtrace_mask)))
+ 			break;
+ 		mdelay(1);
+@@ -77,8 +79,8 @@ void nmi_trigger_cpumask_backtrace(const
+ 	}
+ 
+ 	if (!cpumask_empty(to_cpumask(backtrace_mask))) {
+-		pr_warn("After 10 seconds, these CPUS still haven't responded to the NMI: %*pbl\n",
+-			cpumask_pr_args(to_cpumask(backtrace_mask)));
++		pr_warn("After %d seconds, these CPUS still haven't responded to the NMI: %*pbl\n",
++			NMI_BT_TIMEOUT_SEC, cpumask_pr_args(to_cpumask(backtrace_mask)));
+ 
+ 		nmi_backtrace_stall_check(to_cpumask(backtrace_mask));
+ 	}
 _
 
-Patches currently in -mm which might be from hch@lst.de are
+Patches currently in -mm which might be from feng.tang@linux.alibaba.com are
 
-raid6-turn-the-userspace-test-harness-into-a-kunit-test.patch
-raid6-remove-__kernel__-ifdefs.patch
-raid6-move-to-lib-raid.patch
-raid6-remove-unused-defines-in-pqh.patch
-raid6-remove-raid6_get_zero_page.patch
-raid6-use-named-initializers-for-struct-raid6_calls.patch
-raid6-improve-the-public-interface.patch
-raid6-warn-when-using-less-than-four-devices.patch
-raid6-hide-internals.patch
-raid6-rework-registration-of-optimized-algorithms.patch
-raid6-use-static_call-for-gen_syndrom-and-xor_syndrom.patch
-raid6-use-static_call-for-raid6_recov_2data-and-raid6_recov_datap.patch
-raid6-update-top-of-file-comments.patch
-raid6_kunit-use-kunit_case_param.patch
-raid6_kunit-dynamically-allocate-data-buffers-using-vmalloc.patch
-raid6_kunit-cleanup-dataptr-handling.patch
-raid6_kunit-randomize-parameters-and-increase-limits.patch
-raid6_kunit-randomize-buffer-alignment.patch
+lib-nmi_backtrace-print-out-the-cpus-which-fail-to-respond-to-nmi.patch
 
