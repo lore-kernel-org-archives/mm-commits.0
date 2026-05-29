@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 637052E739A
-	for <mm-commits@vger.kernel.org>; Fri, 29 May 2026 04:17:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 15E2B175A91
+	for <mm-commits@vger.kernel.org>; Fri, 29 May 2026 04:18:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780028236; cv=none; b=XWWr1ZLnJMtXaNR0ME/rx26h3D5ugLSg7K99bhIfZstCAUT4pzOYdzBLOMazHn3O8zj4gc8CCrbERE/fwBeLUwGVFg1AgBVou7Doefipr7bHwfWOAhhyosZMZI+L/UHcPyr6zKPa1nxHxtz/6BmgKC8DmKc49pO81Az+7oi9N5w=
+	t=1780028299; cv=none; b=H3WXqa9TJ1Oo4OrrlF356QYEo6EVy85woI328qe4s7Fo8M3voH8ehA6Wk6V1CT5PXNziwN4YZgeVSOg3CyQnlHo2HMrxGVg9gL33ZFXtpREtFW6Ygi5y88X5yAJ/Fca/wHL6E7oLRRe5R26kejm/DEjzrF8y0HC0DQ+uUaweHPQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780028236; c=relaxed/simple;
-	bh=UIwN5T9FOuyrV0BNxzRxF3vpHRtM+L3ti6Z3nKGT9rk=;
-	h=Date:To:From:Subject:Message-Id; b=dMSGybH1BwYZO0Wr35VkwRsZ5F0zjBYzJbsGilKAP5yNw8fjpbhrejbRU4k7BCWM4OpOJ9w1bVwKT0oDPTe2ZKckf4ukQ8pIiladMwCS7o/9alWx6uy1WNWc/lfIC8XaP8GV7dvimV2yLhufvIXTGa0g/nf8OENtv18XarhsKv0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NeFRanoe; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1780028299; c=relaxed/simple;
+	bh=Tq09IB/n/aU4Rb4U7oNE7C83G5+Tpf3FRkZrLbctc1c=;
+	h=Date:To:From:Subject:Message-Id; b=pTdeUWY9RhY25KfoZlyRizJEQ8UBkevp00FDnNyEWYk79D6M7aGT+KUcKcukC13mQVwboeWL3NiqGSFx06NEaCm4Bq/yzLNA1eeBoI8/iVc0IxRf6S3bccZW79Nm3ocJZvE363H3y6Fev5pPH4MrmOSTb8X1fBv/5ucg+QCUYCM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=biCue7sA; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NeFRanoe"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2638F1F00893;
-	Fri, 29 May 2026 04:17:15 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="biCue7sA"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A0A571F00893;
+	Fri, 29 May 2026 04:18:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1780028235;
-	bh=2ivjNgUPPm09Cryh1kmjqGohzTIrYE7LThQA2SRSDrI=;
+	d=linux-foundation.org; s=korg; t=1780028297;
+	bh=+KOWS0FINrOldwnyEr2KoFbUZF0omfEwIFRM3IFsKqQ=;
 	h=Date:To:From:Subject;
-	b=NeFRanoecBeq4jaK08T9gw498YD+uQbtnTu1Ew4fhyOGP+Ya6Oa8APU5wNPjoiEWi
-	 B9DvwqGCnaso7gaaqsic4e+9Aj7PG5Lx/EriW9OcvbvZqv9fmSyd5d/jD4M15p8+zD
-	 TJa2V7R/iYFFYvjcGJSmz3Lc/pegHMZUPvjCE6F8=
-Date: Thu, 28 May 2026 21:17:14 -0700
-To: mm-commits@vger.kernel.org,thecharlesjenkins@gmail.com,palmer@dabbelt.com,ardb@kernel.org,aou@eecs.berkeley.edu,andriy.shevchenko@intel.com,alex@ghiti.fr,dmantipov@yandex.ru,akpm@linux-foundation.org
+	b=biCue7sAsy7NqWByGZHifge0IORu5Vk9MWzSepsra/np3vWJbD3shg3EA9m4pg2hB
+	 VQiWtzpGRRe6129t7HO4l7gzqGatdaPHpJkbJcXXNTF4/y567S6yMxdroEpk7I+ki6
+	 CvLUCZEh4LKUjD00otrN5m6OyOEETgIl2j6u79ww=
+Date: Thu, 28 May 2026 21:18:17 -0700
+To: mm-commits@vger.kernel.org,hch@lst.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] riscv-fix-building-compressed-efi-image-fix.patch removed from -mm tree
-Message-Id: <20260529041715.2638F1F00893@smtp.kernel.org>
+Subject: [folded-merged] raid6-hide-internals-fix.patch removed from -mm tree
+Message-Id: <20260529041817.A0A571F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,62 +35,59 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: riscv-fix-building-compressed-efi-image-fix
+     Subject: raid6: remove duplicate ccflags-y line
 has been removed from the -mm tree.  Its filename was
-     riscv-fix-building-compressed-efi-image-fix.patch
+     raid6-hide-internals-fix.patch
 
-This patch was dropped because it was folded into riscv-fix-building-compressed-efi-image.patch
+This patch was dropped because it was folded into raid6-hide-internals.patch
 
 ------------------------------------------------------
-From: Dmitry Antipov <dmantipov@yandex.ru>
-Subject: riscv-fix-building-compressed-efi-image-fix
-Date: Sat, 25 Apr 2026 06:07:22 +0300
+From: Christoph Hellwig <hch@lst.de>
+Subject: raid6: remove duplicate ccflags-y line
+Date: Wed, 27 May 2026 09:45:25 +0200
 
-fix loongarch32
+This was added by a mismerge when rebasing, remove it.
 
-Link: https://lore.kernel.org/8095016e47aceab4830c2523ce78af968ec0497e.camel@yandex.ru
-Signed-off-by: Dmitry Antipov <dmantipov@yandex.ru>
-Reported-by: Charlie Jenkins <thecharlesjenkins@gmail.com>
-Closes: https://lore.kernel.org/linux-riscv/20260409050018.GA371560@inky.localdomain
-Tested-by: Charlie Jenkins <thecharlesjenkins@gmail.com>
-Suggested-by: Ard Biesheuvel <ardb@kernel.org>
-Assisted-by: Gemini:gemini-3.1-pro-preview sashiko
-Cc: Albert Ou <aou@eecs.berkeley.edu>
-Cc: Alexandre Ghiti <alex@ghiti.fr>
-Cc: Andriy Shevchenko <andriy.shevchenko@intel.com>
-Cc: Palmer Dabbelt <palmer@dabbelt.com>
+Link: https://lore.kernel.org/20260527074539.2292913-2-hch@lst.de
+Signed-off-by: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/firmware/efi/libstub/Makefile |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ lib/raid/raid6/Makefile |    2 --
+ 1 file changed, 2 deletions(-)
 
---- a/drivers/firmware/efi/libstub/Makefile~riscv-fix-building-compressed-efi-image-fix
-+++ a/drivers/firmware/efi/libstub/Makefile
-@@ -95,9 +95,10 @@ CFLAGS_zboot-decompress-gzip.o	+= -I$(sr
- zboot-obj-$(CONFIG_KERNEL_ZSTD)	:= zboot-decompress-zstd.o lib-xxhash.o
- CFLAGS_zboot-decompress-zstd.o	+= -I$(srctree)/lib/zstd
+--- a/lib/raid/raid6/Makefile~raid6-hide-internals-fix
++++ a/lib/raid/raid6/Makefile
+@@ -2,8 +2,6 @@
  
--zboot-riscv-obj-$(CONFIG_32BIT)	+= lib-ashldi3.o lib-lshrdi3.o
-+zboot-riscv-obj-$(CONFIG_32BIT)	:= lib-ashldi3.o lib-lshrdi3.o
- zboot-obj-$(CONFIG_RISCV)	+= lib-clz_ctz.o $(zboot-riscv-obj-y)
--zboot-obj-$(CONFIG_LOONGARCH)	+= lib-clz_ctz.o lib-ashldi3.o
-+zboot-loongarch-obj-$(CONFIG_32BIT) := lib-ashldi3.o lib-lshrdi3.o
-+zboot-obj-$(CONFIG_LOONGARCH)	+= lib-clz_ctz.o $(zboot-loongarch-obj-y)
- lib-$(CONFIG_EFI_ZBOOT)		+= zboot.o $(zboot-obj-y)
+ ccflags-y			+= -I $(src)
  
- lib-$(CONFIG_UNACCEPTED_MEMORY) += unaccepted_memory.o bitmap.o find.o
+-ccflags-y			+= -I $(src)
+-
+ obj-$(CONFIG_RAID6_PQ)		+= raid6_pq.o tests/
+ 
+ raid6_pq-y			+= algos.o tables.o
 _
 
-Patches currently in -mm which might be from dmantipov@yandex.ru are
+Patches currently in -mm which might be from hch@lst.de are
 
-lib-fix-_parse_integer_limit-to-handle-overflow.patch
-lib-fix-memparse-to-handle-overflow.patch
-lib-add-more-string-to-64-bit-integer-conversion-overflow-tests.patch
-lib-cmdline_kunit-add-test-case-for-memparse.patch
-lib-cmdline-adjust-a-few-comments-to-fix-kernel-doc-wreturn-warnings.patch
-riscv-add-platform-specific-double-word-shifts-for-riscv32.patch
-lib-kunit-add-tests-for-__ashldi3-__ashrdi3-and-__lshrdi3.patch
-riscv-fix-building-compressed-efi-image.patch
-lib-free-pagelist-on-error-in-iov_iter_extract_pages.patch
+raid6-turn-the-userspace-test-harness-into-a-kunit-test.patch
+raid6-remove-__kernel__-ifdefs.patch
+raid6-move-to-lib-raid.patch
+raid6-remove-unused-defines-in-pqh.patch
+raid6-remove-raid6_get_zero_page.patch
+raid6-use-named-initializers-for-struct-raid6_calls.patch
+raid6-improve-the-public-interface.patch
+raid6-warn-when-using-less-than-four-devices.patch
+raid6-hide-internals.patch
+raid6-rework-registration-of-optimized-algorithms.patch
+raid6-rework-registration-of-optimized-algorithms-fix.patch
+raid6-use-static_call-for-gen_syndrom-and-xor_syndrom.patch
+raid6-use-static_call-for-raid6_recov_2data-and-raid6_recov_datap.patch
+raid6-update-top-of-file-comments.patch
+raid6_kunit-use-kunit_case_param.patch
+raid6_kunit-dynamically-allocate-data-buffers-using-vmalloc.patch
+raid6_kunit-cleanup-dataptr-handling.patch
+raid6_kunit-randomize-parameters-and-increase-limits.patch
+raid6_kunit-randomize-buffer-alignment.patch
 
