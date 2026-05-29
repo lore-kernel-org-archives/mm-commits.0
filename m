@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AA037372675
-	for <mm-commits@vger.kernel.org>; Fri, 29 May 2026 04:26:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3226237267B;
+	Fri, 29 May 2026 04:26:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780028767; cv=none; b=ECLu6qQzi+/05f0dSObDj0JgrgONxZFty7Z0H3NrZjDuI2byIVSWmt55UhhOa06yHBIJv8xMchaKfLoAl8Qus4f5OIp/AANRRlHfgKM401GzG7b/WXpcYY2U5YsVQPQpzoMUYxH7sbbIZOtQPZsumfHibuZj2j2cqsXOxxffvBY=
+	t=1780028767; cv=none; b=B9+TBlbH40j06dHoSdCFN9HFy8A/Dlg3jXWxpnf7zQrndb1zQWjX2I1KyLCMhPfskZhf7GrMLzK26nGCwGTKBmg6qpj2BfbnEZkZAEKAjNczElh6OQdcGkIuwI7kILnq3IwbPRnJWxadhkNIIkv3stWMTYoczLVfhkXGvR6uebA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1780028767; c=relaxed/simple;
-	bh=TsPw+ebqFY8tDN1PBhsPc2NfVtxJ4l8pTaHsH8cAYY4=;
-	h=Date:To:From:Subject:Message-Id; b=FNBd/mtWGCLGMynFjWoTFgCwqcLBpB6Yoe1dGPzikmb7saxTKt2Mr47nARdguFOi5HcyVBpVZJtB++q2SQVPRGyGaGlQLtfSgTLbSPPkb3F6gzgblphmEkBy4lROEMJ+Eee3+Pj/CBuW1i+N+3CQu3SVgsk4D/u2xj6LeOlzMHc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1jDkI7AR; arc=none smtp.client-ip=100.103.45.18
+	bh=uu5BOfm8+S+tPh+49bXWe65GXBRtrByjT9X1QWSBO2s=;
+	h=Date:To:From:Subject:Message-Id; b=Ea1ji3kPPCGM5ueuLnvq17qYEDYj0qxA+CyeEHM87hSS/u70LReqgBiuR5lcIrVioQyP0zzWBiF2zRh7E4VAdpMGpKu4Pbn4WWcfnqt/n3RnFr6Migj9I7zI72awqxKfEV5O4ny2CE/lnyI0Q4GVxBgaHJJj62hx/QcVMze5e2U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CFE6uyuj; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1jDkI7AR"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7EC0D1F00898;
-	Fri, 29 May 2026 04:26:02 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CFE6uyuj"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 092121F00899;
+	Fri, 29 May 2026 04:26:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1780028762;
-	bh=derM3M/f4D2dnK2ckxMCp2bhuXWot7/MuyQuN9RcbKc=;
+	d=linux-foundation.org; s=korg; t=1780028766;
+	bh=zI8EhYVVcC/2y8u0J5tTqy9zn+y3urqmrgoqqObgVtA=;
 	h=Date:To:From:Subject;
-	b=1jDkI7ARBxZbjIDa239il2uSha8eb4iZ6DdAqUPAVzX8cvMLfYPDENjE3bbFqBQGI
-	 tWWu79aHsnlc8Kz5Y/PPKrGtPos3tFyQDFqjPUYUPIaMxbKNWs19HA1DxJcBqZ1dih
-	 QxD/1N8Gr2Y+Uz+E95GdSq+l1RO9b/eXX5BuvZVw=
-Date: Thu, 28 May 2026 21:26:02 -0700
-To: mm-commits@vger.kernel.org,lukas.bulwahn@gmail.com,dwaipayanray1@gmail.com,joe@perches.com,akpm@linux-foundation.org
+	b=CFE6uyujyZZe/tAZyvN4gtJqW89yziGoSWtT791n/mGDUt3nPzwKLAF/fr2SjwnJx
+	 WxJoI4cxbm0Px7cbCzWnwE14EPonmVDbA1SlhZ5B1KVjrM5Gei+HKfe9fsMj1x5U6R
+	 DKA6BwYXFyDy/YYqLH+9UWo/o82BI8R6wkSd47oU=
+Date: Thu, 28 May 2026 21:26:05 -0700
+To: mm-commits@vger.kernel.org,zaslonko@linux.ibm.com,stable@vger.kernel.org,ptikhomirov@virtuozzo.com,ojeda@kernel.org,oberpar@linux.ibm.com,nathan@kernel.org,masahiroy@kernel.org,linux@weissschuh.net,arnd@arndb.de,khorenko@virtuozzo.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] maintainers-credits-remove-inactive-checkpatch-reviewers.patch removed from -mm tree
-Message-Id: <20260529042602.7EC0D1F00898@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] gcov-use-atomic-counter-updates-to-fix-concurrent-access-crashes.patch removed from -mm tree
+Message-Id: <20260529042606.092121F00899@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,61 +35,135 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: MAINTAINERS/CREDITS: remove inactive checkpatch reviewers
+     Subject: gcov: use atomic counter updates to fix concurrent access crashes
 has been removed from the -mm tree.  Its filename was
-     maintainers-credits-remove-inactive-checkpatch-reviewers.patch
+     gcov-use-atomic-counter-updates-to-fix-concurrent-access-crashes.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: MAINTAINERS/CREDITS: remove inactive checkpatch reviewers
-Date: Thu, 07 May 2026 10:41:46 -0700
+From: Konstantin Khorenko <khorenko@virtuozzo.com>
+Subject: gcov: use atomic counter updates to fix concurrent access crashes
+Date: Mon, 11 May 2026 12:50:52 +0200
 
-Dwaipayan Ray and Lukas Bulwahn have not commented on checkpatch in
-several years.
+GCC's GCOV instrumentation can merge global branch counters with loop
+induction variables as an optimization.  In inflate_fast(), the inner copy
+loops get transformed so that the GCOV counter value is loaded multiple
+times to compute the loop base address, start index, and end bound.  Since
+GCOV counters are global (not per-CPU), concurrent execution on different
+CPUs causes the counter to change between loads, producing inconsistent
+values and out-of-bounds memory writes.
 
-Lukas is still active on MAINTAINERS.
-Create an entry in CREDITS for Dwaipayan.
+The crash manifests during IPComp (IP Payload Compression) processing when
+inflate_fast() runs concurrently on multiple CPUs:
 
-Link: https://lore.kernel.org/64f057d1d7f247583eb616337b89b3ff7bcc627f.camel@perches.com
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Dwaipayan Ray <dwaipayanray1@gmail.com>
-Cc: Lukas Bulwahn <lukas.bulwahn@gmail.com>
+  BUG: unable to handle page fault for address: ffffd0a3c0902ffa
+  RIP: inflate_fast+1431
+  Call Trace:
+   zlib_inflate
+   __deflate_decompress
+   crypto_comp_decompress
+   ipcomp_decompress [xfrm_ipcomp]
+   ipcomp_input [xfrm_ipcomp]
+   xfrm_input
+
+At the crash point, the compiler generated three loads from the same
+global GCOV counter (__gcov0.inflate_fast+216) to compute base, start, and
+end for an indexed loop.  Another CPU modified the counter between loads,
+making the values inconsistent - the write went 3.4 MB past a 65 KB
+buffer.
+
+Add -fprofile-update=prefer-atomic to CFLAGS_GCOV at the global level in
+the top-level Makefile, guarded by a try-run compile test.  The test
+compiles a minimal program with and without -fprofile-update=prefer-atomic
+using the full KBUILD_CFLAGS, then compares undefined symbols in the
+resulting object files.  If prefer-atomic introduces new undefined
+references (such as __atomic_fetch_add_8 on i386 or __aarch64_ldadd8_relax
+on arm64 with outline-atomics), the flag is not added -- the kernel does
+not link against libatomic.
+
+On architectures where GCC inlines 64-bit atomic counter updates (x86_64,
+s390, ...) the test passes and the flag is enabled, preventing the
+compiler from merging counters with loop induction variables and fixing
+the observed concurrent-access crash.
+
+On architectures where the flag would introduce libatomic dependencies, it
+is silently omitted and behaviour is no worse than before this patch.
+
+Move the CFLAGS_GCOV block from its original position (before the arch
+Makefile include) to after the core KBUILD_CFLAGS assignments but before
+the scripts/Makefile.gcc-plugins include.  This placement ensures the
+try-run test sees arch-specific flags (-m32, -march=,
+-mno-outline-atomics) while avoiding GCC plugin flags (-fplugin=) that
+would break the test on clean builds when plugin shared objects do not yet
+exist.
+
+Link: https://lore.kernel.org/20260511105052.417187-2-khorenko@virtuozzo.com
+Signed-off-by: Konstantin Khorenko <khorenko@virtuozzo.com>
+Tested-by: Arnd Bergmann <arnd@arndb.de>
+Tested-by: Peter Oberparleiter <oberpar@linux.ibm.com>
+Reviewed-by: Peter Oberparleiter <oberpar@linux.ibm.com>
+Cc: Masahiro Yamada <masahiroy@kernel.org>
+Cc: Miguel Ojeda <ojeda@kernel.org>
+Cc: Mikhail Zaslonko <zaslonko@linux.ibm.com>
+Cc: Nathan Chancellor <nathan@kernel.org>
+Cc: Pavel Tikhomirov <ptikhomirov@virtuozzo.com>
+Cc: Thomas Weißschuh <linux@weissschuh.net>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- CREDITS     |    4 ++++
- MAINTAINERS |    2 --
- 2 files changed, 4 insertions(+), 2 deletions(-)
+ Makefile |   27 +++++++++++++++++++++------
+ 1 file changed, 21 insertions(+), 6 deletions(-)
 
---- a/CREDITS~maintainers-credits-remove-inactive-checkpatch-reviewers
-+++ a/CREDITS
-@@ -3368,6 +3368,10 @@ N: Anil Ravindranath
- E: anil_ravindranath@pmc-sierra.com
- D: PMC-Sierra MaxRAID driver
+--- a/Makefile~gcov-use-atomic-counter-updates-to-fix-concurrent-access-crashes
++++ a/Makefile
+@@ -826,12 +826,6 @@ endif # KBUILD_EXTMOD
+ # Defaults to vmlinux, but the arch makefile usually adds further targets
+ all: vmlinux
  
-+N: Dwaipayan Ray
-+E: dwaipayanray1@gmail.com
-+D: checkpatch improvements
+-CFLAGS_GCOV	:= -fprofile-arcs -ftest-coverage
+-ifdef CONFIG_CC_IS_GCC
+-CFLAGS_GCOV	+= -fno-tree-loop-im
+-endif
+-export CFLAGS_GCOV
+-
+ # The arch Makefiles can override CC_FLAGS_FTRACE. We may also append it later.
+ ifdef CONFIG_FUNCTION_TRACER
+   CC_FLAGS_FTRACE := -pg
+@@ -1149,6 +1143,27 @@ endif
+ # Ensure compilers do not transform certain loops into calls to wcslen()
+ KBUILD_CFLAGS += -fno-builtin-wcslen
+ 
++CFLAGS_GCOV	:= -fprofile-arcs -ftest-coverage
++ifdef CONFIG_CC_IS_GCC
++CFLAGS_GCOV	+= -fno-tree-loop-im
++# Use atomic counter updates to avoid concurrent-access crashes in GCOV.
++# Only enable if -fprofile-update=prefer-atomic does not introduce new
++# undefined symbols (e.g. libatomic calls that the kernel cannot link).
++CFLAGS_GCOV	+= $(call try-run,\
++	echo 'long long x; void f(void){x++;}' | \
++	$(CC) $(KBUILD_CPPFLAGS) $(KBUILD_CFLAGS) -w -fprofile-arcs \
++	-ftest-coverage -x c - -c -o "$$TMP.base" && \
++	echo 'long long x; void f(void){x++;}' | \
++	$(CC) $(KBUILD_CPPFLAGS) $(KBUILD_CFLAGS) -w -fprofile-arcs \
++	-ftest-coverage -fprofile-update=prefer-atomic \
++	-x c - -c -o "$$TMP" && \
++	$(NM) "$$TMP.base" | grep ' U ' > "$$TMP.ubase" || true ; \
++	$(NM) "$$TMP" | grep ' U ' > "$$TMP.utest" || true ; \
++	cmp -s "$$TMP.ubase" "$$TMP.utest",\
++	-fprofile-update=prefer-atomic)
++endif
++export CFLAGS_GCOV
 +
- N: Eric S. Raymond
- E: esr@thyrsus.com
- W: http://www.tuxedo.org/~esr/
---- a/MAINTAINERS~maintainers-credits-remove-inactive-checkpatch-reviewers
-+++ a/MAINTAINERS
-@@ -5969,8 +5969,6 @@ F:	drivers/input/keyboard/charlieplex_ke
- CHECKPATCH
- M:	Andy Whitcroft <apw@canonical.com>
- M:	Joe Perches <joe@perches.com>
--R:	Dwaipayan Ray <dwaipayanray1@gmail.com>
--R:	Lukas Bulwahn <lukas.bulwahn@gmail.com>
- S:	Maintained
- F:	scripts/checkpatch.pl
- 
+ # change __FILE__ to the relative path to the source directory
+ ifdef building_out_of_srctree
+ KBUILD_CPPFLAGS += -fmacro-prefix-map=$(srcroot)/=
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from khorenko@virtuozzo.com are
 
+selftests-memfd-fix-wmaybe-uninitialized-warning-in-memfd_test.patch
+selftests-memfd-remove-unused-variable-sig-in-fuse_test.patch
 
