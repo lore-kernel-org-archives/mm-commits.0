@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3C2EF370AD3
-	for <mm-commits@vger.kernel.org>; Fri, 29 May 2026 04:07:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AEA5D36F8FE
+	for <mm-commits@vger.kernel.org>; Fri, 29 May 2026 04:07:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780027646; cv=none; b=YBwHfnByWoZZshAYKFHzP7tGWLIdoIHz16fRbyrbaXuAn32rsxRn0LV+rhPlm8IGCM+qcu3KNGLGTzRO5KKU8fbLJJ4R5bflebhGyUilOpA3U3/vMop073qUdgoa/DhElElncWxOufEK2H0meJgWdeeYD2R2d7JZ7V5C9jEGt6g=
+	t=1780027648; cv=none; b=NRbB+GZgSYvH6XKLigpYVO1q0NmE+1CDds6Es6UekV/CeL8mK+xNs18pPL9NO//5MdMzORnjkNQHYTsgE2vRopu8+o/RSpxnSA/VmL6NnD4yNCg+KH2ZTmza/6a31wBrjhjmfWI5vF4jodGO8tUsL+h/t9oJYwFu/XQHP+6ojh8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780027646; c=relaxed/simple;
-	bh=YhSxY7bPmlwQi0SE7Yl6wcT0ob7O8vEVfdKUVStQYEg=;
-	h=Date:To:From:Subject:Message-Id; b=q7LPr8wSpzRtWYos7HckHgoUySF2Z9l9dkQ1Eb6GEOWnhu5Sg3Fr88m8tLU9Wl906uFPUFKTIzVUMmsVf0khTcoiVoP0R/eCR2SiJi1pWBABFrRObfL8Stt9Y2Wyt/cuVhakubB4z3lXT/NIgBCb3ndhL26ueSt9Qxpel4v87UY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kX6gy8p+; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1780027648; c=relaxed/simple;
+	bh=lmu07rsWIom8LklPOSsn7KbZxQEIeIXrl6zcv5W6QHI=;
+	h=Date:To:From:Subject:Message-Id; b=YvmNRvVPG24lPCqqw+L4hCVFCcKJhPQIF9xs2EN77IK1N/3xhKkCJvTpif9P5CnxhiZ/E18r85N93J8B0Weal9iluFWBX+Kk5nKK5S0JKa/bRAlwcjTvB6AQ7uhniIqjGdlDBcLPMlOh3nz2sVmpFxdnYTU0gYvIV2X6u9U/T+Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jrsngvrj; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kX6gy8p+"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0F2951F00893;
-	Fri, 29 May 2026 04:07:25 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jrsngvrj"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8168F1F00893;
+	Fri, 29 May 2026 04:07:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1780027645;
-	bh=uplBDLNXeouzeW1CBb/c+aEg8lWV78ggikmGcuiKOJk=;
+	d=linux-foundation.org; s=korg; t=1780027646;
+	bh=l749mlOKy7z6XB12oKDoyr8iupVeD2OaScyCtYc3DCA=;
 	h=Date:To:From:Subject;
-	b=kX6gy8p+3FvS/xTInX4mh+fJ74WDL8PxmWNLRraW0QXeTsUO/dgq6/c4d2Yms19Tn
-	 iZZfVAwybZnq91UiOmb0BUdL+EcjWqu3tcg9wQo26/XjLV0tOhBrbuXgHtJmG4ZTGD
-	 fEwxBQImShr7Nchpl+NC7wpSXy9E8uF64wBQwfHI=
-Date: Thu, 28 May 2026 21:07:24 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,skhan@linuxfoundation.org,sj@kernel.org,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,hank20010209@gmail.com,gutierrez.asier@huawei-partners.com,david@kernel.org,corbet@lwn.net,aethernet65535@gmail.com,akpm@linux-foundation.org
+	b=jrsngvrjkxaRcUgwJ3l8va/7nTgEFZvv2orkEVQ6hiISNsyBhZnJn90RXmosp482z
+	 QWiQbbvUk0RdpkIpuutICdMfvi61MMPM3tvDFde6pY75rG6h4zDcGMDvDjH1zx1iyK
+	 TE90EsAzsS8yHJvCgKZQZCVqFnBs8ZDvxE7CCIOo=
+Date: Thu, 28 May 2026 21:07:26 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,skhan@linuxfoundation.org,sj@kernel.org,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,hank20010209@gmail.com,david@kernel.org,corbet@lwn.net,aethernet65535@gmail.com,gutierrez.asier@huawei-partners.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-add-synchronous-commit-for-commit_inputs.patch removed from -mm tree
-Message-Id: <20260529040725.0F2951F00893@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-support-madv_collapse-via-damos_collapse-scheme-action.patch removed from -mm tree
+Message-Id: <20260529040726.8168F1F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,49 +35,181 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/damon: add synchronous commit for commit_inputs
+     Subject: mm/damon: support MADV_COLLAPSE via DAMOS_COLLAPSE scheme action
 has been removed from the -mm tree.  Its filename was
-     mm-damon-add-synchronous-commit-for-commit_inputs.patch
+     mm-damon-support-madv_collapse-via-damos_collapse-scheme-action.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Liew Rui Yan <aethernet65535@gmail.com>
-Subject: mm/damon: add synchronous commit for commit_inputs
-Date: Sun, 26 Apr 2026 16:16:16 -0700
+From: Asier Gutierrez <gutierrez.asier@huawei-partners.com>
+Subject: mm/damon: support MADV_COLLAPSE via DAMOS_COLLAPSE scheme action
+Date: Sun, 26 Apr 2026 16:16:17 -0700
 
-Problem
-=======
-Writing invalid parameters to sysfs followed by 'commit_inputs=Y' fails
-silently (no error returned to shell), because the validation happens
-asynchronously in the kdamond.
+This patch set introces a new action:  DAMOS_COLLAPSE.
 
-Solution
-========
-To fix this, the commit_inputs_store() callback now uses damon_call() to
-synchronously commit parameters in the kdamond thread's safe context.
-This ensures that validation errors are returned immediately to
-userspace, following the pattern used by DAMON_SYSFS.
+For DAMOS_HUGEPAGE and DAMOS_NOHUGEPAGE to work, khugepaged should be
+working, since it relies on hugepage_madvise to add a new slot.  This slot
+should be picked up by khugepaged and eventually collapse (or not, if we
+are using DAMOS_NOHUGEPAGE) the pages.  If THP is not enabled, khugepaged
+will not be working, and therefore no collapse will happen.
 
-Changes
-=======
-1. Added commit_inputs_store() and commit_inputs_fn() to commit
-   synchronously.
-2. Removed handle_commit_inputs().
+DAMOS_COLLAPSE eventually calls madvise_collapse, which will collapse the
+address range synchronously.  In cases where there is a large VMA
+(databases, for example), DAMOS_COLLAPSE allows us to collapse only the
+hot region, and not the entire VMA.
 
-This change is motivated from another discussion [1].
+This new action may be required to support autotuning with hugepage
+as a goal[1].
 
-Link: https://lore.kernel.org/20260426231619.107231-4-sj@kernel.org
-Link: https://lore.kernel.org/20260318153731.97470-1-aethernet65535@gmail.com [1]
-Signed-off-by: Liew Rui Yan <aethernet65535@gmail.com>
-Reviewed-by: SeongJae Park <sj@kernel.org>
+=========
+Benchmarks:
+=========
+
+MySQL
+=====
+
+Tests were performed in an ARM physical server with MariaDB 10.5 and
+sysbench. Read only benchmark was perform with gaussian row hitting,
+which follows a normal distribution.
+
+T n, D h: THP set to never, DAMON action set to hugepage
+T m, D h: THP set to madvise, DAMON action set to hugepage
+T n, D c: THP set to never, DAMON action set to collapse
+
+Memory consumption. Lower is better.
+
++------------------+----------+----------+----------+
+|                  | T n, D h | T m, D h | T n, D c |
++------------------+----------+----------+----------+
+| Total memory use | 2.13     | 2.20     | 2.20     |
+| Huge pages       | 0        | 1.3      | 1.27     |
++------------------+----------+----------+----------+
+
+Performance in TPS (Transactions Per Second). Higher is better.
+
+T n, D h: 18225.58
+T m, D h 18252.93
+T n, D c: 18270.21
+
+Performance counter
+
+I got the number of L1 D/I TLB accesses and the number a D/I TLB
+accesses that triggered a page walk. I divided the second by the
+first to get the percentage of page walkes per TLB access. The
+lower the better.
+
++---------------+--------------+--------------+--------------+
+|               | T n, D h     | T m, D h     | T n, D c     |
++---------------+--------------+--------------+--------------+
+| L1 DTLB       | 127248242753 | 125431020479 | 125327001821 |
+| L1 ITLB       | 80332558619  | 79346759071  | 79298139590  |
+| DTLB walk     | 75011087     | 52800418     | 55895794     |
+| ITLB walk     | 71577076     | 71505137     | 67262140     |
+| DTLB % misses | 0.058948623  | 0.042095183  | 0.044599961  |
+| ITLB % misses | 0.089100954  | 0.090117275  | 0.084821839  |
++---------------+--------------+--------------+--------------+
+
+Masim
+=====
+
+I used masim with the "demo" configuration, but changing the times
+to 100 seconds for the initial phase and 50 seconds for the rest of
+the phases.
+
+Memory consumption:
+
++------------------+----------+----------+----------+
+|                  | T n, D h | T m, D h | T n, D c |
++------------------+----------+----------+----------+
+| Total memory use | 2.38 GB  | 2.36 GB  | 2.37 GB  |
+| Huge pages       | 0        | 190 MB   | 188 MB   |
++------------------+----------+----------+----------+
+
+Performance:
+
+THP never, DAMOS_HUGEPAGE
+initial phase:                40,491 accesses/msec, 100001 msecs run
+low phase 0:                  39,658 accesses/msec, 50002 msecs run
+high phase 0:                 41,678 accesses/msec, 50000 msecs run
+low phase 1:                  39,625 accesses/msec, 50003 msecs run
+high phase 1:                 41,658 accesses/msec, 50002 msecs run
+low phase 2:                  39,642 accesses/msec, 50002 msecs run
+high phase 2:                 41,640 accesses/msec, 50001 msecs run
+
+THP madvise, DAMOS_HUGEPAGE
+initial phase:                51,977 accesses/msec, 100000 msecs run
+low phase 0:                  86,953 accesses/msec, 50000 msecs run
+high phase 0:                 94,812 accesses/msec, 50000 msecs run
+low phase 1:                 101,017 accesses/msec, 50000 msecs run
+high phase 1:                 94,841 accesses/msec, 50000 msecs run
+low phase 2:                 100,993 accesses/msec, 50000 msecs run
+high phase 2:                 94,791 accesses/msec, 50001 msecs run
+
+THP never, DAMOS_COLLAPSE
+initial phase:                93,678 accesses/msec, 100001 msecs run
+low phase 0:                 101,475 accesses/msec, 50000 msecs run
+high phase 0:                 98,589 accesses/msec, 50000 msecs run
+low phase 1:                 101,531 accesses/msec, 50001 msecs run
+high phase 1:                 98,506 accesses/msec, 50001 msecs run
+low phase 2:                 101,458 accesses/msec, 50001 msecs run
+high phase 2:                 98,555 accesses/msec, 50000 msecs run
+
+Memory consumption dynamic (how quickly collapses occur):
+
+It shows in seconds how many huge pages are allocated.
+
++----+----------+----------+
+|    | T m, D h | T n, D c |
++----+----------+----------+
+| 5  | 32       | 188      |
+| 10 | 48       | 188      |
+| 15 | 64       | 188      |
+| 20 | 96       | 188      |
+| 30 | 112      | 188      |
+| 35 | 144      | 188      |
+| 40 | 160      | 188      |
+| 45 | 190      | 188      |
+| 50 | 190      | 188      |
+| 55 | 190      | 188      |
+| 60 | 190      | 188      |
++----+----------+----------+
+
+=========
+
+- We can see that DAMOS "hugepage" action works only when THP is set
+  to madvise. "collapse" action works even when THP is set to never.
+- Performance for "collapse" action is slightly lower than "hugepage"
+  action and THP madvise. This is due to the fact that collapases
+  occur synchronously. With "hugepage" they may occur during page
+  faults.
+- Memory consumption is slighly lower for "collapse" than "hugepage"
+  with THP madvise. This is due to the khugepage collapses all VMAs,
+  while "collapse" action only collapses the VMAs in the hot region.
+- There is an improvement in TLB utilization when collapse through
+  "hugepage" or "collapse" actions are triggered. The amount of
+  TLB misses is lower.
+- "collapse" action is performance synchronously, which means that
+  page collapses happen earlier and more rapidly. This can be
+  useful or not, depending on the scenario.
+- "hugepage" action may trigger a VMA split in some scenarios, since
+  it needs to change the flag of the VMA to THP enabled. This may
+  lead to additional overhead.
+
+Collapse action just adds a new option to chose the correct system
+balance.
+
+Link: https://lore.kernel.org/20260426231619.107231-5-sj@kernel.org
+Link: https://lore.kernel.org/damon/20260313000816.79933-1-sj@kernel.org/ [1]
+Signed-off-by: Asier Gutierrez <gutierrez.asier@huawei-partners.com>
 Signed-off-by: SeongJae Park <sj@kernel.org>
-Cc: Asier Gutierrez <gutierrez.asier@huawei-partners.com>
+Reviewed-by: SeongJae Park <sj@kernel.org>
 Cc: Cheng-Han Wu <hank20010209@gmail.com>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Liew Rui Yan <aethernet65535@gmail.com>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Rapoport <rppt@kernel.org>
@@ -87,166 +219,91 @@ Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/lru_sort.c |   46 +++++++++++++++++++++++++++++++++++-------
- mm/damon/reclaim.c  |   46 +++++++++++++++++++++++++++++++++++-------
- 2 files changed, 78 insertions(+), 14 deletions(-)
+ Documentation/mm/damon/design.rst      |    4 ++++
+ include/linux/damon.h                  |    2 ++
+ mm/damon/sysfs-schemes.c               |    4 ++++
+ mm/damon/vaddr.c                       |    3 +++
+ tools/testing/selftests/damon/sysfs.py |   11 ++++++-----
+ 5 files changed, 19 insertions(+), 5 deletions(-)
 
---- a/mm/damon/lru_sort.c~mm-damon-add-synchronous-commit-for-commit_inputs
-+++ a/mm/damon/lru_sort.c
-@@ -39,7 +39,6 @@ static bool enabled __read_mostly;
-  * the re-reading, DAMON_LRU_SORT will be disabled.
-  */
- static bool commit_inputs __read_mostly;
--module_param(commit_inputs, bool, 0600);
- 
- /*
-  * Desired active to [in]active memory ratio in bp (1/10,000).
-@@ -340,18 +339,51 @@ out:
- 	return err;
- }
- 
--static int damon_lru_sort_handle_commit_inputs(void)
-+static int damon_lru_sort_commit_inputs_fn(void *arg)
- {
-+	return damon_lru_sort_apply_parameters();
-+}
-+
-+static int damon_lru_sort_commit_inputs_store(const char *val,
-+					      const struct kernel_param *kp)
-+{
-+	bool commit_inputs_request;
- 	int err;
-+	struct damon_call_control control = {
-+		.fn = damon_lru_sort_commit_inputs_fn,
-+	};
-+
-+	if (!val) {
-+		commit_inputs_request = true;
-+	} else {
-+		err = kstrtobool(val, &commit_inputs_request);
-+		if (err)
-+			return err;
-+	}
- 
--	if (!commit_inputs)
-+	if (!commit_inputs_request)
- 		return 0;
- 
--	err = damon_lru_sort_apply_parameters();
--	commit_inputs = false;
--	return err;
-+	/*
-+	 * Skip damon_call() if ctx is not initialized to avoid
-+	 * NULL pointer dereference.
-+	 */
-+	if (!ctx)
-+		return -EINVAL;
-+
-+	err = damon_call(ctx, &control);
-+
-+	return err ? err : control.return_code;
- }
- 
-+static const struct kernel_param_ops commit_inputs_param_ops = {
-+	.flags = KERNEL_PARAM_OPS_FL_NOARG,
-+	.set = damon_lru_sort_commit_inputs_store,
-+	.get = param_get_bool,
-+};
-+
-+module_param_cb(commit_inputs, &commit_inputs_param_ops, &commit_inputs, 0600);
-+
- static int damon_lru_sort_damon_call_fn(void *arg)
- {
- 	struct damon_ctx *c = arg;
-@@ -365,7 +397,7 @@ static int damon_lru_sort_damon_call_fn(
- 			damon_lru_sort_cold_stat = s->stat;
- 	}
- 
--	return damon_lru_sort_handle_commit_inputs();
-+	return 0;
- }
- 
- static struct damon_call_control call_control = {
---- a/mm/damon/reclaim.c~mm-damon-add-synchronous-commit-for-commit_inputs
-+++ a/mm/damon/reclaim.c
-@@ -39,7 +39,6 @@ static bool enabled __read_mostly;
-  * re-reading, DAMON_RECLAIM will be disabled.
-  */
- static bool commit_inputs __read_mostly;
--module_param(commit_inputs, bool, 0600);
- 
- /*
-  * Time threshold for cold memory regions identification in microseconds.
-@@ -246,18 +245,51 @@ out:
- 	return err;
- }
- 
--static int damon_reclaim_handle_commit_inputs(void)
-+static int damon_reclaim_commit_inputs_fn(void *arg)
- {
-+	return damon_reclaim_apply_parameters();
-+}
-+
-+static int damon_reclaim_commit_inputs_store(const char *val,
-+					     const struct kernel_param *kp)
-+{
-+	bool commit_inputs_request;
- 	int err;
-+	struct damon_call_control control = {
-+		.fn = damon_reclaim_commit_inputs_fn,
-+	};
-+
-+	if (!val) {
-+		commit_inputs_request = true;
-+	} else {
-+		err = kstrtobool(val, &commit_inputs_request);
-+		if (err)
-+			return err;
-+	}
- 
--	if (!commit_inputs)
-+	if (!commit_inputs_request)
- 		return 0;
- 
--	err = damon_reclaim_apply_parameters();
--	commit_inputs = false;
--	return err;
-+	/*
-+	 * Skip damon_call() if ctx is not initialized to avoid
-+	 * NULL pointer dereference.
-+	 */
-+	if (!ctx)
-+		return -EINVAL;
-+
-+	err = damon_call(ctx, &control);
-+
-+	return err ? err : control.return_code;
- }
- 
-+static const struct kernel_param_ops commit_inputs_param_ops = {
-+	.flags = KERNEL_PARAM_OPS_FL_NOARG,
-+	.set = damon_reclaim_commit_inputs_store,
-+	.get = param_get_bool,
-+};
-+
-+module_param_cb(commit_inputs, &commit_inputs_param_ops, &commit_inputs, 0600);
-+
- static int damon_reclaim_damon_call_fn(void *arg)
- {
- 	struct damon_ctx *c = arg;
-@@ -267,7 +299,7 @@ static int damon_reclaim_damon_call_fn(v
- 	damon_for_each_scheme(s, c)
- 		damon_reclaim_stat = s->stat;
- 
--	return damon_reclaim_handle_commit_inputs();
-+	return 0;
- }
- 
- static struct damon_call_control call_control = {
+--- a/Documentation/mm/damon/design.rst~mm-damon-support-madv_collapse-via-damos_collapse-scheme-action
++++ a/Documentation/mm/damon/design.rst
+@@ -474,6 +474,10 @@ that supports each action are as below.
+    Supported by ``vaddr`` and ``fvaddr`` operations set. When
+    TRANSPARENT_HUGEPAGE is disabled, the application of the action will just
+    fail.
++ - ``collapse``: Call ``madvise()`` for the region with ``MADV_COLLAPSE``.
++   Supported by ``vaddr`` and ``fvaddr`` operations set. When
++   TRANSPARENT_HUGEPAGE is disabled, the application of the action will just
++   fail.
+  - ``lru_prio``: Prioritize the region on its LRU lists.
+    Supported by ``paddr`` operations set.
+  - ``lru_deprio``: Deprioritize the region on its LRU lists.
+--- a/include/linux/damon.h~mm-damon-support-madv_collapse-via-damos_collapse-scheme-action
++++ a/include/linux/damon.h
+@@ -121,6 +121,7 @@ struct damon_target {
+  * @DAMOS_PAGEOUT:	Reclaim the region.
+  * @DAMOS_HUGEPAGE:	Call ``madvise()`` for the region with MADV_HUGEPAGE.
+  * @DAMOS_NOHUGEPAGE:	Call ``madvise()`` for the region with MADV_NOHUGEPAGE.
++ * @DAMOS_COLLAPSE:	Call ``madvise()`` for the region with MADV_COLLAPSE.
+  * @DAMOS_LRU_PRIO:	Prioritize the region on its LRU lists.
+  * @DAMOS_LRU_DEPRIO:	Deprioritize the region on its LRU lists.
+  * @DAMOS_MIGRATE_HOT:  Migrate the regions prioritizing warmer regions.
+@@ -140,6 +141,7 @@ enum damos_action {
+ 	DAMOS_PAGEOUT,
+ 	DAMOS_HUGEPAGE,
+ 	DAMOS_NOHUGEPAGE,
++	DAMOS_COLLAPSE,
+ 	DAMOS_LRU_PRIO,
+ 	DAMOS_LRU_DEPRIO,
+ 	DAMOS_MIGRATE_HOT,
+--- a/mm/damon/sysfs-schemes.c~mm-damon-support-madv_collapse-via-damos_collapse-scheme-action
++++ a/mm/damon/sysfs-schemes.c
+@@ -2117,6 +2117,10 @@ static struct damos_sysfs_action_name da
+ 		.name = "nohugepage",
+ 	},
+ 	{
++		.action = DAMOS_COLLAPSE,
++		.name = "collapse",
++	},
++	{
+ 		.action = DAMOS_LRU_PRIO,
+ 		.name = "lru_prio",
+ 	},
+--- a/mm/damon/vaddr.c~mm-damon-support-madv_collapse-via-damos_collapse-scheme-action
++++ a/mm/damon/vaddr.c
+@@ -903,6 +903,9 @@ static unsigned long damon_va_apply_sche
+ 	case DAMOS_NOHUGEPAGE:
+ 		madv_action = MADV_NOHUGEPAGE;
+ 		break;
++	case DAMOS_COLLAPSE:
++		madv_action = MADV_COLLAPSE;
++		break;
+ 	case DAMOS_MIGRATE_HOT:
+ 	case DAMOS_MIGRATE_COLD:
+ 		return damos_va_migrate(t, r, scheme, sz_filter_passed);
+--- a/tools/testing/selftests/damon/sysfs.py~mm-damon-support-madv_collapse-via-damos_collapse-scheme-action
++++ a/tools/testing/selftests/damon/sysfs.py
+@@ -127,11 +127,12 @@ def assert_scheme_committed(scheme, dump
+             'pageout': 2,
+             'hugepage': 3,
+             'nohugeapge': 4,
+-            'lru_prio': 5,
+-            'lru_deprio': 6,
+-            'migrate_hot': 7,
+-            'migrate_cold': 8,
+-            'stat': 9,
++            'collapse': 5,
++            'lru_prio': 6,
++            'lru_deprio': 7,
++            'migrate_hot': 8,
++            'migrate_cold': 9,
++            'stat': 10,
+             }
+     assert_true(dump['action'] == action_val[scheme.action], 'action', dump)
+     assert_true(dump['apply_interval_us'] == scheme. apply_interval_us,
 _
 
-Patches currently in -mm which might be from aethernet65535@gmail.com are
+Patches currently in -mm which might be from gutierrez.asier@huawei-partners.com are
 
-mm-damon-lru_sort-validate-min_region_size-to-be-power-of-2.patch
-mm-damon-reclaim-validate-min_region_size-to-be-power-of-2.patch
 
