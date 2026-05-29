@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3F93E372661
-	for <mm-commits@vger.kernel.org>; Fri, 29 May 2026 04:25:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 732D1371CE4
+	for <mm-commits@vger.kernel.org>; Fri, 29 May 2026 04:26:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780028760; cv=none; b=jz7RFEQl9pXQ4MqKBK4MFNDjT48Axp7ByHk0s50wo+LIMx+Nv3hEzmCuwsUBPUut9AoTPVgMx5jroYseVbsVDvhd/sNz+KHOOviHJGuapSSr4g7aicPNrp9yoryn1JbdvJ4r7IEqQM2UJcXWwrBv4+olicd5ICTM3B9ulf/KevM=
+	t=1780028761; cv=none; b=UJaWQ/EbZ0vp59MXjwfO76Bq9t2uGpBzNhgTAr04NXOVB6xCShQt+fpG8XFuXGjb6HZYMh/XdXtd5gl3Q61Xyd9gKt10wxGpmilZcPljiErgcnfmOCPqs8Ek3QLmg3E48u2UI+770EnkpNljCFOmGshvnFYJx0v3WxW3qYWdEoY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780028760; c=relaxed/simple;
-	bh=iq8Ysn5BYHpreI1JW5N6E4on7RLaAaAdGynXO8wXAWM=;
-	h=Date:To:From:Subject:Message-Id; b=B1V7N2p+35NlChhcg9qnQvBhIdU4M1qU0boGJot90MRVeewPKxqyvSTEBzwc3qz6FWBDQ/QC6LBS59vdjo6QJ6vaD0+YeclLwBYdFlIaI/odWrosw8Ozo5Jf6rxYJJi0JJBmDS7a5g0TmbUCMqr2cJXPwp9zjwyyXqFxDFmEMi8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uf28Wg3m; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1780028761; c=relaxed/simple;
+	bh=Z2wR+3zFuYwFRuUYbpyVJr5xBUJkYaH9RWCSgeydDdA=;
+	h=Date:To:From:Subject:Message-Id; b=Du+ZDrerLpWg3Fl2H5lvtc1FuVQbeVVTNPXQa/IN3/yJ/56OMtmuLTyFfQkX/MhuNZBgVjh7cbIGtC1pt+39LehLEfJdzHenXltTIUvuYeH1kZUqraG1ZWyfENO06DW/NCaUIeXakb1VHMchdj6yRR1WlspTxGSNf6B8RNcL2lQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=u3Dv+BdQ; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uf28Wg3m"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 158091F00893;
-	Fri, 29 May 2026 04:25:59 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="u3Dv+BdQ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 48E7C1F00898;
+	Fri, 29 May 2026 04:26:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1780028759;
-	bh=akN1i7qp6X3PmXpQ7NbLdMS1vw44MvQ3Fk1dFJ3lQKM=;
+	d=linux-foundation.org; s=korg; t=1780028760;
+	bh=kJjdLmaiv2b/PaYwHA2LnBn8QwWjcUDV8XvfD/uKjxw=;
 	h=Date:To:From:Subject;
-	b=uf28Wg3mit6fPxs36LtMisd6xed5ip5+W6w9m2PhGFkf8edlKcg/6y2o3kkJD40aD
-	 B+zojMu6NTJlbGP2KgQfOsX72Bt+rrzekpX4JGlTzxeKy7mmkYUJqRAWthJtSm7/ui
-	 ltnRM7nlTVb2A25B1ek7wPJiv9HCm4e7tukH6WRg=
-Date: Thu, 28 May 2026 21:25:58 -0700
-To: mm-commits@vger.kernel.org,vmalik@redhat.com,rdunlap@infradead.org,peterz@infradead.org,mathieu.desnoyers@efficios.com,chleroy@kernel.org,arnd@arndb.de,aliceryhl@google.com,ynorov@nvidia.com,akpm@linux-foundation.org
+	b=u3Dv+BdQsU0R0FixzmS79R/HG3IoiA9IcfPW6Mg7FFcAgcMeFS4o7H35uBOH6V6Pk
+	 YkPgLlo5JAbbnu2zLWXaeUA84hgfqg+cSD5b0AliUbFqzy7PNrMzvXq2E8LrsA70Eu
+	 8uFFCykzmNyOEJxmUdakzRPj3bTuatEFHaVEsOzo=
+Date: Thu, 28 May 2026 21:25:59 -0700
+To: mm-commits@vger.kernel.org,valentina.manea.m@gmail.com,shuah@kernel.org,mst@redhat.com,kuba@kernel.org,jasowang@redhat.com,i@zenithal.me,gregkh@linuxfoundation.org,glider@google.com,eperezma@redhat.com,dvyukov@google.com,andreyknvl@gmail.com,jannh@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] uaccess-minimize-inline_copy_user-related-ifdefery.patch removed from -mm tree
-Message-Id: <20260529042559.158091F00893@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] kcov-refactor-common-handle-id-into-kcov_common_handle_id.patch removed from -mm tree
+Message-Id: <20260529042600.48E7C1F00898@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,93 +35,236 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: uaccess: minimize INLINE_COPY_USER-related ifdefery
+     Subject: kcov: refactor common handle ID into kcov_common_handle_id
 has been removed from the -mm tree.  Its filename was
-     uaccess-minimize-inline_copy_user-related-ifdefery.patch
+     kcov-refactor-common-handle-id-into-kcov_common_handle_id.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Yury Norov <ynorov@nvidia.com>
-Subject: uaccess: minimize INLINE_COPY_USER-related ifdefery
-Date: Fri, 24 Apr 2026 22:08:57 -0400
+From: Jann Horn <jannh@google.com>
+Subject: kcov: refactor common handle ID into kcov_common_handle_id
+Date: Thu, 30 Apr 2026 16:15:33 +0200
 
-Now that we've got the same config selecting inline vs outline
-copy_to_user() and copy_from_user(), we can simplify the corresponding
-logic in the uaccess.h.
+Store common handle IDs in "struct kcov_common_handle_id", which consumes
+no space in non-KCOV builds.
 
-Link: https://lore.kernel.org/20260425020857.356850-4-ynorov@nvidia.com
-Fixes: 1f9a8286bc0c ("uaccess: always export _copy_[from|to]_user with CONFIG_RUST")
-Signed-off-by: Yury Norov <ynorov@nvidia.com>
-Tested-by: Alice Ryhl <aliceryhl@google.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Christophe Leroy (CS GROUP) <chleroy@kernel.org>
-Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Randy Dunlap <rdunlap@infradead.org>
-Cc: Viktor Malik <vmalik@redhat.com>
+This cleanup removes #ifdef boilerplate code from subsystems that
+integrate with KCOV (in particular in usbip_common.h and skbuff.h, see the
+diffstat).
+
+This should also make it easier to add KCOV remote coverage to more
+subsystems in the future.
+
+Link: https://lore.kernel.org/20260430-kcov-refactor-common-handle-v1-1-23a0c7a0ba38@google.com
+Signed-off-by: Jann Horn <jannh@google.com>
+Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Reviewed-by: Dmitry Vyukov <dvyukov@google.com>
+Acked-by: Jakub Kicinski <kuba@kernel.org>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: Eugenio Pérez <eperezma@redhat.com>
+Cc: Hongren (Zenithal) Zheng <i@zenithal.me>
+Cc: Jann Horn <jannh@google.com>
+Cc: Jason Wang <jasowang@redhat.com>
+Cc: "Michael S. Tsirkin" <mst@redhat.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Valentina Manea <valentina.manea.m@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/uaccess.h |   21 +++++++--------------
- 1 file changed, 7 insertions(+), 14 deletions(-)
+ drivers/usb/usbip/usbip_common.h |   29 +----------------------------
+ drivers/usb/usbip/vhci_rx.c      |    4 ++--
+ drivers/usb/usbip/vhci_sysfs.c   |    2 +-
+ drivers/vhost/vhost.h            |    2 +-
+ include/linux/kcov.h             |   12 ++++++------
+ include/linux/skbuff.h           |   14 +++-----------
+ include/linux/types.h            |    6 ++++++
+ kernel/kcov.c                    |    6 +++---
+ 8 files changed, 23 insertions(+), 52 deletions(-)
 
---- a/include/linux/uaccess.h~uaccess-minimize-inline_copy_user-related-ifdefery
-+++ a/include/linux/uaccess.h
-@@ -190,10 +190,6 @@ fail:
- 	memset(to + (n - res), 0, res);
- 	return res;
- }
--#ifndef INLINE_COPY_USER
--extern __must_check unsigned long
--_copy_from_user(void *, const void __user *, unsigned long);
--#endif
+--- a/drivers/usb/usbip/usbip_common.h~kcov-refactor-common-handle-id-into-kcov_common_handle_id
++++ a/drivers/usb/usbip/usbip_common.h
+@@ -282,9 +282,7 @@ struct usbip_device {
+ 		void (*unusable)(struct usbip_device *);
+ 	} eh_ops;
  
- static inline __must_check unsigned long
- _inline_copy_to_user(void __user *to, const void *from, unsigned long n)
-@@ -207,7 +203,13 @@ _inline_copy_to_user(void __user *to, co
- 	}
- 	return n;
- }
--#ifndef INLINE_COPY_USER
-+#ifdef INLINE_COPY_USER
-+# define _copy_to_user _inline_copy_to_user
-+# define _copy_from_user _inline_copy_from_user
-+#else
-+extern __must_check unsigned long
-+_copy_from_user(void *, const void __user *, unsigned long);
-+
- extern __must_check unsigned long
- _copy_to_user(void __user *, const void *, unsigned long);
- #endif
-@@ -217,11 +219,7 @@ copy_from_user(void *to, const void __us
- {
- 	if (!check_copy_size(to, n, false))
- 		return n;
--#ifdef INLINE_COPY_USER
--	return _inline_copy_from_user(to, from, n);
--#else
- 	return _copy_from_user(to, from, n);
+-#ifdef CONFIG_KCOV
+-	u64 kcov_handle;
 -#endif
++	struct kcov_common_handle_id kcov_handle;
+ };
+ 
+ #define kthread_get_run(threadfn, data, namefmt, ...)			   \
+@@ -339,29 +337,4 @@ static inline int interface_to_devnum(st
+ 	return udev->devnum;
  }
  
- static __always_inline unsigned long __must_check
-@@ -229,12 +227,7 @@ copy_to_user(void __user *to, const void
- {
- 	if (!check_copy_size(from, n, true))
- 		return n;
+-#ifdef CONFIG_KCOV
 -
--#ifdef INLINE_COPY_USER
--	return _inline_copy_to_user(to, from, n);
--#else
- 	return _copy_to_user(to, from, n);
+-static inline void usbip_kcov_handle_init(struct usbip_device *ud)
+-{
+-	ud->kcov_handle = kcov_common_handle();
+-}
+-
+-static inline void usbip_kcov_remote_start(struct usbip_device *ud)
+-{
+-	kcov_remote_start_common(ud->kcov_handle);
+-}
+-
+-static inline void usbip_kcov_remote_stop(void)
+-{
+-	kcov_remote_stop();
+-}
+-
+-#else /* CONFIG_KCOV */
+-
+-static inline void usbip_kcov_handle_init(struct usbip_device *ud) { }
+-static inline void usbip_kcov_remote_start(struct usbip_device *ud) { }
+-static inline void usbip_kcov_remote_stop(void) { }
+-
+-#endif /* CONFIG_KCOV */
+-
+ #endif /* __USBIP_COMMON_H */
+--- a/drivers/usb/usbip/vhci_rx.c~kcov-refactor-common-handle-id-into-kcov_common_handle_id
++++ a/drivers/usb/usbip/vhci_rx.c
+@@ -261,9 +261,9 @@ int vhci_rx_loop(void *data)
+ 		if (usbip_event_happened(ud))
+ 			break;
+ 
+-		usbip_kcov_remote_start(ud);
++		kcov_remote_start_common(ud->kcov_handle);
+ 		vhci_rx_pdu(ud);
+-		usbip_kcov_remote_stop();
++		kcov_remote_stop();
+ 	}
+ 
+ 	return 0;
+--- a/drivers/usb/usbip/vhci_sysfs.c~kcov-refactor-common-handle-id-into-kcov_common_handle_id
++++ a/drivers/usb/usbip/vhci_sysfs.c
+@@ -425,7 +425,7 @@ static ssize_t attach_store(struct devic
+ 	vdev->ud.tcp_rx     = tcp_rx;
+ 	vdev->ud.tcp_tx     = tcp_tx;
+ 	vdev->ud.status     = VDEV_ST_NOTASSIGNED;
+-	usbip_kcov_handle_init(&vdev->ud);
++	vdev->ud.kcov_handle = kcov_common_handle();
+ 
+ 	spin_unlock(&vdev->ud.lock);
+ 	spin_unlock_irqrestore(&vhci->lock, flags);
+--- a/drivers/vhost/vhost.h~kcov-refactor-common-handle-id-into-kcov_common_handle_id
++++ a/drivers/vhost/vhost.h
+@@ -44,7 +44,7 @@ struct vhost_worker {
+ 	/* Used to serialize device wide flushing with worker swapping. */
+ 	struct mutex		mutex;
+ 	struct llist_head	work_list;
+-	u64			kcov_handle;
++	struct kcov_common_handle_id kcov_handle;
+ 	u32			id;
+ 	int			attachment_cnt;
+ 	bool			killed;
+--- a/include/linux/kcov.h~kcov-refactor-common-handle-id-into-kcov_common_handle_id
++++ a/include/linux/kcov.h
+@@ -43,11 +43,11 @@ do {						\
+ /* See Documentation/dev-tools/kcov.rst for usage details. */
+ void kcov_remote_start(u64 handle);
+ void kcov_remote_stop(void);
+-u64 kcov_common_handle(void);
++struct kcov_common_handle_id kcov_common_handle(void);
+ 
+-static inline void kcov_remote_start_common(u64 id)
++static inline void kcov_remote_start_common(struct kcov_common_handle_id id)
+ {
+-	kcov_remote_start(kcov_remote_handle(KCOV_SUBSYSTEM_COMMON, id));
++	kcov_remote_start(kcov_remote_handle(KCOV_SUBSYSTEM_COMMON, id.val));
+ }
+ 
+ static inline void kcov_remote_start_usb(u64 id)
+@@ -99,11 +99,11 @@ static inline void kcov_prepare_switch(s
+ static inline void kcov_finish_switch(struct task_struct *t) {}
+ static inline void kcov_remote_start(u64 handle) {}
+ static inline void kcov_remote_stop(void) {}
+-static inline u64 kcov_common_handle(void)
++static inline struct kcov_common_handle_id kcov_common_handle(void)
+ {
+-	return 0;
++	return (struct kcov_common_handle_id){};
+ }
+-static inline void kcov_remote_start_common(u64 id) {}
++static inline void kcov_remote_start_common(struct kcov_common_handle_id id) {}
+ static inline void kcov_remote_start_usb(u64 id) {}
+ static inline void kcov_remote_start_usb_softirq(u64 id) {}
+ static inline void kcov_remote_stop_softirq(void) {}
+--- a/include/linux/skbuff.h~kcov-refactor-common-handle-id-into-kcov_common_handle_id
++++ a/include/linux/skbuff.h
+@@ -1082,9 +1082,7 @@ struct sk_buff {
+ 	__u16			network_header;
+ 	__u16			mac_header;
+ 
+-#ifdef CONFIG_KCOV
+-	u64			kcov_handle;
+-#endif
++	struct kcov_common_handle_id kcov_handle;
+ 
+ 	); /* end headers group */
+ 
+@@ -5437,20 +5435,14 @@ static inline void skb_reset_csum_not_in
+ }
+ 
+ static inline void skb_set_kcov_handle(struct sk_buff *skb,
+-				       const u64 kcov_handle)
++				       struct kcov_common_handle_id kcov_handle)
+ {
+-#ifdef CONFIG_KCOV
+ 	skb->kcov_handle = kcov_handle;
 -#endif
  }
  
- #ifndef copy_mc_to_kernel
+-static inline u64 skb_get_kcov_handle(struct sk_buff *skb)
++static inline struct kcov_common_handle_id skb_get_kcov_handle(struct sk_buff *skb)
+ {
+-#ifdef CONFIG_KCOV
+ 	return skb->kcov_handle;
+-#else
+-	return 0;
+-#endif
+ }
+ 
+ static inline void skb_mark_for_recycle(struct sk_buff *skb)
+--- a/include/linux/types.h~kcov-refactor-common-handle-id-into-kcov_common_handle_id
++++ a/include/linux/types.h
+@@ -224,6 +224,12 @@ struct ustat {
+ 	char			f_fpack[6];
+ };
+ 
++struct kcov_common_handle_id {
++#ifdef CONFIG_KCOV
++	u64 val;
++#endif
++};
++
+ /**
+  * struct callback_head - callback structure for use with RCU and task_work
+  * @next: next update requests in a list
+--- a/kernel/kcov.c~kcov-refactor-common-handle-id-into-kcov_common_handle_id
++++ a/kernel/kcov.c
+@@ -1083,11 +1083,11 @@ void kcov_remote_stop(void)
+ EXPORT_SYMBOL(kcov_remote_stop);
+ 
+ /* See the comment before kcov_remote_start() for usage details. */
+-u64 kcov_common_handle(void)
++struct kcov_common_handle_id kcov_common_handle(void)
+ {
+ 	if (!in_task())
+-		return 0;
+-	return current->kcov_handle;
++		return (struct kcov_common_handle_id){ .val = 0 };
++	return (struct kcov_common_handle_id){ .val = current->kcov_handle };
+ }
+ EXPORT_SYMBOL(kcov_common_handle);
+ 
 _
 
-Patches currently in -mm which might be from ynorov@nvidia.com are
+Patches currently in -mm which might be from jannh@google.com are
 
 
