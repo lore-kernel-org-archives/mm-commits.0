@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AA93034D3B2
-	for <mm-commits@vger.kernel.org>; Fri, 29 May 2026 04:06:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D3E182253EE
+	for <mm-commits@vger.kernel.org>; Fri, 29 May 2026 04:06:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780027569; cv=none; b=QHNl/j6x7WudSPBiS7RRb/lMYaM9TKmHU2HNIdt1JKupf4kSLZHJaZPd0gYOIjwe3wWjt0Gba5UJREcBS34KIQ8qZA+tFfQmGrR23kLrptdQ9w/z6IzRYahPNyTdUmGOTaqvJzKs+dFrgK0DUvTkbGvyO4782LmLlFMFVKzw6pU=
+	t=1780027570; cv=none; b=SsPI9uMcHFpXCnLSiupmWYXnRpit6NnKIBW5/4lKn2asjVz3VqsqullmE0l/e/w2lSYn5qP5f0gqNnFz5t6lCFLIKc5kHcRVcmxJgbwNdyKYglPdS3I/gGfHWGdHk0i6taIN3wQOeICk5L81YO9oYrKaRnlRYwowujV3SHET0lo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780027569; c=relaxed/simple;
-	bh=Hh3FeJBABFFj15R2/KrYnW2O6pItDqHs1JIXxVein+Y=;
-	h=Date:To:From:Subject:Message-Id; b=O6RM0bTjQt4k4StFsXMpcYmDLfcMdukqXLo1sQELLr0XMGQgNOvylIllAyBERXr0xdypT3Ph+GYnYvPtlz6M9sJo2ABftr/A1zXwXD4nrH+VTM7U2k5BJi5HkQ0UjYDpiZefhhayvKVWk8VZJRbKaV7wbVGMBUa0vdJfEcA/f6o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kB7864Wx; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1780027570; c=relaxed/simple;
+	bh=/4W5wFLhNC/HHXjgEfWh0oNqPHhQdR+7+R5nASAzWCI=;
+	h=Date:To:From:Subject:Message-Id; b=dBcum6EtBpsl/BRi/J1bzX56eGtSx4/7wgPXheMHacIVRlvBVY0lC2B7AXKHdUB1Ab5xtpulMJk6S5qLpC1+jFf0+kK8rdpGcgZvigSCrrS72w9+RRHGUp1QPfVuQEXmAvu4ALPzwYucWP/Ap3jTwqjvY4Rqt2uReMItT45tAf0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zeCA2QMB; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kB7864Wx"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8572E1F00893;
-	Fri, 29 May 2026 04:06:08 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zeCA2QMB"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AA2BF1F00899;
+	Fri, 29 May 2026 04:06:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1780027568;
-	bh=0f46TugXW6bhpo9FWQAeyGGuSvwdsKi9J32uBPJ3JV0=;
+	d=linux-foundation.org; s=korg; t=1780027569;
+	bh=Y7+6DZd3DDP2QdIaeY2/8VZNvQhsPkvhWpSlPucS9gM=;
 	h=Date:To:From:Subject;
-	b=kB7864WxthKecfVMcYHhbdmOIkEOFf8Yo9zJtFYQ6k10q0zqRhPcD041RX+z9nfq3
-	 HvScRl4ZlxEylPdscg48BtR6x3xWINkpXJoSE++zM8nI+kqCLeEAp87Fd0LyBl0B0o
-	 tsjTLOhkbKoHL3dQCbbs65l/w2zP+NLYCTYs1wzU=
-Date: Thu, 28 May 2026 21:06:08 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vishal.moola@gmail.com,vbabka@kernel.org,urezki@gmail.com,terrelln@fb.com,surenb@google.com,ryan.roberts@arm.com,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,jackmanb@google.com,hannes@cmpxchg.org,dsterba@suse.com,david@kernel.org,usama.anjum@arm.com,akpm@linux-foundation.org
+	b=zeCA2QMBMWq2I0VRU0s+necVW7cMh4xEJmrf8j6pNWZZm0Tof8n7v3dW5QkCOa8Z1
+	 kSq+SzlYOhC+xffMMBLZOq7Zv382zsvfJ472n1Rt+dnOAk0F9It/1od/EcRWwiYSO4
+	 CKGB4XI2SZmbqbkZ02lG0wUC51Q2Fd89CJusBMwI=
+Date: Thu, 28 May 2026 21:06:09 -0700
+To: mm-commits@vger.kernel.org,ryan.roberts@arm.com,peterx@redhat.com,kevin.brodsky@arm.com,jhubbard@nvidia.com,jgg@ziepe.ca,hca@linux.ibm.com,gor@linux.ibm.com,gerald.schaefer@linux.ibm.com,david@kernel.org,agordeev@linux.ibm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-page_alloc-optimize-__free_contig_frozen_range.patch removed from -mm tree
-Message-Id: <20260529040608.8572E1F00893@smtp.kernel.org>
+Subject: [merged mm-stable] mm-gup-cleanup-pgtable-entry-accessors.patch removed from -mm tree
+Message-Id: <20260529040609.AA2BF1F00899@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,114 +35,81 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/page_alloc: optimize __free_contig_frozen_range()
+     Subject: mm/gup: cleanup pgtable entry accessors
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-optimize-__free_contig_frozen_range.patch
+     mm-gup-cleanup-pgtable-entry-accessors.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Muhammad Usama Anjum <usama.anjum@arm.com>
-Subject: mm/page_alloc: optimize __free_contig_frozen_range()
-Date: Wed, 1 Apr 2026 11:16:21 +0100
+From: Alexander Gordeev <agordeev@linux.ibm.com>
+Subject: mm/gup: cleanup pgtable entry accessors
+Date: Tue, 21 Apr 2026 07:17:54 +0200
 
-Apply the same batch-freeing optimization from free_contig_range() to the
-frozen page path.  The previous __free_contig_frozen_range() freed each
-order-0 page individually via free_frozen_pages(), which is slow for the
-same reason the old free_contig_range() was: each page goes to the order-0
-pcp list rather than being coalesced into higher-order blocks.
+PMD and PUD entries revalidation has the same semantics as PTE entry
+revalidation.  Convert the remaining direct entry dereferences to the
+corresponding accessors.
 
-Rewrite __free_contig_frozen_range() to call free_pages_prepare() for each
-order-0 page, then batch the prepared pages into the largest possible
-power-of-2 aligned chunks via free_prepared_contig_range().  If
-free_pages_prepare() fails (e.g.  HWPoison, bad page) the page is
-deliberately not freed; it should not be returned to the allocator.
+The PTE validation in gup_fast_pte_range() is inconsistent with the prior
+value acquisition in the sense that it drops the lockless access
+semantics.
 
-I've tested CMA through debugfs.  The test allocates 16384 pages per
-allocation for several iterations.  There is 3.5x improvement.
+Use the lockless accessor not only for the PTE, but also for the PMD
+validation, which is likewise inconsistent with the prior value
+acquisition in gup_fast_pmd_range().
 
-Before: 1406 usec per iteration
-After:   402 usec per iteration
-
-Before:
-
-    70.89%     0.69%  cma              [kernel.kallsyms]      [.] free_contig_frozen_range
-            |
-            |--70.20%--free_contig_frozen_range
-            |          |
-            |          |--46.41%--__free_frozen_pages
-            |          |          |
-            |          |           --36.18%--free_frozen_page_commit
-            |          |                     |
-            |          |                      --29.63%--_raw_spin_unlock_irqrestore
-            |          |
-            |          |--8.76%--_raw_spin_trylock
-            |          |
-            |          |--7.03%--__preempt_count_dec_and_test
-            |          |
-            |          |--4.57%--_raw_spin_unlock
-            |          |
-            |          |--1.96%--__get_pfnblock_flags_mask.isra.0
-            |          |
-            |           --1.15%--free_frozen_page_commit
-            |
-             --0.69%--el0t_64_sync
-
-After:
-
-    23.57%     0.00%  cma              [kernel.kallsyms]      [.] free_contig_frozen_range
-            |
-            ---free_contig_frozen_range
-               |
-               |--20.45%--__free_contig_frozen_range
-               |          |
-               |          |--17.77%--free_pages_prepare
-               |          |
-               |           --0.72%--free_prepared_contig_range
-               |                     |
-               |                      --0.55%--__free_frozen_pages
-               |
-                --3.12%--free_pages_prepare
-
-Link: https://lore.kernel.org/20260401101634.2868165-4-usama.anjum@arm.com
-Signed-off-by: Muhammad Usama Anjum <usama.anjum@arm.com>
+Link: https://lore.kernel.org/20260421051754.1691221-1-agordeev@linux.ibm.com
+Signed-off-by: Alexander Gordeev <agordeev@linux.ibm.com>
 Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Acked-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
-Suggested-by: Zi Yan <ziy@nvidia.com>
-Cc: Brendan Jackman <jackmanb@google.com>
-Cc: David Sterba <dsterba@suse.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Liam Howlett <liam@infradead.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Nick Terrell <terrelln@fb.com>
+Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
+Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Kevin Brodsky <kevin.brodsky@arm.com>
+Cc: Peter Xu <peterx@redhat.com>
 Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
-Cc: Vishal Moola (Oracle) <vishal.moola@gmail.com>
+Cc: Vasily Gorbik <gor@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ mm/gup.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-optimize-__free_contig_frozen_range
-+++ a/mm/page_alloc.c
-@@ -7032,8 +7032,7 @@ static int __alloc_contig_verify_gfp_mas
+--- a/mm/gup.c~mm-gup-cleanup-pgtable-entry-accessors
++++ a/mm/gup.c
+@@ -2865,8 +2865,8 @@ static int gup_fast_pte_range(pmd_t pmd,
+ 		if (!folio)
+ 			goto pte_unmap;
  
- static void __free_contig_frozen_range(unsigned long pfn, unsigned long nr_pages)
- {
--	for (; nr_pages--; pfn++)
--		free_frozen_pages(pfn_to_page(pfn), 0);
-+	__free_contig_range_common(pfn, nr_pages, /* is_frozen= */ true);
- }
+-		if (unlikely(pmd_val(pmd) != pmd_val(*pmdp)) ||
+-		    unlikely(pte_val(pte) != pte_val(ptep_get(ptep)))) {
++		if (unlikely(pmd_val(pmd) != pmd_val(pmdp_get_lockless(pmdp))) ||
++		    unlikely(pte_val(pte) != pte_val(ptep_get_lockless(ptep)))) {
+ 			gup_put_folio(folio, 1, flags);
+ 			goto pte_unmap;
+ 		}
+@@ -2942,7 +2942,7 @@ static int gup_fast_pmd_leaf(pmd_t orig,
+ 	if (!folio)
+ 		return 0;
  
- /**
+-	if (unlikely(pmd_val(orig) != pmd_val(*pmdp))) {
++	if (unlikely(pmd_val(orig) != pmd_val(pmdp_get_lockless(pmdp)))) {
+ 		gup_put_folio(folio, refs, flags);
+ 		return 0;
+ 	}
+@@ -2985,7 +2985,7 @@ static int gup_fast_pud_leaf(pud_t orig,
+ 	if (!folio)
+ 		return 0;
+ 
+-	if (unlikely(pud_val(orig) != pud_val(*pudp))) {
++	if (unlikely(pud_val(orig) != pud_val(pudp_get(pudp)))) {
+ 		gup_put_folio(folio, refs, flags);
+ 		return 0;
+ 	}
 _
 
-Patches currently in -mm which might be from usama.anjum@arm.com are
+Patches currently in -mm which might be from agordeev@linux.ibm.com are
 
+mm-page_vma_mapped_walk-use-ptep_get_lockless-for-lockless-access.patch
 
