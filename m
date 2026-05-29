@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3537A369996
-	for <mm-commits@vger.kernel.org>; Fri, 29 May 2026 04:06:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8219136EA98
+	for <mm-commits@vger.kernel.org>; Fri, 29 May 2026 04:06:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780027562; cv=none; b=P2mlpUG8KaSwEufB+qtLgiQtuag4zbJyDajkmacyEvhUgsybMoDy/7yFAKK4FIrJHATvEy8y9rESOuI0IXYYq8xz9+VRT6Rw6Wcqo8FEI/cbw2fdOaskJxjfFfse+JXqOiztk9HKkzr7uAIXspYMzB6f2FAX4sgh2Ft74N08zos=
+	t=1780027565; cv=none; b=kZCBxl0aUmY7Ctj95RaCYZnwF6HUPWY+00QJCuka4bgDlA72fjRtydPmVSEsrxuG4IYPG3/qH5sVEp/OE22hjAx8URuaJholc+R77fapXwtgljpyrFfijZj65+UaFKV2JCZJ0RbtBeGNvUjiri+ZVpSCZLHLwvnRRwbVbeEAUBQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780027562; c=relaxed/simple;
-	bh=nNGxPDZy3RSoHSyJTH/fwblCvirhYZ3DCLv09vIEH9M=;
-	h=Date:To:From:Subject:Message-Id; b=svyA4Rgap7LJXi+CqcgfGQ1XEFMDT0Zz04PEVwLhs4xIGAlaJQzzaCktJLnDRPit5ogfYOnXi2jLluZBJeEsuJpHWAl7Fcs0gUJ0LYUzpb1XOBw0IohCxK+IdnY2HUVHnVzjnhUZz3v0QFx//5s99pj/sitsRNVyqSgm2mDY9b0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cI8kZSxx; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1780027565; c=relaxed/simple;
+	bh=DW04jsINuZrcQuXST006AepbMeF2AYMiqoVdGiJmUBc=;
+	h=Date:To:From:Subject:Message-Id; b=NMj0o4qVSyomn7UAT87+98MpF4s8fZed4d6VLWbWDJnkNPnvfRsvnEOMunw50FHWsNwkck1Rkeso4/EKtaiFwJuehRGthcIONoRIeeNqID9mEYqYIQdJ8nDxfywyRPGoCaklDCtPn2APsKCtJBLtukKdnOozuO/WcBuN6OgsQjk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fVvkImF/; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cI8kZSxx"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C77441F00893;
-	Fri, 29 May 2026 04:06:00 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fVvkImF/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C35281F00893;
+	Fri, 29 May 2026 04:06:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1780027560;
-	bh=pcBX8jL2Xu0MR//sHaKA+PT+LQEiw/MzCD/LJPx1Yp0=;
+	d=linux-foundation.org; s=korg; t=1780027562;
+	bh=2eE7QdscWF8FqVEq6dhq9TY33/glc6pIyrqVWApj11U=;
 	h=Date:To:From:Subject;
-	b=cI8kZSxxyeut6mU/JesKCJVHhhy/bbg51ev3N3EKxLUPyna5fNJiU+dP/kMfmw/64
-	 pefNlR2LhRS4BeZW3pmd4cMv6MG15ypQG5RIwoAKYOo8gSp1EtmlmMFNcmLCYVTjAq
-	 Qzc9yS8DhtqS+EIRZrhkkDsOxsO8nQtbggkrMD0k=
-Date: Thu, 28 May 2026 21:06:00 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,youngjun.park@lge.com,shikemeng@huaweicloud.com,ryan.roberts@arm.com,nphamcs@gmail.com,npache@redhat.com,ljs@kernel.org,liam@infradead.org,lance.yang@linux.dev,kasong@tencent.com,dev.jain@arm.com,david@kernel.org,chrisl@kernel.org,bhe@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,akpm@linux-foundation.org
+	b=fVvkImF/pIEv6nEmTIRqT6l8VkUzqSszkqCjaWAiz5xkhTi2vpkjSaFAw2zP+1aYO
+	 BzKYvsEe36pq9Dy37kg4wqkV2Re/pBS00sVKWTRSG80LexaVyg4sHnNgLBHuI6bbS4
+	 4+Hlbewp0AzSiP1AbwN3w+o3xtXKtXp6Te5MgtWE=
+Date: Thu, 28 May 2026 21:06:02 -0700
+To: mm-commits@vger.kernel.org,surenb@google.com,rppt@kernel.org,osalvador@suse.de,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,chengkaitao@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-huge_memory-fix-outdated-comment-about-freeing-subpages-in-__folio_split.patch removed from -mm tree
-Message-Id: <20260529040600.C77441F00893@smtp.kernel.org>
+Subject: [merged mm-stable] mm-convert-vmemmap_pd_populate-to-static-functions.patch removed from -mm tree
+Message-Id: <20260529040602.C35281F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,67 +35,106 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/huge_memory: fix outdated comment about freeing subpages in __folio_split
+     Subject: mm: convert vmemmap_p?d_populate() to static functions
 has been removed from the -mm tree.  Its filename was
-     mm-huge_memory-fix-outdated-comment-about-freeing-subpages-in-__folio_split.patch
+     mm-convert-vmemmap_pd_populate-to-static-functions.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Barry Song (Xiaomi)" <baohua@kernel.org>
-Subject: mm/huge_memory: fix outdated comment about freeing subpages in __folio_split
-Date: Thu, 23 Apr 2026 11:49:17 +0800
+From: Chengkaitao <chengkaitao@kylinos.cn>
+Subject: mm: convert vmemmap_p?d_populate() to static functions
+Date: Thu, 23 Apr 2026 18:14:41 +0800
 
-The comment appears to be outdated.  add_to_swap() no longer exists,
-and the explanation of why we need to call put_page() after splitting
-could be made more general.
+Since the vmemmap_p?d_populate functions are unused outside the mm
+subsystem, we can remove their external declarations and convert them to
+static functions.
 
-Link: https://lore.kernel.org/20260423034917.8234-1-baohua@kernel.org
-Signed-off-by: Barry Song (Xiaomi) <baohua@kernel.org>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Acked-by: Zi Yan <ziy@nvidia.com>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Nico Pache <npache@redhat.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Lance Yang <lance.yang@linux.dev>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: Kairui Song <kasong@tencent.com>
-Cc: Kemeng Shi <shikemeng@huaweicloud.com>
-Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Youngjun Park <youngjun.park@lge.com>
+Link: https://lore.kernel.org/20260423101441.7089-1-kaitao.cheng@linux.dev
+Signed-off-by: Chengkaitao <chengkaitao@kylinos.cn>
+Acked-by: David Hildenbrand (arm) <david@kernel.org>
+Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Acked-by: Oscar Salvador <osalvador@suse.de>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Liam Howlett <liam@infradead.org>
+Cc: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ include/linux/mm.h  |    7 -------
+ mm/sparse-vmemmap.c |   10 +++++-----
+ 2 files changed, 5 insertions(+), 12 deletions(-)
 
---- a/mm/huge_memory.c~mm-huge_memory-fix-outdated-comment-about-freeing-subpages-in-__folio_split
-+++ a/mm/huge_memory.c
-@@ -4190,11 +4190,10 @@ fail:
+--- a/include/linux/mm.h~mm-convert-vmemmap_pd_populate-to-static-functions
++++ a/include/linux/mm.h
+@@ -4860,13 +4860,6 @@ unsigned long section_map_size(void);
+ struct page * __populate_section_memmap(unsigned long pfn,
+ 		unsigned long nr_pages, int nid, struct vmem_altmap *altmap,
+ 		struct dev_pagemap *pgmap);
+-pgd_t *vmemmap_pgd_populate(unsigned long addr, int node);
+-p4d_t *vmemmap_p4d_populate(pgd_t *pgd, unsigned long addr, int node);
+-pud_t *vmemmap_pud_populate(p4d_t *p4d, unsigned long addr, int node);
+-pmd_t *vmemmap_pmd_populate(pud_t *pud, unsigned long addr, int node);
+-pte_t *vmemmap_pte_populate(pmd_t *pmd, unsigned long addr, int node,
+-			    struct vmem_altmap *altmap, unsigned long ptpfn,
+-			    unsigned long flags);
+ void *vmemmap_alloc_block(unsigned long size, int node);
+ struct vmem_altmap;
+ void *vmemmap_alloc_block_buf(unsigned long size, int node,
+--- a/mm/sparse-vmemmap.c~mm-convert-vmemmap_pd_populate-to-static-functions
++++ a/mm/sparse-vmemmap.c
+@@ -151,7 +151,7 @@ void __meminit vmemmap_verify(pte_t *pte
+ 			start, end - 1);
+ }
  
- 		folio_unlock(new_folio);
- 		/*
--		 * Subpages may be freed if there wasn't any mapping
--		 * like if add_to_swap() is running on a lru page that
--		 * had its mapping zapped. And freeing these pages
--		 * requires taking the lru_lock so we do the put_page
--		 * of the tail pages after the split is complete.
-+		 * Subpages whose mapping has been zapped may be freed
-+		 * earlier, but freeing them requires taking the
-+		 * lru_lock, so we defer put_page() on tail pages until
-+		 * after the split completes.
- 		 */
- 		free_folio_and_swap_cache(new_folio);
- 	}
+-pte_t * __meminit vmemmap_pte_populate(pmd_t *pmd, unsigned long addr, int node,
++static pte_t * __meminit vmemmap_pte_populate(pmd_t *pmd, unsigned long addr, int node,
+ 				       struct vmem_altmap *altmap,
+ 				       unsigned long ptpfn, unsigned long flags)
+ {
+@@ -195,7 +195,7 @@ static void * __meminit vmemmap_alloc_bl
+ 	return p;
+ }
+ 
+-pmd_t * __meminit vmemmap_pmd_populate(pud_t *pud, unsigned long addr, int node)
++static pmd_t * __meminit vmemmap_pmd_populate(pud_t *pud, unsigned long addr, int node)
+ {
+ 	pmd_t *pmd = pmd_offset(pud, addr);
+ 	if (pmd_none(*pmd)) {
+@@ -208,7 +208,7 @@ pmd_t * __meminit vmemmap_pmd_populate(p
+ 	return pmd;
+ }
+ 
+-pud_t * __meminit vmemmap_pud_populate(p4d_t *p4d, unsigned long addr, int node)
++static pud_t * __meminit vmemmap_pud_populate(p4d_t *p4d, unsigned long addr, int node)
+ {
+ 	pud_t *pud = pud_offset(p4d, addr);
+ 	if (pud_none(*pud)) {
+@@ -221,7 +221,7 @@ pud_t * __meminit vmemmap_pud_populate(p
+ 	return pud;
+ }
+ 
+-p4d_t * __meminit vmemmap_p4d_populate(pgd_t *pgd, unsigned long addr, int node)
++static p4d_t * __meminit vmemmap_p4d_populate(pgd_t *pgd, unsigned long addr, int node)
+ {
+ 	p4d_t *p4d = p4d_offset(pgd, addr);
+ 	if (p4d_none(*p4d)) {
+@@ -234,7 +234,7 @@ p4d_t * __meminit vmemmap_p4d_populate(p
+ 	return p4d;
+ }
+ 
+-pgd_t * __meminit vmemmap_pgd_populate(unsigned long addr, int node)
++static pgd_t * __meminit vmemmap_pgd_populate(unsigned long addr, int node)
+ {
+ 	pgd_t *pgd = pgd_offset_k(addr);
+ 	if (pgd_none(*pgd)) {
 _
 
-Patches currently in -mm which might be from baohua@kernel.org are
+Patches currently in -mm which might be from chengkaitao@kylinos.cn are
 
-mm-mglru-use-folio_mark_accessed-to-replace-folio_set_active.patch
-mm-mglru-avoid-reclaim-type-fall-back-when-isolation-makes-no-progress.patch
+mm-cma_sysfs-skip-inactive-cma-areas-in-sysfs.patch
+mm-memory-failure-use-zone_pcp_disable-for-poison-handling.patch
 
