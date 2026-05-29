@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 683CA3624C2
-	for <mm-commits@vger.kernel.org>; Fri, 29 May 2026 04:05:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 22A643624C2
+	for <mm-commits@vger.kernel.org>; Fri, 29 May 2026 04:05:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780027559; cv=none; b=eDtPCIQ9F6AfgWcdI117oplso63qyD8NKgyCOTt53Te309h5D3f+FzTM7R+UiKvVGbMbTQGU8iq6PwkB7tvkP7i9GkO1iwJwgO1EO+r9MERZWiKPU1J3ISUMlmqWP2Qayzfj3UcAkfa7BL99eawhMiBnSL7Oj8BA1HmcZoaemm0=
+	t=1780027561; cv=none; b=pBOKd3KgeC49d3FB2/NVJNAmdBywYaeyc6/PqOTw83LwZYSPKoQPMMw1vdxFgMIdEAFfYjKUFWYQUXhSFSsRQrH+KtTay9H7Jsy9Z1XNTQqF5n1bfqlrgCxCn+z8gRkecAhkGnqYT6px5JErnoVFUOVsakCzF1B3O9aPGU2BTfQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780027559; c=relaxed/simple;
-	bh=6U8PEeDohAwavPdTAfjKmTluSvDv4A0Vw7IMfMF/+nA=;
-	h=Date:To:From:Subject:Message-Id; b=aX9ipvjd8iz19J6yCOe99eGK1Y2dpkTMtOl8MobC6qbtkiRldFWN4BCvKSk/nSqTICmsX8JwP3CxTp8IXWUxNc7qRYpQj7SkRVb+TZP9FQR1IGJpHmPdla8X4sIZu2VZ14iyKNcyDgcytcg5c5SiXMZQrQMVB/98LYf28yFZ8UE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BNfOx+l3; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1780027561; c=relaxed/simple;
+	bh=1fsQfHXMOEiw1MiUn3d72Gj1baUggFzAUkxS9U/aWns=;
+	h=Date:To:From:Subject:Message-Id; b=MONKV3evIcEYzqMHPumCmoabM83Uk2Sv1uq2w/DLaGcfW5VSBSXWaf/UqtZrZV0ulcQ4L9dwsvCo6MzT3flihjhXeqOaEPfir5rINQsvJg2J38NY5tJtxuVIKW2dZjANMc/hjVA0VR0ur9ct1/66615SsUzXsBFI5HpVI192sEo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=x9wz8Td/; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BNfOx+l3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 227001F0089A;
-	Fri, 29 May 2026 04:05:58 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="x9wz8Td/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 756611F0089B;
+	Fri, 29 May 2026 04:05:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1780027558;
-	bh=OyNEmXd2gjc1HPk425Tmp0TgNKVlPqIYqpw6dAcUk/Q=;
+	d=linux-foundation.org; s=korg; t=1780027559;
+	bh=rS8sck0Onw+4GuBtiBQMTUsAgMZFP46s+cLABnxOstQ=;
 	h=Date:To:From:Subject;
-	b=BNfOx+l38UPWbm6LYWL4zH78oy/uKBNFgRaxaVxyQ2vzFSeYWhAyCJ8lVzt+pRbK9
-	 ey28ZksSi2TXnbFwKX8gMabPmd9n2ENUha6cXIN6Yz2hwEJ9UwOZ3GEQJSh7PcpmwN
-	 +7GLlTw4bGLu3dLPjBe78ebvz3FZ6gxtT0+COAwM=
-Date: Thu, 28 May 2026 21:05:57 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,surenb@google.com,shivankg@amd.com,rppt@kernel.org,pankaj.gupta@amd.com,mhocko@suse.com,ljs@kernel.org,liam.howlett@oracle.com,jackmanb@google.com,hannes@cmpxchg.org,david@kernel.org,bharata@amd.com,ankur.a.arora@oracle.com,hsalunke@amd.com,akpm@linux-foundation.org
+	b=x9wz8Td/7CmalDdpqKgYRi6xFGCnuB+kRVwZdIogHfcYzQFY/52zXVEgSilMPNmQ6
+	 ts46nXRqNLi2FfdKCn0Qv9P9qaTBIDVp0d92n+NtkvPkF/0isTfUau5jkNeseagD0i
+	 ntRdVNud3WSASmNKyYfuRuNRq3X1yuSiUukUfgXw=
+Date: Thu, 28 May 2026 21:05:59 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,wangkefeng.wang@huawei.com,ljs@kernel.org,lance.yang@linux.dev,hughd@google.com,david@kernel.org,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-page_alloc-replace-kernel_init_pages-with-batch-page-clearing.patch removed from -mm tree
-Message-Id: <20260529040558.227001F0089A@smtp.kernel.org>
+Subject: [merged mm-stable] revert-tmpfs-dont-enable-large-folios-if-not-supported.patch removed from -mm tree
+Message-Id: <20260529040559.756611F0089B@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,116 +35,94 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/page_alloc: replace kernel_init_pages() with batch page clearing
+     Subject: Revert "tmpfs: don't enable large folios if not supported"
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-replace-kernel_init_pages-with-batch-page-clearing.patch
+     revert-tmpfs-dont-enable-large-folios-if-not-supported.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Hrushikesh Salunke <hsalunke@amd.com>
-Subject: mm/page_alloc: replace kernel_init_pages() with batch page clearing
-Date: Wed, 22 Apr 2026 10:26:58 +0000
+From: Baolin Wang <baolin.wang@linux.alibaba.com>
+Subject: Revert "tmpfs: don't enable large folios if not supported"
+Date: Thu, 23 Apr 2026 09:41:42 +0800
 
-When init_on_alloc is enabled, kernel_init_pages() clears every page one
-at a time via clear_highpage_kasan_tagged(), which incurs per-page
-kmap_local_page()/kunmap_local() overhead and prevents the architecture
-clearing primitive from operating on contiguous ranges.
+This reverts commit 5a90c155defa684f3a21f68c3f8e40c056e6114c.
 
-Introduce clear_highpages_kasan_tagged() as a static batch clearing helper
-in page_alloc.c that calls clear_pages() for the full contiguous range on
-!HIGHMEM systems, bypassing the per-page kmap overhead and allowing a
-single invocation of the arch clearing primitive across the entire
-allocation.  The HIGHMEM path falls back to per-page clearing since those
-pages require kmap.
+Currently, when shmem mounts are initialized, they only use 'sbinfo->huge'
+to determine whether the shmem mount supports large folios.  However, for
+anonymous shmem, whether it supports large folios can be dynamically
+configured via sysfs interfaces, so setting or not setting
+mapping_set_large_folios() during initialization cannot accurately reflect
+whether anonymous shmem actually supports large folios, which has already
+caused some confusion[1].
 
-Replace kernel_init_pages() with direct calls to the new helper, as it
-becomes a trivial wrapper.
+Moreover, for tmpfs mounts, relying on 'sbinfo->huge' cannot keep the
+mapping_set_large_folios() setting consistent across all mappings in the
+entire tmpfs mount.  In other words, under the same tmpfs mount, after
+remount, we might end up with some mappings supporting large folios
+(calling mapping_set_large_folios()) while others don't.
 
-Allocating 8192 x 2MB HugeTLB pages (16GB) with init_on_alloc=1:
+After some investigation, I found that the write performance regression
+addressed by commit 5a90c155defa has already been fixed by the following
+commit 665575cff098b ("filemap: move prefaulting out of hot write path"). 
+See the following test data:
 
-  Before: 0.445s
-  After:  0.166s  (-62.7%, 2.68x faster)
+Base:
+dd if=/dev/zero of=/mnt/tmpfs/test bs=400K count=10485 (3.2 GB/s)
+dd if=/dev/zero of=/mnt/tmpfs/test bs=800K count=5242 (3.2 GB/s)
+dd if=/dev/zero of=/mnt/tmpfs/test bs=1600K count=2621 (3.1 GB/s)
+dd if=/dev/zero of=/mnt/tmpfs/test bs=2200K count=1906 (3.0 GB/s )
+dd if=/dev/zero of=/mnt/tmpfs/test bs=3000K count=1398 (3.0 GB/s)
+dd if=/dev/zero of=/mnt/tmpfs/test bs=4500K count=932 (3.1 GB/s)
 
-Kernel time (sys) reduction per workload with init_on_alloc=1:
+Base + revert 5a90c155defa:
+dd if=/dev/zero of=/mnt/tmpfs/test bs=400K count=10485 (3.3 GB/s)
+dd if=/dev/zero of=/mnt/tmpfs/test bs=800K count=5242 (3.3 GB/s)
+dd if=/dev/zero of=/mnt/tmpfs/test bs=1600K count=2621 (3.2 GB/s)
+dd if=/dev/zero of=/mnt/tmpfs/test bs=2200K count=1906 (3.1 GB/s)
+dd if=/dev/zero of=/mnt/tmpfs/testbs=3000K count=1398 (3.0 GB/s)
+dd if=/dev/zero of=/mnt/tmpfs/test bs=4500K count=932 (3.1 GB/s)
 
-  Workload            Before       After       Change
-  Graph500 64C128T    30m 41.8s    15m 14.8s   -50.3%
-  Graph500 16C32T     15m 56.7s     9m 43.7s   -39.0%
-  Pagerank 32T         1m 58.5s     1m 12.8s   -38.5%
-  Pagerank 128T        2m 36.3s     1m 40.4s   -35.7%
+The data is basically consistent with minor fluctuation noise. So we can now
+safely revert commit 5a90c155defa to set mapping_set_large_folios() for all
+shmem mounts unconditionally.
 
-[hsalunke@amd.com: move clear_highpages_kasan_tagged() to page_alloc.c]
-  Link: https://lore.kernel.org/20260504063942.553438-1-hsalunke@amd.com
-Link: https://lore.kernel.org/20260422102729.166599-1-hsalunke@amd.com
-Signed-off-by: Hrushikesh Salunke <hsalunke@amd.com>
-Acked-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
+Link: https://lore.kernel.org/b2c7deee259a94b0d00a7c320d8d24d2c421f761.1776908112.git.baolin.wang@linux.alibaba.com
+Link: https://lore.kernel.org/all/ec927492-4577-4192-8fad-85eb1bb43121@linux.alibaba.com/ [1]
+Link: https://lore.kernel.org/all/116df9f9-4db7-40d4-a4a4-30a87c0feffa@linux.alibaba.com/
+Fixes: 5a90c155defa ("tmpfs: don't enable large folios if not supported")
+Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
 Acked-by: Zi Yan <ziy@nvidia.com>
-Acked-by: Pankaj Gupta <pankaj.gupta@amd.com>
+Reviewed-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+Reviewed-by: Lance Yang <lance.yang@linux.dev>
 Acked-by: David Hildenbrand (Arm) <david@kernel.org>
 Acked-by: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Ankur Arora <ankur.a.arora@oracle.com>
-Cc: Bharata B Rao <bharata@amd.com>
-Cc: Brendan Jackman <jackmanb@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Shivank Garg <shivankg@amd.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   18 +++++++++++-------
- 1 file changed, 11 insertions(+), 7 deletions(-)
+ mm/shmem.c |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-replace-kernel_init_pages-with-batch-page-clearing
-+++ a/mm/page_alloc.c
-@@ -1211,14 +1211,18 @@ static inline bool should_skip_kasan_poi
- 	return page_kasan_tag(page) == KASAN_TAG_KERNEL;
- }
- 
--static void kernel_init_pages(struct page *page, int numpages)
-+static void clear_highpages_kasan_tagged(struct page *page, int numpages)
- {
--	int i;
+--- a/mm/shmem.c~revert-tmpfs-dont-enable-large-folios-if-not-supported
++++ a/mm/shmem.c
+@@ -3101,10 +3101,7 @@ static struct inode *__shmem_get_inode(s
+ 	cache_no_acl(inode);
+ 	if (sbinfo->noswap)
+ 		mapping_set_unevictable(inode->i_mapping);
 -
- 	/* s390's use of memset() could override KASAN redzones. */
- 	kasan_disable_current();
--	for (i = 0; i < numpages; i++)
--		clear_highpage_kasan_tagged(page + i);
-+	if (!IS_ENABLED(CONFIG_HIGHMEM)) {
-+		clear_pages(kasan_reset_tag(page_address(page)), numpages);
-+	} else {
-+		int i;
-+
-+		for (i = 0; i < numpages; i++)
-+			clear_highpage_kasan_tagged(page + i);
-+	}
- 	kasan_enable_current();
- }
+-	/* Don't consider 'deny' for emergencies and 'force' for testing */
+-	if (sbinfo->huge)
+-		mapping_set_large_folios(inode->i_mapping);
++	mapping_set_large_folios(inode->i_mapping);
  
-@@ -1423,7 +1427,7 @@ __always_inline bool __free_pages_prepar
- 			init = false;
- 	}
- 	if (init)
--		kernel_init_pages(page, 1 << order);
-+		clear_highpages_kasan_tagged(page, 1 << order);
- 
- 	/*
- 	 * arch_free_page() can make the page's contents inaccessible.  s390
-@@ -1848,7 +1852,7 @@ inline void post_alloc_hook(struct page
- 	}
- 	/* If memory is still not initialized, initialize it now. */
- 	if (init)
--		kernel_init_pages(page, 1 << order);
-+		clear_highpages_kasan_tagged(page, 1 << order);
- 
- 	set_page_owner(page, order, gfp_flags);
- 	page_table_check_alloc(page, order);
+ 	switch (mode & S_IFMT) {
+ 	default:
 _
 
-Patches currently in -mm which might be from hsalunke@amd.com are
+Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
 
+mm-khugepaged-run-khugepaged-for-all-orders.patch
 
