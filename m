@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D3E182253EE
-	for <mm-commits@vger.kernel.org>; Fri, 29 May 2026 04:06:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 56F7D2253EE
+	for <mm-commits@vger.kernel.org>; Fri, 29 May 2026 04:06:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780027570; cv=none; b=SsPI9uMcHFpXCnLSiupmWYXnRpit6NnKIBW5/4lKn2asjVz3VqsqullmE0l/e/w2lSYn5qP5f0gqNnFz5t6lCFLIKc5kHcRVcmxJgbwNdyKYglPdS3I/gGfHWGdHk0i6taIN3wQOeICk5L81YO9oYrKaRnlRYwowujV3SHET0lo=
+	t=1780027572; cv=none; b=rGQ+Lcnbw7mjL4g/wk88IEX5o+R2ko8RDkXDzKmmnLgllcRUpPO01l4dTgxNUT1udx2NrbI0UV7wp3mmDotojzpvmgxDuEdDvsDir0XHiRPySd7mPqDC6bcmt/9IJeXpMr6HOUc7NmOLeq8qaB8qOKKabvQrN6hf/mQeMcZZbes=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780027570; c=relaxed/simple;
-	bh=/4W5wFLhNC/HHXjgEfWh0oNqPHhQdR+7+R5nASAzWCI=;
-	h=Date:To:From:Subject:Message-Id; b=dBcum6EtBpsl/BRi/J1bzX56eGtSx4/7wgPXheMHacIVRlvBVY0lC2B7AXKHdUB1Ab5xtpulMJk6S5qLpC1+jFf0+kK8rdpGcgZvigSCrrS72w9+RRHGUp1QPfVuQEXmAvu4ALPzwYucWP/Ap3jTwqjvY4Rqt2uReMItT45tAf0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zeCA2QMB; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1780027572; c=relaxed/simple;
+	bh=ZXCZozbZn0iGKi9kq3jCU1wTUjOiG1lHBfnv3sOkmTw=;
+	h=Date:To:From:Subject:Message-Id; b=ib9/zY2Gy0jZ+ZNtMnsTLyPEgnnEQCj+xtaoKKXwlmLNOBGmtZJz0xQF880UK/9mZYRrUbBJOOkyQ40dpqKyUSqQWgbh9C2u9OZM0WncqTzF5IjjDlcb02vfWcupji4UZGzNLMBB/xya//3aARmJ8mYXGJpe0kmw+4r0Vr6DoWQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ud6+D5BP; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zeCA2QMB"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AA2BF1F00899;
-	Fri, 29 May 2026 04:06:09 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ud6+D5BP"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CB8D11F00893;
+	Fri, 29 May 2026 04:06:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1780027569;
-	bh=Y7+6DZd3DDP2QdIaeY2/8VZNvQhsPkvhWpSlPucS9gM=;
+	d=linux-foundation.org; s=korg; t=1780027570;
+	bh=tYeZ9RbEqGbV8/CP+rjUa6oOuPKXPdTdFYcICLygWhc=;
 	h=Date:To:From:Subject;
-	b=zeCA2QMBMWq2I0VRU0s+necVW7cMh4xEJmrf8j6pNWZZm0Tof8n7v3dW5QkCOa8Z1
-	 kSq+SzlYOhC+xffMMBLZOq7Zv382zsvfJ472n1Rt+dnOAk0F9It/1od/EcRWwiYSO4
-	 CKGB4XI2SZmbqbkZ02lG0wUC51Q2Fd89CJusBMwI=
-Date: Thu, 28 May 2026 21:06:09 -0700
-To: mm-commits@vger.kernel.org,ryan.roberts@arm.com,peterx@redhat.com,kevin.brodsky@arm.com,jhubbard@nvidia.com,jgg@ziepe.ca,hca@linux.ibm.com,gor@linux.ibm.com,gerald.schaefer@linux.ibm.com,david@kernel.org,agordeev@linux.ibm.com,akpm@linux-foundation.org
+	b=ud6+D5BPBveEY3pqHutGYUEBRZrCreYDXqQtXbPIF/9uhQI8GkfFtfVOkB3Zwd8OW
+	 I5D4eWEGHWBBrnH8IB5yG0Kfu2sVjYaZu4ee65mRMP+LZKvMUaQLZ17KV2VFBk0fvx
+	 yyFghZxUGsmwSk8ajueMnIYGvUYRY7tGUU87O33o=
+Date: Thu, 28 May 2026 21:06:10 -0700
+To: mm-commits@vger.kernel.org,surenb@google.com,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,adi.sharma@zohomail.in,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-gup-cleanup-pgtable-entry-accessors.patch removed from -mm tree
-Message-Id: <20260529040609.AA2BF1F00899@smtp.kernel.org>
+Subject: [merged mm-stable] mm-memory-update-stale-locking-comments-for-fault-handlers.patch removed from -mm tree
+Message-Id: <20260529040610.CB8D11F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,81 +35,174 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/gup: cleanup pgtable entry accessors
+     Subject: mm/memory: update stale locking comments for fault handlers
 has been removed from the -mm tree.  Its filename was
-     mm-gup-cleanup-pgtable-entry-accessors.patch
+     mm-memory-update-stale-locking-comments-for-fault-handlers.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Alexander Gordeev <agordeev@linux.ibm.com>
-Subject: mm/gup: cleanup pgtable entry accessors
-Date: Tue, 21 Apr 2026 07:17:54 +0200
+From: Aditya Sharma <adi.sharma@zohomail.in>
+Subject: mm/memory: update stale locking comments for fault handlers
+Date: Fri, 24 Apr 2026 14:52:17 +0530
 
-PMD and PUD entries revalidation has the same semantics as PTE entry
-revalidation.  Convert the remaining direct entry dereferences to the
-corresponding accessors.
+Update the comments for wp_page_copy(), do_wp_page(), do_swap_page(),
+do_anonymous_page(), __do_fault(), do_fault(), handle_pte_fault(),
+__handle_mm_fault(), and handle_mm_fault() to concisely clarify that they
+can be entered holding either the mmap_lock or the VMA lock, and that the
+lock may be released upon returning VM_FAULT_RETRY.
 
-The PTE validation in gup_fast_pte_range() is inconsistent with the prior
-value acquisition in the sense that it drops the lockless access
-semantics.
+Additionally, make the following corrections:
+- In do_anonymous_page(), correct the outdated claim that the function
+  is entered with the PTE "mapped but not yet locked". Since
+  handle_pte_fault() unmaps the empty PTE before routing to
+  do_pte_missing(), the comment now correctly states it is entered
+  with the PTE unmapped and unlocked.
+- In __do_fault(), update the stale reference from __lock_page_retry()
+  to __folio_lock_or_retry().
 
-Use the lockless accessor not only for the PTE, but also for the PMD
-validation, which is likewise inconsistent with the prior value
-acquisition in gup_fast_pmd_range().
-
-Link: https://lore.kernel.org/20260421051754.1691221-1-agordeev@linux.ibm.com
-Signed-off-by: Alexander Gordeev <agordeev@linux.ibm.com>
+Link: https://lore.kernel.org/20260424092217.263648-1-adi.sharma@zohomail.in
+Signed-off-by: Aditya Sharma <adi.sharma@zohomail.in>
 Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
-Cc: Heiko Carstens <hca@linux.ibm.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Kevin Brodsky <kevin.brodsky@arm.com>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
+Cc: Liam Howlett <liam@infradead.org>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ mm/memory.c |   55 ++++++++++++++++++++++++++------------------------
+ 1 file changed, 29 insertions(+), 26 deletions(-)
 
---- a/mm/gup.c~mm-gup-cleanup-pgtable-entry-accessors
-+++ a/mm/gup.c
-@@ -2865,8 +2865,8 @@ static int gup_fast_pte_range(pmd_t pmd,
- 		if (!folio)
- 			goto pte_unmap;
+--- a/mm/memory.c~mm-memory-update-stale-locking-comments-for-fault-handlers
++++ a/mm/memory.c
+@@ -3837,8 +3837,8 @@ vm_fault_t __vmf_anon_prepare(struct vm_
+  * Handle the case of a page which we actually need to copy to a new page,
+  * either due to COW or unsharing.
+  *
+- * Called with mmap_lock locked and the old page referenced, but
+- * without the ptl held.
++ * Called with either the VMA lock or the mmap_lock held (see FAULT_FLAG_VMA_LOCK)
++ * and the old page referenced, but without the ptl held.
+  *
+  * High level logic flow:
+  *
+@@ -4237,9 +4237,9 @@ static bool wp_can_reuse_anon_folio(stru
+  * though the page will change only once the write actually happens. This
+  * avoids a few races, and potentially makes it more efficient.
+  *
+- * We enter with non-exclusive mmap_lock (to exclude vma changes,
+- * but allow concurrent faults), with pte both mapped and locked.
+- * We return with mmap_lock still held, but pte unmapped and unlocked.
++ * We enter with either the VMA lock or the mmap_lock held (see
++ * FAULT_FLAG_VMA_LOCK) and pte both mapped and locked. We return with
++ * the same lock still held, but pte unmapped and unlocked.
+  */
+ static vm_fault_t do_wp_page(struct vm_fault *vmf)
+ 	__releases(vmf->ptl)
+@@ -4785,12 +4785,12 @@ static void check_swap_exclusive(struct
+ }
  
--		if (unlikely(pmd_val(pmd) != pmd_val(*pmdp)) ||
--		    unlikely(pte_val(pte) != pte_val(ptep_get(ptep)))) {
-+		if (unlikely(pmd_val(pmd) != pmd_val(pmdp_get_lockless(pmdp))) ||
-+		    unlikely(pte_val(pte) != pte_val(ptep_get_lockless(ptep)))) {
- 			gup_put_folio(folio, 1, flags);
- 			goto pte_unmap;
- 		}
-@@ -2942,7 +2942,7 @@ static int gup_fast_pmd_leaf(pmd_t orig,
- 	if (!folio)
- 		return 0;
+ /*
+- * We enter with non-exclusive mmap_lock (to exclude vma changes,
+- * but allow concurrent faults), and pte mapped but not yet locked.
++ * We enter with either the VMA lock or the mmap_lock held (see
++ * FAULT_FLAG_VMA_LOCK), and pte mapped but not yet locked.
+  * We return with pte unmapped and unlocked.
+  *
+- * We return with the mmap_lock locked or unlocked in the same cases
+- * as does filemap_fault().
++ * When returning, the lock may have been released in the same cases
++ * as done by filemap_fault().
+  */
+ vm_fault_t do_swap_page(struct vm_fault *vmf)
+ {
+@@ -5330,9 +5330,10 @@ static void map_anon_folio_pte_pf(struct
+ }
  
--	if (unlikely(pmd_val(orig) != pmd_val(*pmdp))) {
-+	if (unlikely(pmd_val(orig) != pmd_val(pmdp_get_lockless(pmdp)))) {
- 		gup_put_folio(folio, refs, flags);
- 		return 0;
- 	}
-@@ -2985,7 +2985,7 @@ static int gup_fast_pud_leaf(pud_t orig,
- 	if (!folio)
- 		return 0;
+ /*
+- * We enter with non-exclusive mmap_lock (to exclude vma changes,
+- * but allow concurrent faults), and pte mapped but not yet locked.
+- * We return with mmap_lock still held, but pte unmapped and unlocked.
++ * We enter with either the VMA lock or the mmap_lock held (see
++ * FAULT_FLAG_VMA_LOCK), and pte unmapped and unlocked.
++ * We return with the lock still held, but pte unmapped and unlocked.
++ * If VM_FAULT_RETRY is returned, the lock may have been released.
+  */
+ static vm_fault_t do_anonymous_page(struct vm_fault *vmf)
+ {
+@@ -5440,9 +5441,10 @@ oom:
+ }
  
--	if (unlikely(pud_val(orig) != pud_val(*pudp))) {
-+	if (unlikely(pud_val(orig) != pud_val(pudp_get(pudp)))) {
- 		gup_put_folio(folio, refs, flags);
- 		return 0;
- 	}
+ /*
+- * The mmap_lock must have been held on entry, and may have been
+- * released depending on flags and vma->vm_ops->fault() return value.
+- * See filemap_fault() and __lock_page_retry().
++ * Either the VMA lock or the mmap_lock must have been held on entry
++ * (see FAULT_FLAG_VMA_LOCK) and may have been released depending on
++ * flags and vma->vm_ops->fault() return value.
++ * See filemap_fault() and __folio_lock_or_retry().
+  */
+ static vm_fault_t __do_fault(struct vm_fault *vmf)
+ {
+@@ -6003,11 +6005,11 @@ static vm_fault_t do_shared_fault(struct
+ }
+ 
+ /*
+- * We enter with non-exclusive mmap_lock (to exclude vma changes,
+- * but allow concurrent faults).
+- * The mmap_lock may have been released depending on flags and our
++ * We enter with either the VMA lock or the mmap_lock held (see
++ * FAULT_FLAG_VMA_LOCK).
++ * The lock may have been released depending on flags and our
+  * return value.  See filemap_fault() and __folio_lock_or_retry().
+- * If mmap_lock is released, vma may become invalid (for example
++ * If the lock is released, vma may become invalid (for example
+  * by other thread calling munmap()).
+  */
+ static vm_fault_t do_fault(struct vm_fault *vmf)
+@@ -6374,10 +6376,11 @@ static void fix_spurious_fault(struct vm
+  * with external mmu caches can use to update those (ie the Sparc or
+  * PowerPC hashed page tables that act as extended TLBs).
+  *
+- * We enter with non-exclusive mmap_lock (to exclude vma changes, but allow
+- * concurrent faults).
++ * On entry, we hold either the VMA lock or the mmap_lock
++ * (see FAULT_FLAG_VMA_LOCK).
+  *
+- * The mmap_lock may have been released depending on flags and our return value.
++ * The mmap_lock or VMA lock may have been released depending on flags
++ * and our return value.
+  * See filemap_fault() and __folio_lock_or_retry().
+  */
+ static vm_fault_t handle_pte_fault(struct vm_fault *vmf)
+@@ -6458,8 +6461,8 @@ unlock:
+ 
+ /*
+  * On entry, we hold either the VMA lock or the mmap_lock
+- * (FAULT_FLAG_VMA_LOCK tells you which).  If VM_FAULT_RETRY is set in
+- * the result, the mmap_lock is not held on exit.  See filemap_fault()
++ * (see FAULT_FLAG_VMA_LOCK).  If VM_FAULT_RETRY is set in
++ * the result, the lock is not held on exit.  See filemap_fault()
+  * and __folio_lock_or_retry().
+  */
+ static vm_fault_t __handle_mm_fault(struct vm_area_struct *vma,
+@@ -6691,9 +6694,9 @@ static vm_fault_t sanitize_fault_flags(s
+ 
+ /*
+  * By the time we get here, we already hold either the VMA lock or the
+- * mmap_lock (FAULT_FLAG_VMA_LOCK tells you which).
++ * mmap_lock (see FAULT_FLAG_VMA_LOCK).
+  *
+- * The mmap_lock may have been released depending on flags and our
++ * The lock may have been released depending on flags and our
+  * return value.  See filemap_fault() and __folio_lock_or_retry().
+  */
+ vm_fault_t handle_mm_fault(struct vm_area_struct *vma, unsigned long address,
 _
 
-Patches currently in -mm which might be from agordeev@linux.ibm.com are
+Patches currently in -mm which might be from adi.sharma@zohomail.in are
 
-mm-page_vma_mapped_walk-use-ptep_get_lockless-for-lockless-access.patch
 
