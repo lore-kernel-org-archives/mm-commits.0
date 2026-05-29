@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8773B371867
-	for <mm-commits@vger.kernel.org>; Fri, 29 May 2026 04:25:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7002436A351
+	for <mm-commits@vger.kernel.org>; Fri, 29 May 2026 04:25:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780028751; cv=none; b=YtI/pp5tSMrpKon6ZqCWOaBz0NV/xajnq4npZ5gqnwVZdRZzEJ64hrz7kNG3hkui+gUAESJtFAGp2JF0f3hZIKFZagcpITx0nihre62DgIp2UdliJxdj6kVXY6Ev/OCsxgmqQkc6a9ragQ1dpH9JlnJxWzwH+8cx5T7wE5inKPg=
+	t=1780028752; cv=none; b=W+WanWY+2KpaZGr1FX2U3PqyIAKkjfiszohf/MYyyhPvYsHfuw1luLJJXq5p0bPrH+Argowm5fo2GQ+guPh9R3zMjYJrPRMw2fpljN4XQczfCZhT1UO+uzjxrJALwX+LBZ1z7pJi7sPtaGUVPBgOEVoLx/2gPHRAmeZ5HgPNQC0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780028751; c=relaxed/simple;
-	bh=kWEfuPilnOD4YU9c4R0KbqBsaOKLgwGcRHppFh0x2QA=;
-	h=Date:To:From:Subject:Message-Id; b=Ikpu3Q3ubwTmuHJjELHd5wzDb6vuhTP8JhJdnKTnTi3SZiBEWZc6BYSIXTd/qrl4EcIkfS1xuOeCxVmJJB3vsjB22cVSAcM9IXFrt6Ek3tDu6I6mFpApz+zsrAERe4iDMHh4WJSBdn3vEUxwEvx1ezq3+Yhv2qgiBrHWV3Xtgoc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lRfkgupj; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1780028752; c=relaxed/simple;
+	bh=9oKXsJPsfzW7SjdXr+WiRF8BGMQVErx99TR8a4X+hmE=;
+	h=Date:To:From:Subject:Message-Id; b=lRM+3KVIEJdg83NifcRQ7onD5cQ/JP23XcvcLfLZChTih15tieWJTDCzmFdsvvC/wo5214rGEcdmG0U7B4gOSGNilHI8ukYAKguPiDcGj6bZ4CfkKI5EWKfFUIpjY1UlREvgLV1AnWKdOBam/SBctW3FFVvC6BQyKQTl83IdVnI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Eg60C2iZ; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lRfkgupj"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CE5CF1F00893;
-	Fri, 29 May 2026 04:25:49 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Eg60C2iZ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4420C1F00898;
+	Fri, 29 May 2026 04:25:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1780028750;
-	bh=F/9Nq6Gd62B2EGs+oNYziP3858F0H4Va+QU96VCss8Y=;
+	d=linux-foundation.org; s=korg; t=1780028751;
+	bh=17a7vRZaLjzxZv6apzIGL5BwnK2SJIprPHQBM+cxFrc=;
 	h=Date:To:From:Subject;
-	b=lRfkgupjslIEgjsU5rbCQ3p4sVjVkadIUVTuqapoMUFgD1jv0COH9qQZgjrJ4inXB
-	 dd7fYeBD1YkGpCTGds4YE5Xs8BvtHWxC+wGRjdOzss8cTSyvkYAejFjCvMrKJs8XKs
-	 1RZb1LTmnM3Pkr0FGc5UtH2GHnes9dEwU+k/Drfo=
-Date: Thu, 28 May 2026 21:25:48 -0700
-To: mm-commits@vger.kernel.org,pmladek@suse.com,peterz@infradead.org,nsc@kernel.org,nathan@kernel.org,kees@kernel.org,jpoimboe@kernel.org,elver@google.com,dmitry.torokhov@gmail.com,andriy.shevchenko@linux.intel.com,arnd@arndb.de,akpm@linux-foundation.org
+	b=Eg60C2iZ2VGY37okoKOKInjW2pMJJA/k5vzcPnC3sKZkITAvK6yAkvdEt4Oh6PDJp
+	 pUQLJcaGKB112EovJJx7GCwr7rOHeziyWXKKDUT0nQ7zxf9DQcgXQVx0hu7qDLh3qE
+	 UfcUtFZdAmwbQU+f1saoHYUzIJu40QGd6gxwNR/Y=
+Date: Thu, 28 May 2026 21:25:50 -0700
+To: mm-commits@vger.kernel.org,akpm@linux-foundation.org,objecting@objecting.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] inith-discard-exitcall-symbols-early.patch removed from -mm tree
-Message-Id: <20260529042549.CE5CF1F00893@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] lib-base64-validate-before-writing-in-decode-tail-path.patch removed from -mm tree
+Message-Id: <20260529042551.4420C1F00898@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,63 +35,74 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: init.h: discard exitcall symbols early
+     Subject: lib/base64: validate before writing in decode tail path
 has been removed from the -mm tree.  Its filename was
-     inith-discard-exitcall-symbols-early.patch
+     lib-base64-validate-before-writing-in-decode-tail-path.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: init.h: discard exitcall symbols early
-Date: Tue, 31 Mar 2026 16:28:38 +0200
+From: Josh Law <objecting@objecting.org>
+Subject: lib/base64: validate before writing in decode tail path
+Date: Tue, 24 Mar 2026 22:32:09 +0000
 
-Any __exitcall() and built-in module_exit() handler is marked as __used,
-which leads to the code being included in the object file and later
-discarded at link time.
+Patch series "lib/base64: decode fixes", v2.
 
-As far as I can tell, this was originally added at the same time as
-initcalls were marked the same way, to prevent them from getting dropped
-with gcc-3.4, but it was never actaully necessary to keep exit functions
-around.
+Two small fixes for lib/base64.c:
 
-Mark them as __maybe_unused instead, which lets the compiler treat the
-exitcalls as entirely unused, and make better decisions about dropping
-specializing static functions called from these.
+1. base64_decode() writes a decoded byte to the output buffer before
+   validating the input in the trailing-bytes path. Move the validity
+   checks before any writes so dst is untouched on invalid input.
 
-Link: https://lore.kernel.org/all/acruxMNdnUlyRHiy@google.com/
-Link: https://lore.kernel.org/20260331142846.3187706-1-arnd@kernel.org
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Acked-by: Nicolas Schier <nsc@kernel.org>
-Cc: Andriy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Josh Poimboeuf <jpoimboe@kernel.org>
-Cc: Kees Cook <kees@kernel.org>
-Cc: Marco Elver <elver@google.com>
-Cc: Nathan Chancellor <nathan@kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Petr Mladek <pmladek@suse.com>
+2. The @padding kernel-doc for base64_decode() was copy-pasted from
+   base64_encode() and describes the wrong direction.
+
+
+This patch (of 2):
+
+The trailing-bytes path in base64_decode() writes a decoded byte to the
+output buffer before checking whether the input characters are valid.  If
+the input is malformed, garbage is written to dst before the function
+returns -1.
+
+Move the validity checks before any writes so the output buffer is left
+untouched on invalid input.
+
+Link: https://lore.kernel.org/20260324223210.47676-1-objecting@objecting.org
+Link: https://lore.kernel.org/20260324223210.47676-2-objecting@objecting.org
+Fixes: 9c7d3cf94d33 ("lib/base64: rework encode/decode for speed and stricter validation")
+Signed-off-by: Josh Law <objecting@objecting.org>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/init.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/base64.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/include/linux/init.h~inith-discard-exitcall-symbols-early
-+++ a/include/linux/init.h
-@@ -47,7 +47,7 @@
- #define __initdata	__section(".init.data")
- #define __initconst	__section(".init.rodata")
- #define __exitdata	__section(".exit.data")
--#define __exit_call	__used __section(".exitcall.exit")
-+#define __exit_call	__maybe_unused __section(".exitcall.exit")
+--- a/lib/base64.c~lib-base64-validate-before-writing-in-decode-tail-path
++++ a/lib/base64.c
+@@ -168,15 +168,16 @@ int base64_decode(const char *src, int s
+ 		return -1;
  
- /*
-  * modpost check for section mismatches during the kernel build.
+ 	val = (base64_rev_tables[s[0]] << 12) | (base64_rev_tables[s[1]] << 6);
+-	*bp++ = val >> 10;
+ 
+ 	if (srclen == 2) {
+ 		if (val & 0x800003ff)
+ 			return -1;
++		*bp++ = val >> 10;
+ 	} else {
+ 		val |= base64_rev_tables[s[2]];
+ 		if (val & 0x80000003)
+ 			return -1;
++		*bp++ = val >> 10;
+ 		*bp++ = val >> 2;
+ 	}
+ 	return bp - dst;
 _
 
-Patches currently in -mm which might be from arnd@arndb.de are
+Patches currently in -mm which might be from objecting@objecting.org are
 
-errh-use-__always_inline-on-all-error-pointer-helpers.patch
+lib-idr-fix-ida_find_first_range-missing-ids-across-chunk-boundaries.patch
 
