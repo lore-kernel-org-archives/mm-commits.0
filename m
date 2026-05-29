@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 59BBD37269C
-	for <mm-commits@vger.kernel.org>; Fri, 29 May 2026 04:26:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 18A6437269C
+	for <mm-commits@vger.kernel.org>; Fri, 29 May 2026 04:26:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780028798; cv=none; b=XOBC2V10Xkcutsn4FPFJkjdlEEmycoadCCmq3uHZyvwC8ILdw2zrWFSo1PA0ZpJCgVE8KUm4JwwKya5aKT8Ve4geQkfVuVVyS2sXjrHITwdyjCaipX8SEUONKx2nVntyCWiGIlj6fjyi++/6eLUxWgY5V/0VblwPVdVt5lEjfvw=
+	t=1780028800; cv=none; b=SlFRHfte8VJ86UPmwDcCMDkqMH1Uywd6Dd9koCJyQL77ydMDbnTg1AIHmC8l9tdtUjLVC3zVFqomzo4hwm7OcJ/pks53dIZFPT1018GuCrWCS3qL5dCywmsGgqqV24c6iN5m+5USrY3T0cG86WBxd86O6tdl/+1RLkmEo1NEwA4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780028798; c=relaxed/simple;
-	bh=s7UTC5LbMjLoqC3T6yVisV6V3ToseRba+gKMwt/R5as=;
-	h=Date:To:From:Subject:Message-Id; b=jPzhOdpEo0c6Ns2uDijbVLBEridMhzlKhUSzHmL9mszbS5yhhDmK682hHgblNSGsw20RIWKyK8ckQvvxqToo1bko/XtkFHUj1OiQYdOU915+hF7FUBs829RL6wV0d5ujwj1yTe+k4sCtfK2EF3Q/tY4AoEVeL+zx2MZJCVwiW0U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zvqfMotA; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1780028800; c=relaxed/simple;
+	bh=cguJmpNrEpNIWB5feK1Hc/fY9uiQVWa2mrUVZSstnck=;
+	h=Date:To:From:Subject:Message-Id; b=frEI/hg7yFYqHm8ChVX4yfy2GBN259AZ61XYZVshYHf4DJQmmK7/S+J53kM7E677hA/OQxj6KhYiSsvOOK/URfJAK4M6CSbq3FdYU+odOc0Fy1Vy/pLkl8Cd0k2/Xm89RnbHlYH4xWxAGb1bN02BlAJh8BzFAMi4o2p3OdKpJJU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jNUshC13; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zvqfMotA"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2E4D71F00898;
-	Fri, 29 May 2026 04:26:36 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jNUshC13"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DA6911F00893;
+	Fri, 29 May 2026 04:26:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1780028796;
-	bh=zT5Is+0jSq+JiNYrUrgH4XIA0N3GpwSjfwd7yEzOsLI=;
+	d=linux-foundation.org; s=korg; t=1780028799;
+	bh=VumD3OA8IXFoEFyM+zwfZXQZpvvobvqWOiM9Oj1kjks=;
 	h=Date:To:From:Subject;
-	b=zvqfMotA3M/UOslAvc9bnvy2BgFgM6hS5rRELx8FGEuV1GlQ3aEKSloKTIGLKRAFz
-	 S91mKkd1jC9m3z5PgId3cSSgISuWSKjSoVPQLVJn82ExPKrIyGx4TiGkNO9h1DlXlH
-	 iuKU45oCfKB8tuKLH2WsyxpJbExyup+BmFWE3aUg=
-Date: Thu, 28 May 2026 21:26:35 -0700
-To: mm-commits@vger.kernel.org,sln@onemain.com,martink@posteo.de,kuba@kernel.org,konradybcio@kernel.org,jorge.ramirez@oss.qualcomm.com,akpm@linux-foundation.org
+	b=jNUshC13iChKZ95lVbfG4+ruoqmG4kh8V+r4xzNhLyqy3O1F2ty3N1BH0YBMjF834
+	 i9xm1WWWmXT9mjAvVBI8M6psCR/R8a7dGxBH7cIQTixEuT/ricCRclugmPOpIvxGLX
+	 9it7o7eLQP70Dk35vYuawdk+Tyzs1OhIZAHyLtYE=
+Date: Thu, 28 May 2026 21:26:38 -0700
+To: mm-commits@vger.kernel.org,will@kernel.org,svens@linux.ibm.com,song@kernel.org,palmer@dabbelt.com,npiggin@gmail.com,mpe@ellerman.id.au,mingo@redhat.com,maddy@linux.ibm.com,linan122@huawei.com,kernel@xen0n.name,hpa@zytor.com,herbert@gondor.apana.org.au,hca@linux.ibm.com,gor@linux.ibm.com,dsterba@suse.com,dan.j.williams@intel.com,clm@fb.com,chenhuacai@kernel.org,catalin.marinas@arm.com,bp@alien8.de,borntraeger@linux.ibm.com,arnd@arndb.de,ardb@kernel.org,aou@eecs.berkeley.edu,alex@ghiti.fr,agordeev@linux.ibm.com,hch@lst.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] mailmap-update-jorge-ramirez-ortiz-email-address.patch removed from -mm tree
-Message-Id: <20260529042636.2E4D71F00898@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] raid6-turn-the-userspace-test-harness-into-a-kunit-test.patch removed from -mm tree
+Message-Id: <20260529042638.DA6911F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,44 +35,606 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mailmap: update Jorge Ramirez-Ortiz email address
+     Subject: raid6: turn the userspace test harness into a kunit test
 has been removed from the -mm tree.  Its filename was
-     mailmap-update-jorge-ramirez-ortiz-email-address.patch
+     raid6-turn-the-userspace-test-harness-into-a-kunit-test.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Jorge Ramirez-Ortiz <jorge.ramirez@oss.qualcomm.com>
-Subject: mailmap: update Jorge Ramirez-Ortiz email address
-Date: Mon, 18 May 2026 11:10:05 +0200
+From: Christoph Hellwig <hch@lst.de>
+Subject: raid6: turn the userspace test harness into a kunit test
+Date: Mon, 18 May 2026 07:17:44 +0200
 
-Map old Linaro address to the new Qualcomm OSS address.
+Patch series "cleanup the RAID6 P/Q library", v3.
 
-Link: https://lore.kernel.org/20260518091019.3926371-1-jorge.ramirez@oss.qualcomm.com
-Signed-off-by: Jorge Ramirez-Ortiz <jorge.ramirez@oss.qualcomm.com>
-Cc: Jakub Kacinski <kuba@kernel.org>
-Cc: Konrad Dybcio <konradybcio@kernel.org>
-Cc: Martin Kepplinger <martink@posteo.de>
-Cc: Shannon Nelson <sln@onemain.com>
+This series cleans up the RAID6 P/Q library to match the recent updates to
+the RAID 5 XOR library and other CRC/crypto libraries.  This includes
+providing properly documented external interfaces, hiding the internals,
+using static_call instead of indirect calls and turning the user space
+test suite into an in-kernel kunit test which is also extended to improve
+coverage.
+
+Note that this changes registration so that non-priority algorithms are
+not registered, which greatly helps with the benchmark time at boot time. 
+I'd like to encourage all architecture maintainers to see if they can
+further optimized this by registering as few as possible algorithms when
+there is a clear benefit in optimized or more unrolled implementations.
+
+
+This patch (of 18):
+
+Currently the raid6 code can be compiled as userspace code to run the test
+suite.  Convert that to be a kunit case with minimal changes to avoid
+mutating global state so that we can drop this requirement.
+
+Note that this is not a good kunit test case yet and will need a lot more
+work, but that is deferred until the raid6 code is moved to it's new
+place, which is easier if the userspace makefile doesn't need adjustments
+for the new location first.
+
+Link: https://lore.kernel.org/20260518051804.462141-1-hch@lst.de
+Link: https://lore.kernel.org/20260518051804.462141-2-hch@lst.de
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Acked-by: Ard Biesheuvel <ardb@kernel.org>
+Tested-by: Ard Biesheuvel <ardb@kernel.org> # kunit only on arm64
+Cc: Albert Ou <aou@eecs.berkeley.edu>
+Cc: Alexander Gordeev <agordeev@linux.ibm.com>
+Cc: Alexandre Ghiti <alex@ghiti.fr>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: "Borislav Petkov (AMD)" <bp@alien8.de>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Chris Mason <clm@fb.com>
+Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: David Sterba <dsterba@suse.com>
+Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: Herbert Xu <herbert@gondor.apana.org.au>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Huacai Chen <chenhuacai@kernel.org>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Li Nan <linan122@huawei.com>
+Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Palmer Dabbelt <palmer@dabbelt.com>
+Cc: Song Liu <song@kernel.org>
+Cc: Sven Schnelle <svens@linux.ibm.com>
+Cc: Vasily Gorbik <gor@linux.ibm.com>
+Cc: WANG Xuerui <kernel@xen0n.name>
+Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- .mailmap |    1 +
- 1 file changed, 1 insertion(+)
+ include/linux/raid/pq.h |    3 
+ lib/Kconfig             |   11 ++
+ lib/raid6/Makefile      |    2 
+ lib/raid6/algos.c       |    5 -
+ lib/raid6/recov.c       |   34 --------
+ lib/raid6/test/Makefile |  155 -------------------------------------
+ lib/raid6/test/test.c   |  156 +++++++++++++++++++-------------------
+ 7 files changed, 100 insertions(+), 266 deletions(-)
 
---- a/.mailmap~mailmap-update-jorge-ramirez-ortiz-email-address
-+++ a/.mailmap
-@@ -435,6 +435,7 @@ John Stultz <johnstul@us.ibm.com>
- Jonas Gorski <jonas.gorski@gmail.com> <jogo@openwrt.org>
- Jonathan Cameron <jic23@kernel.org> <jonathan.cameron@huawei.com>
- Jordan Crouse <jordan@cosmicpenguin.net> <jcrouse@codeaurora.org>
-+Jorge Ramirez-Ortiz <jorge.ramirez@oss.qualcomm.com> <jorge.ramirez-ortiz@linaro.org>
- <josh@joshtriplett.org> <josh@freedesktop.org>
- <josh@joshtriplett.org> <josh@kernel.org>
- <josh@joshtriplett.org> <josht@linux.vnet.ibm.com>
+--- a/include/linux/raid/pq.h~raid6-turn-the-userspace-test-harness-into-a-kunit-test
++++ a/include/linux/raid/pq.h
+@@ -144,7 +144,6 @@ extern const struct raid6_calls raid6_ne
+ /* Algorithm list */
+ extern const struct raid6_calls * const raid6_algos[];
+ extern const struct raid6_recov_calls *const raid6_recov_algos[];
+-int raid6_select_algo(void);
+ 
+ /* Return values from chk_syndrome */
+ #define RAID6_OK	0
+@@ -165,8 +164,6 @@ extern void (*raid6_2data_recov)(int dis
+ 		       void **ptrs);
+ extern void (*raid6_datap_recov)(int disks, size_t bytes, int faila,
+ 			void **ptrs);
+-void raid6_dual_recov(int disks, size_t bytes, int faila, int failb,
+-		      void **ptrs);
+ 
+ /* Some definitions to allow code to be compiled for testing in userspace */
+ #ifndef __KERNEL__
+--- a/lib/Kconfig~raid6-turn-the-userspace-test-harness-into-a-kunit-test
++++ a/lib/Kconfig
+@@ -11,6 +11,17 @@ menu "Library routines"
+ config RAID6_PQ
+ 	tristate
+ 
++config RAID6_PQ_KUNIT_TEST
++	tristate "KUnit tests for RAID6 PQ functions" if !KUNIT_ALL_TESTS
++	depends on KUNIT
++	depends on RAID6_PQ
++	default KUNIT_ALL_TESTS
++	help
++	  Unit tests for the RAID6 PQ library functions.
++
++	  This is intended to help people writing architecture-specific
++	  optimized versions.  If unsure, say N.
++
+ config RAID6_PQ_BENCHMARK
+ 	bool "Automatically choose fastest RAID6 PQ functions"
+ 	depends on RAID6_PQ
+--- a/lib/raid6/algos.c~raid6-turn-the-userspace-test-harness-into-a-kunit-test
++++ a/lib/raid6/algos.c
+@@ -19,6 +19,7 @@
+ #include <linux/module.h>
+ #include <linux/gfp.h>
+ #endif
++#include <kunit/visibility.h>
+ 
+ struct raid6_calls raid6_call;
+ EXPORT_SYMBOL_GPL(raid6_call);
+@@ -86,6 +87,7 @@ const struct raid6_calls * const raid6_a
+ 	&raid6_intx1,
+ 	NULL
+ };
++EXPORT_SYMBOL_IF_KUNIT(raid6_algos);
+ 
+ void (*raid6_2data_recov)(int, size_t, int, int, void **);
+ EXPORT_SYMBOL_GPL(raid6_2data_recov);
+@@ -119,6 +121,7 @@ const struct raid6_recov_calls *const ra
+ 	&raid6_recov_intx1,
+ 	NULL
+ };
++EXPORT_SYMBOL_IF_KUNIT(raid6_recov_algos);
+ 
+ #ifdef __KERNEL__
+ #define RAID6_TIME_JIFFIES_LG2	4
+@@ -239,7 +242,7 @@ out:
+ /* Try to pick the best algorithm */
+ /* This code uses the gfmul table as convenient data set to abuse */
+ 
+-int __init raid6_select_algo(void)
++static int __init raid6_select_algo(void)
+ {
+ 	const int disks = RAID6_TEST_DISKS;
+ 
+--- a/lib/raid6/Makefile~raid6-turn-the-userspace-test-harness-into-a-kunit-test
++++ a/lib/raid6/Makefile
+@@ -1,5 +1,5 @@
+ # SPDX-License-Identifier: GPL-2.0
+-obj-$(CONFIG_RAID6_PQ)	+= raid6_pq.o
++obj-$(CONFIG_RAID6_PQ)	+= raid6_pq.o test/
+ 
+ raid6_pq-y	+= algos.o recov.o tables.o int1.o int2.o int4.o \
+ 		   int8.o
+--- a/lib/raid6/recov.c~raid6-turn-the-userspace-test-harness-into-a-kunit-test
++++ a/lib/raid6/recov.c
+@@ -99,37 +99,3 @@ const struct raid6_recov_calls raid6_rec
+ 	.name = "intx1",
+ 	.priority = 0,
+ };
+-
+-#ifndef __KERNEL__
+-/* Testing only */
+-
+-/* Recover two failed blocks. */
+-void raid6_dual_recov(int disks, size_t bytes, int faila, int failb, void **ptrs)
+-{
+-	if ( faila > failb ) {
+-		int tmp = faila;
+-		faila = failb;
+-		failb = tmp;
+-	}
+-
+-	if ( failb == disks-1 ) {
+-		if ( faila == disks-2 ) {
+-			/* P+Q failure.  Just rebuild the syndrome. */
+-			raid6_call.gen_syndrome(disks, bytes, ptrs);
+-		} else {
+-			/* data+Q failure.  Reconstruct data from P,
+-			   then rebuild syndrome. */
+-			/* NOT IMPLEMENTED - equivalent to RAID-5 */
+-		}
+-	} else {
+-		if ( failb == disks-2 ) {
+-			/* data+P failure. */
+-			raid6_datap_recov(disks, bytes, faila, ptrs);
+-		} else {
+-			/* data+data failure. */
+-			raid6_2data_recov(disks, bytes, faila, failb, ptrs);
+-		}
+-	}
+-}
+-
+-#endif
+--- a/lib/raid6/test/Makefile~raid6-turn-the-userspace-test-harness-into-a-kunit-test
++++ a/lib/raid6/test/Makefile
+@@ -1,156 +1,5 @@
+ # SPDX-License-Identifier: GPL-2.0
+-#
+-# This is a simple Makefile to test some of the RAID-6 code
+-# from userspace.
+-#
+ 
+-pound := \#
++obj-$(CONFIG_RAID6_PQ_KUNIT_TEST)	+= raid6_kunit.o
+ 
+-# Adjust as desired
+-CC       = gcc
+-OPTFLAGS = -O2
+-CFLAGS   = -I.. -I ../../../include -g $(OPTFLAGS)
+-LD       = ld
+-AWK      = awk -f
+-AR       = ar
+-RANLIB   = ranlib
+-OBJS     = int1.o int2.o int4.o int8.o int16.o int32.o recov.o algos.o tables.o
+-
+-ARCH := $(shell uname -m 2>/dev/null | sed -e /s/i.86/i386/)
+-ifeq ($(ARCH),i386)
+-        CFLAGS += -DCONFIG_X86_32
+-        IS_X86 = yes
+-endif
+-ifeq ($(ARCH),x86_64)
+-        CFLAGS += -DCONFIG_X86_64
+-        IS_X86 = yes
+-endif
+-
+-ifeq ($(ARCH),arm)
+-        CFLAGS += -I../../../arch/arm/include -mfpu=neon
+-        HAS_NEON = yes
+-endif
+-ifeq ($(ARCH),aarch64)
+-        CFLAGS += -I../../../arch/arm64/include
+-        HAS_NEON = yes
+-endif
+-
+-ifeq ($(findstring riscv,$(ARCH)),riscv)
+-        CFLAGS += -I../../../arch/riscv/include -DCONFIG_RISCV=1
+-        HAS_RVV = yes
+-endif
+-
+-ifeq ($(findstring ppc,$(ARCH)),ppc)
+-        CFLAGS += -I../../../arch/powerpc/include
+-        HAS_ALTIVEC := $(shell printf '$(pound)include <altivec.h>\nvector int a;\n' |\
+-                         gcc -c -x c - >/dev/null && rm ./-.o && echo yes)
+-endif
+-
+-ifeq ($(ARCH),loongarch64)
+-        CFLAGS += -I../../../arch/loongarch/include -DCONFIG_LOONGARCH=1
+-        CFLAGS += $(shell echo 'vld $$vr0, $$zero, 0' |         \
+-                    gcc -c -x assembler - >/dev/null 2>&1 &&    \
+-                    rm ./-.o && echo -DCONFIG_CPU_HAS_LSX=1)
+-        CFLAGS += $(shell echo 'xvld $$xr0, $$zero, 0' |        \
+-                    gcc -c -x assembler - >/dev/null 2>&1 &&    \
+-                    rm ./-.o && echo -DCONFIG_CPU_HAS_LASX=1)
+-endif
+-
+-ifeq ($(IS_X86),yes)
+-        OBJS   += mmx.o sse1.o sse2.o avx2.o recov_ssse3.o recov_avx2.o avx512.o recov_avx512.o
+-        CFLAGS += -DCONFIG_X86
+-else ifeq ($(HAS_NEON),yes)
+-        OBJS   += neon.o neon1.o neon2.o neon4.o neon8.o recov_neon.o recov_neon_inner.o
+-        CFLAGS += -DCONFIG_KERNEL_MODE_NEON=1
+-else ifeq ($(HAS_ALTIVEC),yes)
+-        CFLAGS += -DCONFIG_ALTIVEC
+-        OBJS += altivec1.o altivec2.o altivec4.o altivec8.o \
+-                vpermxor1.o vpermxor2.o vpermxor4.o vpermxor8.o
+-else ifeq ($(ARCH),loongarch64)
+-        OBJS += loongarch_simd.o recov_loongarch_simd.o
+-else ifeq ($(HAS_RVV),yes)
+-        OBJS   += rvv.o recov_rvv.o
+-        CFLAGS += -DCONFIG_RISCV_ISA_V=1
+-endif
+-
+-.c.o:
+-	$(CC) $(CFLAGS) -c -o $@ $<
+-
+-%.c: ../%.c
+-	cp -f $< $@
+-
+-%.uc: ../%.uc
+-	cp -f $< $@
+-
+-all: raid6.a raid6test
+-
+-raid6.a: $(OBJS)
+-	rm -f $@
+-	$(AR) cq $@ $^
+-	$(RANLIB) $@
+-
+-raid6test: test.c raid6.a
+-	$(CC) $(CFLAGS) -o raid6test $^
+-
+-neon1.c: neon.uc ../unroll.awk
+-	$(AWK) ../unroll.awk -vN=1 < neon.uc > $@
+-
+-neon2.c: neon.uc ../unroll.awk
+-	$(AWK) ../unroll.awk -vN=2 < neon.uc > $@
+-
+-neon4.c: neon.uc ../unroll.awk
+-	$(AWK) ../unroll.awk -vN=4 < neon.uc > $@
+-
+-neon8.c: neon.uc ../unroll.awk
+-	$(AWK) ../unroll.awk -vN=8 < neon.uc > $@
+-
+-altivec1.c: altivec.uc ../unroll.awk
+-	$(AWK) ../unroll.awk -vN=1 < altivec.uc > $@
+-
+-altivec2.c: altivec.uc ../unroll.awk
+-	$(AWK) ../unroll.awk -vN=2 < altivec.uc > $@
+-
+-altivec4.c: altivec.uc ../unroll.awk
+-	$(AWK) ../unroll.awk -vN=4 < altivec.uc > $@
+-
+-altivec8.c: altivec.uc ../unroll.awk
+-	$(AWK) ../unroll.awk -vN=8 < altivec.uc > $@
+-
+-vpermxor1.c: vpermxor.uc ../unroll.awk
+-	$(AWK) ../unroll.awk -vN=1 < vpermxor.uc > $@
+-
+-vpermxor2.c: vpermxor.uc ../unroll.awk
+-	$(AWK) ../unroll.awk -vN=2 < vpermxor.uc > $@
+-
+-vpermxor4.c: vpermxor.uc ../unroll.awk
+-	$(AWK) ../unroll.awk -vN=4 < vpermxor.uc > $@
+-
+-vpermxor8.c: vpermxor.uc ../unroll.awk
+-	$(AWK) ../unroll.awk -vN=8 < vpermxor.uc > $@
+-
+-int1.c: int.uc ../unroll.awk
+-	$(AWK) ../unroll.awk -vN=1 < int.uc > $@
+-
+-int2.c: int.uc ../unroll.awk
+-	$(AWK) ../unroll.awk -vN=2 < int.uc > $@
+-
+-int4.c: int.uc ../unroll.awk
+-	$(AWK) ../unroll.awk -vN=4 < int.uc > $@
+-
+-int8.c: int.uc ../unroll.awk
+-	$(AWK) ../unroll.awk -vN=8 < int.uc > $@
+-
+-int16.c: int.uc ../unroll.awk
+-	$(AWK) ../unroll.awk -vN=16 < int.uc > $@
+-
+-int32.c: int.uc ../unroll.awk
+-	$(AWK) ../unroll.awk -vN=32 < int.uc > $@
+-
+-tables.c: mktables
+-	./mktables > tables.c
+-
+-clean:
+-	rm -f *.o *.a mktables mktables.c *.uc int*.c altivec*.c vpermxor*.c neon*.c tables.c raid6test
+-
+-spotless: clean
+-	rm -f *~
++raid6_kunit-y += test.o
+--- a/lib/raid6/test/test.c~raid6-turn-the-userspace-test-harness-into-a-kunit-test
++++ a/lib/raid6/test/test.c
+@@ -1,43 +1,37 @@
+ // SPDX-License-Identifier: GPL-2.0-or-later
+-/* -*- linux-c -*- ------------------------------------------------------- *
+- *
+- *   Copyright 2002-2007 H. Peter Anvin - All Rights Reserved
+- *
+- * ----------------------------------------------------------------------- */
+-
+ /*
+- * raid6test.c
++ * Copyright 2002-2007 H. Peter Anvin - All Rights Reserved
+  *
+- * Test RAID-6 recovery with various algorithms
++ * Test RAID-6 recovery algorithms.
+  */
+ 
+-#include <stdlib.h>
+-#include <stdio.h>
+-#include <string.h>
++#include <kunit/test.h>
++#include <linux/prandom.h>
+ #include <linux/raid/pq.h>
+ 
+-#define NDISKS		16	/* Including P and Q */
++MODULE_IMPORT_NS("EXPORTED_FOR_KUNIT_TESTING");
++
++#define RAID6_KUNIT_SEED		42
+ 
+-const char raid6_empty_zero_page[PAGE_SIZE] __attribute__((aligned(PAGE_SIZE)));
++#define NDISKS		16	/* Including P and Q */
+ 
+-char *dataptrs[NDISKS];
+-char data[NDISKS][PAGE_SIZE] __attribute__((aligned(PAGE_SIZE)));
+-char recovi[PAGE_SIZE] __attribute__((aligned(PAGE_SIZE)));
+-char recovj[PAGE_SIZE] __attribute__((aligned(PAGE_SIZE)));
++static struct rnd_state rng;
++static void *dataptrs[NDISKS];
++static char data[NDISKS][PAGE_SIZE] __attribute__((aligned(PAGE_SIZE)));
++static char recovi[PAGE_SIZE] __attribute__((aligned(PAGE_SIZE)));
++static char recovj[PAGE_SIZE] __attribute__((aligned(PAGE_SIZE)));
+ 
+ static void makedata(int start, int stop)
+ {
+-	int i, j;
++	int i;
+ 
+ 	for (i = start; i <= stop; i++) {
+-		for (j = 0; j < PAGE_SIZE; j++)
+-			data[i][j] = rand();
+-
++		prandom_bytes_state(&rng, data[i], PAGE_SIZE);
+ 		dataptrs[i] = data[i];
+ 	}
+ }
+ 
+-static char disk_type(int d)
++static char member_type(int d)
+ {
+ 	switch (d) {
+ 	case NDISKS-2:
+@@ -49,104 +43,118 @@ static char disk_type(int d)
+ 	}
+ }
+ 
+-static int test_disks(int i, int j)
++static void test_disks(struct kunit *test, const struct raid6_calls *calls,
++		const struct raid6_recov_calls *ra, int faila, int failb)
+ {
+-	int erra, errb;
+-
+ 	memset(recovi, 0xf0, PAGE_SIZE);
+ 	memset(recovj, 0xba, PAGE_SIZE);
+ 
+-	dataptrs[i] = recovi;
+-	dataptrs[j] = recovj;
+-
+-	raid6_dual_recov(NDISKS, PAGE_SIZE, i, j, (void **)&dataptrs);
++	dataptrs[faila] = recovi;
++	dataptrs[failb] = recovj;
+ 
+-	erra = memcmp(data[i], recovi, PAGE_SIZE);
+-	errb = memcmp(data[j], recovj, PAGE_SIZE);
+-
+-	if (i < NDISKS-2 && j == NDISKS-1) {
+-		/* We don't implement the DQ failure scenario, since it's
+-		   equivalent to a RAID-5 failure (XOR, then recompute Q) */
+-		erra = errb = 0;
++	if (failb == NDISKS - 1) {
++		/*
++		 * We don't implement the data+Q failure scenario, since it
++		 * is equivalent to a RAID-5 failure (XOR, then recompute Q).
++		 */
++		if (faila != NDISKS - 2)
++			goto skip;
++
++		/* P+Q failure.  Just rebuild the syndrome. */
++		calls->gen_syndrome(NDISKS, PAGE_SIZE, dataptrs);
++	} else if (failb == NDISKS - 2) {
++		/* data+P failure. */
++		ra->datap(NDISKS, PAGE_SIZE, faila, dataptrs);
+ 	} else {
+-		printf("algo=%-8s  faila=%3d(%c)  failb=%3d(%c)  %s\n",
+-		       raid6_call.name,
+-		       i, disk_type(i),
+-		       j, disk_type(j),
+-		       (!erra && !errb) ? "OK" :
+-		       !erra ? "ERRB" :
+-		       !errb ? "ERRA" : "ERRAB");
++		/* data+data failure. */
++		ra->data2(NDISKS, PAGE_SIZE, faila, failb, dataptrs);
+ 	}
+ 
+-	dataptrs[i] = data[i];
+-	dataptrs[j] = data[j];
+-
+-	return erra || errb;
++	KUNIT_EXPECT_MEMEQ_MSG(test, data[faila], recovi, PAGE_SIZE,
++		"algo=%-8s/%-8s faila miscompared: %3d[%c] (failb=%3d[%c])\n",
++	       calls->name, ra->name,
++	       faila, member_type(faila),
++	       failb, member_type(failb));
++	KUNIT_EXPECT_MEMEQ_MSG(test, data[failb], recovj, PAGE_SIZE,
++		"algo=%-8s/%-8s failb miscompared: %3d[%c] (faila=%3d[%c])\n",
++	       calls->name, ra->name,
++	       failb, member_type(failb),
++	       faila, member_type(faila));
++
++skip:
++	dataptrs[faila] = data[faila];
++	dataptrs[failb] = data[failb];
+ }
+ 
+-int main(int argc, char *argv[])
++static void raid6_test(struct kunit *test)
+ {
+ 	const struct raid6_calls *const *algo;
+ 	const struct raid6_recov_calls *const *ra;
+ 	int i, j, p1, p2;
+-	int err = 0;
+-
+-	makedata(0, NDISKS-1);
+ 
+ 	for (ra = raid6_recov_algos; *ra; ra++) {
+ 		if ((*ra)->valid  && !(*ra)->valid())
+ 			continue;
+ 
+-		raid6_2data_recov = (*ra)->data2;
+-		raid6_datap_recov = (*ra)->datap;
+-
+-		printf("using recovery %s\n", (*ra)->name);
+-
+ 		for (algo = raid6_algos; *algo; algo++) {
+-			if ((*algo)->valid && !(*algo)->valid())
+-				continue;
++			const struct raid6_calls *calls = *algo;
+ 
+-			raid6_call = **algo;
++			if (calls->valid && !calls->valid())
++				continue;
+ 
+ 			/* Nuke syndromes */
+-			memset(data[NDISKS-2], 0xee, 2*PAGE_SIZE);
++			memset(data[NDISKS - 2], 0xee, PAGE_SIZE);
++			memset(data[NDISKS - 1], 0xee, PAGE_SIZE);
+ 
+ 			/* Generate assumed good syndrome */
+-			raid6_call.gen_syndrome(NDISKS, PAGE_SIZE,
++			calls->gen_syndrome(NDISKS, PAGE_SIZE,
+ 						(void **)&dataptrs);
+ 
+ 			for (i = 0; i < NDISKS-1; i++)
+ 				for (j = i+1; j < NDISKS; j++)
+-					err += test_disks(i, j);
++					test_disks(test, calls, *ra, i, j);
+ 
+-			if (!raid6_call.xor_syndrome)
++			if (!calls->xor_syndrome)
+ 				continue;
+ 
+ 			for (p1 = 0; p1 < NDISKS-2; p1++)
+ 				for (p2 = p1; p2 < NDISKS-2; p2++) {
+ 
+ 					/* Simulate rmw run */
+-					raid6_call.xor_syndrome(NDISKS, p1, p2, PAGE_SIZE,
++					calls->xor_syndrome(NDISKS, p1, p2, PAGE_SIZE,
+ 								(void **)&dataptrs);
+ 					makedata(p1, p2);
+-					raid6_call.xor_syndrome(NDISKS, p1, p2, PAGE_SIZE,
++					calls->xor_syndrome(NDISKS, p1, p2, PAGE_SIZE,
+                                                                 (void **)&dataptrs);
+ 
+ 					for (i = 0; i < NDISKS-1; i++)
+ 						for (j = i+1; j < NDISKS; j++)
+-							err += test_disks(i, j);
++							test_disks(test, calls,
++									*ra, i, j);
+ 				}
+ 
+ 		}
+-		printf("\n");
+ 	}
++}
+ 
+-	printf("\n");
+-	/* Pick the best algorithm test */
+-	raid6_select_algo();
+-
+-	if (err)
+-		printf("\n*** ERRORS FOUND ***\n");
++static struct kunit_case raid6_test_cases[] = {
++	KUNIT_CASE(raid6_test),
++	{},
++};
+ 
+-	return err;
++static int raid6_suite_init(struct kunit_suite *suite)
++{
++	prandom_seed_state(&rng, RAID6_KUNIT_SEED);
++	makedata(0, NDISKS - 1);
++	return 0;
+ }
++
++static struct kunit_suite raid6_test_suite = {
++	.name		= "raid6",
++	.test_cases	= raid6_test_cases,
++	.suite_init	= raid6_suite_init,
++};
++kunit_test_suite(raid6_test_suite);
++
++MODULE_DESCRIPTION("Unit test for the RAID P/Q library functions");
++MODULE_LICENSE("GPL");
 _
 
-Patches currently in -mm which might be from jorge.ramirez@oss.qualcomm.com are
+Patches currently in -mm which might be from hch@lst.de are
 
 
