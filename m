@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0F834371898
-	for <mm-commits@vger.kernel.org>; Fri, 29 May 2026 04:25:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3170B371CE4
+	for <mm-commits@vger.kernel.org>; Fri, 29 May 2026 04:25:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780028736; cv=none; b=ZJl2vhqE6CK+Aw+sRrfFNEKWhWFAwMUiDFlrI+5ymd24auFZ3qytmL+c+HWlDfx1fjJLNUqUgpnnhGMv8WkXdzuI41VGrMSYBnkf2OT3kGSYh0Y0MLUZ+z1OZJIKsOKfNm1aoRmxv3SAMi4XRG22PLCWV9nkv1QtkcXMfTb0CDQ=
+	t=1780028737; cv=none; b=q6x8O5ZfZKZ6aqU9dwomlomnJ/QN15xHZMsuDyZvW8rHEJNCmfVi9MbsBsrT8AoGODWASUc3oCg9nu6aDRiYT2ZZKk5tw9IY4Hw0VPgIQZqZAmR4ub5EasRxhEz6zz/dMGnoIIrM0+Vg5lq1b8rNlwo0wuYdZ33mzjZrtE/+i3A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780028736; c=relaxed/simple;
-	bh=5i+qOZaGi5HMCeTDGy4G/DqrZ8Y+t8v4C/ImbT45PTo=;
-	h=Date:To:From:Subject:Message-Id; b=J6LDCD7GLpT1FxVAK6JdcbMVU+ZGyoFcjjHlhm/krCnas9nIGCR68NuZ4dy8HvmLLRaME4dr31iLgWz33GrMIFDNydATzKe8oUJUbPUE05d28LfaQEDSUtFlkdNzHPyA/zR1O7vPIggGvjDWrYwG16Xn1HZiESYrsVIIMGJ7qEI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BvZx7lTu; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1780028737; c=relaxed/simple;
+	bh=w0+sZK+Yu6zXEhjL21nU81Lq8UlwKzrMBbP6AWluCG4=;
+	h=Date:To:From:Subject:Message-Id; b=ehyf3fH8c8wLD7tqqEdu+SRPWxM9oIEA/2ZULEEVizM6XzMNa5FzDrfm/kTGC2q2hwxXDddjVjjLz6jW8iRa99V4B+UHHMNgr1I6io0IrzoNCkxp+87mfSczDA+whdFohpFKsxNeMKRXXFW5xaJeLRwufhzbsLFjveWt7ihbUGE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dCyDU3jI; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BvZx7lTu"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A204C1F00893;
-	Fri, 29 May 2026 04:25:34 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dCyDU3jI"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B8F581F00898;
+	Fri, 29 May 2026 04:25:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1780028734;
-	bh=vHkaSux0YHTdg5/83jH+HCY9Alhd9rQY3gnYN8ZVqs0=;
+	d=linux-foundation.org; s=korg; t=1780028735;
+	bh=cXBmnOcydZB0Hdpx2D5Yx9nK3I96NDYq6DE7CfpM1K8=;
 	h=Date:To:From:Subject;
-	b=BvZx7lTuKYAisSD8SB8a3k4Q7esw9k+L24p/BcRqaukSwyuURIUSxwORwHwUz5qlX
-	 eO0ZPvXlcg2QFfhd3gGlVnL7uIyZZ/2jPU+71o247U0LPrBMFrGji12p+7U+VLlJvH
-	 sboR8ftsiDBBKv2kaAQm/GN+CxMvXGTvxuFbjdZU=
-Date: Thu, 28 May 2026 21:25:34 -0700
-To: mm-commits@vger.kernel.org,wangzijie1@honor.com,viro@zeniv.linux.org.uk,jack@suse.cz,brauner@kernel.org,adobriyan@gmail.com,thorsten.blum@linux.dev,akpm@linux-foundation.org
+	b=dCyDU3jIjDRYCviQoA9PsPKxxMYSdgHHuZE0En5GR3FdEVOM78eVJy5lfh9ZZvZwH
+	 R9IiPM4i9At5RnTla7/JYRogcd8a7Jj2unEarualYpEdmblchNyiJ5VbuVr4Ohjm0A
+	 bbEn4XO1meKymDYvszeUheKZp+8LCUtE3Jj+s6qY=
+Date: Thu, 28 May 2026 21:25:35 -0700
+To: mm-commits@vger.kernel.org,wang.yaxin@zte.com.cn,fan.yu9@zte.com.cn,cyyzero16@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] proc-use-strnlen-for-name-validation-in-__proc_create.patch removed from -mm tree
-Message-Id: <20260529042534.A204C1F00893@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] tools-accounting-getdelays-fix-wformat-truncation-warning-in-format_timespec.patch removed from -mm tree
+Message-Id: <20260529042535.B8F581F00898@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,61 +35,70 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: proc: use strnlen() for name validation in __proc_create
+     Subject: tools/accounting/getdelays: fix -Wformat-truncation warning in format_timespec
 has been removed from the -mm tree.  Its filename was
-     proc-use-strnlen-for-name-validation-in-__proc_create.patch
+     tools-accounting-getdelays-fix-wformat-truncation-warning-in-format_timespec.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Thorsten Blum <thorsten.blum@linux.dev>
-Subject: proc: use strnlen() for name validation in __proc_create
-Date: Tue, 21 Apr 2026 14:26:47 +0200
+From: Yiyang Chen <cyyzero16@gmail.com>
+Subject: tools/accounting/getdelays: fix -Wformat-truncation warning in format_timespec
+Date: Thu, 23 Apr 2026 23:11:39 +0800
 
-Replace strlen(fn) with strnlen(fn, NAME_MAX + 1) when validating the
-final path component in __proc_create().
+Reproduce with GCC 13.3.0:
 
-This preserves the existing name limit while bounding the length scan to
-one byte past the maximum name length.  Handle empty names separately, and
-treat names longer than NAME_MAX as too long.
+  $ cd tools/accounting
+  $ make
 
-Link: https://lore.kernel.org/20260421122648.56723-2-thorsten.blum@linux.dev
-Signed-off-by: Thorsten Blum <thorsten.blum@linux.dev>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Thorsten Blum <thorsten.blum@linux.dev>
-Cc: wangzijie <wangzijie1@honor.com>
+This emits:
+
+getdelays.c: In function `format_timespec':
+getdelays.c:218:67: warning: `:' directive output may be truncated writing 1 byte into a region of size between 0 and 16 [-Wformat-truncation=]
+  218 |         snprintf(buffer, sizeof(buffer), "%04d-%02d-%02dT%02d:%02d:%02d",
+      |
+getdelays.c:218:9: note: `snprintf' output between 20 and 72 bytes into a destination of size 32
+
+The problem is that %04d and %02d specify minimum field widths only. GCC
+cannot prove that formatting tm_year + 1900 and the other struct tm
+fields will always fit in the fixed 32-byte buffer, so it warns about
+possible truncation.
+
+Fix this by replacing the manual snprintf() formatting with
+strftime("%Y-%m-%dT%H:%M:%S", ...). That matches the data we already have
+in struct tm, keeps the intended timestamp format, and avoids the warning
+when building tools/accounting with GCC.
+
+Link: https://lore.kernel.org/87d9723e0b59d816ee2e4bd7cddd58a54c6c9f91.1776956545.git.cyyzero16@gmail.com
+Signed-off-by: Yiyang Chen <cyyzero16@gmail.com>
+Cc: Fan Yu <fan.yu9@zte.com.cn>
+Cc: Wang Yaxin <wang.yaxin@zte.com.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/generic.c |   10 +++++++---
- 1 file changed, 7 insertions(+), 3 deletions(-)
+ tools/accounting/getdelays.c |    8 +-------
+ 1 file changed, 1 insertion(+), 7 deletions(-)
 
---- a/fs/proc/generic.c~proc-use-strnlen-for-name-validation-in-__proc_create
-+++ a/fs/proc/generic.c
-@@ -427,9 +427,13 @@ static struct proc_dir_entry *__proc_cre
- 	if (xlate_proc_name(name, parent, &fn) != 0)
- 		goto out;
- 	qstr.name = fn;
--	qstr.len = strlen(fn);
--	if (qstr.len == 0 || qstr.len >= 256) {
--		WARN(1, "name len %u\n", qstr.len);
-+	qstr.len = strnlen(fn, NAME_MAX + 1);
-+	if (qstr.len == 0) {
-+		WARN(1, "empty name\n");
-+		return NULL;
-+	}
-+	if (qstr.len > NAME_MAX) {
-+		WARN(1, "name too long\n");
- 		return NULL;
- 	}
- 	if (qstr.len == 1 && fn[0] == '.') {
+--- a/tools/accounting/getdelays.c~tools-accounting-getdelays-fix-wformat-truncation-warning-in-format_timespec
++++ a/tools/accounting/getdelays.c
+@@ -241,13 +241,7 @@ static const char *format_timespec(struc
+ 	if (localtime_r(&time_sec, &tm_info) == NULL)
+ 		return "N/A";
+ 
+-	snprintf(buffer, sizeof(buffer), "%04d-%02d-%02dT%02d:%02d:%02d",
+-		tm_info.tm_year + 1900,
+-		tm_info.tm_mon + 1,
+-		tm_info.tm_mday,
+-		tm_info.tm_hour,
+-		tm_info.tm_min,
+-		tm_info.tm_sec);
++	strftime(buffer, sizeof(buffer), "%Y-%m-%dT%H:%M:%S", &tm_info);
+ 
+ 	return buffer;
+ }
 _
 
-Patches currently in -mm which might be from thorsten.blum@linux.dev are
+Patches currently in -mm which might be from cyyzero16@gmail.com are
 
-mm-mseal-use-min-max-in-mseal_apply.patch
 
