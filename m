@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 91C7E370AE2
-	for <mm-commits@vger.kernel.org>; Fri, 29 May 2026 04:07:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C7ED036EAB9
+	for <mm-commits@vger.kernel.org>; Fri, 29 May 2026 04:07:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780027666; cv=none; b=cey+CeS0nd1rd7l5tOufXBQOnN4SYQBv/TnbXHjmy3ZWo5IZtUmHM43Vyk2PPzzbUe1gcxKoy/v5PtslxbPqjmYuZ+X4egDFB+myyDpiyc4qSmUjXx2kERUbyll5kGBVSXbxgByrGd9aEg9pDnuDpiPe3TSsor/gxLpkKF/WU3w=
+	t=1780027668; cv=none; b=T6o45vV5MW8PWEiWotOlJhTE8cx70cHo7jV9zLtTHFT9VtiDCQYOyBxEhD8xsHhP9dky0kyLvhdgB+M8jqDUZxmdx2lQn0qC0PxC4lWTeV8XLC06K2V1dXakTMF/NRFkFHLR6MD+3odXd9fv7WKlMhwILWScx8Uo1KFpOLtS/PI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780027666; c=relaxed/simple;
-	bh=SMYt232lMuW1Wrn5QEdGs1Iypf4N3jwbD+Ux2Mlsmb4=;
-	h=Date:To:From:Subject:Message-Id; b=o6zEanbe3pvEeSiCOHRaoAx3MprFweYt6sxH1WK1Fbp8kaixoxjZIxrQfnn+yiksLr7vWo+KcIaMt8CfcZ9T0Tfv4KKJxplHf7v5AFEMNCA4Zy1rl9rqHnIuJuCEcc9dPfTnGRTA4HQojrt916AUp2kqU+0tZPnknj5BQlHTLKQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uyRwZOQi; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1780027668; c=relaxed/simple;
+	bh=qgYhb0rFAlYUq1kq4CHnc/pBO0IQOD5jxMgZpUaKr3U=;
+	h=Date:To:From:Subject:Message-Id; b=HFyTq6ZTeQYUbVFlwKXmJA2k2NI2tplfzIvx/2wPnMr1u4fJWQ0ReO0EKbMzf14Z5oWvDnNFHzHYoNUwQqmjPkSWxc80xPW1S1OnNfcZFgN4UQUp1a+pAjvNd0FTN9VFO1ELddUJUuSL+7wIgHeYqCjh0GF78GbAj/Ycx8+kcsI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=p7f1Xg6V; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uyRwZOQi"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 65B211F00893;
-	Fri, 29 May 2026 04:07:45 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="p7f1Xg6V"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9BF6E1F00898;
+	Fri, 29 May 2026 04:07:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1780027665;
-	bh=1fcPzEhadHRG3dbp770xw8Zs/VoDJQxOsshF2WWNABc=;
+	d=linux-foundation.org; s=korg; t=1780027666;
+	bh=g+iBS0yQrnBvG0u+uJPc0EMuMUSCMT6ilZFGns3Htsk=;
 	h=Date:To:From:Subject;
-	b=uyRwZOQi+n44Prh5nfA8Dnwfslt1zQC11DYF6hkf1j/WyY/8aXPGxMff81yKD27xs
-	 BVsb7H3LY4xxQxVd2ENwWX85oINGzg9CPdmWdPTKTpos5ejKIJFzvM7/4CleLbpBKM
-	 igEn2MY22kAMVghaiq5dzQhABHbladCioPUfiKZQ=
-Date: Thu, 28 May 2026 21:07:45 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,shuah@kernel.org,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,corbet@lwn.net,brendan.higgins@linux.dev,sj@kernel.org,akpm@linux-foundation.org
+	b=p7f1Xg6VDnHnovXoIJVRXuZquS/nBjyqV9AM5gEcmYRuCbcxA/f2PYGVwlrUs3k4h
+	 ajkLrti3BTMkT9klZ3gMHQHGG+5eKkBjMSAUt9GUFcWoJ2UTfrSLU0WwHJPdJfrr/S
+	 XwHA1b5Lb/AjRwnPv905j9OA7GdyIZfl0uTtzrCw=
+Date: Thu, 28 May 2026 21:07:46 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,willy@infradead.org,rakie.kim@sk.com,matthew.brost@intel.com,lance.yang@linux.dev,joshua.hahnjy@gmail.com,gourry@gourry.net,david@kernel.org,byungchul@sk.com,baolin.wang@linux.alibaba.com,apopple@nvidia.com,shivankg@amd.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-damon-sysfspy-pause-damon-before-dumping-status.patch removed from -mm tree
-Message-Id: <20260529040745.65B211F00893@smtp.kernel.org>
+Subject: [merged mm-stable] mm-migrate-rename-page_-migration-flags-to-folio_.patch removed from -mm tree
+Message-Id: <20260529040746.9BF6E1F00898@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,157 +35,194 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests/damon/sysfs.py: pause DAMON before dumping status
+     Subject: mm/migrate: rename PAGE_ migration flags to FOLIO_
 has been removed from the -mm tree.  Its filename was
-     selftests-damon-sysfspy-pause-damon-before-dumping-status.patch
+     mm-migrate-rename-page_-migration-flags-to-folio_.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: SeongJae Park <sj@kernel.org>
-Subject: selftests/damon/sysfs.py: pause DAMON before dumping status
-Date: Mon, 27 Apr 2026 08:12:29 -0700
+From: Shivank Garg <shivankg@amd.com>
+Subject: mm/migrate: rename PAGE_ migration flags to FOLIO_
+Date: Tue, 24 Mar 2026 19:07:09 +0000
 
-The sysfs.py test commits DAMON parameters, dump the internal DAMON state,
-and show if the parameters are committed as expected using the dumped
-state.  While the dumping is ongoing, DAMON is alive.  It can make
-internal changes including addition and removal of regions.  It can
-therefore make a race that can result in false test results.  Pause DAMON
-execution during the state dumping to avoid such races.
+These flags only track folio-specific state during migration and are not
+used for movable_ops pages.  Rename the enum values and the old_page_state
+variable to match.
 
-Link: https://lore.kernel.org/20260427151231.113429-11-sj@kernel.org
-Signed-off-by: SeongJae Park <sj@kernel.org>
-Cc: Brendan Higgins <brendan.higgins@linux.dev>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
+No functional change.
+
+Link: https://lore.kernel.org/20260324190706.964555-4-shivankg@amd.com
+Signed-off-by: Shivank Garg <shivankg@amd.com>
+Suggested-by: David Hildenbrand <david@kernel.org>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Reviewed-by: Lance Yang <lance.yang@linux.dev>
+Reviewed-by: Huang Ying <ying.huang@linux.alibaba.com>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Byungchul Park <byungchul@sk.com>
+Cc: Gregory Price <gourry@gourry.net>
+Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
+Cc: Matthew Brost <matthew.brost@intel.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Rakie Kim <rakie.kim@sk.com>
+Cc: Shivank Garg <shivankg@amd.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/damon/sysfs.py |   38 +++++++++++++++++++++++
- 1 file changed, 38 insertions(+)
+ mm/migrate.c |   48 +++++++++++++++++++++++-------------------------
+ 1 file changed, 23 insertions(+), 25 deletions(-)
 
---- a/tools/testing/selftests/damon/sysfs.py~selftests-damon-sysfspy-pause-damon-before-dumping-status
-+++ a/tools/testing/selftests/damon/sysfs.py
-@@ -198,18 +198,55 @@ def assert_ctx_committed(ctx, dump):
-     assert_true(dump['pause'] == ctx.pause, 'pause', dump)
+--- a/mm/migrate.c~mm-migrate-rename-page_-migration-flags-to-folio_
++++ a/mm/migrate.c
+@@ -1135,26 +1135,24 @@ static int move_to_new_folio(struct foli
+  * This is safe because nobody is using it except us.
+  */
+ enum {
+-	PAGE_WAS_MAPPED = BIT(0),
+-	PAGE_WAS_MLOCKED = BIT(1),
+-	PAGE_OLD_STATES = PAGE_WAS_MAPPED | PAGE_WAS_MLOCKED,
++	FOLIO_WAS_MAPPED = BIT(0),
++	FOLIO_WAS_MLOCKED = BIT(1),
++	FOLIO_OLD_STATES = FOLIO_WAS_MAPPED | FOLIO_WAS_MLOCKED,
+ };
  
- def assert_ctxs_committed(kdamonds):
-+    ctxs_paused_for_dump = []
-+    kdamonds_paused_for_dump = []
-+    # pause for safe state dumping
-+    for kd in kdamonds.kdamonds:
-+        for ctx in kd.contexts:
-+            if ctx.pause is False:
-+                ctx.pause = True
-+                ctxs_paused_for_dump.append(ctx)
-+                if not kd in kdamonds_paused_for_dump:
-+                    kdamonds_paused_for_dump.append(kd)
-+        if kd in kdamonds_paused_for_dump:
-+            err = kd.commit()
-+            if err is not None:
-+                print('pause fail (%s)' % err)
-+                kdamonds.stop()
-+                exit(1)
-+
-     status, err = dump_damon_status_dict(kdamonds.kdamonds[0].pid)
-     if err is not None:
-         print(err)
-         kdamonds.stop()
-         exit(1)
+ static void __migrate_folio_record(struct folio *dst,
+-				   int old_page_state,
+-				   struct anon_vma *anon_vma)
++		int old_folio_state, struct anon_vma *anon_vma)
+ {
+-	dst->private = (void *)anon_vma + old_page_state;
++	dst->private = (void *)anon_vma + old_folio_state;
+ }
  
-+    # resume contexts paused for safe state dumping
-+    for ctx in ctxs_paused_for_dump:
-+        ctx.pause = False
-+    for kd in kdamonds_paused_for_dump:
-+        err = kd.commit()
-+        if err is not None:
-+            print('resume fail (%s)' % err)
-+            kdamonds.stop()
-+            exit(1)
-+
-+    # restore for comparison
-+    for ctx in ctxs_paused_for_dump:
-+        ctx.pause = True
-+
-     ctxs = kdamonds.kdamonds[0].contexts
-     dump = status['contexts']
-     assert_true(len(ctxs) == len(dump), 'ctxs length', dump)
-     for idx, ctx in enumerate(ctxs):
-         assert_ctx_committed(ctx, dump[idx])
+ static void __migrate_folio_extract(struct folio *dst,
+-				   int *old_page_state,
+-				   struct anon_vma **anon_vmap)
++		int *old_folio_state, struct anon_vma **anon_vmap)
+ {
+ 	unsigned long private = (unsigned long)dst->private;
  
-+    # restore for the caller
-+    for kd in kdamonds.kdamonds:
-+        for ctx in kd.contexts:
-+            if ctx in ctxs_paused_for_dump:
-+                ctx.pause = False
-+
- def main():
-     kdamonds = _damon_sysfs.Kdamonds(
-             [_damon_sysfs.Kdamond(
-@@ -309,6 +346,7 @@ def main():
-         print('kdamond start failed: %s' % err)
-         exit(1)
-     kdamonds.kdamonds[0].contexts[0].targets[1].obsolete = True
-+    kdamonds.kdamonds[0].contexts[0].pause = True
-     kdamonds.kdamonds[0].commit()
-     del kdamonds.kdamonds[0].contexts[0].targets[1]
-     assert_ctxs_committed(kdamonds)
+-	*anon_vmap = (struct anon_vma *)(private & ~PAGE_OLD_STATES);
+-	*old_page_state = private & PAGE_OLD_STATES;
++	*anon_vmap = (struct anon_vma *)(private & ~FOLIO_OLD_STATES);
++	*old_folio_state = private & FOLIO_OLD_STATES;
+ 	dst->private = NULL;
+ }
+ 
+@@ -1209,7 +1207,7 @@ static int migrate_folio_unmap(new_folio
+ {
+ 	struct folio *dst;
+ 	int rc = -EAGAIN;
+-	int old_page_state = 0;
++	int old_folio_state = 0;
+ 	struct anon_vma *anon_vma = NULL;
+ 	bool locked = false;
+ 	bool dst_locked = false;
+@@ -1253,7 +1251,7 @@ static int migrate_folio_unmap(new_folio
+ 	}
+ 	locked = true;
+ 	if (folio_test_mlocked(src))
+-		old_page_state |= PAGE_WAS_MLOCKED;
++		old_folio_state |= FOLIO_WAS_MLOCKED;
+ 
+ 	if (folio_test_writeback(src)) {
+ 		/*
+@@ -1302,7 +1300,7 @@ static int migrate_folio_unmap(new_folio
+ 	dst_locked = true;
+ 
+ 	if (unlikely(page_has_movable_ops(&src->page))) {
+-		__migrate_folio_record(dst, old_page_state, anon_vma);
++		__migrate_folio_record(dst, old_folio_state, anon_vma);
+ 		return 0;
+ 	}
+ 
+@@ -1328,11 +1326,11 @@ static int migrate_folio_unmap(new_folio
+ 		VM_BUG_ON_FOLIO(folio_test_anon(src) &&
+ 			       !folio_test_ksm(src) && !anon_vma, src);
+ 		try_to_migrate(src, mode == MIGRATE_ASYNC ? TTU_BATCH_FLUSH : 0);
+-		old_page_state |= PAGE_WAS_MAPPED;
++		old_folio_state |= FOLIO_WAS_MAPPED;
+ 	}
+ 
+ 	if (!folio_mapped(src)) {
+-		__migrate_folio_record(dst, old_page_state, anon_vma);
++		__migrate_folio_record(dst, old_folio_state, anon_vma);
+ 		return 0;
+ 	}
+ 
+@@ -1344,7 +1342,7 @@ out:
+ 	if (rc == -EAGAIN)
+ 		ret = NULL;
+ 
+-	migrate_folio_undo_src(src, old_page_state & PAGE_WAS_MAPPED,
++	migrate_folio_undo_src(src, old_folio_state & FOLIO_WAS_MAPPED,
+ 			       anon_vma, locked, ret);
+ 	migrate_folio_undo_dst(dst, dst_locked, put_new_folio, private);
+ 
+@@ -1358,13 +1356,13 @@ static int migrate_folio_move(free_folio
+ 			      struct list_head *ret)
+ {
+ 	int rc;
+-	int old_page_state = 0;
++	int old_folio_state = 0;
+ 	struct anon_vma *anon_vma = NULL;
+ 	bool src_deferred_split = false;
+ 	bool src_partially_mapped = false;
+ 	struct list_head *prev;
+ 
+-	__migrate_folio_extract(dst, &old_page_state, &anon_vma);
++	__migrate_folio_extract(dst, &old_folio_state, &anon_vma);
+ 	prev = dst->lru.prev;
+ 	list_del(&dst->lru);
+ 
+@@ -1404,10 +1402,10 @@ static int migrate_folio_move(free_folio
+ 	 * isolated from the unevictable LRU: but this case is the easiest.
+ 	 */
+ 	folio_add_lru(dst);
+-	if (old_page_state & PAGE_WAS_MLOCKED)
++	if (old_folio_state & FOLIO_WAS_MLOCKED)
+ 		lru_add_drain();
+ 
+-	if (old_page_state & PAGE_WAS_MAPPED)
++	if (old_folio_state & FOLIO_WAS_MAPPED)
+ 		remove_migration_ptes(src, dst, 0);
+ 
+ out_unlock_both:
+@@ -1439,11 +1437,11 @@ out:
+ 	 */
+ 	if (rc == -EAGAIN) {
+ 		list_add(&dst->lru, prev);
+-		__migrate_folio_record(dst, old_page_state, anon_vma);
++		__migrate_folio_record(dst, old_folio_state, anon_vma);
+ 		return rc;
+ 	}
+ 
+-	migrate_folio_undo_src(src, old_page_state & PAGE_WAS_MAPPED,
++	migrate_folio_undo_src(src, old_folio_state & FOLIO_WAS_MAPPED,
+ 			       anon_vma, true, ret);
+ 	migrate_folio_undo_dst(dst, true, put_new_folio, private);
+ 
+@@ -1777,11 +1775,11 @@ static void migrate_folios_undo(struct l
+ 	dst = list_first_entry(dst_folios, struct folio, lru);
+ 	dst2 = list_next_entry(dst, lru);
+ 	list_for_each_entry_safe(folio, folio2, src_folios, lru) {
+-		int old_page_state = 0;
++		int old_folio_state = 0;
+ 		struct anon_vma *anon_vma = NULL;
+ 
+-		__migrate_folio_extract(dst, &old_page_state, &anon_vma);
+-		migrate_folio_undo_src(folio, old_page_state & PAGE_WAS_MAPPED,
++		__migrate_folio_extract(dst, &old_folio_state, &anon_vma);
++		migrate_folio_undo_src(folio, old_folio_state & FOLIO_WAS_MAPPED,
+ 				anon_vma, true, ret_folios);
+ 		list_del(&dst->lru);
+ 		migrate_folio_undo_dst(dst, true, put_new_folio, private);
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from shivankg@amd.com are
 
-mm-damon-ops-common-call-folio_test_lru-after-folio_get.patch
-mm-damon-reclaim-handle-ctx-allocation-failure.patch
-mm-damonn-lru_sort-handle-ctx-allocation-failure.patch
-mm-damon-core-introduce-struct-damon_probe.patch
-mm-damon-core-embed-damon_probe-objects-in-damon_ctx.patch
-mm-damon-core-introduce-damon_filter.patch
-mm-damon-core-commit-probes.patch
-mm-damon-core-introduce-damon_region-probe_hits.patch
-mm-damon-core-introduce-damon_ops-apply_probes.patch
-mm-damon-core-do-data-attributes-monitoring.patch
-mm-damon-paddr-support-data-attributes-monitoring.patch
-mm-damon-sysfs-implement-probes-dir.patch
-mm-damon-sysfs-implement-probe-dir.patch
-mm-damon-sysfs-implement-filters-directory.patch
-mm-damon-sysfs-implement-filter-dir.patch
-mm-damon-sysfs-implement-filter-dir-files.patch
-mm-damon-sysfs-setup-probes-on-damon-core-api-parameters.patch
-mm-damon-sysfs-schemes-implement-tried_regions-r-probes.patch
-mm-damon-sysfs-schemes-implement-probe-dir.patch
-mm-damon-sysfs-schemes-implement-probe-hits-file.patch
-mm-damon-trace-probe_hits.patch
-selftests-damon-sysfssh-test-probes-dir.patch
-docs-mm-damon-design-document-data-attributes-monitoring.patch
-docs-admin-guide-mm-damon-usage-document-data-attributes-monitoring.patch
-mm-damon-core-introduce-damon_filter_type_memcg.patch
-mm-damon-paddr-support-damon_filter_type_memcg.patch
-mm-damon-sysfs-add-filters-f-path-file.patch
-mm-damon-sysfs-schemes-move-memcg_path_to_id-to-sysfs-common.patch
-mm-damon-sysfs-setup-damon_filter-memcg_id-from-path.patch
-docs-mm-damon-design-update-for-memcg-damon-filter.patch
-docs-admin-guide-mm-damon-usage-update-for-memcg-damon-filter.patch
-mm-damon-core-safely-handle-no-region-case-in-damon_set_regions.patch
-mm-damon-core-do-not-use-region-out-of-a-loop-in-damon_set_regions.patch
-samples-damon-mtier-replace-damon_add_region-with-damon_set_regions.patch
-mm-damon-tests-vaddr-kunit-replace-damon_add_region-with-damon_set_regions.patch
-mm-damon-core-hide-damon_add_region.patch
-mm-damon-core-hide-damon_insert_region.patch
-mm-damon-core-hide-damon_destroy_region.patch
-mm-damon-core-add-kdamond_call-debug_sanity-check.patch
-mm-damon-core-remove-damon_verify_nr_regions.patch
-mm-damon-tests-core-kunit-add-damon_set_regions-test-cases.patch
-selftests-damon-sysfspy-stop-kdamonds-before-failing.patch
-selftests-damon-sysfssh-test-monitoring-intervals-goal-dir.patch
-selftests-damon-sysfssh-test-addr_unit-file-existence.patch
-selftests-damon-sysfssh-test-pause-file-existence.patch
-mm-damon-core-trace-esz-at-first-setup.patch
 
