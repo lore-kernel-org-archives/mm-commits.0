@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5B8DEE54B
-	for <mm-commits@vger.kernel.org>; Sat, 30 May 2026 02:01:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DACDE29992B
+	for <mm-commits@vger.kernel.org>; Sat, 30 May 2026 02:14:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780106487; cv=none; b=BX7hhLtwHQXzF0EvCHQuls4g6QIvIRWrRYZijrpuxBTAO/UY09Za9/cGNEXAtmR1FkzsyOuJHbCMgrUSQB3y3J5lfiAA9g94IROaR24i7zwivudoZulqCT67UK+z51l6B5qmzxCR1jJptu3tfPVIm7HLMuRlk0lErnro8OL6v6I=
+	t=1780107293; cv=none; b=Fvo/CxwaZkJ/x0++3JNuZvQDws6ZADF1wYrCSCnn3IqBIP5YZ09+NS4+Z0lhRXWpMEhjBRlFujj4OJt8Rlygq4oIKymToYZ+YdTv4q5kI94oSp5f9MQ5SAbK3B7wK+RQ0rFCzXU/gSSLvlf4u/Y7+Rt8LbxVhcEVvJiO8g4O7FA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780106487; c=relaxed/simple;
-	bh=LdsJsnXODdRq9RJW9u7glDteNKj+OdYwH5uApSnH4QQ=;
-	h=Date:To:From:Subject:Message-Id; b=gQNUaK53NXksQ2pyoUxU0P1xWNmNAO3rNXcdfRxIS3N2aY5+893E5kD8d17GRSUAfoV3w4I/lmuZaX5cwiSKUMwCtj47V7OfVNPgCxOrBxoBxPZ5Z+nvgQQRKqFonTbYtoWlKQzy6xnCXQrlNVHe34tYSDfwOQ/aU3zUVjex2HY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RKKY7Iaz; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1780107293; c=relaxed/simple;
+	bh=6VliTg/x3FXSW55cZmS2/pxPU6Y3Emc6VqGJRNcAruM=;
+	h=Date:To:From:Subject:Message-Id; b=WMxLN4whHixPHCBDGzaYec87DkfIWNfpNKNOKK5LiSlwdRg0oY2VU2cW4hXDe5b4j1taZ3xjNjbLc06S3izftlCqTILrzObl/Ho4wtOU/j9cgHX4Lt0aVw52tGcRYqS8jM5fsV38gISwDA6I9MVeaqF1aDamBbmEPc7NbqYIh/4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=eKn6btqy; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RKKY7Iaz"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 016061F00893;
-	Sat, 30 May 2026 02:01:25 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="eKn6btqy"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 679931F00893;
+	Sat, 30 May 2026 02:14:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1780106486;
-	bh=Dkd8XsZnZZ3GtFmqH94mMzzi6kWPovdipyMFsnq48i0=;
+	d=linux-foundation.org; s=korg; t=1780107291;
+	bh=f62ZqQo1hidK9EfLIxFJ9p3uf5gKWCUt+PiN6WSQVEU=;
 	h=Date:To:From:Subject;
-	b=RKKY7Iaz6n72Yi0RkBTS/myjAox0gx31VjkoaUZdMOEUMAefZ2gj7pgSN7SnfcCra
-	 F5pS7qbxZsiJnFxtDXkrhFESuwAaa16/uCxU+LqYnyOh4UD/icMeIT5RYT78Yf9iyk
-	 r45lcVImVdsrTCKZajj0kCoVzQf+WbkDqGYaWRLk=
-Date: Fri, 29 May 2026 19:01:25 -0700
-To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,heming.zhao@suse.com,gechangwei@live.cn,dmantipov@yandex.ru,akpm@linux-foundation.org
+	b=eKn6btqyGWDCOUZxmHpJjoxlafJ6VSUlNGmL5tumYvgL2zsz7GS7tiCMiu0P71Wtu
+	 RQyFVkTdScDZPkamnpJ47ARMgbtaucW0Ocpcc4zglV1YNknfnVhQYsN4UWj3OFvLjt
+	 JfoZjoyZJqDnwsMHB6eajnI2IRFeVq9w/lEbRN70=
+Date: Fri, 29 May 2026 19:14:50 -0700
+To: mm-commits@vger.kernel.org,tmgross@umich.edu,ojeda@kernel.org,ljs@kernel.org,liam@infradead.org,gary@garyguo.net,dakr@kernel.org,bjorn3_gh@protonmail.com,aliceryhl@google.com,a.hindborg@kernel.org,nakamura.shuta@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + ocfs2-fix-buffer-head-management-in-ocfs2_read_blocks.patch added to mm-nonmm-unstable branch
-Message-Id: <20260530020126.016061F00893@smtp.kernel.org>
+Subject: + rust-page-mark-page-nid-as-inline.patch added to mm-new branch
+Message-Id: <20260530021451.679931F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,26 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: ocfs2: fix buffer head management in ocfs2_read_blocks()
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     ocfs2-fix-buffer-head-management-in-ocfs2_read_blocks.patch
+     Subject: rust: page: mark Page::nid as inline
+has been added to the -mm mm-new branch.  Its filename is
+     rust-page-mark-page-nid-as-inline.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-fix-buffer-head-management-in-ocfs2_read_blocks.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/rust-page-mark-page-nid-as-inline.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,66 +69,53 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Dmitry Antipov <dmantipov@yandex.ru>
-Subject: ocfs2: fix buffer head management in ocfs2_read_blocks()
-Date: Fri, 29 May 2026 12:41:28 +0300
+From: Nakamura Shuta <nakamura.shuta@gmail.com>
+Subject: rust: page: mark Page::nid as inline
+Date: Fri, 29 May 2026 17:53:16 +0900
 
-In ocfs2_read_blocks(), caller should't assume that buffer head returned
-by 'sb_getblk()' is exclusively owned and so 'put_bh()' always drops
-b_count from 1 to 0.  If it is not so, buffer head remains on hold and
-likely to be returned by the next call to 'sb_getblk()' unchanged - that
-is, with BH_Uptodate bit set even if it has failed validation previously,
-thus allowing to insert that buffer head into OCFS2 metadata cache and
-submit it to upper layers.  To avoid such a scenario, BH_Uptodate should
-be cleared immediately after 'validate()' callback has detected some data
-inconsistency.
+When building the kernel, the following Rust symbol is generated:
 
-Link: https://lore.kernel.org/20260529094128.494293-1-dmantipov@yandex.ru
-Fixes: cf76c78595ca ("ocfs2: don't put and assigning null to bh allocated outside")
-Signed-off-by: Dmitry Antipov <dmantipov@yandex.ru>
-Reported-by: syzbot+caacd220635a9cc3bac9@syzkaller.appspotmail.com
-Closes: https://syzkaller.appspot.com/bug?extid=caacd220635a9cc3bac9
-Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Jun Piao <piaojun@huawei.com>
-Cc: Heming Zhao <heming.zhao@suse.com>
+  $ nm vmlinux | grep ' _R'.*Page | rustfilt
+  <kernel::page::Page>::nid
+
+`Page::nid` is a trivial wrapper around the C function `page_to_nid`.  It
+does not make sense to go through a trivial wrapper for this function, so
+mark it inline.
+
+This follows commit 878620c5a93a ("rust: page: optimize rust symbol
+generation for Page"), which did the same for `alloc_page` and `drop`.
+
+Link: https://github.com/Rust-for-Linux/linux/issues/1145
+Link: https://lore.kernel.org/20260529085316.27432-1-nakamura.shuta@gmail.com
+Signed-off-by: Nakamura Shuta <nakamura.shuta@gmail.com>
+Reviewed-by: Alice Ryhl <aliceryhl@google.com>
+Reviewed-by: Gary Guo <gary@garyguo.net>
+Cc: Andreas Hindborg <a.hindborg@kernel.org>
+Cc: Björn Roy Baron <bjorn3_gh@protonmail.com>
+Cc: Danilo Krummrich <dakr@kernel.org>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Miguel Ojeda <ojeda@kernel.org>
+Cc: Trevor Gross <tmgross@umich.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/buffer_head_io.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ rust/kernel/page.rs |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/fs/ocfs2/buffer_head_io.c~ocfs2-fix-buffer-head-management-in-ocfs2_read_blocks
-+++ a/fs/ocfs2/buffer_head_io.c
-@@ -350,8 +350,6 @@ read_failure:
- 						wait_on_buffer(bh);
- 					put_bh(bh);
- 					bhs[i] = NULL;
--				} else if (bh && buffer_uptodate(bh)) {
--					clear_buffer_uptodate(bh);
- 				}
- 				continue;
- 			}
-@@ -380,8 +378,11 @@ read_failure:
- 				BUG_ON(buffer_jbd(bh));
- 				clear_buffer_needs_validate(bh);
- 				status = validate(sb, bh);
--				if (status)
-+				if (status) {
-+					if (buffer_uptodate(bh))
-+						clear_buffer_uptodate(bh);
- 					goto read_failure;
-+				}
- 			}
- 		}
+--- a/rust/kernel/page.rs~rust-page-mark-page-nid-as-inline
++++ a/rust/kernel/page.rs
+@@ -193,6 +193,7 @@ impl Page {
+     }
  
+     /// Get the node id containing this page.
++    #[inline]
+     pub fn nid(&self) -> i32 {
+         // SAFETY: Always safe to call with a valid page.
+         unsafe { bindings::page_to_nid(self.as_ptr()) }
 _
 
-Patches currently in -mm which might be from dmantipov@yandex.ru are
+Patches currently in -mm which might be from nakamura.shuta@gmail.com are
 
-lib-free-pagelist-on-error-in-iov_iter_extract_pages.patch
-ocfs2-fix-buffer-head-management-in-ocfs2_read_blocks.patch
+rust-page-mark-page-nid-as-inline.patch
 
