@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EA9F93E8326
-	for <mm-commits@vger.kernel.org>; Mon,  1 Jun 2026 18:17:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B4B703E16A9
+	for <mm-commits@vger.kernel.org>; Mon,  1 Jun 2026 18:17:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780337829; cv=none; b=c/eZwQfPRYadO1LkeRhuuE0ayZSvzCUvLH+MaGSQon1j02oPGxOVcvc8CZyK4LeB3wxXL+PTrAHuodag6H0NKV2LOkyZ2E84Pbl91Ht90tM6yhYUJgiJF6VfeejYvy0Kezx4IXzPg8JC/7ZE67dw4269QvWYggvWgUwa7PFKu/k=
+	t=1780337829; cv=none; b=aEbbdYMeZLeJEhUc6gfYhqKxUy0dBuwT5pi7DJBvO5ULH9li7U5MJOEtWT0L0AWQBDXyu5wjjxY8cOu4LaJzY6z8AH9I9fcy6vwElFQ5UrxGyTZmq7aoceVPv8eSLuyPhrpJ+WHyUmYNPRN+PF8RP47UcvNm8NUMYRJ7m24PjNY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1780337829; c=relaxed/simple;
-	bh=HKV5nmNdY03hM/8V53OdKM19KJ9AJRIYWnp4pEqvTx8=;
-	h=Date:To:From:Subject:Message-Id; b=ppSMRbL2THBK0Qs8FG2B7Ks9pF0coO8zqwi8KJA0JwH1WdGUNlEggZYSNi93r3QLl9cQuUZU1pwkLquGrYmK3viOr9+b34kVVMMgKyp7U/UU6FLjKyzbLEPa647RmhK+8Bmw6d4Ce9DlmTQ/wHQ+XUJBTyocV2gp/TddbyPx6M8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PqKIRlPE; arc=none smtp.client-ip=100.103.45.18
+	bh=1C2JUFnq8uXIuPWk/WU18wTUhs25D3XsOGbawID5X8U=;
+	h=Date:To:From:Subject:Message-Id; b=Qht0smwcgaD2kK+uDnMaXl0j6QjQ1EscPrflntSJVw0HE3HxmmeNqHKZbfNRrc0RwYYUauoS9IArFmQjnSJznCpdJeNrjgW+SUns7/xhI5eCWGt25TvYChoTK12/4iO+DfmhUlptU6y/0gvS7fC9KSFk7vnA9kvLHH2Gmya4XS8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LJ7AQWTX; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PqKIRlPE"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 407EF1F00899;
-	Mon,  1 Jun 2026 18:17:00 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LJ7AQWTX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3F5481F0089A;
+	Mon,  1 Jun 2026 18:17:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1780337820;
-	bh=R6/h0XvK9pJafTtqMTvw+HxCSju1se/UTWk7nepsQh0=;
+	d=linux-foundation.org; s=korg; t=1780337822;
+	bh=fJxnXjXmfXewQ5qKEXqEjf3BLTZ4Rffd7dZxe7bqu8M=;
 	h=Date:To:From:Subject;
-	b=PqKIRlPEa8pEnUgVs9JdHff7Pf7mKphbsX1QgW+JvoAwZwr7ZKLpYrnrXwyLufgpb
-	 k1QRhfKnQYTvG2SvRs20vDUil/EzV56d81736UBGsV7XO88wbpFPJAV5Xbt7f1v09I
-	 C7CXjxYgNZBS9S71Wg4davESuDryzyEyeVl2DvD4=
-Date: Mon, 01 Jun 2026 11:16:59 -0700
+	b=LJ7AQWTX2bp9fEJIzMtIi7I6p6ZZmj+z4GINfYex1G5kc6EdPv8C3sLRKDRGSqYKs
+	 b+qG5+3PbStz8e+/ewsAom1HbyMoVAncCkLsOwevJkf6JHj93NAvyi/Ue/q0LJQtNT
+	 qHqxFUCKmrSJcHfev1CjGFnt6ff0vfL5MQIZGzYw=
+Date: Mon, 01 Jun 2026 11:17:01 -0700
 To: mm-commits@vger.kernel.org,will@kernel.org,vbabka@kernel.org,surenb@google.com,rppt@kernel.org,palmer@dabbelt.com,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,kernel@xen0n.name,david@kernel.org,davem@davemloft.net,chenhuacai@kernel.org,catalin.marinas@arm.com,aou@eecs.berkeley.edu,andreas@gaisler.com,alex@ghiti.fr,songmuchun@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + riscv-mm-drop-vmemmap_pmd-helpers-and-use-generic-code.patch added to mm-new branch
-Message-Id: <20260601181700.407EF1F00899@smtp.kernel.org>
+Subject: + loongarch-mm-drop-vmemmap_check_pmd-helper-and-use-generic-code.patch added to mm-new branch
+Message-Id: <20260601181702.3F5481F0089A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: riscv/mm: drop vmemmap_pmd helpers and use generic code
+     Subject: loongarch/mm: drop vmemmap_check_pmd helper and use generic code
 has been added to the -mm mm-new branch.  Its filename is
-     riscv-mm-drop-vmemmap_pmd-helpers-and-use-generic-code.patch
+     loongarch-mm-drop-vmemmap_check_pmd-helper-and-use-generic-code.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/riscv-mm-drop-vmemmap_pmd-helpers-and-use-generic-code.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/loongarch-mm-drop-vmemmap_check_pmd-helper-and-use-generic-code.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,12 +70,12 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Muchun Song <songmuchun@bytedance.com>
-Subject: riscv/mm: drop vmemmap_pmd helpers and use generic code
-Date: Mon, 1 Jun 2026 16:48:42 +0800
+Subject: loongarch/mm: drop vmemmap_check_pmd helper and use generic code
+Date: Mon, 1 Jun 2026 16:48:43 +0800
 
-The generic implementations now suffice; remove the riscv copies.
+The generic implementations now suffice; remove the loongarch copy.
 
-Link: https://lore.kernel.org/20260601084845.3792171-4-songmuchun@bytedance.com
+Link: https://lore.kernel.org/20260601084845.3792171-5-songmuchun@bytedance.com
 Signed-off-by: Muchun Song <songmuchun@bytedance.com>
 Reviewed-by: David Hildenbrand (Arm) <david@kernel.org>
 Cc: Albert Ou <aou@eecs.berkeley.edu>
@@ -96,30 +96,28 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/riscv/mm/init.c |   13 -------------
- 1 file changed, 13 deletions(-)
+ arch/loongarch/mm/init.c |   11 -----------
+ 1 file changed, 11 deletions(-)
 
---- a/arch/riscv/mm/init.c~riscv-mm-drop-vmemmap_pmd-helpers-and-use-generic-code
-+++ a/arch/riscv/mm/init.c
-@@ -1359,19 +1359,6 @@ void __init misc_mem_init(void)
+--- a/arch/loongarch/mm/init.c~loongarch-mm-drop-vmemmap_check_pmd-helper-and-use-generic-code
++++ a/arch/loongarch/mm/init.c
+@@ -140,17 +140,6 @@ void __meminit vmemmap_set_pmd(pmd_t *pm
+ 	set_pmd_at(&init_mm, addr, pmd, entry);
  }
  
- #ifdef CONFIG_SPARSEMEM_VMEMMAP
--void __meminit vmemmap_set_pmd(pmd_t *pmd, void *p, int node,
--			       unsigned long addr, unsigned long next)
--{
--	pmd_set_huge(pmd, virt_to_phys(p), PAGE_KERNEL);
--}
--
--int __meminit vmemmap_check_pmd(pmd_t *pmdp, int node,
+-int __meminit vmemmap_check_pmd(pmd_t *pmd, int node,
 -				unsigned long addr, unsigned long next)
 -{
--	vmemmap_verify((pte_t *)pmdp, node, addr, next);
--	return 1;
+-	int huge = pmd_val(pmdp_get(pmd)) & _PAGE_HUGE;
+-
+-	if (huge)
+-		vmemmap_verify((pte_t *)pmd, node, addr, next);
+-
+-	return huge;
 -}
 -
- int __meminit vmemmap_populate(unsigned long start, unsigned long end, int node,
- 			       struct vmem_altmap *altmap)
+ int __meminit vmemmap_populate(unsigned long start, unsigned long end,
+ 			       int node, struct vmem_altmap *altmap)
  {
 _
 
