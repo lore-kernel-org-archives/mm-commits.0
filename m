@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CA766199949
-	for <mm-commits@vger.kernel.org>; Mon,  1 Jun 2026 22:54:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F03AC30ACE3
+	for <mm-commits@vger.kernel.org>; Mon,  1 Jun 2026 22:55:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780354481; cv=none; b=mx9lLyRorddra/EjiScV48hAzKnRPxl9tXQY1+U2EfsjyeoWqqsm4C/kRgdVPKqzKre+cW4xzNY8eh2xKTzCRkJ+DYgxuPwJIO15wSqDKBufFPd/mtsDrH1fwR4VVjc5Wuza7pj2Mq/ddLcYAOuirQx9S1eUYohDQwsrHlD5jKI=
+	t=1780354531; cv=none; b=fvVDYTaPzIc47lBe05E3LRJc8Ueyrg8mlqIw5rwaFvxnUkpzVFBPJ+SKPLgO5nIExmQ79gqnuhzrTKYfj24rCw8I3klIEk+vq660Jj1hKspwcBCy2KsHKa6N9wUjZc8PACi6Xm6/9aWuuhA3Cn3XXvmwAeK8wI6RVRj6jANhln4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780354481; c=relaxed/simple;
-	bh=a69JT1Na/D/rmRY4WY+yHBjC3dckVr848W/O8V8+rvk=;
-	h=Date:To:From:Subject:Message-Id; b=jFCNe/Zjo7HHJpeVc0c0T7fhN9JqoG+eORiykMuOhGso50ZildySStG4wBxr1OFJ6/F/xqQcPFNrXTEPEhCVCXEA4SdWbn11lumcFon4iJVKQR7hiXpUTSUuMlmzyMdaUHxgu9AMYUhPqQ83csv3AECcPIYR2K7D7evvDzCzYLk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gOStC3ol; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1780354531; c=relaxed/simple;
+	bh=SGZ5Y/1Rn+I9/riVEM6LaBfVa76SMXWf7RN4Kah6imw=;
+	h=Date:To:From:Subject:Message-Id; b=jdN7FxCIkrncIUq21GfjPlwJ9SZQcrHOgNdWkDaLuxMq2ClBDuAH5ymGRWC8Ne2Iqoe6d9FDlXTMTb9ioscmRLWFU+443iU8Y9fD5rwQxedoBp0DaZMOHRgV+Qb5W0v0Qw9szSXXdlf9sPeVKZXGAzy26SU3Yh4tiqk9pK78vnY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GuJQl4Y0; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gOStC3ol"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7D92A1F00893;
-	Mon,  1 Jun 2026 22:54:39 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GuJQl4Y0"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7F6E11F00893;
+	Mon,  1 Jun 2026 22:55:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1780354479;
-	bh=yKpDITCFuTWQ+IKf8CePbcuRSTkDbY4YJvgmiCwBXFI=;
+	d=linux-foundation.org; s=korg; t=1780354529;
+	bh=saIP70nkzlSsrTUkojm+abFQCbtZrzKrKa5uEl862NY=;
 	h=Date:To:From:Subject;
-	b=gOStC3olu4Aw8qcVT73SWy9EOCAGH5ahP01cb+m2PrwKQRuuvcl5zsGqNwHBrJRZg
-	 8NpgwcV4SKTSPP+SEcylukldKjlbRcrnouOkqNkTHWdDPjqFgVwxw+2m58mtdSkMk4
-	 mCEJzCpK/Ntb5vyUvYznE0SvhZnHqb4O5gut6hmk=
-Date: Mon, 01 Jun 2026 15:54:38 -0700
-To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,heming.zhao@suse.com,gechangwei@live.cn,rollkingzzc@gmail.com,akpm@linux-foundation.org
+	b=GuJQl4Y0k9cKF7jHHlk0xrTVyfsRxthB0a7WYzYzMz4HxwrXiZ5sshLQvcIfYRRWV
+	 P9CrgpKpRjH5yxqjA5g38KgYUZtyfxw54F1IQnMnpOKQzQN2Dx70oeuRDWxBH5zJKd
+	 VB772mLliIyiCew3WZn9xP/tcBtYhU5aGyFOdHGY=
+Date: Mon, 01 Jun 2026 15:55:29 -0700
+To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,jlbec@evilplan.org,heming.zhao@suse.com,ginger@gmail.com,gechangwei@live.cn,joseph.qi@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + ocfs2-dlm-require-a-ref-for-locking_state-debugfs-open.patch added to mm-nonmm-unstable branch
-Message-Id: <20260601225439.7D92A1F00893@smtp.kernel.org>
+Subject: + ocfs2-fix-race-between-ocfs2_control_install_private-and-ocfs2_control_release.patch added to mm-nonmm-unstable branch
+Message-Id: <20260601225529.7F6E11F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: ocfs2/dlm: require a ref for locking_state debugfs open
+     Subject: ocfs2: fix race between ocfs2_control_install_private() and ocfs2_control_release()
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     ocfs2-dlm-require-a-ref-for-locking_state-debugfs-open.patch
+     ocfs2-fix-race-between-ocfs2_control_install_private-and-ocfs2_control_release.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-dlm-require-a-ref-for-locking_state-debugfs-open.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-fix-race-between-ocfs2_control_install_private-and-ocfs2_control_release.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,94 +58,21 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Zhang Cen <rollkingzzc@gmail.com>
-Subject: ocfs2/dlm: require a ref for locking_state debugfs open
-Date: Sun, 31 May 2026 12:47:14 +0800
+From: Joseph Qi <joseph.qi@linux.alibaba.com>
+Subject: ocfs2: fix race between ocfs2_control_install_private() and ocfs2_control_release()
+Date: Mon, 1 Jun 2026 20:16:18 +0800
 
-debug_lockres_open() copies inode->i_private into struct debug_lockres and
-debug_lockres_release() later drops that pointer with dlm_put().  That
-only works if open successfully pins the struct dlm_ctxt.
+Move atomic_inc(&ocfs2_control_opened) and the handshake state update
+inside ocfs2_control_lock to close a race window where
+ocfs2_control_release() can observe ocfs2_control_opened dropping to zero
+(resetting ocfs2_control_this_node and running_proto) while
+ocfs2_control_install_private() is about to bump the counter and mark the
+connection valid.
 
-Today open calls dlm_grab(dlm) but ignores its return value.  Once the
-last domain unregister has removed the context from dlm_domains,
-dlm_grab() returns NULL, yet open still stores the raw pointer and returns
-success.  The later release path is outside the debugfs removal barrier,
-so it can call dlm_put() after dlm_free_ctxt_mem() has freed the context. 
-KASAN reports this as a slab-use-after-free in dlm_put() called from
-debug_lockres_release().
-
-Fail the open when dlm_grab() cannot acquire the reference and unwind the
-seq_file private state before returning.  That keeps locking_state from
-handing out a file descriptor whose release path does not own the
-dlm_ctxt.
-
-The buggy scenario involves two paths, with each column showing the order
-within that path:
-
-locking_state debugfs open:          last domain unregister:
-1. debug_lockres_open() reads        1. dlm_unregister_domain() calls
-   inode->i_private.                    dlm_complete_dlm_shutdown().
-2. debug_lockres_open() calls        2. shutdown removes the dlm_ctxt from
-   dlm_grab(dlm) and gets NULL.         dlm_domains.
-3. open still stores the raw dlm     3. final teardown reaches
-   pointer in dl->dl_ctxt and           dlm_free_ctxt_mem() and frees it.
-   returns success.
-4. debug_lockres_release() later
-   calls dlm_put(dl->dl_ctxt).
-
-Validation reproduced this kernel report:
-KASAN slab-use-after-free in dlm_put+0x82/0x200
-RIP: 0033:0x7f4d349bc9e0
-The buggy address belongs to the object at ffff888103a3c000 which belongs
-to the cache kmalloc-2k of size 2048
-The buggy address is located 816 bytes inside of freed 2048-byte region
-[ffff888103a3c000, ffff888103a3c800)
-Write of size 4
-Call trace:
-  dump_stack_lvl+0x66/0xa0 (?:?)
-  print_report+0xd0/0x630 (?:?)
-  dlm_put+0x82/0x200 (?:?)
-  srso_alias_return_thunk+0x5/0xfbef5 (?:?)
-  __virt_addr_valid+0x188/0x2f0 (?:?)
-  kasan_report+0xe4/0x120 (?:?)
-  kasan_check_range+0x105/0x1b0 (?:?)
-  debug_lockres_release+0x53/0x80 (fs/ocfs2/dlm/dlmdebug.c:587)
-  dlm_put+0x9/0x200 (?:?)
-  debug_lockres_release+0x5c/0x80 (fs/ocfs2/dlm/dlmdebug.c:587)
-  full_proxy_release+0x67/0x90 (?:?)
-  __fput+0x1df/0x4b0 (?:?)
-  do_raw_spin_lock+0x10f/0x1b0 (?:?)
-  fput_close_sync+0xd2/0x170 (?:?)
-  __x64_sys_close+0x55/0x90 (?:?)
-  do_syscall_64+0x10c/0x640 (arch/x86/entry/syscall_64.c:87)
-  irqentry_exit+0xac/0x6e0 (?:?)
-  entry_SYSCALL_64_after_hwframe+0x77/0x7f (?:?)
-Freed by task stack:
-  kasan_save_stack+0x33/0x60 (?:?)
-  kasan_save_track+0x14/0x30 (?:?)
-  kasan_save_free_info+0x3b/0x60 (?:?)
-  __kasan_slab_free+0x5f/0x80 (?:?)
-  kfree+0x30f/0x580 (?:?)
-  dlm_put+0x1ce/0x200 (?:?)
-  dlm_unregister_domain+0xf6/0xb30 (?:?)
-  o2cb_cluster_disconnect+0x6b/0x90 (?:?)
-  ocfs2_cluster_disconnect+0x41/0x70 (?:?)
-  ocfs2_dlm_shutdown+0x1c4/0x220 (?:?)
-  ocfs2_dismount_volume+0x38a/0x550 (?:?)
-  generic_shutdown_super+0xc3/0x220 (?:?)
-  kill_block_super+0x29/0x60 (?:?)
-  deactivate_locked_super+0x66/0xe0 (?:?)
-  cleanup_mnt+0x13d/0x210 (?:?)
-  task_work_run+0xfa/0x170 (?:?)
-  exit_to_user_mode_loop+0xd6/0x430 (?:?)
-  do_syscall_64+0x3cb/0x640 (arch/x86/entry/syscall_64.c:87)
-  entry_SYSCALL_64_after_hwframe+0x77/0x7f (?:?)
-
-Link: https://lore.kernel.org/20260531044714.1640172-1-rollkingzzc@gmail.com
-Fixes: 4e3d24ed1a12 ("ocfs2/dlm: Dumps the lockres' into a debugfs file")
-Assisted-by: Codex:gpt-5.5
-Signed-off-by: Zhang Cen <rollkingzzc@gmail.com>
-Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Link: https://lore.kernel.org/20260601121618.1263346-1-joseph.qi@linux.alibaba.com
+Fixes: 3cfd4ab6b6b4 ("ocfs2: Add the local node id to the handshake.")
+Signed-off-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Reported-by: Ginger <ginger@gmail.com>
 Cc: Mark Fasheh <mark@fasheh.com>
 Cc: Joel Becker <jlbec@evilplan.org>
 Cc: Junxiao Bi <junxiao.bi@oracle.com>
@@ -155,54 +82,37 @@ Cc: Heming Zhao <heming.zhao@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/dlm/dlmdebug.c |   16 ++++++++++++----
- 1 file changed, 12 insertions(+), 4 deletions(-)
+ fs/ocfs2/stack_user.c |   10 +++-------
+ 1 file changed, 3 insertions(+), 7 deletions(-)
 
---- a/fs/ocfs2/dlm/dlmdebug.c~ocfs2-dlm-require-a-ref-for-locking_state-debugfs-open
-+++ a/fs/ocfs2/dlm/dlmdebug.c
-@@ -560,6 +560,7 @@ static int debug_lockres_open(struct ino
- 	struct dlm_ctxt *dlm = inode->i_private;
- 	struct debug_lockres *dl;
- 	void *buf;
-+	int status = -ENOMEM;
+--- a/fs/ocfs2/stack_user.c~ocfs2-fix-race-between-ocfs2_control_install_private-and-ocfs2_control_release
++++ a/fs/ocfs2/stack_user.c
+@@ -327,18 +327,14 @@ static int ocfs2_control_install_private
+ 		ocfs2_control_this_node = p->op_this_node;
+ 		running_proto.pv_major = p->op_proto.pv_major;
+ 		running_proto.pv_minor = p->op_proto.pv_minor;
+-	}
+-
+-out_unlock:
+-	mutex_unlock(&ocfs2_control_lock);
+-
+-	if (!rc && set_p) {
+-		/* We set the global values successfully */
+ 		atomic_inc(&ocfs2_control_opened);
+ 		ocfs2_control_set_handshake_state(file,
+ 					OCFS2_CONTROL_HANDSHAKE_VALID);
+ 	}
  
- 	buf = kmalloc(PAGE_SIZE, GFP_KERNEL);
- 	if (!buf)
-@@ -572,16 +573,23 @@ static int debug_lockres_open(struct ino
- 	dl->dl_len = PAGE_SIZE;
- 	dl->dl_buf = buf;
- 
--	dlm_grab(dlm);
--	dl->dl_ctxt = dlm;
-+	/* ->release uses dl_ctxt after open, so it needs a real pin. */
-+	dl->dl_ctxt = dlm_grab(dlm);
-+	if (!dl->dl_ctxt) {
-+		status = -ENOENT;
-+		goto bailseq;
-+	}
- 
- 	return 0;
- 
-+bailseq:
-+	seq_release_private(inode, file);
- bailfree:
- 	kfree(buf);
- bail:
--	mlog_errno(-ENOMEM);
--	return -ENOMEM;
-+	if (status != -ENOENT)
-+		mlog_errno(status);
-+	return status;
++out_unlock:
++	mutex_unlock(&ocfs2_control_lock);
++
+ 	return rc;
  }
  
- static int debug_lockres_release(struct inode *inode, struct file *file)
 _
 
-Patches currently in -mm which might be from rollkingzzc@gmail.com are
+Patches currently in -mm which might be from joseph.qi@linux.alibaba.com are
 
-ocfs2-rebase-copied-fsdlm-lvb-pointers-in-locking_state.patch
-ocfs2-reject-oversized-group-bitmap-descriptors.patch
-ocfs2-validate-fast-symlink-target-during-inode-read.patch
-ocfs2-reject-fitrim-ranges-shorter-than-a-cluster.patch
-ocfs2-dlm-require-a-ref-for-locking_state-debugfs-open.patch
+ocfs2-add-journal-null-check-in-ocfs2_checkpoint_inode.patch
+ocfs2-fix-race-between-ocfs2_control_install_private-and-ocfs2_control_release.patch
 
