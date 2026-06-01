@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D54812E0901;
-	Mon,  1 Jun 2026 22:35:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CA766199949
+	for <mm-commits@vger.kernel.org>; Mon,  1 Jun 2026 22:54:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780353334; cv=none; b=MrX6TIPHYn7/3wbziTLsm2Rch+AoxEcoZCHi9VxMX+4un0j3QplyM16WMJJQZc+G5ne0y69t/bb/fVFuuNrTBanz+ILVUrUKHPdZ+I8ceakkAjZHqRmwkUMXbyLZIqBJ/Tpny/gE4epPBS71BiQYSNayASVVF6Zv10Yb6p+OdqA=
+	t=1780354481; cv=none; b=mx9lLyRorddra/EjiScV48hAzKnRPxl9tXQY1+U2EfsjyeoWqqsm4C/kRgdVPKqzKre+cW4xzNY8eh2xKTzCRkJ+DYgxuPwJIO15wSqDKBufFPd/mtsDrH1fwR4VVjc5Wuza7pj2Mq/ddLcYAOuirQx9S1eUYohDQwsrHlD5jKI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780353334; c=relaxed/simple;
-	bh=A4FleZSqg+rPoPGPfeoksdbXKLCmutHC499UCBy/RNA=;
-	h=Date:To:From:Subject:Message-Id; b=FQrg/xormoWaH0QHBUX9tT9FJTUhI7dMX1uKm1XsUzj+nfGWQm9iDh+aHSTqXZPp5TEqU8VQ9m+fzIqjmG6mR6YUTv0rOokPyBFx3bh5AnolMxL3yVYZ37S+q1MVMfR3t3E0DwATkMfwfrDM5CViqXxIpn/4qtz0apOwxyqD2e4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Bn3Fw8Pu; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1780354481; c=relaxed/simple;
+	bh=a69JT1Na/D/rmRY4WY+yHBjC3dckVr848W/O8V8+rvk=;
+	h=Date:To:From:Subject:Message-Id; b=jFCNe/Zjo7HHJpeVc0c0T7fhN9JqoG+eORiykMuOhGso50ZildySStG4wBxr1OFJ6/F/xqQcPFNrXTEPEhCVCXEA4SdWbn11lumcFon4iJVKQR7hiXpUTSUuMlmzyMdaUHxgu9AMYUhPqQ83csv3AECcPIYR2K7D7evvDzCzYLk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gOStC3ol; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Bn3Fw8Pu"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4D2101F00893;
-	Mon,  1 Jun 2026 22:35:32 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gOStC3ol"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7D92A1F00893;
+	Mon,  1 Jun 2026 22:54:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1780353332;
-	bh=8er/3vP7bHilypvLbWFTZP14tRaMOfVRhucokUYgb1A=;
+	d=linux-foundation.org; s=korg; t=1780354479;
+	bh=yKpDITCFuTWQ+IKf8CePbcuRSTkDbY4YJvgmiCwBXFI=;
 	h=Date:To:From:Subject;
-	b=Bn3Fw8PuxaM02DXsGPtBBRkeF0wQNhZRMNPXA9G3iPUifD4m/hvTARdldxH85AzZF
-	 ZoQObHVrw0YIQQuj5EuobgOTWXY0L1M/LuiTS/ClkRJLRFxCx65sOY986Aqbsbz5Vs
-	 ARdGSNfX/1DSp4CYNQhyAV5EbsOstsbeKN8M7rlg=
-Date: Mon, 01 Jun 2026 15:35:31 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,roman.gushchin@linux.dev,muchun.song@linux.dev,kasong@tencent.com,hannes@cmpxchg.org,david@fromorbit.com,clm@fb.com,shakeel.butt@linux.dev,akpm@linux-foundation.org
+	b=gOStC3olu4Aw8qcVT73SWy9EOCAGH5ahP01cb+m2PrwKQRuuvcl5zsGqNwHBrJRZg
+	 8NpgwcV4SKTSPP+SEcylukldKjlbRcrnouOkqNkTHWdDPjqFgVwxw+2m58mtdSkMk4
+	 mCEJzCpK/Ntb5vyUvYznE0SvhZnHqb4O5gut6hmk=
+Date: Mon, 01 Jun 2026 15:54:38 -0700
+To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,heming.zhao@suse.com,gechangwei@live.cn,rollkingzzc@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-list_lru-drain-before-clearing-xarray-entry-on-reparent.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260601223532.4D2101F00893@smtp.kernel.org>
+Subject: + ocfs2-dlm-require-a-ref-for-locking_state-debugfs-open.patch added to mm-nonmm-unstable branch
+Message-Id: <20260601225439.7D92A1F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/list_lru: drain before clearing xarray entry on reparent
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-list_lru-drain-before-clearing-xarray-entry-on-reparent.patch
+     Subject: ocfs2/dlm: require a ref for locking_state debugfs open
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     ocfs2-dlm-require-a-ref-for-locking_state-debugfs-open.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-list_lru-drain-before-clearing-xarray-entry-on-reparent.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-dlm-require-a-ref-for-locking_state-debugfs-open.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,94 +58,151 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Shakeel Butt <shakeel.butt@linux.dev>
-Subject: mm/list_lru: drain before clearing xarray entry on reparent
-Date: Mon, 1 Jun 2026 09:15:01 -0700
+From: Zhang Cen <rollkingzzc@gmail.com>
+Subject: ocfs2/dlm: require a ref for locking_state debugfs open
+Date: Sun, 31 May 2026 12:47:14 +0800
 
-memcg_reparent_list_lrus() clears the dying memcg's xarray entry with
-xas_store(&xas, NULL) before reparenting its per-node lists into the
-parent.  This opens a window where a concurrent list_lru_del() arriving
-for the dying memcg sees xa_load() == NULL, walks to the parent in
-lock_list_lru_of_memcg(), takes the parent's per-node lock, and calls
-list_del_init() on an item still physically linked on the dying memcg's
-list.
+debug_lockres_open() copies inode->i_private into struct debug_lockres and
+debug_lockres_release() later drops that pointer with dlm_put().  That
+only works if open successfully pins the struct dlm_ctxt.
 
-If another in-flight thread holds the dying memcg's per-node lock at the
-same moment (another list_lru_del, or a list_lru_walk_one running an
-isolate callback), both threads modify ->next/->prev pointers on the same
-physical list under different locks.  Adjacent items can corrupt each
-other's links.
+Today open calls dlm_grab(dlm) but ignores its return value.  Once the
+last domain unregister has removed the context from dlm_domains,
+dlm_grab() returns NULL, yet open still stores the raw pointer and returns
+success.  The later release path is outside the debugfs removal barrier,
+so it can call dlm_put() after dlm_free_ctxt_mem() has freed the context. 
+KASAN reports this as a slab-use-after-free in dlm_put() called from
+debug_lockres_release().
 
-Fix it by reversing the order: reparent each per-node list and mark the
-child's list lru dead and then clear the xarray entry.  Any concurrent
-list_lru op that finds the still-set xarray entry either takes the dying
-memcg's per-node lock (synchronizing with the drain) or sees LONG_MIN and
-walks to the parent, where the items now live.
+Fail the open when dlm_grab() cannot acquire the reference and unwind the
+seq_file private state before returning.  That keeps locking_state from
+handing out a file descriptor whose release path does not own the
+dlm_ctxt.
 
-Link: https://lore.kernel.org/20260601161501.1444829-1-shakeel.butt@linux.dev
-Fixes: fb56fdf8b9a2 ("mm/list_lru: split the lock to per-cgroup scope")
-Signed-off-by: Shakeel Butt <shakeel.butt@linux.dev>
-Reported-by: Chris Mason <clm@fb.com>
-Reviewed-by: Kairui Song <kasong@tencent.com>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: <stable@vger.kernel.org>
+The buggy scenario involves two paths, with each column showing the order
+within that path:
+
+locking_state debugfs open:          last domain unregister:
+1. debug_lockres_open() reads        1. dlm_unregister_domain() calls
+   inode->i_private.                    dlm_complete_dlm_shutdown().
+2. debug_lockres_open() calls        2. shutdown removes the dlm_ctxt from
+   dlm_grab(dlm) and gets NULL.         dlm_domains.
+3. open still stores the raw dlm     3. final teardown reaches
+   pointer in dl->dl_ctxt and           dlm_free_ctxt_mem() and frees it.
+   returns success.
+4. debug_lockres_release() later
+   calls dlm_put(dl->dl_ctxt).
+
+Validation reproduced this kernel report:
+KASAN slab-use-after-free in dlm_put+0x82/0x200
+RIP: 0033:0x7f4d349bc9e0
+The buggy address belongs to the object at ffff888103a3c000 which belongs
+to the cache kmalloc-2k of size 2048
+The buggy address is located 816 bytes inside of freed 2048-byte region
+[ffff888103a3c000, ffff888103a3c800)
+Write of size 4
+Call trace:
+  dump_stack_lvl+0x66/0xa0 (?:?)
+  print_report+0xd0/0x630 (?:?)
+  dlm_put+0x82/0x200 (?:?)
+  srso_alias_return_thunk+0x5/0xfbef5 (?:?)
+  __virt_addr_valid+0x188/0x2f0 (?:?)
+  kasan_report+0xe4/0x120 (?:?)
+  kasan_check_range+0x105/0x1b0 (?:?)
+  debug_lockres_release+0x53/0x80 (fs/ocfs2/dlm/dlmdebug.c:587)
+  dlm_put+0x9/0x200 (?:?)
+  debug_lockres_release+0x5c/0x80 (fs/ocfs2/dlm/dlmdebug.c:587)
+  full_proxy_release+0x67/0x90 (?:?)
+  __fput+0x1df/0x4b0 (?:?)
+  do_raw_spin_lock+0x10f/0x1b0 (?:?)
+  fput_close_sync+0xd2/0x170 (?:?)
+  __x64_sys_close+0x55/0x90 (?:?)
+  do_syscall_64+0x10c/0x640 (arch/x86/entry/syscall_64.c:87)
+  irqentry_exit+0xac/0x6e0 (?:?)
+  entry_SYSCALL_64_after_hwframe+0x77/0x7f (?:?)
+Freed by task stack:
+  kasan_save_stack+0x33/0x60 (?:?)
+  kasan_save_track+0x14/0x30 (?:?)
+  kasan_save_free_info+0x3b/0x60 (?:?)
+  __kasan_slab_free+0x5f/0x80 (?:?)
+  kfree+0x30f/0x580 (?:?)
+  dlm_put+0x1ce/0x200 (?:?)
+  dlm_unregister_domain+0xf6/0xb30 (?:?)
+  o2cb_cluster_disconnect+0x6b/0x90 (?:?)
+  ocfs2_cluster_disconnect+0x41/0x70 (?:?)
+  ocfs2_dlm_shutdown+0x1c4/0x220 (?:?)
+  ocfs2_dismount_volume+0x38a/0x550 (?:?)
+  generic_shutdown_super+0xc3/0x220 (?:?)
+  kill_block_super+0x29/0x60 (?:?)
+  deactivate_locked_super+0x66/0xe0 (?:?)
+  cleanup_mnt+0x13d/0x210 (?:?)
+  task_work_run+0xfa/0x170 (?:?)
+  exit_to_user_mode_loop+0xd6/0x430 (?:?)
+  do_syscall_64+0x3cb/0x640 (arch/x86/entry/syscall_64.c:87)
+  entry_SYSCALL_64_after_hwframe+0x77/0x7f (?:?)
+
+Link: https://lore.kernel.org/20260531044714.1640172-1-rollkingzzc@gmail.com
+Fixes: 4e3d24ed1a12 ("ocfs2/dlm: Dumps the lockres' into a debugfs file")
+Assisted-by: Codex:gpt-5.5
+Signed-off-by: Zhang Cen <rollkingzzc@gmail.com>
+Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Jun Piao <piaojun@huawei.com>
+Cc: Heming Zhao <heming.zhao@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/list_lru.c |   21 ++++++++++++---------
- 1 file changed, 12 insertions(+), 9 deletions(-)
+ fs/ocfs2/dlm/dlmdebug.c |   16 ++++++++++++----
+ 1 file changed, 12 insertions(+), 4 deletions(-)
 
---- a/mm/list_lru.c~mm-list_lru-drain-before-clearing-xarray-entry-on-reparent
-+++ a/mm/list_lru.c
-@@ -473,26 +473,29 @@ void memcg_reparent_list_lrus(struct mem
- 	mutex_lock(&list_lrus_mutex);
- 	list_for_each_entry(lru, &memcg_list_lrus, list) {
- 		struct list_lru_memcg *mlru;
--		XA_STATE(xas, &lru->xa, memcg->kmemcg_id);
+--- a/fs/ocfs2/dlm/dlmdebug.c~ocfs2-dlm-require-a-ref-for-locking_state-debugfs-open
++++ a/fs/ocfs2/dlm/dlmdebug.c
+@@ -560,6 +560,7 @@ static int debug_lockres_open(struct ino
+ 	struct dlm_ctxt *dlm = inode->i_private;
+ 	struct debug_lockres *dl;
+ 	void *buf;
++	int status = -ENOMEM;
  
- 		/*
--		 * Lock the Xarray to ensure no on going list_lru_memcg
--		 * allocation and further allocation will see css_is_dying().
-+		 * css_is_dying() check in memcg_list_lru_alloc() avoids
-+		 * allocating a new mlru since CSS_DYING is already set for this
-+		 * memcg a rcu grace period ago.
- 		 */
--		xas_lock_irq(&xas);
--		mlru = xas_store(&xas, NULL);
--		xas_unlock_irq(&xas);
-+		mlru = xa_load(&lru->xa, memcg->kmemcg_id);
- 		if (!mlru)
- 			continue;
+ 	buf = kmalloc(PAGE_SIZE, GFP_KERNEL);
+ 	if (!buf)
+@@ -572,16 +573,23 @@ static int debug_lockres_open(struct ino
+ 	dl->dl_len = PAGE_SIZE;
+ 	dl->dl_buf = buf;
  
- 		/*
--		 * With Xarray value set to NULL, holding the lru lock below
--		 * prevents list_lru_{add,del,isolate} from touching the lru,
--		 * safe to reparent.
-+		 * Reparent each per-node list and mark the child dead
-+		 * (LONG_MIN) before clearing xarray entry otherwise a
-+		 * concurrent list_lru_del() may corrupt the list if it arrives
-+		 * after xarray clear but before reparenting as
-+		 * lock_list_lru_of_memcg will acquire parent's lock while the
-+		 * item is still on child's list.
- 		 */
- 		for_each_node(i)
- 			memcg_reparent_list_lru_one(lru, i, &mlru->node[i], parent);
+-	dlm_grab(dlm);
+-	dl->dl_ctxt = dlm;
++	/* ->release uses dl_ctxt after open, so it needs a real pin. */
++	dl->dl_ctxt = dlm_grab(dlm);
++	if (!dl->dl_ctxt) {
++		status = -ENOENT;
++		goto bailseq;
++	}
  
-+		xa_erase_irq(&lru->xa, memcg->kmemcg_id);
-+
- 		/*
- 		 * Here all list_lrus corresponding to the cgroup are guaranteed
- 		 * to remain empty, we can safely free this lru, any further
+ 	return 0;
+ 
++bailseq:
++	seq_release_private(inode, file);
+ bailfree:
+ 	kfree(buf);
+ bail:
+-	mlog_errno(-ENOMEM);
+-	return -ENOMEM;
++	if (status != -ENOENT)
++		mlog_errno(status);
++	return status;
+ }
+ 
+ static int debug_lockres_release(struct inode *inode, struct file *file)
 _
 
-Patches currently in -mm which might be from shakeel.butt@linux.dev are
+Patches currently in -mm which might be from rollkingzzc@gmail.com are
 
-mm-list_lru-drain-before-clearing-xarray-entry-on-reparent.patch
-memcg-store-node_id-instead-of-pglist_data-pointer.patch
-memcg-uint16_t-for-nr_bytes-in-obj_stock_pcp.patch
-memcg-int16_t-for-cached-slab-stats.patch
-memcg-multi-objcg-charge-support.patch
+ocfs2-rebase-copied-fsdlm-lvb-pointers-in-locking_state.patch
+ocfs2-reject-oversized-group-bitmap-descriptors.patch
+ocfs2-validate-fast-symlink-target-during-inode-read.patch
+ocfs2-reject-fitrim-ranges-shorter-than-a-cluster.patch
+ocfs2-dlm-require-a-ref-for-locking_state-debugfs-open.patch
 
