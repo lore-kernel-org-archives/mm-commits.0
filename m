@@ -1,157 +1,158 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.13])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1037032E692
-	for <mm-commits@vger.kernel.org>; Mon,  1 Jun 2026 04:51:08 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4D955335BBB
+	for <mm-commits@vger.kernel.org>; Mon,  1 Jun 2026 05:14:15 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.13
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780289469; cv=none; b=uWnFQK0hWr17h8PSRiwtG7Ak9djhqET+FxxN813e5H1d1Eas82LLoZZ9X8p/liIEweVcsd8JGQYvvwVZ1VoWbVo2Vn/Yh0Xw86ZGBnGyIVLBDP5qh5dCfUQZuaC253+w+oKzuqc4+HfmRUdZqXyz4LOvMjQBFHeEyI/fF5q6638=
+	t=1780290857; cv=none; b=EQXMIZ+3BQvRkjNQJeJ+0Hjs6gNbMFZUF6egPZ3do7HhOceyQG2rIcwPKFj5nBIE+Qx85osTxWiPMi4MlMeNnsURqLkvBuSvvFSXa+eRMlao7bUBBkHtFtpmnBKtF4431+mHNPF8zAQkdQw6I5fH/g7LYrSeH8zW+Gg9KVbG9MU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780289469; c=relaxed/simple;
-	bh=I4nfVbNZTxsJb2MSbvd6h1L9VDHYYetncxnR3F4dwQo=;
-	h=Date:To:From:Subject:Message-Id; b=c54fPvHOhPs8yIixKXoQDbN/yE4Wngco1O5gqcnuJFR93ybYKGay+uLO6SYxhDraJRxGrUulERqeNYmrTBnXiIuA8euYgZlRcf6nGdRA8VMbIhSdvMWjyizsUp36+vhJmCtSVCdZ8fSRCiTwUcjOlK7BxomGZqOLuREQ1m1d4tU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WPre/+Of; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1780290857; c=relaxed/simple;
+	bh=XEsSwrxXPnxh14tVWWsBzq/4w2iQD9+xoV501oqp9KE=;
+	h=Date:From:To:Cc:Subject:Message-ID; b=vAVNKpYNGPQ41DdC8lAaT+oI0+TqJw1xRZSslPjwc1Yk+YWFL2F7AQyTaMjHql5736zFPMffJQveGDqI/xzjyhwewE6Urlxg+VPzzkU162F8tEZ1QXELMs/WgMafpXDbHzjw1vJRqhwpMSxlr+u42bFNH6RTmyc88vhl4jd3iPo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=A16G70Py; arc=none smtp.client-ip=192.198.163.13
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WPre/+Of"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D89AF1F00893;
-	Mon,  1 Jun 2026 04:51:07 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1780289468;
-	bh=OGJK7iOcWee/1exNogSLTVL1zdNwJ7KWhsUszJPPAak=;
-	h=Date:To:From:Subject;
-	b=WPre/+Of6HkJjygtTg4nLIzYHqtR+b8vN9/sw+7V0hPY4FMS1VdHApxnJLXIjoFYK
-	 4A023GsVAt81GgdQnvx3Ic3OTotXEaccBBgNgIlOYZq8IFZ5AhPsi5Dtb6M0ejBkea
-	 NA10zdp1XQaMBgzAEhHxJHDB3M3WxGTyRbZWqF5Y=
-Date: Sun, 31 May 2026 21:51:07 -0700
-To: mm-commits@vger.kernel.org,peterx@redhat.com,michael.bommarito@gmail.com,ljs@kernel.org,liam@infradead.org,devnexen@gmail.com,david@kernel.org,rppt@kernel.org,akpm@linux-foundation.org
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] userfaultfd-remove-redundant-check-in-vm_uffd_ops.patch removed from -mm tree
-Message-Id: <20260601045107.D89AF1F00893@smtp.kernel.org>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="A16G70Py"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1780290855; x=1811826855;
+  h=date:from:to:cc:subject:message-id;
+  bh=XEsSwrxXPnxh14tVWWsBzq/4w2iQD9+xoV501oqp9KE=;
+  b=A16G70PyucJ6XwlwLrZ6IInu92uAjy4qxY0KMHX4pvA4c/YgJQRPLBkQ
+   jbwbl453vh+82g3z2K/DYuW0DB44YWCbQ49b92HFzlqOudnOXyNVo2XGG
+   9G83NRMF0ZkFrNULFao5L7Us6k18zcRZyuo+Xe0BQmXB1iC+loKAi5Oc1
+   hNqG70vKtWyBtevOPyCK5otUGnuJYXghsXb7orqvcGK+RKSKzZDmF0TEK
+   93tpFJGfGCcJtJaC95TxNkqx6ZkBgxm6o/PoKcr580h2X5a1AFLLwAiK+
+   dngJOpo+SSRcY9PwMzTmAp/T/oFJeUyrnIo4wUOgIPl7ZwocmeIZqsyF+
+   A==;
+X-CSE-ConnectionGUID: pkFOXny1SbS0u5qpoh2f9A==
+X-CSE-MsgGUID: cu/HjBvsRH2Fvc+4oCG/jg==
+X-IronPort-AV: E=McAfee;i="6800,10657,11803"; a="83618056"
+X-IronPort-AV: E=Sophos;i="6.24,180,1774335600"; 
+   d="scan'208";a="83618056"
+Received: from orviesa006.jf.intel.com ([10.64.159.146])
+  by fmvoesa107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 31 May 2026 22:14:14 -0700
+X-CSE-ConnectionGUID: WOsBk8fKR4CPbaLd+yYanA==
+X-CSE-MsgGUID: GJAwtA1OQbabkRO2KsuETw==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.24,180,1774335600"; 
+   d="scan'208";a="242410366"
+Received: from lkp-server01.sh.intel.com (HELO f0d55cb201f0) ([10.239.97.150])
+  by orviesa006.jf.intel.com with ESMTP; 31 May 2026 22:14:12 -0700
+Received: from kbuild by f0d55cb201f0 with local (Exim 4.98.2)
+	(envelope-from <lkp@intel.com>)
+	id 1wTuyX-00000000ACg-3Cr9;
+	Mon, 01 Jun 2026 05:14:09 +0000
+Date: Mon, 01 Jun 2026 13:13:42 +0800
+From: kernel test robot <lkp@intel.com>
+To: Qiang Liu <liuqiang@kylinos.cn>
+Cc: oe-kbuild-all@lists.linux.dev, David Hildenbrand <david@kernel.org>,
+ Andrew Morton <akpm@linux-foundation.org>,
+ Linux Memory Management List <linux-mm@kvack.org>,
+ mm-commits@vger.kernel.org
+Subject: [akpm-mm:mm-new 386/420] lib/test_hmm.c:1170:21: sparse:
+ sparse: incorrect type in assignment (different base types)
+Message-ID: <202606011329.zWs2BKy4-lkp@intel.com>
+User-Agent: s-nail v14.9.25
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
+tree:   https://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm.git mm-new
+head:   d97bc98dadda29f23540b8490592962ebcf545ff
+commit: d4ab4875497b1659c6c56dd9faefcb4a41c566e4 [386/420] lib/test_hmm: check alloc_page_vma() return value and handle OOM
+config: s390-randconfig-r111-20260601 (https://download.01.org/0day-ci/archive/20260601/202606011329.zWs2BKy4-lkp@intel.com/config)
+compiler: clang version 23.0.0git (https://github.com/llvm/llvm-project 9409c07de6378507397ecdb6f05f628f58110112)
+sparse: v0.6.5-rc1
+reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20260601/202606011329.zWs2BKy4-lkp@intel.com/reproduce)
 
-The quilt patch titled
-     Subject: userfaultfd: remove redundant check in vm_uffd_ops()
-has been removed from the -mm tree.  Its filename was
-     userfaultfd-remove-redundant-check-in-vm_uffd_ops.patch
+If you fix the issue in a separate patch/commit (i.e. not just a new version of
+the same patch/commit), kindly add following tags
+| Reported-by: kernel test robot <lkp@intel.com>
+| Closes: https://lore.kernel.org/oe-kbuild-all/202606011329.zWs2BKy4-lkp@intel.com/
 
-This patch was dropped because it was merged into the mm-hotfixes-stable branch
-of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+sparse warnings: (new ones prefixed by >>)
+>> lib/test_hmm.c:1170:21: sparse: sparse: incorrect type in assignment (different base types) @@     expected int [assigned] ret @@     got restricted vm_fault_t @@
+   lib/test_hmm.c:1170:21: sparse:     expected int [assigned] ret
+   lib/test_hmm.c:1170:21: sparse:     got restricted vm_fault_t
 
-------------------------------------------------------
-From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
-Subject: userfaultfd: remove redundant check in vm_uffd_ops()
-Date: Wed, 27 May 2026 21:47:51 +0300
+vim +1170 lib/test_hmm.c
 
-Lorenzo says:
+  1119	
+  1120	static int dmirror_migrate_to_system(struct dmirror *dmirror,
+  1121					     struct hmm_dmirror_cmd *cmd)
+  1122	{
+  1123		unsigned long start, end, addr;
+  1124		unsigned long size = cmd->npages << PAGE_SHIFT;
+  1125		struct mm_struct *mm = dmirror->notifier.mm;
+  1126		struct vm_area_struct *vma;
+  1127		struct migrate_vma args = { 0 };
+  1128		unsigned long next;
+  1129		int ret;
+  1130		unsigned long *src_pfns;
+  1131		unsigned long *dst_pfns;
+  1132	
+  1133		src_pfns = kvcalloc(PTRS_PER_PTE, sizeof(*src_pfns), GFP_KERNEL | __GFP_NOFAIL);
+  1134		dst_pfns = kvcalloc(PTRS_PER_PTE, sizeof(*dst_pfns), GFP_KERNEL | __GFP_NOFAIL);
+  1135	
+  1136		start = cmd->addr;
+  1137		end = start + size;
+  1138		if (end < start)
+  1139			return -EINVAL;
+  1140	
+  1141		/* Since the mm is for the mirrored process, get a reference first. */
+  1142		if (!mmget_not_zero(mm))
+  1143			return -EINVAL;
+  1144	
+  1145		cmd->cpages = 0;
+  1146		mmap_read_lock(mm);
+  1147		for (addr = start; addr < end; addr = next) {
+  1148			vma = vma_lookup(mm, addr);
+  1149			if (!vma || !(vma->vm_flags & VM_READ)) {
+  1150				ret = -EINVAL;
+  1151				goto out;
+  1152			}
+  1153			next = min(end, addr + (PTRS_PER_PTE << PAGE_SHIFT));
+  1154			if (next > vma->vm_end)
+  1155				next = vma->vm_end;
+  1156	
+  1157			args.vma = vma;
+  1158			args.src = src_pfns;
+  1159			args.dst = dst_pfns;
+  1160			args.start = addr;
+  1161			args.end = next;
+  1162			args.pgmap_owner = dmirror->mdevice;
+  1163			args.flags = dmirror_select_device(dmirror) | MIGRATE_VMA_SELECT_COMPOUND;
+  1164	
+  1165			ret = migrate_vma_setup(&args);
+  1166			if (ret)
+  1167				goto out;
+  1168	
+  1169			pr_debug("Migrating from device mem to sys mem\n");
+> 1170			ret = dmirror_devmem_fault_alloc_and_copy(&args, dmirror);
+  1171			if (ret) {
+  1172				migrate_vma_finalize(&args);
+  1173				goto out;
+  1174			}
+  1175	
+  1176			migrate_vma_pages(&args);
+  1177			cmd->cpages += dmirror_successful_migrated_pages(&args);
+  1178			migrate_vma_finalize(&args);
+  1179		}
+  1180	out:
+  1181		mmap_read_unlock(mm);
+  1182		mmput(mm);
+  1183		kvfree(src_pfns);
+  1184		kvfree(dst_pfns);
+  1185	
+  1186		return ret;
+  1187	}
+  1188	
 
-  static const struct vm_uffd_ops *vma_uffd_ops(struct vm_area_struct *vma)
-  {
-          if (vma_is_anonymous(vma))
-                  return &anon_uffd_ops;
-          return vma->vm_ops ? vma->vm_ops->uffd_ops : NULL;
-  }
-
-  This is doing a redundant check _and_ making life confusing, as if
-  !vma->vm_ops is a condition that can be reached there, it can't, as
-  vma_is_anonymous() is literally a !vma->vm_ops check :)
-
-Remove the redundant check.
-
-Link: https://lore.kernel.org/20260527184751.4147364-4-rppt@kernel.org
-Fixes: 0f48947c4232 ("userfaultfd: introduce vm_uffd_ops")
-Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Suggested-by: Lorenzo Stoakes <ljs@kernel.org>
-Reviewed-by: Lorenzo Stoakes <ljs@kernel.org>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: David Carlier <devnexen@gmail.com>
-Cc: Michael Bommarito <michael.bommarito@gmail.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- mm/userfaultfd.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
---- a/mm/userfaultfd.c~userfaultfd-remove-redundant-check-in-vm_uffd_ops
-+++ a/mm/userfaultfd.c
-@@ -68,7 +68,7 @@ static const struct vm_uffd_ops *vma_uff
- {
- 	if (vma_is_anonymous(vma))
- 		return &anon_uffd_ops;
--	return vma->vm_ops ? vma->vm_ops->uffd_ops : NULL;
-+	return vma->vm_ops->uffd_ops;
- }
- 
- static __always_inline
-_
-
-Patches currently in -mm which might be from rppt@kernel.org are
-
-userfaultfd-ensure-mremap_userfaultfd_fail-releases-mmap_changing.patch
-userfaultfd-merge-fs-userfaultfdc-into-mm-userfaultfdc.patch
-userfaultfd-make-functions-that-are-not-used-outside-uffd-static.patch
-selftests-mm-hugetlb-read-hwpoison-add-sigbus-handler.patch
-selftests-mm-migration-dont-assume-huge-page-is-twomeg.patch
-selftests-mm-migration-make-nthreads-represent-number-of-working-threads.patch
-selftests-mm-migration-properly-cleanup-forked-processes.patch
-selftests-mm-run_vmtestssh-dont-gate-thp-and-ksm-tests-on-have_hugepages.patch
-selftests-mm-merge-map_hugetlb-into-hugepage-mmap.patch
-selftests-mm-rename-hugepage-tests-to-hugetlb.patch
-selftests-mm-hugetlb-shm-use-kselftest-framework.patch
-selftests-mm-hugetlb-vmemmap-use-kselftest-framework.patch
-selftests-mm-hugetlb-madvise-use-kselftest-framework.patch
-selftests-mm-hugetlb_madv_vs_map-use-kselftest-framework.patch
-selftests-mm-hugetlb-read-hwpoison-use-kselftest-framework.patch
-selftests-mm-khugepaged-group-tests-in-an-array.patch
-selftests-mm-khugepaged-use-ksefltest-framework.patch
-selftests-mm-khugepaged-use-ksefltest-framework-fix.patch
-selftests-mm-ksm_tests-use-kselftest-framework.patch
-selftests-mm-protection_keys-use-descriptive-test-names-in-the-output.patch
-selftests-mm-protection_keys-use-kselftest-framework.patch
-selftests-mm-uffd-common-use-kselftest-framework.patch
-selftests-mm-uffd-stress-use-kselftest-framework.patch
-selftests-mm-uffd-unit-tests-use-kselftest-framework.patch
-selftests-mm-va_high_addr_switch-use-kselftest-framework.patch
-selftests-mm-add-atexit-and-signal-handlers-to-thp_settings.patch
-selftests-mm-rename-thp_settings-to-hugepage_settings.patch
-selftests-mm-move-hugetlb-helpers-to-hugepage_settings.patch
-selftests-mm-hugepage_settings-use-unsigned-long-in-detect_hugetlb_page_size.patch
-selftests-mm-hugepage_settings-add-apis-to-get-and-set-nr_hugepages.patch
-selftests-mm-hugepage_settings-rename-and-rework-get_free_hugepages.patch
-selftests-mm-hugepage_settings-add-apis-for-hugetlb-setup-and-teardown.patch
-selftests-mm-move-read_file-read_num-and-write_num-to-vm_util.patch
-selftests-mm-vm_util-add-helpers-to-set-and-restore-shm-limits.patch
-selftests-mm-compaction_test-use-hugetlb-helpers.patch
-selftests-mm-cow-add-setup-of-hugetlb-pages.patch
-selftests-mm-gup_longterm-add-setup-of-hugetlb-pages.patch
-selftests-mm-gup_test-add-setup-of-hugetlb-pages.patch
-selftests-mm-hmm-tests-add-setup-of-hugetlb-pages.patch
-selftests-mm-hugepage_dio-add-setup-of-hugetlb-pages.patch
-selftests-mm-hugetlb_fault_after_madv-add-setup-of-hugetlb-pages.patch
-selftests-mm-hugetlb-madvise-add-setup-of-hugetlb-pages.patch
-selftests-mm-hugetlb_madv_vs_map-add-setup-of-hugetlb-pages.patch
-selftests-mm-hugetlb-mmap-add-setup-of-hugetlb-pages.patch
-selftests-mm-hugetlb-mremap-add-setup-of-hugetlb-pages.patch
-selftests-mm-hugetlb-shm-add-setup-of-hugetlb-pages.patch
-selftests-mm-hugetlb-soft-offline-add-setup-of-hugetlb-pages.patch
-selftests-mm-hugetlb-vmemmap-add-setup-of-hugetlb-pages.patch
-selftests-mm-migration-add-setup-of-hugetlb-pages.patch
-selftests-mm-pagemap_ioctl-add-setup-of-hugetlb-pages.patch
-selftests-mm-protection_keys-use-library-code-for-hugetlb-setup.patch
-selftests-mm-thuge-gen-add-setup-of-hugetlb-pages.patch
-selftests-mm-uffd-stress-use-hugetlb_save-and-alloc-huge-pages.patch
-selftests-mm-uffd-unit-tests-add-setup-of-hugetlb-pages.patch
-selftests-mm-uffd-wp-mremap-add-setup-of-hugetlb-pages.patch
-selftests-mm-va_high_addr_switch-add-setup-of-hugetlb-pages.patch
-selftests-mm-va_high_addr_switchsh-drop-huge-pages-setup.patch
-selftests-mm-run_vmtestssh-free-memory-if-available-memory-is-low.patch
-selftests-mm-run_vmtestssh-drop-detection-and-setup-of-hugetlb.patch
-xor-use-kmalloc-in-calibrate_xor_blocks.patch
-raid6-use-kmalloc-in-raid6_select_algo.patch
-
+--
+0-DAY CI Kernel Test Service
+https://github.com/intel/lkp-tests/wiki
