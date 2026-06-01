@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 095223537D2
-	for <mm-commits@vger.kernel.org>; Mon,  1 Jun 2026 18:46:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 56CF837CD39
+	for <mm-commits@vger.kernel.org>; Mon,  1 Jun 2026 19:00:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780339617; cv=none; b=mcMmKXSy/erUCvSUFU4GBimqRtb2W5ekcx9NAD6N7LhzSeJQOpPXpCQkUoJND2ynpDGIclP7TSRo2Ycj0YrEQQRBiLAr90xns/aD1/pj45N5SWXxnZ5t8xVJ2gths9xQdBq0/cQ++inXIn8c5CpMfaRsNs/YsVfX+MDgKKiUShM=
+	t=1780340448; cv=none; b=lL2YfCTIWscxM3C53uLmDRJIdea0Q25ZdbQlpODsjIDloGBP1AIPahzuQLnbQAwbZ+YMQM+nxX5eg4XH46Ezrrf+iNEdfhABVoM+jv0bxu9q94u/jtSBolMzhFxLMv5oZRTAmdeejs7V7GOsTZjx+imWmM0vIPAKHISuUH6tsck=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780339617; c=relaxed/simple;
-	bh=GPJucPjylfQfLe0jGlcJDS7+/nANXjejuNkXdzaE+uA=;
-	h=Date:To:From:Subject:Message-Id; b=ofNrDgw2pdy0eouPRc//VsRDPUN9U4nODev0YAzVsiXnUr1gwoPiLF4OYV8SadfI4o7X9Zd40KlPf9ZgHfIgSTVoClKp0oVq17HumHdt/jxAoViZAYZbmgWMC7fqg6Czgo7cn8DvYKWydQkb86NWNeXSlCbwt3zzFk1pBG0A2zM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LVybTsIW; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1780340448; c=relaxed/simple;
+	bh=G0hZBzf10Zn/3uHirfShbGkYEChae9MyqBHjEIiqTEI=;
+	h=Date:To:From:Subject:Message-Id; b=FpeB3m4+uezAZIXAafzM2NkTGN0PJ7x8Xj9YdmJetBnmgIeMwD/zoa7MxB/bZef8URdGpwhVhgjxOj5euctCrknFYzVqblYyD7oS41CC0MqvjMV209EXXSyQEgilO6SxDlAcBWFIJCNM9GndQyMXGxnJpC7xUqFuh8WF97MqRgs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bWyJZQCV; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LVybTsIW"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 488611F00893;
-	Mon,  1 Jun 2026 18:46:54 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bWyJZQCV"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E49D21F00893;
+	Mon,  1 Jun 2026 19:00:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1780339614;
-	bh=OPC3lk+skTPZ5Fxk99/eYcrdJWlR+51IcFaBQLspubQ=;
+	d=linux-foundation.org; s=korg; t=1780340435;
+	bh=IerNJ2wZQOc+FHdwuy7MZqf9Ucz9g341520kTR0TzkA=;
 	h=Date:To:From:Subject;
-	b=LVybTsIW6riHAlCCJ1bcVqOlopNFD3kxLtoJlrg7T/X2C8FhKHUyTqujSaBTfHAjk
-	 aJBsyc+T2ZTG3OQqffZtrH00FNMmbNAeBmg6TXvVN8pRqh9GSAuljFCU2xRuIrjBez
-	 JiHx7DX3robdfrYl02VT6vp9jzY5ZneqJ/sgMMnM=
-Date: Mon, 01 Jun 2026 11:46:53 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,jack@suse.cz,tanze@kylinos.cn,akpm@linux-foundation.org
+	b=bWyJZQCVmbt3Y4GWyWNW5KAb9djL76JYY2TNoFVKvj1DwZANlzsJPuTZDu8oXtCOi
+	 IXctlYPTRWF0JRo1UNvHyKQ+3QSMB1cobjAtsb7E5/7IzJ2c+D0tjvEXzF2OdqO0OY
+	 KJDx3NJuMLsvDnLUTCvRvs8hks5k/4bl2dmdCLH8=
+Date: Mon, 01 Jun 2026 12:00:34 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,ljs@kernel.org,david@kernel.org,jackmanb@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-filemap-use-folio_next_index-for-start.patch added to mm-new branch
-Message-Id: <20260601184654.488611F00893@smtp.kernel.org>
+Subject: + mm-delete-stale-comment-about-cachelines.patch added to mm-unstable branch
+Message-Id: <20260601190034.E49D21F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,26 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/filemap: use folio_next_index() for start
-has been added to the -mm mm-new branch.  Its filename is
-     mm-filemap-use-folio_next_index-for-start.patch
+     Subject: mm: delete stale comment about cachelines
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-delete-stale-comment-about-cachelines.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-filemap-use-folio_next_index-for-start.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-delete-stale-comment-about-cachelines.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,59 +58,54 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: tanze <tanze@kylinos.cn>
-Subject: mm/filemap: use folio_next_index() for start
-Date: Mon, 1 Jun 2026 19:04:23 +0800
+From: Brendan Jackman <jackmanb@google.com>
+Subject: mm: delete stale comment about cachelines
+Date: Mon, 01 Jun 2026 11:40:09 +0000
 
-Use folio_next_index() instead of open-coding folio->index +
-folio_nr_pages(folio) when updating @start in filemap_get_folios_contig(),
-filemap_get_folios_tag(), and filemap_get_folios_dirty().
+These comments have been wrong since commit a211c6550efc ("mm: page_alloc:
+defrag_mode kswapd/kcompactd watermarks") added NR_FREE_PAGES_BLOCKS. 
+Since nobody has complained about it in the last year, it seems unlikely
+these comments were particularly useful anyway, so delete them.
 
-Link: https://lore.kernel.org/20260601110425.44784-1-tanze@kylinos.cn
-Signed-off-by: tanze <tanze@kylinos.cn>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Link: https://lore.kernel.org/20260601-zone_stat_item-comment-v1-1-f452dd91d5eb@google.com
+Signed-off-by: Brendan Jackman <jackmanb@google.com>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Reviewed-by: Lorenzo Stoakes <ljs@kernel.org>
+Acked-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |    9 +++------
- 1 file changed, 3 insertions(+), 6 deletions(-)
+ include/linux/mmzone.h |    2 --
+ 1 file changed, 2 deletions(-)
 
---- a/mm/filemap.c~mm-filemap-use-folio_next_index-for-start
-+++ a/mm/filemap.c
-@@ -2283,8 +2283,7 @@ unsigned filemap_get_folios_contig(struc
- 			goto put_folio;
+--- a/include/linux/mmzone.h~mm-delete-stale-comment-about-cachelines
++++ a/include/linux/mmzone.h
+@@ -214,7 +214,6 @@ enum numa_stat_item {
+ #endif
  
- 		if (!folio_batch_add(fbatch, folio)) {
--			nr = folio_nr_pages(folio);
--			*start = folio->index + nr;
-+			*start = folio_next_index(folio);
- 			goto out;
- 		}
- 		xas_advance(&xas, folio_next_index(folio) - 1);
-@@ -2344,8 +2343,7 @@ unsigned filemap_get_folios_tag(struct a
- 		if (xa_is_value(folio))
- 			continue;
- 		if (!folio_batch_add(fbatch, folio)) {
--			unsigned long nr = folio_nr_pages(folio);
--			*start = folio->index + nr;
-+			*start = folio_next_index(folio);
- 			goto out;
- 		}
- 	}
-@@ -2403,8 +2401,7 @@ unsigned filemap_get_folios_dirty(struct
- 			}
- 		}
- 		if (!folio_batch_add(fbatch, folio)) {
--			unsigned long nr = folio_nr_pages(folio);
--			*start = folio->index + nr;
-+			*start = folio_next_index(folio);
- 			goto out;
- 		}
- 	}
+ enum zone_stat_item {
+-	/* First 128 byte cacheline (assuming 64 bit words) */
+ 	NR_FREE_PAGES,
+ 	NR_FREE_PAGES_BLOCKS,
+ 	NR_ZONE_LRU_BASE, /* Used only for compaction and reclaim retry */
+@@ -225,7 +224,6 @@ enum zone_stat_item {
+ 	NR_ZONE_UNEVICTABLE,
+ 	NR_ZONE_WRITE_PENDING,	/* Count of dirty, writeback and unstable pages */
+ 	NR_MLOCK,		/* mlock()ed pages found and moved off LRU */
+-	/* Second 128 byte cacheline */
+ #if IS_ENABLED(CONFIG_ZSMALLOC)
+ 	NR_ZSPAGES,		/* allocated in zsmalloc */
+ #endif
 _
 
-Patches currently in -mm which might be from tanze@kylinos.cn are
+Patches currently in -mm which might be from jackmanb@google.com are
 
-mm-filemap-use-folio_next_index-for-start.patch
+mm-introduce-for_each_free_list.patch
+mm-page_alloc-dont-overload-migratetype-in-find_suitable_fallback.patch
+mm-rejig-pageblock-mask-definitions.patch
+mm-page_alloc-remove-ifdefs-from-pindex-helpers.patch
+mm-page_alloc-drop-a-misleading-__always_inline.patch
+mm-page_alloc-document-that-alloc_pages_nolock-uses-rcu.patch
+mm-page_alloc-remove-vm_bug_ons-from-pindex-helpers.patch
+mm-delete-stale-comment-about-cachelines.patch
 
