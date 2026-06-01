@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EC1FF3DCD9C
-	for <mm-commits@vger.kernel.org>; Mon,  1 Jun 2026 18:16:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A0D653EA953
+	for <mm-commits@vger.kernel.org>; Mon,  1 Jun 2026 18:16:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780337826; cv=none; b=Unr+JXcG8i9RqeHf/As4AUaFOFAtq+EjBRiF/Yo6K/VSQcTbK73vQoz+IDqh0Ix6EHrjTnjypLCUQugNtkNEhz9pxaprAyzLe0/0rXj6vwHkrRws5BBthrJbx2eXRBD8X1afqxQtaHhyndU5h1ijl3S72wOqMhJwvJKT3c6UJdc=
+	t=1780337826; cv=none; b=ijcPIPDIhcHOWusMJyJfLnFJr3vpueL+icTP2ZNP+j97ZN+Vq//owJuvIVneEU9H1k/2fcKYWjGX5luviA1IrSYEWeiv+jPKlZU9yuVvzNhSkIhJcPM7MMhE1hxWrEC+QH9BrVJWooKDWohmZH4EUlJDU0zs/wJ5kzc9S85GSq0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1780337826; c=relaxed/simple;
-	bh=Hg7CXvWRXCakPphfvgNZOsSvFNmgfkmU2fTwKO5oHHE=;
-	h=Date:To:From:Subject:Message-Id; b=B52OdrnB8K9c4ESeXiTxcIPvqKkg2ewG7wvOptsG0EHUrplzntbl/tL1mXT8sgGsFjP9QAVe8sX0s88FQ9r4Sc7w2+bfyEs1GTqQSBTBGaDe6egge9K4J+2vE72nmSuj0i6HUaNJEWLMw/Wv4SjOjk2Khyoycp5uvr5K4EPQtWQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FTgCIQqN; arc=none smtp.client-ip=100.103.45.18
+	bh=jjUBkuqh4FmnPR9DXUuaPIGHWUD3fikU2KMhs3g6log=;
+	h=Date:To:From:Subject:Message-Id; b=D9t5IXD5r4X2gRcPkKx0xGqMyP+9ee0Ya3qhqgcmw5ttJ7bbPdP/OeJyiGFCwXZ9/4y2lnMAs+LuF2GYv2574W+Krq+7dRk9eGmrbCN+f2k9yNz4+lTeTUE2vMVBHP0iimOYvdTQ/jCjF/fa+Z069Po9gjNEaH8TUXVLyfb8iZQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Ie+9Evbb; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FTgCIQqN"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 374CF1F00898;
-	Mon,  1 Jun 2026 18:16:58 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Ie+9Evbb"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 298A81F00893;
+	Mon,  1 Jun 2026 18:16:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1780337818;
-	bh=j9IZaOfn2+hRvhxcvhov6/AyCh8YJ7Jth/ffSfEbfFg=;
+	d=linux-foundation.org; s=korg; t=1780337816;
+	bh=JMHYrrqAo9TOpno/twQZY6sluOow+GYEgneKo9mF1pk=;
 	h=Date:To:From:Subject;
-	b=FTgCIQqN5dlJZDg6ynZef/8UdmPpnK5oLxe7yl35m7YS/TYsb2IqozU1IRsxOCuKX
-	 T9bcwxa6ihK12JryW/ohZ4LsTykDRiPzjwOBT3SDHwkOnRVJw6i7CgeLjQ8fYlMvcf
-	 +Q0yHzxCZ6+k3bcetF2XScbAXUXtTD6FojvgbOac=
-Date: Mon, 01 Jun 2026 11:16:57 -0700
+	b=Ie+9EvbbflvSjZtOWJJXBmLTda3EGx21wnmzzkP/nH9REEsoBNu5Ha/sLAseOw2qf
+	 wd/7/YzJR9nhvZLgxIP570Pc5fQdm1qqpSApERSAfjdafjuKW6QCsqgKHfxDaUPOLF
+	 6FDtxGWyDFpdsiu9dKZ3eLfmFQw5N4BVSUSMqCvk=
+Date: Mon, 01 Jun 2026 11:16:55 -0700
 To: mm-commits@vger.kernel.org,will@kernel.org,vbabka@kernel.org,surenb@google.com,rppt@kernel.org,palmer@dabbelt.com,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,kernel@xen0n.name,david@kernel.org,davem@davemloft.net,chenhuacai@kernel.org,catalin.marinas@arm.com,aou@eecs.berkeley.edu,andreas@gaisler.com,alex@ghiti.fr,songmuchun@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + arm64-mm-drop-vmemmap_pmd-helpers-and-use-generic-code.patch added to mm-new branch
-Message-Id: <20260601181658.374CF1F00898@smtp.kernel.org>
+Subject: + mm-sparse-vmemmap-provide-generic-vmemmap_set_pmd-and-vmemmap_check_pmd.patch added to mm-new branch
+Message-Id: <20260601181656.298A81F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: arm64/mm: drop vmemmap_pmd helpers and use generic code
+     Subject: mm/sparse-vmemmap: provide generic vmemmap_set_pmd() and vmemmap_check_pmd()
 has been added to the -mm mm-new branch.  Its filename is
-     arm64-mm-drop-vmemmap_pmd-helpers-and-use-generic-code.patch
+     mm-sparse-vmemmap-provide-generic-vmemmap_set_pmd-and-vmemmap_check_pmd.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arm64-mm-drop-vmemmap_pmd-helpers-and-use-generic-code.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-sparse-vmemmap-provide-generic-vmemmap_set_pmd-and-vmemmap_check_pmd.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,15 +70,43 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Muchun Song <songmuchun@bytedance.com>
-Subject: arm64/mm: drop vmemmap_pmd helpers and use generic code
-Date: Mon, 1 Jun 2026 16:48:41 +0800
+Subject: mm/sparse-vmemmap: provide generic vmemmap_set_pmd() and vmemmap_check_pmd()
+Date: Mon, 1 Jun 2026 16:48:40 +0800
 
-The generic implementations now suffice; remove the arm64 copies.
+Patch series "mm/sparse-vmemmap: Provide generic vmemmap_set_pmd() and
+vmemmap_check_pmd()", v3.
 
-Link: https://lore.kernel.org/20260601084845.3792171-3-songmuchun@bytedance.com
+The weak vmemmap_set_pmd() and vmemmap_check_pmd() hooks are currently
+no-ops in the generic code, which leaves architectures that need PMD-level
+handling to open-code the same logic locally.
+
+This series provides generic implementations for both helpers in
+mm/sparse-vmemmap.c.  vmemmap_set_pmd() installs a huge PMD with
+PAGE_KERNEL protection, and vmemmap_check_pmd() verifies a present leaf
+PMD before reusing the existing vmemmap_verify() helper.
+
+With those generic helpers in place, patches 2-5 remove the now redundant
+arch-specific implementations from arm64, riscv, loongarch, and sparc.
+
+
+This patch (of 5):
+
+The two weak functions are currently no-ops on every architecture, forcing
+each platform that needs them to duplicate the same handful of lines. 
+Provide a generic implementation:
+
+- vmemmap_set_pmd() simply sets a huge PMD with PAGE_KERNEL protection.
+
+- vmemmap_check_pmd() verifies that the PMD is present and leaf,
+  then calls the existing vmemmap_verify() helper.
+
+Architectures that need special handling can continue to override the weak
+symbols; everyone else gets the standard version for free.
+
+Link: https://lore.kernel.org/20260601084845.3792171-1-songmuchun@bytedance.com
+Link: https://lore.kernel.org/20260601084845.3792171-2-songmuchun@bytedance.com
 Signed-off-by: Muchun Song <songmuchun@bytedance.com>
-Acked-by: Will Deacon <will@kernel.org>
-Reviewed-by: David Hildenbrand (Arm) <david@kernel.org>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
 Cc: Albert Ou <aou@eecs.berkeley.edu>
 Cc: Alexandre Ghiti <alex@ghiti.fr>
 Cc: Andreas Larsson <andreas@gaisler.com>
@@ -93,35 +121,35 @@ Cc: Palmer Dabbelt <palmer@dabbelt.com>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@kernel.org>
 Cc: WANG Xuerui <kernel@xen0n.name>
+Cc: Will Deacon <will@kernel.org>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/mm/mmu.c |   14 --------------
- 1 file changed, 14 deletions(-)
+ mm/sparse-vmemmap.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
---- a/arch/arm64/mm/mmu.c~arm64-mm-drop-vmemmap_pmd-helpers-and-use-generic-code
-+++ a/arch/arm64/mm/mmu.c
-@@ -1776,20 +1776,6 @@ static void free_empty_tables(unsigned l
- }
- #endif
- 
--void __meminit vmemmap_set_pmd(pmd_t *pmdp, void *p, int node,
--			       unsigned long addr, unsigned long next)
--{
--	pmd_set_huge(pmdp, __pa(p), __pgprot(PROT_SECT_NORMAL));
--}
--
--int __meminit vmemmap_check_pmd(pmd_t *pmdp, int node,
--				unsigned long addr, unsigned long next)
--{
--	vmemmap_verify((pte_t *)pmdp, node, addr, next);
--
--	return pmd_leaf(READ_ONCE(*pmdp));
--}
--
- int __meminit vmemmap_populate(unsigned long start, unsigned long end, int node,
- 		struct vmem_altmap *altmap)
+--- a/mm/sparse-vmemmap.c~mm-sparse-vmemmap-provide-generic-vmemmap_set_pmd-and-vmemmap_check_pmd
++++ a/mm/sparse-vmemmap.c
+@@ -386,12 +386,17 @@ int __meminit vmemmap_populate_hvo(unsig
+ void __weak __meminit vmemmap_set_pmd(pmd_t *pmd, void *p, int node,
+ 				      unsigned long addr, unsigned long next)
  {
++	WARN_ON_ONCE(!pmd_set_huge(pmd, virt_to_phys(p), PAGE_KERNEL));
+ }
+ 
+ int __weak __meminit vmemmap_check_pmd(pmd_t *pmd, int node,
+ 				       unsigned long addr, unsigned long next)
+ {
+-	return 0;
++	if (!pmd_leaf(pmdp_get(pmd)))
++		return 0;
++	vmemmap_verify((pte_t *)pmd, node, addr, next);
++
++	return 1;
+ }
+ 
+ int __meminit vmemmap_populate_hugepages(unsigned long start, unsigned long end,
 _
 
 Patches currently in -mm which might be from songmuchun@bytedance.com are
