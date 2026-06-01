@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7733F315D3E
-	for <mm-commits@vger.kernel.org>; Mon,  1 Jun 2026 04:30:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 69585314B63
+	for <mm-commits@vger.kernel.org>; Mon,  1 Jun 2026 04:32:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780288261; cv=none; b=Aw1MgOm8vINQsAXERMgPWjtlKMV9goIxBOeo6tAihqn7T3FBxhBAhptDIRHS9gaELZ5/xKWKLYsmg86QHt+Ypp48MYjIxyzeareER/fDugEqfyzDvP7A4NeJ8/APdlzYVtdLPIkeB8mZfD4dWyHeHENOMCGGsv5N6FXdlDnZLeQ=
+	t=1780288366; cv=none; b=r74aAXWh3bdh4MBSMOnxLm2cGjNAexjiRgkk2Ku2T4hCZMmtXcrPMGqEQJiwZTkf8mXsdqL7G5HhGFndEQpGXUvMQ43hNjE4syIy7ADxzxPP5HsewWC0UspuIGtNh4xV4OKPZUTvA+LAYRNP+DlwPTX0ug0Yghd9mBAvdy7nr8g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780288261; c=relaxed/simple;
-	bh=R6U/2bKcdEIWfe/JmVOfkz2zWl/6A1b1Qrm98D3G4uY=;
-	h=Date:To:From:Subject:Message-Id; b=mw9xfGocNnTFOuA1e+dGhnT0qW3uWSEYCfSBgc3tuTp5OwrUGlQbkRVszZI5RJWM7AEBphofiAQaR+e7ZdCso0kUHsvm/dbt/J7La9gkdkyeFcYc5x2wavdwEQwMMeURYCbp/31YXo3plshXsMH7MTWtv1bo1BP9xCFkMsDorMI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=v3EX1zt5; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1780288366; c=relaxed/simple;
+	bh=ZqxMKvQ8sDX24dGDDi1aKpMFaC6dhpCGmavjMfHJMWc=;
+	h=Date:To:From:Subject:Message-Id; b=YZ8JAktjKTPpGr5jUZIhihMkgCAYKNvhsIexVEQ4cCNLSs3enOk4xHMYYdRMwW5Dgh4l3ItAtiTJNX7Ktj5aTespXbwtB3d4IXut1AfG9pU2JOvdfgd7Mxtg8bTrovLXJZoZ5869ZamsnjmIzdwSD5IpaxSR5w+vMxTtvD4FWgU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=U9G4ZEYi; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="v3EX1zt5"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 065301F00893;
-	Mon,  1 Jun 2026 04:30:58 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="U9G4ZEYi"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 00EF71F00893;
+	Mon,  1 Jun 2026 04:32:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1780288259;
-	bh=ZdAroK/x86arFI4AZ1Zdxd7MSGjchdH6IzowI66suTo=;
+	d=linux-foundation.org; s=korg; t=1780288364;
+	bh=CbSBci6EiIhodat7i4lGFyxjnSfQCVADU9dvm0m5DIM=;
 	h=Date:To:From:Subject;
-	b=v3EX1zt5RgnE0M53BTvqYLmU4Rvnu2H3rUKbu81gSm5sKjoPXVbcz7U6ns7mr/deC
-	 I5t0ehkrCZvBk2gkjuHua5K0FkBrA1FX5P0wpj7J5F8rdlZ2BFxhQDSThLq9vfhS8S
-	 Pw43XCW41ce6yV26a8Su/5wvdzxvRH43GhkJ5SsY=
-Date: Sun, 31 May 2026 21:30:58 -0700
+	b=U9G4ZEYif5UCWF8TkBgEXMpsNAELth3LkiFqVx0FQigQqoMzoAWzkZ1rbK9iaagBo
+	 iZ6vyySDzLmAQkwKWskEFToURzUdCb/DtJXM5lturt/zQEyCtM1QFHOqyvqIOX7sjp
+	 SxvgSaqw6hFcVk2l+55pIC2lGLeLY7DdLPytWcq8=
+Date: Sun, 31 May 2026 21:32:43 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,youngjun.park@lge.com,shikemeng@huaweicloud.com,shakeel.butt@linux.dev,roman.gushchin@linux.dev,nphamcs@gmail.com,muchun.song@linux.dev,ljs@kernel.org,hughd@google.com,hannes@cmpxchg.org,david@kernel.org,chrisl@kernel.org,chengming.zhou@linux.dev,bhe@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,kasong@tencent.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-memcg-swap-store-cgroup-id-in-cluster-table-directly.patch removed from -mm tree
-Message-Id: <20260601043059.065301F00893@smtp.kernel.org>
+Subject: + mm-memcg-swap-store-cgroup-id-in-cluster-table-directly.patch added to mm-unstable branch
+Message-Id: <20260601043244.00EF71F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,12 +34,28 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
+The patch titled
      Subject: mm/memcg, swap: store cgroup id in cluster table directly
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm mm-unstable branch.  Its filename is
      mm-memcg-swap-store-cgroup-id-in-cluster-table-directly.patch
 
-This patch was dropped because it was folded into mm-swap-consolidate-cluster-allocation-helpers.patch
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcg-swap-store-cgroup-id-in-cluster-table-directly.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
 ------------------------------------------------------
 From: Kairui Song <kasong@tencent.com>
@@ -530,6 +546,7 @@ mm-memcg-swap-tidy-up-cgroup-v1-memsw-swap-helpers.patch
 mm-swap-support-flexible-batch-freeing-of-slots-in-different-memcgs.patch
 mm-swap-delay-and-unify-memcg-lookup-and-charging-for-swapin.patch
 mm-swap-consolidate-cluster-allocation-helpers.patch
+mm-memcg-swap-store-cgroup-id-in-cluster-table-directly.patch
 mm-memcg-remove-no-longer-used-swap-cgroup-array.patch
 mm-swap-merge-zeromap-into-swap-table.patch
 mm-mglru-consolidate-common-code-for-retrieving-evictable-size.patch
