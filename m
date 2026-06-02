@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 804ED31F985
-	for <mm-commits@vger.kernel.org>; Tue,  2 Jun 2026 22:23:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8E9D137D101
+	for <mm-commits@vger.kernel.org>; Tue,  2 Jun 2026 22:23:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780439009; cv=none; b=Bg8570FnQKyw021FC4Z6D741SqX8s9oHXHerpy4hvgIR00+RVCJMxIy8zH78QV2uDMgW6hvWL9aSOCmK9EtA36TEsoLFIl7AMOm55PNdK7ryuUWX6vlJfneSUaxrSrY93B/B3Yq2hhd1rG1eUBRQmrJ/FoJ6539n/vyT8O68K7M=
+	t=1780439010; cv=none; b=CuLdY8dU7PvJ7dVzGG5j9eqUFX6Lr0KK4SjPiLgk8Tk2VMOxaILiSiZMaBDajcld4SYQ28Gu5bgWF2pn2zTOIzCXzbWZZaMUH0R2lXz80sBm8CxAf9lw4/qJK1kJfrcM/1zE1R56mxAWfCCRXO/sgZfBJl6NHaLBY17gMuwRa1U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780439009; c=relaxed/simple;
-	bh=6OahAgLmR1BWjzvGRAhMKJ5QkQqQckuH20pg5f292Kc=;
-	h=Date:To:From:Subject:Message-Id; b=KuER3mFQCpAssjrJp9O+jmya1e/QE55ygjlS+JbfdpsoRGnMuViGMMTwIrS9HVIHDT5blP/2BwIcgP9mXU8Rtd1jMmTK3R+iew5SEH/lJYIl0JfPntqL+HGCCdnIjJG8mxrSKSuorUayDByEa+TXVrixo815XkZXcbwIdDIFVRs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wmI5BKLt; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1780439010; c=relaxed/simple;
+	bh=8cbssYJ43oxnpvbvOvBPoBCAjjUWDrM+Al2H2p4B9fE=;
+	h=Date:To:From:Subject:Message-Id; b=VLKy764XQN94LpndHnclVslljltFnjH2KABIVpTvtoB6koUVz9LJqVtsYbiAiILCUlRrzvQX5+kg2QnRMTa3rB/MRlS5tZbztN5KbgO3ZOHqfkZKorXdbanWK38xXgLSG6aPASBvR7Ap4HodzaueDEABOF96AYPTjGYMYb9YRFo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BHnxj5Ck; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wmI5BKLt"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0EC081F00893;
-	Tue,  2 Jun 2026 22:23:28 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BHnxj5Ck"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 344FB1F00898;
+	Tue,  2 Jun 2026 22:23:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1780439008;
-	bh=4kyiPlgZc5TadU3qv9Nr/JZ+3hzrR+nismaS7QG+1qA=;
+	d=linux-foundation.org; s=korg; t=1780439009;
+	bh=ERHLlUUKCBrPpDsmkf8wubV/ITRhcJ5ezcKbvm8uEmA=;
 	h=Date:To:From:Subject;
-	b=wmI5BKLt3Jtpam2W2mLR7PwaThjFIybbNsRe12NXXhcM0u17L2d5JyVtJj70+ssrJ
-	 79UqJfr18OjFRwVD0qAUiIjcmvEJKcf2iRC2fU7YYZHj0YzvmXLX+WyVAmS9sO09Pn
-	 Y18/BBRDu3Wm7v+vs9AHlCpGmIfwGPpizv7pmpFs=
-Date: Tue, 02 Jun 2026 15:23:27 -0700
-To: mm-commits@vger.kernel.org,yanquanmin1@huawei.com,sj@kernel.org,shu17az@gmail.com,jiayuan.chen@shopee.com,akpm@linux-foundation.org
+	b=BHnxj5CkTam7UZIwRj8eyQY/nJvht1/NlwkWtimgE310M+zKRCp6KTAgTQosVifib
+	 c89JXsaL/N9bf9Q4Gp52+FljyJc0xmTTwjv/HsnHluhiGWyFUAHgfSP6GP0tM5Ulr1
+	 NULk+kq+Akph8iYwLUGCD1wr9R1d1eFIDECbfurk=
+Date: Tue, 02 Jun 2026 15:23:28 -0700
+To: mm-commits@vger.kernel.org,rafael@kernel.org,gregkh@linuxfoundation.org,david@kernel.org,dakr@kernel.org,hao.ge@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-replace-damon_rand-with-a-per-ctx-lockless-prng.patch removed from -mm tree
-Message-Id: <20260602222328.0EC081F00893@smtp.kernel.org>
+Subject: [merged mm-stable] proc-meminfo-expose-per-node-balloon-pages-in-node-meminfo.patch removed from -mm tree
+Message-Id: <20260602222329.344FB1F00898@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,291 +35,61 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/damon: replace damon_rand() with a per-ctx lockless PRNG
+     Subject: proc/meminfo: expose per-node balloon pages in node meminfo
 has been removed from the -mm tree.  Its filename was
-     mm-damon-replace-damon_rand-with-a-per-ctx-lockless-prng.patch
+     proc-meminfo-expose-per-node-balloon-pages-in-node-meminfo.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Jiayuan Chen <jiayuan.chen@shopee.com>
-Subject: mm/damon: replace damon_rand() with a per-ctx lockless PRNG
-Date: Fri, 8 May 2026 18:18:15 -0700
+From: Hao Ge <hao.ge@linux.dev>
+Subject: proc/meminfo: expose per-node balloon pages in node meminfo
+Date: Sat, 9 May 2026 08:56:31 +0800
 
-damon_rand() on the sampling_addr hot path called get_random_u32_below(),
-which takes a local_lock_irqsave() around a per-CPU batched entropy pool
-and periodically refills it with ChaCha20.  At elevated nr_regions counts
-(20k+), the lock_acquire / local_lock pair plus __get_random_u32_below()
-dominate kdamond perf profiles.
+Commit 835de37603ef ("meminfo: add a per node counter for balloon
+drivers") added NR_BALLOON_PAGES and exposed it in /proc/meminfo. 
+However, the per-node view at /sys/devices/system/node/nodeX/meminfo was
+not updated, even though the counter is already tracked per-node.
 
-Replace the helper with a lockless lfsr113 generator (struct rnd_state)
-held per damon_ctx and seeded from get_random_u64() in damon_new_ctx(). 
-kdamond is the single consumer of a given ctx, so no synchronization is
-required.  Range mapping uses traditional reciprocal multiplication,
-similar as get_random_u32_below(); for spans larger than U32_MAX (only
-reachable on 64-bit) the slow path combines two u32 outputs and uses
-mul_u64_u64_shr() at 64-bit width.  On 32-bit the slow path is dead code
-and gets eliminated by the compiler.
+Add it to node_read_meminfo() so users can see balloon usage per NUMA node
+without having to parse the raw vmstat file.
 
-The new helper takes a ctx parameter; damon_split_regions_of() and the
-kunit tests that call it directly are updated accordingly.
-
-lfsr113 is a linear PRNG and MUST NOT be used for anything
-security-sensitive.  DAMON's sampling_addr is not exposed to userspace and
-is only consumed as a probe point for PTE accessed-bit sampling, so a
-non-cryptographic PRNG is appropriate here.
-
-Tested with paddr monitoring and max_nr_regions=20000: kdamond CPU usage
-reduced from ~72% to ~50% of one core.
-
-Link: https://lore.kernel.org/20260505145212.108644-1-jiayuan.chen@linux.dev
-Link: https://lore.kernel.org/damon/20260426173346.86238-1-sj@kernel.org/T/#m4f1fd74112728f83a41511e394e8c3fef703039c
-Link: https://lore.kernel.org/20260509011816.85145-1-sj@kernel.org
-Signed-off-by: Jiayuan Chen <jiayuan.chen@shopee.com>
-Signed-off-by: SeongJae Park <sj@kernel.org>
-Reviewed-by: SeongJae Park <sj@kernel.org>
-Cc: Shu Anzai <shu17az@gmail.com>
-Cc: Quanmin Yan <yanquanmin1@huawei.com>
+Link: https://lore.kernel.org/20260509005631.17183-1-hao.ge@linux.dev
+Signed-off-by: Hao Ge <hao.ge@linux.dev>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Cc: Danilo Krummrich <dakr@kernel.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/damon.h       |   28 +++++++++++++++++++++-------
- mm/damon/core.c             |   12 ++++++++----
- mm/damon/paddr.c            |    8 ++++----
- mm/damon/tests/core-kunit.h |   28 ++++++++++++++++++++++------
- mm/damon/vaddr.c            |    7 ++++---
- 5 files changed, 59 insertions(+), 24 deletions(-)
+ drivers/base/node.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/include/linux/damon.h~mm-damon-replace-damon_rand-with-a-per-ctx-lockless-prng
-+++ a/include/linux/damon.h
-@@ -8,23 +8,18 @@
- #ifndef _DAMON_H_
- #define _DAMON_H_
- 
-+#include <linux/math64.h>
- #include <linux/memcontrol.h>
- #include <linux/mutex.h>
-+#include <linux/prandom.h>
- #include <linux/time64.h>
- #include <linux/types.h>
--#include <linux/random.h>
- 
- /* Minimal region size.  Every damon_region is aligned by this. */
- #define DAMON_MIN_REGION_SZ	PAGE_SIZE
- /* Max priority score for DAMON-based operation schemes */
- #define DAMOS_MAX_SCORE		(99)
- 
--/* Get a random number in [l, r) */
--static inline unsigned long damon_rand(unsigned long l, unsigned long r)
--{
--	return l + get_random_u32_below(r - l);
--}
--
- /**
-  * struct damon_addr_range - Represents an address region of [@start, @end).
-  * @start:	Start address of the region (inclusive).
-@@ -859,8 +854,27 @@ struct damon_ctx {
- 
- 	struct list_head adaptive_targets;
- 	struct list_head schemes;
-+
-+	/* Per-ctx PRNG state for damon_rand(); kdamond is the sole consumer. */
-+	struct rnd_state rnd_state;
- };
- 
-+/* Get a random number in [@l, @r) using @ctx's lockless PRNG. */
-+static inline unsigned long damon_rand(struct damon_ctx *ctx,
-+				       unsigned long l, unsigned long r)
-+{
-+	unsigned long span = r - l;
-+	u64 rnd;
-+
-+	if (span <= U32_MAX) {
-+		rnd = prandom_u32_state(&ctx->rnd_state);
-+		return l + (unsigned long)((rnd * span) >> 32);
-+	}
-+	rnd = ((u64)prandom_u32_state(&ctx->rnd_state) << 32) |
-+	      prandom_u32_state(&ctx->rnd_state);
-+	return l + mul_u64_u64_shr(rnd, span, 64);
-+}
-+
- static inline struct damon_region *damon_next_region(struct damon_region *r)
- {
- 	return container_of(r->list.next, struct damon_region, list);
---- a/mm/damon/core.c~mm-damon-replace-damon_rand-with-a-per-ctx-lockless-prng
-+++ a/mm/damon/core.c
-@@ -611,6 +611,8 @@ struct damon_ctx *damon_new_ctx(void)
- 	INIT_LIST_HEAD(&ctx->adaptive_targets);
- 	INIT_LIST_HEAD(&ctx->schemes);
- 
-+	prandom_seed_state(&ctx->rnd_state, get_random_u64());
-+
- 	return ctx;
- }
- 
-@@ -2939,8 +2941,9 @@ static void damon_split_region_at(struct
- }
- 
- /* Split every region in the given target into 'nr_subs' regions */
--static void damon_split_regions_of(struct damon_target *t, int nr_subs,
--				  unsigned long min_region_sz)
-+static void damon_split_regions_of(struct damon_ctx *ctx,
-+				   struct damon_target *t, int nr_subs,
-+				   unsigned long min_region_sz)
- {
- 	struct damon_region *r, *next;
- 	unsigned long sz_region, sz_sub = 0;
-@@ -2955,7 +2958,7 @@ static void damon_split_regions_of(struc
- 			 * Randomly select size of left sub-region to be at
- 			 * least 10 percent and at most 90% of original region
- 			 */
--			sz_sub = ALIGN_DOWN(damon_rand(1, 10) *
-+			sz_sub = ALIGN_DOWN(damon_rand(ctx, 1, 10) *
- 					sz_region / 10, min_region_sz);
- 			/* Do not allow blank region */
- 			if (sz_sub == 0 || sz_sub >= sz_region)
-@@ -2996,7 +2999,8 @@ static void kdamond_split_regions(struct
- 		nr_subregions = 3;
- 
- 	damon_for_each_target(t, ctx)
--		damon_split_regions_of(t, nr_subregions, ctx->min_region_sz);
-+		damon_split_regions_of(ctx, t, nr_subregions,
-+				       ctx->min_region_sz);
- 
- 	last_nr_regions = nr_regions;
- }
---- a/mm/damon/paddr.c~mm-damon-replace-damon_rand-with-a-per-ctx-lockless-prng
-+++ a/mm/damon/paddr.c
-@@ -49,11 +49,11 @@ static void damon_pa_mkold(phys_addr_t p
- }
- 
- static void __damon_pa_prepare_access_check(struct damon_region *r,
--		unsigned long addr_unit)
-+		struct damon_ctx *ctx)
- {
--	r->sampling_addr = damon_rand(r->ar.start, r->ar.end);
-+	r->sampling_addr = damon_rand(ctx, r->ar.start, r->ar.end);
- 
--	damon_pa_mkold(damon_pa_phys_addr(r->sampling_addr, addr_unit));
-+	damon_pa_mkold(damon_pa_phys_addr(r->sampling_addr, ctx->addr_unit));
- }
- 
- static void damon_pa_prepare_access_checks(struct damon_ctx *ctx)
-@@ -63,7 +63,7 @@ static void damon_pa_prepare_access_chec
- 
- 	damon_for_each_target(t, ctx) {
- 		damon_for_each_region(r, t)
--			__damon_pa_prepare_access_check(r, ctx->addr_unit);
-+			__damon_pa_prepare_access_check(r, ctx);
- 	}
- }
- 
---- a/mm/damon/tests/core-kunit.h~mm-damon-replace-damon_rand-with-a-per-ctx-lockless-prng
-+++ a/mm/damon/tests/core-kunit.h
-@@ -273,54 +273,70 @@ static void damon_test_merge_regions_of(
- 
- static void damon_test_split_regions_of(struct kunit *test)
- {
-+	struct damon_ctx *c;
- 	struct damon_target *t;
- 	struct damon_region *r;
- 	unsigned long sa[] = {0, 300, 500};
- 	unsigned long ea[] = {220, 400, 700};
- 	int i;
- 
-+	c = damon_new_ctx();
-+	if (!c)
-+		kunit_skip(test, "ctx alloc fail");
-+
- 	t = damon_new_target();
--	if (!t)
-+	if (!t) {
-+		damon_destroy_ctx(c);
- 		kunit_skip(test, "target alloc fail");
-+	}
- 	r = damon_new_region(0, 22);
- 	if (!r) {
- 		damon_free_target(t);
-+		damon_destroy_ctx(c);
- 		kunit_skip(test, "region alloc fail");
- 	}
- 	damon_add_region(r, t);
--	damon_split_regions_of(t, 2, 1);
-+	damon_split_regions_of(c, t, 2, 1);
- 	KUNIT_EXPECT_LE(test, damon_nr_regions(t), 2u);
- 	damon_free_target(t);
- 
- 	t = damon_new_target();
--	if (!t)
-+	if (!t) {
-+		damon_destroy_ctx(c);
- 		kunit_skip(test, "second target alloc fail");
-+	}
- 	r = damon_new_region(0, 220);
- 	if (!r) {
- 		damon_free_target(t);
-+		damon_destroy_ctx(c);
- 		kunit_skip(test, "second region alloc fail");
- 	}
- 	damon_add_region(r, t);
--	damon_split_regions_of(t, 4, 1);
-+	damon_split_regions_of(c, t, 4, 1);
- 	KUNIT_EXPECT_LE(test, damon_nr_regions(t), 4u);
- 	damon_free_target(t);
- 
- 	t = damon_new_target();
--	if (!t)
-+	if (!t) {
-+		damon_destroy_ctx(c);
- 		kunit_skip(test, "third target alloc fail");
-+	}
- 	for (i = 0; i < ARRAY_SIZE(sa); i++) {
- 		r = damon_new_region(sa[i], ea[i]);
- 		if (!r) {
- 			damon_free_target(t);
-+			damon_destroy_ctx(c);
- 			kunit_skip(test, "region alloc fail");
- 		}
- 		damon_add_region(r, t);
- 	}
--	damon_split_regions_of(t, 4, 5);
-+	damon_split_regions_of(c, t, 4, 5);
- 	KUNIT_EXPECT_LE(test, damon_nr_regions(t), 12u);
- 	damon_for_each_region(r, t)
- 		KUNIT_EXPECT_GE(test, damon_sz_region(r) % 5ul, 0ul);
- 	damon_free_target(t);
-+
-+	damon_destroy_ctx(c);
- }
- 
- static void damon_test_ops_registration(struct kunit *test)
---- a/mm/damon/vaddr.c~mm-damon-replace-damon_rand-with-a-per-ctx-lockless-prng
-+++ a/mm/damon/vaddr.c
-@@ -333,9 +333,10 @@ static void damon_va_mkold(struct mm_str
-  */
- 
- static void __damon_va_prepare_access_check(struct mm_struct *mm,
--					struct damon_region *r)
-+					struct damon_region *r,
-+					struct damon_ctx *ctx)
- {
--	r->sampling_addr = damon_rand(r->ar.start, r->ar.end);
-+	r->sampling_addr = damon_rand(ctx, r->ar.start, r->ar.end);
- 
- 	damon_va_mkold(mm, r->sampling_addr);
- }
-@@ -351,7 +352,7 @@ static void damon_va_prepare_access_chec
- 		if (!mm)
- 			continue;
- 		damon_for_each_region(r, t)
--			__damon_va_prepare_access_check(mm, r);
-+			__damon_va_prepare_access_check(mm, r, ctx);
- 		mmput(mm);
- 	}
- }
+--- a/drivers/base/node.c~proc-meminfo-expose-per-node-balloon-pages-in-node-meminfo
++++ a/drivers/base/node.c
+@@ -523,6 +523,7 @@ static ssize_t node_read_meminfo(struct
+ #ifdef CONFIG_UNACCEPTED_MEMORY
+ 			     "Node %d Unaccepted:     %8lu kB\n"
+ #endif
++			     "Node %d Balloon:        %8lu kB\n"
+ 			     "Node %d GPUActive:      %8lu kB\n"
+ 			     "Node %d GPUReclaim:     %8lu kB\n"
+ 			     ,
+@@ -559,6 +560,7 @@ static ssize_t node_read_meminfo(struct
+ 			     nid, K(sum_zone_node_page_state(nid, NR_UNACCEPTED))
+ #endif
+ 			     ,
++			     nid, K(node_page_state(pgdat, NR_BALLOON_PAGES)),
+ 			     nid, K(node_page_state(pgdat, NR_GPU_ACTIVE)),
+ 			     nid, K(node_page_state(pgdat, NR_GPU_RECLAIM))
+ 			    );
 _
 
-Patches currently in -mm which might be from jiayuan.chen@shopee.com are
+Patches currently in -mm which might be from hao.ge@linux.dev are
 
+mm-alloc_tag-replace-fixed-size-early-pfn-array-with-dynamic-linked-list.patch
+alloc_tag-fix-use-after-free-in-proc-allocinfo-after-module-unload.patch
+lib-test_hmm-fix-memory-leak-in-dmirror_migrate_to_system.patch
 
