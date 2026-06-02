@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C4DF93B9DA6;
-	Tue,  2 Jun 2026 22:24:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C11A43B9D84;
+	Tue,  2 Jun 2026 22:24:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780439047; cv=none; b=t7TCm8qx4161PUyCK3Hnbq/5FezQIGnMv99ifWyUb1ZOGpmc2ckNOdRui8/BhpFDv1bPG1uozrK2GZRHJT8QSQDeF4MFPoywSdHHoNOVQ5XPVtln+b0YrR52+2BSxSIB+cUQMTQus4/rNbM+Xvxks7WoHHWTWBIvbNuYljGqehE=
+	t=1780439049; cv=none; b=VvCf80typqc8iJz91zcNtX9MLGQxAIRXa0tqC1VGzKapsxiq/YdzsTKEO21JtgZRo7WJ7lAWDr6O+8vTQlg2o2rN0v0eV5ktYWwSUtHn8hBNBPu3/h73qhyoQZs8juEiDCZjXQsItcACO3wArfwDv6FRIqOOLCG63zIZxZpnLyA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780439047; c=relaxed/simple;
-	bh=VP0R7RNz75xJ07LKP90CKFDLA9SY4d7LegCKYlEBDoA=;
-	h=Date:To:From:Subject:Message-Id; b=nGoJCF29JlVAzm6zyMQ2oc+uGij4WD3OhsVmp1pcI0W62rroqMV3+ORGRpFRGcYeQnMqi3TjD6nI43A/XHrKjWF7lRXktFbWJUJI1saxLFg7H/DMRGlrk7VG8X5ZZH381EHWcd2f8wiNuXNF0DM9O1UbdERtpZWB/JGj6bMH63Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Pl6Xzubx; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1780439049; c=relaxed/simple;
+	bh=N9AkCg0Z2UI/J+Y3LjcNpADBTFeEXJxl/qv/gjYq0NM=;
+	h=Date:To:From:Subject:Message-Id; b=WnhiU/zexS5A7hdDjgTL6K8FxSGAUDH+cdkLzGt2AFcB8juy1meD8/gI8HCTXYZ6JAmq/Wcv84SaLT5AC+fAjfqzXTbmhGqFMmNaInxmw1VUCN5PUfEbeuwu6IG5KW4oQ4DM2ULRi4Gx34xtLnPXpRKpdfo/td0k02JX+HvTdnY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=paN7rtro; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Pl6Xzubx"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5CA471F00898;
-	Tue,  2 Jun 2026 22:24:06 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="paN7rtro"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 95DA21F00899;
+	Tue,  2 Jun 2026 22:24:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1780439046;
-	bh=qbRlAWsgr1TdRrcDEw3oglB0aOZuixTT5FXG0Ok4bL4=;
+	d=linux-foundation.org; s=korg; t=1780439047;
+	bh=CMNgR1wdgfjQ3Y+74+RnZe2qYoCvtFP3kP4zEdcZ5/U=;
 	h=Date:To:From:Subject;
-	b=Pl6Xzubx5GcBj5kauLRAkSeqwxauMYOZTO5kztOHyEXvAztGwP8hX3MDIvx9KEhdo
-	 s71mc0pgVZjkeaaYhKv+VKOUF3bxGgSzLwSnq1yV2jx4w7DiJKiJWgRtzat0xB0o8N
-	 y7X077lO9nakoesBKSXCLE3A6PFvOHMLAdUOs13g=
-Date: Tue, 02 Jun 2026 15:24:05 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,leon@kernel.org,jgg@ziepe.ca,balbirs@nvidia.com,hao.ge@linux.dev,akpm@linux-foundation.org
+	b=paN7rtro3YdxOVzRIA8LBkwiNmNS0nDc6eE2OrNOJqDTvWDjRaEY0wcE8se5kaQPX
+	 gRA80uOssCkdlBGvDjtYpKu7p5b8iaNEgwAhMUgesu/fVP1V3sMcuIxPFGyC2XLxwb
+	 FyAyJcsyHXbZbUPitciX4Ez9Tm1QN843J0oqk+NQ=
+Date: Tue, 02 Jun 2026 15:24:07 -0700
+To: mm-commits@vger.kernel.org,viro@zeniv.linux.org.uk,stable@vger.kernel.org,peterx@redhat.com,jack@suse.cz,david@kernel.org,brauner@kernel.org,rppt@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] lib-test_hmm-use-kvfree-to-free-kvcalloc-allocations.patch removed from -mm tree
-Message-Id: <20260602222406.5CA471F00898@smtp.kernel.org>
+Subject: [merged mm-stable] userfaultfd-ensure-mremap_userfaultfd_fail-releases-mmap_changing.patch removed from -mm tree
+Message-Id: <20260602222407.95DA21F00899@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,58 +35,117 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: lib/test_hmm: use kvfree() to free kvcalloc() allocations
+     Subject: userfaultfd: ensure mremap_userfaultfd_fail() releases mmap_changing
 has been removed from the -mm tree.  Its filename was
-     lib-test_hmm-use-kvfree-to-free-kvcalloc-allocations.patch
+     userfaultfd-ensure-mremap_userfaultfd_fail-releases-mmap_changing.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Hao Ge <hao.ge@linux.dev>
-Subject: lib/test_hmm: use kvfree() to free kvcalloc() allocations
-Date: Wed, 13 May 2026 16:25:25 +0800
+From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
+Subject: userfaultfd: ensure mremap_userfaultfd_fail() releases mmap_changing
+Date: Wed, 13 May 2026 11:14:16 +0300
 
-Coccinelle scripts/coccinelle/api/kfree_mismatch.cocci reports
-the following warnings:
+Sashiko says:
 
-  lib/test_hmm.c:1256:15-16: WARNING kvmalloc is used to allocate this memory at line 1191
-  lib/test_hmm.c:1257:15-16: WARNING kvmalloc is used to allocate this memory at line 1196
+  mremap_userfaultfd_prep() increments ctx->mmap_changing to stall
+  concurrent operations, but mremap_userfaultfd_fail() does not
+  decrement it before dropping the context reference.
 
-Fix this by replacing kfree() with kvfree() to correctly handle the
-vmalloc() fallback path of kvcalloc().
+If an mremap operation fails, ctx->mmap_changing remains elevated. This
+will causes subsequent userfaultfd operations like a UFFDIO_COPY to fail
+with -EAGAIN.
 
-Link: https://lore.kernel.org/20260513082525.154036-1-hao.ge@linux.dev
-Fixes: 775465fd26a3 ("lib/test_hmm: add zone device private THP test infrastructure")
-Signed-off-by: Hao Ge <hao.ge@linux.dev>
-Acked-by: Balbir Singh <balbirs@nvidia.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Leon Romanovsky <leon@kernel.org>
+Decrement ctx->mmap_changing in mremap_userfaultfd_fail().
+
+Link: https://sashiko.dev/#/patchset/20260430113512.115938-1-rppt@kernel.org
+Link: https://lore.kernel.org/20260513081416.495963-1-rppt@kernel.org
+Fixes: df2cc96e7701 ("userfaultfd: prevent non-cooperative events vs mcopy_atomic races")
+Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Reviewed-by: David Hildenbrand (Arm) <david@kernel.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Peter Xu <peterx@redhat.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_hmm.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/userfaultfd.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/lib/test_hmm.c~lib-test_hmm-use-kvfree-to-free-kvcalloc-allocations
-+++ a/lib/test_hmm.c
-@@ -1253,8 +1253,8 @@ out:
- 	mmap_read_unlock(mm);
- 	mmput(mm);
- free_mem:
--	kfree(src_pfns);
--	kfree(dst_pfns);
-+	kvfree(src_pfns);
-+	kvfree(dst_pfns);
- 	return ret;
+--- a/fs/userfaultfd.c~userfaultfd-ensure-mremap_userfaultfd_fail-releases-mmap_changing
++++ a/fs/userfaultfd.c
+@@ -786,6 +786,8 @@ void mremap_userfaultfd_fail(struct vm_u
+ 	if (!ctx)
+ 		return;
+ 
++	atomic_dec(&ctx->mmap_changing);
++	VM_WARN_ON_ONCE(atomic_read(&ctx->mmap_changing) < 0);
+ 	userfaultfd_ctx_put(ctx);
  }
  
 _
 
-Patches currently in -mm which might be from hao.ge@linux.dev are
+Patches currently in -mm which might be from rppt@kernel.org are
 
-mm-alloc_tag-replace-fixed-size-early-pfn-array-with-dynamic-linked-list.patch
-alloc_tag-fix-use-after-free-in-proc-allocinfo-after-module-unload.patch
-lib-test_hmm-fix-memory-leak-in-dmirror_migrate_to_system.patch
+selftests-mm-hugetlb-read-hwpoison-add-sigbus-handler.patch
+selftests-mm-migration-dont-assume-huge-page-is-twomeg.patch
+selftests-mm-migration-make-nthreads-represent-number-of-working-threads.patch
+selftests-mm-migration-properly-cleanup-forked-processes.patch
+selftests-mm-run_vmtestssh-dont-gate-thp-and-ksm-tests-on-have_hugepages.patch
+selftests-mm-merge-map_hugetlb-into-hugepage-mmap.patch
+selftests-mm-rename-hugepage-tests-to-hugetlb.patch
+selftests-mm-hugetlb-shm-use-kselftest-framework.patch
+selftests-mm-hugetlb-vmemmap-use-kselftest-framework.patch
+selftests-mm-hugetlb-madvise-use-kselftest-framework.patch
+selftests-mm-hugetlb_madv_vs_map-use-kselftest-framework.patch
+selftests-mm-hugetlb-read-hwpoison-use-kselftest-framework.patch
+selftests-mm-khugepaged-group-tests-in-an-array.patch
+selftests-mm-khugepaged-use-ksefltest-framework.patch
+selftests-mm-khugepaged-use-ksefltest-framework-fix.patch
+selftests-mm-ksm_tests-use-kselftest-framework.patch
+selftests-mm-protection_keys-use-descriptive-test-names-in-the-output.patch
+selftests-mm-protection_keys-use-kselftest-framework.patch
+selftests-mm-uffd-common-use-kselftest-framework.patch
+selftests-mm-uffd-stress-use-kselftest-framework.patch
+selftests-mm-uffd-unit-tests-use-kselftest-framework.patch
+selftests-mm-va_high_addr_switch-use-kselftest-framework.patch
+selftests-mm-add-atexit-and-signal-handlers-to-thp_settings.patch
+selftests-mm-rename-thp_settings-to-hugepage_settings.patch
+selftests-mm-move-hugetlb-helpers-to-hugepage_settings.patch
+selftests-mm-hugepage_settings-use-unsigned-long-in-detect_hugetlb_page_size.patch
+selftests-mm-hugepage_settings-add-apis-to-get-and-set-nr_hugepages.patch
+selftests-mm-hugepage_settings-rename-and-rework-get_free_hugepages.patch
+selftests-mm-hugepage_settings-add-apis-for-hugetlb-setup-and-teardown.patch
+selftests-mm-move-read_file-read_num-and-write_num-to-vm_util.patch
+selftests-mm-vm_util-add-helpers-to-set-and-restore-shm-limits.patch
+selftests-mm-compaction_test-use-hugetlb-helpers.patch
+selftests-mm-cow-add-setup-of-hugetlb-pages.patch
+selftests-mm-gup_longterm-add-setup-of-hugetlb-pages.patch
+selftests-mm-gup_test-add-setup-of-hugetlb-pages.patch
+selftests-mm-hmm-tests-add-setup-of-hugetlb-pages.patch
+selftests-mm-hugepage_dio-add-setup-of-hugetlb-pages.patch
+selftests-mm-hugetlb_fault_after_madv-add-setup-of-hugetlb-pages.patch
+selftests-mm-hugetlb-madvise-add-setup-of-hugetlb-pages.patch
+selftests-mm-hugetlb_madv_vs_map-add-setup-of-hugetlb-pages.patch
+selftests-mm-hugetlb-mmap-add-setup-of-hugetlb-pages.patch
+selftests-mm-hugetlb-mremap-add-setup-of-hugetlb-pages.patch
+selftests-mm-hugetlb-shm-add-setup-of-hugetlb-pages.patch
+selftests-mm-hugetlb-soft-offline-add-setup-of-hugetlb-pages.patch
+selftests-mm-hugetlb-vmemmap-add-setup-of-hugetlb-pages.patch
+selftests-mm-migration-add-setup-of-hugetlb-pages.patch
+selftests-mm-pagemap_ioctl-add-setup-of-hugetlb-pages.patch
+selftests-mm-protection_keys-use-library-code-for-hugetlb-setup.patch
+selftests-mm-thuge-gen-add-setup-of-hugetlb-pages.patch
+selftests-mm-uffd-stress-use-hugetlb_save-and-alloc-huge-pages.patch
+selftests-mm-uffd-unit-tests-add-setup-of-hugetlb-pages.patch
+selftests-mm-uffd-wp-mremap-add-setup-of-hugetlb-pages.patch
+selftests-mm-va_high_addr_switch-add-setup-of-hugetlb-pages.patch
+selftests-mm-va_high_addr_switchsh-drop-huge-pages-setup.patch
+selftests-mm-run_vmtestssh-free-memory-if-available-memory-is-low.patch
+selftests-mm-run_vmtestssh-drop-detection-and-setup-of-hugetlb.patch
+xor-use-kmalloc-in-calibrate_xor_blocks.patch
+raid6-use-kmalloc-in-raid6_select_algo.patch
 
