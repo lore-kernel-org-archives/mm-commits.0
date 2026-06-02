@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B23973BCD07
-	for <mm-commits@vger.kernel.org>; Tue,  2 Jun 2026 22:26:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8624A3BC668
+	for <mm-commits@vger.kernel.org>; Tue,  2 Jun 2026 22:26:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780439173; cv=none; b=GCMOd5RghR0OGN7+N9dMZ9w2M15Qj5XVmKGFw3WZ0yGDtzts16FCpqXzruta4QNkVSfLNeheFmbQKNYSsrMaYXkaUAnBNtDLX8oVVneW3G/dd42Vf+QZemaDTZ1iC46SPyEZ5tKYIqx23hM9iTCveiw7A8147V0mtYhLfikYA6M=
+	t=1780439175; cv=none; b=qo8Og4g3J9lIinmvin8uCuBOOL7ksfIauE9OoTcX8yIzU421s9quxVWkWDXbIBFCuSYcY1MxT+RFISInNIGRoS7Q1YSrKFbundBgEMtgcOtqsfHjbDdWEAYiB7BNrMXN4xLzU3AI5edwB0RrELDmHjyzsiEFMLlact4tI7dDjig=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780439173; c=relaxed/simple;
-	bh=r/w/ffJqXGCpMSfPAYvgzqIzSfXmleih0/4tCU0oHvc=;
-	h=Date:To:From:Subject:Message-Id; b=OUc39N2gvVCBkY/wUCwW75sD3JDTHbg8wTY+hdNqtPkm1mj/8gW4QYZ8/UcrWyNViNaPjutCIbi5evC9qED5zg/z5H+JRasynz06zRh9sSmYD7AUP5QUjmVtY3Gc+acrJ3J+Z9VGxBYsUSufB515oWRqWN2WszHR7vM/XgLldKc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KoXQjvuJ; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1780439175; c=relaxed/simple;
+	bh=dxgjdaBgoJka+nLr3OPDxTSObKaXyPzTZc1U3Z2au1g=;
+	h=Date:To:From:Subject:Message-Id; b=Qg2f4KO+/EgTumVg2BnjDBfQuSJarBmpZi9La3u6eu2mkhgXG251g27gn48YwraArDSpfULuowAnymGLordBGEi6+ropP/uwWqmQdSJQ+fRDbWV9uSxQKg1dnrTj6NEp9EPJGKFjX96+eS4q+AFwc0vRSangvzl+cY/pYt+OFAI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nWq62TX0; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KoXQjvuJ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 845C31F00899;
-	Tue,  2 Jun 2026 22:26:11 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nWq62TX0"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5F4B61F00898;
+	Tue,  2 Jun 2026 22:26:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1780439171;
-	bh=/CsEcivG+Ic2Me728d3BGxcN1NOUi29ea1MkaOumdbc=;
+	d=linux-foundation.org; s=korg; t=1780439173;
+	bh=7yFj2TjSZeb2LEnNQzqBna7ekIum2d4a+F7sTi2xmRc=;
 	h=Date:To:From:Subject;
-	b=KoXQjvuJpndl11LriVimafPC26swhAbUXTTbeQ7DITVsyEbT1WWY1KK5ZaicOZ4WF
-	 c0tRm92tSeZ9uOqDDGzqn8OlGuP+XPoJOQHLSVpvwEatx9eFzKUR32Juy2lFlBdkSY
-	 K/4CSjHXqQbvBrSWMdq9CNmHnsoQ+PZeyjandYh0=
-Date: Tue, 02 Jun 2026 15:26:11 -0700
-To: mm-commits@vger.kernel.org,viro@zeniv.linux.org.uk,peterx@redhat.com,kirill@shutemov.name,jack@suse.cz,david@kernel.org,brauner@kernel.org,rppt@kernel.org,akpm@linux-foundation.org
+	b=nWq62TX0dDO5l3CXQ0wPVhFrphJAhrW0XPACMOymyghKRXPbT79uJzWtrL5ObL0Qa
+	 s+CrgM8I2T5DHk3wkS38q0dt21iN8DUr76XXu+sISUuMZFppqk8tWvM40Ly1GgRWLu
+	 Xs1/VlLsLbyYTofUspwkZPM2cnBPbiC0jgE2Zcmc=
+Date: Tue, 02 Jun 2026 15:26:12 -0700
+To: mm-commits@vger.kernel.org,yuzhao@google.com,yuanchu@google.com,weixugc@google.com,vernon2gm@gmail.com,surenb@google.com,stevensd@google.com,shakeel.butt@linux.dev,mhocko@kernel.org,ljs@kernel.org,lenohou@gmail.com,laoar.shao@gmail.com,kaleshsingh@google.com,hannes@cmpxchg.org,david@kernel.org,chrisl@kernel.org,chenridong@huaweicloud.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,axelrasmussen@google.com,kasong@tencent.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] userfaultfd-make-functions-that-are-not-used-outside-uffd-static.patch removed from -mm tree
-Message-Id: <20260602222611.845C31F00899@smtp.kernel.org>
+Subject: [merged mm-stable] mm-mglru-consolidate-common-code-for-retrieving-evictable-size.patch removed from -mm tree
+Message-Id: <20260602222613.5F4B61F00898@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,273 +35,371 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: userfaultfd: make functions that are not used outside uffd static
+     Subject: mm/mglru: consolidate common code for retrieving evictable size
 has been removed from the -mm tree.  Its filename was
-     userfaultfd-make-functions-that-are-not-used-outside-uffd-static.patch
+     mm-mglru-consolidate-common-code-for-retrieving-evictable-size.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
-Subject: userfaultfd: make functions that are not used outside uffd static
-Date: Sat, 23 May 2026 20:37:59 +0300
+From: Kairui Song <kasong@tencent.com>
+Subject: mm/mglru: consolidate common code for retrieving evictable size
+Date: Tue, 28 Apr 2026 02:06:52 +0800
 
-After merging fs/userfaultfd.c into mm/userfaultfd.c, several functions
-that were previously shared between the two files are now only used within
-mm/userfaultfd.c.
+Patch series "mm/mglru: improve reclaim loop and dirty folio", v7.
 
-Make them static and remove their declarations from
-include/linux/userfaultfd_k.h.
+This series cleans up and slightly improves MGLRU's reclaim loop and dirty
+writeback handling.  As a result, we can see an up to ~30% increase in
+some workloads like MongoDB with YCSB and a huge decrease in file refault,
+no swap involved.  Other common benchmarks have no regression, and LOC is
+reduced, with less unexpected OOM, too.
 
-Link: https://lore.kernel.org/20260523173759.3964908-3-rppt@kernel.org
-Assisted-by: Copilot:claude-opus-4-6
-Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christian Brauner <brauner@kernel.org>
+Some of the problems were found in our production environment, and others
+were mostly exposed while stress testing during the development of the
+LSM/MM/BPF topic on improving MGLRU [1].  This series cleans up the code
+base and fixes several performance issues, preparing for further work.
+
+MGLRU's reclaim loop is a bit complex, and hence these problems are
+somehow related to each other.  The aging, scan number calculation, and
+reclaim loop are coupled together, and the dirty folio handling logic is
+quite different, making the reclaim loop hard to follow and the dirty
+flush ineffective.
+
+This series slightly cleans up and improves these issues using a scan
+budget by calculating the number of folios to scan at the beginning of the
+loop, and decouples aging from the reclaim calculation helpers.  Then,
+move the dirty flush logic inside the reclaim loop so it can kick in more
+effectively.  These issues are somehow related, and this series handles
+them and improves MGLRU reclaim in many ways.
+
+Test results: All tests are done on a 48c96t NUMA machine with 2 nodes and
+a 128G memory machine using NVME as storage.  Classical (non-MGLRU) LRU
+numbers are included as "MGLRU disabled" for each benchmark below; see [8]
+and [9] for the longer write-up.
+
+MongoDB
+=======
+Running YCSB workloadb [2] (recordcount:20000000 operationcount:6000000,
+threads:32), which does 95% read and 5% update to generate mixed read and
+dirty writeback.  MongoDB is set up in a 10G cgroup using Docker, and the
+WiredTiger cache size is set to 4.5G, using NVME as storage.  This is
+close to the case we observed regressing in our production environment:
+mixed read and writeback pressure, so it is a practical case for
+evaluation.
+
+Not using SWAP.  The intent is to isolate the file LRU writeback path. 
+Enabling SWAP would just add noise from anonymous reclaim.
+
+MGLRU Before:
+Throughput(ops/sec): 60653.502655
+workingset_refault_file 12904916
+pgpgin 165366622
+pgpgout 5219588
+
+MGLRU After:
+Throughput(ops/sec): 82384.354760 (+35.8%, higher is better)
+workingset_refault_file 7128285   (-44.7%, lower is better)
+pgpgin 113170693                  (-31.5%, lower is better)
+pgpgout 5639724
+
+MGLRU Disabled:
+Throughput(ops/sec): 93713.640901
+workingset_refault_file 15013443
+pgpgin 85365614
+pgpgout 5866508
+
+We can see a significant performance improvement after this series.  The
+test is done on NVME and the performance gap would be even larger for slow
+devices, such as HDD or network storage.  We observed over 100% gain for
+some workloads with slow IO.
+
+Note, classical LRU is still faster for this benchmark, MGLRU may catch up
+later with further work [7].
+
+Chrome & Node.js [3]
+====================
+Using Yu Zhao's test script [3], testing on a x86_64 NUMA machine with 2
+nodes and 128G memory, using 256G ZRAM as swap and spawn 32 memcg 64
+workers.  Many memcgs each applying roughly equal pressure exercises the
+LRU's ability to detect/protect each tenant's working set and to balance
+reclamation fairly between tenants, which makes this a meaningful test for
+the reclaim mechanism.
+
+Fairness is reported via Jain's fairness index (1.0 means all tenants get
+exactly equal allocation, lower is worse).  Under equal pressure, all
+memcgs should make roughly equal forward progress.  See [8] for the longer
+rationale and per-memcg breakdown.
+
+MGLRU before:
+Total requests:           81898
+Per-worker mean:         1279.7
+Per-worker 95% CI (mean):       [  1259.0,   1300.4]
+Jain's fairness index: 0.995893  (1.0 = perfectly fair)
+Latency:
+      Bucket     Count      Pct    Cumul
+      [0,1)s     28392   34.67%   34.67%
+      [1,2)s      8022    9.80%   44.46%
+      [2,4)s      6130    7.48%   51.95%
+      [4,8)s     39354   48.05%  100.00%
+
+MGLRU after:
+Total requests:           82901
+Per-worker mean:         1295.3
+Per-worker 95% CI (mean):       [  1265.3,   1325.4]
+Jain's fairness index: 0.991607  (1.0 = perfectly fair)
+Latency:
+      Bucket     Count      Pct    Cumul
+      [0,1)s     28128   33.93%   33.93%
+      [1,2)s      8756   10.56%   44.49%
+      [2,4)s      7028    8.48%   52.97%
+      [4,8)s     38989   47.03%  100.00%
+
+MGLRU disabled:
+Total requests:           62399
+Per-worker mean:          975.0
+Per-worker 95% CI (mean):       [   941.9,   1008.1]
+Jain's fairness index: 0.982156  (1.0 = perfectly fair)
+Latency:
+      Bucket     Count      Pct    Cumul
+      [0,1)s     20051   32.13%   32.13%
+      [1,2)s      2255    3.61%   35.75%
+      [2,4)s      6149    9.85%   45.60%
+      [4,8)s     33927   54.37%   99.97%
+     [8,16)s        17    0.03%  100.00%
+
+Reclaim is still fair and effective, total requests number seems slightly
+better.
+
+OOM issue with aging and throttling
+===================================
+For the throttling OOM issue, it can be easily reproduced using dd and
+cgroup limit as demonstrated and fixed by a later patch in this series.
+
+The aging OOM is a bit tricky, a specific reproducer can be used to
+simulate what we encountered in production environment [4]: Spawns
+multiple workers that keep reading the given file using mmap, and pauses
+for 120ms after one file read batch.  It also spawns another set of
+workers that keep allocating and freeing a given size of anonymous memory.
+The total memory size exceeds the memory limit (eg.  14G anon + 8G file,
+which is 22G vs a 16G memcg limit).
+
+- MGLRU disabled:
+  Finished 128 iterations.
+
+- MGLRU enabled:
+  OOM with following info after about ~10-20 iterations:
+    [   62.624130] file_anon_mix_p invoked oom-killer: gfp_mask=0xcc0(GFP_KERNEL), order=0, oom_score_adj=0
+    [   62.624999] memory: usage 16777216kB, limit 16777216kB, failcnt 24460
+    [   62.640200] swap: usage 0kB, limit 9007199254740988kB, failcnt 0
+    [   62.640823] Memory cgroup stats for /demo:
+    [   62.641017] anon 10604879872
+    [   62.641941] file 6574858240
+
+  OOM occurs despite there being still evictable file folios.
+
+- MGLRU enabled after this series:
+  Finished 128 iterations.
+
+Worth noting there is another OOM related issue reported in V1 of this
+series, which is tested and looking OK now [5].
+
+MySQL:
+======
+
+Testing with innodb_buffer_pool_size=26106127360, in a 2G memcg, using
+ZRAM as swap and test command:
+
+sysbench /usr/share/sysbench/oltp_read_only.lua --mysql-db=sb \
+  --tables=48 --table-size=2000000 --threads=48 --time=600 run
+
+A 24G InnoDB buffer pool inside a 2G memcg with ZRAM as swap forces
+aggressive eviction of cached database anon pages, which exercises the
+LRU's hot page detection and the eviction path under swap pressure.  The
+workload is practical, and the pressure is higher than what we usually see
+in production but it is intended to expose the extreme case.
+
+MGLRU before:   17313.688333 tps
+MGLRU after:    17286.195000 tps
+MGLRU disabled: 16245.330000 tps
+
+Seems only noise level changes, no regression.
+
+FIO:
+====
+Testing with the following command, where /mnt/ramdisk is a 64G EXT4
+ramdisk, each test file is 3G, in a 10G memcg, 6 test run each:
+
+fio --directory=/mnt/ramdisk --filename_format='test.$jobnum.img' \
+  --name=cached --numjobs=16 --size=3072M --buffered=1 --ioengine=mmap \
+  --rw=randread --norandommap --time_based \
+  --ramp_time=1m --runtime=5m --group_reporting
+
+Random buffered mmap read on a ramdisk strips out storage variance and
+stresses purely the LRU's ability to evict and recycle the page cache
+under heavy random read pressure.
+
+MGLRU before:      9033.91 MB/s
+MGLRU after:       9065.72 MB/s
+MGLRU disabled:    8254.54 MB/s
+
+Also seem only noise level changes and no regression or slightly better.
+
+Build kernel:
+=============
+Build kernel test using ZRAM as swap, kernel source on tmpfs, in a memcg
+with memory.max=3G, using make -j96 and defconfig, measuring system time,
+6 test run each.  Building the kernel is a classical mixed anon + file
+workload (lots of small file reads/writes plus parallel anon allocations
+from cc/ld) and is representative of many real compilation jobs.
+
+MGLRU before:     2823.13s
+MGLRU after:      2801.26s
+MGLRU disabled:   5023.50s
+
+Also seem only noise level changes, no regression or very slightly better.
+
+Android:
+========
+Xinyu reported a performance gain on Android, too, with this series.  The
+test consisted of cold-starting multiple applications sequentially under
+moderate system load [6]; this is a real Android user-visible scenario,
+dominated by the LRU's ability to keep the right working set resident and
+re-fault launch-critical pages quickly.
+
+Before:
+Launch Time Summary (all apps, all runs)
+  Mean 868.0ms
+  P50 888.0ms
+  P90 1274.2ms
+  P95 1399.0ms
+
+After:
+Launch Time Summary (all apps, all runs)
+  Mean 850.5ms (-2.07%)
+  P50 861.5ms  (-3.04%)
+  P90 1179.0ms (-8.05%)
+  P95 1228.0ms (-12.2%)
+
+
+This patch (of 15):
+
+Merge commonly used code for counting evictable folios in a lruvec.
+
+No behavior change.
+
+Link: https://lore.kernel.org/20260428-mglru-reclaim-v7-0-02fabb92dc43@tencent.com
+Link: https://lore.kernel.org/20260428-mglru-reclaim-v7-1-02fabb92dc43@tencent.com
+Link: https://lore.kernel.org/linux-mm/CAMgjq7BoekNjg-Ra3C8M7=8=75su38w=HD782T5E_cxyeCeH_g@mail.gmail.com/ [1]
+Link: https://github.com/brianfrankcooper/YCSB/blob/master/workloads/workloadb [2]
+Link: https://lore.kernel.org/all/20221220214923.1229538-1-yuzhao@google.com/ [3]
+Link: https://github.com/ryncsn/emm-test-project/tree/master/file-anon-mix-pressure [4]
+Link: https://lore.kernel.org/linux-mm/acgNCzRDVmSbXrOE@KASONG-MC4/ [5]
+Link: https://lore.kernel.org/linux-mm/20260417025123.2971253-1-wxy2009nrrr@163.com/ [6]
+Link: https://lore.kernel.org/linux-mm/20260502-mglru-fg-v1-0-913619b014d9@tencent.com/ [7]
+Link: https://lore.kernel.org/linux-mm/CAMgjq7BzQAPp8u_3-9e3ueXmRCoW=2sydok0hFM=MYL7VC1YYg@mail.gmail.com/ [8]
+Link: https://lore.kernel.org/linux-mm/CAMgjq7D+4QmiWe73OPFuH0s+ZKCUJoo+MfcWOdJcV+VO-T2Wmg@mail.gmail.com/ [9]
+Signed-off-by: Kairui Song <kasong@tencent.com>
+Acked-by: Yuanchu Xie <yuanchu@google.com>
+Reviewed-by: Barry Song <baohua@kernel.org>
+Reviewed-by: Chen Ridong <chenridong@huaweicloud.com>
+Reviewed-by: Axel Rasmussen <axelrasmussen@google.com>
+Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Chris Li <chrisl@kernel.org>
 Cc: David Hildenbrand <david@kernel.org>
-Cc: Jan Kara <jack@suse.cz>
-Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
-Cc: Peter Xu <peterx@redhat.com>
+Cc: David Stevens <stevensd@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Kalesh Singh <kaleshsingh@google.com>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vernon Yang <vernon2gm@gmail.com>
+Cc: Wei Xu <weixugc@google.com>
+Cc: Yafang <laoar.shao@gmail.com>
+Cc: Yu Zhao <yuzhao@google.com>
+Cc: Leno Hou <lenohou@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/userfaultfd_k.h |   36 --------------------------------
- mm/userfaultfd.c              |   24 ++++++++++-----------
- 2 files changed, 12 insertions(+), 48 deletions(-)
+ mm/vmscan.c |   36 ++++++++++++++----------------------
+ 1 file changed, 14 insertions(+), 22 deletions(-)
 
---- a/include/linux/userfaultfd_k.h~userfaultfd-make-functions-that-are-not-used-outside-uffd-static
-+++ a/include/linux/userfaultfd_k.h
-@@ -147,26 +147,12 @@ static inline uffd_flags_t uffd_flags_se
- /* Flags controlling behavior. These behavior changes are mode-independent. */
- #define MFILL_ATOMIC_WP MFILL_ATOMIC_FLAG(0)
- 
--extern ssize_t mfill_atomic_copy(struct userfaultfd_ctx *ctx, unsigned long dst_start,
--				 unsigned long src_start, unsigned long len,
--				 uffd_flags_t flags);
--extern ssize_t mfill_atomic_zeropage(struct userfaultfd_ctx *ctx,
--				     unsigned long dst_start,
--				     unsigned long len);
--extern ssize_t mfill_atomic_continue(struct userfaultfd_ctx *ctx, unsigned long dst_start,
--				     unsigned long len, uffd_flags_t flags);
--extern ssize_t mfill_atomic_poison(struct userfaultfd_ctx *ctx, unsigned long start,
--				   unsigned long len, uffd_flags_t flags);
--extern int mwriteprotect_range(struct userfaultfd_ctx *ctx, unsigned long start,
--			       unsigned long len, bool enable_wp);
- extern long uffd_wp_range(struct vm_area_struct *vma,
- 			  unsigned long start, unsigned long len, bool enable_wp);
- 
- /* move_pages */
- void double_pt_lock(spinlock_t *ptl1, spinlock_t *ptl2);
- void double_pt_unlock(spinlock_t *ptl1, spinlock_t *ptl2);
--ssize_t move_pages(struct userfaultfd_ctx *ctx, unsigned long dst_start,
--		   unsigned long src_start, unsigned long len, __u64 flags);
- int move_pages_huge_pmd(struct mm_struct *mm, pmd_t *dst_pmd, pmd_t *src_pmd, pmd_t dst_pmdval,
- 			struct vm_area_struct *dst_vma,
- 			struct vm_area_struct *src_vma,
-@@ -239,9 +225,6 @@ static inline bool userfaultfd_armed(str
- 	return vma->vm_flags & __VM_UFFD_FLAGS;
+--- a/mm/vmscan.c~mm-mglru-consolidate-common-code-for-retrieving-evictable-size
++++ a/mm/vmscan.c
+@@ -4088,27 +4088,33 @@ static void set_initial_priority(struct
+ 	sc->priority = clamp(priority, DEF_PRIORITY / 2, DEF_PRIORITY);
  }
  
--bool vma_can_userfault(struct vm_area_struct *vma, vm_flags_t vm_flags,
--		       bool wp_async);
+-static bool lruvec_is_sizable(struct lruvec *lruvec, struct scan_control *sc)
++static unsigned long lruvec_evictable_size(struct lruvec *lruvec, int swappiness)
+ {
+ 	int gen, type, zone;
+-	unsigned long total = 0;
+-	int swappiness = get_swappiness(lruvec, sc);
++	unsigned long seq, total = 0;
+ 	struct lru_gen_folio *lrugen = &lruvec->lrugen;
+-	struct mem_cgroup *memcg = lruvec_memcg(lruvec);
+ 	DEFINE_MAX_SEQ(lruvec);
+ 	DEFINE_MIN_SEQ(lruvec);
+ 
+ 	for_each_evictable_type(type, swappiness) {
+-		unsigned long seq;
 -
- static inline bool vma_has_uffd_without_event_remap(struct vm_area_struct *vma)
- {
- 	struct userfaultfd_ctx *uffd_ctx = vma->vm_userfaultfd_ctx.ctx;
-@@ -271,25 +254,6 @@ extern void userfaultfd_unmap_complete(s
- extern bool userfaultfd_wp_unpopulated(struct vm_area_struct *vma);
- extern bool userfaultfd_wp_async(struct vm_area_struct *vma);
- 
--void userfaultfd_reset_ctx(struct vm_area_struct *vma);
+ 		for (seq = min_seq[type]; seq <= max_seq; seq++) {
+ 			gen = lru_gen_from_seq(seq);
 -
--struct vm_area_struct *userfaultfd_clear_vma(struct vma_iterator *vmi,
--					     struct vm_area_struct *prev,
--					     struct vm_area_struct *vma,
--					     unsigned long start,
--					     unsigned long end);
+ 			for (zone = 0; zone < MAX_NR_ZONES; zone++)
+ 				total += max(READ_ONCE(lrugen->nr_pages[gen][type][zone]), 0L);
+ 		}
+ 	}
+ 
++	return total;
++}
++
++static bool lruvec_is_sizable(struct lruvec *lruvec, struct scan_control *sc)
++{
++	unsigned long total;
++	int swappiness = get_swappiness(lruvec, sc);
++	struct mem_cgroup *memcg = lruvec_memcg(lruvec);
++
++	total = lruvec_evictable_size(lruvec, swappiness);
++
+ 	/* whether the size is big enough to be helpful */
+ 	return mem_cgroup_online(memcg) ? (total >> sc->priority) : total;
+ }
+@@ -4913,9 +4919,6 @@ retry:
+ static bool should_run_aging(struct lruvec *lruvec, unsigned long max_seq,
+ 			     int swappiness, unsigned long *nr_to_scan)
+ {
+-	int gen, type, zone;
+-	unsigned long size = 0;
+-	struct lru_gen_folio *lrugen = &lruvec->lrugen;
+ 	DEFINE_MIN_SEQ(lruvec);
+ 
+ 	*nr_to_scan = 0;
+@@ -4923,18 +4926,7 @@ static bool should_run_aging(struct lruv
+ 	if (evictable_min_seq(min_seq, swappiness) + MIN_NR_GENS > max_seq)
+ 		return true;
+ 
+-	for_each_evictable_type(type, swappiness) {
+-		unsigned long seq;
 -
--int userfaultfd_register_range(struct userfaultfd_ctx *ctx,
--			       struct vm_area_struct *vma,
--			       vm_flags_t vm_flags,
--			       unsigned long start, unsigned long end,
--			       bool wp_async);
+-		for (seq = min_seq[type]; seq <= max_seq; seq++) {
+-			gen = lru_gen_from_seq(seq);
 -
--void userfaultfd_release_new(struct userfaultfd_ctx *ctx);
+-			for (zone = 0; zone < MAX_NR_ZONES; zone++)
+-				size += max(READ_ONCE(lrugen->nr_pages[gen][type][zone]), 0L);
+-		}
+-	}
 -
--void userfaultfd_release_all(struct mm_struct *mm,
--			     struct userfaultfd_ctx *ctx);
--
- static inline bool userfaultfd_wp_use_markers(struct vm_area_struct *vma)
- {
- 	/* Only wr-protect mode uses pte markers */
---- a/mm/userfaultfd.c~userfaultfd-make-functions-that-are-not-used-outside-uffd-static
-+++ a/mm/userfaultfd.c
-@@ -1033,7 +1033,7 @@ out:
- 	return copied ? copied : err;
+-	*nr_to_scan = size;
++	*nr_to_scan = lruvec_evictable_size(lruvec, swappiness);
+ 	/* better to run aging even though eviction is still possible */
+ 	return evictable_min_seq(min_seq, swappiness) + MIN_NR_GENS == max_seq;
  }
- 
--ssize_t mfill_atomic_copy(struct userfaultfd_ctx *ctx, unsigned long dst_start,
-+static ssize_t mfill_atomic_copy(struct userfaultfd_ctx *ctx, unsigned long dst_start,
- 			  unsigned long src_start, unsigned long len,
- 			  uffd_flags_t flags)
- {
-@@ -1041,7 +1041,7 @@ ssize_t mfill_atomic_copy(struct userfau
- 			    uffd_flags_set_mode(flags, MFILL_ATOMIC_COPY));
- }
- 
--ssize_t mfill_atomic_zeropage(struct userfaultfd_ctx *ctx,
-+static ssize_t mfill_atomic_zeropage(struct userfaultfd_ctx *ctx,
- 			      unsigned long start,
- 			      unsigned long len)
- {
-@@ -1049,7 +1049,7 @@ ssize_t mfill_atomic_zeropage(struct use
- 			    uffd_flags_set_mode(0, MFILL_ATOMIC_ZEROPAGE));
- }
- 
--ssize_t mfill_atomic_continue(struct userfaultfd_ctx *ctx, unsigned long start,
-+static ssize_t mfill_atomic_continue(struct userfaultfd_ctx *ctx, unsigned long start,
- 			      unsigned long len, uffd_flags_t flags)
- {
- 
-@@ -1065,7 +1065,7 @@ ssize_t mfill_atomic_continue(struct use
- 			    uffd_flags_set_mode(flags, MFILL_ATOMIC_CONTINUE));
- }
- 
--ssize_t mfill_atomic_poison(struct userfaultfd_ctx *ctx, unsigned long start,
-+static ssize_t mfill_atomic_poison(struct userfaultfd_ctx *ctx, unsigned long start,
- 			    unsigned long len, uffd_flags_t flags)
- {
- 	return mfill_atomic(ctx, start, 0, len,
-@@ -1101,7 +1101,7 @@ long uffd_wp_range(struct vm_area_struct
- 	return ret;
- }
- 
--int mwriteprotect_range(struct userfaultfd_ctx *ctx, unsigned long start,
-+static int mwriteprotect_range(struct userfaultfd_ctx *ctx, unsigned long start,
- 			unsigned long len, bool enable_wp)
- {
- 	struct mm_struct *dst_mm = ctx->mm;
-@@ -1931,7 +1931,7 @@ static void uffd_move_unlock(struct vm_a
-  * in the regions or not, but preventing the risk of having to split
-  * the hugepmd during the remap.
-  */
--ssize_t move_pages(struct userfaultfd_ctx *ctx, unsigned long dst_start,
-+static ssize_t move_pages(struct userfaultfd_ctx *ctx, unsigned long dst_start,
- 		   unsigned long src_start, unsigned long len, __u64 mode)
- {
- 	struct mm_struct *mm = ctx->mm;
-@@ -2106,7 +2106,7 @@ out:
- 	return moved ? moved : err;
- }
- 
--bool vma_can_userfault(struct vm_area_struct *vma, vm_flags_t vm_flags,
-+static bool vma_can_userfault(struct vm_area_struct *vma, vm_flags_t vm_flags,
- 		       bool wp_async)
- {
- 	const struct vm_uffd_ops *ops = vma_uffd_ops(vma);
-@@ -2163,12 +2163,12 @@ static void userfaultfd_set_ctx(struct v
- 				 (vma->vm_flags & ~__VM_UFFD_FLAGS) | vm_flags);
- }
- 
--void userfaultfd_reset_ctx(struct vm_area_struct *vma)
-+static void userfaultfd_reset_ctx(struct vm_area_struct *vma)
- {
- 	userfaultfd_set_ctx(vma, NULL, 0);
- }
- 
--struct vm_area_struct *userfaultfd_clear_vma(struct vma_iterator *vmi,
-+static struct vm_area_struct *userfaultfd_clear_vma(struct vma_iterator *vmi,
- 					     struct vm_area_struct *prev,
- 					     struct vm_area_struct *vma,
- 					     unsigned long start,
-@@ -2207,7 +2207,7 @@ struct vm_area_struct *userfaultfd_clear
- }
- 
- /* Assumes mmap write lock taken, and mm_struct pinned. */
--int userfaultfd_register_range(struct userfaultfd_ctx *ctx,
-+static int userfaultfd_register_range(struct userfaultfd_ctx *ctx,
- 			       struct vm_area_struct *vma,
- 			       vm_flags_t vm_flags,
- 			       unsigned long start, unsigned long end,
-@@ -2271,7 +2271,7 @@ skip:
- 	return 0;
- }
- 
--void userfaultfd_release_new(struct userfaultfd_ctx *ctx)
-+static void userfaultfd_release_new(struct userfaultfd_ctx *ctx)
- {
- 	struct mm_struct *mm = ctx->mm;
- 	struct vm_area_struct *vma;
-@@ -2286,7 +2286,7 @@ void userfaultfd_release_new(struct user
- 	mmap_write_unlock(mm);
- }
- 
--void userfaultfd_release_all(struct mm_struct *mm,
-+static void userfaultfd_release_all(struct mm_struct *mm,
- 			     struct userfaultfd_ctx *ctx)
- {
- 	struct vm_area_struct *vma, *prev;
 _
 
-Patches currently in -mm which might be from rppt@kernel.org are
+Patches currently in -mm which might be from kasong@tencent.com are
 
-selftests-mm-hugetlb-read-hwpoison-add-sigbus-handler.patch
-selftests-mm-migration-dont-assume-huge-page-is-twomeg.patch
-selftests-mm-migration-make-nthreads-represent-number-of-working-threads.patch
-selftests-mm-migration-properly-cleanup-forked-processes.patch
-selftests-mm-run_vmtestssh-dont-gate-thp-and-ksm-tests-on-have_hugepages.patch
-selftests-mm-merge-map_hugetlb-into-hugepage-mmap.patch
-selftests-mm-rename-hugepage-tests-to-hugetlb.patch
-selftests-mm-hugetlb-shm-use-kselftest-framework.patch
-selftests-mm-hugetlb-vmemmap-use-kselftest-framework.patch
-selftests-mm-hugetlb-madvise-use-kselftest-framework.patch
-selftests-mm-hugetlb_madv_vs_map-use-kselftest-framework.patch
-selftests-mm-hugetlb-read-hwpoison-use-kselftest-framework.patch
-selftests-mm-khugepaged-group-tests-in-an-array.patch
-selftests-mm-khugepaged-use-ksefltest-framework.patch
-selftests-mm-khugepaged-use-ksefltest-framework-fix.patch
-selftests-mm-ksm_tests-use-kselftest-framework.patch
-selftests-mm-protection_keys-use-descriptive-test-names-in-the-output.patch
-selftests-mm-protection_keys-use-kselftest-framework.patch
-selftests-mm-uffd-common-use-kselftest-framework.patch
-selftests-mm-uffd-stress-use-kselftest-framework.patch
-selftests-mm-uffd-unit-tests-use-kselftest-framework.patch
-selftests-mm-va_high_addr_switch-use-kselftest-framework.patch
-selftests-mm-add-atexit-and-signal-handlers-to-thp_settings.patch
-selftests-mm-rename-thp_settings-to-hugepage_settings.patch
-selftests-mm-move-hugetlb-helpers-to-hugepage_settings.patch
-selftests-mm-hugepage_settings-use-unsigned-long-in-detect_hugetlb_page_size.patch
-selftests-mm-hugepage_settings-add-apis-to-get-and-set-nr_hugepages.patch
-selftests-mm-hugepage_settings-rename-and-rework-get_free_hugepages.patch
-selftests-mm-hugepage_settings-add-apis-for-hugetlb-setup-and-teardown.patch
-selftests-mm-move-read_file-read_num-and-write_num-to-vm_util.patch
-selftests-mm-vm_util-add-helpers-to-set-and-restore-shm-limits.patch
-selftests-mm-compaction_test-use-hugetlb-helpers.patch
-selftests-mm-cow-add-setup-of-hugetlb-pages.patch
-selftests-mm-gup_longterm-add-setup-of-hugetlb-pages.patch
-selftests-mm-gup_test-add-setup-of-hugetlb-pages.patch
-selftests-mm-hmm-tests-add-setup-of-hugetlb-pages.patch
-selftests-mm-hugepage_dio-add-setup-of-hugetlb-pages.patch
-selftests-mm-hugetlb_fault_after_madv-add-setup-of-hugetlb-pages.patch
-selftests-mm-hugetlb-madvise-add-setup-of-hugetlb-pages.patch
-selftests-mm-hugetlb_madv_vs_map-add-setup-of-hugetlb-pages.patch
-selftests-mm-hugetlb-mmap-add-setup-of-hugetlb-pages.patch
-selftests-mm-hugetlb-mremap-add-setup-of-hugetlb-pages.patch
-selftests-mm-hugetlb-shm-add-setup-of-hugetlb-pages.patch
-selftests-mm-hugetlb-soft-offline-add-setup-of-hugetlb-pages.patch
-selftests-mm-hugetlb-vmemmap-add-setup-of-hugetlb-pages.patch
-selftests-mm-migration-add-setup-of-hugetlb-pages.patch
-selftests-mm-pagemap_ioctl-add-setup-of-hugetlb-pages.patch
-selftests-mm-protection_keys-use-library-code-for-hugetlb-setup.patch
-selftests-mm-thuge-gen-add-setup-of-hugetlb-pages.patch
-selftests-mm-uffd-stress-use-hugetlb_save-and-alloc-huge-pages.patch
-selftests-mm-uffd-unit-tests-add-setup-of-hugetlb-pages.patch
-selftests-mm-uffd-wp-mremap-add-setup-of-hugetlb-pages.patch
-selftests-mm-va_high_addr_switch-add-setup-of-hugetlb-pages.patch
-selftests-mm-va_high_addr_switchsh-drop-huge-pages-setup.patch
-selftests-mm-run_vmtestssh-free-memory-if-available-memory-is-low.patch
-selftests-mm-run_vmtestssh-drop-detection-and-setup-of-hugetlb.patch
-xor-use-kmalloc-in-calibrate_xor_blocks.patch
-raid6-use-kmalloc-in-raid6_select_algo.patch
 
