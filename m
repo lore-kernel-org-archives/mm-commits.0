@@ -1,110 +1,169 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 183129463
-	for <mm-commits@vger.kernel.org>; Tue,  2 Jun 2026 13:47:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3295238CFEF
+	for <mm-commits@vger.kernel.org>; Tue,  2 Jun 2026 17:10:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780408033; cv=none; b=DdUlYiPvANc5gxHIB1h53/iipFS1/EccsRUiiZOq6jtPp6+KK0nXAc1zItpoVHSkFyUbR+Z9unwCNabk1Vrv4qlS5VXyA6cYjuYn24aXrN3c/mzslaT00ci9sCsyRpiHzVCMuSaFtjdqfeJtYY2GTbipKIRDIA/46saU9y83iGE=
+	t=1780420254; cv=none; b=mVeGPlqXypoMzh5jZuFPBuT/wma1fSXrJMA009VaCznS9s7lEPVUetUd/KWDhEwUoxnS+zA0l4PQ5VHtaM+B6KMaHD6QlYxv0Jafw2euIQDPY06K5FGApr8cADHfOEcwcua89K2O89FMYboVIaCMkO3g9G/wSjlNkHfqVFQXwpg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780408033; c=relaxed/simple;
-	bh=NRMzpm6Pqs/j/S7942U0/U8OZBaTCVvUF2GrjcvLpiA=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=B+sAYWykaUdS2PCjBCg+G9hUlifN8nT9PwEL+Vro0OVGDSKSlvLmo/R231zRAz22b81xqi5gE8RFSFhZDfMyv2EmDzJmLokGgrHatYsj4CZpJljv7ufPtq7bfQMqEOe2ESoYmnwMwAf7Ncp9BIKFPnWOHYXnveaiswoGXstaVe0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=E6+cHAZB; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1780420254; c=relaxed/simple;
+	bh=wMCXU5DIy4Dm3kMqdL/KQV2JIF/ESETBHCSW9f1B9zg=;
+	h=Date:To:From:Subject:Message-Id; b=YOHg+hLSf7hW6fm5g7SOYM6R5hnPVPzKfQ1hUvRV/VNG7dK2r87UKL0G1efCcl+czLJZsJT0pUwy4aSH6f/B8L4u2OEh8MGOE2On5M+G/Orxo/48ep866L1fbNy2y+SNW8FGIxWZgagtcbhVMN8+jSStPRqWEkAGMqPjatmdSsM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2sqoy0e1; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="E6+cHAZB"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CE10D1F00899
-	for <mm-commits@vger.kernel.org>; Tue,  2 Jun 2026 13:47:11 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1780408031;
-	bh=7AR8KNknDi2PUvwcpCAHJzwwgVWb21gFCGg7IkCkN44=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=E6+cHAZB+ZFEwv18E6CA90GaRFy/ZO7ejsfYpOv/ldMeC0maM+fCiBCLjOz1lYBel
-	 DvpSfyPdWiBtrhqslQ8Cwze8U/VcqxrZL8LxSVataZ32QByplGEJnF8QHSVL2cdhC5
-	 l3I34tClVHde8siT5Qap9idIS+gxkkGHxfAYdf1SBCwjMzX9VKCTjd2uL7o5US27tc
-	 L/d4OWamyCEQhZA6hofTSF9Z19W+1qOjNEaALypBjG4kfRmg40BRo/nBkaSDf87IJH
-	 BM5laI4YolSSigq0g2h/e6T3lhdkmM2C6D/6uQniRX2yyP6of00wqPO9Vr6B2Rctkl
-	 +Ap6PzwJ0G6zw==
-Received: by mail-lj1-f181.google.com with SMTP id 38308e7fff4ca-396753f343aso28077451fa.2
-        for <mm-commits@vger.kernel.org>; Tue, 02 Jun 2026 06:47:11 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AFNElJ9QZQBxATG3+1YGWjNPA1Z6VP/bmloxNgMF4GsTgmqA+cNBHpZrl32ZdnxU0aPRoKqqrvu6/dLG52SR@vger.kernel.org
-X-Gm-Message-State: AOJu0YwW+/XtM8jA1MooSDGgvJej0xWPfqlaQOP7vTP8G2c7RgTlouT/
-	MwrKPmKAAe85T9xBZ7fnmvlCYPEyyq23Z2PrCu1KlsqUzSL0XZgY7Doeepmqt+LR4Uu2rdHEy1l
-	F09v6xzP+Qp4HLEfSPlqMopXee+ApjDU=
-X-Received: by 2002:a05:651c:895:b0:396:9966:50e0 with SMTP id
- 38308e7fff4ca-39699665460mr16085121fa.21.1780408030600; Tue, 02 Jun 2026
- 06:47:10 -0700 (PDT)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2sqoy0e1"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E4D021F00893;
+	Tue,  2 Jun 2026 17:10:52 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=linux-foundation.org; s=korg; t=1780420253;
+	bh=L0D7UJsCf+JWbqbq8WkSiirDWCy5CfUP0z3NpOtzYYU=;
+	h=Date:To:From:Subject;
+	b=2sqoy0e1pDsDLwVp0HJdhbxRwN5GFGSm4COy1V5ETuJEZvt4GwelsdmUtkwTialZe
+	 EMmcTmkC691jhLGVv8FW6WzHAAPIHZxvQ0w6kFC0p4+2duRBIP+zlYOZDG5IAe3oqK
+	 37ZujXV6GThOp3CtfC3iUOusm5Cf0PsL/UrfiV04=
+Date: Tue, 02 Jun 2026 10:10:52 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,surenb@google.com,osalvador@suse.de,muchun.song@linux.dev,mhocko@suse.com,liushixin2@huawei.com,jackmanb@google.com,hannes@cmpxchg.org,david@kernel.org,chengkaitao@kylinos.cn,akpm@linux-foundation.org
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: + mm-page_isolation-avoid-unsafe-folio-reads-while-scanning-compound-pages.patch added to mm-new branch
+Message-Id: <20260602171052.E4D021F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-References: <20260526184100.3BA431F000E9@smtp.kernel.org> <ah6WDkwO8eYY5f2a@ashevche-desk.local>
- <ah7PWK4gTdOYG1t_@pathway>
-In-Reply-To: <ah7PWK4gTdOYG1t_@pathway>
-From: Tamir Duberstein <tamird@kernel.org>
-Date: Tue, 2 Jun 2026 09:46:33 -0400
-X-Gmail-Original-Message-ID: <CAJ-ks9nHkcgwdh7i8efAv=ka2rtX9o6ZnGZk5KeroCX2G_t3mg@mail.gmail.com>
-X-Gm-Features: AVHnY4L2cA2WPdjmbtSuv3zE2yIru4VUGsgtt0gdB6Ssw87iKVwkKijC5iJKVR4
-Message-ID: <CAJ-ks9nHkcgwdh7i8efAv=ka2rtX9o6ZnGZk5KeroCX2G_t3mg@mail.gmail.com>
-Subject: Re: + errh-use-__always_inline-on-all-error-pointer-helpers.patch
- added to mm-nonmm-unstable branch
-To: Petr Mladek <pmladek@suse.com>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, 
-	Andrew Morton <akpm@linux-foundation.org>, mm-commits@vger.kernel.org, 
-	stable@vger.kernel.org, nathan@kernel.org, hca@linux.ibm.com, 
-	gor@linux.ibm.com, ansuelsmth@gmail.com, andersson@kernel.org, 
-	aleksander.lobakin@intel.com, agordeev@linux.ibm.com, arnd@arndb.de
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
 
-On Tue, Jun 2, 2026 at 8:41=E2=80=AFAM Petr Mladek <pmladek@suse.com> wrote=
-:
->
-> Adding Tamir into Cc.
->
-> On Tue 2026-06-02 11:36:30, Andy Shevchenko wrote:
-> > On Tue, May 26, 2026 at 11:40:59AM -0700, Andrew Morton wrote:
-> >
-> > > The patch titled
-> > >      Subject: err.h: use __always_inline on all error pointer helpers
-> > > has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-> > >      errh-use-__always_inline-on-all-error-pointer-helpers.patch
-> > >
-> > > This patch will shortly appear at
-> > >      https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/=
-tree/patches/errh-use-__always_inline-on-all-error-pointer-helpers.patch
-> >
-> > Petr, shouldn't this also fix the problem with old (buggy) GCC for xten=
-sa
-> > (IIRC) that we encountered in some tests a couple of months ago?
->
-> It might here there as well. Unfortunately, I could not test it easily
-> because it required some old GCC.
->
-> I wonder if Tamir could try to revert the commit 8901ac9d2c7eb8ed
-> ("printf: Compile the kunit test with DISABLE_BRANCH_PROFILING")
-> and try this patch instead.
 
-Yes, confirmed.
+The patch titled
+     Subject: mm: page_isolation: avoid unsafe folio reads while scanning compound pages
+has been added to the -mm mm-new branch.  Its filename is
+     mm-page_isolation-avoid-unsafe-folio-reads-while-scanning-compound-pages.patch
 
-I rebuilt xtensa-linux GCC 8.5.0 and tested printf_kunit.c with the origina=
-l
-randconfig and branch profiling enabled, without DISABLE_BRANCH_PROFILING.
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_isolation-avoid-unsafe-folio-reads-while-scanning-compound-pages.patch
 
-Without Arnd's patch, the original failure reproduces:
+This patch will later appear in the mm-new branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
-printf_kunit.c: In function 'errptr.part.2': error: call to
-'__compiletime_assert_313' declared with attribute error: BUILD_BUG_ON fail=
-ed:
-IS_ERR(PTR)
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
 
-With "err.h: use __always_inline on all error pointer helpers" applied, the=
- same
-compile succeeds.
+The mm-new branch of mm.git is not included in linux-next
 
-So Arnd's patch fixes this case and commit 8901ac9d2c7e ("printf: Compile t=
-he
-kunit test with DISABLE_BRANCH_PROFILING") can be reverted once it lands.
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
+
+------------------------------------------------------
+From: Kaitao Cheng <chengkaitao@kylinos.cn>
+Subject: mm: page_isolation: avoid unsafe folio reads while scanning compound pages
+Date: Tue, 2 Jun 2026 21:07:55 +0800
+
+page_is_unmovable() can inspect compound pages without holding a folio
+reference or any lock.  The folio can therefore be freed, split or reused
+while the scanner is still looking at it.
+
+The existing HugeTLB handling already avoids folio_hstate() for this
+reason, but it still derives the hstate from folio_size() and later
+derives the scan step from folio_nr_pages() and folio_page_idx().  These
+helpers rely on the folio still being a valid folio head.  If the folio
+changed concurrently, the scanner can read inconsistent folio metadata and
+compute a wrong step.  In the worst case, folio_nr_pages() can return 1
+for what used to be a tail page and the subtraction from folio_page_idx()
+can underflow.
+
+There is a similar issue for non-Hugetlb compound pages: folio_test_lru()
+expects a valid folio.  If the previously observed head page has been
+reused as a tail page of another compound page, the folio flag checks can
+trigger VM_BUG_ON_PGFLAGS().
+
+Read the compound order once with compound_order(), reject obviously bogus
+orders, and derive the hstate and scan step from that order instead of
+querying folio size information again.  Also use PageLRU(page), which is
+safe for the page being scanned, instead of folio_test_lru() on a
+potentially stale folio pointer.
+
+Treat an unknown HugeTLB hstate as unmovable so the scanner does not try
+to skip over an unstable HugeTLB folio.
+
+Link: https://lore.kernel.org/20260602130755.38794-1-kaitao.cheng@linux.dev
+Fixes: a0a9f2180b90 ("mm: page_isolation: avoid calling folio_hstate() without hugetlb_lock")
+Signed-off-by: Kaitao Cheng <chengkaitao@kylinos.cn>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Cc: Brendan Jackman <jackmanb@google.com>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Liu Shixin <liushixin2@huawei.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ mm/page_isolation.c |   19 +++++++++++++------
+ 1 file changed, 13 insertions(+), 6 deletions(-)
+
+--- a/mm/page_isolation.c~mm-page_isolation-avoid-unsafe-folio-reads-while-scanning-compound-pages
++++ a/mm/page_isolation.c
+@@ -41,8 +41,14 @@ bool page_is_unmovable(struct zone *zone
+ 	 * We need not scan over tail pages because we don't
+ 	 * handle each tail page individually in migration.
+ 	 */
+-	if (PageHuge(page) || PageCompound(page)) {
++	if (PageCompound(page)) {
+ 		struct folio *folio = page_folio(page);
++		unsigned long nr_pages, pfn;
++		unsigned int order;
++
++		order = compound_order(&folio->page);
++		if (order > MAX_FOLIO_ORDER)
++			return true;
+ 
+ 		if (folio_test_hugetlb(folio)) {
+ 			struct hstate *h;
+@@ -54,15 +60,16 @@ bool page_is_unmovable(struct zone *zone
+ 			 * The huge page may be freed so can not
+ 			 * use folio_hstate() directly.
+ 			 */
+-			h = size_to_hstate(folio_size(folio));
+-			if (h && !hugepage_migration_supported(h))
++			h = size_to_hstate(PAGE_SIZE << order);
++			if (!h || !hugepage_migration_supported(h))
+ 				return true;
+-
+-		} else if (!folio_test_lru(folio)) {
++		} else if (!PageLRU(page)) {
+ 			return true;
+ 		}
+ 
+-		*step = folio_nr_pages(folio) - folio_page_idx(folio, page);
++		nr_pages = 1UL << order;
++		pfn = page_to_pfn(page);
++		*step = (pfn | (nr_pages - 1)) + 1 - pfn;
+ 		return false;
+ 	}
+ 
+_
+
+Patches currently in -mm which might be from chengkaitao@kylinos.cn are
+
+mm-cma_sysfs-skip-inactive-cma-areas-in-sysfs.patch
+mm-memory-failure-use-zone_pcp_disable-for-poison-handling.patch
+mm-page_isolation-avoid-unsafe-folio-reads-while-scanning-compound-pages.patch
+
