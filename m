@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 977DC3C4167
-	for <mm-commits@vger.kernel.org>; Tue,  2 Jun 2026 22:26:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E7DEF3C3443
+	for <mm-commits@vger.kernel.org>; Tue,  2 Jun 2026 22:26:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780439203; cv=none; b=rAKLjYdcKlmVQojujK27ETC22GWG9Sl4xwEvlacwfMOpSxNelJ5ZB7ggmxEvQgwtV49iyyM2byAIF3OwwqvIR6Ym4JYvn6BTJmgJvKZqRtWBCJiLrFLmhZCOH/Nz4LH/Vu5rHc2IR9FAmVB/ONvuZ2WYgwRzOvsTNJGeO/Ht8pw=
+	t=1780439205; cv=none; b=qu3ZZAt/+HJFXzELCiuBfeexOantmQzhmTblEzpR70V0wbV7g76FwWBmVAJqQWKwF65KGtU4llfQcS1VUOdvqmA1jtR1PkSg7jF5zdyewsxy9dvqQ3x0pKQa1lDReEg2vTUEhvQlsruQ2t7HiRASPaZsraj2msSRzsLRwrjdOew=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780439203; c=relaxed/simple;
-	bh=lwvBXAPMpl5rF3+YdWCGfcnRO0LzxOgy9Z9UpJ4ZSdY=;
-	h=Date:To:From:Subject:Message-Id; b=iIWYdhKVGOQ/pslH7dKOKG1qHk/azz1PILMq/7OCjBlpTX+lz6K0fLR7MpjIL8vNwN9WFTbQT5B6bgzCZmTH4sCBXFfQBhHdyXtSLSD1Ks0u6UjXi9foo0hdHGqm4ji7C0nt2VqmDrKfVdkOyoCUZme1Wxhzkt0lwSCQJkO1VzQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NQEiPJau; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1780439205; c=relaxed/simple;
+	bh=kvx7ohWUkAQAus2rwaNLkjOFJjKkcGh6ZwBZcSaUuvk=;
+	h=Date:To:From:Subject:Message-Id; b=RhhG+t/Yl5tTXYPQPmNAmvykxWGGEcDPUh/mJ1WyQKS8ULoUXGuyaZdu6NBLpz2k8HFajvqGC+7VhLexpih4zdJLwwXw9V8+FWdj3189tT2hCc5FNnkaTbFx3wn2y8YtSKVNclNB9dxnM7rFUw0JziSTC6P3Tn0G/smjEjSika0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pWI414w+; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NQEiPJau"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6AD991F00898;
-	Tue,  2 Jun 2026 22:26:42 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pWI414w+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BC0181F00893;
+	Tue,  2 Jun 2026 22:26:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1780439202;
-	bh=dVDm5GGajrcbdgUtofJDLbHRYos7b6cme1ifMallVs0=;
+	d=linux-foundation.org; s=korg; t=1780439203;
+	bh=e1idb4/IemBMh8NiJdrGfqkIk2Q13x9H3oPSA3UM/dA=;
 	h=Date:To:From:Subject;
-	b=NQEiPJauEGy87AWqPoqf+8Vp0WCCtKVzy7MUijv1RbjoclwRkmyyn7CDz/AZzgper
-	 r3Gjdz8vU2zroa0lbUr4kql0fa37Ejfj5Teapoyi7UeV/dOSptDali3B/k1l3NTkIP
-	 5kfrIWnejWqewY19X8RWMdjVBDZqZJPlAhgSYhEc=
-Date: Tue, 02 Jun 2026 15:26:42 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,william.kucharski@linux.dev,shakeel.butt@linux.dev,jack@suse.cz,hannes@cmpxchg.org,david@kernel.org,usama.arif@linux.dev,akpm@linux-foundation.org
+	b=pWI414w++5PM2zdyqSUv0lGHx23vKrx0WyHxt19TeVU9bwhh70ISTfqSrydUwQMhz
+	 1/nbJYulFflO3hiJmT2SW7Q1fD/dGJkOc3rm6w/OAkTR8zv6R5+ZXZAlyHy4CaMZib
+	 TQumnRoK6FG9VEgVvuz/dRKLe90PyK5Kexzm9KjA=
+Date: Tue, 02 Jun 2026 15:26:43 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,ryan.roberts@arm.com,npache@redhat.com,ljs@kernel.org,liam@infradead.org,leitao@debian.org,lance.yang@linux.dev,hughd@google.com,dev.jain@arm.com,david@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,ran.xiaokai@zte.com.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-make-mmap_miss-accounting-symmetric-for-vm_seq_read.patch removed from -mm tree
-Message-Id: <20260602222642.6AD991F00898@smtp.kernel.org>
+Subject: [merged mm-stable] mm-shmem-refactor-thpsize_shmem_enabled_store-with-sysfs_match_string.patch removed from -mm tree
+Message-Id: <20260602222643.BC0181F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,89 +35,196 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: make mmap_miss accounting symmetric for VM_SEQ_READ
+     Subject: mm: shmem: refactor thpsize_shmem_enabled_store() with sysfs_match_string()
 has been removed from the -mm tree.  Its filename was
-     mm-make-mmap_miss-accounting-symmetric-for-vm_seq_read.patch
+     mm-shmem-refactor-thpsize_shmem_enabled_store-with-sysfs_match_string.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Usama Arif <usama.arif@linux.dev>
-Subject: mm: make mmap_miss accounting symmetric for VM_SEQ_READ
-Date: Mon, 25 May 2026 07:57:51 -0700
+From: Ran Xiaokai <ran.xiaokai@zte.com.cn>
+Subject: mm: shmem: refactor thpsize_shmem_enabled_store() with sysfs_match_string()
+Date: Mon, 25 May 2026 10:26:59 +0000
 
-do_sync_mmap_readahead() skips both the mmap_miss increment and the
-MMAP_LOTSAMISS check for VM_SEQ_READ mappings, since sequential access is
-non-speculative and should always read ahead.  The two decrement sites in
-do_async_mmap_readahead() and filemap_map_pages() do not mirror this skip,
-so concurrent faults on a VM_SEQ_READ mapping can still drive
-ra->mmap_miss down to zero through the decrement paths even though nothing
-in the sync path ever increments it.  The counter itself is per-file
-(file->f_ra.mmap_miss), so it can be moved by any VMA mapping the file,
-not just the one currently faulting.
+Patch series "refactors thpsize_shmem_enabled_store() and
+thpsize_shmem_enabled_show()", v4.
 
-Skip the decrement for VM_SEQ_READ in both decrement sites so the counter
-only moves for mappings that also participate in the increment side.  No
-functional change for VM_SEQ_READ users, since the increment-side gate
-already prevents the counter from being consulted on their behalf, but it
-stops a VM_SEQ_READ mapping from biasing the counter for other mappings of
-the same file.
 
-Link: https://lore.kernel.org/20260525145751.2671248-1-usama.arif@linux.dev
-Signed-off-by: Usama Arif <usama.arif@linux.dev>
-Closes: https://lore.kernel.org/all/8edc8cd0-f65c-4456-9b3f-362e744c9a96@linux.dev/
-Reviewed-by: William Kucharski <william.kucharski@linux.dev>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
+This patch (of 2):
+
+Inspired by commit 82d9ff648c6c ("mm: huge_memory: refactor
+anon_enabled_store() with set_anon_enabled_mode()"), refactor
+thpsize_shmem_enabled_store() using sysfs_match_string().  This eliminates
+the duplicated spin_lock/unlock(), set/clear_bit(), calls across all
+branches, reducing code duplication.
+
+Behavioral change:
+Call start_stop_khugepaged() only when the mode actually changes.
+If unchanged, call set_recommended_min_free_kbytes() to preserve
+legacy watermark behavior. This avoids unnecessary khugepaged restarts.
+
+Tested with selftests ./run_kselftest.sh -t mm:ksft_thp.sh,
+all test cases passed.
+
+Link: https://lore.kernel.org/20260525102700.68707-1-ranxiaokai627@163.com
+Link: https://lore.kernel.org/20260525102700.68707-2-ranxiaokai627@163.com
+Signed-off-by: Ran Xiaokai <ran.xiaokai@zte.com.cn>
+Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Reviewed-by: Barry Song <baohua@kernel.org>
+Tested-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Tested-by: Lance Yang <lance.yang@linux.dev>
+Acked-by: David Hildenbrand (arm) <david@kernel.org>
+Reviewed-by: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Breno Leitao <leitao@debian.org>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Nico Pache <npache@redhat.com>
+Cc: Ran Xiaokai <ran.xiaokai@zte.com.cn>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |   14 ++++++++++++--
- 1 file changed, 12 insertions(+), 2 deletions(-)
+ mm/shmem.c |  107 ++++++++++++++++++++++++++++-----------------------
+ 1 file changed, 60 insertions(+), 47 deletions(-)
 
---- a/mm/filemap.c~mm-make-mmap_miss-accounting-symmetric-for-vm_seq_read
-+++ a/mm/filemap.c
-@@ -3434,8 +3434,13 @@ static struct file *do_async_mmap_readah
- 	 * Don't touch the mmap_miss counter to avoid decreasing it multiple
- 	 * times for a single folio and break the balance with mmap_miss
- 	 * increase in do_sync_mmap_readahead().
-+	 *
-+	 * VM_SEQ_READ mappings skip the mmap_miss increment in
-+	 * do_sync_mmap_readahead(), so skip the decrement here as well to
-+	 * keep the counter symmetric.
- 	 */
--	if (likely(!folio_test_locked(folio))) {
-+	if (likely(!folio_test_locked(folio)) &&
-+	    !(vmf->vma->vm_flags & VM_SEQ_READ)) {
- 		mmap_miss = READ_ONCE(ra->mmap_miss);
- 		if (mmap_miss)
- 			WRITE_ONCE(ra->mmap_miss, --mmap_miss);
-@@ -3936,10 +3941,15 @@ vm_fault_t filemap_map_pages(struct vm_f
- 		 * In such situation, read-ahead is only a waste of IO.
- 		 * Don't decrease mmap_miss in this scenario to make sure
- 		 * we can stop read-ahead.
-+		 *
-+		 * VM_SEQ_READ mappings skip the mmap_miss increment in
-+		 * do_sync_mmap_readahead(), so skip the decrement here as
-+		 * well to keep the counter symmetric.
- 		 */
- 		if ((map_ret & VM_FAULT_NOPAGE) &&
- 		    !(vmf->flags & FAULT_FLAG_TRIED) &&
--		    !folio_test_workingset(folio)) {
-+		    !folio_test_workingset(folio) &&
-+		    !(vma->vm_flags & VM_SEQ_READ)) {
- 			unsigned short mmap_miss;
+--- a/mm/shmem.c~mm-shmem-refactor-thpsize_shmem_enabled_store-with-sysfs_match_string
++++ a/mm/shmem.c
+@@ -5463,6 +5463,29 @@ static ssize_t shmem_enabled_store(struc
+ struct kobj_attribute shmem_enabled_attr = __ATTR_RW(shmem_enabled);
+ static DEFINE_SPINLOCK(huge_shmem_orders_lock);
  
- 			mmap_miss = READ_ONCE(file->f_ra.mmap_miss);
++enum huge_mode {
++	HUGE_SHMEM_ENABLED_ALWAYS = 0,
++	HUGE_SHMEM_ENABLED_INHERIT,
++	HUGE_SHMEM_ENABLED_WITHIN_SIZE,
++	HUGE_SHMEM_ENABLED_ADVISE,
++	HUGE_SHMEM_ENABLED_NEVER,
++};
++
++static const char * const huge_mode_strings[] = {
++	[HUGE_SHMEM_ENABLED_ALWAYS]      = "always",
++	[HUGE_SHMEM_ENABLED_INHERIT]     = "inherit",
++	[HUGE_SHMEM_ENABLED_WITHIN_SIZE] = "within_size",
++	[HUGE_SHMEM_ENABLED_ADVISE]      = "advise",
++	[HUGE_SHMEM_ENABLED_NEVER]       = "never",
++};
++
++static unsigned long * const huge_mode_orders[] = {
++	[HUGE_SHMEM_ENABLED_ALWAYS]      = &huge_shmem_orders_always,
++	[HUGE_SHMEM_ENABLED_INHERIT]     = &huge_shmem_orders_inherit,
++	[HUGE_SHMEM_ENABLED_WITHIN_SIZE] = &huge_shmem_orders_within_size,
++	[HUGE_SHMEM_ENABLED_ADVISE]      = &huge_shmem_orders_madvise,
++};
++
+ static ssize_t thpsize_shmem_enabled_show(struct kobject *kobj,
+ 					  struct kobj_attribute *attr, char *buf)
+ {
+@@ -5483,63 +5506,53 @@ static ssize_t thpsize_shmem_enabled_sho
+ 	return sysfs_emit(buf, "%s\n", output);
+ }
+ 
++static bool set_shmem_enabled_mode(int order, enum huge_mode mode)
++{
++	bool changed = false;
++	enum huge_mode idx;
++
++	spin_lock(&huge_shmem_orders_lock);
++	for (idx = 0; idx < ARRAY_SIZE(huge_mode_orders); idx++) {
++		if (idx == mode)
++			changed |= !__test_and_set_bit(order, huge_mode_orders[idx]);
++		else
++			changed |= __test_and_clear_bit(order, huge_mode_orders[idx]);
++	}
++	spin_unlock(&huge_shmem_orders_lock);
++
++	return changed;
++}
++
+ static ssize_t thpsize_shmem_enabled_store(struct kobject *kobj,
+ 					   struct kobj_attribute *attr,
+ 					   const char *buf, size_t count)
+ {
+ 	int order = to_thpsize(kobj)->order;
+-	ssize_t ret = count;
++	int mode;
+ 
+-	if (sysfs_streq(buf, "always")) {
+-		spin_lock(&huge_shmem_orders_lock);
+-		clear_bit(order, &huge_shmem_orders_inherit);
+-		clear_bit(order, &huge_shmem_orders_madvise);
+-		clear_bit(order, &huge_shmem_orders_within_size);
+-		set_bit(order, &huge_shmem_orders_always);
+-		spin_unlock(&huge_shmem_orders_lock);
+-	} else if (sysfs_streq(buf, "inherit")) {
+-		/* Do not override huge allocation policy with non-PMD sized mTHP */
+-		if (shmem_huge == SHMEM_HUGE_FORCE && !is_pmd_order(order))
+-			return -EINVAL;
+-
+-		spin_lock(&huge_shmem_orders_lock);
+-		clear_bit(order, &huge_shmem_orders_always);
+-		clear_bit(order, &huge_shmem_orders_madvise);
+-		clear_bit(order, &huge_shmem_orders_within_size);
+-		set_bit(order, &huge_shmem_orders_inherit);
+-		spin_unlock(&huge_shmem_orders_lock);
+-	} else if (sysfs_streq(buf, "within_size")) {
+-		spin_lock(&huge_shmem_orders_lock);
+-		clear_bit(order, &huge_shmem_orders_always);
+-		clear_bit(order, &huge_shmem_orders_inherit);
+-		clear_bit(order, &huge_shmem_orders_madvise);
+-		set_bit(order, &huge_shmem_orders_within_size);
+-		spin_unlock(&huge_shmem_orders_lock);
+-	} else if (sysfs_streq(buf, "advise")) {
+-		spin_lock(&huge_shmem_orders_lock);
+-		clear_bit(order, &huge_shmem_orders_always);
+-		clear_bit(order, &huge_shmem_orders_inherit);
+-		clear_bit(order, &huge_shmem_orders_within_size);
+-		set_bit(order, &huge_shmem_orders_madvise);
+-		spin_unlock(&huge_shmem_orders_lock);
+-	} else if (sysfs_streq(buf, "never")) {
+-		spin_lock(&huge_shmem_orders_lock);
+-		clear_bit(order, &huge_shmem_orders_always);
+-		clear_bit(order, &huge_shmem_orders_inherit);
+-		clear_bit(order, &huge_shmem_orders_within_size);
+-		clear_bit(order, &huge_shmem_orders_madvise);
+-		spin_unlock(&huge_shmem_orders_lock);
+-	} else {
+-		ret = -EINVAL;
+-	}
++	mode = sysfs_match_string(huge_mode_strings, buf);
++	if (mode < 0)
++		return mode;
++
++	/* Do not override huge allocation policy with non-PMD sized mTHP */
++	if (mode == HUGE_SHMEM_ENABLED_INHERIT &&
++	    shmem_huge == SHMEM_HUGE_FORCE && !is_pmd_order(order))
++		return -EINVAL;
+ 
+-	if (ret > 0) {
++	if (set_shmem_enabled_mode(order, mode)) {
+ 		int err = start_stop_khugepaged();
+-
+ 		if (err)
+-			ret = err;
++			return err;
++	} else {
++		/*
++		 * Recalculate watermarks even when the mode hasn't changed
++		 * to preserve the legacy behavior, as this is always called
++		 * inside start_stop_khugepaged().
++		 */
++		set_recommended_min_free_kbytes();
+ 	}
+-	return ret;
++
++	return count;
+ }
+ 
+ struct kobj_attribute thpsize_shmem_enabled_attr =
 _
 
-Patches currently in -mm which might be from usama.arif@linux.dev are
+Patches currently in -mm which might be from ran.xiaokai@zte.com.cn are
 
-mm-mincore-handle-non-swap-entries-before-config_swap-guard.patch
-mm-bypass-mmap_miss-heuristic-for-vm_exec-readahead.patch
-mm-use-mapping_max_folio_order-for-force_thp_readahead-order.patch
 
