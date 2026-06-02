@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3707A3BCD04
-	for <mm-commits@vger.kernel.org>; Tue,  2 Jun 2026 22:26:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CF9AA3BD65D
+	for <mm-commits@vger.kernel.org>; Tue,  2 Jun 2026 22:26:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780439198; cv=none; b=ikJPYrubOIMQNJZ+XhogtNGDd6LuDHo+ViOMQGDm7iCGIP1daSZQJ+nTkTJAmpYYwYFDjN3B8z6w9bHJxWHuskXCa6z6j6Em1RME7BdWNgAm6VlhA8LszXrUilEftGZSDCr/2/0LCHc46eatJt2DvjrHyfuvKLNNhJ5wZxMtAVo=
+	t=1780439200; cv=none; b=eADX7TETeja6Aq2hj9e2YvXx1AhS14ktbvcBfK6OuhujKD6WV8kxiYn4w+7TP2gvDGYPMPPpIJMb4cRMnF3jNhULpgZoRjmK5ZKUszKgLdnnNwMyeO8FvRWO2mTMjjUV/hD/w0yzxX7Udzrq7k3JQlAYJ8R7xwN95En5orv4DUY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780439198; c=relaxed/simple;
-	bh=4u0zdLO8oC02GKa3b9g5g90Va1Ieccq+GbllZtbw3fU=;
-	h=Date:To:From:Subject:Message-Id; b=bJy+DPZYx61HTQxGT6U9McsGEmV4b+WdDys/HaJJQFexNgG5rTJKf8Ppxy/YCUBgK1yeV0IW3QdyWYAZL4I5kYbE+3HKblGQiL/s7Q/4Xwrq9fbHPUim+8jNwvl4gMpLU3Pe9D0LO5XGIB7hS+8/1tlyxDRTkLkIa1aX8xfsHOo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HQpp2VqQ; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1780439200; c=relaxed/simple;
+	bh=jWD/G4DITbkgUkJDsaIt/n7BPzWckEVwltb9ptdNscE=;
+	h=Date:To:From:Subject:Message-Id; b=Z905z/EbFz0Sh7OhlMh1hH4gg0fwX4Un/akk0l8GYU+fBGvSyr769sgOb3AMekAjss0/KBQIEN1eyCt2jojCZgLbepJDXTLFeshnPf7M+iRkMuCfzJ9GvpI0Eb/fWWSZVhAJ6lsxec4jXjAQGaBQEzT/pMXGrOwky7QY4NDOn/4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ALP6lkwk; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HQpp2VqQ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 11ABE1F00893;
-	Tue,  2 Jun 2026 22:26:37 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ALP6lkwk"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A2ACC1F00893;
+	Tue,  2 Jun 2026 22:26:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1780439197;
-	bh=R0zSeH2PMtOxXJgO0qPnBBKXFGr3NbqV3i74IdcMzpE=;
+	d=linux-foundation.org; s=korg; t=1780439198;
+	bh=VYvoUem2y4xhinv9QUCPhz4xT4oZHWik4Lo/RfJ+1qw=;
 	h=Date:To:From:Subject;
-	b=HQpp2VqQI7Q8oq/MjpqljemsMswarsOmx0TVwYZERAJNC1CC4iES63P4ffGwGSd6Q
-	 N/jy/eA5D8l1Q9wMb8QgDh1sj/eJPMINhvoGMhg83dWi6dC5ejUTWrAQbEuV7ZQski
-	 s0kc8LqxfbMlHerZ9uZSnKL7fblZoW13z++5lkmk=
-Date: Tue, 02 Jun 2026 15:26:36 -0700
-To: mm-commits@vger.kernel.org,yuzhao@google.com,yuanchu@google.com,weixugc@google.com,vernon2gm@gmail.com,surenb@google.com,stevensd@google.com,shakeel.butt@linux.dev,mhocko@kernel.org,ljs@kernel.org,lenohou@gmail.com,laoar.shao@gmail.com,kaleshsingh@google.com,hannes@cmpxchg.org,david@kernel.org,chrisl@kernel.org,chenridong@huaweicloud.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,axelrasmussen@google.com,kasong@tencent.com,akpm@linux-foundation.org
+	b=ALP6lkwkm/1AA5orOX1GOisVVbOFLVl3RxUP5I/3ll8PevzDmMAJqIn8nkXFMCevL
+	 kp1ogq1lGVqzJE1ddLP4C1Mg4mogbgzJCRPP/m3bLxgBS5uSdtKCGud/DInQEO0SIy
+	 4LCUIBXkpPGnwxtMuWyntS8csWe0OyDq6BsARKnE=
+Date: Tue, 02 Jun 2026 15:26:38 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,shuah@kernel.org,richard.weiyang@gmail.com,pfalcato@suse.de,paulmck@kernel.org,ljs@kernel.org,liam@infradead.org,jannh@google.com,surenb@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-vmscan-unify-writeback-reclaim-statistic-and-throttling.patch removed from -mm tree
-Message-Id: <20260602222637.11ABE1F00893@smtp.kernel.org>
+Subject: [merged mm-stable] fs-proc-task_mmu-read-proc-pid-smapsnuma_maps-under-per-vma-lock.patch removed from -mm tree
+Message-Id: <20260602222638.A2ACC1F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,211 +35,408 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/vmscan: unify writeback reclaim statistic and throttling
+     Subject: fs/proc/task_mmu: read proc/pid/{smaps|numa_maps} under per-vma lock
 has been removed from the -mm tree.  Its filename was
-     mm-vmscan-unify-writeback-reclaim-statistic-and-throttling.patch
+     fs-proc-task_mmu-read-proc-pid-smapsnuma_maps-under-per-vma-lock.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Kairui Song <kasong@tencent.com>
-Subject: mm/vmscan: unify writeback reclaim statistic and throttling
-Date: Tue, 28 Apr 2026 02:07:06 +0800
+From: Suren Baghdasaryan <surenb@google.com>
+Subject: fs/proc/task_mmu: read proc/pid/{smaps|numa_maps} under per-vma lock
+Date: Sat, 25 Apr 2026 23:27:16 -0700
 
-Currently MGLRU and non-MGLRU handle the reclaim statistic and writeback
-handling very differently, especially throttling.  Basically MGLRU just
-ignored the throttling part.
+Patch series "use vma locks for proc/pid/{smaps|numa_maps} reads", v2.
 
-Let's just unify this part, use a helper to deduplicate the code so both
-setups will share the same behavior.
+Use per-vma locks when reading /proc/pid/smaps and /proc/pid/numa_maps
+similar to /proc/pid/maps to reduce contention on central mmap_lock.  One
+major difference between maps and smaps/numa_maps reading is that the
+latter executes page table walk which can't be done under RCU due to a
+possibility of sleeping.  Therefore we drop RCU read lock before this walk
+while keeping the VMA locked.  After the walk we retake RCU read lock,
+reset VMA iterator and proceed with the next VMA.
 
-Test using following reproducer using bash:
+The last two patches extend /proc/pid/maps test to cover /proc/pid/smaps
+reading during concurrent address space modification.
 
-  echo "Setup a slow device using dm delay"
-  dd if=/dev/zero of=/var/tmp/backing bs=1M count=2048
-  LOOP=$(losetup --show -f /var/tmp/backing)
-  mkfs.ext4 -q $LOOP
-  echo "0 $(blockdev --getsz $LOOP) delay $LOOP 0 0 $LOOP 0 1000" | \
-      dmsetup create slow_dev
-  mkdir -p /mnt/slow && mount /dev/mapper/slow_dev /mnt/slow
 
-  echo "Start writeback pressure"
-  sync && echo 3 > /proc/sys/vm/drop_caches
-  mkdir /sys/fs/cgroup/test_wb
-  echo 128M > /sys/fs/cgroup/test_wb/memory.max
-  (echo $BASHPID > /sys/fs/cgroup/test_wb/cgroup.procs && \
-      dd if=/dev/zero of=/mnt/slow/testfile bs=1M count=192)
+This patch (of 3):
 
-  echo "Clean up"
-  echo "0 $(blockdev --getsz $LOOP) error" | dmsetup load slow_dev
-  dmsetup resume slow_dev
-  umount -l /mnt/slow && sync
-  dmsetup remove slow_dev
+proc/pid/{smaps|numa_maps} can be read using the combination of RCU and
+VMA read locks, similar to proc/pid/maps.  RCU is required to safely
+traverse the VMA tree and VMA lock stabilizes the VMA being processed and
+the pagetable walk.
 
-Before this commit, `dd` will get OOM killed immediately if MGLRU is
-enabled.  Classic LRU is fine.
-
-After this commit, throttling is now effective and no more spin on LRU or
-premature OOM.  Stress test on other workloads also looks good.
-
-Global throttling is not here yet, we will fix that separately later.
-
-Link: https://lore.kernel.org/20260428-mglru-reclaim-v7-15-02fabb92dc43@tencent.com
-Signed-off-by: Kairui Song <kasong@tencent.com>
-Suggested-by: Chen Ridong <chenridong@huaweicloud.com>
-Tested-by: Leno Hou <lenohou@gmail.com>
-Reviewed-by: Axel Rasmussen <axelrasmussen@google.com>
-Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: David Stevens <stevensd@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Kalesh Singh <kaleshsingh@google.com>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vernon Yang <vernon2gm@gmail.com>
-Cc: Wei Xu <weixugc@google.com>
-Cc: Yafang <laoar.shao@gmail.com>
-Cc: Yuanchu Xie <yuanchu@google.com>
-Cc: Yu Zhao <yuzhao@google.com>
+Link: https://lore.kernel.org/20260426062718.1238437-1-surenb@google.com
+Link: https://lore.kernel.org/20260426062718.1238437-2-surenb@google.com
+Signed-off-by: Suren Baghdasaryan <surenb@google.com>
+Reviewed-by: Liam R. Howlett <liam@infradead.org>
+Reviewed-by: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Jann Horn <jannh@google.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: "Paul E . McKenney" <paulmck@kernel.org>
+Cc: Pedro Falcato <pfalcato@suse.de>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Wei Yang <richard.weiyang@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   92 +++++++++++++++++++++++---------------------------
- 1 file changed, 43 insertions(+), 49 deletions(-)
+ fs/proc/task_mmu.c |  195 ++++++++++++++++++++++++++++++++++---------
+ 1 file changed, 156 insertions(+), 39 deletions(-)
 
---- a/mm/vmscan.c~mm-vmscan-unify-writeback-reclaim-statistic-and-throttling
-+++ a/mm/vmscan.c
-@@ -1946,6 +1946,44 @@ static int current_may_throttle(void)
- 	return !(current->flags & PF_LOCAL_THROTTLE);
- }
+--- a/fs/proc/task_mmu.c~fs-proc-task_mmu-read-proc-pid-smapsnuma_maps-under-per-vma-lock
++++ a/fs/proc/task_mmu.c
+@@ -132,6 +132,22 @@ static void release_task_mempolicy(struc
  
-+static void handle_reclaim_writeback(unsigned long nr_taken,
-+				     struct pglist_data *pgdat,
-+				     struct scan_control *sc,
-+				     struct reclaim_stat *stat)
+ #ifdef CONFIG_PER_VMA_LOCK
+ 
++static inline int lock_ctx_mm(struct proc_maps_locking_ctx *lock_ctx)
 +{
-+	/*
-+	 * If dirty folios are scanned that are not queued for IO, it
-+	 * implies that flushers are not doing their job. This can
-+	 * happen when memory pressure pushes dirty folios to the end of
-+	 * the LRU before the dirty limits are breached and the dirty
-+	 * data has expired. It can also happen when the proportion of
-+	 * dirty folios grows not through writes but through memory
-+	 * pressure reclaiming all the clean cache. And in some cases,
-+	 * the flushers simply cannot keep up with the allocation
-+	 * rate. Nudge the flusher threads in case they are asleep.
-+	 */
-+	if (stat->nr_unqueued_dirty == nr_taken) {
-+		wakeup_flusher_threads(WB_REASON_VMSCAN);
-+		/*
-+		 * For cgroupv1 dirty throttling is achieved by waking up
-+		 * the kernel flusher here and later waiting on folios
-+		 * which are in writeback to finish (see shrink_folio_list()).
-+		 *
-+		 * Flusher may not be able to issue writeback quickly
-+		 * enough for cgroupv1 writeback throttling to work
-+		 * on a large system.
-+		 */
-+		if (!writeback_throttling_sane(sc))
-+			reclaim_throttle(pgdat, VMSCAN_THROTTLE_WRITEBACK);
-+	}
++	int ret = mmap_read_lock_killable(lock_ctx->mm);
 +
-+	sc->nr.dirty += stat->nr_dirty;
-+	sc->nr.congested += stat->nr_congested;
-+	sc->nr.writeback += stat->nr_writeback;
-+	sc->nr.immediate += stat->nr_immediate;
-+	sc->nr.taken += nr_taken;
++	if (!ret)
++		lock_ctx->mmap_locked = true;
++
++	return ret;
 +}
 +
++static inline void unlock_ctx_mm(struct proc_maps_locking_ctx *lock_ctx)
++{
++	mmap_read_unlock(lock_ctx->mm);
++	lock_ctx->mmap_locked = false;
++}
++
+ static void reset_lock_ctx(struct proc_maps_locking_ctx *lock_ctx)
+ {
+ 	lock_ctx->locked_vma = NULL;
+@@ -146,25 +162,11 @@ static void unlock_ctx_vma(struct proc_m
+ 	}
+ }
+ 
+-static const struct seq_operations proc_pid_maps_op;
+-
+ static inline bool lock_vma_range(struct seq_file *m,
+ 				  struct proc_maps_locking_ctx *lock_ctx)
+ {
+-	/*
+-	 * smaps and numa_maps perform page table walk, therefore require
+-	 * mmap_lock but maps can be read with locking just the vma and
+-	 * walking the vma tree under rcu read protection.
+-	 */
+-	if (m->op != &proc_pid_maps_op) {
+-		if (mmap_read_lock_killable(lock_ctx->mm))
+-			return false;
+-
+-		lock_ctx->mmap_locked = true;
+-	} else {
+-		rcu_read_lock();
+-		reset_lock_ctx(lock_ctx);
+-	}
++	rcu_read_lock();
++	reset_lock_ctx(lock_ctx);
+ 
+ 	return true;
+ }
+@@ -172,7 +174,7 @@ static inline bool lock_vma_range(struct
+ static inline void unlock_vma_range(struct proc_maps_locking_ctx *lock_ctx)
+ {
+ 	if (lock_ctx->mmap_locked) {
+-		mmap_read_unlock(lock_ctx->mm);
++		unlock_ctx_mm(lock_ctx);
+ 	} else {
+ 		unlock_ctx_vma(lock_ctx);
+ 		rcu_read_unlock();
+@@ -213,17 +215,45 @@ static inline bool fallback_to_mmap_lock
+ 	return true;
+ }
+ 
++static inline void drop_rcu(struct proc_maps_private *priv)
++{
++	if (priv->lock_ctx.mmap_locked)
++		return;
++
++	rcu_read_unlock();
++}
++
++static inline void reacquire_rcu(struct proc_maps_private *priv)
++{
++	if (priv->lock_ctx.mmap_locked)
++		return;
++
++	rcu_read_lock();
++	/* Reinitialize the iterator. */
++	vma_iter_set(&priv->iter, priv->lock_ctx.locked_vma->vm_end);
++}
++
+ #else /* CONFIG_PER_VMA_LOCK */
+ 
++static inline int lock_ctx_mm(struct proc_maps_locking_ctx *lock_ctx)
++{
++	return mmap_read_lock_killable(lock_ctx->mm);
++}
++
++static inline void unlock_ctx_mm(struct proc_maps_locking_ctx *lock_ctx)
++{
++	mmap_read_unlock(lock_ctx->mm);
++}
++
+ static inline bool lock_vma_range(struct seq_file *m,
+ 				  struct proc_maps_locking_ctx *lock_ctx)
+ {
+-	return mmap_read_lock_killable(lock_ctx->mm) == 0;
++	return lock_ctx_mm(lock_ctx) == 0;
+ }
+ 
+ static inline void unlock_vma_range(struct proc_maps_locking_ctx *lock_ctx)
+ {
+-	mmap_read_unlock(lock_ctx->mm);
++	unlock_ctx_mm(lock_ctx);
+ }
+ 
+ static struct vm_area_struct *get_next_vma(struct proc_maps_private *priv,
+@@ -238,6 +268,9 @@ static inline bool fallback_to_mmap_lock
+ 	return false;
+ }
+ 
++static inline void drop_rcu(struct proc_maps_private *priv) {}
++static inline void reacquire_rcu(struct proc_maps_private *priv) {}
++
+ #endif /* CONFIG_PER_VMA_LOCK */
+ 
+ static struct vm_area_struct *proc_get_vma(struct seq_file *m, loff_t *ppos)
+@@ -538,12 +571,10 @@ static int query_vma_setup(struct proc_m
+ 
+ static void query_vma_teardown(struct proc_maps_locking_ctx *lock_ctx)
+ {
+-	if (lock_ctx->mmap_locked) {
+-		mmap_read_unlock(lock_ctx->mm);
+-		lock_ctx->mmap_locked = false;
+-	} else {
++	if (lock_ctx->mmap_locked)
++		unlock_ctx_mm(lock_ctx);
++	else
+ 		unlock_ctx_vma(lock_ctx);
+-	}
+ }
+ 
+ static struct vm_area_struct *query_vma_find_by_addr(struct proc_maps_locking_ctx *lock_ctx,
+@@ -1280,21 +1311,75 @@ static const struct mm_walk_ops smaps_sh
+ 	.walk_lock		= PGWALK_RDLOCK,
+ };
+ 
++#ifdef CONFIG_PER_VMA_LOCK
++
++static const struct mm_walk_ops smaps_walk_vma_lock_ops = {
++	.pmd_entry		= smaps_pte_range,
++	.hugetlb_entry		= smaps_hugetlb_range,
++	.walk_lock		= PGWALK_VMA_RDLOCK_VERIFY,
++};
++
++static const struct mm_walk_ops smaps_shmem_walk_vma_lock_ops = {
++	.pmd_entry		= smaps_pte_range,
++	.hugetlb_entry		= smaps_hugetlb_range,
++	.pte_hole		= smaps_pte_hole,
++	.walk_lock		= PGWALK_VMA_RDLOCK_VERIFY,
++};
++
++static inline const struct mm_walk_ops *
++get_smaps_walk_ops(struct proc_maps_private *priv)
++{
++	if (priv->lock_ctx.mmap_locked)
++		return &smaps_walk_ops;
++	return &smaps_walk_vma_lock_ops;
++}
++
++static inline const struct mm_walk_ops *
++get_smaps_shmem_walk_ops(struct proc_maps_private *priv)
++{
++	if (priv->lock_ctx.mmap_locked)
++		return  &smaps_shmem_walk_ops;
++	return &smaps_shmem_walk_vma_lock_ops;
++}
++
++#else /* CONFIG_PER_VMA_LOCK */
++
++static inline const struct mm_walk_ops *
++get_smaps_walk_ops(struct proc_maps_private *priv)
++{
++	return &smaps_walk_ops;
++}
++
++static inline const struct mm_walk_ops *
++get_smaps_shmem_walk_ops(struct proc_maps_private *priv)
++{
++	return &smaps_shmem_walk_ops;
++}
++
++#endif /* CONFIG_PER_VMA_LOCK */
++
  /*
-  * shrink_inactive_list() is a helper for shrink_node().  It returns the number
-  * of reclaimed pages
-@@ -2009,39 +2047,7 @@ static unsigned long shrink_inactive_lis
- 	lruvec_lock_irq(lruvec);
- 	lru_note_cost_unlock_irq(lruvec, file, stat.nr_pageout,
- 					nr_scanned - nr_reclaimed);
--
--	/*
--	 * If dirty folios are scanned that are not queued for IO, it
--	 * implies that flushers are not doing their job. This can
--	 * happen when memory pressure pushes dirty folios to the end of
--	 * the LRU before the dirty limits are breached and the dirty
--	 * data has expired. It can also happen when the proportion of
--	 * dirty folios grows not through writes but through memory
--	 * pressure reclaiming all the clean cache. And in some cases,
--	 * the flushers simply cannot keep up with the allocation
--	 * rate. Nudge the flusher threads in case they are asleep.
--	 */
--	if (stat.nr_unqueued_dirty == nr_taken) {
--		wakeup_flusher_threads(WB_REASON_VMSCAN);
--		/*
--		 * For cgroupv1 dirty throttling is achieved by waking up
--		 * the kernel flusher here and later waiting on folios
--		 * which are in writeback to finish (see shrink_folio_list()).
--		 *
--		 * Flusher may not be able to issue writeback quickly
--		 * enough for cgroupv1 writeback throttling to work
--		 * on a large system.
--		 */
--		if (!writeback_throttling_sane(sc))
--			reclaim_throttle(pgdat, VMSCAN_THROTTLE_WRITEBACK);
--	}
--
--	sc->nr.dirty += stat.nr_dirty;
--	sc->nr.congested += stat.nr_congested;
--	sc->nr.writeback += stat.nr_writeback;
--	sc->nr.immediate += stat.nr_immediate;
--	sc->nr.taken += nr_taken;
--
-+	handle_reclaim_writeback(nr_taken, pgdat, sc, &stat);
- 	trace_mm_vmscan_lru_shrink_inactive(pgdat->node_id,
- 			nr_scanned, nr_reclaimed, &stat, sc->priority, file);
- 	return nr_reclaimed;
-@@ -4833,26 +4839,13 @@ static int evict_folios(unsigned long nr
- retry:
- 	reclaimed = shrink_folio_list(&list, pgdat, sc, &stat, false, memcg);
- 	sc->nr_reclaimed += reclaimed;
-+	/* Retry pass is only meant for clean folios without new isolation */
-+	if (isolated)
-+		handle_reclaim_writeback(isolated, pgdat, sc, &stat);
- 	trace_mm_vmscan_lru_shrink_inactive(pgdat->node_id,
- 			type_scanned, reclaimed, &stat, sc->priority,
- 			type ? LRU_INACTIVE_FILE : LRU_INACTIVE_ANON);
+  * Gather mem stats from @vma with the indicated beginning
+  * address @start, and keep them in @mss.
+  *
+  * Use vm_start of @vma as the beginning address if @start is 0.
+  */
+-static void smap_gather_stats(struct vm_area_struct *vma,
+-		struct mem_size_stats *mss, unsigned long start)
++static void smap_gather_stats(struct proc_maps_private *priv,
++			      struct vm_area_struct *vma,
++			      struct mem_size_stats *mss, unsigned long start)
+ {
+-	const struct mm_walk_ops *ops = &smaps_walk_ops;
++	const struct mm_walk_ops *ops = get_smaps_walk_ops(priv);
  
--	/*
--	 * If too many file cache in the coldest generation can't be evicted
--	 * due to being dirty, wake up the flusher.
--	 */
--	if (stat.nr_unqueued_dirty == isolated) {
--		wakeup_flusher_threads(WB_REASON_VMSCAN);
--
--		/*
--		 * For cgroupv1 dirty throttling is achieved by waking up
--		 * the kernel flusher here and later waiting on folios
--		 * which are in writeback to finish (see shrink_folio_list()).
--		 */
--		if (!writeback_throttling_sane(sc))
--			reclaim_throttle(pgdat, VMSCAN_THROTTLE_WRITEBACK);
--	}
--
- 	list_for_each_entry_safe_reverse(folio, next, &list, lru) {
- 		DEFINE_MIN_SEQ(lruvec);
+ 	/* Invalid start */
+ 	if (start >= vma->vm_end)
+ 		return;
  
-@@ -4895,6 +4888,7 @@ retry:
- 
- 	if (!list_empty(&list)) {
- 		skip_retry = true;
-+		isolated = 0;
- 		goto retry;
++	if (vma == get_gate_vma(priv->lock_ctx.mm))
++		return;
++
++	/* Might sleep. Drop RCU read lock but keep the VMA locked. */
++	drop_rcu(priv);
++
+ 	if (vma->vm_file && shmem_mapping(vma->vm_file->f_mapping)) {
+ 		/*
+ 		 * For shared or readonly shmem mappings we know that all
+@@ -1312,15 +1397,16 @@ static void smap_gather_stats(struct vm_
+ 					!(vma->vm_flags & VM_WRITE))) {
+ 			mss->swap += shmem_swapped;
+ 		} else {
+-			ops = &smaps_shmem_walk_ops;
++			ops = get_smaps_shmem_walk_ops(priv);
+ 		}
  	}
  
+-	/* mmap_lock is held in m_start */
+ 	if (!start)
+ 		walk_page_vma(vma, ops, mss);
+ 	else
+ 		walk_page_range(vma->vm_mm, start, vma->vm_end, ops, mss);
++
++	reacquire_rcu(priv);
+ }
+ 
+ #define SEQ_PUT_DEC(str, val) \
+@@ -1369,10 +1455,11 @@ static void __show_smap(struct seq_file
+ 
+ static int show_smap(struct seq_file *m, void *v)
+ {
++	struct proc_maps_private *priv = m->private;
+ 	struct vm_area_struct *vma = v;
+ 	struct mem_size_stats mss = {};
+ 
+-	smap_gather_stats(vma, &mss, 0);
++	smap_gather_stats(priv, vma, &mss, 0);
+ 
+ 	show_map_vma(m, vma);
+ 
+@@ -1413,7 +1500,7 @@ static int show_smaps_rollup(struct seq_
+ 		goto out_put_task;
+ 	}
+ 
+-	ret = mmap_read_lock_killable(mm);
++	ret = lock_ctx_mm(&priv->lock_ctx);
+ 	if (ret)
+ 		goto out_put_mm;
+ 
+@@ -1425,7 +1512,7 @@ static int show_smaps_rollup(struct seq_
+ 
+ 	vma_start = vma->vm_start;
+ 	do {
+-		smap_gather_stats(vma, &mss, 0);
++		smap_gather_stats(priv, vma, &mss, 0);
+ 		last_vma_end = vma->vm_end;
+ 
+ 		/*
+@@ -1434,8 +1521,8 @@ static int show_smaps_rollup(struct seq_
+ 		 */
+ 		if (mmap_lock_is_contended(mm)) {
+ 			vma_iter_invalidate(&vmi);
+-			mmap_read_unlock(mm);
+-			ret = mmap_read_lock_killable(mm);
++			unlock_ctx_mm(&priv->lock_ctx);
++			ret = lock_ctx_mm(&priv->lock_ctx);
+ 			if (ret) {
+ 				release_task_mempolicy(priv);
+ 				goto out_put_mm;
+@@ -1484,14 +1571,14 @@ static int show_smaps_rollup(struct seq_
+ 
+ 			/* Case 1 and 2 above */
+ 			if (vma->vm_start >= last_vma_end) {
+-				smap_gather_stats(vma, &mss, 0);
++				smap_gather_stats(priv, vma, &mss, 0);
+ 				last_vma_end = vma->vm_end;
+ 				continue;
+ 			}
+ 
+ 			/* Case 4 above */
+ 			if (vma->vm_end > last_vma_end) {
+-				smap_gather_stats(vma, &mss, last_vma_end);
++				smap_gather_stats(priv, vma, &mss, last_vma_end);
+ 				last_vma_end = vma->vm_end;
+ 			}
+ 		}
+@@ -1505,7 +1592,7 @@ empty_set:
+ 	__show_smap(m, &mss, true);
+ 
+ 	release_task_mempolicy(priv);
+-	mmap_read_unlock(mm);
++	unlock_ctx_mm(&priv->lock_ctx);
+ 
+ out_put_mm:
+ 	mmput(mm);
+@@ -3291,6 +3378,31 @@ static const struct mm_walk_ops show_num
+ 	.walk_lock = PGWALK_RDLOCK,
+ };
+ 
++#ifdef CONFIG_PER_VMA_LOCK
++static const struct mm_walk_ops show_numa_vma_lock_ops = {
++	.hugetlb_entry = gather_hugetlb_stats,
++	.pmd_entry = gather_pte_stats,
++	.walk_lock = PGWALK_VMA_RDLOCK_VERIFY,
++};
++
++static inline const struct mm_walk_ops *
++get_show_numa_ops(struct proc_maps_private *priv)
++{
++	if (priv->lock_ctx.mmap_locked)
++		return &show_numa_ops;
++	return &show_numa_vma_lock_ops;
++}
++
++#else /* CONFIG_PER_VMA_LOCK */
++
++static inline const struct mm_walk_ops *
++get_show_numa_ops(struct proc_maps_private *priv)
++{
++	return &show_numa_ops;
++}
++
++#endif /* CONFIG_PER_VMA_LOCK */
++
+ /*
+  * Display pages allocated per node and memory policy via /proc.
+  */
+@@ -3335,8 +3447,13 @@ static int show_numa_map(struct seq_file
+ 	if (is_vm_hugetlb_page(vma))
+ 		seq_puts(m, " huge");
+ 
+-	/* mmap_lock is held by m_start */
+-	walk_page_vma(vma, &show_numa_ops, md);
++	/* Skip walking pages if gate VMA */
++	if (vma != get_gate_vma(proc_priv->lock_ctx.mm)) {
++		/* Might sleep. Drop RCU read lock but keep the VMA locked. */
++		drop_rcu(proc_priv);
++		walk_page_vma(vma, get_show_numa_ops(proc_priv), md);
++		reacquire_rcu(proc_priv);
++	}
+ 
+ 	if (!md->pages)
+ 		goto out;
 _
 
-Patches currently in -mm which might be from kasong@tencent.com are
+Patches currently in -mm which might be from surenb@google.com are
 
 
