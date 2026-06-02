@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2CC653C3BED
-	for <mm-commits@vger.kernel.org>; Tue,  2 Jun 2026 22:25:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 55D8D3C457A
+	for <mm-commits@vger.kernel.org>; Tue,  2 Jun 2026 22:25:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780439137; cv=none; b=fqCsjDaBZKxTckdm5+XY+jhpiznE7sXBx/PiWgB6H3oh5DO1QOErwFP+oYzQQ1mzQyqai7FYHWh7poGf63dEMpmt7JW+YLEaUrkm9TVd99IkPxpsIpt9TBKFMRvlvbruu/QAWAlBfIlajNqUSHvrvbW1JM1V28c2WZJZqUDN17M=
+	t=1780439138; cv=none; b=OtkCw0wV5Xr54yQ0qgN7T3T01u+Songp4NwM/nZqSFt7kRWChwXANO8lzoh6+P7IIUW5I2Gg2LMfmH7CzJuGowW7QHD9ynFnOJrO05AgTYyUdbWAkAS79egyKul0eHTUwZUyFlAVT+NGxP/VVmru5WX6zGtOfYIloM1VQgTDCvs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780439137; c=relaxed/simple;
-	bh=jOIpMgHMvhn1zwUqXBJ+4eMWRXSNOIbMvKyQlBEhCD8=;
-	h=Date:To:From:Subject:Message-Id; b=Snm0SGc0ZvwYVTDBmex0E9qCxhzOCAeefBPycwJH7U9rNBvMzrWjCt+4NsCwFRV+DYzzGCc+6RbnoeUCS1E5BrJTRBoG6qV7ZAHLGNlNRhh8j7E0HrjYhtMbgIcSB6S0s7R5MQH+cYocan9u4obhgn//LG1h8TZH/b6fp2knV2I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=g0czykb8; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1780439138; c=relaxed/simple;
+	bh=bUDliuYu1s4Sn5CHT+VxcUwZTPBYGXCUI0xMUTBocnQ=;
+	h=Date:To:From:Subject:Message-Id; b=azNfqnVSlKenvlWxdwSOh2RXPqFpvZQgD3ZolxY4N8D2PeUgIOqmkYH7LIZVe/s6Es1tpAsdFbOzY0eQ+YXjvcNRVm78wTtAq6g1uS5USCvDDQ8dSCWFiZbX8cro6VoRgKOMtTEpB8fsyOZdgsXJ013CIHIDXslfQv7Y9PbJExI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SpcF1HDL; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="g0czykb8"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 016841F00898;
-	Tue,  2 Jun 2026 22:25:35 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SpcF1HDL"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2AC481F00893;
+	Tue,  2 Jun 2026 22:25:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1780439136;
-	bh=N8odnrwWETYGdcR9cUytc4hZ8w8GtRdSfwGwQGvFX+E=;
+	d=linux-foundation.org; s=korg; t=1780439137;
+	bh=xIiIHQ0JvSmkSiEN/FCdv9idKwQ8q94lEhvLPLd4afQ=;
 	h=Date:To:From:Subject;
-	b=g0czykb8eQfGyy/204MJ4t8Kp9+JXtv4lTs+GCP2ZgbnVHN5beV5O8FoxvVjXugvq
-	 omUmtlwKWWRcFIhodTpkmTBZTTc2//M6w9cUNBGEiZJKzQYVpQ1UUortGjt9qDuEjr
-	 qgxMATGPmGjt4mJEqJyfyC9aDYB+5F1+axCWfA/U=
-Date: Tue, 02 Jun 2026 15:25:35 -0700
-To: mm-commits@vger.kernel.org,lkp@intel.com,liuqiang@kylinos.cn,leon@kernel.org,jgg@ziepe.ca,apopple@nvidia.com,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=SpcF1HDLsYQA1szeAvy3eeUY4b7gn7xeYhlGPAucd3BLc5gDmHSOvwCR2pvtUCaJu
+	 CVIGEmshQiC4+C+51loZcH5qndXzzL8pP1NGyLdIpPNiagb7UpTdCrBCHMU2Jhvgoj
+	 u7LZJw7d98P76vV0EJ/fJFgaIxd95KpJ1gKm7pO4=
+Date: Tue, 02 Jun 2026 15:25:36 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,jack@suse.cz,tz2294@columbia.edu,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] lib-test_hmm-check-alloc_page_vma-return-value-and-handle-oom-fix.patch removed from -mm tree
-Message-Id: <20260602222536.016841F00898@smtp.kernel.org>
+Subject: [merged mm-stable] maintainers-add-more-files-to-page-cache-section.patch removed from -mm tree
+Message-Id: <20260602222537.2AC481F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,52 +35,46 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: lib-test_hmm-check-alloc_page_vma-return-value-and-handle-oom-fix
+     Subject: MAINTAINERS: add more files to PAGE CACHE section
 has been removed from the -mm tree.  Its filename was
-     lib-test_hmm-check-alloc_page_vma-return-value-and-handle-oom-fix.patch
+     maintainers-add-more-files-to-page-cache-section.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: lib-test_hmm-check-alloc_page_vma-return-value-and-handle-oom-fix
-Date: Mon Jun  1 05:49:07 PM PDT 2026
+From: Tal Zussman <tz2294@columbia.edu>
+Subject: MAINTAINERS: add more files to PAGE CACHE section
+Date: Wed, 20 May 2026 17:17:12 -0400
 
-fix dmirror_devmem_fault_alloc_and_copy() retval handling
+Add include/linux/writeback.h and
+include/trace/events/{filemap.h,readahead.h,writeback.h}.
 
-Reported-by: kernel test robot <lkp@intel.com>
-Closes: https://lore.kernel.org/oe-kbuild-all/202606011329.zWs2BKy4-lkp@intel.com/
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Leon Romanovsky <leon@kernel.org>
-Cc: Qiang Liu <liuqiang@kylinos.cn>
+Link: https://lore.kernel.org/20260520-page-cache-maintainers-v1-1-f93438d2186d@columbia.edu
+Signed-off-by: Tal Zussman <tz2294@columbia.edu>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_hmm.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ MAINTAINERS |    4 ++++
+ 1 file changed, 4 insertions(+)
 
---- a/lib/test_hmm.c~lib-test_hmm-check-alloc_page_vma-return-value-and-handle-oom-fix
-+++ a/lib/test_hmm.c
-@@ -1167,9 +1167,9 @@ static int dmirror_migrate_to_system(str
- 			goto out;
- 
- 		pr_debug("Migrating from device mem to sys mem\n");
--		ret = dmirror_devmem_fault_alloc_and_copy(&args, dmirror);
--		if (ret) {
-+		if (dmirror_devmem_fault_alloc_and_copy(&args, dmirror)) {
- 			migrate_vma_finalize(&args);
-+			ret = -ENOMEM;
- 			goto out;
- 		}
- 
+--- a/MAINTAINERS~maintainers-add-more-files-to-page-cache-section
++++ a/MAINTAINERS
+@@ -20174,6 +20174,10 @@ T:	git git://git.infradead.org/users/wil
+ F:	Documentation/filesystems/locking.rst
+ F:	Documentation/filesystems/vfs.rst
+ F:	include/linux/pagemap.h
++F:	include/linux/writeback.h
++F:	include/trace/events/filemap.h
++F:	include/trace/events/readahead.h
++F:	include/trace/events/writeback.h
+ F:	mm/filemap.c
+ F:	mm/page-writeback.c
+ F:	mm/readahead.c
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from tz2294@columbia.edu are
 
-mm-switch-deferred-split-shrinker-to-list_lru-fix.patch
-mm-swap-pm-hibernate-atomically-replace-hibernation-pin-checkpatch-fixes.patch
-sparc-add-_mcount-prototype.patch
-drivers-media-v4l2-core-v4l2-vp9c-reduce-inlining.patch
 
