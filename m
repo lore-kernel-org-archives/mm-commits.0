@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 33D963B8D4A
-	for <mm-commits@vger.kernel.org>; Tue,  2 Jun 2026 22:23:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8F71D3B8934
+	for <mm-commits@vger.kernel.org>; Tue,  2 Jun 2026 22:23:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780439025; cv=none; b=KU27wMd3VvCfccv/5v9ZAtMhnh3EXa8cMjfjNWLC01ZeoVWR/xjnKdcEeG5Q5Pr4/nvS2LAaKByzXRnCcrmDiP9em2ynydWUy2KIebcxyqBXHvmxqIOw7VdF8EmeLNu5zeXHhln8m91SqS4XNNErKT2xc/KouFYgN1bVfg9CGI4=
+	t=1780439027; cv=none; b=RZ5Qo2cwZlK2gmmmdhcWniyM1x34G5dFMttiG5d+RfxAZ+r5dm1nyfEQv4gTqF+E7BEES9wNUZkgB/iWPy5wPlwb4roR+c8XAo9wXpgWutvzovA9glYanzai6E9CFmzOqYoc2FV1dGDDlhC72sCdDMCcGnfX88c8A5lGoL7nS3M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780439025; c=relaxed/simple;
-	bh=BMjVvnroSST0m4S5Lvizief3J0I/gcKlMGHYoIbsvE0=;
-	h=Date:To:From:Subject:Message-Id; b=gqsn6BB7Quk691xHr49f7S5gqR4SQHjtrkMtq0mAkkNKLxnxeoKph4b8p0tP4Y+Asi86vkGOIyIcY6/L5NH3vLb4srsuXGMPpyMybYp6q2i/8vGd9Lvnm/F9aky/5o0GvAUwBMlr9UIc00POS50WLDRSRVXpKdRogzHhG8e+iOk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gRxQ4A5T; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1780439027; c=relaxed/simple;
+	bh=WCgR6/5EjxulzmdtctZiJA49iHB6lvzMzzEM05XUaQE=;
+	h=Date:To:From:Subject:Message-Id; b=rAsf+MT7uF9y8RDNx9/aAglcBLL+GYKFzswLodzEzP24K77Tapcoj/WxOycaUcgVfcda6Ho1jUiMD9534/upBkz6NvEaGb+Gr6FR5DvlX3BB1MX75jG41KW2XwJCpYfnMSSqE1dxcxsr7sGwiEO5e3AXsCJnC74jRvZNh06a2x8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YcbtQXnb; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gRxQ4A5T"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F3B4B1F00899;
-	Tue,  2 Jun 2026 22:23:43 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YcbtQXnb"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 67E181F00893;
+	Tue,  2 Jun 2026 22:23:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1780439024;
-	bh=DsAs+B4Khv66odYkHStdjTQQY0UozX1DQJ+9nW1g4Do=;
+	d=linux-foundation.org; s=korg; t=1780439025;
+	bh=J0DjD7qpcN29AmPkWmnaQsOXCHTDw+fjnnqBJcOzMbU=;
 	h=Date:To:From:Subject;
-	b=gRxQ4A5TnNAGAIy9wdeTXltqWHSwm45/aGBaLKBFinE3Zdl9HtSi99zoTNV9Y+KEv
-	 XpJC7W0JLnYilFoAef3zv5+BSDdBmR+eOzEWBp68UU057YMUXeU4o0hP3aLaqPNrSZ
-	 lpC2TQKzvydvt+4OH7H3gOsokedTWrswViJAI5Lw=
-Date: Tue, 02 Jun 2026 15:23:43 -0700
-To: mm-commits@vger.kernel.org,richard.weiyang@gmail.com,ljs@kernel.org,david@kernel.org,agarwal.vineet2006@gmail.com,akpm@linux-foundation.org
+	b=YcbtQXnbJXib38Hn1QPbUtMlI0YJ9HyVW+RqPkxnz6KFHIZidDB3r7xL4NikZJfTr
+	 JLlYrLIkbdZx5BUUKW6sCA+CGxb10X+DlWnhDLHnW9u2/P9OdsBgT+bdLFLkIiO/f9
+	 UozjqEmjyG6EN4ToldgBuR89V0srph2yohE5VMRQ=
+Date: Tue, 02 Jun 2026 15:23:45 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,svens@linux.ibm.com,surenb@google.com,sumanthk@linux.ibm.com,rppt@kernel.org,rafael@kernel.org,osalvador@suse.de,npiggin@gmail.com,mpe@ellerman.id.au,mhocko@suse.com,maddy@linux.ibm.com,ljs@kernel.org,liam@infradead.org,kees@kernel.org,icheng@nvidia.com,hca@linux.ibm.com,gregkh@linuxfoundation.org,gor@linux.ibm.com,donettom@linux.ibm.com,dianders@chromium.org,david@kernel.org,dakr@kernel.org,borntraeger@linux.ibm.com,agordeev@linux.ibm.com,songmuchun@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-mm-check-file-initialization-writes-in-split_huge_page_test.patch removed from -mm tree
-Message-Id: <20260602222343.F3B4B1F00899@smtp.kernel.org>
+Subject: [merged mm-stable] drivers-base-memory-make-memory-block-get-put-explicit.patch removed from -mm tree
+Message-Id: <20260602222345.67E181F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,63 +35,344 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests/mm: check file initialization writes in split_huge_page_test
+     Subject: drivers/base/memory: make memory block get/put explicit
 has been removed from the -mm tree.  Its filename was
-     selftests-mm-check-file-initialization-writes-in-split_huge_page_test.patch
+     drivers-base-memory-make-memory-block-get-put-explicit.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Vineet Agarwal <agarwal.vineet2006@gmail.com>
-Subject: selftests/mm: check file initialization writes in split_huge_page_test
-Date: Tue, 12 May 2026 13:19:24 +0530
+From: Muchun Song <songmuchun@bytedance.com>
+Subject: drivers/base/memory: make memory block get/put explicit
+Date: Tue, 12 May 2026 15:26:35 +0800
 
-create_pagecache_thp_and_fd() fills the backing file for the pagecache THP
-tests using repeated write() calls, but the return value is never checked.
+Rename the memory block lookup helper to make the acquired reference
+explicit, add memory_block_put() to wrap put_device(), remove
+find_memory_block(), and use memory_block_get() as the single block-id
+based lookup interface.
 
-If a write fails or completes only partially, the test may continue with
-an incompletely initialized file and produce misleading results.
+This makes it clearer to callers that a successful lookup holds a
+reference that must be dropped, reducing the chance of forgetting the
+matching put and leaking the memory block device reference.
 
-Check the result of write() and fail the test if the expected number of
-bytes was not written.
-
-[akpm@linux-foundation.org: remove unneeded local, per David]
-  Link: https://lore.kernel.org/da82de92-29d8-457c-9f65-40fc4900b922@kernel.org
-Link: https://lore.kernel.org/20260512074924.27721-1-agarwal.vineet2006@gmail.com
-Signed-off-by: Vineet Agarwal <agarwal.vineet2006@gmail.com>
+Link: https://lore.kernel.org/linux-mm/7887915D-E598-42B3-9AFE-BFFBACE8DE2D@linux.dev/#t
+Link: https://lore.kernel.org/20260512072635.3969576-1-songmuchun@bytedance.com
+Signed-off-by: Muchun Song <songmuchun@bytedance.com>
+Acked-by: Oscar Salvador <osalvador@suse.de>
 Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Wei Yang <richard.weiyang@gmail.com>
-Cc: Vineet Agarwal <agarwal.vineet2006@gmail.com>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Tested-by: Donet Tom <donettom@linux.ibm.com>
+Reviewed-by: Lorenzo Stoakes <ljs@kernel.org>
+Tested-by: Sumanth Korikkar <sumanthk@linux.ibm.com> #s390
+Cc: Richard Cheng <icheng@nvidia.com>
+Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Cc: Alexander Gordeev <agordeev@linux.ibm.com>
+Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
+Cc: Danilo Krummrich <dakr@kernel.org>
+Cc: Doug Anderson <dianders@chromium.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: Kees Cook <kees@kernel.org>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Sven Schnelle <svens@linux.ibm.com>
+Cc: Vasily Gorbik <gor@linux.ibm.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/split_huge_page_test.c |   10 +++++++---
- 1 file changed, 7 insertions(+), 3 deletions(-)
+ arch/powerpc/platforms/pseries/hotplug-memory.c |   14 +----
+ drivers/base/memory.c                           |   38 +++++---------
+ drivers/base/node.c                             |    4 -
+ drivers/s390/char/sclp_mem.c                    |   17 ++----
+ include/linux/memory.h                          |    7 +-
+ mm/memory_hotplug.c                             |    5 -
+ 6 files changed, 35 insertions(+), 50 deletions(-)
 
---- a/tools/testing/selftests/mm/split_huge_page_test.c~selftests-mm-check-file-initialization-writes-in-split_huge_page_test
-+++ a/tools/testing/selftests/mm/split_huge_page_test.c
-@@ -609,9 +609,13 @@ static int create_pagecache_thp_and_fd(c
- 	assert(fd_size % sizeof(buf) == 0);
- 	for (i = 0; i < sizeof(buf); i++)
- 		buf[i] = (unsigned char)i;
--	for (i = 0; i < fd_size; i += sizeof(buf))
--		write(*fd, buf, sizeof(buf));
+--- a/arch/powerpc/platforms/pseries/hotplug-memory.c~drivers-base-memory-make-memory-block-get-put-explicit
++++ a/arch/powerpc/platforms/pseries/hotplug-memory.c
+@@ -164,13 +164,7 @@ static int update_lmb_associativity_inde
+ 
+ static struct memory_block *lmb_to_memblock(struct drmem_lmb *lmb)
+ {
+-	unsigned long section_nr;
+-	struct memory_block *mem_block;
 -
-+	for (i = 0; i < fd_size; i += sizeof(buf)) {
-+		if (write(*fd, buf, sizeof(buf)) != sizeof(buf)) {
-+			ksft_perror("write testfile");
-+			close(*fd);
-+			goto err_out_unlink;
-+		}
-+	}
- 	close(*fd);
- 	sync();
- 	*fd = open("/proc/sys/vm/drop_caches", O_WRONLY);
+-	section_nr = pfn_to_section_nr(PFN_DOWN(lmb->base_addr));
+-
+-	mem_block = find_memory_block(section_nr);
+-	return mem_block;
++	return memory_block_get(phys_to_block_id(lmb->base_addr));
+ }
+ 
+ static int get_lmb_range(u32 drc_index, int n_lmbs,
+@@ -220,7 +214,7 @@ static int dlpar_change_lmb_state(struct
+ 	else
+ 		rc = 0;
+ 
+-	put_device(&mem_block->dev);
++	memory_block_put(mem_block);
+ 
+ 	return rc;
+ }
+@@ -319,12 +313,12 @@ static int dlpar_remove_lmb(struct drmem
+ 
+ 	rc = dlpar_offline_lmb(lmb);
+ 	if (rc) {
+-		put_device(&mem_block->dev);
++		memory_block_put(mem_block);
+ 		return rc;
+ 	}
+ 
+ 	__remove_memory(lmb->base_addr, memory_block_size);
+-	put_device(&mem_block->dev);
++	memory_block_put(mem_block);
+ 
+ 	/* Update memory regions for memory remove */
+ 	memblock_remove(lmb->base_addr, memory_block_size);
+--- a/drivers/base/memory.c~drivers-base-memory-make-memory-block-get-put-explicit
++++ a/drivers/base/memory.c
+@@ -649,7 +649,7 @@ int __weak arch_get_memory_phys_device(u
+  *
+  * Called under device_hotplug_lock.
+  */
+-struct memory_block *find_memory_block_by_id(unsigned long block_id)
++struct memory_block *memory_block_get(unsigned long block_id)
+ {
+ 	struct memory_block *mem;
+ 
+@@ -659,16 +659,6 @@ struct memory_block *find_memory_block_b
+ 	return mem;
+ }
+ 
+-/*
+- * Called under device_hotplug_lock.
+- */
+-struct memory_block *find_memory_block(unsigned long section_nr)
+-{
+-	unsigned long block_id = memory_block_id(section_nr);
+-
+-	return find_memory_block_by_id(block_id);
+-}
+-
+ static struct attribute *memory_memblk_attrs[] = {
+ 	&dev_attr_phys_index.attr,
+ 	&dev_attr_state.attr,
+@@ -701,7 +691,7 @@ static int __add_memory_block(struct mem
+ 
+ 	ret = device_register(&memory->dev);
+ 	if (ret) {
+-		put_device(&memory->dev);
++		memory_block_put(memory);
+ 		return ret;
+ 	}
+ 	ret = xa_err(xa_store(&memory_blocks, memory->dev.id, memory,
+@@ -795,9 +785,9 @@ static int add_memory_block(unsigned lon
+ 	struct memory_block *mem;
+ 	int ret = 0;
+ 
+-	mem = find_memory_block_by_id(block_id);
++	mem = memory_block_get(block_id);
+ 	if (mem) {
+-		put_device(&mem->dev);
++		memory_block_put(mem);
+ 		return -EEXIST;
+ 	}
+ 	mem = kzalloc_obj(*mem);
+@@ -845,8 +835,8 @@ static void remove_memory_block(struct m
+ 		memory->group = NULL;
+ 	}
+ 
+-	/* drop the ref. we got via find_memory_block() */
+-	put_device(&memory->dev);
++	/* drop the ref. we got via memory_block_get() */
++	memory_block_put(memory);
+ 	device_unregister(&memory->dev);
+ }
+ 
+@@ -880,7 +870,7 @@ int create_memory_block_devices(unsigned
+ 		end_block_id = block_id;
+ 		for (block_id = start_block_id; block_id != end_block_id;
+ 		     block_id++) {
+-			mem = find_memory_block_by_id(block_id);
++			mem = memory_block_get(block_id);
+ 			if (WARN_ON_ONCE(!mem))
+ 				continue;
+ 			remove_memory_block(mem);
+@@ -908,7 +898,7 @@ void remove_memory_block_devices(unsigne
+ 		return;
+ 
+ 	for (block_id = start_block_id; block_id != end_block_id; block_id++) {
+-		mem = find_memory_block_by_id(block_id);
++		mem = memory_block_get(block_id);
+ 		if (WARN_ON_ONCE(!mem))
+ 			continue;
+ 		num_poisoned_pages_sub(-1UL, memblk_nr_poison(mem));
+@@ -1015,12 +1005,12 @@ int walk_memory_blocks(unsigned long sta
+ 		return 0;
+ 
+ 	for (block_id = start_block_id; block_id <= end_block_id; block_id++) {
+-		mem = find_memory_block_by_id(block_id);
++		mem = memory_block_get(block_id);
+ 		if (!mem)
+ 			continue;
+ 
+ 		ret = func(mem, arg);
+-		put_device(&mem->dev);
++		memory_block_put(mem);
+ 		if (ret)
+ 			break;
+ 	}
+@@ -1228,22 +1218,22 @@ int walk_dynamic_memory_groups(int nid,
+ void memblk_nr_poison_inc(unsigned long pfn)
+ {
+ 	const unsigned long block_id = pfn_to_block_id(pfn);
+-	struct memory_block *mem = find_memory_block_by_id(block_id);
++	struct memory_block *mem = memory_block_get(block_id);
+ 
+ 	if (mem) {
+ 		atomic_long_inc(&mem->nr_hwpoison);
+-		put_device(&mem->dev);
++		memory_block_put(mem);
+ 	}
+ }
+ 
+ void memblk_nr_poison_sub(unsigned long pfn, long i)
+ {
+ 	const unsigned long block_id = pfn_to_block_id(pfn);
+-	struct memory_block *mem = find_memory_block_by_id(block_id);
++	struct memory_block *mem = memory_block_get(block_id);
+ 
+ 	if (mem) {
+ 		atomic_long_sub(i, &mem->nr_hwpoison);
+-		put_device(&mem->dev);
++		memory_block_put(mem);
+ 	}
+ }
+ 
+--- a/drivers/base/node.c~drivers-base-memory-make-memory-block-get-put-explicit
++++ a/drivers/base/node.c
+@@ -849,13 +849,13 @@ static void register_memory_blocks_under
+ 		for (block_id = start_block_id; block_id <= end_block_id; block_id++) {
+ 			struct memory_block *mem;
+ 
+-			mem = find_memory_block_by_id(block_id);
++			mem = memory_block_get(block_id);
+ 			if (!mem)
+ 				continue;
+ 
+ 			memory_block_add_nid_early(mem, nid);
+ 			do_register_memory_block_under_node(nid, mem);
+-			put_device(&mem->dev);
++			memory_block_put(mem);
+ 		}
+ 
+ 	}
+--- a/drivers/s390/char/sclp_mem.c~drivers-base-memory-make-memory-block-get-put-explicit
++++ a/drivers/s390/char/sclp_mem.c
+@@ -204,7 +204,7 @@ static ssize_t sclp_config_mem_store(str
+ 	addr = sclp_mem->id * block_size;
+ 	/*
+ 	 * Hold device_hotplug_lock when adding/removing memory blocks.
+-	 * Additionally, also protect calls to find_memory_block() and
++	 * Additionally, also protect calls to memory_block_get() and
+ 	 * sclp_attach_storage().
+ 	 */
+ 	rc = lock_device_hotplug_sysfs();
+@@ -231,20 +231,19 @@ static ssize_t sclp_config_mem_store(str
+ 			sclp_mem_change_state(addr, block_size, 0);
+ 			goto out_unlock;
+ 		}
+-		mem = find_memory_block(pfn_to_section_nr(PFN_DOWN(addr)));
+-		put_device(&mem->dev);
++		mem = memory_block_get(phys_to_block_id(addr));
++		memory_block_put(mem);
+ 		WRITE_ONCE(sclp_mem->config, 1);
+ 	} else {
+ 		if (!sclp_mem->config)
+ 			goto out_unlock;
+-		mem = find_memory_block(pfn_to_section_nr(PFN_DOWN(addr)));
++		mem = memory_block_get(phys_to_block_id(addr));
+ 		if (mem->state != MEM_OFFLINE) {
+-			put_device(&mem->dev);
++			memory_block_put(mem);
+ 			rc = -EBUSY;
+ 			goto out_unlock;
+ 		}
+-		/* drop the ref just got via find_memory_block() */
+-		put_device(&mem->dev);
++		memory_block_put(mem);
+ 		sclp_mem_change_state(addr, block_size, 0);
+ 		__remove_memory(addr, block_size);
+ #ifdef CONFIG_KASAN
+@@ -294,11 +293,11 @@ static ssize_t sclp_memmap_on_memory_sto
+ 		return rc;
+ 	block_size = memory_block_size_bytes();
+ 	sclp_mem = container_of(kobj, struct sclp_mem, kobj);
+-	mem = find_memory_block(pfn_to_section_nr(PFN_DOWN(sclp_mem->id * block_size)));
++	mem = memory_block_get(phys_to_block_id(sclp_mem->id * block_size));
+ 	if (!mem) {
+ 		WRITE_ONCE(sclp_mem->memmap_on_memory, value);
+ 	} else {
+-		put_device(&mem->dev);
++		memory_block_put(mem);
+ 		rc = -EBUSY;
+ 	}
+ 	unlock_device_hotplug();
+--- a/include/linux/memory.h~drivers-base-memory-make-memory-block-get-put-explicit
++++ a/include/linux/memory.h
+@@ -158,7 +158,11 @@ int create_memory_block_devices(unsigned
+ void remove_memory_block_devices(unsigned long start, unsigned long size);
+ extern void memory_dev_init(void);
+ extern int memory_notify(enum memory_block_state state, void *v);
+-extern struct memory_block *find_memory_block(unsigned long section_nr);
++struct memory_block *memory_block_get(unsigned long block_id);
++static inline void memory_block_put(struct memory_block *mem)
++{
++	put_device(&mem->dev);
++}
+ typedef int (*walk_memory_blocks_func_t)(struct memory_block *, void *);
+ extern int walk_memory_blocks(unsigned long start, unsigned long size,
+ 			      void *arg, walk_memory_blocks_func_t func);
+@@ -171,7 +175,6 @@ struct memory_group *memory_group_find_b
+ typedef int (*walk_memory_groups_func_t)(struct memory_group *, void *);
+ int walk_dynamic_memory_groups(int nid, walk_memory_groups_func_t func,
+ 			       struct memory_group *excluded, void *arg);
+-struct memory_block *find_memory_block_by_id(unsigned long block_id);
+ #define hotplug_memory_notifier(fn, pri) ({		\
+ 	static __meminitdata struct notifier_block fn##_mem_nb =\
+ 		{ .notifier_call = fn, .priority = pri };\
+--- a/mm/memory_hotplug.c~drivers-base-memory-make-memory-block-get-put-explicit
++++ a/mm/memory_hotplug.c
+@@ -1423,14 +1423,13 @@ static void remove_memory_blocks_and_alt
+ 		struct vmem_altmap *altmap = NULL;
+ 		struct memory_block *mem;
+ 
+-		mem = find_memory_block(pfn_to_section_nr(PFN_DOWN(cur_start)));
++		mem = memory_block_get(phys_to_block_id(cur_start));
+ 		if (WARN_ON_ONCE(!mem))
+ 			continue;
+ 
+ 		altmap = mem->altmap;
+ 		mem->altmap = NULL;
+-		/* drop the ref. we got via find_memory_block() */
+-		put_device(&mem->dev);
++		memory_block_put(mem);
+ 
+ 		remove_memory_block_devices(cur_start, memblock_size);
+ 		arch_remove_memory(cur_start, memblock_size, altmap, NULL);
 _
 
-Patches currently in -mm which might be from agarwal.vineet2006@gmail.com are
+Patches currently in -mm which might be from songmuchun@bytedance.com are
 
+mm-sparse-vmemmap-provide-generic-vmemmap_set_pmd-and-vmemmap_check_pmd.patch
+arm64-mm-drop-vmemmap_pmd-helpers-and-use-generic-code.patch
+riscv-mm-drop-vmemmap_pmd-helpers-and-use-generic-code.patch
+loongarch-mm-drop-vmemmap_check_pmd-helper-and-use-generic-code.patch
+sparc-mm-drop-vmemmap_check_pmd-helper-and-use-generic-code.patch
 
