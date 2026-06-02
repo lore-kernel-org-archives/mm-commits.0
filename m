@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CE9AB37F72E
-	for <mm-commits@vger.kernel.org>; Tue,  2 Jun 2026 22:18:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 804ED31F985
+	for <mm-commits@vger.kernel.org>; Tue,  2 Jun 2026 22:23:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780438712; cv=none; b=QHw/XujpgIpkWkulwVY7Bu2yZUFOW5YGoQOj2YS9mSa5y2Z99kuIGVx3bVFs7/od9QWM2QnJe84n0DJlaz7Rgtc53kn+wgzvYTcyExrpe9Y6Bbvvb0bXDmXTIAiyMogFC96c+klqURI+kyaVHgzScDroQxtH4+BzVEybPSd3LAY=
+	t=1780439009; cv=none; b=Bg8570FnQKyw021FC4Z6D741SqX8s9oHXHerpy4hvgIR00+RVCJMxIy8zH78QV2uDMgW6hvWL9aSOCmK9EtA36TEsoLFIl7AMOm55PNdK7ryuUWX6vlJfneSUaxrSrY93B/B3Yq2hhd1rG1eUBRQmrJ/FoJ6539n/vyT8O68K7M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780438712; c=relaxed/simple;
-	bh=6Gkd/2bRccfujWTE4K3r5jTrrNF8Y3H9eeLOMXskjPk=;
-	h=Date:To:From:Subject:Message-Id; b=B+6jR13+zLzDDgXKqmsTuLXEA8ziW3fU2voEYkb5+vL2kgZ2B2NxQ2pHm1TyhB88RTpHWy2vbnbwNmLXrEK+girv/b6F6peUSIKXQZDQa6kwt1IraSem/U+1PzSJ2RyheIt/bLhs5Uiwokgmt+i5ySBDc0TNmtVa2DJErDn3DlM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=G2nx1Ba9; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1780439009; c=relaxed/simple;
+	bh=6OahAgLmR1BWjzvGRAhMKJ5QkQqQckuH20pg5f292Kc=;
+	h=Date:To:From:Subject:Message-Id; b=KuER3mFQCpAssjrJp9O+jmya1e/QE55ygjlS+JbfdpsoRGnMuViGMMTwIrS9HVIHDT5blP/2BwIcgP9mXU8Rtd1jMmTK3R+iew5SEH/lJYIl0JfPntqL+HGCCdnIjJG8mxrSKSuorUayDByEa+TXVrixo815XkZXcbwIdDIFVRs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wmI5BKLt; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="G2nx1Ba9"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4C7E51F00893;
-	Tue,  2 Jun 2026 22:18:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wmI5BKLt"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0EC081F00893;
+	Tue,  2 Jun 2026 22:23:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1780438710;
-	bh=dy+NOF9/oFksCUyqx/wNHyVxg2cyRKgKU9IrQQa+9oc=;
+	d=linux-foundation.org; s=korg; t=1780439008;
+	bh=4kyiPlgZc5TadU3qv9Nr/JZ+3hzrR+nismaS7QG+1qA=;
 	h=Date:To:From:Subject;
-	b=G2nx1Ba9EeBYbYRerLRK1uRz1xeucOGJq5zZOaXmFxzIMSiuwVBKlC+iVg1FGgTwY
-	 wP+fHr0xQTcF8WQ+QiaCWwDUsD1knStwddpuGruq4tUhy60LGiy0MgLkGz8wh7IwY1
-	 +UDKfoSrs2giQrjlQaxOvzaTR9iM9m4VTILm/TxU=
-Date: Tue, 02 Jun 2026 15:18:29 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,lirongqing@baidu.com,akpm@linux-foundation.org
+	b=wmI5BKLt3Jtpam2W2mLR7PwaThjFIybbNsRe12NXXhcM0u17L2d5JyVtJj70+ssrJ
+	 79UqJfr18OjFRwVD0qAUiIjcmvEJKcf2iRC2fU7YYZHj0YzvmXLX+WyVAmS9sO09Pn
+	 Y18/BBRDu3Wm7v+vs9AHlCpGmIfwGPpizv7pmpFs=
+Date: Tue, 02 Jun 2026 15:23:27 -0700
+To: mm-commits@vger.kernel.org,yanquanmin1@huawei.com,sj@kernel.org,shu17az@gmail.com,jiayuan.chen@shopee.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-dmapool-use-static-key-for-boot-time-debug-enablement.patch removed from -mm tree
-Message-Id: <20260602221830.4C7E51F00893@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-replace-damon_rand-with-a-per-ctx-lockless-prng.patch removed from -mm tree
+Message-Id: <20260602222328.0EC081F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,159 +35,291 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/dmapool: use static key for boot-time debug enablement
+     Subject: mm/damon: replace damon_rand() with a per-ctx lockless PRNG
 has been removed from the -mm tree.  Its filename was
-     mm-dmapool-use-static-key-for-boot-time-debug-enablement.patch
+     mm-damon-replace-damon_rand-with-a-per-ctx-lockless-prng.patch
 
-This patch was dropped because an updated version will be issued
+This patch was dropped because it was merged into the mm-stable branch
+of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Li RongQing <lirongqing@baidu.com>
-Subject: mm/dmapool: use static key for boot-time debug enablement
-Date: Sat, 23 May 2026 23:40:15 -0400
+From: Jiayuan Chen <jiayuan.chen@shopee.com>
+Subject: mm/damon: replace damon_rand() with a per-ctx lockless PRNG
+Date: Fri, 8 May 2026 18:18:15 -0700
 
-Replace the #ifdef CONFIG_SLUB_DEBUG_ON conditional compilation with a
-static key (dmapool_debug_enabled).  This allows enabling dmapool
-debugging at boot time via:
+damon_rand() on the sampling_addr hot path called get_random_u32_below(),
+which takes a local_lock_irqsave() around a per-CPU batched entropy pool
+and periodically refills it with ChaCha20.  At elevated nr_regions counts
+(20k+), the lock_acquire / local_lock pair plus __get_random_u32_below()
+dominate kdamond perf profiles.
 
-    dmapool_debug
+Replace the helper with a lockless lfsr113 generator (struct rnd_state)
+held per damon_ctx and seeded from get_random_u64() in damon_new_ctx(). 
+kdamond is the single consumer of a given ctx, so no synchronization is
+required.  Range mapping uses traditional reciprocal multiplication,
+similar as get_random_u32_below(); for spans larger than U32_MAX (only
+reachable on 64-bit) the slow path combines two u32 outputs and uses
+mul_u64_u64_shr() at 64-bit width.  On 32-bit the slow path is dead code
+and gets eliminated by the compiler.
 
-Instead of requiring CONFIG_SLUB_DEBUG_ON at compile time. Benefits:
+The new helper takes a ctx parameter; damon_split_regions_of() and the
+kunit tests that call it directly are updated accordingly.
 
-- Debugging can be enabled without rebuilding the kernel
-- Uses standard kernel static_key mechanism with minimal overhead
+lfsr113 is a linear PRNG and MUST NOT be used for anything
+security-sensitive.  DAMON's sampling_addr is not exposed to userspace and
+is only consumed as a probe point for PTE accessed-bit sampling, so a
+non-cryptographic PRNG is appropriate here.
 
-Link: https://lore.kernel.org/20260524034015.1830-1-lirongqing@baidu.com
-Signed-off-by: Li RongQing <lirongqing@baidu.com>
-Suggested-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Michal Hocko <mhocko@suse.com>
+Tested with paddr monitoring and max_nr_regions=20000: kdamond CPU usage
+reduced from ~72% to ~50% of one core.
+
+Link: https://lore.kernel.org/20260505145212.108644-1-jiayuan.chen@linux.dev
+Link: https://lore.kernel.org/damon/20260426173346.86238-1-sj@kernel.org/T/#m4f1fd74112728f83a41511e394e8c3fef703039c
+Link: https://lore.kernel.org/20260509011816.85145-1-sj@kernel.org
+Signed-off-by: Jiayuan Chen <jiayuan.chen@shopee.com>
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Reviewed-by: SeongJae Park <sj@kernel.org>
+Cc: Shu Anzai <shu17az@gmail.com>
+Cc: Quanmin Yan <yanquanmin1@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/kernel-parameters.txt |    5 +
- mm/dmapool.c                                    |   52 +++++++-------
- 2 files changed, 34 insertions(+), 23 deletions(-)
+ include/linux/damon.h       |   28 +++++++++++++++++++++-------
+ mm/damon/core.c             |   12 ++++++++----
+ mm/damon/paddr.c            |    8 ++++----
+ mm/damon/tests/core-kunit.h |   28 ++++++++++++++++++++++------
+ mm/damon/vaddr.c            |    7 ++++---
+ 5 files changed, 59 insertions(+), 24 deletions(-)
 
---- a/Documentation/admin-guide/kernel-parameters.txt~mm-dmapool-use-static-key-for-boot-time-debug-enablement
-+++ a/Documentation/admin-guide/kernel-parameters.txt
-@@ -1333,6 +1333,11 @@ Kernel parameters
+--- a/include/linux/damon.h~mm-damon-replace-damon_rand-with-a-per-ctx-lockless-prng
++++ a/include/linux/damon.h
+@@ -8,23 +8,18 @@
+ #ifndef _DAMON_H_
+ #define _DAMON_H_
  
- 	dis_ucode_ldr	[X86] Disable the microcode loader.
- 
-+	dmapool_debug	[MM]
-+			Enable DMA pool debugging. This enables memory
-+			poisoning and validation for DMA pool allocations.
-+			Useful for debugging DMA API misuse.
-+
- 	dma_debug=off	If the kernel is compiled with DMA_API_DEBUG support,
- 			this option disables the debugging code at boot.
- 
---- a/mm/dmapool.c~mm-dmapool-use-static-key-for-boot-time-debug-enablement
-+++ a/mm/dmapool.c
-@@ -35,10 +35,23 @@
- #include <linux/string.h>
++#include <linux/math64.h>
+ #include <linux/memcontrol.h>
+ #include <linux/mutex.h>
++#include <linux/prandom.h>
+ #include <linux/time64.h>
  #include <linux/types.h>
- #include <linux/wait.h>
-+#include <linux/static_key.h>
-+#include <linux/init.h>
+-#include <linux/random.h>
  
--#ifdef CONFIG_SLUB_DEBUG_ON
--#define DMAPOOL_DEBUG 1
--#endif
-+/*
-+ * Debugging support for dmapool using static key.
-+ *
-+ * This allows enabling dmapool debug at boot time via:
-+ *   dmapool_debug
-+ */
-+static DEFINE_STATIC_KEY_FALSE(dmapool_debug_enabled);
+ /* Minimal region size.  Every damon_region is aligned by this. */
+ #define DAMON_MIN_REGION_SZ	PAGE_SIZE
+ /* Max priority score for DAMON-based operation schemes */
+ #define DAMOS_MAX_SCORE		(99)
+ 
+-/* Get a random number in [l, r) */
+-static inline unsigned long damon_rand(unsigned long l, unsigned long r)
+-{
+-	return l + get_random_u32_below(r - l);
+-}
+-
+ /**
+  * struct damon_addr_range - Represents an address region of [@start, @end).
+  * @start:	Start address of the region (inclusive).
+@@ -859,8 +854,27 @@ struct damon_ctx {
+ 
+ 	struct list_head adaptive_targets;
+ 	struct list_head schemes;
 +
-+static int __init dmapool_debug_setup(char *str)
++	/* Per-ctx PRNG state for damon_rand(); kdamond is the sole consumer. */
++	struct rnd_state rnd_state;
+ };
+ 
++/* Get a random number in [@l, @r) using @ctx's lockless PRNG. */
++static inline unsigned long damon_rand(struct damon_ctx *ctx,
++				       unsigned long l, unsigned long r)
 +{
-+	static_branch_enable(&dmapool_debug_enabled);
-+	return 1;
++	unsigned long span = r - l;
++	u64 rnd;
++
++	if (span <= U32_MAX) {
++		rnd = prandom_u32_state(&ctx->rnd_state);
++		return l + (unsigned long)((rnd * span) >> 32);
++	}
++	rnd = ((u64)prandom_u32_state(&ctx->rnd_state) << 32) |
++	      prandom_u32_state(&ctx->rnd_state);
++	return l + mul_u64_u64_shr(rnd, span, 64);
 +}
-+__setup("dmapool_debug", dmapool_debug_setup);
- 
- struct dma_block {
- 	struct dma_block *next_block;
-@@ -92,13 +105,15 @@ static ssize_t pools_show(struct device
- 
- static DEVICE_ATTR_RO(pools);
- 
--#ifdef DMAPOOL_DEBUG
- static void pool_check_block(struct dma_pool *pool, struct dma_block *block,
- 			     gfp_t mem_flags)
++
+ static inline struct damon_region *damon_next_region(struct damon_region *r)
  {
- 	u8 *data = (void *)block;
+ 	return container_of(r->list.next, struct damon_region, list);
+--- a/mm/damon/core.c~mm-damon-replace-damon_rand-with-a-per-ctx-lockless-prng
++++ a/mm/damon/core.c
+@@ -611,6 +611,8 @@ struct damon_ctx *damon_new_ctx(void)
+ 	INIT_LIST_HEAD(&ctx->adaptive_targets);
+ 	INIT_LIST_HEAD(&ctx->schemes);
+ 
++	prandom_seed_state(&ctx->rnd_state, get_random_u64());
++
+ 	return ctx;
+ }
+ 
+@@ -2939,8 +2941,9 @@ static void damon_split_region_at(struct
+ }
+ 
+ /* Split every region in the given target into 'nr_subs' regions */
+-static void damon_split_regions_of(struct damon_target *t, int nr_subs,
+-				  unsigned long min_region_sz)
++static void damon_split_regions_of(struct damon_ctx *ctx,
++				   struct damon_target *t, int nr_subs,
++				   unsigned long min_region_sz)
+ {
+ 	struct damon_region *r, *next;
+ 	unsigned long sz_region, sz_sub = 0;
+@@ -2955,7 +2958,7 @@ static void damon_split_regions_of(struc
+ 			 * Randomly select size of left sub-region to be at
+ 			 * least 10 percent and at most 90% of original region
+ 			 */
+-			sz_sub = ALIGN_DOWN(damon_rand(1, 10) *
++			sz_sub = ALIGN_DOWN(damon_rand(ctx, 1, 10) *
+ 					sz_region / 10, min_region_sz);
+ 			/* Do not allow blank region */
+ 			if (sz_sub == 0 || sz_sub >= sz_region)
+@@ -2996,7 +2999,8 @@ static void kdamond_split_regions(struct
+ 		nr_subregions = 3;
+ 
+ 	damon_for_each_target(t, ctx)
+-		damon_split_regions_of(t, nr_subregions, ctx->min_region_sz);
++		damon_split_regions_of(ctx, t, nr_subregions,
++				       ctx->min_region_sz);
+ 
+ 	last_nr_regions = nr_regions;
+ }
+--- a/mm/damon/paddr.c~mm-damon-replace-damon_rand-with-a-per-ctx-lockless-prng
++++ a/mm/damon/paddr.c
+@@ -49,11 +49,11 @@ static void damon_pa_mkold(phys_addr_t p
+ }
+ 
+ static void __damon_pa_prepare_access_check(struct damon_region *r,
+-		unsigned long addr_unit)
++		struct damon_ctx *ctx)
+ {
+-	r->sampling_addr = damon_rand(r->ar.start, r->ar.end);
++	r->sampling_addr = damon_rand(ctx, r->ar.start, r->ar.end);
+ 
+-	damon_pa_mkold(damon_pa_phys_addr(r->sampling_addr, addr_unit));
++	damon_pa_mkold(damon_pa_phys_addr(r->sampling_addr, ctx->addr_unit));
+ }
+ 
+ static void damon_pa_prepare_access_checks(struct damon_ctx *ctx)
+@@ -63,7 +63,7 @@ static void damon_pa_prepare_access_chec
+ 
+ 	damon_for_each_target(t, ctx) {
+ 		damon_for_each_region(r, t)
+-			__damon_pa_prepare_access_check(r, ctx->addr_unit);
++			__damon_pa_prepare_access_check(r, ctx);
+ 	}
+ }
+ 
+--- a/mm/damon/tests/core-kunit.h~mm-damon-replace-damon_rand-with-a-per-ctx-lockless-prng
++++ a/mm/damon/tests/core-kunit.h
+@@ -273,54 +273,70 @@ static void damon_test_merge_regions_of(
+ 
+ static void damon_test_split_regions_of(struct kunit *test)
+ {
++	struct damon_ctx *c;
+ 	struct damon_target *t;
+ 	struct damon_region *r;
+ 	unsigned long sa[] = {0, 300, 500};
+ 	unsigned long ea[] = {220, 400, 700};
  	int i;
  
-+	if (!static_branch_unlikely(&dmapool_debug_enabled))
-+		return;
++	c = damon_new_ctx();
++	if (!c)
++		kunit_skip(test, "ctx alloc fail");
 +
- 	for (i = sizeof(struct dma_block); i < pool->size; i++) {
- 		if (data[i] == POOL_POISON_FREED)
- 			continue;
-@@ -133,8 +148,14 @@ static struct dma_page *pool_find_page(s
- 
- static bool pool_block_err(struct dma_pool *pool, void *vaddr, dma_addr_t dma)
- {
--	struct dma_block *block = pool->next_block;
- 	struct dma_page *page;
-+	struct dma_block *block;
-+
-+	if (!static_branch_unlikely(&dmapool_debug_enabled)) {
-+		if (want_init_on_free())
-+			memset(vaddr, 0, pool->size);
-+		return false;
+ 	t = damon_new_target();
+-	if (!t)
++	if (!t) {
++		damon_destroy_ctx(c);
+ 		kunit_skip(test, "target alloc fail");
 +	}
- 
- 	page = pool_find_page(pool, dma);
- 	if (!page) {
-@@ -143,6 +164,7 @@ static bool pool_block_err(struct dma_po
- 		return true;
+ 	r = damon_new_region(0, 22);
+ 	if (!r) {
+ 		damon_free_target(t);
++		damon_destroy_ctx(c);
+ 		kunit_skip(test, "region alloc fail");
  	}
+ 	damon_add_region(r, t);
+-	damon_split_regions_of(t, 2, 1);
++	damon_split_regions_of(c, t, 2, 1);
+ 	KUNIT_EXPECT_LE(test, damon_nr_regions(t), 2u);
+ 	damon_free_target(t);
  
-+	block = pool->next_block;
- 	while (block) {
- 		if (block != vaddr) {
- 			block = block->next_block;
-@@ -159,25 +181,9 @@ static bool pool_block_err(struct dma_po
+ 	t = damon_new_target();
+-	if (!t)
++	if (!t) {
++		damon_destroy_ctx(c);
+ 		kunit_skip(test, "second target alloc fail");
++	}
+ 	r = damon_new_region(0, 220);
+ 	if (!r) {
+ 		damon_free_target(t);
++		damon_destroy_ctx(c);
+ 		kunit_skip(test, "second region alloc fail");
+ 	}
+ 	damon_add_region(r, t);
+-	damon_split_regions_of(t, 4, 1);
++	damon_split_regions_of(c, t, 4, 1);
+ 	KUNIT_EXPECT_LE(test, damon_nr_regions(t), 4u);
+ 	damon_free_target(t);
  
- static void pool_init_page(struct dma_pool *pool, struct dma_page *page)
- {
--	memset(page->vaddr, POOL_POISON_FREED, pool->allocation);
--}
--#else
--static void pool_check_block(struct dma_pool *pool, struct dma_block *block,
--			     gfp_t mem_flags)
--{
--}
--
--static bool pool_block_err(struct dma_pool *pool, void *vaddr, dma_addr_t dma)
--{
--	if (want_init_on_free())
--		memset(vaddr, 0, pool->size);
--	return false;
--}
--
--static void pool_init_page(struct dma_pool *pool, struct dma_page *page)
--{
-+	if (static_branch_unlikely(&dmapool_debug_enabled))
-+		memset(page->vaddr, POOL_POISON_FREED, pool->allocation);
+ 	t = damon_new_target();
+-	if (!t)
++	if (!t) {
++		damon_destroy_ctx(c);
+ 		kunit_skip(test, "third target alloc fail");
++	}
+ 	for (i = 0; i < ARRAY_SIZE(sa); i++) {
+ 		r = damon_new_region(sa[i], ea[i]);
+ 		if (!r) {
+ 			damon_free_target(t);
++			damon_destroy_ctx(c);
+ 			kunit_skip(test, "region alloc fail");
+ 		}
+ 		damon_add_region(r, t);
+ 	}
+-	damon_split_regions_of(t, 4, 5);
++	damon_split_regions_of(c, t, 4, 5);
+ 	KUNIT_EXPECT_LE(test, damon_nr_regions(t), 12u);
+ 	damon_for_each_region(r, t)
+ 		KUNIT_EXPECT_GE(test, damon_sz_region(r) % 5ul, 0ul);
+ 	damon_free_target(t);
++
++	damon_destroy_ctx(c);
  }
--#endif
  
- static struct dma_block *pool_block_pop(struct dma_pool *pool)
+ static void damon_test_ops_registration(struct kunit *test)
+--- a/mm/damon/vaddr.c~mm-damon-replace-damon_rand-with-a-per-ctx-lockless-prng
++++ a/mm/damon/vaddr.c
+@@ -333,9 +333,10 @@ static void damon_va_mkold(struct mm_str
+  */
+ 
+ static void __damon_va_prepare_access_check(struct mm_struct *mm,
+-					struct damon_region *r)
++					struct damon_region *r,
++					struct damon_ctx *ctx)
  {
+-	r->sampling_addr = damon_rand(r->ar.start, r->ar.end);
++	r->sampling_addr = damon_rand(ctx, r->ar.start, r->ar.end);
+ 
+ 	damon_va_mkold(mm, r->sampling_addr);
+ }
+@@ -351,7 +352,7 @@ static void damon_va_prepare_access_chec
+ 		if (!mm)
+ 			continue;
+ 		damon_for_each_region(r, t)
+-			__damon_va_prepare_access_check(mm, r);
++			__damon_va_prepare_access_check(mm, r, ctx);
+ 		mmput(mm);
+ 	}
+ }
 _
 
-Patches currently in -mm which might be from lirongqing@baidu.com are
+Patches currently in -mm which might be from jiayuan.chen@shopee.com are
 
 
