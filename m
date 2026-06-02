@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CAFDB30C37E
-	for <mm-commits@vger.kernel.org>; Tue,  2 Jun 2026 22:23:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BFD943B6C1D
+	for <mm-commits@vger.kernel.org>; Tue,  2 Jun 2026 22:23:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780439032; cv=none; b=ScDcIAo7YadLGsmT8B8fKht62rjhTxvz6wTmIU5oE5mjSq4AlV1WlbuTZqWhDm5PGkCD/nECgSMae7ybRmawR5tb3aIg+bYmfD9ThkzhBNLesDH7vnF6Dnc7f+fa/S1qf72sIViIxkESvTkgZrIvoHNtJImGIdnjMtRP2mAptWE=
+	t=1780439032; cv=none; b=H8ReSsoZ9i5/PAcRmqzcPobKfbToC6V9k4uFkP/Ig6WlYTre5AybzBg2f9g1WncStmuCCcg4BeFzPXmwGVBODQg4hSZxX5KBzLMp5QNmLg5TVq5IDGlpFhSBdKRZedyPsyWE/3aCmvQ918S+FZNnTtHe9ISzP2t8y0acAAOpdN4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1780439032; c=relaxed/simple;
-	bh=0gjx6LwZ+W78FOHMKCWs1GZjbgYvHPhistvuT9ERHnA=;
-	h=Date:To:From:Subject:Message-Id; b=qAo2RUNte0dpjRoWd0ZbRvMtFEyKhqHUZU+7P8hOFRAFwI5Yoo1gRPT1qXjnqVFH0BLftzcpnRF2F0tnitoE2ObacaqW4ro6oZgwKKg+1UxmMVd7lkiDIqTBi02L5YxRKuinpKHAYdS6oiguJCPXFfDLMo3pvqoLBIWlz3Hnpj8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XAqb8DCg; arc=none smtp.client-ip=100.103.45.18
+	bh=AyvdQt0M8DmPW0BdGJ8vc+vRXbI90UY0ABQ6D90+Ess=;
+	h=Date:To:From:Subject:Message-Id; b=jA+Bu7MvqMBfFNVYgUZ9Nx8xPBM6KDd2cL2kLff3pbgAsGDqZl0brqqRV7AnLI/W+JQ6BqjSaFxokFecXJaJgV2puOZTNUmrTdFDekMqHJnv7lBpYT2s9BGaimyuaZnFXrgWIsgN90jtUNNQ2U3oAuG6KzLg3FJj9FSKNp13Kgo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=piOqhIfW; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XAqb8DCg"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9F55A1F00898;
-	Tue,  2 Jun 2026 22:23:51 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="piOqhIfW"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4D97D1F00893;
+	Tue,  2 Jun 2026 22:23:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1780439031;
-	bh=p/uo7EpdzGmEFWqAVyk7nKADgWdAyowyuFM65RXXujw=;
+	d=linux-foundation.org; s=korg; t=1780439030;
+	bh=9gfMW9+h9w6a3fQY8LqgAyaoSkmENXsn3hj6zyD4yUM=;
 	h=Date:To:From:Subject;
-	b=XAqb8DCgR+2YVNQvASC1wgw6h7211rXAqQGu4+kE1rTpkuaGJlT+F7g+zBNw9ji6G
-	 14B+6hG0FkmnuTbzMzm7p6aCkV6AStfJOrNtF7+0fupHqvgTRjDCMvhDbEiYy1Ebm5
-	 wYI8gy4305O4nNV+o00ovJTPu0I7JZtQp+gWVHuw=
-Date: Tue, 02 Jun 2026 15:23:51 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,xhao@linux.alibaba.com,ryan.roberts@arm.com,npache@redhat.com,ljs@kernel.org,liam@infradead.org,lance.yang@linux.dev,dev.jain@arm.com,david@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,liuye@kylinos.cn,akpm@linux-foundation.org
+	b=piOqhIfWv39toC0MzDIXGLWenS3aqMkG+8wdDLr/3bbPDC1eecMwH8QJousKOuL78
+	 FDw2wFQa9JI2S+VODCrXf5fVopmjOBKxJrql6V5irONjRpzQnhMs6V+x7nCaWImSyW
+	 24TRuDjL06DHRrjHrBXqh22a2Fsd8nlI2fGaBhT8=
+Date: Tue, 02 Jun 2026 15:23:49 -0700
+To: mm-commits@vger.kernel.org,tj@kernel.org,dennis@kernel.org,zenghongling@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-khugepaged-fix-inconsistent-mmf_vm_hugepage-flag-due-to-allocation-failure-order.patch removed from -mm tree
-Message-Id: <20260602222351.9F55A1F00898@smtp.kernel.org>
+Subject: [merged mm-stable] mm-percpu-internalh-optimise-pcpu_chunk-struct-to-save-memory.patch removed from -mm tree
+Message-Id: <20260602222350.4D97D1F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,73 +35,136 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/khugepaged: fix inconsistent MMF_VM_HUGEPAGE flag due to allocation failure order
+     Subject: mm/percpu-internal.h: optimise pcpu_chunk struct to save memory
 has been removed from the -mm tree.  Its filename was
-     mm-khugepaged-fix-inconsistent-mmf_vm_hugepage-flag-due-to-allocation-failure-order.patch
+     mm-percpu-internalh-optimise-pcpu_chunk-struct-to-save-memory.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Ye Liu <liuye@kylinos.cn>
-Subject: mm/khugepaged: fix inconsistent MMF_VM_HUGEPAGE flag due to allocation failure order
-Date: Mon, 11 May 2026 10:54:07 +0800
+From: zenghongling <zenghongling@kylinos.cn>
+Subject: mm/percpu-internal.h: optimise pcpu_chunk struct to save memory
+Date: Mon, 11 May 2026 15:03:09 +0800
 
-__khugepaged_enter() sets MMF_VM_HUGEPAGE before allocating the
-corresponding mm_slot.  If mm_slot_alloc() fails, the function returns
-with the flag set but without inserting the mm into the khugepaged
-tracking structures, leaving the mm in an inconsistent state where future
-registration attempts are skipped.
+Using pahole, we can see that there are some padding holes in the current
+pcpu_chunk structure,Adjusting the layout of pcpu_chunk can reduce these
+holes,decreasing its size from 192 bytes to 128 bytes and eliminating a
+wasted cache line.
 
-Fix this by reordering: allocate the mm_slot first, then check and set the
-flag.  If the flag is already set, free the allocated slot and return. 
-This ensures the flag is only set when the mm is successfully registered
-in the khugepaged tracking structures.
+With allmodconfig (CONFIG_PERCPU_STATS + NEED_PCPUOBJ_EXT)
+Before:
+ /* size: 256, cachelines: 4, members: 19 */
 
-Link: https://lore.kernel.org/20260511025408.54035-1-ye.liu@linux.dev
-Fixes: 16618670276a ("mm: khugepaged: avoid pointless allocation for "struct mm_slot"")
-Signed-off-by: Ye Liu <liuye@kylinos.cn>
-Suggested-by: David Hildenbrand <david@kernel.org>
-Reviewed-by: Lance Yang <lance.yang@linux.dev>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Reviewed-by: Dev Jain <dev.jain@arm.com>
-Reviewed-by: Lorenzo Stoakes <ljs@kernel.org>
-Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Nico Pache <npache@redhat.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Xin Hao <xhao@linux.alibaba.com>
-Cc: Zi Yan <ziy@nvidia.com>
+After:
+ /* size: 192, cachelines: 3, members: 19 */
+
+with NEED_PCPUOBJ_EXT
+Before:
+struct pcpu_chunk {
+        struct list_head           list;                 /*     0    16 */
+        int                        free_bytes;           /*    16     4 */
+        struct pcpu_block_md       chunk_md;             /*    20    32 */
+
+        /* XXX 4 bytes hole, try to pack */
+
+        long unsigned int *        bound_map;            /*    56     8 */
+        /* --- cacheline 1 boundary (64 bytes) --- */
+        void *                     base_addr __attribute__((__aligned__(64))); /*    64     8 */
+        long unsigned int *        alloc_map;            /*    72     8 */
+        struct pcpu_block_md *     md_blocks;            /*    80     8 */
+        void *                     data;                 /*    88     8 */
+        bool                       immutable;            /*    96     1 */
+        bool                       isolated;             /*    97     1 */
+
+        /* XXX 2 bytes hole, try to pack */
+
+        int                        start_offset;         /*   100     4 */
+        int                        end_offset;           /*   104     4 */
+
+        /* XXX 4 bytes hole, try to pack */
+
+        struct obj_cgroup * *      obj_cgroups;          /*   112     8 */
+        int                        nr_pages;             /*   120     4 */
+        int                        nr_populated;         /*   124     4 */
+        /* --- cacheline 2 boundary (128 bytes) --- */
+        int                        nr_empty_pop_pages;   /*   128     4 */
+
+        /* XXX 4 bytes hole, try to pack */
+
+        long unsigned int          populated[];          /*   136     0 */
+
+        /* size: 192, cachelines: 3, members: 17 */
+        /* sum members: 122, holes: 4, sum holes: 14 */
+        /* padding: 56 */
+        /* forced alignments: 1 */
+} __attribute__((__aligned__(64)));
+
+After:
+struct pcpu_chunk {
+	struct list_head           list;                 /*     0    16 */
+	int                        free_bytes;           /*    16     4 */
+	struct pcpu_block_md       chunk_md;             /*    20    32 */
+
+	/* XXX 4 bytes hole, try to pack */
+
+	long unsigned int *        bound_map;            /*    56     8 */
+	/* --- cacheline 1 boundary (64 bytes) --- */
+	void *                     base_addr __attribute__((__aligned__(64))); /*    64     8 */
+	long unsigned int *        alloc_map;            /*    72     8 */
+	struct pcpu_block_md *     md_blocks;            /*    80     8 */
+	void *                     data;                 /*    88     8 */
+	bool                       immutable;            /*    96     1 */
+	bool                       isolated;             /*    97     1 */
+
+	/* XXX 2 bytes hole, try to pack */
+
+	int                        start_offset;         /*   100     4 */
+	int                        end_offset;           /*   104     4 */
+	int                        nr_pages;             /*   108     4 */
+	int                        nr_populated;         /*   112     4 */
+	int                        nr_empty_pop_pages;   /*   116     4 */
+	struct obj_cgroup * *      obj_cgroups;          /*   120     8 */
+	/* --- cacheline 2 boundary (128 bytes) --- */
+	long unsigned int          populated[];          /*   128     0 */
+
+	/* size: 128, cachelines: 2, members: 17 */
+	/* sum members: 122, holes: 2, sum holes: 6 */
+	/* forced alignments: 1 */
+} __attribute__((__aligned__(64)));
+
+Link: https://lore.kernel.org/20260511070309.44044-1-zenghongling@kylinos.cn
+Signed-off-by: zenghongling <zenghongling@kylinos.cn>
+Suggested-by: Dennis Zhou <dennis@kernel.org>
+Acked-by: Dennis Zhou <dennis@kernel.org>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ mm/percpu-internal.h |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/mm/khugepaged.c~mm-khugepaged-fix-inconsistent-mmf_vm_hugepage-flag-due-to-allocation-failure-order
-+++ a/mm/khugepaged.c
-@@ -437,13 +437,16 @@ void __khugepaged_enter(struct mm_struct
+--- a/mm/percpu-internal.h~mm-percpu-internalh-optimise-pcpu_chunk-struct-to-save-memory
++++ a/mm/percpu-internal.h
+@@ -77,13 +77,13 @@ struct pcpu_chunk {
+ 	int			end_offset;	/* additional area required to
+ 						   have the region end page
+ 						   aligned */
++	int			nr_pages;	/* # of pages served by this chunk */
++	int			nr_populated;	/* # of populated pages */
++	int                     nr_empty_pop_pages; /* # of empty populated pages */
+ #ifdef NEED_PCPUOBJ_EXT
+ 	struct pcpuobj_ext	*obj_exts;	/* vector of object cgroups */
+ #endif
  
- 	/* __khugepaged_exit() must not run from under us */
- 	VM_BUG_ON_MM(collapse_test_exit(mm), mm);
--	if (unlikely(mm_flags_test_and_set(MMF_VM_HUGEPAGE, mm)))
--		return;
+-	int			nr_pages;	/* # of pages served by this chunk */
+-	int			nr_populated;	/* # of populated pages */
+-	int                     nr_empty_pop_pages; /* # of empty populated pages */
+ 	unsigned long		populated[];	/* populated bitmap */
+ };
  
- 	slot = mm_slot_alloc(mm_slot_cache);
- 	if (!slot)
- 		return;
- 
-+	if (unlikely(mm_flags_test_and_set(MMF_VM_HUGEPAGE, mm))) {
-+		mm_slot_free(mm_slot_cache, slot);
-+		return;
-+	}
-+
- 	spin_lock(&khugepaged_mm_lock);
- 	mm_slot_insert(mm_slots_hash, mm, slot);
- 	/*
 _
 
-Patches currently in -mm which might be from liuye@kylinos.cn are
+Patches currently in -mm which might be from zenghongling@kylinos.cn are
 
 
