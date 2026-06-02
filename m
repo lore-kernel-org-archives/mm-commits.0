@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C9D7D3C13E9
-	for <mm-commits@vger.kernel.org>; Tue,  2 Jun 2026 22:25:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F23C73BB10E
+	for <mm-commits@vger.kernel.org>; Tue,  2 Jun 2026 22:25:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780439151; cv=none; b=go+5U7uBX/Gbm7LcNR8VPmR9kFTEWpjXBtJxIxFCEio90PDk056BeaUZ38Y9ccyXLzWpNuZJN40ZfG/GQTyGtle3Feu+UF6uk6CC1FtqXn2PHXF+xvWRNmQW14RvwGHYMLDMht1RW6tSO3tQKNWVZcvdEJzsZWAleVraTwt3qaA=
+	t=1780439153; cv=none; b=p4p5M4OMFN6HM1pdhJYEfjs3G/yjWGUHRAKF2KBi5MRnuOhyId7GIWbmm0yYwMB5iEyaQw5AQ/WV365qjawlw3daCLOJDM1SMs9US1Ehv4+z+ygT2c/tK/9Up1HNQmoAyNxRmZnu6jOVJ+oxxiksrzxUS+U+syLKw2Isz6amVtM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780439151; c=relaxed/simple;
-	bh=21ECYqgmj0jEMx4ONtxwpItf1yTOFEBwe/8rmSLNnCU=;
-	h=Date:To:From:Subject:Message-Id; b=fEqsp+KxHkhpY9M+wfVnX0RwMJCEQ1NyEAWoH0WnoyEgmb96UPfdYHXEBvDjxTm8zFY/ldldC9v4Dvfdkgxu35Kw4WYdGrx8W2LJSYocLIyLhJC6RW08YSVSszL5y4aXuiFVHI5kFYVHQTlNuF1zsx/zjl8nVMu0avk0ZY+gkg4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dFqBjKxr; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1780439153; c=relaxed/simple;
+	bh=hACAKxwRBOXxZ8PfuMdE3X8ZUcLZH9IoRRK0Q28REVA=;
+	h=Date:To:From:Subject:Message-Id; b=uFBpH9ShXDHloEA/hizDRerqPw6O3oZPpOox8jA1RWA5kI/LiQxTcimsSuxmvwG6TcRumOupTdnPCR1SxPJEO47kiSZWBJxizNSnY5kZ4TwELtIGdWjkSSg04JRknTGuQzGfz/j2HzXfLfYgsjlVdFzmACkERN6h0nF4pb1eRec=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=y8nAz2LA; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dFqBjKxr"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9D53C1F00898;
-	Tue,  2 Jun 2026 22:25:50 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="y8nAz2LA"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C60A71F00893;
+	Tue,  2 Jun 2026 22:25:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1780439150;
-	bh=x+Wys7aicZKQp7uNueYxM4QIuLQpTPzX4LfSsr3QDbU=;
+	d=linux-foundation.org; s=korg; t=1780439151;
+	bh=b6aKZYo/yRFatBaEW3n2MTJ6+cdRwlF7rRSKjEaJ0rA=;
 	h=Date:To:From:Subject;
-	b=dFqBjKxrNtMlvT8D4ynYts7MXMB//8WU+aLafD99UhF5GnCqyY63C04ODy0/p9j5H
-	 y/hAxfllhxwIU//6MneBkY85Mx/KjB9gslXfaVbNL67I7/9OS9RpNzVBRnaX1CabK6
-	 5cAggUVLDLUAJbt4RGFf57g+8AMsOP0bUAwruVNo=
-Date: Tue, 02 Jun 2026 15:25:50 -0700
+	b=y8nAz2LA2cdXc+kqILZAizcH6YdGAKwBvECstNr0WKRJVDwsBKMgJGEBCeu7BGDEQ
+	 jejK7XowHrClQH8NIQsXjVsNXLwnT1zKYLB/egM7UR+vzEghqIv2eqB6hiAzEXNbQs
+	 1kowHNEPhjHWZD5xqEwfMvry+zncyOoU/hxFK9rw=
+Date: Tue, 02 Jun 2026 15:25:51 -0700
 To: mm-commits@vger.kernel.org,shuah@kernel.org,brendan.higgins@linux.dev,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-core-hide-damon_add_region.patch removed from -mm tree
-Message-Id: <20260602222550.9D53C1F00898@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-core-hide-damon_insert_region.patch removed from -mm tree
+Message-Id: <20260602222551.C60A71F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,54 +35,73 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/damon/core: hide damon_add_region()
+     Subject: mm/damon/core: hide damon_insert_region()
 has been removed from the -mm tree.  Its filename was
-     mm-damon-core-hide-damon_add_region.patch
+     mm-damon-core-hide-damon_insert_region.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/core: hide damon_add_region()
-Date: Fri, 22 May 2026 08:40:16 -0700
+Subject: mm/damon/core: hide damon_insert_region()
+Date: Fri, 22 May 2026 08:40:17 -0700
 
-damon_add_region() is being used by only DAMON core, but exposed to DAMON
-API callers.  Exposing something that is not really being used by others
-will only increase the maintenance cost.  Hide it.
+damon_insert_region() is being used by only DAMON core, but exposed to
+DAMON API callers.  Exposing something that is not really being used by
+others will only increase the maintenance cost.  Hide it.
 
-Link: https://lore.kernel.org/20260522154026.80546-6-sj@kernel.org
+Link: https://lore.kernel.org/20260522154026.80546-7-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Brendan Higgins <brendan.higgins@linux.dev>
 Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/damon.h |    1 -
- mm/damon/core.c       |    2 +-
- 2 files changed, 1 insertion(+), 2 deletions(-)
+ include/linux/damon.h |   11 -----------
+ mm/damon/core.c       |   11 +++++++++++
+ 2 files changed, 11 insertions(+), 11 deletions(-)
 
---- a/include/linux/damon.h~mm-damon-core-hide-damon_add_region
+--- a/include/linux/damon.h~mm-damon-core-hide-damon_insert_region
 +++ a/include/linux/damon.h
-@@ -1024,7 +1024,6 @@ static inline void damon_insert_region(s
- 	t->nr_regions++;
- }
+@@ -1013,17 +1013,6 @@ void damon_add_probe(struct damon_ctx *c
  
--void damon_add_region(struct damon_region *r, struct damon_target *t);
+ struct damon_region *damon_new_region(unsigned long start, unsigned long end);
+ 
+-/*
+- * Add a region between two other regions
+- */
+-static inline void damon_insert_region(struct damon_region *r,
+-		struct damon_region *prev, struct damon_region *next,
+-		struct damon_target *t)
+-{
+-	__list_add(&r->list, &prev->list, &next->list);
+-	t->nr_regions++;
+-}
+-
  void damon_destroy_region(struct damon_region *r, struct damon_target *t);
  int damon_set_regions(struct damon_target *t, struct damon_addr_range *ranges,
  		unsigned int nr_ranges, unsigned long min_region_sz);
---- a/mm/damon/core.c~mm-damon-core-hide-damon_add_region
+--- a/mm/damon/core.c~mm-damon-core-hide-damon_insert_region
 +++ a/mm/damon/core.c
-@@ -250,7 +250,7 @@ struct damon_region *damon_new_region(un
- 	return region;
+@@ -256,6 +256,17 @@ static void damon_add_region(struct damo
+ 	t->nr_regions++;
  }
  
--void damon_add_region(struct damon_region *r, struct damon_target *t)
-+static void damon_add_region(struct damon_region *r, struct damon_target *t)
++/*
++ * Add a region between two other regions
++ */
++static inline void damon_insert_region(struct damon_region *r,
++		struct damon_region *prev, struct damon_region *next,
++		struct damon_target *t)
++{
++	__list_add(&r->list, &prev->list, &next->list);
++	t->nr_regions++;
++}
++
+ #ifdef CONFIG_DAMON_DEBUG_SANITY
+ static void damon_verify_del_region(struct damon_target *t)
  {
- 	list_add_tail(&r->list, &t->regions_list);
- 	t->nr_regions++;
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
