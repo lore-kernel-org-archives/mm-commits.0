@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8624A3BC668
-	for <mm-commits@vger.kernel.org>; Tue,  2 Jun 2026 22:26:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3825A3BE162
+	for <mm-commits@vger.kernel.org>; Tue,  2 Jun 2026 22:26:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780439175; cv=none; b=qo8Og4g3J9lIinmvin8uCuBOOL7ksfIauE9OoTcX8yIzU421s9quxVWkWDXbIBFCuSYcY1MxT+RFISInNIGRoS7Q1YSrKFbundBgEMtgcOtqsfHjbDdWEAYiB7BNrMXN4xLzU3AI5edwB0RrELDmHjyzsiEFMLlact4tI7dDjig=
+	t=1780439176; cv=none; b=iDb8nWduwKRgQu3bB2q4NXzYf4mcw5kVug5aXULmXOebYCpbThQ5rtOXh/wrLPCc3Qv6oHlZVAgwdj2AEmztMps9OOnJZs/KeN62QKKRNH/vN6A+usnALItAfg9VWM2xYqHVhopJSYt2MS9IXfOLLD0yxsEJ+l9C0muIEeAQE40=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780439175; c=relaxed/simple;
-	bh=dxgjdaBgoJka+nLr3OPDxTSObKaXyPzTZc1U3Z2au1g=;
-	h=Date:To:From:Subject:Message-Id; b=Qg2f4KO+/EgTumVg2BnjDBfQuSJarBmpZi9La3u6eu2mkhgXG251g27gn48YwraArDSpfULuowAnymGLordBGEi6+ropP/uwWqmQdSJQ+fRDbWV9uSxQKg1dnrTj6NEp9EPJGKFjX96+eS4q+AFwc0vRSangvzl+cY/pYt+OFAI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nWq62TX0; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1780439176; c=relaxed/simple;
+	bh=fcqb6NBgmsKTFon/R70MUC3OIsS+50jISYjpBuX3FwI=;
+	h=Date:To:From:Subject:Message-Id; b=HSN90JJX+B6ZhgkPVLAlY7kob1L0i1/sPXjB2id/RGA/WIIkEOp05vVMTtKcUyWV3V2FgpUrvqH4Y2Oqiox9HmeH1IEEdbdKRudQTsT+vXrvyh0eRJ/6I5fraZfQaFiUNB0lH71PF+hSCORakM7Zpz/h2RSrneHd88EICbIZ2R4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yaPeJe6j; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nWq62TX0"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5F4B61F00898;
-	Tue,  2 Jun 2026 22:26:13 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yaPeJe6j"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 14AA01F00899;
+	Tue,  2 Jun 2026 22:26:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1780439173;
-	bh=7yFj2TjSZeb2LEnNQzqBna7ekIum2d4a+F7sTi2xmRc=;
+	d=linux-foundation.org; s=korg; t=1780439175;
+	bh=MZcHtsVMcdmAvEJmv6Uo5UdPgyn6kqa4SSI4vrSmFQ8=;
 	h=Date:To:From:Subject;
-	b=nWq62TX0dDO5l3CXQ0wPVhFrphJAhrW0XPACMOymyghKRXPbT79uJzWtrL5ObL0Qa
-	 s+CrgM8I2T5DHk3wkS38q0dt21iN8DUr76XXu+sISUuMZFppqk8tWvM40Ly1GgRWLu
-	 Xs1/VlLsLbyYTofUspwkZPM2cnBPbiC0jgE2Zcmc=
-Date: Tue, 02 Jun 2026 15:26:12 -0700
+	b=yaPeJe6jr2CX3UAn39Bx0sJ1W3g59jVeJiFkSW7RWZAWM9eqTZU8UksLcBkYwY8eB
+	 ls5+q8c1y22RDapqZNFUVh0+Hd7BxV2w6OdxPN6NAATDK7ZxJFL3Jp4tlDFIULFZwI
+	 /16H+k+XNulX57NS4s4c3XUuf9ro7ITW8tEHB1GY=
+Date: Tue, 02 Jun 2026 15:26:14 -0700
 To: mm-commits@vger.kernel.org,yuzhao@google.com,yuanchu@google.com,weixugc@google.com,vernon2gm@gmail.com,surenb@google.com,stevensd@google.com,shakeel.butt@linux.dev,mhocko@kernel.org,ljs@kernel.org,lenohou@gmail.com,laoar.shao@gmail.com,kaleshsingh@google.com,hannes@cmpxchg.org,david@kernel.org,chrisl@kernel.org,chenridong@huaweicloud.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,axelrasmussen@google.com,kasong@tencent.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-mglru-consolidate-common-code-for-retrieving-evictable-size.patch removed from -mm tree
-Message-Id: <20260602222613.5F4B61F00898@smtp.kernel.org>
+Subject: [merged mm-stable] mm-mglru-rename-variables-related-to-aging-and-rotation.patch removed from -mm tree
+Message-Id: <20260602222615.14AA01F00899@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,369 +35,111 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/mglru: consolidate common code for retrieving evictable size
+     Subject: mm/mglru: rename variables related to aging and rotation
 has been removed from the -mm tree.  Its filename was
-     mm-mglru-consolidate-common-code-for-retrieving-evictable-size.patch
+     mm-mglru-rename-variables-related-to-aging-and-rotation.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Kairui Song <kasong@tencent.com>
-Subject: mm/mglru: consolidate common code for retrieving evictable size
-Date: Tue, 28 Apr 2026 02:06:52 +0800
+Subject: mm/mglru: rename variables related to aging and rotation
+Date: Tue, 28 Apr 2026 02:06:53 +0800
 
-Patch series "mm/mglru: improve reclaim loop and dirty folio", v7.
+The current variable name isn't helpful.  Make the variable names more
+meaningful.
 
-This series cleans up and slightly improves MGLRU's reclaim loop and dirty
-writeback handling.  As a result, we can see an up to ~30% increase in
-some workloads like MongoDB with YCSB and a huge decrease in file refault,
-no swap involved.  Other common benchmarks have no regression, and LOC is
-reduced, with less unexpected OOM, too.
+Only naming change, no behavior change.
 
-Some of the problems were found in our production environment, and others
-were mostly exposed while stress testing during the development of the
-LSM/MM/BPF topic on improving MGLRU [1].  This series cleans up the code
-base and fixes several performance issues, preparing for further work.
-
-MGLRU's reclaim loop is a bit complex, and hence these problems are
-somehow related to each other.  The aging, scan number calculation, and
-reclaim loop are coupled together, and the dirty folio handling logic is
-quite different, making the reclaim loop hard to follow and the dirty
-flush ineffective.
-
-This series slightly cleans up and improves these issues using a scan
-budget by calculating the number of folios to scan at the beginning of the
-loop, and decouples aging from the reclaim calculation helpers.  Then,
-move the dirty flush logic inside the reclaim loop so it can kick in more
-effectively.  These issues are somehow related, and this series handles
-them and improves MGLRU reclaim in many ways.
-
-Test results: All tests are done on a 48c96t NUMA machine with 2 nodes and
-a 128G memory machine using NVME as storage.  Classical (non-MGLRU) LRU
-numbers are included as "MGLRU disabled" for each benchmark below; see [8]
-and [9] for the longer write-up.
-
-MongoDB
-=======
-Running YCSB workloadb [2] (recordcount:20000000 operationcount:6000000,
-threads:32), which does 95% read and 5% update to generate mixed read and
-dirty writeback.  MongoDB is set up in a 10G cgroup using Docker, and the
-WiredTiger cache size is set to 4.5G, using NVME as storage.  This is
-close to the case we observed regressing in our production environment:
-mixed read and writeback pressure, so it is a practical case for
-evaluation.
-
-Not using SWAP.  The intent is to isolate the file LRU writeback path. 
-Enabling SWAP would just add noise from anonymous reclaim.
-
-MGLRU Before:
-Throughput(ops/sec): 60653.502655
-workingset_refault_file 12904916
-pgpgin 165366622
-pgpgout 5219588
-
-MGLRU After:
-Throughput(ops/sec): 82384.354760 (+35.8%, higher is better)
-workingset_refault_file 7128285   (-44.7%, lower is better)
-pgpgin 113170693                  (-31.5%, lower is better)
-pgpgout 5639724
-
-MGLRU Disabled:
-Throughput(ops/sec): 93713.640901
-workingset_refault_file 15013443
-pgpgin 85365614
-pgpgout 5866508
-
-We can see a significant performance improvement after this series.  The
-test is done on NVME and the performance gap would be even larger for slow
-devices, such as HDD or network storage.  We observed over 100% gain for
-some workloads with slow IO.
-
-Note, classical LRU is still faster for this benchmark, MGLRU may catch up
-later with further work [7].
-
-Chrome & Node.js [3]
-====================
-Using Yu Zhao's test script [3], testing on a x86_64 NUMA machine with 2
-nodes and 128G memory, using 256G ZRAM as swap and spawn 32 memcg 64
-workers.  Many memcgs each applying roughly equal pressure exercises the
-LRU's ability to detect/protect each tenant's working set and to balance
-reclamation fairly between tenants, which makes this a meaningful test for
-the reclaim mechanism.
-
-Fairness is reported via Jain's fairness index (1.0 means all tenants get
-exactly equal allocation, lower is worse).  Under equal pressure, all
-memcgs should make roughly equal forward progress.  See [8] for the longer
-rationale and per-memcg breakdown.
-
-MGLRU before:
-Total requests:           81898
-Per-worker mean:         1279.7
-Per-worker 95% CI (mean):       [  1259.0,   1300.4]
-Jain's fairness index: 0.995893  (1.0 = perfectly fair)
-Latency:
-      Bucket     Count      Pct    Cumul
-      [0,1)s     28392   34.67%   34.67%
-      [1,2)s      8022    9.80%   44.46%
-      [2,4)s      6130    7.48%   51.95%
-      [4,8)s     39354   48.05%  100.00%
-
-MGLRU after:
-Total requests:           82901
-Per-worker mean:         1295.3
-Per-worker 95% CI (mean):       [  1265.3,   1325.4]
-Jain's fairness index: 0.991607  (1.0 = perfectly fair)
-Latency:
-      Bucket     Count      Pct    Cumul
-      [0,1)s     28128   33.93%   33.93%
-      [1,2)s      8756   10.56%   44.49%
-      [2,4)s      7028    8.48%   52.97%
-      [4,8)s     38989   47.03%  100.00%
-
-MGLRU disabled:
-Total requests:           62399
-Per-worker mean:          975.0
-Per-worker 95% CI (mean):       [   941.9,   1008.1]
-Jain's fairness index: 0.982156  (1.0 = perfectly fair)
-Latency:
-      Bucket     Count      Pct    Cumul
-      [0,1)s     20051   32.13%   32.13%
-      [1,2)s      2255    3.61%   35.75%
-      [2,4)s      6149    9.85%   45.60%
-      [4,8)s     33927   54.37%   99.97%
-     [8,16)s        17    0.03%  100.00%
-
-Reclaim is still fair and effective, total requests number seems slightly
-better.
-
-OOM issue with aging and throttling
-===================================
-For the throttling OOM issue, it can be easily reproduced using dd and
-cgroup limit as demonstrated and fixed by a later patch in this series.
-
-The aging OOM is a bit tricky, a specific reproducer can be used to
-simulate what we encountered in production environment [4]: Spawns
-multiple workers that keep reading the given file using mmap, and pauses
-for 120ms after one file read batch.  It also spawns another set of
-workers that keep allocating and freeing a given size of anonymous memory.
-The total memory size exceeds the memory limit (eg.  14G anon + 8G file,
-which is 22G vs a 16G memcg limit).
-
-- MGLRU disabled:
-  Finished 128 iterations.
-
-- MGLRU enabled:
-  OOM with following info after about ~10-20 iterations:
-    [   62.624130] file_anon_mix_p invoked oom-killer: gfp_mask=0xcc0(GFP_KERNEL), order=0, oom_score_adj=0
-    [   62.624999] memory: usage 16777216kB, limit 16777216kB, failcnt 24460
-    [   62.640200] swap: usage 0kB, limit 9007199254740988kB, failcnt 0
-    [   62.640823] Memory cgroup stats for /demo:
-    [   62.641017] anon 10604879872
-    [   62.641941] file 6574858240
-
-  OOM occurs despite there being still evictable file folios.
-
-- MGLRU enabled after this series:
-  Finished 128 iterations.
-
-Worth noting there is another OOM related issue reported in V1 of this
-series, which is tested and looking OK now [5].
-
-MySQL:
-======
-
-Testing with innodb_buffer_pool_size=26106127360, in a 2G memcg, using
-ZRAM as swap and test command:
-
-sysbench /usr/share/sysbench/oltp_read_only.lua --mysql-db=sb \
-  --tables=48 --table-size=2000000 --threads=48 --time=600 run
-
-A 24G InnoDB buffer pool inside a 2G memcg with ZRAM as swap forces
-aggressive eviction of cached database anon pages, which exercises the
-LRU's hot page detection and the eviction path under swap pressure.  The
-workload is practical, and the pressure is higher than what we usually see
-in production but it is intended to expose the extreme case.
-
-MGLRU before:   17313.688333 tps
-MGLRU after:    17286.195000 tps
-MGLRU disabled: 16245.330000 tps
-
-Seems only noise level changes, no regression.
-
-FIO:
-====
-Testing with the following command, where /mnt/ramdisk is a 64G EXT4
-ramdisk, each test file is 3G, in a 10G memcg, 6 test run each:
-
-fio --directory=/mnt/ramdisk --filename_format='test.$jobnum.img' \
-  --name=cached --numjobs=16 --size=3072M --buffered=1 --ioengine=mmap \
-  --rw=randread --norandommap --time_based \
-  --ramp_time=1m --runtime=5m --group_reporting
-
-Random buffered mmap read on a ramdisk strips out storage variance and
-stresses purely the LRU's ability to evict and recycle the page cache
-under heavy random read pressure.
-
-MGLRU before:      9033.91 MB/s
-MGLRU after:       9065.72 MB/s
-MGLRU disabled:    8254.54 MB/s
-
-Also seem only noise level changes and no regression or slightly better.
-
-Build kernel:
-=============
-Build kernel test using ZRAM as swap, kernel source on tmpfs, in a memcg
-with memory.max=3G, using make -j96 and defconfig, measuring system time,
-6 test run each.  Building the kernel is a classical mixed anon + file
-workload (lots of small file reads/writes plus parallel anon allocations
-from cc/ld) and is representative of many real compilation jobs.
-
-MGLRU before:     2823.13s
-MGLRU after:      2801.26s
-MGLRU disabled:   5023.50s
-
-Also seem only noise level changes, no regression or very slightly better.
-
-Android:
-========
-Xinyu reported a performance gain on Android, too, with this series.  The
-test consisted of cold-starting multiple applications sequentially under
-moderate system load [6]; this is a real Android user-visible scenario,
-dominated by the LRU's ability to keep the right working set resident and
-re-fault launch-critical pages quickly.
-
-Before:
-Launch Time Summary (all apps, all runs)
-  Mean 868.0ms
-  P50 888.0ms
-  P90 1274.2ms
-  P95 1399.0ms
-
-After:
-Launch Time Summary (all apps, all runs)
-  Mean 850.5ms (-2.07%)
-  P50 861.5ms  (-3.04%)
-  P90 1179.0ms (-8.05%)
-  P95 1228.0ms (-12.2%)
-
-
-This patch (of 15):
-
-Merge commonly used code for counting evictable folios in a lruvec.
-
-No behavior change.
-
-Link: https://lore.kernel.org/20260428-mglru-reclaim-v7-0-02fabb92dc43@tencent.com
-Link: https://lore.kernel.org/20260428-mglru-reclaim-v7-1-02fabb92dc43@tencent.com
-Link: https://lore.kernel.org/linux-mm/CAMgjq7BoekNjg-Ra3C8M7=8=75su38w=HD782T5E_cxyeCeH_g@mail.gmail.com/ [1]
-Link: https://github.com/brianfrankcooper/YCSB/blob/master/workloads/workloadb [2]
-Link: https://lore.kernel.org/all/20221220214923.1229538-1-yuzhao@google.com/ [3]
-Link: https://github.com/ryncsn/emm-test-project/tree/master/file-anon-mix-pressure [4]
-Link: https://lore.kernel.org/linux-mm/acgNCzRDVmSbXrOE@KASONG-MC4/ [5]
-Link: https://lore.kernel.org/linux-mm/20260417025123.2971253-1-wxy2009nrrr@163.com/ [6]
-Link: https://lore.kernel.org/linux-mm/20260502-mglru-fg-v1-0-913619b014d9@tencent.com/ [7]
-Link: https://lore.kernel.org/linux-mm/CAMgjq7BzQAPp8u_3-9e3ueXmRCoW=2sydok0hFM=MYL7VC1YYg@mail.gmail.com/ [8]
-Link: https://lore.kernel.org/linux-mm/CAMgjq7D+4QmiWe73OPFuH0s+ZKCUJoo+MfcWOdJcV+VO-T2Wmg@mail.gmail.com/ [9]
+Link: https://lore.kernel.org/20260428-mglru-reclaim-v7-2-02fabb92dc43@tencent.com
 Signed-off-by: Kairui Song <kasong@tencent.com>
-Acked-by: Yuanchu Xie <yuanchu@google.com>
-Reviewed-by: Barry Song <baohua@kernel.org>
-Reviewed-by: Chen Ridong <chenridong@huaweicloud.com>
-Reviewed-by: Axel Rasmussen <axelrasmussen@google.com>
+Suggested-by: Barry Song <baohua@kernel.org>
 Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Reviewed-by: Chen Ridong <chenridong@huaweicloud.com>
+Reviewed-by: Barry Song <baohua@kernel.org>
+Reviewed-by: Axel Rasmussen <axelrasmussen@google.com>
 Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
 Cc: Chris Li <chrisl@kernel.org>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: David Stevens <stevensd@google.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Kalesh Singh <kaleshsingh@google.com>
+Cc: Leno Hou <lenohou@gmail.com>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
 Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vernon Yang <vernon2gm@gmail.com>
 Cc: Wei Xu <weixugc@google.com>
 Cc: Yafang <laoar.shao@gmail.com>
+Cc: Yuanchu Xie <yuanchu@google.com>
 Cc: Yu Zhao <yuzhao@google.com>
-Cc: Leno Hou <lenohou@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   36 ++++++++++++++----------------------
- 1 file changed, 14 insertions(+), 22 deletions(-)
+ mm/vmscan.c |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
---- a/mm/vmscan.c~mm-mglru-consolidate-common-code-for-retrieving-evictable-size
+--- a/mm/vmscan.c~mm-mglru-rename-variables-related-to-aging-and-rotation
 +++ a/mm/vmscan.c
-@@ -4088,27 +4088,33 @@ static void set_initial_priority(struct
- 	sc->priority = clamp(priority, DEF_PRIORITY / 2, DEF_PRIORITY);
- }
- 
--static bool lruvec_is_sizable(struct lruvec *lruvec, struct scan_control *sc)
-+static unsigned long lruvec_evictable_size(struct lruvec *lruvec, int swappiness)
+@@ -4938,7 +4938,7 @@ static bool should_run_aging(struct lruv
+  */
+ static long get_nr_to_scan(struct lruvec *lruvec, struct scan_control *sc, int swappiness)
  {
- 	int gen, type, zone;
--	unsigned long total = 0;
--	int swappiness = get_swappiness(lruvec, sc);
-+	unsigned long seq, total = 0;
- 	struct lru_gen_folio *lrugen = &lruvec->lrugen;
--	struct mem_cgroup *memcg = lruvec_memcg(lruvec);
+-	bool success;
++	bool need_aging;
+ 	unsigned long nr_to_scan;
+ 	struct mem_cgroup *memcg = lruvec_memcg(lruvec);
  	DEFINE_MAX_SEQ(lruvec);
- 	DEFINE_MIN_SEQ(lruvec);
+@@ -4946,7 +4946,7 @@ static long get_nr_to_scan(struct lruvec
+ 	if (mem_cgroup_below_min(sc->target_mem_cgroup, memcg))
+ 		return -1;
  
- 	for_each_evictable_type(type, swappiness) {
--		unsigned long seq;
--
- 		for (seq = min_seq[type]; seq <= max_seq; seq++) {
- 			gen = lru_gen_from_seq(seq);
--
- 			for (zone = 0; zone < MAX_NR_ZONES; zone++)
- 				total += max(READ_ONCE(lrugen->nr_pages[gen][type][zone]), 0L);
- 		}
+-	success = should_run_aging(lruvec, max_seq, swappiness, &nr_to_scan);
++	need_aging = should_run_aging(lruvec, max_seq, swappiness, &nr_to_scan);
+ 
+ 	/* try to scrape all its memory if this memcg was deleted */
+ 	if (nr_to_scan && !mem_cgroup_online(memcg))
+@@ -4955,7 +4955,7 @@ static long get_nr_to_scan(struct lruvec
+ 	nr_to_scan = apply_proportional_protection(memcg, sc, nr_to_scan);
+ 
+ 	/* try to get away with not aging at the default priority */
+-	if (!success || sc->priority == DEF_PRIORITY)
++	if (!need_aging || sc->priority == DEF_PRIORITY)
+ 		return nr_to_scan >> sc->priority;
+ 
+ 	/* stop scanning this lruvec as it's low on cold folios */
+@@ -5044,7 +5044,7 @@ static bool try_to_shrink_lruvec(struct
+ 
+ static int shrink_one(struct lruvec *lruvec, struct scan_control *sc)
+ {
+-	bool success;
++	bool need_rotate;
+ 	unsigned long scanned = sc->nr_scanned;
+ 	unsigned long reclaimed = sc->nr_reclaimed;
+ 	struct mem_cgroup *memcg = lruvec_memcg(lruvec);
+@@ -5062,7 +5062,7 @@ static int shrink_one(struct lruvec *lru
+ 		memcg_memory_event(memcg, MEMCG_LOW);
  	}
  
-+	return total;
-+}
-+
-+static bool lruvec_is_sizable(struct lruvec *lruvec, struct scan_control *sc)
-+{
-+	unsigned long total;
-+	int swappiness = get_swappiness(lruvec, sc);
-+	struct mem_cgroup *memcg = lruvec_memcg(lruvec);
-+
-+	total = lruvec_evictable_size(lruvec, swappiness);
-+
- 	/* whether the size is big enough to be helpful */
- 	return mem_cgroup_online(memcg) ? (total >> sc->priority) : total;
- }
-@@ -4913,9 +4919,6 @@ retry:
- static bool should_run_aging(struct lruvec *lruvec, unsigned long max_seq,
- 			     int swappiness, unsigned long *nr_to_scan)
- {
--	int gen, type, zone;
--	unsigned long size = 0;
--	struct lru_gen_folio *lrugen = &lruvec->lrugen;
- 	DEFINE_MIN_SEQ(lruvec);
+-	success = try_to_shrink_lruvec(lruvec, sc);
++	need_rotate = try_to_shrink_lruvec(lruvec, sc);
  
- 	*nr_to_scan = 0;
-@@ -4923,18 +4926,7 @@ static bool should_run_aging(struct lruv
- 	if (evictable_min_seq(min_seq, swappiness) + MIN_NR_GENS > max_seq)
- 		return true;
+ 	shrink_slab(sc->gfp_mask, pgdat->node_id, memcg, sc->priority);
  
--	for_each_evictable_type(type, swappiness) {
--		unsigned long seq;
--
--		for (seq = min_seq[type]; seq <= max_seq; seq++) {
--			gen = lru_gen_from_seq(seq);
--
--			for (zone = 0; zone < MAX_NR_ZONES; zone++)
--				size += max(READ_ONCE(lrugen->nr_pages[gen][type][zone]), 0L);
--		}
--	}
--
--	*nr_to_scan = size;
-+	*nr_to_scan = lruvec_evictable_size(lruvec, swappiness);
- 	/* better to run aging even though eviction is still possible */
- 	return evictable_min_seq(min_seq, swappiness) + MIN_NR_GENS == max_seq;
- }
+@@ -5072,10 +5072,10 @@ static int shrink_one(struct lruvec *lru
+ 
+ 	flush_reclaim_state(sc);
+ 
+-	if (success && mem_cgroup_online(memcg))
++	if (need_rotate && mem_cgroup_online(memcg))
+ 		return MEMCG_LRU_YOUNG;
+ 
+-	if (!success && lruvec_is_sizable(lruvec, sc))
++	if (!need_rotate && lruvec_is_sizable(lruvec, sc))
+ 		return 0;
+ 
+ 	/* one retry if offlined or too small */
 _
 
 Patches currently in -mm which might be from kasong@tencent.com are
