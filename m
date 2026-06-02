@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F01193BCD39
-	for <mm-commits@vger.kernel.org>; Tue,  2 Jun 2026 22:25:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2DCD31DC198
+	for <mm-commits@vger.kernel.org>; Tue,  2 Jun 2026 22:25:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780439146; cv=none; b=t6cGHn/SxqRXjraA5XiikpUq8S09FTAYRfW4o35h8T3OAjzAUKsFeoTMBH5DjizYZ375h8Ql3BcYP5FE3SrA4PuzfrdA7jPeWePR0F9YETrdkVehSOhT+NUe4gDT8i2pCkT6ARbeDTGXoYGfuLReAqlSWC5tYY2P4PLrXddCM7o=
+	t=1780439147; cv=none; b=R1a9pw9iNDczGRUpUp3NbArUdd0kCGJTnXrD5pS8qrVKbaABnlFEa7UDawR8WlLi5dQq3aYOmdQwgShxPUOHoXpKcBcBhtAcU/phHVBSyOVdCUuuuPHrCacq8A/2N6G1225tqc/HJPzyJfLtn6wAn/TMokbztX2JUf2tVk0ybtc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780439146; c=relaxed/simple;
-	bh=69EENk1EC910ve8LPFp8DrmJhzeAIAOC7iGqH8pKC3k=;
-	h=Date:To:From:Subject:Message-Id; b=rcxrao8d+yEfmMu5l7bEEB8LdNv4pWaqFcPa7kjGJAveoFuaEOnOHTlgjYL2QCVTkNt/msYT3m1nvcfbfmeD4h80qMxzSJ3A1uv1ULvaYfoBtQ5kgedEpgoTPbQ/wdnZ8qGqWOTEb/+WnsgOliiaY1strfoxt98EvmMVgZXi/Fk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SBWcjZu1; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1780439147; c=relaxed/simple;
+	bh=tHrgVRIXkpgGK0PKN865nSEfaUp/OvV8gpuI4yS84WA=;
+	h=Date:To:From:Subject:Message-Id; b=rZBEo9P3uWEhzoDBsIucWaR02AHz+JeUSW/z6JHQ3TQsHyCpCnDAhxji6s+joVOMNtWsR20bdhKnq2cxQhhuyGlgel9uJRPbROfNqMzyKkIL0j5IgI4vsQIlg9xJ/myIP1ASzUB5oX/ME6hI/UBx1yKNRDjp0rHoPZ/yMWvkUvI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cDoxhjU2; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SBWcjZu1"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C4E4E1F00893;
-	Tue,  2 Jun 2026 22:25:44 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cDoxhjU2"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 01E541F00898;
+	Tue,  2 Jun 2026 22:25:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1780439144;
-	bh=pV460svnOptSwAJBVzcilyWbTvp18/TTHpr2BlWF09Q=;
+	d=linux-foundation.org; s=korg; t=1780439146;
+	bh=mhcbFoGDohTJuaYx6ZX2qaELLDtltJ0RyxOt+BfqFXQ=;
 	h=Date:To:From:Subject;
-	b=SBWcjZu1KN5wwSpANUjZjTogr84j7Sxy0PTQ2wJbHPd8RfdndCD5sllQLa52jfyZC
-	 l8I9bgQODtVBOwxCwe/e8wbCk6nfDP0ZLl2AH+qs4AL19NQTP/jNjCbajw0bMn9puC
-	 kYk9aydp3ys9kyznuF1sCn9TqCKi/LJ8DvYrji1s=
-Date: Tue, 02 Jun 2026 15:25:44 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,rppt@kernel.org,pfalcato@suse.de,mhocko@suse.com,liam@infradead.org,jannh@google.com,gregkh@linuxfoundation.org,david@kernel.org,arnd@arndb.de,ljs@kernel.org,akpm@linux-foundation.org
+	b=cDoxhjU2YTDjZPkTUWp51X4SebTtSi0feyz+Y/9YN8pNvLXSmxPi9x2Bl+f+/4UsN
+	 z7AE7PkPhyHDUMRc1THP+AewEnepYIGCqm7V0a6iHBrfNemGnHILJpFGhKqGHdhBcf
+	 exM0nxec04HpQbkaImA0vShYKfQQl4V7OHS9t7VQ=
+Date: Tue, 02 Jun 2026 15:25:45 -0700
+To: mm-commits@vger.kernel.org,shuah@kernel.org,brendan.higgins@linux.dev,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-vma-eliminate-mmap_action-error_hook-introduce-error_override.patch removed from -mm tree
-Message-Id: <20260602222544.C4E4E1F00893@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-core-safely-handle-no-region-case-in-damon_set_regions.patch removed from -mm tree
+Message-Id: <20260602222546.01E541F00898@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,166 +35,87 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/vma: eliminate mmap_action->error_hook, introduce error_override
+     Subject: mm/damon/core: safely handle no region case in damon_set_regions()
 has been removed from the -mm tree.  Its filename was
-     mm-vma-eliminate-mmap_action-error_hook-introduce-error_override.patch
+     mm-damon-core-safely-handle-no-region-case-in-damon_set_regions.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Lorenzo Stoakes <ljs@kernel.org>
-Subject: mm/vma: eliminate mmap_action->error_hook, introduce error_override
-Date: Tue, 2 Jun 2026 12:06:27 +0100
+From: SeongJae Park <sj@kernel.org>
+Subject: mm/damon/core: safely handle no region case in damon_set_regions()
+Date: Fri, 22 May 2026 08:40:12 -0700
 
-Rather than providing a hook, simplify things by providing the ability to
-override mmap action errors.  This allows us to more carefully validate
-the value provided and thus ensure only a valid error code is specified,
-and simplifies the interface.
+Patch series "mm/damon: minor improvements for code readability and tests".
 
-This way, we eliminate all hooks but mmap_prepare and allow only mmap
-actions to be specified (which core mm controls).
+Implement minor improvements on code readability and tests for DAMON.
 
-This significantly improves robustness and eliminates any unnecessary code
-duplication in driver mmap hooks.
+First seven patches are for DAMON code readability and resulting
+maintenance.  Patches 1 and 2 make damon_set_regions() safer and easier to
+read.  Patches 3 and 4 remove fragmented DAMON API use cases.  Patches 5-7
+hides unused core functions that are unnecessarily exposed to API callers.
 
-We also update the /dev/mem logic (the only user) to use
-mmap_action->error_override instead.
+The following seven patches are for DAMON tests improvement.  Patches 8
+and 9 adds and removes DAMON_DEBUG_SANITY verifications to ensure
+reasonable test coverage without too high overhead.  Patch 10 adds a new
+kunit test for damon_set_regions().  Patch 11 makes sysfs.py selftest more
+gracefully finishes under test failures.  Patches 12-13 adds simple
+sysfs.sh test cases for the monitoring intervals goal directory, the
+addr_unit file and the pause file.
 
-Link: https://lore.kernel.org/55d13f7d016b827c459946d46a56105635be111c.1780397980.git.ljs@kernel.org
-Signed-off-by: Lorenzo Stoakes <ljs@kernel.org>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Jann Horn <jannh@google.com>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Pedro Falcato <pfalcato@suse.de>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
+
+This patch (of 14):
+
+damon_set_regions() calls damon_first_region() regardless of the number of
+DAMON regions in a given DAMON target.  damon_first_region() internally
+uses list_first_entry(), which clearly documents the list is expected to
+be not empty.  Due to the internal implementation of the macro,
+damon_set_regions() is safe for now.  But the internal implementation of
+the macro can be changed in future.  Refactor the function to explicitly
+and safely handle the empty region list case without depending on the
+internal implementation.
+
+No behavioral change is intended.
+
+Link: https://lore.kernel.org/20260522154026.80546-1-sj@kernel.org
+Link: https://lore.kernel.org/20260522154026.80546-2-sj@kernel.org
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Cc: Brendan Higgins <brendan.higgins@linux.dev>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/mem.c              |    8 +-------
- include/linux/mm_types.h        |    9 +++------
- mm/util.c                       |   29 +++++++++++++++++++++--------
- tools/testing/vma/include/dup.h |    9 +++------
- 4 files changed, 28 insertions(+), 27 deletions(-)
+ mm/damon/core.c |   13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
---- a/drivers/char/mem.c~mm-vma-eliminate-mmap_action-error_hook-introduce-error_override
-+++ a/drivers/char/mem.c
-@@ -322,11 +322,6 @@ static const struct vm_operations_struct
- #endif
- };
+--- a/mm/damon/core.c~mm-damon-core-safely-handle-no-region-case-in-damon_set_regions
++++ a/mm/damon/core.c
+@@ -356,6 +356,19 @@ int damon_set_regions(struct damon_targe
+ 			damon_destroy_region(r, t);
+ 	}
  
--static int mmap_filter_error(int err)
--{
--	return -EAGAIN;
--}
--
- static int mmap_mem_prepare(struct vm_area_desc *desc)
- {
- 	struct file *file = desc->file;
-@@ -362,8 +357,7 @@ static int mmap_mem_prepare(struct vm_ar
- 
- 	/* Remap-pfn-range will mark the range with the I/O flag. */
- 	mmap_action_remap_full(desc, desc->pgoff);
--	/* We filter remap errors to -EAGAIN. */
--	desc->action.error_hook = mmap_filter_error;
-+	desc->action.error_override = -EAGAIN;
- 
- 	return 0;
- }
---- a/include/linux/mm_types.h~mm-vma-eliminate-mmap_action-error_hook-introduce-error_override
-+++ a/include/linux/mm_types.h
-@@ -844,13 +844,10 @@ struct mmap_action {
- 	enum mmap_action_type type;
- 
- 	/*
--	 * If specified, this hook is invoked when an error occurred when
--	 * attempting the selected action.
--	 *
--	 * The hook can return an error code in order to filter the error, but
--	 * it is not valid to clear the error here.
-+	 * If non-zero, replace errors that arise from mmap actions with this
-+	 * value instead. Only valid error codes may be specified.
- 	 */
--	int (*error_hook)(int err);
-+	int error_override;
- 
- 	/*
- 	 * This should be set in rare instances where the operation required
---- a/mm/util.c~mm-vma-eliminate-mmap_action-error_hook-introduce-error_override
-+++ a/mm/util.c
-@@ -1414,16 +1414,22 @@ static int mmap_action_finish(struct vm_
- 	 */
- 	len = vma_pages(vma) << PAGE_SHIFT;
- 	do_munmap(current->mm, vma->vm_start, len, NULL);
--	if (action->error_hook) {
--		/* We may want to filter the error. */
--		err = action->error_hook(err);
--		/* The caller should not clear the error. */
--		VM_WARN_ON_ONCE(!err);
--	}
--	return err;
++	if (!damon_nr_regions(t)) {
++		for (i = 0; i < nr_ranges; i++) {
++			r = damon_new_region(
++					ALIGN_DOWN(ranges[i].start,
++						min_region_sz),
++					ALIGN(ranges[i].end, min_region_sz));
++			if (!r)
++				return -ENOMEM;
++			damon_add_region(r, t);
++		}
++		return 0;
++	}
 +
-+	return action->error_override ?: err;
- }
- 
- #ifdef CONFIG_MMU
-+
-+static int check_mmap_action(struct mmap_action *action)
-+{
-+	const unsigned long override = action->error_override;
-+
-+	if (WARN_ON_ONCE(override && !IS_ERR_VALUE(override)))
-+		return -EINVAL;
-+
-+	return 0;
-+}
-+
- /**
-  * mmap_action_prepare - Perform preparatory setup for an VMA descriptor
-  * action which need to be performed.
-@@ -1433,7 +1439,14 @@ static int mmap_action_finish(struct vm_
-  */
- int mmap_action_prepare(struct vm_area_desc *desc)
- {
--	switch (desc->action.type) {
-+	struct mmap_action *action = &desc->action;
-+	int err;
-+
-+	err = check_mmap_action(action);
-+	if (err)
-+		return err;
-+
-+	switch (action->type) {
- 	case MMAP_NOTHING:
- 		return 0;
- 	case MMAP_REMAP_PFN:
---- a/tools/testing/vma/include/dup.h~mm-vma-eliminate-mmap_action-error_hook-introduce-error_override
-+++ a/tools/testing/vma/include/dup.h
-@@ -483,13 +483,10 @@ struct mmap_action {
- 	enum mmap_action_type type;
- 
- 	/*
--	 * If specified, this hook is invoked when an error occurred when
--	 * attempting the selection action.
--	 *
--	 * The hook can return an error code in order to filter the error, but
--	 * it is not valid to clear the error here.
-+	 * If non-zero, replace errors that arise from mmap actions with this
-+	 * value instead. Only valid error codes may be specified.
- 	 */
--	int (*error_hook)(int err);
-+	int error_override;
- 
- 	/*
- 	 * This should be set in rare instances where the operation required
+ 	r = damon_first_region(t);
+ 	/* Add new regions or resize existing regions to fit in the ranges */
+ 	for (i = 0; i < nr_ranges; i++) {
 _
 
-Patches currently in -mm which might be from ljs@kernel.org are
+Patches currently in -mm which might be from sj@kernel.org are
 
-mm-huge_memory-use-correct-flags-for-device-private-pmd-entry.patch
+mm-damon-reclaim-handle-ctx-allocation-failure.patch
+mm-damonn-lru_sort-handle-ctx-allocation-failure.patch
+maintainers-add-testing-abi-documents-for-mm.patch
 
