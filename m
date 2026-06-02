@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 94C083C2761
-	for <mm-commits@vger.kernel.org>; Tue,  2 Jun 2026 22:25:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E930A3C3BED
+	for <mm-commits@vger.kernel.org>; Tue,  2 Jun 2026 22:25:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780439129; cv=none; b=a52kfQlQtj6Ka1B+cEhffpF5/JZOe0QqZ8rnRUvxX98Q424L+cq5AoANGuGoYhWrs0//2Yui9Cp8JFU3MIgZBOMMACaCzfpqw0+IjEkjVsAEeoRJliKRRi4biOuKqGx2PSJCWTAhOHCig62MGLGolMp0bdOBHtGAB+PKayVnKeo=
+	t=1780439131; cv=none; b=RaP0ORiGysxQV1xjmgN/zkkTBZXywJuFxC/eKVYDaWIdeHt0o1LbQdCbx93cLyne2tmbXvGnhAu1O9riwmMP+g8Ip7ItfC48nw3RwwOQyPDNXfkKjbmts84mzk5+5eGWDvmJJuBDZ9z/4ixUBwx9LZAjdYuJRr4ULDOZ/FB8ffM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780439129; c=relaxed/simple;
-	bh=PTFcVr1BSSHPTe8tUcNDXOMKv96eV9FwUDUJnoJHhMo=;
-	h=Date:To:From:Subject:Message-Id; b=lqk/fVTfZutKVOS/4LwED0Cn5U71WlQcZTNQmCDFn2PVhPy8h4ClDcDNCMqiy42+xw2RabhHzi2MzhDuqm1tqMxxwsXbLuQj1cnWv3EkUXaRiN79wCNPnP4B+nmjrYvRN9ETEdfImyma2Z3m4K2et9NIE0wtR8EsSY371hXCC2U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1PR33dOa; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1780439131; c=relaxed/simple;
+	bh=MCSM+RX4ryGwIWB1r8hko4o+eEMvHyACOS+TESq6HPM=;
+	h=Date:To:From:Subject:Message-Id; b=eT01QTHW2ftf0xg3RcPMPbsSD4c2R7uQSD74XqmE3c2/Y9I5uwgIsfIcAgfXW5kps81uVUzsBLA+GzBN0mBf8W0EiSJJ7xI3cy6rhZhMgHIMVjCeATxZ2L8aM0IL9luykdVuiwSJDztnu0UDp17fY38//mXqPtIzECep8N6nRCs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=P5dp/qYv; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1PR33dOa"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 68A9F1F00898;
-	Tue,  2 Jun 2026 22:25:28 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="P5dp/qYv"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C0E611F00893;
+	Tue,  2 Jun 2026 22:25:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1780439128;
-	bh=6L+Nb6sEomCRNe/ws+UHxSQE/ANw7n14R0f1h/8mc0Y=;
+	d=linux-foundation.org; s=korg; t=1780439129;
+	bh=weP1u22eDrCJ3gMufwcDW9gu5TdECvPvXd7WF7stJpE=;
 	h=Date:To:From:Subject;
-	b=1PR33dOa8K43/dwEgY5qy8/luyH72SYEmT04PtzWFSvWbvZnSrXSHuwiyHx192Hve
-	 6woIKuUWLqHIsoeBUwamKTRDeURtJPHT++fQ7uQqmEGVtkdVcVs+qAYZJPpJVRljYn
-	 Q6om65RgKRPM0X0e+voXN5Ogmh28bzN+pWxzylSo=
-Date: Tue, 02 Jun 2026 15:25:28 -0700
-To: mm-commits@vger.kernel.org,sunnanyong@huawei.com,sj@kernel.org,wangkefeng.wang@huawei.com,akpm@linux-foundation.org
+	b=P5dp/qYvsjjacBOdU0w5vA8I220WRF+G73ud4RH5JAaAaCmouKD7wlB8aNCuGih4C
+	 tJa6aifyGQdkAwWs1bTFrdpdnhTHPtQVrQCRpk76rlaw3sU6zCoZ+nJK+NuX2kVvOS
+	 M0aHlm8mhfBSlW5Vc16eiJwU69OVEeQUiQjhV9F8=
+Date: Tue, 02 Jun 2026 15:25:29 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,surenb@google.com,skhan@linuxfoundation.org,sj@kernel.org,ryan.roberts@arm.com,rppt@kernel.org,npache@redhat.com,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,lance.yang@linux.dev,dev.jain@arm.com,david@kernel.org,corbet@lwn.net,baolin.wang@linux.alibaba.com,baohua@kernel.org,leon.hwang@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-vaddr-attempt-per-vma-lock-during-page-table-walk.patch removed from -mm tree
-Message-Id: <20260602222528.68A9F1F00898@smtp.kernel.org>
+Subject: [merged mm-stable] documentation-admin-guide-mm-fix-typos-in-transhugerst.patch removed from -mm tree
+Message-Id: <20260602222529.C0E611F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,171 +35,71 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/damon/vaddr: attempt per-vma lock during page table walk
+     Subject: Documentation/admin-guide/mm: fix typos in transhuge.rst
 has been removed from the -mm tree.  Its filename was
-     mm-damon-vaddr-attempt-per-vma-lock-during-page-table-walk.patch
+     documentation-admin-guide-mm-fix-typos-in-transhugerst.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm/damon/vaddr: attempt per-vma lock during page table walk
-Date: Tue, 12 May 2026 23:15:23 +0800
+From: Leon Hwang <leon.hwang@linux.dev>
+Subject: Documentation/admin-guide/mm: fix typos in transhuge.rst
+Date: Wed, 20 May 2026 13:17:51 +0800
 
-Currently, DAMON virtual address operations use mmap_read_lock during page
-table walks, which can cause unnecessary contention under high
-concurrency.
+Fix these two typos:
 
-Introduce damon_va_walk_page_range() to first attempt acquiring a per-vma
-lock.  If the VMA is found and the range is fully contained within it, the
-page table walk proceeds with the per-vma lock instead of mmap_read_lock.
+1. approporiately -> appropriately
+2. presure -> pressure
 
-This optimization is expected to be particularly effective for
-damon_va_young() and damon_va_mkold(), which are frequently called and
-typically operate within a single VMA.
-
-Link: https://lore.kernel.org/20260512151523.2092638-1-wangkefeng.wang@huawei.com
-Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+Link: https://lore.kernel.org/20260520051751.74396-1-leon.hwang@linux.dev
+Signed-off-by: Leon Hwang <leon.hwang@linux.dev>
+Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Reviewed-by: Lance Yang <lance.yang@linux.dev>
 Reviewed-by: SeongJae Park <sj@kernel.org>
-Cc: Nanyong Sun <sunnanyong@huawei.com>
+Reviewed-by: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Leon Hwang <leon.hwang@linux.dev>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Nico Pache <npache@redhat.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Shuah Khan <skhan@linuxfoundation.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/vaddr.c |   69 ++++++++++++++++++++++++++++-----------------
- 1 file changed, 43 insertions(+), 26 deletions(-)
+ Documentation/admin-guide/mm/transhuge.rst |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/damon/vaddr.c~mm-damon-vaddr-attempt-per-vma-lock-during-page-table-walk
-+++ a/mm/damon/vaddr.c
-@@ -237,6 +237,35 @@ static void damon_va_update(struct damon
- 	}
- }
+--- a/Documentation/admin-guide/mm/transhuge.rst~documentation-admin-guide-mm-fix-typos-in-transhugerst
++++ a/Documentation/admin-guide/mm/transhuge.rst
+@@ -57,7 +57,7 @@ prominent because the size of each page
+ variant and there is less memory to clear in each page fault. Some
+ architectures also employ TLB compression mechanisms to squeeze more
+ entries in when a set of PTEs are virtually and physically contiguous
+-and approporiately aligned. In this case, TLB misses will occur less
++and appropriately aligned. In this case, TLB misses will occur less
+ often.
  
-+static void damon_va_walk_page_range(struct mm_struct *mm, unsigned long start,
-+		unsigned long end, struct mm_walk_ops *ops, void *private)
-+{
-+	struct vm_area_struct *vma;
-+
-+	vma = lock_vma_under_rcu(mm, start);
-+	if (!vma)
-+		goto lock_mmap;
-+
-+	if (end > vma->vm_end) {
-+		vma_end_read(vma);
-+		goto lock_mmap;
-+	}
-+
-+	if (!(vma->vm_flags & VM_PFNMAP)) {
-+		ops->walk_lock = PGWALK_VMA_RDLOCK_VERIFY;
-+		walk_page_range_vma(vma, start, end, ops, private);
-+	}
-+
-+	vma_end_read(vma);
-+	return;
-+
-+lock_mmap:
-+	mmap_read_lock(mm);
-+	ops->walk_lock = PGWALK_RDLOCK;
-+	walk_page_range(mm, start, end, ops, private);
-+	mmap_read_unlock(mm);
-+}
-+
- static int damon_mkold_pmd_entry(pmd_t *pmd, unsigned long addr,
- 		unsigned long next, struct mm_walk *walk)
- {
-@@ -315,17 +344,14 @@ out:
- #define damon_mkold_hugetlb_entry NULL
- #endif /* CONFIG_HUGETLB_PAGE */
+ THP can be enabled system wide or restricted to certain tasks or even
+@@ -210,7 +210,7 @@ PMD-mappable transparent hugepage::
+ 	cat /sys/kernel/mm/transparent_hugepage/hpage_pmd_size
  
--static const struct mm_walk_ops damon_mkold_ops = {
--	.pmd_entry = damon_mkold_pmd_entry,
--	.hugetlb_entry = damon_mkold_hugetlb_entry,
--	.walk_lock = PGWALK_RDLOCK,
--};
--
- static void damon_va_mkold(struct mm_struct *mm, unsigned long addr)
- {
--	mmap_read_lock(mm);
--	walk_page_range(mm, addr, addr + 1, &damon_mkold_ops, NULL);
--	mmap_read_unlock(mm);
-+	struct mm_walk_ops damon_mkold_ops = {
-+		.pmd_entry = damon_mkold_pmd_entry,
-+		.hugetlb_entry = damon_mkold_hugetlb_entry,
-+	};
-+
-+	damon_va_walk_page_range(mm, addr, addr + 1, &damon_mkold_ops, NULL);
- }
- 
- /*
-@@ -445,12 +471,6 @@ out:
- #define damon_young_hugetlb_entry NULL
- #endif /* CONFIG_HUGETLB_PAGE */
- 
--static const struct mm_walk_ops damon_young_ops = {
--	.pmd_entry = damon_young_pmd_entry,
--	.hugetlb_entry = damon_young_hugetlb_entry,
--	.walk_lock = PGWALK_RDLOCK,
--};
--
- static bool damon_va_young(struct mm_struct *mm, unsigned long addr,
- 		unsigned long *folio_sz)
- {
-@@ -459,9 +479,12 @@ static bool damon_va_young(struct mm_str
- 		.young = false,
- 	};
- 
--	mmap_read_lock(mm);
--	walk_page_range(mm, addr, addr + 1, &damon_young_ops, &arg);
--	mmap_read_unlock(mm);
-+	struct mm_walk_ops damon_young_ops = {
-+		.pmd_entry = damon_young_pmd_entry,
-+		.hugetlb_entry = damon_young_hugetlb_entry,
-+	};
-+
-+	damon_va_walk_page_range(mm, addr, addr + 1, &damon_young_ops, &arg);
- 	return arg.young;
- }
- 
-@@ -750,7 +773,6 @@ static unsigned long damos_va_migrate(st
- 	struct mm_walk_ops walk_ops = {
- 		.pmd_entry = damos_va_migrate_pmd_entry,
- 		.pte_entry = NULL,
--		.walk_lock = PGWALK_RDLOCK,
- 	};
- 
- 	use_target_nid = dests->nr_dests == 0;
-@@ -768,9 +790,7 @@ static unsigned long damos_va_migrate(st
- 	if (!mm)
- 		goto free_lists;
- 
--	mmap_read_lock(mm);
--	walk_page_range(mm, r->ar.start, r->ar.end, &walk_ops, &priv);
--	mmap_read_unlock(mm);
-+	damon_va_walk_page_range(mm, r->ar.start, r->ar.end, &walk_ops, &priv);
- 	mmput(mm);
- 
- 	for (int i = 0; i < nr_dests; i++) {
-@@ -862,7 +882,6 @@ static unsigned long damos_va_stat(struc
- 	struct mm_struct *mm;
- 	struct mm_walk_ops walk_ops = {
- 		.pmd_entry = damos_va_stat_pmd_entry,
--		.walk_lock = PGWALK_RDLOCK,
- 	};
- 
- 	priv.scheme = s;
-@@ -875,9 +894,7 @@ static unsigned long damos_va_stat(struc
- 	if (!mm)
- 		return 0;
- 
--	mmap_read_lock(mm);
--	walk_page_range(mm, r->ar.start, r->ar.end, &walk_ops, &priv);
--	mmap_read_unlock(mm);
-+	damon_va_walk_page_range(mm, r->ar.start, r->ar.end, &walk_ops, &priv);
- 	mmput(mm);
- 	return 0;
- }
+ All THPs at fault and collapse time will be added to _deferred_list,
+-and will therefore be split under memory presure if they are considered
++and will therefore be split under memory pressure if they are considered
+ "underused". A THP is underused if the number of zero-filled pages in
+ the THP is above max_ptes_none (see below). It is possible to disable
+ this behaviour by writing 0 to shrink_underused, and enable it by writing
 _
 
-Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
+Patches currently in -mm which might be from leon.hwang@linux.dev are
 
 
