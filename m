@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0DE24317162
-	for <mm-commits@vger.kernel.org>; Tue,  2 Jun 2026 21:02:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CE9AB37F72E
+	for <mm-commits@vger.kernel.org>; Tue,  2 Jun 2026 22:18:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780434130; cv=none; b=YAeaRuMbipqeqkBXh2LDm2WDKjWXI/RRBWXWweoq+ijXsZJuj68fHIse0hJSbJ/rFxwQCwGBtWNaguqYQqr/eHEGTDB1JGpHfAy211ojhKpPAlnJxhe0j7IW2ZF+RVvPyeudiJAcrQh97zx2fYXiG/5SW0m2A0+xyy9hXLmMjr0=
+	t=1780438712; cv=none; b=QHw/XujpgIpkWkulwVY7Bu2yZUFOW5YGoQOj2YS9mSa5y2Z99kuIGVx3bVFs7/od9QWM2QnJe84n0DJlaz7Rgtc53kn+wgzvYTcyExrpe9Y6Bbvvb0bXDmXTIAiyMogFC96c+klqURI+kyaVHgzScDroQxtH4+BzVEybPSd3LAY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780434130; c=relaxed/simple;
-	bh=dSCzWV1Qb1eXMsFFzTsBOHLBe68WxOshnA88a2C9XpU=;
-	h=Date:To:From:Subject:Message-Id; b=I+jOi024Fgr+EL1sf2VGh7ImRqP4MjQEFLjMGaZwpyhSige3l5TyCIIvi5Y6eqko2kzYXp5dGFO721fTLo3454T56nT5Cd939/XyoNRZK66BkHOok2vCzAZkBO0/22Gr4nFS5nFCXD7kieNDFcTaRUvDhGjrdjg/Vy0Y77tzLIA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=F42nTkuj; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1780438712; c=relaxed/simple;
+	bh=6Gkd/2bRccfujWTE4K3r5jTrrNF8Y3H9eeLOMXskjPk=;
+	h=Date:To:From:Subject:Message-Id; b=B+6jR13+zLzDDgXKqmsTuLXEA8ziW3fU2voEYkb5+vL2kgZ2B2NxQ2pHm1TyhB88RTpHWy2vbnbwNmLXrEK+girv/b6F6peUSIKXQZDQa6kwt1IraSem/U+1PzSJ2RyheIt/bLhs5Uiwokgmt+i5ySBDc0TNmtVa2DJErDn3DlM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=G2nx1Ba9; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="F42nTkuj"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8D2AF1F00893;
-	Tue,  2 Jun 2026 21:02:08 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="G2nx1Ba9"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4C7E51F00893;
+	Tue,  2 Jun 2026 22:18:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1780434128;
-	bh=+RhHhz5jNQihw3tIAudlLgH3R1stOXNh+pcTMrQYJKE=;
+	d=linux-foundation.org; s=korg; t=1780438710;
+	bh=dy+NOF9/oFksCUyqx/wNHyVxg2cyRKgKU9IrQQa+9oc=;
 	h=Date:To:From:Subject;
-	b=F42nTkujTSpLRGfbJ7TXWD+l0Vth/jdBsTeeSK2vQFvW/R4+lVdNOzN3Cg5pZN0jZ
-	 JIdG4Mub8jjcAhfFprC4BajPm4zMtGEfa3AV8uLih9fU2IgxPn5+5QyooiP31xZLVI
-	 j8YoocTyRJtbxCGm98dJbinQqBJQ7ybNT2o+3nao=
-Date: Tue, 02 Jun 2026 14:02:08 -0700
-To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,heming.zhao@suse.com,gechangwei@live.cn,icb@fastmail.org,akpm@linux-foundation.org
+	b=G2nx1Ba9EeBYbYRerLRK1uRz1xeucOGJq5zZOaXmFxzIMSiuwVBKlC+iVg1FGgTwY
+	 wP+fHr0xQTcF8WQ+QiaCWwDUsD1knStwddpuGruq4tUhy60LGiy0MgLkGz8wh7IwY1
+	 +UDKfoSrs2giQrjlQaxOvzaTR9iM9m4VTILm/TxU=
+Date: Tue, 02 Jun 2026 15:18:29 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,lirongqing@baidu.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + ocfs2-fix-out-of-bounds-write-in-ocfs2_remove_refcount_extent.patch added to mm-nonmm-unstable branch
-Message-Id: <20260602210208.8D2AF1F00893@smtp.kernel.org>
+Subject: [to-be-updated] mm-dmapool-use-static-key-for-boot-time-debug-enablement.patch removed from -mm tree
+Message-Id: <20260602221830.4C7E51F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,92 +34,160 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: ocfs2: fix out-of-bounds write in ocfs2_remove_refcount_extent
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     ocfs2-fix-out-of-bounds-write-in-ocfs2_remove_refcount_extent.patch
+The quilt patch titled
+     Subject: mm/dmapool: use static key for boot-time debug enablement
+has been removed from the -mm tree.  Its filename was
+     mm-dmapool-use-static-key-for-boot-time-debug-enablement.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-fix-out-of-bounds-write-in-ocfs2_remove_refcount_extent.patch
-
-This patch will later appear in the mm-nonmm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Ian Bridges <icb@fastmail.org>
-Subject: ocfs2: fix out-of-bounds write in ocfs2_remove_refcount_extent
-Date: Mon, 1 Jun 2026 13:44:33 -0500
+From: Li RongQing <lirongqing@baidu.com>
+Subject: mm/dmapool: use static key for boot-time debug enablement
+Date: Sat, 23 May 2026 23:40:15 -0400
 
-[BUG]
-Unlinking a refcounted file whose refcount tree has leaf blocks
-triggers a fortify panic due to an out-of-bounds write.
+Replace the #ifdef CONFIG_SLUB_DEBUG_ON conditional compilation with a
+static key (dmapool_debug_enabled).  This allows enabling dmapool
+debugging at boot time via:
 
-[CAUSE]
-When the last leaf block is removed from a refcount tree,
-ocfs2_remove_refcount_extent() converts the root back to leaf mode
-with a bulk memset on &rb->rf_records. rf_records sits in an anonymous
-union with rf_list. rf_list.l_tree_depth aliases rf_records.rl_count,
-and is 0 for a single-level tree. With rl_count equal to 0, the memset
-writes past the 16-byte declared size of rf_records, which the fortify
-checker catches.
+    dmapool_debug
 
-[FIX]
-Replace the bulk memset on &rb->rf_records with a correctly-bounded
-memset on rl_recs[] alone, after setting rl_count to the correct value.
+Instead of requiring CONFIG_SLUB_DEBUG_ON at compile time. Benefits:
 
-Link: https://lore.kernel.org/ah3TESOsEO9j_JLU@dev
-Fixes: 2f26f58df041 ("ocfs2: annotate flexible array members with __counted_by_le()")
-Signed-off-by: Ian Bridges <icb@fastmail.org>
-Reported-by: syzbot+3ef989aae096b30f1663@syzkaller.appspotmail.com
-Closes: https://syzkaller.appspot.com/bug?extid=3ef989aae096b30f1663
-Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Jun Piao <piaojun@huawei.com>
-Cc: Heming Zhao <heming.zhao@suse.com>
+- Debugging can be enabled without rebuilding the kernel
+- Uses standard kernel static_key mechanism with minimal overhead
+
+Link: https://lore.kernel.org/20260524034015.1830-1-lirongqing@baidu.com
+Signed-off-by: Li RongQing <lirongqing@baidu.com>
+Suggested-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/refcounttree.c |    9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+ Documentation/admin-guide/kernel-parameters.txt |    5 +
+ mm/dmapool.c                                    |   52 +++++++-------
+ 2 files changed, 34 insertions(+), 23 deletions(-)
 
---- a/fs/ocfs2/refcounttree.c~ocfs2-fix-out-of-bounds-write-in-ocfs2_remove_refcount_extent
-+++ a/fs/ocfs2/refcounttree.c
-@@ -2131,10 +2131,15 @@ static int ocfs2_remove_refcount_extent(
- 		rb->rf_flags = 0;
- 		rb->rf_parent = 0;
- 		rb->rf_cpos = 0;
--		memset(&rb->rf_records, 0, sb->s_blocksize -
--		       offsetof(struct ocfs2_refcount_block, rf_records));
-+		rb->rf_records.rl_used = 0;
-+		rb->rf_records.rl_reserved2 = 0;
-+		rb->rf_records.rl_reserved1 = 0;
-+		/* rl_count determines the memset size and fortify object size. */
- 		rb->rf_records.rl_count =
- 				cpu_to_le16(ocfs2_refcount_recs_per_rb(sb));
-+		memset(rb->rf_records.rl_recs, 0,
-+		       le16_to_cpu(rb->rf_records.rl_count) *
-+		       sizeof(*rb->rf_records.rl_recs));
+--- a/Documentation/admin-guide/kernel-parameters.txt~mm-dmapool-use-static-key-for-boot-time-debug-enablement
++++ a/Documentation/admin-guide/kernel-parameters.txt
+@@ -1333,6 +1333,11 @@ Kernel parameters
+ 
+ 	dis_ucode_ldr	[X86] Disable the microcode loader.
+ 
++	dmapool_debug	[MM]
++			Enable DMA pool debugging. This enables memory
++			poisoning and validation for DMA pool allocations.
++			Useful for debugging DMA API misuse.
++
+ 	dma_debug=off	If the kernel is compiled with DMA_API_DEBUG support,
+ 			this option disables the debugging code at boot.
+ 
+--- a/mm/dmapool.c~mm-dmapool-use-static-key-for-boot-time-debug-enablement
++++ a/mm/dmapool.c
+@@ -35,10 +35,23 @@
+ #include <linux/string.h>
+ #include <linux/types.h>
+ #include <linux/wait.h>
++#include <linux/static_key.h>
++#include <linux/init.h>
+ 
+-#ifdef CONFIG_SLUB_DEBUG_ON
+-#define DMAPOOL_DEBUG 1
+-#endif
++/*
++ * Debugging support for dmapool using static key.
++ *
++ * This allows enabling dmapool debug at boot time via:
++ *   dmapool_debug
++ */
++static DEFINE_STATIC_KEY_FALSE(dmapool_debug_enabled);
++
++static int __init dmapool_debug_setup(char *str)
++{
++	static_branch_enable(&dmapool_debug_enabled);
++	return 1;
++}
++__setup("dmapool_debug", dmapool_debug_setup);
+ 
+ struct dma_block {
+ 	struct dma_block *next_block;
+@@ -92,13 +105,15 @@ static ssize_t pools_show(struct device
+ 
+ static DEVICE_ATTR_RO(pools);
+ 
+-#ifdef DMAPOOL_DEBUG
+ static void pool_check_block(struct dma_pool *pool, struct dma_block *block,
+ 			     gfp_t mem_flags)
+ {
+ 	u8 *data = (void *)block;
+ 	int i;
+ 
++	if (!static_branch_unlikely(&dmapool_debug_enabled))
++		return;
++
+ 	for (i = sizeof(struct dma_block); i < pool->size; i++) {
+ 		if (data[i] == POOL_POISON_FREED)
+ 			continue;
+@@ -133,8 +148,14 @@ static struct dma_page *pool_find_page(s
+ 
+ static bool pool_block_err(struct dma_pool *pool, void *vaddr, dma_addr_t dma)
+ {
+-	struct dma_block *block = pool->next_block;
+ 	struct dma_page *page;
++	struct dma_block *block;
++
++	if (!static_branch_unlikely(&dmapool_debug_enabled)) {
++		if (want_init_on_free())
++			memset(vaddr, 0, pool->size);
++		return false;
++	}
+ 
+ 	page = pool_find_page(pool, dma);
+ 	if (!page) {
+@@ -143,6 +164,7 @@ static bool pool_block_err(struct dma_po
+ 		return true;
  	}
  
- 	ocfs2_journal_dirty(handle, ref_root_bh);
++	block = pool->next_block;
+ 	while (block) {
+ 		if (block != vaddr) {
+ 			block = block->next_block;
+@@ -159,25 +181,9 @@ static bool pool_block_err(struct dma_po
+ 
+ static void pool_init_page(struct dma_pool *pool, struct dma_page *page)
+ {
+-	memset(page->vaddr, POOL_POISON_FREED, pool->allocation);
+-}
+-#else
+-static void pool_check_block(struct dma_pool *pool, struct dma_block *block,
+-			     gfp_t mem_flags)
+-{
+-}
+-
+-static bool pool_block_err(struct dma_pool *pool, void *vaddr, dma_addr_t dma)
+-{
+-	if (want_init_on_free())
+-		memset(vaddr, 0, pool->size);
+-	return false;
+-}
+-
+-static void pool_init_page(struct dma_pool *pool, struct dma_page *page)
+-{
++	if (static_branch_unlikely(&dmapool_debug_enabled))
++		memset(page->vaddr, POOL_POISON_FREED, pool->allocation);
+ }
+-#endif
+ 
+ static struct dma_block *pool_block_pop(struct dma_pool *pool)
+ {
 _
 
-Patches currently in -mm which might be from icb@fastmail.org are
+Patches currently in -mm which might be from lirongqing@baidu.com are
 
-ocfs2-fix-out-of-bounds-write-in-ocfs2_remove_refcount_extent.patch
 
