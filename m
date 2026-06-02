@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B3FFA2F290A
-	for <mm-commits@vger.kernel.org>; Tue,  2 Jun 2026 20:11:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CB903367B90
+	for <mm-commits@vger.kernel.org>; Tue,  2 Jun 2026 20:38:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780431072; cv=none; b=Ges3ShwO5JZTIPBDTNle8ES/tfYW4qsPZ2hCfcgiUs6e/nahG0G6ZAMtDHZN/7iBTXuvY704AX6/WbOU3eGyfm4mGiXwoQFr2ukzex+A8GoEcbOrPnyLseMAdkCiMXHG08GuLPvDh8kNq3xuhjY5rl7aO4FCRp3eKr1m5bitFRo=
+	t=1780432712; cv=none; b=cXiuL238MrKKVGzkfCTsieowtC3gdN9uJW3vI5bPJUVeVH6DRDiFVy46Oan7iticwZggZgl+y7QiyJ4hhQgjGv2LfIZDvVSQnyRb1M77y4+BhVsJBQqTgLwUqvto4HPtz0GfhjDHPEklVopI/zwnIauXlCYBY6t/7OLnYJsopGE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780431072; c=relaxed/simple;
-	bh=ECFW6GLl0YKc8cEOZTHTtxS1UCbni17arJF5Fl7Jo48=;
-	h=Date:To:From:Subject:Message-Id; b=a44UfK4Txmfdw2YGwKDYUrnG1yfGMtyczU+Ma3qdk7x1p/DLwNL9HkeQyJdjbuGJaaLnvyL6PY8TIzVlO19f8lh6SbdOyfiAc1Zjub3ywp7vl8PLSsGypVF1mRvTT4TzJAqZ+t+ksA2Cfxtbzl77+beeEwpHc81AiuhOr4yX23s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VhZ6cY2Y; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1780432712; c=relaxed/simple;
+	bh=0fj+YWDT9KtmS1+fr6mCyjMVCgxKtM3WYkJ1+qBmczU=;
+	h=Date:To:From:Subject:Message-Id; b=b/MnYApUiRZNGeOxi3fnDDfEkhRH5dBlYC8YH0w9E/KNwzOBK9UjcfrN5BDYpPCiC/25I2WF5agNcpX7JdlsN3gxZLMIkjgmRc25fBghhieFDvX5s+77AdcVoOKxLkZr6+iHnfA9RhP2tnlG+xgiZGc8ecCTCTj9fbZ61cD0gsk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2EcArV0B; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VhZ6cY2Y"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 592521F00893;
-	Tue,  2 Jun 2026 20:11:11 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2EcArV0B"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6983D1F00893;
+	Tue,  2 Jun 2026 20:38:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1780431071;
-	bh=oVd0CUsi3wyiijeRWdnpiy75ORfsdOF3yILcT+WJKhg=;
+	d=linux-foundation.org; s=korg; t=1780432711;
+	bh=+nQ/fk7U35L/1gaRUEpTnntpdAe3WHCy8DIBrIHnEcw=;
 	h=Date:To:From:Subject;
-	b=VhZ6cY2YH+ntJr5H77fciQDECP0kPbJnyWrxQ/+sFYLXE03U/qs38pVytTXLftOOb
-	 tR1I9FZs3W1NcwCz3YZs8ifZeuRTb+CPfCoWP9Ia9S2q/qxKE84hjSBrwHOwKMvtxD
-	 duRytpnCHGNQTBbqnOxaMZAlKhu2NjVXJtqHf1E4=
-Date: Tue, 02 Jun 2026 13:11:10 -0700
-To: mm-commits@vger.kernel.org,ljs@kernel.org,akpm@linux-foundation.org
+	b=2EcArV0BbFD9WMFAaNr08Yjm/OD7DT/WjvY0A5U7K0nCLAKybcMNdS0/Qc5TCTPyw
+	 bv0IT1bizb6QDGq1Yli9kJUO0SEYLtW7f8qToEriJUcv0FUccnfe2jtOeHchf0PSqf
+	 oJVQ3Ldpcs/Gofr9QZ0eiJeffA1HEAEU0s9LtwuM=
+Date: Tue, 02 Jun 2026 13:38:30 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,zaslonko@linux.ibm.com,wangkefeng.wang@huawei.com,vbabka@kernel.org,usama.arif@linux.dev,shakeel.butt@linux.dev,ryncsn@gmail.com,ryan.roberts@arm.com,roman.gushchin@linux.dev,npache@redhat.com,muchun.song@linux.dev,mhocko@kernel.org,ljs@kernel.org,liam@infradead.org,hannes@cmpxchg.org,gor@linux.ibm.com,dev.jain@arm.com,david@kernel.org,david@fromorbit.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,lance.yang@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vma-eliminate-mmap_action-error_hook-introduce-error_override.patch added to mm-unstable branch
-Message-Id: <20260602201111.592521F00893@smtp.kernel.org>
+Subject: + mm-thp-clear-deferred-split-shrinker-bits-when-queues-drain.patch added to mm-unstable branch
+Message-Id: <20260602203831.6983D1F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/vma: eliminate mmap_action->error_hook, introduce error_override
+     Subject: mm/thp: clear deferred split shrinker bits when queues drain
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-vma-eliminate-mmap_action-error_hook-introduce-error_override.patch
+     mm-thp-clear-deferred-split-shrinker-bits-when-queues-drain.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vma-eliminate-mmap_action-error_hook-introduce-error_override.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-thp-clear-deferred-split-shrinker-bits-when-queues-drain.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,161 +58,66 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Lorenzo Stoakes <ljs@kernel.org>
-Subject: mm/vma: eliminate mmap_action->error_hook, introduce error_override
-Date: Tue, 2 Jun 2026 12:06:27 +0100
+From: Lance Yang <lance.yang@linux.dev>
+Subject: mm/thp: clear deferred split shrinker bits when queues drain
+Date: Tue, 2 Jun 2026 12:34:53 +0800
 
-Rather than providing a hook, simplify things by providing the ability to
-override mmap action errors.  This allows us to more carefully validate
-the value provided and thus ensure only a valid error code is specified,
-and simplifies the interface.
+deferred_split_count() returns the raw list_lru count.  When the
+per-memcg, per-node list is empty, that count is 0.
 
-This way, we eliminate all hooks but mmap_prepare and allow only mmap
-actions to be specified (which core mm controls).
+That skips scanning, but it does not tell memcg reclaim that the shrinker
+is empty.  shrink_slab_memcg() only clears the memcg shrinker bit when the
+count callback reports SHRINK_EMPTY.
 
-This significantly improves robustness and eliminates any unnecessary code
-duplication in driver mmap hooks.
+Return SHRINK_EMPTY for an empty deferred split list, so the bit can be
+cleared once the queue has drained.
 
-We also update the /dev/mem logic (the only user) to use
-mmap_action->error_override instead.
-
-Link: https://lore.kernel.org/55d13f7d016b827c459946d46a56105635be111c.1780397980.git.ljs@kernel.org
-Signed-off-by: Lorenzo Stoakes <ljs@kernel.org>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Jann Horn <jannh@google.com>
+Link: https://lore.kernel.org/20260602043453.67597-1-lance.yang@linux.dev
+Signed-off-by: Lance Yang <lance.yang@linux.dev>
+Reviewed-by: David Hildenbrand (Arm) <david@kernel.org>
+Acked-by: Usama Arif <usama.arif@linux.dev>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Kairui Song <ryncsn@gmail.com>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
 Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Pedro Falcato <pfalcato@suse.de>
-Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Mikhail Zaslonko <zaslonko@linux.ibm.com>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Nico Pache <npache@redhat.com>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Vasily Gorbik <gor@linux.ibm.com>
 Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/mem.c              |    8 +-------
- include/linux/mm_types.h        |    9 +++------
- mm/util.c                       |   29 +++++++++++++++++++++--------
- tools/testing/vma/include/dup.h |    9 +++------
- 4 files changed, 28 insertions(+), 27 deletions(-)
+ mm/huge_memory.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
---- a/drivers/char/mem.c~mm-vma-eliminate-mmap_action-error_hook-introduce-error_override
-+++ a/drivers/char/mem.c
-@@ -322,11 +322,6 @@ static const struct vm_operations_struct
- #endif
- };
- 
--static int mmap_filter_error(int err)
--{
--	return -EAGAIN;
--}
--
- static int mmap_mem_prepare(struct vm_area_desc *desc)
+--- a/mm/huge_memory.c~mm-thp-clear-deferred-split-shrinker-bits-when-queues-drain
++++ a/mm/huge_memory.c
+@@ -4397,7 +4397,10 @@ void deferred_split_folio(struct folio *
+ static unsigned long deferred_split_count(struct shrinker *shrink,
+ 		struct shrink_control *sc)
  {
- 	struct file *file = desc->file;
-@@ -362,8 +357,7 @@ static int mmap_mem_prepare(struct vm_ar
- 
- 	/* Remap-pfn-range will mark the range with the I/O flag. */
- 	mmap_action_remap_full(desc, desc->pgoff);
--	/* We filter remap errors to -EAGAIN. */
--	desc->action.error_hook = mmap_filter_error;
-+	desc->action.error_override = -EAGAIN;
- 
- 	return 0;
- }
---- a/include/linux/mm_types.h~mm-vma-eliminate-mmap_action-error_hook-introduce-error_override
-+++ a/include/linux/mm_types.h
-@@ -844,13 +844,10 @@ struct mmap_action {
- 	enum mmap_action_type type;
- 
- 	/*
--	 * If specified, this hook is invoked when an error occurred when
--	 * attempting the selected action.
--	 *
--	 * The hook can return an error code in order to filter the error, but
--	 * it is not valid to clear the error here.
-+	 * If non-zero, replace errors that arise from mmap actions with this
-+	 * value instead. Only valid error codes may be specified.
- 	 */
--	int (*error_hook)(int err);
-+	int error_override;
- 
- 	/*
- 	 * This should be set in rare instances where the operation required
---- a/mm/util.c~mm-vma-eliminate-mmap_action-error_hook-introduce-error_override
-+++ a/mm/util.c
-@@ -1414,16 +1414,22 @@ static int mmap_action_finish(struct vm_
- 	 */
- 	len = vma_pages(vma) << PAGE_SHIFT;
- 	do_munmap(current->mm, vma->vm_start, len, NULL);
--	if (action->error_hook) {
--		/* We may want to filter the error. */
--		err = action->error_hook(err);
--		/* The caller should not clear the error. */
--		VM_WARN_ON_ONCE(!err);
--	}
--	return err;
+-	return list_lru_shrink_count(&deferred_split_lru, sc);
++	unsigned long count;
 +
-+	return action->error_override ?: err;
++	count = list_lru_shrink_count(&deferred_split_lru, sc);
++	return count ?: SHRINK_EMPTY;
  }
  
- #ifdef CONFIG_MMU
-+
-+static int check_mmap_action(struct mmap_action *action)
-+{
-+	const unsigned long override = action->error_override;
-+
-+	if (WARN_ON_ONCE(override && !IS_ERR_VALUE(override)))
-+		return -EINVAL;
-+
-+	return 0;
-+}
-+
- /**
-  * mmap_action_prepare - Perform preparatory setup for an VMA descriptor
-  * action which need to be performed.
-@@ -1433,7 +1439,14 @@ static int mmap_action_finish(struct vm_
-  */
- int mmap_action_prepare(struct vm_area_desc *desc)
- {
--	switch (desc->action.type) {
-+	struct mmap_action *action = &desc->action;
-+	int err;
-+
-+	err = check_mmap_action(action);
-+	if (err)
-+		return err;
-+
-+	switch (action->type) {
- 	case MMAP_NOTHING:
- 		return 0;
- 	case MMAP_REMAP_PFN:
---- a/tools/testing/vma/include/dup.h~mm-vma-eliminate-mmap_action-error_hook-introduce-error_override
-+++ a/tools/testing/vma/include/dup.h
-@@ -483,13 +483,10 @@ struct mmap_action {
- 	enum mmap_action_type type;
- 
- 	/*
--	 * If specified, this hook is invoked when an error occurred when
--	 * attempting the selection action.
--	 *
--	 * The hook can return an error code in order to filter the error, but
--	 * it is not valid to clear the error here.
-+	 * If non-zero, replace errors that arise from mmap actions with this
-+	 * value instead. Only valid error codes may be specified.
- 	 */
--	int (*error_hook)(int err);
-+	int error_override;
- 
- 	/*
- 	 * This should be set in rare instances where the operation required
+ static bool thp_underused(struct folio *folio)
 _
 
-Patches currently in -mm which might be from ljs@kernel.org are
+Patches currently in -mm which might be from lance.yang@linux.dev are
 
-mm-huge_memory-use-correct-flags-for-device-private-pmd-entry.patch
-drivers-char-mem-eliminate-unnecessary-use-of-success_hook.patch
-mm-vma-remove-mmap_action-success_hook.patch
-mm-vma-eliminate-mmap_action-error_hook-introduce-error_override.patch
+mm-thp-clear-deferred-split-shrinker-bits-when-queues-drain.patch
 
