@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E930A3C3BED
-	for <mm-commits@vger.kernel.org>; Tue,  2 Jun 2026 22:25:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4C7E03C7DEB
+	for <mm-commits@vger.kernel.org>; Tue,  2 Jun 2026 22:25:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780439131; cv=none; b=RaP0ORiGysxQV1xjmgN/zkkTBZXywJuFxC/eKVYDaWIdeHt0o1LbQdCbx93cLyne2tmbXvGnhAu1O9riwmMP+g8Ip7ItfC48nw3RwwOQyPDNXfkKjbmts84mzk5+5eGWDvmJJuBDZ9z/4ixUBwx9LZAjdYuJRr4ULDOZ/FB8ffM=
+	t=1780439132; cv=none; b=O3nMjo4ACY6HsMoqtdcCWNbsUNawIM9myrfKs9DDJFKfQJpOLvA/00FsDERXSKy8952aRLB2C+zlCdsHq7qWa8LjMYXyXDlUmLT+yT9nd0kFn/SX3ect3Xc9w7jdEXY0YUWaN+ATfswgHnqpiNKTFiWvGOC80zT15y/9X8NQg4Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780439131; c=relaxed/simple;
-	bh=MCSM+RX4ryGwIWB1r8hko4o+eEMvHyACOS+TESq6HPM=;
-	h=Date:To:From:Subject:Message-Id; b=eT01QTHW2ftf0xg3RcPMPbsSD4c2R7uQSD74XqmE3c2/Y9I5uwgIsfIcAgfXW5kps81uVUzsBLA+GzBN0mBf8W0EiSJJ7xI3cy6rhZhMgHIMVjCeATxZ2L8aM0IL9luykdVuiwSJDztnu0UDp17fY38//mXqPtIzECep8N6nRCs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=P5dp/qYv; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1780439132; c=relaxed/simple;
+	bh=qWRbGBPgofHnULvR1+z26w+sCz92q2RV8xWsvYBY+m4=;
+	h=Date:To:From:Subject:Message-Id; b=JTFCOp5pp8VgnV71KtD2O80lamp3E8PXgli90HuSICVelzA0TmwqBrY1fOs+GdroPfRiJIduRbQb6qi04ahOJUjDq6AuwT5KZEg1yPa8ABdPQnr77Yf/YCf4akYJXNu5gAKOS3iZJAo4CgiM5Ia4xzmztYzHGjR2DWlA05QxBFE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ni8ZnTxE; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="P5dp/qYv"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C0E611F00893;
-	Tue,  2 Jun 2026 22:25:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ni8ZnTxE"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1769F1F00898;
+	Tue,  2 Jun 2026 22:25:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1780439129;
-	bh=weP1u22eDrCJ3gMufwcDW9gu5TdECvPvXd7WF7stJpE=;
+	d=linux-foundation.org; s=korg; t=1780439131;
+	bh=UW8oTQfLOI7nfsX3x6GBTK9BM+PR2MpyvMxNr+9q11U=;
 	h=Date:To:From:Subject;
-	b=P5dp/qYvsjjacBOdU0w5vA8I220WRF+G73ud4RH5JAaAaCmouKD7wlB8aNCuGih4C
-	 tJa6aifyGQdkAwWs1bTFrdpdnhTHPtQVrQCRpk76rlaw3sU6zCoZ+nJK+NuX2kVvOS
-	 M0aHlm8mhfBSlW5Vc16eiJwU69OVEeQUiQjhV9F8=
-Date: Tue, 02 Jun 2026 15:25:29 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,surenb@google.com,skhan@linuxfoundation.org,sj@kernel.org,ryan.roberts@arm.com,rppt@kernel.org,npache@redhat.com,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,lance.yang@linux.dev,dev.jain@arm.com,david@kernel.org,corbet@lwn.net,baolin.wang@linux.alibaba.com,baohua@kernel.org,leon.hwang@linux.dev,akpm@linux-foundation.org
+	b=ni8ZnTxEAKPtpEUQgwjVkbMpxx3HMqxEKQwyVRJRPTEjmy2Axx/kEVv9ElSNsRCLz
+	 edNdIpm9nFM2T3lQLKSeqdl+FaLLu616fxUH4fLaJruiZe8MtkWKdidqUPeoVcSntw
+	 s9ILwr1pZQ1mVPgKTOlPHUP1CYnb/Z4e3K7H6LDs=
+Date: Tue, 02 Jun 2026 15:25:30 -0700
+To: mm-commits@vger.kernel.org,zenghui.yu@linux.dev,vbabka@kernel.org,surenb@google.com,ssh1326@icloud.com,skhan@linuxfoundation.org,sj@kernel.org,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,corbet@lwn.net,niecheng1@uniontech.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] documentation-admin-guide-mm-fix-typos-in-transhugerst.patch removed from -mm tree
-Message-Id: <20260602222529.C0E611F00893@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-core-clarify-next_intervals_tune_sis-update-path.patch removed from -mm tree
+Message-Id: <20260602222531.1769F1F00898@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,71 +35,69 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: Documentation/admin-guide/mm: fix typos in transhuge.rst
+     Subject: mm/damon/core: clarify next_intervals_tune_sis update path
 has been removed from the -mm tree.  Its filename was
-     documentation-admin-guide-mm-fix-typos-in-transhugerst.patch
+     mm-damon-core-clarify-next_intervals_tune_sis-update-path.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Leon Hwang <leon.hwang@linux.dev>
-Subject: Documentation/admin-guide/mm: fix typos in transhuge.rst
-Date: Wed, 20 May 2026 13:17:51 +0800
+From: niecheng <niecheng1@uniontech.com>
+Subject: mm/damon/core: clarify next_intervals_tune_sis update path
+Date: Tue, 19 May 2026 18:20:59 -0700
 
-Fix these two typos:
+Patch series "mm/damon: documentation and comment fixes".
 
-1. approporiately -> appropriately
-2. presure -> pressure
 
-Link: https://lore.kernel.org/20260520051751.74396-1-leon.hwang@linux.dev
-Signed-off-by: Leon Hwang <leon.hwang@linux.dev>
-Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Reviewed-by: Lance Yang <lance.yang@linux.dev>
+This patch (of 3):
+
+damon_set_attrs() updates next_aggregation_sis and next_ops_update_sis for
+online attrs updates, but it does not update next_intervals_tune_sis
+there.
+
+This can look like a missing update when reading damon_set_attrs() alone,
+while next_intervals_tune_sis is actually updated in kdamond_fn().
+
+Add a short comment to make this explicit.
+
+Link: https://lore.kernel.org/20260520012104.93602-1-sj@kernel.org
+Link: https://lore.kernel.org/20260520012104.93602-2-sj@kernel.org
+Suggested-by: SeongJae Park <sj@kernel.org>
+Signed-off-by: niecheng <niecheng1@uniontech.com>
+Signed-off-by: SeongJae Park <sj@kernel.org>
 Reviewed-by: SeongJae Park <sj@kernel.org>
-Reviewed-by: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Dev Jain <dev.jain@arm.com>
+Cc: David Hildenbrand <david@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Leon Hwang <leon.hwang@linux.dev>
 Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
 Cc: Michal Hocko <mhocko@suse.com>
-Cc: Nico Pache <npache@redhat.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Shuah Khan <skhan@linuxfoundation.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Zi Yan <ziy@nvidia.com>
+Cc: Sakurai Shun <ssh1326@icloud.com>
+Cc: Zenghui Yu <zenghui.yu@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/mm/transhuge.rst |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/damon/core.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/Documentation/admin-guide/mm/transhuge.rst~documentation-admin-guide-mm-fix-typos-in-transhugerst
-+++ a/Documentation/admin-guide/mm/transhuge.rst
-@@ -57,7 +57,7 @@ prominent because the size of each page
- variant and there is less memory to clear in each page fault. Some
- architectures also employ TLB compression mechanisms to squeeze more
- entries in when a set of PTEs are virtually and physically contiguous
--and approporiately aligned. In this case, TLB misses will occur less
-+and appropriately aligned. In this case, TLB misses will occur less
- often.
+--- a/mm/damon/core.c~mm-damon-core-clarify-next_intervals_tune_sis-update-path
++++ a/mm/damon/core.c
+@@ -909,6 +909,9 @@ int damon_set_attrs(struct damon_ctx *ct
+ 		attrs->aggr_interval / sample_interval;
+ 	ctx->next_ops_update_sis = ctx->passed_sample_intervals +
+ 		attrs->ops_update_interval / sample_interval;
++	/*
++	 * next_intervals_tune_sis will be updated inside kdamond_fn().
++	 */
  
- THP can be enabled system wide or restricted to certain tasks or even
-@@ -210,7 +210,7 @@ PMD-mappable transparent hugepage::
- 	cat /sys/kernel/mm/transparent_hugepage/hpage_pmd_size
- 
- All THPs at fault and collapse time will be added to _deferred_list,
--and will therefore be split under memory presure if they are considered
-+and will therefore be split under memory pressure if they are considered
- "underused". A THP is underused if the number of zero-filled pages in
- the THP is above max_ptes_none (see below). It is possible to disable
- this behaviour by writing 0 to shrink_underused, and enable it by writing
+ 	damon_update_monitoring_results(ctx, attrs, aggregating);
+ 	ctx->attrs = *attrs;
 _
 
-Patches currently in -mm which might be from leon.hwang@linux.dev are
+Patches currently in -mm which might be from niecheng1@uniontech.com are
 
 
