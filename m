@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C11A43B9D84;
-	Tue,  2 Jun 2026 22:24:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E95893B6C13
+	for <mm-commits@vger.kernel.org>; Tue,  2 Jun 2026 22:24:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780439049; cv=none; b=VvCf80typqc8iJz91zcNtX9MLGQxAIRXa0tqC1VGzKapsxiq/YdzsTKEO21JtgZRo7WJ7lAWDr6O+8vTQlg2o2rN0v0eV5ktYWwSUtHn8hBNBPu3/h73qhyoQZs8juEiDCZjXQsItcACO3wArfwDv6FRIqOOLCG63zIZxZpnLyA=
+	t=1780439050; cv=none; b=gDSKo7Fp5f0U+LpC2ppFp2WNtAHUeVz1/jI1y9ckmgsVktqwnyQGASagu/KV207HwW4cUPlQ8mNistygWPu7lMZChnX+EdWOkqsqEW81uJnk75g3B/fWAmyLGRDA9qMnbzXgXF2xVkLapKqBlOZbhCz/IoQRSjisyxQw18cz3uk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780439049; c=relaxed/simple;
-	bh=N9AkCg0Z2UI/J+Y3LjcNpADBTFeEXJxl/qv/gjYq0NM=;
-	h=Date:To:From:Subject:Message-Id; b=WnhiU/zexS5A7hdDjgTL6K8FxSGAUDH+cdkLzGt2AFcB8juy1meD8/gI8HCTXYZ6JAmq/Wcv84SaLT5AC+fAjfqzXTbmhGqFMmNaInxmw1VUCN5PUfEbeuwu6IG5KW4oQ4DM2ULRi4Gx34xtLnPXpRKpdfo/td0k02JX+HvTdnY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=paN7rtro; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1780439050; c=relaxed/simple;
+	bh=Z8gE/tL7jbRXxZ7SR0Wd6IpAa2QNdR37BzMEcbC6MQo=;
+	h=Date:To:From:Subject:Message-Id; b=CqxoF+lg/tqJwEJcHcSLZYTu1vaK8Kfm9/+N49bN0vNDUo8/y7E+M6i9mKeD3zvFsHoFZpZvMsDGrZ0zOCe3GbUcB7QSbzXNwrZAXH/cKG6FzUAjQJRO2wnWyjZb0rdWu5VM3XNKZ30f2TY/ozPdWNXTmGvznjpHGoqAkZeSmx0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zIWHOt/S; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="paN7rtro"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 95DA21F00899;
-	Tue,  2 Jun 2026 22:24:07 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zIWHOt/S"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C03AB1F00893;
+	Tue,  2 Jun 2026 22:24:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1780439047;
-	bh=CMNgR1wdgfjQ3Y+74+RnZe2qYoCvtFP3kP4zEdcZ5/U=;
+	d=linux-foundation.org; s=korg; t=1780439048;
+	bh=loEvVrz5v0W5D2hmatCB4eHor7u6+GnXZH1xzRdd6nU=;
 	h=Date:To:From:Subject;
-	b=paN7rtro3YdxOVzRIA8LBkwiNmNS0nDc6eE2OrNOJqDTvWDjRaEY0wcE8se5kaQPX
-	 gRA80uOssCkdlBGvDjtYpKu7p5b8iaNEgwAhMUgesu/fVP1V3sMcuIxPFGyC2XLxwb
-	 FyAyJcsyHXbZbUPitciX4Ez9Tm1QN843J0oqk+NQ=
-Date: Tue, 02 Jun 2026 15:24:07 -0700
-To: mm-commits@vger.kernel.org,viro@zeniv.linux.org.uk,stable@vger.kernel.org,peterx@redhat.com,jack@suse.cz,david@kernel.org,brauner@kernel.org,rppt@kernel.org,akpm@linux-foundation.org
+	b=zIWHOt/SjF87YDfkd6s3v5Egnos8OZvhn0KV8gEH8eaTngu9CZWLr+tuUlpHG1nOR
+	 IuErQt9wfE44rr5FAKdyLE46TwFStZF9X4BZ5un6d+1bwxgKmsC3LoT5TL5vLgZ5kZ
+	 2JH4bP4c6XsYQjrJFIfY0oUlD5Wgck0jQgS6xzR4=
+Date: Tue, 02 Jun 2026 15:24:08 -0700
+To: mm-commits@vger.kernel.org,wangxuewen@kylinos.cn,roman.gushchin@linux.dev,muchun.song@linux.dev,david@fromorbit.com,18810879172@163.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] userfaultfd-ensure-mremap_userfaultfd_fail-releases-mmap_changing.patch removed from -mm tree
-Message-Id: <20260602222407.95DA21F00899@smtp.kernel.org>
+Subject: [merged mm-stable] mm-shrinker-simplify-shrinker_memcg_alloc-using-guard.patch removed from -mm tree
+Message-Id: <20260602222408.C03AB1F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,117 +35,74 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: userfaultfd: ensure mremap_userfaultfd_fail() releases mmap_changing
+     Subject: mm/shrinker: simplify shrinker_memcg_alloc() using guard()
 has been removed from the -mm tree.  Its filename was
-     userfaultfd-ensure-mremap_userfaultfd_fail-releases-mmap_changing.patch
+     mm-shrinker-simplify-shrinker_memcg_alloc-using-guard.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
-Subject: userfaultfd: ensure mremap_userfaultfd_fail() releases mmap_changing
-Date: Wed, 13 May 2026 11:14:16 +0300
+From: wangxuewen <18810879172@163.com>
+Subject: mm/shrinker: simplify shrinker_memcg_alloc() using guard()
+Date: Wed, 13 May 2026 15:52:14 +0800
 
-Sashiko says:
+Use guard(mutex) to automatically handle shrinker_mutex locking and
+unlocking in shrinker_memcg_alloc().  This removes the explicit
+mutex_unlock() call, the goto-based error path, and the redundant ret
+variable, resulting in cleaner and more concise code.
 
-  mremap_userfaultfd_prep() increments ctx->mmap_changing to stall
-  concurrent operations, but mremap_userfaultfd_fail() does not
-  decrement it before dropping the context reference.
-
-If an mremap operation fails, ctx->mmap_changing remains elevated. This
-will causes subsequent userfaultfd operations like a UFFDIO_COPY to fail
-with -EAGAIN.
-
-Decrement ctx->mmap_changing in mremap_userfaultfd_fail().
-
-Link: https://sashiko.dev/#/patchset/20260430113512.115938-1-rppt@kernel.org
-Link: https://lore.kernel.org/20260513081416.495963-1-rppt@kernel.org
-Fixes: df2cc96e7701 ("userfaultfd: prevent non-cooperative events vs mcopy_atomic races")
-Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Reviewed-by: David Hildenbrand (Arm) <david@kernel.org>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lore.kernel.org/20260513075214.2655710-1-18810879172@163.com
+Signed-off-by: wangxuewen <wangxuewen@kylinos.cn>
+Acked-by: Muchun Song <muchun.song@linux.dev>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Xuewen Wang <wangxuewen@kylinos.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/userfaultfd.c |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/shrinker.c |   13 +++++--------
+ 1 file changed, 5 insertions(+), 8 deletions(-)
 
---- a/fs/userfaultfd.c~userfaultfd-ensure-mremap_userfaultfd_fail-releases-mmap_changing
-+++ a/fs/userfaultfd.c
-@@ -786,6 +786,8 @@ void mremap_userfaultfd_fail(struct vm_u
- 	if (!ctx)
- 		return;
+--- a/mm/shrinker.c~mm-shrinker-simplify-shrinker_memcg_alloc-using-guard
++++ a/mm/shrinker.c
+@@ -216,29 +216,26 @@ static DEFINE_IDR(shrinker_idr);
  
-+	atomic_dec(&ctx->mmap_changing);
-+	VM_WARN_ON_ONCE(atomic_read(&ctx->mmap_changing) < 0);
- 	userfaultfd_ctx_put(ctx);
+ static int shrinker_memcg_alloc(struct shrinker *shrinker)
+ {
+-	int id, ret = -ENOMEM;
++	int id;
+ 
+ 	if (mem_cgroup_disabled())
+ 		return -ENOSYS;
+ 	if (mem_cgroup_kmem_disabled() && !(shrinker->flags & SHRINKER_NONSLAB))
+ 		return -ENOSYS;
+ 
+-	mutex_lock(&shrinker_mutex);
++	guard(mutex)(&shrinker_mutex);
+ 	id = idr_alloc(&shrinker_idr, shrinker, 0, 0, GFP_KERNEL);
+ 	if (id < 0)
+-		goto unlock;
++		return id;
+ 
+ 	if (id >= shrinker_nr_max) {
+ 		if (expand_shrinker_info(id)) {
+ 			idr_remove(&shrinker_idr, id);
+-			goto unlock;
++			return -ENOMEM;
+ 		}
+ 	}
+ 	shrinker->id = id;
+-	ret = 0;
+-unlock:
+-	mutex_unlock(&shrinker_mutex);
+-	return ret;
++	return 0;
  }
  
+ static void shrinker_memcg_remove(struct shrinker *shrinker)
 _
 
-Patches currently in -mm which might be from rppt@kernel.org are
+Patches currently in -mm which might be from 18810879172@163.com are
 
-selftests-mm-hugetlb-read-hwpoison-add-sigbus-handler.patch
-selftests-mm-migration-dont-assume-huge-page-is-twomeg.patch
-selftests-mm-migration-make-nthreads-represent-number-of-working-threads.patch
-selftests-mm-migration-properly-cleanup-forked-processes.patch
-selftests-mm-run_vmtestssh-dont-gate-thp-and-ksm-tests-on-have_hugepages.patch
-selftests-mm-merge-map_hugetlb-into-hugepage-mmap.patch
-selftests-mm-rename-hugepage-tests-to-hugetlb.patch
-selftests-mm-hugetlb-shm-use-kselftest-framework.patch
-selftests-mm-hugetlb-vmemmap-use-kselftest-framework.patch
-selftests-mm-hugetlb-madvise-use-kselftest-framework.patch
-selftests-mm-hugetlb_madv_vs_map-use-kselftest-framework.patch
-selftests-mm-hugetlb-read-hwpoison-use-kselftest-framework.patch
-selftests-mm-khugepaged-group-tests-in-an-array.patch
-selftests-mm-khugepaged-use-ksefltest-framework.patch
-selftests-mm-khugepaged-use-ksefltest-framework-fix.patch
-selftests-mm-ksm_tests-use-kselftest-framework.patch
-selftests-mm-protection_keys-use-descriptive-test-names-in-the-output.patch
-selftests-mm-protection_keys-use-kselftest-framework.patch
-selftests-mm-uffd-common-use-kselftest-framework.patch
-selftests-mm-uffd-stress-use-kselftest-framework.patch
-selftests-mm-uffd-unit-tests-use-kselftest-framework.patch
-selftests-mm-va_high_addr_switch-use-kselftest-framework.patch
-selftests-mm-add-atexit-and-signal-handlers-to-thp_settings.patch
-selftests-mm-rename-thp_settings-to-hugepage_settings.patch
-selftests-mm-move-hugetlb-helpers-to-hugepage_settings.patch
-selftests-mm-hugepage_settings-use-unsigned-long-in-detect_hugetlb_page_size.patch
-selftests-mm-hugepage_settings-add-apis-to-get-and-set-nr_hugepages.patch
-selftests-mm-hugepage_settings-rename-and-rework-get_free_hugepages.patch
-selftests-mm-hugepage_settings-add-apis-for-hugetlb-setup-and-teardown.patch
-selftests-mm-move-read_file-read_num-and-write_num-to-vm_util.patch
-selftests-mm-vm_util-add-helpers-to-set-and-restore-shm-limits.patch
-selftests-mm-compaction_test-use-hugetlb-helpers.patch
-selftests-mm-cow-add-setup-of-hugetlb-pages.patch
-selftests-mm-gup_longterm-add-setup-of-hugetlb-pages.patch
-selftests-mm-gup_test-add-setup-of-hugetlb-pages.patch
-selftests-mm-hmm-tests-add-setup-of-hugetlb-pages.patch
-selftests-mm-hugepage_dio-add-setup-of-hugetlb-pages.patch
-selftests-mm-hugetlb_fault_after_madv-add-setup-of-hugetlb-pages.patch
-selftests-mm-hugetlb-madvise-add-setup-of-hugetlb-pages.patch
-selftests-mm-hugetlb_madv_vs_map-add-setup-of-hugetlb-pages.patch
-selftests-mm-hugetlb-mmap-add-setup-of-hugetlb-pages.patch
-selftests-mm-hugetlb-mremap-add-setup-of-hugetlb-pages.patch
-selftests-mm-hugetlb-shm-add-setup-of-hugetlb-pages.patch
-selftests-mm-hugetlb-soft-offline-add-setup-of-hugetlb-pages.patch
-selftests-mm-hugetlb-vmemmap-add-setup-of-hugetlb-pages.patch
-selftests-mm-migration-add-setup-of-hugetlb-pages.patch
-selftests-mm-pagemap_ioctl-add-setup-of-hugetlb-pages.patch
-selftests-mm-protection_keys-use-library-code-for-hugetlb-setup.patch
-selftests-mm-thuge-gen-add-setup-of-hugetlb-pages.patch
-selftests-mm-uffd-stress-use-hugetlb_save-and-alloc-huge-pages.patch
-selftests-mm-uffd-unit-tests-add-setup-of-hugetlb-pages.patch
-selftests-mm-uffd-wp-mremap-add-setup-of-hugetlb-pages.patch
-selftests-mm-va_high_addr_switch-add-setup-of-hugetlb-pages.patch
-selftests-mm-va_high_addr_switchsh-drop-huge-pages-setup.patch
-selftests-mm-run_vmtestssh-free-memory-if-available-memory-is-low.patch
-selftests-mm-run_vmtestssh-drop-detection-and-setup-of-hugetlb.patch
-xor-use-kmalloc-in-calibrate_xor_blocks.patch
-raid6-use-kmalloc-in-raid6_select_algo.patch
 
