@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A302A39A061
-	for <mm-commits@vger.kernel.org>; Tue,  2 Jun 2026 22:25:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C050B3C3792
+	for <mm-commits@vger.kernel.org>; Tue,  2 Jun 2026 22:25:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780439141; cv=none; b=NGtnp8mpMqRiQ2eVD+NraDpGHMF9tWI/L391fzg05wkhLdeYjsapgMkx+J3yh1AFUMHz4xUA3qv2dX6/NRdQxxl8ffaNVRrsOie8IlAYtulzIffqYS7NXMLaYgU24fe6Nmp06WB1XHaM4YrF4HwwEpx9zs70qy6hR9AZFNhXXq0=
+	t=1780439143; cv=none; b=osVAfLzmxKtsusSbiINd1ZRWnne//dPBZc5L9x/a/GOTfWJniOXi1tr84xP9HLAjgpzcW/d6yJNKbco6/2WpSA8gtV5iBPY4Emay15YQ0yK/VP0RBXPXiwWgtWkJnVwdXKBe5zaZTAusO865yrEGEYdUO5NSlyQo15wpRZYtb3g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780439141; c=relaxed/simple;
-	bh=JJ1F5tOH10LXcywiP3YZADSjaKr87jH8ibWkUoVwB+M=;
-	h=Date:To:From:Subject:Message-Id; b=UGB+7GdJqNXwb7mpGF4zK15HW/GYyPqCU/GlSpr876hF5r7yYF4fr9nOJ+e7wBxglq41IqEjwWffYQmUizofmy6KIQw8LEuGYZsiRwaMhAHWnsdxX6rDE8AU7lJdLWmhXTQuYk7qq8UAo1HjKWEVR89FdJYdqhP6VfKB51QUqvc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Eb6iz2OC; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1780439143; c=relaxed/simple;
+	bh=RT+LqNLWe90UqPFeisLGa+ENZpW7VaYhzglPcNn2RzQ=;
+	h=Date:To:From:Subject:Message-Id; b=E3KSGNPkA+2xVrA+aeYThdovYAFgrgkhPJuVPZMILRORjrk9LMzLnq68cwBzfFEsTdD5xIr37zMVxDoWnWcIj+bqCsX28WGz4guMJOM1/P3VEr5DQfnpwrxG2fqEyeKT0+RUokBp5Um4cuGuCfhWFIa5UuuJkmWdYifY4OYqrUw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JNm8E7YZ; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Eb6iz2OC"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3730F1F00893;
-	Tue,  2 Jun 2026 22:25:40 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JNm8E7YZ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 937E71F00898;
+	Tue,  2 Jun 2026 22:25:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1780439140;
-	bh=E0lHkVm/nhmm0SvMdP2xk4KURdroPfMgHkaeGK+kjos=;
+	d=linux-foundation.org; s=korg; t=1780439141;
+	bh=iwvRTfEfiQ67rYLnWjExHIdmVPMt2NGa+1w26YqNKm4=;
 	h=Date:To:From:Subject;
-	b=Eb6iz2OC9VbRqs3IKWCKA2P9e4jtvNOcexZH6oHmFNw3cKrBsUfIck9iqnr2p1LZv
-	 1b+mRNWKUYTwKYMVUNerWK3gXRrmXB5WR/7cR0tqslO//EDGQ0ltnDyDRK0zLx/J7s
-	 1qKpDPdCn42nolgfkGgmkt1+a8LjeJtNcW+y1FJM=
-Date: Tue, 02 Jun 2026 15:25:39 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,surenb@google.com,sj@kernel.org,shuah@kernel.org,ryan.roberts@arm.com,rppt@kernel.org,npache@redhat.com,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,lance.yang@linux.dev,dev.jain@arm.com,david@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,richard.weiyang@gmail.com,akpm@linux-foundation.org
+	b=JNm8E7YZklNArD6O7z6fDDdbti//Y/QlIwM1KEMHz5Nu5gMxgy0V6hbkggNPyghZF
+	 J0ok1pzwNPuvRvkBuNsHecOuDSRtChU8XZT8Myxa8PuB5Pa4bT2TX1Hft4jnelFlyv
+	 hti120dyBuMDe4x7biCwJrivuB53oSpseFnDa5Fw=
+Date: Tue, 02 Jun 2026 15:25:41 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,rppt@kernel.org,pfalcato@suse.de,mhocko@suse.com,liam@infradead.org,jannh@google.com,gregkh@linuxfoundation.org,david@kernel.org,arnd@arndb.de,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-mm-close-fd-on-write-error.patch removed from -mm tree
-Message-Id: <20260602222540.3730F1F00893@smtp.kernel.org>
+Subject: [merged mm-stable] drivers-char-mem-eliminate-unnecessary-use-of-success_hook.patch removed from -mm tree
+Message-Id: <20260602222541.937E71F00898@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,62 +35,195 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests/mm/split_huge_page_test.c: close fd on write error
+     Subject: drivers/char/mem: eliminate unnecessary use of success_hook
 has been removed from the -mm tree.  Its filename was
-     selftests-mm-close-fd-on-write-error.patch
+     drivers-char-mem-eliminate-unnecessary-use-of-success_hook.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Wei Yang <richard.weiyang@gmail.com>
-Subject: selftests/mm/split_huge_page_test.c: close fd on write error
-Date: Wed, 20 May 2026 02:03:36 +0000
+From: Lorenzo Stoakes <ljs@kernel.org>
+Subject: drivers/char/mem: eliminate unnecessary use of success_hook
+Date: Tue, 2 Jun 2026 12:06:25 +0100
 
-When create_pagecache_thp_and_fd() write returns error on
-/proc/sys/vm/dropcache, it just "goto err_out_unlink", which left fd still
-open.
+Patch series "remove mmap_action success, error hooks", v3.
 
-Use "goto err_out_close" to close the fd.
+The mmap_action->success_hook was a strange beast added to enable code
+which appeared to absolutely require access to a VMA pointer to work
+correctly.
 
-Link: https://lore.kernel.org/20260520020336.28914-1-richard.weiyang@gmail.com
-Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
-Reviewed-by: Dev Jain <dev.jain@arm.com>
-Reviewed-by: SeongJae Park <sj@kernel.org>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Lance Yang <lance.yang@linux.dev>
-Cc: "Liam R. Howlett" <liam@infradead.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
+Primarily this was for hugetlb, however a different approach will be taken
+there, as clearly more work is required to figure out a sensible way of
+converting hugetlb to use mmap_prepare.
+
+The other user was the memory char driver, specifically /dev/zero which
+has the unusual property of explicitly setting file-backed VMAs anonymous.
+
+Providing the success hook was always foolish, as it allowed drivers a way
+to workaround the restriction that they should not access a pointer to a
+not-yet-correctly-initialised VMA - which defeats the purpose of the
+mmap_prepare work.
+
+We can achieve the same thing in memory char driver without needing the
+success hook, so this series removes that, then removes the success hook
+altogether.
+
+The error hook is also unnecessary - the motivation for this was for
+functions which need to override the error code when performing an mmap
+action in order to avoid breaking userspace.
+
+We can achieve this by just providing a field for the error code.  Doing
+this means we don't have to worry about the hook doing anything odd.
+
+We also add a check to ensure the error code is in fact valid.
+
+Again the memory char driver is the only current user of this, so this
+series updates it to use that.
+
+After this change mmap_action has no custom hooks at all, which seems
+rather more cromulent than before.
+
+
+This patch (of 3):
+
+/dev/zero, uniquely, marks memory mapped there as anonymous.  This is
+currently achieved using the mmap_action->success_hook.
+
+However this hook circumvents the abstraction of VMA initialisation so
+it's preferable to do things a different way.
+
+To achieve this, this patch firstly defaults the VMA descriptor's vm_ops
+field to the dummy VMA operations, which is what file-backed VMAs default
+this field to.
+
+That way, we can detect whether a driver sets this field to NULL in order
+to mark it anonymous.
+
+We then introduce vma_desc_set_anonymous() to do this explicitly, and
+invoke it in mmap_zero_prepare().
+
+This way, any driver which does not explicitly set desc->vm_ops, retains
+the dummy vm_ops as they would previously.
+
+We also update set_vma_user_defined_fields() to make clear that we are
+either setting vma->vm_ops to what is provided by the driver (or
+defaulting to dummy_vm_ops if not set), or setting the VMA anonymous.
+
+This lays the groundwork for removing the success hook.
+
+Link: https://lore.kernel.org/cover.1780397980.git.ljs@kernel.org
+Link: https://lore.kernel.org/010579cca6787cf7bb057ab1f7228978b10601c8.1780397980.git.ljs@kernel.org
+Signed-off-by: Lorenzo Stoakes <ljs@kernel.org>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Jann Horn <jannh@google.com>
+Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Nico Pache <npache@redhat.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Shuah Khan <shuah@kernel.org>
+Cc: Pedro Falcato <pfalcato@suse.de>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Wei Yang <richard.weiyang@gmail.com>
-Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/split_huge_page_test.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/char/mem.c              |   17 +++++------------
+ include/linux/mm.h              |    5 +++++
+ mm/util.c                       |    1 +
+ mm/vma.c                        |    3 +++
+ tools/testing/vma/include/dup.h |    1 +
+ 5 files changed, 15 insertions(+), 12 deletions(-)
 
---- a/tools/testing/selftests/mm/split_huge_page_test.c~selftests-mm-close-fd-on-write-error
-+++ a/tools/testing/selftests/mm/split_huge_page_test.c
-@@ -625,7 +625,7 @@ static int create_pagecache_thp_and_fd(c
- 	}
- 	if (write(*fd, "3", 1) != 1) {
- 		ksft_perror("write to drop_caches");
--		goto err_out_unlink;
-+		goto err_out_close;
- 	}
- 	close(*fd);
+--- a/drivers/char/mem.c~drivers-char-mem-eliminate-unnecessary-use-of-success_hook
++++ a/drivers/char/mem.c
+@@ -504,17 +504,6 @@ static ssize_t read_zero(struct file *fi
+ 	return cleared;
+ }
  
+-static int mmap_zero_private_success(const struct vm_area_struct *vma)
+-{
+-	/*
+-	 * This is a highly unique situation where we mark a MAP_PRIVATE mapping
+-	 * of /dev/zero anonymous, despite it not being.
+-	 */
+-	vma_set_anonymous((struct vm_area_struct *)vma);
+-
+-	return 0;
+-}
+-
+ static int mmap_zero_prepare(struct vm_area_desc *desc)
+ {
+ #ifndef CONFIG_MMU
+@@ -523,7 +512,11 @@ static int mmap_zero_prepare(struct vm_a
+ 	if (vma_desc_test(desc, VMA_SHARED_BIT))
+ 		return shmem_zero_setup_desc(desc);
+ 
+-	desc->action.success_hook = mmap_zero_private_success;
++	/*
++	 * This is a highly unique situation where we mark a MAP_PRIVATE mapping
++	 * of /dev/zero anonymous, despite it not being.
++	 */
++	vma_desc_set_anonymous(desc);
+ 	return 0;
+ }
+ 
+--- a/include/linux/mm.h~drivers-char-mem-eliminate-unnecessary-use-of-success_hook
++++ a/include/linux/mm.h
+@@ -1489,6 +1489,11 @@ static inline void vma_set_anonymous(str
+ 	vma->vm_ops = NULL;
+ }
+ 
++static inline void vma_desc_set_anonymous(struct vm_area_desc *desc)
++{
++	desc->vm_ops = NULL;
++}
++
+ static inline bool vma_is_anonymous(struct vm_area_struct *vma)
+ {
+ 	return !vma->vm_ops;
+--- a/mm/util.c~drivers-char-mem-eliminate-unnecessary-use-of-success_hook
++++ a/mm/util.c
+@@ -1192,6 +1192,7 @@ void compat_set_desc_from_vma(struct vm_
+ 	desc->vm_file = vma->vm_file;
+ 	desc->vma_flags = vma->flags;
+ 	desc->page_prot = vma->vm_page_prot;
++	desc->vm_ops = vma->vm_ops;
+ 
+ 	/* Default. */
+ 	desc->action.type = MMAP_NOTHING;
+--- a/mm/vma.c~drivers-char-mem-eliminate-unnecessary-use-of-success_hook
++++ a/mm/vma.c
+@@ -2697,6 +2697,8 @@ static void set_vma_user_defined_fields(
+ {
+ 	if (map->vm_ops)
+ 		vma->vm_ops = map->vm_ops;
++	else	/* Only /dev/zero should do this. */
++		vma_set_anonymous(vma);
+ 	vma->vm_private_data = map->vm_private_data;
+ }
+ 
+@@ -2744,6 +2746,7 @@ static unsigned long __mmap_region(struc
+ 		.action = {
+ 			.type = MMAP_NOTHING, /* Default to no further action. */
+ 		},
++		.vm_ops = &vma_dummy_vm_ops,
+ 	};
+ 	bool allocated_new = false;
+ 	int error;
+--- a/tools/testing/vma/include/dup.h~drivers-char-mem-eliminate-unnecessary-use-of-success_hook
++++ a/tools/testing/vma/include/dup.h
+@@ -1303,6 +1303,7 @@ static inline void compat_set_desc_from_
+ 	desc->vm_file = vma->vm_file;
+ 	desc->vma_flags = vma->flags;
+ 	desc->page_prot = vma->vm_page_prot;
++	desc->vm_ops = vma->vm_ops;
+ 
+ 	/* Default. */
+ 	desc->action.type = MMAP_NOTHING;
 _
 
-Patches currently in -mm which might be from richard.weiyang@gmail.com are
+Patches currently in -mm which might be from ljs@kernel.org are
 
+mm-huge_memory-use-correct-flags-for-device-private-pmd-entry.patch
 
