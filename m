@@ -1,81 +1,78 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D449E2BEC2A;
-	Tue,  2 Jun 2026 00:50:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 779D630676C
+	for <mm-commits@vger.kernel.org>; Tue,  2 Jun 2026 00:51:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780361446; cv=none; b=FFvN3rlEqXwXc1nFkXn0DXBKBMdI2y8pPTu1iYM4SGgRlGKO5m+bNCDu0hMTXgSzyi1f519tISgldc2Qg2vlskDP3VgqH/pn+BiOG4lCGzk1CyBdzATsz/2m9nUjB6p19EIJktxuTVtpnIa5FSjkrv+Xc4Kd1tuaDXUfXSldbqA=
+	t=1780361475; cv=none; b=JD9lJDd1LjIju4cTs50wDkFGQw2O/3UWJMhe2uyMkiHiP/pObh1rcm4/iEjKN1TcBcnnp0nMBDo0E3cIMXEFtFXL2cEYcmWc+oLKZDkDUvmtmNruzmsyOKiB74dO1FM4hdwKHiX3ol1+6g/X5bMIOudL+j4Hg+a0mTWG+FVAD/U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780361446; c=relaxed/simple;
-	bh=TzklarHP5Cwz1/QNZC76PClbA2rfaX//E32jzT2Wlk4=;
-	h=Date:From:To:Cc:Subject:Message-Id:In-Reply-To:References:
-	 Mime-Version:Content-Type; b=V1JfDiXEnTg6nV25vxJnoL7JndGXpBUZxrvSgDWBiuVaARpvKcjqKy6O8Lhw7IGUo2AbOa7L94rvH5DpxB14TFKuhAEQWGqSdWuZp99/h+yIkAx42Fvcel/U2+/06Z11DwgZ5EhyJPL+1G8bcErTQ/phB9w/pXeUyLX/24duZrU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=J0jvQxyU; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1780361475; c=relaxed/simple;
+	bh=bd5lsX0q9Jvx6+Ho8jCdEf3Kw9+dMrKJrILmMxQ3G+0=;
+	h=Date:To:From:Subject:Message-Id; b=d1rUq5rFT1VsBWMG55DpQkH4ABgPHKP8t3YIEmIbARjbCBnKW9pNlMv7x4jH6TW7iwbkGfEoP/IaZSmHmsuOrzMG+zAmw2aTkuWa5jg3Qed8iwUAAFhSBHqi5D051EV/pKfI84kyqfuEc0XjlzPW0TI8VuEjCEixq82omgj73aQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=w2ox4K4+; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="J0jvQxyU"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2C80C1F00893;
-	Tue,  2 Jun 2026 00:50:43 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="w2ox4K4+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 195461F00893;
+	Tue,  2 Jun 2026 00:51:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1780361443;
-	bh=RmCDHQKxGmU0NXkOYJU/o1U/xmaSHU/e02onfhGC6hw=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References;
-	b=J0jvQxyUfDbgy8KBUh51Eoa4t4LKTT618EtplWjVH0iJBGkxHNpre1o4dUGVHSRYZ
-	 CrTYRzlqBMYT5EKyNl3BwL2qve5jb/cnRH/D4RnLUPrXHijDk14/PTvXhHGqjmGEpd
-	 nyuzpDwWARFe81Wl4qTEPwOeoCmx6cknORySJwK8=
-Date: Mon, 1 Jun 2026 17:50:42 -0700
+	d=linux-foundation.org; s=korg; t=1780361474;
+	bh=cwtFiBNLFYFVmjkY+XEotuhTgH9na7PPj8uEajEJex4=;
+	h=Date:To:From:Subject;
+	b=w2ox4K4+1o26cHmfZLccZFGpe2dCJ61HUJxpf9DE22zyGF1x7qGp4+2pjCzUCtCoQ
+	 LyBWXZYN7YN4m++i737kUDtpOxn6EmcUr44pGQjmKzhW3aBzlE9kceFlEaJWQEEV6J
+	 d81DChzZ/PUNJrB/nO/fNarOSZqW4gwlAUx6TNiU=
+Date: Mon, 01 Jun 2026 17:51:13 -0700
+To: mm-commits@vger.kernel.org,liuqiang@kylinos.cn,leon@kernel.org,jgg@ziepe.ca,apopple@nvidia.com,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-To: kernel test robot <lkp@intel.com>
-Cc: Qiang Liu <liuqiang@kylinos.cn>, oe-kbuild-all@lists.linux.dev, David
- Hildenbrand <david@kernel.org>, Linux Memory Management List
- <linux-mm@kvack.org>, mm-commits@vger.kernel.org
-Subject: Re: [akpm-mm:mm-new 386/420] lib/test_hmm.c:1170:21: sparse:
- sparse: incorrect type in assignment (different base types)
-Message-Id: <20260601175042.97c9e6372cb3e9f23f4a0f62@linux-foundation.org>
-In-Reply-To: <202606011329.zWs2BKy4-lkp@intel.com>
-References: <202606011329.zWs2BKy4-lkp@intel.com>
-X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+Subject: + lib-test_hmm-check-alloc_page_vma-return-value-and-handle-oom-fix.patch added to mm-unstable branch
+Message-Id: <20260602005114.195461F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
 
-On Mon, 01 Jun 2026 13:13:42 +0800 kernel test robot <lkp@intel.com> wrote:
 
-> tree:   https://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm.git mm-new
-> head:   d97bc98dadda29f23540b8490592962ebcf545ff
-> commit: d4ab4875497b1659c6c56dd9faefcb4a41c566e4 [386/420] lib/test_hmm: check alloc_page_vma() return value and handle OOM
-> config: s390-randconfig-r111-20260601 (https://download.01.org/0day-ci/archive/20260601/202606011329.zWs2BKy4-lkp@intel.com/config)
-> compiler: clang version 23.0.0git (https://github.com/llvm/llvm-project 9409c07de6378507397ecdb6f05f628f58110112)
-> sparse: v0.6.5-rc1
-> reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20260601/202606011329.zWs2BKy4-lkp@intel.com/reproduce)
-> 
-> If you fix the issue in a separate patch/commit (i.e. not just a new version of
-> the same patch/commit), kindly add following tags
-> | Reported-by: kernel test robot <lkp@intel.com>
-> | Closes: https://lore.kernel.org/oe-kbuild-all/202606011329.zWs2BKy4-lkp@intel.com/
-> 
-> sparse warnings: (new ones prefixed by >>)
-> >> lib/test_hmm.c:1170:21: sparse: sparse: incorrect type in assignment (different base types) @@     expected int [assigned] ret @@     got restricted vm_fault_t @@
+The patch titled
+     Subject: lib-test_hmm-check-alloc_page_vma-return-value-and-handle-oom-fix
+has been added to the -mm mm-unstable branch.  Its filename is
+     lib-test_hmm-check-alloc_page_vma-return-value-and-handle-oom-fix.patch
 
-yup, the code is confused.
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-test_hmm-check-alloc_page_vma-return-value-and-handle-oom-fix.patch
 
->   1165			ret = migrate_vma_setup(&args);
->   1166			if (ret)
->   1167				goto out;
->   1168	
->   1169			pr_debug("Migrating from device mem to sys mem\n");
-> > 1170			ret = dmirror_devmem_fault_alloc_and_copy(&args, dmirror);
->   1171			if (ret) {
->   1172				migrate_vma_finalize(&args);
->   1173				goto out;
->   1174			}
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
-How does this look?
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
+
+------------------------------------------------------
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: lib-test_hmm-check-alloc_page_vma-return-value-and-handle-oom-fix
+Date: Mon Jun  1 05:49:07 PM PDT 2026
+
+fix dmirror_devmem_fault_alloc_and_copy() retval handling
+
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Leon Romanovsky <leon@kernel.org>
+Cc: Qiang Liu <liuqiang@kylinos.cn>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ lib/test_hmm.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
 --- a/lib/test_hmm.c~lib-test_hmm-check-alloc_page_vma-return-value-and-handle-oom-fix
 +++ a/lib/test_hmm.c
@@ -92,4 +89,12 @@ How does this look?
  		}
  
 _
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+lib-test_hmm-check-alloc_page_vma-return-value-and-handle-oom-fix.patch
+mm-switch-deferred-split-shrinker-to-list_lru-fix.patch
+mm-swap-pm-hibernate-atomically-replace-hibernation-pin-checkpatch-fixes.patch
+sparc-add-_mcount-prototype.patch
+drivers-media-v4l2-core-v4l2-vp9c-reduce-inlining.patch
 
