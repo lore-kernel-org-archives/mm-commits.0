@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4CEA93B6C13
-	for <mm-commits@vger.kernel.org>; Tue,  2 Jun 2026 22:24:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7E0203B9DA4
+	for <mm-commits@vger.kernel.org>; Tue,  2 Jun 2026 22:24:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780439052; cv=none; b=NAj40/JZxNFtBqidFUDREV5e02DviS0urHr+YjhsjzGIXT+OrUl/40qd/sArt1U80W5PQQu26LJucCaLQ0bl98cgGGesGtiSNm+BaiS2Ofz4Z0mNic4cGupUsR5vGogOyuG1zZEfMxKRG0irs8oFrCEAPbVChFUlpYXoNByYytA=
+	t=1780439053; cv=none; b=Ojhx1OgkYLRI+Klz8+TmBXb+5J9Bvtch8D8puJAUzu+C/pVtYYK5fQGOsP3vUBFMZ5saTkZdB7fqFve07Bz+D6D6IZDMdAhWlLzyuz5KmD1H3DQgTumU8sJc4WUOxfmD8WL6E9L+J4WdWxfAGmQE/rFqycUAPBB60nw24ovRcmQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780439052; c=relaxed/simple;
-	bh=e0r1gKPgWU+i0QeHfRxYdvVyPteyXIwh6nIGPdFpya4=;
-	h=Date:To:From:Subject:Message-Id; b=GHFmXBk42gTNpYWMVPpKYgD20x6TGFiFjNjfFVKVZNEBFFAlCEOiIdPrHgP22sk1iUjZMxfCDqI4ltxc1aa4C7j1VbZeWbW9p01G1WpSwtkPO8cDsw4lZefCKFS/mowKOeKJhVHSDDGkBWPv18q9cdZ5EGHeiK9pc819mEmLagg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uVnSPp7J; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1780439053; c=relaxed/simple;
+	bh=nJQMu6Ra+RHYwy2HobIZ6Fk+bA9qQiawz1rn8vzNv8o=;
+	h=Date:To:From:Subject:Message-Id; b=idIAuCVid1+X5pFfDWuRDD6fUzgerOWrrqRIfyrUgniOvcQmIJMXFcSzG478H5cXLH3jfKd7Yxfj9CxjT2EhgUxFVDTG0TOBnT/mPcAEajRkDA7TMJBa/Rr76NkUBu0KVU3b3M2/ai/UKWci6gPsUBvle7aLMb38y9M/I2bHl8U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BACnIIm6; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uVnSPp7J"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 21EEE1F00893;
-	Tue,  2 Jun 2026 22:24:11 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BACnIIm6"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4A80D1F00898;
+	Tue,  2 Jun 2026 22:24:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1780439051;
-	bh=eZP+7mzFv+N54qBawTkigQV2TVN6mXYObRd9TyqR4Ig=;
+	d=linux-foundation.org; s=korg; t=1780439052;
+	bh=HX2GwAdrkkImBZp5GRbo9wxTHQKfDMkjgTPfdqmWXg8=;
 	h=Date:To:From:Subject;
-	b=uVnSPp7JJn6CqDdgEf58yWctSFJlIBkMtdjzIME53jBRETuF2wAFJwi7939qQp/Sr
-	 x78IG4vM42g3UhEeAu+fdHGqXuH7KOKAprOcKC5uCxXg1j6PYela8i3nqPgJ1PCO8/
-	 MwNVDXOCPlSiJ9S+/Jx/KAPdyya9g8VRlPMnTIWw=
-Date: Tue, 02 Jun 2026 15:24:10 -0700
+	b=BACnIIm67NZwmxFs4tCd5tavp8O1ibMckEexQqhsfvGGlsUADqKgG8nIF0KF6jvJb
+	 mAWox4DTgYIC8xqTMocygjNgcYOIQYlX1++1FNsM4KbzRTuQqwDNXNUlbIon0+TAiz
+	 4LsLcHc0puyGYS53NuhtOcrVKUHQ2/n7p1OzEnl8=
+Date: Tue, 02 Jun 2026 15:24:11 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,david@kernel.org,liuye@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] tools-mm-page-types-fix-ternary-operator-precedence-in-sigbus-handler.patch removed from -mm tree
-Message-Id: <20260602222411.21EEE1F00893@smtp.kernel.org>
+Subject: [merged mm-stable] tools-mm-page-types-fix-kpageflags-option-argument-in-getopt_long.patch removed from -mm tree
+Message-Id: <20260602222412.4A80D1F00898@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,45 +35,44 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: tools/mm/page-types: fix ternary operator precedence in sigbus handler
+     Subject: tools/mm/page-types: fix kpageflags option argument in getopt_long
 has been removed from the -mm tree.  Its filename was
-     tools-mm-page-types-fix-ternary-operator-precedence-in-sigbus-handler.patch
+     tools-mm-page-types-fix-kpageflags-option-argument-in-getopt_long.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Ye Liu <liuye@kylinos.cn>
-Subject: tools/mm/page-types: fix ternary operator precedence in sigbus handler
-Date: Wed, 13 May 2026 10:21:17 +0800
+Subject: tools/mm/page-types: fix kpageflags option argument in getopt_long
+Date: Wed, 13 May 2026 10:21:18 +0800
 
-The ternary operator (?:) has lower precedence than addition (+), so the
-expression `off + sigbus_addr ?  sigbus_addr - ptr : 0` was parsed as
-`(off + sigbus_addr) ?  (sigbus_addr - ptr) : 0` rather than the intended
-`off + (sigbus_addr ?  sigbus_addr - ptr : 0)`.  Add explicit parentheses
-to ensure the correct evaluation order.
+The --kpageflags option requires an argument to specify the kpageflags
+file path, but has_arg was set to 0 (no_argument) in the long options
+table.  Change it to 1 (required_argument) so getopt_long correctly parses
+the argument.
 
-Link: https://lore.kernel.org/20260513022120.58033-3-ye.liu@linux.dev
+Link: https://lore.kernel.org/20260513022120.58033-4-ye.liu@linux.dev
 Signed-off-by: Ye Liu <liuye@kylinos.cn>
-Acked-by: SeongJae Park <sj@kernel.org>
-Cc: David Hildenbrand (Arm) <david@kernel.org>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Reviewed-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  tools/mm/page-types.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/tools/mm/page-types.c~tools-mm-page-types-fix-ternary-operator-precedence-in-sigbus-handler
+--- a/tools/mm/page-types.c~tools-mm-page-types-fix-kpageflags-option-argument-in-getopt_long
 +++ a/tools/mm/page-types.c
-@@ -1000,7 +1000,7 @@ static void walk_file_range(const char *
- 			fatal("madvise failed: %s", name);
- 
- 		if (sigsetjmp(sigbus_jmp, 1)) {
--			end = off + sigbus_addr ? sigbus_addr - ptr : 0;
-+			end = off + (sigbus_addr ? sigbus_addr - ptr : 0);
- 			fprintf(stderr, "got sigbus at offset %lld: %s\n",
- 					(long long)end, name);
- 			goto got_sigbus;
+@@ -1261,7 +1261,7 @@ static const struct option opts[] = {
+ 	{ "no-summary", 0, NULL, 'N' },
+ 	{ "hwpoison"  , 0, NULL, 'X' },
+ 	{ "unpoison"  , 0, NULL, 'x' },
+-	{ "kpageflags", 0, NULL, 'F' },
++	{ "kpageflags", 1, NULL, 'F' },
+ 	{ "help"      , 0, NULL, 'h' },
+ 	{ NULL        , 0, NULL, 0 }
+ };
 _
 
 Patches currently in -mm which might be from liuye@kylinos.cn are
