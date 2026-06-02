@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 58E823C13E9
-	for <mm-commits@vger.kernel.org>; Tue,  2 Jun 2026 22:26:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 977DC3C4167
+	for <mm-commits@vger.kernel.org>; Tue,  2 Jun 2026 22:26:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780439202; cv=none; b=LHrn3E5gcjqLMemzMukj57xv9CHnjMHhQWLZKigz7BxXMJ7+p1rxA+U5DYYQRD+ezta5R9ilzue3nBO8S7pPFf9zbISqmJZa6NK7YBlRGZe6HUQmN76zEJDLsGBC6X5HLyjCUU60ngWfPgps+spmUhKNuziNrpiieACMQYv6cHU=
+	t=1780439203; cv=none; b=rAKLjYdcKlmVQojujK27ETC22GWG9Sl4xwEvlacwfMOpSxNelJ5ZB7ggmxEvQgwtV49iyyM2byAIF3OwwqvIR6Ym4JYvn6BTJmgJvKZqRtWBCJiLrFLmhZCOH/Nz4LH/Vu5rHc2IR9FAmVB/ONvuZ2WYgwRzOvsTNJGeO/Ht8pw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780439202; c=relaxed/simple;
-	bh=H/FDIcZhmGzDZN5g9A/WltM6K6/BwcFR5aHItKhkeFs=;
-	h=Date:To:From:Subject:Message-Id; b=Q3e7xj50xUOfTQl+fHQCn2YUV1aGZ13c3tJceOuSIcpZ/V1czpLWyuZCER17ongBgrKFQ6oDEXziiB6VXeXxBsAh9lKK4jD+0LJDTD8gBjkgsAjgBi/9ui3VrcHdasBLEKOIGrt+bCrJ1JpmdK2X7rw0iVnTk0IE4roYdsMhO7w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CKGUT9K1; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1780439203; c=relaxed/simple;
+	bh=lwvBXAPMpl5rF3+YdWCGfcnRO0LzxOgy9Z9UpJ4ZSdY=;
+	h=Date:To:From:Subject:Message-Id; b=iIWYdhKVGOQ/pslH7dKOKG1qHk/azz1PILMq/7OCjBlpTX+lz6K0fLR7MpjIL8vNwN9WFTbQT5B6bgzCZmTH4sCBXFfQBhHdyXtSLSD1Ks0u6UjXi9foo0hdHGqm4ji7C0nt2VqmDrKfVdkOyoCUZme1Wxhzkt0lwSCQJkO1VzQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NQEiPJau; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CKGUT9K1"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2DB4D1F00893;
-	Tue,  2 Jun 2026 22:26:41 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NQEiPJau"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6AD991F00898;
+	Tue,  2 Jun 2026 22:26:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1780439201;
-	bh=Rz/ZtfaNoH1cEDDdxIr/KpzzQh+VEJ4pYsMFTqE97Ck=;
+	d=linux-foundation.org; s=korg; t=1780439202;
+	bh=dVDm5GGajrcbdgUtofJDLbHRYos7b6cme1ifMallVs0=;
 	h=Date:To:From:Subject;
-	b=CKGUT9K1o7E7OiNMf89xIA7/9xe87aapjuoYEIQFpG9bY4X1/f7vifEv/u4lwSA0L
-	 PLbnHEj04vaWaVJJV0PGuoCUyLSUHVAgt5AX4NW2v0y2FtdCEam18f0BfwYC4eIGAw
-	 0KInLYIHD9YbVY0VXajeR4jZvj4a76abiM4qENFc=
-Date: Tue, 02 Jun 2026 15:26:40 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,shuah@kernel.org,richard.weiyang@gmail.com,pfalcato@suse.de,paulmck@kernel.org,ljs@kernel.org,liam@infradead.org,jannh@google.com,surenb@google.com,akpm@linux-foundation.org
+	b=NQEiPJauEGy87AWqPoqf+8Vp0WCCtKVzy7MUijv1RbjoclwRkmyyn7CDz/AZzgper
+	 r3Gjdz8vU2zroa0lbUr4kql0fa37Ejfj5Teapoyi7UeV/dOSptDali3B/k1l3NTkIP
+	 5kfrIWnejWqewY19X8RWMdjVBDZqZJPlAhgSYhEc=
+Date: Tue, 02 Jun 2026 15:26:42 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,william.kucharski@linux.dev,shakeel.butt@linux.dev,jack@suse.cz,hannes@cmpxchg.org,david@kernel.org,usama.arif@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-proc-add-proc-pid-smaps-tearing-tests.patch removed from -mm tree
-Message-Id: <20260602222641.2DB4D1F00893@smtp.kernel.org>
+Subject: [merged mm-stable] mm-make-mmap_miss-accounting-symmetric-for-vm_seq_read.patch removed from -mm tree
+Message-Id: <20260602222642.6AD991F00898@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,306 +35,89 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests/proc: add /proc/pid/smaps tearing tests
+     Subject: mm: make mmap_miss accounting symmetric for VM_SEQ_READ
 has been removed from the -mm tree.  Its filename was
-     selftests-proc-add-proc-pid-smaps-tearing-tests.patch
+     mm-make-mmap_miss-accounting-symmetric-for-vm_seq_read.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Suren Baghdasaryan <surenb@google.com>
-Subject: selftests/proc: add /proc/pid/smaps tearing tests
-Date: Sat, 25 Apr 2026 23:27:18 -0700
+From: Usama Arif <usama.arif@linux.dev>
+Subject: mm: make mmap_miss accounting symmetric for VM_SEQ_READ
+Date: Mon, 25 May 2026 07:57:51 -0700
 
-Add tearing tests for /proc/pid/smaps file.  New tests reuse the same
-logic as with maps file but skipping all the data except for the VMA
-addresses, which are the only part relevant for the tearing tests.  Skip
-PROCMAP_QUERY parts of the tests because smaps does not implement that
-ioctl.
+do_sync_mmap_readahead() skips both the mmap_miss increment and the
+MMAP_LOTSAMISS check for VM_SEQ_READ mappings, since sequential access is
+non-speculative and should always read ahead.  The two decrement sites in
+do_async_mmap_readahead() and filemap_map_pages() do not mirror this skip,
+so concurrent faults on a VM_SEQ_READ mapping can still drive
+ra->mmap_miss down to zero through the decrement paths even though nothing
+in the sync path ever increments it.  The counter itself is per-file
+(file->f_ra.mmap_miss), so it can be moved by any VMA mapping the file,
+not just the one currently faulting.
 
-Link: https://lore.kernel.org/20260426062718.1238437-4-surenb@google.com
-Signed-off-by: Suren Baghdasaryan <surenb@google.com>
-Reviewed-by: Liam R. Howlett <liam@infradead.org>
-Cc: Jann Horn <jannh@google.com>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
+Skip the decrement for VM_SEQ_READ in both decrement sites so the counter
+only moves for mappings that also participate in the increment side.  No
+functional change for VM_SEQ_READ users, since the increment-side gate
+already prevents the counter from being consulted on their behalf, but it
+stops a VM_SEQ_READ mapping from biasing the counter for other mappings of
+the same file.
+
+Link: https://lore.kernel.org/20260525145751.2671248-1-usama.arif@linux.dev
+Signed-off-by: Usama Arif <usama.arif@linux.dev>
+Closes: https://lore.kernel.org/all/8edc8cd0-f65c-4456-9b3f-362e744c9a96@linux.dev/
+Reviewed-by: William Kucharski <william.kucharski@linux.dev>
+Reviewed-by: Jan Kara <jack@suse.cz>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: "Paul E . McKenney" <paulmck@kernel.org>
-Cc: Pedro Falcato <pfalcato@suse.de>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Wei Yang <richard.weiyang@gmail.com>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/proc/proc-maps-race.c |  178 +++++++++++-----
- 1 file changed, 133 insertions(+), 45 deletions(-)
+ mm/filemap.c |   14 ++++++++++++--
+ 1 file changed, 12 insertions(+), 2 deletions(-)
 
---- a/tools/testing/selftests/proc/proc-maps-race.c~selftests-proc-add-proc-pid-smaps-tearing-tests
-+++ a/tools/testing/selftests/proc/proc-maps-race.c
-@@ -17,8 +17,8 @@
-  */
- /*
-  * Fork a child that concurrently modifies address space while the main
-- * process is reading /proc/$PID/maps and verifying the results. Address
-- * space modifications include:
-+ * process is reading /proc/$PID/maps and /proc/$PID/smaps, verifying the
-+ * results. Address space modifications include:
-  *     VMA splitting and merging
-  *
-  */
-@@ -73,6 +73,11 @@ enum test_state {
- 	TEST_DONE,
- };
+--- a/mm/filemap.c~mm-make-mmap_miss-accounting-symmetric-for-vm_seq_read
++++ a/mm/filemap.c
+@@ -3434,8 +3434,13 @@ static struct file *do_async_mmap_readah
+ 	 * Don't touch the mmap_miss counter to avoid decreasing it multiple
+ 	 * times for a single folio and break the balance with mmap_miss
+ 	 * increase in do_sync_mmap_readahead().
++	 *
++	 * VM_SEQ_READ mappings skip the mmap_miss increment in
++	 * do_sync_mmap_readahead(), so skip the decrement here as well to
++	 * keep the counter symmetric.
+ 	 */
+-	if (likely(!folio_test_locked(folio))) {
++	if (likely(!folio_test_locked(folio)) &&
++	    !(vmf->vma->vm_flags & VM_SEQ_READ)) {
+ 		mmap_miss = READ_ONCE(ra->mmap_miss);
+ 		if (mmap_miss)
+ 			WRITE_ONCE(ra->mmap_miss, --mmap_miss);
+@@ -3936,10 +3941,15 @@ vm_fault_t filemap_map_pages(struct vm_f
+ 		 * In such situation, read-ahead is only a waste of IO.
+ 		 * Don't decrease mmap_miss in this scenario to make sure
+ 		 * we can stop read-ahead.
++		 *
++		 * VM_SEQ_READ mappings skip the mmap_miss increment in
++		 * do_sync_mmap_readahead(), so skip the decrement here as
++		 * well to keep the counter symmetric.
+ 		 */
+ 		if ((map_ret & VM_FAULT_NOPAGE) &&
+ 		    !(vmf->flags & FAULT_FLAG_TRIED) &&
+-		    !folio_test_workingset(folio)) {
++		    !folio_test_workingset(folio) &&
++		    !(vma->vm_flags & VM_SEQ_READ)) {
+ 			unsigned short mmap_miss;
  
-+enum maps_file {
-+	MAPS,
-+	SMAPS,
-+};
-+
- struct vma_modifier_info;
- 
- FIXTURE(proc_maps_race)
-@@ -83,6 +88,7 @@ FIXTURE(proc_maps_race)
- 	struct line_content last_line;
- 	struct line_content first_line;
- 	unsigned long duration_sec;
-+	enum maps_file maps_file;
- 	int shared_mem_size;
- 	int skip_pages;
- 	int page_size;
-@@ -92,6 +98,19 @@ FIXTURE(proc_maps_race)
- 	pid_t pid;
- };
- 
-+FIXTURE_VARIANT(proc_maps_race)
-+{
-+	const enum maps_file maps_file;
-+};
-+
-+FIXTURE_VARIANT_ADD(proc_maps_race, maps) {
-+	.maps_file = MAPS,
-+};
-+
-+FIXTURE_VARIANT_ADD(proc_maps_race, smaps) {
-+	.maps_file = SMAPS,
-+};
-+
- typedef bool (*vma_modifier_op)(FIXTURE_DATA(proc_maps_race) *self);
- typedef bool (*vma_mod_result_check_op)(struct line_content *mod_last_line,
- 					struct line_content *mod_first_line,
-@@ -222,6 +241,57 @@ static void copy_last_line(struct page_c
- 	copy_line(pos, end, last_line, line_size);
- }
- 
-+static bool copy_first_entry(struct page_content *page, char *first_line,
-+			     size_t line_size)
-+{
-+	char *start_pos = page->data;
-+
-+	while (start_pos < page->data + page->size) {
-+		unsigned long start_addr;
-+		unsigned long end_addr;
-+		char *end_pos;
-+
-+		end_pos = strchr(start_pos, '\n');
-+		if (!end_pos)
-+			break;
-+
-+		if (parse_vma_line(start_pos, end_pos, &start_addr, &end_addr)) {
-+			copy_line(start_pos, end_pos, first_line, line_size);
-+			return true;
-+		}
-+
-+		start_pos = end_pos + 1;
-+	}
-+
-+	return false;
-+}
-+
-+static bool copy_last_entry(struct page_content *page, char *last_line,
-+			    size_t line_size)
-+{
-+	char *end_pos = page->data + page->size - 1;
-+	char *start_pos;
-+
-+	while (end_pos > page->data) {
-+		unsigned long start_addr;
-+		unsigned long end_addr;
-+
-+		/* skip last newline */
-+		start_pos = end_pos - 1;
-+		/* search previous newline */
-+		while (start_pos > page->data && start_pos[-1] != '\n')
-+			start_pos--;
-+		if (parse_vma_line(start_pos, end_pos, &start_addr, &end_addr)) {
-+			copy_line(start_pos, end_pos, last_line, line_size);
-+			return true;
-+		}
-+
-+		end_pos = start_pos - 1;
-+	}
-+
-+	return false;
-+}
-+
- /* Read the last line of the first page and the first line of the second page */
- static bool read_boundary_lines(FIXTURE_DATA(proc_maps_race) *self,
- 				struct line_content *last_line,
-@@ -230,8 +300,16 @@ static bool read_boundary_lines(FIXTURE_
- 	if (!read_two_pages(self))
- 		return false;
- 
--	copy_last_line(&self->page1, last_line->text, LINE_MAX_SIZE);
--	copy_first_line(&self->page2, first_line->text, LINE_MAX_SIZE);
-+	if (self->maps_file == MAPS) {
-+		copy_last_line(&self->page1, last_line->text, LINE_MAX_SIZE);
-+		copy_first_line(&self->page2, first_line->text, LINE_MAX_SIZE);
-+	} else if (self->maps_file == SMAPS) {
-+		if (!copy_last_entry(&self->page1, last_line->text, LINE_MAX_SIZE) ||
-+		    !copy_first_entry(&self->page2, first_line->text, LINE_MAX_SIZE))
-+			return false;
-+	} else {
-+		return false;
-+	}
- 
- 	return sscanf(last_line->text, "%lx-%lx", &last_line->start_addr,
- 		      &last_line->end_addr) == 2 &&
-@@ -497,6 +575,7 @@ FIXTURE_SETUP(proc_maps_race)
- 
- 	self->page_size = (unsigned long)sysconf(_SC_PAGESIZE);
- 	self->verbose = verbose && !strncmp(verbose, "1", 1);
-+	self->maps_file = variant->maps_file;
- 	duration_sec = duration ? atol(duration) : 0;
- 	self->duration_sec = duration_sec ? duration_sec : 5UL;
- 
-@@ -563,7 +642,16 @@ FIXTURE_SETUP(proc_maps_race)
- 		exit(0);
- 	}
- 
--	sprintf(fname, "/proc/%d/maps", self->pid);
-+	switch (self->maps_file) {
-+	case MAPS:
-+		sprintf(fname, "/proc/%d/maps", self->pid);
-+		break;
-+	case SMAPS:
-+		sprintf(fname, "/proc/%d/smaps", self->pid);
-+		break;
-+	default:
-+		ksft_exit_fail();
-+	}
- 	self->maps_fd = open(fname, O_RDONLY);
- 	ASSERT_NE(self->maps_fd, -1);
- 
-@@ -608,7 +696,6 @@ FIXTURE_SETUP(proc_maps_race)
- 	ASSERT_TRUE(mod_info->addr && mod_info->next_addr);
- 
- 	signal_state(mod_info, PARENT_READY);
--
- }
- 
- FIXTURE_TEARDOWN(proc_maps_race)
-@@ -698,20 +785,20 @@ TEST_F(proc_maps_race, test_maps_tearing
- 		last_line_changed = strcmp(new_last_line.text, self->last_line.text) != 0;
- 		first_line_changed = strcmp(new_first_line.text, self->first_line.text) != 0;
- 		ASSERT_EQ(last_line_changed, first_line_changed);
--
--		/* Check if PROCMAP_QUERY ioclt() finds the right VMA */
--		ASSERT_TRUE(query_addr_at(self->maps_fd, mod_info->addr + self->page_size,
--					  &vma_start, &vma_end));
--		/*
--		 * The vma at the split address can be either the same as
--		 * original one (if read before the split) or the same as the
--		 * first line in the second page (if read after the split).
--		 */
--		ASSERT_TRUE((vma_start == self->last_line.start_addr &&
--			     vma_end == self->last_line.end_addr) ||
--			    (vma_start == split_first_line.start_addr &&
--			     vma_end == split_first_line.end_addr));
--
-+		if (self->maps_file == MAPS) {
-+			/* Check if PROCMAP_QUERY ioclt() finds the right VMA */
-+			ASSERT_TRUE(query_addr_at(self->maps_fd, mod_info->addr + self->page_size,
-+						  &vma_start, &vma_end));
-+			/*
-+			 * The vma at the split address can be either the same as
-+			 * original one (if read before the split) or the same as the
-+			 * first line in the second page (if read after the split).
-+			 */
-+			ASSERT_TRUE((vma_start == self->last_line.start_addr &&
-+				     vma_end == self->last_line.end_addr) ||
-+				    (vma_start == split_first_line.start_addr &&
-+				     vma_end == split_first_line.end_addr));
-+		}
- 		clock_gettime(CLOCK_MONOTONIC_COARSE, &end_ts);
- 		end_test_iteration(&end_ts, self->verbose);
- 	} while (end_ts.tv_sec - start_ts.tv_sec < self->duration_sec);
-@@ -781,17 +868,18 @@ TEST_F(proc_maps_race, test_maps_tearing
- 					strcmp(new_first_line.text, restored_first_line.text),
- 					"Expand result invalid", self));
- 		}
--
--		/* Check if PROCMAP_QUERY ioclt() finds the right VMA */
--		ASSERT_TRUE(query_addr_at(self->maps_fd, mod_info->addr, &vma_start, &vma_end));
--		/*
--		 * The vma should stay at the same address and have either the
--		 * original size of 3 pages or 1 page if read after shrinking.
--		 */
--		ASSERT_TRUE(vma_start == self->last_line.start_addr &&
--			    (vma_end - vma_start == self->page_size * 3 ||
--			     vma_end - vma_start == self->page_size));
--
-+		if (self->maps_file == MAPS) {
-+			/* Check if PROCMAP_QUERY ioclt() finds the right VMA */
-+			ASSERT_TRUE(query_addr_at(self->maps_fd, mod_info->addr,
-+						  &vma_start, &vma_end));
-+			/*
-+			 * The vma should stay at the same address and have either the
-+			 * original size of 3 pages or 1 page if read after shrinking.
-+			 */
-+			ASSERT_TRUE(vma_start == self->last_line.start_addr &&
-+				    (vma_end - vma_start == self->page_size * 3 ||
-+				     vma_end - vma_start == self->page_size));
-+		}
- 		clock_gettime(CLOCK_MONOTONIC_COARSE, &end_ts);
- 		end_test_iteration(&end_ts, self->verbose);
- 	} while (end_ts.tv_sec - start_ts.tv_sec < self->duration_sec);
-@@ -861,20 +949,20 @@ TEST_F(proc_maps_race, test_maps_tearing
- 					strcmp(new_first_line.text, restored_first_line.text),
- 					"Remap restore result invalid", self));
- 		}
--
--		/* Check if PROCMAP_QUERY ioclt() finds the right VMA */
--		ASSERT_TRUE(query_addr_at(self->maps_fd, mod_info->addr + self->page_size,
--					  &vma_start, &vma_end));
--		/*
--		 * The vma should either stay at the same address and have the
--		 * original size of 3 pages or we should find the remapped vma
--		 * at the remap destination address with size of 1 page.
--		 */
--		ASSERT_TRUE((vma_start == self->last_line.start_addr &&
--			     vma_end - vma_start == self->page_size * 3) ||
--			    (vma_start == self->last_line.start_addr + self->page_size &&
--			     vma_end - vma_start == self->page_size));
--
-+		if (self->maps_file == MAPS) {
-+			/* Check if PROCMAP_QUERY ioclt() finds the right VMA */
-+			ASSERT_TRUE(query_addr_at(self->maps_fd, mod_info->addr + self->page_size,
-+						  &vma_start, &vma_end));
-+			/*
-+			 * The vma should either stay at the same address and have the
-+			 * original size of 3 pages or we should find the remapped vma
-+			 * at the remap destination address with size of 1 page.
-+			 */
-+			ASSERT_TRUE((vma_start == self->last_line.start_addr &&
-+				     vma_end - vma_start == self->page_size * 3) ||
-+				    (vma_start == self->last_line.start_addr + self->page_size &&
-+				     vma_end - vma_start == self->page_size));
-+		}
- 		clock_gettime(CLOCK_MONOTONIC_COARSE, &end_ts);
- 		end_test_iteration(&end_ts, self->verbose);
- 	} while (end_ts.tv_sec - start_ts.tv_sec < self->duration_sec);
+ 			mmap_miss = READ_ONCE(file->f_ra.mmap_miss);
 _
 
-Patches currently in -mm which might be from surenb@google.com are
+Patches currently in -mm which might be from usama.arif@linux.dev are
 
+mm-mincore-handle-non-swap-entries-before-config_swap-guard.patch
+mm-bypass-mmap_miss-heuristic-for-vm_exec-readahead.patch
+mm-use-mapping_max_folio_order-for-force_thp_readahead-order.patch
 
