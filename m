@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2BB443932FA
-	for <mm-commits@vger.kernel.org>; Wed,  3 Jun 2026 23:26:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 820044DB567
+	for <mm-commits@vger.kernel.org>; Wed,  3 Jun 2026 23:26:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780529184; cv=none; b=bhpGUQG7HTS2SFVRu1SuhS0j+nOk6+NbCvQnXbzgT3w7H7lpObyusJHO3Avk2Gq37h2nMCxHj70yhKmq98TPhEXWSuc18YuiHhrs4o6BpwRUp78P61+ZgTuf05mdtwq0mqUcXGPP6ZlXAd8A7QzivtiM498E0AdsOZTyGMlWC4U=
+	t=1780529185; cv=none; b=kS+xFXD7t99FVzAZadZYy+8VzTEz8UyNEjnx8xjEd7bqNHfXkfxChr2qie8J45EkkjkN1WklZaqeZDygcUAzni7BbqDqdf86qVUJ5zlelaH9+1JrKxWwr0D5WstwstEZCjTnTSL2uQq5a265//sCaUHblxFPS1dhC6x+R8sGN60=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780529184; c=relaxed/simple;
-	bh=AokCZUPnucU/Ii3/5XIu6GVPxnB4+GY7tXZe31HNaWI=;
-	h=Date:To:From:Subject:Message-Id; b=h8T2yQwx0HGGyX2BnCYlYCyJHnpHxTd30vze1WPd5s1eOeBuV9jDyLT3vNCeOz5PiwR+XKel3nmVbw/FhhDIxKnIsBgAccyRbiExkZNMiLGfwEKTHdbxwaTPPnzD8L2Dk3fYlZcKS85xK/fdSqwU/be4YIXiE4o/aVRLMkjgl+o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ShawkhHr; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1780529185; c=relaxed/simple;
+	bh=CSpGW+v2L91Yay3/WHfSYwHzhFIU/YHZkbNzjeKKRHQ=;
+	h=Date:To:From:Subject:Message-Id; b=qiMEiChe3aNu5ta9rR5Y3xYXAdHP5EAYKyEfOSpb3zoOX+oHZga15sCaboCWk/wil5yn50Zfj00UCJBPG0UBo+cox05Dz2g8OJD14DBxk6hhL62N/lFz2mjfhiVq/k0zc/MlRiDpPhU6tgObjVK0Vv3f7VmX/KPQuvzbcWd7FwI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HeXjfqLa; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ShawkhHr"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DDD601F00898;
-	Wed,  3 Jun 2026 23:26:22 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HeXjfqLa"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 280551F00893;
+	Wed,  3 Jun 2026 23:26:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1780529183;
-	bh=7IeZzmxJ3F+nWheH3j3kpn8EDlOBnP7Olo5x9frOAJA=;
+	d=linux-foundation.org; s=korg; t=1780529184;
+	bh=1PLqoLJ3yzcd8Srxo9l1n5XmmcfyudLsUFSd96u7tS4=;
 	h=Date:To:From:Subject;
-	b=ShawkhHrJ6fzhwrMIhE2HUSIEDAcwiKyeaw9my1BAvLibx8r1Bwr+CMcCCXKlhRZ1
-	 j14YTnNLQTZY0Gts49I+NoKqKKOMUfIhlFSmhc+FfaW2X6AQ/MM5gE0uN8RS5dAUJL
-	 wpLhS1slO6xu8sy8/GQlSA4N8fZcHME8+m18O9Ug=
-Date: Wed, 03 Jun 2026 16:26:22 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,songmuchun@bytedance.com,rppt@kernel.org,muchun.song@linux.dev,minchan@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,jhubbard@nvidia.com,gregkh@linuxfoundation.org,digetx@gmail.com,david@kernel.org,chengkaitao@kylinos.cn,akpm@linux-foundation.org
+	b=HeXjfqLav5Y77eAWqLUgMy+GMcU9t9iEUvvIXIKOdra0V7N9LbxBmXZnHB6h1ZjTV
+	 aKKD21mA1xFd523vk9x903fLSv0beDu9PPS7x4FuSTlDYoC5KLxx0EsDxMgYQBK6k1
+	 XMc6aiz9VeU6+XrPOUquRSZ4esn3OS7af1uCSf4U=
+Date: Wed, 03 Jun 2026 16:26:23 -0700
+To: mm-commits@vger.kernel.org,yang.yang29@zte.com.cn,xu.xin16@zte.com.cn,linux@weissschuh.net,fan.yu9@zte.com.cn,corbet@lwn.net,wang.yaxin@zte.com.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-cma_sysfs-skip-inactive-cma-areas-in-sysfs.patch removed from -mm tree
-Message-Id: <20260603232622.DDD601F00898@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] tools-headers-uapi-sync-linux-taskstatsh-for-procacctc.patch removed from -mm tree
+Message-Id: <20260603232624.280551F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,99 +35,194 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/cma_sysfs: skip inactive CMA areas in sysfs
+     Subject: tools headers UAPI: sync linux/taskstats.h for procacct.c
 has been removed from the -mm tree.  Its filename was
-     mm-cma_sysfs-skip-inactive-cma-areas-in-sysfs.patch
+     tools-headers-uapi-sync-linux-taskstatsh-for-procacctc.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Kaitao Cheng <chengkaitao@kylinos.cn>
-Subject: mm/cma_sysfs: skip inactive CMA areas in sysfs
-Date: Fri, 22 May 2026 21:14:34 +0800
+From: Wang Yaxin <wang.yaxin@zte.com.cn>
+Subject: tools headers UAPI: sync linux/taskstats.h for procacct.c
+Date: Wed, 27 May 2026 21:35:58 +0800 (CST)
 
-cma_activate_area() can fail after a CMA area has already been added to
-cma_areas[].  In that case the area is left in the global array, but it
-does not reach the point where CMA_ACTIVATED is set.
+After commit 9b93f7e32774 ("tools/getdelays: use the static UAPI headers
+from tools/include/uapi"), the Makefile was changed to use
+-I../include/uapi/ instead of -I../../usr/include to ensure tools always
+use the up-to-date UAPI headers.
 
-cma_sysfs_init() currently walks all cma_area_count entries and creates
-sysfs files for every area, including ones that failed activation.  These
-areas are not usable CMA areas and should not be exposed to userspace as
-valid CMA regions.
+However, only linux/taskstats.h was added to tools/include/uapi/ in commit
+e5bbb35a07b3 ("tools headers UAPI: sync linux/taskstats.h"), but
+linux/acct.h was missing.
 
-If such an inactive area is exposed, userspace sees a CMA directory whose
-read-only accounting files report zeros.  total_pages and available_pages
-report zero because the failed activation path clears cma->count and
-cma->available_count, while the allocation and release counters also stay
-at zero because the area cannot service CMA allocations.  This makes the
-failed area look like a valid but empty CMA region and can mislead tests,
-monitoring, and diagnostics.
+This causes procacct.c to fail to compile with:
 
-Skip CMA areas that did not reach CMA_ACTIVATED when creating the sysfs
-objects.  Since inactive entries can now be skipped, make the error unwind
-tolerate entries that never had cma_kobj initialized.
+procacct.c:234:37: error: 'AGROUP' undeclared (first use in this function)
 
-Link: https://lore.kernel.org/20260524140420.61864-1-kaitao.cheng@linux.dev
-Link: https://lore.kernel.org/20260522131434.78532-1-kaitao.cheng@linux.dev
-Fixes: 43ca106fa8ec ("mm: cma: support sysfs")
-Signed-off-by: Kaitao Cheng <chengkaitao@kylinos.cn>
-Reported-by: David Hildenbrand (Arm) <david@kernel.org>
-Suggested-by: David Hildenbrand (Arm) <david@kernel.org>
-Suggested-by: Muchun Song <songmuchun@bytedance.com>
-Reported-by: Muchun Song <songmuchun@bytedance.com>
-Closes: https://lore.kernel.org/linux-mm/55481a8b-dcfc-4bef-ba59-aa0b43dca88b@kernel.org/
-Acked-by: Muchun Song <muchun.song@linux.dev>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Dmitry Osipenko <digetx@gmail.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
+gcc -I../include/uapi/    getdelays.c   -o getdelays
+gcc -I../include/uapi/    procacct.c   -o procacct
+procacct.c: In function `print_procacct':
+procacct.c:234:37: error: `AGROUP' undeclared (first use in this function)
+did you mean `NOGROUP'?
+  234 |  , t->version >= 12 ? (t->ac_flag & AGROUP ? 'P' : 'T') : '?'
+      |                                     ^~~~~~
+      |                                     NOGROUP
+procacct.c:234:37: note: each undeclared ident
+
+because procacct.c uses the AGROUP macro defined in linux/acct.h.
+
+Add the missing linux/acct.h to complete the static UAPI header set.
+
+Link: https://lore.kernel.org/20260527213558929EhiHHy9EDTMjmg3uuDOMi@zte.com.cn
+Fixes: 9b93f7e32774 ("tools/getdelays: use the static UAPI headers from tools/include/uapi")
+Signed-off-by: Wang Yaxin <wang.yaxin@zte.com.cn>
+Reviewed-by: Thomas Weißschuh <linux@weissschuh.net>
+Cc: Fan Yu <fan.yu9@zte.com.cn>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: xu xin <xu.xin16@zte.com.cn>
+Cc: Yang Yang <yang.yang29@zte.com.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/cma_sysfs.c |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ tools/include/uapi/linux/acct.h |  128 ++++++++++++++++++++++++++++++
+ 1 file changed, 128 insertions(+)
 
---- a/mm/cma_sysfs.c~mm-cma_sysfs-skip-inactive-cma-areas-in-sysfs
-+++ a/mm/cma_sysfs.c
-@@ -117,13 +117,16 @@ static int __init cma_sysfs_init(void)
- 		return -ENOMEM;
- 
- 	for (i = 0; i < cma_area_count; i++) {
-+		cma = &cma_areas[i];
-+		if (!test_bit(CMA_ACTIVATED, &cma->flags))
-+			continue;
+diff --git a/tools/include/uapi/linux/acct.h a/tools/include/uapi/linux/acct.h
+new file mode 100644
+--- /dev/null
++++ a/tools/include/uapi/linux/acct.h
+@@ -0,0 +1,128 @@
++/* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
++/*
++ *  BSD Process Accounting for Linux - Definitions
++ *
++ *  Author: Marco van Wieringen (mvw@planets.elm.net)
++ *
++ *  This header file contains the definitions needed to implement
++ *  BSD-style process accounting. The kernel accounting code and all
++ *  user-level programs that try to do something useful with the
++ *  process accounting log must include this file.
++ *
++ *  Copyright (C) 1995 - 1997 Marco van Wieringen - ELM Consultancy B.V.
++ *
++ */
 +
- 		cma_kobj = kzalloc_obj(*cma_kobj);
- 		if (!cma_kobj) {
- 			err = -ENOMEM;
- 			goto out;
- 		}
- 
--		cma = &cma_areas[i];
- 		cma->cma_kobj = cma_kobj;
- 		cma_kobj->cma = cma;
- 		err = kobject_init_and_add(&cma_kobj->kobj, &cma_ktype,
-@@ -138,7 +141,8 @@ static int __init cma_sysfs_init(void)
- out:
- 	while (--i >= 0) {
- 		cma = &cma_areas[i];
--		kobject_put(&cma->cma_kobj->kobj);
-+		if (cma->cma_kobj)
-+			kobject_put(&cma->cma_kobj->kobj);
- 	}
- 	kobject_put(cma_kobj_root);
- 
++#ifndef _UAPI_LINUX_ACCT_H
++#define _UAPI_LINUX_ACCT_H
++
++#include <linux/types.h>
++
++#include <asm/param.h>
++#include <asm/byteorder.h>
++
++/*
++ *  comp_t is a 16-bit "floating" point number with a 3-bit base 8
++ *  exponent and a 13-bit fraction.
++ *  comp2_t is 24-bit with 5-bit base 2 exponent and 20 bit fraction
++ *  (leading 1 not stored).
++ *  See linux/kernel/acct.c for the specific encoding systems used.
++ */
++
++typedef __u16	comp_t;
++typedef __u32	comp2_t;
++
++/*
++ *   accounting file record
++ *
++ *   This structure contains all of the information written out to the
++ *   process accounting file whenever a process exits.
++ */
++
++#define ACCT_COMM	16
++
++struct acct
++{
++	char		ac_flag;		/* Flags */
++	char		ac_version;		/* Always set to ACCT_VERSION */
++	/* for binary compatibility back until 2.0 */
++	__u16		ac_uid16;		/* LSB of Real User ID */
++	__u16		ac_gid16;		/* LSB of Real Group ID */
++	__u16		ac_tty;			/* Control Terminal */
++	/* __u32 range means times from 1970 to 2106 */
++	__u32		ac_btime;		/* Process Creation Time */
++	comp_t		ac_utime;		/* User Time */
++	comp_t		ac_stime;		/* System Time */
++	comp_t		ac_etime;		/* Elapsed Time */
++	comp_t		ac_mem;			/* Average Memory Usage */
++	comp_t		ac_io;			/* Chars Transferred */
++	comp_t		ac_rw;			/* Blocks Read or Written */
++	comp_t		ac_minflt;		/* Minor Pagefaults */
++	comp_t		ac_majflt;		/* Major Pagefaults */
++	comp_t		ac_swaps;		/* Number of Swaps */
++/* m68k had no padding here. */
++#if !defined(CONFIG_M68K) || !defined(__KERNEL__)
++	__u16		ac_ahz;			/* AHZ */
++#endif
++	__u32		ac_exitcode;		/* Exitcode */
++	char		ac_comm[ACCT_COMM + 1];	/* Command Name */
++	__u8		ac_etime_hi;		/* Elapsed Time MSB */
++	__u16		ac_etime_lo;		/* Elapsed Time LSB */
++	__u32		ac_uid;			/* Real User ID */
++	__u32		ac_gid;			/* Real Group ID */
++};
++
++struct acct_v3
++{
++	char		ac_flag;		/* Flags */
++	char		ac_version;		/* Always set to ACCT_VERSION */
++	__u16		ac_tty;			/* Control Terminal */
++	__u32		ac_exitcode;		/* Exitcode */
++	__u32		ac_uid;			/* Real User ID */
++	__u32		ac_gid;			/* Real Group ID */
++	__u32		ac_pid;			/* Process ID */
++	__u32		ac_ppid;		/* Parent Process ID */
++	/* __u32 range means times from 1970 to 2106 */
++	__u32		ac_btime;		/* Process Creation Time */
++#ifdef __KERNEL__
++	__u32		ac_etime;		/* Elapsed Time */
++#else
++	float		ac_etime;		/* Elapsed Time */
++#endif
++	comp_t		ac_utime;		/* User Time */
++	comp_t		ac_stime;		/* System Time */
++	comp_t		ac_mem;			/* Average Memory Usage */
++	comp_t		ac_io;			/* Chars Transferred */
++	comp_t		ac_rw;			/* Blocks Read or Written */
++	comp_t		ac_minflt;		/* Minor Pagefaults */
++	comp_t		ac_majflt;		/* Major Pagefaults */
++	comp_t		ac_swaps;		/* Number of Swaps */
++	char		ac_comm[ACCT_COMM];	/* Command Name */
++};
++
++/*
++ *  accounting flags
++ */
++				/* bit set when the process/task ... */
++#define AFORK		0x01	/* ... executed fork, but did not exec */
++#define ASU		0x02	/* ... used super-user privileges */
++#define ACOMPAT		0x04	/* ... used compatibility mode (VAX only not used) */
++#define ACORE		0x08	/* ... dumped core */
++#define AXSIG		0x10	/* ... was killed by a signal */
++#define AGROUP		0x20	/* ... was the last task of the process (task group) */
++
++#if defined(__BYTE_ORDER) ? __BYTE_ORDER == __BIG_ENDIAN : defined(__BIG_ENDIAN)
++#define ACCT_BYTEORDER	0x80	/* accounting file is big endian */
++#elif defined(__BYTE_ORDER) ? __BYTE_ORDER == __LITTLE_ENDIAN : defined(__LITTLE_ENDIAN)
++#define ACCT_BYTEORDER	0x00	/* accounting file is little endian */
++#else
++#error unspecified endianness
++#endif
++
++#ifndef __KERNEL__
++#define ACCT_VERSION	2
++#define AHZ		(HZ)
++#endif	/* __KERNEL */
++
++
++#endif /* _UAPI_LINUX_ACCT_H */
 _
 
-Patches currently in -mm which might be from chengkaitao@kylinos.cn are
+Patches currently in -mm which might be from wang.yaxin@zte.com.cn are
 
-mm-page_isolation-avoid-unsafe-folio-reads-while-scanning-compound-pages.patch
 
