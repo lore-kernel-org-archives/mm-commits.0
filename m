@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4B22B4DC55E;
-	Wed,  3 Jun 2026 23:26:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9C1B14DC551;
+	Wed,  3 Jun 2026 23:26:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780529194; cv=none; b=ud1yPqjDSGsjfFwHVUtyKzMf/YTmSmzu2b/v79pijnXo+Cf+/KilsVAThJ5NC3JKijek6RyU8zazapvdCVv5L6XTreR5cdmNLdmWhHePjnKG+MQhnf6mC5LDPaQXjFc/orrrQn7H48kTy1xXo/V97FiNhaG1bOM5Ddyq4uIlf44=
+	t=1780529195; cv=none; b=umJHEz2i2om9CQpQ/IaUnb046MzQcVAzD5hQllVPGfEUpNS63RDjPhn23Gqa8Rii/MlZzEU5iyilY8ZA/NVezbUZ5JkBPtpqxDfJ8AoUyNSzymUohr+swLs61q9N9mAxc4Es9YAhAllp5tEmtL5Ufl4vdePU/4gLvvMxfP+V4Wk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780529194; c=relaxed/simple;
-	bh=bbacSH0Ez3/OlpVImkJ5pRQthvKXQek7eopuTmPtVpc=;
-	h=Date:To:From:Subject:Message-Id; b=m0L1BEBK4u2MDOtkt4DV/GgnK96X3QFFBxWnFRqB6vuDVAKq64hth5YYKM5grWuHkXsfSXtsB/thEMMW4DNTOiijc+aX4r3Pqk1D6mLTtyRbIDafn3RSlMg5P03/+JIjs/ZQEYYpwOPJTZiMvkXEOwqB92ffo7JXi/F6Du6TEsc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=12ziQdX/; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1780529195; c=relaxed/simple;
+	bh=9RMrajPBRgMjN5Ny4+hK0lvwl7xY3jyaIHsa2Dv9/UU=;
+	h=Date:To:From:Subject:Message-Id; b=M7YlBCUn1WGYuSdzEgvnDtOCm+52MrePsOGlwGmGBgdU49NKqWfdScK0aG1O45rav5+n+URe903oimEZqMlFEaC5a9sYTls4FtqLMoA3iQQbKDS74yyWCgMQCWjvcxxJWyaGIAAGrX/1gazFVB6c3cRVWtN7xzODN4A/GadXGlk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CpX3ucDy; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="12ziQdX/"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DC7221F00893;
-	Wed,  3 Jun 2026 23:26:32 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CpX3ucDy"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3CCCA1F00898;
+	Wed,  3 Jun 2026 23:26:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1780529193;
-	bh=0R94EdS0pgi8LRX1pY3x0BmVPY7f2OIJ7TF7fpnjQ3Y=;
+	d=linux-foundation.org; s=korg; t=1780529194;
+	bh=pr8BqlPbv62/bT+dYsH4Zg/A66Ca3ZwPzLMvc4a36O4=;
 	h=Date:To:From:Subject;
-	b=12ziQdX/oazIX3QTJlI89xZb2htaiw9adIbnqwpBxFnkT4pFzBYhKXNYwOarGCQxb
-	 jj3x6EzB9NyZRwPQqlo1lnSshpodN6VFetAaO2u0aMOghVPlISQRyWS/so3EcUbOSI
-	 hsRkJBJdITYpFfaPU8St8X+4MdeRwF4f3m6jdFMM=
-Date: Wed, 03 Jun 2026 16:26:32 -0700
-To: mm-commits@vger.kernel.org,will@kernel.org,stable@vger.kernel.org,david@kernel.org,catalin.marinas@arm.com,apopple@nvidia.com,akpm@linux-foundation.org
+	b=CpX3ucDyH4MaHw/eb5XSdfxsDFipiQT1omV/DwijgbywDuBj0oUe0YwcMvls87eME
+	 oq7ZWw2N5KUx33cnRB7MQFv37N+9p6RiLMGlZp/w9O+KCtlAnWhobDDQrYYe1RtXzA
+	 ogV3bWPAZlVe6vm0EVSIi+I8+UY4bzNtBQczxnbQ=
+Date: Wed, 03 Jun 2026 16:26:33 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,stable@vger.kernel.org,shakeel.butt@linux.dev,riel@surriel.com,pfalcato@suse.de,ljs@kernel.org,liam@infradead.org,kasong@tencent.com,jannh@google.com,hannes@cmpxchg.org,chrisl@kernel.org,baoquan.he@linux.dev,usama.arif@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] arm64-mm-call-pagetable-dtor-when-freeing-hot-removed-page-tables.patch removed from -mm tree
-Message-Id: <20260603232632.DC7221F00893@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-mincore-handle-non-swap-entries-before-config_swap-guard.patch removed from -mm tree
+Message-Id: <20260603232634.3CCCA1F00898@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,76 +35,80 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: arm64: mm: call pagetable dtor when freeing hot-removed page tables
+     Subject: mm/mincore: handle non-swap entries before !CONFIG_SWAP guard
 has been removed from the -mm tree.  Its filename was
-     arm64-mm-call-pagetable-dtor-when-freeing-hot-removed-page-tables.patch
+     mm-mincore-handle-non-swap-entries-before-config_swap-guard.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Alistair Popple <apopple@nvidia.com>
-Subject: arm64: mm: call pagetable dtor when freeing hot-removed page tables
-Date: Thu, 21 May 2026 13:27:30 +1000
+From: Usama Arif <usama.arif@linux.dev>
+Subject: mm/mincore: handle non-swap entries before !CONFIG_SWAP guard
+Date: Tue, 2 Jun 2026 10:22:47 -0700
 
-Since 5e8eb9aeeda3 ("arm64: mm: always call PTE/PMD ctor in
-__create_pgd_mapping()") page-table allocation on ARM64 always calls
-pagetable_{pte,pmd,pud,p4d}_ctor().  This sets the page_type to
-PGTY_table, increments NR_PAGETABLE and possible allocates a PTL.  However
-the matching pagetable_dtor() calls were never added.
+mincore_swap() also fields migration/hwpoison entries (and shmem
+swapin-error entries), which can exist on !CONFIG_SWAP builds when
+CONFIG_MIGRATION or CONFIG_MEMORY_FAILURE is enabled.  The
+!IS_ENABLED(CONFIG_SWAP) guard ran before the non-swap-entry early return,
+so mincore_pte_range() can spuriously WARN and report these pages
+nonresident on !CONFIG_SWAP kernels.
 
-With DEBUG_VM enabled on kernel versions prior to v6.17 without
-2dfcd1608f3a9 ("mm/page_alloc: let page freeing clear any set page type")
-this leads to the following warning when freeing these pages due to
-page->page_type sharing page->_mapcount:
+Move the guard below the non-swap-entry check so only true swap entries
+trip the WARN, and migration/hwpoison entries take the existing "uptodate
+/ non-shmem" path.
 
-  BUG: Bad page state in process ... pfn:284fbb
-  page: refcount:0 mapcount:0 mapping:0000000000000000 index:0x0 pfn:0x284fbb
-  flags: 0x17fffc000000000(node=0|zone=2|lastcpupid=0x1ffff)
-  page_type: f2(table)
-  page dumped because: nonzero mapcount
-  Call trace:
-   bad_page+0x13c/0x160
-   __free_frozen_pages+0x6cc/0x860
-   ___free_pages+0xf4/0x180
-   free_pages+0x54/0x80
-   free_hotplug_page_range.part.0+0x58/0x90
-   free_empty_tables+0x438/0x500
-   __remove_pgd_mapping.constprop.0+0x60/0xa8
-   arch_remove_memory+0x48/0x80
-   try_remove_memory+0x158/0x1d8
-   offline_and_remove_memory+0x138/0x180
-
-It can also lead to leaking the ptl allocation if ALLOC_SPLIT_PTLOCKS is
-defined and incorrect NR_PAGETABLE stats.  Fix this by calling
-pagetable_dtor() in free_hotplug_pgtable_page() prior to freeing the page
-to undo the effects of calling pagetable_*_ctor().
-
-Link: https://lore.kernel.org/20260521032730.2104017-1-apopple@nvidia.com
-Fixes: 5e8eb9aeeda3 ("arm64: mm: always call PTE/PMD ctor in __create_pgd_mapping()")
-Signed-off-by: Alistair Popple <apopple@nvidia.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Will Deacon <will@kernel.org>
+Link: https://lore.kernel.org/20260602172247.279421-1-usama.arif@linux.dev
+Fixes: 1f2052755c15 ("mm/mincore: use a helper for checking the swap cache")
+Signed-off-by: Usama Arif <usama.arif@linux.dev>
+Reviewed-by: Pedro Falcato <pfalcato@suse.de>
+Reviewed-by: Kairui Song <kasong@tencent.com>
+Reviewed-by: Lorenzo Stoakes <ljs@kernel.org>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Baoquan He <baoquan.he@linux.dev>
+Cc: Chris Li <chrisl@kernel.org>
+Cc: Jann Horn <jannh@google.com>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Vlastimil Babka <vbabka@kernel.org>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/mm/mmu.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/mincore.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
---- a/arch/arm64/mm/mmu.c~arm64-mm-call-pagetable-dtor-when-freeing-hot-removed-page-tables
-+++ a/arch/arm64/mm/mmu.c
-@@ -1441,6 +1441,7 @@ static void free_hotplug_page_range(stru
+--- a/mm/mincore.c~mm-mincore-handle-non-swap-entries-before-config_swap-guard
++++ a/mm/mincore.c
+@@ -64,11 +64,6 @@ static unsigned char mincore_swap(swp_en
+ 	struct folio *folio = NULL;
+ 	unsigned char present = 0;
  
- static void free_hotplug_pgtable_page(struct page *page)
- {
-+	pagetable_dtor(page_ptdesc(page));
- 	free_hotplug_page_range(page, PAGE_SIZE, NULL);
- }
+-	if (!IS_ENABLED(CONFIG_SWAP)) {
+-		WARN_ON(1);
+-		return 0;
+-	}
+-
+ 	/*
+ 	 * Shmem mapping may contain swapin error entries, which are
+ 	 * absent. Page table may contain migration or hwpoison
+@@ -77,6 +72,11 @@ static unsigned char mincore_swap(swp_en
+ 	if (!softleaf_is_swap(entry))
+ 		return !shmem;
  
++	if (!IS_ENABLED(CONFIG_SWAP)) {
++		WARN_ON(1);
++		return 0;
++	}
++
+ 	/*
+ 	 * Shmem mapping lookup is lockless, so we need to grab the swap
+ 	 * device. mincore page table walk locks the PTL, and the swap
 _
 
-Patches currently in -mm which might be from apopple@nvidia.com are
+Patches currently in -mm which might be from usama.arif@linux.dev are
 
+mm-bypass-mmap_miss-heuristic-for-vm_exec-readahead.patch
+mm-use-mapping_max_folio_order-for-force_thp_readahead-order.patch
 
