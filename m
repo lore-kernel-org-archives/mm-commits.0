@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 820044DB567
-	for <mm-commits@vger.kernel.org>; Wed,  3 Jun 2026 23:26:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 743503932FA
+	for <mm-commits@vger.kernel.org>; Wed,  3 Jun 2026 23:26:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780529185; cv=none; b=kS+xFXD7t99FVzAZadZYy+8VzTEz8UyNEjnx8xjEd7bqNHfXkfxChr2qie8J45EkkjkN1WklZaqeZDygcUAzni7BbqDqdf86qVUJ5zlelaH9+1JrKxWwr0D5WstwstEZCjTnTSL2uQq5a265//sCaUHblxFPS1dhC6x+R8sGN60=
+	t=1780529186; cv=none; b=HGGfJfqvQGum5Y24ICd1dBmkizYrIwuLKo+9FfEVDPq/NwyjzlGScpKpWpmLnUi8zKAZR35d/tWoLwby80NRs6y+3O0rjBXbnx2pj8PeViE03a+Ru5ubwmHIhXpVRv+700n+oc28iQBcjzdxX2jwIvL6gGzTbMJilLlufGZ5Ip8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780529185; c=relaxed/simple;
-	bh=CSpGW+v2L91Yay3/WHfSYwHzhFIU/YHZkbNzjeKKRHQ=;
-	h=Date:To:From:Subject:Message-Id; b=qiMEiChe3aNu5ta9rR5Y3xYXAdHP5EAYKyEfOSpb3zoOX+oHZga15sCaboCWk/wil5yn50Zfj00UCJBPG0UBo+cox05Dz2g8OJD14DBxk6hhL62N/lFz2mjfhiVq/k0zc/MlRiDpPhU6tgObjVK0Vv3f7VmX/KPQuvzbcWd7FwI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HeXjfqLa; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1780529186; c=relaxed/simple;
+	bh=+/Q10ybIky3cc8KVuwm4x32BX0oC1uRnmL4jFGAgX3s=;
+	h=Date:To:From:Subject:Message-Id; b=KurZeVChOYt9EYM2MBnplNXaxtvSAtawDYFOn+hzqLHOK3eF1rPU689VsSjxIReXeNHVsT7B8RORIgXANtKxVQPwgKio2j94+Jto1i1uMybl8217ir/0wyQVqaTKEEl5b/4vtNqdI5M4Cb40EDB/4EKXbkinFrs3foWgF4z11aA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Wv9Bvs5m; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HeXjfqLa"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 280551F00893;
-	Wed,  3 Jun 2026 23:26:24 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Wv9Bvs5m"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4809E1F00898;
+	Wed,  3 Jun 2026 23:26:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1780529184;
-	bh=1PLqoLJ3yzcd8Srxo9l1n5XmmcfyudLsUFSd96u7tS4=;
+	d=linux-foundation.org; s=korg; t=1780529185;
+	bh=jzE0H02M7DMS05juV0e+zN1z6wtjOMXNVyzI3db6wPI=;
 	h=Date:To:From:Subject;
-	b=HeXjfqLav5Y77eAWqLUgMy+GMcU9t9iEUvvIXIKOdra0V7N9LbxBmXZnHB6h1ZjTV
-	 aKKD21mA1xFd523vk9x903fLSv0beDu9PPS7x4FuSTlDYoC5KLxx0EsDxMgYQBK6k1
-	 XMc6aiz9VeU6+XrPOUquRSZ4esn3OS7af1uCSf4U=
-Date: Wed, 03 Jun 2026 16:26:23 -0700
-To: mm-commits@vger.kernel.org,yang.yang29@zte.com.cn,xu.xin16@zte.com.cn,linux@weissschuh.net,fan.yu9@zte.com.cn,corbet@lwn.net,wang.yaxin@zte.com.cn,akpm@linux-foundation.org
+	b=Wv9Bvs5mX6nqBFVCS9rvrCVCmAII17iSPQw1hNrF2m5hSLPh7zHqYHif99sY4wn5+
+	 DGtU3ai0/z1KhbFxjaHxMMgj7NcYHX909B+gAh1XdiEs7Zcdyf3wF7fdDpnKjr8TaU
+	 BD6iqmcoDPDy+t8Z1TWkK10+BuB86G0odbS54VCk=
+Date: Wed, 03 Jun 2026 16:26:24 -0700
+To: mm-commits@vger.kernel.org,baoquan.he@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] tools-headers-uapi-sync-linux-taskstatsh-for-procacctc.patch removed from -mm tree
-Message-Id: <20260603232624.280551F00893@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] maintainers-update-baoquan-hes-email-address.patch removed from -mm tree
+Message-Id: <20260603232625.4809E1F00898@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,194 +35,71 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: tools headers UAPI: sync linux/taskstats.h for procacct.c
+     Subject: MAINTAINERS: update Baoquan He's email address
 has been removed from the -mm tree.  Its filename was
-     tools-headers-uapi-sync-linux-taskstatsh-for-procacctc.patch
+     maintainers-update-baoquan-hes-email-address.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Wang Yaxin <wang.yaxin@zte.com.cn>
-Subject: tools headers UAPI: sync linux/taskstats.h for procacct.c
-Date: Wed, 27 May 2026 21:35:58 +0800 (CST)
+From: Baoquan He <baoquan.he@linux.dev>
+Subject: MAINTAINERS: update Baoquan He's email address
+Date: Thu, 28 May 2026 21:14:54 +0800
 
-After commit 9b93f7e32774 ("tools/getdelays: use the static UAPI headers
-from tools/include/uapi"), the Makefile was changed to use
--I../include/uapi/ instead of -I../../usr/include to ensure tools always
-use the up-to-date UAPI headers.
+I will switch to use @linux.dev mailbox, update all entries in
+MAINTAINERS.  And map the address in .mailmap.
 
-However, only linux/taskstats.h was added to tools/include/uapi/ in commit
-e5bbb35a07b3 ("tools headers UAPI: sync linux/taskstats.h"), but
-linux/acct.h was missing.
-
-This causes procacct.c to fail to compile with:
-
-procacct.c:234:37: error: 'AGROUP' undeclared (first use in this function)
-
-gcc -I../include/uapi/    getdelays.c   -o getdelays
-gcc -I../include/uapi/    procacct.c   -o procacct
-procacct.c: In function `print_procacct':
-procacct.c:234:37: error: `AGROUP' undeclared (first use in this function)
-did you mean `NOGROUP'?
-  234 |  , t->version >= 12 ? (t->ac_flag & AGROUP ? 'P' : 'T') : '?'
-      |                                     ^~~~~~
-      |                                     NOGROUP
-procacct.c:234:37: note: each undeclared ident
-
-because procacct.c uses the AGROUP macro defined in linux/acct.h.
-
-Add the missing linux/acct.h to complete the static UAPI header set.
-
-Link: https://lore.kernel.org/20260527213558929EhiHHy9EDTMjmg3uuDOMi@zte.com.cn
-Fixes: 9b93f7e32774 ("tools/getdelays: use the static UAPI headers from tools/include/uapi")
-Signed-off-by: Wang Yaxin <wang.yaxin@zte.com.cn>
-Reviewed-by: Thomas Weißschuh <linux@weissschuh.net>
-Cc: Fan Yu <fan.yu9@zte.com.cn>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: xu xin <xu.xin16@zte.com.cn>
-Cc: Yang Yang <yang.yang29@zte.com.cn>
+Link: https://lore.kernel.org/20260528131454.1996752-1-baoquan.he@linux.dev
+Signed-off-by: Baoquan He <baoquan.he@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/include/uapi/linux/acct.h |  128 ++++++++++++++++++++++++++++++
- 1 file changed, 128 insertions(+)
+ .mailmap    |    1 +
+ MAINTAINERS |    6 +++---
+ 2 files changed, 4 insertions(+), 3 deletions(-)
 
-diff --git a/tools/include/uapi/linux/acct.h a/tools/include/uapi/linux/acct.h
-new file mode 100644
---- /dev/null
-+++ a/tools/include/uapi/linux/acct.h
-@@ -0,0 +1,128 @@
-+/* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
-+/*
-+ *  BSD Process Accounting for Linux - Definitions
-+ *
-+ *  Author: Marco van Wieringen (mvw@planets.elm.net)
-+ *
-+ *  This header file contains the definitions needed to implement
-+ *  BSD-style process accounting. The kernel accounting code and all
-+ *  user-level programs that try to do something useful with the
-+ *  process accounting log must include this file.
-+ *
-+ *  Copyright (C) 1995 - 1997 Marco van Wieringen - ELM Consultancy B.V.
-+ *
-+ */
-+
-+#ifndef _UAPI_LINUX_ACCT_H
-+#define _UAPI_LINUX_ACCT_H
-+
-+#include <linux/types.h>
-+
-+#include <asm/param.h>
-+#include <asm/byteorder.h>
-+
-+/*
-+ *  comp_t is a 16-bit "floating" point number with a 3-bit base 8
-+ *  exponent and a 13-bit fraction.
-+ *  comp2_t is 24-bit with 5-bit base 2 exponent and 20 bit fraction
-+ *  (leading 1 not stored).
-+ *  See linux/kernel/acct.c for the specific encoding systems used.
-+ */
-+
-+typedef __u16	comp_t;
-+typedef __u32	comp2_t;
-+
-+/*
-+ *   accounting file record
-+ *
-+ *   This structure contains all of the information written out to the
-+ *   process accounting file whenever a process exits.
-+ */
-+
-+#define ACCT_COMM	16
-+
-+struct acct
-+{
-+	char		ac_flag;		/* Flags */
-+	char		ac_version;		/* Always set to ACCT_VERSION */
-+	/* for binary compatibility back until 2.0 */
-+	__u16		ac_uid16;		/* LSB of Real User ID */
-+	__u16		ac_gid16;		/* LSB of Real Group ID */
-+	__u16		ac_tty;			/* Control Terminal */
-+	/* __u32 range means times from 1970 to 2106 */
-+	__u32		ac_btime;		/* Process Creation Time */
-+	comp_t		ac_utime;		/* User Time */
-+	comp_t		ac_stime;		/* System Time */
-+	comp_t		ac_etime;		/* Elapsed Time */
-+	comp_t		ac_mem;			/* Average Memory Usage */
-+	comp_t		ac_io;			/* Chars Transferred */
-+	comp_t		ac_rw;			/* Blocks Read or Written */
-+	comp_t		ac_minflt;		/* Minor Pagefaults */
-+	comp_t		ac_majflt;		/* Major Pagefaults */
-+	comp_t		ac_swaps;		/* Number of Swaps */
-+/* m68k had no padding here. */
-+#if !defined(CONFIG_M68K) || !defined(__KERNEL__)
-+	__u16		ac_ahz;			/* AHZ */
-+#endif
-+	__u32		ac_exitcode;		/* Exitcode */
-+	char		ac_comm[ACCT_COMM + 1];	/* Command Name */
-+	__u8		ac_etime_hi;		/* Elapsed Time MSB */
-+	__u16		ac_etime_lo;		/* Elapsed Time LSB */
-+	__u32		ac_uid;			/* Real User ID */
-+	__u32		ac_gid;			/* Real Group ID */
-+};
-+
-+struct acct_v3
-+{
-+	char		ac_flag;		/* Flags */
-+	char		ac_version;		/* Always set to ACCT_VERSION */
-+	__u16		ac_tty;			/* Control Terminal */
-+	__u32		ac_exitcode;		/* Exitcode */
-+	__u32		ac_uid;			/* Real User ID */
-+	__u32		ac_gid;			/* Real Group ID */
-+	__u32		ac_pid;			/* Process ID */
-+	__u32		ac_ppid;		/* Parent Process ID */
-+	/* __u32 range means times from 1970 to 2106 */
-+	__u32		ac_btime;		/* Process Creation Time */
-+#ifdef __KERNEL__
-+	__u32		ac_etime;		/* Elapsed Time */
-+#else
-+	float		ac_etime;		/* Elapsed Time */
-+#endif
-+	comp_t		ac_utime;		/* User Time */
-+	comp_t		ac_stime;		/* System Time */
-+	comp_t		ac_mem;			/* Average Memory Usage */
-+	comp_t		ac_io;			/* Chars Transferred */
-+	comp_t		ac_rw;			/* Blocks Read or Written */
-+	comp_t		ac_minflt;		/* Minor Pagefaults */
-+	comp_t		ac_majflt;		/* Major Pagefaults */
-+	comp_t		ac_swaps;		/* Number of Swaps */
-+	char		ac_comm[ACCT_COMM];	/* Command Name */
-+};
-+
-+/*
-+ *  accounting flags
-+ */
-+				/* bit set when the process/task ... */
-+#define AFORK		0x01	/* ... executed fork, but did not exec */
-+#define ASU		0x02	/* ... used super-user privileges */
-+#define ACOMPAT		0x04	/* ... used compatibility mode (VAX only not used) */
-+#define ACORE		0x08	/* ... dumped core */
-+#define AXSIG		0x10	/* ... was killed by a signal */
-+#define AGROUP		0x20	/* ... was the last task of the process (task group) */
-+
-+#if defined(__BYTE_ORDER) ? __BYTE_ORDER == __BIG_ENDIAN : defined(__BIG_ENDIAN)
-+#define ACCT_BYTEORDER	0x80	/* accounting file is big endian */
-+#elif defined(__BYTE_ORDER) ? __BYTE_ORDER == __LITTLE_ENDIAN : defined(__LITTLE_ENDIAN)
-+#define ACCT_BYTEORDER	0x00	/* accounting file is little endian */
-+#else
-+#error unspecified endianness
-+#endif
-+
-+#ifndef __KERNEL__
-+#define ACCT_VERSION	2
-+#define AHZ		(HZ)
-+#endif	/* __KERNEL */
-+
-+
-+#endif /* _UAPI_LINUX_ACCT_H */
+--- a/.mailmap~maintainers-update-baoquan-hes-email-address
++++ a/.mailmap
+@@ -126,6 +126,7 @@ Baolin Wang <baolin.wang@linux.alibaba.c
+ Baolin Wang <baolin.wang@linux.alibaba.com> <baolin.wang@spreadtrum.com>
+ Baolin Wang <baolin.wang@linux.alibaba.com> <baolin.wang@unisoc.com>
+ Baolin Wang <baolin.wang@linux.alibaba.com> <baolin.wang7@gmail.com>
++Baoquan He <baoquan.he@linux.dev> <bhe@redhat.com>
+ Barry Song <baohua@kernel.org> <21cnbao@gmail.com>
+ Barry Song <baohua@kernel.org> <v-songbaohua@oppo.com>
+ Barry Song <baohua@kernel.org> <song.bao.hua@hisilicon.com>
+--- a/MAINTAINERS~maintainers-update-baoquan-hes-email-address
++++ a/MAINTAINERS
+@@ -13864,7 +13864,7 @@ F:	scripts/Makefile.kcsan
+ 
+ KDUMP
+ M:	Andrew Morton <akpm@linux-foundation.org>
+-M:	Baoquan He <bhe@redhat.com>
++M:	Baoquan He <baoquan.he@linux.dev>
+ M:	Mike Rapoport <rppt@kernel.org>
+ M:	Pasha Tatashin <pasha.tatashin@soleen.com>
+ M:	Pratyush Yadav <pratyush@kernel.org>
+@@ -14183,7 +14183,7 @@ F:	include/linux/kernfs.h
+ 
+ KEXEC
+ M:	Andrew Morton <akpm@linux-foundation.org>
+-M:	Baoquan He <bhe@redhat.com>
++M:	Baoquan He <baoquan.he@linux.dev>
+ M:	Mike Rapoport <rppt@kernel.org>
+ M:	Pasha Tatashin <pasha.tatashin@soleen.com>
+ M:	Pratyush Yadav <pratyush@kernel.org>
+@@ -17036,7 +17036,7 @@ M:	Chris Li <chrisl@kernel.org>
+ M:	Kairui Song <kasong@tencent.com>
+ R:	Kemeng Shi <shikemeng@huaweicloud.com>
+ R:	Nhat Pham <nphamcs@gmail.com>
+-R:	Baoquan He <bhe@redhat.com>
++R:	Baoquan He <baoquan.he@linux.dev>
+ R:	Barry Song <baohua@kernel.org>
+ R:	Youngjun Park <youngjun.park@lge.com>
+ L:	linux-mm@kvack.org
 _
 
-Patches currently in -mm which might be from wang.yaxin@zte.com.cn are
+Patches currently in -mm which might be from baoquan.he@linux.dev are
 
 
