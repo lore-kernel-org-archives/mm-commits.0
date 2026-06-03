@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DED684C0433;
-	Wed,  3 Jun 2026 23:26:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 278674DB555;
+	Wed,  3 Jun 2026 23:26:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780529187; cv=none; b=TnQlKDYexVVQrOUcey+1vf27H8SGTVq2hT+/0//AyRQbISZQ+TD1Z+EbYfTEr6BZzeeZzSjQA1xn1W7iaZMsgZv6rfRGkXFzdBE8sbo0JUCjzD0utofD4dN3uH3mjKllCVcWpNegGs/HKDJ/8NAbmn5I3e4KLUDyw2Vt3aZFiD8=
+	t=1780529189; cv=none; b=JlqzVrQtnZ4NOZYAzxV8nnchpCmtR72qs1LEKO3XSorDmeqoBVbeOKgyu8UYVrnqtXnhILaWhenRuPs17RBvqWF2rtB3MOd0/8CFfcZqgzujYJj64ZEdPU5PK89OzBcwgfUcxDr7JbYIDYMYsbiWkU08RVIZsEPJ1HBuLS2Jz/Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780529187; c=relaxed/simple;
-	bh=O7H7zQc9ntX63UVNJqCr5GXsxTpYkFpbk7HG70sjQIQ=;
-	h=Date:To:From:Subject:Message-Id; b=oh98wv5aAYkxhTa1fypKgddNUBECXKfMxrIslMiu+j+2/2pN/y27zb/jjMDdsj8385pBLTDNuGDzWbrHp9MWvSyDlCp5NXx6bxoto1awsoKz/Mpehvmdmp82pKLPnHJ/0IJaZg3OmWKfAniguwhH45L+X7z+ETfgLOW9kGmv48Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vr1KkSGR; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1780529189; c=relaxed/simple;
+	bh=t48Y8CpoRFbKCINZu7Ostvx+JbWSdJwVvWqWssYZ/gg=;
+	h=Date:To:From:Subject:Message-Id; b=qeqn0e8vNJfZfY3VHI7NEB+APGbUSfOPfRIN3f1sURVdivcwqGLWSR37E2zd6jIrsO83yDDCeR+hNRKeWe20Ky/GgIS0dvBNXNFuQdGspl8mEkr8hXxslc/HdbMsJznBJSKPKfNHuvSNYtSDrP4eljIYf6u5g6mDrR1OCGMKUDY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=M0sZbHuV; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vr1KkSGR"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8262B1F00893;
-	Wed,  3 Jun 2026 23:26:26 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="M0sZbHuV"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B58EA1F00898;
+	Wed,  3 Jun 2026 23:26:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1780529186;
-	bh=bl0sINzJsbrpBy6RKgwjbXVVCIJ/olIhsNM2rBEqoEk=;
+	d=linux-foundation.org; s=korg; t=1780529187;
+	bh=/DPvewFVsBE49TIXLZna2iDEFKUls96f/izXs2IvMFk=;
 	h=Date:To:From:Subject;
-	b=vr1KkSGRIosKz1i4BIW7LhVaeELOzM8u20/nOJUA4BPCgaN/ha9hs1MBfYc5kRlJb
-	 OfOdodjQj5zAoPJhmlW6zv5VXw/sSfup/PCN8+/LDInpRWmJvrzprDo0RUfe//pIft
-	 O7iLCBNJ0NDrFt4sbQ+ZcWPDBT3qlc/zOq5HjySs=
-Date: Wed, 03 Jun 2026 16:26:26 -0700
-To: mm-commits@vger.kernel.org,xieyisheng1@huawei.com,stable@vger.kernel.org,senozhatsky@chromium.org,minchan@kernel.org,hch@lst.de,axboe@kernel.dk,shenxiaogll@gmail.com,akpm@linux-foundation.org
+	b=M0sZbHuVPWRsKTHHdqfEjmk8Sdg13IQhvilBelVcZHeSGwIEmc9w/nZvBalN1pg3C
+	 yw+72mLEH80QnrVu2pjaNWu1mXu9mhvBK0ctk49XUp76hmDPrlYXXH9AuuGOrWsYFO
+	 ES5bTJcW00jlI56F8x0NvTBU5Obd5sozUKqNUqu4=
+Date: Wed, 03 Jun 2026 16:26:27 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] zram-fix-use-after-free-in-zram_bvec_write_partial.patch removed from -mm tree
-Message-Id: <20260603232626.8262B1F00893@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-damon-reclaim-handle-ctx-allocation-failure.patch removed from -mm tree
+Message-Id: <20260603232627.B58EA1F00898@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,59 +35,65 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: zram: fix use-after-free in zram_bvec_write_partial()
+     Subject: mm/damon/reclaim: handle ctx allocation failure
 has been removed from the -mm tree.  Its filename was
-     zram-fix-use-after-free-in-zram_bvec_write_partial.patch
+     mm-damon-reclaim-handle-ctx-allocation-failure.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Cunlong Li <shenxiaogll@gmail.com>
-Subject: zram: fix use-after-free in zram_bvec_write_partial()
-Date: Thu, 28 May 2026 10:48:44 +0800
+From: SeongJae Park <sj@kernel.org>
+Subject: mm/damon/reclaim: handle ctx allocation failure
+Date: Thu, 28 May 2026 17:01:02 -0700
 
-zram_read_page() picks the sync or async backing device read path based on
-whether the parent bio is NULL.  zram_bvec_write_partial() passes its
-parent bio down, so for ZRAM_WB slots the read is dispatched
-asynchronously and zram_read_page() returns 0 while the bio is still in
-flight.  The caller then runs memcpy_from_bvec(), zram_write_page() and
-__free_page() on the buffer, leaving the async read to write into a freed
-page.
+Patch series "mm/damon/{reclaim,lru_sort}: handle ctx allocation failures".
 
-zram_bvec_read_partial() was switched to NULL in commit 4e3c87b9421d
-("zram: fix synchronous reads") for the same reason; the write_partial
-counterpart was missed.
+DAMON_RECLAIM and DAMON_LRU_SORT could dereference NULL pointers if their
+damon_ctx object allocations fail.  The bugs are expected to happen
+infrequently because the allocations are arguably too small to fail on
+common setups.  But theoretically they are possible and the consequences
+are bad.  Fix those.
 
-Link: https://lore.kernel.org/20260528-zram-v3-1-cab86eef8764@gmail.com
-Fixes: 8e654f8fbff5 ("zram: read page from backing device")
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Reviewed-by: Sergey Senozhatsky <senozhatsky@chromium.org>
-Signed-off-by: Cunlong Li <shenxiaogll@gmail.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Yisheng Xie <xieyisheng1@huawei.com>
-Cc: <stable@vger.kernel.org>
+The issues were discovered [1] by Sashiko.
+
+
+This patch (of 2):
+
+DAMON_RECLAIM allocates the damon_ctx object for its kdamond in its init
+function.  damon_reclaim_enabled_store() wrongly assumes the allocation
+will always succeed once tried.  If the damon_ctx allocation was failed,
+therefore, code execution reaches to damon_commit_ctx() while 'ctx' is
+NULL.  As a result, it dereferences the NULL 'ctx' pointer.  Avoid the
+NULL dereference by returning -ENOMEM if 'ctx' is NULL.
+
+Link: https://lore.kernel.org/20260529000104.7006-2-sj@kernel.org
+Link: https://lore.kernel.org/20260419014800.877-1-sj@kernel.org [1]
+Fixes: 3f7a914ab9a5 ("mm/damon/reclaim: use damon_initialized()")
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Cc: <stable@vger.kernel.org> # 6.18.x
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/damon/reclaim.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
---- a/drivers/block/zram/zram_drv.c~zram-fix-use-after-free-in-zram_bvec_write_partial
-+++ a/drivers/block/zram/zram_drv.c
-@@ -2337,7 +2337,7 @@ static int zram_bvec_write_partial(struc
- 	if (!page)
- 		return -ENOMEM;
+--- a/mm/damon/reclaim.c~mm-damon-reclaim-handle-ctx-allocation-failure
++++ a/mm/damon/reclaim.c
+@@ -339,6 +339,10 @@ static int damon_reclaim_enabled_store(c
+ 	if (!damon_initialized())
+ 		return 0;
  
--	ret = zram_read_page(zram, page, index, bio);
-+	ret = zram_read_page(zram, page, index, NULL);
- 	if (!ret) {
- 		memcpy_from_bvec(page_address(page) + offset, bvec);
- 		ret = zram_write_page(zram, page, index);
++	/* damon_modules_new_paddr_ctx_target() in the init function failed. */
++	if (!ctx)
++		return -ENOMEM;
++
+ 	return damon_reclaim_turn(enabled);
+ }
+ 
 _
 
-Patches currently in -mm which might be from shenxiaogll@gmail.com are
+Patches currently in -mm which might be from sj@kernel.org are
 
-zram-drop-unused-bio-parameter-from-write-helpers.patch
+maintainers-add-testing-abi-documents-for-mm.patch
 
