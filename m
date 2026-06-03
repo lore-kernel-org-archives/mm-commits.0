@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0CB563328FA;
-	Wed,  3 Jun 2026 23:26:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2BB443932FA
+	for <mm-commits@vger.kernel.org>; Wed,  3 Jun 2026 23:26:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780529183; cv=none; b=AIZT/k0tzD4a535Xg8FZLXMzqjzEFifgtfosg/hM5bkImJjoULF6eEjKwjbIcVvKvuceK5RQwvHX1eAdgxYLEBds0BCDxCXOu+1ztivLGEwVtVLTNUAJroIV9Riyytx9K8nMppS9k7CEiW5j9BYNcncDgQJs1EkItWu6JzDxyUA=
+	t=1780529184; cv=none; b=bhpGUQG7HTS2SFVRu1SuhS0j+nOk6+NbCvQnXbzgT3w7H7lpObyusJHO3Avk2Gq37h2nMCxHj70yhKmq98TPhEXWSuc18YuiHhrs4o6BpwRUp78P61+ZgTuf05mdtwq0mqUcXGPP6ZlXAd8A7QzivtiM498E0AdsOZTyGMlWC4U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780529183; c=relaxed/simple;
-	bh=BDizDcnfvDeAD3OjRv6YP879+woxJL60sXILJVdd3jc=;
-	h=Date:To:From:Subject:Message-Id; b=aQRbZi84RZNybFRML5R+o1qvujss5Yll6PR2XPA93AViEvCVXwbBGQZFy/c0VHsMW50dkGrTKxvwV9FwSGW38ltT7U6aDQgf0lvYk0wvl2Yls5IJI0ZHJXbPEsb3EqwxChQhHKVlQ48Ju1AklxS/5C18XSH1tnracbuE/2Wpjjs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=axqAcJ16; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1780529184; c=relaxed/simple;
+	bh=AokCZUPnucU/Ii3/5XIu6GVPxnB4+GY7tXZe31HNaWI=;
+	h=Date:To:From:Subject:Message-Id; b=h8T2yQwx0HGGyX2BnCYlYCyJHnpHxTd30vze1WPd5s1eOeBuV9jDyLT3vNCeOz5PiwR+XKel3nmVbw/FhhDIxKnIsBgAccyRbiExkZNMiLGfwEKTHdbxwaTPPnzD8L2Dk3fYlZcKS85xK/fdSqwU/be4YIXiE4o/aVRLMkjgl+o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ShawkhHr; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="axqAcJ16"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 997DA1F00893;
-	Wed,  3 Jun 2026 23:26:21 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ShawkhHr"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DDD601F00898;
+	Wed,  3 Jun 2026 23:26:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1780529181;
-	bh=vEgT73UytRP8pvRdIZ5COzDiisSo9MqChk1i0IHZ5xY=;
+	d=linux-foundation.org; s=korg; t=1780529183;
+	bh=7IeZzmxJ3F+nWheH3j3kpn8EDlOBnP7Olo5x9frOAJA=;
 	h=Date:To:From:Subject;
-	b=axqAcJ16W9V+/VsybGU+VBthwhqEvnYO2MVX7wSyJUWDNqTvuJRhCaM8dO7prlS5m
-	 4AxzLTHjCT2fmBQ2rBFzc0dMsF/GzUyrIFe65QL+th61DhGu8c2QFOMTngbe+/0UxA
-	 lF8m+yXBu4YFFmv6oet5YveFIfmUqhE0LT6drxbA=
-Date: Wed, 03 Jun 2026 16:26:21 -0700
-To: mm-commits@vger.kernel.org,yuantan098@gmail.com,yifanwucs@gmail.com,tomapufckgml@gmail.com,stable@vger.kernel.org,sergeh@kernel.org,serge@hallyn.com,segoon@openwall.com,oleg@redhat.com,n05ec@lzu.edu.cn,ljs@kernel.org,liam@infradead.org,kees@kernel.org,dave@stgolabs.net,brauner@kernel.org,bird@lzu.edu.cn,aha310510@gmail.com,zylzyl2333@gmail.com,akpm@linux-foundation.org
+	b=ShawkhHrJ6fzhwrMIhE2HUSIEDAcwiKyeaw9my1BAvLibx8r1Bwr+CMcCCXKlhRZ1
+	 j14YTnNLQTZY0Gts49I+NoKqKKOMUfIhlFSmhc+FfaW2X6AQ/MM5gE0uN8RS5dAUJL
+	 wpLhS1slO6xu8sy8/GQlSA4N8fZcHME8+m18O9Ug=
+Date: Wed, 03 Jun 2026 16:26:22 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,songmuchun@bytedance.com,rppt@kernel.org,muchun.song@linux.dev,minchan@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,jhubbard@nvidia.com,gregkh@linuxfoundation.org,digetx@gmail.com,david@kernel.org,chengkaitao@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] ipc-shm-serialize-orphan-cleanup-with-shm_nattch-updates.patch removed from -mm tree
-Message-Id: <20260603232621.997DA1F00893@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-cma_sysfs-skip-inactive-cma-areas-in-sysfs.patch removed from -mm tree
+Message-Id: <20260603232622.DDD601F00898@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,79 +35,99 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: ipc/shm: serialize orphan cleanup with shm_nattch updates
+     Subject: mm/cma_sysfs: skip inactive CMA areas in sysfs
 has been removed from the -mm tree.  Its filename was
-     ipc-shm-serialize-orphan-cleanup-with-shm_nattch-updates.patch
+     mm-cma_sysfs-skip-inactive-cma-areas-in-sysfs.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Yilin Zhu <zylzyl2333@gmail.com>
-Subject: ipc/shm: serialize orphan cleanup with shm_nattch updates
-Date: Thu, 30 Apr 2026 13:21:34 +0800
+From: Kaitao Cheng <chengkaitao@kylinos.cn>
+Subject: mm/cma_sysfs: skip inactive CMA areas in sysfs
+Date: Fri, 22 May 2026 21:14:34 +0800
 
-shm_destroy_orphaned() walks the shm idr under shm_ids(ns).rwsem, but that
-does not serialize all fields tested by shm_may_destroy().  In particular,
-shm_nattch is updated while holding shm_perm.lock, and attach paths can do
-that without holding the rwsem.
+cma_activate_area() can fail after a CMA area has already been added to
+cma_areas[].  In that case the area is left in the global array, but it
+does not reach the point where CMA_ACTIVATED is set.
 
-Do not decide that an orphaned segment is unused before taking the object
-lock.  Move the shm_may_destroy() check under shm_perm.lock, matching the
-other destroy paths, and unlock the segment when it no longer qualifies
-for removal.
+cma_sysfs_init() currently walks all cma_area_count entries and creates
+sysfs files for every area, including ones that failed activation.  These
+areas are not usable CMA areas and should not be exposed to userspace as
+valid CMA regions.
 
-Link: https://lore.kernel.org/9d97cc1031de2d0bace0edf3a668818aa2f4eca6.1777410234.git.zylzyl2333@gmail.com
-Fixes: 4c677e2eefdb ("shm: optimize locking and ipc_namespace getting")
-Reported-by: Yuan Tan <yuantan098@gmail.com>
-Reported-by: Yifan Wu <yifanwucs@gmail.com>
-Reported-by: Juefei Pu <tomapufckgml@gmail.com>
-Reported-by: Xin Liu <bird@lzu.edu.cn>
-Signed-off-by: Yilin Zhu <zylzyl2333@gmail.com>
-Signed-off-by: Ren Wei <n05ec@lzu.edu.cn>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Jeongjun Park <aha310510@gmail.com>
-Cc: Kees Cook <kees@kernel.org>
-Cc: Liam Howlett <liam@infradead.org>
+If such an inactive area is exposed, userspace sees a CMA directory whose
+read-only accounting files report zeros.  total_pages and available_pages
+report zero because the failed activation path clears cma->count and
+cma->available_count, while the allocation and release counters also stay
+at zero because the area cannot service CMA allocations.  This makes the
+failed area look like a valid but empty CMA region and can mislead tests,
+monitoring, and diagnostics.
+
+Skip CMA areas that did not reach CMA_ACTIVATED when creating the sysfs
+objects.  Since inactive entries can now be skipped, make the error unwind
+tolerate entries that never had cma_kobj initialized.
+
+Link: https://lore.kernel.org/20260524140420.61864-1-kaitao.cheng@linux.dev
+Link: https://lore.kernel.org/20260522131434.78532-1-kaitao.cheng@linux.dev
+Fixes: 43ca106fa8ec ("mm: cma: support sysfs")
+Signed-off-by: Kaitao Cheng <chengkaitao@kylinos.cn>
+Reported-by: David Hildenbrand (Arm) <david@kernel.org>
+Suggested-by: David Hildenbrand (Arm) <david@kernel.org>
+Suggested-by: Muchun Song <songmuchun@bytedance.com>
+Reported-by: Muchun Song <songmuchun@bytedance.com>
+Closes: https://lore.kernel.org/linux-mm/55481a8b-dcfc-4bef-ba59-aa0b43dca88b@kernel.org/
+Acked-by: Muchun Song <muchun.song@linux.dev>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Dmitry Osipenko <digetx@gmail.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Serge Hallyn <sergeh@kernel.org>
-Cc: Vasiliy Kulikov <segoon@openwall.com>
-Cc: Davidlohr Bueso <dave@stgolabs.net>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Serge Hallyn <serge@hallyn.com>
-Cc: <stable@vger.kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/shm.c |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ mm/cma_sysfs.c |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
---- a/ipc/shm.c~ipc-shm-serialize-orphan-cleanup-with-shm_nattch-updates
-+++ a/ipc/shm.c
-@@ -418,15 +418,17 @@ static int shm_try_destroy_orphaned(int
- 	 * We want to destroy segments without users and with already
- 	 * exit'ed originating process.
- 	 *
--	 * As shp->* are changed under rwsem, it's safe to skip shp locking.
-+	 * shm_nattch can be changed under shm_perm.lock without holding the
-+	 * rwsem, so take the object lock before checking shm_may_destroy().
- 	 */
- 	if (!list_empty(&shp->shm_clist))
- 		return 0;
+--- a/mm/cma_sysfs.c~mm-cma_sysfs-skip-inactive-cma-areas-in-sysfs
++++ a/mm/cma_sysfs.c
+@@ -117,13 +117,16 @@ static int __init cma_sysfs_init(void)
+ 		return -ENOMEM;
  
--	if (shm_may_destroy(shp)) {
--		shm_lock_by_ptr(shp);
-+	shm_lock_by_ptr(shp);
-+	if (shm_may_destroy(shp))
- 		shm_destroy(ns, shp);
--	}
-+	else
-+		shm_unlock(shp);
- 	return 0;
- }
+ 	for (i = 0; i < cma_area_count; i++) {
++		cma = &cma_areas[i];
++		if (!test_bit(CMA_ACTIVATED, &cma->flags))
++			continue;
++
+ 		cma_kobj = kzalloc_obj(*cma_kobj);
+ 		if (!cma_kobj) {
+ 			err = -ENOMEM;
+ 			goto out;
+ 		}
+ 
+-		cma = &cma_areas[i];
+ 		cma->cma_kobj = cma_kobj;
+ 		cma_kobj->cma = cma;
+ 		err = kobject_init_and_add(&cma_kobj->kobj, &cma_ktype,
+@@ -138,7 +141,8 @@ static int __init cma_sysfs_init(void)
+ out:
+ 	while (--i >= 0) {
+ 		cma = &cma_areas[i];
+-		kobject_put(&cma->cma_kobj->kobj);
++		if (cma->cma_kobj)
++			kobject_put(&cma->cma_kobj->kobj);
+ 	}
+ 	kobject_put(cma_kobj_root);
  
 _
 
-Patches currently in -mm which might be from zylzyl2333@gmail.com are
+Patches currently in -mm which might be from chengkaitao@kylinos.cn are
 
+mm-page_isolation-avoid-unsafe-folio-reads-while-scanning-compound-pages.patch
 
