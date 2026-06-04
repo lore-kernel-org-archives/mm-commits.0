@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ACA771DE4F1
-	for <mm-commits@vger.kernel.org>; Thu,  4 Jun 2026 17:32:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0F6284C9557
+	for <mm-commits@vger.kernel.org>; Thu,  4 Jun 2026 17:33:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780594331; cv=none; b=tZeRg2oGPgBWSVtpfi2Ml8WUuxI2g63hihz124qBHu1szri0nUchoCjJSwre9cVKTpB5e2gTJVFqzxMXJYNwFP55fegc/pZbxxAYnxcJV1BdZZ+67Wujukzh5UNQE3bPnUt4+r55ogg++Q3tiUAuFyzg9ltVOGXE3ZX6aYFDMJI=
+	t=1780594392; cv=none; b=tbpx1FNe/o6/eU4fAt3twbMqNpZtv6zhCkB8Amcm1nT00+5M6NyHS5paY9d/6jR1JbMQxgRAG7cMt6CKMLXXvg+T8Qh02638SMT4Tg1U2LsdS3lLhCfAUa71SkSQNAdo3RDtHCd/vqCBJmEJYAxRakqQifgQeEVmuM0DMvEWROc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780594331; c=relaxed/simple;
-	bh=ucABGfGstmh8mp40UWgSy8Tz+KR0FAQcidYloieu+Hs=;
-	h=Date:To:From:Subject:Message-Id; b=OuMPQ/31oZ+gTsquSsbFdkBoRmcJ+QyR1lfC5ykBu1c8ywxQxDCrgwP6YjzJyHbqJgH3zNm7ZqdLO3wPdyXLnYTPM1h0uyen0KoLsCBck0FzfFC2MpMXAzb8em8DI1W6+qDX8X8qXgBosZbLifc4G3HTTxv3bWbKF9wP4WM+b94=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zMNnOn0Z; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1780594392; c=relaxed/simple;
+	bh=st1O9pucqrm121SzLvnAha3R0kARX4BPDVNT3oTywy0=;
+	h=Date:To:From:Subject:Message-Id; b=ZWL6DyudqzsvMiPREqdLGk24bD9F++tzzfp+Rx08+R5Mv8V/h+i5kGO+acARXWvSqCAvk7DyZn0epWJ15MWQrSprf74yL1r8d9bufkUvMFaBzNdqYJA2WRimPV8lG2UAu4GP9Thu6pPqOHrlud1fb7tWIocdMoQ6aQCWgWeTOd4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AgYCUjrG; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zMNnOn0Z"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 39A7D1F00893;
-	Thu,  4 Jun 2026 17:32:09 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AgYCUjrG"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A00521F00898;
+	Thu,  4 Jun 2026 17:33:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1780594329;
-	bh=bY0a4oVK68JBGkAsWBlZwMUaHunRYLj9bYNWn3Grn6s=;
+	d=linux-foundation.org; s=korg; t=1780594390;
+	bh=zHuyv1eJKr+WCpQK+iF/lfSNXnWnm6S4a4Ayyv28A1Q=;
 	h=Date:To:From:Subject;
-	b=zMNnOn0ZH3bM4IWu45H2xVBVQZmUkpggQ2+6cKBIIf0X1ftI//t7pfHINICoqvS6B
-	 7VQ2A0vpIu/aJBOg0OWRnOItZ6XxGa20dNZi6T5/j2tlL+/20VR5n9LT6fSKw0/9+E
-	 pkuL1CcUjT3yO589bEqTmos56/8o80LxuiiTavMM=
-Date: Thu, 04 Jun 2026 10:32:08 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,surenb@google.com,mhocko@suse.com,kent.overstreet@linux.dev,jackmanb@google.com,hannes@cmpxchg.org,hao.ge@linux.dev,akpm@linux-foundation.org
+	b=AgYCUjrG81aetj7ZlShLOBJkIDfX+0WJxtewlLYfFn/Cdozh3XLXFsn+OlII+AYtn
+	 Um0xanu/J4mcbH/c+43+oOvWfe7d8AZyxa4kYSlgMHbfPBPVr8NDEJhDb1PgUpS1ja
+	 gD2+4bVrHhf+uIqnz9zogaAVmMvX4zi4HDlubeXc=
+Date: Thu, 04 Jun 2026 10:33:10 -0700
+To: mm-commits@vger.kernel.org,surenb@google.com,kent.overstreet@linux.dev,hao.ge@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-alloc_tag-replace-fixed-size-early-pfn-array-with-dynamic-linked-list.patch removed from -mm tree
-Message-Id: <20260604173209.39A7D1F00893@smtp.kernel.org>
+Subject: + mm-alloc_tag-replace-fixed-size-early-pfn-array-with-dynamic-linked-list.patch added to mm-unstable branch
+Message-Id: <20260604173310.A00521F00898@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,17 +34,33 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
+The patch titled
      Subject: mm/alloc_tag: replace fixed-size early PFN array with dynamic linked list
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm mm-unstable branch.  Its filename is
      mm-alloc_tag-replace-fixed-size-early-pfn-array-with-dynamic-linked-list.patch
 
-This patch was dropped because an updated version will be issued
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-alloc_tag-replace-fixed-size-early-pfn-array-with-dynamic-linked-list.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
 ------------------------------------------------------
 From: Hao Ge <hao.ge@linux.dev>
 Subject: mm/alloc_tag: replace fixed-size early PFN array with dynamic linked list
-Date: Wed, 6 May 2026 10:22:56 +0800
+Date: Thu, 4 Jun 2026 10:40:08 +0800
 
 Pages allocated before page_ext is available have their codetag left
 uninitialized.  Track these early PFNs and clear their codetag in
@@ -66,23 +82,17 @@ indefinitely.  Introduce __GFP_NO_CODETAG (reuses the %__GFP_NO_OBJ_EXT
 bit) and pass gfp_flags through pgalloc_tag_add() so that the early path
 can skip recording allocations that carry this flag.
 
-Link: https://lore.kernel.org/20260506022256.32664-1-hao.ge@linux.dev
+Link: https://lore.kernel.org/20260604024008.46592-1-hao.ge@linux.dev
 Signed-off-by: Hao Ge <hao.ge@linux.dev>
 Suggested-by: Suren Baghdasaryan <surenb@google.com>
-Acked-by: Suren Baghdasaryan <surenb@google.com>
-Cc: Brendan Jackman <jackmanb@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Kent Overstreet <kent.overstreet@linux.dev>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/alloc_tag.h |    4 
- lib/alloc_tag.c           |  145 +++++++++++++++++++++++-------------
- mm/page_alloc.c           |   12 +-
- 3 files changed, 102 insertions(+), 59 deletions(-)
+ include/linux/alloc_tag.h |    4 -
+ lib/alloc_tag.c           |  138 +++++++++++++++++++++++-------------
+ mm/page_alloc.c           |   12 +--
+ 3 files changed, 98 insertions(+), 56 deletions(-)
 
 --- a/include/linux/alloc_tag.h~mm-alloc_tag-replace-fixed-size-early-pfn-array-with-dynamic-linked-list
 +++ a/include/linux/alloc_tag.h
@@ -102,7 +112,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  /* Caller should verify both ref and tag to be valid */
 --- a/lib/alloc_tag.c~mm-alloc_tag-replace-fixed-size-early-pfn-array-with-dynamic-linked-list
 +++ a/lib/alloc_tag.c
-@@ -770,60 +770,95 @@ static __init bool need_page_alloc_taggi
+@@ -767,50 +767,82 @@ static __init bool need_page_alloc_taggi
   * their codetag uninitialized. Track these early PFNs so we can clear
   * their codetag refs later to avoid warnings when they are freed.
   *
@@ -144,8 +154,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 -static atomic_t early_pfn_count __initdata = ATOMIC_INIT(0);
 +static struct pfn_pool *current_pfn_pool __initdata;
  
--static void __init __alloc_tag_add_early_pfn(unsigned long pfn)
-+static void __init __alloc_tag_add_early_pfn(unsigned long pfn, gfp_t gfp_flags)
+ static void __init __alloc_tag_add_early_pfn(unsigned long pfn)
  {
 -	int old_idx, new_idx;
 +	struct pfn_pool *pool;
@@ -159,8 +168,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 -			return;
 +		pool = READ_ONCE(current_pfn_pool);
 +		if (!pool || atomic_read(&pool->count) >= PFN_POOL_SIZE) {
-+			gfp_t gfp = gfp_flags & ~(__GFP_DIRECT_RECLAIM | GFP_ZONEMASK);
-+			struct page *new_page = alloc_page(gfp | __GFP_NO_CODETAG);
++			struct page *new_page = alloc_page(__GFP_HIGH | __GFP_NO_CODETAG);
 +			struct pfn_pool *new;
 +
 +			if (!new_page) {
@@ -190,8 +198,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 +	pool->pfns[idx] = pfn;
  }
  
--typedef void alloc_tag_add_func(unsigned long pfn);
-+typedef void alloc_tag_add_func(unsigned long pfn, gfp_t gfp_flags);
+ typedef void alloc_tag_add_func(unsigned long pfn);
  static alloc_tag_add_func __rcu *alloc_tag_add_early_pfn_ptr __refdata =
  	RCU_INITIALIZER(__alloc_tag_add_early_pfn);
  
@@ -210,10 +217,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  	rcu_read_lock();
  	alloc_tag_add = rcu_dereference(alloc_tag_add_early_pfn_ptr);
  	if (alloc_tag_add)
--		alloc_tag_add(pfn);
-+		alloc_tag_add(pfn, gfp_flags);
- 	rcu_read_unlock();
- }
+@@ -820,7 +852,9 @@ void alloc_tag_add_early_pfn(unsigned lo
  
  static void __init clear_early_alloc_pfn_tag_refs(void)
  {
@@ -224,7 +228,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  
  	if (static_key_enabled(&mem_profiling_compressed))
  		return;
-@@ -832,37 +867,45 @@ static void __init clear_early_alloc_pfn
+@@ -829,37 +863,45 @@ static void __init clear_early_alloc_pfn
  	/* Make sure we are not racing with __alloc_tag_add_early_pfn() */
  	synchronize_rcu();
  
@@ -350,5 +354,6 @@ _
 Patches currently in -mm which might be from hao.ge@linux.dev are
 
 lib-test_hmm-fix-memory-leak-in-dmirror_migrate_to_system.patch
+mm-alloc_tag-replace-fixed-size-early-pfn-array-with-dynamic-linked-list.patch
 alloc_tag-fix-use-after-free-in-proc-allocinfo-after-module-unload.patch
 
