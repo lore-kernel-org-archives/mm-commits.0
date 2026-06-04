@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A3EF02C1586
-	for <mm-commits@vger.kernel.org>; Thu,  4 Jun 2026 17:26:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ACA771DE4F1
+	for <mm-commits@vger.kernel.org>; Thu,  4 Jun 2026 17:32:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780594009; cv=none; b=j/Bds/AoQOfUt6/y8mGPFKPD/dWzQBTgS0YIewBeF/H6qb7xaSxnxHpsa4f0kIcMXwELXyoj0Cw/Qn0evDkrPzQoSn/YetSdOUIe8yc3vSiIOJtVZOSjjEuqsZRlN82FPRJxcWzowg2tgj61m79WLQbR6Atoxvb3+BexFvaj2ys=
+	t=1780594331; cv=none; b=tZeRg2oGPgBWSVtpfi2Ml8WUuxI2g63hihz124qBHu1szri0nUchoCjJSwre9cVKTpB5e2gTJVFqzxMXJYNwFP55fegc/pZbxxAYnxcJV1BdZZ+67Wujukzh5UNQE3bPnUt4+r55ogg++Q3tiUAuFyzg9ltVOGXE3ZX6aYFDMJI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780594009; c=relaxed/simple;
-	bh=nKMHacfQtBmeZ5BSm03aQqcNp3RhNDIsROZ8mUV6jPU=;
-	h=Date:To:From:Subject:Message-Id; b=c8ftiDj5H/Av1xC5ue+BL93McxL2h0BkoIzzov3jckRQcvzyVYVOYQ6DhnoQnX23nIvriafNVuOM70jVt5BZ6cp3IOw6uaNHIZoLz1wGodQZSlCCm3hmdnL3c5Dz6KLlfnzlu3I3yn/rLBM/eutJbdFEKuuOwA5B3YENPgr4OKI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LEBaIRbZ; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1780594331; c=relaxed/simple;
+	bh=ucABGfGstmh8mp40UWgSy8Tz+KR0FAQcidYloieu+Hs=;
+	h=Date:To:From:Subject:Message-Id; b=OuMPQ/31oZ+gTsquSsbFdkBoRmcJ+QyR1lfC5ykBu1c8ywxQxDCrgwP6YjzJyHbqJgH3zNm7ZqdLO3wPdyXLnYTPM1h0uyen0KoLsCBck0FzfFC2MpMXAzb8em8DI1W6+qDX8X8qXgBosZbLifc4G3HTTxv3bWbKF9wP4WM+b94=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zMNnOn0Z; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LEBaIRbZ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 27B151F00893;
-	Thu,  4 Jun 2026 17:26:48 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zMNnOn0Z"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 39A7D1F00893;
+	Thu,  4 Jun 2026 17:32:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1780594008;
-	bh=yyMOOr9StzAJjU3HwUs9/RCLemslrVoB3QAkyNclrQM=;
+	d=linux-foundation.org; s=korg; t=1780594329;
+	bh=bY0a4oVK68JBGkAsWBlZwMUaHunRYLj9bYNWn3Grn6s=;
 	h=Date:To:From:Subject;
-	b=LEBaIRbZtaHqxX1U4wz2344hGHEgA69B9sLqra9U+8dWOHY86CvPmMbcxvQRcPv37
-	 9jLZXJVb4asoGroRv+cu99X/0pf3HjvJfs7/y35k9OWSbTtzNag+di6K9hS7UyEZgJ
-	 OIl2Lety7TATa8EFwj7ploxh5QqF1UT0cIhhGqz4=
-Date: Thu, 04 Jun 2026 10:26:47 -0700
-To: mm-commits@vger.kernel.org,senozhatsky@chromium.org,minchan@kernel.org,elfring@users.sourceforge.net,akpm@linux-foundation.org
+	b=zMNnOn0ZH3bM4IWu45H2xVBVQZmUkpggQ2+6cKBIIf0X1ftI//t7pfHINICoqvS6B
+	 7VQ2A0vpIu/aJBOg0OWRnOItZ6XxGa20dNZi6T5/j2tlL+/20VR5n9LT6fSKw0/9+E
+	 pkuL1CcUjT3yO589bEqTmos56/8o80LxuiiTavMM=
+Date: Thu, 04 Jun 2026 10:32:08 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,surenb@google.com,mhocko@suse.com,kent.overstreet@linux.dev,jackmanb@google.com,hannes@cmpxchg.org,hao.ge@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + zsmalloc-simplify-data-output-in-zs_stats_size_show.patch added to mm-unstable branch
-Message-Id: <20260604172648.27B151F00893@smtp.kernel.org>
+Subject: [to-be-updated] mm-alloc_tag-replace-fixed-size-early-pfn-array-with-dynamic-linked-list.patch removed from -mm tree
+Message-Id: <20260604173209.39A7D1F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,64 +34,321 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: zsmalloc: simplify data output in zs_stats_size_show()
-has been added to the -mm mm-unstable branch.  Its filename is
-     zsmalloc-simplify-data-output-in-zs_stats_size_show.patch
+The quilt patch titled
+     Subject: mm/alloc_tag: replace fixed-size early PFN array with dynamic linked list
+has been removed from the -mm tree.  Its filename was
+     mm-alloc_tag-replace-fixed-size-early-pfn-array-with-dynamic-linked-list.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zsmalloc-simplify-data-output-in-zs_stats_size_show.patch
-
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Markus Elfring <elfring@users.sourceforge.net>
-Subject: zsmalloc: simplify data output in zs_stats_size_show()
-Date: Thu, 4 Jun 2026 10:20:03 +0200
+From: Hao Ge <hao.ge@linux.dev>
+Subject: mm/alloc_tag: replace fixed-size early PFN array with dynamic linked list
+Date: Wed, 6 May 2026 10:22:56 +0800
 
-Move the specification for a line break from a seq_puts() call to a
-seq_printf() call.
+Pages allocated before page_ext is available have their codetag left
+uninitialized.  Track these early PFNs and clear their codetag in
+clear_early_alloc_pfn_tag_refs() to avoid "alloc_tag was not set" warnings
+when they are freed later.
 
-The source code was transformed by using the Coccinelle software.
+Currently a fixed-size array of 8192 entries is used, with a warning if
+the limit is exceeded.  However, the number of early allocations depends
+on the number of CPUs and can be larger than 8192.
 
-Link: https://lore.kernel.org/126a924b-6f68-43bf-ae5a-449fb93e527b@web.de
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
+Replace the fixed-size array with a dynamically allocated linked list of
+pfn_pool structs.  Each node is allocated via alloc_page() and mapped to a
+pfn_pool containing a next pointer, an atomic slot counter, and a PFN
+array that fills the remainder of the page.
+
+The tracking pages themselves are allocated via alloc_page(), which would
+trigger __pgalloc_tag_add() -> alloc_tag_add_early_pfn() and recurse
+indefinitely.  Introduce __GFP_NO_CODETAG (reuses the %__GFP_NO_OBJ_EXT
+bit) and pass gfp_flags through pgalloc_tag_add() so that the early path
+can skip recording allocations that carry this flag.
+
+Link: https://lore.kernel.org/20260506022256.32664-1-hao.ge@linux.dev
+Signed-off-by: Hao Ge <hao.ge@linux.dev>
+Suggested-by: Suren Baghdasaryan <surenb@google.com>
+Acked-by: Suren Baghdasaryan <surenb@google.com>
+Cc: Brendan Jackman <jackmanb@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Kent Overstreet <kent.overstreet@linux.dev>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zsmalloc.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ include/linux/alloc_tag.h |    4 
+ lib/alloc_tag.c           |  145 +++++++++++++++++++++++-------------
+ mm/page_alloc.c           |   12 +-
+ 3 files changed, 102 insertions(+), 59 deletions(-)
 
---- a/mm/zsmalloc.c~zsmalloc-simplify-data-output-in-zs_stats_size_show
-+++ a/mm/zsmalloc.c
-@@ -565,8 +565,7 @@ static int zs_stats_size_show(struct seq
- 		total_freeable += freeable;
+--- a/include/linux/alloc_tag.h~mm-alloc_tag-replace-fixed-size-early-pfn-array-with-dynamic-linked-list
++++ a/include/linux/alloc_tag.h
+@@ -163,11 +163,11 @@ static inline void alloc_tag_sub_check(u
+ {
+ 	WARN_ONCE(ref && !ref->ct, "alloc_tag was not set\n");
+ }
+-void alloc_tag_add_early_pfn(unsigned long pfn);
++void alloc_tag_add_early_pfn(unsigned long pfn, gfp_t gfp_flags);
+ #else
+ static inline void alloc_tag_add_check(union codetag_ref *ref, struct alloc_tag *tag) {}
+ static inline void alloc_tag_sub_check(union codetag_ref *ref) {}
+-static inline void alloc_tag_add_early_pfn(unsigned long pfn) {}
++static inline void alloc_tag_add_early_pfn(unsigned long pfn, gfp_t gfp_flags) {}
+ #endif
+ 
+ /* Caller should verify both ref and tag to be valid */
+--- a/lib/alloc_tag.c~mm-alloc_tag-replace-fixed-size-early-pfn-array-with-dynamic-linked-list
++++ a/lib/alloc_tag.c
+@@ -770,60 +770,95 @@ static __init bool need_page_alloc_taggi
+  * their codetag uninitialized. Track these early PFNs so we can clear
+  * their codetag refs later to avoid warnings when they are freed.
+  *
+- * Early allocations include:
+- *   - Base allocations independent of CPU count
+- *   - Per-CPU allocations (e.g., CPU hotplug callbacks during smp_init,
+- *     such as trace ring buffers, scheduler per-cpu data)
+- *
+- * For simplicity, we fix the size to 8192.
+- * If insufficient, a warning will be triggered to alert the user.
++ * Each page is cast to a pfn_pool: the first few bytes hold metadata
++ * (next pointer and slot count), the remainder stores PFNs.
++ */
++struct pfn_pool {
++	struct pfn_pool *next;
++	atomic_t count;
++	unsigned long pfns[];
++};
++
++#define PFN_POOL_SIZE			((PAGE_SIZE - offsetof(struct pfn_pool, pfns)) / \
++					 sizeof(unsigned long))
++
++/*
++ * Skip early PFN recording for a page allocation.  Reuses the
++ * %__GFP_NO_OBJ_EXT bit.  Used by __alloc_tag_add_early_pfn() to avoid
++ * recursion when allocating pages for the early PFN tracking list
++ * itself.
+  *
+- * TODO: Replace fixed-size array with dynamic allocation using
+- * a GFP flag similar to ___GFP_NO_OBJ_EXT to avoid recursion.
++ * Codetags of the pages allocated with __GFP_NO_CODETAG should be
++ * cleared (via clear_page_tag_ref()) before freeing the pages to prevent
++ * alloc_tag_sub_check() from triggering a warning.
+  */
+-#define EARLY_ALLOC_PFN_MAX		8192
++#define __GFP_NO_CODETAG		__GFP_NO_OBJ_EXT
+ 
+-static unsigned long early_pfns[EARLY_ALLOC_PFN_MAX] __initdata;
+-static atomic_t early_pfn_count __initdata = ATOMIC_INIT(0);
++static struct pfn_pool *current_pfn_pool __initdata;
+ 
+-static void __init __alloc_tag_add_early_pfn(unsigned long pfn)
++static void __init __alloc_tag_add_early_pfn(unsigned long pfn, gfp_t gfp_flags)
+ {
+-	int old_idx, new_idx;
++	struct pfn_pool *pool;
++	int idx;
+ 
+ 	do {
+-		old_idx = atomic_read(&early_pfn_count);
+-		if (old_idx >= EARLY_ALLOC_PFN_MAX) {
+-			pr_warn_once("Early page allocations before page_ext init exceeded EARLY_ALLOC_PFN_MAX (%d)\n",
+-				      EARLY_ALLOC_PFN_MAX);
+-			return;
++		pool = READ_ONCE(current_pfn_pool);
++		if (!pool || atomic_read(&pool->count) >= PFN_POOL_SIZE) {
++			gfp_t gfp = gfp_flags & ~(__GFP_DIRECT_RECLAIM | GFP_ZONEMASK);
++			struct page *new_page = alloc_page(gfp | __GFP_NO_CODETAG);
++			struct pfn_pool *new;
++
++			if (!new_page) {
++				pr_warn_once("early PFN tracking page allocation failed\n");
++				return;
++			}
++			new = page_address(new_page);
++			new->next = pool;
++			atomic_set(&new->count, 0);
++			if (cmpxchg(&current_pfn_pool, pool, new) != pool) {
++				clear_page_tag_ref(new_page);
++				__free_page(new_page);
++				continue;
++			}
++			pool = new;
+ 		}
+-		new_idx = old_idx + 1;
+-	} while (!atomic_try_cmpxchg(&early_pfn_count, &old_idx, new_idx));
++		idx = atomic_read(&pool->count);
++		if (idx >= PFN_POOL_SIZE)
++			continue;
++		if (atomic_cmpxchg(&pool->count, idx, idx + 1) == idx)
++			break;
++	} while (1);
+ 
+-	early_pfns[old_idx] = pfn;
++	pool->pfns[idx] = pfn;
+ }
+ 
+-typedef void alloc_tag_add_func(unsigned long pfn);
++typedef void alloc_tag_add_func(unsigned long pfn, gfp_t gfp_flags);
+ static alloc_tag_add_func __rcu *alloc_tag_add_early_pfn_ptr __refdata =
+ 	RCU_INITIALIZER(__alloc_tag_add_early_pfn);
+ 
+-void alloc_tag_add_early_pfn(unsigned long pfn)
++void alloc_tag_add_early_pfn(unsigned long pfn, gfp_t gfp_flags)
+ {
+ 	alloc_tag_add_func *alloc_tag_add;
+ 
+ 	if (static_key_enabled(&mem_profiling_compressed))
+ 		return;
+ 
++	/* Skip allocations for the tracking list itself to avoid recursion. */
++	if (gfp_flags & __GFP_NO_CODETAG)
++		return;
++
+ 	rcu_read_lock();
+ 	alloc_tag_add = rcu_dereference(alloc_tag_add_early_pfn_ptr);
+ 	if (alloc_tag_add)
+-		alloc_tag_add(pfn);
++		alloc_tag_add(pfn, gfp_flags);
+ 	rcu_read_unlock();
+ }
+ 
+ static void __init clear_early_alloc_pfn_tag_refs(void)
+ {
+-	unsigned int i;
++	struct pfn_pool *pool, *next;
++	struct page *page;
++	int i;
+ 
+ 	if (static_key_enabled(&mem_profiling_compressed))
+ 		return;
+@@ -832,37 +867,45 @@ static void __init clear_early_alloc_pfn
+ 	/* Make sure we are not racing with __alloc_tag_add_early_pfn() */
+ 	synchronize_rcu();
+ 
+-	for (i = 0; i < atomic_read(&early_pfn_count); i++) {
+-		unsigned long pfn = early_pfns[i];
++	for (pool = current_pfn_pool; pool; pool = next) {
++		int nr_pfns = atomic_read(&pool->count);
++
++		for (i = 0; i < nr_pfns; i++) {
++			unsigned long pfn = pool->pfns[i];
+ 
+-		if (pfn_valid(pfn)) {
+-			struct page *page = pfn_to_page(pfn);
+-			union pgtag_ref_handle handle;
+-			union codetag_ref ref;
+-
+-			if (get_page_tag_ref(page, &ref, &handle)) {
+-				/*
+-				 * An early-allocated page could be freed and reallocated
+-				 * after its page_ext is initialized but before we clear it.
+-				 * In that case, it already has a valid tag set.
+-				 * We should not overwrite that valid tag with CODETAG_EMPTY.
+-				 *
+-				 * Note: there is still a small race window between checking
+-				 * ref.ct and calling set_codetag_empty(). We accept this
+-				 * race as it's unlikely and the extra complexity of atomic
+-				 * cmpxchg is not worth it for this debug-only code path.
+-				 */
+-				if (ref.ct) {
++			if (pfn_valid(pfn)) {
++				union pgtag_ref_handle handle;
++				union codetag_ref ref;
++
++				if (get_page_tag_ref(pfn_to_page(pfn), &ref, &handle)) {
++					/*
++					 * An early-allocated page could be freed and reallocated
++					 * after its page_ext is initialized but before we clear it.
++					 * In that case, it already has a valid tag set.
++					 * We should not overwrite that valid tag
++					 * with CODETAG_EMPTY.
++					 *
++					 * Note: there is still a small race window between checking
++					 * ref.ct and calling set_codetag_empty(). We accept this
++					 * race as it's unlikely and the extra complexity of atomic
++					 * cmpxchg is not worth it for this debug-only code path.
++					 */
++					if (ref.ct) {
++						put_page_tag_ref(handle);
++						continue;
++					}
++
++					set_codetag_empty(&ref);
++					update_page_tag_ref(handle, &ref);
+ 					put_page_tag_ref(handle);
+-					continue;
+ 				}
+-
+-				set_codetag_empty(&ref);
+-				update_page_tag_ref(handle, &ref);
+-				put_page_tag_ref(handle);
+ 			}
+ 		}
+ 
++		next = pool->next;
++		page = virt_to_page(pool);
++		clear_page_tag_ref(page);
++		__free_page(page);
  	}
+ }
+ #else /* !CONFIG_MEM_ALLOC_PROFILING_DEBUG */
+--- a/mm/page_alloc.c~mm-alloc_tag-replace-fixed-size-early-pfn-array-with-dynamic-linked-list
++++ a/mm/page_alloc.c
+@@ -1246,7 +1246,7 @@ void __clear_page_tag_ref(struct page *p
+ /* Should be called only if mem_alloc_profiling_enabled() */
+ static noinline
+ void __pgalloc_tag_add(struct page *page, struct task_struct *task,
+-		       unsigned int nr)
++		       unsigned int nr, gfp_t gfp_flags)
+ {
+ 	union pgtag_ref_handle handle;
+ 	union codetag_ref ref;
+@@ -1260,17 +1260,17 @@ void __pgalloc_tag_add(struct page *page
+ 		 * page_ext is not available yet, record the pfn so we can
+ 		 * clear the tag ref later when page_ext is initialized.
+ 		 */
+-		alloc_tag_add_early_pfn(page_to_pfn(page));
++		alloc_tag_add_early_pfn(page_to_pfn(page), gfp_flags);
+ 		if (task->alloc_tag)
+ 			alloc_tag_set_inaccurate(task->alloc_tag);
+ 	}
+ }
  
--	seq_puts(s, "\n");
--	seq_printf(s, " %5s %5s ", "Total", "");
-+	seq_printf(s, "\n %5s %5s ", "Total", "");
+ static inline void pgalloc_tag_add(struct page *page, struct task_struct *task,
+-				   unsigned int nr)
++				   unsigned int nr, gfp_t gfp_flags)
+ {
+ 	if (mem_alloc_profiling_enabled())
+-		__pgalloc_tag_add(page, task, nr);
++		__pgalloc_tag_add(page, task, nr, gfp_flags);
+ }
  
- 	for (fg = ZS_INUSE_RATIO_10; fg < NR_FULLNESS_GROUPS; fg++)
- 		seq_printf(s, "%9lu ", inuse_totals[fg]);
+ /* Should be called only if mem_alloc_profiling_enabled() */
+@@ -1303,7 +1303,7 @@ static inline void pgalloc_tag_sub_pages
+ #else /* CONFIG_MEM_ALLOC_PROFILING */
+ 
+ static inline void pgalloc_tag_add(struct page *page, struct task_struct *task,
+-				   unsigned int nr) {}
++				   unsigned int nr, gfp_t gfp_flags) {}
+ static inline void pgalloc_tag_sub(struct page *page, unsigned int nr) {}
+ static inline void pgalloc_tag_sub_pages(struct alloc_tag *tag, unsigned int nr) {}
+ 
+@@ -1858,7 +1858,7 @@ inline void post_alloc_hook(struct page
+ 
+ 	set_page_owner(page, order, gfp_flags);
+ 	page_table_check_alloc(page, order);
+-	pgalloc_tag_add(page, current, 1 << order);
++	pgalloc_tag_add(page, current, 1 << order, gfp_flags);
+ }
+ 
+ static void prep_new_page(struct page *page, unsigned int order, gfp_t gfp_flags,
 _
 
-Patches currently in -mm which might be from elfring@users.sourceforge.net are
+Patches currently in -mm which might be from hao.ge@linux.dev are
 
-zsmalloc-simplify-data-output-in-zs_stats_size_show.patch
+lib-test_hmm-fix-memory-leak-in-dmirror_migrate_to_system.patch
+alloc_tag-fix-use-after-free-in-proc-allocinfo-after-module-unload.patch
 
