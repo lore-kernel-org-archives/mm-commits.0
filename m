@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C2A473BBFAE;
-	Thu,  4 Jun 2026 21:50:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D4CC13BBFA2
+	for <mm-commits@vger.kernel.org>; Thu,  4 Jun 2026 21:50:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780609807; cv=none; b=fyxSEeaTVRJux9izDAdgW72yawq0zQ5uMJDp/NtdN2lK7XLMou5tSjMGy1sNsW/nbJSihYn9ytTVr53SEhftI/WuoR19KyBwgz1NKgsJjSLre9WAAo9TRxC0MGNpEGNiIzUZRO5qE6x7+RQwJyqZqQiok34RjwdG5GxX6vCSx9U=
+	t=1780609808; cv=none; b=Wx1eJLHmlWJj/57zsY40DfSJL755g+wqa1EiNimCc12+Upmg6H8BIInOsxCZwycXilKK4/DFzELxUrBue5Ri/yu8/hNmzC0Ith2mq1gv3Uw5ZJWLHmqR1WlgKePBhZTAwkjpPa2TCe5cy2zCrTqc3DA0zLWxBNwvZBWcLw86x5Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780609807; c=relaxed/simple;
-	bh=TNpx1K+htCo65MhO9MAiEw/miRDUqg+JFNOrYMY+D1M=;
-	h=Date:To:From:Subject:Message-Id; b=iljEph4fGY3X2sirkgdJDDi+FpT2euo8aZB4cFYfwb+0OhBYTKcZL9cNud8U8GLPa8szfzoQb9jhTn+r87Xv60Ge08wERX5yX2fki2prt3R1aK3lxUZEr+M6x6hMAieWkuUwShDnyiokeZhQYkbnsuFiQ74vP8wQrn5AEaG1XXk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZcFExjFA; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1780609808; c=relaxed/simple;
+	bh=C4uaXdIIlUFALPdhFizH+AcmJud+whI5BcFoz9i8d94=;
+	h=Date:To:From:Subject:Message-Id; b=q5qJj9jBhP1Vfj0U4XEO6oyLKAPIMyO9i4zBzZSYM5uM2ilv/hMWSyAVcbadAEd62Il6JGDPV11y9ead/yVXf5oyG5ZgYgOGzPUziy7DmlKdKBSPDKoCyY1D6b/h1gzb3ZOOm/r32rJn+sp0xKmaaGSJGE+3kVsfNQi6LuHmmaE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=L7CP0Fyg; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZcFExjFA"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 677E21F00899;
-	Thu,  4 Jun 2026 21:50:05 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="L7CP0Fyg"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A8AA21F00893;
+	Thu,  4 Jun 2026 21:50:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1780609805;
-	bh=YaCYfNZizf4cVK0y0X2yY9szdjscwASYS6s4Xh/n8bw=;
+	d=linux-foundation.org; s=korg; t=1780609806;
+	bh=DnrYqwg7SMEcDaZVSnBVqvA5fs5ndt1qtvzHlshAEJc=;
 	h=Date:To:From:Subject;
-	b=ZcFExjFAa+WnNEBErkylhqZv6axXXqUOY3kQfkugiuRVAftpZUEVJ//J9r93er20z
-	 4K7H38c7zexoS4OyDSkDCOJtNfjetPCgFRf0ZKm9kmr7NE73oBMD1IJpSMW4MzqOLF
-	 OUdh+0wuc84VfhOGhMX9jyXn7UV0z0aJgb5FPmgE=
-Date: Thu, 04 Jun 2026 14:50:05 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,heming.zhao@suse.com,gechangwei@live.cn,rollkingzzc@gmail.com,akpm@linux-foundation.org
+	b=L7CP0FygrcZJN7c2DG+2zAs47TSDTRyRi1kvuJkJ4jXuStVyhSgrUcRGUYg43S1RY
+	 /fw+c6M3pPpmvswyyBgkjncj1RY/gXhxEc4LfJRDW7ciPFbpEDsYQpGsBE2x+YwOtf
+	 xGSCChKFfx3j+GZA3CQtSKpeLqtRB0yOA738TOo4=
+Date: Thu, 04 Jun 2026 14:50:06 -0700
+To: mm-commits@vger.kernel.org,song@kernel.org,linan122@huawei.com,hch@lst.de,hch@infradead.org,hare@kernel.org,rppt@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] ocfs2-reject-oversized-group-bitmap-descriptors.patch removed from -mm tree
-Message-Id: <20260604215005.677E21F00899@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] xor-use-kmalloc-in-calibrate_xor_blocks.patch removed from -mm tree
+Message-Id: <20260604215006.A8AA21F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,139 +35,155 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: ocfs2: reject oversized group bitmap descriptors
+     Subject: xor: use kmalloc() in calibrate_xor_blocks()
 has been removed from the -mm tree.  Its filename was
-     ocfs2-reject-oversized-group-bitmap-descriptors.patch
+     xor-use-kmalloc-in-calibrate_xor_blocks.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Zhang Cen <rollkingzzc@gmail.com>
-Subject: ocfs2: reject oversized group bitmap descriptors
-Date: Sun, 24 May 2026 19:12:48 +0800
+From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
+Subject: xor: use kmalloc() in calibrate_xor_blocks()
+Date: Thu, 28 May 2026 12:53:00 +0300
 
-ocfs2_validate_gd_parent() only bounds bg_bits against the parent
-allocator's chain geometry.  A malicious descriptor can still claim a
-bg_size/bg_bits pair that exceeds the bitmap bytes that physically fit in
-the group descriptor block, so later bitmap scans and bit updates can run
-past bg_bitmap.
+Patch series "lib/raid: replace __get_free_pages() call with kmalloc()", v4.
 
-Add a physical-cap check based on ocfs2_group_bitmap_size() for the parent
-allocator type and reject descriptors whose bg_size or bg_bits exceed that
-capacity.  Keep the existing chain geometry check so both the on-disk
-bitmap layout and the allocator metadata must agree before the descriptor
-is used.
+The xor benchmark allocates 4 pages for a scratch buffer that is used
+purely as a CPU-only XOR working area.
 
-Validation reproduced this kernel report:
-KASAN use-after-free in _find_next_bit+0x7f/0xc0
-Read of size 8
-Call trace:
-  dump_stack_lvl+0x66/0xa0 (?:?)
-  print_report+0xd0/0x630 (?:?)
-  _find_next_bit+0x7f/0xc0 (?:?)
-  srso_alias_return_thunk+0x5/0xfbef5 (?:?)
-  __virt_addr_valid+0x188/0x2f0 (?:?)
-  kasan_report+0xe4/0x120 (?:?)
-  ocfs2_find_max_contig_free_bits+0x35/0x70 (fs/ocfs2/suballoc.c:1375)
-  ocfs2_block_group_set_bits+0x472/0x4b0 (fs/ocfs2/suballoc.c:1457)
-  ocfs2_cluster_group_search+0x16b/0x440 (fs/ocfs2/suballoc.c:86)
-  ocfs2_bg_discontig_fix_result+0x1ef/0x230 (fs/ocfs2/suballoc.c:1786)
-  ocfs2_search_chain+0x8f8/0x10a0 (fs/ocfs2/suballoc.c:1886)
-  get_page_from_freelist+0x70e/0x2370 (?:?)
-  lock_release+0xc6/0x290 (?:?)
-  do_raw_spin_unlock+0x9a/0x100 (?:?)
-  kasan_unpoison+0x27/0x60 (?:?)
-  __bfs+0x147/0x240 (?:?)
-  get_page_from_freelist+0x83d/0x2370 (?:?)
-  ocfs2_claim_suballoc_bits+0x38c/0xe70 (fs/ocfs2/suballoc.c:96)
-  sched_domains_numa_masks_clear+0x70/0xd0 (?:?)
-  check_irq_usage+0xe8/0xb70 (?:?)
-  __ocfs2_claim_clusters+0x18d/0x4c0 (fs/ocfs2/suballoc.c:2497)
-  check_path+0x24/0x50 (?:?)
-  rcu_is_watching+0x20/0x50 (?:?)
-  check_prev_add+0xfd/0xd00 (?:?)
-  ocfs2_add_clusters_in_btree+0x17d/0x810 (fs/ocfs2/suballoc.c:?)
-  __folio_batch_add_and_move+0x1f5/0x3d0 (?:?)
-  ocfs2_add_inode_data+0xd9/0x120 (fs/ocfs2/suballoc.c:?)
-  filemap_add_folio+0x105/0x1f0 (?:?)
-  ocfs2_write_begin_nolock+0x29f7/0x2f80 (fs/ocfs2/suballoc.c:3043)
-  ocfs2_read_inode_block+0xb5/0x110 (fs/ocfs2/suballoc.c:?)
-  down_write+0xf5/0x180 (?:?)
-  ocfs2_write_begin+0x180/0x240 (fs/ocfs2/suballoc.c:?)
-  __mark_inode_dirty+0x758/0x9a0 (?:?)
-  inode_to_bdi+0x41/0x90 (?:?)
-  balance_dirty_pages_ratelimited_flags+0xf8/0x1d0 (?:?)
-  generic_perform_write+0x252/0x440 (?:?)
-  mnt_put_write_access_file+0x16/0x70 (?:?)
-  file_update_time_flags+0xe4/0x200 (?:?)
-  ocfs2_file_write_iter+0x80a/0x1320 (fs/ocfs2/suballoc.c:?)
-  lock_acquire+0x184/0x2f0 (?:?)
-  ksys_write+0xd2/0x170 (?:?)
-  apparmor_file_permission+0xf5/0x310 (?:?)
-  read_zero+0x8d/0x140 (?:?)
-  lock_is_held_type+0x8f/0x100 (?:?)
+This buffer can be allocated with kmalloc() as there's nothing special
+about it to go directly to the page allocator.
 
-Link: https://lore.kernel.org/20260524111248.1429884-1-rollkingzzc@gmail.com
-Fixes: ccd979bdbce9 ("[PATCH] OCFS2: The Second Oracle Cluster Filesystem")
-Assisted-by: Codex:gpt-5.5
-Signed-off-by: Zhang Cen <rollkingzzc@gmail.com>
-Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Jun Piao <piaojun@huawei.com>
-Cc: Heming Zhao <heming.zhao@suse.com>
-Cc: <stable@vger.kernel.org>
+kmalloc() provides a better API than ancient __get_free_pages(). 
+kmalloc() does not require ugly casts and kfree() does not need to know
+the size of the freed object.
+
+There is no performance difference because kmalloc() redirects allocations
+of such size to the page allocator.
+
+Replace __get_free_pages() call with kmalloc().
+
+
+This patch (of 2):
+
+The xor benchmark allocates 4 pages for a scratch buffer that is used
+purely as a CPU-only XOR working area.
+
+This buffer can be allocated with kmalloc() as there's nothing special
+about it to go directly to the page allocator.
+
+kmalloc() provides a better API than ancient __get_free_pages().
+kmalloc() does not require ugly casts and kfree() does not need to know the
+size of the freed object.
+
+There is no performance difference because kmalloc() redirects allocations
+of such size to the page allocator.
+
+Replace __get_free_pages() call with kmalloc().
+
+Link: https://lore.kernel.org/20260528-lib-v4-0-4e3ad1277279@kernel.org
+Link: https://lore.kernel.org/all/635405e4-9423-4a25-a6e7-e03c8ea0bcbe@redhat.com
+Link: https://lore.kernel.org/all/635405e4-9423-4a25-a6e7-e03c8ea0bcbe@redhat.com
+Link: https://lore.kernel.org/20260528-lib-v4-1-4e3ad1277279@kernel.org
+Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Reviewed-by: Hannes Reinecke <hare@kernel.org>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Li Nan <linan122@huawei.com>
+Cc: Song Liu <song@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/suballoc.c |   22 ++++++++++++++++++++++
- 1 file changed, 22 insertions(+)
+ lib/raid/xor/xor-core.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
---- a/fs/ocfs2/suballoc.c~ocfs2-reject-oversized-group-bitmap-descriptors
-+++ a/fs/ocfs2/suballoc.c
-@@ -231,8 +231,16 @@ static int ocfs2_validate_gd_parent(stru
- 				    int resize)
- {
- 	unsigned int max_bits;
-+	unsigned int max_bitmap_bits;
-+	unsigned int max_bitmap_size;
-+	int suballocator;
- 	struct ocfs2_group_desc *gd = (struct ocfs2_group_desc *)bh->b_data;
+--- a/lib/raid/xor/xor-core.c~xor-use-kmalloc-in-calibrate_xor_blocks
++++ a/lib/raid/xor/xor-core.c
+@@ -8,6 +8,7 @@
  
-+	suballocator = le64_to_cpu(di->i_blkno) != OCFS2_SB(sb)->bitmap_blkno;
-+	max_bitmap_size = ocfs2_group_bitmap_size(sb, suballocator,
-+						  OCFS2_SB(sb)->s_feature_incompat);
-+	max_bitmap_bits = max_bitmap_size * 8;
-+
- 	if (di->i_blkno != gd->bg_parent_dinode) {
- 		do_error("Group descriptor #%llu has bad parent pointer (%llu, expected %llu)\n",
- 			 (unsigned long long)bh->b_blocknr,
-@@ -240,6 +248,20 @@ static int ocfs2_validate_gd_parent(stru
- 			 (unsigned long long)le64_to_cpu(di->i_blkno));
- 	}
+ #include <linux/module.h>
+ #include <linux/gfp.h>
++#include <linux/slab.h>
+ #include <linux/raid/xor.h>
+ #include <linux/jiffies.h>
+ #include <linux/preempt.h>
+@@ -114,7 +115,7 @@ static int __init calibrate_xor_blocks(v
+ 	if (forced_template)
+ 		return 0;
  
-+	if (le16_to_cpu(gd->bg_size) > max_bitmap_size) {
-+		do_error("Group descriptor #%llu has bitmap size %u but physical max of %u\n",
-+			 (unsigned long long)bh->b_blocknr,
-+			 le16_to_cpu(gd->bg_size),
-+			 max_bitmap_size);
-+	}
-+
-+	if (le16_to_cpu(gd->bg_bits) > max_bitmap_bits) {
-+		do_error("Group descriptor #%llu has bit count %u but physical max of %u\n",
-+			 (unsigned long long)bh->b_blocknr,
-+			 le16_to_cpu(gd->bg_bits),
-+			 max_bitmap_bits);
-+	}
-+
- 	max_bits = le16_to_cpu(di->id2.i_chain.cl_cpg) * le16_to_cpu(di->id2.i_chain.cl_bpc);
- 	if (le16_to_cpu(gd->bg_bits) > max_bits) {
- 		do_error("Group descriptor #%llu has bit count of %u\n",
+-	b1 = (void *) __get_free_pages(GFP_KERNEL, 2);
++	b1 = kmalloc(PAGE_SIZE * 4, GFP_KERNEL);
+ 	if (!b1) {
+ 		pr_warn("xor: Yikes!  No memory available.\n");
+ 		return -ENOMEM;
+@@ -132,7 +133,7 @@ static int __init calibrate_xor_blocks(v
+ 	pr_info("xor: using function: %s (%d MB/sec)\n",
+ 	       fastest->name, fastest->speed);
+ 
+-	free_pages((unsigned long)b1, 2);
++	kfree(b1);
+ 	return 0;
+ }
+ 
 _
 
-Patches currently in -mm which might be from rollkingzzc@gmail.com are
+Patches currently in -mm which might be from rppt@kernel.org are
 
+selftests-mm-hugetlb-read-hwpoison-add-sigbus-handler.patch
+selftests-mm-migration-dont-assume-huge-page-is-twomeg.patch
+selftests-mm-migration-make-nthreads-represent-number-of-working-threads.patch
+selftests-mm-migration-properly-cleanup-forked-processes.patch
+selftests-mm-run_vmtestssh-dont-gate-thp-and-ksm-tests-on-have_hugepages.patch
+selftests-mm-merge-map_hugetlb-into-hugepage-mmap.patch
+selftests-mm-rename-hugepage-tests-to-hugetlb.patch
+selftests-mm-hugetlb-shm-use-kselftest-framework.patch
+selftests-mm-hugetlb-vmemmap-use-kselftest-framework.patch
+selftests-mm-hugetlb-madvise-use-kselftest-framework.patch
+selftests-mm-hugetlb_madv_vs_map-use-kselftest-framework.patch
+selftests-mm-hugetlb-read-hwpoison-use-kselftest-framework.patch
+selftests-mm-khugepaged-group-tests-in-an-array.patch
+selftests-mm-khugepaged-use-ksefltest-framework.patch
+selftests-mm-khugepaged-use-ksefltest-framework-fix.patch
+selftests-mm-ksm_tests-use-kselftest-framework.patch
+selftests-mm-protection_keys-use-descriptive-test-names-in-the-output.patch
+selftests-mm-protection_keys-use-kselftest-framework.patch
+selftests-mm-uffd-common-use-kselftest-framework.patch
+selftests-mm-uffd-stress-use-kselftest-framework.patch
+selftests-mm-uffd-unit-tests-use-kselftest-framework.patch
+selftests-mm-va_high_addr_switch-use-kselftest-framework.patch
+selftests-mm-add-atexit-and-signal-handlers-to-thp_settings.patch
+selftests-mm-rename-thp_settings-to-hugepage_settings.patch
+selftests-mm-move-hugetlb-helpers-to-hugepage_settings.patch
+selftests-mm-hugepage_settings-use-unsigned-long-in-detect_hugetlb_page_size.patch
+selftests-mm-hugepage_settings-add-apis-to-get-and-set-nr_hugepages.patch
+selftests-mm-hugepage_settings-rename-and-rework-get_free_hugepages.patch
+selftests-mm-hugepage_settings-add-apis-for-hugetlb-setup-and-teardown.patch
+selftests-mm-move-read_file-read_num-and-write_num-to-vm_util.patch
+selftests-mm-vm_util-add-helpers-to-set-and-restore-shm-limits.patch
+selftests-mm-compaction_test-use-hugetlb-helpers.patch
+selftests-mm-cow-add-setup-of-hugetlb-pages.patch
+selftests-mm-gup_longterm-add-setup-of-hugetlb-pages.patch
+selftests-mm-gup_test-add-setup-of-hugetlb-pages.patch
+selftests-mm-hmm-tests-add-setup-of-hugetlb-pages.patch
+selftests-mm-hugepage_dio-add-setup-of-hugetlb-pages.patch
+selftests-mm-hugetlb_fault_after_madv-add-setup-of-hugetlb-pages.patch
+selftests-mm-hugetlb-madvise-add-setup-of-hugetlb-pages.patch
+selftests-mm-hugetlb_madv_vs_map-add-setup-of-hugetlb-pages.patch
+selftests-mm-hugetlb-mmap-add-setup-of-hugetlb-pages.patch
+selftests-mm-hugetlb-mremap-add-setup-of-hugetlb-pages.patch
+selftests-mm-hugetlb-shm-add-setup-of-hugetlb-pages.patch
+selftests-mm-hugetlb-soft-offline-add-setup-of-hugetlb-pages.patch
+selftests-mm-hugetlb-vmemmap-add-setup-of-hugetlb-pages.patch
+selftests-mm-migration-add-setup-of-hugetlb-pages.patch
+selftests-mm-pagemap_ioctl-add-setup-of-hugetlb-pages.patch
+selftests-mm-protection_keys-use-library-code-for-hugetlb-setup.patch
+selftests-mm-thuge-gen-add-setup-of-hugetlb-pages.patch
+selftests-mm-uffd-stress-use-hugetlb_save-and-alloc-huge-pages.patch
+selftests-mm-uffd-unit-tests-add-setup-of-hugetlb-pages.patch
+selftests-mm-uffd-wp-mremap-add-setup-of-hugetlb-pages.patch
+selftests-mm-va_high_addr_switch-add-setup-of-hugetlb-pages.patch
+selftests-mm-va_high_addr_switchsh-drop-huge-pages-setup.patch
+selftests-mm-run_vmtestssh-free-memory-if-available-memory-is-low.patch
+selftests-mm-run_vmtestssh-drop-detection-and-setup-of-hugetlb.patch
 
