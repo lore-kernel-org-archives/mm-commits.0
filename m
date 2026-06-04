@@ -1,114 +1,138 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9C1B14DC551;
-	Wed,  3 Jun 2026 23:26:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1C0DB19539F;
+	Thu,  4 Jun 2026 01:19:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780529195; cv=none; b=umJHEz2i2om9CQpQ/IaUnb046MzQcVAzD5hQllVPGfEUpNS63RDjPhn23Gqa8Rii/MlZzEU5iyilY8ZA/NVezbUZ5JkBPtpqxDfJ8AoUyNSzymUohr+swLs61q9N9mAxc4Es9YAhAllp5tEmtL5Ufl4vdePU/4gLvvMxfP+V4Wk=
+	t=1780535967; cv=none; b=pjSqA5AXLgaBZyzwHBiOYUlB89ZHxoVhysSmFVrbjhK0ILGFzhwqrlTZorQEGDFdlK173XTWg2nXeh7jh4FD66jtO2zcxnnTq5lp95PmSZHj8kXEjTkzqeG33n8o8SyiaKJY04AKW9Wr3uzz3ND89Zf+R0NXkGB7M9ZUGbj91vQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780529195; c=relaxed/simple;
-	bh=9RMrajPBRgMjN5Ny4+hK0lvwl7xY3jyaIHsa2Dv9/UU=;
-	h=Date:To:From:Subject:Message-Id; b=M7YlBCUn1WGYuSdzEgvnDtOCm+52MrePsOGlwGmGBgdU49NKqWfdScK0aG1O45rav5+n+URe903oimEZqMlFEaC5a9sYTls4FtqLMoA3iQQbKDS74yyWCgMQCWjvcxxJWyaGIAAGrX/1gazFVB6c3cRVWtN7xzODN4A/GadXGlk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CpX3ucDy; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1780535967; c=relaxed/simple;
+	bh=1WwmzN29ORLbTFjtCM9yLOjbWCGZTYTvPIh2Ofj0H74=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=ggmoRX7GBZppAy9xqzVxlWkNNTj3c3+KfTDLmQbyK4BuiFBdes64E6NjIClkrk6ad//wIB1hIBtHXEWtnYrKS5BPAZE8xgIDxB/r1IrQCfMN1Cz53c+cRTe/2XpSbhNJQPCrCxRoIEQ9Rv/ZUqQnwD2UG/KzCHsRPe1a7gNrtrs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=N5XsDUv2; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CpX3ucDy"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3CCCA1F00898;
-	Wed,  3 Jun 2026 23:26:34 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1780529194;
-	bh=pr8BqlPbv62/bT+dYsH4Zg/A66Ca3ZwPzLMvc4a36O4=;
-	h=Date:To:From:Subject;
-	b=CpX3ucDyH4MaHw/eb5XSdfxsDFipiQT1omV/DwijgbywDuBj0oUe0YwcMvls87eME
-	 oq7ZWw2N5KUx33cnRB7MQFv37N+9p6RiLMGlZp/w9O+KCtlAnWhobDDQrYYe1RtXzA
-	 ogV3bWPAZlVe6vm0EVSIi+I8+UY4bzNtBQczxnbQ=
-Date: Wed, 03 Jun 2026 16:26:33 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,stable@vger.kernel.org,shakeel.butt@linux.dev,riel@surriel.com,pfalcato@suse.de,ljs@kernel.org,liam@infradead.org,kasong@tencent.com,jannh@google.com,hannes@cmpxchg.org,chrisl@kernel.org,baoquan.he@linux.dev,usama.arif@linux.dev,akpm@linux-foundation.org
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-mincore-handle-non-swap-entries-before-config_swap-guard.patch removed from -mm tree
-Message-Id: <20260603232634.3CCCA1F00898@smtp.kernel.org>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="N5XsDUv2"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3DCE51F00893;
+	Thu,  4 Jun 2026 01:19:24 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1780535966;
+	bh=OC2aLlOHe9nbxKbN6iiUmt49s8yh8/9Q9SdTr4G6ru4=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=N5XsDUv2Kw9VML6g5U88DT7ZNzkDdXLZ3aiuBI5+XlksR3H0zkVI7T6i8FI+L7i1N
+	 kDM2b5yqi90rQ99EaQJI3g8XegeKFyG5usithsAxx7AJfs54vfFl2Toklmzv0xqVxQ
+	 FTJRYaWolql9UZgyPe0VbRkbDzj/LWeVSGBTMUfSa/Z2ncObNAnZECsbhjZ88aHKUh
+	 zoWhcSajOOzMGd7Z5+eTsK4lG6DNI4NbSm5f/TqZ5C62gqAvBmZdkL++TMWylww2kp
+	 oK/lABLtuRocYBIaoGFT0j3HDDmMfZuru5jrSJKkeoH+rZjQzy9aJpkzOrZFptM+CL
+	 J9pcdu5QNZbAQ==
+Date: Wed, 3 Jun 2026 18:19:21 -0700
+From: Nathan Chancellor <nathan@kernel.org>
+To: Mike Rapoport <rppt@kernel.org>
+Cc: kernel test robot <lkp@intel.com>, oe-kbuild-all@lists.linux.dev,
+	David Hildenbrand <david@kernel.org>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Linux Memory Management List <linux-mm@kvack.org>,
+	mm-commits@vger.kernel.org,
+	"Christian Brauner (Amutable)" <brauner@kernel.org>
+Subject: Re: [akpm-mm:mm-unstable 274/423] mm/userfaultfd.c:4475:1: warning:
+ alias and aliasee have different types 'long (ulong, ulong, ulong, ulong,
+ ulong, ulong, ulong)' (aka 'long (unsigned long, unsigned long, unsigned
+ long, unsigned long, unsigned long, unsigned long, unsigned long)') and
+ 'l...
+Message-ID: <20260604011921.GA1329739@ax162>
+References: <202606031038.1aPfmoCm-lkp@intel.com>
+ <ah_BbB_BnjnNh85i@kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <ah_BbB_BnjnNh85i@kernel.org>
 
+On Wed, Jun 03, 2026 at 08:53:48AM +0300, Mike Rapoport wrote:
+> (adding Nathan)
+> 
+> On Wed, Jun 03, 2026 at 10:29:32AM +0800, kernel test robot wrote:
+> > tree:   https://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm.git mm-unstable
+> > head:   6bb9014e347a15dfa837cbc52451035466d86ddf
+> > commit: 53313230f720eaaf9f1f6d20faafd7e01a9e09b7 [274/423] userfaultfd: merge fs/userfaultfd.c into mm/userfaultfd.c
+> > config: riscv-randconfig-r122-20260529 (https://download.01.org/0day-ci/archive/20260603/202606031038.1aPfmoCm-lkp@intel.com/config)
+> > compiler: clang version 23.0.0git (https://github.com/llvm/llvm-project 9409c07de6378507397ecdb6f05f628f58110112)
+> > sparse: v0.6.5-rc1
+> > reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20260603/202606031038.1aPfmoCm-lkp@intel.com/reproduce)
+> > 
+> > If you fix the issue in a separate patch/commit (i.e. not just a new version of
+> > the same patch/commit), kindly add following tags
+> > | Reported-by: kernel test robot <lkp@intel.com>
+> > | Closes: https://lore.kernel.org/oe-kbuild-all/202606031038.1aPfmoCm-lkp@intel.com/
+> > 
+> > All warnings (new ones prefixed by >>):
+> 
+> Looks the same as https://lore.kernel.org/all/20260528164552.GB1342076@ax162
+> Nathan said it's a compiler issue.
 
-The quilt patch titled
-     Subject: mm/mincore: handle non-swap entries before !CONFIG_SWAP guard
-has been removed from the -mm tree.  Its filename was
-     mm-mincore-handle-non-swap-entries-before-config_swap-guard.patch
+Indeed, this should be resolved in Linus's tree with
 
-This patch was dropped because it was merged into the mm-hotfixes-stable branch
-of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+  175db11786bd ("Disable -Wattribute-alias for clang-23 and newer")
 
-------------------------------------------------------
-From: Usama Arif <usama.arif@linux.dev>
-Subject: mm/mincore: handle non-swap entries before !CONFIG_SWAP guard
-Date: Tue, 2 Jun 2026 10:22:47 -0700
+> > >> mm/userfaultfd.c:4475:1: warning: alias and aliasee have different types 'long (ulong, ulong, ulong, ulong, ulong, ulong, ulong)' (aka 'long (unsigned long, unsigned long, unsigned long, unsigned long, unsigned long, unsigned long, unsigned long)') and 'long (typeof (__builtin_choose_expr((__builtin_types_compatible_p(typeof ((int)0), typeof (0LL)) || __builtin_types_compatible_p(typeof ((int)0), typeof (0ULL))), 0LL, 0L)))' (aka 'long (long)') [-Wattribute-alias]
+> >     4475 | SYSCALL_DEFINE1(userfaultfd, int, flags)
+> >          | ^
+> >    include/linux/syscalls.h:225:36: note: expanded from macro 'SYSCALL_DEFINE1'
+> >      225 | #define SYSCALL_DEFINE1(name, ...) SYSCALL_DEFINEx(1, _##name, __VA_ARGS__)
+> >          |                                    ^
+> >    include/linux/syscalls.h:236:2: note: expanded from macro 'SYSCALL_DEFINEx'
+> >      236 |         __SYSCALL_DEFINEx(x, sname, __VA_ARGS__)
+> >          |         ^
+> >    arch/riscv/include/asm/syscall_wrapper.h:82:2: note: expanded from macro '__SYSCALL_DEFINEx'
+> >       82 |         __SYSCALL_SE_DEFINEx(x, sys, name, __VA_ARGS__)                         \
+> >          |         ^
+> >    arch/riscv/include/asm/syscall_wrapper.h:37:19: note: expanded from macro '__SYSCALL_SE_DEFINEx'
+> >       37 |                         __attribute__((alias(__stringify(___se_##prefix##name))));      \
+> >          |                                        ^
+> >    mm/userfaultfd.c:4475:1: note: aliasee is declared here
+> >    include/linux/syscalls.h:225:36: note: expanded from macro 'SYSCALL_DEFINE1'
+> >      225 | #define SYSCALL_DEFINE1(name, ...) SYSCALL_DEFINEx(1, _##name, __VA_ARGS__)
+> >          |                                    ^
+> >    include/linux/syscalls.h:236:2: note: expanded from macro 'SYSCALL_DEFINEx'
+> >      236 |         __SYSCALL_DEFINEx(x, sname, __VA_ARGS__)
+> >          |         ^
+> >    arch/riscv/include/asm/syscall_wrapper.h:82:2: note: expanded from macro '__SYSCALL_DEFINEx'
+> >       82 |         __SYSCALL_SE_DEFINEx(x, sys, name, __VA_ARGS__)                         \
+> >          |         ^
+> >    arch/riscv/include/asm/syscall_wrapper.h:41:14: note: expanded from macro '__SYSCALL_SE_DEFINEx'
+> >       41 |         static long ___se_##prefix##name(__MAP(x,__SC_LONG,__VA_ARGS__))
+> >          |                     ^
+> >    <scratch space>:148:1: note: expanded from here
+> >      148 | ___se_sys_userfaultfd
+> >          | ^
+> >    1 warning generated.
+> > 
+> > 
+> > vim +4475 mm/userfaultfd.c
+> > 
+> >   4474	
+> > > 4475	SYSCALL_DEFINE1(userfaultfd, int, flags)
+> >   4476	{
+> >   4477		if (!userfaultfd_syscall_allowed(flags))
+> >   4478			return -EPERM;
+> >   4479	
+> >   4480		return new_userfaultfd(flags);
+> >   4481	}
+> >   4482	
+> > 
+> > --
+> > 0-DAY CI Kernel Test Service
+> > https://github.com/intel/lkp-tests/wiki
+> 
+> -- 
+> Sincerely yours,
+> Mike.
 
-mincore_swap() also fields migration/hwpoison entries (and shmem
-swapin-error entries), which can exist on !CONFIG_SWAP builds when
-CONFIG_MIGRATION or CONFIG_MEMORY_FAILURE is enabled.  The
-!IS_ENABLED(CONFIG_SWAP) guard ran before the non-swap-entry early return,
-so mincore_pte_range() can spuriously WARN and report these pages
-nonresident on !CONFIG_SWAP kernels.
-
-Move the guard below the non-swap-entry check so only true swap entries
-trip the WARN, and migration/hwpoison entries take the existing "uptodate
-/ non-shmem" path.
-
-Link: https://lore.kernel.org/20260602172247.279421-1-usama.arif@linux.dev
-Fixes: 1f2052755c15 ("mm/mincore: use a helper for checking the swap cache")
-Signed-off-by: Usama Arif <usama.arif@linux.dev>
-Reviewed-by: Pedro Falcato <pfalcato@suse.de>
-Reviewed-by: Kairui Song <kasong@tencent.com>
-Reviewed-by: Lorenzo Stoakes <ljs@kernel.org>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Baoquan He <baoquan.he@linux.dev>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: Jann Horn <jannh@google.com>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: <stable@vger.kernel.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- mm/mincore.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
-
---- a/mm/mincore.c~mm-mincore-handle-non-swap-entries-before-config_swap-guard
-+++ a/mm/mincore.c
-@@ -64,11 +64,6 @@ static unsigned char mincore_swap(swp_en
- 	struct folio *folio = NULL;
- 	unsigned char present = 0;
- 
--	if (!IS_ENABLED(CONFIG_SWAP)) {
--		WARN_ON(1);
--		return 0;
--	}
--
- 	/*
- 	 * Shmem mapping may contain swapin error entries, which are
- 	 * absent. Page table may contain migration or hwpoison
-@@ -77,6 +72,11 @@ static unsigned char mincore_swap(swp_en
- 	if (!softleaf_is_swap(entry))
- 		return !shmem;
- 
-+	if (!IS_ENABLED(CONFIG_SWAP)) {
-+		WARN_ON(1);
-+		return 0;
-+	}
-+
- 	/*
- 	 * Shmem mapping lookup is lockless, so we need to grab the swap
- 	 * device. mincore page table walk locks the PTL, and the swap
-_
-
-Patches currently in -mm which might be from usama.arif@linux.dev are
-
-mm-bypass-mmap_miss-heuristic-for-vm_exec-readahead.patch
-mm-use-mapping_max_folio_order-for-force_thp_readahead-order.patch
-
+-- 
+Cheers,
+Nathan
