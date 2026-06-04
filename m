@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3FD2A4DBD88
-	for <mm-commits@vger.kernel.org>; Thu,  4 Jun 2026 21:38:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2FEE32EEE89
+	for <mm-commits@vger.kernel.org>; Thu,  4 Jun 2026 21:46:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780609085; cv=none; b=jpXfP/PEkC8W8SdjN61fwAxju1UjXBCF4Sf0XkSGYtozUTP9QPvQsCyTebVetiK2Dgr859TBTKG3PaIerHiVnia+htOoqMjZIs571QihPchc+tHsr7N5UC0yN2VU2Ry89aX9inqQHaiH4wOAVY+/zQm4+ZDn9zw9/FveW6XbGXQ=
+	t=1780609604; cv=none; b=uDGmeMNr+dz35ZfzHlzv8CC7kxoi5PGZPSRxzo9j6FA86Cx+yubuyq0xags75KW8sOjB1cE5X4nlgFP+eFBTvqZNmSFlNno/mG5bu977WXI2JHKdVl+EYhV7qkCkUctKI8IaDje8V2sj07Cuvl+ip5opZGYi/zdvKmmL5q4Z1DA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780609085; c=relaxed/simple;
-	bh=yrFbLDJ6lFp4jdB7pt9S0W+T1EYpVWka4xXPC4yfgHo=;
-	h=Date:To:From:Subject:Message-Id; b=WbTrFswNKWUxpKedmIOzJ/HvLoDxCbr7G2yxvBxPt/3K1HWeq0UsA5+MdqyEoZW7BjTH+l3NMS2hgSoKB6uU/xWQUALQiyWqSOv5pBjNlf9bxHcZCnsJrPrIfZcrPYviBObtGiF8fDB9eVK4e8ZM/5ATq2CbW2zMHxoMX4oZHQg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=a//pdEI5; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1780609604; c=relaxed/simple;
+	bh=IdVQhh4PmaVf3bp5EW9B44ECAXGqyUoTD7kG0pZTTnk=;
+	h=Date:To:From:Subject:Message-Id; b=ic0DC6Ag0slL2uhl+hAgkJvrjff1r3PmE+qH+T5RDfQS1gUycpjKb1ClIZ0ZlCNTpymUMqODivJorJs6uPTctSPCI9B0AszSLCDeurZUS7tB3ly561aGPZpYFlHzO1TiE/8DDg7i/YGfARYgSqswUqLT/0fU7g35Q9iDjqKxH6Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZswVfDR+; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="a//pdEI5"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9B2D41F00898;
-	Thu,  4 Jun 2026 21:38:02 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZswVfDR+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C8B121F00893;
+	Thu,  4 Jun 2026 21:46:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1780609082;
-	bh=PnZrNFA230z58I4qSwJ6MN3+PIeUFeHcrLoQspPwbeQ=;
+	d=linux-foundation.org; s=korg; t=1780609602;
+	bh=erFyJs0ZTrdJC7kBqaSI4gilzZjWfs2nGKQllFUubfQ=;
 	h=Date:To:From:Subject;
-	b=a//pdEI5LVbaRJC346hgj/aYxiaMvBwHARZVftgeBdErPSY9NhCaauSsc1qLUUt4g
-	 RJD4CfLf0jmzsqmUPSWlL8eFqfzWLg7oCpnQI28GgwnBmNDtEsYfWIKFYeCp7Y1ajW
-	 B0EhqUUaS+of7grVi07J26p3ZRbnI7c0wTgzUI/w=
-Date: Thu, 04 Jun 2026 14:38:02 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,zaslonko@linux.ibm.com,vbabka@kernel.org,usama.arif@linux.dev,shakeel.butt@linux.dev,ryan.roberts@arm.com,roman.gushchin@linux.dev,npache@redhat.com,muchun.song@linux.dev,mhocko@kernel.org,ljs@kernel.org,liam@infradead.org,lance.yang@linux.dev,kasong@tencent.com,gor@linux.ibm.com,dev.jain@arm.com,david@kernel.org,david@fromorbit.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,hannes@cmpxchg.org,akpm@linux-foundation.org
+	b=ZswVfDR+WO/51jGarS3O5giNW1vD9vuarsa2xDil0vsQx/t9wc1nCI59q7xwpWzmw
+	 1r950vjJbhilyWG3wij9rzu0mog6cElw8rAcHRgVoS4+ojSUQRwPupEhrqVaJZ7KwJ
+	 JZv+By4iH9OjlpJK1wFazltMsvKbDmn0aJdWdJfw=
+Date: Thu, 04 Jun 2026 14:46:42 -0700
+To: mm-commits@vger.kernel.org,leon@kernel.org,jgg@ziepe.ca,apopple@nvidia.com,liuqiang@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-switch-deferred-split-shrinker-to-list_lru-fix-2.patch removed from -mm tree
-Message-Id: <20260604213802.9B2D41F00898@smtp.kernel.org>
+Subject: + lib-test_hmm-check-alloc_page_vma-return-value-and-handle-oom.patch added to mm-unstable branch
+Message-Id: <20260604214642.C8B121F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,89 +34,108 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: switch deferred split shrinker to list_lru fix
-has been removed from the -mm tree.  Its filename was
-     mm-switch-deferred-split-shrinker-to-list_lru-fix-2.patch
+The patch titled
+     Subject: lib/test_hmm: check alloc_page_vma() return value and handle OOM
+has been added to the -mm mm-unstable branch.  Its filename is
+     lib-test_hmm-check-alloc_page_vma-return-value-and-handle-oom.patch
 
-This patch was dropped because it was folded into mm-switch-deferred-split-shrinker-to-list_lru.patch
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-test_hmm-check-alloc_page_vma-return-value-and-handle-oom.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: switch deferred split shrinker to list_lru fix
-Date: Tue, 2 Jun 2026 17:11:46 -0400
+From: Qiang Liu <liuqiang@kylinos.cn>
+Subject: lib/test_hmm: check alloc_page_vma() return value and handle OOM
+Date: Thu, 21 May 2026 10:18:58 +0800
 
-Lance Yang points out a weirdness in the list_lru code with
-cgroup.memory=nokmem: in this mode, list_lru collapses to a shared
-per-node list that holds the folios, but __list_lru_add() still sets the
-shrinker bit on the owning memcg.
+Check alloc_page_vma() return status for page allocation failures, free
+allocated pages and return VM_FAULT_OOM on error.
 
-Usually this is fine, because the generic shrinker code ignores these
-random bits when !memcg_kmem_online().  But the THP shrinker still has the
-SHRINKER_NONSLAB flag set, which specifically declares an independence
-from kmem.  As a result, the shrinker fires twice per reclaim cycle: one
-during the regular root cgroup scan, and then one more time triggered from
-whichever memcg got the shrinker bit.
+Handle return codes of dmirror_devmem_fault_alloc_and_copy(), call
+migrate_vma_finalize() to remove migration entries from
+migrate_vma_setup().
 
-Drop the flag, since it's no longer true.  The deferred_split shrinker
-then behaves like every other list_lru-backed shrinker under nokmem,
-including the non-kmem ones (zswap, workingset shadow_nodes): skipped from
-memcg-internal reclaim, driven by global reclaim only.
-
-This needs proper cleaning up on the shrinker and list_lru side, but
-that's scope for a follow-up series.  Just make it consistent now.
-
-Link: https://lore.kernel.org/ah9PGv12mqai84ES@cmpxchg.org
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Reported-by: Lance Yang <lance.yang@linux.dev>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: David Hildenbrand (Arm) <david@kernel.org>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Kairui Song <kasong@tencent.com>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Mikhail Zaslonko <zaslonko@linux.ibm.com>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Nico Pache <npache@redhat.com>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Usama Arif <usama.arif@linux.dev>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Zi Yan <ziy@nvidia.com>
+Link: https://lore.kernel.org/20260521021858.21511-1-liuqiangneo@163.com
+Signed-off-by: Qiang Liu <liuqiang@kylinos.cn>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Leon Romanovsky <leon@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ lib/test_hmm.c |   29 +++++++++++++++++++++++++++--
+ 1 file changed, 27 insertions(+), 2 deletions(-)
 
---- a/mm/huge_memory.c~mm-switch-deferred-split-shrinker-to-list_lru-fix-2
-+++ a/mm/huge_memory.c
-@@ -945,8 +945,7 @@ int folio_memcg_alloc_deferred(struct fo
- static int __init thp_shrinker_init(void)
- {
- 	deferred_split_shrinker = shrinker_alloc(SHRINKER_NUMA_AWARE |
--						 SHRINKER_MEMCG_AWARE |
--						 SHRINKER_NONSLAB,
-+						 SHRINKER_MEMCG_AWARE,
- 						 "thp-deferred_split");
- 	if (!deferred_split_shrinker)
- 		return -ENOMEM;
+--- a/lib/test_hmm.c~lib-test_hmm-check-alloc_page_vma-return-value-and-handle-oom
++++ a/lib/test_hmm.c
+@@ -1063,6 +1063,25 @@ static vm_fault_t dmirror_devmem_fault_a
+ 			/* Try with smaller pages if large allocation fails */
+ 			if (!dpage && order) {
+ 				dpage = alloc_page_vma(GFP_HIGHUSER_MOVABLE, args->vma, addr);
++				if (!dpage) {
++					/* Unlock and free pages already allocated. */
++					while (i > 0) {
++						struct page *fpage;
++
++						fpage = migrate_pfn_to_page(dst[--i]);
++						unlock_page(fpage);
++						__free_page(fpage);
++					}
++					/* Clear remaining dst entries to avoid
++					 * migrate_vma_pages/finalize() using
++					 * uninitialized values.
++					 */
++					while (i < (1 << order)) {
++						dst[i] = 0;
++						i++;
++					}
++					return VM_FAULT_OOM;
++				}
+ 				lock_page(dpage);
+ 				dst[i] = migrate_pfn(page_to_pfn(dpage));
+ 				dst_page = pfn_to_page(page_to_pfn(dpage));
+@@ -1148,7 +1167,11 @@ static int dmirror_migrate_to_system(str
+ 			goto out;
+ 
+ 		pr_debug("Migrating from device mem to sys mem\n");
+-		dmirror_devmem_fault_alloc_and_copy(&args, dmirror);
++		ret = dmirror_devmem_fault_alloc_and_copy(&args, dmirror);
++		if (ret) {
++			migrate_vma_finalize(&args);
++			goto out;
++		}
+ 
+ 		migrate_vma_pages(&args);
+ 		cmd->cpages += dmirror_successful_migrated_pages(&args);
+@@ -1689,8 +1712,10 @@ static vm_fault_t dmirror_devmem_fault(s
+ 	}
+ 
+ 	ret = dmirror_devmem_fault_alloc_and_copy(&args, dmirror);
+-	if (ret)
++	if (ret) {
++		migrate_vma_finalize(&args);
+ 		goto err;
++	}
+ 	migrate_vma_pages(&args);
+ 	/*
+ 	 * No device finalize step is needed since
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from liuqiang@kylinos.cn are
 
-mm-list_lru-fix-set_shrinker_bit-call-during-race-with-cgroup-deletion.patch
-mm-list_lru-lock_list_lru_of_memcg-cannot-return-null-if-skip_empty.patch
-mm-list_lru-deduplicate-unlock_list_lru.patch
-mm-list_lru-move-list-dead-check-to-lock_list_lru_of_memcg.patch
-mm-list_lru-deduplicate-lock_list_lru.patch
-mm-list_lru-introduce-caller-locking-for-additions-and-deletions.patch
-mm-list_lru-introduce-folio_memcg_list_lru_alloc.patch
-mm-memory-flatten-alloc_anon_folio-retry-loop.patch
-mm-switch-deferred-split-shrinker-to-list_lru.patch
+lib-test_hmm-check-alloc_page_vma-return-value-and-handle-oom.patch
 
