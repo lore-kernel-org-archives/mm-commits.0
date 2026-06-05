@@ -1,234 +1,102 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pj1-f48.google.com (mail-pj1-f48.google.com [209.85.216.48])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D8DA72153D8;
-	Fri,  5 Jun 2026 02:50:37 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0E32A282F0E
+	for <mm-commits@vger.kernel.org>; Fri,  5 Jun 2026 08:41:15 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.48
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780627845; cv=none; b=uxnc+l3/0QcQjuxeXt3ZgStLAjdKc+NWNcy5O+DBotFrJ2oI0SBZGnAG75fbXDO1iK3N0Lt9Qio1FJhykahHoFn+y5yR5sMRXXunsgQ9xASzBUjtVO8J7id2o6zb6iQSK7+6UgyANezeHCjtnQlisNmVr9B/M4PRd5Ff47NyMxo=
+	t=1780648877; cv=none; b=jZUU6XyBsTreBKTrGlFYIUq7sP4G5qd7mvYtNazu3029kirt6bhlYCCjfQ89yV40brBKiTOHdvB6POhaLMMEOKZaXb4md4OSPBHgF9zBu+e2ueAjvTQ8U36KNNSvQHxi59/Qn4c3a6St34R+87QpWHQsIbZXhKDYI/gBj4tGQik=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780627845; c=relaxed/simple;
-	bh=k9d5NqJUOwImsa4Tdul6Sc/7Hxuv4Jgt6QR1Ct+g0nU=;
-	h=Date:To:From:Subject:Message-Id; b=jN+qznILjQMmnrm9grgEypHDc1K/REVQbnFB6XjHqWe38swFN51jUvEA153F+/atEFs2GoTETFe/S9gNTsR7brwDUYN3CfbSF1lRYzEMMG+q0ieKGhWInde7dvrPcFXRV4pwzaUz51Uho+ls5Yx6G5gLVvnFLibbb2ZiA6hKviM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=q2VLEz4g; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1780648877; c=relaxed/simple;
+	bh=NEiwu30T8AVHm1dAZ/9pGCqXy0YodrOuj7n49OSAJQk=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=fXK5ZKv3g1sOwCqDtTyGJEellYhWT4M9qixFwC10kg555UtYCEovzEtofXsmTZLIdgfw6AnA6FSdpuFYza4pzJurmQxOokd2jKjn1A/Uz7+JQnGTmRZHrm2+6t3TLTm+hxQeEumo5J0JNbx2hd3oh2VXgd3qdk9pGUqkFYzmL1s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org; spf=pass smtp.mailfrom=chromium.org; dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b=CH5/Arhw; arc=none smtp.client-ip=209.85.216.48
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=chromium.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="q2VLEz4g"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 46D341F00893;
-	Fri,  5 Jun 2026 02:50:37 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="CH5/Arhw"
+Received: by mail-pj1-f48.google.com with SMTP id 98e67ed59e1d1-36b8d414666so1044333a91.3
+        for <mm-commits@vger.kernel.org>; Fri, 05 Jun 2026 01:41:15 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1780627837;
-	bh=jlUS+7pN3Lb/eUXD635yBaPLrwo43+MBqsnq4jaCydQ=;
-	h=Date:To:From:Subject;
-	b=q2VLEz4gHn76Yn73Kg5cCjhhkBHs2AILFxh9Vo6QTlQ0y0bfGRyk7yRRfjsCEnp8G
-	 SRc9KmHrJwqTw42Cs9rJMTGV+SftxdvQlcLrBcKe6MzJO/qMdfTQdGVdmkGtg7H5Bh
-	 zjQcfAXLLIgF4Jv2shcWhQ4iF0gaoWFOINLV+8j0=
-Date: Thu, 04 Jun 2026 19:50:36 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-core-always-put-unsuccessfully-committed-target-pids.patch added to mm-new branch
-Message-Id: <20260605025037.46D341F00893@smtp.kernel.org>
+        d=chromium.org; s=google; t=1780648875; x=1781253675; darn=vger.kernel.org;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
+        bh=0bLKFkbSU9D/bSEthp0PL0aU6QU/S6aLYxijiwDpkmA=;
+        b=CH5/ArhwCGyy+XjyW9804MVHDJjS8UYWFIDkhAdE9UMV8PtInjG2wYVHGUlXpMI/Uc
+         tu9gOG13/UkL+SuSF3necfq+Tou8S4vYaijsI0KYvHyKYrcrCKc92ER8aGxJQdfoIYjr
+         JTLGCD+UcGfZH3Xe+0D30pcGKeW/cQgmS/yuo=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1780648875; x=1781253675;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-gg:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=0bLKFkbSU9D/bSEthp0PL0aU6QU/S6aLYxijiwDpkmA=;
+        b=hLGIeLz7yyt9UZj0FAHfdT3L9eMr+j/u6v9elyqnGjYWwIhHxrWAXM8KSoHZuZkDKo
+         EEbUWSXPpH7A4fhqDFFfptw60JG5RP0tykv/bXsbXIFZ6FKQcKqI/40BcBAwC5VHSvY+
+         0aw2n4RqSo9N+7c7eY+KthsTqlzsrqlBADnO8gpvjvDUF3J1055hWWduuxlmv4xel6no
+         kkTv6dfzJI+0OnhSRYbq/KqwjFv9ETvwJvNKqZqtWj1xGNnf8LQa6wf0jZCxACMzReoH
+         C4dVJRR7BK4j/2vdMnFAfLTW/wDOAsejdrB3HHcSs+5q6Tvv6HtCV0uQlWdItRbzo7PC
+         kD5A==
+X-Gm-Message-State: AOJu0Ywp1fFakdhlCqkDIRjY57T5PR+JyppKGhDsjMvds28WWWx/ky64
+	r2dSSaE7CexONqiMHAT/CsepBibJK4Y56Vm9+CRDNVnrpOrtysRehzPRaKajcEREQhrbfE88o/n
+	uNsY=
+X-Gm-Gg: Acq92OEEJjBJy8M74clgQJHUUK1Z9k0oe254vIRMw/fqjAryHWQmcQLL6aNsKMQ5Nk7
+	lh0M2IDsC0RFK1bu+t3WErfssAKJZOO3leZ7P+qGsCyFTp0/faPoncBwTDJkLSu0HJZQCFThs19
+	3gaGPaRzXWyF0m4IDKO+TbJ8j2Ot7zllSHxNGoeSuKvvax6FI729aIrYnYF8u8FKu17LXLUygZR
+	pyh7VGt6TA14So/5AU9LBSoXe9l+7ppLyHsa6Sr1lVy3UvaKAoAonVP4nHsIpw0XnBsRWBb4I6z
+	zkQGnIE48m94MdLH7x9+tp4ZeyDi2dLMrLhsWaPVIEqxIF6qMSPB0k8Tea7R7VsdC8Y3GKAQq2/
+	k0eE/kkJELt0fPSK7fEAc4+nHhY8cc4L9nn4ROQKjZmJf8IwJ3EqyPUxzGTtyOjWdWrH7NZb+kr
+	4dY7SGmO6tVFcphrBWKorRWlfAyllglFrfhMTv2Clsavhvqq6e4yYkScJRETZn2rtT/KNs7GLo4
+	g==
+X-Received: by 2002:a17:90a:fc45:b0:36d:a510:f8eb with SMTP id 98e67ed59e1d1-370eeff1e46mr2626682a91.3.1780648875297;
+        Fri, 05 Jun 2026 01:41:15 -0700 (PDT)
+Received: from google.com ([2a00:79e0:2031:6:31ee:b5b3:5314:f49d])
+        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-36f6c6751dfsm5892492a91.8.2026.06.05.01.41.13
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 05 Jun 2026 01:41:14 -0700 (PDT)
+Date: Fri, 5 Jun 2026 17:41:11 +0900
+From: Sergey Senozhatsky <senozhatsky@chromium.org>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: mm-commits@vger.kernel.org, senozhatsky@chromium.org, 
+	minchan@kernel.org, elfring@users.sourceforge.net
+Subject: Re: + zsmalloc-simplify-data-output-in-zs_stats_size_show.patch
+ added to mm-unstable branch
+Message-ID: <aiKLUlxmicjt4e2b@google.com>
+References: <20260604172648.27B151F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260604172648.27B151F00893@smtp.kernel.org>
 
+On (26/06/04 10:26), Andrew Morton wrote:
+> The patch titled
+>      Subject: zsmalloc: simplify data output in zs_stats_size_show()
+> has been added to the -mm mm-unstable branch.  Its filename is
+>      zsmalloc-simplify-data-output-in-zs_stats_size_show.patch
+> 
+> This patch will shortly appear at
+>      https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zsmalloc-simplify-data-output-in-zs_stats_size_show.patch
+[..]
+> ------------------------------------------------------
+> From: Markus Elfring <elfring@users.sourceforge.net>
+> Subject: zsmalloc: simplify data output in zs_stats_size_show()
+> Date: Thu, 4 Jun 2026 10:20:03 +0200
+> 
+> Move the specification for a line break from a seq_puts() call to a
+> seq_printf() call.
+> 
+> The source code was transformed by using the Coccinelle software.
+> 
+> Link: https://lore.kernel.org/126a924b-6f68-43bf-ae5a-449fb93e527b@web.de
+> Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+> Cc: Minchan Kim <minchan@kernel.org>
+> Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
+> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 
-The patch titled
-     Subject: mm/damon/core: always put unsuccessfully committed target pids
-has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-core-always-put-unsuccessfully-committed-target-pids.patch
-
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-always-put-unsuccessfully-committed-target-pids.patch
-
-This patch will later appear in the mm-new branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
-
-------------------------------------------------------
-From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/core: always put unsuccessfully committed target pids
-Date: Thu, 4 Jun 2026 18:38:48 -0700
-
-damon_commit_target() puts and gets the destination and the source target
-pids.  It puts the destination target pid because it will be overwritten
-by the source target pid.  It gets the source pid because the caller is
-supposed to eventually put the pids.  In more detail, the caller will call
-damon_destroy_ctx() after damon_commit_ctx() to destroy the entire source
-context.  And in this case, [f]vaddr operation set's cleanup_target()
-callback will put the pids.
-
-The commit operation is made at the context level.  The operation can fail
-in multiple places including in the middle and after the targets commit
-operations.  For any such failures, immediately the error is returned to
-the damon_commit_ctx() caller.  If some or all of the source target pids
-were committed to the destination during the unsuccessful context commit
-attempt, those pids should be put twice.
-
-The source context will do the put operations using the above explained
-routine.  However, let's suppose the destination context was not
-originally using [f]vaddr operation set and the commit failed before the
-ops of the source context is committed.  The destination does not have the
-cleanup_target() ops callback, so it cannot put the pids via the
-damon_destroy_ctx().
-
-As a result, the pids are leaked.  The issue in the real world would be
-not very common.  The commit feature is for changing parameters of running
-DAMON context while inheriting internal status like the monitoring
-results.  The monitoring results of a physical address range ain't have
-things that are beneficial to be inherited to a virtual address ranges
-monitoring.  So the problem-causing DAMON control would be not very common
-in the real world.  That said, it is a supported feature.  And
-damon_commit_target() failure due to memory allocation is relatively
-realistic [1] if there are a huge number of target regions.
-
-Fix by putting the pids in the commit operation in case of the failures.
-
-The issue was discovered [2] by Sashiko.
-
-Link: https://lore.kernel.org/20260605013849.83750-1-sj@kernel.org
-Link: https://lore.kernel.org/20260603112306.58490-1-akinobu.mita@gmail.com [1]
-Link: https://lore.kernel.org/20260320020056.835-1-sj@kernel.org [2]
-Fixes: 83dc7bbaecae ("mm/damon/sysfs: use damon_commit_ctx()")
-Signed-off-by: SeongJae Park <sj@kernel.org>
-Cc: <stable@vger.kernel.org> # 6.11.x
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- mm/damon/core.c |   55 +++++++++++++++++++++++++++++++++++++++-------
- 1 file changed, 47 insertions(+), 8 deletions(-)
-
---- a/mm/damon/core.c~mm-damon-core-always-put-unsuccessfully-committed-target-pids
-+++ a/mm/damon/core.c
-@@ -1387,10 +1387,36 @@ static int damon_commit_target(
- 	return 0;
- }
- 
-+/*
-+ * damon_revert_target_commits() - revert unsuccessful target commits.
-+ * @dst:	Commit destination context
-+ * @failed:	Commit failed destination target
-+ * @src:	Commit source context
-+ *
-+ * Revert target states that changed by damon_commit_target(), and cannot be
-+ * cleaned up by the destination context's ops.cleanup_target().
-+ */
-+static void damon_revert_target_commits(struct damon_ctx *dst,
-+		struct damon_target *failed, struct damon_ctx *src)
-+{
-+	struct damon_target *target;
-+
-+	if (!damon_target_has_pid(src))
-+		return;
-+	if (dst->ops.cleanup_target)
-+		return;
-+	damon_for_each_target(target, dst) {
-+		if (target == failed)
-+			return;
-+		put_pid(target->pid);
-+	}
-+}
-+
- static int damon_commit_targets(
- 		struct damon_ctx *dst, struct damon_ctx *src)
- {
- 	struct damon_target *dst_target, *next, *src_target, *new_target;
-+	struct damon_target *failed;
- 	int i = 0, j = 0, err;
- 
- 	damon_for_each_target_safe(dst_target, next, dst) {
-@@ -1404,8 +1430,10 @@ static int damon_commit_targets(
- 					dst_target, damon_target_has_pid(dst),
- 					src_target, damon_target_has_pid(src),
- 					src->min_region_sz);
--			if (err)
--				return err;
-+			if (err) {
-+				failed = dst_target;
-+				goto out;
-+			}
- 		} else {
- 			struct damos *s;
- 
-@@ -1419,25 +1447,34 @@ static int damon_commit_targets(
- 		}
- 	}
- 
-+	failed = NULL;
- 	damon_for_each_target_safe(src_target, next, src) {
- 		if (j++ < i)
- 			continue;
- 		/* target to remove has no matching dst */
--		if (src_target->obsolete)
--			return -EINVAL;
-+		if (src_target->obsolete) {
-+			err = -EINVAL;
-+			goto out;
-+		}
- 		new_target = damon_new_target();
--		if (!new_target)
--			return -ENOMEM;
-+		if (!new_target) {
-+			err = -ENOMEM;
-+			goto out;
-+		}
- 		err = damon_commit_target(new_target, false,
- 				src_target, damon_target_has_pid(src),
- 				src->min_region_sz);
- 		if (err) {
- 			damon_destroy_target(new_target, NULL);
--			return err;
-+			goto out;
- 		}
- 		damon_add_target(dst, new_target);
- 	}
- 	return 0;
-+
-+out:
-+	damon_revert_target_commits(dst, failed, src);
-+	return err;
- }
- 
- static void damon_commit_filter(struct damon_filter *dst,
-@@ -1571,8 +1608,10 @@ int damon_commit_ctx(struct damon_ctx *d
- 	 */
- 	if (!damon_attrs_equals(&dst->attrs, &src->attrs)) {
- 		err = damon_set_attrs(dst, &src->attrs);
--		if (err)
-+		if (err) {
-+			damon_revert_target_commits(dst, NULL, src);
- 			return err;
-+		}
- 	}
- 	dst->pause = src->pause;
- 	dst->ops = src->ops;
-_
-
-Patches currently in -mm which might be from sj@kernel.org are
-
-maintainers-add-testing-abi-documents-for-mm.patch
-mm-damon-core-always-put-unsuccessfully-committed-target-pids.patch
-
+Reviewed-by: Sergey Senozhatsky <senozhatsky@chromium.org>
