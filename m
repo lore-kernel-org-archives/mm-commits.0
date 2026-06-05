@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4EC473BBFB7
-	for <mm-commits@vger.kernel.org>; Thu,  4 Jun 2026 21:50:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D8DA72153D8;
+	Fri,  5 Jun 2026 02:50:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780609818; cv=none; b=PJzsw7AGsTE/2JWFq2+iwI4m9twPn2sq6jfovQP0AsrsTb85h1oyJ/ML63vZvaJtU7b8zXO8xmOEyGEXxsJrYY0HQEIWzXGybWNIux0I4gKkGGmqsAK83ccnk1nNAgsjQBAWTbjOTx+rhJa4J/L5hQbFLMAmwJfAcpAWjEO6PFI=
+	t=1780627845; cv=none; b=uxnc+l3/0QcQjuxeXt3ZgStLAjdKc+NWNcy5O+DBotFrJ2oI0SBZGnAG75fbXDO1iK3N0Lt9Qio1FJhykahHoFn+y5yR5sMRXXunsgQ9xASzBUjtVO8J7id2o6zb6iQSK7+6UgyANezeHCjtnQlisNmVr9B/M4PRd5Ff47NyMxo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780609818; c=relaxed/simple;
-	bh=DmV0rkUWoqOsrsHF+dyzmb3EBYyqS2NDUech/Iu2lCo=;
-	h=Date:To:From:Subject:Message-Id; b=at3m6snegOCYsGpL+SJ/4t1R9yyv9d+MIXy6MxpIBB00pHymu6VdueX0t0OgcDlAjYrDuFDPkp0+jmVZXY5lzmk4gBp0LvyMnLvmTsBZpcD34l098E1ANN+QFuQTxgAu2Z0/aWw9FoniAog/d0ABXqwkY4EKUKEeMyYiS/pqPF8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AhAxRlft; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1780627845; c=relaxed/simple;
+	bh=k9d5NqJUOwImsa4Tdul6Sc/7Hxuv4Jgt6QR1Ct+g0nU=;
+	h=Date:To:From:Subject:Message-Id; b=jN+qznILjQMmnrm9grgEypHDc1K/REVQbnFB6XjHqWe38swFN51jUvEA153F+/atEFs2GoTETFe/S9gNTsR7brwDUYN3CfbSF1lRYzEMMG+q0ieKGhWInde7dvrPcFXRV4pwzaUz51Uho+ls5Yx6G5gLVvnFLibbb2ZiA6hKviM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=q2VLEz4g; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AhAxRlft"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D53F51F00899;
-	Thu,  4 Jun 2026 21:50:16 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="q2VLEz4g"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 46D341F00893;
+	Fri,  5 Jun 2026 02:50:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1780609816;
-	bh=/aGxYBNsUDr6ppEGCOJhmnrs3IYABH8NHAp/6nEj+JU=;
+	d=linux-foundation.org; s=korg; t=1780627837;
+	bh=jlUS+7pN3Lb/eUXD635yBaPLrwo43+MBqsnq4jaCydQ=;
 	h=Date:To:From:Subject;
-	b=AhAxRlftZcTFBOygJlaggp+BGQfZvoJQdU6eD8qz6+4FsnloP7ocFMHBYSi9hrnyV
-	 iGKXTC0VMcsE0TPzix2Vq6bPvSCXgUn4m+j9d3oxfRwRIqRwKYWOoQNuSonem7d8fE
-	 1T5qqQ2WBKRhzZjnSle6EMtRy0xlooSlX4nbfU/8=
-Date: Thu, 04 Jun 2026 14:50:16 -0700
-To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,heming.zhao@suse.com,gechangwei@live.cn,icb@fastmail.org,akpm@linux-foundation.org
+	b=q2VLEz4gHn76Yn73Kg5cCjhhkBHs2AILFxh9Vo6QTlQ0y0bfGRyk7yRRfjsCEnp8G
+	 SRc9KmHrJwqTw42Cs9rJMTGV+SftxdvQlcLrBcKe6MzJO/qMdfTQdGVdmkGtg7H5Bh
+	 zjQcfAXLLIgF4Jv2shcWhQ4iF0gaoWFOINLV+8j0=
+Date: Thu, 04 Jun 2026 19:50:36 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] ocfs2-fix-out-of-bounds-write-in-ocfs2_remove_refcount_extent.patch removed from -mm tree
-Message-Id: <20260604215016.D53F51F00899@smtp.kernel.org>
+Subject: + mm-damon-core-always-put-unsuccessfully-committed-target-pids.patch added to mm-new branch
+Message-Id: <20260605025037.46D341F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,76 +34,201 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: ocfs2: fix out-of-bounds write in ocfs2_remove_refcount_extent
-has been removed from the -mm tree.  Its filename was
-     ocfs2-fix-out-of-bounds-write-in-ocfs2_remove_refcount_extent.patch
+The patch titled
+     Subject: mm/damon/core: always put unsuccessfully committed target pids
+has been added to the -mm mm-new branch.  Its filename is
+     mm-damon-core-always-put-unsuccessfully-committed-target-pids.patch
 
-This patch was dropped because it was merged into the mm-nonmm-stable branch
-of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-always-put-unsuccessfully-committed-target-pids.patch
+
+This patch will later appear in the mm-new branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
 ------------------------------------------------------
-From: Ian Bridges <icb@fastmail.org>
-Subject: ocfs2: fix out-of-bounds write in ocfs2_remove_refcount_extent
-Date: Mon, 1 Jun 2026 13:44:33 -0500
+From: SeongJae Park <sj@kernel.org>
+Subject: mm/damon/core: always put unsuccessfully committed target pids
+Date: Thu, 4 Jun 2026 18:38:48 -0700
 
-[BUG]
-Unlinking a refcounted file whose refcount tree has leaf blocks
-triggers a fortify panic due to an out-of-bounds write.
+damon_commit_target() puts and gets the destination and the source target
+pids.  It puts the destination target pid because it will be overwritten
+by the source target pid.  It gets the source pid because the caller is
+supposed to eventually put the pids.  In more detail, the caller will call
+damon_destroy_ctx() after damon_commit_ctx() to destroy the entire source
+context.  And in this case, [f]vaddr operation set's cleanup_target()
+callback will put the pids.
 
-[CAUSE]
-When the last leaf block is removed from a refcount tree,
-ocfs2_remove_refcount_extent() converts the root back to leaf mode
-with a bulk memset on &rb->rf_records. rf_records sits in an anonymous
-union with rf_list. rf_list.l_tree_depth aliases rf_records.rl_count,
-and is 0 for a single-level tree. With rl_count equal to 0, the memset
-writes past the 16-byte declared size of rf_records, which the fortify
-checker catches.
+The commit operation is made at the context level.  The operation can fail
+in multiple places including in the middle and after the targets commit
+operations.  For any such failures, immediately the error is returned to
+the damon_commit_ctx() caller.  If some or all of the source target pids
+were committed to the destination during the unsuccessful context commit
+attempt, those pids should be put twice.
 
-[FIX]
-Replace the bulk memset on &rb->rf_records with a correctly-bounded
-memset on rl_recs[] alone, after setting rl_count to the correct value.
+The source context will do the put operations using the above explained
+routine.  However, let's suppose the destination context was not
+originally using [f]vaddr operation set and the commit failed before the
+ops of the source context is committed.  The destination does not have the
+cleanup_target() ops callback, so it cannot put the pids via the
+damon_destroy_ctx().
 
-Link: https://lore.kernel.org/ah3TESOsEO9j_JLU@dev
-Fixes: 2f26f58df041 ("ocfs2: annotate flexible array members with __counted_by_le()")
-Signed-off-by: Ian Bridges <icb@fastmail.org>
-Reported-by: syzbot+3ef989aae096b30f1663@syzkaller.appspotmail.com
-Closes: https://syzkaller.appspot.com/bug?extid=3ef989aae096b30f1663
-Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Jun Piao <piaojun@huawei.com>
-Cc: Heming Zhao <heming.zhao@suse.com>
+As a result, the pids are leaked.  The issue in the real world would be
+not very common.  The commit feature is for changing parameters of running
+DAMON context while inheriting internal status like the monitoring
+results.  The monitoring results of a physical address range ain't have
+things that are beneficial to be inherited to a virtual address ranges
+monitoring.  So the problem-causing DAMON control would be not very common
+in the real world.  That said, it is a supported feature.  And
+damon_commit_target() failure due to memory allocation is relatively
+realistic [1] if there are a huge number of target regions.
+
+Fix by putting the pids in the commit operation in case of the failures.
+
+The issue was discovered [2] by Sashiko.
+
+Link: https://lore.kernel.org/20260605013849.83750-1-sj@kernel.org
+Link: https://lore.kernel.org/20260603112306.58490-1-akinobu.mita@gmail.com [1]
+Link: https://lore.kernel.org/20260320020056.835-1-sj@kernel.org [2]
+Fixes: 83dc7bbaecae ("mm/damon/sysfs: use damon_commit_ctx()")
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Cc: <stable@vger.kernel.org> # 6.11.x
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/refcounttree.c |    9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+ mm/damon/core.c |   55 +++++++++++++++++++++++++++++++++++++++-------
+ 1 file changed, 47 insertions(+), 8 deletions(-)
 
---- a/fs/ocfs2/refcounttree.c~ocfs2-fix-out-of-bounds-write-in-ocfs2_remove_refcount_extent
-+++ a/fs/ocfs2/refcounttree.c
-@@ -2131,10 +2131,15 @@ static int ocfs2_remove_refcount_extent(
- 		rb->rf_flags = 0;
- 		rb->rf_parent = 0;
- 		rb->rf_cpos = 0;
--		memset(&rb->rf_records, 0, sb->s_blocksize -
--		       offsetof(struct ocfs2_refcount_block, rf_records));
-+		rb->rf_records.rl_used = 0;
-+		rb->rf_records.rl_reserved2 = 0;
-+		rb->rf_records.rl_reserved1 = 0;
-+		/* rl_count determines the memset size and fortify object size. */
- 		rb->rf_records.rl_count =
- 				cpu_to_le16(ocfs2_refcount_recs_per_rb(sb));
-+		memset(rb->rf_records.rl_recs, 0,
-+		       le16_to_cpu(rb->rf_records.rl_count) *
-+		       sizeof(*rb->rf_records.rl_recs));
+--- a/mm/damon/core.c~mm-damon-core-always-put-unsuccessfully-committed-target-pids
++++ a/mm/damon/core.c
+@@ -1387,10 +1387,36 @@ static int damon_commit_target(
+ 	return 0;
+ }
+ 
++/*
++ * damon_revert_target_commits() - revert unsuccessful target commits.
++ * @dst:	Commit destination context
++ * @failed:	Commit failed destination target
++ * @src:	Commit source context
++ *
++ * Revert target states that changed by damon_commit_target(), and cannot be
++ * cleaned up by the destination context's ops.cleanup_target().
++ */
++static void damon_revert_target_commits(struct damon_ctx *dst,
++		struct damon_target *failed, struct damon_ctx *src)
++{
++	struct damon_target *target;
++
++	if (!damon_target_has_pid(src))
++		return;
++	if (dst->ops.cleanup_target)
++		return;
++	damon_for_each_target(target, dst) {
++		if (target == failed)
++			return;
++		put_pid(target->pid);
++	}
++}
++
+ static int damon_commit_targets(
+ 		struct damon_ctx *dst, struct damon_ctx *src)
+ {
+ 	struct damon_target *dst_target, *next, *src_target, *new_target;
++	struct damon_target *failed;
+ 	int i = 0, j = 0, err;
+ 
+ 	damon_for_each_target_safe(dst_target, next, dst) {
+@@ -1404,8 +1430,10 @@ static int damon_commit_targets(
+ 					dst_target, damon_target_has_pid(dst),
+ 					src_target, damon_target_has_pid(src),
+ 					src->min_region_sz);
+-			if (err)
+-				return err;
++			if (err) {
++				failed = dst_target;
++				goto out;
++			}
+ 		} else {
+ 			struct damos *s;
+ 
+@@ -1419,25 +1447,34 @@ static int damon_commit_targets(
+ 		}
  	}
  
- 	ocfs2_journal_dirty(handle, ref_root_bh);
++	failed = NULL;
+ 	damon_for_each_target_safe(src_target, next, src) {
+ 		if (j++ < i)
+ 			continue;
+ 		/* target to remove has no matching dst */
+-		if (src_target->obsolete)
+-			return -EINVAL;
++		if (src_target->obsolete) {
++			err = -EINVAL;
++			goto out;
++		}
+ 		new_target = damon_new_target();
+-		if (!new_target)
+-			return -ENOMEM;
++		if (!new_target) {
++			err = -ENOMEM;
++			goto out;
++		}
+ 		err = damon_commit_target(new_target, false,
+ 				src_target, damon_target_has_pid(src),
+ 				src->min_region_sz);
+ 		if (err) {
+ 			damon_destroy_target(new_target, NULL);
+-			return err;
++			goto out;
+ 		}
+ 		damon_add_target(dst, new_target);
+ 	}
+ 	return 0;
++
++out:
++	damon_revert_target_commits(dst, failed, src);
++	return err;
+ }
+ 
+ static void damon_commit_filter(struct damon_filter *dst,
+@@ -1571,8 +1608,10 @@ int damon_commit_ctx(struct damon_ctx *d
+ 	 */
+ 	if (!damon_attrs_equals(&dst->attrs, &src->attrs)) {
+ 		err = damon_set_attrs(dst, &src->attrs);
+-		if (err)
++		if (err) {
++			damon_revert_target_commits(dst, NULL, src);
+ 			return err;
++		}
+ 	}
+ 	dst->pause = src->pause;
+ 	dst->ops = src->ops;
 _
 
-Patches currently in -mm which might be from icb@fastmail.org are
+Patches currently in -mm which might be from sj@kernel.org are
 
+maintainers-add-testing-abi-documents-for-mm.patch
+mm-damon-core-always-put-unsuccessfully-committed-target-pids.patch
 
