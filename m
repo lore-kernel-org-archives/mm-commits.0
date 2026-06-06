@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 892542AEE1
-	for <mm-commits@vger.kernel.org>; Sat,  6 Jun 2026 00:40:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D15661F2B88
+	for <mm-commits@vger.kernel.org>; Sat,  6 Jun 2026 00:40:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780706402; cv=none; b=ZS3d+cjQphjz0GQ1ZIl+Cr+W/op9FjwtTyGriFLDxPOwe94Iv59NOu3mzObwC7gOjQw/s8Oy83sh87YJl+6RFRHved+lLp1P960SQaBDFmZbBepwD9tzZCNBZT1oKgY9t3RNdTks2lU2EuVfFdxfBUZHDRY+0N963zRj87baEWg=
+	t=1780706405; cv=none; b=YymgxYdeXwfNFs0jnWkfNmpDYg5SXSt9BT7g2k8iXHLSzDF3ER/eqYvyFAs2vsgDe9+8cca7An57AjfxISpPlEFoA5PDgPHd/dgA9itAw6K+dEyscOSGg5EcOJ2LSMHoTL0yPoY1CtdaZqp9SeYRnRJJ+98uaUY8mJZodXU9Ey8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780706402; c=relaxed/simple;
-	bh=O6d7gUGhVNUghyuyQyEYK4ffq21jv/+CEVhLCW+LmiQ=;
-	h=Date:To:From:Subject:Message-Id; b=Dtn/J6/wexRmaOCqiJ+q+O3CjpZJcYB+7OvhyNXBQsvsRurR5bHnQJvKg8BcqPvLHRv3h1IFQ5xVz1404qSOgycHsugk0p71VEzCFY++jpFPDbkX0ya4/5XWuDPujOLYShLOYMC3sxPGNRoMHnzKAjKEtMr3juD8PJZsy63eUQg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XveByt3w; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1780706405; c=relaxed/simple;
+	bh=nNidadmGoQso4FG4mH8WIc0b1sZ2a1150XoEhzwroJ4=;
+	h=Date:To:From:Subject:Message-Id; b=lwYl5sBWIqE0c5r4AhqPf4U48wwOCrmsZrUbm3fMS+kBLFDdlW/i+RYw6L+xAw7g0PQDfrxngb0Hy72QUMXKQ5LMrf9u5sL//ESG6EoI68GvbTS8eZm8ROkRw4bTkejsbX6iaH0GgMJCE0JoUFSfPa05D5h+0H58F4lRUqcpIvA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TglX4V4w; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XveByt3w"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3037E1F00893;
-	Sat,  6 Jun 2026 00:40:01 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TglX4V4w"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A5A3E1F00893;
+	Sat,  6 Jun 2026 00:40:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1780706401;
-	bh=R8B2XtzVmJIPJNQcAfUchCqL10XVbJYBhjbtr4NY54w=;
+	d=linux-foundation.org; s=korg; t=1780706403;
+	bh=Ba/ibTd+X9G7a1utkAJFRIcVKgVHt1oRO4IbkKjLnLE=;
 	h=Date:To:From:Subject;
-	b=XveByt3wifnPAmlUmQ6m+eLvmxEBfv0UrFr/6O2GK0O+cwjT88KTsdUwPiK5uVqMG
-	 iqUBjgkfwyOfH7Eck0TdJhF1PlZSOzKbNracZqq6xbraJhuEMktqZVzIWeiDVam+Xh
-	 IVHKqa15rlixKNrz0LjdvXSqDDR8IfDtxzsAZRHE=
-Date: Fri, 05 Jun 2026 17:40:00 -0700
-To: mm-commits@vger.kernel.org,npache@redhat.com,akpm@linux-foundation.org
+	b=TglX4V4wMxyVE4KQiY0zmlLP6MFUiBJYoWbe1/xAV1R8Bn5jnSaz8Dp4m/N6Fj+Js
+	 qcYkR5L3lgBNkR5hgriF+TnPb8P/Dl/XLsFdPV2CF6r6LxIAvtZPUhgNVErxjY4wpD
+	 8uRYOoLGApwKt10skdNbpxygUS1eRRNX5nyXuwoY=
+Date: Fri, 05 Jun 2026 17:40:03 -0700
+To: mm-commits@vger.kernel.org,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-khugepaged-avoid-unnecessary-mthp-collapse-attempts.patch added to mm-unstable branch
-Message-Id: <20260606004001.3037E1F00893@smtp.kernel.org>
+Subject: + mm-khugepaged-run-khugepaged-for-all-orders.patch added to mm-unstable branch
+Message-Id: <20260606004003.A5A3E1F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/khugepaged: avoid unnecessary mTHP collapse attempts
+     Subject: mm/khugepaged: run khugepaged for all orders
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-khugepaged-avoid-unnecessary-mthp-collapse-attempts.patch
+     mm-khugepaged-run-khugepaged-for-all-orders.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-avoid-unnecessary-mthp-collapse-attempts.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-run-khugepaged-for-all-orders.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,24 +58,36 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Nico Pache <npache@redhat.com>
-Subject: mm/khugepaged: avoid unnecessary mTHP collapse attempts
-Date: Fri, 5 Jun 2026 10:14:19 -0600
+From: Baolin Wang <baolin.wang@linux.alibaba.com>
+Subject: mm/khugepaged: run khugepaged for all orders
+Date: Fri, 5 Jun 2026 10:14:20 -0600
 
-There are cases where, if an attempted collapse fails, all subsequent
-orders are guaranteed to also fail.  Avoid these collapse attempts by
-bailing out early.
+If any order (m)THP is enabled we should allow running khugepaged to
+attempt scanning and collapsing mTHPs.  In order for khugepaged to operate
+when only mTHP sizes are specified in sysfs, we must modify the predicate
+function that determines whether it ought to run to do so.
 
-Link: https://lore.kernel.org/20260605161422.213817-13-npache@redhat.com
+This function is currently called hugepage_pmd_enabled(), this patch
+renames it to hugepage_enabled() and updates the logic to check to
+determine whether any valid orders may exist which would justify
+khugepaged running.
+
+We must also update collapse_possible_orders() to check all orders if the
+vma is anonymous and the collapse is khugepaged.
+
+After this patch khugepaged mTHP collapse is fully enabled.
+
+Link: https://lore.kernel.org/20260605161422.213817-14-npache@redhat.com
+Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
 Signed-off-by: Nico Pache <npache@redhat.com>
 Reviewed-by: Lorenzo Stoakes <ljs@kernel.org>
+Reviewed-by: Lance Yang <lance.yang@linux.dev>
 Acked-by: Usama Arif <usama.arif@linux.dev>
 Acked-by: David Hildenbrand (Arm) <david@kernel.org>
 Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Anshuman Khandual <anshuman.khandual@arm.com>
 Cc: Bagas Sanjaya <bagasdotme@gmail.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Barry Song <baohua@kernel.org>
 Cc: Brendan Jackman <jackmanb@google.com>
 Cc: Byungchul Park <byungchul@sk.com>
@@ -91,7 +103,6 @@ Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
 Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Lance Yang <lance.yang@linux.dev>
 Cc: Liam R. Howlett <liam@infradead.org>
 Cc: "Masami Hiramatsu (Google)" <mhiramat@kernel.org>
 Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
@@ -122,52 +133,118 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |   13 +++++++++++++
- 1 file changed, 13 insertions(+)
+ mm/khugepaged.c |   36 ++++++++++++++++++++----------------
+ 1 file changed, 20 insertions(+), 16 deletions(-)
 
---- a/mm/khugepaged.c~mm-khugepaged-avoid-unnecessary-mthp-collapse-attempts
+--- a/mm/khugepaged.c~mm-khugepaged-run-khugepaged-for-all-orders
 +++ a/mm/khugepaged.c
-@@ -1504,6 +1504,7 @@ static enum scan_result mthp_collapse(st
- 			collapse_address = address + offset * PAGE_SIZE;
- 			ret = collapse_huge_page(mm, collapse_address, referenced,
- 						 unmapped, cc, order);
+@@ -503,23 +503,23 @@ static inline int collapse_test_exit_or_
+ 		mm_flags_test(MMF_DISABLE_THP_COMPLETELY, mm);
+ }
+ 
+-static bool hugepage_pmd_enabled(void)
++static bool hugepage_enabled(void)
+ {
+ 	/*
+ 	 * We cover the anon, shmem and the file-backed case here; file-backed
+ 	 * hugepages, when configured in, are determined by the global control.
+-	 * Anon pmd-sized hugepages are determined by the pmd-size control.
++	 * Anon hugepages are determined by its per-size mTHP control.
+ 	 * Shmem pmd-sized hugepages are also determined by its pmd-size control,
+ 	 * except when the global shmem_huge is set to SHMEM_HUGE_DENY.
+ 	 */
+ 	if (IS_ENABLED(CONFIG_READ_ONLY_THP_FOR_FS) &&
+ 	    hugepage_global_enabled())
+ 		return true;
+-	if (test_bit(PMD_ORDER, &huge_anon_orders_always))
++	if (READ_ONCE(huge_anon_orders_always))
+ 		return true;
+-	if (test_bit(PMD_ORDER, &huge_anon_orders_madvise))
++	if (READ_ONCE(huge_anon_orders_madvise))
+ 		return true;
+-	if (test_bit(PMD_ORDER, &huge_anon_orders_inherit) &&
++	if (READ_ONCE(huge_anon_orders_inherit) &&
+ 	    hugepage_global_enabled())
+ 		return true;
+ 	if (IS_ENABLED(CONFIG_SHMEM) && shmem_hpage_pmd_enabled())
+@@ -566,7 +566,13 @@ void __khugepaged_enter(struct mm_struct
+ static unsigned long collapse_possible_orders(struct vm_area_struct *vma,
+ 		vm_flags_t vm_flags, enum tva_type tva_flags)
+ {
+-	const unsigned long orders = BIT(HPAGE_PMD_ORDER);
++	unsigned long orders;
 +
- 			switch (ret) {
- 			/* Cases where we continue to next collapse candidate */
- 			case SCAN_SUCCEED:
-@@ -1514,6 +1515,18 @@ static enum scan_result mthp_collapse(st
- 			/* Cases where lower orders might still succeed */
- 			case SCAN_ALLOC_HUGE_PAGE_FAIL:
- 				alloc_failed = true;
-+				fallthrough;
-+			case SCAN_LACK_REFERENCED_PAGE:
-+			case SCAN_EXCEED_NONE_PTE:
-+			case SCAN_EXCEED_SWAP_PTE:
-+			case SCAN_EXCEED_SHARED_PTE:
-+			case SCAN_PAGE_LOCK:
-+			case SCAN_PAGE_COUNT:
-+			case SCAN_PAGE_NULL:
-+			case SCAN_DEL_PAGE_LRU:
-+			case SCAN_PTE_NON_PRESENT:
-+			case SCAN_PTE_UFFD_WP:
-+			case SCAN_PAGE_LAZYFREE:
- 				last_result = ret;
- 				goto next_order;
- 			/* Cases where no further collapse is possible */
++	/* If khugepaged is scanning an anonymous vma, allow mTHP collapse */
++	if ((tva_flags == TVA_KHUGEPAGED) && vma_is_anonymous(vma))
++		orders = THP_ORDERS_ALL_ANON;
++	else
++		orders = BIT(HPAGE_PMD_ORDER);
+ 
+ 	return thp_vma_allowable_orders(vma, vm_flags, tva_flags, orders);
+ }
+@@ -580,11 +586,9 @@ static bool collapse_possible(struct vm_
+ void khugepaged_enter_vma(struct vm_area_struct *vma,
+ 			  vm_flags_t vm_flags)
+ {
+-	if (!mm_flags_test(MMF_VM_HUGEPAGE, vma->vm_mm) &&
+-	    hugepage_pmd_enabled()) {
+-		if (collapse_possible(vma, vm_flags, TVA_KHUGEPAGED))
+-			__khugepaged_enter(vma->vm_mm);
+-	}
++	if (!mm_flags_test(MMF_VM_HUGEPAGE, vma->vm_mm) && hugepage_enabled()
++	    && collapse_possible(vma, vm_flags, TVA_KHUGEPAGED))
++		__khugepaged_enter(vma->vm_mm);
+ }
+ 
+ void __khugepaged_exit(struct mm_struct *mm)
+@@ -2941,7 +2945,7 @@ breakouterloop_mmap_lock:
+ 
+ static int khugepaged_has_work(void)
+ {
+-	return !list_empty(&khugepaged_scan.mm_head) && hugepage_pmd_enabled();
++	return !list_empty(&khugepaged_scan.mm_head) && hugepage_enabled();
+ }
+ 
+ static int khugepaged_wait_event(void)
+@@ -3014,7 +3018,7 @@ static void khugepaged_wait_work(void)
+ 		return;
+ 	}
+ 
+-	if (hugepage_pmd_enabled())
++	if (hugepage_enabled())
+ 		wait_event_freezable(khugepaged_wait, khugepaged_wait_event());
+ }
+ 
+@@ -3045,7 +3049,7 @@ void set_recommended_min_free_kbytes(voi
+ 	int nr_zones = 0;
+ 	unsigned long recommended_min;
+ 
+-	if (!hugepage_pmd_enabled()) {
++	if (!hugepage_enabled()) {
+ 		calculate_min_free_kbytes();
+ 		goto update_wmarks;
+ 	}
+@@ -3095,7 +3099,7 @@ int start_stop_khugepaged(void)
+ 	int err = 0;
+ 
+ 	mutex_lock(&khugepaged_mutex);
+-	if (hugepage_pmd_enabled()) {
++	if (hugepage_enabled()) {
+ 		if (!khugepaged_thread)
+ 			khugepaged_thread = kthread_run(khugepaged, NULL,
+ 							"khugepaged");
+@@ -3121,7 +3125,7 @@ fail:
+ void khugepaged_min_free_kbytes_update(void)
+ {
+ 	mutex_lock(&khugepaged_mutex);
+-	if (hugepage_pmd_enabled() && khugepaged_thread)
++	if (hugepage_enabled() && khugepaged_thread)
+ 		set_recommended_min_free_kbytes();
+ 	mutex_unlock(&khugepaged_mutex);
+ }
 _
 
-Patches currently in -mm which might be from npache@redhat.com are
+Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
 
-mm-khugepaged-generalize-hugepage_vma_revalidate-for-mthp-support.patch
-mm-khugepaged-rework-max_ptes_-handling-with-helper-functions.patch
-mm-khugepaged-generalize-__collapse_huge_page_-for-mthp-support.patch
-mm-khugepaged-require-collapse_huge_page-to-enter-exit-with-the-lock-dropped.patch
-mm-khugepaged-generalize-collapse_huge_page-for-mthp-collapse.patch
-mm-khugepaged-skip-collapsing-mthp-to-smaller-orders.patch
-mm-khugepaged-add-per-order-mthp-collapse-failure-statistics.patch
-mm-khugepaged-improve-tracepoints-for-mthp-orders.patch
-mm-khugepaged-introduce-collapse_possible_orders-helper-functions.patch
-mm-khugepaged-introduce-mthp-collapse-support.patch
-mm-khugepaged-avoid-unnecessary-mthp-collapse-attempts.patch
-documentation-mm-update-the-admin-guide-for-mthp-collapse.patch
+mm-khugepaged-run-khugepaged-for-all-orders.patch
 
