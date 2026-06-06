@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F2983128395
-	for <mm-commits@vger.kernel.org>; Sat,  6 Jun 2026 01:32:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E7C2C17A31C
+	for <mm-commits@vger.kernel.org>; Sat,  6 Jun 2026 01:45:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780709576; cv=none; b=WeU2htqNwhrqkMuFH2v8q6SPhUVaWXXPMy12bHCSI+jMSRpUcxanHVO1ZMv3CgPujwHrrzFvG5KxAnEu9SjjhUB7mfWf5SwFkUU1DOFaqzZMOlIxfJI9DUOr/x3b9cIHA5ge+2cpocjXScmidWQ8CIXe40Rh/e6Vr9gpLMQ3ND8=
+	t=1780710356; cv=none; b=OfBVGDkEczsDub86Q+p1zjQIx+Sluc/j1cgoJMZch5hZDq2LKr/Y2dM+ha3bjc+d+Gp79aZbZDVjswCtiIqiI11va6b/NLMbzHnWknsbAnfxOoxLtvbw/iiHIX9p4ww7exk4OJRIrCmx+yDxNVeZtGuWDvPnkMfie8YKJjd6PdI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780709576; c=relaxed/simple;
-	bh=wr1ny6XbV2QZJGo+qJ5N52XyOwyvHjtCr+wwhLInF2c=;
-	h=Date:To:From:Subject:Message-Id; b=TwhQF5hHEYZhKDgtO4WghIF4Ds/3i21kjA2HqKstIS6x7RLoigWeMw0R9eJsvlxaluEyRr5mdBOoT86Tm4GsyvD7FOvJvD1Dk7n0ctPwzMoRpQkShMiynRuUYG6iP0yZn2g5yZfH/iS75xM/XrQ4CRvzyUGnhNVL5KLREuXIRX4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VofZ1C4E; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1780710356; c=relaxed/simple;
+	bh=hMI2taxPMmEea6veFRAqPaI3Ui+eitOksMfOa+gutyA=;
+	h=Date:To:From:Subject:Message-Id; b=I3IE/xrazrCTVhFcolgVJyeWosb/6TL0vWagzClTqUAxgVdh9zIlJgaMb6yw7c8br/lRuHO4ZkAZdEE0JCtSOJ54cH5Mmew63WiLA03OS4Sple2KraN/I0gl/E/Zxv12BZGK9rS0Y5mrCsIk+kAEoZsUi/t1A3DDcFilA/ld9D0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OXgpSIw5; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VofZ1C4E"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 96CA41F00893;
-	Sat,  6 Jun 2026 01:32:54 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OXgpSIw5"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 88F6B1F00893;
+	Sat,  6 Jun 2026 01:45:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1780709574;
-	bh=ozR3QSoHED9UpcCyGhrnxtXjIyGmLvgvneUJEVlhTSM=;
+	d=linux-foundation.org; s=korg; t=1780710355;
+	bh=31wQ1ORHztlHLh/1kyBqvwxMEKxmMJutIEjFZOBGW3s=;
 	h=Date:To:From:Subject;
-	b=VofZ1C4EJJP35HTEUXJwZq9yflixQU3zWEFhY4UFyoDspr7OCY6O7FQ5HnHBECZNW
-	 FLj9dlvVXUMZycpiVWwgwVWEJwsJuX/9e66zAF8R6DrDismmlF16b5NolZoMktYge7
-	 fS6hcGWb9UpVVsRk22st3ut4karOU/8dYIoVB4mk=
-Date: Fri, 05 Jun 2026 18:32:54 -0700
-To: mm-commits@vger.kernel.org,fabf@skynet.be,brauner@kernel.org,akpm@linux-foundation.org,m32285159@gmail.com,akpm@linux-foundation.org
+	b=OXgpSIw5uh9SbXF31bbAPNO50P3my0cjRFqh0sN6INXBXgdH9HBz/CKgHaYL8j+lL
+	 Ym8cwe7ZAnbaUeB6HTO+suz5zxTrfYi5viYXe3NR78IGFipoPjuS2uAFbn2FrTAp2w
+	 FcJHrkA39JJLH3CP9BVcLm/HuwJT0nxMNCBGVTq8=
+Date: Fri, 05 Jun 2026 18:45:55 -0700
+To: mm-commits@vger.kernel.org,scott.branden@broadcom.com,mcgrof@kernel.org,kees@kernel.org,akpm@linux-foundation.org,sam.moelius@trailofbits.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + fs-efs-remove-unneeded-debug-prints.patch added to mm-nonmm-unstable branch
-Message-Id: <20260606013254.96CA41F00893@smtp.kernel.org>
+Subject: + lib-test_firmware-allocate-the-configured-into_buf-size.patch added to mm-nonmm-unstable branch
+Message-Id: <20260606014555.88F6B1F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: fs: efs: remove unneeded debug prints
+     Subject: lib/test_firmware: allocate the configured into_buf size
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     fs-efs-remove-unneeded-debug-prints.patch
+     lib-test_firmware-allocate-the-configured-into_buf-size.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-efs-remove-unneeded-debug-prints.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-test_firmware-allocate-the-configured-into_buf-size.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,89 +58,49 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Maxwell Doose <m32285159@gmail.com>
-Subject: fs: efs: remove unneeded debug prints
-Date: Thu, 4 Jun 2026 22:52:51 -0500
+From: Samuel Moelius <sam.moelius@trailofbits.com>
+Subject: lib/test_firmware: allocate the configured into_buf size
+Date: Fri, 5 Jun 2026 00:30:37 +0000
 
-The current code uses debug prints conditionally compiled with #ifdef
-DEBUG.  However, that code, when compiled, causes compiler errors due to
-incompatible formatters and undefined variables, notably:
+The batched into_buf test path allocates TEST_FIRMWARE_BUF_SIZE bytes
+unconditionally, but then passes test_fw_config->buf_size to
+request_firmware_into_buf() or request_partial_firmware_into_buf().
 
-fs/efs/file.c: In function `efs_get_block':
-fs/efs/file.c:26:35: error: `block' undeclared (first use in this
-function); did you mean `iblock'?
-  26 |                         __func__, block, inode->i_blocks, inode->i_size);
-     |                                   ^~~~~
+Userspace can set config_buf_size above TEST_FIRMWARE_BUF_SIZE before
+triggering a batched request. If the firmware file is large enough, the
+firmware loader writes past the end of the 1 KiB test buffer.
 
-and:
+Allocate the buffer with the same size that the test passes to the firmware
+API so config_buf_size remains the actual buffer size under test.
 
-fs/efs/file.c: In function `efs_bmap':
-./include/linux/kern_levels.h:5:25: error: format `%ld' expects
-argument of type `long int', but argument 4 has type `blkcnt_t' {aka
-`long long unsigned int'} [-Werror=format=]
-   5 | #define KERN_SOH        "\001"          /* ASCII Start Of Header */
-     |                         ^~~~~~
-
-which also extends to the other formatters.  As this part of the code has
-been dead for just about 14 years now, it has not been modernized to stay
-compatible with the most recent gcc compilers.  Fix these issues by
-removing the debug prints.
-
-Link: https://lore.kernel.org/20260605035251.89305-2-m32285159@gmail.com
-Fixes: f403d1dbac6d ("fs/efs: add pr_fmt / use __func__")
-Signed-off-by: Maxwell Doose <m32285159@gmail.com>
-Suggested-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Fabian Frederick <fabf@skynet.be>
-Cc: Christian Brauner <brauner@kernel.org>
+Assisted-by: Codex:gpt-5.5-cyber-preview
+Link: https://lore.kernel.org/20260605003038.2005840-1-sam.moelius@trailofbits.com
+Signed-off-by: Samuel Moelius <sam.moelius@trailofbits.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Kees Cook <kees@kernel.org>
+Cc: Luis R. Rodriguez <mcgrof@kernel.org>
+Cc: Scott Branden <scott.branden@broadcom.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/efs/file.c |   21 +++------------------
- 1 file changed, 3 insertions(+), 18 deletions(-)
+ lib/test_firmware.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/fs/efs/file.c~fs-efs-remove-unneeded-debug-prints
-+++ a/fs/efs/file.c
-@@ -18,16 +18,9 @@ int efs_get_block(struct inode *inode, s
+--- a/lib/test_firmware.c~lib-test_firmware-allocate-the-configured-into_buf-size
++++ a/lib/test_firmware.c
+@@ -867,7 +867,7 @@ static int test_fw_run_batch_request(voi
+ 	if (test_fw_config->into_buf) {
+ 		void *test_buf;
  
- 	if (create)
- 		return error;
--	if (iblock >= inode->i_blocks) {
--#ifdef DEBUG
--		/*
--		 * i have no idea why this happens as often as it does
--		 */
--		pr_warn("%s(): block %d >= %ld (filesize %ld)\n",
--			__func__, block, inode->i_blocks, inode->i_size);
--#endif
-+	if (iblock >= inode->i_blocks)
- 		return 0;
--	}
-+
- 	phys = efs_map_block(inode, iblock);
- 	if (phys)
- 		map_bh(bh_result, inode->i_sb, phys);
-@@ -42,16 +35,8 @@ int efs_bmap(struct inode *inode, efs_bl
- 	}
+-		test_buf = kzalloc(TEST_FIRMWARE_BUF_SIZE, GFP_KERNEL);
++		test_buf = kzalloc(test_fw_config->buf_size, GFP_KERNEL);
+ 		if (!test_buf)
+ 			return -ENOMEM;
  
- 	/* are we about to read past the end of a file ? */
--	if (!(block < inode->i_blocks)) {
--#ifdef DEBUG
--		/*
--		 * i have no idea why this happens as often as it does
--		 */
--		pr_warn("%s(): block %d >= %ld (filesize %ld)\n",
--			__func__, block, inode->i_blocks, inode->i_size);
--#endif
-+	if (!(block < inode->i_blocks))
- 		return 0;
--	}
- 
- 	return efs_map_block(inode, block);
- }
 _
 
-Patches currently in -mm which might be from m32285159@gmail.com are
+Patches currently in -mm which might be from sam.moelius@trailofbits.com are
 
-fs-fat-inode-replace-sprintf-with-scnprintf.patch
-fs-efs-remove-unneeded-debug-prints.patch
+mm-page_frag-reject-invalid-cpus-in-page_frag_test.patch
+lib-test_firmware-allocate-the-configured-into_buf-size.patch
 
