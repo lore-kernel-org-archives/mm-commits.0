@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4F8A118DB01
-	for <mm-commits@vger.kernel.org>; Sat,  6 Jun 2026 01:09:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2BAF44071C4
+	for <mm-commits@vger.kernel.org>; Sat,  6 Jun 2026 01:14:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780708145; cv=none; b=djKQFkPYbo+RD5+XOA98cRezGjDeGjVKW+GyarX+Qwwme4SQ+ooKWL7+S/TnL7G6dAH2rteZtDh1Jx1ufJhH0kPlUN09RygpJuW8UbEra+Nigiay6+Ln694y0cENdq65sVrXdO+bOGg69anhpdEASf50zSZq/Yn/3Lcqeqs4qzw=
+	t=1780708455; cv=none; b=GZ1eouQBKTSreVic1bKlJfy8AfHLNH/pvVIhE8xMempgpUMOIboZR55K2f3BiQmbTGjqN8GkYXTKyExJwCQqtaoK3CskQktb0KTih0G3FlfqCnzauBYE57AKy9fx3VnZXYq1gKQC5UUdrxROAY2uI4ETF0qPu/IRFBGz7f78yI8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780708145; c=relaxed/simple;
-	bh=tDYwStNa5jgfSh7Ssj+NVmHisZ6zYPx2yGlM2dmuVlU=;
-	h=Date:To:From:Subject:Message-Id; b=fXd1qau+UsoiMMOqB3GoIVWpXnqETMkms/EPVAIMOB/Bv/NVdqJS8yf60SZpvWHgBkENpqM1Ey0R3rJu0ec4tDCtpr7zDS6z9BmvoSlHuM74wrn2bxEeUt5zuVJ6k9Ft7tcBoEjV+G8uZMCxWzhazYFtHSoHvDIgBXkaRSYt1mU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FYJCENcE; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1780708455; c=relaxed/simple;
+	bh=e/+A6+ZkeI5JXXWrDtL0MNLlrmJFFRdecuKrZhCSZ2o=;
+	h=Date:To:From:Subject:Message-Id; b=J+cL/bw1uGNqlVkX7rq+mHymBkVciv4EdUKXjvxLUzGYxZ7LsEk/fZo9IIsStlyn4PZBGFVhirkmueyHkk8dhwTEBT2mFjqQIGt7Xa4Y1X4V/zfpIX3vZgvPHBM5D2+W/huB6OAaDw919Hs0E70yVerO55VKcLfL1keDRxXJqsU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nMPuBlPj; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FYJCENcE"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D38B91F00893;
-	Sat,  6 Jun 2026 01:09:03 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nMPuBlPj"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9A7D71F00893;
+	Sat,  6 Jun 2026 01:14:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1780708143;
-	bh=nDIRdv10vjjrbqMLnaDhfyhCoqCCcWSAEFCuuRR3zc4=;
+	d=linux-foundation.org; s=korg; t=1780708453;
+	bh=AFiMi5LZ1bVqmFQoRD31UbJgsTYuom7BdocYkl7LFwE=;
 	h=Date:To:From:Subject;
-	b=FYJCENcEK2RwHxtxO/cUEe4+3VKVTZ+gOZqnxTtwLPJyEhpDVln1nDK6OSMYeFH9Z
-	 Tcf5rSSm6gSsAjiaIKlDiptWws5YYjq6FIl75avUnNPqk4InbnBxoF77jbl/htfckS
-	 ZFm2D6SsWHssJvqmO9xMTdw0Ker/zteNvQNtZyD4=
-Date: Fri, 05 Jun 2026 18:09:03 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,shuah@kernel.org,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,sam.moelius@trailofbits.com,akpm@linux-foundation.org
+	b=nMPuBlPjWWcXS/L5xalrBUB2ggLm/cMUY4C2ok2JXARCT6CggOn0U9tHjS1kH6DS/
+	 rhoWSLLNM3vStVhouigDsIY4IDYddcXKs5xBiAhVeJ1oTgoGgaPxpbgAnVcgkOaIP0
+	 SwafuoYApo0X/AsOdwoSRdo2559a80792My4JxPQ=
+Date: Fri, 05 Jun 2026 18:14:13 -0700
+To: mm-commits@vger.kernel.org,elver@google.com,dvyukov@google.com,glider@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_frag-reject-invalid-cpus-in-page_frag_test.patch added to mm-new branch
-Message-Id: <20260606010903.D38B91F00893@smtp.kernel.org>
+Subject: + maintainers-add-self-as-a-kcov-reviewer.patch added to mm-nonmm-unstable branch
+Message-Id: <20260606011413.9A7D71F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,26 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/page_frag: reject invalid CPUs in page_frag_test
-has been added to the -mm mm-new branch.  Its filename is
-     mm-page_frag-reject-invalid-cpus-in-page_frag_test.patch
+     Subject: MAINTAINERS: add Alexander as a kcov reviewer
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     maintainers-add-self-as-a-kcov-reviewer.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_frag-reject-invalid-cpus-in-page_frag_test.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maintainers-add-self-as-a-kcov-reviewer.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,53 +58,39 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Samuel Moelius <sam.moelius@trailofbits.com>
-Subject: mm/page_frag: reject invalid CPUs in page_frag_test
-Date: Fri, 5 Jun 2026 18:41:52 +0000
+From: Alexander Potapenko <glider@google.com>
+Subject: MAINTAINERS: add Alexander as a kcov reviewer
+Date: Fri, 5 Jun 2026 10:54:23 +0200
 
-The page_frag selftest module accepts test_push_cpu and test_pop_cpu as
-signed module parameters, then validates them by passing them directly to
-cpu_active().
+Also move Dmitry Vyukov to the bottom of the list.
 
-That validation is itself unsafe for negative or out-of-range CPU numbers.
-For example, test_push_cpu=-1 is converted to a very large unsigned CPU
-number before cpu_active() reaches cpumask_test_cpu(), which trips the
-cpumask range check with CONFIG_DEBUG_PER_CPU_MAPS enabled.
-
-Reject CPU values outside [0, nr_cpu_ids) before asking whether the CPU is
-active.
-
-Assisted-by: Codex:gpt-5.5-cyber-preview
-Link: https://lore.kernel.org/20260605184157.2490353-1-sam.moelius@trailofbits.com
-Signed-off-by: Samuel Moelius <sam.moelius@trailofbits.com>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
+Link: https://lore.kernel.org/20260605085423.1962700-1-glider@google.com
+Signed-off-by: Alexander Potapenko <glider@google.com>
+Reviewed-by: Dmitry Vyukov <dvyukov@google.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Marco Elver <elver@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/page_frag/page_frag_test.c |    2 ++
- 1 file changed, 2 insertions(+)
+ MAINTAINERS |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/tools/testing/selftests/mm/page_frag/page_frag_test.c~mm-page_frag-reject-invalid-cpus-in-page_frag_test
-+++ a/tools/testing/selftests/mm/page_frag/page_frag_test.c
-@@ -131,6 +131,8 @@ static int __init page_frag_test_init(vo
- 	init_completion(&wait);
+--- a/MAINTAINERS~maintainers-add-self-as-a-kcov-reviewer
++++ a/MAINTAINERS
+@@ -13837,8 +13837,9 @@ F:	fs/proc/kcore.c
+ F:	include/linux/kcore.h
  
- 	if (test_alloc_len > PAGE_SIZE || test_alloc_len <= 0 ||
-+	    test_push_cpu < 0 || test_push_cpu >= nr_cpu_ids ||
-+	    test_pop_cpu < 0 || test_pop_cpu >= nr_cpu_ids ||
- 	    !cpu_active(test_push_cpu) || !cpu_active(test_pop_cpu))
- 		return -EINVAL;
- 
+ KCOV
+-R:	Dmitry Vyukov <dvyukov@google.com>
+ R:	Andrey Konovalov <andreyknvl@gmail.com>
++R:	Alexander Potapenko <glider@google.com>
++R:	Dmitry Vyukov <dvyukov@google.com>
+ L:	kasan-dev@googlegroups.com
+ S:	Maintained
+ B:	https://bugzilla.kernel.org/buglist.cgi?component=Sanitizers&product=Memory%20Management
 _
 
-Patches currently in -mm which might be from sam.moelius@trailofbits.com are
+Patches currently in -mm which might be from glider@google.com are
 
-mm-page_frag-reject-invalid-cpus-in-page_frag_test.patch
+maintainers-add-self-as-a-kcov-reviewer.patch
 
