@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C27A9224B04
-	for <mm-commits@vger.kernel.org>; Sat,  6 Jun 2026 00:39:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6F5771F2B88
+	for <mm-commits@vger.kernel.org>; Sat,  6 Jun 2026 00:39:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780706390; cv=none; b=ZTDpUTe0xLQ4yoNeZfWhdOUoxe6Jw1SAMsmltZQjwNzbXLRmvmkfSrl65JDyAyrK/PK6ZXEnBXwGuHvPrv9mysLH9tQfL9bwViOZcXiqowrtT0sMpz8ky0CC1SueRY8Wj/JHJBUyHXqlC88DFa/p4UTMcDClNNgjEBjJLyGE1XA=
+	t=1780706392; cv=none; b=txyYnKjy4ks+ECifhUgRrNIhoefB7dBItG2zh/jifUzNfnQPpWDU/nu4VVo8V2K3TgE1D2c7djQdju+IM+8zGe6/DrgyDGo4LIIVS7Sn+D2bAi6TqHmvshvW4vLGXwnRPpooX7cR6yj9PyBFElk69OFZZrEp2wxNerkiCbCV458=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780706390; c=relaxed/simple;
-	bh=ODISNZMftRLi28ZeLGBDClzU/HweDRYGKn15K86UN8Y=;
-	h=Date:To:From:Subject:Message-Id; b=cDpsAQQWUKsiKgdHaKF3tscwkIwX27/7yXXUHbZj7r8STAaYYw+bsJey9kz4JNd9oPXlPr30SCpoZY4vc+GP5Yg8fO0SUBe48dEXIWNWEqn2mJicGlqEtQWuj/8KaXETjQQ3HvdGcqmnTzPZADGglSaiUtqgTvMSxZmkip3X30Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ngBE2SUX; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1780706392; c=relaxed/simple;
+	bh=7yHGNEc/YbG3K93HhqVXGASO4krZDJJ2JVroYyOVso0=;
+	h=Date:To:From:Subject:Message-Id; b=e4mL4GrTsTbtXhphsQy+tJE6MTGSxP+r+CWmU0GzcpvYEW+wecMtO9E3kS9b7HDbaxICdUC8x7La+qgvQnJk7rxJCrOuFqch6RoDZGcEWmyJz0PAgHz6fu/Ev0Awn9gOmM6dlRF+sGcESy2kOnJfDaV9tYIbgldTDyvh4SW3GvI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2BqPs1Hj; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ngBE2SUX"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5D6FD1F00893;
-	Sat,  6 Jun 2026 00:39:46 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2BqPs1Hj"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id ECDB51F00898;
+	Sat,  6 Jun 2026 00:39:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1780706386;
-	bh=Lt2emMwsazXR4nJC+f6IUBe4+bB2U9E94H6GzTfzT9I=;
+	d=linux-foundation.org; s=korg; t=1780706389;
+	bh=qlctEJtrOq+Acd+JIemHhzyPSk6R1tB3nDqjaue6Xus=;
 	h=Date:To:From:Subject;
-	b=ngBE2SUXZ4iJvFdfljEsGzgCf8XkeSGLT+5H/5ZuQtIqHNB3KrSv6UKcVD50jnUSj
-	 wAIh4hCdrYhHBfMARhtApnvgs7iFnZYwQelJyEbWl3dsRRuIpQED8y0rtKE+f2NCRt
-	 v0RaGLWn04vlDf+LSTEIUN1hKzMA1Veyf/Z2G57c=
-Date: Fri, 05 Jun 2026 17:39:45 -0700
+	b=2BqPs1HjwiB3bPu65BpXOkWTwN0t0Jknztu/6Bz8j9IZtcaDtrCDEDIykxo3nQuQG
+	 8J006XxAjj+SRPmgK/ejwJNITtFED8ROJwDChHQgQ55vV8pMBu6of5DbwKbqzEqO7d
+	 /VIuttVqCAtC3OajeLE+jTAsg3Y08pw8uSgiyZdg=
+Date: Fri, 05 Jun 2026 17:39:48 -0700
 To: mm-commits@vger.kernel.org,npache@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-khugepaged-skip-collapsing-mthp-to-smaller-orders.patch added to mm-unstable branch
-Message-Id: <20260606003946.5D6FD1F00893@smtp.kernel.org>
+Subject: + mm-khugepaged-add-per-order-mthp-collapse-failure-statistics.patch added to mm-unstable branch
+Message-Id: <20260606003948.ECDB51F00898@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/khugepaged: skip collapsing mTHP to smaller orders
+     Subject: mm/khugepaged: add per-order mTHP collapse failure statistics
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-khugepaged-skip-collapsing-mthp-to-smaller-orders.patch
+     mm-khugepaged-add-per-order-mthp-collapse-failure-statistics.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-skip-collapsing-mthp-to-smaller-orders.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-add-per-order-mthp-collapse-failure-statistics.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,36 +59,49 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Nico Pache <npache@redhat.com>
-Subject: mm/khugepaged: skip collapsing mTHP to smaller orders
-Date: Fri, 5 Jun 2026 10:14:14 -0600
+Subject: mm/khugepaged: add per-order mTHP collapse failure statistics
+Date: Fri, 5 Jun 2026 10:14:15 -0600
 
-khugepaged may try to collapse a mTHP to a folio of equal or smaller size,
-possibly resulting in a partially mapped source folio, which is undesired.
-Skip these cases until we have a way to check if its ok to collapse to a
-smaller mTHP size (like in the case of a partially mapped folio).  This
-check is not done during the scan phase as the current collapse order is
-unknown at that time.
+Add three new mTHP statistics to track collapse failures for different
+orders when encountering swap PTEs, excessive none PTEs, and shared PTEs:
 
-This patch is inspired by Dev Jain's work on khugepaged mTHP support [1].
+- collapse_exceed_swap_pte: Increment when mTHP collapse fails due to
+	encountering a swap PTE.
 
-Link: https://lore.kernel.org/20260605161422.213817-8-npache@redhat.com
-Link: https://lore.kernel.org/lkml/20241216165105.56185-11-dev.jain@arm.com/ [1]
-Co-developed-by: Dev Jain <dev.jain@arm.com>
-Signed-off-by: Dev Jain <dev.jain@arm.com>
+- collapse_exceed_none_pte: Counts when mTHP collapse fails due to
+  	exceeding the none PTE threshold for the given order
+
+- collapse_exceed_shared_pte: Counts when mTHP collapse fails due to
+	encountering a shared PTE.
+
+These statistics complement the existing THP_SCAN_EXCEED_* events by
+providing per-order granularity for mTHP collapse attempts.  The stats are
+exposed via sysfs under
+`/sys/kernel/mm/transparent_hugepage/hugepages-*/stats/` for each
+supported hugepage size.
+
+As we currently do not support collapsing mTHPs that contain a swap or
+shared entry, those statistics keep track of how often we are encountering
+failed mTHP collapses due to these restrictions.
+
+We will add support for mTHP collapse for anonymous pages next; lets also
+track when this happens at the PMD level within the per-mTHP stats.
+
+Link: https://lore.kernel.org/20260605161422.213817-9-npache@redhat.com
 Signed-off-by: Nico Pache <npache@redhat.com>
 Reviewed-by: Lorenzo Stoakes <ljs@kernel.org>
-Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Acked-by: David Hildenbrand (arm) <david@kernel.org>
-Acked-by: Usama Arif <usama.arif@linux.dev>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
 Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Anshuman Khandual <anshuman.khandual@arm.com>
 Cc: Bagas Sanjaya <bagasdotme@gmail.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Barry Song <baohua@kernel.org>
 Cc: Brendan Jackman <jackmanb@google.com>
 Cc: Byungchul Park <byungchul@sk.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: David Rientjes <rientjes@google.com>
+Cc: Dev Jain <dev.jain@arm.com>
 Cc: Gregory Price <gourry@gourry.net>
 Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
 Cc: Hugh Dickins <hughd@google.com>
@@ -119,6 +132,7 @@ Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Takashi Iwai (SUSE) <tiwai@suse.de>
 Cc: Thomas Hellström <thomas.hellstrom@linux.intel.com>
 Cc: Usama Arif <usamaarif642@gmail.com>
+Cc: Usama Arif <usama.arif@linux.dev>
 Cc: Vishal Moola (Oracle) <vishal.moola@gmail.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Wei Yang <richard.weiyang@gmail.com>
@@ -129,26 +143,129 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ Documentation/admin-guide/mm/transhuge.rst |   14 ++++++++++++++
+ include/linux/huge_mm.h                    |    3 +++
+ mm/huge_memory.c                           |    7 +++++++
+ mm/khugepaged.c                            |   15 +++++++++++++--
+ 4 files changed, 37 insertions(+), 2 deletions(-)
 
---- a/mm/khugepaged.c~mm-khugepaged-skip-collapsing-mthp-to-smaller-orders
+--- a/Documentation/admin-guide/mm/transhuge.rst~mm-khugepaged-add-per-order-mthp-collapse-failure-statistics
++++ a/Documentation/admin-guide/mm/transhuge.rst
+@@ -714,6 +714,20 @@ nr_anon_partially_mapped
+        an anonymous THP as "partially mapped" and count it here, even though it
+        is not actually partially mapped anymore.
+ 
++collapse_exceed_none_pte
++       The number of collapse attempts that failed due to exceeding the
++       max_ptes_none threshold.
++
++collapse_exceed_swap_pte
++       The number of collapse attempts that failed due to exceeding the
++       max_ptes_swap threshold. For non-PMD orders this occurs if a mTHP range
++       contains at least one swap PTE.
++
++collapse_exceed_shared_pte
++       The number of collapse attempts that failed due to exceeding the
++       max_ptes_shared threshold. For non-PMD orders this occurs if a mTHP range
++       contains at least one shared PTE.
++
+ As the system ages, allocating huge pages may be expensive as the
+ system uses memory compaction to copy data around memory to free a
+ huge page for use. There are some counters in ``/proc/vmstat`` to help
+--- a/include/linux/huge_mm.h~mm-khugepaged-add-per-order-mthp-collapse-failure-statistics
++++ a/include/linux/huge_mm.h
+@@ -144,6 +144,9 @@ enum mthp_stat_item {
+ 	MTHP_STAT_SPLIT_DEFERRED,
+ 	MTHP_STAT_NR_ANON,
+ 	MTHP_STAT_NR_ANON_PARTIALLY_MAPPED,
++	MTHP_STAT_COLLAPSE_EXCEED_SWAP,
++	MTHP_STAT_COLLAPSE_EXCEED_NONE,
++	MTHP_STAT_COLLAPSE_EXCEED_SHARED,
+ 	__MTHP_STAT_COUNT
+ };
+ 
+--- a/mm/huge_memory.c~mm-khugepaged-add-per-order-mthp-collapse-failure-statistics
++++ a/mm/huge_memory.c
+@@ -720,6 +720,10 @@ DEFINE_MTHP_STAT_ATTR(split_failed, MTHP
+ DEFINE_MTHP_STAT_ATTR(split_deferred, MTHP_STAT_SPLIT_DEFERRED);
+ DEFINE_MTHP_STAT_ATTR(nr_anon, MTHP_STAT_NR_ANON);
+ DEFINE_MTHP_STAT_ATTR(nr_anon_partially_mapped, MTHP_STAT_NR_ANON_PARTIALLY_MAPPED);
++DEFINE_MTHP_STAT_ATTR(collapse_exceed_swap_pte, MTHP_STAT_COLLAPSE_EXCEED_SWAP);
++DEFINE_MTHP_STAT_ATTR(collapse_exceed_none_pte, MTHP_STAT_COLLAPSE_EXCEED_NONE);
++DEFINE_MTHP_STAT_ATTR(collapse_exceed_shared_pte, MTHP_STAT_COLLAPSE_EXCEED_SHARED);
++
+ 
+ static struct attribute *anon_stats_attrs[] = {
+ 	&anon_fault_alloc_attr.attr,
+@@ -736,6 +740,9 @@ static struct attribute *anon_stats_attr
+ 	&split_deferred_attr.attr,
+ 	&nr_anon_attr.attr,
+ 	&nr_anon_partially_mapped_attr.attr,
++	&collapse_exceed_swap_pte_attr.attr,
++	&collapse_exceed_none_pte_attr.attr,
++	&collapse_exceed_shared_pte_attr.attr,
+ 	NULL,
+ };
+ 
+--- a/mm/khugepaged.c~mm-khugepaged-add-per-order-mthp-collapse-failure-statistics
 +++ a/mm/khugepaged.c
-@@ -697,6 +697,14 @@ static enum scan_result __collapse_huge_
+@@ -651,7 +651,9 @@ static enum scan_result __collapse_huge_
+ 		if (pte_none_or_zero(pteval)) {
+ 			if (++none_or_zero > max_ptes_none) {
+ 				result = SCAN_EXCEED_NONE_PTE;
+-				count_vm_event(THP_SCAN_EXCEED_NONE_PTE);
++				if (is_pmd_order(order))
++					count_vm_event(THP_SCAN_EXCEED_NONE_PTE);
++				count_mthp_stat(order, MTHP_STAT_COLLAPSE_EXCEED_NONE);
+ 				goto out;
+ 			}
+ 			continue;
+@@ -693,7 +695,9 @@ static enum scan_result __collapse_huge_
+ 			 */
+ 			if (++shared > max_ptes_shared) {
+ 				result = SCAN_EXCEED_SHARED_PTE;
+-				count_vm_event(THP_SCAN_EXCEED_SHARED_PTE);
++				if (is_pmd_order(order))
++					count_vm_event(THP_SCAN_EXCEED_SHARED_PTE);
++				count_mthp_stat(order, MTHP_STAT_COLLAPSE_EXCEED_SHARED);
  				goto out;
  			}
  		}
-+		/*
-+		 * TODO: In some cases of partially-mapped folios, we'd actually
-+		 * want to collapse.
-+		 */
-+		if (!is_pmd_order(order) && folio_order(folio) >= order) {
-+			result = SCAN_PTE_MAPPED_HUGEPAGE;
-+			goto out;
-+		}
- 
- 		if (folio_test_large(folio)) {
- 			struct folio *f;
+@@ -1152,6 +1156,7 @@ static enum scan_result __collapse_huge_
+ 		 * range.
+ 		 */
+ 		if (!is_pmd_order(order)) {
++			count_mthp_stat(order, MTHP_STAT_COLLAPSE_EXCEED_SWAP);
+ 			pte_unmap(pte);
+ 			mmap_read_unlock(mm);
+ 			result = SCAN_EXCEED_SWAP_PTE;
+@@ -1464,6 +1469,8 @@ static enum scan_result collapse_scan_pm
+ 			if (++none_or_zero > max_ptes_none) {
+ 				result = SCAN_EXCEED_NONE_PTE;
+ 				count_vm_event(THP_SCAN_EXCEED_NONE_PTE);
++				count_mthp_stat(HPAGE_PMD_ORDER,
++						MTHP_STAT_COLLAPSE_EXCEED_NONE);
+ 				goto out_unmap;
+ 			}
+ 			continue;
+@@ -1472,6 +1479,8 @@ static enum scan_result collapse_scan_pm
+ 			if (++unmapped > max_ptes_swap) {
+ 				result = SCAN_EXCEED_SWAP_PTE;
+ 				count_vm_event(THP_SCAN_EXCEED_SWAP_PTE);
++				count_mthp_stat(HPAGE_PMD_ORDER,
++						MTHP_STAT_COLLAPSE_EXCEED_SWAP);
+ 				goto out_unmap;
+ 			}
+ 			/*
+@@ -1529,6 +1538,8 @@ static enum scan_result collapse_scan_pm
+ 			if (++shared > max_ptes_shared) {
+ 				result = SCAN_EXCEED_SHARED_PTE;
+ 				count_vm_event(THP_SCAN_EXCEED_SHARED_PTE);
++				count_mthp_stat(HPAGE_PMD_ORDER,
++						MTHP_STAT_COLLAPSE_EXCEED_SHARED);
+ 				goto out_unmap;
+ 			}
+ 		}
 _
 
 Patches currently in -mm which might be from npache@redhat.com are
