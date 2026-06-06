@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0290122DFA4
-	for <mm-commits@vger.kernel.org>; Sat,  6 Jun 2026 01:25:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F2983128395
+	for <mm-commits@vger.kernel.org>; Sat,  6 Jun 2026 01:32:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780709124; cv=none; b=DLrD1XSFdBYAixYPYuWR/+XU2Ky0+k1mWjyCDDvhKXOJ3etH+Kr8MH1wJdE5QIYDRVuvrgcA4BdZoC/PHKR533JNUYdgmAEPNCYziv216Ae3RGJmW91yUF5vGQvO2OGX8C0H4qEBSElf8GB72MmlSUWipAt7OnfoNPF0/1lm92U=
+	t=1780709576; cv=none; b=WeU2htqNwhrqkMuFH2v8q6SPhUVaWXXPMy12bHCSI+jMSRpUcxanHVO1ZMv3CgPujwHrrzFvG5KxAnEu9SjjhUB7mfWf5SwFkUU1DOFaqzZMOlIxfJI9DUOr/x3b9cIHA5ge+2cpocjXScmidWQ8CIXe40Rh/e6Vr9gpLMQ3ND8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780709124; c=relaxed/simple;
-	bh=aaQvnHkQ9wSfpS8JHeCNzZi3QWHokwLwPX6HEEl5FgI=;
-	h=Date:To:From:Subject:Message-Id; b=Rxuzi3Td1ATkxXRid8BAiNXxodhj3FuLzQuC/2SevTT2nUcT0+pEOZBXoegJTDcU/THwiAYxxlWjpf03GIFGdRdyXgKuoxBDnOreSclU6xP1X7gssBJvHA5DPq+hWaof+ndxbWJVsFVmyi5yOmllU7X9JZSTR4S6mXuyW5xjgSQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cmK6g7CG; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1780709576; c=relaxed/simple;
+	bh=wr1ny6XbV2QZJGo+qJ5N52XyOwyvHjtCr+wwhLInF2c=;
+	h=Date:To:From:Subject:Message-Id; b=TwhQF5hHEYZhKDgtO4WghIF4Ds/3i21kjA2HqKstIS6x7RLoigWeMw0R9eJsvlxaluEyRr5mdBOoT86Tm4GsyvD7FOvJvD1Dk7n0ctPwzMoRpQkShMiynRuUYG6iP0yZn2g5yZfH/iS75xM/XrQ4CRvzyUGnhNVL5KLREuXIRX4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VofZ1C4E; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cmK6g7CG"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 939471F00893;
-	Sat,  6 Jun 2026 01:25:22 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VofZ1C4E"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 96CA41F00893;
+	Sat,  6 Jun 2026 01:32:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1780709122;
-	bh=fsCOzE7gWFerrswhEUaxdbCbonspE7orjUgIlPUiopw=;
+	d=linux-foundation.org; s=korg; t=1780709574;
+	bh=ozR3QSoHED9UpcCyGhrnxtXjIyGmLvgvneUJEVlhTSM=;
 	h=Date:To:From:Subject;
-	b=cmK6g7CGUkkFAhM0rv35/QXRibY1laHEyouaM0OIQAeM6Fv8+YKED9Gu6PBY96/A6
-	 +pRWjhaqbp6C+groW3jvBZTaEoKtVstEZXQiIH20+XrNdAEwu0cdzA/6Joc6XC/2rK
-	 /9rrrCQk68miO77rNY9+bJS2Zk9TBhQ2tTx0T63s=
-Date: Fri, 05 Jun 2026 18:25:22 -0700
-To: mm-commits@vger.kernel.org,pvorel@suse.cz,niecheng1@uniontech.com,lukas.bulwahn@gmail.com,joe@perches.com,dwaipayanray1@gmail.com,apw@canonical.com,cryolitia@uniontech.com,akpm@linux-foundation.org
+	b=VofZ1C4EJJP35HTEUXJwZq9yflixQU3zWEFhY4UFyoDspr7OCY6O7FQ5HnHBECZNW
+	 FLj9dlvVXUMZycpiVWwgwVWEJwsJuX/9e66zAF8R6DrDismmlF16b5NolZoMktYge7
+	 fS6hcGWb9UpVVsRk22st3ut4karOU/8dYIoVB4mk=
+Date: Fri, 05 Jun 2026 18:32:54 -0700
+To: mm-commits@vger.kernel.org,fabf@skynet.be,brauner@kernel.org,akpm@linux-foundation.org,m32285159@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + checkpatch-suppress-warnings-when-reported-by-is-followed-by-link.patch added to mm-nonmm-unstable branch
-Message-Id: <20260606012522.939471F00893@smtp.kernel.org>
+Subject: + fs-efs-remove-unneeded-debug-prints.patch added to mm-nonmm-unstable branch
+Message-Id: <20260606013254.96CA41F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: checkpatch: cuppress warnings when Reported-by: is followed by Link:
+     Subject: fs: efs: remove unneeded debug prints
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     checkpatch-suppress-warnings-when-reported-by-is-followed-by-link.patch
+     fs-efs-remove-unneeded-debug-prints.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/checkpatch-suppress-warnings-when-reported-by-is-followed-by-link.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-efs-remove-unneeded-debug-prints.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,52 +58,89 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Cryolitia PukNgae <cryolitia@uniontech.com>
-Subject: checkpatch: cuppress warnings when Reported-by: is followed by Link:
-Date: Fri, 05 Jun 2026 14:57:04 +0800
+From: Maxwell Doose <m32285159@gmail.com>
+Subject: fs: efs: remove unneeded debug prints
+Date: Thu, 4 Jun 2026 22:52:51 -0500
 
-> The tag should be followed by a Closes: tag pointing to the report,
-> unless the report is not available on the web. The Link: tag can be
-> used instead of Closes: if the patch fixes a part of the issue(s)
-> being reported.
+The current code uses debug prints conditionally compiled with #ifdef
+DEBUG.  However, that code, when compiled, causes compiler errors due to
+incompatible formatters and undefined variables, notably:
 
-According to Documentation/process/submitting-patches.rst, Link: is also
-acceptable to follow a Reported-by:, if the patch fixes a part of the
-issue(s) being reported.
+fs/efs/file.c: In function `efs_get_block':
+fs/efs/file.c:26:35: error: `block' undeclared (first use in this
+function); did you mean `iblock'?
+  26 |                         __func__, block, inode->i_blocks, inode->i_size);
+     |                                   ^~~~~
 
-Link: https://lore.kernel.org/20260605-checkpatch-v1-1-8c68ae618513@linux.dev
-Signed-off-by: Cryolitia PukNgae <cryolitia@uniontech.com>
-Reviewed-by: Petr Vorel <pvorel@suse.cz>
-Cc: Andy Whitcroft <apw@canonical.com>
-Cc: Cheng Nie <niecheng1@uniontech.com>
-Cc: Dwaipayan Ray <dwaipayanray1@gmail.com>
-Cc: Joe Perches <joe@perches.com>
-Cc: Lukas Bulwahn <lukas.bulwahn@gmail.com>
+and:
+
+fs/efs/file.c: In function `efs_bmap':
+./include/linux/kern_levels.h:5:25: error: format `%ld' expects
+argument of type `long int', but argument 4 has type `blkcnt_t' {aka
+`long long unsigned int'} [-Werror=format=]
+   5 | #define KERN_SOH        "\001"          /* ASCII Start Of Header */
+     |                         ^~~~~~
+
+which also extends to the other formatters.  As this part of the code has
+been dead for just about 14 years now, it has not been modernized to stay
+compatible with the most recent gcc compilers.  Fix these issues by
+removing the debug prints.
+
+Link: https://lore.kernel.org/20260605035251.89305-2-m32285159@gmail.com
+Fixes: f403d1dbac6d ("fs/efs: add pr_fmt / use __func__")
+Signed-off-by: Maxwell Doose <m32285159@gmail.com>
+Suggested-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Fabian Frederick <fabf@skynet.be>
+Cc: Christian Brauner <brauner@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ fs/efs/file.c |   21 +++------------------
+ 1 file changed, 3 insertions(+), 18 deletions(-)
 
---- a/scripts/checkpatch.pl~checkpatch-suppress-warnings-when-reported-by-is-followed-by-link
-+++ a/scripts/checkpatch.pl
-@@ -3253,10 +3253,10 @@ sub process {
- 			if ($sign_off =~ /^reported(?:|-and-tested)-by:$/i) {
- 				if (!defined $lines[$linenr]) {
- 					WARN("BAD_REPORTED_BY_LINK",
--					     "Reported-by: should be immediately followed by Closes: with a URL to the report\n" . $herecurr . "\n");
--				} elsif ($rawlines[$linenr] !~ /^closes:\s*/i) {
-+					     "Reported-by: should be immediately followed by Closes: or Link: with a URL to the report\n" . $herecurr . "\n");
-+				} elsif ($rawlines[$linenr] !~ /^(closes|link):\s*/i) {
- 					WARN("BAD_REPORTED_BY_LINK",
--					     "Reported-by: should be immediately followed by Closes: with a URL to the report\n" . $herecurr . $rawlines[$linenr] . "\n");
-+					     "Reported-by: should be immediately followed by Closes: or Link: with a URL to the report\n" . $herecurr . $rawlines[$linenr] . "\n");
- 				}
- 			}
- 		}
+--- a/fs/efs/file.c~fs-efs-remove-unneeded-debug-prints
++++ a/fs/efs/file.c
+@@ -18,16 +18,9 @@ int efs_get_block(struct inode *inode, s
+ 
+ 	if (create)
+ 		return error;
+-	if (iblock >= inode->i_blocks) {
+-#ifdef DEBUG
+-		/*
+-		 * i have no idea why this happens as often as it does
+-		 */
+-		pr_warn("%s(): block %d >= %ld (filesize %ld)\n",
+-			__func__, block, inode->i_blocks, inode->i_size);
+-#endif
++	if (iblock >= inode->i_blocks)
+ 		return 0;
+-	}
++
+ 	phys = efs_map_block(inode, iblock);
+ 	if (phys)
+ 		map_bh(bh_result, inode->i_sb, phys);
+@@ -42,16 +35,8 @@ int efs_bmap(struct inode *inode, efs_bl
+ 	}
+ 
+ 	/* are we about to read past the end of a file ? */
+-	if (!(block < inode->i_blocks)) {
+-#ifdef DEBUG
+-		/*
+-		 * i have no idea why this happens as often as it does
+-		 */
+-		pr_warn("%s(): block %d >= %ld (filesize %ld)\n",
+-			__func__, block, inode->i_blocks, inode->i_size);
+-#endif
++	if (!(block < inode->i_blocks))
+ 		return 0;
+-	}
+ 
+ 	return efs_map_block(inode, block);
+ }
 _
 
-Patches currently in -mm which might be from cryolitia@uniontech.com are
+Patches currently in -mm which might be from m32285159@gmail.com are
 
-checkpatch-suppress-warnings-when-reported-by-is-followed-by-link.patch
+fs-fat-inode-replace-sprintf-with-scnprintf.patch
+fs-efs-remove-unneeded-debug-prints.patch
 
