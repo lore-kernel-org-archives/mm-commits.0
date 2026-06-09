@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DCC3017557E
-	for <mm-commits@vger.kernel.org>; Tue,  9 Jun 2026 01:22:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 39BF425B0B0
+	for <mm-commits@vger.kernel.org>; Tue,  9 Jun 2026 01:22:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780968127; cv=none; b=FbAIlvlkcUCo5FVxQkj6fZEbZ3QSbNkj0EewCMVdXivxyIwI0U4umq3wEpCrG5kFCYvitalk1gJ7cX93QOi+zjzaRUGKxfGx4CCUOARB7ngecxGTxAVbdYtkd+GWWzeiwWP1xIRitgnBmslY31edkqs3HhaESaQMFwp5GGU6AF8=
+	t=1780968128; cv=none; b=SdnGpOxr1JKhE0qeYGI4OqVJcmtHDZ+w30ca0ksx0V6rvdvBk40QfqQkJTAlJ8hI9lFMbjC0j/0dAUcetbk/AB4buU9WC0cYKRAwxYkQBLj43x5fs7IYx5pFPLKHXLDOVrIXRiiDPDT3oDOAhVjXjL00fWAeLn60QKlT89FlGNY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780968127; c=relaxed/simple;
-	bh=gsb8N/FCxLIJpOrQT9WCKMKtBdxREGdZTkflKdsOpPI=;
-	h=Date:To:From:Subject:Message-Id; b=A3d8U4b1xlgGs3KTBwq+DQQKP4f9pivTi3cNtaFvBD1mt2Rvr7pevSOb64+bHx2Hc85HmW8tjyovLu0II58cqI/Zy1fkv3rEowexkzOsRLHCbrVGUQdOTwRefNpRK0BpG3JqTbyLlirAqXiHf/T88SAebYMYGXyNY5Ebr2r0I0Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lcBU2CBK; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1780968128; c=relaxed/simple;
+	bh=MyECSTaGrQr9ou/UUzH2z6w0tqwnWlq3WJP5YbcLmVE=;
+	h=Date:To:From:Subject:Message-Id; b=IrvPOyjAk/6Q2ctJmJrZXvSe+4EkOOd3yWrtx4rZkQQo6hVkwz1RYBiuteid0YawGXPjrBgViI1fHexb3RTJsUkSH7IdPmySuW5VVg0XKvKlYVLG4vHT4KdAs8foe5uPoYxdUuEujApulOdacQILlj+dMKnIKyR3EpTcdFDKqf4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HFG4XfW+; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lcBU2CBK"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6CA791F00893;
-	Tue,  9 Jun 2026 01:22:05 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HFG4XfW+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D1FE51F00898;
+	Tue,  9 Jun 2026 01:22:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1780968125;
-	bh=L1qJLzsWuj9CSEcblyQzKyqJvUK1kCu9VNhaF0H6/4k=;
+	d=linux-foundation.org; s=korg; t=1780968126;
+	bh=nysaNHBaRa2n0BjnpskoITyxoHj3YI/P5moAe4SGnTo=;
 	h=Date:To:From:Subject;
-	b=lcBU2CBKfwhHtMa9utb8Xy/6bd64mnyqt0mB5FbLre4obxGM+tOJkKKEd3Q0+XdBv
-	 YH7UK2lIdJR2yp28JdGVgZkYdTTg+bMI4rcLh4LoxQxwA6CD0pRNL68++L6+ENuEkh
-	 Bm4pjJhcMTaPeiXtCg9yptc6FmW/cL05FYwzp8p0=
-Date: Mon, 08 Jun 2026 18:22:04 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,yury.norov@gmail.com,ying.huang@linux.alibaba.com,sj@kernel.org,rakie.kim@sk.com,matthew.brost@intel.com,linux@rasmusvillemoes.dk,gourry@gourry.net,david@kernel.org,byungchul@sk.com,apopple@nvidia.com,joshua.hahnjy@gmail.com,akpm@linux-foundation.org
+	b=HFG4XfW+VhbYc5FEMu8T+QR+6RtAAc2aXDgq1khzoVH0OXTE37DAP/v+bTeLdv1Wc
+	 eI/2AY5NK9+uVbt95ac1thBVOhSDyT1sj2eelB7u+sPZXr8B2OFoirg7IEYOAHYpQ5
+	 iNqMLQxNjeCKL+ZLpvdzOLl9K6qipP41Fg9YgyUE=
+Date: Mon, 08 Jun 2026 18:22:06 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,zaslonko@linux.ibm.com,vbabka@kernel.org,usama.arif@linux.dev,shakeel.butt@linux.dev,ryncsn@gmail.com,ryan.roberts@arm.com,roman.gushchin@linux.dev,richard.weiyang@gmail.com,npache@redhat.com,muchun.song@linux.dev,mhocko@kernel.org,ljs@kernel.org,liam@infradead.org,lance.yang@linux.dev,gor@linux.ibm.com,dev.jain@arm.com,david@kernel.org,david@fromorbit.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,hannes@cmpxchg.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-nodemask-correctly-describe-nodemask-operation-return-types.patch removed from -mm tree
-Message-Id: <20260609012205.6CA791F00893@smtp.kernel.org>
+Subject: [merged mm-stable] mm-list_lru-fix-set_shrinker_bit-call-during-race-with-cgroup-deletion.patch removed from -mm tree
+Message-Id: <20260609012206.D1FE51F00898@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,97 +35,179 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/nodemask: correctly describe nodemask operation return types
+     Subject: mm: list_lru: fix set_shrinker_bit() call during race with cgroup deletion
 has been removed from the -mm tree.  Its filename was
-     mm-nodemask-correctly-describe-nodemask-operation-return-types.patch
+     mm-list_lru-fix-set_shrinker_bit-call-during-race-with-cgroup-deletion.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Joshua Hahn <joshua.hahnjy@gmail.com>
-Subject: mm/nodemask: correctly describe nodemask operation return types
-Date: Fri, 29 May 2026 13:27:54 -0700
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: list_lru: fix set_shrinker_bit() call during race with cgroup deletion
+Date: Wed, 27 May 2026 16:45:08 -0400
 
-Commit 0dfe54071d7c8 ("nodemask: Fix return values to be unsigned")
-changed a number of nodemask operations that used to return int to
-returning a bool instead.  However, it did not update the comment block
-that described these functions, leaving the documentation incorrect.
+Patch series "mm: switch THP shrinker to list_lru", v5.
 
-Fix the comment block to accurately describe the functions.  Also fix a
-typo (unsigend --> unsigned), and fix a callsite in mempolicy.c that did
-not get updated during the conversion.
+The open-coded deferred split queue has issues.  It's not NUMA-aware (when
+cgroup is enabled), and it's more complicated in the callsites interacting
+with it.  Switching to list_lru fixes the NUMA problem and streamlines
+things.  It also simplifies planned shrinker work.
 
-No functional changes intended; changes are purely cosmetic.
+Patch 1 fixes a pre-existing list_lru bug where the shrinker bit is set on
+the caller's memcg rather than the ancestor whose sublist the item
+actually lands on after a walk-up.  Standalone, backportable; the rest of
+the series depends on it.
 
-Link: https://lore.kernel.org/20260529202755.1846800-1-joshua.hahnjy@gmail.com
-Signed-off-by: Joshua Hahn <joshua.hahnjy@gmail.com>
-Reviewed-by: SeongJae Park <sj@kernel.org>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Byungchul Park <byungchul@sk.com>
+Patches 2-5 are cleanups and small refactors in list_lru code.  They're
+basically independent, but make the THP shrinker conversion easier.
+
+Patch 6 extends the list_lru API to allow the caller to control the
+locking scope.  The THP shrinker has private state it needs to keep
+synchronized with the LRU state.
+
+Patch 7 extends the list_lru API with a convenience helper to do list_lru
+head allocation (memcg_list_lru_alloc) when coming from a folio.  Anon
+THPs are instantiated in several places, and with the folio reparenting
+patches pending, folio_memcg() access is now a more delicate dance.  This
+avoids having to replicate that dance everywhere.
+
+Patch 8 flattens the alloc_anon_folio() retry loop so the next patch's
+list_lru hook lands as a clean addition rather than nested deep inside an
+if (folio) block.
+
+Patch 9 finally switches the deferred_split_queue to list_lru.
+
+
+This patch (of 9):
+
+When list_lru_add() races with cgroup deletion, the shrinker bit is set on
+the wrong group and lost.  This can cause a shrinker run to miss the
+cgroup that actually has the object.
+
+When the passed in memcg is dead, the function finds the first non-dead
+parent from the passed in memcg and adds the object there; but the
+shrinker bit is set on the memcg that was passed in.
+
+This bug is as old as the shrinker bitmap itself.
+
+Fix it by returning the "effective" memcg from the locking function, and
+have the caller use that.
+
+Link: https://lore.kernel.org/20260527204757.2544958-1-hannes@cmpxchg.org
+Link: https://lore.kernel.org/20260527204757.2544958-2-hannes@cmpxchg.org
+Fixes: fae91d6d8be5 ("mm/list_lru.c: set bit in memcg shrinker bitmap on first list_lru item appearance")
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Reported-by: Usama Arif <usama.arif@linux.dev>
+Reported-by: Sashiko
+Acked-by: Usama Arif <usama.arif@linux.dev>
+Reviewed-by: Wei Yang <richard.weiyang@gmail.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Dave Chinner <david@fromorbit.com>
 Cc: David Hildenbrand <david@kernel.org>
-Cc: Gregory Price <gourry@gourry.net>
-Cc: Matthew Brost <matthew.brost@intel.com>
-Cc: Rakie Kim <rakie.kim@sk.com>
-Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Cc: Ying Huang <ying.huang@linux.alibaba.com>
-Cc: Yury Norov (NVIDIA) <yury.norov@gmail.com>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Kairui Song <ryncsn@gmail.com>
+Cc: Lance Yang <lance.yang@linux.dev>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Mikhail Zaslonko <zaslonko@linux.ibm.com>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Nico Pache <npache@redhat.com>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Vasily Gorbik <gor@linux.ibm.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
 Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/nodemask.h |   18 +++++++++---------
- mm/mempolicy.c           |    2 +-
- 2 files changed, 10 insertions(+), 10 deletions(-)
+ mm/list_lru.c |   26 +++++++++++++++-----------
+ 1 file changed, 15 insertions(+), 11 deletions(-)
 
---- a/include/linux/nodemask.h~mm-nodemask-correctly-describe-nodemask-operation-return-types
-+++ a/include/linux/nodemask.h
-@@ -24,23 +24,23 @@
-  * void nodes_setall(mask)		set all bits
-  * void nodes_clear(mask)		clear all bits
-  * int node_isset(node, mask)		true iff bit 'node' set in mask
-- * int node_test_and_set(node, mask)	test and set bit 'node' in mask
-+ * bool node_test_and_set(node, mask)	test and set bit 'node' in mask
-  *
-- * void nodes_and(dst, src1, src2)	dst = src1 & src2  [intersection]
-+ * bool nodes_and(dst, src1, src2)	dst = src1 & src2  [intersection]
-  * void nodes_or(dst, src1, src2)	dst = src1 | src2  [union]
-  * void nodes_xor(dst, src1, src2)	dst = src1 ^ src2
-- * void nodes_andnot(dst, src1, src2)	dst = src1 & ~src2
-+ * bool nodes_andnot(dst, src1, src2)	dst = src1 & ~src2
-  * void nodes_complement(dst, src)	dst = ~src
-  *
-- * int nodes_equal(mask1, mask2)	Does mask1 == mask2?
-- * int nodes_intersects(mask1, mask2)	Do mask1 and mask2 intersect?
-- * int nodes_subset(mask1, mask2)	Is mask1 a subset of mask2?
-- * int nodes_empty(mask)		Is mask empty (no bits sets)?
-- * int nodes_full(mask)			Is mask full (all bits sets)?
-+ * bool nodes_equal(mask1, mask2)	Does mask1 == mask2?
-+ * bool nodes_intersects(mask1, mask2)	Do mask1 and mask2 intersect?
-+ * bool nodes_subset(mask1, mask2)	Is mask1 a subset of mask2?
-+ * bool nodes_empty(mask)		Is mask empty (no bits sets)?
-+ * bool nodes_full(mask)		Is mask full (all bits sets)?
-  * int nodes_weight(mask)		Hamming weight - number of set bits
-  *
-  * unsigned int first_node(mask)	Number lowest set bit, or MAX_NUMNODES
-- * unsigend int next_node(node, mask)	Next node past 'node', or MAX_NUMNODES
-+ * unsigned int next_node(node, mask)	Next node past 'node', or MAX_NUMNODES
-  * unsigned int next_node_in(node, mask) Next node past 'node', or wrap to first,
-  *					or MAX_NUMNODES
-  * unsigned int first_unset_node(mask)	First node not set in mask, or
---- a/mm/mempolicy.c~mm-nodemask-correctly-describe-nodemask-operation-return-types
-+++ a/mm/mempolicy.c
-@@ -2865,7 +2865,7 @@ bool __mpol_equal(struct mempolicy *a, s
- 	case MPOL_PREFERRED:
- 	case MPOL_PREFERRED_MANY:
- 	case MPOL_WEIGHTED_INTERLEAVE:
--		return !!nodes_equal(a->nodes, b->nodes);
-+		return nodes_equal(a->nodes, b->nodes);
- 	case MPOL_LOCAL:
- 		return true;
- 	default:
+--- a/mm/list_lru.c~mm-list_lru-fix-set_shrinker_bit-call-during-race-with-cgroup-deletion
++++ a/mm/list_lru.c
+@@ -77,14 +77,14 @@ static inline bool lock_list_lru(struct
+ }
+ 
+ static inline struct list_lru_one *
+-lock_list_lru_of_memcg(struct list_lru *lru, int nid, struct mem_cgroup *memcg,
+-		       bool irq, bool skip_empty)
++lock_list_lru_of_memcg(struct list_lru *lru, int nid,
++		       struct mem_cgroup **memcg, bool irq, bool skip_empty)
+ {
+ 	struct list_lru_one *l;
+ 
+ 	rcu_read_lock();
+ again:
+-	l = list_lru_from_memcg_idx(lru, nid, memcg_kmem_id(memcg));
++	l = list_lru_from_memcg_idx(lru, nid, memcg_kmem_id(*memcg));
+ 	if (likely(l) && lock_list_lru(l, irq)) {
+ 		rcu_read_unlock();
+ 		return l;
+@@ -97,8 +97,8 @@ again:
+ 		rcu_read_unlock();
+ 		return NULL;
+ 	}
+-	VM_WARN_ON(!css_is_dying(&memcg->css));
+-	memcg = parent_mem_cgroup(memcg);
++	VM_WARN_ON(!css_is_dying(&(*memcg)->css));
++	*memcg = parent_mem_cgroup(*memcg);
+ 	goto again;
+ }
+ 
+@@ -135,8 +135,8 @@ list_lru_from_memcg_idx(struct list_lru
+ }
+ 
+ static inline struct list_lru_one *
+-lock_list_lru_of_memcg(struct list_lru *lru, int nid, struct mem_cgroup *memcg,
+-		       bool irq, bool skip_empty)
++lock_list_lru_of_memcg(struct list_lru *lru, int nid,
++		       struct mem_cgroup **memcg, bool irq, bool skip_empty)
+ {
+ 	struct list_lru_one *l = &lru->node[nid].lru;
+ 
+@@ -164,12 +164,16 @@ bool list_lru_add(struct list_lru *lru,
+ 	struct list_lru_node *nlru = &lru->node[nid];
+ 	struct list_lru_one *l;
+ 
+-	l = lock_list_lru_of_memcg(lru, nid, memcg, false, false);
++	l = lock_list_lru_of_memcg(lru, nid, &memcg, false, false);
+ 	if (!l)
+ 		return false;
+ 	if (list_empty(item)) {
+ 		list_add_tail(item, &l->list);
+-		/* Set shrinker bit if the first element was added */
++		/*
++		 * Set shrinker bit on the memcg that owns the locked
++		 * sublist - lock_list_lru_of_memcg() may have walked up
++		 * past a dying memcg, and the bit must be set there.
++		 */
+ 		if (!l->nr_items++)
+ 			set_shrinker_bit(memcg, nid, lru_shrinker_id(lru));
+ 		unlock_list_lru(l, false);
+@@ -204,7 +208,7 @@ bool list_lru_del(struct list_lru *lru,
+ {
+ 	struct list_lru_node *nlru = &lru->node[nid];
+ 	struct list_lru_one *l;
+-	l = lock_list_lru_of_memcg(lru, nid, memcg, false, false);
++	l = lock_list_lru_of_memcg(lru, nid, &memcg, false, false);
+ 	if (!l)
+ 		return false;
+ 	if (!list_empty(item)) {
+@@ -288,7 +292,7 @@ __list_lru_walk_one(struct list_lru *lru
+ 	unsigned long isolated = 0;
+ 
+ restart:
+-	l = lock_list_lru_of_memcg(lru, nid, memcg, irq_off, true);
++	l = lock_list_lru_of_memcg(lru, nid, &memcg, irq_off, true);
+ 	if (!l)
+ 		return isolated;
+ 	list_for_each_safe(item, n, &l->list) {
 _
 
-Patches currently in -mm which might be from joshua.hahnjy@gmail.com are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
 
