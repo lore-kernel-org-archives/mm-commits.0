@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C1C853033E7
-	for <mm-commits@vger.kernel.org>; Tue,  9 Jun 2026 01:22:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2BBF43002D8
+	for <mm-commits@vger.kernel.org>; Tue,  9 Jun 2026 01:22:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780968176; cv=none; b=P7KjXbr29/P3HAh9TYKn5sBqMkhWU/AABMqAichTg2KnZV+nf2gWFqYxU2Va1fG6BmwPGVqS2Beu13xfw0grULy5+JtCrXdbWE6SqmqLBYv3vkGafhy2slvOzbdbbAaVZXocO9fnFQeScL3nVnvNn5HwNnwN3y5ejrO9dhu4qV8=
+	t=1780968178; cv=none; b=MABDMNmCD7EUE0C0N2lErl2LUu9Whd0lMkUziunNS1lksTWz1d/lOYt3eqwyq/B+z6Ons2KOtV7sdozF09vIhVez+5ef7z2wgU00/5+6paJA1CfNJL+lKdX17xHLkc1os9XVvqcATSBC9qa3BOfIN/WrwvfKIilph4bJR65pek4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780968176; c=relaxed/simple;
-	bh=1k7SvK/mn/OMDrnP0506Doe6LzqotpAvleNcPB8D/hM=;
-	h=Date:To:From:Subject:Message-Id; b=BDzC3kEEmIW3jgaZYp+X+JguPgKFGLOmqjw+pP1PtaXgIdz9Qi8xTuGFSAEuAdh6ymunYdhN4CDMv9DwomkduxyGMuC37cYyEHEA3oP3qcQ7QeidzxDoWe2P2cy6KPH+Y6n10MsBM/pal2pR5DHBx9GTt4VJnqkQKhbYHJvpLX8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1llmqBf5; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1780968178; c=relaxed/simple;
+	bh=j2Io0sfRKn9D9LLluuV3ZzqD0KazUd4W8SUQG4qOcng=;
+	h=Date:To:From:Subject:Message-Id; b=t+F+vXBHbnrmsT/uHx/6G57aNmJBlIC2RnZBudlq8mYugd6iia9JlC9WxWBwMJ1D99NwI0YVcBrnoyEN3jMGtcILWINSemrsusuld6MIvw7R+L9ApthsfOWR5dNJh0TNdPbzlXOsB1Eu9676kBSuwjUG4isYgDFbPuQEXcI+hH4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZOe1jytK; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1llmqBf5"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 529FA1F00893;
-	Tue,  9 Jun 2026 01:22:55 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZOe1jytK"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BD8851F00898;
+	Tue,  9 Jun 2026 01:22:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1780968175;
-	bh=RbsRDDlqj4s0GD0O5iMiJ0v47yy4fMJ+4ttcenKpLpw=;
+	d=linux-foundation.org; s=korg; t=1780968176;
+	bh=DMPJExpVKtqa6jJ/WZXlU6/nXwwx2gPEMh8hKrQegRA=;
 	h=Date:To:From:Subject;
-	b=1llmqBf5GK1JaU+IG7V/IhbdymsnD54tjtjlOSxm3Kl0ZrZcnI7XP0Z7MXV+3JKPE
-	 DRJh9sG32GGH5iCRtOq08B4ewANyTMmxZ0YD9zWpr2kq4NNQUtTlS09Lq1k49GAQvd
-	 uuAR6DXngLo2ysJD5siB99yfJKTYO2qP0sZa+DtY=
-Date: Mon, 08 Jun 2026 18:22:54 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,surenb@google.com,mhocko@suse.com,jackmanb@google.com,hannes@cmpxchg.org,jp.kobryn@linux.dev,akpm@linux-foundation.org
+	b=ZOe1jytK1zN79P/Z7jn+HlsCVhcEQ50t1wpSLG7mw9OeWT46i5oBBMrNdPobDLwn2
+	 4Jg+aqsTPHCriafFEcPgyTogF1akAmuEifqirnqI+g/uAzBKttBgB6lkgM6OZx+EA1
+	 nH1OmZRaXbq1fXX4mtgUCVct7rph576B82ImXixM=
+Date: Mon, 08 Jun 2026 18:22:56 -0700
+To: mm-commits@vger.kernel.org,leon@kernel.org,jgg@ziepe.ca,apopple@nvidia.com,liuqiang@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-compaction-cap-compact_gap-at-compact_cluster_max.patch removed from -mm tree
-Message-Id: <20260609012255.529FA1F00893@smtp.kernel.org>
+Subject: [merged mm-stable] lib-test_hmm-check-alloc_page_vma-return-value-and-handle-oom.patch removed from -mm tree
+Message-Id: <20260609012256.BD8851F00898@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,131 +35,93 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/compaction: cap compact_gap() at COMPACT_CLUSTER_MAX
+     Subject: lib/test_hmm: check alloc_page_vma() return value and handle OOM
 has been removed from the -mm tree.  Its filename was
-     mm-compaction-cap-compact_gap-at-compact_cluster_max.patch
+     lib-test_hmm-check-alloc_page_vma-return-value-and-handle-oom.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "JP Kobryn" <jp.kobryn@linux.dev>
-Subject: mm/compaction: cap compact_gap() at COMPACT_CLUSTER_MAX
-Date: Wed, 3 Jun 2026 23:17:25 -0700
+From: Qiang Liu <liuqiang@kylinos.cn>
+Subject: lib/test_hmm: check alloc_page_vma() return value and handle OOM
+Date: Thu, 21 May 2026 10:18:58 +0800
 
-compact_gap() returns 2 << order, which is used as watermark headroom in
-__compaction_suitable() and as a threshold in kswapd reclaim decisions. 
-The computed value scales exponentially by order.  For order-9 THP
-allocations this evaluates to 1024 pages, but the compaction free
-scanner's working set is bounded by COMPACT_CLUSTER_MAX (32 pages).  The
-scanner stops isolating free pages once it matches the migration batch. 
-The current gap over-reserves by 32x.
+Check alloc_page_vma() return status for page allocation failures, free
+allocated pages and return VM_FAULT_OOM on error.
 
-On fragmented production hosts, kswapd will try to reclaim up to the gap,
-but it only reaches that threshold in 18% of attempts.  As a result,
-reclaim continues in the majority of cases despite many lower-order free
-pages being available.  The over-sized gap also causes 46% of order-9
-compaction suitability checks to fail unnecessarily: the zone has
-sufficient free pages for the scanner to operate, but not enough to clear
-the inflated threshold.
+Handle return codes of dmirror_devmem_fault_alloc_and_copy(), call
+migrate_vma_finalize() to remove migration entries from
+migrate_vma_setup().
 
-Cap compact_gap() at COMPACT_CLUSTER_MAX so the watermark headroom
-reflects the scanner's actual capacity.  This function is used by two key
-heuristics.  The first is when kswapd can stop high-order reclaim and
-downgrade to order-0 balancing, allowing kcompactd to be woken for the
-original higher allocation order.  The second is zone suitability
-checking, where the smaller gap allows compaction to start sooner.
-
-Note that orders 0-4 are unaffected since their gap is already less than
-or equal to COMPACT_CLUSTER_MAX.
-
-A/B test on v6.13-based instagram production hosts (64GB, 60s
-measurement):
-
-Unpatched (43 hosts)
-pgscan_kswapd (mean/host): ~1.6M
-reclaim efficiency (steal/scan): 83.8%
-per-compaction success (success/stall): 2.1%
-THP success (alloc/alloc+fallback): 4.9%
-forced lru_add_drain (mean/host): ~107K
-
-Patched (59 hosts)
-pgscan_kswapd (mean/host): ~449K
-reclaim efficiency (steal/scan): 91.0%
-per-compaction success (success/stall): 28.3%
-THP success (alloc/alloc+fallback): 17.2%
-forced lru_add_drain (mean/host): ~64K
-
-Additional tests were also performed using a workload of similar shape and
-based on mm-new at the time of testing.  Across three 60s runs, the patch
-showed improvements consistent with the previous test: reduced kswapd
-reclaim and fewer THP fault fallbacks.
-
-Unpatched
-kswapd_shrink_node downgrade to order-0 (mean): 0
-thp_fault_fallback (mean): 1217
-pgscan_kswapd (mean): 6328
-pgsteal_kswapd (mean): 5657
-
-Patched
-kswapd_shrink_node downgrade to order-0 (mean): 28
-thp_fault_fallback (mean): 738
-pgscan_kswapd (mean): 3773
-pgsteal_kswapd (mean): 3243
-
-Link: https://lore.kernel.org/20260604061725.13800-1-jp.kobryn@linux.dev
-Signed-off-by: JP Kobryn (Meta) <jp.kobryn@linux.dev>
-Reviewed-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
-Cc: Brendan Jackman <jackmanb@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Zi Yan <ziy@nvidia.com>
+Link: https://lore.kernel.org/20260521021858.21511-1-liuqiangneo@163.com
+Signed-off-by: Qiang Liu <liuqiang@kylinos.cn>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Leon Romanovsky <leon@kernel.org>
+[akpm@linux-foundation.org: fix dmirror_devmem_fault_alloc_and_copy() retval handling]
+  Link: https://lore.kernel.org/oe-kbuild-all/202606011329.zWs2BKy4-lkp@intel.com/
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/compaction.h |    8 ++++----
- mm/vmscan.c                |    2 +-
- 2 files changed, 5 insertions(+), 5 deletions(-)
+ lib/test_hmm.c |   29 +++++++++++++++++++++++++++--
+ 1 file changed, 27 insertions(+), 2 deletions(-)
 
---- a/include/linux/compaction.h~mm-compaction-cap-compact_gap-at-compact_cluster_max
-+++ a/include/linux/compaction.h
-@@ -2,6 +2,8 @@
- #ifndef _LINUX_COMPACTION_H
- #define _LINUX_COMPACTION_H
- 
-+#include <linux/swap.h>
+--- a/lib/test_hmm.c~lib-test_hmm-check-alloc_page_vma-return-value-and-handle-oom
++++ a/lib/test_hmm.c
+@@ -1063,6 +1063,25 @@ static vm_fault_t dmirror_devmem_fault_a
+ 			/* Try with smaller pages if large allocation fails */
+ 			if (!dpage && order) {
+ 				dpage = alloc_page_vma(GFP_HIGHUSER_MOVABLE, args->vma, addr);
++				if (!dpage) {
++					/* Unlock and free pages already allocated. */
++					while (i > 0) {
++						struct page *fpage;
 +
- /*
-  * Determines how hard direct compaction should try to succeed.
-  * Lower value means higher priority, analogically to reclaim priority.
-@@ -73,11 +75,9 @@ static inline unsigned long compact_gap(
- 	 * effectively limited by COMPACT_CLUSTER_MAX, as that's the maximum
- 	 * that the migrate scanner can have isolated on migrate list, and free
- 	 * scanner is only invoked when the number of isolated free pages is
--	 * lower than that. But it's not worth to complicate the formula here
--	 * as a bigger gap for higher orders than strictly necessary can also
--	 * improve chances of compaction success.
-+	 * lower than that.
- 	 */
--	return 2UL << order;
-+	return min(2UL << order, COMPACT_CLUSTER_MAX);
- }
++						fpage = migrate_pfn_to_page(dst[--i]);
++						unlock_page(fpage);
++						__free_page(fpage);
++					}
++					/* Clear remaining dst entries to avoid
++					 * migrate_vma_pages/finalize() using
++					 * uninitialized values.
++					 */
++					while (i < (1 << order)) {
++						dst[i] = 0;
++						i++;
++					}
++					return VM_FAULT_OOM;
++				}
+ 				lock_page(dpage);
+ 				dst[i] = migrate_pfn(page_to_pfn(dpage));
+ 				dst_page = pfn_to_page(page_to_pfn(dpage));
+@@ -1148,7 +1167,11 @@ static int dmirror_migrate_to_system(str
+ 			goto out;
  
- static inline int current_is_kcompactd(void)
---- a/mm/vmscan.c~mm-compaction-cap-compact_gap-at-compact_cluster_max
-+++ a/mm/vmscan.c
-@@ -7014,7 +7014,7 @@ static bool kswapd_shrink_node(pg_data_t
+ 		pr_debug("Migrating from device mem to sys mem\n");
+-		dmirror_devmem_fault_alloc_and_copy(&args, dmirror);
++		if (dmirror_devmem_fault_alloc_and_copy(&args, dmirror)) {
++			migrate_vma_finalize(&args);
++			ret = -ENOMEM;
++			goto out;
++		}
  
+ 		migrate_vma_pages(&args);
+ 		cmd->cpages += dmirror_successful_migrated_pages(&args);
+@@ -1689,8 +1712,10 @@ static vm_fault_t dmirror_devmem_fault(s
+ 	}
+ 
+ 	ret = dmirror_devmem_fault_alloc_and_copy(&args, dmirror);
+-	if (ret)
++	if (ret) {
++		migrate_vma_finalize(&args);
+ 		goto err;
++	}
+ 	migrate_vma_pages(&args);
  	/*
- 	 * Fragmentation may mean that the system cannot be rebalanced for
--	 * high-order allocations. If twice the allocation size has been
-+	 * high-order allocations. If at least the compaction gap has been
- 	 * reclaimed then recheck watermarks only at order-0 to prevent
- 	 * excessive reclaim. Assume that a process requested a high-order
- 	 * can direct reclaim/compact.
+ 	 * No device finalize step is needed since
 _
 
-Patches currently in -mm which might be from jp.kobryn@linux.dev are
+Patches currently in -mm which might be from liuqiang@kylinos.cn are
 
 
