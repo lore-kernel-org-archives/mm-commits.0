@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 564092DB789
-	for <mm-commits@vger.kernel.org>; Tue,  9 Jun 2026 01:22:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5096E2DB794
+	for <mm-commits@vger.kernel.org>; Tue,  9 Jun 2026 01:22:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780968149; cv=none; b=f+4yCaHA96q7skpvUWeZmIAn9h/3d+l+yNgylKiw8MUPs+qlJ2boyBTToRkZmdtL2ijLrdUPDtHLSGTLtB7kElWVqjJTuVEIalSEcAC1vaKi2A3VeTayOO9iAAzCjTbZi6sqJ1ia6/ry4EA7wDdC3RjTVf3Afx+Ux0vHakJ+TeY=
+	t=1780968150; cv=none; b=kBdMUmr+kOz8eUbHtXj9QvCX+ZDc+VlnEtYveYoXq5uuIUXjRn4ORnOCZpH1cF/bkiNAXWmhzM0wN1Kh1jp4nYBNCQlmX4vvSMQ1JXl8GVahnJF/hEfPSNBsA8CwIp75d5LfGOdaxQMWflnh24/mPK0WRhmfvLfjwZYSv2hJ3AQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780968149; c=relaxed/simple;
-	bh=aP3UIYkRUgMYkjFkoctEfDy9XRaCq8jJEMB7M9fiPMM=;
-	h=Date:To:From:Subject:Message-Id; b=FLp1ZjUAiiiUv7AkSrityZMzxUCyLMDabXrtjKHsF2DYmQw9HYmf0QXlUYkv9lug/lKX+/Q91VDK3GXuyZG4vC2PFah6Hh2dZ0HOoGVSKgjvF/z8hm/kmzCwuXro23k497imP5WWbFK87lJXwSvJjU9lQq+LGiwjpcCQ3DVV2Dw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IKseDxpx; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1780968150; c=relaxed/simple;
+	bh=V3OPwQzwaY3iLlvorLNPcAcGViF6nqaBnBz+6VWtnKQ=;
+	h=Date:To:From:Subject:Message-Id; b=AZgfk003YYrX+EZChYZZB2jS00Z7gov3PLM3PEagSujrl7OWjbVHSqbCQRZvZ/2DgIB8Ai2hZg1zbewjuzfCWg51aNR7xsaukaH4CXlYv1qkq8op0/d1XQ2LWBzVT89gjolOMlskClvSpIQfUkkFsk8lq4Jni3ZJVi8MmbNFV9k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xIb9PX/t; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IKseDxpx"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E94961F00893;
-	Tue,  9 Jun 2026 01:22:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xIb9PX/t"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 234F01F00898;
+	Tue,  9 Jun 2026 01:22:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1780968148;
-	bh=jurortO/fwg32zEGDonweU4C7xnW4VNekJ0nbXHuKOU=;
+	d=linux-foundation.org; s=korg; t=1780968149;
+	bh=lFR/1gh+i++VSzozBiDmDlwCpDV3AS5kMkhbP39C+Nw=;
 	h=Date:To:From:Subject;
-	b=IKseDxpxeBl+gPkbgTV+DXlImrqntONf/KIhBN4d+mPSaLJQhkfyGjf1r32gk8kc6
-	 k4W4+DHxY+7N+CqQdNEsKl6d4S3PXo3WPJ61Wc6GMYwfyJ4jFXVWndasZm2Ta2kZUy
-	 4iDKiQGmVm9h+66uja3pQCwrBGwHWZ5/rBaS1mqY=
-Date: Mon, 08 Jun 2026 18:22:27 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,surenb@google.com,mhocko@suse.com,jackmanb@google.com,hannes@cmpxchg.org,fujunjie1@qq.com,akpm@linux-foundation.org
+	b=xIb9PX/tllMPrPAhGxb9hD3eIi6uztK8gLvZ26uKwi9W2AIZK76BltHiWQjgh7K78
+	 zm8sSeRS4ie2vpiSAufDQxUrINzkXjoyc2uIbb8qVCIGVqgsSQq1ChP86GGaXWsnyQ
+	 2NNcmbjSHZnedJl3cz9T0f1m3M3Syj+XvkTyQGIs=
+Date: Mon, 08 Jun 2026 18:22:28 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,riel@surriel.com,richard.weiyang@gmail.com,osalvador@kernel.org,ljs@kernel.org,liam@infradead.org,jannh@google.com,harry@kernel.org,david@kernel.org,anshuman.khandual@arm.com,agordeev@linux.ibm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-page_alloc-fix-deferred-compaction-accounting.patch removed from -mm tree
-Message-Id: <20260609012227.E94961F00893@smtp.kernel.org>
+Subject: [merged mm-stable] mm-page_vma_mapped_walk-use-ptep_get_lockless-for-lockless-access.patch removed from -mm tree
+Message-Id: <20260609012229.234F01F00898@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,65 +35,79 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/page_alloc: fix deferred compaction accounting
+     Subject: mm/page_vma_mapped_walk: use ptep_get_lockless() for lockless access
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-fix-deferred-compaction-accounting.patch
+     mm-page_vma_mapped_walk-use-ptep_get_lockless-for-lockless-access.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: fujunjie <fujunjie1@qq.com>
-Subject: mm/page_alloc: fix deferred compaction accounting
-Date: Tue, 26 May 2026 09:12:48 +0000
+From: Alexander Gordeev <agordeev@linux.ibm.com>
+Subject: mm/page_vma_mapped_walk: use ptep_get_lockless() for lockless access
+Date: Thu, 28 May 2026 09:55:07 +0200
 
-COMPACT_DEFERRED means compaction did not start because past failures
-caused the zone to be deferred.  try_to_compact_pages() returns the
-maximum result seen while walking the zonelist, so a final
-COMPACT_DEFERRED result means no later zone reported that compaction
-actually ran.
+When not holding the lock, there is a chance that the pte gets modified
+under our feet, so we need to use the lockless API to make sure that the
+entries remain consistent during the read."
 
-__alloc_pages_direct_compact() skips COMPACTSTALL and COMPACTFAIL
-accounting when try_to_compact_pages() returns COMPACT_SKIPPED, but not
-when it returns COMPACT_DEFERRED.  A deferred-only direct compaction
-attempt can therefore look like a stall, and then a failure if the
-allocation still cannot be satisfied.
+Switch from ptep_get() to ptep_get_lockless() accessor for PTE reads when
+no lock is taken.
 
-Treat COMPACT_DEFERRED like COMPACT_SKIPPED in this accounting path.  If a
-later zone runs compaction and returns a result above COMPACT_DEFERRED, or
-compact_zone_order() reports COMPACT_SUCCESS for a captured page, the
-final result is not COMPACT_DEFERRED and the existing accounting still
-runs.
-
-Link: https://lore.kernel.org/tencent_368AF1F3821E46232637BE16D65C45CF3308@qq.com
-Fixes: 06dac2f467fe ("mm: compaction: update the COMPACT[STALL|FAIL] events properly")
-Signed-off-by: fujunjie <fujunjie1@qq.com>
-Reviewed-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
-Cc: Brendan Jackman <jackmanb@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Zi Yan <ziy@nvidia.com>
+[osalvador@suse.de: changelog addition]
+  Link: https://lore.kernel.org/ahhNq0pFKvSKZQbR@localhost.localdomain
+Link: https://lore.kernel.org/20260528075507.1821939-1-agordeev@linux.ibm.com
+Signed-off-by: Alexander Gordeev <agordeev@linux.ibm.com>
+Reviewed-by: Oscar Salvador (SUSE) <osalvador@kernel.org>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Reviewed-by: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Harry Yoo <harry@kernel.org>
+Cc: Jann Horn <jannh@google.com>
+Cc: Liam Howlett <liam@infradead.org>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Wei Yang <richard.weiyang@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/page_vma_mapped.c |    9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-fix-deferred-compaction-accounting
-+++ a/mm/page_alloc.c
-@@ -4161,7 +4161,8 @@ __alloc_pages_direct_compact(gfp_t gfp_m
- 	psi_memstall_leave(&pflags);
- 	delayacct_compact_end();
+--- a/mm/page_vma_mapped.c~mm-page_vma_mapped_walk-use-ptep_get_lockless-for-lockless-access
++++ a/mm/page_vma_mapped.c
+@@ -41,7 +41,7 @@ again:
+ 	if (!pvmw->pte)
+ 		return false;
  
--	if (*compact_result == COMPACT_SKIPPED)
-+	if (*compact_result == COMPACT_SKIPPED ||
-+	    *compact_result == COMPACT_DEFERRED)
- 		return NULL;
- 	/*
- 	 * At least in one zone compaction wasn't deferred or skipped, so let's
+-	ptent = ptep_get(pvmw->pte);
++	ptent = ptep_get_lockless(pvmw->pte);
+ 
+ 	if (pte_none(ptent)) {
+ 		return false;
+@@ -183,6 +183,7 @@ bool page_vma_mapped_walk(struct page_vm
+ 	struct mm_struct *mm = vma->vm_mm;
+ 	unsigned long end;
+ 	spinlock_t *ptl;
++	pte_t pteval;
+ 	pgd_t *pgd;
+ 	p4d_t *p4d;
+ 	pud_t *pud;
+@@ -310,7 +311,11 @@ next_pte:
+ 				goto restart;
+ 			}
+ 			pvmw->pte++;
+-		} while (pte_none(ptep_get(pvmw->pte)));
++			if (!pvmw->ptl)
++				pteval = ptep_get_lockless(pvmw->pte);
++			else
++				pteval = ptep_get(pvmw->pte);
++		} while (pte_none(pteval));
+ 
+ 		if (!pvmw->ptl) {
+ 			spin_lock(ptl);
 _
 
-Patches currently in -mm which might be from fujunjie1@qq.com are
+Patches currently in -mm which might be from agordeev@linux.ibm.com are
 
 
