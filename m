@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D2F8A3019A9
-	for <mm-commits@vger.kernel.org>; Tue,  9 Jun 2026 01:22:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 15CA42DB794
+	for <mm-commits@vger.kernel.org>; Tue,  9 Jun 2026 01:22:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780968172; cv=none; b=szjSLDi0r+QUTzvY1T7joCTP1a7wyo+qYFlDmxKhut2Brp3K56ssDiaiHiVunUR33YcbOfpjR0Eu1YfA3I+re4ExilkMWKs47Lnv1LcG7bPr5d9hjnluUkgVwMIPl5EZDe0pT1E/+vp2DuXs6DoIzBspzAWdZw76Q3BpuscoZG0=
+	t=1780968173; cv=none; b=cofNZjqVOoGju4p43tstX6TufilvTbRCMJxhaTQY0mHQ9fmX3ujfuKEoUVDFNA6N/LppzBFBv5A41u+/Lg1ckBgcHEJnSPqSe8dHgjcFLKbPjS38qBNfnnwbmtzJFGQkBOxtLEp2BG0m4bnQ8w0BIpVrul45BzyGj6e6uxzJUy8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780968172; c=relaxed/simple;
-	bh=J2Uyalc1/hawAx1HfMnkX351gTB5EZOeKq+Q4ixmP20=;
-	h=Date:To:From:Subject:Message-Id; b=A4VzyCQvY7187XMD5MygChDo3vyluH3GxDBUxKuKmDRVViDDzitlz4qJGDB3HiLGVoy39mYfwFDZmD8u6Dk2IKU/Y1DyHlsyOaHlPlUnG0f7bNPlE3n8ZPRSQkvcPMTldiOYbInuSS8jAjgPqj3jv2UmaoRalf1e+/k1q8ISYGs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=muNSBet6; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1780968173; c=relaxed/simple;
+	bh=CL/Zl2xsuim7n8wKyZP6HHI2N0qpP8a4COm5J7mX3PU=;
+	h=Date:To:From:Subject:Message-Id; b=sP/H2Rz2el0gEdZhnVAgbkzkDR1lMsETzK+3keJiBLnIdDTGNno9Fh6WT8hVjTQDLnKx9+0Rc7nqnYMvTRydKNtEm3Jf8YGAitcuQ1ggPhjQMbdOidjJmAXLPJ7Zl5Vm9ARzh7BZvzjs9rVwHmJ7ORN0zCeF5MSnbtxbv8gDX1k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=b5bg2NM0; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="muNSBet6"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A28241F00898;
-	Tue,  9 Jun 2026 01:22:50 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="b5bg2NM0"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id ADE681F00899;
+	Tue,  9 Jun 2026 01:22:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1780968170;
-	bh=iN8TIesq9k6JM13EbR54LiF8Zd8KOauKvk8XaZLJ8oM=;
+	d=linux-foundation.org; s=korg; t=1780968171;
+	bh=YmGMoUng5QmwZVKpnbZ9Wtzaw0HDgqAVl1fObJ0ke/8=;
 	h=Date:To:From:Subject;
-	b=muNSBet6goVa6PS78I7L6hW4KPbJHH24+on09qIlIFYEcBRgGNg7bv3rVT/S66smr
-	 E6u+wR+lQvuJqUB0ohznvSeGcVl0yceCJpE9enqJ0uHSX0MRNT+2UUJJgn/baiguMY
-	 tLyzxIWsCDsgv8ry5Htae6YOEZteM0f4dK0QTb4E=
-Date: Mon, 08 Jun 2026 18:22:50 -0700
-To: mm-commits@vger.kernel.org,urezki@gmail.com,npiggin@gmail.com,dev.jain@arm.com,zhuhui@kylinos.cn,akpm@linux-foundation.org
+	b=b5bg2NM07DbmXfpfBE6HuLQxFTBazx8ThOWA+n3M8TPQahKwtSG1zbiDkr5QDLpNU
+	 KiOPPVkiLG9vuqjv2MeMpXnno53i1T2RM730uiswxTtb3l89tbiSU4XKtc94TDV3lH
+	 QSDWRRUU0KuUZ7v+0QJoHsG1V0Pxj3/3CsIhAmOU=
+Date: Mon, 08 Jun 2026 18:22:51 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,jack@suse.cz,tanze@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] vmalloc-fix-null-pointer-dereference-in-is_vm_area_hugepages.patch removed from -mm tree
-Message-Id: <20260609012250.A28241F00898@smtp.kernel.org>
+Subject: [merged mm-stable] mm-filemap-use-folio_next_index-for-start.patch removed from -mm tree
+Message-Id: <20260609012251.ADE681F00899@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,49 +35,66 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: vmalloc: fix NULL pointer dereference in is_vm_area_hugepages()
+     Subject: mm/filemap: use folio_next_index() for start
 has been removed from the -mm tree.  Its filename was
-     vmalloc-fix-null-pointer-dereference-in-is_vm_area_hugepages.patch
+     mm-filemap-use-folio_next_index-for-start.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Hui Zhu <zhuhui@kylinos.cn>
-Subject: vmalloc: fix NULL pointer dereference in is_vm_area_hugepages()
-Date: Fri, 29 May 2026 09:41:30 +0800
+From: tanze <tanze@kylinos.cn>
+Subject: mm/filemap: use folio_next_index() for start
+Date: Mon, 1 Jun 2026 19:04:23 +0800
 
-find_vm_area() can return NULL if the given address is not a valid vmalloc
-area.  Check the return value before dereferencing it to avoid a kernel
-crash.
+Use folio_next_index() instead of open-coding folio->index +
+folio_nr_pages(folio) when updating @start in filemap_get_folios_contig(),
+filemap_get_folios_tag(), and filemap_get_folios_dirty().
 
-Link: https://lore.kernel.org/20260529014130.671291-1-hui.zhu@linux.dev
-Fixes: 121e6f3258fe ("mm/vmalloc: hugepage vmalloc mappings")
-Signed-off-by: Hui Zhu <zhuhui@kylinos.cn>
-Reviewed-by: Dev Jain <dev.jain@arm.com>
-Reviewed-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
-Cc: Nicholas Piggin <npiggin@gmail.com>
+Link: https://lore.kernel.org/20260601110425.44784-1-tanze@kylinos.cn
+Signed-off-by: tanze <tanze@kylinos.cn>
+Reviewed-by: Jan Kara <jack@suse.cz>
+Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/vmalloc.h |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ mm/filemap.c |    9 +++------
+ 1 file changed, 3 insertions(+), 6 deletions(-)
 
---- a/include/linux/vmalloc.h~vmalloc-fix-null-pointer-dereference-in-is_vm_area_hugepages
-+++ a/include/linux/vmalloc.h
-@@ -265,7 +265,9 @@ static inline bool is_vm_area_hugepages(
- 	 * allocated in the vmalloc layer.
- 	 */
- #ifdef CONFIG_HAVE_ARCH_HUGE_VMALLOC
--	return find_vm_area(addr)->page_order > 0;
-+	struct vm_struct *area = find_vm_area(addr);
-+
-+	return area && area->page_order > 0;
- #else
- 	return false;
- #endif
+--- a/mm/filemap.c~mm-filemap-use-folio_next_index-for-start
++++ a/mm/filemap.c
+@@ -2284,8 +2284,7 @@ unsigned filemap_get_folios_contig(struc
+ 			goto put_folio;
+ 
+ 		if (!folio_batch_add(fbatch, folio)) {
+-			nr = folio_nr_pages(folio);
+-			*start = folio->index + nr;
++			*start = folio_next_index(folio);
+ 			goto out;
+ 		}
+ 		xas_advance(&xas, folio_next_index(folio) - 1);
+@@ -2345,8 +2344,7 @@ unsigned filemap_get_folios_tag(struct a
+ 		if (xa_is_value(folio))
+ 			continue;
+ 		if (!folio_batch_add(fbatch, folio)) {
+-			unsigned long nr = folio_nr_pages(folio);
+-			*start = folio->index + nr;
++			*start = folio_next_index(folio);
+ 			goto out;
+ 		}
+ 	}
+@@ -2404,8 +2402,7 @@ unsigned filemap_get_folios_dirty(struct
+ 			}
+ 		}
+ 		if (!folio_batch_add(fbatch, folio)) {
+-			unsigned long nr = folio_nr_pages(folio);
+-			*start = folio->index + nr;
++			*start = folio_next_index(folio);
+ 			goto out;
+ 		}
+ 	}
 _
 
-Patches currently in -mm which might be from zhuhui@kylinos.cn are
+Patches currently in -mm which might be from tanze@kylinos.cn are
 
 
