@@ -1,114 +1,172 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 142903BF692;
-	Tue,  9 Jun 2026 03:54:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7F24E377543
+	for <mm-commits@vger.kernel.org>; Tue,  9 Jun 2026 17:57:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780977268; cv=none; b=rXir83nM+WGz3ts3AboyMGbOHvh2jm+QEzGHQIAXJyDnIfCmbtCBVLnV3bm9u/UryBXVLWeKk6MFLO7bTkvjWNtiL8ha+UWulS+utvrEXRVuXbhyGdagCofreGqLJ2NMdBk+GgutS+E67wGSE2TMrRxMPXsY3tYj99yIJVXRNUk=
+	t=1781027823; cv=none; b=KWlhfY2PpU7ZTOeKn3adwRrOzRLrXeAgeeDDfi4EBw1k1sVascf0J+/n1eFFMJkaXYn7HXQFqm4Xah4GvGFC5MMLWqiSQu/jlyyAan4NtBGtMxq27cyxDXIPrH0on6jyM83FdBjf4f32zaokjHDTwROsesY9XytVV4giV5dQDig=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780977268; c=relaxed/simple;
-	bh=8G7FcVR5dQ9ii7UT2DzctQ/bd2cIHR8b8kF7WE/myR0=;
-	h=Date:From:To:Cc:Subject:Message-Id:Mime-Version:Content-Type; b=a6W8dduYTV51R/sB6hiyD4LtgF6AL+6PbHyPUH5dhAk5YWHUIxmvb424iUlQU0f6xdxMJ3/xWNuWapXYe6757a8rmpmjIKufBLe7wSgyp3sHO9LR71KMwKdvQ3t93Xq0rTfasjR8HS9/XhmuVXcc5JOU77dD+7Min/8+X/I49i4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=V1eRCX0V; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1781027823; c=relaxed/simple;
+	bh=VJg6KH+3NSZXGMRXzXZy/BME/V47gRWCxMJyPQanBHw=;
+	h=Date:To:From:Subject:Message-Id; b=PKSJoKJfEy5EvzRaKfPYhfg6yWhySUyY/HDDjZuFJbs9JGhuFNALgEbgv/rQJl6l9VrTtPfjXW9BFU+jJZ89kdUi/qjr3Jo0GRN6TFlR4KmhTy0zkBIeXm7t3cngtuLi5ec92CIBHFWIWaXCjhJDrC8O1HwJAgRrm0YZUoBwIAY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Cm3LKR4e; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="V1eRCX0V"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7876B1F00893;
-	Tue,  9 Jun 2026 03:54:26 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Cm3LKR4e"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D0B281F00893;
+	Tue,  9 Jun 2026 17:56:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1780977266;
-	bh=TqrgAu/JqewJItrwuRMduRmwxB/x1xVSsT3lOJ0PyWs=;
-	h=Date:From:To:Cc:Subject;
-	b=V1eRCX0VUSKmAYCbu72vNTgDCPEHeZ3q2KWPdEgH+NS2RH4N2EkvVGbQlXmgQylsb
-	 7SmRcAr3hOfDPHGfQ1bt/JO1NlE8EBuu1W158kgptwux+Ui1Au7CMot+vRx2IXfRdh
-	 Rb9UvKHr+Y/mYPhMdvlomi0FRcZSG+S8J++EEqEk=
-Date: Mon, 8 Jun 2026 20:54:26 -0700
+	d=linux-foundation.org; s=korg; t=1781027819;
+	bh=UTh6FW0nBdGQLb4jRAYemioxbdNt9x7y2WmdGHCjji4=;
+	h=Date:To:From:Subject;
+	b=Cm3LKR4ewWuuisKj8EZu8kFkmg/w6S/F4EwBgKu1bP4HpJ/opRs2UA8pI1yb6uHtb
+	 BzpLBnWOZ0cixXINZ4CjpbMoeHd3eqqXV2VQ8o0I8OLmc3GDL+EuvqGE9XwZnWdmsD
+	 IwxCO4094HOW63PYGeTmc16zGTPt88/+G+9maMX0=
+Date: Tue, 09 Jun 2026 10:56:59 -0700
+To: mm-commits@vger.kernel.org,shikemeng@huaweicloud.com,nphamcs@gmail.com,kasong@tencent.com,david@kernel.org,chrisl@kernel.org,baoquan.he@linux.dev,hch@lst.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: linux-mm@kvack.org, mm-commits@vger.kernel.org,
- linux-kernel@vger.kernel.org
-Subject: [GIT PULL] hotfixes against 7.1-rc7
-Message-Id: <20260608205426.3319be94a327307e23b34f3b@linux-foundation.org>
-X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+Subject: + mm-merge-writeout-into-pageout.patch added to mm-unstable branch
+Message-Id: <20260609175659.D0B281F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
 
 
-Linus, please merge this batch of hotfixes, thanks.
+The patch titled
+     Subject: mm: merge writeout into pageout
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-merge-writeout-into-pageout.patch
 
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-merge-writeout-into-pageout.patch
 
-The following changes since commit 9d7bea186ba5a002456471edf36cc9b69f809397:
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
-  userfaultfd: remove redundant check in vm_uffd_ops() (2026-05-31 21:50:26 -0700)
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-are available in the Git repository at:
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2026-06-08-20-51
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
-for you to fetch changes up to 0c25b8734367574e21aeb8468c2e522713134da7:
+------------------------------------------------------
+From: Christoph Hellwig <hch@lst.de>
+Subject: mm: merge writeout into pageout
+Date: Mon, 1 Jun 2026 13:34:28 +0200
 
-  mm/mincore: handle non-swap entries before !CONFIG_SWAP guard (2026-06-03 16:25:52 -0700)
+writeout is only called from pageout, and a straight flow at the end, so
+merge the two functions.
 
-----------------------------------------------------------------
-11 hotfixes.  9 are for MM.  8 are cc:stable and the remaining 3
-address post-7.1 issues or aren't considered suitable for backporting.
+Link: https://lore.kernel.org/20260601113449.3464734-3-hch@lst.de
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: Baoquan He <baoquan.he@linux.dev>
+Reviewed-by: Nhat Pham <nphamcs@gmail.com>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Cc: Chris Li <chrisl@kernel.org>
+Cc: Kairui Song <kasong@tencent.com>
+Cc: Kemeng Shi <shikemeng@huaweicloud.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
-Thre's a 2 patch series "mm/damon/{reclaim,lru_sort}: handle ctx
-allocation failures" from SeongJae Park which fixes a couple of DAMON
--ENOMEM bloopers.  The rest are singletons - please see the individual
-changelogs for details.
+ mm/vmscan.c |   63 +++++++++++++++++++++++---------------------------
+ 1 file changed, 29 insertions(+), 34 deletions(-)
 
-----------------------------------------------------------------
-Alistair Popple (1):
-      arm64: mm: call pagetable dtor when freeing hot-removed page tables
+--- a/mm/vmscan.c~mm-merge-writeout-into-pageout
++++ a/mm/vmscan.c
+@@ -612,45 +612,14 @@ typedef enum {
+ 	PAGE_CLEAN,
+ } pageout_t;
+ 
+-static pageout_t writeout(struct folio *folio, struct address_space *mapping,
+-		struct swap_iocb **plug, struct list_head *folio_list)
+-{
+-	int res;
+-
+-	folio_set_reclaim(folio);
+-
+-	/*
+-	 * The large shmem folio can be split if CONFIG_THP_SWAP is not enabled
+-	 * or we failed to allocate contiguous swap entries, in which case
+-	 * the split out folios get added back to folio_list.
+-	 */
+-	if (shmem_mapping(mapping))
+-		res = shmem_writeout(folio, plug, folio_list);
+-	else
+-		res = swap_writeout(folio, plug);
+-
+-	if (res < 0)
+-		handle_write_error(mapping, folio, res);
+-	if (res == AOP_WRITEPAGE_ACTIVATE) {
+-		folio_clear_reclaim(folio);
+-		return PAGE_ACTIVATE;
+-	}
+-
+-	/* synchronous write? */
+-	if (!folio_test_writeback(folio))
+-		folio_clear_reclaim(folio);
+-
+-	trace_mm_vmscan_write_folio(folio);
+-	node_stat_add_folio(folio, NR_VMSCAN_WRITE);
+-	return PAGE_SUCCESS;
+-}
+-
+ /*
+  * pageout is called by shrink_folio_list() for each dirty folio.
+  */
+ static pageout_t pageout(struct folio *folio, struct address_space *mapping,
+ 			 struct swap_iocb **plug, struct list_head *folio_list)
+ {
++	int res;
++
+ 	/*
+ 	 * We no longer attempt to writeback filesystem folios here, other
+ 	 * than tmpfs/shmem.  That's taken care of in page-writeback.
+@@ -674,7 +643,33 @@ static pageout_t pageout(struct folio *f
+ 		return PAGE_ACTIVATE;
+ 	if (!folio_clear_dirty_for_io(folio))
+ 		return PAGE_CLEAN;
+-	return writeout(folio, mapping, plug, folio_list);
++
++	folio_set_reclaim(folio);
++
++	/*
++	 * The large shmem folio can be split if CONFIG_THP_SWAP is not enabled
++	 * or we failed to allocate contiguous swap entries, in which case
++	 * the split out folios get added back to folio_list.
++	 */
++	if (shmem_mapping(mapping))
++		res = shmem_writeout(folio, plug, folio_list);
++	else
++		res = swap_writeout(folio, plug);
++
++	if (res < 0)
++		handle_write_error(mapping, folio, res);
++	if (res == AOP_WRITEPAGE_ACTIVATE) {
++		folio_clear_reclaim(folio);
++		return PAGE_ACTIVATE;
++	}
++
++	/* synchronous write? */
++	if (!folio_test_writeback(folio))
++		folio_clear_reclaim(folio);
++
++	trace_mm_vmscan_write_folio(folio);
++	node_stat_add_folio(folio, NR_VMSCAN_WRITE);
++	return PAGE_SUCCESS;
+ }
+ 
+ /*
+_
 
-Baoquan He (1):
-      MAINTAINERS: update Baoquan He's email address
+Patches currently in -mm which might be from hch@lst.de are
 
-Cunlong Li (1):
-      zram: fix use-after-free in zram_bvec_write_partial()
-
-Kaitao Cheng (1):
-      mm/cma_sysfs: skip inactive CMA areas in sysfs
-
-Lorenzo Stoakes (1):
-      mm/huge_memory: use correct flags for device private PMD entry
-
-SeongJae Park (2):
-      mm/damon/reclaim: handle ctx allocation failure
-      mm/damon/lru_sort: handle ctx allocation failure
-
-Shakeel Butt (1):
-      mm/list_lru: drain before clearing xarray entry on reparent
-
-Usama Arif (1):
-      mm/mincore: handle non-swap entries before !CONFIG_SWAP guard
-
-Wang Yaxin (1):
-      tools headers UAPI: sync linux/taskstats.h for procacct.c
-
-Yilin Zhu (1):
-      ipc/shm: serialize orphan cleanup with shm_nattch updates
-
- .mailmap                        |   1 +
- MAINTAINERS                     |   6 +-
- arch/arm64/mm/mmu.c             |   1 +
- drivers/block/zram/zram_drv.c   |   2 +-
- ipc/shm.c                       |  10 ++--
- mm/cma_sysfs.c                  |   8 ++-
- mm/damon/lru_sort.c             |   4 ++
- mm/damon/reclaim.c              |   4 ++
- mm/huge_memory.c                |  45 ++++++++++----
- mm/list_lru.c                   |  21 ++++---
- mm/mincore.c                    |  10 ++--
- tools/include/uapi/linux/acct.h | 128 ++++++++++++++++++++++++++++++++++++++++
- 12 files changed, 204 insertions(+), 36 deletions(-)
- create mode 100644 tools/include/uapi/linux/acct.h
-
+mm-merge-writeout-into-pageout.patch
 
