@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 359A548AE04
-	for <mm-commits@vger.kernel.org>; Tue,  9 Jun 2026 18:56:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8A4B03E450E
+	for <mm-commits@vger.kernel.org>; Tue,  9 Jun 2026 19:50:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781031396; cv=none; b=ZVIp4Yi4JWhW7TBr1D7wSFBjowYk8hF4n9bQr80mgclvzpXBpqKWiMWCJceiWm4yHHIRAwb/5f6WqEqU9iaYL+SJiL8rrPLt0e2SyniuY2A8IHytt6UrqN9UPt/lSwD/mKuSrJGOIfxEAEt+w6zq7Ri0xV3YlPni5gD43x/ZEGw=
+	t=1781034635; cv=none; b=cg4fNZD7r4iF+1Gh6dmXCsGo/Sb73tz4XvEuH3ftTgqAccpwHC6vFccvniBXTKEJsAZqixQazXnQbHcWuEFOE1aSBlqJbXzbeffDW8JkvOUw7pBoVdmnl1V1h1A5VSLY51bu4hwn42RF3TvX90fZ0OKNe872bJ8AHDw9eBPNC7s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1781031396; c=relaxed/simple;
-	bh=zyUwUkPSwaR33E0ASidIwTDFWsXSM0I6rNun/N/hPTY=;
-	h=Date:To:From:Subject:Message-Id; b=aE0CfnCImNUNrrLcZxMZmhmY07fpyTyqCvIX+iRz5SZoBkq1G9UxAnM7MhZjHx+rMDnxQCEcpHybu7PE1nIAbJrBPb8+jNNXiKBtbyEgmRyRe478nLvYP6mQdeNxFKFZptlD6c4/GLKIIbNNWHGhBuEe52CkNr1UItQWDvVATzk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CFIdrwip; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1781034635; c=relaxed/simple;
+	bh=dVcHj/+x+sImnaamBHX1P3DOoXlUsJ4vyFyP4Kd2hvI=;
+	h=Date:To:From:Subject:Message-Id; b=OFStr/UADSkgZ5F4zea9H8FqkmYfldjfh3SyrnF7At/JTVbQUZ7xfJ0GqebL/kUjLehqaEKCA7g8WBf1zgZQ3ukJWwR1r9TBeZeKAQAlHFAdxTuK53lN84stU33l/fd03up9MNnCgMdUt3VuU5noJ/ejDshX19wj7Q5z6nbFQG0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=S82Lniu+; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CFIdrwip"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E3B1A1F00893;
-	Tue,  9 Jun 2026 18:56:34 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="S82Lniu+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1F9531F00893;
+	Tue,  9 Jun 2026 19:50:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1781031395;
-	bh=5WGBAdlSNNdpIE3j8XWB4luJ/SMZyzS8j0N8dmF3ooA=;
+	d=linux-foundation.org; s=korg; t=1781034631;
+	bh=NrYnYPAED8RQ77I4ZP/e+ziR3ZrjhfYT1aUHrLN93M8=;
 	h=Date:To:From:Subject;
-	b=CFIdrwipxx4Fl+dGNjs+SF2OTYpKDJ+gV1d7iN0HKapCw5QBJo76zBKboNjUneCjg
-	 0IKgEnCh3ZOGN8am4JWsbBjGJ6JENdI8GFMdmhnHW3DeUKYQMYz5UuHPUnXLuEQBCS
-	 IxrpS5gxzZN5Jm1MZzmgncP60ggcx8WuqQh2x4wc=
-Date: Tue, 09 Jun 2026 11:56:34 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,ryan.roberts@arm.com,npache@redhat.com,ljs@kernel.org,liam@infradead.org,dev.jain@arm.com,david@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,lance.yang@linux.dev,akpm@linux-foundation.org
+	b=S82Lniu+uELI7MdwEz+AKlQfUtgxITbkwo3s94djkwYGwZOGpt54qXav89p8coYaG
+	 cc6kyr2aJjpRRe9GKCHi0gik7c52FnOxDtieZ0WvcZHojPxqwfAJ+qDzNxlpzqrQ2Z
+	 llRJVZb8ahg5VlBaKNt9MHzaCu4IFsP7DQW+kvew=
+Date: Tue, 09 Jun 2026 12:50:30 -0700
+To: mm-commits@vger.kernel.org,lasse.collin@tukaani.org,thorsten.blum@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-khugepaged-fix-pmd-collapse-swap-pte-accounting.patch added to mm-unstable branch
-Message-Id: <20260609185634.E3B1A1F00893@smtp.kernel.org>
+Subject: + lib-xz-replace-min_t-with-min.patch added to mm-nonmm-unstable branch
+Message-Id: <20260609195031.1F9531F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/khugepaged: fix PMD collapse swap PTE accounting
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-khugepaged-fix-pmd-collapse-swap-pte-accounting.patch
+     Subject: lib/xz: replace min_t with min
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     lib-xz-replace-min_t-with-min.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-fix-pmd-collapse-swap-pte-accounting.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-xz-replace-min_t-with-min.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,65 +58,85 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Lance Yang <lance.yang@linux.dev>
-Subject: mm/khugepaged: fix PMD collapse swap PTE accounting
-Date: Tue, 9 Jun 2026 20:04:43 +0800
+From: Thorsten Blum <thorsten.blum@linux.dev>
+Subject: lib/xz: replace min_t with min
+Date: Tue, 9 Jun 2026 18:00:28 +0300
 
-mthp_collapse() uses mthp_present_ptes to decide whether a range has
-enough occupied PTEs to try collapse.  Swap PTEs accepted by
-collapse_scan_pmd() are counted in unmapped, but are not represented in
-mthp_present_ptes.
+Use the simpler min() macro since the values are unsigned and compatible.
 
-When lower orders are enabled, collapse_scan_pmd() relaxes max_ptes_none
-so the scan can cover the whole PMD and build the bitmap.  mthp_collapse()
-then checks the PMD-order candidate using the bitmap.
-
-With max_ptes_none set to 0, a range with 511 present PTEs and one swap
-PTE no longer reaches collapse_huge_page(), even though PMD collapse can
-handle swap PTEs up to max_ptes_swap.
-
-Account unmapped PTEs only for PMD order.  PMD collapse supports swap PTEs
-through max_ptes_swap, while lower-order mTHP collapse does not currently
-support non-present PTEs.  Keep non-present PTEs out of the lower-order
-eligibility check.
-
-Link: https://lore.kernel.org/20260609120443.71864-1-lance.yang@linux.dev
-Signed-off-by: Lance Yang <lance.yang@linux.dev>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Reviewed-by: Lorenzo Stoakes <ljs@kernel.org>
-Acked-by: Nico Pache <npache@redhat.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Zi Yan <ziy@nvidia.com>
+Link: https://lore.kernel.org/20260609150030.634570-1-lasse.collin@tukaani.org
+Signed-off-by: Thorsten Blum <thorsten.blum@linux.dev>
+Reviewed-by: Lasse Collin <lasse.collin@tukaani.org>
+Signed-off-by: Lasse Collin <lasse.collin@tukaani.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ lib/xz/xz_dec_bcj.c    |    2 +-
+ lib/xz/xz_dec_lzma2.c  |   11 +++++------
+ lib/xz/xz_dec_stream.c |    4 ++--
+ 3 files changed, 8 insertions(+), 9 deletions(-)
 
---- a/mm/khugepaged.c~mm-khugepaged-fix-pmd-collapse-swap-pte-accounting
-+++ a/mm/khugepaged.c
-@@ -1502,6 +1502,14 @@ static enum scan_result mthp_collapse(st
- 		nr_occupied_ptes = bitmap_weight_from(cc->mthp_present_ptes, offset,
- 						      offset + nr_ptes);
+--- a/lib/xz/xz_dec_bcj.c~lib-xz-replace-min_t-with-min
++++ a/lib/xz/xz_dec_bcj.c
+@@ -466,7 +466,7 @@ static void bcj_flush(struct xz_dec_bcj
+ {
+ 	size_t copy_size;
  
-+		/*
-+		 * Swap PTEs accepted during the scan are counted in @unmapped,
-+		 * not in the present-PTE bitmap. Account them for the PMD-order
-+		 * candidate.
-+		 */
-+		if (is_pmd_order(order))
-+			nr_occupied_ptes += unmapped;
-+
- 		if (nr_occupied_ptes >= nr_ptes - max_ptes_none) {
- 			enum scan_result ret;
+-	copy_size = min_t(size_t, s->temp.filtered, b->out_size - b->out_pos);
++	copy_size = min(s->temp.filtered, b->out_size - b->out_pos);
+ 	memcpy(b->out + b->out_pos, s->temp.buf, copy_size);
+ 	b->out_pos += copy_size;
  
+--- a/lib/xz/xz_dec_lzma2.c~lib-xz-replace-min_t-with-min
++++ a/lib/xz/xz_dec_lzma2.c
+@@ -354,7 +354,7 @@ static bool dict_repeat(struct dictionar
+ 	if (dist >= dict->full || dist >= dict->size)
+ 		return false;
+ 
+-	left = min_t(size_t, dict->limit - dict->pos, *len);
++	left = min(dict->limit - dict->pos, *len);
+ 	*len -= left;
+ 
+ 	back = dict->pos - dist - 1;
+@@ -1098,9 +1098,8 @@ enum xz_ret xz_dec_lzma2_run(struct xz_d
+ 			 * the output buffer yet, we may run this loop
+ 			 * multiple times without changing s->lzma2.sequence.
+ 			 */
+-			dict_limit(&s->dict, min_t(size_t,
+-					b->out_size - b->out_pos,
+-					s->lzma2.uncompressed));
++			dict_limit(&s->dict, min(b->out_size - b->out_pos,
++						 s->lzma2.uncompressed));
+ 			if (!lzma2_lzma(s, b))
+ 				return XZ_DATA_ERROR;
+ 
+@@ -1260,8 +1259,8 @@ enum xz_ret xz_dec_microlzma_run(struct
+ 		s->dict.end = b->out_size - b->out_pos;
+ 
+ 	while (true) {
+-		dict_limit(&s->dict, min_t(size_t, b->out_size - b->out_pos,
+-					   s->lzma2.uncompressed));
++		dict_limit(&s->dict, min(b->out_size - b->out_pos,
++					 s->lzma2.uncompressed));
+ 
+ 		if (!lzma2_lzma(s, b))
+ 			return XZ_DATA_ERROR;
+--- a/lib/xz/xz_dec_stream.c~lib-xz-replace-min_t-with-min
++++ a/lib/xz/xz_dec_stream.c
+@@ -155,8 +155,8 @@ static const uint8_t check_sizes[16] = {
+  */
+ static bool fill_temp(struct xz_dec *s, struct xz_buf *b)
+ {
+-	size_t copy_size = min_t(size_t,
+-			b->in_size - b->in_pos, s->temp.size - s->temp.pos);
++	size_t copy_size = min(b->in_size - b->in_pos,
++			       s->temp.size - s->temp.pos);
+ 
+ 	memcpy(s->temp.buf + s->temp.pos, b->in + b->in_pos, copy_size);
+ 	b->in_pos += copy_size;
 _
 
-Patches currently in -mm which might be from lance.yang@linux.dev are
+Patches currently in -mm which might be from thorsten.blum@linux.dev are
 
-mm-khugepaged-fix-pmd-collapse-swap-pte-accounting.patch
+lib-xz-replace-min_t-with-min.patch
 
