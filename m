@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3E1122F9C37
-	for <mm-commits@vger.kernel.org>; Tue,  9 Jun 2026 01:22:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C1C853033E7
+	for <mm-commits@vger.kernel.org>; Tue,  9 Jun 2026 01:22:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780968175; cv=none; b=u+9xZOEl4eDvPZSI2hyZQKoz6AW7JhKYOd9YorRNFGLEUR3tNmC0iiypWKp0ynbLCunJTb2gx9aeSHel6PcmxsvFbwWKl5I1lsKqYW23ogs3I0+XdemN7VcwARWFRgbapNngb39fe345qqPZfKP0AX5FjY62Yd8sT9EELSH7+f4=
+	t=1780968176; cv=none; b=P7KjXbr29/P3HAh9TYKn5sBqMkhWU/AABMqAichTg2KnZV+nf2gWFqYxU2Va1fG6BmwPGVqS2Beu13xfw0grULy5+JtCrXdbWE6SqmqLBYv3vkGafhy2slvOzbdbbAaVZXocO9fnFQeScL3nVnvNn5HwNnwN3y5ejrO9dhu4qV8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780968175; c=relaxed/simple;
-	bh=QviGmQ8mNWKeJL43AqpW5wicBrOSW0q9FiTbjlfeC1o=;
-	h=Date:To:From:Subject:Message-Id; b=MnTM4eSpANlpjggO07R+99eGdIfGR9hYbDdfPixWNNYcts6JXBZF6VToygFhOEjBCWbvMKiiX+DoCTPdmifznmIQH+mBMTbz/eVdzma2DP1BS9mF0eoqULZPTf13HyQeCpVkrq0iYnl2dmhhLwzO9G+deIJ7C5HBJE6s6zH1hTs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=H+O2MDeC; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1780968176; c=relaxed/simple;
+	bh=1k7SvK/mn/OMDrnP0506Doe6LzqotpAvleNcPB8D/hM=;
+	h=Date:To:From:Subject:Message-Id; b=BDzC3kEEmIW3jgaZYp+X+JguPgKFGLOmqjw+pP1PtaXgIdz9Qi8xTuGFSAEuAdh6ymunYdhN4CDMv9DwomkduxyGMuC37cYyEHEA3oP3qcQ7QeidzxDoWe2P2cy6KPH+Y6n10MsBM/pal2pR5DHBx9GTt4VJnqkQKhbYHJvpLX8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1llmqBf5; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="H+O2MDeC"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 145DA1F00898;
-	Tue,  9 Jun 2026 01:22:54 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1llmqBf5"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 529FA1F00893;
+	Tue,  9 Jun 2026 01:22:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1780968174;
-	bh=wZt46LpvqOaIWI9qY3Zpl579p+UngBkSpiVWHabq4R0=;
+	d=linux-foundation.org; s=korg; t=1780968175;
+	bh=RbsRDDlqj4s0GD0O5iMiJ0v47yy4fMJ+4ttcenKpLpw=;
 	h=Date:To:From:Subject;
-	b=H+O2MDeCnRDA2xVi7SXqkxj/uvl6ktR/acasRHEOqMxKHQrRIb4fKguHwTCtu2mep
-	 yVdnrEkEelYfIBEDKPzCjX6P/JwvxDzy6PHW3vcA3sdlPE1S3bwrASSttIy2H2uv9m
-	 r+b08dHhDmOaVnPSPc0Wuu0Xy1aKqtWQus0Qdt8M=
-Date: Mon, 08 Jun 2026 18:22:53 -0700
-To: mm-commits@vger.kernel.org,shikemeng@huaweicloud.com,rafael@kernel.org,nphamcs@gmail.com,kasong@tencent.com,chrisl@kernel.org,bhe@redhat.com,baohua@kernel.org,youngjun.park@lge.com,akpm@linux-foundation.org
+	b=1llmqBf5GK1JaU+IG7V/IhbdymsnD54tjtjlOSxm3Kl0ZrZcnI7XP0Z7MXV+3JKPE
+	 DRJh9sG32GGH5iCRtOq08B4ewANyTMmxZ0YD9zWpr2kq4NNQUtTlS09Lq1k49GAQvd
+	 uuAR6DXngLo2ysJD5siB99yfJKTYO2qP0sZa+DtY=
+Date: Mon, 08 Jun 2026 18:22:54 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,surenb@google.com,mhocko@suse.com,jackmanb@google.com,hannes@cmpxchg.org,jp.kobryn@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-swap-remove-redundant-swap-device-reference-in-alloc-free.patch removed from -mm tree
-Message-Id: <20260609012254.145DA1F00898@smtp.kernel.org>
+Subject: [merged mm-stable] mm-compaction-cap-compact_gap-at-compact_cluster_max.patch removed from -mm tree
+Message-Id: <20260609012255.529FA1F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,157 +35,131 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/swap: remove redundant swap device reference in alloc/free
+     Subject: mm/compaction: cap compact_gap() at COMPACT_CLUSTER_MAX
 has been removed from the -mm tree.  Its filename was
-     mm-swap-remove-redundant-swap-device-reference-in-alloc-free.patch
+     mm-compaction-cap-compact_gap-at-compact_cluster_max.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Youngjun Park <youngjun.park@lge.com>
-Subject: mm/swap: remove redundant swap device reference in alloc/free
-Date: Tue, 24 Mar 2026 01:08:22 +0900
+From: "JP Kobryn" <jp.kobryn@linux.dev>
+Subject: mm/compaction: cap compact_gap() at COMPACT_CLUSTER_MAX
+Date: Wed, 3 Jun 2026 23:17:25 -0700
 
-In the previous commit, uswsusp was modified to pin the swap device when
-the swap type is determined, ensuring the device remains valid throughout
-the hibernation I/O path.
+compact_gap() returns 2 << order, which is used as watermark headroom in
+__compaction_suitable() and as a threshold in kswapd reclaim decisions. 
+The computed value scales exponentially by order.  For order-9 THP
+allocations this evaluates to 1024 pages, but the compaction free
+scanner's working set is bounded by COMPACT_CLUSTER_MAX (32 pages).  The
+scanner stops isolating free pages once it matches the migration batch. 
+The current gap over-reserves by 32x.
 
-Therefore, it is no longer necessary to repeatedly get and put the swap
-device reference for each swap slot allocation and free operation.
+On fragmented production hosts, kswapd will try to reclaim up to the gap,
+but it only reaches that threshold in 18% of attempts.  As a result,
+reclaim continues in the majority of cases despite many lower-order free
+pages being available.  The over-sized gap also causes 46% of order-9
+compaction suitability checks to fail unnecessarily: the zone has
+sufficient free pages for the scanner to operate, but not enough to clear
+the inflated threshold.
 
-For hibernation via the sysfs interface, user-space tasks are frozen
-before swap allocation begins, so swapoff cannot race with allocation. 
-After resume, tasks remain frozen while swap slots are freed, so
-additional reference management is not required there either.
+Cap compact_gap() at COMPACT_CLUSTER_MAX so the watermark headroom
+reflects the scanner's actual capacity.  This function is used by two key
+heuristics.  The first is when kswapd can stop high-order reclaim and
+downgrade to order-0 balancing, allowing kcompactd to be woken for the
+original higher allocation order.  The second is zone suitability
+checking, where the smaller gap allows compaction to start sooner.
 
-Remove the redundant swap device get/put operations from the hibernation
-swap allocation and free paths.
+Note that orders 0-4 are unaffected since their gap is already less than
+or equal to COMPACT_CLUSTER_MAX.
 
-Also remove the SWP_WRITEOK check before allocation, as the cluster
-allocation logic already validates the swap device state.
+A/B test on v6.13-based instagram production hosts (64GB, 60s
+measurement):
 
-Update function comments to document the caller's responsibility for
-ensuring swap device stability.
+Unpatched (43 hosts)
+pgscan_kswapd (mean/host): ~1.6M
+reclaim efficiency (steal/scan): 83.8%
+per-compaction success (success/stall): 2.1%
+THP success (alloc/alloc+fallback): 4.9%
+forced lru_add_drain (mean/host): ~107K
 
-Link: https://lore.kernel.org/20260323160822.1409904-3-youngjun.park@lge.com
-Signed-off-by: Youngjun Park <youngjun.park@lge.com>
-Reviewed-by: Kairui Song <kasong@tencent.com>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: Kemeng Shi <shikemeng@huaweicloud.com>
-Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: "Rafael J . Wysocki" <rafael@kernel.org>
+Patched (59 hosts)
+pgscan_kswapd (mean/host): ~449K
+reclaim efficiency (steal/scan): 91.0%
+per-compaction success (success/stall): 28.3%
+THP success (alloc/alloc+fallback): 17.2%
+forced lru_add_drain (mean/host): ~64K
+
+Additional tests were also performed using a workload of similar shape and
+based on mm-new at the time of testing.  Across three 60s runs, the patch
+showed improvements consistent with the previous test: reduced kswapd
+reclaim and fewer THP fault fallbacks.
+
+Unpatched
+kswapd_shrink_node downgrade to order-0 (mean): 0
+thp_fault_fallback (mean): 1217
+pgscan_kswapd (mean): 6328
+pgsteal_kswapd (mean): 5657
+
+Patched
+kswapd_shrink_node downgrade to order-0 (mean): 28
+thp_fault_fallback (mean): 738
+pgscan_kswapd (mean): 3773
+pgsteal_kswapd (mean): 3243
+
+Link: https://lore.kernel.org/20260604061725.13800-1-jp.kobryn@linux.dev
+Signed-off-by: JP Kobryn (Meta) <jp.kobryn@linux.dev>
+Reviewed-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
+Cc: Brendan Jackman <jackmanb@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |   68 +++++++++++++++++++++++++-----------------------
- 1 file changed, 36 insertions(+), 32 deletions(-)
+ include/linux/compaction.h |    8 ++++----
+ mm/vmscan.c                |    2 +-
+ 2 files changed, 5 insertions(+), 5 deletions(-)
 
---- a/mm/swapfile.c~mm-swap-remove-redundant-swap-device-reference-in-alloc-free
-+++ a/mm/swapfile.c
-@@ -2138,7 +2138,16 @@ out:
- }
+--- a/include/linux/compaction.h~mm-compaction-cap-compact_gap-at-compact_cluster_max
++++ a/include/linux/compaction.h
+@@ -2,6 +2,8 @@
+ #ifndef _LINUX_COMPACTION_H
+ #define _LINUX_COMPACTION_H
  
- #ifdef CONFIG_HIBERNATION
--/* Allocate a slot for hibernation */
-+/**
-+ * swap_alloc_hibernation_slot() - Allocate a swap slot for hibernation.
-+ * @type: swap device type index to allocate from.
-+ *
-+ * The caller must ensure the swap device is stable, either by pinning
-+ * it (SWP_HIBERNATION) or by freezing user-space.
-+ *
-+ * Return: a valid swp_entry_t on success, or an empty entry (val == 0)
-+ * on failure.
-+ */
- swp_entry_t swap_alloc_hibernation_slot(int type)
- {
- 	struct swap_info_struct *pcp_si, *si = swap_type_to_info(type);
-@@ -2149,46 +2158,42 @@ swp_entry_t swap_alloc_hibernation_slot(
- 	if (!si)
- 		goto fail;
- 
--	/* This is called for allocating swap entry, not cache */
--	if (get_swap_device_info(si)) {
--		if (si->flags & SWP_WRITEOK) {
--			/*
--			 * Try the local cluster first if it matches the device. If
--			 * not, try grab a new cluster and override local cluster.
--			 */
--			local_lock(&percpu_swap_cluster.lock);
--			pcp_si = this_cpu_read(percpu_swap_cluster.si[0]);
--			pcp_offset = this_cpu_read(percpu_swap_cluster.offset[0]);
--			if (pcp_si == si && pcp_offset) {
--				ci = swap_cluster_lock(si, pcp_offset);
--				if (cluster_is_usable(ci, 0))
--					offset = alloc_swap_scan_cluster(si, ci, NULL, pcp_offset);
--				else
--					swap_cluster_unlock(ci);
--			}
--			if (!offset)
--				offset = cluster_alloc_swap_entry(si, NULL);
--			local_unlock(&percpu_swap_cluster.lock);
--			if (offset)
--				entry = swp_entry(si->type, offset);
--		}
--		put_swap_device(si);
-+	/*
-+	 * Try the local cluster first if it matches the device. If
-+	 * not, try grab a new cluster and override local cluster.
-+	 */
-+	local_lock(&percpu_swap_cluster.lock);
-+	pcp_si = this_cpu_read(percpu_swap_cluster.si[0]);
-+	pcp_offset = this_cpu_read(percpu_swap_cluster.offset[0]);
-+	if (pcp_si == si && pcp_offset) {
-+		ci = swap_cluster_lock(si, pcp_offset);
-+		if (cluster_is_usable(ci, 0))
-+			offset = alloc_swap_scan_cluster(si, ci, NULL, pcp_offset);
-+		else
-+			swap_cluster_unlock(ci);
- 	}
-+	if (!offset)
-+		offset = cluster_alloc_swap_entry(si, NULL);
-+	local_unlock(&percpu_swap_cluster.lock);
-+	if (offset)
-+		entry = swp_entry(si->type, offset);
++#include <linux/swap.h>
 +
- fail:
- 	return entry;
+ /*
+  * Determines how hard direct compaction should try to succeed.
+  * Lower value means higher priority, analogically to reclaim priority.
+@@ -73,11 +75,9 @@ static inline unsigned long compact_gap(
+ 	 * effectively limited by COMPACT_CLUSTER_MAX, as that's the maximum
+ 	 * that the migrate scanner can have isolated on migrate list, and free
+ 	 * scanner is only invoked when the number of isolated free pages is
+-	 * lower than that. But it's not worth to complicate the formula here
+-	 * as a bigger gap for higher orders than strictly necessary can also
+-	 * improve chances of compaction success.
++	 * lower than that.
+ 	 */
+-	return 2UL << order;
++	return min(2UL << order, COMPACT_CLUSTER_MAX);
  }
  
--/* Free a slot allocated by swap_alloc_hibernation_slot */
-+/**
-+ * swap_free_hibernation_slot() - Free a swap slot allocated for hibernation.
-+ * @entry: swap entry to free.
-+ *
-+ * The caller must ensure the swap device is stable.
-+ */
- void swap_free_hibernation_slot(swp_entry_t entry)
- {
--	struct swap_info_struct *si;
-+	struct swap_info_struct *si = __swap_entry_to_info(entry);
- 	struct swap_cluster_info *ci;
- 	pgoff_t offset = swp_offset(entry);
+ static inline int current_is_kcompactd(void)
+--- a/mm/vmscan.c~mm-compaction-cap-compact_gap-at-compact_cluster_max
++++ a/mm/vmscan.c
+@@ -7014,7 +7014,7 @@ static bool kswapd_shrink_node(pg_data_t
  
--	si = get_swap_device(entry);
--	if (WARN_ON(!si))
--		return;
--
- 	ci = swap_cluster_lock(si, offset);
- 	__swap_cluster_put_entry(ci, offset % SWAPFILE_CLUSTER);
- 	__swap_cluster_free_entries(si, ci, offset % SWAPFILE_CLUSTER, 1);
-@@ -2196,7 +2201,6 @@ void swap_free_hibernation_slot(swp_entr
- 
- 	/* In theory readahead might add it to the swap cache by accident */
- 	__try_to_reclaim_swap(si, offset, TTRS_ANYWAY);
--	put_swap_device(si);
- }
- 
- static int __find_hibernation_swap_type(dev_t device, sector_t offset)
+ 	/*
+ 	 * Fragmentation may mean that the system cannot be rebalanced for
+-	 * high-order allocations. If twice the allocation size has been
++	 * high-order allocations. If at least the compaction gap has been
+ 	 * reclaimed then recheck watermarks only at order-0 to prevent
+ 	 * excessive reclaim. Assume that a process requested a high-order
+ 	 * can direct reclaim/compact.
 _
 
-Patches currently in -mm which might be from youngjun.park@lge.com are
+Patches currently in -mm which might be from jp.kobryn@linux.dev are
 
 
