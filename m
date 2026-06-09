@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BA0182DB794
-	for <mm-commits@vger.kernel.org>; Tue,  9 Jun 2026 01:22:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C71102F6911
+	for <mm-commits@vger.kernel.org>; Tue,  9 Jun 2026 01:22:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780968153; cv=none; b=ePVQRx2NFHVqMEPR8zcv7N4kXWUcijeghhzqqIBsJz0AbM+vRiKDV3N2wLN5cAR7ADBAujJmL2l9lxu2vACfbQZS36KmGiURtoa2JmkMkrj4jDna2nmueCRkRRbf4owkvflgrBkE01Xm5Skttw6PT4pvZODvdSFDSVhLamKCxYg=
+	t=1780968154; cv=none; b=kFWEwciK/GOUyJV5qrVDKZ1BZ6lcrPU1OAiKysX2t0QZ9TuL116+rzeiz1m1WLEcNPREtDZo1eU75vJmopKYQMrWmR31gdMRfo3drwCK6GLF1dr2rMr9Cz6qeQ/Rnrtbv8JkGtmG7/SIxYr0b5ki/C7ikMFRcouPLfXvB1w189Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780968153; c=relaxed/simple;
-	bh=+2wbbbI9fSFEBtTOyBabnTtBfISxcHs5bxOeE+KfDd8=;
-	h=Date:To:From:Subject:Message-Id; b=NzK82vp8GSRh9uuGwjPMF2f45bI6bsOvheHtd4Xu0lIP4aIN1aYB097zi38PzZfh+Qfr4+zGZkR5YpceFunKUnpJadDLRIGQE0n9c+5Y+3yGbEfD3m0jqQJx2hpAVdzGejO7YWv19Dqz5bf9IrVEztg6yoZMHDmYrgl5atR0se0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ubXfSeGF; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1780968154; c=relaxed/simple;
+	bh=mPZ8fhSssWqPXt8a5nPRLYj8cgmECxdpGvIR7iDnovA=;
+	h=Date:To:From:Subject:Message-Id; b=p486Ea14A5gHG4ZF+1jK6w4xgGY3hd9NHoZRZbWm5WNjhWTJnOByXEKRjbZ/whuo65SJUis9EGlUx+Y52xsDf+4OXrMUaZGAFKcU0tcuGHwXAN6WAXU72gZuXx0EyywbjsMHrnIJW/a/C77FiY3WA2Vlzr6MUhH7Cjju4o2zmPE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=A/Wv8o7m; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ubXfSeGF"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 797C41F00893;
-	Tue,  9 Jun 2026 01:22:32 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="A/Wv8o7m"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9B3041F00898;
+	Tue,  9 Jun 2026 01:22:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1780968152;
-	bh=qj0Ee5X+rHIdhlCQ8ZlVPjzR4bshB22CfO1BC/WSyXU=;
+	d=linux-foundation.org; s=korg; t=1780968153;
+	bh=quGMGOnokRfeVeGgpNhSBi+xGp9eyuimvVoEuyzNjbo=;
 	h=Date:To:From:Subject;
-	b=ubXfSeGFHKDL8S+7Rcw90Hwx9xHbrgGkkKIWBj0xuEOoM1Y6e7n1PbZBmpKyjK7BY
-	 lxuP3290ZQm6aovNIzrD0ff7JwM0Io8Yw5DAG+apFKPXC0wnwZKouguMPYAbOYtPpM
-	 DsB09LZdUgoVqLEohIsOcAmWwZqA/FXpeY0yaIDw=
-Date: Mon, 08 Jun 2026 18:22:32 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,ljs@kernel.org,david@kernel.org,jackmanb@google.com,akpm@linux-foundation.org
+	b=A/Wv8o7m0HFkQk/tFgMqzTCGviwjT3eAKX+x248Gr5/Q/hXsm88WLKwUOkGGmopXS
+	 SulZdPMiQHxapnkjBYTCrKVd84zRIBcI4GLqZXHiNQMzDvaN5g8J9vJSb4Ef+eMbL8
+	 s2xX9jabhLyHZ2AQidp9rQZ1NX2Rfr6Co7DM2QW0=
+Date: Mon, 08 Jun 2026 18:22:33 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-delete-stale-comment-about-cachelines.patch removed from -mm tree
-Message-Id: <20260609012232.797C41F00893@smtp.kernel.org>
+Subject: [merged mm-stable] maintainers-add-testing-abi-documents-for-mm.patch removed from -mm tree
+Message-Id: <20260609012233.9B3041F00898@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,54 +35,86 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: delete stale comment about cachelines
+     Subject: MAINTAINERS: add testing ABI documents for mm
 has been removed from the -mm tree.  Its filename was
-     mm-delete-stale-comment-about-cachelines.patch
+     maintainers-add-testing-abi-documents-for-mm.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Brendan Jackman <jackmanb@google.com>
-Subject: mm: delete stale comment about cachelines
-Date: Mon, 01 Jun 2026 11:40:09 +0000
+From: SeongJae Park <sj@kernel.org>
+Subject: MAINTAINERS: add testing ABI documents for mm
+Date: Mon, 1 Jun 2026 16:55:04 -0700
 
-These comments have been wrong since commit a211c6550efc ("mm: page_alloc:
-defrag_mode kswapd/kcompactd watermarks") added NR_FREE_PAGES_BLOCKS. 
-Since nobody has complained about it in the last year, it seems unlikely
-these comments were particularly useful anyway, so delete them.
+A few mm subsystem entries in MAINTAINERS are missing their testing ABI
+documents.  Add those.
 
-Link: https://lore.kernel.org/20260601-zone_stat_item-comment-v1-1-f452dd91d5eb@google.com
-Signed-off-by: Brendan Jackman <jackmanb@google.com>
+Link: https://lore.kernel.org/20260601235506.85123-1-sj@kernel.org
+Signed-off-by: SeongJae Park <sj@kernel.org>
 Acked-by: David Hildenbrand (Arm) <david@kernel.org>
 Reviewed-by: Lorenzo Stoakes <ljs@kernel.org>
-Acked-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: SeongJae Park <sj@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |    2 --
- 1 file changed, 2 deletions(-)
+ MAINTAINERS |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
---- a/include/linux/mmzone.h~mm-delete-stale-comment-about-cachelines
-+++ a/include/linux/mmzone.h
-@@ -214,7 +214,6 @@ enum numa_stat_item {
- #endif
- 
- enum zone_stat_item {
--	/* First 128 byte cacheline (assuming 64 bit words) */
- 	NR_FREE_PAGES,
- 	NR_FREE_PAGES_BLOCKS,
- 	NR_ZONE_LRU_BASE, /* Used only for compaction and reclaim retry */
-@@ -225,7 +224,6 @@ enum zone_stat_item {
- 	NR_ZONE_UNEVICTABLE,
- 	NR_ZONE_WRITE_PENDING,	/* Count of dirty, writeback and unstable pages */
- 	NR_MLOCK,		/* mlock()ed pages found and moved off LRU */
--	/* Second 128 byte cacheline */
- #if IS_ENABLED(CONFIG_ZSMALLOC)
- 	NR_ZSPAGES,		/* allocated in zsmalloc */
- #endif
+--- a/MAINTAINERS~maintainers-add-testing-abi-documents-for-mm
++++ a/MAINTAINERS
+@@ -16854,6 +16854,7 @@ L:	linux-mm@kvack.org
+ S:	Maintained
+ W:	http://www.linux-mm.org
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
++F:	Documentation/ABI/testing/sysfs-kernel-mm-ksm
+ F:	Documentation/admin-guide/mm/ksm.rst
+ F:	Documentation/mm/ksm.rst
+ F:	include/linux/ksm.h
+@@ -16876,6 +16877,8 @@ L:	linux-mm@kvack.org
+ S:	Maintained
+ W:	http://www.linux-mm.org
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
++F:	Documentation/ABI/testing/sysfs-kernel-mm-mempolicy
++F:	Documentation/ABI/testing/sysfs-kernel-mm-mempolicy-weighted-interleave
+ F:	include/linux/mempolicy.h
+ F:	include/uapi/linux/mempolicy.h
+ F:	include/linux/migrate.h
+@@ -16918,6 +16921,10 @@ L:	linux-mm@kvack.org
+ S:	Maintained
+ W:	http://www.linux-mm.org
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
++F:	Documentation/ABI/testing/sysfs-kernel-mm
++F:	Documentation/ABI/testing/sysfs-kernel-mm-cma
++F:	Documentation/ABI/testing/sysfs-kernel-mm-memory-tiers
++F:	Documentation/ABI/testing/sysfs-kernel-mm-numa
+ F:	Documentation/admin-guide/mm/
+ F:	Documentation/mm/
+ F:	include/linux/cma.h
+@@ -17041,6 +17048,7 @@ R:	Barry Song <baohua@kernel.org>
+ R:	Youngjun Park <youngjun.park@lge.com>
+ L:	linux-mm@kvack.org
+ S:	Maintained
++F:	Documentation/ABI/testing/sysfs-kernel-mm-swap
+ F:	Documentation/mm/swap-table.rst
+ F:	include/linux/swap.h
+ F:	include/linux/swapfile.h
+@@ -17068,6 +17076,7 @@ L:	linux-mm@kvack.org
+ S:	Maintained
+ W:	http://www.linux-mm.org
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
++F:	Documentation/ABI/testing/sysfs-kernel-mm-transparent-hugepage
+ F:	Documentation/admin-guide/mm/transhuge.rst
+ F:	include/linux/huge_mm.h
+ F:	include/linux/khugepaged.h
 _
 
-Patches currently in -mm which might be from jackmanb@google.com are
+Patches currently in -mm which might be from sj@kernel.org are
 
+mm-damon-core-always-put-unsuccessfully-committed-target-pids.patch
 
