@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 29404266EE9
-	for <mm-commits@vger.kernel.org>; Wed, 10 Jun 2026 01:34:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0430629E116;
+	Wed, 10 Jun 2026 01:36:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781055257; cv=none; b=iq31MQIGVgSXdp3og2KCaMvq4183fXqIPTsdgOjeSginnwxxS03do8IZVr3yNxYWA/3F9FMmiPMv5hTsBO3K3HhKLewBmWEfTuOMJKUQ9BdlqAz6ZF8CZkYyFGe8pwnQsN+mYKCVWsei6LNHuCP18KyRAyEwswOMoKJajYWe7UQ=
+	t=1781055413; cv=none; b=PFWVyKrIzu2G3C1TVSvMY2Nt1B5K+MDotIfbgPeKHxV8h2Ma6+YWUaVy5VHfJddhk0TSWlAEfNE1kwscG9gSM/FlISu638I/R7BWudw5MIRk1l18Mtc8oGeoNqb4aGTdDFRNQmj8siKWzuk2N2OCxh43kFO6A+NYbhY3h0INmz8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1781055257; c=relaxed/simple;
-	bh=PuuvCebhB5g4ZRzXcnIiVGUrXFQHUGN9dn2IuHdPjBQ=;
-	h=Date:To:From:Subject:Message-Id; b=Tij2bwp1VPBQlbfVdMaC38pdFS5a/+Bge3sNRdXhIeTL5KMR2AkYYcwQesdk7IqcGQ0rb6iPBqD7ZElBf+xYQQ0UUs5iDnK8OdJRSbdfRDxHrdj+bodpL8WDFFrO8Wcepxqe6S5gplspkOukZb+Jo3pxfP/7k0tZ/pfeFvJY/jo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Wauk6UbX; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1781055413; c=relaxed/simple;
+	bh=/gl99GJgdfpcWRLZCqYYP8F4/G4eYXx83hWjrBVCNdc=;
+	h=Date:To:From:Subject:Message-Id; b=SVksTgqA81P6qSb+xftuNUw326mputMzDnO+2GRJd0oyFQMfo4/P+jD1dr42w/e/bBG0ikOvBr6iLUzqBopE9cEnZ5fTblsIXY1Is8ttidK1SWK5vzCvSH/pPGwX6uTBADTY1CSWdmpsK2wNwrsdifJOUHD4O4W3IGIKQz7zaSA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Wgj+/lYo; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Wauk6UbX"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AB27D1F00893;
-	Wed, 10 Jun 2026 01:34:15 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Wgj+/lYo"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2A61F1F00893;
+	Wed, 10 Jun 2026 01:36:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1781055255;
-	bh=HHpDC0oFOAeBWwcE9mxAtPgndsWMyBuQTtD7GzKOFtE=;
+	d=linux-foundation.org; s=korg; t=1781055408;
+	bh=ekXe1CvN8tWkS0sqK9fMmQJi2X1A0j10kSVWYcb/vbo=;
 	h=Date:To:From:Subject;
-	b=Wauk6UbXPgoTHBujFae+gSAChiEqh3tAkjq4OcqXvTP9x/360UlgnesIZql2SoG4s
-	 I15L4VSeyISmGSg2/vLZnqTCya46FvHsUPU420BbwFF1mqxgUmQ5rdu6+gcd2RCuQ/
-	 c7oDDVWXeShlQIlsMLEaAhHAVzM75wrXtAZhvz/s=
-Date: Tue, 09 Jun 2026 18:34:15 -0700
-To: mm-commits@vger.kernel.org,shuah@kernel.org,richard.weiyang@gmail.com,brauner@kernel.org,kanie@linux.alibaba.com,akpm@linux-foundation.org
+	b=Wgj+/lYodbqUIKdQPV4j60yxQidDD7Ksu4TXYVielF3gVkY5LUU+oQ/kDcZgPbVig
+	 dAN9BLabVVtB95WxKOQOKzLIu80yQ9erXxPjmqqBAMu76XBsIRAa7ntS6ougBilAmG
+	 625R8/7w3pGwGVOsIgbd5VIHmAMuX6idRk0JOCV0=
+Date: Tue, 09 Jun 2026 18:36:47 -0700
+To: mm-commits@vger.kernel.org,yang.lee@linux.alibaba.com,stable@vger.kernel.org,peterx@redhat.com,jhubbard@nvidia.com,jgg@ziepe.ca,david@kernel.org,cuiyunhui@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-uevent-increase-__uevent_buffer_size-to-avoid-enobufs-on-busy-systems.patch added to mm-nonmm-unstable branch
-Message-Id: <20260610013415.AB27D1F00893@smtp.kernel.org>
+Subject: + mm-gup_test-fix-race-with-pin_longterm_test-ioctls.patch added to mm-new branch
+Message-Id: <20260610013648.2A61F1F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,26 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/uevent: increase __UEVENT_BUFFER_SIZE to avoid ENOBUFS on busy systems
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     selftests-uevent-increase-__uevent_buffer_size-to-avoid-enobufs-on-busy-systems.patch
+     Subject: mm/gup_test: fix race with PIN_LONGTERM_TEST ioctls
+has been added to the -mm mm-new branch.  Its filename is
+     mm-gup_test-fix-race-with-pin_longterm_test-ioctls.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-uevent-increase-__uevent_buffer_size-to-avoid-enobufs-on-busy-systems.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-gup_test-fix-race-with-pin_longterm_test-ioctls.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,53 +69,69 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Guixin Liu <kanie@linux.alibaba.com>
-Subject: selftests/uevent: increase __UEVENT_BUFFER_SIZE to avoid ENOBUFS on busy systems
-Date: Mon, 8 Jun 2026 13:39:34 +0800
+From: Yunhui Cui <cuiyunhui@bytedance.com>
+Subject: mm/gup_test: fix race with PIN_LONGTERM_TEST ioctls
+Date: Mon, 8 Jun 2026 10:50:42 +0800
 
-The kselftests case uevent.uevent_filtering fails reproducibly on busy
-systems (e.g.  Intel EMR / AMD servers) with:
+The PIN_LONGTERM_TEST helpers keep their state in global variables that
+are protected by pin_longterm_test_mutex when accessed from ioctl(). 
+However, gup_test_release() calls pin_longterm_test_stop() without holding
+that mutex.
 
-  No buffer space available - Failed to receive uevent
+This can race with PIN_LONGTERM_TEST_STOP and let two callers operate on
+the same pages array concurrently, corrupting the test state and possibly
+freeing it twice:
 
-The listener binds the NETLINK_KOBJECT_UEVENT socket to all 32 multicast
-groups (nl_groups = -1) but only sets SO_RCVBUF to 4 KiB
-(__UEVENT_BUFFER_SIZE = 2048 * 2).  On hosts with many devices, the kernel
-and userspace daemons (udev/systemd) constantly emit uevents on multiple
-groups, plus the test itself triggers 10 add events in a row.  The 4 KiB
-receive buffer overflows before the listener can drain it, recvmsg()
-returns -ENOBUFS, and the test bails out as failure.
+ CPU 0                              CPU 1
+ -----                              -----
+ ioctl(PIN_LONGTERM_TEST_STOP)
+   mutex_lock(&pin_longterm_test_mutex)
+   pin_longterm_test_stop()
+     if (pin_longterm_test_pages)
+       kvfree(pin_longterm_test_pages)
 
-Increase __UEVENT_BUFFER_SIZE to 1 MiB so the receive buffer is large
-enough to absorb the burst of uevents on busy systems.  After this change
-the test passes consistently across dozens of runs on Intel EMR and AMD
-platforms.
+                                    close()
+                                      gup_test_release()
+                                        pin_longterm_test_stop()
+                                          if (pin_longterm_test_pages)
+                                            kvfree(pin_longterm_test_pages)
 
-Link: https://lore.kernel.org/20260608053934.4059533-1-kanie@linux.alibaba.com
-Signed-off-by: Guixin Liu <kanie@linux.alibaba.com>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Wei Yang <richard.weiyang@gmail.com>
+     pin_longterm_test_pages = NULL
+   mutex_unlock(&pin_longterm_test_mutex)
+
+Protect the release path with the same mutex so that stop and release
+cannot run pin_longterm_test_stop() concurrently.
+
+Link: https://lore.kernel.org/20260608025043.88087-1-cuiyunhui@bytedance.com
+Fixes: c77369b437f9 ("mm/gup_test: start/stop/read functionality for PIN LONGTERM test")
+Signed-off-by: Yunhui Cui <cuiyunhui@bytedance.com>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Yang Li <yang.lee@linux.alibaba.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/uevent/uevent_filtering.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/gup_test.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/tools/testing/selftests/uevent/uevent_filtering.c~selftests-uevent-increase-__uevent_buffer_size-to-avoid-enobufs-on-busy-systems
-+++ a/tools/testing/selftests/uevent/uevent_filtering.c
-@@ -22,7 +22,7 @@
- #include "kselftest_harness.h"
+--- a/mm/gup_test.c~mm-gup_test-fix-race-with-pin_longterm_test-ioctls
++++ a/mm/gup_test.c
+@@ -377,7 +377,9 @@ static long gup_test_ioctl(struct file *
  
- #define __DEV_FULL "/sys/devices/virtual/mem/full/uevent"
--#define __UEVENT_BUFFER_SIZE (2048 * 2)
-+#define __UEVENT_BUFFER_SIZE (1024 * 1024)
- #define __UEVENT_HEADER "add@/devices/virtual/mem/full"
- #define __UEVENT_HEADER_LEN sizeof("add@/devices/virtual/mem/full")
- #define __UEVENT_LISTEN_ALL -1
+ static int gup_test_release(struct inode *inode, struct file *file)
+ {
++	mutex_lock(&pin_longterm_test_mutex);
+ 	pin_longterm_test_stop();
++	mutex_unlock(&pin_longterm_test_mutex);
+ 
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from kanie@linux.alibaba.com are
+Patches currently in -mm which might be from cuiyunhui@bytedance.com are
 
-selftests-uevent-increase-__uevent_buffer_size-to-avoid-enobufs-on-busy-systems.patch
+mm-gup_test-fix-race-with-pin_longterm_test-ioctls.patch
 
