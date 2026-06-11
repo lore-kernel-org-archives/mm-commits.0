@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F3F0B409E1B;
-	Thu, 11 Jun 2026 16:57:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C7A3833B6D1
+	for <mm-commits@vger.kernel.org>; Thu, 11 Jun 2026 17:11:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781197027; cv=none; b=J0NIn37iBUsOUqTwLGD5aNYiM879XhzlKILAKQnYbqRGjCpW7fX4xZhDhBpQeon7iy3XFfo3wmIhB5Uc2lxCaVJUxGgaf40NGTFht+1L1LFz5x75hLJaXI3z0R7n46R5bXlXSYHAABsf2YWsEhSjl3qipRLQN1ptt4EmnMYAW7c=
+	t=1781197916; cv=none; b=HfQYGFIlLiimlPLeYXOkI9ycKegfxtJ8vDQeqSP1UMNxN1pDXXYGfPknv1kK6/Qh2/UoIlGYmt0L3Cl+iQlI5pzzaxznoaDEAUtPyQuy7fBk/r7KKVg2/6+TEeMTE2IH1doSggR4LcbROI2NFMUUiOvNSElAu1Mzv06lzdbi3Hg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1781197027; c=relaxed/simple;
-	bh=2aZVq+ET4HMbKAAl5quJjiT0IOH+ArAwSdVxujmsH0o=;
-	h=Date:To:From:Subject:Message-Id; b=KXxVRiWtOt8HiuN/0MMI2laK1AaaxeYzPRycLOG4yWJZ+D70f8dstLHcjAKqZVGwES2kg7B5NM4ZdfFjy0gUCMiqvVuSr1ZFQY8jHn46gQKJi2eosSAgTU86AComL55aIoW1G+CB06FOdGMr+Kpys4QwfmvqYRgCIuarzQ2F5W8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NJLvE4JV; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1781197916; c=relaxed/simple;
+	bh=bwPY1taI8TKvq2OCCRlfFp3faN8vkInQvGlNtRL7v9o=;
+	h=Date:To:From:Subject:Message-Id; b=BrQWlSxG3Bf4Gq2nFDgtRBIWcPmW4JHuPIzxE9Vg57j/awlnpyJ/HnCpxKek59StXjYJ3VNlwdwn5l6TnUuRKzlL7ejuSAHaiHO0zkQ/aLVF7YBTPrMB+19EeiUVHNcxplyS3GSgzmQoevLLUe9v5G2BWQqb6JS07IRVQ9RogeE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=b+YQsDTL; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NJLvE4JV"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A2F0D1F00893;
-	Thu, 11 Jun 2026 16:57:05 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="b+YQsDTL"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 720F41F00893;
+	Thu, 11 Jun 2026 17:11:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1781197025;
-	bh=fYZVN/8JrHXaEblKO/3T5yNJmci1vcoU7gZXoqwKlwc=;
+	d=linux-foundation.org; s=korg; t=1781197915;
+	bh=lU0/7gWC58gd1ScFfF5UGjoutC09bj+DttwQ795DtmU=;
 	h=Date:To:From:Subject;
-	b=NJLvE4JVb9W/Px1ktCgY/JumZNGbkLiMfmdPGfyfCjXSXi1r9QRMk0jDMwVIOF1WX
-	 ojJIQXElF2jRel5bt3zF+np4/+/x93M5SJ8Fz130I6a3p8phH65BtgBaD9L2AoWA7g
-	 dUZ8dbQVBjjtHJeU3NHC+XykQF8TcnfJvv6lKkls=
-Date: Thu, 11 Jun 2026 09:57:05 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,stable@vger.kernel.org,pfalcato@suse.de,ljs@kernel.org,liam@infradead.org,jannh@google.com,aliceryhl@google.com,enelsonmoore@gmail.com,akpm@linux-foundation.org
+	b=b+YQsDTLYz+CPYr7+5R1lMVr5cIwYX6YEfHa1/U6Lzg6eidfCeeDidNwrZYJ6UXKq
+	 uMIKe1wZ5iV/7D4jh+TNgOSHK6gnwjU+9bP4fVPJ8m+le9Tlfd9axg8l2tKkivIFBP
+	 F2FhuHi+nPjnqtdwjp/a5HtJincpPBBqXM6ZcRO4=
+Date: Thu, 11 Jun 2026 10:11:55 -0700
+To: mm-commits@vger.kernel.org,rppt@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-fix-config_stack_growsup-typo-in-tools-testing-vma-include-duph.patch added to mm-unstable branch
-Message-Id: <20260611165705.A2F0D1F00893@smtp.kernel.org>
+Subject: [folded-merged] selftests-mm-khugepaged-use-ksefltest-framework-fix.patch removed from -mm tree
+Message-Id: <20260611171155.720F41F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,75 +34,95 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: mm: fix CONFIG_STACK_GROWSUP typo in tools/testing/vma/include/dup.h
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-fix-config_stack_growsup-typo-in-tools-testing-vma-include-duph.patch
+The quilt patch titled
+     Subject: selftests-mm-khugepaged-use-ksefltest-framework-fix
+has been removed from the -mm tree.  Its filename was
+     selftests-mm-khugepaged-use-ksefltest-framework-fix.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-fix-config_stack_growsup-typo-in-tools-testing-vma-include-duph.patch
-
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because it was folded into selftests-mm-khugepaged-use-ksefltest-framework.patch
 
 ------------------------------------------------------
-From: Ethan Nelson-Moore <enelsonmoore@gmail.com>
-Subject: mm: fix CONFIG_STACK_GROWSUP typo in tools/testing/vma/include/dup.h
-Date: Wed, 10 Jun 2026 18:22:44 -0700
+From: Mike Rapoport <rppt@kernel.org>
+Subject: selftests-mm-khugepaged-use-ksefltest-framework-fix
+Date: Tue, 12 May 2026 19:04:39 +0300
 
-Commit 2b6a3f061f11 ("mm: declare VMA flags by bit") significantly
-refactored the header file include/linux/mm.h.  In that step, it
-introduced a typo in an ifdef, referring to a non-existing config option
-STACK_GROWS_UP, whereas the actual config option is called STACK_GROWSUP.
+make the output TAP-compatible
 
-Commit 40a4af52e047 ("mm: fix CONFIG_STACK_GROWSUP typo in mm.h") fixed
-this typo in the mm.h header file, but did not update the copy of the code
-in tools/testing/vma/include/dup.h.  Update this copy as well.
-
-Commit message adapted from the above-referenced fix to mm.h.
-
-Link: https://lore.kernel.org/20260611012258.432043-1-enelsonmoore@gmail.com
-Fixes: 2b6a3f061f11 ("mm: declare VMA flags by bit")
-Signed-off-by: Ethan Nelson-Moore <enelsonmoore@gmail.com>
-Cc: Alice Ryhl <aliceryhl@google.com>
-Cc: Jann Horn <jannh@google.com>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Pedro Falcato <pfalcato@suse.de>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: <stable@vger.kernel.org>
+Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/vma/include/dup.h |    2 +-
+ tools/testing/selftests/mm/khugepaged.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/tools/testing/vma/include/dup.h~mm-fix-config_stack_growsup-typo-in-tools-testing-vma-include-duph
-+++ a/tools/testing/vma/include/dup.h
-@@ -243,7 +243,7 @@ enum {
- #define VM_NOHUGEPAGE	INIT_VM_FLAG(NOHUGEPAGE)
- #define VM_MERGEABLE	INIT_VM_FLAG(MERGEABLE)
- #define VM_STACK	INIT_VM_FLAG(STACK)
--#ifdef CONFIG_STACK_GROWS_UP
-+#ifdef CONFIG_STACK_GROWSUP
- #define VM_STACK_EARLY	INIT_VM_FLAG(STACK_EARLY)
- #else
- #define VM_STACK_EARLY	VM_NONE
+--- a/tools/testing/selftests/mm/khugepaged.c~selftests-mm-khugepaged-use-ksefltest-framework-fix
++++ a/tools/testing/selftests/mm/khugepaged.c
+@@ -1372,7 +1372,7 @@ int main(int argc, char **argv)
+ 	for (int i = 0; i < nr_test_cases; i++) {
+ 		struct test_case *t = &test_cases[i];
+ 
+-		ksft_print_msg("\nRun test: %s (%s:%s)\n", t->desc, t->ctx->name, t->ops->name);
++		ksft_print_msg("\n# Run test: %s (%s:%s)\n", t->desc, t->ctx->name, t->ops->name);
+ 		t->fn(t->ctx, t->ops);
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from enelsonmoore@gmail.com are
+Patches currently in -mm which might be from rppt@kernel.org are
 
-mm-fix-config_stack_growsup-typo-in-tools-testing-vma-include-duph.patch
+selftests-mm-hugetlb-read-hwpoison-add-sigbus-handler.patch
+selftests-mm-migration-dont-assume-huge-page-is-twomeg.patch
+selftests-mm-migration-make-nthreads-represent-number-of-working-threads.patch
+selftests-mm-migration-properly-cleanup-forked-processes.patch
+selftests-mm-run_vmtestssh-dont-gate-thp-and-ksm-tests-on-have_hugepages.patch
+selftests-mm-merge-map_hugetlb-into-hugepage-mmap.patch
+selftests-mm-rename-hugepage-tests-to-hugetlb.patch
+selftests-mm-hugetlb-shm-use-kselftest-framework.patch
+selftests-mm-hugetlb-vmemmap-use-kselftest-framework.patch
+selftests-mm-hugetlb-madvise-use-kselftest-framework.patch
+selftests-mm-hugetlb_madv_vs_map-use-kselftest-framework.patch
+selftests-mm-hugetlb-read-hwpoison-use-kselftest-framework.patch
+selftests-mm-khugepaged-group-tests-in-an-array.patch
+selftests-mm-khugepaged-use-ksefltest-framework.patch
+selftests-mm-ksm_tests-use-kselftest-framework.patch
+selftests-mm-protection_keys-use-descriptive-test-names-in-the-output.patch
+selftests-mm-protection_keys-use-kselftest-framework.patch
+selftests-mm-uffd-common-use-kselftest-framework.patch
+selftests-mm-uffd-stress-use-kselftest-framework.patch
+selftests-mm-uffd-unit-tests-use-kselftest-framework.patch
+selftests-mm-va_high_addr_switch-use-kselftest-framework.patch
+selftests-mm-add-atexit-and-signal-handlers-to-thp_settings.patch
+selftests-mm-rename-thp_settings-to-hugepage_settings.patch
+selftests-mm-move-hugetlb-helpers-to-hugepage_settings.patch
+selftests-mm-hugepage_settings-use-unsigned-long-in-detect_hugetlb_page_size.patch
+selftests-mm-hugepage_settings-add-apis-to-get-and-set-nr_hugepages.patch
+selftests-mm-hugepage_settings-rename-and-rework-get_free_hugepages.patch
+selftests-mm-hugepage_settings-add-apis-for-hugetlb-setup-and-teardown.patch
+selftests-mm-move-read_file-read_num-and-write_num-to-vm_util.patch
+selftests-mm-vm_util-add-helpers-to-set-and-restore-shm-limits.patch
+selftests-mm-compaction_test-use-hugetlb-helpers.patch
+selftests-mm-cow-add-setup-of-hugetlb-pages.patch
+selftests-mm-gup_longterm-add-setup-of-hugetlb-pages.patch
+selftests-mm-gup_test-add-setup-of-hugetlb-pages.patch
+selftests-mm-hmm-tests-add-setup-of-hugetlb-pages.patch
+selftests-mm-hugepage_dio-add-setup-of-hugetlb-pages.patch
+selftests-mm-hugetlb_fault_after_madv-add-setup-of-hugetlb-pages.patch
+selftests-mm-hugetlb-madvise-add-setup-of-hugetlb-pages.patch
+selftests-mm-hugetlb_madv_vs_map-add-setup-of-hugetlb-pages.patch
+selftests-mm-hugetlb-mmap-add-setup-of-hugetlb-pages.patch
+selftests-mm-hugetlb-mremap-add-setup-of-hugetlb-pages.patch
+selftests-mm-hugetlb-shm-add-setup-of-hugetlb-pages.patch
+selftests-mm-hugetlb-soft-offline-add-setup-of-hugetlb-pages.patch
+selftests-mm-hugetlb-vmemmap-add-setup-of-hugetlb-pages.patch
+selftests-mm-migration-add-setup-of-hugetlb-pages.patch
+selftests-mm-pagemap_ioctl-add-setup-of-hugetlb-pages.patch
+selftests-mm-protection_keys-use-library-code-for-hugetlb-setup.patch
+selftests-mm-thuge-gen-add-setup-of-hugetlb-pages.patch
+selftests-mm-uffd-stress-use-hugetlb_save-and-alloc-huge-pages.patch
+selftests-mm-uffd-unit-tests-add-setup-of-hugetlb-pages.patch
+selftests-mm-uffd-wp-mremap-add-setup-of-hugetlb-pages.patch
+selftests-mm-va_high_addr_switch-add-setup-of-hugetlb-pages.patch
+selftests-mm-va_high_addr_switchsh-drop-huge-pages-setup.patch
+selftests-mm-run_vmtestssh-free-memory-if-available-memory-is-low.patch
+selftests-mm-run_vmtestssh-drop-detection-and-setup-of-hugetlb.patch
 
