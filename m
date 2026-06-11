@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4D99B48B37F
-	for <mm-commits@vger.kernel.org>; Thu, 11 Jun 2026 18:43:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6CB844A2E24
+	for <mm-commits@vger.kernel.org>; Thu, 11 Jun 2026 18:43:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781203382; cv=none; b=aM60rel/LiJECWOaGBMYvRYtcULwvcKxReeRSdjvt7DUOEHmg2lsgssICQrxu2eXEnU7g01U54FIvnoaQDnYDCjFBKHIqArygFt4yl6Et8XLIjjtm4tpEr2QviGVtGQ8LW8ozKny9I8yYy0Tc7egne+cSY3uIkNxTMu0QBnq5c8=
+	t=1781203383; cv=none; b=p9Yt1ljHCEo31S9a6qwN7+PJCBMUr4HmMl61hj0GfS5WHsq+medeaRQuHTnyNdVCh/egvLBvmHHAbNRBqVGlJfQnI95kMbmWbjRvadwQ/qJ3+bTVGGbYrjK+Y5YS3oSWXy55wL7k36YBOea44u1ifuGHNdP15UvKLBQmC6Fgt1o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1781203382; c=relaxed/simple;
-	bh=P2Zlj5eXATti8LlCvNEMcxPC3ZigFdZuTDjJTZyqxm4=;
-	h=Date:To:From:Subject:Message-Id; b=ii5GZtSANfteQr5XM4T8xIOeGCaP5guyMwtgH0a/ZfeIBjhv24OinQ+ug7YVByAiTK3f4irqTZGaNyoevf87aNbNdM4csiwnyRJNTHVnTor41KMWe1HrPGU99cvDeCqHkNcjR2x7jsXN9zqGD7Yj6fWhFCnAMamitDWQ5c+KLxc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=loCg3ZQk; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1781203383; c=relaxed/simple;
+	bh=kR25GPXALxwllIg+iVz581UFNJHP/VPuq6RKzSxP5hM=;
+	h=Date:To:From:Subject:Message-Id; b=NhNh16hsJUrUldhBuz/13miVkj3U8WwAO+FQi+/vQE6UktH5DiQLQE/JkTJCm1BDNkam7cSmOTyhgkL4rOmWT2p80e3aXTSh86iAtcP1gaJmp5FdwGehFPqTH0CEpFt34nhJ/ZNkkOowfd8Y9s1GSoim46zgMkGF2EzoGmN1KX8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UQJH1CIn; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="loCg3ZQk"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E1CFC1F000E9;
-	Thu, 11 Jun 2026 18:43:00 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UQJH1CIn"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 23BE51F00A3A;
+	Thu, 11 Jun 2026 18:43:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1781203381;
-	bh=AAOlZdIcLqHPAAkIq/bO8SitzrZCLJb2zLSQOSaAzNU=;
+	d=linux-foundation.org; s=korg; t=1781203382;
+	bh=HaAipjkgxxHoxDS3uqFPFcMcB/DQi3jP+zH37L/oJlQ=;
 	h=Date:To:From:Subject;
-	b=loCg3ZQkN9v/9oehG+46gGEYGqgz+RSU/S8bRo5fPO7nk55W4JzO/xsyxe9mvRn00
-	 hm2QxrJAshOLlhoRh5B2MEbOCDg9uiB/OVGC2h/KKm+a5afZJ9rhrzinE1258ZzQ7W
-	 yHTlh6dH4BQqEKqf92HSB/NupDJHyPVRqIN+FJpE=
-Date: Thu, 11 Jun 2026 11:43:00 -0700
-To: mm-commits@vger.kernel.org,elver@google.com,dvyukov@google.com,glider@google.com,akpm@linux-foundation.org
+	b=UQJH1CIn809s6ZMgIG9xveZcT4ImX/dEAwEq3G7flBai2PfYgG4TF+5e7b3kaw5cw
+	 +Tvk7qGGSohpbJFgGki+irGlvUZ3UkOgFzMvslnu2MF6+lO4VsNb6WaJILr7AjXpBT
+	 2Vxn7JaVas7h3TSJAkG3jnbY9b6IA8p8nJYyp9QA=
+Date: Thu, 11 Jun 2026 11:43:01 -0700
+To: mm-commits@vger.kernel.org,pvorel@suse.cz,niecheng1@uniontech.com,lukas.bulwahn@gmail.com,joe@perches.com,dwaipayanray1@gmail.com,apw@canonical.com,cryolitia@uniontech.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] maintainers-add-self-as-a-kcov-reviewer.patch removed from -mm tree
-Message-Id: <20260611184300.E1CFC1F000E9@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] checkpatch-suppress-warnings-when-reported-by-is-followed-by-link.patch removed from -mm tree
+Message-Id: <20260611184302.23BE51F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,46 +35,59 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: MAINTAINERS: add Alexander as a kcov reviewer
+     Subject: checkpatch: cuppress warnings when Reported-by: is followed by Link:
 has been removed from the -mm tree.  Its filename was
-     maintainers-add-self-as-a-kcov-reviewer.patch
+     checkpatch-suppress-warnings-when-reported-by-is-followed-by-link.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Alexander Potapenko <glider@google.com>
-Subject: MAINTAINERS: add Alexander as a kcov reviewer
-Date: Fri, 5 Jun 2026 10:54:23 +0200
+From: Cryolitia PukNgae <cryolitia@uniontech.com>
+Subject: checkpatch: cuppress warnings when Reported-by: is followed by Link:
+Date: Fri, 05 Jun 2026 14:57:04 +0800
 
-Also move Dmitry Vyukov to the bottom of the list.
+> The tag should be followed by a Closes: tag pointing to the report,
+> unless the report is not available on the web. The Link: tag can be
+> used instead of Closes: if the patch fixes a part of the issue(s)
+> being reported.
 
-Link: https://lore.kernel.org/20260605085423.1962700-1-glider@google.com
-Signed-off-by: Alexander Potapenko <glider@google.com>
-Reviewed-by: Dmitry Vyukov <dvyukov@google.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Marco Elver <elver@google.com>
+According to Documentation/process/submitting-patches.rst, Link: is also
+acceptable to follow a Reported-by:, if the patch fixes a part of the
+issue(s) being reported.
+
+Link: https://lore.kernel.org/20260605-checkpatch-v1-1-8c68ae618513@linux.dev
+Signed-off-by: Cryolitia PukNgae <cryolitia@uniontech.com>
+Reviewed-by: Petr Vorel <pvorel@suse.cz>
+Cc: Andy Whitcroft <apw@canonical.com>
+Cc: Cheng Nie <niecheng1@uniontech.com>
+Cc: Dwaipayan Ray <dwaipayanray1@gmail.com>
+Cc: Joe Perches <joe@perches.com>
+Cc: Lukas Bulwahn <lukas.bulwahn@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ scripts/checkpatch.pl |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/MAINTAINERS~maintainers-add-self-as-a-kcov-reviewer
-+++ a/MAINTAINERS
-@@ -13838,8 +13838,9 @@ F:	fs/proc/kcore.c
- F:	include/linux/kcore.h
- 
- KCOV
--R:	Dmitry Vyukov <dvyukov@google.com>
- R:	Andrey Konovalov <andreyknvl@gmail.com>
-+R:	Alexander Potapenko <glider@google.com>
-+R:	Dmitry Vyukov <dvyukov@google.com>
- L:	kasan-dev@googlegroups.com
- S:	Maintained
- B:	https://bugzilla.kernel.org/buglist.cgi?component=Sanitizers&product=Memory%20Management
+--- a/scripts/checkpatch.pl~checkpatch-suppress-warnings-when-reported-by-is-followed-by-link
++++ a/scripts/checkpatch.pl
+@@ -3253,10 +3253,10 @@ sub process {
+ 			if ($sign_off =~ /^reported(?:|-and-tested)-by:$/i) {
+ 				if (!defined $lines[$linenr]) {
+ 					WARN("BAD_REPORTED_BY_LINK",
+-					     "Reported-by: should be immediately followed by Closes: with a URL to the report\n" . $herecurr . "\n");
+-				} elsif ($rawlines[$linenr] !~ /^closes:\s*/i) {
++					     "Reported-by: should be immediately followed by Closes: or Link: with a URL to the report\n" . $herecurr . "\n");
++				} elsif ($rawlines[$linenr] !~ /^(closes|link):\s*/i) {
+ 					WARN("BAD_REPORTED_BY_LINK",
+-					     "Reported-by: should be immediately followed by Closes: with a URL to the report\n" . $herecurr . $rawlines[$linenr] . "\n");
++					     "Reported-by: should be immediately followed by Closes: or Link: with a URL to the report\n" . $herecurr . $rawlines[$linenr] . "\n");
+ 				}
+ 			}
+ 		}
 _
 
-Patches currently in -mm which might be from glider@google.com are
+Patches currently in -mm which might be from cryolitia@uniontech.com are
 
 
