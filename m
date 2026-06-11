@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2549C37F00D
-	for <mm-commits@vger.kernel.org>; Thu, 11 Jun 2026 18:42:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4D99B48B37F
+	for <mm-commits@vger.kernel.org>; Thu, 11 Jun 2026 18:43:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781203381; cv=none; b=t+OpLKVGLrYb/K2H5TbEeSmUnRSuFGi2+SlPVhmfHHcmYg+4S0M9n1EQwVfubKbqaQM7gpPEKC0BBZCw2A3ldn99AOPCzYSyVmJVYdPLJsokNcRloJbrYQ21F1/+AzSjT1g4qPhprsbOEh8dxRqZG9ovBvCglInKzAqK7YuN+4M=
+	t=1781203382; cv=none; b=aM60rel/LiJECWOaGBMYvRYtcULwvcKxReeRSdjvt7DUOEHmg2lsgssICQrxu2eXEnU7g01U54FIvnoaQDnYDCjFBKHIqArygFt4yl6Et8XLIjjtm4tpEr2QviGVtGQ8LW8ozKny9I8yYy0Tc7egne+cSY3uIkNxTMu0QBnq5c8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1781203381; c=relaxed/simple;
-	bh=8pNj1su7V2iZnU9XoP2JAnh2jwAmwnIDEkAM4iFyrhk=;
-	h=Date:To:From:Subject:Message-Id; b=K4CB6nDy5o7Y489NLxq071xsLKw3HAIYMshoZTHvdA9QMKn5yKv3aYcAgM0XhNnrIhXtEBUdjOr0rC5XYahToUOFADFfY4ALTVMtLh2MHOynU+YLefB1NzIMe1EN2G8QO/crpjODoAjVBlbNanTsh8MVN3towabs8WVhsN4U7hg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=T81V3WAr; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1781203382; c=relaxed/simple;
+	bh=P2Zlj5eXATti8LlCvNEMcxPC3ZigFdZuTDjJTZyqxm4=;
+	h=Date:To:From:Subject:Message-Id; b=ii5GZtSANfteQr5XM4T8xIOeGCaP5guyMwtgH0a/ZfeIBjhv24OinQ+ug7YVByAiTK3f4irqTZGaNyoevf87aNbNdM4csiwnyRJNTHVnTor41KMWe1HrPGU99cvDeCqHkNcjR2x7jsXN9zqGD7Yj6fWhFCnAMamitDWQ5c+KLxc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=loCg3ZQk; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="T81V3WAr"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BA1691F00A3A;
-	Thu, 11 Jun 2026 18:42:59 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="loCg3ZQk"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E1CFC1F000E9;
+	Thu, 11 Jun 2026 18:43:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1781203379;
-	bh=pgn5PLPGrsYMk1GO28AJ0PA8pDwufDdUoQh4xmsIrQg=;
+	d=linux-foundation.org; s=korg; t=1781203381;
+	bh=AAOlZdIcLqHPAAkIq/bO8SitzrZCLJb2zLSQOSaAzNU=;
 	h=Date:To:From:Subject;
-	b=T81V3WArGmaJVH8cu9XOI7VJTF02+62sZ8zFAa7Uo8OCvEAy5W2n1MoRoLSpSpJWZ
-	 iM9ApenLkCNOgSFOkgD9UYS2z0cLsNETX4qDpiqQsslDG2iDxVEWKwOb1jIjwhLG+B
-	 8JIvKkgNKeXbo67NpOWoI0CTI1SAM5W4pdQZ3FR4=
-Date: Thu, 11 Jun 2026 11:42:59 -0700
-To: mm-commits@vger.kernel.org,asv@kernel.org,akpm@linux-foundation.org
+	b=loCg3ZQkN9v/9oehG+46gGEYGqgz+RSU/S8bRo5fPO7nk55W4JzO/xsyxe9mvRn00
+	 hm2QxrJAshOLlhoRh5B2MEbOCDg9uiB/OVGC2h/KKm+a5afZJ9rhrzinE1258ZzQ7W
+	 yHTlh6dH4BQqEKqf92HSB/NupDJHyPVRqIN+FJpE=
+Date: Thu, 11 Jun 2026 11:43:00 -0700
+To: mm-commits@vger.kernel.org,elver@google.com,dvyukov@google.com,glider@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] mailmap-update-alexander-sverdlins-email-addresses.patch removed from -mm tree
-Message-Id: <20260611184259.BA1691F00A3A@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] maintainers-add-self-as-a-kcov-reviewer.patch removed from -mm tree
+Message-Id: <20260611184300.E1CFC1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,56 +35,46 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mailmap: update Alexander Sverdlin's Email addresses
+     Subject: MAINTAINERS: add Alexander as a kcov reviewer
 has been removed from the -mm tree.  Its filename was
-     mailmap-update-alexander-sverdlins-email-addresses.patch
+     maintainers-add-self-as-a-kcov-reviewer.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Alexander Sverdlin <asv@kernel.org>
-Subject: mailmap: update Alexander Sverdlin's Email addresses
-Date: Thu, 4 Jun 2026 00:58:40 +0200
+From: Alexander Potapenko <glider@google.com>
+Subject: MAINTAINERS: add Alexander as a kcov reviewer
+Date: Fri, 5 Jun 2026 10:54:23 +0200
 
-- add kernel.org address
-- add sverdlin.org address (as primary address)
-- drop siemens.com address (for accounting purposes only)
+Also move Dmitry Vyukov to the bottom of the list.
 
-Link: https://lore.kernel.org/20260603225847.1849399-1-asv@kernel.org
-Signed-off-by: Alexander Sverdlin <asv@kernel.org>
+Link: https://lore.kernel.org/20260605085423.1962700-1-glider@google.com
+Signed-off-by: Alexander Potapenko <glider@google.com>
+Reviewed-by: Dmitry Vyukov <dvyukov@google.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Marco Elver <elver@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- .mailmap |   15 ++++++++-------
- 1 file changed, 8 insertions(+), 7 deletions(-)
+ MAINTAINERS |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/.mailmap~mailmap-update-alexander-sverdlins-email-addresses
-+++ a/.mailmap
-@@ -36,13 +36,14 @@ Alexander Lobakin <alobakin@pm.me> <bloo
- Alexander Mikhalitsyn <alexander@mihalicyn.com> <alexander.mikhalitsyn@virtuozzo.com>
- Alexander Mikhalitsyn <alexander@mihalicyn.com> <aleksandr.mikhalitsyn@canonical.com>
- Alexander Mikhalitsyn <alexander@mihalicyn.com> <aleksandr.mikhalitsyn@futurfusion.io>
--Alexander Sverdlin <alexander.sverdlin@gmail.com> <alexander.sverdlin.ext@nsn.com>
--Alexander Sverdlin <alexander.sverdlin@gmail.com> <alexander.sverdlin@gmx.de>
--Alexander Sverdlin <alexander.sverdlin@gmail.com> <alexander.sverdlin@nokia.com>
--Alexander Sverdlin <alexander.sverdlin@gmail.com> <alexander.sverdlin@nsn.com>
--Alexander Sverdlin <alexander.sverdlin@gmail.com> <alexander.sverdlin@siemens.com>
--Alexander Sverdlin <alexander.sverdlin@gmail.com> <alexander.sverdlin@sysgo.com>
--Alexander Sverdlin <alexander.sverdlin@gmail.com> <subaparts@yandex.ru>
-+Alexander Sverdlin <alex@sverdlin.org> <alexander.sverdlin.ext@nsn.com>
-+Alexander Sverdlin <alex@sverdlin.org> <alexander.sverdlin@gmail.com>
-+Alexander Sverdlin <alex@sverdlin.org> <alexander.sverdlin@gmx.de>
-+Alexander Sverdlin <alex@sverdlin.org> <alexander.sverdlin@nokia.com>
-+Alexander Sverdlin <alex@sverdlin.org> <alexander.sverdlin@nsn.com>
-+Alexander Sverdlin <alex@sverdlin.org> <alexander.sverdlin@sysgo.com>
-+Alexander Sverdlin <alex@sverdlin.org> <asv@kernel.org>
-+Alexander Sverdlin <alex@sverdlin.org> <subaparts@yandex.ru>
- Alexandre Belloni <alexandre.belloni@bootlin.com> <alexandre.belloni@free-electrons.com>
- Alexandre Ghiti <alex@ghiti.fr> <alexandre.ghiti@canonical.com>
- Alexei Avshalom Lazar <quic_ailizaro@quicinc.com> <ailizaro@codeaurora.org>
+--- a/MAINTAINERS~maintainers-add-self-as-a-kcov-reviewer
++++ a/MAINTAINERS
+@@ -13838,8 +13838,9 @@ F:	fs/proc/kcore.c
+ F:	include/linux/kcore.h
+ 
+ KCOV
+-R:	Dmitry Vyukov <dvyukov@google.com>
+ R:	Andrey Konovalov <andreyknvl@gmail.com>
++R:	Alexander Potapenko <glider@google.com>
++R:	Dmitry Vyukov <dvyukov@google.com>
+ L:	kasan-dev@googlegroups.com
+ S:	Maintained
+ B:	https://bugzilla.kernel.org/buglist.cgi?component=Sanitizers&product=Memory%20Management
 _
 
-Patches currently in -mm which might be from asv@kernel.org are
+Patches currently in -mm which might be from glider@google.com are
 
 
