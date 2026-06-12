@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 429B21E515
-	for <mm-commits@vger.kernel.org>; Fri, 12 Jun 2026 19:06:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A521933C1AD;
+	Fri, 12 Jun 2026 19:10:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781291208; cv=none; b=H3PWsikBqcK1gAnnRv1vNPWpEXvM4T31ahxhKiPqdGAoob/Yg5md2+fM1Rea3Pve9jUankb8/h93bcu3IVvIbr5xiw+VWT900dxPmFlmcB1JdBUScw/9ADvYZ+9vQvqe1h9VS+IppvPfIi0tsO8zvB493xroRU+P+ZCSTCbovgs=
+	t=1781291432; cv=none; b=VHarNAIF5EuDDI6cD4fhyB7X70ifPPGhVM6uxvzxndI/80jNHSizdHWNk0fc6C8WGBUigmcwZrOFvW9dneCOY50IKnga3GSur8dqEeeefryJqCta26fXO9uU74jjeJ2pTnhm0UDsAX+yfoRsnEOjCuH9ssZcypi5hTQIVHpLhdc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1781291208; c=relaxed/simple;
-	bh=/3FPoHDFWG/msiJHE7jCTDoKsS0jDbvuhbmZCFHgwto=;
-	h=Date:To:From:Subject:Message-Id; b=einVnY9sJ17XdpiyIhiINKrAhDRPw7C+hNfY2tAPFSO6VfsyJ6amm/AqC6FB0IZJwiivz2diadknVYfk1/yvXaKBi0CKKpWIttBLZda/PuqiIuyi7DRtUE229tQqR2vwFDVZMiWvfqy4pu6Sh+u/MtJ9+wQoCeGw6bcpkX3pj7Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=N2wiVeDP; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1781291432; c=relaxed/simple;
+	bh=Ind7OMFAL3B7N2bgDg5escGqPCGjAbL1eUprnuhrvd8=;
+	h=Date:To:From:Subject:Message-Id; b=oY7fbJIXmlbh7WWlbt6OQqHhv0IO8XVL0i+9hxQ6RFL464NyOXB2qUdRrR8nKjVEEHjLubpeVfFVaG1qd340PCLepA1rdZxTkPh3iBHGyQxpjjwNdaQ58lnBojwyVJG7vXWu5uqh0d7PfayB+Ms928qsGOD5HxjKkV2L/oFnqZw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tke3v0+a; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="N2wiVeDP"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B76311F000E9;
-	Fri, 12 Jun 2026 19:06:46 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tke3v0+a"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 337831F000E9;
+	Fri, 12 Jun 2026 19:10:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1781291206;
-	bh=YQTXS3xzn8EFQWko0RhZmAeNHd/JtFETmRirBs/IxJM=;
+	d=linux-foundation.org; s=korg; t=1781291431;
+	bh=XXmmT7lZZeyxX4+epgjzp56hFjVQgxBr29JCGmGjhGo=;
 	h=Date:To:From:Subject;
-	b=N2wiVeDPRbMW7QoSYL1p5QSHYRAqw8RWO9kxl6wND5A3YccXgYlo1hnoxP1mMT4Q8
-	 Z6b3u9pqeY/h8L8bDPd4EF1QrAcX7PFO9Imqi60JS1R69rEHZ2HzmMtTtNif/zFbYB
-	 rNTkDYMBLKcaV0KlYRNO1nIWhjWtIF2osJ8VZk5o=
-Date: Fri, 12 Jun 2026 12:06:46 -0700
-To: mm-commits@vger.kernel.org,sj@kernel.org,joe@perches.com,akpm@linux-foundation.org,iamsharduld@gmail.com,akpm@linux-foundation.org
+	b=tke3v0+apKPXCUt5RuVCSfCZsiQpOdh9V1g80t3Ge1tMhjPmu+mUHZVftzE/Pb/Yo
+	 IvhpgKu+8w3duJAQLtYGJkw2zApIEzk7lP0i1obEu0zLsbDxHexwvz3zzpTK3ReWHC
+	 3QnRMm3eZWWBT+KSrzSDXnUbRjfecssZZsBE0Zv4=
+Date: Fri, 12 Jun 2026 12:10:30 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,heming.zhao@suse.com,gechangwei@live.cn,kylebot@openai.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + treewide-fix-transposed-sign-typos-and-update-spellingtxt.patch added to mm-nonmm-unstable branch
-Message-Id: <20260612190646.B76311F000E9@smtp.kernel.org>
+Subject: + ocfs2-avoid-moving-extents-to-occupied-clusters.patch added to mm-nonmm-unstable branch
+Message-Id: <20260612191031.337831F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: treewide: fix transposed "sign" typos and update spelling.txt
+     Subject: ocfs2: avoid moving extents to occupied clusters
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     treewide-fix-transposed-sign-typos-and-update-spellingtxt.patch
+     ocfs2-avoid-moving-extents-to-occupied-clusters.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/treewide-fix-transposed-sign-typos-and-update-spellingtxt.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-avoid-moving-extents-to-occupied-clusters.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,127 +58,71 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Shardul Deshpande <iamsharduld@gmail.com>
-Subject: treewide: fix transposed "sign" typos and update spelling.txt
-Date: Fri, 12 Jun 2026 23:46:32 +0530
+From: Kyle Zeng <kylebot@openai.com>
+Subject: ocfs2: avoid moving extents to occupied clusters
+Date: Thu, 11 Jun 2026 14:35:10 -0700
 
-Several comments transpose the letters in "assigned" and "unsigned",
-spelling them with "sing" instead of "sign".  Correct all of them.
+For non-auto OCFS2_IOC_MOVE_EXT operations, userspace supplies a physical
+me_goal.  ocfs2_move_extent() initializes new_phys_cpos from that goal and
+expects ocfs2_probe_alloc_group() to replace it with a free run in the
+target block group.
 
-Of these, the misspelling of "assigned" is not yet flagged by checkpatch,
-so also add it to scripts/spelling.txt.
+The probe currently leaves *phys_cpos unchanged if the scan reaches the
+end of the group without finding a free run.  An occupied goal at the last
+bit can therefore survive the probe and be passed to
+__ocfs2_move_extent(), which copies file data into a cluster still owned
+by another inode before the bitmap is updated.
 
-The remaining matches of `grep -ri singed` are RISINGEDGE register and
-enum names, not typos.
+When the probe does find a free run, it also subtracts move_len from the
+ending bit.  The start of an N-bit run ending at i is i - N + 1, so the
+current calculation can report the bit immediately before the free run.
 
-Link: https://lore.kernel.org/20260612181633.734458-1-iamsharduld@gmail.com
-Signed-off-by: Shardul Deshpande <iamsharduld@gmail.com>
-Suggested-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Joe Perches <joe@perches.com>
-Cc: SeongJae Park <sj@kernel.org>
+Clear *phys_cpos before scanning and use the correct free-run start. 
+Callers already treat a zero result as -ENOSPC, so failed probes no longer
+continue with an occupied caller-controlled goal.
+
+Link: https://lore.kernel.org/20260611213510.16956-1-kylebot@openai.com
+Fixes: e6b5859cccfa ("Ocfs2/move_extents: helper to probe a proper region to move in an alloc group.")
+Fixes: 236b9254f8d1 ("ocfs2: fix non-auto defrag path not working issue")
+Assisted-by: Codex:gpt-5.5
+Signed-off-by: Kyle Zeng <kylebot@openai.com>
+Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Jun Piao <piaojun@huawei.com>
+Cc: Heming Zhao <heming.zhao@suse.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/boot/dts/qcom/sc7280-qcard.dtsi |    2 +-
- drivers/gpu/drm/drm_color_mgmt.c           |    2 +-
- drivers/scsi/elx/efct/efct_hw.h            |    2 +-
- drivers/scsi/isci/host.c                   |    2 +-
- drivers/scsi/isci/port.c                   |    2 +-
- drivers/scsi/isci/port_config.c            |    2 +-
- kernel/bpf/helpers.c                       |    2 +-
- scripts/spelling.txt                       |    1 +
- 8 files changed, 8 insertions(+), 7 deletions(-)
+ fs/ocfs2/move_extents.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
---- a/arch/arm64/boot/dts/qcom/sc7280-qcard.dtsi~treewide-fix-transposed-sign-typos-and-update-spellingtxt
-+++ a/arch/arm64/boot/dts/qcom/sc7280-qcard.dtsi
-@@ -562,7 +562,7 @@ mos_bt_uart: &uart7 {
-  *
-  * This has entries that are defined by Qcard even if they go to the main
-  * board. In cases where the pulls may be board dependent we defer those
-- * settings to the board device tree. Drive strengths tend to be assinged here
-+ * settings to the board device tree. Drive strengths tend to be assigned here
-  * but could conceivably be overwridden by board device trees.
-  */
+--- a/fs/ocfs2/move_extents.c~ocfs2-avoid-moving-extents-to-occupied-clusters
++++ a/fs/ocfs2/move_extents.c
+@@ -534,6 +534,8 @@ static void ocfs2_probe_alloc_group(stru
+ 	u32 base_cpos = ocfs2_blocks_to_clusters(inode->i_sb,
+ 						 le64_to_cpu(gd->bg_blkno));
  
---- a/drivers/gpu/drm/drm_color_mgmt.c~treewide-fix-transposed-sign-typos-and-update-spellingtxt
-+++ a/drivers/gpu/drm/drm_color_mgmt.c
-@@ -54,7 +54,7 @@
-  *	&drm_crtc_state.degamma_lut.
-  *
-  * “DEGAMMA_LUT_SIZE”:
-- *	Unsinged range property to give the size of the lookup table to be set
-+ *	Unsigned range property to give the size of the lookup table to be set
-  *	on the DEGAMMA_LUT property (the size depends on the underlying
-  *	hardware). If drivers support multiple LUT sizes then they should
-  *	publish the largest size, and sub-sample smaller sized LUTs (e.g. for
---- a/drivers/scsi/elx/efct/efct_hw.h~treewide-fix-transposed-sign-typos-and-update-spellingtxt
-+++ a/drivers/scsi/elx/efct/efct_hw.h
-@@ -59,7 +59,7 @@
- #define EFCT_HW_EQ_DEPTH		1024
++	*phys_cpos = 0;
++
+ 	for (i = base_bit; i < le16_to_cpu(gd->bg_bits); i++) {
  
- /*
-- * A CQ will be assinged to each WQ
-+ * A CQ will be assigned to each WQ
-  * (CQ must have 2X entries of the WQ for abort
-  * processing), plus a separate one for each RQ PAIR and one for MQ
-  */
---- a/drivers/scsi/isci/host.c~treewide-fix-transposed-sign-typos-and-update-spellingtxt
-+++ a/drivers/scsi/isci/host.c
-@@ -2488,7 +2488,7 @@ struct isci_request *sci_request_by_tag(
-  *    free remote node ids
-  * @idev: This is the device object which is requesting the a remote node
-  *    id
-- * @node_id: This is the remote node id that is assinged to the device if one
-+ * @node_id: This is the remote node id that is assigned to the device if one
-  *    is available
-  *
-  * enum sci_status SCI_FAILURE_OUT_OF_RESOURCES if there are no available remote
---- a/drivers/scsi/isci/port.c~treewide-fix-transposed-sign-typos-and-update-spellingtxt
-+++ a/drivers/scsi/isci/port.c
-@@ -464,7 +464,7 @@ static enum sci_status sci_port_set_phy(
- {
- 	/* Check to see if we can add this phy to a port
- 	 * that means that the phy is not part of a port and that the port does
--	 * not already have a phy assinged to the phy index.
-+	 * not already have a phy assigned to the phy index.
- 	 */
- 	if (!iport->phy_table[iphy->phy_index] &&
- 	    !phy_get_non_dummy_port(iphy) &&
---- a/drivers/scsi/isci/port_config.c~treewide-fix-transposed-sign-typos-and-update-spellingtxt
-+++ a/drivers/scsi/isci/port_config.c
-@@ -259,7 +259,7 @@ sci_mpc_agent_validate_phy_configuration
- 		if (!phy_mask)
- 			continue;
- 		/*
--		 * Make sure that one or more of the phys were not already assinged to
-+		 * Make sure that one or more of the phys were not already assigned to
- 		 * a different port. */
- 		if ((phy_mask & ~assigned_phy_mask) == 0) {
- 			return SCI_FAILURE_UNSUPPORTED_PORT_CONFIGURATION;
---- a/kernel/bpf/helpers.c~treewide-fix-transposed-sign-typos-and-update-spellingtxt
-+++ a/kernel/bpf/helpers.c
-@@ -3601,7 +3601,7 @@ __bpf_kfunc int bpf_copy_from_user_task_
- 	return ret + 1;
- }
+ 		used = ocfs2_test_bit(i, (unsigned long *)gd->bg_bitmap);
+@@ -555,7 +557,7 @@ static void ocfs2_probe_alloc_group(stru
+ 			last_free_bits++;
  
--/* Keep unsinged long in prototype so that kfunc is usable when emitted to
-+/* Keep unsigned long in prototype so that kfunc is usable when emitted to
-  * vmlinux.h in BPF programs directly, but note that while in BPF prog, the
-  * unsigned long always points to 8-byte region on stack, the kernel may only
-  * read and write the 4-bytes on 32-bit.
---- a/scripts/spelling.txt~treewide-fix-transposed-sign-typos-and-update-spellingtxt
-+++ a/scripts/spelling.txt
-@@ -176,6 +176,7 @@ assgined||assigned
- assiged||assigned
- assigment||assignment
- assigments||assignments
-+assinged||assigned
- assistent||assistant
- assocaited||associated
- assocated||associated
+ 		if (last_free_bits == move_len) {
+-			i -= move_len;
++			i = i - move_len + 1;
+ 			*goal_bit = i;
+ 			*phys_cpos = base_cpos + i;
+ 			break;
 _
 
-Patches currently in -mm which might be from iamsharduld@gmail.com are
+Patches currently in -mm which might be from kylebot@openai.com are
 
-treewide-fix-transposed-sign-typos-and-update-spellingtxt.patch
+ocfs2-avoid-moving-extents-to-occupied-clusters.patch
 
