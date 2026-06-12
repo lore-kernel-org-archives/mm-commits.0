@@ -1,148 +1,138 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wr1-f54.google.com (mail-wr1-f54.google.com [209.85.221.54])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 82B3A13B58A;
-	Fri, 12 Jun 2026 01:23:02 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A40D938B7D2
+	for <mm-commits@vger.kernel.org>; Fri, 12 Jun 2026 15:12:00 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.54
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781227386; cv=none; b=HF4b7meT6Nov6WIrzIfb9YayOiJp3Rh9IGumkUZDeaimeuX5PCTSvoSXwV+T0rSLSXewtu0drXV3x0hDFj7grl2dlPTaQpdbuItYdl9wa1mEimCeO0xyjGBw2iebgMbtoe3tFI23jG6drM/TkHI+2lGCv/a/2G9jP1kHfzAFguI=
+	t=1781277122; cv=none; b=jVR+ewXI4FooLqH45l24m1mhR6fJ+OHEG6VxFy+9uyStWA12BQgf/mRoPitJh477uNAgSyfh0PUlB1LOpxEHdFRPaJuDgtFs3nulsVhVxneyuNFE07lkSjZdWHEmh+0+f0mIwR2lVjifOCu12JTiucus8FHAXo2icDtZuHl0UiY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1781227386; c=relaxed/simple;
-	bh=YySmRN2InHe0zbzE26gk6WYa22vR2Y/cLM5ZStbxsHg=;
-	h=Date:To:From:Subject:Message-Id; b=j4TT8iERSoct44POWLTYO3eCXbglSPKvjcQx7Bf1aWa+FcbIv2HMEeKh73Rf0beb/Kz9H0mQUMuey6+uzaTAfASB5e+gyKz4+hfFMTai0GFntcoMT6lbtKQY5jiFJ/gaahcOaQw9q9wxxaW6ho2EUY69GE2cOb3du9bIaSsGggU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tXIR/rVS; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1781277122; c=relaxed/simple;
+	bh=G75brgHYs2YfSe+Qlduz0qj9/u727IddI66jXx2vWFs=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=O76wmp6XzOdN2G5hNJ1KCRq8VtNI1fYpb87CcYyDvzjmh6oIU8cjmdZNvAYJTWAkfxmcoBh2/jsIcFpj6kdm15bSSK5EbrYLtTd/l2OK9ry1wmhm3G7o0/ffNNN7y0A2CNmXeE8tPr/+i9jTmOiIYF5zu+P9Q0fqOguhAs6Z/0U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=suse.com; spf=pass smtp.mailfrom=suse.com; dkim=pass (2048-bit key) header.d=suse.com header.i=@suse.com header.b=R8F3NSXq; arc=none smtp.client-ip=209.85.221.54
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=suse.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tXIR/rVS"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 911CB1F000E9;
-	Fri, 12 Jun 2026 01:23:01 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=suse.com header.i=@suse.com header.b="R8F3NSXq"
+Received: by mail-wr1-f54.google.com with SMTP id ffacd0b85a97d-45ef6565cfdso572670f8f.0
+        for <mm-commits@vger.kernel.org>; Fri, 12 Jun 2026 08:12:00 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1781227381;
-	bh=KlkYP8VAdnveSJkJ3+ASbCy7DrQBC0Wwd1FAHB51ztU=;
-	h=Date:To:From:Subject;
-	b=tXIR/rVS79NH/97n8iBv7Qp4hyJ1S+6buAjLw3qcwqZxBupPGZpZAugMcGNrVWVrQ
-	 Xg6I+2+2XGDlxR1lf/v8pPnO8L8hDLHIi4fHq07aa05JH2BCRdVRd7y9SelqrJlI4E
-	 hlMU0UIHTSaCy1F0FmPjRvOXcI+ndmgzZ/FeFfys=
-Date: Thu, 11 Jun 2026 18:23:01 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,heming.zhao@suse.com,gechangwei@live.cn,icb@fastmail.org,akpm@linux-foundation.org
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + ocfs2-fix-ubsan-array-index-out-of-bounds-in-ocfs2_sum_rightmost_rec.patch added to mm-nonmm-unstable branch
-Message-Id: <20260612012301.911CB1F000E9@smtp.kernel.org>
+        d=suse.com; s=google; t=1781277119; x=1781881919; darn=vger.kernel.org;
+        h=in-reply-to:content-transfer-encoding:content-disposition
+         :mime-version:references:message-id:subject:cc:to:from:date:from:to
+         :cc:subject:date:message-id:reply-to;
+        bh=uHz30rGtCI4aGvtHgmZ0RxbN8WTv9zc5L1bDGGQ4qcI=;
+        b=R8F3NSXqmvxuJiPVMiMTT2M7+gajgYka5n3GMB/HqQshDvfcEDzCIKmjn5RgZK3KAl
+         dYTNE5pMIgvPaIwfWFIgLtRF7ZwN7dPUx4G4YYmYEaj29y81BkpRhfclM1IXTCu6c+Tc
+         F1AuXKVttlc3KmKirfr56KMjIA25UjKMAJfhLen/o/+AQp5MtxGVHp+f9EfMbsnmoo3z
+         OfNj94Yxnr5ZspVAeW5Pj6hHfaTRy/Xfk8Ci8RPnNKAA9o482SSl6eOmZ60F6C32ACbd
+         YRMdrKvQWqOT+QXrUfvQGiiqSZL3TflypsRFGdFU5Mfvn/74t/v9mS4g3IxE2cdxQvO3
+         TtrA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1781277119; x=1781881919;
+        h=in-reply-to:content-transfer-encoding:content-disposition
+         :mime-version:references:message-id:subject:cc:to:from:date:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=uHz30rGtCI4aGvtHgmZ0RxbN8WTv9zc5L1bDGGQ4qcI=;
+        b=cmN5A93aFQDFUuu5ha3XWjuabO/TOZb5Aalt1LY4sXu+Le/dXOzYyloxeGmtxcdZK3
+         jo4vPK2P+KQJVnPBJbZE1hhjDT3m5MwVPiltmxvW4HYe5FGpr6Pct/4UcqXS7SX1b8cA
+         8kEzN6/NTbLLkb2Em9SeWbaDKJgQCVRmHGyuD1hNGouTukwGaTUSNbbMo9T9P16t9o4+
+         lg7WFGnsEGaSl5fFJIyjGxSKprqt4Ge2hx3u8mTSNb6qrJKGQA3/Elj+akRCvmqSanMb
+         kZccvIGbg+228bbOV2NptBidE/5uUGfszXvlEr1PJw3LLhZAafURNs8wxncYr3YRUoO+
+         cCTQ==
+X-Forwarded-Encrypted: i=1; AFNElJ/WdWzMoU5W0J1NLpqkDM1zPtbpOFhXiJRZWJXYt/dw6GuE4kWm45D9ILqPztHY4d7bXUfW7WdQyKKV@vger.kernel.org
+X-Gm-Message-State: AOJu0Yy9h64FrdFA6u7PfptpEm/Fs/MSBlL5VVvUXvZivE/MSmizfYb0
+	KsxbsiX1vO4mW/ZrjULNUQerMGyYa4Aa4MIW3MHCqHuEBU73Ss08QcsMRVWYZoIEWIo=
+X-Gm-Gg: Acq92OEmmIzGHKhUkbTN5yAu9eP6gqJz+cPewdK5e4gThxCf82GpcTbkOLYzdIXcSaf
+	q5QFU87B+HzUFVMUaHCO4s2cAs5XCftQqVJrKW5sNF8PykRAp4aqfZEFI18s7e61B0vFFvmcpuS
+	nsIi/0g8r8Ek4/+UZYxVq3PnN7m2nNl2v7pEQTrYMwHh0ZzSBs9Tl6jHU5lmp2NWG0ptLi2kTSm
+	TC7Bnymje/wXuMTtHoi0/aIo9zp9XXps31IWk4B/lKVcpjiWgzbNHpF7uI7AW6GUxh6WQpheKlI
+	7esrsoWiGCCtU54cYyyriQInxaqej/RP07twkFI1894EBR8ytSFZXKN/cMqgJRnyqGb9jdcGHK3
+	rjEgCF9OKrO+5wg//WtgKWJJiiuUKNV0ZPUPvNpxlb1yXC31YTVWMUP9EpbTT9EE7UWHNCYzqHH
+	Zk4zYKICtNyj1HpJNTQsXAe4qCiQ==
+X-Received: by 2002:a05:6000:41f6:b0:45e:ed7f:1dd with SMTP id ffacd0b85a97d-4606db96b8dmr5403781f8f.25.1781277119080;
+        Fri, 12 Jun 2026 08:11:59 -0700 (PDT)
+Received: from pathway.suse.cz ([176.114.240.130])
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-4606f2dbfb1sm6913084f8f.35.2026.06.12.08.11.58
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 12 Jun 2026 08:11:58 -0700 (PDT)
+Date: Fri, 12 Jun 2026 17:11:56 +0200
+From: Petr Mladek <pmladek@suse.com>
+To: Tamir Duberstein <tamird@kernel.org>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	mm-commits@vger.kernel.org, stable@vger.kernel.org,
+	nathan@kernel.org, hca@linux.ibm.com, gor@linux.ibm.com,
+	ansuelsmth@gmail.com, andersson@kernel.org,
+	aleksander.lobakin@intel.com, agordeev@linux.ibm.com, arnd@arndb.de
+Subject: Re: + errh-use-__always_inline-on-all-error-pointer-helpers.patch
+ added to mm-nonmm-unstable branch
+Message-ID: <aiwhvPaHef0pdm3-@pathway.suse.cz>
+References: <20260526184100.3BA431F000E9@smtp.kernel.org>
+ <ah6WDkwO8eYY5f2a@ashevche-desk.local>
+ <ah7PWK4gTdOYG1t_@pathway>
+ <CAJ-ks9nHkcgwdh7i8efAv=ka2rtX9o6ZnGZk5KeroCX2G_t3mg@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAJ-ks9nHkcgwdh7i8efAv=ka2rtX9o6ZnGZk5KeroCX2G_t3mg@mail.gmail.com>
 
+On Tue 2026-06-02 09:46:33, Tamir Duberstein wrote:
+> On Tue, Jun 2, 2026 at 8:41 AM Petr Mladek <pmladek@suse.com> wrote:
+> >
+> > Adding Tamir into Cc.
+> >
+> > On Tue 2026-06-02 11:36:30, Andy Shevchenko wrote:
+> > > On Tue, May 26, 2026 at 11:40:59AM -0700, Andrew Morton wrote:
+> > >
+> > > > The patch titled
+> > > >      Subject: err.h: use __always_inline on all error pointer helpers
+> > > > has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+> > > >      errh-use-__always_inline-on-all-error-pointer-helpers.patch
+> > > >
+> > > > This patch will shortly appear at
+> > > >      https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/errh-use-__always_inline-on-all-error-pointer-helpers.patch
+> > >
+> > > Petr, shouldn't this also fix the problem with old (buggy) GCC for xtensa
+> > > (IIRC) that we encountered in some tests a couple of months ago?
+> >
+> > It might here there as well. Unfortunately, I could not test it easily
+> > because it required some old GCC.
+> >
+> > I wonder if Tamir could try to revert the commit 8901ac9d2c7eb8ed
+> > ("printf: Compile the kunit test with DISABLE_BRANCH_PROFILING")
+> > and try this patch instead.
+> 
+> Yes, confirmed.
+> 
+> I rebuilt xtensa-linux GCC 8.5.0 and tested printf_kunit.c with the original
+> randconfig and branch profiling enabled, without DISABLE_BRANCH_PROFILING.
+> 
+> Without Arnd's patch, the original failure reproduces:
+> 
+> printf_kunit.c: In function 'errptr.part.2': error: call to
+> '__compiletime_assert_313' declared with attribute error: BUILD_BUG_ON failed:
+> IS_ERR(PTR)
+> 
+> With "err.h: use __always_inline on all error pointer helpers" applied, the same
+> compile succeeds.
+> 
+> So Arnd's patch fixes this case and commit 8901ac9d2c7e ("printf: Compile the
+> kunit test with DISABLE_BRANCH_PROFILING") can be reverted once it lands.
 
-The patch titled
-     Subject: ocfs2: fix UBSAN array-index-out-of-bounds in ocfs2_sum_rightmost_rec
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     ocfs2-fix-ubsan-array-index-out-of-bounds-in-ocfs2_sum_rightmost_rec.patch
+Great. Thank you both for pointing it out and testing it!
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-fix-ubsan-array-index-out-of-bounds-in-ocfs2_sum_rightmost_rec.patch
+It seems that it is not in the Linus' tree yet. I guess
+that it will appear in the 7.2 merge window, ...
+I set up reminder to myself.
 
-This patch will later appear in the mm-nonmm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
-
-------------------------------------------------------
-From: Ian Bridges <icb@fastmail.org>
-Subject: ocfs2: fix UBSAN array-index-out-of-bounds in ocfs2_sum_rightmost_rec
-Date: Wed, 10 Jun 2026 19:23:11 -0500
-
-[BUG]
-On-disk corruption setting l_next_free_rec to 0 in an inode's embedded
-extent list triggers a UBSAN panic on the next write to that file.
-
-[CAUSE]
-ocfs2_sum_rightmost_rec() computes
-i = le16_to_cpu(el->l_next_free_rec) - 1
-and accesses el->l_recs[i] without validating i. When l_next_free_rec
-is 0, i becomes -1; when l_next_free_rec exceeds l_count, i falls
-past the end of the array. Either case violates the
-__counted_by_le(l_count) annotation on l_recs[] and triggers UBSAN.
-
-[FIX]
-Validate the inode's embedded extent list when the inode is read, in
-ocfs2_validate_inode_block(): l_count must be non-zero and no larger
-than the inode block can hold, and l_next_free_rec must not exceed
-l_count. A corrupt list is rejected at read time, before the b-tree
-code can index l_recs[] out of bounds.
-
-Link: https://lore.kernel.org/ain_780qc0P4ypNd@dev
-Signed-off-by: Ian Bridges <icb@fastmail.org>
-Reported-by: syzbot+be16e33db01e6644db7a@syzkaller.appspotmail.com
-Closes: https://syzkaller.appspot.com/bug?extid=be16e33db01e6644db7a
-Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Jun Piao <piaojun@huawei.com>
-Cc: Heming Zhao <heming.zhao@suse.com>
-Cc: <stable@vger.kernel.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- fs/ocfs2/inode.c |   32 ++++++++++++++++++++++++++++++++
- 1 file changed, 32 insertions(+)
-
---- a/fs/ocfs2/inode.c~ocfs2-fix-ubsan-array-index-out-of-bounds-in-ocfs2_sum_rightmost_rec
-+++ a/fs/ocfs2/inode.c
-@@ -1696,6 +1696,38 @@ int ocfs2_validate_inode_block(struct su
- 		goto bail;
- 	}
- 
-+	if (ocfs2_dinode_has_extents(di)) {
-+		struct ocfs2_extent_list *el = &di->id2.i_list;
-+		u16 count = le16_to_cpu(el->l_count);
-+		u16 next_free = le16_to_cpu(el->l_next_free_rec);
-+
-+		if (count == 0) {
-+			rc = ocfs2_error(sb,
-+					 "Invalid dinode %llu: extent list l_count is zero\n",
-+					 (unsigned long long)bh->b_blocknr);
-+			goto bail;
-+		}
-+		/*
-+		 * The exact capacity depends on i_xattr_inline_size, another
-+		 * unvalidated on-disk field. Inline xattrs only shrink the
-+		 * list, so the no-xattr maximum is a safe upper bound that a
-+		 * valid l_count never exceeds.
-+		 */
-+		if (count > ocfs2_extent_recs_per_inode(sb)) {
-+			rc = ocfs2_error(sb,
-+					 "Invalid dinode %llu: extent list l_count %u exceeds max %u\n",
-+					 (unsigned long long)bh->b_blocknr, count,
-+					 ocfs2_extent_recs_per_inode(sb));
-+			goto bail;
-+		}
-+		if (next_free > count) {
-+			rc = ocfs2_error(sb,
-+					 "Invalid dinode %llu: extent list l_next_free_rec %u exceeds l_count %u\n",
-+					 (unsigned long long)bh->b_blocknr, next_free, count);
-+			goto bail;
-+		}
-+	}
-+
- 	rc = 0;
- 
- bail:
-_
-
-Patches currently in -mm which might be from icb@fastmail.org are
-
-ocfs2-fix-ubsan-array-index-out-of-bounds-in-ocfs2_sum_rightmost_rec.patch
-
+Best Regards,
+Petr
