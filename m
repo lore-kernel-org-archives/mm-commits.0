@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E37C83A963D
-	for <mm-commits@vger.kernel.org>; Fri, 12 Jun 2026 16:21:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 429B21E515
+	for <mm-commits@vger.kernel.org>; Fri, 12 Jun 2026 19:06:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781281276; cv=none; b=OZVcXSb8QposEUCD3z8AKHnIpkOUc1kmBOQ2CHIURe2kzseh2ONceNTC1eJoecQL5UZaksDV7AVpeq6TPuQnGrZM5Yw5BQIbHf43gci+Eqp5CobRnJh13xE51NNY71qXp8a+ABWZTZDnj+4TD6MoYDj+iTjOUsa6DD7z+bte6cM=
+	t=1781291208; cv=none; b=H3PWsikBqcK1gAnnRv1vNPWpEXvM4T31ahxhKiPqdGAoob/Yg5md2+fM1Rea3Pve9jUankb8/h93bcu3IVvIbr5xiw+VWT900dxPmFlmcB1JdBUScw/9ADvYZ+9vQvqe1h9VS+IppvPfIi0tsO8zvB493xroRU+P+ZCSTCbovgs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1781281276; c=relaxed/simple;
-	bh=63NdTyDaRtcGb8Y0Z2HdBOWD7w1lBD0Cuo7gZrFRohM=;
-	h=Date:To:From:Subject:Message-Id; b=qzR6iUPtwplQzT1LIWjWsCK8iX+/cLnvm3+t9yFq9gTdrx5pPFO74wJXky721wLxjQx2Af4gSyXFKT4RYtd7FORUp0+jcSSFAuY5e49/hNaVEnENuN4zKH+bOToKEv53Zlx3nA3qg30N1O6GZQ6EmXDJPzuRveYyk0P7CAJ+Y+g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=swprwTF8; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1781291208; c=relaxed/simple;
+	bh=/3FPoHDFWG/msiJHE7jCTDoKsS0jDbvuhbmZCFHgwto=;
+	h=Date:To:From:Subject:Message-Id; b=einVnY9sJ17XdpiyIhiINKrAhDRPw7C+hNfY2tAPFSO6VfsyJ6amm/AqC6FB0IZJwiivz2diadknVYfk1/yvXaKBi0CKKpWIttBLZda/PuqiIuyi7DRtUE229tQqR2vwFDVZMiWvfqy4pu6Sh+u/MtJ9+wQoCeGw6bcpkX3pj7Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=N2wiVeDP; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="swprwTF8"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 816FE1F000E9;
-	Fri, 12 Jun 2026 16:21:14 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="N2wiVeDP"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B76311F000E9;
+	Fri, 12 Jun 2026 19:06:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1781281274;
-	bh=xug5b9x1INiYlhCAWGQlgakv93fHg7fwn9xe/RTOtWI=;
+	d=linux-foundation.org; s=korg; t=1781291206;
+	bh=YQTXS3xzn8EFQWko0RhZmAeNHd/JtFETmRirBs/IxJM=;
 	h=Date:To:From:Subject;
-	b=swprwTF82HhC1VDK4SmigDRogppWwb7F7Xt2FGTNKRZ01GCPpiZrnWxjW+eOk3hcy
-	 n/p6ZmrpF2RJ7IYwbXHZbS1izR7MmSpYSon4F/B1kjvHFIRvxzICNSRbkrD4ngOjPq
-	 s5W5e3FJHk98S+PGHLhXqdYSxOJFPNTq+JdvWl7I=
-Date: Fri, 12 Jun 2026 09:21:14 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,rppt@kernel.org,pfalcato@suse.de,osalvador@kernel.org,muchun.song@linux.dev,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,huangsj@hygon.cn,akpm@linux-foundation.org
+	b=N2wiVeDPRbMW7QoSYL1p5QSHYRAqw8RWO9kxl6wND5A3YccXgYlo1hnoxP1mMT4Q8
+	 Z6b3u9pqeY/h8L8bDPd4EF1QrAcX7PFO9Imqi60JS1R69rEHZ2HzmMtTtNif/zFbYB
+	 rNTkDYMBLKcaV0KlYRNO1nIWhjWtIF2osJ8VZk5o=
+Date: Fri, 12 Jun 2026 12:06:46 -0700
+To: mm-commits@vger.kernel.org,sj@kernel.org,joe@perches.com,akpm@linux-foundation.org,iamsharduld@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-use-mapping_mapped-to-simplify-the-code.patch added to mm-unstable branch
-Message-Id: <20260612162114.816FE1F000E9@smtp.kernel.org>
+Subject: + treewide-fix-transposed-sign-typos-and-update-spellingtxt.patch added to mm-nonmm-unstable branch
+Message-Id: <20260612190646.B76311F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: use mapping_mapped to simplify the code
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-use-mapping_mapped-to-simplify-the-code.patch
+     Subject: treewide: fix transposed "sign" typos and update spelling.txt
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     treewide-fix-transposed-sign-typos-and-update-spellingtxt.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-use-mapping_mapped-to-simplify-the-code.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/treewide-fix-transposed-sign-typos-and-update-spellingtxt.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,74 +58,127 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Huang Shijie <huangsj@hygon.cn>
-Subject: mm: use mapping_mapped to simplify the code
-Date: Fri, 12 Jun 2026 15:30:32 +0800
+From: Shardul Deshpande <iamsharduld@gmail.com>
+Subject: treewide: fix transposed "sign" typos and update spelling.txt
+Date: Fri, 12 Jun 2026 23:46:32 +0530
 
-Use mapping_mapped() to simplify the code, make the code tidy and clean.
+Several comments transpose the letters in "assigned" and "unsigned",
+spelling them with "sing" instead of "sign".  Correct all of them.
 
-Link: https://lore.kernel.org/20260612073032.33228-1-huangsj@hygon.cn
-Signed-off-by: Huang Shijie <huangsj@hygon.cn>
-Reviewed-by: Pedro Falcato <pfalcato@suse.de>
-Reviewed-by: Lorenzo Stoakes <ljs@kernel.org>
-Reviewed-by: Muchun Song <muchun.song@linux.dev>
-Reviewed-by: Oscar Salvador (SUSE) <osalvador@kernel.org>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
+Of these, the misspelling of "assigned" is not yet flagged by checkpatch,
+so also add it to scripts/spelling.txt.
+
+The remaining matches of `grep -ri singed` are RISINGEDGE register and
+enum names, not typos.
+
+Link: https://lore.kernel.org/20260612181633.734458-1-iamsharduld@gmail.com
+Signed-off-by: Shardul Deshpande <iamsharduld@gmail.com>
+Suggested-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Joe Perches <joe@perches.com>
+Cc: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hugetlbfs/inode.c |    4 ++--
- mm/memory.c          |    4 ++--
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ arch/arm64/boot/dts/qcom/sc7280-qcard.dtsi |    2 +-
+ drivers/gpu/drm/drm_color_mgmt.c           |    2 +-
+ drivers/scsi/elx/efct/efct_hw.h            |    2 +-
+ drivers/scsi/isci/host.c                   |    2 +-
+ drivers/scsi/isci/port.c                   |    2 +-
+ drivers/scsi/isci/port_config.c            |    2 +-
+ kernel/bpf/helpers.c                       |    2 +-
+ scripts/spelling.txt                       |    1 +
+ 8 files changed, 8 insertions(+), 7 deletions(-)
 
---- a/fs/hugetlbfs/inode.c~mm-use-mapping_mapped-to-simplify-the-code
-+++ a/fs/hugetlbfs/inode.c
-@@ -614,7 +614,7 @@ static void hugetlb_vmtruncate(struct in
+--- a/arch/arm64/boot/dts/qcom/sc7280-qcard.dtsi~treewide-fix-transposed-sign-typos-and-update-spellingtxt
++++ a/arch/arm64/boot/dts/qcom/sc7280-qcard.dtsi
+@@ -562,7 +562,7 @@ mos_bt_uart: &uart7 {
+  *
+  * This has entries that are defined by Qcard even if they go to the main
+  * board. In cases where the pulls may be board dependent we defer those
+- * settings to the board device tree. Drive strengths tend to be assinged here
++ * settings to the board device tree. Drive strengths tend to be assigned here
+  * but could conceivably be overwridden by board device trees.
+  */
  
- 	i_size_write(inode, offset);
- 	i_mmap_lock_write(mapping);
--	if (!RB_EMPTY_ROOT(&mapping->i_mmap.rb_root))
-+	if (mapping_mapped(mapping))
- 		hugetlb_vmdelete_list(&mapping->i_mmap, pgoff, 0,
- 				      ZAP_FLAG_DROP_MARKER);
- 	i_mmap_unlock_write(mapping);
-@@ -675,7 +675,7 @@ static long hugetlbfs_punch_hole(struct
+--- a/drivers/gpu/drm/drm_color_mgmt.c~treewide-fix-transposed-sign-typos-and-update-spellingtxt
++++ a/drivers/gpu/drm/drm_color_mgmt.c
+@@ -54,7 +54,7 @@
+  *	&drm_crtc_state.degamma_lut.
+  *
+  * “DEGAMMA_LUT_SIZE”:
+- *	Unsinged range property to give the size of the lookup table to be set
++ *	Unsigned range property to give the size of the lookup table to be set
+  *	on the DEGAMMA_LUT property (the size depends on the underlying
+  *	hardware). If drivers support multiple LUT sizes then they should
+  *	publish the largest size, and sub-sample smaller sized LUTs (e.g. for
+--- a/drivers/scsi/elx/efct/efct_hw.h~treewide-fix-transposed-sign-typos-and-update-spellingtxt
++++ a/drivers/scsi/elx/efct/efct_hw.h
+@@ -59,7 +59,7 @@
+ #define EFCT_HW_EQ_DEPTH		1024
  
- 	/* Unmap users of full pages in the hole. */
- 	if (hole_end > hole_start) {
--		if (!RB_EMPTY_ROOT(&mapping->i_mmap.rb_root))
-+		if (mapping_mapped(mapping))
- 			hugetlb_vmdelete_list(&mapping->i_mmap,
- 					      hole_start >> PAGE_SHIFT,
- 					      hole_end >> PAGE_SHIFT, 0);
---- a/mm/memory.c~mm-use-mapping_mapped-to-simplify-the-code
-+++ a/mm/memory.c
-@@ -4386,7 +4386,7 @@ void unmap_mapping_folio(struct folio *f
- 	details.zap_flags = ZAP_FLAG_DROP_MARKER;
+ /*
+- * A CQ will be assinged to each WQ
++ * A CQ will be assigned to each WQ
+  * (CQ must have 2X entries of the WQ for abort
+  * processing), plus a separate one for each RQ PAIR and one for MQ
+  */
+--- a/drivers/scsi/isci/host.c~treewide-fix-transposed-sign-typos-and-update-spellingtxt
++++ a/drivers/scsi/isci/host.c
+@@ -2488,7 +2488,7 @@ struct isci_request *sci_request_by_tag(
+  *    free remote node ids
+  * @idev: This is the device object which is requesting the a remote node
+  *    id
+- * @node_id: This is the remote node id that is assinged to the device if one
++ * @node_id: This is the remote node id that is assigned to the device if one
+  *    is available
+  *
+  * enum sci_status SCI_FAILURE_OUT_OF_RESOURCES if there are no available remote
+--- a/drivers/scsi/isci/port.c~treewide-fix-transposed-sign-typos-and-update-spellingtxt
++++ a/drivers/scsi/isci/port.c
+@@ -464,7 +464,7 @@ static enum sci_status sci_port_set_phy(
+ {
+ 	/* Check to see if we can add this phy to a port
+ 	 * that means that the phy is not part of a port and that the port does
+-	 * not already have a phy assinged to the phy index.
++	 * not already have a phy assigned to the phy index.
+ 	 */
+ 	if (!iport->phy_table[iphy->phy_index] &&
+ 	    !phy_get_non_dummy_port(iphy) &&
+--- a/drivers/scsi/isci/port_config.c~treewide-fix-transposed-sign-typos-and-update-spellingtxt
++++ a/drivers/scsi/isci/port_config.c
+@@ -259,7 +259,7 @@ sci_mpc_agent_validate_phy_configuration
+ 		if (!phy_mask)
+ 			continue;
+ 		/*
+-		 * Make sure that one or more of the phys were not already assinged to
++		 * Make sure that one or more of the phys were not already assigned to
+ 		 * a different port. */
+ 		if ((phy_mask & ~assigned_phy_mask) == 0) {
+ 			return SCI_FAILURE_UNSUPPORTED_PORT_CONFIGURATION;
+--- a/kernel/bpf/helpers.c~treewide-fix-transposed-sign-typos-and-update-spellingtxt
++++ a/kernel/bpf/helpers.c
+@@ -3601,7 +3601,7 @@ __bpf_kfunc int bpf_copy_from_user_task_
+ 	return ret + 1;
+ }
  
- 	i_mmap_lock_read(mapping);
--	if (unlikely(!RB_EMPTY_ROOT(&mapping->i_mmap.rb_root)))
-+	if (unlikely(mapping_mapped(mapping)))
- 		unmap_mapping_range_tree(&mapping->i_mmap, first_index,
- 					 last_index, &details);
- 	i_mmap_unlock_read(mapping);
-@@ -4416,7 +4416,7 @@ void unmap_mapping_pages(struct address_
- 		last_index = ULONG_MAX;
- 
- 	i_mmap_lock_read(mapping);
--	if (unlikely(!RB_EMPTY_ROOT(&mapping->i_mmap.rb_root)))
-+	if (unlikely(mapping_mapped(mapping)))
- 		unmap_mapping_range_tree(&mapping->i_mmap, first_index,
- 					 last_index, &details);
- 	i_mmap_unlock_read(mapping);
+-/* Keep unsinged long in prototype so that kfunc is usable when emitted to
++/* Keep unsigned long in prototype so that kfunc is usable when emitted to
+  * vmlinux.h in BPF programs directly, but note that while in BPF prog, the
+  * unsigned long always points to 8-byte region on stack, the kernel may only
+  * read and write the 4-bytes on 32-bit.
+--- a/scripts/spelling.txt~treewide-fix-transposed-sign-typos-and-update-spellingtxt
++++ a/scripts/spelling.txt
+@@ -176,6 +176,7 @@ assgined||assigned
+ assiged||assigned
+ assigment||assignment
+ assigments||assignments
++assinged||assigned
+ assistent||assistant
+ assocaited||associated
+ assocated||associated
 _
 
-Patches currently in -mm which might be from huangsj@hygon.cn are
+Patches currently in -mm which might be from iamsharduld@gmail.com are
 
-mm-use-mapping_mapped-to-simplify-the-code.patch
+treewide-fix-transposed-sign-typos-and-update-spellingtxt.patch
 
