@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CF9ED3093B5;
-	Wed, 17 Jun 2026 17:22:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2A9F014A4CC;
+	Wed, 17 Jun 2026 19:45:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781716928; cv=none; b=SKt4DoUq8jqnBJh0nJFbcW0/7ZKNR9EKK7fQAwRfQQLRKj1khNtZEOkFRtkGKh9jt7rdCldLXIY2vVIzKnDJqSDJE4a5h6gnSUxEg67Jba4YXuJpVUrEASaUeZm2UZ3qkaaZzBRPvD0Wi++FFoE5Oj/ksNq7jitz5NMYHmXMzYw=
+	t=1781725514; cv=none; b=OLG9BP3NzsQpk8XvrJzwGP6xmij4CZ7Dr5WK3gybgMe0uFb6Rx98mbnJqtV/AopqUqB47gEaqJm6ANJgVWUh0+/OBTrfku2sAT3BA103UIWdeVdN9TenGnCUghfk7l4uLLXGprBADLFGug6JqKlrgMG1x4nZoLAJnP4l1jsBOhw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1781716928; c=relaxed/simple;
-	bh=0egeRixYlU1lAj/TAMijXsvxTT06tG+LdjSQtQdAd3k=;
-	h=Date:To:From:Subject:Message-Id; b=B2Yk3ddP2sFQmJsdZ7H0km6S3ZGkaQiEaYCHDxTHlopbbks3z7FnG1UWpY7kBvMrz4CeKHg7ua/WOXmNTw4INyPdvjnfLR9stIa+zHvISTascUDLy/R2YcUGJra0ZNxAKGs0KZVWZQRQgxXwnmCbZUS9ki1NUAeyFQ9FAX4N5Fs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JfG9joGn; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1781725514; c=relaxed/simple;
+	bh=F9qnglnWAC53wXQrdPbDPyp3B75hBVYP2fxri6sZxaU=;
+	h=Date:To:From:Subject:Message-Id; b=AQTTB5U78eRAvqFKfvPLyuMvfX7Kiv6fBXqPS+Co49nDrfTlSLc+LzT0GKzKAaEHYRMJDSGUNr/Xpuyu0hkg97Zq+7G8tE84geDXE7cSmM2jftVf6u1cCEdbUE5v2r2BPZqHwV/eX0ILKRnR/fopT9YeSowHOMExyKf9+o+UHyo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OhBugnXH; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JfG9joGn"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 62A941F000E9;
-	Wed, 17 Jun 2026 17:22:07 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OhBugnXH"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BF1601F000E9;
+	Wed, 17 Jun 2026 19:45:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1781716927;
-	bh=OFtvY5qovzsFYqHtFUO8+DYFRRktc1zlNFyOr3L1rXM=;
+	d=linux-foundation.org; s=korg; t=1781725512;
+	bh=KkvxBlLcuxqxJoK01eZY/PrgiLcteuiu06d4u62evXM=;
 	h=Date:To:From:Subject;
-	b=JfG9joGnIKJwZMLa6yjAnLcNRfKkRjLqUPS78YxdMJZOC+2BKyNWSK0QjVvLcSOwn
-	 A57U5Q79MnotdDchLrPqS3DEhRwrlAFAduV1SOF6EZ6HfVlo6m0phIV5FBrIzPpYUl
-	 wKsH5tLGlCBtL3Hx8UNn1FK2/u+5B/5CxSptJKhM=
-Date: Wed, 17 Jun 2026 10:22:06 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,roman.gushchin@linux.dev,muchun.song@linux.dev,david@fromorbit.com,zhengqi.arch@bytedance.com,akpm@linux-foundation.org
+	b=OhBugnXHm8mi0yzG0qBCdPHwMYJ45KYiXXyyG7lhkKNs/UK74hqHovtJuPmqgFEeM
+	 yDgHQlywHX5DoZnATlCcfomiC3d97aoXIocmsOLMaWFasaIPK6D3e/EgStyCGwW3Wr
+	 Ds447O2Fotod9wJvHBUaimBCrS+CUY3YnObg8zHc=
+Date: Wed, 17 Jun 2026 12:45:12 -0700
+To: mm-commits@vger.kernel.org,vladimirelitokarev@gmail.com,viro@zeniv.linux.org.uk,torvalds@linuxfoundation.org,stable@vger.kernel.org,peterx@redhat.com,oleg@redhat.com,jack@suse.cz,david@kernel.org,brauner@kernel.org,rppt@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-shrinker-fix-null-pointer-dereference-in-debugfs.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260617172207.62A941F000E9@smtp.kernel.org>
+Subject: + userfaultfd-prevent-registration-of-special-vmas.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260617194512.BF1601F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: shrinker: fix NULL pointer dereference in debugfs
+     Subject: userfaultfd: prevent registration of special VMAs
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-shrinker-fix-null-pointer-dereference-in-debugfs.patch
+     userfaultfd-prevent-registration-of-special-vmas.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-shrinker-fix-null-pointer-dereference-in-debugfs.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/userfaultfd-prevent-registration-of-special-vmas.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,78 +58,110 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Qi Zheng <zhengqi.arch@bytedance.com>
-Subject: mm: shrinker: fix NULL pointer dereference in debugfs
-Date: Wed, 17 Jun 2026 17:00:52 +0800
+From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
+Subject: userfaultfd: prevent registration of special VMAs
+Date: Wed, 17 Jun 2026 22:40:59 +0300
 
-shrinker_debugfs_add() creates both "count" and "scan" debugfs files
-unconditionally.
+Vova Tokarev says:
 
-That assumes every shrinker implements both count_objects() and
-scan_objects(), which is not guaranteed.  For example, the xen-backend
-shrinker sets count_objects() but leaves scan_objects() NULL, so writing
-to its scan file calls through a NULL function pointer and panics the
-kernel:
+  userfaultfd allows registration on shadow stack VMAs.  With userfaultfd
+  access, you can register on the shadow stack, discard a page ... and
+  inject a page with chosen return addresses via UFFDIO_COPY.
 
-BUG: kernel NULL pointer dereference, address: 0000000000000000
-RIP: 0010:0x0
-Code: Unable to access opcode bytes at 0xffffffffffffffd6.
-Call Trace:
- <TASK>
- shrinker_debugfs_scan_write+0x12e/0x270
- full_proxy_write+0x5f/0x90
- vfs_write+0xde/0x420
- ? filp_flush+0x75/0x90
- ? filp_close+0x1d/0x30
- ? do_dup2+0xb8/0x120
- ksys_write+0x68/0xf0
- ? filp_flush+0x75/0x90
- do_syscall_64+0xb3/0x5b0
- entry_SYSCALL_64_after_hwframe+0x76/0x7e
+Update vma_can_userfault() to reject VM_SHADOW_STACK.
 
-The count path has the same issue in principle if a shrinker omits
-count_objects().
+While on it, also reject VM_IO, VM_MIXEDMAP and VM_PFNMAP so that if a
+driver would implement vm_uffd_ops, it wouldn't be possible to register
+special VMAs with userfaultfd.
 
-To fix it, only create "count" and "scan" debugfs files when the
-corresponding callbacks are present.
-
-Link: https://lore.kernel.org/20260617090052.27325-1-qi.zheng@linux.dev
-Fixes: bbf535fd6f06 ("mm: shrinkers: add scan interface for shrinker debugfs")
-Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
-Reviewed-by: Muchun Song <muchun.song@linux.dev>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Qi Zheng <zhengqi.arch@bytedance.com>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Link: https://lore.kernel.org/20260617194059.2529406-1-rppt@kernel.org
+Fixes: 54007f818206 ("mm: Introduce VM_SHADOW_STACK for shadow stack memory")
+Reported-by: vova tokarev <vladimirelitokarev@gmail.com>
+Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Linus Torvalds <torvalds@linuxfoundation.org>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Peter Xu <peterx@redhat.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shrinker_debug.c |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ mm/userfaultfd.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/mm/shrinker_debug.c~mm-shrinker-fix-null-pointer-dereference-in-debugfs
-+++ a/mm/shrinker_debug.c
-@@ -187,10 +187,12 @@ int shrinker_debugfs_add(struct shrinker
- 	}
- 	shrinker->debugfs_entry = entry;
+--- a/mm/userfaultfd.c~userfaultfd-prevent-registration-of-special-vmas
++++ a/mm/userfaultfd.c
+@@ -2095,7 +2095,8 @@ bool vma_can_userfault(struct vm_area_st
+ {
+ 	const struct vm_uffd_ops *ops = vma_uffd_ops(vma);
  
--	debugfs_create_file("count", 0440, entry, shrinker,
--			    &shrinker_debugfs_count_fops);
--	debugfs_create_file("scan", 0220, entry, shrinker,
--			    &shrinker_debugfs_scan_fops);
-+	if (shrinker->count_objects)
-+		debugfs_create_file("count", 0440, entry, shrinker,
-+				    &shrinker_debugfs_count_fops);
-+	if (shrinker->scan_objects)
-+		debugfs_create_file("scan", 0220, entry, shrinker,
-+				    &shrinker_debugfs_scan_fops);
- 	return 0;
- }
+-	if (vma->vm_flags & VM_DROPPABLE)
++	if (vma->vm_flags & (VM_DROPPABLE | VM_IO | VM_MIXEDMAP | VM_PFNMAP |
++			     VM_SHADOW_STACK))
+ 		return false;
  
+ 	vm_flags &= __VM_UFFD_FLAGS;
 _
 
-Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
+Patches currently in -mm which might be from rppt@kernel.org are
 
-mm-shrinker-fix-shrinker_info-teardown-race-with-expansion.patch
-mm-shrinker-fix-null-pointer-dereference-in-debugfs.patch
+userfaultfd-prevent-registration-of-special-vmas.patch
+selftests-mm-hugetlb-read-hwpoison-add-sigbus-handler.patch
+selftests-mm-migration-dont-assume-huge-page-is-twomeg.patch
+selftests-mm-migration-make-nthreads-represent-number-of-working-threads.patch
+selftests-mm-migration-properly-cleanup-forked-processes.patch
+selftests-mm-run_vmtestssh-dont-gate-thp-and-ksm-tests-on-have_hugepages.patch
+selftests-mm-merge-map_hugetlb-into-hugepage-mmap.patch
+selftests-mm-rename-hugepage-tests-to-hugetlb.patch
+selftests-mm-hugetlb-shm-use-kselftest-framework.patch
+selftests-mm-hugetlb-vmemmap-use-kselftest-framework.patch
+selftests-mm-hugetlb-madvise-use-kselftest-framework.patch
+selftests-mm-hugetlb_madv_vs_map-use-kselftest-framework.patch
+selftests-mm-hugetlb-read-hwpoison-use-kselftest-framework.patch
+selftests-mm-khugepaged-group-tests-in-an-array.patch
+selftests-mm-khugepaged-use-ksefltest-framework.patch
+selftests-mm-ksm_tests-use-kselftest-framework.patch
+selftests-mm-protection_keys-use-descriptive-test-names-in-the-output.patch
+selftests-mm-protection_keys-use-kselftest-framework.patch
+selftests-mm-uffd-common-use-kselftest-framework.patch
+selftests-mm-uffd-stress-use-kselftest-framework.patch
+selftests-mm-uffd-unit-tests-use-kselftest-framework.patch
+selftests-mm-va_high_addr_switch-use-kselftest-framework.patch
+selftests-mm-add-atexit-and-signal-handlers-to-thp_settings.patch
+selftests-mm-rename-thp_settings-to-hugepage_settings.patch
+selftests-mm-move-hugetlb-helpers-to-hugepage_settings.patch
+selftests-mm-hugepage_settings-use-unsigned-long-in-detect_hugetlb_page_size.patch
+selftests-mm-hugepage_settings-add-apis-to-get-and-set-nr_hugepages.patch
+selftests-mm-hugepage_settings-rename-and-rework-get_free_hugepages.patch
+selftests-mm-hugepage_settings-add-apis-for-hugetlb-setup-and-teardown.patch
+selftests-mm-move-read_file-read_num-and-write_num-to-vm_util.patch
+selftests-mm-vm_util-add-helpers-to-set-and-restore-shm-limits.patch
+selftests-mm-compaction_test-use-hugetlb-helpers.patch
+selftests-mm-cow-add-setup-of-hugetlb-pages.patch
+selftests-mm-gup_longterm-add-setup-of-hugetlb-pages.patch
+selftests-mm-gup_test-add-setup-of-hugetlb-pages.patch
+selftests-mm-hmm-tests-add-setup-of-hugetlb-pages.patch
+selftests-mm-hugepage_dio-add-setup-of-hugetlb-pages.patch
+selftests-mm-hugetlb_fault_after_madv-add-setup-of-hugetlb-pages.patch
+selftests-mm-hugetlb-madvise-add-setup-of-hugetlb-pages.patch
+selftests-mm-hugetlb_madv_vs_map-add-setup-of-hugetlb-pages.patch
+selftests-mm-hugetlb-mmap-add-setup-of-hugetlb-pages.patch
+selftests-mm-hugetlb-mremap-add-setup-of-hugetlb-pages.patch
+selftests-mm-hugetlb-shm-add-setup-of-hugetlb-pages.patch
+selftests-mm-hugetlb-soft-offline-add-setup-of-hugetlb-pages.patch
+selftests-mm-hugetlb-vmemmap-add-setup-of-hugetlb-pages.patch
+selftests-mm-migration-add-setup-of-hugetlb-pages.patch
+selftests-mm-pagemap_ioctl-add-setup-of-hugetlb-pages.patch
+selftests-mm-protection_keys-use-library-code-for-hugetlb-setup.patch
+selftests-mm-thuge-gen-add-setup-of-hugetlb-pages.patch
+selftests-mm-uffd-stress-use-hugetlb_save-and-alloc-huge-pages.patch
+selftests-mm-uffd-unit-tests-add-setup-of-hugetlb-pages.patch
+selftests-mm-uffd-wp-mremap-add-setup-of-hugetlb-pages.patch
+selftests-mm-va_high_addr_switch-add-setup-of-hugetlb-pages.patch
+selftests-mm-va_high_addr_switchsh-drop-huge-pages-setup.patch
+selftests-mm-run_vmtestssh-free-memory-if-available-memory-is-low.patch
+selftests-mm-run_vmtestssh-drop-detection-and-setup-of-hugetlb.patch
 
