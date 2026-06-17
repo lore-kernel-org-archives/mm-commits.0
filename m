@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1E8DA348463;
-	Wed, 17 Jun 2026 22:38:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F31C639E185
+	for <mm-commits@vger.kernel.org>; Wed, 17 Jun 2026 22:38:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781735910; cv=none; b=StRfvS8xKHXvfV2eL1Hix7JId9vQsX37BH1S9rQcqeO7LTwrYk/Rqlz/09MntRTw4cEu2vBPn8EoFY2UlhVp6lSS29jxW891eewINhz6YtRgD+ha6Ars45SnPkFVqB93qczKgtmhDonKWKhT+8AQ+cZlByoE7aDbCtg4wY6kqX8=
+	t=1781735911; cv=none; b=f3jjDV5xzQBQe3sIs7SG9uUIDXOJbp2PlsrfO3/xulnVTYYUTEpeOeF24tY8nvO/HUzNhKyAow9LRojqcWag3bcoYh8O09Uf/2nMZEs3DrHRTFAP8T5xAoU7T8wBz5V5JPbZ0h20RBa82t6b5sbdMvYPXWwu1KjQrohv7Kn21BU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1781735910; c=relaxed/simple;
-	bh=1eIcUleMCX+/kSMnHrQ9Jk1a96VglzXsex9s/6EEPVs=;
-	h=Date:To:From:Subject:Message-Id; b=DlvQ/DWbEZTzZrPCMtYy8NSeWhr27k30UpgjLAqDgBsiXEV/8hmm92NyRqP6FCXcb8Up08gIx+Fv1LOBDgPLKyIMxiD48d10kCqdh9zzBhqRJVneNhwGetnkt27jtSMrgvIBjgLd7lBFVgcI2RV4G5xMtwIlXaVkMeiafCuYvl8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IeQwNNuX; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1781735911; c=relaxed/simple;
+	bh=ZI/QVxYX5+1ZhwyMNn5R0Wn7f1L2qH7fJ/Ws7e3L6Mk=;
+	h=Date:To:From:Subject:Message-Id; b=m2WmVMSUgTb5rgDnDkwnZyPLGQkmyenSFtU1il4eDbVdudfHkxnwlq5KpEMTRzj3i+OK6Z3gX2K2cLURelqs/T04PxUfEJMlhd16Q0lW9NaFGNU8uzQjDgjxBV66OPEeabszlq3AQt60ZH0sLcxRy8T8I0MBKSACCCsI9Gk72Xs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2ZOu2Zfd; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IeQwNNuX"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 95DCB1F000E9;
-	Wed, 17 Jun 2026 22:38:28 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2ZOu2Zfd"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A4BEB1F00A3A;
+	Wed, 17 Jun 2026 22:38:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1781735908;
-	bh=AC6iO3jmeyUmyx4kacH0c/ip4fEYHm40WeGMtmtpysY=;
+	d=linux-foundation.org; s=korg; t=1781735909;
+	bh=W/DA009J7jCQatz3pQ46lmBc0JPnga2QxgshvgDyTBE=;
 	h=Date:To:From:Subject;
-	b=IeQwNNuXupnKCBKYNNi8WtPt0JbZL6a4SetssiDjlPkrNSB6jXhPR93ETNt/Yoyu8
-	 yiucZnEwEQo7jajiTke0fxZMeJRUC8BrC9TezKK8QRIUERPLLGVoRvKOMzJpoZtRZm
-	 n8bkzPTHNNqtbew+ixQ8JjgGygtFkRdrPCh1wBF8=
-Date: Wed, 17 Jun 2026 15:38:28 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,heming.zhao@suse.com,gechangwei@live.cn,kylebot@openai.com,akpm@linux-foundation.org
+	b=2ZOu2ZfdeSp5ImnoDdP+QihFXH0iqtgMkr/7SebFNnXGBXrcq/nC3bs5fUNXSZKIy
+	 wYYaGdUTYUFj5D8bKQvtLZGdPCAWuOmYrAPhQahOfS1y7ySnv08C4rpVBNs8WVpLHN
+	 n8xiDL1aKxBzmcoyzCPB7bjeP2GcJtWwCt558S5M=
+Date: Wed, 17 Jun 2026 15:38:29 -0700
+To: mm-commits@vger.kernel.org,akpm@linux-foundation.org,sam.moelius@trailofbits.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] ocfs2-avoid-moving-extents-to-occupied-clusters.patch removed from -mm tree
-Message-Id: <20260617223828.95DCB1F000E9@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] lib-interval_tree_test-validate-benchmark-parameters.patch removed from -mm tree
+Message-Id: <20260617223829.A4BEB1F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,78 +35,80 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: ocfs2: avoid moving extents to occupied clusters
+     Subject: lib: interval_tree_test: validate benchmark parameters
 has been removed from the -mm tree.  Its filename was
-     ocfs2-avoid-moving-extents-to-occupied-clusters.patch
+     lib-interval_tree_test-validate-benchmark-parameters.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Kyle Zeng <kylebot@openai.com>
-Subject: ocfs2: avoid moving extents to occupied clusters
-Date: Thu, 11 Jun 2026 14:35:10 -0700
+From: Samuel Moelius <sam.moelius@trailofbits.com>
+Subject: lib: interval_tree_test: validate benchmark parameters
+Date: Tue, 9 Jun 2026 00:54:47 +0000
 
-For non-auto OCFS2_IOC_MOVE_EXT operations, userspace supplies a physical
-me_goal.  ocfs2_move_extent() initializes new_phys_cpos from that goal and
-expects ocfs2_probe_alloc_group() to replace it with a free run in the
-target block group.
+The interval tree runtime test accepts module parameters that are later
+used as divisors while generating randomized intervals and while reporting
+average timings.  For example, max_endpoint=1 makes the generated interval
+end value zero and the next modulo operation divides by that zero value.
 
-The probe currently leaves *phys_cpos unchanged if the scan reaches the
-end of the group without finding a free run.  An occupied goal at the last
-bit can therefore survive the probe and be passed to
-__ocfs2_move_extent(), which copies file data into a cluster still owned
-by another inode before the bitmap is updated.
+Reject non-positive counts and require max_endpoint to provide at least
+one non-zero generated endpoint before the test allocates state or starts
+the benchmark.
 
-When the probe does find a free run, it also subtracts move_len from the
-ending bit.  The start of an N-bit run ending at i is i - N + 1, so the
-current calculation can report the bit immediately before the free run.
-
-Clear *phys_cpos before scanning and use the correct free-run start. 
-Callers already treat a zero result as -ENOSPC, so failed probes no longer
-continue with an occupied caller-controlled goal.
-
-Link: https://lore.kernel.org/20260611213510.16956-1-kylebot@openai.com
-Fixes: e6b5859cccfa ("Ocfs2/move_extents: helper to probe a proper region to move in an alloc group.")
-Fixes: 236b9254f8d1 ("ocfs2: fix non-auto defrag path not working issue")
-Assisted-by: Codex:gpt-5.5
-Signed-off-by: Kyle Zeng <kylebot@openai.com>
-Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Jun Piao <piaojun@huawei.com>
-Cc: Heming Zhao <heming.zhao@suse.com>
-Cc: <stable@vger.kernel.org>
+[akpm@linux-foundation.org: include printk.h for pr_warn()]
+Assisted-by: Codex:gpt-5.5-cyber-preview
+Signed-off-by: Samuel Moelius <sam.moelius@trailofbits.com>
+Link: https://lore.kernel.org/20260609005446.1241288.1525a5964698.interval-tree-test-small-max-endpoint-div0@trailofbits.com
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/move_extents.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ lib/interval_tree_test.c |   22 ++++++++++++++++++++++
+ 1 file changed, 22 insertions(+)
 
---- a/fs/ocfs2/move_extents.c~ocfs2-avoid-moving-extents-to-occupied-clusters
-+++ a/fs/ocfs2/move_extents.c
-@@ -534,6 +534,8 @@ static void ocfs2_probe_alloc_group(stru
- 	u32 base_cpos = ocfs2_blocks_to_clusters(inode->i_sb,
- 						 le64_to_cpu(gd->bg_blkno));
+--- a/lib/interval_tree_test.c~lib-interval_tree_test-validate-benchmark-parameters
++++ a/lib/interval_tree_test.c
+@@ -4,6 +4,7 @@
+ #include <linux/interval_tree.h>
+ #include <linux/prandom.h>
+ #include <linux/slab.h>
++#include <linux/printk.h>
+ #include <asm/timex.h>
+ #include <linux/bitmap.h>
+ #include <linux/maple_tree.h>
+@@ -311,6 +312,27 @@ static inline int span_iteration_check(v
  
-+	*phys_cpos = 0;
+ static int interval_tree_test_init(void)
+ {
++	if (nnodes <= 0) {
++		pr_warn("nnodes must be positive\n");
++		return -EINVAL;
++	}
++	if (nsearches <= 0) {
++		pr_warn("nsearches must be positive\n");
++		return -EINVAL;
++	}
++	if (perf_loops <= 0) {
++		pr_warn("perf_loops must be positive\n");
++		return -EINVAL;
++	}
++	if (search_loops <= 0) {
++		pr_warn("search_loops must be positive\n");
++		return -EINVAL;
++	}
++	if (max_endpoint < 2) {
++		pr_warn("max_endpoint must be at least 2\n");
++		return -EINVAL;
++	}
 +
- 	for (i = base_bit; i < le16_to_cpu(gd->bg_bits); i++) {
- 
- 		used = ocfs2_test_bit(i, (unsigned long *)gd->bg_bitmap);
-@@ -555,7 +557,7 @@ static void ocfs2_probe_alloc_group(stru
- 			last_free_bits++;
- 
- 		if (last_free_bits == move_len) {
--			i -= move_len;
-+			i = i - move_len + 1;
- 			*goal_bit = i;
- 			*phys_cpos = base_cpos + i;
- 			break;
+ 	nodes = kmalloc_objs(struct interval_tree_node, nnodes);
+ 	if (!nodes)
+ 		return -ENOMEM;
 _
 
-Patches currently in -mm which might be from kylebot@openai.com are
+Patches currently in -mm which might be from sam.moelius@trailofbits.com are
 
+mm-page_frag-reject-invalid-cpus-in-page_frag_test.patch
+mm-gup_test-reject-wrapped-user-ranges.patch
 
