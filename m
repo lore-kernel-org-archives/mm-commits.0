@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E662939E9C8
-	for <mm-commits@vger.kernel.org>; Wed, 17 Jun 2026 22:38:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4199E39E9A0
+	for <mm-commits@vger.kernel.org>; Wed, 17 Jun 2026 22:38:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781735903; cv=none; b=aUT+Ylsfg6TRy1cFwUpYoTt1RDSWRhZjVYtEyUuXgS77QvnpKiiLkPXXmIJsluUbV3TPhIVfZpy61d0qRIJCaro9g+Y8ljQIwkRNou9nVo9AGuPM/EUx9w/uxzzOQqKSCwwMnyQ/A6rQwYw0mrhKJ+BCphSClVbw2zibWvOgZf8=
+	t=1781735905; cv=none; b=WOdKAMdg/2VY9JyPlfnEyeFATkmIvblovrLh00OGVzLgwYNePawg0zyD73mCHaG/Wxgzx2idNFNRw9w6iXJq9UURL8RGt7hiA+Habv2XDkl1zNUwD8ky419M2L1KDvPVHdLt9vjzLoGNbS4ZAh81KhlDdpyiCwQA7vCAXpD5EEc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1781735903; c=relaxed/simple;
-	bh=Pt00gh6ctpi+NwtAOQTJMu2ZA83FZ7OyCDG3xART3Vk=;
-	h=Date:To:From:Subject:Message-Id; b=fnxmUUewxu+13UnfKxY1SdN6x8RmrLb3AyfkIfr7T8fp/nvVpsRIrTRrFxTERcVkLmjuqbQl1g0Wm7iRKsIH/Vr9s/q28e7mbhPbazziJHmg1B+IIfjuhhRVPTLuvpSxBPnwBMqAbEuBMrJu3DFoyC55ERU5QHC0Sygw7Leb0EY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=q4g+KB3A; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1781735905; c=relaxed/simple;
+	bh=PvDdXZGmzLl9zAvS46XftYZAbRtZw/Y5C4omenS9kEg=;
+	h=Date:To:From:Subject:Message-Id; b=Xd3cdg5PeGb3D9XR7GCCrcr2MV8nl6+/w12jT5UJIxIGjCFDZwHSI+y1WRxqRgKVwBXFbr1DgwMBHFc5T23myYCMwRWtpNMhoHQhuc0i3TJFU2yDh7fZKzsB6vdm7JIXLqG0ShrIOP8k4DBy4J0aIP/0hS53E9efbW01qfRpUl4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JgDwWiuG; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="q4g+KB3A"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9CF511F000E9;
-	Wed, 17 Jun 2026 22:38:22 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JgDwWiuG"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C95EB1F00A3A;
+	Wed, 17 Jun 2026 22:38:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1781735902;
-	bh=oNZ0z9BTxi6Rj1guvwtvLlfA9oTXF5/GsudJ0ecU5d4=;
+	d=linux-foundation.org; s=korg; t=1781735903;
+	bh=1WPWAuLUwUaNyQlux8b80LlWlD8CL8VuuEps6Q/nmLg=;
 	h=Date:To:From:Subject;
-	b=q4g+KB3ABWbrznjUmiEgXuARCyo7mOSyqCY/p5mr3fgHe3Oxr/UcV+NMvDmWfWMN7
-	 C/5mplRjRMS+PWIv2BOXPDpm8SRGF3Riu5LsIC55PsTzEHE/DH7W1u6MZlIl/glopI
-	 15FPBNEzhWGlDTs8LijFDy7kJbuI/ce5+AR9xovo=
-Date: Wed, 17 Jun 2026 15:38:22 -0700
-To: mm-commits@vger.kernel.org,shuah@kernel.org,richard.weiyang@gmail.com,brauner@kernel.org,kanie@linux.alibaba.com,akpm@linux-foundation.org
+	b=JgDwWiuGrJQozyKnx1LCDu4Epv7DnBA70rxNbkieqXsxE0Y1u8iv7V40rQfUrpzx7
+	 2pzdVdfyMIYDAHFXy2JJP+KrM2MeAD0Y+vKW1TJK7fgMax3nhvY62VM7EAKIXddto+
+	 ka/5Rq781+wPHvSuyGKp2eTh+LRK2+un3VN1VXFg=
+Date: Wed, 17 Jun 2026 15:38:23 -0700
+To: mm-commits@vger.kernel.org,hirofumi@mail.parknet.co.jp,brauner@kernel.org,sam.moelius@trailofbits.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] selftests-uevent-increase-__uevent_buffer_size-to-avoid-enobufs-on-busy-systems.patch removed from -mm tree
-Message-Id: <20260617223822.9CF511F000E9@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] fat-reject-bpb-volumes-whose-data-area-starts-beyond-total-sectors.patch removed from -mm tree
+Message-Id: <20260617223823.C95EB1F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,60 +35,61 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests/uevent: increase __UEVENT_BUFFER_SIZE to avoid ENOBUFS on busy systems
+     Subject: fat: reject BPB volumes whose data area starts beyond total sectors
 has been removed from the -mm tree.  Its filename was
-     selftests-uevent-increase-__uevent_buffer_size-to-avoid-enobufs-on-busy-systems.patch
+     fat-reject-bpb-volumes-whose-data-area-starts-beyond-total-sectors.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Guixin Liu <kanie@linux.alibaba.com>
-Subject: selftests/uevent: increase __UEVENT_BUFFER_SIZE to avoid ENOBUFS on busy systems
-Date: Mon, 8 Jun 2026 13:39:34 +0800
+From: Samuel Moelius <sam.moelius@trailofbits.com>
+Subject: fat: reject BPB volumes whose data area starts beyond total sectors
+Date: Fri, 5 Jun 2026 15:52:15 +0000
 
-The kselftests case uevent.uevent_filtering fails reproducibly on busy
-systems (e.g.  Intel EMR / AMD servers) with:
+fat_fill_super() subtracts sbi->data_start from the BPB total sector count
+before computing the number of clusters.  A malformed image can declare a
+total sector count smaller than data_start, causing the subtraction to
+underflow and the mount code to derive a plausible cluster count from the
+FAT length instead.
 
-  No buffer space available - Failed to receive uevent
+Reject such images before the subtraction.  In QEMU, a crafted FAT image
+with total_sectors=2 and data_start=3 mounted successfully before the fix
+and reading a file returned bytes stored past the BPB-declared end of the
+volume.  With this change, the same image is rejected during mount.
 
-The listener binds the NETLINK_KOBJECT_UEVENT socket to all 32 multicast
-groups (nl_groups = -1) but only sets SO_RCVBUF to 4 KiB
-(__UEVENT_BUFFER_SIZE = 2048 * 2).  On hosts with many devices, the kernel
-and userspace daemons (udev/systemd) constantly emit uevents on multiple
-groups, plus the test itself triggers 10 add events in a row.  The 4 KiB
-receive buffer overflows before the listener can drain it, recvmsg()
-returns -ENOBUFS, and the test bails out as failure.
-
-Increase __UEVENT_BUFFER_SIZE to 1 MiB so the receive buffer is large
-enough to absorb the burst of uevents on busy systems.  After this change
-the test passes consistently across dozens of runs on Intel EMR and AMD
-platforms.
-
-Link: https://lore.kernel.org/20260608053934.4059533-1-kanie@linux.alibaba.com
-Signed-off-by: Guixin Liu <kanie@linux.alibaba.com>
+Assisted-by: Codex:gpt-5.5-cyber-preview
+Link: https://lore.kernel.org/20260605155216.2126545-1-sam.moelius@trailofbits.com
+Signed-off-by: Samuel Moelius <sam.moelius@trailofbits.com>
+Acked-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 Cc: Christian Brauner <brauner@kernel.org>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Wei Yang <richard.weiyang@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/uevent/uevent_filtering.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/fat/inode.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
---- a/tools/testing/selftests/uevent/uevent_filtering.c~selftests-uevent-increase-__uevent_buffer_size-to-avoid-enobufs-on-busy-systems
-+++ a/tools/testing/selftests/uevent/uevent_filtering.c
-@@ -22,7 +22,7 @@
- #include "kselftest_harness.h"
+--- a/fs/fat/inode.c~fat-reject-bpb-volumes-whose-data-area-starts-beyond-total-sectors
++++ a/fs/fat/inode.c
+@@ -1738,6 +1738,14 @@ int fat_fill_super(struct super_block *s
+ 	if (total_sectors == 0)
+ 		total_sectors = bpb.fat_total_sect;
  
- #define __DEV_FULL "/sys/devices/virtual/mem/full/uevent"
--#define __UEVENT_BUFFER_SIZE (2048 * 2)
-+#define __UEVENT_BUFFER_SIZE (1024 * 1024)
- #define __UEVENT_HEADER "add@/devices/virtual/mem/full"
- #define __UEVENT_HEADER_LEN sizeof("add@/devices/virtual/mem/full")
- #define __UEVENT_LISTEN_ALL -1
++	if (total_sectors < sbi->data_start) {
++		if (!silent)
++			fat_msg(sb, KERN_ERR,
++				"data area starts beyond volume (%lu > %u)",
++				sbi->data_start, total_sectors);
++		goto out_invalid;
++	}
++
+ 	total_clusters = (total_sectors - sbi->data_start) / sbi->sec_per_clus;
+ 
+ 	if (!is_fat32(sbi))
 _
 
-Patches currently in -mm which might be from kanie@linux.alibaba.com are
+Patches currently in -mm which might be from sam.moelius@trailofbits.com are
 
+mm-page_frag-reject-invalid-cpus-in-page_frag_test.patch
+mm-gup_test-reject-wrapped-user-ranges.patch
 
