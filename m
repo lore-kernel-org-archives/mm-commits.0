@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 37B8D374E71;
-	Wed, 17 Jun 2026 22:38:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 795E039E9A0
+	for <mm-commits@vger.kernel.org>; Wed, 17 Jun 2026 22:38:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781735914; cv=none; b=jkMqIQi+YKwV2kTcthsHGIQDO61Vvq8xpo8dQZs2okWOKAu51euo1hKuCtyPfTAcqsx2dYg9okbhwbNpMtvzafprJjmUTs0ii+2yHP25yl/9GjReMJyBI62RLIRa4V4KH23z61Gp7gM+mChATEInnf3nPfZfLXxu5ng6FulAicI=
+	t=1781735915; cv=none; b=G2dUn9vLybEpiu1HICZB82YTxiWxrtDxCpLuRFcVzgomjXIxjVwX+C2eYAGGEKnYPLspT+bMYu3WYk/gf/7wswMeu9ZGcDQhlAxWFrJ3+FGeQijP9+CdPtmub7BP4XlMLQxA6QBhDxuGDrtcazPnglXsWy/CuAl212maVy1s2wc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1781735914; c=relaxed/simple;
-	bh=miJMth9NyM2FROzcJJsAaeehqJACDVc+hdtB6GRIlWQ=;
-	h=Date:To:From:Subject:Message-Id; b=RZP02ZFgXk+Gq3iDHDZ5+Y/ACv5HRvvLRuVqVhwn1L8kv8VaJb3Rt8bzZ2YXALjcY2T4/ATJdF07uA7x1G4R2ZcZ9hJ1GH9gTlxwTqBPDf4dwZEx5A9zqL8Iw51t5r/DLiDaK83wZ8rXgg264xgdh/IrNcQCMwBRUa+60CNcY5s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Sa1LncG4; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1781735915; c=relaxed/simple;
+	bh=r6DHSdq+EGluTgzkndBVOtiRPrGtyTzp3QFDgfeCV4k=;
+	h=Date:To:From:Subject:Message-Id; b=E/YcPLKNP2o/ttRkpnXXmFf/I/qqje0a6GVxjLLf73XXoEaTYnku0rFplq+kNgWQNbQTgV1gWNnUSglOP9n636c95Q1ObGuqdKVPITbD3Yiv8KJZucLZ5TVA5f07m7P2tfU4klxRq/OSOn3GjEA2ZC8kzrc4qUZNAU0SQZMO+uY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CX0UKbxn; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Sa1LncG4"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0780B1F000E9;
-	Wed, 17 Jun 2026 22:38:33 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CX0UKbxn"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4D3F61F00A3A;
+	Wed, 17 Jun 2026 22:38:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1781735913;
-	bh=N5YX6geLgDWOznxn64/2ski9sMseXntQPNyd+iEC6QQ=;
+	d=linux-foundation.org; s=korg; t=1781735914;
+	bh=sBesv0QEMHj4eTE+THUda+tj8rB3m0VFFnAX74igtw4=;
 	h=Date:To:From:Subject;
-	b=Sa1LncG4FIsOKz+fXKPTx1rWVVsHm5CztgjDPth52A2oFmomLF6oi11MyJHyAtZ+6
-	 yLNzZo53/Psk9Lpts1QZx8WCllAcAe3iFdKjd0RVJb3Q10dzKIB/FFEb1FR01jJrj6
-	 o71fhUknaDew5AWdR7hu10vACvFO0mea0o06dGik=
-Date: Wed, 17 Jun 2026 15:38:32 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,heming.zhao@suse.com,gechangwei@live.cn,icb@fastmail.org,akpm@linux-foundation.org
+	b=CX0UKbxnhjpQgOBxSNM6H6qyzOTT5utnSdcag51Cn7KBIlccN3xH6vgonBrQBu7uB
+	 qwg1KKGLurLwVdFIZv594uByg5aJGWCaTHheBhMBuqDw9VBhPzDhyZ+ITm9pNNN8Te
+	 r9y0te0xrzjlHA38jMHFJkmPyMWC3EWnnD1vEiXs=
+Date: Wed, 17 Jun 2026 15:38:33 -0700
+To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,jlbec@evilplan.org,jiangqi903@gmail.com,heming.zhao@suse.com,gechangwei@live.cn,nogikh@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] ocfs2-fix-null-h_transaction-deref-in-ocfs2_assure_trans_credits.patch removed from -mm tree
-Message-Id: <20260617223833.0780B1F000E9@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] ocfs2-fix-circular-locking-dependency-in-ocfs2_dio_end_io_write.patch removed from -mm tree
+Message-Id: <20260617223834.4D3F61F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,78 +35,137 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: ocfs2: fix NULL h_transaction deref in ocfs2_assure_trans_credits
+     Subject: ocfs2: fix circular locking dependency in ocfs2_dio_end_io_write
 has been removed from the -mm tree.  Its filename was
-     ocfs2-fix-null-h_transaction-deref-in-ocfs2_assure_trans_credits.patch
+     ocfs2-fix-circular-locking-dependency-in-ocfs2_dio_end_io_write.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Ian Bridges <icb@fastmail.org>
-Subject: ocfs2: fix NULL h_transaction deref in ocfs2_assure_trans_credits
-Date: Thu, 11 Jun 2026 09:46:38 -0500
+From: Aleksandr Nogikh <nogikh@google.com>
+Subject: ocfs2: fix circular locking dependency in ocfs2_dio_end_io_write
+Date: Fri, 12 Jun 2026 11:50:20 +0000 (UTC)
 
-[BUG]
-A direct write over unwritten extents can panic the kernel in
-ocfs2_assure_trans_credits() when the journal aborts during DIO
-completion. The crash is a general protection fault from a NULL pointer
-dereference.
+A circular locking dependency involves INODE_ALLOC_SYSTEM_INODE,
+EXTENT_ALLOC_SYSTEM_INODE, and ORPHAN_DIR_SYSTEM_INODE.
 
-[CAUSE]
-ocfs2_dio_end_io_write() loops over a direct write's unwritten extents,
-marking each written under a single journal handle. If the journal
-aborts (for example after an I/O error) while the extent tree is being
-updated, the handle is left aborted with its transaction pointer
-cleared. The extent merge treats that failure as not critical and
-reports success, so the loop keeps using the handle.
-ocfs2_assure_trans_credits() reads the handle's remaining credits
-without first checking whether the handle is aborted, and that read
-dereferences the cleared transaction pointer.
+1. ocfs2_mknod() acquires INODE_ALLOC then EXTENT_ALLOC.
 
-[FIX]
-A journal abort is recorded in the handle itself, so callers are
-expected to test the handle rather than rely on a returned error.
-Make ocfs2_assure_trans_credits() do that, as the other ocfs2 journal
-helpers already do, and return -EROFS when the handle is aborted.
+2. ocfs2_dio_end_io_write() acquires EXTENT_ALLOC for unwritten
+   extents, then ORPHAN_DIR via ocfs2_del_inode_from_orphan() while still
+   holding EXTENT_ALLOC.
 
-Link: https://lore.kernel.org/airKTsM1fRVN-Wj7@dev
-Fixes: be346c1a6eeb ("ocfs2: fix DIO failure due to insufficient transaction credits")
-Signed-off-by: Ian Bridges <icb@fastmail.org>
-Reported-by: syzbot+e9c15ff790cea6a0cfae@syzkaller.appspotmail.com
-Closes: https://syzkaller.appspot.com/bug?extid=e9c15ff790cea6a0cfae
-Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+3. ocfs2_wipe_inode() acquires ORPHAN_DIR then INODE_ALLOC via
+   ocfs2_remove_inode.
+
+Break the cycle in ocfs2_dio_end_io_write() by freeing the allocation
+contexts (releasing EXTENT_ALLOC) before acquiring ORPHAN_DIR.
+
+WARNING: possible circular locking dependency detected
+------------------------------------------------------
+is trying to acquire lock:
+ffff8881e78b33a0
+(&ocfs2_sysfile_lock_key[INODE_ALLOC_SYSTEM_INODE]){+.+.}-{4:4}, at:
+ocfs2_evict_inode+0x1539/0x43b0 fs/ocfs2/inode.c:1299
+
+but task is already holding lock:
+ffff8881e78b4fa0
+(&ocfs2_sysfile_lock_key[ORPHAN_DIR_SYSTEM_INODE]){+.+.}-{4:4}, at:
+ocfs2_evict_inode+0xe97/0x43b0 fs/ocfs2/inode.c:1299
+
+the existing dependency chain (in reverse order) is:
+
+-> #2 (&ocfs2_sysfile_lock_key[ORPHAN_DIR_SYSTEM_INODE]){+.+.}-{4:4}:
+       inode_lock include/linux/fs.h:1029 [inline]
+       ocfs2_del_inode_from_orphan+0x12e/0x7a0 fs/ocfs2/namei.c:2728
+       ocfs2_dio_end_io+0xf9c/0x1370 fs/ocfs2/aops.c:2418
+       dio_complete+0x25b/0x790 fs/direct-io.c:281
+
+-> #1 (&ocfs2_sysfile_lock_key[EXTENT_ALLOC_SYSTEM_INODE]){+.+.}-{4:4}:
+       inode_lock include/linux/fs.h:1029 [inline]
+       ocfs2_reserve_suballoc_bits+0x16d/0x4840 fs/ocfs2/suballoc.c:882
+       ocfs2_reserve_new_metadata_blocks+0x415/0x9a0
+       fs/ocfs2/suballoc.c:1078
+       ocfs2_mknod+0x10f3/0x2260 fs/ocfs2/namei.c:351
+
+-> #0 (&ocfs2_sysfile_lock_key[INODE_ALLOC_SYSTEM_INODE]){+.+.}-{4:4}:
+       __lock_acquire+0x15a5/0x2cf0 kernel/locking/lockdep.c:5237
+       lock_acquire+0x106/0x350 kernel/locking/lockdep.c:5868
+       down_write+0x96/0x200 kernel/locking/rwsem.c:1625
+       inode_lock include/linux/fs.h:1029 [inline]
+       ocfs2_remove_inode fs/ocfs2/inode.c:733 [inline]
+       ocfs2_wipe_inode fs/ocfs2/inode.c:896 [inline]
+       ocfs2_delete_inode fs/ocfs2/inode.c:1157 [inline]
+       ocfs2_evict_inode+0x1539/0x43b0 fs/ocfs2/inode.c:1299
+
+Chain exists of:
+  &ocfs2_sysfile_lock_key[INODE_ALLOC_SYSTEM_INODE] -->
+  &ocfs2_sysfile_lock_key[EXTENT_ALLOC_SYSTEM_INODE] -->
+  &ocfs2_sysfile_lock_key[ORPHAN_DIR_SYSTEM_INODE]
+
+ Possible unsafe locking scenario:
+
+       CPU0                    CPU1
+       ----                    ----
+  lock(&ocfs2_sysfile_lock_key[ORPHAN_DIR_SYSTEM_INODE]);
+                               lock(&ocfs2_sysfile_lock_key[EXTENT_ALLOC_SYSTEM_INODE]);
+                               lock(&ocfs2_sysfile_lock_key[ORPHAN_DIR_SYSTEM_INODE]);
+  lock(&ocfs2_sysfile_lock_key[INODE_ALLOC_SYSTEM_INODE]);
+
+ *** DEADLOCK ***
+
+Link: https://lore.kernel.org/97c902a6-3bcf-43ea-9b70-f1f136a6c3f2@mail.kernel.org
+Fixes: d647c5b2fbf8 ("ocfs2: split transactions in dio completion to avoid credit exhaustion")
+Assisted-by: Gemini:gemini-3.1-pro-preview Gemini:gemini-3-flash-preview syzbot
+Reported-by: syzbot+b225d4dfce6219600c42@syzkaller.appspotmail.com
+Closes: https://syzkaller.appspot.com/bug?extid=b225d4dfce6219600c42
+Link: https://syzkaller.appspot.com/ai_job?id=0b53ce1e-2972-4192-aa85-8097a702762c
+Signed-off-by: Aleksandr Nogikh <nogikh@google.com>
+Reviewed-by: Heming Zhao <heming.zhao@suse.com>
 Cc: Mark Fasheh <mark@fasheh.com>
 Cc: Joel Becker <jlbec@evilplan.org>
 Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Joseph Qi <jiangqi903@gmail.com>
 Cc: Changwei Ge <gechangwei@live.cn>
 Cc: Jun Piao <piaojun@huawei.com>
-Cc: Heming Zhao <heming.zhao@suse.com>
-Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/journal.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ fs/ocfs2/aops.c |   13 +++++++++----
+ 1 file changed, 9 insertions(+), 4 deletions(-)
 
---- a/fs/ocfs2/journal.c~ocfs2-fix-null-h_transaction-deref-in-ocfs2_assure_trans_credits
-+++ a/fs/ocfs2/journal.c
-@@ -473,8 +473,12 @@ bail:
-  */
- int ocfs2_assure_trans_credits(handle_t *handle, int nblocks)
- {
--	int old_nblks = jbd2_handle_buffer_credits(handle);
-+	int old_nblks;
+--- a/fs/ocfs2/aops.c~ocfs2-fix-circular-locking-dependency-in-ocfs2_dio_end_io_write
++++ a/fs/ocfs2/aops.c
+@@ -2372,6 +2372,15 @@ commit:
+ unlock:
+ 	up_write(&oi->ip_alloc_sem);
  
-+	if (is_handle_aborted(handle))
-+		return -EROFS;
++	if (data_ac) {
++		ocfs2_free_alloc_context(data_ac);
++		data_ac = NULL;
++	}
++	if (meta_ac) {
++		ocfs2_free_alloc_context(meta_ac);
++		meta_ac = NULL;
++	}
 +
-+	old_nblks = jbd2_handle_buffer_credits(handle);
- 	trace_ocfs2_assure_trans_credits(old_nblks);
- 	if (old_nblks >= nblocks)
- 		return 0;
+ 	/* everything looks good, let's start the cleanup */
+ 	if (!ret && dwc->dw_orphaned) {
+ 		BUG_ON(dwc->dw_writer_pid != task_pid_nr(current));
+@@ -2383,10 +2392,6 @@ unlock:
+ 	ocfs2_inode_unlock(inode, 1);
+ 	brelse(di_bh);
+ out:
+-	if (data_ac)
+-		ocfs2_free_alloc_context(data_ac);
+-	if (meta_ac)
+-		ocfs2_free_alloc_context(meta_ac);
+ 	ocfs2_run_deallocs(osb, &dealloc);
+ 	ocfs2_dio_free_write_ctx(inode, dwc);
+ 
 _
 
-Patches currently in -mm which might be from icb@fastmail.org are
+Patches currently in -mm which might be from nogikh@google.com are
 
 
