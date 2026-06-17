@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 80C933A16A1;
-	Wed, 17 Jun 2026 22:38:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6A54439E185
+	for <mm-commits@vger.kernel.org>; Wed, 17 Jun 2026 22:38:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781735906; cv=none; b=lT3p8PRm4tfWaBxKYKEar6q9kob7OR0GXNbhD1ZtDr/BuD65A/gsT3ztExrWFDJFmOOX0vzRPJncyoPcGB45UpFcfnGA4cu4Jwjr3MiFXs9hMVfjSzJ9Fiq+eRm66h3M8+JUQl/5nfEAuEJ3gP7RJNULnOcvi470XK+UEpzjF28=
+	t=1781735907; cv=none; b=d07BJBm7893XvVtG9ohGpwHWO/4Ck92cPJsfyQ0iMTLo/CWDIf3RMnoRFd0hCt+2ugEnr+cMYRNzZuX3xgQvflF35WDJOvT7aJg//SH91dBZ5lY0n0anVBKHZTSLNDdstBxJo52npdpntO6suPBENYDd2lcXlKElQU/yCT5fOvY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1781735906; c=relaxed/simple;
-	bh=HMH+lVLGgqe99xy19Rj4iMRMltZOaARfEJkZk5GFEH4=;
-	h=Date:To:From:Subject:Message-Id; b=WPtTHW4Cl6jp+x/KqvdtiW6r/tzFgRy5Sx+iAIOZbXX/1Oqhn07L5CNa74UAAShlHlE2PCES5Iq98j5rsx5Pg9uHFGg4xbUv2EhWUEKWXYzmsQufaXTzIG4uklVFdilwvQ85+PuuPfNFo9d2p5D/cOfPtsZ+6C3J1qSQyllqlFQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XdjE4U2F; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1781735907; c=relaxed/simple;
+	bh=Y4c0zrCnki9C8sU7Szin7hbyb4sHUfZDTzTVBGHPP+Q=;
+	h=Date:To:From:Subject:Message-Id; b=leuaxxaTjYxetkSi980DCUD9my9luNK4DSeULUqJHYWOFZ0Yrw8p8BQH7tlrl8nbVcxSz79BIDk2ECQqTZZNYdtNw0vqG+5RC1DyEY0vlfY2y2DljsWAVs8opIbWtNmmzaP+P5FtKe68Qb/H0irOxwjvcmXS9TJCcX0xE0zA+LQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WF4zLmKA; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XdjE4U2F"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 11EFA1F000E9;
-	Wed, 17 Jun 2026 22:38:25 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WF4zLmKA"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3C8921F00A3A;
+	Wed, 17 Jun 2026 22:38:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1781735905;
-	bh=QxXjVPmNZT+NleJZwxvesXV9FeS2lbLn27IajwUm/FE=;
+	d=linux-foundation.org; s=korg; t=1781735906;
+	bh=Z9wKJociipQSmwWjcAHe+z3HPQNNC07h9YYZ8njgHWg=;
 	h=Date:To:From:Subject;
-	b=XdjE4U2FdDYY11MsWFGGQCxqCfXd5vDc5BilDc45FR3fzzvxmcIUcD7GtCOCPrZRd
-	 D8GdPvMVgCry+wYMx2dI9aiN9NPthGREICtnFUar6mqHOAjltDwTBTCoZBJI2qqtu8
-	 hJNzGgMyVBXqSWTothDyt4eAIb/W/ajJjONVz2UQ=
-Date: Wed, 17 Jun 2026 15:38:24 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,heming.zhao@suse.com,gechangwei@live.cn,icb@fastmail.org,akpm@linux-foundation.org
+	b=WF4zLmKA15HoIsWKqDVQkl3+x9CHMbALcVpp+mnPh9+iEFunETBKmdgLLTEh7MHqX
+	 /60BQdttdtvRlyzV7gWYxroSZH5/dfUblPNlKYa+zww8curP5BmT5NMHDQhnJmuaBC
+	 XVlU1bQwBpKykXOuQTQ3rRjfPb8A4Q0PKqSaMdL0=
+Date: Wed, 17 Jun 2026 15:38:25 -0700
+To: mm-commits@vger.kernel.org,sj@kernel.org,joe@perches.com,akpm@linux-foundation.org,iamsharduld@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] ocfs2-fix-ubsan-array-index-out-of-bounds-in-ocfs2_sum_rightmost_rec.patch removed from -mm tree
-Message-Id: <20260617223825.11EFA1F000E9@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] treewide-fix-transposed-sign-typos-and-update-spellingtxt.patch removed from -mm tree
+Message-Id: <20260617223826.3C8921F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,98 +35,134 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: ocfs2: fix UBSAN array-index-out-of-bounds in ocfs2_sum_rightmost_rec
+     Subject: treewide: fix transposed "sign" typos and update spelling.txt
 has been removed from the -mm tree.  Its filename was
-     ocfs2-fix-ubsan-array-index-out-of-bounds-in-ocfs2_sum_rightmost_rec.patch
+     treewide-fix-transposed-sign-typos-and-update-spellingtxt.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Ian Bridges <icb@fastmail.org>
-Subject: ocfs2: fix UBSAN array-index-out-of-bounds in ocfs2_sum_rightmost_rec
-Date: Wed, 10 Jun 2026 19:23:11 -0500
+From: Shardul Deshpande <iamsharduld@gmail.com>
+Subject: treewide: fix transposed "sign" typos and update spelling.txt
+Date: Fri, 12 Jun 2026 23:46:32 +0530
 
-[BUG]
-On-disk corruption setting l_next_free_rec to 0 in an inode's embedded
-extent list triggers a UBSAN panic on the next write to that file.
+Several comments transpose the letters in "assigned" and "unsigned",
+spelling them with "sing" instead of "sign".  Correct all of them.
 
-[CAUSE]
-ocfs2_sum_rightmost_rec() computes
-i = le16_to_cpu(el->l_next_free_rec) - 1
-and accesses el->l_recs[i] without validating i. When l_next_free_rec
-is 0, i becomes -1; when l_next_free_rec exceeds l_count, i falls
-past the end of the array. Either case violates the
-__counted_by_le(l_count) annotation on l_recs[] and triggers UBSAN.
+Of these, the misspelling of "assigned" is not yet flagged by checkpatch,
+so also add it to scripts/spelling.txt.
 
-[FIX]
-Validate the inode's embedded extent list when the inode is read, in
-ocfs2_validate_inode_block(): l_count must be non-zero and no larger
-than the inode block can hold, and l_next_free_rec must not exceed
-l_count. A corrupt list is rejected at read time, before the b-tree
-code can index l_recs[] out of bounds.
+The remaining matches of `grep -ri singed` are RISINGEDGE register and
+enum names, not typos.
 
-Link: https://lore.kernel.org/ain_780qc0P4ypNd@dev
-Signed-off-by: Ian Bridges <icb@fastmail.org>
-Reported-by: syzbot+be16e33db01e6644db7a@syzkaller.appspotmail.com
-Closes: https://syzkaller.appspot.com/bug?extid=be16e33db01e6644db7a
-Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Jun Piao <piaojun@huawei.com>
-Cc: Heming Zhao <heming.zhao@suse.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lore.kernel.org/20260612181633.734458-1-iamsharduld@gmail.com
+Signed-off-by: Shardul Deshpande <iamsharduld@gmail.com>
+Suggested-by: Andrew Morton <akpm@linux-foundation.org>
+Reviewed-by: SeongJae Park <sj@kernel.org>
+Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/inode.c |   32 ++++++++++++++++++++++++++++++++
- 1 file changed, 32 insertions(+)
+ arch/arm64/boot/dts/qcom/sc7280-qcard.dtsi |    2 +-
+ drivers/gpu/drm/drm_color_mgmt.c           |    2 +-
+ drivers/scsi/elx/efct/efct_hw.h            |    2 +-
+ drivers/scsi/isci/host.c                   |    2 +-
+ drivers/scsi/isci/port.c                   |    2 +-
+ drivers/scsi/isci/port_config.c            |    2 +-
+ kernel/bpf/helpers.c                       |    2 +-
+ scripts/spelling.txt                       |    1 +
+ 8 files changed, 8 insertions(+), 7 deletions(-)
 
---- a/fs/ocfs2/inode.c~ocfs2-fix-ubsan-array-index-out-of-bounds-in-ocfs2_sum_rightmost_rec
-+++ a/fs/ocfs2/inode.c
-@@ -1696,6 +1696,38 @@ int ocfs2_validate_inode_block(struct su
- 		goto bail;
- 	}
+--- a/arch/arm64/boot/dts/qcom/sc7280-qcard.dtsi~treewide-fix-transposed-sign-typos-and-update-spellingtxt
++++ a/arch/arm64/boot/dts/qcom/sc7280-qcard.dtsi
+@@ -562,7 +562,7 @@ mos_bt_uart: &uart7 {
+  *
+  * This has entries that are defined by Qcard even if they go to the main
+  * board. In cases where the pulls may be board dependent we defer those
+- * settings to the board device tree. Drive strengths tend to be assinged here
++ * settings to the board device tree. Drive strengths tend to be assigned here
+  * but could conceivably be overwridden by board device trees.
+  */
  
-+	if (ocfs2_dinode_has_extents(di)) {
-+		struct ocfs2_extent_list *el = &di->id2.i_list;
-+		u16 count = le16_to_cpu(el->l_count);
-+		u16 next_free = le16_to_cpu(el->l_next_free_rec);
-+
-+		if (count == 0) {
-+			rc = ocfs2_error(sb,
-+					 "Invalid dinode %llu: extent list l_count is zero\n",
-+					 (unsigned long long)bh->b_blocknr);
-+			goto bail;
-+		}
-+		/*
-+		 * The exact capacity depends on i_xattr_inline_size, another
-+		 * unvalidated on-disk field. Inline xattrs only shrink the
-+		 * list, so the no-xattr maximum is a safe upper bound that a
-+		 * valid l_count never exceeds.
-+		 */
-+		if (count > ocfs2_extent_recs_per_inode(sb)) {
-+			rc = ocfs2_error(sb,
-+					 "Invalid dinode %llu: extent list l_count %u exceeds max %u\n",
-+					 (unsigned long long)bh->b_blocknr, count,
-+					 ocfs2_extent_recs_per_inode(sb));
-+			goto bail;
-+		}
-+		if (next_free > count) {
-+			rc = ocfs2_error(sb,
-+					 "Invalid dinode %llu: extent list l_next_free_rec %u exceeds l_count %u\n",
-+					 (unsigned long long)bh->b_blocknr, next_free, count);
-+			goto bail;
-+		}
-+	}
-+
- 	rc = 0;
+--- a/drivers/gpu/drm/drm_color_mgmt.c~treewide-fix-transposed-sign-typos-and-update-spellingtxt
++++ a/drivers/gpu/drm/drm_color_mgmt.c
+@@ -54,7 +54,7 @@
+  *	&drm_crtc_state.degamma_lut.
+  *
+  * “DEGAMMA_LUT_SIZE”:
+- *	Unsinged range property to give the size of the lookup table to be set
++ *	Unsigned range property to give the size of the lookup table to be set
+  *	on the DEGAMMA_LUT property (the size depends on the underlying
+  *	hardware). If drivers support multiple LUT sizes then they should
+  *	publish the largest size, and sub-sample smaller sized LUTs (e.g. for
+--- a/drivers/scsi/elx/efct/efct_hw.h~treewide-fix-transposed-sign-typos-and-update-spellingtxt
++++ a/drivers/scsi/elx/efct/efct_hw.h
+@@ -59,7 +59,7 @@
+ #define EFCT_HW_EQ_DEPTH		1024
  
- bail:
+ /*
+- * A CQ will be assinged to each WQ
++ * A CQ will be assigned to each WQ
+  * (CQ must have 2X entries of the WQ for abort
+  * processing), plus a separate one for each RQ PAIR and one for MQ
+  */
+--- a/drivers/scsi/isci/host.c~treewide-fix-transposed-sign-typos-and-update-spellingtxt
++++ a/drivers/scsi/isci/host.c
+@@ -2488,7 +2488,7 @@ struct isci_request *sci_request_by_tag(
+  *    free remote node ids
+  * @idev: This is the device object which is requesting the a remote node
+  *    id
+- * @node_id: This is the remote node id that is assinged to the device if one
++ * @node_id: This is the remote node id that is assigned to the device if one
+  *    is available
+  *
+  * enum sci_status SCI_FAILURE_OUT_OF_RESOURCES if there are no available remote
+--- a/drivers/scsi/isci/port.c~treewide-fix-transposed-sign-typos-and-update-spellingtxt
++++ a/drivers/scsi/isci/port.c
+@@ -464,7 +464,7 @@ static enum sci_status sci_port_set_phy(
+ {
+ 	/* Check to see if we can add this phy to a port
+ 	 * that means that the phy is not part of a port and that the port does
+-	 * not already have a phy assinged to the phy index.
++	 * not already have a phy assigned to the phy index.
+ 	 */
+ 	if (!iport->phy_table[iphy->phy_index] &&
+ 	    !phy_get_non_dummy_port(iphy) &&
+--- a/drivers/scsi/isci/port_config.c~treewide-fix-transposed-sign-typos-and-update-spellingtxt
++++ a/drivers/scsi/isci/port_config.c
+@@ -259,7 +259,7 @@ sci_mpc_agent_validate_phy_configuration
+ 		if (!phy_mask)
+ 			continue;
+ 		/*
+-		 * Make sure that one or more of the phys were not already assinged to
++		 * Make sure that one or more of the phys were not already assigned to
+ 		 * a different port. */
+ 		if ((phy_mask & ~assigned_phy_mask) == 0) {
+ 			return SCI_FAILURE_UNSUPPORTED_PORT_CONFIGURATION;
+--- a/kernel/bpf/helpers.c~treewide-fix-transposed-sign-typos-and-update-spellingtxt
++++ a/kernel/bpf/helpers.c
+@@ -3601,7 +3601,7 @@ __bpf_kfunc int bpf_copy_from_user_task_
+ 	return ret + 1;
+ }
+ 
+-/* Keep unsinged long in prototype so that kfunc is usable when emitted to
++/* Keep unsigned long in prototype so that kfunc is usable when emitted to
+  * vmlinux.h in BPF programs directly, but note that while in BPF prog, the
+  * unsigned long always points to 8-byte region on stack, the kernel may only
+  * read and write the 4-bytes on 32-bit.
+--- a/scripts/spelling.txt~treewide-fix-transposed-sign-typos-and-update-spellingtxt
++++ a/scripts/spelling.txt
+@@ -176,6 +176,7 @@ assgined||assigned
+ assiged||assigned
+ assigment||assignment
+ assigments||assignments
++assinged||assigned
+ assistent||assistant
+ assocaited||associated
+ assocated||associated
 _
 
-Patches currently in -mm which might be from icb@fastmail.org are
+Patches currently in -mm which might be from iamsharduld@gmail.com are
 
 
