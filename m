@@ -1,122 +1,105 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ed1-f54.google.com (mail-ed1-f54.google.com [209.85.208.54])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E7ECF2E7380;
-	Thu, 18 Jun 2026 18:58:30 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B7967BA34
+	for <mm-commits@vger.kernel.org>; Thu, 18 Jun 2026 19:25:23 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.54
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781809112; cv=none; b=sMilpLgowBRPFRVZNgAsvwrmrgNdHX718t1QsAankf50FYvOL1WigjFJkxcc9BmI0oKYWeM7ACioSzq2xqOkUeuz97K/eIN2lE+rwbCEIbRHvT1GE1Y5rqrml3IDcFjAC0vfdW3kHm8YAZ3FlcQTVbuudyJ2f0zMtc5QC5wbP1g=
+	t=1781810725; cv=none; b=dDF66iPUnuc1wfswK7+FCnzX+nrCV1K155fX2ccgOfcMwtbRBaQV4ua1eii0WAU5p82v36ix9UzwgwPQmOukacuXEwqTocDDYL+3G20kQNOcXTfPu06LPDIbkdcNN3lLZ1cc26+WnYZXEVhXZyK/cCUbwuA2+J8BXgmM/xmXQPA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1781809112; c=relaxed/simple;
-	bh=fwaUZzNMvaZc2BPbZsPy9GK/Y+EIKakI6c48Ze86IEc=;
-	h=Date:To:From:Subject:Message-Id; b=VK/2Bjfk5HiqblbnVrDqgbAu7GOfmixd84iq4sFkDqNxmcLIZBFWuu1ee/t4+/ahvkpQyxYAb1vn0YeMLHJVWR2ugHSSFjYlkJudJTQVxrKekW9UUfxu0AfkMX1waktJsvIn/q2R0+kbVtTg+1KNVuVwPEy+YQsGTZ79zn4Io50=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ndh2oNXb; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1781810725; c=relaxed/simple;
+	bh=MJ/atw/sjJbjgNUE/NJPSlbXr6d7eVv74PHfVe2Qqz0=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=QfgV1ZriwFKDWkpoN8BJRbBwCKjFateyO+PTw0/c7cvF2WVOfYIsJ6XJcKMt1qBVrcxevNXRMQDTZJbofMUmf74jLJ5yCKMWXM0WqWFNH2aytqhVwA4bKaXYZ6ywYJW6Ses1Cqey3PyGdntgo3NImkpHpUoqY+fS2WP3jwF7TCs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linuxfoundation.org; spf=pass smtp.mailfrom=linuxfoundation.org; dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b=E4AU9xGx; arc=none smtp.client-ip=209.85.208.54
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linuxfoundation.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linuxfoundation.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ndh2oNXb"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 978911F00A3A;
-	Thu, 18 Jun 2026 18:58:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b="E4AU9xGx"
+Received: by mail-ed1-f54.google.com with SMTP id 4fb4d7f45d1cf-68bac6e24fdso1866187a12.1
+        for <mm-commits@vger.kernel.org>; Thu, 18 Jun 2026 12:25:23 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1781809110;
-	bh=XmZqcRfe6Zcbmv4JeSN5ep1uMN8ny2VjQolVW7Zqd/Y=;
-	h=Date:To:From:Subject;
-	b=ndh2oNXb9RJeTIJ3iwd7r/RJdzoMV/97KXlMplTonz5cq9OtYNFtwpG/awXl8Ykwg
-	 DMYL4a+2ZCDtrSdEaEils3gWbfYAH5QZrSRl/li+S/uOgSNwE3L8/HQzlxhGkUjEea
-	 fSD+aBxP0OnimAwh4UbrK3oYQU77B5KFmASgQQOk=
-Date: Thu, 18 Jun 2026 11:58:30 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-sysfs-schemes-put-stats-for-scheme_add_dirs-internal-error.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260618185830.978911F00A3A@smtp.kernel.org>
+        d=linuxfoundation.org; s=google; t=1781810722; x=1782415522; darn=vger.kernel.org;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=6gl/162Yyv89laBaNydReyy3xdtnaXM6oi2Bko2qKKQ=;
+        b=E4AU9xGxnqZai2+JMxBxCKLKGw1fTlbShXmto3YMAJRIrTW1lfXacuH6Y4aZBKqU7V
+         5M6guT8XlG8CQoXPPe1gw2BHod+eZxZTdyMD9+rVJYW5HD3WuIoEglCwWExWeKeeED3H
+         7wre97/JQEZfmdwxfzFvI0SJ/s37z7gv2S+1A=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1781810722; x=1782415522;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=6gl/162Yyv89laBaNydReyy3xdtnaXM6oi2Bko2qKKQ=;
+        b=hedgXZteWHF/c9kKrOHl6oTGlrtDbTJCYg9Hz5q5HfmDO7DMlC6JlkiuCjTWzfrShz
+         UQPYMEQ84hmNy39vOnKthfdVBh98QNa18X4lBBZHrrLQXWJhdlYWJFDrPzlHF75a09p9
+         sb/qUPHI4gNE42zxX+Xe5jMzNmhQ1+P53gc+2VD6W1F6dAZdf8q2MxHnuVe0u/t/qZEe
+         8N/O333ss8k1fjrTgjunnDHbNbcK+SDpHrYLv3U53ISXzIjR5iZPwnPRFPa614t8Xu9p
+         9C9+a2x2rYsR8io0WF4n5cUCTo7G4C3usYRxzFiDCohtudvmS/MAuvZvmUMM9KWB8HP/
+         E0Hg==
+X-Gm-Message-State: AOJu0YxRHMVDiuLX0OhnW30HOKNLXH20V8rzj5W+XWRw4d96r1i7RDWX
+	QdLAgBlpib1zPZoomAmx0mc9s7XAa76QMCMOT2cdbQ6jbOcUVYtwQifeiHBSf3hfqS5O7ojMDzS
+	5n2Dlcwc=
+X-Gm-Gg: AfdE7ck1Gu4RnG9Z5iexX4XzElp6umLFal6K1o2I5lRy1Hjct0bzL4FQPpwuH5nLVmJ
+	M4Rf/84JuAyQgt1Xk9fwsGpP9TNrM+RDOoUi5gczw7/ju/q7tX5xf5HVZ31mzwDKqHowQJa0cNx
+	5jKR6jDxiacADmcfuvC1rXJsDg5sL3lsNus85kujI34HhURw13Pcg0PD/mTs8SiOl244Ps5cXZV
+	wCU6eyZ6oBFjz8W8qhP2EdBm45s0ZVoGcWOjgRNDGD0GeeZRk5XQid8KBLFX662ONXU9nJP0OTl
+	4o5ZiW3K8srnbPDTz1VHkxmQ9blp0BMpKoEX5vqb8jPM0KBs49Lf4rgtKb07mk7Brgz9O54xAq4
+	d3kbBuDXlBXff4/wQzeXrepLOUe9WDCit3i8reBG7tDwIaRo2X0zn5rIKlIDiFO0hksE7Y0izpj
+	iWfwn4K24GyJ/WqQjswHz+vpN38HvW+VJQfqhkebBASgvpiyXSqqY5F3xz2ZIV
+X-Received: by 2002:a05:6402:3548:b0:695:837d:529f with SMTP id 4fb4d7f45d1cf-696e5221662mr497935a12.20.1781810722087;
+        Thu, 18 Jun 2026 12:25:22 -0700 (PDT)
+Received: from mail-ej1-f42.google.com (mail-ej1-f42.google.com. [209.85.218.42])
+        by smtp.gmail.com with ESMTPSA id 4fb4d7f45d1cf-696edc75eb7sm130222a12.2.2026.06.18.12.25.20
+        for <mm-commits@vger.kernel.org>
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Thu, 18 Jun 2026 12:25:21 -0700 (PDT)
+Received: by mail-ej1-f42.google.com with SMTP id a640c23a62f3a-c07fd4dc2c8so111256466b.1
+        for <mm-commits@vger.kernel.org>; Thu, 18 Jun 2026 12:25:20 -0700 (PDT)
+X-Received: by 2002:a17:907:3cc2:b0:bfe:ed06:5a16 with SMTP id
+ a640c23a62f3a-c098fed1511mr23022066b.52.1781810719995; Thu, 18 Jun 2026
+ 12:25:19 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+References: <20260618183442.BBCD71F000E9@smtp.kernel.org>
+In-Reply-To: <20260618183442.BBCD71F000E9@smtp.kernel.org>
+From: Linus Torvalds <torvalds@linuxfoundation.org>
+Date: Thu, 18 Jun 2026 12:25:03 -0700
+X-Gmail-Original-Message-ID: <CAHk-=wiQ_10MRYYW+aRfLP4Ah9gDrShOvLESXtz+Q32-9M9Y9w@mail.gmail.com>
+X-Gm-Features: AVVi8CfH2WnN-uQgGzjlFiJWeaLtj_2exZjAxtndehiWrEVgNpGbugy27v-vnzY
+Message-ID: <CAHk-=wiQ_10MRYYW+aRfLP4Ah9gDrShOvLESXtz+Q32-9M9Y9w@mail.gmail.com>
+Subject: Re: + userfaultfd-prevent-registration-of-special-vmas.patch added to
+ mm-hotfixes-unstable branch
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: mm-commits@vger.kernel.org, vladimirelitokarev@gmail.com, 
+	viro@zeniv.linux.org.uk, stable@vger.kernel.org, peterx@redhat.com, 
+	oleg@redhat.com, jack@suse.cz, david@kernel.org, brauner@kernel.org, 
+	rppt@kernel.org
+Content-Type: text/plain; charset="UTF-8"
 
+On Thu, 18 Jun 2026 at 11:34, Andrew Morton <akpm@linux-foundation.org> wrote:
+>
+> Since VM_SPECIAL includes VM_DONTEXPAND which is set but hugetlb, exclude
+> hugetlb VMAs from the check for VM_SPECIAL.
 
-The patch titled
-     Subject: mm/damon/sysfs-schemes: put stats for scheme_add_dirs() internal error
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-damon-sysfs-schemes-put-stats-for-scheme_add_dirs-internal-error.patch
+This seems bogus.
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-schemes-put-stats-for-scheme_add_dirs-internal-error.patch
+If somebody sets DONTEXPAND, then that mapping *is* special, and
+userfaultfd should not mess with it.
 
-This patch will later appear in the mm-hotfixes-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+It feels like hugetlbfs is just wrong to do this.
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+This has caused problems before, see MADV_DODUMP which has that same
+"hugetlb doesn't follow the rules" check.
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+What exactly is it that hugetlbfs wants that DONTEXPAND thing to be?
 
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+That said, I don't like the VM_SPECIAL bit mask all that much, because
+it doesn't specify *what* kind of "special" it is.
 
-------------------------------------------------------
-From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/sysfs-schemes: put stats for scheme_add_dirs() internal error
-Date: Wed, 17 Jun 2026 17:56:48 -0700
-
-damon_sysfs_scheme_add_dirs() setup the tried_regions directory after the
-stats directory setup is completed.  When the tried_regions directory
-setup is failed, the setup function ensures the reference for the tried
-regions directory is released.  Hence the error path should put references
-on setup succeeded directory objects, starting from the stats directory. 
-However, the error path is putting the tried_regions directory instead of
-the stats directory.
-
-As a direct result, the stats directory object is leaked.  Worse yet, if
-the tried_regions directory setup failed from the initial allocation, the
-scheme->tried_regions field remains uninitialized.  The following
-kobject_put(&scheme->tried_regions->kobj) call in the error path will
-dereference the uninitialized memory.  The setup failures should not be
-common.  But once it happens, the consequence is quite bad.
-
-Fix this issue by correctly putting the stats directory instead of the
-tried_regions directory.
-
-The issue was discovered [1] by Sashiko.
-
-Link: https://lore.kernel.org/20260618005650.83868-3-sj@kernel.org
-Link: https://lore.kernel.org/20260617005223.96813-1-sj@kernel.org [1]
-Fixes: 5181b75f438d ("mm/damon/sysfs-schemes: implement schemes/tried_regions directory")
-Signed-off-by: SeongJae Park <sj@kernel.org>
-Cc: <stable@vger.kernel.org> # 6.2.x
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- mm/damon/sysfs-schemes.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
-
---- a/mm/damon/sysfs-schemes.c~mm-damon-sysfs-schemes-put-stats-for-scheme_add_dirs-internal-error
-+++ a/mm/damon/sysfs-schemes.c
-@@ -2283,12 +2283,12 @@ static int damon_sysfs_scheme_add_dirs(s
- 		goto put_filters_watermarks_quotas_access_pattern_out;
- 	err = damon_sysfs_scheme_set_tried_regions(scheme);
- 	if (err)
--		goto put_tried_regions_out;
-+		goto put_stats_out;
- 	return 0;
- 
--put_tried_regions_out:
--	kobject_put(&scheme->tried_regions->kobj);
--	scheme->tried_regions = NULL;
-+put_stats_out:
-+	kobject_put(&scheme->stats->kobj);
-+	scheme->stats = NULL;
- put_filters_watermarks_quotas_access_pattern_out:
- 	kobject_put(&scheme->ops_filters->kobj);
- 	scheme->ops_filters = NULL;
-_
-
-Patches currently in -mm which might be from sj@kernel.org are
-
-mm-damon-sysfs-schemes-fix-dir-put-orders-in-access_pattern_add_dirs.patch
-mm-damon-sysfs-schemes-put-stats-for-scheme_add_dirs-internal-error.patch
-mm-damon-core-always-put-unsuccessfully-committed-target-pids.patch
-
+                  Linus
