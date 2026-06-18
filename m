@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2E70F15A864;
-	Thu, 18 Jun 2026 18:34:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 272C43D75D7;
+	Thu, 18 Jun 2026 18:58:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781807684; cv=none; b=W+AZZGdIomh7pDljZvDPsnfyPuMGcRtzV8vWIfet30/WPP6OMb7d1TOYDhxhOYwX6iA+J6Rey3XzbCeRyJ1LB9iWoJdl7kuGN2wUY3Wq5Xhp8pXPs7xRfkkQmTIH7ZSmCtEExMvb2WzlDrHf6cm7PHy/ji5xBi+YhKoE147jgwk=
+	t=1781809111; cv=none; b=aMxtF3oZmnvO7eYKGZtD1bS/hbMlRbUt5m8TFrgxwXqdKJzbLz6jHCxUjYJfVA1C8vu71BJLQiKcsLUDvjPmsOlaONl2uZCOF9hJW2mWwHMwYrfNRGxDM4BdVLGMXQsJCSqSTLxa2UivXSiBi8VkAjvF5JXqsRQPnhNAfUyVNjY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1781807684; c=relaxed/simple;
-	bh=63vlxuxlUNvwRyOcR8bZBL+gdC7dePKv0Lsd4RjqI1I=;
-	h=Date:To:From:Subject:Message-Id; b=epEAAnDrqy0w9EzNzclo+ExS6KW0fXQZitjod9R7sJNsF5kS6ftPxhgZr6V3OIyPmY63fs7kfgYnpHMvJzVWV61JML0s97YtfdOJT8YtDPeldz4Rd2wlmYR2bT5hP/ytf296FbtCDytSFR2lrahk7kGSPUNOTqfiBfWD2LMlvbo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tJEQAHgf; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1781809111; c=relaxed/simple;
+	bh=WXCCPqxvfl6oxsasf1KzwUKCxNz5rxUrKGph8eCpvqw=;
+	h=Date:To:From:Subject:Message-Id; b=VPH8fAkUybB5nExbrPCKucK9A485jvrGtp9Q3Z7sRO8DsIc1TNX7DKIMFIL8Z2vMliA4S2ByuXLn8ClTfEiFJEvP5IaABFR1PyfE9pGGp1zkTlFs0zinHatC3tf+VgAb74qOHyhf2VUpnjn9qDW09iFpVyQMKiUlEOY0tYiiCLQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KG1+k6AP; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tJEQAHgf"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BBCD71F000E9;
-	Thu, 18 Jun 2026 18:34:42 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KG1+k6AP"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7D0F91F000E9;
+	Thu, 18 Jun 2026 18:58:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1781807682;
-	bh=vJOBl6rNEM7wV46rhbsBVn9UTO0qItXWD97j02VoBoM=;
+	d=linux-foundation.org; s=korg; t=1781809109;
+	bh=Zp5yQzbkPORtILFUCqfrNAGU7etrAWh2Cy5K5XQI6FU=;
 	h=Date:To:From:Subject;
-	b=tJEQAHgfQN93AUexMb71tjeckaa8sqQDK6EUhT3oQzLPt/++pKVFNDIPNmHeIJeiJ
-	 RF2I8+f1qxGZqtP0eFAEEhlPq5fiB2O/YMSDhzQX5Ct6yqSYU1H9BYQUdieHjP0MOC
-	 S4S4o5tft2sG4yUVxNWRkok7YaPwz2DY0HO2YdPI=
-Date: Thu, 18 Jun 2026 11:34:41 -0700
-To: mm-commits@vger.kernel.org,vladimirelitokarev@gmail.com,viro@zeniv.linux.org.uk,torvalds@linuxfoundation.org,stable@vger.kernel.org,peterx@redhat.com,oleg@redhat.com,jack@suse.cz,david@kernel.org,brauner@kernel.org,rppt@kernel.org,akpm@linux-foundation.org
+	b=KG1+k6APPrban5Duc0eiOTYuCppVjuTJyswQzbZsOzhTkkg25Kxf2UU5Q5ktfQf/n
+	 NSiGRvnYluKsDKt5EEqLnBN2I84KbtGQM6MAjV74dVZLvnuFgAAFyRr5UX81kEZgv8
+	 KoX12u2iwu0tfvG6afx2t0qzZYx9uHvwC5v0ACdo=
+Date: Thu, 18 Jun 2026 11:58:29 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + userfaultfd-prevent-registration-of-special-vmas.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260618183442.BBCD71F000E9@smtp.kernel.org>
+Subject: + mm-damon-sysfs-schemes-fix-dir-put-orders-in-access_pattern_add_dirs.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260618185829.7D0F91F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: userfaultfd: prevent registration of special VMAs
+     Subject: mm/damon/sysfs-schemes: fix dir put orders in access_pattern_add_dirs()
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     userfaultfd-prevent-registration-of-special-vmas.patch
+     mm-damon-sysfs-schemes-fix-dir-put-orders-in-access_pattern_add_dirs.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/userfaultfd-prevent-registration-of-special-vmas.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-schemes-fix-dir-put-orders-in-access_pattern_add_dirs.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,116 +58,73 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
-Subject: userfaultfd: prevent registration of special VMAs
-Date: Thu, 18 Jun 2026 12:50:17 +0300
+From: SeongJae Park <sj@kernel.org>
+Subject: mm/damon/sysfs-schemes: fix dir put orders in access_pattern_add_dirs()
+Date: Wed, 17 Jun 2026 17:56:47 -0700
 
-Vova Tokarev says:
+Patch series "mm/damon/sysfs-schemes: fix wrong directories put orders in
+error paths".
 
-  userfaultfd allows registration on shadow stack VMAs.  With userfaultfd
-  access, you can register on the shadow stack, discard a page ... and
-  inject a page with chosen return addresses via UFFDIO_COPY.
+Error paths of damon_sysfs_access_pattern_add_dirs() and
+damon_sysfs_scheme_add_dirs() functions put references to directories in
+wrong orders.  As a result, uninitialized memory dereference and/or
+memory leak can happen.  Fix those.
 
-Update vma_can_userfault() to reject VM_SHADOW_STACK.
 
-While on it, also reject VM_SPECIAL so that if a driver would implement
-vm_uffd_ops, it wouldn't be possible to register special VMAs with
-userfaultfd.
+This patch (of 2):
 
-Since VM_SPECIAL includes VM_DONTEXPAND which is set but hugetlb, exclude
-hugetlb VMAs from the check for VM_SPECIAL.
+In access_pattern_add_dirs(), error handling path puts references starting
+from setup failed directories.  If the failure happpened from the initial
+allication in the setup functions, uninitialized memory dereference
+happen.  The allocation failures will not commonly happen, but the
+consequence is quite bad.  Fix the wrong reference put orders.
 
-Link: https://lore.kernel.org/20260618095017.2553004-1-rppt@kernel.org
-Fixes: 54007f818206 ("mm: Introduce VM_SHADOW_STACK for shadow stack memory")
-Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Reported-by: vova tokarev <vladimirelitokarev@gmail.com>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Linus Torvalds <torvalds@linuxfoundation.org>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: <stable@vger.kernel.org>
+The issue was discovered [1] by Sashiko.
+
+Link: https://lore.kernel.org/20260618005650.83868-2-sj@kernel.org
+Link: https://lore.kernel.org/20260617060005.86852-1-sj@kernel.org [1]
+Fixes: 7e84b1f8212a ("mm/damon/sysfs: support DAMON-based Operation Schemes")
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Cc: <stable@vger.kernel.org> # 5.18.x
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/userfaultfd.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ mm/damon/sysfs-schemes.c |    9 +++------
+ 1 file changed, 3 insertions(+), 6 deletions(-)
 
---- a/mm/userfaultfd.c~userfaultfd-prevent-registration-of-special-vmas
-+++ a/mm/userfaultfd.c
-@@ -2095,7 +2095,10 @@ bool vma_can_userfault(struct vm_area_st
- {
- 	const struct vm_uffd_ops *ops = vma_uffd_ops(vma);
+--- a/mm/damon/sysfs-schemes.c~mm-damon-sysfs-schemes-fix-dir-put-orders-in-access_pattern_add_dirs
++++ a/mm/damon/sysfs-schemes.c
+@@ -1767,22 +1767,19 @@ static int damon_sysfs_access_pattern_ad
+ 	err = damon_sysfs_access_pattern_add_range_dir(access_pattern,
+ 			&access_pattern->sz, "sz");
+ 	if (err)
+-		goto put_sz_out;
++		return err;
  
--	if (vma->vm_flags & VM_DROPPABLE)
-+	if (vma->vm_flags & (VM_DROPPABLE | VM_SHADOW_STACK))
-+		return false;
-+
-+	if (!is_vm_hugetlb_page(vma) && (vma->vm_flags & VM_SPECIAL))
- 		return false;
+ 	err = damon_sysfs_access_pattern_add_range_dir(access_pattern,
+ 			&access_pattern->nr_accesses, "nr_accesses");
+ 	if (err)
+-		goto put_nr_accesses_sz_out;
++		goto put_sz_out;
  
- 	vm_flags &= __VM_UFFD_FLAGS;
+ 	err = damon_sysfs_access_pattern_add_range_dir(access_pattern,
+ 			&access_pattern->age, "age");
+ 	if (err)
+-		goto put_age_nr_accesses_sz_out;
++		goto put_nr_accesses_sz_out;
+ 	return 0;
+ 
+-put_age_nr_accesses_sz_out:
+-	kobject_put(&access_pattern->age->kobj);
+-	access_pattern->age = NULL;
+ put_nr_accesses_sz_out:
+ 	kobject_put(&access_pattern->nr_accesses->kobj);
+ 	access_pattern->nr_accesses = NULL;
 _
 
-Patches currently in -mm which might be from rppt@kernel.org are
+Patches currently in -mm which might be from sj@kernel.org are
 
-userfaultfd-prevent-registration-of-special-vmas.patch
-selftests-mm-hugetlb-read-hwpoison-add-sigbus-handler.patch
-selftests-mm-migration-dont-assume-huge-page-is-twomeg.patch
-selftests-mm-migration-make-nthreads-represent-number-of-working-threads.patch
-selftests-mm-migration-properly-cleanup-forked-processes.patch
-selftests-mm-run_vmtestssh-dont-gate-thp-and-ksm-tests-on-have_hugepages.patch
-selftests-mm-merge-map_hugetlb-into-hugepage-mmap.patch
-selftests-mm-rename-hugepage-tests-to-hugetlb.patch
-selftests-mm-hugetlb-shm-use-kselftest-framework.patch
-selftests-mm-hugetlb-vmemmap-use-kselftest-framework.patch
-selftests-mm-hugetlb-madvise-use-kselftest-framework.patch
-selftests-mm-hugetlb_madv_vs_map-use-kselftest-framework.patch
-selftests-mm-hugetlb-read-hwpoison-use-kselftest-framework.patch
-selftests-mm-khugepaged-group-tests-in-an-array.patch
-selftests-mm-khugepaged-use-ksefltest-framework.patch
-selftests-mm-ksm_tests-use-kselftest-framework.patch
-selftests-mm-protection_keys-use-descriptive-test-names-in-the-output.patch
-selftests-mm-protection_keys-use-kselftest-framework.patch
-selftests-mm-uffd-common-use-kselftest-framework.patch
-selftests-mm-uffd-stress-use-kselftest-framework.patch
-selftests-mm-uffd-unit-tests-use-kselftest-framework.patch
-selftests-mm-va_high_addr_switch-use-kselftest-framework.patch
-selftests-mm-add-atexit-and-signal-handlers-to-thp_settings.patch
-selftests-mm-rename-thp_settings-to-hugepage_settings.patch
-selftests-mm-move-hugetlb-helpers-to-hugepage_settings.patch
-selftests-mm-hugepage_settings-use-unsigned-long-in-detect_hugetlb_page_size.patch
-selftests-mm-hugepage_settings-add-apis-to-get-and-set-nr_hugepages.patch
-selftests-mm-hugepage_settings-rename-and-rework-get_free_hugepages.patch
-selftests-mm-hugepage_settings-add-apis-for-hugetlb-setup-and-teardown.patch
-selftests-mm-move-read_file-read_num-and-write_num-to-vm_util.patch
-selftests-mm-vm_util-add-helpers-to-set-and-restore-shm-limits.patch
-selftests-mm-compaction_test-use-hugetlb-helpers.patch
-selftests-mm-cow-add-setup-of-hugetlb-pages.patch
-selftests-mm-gup_longterm-add-setup-of-hugetlb-pages.patch
-selftests-mm-gup_test-add-setup-of-hugetlb-pages.patch
-selftests-mm-hmm-tests-add-setup-of-hugetlb-pages.patch
-selftests-mm-hugepage_dio-add-setup-of-hugetlb-pages.patch
-selftests-mm-hugetlb_fault_after_madv-add-setup-of-hugetlb-pages.patch
-selftests-mm-hugetlb-madvise-add-setup-of-hugetlb-pages.patch
-selftests-mm-hugetlb_madv_vs_map-add-setup-of-hugetlb-pages.patch
-selftests-mm-hugetlb-mmap-add-setup-of-hugetlb-pages.patch
-selftests-mm-hugetlb-mremap-add-setup-of-hugetlb-pages.patch
-selftests-mm-hugetlb-shm-add-setup-of-hugetlb-pages.patch
-selftests-mm-hugetlb-soft-offline-add-setup-of-hugetlb-pages.patch
-selftests-mm-hugetlb-vmemmap-add-setup-of-hugetlb-pages.patch
-selftests-mm-migration-add-setup-of-hugetlb-pages.patch
-selftests-mm-pagemap_ioctl-add-setup-of-hugetlb-pages.patch
-selftests-mm-protection_keys-use-library-code-for-hugetlb-setup.patch
-selftests-mm-thuge-gen-add-setup-of-hugetlb-pages.patch
-selftests-mm-uffd-stress-use-hugetlb_save-and-alloc-huge-pages.patch
-selftests-mm-uffd-unit-tests-add-setup-of-hugetlb-pages.patch
-selftests-mm-uffd-wp-mremap-add-setup-of-hugetlb-pages.patch
-selftests-mm-va_high_addr_switch-add-setup-of-hugetlb-pages.patch
-selftests-mm-va_high_addr_switchsh-drop-huge-pages-setup.patch
-selftests-mm-run_vmtestssh-free-memory-if-available-memory-is-low.patch
-selftests-mm-run_vmtestssh-drop-detection-and-setup-of-hugetlb.patch
+mm-damon-sysfs-schemes-fix-dir-put-orders-in-access_pattern_add_dirs.patch
+mm-damon-sysfs-schemes-put-stats-for-scheme_add_dirs-internal-error.patch
+mm-damon-core-always-put-unsuccessfully-committed-target-pids.patch
 
