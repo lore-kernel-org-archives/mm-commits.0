@@ -1,171 +1,63 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 795E039E9A0
-	for <mm-commits@vger.kernel.org>; Wed, 17 Jun 2026 22:38:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 323A2301474;
+	Thu, 18 Jun 2026 15:22:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781735915; cv=none; b=G2dUn9vLybEpiu1HICZB82YTxiWxrtDxCpLuRFcVzgomjXIxjVwX+C2eYAGGEKnYPLspT+bMYu3WYk/gf/7wswMeu9ZGcDQhlAxWFrJ3+FGeQijP9+CdPtmub7BP4XlMLQxA6QBhDxuGDrtcazPnglXsWy/CuAl212maVy1s2wc=
+	t=1781796171; cv=none; b=r7gqxKFh7otFYJUnz1tM++ieVp2Lj4w/iOOye3w2CMqdZFZEcJDPdZxWejv/6OW4aGMrBuPELs+JNg81Q9DyPT7+Y28GA7UM06c4uYW9JP4/gWR9g8BVFuW5v3hJWzixhkmbFbYDzJrkWwSr+8n+Xis3BP0s76iGd19lhBFuG3E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1781735915; c=relaxed/simple;
-	bh=r6DHSdq+EGluTgzkndBVOtiRPrGtyTzp3QFDgfeCV4k=;
-	h=Date:To:From:Subject:Message-Id; b=E/YcPLKNP2o/ttRkpnXXmFf/I/qqje0a6GVxjLLf73XXoEaTYnku0rFplq+kNgWQNbQTgV1gWNnUSglOP9n636c95Q1ObGuqdKVPITbD3Yiv8KJZucLZ5TVA5f07m7P2tfU4klxRq/OSOn3GjEA2ZC8kzrc4qUZNAU0SQZMO+uY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CX0UKbxn; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1781796171; c=relaxed/simple;
+	bh=5Tec+3BnAGokZxbKvS4RpBeWhY4xFRuTP9yvySbyFhI=;
+	h=Subject:From:In-Reply-To:References:Message-Id:Date:To:Cc; b=qTSXROVsuU6gNx8NjnlMBJpcx8hDjxFapdZR6Db2Ul5N6OZSp5v+3fzVEHkDvLpprOokXI2Zfhn7syiUfOS8CkjPiDvNSD3HkosAYZ0IXXYwREByj+YABCAjxKLJucZSfc3h/0rdnykHJLkd4OHpOWr4RqJxX5JDiNWztJ6Z6QA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=N2Nr7ytf; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CX0UKbxn"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4D3F61F00A3A;
-	Wed, 17 Jun 2026 22:38:34 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1781735914;
-	bh=sBesv0QEMHj4eTE+THUda+tj8rB3m0VFFnAX74igtw4=;
-	h=Date:To:From:Subject;
-	b=CX0UKbxnhjpQgOBxSNM6H6qyzOTT5utnSdcag51Cn7KBIlccN3xH6vgonBrQBu7uB
-	 qwg1KKGLurLwVdFIZv594uByg5aJGWCaTHheBhMBuqDw9VBhPzDhyZ+ITm9pNNN8Te
-	 r9y0te0xrzjlHA38jMHFJkmPyMWC3EWnnD1vEiXs=
-Date: Wed, 17 Jun 2026 15:38:33 -0700
-To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,jlbec@evilplan.org,jiangqi903@gmail.com,heming.zhao@suse.com,gechangwei@live.cn,nogikh@google.com,akpm@linux-foundation.org
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] ocfs2-fix-circular-locking-dependency-in-ocfs2_dio_end_io_write.patch removed from -mm tree
-Message-Id: <20260617223834.4D3F61F00A3A@smtp.kernel.org>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="N2Nr7ytf"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 190CF1F000E9;
+	Thu, 18 Jun 2026 15:22:50 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1781796170;
+	bh=Nfq1nbewpV3ldPfGqEuLaQwrCSsnXhHgF/2bLP+ehnw=;
+	h=Subject:From:In-Reply-To:References:Date:To:Cc;
+	b=N2Nr7ytfhqX7K0LgZSwkknMdgIvFgp9ntonxB5VrfsNnW9cQSbrJaGoUSfL+HwBJ9
+	 nulFvfd41BWOje9qlK9jie6MrLaeLHSect6HVz3oJXN5oGA2orNlQ6M4p8gRiNjZJE
+	 TZMFZsf8FXP37U3si2wzgvUxAsPsOclACeYhqMqolY2qpABFoaOGaGE7vhcn/iildf
+	 YNUHNCG3zrxQF2HGvKE/1c8+l8Lnmf245Kc1LQ9fFz6PIev8YuTWq0aL3RBvqW4yP7
+	 TddxrF5P64X3IiHWrqcarNhRzO0A2BimNg8FKLE8NtlSKelV+pO0VMBPCTbvmBJNLz
+	 StecrDSSmcuVA==
+Received: from [10.30.226.235] (localhost [IPv6:::1])
+	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id D0A603A566DE;
+	Thu, 18 Jun 2026 15:22:44 +0000 (UTC)
+Subject: Re: [GIT PULL] MM updates for 7.2-rc1
+From: pr-tracker-bot@kernel.org
+In-Reply-To: <20260617153144.acead3f2795da15f1e56005c@linux-foundation.org>
+References: <20260617153144.acead3f2795da15f1e56005c@linux-foundation.org>
+X-PR-Tracked-List-Id: <linux-mm.kvack.org>
+X-PR-Tracked-Message-Id: <20260617153144.acead3f2795da15f1e56005c@linux-foundation.org>
+X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-stable-2026-06-17-15-16
+X-PR-Tracked-Commit-Id: e771677c937da5808f7b6c1f0e4a97ec1a84f8a8
+X-PR-Merge-Tree: torvalds/linux.git
+X-PR-Merge-Refname: refs/heads/master
+X-PR-Merge-Commit-Id: 2f9f5887b42711595e768b9dc0582dccfdf60c3b
+Message-Id: <178179616355.2947725.4377157124023044624.pr-tracker-bot@kernel.org>
+Date: Thu, 18 Jun 2026 15:22:43 +0000
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, linux-mm@kvack.org, mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
+The pull request you sent on Wed, 17 Jun 2026 15:31:44 -0700:
 
-The quilt patch titled
-     Subject: ocfs2: fix circular locking dependency in ocfs2_dio_end_io_write
-has been removed from the -mm tree.  Its filename was
-     ocfs2-fix-circular-locking-dependency-in-ocfs2_dio_end_io_write.patch
+> git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-stable-2026-06-17-15-16
 
-This patch was dropped because it was merged into the mm-nonmm-stable branch
-of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+has been merged into torvalds/linux.git:
+https://git.kernel.org/torvalds/c/2f9f5887b42711595e768b9dc0582dccfdf60c3b
 
-------------------------------------------------------
-From: Aleksandr Nogikh <nogikh@google.com>
-Subject: ocfs2: fix circular locking dependency in ocfs2_dio_end_io_write
-Date: Fri, 12 Jun 2026 11:50:20 +0000 (UTC)
+Thank you!
 
-A circular locking dependency involves INODE_ALLOC_SYSTEM_INODE,
-EXTENT_ALLOC_SYSTEM_INODE, and ORPHAN_DIR_SYSTEM_INODE.
-
-1. ocfs2_mknod() acquires INODE_ALLOC then EXTENT_ALLOC.
-
-2. ocfs2_dio_end_io_write() acquires EXTENT_ALLOC for unwritten
-   extents, then ORPHAN_DIR via ocfs2_del_inode_from_orphan() while still
-   holding EXTENT_ALLOC.
-
-3. ocfs2_wipe_inode() acquires ORPHAN_DIR then INODE_ALLOC via
-   ocfs2_remove_inode.
-
-Break the cycle in ocfs2_dio_end_io_write() by freeing the allocation
-contexts (releasing EXTENT_ALLOC) before acquiring ORPHAN_DIR.
-
-WARNING: possible circular locking dependency detected
-------------------------------------------------------
-is trying to acquire lock:
-ffff8881e78b33a0
-(&ocfs2_sysfile_lock_key[INODE_ALLOC_SYSTEM_INODE]){+.+.}-{4:4}, at:
-ocfs2_evict_inode+0x1539/0x43b0 fs/ocfs2/inode.c:1299
-
-but task is already holding lock:
-ffff8881e78b4fa0
-(&ocfs2_sysfile_lock_key[ORPHAN_DIR_SYSTEM_INODE]){+.+.}-{4:4}, at:
-ocfs2_evict_inode+0xe97/0x43b0 fs/ocfs2/inode.c:1299
-
-the existing dependency chain (in reverse order) is:
-
--> #2 (&ocfs2_sysfile_lock_key[ORPHAN_DIR_SYSTEM_INODE]){+.+.}-{4:4}:
-       inode_lock include/linux/fs.h:1029 [inline]
-       ocfs2_del_inode_from_orphan+0x12e/0x7a0 fs/ocfs2/namei.c:2728
-       ocfs2_dio_end_io+0xf9c/0x1370 fs/ocfs2/aops.c:2418
-       dio_complete+0x25b/0x790 fs/direct-io.c:281
-
--> #1 (&ocfs2_sysfile_lock_key[EXTENT_ALLOC_SYSTEM_INODE]){+.+.}-{4:4}:
-       inode_lock include/linux/fs.h:1029 [inline]
-       ocfs2_reserve_suballoc_bits+0x16d/0x4840 fs/ocfs2/suballoc.c:882
-       ocfs2_reserve_new_metadata_blocks+0x415/0x9a0
-       fs/ocfs2/suballoc.c:1078
-       ocfs2_mknod+0x10f3/0x2260 fs/ocfs2/namei.c:351
-
--> #0 (&ocfs2_sysfile_lock_key[INODE_ALLOC_SYSTEM_INODE]){+.+.}-{4:4}:
-       __lock_acquire+0x15a5/0x2cf0 kernel/locking/lockdep.c:5237
-       lock_acquire+0x106/0x350 kernel/locking/lockdep.c:5868
-       down_write+0x96/0x200 kernel/locking/rwsem.c:1625
-       inode_lock include/linux/fs.h:1029 [inline]
-       ocfs2_remove_inode fs/ocfs2/inode.c:733 [inline]
-       ocfs2_wipe_inode fs/ocfs2/inode.c:896 [inline]
-       ocfs2_delete_inode fs/ocfs2/inode.c:1157 [inline]
-       ocfs2_evict_inode+0x1539/0x43b0 fs/ocfs2/inode.c:1299
-
-Chain exists of:
-  &ocfs2_sysfile_lock_key[INODE_ALLOC_SYSTEM_INODE] -->
-  &ocfs2_sysfile_lock_key[EXTENT_ALLOC_SYSTEM_INODE] -->
-  &ocfs2_sysfile_lock_key[ORPHAN_DIR_SYSTEM_INODE]
-
- Possible unsafe locking scenario:
-
-       CPU0                    CPU1
-       ----                    ----
-  lock(&ocfs2_sysfile_lock_key[ORPHAN_DIR_SYSTEM_INODE]);
-                               lock(&ocfs2_sysfile_lock_key[EXTENT_ALLOC_SYSTEM_INODE]);
-                               lock(&ocfs2_sysfile_lock_key[ORPHAN_DIR_SYSTEM_INODE]);
-  lock(&ocfs2_sysfile_lock_key[INODE_ALLOC_SYSTEM_INODE]);
-
- *** DEADLOCK ***
-
-Link: https://lore.kernel.org/97c902a6-3bcf-43ea-9b70-f1f136a6c3f2@mail.kernel.org
-Fixes: d647c5b2fbf8 ("ocfs2: split transactions in dio completion to avoid credit exhaustion")
-Assisted-by: Gemini:gemini-3.1-pro-preview Gemini:gemini-3-flash-preview syzbot
-Reported-by: syzbot+b225d4dfce6219600c42@syzkaller.appspotmail.com
-Closes: https://syzkaller.appspot.com/bug?extid=b225d4dfce6219600c42
-Link: https://syzkaller.appspot.com/ai_job?id=0b53ce1e-2972-4192-aa85-8097a702762c
-Signed-off-by: Aleksandr Nogikh <nogikh@google.com>
-Reviewed-by: Heming Zhao <heming.zhao@suse.com>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Joseph Qi <jiangqi903@gmail.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Jun Piao <piaojun@huawei.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- fs/ocfs2/aops.c |   13 +++++++++----
- 1 file changed, 9 insertions(+), 4 deletions(-)
-
---- a/fs/ocfs2/aops.c~ocfs2-fix-circular-locking-dependency-in-ocfs2_dio_end_io_write
-+++ a/fs/ocfs2/aops.c
-@@ -2372,6 +2372,15 @@ commit:
- unlock:
- 	up_write(&oi->ip_alloc_sem);
- 
-+	if (data_ac) {
-+		ocfs2_free_alloc_context(data_ac);
-+		data_ac = NULL;
-+	}
-+	if (meta_ac) {
-+		ocfs2_free_alloc_context(meta_ac);
-+		meta_ac = NULL;
-+	}
-+
- 	/* everything looks good, let's start the cleanup */
- 	if (!ret && dwc->dw_orphaned) {
- 		BUG_ON(dwc->dw_writer_pid != task_pid_nr(current));
-@@ -2383,10 +2392,6 @@ unlock:
- 	ocfs2_inode_unlock(inode, 1);
- 	brelse(di_bh);
- out:
--	if (data_ac)
--		ocfs2_free_alloc_context(data_ac);
--	if (meta_ac)
--		ocfs2_free_alloc_context(meta_ac);
- 	ocfs2_run_deallocs(osb, &dealloc);
- 	ocfs2_dio_free_write_ctx(inode, dwc);
- 
-_
-
-Patches currently in -mm which might be from nogikh@google.com are
-
-
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/prtracker.html
