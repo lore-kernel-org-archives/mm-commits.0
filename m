@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 42A6A36F907
-	for <mm-commits@vger.kernel.org>; Sun, 21 Jun 2026 18:39:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7020A36F8F0
+	for <mm-commits@vger.kernel.org>; Sun, 21 Jun 2026 18:39:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782067190; cv=none; b=eEwbCgPou1SIHBv19RbeHAoAWyEktcuBVa+u/+Vn82n2xWG2SNOmoVEWHDSaKSjsSNfaWNQx9k/vXz9wY5KKFgRWmr9y/6wfze1kC2mcL6qOTz9e5ncNswLKbFggp0qKFWWkEBfpCiOUdoSTIJVKpgNSEXLkxTK7pDXILl5ltSY=
+	t=1782067191; cv=none; b=Gk2xmMKGyVI2F78Zqg4NpranSf0QiylDAQo2nmzb6Rj8UnjMe2PAZHrNkXK/zkltbySr5l3KOvKHLy0AX24NAcq4ApbEY8u/b+1qa9zfJp/ACt+P2ejIjkuX2PHk05x3rvgedxFL5ubBk/Nkrp2YkJ/Jjk+pNxu/ivdbqLFQwPU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782067190; c=relaxed/simple;
-	bh=2NJewyAwiP+vsvOHEFlFWlwyBEh9wcm+q4W8CvdYYwk=;
-	h=Date:To:From:Subject:Message-Id; b=YSbPD7WDNtjmmLPBck6QGAz2QaJAXd4vAKH352wxsBzm918AW8EVpdKtQjI15rD5IAVv5A+f+hIhkTNaBUkEhDEsmhKj2GcAAihVQKrX/kgagoP7sl17U4XKDVZmh3ZI181HoaI+4Lzr4uSS8Wpq+G2t0qj3Lt4+fr+k5T0Tl8I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=z1o3/jD+; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1782067191; c=relaxed/simple;
+	bh=3L0rwh6+5avfHTknHTZPXJJnsr3RXwZ8mO5S+hD+C+c=;
+	h=Date:To:From:Subject:Message-Id; b=aDwBPt6ebGqFyIpu1BTRmkzEWvnNCI/vy/sLuqi9Vv4bk7oT1yPurP02+qPAjKqvwJevk0KIEyeV9EDHnpfBuig8SxuWB9KDIxiRuVKEqlH+u4mSmVnjjnVyrfiK9TT3XLMHCemYy6uPhm5mDcrem5GjM4LJJXIH4+D4MvbGcb8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zxVo+6MX; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="z1o3/jD+"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1513F1F000E9;
-	Sun, 21 Jun 2026 18:39:49 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zxVo+6MX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 42F5D1F00A3A;
+	Sun, 21 Jun 2026 18:39:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1782067189;
-	bh=Cu8U4L6xk3WFo+rIHU8U9ZkvkLOVoa00oTD/woLwLyI=;
+	d=linux-foundation.org; s=korg; t=1782067190;
+	bh=401V/hfUFFq7DfaxHwOWTMTK3mfoS+delpVPkvHLjFg=;
 	h=Date:To:From:Subject;
-	b=z1o3/jD+XF0X5L3on8GOTJZ9d/g1Uezn2ktkI+nfj8lKa+eTiBJh2n5H1NIqcSHaT
-	 FgMXKhiwIHAyEahMNgKPC34PoQl0aMnYBvpDqMG3Qju/8Q50FRhhfKFh1IY6CHs7d9
-	 wxP643ontY0vR+up8J0Xla05YN92EeLzZSkUWxs8=
-Date: Sun, 21 Jun 2026 11:39:48 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,surenb@google.com,shuah@kernel.org,sarthak.sharma@arm.com,ryan.roberts@arm.com,peterx@redhat.com,npache@redhat.com,mhocko@suse.com,luizcap@redhat.com,ljs@kernel.org,li.wang@linux.dev,liam@infradead.org,leon@kernel.org,lance.yang@linux.dev,jhubbard@nvidia.com,jgg@ziepe.ca,donettom@linux.ibm.com,dev.jain@arm.com,david@kernel.org,broonie@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,rppt@kernel.org,akpm@linux-foundation.org
+	b=zxVo+6MXZYEECraykepOe01z177UxepFOJ4jt+Spqpl02H/DuNj7kD9rf0aQopvJ8
+	 vJgWU2FcwO4qMeAufm9cuK9Vk9GKABABhu1H+Vv1ygTlF1Q7pa4qIy9JhOywBYkZMh
+	 K9nCVElqfSqmzBKzkWGX+2Re1DGUpkEl1uJEzycY=
+Date: Sun, 21 Jun 2026 11:39:49 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,ryan.roberts@arm.com,npache@redhat.com,ljs@kernel.org,liam@infradead.org,lance.yang@linux.dev,dev.jain@arm.com,david@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,chenwandun@lixiang.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-mm-run_vmtestssh-drop-detection-and-setup-of-hugetlb.patch removed from -mm tree
-Message-Id: <20260621183949.1513F1F000E9@smtp.kernel.org>
+Subject: [merged mm-stable] mm-khugepaged-avoid-underflow-in-madvise_collapse-for-sub-pmd-madv_collapse.patch removed from -mm tree
+Message-Id: <20260621183950.42F5D1F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,249 +35,79 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests/mm: run_vmtests.sh: drop detection and setup of HugeTLB
+     Subject: mm/khugepaged: avoid underflow in madvise_collapse for sub-PMD MADV_COLLAPSE
 has been removed from the -mm tree.  Its filename was
-     selftests-mm-run_vmtestssh-drop-detection-and-setup-of-hugetlb.patch
+     mm-khugepaged-avoid-underflow-in-madvise_collapse-for-sub-pmd-madv_collapse.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
-Subject: selftests/mm: run_vmtests.sh: drop detection and setup of HugeTLB
-Date: Mon, 11 May 2026 19:28:39 +0300
+From: Chen Wandun <chenwandun@lixiang.com>
+Subject: mm/khugepaged: avoid underflow in madvise_collapse for sub-PMD MADV_COLLAPSE
+Date: Wed, 13 May 2026 13:54:28 +0800
 
-All the tests that use HugeTLB can detect and setup HugeTLB pages on their
-own.
+madvise_collapse() computes the THP-aligned window:
 
-Drop detection and setup of HugeTLB from run_vmtests.sh.
+    hstart = ALIGN(start, HPAGE_PMD_SIZE); 	/* round up */
+    hend = ALIGN_DOWN(end, HPAGE_PMD_SIZE);	/* round down */
 
-Link: https://lore.kernel.org/20260511162840.375890-56-rppt@kernel.org
-Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Tested-by: Luiz Capitulino <luizcap@redhat.com>
-Tested-by: Sarthak Sharma <sarthak.sharma@arm.com>
+The following case will cause hstart > hend, and result in underflow in
+the return statement, avoid it by returning zero early when hstart > hend.
+The return value is due to input is valid to madvise(), and there is
+nothing to collapse.
+
+    madvise(PMD-aligned + PAGE_SIZE, PAGE_SIZE, MADV_COLLAPSE);
+
+In addition, kmalloc_obj(), mmgrab() and lru_add_drain_all() are
+unnecessary when hstart == hend, so skip these operations by returning
+early too.
+
+Link: https://lore.kernel.org/20260513055428.1664898-1-chenwandun@lixiang.com
+Signed-off-by: Chen Wandun <chenwandun@lixiang.com>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Reviewed-by: Lorenzo Stoakes <ljs@kernel.org>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Barry Song <baohua@kernel.org>
-Cc: David Hildenbrand <david@kernel.org>
 Cc: Dev Jain <dev.jain@arm.com>
-Cc: Donet Tom <donettom@linux.ibm.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: John Hubbard <jhubbard@nvidia.com>
 Cc: Lance Yang <lance.yang@linux.dev>
-Cc: Leon Romanovsky <leon@kernel.org>
-Cc: Liam Howlett <liam@infradead.org>
-Cc: Li Wang <li.wang@linux.dev>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Mark Brown <broonie@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
+Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Nico Pache <npache@redhat.com>
-Cc: Peter Xu <peterx@redhat.com>
 Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
 Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/run_vmtests.sh |  125 +-------------------
- 1 file changed, 7 insertions(+), 118 deletions(-)
+ mm/khugepaged.c |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
---- a/tools/testing/selftests/mm/run_vmtests.sh~selftests-mm-run_vmtestssh-drop-detection-and-setup-of-hugetlb
-+++ a/tools/testing/selftests/mm/run_vmtests.sh
-@@ -132,7 +132,7 @@ test_selected() {
+--- a/mm/khugepaged.c~mm-khugepaged-avoid-underflow-in-madvise_collapse-for-sub-pmd-madv_collapse
++++ a/mm/khugepaged.c
+@@ -3198,6 +3198,12 @@ int madvise_collapse(struct vm_area_stru
+ 	if (!collapse_possible(vma, vma->vm_flags, TVA_FORCED_COLLAPSE))
+ 		return -EINVAL;
  
- run_gup_matrix() {
-     # -t: thp=on, -T: thp=off, -H: hugetlb=on
--    local hugetlb_mb=$(( needmem_KB / 1024 ))
-+    local hugetlb_mb=256
- 
-     for huge in -t -T "-H -m $hugetlb_mb"; do
-         # -u: gup-fast, -U: gup-basic, -a: pin-fast, -b: pin-basic, -L: pin-longterm
-@@ -154,60 +154,6 @@ run_gup_matrix() {
-     done
- }
- 
--# get huge pagesize and freepages from /proc/meminfo
--while read -r name size unit; do
--	if [ "$name" = "HugePages_Free:" ]; then
--		freepgs="$size"
--	fi
--	if [ "$name" = "Hugepagesize:" ]; then
--		hpgsize_KB="$size"
--	fi
--done < /proc/meminfo
--
--# Simple hugetlbfs tests have a hardcoded minimum requirement of
--# huge pages totaling 256MB (262144KB) in size.  The userfaultfd
--# hugetlb test requires a minimum of 2 * nr_cpus huge pages.  Take
--# both of these requirements into account and attempt to increase
--# number of huge pages available.
--nr_cpus=$(nproc)
--uffd_min_KB=$((hpgsize_KB * nr_cpus * 2))
--hugetlb_min_KB=$((256 * 1024))
--if [[ $uffd_min_KB -gt $hugetlb_min_KB ]]; then
--	needmem_KB=$uffd_min_KB
--else
--	needmem_KB=$hugetlb_min_KB
--fi
--
--# set proper nr_hugepages
--if [ -n "$freepgs" ] && [ -n "$hpgsize_KB" ]; then
--	orig_nr_hugepgs=$(cat /proc/sys/vm/nr_hugepages)
--	needpgs=$((needmem_KB / hpgsize_KB))
--	tries=2
--	while [ "$tries" -gt 0 ] && [ "$freepgs" -lt "$needpgs" ]; do
--		lackpgs=$((needpgs - freepgs))
--		echo 3 > /proc/sys/vm/drop_caches
--		if ! echo $((lackpgs + orig_nr_hugepgs)) > /proc/sys/vm/nr_hugepages; then
--			echo "Please run this test as root"
--			exit $ksft_skip
--		fi
--		while read -r name size unit; do
--			if [ "$name" = "HugePages_Free:" ]; then
--				freepgs=$size
--			fi
--		done < /proc/meminfo
--		tries=$((tries - 1))
--	done
--	nr_hugepgs=$(cat /proc/sys/vm/nr_hugepages)
--	if [ "$freepgs" -lt "$needpgs" ]; then
--		printf "Not enough huge pages available (%d < %d)\n" \
--		       "$freepgs" "$needpgs"
--	fi
--	HAVE_HUGEPAGES=1
--else
--	echo "no hugetlbfs support in kernel?"
--	HAVE_HUGEPAGES=0
--fi
--
- # filter 64bit architectures
- ARCH64STR="arm64 mips64 parisc64 ppc64 ppc64le riscv64 s390x sparc64 x86_64"
- if [ -z "$ARCH" ]; then
-@@ -277,29 +223,13 @@ run_test() {
- echo "TAP version 13" | tap_output
- 
- CATEGORY="hugetlb" run_test ./hugetlb-mmap
--
--shmmax=$(cat /proc/sys/kernel/shmmax)
--shmall=$(cat /proc/sys/kernel/shmall)
--echo 268435456 > /proc/sys/kernel/shmmax
--echo 4194304 > /proc/sys/kernel/shmall
- CATEGORY="hugetlb" run_test ./hugetlb-shm
--echo "$shmmax" > /proc/sys/kernel/shmmax
--echo "$shmall" > /proc/sys/kernel/shmall
--
- CATEGORY="hugetlb" run_test ./hugetlb-mremap
- CATEGORY="hugetlb" run_test ./hugetlb-vmemmap
- CATEGORY="hugetlb" run_test ./hugetlb-madvise
- CATEGORY="hugetlb" run_test ./hugetlb_dio
--
--if [ "${HAVE_HUGEPAGES}" = "1" ]; then
--	nr_hugepages_tmp=$(cat /proc/sys/vm/nr_hugepages)
--	# For this test, we need one and just one huge page
--	echo 1 > /proc/sys/vm/nr_hugepages
--	CATEGORY="hugetlb" run_test ./hugetlb_fault_after_madv
--	CATEGORY="hugetlb" run_test ./hugetlb_madv_vs_map
--	# Restore the previous number of huge pages, since further tests rely on it
--	echo "$nr_hugepages_tmp" > /proc/sys/vm/nr_hugepages
--fi
-+CATEGORY="hugetlb" run_test ./hugetlb_fault_after_madv
-+CATEGORY="hugetlb" run_test ./hugetlb_madv_vs_map
- 
- if test_selected "hugetlb"; then
- 	echo "NOTE: These hugetlb tests provide minimal coverage.  Use"	  | tap_prefix
-@@ -326,44 +256,11 @@ CATEGORY="gup_test" run_test ./gup_longt
- CATEGORY="userfaultfd" run_test ./uffd-unit-tests
- uffd_stress_bin=./uffd-stress
- CATEGORY="userfaultfd" run_test ${uffd_stress_bin} anon 20 16
--# Hugetlb tests require source and destination huge pages. Pass in almost half
--# the size of the free pages we have, which is used for *each*. An adjustment
--# of (nr_parallel - 1) is done (see nr_parallel in uffd-stress.c) to have some
--# extra hugepages - this is done to prevent the test from failing by racily
--# reserving more hugepages than strictly required.
--# uffd-stress expects a region expressed in MiB, so we adjust
--# half_ufd_size_MB accordingly.
--adjustment=$(( (31 < (nr_cpus - 1)) ? 31 : (nr_cpus - 1) ))
--half_ufd_size_MB=$((((freepgs - adjustment) * hpgsize_KB) / 1024 / 2))
--CATEGORY="userfaultfd" run_test ${uffd_stress_bin} hugetlb "$half_ufd_size_MB" 32
--CATEGORY="userfaultfd" run_test ${uffd_stress_bin} hugetlb-private "$half_ufd_size_MB" 32
-+CATEGORY="userfaultfd" run_test ${uffd_stress_bin} hugetlb 128 32
-+CATEGORY="userfaultfd" run_test ${uffd_stress_bin} hugetlb-private 128 32
- CATEGORY="userfaultfd" run_test ${uffd_stress_bin} shmem 20 16
- CATEGORY="userfaultfd" run_test ${uffd_stress_bin} shmem-private 20 16
--# uffd-wp-mremap requires at least one page of each size.
--have_all_size_hugepgs=true
--declare -A nr_size_hugepgs
--for f in /sys/kernel/mm/hugepages/**/nr_hugepages; do
--	old=$(cat $f)
--	nr_size_hugepgs["$f"]="$old"
--	if [ "$old" == 0 ]; then
--		echo 1 > "$f"
--	fi
--	if [ $(cat "$f") == 0 ]; then
--		have_all_size_hugepgs=false
--		break
--	fi
--done
--if $have_all_size_hugepgs; then
--	CATEGORY="userfaultfd" run_test ./uffd-wp-mremap
--else
--	echo "# SKIP ./uffd-wp-mremap"
--fi
--
--#cleanup
--for f in "${!nr_size_hugepgs[@]}"; do
--	echo "${nr_size_hugepgs["$f"]}" > "$f"
--done
--echo "$nr_hugepgs" > /proc/sys/vm/nr_hugepages
-+CATEGORY="userfaultfd" run_test ./uffd-wp-mremap
- 
- CATEGORY="compaction" run_test ./compaction_test
- 
-@@ -388,12 +285,10 @@ CATEGORY="mremap" run_test ./mremap_test
- CATEGORY="hugetlb" run_test ./thuge-gen
- CATEGORY="hugetlb" run_test ./charge_reserved_hugetlb.sh -cgroup-v2
- CATEGORY="hugetlb" run_test ./hugetlb_reparenting_test.sh -cgroup-v2
++	hstart = ALIGN(start, HPAGE_PMD_SIZE);
++	hend = ALIGN_DOWN(end, HPAGE_PMD_SIZE);
 +
- if $RUN_DESTRUCTIVE; then
--nr_hugepages_tmp=$(cat /proc/sys/vm/nr_hugepages)
- enable_soft_offline=$(cat /proc/sys/vm/enable_soft_offline)
--echo 8 > /proc/sys/vm/nr_hugepages
- CATEGORY="hugetlb" run_test ./hugetlb-soft-offline
--echo "$nr_hugepages_tmp" > /proc/sys/vm/nr_hugepages
- echo "$enable_soft_offline" > /proc/sys/vm/enable_soft_offline
- CATEGORY="hugetlb" run_test ./hugetlb-read-hwpoison
- fi
-@@ -449,7 +344,6 @@ CATEGORY="ksm_numa" run_test ./ksm_tests
- CATEGORY="ksm" run_test ./ksm_functional_tests
++	if (hstart >= hend)
++		return 0;
++
+ 	cc = kmalloc_obj(*cc);
+ 	if (!cc)
+ 		return -ENOMEM;
+@@ -3207,9 +3213,6 @@ int madvise_collapse(struct vm_area_stru
+ 	mmgrab(mm);
+ 	lru_add_drain_all();
  
- # protection_keys tests
--nr_hugepgs=$(cat /proc/sys/vm/nr_hugepages)
- if [ -x ./protection_keys_32 ]
- then
- 	CATEGORY="pkey" run_test ./protection_keys_32
-@@ -459,7 +353,6 @@ if [ -x ./protection_keys_64 ]
- then
- 	CATEGORY="pkey" run_test ./protection_keys_64
- fi
--echo "$nr_hugepgs" > /proc/sys/vm/nr_hugepages
- 
- if [ -x ./soft-dirty ]
- then
-@@ -548,10 +441,6 @@ if [ -n "${LOADED_MOD}" ]; then
- 	modprobe -r hwpoison_inject > /dev/null 2>&1
- fi
- 
--if [ "${HAVE_HUGEPAGES}" = 1 ]; then
--	echo "$orig_nr_hugepgs" > /proc/sys/vm/nr_hugepages
--fi
+-	hstart = ALIGN(start, HPAGE_PMD_SIZE);
+-	hend = ALIGN_DOWN(end, HPAGE_PMD_SIZE);
 -
- echo "SUMMARY: PASS=${count_pass} SKIP=${count_skip} FAIL=${count_fail}" | tap_prefix
- echo "1..${count_total}" | tap_output
+ 	for (addr = hstart; addr < hend; addr += HPAGE_PMD_SIZE) {
+ 		enum scan_result result = SCAN_FAIL;
  
 _
 
-Patches currently in -mm which might be from rppt@kernel.org are
+Patches currently in -mm which might be from chenwandun@lixiang.com are
 
 
