@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9AF0A367B78
-	for <mm-commits@vger.kernel.org>; Sun, 21 Jun 2026 18:38:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AEDD3367B9C
+	for <mm-commits@vger.kernel.org>; Sun, 21 Jun 2026 18:38:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782067137; cv=none; b=hYUz/U1VxuRsLisRypTs9jEQ76cVmhsVyEiidCkQ3B1uO0T31xFZa95Xr99glCAZaoSviYcsJIqt1Dnm5naBvXxcjgRJu6A5peCsxo1xN9P52t0uwA1OVFcOMIOoUn4lpfZczMwO0BS9XOr8khuHw9Rqrb2OQDwQbFGrcaQsPAg=
+	t=1782067138; cv=none; b=LNoW7kafKoNYxnkGOLe2eghWCsg0hA4OsBoWCLIrTt+PUUsz+oYmle0LQf9X+v6Ndx5Blma+XIH0SiC6etHCnIPG1uax/5amxzAua81WX+u2WJKoN/WIA7kAdbIY4pb6jXoOha7J6FYhBYiR7VeWFtVGHQB0Hv1tHB90i+M17Fk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782067137; c=relaxed/simple;
-	bh=Oe8qFBGyLWRLqoDI2Pns9mOrmW6nFpI8XDs1oLci4Co=;
-	h=Date:To:From:Subject:Message-Id; b=N0JQn+/+scsdxUs6uVC0dSNgPXapEgD5kOqcPry+BzcsmabSHxH8hAbEyN5OQstVX0bIpa3mMbKlu8KNwnQ9QKj8fmn43/fbrCP67MEadPQzi7ZirdRhTZZfk2t0Vu4cBFFBCpnySP0lryilqiF6kPXtxCguRJ/kM10+Yyaw/0A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LXwUz9fB; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1782067138; c=relaxed/simple;
+	bh=HsD35R4YfOzm6CXsJ1L7nTdLEwWtCGeiHWncgF1Ru8M=;
+	h=Date:To:From:Subject:Message-Id; b=WL5R/+HUdIcTvoazvMBdKK66AQaUvdIUNWC0kexmRjOC3k8qFG2r0ikX0WJX+rU4zh4uUP2xqeSzon+PhostHOHqgPEKQzsru0kA0mn+XF2uJzntt2rK2NcHhDdE1pBK8/DNoGcvwZxoJV3FoYfqU/HejQzXMFVXgHD64/ea0SE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=o7cLkdQN; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LXwUz9fB"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 386FE1F000E9;
-	Sun, 21 Jun 2026 18:38:55 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="o7cLkdQN"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 868EC1F00A3A;
+	Sun, 21 Jun 2026 18:38:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1782067135;
-	bh=JXnxqqOLdhgBGHXDaYUWmSnRgenF7STrE7rj5yQzLrE=;
+	d=linux-foundation.org; s=korg; t=1782067136;
+	bh=K0MtQOkAuEDFCnkKho2LeHcTIDnLoQGQiNBnc91IomY=;
 	h=Date:To:From:Subject;
-	b=LXwUz9fB0sk42zWRabFMrtHOBDpXxDux98xj89DaOsYnY1c7cK05fpFqtdpk11Ioz
-	 8ivEVlA7a16OZbTcxrlFNp6tah53OeJT351Pfl5Sqnf3o17bgOxgmut6resachVTjh
-	 W0eXHRwIhcauY6QL5VkTP9SrmjoxYPRRWVkZfBo8=
-Date: Sun, 21 Jun 2026 11:38:54 -0700
+	b=o7cLkdQNqpHU4HqeKGhwxKjTaTiO7d36GAVd7MzKTp6hb2MH6pVtcD9G9hd8ZvruX
+	 yc9LPpuULPm0rvOI6JKwsN5MmP+jVKQHDogliPe1t+qr3RGTF6rfbBp+RxxWwlSxTM
+	 rcOv7PH61JlF/DnEF4b+o12a8x8fn0fMFhSoDubA=
+Date: Sun, 21 Jun 2026 11:38:56 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,surenb@google.com,shuah@kernel.org,sarthak.sharma@arm.com,ryan.roberts@arm.com,peterx@redhat.com,npache@redhat.com,mhocko@suse.com,luizcap@redhat.com,ljs@kernel.org,li.wang@linux.dev,liam@infradead.org,leon@kernel.org,lance.yang@linux.dev,jhubbard@nvidia.com,jgg@ziepe.ca,donettom@linux.ibm.com,dev.jain@arm.com,david@kernel.org,broonie@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,rppt@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-mm-khugepaged-use-ksefltest-framework.patch removed from -mm tree
-Message-Id: <20260621183855.386FE1F000E9@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-mm-ksm_tests-use-kselftest-framework.patch removed from -mm tree
+Message-Id: <20260621183856.868EC1F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,48 +35,38 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests/mm: khugepaged: use kselftest framework
+     Subject: selftests/mm: ksm_tests: use kselftest framework
 has been removed from the -mm tree.  Its filename was
-     selftests-mm-khugepaged-use-ksefltest-framework.patch
+     selftests-mm-ksm_tests-use-kselftest-framework.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
-Subject: selftests/mm: khugepaged: use kselftest framework
-Date: Mon, 11 May 2026 19:27:58 +0300
+Subject: selftests/mm: ksm_tests: use kselftest framework
+Date: Mon, 11 May 2026 19:27:59 +0300
 
-Convert khugepaged tests to use kselftest framework for reporting and
-tracking successful and failing runs.
+Convert ksm_tests to use kselftest framework for reporting and tracking
+successful and failing runs.
 
-The conversion is mostly about replacing printf()/perror() + exit() pairs
-with their ksft_ counterparts.
-
-The nice colored success and failure indications are left intact.
-
-Replace the progress report in collapse_compound_extreme() with a single
-ksft_print_msg() to avoid headache with formatting and make the test
-output more concise.
-
-[rppt@kernel.org: make the output TAP-compatible]
-[ziy@nvidia.com: update for "Remove CONFIG_READ_ONLY_THP_FOR_FS and enable file THP for writable files", v6]
-  https://lore.kernel.org/20260517135416.1434539-1-ziy@nvidia.com
-Link: https://lore.kernel.org/20260511162840.375890-15-rppt@kernel.org
+Link: https://lore.kernel.org/20260511162840.375890-16-rppt@kernel.org
 Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Reviewed-by: Donet Tom <donettom@linux.ibm.com>
+Reviewed-by: Mark Brown <broonie@kernel.org>
+Tested-by: Sarthak Sharma <sarthak.sharma@arm.com>
 Tested-by: Luiz Capitulino <luizcap@redhat.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Barry Song <baohua@kernel.org>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Dev Jain <dev.jain@arm.com>
-Cc: Donet Tom <donettom@linux.ibm.com>
 Cc: Jason Gunthorpe <jgg@ziepe.ca>
 Cc: John Hubbard <jhubbard@nvidia.com>
 Cc: Lance Yang <lance.yang@linux.dev>
 Cc: Leon Romanovsky <leon@kernel.org>
 Cc: Liam Howlett <liam@infradead.org>
+Cc: Li Wang <li.wang@linux.dev>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Mark Brown <broonie@kernel.org>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Nico Pache <npache@redhat.com>
 Cc: Peter Xu <peterx@redhat.com>
@@ -85,811 +75,545 @@ Cc: Shuah Khan <shuah@kernel.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@kernel.org>
 Cc: Zi Yan <ziy@nvidia.com>
-Cc: Li Wang <li.wang@linux.dev>
-Cc: Sarthak Sharma <sarthak.sharma@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/khugepaged.c |  321 +++++++++-------------
- 1 file changed, 132 insertions(+), 189 deletions(-)
+ tools/testing/selftests/mm/ksm_tests.c |  180 ++++++++++-------------
+ 1 file changed, 81 insertions(+), 99 deletions(-)
 
---- a/tools/testing/selftests/mm/khugepaged.c~selftests-mm-khugepaged-use-ksefltest-framework
-+++ a/tools/testing/selftests/mm/khugepaged.c
-@@ -86,17 +86,19 @@ static int exit_status;
- static void success(const char *msg)
- {
- 	printf(" \e[32m%s\e[0m\n", msg);
-+	exit_status = KSFT_PASS;
- }
+--- a/tools/testing/selftests/mm/ksm_tests.c~selftests-mm-ksm_tests-use-kselftest-framework
++++ a/tools/testing/selftests/mm/ksm_tests.c
+@@ -175,12 +175,12 @@ static void  *allocate_memory(void *ptr,
+ 	void *map_ptr = mmap(ptr, map_size, PROT_WRITE, mapping, -1, 0);
  
- static void fail(const char *msg)
- {
- 	printf(" \e[31m%s\e[0m\n", msg);
--	exit_status++;
-+	exit_status = KSFT_FAIL;
- }
- 
- static void skip(const char *msg)
- {
- 	printf(" \e[33m%s\e[0m\n", msg);
-+	exit_status = KSFT_SKIP;
- }
- 
- static void restore_settings_atexit(void)
-@@ -104,22 +106,24 @@ static void restore_settings_atexit(void
- 	if (skip_settings_restore)
- 		return;
- 
--	printf("Restore THP and khugepaged settings...");
-+	ksft_print_msg("Restore THP and khugepaged settings...");
- 	thp_restore_settings();
- 	success("OK");
- 
- 	skip_settings_restore = true;
-+	ksft_print_cnts();
-+	exit(exit_status);
- }
- 
- static void restore_settings(int sig)
- {
- 	/* exit() will invoke the restore_settings_atexit handler. */
--	exit(sig ? EXIT_FAILURE : exit_status);
-+	exit(sig ? KSFT_FAIL : exit_status);
- }
- 
- static void save_settings(void)
- {
--	printf("Save THP and khugepaged settings...");
-+	ksft_print_msg("Save THP and khugepaged settings...");
- 	if ((read_only_file_ops || read_write_file_read_ops ||
- 	     read_write_file_write_ops) &&
- 	    finfo.type == VMA_FILE)
-@@ -145,19 +149,13 @@ static void get_finfo(const char *dir)
- 
- 	finfo.dir = dir;
- 	stat(finfo.dir, &path_stat);
--	if (!S_ISDIR(path_stat.st_mode)) {
--		printf("%s: Not a directory (%s)\n", __func__, finfo.dir);
--		exit(EXIT_FAILURE);
--	}
-+	if (!S_ISDIR(path_stat.st_mode))
-+		ksft_exit_fail_msg("%s: Not a directory (%s)\n", __func__, finfo.dir);
- 	if (snprintf(finfo.path, sizeof(finfo.path), "%s/" TEST_FILE,
--		     finfo.dir) >= sizeof(finfo.path)) {
--		printf("%s: Pathname is too long\n", __func__);
--		exit(EXIT_FAILURE);
--	}
--	if (statfs(finfo.dir, &fs)) {
--		perror("statfs()");
--		exit(EXIT_FAILURE);
--	}
-+		     finfo.dir) >= sizeof(finfo.path))
-+		ksft_exit_fail_msg("%s: Pathname is too long\n", __func__);
-+	if (statfs(finfo.dir, &fs))
-+		ksft_exit_fail_perror("statfs()");
- 	finfo.type = fs.f_type == TMPFS_MAGIC ? VMA_SHMEM : VMA_FILE;
- 	if (finfo.type == VMA_SHMEM)
- 		return;
-@@ -165,40 +163,30 @@ static void get_finfo(const char *dir)
- 	/* Find owning device's queue/read_ahead_kb control */
- 	if (snprintf(path, sizeof(path), "/sys/dev/block/%d:%d/uevent",
- 		     major(path_stat.st_dev), minor(path_stat.st_dev))
--	    >= sizeof(path)) {
--		printf("%s: Pathname is too long\n", __func__);
--		exit(EXIT_FAILURE);
--	}
--	if (read_file(path, buf, sizeof(buf)) < 0) {
--		perror("read_file(read_num)");
--		exit(EXIT_FAILURE);
--	}
-+	    >= sizeof(path))
-+		ksft_exit_fail_msg("%s: Pathname is too long\n", __func__);
-+	if (read_file(path, buf, sizeof(buf)) < 0)
-+		ksft_exit_fail_perror("read_file(read_num)");
- 	if (strstr(buf, "DEVTYPE=disk")) {
- 		/* Found it */
- 		if (snprintf(finfo.dev_queue_read_ahead_path,
- 			     sizeof(finfo.dev_queue_read_ahead_path),
- 			     "/sys/dev/block/%d:%d/queue/read_ahead_kb",
- 			     major(path_stat.st_dev), minor(path_stat.st_dev))
--		    >= sizeof(finfo.dev_queue_read_ahead_path)) {
--			printf("%s: Pathname is too long\n", __func__);
--			exit(EXIT_FAILURE);
--		}
-+		    >= sizeof(finfo.dev_queue_read_ahead_path))
-+			ksft_exit_fail_msg("%s: Pathname is too long\n", __func__);
- 		return;
+ 	if (!map_ptr) {
+-		perror("mmap");
++		ksft_perror("mmap");
+ 		return NULL;
  	}
--	if (!strstr(buf, "DEVTYPE=partition")) {
--		printf("%s: Unknown device type: %s\n", __func__, path);
--		exit(EXIT_FAILURE);
--	}
-+	if (!strstr(buf, "DEVTYPE=partition"))
-+		ksft_exit_fail_msg("%s: Unknown device type: %s\n", __func__, path);
- 	/*
- 	 * Partition of block device - need to find actual device.
- 	 * Using naming convention that devnameN is partition of
- 	 * device devname.
- 	 */
- 	str = strstr(buf, "DEVNAME=");
--	if (!str) {
--		printf("%s: Could not read: %s", __func__, path);
--		exit(EXIT_FAILURE);
--	}
-+	if (!str)
-+		ksft_exit_fail_msg("%s: Could not read: %s", __func__, path);
- 	str += 8;
- 	end = str;
- 	while (*end) {
-@@ -207,16 +195,13 @@ static void get_finfo(const char *dir)
- 			if (snprintf(finfo.dev_queue_read_ahead_path,
- 				     sizeof(finfo.dev_queue_read_ahead_path),
- 				     "/sys/block/%s/queue/read_ahead_kb",
--				     str) >= sizeof(finfo.dev_queue_read_ahead_path)) {
--				printf("%s: Pathname is too long\n", __func__);
--				exit(EXIT_FAILURE);
--			}
-+				     str) >= sizeof(finfo.dev_queue_read_ahead_path))
-+				ksft_exit_fail_msg("%s: Pathname is too long\n", __func__);
- 			return;
+ 	memset(map_ptr, data, map_size);
+ 	if (mprotect(map_ptr, map_size, prot)) {
+-		perror("mprotect");
++		ksft_perror("mprotect");
+ 		munmap(map_ptr, map_size);
+ 		return NULL;
+ 	}
+@@ -201,11 +201,11 @@ static int ksm_do_scan(int scan_count, s
+ 		if (ksm_read_sysfs(KSM_FP("full_scans"), &cur_scan))
+ 			return 1;
+ 		if (clock_gettime(CLOCK_MONOTONIC_RAW, &cur_time)) {
+-			perror("clock_gettime");
++			ksft_perror("clock_gettime");
+ 			return 1;
  		}
- 		++end;
+ 		if ((cur_time.tv_sec - start_time.tv_sec) > timeout) {
+-			printf("Scan time limit exceeded\n");
++			ksft_print_msg("Scan time limit exceeded\n");
+ 			return 1;
+ 		}
  	}
--	printf("%s: Could not read: %s\n", __func__, path);
--	exit(EXIT_FAILURE);
-+	ksft_exit_fail_msg("%s: Could not read: %s\n", __func__, path);
+@@ -218,12 +218,12 @@ static int ksm_merge_pages(int merge_typ
+ {
+ 	if (merge_type == KSM_MERGE_MADVISE) {
+ 		if (madvise(addr, size, MADV_MERGEABLE)) {
+-			perror("madvise");
++			ksft_perror("madvise");
+ 			return 1;
+ 		}
+ 	} else if (merge_type == KSM_MERGE_PRCTL) {
+ 		if (prctl(PR_SET_MEMORY_MERGE, 1, 0, 0, 0)) {
+-			perror("prctl");
++			ksft_perror("prctl");
+ 			return 1;
+ 		}
+ 	}
+@@ -242,7 +242,7 @@ static int ksm_unmerge_pages(void *addr,
+ 			     struct timespec start_time, int timeout)
+ {
+ 	if (madvise(addr, size, MADV_UNMERGEABLE)) {
+-		perror("madvise");
++		ksft_perror("madvise");
+ 		return 1;
+ 	}
+ 	return 0;
+@@ -324,7 +324,7 @@ static int check_ksm_merge(int merge_typ
+ 	struct timespec start_time;
+ 
+ 	if (clock_gettime(CLOCK_MONOTONIC_RAW, &start_time)) {
+-		perror("clock_gettime");
++		ksft_perror("clock_gettime");
+ 		return KSFT_FAIL;
+ 	}
+ 
+@@ -338,7 +338,6 @@ static int check_ksm_merge(int merge_typ
+ 
+ 	/* verify that the right number of pages are merged */
+ 	if (assert_ksm_pages_count(page_count)) {
+-		printf("OK\n");
+ 		munmap(map_ptr, page_size * page_count);
+ 		if (merge_type == KSM_MERGE_PRCTL)
+ 			prctl(PR_SET_MEMORY_MERGE, 0, 0, 0, 0);
+@@ -346,7 +345,6 @@ static int check_ksm_merge(int merge_typ
+ 	}
+ 
+ err_out:
+-	printf("Not OK\n");
+ 	munmap(map_ptr, page_size * page_count);
+ 	return KSFT_FAIL;
  }
+@@ -358,7 +356,7 @@ static int check_ksm_unmerge(int merge_t
+ 	int page_count = 2;
  
- static bool check_swap(void *addr, unsigned long size)
-@@ -229,26 +214,19 @@ static bool check_swap(void *addr, unsig
+ 	if (clock_gettime(CLOCK_MONOTONIC_RAW, &start_time)) {
+-		perror("clock_gettime");
++		ksft_perror("clock_gettime");
+ 		return KSFT_FAIL;
+ 	}
  
- 	ret = snprintf(addr_pattern, MAX_LINE_LENGTH, "%08lx-",
- 		       (unsigned long) addr);
--	if (ret >= MAX_LINE_LENGTH) {
--		printf("%s: Pattern is too long\n", __func__);
--		exit(EXIT_FAILURE);
--	}
--
-+	if (ret >= MAX_LINE_LENGTH)
-+		ksft_exit_fail_msg("%s: Pattern is too long\n", __func__);
+@@ -380,13 +378,11 @@ static int check_ksm_unmerge(int merge_t
  
- 	fp = fopen(PID_SMAPS, "r");
--	if (!fp) {
--		printf("%s: Failed to open file %s\n", __func__, PID_SMAPS);
--		exit(EXIT_FAILURE);
--	}
-+	if (!fp)
-+		ksft_exit_fail_msg("%s: Failed to open file %s\n", __func__, PID_SMAPS);
- 	if (!check_for_pattern(fp, addr_pattern, buffer, sizeof(buffer)))
+ 	/* check that unmerging was successful and 0 pages are currently merged */
+ 	if (assert_ksm_pages_count(0)) {
+-		printf("OK\n");
+ 		munmap(map_ptr, page_size * page_count);
+ 		return KSFT_PASS;
+ 	}
+ 
+ err_out:
+-	printf("Not OK\n");
+ 	munmap(map_ptr, page_size * page_count);
+ 	return KSFT_FAIL;
+ }
+@@ -398,7 +394,7 @@ static int check_ksm_zero_page_merge(int
+ 	struct timespec start_time;
+ 
+ 	if (clock_gettime(CLOCK_MONOTONIC_RAW, &start_time)) {
+-		perror("clock_gettime");
++		ksft_perror("clock_gettime");
+ 		return KSFT_FAIL;
+ 	}
+ 
+@@ -425,12 +421,10 @@ static int check_ksm_zero_page_merge(int
+ 	else if (!use_zero_pages && !assert_ksm_pages_count(page_count))
  		goto err_out;
  
- 	ret = snprintf(addr_pattern, MAX_LINE_LENGTH, "Swap:%19ld kB",
- 		       size >> 10);
--	if (ret >= MAX_LINE_LENGTH) {
--		printf("%s: Pattern is too long\n", __func__);
--		exit(EXIT_FAILURE);
--	}
-+	if (ret >= MAX_LINE_LENGTH)
-+		ksft_exit_fail_msg("%s: Pattern is too long\n", __func__);
- 	/*
- 	 * Fetch the Swap: in the same block and check whether it got
- 	 * the expected number of hugeepages next.
-@@ -271,10 +249,8 @@ static void *alloc_mapping(int nr)
+-	printf("OK\n");
+ 	munmap(map_ptr, page_size * page_count);
+ 	return KSFT_PASS;
  
- 	p = mmap(BASE_ADDR, nr * hpage_pmd_size, PROT_READ | PROT_WRITE,
- 		 MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
--	if (p != BASE_ADDR) {
--		printf("Failed to allocate VMA at %p\n", BASE_ADDR);
--		exit(EXIT_FAILURE);
--	}
-+	if (p != BASE_ADDR)
-+		ksft_exit_fail_msg("Failed to allocate VMA at %p\n", BASE_ADDR);
- 
- 	return p;
+ err_out:
+-	printf("Not OK\n");
+ 	munmap(map_ptr, page_size * page_count);
+ 	return KSFT_FAIL;
  }
-@@ -324,19 +300,13 @@ static void *alloc_hpage(struct mem_ops
- 	 * khugepaged on low-load system (like a test machine), which
- 	 * would cause MADV_COLLAPSE to fail with EAGAIN.
- 	 */
--	printf("Allocate huge page...");
--	if (madvise_collapse_retry(p, hpage_pmd_size)) {
--		perror("madvise(MADV_COLLAPSE)");
--		exit(EXIT_FAILURE);
--	}
--	if (!ops->check_huge(p, 1)) {
--		perror("madvise(MADV_COLLAPSE)");
--		exit(EXIT_FAILURE);
--	}
--	if (madvise(p, hpage_pmd_size, MADV_HUGEPAGE)) {
--		perror("madvise(MADV_HUGEPAGE)");
--		exit(EXIT_FAILURE);
--	}
-+	ksft_print_msg("Allocate huge page...");
-+	if (madvise_collapse_retry(p, hpage_pmd_size))
-+		ksft_exit_fail_perror("madvise(MADV_COLLAPSE)");
-+	if (!ops->check_huge(p, 1))
-+		ksft_exit_fail_perror("madvise(MADV_COLLAPSE)");
-+	if (madvise(p, hpage_pmd_size, MADV_HUGEPAGE))
-+		ksft_exit_fail_perror("madvise(MADV_HUGEPAGE)");
- 	success("OK");
- 	return p;
- }
-@@ -346,11 +316,9 @@ static void validate_memory(int *p, unsi
- 	int i;
+@@ -465,16 +459,16 @@ static int check_ksm_numa_merge(int merg
+ 	int first_node;
  
- 	for (i = start / page_size; i < end / page_size; i++) {
--		if (p[i * page_size / sizeof(*p)] != i + 0xdead0000) {
--			printf("Page %d is corrupted: %#x\n",
--					i, p[i * page_size / sizeof(*p)]);
--			exit(EXIT_FAILURE);
--		}
-+		if (p[i * page_size / sizeof(*p)] != i + 0xdead0000)
-+			ksft_exit_fail_msg("Page %d is corrupted: %#x\n",
-+					   i, p[i * page_size / sizeof(*p)]);
- 	}
- }
- 
-@@ -383,14 +351,12 @@ static void *file_setup_area_common(int
- 	unsigned long size;
- 
- 	unlink(finfo.path);  /* Cleanup from previous failed tests */
--	printf("Creating %s for collapse%s...", finfo.path,
--	       finfo.type == VMA_SHMEM ? " (tmpfs)" : "");
-+	ksft_print_msg("Creating %s for collapse%s...", finfo.path,
-+		       finfo.type == VMA_SHMEM ? " (tmpfs)" : "");
- 	fd = open(finfo.path, O_CREAT | O_RDWR | O_TRUNC | O_EXCL,
- 		  777);
--	if (fd < 0) {
--		perror("open()");
--		exit(EXIT_FAILURE);
--	}
-+	if (fd < 0)
-+		ksft_exit_fail_perror("open()");
- 
- 	size = nr_hpages * hpage_pmd_size;
- 	if (ftruncate(fd, size)) {
-@@ -411,22 +377,17 @@ static void *file_setup_area_common(int
- 	close(fd);
- 	munmap(p, size);
- 	success("OK");
--
--	printf("Opening %s %s for collapse...", finfo.path,
-+	ksft_print_msg("Opening %s %s for collapse...", finfo.path,
- 	       setup == FILE_SETUP_READ_ONLY_FS ? "read-only" :
- 	       setup == FILE_SETUP_READ_WRITE_FS_READ_DATA ?
- 						  "read-write (read)" :
- 						  "read-write (write)");
- 	finfo.fd = open(finfo.path, open_opt, 777);
--	if (finfo.fd < 0) {
--		perror("open()");
--		exit(EXIT_FAILURE);
--	}
-+	if (finfo.fd < 0)
-+		ksft_exit_fail_perror("open()");
- 	p = mmap(BASE_ADDR, size, mmap_prot, MAP_SHARED, finfo.fd, 0);
--	if (p == MAP_FAILED || p != BASE_ADDR) {
--		perror("mmap()");
--		exit(EXIT_FAILURE);
--	}
-+	if (p == MAP_FAILED || p != BASE_ADDR)
-+		ksft_exit_fail_perror("mmap()");
- 
- 	/* Drop page cache */
- 	write_file("/proc/sys/vm/drop_caches", "3", 2);
-@@ -458,10 +419,8 @@ static void file_cleanup_area(void *p, u
- 
- static void file_fault_read(void *p, unsigned long start, unsigned long end)
- {
--	if (madvise(((char *)p) + start, end - start, MADV_POPULATE_READ)) {
--		perror("madvise(MADV_POPULATE_READ)");
--		exit(EXIT_FAILURE);
--	}
-+	if (madvise(((char *)p) + start, end - start, MADV_POPULATE_READ))
-+		ksft_exit_fail_perror("madvise(MADV_POPULATE_READ)");
- }
- 
- static void file_fault_read_and_flush(void *p, unsigned long start, unsigned long end)
-@@ -476,10 +435,8 @@ static void file_fault_read_and_flush(vo
- 
- static void file_fault_write(void *p, unsigned long start, unsigned long end)
- {
--	if (madvise(((char *)p) + start, end - start, MADV_POPULATE_WRITE)) {
--		perror("madvise(MADV_POPULATE_WRITE)");
--		exit(EXIT_FAILURE);
--	}
-+	if (madvise(((char *)p) + start, end - start, MADV_POPULATE_WRITE))
-+		ksft_exit_fail_perror("madvise(MADV_POPULATE_WRITE)");
- }
- 
- static bool file_check_huge(void *addr, int nr_hpages)
-@@ -501,20 +458,14 @@ static void *shmem_setup_area(int nr_hpa
- 	unsigned long size = nr_hpages * hpage_pmd_size;
- 
- 	finfo.fd = memfd_create("khugepaged-selftest-collapse-shmem", 0);
--	if (finfo.fd < 0)  {
--		perror("memfd_create()");
--		exit(EXIT_FAILURE);
--	}
--	if (ftruncate(finfo.fd, size)) {
--		perror("ftruncate()");
--		exit(EXIT_FAILURE);
--	}
-+	if (finfo.fd < 0)
-+		ksft_exit_fail_perror("memfd_create()");
-+	if (ftruncate(finfo.fd, size))
-+		ksft_exit_fail_perror("ftruncate()");
- 	p = mmap(BASE_ADDR, size, PROT_READ | PROT_WRITE, MAP_SHARED, finfo.fd,
- 		 0);
--	if (p != BASE_ADDR) {
--		perror("mmap()");
--		exit(EXIT_FAILURE);
--	}
-+	if (p != BASE_ADDR)
-+		ksft_exit_fail_perror("mmap()");
- 	return p;
- }
- 
-@@ -588,7 +539,7 @@ static void __madvise_collapse(const cha
- 	int ret;
- 	struct thp_settings settings = *thp_current_settings();
- 
--	printf("%s...", msg);
-+	ksft_print_msg("%s...", msg);
- 
- 	/*
- 	 * read&write file collapse succeeds for MADV_COLLAPSE because dirty
-@@ -621,10 +572,8 @@ static void madvise_collapse(const char
- 			     struct mem_ops *ops, bool expect)
- {
- 	/* Sanity check */
--	if (!ops->check_huge(p, 0)) {
--		printf("Unexpected huge page\n");
--		exit(EXIT_FAILURE);
--	}
-+	if (!ops->check_huge(p, 0))
-+		ksft_exit_fail_msg("Unexpected huge page\n");
- 	__madvise_collapse(msg, p, nr_hpages, ops, expect);
- }
- 
-@@ -636,17 +585,15 @@ static bool wait_for_scan(const char *ms
- 	int timeout = 6; /* 3 seconds */
- 
- 	/* Sanity check */
--	if (!ops->check_huge(p, 0)) {
--		printf("Unexpected huge page\n");
--		exit(EXIT_FAILURE);
--	}
-+	if (!ops->check_huge(p, 0))
-+		ksft_exit_fail_msg("Unexpected huge page\n");
- 
- 	madvise(p, nr_hpages * hpage_pmd_size, MADV_HUGEPAGE);
- 
- 	/* Wait until the second full_scan completed */
- 	full_scans = thp_read_num("khugepaged/full_scans") + 2;
- 
--	printf("%s...", msg);
-+	ksft_print_msg("%s...", msg);
- 	while (timeout--) {
- 		if (ops->check_huge(p, nr_hpages))
- 			break;
-@@ -713,7 +660,7 @@ static void alloc_at_fault(void)
- 
- 	p = alloc_mapping(1);
- 	*p = 1;
--	printf("Allocate huge page on fault...");
-+	ksft_print_msg("Allocate huge page on fault...");
- 	if (check_huge_anon(p, 1, hpage_pmd_size))
- 		success("OK");
- 	else
-@@ -722,12 +669,14 @@ static void alloc_at_fault(void)
- 	thp_pop_settings();
- 
- 	madvise(p, page_size, MADV_DONTNEED);
--	printf("Split huge PMD on MADV_DONTNEED...");
-+	ksft_print_msg("Split huge PMD on MADV_DONTNEED...");
- 	if (check_huge_anon(p, 0, hpage_pmd_size))
- 		success("OK");
- 	else
- 		fail("Fail");
- 	munmap(p, hpage_pmd_size);
-+
-+	ksft_test_result_report(exit_status, "allocate on fault and split\n");
- }
- 
- static void collapse_full(struct collapse_context *c, struct mem_ops *ops)
-@@ -742,6 +691,8 @@ static void collapse_full(struct collaps
- 		    ops, true);
- 	validate_memory(p, 0, size);
- 	ops->cleanup_area(p, size);
-+
-+	ksft_test_result_report(exit_status, "%s\n", __func__);
- }
- 
- static void collapse_empty(struct collapse_context *c, struct mem_ops *ops)
-@@ -751,6 +702,7 @@ static void collapse_empty(struct collap
- 	p = ops->setup_area(1);
- 	c->collapse("Do not collapse empty PTE table", p, 1, ops, false);
- 	ops->cleanup_area(p, hpage_pmd_size);
-+	ksft_test_result_report(exit_status, "%s\n", __func__);
- }
- 
- static void collapse_single_pte_entry(struct collapse_context *c, struct mem_ops *ops)
-@@ -762,6 +714,7 @@ static void collapse_single_pte_entry(st
- 	c->collapse("Collapse PTE table with single PTE entry present", p,
- 		    1, ops, true);
- 	ops->cleanup_area(p, hpage_pmd_size);
-+	ksft_test_result_report(exit_status, "%s\n", __func__);
- }
- 
- static void collapse_max_ptes_none(struct collapse_context *c, struct mem_ops *ops)
-@@ -801,6 +754,7 @@ static void collapse_max_ptes_none(struc
- skip:
- 	ops->cleanup_area(p, hpage_pmd_size);
- 	thp_pop_settings();
-+	ksft_test_result_report(exit_status, "%s\n", __func__);
- }
- 
- static void collapse_swapin_single_pte(struct collapse_context *c, struct mem_ops *ops)
-@@ -810,11 +764,9 @@ static void collapse_swapin_single_pte(s
- 	p = ops->setup_area(1);
- 	ops->fault(p, 0, hpage_pmd_size);
- 
--	printf("Swapout one page...");
--	if (madvise(p, page_size, MADV_PAGEOUT)) {
--		perror("madvise(MADV_PAGEOUT)");
--		exit(EXIT_FAILURE);
--	}
-+	ksft_print_msg("Swapout one page...");
-+	if (madvise(p, page_size, MADV_PAGEOUT))
-+		ksft_exit_fail_perror("madvise(MADV_PAGEOUT)");
- 	if (check_swap(p, page_size)) {
- 		success("OK");
- 	} else {
-@@ -827,6 +779,7 @@ static void collapse_swapin_single_pte(s
- 	validate_memory(p, 0, hpage_pmd_size);
- out:
- 	ops->cleanup_area(p, hpage_pmd_size);
-+	ksft_test_result_report(exit_status, "%s\n", __func__);
- }
- 
- static void collapse_max_ptes_swap(struct collapse_context *c, struct mem_ops *ops)
-@@ -837,11 +790,9 @@ static void collapse_max_ptes_swap(struc
- 	p = ops->setup_area(1);
- 	ops->fault(p, 0, hpage_pmd_size);
- 
--	printf("Swapout %d of %d pages...", max_ptes_swap + 1, hpage_pmd_nr);
--	if (madvise(p, (max_ptes_swap + 1) * page_size, MADV_PAGEOUT)) {
--		perror("madvise(MADV_PAGEOUT)");
--		exit(EXIT_FAILURE);
--	}
-+	ksft_print_msg("Swapout %d of %d pages...", max_ptes_swap + 1, hpage_pmd_nr);
-+	if (madvise(p, (max_ptes_swap + 1) * page_size, MADV_PAGEOUT))
-+		ksft_exit_fail_perror("madvise(MADV_PAGEOUT)");
- 	if (check_swap(p, (max_ptes_swap + 1) * page_size)) {
- 		success("OK");
- 	} else {
-@@ -855,12 +806,10 @@ static void collapse_max_ptes_swap(struc
- 
- 	if (c->enforce_pte_scan_limits) {
- 		ops->fault(p, 0, hpage_pmd_size);
--		printf("Swapout %d of %d pages...", max_ptes_swap,
-+		ksft_print_msg("Swapout %d of %d pages...", max_ptes_swap,
- 		       hpage_pmd_nr);
--		if (madvise(p, max_ptes_swap * page_size, MADV_PAGEOUT)) {
--			perror("madvise(MADV_PAGEOUT)");
--			exit(EXIT_FAILURE);
--		}
-+		if (madvise(p, max_ptes_swap * page_size, MADV_PAGEOUT))
-+			ksft_exit_fail_perror("madvise(MADV_PAGEOUT)");
- 		if (check_swap(p, max_ptes_swap * page_size)) {
- 			success("OK");
- 		} else {
-@@ -874,6 +823,7 @@ static void collapse_max_ptes_swap(struc
- 	}
- out:
- 	ops->cleanup_area(p, hpage_pmd_size);
-+	ksft_test_result_report(exit_status, "%s\n", __func__);
- }
- 
- static void collapse_single_pte_entry_compound(struct collapse_context *c, struct mem_ops *ops)
-@@ -890,7 +840,7 @@ static void collapse_single_pte_entry_co
+ 	if (clock_gettime(CLOCK_MONOTONIC_RAW, &start_time)) {
+-		perror("clock_gettime");
++		ksft_perror("clock_gettime");
+ 		return KSFT_FAIL;
  	}
  
- 	madvise(p, hpage_pmd_size, MADV_NOHUGEPAGE);
--	printf("Split huge page leaving single PTE mapping compound page...");
-+	ksft_print_msg("Split huge page leaving single PTE mapping compound page...");
- 	madvise(p + page_size, hpage_pmd_size - page_size, MADV_DONTNEED);
- 	if (ops->check_huge(p, 0))
- 		success("OK");
-@@ -902,6 +852,7 @@ static void collapse_single_pte_entry_co
- 	validate_memory(p, 0, page_size);
- skip:
- 	ops->cleanup_area(p, hpage_pmd_size);
-+	ksft_test_result_report(exit_status, "%s\n", __func__);
- }
- 
- static void collapse_full_of_compound(struct collapse_context *c, struct mem_ops *ops)
-@@ -909,7 +860,7 @@ static void collapse_full_of_compound(st
- 	void *p;
- 
- 	p = alloc_hpage(ops);
--	printf("Split huge page leaving single PTE page table full of compound pages...");
-+	ksft_print_msg("Split huge page leaving single PTE page table full of compound pages...");
- 	madvise(p, page_size, MADV_NOHUGEPAGE);
- 	madvise(p, hpage_pmd_size, MADV_NOHUGEPAGE);
- 	if (ops->check_huge(p, 0))
-@@ -921,6 +872,7 @@ static void collapse_full_of_compound(st
- 		    true);
- 	validate_memory(p, 0, hpage_pmd_size);
- 	ops->cleanup_area(p, hpage_pmd_size);
-+	ksft_test_result_report(exit_status, "%s\n", __func__);
- }
- 
- static void collapse_compound_extreme(struct collapse_context *c, struct mem_ops *ops)
-@@ -929,16 +881,12 @@ static void collapse_compound_extreme(st
- 	int i;
- 
- 	p = ops->setup_area(1);
-+	ksft_print_msg("Construct PTE page table full of different PTE-mapped compound pages\n");
- 	for (i = 0; i < hpage_pmd_nr; i++) {
--		printf("\rConstruct PTE page table full of different PTE-mapped compound pages %3d/%d...",
--				i + 1, hpage_pmd_nr);
--
- 		madvise(BASE_ADDR, hpage_pmd_size, MADV_HUGEPAGE);
- 		ops->fault(BASE_ADDR, 0, hpage_pmd_size);
--		if (!ops->check_huge(BASE_ADDR, 1)) {
--			printf("Failed to allocate huge page\n");
--			exit(EXIT_FAILURE);
--		}
-+		if (!ops->check_huge(BASE_ADDR, 1))
-+			ksft_exit_fail_msg("Failed to allocate huge page\n");
- 		madvise(BASE_ADDR, hpage_pmd_size, MADV_NOHUGEPAGE);
- 
- 		p = mremap(BASE_ADDR - i * page_size,
-@@ -946,20 +894,16 @@ static void collapse_compound_extreme(st
- 				(i + 1) * page_size,
- 				MREMAP_MAYMOVE | MREMAP_FIXED,
- 				BASE_ADDR + 2 * hpage_pmd_size);
--		if (p == MAP_FAILED) {
--			perror("mremap+unmap");
--			exit(EXIT_FAILURE);
--		}
-+		if (p == MAP_FAILED)
-+			ksft_exit_fail_perror("mremap+unmap");
- 
- 		p = mremap(BASE_ADDR + 2 * hpage_pmd_size,
- 				(i + 1) * page_size,
- 				(i + 1) * page_size + hpage_pmd_size,
- 				MREMAP_MAYMOVE | MREMAP_FIXED,
- 				BASE_ADDR - (i + 1) * page_size);
--		if (p == MAP_FAILED) {
--			perror("mremap+alloc");
--			exit(EXIT_FAILURE);
--		}
-+		if (p == MAP_FAILED)
-+			ksft_exit_fail_perror("mremap+alloc");
+ 	if (numa_available() < 0) {
+-		perror("NUMA support not enabled");
++		ksft_print_msg("NUMA support not enabled\n");
+ 		return KSFT_SKIP;
+ 	}
+ 	if (numa_num_configured_nodes() <= 1) {
+-		printf("At least 2 NUMA nodes must be available\n");
++		ksft_print_msg("At least 2 NUMA nodes must be available\n");
+ 		return KSFT_SKIP;
+ 	}
+ 	if (ksm_write_sysfs(KSM_FP("merge_across_nodes"), merge_across_nodes))
+@@ -485,7 +479,7 @@ static int check_ksm_numa_merge(int merg
+ 	numa1_map_ptr = numa_alloc_onnode(page_size, first_node);
+ 	numa2_map_ptr = numa_alloc_onnode(page_size, get_next_mem_node(first_node));
+ 	if (!numa1_map_ptr || !numa2_map_ptr) {
+-		perror("numa_alloc_onnode");
++		ksft_perror("numa_alloc_onnode");
+ 		return KSFT_FAIL;
  	}
  
- 	ops->cleanup_area(BASE_ADDR, hpage_pmd_size);
-@@ -974,6 +918,7 @@ static void collapse_compound_extreme(st
+@@ -510,13 +504,11 @@ static int check_ksm_numa_merge(int merg
  
- 	validate_memory(p, 0, hpage_pmd_size);
- 	ops->cleanup_area(p, hpage_pmd_size);
-+	ksft_test_result_report(exit_status, "%s\n", __func__);
+ 	numa_free(numa1_map_ptr, page_size);
+ 	numa_free(numa2_map_ptr, page_size);
+-	printf("OK\n");
+ 	return KSFT_PASS;
+ 
+ err_out:
+ 	numa_free(numa1_map_ptr, page_size);
+ 	numa_free(numa2_map_ptr, page_size);
+-	printf("Not OK\n");
+ 	return KSFT_FAIL;
  }
  
- static void collapse_fork(struct collapse_context *c, struct mem_ops *ops)
-@@ -983,18 +928,17 @@ static void collapse_fork(struct collaps
+@@ -529,7 +521,7 @@ static int ksm_merge_hugepages_time(int
+ 	int pagemap_fd, n_normal_pages, n_huge_pages;
  
- 	p = ops->setup_area(1);
- 
--	printf("Allocate small page...");
-+	ksft_print_msg("Allocate small page...");
- 	ops->fault(p, 0, page_size);
- 	if (ops->check_huge(p, 0))
- 		success("OK");
- 	else
- 		fail("Fail");
- 
--	printf("Share small page over fork()...");
-+	ksft_print_msg("Share small page over fork()...");
- 	if (!fork()) {
- 		/* Do not touch settings on child exit */
- 		skip_settings_restore = true;
--		exit_status = 0;
- 
- 		if (ops->check_huge(p, 0))
- 			success("OK");
-@@ -1011,15 +955,16 @@ static void collapse_fork(struct collaps
- 	}
- 
- 	wait(&wstatus);
--	exit_status += WEXITSTATUS(wstatus);
-+	exit_status = WEXITSTATUS(wstatus);
- 
--	printf("Check if parent still has small page...");
-+	ksft_print_msg("Check if parent still has small page...");
- 	if (ops->check_huge(p, 0))
- 		success("OK");
- 	else
- 		fail("Fail");
- 	validate_memory(p, 0, page_size);
- 	ops->cleanup_area(p, hpage_pmd_size);
-+	ksft_test_result_report(exit_status, "%s\n", __func__);
- }
- 
- static void collapse_fork_compound(struct collapse_context *c, struct mem_ops *ops)
-@@ -1028,18 +973,17 @@ static void collapse_fork_compound(struc
- 	void *p;
- 
- 	p = alloc_hpage(ops);
--	printf("Share huge page over fork()...");
-+	ksft_print_msg("Share huge page over fork()...");
- 	if (!fork()) {
- 		/* Do not touch settings on child exit */
- 		skip_settings_restore = true;
--		exit_status = 0;
- 
- 		if (ops->check_huge(p, 1))
- 			success("OK");
- 		else
- 			fail("Fail");
- 
--		printf("Split huge page PMD in child process...");
-+		ksft_print_msg("Split huge page PMD in child process...");
- 		madvise(p, page_size, MADV_NOHUGEPAGE);
- 		madvise(p, hpage_pmd_size, MADV_NOHUGEPAGE);
- 		if (ops->check_huge(p, 0))
-@@ -1060,15 +1004,16 @@ static void collapse_fork_compound(struc
- 	}
- 
- 	wait(&wstatus);
--	exit_status += WEXITSTATUS(wstatus);
-+	exit_status = WEXITSTATUS(wstatus);
- 
--	printf("Check if parent still has huge page...");
-+	ksft_print_msg("Check if parent still has huge page...");
- 	if (ops->check_huge(p, 1))
- 		success("OK");
- 	else
- 		fail("Fail");
- 	validate_memory(p, 0, hpage_pmd_size);
- 	ops->cleanup_area(p, hpage_pmd_size);
-+	ksft_test_result_report(exit_status, "%s\n", __func__);
- }
- 
- static void collapse_max_ptes_shared(struct collapse_context *c, struct mem_ops *ops)
-@@ -1078,18 +1023,17 @@ static void collapse_max_ptes_shared(str
- 	void *p;
- 
- 	p = alloc_hpage(ops);
--	printf("Share huge page over fork()...");
-+	ksft_print_msg("Share huge page over fork()...");
- 	if (!fork()) {
- 		/* Do not touch settings on child exit */
- 		skip_settings_restore = true;
--		exit_status = 0;
- 
- 		if (ops->check_huge(p, 1))
- 			success("OK");
- 		else
- 			fail("Fail");
- 
--		printf("Trigger CoW on page %d of %d...",
-+		ksft_print_msg("Trigger CoW on page %d of %d...",
- 				hpage_pmd_nr - max_ptes_shared - 1, hpage_pmd_nr);
- 		ops->fault(p, 0, (hpage_pmd_nr - max_ptes_shared - 1) * page_size);
- 		if (ops->check_huge(p, 0))
-@@ -1101,7 +1045,7 @@ static void collapse_max_ptes_shared(str
- 			    1, ops, !c->enforce_pte_scan_limits);
- 
- 		if (c->enforce_pte_scan_limits) {
--			printf("Trigger CoW on page %d of %d...",
-+			ksft_print_msg("Trigger CoW on page %d of %d...",
- 			       hpage_pmd_nr - max_ptes_shared, hpage_pmd_nr);
- 			ops->fault(p, 0, (hpage_pmd_nr - max_ptes_shared) *
- 				    page_size);
-@@ -1120,15 +1064,16 @@ static void collapse_max_ptes_shared(str
- 	}
- 
- 	wait(&wstatus);
--	exit_status += WEXITSTATUS(wstatus);
-+	exit_status = WEXITSTATUS(wstatus);
- 
--	printf("Check if parent still has huge page...");
-+	ksft_print_msg("Check if parent still has huge page...");
- 	if (ops->check_huge(p, 1))
- 		success("OK");
- 	else
- 		fail("Fail");
- 	validate_memory(p, 0, hpage_pmd_size);
- 	ops->cleanup_area(p, hpage_pmd_size);
-+	ksft_test_result_report(exit_status, "%s\n", __func__);
- }
- 
- static void madvise_collapse_existing_thps(struct collapse_context *c,
-@@ -1145,6 +1090,7 @@ static void madvise_collapse_existing_th
- 	__madvise_collapse("Re-collapse PMD-mapped hugepage", p, 1, ops, true);
- 	validate_memory(p, 0, hpage_pmd_size);
- 	ops->cleanup_area(p, hpage_pmd_size);
-+	ksft_test_result_report(exit_status, "%s\n", __func__);
- }
- 
- /*
-@@ -1172,6 +1118,7 @@ static void madvise_retracted_page_table
- 		    true);
- 	validate_memory(p, 0, size);
- 	ops->cleanup_area(p, size);
-+	ksft_test_result_report(exit_status, "%s\n", __func__);
- }
- 
- static void usage(void)
-@@ -1280,10 +1227,8 @@ static int nr_test_cases;
- 
- #define TEST(t, c, o) do {						\
- 	if (c && o) {							\
--		if (nr_test_cases >= MAX_TEST_CASES) {			\
--			printf("MAX_TEST_CASES is too small\n");	\
--			exit(EXIT_FAILURE);				\
--		}							\
-+		if (nr_test_cases >= MAX_TEST_CASES)			\
-+			ksft_exit_fail_msg("MAX_TEST_CASES is too small\n"); \
- 		test_cases[nr_test_cases++] = (struct test_case){	\
- 			.ctx	= c,					\
- 			.ops	= o,					\
-@@ -1316,10 +1261,10 @@ int main(int argc, char **argv)
- 		.read_ahead_kb = 0,
- 	};
- 
--	if (!thp_is_enabled()) {
+ 	if (!thp_is_enabled()) {
 -		printf("Transparent Hugepages not available\n");
++		ksft_print_msg("Transparent Hugepages not available\n");
+ 		return KSFT_SKIP;
+ 	}
+ 
+@@ -559,36 +551,35 @@ static int ksm_merge_hugepages_time(int
+ 		else
+ 			n_huge_pages++;
+ 	}
+-	printf("Number of normal pages:    %d\n", n_normal_pages);
+-	printf("Number of huge pages:    %d\n", n_huge_pages);
++	ksft_print_msg("Number of normal pages:    %d\n", n_normal_pages);
++	ksft_print_msg("Number of huge pages:    %d\n", n_huge_pages);
+ 
+ 	memset(map_ptr, '*', len);
+ 
+ 	if (clock_gettime(CLOCK_MONOTONIC_RAW, &start_time)) {
+-		perror("clock_gettime");
++		ksft_perror("clock_gettime");
+ 		goto err_out;
+ 	}
+ 	if (ksm_merge_pages(merge_type, map_ptr, map_size, start_time, timeout))
+ 		goto err_out;
+ 	if (clock_gettime(CLOCK_MONOTONIC_RAW, &end_time)) {
+-		perror("clock_gettime");
++		ksft_perror("clock_gettime");
+ 		goto err_out;
+ 	}
+ 
+ 	scan_time_ns = (end_time.tv_sec - start_time.tv_sec) * NSEC_PER_SEC +
+ 		       (end_time.tv_nsec - start_time.tv_nsec);
+ 
+-	printf("Total size:    %lu MiB\n", map_size / MB);
+-	printf("Total time:    %ld.%09ld s\n", scan_time_ns / NSEC_PER_SEC,
++	ksft_print_msg("Total size:    %lu MiB\n", map_size / MB);
++	ksft_print_msg("Total time:    %ld.%09ld s\n", scan_time_ns / NSEC_PER_SEC,
+ 	       scan_time_ns % NSEC_PER_SEC);
+-	printf("Average speed:  %.3f MiB/s\n", (map_size / MB) /
++	ksft_print_msg("Average speed:  %.3f MiB/s\n", (map_size / MB) /
+ 					       ((double)scan_time_ns / NSEC_PER_SEC));
+ 
+ 	munmap(map_ptr_orig, len + HPAGE_SIZE);
+ 	return KSFT_PASS;
+ 
+ err_out:
+-	printf("Not OK\n");
+ 	munmap(map_ptr_orig, len + HPAGE_SIZE);
+ 	return KSFT_FAIL;
+ }
+@@ -606,30 +597,29 @@ static int ksm_merge_time(int merge_type
+ 		return KSFT_FAIL;
+ 
+ 	if (clock_gettime(CLOCK_MONOTONIC_RAW, &start_time)) {
+-		perror("clock_gettime");
++		ksft_perror("clock_gettime");
+ 		goto err_out;
+ 	}
+ 	if (ksm_merge_pages(merge_type, map_ptr, map_size, start_time, timeout))
+ 		goto err_out;
+ 	if (clock_gettime(CLOCK_MONOTONIC_RAW, &end_time)) {
+-		perror("clock_gettime");
++		ksft_perror("clock_gettime");
+ 		goto err_out;
+ 	}
+ 
+ 	scan_time_ns = (end_time.tv_sec - start_time.tv_sec) * NSEC_PER_SEC +
+ 		       (end_time.tv_nsec - start_time.tv_nsec);
+ 
+-	printf("Total size:    %lu MiB\n", map_size / MB);
+-	printf("Total time:    %ld.%09ld s\n", scan_time_ns / NSEC_PER_SEC,
++	ksft_print_msg("Total size:    %lu MiB\n", map_size / MB);
++	ksft_print_msg("Total time:    %ld.%09ld s\n", scan_time_ns / NSEC_PER_SEC,
+ 	       scan_time_ns % NSEC_PER_SEC);
+-	printf("Average speed:  %.3f MiB/s\n", (map_size / MB) /
++	ksft_print_msg("Average speed:  %.3f MiB/s\n", (map_size / MB) /
+ 					       ((double)scan_time_ns / NSEC_PER_SEC));
+ 
+ 	munmap(map_ptr, map_size);
+ 	return KSFT_PASS;
+ 
+ err_out:
+-	printf("Not OK\n");
+ 	munmap(map_ptr, map_size);
+ 	return KSFT_FAIL;
+ }
+@@ -646,37 +636,36 @@ static int ksm_unmerge_time(int merge_ty
+ 	if (!map_ptr)
+ 		return KSFT_FAIL;
+ 	if (clock_gettime(CLOCK_MONOTONIC_RAW, &start_time)) {
+-		perror("clock_gettime");
++		ksft_perror("clock_gettime");
+ 		goto err_out;
+ 	}
+ 	if (ksm_merge_pages(merge_type, map_ptr, map_size, start_time, timeout))
+ 		goto err_out;
+ 
+ 	if (clock_gettime(CLOCK_MONOTONIC_RAW, &start_time)) {
+-		perror("clock_gettime");
++		ksft_perror("clock_gettime");
+ 		goto err_out;
+ 	}
+ 	if (ksm_unmerge_pages(map_ptr, map_size, start_time, timeout))
+ 		goto err_out;
+ 	if (clock_gettime(CLOCK_MONOTONIC_RAW, &end_time)) {
+-		perror("clock_gettime");
++		ksft_perror("clock_gettime");
+ 		goto err_out;
+ 	}
+ 
+ 	scan_time_ns = (end_time.tv_sec - start_time.tv_sec) * NSEC_PER_SEC +
+ 		       (end_time.tv_nsec - start_time.tv_nsec);
+ 
+-	printf("Total size:    %lu MiB\n", map_size / MB);
+-	printf("Total time:    %ld.%09ld s\n", scan_time_ns / NSEC_PER_SEC,
++	ksft_print_msg("Total size:    %lu MiB\n", map_size / MB);
++	ksft_print_msg("Total time:    %ld.%09ld s\n", scan_time_ns / NSEC_PER_SEC,
+ 	       scan_time_ns % NSEC_PER_SEC);
+-	printf("Average speed:  %.3f MiB/s\n", (map_size / MB) /
++	ksft_print_msg("Average speed:  %.3f MiB/s\n", (map_size / MB) /
+ 					       ((double)scan_time_ns / NSEC_PER_SEC));
+ 
+ 	munmap(map_ptr, map_size);
+ 	return KSFT_PASS;
+ 
+ err_out:
+-	printf("Not OK\n");
+ 	munmap(map_ptr, map_size);
+ 	return KSFT_FAIL;
+ }
+@@ -695,24 +684,24 @@ static int ksm_cow_time(int merge_type,
+ 		return KSFT_FAIL;
+ 
+ 	if (clock_gettime(CLOCK_MONOTONIC_RAW, &start_time)) {
+-		perror("clock_gettime");
++		ksft_perror("clock_gettime");
+ 		return KSFT_FAIL;
+ 	}
+ 	for (size_t i = 0; i < page_count - 1; i = i + 2)
+ 		memset(map_ptr + page_size * i, '-', 1);
+ 	if (clock_gettime(CLOCK_MONOTONIC_RAW, &end_time)) {
+-		perror("clock_gettime");
++		ksft_perror("clock_gettime");
+ 		return KSFT_FAIL;
+ 	}
+ 
+ 	cow_time_ns = (end_time.tv_sec - start_time.tv_sec) * NSEC_PER_SEC +
+ 		       (end_time.tv_nsec - start_time.tv_nsec);
+ 
+-	printf("Total size:    %lu MiB\n\n", (page_size * page_count) / MB);
+-	printf("Not merged pages:\n");
+-	printf("Total time:     %ld.%09ld s\n", cow_time_ns / NSEC_PER_SEC,
++	ksft_print_msg("Total size:    %lu MiB\n\n", (page_size * page_count) / MB);
++	ksft_print_msg("Not merged pages:\n");
++	ksft_print_msg("Total time:     %ld.%09ld s\n", cow_time_ns / NSEC_PER_SEC,
+ 	       cow_time_ns % NSEC_PER_SEC);
+-	printf("Average speed:  %.3f MiB/s\n\n", ((page_size * (page_count / 2)) / MB) /
++	ksft_print_msg("Average speed:  %.3f MiB/s\n\n", ((page_size * (page_count / 2)) / MB) /
+ 					       ((double)cow_time_ns / NSEC_PER_SEC));
+ 
+ 	/* Create 2000 pairs of duplicate pages */
+@@ -724,30 +713,29 @@ static int ksm_cow_time(int merge_type,
+ 		goto err_out;
+ 
+ 	if (clock_gettime(CLOCK_MONOTONIC_RAW, &start_time)) {
+-		perror("clock_gettime");
++		ksft_perror("clock_gettime");
+ 		goto err_out;
+ 	}
+ 	for (size_t i = 0; i < page_count - 1; i = i + 2)
+ 		memset(map_ptr + page_size * i, '-', 1);
+ 	if (clock_gettime(CLOCK_MONOTONIC_RAW, &end_time)) {
+-		perror("clock_gettime");
++		ksft_perror("clock_gettime");
+ 		goto err_out;
+ 	}
+ 
+ 	cow_time_ns = (end_time.tv_sec - start_time.tv_sec) * NSEC_PER_SEC +
+ 		       (end_time.tv_nsec - start_time.tv_nsec);
+ 
+-	printf("Merged pages:\n");
+-	printf("Total time:     %ld.%09ld s\n", cow_time_ns / NSEC_PER_SEC,
++	ksft_print_msg("Merged pages:\n");
++	ksft_print_msg("Total time:     %ld.%09ld s\n", cow_time_ns / NSEC_PER_SEC,
+ 	       cow_time_ns % NSEC_PER_SEC);
+-	printf("Average speed:  %.3f MiB/s\n", ((page_size * (page_count / 2)) / MB) /
++	ksft_print_msg("Average speed:  %.3f MiB/s\n", ((page_size * (page_count / 2)) / MB) /
+ 					       ((double)cow_time_ns / NSEC_PER_SEC));
+ 
+ 	munmap(map_ptr, page_size * page_count);
+ 	return KSFT_PASS;
+ 
+ err_out:
+-	printf("Not OK\n");
+ 	munmap(map_ptr, page_size * page_count);
+ 	return KSFT_FAIL;
+ }
+@@ -765,6 +753,10 @@ int main(int argc, char *argv[])
+ 	bool use_zero_pages = KSM_USE_ZERO_PAGES_DEFAULT;
+ 	bool merge_across_nodes = KSM_MERGE_ACROSS_NODES_DEFAULT;
+ 	long size_MB = 0;
++	const char *test_descr = "KSM merging";
++
++	ksft_print_header();
++	ksft_set_plan(1);
+ 
+ 	while ((opt = getopt(argc, argv, "dha:p:l:z:m:s:t:MUZNPCHD")) != -1) {
+ 		switch (opt) {
+@@ -773,17 +765,13 @@ int main(int argc, char *argv[])
+ 			break;
+ 		case 'p':
+ 			page_count = atol(optarg);
+-			if (page_count <= 0) {
+-				printf("The number of pages must be greater than 0\n");
+-				return KSFT_FAIL;
+-			}
++			if (page_count <= 0)
++				ksft_exit_fail_msg("The number of pages must be greater than 0\n");
+ 			break;
+ 		case 'l':
+ 			ksm_scan_limit_sec = atoi(optarg);
+-			if (ksm_scan_limit_sec <= 0) {
+-				printf("Timeout value must be greater than 0\n");
+-				return KSFT_FAIL;
+-			}
++			if (ksm_scan_limit_sec <= 0)
++				ksft_exit_fail_msg("Timeout value must be greater than 0\n");
+ 			break;
+ 		case 'h':
+ 			print_help();
+@@ -805,19 +793,15 @@ int main(int argc, char *argv[])
+ 			break;
+ 		case 's':
+ 			size_MB = atoi(optarg);
+-			if (size_MB <= 0) {
+-				printf("Size must be greater than 0\n");
+-				return KSFT_FAIL;
+-			}
++			if (size_MB <= 0)
++				ksft_exit_fail_msg("Size must be greater than 0\n");
+ 			break;
+ 		case 't':
+ 			{
+ 				int tmp = atoi(optarg);
+ 
+-				if (tmp < 0 || tmp > KSM_MERGE_LAST) {
+-					printf("Invalid merge type\n");
+-					return KSFT_FAIL;
+-				}
++				if (tmp < 0 || tmp > KSM_MERGE_LAST)
++					ksft_exit_fail_msg("Invalid merge type\n");
+ 				merge_type = tmp;
+ 			}
+ 			break;
+@@ -845,82 +829,80 @@ int main(int argc, char *argv[])
+ 			test_name = KSM_COW_TIME;
+ 			break;
+ 		default:
+-			return KSFT_FAIL;
++			ksft_exit_fail_msg("Unknown option\n");
+ 		}
+ 	}
+ 
+ 	if (prot == 0)
+ 		prot = str_to_prot(KSM_PROT_STR_DEFAULT);
+ 
+-	if (access(KSM_SYSFS_PATH, F_OK)) {
+-		printf("Config KSM not enabled\n");
 -		return KSFT_SKIP;
 -	}
-+	ksft_print_header();
-+
-+	if (!thp_is_enabled())
-+		ksft_exit_skip("Transparent Hugepages not available\n");
++	if (access(KSM_SYSFS_PATH, F_OK))
++		ksft_exit_skip("Config KSM not enabled\n");
  
- 	parse_test_type(argc, argv);
- 
-@@ -1327,10 +1272,8 @@ int main(int argc, char **argv)
- 
- 	page_size = getpagesize();
- 	hpage_pmd_size = read_pmd_pagesize();
--	if (!hpage_pmd_size) {
--		printf("Reading PMD pagesize failed");
--		exit(EXIT_FAILURE);
+-	if (ksm_save_def(&ksm_sysfs_old)) {
+-		printf("Cannot save default tunables\n");
+-		return KSFT_FAIL;
 -	}
-+	if (!hpage_pmd_size)
-+		ksft_exit_fail_msg("Reading PMD pagesize failed\n");
- 	hpage_pmd_nr = hpage_pmd_size / page_size;
- 	hpage_pmd_order = __builtin_ctz(hpage_pmd_nr);
++	if (ksm_save_def(&ksm_sysfs_old))
++		ksft_exit_fail_msg("Cannot save default tunables\n");
  
-@@ -1346,8 +1289,6 @@ int main(int argc, char **argv)
- 	save_settings();
- 	thp_push_settings(&default_settings);
+ 	if (ksm_write_sysfs(KSM_FP("run"), 2) ||
+ 	    ksm_write_sysfs(KSM_FP("sleep_millisecs"), 0) ||
+ 	    numa_available() ? 0 :
+ 		ksm_write_sysfs(KSM_FP("merge_across_nodes"), 1) ||
+ 	    ksm_write_sysfs(KSM_FP("pages_to_scan"), page_count))
+-		return KSFT_FAIL;
++		ksft_exit_fail_msg("Cannot set up KSM tunables\n");
  
--	alloc_at_fault();
--
- 	TEST(collapse_full, khugepaged_context, anon_ops);
- 	TEST(collapse_full, khugepaged_context, read_only_file_ops);
- 	TEST(collapse_full, khugepaged_context, read_write_file_read_ops);
-@@ -1425,11 +1366,13 @@ int main(int argc, char **argv)
- 	TEST(madvise_retracted_page_tables, madvise_context, read_write_file_read_ops);
- 	TEST(madvise_retracted_page_tables, madvise_context, shmem_ops);
- 
--	exit_status = KSFT_PASS;
-+	ksft_set_plan(nr_test_cases + 1);
-+
-+	alloc_at_fault();
- 	for (int i = 0; i < nr_test_cases; i++) {
- 		struct test_case *t = &test_cases[i];
- 
--		printf("\nRun test: %s (%s:%s)\n", t->desc, t->ctx->name, t->ops->name);
-+		ksft_print_msg("\n# Run test: %s (%s:%s)\n", t->desc, t->ctx->name, t->ops->name);
- 		t->fn(t->ctx, t->ops);
+ 	switch (test_name) {
+ 	case CHECK_KSM_MERGE:
++		test_descr = "KSM merging";
+ 		ret = check_ksm_merge(merge_type, MAP_PRIVATE | MAP_ANONYMOUS, prot, page_count,
+ 				      ksm_scan_limit_sec, page_size);
+ 		break;
+ 	case CHECK_KSM_UNMERGE:
++		test_descr = "KSM unmerging";
+ 		ret = check_ksm_unmerge(merge_type, MAP_PRIVATE | MAP_ANONYMOUS, prot,
+ 					ksm_scan_limit_sec, page_size);
+ 		break;
+ 	case CHECK_KSM_ZERO_PAGE_MERGE:
++		test_descr = "KSM zero page merging";
+ 		ret = check_ksm_zero_page_merge(merge_type, MAP_PRIVATE | MAP_ANONYMOUS, prot,
+ 						page_count, ksm_scan_limit_sec, use_zero_pages,
+ 						page_size);
+ 		break;
+ 	case CHECK_KSM_NUMA_MERGE:
++		test_descr = "KSM NUMA merging";
+ 		ret = check_ksm_numa_merge(merge_type, MAP_PRIVATE | MAP_ANONYMOUS, prot,
+ 					ksm_scan_limit_sec, merge_across_nodes, page_size);
+ 		break;
+ 	case KSM_MERGE_TIME:
+-		if (size_MB == 0) {
+-			printf("Option '-s' is required.\n");
+-			return KSFT_FAIL;
+-		}
++		if (size_MB == 0)
++			ksft_exit_fail_msg("Option '-s' is required\n");
++		test_descr = "KSM merge time";
+ 		ret = ksm_merge_time(merge_type, MAP_PRIVATE | MAP_ANONYMOUS, prot,
+ 				ksm_scan_limit_sec, size_MB);
+ 		break;
+ 	case KSM_MERGE_TIME_HUGE_PAGES:
+-		if (size_MB == 0) {
+-			printf("Option '-s' is required.\n");
+-			return KSFT_FAIL;
+-		}
++		if (size_MB == 0)
++			ksft_exit_fail_msg("Option '-s' is required\n");
++		test_descr = "KSM merge time with huge pages";
+ 		ret = ksm_merge_hugepages_time(merge_type, MAP_PRIVATE | MAP_ANONYMOUS, prot,
+ 				ksm_scan_limit_sec, size_MB);
+ 		break;
+ 	case KSM_UNMERGE_TIME:
+-		if (size_MB == 0) {
+-			printf("Option '-s' is required.\n");
+-			return KSFT_FAIL;
+-		}
++		if (size_MB == 0)
++			ksft_exit_fail_msg("Option '-s' is required\n");
++		test_descr = "KSM unmerge time";
+ 		ret = ksm_unmerge_time(merge_type, MAP_PRIVATE | MAP_ANONYMOUS, prot,
+ 				       ksm_scan_limit_sec, size_MB);
+ 		break;
+ 	case KSM_COW_TIME:
++		test_descr = "KSM COW time";
+ 		ret = ksm_cow_time(merge_type, MAP_PRIVATE | MAP_ANONYMOUS, prot,
+ 				ksm_scan_limit_sec, page_size);
+ 		break;
  	}
  
+-	if (ksm_restore(&ksm_sysfs_old)) {
+-		printf("Cannot restore default tunables\n");
+-		return KSFT_FAIL;
+-	}
++	if (ksm_restore(&ksm_sysfs_old))
++		ksft_print_msg("Cannot restore default tunables\n");
++
++	ksft_test_result_report(ret, "%s\n", test_descr);
+ 
+-	return ret;
++	ksft_finished();
+ }
 _
 
 Patches currently in -mm which might be from rppt@kernel.org are
