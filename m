@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C6FCF36F8F0
-	for <mm-commits@vger.kernel.org>; Sun, 21 Jun 2026 18:39:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6B57136F8F0
+	for <mm-commits@vger.kernel.org>; Sun, 21 Jun 2026 18:40:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782067200; cv=none; b=COZGrHm9NmHMsforZQ4RKP2Gd6SgY65+THmtiQBwtHIi8vRIGX1rATX1LZNiOiE+HdsEoPVBJcmk8G9U45Lpz2qwjkwMf9J9ZwyVHIwKXnWjL1BrZfj0/L8AujvWhdeD0KTf/QAX8wzojabW4zVr/H7SKlxObPTqRzkj1l29/co=
+	t=1782067202; cv=none; b=bFyyVkNFLvytvtbsMu+yH7bMIvQdg+LUMpeJDyTUMZov56P7Qd/VsEWuceSKV6ABvY2lCKoJzJuFbEwmbkRRBgjFT2HdfEabInvnX74XQG19w61ifXvsO5s7GVl+og97ja99tK4dzWZsw3W4R5BBzu6lIaSBNgi60HOvSzJOYA4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782067200; c=relaxed/simple;
-	bh=o3zNpdiMlAfs3jZG5yXinYJZt+hMxIYfIBVrTi3zktE=;
-	h=Date:To:From:Subject:Message-Id; b=KZ0YKZOWlQMw9Hrm3Ngm1x5j1QK1oECQXkDiqEVwtIwUHnn4mPiZEq340UOTW6B9Vmi11BGFPizDmn8c6af5y9Jg0kGZ1AOW+y2ADxDaUWE/AsuRP/vcksFpzbLLzM/MqUg3/i417dK6GxEqzCYldrQEoSOuP9wxUOHYihb4kI4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zDYqmANF; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1782067202; c=relaxed/simple;
+	bh=UHY8X/9d6I8NzMLxJTktBNDOsrlXl5eI5reubfknmxQ=;
+	h=Date:To:From:Subject:Message-Id; b=K3+kQw4c8FAz0I1/BLh00YUOasjCdcW04wZv4aCLVoTy9k4ZqPZi4KyZ+wf26gyZXMPp/X78zwVty4FtLccqRtCf/DgSSP1kb7wRcVw0mPIUG9O2Gp0V6JX8LEObEp8eyQelEw/IQ0jojLDVgRDhjL3lLTlejfXpRyBtgMnaYD4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=aNlprbof; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zDYqmANF"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9ABCD1F00A3A;
-	Sun, 21 Jun 2026 18:39:59 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="aNlprbof"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3F42D1F000E9;
+	Sun, 21 Jun 2026 18:40:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1782067199;
-	bh=cEj9Iyh4TFMoYXG/0R4upnJ4dNQaaKV/tbQv7tmcv+k=;
+	d=linux-foundation.org; s=korg; t=1782067201;
+	bh=hLU3sq77Ir0rCKEqm9yvvfASSmOaL/w102Q9ArSJNXc=;
 	h=Date:To:From:Subject;
-	b=zDYqmANFbRLzqj5COd21+fd8rqln2jZf4ch2VISM01AHzDp+A4BqZeBkmvirUSnU1
-	 JtDcsX5XnJu7UXqX3fLGG9GSk18yEczLlloGqV4aaQd/fd9FWZIhWthQ2seXjt2Wrv
-	 Q3o0yQdc/yH6OrQfFGXiGjLuDayN0nb2RUf5oSRM=
-Date: Sun, 21 Jun 2026 11:39:59 -0700
+	b=aNlprbof24oFQhIfOvbbDsN8rL317jB4KLhmMFUqt5/J6HbuyScpO2WDjI6uh2ZyQ
+	 9XvtWHrVmFIVl28chway+90rWpyHx+0XQrkSVmLX78ts+u3OdHZawTIb/Rp2J3JlRS
+	 AAY6czrv/ngPrWeL7vjGZAOw+l8GLGQaXiGHT3TU=
+Date: Sun, 21 Jun 2026 11:40:00 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,venkat88@linux.ibm.com,shuah@kernel.org,ritesh.list@gmail.com,osalvador@suse.de,mhocko@kernel.org,linmiaohe@huawei.com,liam.howlett@oracle.com,dev.jain@arm.com,david@kernel.org,sayalip@linux.ibm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-mm-size-tmpfs-according-to-pmd-page-size-in-split_huge_page_test.patch removed from -mm tree
-Message-Id: <20260621183959.9ABCD1F00A3A@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-mm-free-dynamically-allocated-pmd-sized-buffers-in-split_huge_page_test.patch removed from -mm tree
+Message-Id: <20260621184001.3F42D1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,85 +35,35 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests/mm: size tmpfs according to PMD page size in split_huge_page_test
+     Subject: selftests/mm: free dynamically allocated PMD-sized buffers in split_huge_page_test
 has been removed from the -mm tree.  Its filename was
-     selftests-mm-size-tmpfs-according-to-pmd-page-size-in-split_huge_page_test.patch
+     selftests-mm-free-dynamically-allocated-pmd-sized-buffers-in-split_huge_page_test.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Sayali Patil <sayalip@linux.ibm.com>
-Subject: selftests/mm: size tmpfs according to PMD page size in split_huge_page_test
-Date: Thu, 21 May 2026 12:17:46 +0530
+Subject: selftests/mm: free dynamically allocated PMD-sized buffers in split_huge_page_test
+Date: Thu, 21 May 2026 12:17:47 +0530
 
-The split_file_backed_thp() test mounts a tmpfs with a fixed size of "4m".
-This works on systems with smaller PMD page sizes, but fails on
-configurations where the PMD huge page size is larger (e.g.  16MB).
+Dynamically allocated buffers of PMD size for file-backed THP operations
+(file_buf1 and file_buf2) were not freed on the success path and some
+failure paths.  Since the function is called repeatedly in a loop for each
+split order, this can cause significant memory leaks.
 
-On such systems, the fixed 4MB tmpfs is insufficient to allocate even a
-single PMD-sized THP, causing the test to fail.
+On architectures with large PMD sizes, repeated leaks could exhaust system
+memory and trigger the OOM killer during test execution.
 
-Fix this by sizing the tmpfs dynamically based on the runtime
-pmd_pagesize, allocating space for two PMD-sized pages.
+Ensure all allocated buffers are freed to maintain stable repeated test
+runs.
 
-Before patch:
-  running ./split_huge_page_test /tmp/xfs_dir_YTrI5E
-  --------------------------------------------------
-  TAP version 13
-  1..55
-  ok 1 Split zero filled huge pages successful
-  ok 2 Split huge pages to order 0 successful
-  ok 3 Split huge pages to order 2 successful
-  ok 4 Split huge pages to order 3 successful
-  ok 5 Split huge pages to order 4 successful
-  ok 6 Split huge pages to order 5 successful
-  ok 7 Split huge pages to order 6 successful
-  ok 8 Split huge pages to order 7 successful
-  ok 9 Split PTE-mapped huge pages successful
-   Please enable pr_debug in split_huge_pages_in_file() for more info.
-   Failed to write data to testing file: Success (0)
-  Bail out! Error occurred
-   Planned tests != run tests (55 != 9)
-   Totals: pass:9 fail:0 xfail:0 xpass:0 skip:0 error:0
- [FAIL]
-
-After patch:
-  running ./split_huge_page_test /tmp/xfs_dir_bMvj6o
-  --------------------------------------------------
-  TAP version 13
-  1..55
-  ok 1 Split zero filled huge pages successful
-  ok 2 Split huge pages to order 0 successful
-  ok 3 Split huge pages to order 2 successful
-  ok 4 Split huge pages to order 3 successful
-  ok 5 Split huge pages to order 4 successful
-  ok 6 Split huge pages to order 5 successful
-  ok 7 Split huge pages to order 6 successful
-  ok 8 Split huge pages to order 7 successful
-  ok 9 Split PTE-mapped huge pages successful
-   Please enable pr_debug in split_huge_pages_in_file() for more info.
-   Please check dmesg for more information
-  ok 10 File-backed THP split to order 0 test done
-   Please enable pr_debug in split_huge_pages_in_file() for more info.
-   Please check dmesg for more information
-  ok 11 File-backed THP split to order 1 test done
-   Please enable pr_debug in split_huge_pages_in_file() for more info.
-   Please check dmesg for more information
-  ok 12 File-backed THP split to order 2 test done
-...
-  ok 55 Split PMD-mapped pagecache folio to order 7 at
-    in-folio offset 128 passed
-   Totals: pass:55 fail:0 xfail:0 xpass:0 skip:0 error:0
-   [PASS]
-ok 1 split_huge_page_test /tmp/xfs_dir_bMvj6o
-
-Link: https://lore.kernel.org/33e1bc10753fe82d1217613d8cd496020778cf2b.1779296493.git.sayalip@linux.ibm.com
-Fixes: fbe37501b252 ("mm: huge_memory: debugfs for file-backed THP split")
+Link: https://lore.kernel.org/060c673b376bbeeed2b1fb1d48a825e846654191.1779296493.git.sayalip@linux.ibm.com
+Fixes: 035a112e5fd5 ("selftests/mm: make file-backed THP split work by writing PMD size data")
 Signed-off-by: Sayali Patil <sayalip@linux.ibm.com>
 Reviewed-by: Zi Yan <ziy@nvidia.com>
-Reviewed-by: David Hildenbrand (Arm) <david@kernel.org>
 Tested-by: Venkat Rao Bagalkote <venkat88@linux.ibm.com>
+Cc: David Hildenbrand (Arm) <david@kernel.org>
 Cc: Dev Jain <dev.jain@arm.com>
 Cc: Liam Howlett <liam.howlett@oracle.com>
 Cc: Miaohe Lin <linmiaohe@huawei.com>
@@ -124,30 +74,69 @@ Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/split_huge_page_test.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ tools/testing/selftests/mm/split_huge_page_test.c |   22 ++++++++----
+ 1 file changed, 16 insertions(+), 6 deletions(-)
 
---- a/tools/testing/selftests/mm/split_huge_page_test.c~selftests-mm-size-tmpfs-according-to-pmd-page-size-in-split_huge_page_test
+--- a/tools/testing/selftests/mm/split_huge_page_test.c~selftests-mm-free-dynamically-allocated-pmd-sized-buffers-in-split_huge_page_test
 +++ a/tools/testing/selftests/mm/split_huge_page_test.c
-@@ -470,6 +470,8 @@ static void split_file_backed_thp(int or
- 	char tmpfs_template[] = "/tmp/thp_split_XXXXXX";
- 	const char *tmpfs_loc = mkdtemp(tmpfs_template);
- 	char testfile[INPUT_MAX];
-+	unsigned long size = 2 * pmd_pagesize;
-+	char opts[64];
+@@ -473,12 +473,15 @@ static void split_file_backed_thp(int or
+ 	unsigned long size = 2 * pmd_pagesize;
+ 	char opts[64];
  	ssize_t num_written, num_read;
- 	char *file_buf1, *file_buf2;
+-	char *file_buf1, *file_buf2;
++	char *file_buf1 = NULL, *file_buf2 = NULL;
  	uint64_t pgoff_start = 0, pgoff_end = 1024;
-@@ -489,7 +491,8 @@ static void split_file_backed_thp(int or
- 		file_buf1[i] = (char)i;
- 	memset(file_buf2, 0, pmd_pagesize);
+ 	int i;
  
--	status = mount("tmpfs", tmpfs_loc, "tmpfs", 0, "huge=always,size=4m");
-+	snprintf(opts, sizeof(opts), "huge=always,size=%lu", size);
-+	status = mount("tmpfs", tmpfs_loc, "tmpfs", 0, opts);
+ 	ksft_print_msg("Please enable pr_debug in split_huge_pages_in_file() for more info.\n");
  
++	if (!tmpfs_loc)
++		ksft_exit_fail_msg("mkdtemp failed\n");
++
+ 	file_buf1 = (char *)malloc(pmd_pagesize);
+ 	file_buf2 = (char *)malloc(pmd_pagesize);
+ 
+@@ -494,8 +497,10 @@ static void split_file_backed_thp(int or
+ 	snprintf(opts, sizeof(opts), "huge=always,size=%lu", size);
+ 	status = mount("tmpfs", tmpfs_loc, "tmpfs", 0, opts);
+ 
+-	if (status)
+-		ksft_exit_fail_msg("Unable to create a tmpfs for testing\n");
++	if (status) {
++		ksft_print_msg("Unable to create a tmpfs for testing\n");
++		goto out;
++	}
+ 
+ 	status = snprintf(testfile, INPUT_MAX, "%s/thp_file", tmpfs_loc);
+ 	if (status >= INPUT_MAX) {
+@@ -547,10 +552,13 @@ static void split_file_backed_thp(int or
+ 
+ 	status = umount(tmpfs_loc);
+ 	if (status) {
+-		rmdir(tmpfs_loc);
+-		ksft_exit_fail_msg("Unable to umount %s\n", tmpfs_loc);
++		ksft_print_msg("Unable to umount %s\n", tmpfs_loc);
++		goto out;
+ 	}
+ 
++	free(file_buf1);
++	free(file_buf2);
++
+ 	status = rmdir(tmpfs_loc);
  	if (status)
- 		ksft_exit_fail_msg("Unable to create a tmpfs for testing\n");
+ 		ksft_exit_fail_msg("cannot remove tmp dir: %s\n", strerror(errno));
+@@ -563,8 +571,10 @@ close_file:
+ 	close(fd);
+ cleanup:
+ 	umount(tmpfs_loc);
+-	rmdir(tmpfs_loc);
+ out:
++	free(file_buf1);
++	free(file_buf2);
++	rmdir(tmpfs_loc);
+ 	ksft_exit_fail_msg("Error occurred\n");
+ }
+ 
 _
 
 Patches currently in -mm which might be from sayalip@linux.ibm.com are
