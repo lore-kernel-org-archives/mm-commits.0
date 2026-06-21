@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 758C636F908
-	for <mm-commits@vger.kernel.org>; Sun, 21 Jun 2026 18:39:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C6FCF36F8F0
+	for <mm-commits@vger.kernel.org>; Sun, 21 Jun 2026 18:39:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782067199; cv=none; b=mioaqqOf4+xu17Rb9XliTnhxgkTXEwUAdRZDcZ7fHLwgryKAka96XWazpZ5gPvTFH7D7YIIqrYm8In6reYQzul5wshwEYXoiHaxbN1WMjQkzC9b2VzmwRekTsKWvrNHxlFeA0w1sHlSPtilw+cKcUyPwcM6dP6zS+XR7XRQcQmg=
+	t=1782067200; cv=none; b=COZGrHm9NmHMsforZQ4RKP2Gd6SgY65+THmtiQBwtHIi8vRIGX1rATX1LZNiOiE+HdsEoPVBJcmk8G9U45Lpz2qwjkwMf9J9ZwyVHIwKXnWjL1BrZfj0/L8AujvWhdeD0KTf/QAX8wzojabW4zVr/H7SKlxObPTqRzkj1l29/co=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782067199; c=relaxed/simple;
-	bh=SQ5hZZgyVs9Vqzf3QgESJBylOfLmfySCn/Vx4HGWduc=;
-	h=Date:To:From:Subject:Message-Id; b=AhdK5HXK0z6IpLkmiF/+DMP5sNvy7MgizHehYIX+GCRHV7T2+uLeAh7NdLnfxxahV7yst6qPHMX9B/cUcw5HIIyvW/BySC4OLYEzF+WAeae6zQLfDHsD+F8zzAOl3FW7lqp3bo6OcGHlGWLH3feJzbK5eW1NuP6sqbLypoj8vjk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PkV7PEpn; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1782067200; c=relaxed/simple;
+	bh=o3zNpdiMlAfs3jZG5yXinYJZt+hMxIYfIBVrTi3zktE=;
+	h=Date:To:From:Subject:Message-Id; b=KZ0YKZOWlQMw9Hrm3Ngm1x5j1QK1oECQXkDiqEVwtIwUHnn4mPiZEq340UOTW6B9Vmi11BGFPizDmn8c6af5y9Jg0kGZ1AOW+y2ADxDaUWE/AsuRP/vcksFpzbLLzM/MqUg3/i417dK6GxEqzCYldrQEoSOuP9wxUOHYihb4kI4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zDYqmANF; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PkV7PEpn"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4B4471F000E9;
-	Sun, 21 Jun 2026 18:39:58 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zDYqmANF"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9ABCD1F00A3A;
+	Sun, 21 Jun 2026 18:39:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1782067198;
-	bh=jrwy6bEDsP+hIfF7QGzYIr7H/1uvu9Dz4VTqcQ850Bw=;
+	d=linux-foundation.org; s=korg; t=1782067199;
+	bh=cEj9Iyh4TFMoYXG/0R4upnJ4dNQaaKV/tbQv7tmcv+k=;
 	h=Date:To:From:Subject;
-	b=PkV7PEpnTMQnb2FuiJkGrP4AohpfrC3PaydWb+tnJUlLi8OKzNvOT9f1w4VoSwjxz
-	 2+BiTBi2niQNrseXxfe1+mU+DgiY0BNFrJ20oxS+QxmDaKWhxjQ+W7Ov+pGY+S+aDP
-	 qRwVXw6wGWWTCmj0Otlu5Z5x76z7W4KXoPuS9+Fs=
-Date: Sun, 21 Jun 2026 11:39:57 -0700
+	b=zDYqmANFbRLzqj5COd21+fd8rqln2jZf4ch2VISM01AHzDp+A4BqZeBkmvirUSnU1
+	 JtDcsX5XnJu7UXqX3fLGG9GSk18yEczLlloGqV4aaQd/fd9FWZIhWthQ2seXjt2Wrv
+	 Q3o0yQdc/yH6OrQfFGXiGjLuDayN0nb2RUf5oSRM=
+Date: Sun, 21 Jun 2026 11:39:59 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,venkat88@linux.ibm.com,shuah@kernel.org,ritesh.list@gmail.com,osalvador@suse.de,mhocko@kernel.org,linmiaohe@huawei.com,liam.howlett@oracle.com,dev.jain@arm.com,david@kernel.org,sayalip@linux.ibm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-mm-fix-cgroup-task-placement-and-drop-memorycurrent-checks-in-hugetlb_reparenting_testsh.patch removed from -mm tree
-Message-Id: <20260621183958.4B4471F000E9@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-mm-size-tmpfs-according-to-pmd-page-size-in-split_huge_page_test.patch removed from -mm tree
+Message-Id: <20260621183959.9ABCD1F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,42 +35,85 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests/mm: fix cgroup task placement and drop memory.current checks in hugetlb_reparenting_test.sh
+     Subject: selftests/mm: size tmpfs according to PMD page size in split_huge_page_test
 has been removed from the -mm tree.  Its filename was
-     selftests-mm-fix-cgroup-task-placement-and-drop-memorycurrent-checks-in-hugetlb_reparenting_testsh.patch
+     selftests-mm-size-tmpfs-according-to-pmd-page-size-in-split_huge_page_test.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Sayali Patil <sayalip@linux.ibm.com>
-Subject: selftests/mm: fix cgroup task placement and drop memory.current checks in hugetlb_reparenting_test.sh
-Date: Thu, 21 May 2026 12:17:45 +0530
+Subject: selftests/mm: size tmpfs according to PMD page size in split_huge_page_test
+Date: Thu, 21 May 2026 12:17:46 +0530
 
-The test currently moves the calling shell ($$) into the target cgroup
-before executing write_to_hugetlbfs.  This results in the shell and any
-intermediate allocations being charged to the cgroup, introducing noise
-and nondeterminism in accounting.  It also requires moving the shell back
-to the root cgroup after execution.
+The split_file_backed_thp() test mounts a tmpfs with a fixed size of "4m".
+This works on systems with smaller PMD page sizes, but fails on
+configurations where the PMD huge page size is larger (e.g.  16MB).
 
-Spawn a helper process that joins the target cgroup and exec()'s
-write_to_hugetlbfs.  This ensures that only the workload is accounted to
-the cgroup and avoids unintended charging from the shell.
+On such systems, the fixed 4MB tmpfs is insufficient to allocate even a
+single PMD-sized THP, causing the test to fail.
 
-The test currently validates both hugetlb usage and memory.current. 
-However, memory.current includes internal memcg allocations and per-CPU
-batched accounting (MEMCG_CHARGE_BATCH), which are not synchronized and
-can vary across systems, leading to non-deterministic results.
+Fix this by sizing the tmpfs dynamically based on the runtime
+pmd_pagesize, allocating space for two PMD-sized pages.
 
-Since hugetlb memory is accounted via hugetlb.<size>.current,
-memory.current is not a reliable indicator here.  Drop memory.current
-checks and rely only on hugetlb controller statistics for stable and
-accurate validation.
+Before patch:
+  running ./split_huge_page_test /tmp/xfs_dir_YTrI5E
+  --------------------------------------------------
+  TAP version 13
+  1..55
+  ok 1 Split zero filled huge pages successful
+  ok 2 Split huge pages to order 0 successful
+  ok 3 Split huge pages to order 2 successful
+  ok 4 Split huge pages to order 3 successful
+  ok 5 Split huge pages to order 4 successful
+  ok 6 Split huge pages to order 5 successful
+  ok 7 Split huge pages to order 6 successful
+  ok 8 Split huge pages to order 7 successful
+  ok 9 Split PTE-mapped huge pages successful
+   Please enable pr_debug in split_huge_pages_in_file() for more info.
+   Failed to write data to testing file: Success (0)
+  Bail out! Error occurred
+   Planned tests != run tests (55 != 9)
+   Totals: pass:9 fail:0 xfail:0 xpass:0 skip:0 error:0
+ [FAIL]
 
-Link: https://lore.kernel.org/fb57491ba83cb0a499c72922e1579b61bee514db.1779296493.git.sayalip@linux.ibm.com
-Fixes: 29750f71a9b4 ("hugetlb_cgroup: add hugetlb_cgroup reservation tests")
+After patch:
+  running ./split_huge_page_test /tmp/xfs_dir_bMvj6o
+  --------------------------------------------------
+  TAP version 13
+  1..55
+  ok 1 Split zero filled huge pages successful
+  ok 2 Split huge pages to order 0 successful
+  ok 3 Split huge pages to order 2 successful
+  ok 4 Split huge pages to order 3 successful
+  ok 5 Split huge pages to order 4 successful
+  ok 6 Split huge pages to order 5 successful
+  ok 7 Split huge pages to order 6 successful
+  ok 8 Split huge pages to order 7 successful
+  ok 9 Split PTE-mapped huge pages successful
+   Please enable pr_debug in split_huge_pages_in_file() for more info.
+   Please check dmesg for more information
+  ok 10 File-backed THP split to order 0 test done
+   Please enable pr_debug in split_huge_pages_in_file() for more info.
+   Please check dmesg for more information
+  ok 11 File-backed THP split to order 1 test done
+   Please enable pr_debug in split_huge_pages_in_file() for more info.
+   Please check dmesg for more information
+  ok 12 File-backed THP split to order 2 test done
+...
+  ok 55 Split PMD-mapped pagecache folio to order 7 at
+    in-folio offset 128 passed
+   Totals: pass:55 fail:0 xfail:0 xpass:0 skip:0 error:0
+   [PASS]
+ok 1 split_huge_page_test /tmp/xfs_dir_bMvj6o
+
+Link: https://lore.kernel.org/33e1bc10753fe82d1217613d8cd496020778cf2b.1779296493.git.sayalip@linux.ibm.com
+Fixes: fbe37501b252 ("mm: huge_memory: debugfs for file-backed THP split")
 Signed-off-by: Sayali Patil <sayalip@linux.ibm.com>
-Cc: David Hildenbrand (Arm) <david@kernel.org>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Reviewed-by: David Hildenbrand (Arm) <david@kernel.org>
+Tested-by: Venkat Rao Bagalkote <venkat88@linux.ibm.com>
 Cc: Dev Jain <dev.jain@arm.com>
 Cc: Liam Howlett <liam.howlett@oracle.com>
 Cc: Miaohe Lin <linmiaohe@huawei.com>
@@ -78,115 +121,33 @@ Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Oscar Salvador <osalvador@suse.de>
 Cc: "Ritesh Harjani (IBM)" <ritesh.list@gmail.com>
 Cc: Shuah Khan <shuah@kernel.org>
-Cc: Venkat Rao Bagalkote <venkat88@linux.ibm.com>
-Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/hugetlb_reparenting_test.sh |   42 ++++------
- 1 file changed, 18 insertions(+), 24 deletions(-)
+ tools/testing/selftests/mm/split_huge_page_test.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
---- a/tools/testing/selftests/mm/hugetlb_reparenting_test.sh~selftests-mm-fix-cgroup-task-placement-and-drop-memorycurrent-checks-in-hugetlb_reparenting_testsh
-+++ a/tools/testing/selftests/mm/hugetlb_reparenting_test.sh
-@@ -105,22 +105,17 @@ function assert_with_retry() {
- }
+--- a/tools/testing/selftests/mm/split_huge_page_test.c~selftests-mm-size-tmpfs-according-to-pmd-page-size-in-split_huge_page_test
++++ a/tools/testing/selftests/mm/split_huge_page_test.c
+@@ -470,6 +470,8 @@ static void split_file_backed_thp(int or
+ 	char tmpfs_template[] = "/tmp/thp_split_XXXXXX";
+ 	const char *tmpfs_loc = mkdtemp(tmpfs_template);
+ 	char testfile[INPUT_MAX];
++	unsigned long size = 2 * pmd_pagesize;
++	char opts[64];
+ 	ssize_t num_written, num_read;
+ 	char *file_buf1, *file_buf2;
+ 	uint64_t pgoff_start = 0, pgoff_end = 1024;
+@@ -489,7 +491,8 @@ static void split_file_backed_thp(int or
+ 		file_buf1[i] = (char)i;
+ 	memset(file_buf2, 0, pmd_pagesize);
  
- function assert_state() {
--  local expected_a="$1"
--  local expected_a_hugetlb="$2"
--  local expected_b=""
-+  local expected_a_hugetlb="$1"
-   local expected_b_hugetlb=""
+-	status = mount("tmpfs", tmpfs_loc, "tmpfs", 0, "huge=always,size=4m");
++	snprintf(opts, sizeof(opts), "huge=always,size=%lu", size);
++	status = mount("tmpfs", tmpfs_loc, "tmpfs", 0, opts);
  
--  if [ ! -z ${3:-} ] && [ ! -z ${4:-} ]; then
--    expected_b="$3"
--    expected_b_hugetlb="$4"
-+  if [ ! -z ${2:-} ]; then
-+    expected_b_hugetlb="$2"
-   fi
- 
--  assert_with_retry "$CGROUP_ROOT/a/memory.$usage_file" "$expected_a"
-   assert_with_retry \
- 	  "$CGROUP_ROOT/a/hugetlb.${MB_DISPLAY}${UNIT}.$usage_file" "$expected_a_hugetlb"
- 
--  if [[ -n "$expected_b" && -n "$expected_b_hugetlb" ]]; then
--    assert_with_retry "$CGROUP_ROOT/a/b/memory.$usage_file" "$expected_b"
-+  if [[ -n "$expected_b_hugetlb" ]]; then
-     assert_with_retry \
- 	  "$CGROUP_ROOT/a/b/hugetlb.${MB_DISPLAY}${UNIT}.$usage_file" "$expected_b_hugetlb"
-   fi
-@@ -154,18 +149,17 @@ write_hugetlbfs() {
-   local size="$3"
- 
-   if [[ $cgroup2 ]]; then
--    echo $$ >$CGROUP_ROOT/$cgroup/cgroup.procs
-+    cg_file="$CGROUP_ROOT/$cgroup/cgroup.procs"
-   else
-     echo 0 >$CGROUP_ROOT/$cgroup/cpuset.mems
-     echo 0 >$CGROUP_ROOT/$cgroup/cpuset.cpus
--    echo $$ >"$CGROUP_ROOT/$cgroup/tasks"
--  fi
--  ./write_to_hugetlbfs -p "$path" -s "$size" -m 0 -o
--  if [[ $cgroup2 ]]; then
--    echo $$ >$CGROUP_ROOT/cgroup.procs
--  else
--    echo $$ >"$CGROUP_ROOT/tasks"
-+    cg_file="$CGROUP_ROOT/$cgroup/tasks"
-   fi
-+
-+  # Spawn helper to join cgroup before exec to ensure correct cgroup accounting
-+  bash -c 'echo $$ > "$1"; exec ./write_to_hugetlbfs -p "$2" -s "$3" -m 0 -o' _ \
-+	  "$cg_file" "$path" "$size" & pid=$!
-+  wait "$pid"
-   echo
- }
- 
-@@ -203,21 +197,21 @@ if [[ ! $cgroup2 ]]; then
-   write_hugetlbfs a "$MNT"/test $size
- 
-   echo Assert memory charged correctly for parent use.
--  assert_state 0 $size 0 0
-+  assert_state $size 0
- 
-   write_hugetlbfs a/b "$MNT"/test2 $size
- 
-   echo Assert memory charged correctly for child use.
--  assert_state 0 $(($size * 2)) 0 $size
-+  assert_state $(($size * 2)) $size
- 
-   rmdir "$CGROUP_ROOT"/a/b
-   echo Assert memory reparent correctly.
--  assert_state 0 $(($size * 2))
-+  assert_state $(($size * 2))
- 
-   rm -rf "$MNT"/*
-   umount "$MNT"
-   echo Assert memory uncharged correctly.
--  assert_state 0 0
-+  assert_state 0
- 
-   cleanup
- fi
-@@ -231,16 +225,16 @@ echo write
- write_hugetlbfs a/b "$MNT"/test2 $size
- 
- echo Assert memory charged correctly for child only use.
--assert_state 0 $(($size)) 0 $size
-+assert_state $(($size)) $size
- 
- rmdir "$CGROUP_ROOT"/a/b
- echo Assert memory reparent correctly.
--assert_state 0 $size
-+assert_state $size
- 
- rm -rf "$MNT"/*
- umount "$MNT"
- echo Assert memory uncharged correctly.
--assert_state 0 0
-+assert_state 0
- 
- cleanup
- 
+ 	if (status)
+ 		ksft_exit_fail_msg("Unable to create a tmpfs for testing\n");
 _
 
 Patches currently in -mm which might be from sayalip@linux.ibm.com are
