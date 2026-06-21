@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D7309366052
-	for <mm-commits@vger.kernel.org>; Sun, 21 Jun 2026 18:38:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 52BF236605A
+	for <mm-commits@vger.kernel.org>; Sun, 21 Jun 2026 18:38:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782067118; cv=none; b=l8QvsnV9ymVgrvDCYO0enp2iNH6HjAXiziDqyqG1EU9gnOX6HudeQrI1bxHuA0MIXJmEBvusgrikwcvdS1ObOi7hA7YeJsjfpI9Ztkk4FUIBIVHmv/4HwFCex6ToR9NRqQnwYoNcucnTHDC0mKeeo+TAzmqlt9276Hl4VkuijV8=
+	t=1782067119; cv=none; b=oQn6JJDOO2FcpuRq50rLOlxQmip2Q7aPNubc+H8Yf8UPtyJhZb/RRxX1Lh9Ia24ht/hpHd9pvtwyyzktsnb/VYmglbIm4vgK4bBartiNHw6v/iH3LKjjguK9GKCt6K4mTTfnSqdytEPlCXI/Gsqo6crg5i6pWqOsOJs8VPVdAcA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782067118; c=relaxed/simple;
-	bh=YhhDPisG+fcYhhkXl4X/vI+Ep6tBgwvr2wxeauaYO9U=;
-	h=Date:To:From:Subject:Message-Id; b=MqPr/3f+UpE89UyC2yDrGv3+Lxp0YrU5Z1ienkAUKRm/cXp+jmxrbuEOyMboyW6lC/PNDrUhQb/diNwNPrJPyNkT+UFqGFESq/IKvUXqUVnEzxrXFT/63YsHU+6Cgijaut2KW2sBYbtQZKKKAKVieWooulTFFl/qDAgNc3j8h2A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2cjBqGUR; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1782067119; c=relaxed/simple;
+	bh=awkZoiHv2p7QN+WKt9Vk1UmNaJDb1kYXe2FSLQasofM=;
+	h=Date:To:From:Subject:Message-Id; b=QWjmSzy9dfCL3cuTarLJFhjuTv6LlhWqcsb55BS1T4d19pWKF4Pq7boRDcb+34H8y/81nQLET2WjcDaaiWv94Ijih07yG22gIRpsOBiwit3I4ZdoAtKczOj5B5F0ixxaT2nv9MLFT5LKUeWGzkwS2ypC3AgcXNKSuqbGhjlTO8k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZsKTcVyp; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2cjBqGUR"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 725FC1F00A3A;
-	Sun, 21 Jun 2026 18:38:36 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZsKTcVyp"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2BF211F00A3D;
+	Sun, 21 Jun 2026 18:38:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1782067116;
-	bh=ZthLtA/Uddn2BJfYdIBAZRw++O+ZF5fyKmV8aQSBlHI=;
+	d=linux-foundation.org; s=korg; t=1782067118;
+	bh=WpcHhy0Wk6RhPK3w1RgbaOnQjZq2g1Kf7ndxjg6eFlw=;
 	h=Date:To:From:Subject;
-	b=2cjBqGURczQFCg7SzsXFj+SqkVhX3ccniUD45d68cYQt6Y27Zl9OUAvT+/edIn2wB
-	 a9AcwiiSZuZZcYdoFTgsVOCuJbkEOnBL/fwrD4b6dRrWel/R7jVakzY2gWzDcVHyDU
-	 nVfuIE6GyY3/WfMbw6n9yI2BRsIRJgVLB9U0c2Fs=
-Date: Sun, 21 Jun 2026 11:38:36 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,viro@zeniv.linux.org.uk,vbabka@kernel.org,surenb@google.com,songliubraving@fb.com,shuah@kernel.org,ryan.roberts@arm.com,rppt@kernel.org,npache@redhat.com,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,lance.yang@linux.dev,jack@suse.cz,dsterba@suse.com,dev.jain@arm.com,david@kernel.org,clm@fb.com,brauner@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,ziy@nvidia.com,akpm@linux-foundation.org
+	b=ZsKTcVypE7pD8aF8NwY7IMAQfgPJkbNFslr9g1GxznOG4yA4Y+CBYRp9d1CnYjbpo
+	 77mNqyKgyKeq9apB7kU2z/FUaAgshd8cFODLlrTlZiNUleveRBdcKPL3doDDrt5+yh
+	 uesKzWZXy9M+5o7R4YwupOgOzNnLMdJzvmKNc8Qw=
+Date: Sun, 21 Jun 2026 11:38:37 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,surenb@google.com,shuah@kernel.org,sarthak.sharma@arm.com,ryan.roberts@arm.com,peterx@redhat.com,npache@redhat.com,mhocko@suse.com,luizcap@redhat.com,ljs@kernel.org,li.wang@linux.dev,liam@infradead.org,leon@kernel.org,lance.yang@linux.dev,jhubbard@nvidia.com,jgg@ziepe.ca,donettom@linux.ibm.com,dev.jain@arm.com,david@kernel.org,broonie@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,rppt@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-mm-add-writable-file-collapse-tests-for-khugepaged.patch removed from -mm tree
-Message-Id: <20260621183836.725FC1F00A3A@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-mm-hugetlb-read-hwpoison-add-sigbus-handler.patch removed from -mm tree
+Message-Id: <20260621183838.2BF211F00A3D@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,324 +35,120 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests/mm: add writable-file collapse tests for khugepaged
+     Subject: selftests/mm: hugetlb-read-hwpoison: add SIGBUS handler
 has been removed from the -mm tree.  Its filename was
-     selftests-mm-add-writable-file-collapse-tests-for-khugepaged.patch
+     selftests-mm-hugetlb-read-hwpoison-add-sigbus-handler.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Zi Yan <ziy@nvidia.com>
-Subject: selftests/mm: add writable-file collapse tests for khugepaged
-Date: Sun, 17 May 2026 09:54:16 -0400
+From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
+Subject: selftests/mm: hugetlb-read-hwpoison: add SIGBUS handler
+Date: Mon, 11 May 2026 19:27:45 +0300
 
-collapse_file() now supports collapsing clean pagecache folios from
-writable files, so add corresponding tests.
+Patch series "make MM selftests more CI friendly", v4.
 
-Note that madvise(MADV_COLLAPSE) works for dirty pagecache folios from
-writable files, because collapse_single_pmd() triggers a synchronous
-writeback when first attempt of collapse_file() fails.  That writeback
-makes dirty folios clean and the retry of collapse_file() succeeds.
+There's a lot of dancing around HugeTLB settings in run_vmtests.sh.  Some
+test need just a few default huge pages, some require at least 256 MB, and
+some just skip lots of tests if huge pages of all supported sizes are not
+available.
 
-Link: https://lore.kernel.org/20260517135416.1434539-15-ziy@nvidia.com
-Signed-off-by: Zi Yan <ziy@nvidia.com>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+The goal of this set is to make tests deal with HugeTLB setup and
+teardown.
+
+There are already convenient helpers that allow easy reading and writing
+of /proc and /sysfs, so adding a few APIs that will detect and update
+HugeTLB settings shouldn't be a big deal.  But these nice helpers use
+kselftest framework, and many of HugeTLB (and even THP) test don't, so as
+a result this patchset also includes a lot of churn for conversion of
+those tests to kselftest framework (patches 7-19).
+
+The series break out:
+patches 1-5:   small fixes
+patch 6:       merge of hugetlb mmap tests
+patch 7:       renaming of hugepage-* to hugetlb-*
+patches 8-21:  mechanical conversion to kselftest framework
+patches 22-28: extension of thp_settings to hugepage_settings to also include
+               HugeTLB helpers
+patches 29-30: add helpers for setting up SHM limits in hugetlb-shm and
+               thuge-gen tests
+patches 31-53: integrate the new APIs in all the tests that use HugeTLB
+patches 54-55: drop HugeTLB setup from run_vmtests.sh
+
+
+This patch (of 55):
+
+Injection of a memory error with madvise() causes SIGBUS, which terminates
+the hugetlb-read-hwpoison test prematurely.
+
+Add a dummy SIGBUS handler to allow the test to continue regardless of
+SIGBUS.
+
+Link: https://lore.kernel.org/20260511162840.375890-1-rppt@kernel.org
+Link: https://lore.kernel.org/20260511162840.375890-2-rppt@kernel.org
+Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Tested-by: Sarthak Sharma <sarthak.sharma@arm.com>
+Tested-by: Li Wang <li.wang@linux.dev>
+Reviewed-by: Li Wang <li.wang@linux.dev>
+Tested-by: Luiz Capitulino <luizcap@redhat.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Barry Song <baohua@kernel.org>
-Cc: Chris Mason <clm@fb.com>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: David Sterba <dsterba@suse.com>
+Cc: David Hildenbrand <david@kernel.org>
 Cc: Dev Jain <dev.jain@arm.com>
-Cc: Jan Kara <jack@suse.cz>
+Cc: Donet Tom <donettom@linux.ibm.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: John Hubbard <jhubbard@nvidia.com>
 Cc: Lance Yang <lance.yang@linux.dev>
+Cc: Leon Romanovsky <leon@kernel.org>
 Cc: Liam Howlett <liam@infradead.org>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Mark Brown <broonie@kernel.org>
 Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Nico Pache <npache@redhat.com>
+Cc: Peter Xu <peterx@redhat.com>
 Cc: Ryan Roberts <ryan.roberts@arm.com>
 Cc: Shuah Khan <shuah@kernel.org>
-Cc: Song Liu <songliubraving@fb.com>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/khugepaged.c |  111 ++++++++++++++++------
- 1 file changed, 85 insertions(+), 26 deletions(-)
+ tools/testing/selftests/mm/hugetlb-read-hwpoison.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
---- a/tools/testing/selftests/mm/khugepaged.c~selftests-mm-add-writable-file-collapse-tests-for-khugepaged
-+++ a/tools/testing/selftests/mm/khugepaged.c
-@@ -41,6 +41,12 @@ enum vma_type {
- 	VMA_SHMEM,
- };
+--- a/tools/testing/selftests/mm/hugetlb-read-hwpoison.c~selftests-mm-hugetlb-read-hwpoison-add-sigbus-handler
++++ a/tools/testing/selftests/mm/hugetlb-read-hwpoison.c
+@@ -10,6 +10,7 @@
+ #include <sys/statfs.h>
+ #include <errno.h>
+ #include <stdbool.h>
++#include <signal.h>
  
-+enum file_setup_ops {
-+	FILE_SETUP_READ_ONLY_FS,
-+	FILE_SETUP_READ_WRITE_FS_READ_DATA,
-+	FILE_SETUP_READ_WRITE_FS_WRITE_DATA,
-+};
-+
- struct mem_ops {
- 	void *(*setup_area)(int nr_hpages);
- 	void (*cleanup_area)(void *p, unsigned long size);
-@@ -50,7 +56,8 @@ struct mem_ops {
- };
+ #include "kselftest.h"
  
- static struct mem_ops *read_only_file_ops;
--static struct mem_ops *read_write_file_ops;
-+static struct mem_ops *read_write_file_read_ops;
-+static struct mem_ops *read_write_file_write_ops;
- static struct mem_ops *anon_ops;
- static struct mem_ops *shmem_ops;
- 
-@@ -113,7 +120,8 @@ static void restore_settings(int sig)
- static void save_settings(void)
- {
- 	printf("Save THP and khugepaged settings...");
--	if ((read_only_file_ops || read_write_file_ops) &&
-+	if ((read_only_file_ops || read_write_file_read_ops ||
-+	     read_write_file_write_ops) &&
- 	    finfo.type == VMA_FILE)
- 		thp_set_read_ahead_path(finfo.dev_queue_read_ahead_path);
- 	thp_save_settings();
-@@ -366,10 +374,10 @@ static bool anon_check_huge(void *addr,
- 	return check_huge_anon(addr, nr_hpages, hpage_pmd_size);
+@@ -261,6 +262,10 @@ close:
+ 	return -1;
  }
  
--static void *file_setup_area_common(int nr_hpages, bool read_only)
-+static void *file_setup_area_common(int nr_hpages, enum file_setup_ops setup)
++static void sigbus_handler(int sig)
++{
++}
++
+ int main(void)
  {
--	const int open_opt = read_only ? O_RDONLY : O_RDWR;
--	const int mmap_prot = read_only ? PROT_READ : (PROT_READ | PROT_WRITE);
-+	const int open_opt = setup == FILE_SETUP_READ_ONLY_FS ? O_RDONLY : O_RDWR;
-+	const int mmap_prot = setup == FILE_SETUP_READ_ONLY_FS ? PROT_READ : (PROT_READ | PROT_WRITE);
  	int fd;
- 	void *p;
- 	unsigned long size;
-@@ -405,7 +413,10 @@ static void *file_setup_area_common(int
- 	success("OK");
+@@ -273,6 +278,7 @@ int main(void)
+ 	};
+ 	size_t i;
  
- 	printf("Opening %s %s for collapse...", finfo.path,
--	       read_only ? "read-only" : "read-write");
-+	       setup == FILE_SETUP_READ_ONLY_FS ? "read-only" :
-+	       setup == FILE_SETUP_READ_WRITE_FS_READ_DATA ?
-+						  "read-write (read)" :
-+						  "read-write (write)");
- 	finfo.fd = open(finfo.path, open_opt, 777);
- 	if (finfo.fd < 0) {
- 		perror("open()");
-@@ -425,12 +436,17 @@ static void *file_setup_area_common(int
- 
- static void *file_setup_read_only_area(int nr_hpages)
- {
--	return file_setup_area_common(nr_hpages, /* read_only= */ true);
-+	return file_setup_area_common(nr_hpages, FILE_SETUP_READ_ONLY_FS);
-+}
-+
-+static void *file_setup_read_write_fs_read_area(int nr_hpages)
-+{
-+	return file_setup_area_common(nr_hpages, FILE_SETUP_READ_WRITE_FS_READ_DATA);
- }
- 
--static void *file_setup_read_write_area(int nr_hpages)
-+static void *file_setup_read_write_fs_write_area(int nr_hpages)
- {
--	return file_setup_area_common(nr_hpages, /* read_only= */ false);
-+	return file_setup_area_common(nr_hpages, FILE_SETUP_READ_WRITE_FS_WRITE_DATA);
- }
- 
- static void file_cleanup_area(void *p, unsigned long size)
-@@ -448,6 +464,16 @@ static void file_fault_read(void *p, uns
- 	}
- }
- 
-+static void file_fault_read_and_flush(void *p, unsigned long start, unsigned long end)
-+{
-+	file_fault_read(p, start, end);
-+	/*
-+	 * make folio clean, since dirty folios from read&write file are
-+	 * rejected and not flushed
-+	 */
-+	msync((char *)p + start, end - start, MS_SYNC);
-+}
-+
- static void file_fault_write(void *p, unsigned long start, unsigned long end)
- {
- 	if (madvise(((char *)p) + start, end - start, MADV_POPULATE_WRITE)) {
-@@ -519,8 +545,16 @@ static struct mem_ops __read_only_file_o
- 	.name = "file",
- };
- 
--static struct mem_ops __read_write_file_ops = {
--	.setup_area = &file_setup_read_write_area,
-+static struct mem_ops __read_write_file_read_ops = {
-+	.setup_area = &file_setup_read_write_fs_read_area,
-+	.cleanup_area = &file_cleanup_area,
-+	.fault = &file_fault_read_and_flush,
-+	.check_huge = &file_check_huge,
-+	.name = "file",
-+};
-+
-+static struct mem_ops __read_write_file_write_ops = {
-+	.setup_area = &file_setup_read_write_fs_write_area,
- 	.cleanup_area = &file_cleanup_area,
- 	.fault = &file_fault_write,
- 	.check_huge = &file_check_huge,
-@@ -537,7 +571,9 @@ static struct mem_ops __shmem_ops = {
- 
- static bool is_tmpfs(struct mem_ops *ops)
- {
--	return (ops == &__read_only_file_ops || ops == &__read_write_file_ops) &&
-+	return (ops == &__read_only_file_ops ||
-+		ops == &__read_write_file_read_ops ||
-+		ops == &__read_write_file_write_ops) &&
- 	       finfo.type == VMA_SHMEM;
- }
- 
-@@ -554,9 +590,11 @@ static void __madvise_collapse(const cha
- 
- 	printf("%s...", msg);
- 
--	/* read&write file collapse always fail */
--	if (!is_tmpfs(ops) && ops == &__read_write_file_ops)
--		expect = false;
-+	/*
-+	 * read&write file collapse succeeds for MADV_COLLAPSE because dirty
-+	 * folios are written back after collapse fails for dirty folios and
-+	 * another collapse is attempted.
-+	 */
- 
- 	/*
- 	 * Prevent khugepaged interference and tests that MADV_COLLAPSE
-@@ -624,8 +662,11 @@ static bool wait_for_scan(const char *ms
- static void khugepaged_collapse(const char *msg, char *p, int nr_hpages,
- 				struct mem_ops *ops, bool expect)
- {
--	/* read&write file collapse always fail */
--	if (!is_tmpfs(ops) && ops == &__read_write_file_ops)
-+	/*
-+	 * read&write file collapse fails since khugepaged does not flush
-+	 * the target dirty folios
-+	 */
-+	if (!is_tmpfs(ops) && ops == &__read_write_file_write_ops)
- 		expect = false;
- 
- 	if (wait_for_scan(msg, p, nr_hpages, ops)) {
-@@ -748,6 +789,9 @@ static void collapse_max_ptes_none(struc
- 	validate_memory(p, 0, (hpage_pmd_nr - max_ptes_none - fault_nr_pages) * page_size);
- 
- 	if (c->enforce_pte_scan_limits) {
-+		ops->cleanup_area(p, hpage_pmd_size);
-+		p = ops->setup_area(1);
-+
- 		ops->fault(p, 0, (hpage_pmd_nr - max_ptes_none) * page_size);
- 		c->collapse("Collapse with max_ptes_none PTEs empty", p, 1, ops,
- 			    true);
-@@ -1195,21 +1239,24 @@ static void parse_test_type(int argc, ch
- 
- 	if (!strcmp(buf, "all")) {
- 		read_only_file_ops =  &__read_only_file_ops;
--		read_write_file_ops =  &__read_write_file_ops;
-+		read_write_file_read_ops =  &__read_write_file_read_ops;
-+		read_write_file_write_ops =  &__read_write_file_write_ops;
- 		anon_ops = &__anon_ops;
- 		shmem_ops = &__shmem_ops;
- 	} else if (!strcmp(buf, "anon")) {
- 		anon_ops = &__anon_ops;
- 	} else if (!strcmp(buf, "file")) {
- 		read_only_file_ops =  &__read_only_file_ops;
--		read_write_file_ops =  &__read_write_file_ops;
-+		read_write_file_read_ops =  &__read_write_file_read_ops;
-+		read_write_file_write_ops =  &__read_write_file_write_ops;
- 	} else if (!strcmp(buf, "shmem")) {
- 		shmem_ops = &__shmem_ops;
- 	} else {
- 		usage();
- 	}
- 
--	if (!read_only_file_ops && !read_write_file_ops)
-+	if (!read_only_file_ops && !read_write_file_read_ops &&
-+	    !read_write_file_write_ops)
- 		return;
- 
- 	if (argc != 2)
-@@ -1282,11 +1329,13 @@ int main(int argc, char **argv)
- 
- 	TEST(collapse_full, khugepaged_context, anon_ops);
- 	TEST(collapse_full, khugepaged_context, read_only_file_ops);
--	TEST(collapse_full, khugepaged_context, read_write_file_ops);
-+	TEST(collapse_full, khugepaged_context, read_write_file_read_ops);
-+	TEST(collapse_full, khugepaged_context, read_write_file_write_ops);
- 	TEST(collapse_full, khugepaged_context, shmem_ops);
- 	TEST(collapse_full, madvise_context, anon_ops);
- 	TEST(collapse_full, madvise_context, read_only_file_ops);
--	TEST(collapse_full, madvise_context, read_write_file_ops);
-+	TEST(collapse_full, madvise_context, read_write_file_read_ops);
-+	TEST(collapse_full, madvise_context, read_write_file_write_ops);
- 	TEST(collapse_full, madvise_context, shmem_ops);
- 
- 	TEST(collapse_empty, khugepaged_context, anon_ops);
-@@ -1294,30 +1343,38 @@ int main(int argc, char **argv)
- 
- 	TEST(collapse_single_pte_entry, khugepaged_context, anon_ops);
- 	TEST(collapse_single_pte_entry, khugepaged_context, read_only_file_ops);
--	TEST(collapse_single_pte_entry, khugepaged_context, read_write_file_ops);
-+	TEST(collapse_single_pte_entry, khugepaged_context, read_write_file_read_ops);
-+	TEST(collapse_single_pte_entry, khugepaged_context, read_write_file_write_ops);
- 	TEST(collapse_single_pte_entry, khugepaged_context, shmem_ops);
- 	TEST(collapse_single_pte_entry, madvise_context, anon_ops);
- 	TEST(collapse_single_pte_entry, madvise_context, read_only_file_ops);
--	TEST(collapse_single_pte_entry, madvise_context, read_write_file_ops);
-+	TEST(collapse_single_pte_entry, madvise_context, read_write_file_read_ops);
-+	TEST(collapse_single_pte_entry, madvise_context, read_write_file_write_ops);
- 	TEST(collapse_single_pte_entry, madvise_context, shmem_ops);
- 
- 	TEST(collapse_max_ptes_none, khugepaged_context, anon_ops);
- 	TEST(collapse_max_ptes_none, khugepaged_context, read_only_file_ops);
--	TEST(collapse_max_ptes_none, khugepaged_context, read_write_file_ops);
-+	TEST(collapse_max_ptes_none, khugepaged_context, read_write_file_read_ops);
-+	TEST(collapse_max_ptes_none, khugepaged_context, read_write_file_write_ops);
- 	TEST(collapse_max_ptes_none, madvise_context, anon_ops);
- 	TEST(collapse_max_ptes_none, madvise_context, read_only_file_ops);
--	TEST(collapse_max_ptes_none, madvise_context, read_write_file_ops);
-+	TEST(collapse_max_ptes_none, madvise_context, read_write_file_read_ops);
-+	TEST(collapse_max_ptes_none, madvise_context, read_write_file_write_ops);
- 
- 	TEST(collapse_single_pte_entry_compound, khugepaged_context, anon_ops);
- 	TEST(collapse_single_pte_entry_compound, khugepaged_context, read_only_file_ops);
-+	TEST(collapse_single_pte_entry_compound, khugepaged_context, read_write_file_read_ops);
- 	TEST(collapse_single_pte_entry_compound, madvise_context, anon_ops);
- 	TEST(collapse_single_pte_entry_compound, madvise_context, read_only_file_ops);
-+	TEST(collapse_single_pte_entry_compound, madvise_context, read_write_file_read_ops);
- 
- 	TEST(collapse_full_of_compound, khugepaged_context, anon_ops);
- 	TEST(collapse_full_of_compound, khugepaged_context, read_only_file_ops);
-+	TEST(collapse_full_of_compound, khugepaged_context, read_write_file_read_ops);
- 	TEST(collapse_full_of_compound, khugepaged_context, shmem_ops);
- 	TEST(collapse_full_of_compound, madvise_context, anon_ops);
- 	TEST(collapse_full_of_compound, madvise_context, read_only_file_ops);
-+	TEST(collapse_full_of_compound, madvise_context, read_write_file_read_ops);
- 	TEST(collapse_full_of_compound, madvise_context, shmem_ops);
- 
- 	TEST(collapse_compound_extreme, khugepaged_context, anon_ops);
-@@ -1340,9 +1397,11 @@ int main(int argc, char **argv)
- 
- 	TEST(madvise_collapse_existing_thps, madvise_context, anon_ops);
- 	TEST(madvise_collapse_existing_thps, madvise_context, read_only_file_ops);
-+	TEST(madvise_collapse_existing_thps, madvise_context, read_write_file_read_ops);
- 	TEST(madvise_collapse_existing_thps, madvise_context, shmem_ops);
- 
- 	TEST(madvise_retracted_page_tables, madvise_context, read_only_file_ops);
-+	TEST(madvise_retracted_page_tables, madvise_context, read_write_file_read_ops);
- 	TEST(madvise_retracted_page_tables, madvise_context, shmem_ops);
- 
- 	restore_settings(0);
++	signal(SIGBUS, sigbus_handler);
+ 	for (i = 0; i < ARRAY_SIZE(wr_chunk_sizes); ++i) {
+ 		printf("Write/read chunk size=0x%lx\n",
+ 		       wr_chunk_sizes[i]);
 _
 
-Patches currently in -mm which might be from ziy@nvidia.com are
+Patches currently in -mm which might be from rppt@kernel.org are
 
 
