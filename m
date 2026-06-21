@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 21655370AC5
-	for <mm-commits@vger.kernel.org>; Sun, 21 Jun 2026 18:39:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AF318370ACC
+	for <mm-commits@vger.kernel.org>; Sun, 21 Jun 2026 18:39:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782067195; cv=none; b=RVgOl4XPTlvfuEREVSqTq05htahzZ5ioOXET4GYHgRFS6L9LrvsvHvQckRH8efvW/UsN6JQ8jKRIaquSNQCuHJY8gR2ChM9RQAq+Vl+W3uhZ3jE+ljMWhBoJOQFAiNa6WA2qRuwIZOH41oIkNQV597NF5lhCnogPDr5txDDiowU=
+	t=1782067196; cv=none; b=SCinT5N8ZRYcDLGlaJdtrPikpkqLv/6F8yymsDVFqW01YDkVq0Bvo6Vs8fR5Op+En5xW+qZ9iy2tcUip5XsXEhrSlHoEnUsMNafTscIldz9zTUfLqXCv4ajFC8jlQBk2JBYcKmoZWO2AaNU8kdlMovjZVoRazy4lumXzV5kbZhk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782067195; c=relaxed/simple;
-	bh=bMmedPJYxPOzg4LPhJjMFAeVzuUT4HNm+TyGD8w9tRc=;
-	h=Date:To:From:Subject:Message-Id; b=Bzyek1Bf6TcfkksM/TXZKCULGBZ0/dYrRwvvNxIdpK+xxF/R2+THTKSNu1z5IBfE5ccx0NW+zjSzHUUht4ZZztv+syFCVahnFkfo46xpEWIpEJBfxgw1X+bdF5XkLaJtRsr/bB7gu+N1NvXzUXfF8/dmEbNu05+eZq/sHF4iiA8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AQPd0HzR; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1782067196; c=relaxed/simple;
+	bh=2rePqLoG/uRPDcnUb/SzFUO0Yid+XiHt65NsLN6G8b4=;
+	h=Date:To:From:Subject:Message-Id; b=DZMT2hsnj7sW7X8HZZTqE6dLQpA5YjZHpxw3xAYWnSSCP4dpj6Tuc/Bc3PJO5dVDnDiFoHo5T0pwbz86ogM/EslmDVjDmwfWeFRNDTSAsSeqnICkJjLgX/4MOMHTPhUr5Tcknz3lT6CbYsUoo35JQFqmJZZWSIFGXQc0fhzHx8g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FGC9RAhJ; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AQPd0HzR"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E8AFB1F000E9;
-	Sun, 21 Jun 2026 18:39:53 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FGC9RAhJ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 82DD21F000E9;
+	Sun, 21 Jun 2026 18:39:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1782067194;
-	bh=CTm68+c8hkEXo1LNHqN3bM41nYkKKhWYC7zPrjJ9BCg=;
+	d=linux-foundation.org; s=korg; t=1782067195;
+	bh=cXsX+d+vKtodBQhVNWZH+cFbuvYwXCVg+wDDLTkdLj8=;
 	h=Date:To:From:Subject;
-	b=AQPd0HzRJTGpw2C8LLZ2TSqeyFdQDOIaWCYhWbV1tXT7eANVEkhxXq1Uzoznyjd3S
-	 6BoJvtQlzfoC2FPRbrF75Bpy1tnCGz9Leep8f9TvFk2LOqNRKx417Az/yJrEFE0hij
-	 kIExrVJzhnPCjefTSAdUz17D+ZbCWpd+9L2tSJAo=
-Date: Sun, 21 Jun 2026 11:39:53 -0700
+	b=FGC9RAhJWGJJ4kSobM4l01Hg6l4a+zX4+KA/Y3boZWID+/7uD/rWZqlDlpVHR39cG
+	 YvWNaP5hhR2g1dJGD7niwvcpZf1vQoRwbKNC9lnAEdwd9qUrDF8LfZYcXTqhQheEC2
+	 QQaxu9ANnrJzuxue5IbmCCbbE/XAvFS1pADa39Qc=
+Date: Sun, 21 Jun 2026 11:39:55 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,venkat88@linux.ibm.com,shuah@kernel.org,ritesh.list@gmail.com,osalvador@suse.de,mhocko@kernel.org,linmiaohe@huawei.com,liam.howlett@oracle.com,dev.jain@arm.com,david@kernel.org,sayalip@linux.ibm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-mm-fix-hugetlb-pathname-construction-in-charge_reserved_hugetlbsh.patch removed from -mm tree
-Message-Id: <20260621183953.E8AFB1F000E9@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-mm-restore-default-nr_hugepages-value-via-exit-trap-in-hugetlb_reparenting_testsh.patch removed from -mm tree
+Message-Id: <20260621183955.82DD21F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,42 +35,37 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests/mm: fix hugetlb pathname construction in charge_reserved_hugetlb.sh
+     Subject: selftests/mm: restore default nr_hugepages value via exit trap in hugetlb_reparenting_test.sh
 has been removed from the -mm tree.  Its filename was
-     selftests-mm-fix-hugetlb-pathname-construction-in-charge_reserved_hugetlbsh.patch
+     selftests-mm-restore-default-nr_hugepages-value-via-exit-trap-in-hugetlb_reparenting_testsh.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Sayali Patil <sayalip@linux.ibm.com>
-Subject: selftests/mm: fix hugetlb pathname construction in charge_reserved_hugetlb.sh
-Date: Thu, 21 May 2026 12:03:28 +0530
+Subject: selftests/mm: restore default nr_hugepages value via exit trap in hugetlb_reparenting_test.sh
+Date: Thu, 21 May 2026 12:17:43 +0530
 
-The charge_reserved_hugetlb.sh script assumes hugetlb cgroup memory
-interface file names use the "<size>MB" format
-(e.g. hugetlb.1024MB.current).
-This assumption breaks on systems with larger huge pages such as 1GB,
-where the kernel exposes normalized units:
-    hugetlb.1GB.current
-    hugetlb.1GB.max
-    hugetlb.1GB.rsvd.max
-    ...
+The test modifies nr_hugepages during execution and restores it from
+cleanup() and again reconfigure it setup, which is invoked multiple times
+across test flow.  This can lead to repeated allocation/freeing of
+hugepages.
 
-As a result, the script attempts to access files like
-hugetlb.1024MB.current, which do not exist when the kernel reports the
-size in GB.
+With set -e, failures in cleanup (e.g., rmdir/umount) can also cause early
+exit before restoring the original value at the end.
 
-Normalize the huge page size and construct the pathname using the
-appropriate unit (MB or GB), matching the hugetlb controller naming.
+Move restoration of the original nr_hugepages value to a trap handler
+registered for EXIT, INT, and TERM signals so it is always restored on all
+exit paths.  This also avoids unnecessary allocation churn across repeated
+cleanup/setup cycles.
 
-Link: https://lore.kernel.org/04b6b49e4a2acf46319f627caf82b09e6dc1ad7f.1779296493.git.sayalip@linux.ibm.com
-Fixes: 209376ed2a84 ("selftests/vm: make charge_reserved_hugetlb.sh work with existing cgroup setting")
-Fixes: 29750f71a9b4 ("hugetlb_cgroup: add hugetlb_cgroup reservation tests")
+Link: https://lore.kernel.org/29db637c3c6ba6c168f6b33f59f059a0b39c35c8.1779296493.git.sayalip@linux.ibm.com
+Fixes: 585a9145886a ("selftests/mm: restore default nr_hugepages value during cleanup in hugetlb_reparenting_test.sh")
 Signed-off-by: Sayali Patil <sayalip@linux.ibm.com>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Acked-by: Zi Yan <ziy@nvidia.com>
 Tested-by: Venkat Rao Bagalkote <venkat88@linux.ibm.com>
+Cc: David Hildenbrand (Arm) <david@kernel.org>
 Cc: Dev Jain <dev.jain@arm.com>
 Cc: Liam Howlett <liam.howlett@oracle.com>
 Cc: Miaohe Lin <linmiaohe@huawei.com>
@@ -81,112 +76,33 @@ Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/charge_reserved_hugetlb.sh |   42 ++++++----
- 1 file changed, 29 insertions(+), 13 deletions(-)
+ tools/testing/selftests/mm/hugetlb_reparenting_test.sh |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/tools/testing/selftests/mm/charge_reserved_hugetlb.sh~selftests-mm-fix-hugetlb-pathname-construction-in-charge_reserved_hugetlbsh
-+++ a/tools/testing/selftests/mm/charge_reserved_hugetlb.sh
-@@ -94,6 +94,15 @@ function get_machine_hugepage_size() {
+--- a/tools/testing/selftests/mm/hugetlb_reparenting_test.sh~selftests-mm-restore-default-nr_hugepages-value-via-exit-trap-in-hugetlb_reparenting_testsh
++++ a/tools/testing/selftests/mm/hugetlb_reparenting_test.sh
+@@ -12,6 +12,8 @@ if [[ $(id -u) -ne 0 ]]; then
+ fi
+ 
+ nr_hugepgs=$(cat /proc/sys/vm/nr_hugepages)
++trap 'echo "$nr_hugepgs" > /proc/sys/vm/nr_hugepages' EXIT INT TERM
++
+ usage_file=usage_in_bytes
+ 
+ if [[ "$1" == "-cgroup-v2" ]]; then
+@@ -56,7 +58,6 @@ function cleanup() {
+   rmdir "$CGROUP_ROOT"/a/b 2>/dev/null
+   rmdir "$CGROUP_ROOT"/a 2>/dev/null
+   rmdir "$CGROUP_ROOT"/test1 2>/dev/null
+-  echo $nr_hugepgs >/proc/sys/vm/nr_hugepages
+   set -e
  }
  
- MB=$(get_machine_hugepage_size)
-+if (( MB >= 1024 )); then
-+        # For 1GB hugepages
-+        UNIT="GB"
-+        MB_DISPLAY=$((MB / 1024))
-+else
-+        # For 2MB hugepages
-+        UNIT="MB"
-+        MB_DISPLAY=$MB
-+fi
+@@ -240,4 +241,3 @@ if [[ $do_umount ]]; then
+   rm -rf $CGROUP_ROOT
+ fi
  
- function setup_cgroup() {
-   local name="$1"
-@@ -103,11 +112,12 @@ function setup_cgroup() {
-   mkdir $cgroup_path/$name
- 
-   echo writing cgroup limit: "$cgroup_limit"
--  echo "$cgroup_limit" >$cgroup_path/$name/hugetlb.${MB}MB.$fault_limit_file
-+  echo "$cgroup_limit" > \
-+	  $cgroup_path/$name/hugetlb.${MB_DISPLAY}${UNIT}.$fault_limit_file
- 
-   echo writing reservation limit: "$reservation_limit"
-   echo "$reservation_limit" > \
--    $cgroup_path/$name/hugetlb.${MB}MB.$reservation_limit_file
-+    $cgroup_path/$name/hugetlb.${MB_DISPLAY}${UNIT}.$reservation_limit_file
- 
-   if [ -e "$cgroup_path/$name/cpuset.cpus" ]; then
-     echo 0 >$cgroup_path/$name/cpuset.cpus
-@@ -142,7 +152,7 @@ function wait_for_file_value() {
- 
- function wait_for_hugetlb_memory_to_get_depleted() {
-   local cgroup="$1"
--  local path="$cgroup_path/$cgroup/hugetlb.${MB}MB.$reservation_usage_file"
-+  local path="$cgroup_path/$cgroup/hugetlb.${MB_DISPLAY}${UNIT}.$reservation_usage_file"
- 
-   wait_for_file_value "$path" "0"
- }
-@@ -150,7 +160,7 @@ function wait_for_hugetlb_memory_to_get_
- function wait_for_hugetlb_memory_to_get_reserved() {
-   local cgroup="$1"
-   local size="$2"
--  local path="$cgroup_path/$cgroup/hugetlb.${MB}MB.$reservation_usage_file"
-+  local path="$cgroup_path/$cgroup/hugetlb.${MB_DISPLAY}${UNIT}.$reservation_usage_file"
- 
-   wait_for_file_value "$path" "$size"
- }
-@@ -158,7 +168,7 @@ function wait_for_hugetlb_memory_to_get_
- function wait_for_hugetlb_memory_to_get_written() {
-   local cgroup="$1"
-   local size="$2"
--  local path="$cgroup_path/$cgroup/hugetlb.${MB}MB.$fault_usage_file"
-+  local path="$cgroup_path/$cgroup/hugetlb.${MB_DISPLAY}${UNIT}.$fault_usage_file"
- 
-   wait_for_file_value "$path" "$size"
- }
-@@ -180,8 +190,8 @@ function write_hugetlbfs_and_get_usage()
-   hugetlb_difference=0
-   reserved_difference=0
- 
--  local hugetlb_usage=$cgroup_path/$cgroup/hugetlb.${MB}MB.$fault_usage_file
--  local reserved_usage=$cgroup_path/$cgroup/hugetlb.${MB}MB.$reservation_usage_file
-+  local hugetlb_usage=$cgroup_path/$cgroup/hugetlb.${MB_DISPLAY}${UNIT}.$fault_usage_file
-+  local reserved_usage=$cgroup_path/$cgroup/hugetlb.${MB_DISPLAY}${UNIT}.$reservation_usage_file
- 
-   local hugetlb_before=$(cat $hugetlb_usage)
-   local reserved_before=$(cat $reserved_usage)
-@@ -312,8 +322,10 @@ function run_test() {
- 
-   cleanup_hugetlb_memory "hugetlb_cgroup_test"
- 
--  local final_hugetlb=$(cat $cgroup_path/hugetlb_cgroup_test/hugetlb.${MB}MB.$fault_usage_file)
--  local final_reservation=$(cat $cgroup_path/hugetlb_cgroup_test/hugetlb.${MB}MB.$reservation_usage_file)
-+  local final_hugetlb=$(cat \
-+	 $cgroup_path/hugetlb_cgroup_test/hugetlb.${MB_DISPLAY}${UNIT}.$fault_usage_file)
-+  local final_reservation=$(cat \
-+	  $cgroup_path/hugetlb_cgroup_test/hugetlb.${MB_DISPLAY}${UNIT}.$reservation_usage_file)
- 
-   echo $hugetlb_difference
-   echo $reserved_difference
-@@ -369,10 +381,14 @@ function run_multiple_cgroup_test() {
-   reservation_failed1=$reservation_failed
-   oom_killed1=$oom_killed
- 
--  local cgroup1_hugetlb_usage=$cgroup_path/hugetlb_cgroup_test1/hugetlb.${MB}MB.$fault_usage_file
--  local cgroup1_reservation_usage=$cgroup_path/hugetlb_cgroup_test1/hugetlb.${MB}MB.$reservation_usage_file
--  local cgroup2_hugetlb_usage=$cgroup_path/hugetlb_cgroup_test2/hugetlb.${MB}MB.$fault_usage_file
--  local cgroup2_reservation_usage=$cgroup_path/hugetlb_cgroup_test2/hugetlb.${MB}MB.$reservation_usage_file
-+  local cgroup1_hugetlb_usage=\
-+	  $cgroup_path/hugetlb_cgroup_test1/hugetlb.${MB_DISPLAY}${UNIT}.$fault_usage_file
-+  local cgroup1_reservation_usage=\
-+	  $cgroup_path/hugetlb_cgroup_test1/hugetlb.${MB_DISPLAY}${UNIT}.$reservation_usage_file
-+  local cgroup2_hugetlb_usage=\
-+	  $cgroup_path/hugetlb_cgroup_test2/hugetlb.${MB_DISPLAY}${UNIT}.$fault_usage_file
-+  local cgroup2_reservation_usage=\
-+	  $cgroup_path/hugetlb_cgroup_test2/hugetlb.${MB_DISPLAY}${UNIT}.$reservation_usage_file
- 
-   local usage_before_second_write=$(cat $cgroup1_hugetlb_usage)
-   local reservation_usage_before_second_write=$(cat $cgroup1_reservation_usage)
+-echo "$nr_hugepgs" > /proc/sys/vm/nr_hugepages
 _
 
 Patches currently in -mm which might be from sayalip@linux.ibm.com are
