@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9BFDB368D65
-	for <mm-commits@vger.kernel.org>; Sun, 21 Jun 2026 18:39:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E749E36A009
+	for <mm-commits@vger.kernel.org>; Sun, 21 Jun 2026 18:39:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782067145; cv=none; b=iuRH9XMuNOoC8Ud5tn9056qeSzzGTqggMcpXey/t/oX/WX/3fTTaKBDZmgirxo25IhkBhSfk5eCY65Lm8oAlqsY8eNQWVHzPmN7+srI3CR/OjFXV9VT/+365q6VhH0yNIh4s8oqJI6przecaY2RzSIC9wnXD1PUN9Fm/RLFY6H8=
+	t=1782067147; cv=none; b=ZiaCfj5abfHD3vj1NfQ7sxrl7FFC6O0K3DC9+tKNob8XPNubQlJOvLptLtS2MIk05vur2q+OC2J7ZKFFdllaTt6PLDbEknywAcJmwl+EorjaGip5ar52HcJoEEa0TkVHm3js0bJ2SeIErtwhR2vxQqO1Sfp/nNah2tOSp5GK9OI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782067145; c=relaxed/simple;
-	bh=ki06+63K2PSpITP1gblnpTVPsdzHhabRux74Ogr63Z8=;
-	h=Date:To:From:Subject:Message-Id; b=Jo7KId3kS4weMUJF0V5n/h3YR5IdYll8ji1jIc6zDSLruNBioDWLLKdLKR3GJpz/OpH5oYjm8Kkgdn3s8Fj1833qINXnjF1lv9TW2e8go6Mu1bqHY8/PQvI05bDfiHgKt6O+Rg+ge0VkoL3pPtP0B4dKMWXdTPctAgoDGx3tB5M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=t/LpKs36; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1782067147; c=relaxed/simple;
+	bh=oDuriyzMvQ28lOZ7M8JMDK9kPZhCZDR16Bg7kj0nOdE=;
+	h=Date:To:From:Subject:Message-Id; b=euHFXC2l0vPYop1S7RtMW9dUn2dvetGuXALAGFwexrKB3t+1gY1dplNIcwx74+y5BadqqEyG4qJkGH7ACfDWow1M9+gt6z8dvcbX3C3QxjUsCRV7BDH9nc+dB4nDmFFa8T2y+Uhg9LNxM1DfwBzs8EphvyLxILBS/dsIFW7Jkic=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=O2uPg157; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="t/LpKs36"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 748B01F00A3A;
-	Sun, 21 Jun 2026 18:39:04 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="O2uPg157"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C10A51F000E9;
+	Sun, 21 Jun 2026 18:39:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1782067144;
-	bh=cp3fChPbuTz90ZBvGjO4W/8UTd0I3jwh+ExLHTiP6As=;
+	d=linux-foundation.org; s=korg; t=1782067145;
+	bh=boQOAYAjSCNdM2X4JNCxTXgmd+cEYgommk0afhJYxro=;
 	h=Date:To:From:Subject;
-	b=t/LpKs36lV6mhTTinmfVYYdDueQEJaVtiQrym050uiHGpUGttcWKSzqm7xdaLDagt
-	 YM8L5KvpKqRvUjJ7rygQPjo6IX4acw/m7pzYG1eFufNZyWJwUF01Ie3Kk5NLzTvQqu
-	 cFfANEs6hdV/zXhgs1HqExdGPP+p8Lc5+4OhYcFc=
-Date: Sun, 21 Jun 2026 11:39:04 -0700
+	b=O2uPg157lTIEcpuB3Um81M4TR6MiRH5Md6anw41vbp7oTbi6t5S1v2TqSM7x5jSby
+	 y5dc9Vs5E+WZUPptVfdqUe/I9xk/tT6lDnoRWrQ7icQHEgmitKvM7EjczS/mXe0iR5
+	 aFStJ69mLK8LUx9SxU81VqRG3XidJdyw5ut7tDBU=
+Date: Sun, 21 Jun 2026 11:39:05 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,surenb@google.com,shuah@kernel.org,sarthak.sharma@arm.com,ryan.roberts@arm.com,peterx@redhat.com,npache@redhat.com,mhocko@suse.com,luizcap@redhat.com,ljs@kernel.org,li.wang@linux.dev,liam@infradead.org,leon@kernel.org,lance.yang@linux.dev,jhubbard@nvidia.com,jgg@ziepe.ca,donettom@linux.ibm.com,dev.jain@arm.com,david@kernel.org,broonie@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,rppt@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-mm-va_high_addr_switch-use-kselftest-framework.patch removed from -mm tree
-Message-Id: <20260621183904.748B01F00A3A@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-mm-add-atexit-and-signal-handlers-to-thp_settings.patch removed from -mm tree
+Message-Id: <20260621183905.C10A51F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,26 +35,36 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests/mm: va_high_addr_switch: use kselftest framework
+     Subject: selftests/mm: add atexit() and signal handlers to thp_settings
 has been removed from the -mm tree.  Its filename was
-     selftests-mm-va_high_addr_switch-use-kselftest-framework.patch
+     selftests-mm-add-atexit-and-signal-handlers-to-thp_settings.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
-Subject: selftests/mm: va_high_addr_switch: use kselftest framework
-Date: Mon, 11 May 2026 19:28:05 +0300
+Subject: selftests/mm: add atexit() and signal handlers to thp_settings
+Date: Mon, 11 May 2026 19:28:06 +0300
 
-Convert va_high_addr_switch test to use kselftest framework for reporting
-and tracking successful and failing runs.
+khugepaged registers atexit() and signal handlers that ensure that THP
+settings are restored regardless of how the test exited.
 
-Link: https://lore.kernel.org/20260511162840.375890-22-rppt@kernel.org
+Make these handlers available for all users of thp_settings.
+
+The call to thp_save_settings() installs thp_restore_settings as the
+atexit() callback and makes sure that signals that kill a process would
+still call exit() and atexit() callback.
+
+Update child process in khugepaged tests using thp_settings to use _exit()
+instead of exit() to avoid altering THP settings in the middle of a test.
+
+Remove redundant THP cleanup from folio_split_race_test.c.
+
+Link: https://lore.kernel.org/20260511162840.375890-23-rppt@kernel.org
 Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Reviewed-by: Luiz Capitulino <luizcap@redhat.com>
-Tested-by: Luiz Capitulino <luizcap@redhat.com>
 Tested-by: Sarthak Sharma <sarthak.sharma@arm.com>
+Tested-by: Luiz Capitulino <luizcap@redhat.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Barry Song <baohua@kernel.org>
 Cc: David Hildenbrand <david@kernel.org>
@@ -79,92 +89,306 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/va_high_addr_switch.c |   41 ++++++-------
- 1 file changed, 20 insertions(+), 21 deletions(-)
+ tools/testing/selftests/mm/cow.c                   |   21 ++---
+ tools/testing/selftests/mm/folio_split_race_test.c |   23 ------
+ tools/testing/selftests/mm/khugepaged.c            |   41 +----------
+ tools/testing/selftests/mm/thp_settings.c          |   27 ++++++-
+ tools/testing/selftests/mm/uffd-wp-mremap.c        |    4 -
+ 5 files changed, 38 insertions(+), 78 deletions(-)
 
---- a/tools/testing/selftests/mm/va_high_addr_switch.c~selftests-mm-va_high_addr_switch-use-kselftest-framework
-+++ a/tools/testing/selftests/mm/va_high_addr_switch.c
-@@ -257,40 +257,35 @@ void testcases_init(void)
- 	switch_hint = addr_switch_hint;
- }
- 
--static int run_test(struct testcase *test, int count)
-+static void run_test(struct testcase *test, int count)
- {
- 	void *p;
--	int i, ret = KSFT_PASS;
-+	int i;
- 
- 	for (i = 0; i < count; i++) {
- 		struct testcase *t = test + i;
- 
- 		p = mmap(t->addr, t->size, PROT_READ | PROT_WRITE, t->flags, -1, 0);
--
--		printf("%s: %p - ", t->msg, p);
--
- 		if (p == MAP_FAILED) {
--			printf("FAILED\n");
--			ret = KSFT_FAIL;
-+			ksft_perror("MAP_FAILED");
-+			ksft_test_result_fail("%s\n", t->msg);
- 			continue;
- 		}
- 
- 		if (t->low_addr_required && p >= (void *)(switch_hint)) {
--			printf("FAILED\n");
--			ret = KSFT_FAIL;
-+			ksft_print_msg("%p not below switch hint\n", p);
-+			ksft_test_result_fail("%s\n", t->msg);
- 		} else {
- 			/*
- 			 * Do a dereference of the address returned so that we catch
- 			 * bugs in page fault handling
- 			 */
- 			memset(p, 0, t->size);
--			printf("OK\n");
-+			ksft_test_result_pass("%s\n", t->msg);
- 		}
- 		if (!t->keep_mapped)
- 			munmap(p, t->size);
+--- a/tools/testing/selftests/mm/cow.c~selftests-mm-add-atexit-and-signal-handlers-to-thp_settings
++++ a/tools/testing/selftests/mm/cow.c
+@@ -202,7 +202,7 @@ static void do_test_cow_in_parent(char *
+ 		log_test_result(KSFT_FAIL);
+ 		goto close_comm_pipes;
+ 	} else if (!ret) {
+-		exit(fn(mem, size, &comm_pipes));
++		_exit(fn(mem, size, &comm_pipes));
  	}
+ 
+ 	while (read(comm_pipes.child_ready[0], &buf, 1) != 1)
+@@ -333,7 +333,7 @@ static void do_test_vmsplice_in_parent(c
+ 			;
+ 		/* Modify page content in the child. */
+ 		memset(mem, 0xff, size);
+-		exit(0);
++		_exit(0);
+ 	}
+ 
+ 	if (!before_fork) {
+@@ -480,7 +480,7 @@ static void do_test_iouring(char *mem, s
+ 			write(comm_pipes.child_ready[1], "0", 1);
+ 			while (read(comm_pipes.parent_ready[0], &buf, 1) != 1)
+ 				;
+-			exit(0);
++			_exit(0);
+ 		}
+ 
+ 		while (read(comm_pipes.child_ready[0], &buf, 1) != 1)
+@@ -645,7 +645,7 @@ static void do_test_ro_pin(char *mem, si
+ 			write(comm_pipes.child_ready[1], "0", 1);
+ 			while (read(comm_pipes.parent_ready[0], &buf, 1) != 1)
+ 				;
+-			exit(0);
++			_exit(0);
+ 		}
+ 
+ 		/* Wait until our child is ready. */
+@@ -956,7 +956,7 @@ static void do_run_with_thp(test_fn fn,
+ 			log_test_result(KSFT_FAIL);
+ 			goto munmap;
+ 		} else if (!ret) {
+-			exit(0);
++			_exit(0);
+ 		}
+ 		wait(&ret);
+ 		/* Allow for sharing all pages again. */
+@@ -1347,13 +1347,13 @@ static void do_test_anon_thp_collapse(ch
+ 		switch (test) {
+ 		case ANON_THP_COLLAPSE_UNSHARED:
+ 		case ANON_THP_COLLAPSE_FULLY_SHARED:
+-			exit(child_memcmp_fn(mem, size, &comm_pipes));
++			_exit(child_memcmp_fn(mem, size, &comm_pipes));
+ 			break;
+ 		case ANON_THP_COLLAPSE_LOWER_SHARED:
+-			exit(child_memcmp_fn(mem, size / 2, &comm_pipes));
++			_exit(child_memcmp_fn(mem, size / 2, &comm_pipes));
+ 			break;
+ 		case ANON_THP_COLLAPSE_UPPER_SHARED:
+-			exit(child_memcmp_fn(mem + size / 2, size / 2,
++			_exit(child_memcmp_fn(mem + size / 2, size / 2,
+ 					     &comm_pipes));
+ 			break;
+ 		default:
+@@ -1911,10 +1911,5 @@ int main(int argc, char **argv)
+ 	run_anon_thp_test_cases();
+ 	run_non_anon_test_cases();
+ 
+-	if (pmdsize) {
+-		/* Only if THP is supported. */
+-		thp_restore_settings();
+-	}
 -
--	return ret;
+ 	ksft_finished();
+ }
+--- a/tools/testing/selftests/mm/folio_split_race_test.c~selftests-mm-add-atexit-and-signal-handlers-to-thp_settings
++++ a/tools/testing/selftests/mm/folio_split_race_test.c
+@@ -226,23 +226,6 @@ static uint64_t run_iteration(void)
+ 	return reader_failures;
  }
  
- #ifdef __aarch64__
-@@ -322,19 +317,23 @@ static int supported_arch(void)
- 
- int main(int argc, char **argv)
+-static void thp_cleanup_handler(int signum)
+-{
+-	thp_restore_settings();
+-	/*
+-	 * Restore default handler and re-raise the signal to exit.
+-	 * This is to ensure the test process exits with the correct
+-	 * status code corresponding to the signal.
+-	 */
+-	signal(signum, SIG_DFL);
+-	raise(signum);
+-}
+-
+-static void thp_settings_cleanup(void)
+-{
+-	thp_restore_settings();
+-}
+-
+ int main(void)
  {
--	int ret, hugetlb_ret = KSFT_PASS;
-+	bool run_hugetlb = false;
-+
-+	ksft_print_header();
+ 	struct thp_settings current_settings;
+@@ -261,12 +244,6 @@ int main(void)
+ 		ksft_exit_skip("Please run the test as root\n");
  
- 	if (!supported_arch())
--		return KSFT_SKIP;
-+		ksft_exit_skip("Architecture not supported\n");
-+
-+	if (argc == 2 && !strcmp(argv[1], "--run-hugetlb"))
-+		run_hugetlb = true;
+ 	thp_save_settings();
+-	/* make sure thp settings are restored */
+-	if (atexit(thp_settings_cleanup) != 0)
+-		ksft_exit_fail_msg("atexit failed\n");
+-
+-	signal(SIGINT, thp_cleanup_handler);
+-	signal(SIGTERM, thp_cleanup_handler);
  
- 	testcases_init();
+ 	thp_read_settings(&current_settings);
+ 	current_settings.shmem_enabled = SHMEM_ADVISE;
+--- a/tools/testing/selftests/mm/khugepaged.c~selftests-mm-add-atexit-and-signal-handlers-to-thp_settings
++++ a/tools/testing/selftests/mm/khugepaged.c
+@@ -80,7 +80,6 @@ struct file_info {
+ };
  
--	ret = run_test(testcases, sz_testcases);
--	if (argc == 2 && !strcmp(argv[1], "--run-hugetlb"))
--		hugetlb_ret = run_test(hugetlb_testcases, sz_hugetlb_testcases);
-+	ksft_set_plan(sz_testcases + (run_hugetlb ? sz_hugetlb_testcases : 0));
-+
-+	run_test(testcases, sz_testcases);
-+	if (run_hugetlb)
-+		run_test(hugetlb_testcases, sz_hugetlb_testcases);
+ static struct file_info finfo;
+-static bool skip_settings_restore;
+ static int exit_status;
  
--	if (ret == KSFT_PASS && hugetlb_ret == KSFT_PASS)
--		return KSFT_PASS;
--	else
--		return KSFT_FAIL;
+ static void success(const char *msg)
+@@ -101,26 +100,6 @@ static void skip(const char *msg)
+ 	exit_status = KSFT_SKIP;
+ }
+ 
+-static void restore_settings_atexit(void)
+-{
+-	if (skip_settings_restore)
+-		return;
+-
+-	ksft_print_msg("Restore THP and khugepaged settings...");
+-	thp_restore_settings();
+-	success("OK");
+-
+-	skip_settings_restore = true;
+-	ksft_print_cnts();
+-	exit(exit_status);
+-}
+-
+-static void restore_settings(int sig)
+-{
+-	/* exit() will invoke the restore_settings_atexit handler. */
+-	exit(sig ? KSFT_FAIL : exit_status);
+-}
+-
+ static void save_settings(void)
+ {
+ 	ksft_print_msg("Save THP and khugepaged settings...");
+@@ -131,12 +110,6 @@ static void save_settings(void)
+ 	thp_save_settings();
+ 
+ 	success("OK");
+-
+-	atexit(restore_settings_atexit);
+-	signal(SIGTERM, restore_settings);
+-	signal(SIGINT, restore_settings);
+-	signal(SIGHUP, restore_settings);
+-	signal(SIGQUIT, restore_settings);
+ }
+ 
+ static void get_finfo(const char *dir)
+@@ -938,8 +911,6 @@ static void collapse_fork(struct collaps
+ 	ksft_print_msg("Share small page over fork()...");
+ 	if (!fork()) {
+ 		/* Do not touch settings on child exit */
+-		skip_settings_restore = true;
+-
+ 		if (ops->check_huge(p, 0))
+ 			success("OK");
+ 		else
+@@ -951,7 +922,7 @@ static void collapse_fork(struct collaps
+ 
+ 		validate_memory(p, 0, page_size);
+ 		ops->cleanup_area(p, hpage_pmd_size);
+-		exit(exit_status);
++		_exit(exit_status);
+ 	}
+ 
+ 	wait(&wstatus);
+@@ -976,8 +947,6 @@ static void collapse_fork_compound(struc
+ 	ksft_print_msg("Share huge page over fork()...");
+ 	if (!fork()) {
+ 		/* Do not touch settings on child exit */
+-		skip_settings_restore = true;
+-
+ 		if (ops->check_huge(p, 1))
+ 			success("OK");
+ 		else
+@@ -1000,7 +969,7 @@ static void collapse_fork_compound(struc
+ 
+ 		validate_memory(p, 0, hpage_pmd_size);
+ 		ops->cleanup_area(p, hpage_pmd_size);
+-		exit(exit_status);
++		_exit(exit_status);
+ 	}
+ 
+ 	wait(&wstatus);
+@@ -1026,8 +995,6 @@ static void collapse_max_ptes_shared(str
+ 	ksft_print_msg("Share huge page over fork()...");
+ 	if (!fork()) {
+ 		/* Do not touch settings on child exit */
+-		skip_settings_restore = true;
+-
+ 		if (ops->check_huge(p, 1))
+ 			success("OK");
+ 		else
+@@ -1060,7 +1027,7 @@ static void collapse_max_ptes_shared(str
+ 
+ 		validate_memory(p, 0, hpage_pmd_size);
+ 		ops->cleanup_area(p, hpage_pmd_size);
+-		exit(exit_status);
++		_exit(exit_status);
+ 	}
+ 
+ 	wait(&wstatus);
+@@ -1376,5 +1343,5 @@ int main(int argc, char **argv)
+ 		t->fn(t->ctx, t->ops);
+ 	}
+ 
+-	restore_settings(0);
 +	ksft_finished();
  }
+--- a/tools/testing/selftests/mm/thp_settings.c~selftests-mm-add-atexit-and-signal-handlers-to-thp_settings
++++ a/tools/testing/selftests/mm/thp_settings.c
+@@ -1,6 +1,7 @@
+ // SPDX-License-Identifier: GPL-2.0
+ #include <fcntl.h>
+ #include <limits.h>
++#include <signal.h>
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <string.h>
+@@ -15,6 +16,7 @@ static struct thp_settings settings_stac
+ static int settings_index;
+ static struct thp_settings saved_settings;
+ static char dev_queue_read_ahead_path[PATH_MAX];
++static bool thp_settings_saved;
+ 
+ static const char * const thp_enabled_strings[] = {
+ 	"never",
+@@ -298,12 +300,35 @@ void thp_pop_settings(void)
+ 
+ void thp_restore_settings(void)
+ {
+-	thp_write_settings(&saved_settings);
++	if (thp_settings_saved)
++		thp_write_settings(&saved_settings);
++}
++
++static void thp_restore_settings_atexit(void)
++{
++	thp_restore_settings();
++}
++
++static void thp_restore_settings_sighandler(int sig)
++{
++	/* exit() will invoke the thp_restore_settings_atexit handler. */
++	exit(KSFT_FAIL);
+ }
+ 
+ void thp_save_settings(void)
+ {
+ 	thp_read_settings(&saved_settings);
++	thp_settings_saved = true;
++
++	/*
++	 * setup exit hooks to make sure THP settings are restored on graceful
++	 * and error exits and signals
++	 */
++	atexit(thp_restore_settings_atexit);
++	signal(SIGTERM, thp_restore_settings_sighandler);
++	signal(SIGINT, thp_restore_settings_sighandler);
++	signal(SIGHUP, thp_restore_settings_sighandler);
++	signal(SIGQUIT, thp_restore_settings_sighandler);
+ }
+ 
+ void thp_set_read_ahead_path(char *path)
+--- a/tools/testing/selftests/mm/uffd-wp-mremap.c~selftests-mm-add-atexit-and-signal-handlers-to-thp_settings
++++ a/tools/testing/selftests/mm/uffd-wp-mremap.c
+@@ -368,10 +368,6 @@ int main(int argc, char **argv)
+ 				       tc->swapout, tc->hugetlb);
+ 	}
+ 
+-	/* If THP is supported, restore original THP settings. */
+-	if (nr_thpsizes)
+-		thp_restore_settings();
+-
+ 	i = ksft_get_fail_cnt();
+ 	if (i)
+ 		ksft_exit_fail_msg("%d out of %d tests failed\n",
 _
 
 Patches currently in -mm which might be from rppt@kernel.org are
