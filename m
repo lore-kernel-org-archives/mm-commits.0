@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F1D5F36F8FE
-	for <mm-commits@vger.kernel.org>; Sun, 21 Jun 2026 18:40:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D5B6936F8FE
+	for <mm-commits@vger.kernel.org>; Sun, 21 Jun 2026 18:40:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782067205; cv=none; b=tQVsTkhQbFSncCljrmFBCv+0uMADQBGQAv7gWGaX716w9hOKC4N0LhVCQTJlFIaDe0TvE8XyVTHVLGF7CV0dK1iCVDWRlIyQgQpnEMDnFOBINpdL7SJ0vk3IHrxezPAChcVtAII5aXOCNI15favE/Gq30RchlRhs73AlS8sKIhQ=
+	t=1782067207; cv=none; b=nF7E+BvVJ8UXEmLFafnl4vjE0qGVRn5z0jIq7ah4bZUThrZdnrJfBJHYm/TLGZPmBVGd1aKWjh6hzAc79RYwOQlSyF7irVRw4aRJZxagUCPdAjzNkQw2+5Kx0Wl1aLBgRFgQ1Nmwf37kj0k0RmhWG2Ds7IgBTud0c3o1OCZEiHk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782067205; c=relaxed/simple;
-	bh=G8OOlAhcfZVQwpzqfUBeYWMB3g99aa/FxCWtZdUpxiA=;
-	h=Date:To:From:Subject:Message-Id; b=FxU4ZSs7682ZIfg5ci72hdGG0lrUtGsf/GBHxOpsaV4+7vSyKj6hNrIbk4jIuOy66sDv2B6xmZL57D0Yu59o/nxBqoDmuOIu1CZC370EKxlW5nAwb+qn7W7W/TKxCP/0M8ubtY9A9i5jzBlZ/+qfltuEt3USYuQ1Q7v7IA+5kRc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AxRZrund; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1782067207; c=relaxed/simple;
+	bh=gfioa/czNApH2avrmt3vrvu/82WPqs83Umu5pahatZw=;
+	h=Date:To:From:Subject:Message-Id; b=IuwNjuJVMRMdSsJMpvSXrGg1fmSt7vVpSbcNr2rWMi+MkCAqxzGd0fq08B3kfUKcgtezBJoic4MQXqRDHWfUYhlHvwN9vgx9kTljQmGqgYBB5L3PbU01X7rJ2KlZ0naWiex7BEOzLjsxZKlldXMje+4LJTUaT6jN3TTc8r41FmM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=i/ze1yUN; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AxRZrund"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C6CF71F000E9;
-	Sun, 21 Jun 2026 18:40:03 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="i/ze1yUN"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AB18E1F000E9;
+	Sun, 21 Jun 2026 18:40:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1782067203;
-	bh=TdPMOvebDuvq7uMiArO7Aao/2qJhC9RBEMmnIzGlg4A=;
+	d=linux-foundation.org; s=korg; t=1782067206;
+	bh=icPeCyU26T/Y8aWNdelgI6ckNjV0M6si0sG7M6KSu0c=;
 	h=Date:To:From:Subject;
-	b=AxRZrundWGogl9/QCSN9xoHfedQfKZcheQksH1E1I1JwmhultCjXBFwNIYB7RA7ej
-	 g4s/Apx+LHiB/PHvTFm9FY8fJCjnlNfDw5j/XfvtTccLxTFOBNFuZvJk6bPXDQiDTt
-	 wOn1FSU8Iyx0HDy4b9EQAoIVS7XBd6bxYrhktyG8=
-Date: Sun, 21 Jun 2026 11:40:03 -0700
+	b=i/ze1yUNMBFv2dHnYVRQw0rehmeRf1PM+pAWBCzrtMesmrXw7A8Zg4m+myqkhKT+2
+	 F3VRfItnkLu+GEns1JBxnUxLJJOOnlRntwnic7flnJGzhTDC4hRWgQQEanAUvUS8IF
+	 q9yOTyWEqweu7ml4UkFhKG10OsxuiyuGpG2S96Lc=
+Date: Sun, 21 Jun 2026 11:40:06 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,venkat88@linux.ibm.com,shuah@kernel.org,ritesh.list@gmail.com,osalvador@suse.de,mhocko@kernel.org,linmiaohe@huawei.com,liam.howlett@oracle.com,dev.jain@arm.com,david@kernel.org,sayalip@linux.ibm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-mm-ensure-destination-is-hugetlb-backed-in-hugetlb-mremap.patch removed from -mm tree
-Message-Id: <20260621184003.C6CF71F000E9@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-mm-skip-uffd-stress-test-when-nr_pages_per_cpu-is-zero.patch removed from -mm tree
+Message-Id: <20260621184006.AB18E1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,44 +35,39 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests/mm: ensure destination is hugetlb-backed in hugetlb-mremap
+     Subject: selftests/mm: skip uffd-stress test when nr_pages_per_cpu is zero
 has been removed from the -mm tree.  Its filename was
-     selftests-mm-ensure-destination-is-hugetlb-backed-in-hugetlb-mremap.patch
+     selftests-mm-skip-uffd-stress-test-when-nr_pages_per_cpu-is-zero.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Sayali Patil <sayalip@linux.ibm.com>
-Subject: selftests/mm: ensure destination is hugetlb-backed in hugetlb-mremap
-Date: Thu, 21 May 2026 12:17:49 +0530
+Subject: selftests/mm: skip uffd-stress test when nr_pages_per_cpu is zero
+Date: Thu, 21 May 2026 12:17:51 +0530
 
-The hugetlb-mremap selftest reserves the destination address using a
-anonymous base-page mapping before calling mremap() with MREMAP_FIXED,
-while the source region is hugetlb-backed.
+uffd-stress currently fails when the computed nr_pages_per_cpu evaluates
+to zero:
 
-When remapping a hugetlb mapping into a base-page VMA may fail with:
+nr_pages_per_cpu = bytes / page_size / nr_parallel
 
-    mremap: Device or resource busy
+This can occur on systems with large hugepage sizes (e.g.  1GB) and a high
+number of CPUs, where the total allocated memory is sufficient overall but
+not enough to provide at least one page per cpu.
 
-This is observed on powerpc hash MMU systems where slice constraints and
-page size incompatibilities prevent the remap.
+In such cases, the failure is due to insufficient test resources rather
+than incorrect kernel behaviour.  Update the test to treat this condition
+as a test skip instead of reporting an error.
 
-Ensure the destination region is created using MAP_HUGETLB so that both
-source and destination VMAs are hugetlb-backed and compatible.
-
-Update the FLAGS macro to include MAP_HUGETLB | MAP_SHARED so that both
-mappings are hugetlb-backed and compatible.  Also use the macro for the
-mmap() calls to avoid repeating the flag combination.
-
-This ensures the test reliably exercises hugetlb mremap instead of failing
-due to VMA type mismatch.
-
-Link: https://lore.kernel.org/367644df45c65098f23e3945c6a80f4b8a8964a6.1779296493.git.sayalip@linux.ibm.com
-Fixes: 12b613206474 ("mm, hugepages: add hugetlb vma mremap() test")
+[sayalip@linux.ibm.com: use ksft_exit_skip() instead of KSFT_SKIP]
+  Link: https://lore.kernel.org/88202b56-1dc5-43e2-9d1f-a0823a9531f0@linux.ibm.com
+Link: https://lore.kernel.org/0707e9a0f1b3dd904c4a069b91db317f9c160faa.1779296493.git.sayalip@linux.ibm.com
+Fixes: db0f1c138f18 ("selftests/mm: print some details when uffd-stress gets bad params")
 Signed-off-by: Sayali Patil <sayalip@linux.ibm.com>
+Acked-by: Zi Yan <ziy@nvidia.com>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
 Tested-by: Venkat Rao Bagalkote <venkat88@linux.ibm.com>
-Cc: David Hildenbrand (Arm) <david@kernel.org>
 Cc: Dev Jain <dev.jain@arm.com>
 Cc: Liam Howlett <liam.howlett@oracle.com>
 Cc: Miaohe Lin <linmiaohe@huawei.com>
@@ -80,51 +75,26 @@ Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Oscar Salvador <osalvador@suse.de>
 Cc: "Ritesh Harjani (IBM)" <ritesh.list@gmail.com>
 Cc: Shuah Khan <shuah@kernel.org>
-Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/hugetlb-mremap.c |   11 ++++-------
- 1 file changed, 4 insertions(+), 7 deletions(-)
+ tools/testing/selftests/mm/uffd-stress.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
---- a/tools/testing/selftests/mm/hugetlb-mremap.c~selftests-mm-ensure-destination-is-hugetlb-backed-in-hugetlb-mremap
-+++ a/tools/testing/selftests/mm/hugetlb-mremap.c
-@@ -32,7 +32,7 @@
- #define MB_TO_BYTES(x) (x * 1024 * 1024)
+--- a/tools/testing/selftests/mm/uffd-stress.c~selftests-mm-skip-uffd-stress-test-when-nr_pages_per_cpu-is-zero
++++ a/tools/testing/selftests/mm/uffd-stress.c
+@@ -489,9 +489,8 @@ int main(int argc, char **argv)
  
- #define PROTECTION (PROT_READ | PROT_WRITE | PROT_EXEC)
--#define FLAGS (MAP_SHARED | MAP_ANONYMOUS)
-+#define FLAGS (MAP_HUGETLB | MAP_SHARED)
+ 	gopts->nr_pages_per_cpu = bytes / gopts->page_size / gopts->nr_parallel;
+ 	if (!gopts->nr_pages_per_cpu) {
+-		_err("pages_per_cpu = 0, cannot test (%lu / %lu / %lu)",
+-			bytes, gopts->page_size, gopts->nr_parallel);
+-		usage();
++		ksft_exit_skip("pages_per_cpu = 0, cannot test (%zu / %lu / %lu)\n",
++			       bytes, gopts->page_size, gopts->nr_parallel);
+ 	}
  
- static void check_bytes(char *addr)
- {
-@@ -132,23 +132,20 @@ int main(int argc, char *argv[])
- 
- 	/* mmap to a PUD aligned address to hopefully trigger pmd sharing. */
- 	unsigned long suggested_addr = 0x7eaa40000000;
--	void *haddr = mmap((void *)suggested_addr, length, PROTECTION,
--			   MAP_HUGETLB | MAP_SHARED | MAP_POPULATE, fd, 0);
-+	void *haddr = mmap((void *)suggested_addr, length, PROTECTION, FLAGS, fd, 0);
- 	ksft_print_msg("Map haddr: Returned address is %p\n", haddr);
- 	if (haddr == MAP_FAILED)
- 		ksft_exit_fail_msg("mmap1: %s\n", strerror(errno));
- 
- 	/* mmap again to a dummy address to hopefully trigger pmd sharing. */
- 	suggested_addr = 0x7daa40000000;
--	void *daddr = mmap((void *)suggested_addr, length, PROTECTION,
--			   MAP_HUGETLB | MAP_SHARED | MAP_POPULATE, fd, 0);
-+	void *daddr = mmap((void *)suggested_addr, length, PROTECTION, FLAGS, fd, 0);
- 	ksft_print_msg("Map daddr: Returned address is %p\n", daddr);
- 	if (daddr == MAP_FAILED)
- 		ksft_exit_fail_msg("mmap3: %s\n", strerror(errno));
- 
- 	suggested_addr = 0x7faa40000000;
--	void *vaddr =
--		mmap((void *)suggested_addr, length, PROTECTION, FLAGS, -1, 0);
-+	void *vaddr = mmap((void *)suggested_addr, length, PROTECTION, FLAGS, fd, 0);
- 	ksft_print_msg("Map vaddr: Returned address is %p\n", vaddr);
- 	if (vaddr == MAP_FAILED)
- 		ksft_exit_fail_msg("mmap2: %s\n", strerror(errno));
+ 	bounces = atoi(argv[3]);
 _
 
 Patches currently in -mm which might be from sayalip@linux.ibm.com are
