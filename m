@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D4589369D43
-	for <mm-commits@vger.kernel.org>; Sun, 21 Jun 2026 18:39:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2CB3736A37A
+	for <mm-commits@vger.kernel.org>; Sun, 21 Jun 2026 18:39:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782067155; cv=none; b=A11Boo1iokYiRvQ2GatMK+9hF+YN6vZf4KU04LDh9POnkQSd4y1FDoctArZ0VC5OZL/etyyMANMenEQrODncmjEAJz2YihgFUK+Lw2wmt5VIbsPzVMhWg1Q+/YMO+ge12AW4363tnwF0vXMwoH+dB7JI6V6wERcWq5wS1qHtIa8=
+	t=1782067156; cv=none; b=JLNnIwTnXrU0zMWCR9vCDKFAxz9BRW9qieanN3KmaokYRklzCMZlDZ8/rAzWPYtyn/lUk6d0Wsk4d8ZlAS+0DfzvoetSIU8F6M5qd157Tqg4y8ARTeNvkzLJhkSWYrX16fpWatc1Jz3AiEwqnklMXQj1fIMKFqy64sEoGUIbAKo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782067155; c=relaxed/simple;
-	bh=WcOe50q7jAPCpRdH8w93bsBmNchoFqIKdYWJfvPIyo4=;
-	h=Date:To:From:Subject:Message-Id; b=YswJJgcQbzBMZf0lMQbac4K9mwvYdJFmqiECrmrhr2Y3kHQ9reoY0sRota1FqsEWgsWpDdi+AMb+/uuaQeCORXZdauo1npHLfs1nfNPknEf4bpL0USfMtOwjJ+hD6R3dtJH84EJDE8AS1DL1/B/N4Gnh8crGyGWNgkQWx2SDkcg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=u1rftW7e; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1782067156; c=relaxed/simple;
+	bh=ZAE6pTRnrhad7Q/E1cVsLGxB5NkB0uUI4I9qMPkPfic=;
+	h=Date:To:From:Subject:Message-Id; b=LcFpsIZCZLEwVrOrRCWT6MwWvWjJGkOQi22T97DffiafnBfbHhMI17Lf1VvoshBCC32qiVRCJReiodH0YbDulfH5WrzU8aeye50nTYc8QQaG8s4wdkcrU11qX3HL2NZC2CZdnZJ6h+PewPepTFoP0KWumVWs77gh/m2Q8Ehx27A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lnmCBgKP; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="u1rftW7e"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AE67A1F000E9;
-	Sun, 21 Jun 2026 18:39:13 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lnmCBgKP"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 05C901F00A3A;
+	Sun, 21 Jun 2026 18:39:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1782067153;
-	bh=Avk6SvX79J64YSl/8vx/g8rCRGK/e4iIIi49TApAxvo=;
+	d=linux-foundation.org; s=korg; t=1782067155;
+	bh=M3GtBkBxSsZlCyJfanBDVFi7MI0JmHnpdrZFhluzhbI=;
 	h=Date:To:From:Subject;
-	b=u1rftW7ecWMWr9WJk681dsLIwWGV1yM/4AkhkE0v7RLvUEWfkLBPCrxVbdfDnlurT
-	 kcG98NC81sVDCzlV2636BfQrB9+HNmKwx2EGdicCjcMFEFNMJiPHoGIStkqCyevfXo
-	 gzowjAQJEj9uG0EcU/P3Sp6D42lz6EZJD3euv7UA=
-Date: Sun, 21 Jun 2026 11:39:13 -0700
+	b=lnmCBgKPdCol4MeLjNnvIB2Y7YwDs2H8AgmoWZOqY94sPyd4B/847QyT2z08J2I/v
+	 mkMxg7k2xWpASg+Mr2AnwxXXaWDIPwcbj6FeuyAtiGZd9jq6ipIUJPU8EORYGcRFfM
+	 Fuc3akM7EPfLrkEtLP+H2GssR+tTbScImBvBFnHI=
+Date: Sun, 21 Jun 2026 11:39:14 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,surenb@google.com,shuah@kernel.org,sarthak.sharma@arm.com,ryan.roberts@arm.com,peterx@redhat.com,npache@redhat.com,mhocko@suse.com,luizcap@redhat.com,ljs@kernel.org,li.wang@linux.dev,liam@infradead.org,leon@kernel.org,lance.yang@linux.dev,jhubbard@nvidia.com,jgg@ziepe.ca,donettom@linux.ibm.com,dev.jain@arm.com,david@kernel.org,broonie@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,rppt@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-mm-hugepage_settings-add-apis-for-hugetlb-setup-and-teardown.patch removed from -mm tree
-Message-Id: <20260621183913.AE67A1F000E9@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-mm-move-read_file-read_num-and-write_num-to-vm_util.patch removed from -mm tree
+Message-Id: <20260621183915.05C901F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,45 +35,29 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests/mm: hugepage_settings: add APIs for HugeTLB setup and teardown
+     Subject: selftests/mm: move read_file(), read_num() and write_num() to vm_util
 has been removed from the -mm tree.  Its filename was
-     selftests-mm-hugepage_settings-add-apis-for-hugetlb-setup-and-teardown.patch
+     selftests-mm-move-read_file-read_num-and-write_num-to-vm_util.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
-Subject: selftests/mm: hugepage_settings: add APIs for HugeTLB setup and teardown
-Date: Mon, 11 May 2026 19:28:12 +0300
+Subject: selftests/mm: move read_file(), read_num() and write_num() to vm_util
+Date: Mon, 11 May 2026 19:28:13 +0300
 
-A lot of tests require free HugeTLB pages.  Some need just a few default
-huge pages, some need a certain amount of memory available as HugeTLB, and
-some just skip lots of tests if huge pages of all supported sizes are not
-available.
+These are useful helpers for writing and reading sysfs and proc files.
 
-This all resulted in a huge mess in run_vmtests.sh that sets up some huge
-pages, adjusts them later and restores some of the settings if the stars
-align.
+Make them available to the tests that don't use thp_settings.
 
-Add APIs that allow saving the state of HugeTLB and setting up the desired
-amount of HugeTLB pages.
+While on it make write_num() use "%lu" instead of "%ld" to match 'unsigned
+long num' argument type.
 
-Saving the state also registers atexit() callback and signal handler that
-will ensure restoration of HugeTLB state.
-
-Since many tests use both HugeTLB and THP, the atexit() callbacks and
-signal handler are restoring both.
-
-For kselftest_harness tests that run fixture setups and test in child
-processes add a constructor that will save and restore settings in the
-main process.
-
-Link: https://lore.kernel.org/20260511162840.375890-29-rppt@kernel.org
+Link: https://lore.kernel.org/20260511162840.375890-30-rppt@kernel.org
 Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Tested-by: Luiz Capitulino <luizcap@redhat.com>
 Tested-by: Sarthak Sharma <sarthak.sharma@arm.com>
-Reviewed-by: Luiz Capitulino <luizcap@redhat.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Barry Song <baohua@kernel.org>
 Cc: David Hildenbrand <david@kernel.org>
@@ -98,314 +82,136 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/hugepage_settings.c |  205 +++++++++++++--
- tools/testing/selftests/mm/hugepage_settings.h |   31 ++
- 2 files changed, 213 insertions(+), 23 deletions(-)
+ tools/testing/selftests/mm/hugepage_settings.c |   41 ---------------
+ tools/testing/selftests/mm/hugepage_settings.h |    4 -
+ tools/testing/selftests/mm/vm_util.c           |   39 ++++++++++++++
+ tools/testing/selftests/mm/vm_util.h           |    3 +
+ 4 files changed, 42 insertions(+), 45 deletions(-)
 
---- a/tools/testing/selftests/mm/hugepage_settings.c~selftests-mm-hugepage_settings-add-apis-for-hugetlb-setup-and-teardown
+--- a/tools/testing/selftests/mm/hugepage_settings.c~selftests-mm-move-read_file-read_num-and-write_num-to-vm_util
 +++ a/tools/testing/selftests/mm/hugepage_settings.c
-@@ -306,31 +306,16 @@ void thp_restore_settings(void)
- 		thp_write_settings(&saved_settings);
- }
+@@ -48,47 +48,6 @@ static const char * const shmem_enabled_
+ 	NULL
+ };
  
--static void thp_restore_settings_atexit(void)
-+static void __thp_save_settings(void)
- {
--	thp_restore_settings();
--}
-+	if (!thp_available())
-+		return;
- 
--static void thp_restore_settings_sighandler(int sig)
+-int read_file(const char *path, char *buf, size_t buflen)
 -{
--	/* exit() will invoke the thp_restore_settings_atexit handler. */
--	exit(KSFT_FAIL);
--}
-+	if (thp_settings_saved)
-+		return;
- 
--void thp_save_settings(void)
--{
- 	thp_read_settings(&saved_settings);
- 	thp_settings_saved = true;
+-	int fd;
+-	ssize_t numread;
 -
--	/*
--	 * setup exit hooks to make sure THP settings are restored on graceful
--	 * and error exits and signals
--	 */
--	atexit(thp_restore_settings_atexit);
--	signal(SIGTERM, thp_restore_settings_sighandler);
--	signal(SIGINT, thp_restore_settings_sighandler);
--	signal(SIGHUP, thp_restore_settings_sighandler);
--	signal(SIGQUIT, thp_restore_settings_sighandler);
- }
- 
- void thp_set_read_ahead_path(char *path)
-@@ -398,11 +383,32 @@ bool thp_is_enabled(void)
- 	return mode == 1 || mode == 3;
- }
- 
-+#define HUGETLB_MAX_NR_PAGESIZES 10
-+struct hugetlb_settings {
-+	unsigned long nr_hugepages[HUGETLB_MAX_NR_PAGESIZES];
-+	unsigned long sizes[HUGETLB_MAX_NR_PAGESIZES];
-+	unsigned long default_size;
-+	int nr_sizes;
-+};
-+
-+static struct hugetlb_settings hugetlb_saved_settings;
-+static bool hugetlb_settings_saved;
-+
- int detect_hugetlb_page_sizes(unsigned long sizes[], int max)
+-	fd = open(path, O_RDONLY);
+-	if (fd == -1)
+-		return 0;
+-
+-	numread = read(fd, buf, buflen - 1);
+-	if (numread < 1) {
+-		close(fd);
+-		return 0;
+-	}
+-
+-	buf[numread] = '\0';
+-	close(fd);
+-
+-	return (unsigned int) numread;
+-}
+-
+-unsigned long read_num(const char *path)
+-{
+-	char buf[21];
+-
+-	if (read_file(path, buf, sizeof(buf)) < 0) {
+-		perror("read_file()");
+-		exit(EXIT_FAILURE);
+-	}
+-
+-	return strtoul(buf, NULL, 10);
+-}
+-
+-void write_num(const char *path, unsigned long num)
+-{
+-	char buf[21];
+-
+-	sprintf(buf, "%ld", num);
+-	write_file(path, buf, strlen(buf) + 1);
+-}
+-
+ int thp_read_string(const char *name, const char * const strings[])
  {
--	DIR *dir = opendir("/sys/kernel/mm/hugepages/");
-+	static struct hugetlb_settings *settings = &hugetlb_saved_settings;
-+	DIR *dir;
- 	int count = 0;
+ 	char path[PATH_MAX];
+--- a/tools/testing/selftests/mm/hugepage_settings.h~selftests-mm-move-read_file-read_num-and-write_num-to-vm_util
++++ a/tools/testing/selftests/mm/hugepage_settings.h
+@@ -66,10 +66,6 @@ struct thp_settings {
+ 	struct shmem_hugepages_settings shmem_hugepages[NR_ORDERS];
+ };
  
-+	if (settings->nr_sizes) {
-+		if (settings->nr_sizes < max)
-+			max = settings->nr_sizes;
-+		for (count = 0; count < max; count++)
-+			sizes[count] = settings->sizes[count];
-+		return count;
-+	}
-+
-+	dir = opendir("/sys/kernel/mm/hugepages/");
- 	if (!dir)
- 		return 0;
- 
-@@ -426,11 +432,16 @@ int detect_hugetlb_page_sizes(unsigned l
- 
- unsigned long default_huge_page_size(void)
- {
-+	static struct hugetlb_settings *settings = &hugetlb_saved_settings;
- 	unsigned long hps = 0;
- 	char *line = NULL;
- 	size_t linelen = 0;
--	FILE *f = fopen("/proc/meminfo", "r");
-+	FILE *f;
-+
-+	if (settings->default_size)
-+		return settings->default_size;
- 
-+	f = fopen("/proc/meminfo", "r");
- 	if (!f)
- 		return 0;
- 	while (getline(&line, &linelen, f) > 0) {
-@@ -478,3 +489,153 @@ unsigned long hugetlb_free_pages(unsigne
- 
- 	return read_num(path);
+-int read_file(const char *path, char *buf, size_t buflen);
+-unsigned long read_num(const char *path);
+-void write_num(const char *path, unsigned long num);
+-
+ int thp_read_string(const char *name, const char * const strings[]);
+ void thp_write_string(const char *name, const char *val);
+ unsigned long thp_read_num(const char *name);
+--- a/tools/testing/selftests/mm/vm_util.c~selftests-mm-move-read_file-read_num-and-write_num-to-vm_util
++++ a/tools/testing/selftests/mm/vm_util.c
+@@ -698,6 +698,27 @@ int unpoison_memory(unsigned long pfn)
+ 	return ret > 0 ? 0 : -errno;
  }
-+
-+static bool __hugetlb_setup(unsigned long size, unsigned long nr)
+ 
++int read_file(const char *path, char *buf, size_t buflen)
 +{
-+	unsigned long free = hugetlb_free_pages(size);
-+	unsigned long total = hugetlb_nr_pages(size);
++	int fd;
++	ssize_t numread;
 +
-+	if (free >= nr)
-+		return true;
-+
-+	hugetlb_set_nr_pages(size, total + (nr - free));
-+
-+	return hugetlb_free_pages(size) >= nr;
-+}
-+
-+bool hugetlb_setup_default(unsigned long nr)
-+{
-+	unsigned long size;
-+
-+	hugetlb_save_settings();
-+	size = default_huge_page_size();
-+	if (!size)
-+		return false;
-+
-+	return __hugetlb_setup(size, nr);
-+}
-+
-+bool hugetlb_setup_default_exact(unsigned long nr)
-+{
-+	unsigned long size;
-+
-+	hugetlb_save_settings();
-+	size = default_huge_page_size();
-+	if (!size)
-+		return false;
-+
-+	hugetlb_set_nr_pages(size, nr);
-+
-+	return hugetlb_free_pages(size) == nr;
-+}
-+
-+unsigned long hugetlb_setup(unsigned long nr, unsigned long sizes[],
-+			    int max)
-+{
-+	unsigned long enabled[10];
-+	int nr_sizes = 0;
-+	int nr_enabled;
-+
-+	hugetlb_save_settings();
-+
-+	nr_enabled = detect_hugetlb_page_sizes(enabled, ARRAY_SIZE(enabled));
-+	if (!nr_enabled)
++	fd = open(path, O_RDONLY);
++	if (fd == -1)
 +		return 0;
 +
-+	if (nr_enabled > max) {
-+		ksft_print_msg("detected %d huge page sizes, will only test %d\n", nr_enabled, max);
-+		nr_enabled = max;
++	numread = read(fd, buf, buflen - 1);
++	if (numread < 1) {
++		close(fd);
++		return 0;
 +	}
 +
-+	/* request nr HugeTLB pages of every size. */
-+	for (int i = 0; i < nr_enabled; i++) {
-+		if (!__hugetlb_setup(enabled[i], nr))
-+			continue;
-+		sizes[nr_sizes++] = enabled[i];
-+	}
++	buf[numread] = '\0';
++	close(fd);
 +
-+	return nr_sizes;
++	return (unsigned int) numread;
 +}
 +
-+static void __hugetlb_save_settings(void)
-+{
-+	struct hugetlb_settings *settings = &hugetlb_saved_settings;
-+	int nr_sizes;
-+
-+	if (hugetlb_settings_saved)
-+		return;
-+
-+	settings->default_size = default_huge_page_size();
-+	if (!settings->default_size)
-+		return;
-+
-+	nr_sizes = detect_hugetlb_page_sizes(settings->sizes,
-+					     HUGETLB_MAX_NR_PAGESIZES);
-+	if (!nr_sizes) {
-+		settings->default_size = 0;
-+		return;
-+	}
-+
-+	for (int i = 0; i < nr_sizes; i++) {
-+		unsigned long sz = settings->sizes[i];
-+
-+		if (!sz)
-+			continue;
-+		settings->nr_hugepages[i] = hugetlb_nr_pages(sz);
-+	}
-+
-+	settings->nr_sizes = nr_sizes;
-+	hugetlb_settings_saved = true;
-+}
-+
-+void hugetlb_restore_settings(void)
-+{
-+	struct hugetlb_settings *settings = &hugetlb_saved_settings;
-+
-+	if (!hugetlb_settings_saved || !settings->default_size)
-+		return;
-+
-+	for (int i = 0; i < HUGETLB_MAX_NR_PAGESIZES; i++) {
-+		unsigned long sz = settings->sizes[i];
-+
-+		if (!sz)
-+			continue;
-+
-+		hugetlb_set_nr_pages(sz, settings->nr_hugepages[i]);
-+	}
-+}
-+
-+static void hugepage_restore_settings_atexit(void)
-+{
-+	if (thp_settings_saved)
-+		thp_restore_settings();
-+	if (hugetlb_settings_saved)
-+		hugetlb_restore_settings();
-+}
-+
-+static void hugepage_restore_settings_sighandler(int sig)
-+{
-+	/* exit() will invoke the hugepage_restore_settings_atexit handler. */
-+	exit(KSFT_FAIL);
-+}
-+
-+void hugepage_save_settings(bool thp, bool hugetlb)
-+{
-+	if (!thp && !hugetlb)
-+		return;
-+
-+	if (thp)
-+		__thp_save_settings();
-+	if (hugetlb)
-+		__hugetlb_save_settings();
-+
-+	/*
-+	 * setup exit hooks to make sure THP and HugeTLB settings are
-+	 * restored on graceful and error exits and signals
-+	 */
-+	atexit(hugepage_restore_settings_atexit);
-+	signal(SIGTERM, hugepage_restore_settings_sighandler);
-+	signal(SIGINT, hugepage_restore_settings_sighandler);
-+	signal(SIGHUP, hugepage_restore_settings_sighandler);
-+	signal(SIGQUIT, hugepage_restore_settings_sighandler);
-+}
---- a/tools/testing/selftests/mm/hugepage_settings.h~selftests-mm-hugepage_settings-add-apis-for-hugetlb-setup-and-teardown
-+++ a/tools/testing/selftests/mm/hugepage_settings.h
-@@ -6,6 +6,8 @@
- #include <stddef.h>
- #include <stdint.h>
- 
-+void hugepage_save_settings(bool thp, bool hugetlb);
-+
- /* Transparent Huge Pages (THP) */
- 
- enum thp_enabled {
-@@ -79,7 +81,11 @@ struct thp_settings *thp_current_setting
- void thp_push_settings(struct thp_settings *settings);
- void thp_pop_settings(void);
- void thp_restore_settings(void);
--void thp_save_settings(void);
-+
-+static inline void thp_save_settings(void)
-+{
-+	hugepage_save_settings(/* thp = */ true, /* hugetlb = */ false);
-+}
- 
- void thp_set_read_ahead_path(char *path);
- unsigned long thp_supported_orders(void);
-@@ -97,6 +103,13 @@ unsigned long hugetlb_nr_pages(unsigned
- void hugetlb_set_nr_pages(unsigned long size, unsigned long nr);
- unsigned long hugetlb_free_pages(unsigned long size);
- 
-+static inline void hugetlb_save_settings(void)
-+{
-+	hugepage_save_settings(/* thp = */ false, /* hugetlb = */ true);
-+}
-+
-+void hugetlb_restore_settings(void);
-+
- static inline unsigned long hugetlb_nr_default_pages(void)
+ void write_file(const char *path, const char *buf, size_t buflen)
  {
- 	unsigned long size = default_huge_page_size();
-@@ -127,4 +140,20 @@ static inline unsigned long hugetlb_free
- 	return hugetlb_free_pages(size);
+ 	int fd, saved_errno;
+@@ -721,3 +742,21 @@ void write_file(const char *path, const
+ 		ksft_exit_fail_msg("%s write(%.*s) is truncated, expected %zu bytes, got %zd bytes\n",
+ 				path, (int)(buflen - 1), buf, buflen - 1, numwritten);
  }
- 
-+static inline bool hugetlb_available(void)
++
++unsigned long read_num(const char *path)
 +{
-+	return default_huge_page_size() != 0;
++	char buf[21];
++
++	if (read_file(path, buf, sizeof(buf)) < 0)
++		ksft_exit_fail_perror("read_file()");
++
++	return strtoul(buf, NULL, 10);
 +}
 +
-+bool hugetlb_setup_default(unsigned long nr);
-+bool hugetlb_setup_default_exact(unsigned long nr);
-+unsigned long hugetlb_setup(unsigned long nr, unsigned long sizes[],
-+			    int max);
++void write_num(const char *path, unsigned long num)
++{
++	char buf[21];
 +
-+#define HUGETLB_SETUP_DEFAULT_PAGES(nr_pages) \
-+static void __attribute__((constructor)) __hugetlb_setup_default(void)	\
-+{									\
-+	hugetlb_setup_default((nr_pages));				\
++	sprintf(buf, "%lu", num);
++	write_file(path, buf, strlen(buf) + 1);
 +}
-+
- #endif /* __HUGEPAGE_SETTINGS_H__ */
+--- a/tools/testing/selftests/mm/vm_util.h~selftests-mm-move-read_file-read_num-and-write_num-to-vm_util
++++ a/tools/testing/selftests/mm/vm_util.h
+@@ -165,3 +165,6 @@ int unpoison_memory(unsigned long pfn);
+ #define PAGEMAP_PFN(ent)	((ent) & ((1ull << 55) - 1))
+ 
+ void write_file(const char *path, const char *buf, size_t buflen);
++int read_file(const char *path, char *buf, size_t buflen);
++unsigned long read_num(const char *path);
++void write_num(const char *path, unsigned long num);
 _
 
 Patches currently in -mm which might be from rppt@kernel.org are
