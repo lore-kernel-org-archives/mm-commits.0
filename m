@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8555D370AD7;
-	Sun, 21 Jun 2026 18:40:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BCAE5370ADF;
+	Sun, 21 Jun 2026 18:40:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782067214; cv=none; b=qvfPxf5gfj75FQCzt7SdmJWbIOEOClc8l5XkPZsF54lwrHFJVUM/uf4uFKj83NEhxkt7qUM4BYzZPHqjO+BtNrA9MOR9vh/Ps31ItlTtc7fIXMvuf8+RvnqpZ4FFxaiLQq1XzyAxTviSZOyJJyM/hoYUP5DBSVeYhPTkxHZeoMY=
+	t=1782067215; cv=none; b=jnbsR11D7I9Wp+3QxJtYmCjRDOCDUCc/zhWouPpoKxU6gh02DGVqtfd3jLSC8GhODZyRabUOODq8xZT9Mea2mpkp2SaToEYkZuf70HZwQ0IvXD5PUfEnkW+F4X/v+z4V2KzPDzXntrtWs9E/dVptIBEHNzT73oX62+2/nJPwas8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782067214; c=relaxed/simple;
-	bh=F8emBPxSPqFsqltapfV9nQxiIXIhT4G39TecSgfbXIA=;
-	h=Date:To:From:Subject:Message-Id; b=LiWQnxqjazHxqyP5zspqwdVn4miWpRDV5s9RhT2CuFabQCJaA2ZTUGo5Smj7wbtYn4FtyX+HFQCWO9lqeVh0WextjVv3XUYEVELQ0isUqOtPmimcwc9lGXv1pI74Htc6V7frePM29kWmNNVC0bWaYAybdoArQv3HZQkc2qaMKWo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=STF2AUuD; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1782067215; c=relaxed/simple;
+	bh=IEgGdovKG21OV1fSQ2QTQm07EyaUK+ccec7eDASXCE4=;
+	h=Date:To:From:Subject:Message-Id; b=J6ooSeXloHqunqwzYomQ9sHi2wboxLlCKRT0EkWiDN2AzyqxClqetbxD4KWmU9o7HUe9P1UpTdfTQKi61f48bkq8pnTv4p8XyiBnLX/bMZhuAEjXiVg5cg/xPotTEvNSIiy40HVVFapTVpkHrTY9MNr+kmGKjmhK1qVLQlsT0KA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QOXdGh2v; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="STF2AUuD"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5CC711F00A3A;
-	Sun, 21 Jun 2026 18:40:13 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QOXdGh2v"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 91B151F000E9;
+	Sun, 21 Jun 2026 18:40:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1782067213;
-	bh=SqFP3ZfN3SDRg9ZHNymkM4zaZrR7zQ4Wr14JH0VQ22o=;
+	d=linux-foundation.org; s=korg; t=1782067214;
+	bh=nWNLucxAyNs/BZ5OD5atVidWYyrarN7q8s8k0BiGrpI=;
 	h=Date:To:From:Subject;
-	b=STF2AUuD9Yfb/8k3G+twxZ3z5H1VDbSvL95fJy5AvH3utrkbjdo7TQNWSnSZT63Hr
-	 ndBtBgB756k94zosnGGht1RcZ4xHbXwF+lc4/DRrIQhu2MAhhIAULL0cOU4ie2jOEa
-	 b6yZi2Va88Qc9BLo2Lt7z930aRSsh8RUHqo8mTw0=
-Date: Sun, 21 Jun 2026 11:40:12 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,stable@vger.kernel.org,sj@kernel.org,shuah@kernel.org,sarthak.sharma@arm.com,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,lance.yang@linux.dev,Jason@zx2c4.com,dev.jain@arm.com,broonie@kernel.org,anthony.yznaga@oracle.com,Aishwarya.TCV@arm.com,david@kernel.org,akpm@linux-foundation.org
+	b=QOXdGh2vxk1bnn4b9YOUtT5PrTnO1aNfPP2jXgt8TlGaNqikXTSQroGLt8V4SSFth
+	 q1aP+vHNaT9zSCUMUN1U9tCBp6maPmg2a//s+87ZC8fbV8FLNBro1sbDtHtMY5qRIi
+	 r9E00iM+8UxnhjA6X8GR4qBmR3Z1mi44iz6HE7no=
+Date: Sun, 21 Jun 2026 11:40:14 -0700
+To: mm-commits@vger.kernel.org,zenghui.yu@linux.dev,stable@vger.kernel.org,sj@kernel.org,roman.gushchin@linux.dev,qi.zheng@linux.dev,nphamcs@gmail.com,muchun.song@linux.dev,david@fromorbit.com,shakeel.butt@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-mm-fix-and-speedup-droppable-test.patch removed from -mm tree
-Message-Id: <20260621184013.5CC711F00A3A@smtp.kernel.org>
+Subject: [merged mm-stable] mm-shrinker-do-not-hold-rcu-lock-in-shrinker_debugfs_count_show.patch removed from -mm tree
+Message-Id: <20260621184014.91B151F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,137 +35,85 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests: mm: fix and speedup "droppable" test
+     Subject: mm/shrinker: do not hold RCU lock in shrinker_debugfs_count_show()
 has been removed from the -mm tree.  Its filename was
-     selftests-mm-fix-and-speedup-droppable-test.patch
+     mm-shrinker-do-not-hold-rcu-lock-in-shrinker_debugfs_count_show.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "David Hildenbrand (Arm)" <david@kernel.org>
-Subject: selftests: mm: fix and speedup "droppable" test
-Date: Thu, 11 Jun 2026 12:01:55 +0200
+From: Shakeel Butt <shakeel.butt@linux.dev>
+Subject: mm/shrinker: do not hold RCU lock in shrinker_debugfs_count_show()
+Date: Wed, 10 Jun 2026 16:20:48 -0700
 
-The droppable test currently relies on creating memory pressure in a child
-process to trigger dropping the droppable pages.
+Reading the debugfs "count" file of a memcg-aware shrinker can sleep
+inside an RCU read-side critical section:
 
-That not only takes a long time on some machines (allocating and filling
-all that memory), on large machines this will not work as we hardcode the
-area size to 134217728 bytes.
+  BUG: sleeping function called from invalid context at kernel/cgroup/rstat.c:421
+  RCU nest depth: 1, expected: 0
+   css_rstat_flush
+   mem_cgroup_flush_stats
+   zswap_shrinker_count
+   shrinker_debugfs_count_show
 
-...  further, we rely on timeouts to detect that memory was not dropped,
-which is really suboptimal.
+shrinker_debugfs_count_show() invokes the ->count_objects() callback under
+rcu_read_lock().  The zswap callback flushes memcg stats via
+css_rstat_flush(), which may sleep, so it must not run under RCU.
 
-Instead, let's just use MADV_PAGEOUT on a 2 MiB region.  MADV_PAGEOUT
-works with droppable memory even without swap.
+The RCU lock is not needed here.  mem_cgroup_iter() takes RCU internally
+and returns a memcg holding a css reference (dropped on the next iteration
+or by mem_cgroup_iter_break()), so the memcg stays alive without it.  The
+shrinker is kept alive by the open debugfs file: shrinker_free() removes
+the debugfs entries via debugfs_remove_recursive(), which waits for
+in-flight readers to drain, before call_rcu(..., shrinker_free_rcu_cb). 
+The sibling "scan" handler already invokes the sleeping ->scan_objects()
+callback with no RCU section.
 
-There is the low chance of MADV_PAGEOUT failing to drop a page because of
-speculative references.  We'll wait 1s and retry 10 times to rule that
-unlikely case out as best as we can.
+Drop the rcu_read_lock()/rcu_read_unlock().
 
-On a machine without swap:
-
-	$ ./droppable
-	TAP version 13
-	1..1
-	ok 1 madvise(MADV_PAGEOUT) behavior
-	# Totals: pass:1 fail:0 xfail:0 xpass:0 skip:0 error:0
-
-Link: https://lore.kernel.org/20260611-droppable_test-v1-1-b6a73d99f658@kernel.org
-Fixes: 9651fcedf7b9 ("mm: add MAP_DROPPABLE for designating always lazily freeable mappings")
-Signed-off-by: David Hildenbrand (Arm) <david@kernel.org>
-Reported-by: Aishwarya TCV <Aishwarya.TCV@arm.com>
-Tested-by: Sarthak Sharma <sarthak.sharma@arm.com>
-Tested-by: Lance Yang <lance.yang@linux.dev>
-Reviewed-by: Dev Jain <dev.jain@arm.com>
+Link: https://lore.kernel.org/20260610232048.62930-1-shakeel.butt@linux.dev
+Fixes: 5035ebc644ae ("mm: shrinkers: introduce debugfs interface for memory shrinkers")
+Signed-off-by: Shakeel Butt <shakeel.butt@linux.dev>
+Reported-by: Zenghui Yu <zenghui.yu@linux.dev>
+Closes: https://lore.kernel.org/all/c052a064-cddb-494f-a0d8-f8a10b4b1c4d@linux.dev/
+Suggested-by: Nhat Pham <nphamcs@gmail.com>
 Reviewed-by: SeongJae Park <sj@kernel.org>
-Tested-by: Lorenzo Stoakes <ljs@kernel.org>
-Reviewed-by: Lorenzo Stoakes <ljs@kernel.org>
-Reviewed-by: Jason A. Donenfeld <Jason@zx2c4.com>
-Cc: Anthony Yznaga <anthony.yznaga@oracle.com>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Mark Brown <broonie@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
+Reviewed-by: Qi Zheng <qi.zheng@linux.dev>
+Tested-by: Zenghui Yu (Huawei) <zenghui.yu@linux.dev>
+Reviewed-by: Nhat Pham <nphamcs@gmail.com>
+Acked-by: Muchun Song <muchun.song@linux.dev>
+Reviewed-by: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Dave Chinner <david@fromorbit.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/droppable.c |   46 +++++++++++++----------
- 1 file changed, 26 insertions(+), 20 deletions(-)
+ mm/shrinker_debug.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
---- a/tools/testing/selftests/mm/droppable.c~selftests-mm-fix-and-speedup-droppable-test
-+++ a/tools/testing/selftests/mm/droppable.c
-@@ -17,10 +17,10 @@
+--- a/mm/shrinker_debug.c~mm-shrinker-do-not-hold-rcu-lock-in-shrinker_debugfs_count_show
++++ a/mm/shrinker_debug.c
+@@ -57,8 +57,6 @@ static int shrinker_debugfs_count_show(s
+ 	if (!count_per_node)
+ 		return -ENOMEM;
  
- int main(int argc, char *argv[])
- {
--	size_t alloc_size = 134217728;
--	size_t page_size = getpagesize();
-+	const size_t alloc_size = 2 * 1024 * 1024;
-+	int retry_count = 10;
-+	bool dropped;
- 	void *alloc;
--	pid_t child;
- 
- 	ksft_print_header();
- 	ksft_set_plan(1);
-@@ -35,26 +35,32 @@ int main(int argc, char *argv[])
- 		exit(KSFT_FAIL);
- 	}
- 	memset(alloc, 'A', alloc_size);
--	for (size_t i = 0; i < alloc_size; i += page_size)
--		assert(*(uint8_t *)(alloc + i));
- 
--	child = fork();
--	assert(child >= 0);
--	if (!child) {
--		for (;;)
--			*(char *)malloc(page_size) = 'B';
--	}
+-	rcu_read_lock();
 -
--	for (bool done = false; !done;) {
--		for (size_t i = 0; i < alloc_size; i += page_size) {
--			if (!*(uint8_t *)(alloc + i)) {
--				done = true;
--				break;
-+	while (retry_count--) {
-+		if (madvise(alloc, alloc_size, MADV_PAGEOUT)) {
-+			if (errno == EINVAL) {
-+				ksft_test_result_skip("madvise(MADV_PAGEOUT) not supported\n");
-+				exit(KSFT_SKIP);
- 			}
-+			ksft_test_result_fail("madvise(MADV_PAGEOUT) error: %s\n", strerror(errno));
-+			exit(KSFT_FAIL);
- 		}
-+
-+		dropped = memchr(alloc, 'A', alloc_size) == NULL;
-+
-+		/*
-+		 * Speculative reference can temporarily prevent some
-+		 * pages from getting dropped. So sleep and retry.
-+		 *
-+		 * If a page is not droppable for 10s, something
-+		 * is seriously messed up and we want to fail.
-+		 */
-+		if (dropped)
-+			break;
-+		sleep(1);
- 	}
--	kill(child, SIGTERM);
+ 	memcg_aware = shrinker->flags & SHRINKER_MEMCG_AWARE;
  
--	ksft_test_result_pass("MAP_DROPPABLE: PASS\n");
--	exit(KSFT_PASS);
-+	ksft_test_result(dropped, "madvise(MADV_PAGEOUT) behavior\n");
-+
-+	ksft_finished();
+ 	memcg = mem_cgroup_iter(NULL, NULL, NULL);
+@@ -88,8 +86,6 @@ static int shrinker_debugfs_count_show(s
+ 		}
+ 	} while ((memcg = mem_cgroup_iter(NULL, memcg, NULL)) != NULL);
+ 
+-	rcu_read_unlock();
+-
+ 	kfree(count_per_node);
+ 	return ret;
  }
 _
 
-Patches currently in -mm which might be from david@kernel.org are
+Patches currently in -mm which might be from shakeel.butt@linux.dev are
 
 
