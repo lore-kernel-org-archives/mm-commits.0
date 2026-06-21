@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E749E36A009
-	for <mm-commits@vger.kernel.org>; Sun, 21 Jun 2026 18:39:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8F98C368D65
+	for <mm-commits@vger.kernel.org>; Sun, 21 Jun 2026 18:39:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782067147; cv=none; b=ZiaCfj5abfHD3vj1NfQ7sxrl7FFC6O0K3DC9+tKNob8XPNubQlJOvLptLtS2MIk05vur2q+OC2J7ZKFFdllaTt6PLDbEknywAcJmwl+EorjaGip5ar52HcJoEEa0TkVHm3js0bJ2SeIErtwhR2vxQqO1Sfp/nNah2tOSp5GK9OI=
+	t=1782067150; cv=none; b=ZOfOwsxU+hCv5dvdTa98hB9H2qhaX0MAUowyN7pS+Dyslng4kxZq+bdxAlJNlw6K4lrpnnqRPKAAP7Tc6AgazCO2Brwb7YGvPPp86PoMJGgKri1+kSm9gpHAcAmNGBD1mNOgNXtWDODkkkbwMF4c06wBvJ7h4Nq6Docqn8lrYcs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782067147; c=relaxed/simple;
-	bh=oDuriyzMvQ28lOZ7M8JMDK9kPZhCZDR16Bg7kj0nOdE=;
-	h=Date:To:From:Subject:Message-Id; b=euHFXC2l0vPYop1S7RtMW9dUn2dvetGuXALAGFwexrKB3t+1gY1dplNIcwx74+y5BadqqEyG4qJkGH7ACfDWow1M9+gt6z8dvcbX3C3QxjUsCRV7BDH9nc+dB4nDmFFa8T2y+Uhg9LNxM1DfwBzs8EphvyLxILBS/dsIFW7Jkic=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=O2uPg157; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1782067150; c=relaxed/simple;
+	bh=H0HE5CV6agCt+q3JSHGFWYNBIGCFT1d1+2PbEPlxdXw=;
+	h=Date:To:From:Subject:Message-Id; b=RYbwP1n9OVI7mZx64jmfdXW663o2VPucLF8h3glxxe53FsTMDtwCWmLxACIX0ewF9UrT6g0YFlwLz3MNfL/rd0axfMavXK7BzDUnAldpPbmXPkzJ/LGvGdAf0nqcc307ZZ1MAWjuuI30wHZ49DvL8pIVXOT4uc0O0qppcBi4L10=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rRdve+na; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="O2uPg157"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C10A51F000E9;
-	Sun, 21 Jun 2026 18:39:05 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rRdve+na"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 687D51F000E9;
+	Sun, 21 Jun 2026 18:39:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1782067145;
-	bh=boQOAYAjSCNdM2X4JNCxTXgmd+cEYgommk0afhJYxro=;
+	d=linux-foundation.org; s=korg; t=1782067148;
+	bh=GQwQ7EkRIku671n+YqAGPM6JG0+y7jz8Ee5DbcwFNpo=;
 	h=Date:To:From:Subject;
-	b=O2uPg157lTIEcpuB3Um81M4TR6MiRH5Md6anw41vbp7oTbi6t5S1v2TqSM7x5jSby
-	 y5dc9Vs5E+WZUPptVfdqUe/I9xk/tT6lDnoRWrQ7icQHEgmitKvM7EjczS/mXe0iR5
-	 aFStJ69mLK8LUx9SxU81VqRG3XidJdyw5ut7tDBU=
-Date: Sun, 21 Jun 2026 11:39:05 -0700
+	b=rRdve+naTmLzXW+m4QLbjzRiywqLQf3yFSvIGKekuCqpnC20yfyPG+0x4jL6dbetu
+	 ymjBr7PqlLlOoqzafO6LhO8ZIUappLGWl7QTGpGVohukb7/mQTvVQhGW6gZSXGCbaZ
+	 ZlDGVRP3qnrLFOnA2DdM4H1+z6NhlFmwfLvEOsVo=
+Date: Sun, 21 Jun 2026 11:39:08 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,surenb@google.com,shuah@kernel.org,sarthak.sharma@arm.com,ryan.roberts@arm.com,peterx@redhat.com,npache@redhat.com,mhocko@suse.com,luizcap@redhat.com,ljs@kernel.org,li.wang@linux.dev,liam@infradead.org,leon@kernel.org,lance.yang@linux.dev,jhubbard@nvidia.com,jgg@ziepe.ca,donettom@linux.ibm.com,dev.jain@arm.com,david@kernel.org,broonie@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,rppt@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-mm-add-atexit-and-signal-handlers-to-thp_settings.patch removed from -mm tree
-Message-Id: <20260621183905.C10A51F000E9@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-mm-move-hugetlb-helpers-to-hugepage_settings.patch removed from -mm tree
+Message-Id: <20260621183908.687D51F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,36 +35,28 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests/mm: add atexit() and signal handlers to thp_settings
+     Subject: selftests/mm: move HugeTLB helpers to hugepage_settings
 has been removed from the -mm tree.  Its filename was
-     selftests-mm-add-atexit-and-signal-handlers-to-thp_settings.patch
+     selftests-mm-move-hugetlb-helpers-to-hugepage_settings.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
-Subject: selftests/mm: add atexit() and signal handlers to thp_settings
-Date: Mon, 11 May 2026 19:28:06 +0300
+Subject: selftests/mm: move HugeTLB helpers to hugepage_settings
+Date: Mon, 11 May 2026 19:28:08 +0300
 
-khugepaged registers atexit() and signal handlers that ensure that THP
-settings are restored regardless of how the test exited.
+Move library functions that abstract HugeTLB /proc and /sysfs access from
+vm_util to hugepage_settings.
 
-Make these handlers available for all users of thp_settings.
+This will help creating common helpers that save and restore HugeTLB and
+THP settings.
 
-The call to thp_save_settings() installs thp_restore_settings as the
-atexit() callback and makes sure that signals that kill a process would
-still call exit() and atexit() callback.
-
-Update child process in khugepaged tests using thp_settings to use _exit()
-instead of exit() to avoid altering THP settings in the middle of a test.
-
-Remove redundant THP cleanup from folio_split_race_test.c.
-
-Link: https://lore.kernel.org/20260511162840.375890-23-rppt@kernel.org
+Link: https://lore.kernel.org/20260511162840.375890-25-rppt@kernel.org
 Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Tested-by: Sarthak Sharma <sarthak.sharma@arm.com>
 Tested-by: Luiz Capitulino <luizcap@redhat.com>
+Tested-by: Sarthak Sharma <sarthak.sharma@arm.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Barry Song <baohua@kernel.org>
 Cc: David Hildenbrand <david@kernel.org>
@@ -89,306 +81,365 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/cow.c                   |   21 ++---
- tools/testing/selftests/mm/folio_split_race_test.c |   23 ------
- tools/testing/selftests/mm/khugepaged.c            |   41 +----------
- tools/testing/selftests/mm/thp_settings.c          |   27 ++++++-
- tools/testing/selftests/mm/uffd-wp-mremap.c        |    4 -
- 5 files changed, 38 insertions(+), 78 deletions(-)
+ tools/testing/selftests/mm/gup_longterm.c             |    1 
+ tools/testing/selftests/mm/hmm-tests.c                |    2 
+ tools/testing/selftests/mm/hugepage_settings.c        |   68 ++++++++++
+ tools/testing/selftests/mm/hugepage_settings.h        |    8 +
+ tools/testing/selftests/mm/hugetlb-madvise.c          |    1 
+ tools/testing/selftests/mm/hugetlb-mmap.c             |    1 
+ tools/testing/selftests/mm/hugetlb-vmemmap.c          |    1 
+ tools/testing/selftests/mm/hugetlb_dio.c              |    1 
+ tools/testing/selftests/mm/hugetlb_fault_after_madv.c |    1 
+ tools/testing/selftests/mm/hugetlb_madv_vs_map.c      |    1 
+ tools/testing/selftests/mm/protection_keys.c          |    1 
+ tools/testing/selftests/mm/thuge-gen.c                |    1 
+ tools/testing/selftests/mm/uffd-common.h              |    1 
+ tools/testing/selftests/mm/va_high_addr_switch.c      |    1 
+ tools/testing/selftests/mm/vm_util.c                  |   67 ---------
+ tools/testing/selftests/mm/vm_util.h                  |    3 
+ 16 files changed, 88 insertions(+), 71 deletions(-)
 
---- a/tools/testing/selftests/mm/cow.c~selftests-mm-add-atexit-and-signal-handlers-to-thp_settings
-+++ a/tools/testing/selftests/mm/cow.c
-@@ -202,7 +202,7 @@ static void do_test_cow_in_parent(char *
- 		log_test_result(KSFT_FAIL);
- 		goto close_comm_pipes;
- 	} else if (!ret) {
--		exit(fn(mem, size, &comm_pipes));
-+		_exit(fn(mem, size, &comm_pipes));
- 	}
+--- a/tools/testing/selftests/mm/gup_longterm.c~selftests-mm-move-hugetlb-helpers-to-hugepage_settings
++++ a/tools/testing/selftests/mm/gup_longterm.c
+@@ -29,6 +29,7 @@
+ #include "../../../../mm/gup_test.h"
+ #include "kselftest.h"
+ #include "vm_util.h"
++#include "hugepage_settings.h"
  
- 	while (read(comm_pipes.child_ready[0], &buf, 1) != 1)
-@@ -333,7 +333,7 @@ static void do_test_vmsplice_in_parent(c
- 			;
- 		/* Modify page content in the child. */
- 		memset(mem, 0xff, size);
--		exit(0);
-+		_exit(0);
- 	}
+ static size_t pagesize;
+ static int nr_hugetlbsizes;
+--- a/tools/testing/selftests/mm/hmm-tests.c~selftests-mm-move-hugetlb-helpers-to-hugepage_settings
++++ a/tools/testing/selftests/mm/hmm-tests.c
+@@ -11,6 +11,7 @@
+  */
  
- 	if (!before_fork) {
-@@ -480,7 +480,7 @@ static void do_test_iouring(char *mem, s
- 			write(comm_pipes.child_ready[1], "0", 1);
- 			while (read(comm_pipes.parent_ready[0], &buf, 1) != 1)
- 				;
--			exit(0);
-+			_exit(0);
- 		}
+ #include "kselftest_harness.h"
++#include "hugepage_settings.h"
  
- 		while (read(comm_pipes.child_ready[0], &buf, 1) != 1)
-@@ -645,7 +645,7 @@ static void do_test_ro_pin(char *mem, si
- 			write(comm_pipes.child_ready[1], "0", 1);
- 			while (read(comm_pipes.parent_ready[0], &buf, 1) != 1)
- 				;
--			exit(0);
-+			_exit(0);
- 		}
+ #include <errno.h>
+ #include <fcntl.h>
+@@ -27,7 +28,6 @@
+ #include <sys/ioctl.h>
+ #include <sys/time.h>
  
- 		/* Wait until our child is ready. */
-@@ -956,7 +956,7 @@ static void do_run_with_thp(test_fn fn,
- 			log_test_result(KSFT_FAIL);
- 			goto munmap;
- 		} else if (!ret) {
--			exit(0);
-+			_exit(0);
- 		}
- 		wait(&ret);
- 		/* Allow for sharing all pages again. */
-@@ -1347,13 +1347,13 @@ static void do_test_anon_thp_collapse(ch
- 		switch (test) {
- 		case ANON_THP_COLLAPSE_UNSHARED:
- 		case ANON_THP_COLLAPSE_FULLY_SHARED:
--			exit(child_memcmp_fn(mem, size, &comm_pipes));
-+			_exit(child_memcmp_fn(mem, size, &comm_pipes));
- 			break;
- 		case ANON_THP_COLLAPSE_LOWER_SHARED:
--			exit(child_memcmp_fn(mem, size / 2, &comm_pipes));
-+			_exit(child_memcmp_fn(mem, size / 2, &comm_pipes));
- 			break;
- 		case ANON_THP_COLLAPSE_UPPER_SHARED:
--			exit(child_memcmp_fn(mem + size / 2, size / 2,
-+			_exit(child_memcmp_fn(mem + size / 2, size / 2,
- 					     &comm_pipes));
- 			break;
- 		default:
-@@ -1911,10 +1911,5 @@ int main(int argc, char **argv)
- 	run_anon_thp_test_cases();
- 	run_non_anon_test_cases();
- 
--	if (pmdsize) {
--		/* Only if THP is supported. */
--		thp_restore_settings();
--	}
 -
- 	ksft_finished();
- }
---- a/tools/testing/selftests/mm/folio_split_race_test.c~selftests-mm-add-atexit-and-signal-handlers-to-thp_settings
-+++ a/tools/testing/selftests/mm/folio_split_race_test.c
-@@ -226,23 +226,6 @@ static uint64_t run_iteration(void)
- 	return reader_failures;
- }
- 
--static void thp_cleanup_handler(int signum)
--{
--	thp_restore_settings();
--	/*
--	 * Restore default handler and re-raise the signal to exit.
--	 * This is to ensure the test process exits with the correct
--	 * status code corresponding to the signal.
--	 */
--	signal(signum, SIG_DFL);
--	raise(signum);
--}
--
--static void thp_settings_cleanup(void)
--{
--	thp_restore_settings();
--}
--
- int main(void)
- {
- 	struct thp_settings current_settings;
-@@ -261,12 +244,6 @@ int main(void)
- 		ksft_exit_skip("Please run the test as root\n");
- 
- 	thp_save_settings();
--	/* make sure thp settings are restored */
--	if (atexit(thp_settings_cleanup) != 0)
--		ksft_exit_fail_msg("atexit failed\n");
--
--	signal(SIGINT, thp_cleanup_handler);
--	signal(SIGTERM, thp_cleanup_handler);
- 
- 	thp_read_settings(&current_settings);
- 	current_settings.shmem_enabled = SHMEM_ADVISE;
---- a/tools/testing/selftests/mm/khugepaged.c~selftests-mm-add-atexit-and-signal-handlers-to-thp_settings
-+++ a/tools/testing/selftests/mm/khugepaged.c
-@@ -80,7 +80,6 @@ struct file_info {
- };
- 
- static struct file_info finfo;
--static bool skip_settings_restore;
- static int exit_status;
- 
- static void success(const char *msg)
-@@ -101,26 +100,6 @@ static void skip(const char *msg)
- 	exit_status = KSFT_SKIP;
- }
- 
--static void restore_settings_atexit(void)
--{
--	if (skip_settings_restore)
--		return;
--
--	ksft_print_msg("Restore THP and khugepaged settings...");
--	thp_restore_settings();
--	success("OK");
--
--	skip_settings_restore = true;
--	ksft_print_cnts();
--	exit(exit_status);
--}
--
--static void restore_settings(int sig)
--{
--	/* exit() will invoke the restore_settings_atexit handler. */
--	exit(sig ? KSFT_FAIL : exit_status);
--}
--
- static void save_settings(void)
- {
- 	ksft_print_msg("Save THP and khugepaged settings...");
-@@ -131,12 +110,6 @@ static void save_settings(void)
- 	thp_save_settings();
- 
- 	success("OK");
--
--	atexit(restore_settings_atexit);
--	signal(SIGTERM, restore_settings);
--	signal(SIGINT, restore_settings);
--	signal(SIGHUP, restore_settings);
--	signal(SIGQUIT, restore_settings);
- }
- 
- static void get_finfo(const char *dir)
-@@ -938,8 +911,6 @@ static void collapse_fork(struct collaps
- 	ksft_print_msg("Share small page over fork()...");
- 	if (!fork()) {
- 		/* Do not touch settings on child exit */
--		skip_settings_restore = true;
--
- 		if (ops->check_huge(p, 0))
- 			success("OK");
- 		else
-@@ -951,7 +922,7 @@ static void collapse_fork(struct collaps
- 
- 		validate_memory(p, 0, page_size);
- 		ops->cleanup_area(p, hpage_pmd_size);
--		exit(exit_status);
-+		_exit(exit_status);
- 	}
- 
- 	wait(&wstatus);
-@@ -976,8 +947,6 @@ static void collapse_fork_compound(struc
- 	ksft_print_msg("Share huge page over fork()...");
- 	if (!fork()) {
- 		/* Do not touch settings on child exit */
--		skip_settings_restore = true;
--
- 		if (ops->check_huge(p, 1))
- 			success("OK");
- 		else
-@@ -1000,7 +969,7 @@ static void collapse_fork_compound(struc
- 
- 		validate_memory(p, 0, hpage_pmd_size);
- 		ops->cleanup_area(p, hpage_pmd_size);
--		exit(exit_status);
-+		_exit(exit_status);
- 	}
- 
- 	wait(&wstatus);
-@@ -1026,8 +995,6 @@ static void collapse_max_ptes_shared(str
- 	ksft_print_msg("Share huge page over fork()...");
- 	if (!fork()) {
- 		/* Do not touch settings on child exit */
--		skip_settings_restore = true;
--
- 		if (ops->check_huge(p, 1))
- 			success("OK");
- 		else
-@@ -1060,7 +1027,7 @@ static void collapse_max_ptes_shared(str
- 
- 		validate_memory(p, 0, hpage_pmd_size);
- 		ops->cleanup_area(p, hpage_pmd_size);
--		exit(exit_status);
-+		_exit(exit_status);
- 	}
- 
- 	wait(&wstatus);
-@@ -1376,5 +1343,5 @@ int main(int argc, char **argv)
- 		t->fn(t->ctx, t->ops);
- 	}
- 
--	restore_settings(0);
-+	ksft_finished();
- }
---- a/tools/testing/selftests/mm/thp_settings.c~selftests-mm-add-atexit-and-signal-handlers-to-thp_settings
-+++ a/tools/testing/selftests/mm/thp_settings.c
-@@ -1,6 +1,7 @@
+ /*
+  * This is a private UAPI to the kernel test module so it isn't exported
+  * in the usual include/uapi/... directory.
+--- a/tools/testing/selftests/mm/hugepage_settings.c~selftests-mm-move-hugetlb-helpers-to-hugepage_settings
++++ a/tools/testing/selftests/mm/hugepage_settings.c
+@@ -1,7 +1,9 @@
  // SPDX-License-Identifier: GPL-2.0
++#include <dirent.h>
  #include <fcntl.h>
  #include <limits.h>
-+#include <signal.h>
+ #include <signal.h>
++#include <stddef.h>
  #include <stdio.h>
  #include <stdlib.h>
  #include <string.h>
-@@ -15,6 +16,7 @@ static struct thp_settings settings_stac
- static int settings_index;
- static struct thp_settings saved_settings;
- static char dev_queue_read_ahead_path[PATH_MAX];
-+static bool thp_settings_saved;
- 
- static const char * const thp_enabled_strings[] = {
- 	"never",
-@@ -298,12 +300,35 @@ void thp_pop_settings(void)
- 
- void thp_restore_settings(void)
- {
--	thp_write_settings(&saved_settings);
-+	if (thp_settings_saved)
-+		thp_write_settings(&saved_settings);
+@@ -395,3 +397,69 @@ bool thp_is_enabled(void)
+ 	/* THP is considered enabled if it's either "always" or "madvise" */
+ 	return mode == 1 || mode == 3;
+ }
++
++int detect_hugetlb_page_sizes(size_t sizes[], int max)
++{
++	DIR *dir = opendir("/sys/kernel/mm/hugepages/");
++	int count = 0;
++
++	if (!dir)
++		return 0;
++
++	while (count < max) {
++		struct dirent *entry = readdir(dir);
++		size_t kb;
++
++		if (!entry)
++			break;
++		if (entry->d_type != DT_DIR)
++			continue;
++		if (sscanf(entry->d_name, "hugepages-%zukB", &kb) != 1)
++			continue;
++		sizes[count++] = kb * 1024;
++		ksft_print_msg("[INFO] detected hugetlb page size: %zu KiB\n",
++			       kb);
++	}
++	closedir(dir);
++	return count;
 +}
 +
-+static void thp_restore_settings_atexit(void)
++unsigned long default_huge_page_size(void)
 +{
-+	thp_restore_settings();
++	unsigned long hps = 0;
++	char *line = NULL;
++	size_t linelen = 0;
++	FILE *f = fopen("/proc/meminfo", "r");
++
++	if (!f)
++		return 0;
++	while (getline(&line, &linelen, f) > 0) {
++		if (sscanf(line, "Hugepagesize:       %lu kB", &hps) == 1) {
++			hps <<= 10;
++			break;
++		}
++	}
++
++	free(line);
++	fclose(f);
++	return hps;
 +}
 +
-+static void thp_restore_settings_sighandler(int sig)
++unsigned long get_free_hugepages(void)
 +{
-+	/* exit() will invoke the thp_restore_settings_atexit handler. */
-+	exit(KSFT_FAIL);
- }
- 
- void thp_save_settings(void)
- {
- 	thp_read_settings(&saved_settings);
-+	thp_settings_saved = true;
++	unsigned long fhp = 0;
++	char *line = NULL;
++	size_t linelen = 0;
++	FILE *f = fopen("/proc/meminfo", "r");
 +
-+	/*
-+	 * setup exit hooks to make sure THP settings are restored on graceful
-+	 * and error exits and signals
-+	 */
-+	atexit(thp_restore_settings_atexit);
-+	signal(SIGTERM, thp_restore_settings_sighandler);
-+	signal(SIGINT, thp_restore_settings_sighandler);
-+	signal(SIGHUP, thp_restore_settings_sighandler);
-+	signal(SIGQUIT, thp_restore_settings_sighandler);
++	if (!f)
++		return fhp;
++	while (getline(&line, &linelen, f) > 0) {
++		if (sscanf(line, "HugePages_Free:      %lu", &fhp) == 1)
++			break;
++	}
++
++	free(line);
++	fclose(f);
++	return fhp;
++}
+--- a/tools/testing/selftests/mm/hugepage_settings.h~selftests-mm-move-hugetlb-helpers-to-hugepage_settings
++++ a/tools/testing/selftests/mm/hugepage_settings.h
+@@ -6,6 +6,8 @@
+ #include <stddef.h>
+ #include <stdint.h>
+ 
++/* Transparent Huge Pages (THP) */
++
+ enum thp_enabled {
+ 	THP_NEVER,
+ 	THP_ALWAYS,
+@@ -86,4 +88,10 @@ unsigned long thp_shmem_supported_orders
+ bool thp_available(void);
+ bool thp_is_enabled(void);
+ 
++/* HugeTLB */
++
++int detect_hugetlb_page_sizes(size_t sizes[], int max);
++unsigned long default_huge_page_size(void);
++unsigned long get_free_hugepages(void);
++
+ #endif /* __HUGEPAGE_SETTINGS_H__ */
+--- a/tools/testing/selftests/mm/hugetlb_dio.c~selftests-mm-move-hugetlb-helpers-to-hugepage_settings
++++ a/tools/testing/selftests/mm/hugetlb_dio.c
+@@ -20,6 +20,7 @@
+ #include <sys/syscall.h>
+ #include "vm_util.h"
+ #include "kselftest.h"
++#include "hugepage_settings.h"
+ 
+ #ifndef STATX_DIOALIGN
+ #define STATX_DIOALIGN		0x00002000U
+--- a/tools/testing/selftests/mm/hugetlb_fault_after_madv.c~selftests-mm-move-hugetlb-helpers-to-hugepage_settings
++++ a/tools/testing/selftests/mm/hugetlb_fault_after_madv.c
+@@ -10,6 +10,7 @@
+ 
+ #include "vm_util.h"
+ #include "kselftest.h"
++#include "hugepage_settings.h"
+ 
+ #define INLOOP_ITER 100
+ 
+--- a/tools/testing/selftests/mm/hugetlb-madvise.c~selftests-mm-move-hugetlb-helpers-to-hugepage_settings
++++ a/tools/testing/selftests/mm/hugetlb-madvise.c
+@@ -20,6 +20,7 @@
+ #include <fcntl.h>
+ #include "vm_util.h"
+ #include "kselftest.h"
++#include "hugepage_settings.h"
+ 
+ #define MIN_FREE_PAGES	20
+ #define NR_HUGE_PAGES	10	/* common number of pages to map/allocate */
+--- a/tools/testing/selftests/mm/hugetlb_madv_vs_map.c~selftests-mm-move-hugetlb-helpers-to-hugepage_settings
++++ a/tools/testing/selftests/mm/hugetlb_madv_vs_map.c
+@@ -25,6 +25,7 @@
+ #include <unistd.h>
+ 
+ #include "vm_util.h"
++#include "hugepage_settings.h"
+ 
+ #define INLOOP_ITER 100
+ 
+--- a/tools/testing/selftests/mm/hugetlb-mmap.c~selftests-mm-move-hugetlb-helpers-to-hugepage_settings
++++ a/tools/testing/selftests/mm/hugetlb-mmap.c
+@@ -18,6 +18,7 @@
+ #include <linux/memfd.h>
+ #include "vm_util.h"
+ #include "kselftest.h"
++#include "hugepage_settings.h"
+ 
+ #define LENGTH (256UL*1024*1024)
+ #define PROTECTION (PROT_READ | PROT_WRITE)
+--- a/tools/testing/selftests/mm/hugetlb-vmemmap.c~selftests-mm-move-hugetlb-helpers-to-hugepage_settings
++++ a/tools/testing/selftests/mm/hugetlb-vmemmap.c
+@@ -11,6 +11,7 @@
+ #include <sys/mman.h>
+ #include <fcntl.h>
+ #include "vm_util.h"
++#include "hugepage_settings.h"
+ 
+ #define PAGE_COMPOUND_HEAD	(1UL << 15)
+ #define PAGE_COMPOUND_TAIL	(1UL << 16)
+--- a/tools/testing/selftests/mm/protection_keys.c~selftests-mm-move-hugetlb-helpers-to-hugepage_settings
++++ a/tools/testing/selftests/mm/protection_keys.c
+@@ -46,6 +46,7 @@
+ #include <sys/ptrace.h>
+ #include <setjmp.h>
+ 
++#include "hugepage_settings.h"
+ #include "pkey-helpers.h"
+ 
+ int iteration_nr = 1;
+--- a/tools/testing/selftests/mm/thuge-gen.c~selftests-mm-move-hugetlb-helpers-to-hugepage_settings
++++ a/tools/testing/selftests/mm/thuge-gen.c
+@@ -28,6 +28,7 @@
+ #include <string.h>
+ #include "vm_util.h"
+ #include "kselftest.h"
++#include "hugepage_settings.h"
+ 
+ #if !defined(MAP_HUGETLB)
+ #define MAP_HUGETLB	0x40000
+--- a/tools/testing/selftests/mm/uffd-common.h~selftests-mm-move-hugetlb-helpers-to-hugepage_settings
++++ a/tools/testing/selftests/mm/uffd-common.h
+@@ -37,6 +37,7 @@
+ 
+ #include "kselftest.h"
+ #include "vm_util.h"
++#include "hugepage_settings.h"
+ 
+ #define UFFD_FLAGS	(O_CLOEXEC | O_NONBLOCK | UFFD_USER_MODE_ONLY)
+ 
+--- a/tools/testing/selftests/mm/va_high_addr_switch.c~selftests-mm-move-hugetlb-helpers-to-hugepage_settings
++++ a/tools/testing/selftests/mm/va_high_addr_switch.c
+@@ -11,6 +11,7 @@
+ 
+ #include "vm_util.h"
+ #include "kselftest.h"
++#include "hugepage_settings.h"
+ 
+ /*
+  * The hint addr value is used to allocate addresses
+--- a/tools/testing/selftests/mm/vm_util.c~selftests-mm-move-hugetlb-helpers-to-hugepage_settings
++++ a/tools/testing/selftests/mm/vm_util.c
+@@ -2,7 +2,6 @@
+ #include <string.h>
+ #include <errno.h>
+ #include <fcntl.h>
+-#include <dirent.h>
+ #include <inttypes.h>
+ #include <sys/ioctl.h>
+ #include <linux/userfaultfd.h>
+@@ -291,53 +290,6 @@ int64_t allocate_transhuge(void *ptr, in
+ 	return -1;
  }
  
- void thp_set_read_ahead_path(char *path)
---- a/tools/testing/selftests/mm/uffd-wp-mremap.c~selftests-mm-add-atexit-and-signal-handlers-to-thp_settings
-+++ a/tools/testing/selftests/mm/uffd-wp-mremap.c
-@@ -368,10 +368,6 @@ int main(int argc, char **argv)
- 				       tc->swapout, tc->hugetlb);
- 	}
- 
--	/* If THP is supported, restore original THP settings. */
--	if (nr_thpsizes)
--		thp_restore_settings();
+-unsigned long default_huge_page_size(void)
+-{
+-	unsigned long hps = 0;
+-	char *line = NULL;
+-	size_t linelen = 0;
+-	FILE *f = fopen("/proc/meminfo", "r");
 -
- 	i = ksft_get_fail_cnt();
- 	if (i)
- 		ksft_exit_fail_msg("%d out of %d tests failed\n",
+-	if (!f)
+-		return 0;
+-	while (getline(&line, &linelen, f) > 0) {
+-		if (sscanf(line, "Hugepagesize:       %lu kB", &hps) == 1) {
+-			hps <<= 10;
+-			break;
+-		}
+-	}
+-
+-	free(line);
+-	fclose(f);
+-	return hps;
+-}
+-
+-int detect_hugetlb_page_sizes(size_t sizes[], int max)
+-{
+-	DIR *dir = opendir("/sys/kernel/mm/hugepages/");
+-	int count = 0;
+-
+-	if (!dir)
+-		return 0;
+-
+-	while (count < max) {
+-		struct dirent *entry = readdir(dir);
+-		size_t kb;
+-
+-		if (!entry)
+-			break;
+-		if (entry->d_type != DT_DIR)
+-			continue;
+-		if (sscanf(entry->d_name, "hugepages-%zukB", &kb) != 1)
+-			continue;
+-		sizes[count++] = kb * 1024;
+-		ksft_print_msg("[INFO] detected hugetlb page size: %zu KiB\n",
+-			       kb);
+-	}
+-	closedir(dir);
+-	return count;
+-}
+-
+ int pageflags_get(unsigned long pfn, int kpageflags_fd, uint64_t *flags)
+ {
+ 	size_t count;
+@@ -396,25 +348,6 @@ int uffd_unregister(int uffd, void *addr
+ 	return ret;
+ }
+ 
+-unsigned long get_free_hugepages(void)
+-{
+-	unsigned long fhp = 0;
+-	char *line = NULL;
+-	size_t linelen = 0;
+-	FILE *f = fopen("/proc/meminfo", "r");
+-
+-	if (!f)
+-		return fhp;
+-	while (getline(&line, &linelen, f) > 0) {
+-		if (sscanf(line, "HugePages_Free:      %lu", &fhp) == 1)
+-			break;
+-	}
+-
+-	free(line);
+-	fclose(f);
+-	return fhp;
+-}
+-
+ static bool check_vmflag(void *addr, const char *flag)
+ {
+ 	char buffer[MAX_LINE_LENGTH];
+--- a/tools/testing/selftests/mm/vm_util.h~selftests-mm-move-hugetlb-helpers-to-hugepage_settings
++++ a/tools/testing/selftests/mm/vm_util.h
+@@ -94,8 +94,6 @@ bool check_huge_anon(void *addr, int nr_
+ bool check_huge_file(void *addr, int nr_hpages, uint64_t hpage_size);
+ bool check_huge_shmem(void *addr, int nr_hpages, uint64_t hpage_size);
+ int64_t allocate_transhuge(void *ptr, int pagemap_fd);
+-unsigned long default_huge_page_size(void);
+-int detect_hugetlb_page_sizes(size_t sizes[], int max);
+ int pageflags_get(unsigned long pfn, int kpageflags_fd, uint64_t *flags);
+ 
+ int uffd_register(int uffd, void *addr, uint64_t len,
+@@ -103,7 +101,6 @@ int uffd_register(int uffd, void *addr,
+ int uffd_unregister(int uffd, void *addr, uint64_t len);
+ int uffd_register_with_ioctls(int uffd, void *addr, uint64_t len,
+ 			      bool miss, bool wp, bool minor, uint64_t *ioctls);
+-unsigned long get_free_hugepages(void);
+ bool check_vmflag_io(void *addr);
+ bool check_vmflag_pfnmap(void *addr);
+ bool check_vmflag_guard(void *addr);
 _
 
 Patches currently in -mm which might be from rppt@kernel.org are
