@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ADF1B13D886;
-	Thu, 25 Jun 2026 01:01:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 307111EDA32
+	for <mm-commits@vger.kernel.org>; Thu, 25 Jun 2026 01:25:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782349271; cv=none; b=btesVh/Mfga8JNqdecRAnM0ofewzkeF3MOsI816bLRT7NpzB9j/2rvOTA77cMfzzuAhVwcI4RZ6kkBovIDh4mWMJI5ojCRbOYrgxZDllrQUqTTVDZJHqLP+JjAKEn45B65E44C1BUwGPp9EAxKr9AX0kxpU2Or3yiXyHSY1WS9Y=
+	t=1782350714; cv=none; b=kigg6EeLzdvzzUHl9zS1VAWbw/ieXKS/cMxNC55oDWY9XIMQweG0mExYPJ8+w3Tvo/05k/DfblDxjimlsQPZ+HLDzdpO9+Q84X5BPAWAtaL2VVraKF/+ZA4NChxuG/Go0ksg72H28H6EJXVRHPQTCJtItkXKY9KeLE1D1mDI5DY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782349271; c=relaxed/simple;
-	bh=ogbATqBvOgVMjrqsCiFLRZI0eobdRYxlvrnJRSKow4Q=;
-	h=Date:To:From:Subject:Message-Id; b=CjgVdQmUgmqM8eEN4/97bQNQvS+XMb+6NLsuD7kTYesGYKrsSw2n4FXxazi9BeZ+vMgOAmoVq3xtr+vtLDz2UEASrgciMhMi5WKZCbt/9W8mIqSbTROUhqyYwENKNGmVlmPAgGO+ft55/VFXDu7FwhxmjhODxP1JbbqZlLh3sLU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xgR3zRIK; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1782350714; c=relaxed/simple;
+	bh=i1mDjMWNDYoRH8UUxjCRGtdQOw7meu1TsifY+XERaTg=;
+	h=Date:To:From:Subject:Message-Id; b=oDHCLymlGHLr9C3rTjKnXmRduzgw5k446EwyxjGD59ADt7Kgyb6YpxwMoFwAbxC3yCUSWUC8MsyyeXTxt0rm0rGh8ePuamFCrZ4NStql7DOrNbHQKq8ji10y5lK9LBL0Gco05PWBEaAQC5mlPkLsfDsYbD5aT8ZpAHoGWfoPSH4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CDWhGURM; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xgR3zRIK"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6A0FD1F000E9;
-	Thu, 25 Jun 2026 01:01:10 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CDWhGURM"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CB6AC1F000E9;
+	Thu, 25 Jun 2026 01:25:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1782349270;
-	bh=lgUqV1C/zhbSfL5NwoscnFHIEsbP5uZz0ginEb8C3m0=;
+	d=linux-foundation.org; s=korg; t=1782350712;
+	bh=M3O6XO8HounLo1BPWfGK8ObtgSKDBc6KuevRnAU3HRE=;
 	h=Date:To:From:Subject;
-	b=xgR3zRIK61MoXcrMqFmzEkDTSdxWm6lAf56k8yalHPzMrSGhUXOWdM60pCYdP+l83
-	 jvpP3+Y2F6W4jBL6L5rFkYlrDJlWkTXwlvuzGOqO45Ise22jglTjXPoWv9h/PTWSiP
-	 oHvo7aQM8qAhriKYjo33iRFPNmYhejiuLrbu80JM=
-Date: Wed, 24 Jun 2026 18:01:10 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,xu.xin16@zte.com.cn,willy@infradead.org,wangkefeng.wang@huawei.com,svetly.todorov@memverge.com,sunnanyong@huawei.com,stable@vger.kernel.org,luizcap@redhat.com,linmiaohe@huawei.com,david@kernel.org,chengming.zhou@linux.dev,tujinjiang@huawei.com,akpm@linux-foundation.org
+	b=CDWhGURM0sZbopCxdJs6CM9iqPjXiM0VRM2wIlBwMceUaIWUlPkNP/RehFH8AaGP5
+	 kl4OhW8vxp8Qx4F8eiRwX+/R/3dalA+LfqGRlKfJ9FrOhB5RuYDhSL75gcNknzRLpd
+	 GakVzKWZSK2lKXLUtUzrPHgQ1aIR7dFkcD1RpePw=
+Date: Wed, 24 Jun 2026 18:25:12 -0700
+To: mm-commits@vger.kernel.org,penberg@kernel.org,kees@kernel.org,joern@logfs.org,cl@linux-foundation.org,andy@kernel.org,akinobu.mita@gmail.com,include@grrlz.net,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + fs-proc-fix-kpf_ksm-reported-for-all-anonymous-pages.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260625010110.6A0FD1F000E9@smtp.kernel.org>
+Subject: + lib-string-fix-memchr_inv-for-large-ranges.patch added to mm-nonmm-unstable branch
+Message-Id: <20260625012512.CB6AC1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: fs/proc: fix KPF_KSM reported for all anonymous pages
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     fs-proc-fix-kpf_ksm-reported-for-all-anonymous-pages.patch
+     Subject: lib/string: fix memchr_inv() for large ranges
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     lib-string-fix-memchr_inv-for-large-ranges.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-proc-fix-kpf_ksm-reported-for-all-anonymous-pages.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-string-fix-memchr_inv-for-large-ranges.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,56 +58,46 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Jinjiang Tu <tujinjiang@huawei.com>
-Subject: fs/proc: fix KPF_KSM reported for all anonymous pages
-Date: Mon, 22 Jun 2026 17:15:39 +0800
+From: Bradley Morgan <include@grrlz.net>
+Subject: lib/string: fix memchr_inv() for large ranges
+Date: Sun, 21 Jun 2026 12:11:33 +0000
 
-Reading /proc/kpageflags for any anonymous page returns KPF_KSM set, even
-when KSM is not in use.  As a result, tools which use /proc/kpageflags
-(and hwpoison inject on a weird testing interface) misclassify all
-anonymous pages as KSM merged.
+memchr_inv() takes a size_t length but counts 8 byte words in an unsigned
+int.  At 32GiB that count wraps, so the scan can quietly miss most of the
+range.
 
-In stable_page_flags(), if the page is anonymous, then use (mapping &
-FOLIO_MAPPING_KSM) check to identify if the anonymous page is KSM page. 
-However, FOLIO_MAPPING_KSM is FOLIO_MAPPING_ANON | FOLIO_MAPPING_ANON_KSM,
-(mapping & FOLIO_MAPPING_KSM) check returns true for all anonymous pages.
+Use size_t for the word count.
 
-To fix it, use FOLIO_MAPPING_ANON_KSM instead.
-
-Link: https://lore.kernel.org/20260622091539.836531-1-tujinjiang@huawei.com
-Fixes: dee3d0bef2b0 ("proc: rewrite stable_page_flags()")
-Signed-off-by: Jinjiang Tu <tujinjiang@huawei.com>
-Cc: Chengming Zhou <chengming.zhou@linux.dev>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Luiz Capitulino <luizcap@redhat.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Nanyong Sun <sunnanyong@huawei.com>
-Cc: Svetly Todorov <svetly.todorov@memverge.com>
-Cc: xu xin <xu.xin16@zte.com.cn>
-Cc: Zi Yan <ziy@nvidia.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lore.kernel.org/20260621121133.16460-1-include@grrlz.net
+Fixes: 798248206b59 ("lib/string.c: introduce memchr_inv()")
+Signed-off-by: Bradley Morgan <include@grrlz.net>
+Cc: Akinbou Mita <akinobu.mita@gmail.com>
+Cc: Andy Shevchenko <andy@kernel.org>
+Cc: Christoph Lameer <cl@linux-foundation.org>
+Cc: Joern Engel <joern@logfs.org>
+Cc: Kees Cook <kees@kernel.org>
+Cc: Pekka Enberg <penberg@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/page.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/string.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/fs/proc/page.c~fs-proc-fix-kpf_ksm-reported-for-all-anonymous-pages
-+++ a/fs/proc/page.c
-@@ -173,7 +173,7 @@ u64 stable_page_flags(const struct page
- 		u |= 1 << KPF_MMAP;
- 	if (is_anon) {
- 		u |= 1 << KPF_ANON;
--		if (mapping & FOLIO_MAPPING_KSM)
-+		if (mapping & FOLIO_MAPPING_ANON_KSM)
- 			u |= 1 << KPF_KSM;
- 	}
+--- a/lib/string.c~lib-string-fix-memchr_inv-for-large-ranges
++++ a/lib/string.c
+@@ -821,7 +821,8 @@ void *memchr_inv(const void *start, int
+ {
+ 	u8 value = c;
+ 	u64 value64;
+-	unsigned int words, prefix;
++	size_t words;
++	unsigned int prefix;
  
+ 	if (bytes <= 16)
+ 		return check_bytes8(start, value, bytes);
 _
 
-Patches currently in -mm which might be from tujinjiang@huawei.com are
+Patches currently in -mm which might be from include@grrlz.net are
 
-fs-proc-fix-kpf_ksm-reported-for-all-anonymous-pages.patch
+lib-string-fix-memchr_inv-for-large-ranges.patch
 
