@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6B0B030276A
-	for <mm-commits@vger.kernel.org>; Thu, 25 Jun 2026 22:53:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4D2633B83E3
+	for <mm-commits@vger.kernel.org>; Thu, 25 Jun 2026 23:06:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782428015; cv=none; b=Rf60gzXUGgZiSflvCwvakVwg46b0sXFpVq2d/GI222H62YUEBiFC3npU29QyGAoo+gCKuUTYn8LaShzzpZgFh+v0FTNsQRRW24NUEK1lAKeC/kGp/2D7nZPqPuBHgVJ1VG5KrVpFIYkHMnWeprQr/xex05M/MJ7qzyI1YzjKMVY=
+	t=1782428792; cv=none; b=nmeQsVdiAQ2LudswuXA8cki0+FVGPsS/iF/VBxZIYhFFNSQUI1p9oxvFJEPXmTz9tWSDka1AzQ6TZf30NfQ2aa9KveqKJvoBBfnGxyotNTUPudahjaXLGOSlD0jOZlwzZjbawA94fFA0dPinsmRJXEwvvTDWkmGLIyUCmHg4VaE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782428015; c=relaxed/simple;
-	bh=XhxWcojWE1beeOR9iWVjEGvQjkt/Ma1ND5QUdDVY8Ds=;
-	h=Date:To:From:Subject:Message-Id; b=aFqFXFYIO/OLlLRLEL3NYnR3MC/WirCq3APGaN+QDX7UNuNZBWv4xMk+VcGTB6kUVFfImzRWNIck93HVGjqeadRyEsY7Vadwdcet45PZSB9BoOuNR1XnXSeXYEQ74PROGTDALZ5P//MGbuKrE3a4YY8jQt/I1/GNguivljoCPfE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=C3nneeR7; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1782428792; c=relaxed/simple;
+	bh=mxqNxGzTeTWlpe2R5zyJDIVhM9l4miYG+SD5TWaxQdA=;
+	h=Date:To:From:Subject:Message-Id; b=Lc/ikU3k3eHpMgGqKWCLNPmC509AZ/KI5wzS+UAMO+NipSNt80lFwwZY6vI8UNRlCDkX8OoiGYw3H7uXzDHYzJ+MTA0L4ejMrHnzfiEZeOCSUGM4CKfy67Jr/lZvwgOVjFfSAdqGH9I2rWb/du6T7SjKKbNwVHZyxmfFzvduwd8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZCllFjiy; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="C3nneeR7"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F186A1F000E9;
-	Thu, 25 Jun 2026 22:53:33 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZCllFjiy"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0CD5C1F000E9;
+	Thu, 25 Jun 2026 23:06:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1782428014;
-	bh=GFCiiCDuvWKXt0eP4HEt/tA7s/NPJx3xaJGk66dLVZ0=;
+	d=linux-foundation.org; s=korg; t=1782428785;
+	bh=E8M+Y3b2EaY4f1NBQilDFqYlxcfBgKgXIxjL/3AP8Qs=;
 	h=Date:To:From:Subject;
-	b=C3nneeR7TdCe6+UTslQ6dE3I2s9NdQKK/yDJFKDbm64ohc/aj2CKARHQ+SqhLHm43
-	 s/HAp6A19vsn6ebk4Qw1pvMXyvFz65ANQfHOqz5Qk3wK0zt7U8hyMhXAdfexUStqPS
-	 +6dVBvJjUvtYpAjGfK9Hw84rJbrZlGaaLW3fpibw=
-Date: Thu, 25 Jun 2026 15:53:33 -0700
-To: mm-commits@vger.kernel.org,tj@kernel.org,willy@infradead.org,akpm@linux-foundation.org
+	b=ZCllFjiyjuuTQB+oTXvsv85Jp8m3d6/JIyylEBxA3+em/B1JRbim+/6Ez5wyqb2ow
+	 Xjz/Y9j07XLdUmk2LWVEDpLM8Jq0eTGn8mK1dP4Ih0FS+riq+2C2STUAVK+gaP+Ki7
+	 eRkkiLOZrhp3vk0zT6iDkrFYeJ6sm4vjYg4LG7uQ=
+Date: Thu, 25 Jun 2026 16:06:24 -0700
+To: mm-commits@vger.kernel.org,ebiederm@xmission.com,dave@stgolabs.net,shijianlin11@foxmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + percpu_ref-fix-documentation-of-maximum-value.patch added to mm-new branch
-Message-Id: <20260625225333.F186A1F000E9@smtp.kernel.org>
+Subject: + ipc-only-destroy-orphaned-shm-segments-on-sysctl-write.patch added to mm-nonmm-unstable branch
+Message-Id: <20260625230625.0CD5C1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,26 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: percpu_ref: fix documentation of maximum value
-has been added to the -mm mm-new branch.  Its filename is
-     percpu_ref-fix-documentation-of-maximum-value.patch
+     Subject: ipc: only destroy orphaned shm segments on sysctl write
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     ipc-only-destroy-orphaned-shm-segments-on-sysctl-write.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/percpu_ref-fix-documentation-of-maximum-value.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ipc-only-destroy-orphaned-shm-segments-on-sysctl-write.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,73 +58,46 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: percpu_ref: fix documentation of maximum value
-Date: Wed, 11 Dec 2024 20:40:14 +0000
+From: Jianlin Shi <shijianlin11@foxmail.com>
+Subject: ipc: only destroy orphaned shm segments on sysctl write
+Date: Mon, 15 Jun 2026 10:27:41 +0800
 
-Tejun changd percpu_ref to use long instead of int back in 2014 but missed
-updating this bit of the documentation.  Also add the documentation to the
-htmldocs.
+proc_ipc_dointvec_minmax_orphans() currently calls shm_destroy_orphaned()
+whenever shm_rmid_forced is set, including on sysctl reads.  Reading
+/proc/sys/kernel/shm_rmid_forced should not take shm_ids rwsem for write
+and walk all segments.
 
-Link: https://lore.kernel.org/20241211204017.184512-1-willy@infradead.org
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Acked-by: Tejun Heo <tj@kernel.org>
+Only run the cleanup when the sysctl is written and the forced RMID policy
+is enabled.
+
+When shm_rmid_forced=1, monitoring tools that read
+/proc/sys/kernel/shm_rmid_forced trigger the cleanup on every read.
+
+Link: https://lore.kernel.org/all/?q=only+destroy+orphaned+shm+segments+on+sysctl+write
+Link: https://lore.kernel.org/tencent_738A8BC6E9EA205F555E4B0DAA154D4F8E0A@qq.com
+Signed-off-by: Jianlin Shi <shijianlin11@foxmail.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/driver-api/basics.rst |    3 +++
- include/linux/percpu-refcount.h     |    5 +++--
- lib/percpu-refcount.c               |    2 +-
- 3 files changed, 7 insertions(+), 3 deletions(-)
+ ipc/ipc_sysctl.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/Documentation/driver-api/basics.rst~percpu_ref-fix-documentation-of-maximum-value
-+++ a/Documentation/driver-api/basics.rst
-@@ -90,6 +90,9 @@ Reference counting
- .. kernel-doc:: lib/refcount.c
-    :export:
+--- a/ipc/ipc_sysctl.c~ipc-only-destroy-orphaned-shm-segments-on-sysctl-write
++++ a/ipc/ipc_sysctl.c
+@@ -28,7 +28,7 @@ static int proc_ipc_dointvec_minmax_orph
  
-+.. kernel-doc:: include/linux/percpu-refcount.h
-+.. kernel-doc:: lib/percpu-refcount.c
-+
- Atomics
- -------
- 
---- a/include/linux/percpu-refcount.h~percpu_ref-fix-documentation-of-maximum-value
-+++ a/include/linux/percpu-refcount.h
-@@ -12,8 +12,8 @@
-  * start shutting down you call percpu_ref_kill() _before_ dropping the initial
-  * refcount.
-  *
-- * The refcount will have a range of 0 to ((1U << 31) - 1), i.e. one bit less
-- * than an atomic_t - this is because of the way shutdown works, see
-+ * The refcount will have a range of 0 to LONG_MAX, i.e. one bit less
-+ * than an atomic_long_t - this is because of the way shutdown works, see
-  * percpu_ref_kill()/PERCPU_COUNT_BIAS.
-  *
-  * Before you call percpu_ref_kill(), percpu_ref_put() does not check for the
-@@ -269,6 +269,7 @@ static inline bool percpu_ref_tryget(str
- /**
-  * percpu_ref_tryget_live_rcu - same as percpu_ref_tryget_live() but the
-  * caller is responsible for taking RCU.
-+ * @ref: percpu_ref to try-get
-  *
-  * This function is safe to call as long as @ref is between init and exit.
-  */
---- a/lib/percpu-refcount.c~percpu_ref-fix-documentation-of-maximum-value
-+++ a/lib/percpu-refcount.c
-@@ -289,7 +289,7 @@ static void __percpu_ref_switch_mode(str
-  * @confirm_switch: optional confirmation callback
-  *
-  * There's no reason to use this function for the usual reference counting.
-- * Use percpu_ref_kill[_and_confirm]().
-+ * Use percpu_ref_kill() or percpu_ref_kill_and_confirm().
-  *
-  * Schedule switching of @ref to atomic mode.  All its percpu counts will
-  * be collected to the main atomic counter.  On completion, when all CPUs
+ 	if (err < 0)
+ 		return err;
+-	if (ns->shm_rmid_forced)
++	if (write && ns->shm_rmid_forced)
+ 		shm_destroy_orphaned(ns);
+ 	return err;
+ }
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from shijianlin11@foxmail.com are
 
-mm-add-writebackh-to-docs-build.patch
-percpu_ref-fix-documentation-of-maximum-value.patch
+ipc-only-destroy-orphaned-shm-segments-on-sysctl-write.patch
 
