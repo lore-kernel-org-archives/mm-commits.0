@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 374371D555
-	for <mm-commits@vger.kernel.org>; Thu, 25 Jun 2026 00:12:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9BF031FBEA8
+	for <mm-commits@vger.kernel.org>; Thu, 25 Jun 2026 00:20:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782346323; cv=none; b=HA1lobiRWCTk6kbVMAIzOAF208tzm9HiZGnfVjl7syQlvD3JgwX4NsrS6MjIKSdXbUzvLC2LN02qh/s963jo1b7+OKVJnyroceWe7oANrhmJbp3Ymw4pREZaZkGXqaQ6WR7dWLFOc+JZw2+HEhcmVsiZuZhrmcVoVc/OxF4uJX4=
+	t=1782346834; cv=none; b=Mgdkl+uyolBd+4vYAOtyIC7j7iJ03U9bsUZWtnJBNG0EGFgcnu0A1czFRDtAk4U8qyEzMyMiLvcvJwwiyz54ZI95W87+HAuc9XkhbHY8lsoObAN4bDjePXk7C491Kam5SBEy4lSql1MFMguzP0vFk9UJYm1Hbg1bgJzdbwIGx+c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782346323; c=relaxed/simple;
-	bh=ZBb8HiVpum7vCCEKgbS4A6tgWFPyVHciKAqXEce7HGI=;
-	h=Date:To:From:Subject:Message-Id; b=QoKmhtehjlNHOpIC+cPH6ncQnSrVkpMZhgWABTo2LtroE1Y9mCzvlhvW1f2M0RG5TlXGo3gNJF/4nlEoo3wx9HTEV84Bf9P1Pb9sDVSNi0efIyQ/nt8YYIHd5pbJFgpV6UHOxEwkQBuo+epgv7GNscoDaYckcXETMhM4xjoAGFI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wb4lhqB2; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1782346834; c=relaxed/simple;
+	bh=eGYDRhDiXOW2LQoQ++/jOgZjT6g6wVkWw/9c3+1we6A=;
+	h=Date:To:From:Subject:Message-Id; b=bq9QujbzoT5wEcQZiQJuzhguHHniplePks3OKZ5Fh6FMp8eqyRYr5A3L5s4GrTzt5EXjHRaeY+ce2FKd40uQIGrPu/2EBDYuExEqNJvPQaZdWSz+EGXtGsXf5zHN8a/IerSzL0fQhojwNb3mcRHaKH0XcP6gmexjU0TUyrBj61Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ejtOSNE+; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wb4lhqB2"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9DCC71F000E9;
-	Thu, 25 Jun 2026 00:12:01 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ejtOSNE+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 209B51F000E9;
+	Thu, 25 Jun 2026 00:20:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1782346321;
-	bh=xesNNJZO21fWtnSqVWa+c27uEZ6I6STNoGciub7Rh9A=;
+	d=linux-foundation.org; s=korg; t=1782346833;
+	bh=WPVZF8Xjx2eq4/Ekkn8R97cfRLUfQKkFG3CfA7X2ydw=;
 	h=Date:To:From:Subject;
-	b=wb4lhqB28AaHI7iESW40fgxpSnN2WfODXBuxhCt3A/UQHjSR70jUi4oo8QtlNLrKC
-	 JGyTn5XqzQ2Y3VUrQsoEdsXVc31YwsurOPuYW819G7B5xjeRFGYlC8czHsy/HStt4J
-	 zHL3nZze9KoTElYE++xIw4IyMxC1mbWcthUCEM0s=
-Date: Wed, 24 Jun 2026 17:12:01 -0700
-To: mm-commits@vger.kernel.org,harry@kernel.org,zhangguopeng@kylinos.cn,akpm@linux-foundation.org
+	b=ejtOSNE+VKXIsYMMuCRK/o6r1iA+Dz7Rqeb+c6LuCYFljv+Az98QDGMn8nNRfFf5G
+	 MgEvexpJfMyEAELla9AgOg7EpUguPSIvbBq4DO9Y9wCSZwgGkjtl1NHwNo6Z7hf8+a
+	 kasgQ5uHa3u4Qs7RPnfzZim8ov7rn9thvM4wA9VM=
+Date: Wed, 24 Jun 2026 17:20:32 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,surenb@google.com,mhocko@suse.com,jackmanb@google.com,hannes@cmpxchg.org,ye.liu@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memcg-remove-stray-text-from-obj_stock_pcp-comment.patch added to mm-new branch
-Message-Id: <20260625001201.9DCC71F000E9@smtp.kernel.org>
+Subject: + mm-page_owner-extract-skip_buddy_pages-helper-to-unify-buddy-page-skipping.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260625002033.209B51F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,26 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: memcg: remove stray text from obj_stock_pcp comment
-has been added to the -mm mm-new branch.  Its filename is
-     mm-memcg-remove-stray-text-from-obj_stock_pcp-comment.patch
+     Subject: mm/page_owner: extract skip_buddy_pages() helper to unify buddy page skipping
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-page_owner-extract-skip_buddy_pages-helper-to-unify-buddy-page-skipping.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcg-remove-stray-text-from-obj_stock_pcp-comment.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_owner-extract-skip_buddy_pages-helper-to-unify-buddy-page-skipping.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,38 +58,133 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Guopeng Zhang <zhangguopeng@kylinos.cn>
-Subject: mm: memcg: remove stray text from obj_stock_pcp comment
-Date: Tue, 23 Jun 2026 16:26:14 +0800
+From: Ye Liu <ye.liu@linux.dev>
+Subject: mm/page_owner: extract skip_buddy_pages() helper to unify buddy page skipping
+Date: Tue, 23 Jun 2026 14:52:26 +0800
 
-A patch filename was accidentally inserted into the comment describing
-the nr_bytes field of struct obj_stock_pcp. Remove it.
+Three places in page_owner.c duplicate the same pattern: check if a page
+is PageBuddy, read its order via buddy_order_unsafe(), advance the pfn
+past the buddy block if the order is valid, and continue.
+
+Consolidate them into a single inline helper skip_buddy_pages().  The
+function returns true (skip) for any buddy page and advances @pfn past the
+block when the order is valid; returns false if the page is not a buddy
+page and should be processed normally.
+
+The old init_pages_in_zone() variant used "order > 0" as an extra guard
+before advancing pfn, but the continue was unconditional and (1UL << 0) -
+1 == 0, so the behaviour is identical.  The comment about zone->lock is
+preserved in the helper's kernel-doc.
 
 No functional change.
 
-Link: https://lore.kernel.org/20260623082614.81621-1-guopeng.zhang@linux.dev
-Signed-off-by: Guopeng Zhang <zhangguopeng@kylinos.cn>
-Acked-by: Harry Yoo (Oracle) <harry@kernel.org>
+Link: https://lore.kernel.org/20260623065234.31866-2-ye.liu@linux.dev
+Signed-off-by: Ye Liu <ye.liu@linux.dev>
+Cc: Brendan Jackman <jackmanb@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/page_owner.c |   52 +++++++++++++++++++++++-----------------------
+ 1 file changed, 26 insertions(+), 26 deletions(-)
 
---- a/mm/memcontrol.c~mm-memcg-remove-stray-text-from-obj_stock_pcp-comment
-+++ a/mm/memcontrol.c
-@@ -2039,7 +2039,7 @@ struct obj_stock_pcp {
- 	/*
- 	 * On rare archs with 256KiB base page size (hexagon and powerpc 44x)
- 	 * keep nr_bytes to unsigned int as uint16_t cannot represent the full
--e patches/memcg-uint16_t-for-nr_bytes-in-obj_stock_pcp.patch	 * sub-page remainder. Such archs are not cacheline optimization target.
-+	 * sub-page remainder. Such archs are not cacheline optimization targets.
- 	 */
- 	unsigned int nr_bytes[NR_OBJ_STOCK];
- #else
+--- a/mm/page_owner.c~mm-page_owner-extract-skip_buddy_pages-helper-to-unify-buddy-page-skipping
++++ a/mm/page_owner.c
+@@ -422,6 +422,29 @@ void __folio_copy_owner(struct folio *ne
+ 	rcu_read_unlock();
+ }
+ 
++/*
++ * Check if a page is a buddy page and advance @pfn past the entire buddy block.
++ * This safely reads the buddy order without the zone lock, which may cause us
++ * to skip less than the full buddy block, but that is acceptable for page owner
++ * iteration purposes.
++ *
++ * Return: true if the page was skipped (caller should continue its loop),
++ *         false if the page is not a buddy page and should be processed normally.
++ */
++static inline bool skip_buddy_pages(unsigned long *pfn, struct page *page)
++{
++	unsigned long order;
++
++	if (!PageBuddy(page))
++		return false;
++
++	order = buddy_order_unsafe(page);
++	if (order <= MAX_PAGE_ORDER)
++		*pfn += (1UL << order) - 1;
++
++	return true;
++}
++
+ void pagetypeinfo_showmixedcount_print(struct seq_file *m,
+ 				       pg_data_t *pgdat, struct zone *zone)
+ {
+@@ -461,14 +484,8 @@ void pagetypeinfo_showmixedcount_print(s
+ 			if (page_zone(page) != zone)
+ 				continue;
+ 
+-			if (PageBuddy(page)) {
+-				unsigned long freepage_order;
+-
+-				freepage_order = buddy_order_unsafe(page);
+-				if (freepage_order <= MAX_PAGE_ORDER)
+-					pfn += (1UL << freepage_order) - 1;
++			if (skip_buddy_pages(&pfn, page))
+ 				continue;
+-			}
+ 
+ 			if (PageReserved(page))
+ 				continue;
+@@ -697,13 +714,8 @@ read_page_owner(struct file *file, char
+ 		}
+ 
+ 		page = pfn_to_page(pfn);
+-		if (PageBuddy(page)) {
+-			unsigned long freepage_order = buddy_order_unsafe(page);
+-
+-			if (freepage_order <= MAX_PAGE_ORDER)
+-				pfn += (1UL << freepage_order) - 1;
++		if (skip_buddy_pages(&pfn, page))
+ 			continue;
+-		}
+ 
+ 		page_ext = page_ext_get(page);
+ 		if (unlikely(!page_ext))
+@@ -798,20 +810,8 @@ static void init_pages_in_zone(struct zo
+ 			if (page_zone(page) != zone)
+ 				continue;
+ 
+-			/*
+-			 * To avoid having to grab zone->lock, be a little
+-			 * careful when reading buddy page order. The only
+-			 * danger is that we skip too much and potentially miss
+-			 * some early allocated pages, which is better than
+-			 * heavy lock contention.
+-			 */
+-			if (PageBuddy(page)) {
+-				unsigned long order = buddy_order_unsafe(page);
+-
+-				if (order > 0 && order <= MAX_PAGE_ORDER)
+-					pfn += (1UL << order) - 1;
++			if (skip_buddy_pages(&pfn, page))
+ 				continue;
+-			}
+ 
+ 			if (PageReserved(page))
+ 				continue;
 _
 
-Patches currently in -mm which might be from zhangguopeng@kylinos.cn are
+Patches currently in -mm which might be from ye.liu@linux.dev are
 
-mm-memcg-remove-stray-text-from-obj_stock_pcp-comment.patch
+mm-page_owner-extract-skip_buddy_pages-helper-to-unify-buddy-page-skipping.patch
+mm-page_owner-use-migrate_reason_none-instead-of-1-for-last_migrate_reason.patch
+mm-page_owner-hoist-config_memcg-to-function-level-for-print_page_owner_memcg.patch
+mm-page_owner-add-missing-newline-to-count_threshold-format-string.patch
+mm-page_owner-move-free_ts_nsec-output-to-free-section-in-__dump_page_owner.patch
+mm-page_owner-drop-redundant-page_owner-prefix-from-static-symbols.patch
 
