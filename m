@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D9F4B2FE59B;
-	Thu, 25 Jun 2026 04:42:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 713C82EDD70
+	for <mm-commits@vger.kernel.org>; Thu, 25 Jun 2026 04:55:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782362566; cv=none; b=sgDdKkHmgw5s8kbMkU7R7OYfRKI2niz/aTUy9g9Wiaf8w3maIU0SKCi3N2UNHWSv39+WRqeI80xuSuDxhsFDht3bIKSzafrNc8cCq646t7Ff6rfwvbSdysCy+3sdutSLtjZYUwpxsBO6CcMaZYmfsNqt1gwv1goFwqaVklhmDFA=
+	t=1782363359; cv=none; b=Boni/hE1xQSo+KMIadT2Nm8Iy9y8AgTcGhoLm67OAFGYwuT3eEPsKq5oaa1mnV333MoUmYXxFgtZ1O+g0kCauPXxR3LVVaS7k8qaLijA20IihqvJqegXA/5IddPdTGr8MZ8A0MLfNWdAweq0G8T5xBNqtIJimbhWZBPfrUvqiVs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782362566; c=relaxed/simple;
-	bh=UgouWdz22LjFggkwylkQFqhuSxhvxoGcxteW5R3RauU=;
-	h=Date:To:From:Subject:Message-Id; b=O0sVdHj+Z6DiJxwKkMTo7QeMDkLyCmv0BNHSNCEckQXofDVWMYngw7I/P8WJdwC0bXN5vrfG26y2ysaMZvfV166dTWbC1q0+a261KtCqgcJA9xIJZfnaJ6SHOu9cEWNkH1ocn2jigqupguw6iWB6zQJK418C9nNV3nrgO5eylps=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=f1PW2DOv; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1782363359; c=relaxed/simple;
+	bh=1kOTmdKUkvBkJUFNlmTSePc1uXviT5AJnE2TcmqOf2o=;
+	h=Date:To:From:Subject:Message-Id; b=ZPkMiwD3cS4H5Z1P5r0AdNBVRoG7ZeymwRiLid77cOfuOIOIG1KsPWhEasLN8SqQuOLymJkECCB39xJ20ueOZ9aCWy39l4b413a+LS13yNy52zCtfu3RTbOV6B/R9npt+HnbJ5IYo30Wb1mqWTxrr1qAW9b//pXEcVyHNAe5CE4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GJdyeK2g; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="f1PW2DOv"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4E9881F000E9;
-	Thu, 25 Jun 2026 04:42:43 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GJdyeK2g"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 08C041F000E9;
+	Thu, 25 Jun 2026 04:55:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1782362563;
-	bh=80/RkbXbC9NMQ+qD7DMIo4hmLEDQyQl6i0DFgG/39Lo=;
+	d=linux-foundation.org; s=korg; t=1782363358;
+	bh=flXSNnpYfUkA1iTc3BVEndfUc10q5TT1NttVUUZstdQ=;
 	h=Date:To:From:Subject;
-	b=f1PW2DOvWDDTe2yP8HgBVT+YuviWPM3B5hFOIv/cS7oNSyM5LVfCAXci6z/KgyrRT
-	 aBToShfT9qizLq6uBTBYWZ4xDnKhJjizuChmK4dpzWQOwNhKn6tSyvOHq6TV/Nb50g
-	 4Ttp+ZwfOTJGZbEqfGGzcxYvKDkIeXO6jvzv3+0o=
-Date: Wed, 24 Jun 2026 21:42:42 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,stable@vger.kernel.org,ryan.roberts@arm.com,riel@surriel.com,ljs@kernel.org,liam@infradead.org,kas@kernel.org,jannh@google.com,harry@kernel.org,david@kernel.org,anshuman.khandual@arm.com,dev.jain@arm.com,akpm@linux-foundation.org
+	b=GJdyeK2gwpOwZGiymF+KOFWnWh64qNNO88n7fHXAE269G75R6KFN751J5E+HxJFWj
+	 7QFZtSBcBcFzGDYtGBVlDBeAxnlgPXjIQ/dKdy24S9JjaLoyyaQY+e0qfQCnt/+47o
+	 c6/sGm8sOVZkbBuFb0TBL8+WQnj0+aBt143ADt3Y=
+Date: Wed, 24 Jun 2026 21:55:57 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,ye.liu@linux.dev,vbabka@kernel.org,surenb@google.com,skhan@linuxfoundation.org,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,jackmanb@google.com,hannes@cmpxchg.org,david@kernel.org,corbet@lwn.net,chenyichong@uniontech.com,zhen.ni@easystack.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-rmap-use-huge_ptep_get-in-try_to_unmap_one.patch added to mm-new branch
-Message-Id: <20260625044243.4E9881F000E9@smtp.kernel.org>
+Subject: + mm-page_owner-add-print_mode-filter.patch added to mm-new branch
+Message-Id: <20260625045558.08C041F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/rmap: use huge_ptep_get() in try_to_unmap_one()
+     Subject: mm/page_owner: add print_mode filter
 has been added to the -mm mm-new branch.  Its filename is
-     mm-rmap-use-huge_ptep_get-in-try_to_unmap_one.patch
+     mm-page_owner-add-print_mode-filter.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-rmap-use-huge_ptep_get-in-try_to_unmap_one.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_owner-add-print_mode-filter.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,89 +69,279 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Dev Jain <dev.jain@arm.com>
-Subject: mm/rmap: use huge_ptep_get() in try_to_unmap_one()
-Date: Thu, 25 Jun 2026 04:28:51 +0000
+From: Zhen Ni <zhen.ni@easystack.cn>
+Subject: mm/page_owner: add print_mode filter
+Date: Thu, 25 Jun 2026 12:30:58 +0800
 
-try_to_unmap_one() handles hugetlb folios when memory failure needs to
-replace a poisoned hugetlb mapping with a hwpoison entry.  In that case
-page_vma_mapped_walk() returns the hugetlb entry in pvmw.pte, but the code
-reads it with ptep_get() before decoding the PFN.
+Patch series "mm/page_owner: add per-fd filter infrastructure for
+print_mode and NUMA filtering", v11.
 
-That is wrong on architectures where hugetlb entries are not encoded as
-regular PTEs.  On s390, for example, a raw huge RSTE must be converted by
-huge_ptep_get() before helpers such as pte_pfn() can inspect it.  A raw
-decode can select the wrong subpage, so try_to_unmap_one() can install a
-hwpoison entry for the wrong PFN.
+This patch series introduces per-file-descriptor filtering capabilities to the
+page_owner feature.
 
-The userspace-visible result is that a later access to the poisoned
-hugetlb subpage can miss the expected SIGBUS.  With DEBUG_VM, the wrong
-subpage can also trip the PageHWPoison check.
 
-Use huge_ptep_get() for hugetlb mappings before decoding the PFN.
+This patch (of 4):
 
-Before c7ab0d2fdc84, the bug existed in the form of a plain dereference:
-we would check the head page pfn of the hugetlb with pte_pfn(*pte), and
-bail out on mismatch.  This would mean that the hwpoisoned entry will not
-get installed.
+Add a print_mode filter to page_owner that allows users to choose between
+printing stack traces, stack handles, or both, providing flexibility for
+different debugging and analysis scenarios.
 
-Link: https://lore.kernel.org/20260625042853.2752898-1-dev.jain@arm.com
-Fixes: c7ab0d2fdc84 ("mm: convert try_to_unmap_one() to use page_vma_mapped_walk()")
-Signed-off-by: Dev Jain <dev.jain@arm.com>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+The filter provides three modes via page_owner:
+- Writing "mode=stack" prints stack traces for each page (default)
+- Writing "mode=handle" prints only the handle number
+- Writing "mode=stack_handle" prints both stack traces and handles
+
+The default stack mode maintains backward compatibility with existing
+usage, displaying complete stack traces for each page allocation.
+
+The handle mode dramatically reduces log size and improves performance by
+showing only the handle number instead of the full stack trace.  Testing
+shows handle mode reduces output size by ~66% (84MB vs 244MB) and improves
+read performance by ~4.4x compared to full stack output.  The mapping from
+handles to actual stack traces can be obtained via the show_stacks_handles
+interface.
+
+The stack_handle mode prints both stack traces and handles, making it
+easier to identify pages with the same allocation pattern by comparing
+handle numbers instead of comparing large stack traces.
+
+Example usage:
+  # Using the page_owner_filter tool (recommended)
+  ./page_owner_filter -m stack          # Print only stack traces (default)
+  ./page_owner_filter -m handle         # Print only handles
+  ./page_owner_filter -m stack_handle   # Print both stack and handles
+
+Sample output (handle mode):
+  Page allocated via order 0, migratetype Unmovable, gfp_mask 0x1100ca,
+  pid 1, tgid 1 (systemd), ts 123456789 ns
+  PFN 0x1000 type Unmovable Block 1 type Unmovable
+  Flags 0x3fffe800000084(referenced|lru|active|private|node=0|zone=1)
+  handle: 17432583
+  ...
+
+This implementation uses per-file-descriptor filter state stored in
+file->private_data, allowing each opener to have independent filter
+configuration.
+
+Link: https://lore.kernel.org/20260625043101.338794-1-zhen.ni@easystack.cn
+Link: https://lore.kernel.org/20260625043101.338794-2-zhen.ni@easystack.cn
+Signed-off-by: Zhen Ni <zhen.ni@easystack.cn>
+Cc: Brendan Jackman <jackmanb@google.com>
 Cc: David Hildenbrand <david@kernel.org>
-Cc: Harry Yoo <harry@kernel.org>
-Cc: Jann Horn <jannh@google.com>
-Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Liam Howlett <liam@infradead.org>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Shuah Khan <skhan@linuxfoundation.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Kiryl Shutsemau <kas@kernel.org>
-Cc: <stable@vger.kernel.org>
+Cc: Zi Yan <ziy@nvidia.com>
+Cc: Yichong Chen <chenyichong@uniontech.com>
+Cc: Ye Liu <ye.liu@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/rmap.c |   16 ++++++++++------
- 1 file changed, 10 insertions(+), 6 deletions(-)
+ mm/page_owner.c |  129 +++++++++++++++++++++++++++++++++++++++++++---
+ 1 file changed, 123 insertions(+), 6 deletions(-)
 
---- a/mm/rmap.c~mm-rmap-use-huge_ptep_get-in-try_to_unmap_one
-+++ a/mm/rmap.c
-@@ -2095,11 +2095,16 @@ static bool try_to_unmap_one(struct foli
- 		/* Unexpected PMD-mapped THP? */
- 		VM_BUG_ON_FOLIO(!pvmw.pte, folio);
+--- a/mm/page_owner.c~mm-page_owner-add-print_mode-filter
++++ a/mm/page_owner.c
+@@ -61,6 +61,23 @@ struct stack_print_ctx {
+ 	u8 flags;
+ };
  
--		/*
--		 * Handle PFN swap PTEs, such as device-exclusive ones, that
--		 * actually map pages.
--		 */
--		pteval = ptep_get(pvmw.pte);
-+		address = pvmw.address;
-+		if (folio_test_hugetlb(folio)) {
-+			pteval = huge_ptep_get(mm, address, pvmw.pte);
++enum page_owner_print_mode {
++	PAGE_OWNER_PRINT_STACK,
++	PAGE_OWNER_PRINT_HANDLE,
++	PAGE_OWNER_PRINT_STACK_HANDLE,
++};
++
++static const char * const page_owner_print_mode_strings[] = {
++	[PAGE_OWNER_PRINT_STACK]	= "stack",
++	[PAGE_OWNER_PRINT_HANDLE]	= "handle",
++	[PAGE_OWNER_PRINT_STACK_HANDLE]	= "stack_handle",
++};
++
++struct page_owner_filter_state {
++	enum page_owner_print_mode print_mode;
++	spinlock_t lock;
++};
++
+ static bool page_owner_enabled __initdata;
+ DEFINE_STATIC_KEY_FALSE(page_owner_inited);
+ 
+@@ -587,16 +604,23 @@ static inline int print_page_owner_memcg
+ static ssize_t
+ print_page_owner(char __user *buf, size_t count, unsigned long pfn,
+ 		struct page *page, struct page_owner *page_owner,
+-		depot_stack_handle_t handle)
++		depot_stack_handle_t handle,
++		struct page_owner_filter_state *state)
+ {
+ 	int ret, pageblock_mt, page_mt;
+ 	char *kbuf;
++	enum page_owner_print_mode print_mode;
++	unsigned long flags;
+ 
+ 	count = min_t(size_t, count, PAGE_SIZE);
+ 	kbuf = kmalloc(count, GFP_KERNEL);
+ 	if (!kbuf)
+ 		return -ENOMEM;
+ 
++	spin_lock_irqsave(&state->lock, flags);
++	print_mode = state->print_mode;
++	spin_unlock_irqrestore(&state->lock, flags);
++
+ 	ret = scnprintf(kbuf, count,
+ 			"Page allocated via order %u, mask %#x(%pGg), pid %d, tgid %d (%s), ts %llu ns\n",
+ 			page_owner->order, page_owner->gfp_mask,
+@@ -615,9 +639,18 @@ print_page_owner(char __user *buf, size_
+ 			migratetype_names[pageblock_mt],
+ 			&page->flags.f);
+ 
+-	ret += stack_depot_snprint(handle, kbuf + ret, count - ret, 0);
+-	if (ret >= count)
+-		goto err;
++	if (print_mode != PAGE_OWNER_PRINT_HANDLE) {
++		ret += stack_depot_snprint(handle, kbuf + ret, count - ret, 0);
++		if (ret >= count)
++			goto err;
++	}
++
++	if (print_mode != PAGE_OWNER_PRINT_STACK) {
++		ret += scnprintf(kbuf + ret, count - ret, "handle: %u\n",
++				 handle);
++		if (ret >= count)
++			goto err;
++	}
+ 
+ 	if (page_owner->last_migrate_reason != MIGRATE_REASON_NONE) {
+ 		ret += scnprintf(kbuf + ret, count - ret,
+@@ -705,6 +738,7 @@ read_page_owner(struct file *file, char
+ 	struct page_ext *page_ext;
+ 	struct page_owner *page_owner;
+ 	depot_stack_handle_t handle;
++	struct page_owner_filter_state *state = file->private_data;
+ 
+ 	if (!static_branch_unlikely(&page_owner_inited))
+ 		return -EINVAL;
+@@ -782,7 +816,7 @@ read_page_owner(struct file *file, char
+ 		page_owner_tmp = *page_owner;
+ 		page_ext_put(page_ext);
+ 		return print_page_owner(buf, count, pfn, page,
+-				&page_owner_tmp, handle);
++				&page_owner_tmp, handle, state);
+ ext_put_continue:
+ 		page_ext_put(page_ext);
+ 	}
+@@ -871,7 +905,90 @@ static void init_early_allocated_pages(v
+ 		init_pages_in_zone(zone);
+ }
+ 
++static int page_owner_open(struct inode *inode, struct file *file)
++{
++	struct page_owner_filter_state *state;
++
++	state = kzalloc_obj(*state);
++	if (!state)
++		return -ENOMEM;
++
++	spin_lock_init(&state->lock);
++	state->print_mode = PAGE_OWNER_PRINT_STACK;
++	file->private_data = state;
++	return 0;
++}
++
++static int page_owner_release(struct inode *inode, struct file *file)
++{
++	kfree(file->private_data);
++	return 0;
++}
++
++static ssize_t page_owner_write(struct file *file,
++				 const char __user *buf,
++				 size_t count, loff_t *ppos)
++{
++	char *kbuf;
++	char *orig;
++	char *token;
++	int ret;
++	size_t max_input_len;
++	struct page_owner_filter_state *state = file->private_data;
++	enum page_owner_print_mode new_print_mode;
++	unsigned long flags;
++
++	/*
++	 * Maximum input length for filter commands:
++	 * 32: print_mode command max length is 17 ("mode=stack_handle").
++	 */
++	max_input_len = 32;
++
++	if (count > max_input_len)
++		return -EINVAL;
++
++	kbuf = memdup_user_nul(buf, count);
++	if (IS_ERR(kbuf))
++		return PTR_ERR(kbuf);
++
++	orig = kbuf;
++
++	spin_lock_irqsave(&state->lock, flags);
++	new_print_mode = state->print_mode;
++	spin_unlock_irqrestore(&state->lock, flags);
++
++	while ((token = strsep(&kbuf, " \t\n")) != NULL) {
++		if (*token == '\0')
++			continue;
++
++		if (!strncmp(token, "mode=", 5)) {
++			ret = sysfs_match_string(page_owner_print_mode_strings,
++						token + 5);
++			if (ret < 0)
++				goto out_free;
++			new_print_mode = ret;
 +		} else {
-+			/*
-+			 * Handle PFN swap PTEs, such as device-exclusive ones,
-+			 * that actually map pages.
-+			 */
-+			pteval = ptep_get(pvmw.pte);
++			ret = -EINVAL;
++			goto out_free;
 +		}
- 		if (likely(pte_present(pteval))) {
- 			pfn = pte_pfn(pteval);
- 		} else {
-@@ -2110,7 +2115,6 @@ static bool try_to_unmap_one(struct foli
- 		}
++	}
++
++	spin_lock_irqsave(&state->lock, flags);
++	state->print_mode = new_print_mode;
++	spin_unlock_irqrestore(&state->lock, flags);
++
++	ret = count;
++
++out_free:
++	kfree(orig);
++	return ret;
++}
++
+ static const struct file_operations page_owner_fops = {
++	.owner		= THIS_MODULE,
++	.open		= page_owner_open,
++	.release	= page_owner_release,
++	.write		= page_owner_write,
+ 	.read		= read_page_owner,
+ 	.llseek		= lseek_page_owner,
+ };
+@@ -1003,7 +1120,7 @@ static int __init pageowner_init(void)
+ 		return 0;
+ 	}
  
- 		subpage = folio_page(folio, pfn - folio_pfn(folio));
--		address = pvmw.address;
- 		anon_exclusive = folio_test_anon(folio) &&
- 				 PageAnonExclusive(subpage);
- 
+-	debugfs_create_file("page_owner", 0400, NULL, NULL, &page_owner_fops);
++	debugfs_create_file("page_owner", 0600, NULL, NULL, &page_owner_fops);
+ 	dir = debugfs_create_dir("page_owner_stacks", NULL);
+ 	debugfs_create_file("show_stacks", 0400, dir,
+ 			    (void *)(STACK_PRINT_FLAG_STACK |
 _
 
-Patches currently in -mm which might be from dev.jain@arm.com are
+Patches currently in -mm which might be from zhen.ni@easystack.cn are
 
-mm-swap-rename-subpage-page-in-folio_dup_swap-folio_put_swap.patch
-mm-mprotect-drop-sub-from-batching-context.patch
-mm-rmap-use-huge_ptep_get-in-try_to_unmap_one.patch
+mm-page_owner-add-print_mode-filter.patch
+mm-page_owner-add-numa-node-filter.patch
+tools-mm-add-page_owner_filter-userspace-tool.patch
+mm-page_owner-document-page_owner-filter.patch
 
