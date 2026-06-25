@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E382430AD1A;
-	Thu, 25 Jun 2026 18:44:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BF5EA3126CA
+	for <mm-commits@vger.kernel.org>; Thu, 25 Jun 2026 19:23:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782413052; cv=none; b=rreFVVHCq5jgiJCZxCyRoPpiUK9XGxuR5xD+oYWO0YQpZw51keS1fRovxa7Ud1MABxda5cuGNPhuzTfZeNy/pA5dVb8OAl7O4rxAJJwNAjt/wph0TGD0loaZqcxeTcdJEj8LnzfgelV6n3y7Et0oZjLYojSz0UCKSkNzvo371RI=
+	t=1782415429; cv=none; b=pmVb51+3uw9axk+YnXHAHAlcw9FhFy6O+76XIhINp4iM5ZRoAx0k6RGTBBkTKWqPNX4hlTPBmD0vcdtkbH80dUekUVaWLJ7763oMaomqNdhZonnHKojWIZeQlLIFYPE8NbJ6RO83jG2PVFhnkPD7stMnoVcjk8ziHr5ZYOT63f0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782413052; c=relaxed/simple;
-	bh=05WJkETWH/PQgd+TZJ1AYnm6QSrIDt4/Y35Pu6HrrgI=;
-	h=Date:To:From:Subject:Message-Id; b=XXRbIh2M2zyOxJqvBeRKwHte9ONIbQBpsWB79fCClPzrSccxgrgntKVPTTgF0tVyaVpWy4NWdKrCxKYb1MjUWqJ0ovv2GYN4mMVKY5S9A0uI916bMcIcwxEs+grZLfC6zA5VOI/sqjQ6NdA8prS9pv/VZxTSENoT3Vc6UIc93Ho=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pDoddv2G; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1782415429; c=relaxed/simple;
+	bh=+tgytk1JkaXt72SjhShLCYb/FJdHfAJluIXULrBEN4w=;
+	h=Date:To:From:Subject:Message-Id; b=UJtjMssImSQ4awjW8Rwex5j7OBjkPsIYz3Up/YGdh2Rjrkm/3skSPmkKGUemg/B7Vd90I1cKUmI7W/Eq4ziPNEAC4Rz2Rv66zv4udVX9vHiJBW+WwjofsuomVMVibjsje0tCJEt6foVPvseENAxyIU6FPbduy1Uivt0StUlGDI8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PEse6Lw2; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pDoddv2G"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9FDDE1F00A3A;
-	Thu, 25 Jun 2026 18:44:10 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PEse6Lw2"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 06AAF1F000E9;
+	Thu, 25 Jun 2026 19:23:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1782413050;
-	bh=BaDxdIDDOs7OONuaSbWochtZemo1KNTJbOrJnX6zUdM=;
+	d=linux-foundation.org; s=korg; t=1782415428;
+	bh=+KPo8emJvhzU46zBWwls9ucGMVNO56oZHF2mxC1olA4=;
 	h=Date:To:From:Subject;
-	b=pDoddv2GoYn8NTJegK/aL6a2REPIkpanGNT5xQzmPy1r63wQLk5FXUIddeIL3y+ym
-	 kxAMyIrIjr1gwHH224t/KuSeGrAUl+Zvy7JaDuV+iDckj+vN44IibCAP77oUD52pUB
-	 Msl1sCQ75svJZ0NpISgVTsv6qswm6qiyFWGrr3Mw=
-Date: Thu, 25 Jun 2026 11:44:10 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,pmladek@suse.com,npiggin@gmail.com,mpe@ellerman.id.au,maddy@linux.ibm.com,dianders@chromium.org,include@grrlz.net,akpm@linux-foundation.org
+	b=PEse6Lw2rw/k5L1epXraJMxEkFxkQIM/RWQRRdjge4Oq5A/yp8HYBfKF0vgDNkL27
+	 UYqZa0oQqwVeDfLguXfKR4bz/ieMpnXoKT7v/ALpJ+0kyJRtU84HK+7XLO54Q6v7Pb
+	 SZtpZxYriaZ+W4GG6XZcw1OA1DCejLbXevW3D/XU=
+Date: Thu, 25 Jun 2026 12:23:47 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,zhen.ni@easystack.cn,ye.liu@linux.dev,vbabka@kernel.org,surenb@google.com,skhan@linuxfoundation.org,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,jackmanb@google.com,hannes@cmpxchg.org,david@kernel.org,corbet@lwn.net,chenyichong@uniontech.com,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + panic-use-sys_info_with_filter-to-avoid-duplicate-backtraces.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260625184410.9FDDE1F00A3A@smtp.kernel.org>
+Subject: + mm-page_owner-add-print_mode-filter-fix.patch added to mm-new branch
+Message-Id: <20260625192348.06AAF1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,26 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: panic: use sys_info_with_filter() to avoid duplicate backtraces
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     panic-use-sys_info_with_filter-to-avoid-duplicate-backtraces.patch
+     Subject: mm-page_owner-add-print_mode-filter-fix
+has been added to the -mm mm-new branch.  Its filename is
+     mm-page_owner-add-print_mode-filter-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/panic-use-sys_info_with_filter-to-avoid-duplicate-backtraces.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_owner-add-print_mode-filter-fix.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,50 +69,60 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Bradley Morgan <include@grrlz.net>
-Subject: panic: use sys_info_with_filter() to avoid duplicate backtraces
-Date: Thu, 25 Jun 2026 15:25:58 +0000
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-page_owner-add-print_mode-filter-fix
+Date: Thu Jun 25 12:18:25 PM PDT 2026
 
-panic_other_cpus_shutdown() handles SYS_INFO_ALL_BT before stopping the
-other CPUs.  Do not ask sys_info() to handle that bit again later in the
-panic path.
+remove local max_input_len. per Zi Yan
 
-Use sys_info_with_filter() so panic_print=all_bt does not request more
-output after the CPUs are stopped.
-
-Link: https://lore.kernel.org/20260625152558.7450-5-include@grrlz.net
-Fixes: a9af76a78760 ("watchdog: add sys_info sysctls to dump sys info on system lockup")
-Signed-off-by: Bradley Morgan <include@grrlz.net>
-Cc: Doug Anderson <dianders@chromium.org>
-Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Petr Mladek <pmladek@suse.com>
-Cc: <stable@vger.kernel.org>
+Cc: Brendan Jackman <jackmanb@google.com>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Liam Howlett <liam@infradead.org>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Shuah Khan <skhan@linuxfoundation.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Ye Liu <ye.liu@linux.dev>
+Cc: Yichong Chen <chenyichong@uniontech.com>
+Cc: Zhen Ni <zhen.ni@easystack.cn>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/panic.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/page_owner.c |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
---- a/kernel/panic.c~panic-use-sys_info_with_filter-to-avoid-duplicate-backtraces
-+++ a/kernel/panic.c
-@@ -680,7 +680,7 @@ void vpanic(const char *fmt, va_list arg
+--- a/mm/page_owner.c~mm-page_owner-add-print_mode-filter-fix
++++ a/mm/page_owner.c
+@@ -933,7 +933,6 @@ static ssize_t page_owner_write(struct f
+ 	char *orig;
+ 	char *token;
+ 	int ret;
+-	size_t max_input_len;
+ 	struct page_owner_filter_state *state = file->private_data;
+ 	enum page_owner_print_mode new_print_mode;
+ 	unsigned long flags;
+@@ -942,9 +941,7 @@ static ssize_t page_owner_write(struct f
+ 	 * Maximum input length for filter commands:
+ 	 * 32: print_mode command max length is 17 ("mode=stack_handle").
  	 */
- 	atomic_notifier_call_chain(&panic_notifier_list, 0, buf);
+-	max_input_len = 32;
+-
+-	if (count > max_input_len)
++	if (count > 32)
+ 		return -EINVAL;
  
--	sys_info(panic_print);
-+	sys_info_with_filter(panic_print, SYS_INFO_ALL_BT);
- 
- 	kmsg_dump_desc(KMSG_DUMP_PANIC, buf);
- 
+ 	kbuf = memdup_user_nul(buf, count);
 _
 
-Patches currently in -mm which might be from include@grrlz.net are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-sys_info-add-helper-for-callers-that-print-some-sys_info-on-their-own.patch
-watchdog-use-sys_info_with_filter-to-avoid-duplicate-backtraces.patch
-powerpc-watchdog-use-sys_info_with_filter-to-avoid-duplicate-backtraces.patch
-panic-use-sys_info_with_filter-to-avoid-duplicate-backtraces.patch
-lib-string-fix-memchr_inv-for-large-ranges.patch
+mm-mincore-use-walk_page_range_vma-in-do_mincore-fix.patch
+mm-page_owner-add-print_mode-filter-fix.patch
+drivers-media-v4l2-core-v4l2-vp9c-reduce-inlining.patch
+security-apparmor-apparmorfsc-conditionally-compile-get_loaddata_common_ref.patch
 
