@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D6DBA286D7D
-	for <mm-commits@vger.kernel.org>; Thu, 25 Jun 2026 04:29:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D9F4B2FE59B;
+	Thu, 25 Jun 2026 04:42:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782361778; cv=none; b=XGSRT8vw7Vmmn7rVXdZRaqsLEmr28dDpJrn/FePyaVnc4IPAholP8f2JPECSTTnT0Gx0ZPUnv6pb/SQuIeEyzNutOmNoZABvv0UlqFiarKGEwGbd9HrkRdAarbJzrKOWzEFIhsqG9iLBzhgmLuAT13FTr7gnOCXH1vY6TQHaZaM=
+	t=1782362566; cv=none; b=sgDdKkHmgw5s8kbMkU7R7OYfRKI2niz/aTUy9g9Wiaf8w3maIU0SKCi3N2UNHWSv39+WRqeI80xuSuDxhsFDht3bIKSzafrNc8cCq646t7Ff6rfwvbSdysCy+3sdutSLtjZYUwpxsBO6CcMaZYmfsNqt1gwv1goFwqaVklhmDFA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782361778; c=relaxed/simple;
-	bh=x5rjbBbiz3KNk0NYuLoMUPqDq8SmUKEumm0IRFsLP48=;
-	h=Date:To:From:Subject:Message-Id; b=gf98F+ePQg42bD1sGlDRYXxhkxhorb8GGRpVxNFf9u4F+Lwp7qsPB4WvwEEXNa4ePs2ovjVEMFb8ideqnctrn1AGNmVP6+o99x7vVpY6bvJQlk9E+2R/cjt6dtSJuq9qV672c5MnT5ZbrYvZMWix9zDAyd5YPGW2fDSTgA35x5o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=A7exWDnL; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1782362566; c=relaxed/simple;
+	bh=UgouWdz22LjFggkwylkQFqhuSxhvxoGcxteW5R3RauU=;
+	h=Date:To:From:Subject:Message-Id; b=O0sVdHj+Z6DiJxwKkMTo7QeMDkLyCmv0BNHSNCEckQXofDVWMYngw7I/P8WJdwC0bXN5vrfG26y2ysaMZvfV166dTWbC1q0+a261KtCqgcJA9xIJZfnaJ6SHOu9cEWNkH1ocn2jigqupguw6iWB6zQJK418C9nNV3nrgO5eylps=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=f1PW2DOv; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="A7exWDnL"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 805711F000E9;
-	Thu, 25 Jun 2026 04:29:36 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="f1PW2DOv"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4E9881F000E9;
+	Thu, 25 Jun 2026 04:42:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1782361776;
-	bh=Xf3nWj1TWxBFdjwYcQzCnVhGtqEInvlLze6+A5wH/IM=;
+	d=linux-foundation.org; s=korg; t=1782362563;
+	bh=80/RkbXbC9NMQ+qD7DMIo4hmLEDQyQl6i0DFgG/39Lo=;
 	h=Date:To:From:Subject;
-	b=A7exWDnLy2LbP0LuWxes/W5maR7X3gVLWi6bvShIoVx7z8PuOFUwONCic50efK4TQ
-	 MWUpMnV0vOAJ0M2eoEM5/g2WWVOy6ZZrH2x+ESLDTUAiHqL3WO7NlUyyXvFrI0r5+u
-	 qbaVzncm+HesSWYYgtxosuupyfL3cPsEOxhF9yRw=
-Date: Wed, 24 Jun 2026 21:29:36 -0700
-To: mm-commits@vger.kernel.org,sj@kernel.org,oleg@redhat.com,lance.yang@linux.dev,dave@stgolabs.net,catalin.marinas@arm.com,cai@lca.pw,leitao@debian.org,akpm@linux-foundation.org
+	b=f1PW2DOvWDDTe2yP8HgBVT+YuviWPM3B5hFOIv/cS7oNSyM5LVfCAXci6z/KgyrRT
+	 aBToShfT9qizLq6uBTBYWZ4xDnKhJjizuChmK4dpzWQOwNhKn6tSyvOHq6TV/Nb50g
+	 4Ttp+ZwfOTJGZbEqfGGzcxYvKDkIeXO6jvzv3+0o=
+Date: Wed, 24 Jun 2026 21:42:42 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,stable@vger.kernel.org,ryan.roberts@arm.com,riel@surriel.com,ljs@kernel.org,liam@infradead.org,kas@kernel.org,jannh@google.com,harry@kernel.org,david@kernel.org,anshuman.khandual@arm.com,dev.jain@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-kmemleak-stop-the-per-cpu-and-struct-page-scans-early-too.patch added to mm-new branch
-Message-Id: <20260625042936.805711F000E9@smtp.kernel.org>
+Subject: + mm-rmap-use-huge_ptep_get-in-try_to_unmap_one.patch added to mm-new branch
+Message-Id: <20260625044243.4E9881F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/kmemleak: stop the per-cpu and struct page scans early too
+     Subject: mm/rmap: use huge_ptep_get() in try_to_unmap_one()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-kmemleak-stop-the-per-cpu-and-struct-page-scans-early-too.patch
+     mm-rmap-use-huge_ptep_get-in-try_to_unmap_one.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-kmemleak-stop-the-per-cpu-and-struct-page-scans-early-too.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-rmap-use-huge_ptep_get-in-try_to_unmap_one.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,101 +69,89 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Breno Leitao <leitao@debian.org>
-Subject: mm/kmemleak: stop the per-cpu and struct page scans early too
-Date: Mon, 15 Jun 2026 10:49:08 -0700
+From: Dev Jain <dev.jain@arm.com>
+Subject: mm/rmap: use huge_ptep_get() in try_to_unmap_one()
+Date: Thu, 25 Jun 2026 04:28:51 +0000
 
-The per-cpu and struct page scan loops have no reschedule-stop check of
-their own: once a scan is interrupted they keep calling scan_block() for
-every remaining block, which scans nothing useful.
+try_to_unmap_one() handles hugetlb folios when memory failure needs to
+replace a poisoned hugetlb mapping with a hwpoison entry.  In that case
+page_vma_mapped_walk() returns the hugetlb entry in pvmw.pte, but the code
+reads it with ptep_get() before decoding the PFN.
 
-Propagate scan_block()'s interrupted status through scan_large_block() and
-break both loops as soon as it is set.
+That is wrong on architectures where hugetlb entries are not encoded as
+regular PTEs.  On s390, for example, a raw huge RSTE must be converted by
+huge_ptep_get() before helpers such as pte_pfn() can inspect it.  A raw
+decode can select the wrong subpage, so try_to_unmap_one() can install a
+hwpoison entry for the wrong PFN.
 
-Link: https://lore.kernel.org/20260615-kmemleak-stack-resched-v3-3-acecd7d7fd92@debian.org
-Signed-off-by: Breno Leitao <leitao@debian.org>
-Suggested-by: Catalin Marinas <catalin.marinas@arm.com>
-Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
-Reviewed-by: Oleg Nesterov <oleg@redhat.com>
-Cc: Davidlohr Bueso <dave@stgolabs.net>
-Cc: Lance Yang <lance.yang@linux.dev>
-Cc: Qian Cai <cai@lca.pw>
-Cc: SeongJae Park <sj@kernel.org>
+The userspace-visible result is that a later access to the poisoned
+hugetlb subpage can miss the expected SIGBUS.  With DEBUG_VM, the wrong
+subpage can also trip the PageHWPoison check.
+
+Use huge_ptep_get() for hugetlb mappings before decoding the PFN.
+
+Before c7ab0d2fdc84, the bug existed in the form of a plain dereference:
+we would check the head page pfn of the hugetlb with pte_pfn(*pte), and
+bail out on mismatch.  This would mean that the hwpoisoned entry will not
+get installed.
+
+Link: https://lore.kernel.org/20260625042853.2752898-1-dev.jain@arm.com
+Fixes: c7ab0d2fdc84 ("mm: convert try_to_unmap_one() to use page_vma_mapped_walk()")
+Signed-off-by: Dev Jain <dev.jain@arm.com>
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Harry Yoo <harry@kernel.org>
+Cc: Jann Horn <jannh@google.com>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Kiryl Shutsemau <kas@kernel.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kmemleak.c |   23 +++++++++++++++++------
- 1 file changed, 17 insertions(+), 6 deletions(-)
+ mm/rmap.c |   16 ++++++++++------
+ 1 file changed, 10 insertions(+), 6 deletions(-)
 
---- a/mm/kmemleak.c~mm-kmemleak-stop-the-per-cpu-and-struct-page-scans-early-too
-+++ a/mm/kmemleak.c
-@@ -1558,18 +1558,22 @@ static int scan_block(void *_start, void
+--- a/mm/rmap.c~mm-rmap-use-huge_ptep_get-in-try_to_unmap_one
++++ a/mm/rmap.c
+@@ -2095,11 +2095,16 @@ static bool try_to_unmap_one(struct foli
+ 		/* Unexpected PMD-mapped THP? */
+ 		VM_BUG_ON_FOLIO(!pvmw.pte, folio);
  
- /*
-  * Scan a large memory block in MAX_SCAN_SIZE chunks to reduce the latency.
-+ * Return non-zero if the scan was interrupted.
-  */
- #ifdef CONFIG_SMP
--static void scan_large_block(void *start, void *end)
-+static int scan_large_block(void *start, void *end)
- {
- 	void *next;
- 
- 	while (start < end) {
- 		next = min(start + MAX_SCAN_SIZE, end);
--		scan_block(start, next, NULL);
-+		if (scan_block(start, next, NULL))
-+			return 1;
- 		start = next;
- 		cond_resched();
- 	}
-+
-+	return 0;
- }
- #endif
- 
-@@ -1889,9 +1893,11 @@ static void kmemleak_scan(void)
- 
- #ifdef CONFIG_SMP
- 	/* per-cpu sections scanning */
--	for_each_possible_cpu(i)
--		scan_large_block(__per_cpu_start + per_cpu_offset(i),
--				 __per_cpu_end + per_cpu_offset(i));
-+	for_each_possible_cpu(i) {
-+		if (scan_large_block(__per_cpu_start + per_cpu_offset(i),
-+				     __per_cpu_end + per_cpu_offset(i)))
-+			break;
-+	}
- #endif
- 
- 	/*
-@@ -1902,6 +1908,7 @@ static void kmemleak_scan(void)
- 		unsigned long start_pfn = zone->zone_start_pfn;
- 		unsigned long end_pfn = zone_end_pfn(zone);
- 		unsigned long pfn;
-+		int stop = 0;
- 
- 		for (pfn = start_pfn; pfn < end_pfn; pfn++) {
- 			struct page *page = pfn_to_online_page(pfn);
-@@ -1918,8 +1925,12 @@ static void kmemleak_scan(void)
- 			/* only scan if page is in use */
- 			if (page_count(page) == 0)
- 				continue;
--			scan_block(page, page + 1, NULL);
-+			stop = scan_block(page, page + 1, NULL);
-+			if (stop)
-+				break;
+-		/*
+-		 * Handle PFN swap PTEs, such as device-exclusive ones, that
+-		 * actually map pages.
+-		 */
+-		pteval = ptep_get(pvmw.pte);
++		address = pvmw.address;
++		if (folio_test_hugetlb(folio)) {
++			pteval = huge_ptep_get(mm, address, pvmw.pte);
++		} else {
++			/*
++			 * Handle PFN swap PTEs, such as device-exclusive ones,
++			 * that actually map pages.
++			 */
++			pteval = ptep_get(pvmw.pte);
++		}
+ 		if (likely(pte_present(pteval))) {
+ 			pfn = pte_pfn(pteval);
+ 		} else {
+@@ -2110,7 +2115,6 @@ static bool try_to_unmap_one(struct foli
  		}
-+		if (stop)
-+			break;
- 	}
- 	put_online_mems();
+ 
+ 		subpage = folio_page(folio, pfn - folio_pfn(folio));
+-		address = pvmw.address;
+ 		anon_exclusive = folio_test_anon(folio) &&
+ 				 PageAnonExclusive(subpage);
  
 _
 
-Patches currently in -mm which might be from leitao@debian.org are
+Patches currently in -mm which might be from dev.jain@arm.com are
 
-mm-kmemleak-avoid-soft-lockup-when-scanning-task-stacks.patch
-mm-kmemleak-stop-the-task-stack-scan-early-when-interrupted.patch
-mm-kmemleak-stop-the-per-cpu-and-struct-page-scans-early-too.patch
+mm-swap-rename-subpage-page-in-folio_dup_swap-folio_put_swap.patch
+mm-mprotect-drop-sub-from-batching-context.patch
+mm-rmap-use-huge_ptep_get-in-try_to_unmap_one.patch
 
