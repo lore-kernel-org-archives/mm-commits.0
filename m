@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DBE12212564
-	for <mm-commits@vger.kernel.org>; Thu, 25 Jun 2026 04:05:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 510421624D5
+	for <mm-commits@vger.kernel.org>; Thu, 25 Jun 2026 04:20:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782360328; cv=none; b=QPr1vYoEIML8/HT/pWahNqr4RkrdRF6hXXduu0u0K4tS2DJyfw3EKEQX7TiJSmy7nzcQGfpxQNjOAqe5LtRzlYuofVrU47Y9BEpyn/WxIVURd6gViguZcY2CfGdYaHZwBKdM2Wj2bJAXjBcDBU14Ka2plnNXpxAn2DwSE+vYU0k=
+	t=1782361234; cv=none; b=GGM31KxM93gho8QSO2l9bApteUr3r7akQouysFW25ufq8Twsd3pFWcRjjwXjdlF8e5+LANYeJOUComMK6JH28M8uuLJ2xsW7GyCy+ToACWM3nfPG8c51Es5+Vti53tQjpijpXm0pWHsFEVuOV3R1P4qvuyP098LEC2nThwUE5as=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782360328; c=relaxed/simple;
-	bh=RhFTzL5N9BXcbwVU9p8ctYQFFyebDF+pdxB1Q7II7jY=;
-	h=Date:To:From:Subject:Message-Id; b=uaYJ7lry6U3e7tBQxqM4jS8oRZH+VfyXbq+6om/SjRlMX1TmG3WRndRKEj4PWMeuqPUMJWaIg3AFEqUPp4fwOI5sPZadm1ouIunlVPvy5kjEqouDl7/rm6RhK0hpkoVDJ/Wzfz+AlD3mUj0W9Z7TxOWQMQvDKk1PmnQwmEvuW/8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DSLENN4M; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1782361234; c=relaxed/simple;
+	bh=Qz3szWpzAxqJmxO88DhyHXBj8CdKiefR7NOTBiI5h8o=;
+	h=Date:To:From:Subject:Message-Id; b=uOhne6un7DmzziKjuwoHV6wSKnCDWGL9O2qV2d8UE0291LZNqavNnr+EO5mQ8uyZ3H1ZiHLJ1frx4FhGtq/PwFJAzBCQ+d51id7sVM3H1vm4GgqSH+U/NnJh+aEqweJkx20tGYQqAsT3sp2BiA3XLHIYbQJQEAyzLS4bc0S6qTA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=W5lZTu3O; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DSLENN4M"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 611741F000E9;
-	Thu, 25 Jun 2026 04:05:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="W5lZTu3O"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BD5031F000E9;
+	Thu, 25 Jun 2026 04:20:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1782360327;
-	bh=NRdh5epv9/E8PSUBIaqWIsDUqkoPxAvVnbyV33fIOzY=;
+	d=linux-foundation.org; s=korg; t=1782361232;
+	bh=E7DzPJuWg3JVZ1Kmq2zndTo+hKYQxy1HURtdwC8ByU4=;
 	h=Date:To:From:Subject;
-	b=DSLENN4MCRJx7czoKrNQhNF3hZv+fc0eWPU238WV/idUXJxFpMT0n4VV8HXRxBZZQ
-	 S+lRUDleN9eZeLljStC5QzYmIS1v7hlIM+b5kSqHpLubhoC8VJ+EC3YwVV+dPugk/o
-	 vpBqQdaoyuTKf2w5Wty5OCFmf34KmDbpVPxfAT3M=
-Date: Wed, 24 Jun 2026 21:05:26 -0700
-To: mm-commits@vger.kernel.org,urezki@gmail.com,glider@google.com,dvyukov@google.com,dja@axtens.net,elfring@users.sourceforge.net,akpm@linux-foundation.org
+	b=W5lZTu3OGAqCUINNgdGu4cHUQZXKV2zkr114yAGa7FpZ0lynBpsxz0VgCsNx0T3g8
+	 4irTLE117sJB51jSiT0Jv9EFPJDOYoLXZowqBZwjrtJwMCiTL41T+uLxAFVRQYgQ8u
+	 7uezvQG9p4vXtEIzykH5p5q6vtT3/JjOGjN0q3E4=
+Date: Wed, 24 Jun 2026 21:20:32 -0700
+To: mm-commits@vger.kernel.org,pfalcato@suse.de,osalvador@suse.de,muchun.song@linux.dev,ljs@kernel.org,david@kernel.org,anthony.yznaga@oracle.com,enelsonmoore@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmalloc-use-more-common-error-handling-code-in-pcpu_get_vm_areas.patch added to mm-new branch
-Message-Id: <20260625040527.611741F000E9@smtp.kernel.org>
+Subject: + mm-hugetlb-correct-config_cgroup_hugetlb-macro-name-in-comment.patch added to mm-new branch
+Message-Id: <20260625042032.BD5031F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/vmalloc: use more common error handling code in pcpu_get_vm_areas()
+     Subject: mm: hugetlb: correct CONFIG_CGROUP_HUGETLB macro name in comment
 has been added to the -mm mm-new branch.  Its filename is
-     mm-vmalloc-use-more-common-error-handling-code-in-pcpu_get_vm_areas.patch
+     mm-hugetlb-correct-config_cgroup_hugetlb-macro-name-in-comment.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmalloc-use-more-common-error-handling-code-in-pcpu_get_vm_areas.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-correct-config_cgroup_hugetlb-macro-name-in-comment.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,43 +69,44 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Markus Elfring <elfring@users.sourceforge.net>
-Subject: mm/vmalloc: use more common error handling code in pcpu_get_vm_areas()
-Date: Tue, 16 Jun 2026 18:14:52 +0200
+From: Ethan Nelson-Moore <enelsonmoore@gmail.com>
+Subject: mm: hugetlb: correct CONFIG_CGROUP_HUGETLB macro name in comment
+Date: Mon, 15 Jun 2026 17:01:31 -0700
 
-Use an existing label once more so that a bit of exception handling can be
-better reused at the end of this function implementation.
+A comment in <linux/hugetlb_cgroup.h> incorrectly refers to
+CONFIG_MEM_RES_CTLR_HUGETLB, which has never existed in the kernel,
+instead of CONFIG_CGROUP_HUGETLB.  Correct it.
 
-This issue was detected by using the Coccinelle software.
+Discovered while searching for CONFIG_* symbols referenced in code but not
+defined in any Kconfig file.
 
-Link: https://lore.kernel.org/453375c4-c3ca-4e6f-8880-0e6ff3c74ee3@web.de
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
-Reviewed-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Daniel Axtens <dja@axtens.net>
-Cc: Dmitry Vyukov <dvyukov@google.com>
+Link: https://lore.kernel.org/20260616000135.62815-1-enelsonmoore@gmail.com
+Signed-off-by: Ethan Nelson-Moore <enelsonmoore@gmail.com>
+Reviewed-by: David Hildenbrand (Arm) <david@kernel.org>
+Cc: Anthony Yznaga <anthony.yznaga@oracle.com>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Pedro Falcato <pfalcato@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ include/linux/hugetlb_cgroup.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/vmalloc.c~mm-vmalloc-use-more-common-error-handling-code-in-pcpu_get_vm_areas
-+++ a/mm/vmalloc.c
-@@ -5348,9 +5348,7 @@ err_free_shadow:
- 		kfree(vms[area]);
- 	}
- 	spin_unlock(&free_vmap_area_lock);
--	kfree(vas);
--	kfree(vms);
--	return NULL;
-+	goto err_free2;
+--- a/include/linux/hugetlb_cgroup.h~mm-hugetlb-correct-config_cgroup_hugetlb-macro-name-in-comment
++++ a/include/linux/hugetlb_cgroup.h
+@@ -267,5 +267,5 @@ static inline void hugetlb_cgroup_migrat
+ {
  }
  
- /**
+-#endif  /* CONFIG_MEM_RES_CTLR_HUGETLB */
++#endif  /* CONFIG_CGROUP_HUGETLB */
+ #endif
 _
 
-Patches currently in -mm which might be from elfring@users.sourceforge.net are
+Patches currently in -mm which might be from enelsonmoore@gmail.com are
 
-mm-vmalloc-use-more-common-error-handling-code-in-pcpu_get_vm_areas.patch
+mm-fix-config_stack_growsup-typo-in-tools-testing-vma-include-duph.patch
+mm-hugetlb-correct-config_cgroup_hugetlb-macro-name-in-comment.patch
 
