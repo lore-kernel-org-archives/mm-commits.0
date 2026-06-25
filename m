@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D8ECA3A875E
-	for <mm-commits@vger.kernel.org>; Thu, 25 Jun 2026 02:04:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0981C3A8FE9
+	for <mm-commits@vger.kernel.org>; Thu, 25 Jun 2026 02:04:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782353080; cv=none; b=i13r5qlT3rvc15sJfJ4q1V6/QIdPejOjNA6+yQkQDAqil8jPI/6Y5hwzXj2Y0H2HjFDkWWFfotNIAMSk3GnQR/H2XLUz7eO1Y2iry8sGPjSIbnwtIqyTga4VqSUYZCnO+jZN2kiqT7XRCEII8s21TRysSik/09LvRfQo7L7KPJ8=
+	t=1782353082; cv=none; b=hCkVToEZbX2WQQxgtKpUyMIhuAu2Y89UTjpmXO32PYcDTGUeFLNd0oxqJ6D+C7Xb0x+gdY8vLTHkCi3XpmxXqZqvMqJAQgrAZQjjQxIL0Ao6Vx6cAZS/cc87r3JoTh6zHqupGquoQaVotqT74WgScVYPT+56vUEFnck+CBdEJak=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782353080; c=relaxed/simple;
-	bh=6vaczq5sZ/+qjy0jpE0FrT1FTPiOGobzTXM390gGdXw=;
-	h=Date:To:From:Subject:Message-Id; b=fA2RXfDKeKCr8ou5fn/iu1y0dRsCJEJuKhhceTlsQrJ3DZ2GOSao0z4lbGjRRhJHk6KSDv9bnZG+ysmE5xqRQDkRoeroFwZoC/c92iffzdfMq48HQ7FAws2eg2TwqHNyOFkmxhUZMaxLNEt0DRa1HY7JDiAWF7NINNr24wWYKqc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vpI2nIwp; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1782353082; c=relaxed/simple;
+	bh=GfeP+JSTtDquI6WPDD9wJLnzcUGA9lFgUGNCSPH2EVk=;
+	h=Date:To:From:Subject:Message-Id; b=g3L3UTtsgm0iBANIqMFH26xYvdKEOvDTHZO+kedPgXV0z5tNo0OS22g4KYYqCNvGiZn6rVM50/JJDbOWBaqbgkfvd67oAiKqsn222v/mPNu02+7fSFRHgqOm9oy+OW30KORyZeJSCQGssyJB3c/yidh8OXqn8XpjsMz7dCNLBhM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=N1gGiOjE; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vpI2nIwp"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7E3161F000E9;
-	Thu, 25 Jun 2026 02:04:38 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="N1gGiOjE"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8887D1F000E9;
+	Thu, 25 Jun 2026 02:04:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1782353078;
-	bh=Xd/0hNH7KaClVw/JbNjNo99p4J9hQkCv5SuemTUr+Rk=;
+	d=linux-foundation.org; s=korg; t=1782353080;
+	bh=VBhiRA4eF3AF6b/fBaIsPCicP25zGOVnbxmLZcAA3iw=;
 	h=Date:To:From:Subject;
-	b=vpI2nIwpgG3IMBfxmz+XiOalh+AhICxu3llX68TKQzeVYrC97mzab7S8WkRDSfLXc
-	 rbYuP8/nbi1+b2JKNXLq1sEsub/RpLSx8Gsknq5dRFy7kYMTU6iLl5ejDV/21Btmx5
-	 BhnKqYqr7T4k9SwkcPLYM1ldfe3yWECwHWb8Ut6w=
-Date: Wed, 24 Jun 2026 19:04:38 -0700
+	b=N1gGiOjE+8IslWI+uNXHXfHCx0K+etIkwfYX+7Hzqghm2i/D1sKBbB/HBL6rMLPF/
+	 wAFPUc7a6+OslqQODEDMwr4AFMLrlVpJSqF9rG4ApEi8/q0P80Bj7qyJ3AdNRpcZ6M
+	 bfEYbnM5wgrKExQCBYiKRIVlX/Gq1SosKbl2z2UU=
+Date: Wed, 24 Jun 2026 19:04:40 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,surenb@google.com,mhocko@suse.com,jackmanb@google.com,hannes@cmpxchg.org,ye.liu@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_owner-clamp-skip_buddy_pages-pfn-advance-at-max_order_nr_pages-boundary.patch added to mm-new branch
-Message-Id: <20260625020438.7E3161F000E9@smtp.kernel.org>
+Subject: + mm-page_owner-use-memcg_data-snapshot-instead-of-pagememcgkmem-to-avoid-toctou-vm_bug_on.patch added to mm-new branch
+Message-Id: <20260625020440.8887D1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/page_owner: clamp skip_buddy_pages() PFN advance at MAX_ORDER_NR_PAGES boundary
+     Subject: mm/page_owner: use memcg_data snapshot instead of PageMemcgKmem() to avoid TOCTOU VM_BUG_ON
 has been added to the -mm mm-new branch.  Its filename is
-     mm-page_owner-clamp-skip_buddy_pages-pfn-advance-at-max_order_nr_pages-boundary.patch
+     mm-page_owner-use-memcg_data-snapshot-instead-of-pagememcgkmem-to-avoid-toctou-vm_bug_on.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_owner-clamp-skip_buddy_pages-pfn-advance-at-max_order_nr_pages-boundary.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_owner-use-memcg_data-snapshot-instead-of-pagememcgkmem-to-avoid-toctou-vm_bug_on.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,51 +70,30 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Ye Liu <ye.liu@linux.dev>
-Subject: mm/page_owner: clamp skip_buddy_pages() PFN advance at MAX_ORDER_NR_PAGES boundary
-Date: Thu, 25 Jun 2026 09:47:04 +0800
+Subject: mm/page_owner: use memcg_data snapshot instead of PageMemcgKmem() to avoid TOCTOU VM_BUG_ON
+Date: Thu, 25 Jun 2026 09:47:05 +0800
 
-Patch series "mm/page_owner: fix TOCTOU races in lockless page state
-reading".
+print_page_owner_memcg() takes a snapshot of page->memcg_data via
+READ_ONCE at the top of the function and guards against tail pages and
+NULL memcg_data.  However, at the end it calls PageMemcgKmem(page) which
+internally calls folio_memcg_kmem() — and that function re-reads
+folio->memcg_data and page->compound_head locklessly, wrapping both in
+VM_BUG_ON assertions:
 
-Fix two TOCTOU races found during review of [1].
+    VM_BUG_ON_PGFLAGS(PageTail(&folio->page), &folio->page);
+    VM_BUG_ON_FOLIO(folio->memcg_data & MEMCG_DATA_OBJEXTS, folio);
 
-page_owner reads page state locklessly by design.  In two places the code
-reads the same metadata twice once as a guard, then again as a use and the
-page can be concurrently reallocated between the two:
+If the page is concurrently freed and reallocated as a THP tail page or a
+slab page between the initial guards and this final call, the VM_BUG_ON
+assertions can fire on debug builds (CONFIG_DEBUG_VM=y), causing a kernel
+panic.
 
-Patch 1: buddy_order_unsafe() in skip_buddy_pages() can return garbage if
-the page is allocated between PageBuddy() and the private read, causing
-the PFN to skip past a pfn_valid() boundary.  Clamp the advance at
-MAX_ORDER_NR_PAGES.
+Fix by reusing the memcg_data snapshot already taken at function entry
+instead of calling PageMemcgKmem(), which is semantically equivalent:
+PageMemcgKmem()->folio_memcg_kmem()->folio->memcg_data & MEMCG_DATA_KMEM. 
+This avoids both the TOCTOU window and the assertions entirely.
 
-Patch 2: PageMemcgKmem() in print_page_owner_memcg() re-reads
-folio->memcg_data and triggers VM_BUG_ON assertions if the page became a
-tail page or slab page.  Use the snapshot taken at entry.
-
-
-This patch (of 2):
-
-The lockless buddy_order_unsafe() read can return a garbage order value if
-the page is concurrently allocated between the PageBuddy check and the
-private read.  If this bogus order is <= MAX_PAGE_ORDER,
-skip_buddy_pages() would arbitrarily advance the PFN, potentially jumping
-past a MAX_ORDER_NR_PAGES boundary whose pfn_valid() check would have
-caught an offline memory section.
-
-In read_page_owner(), which relies solely on boundary-aligned pfn_valid()
-to guard pfn_to_page(), skipping the boundary could cause pfn_to_page() to
-access an unmapped mem_section.
-
-Clamp the advance so it never crosses the next MAX_ORDER_NR_PAGES
-boundary.  This is safe for all three callers: the pageblock-iterating
-ones already handle boundary transitions in their outer loops, and for
-read_page_owner() the worst case is one extra PageBuddy check per 1024
-pages for a huge buddy block straddling the boundary.
-
-Link: https://lore.kernel.org/20260625014708.87386-1-ye.liu@linux.dev
-Link: https://lore.kernel.org/20260625014708.87386-2-ye.liu@linux.dev
-Link: https://lore.kernel.org/all/20260623065234.31866-2-ye.liu@linux.dev/ [1]
-Link: https://sashiko.dev/#/patchset/20260623065234.31866-2-ye.liu@linux.dev
+Link: https://lore.kernel.org/20260625014708.87386-3-ye.liu@linux.dev
 Signed-off-by: Ye Liu <ye.liu@linux.dev>
 Cc: Brendan Jackman <jackmanb@google.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
@@ -125,39 +104,20 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_owner.c |   14 ++++++++++++--
- 1 file changed, 12 insertions(+), 2 deletions(-)
+ mm/page_owner.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/page_owner.c~mm-page_owner-clamp-skip_buddy_pages-pfn-advance-at-max_order_nr_pages-boundary
+--- a/mm/page_owner.c~mm-page_owner-use-memcg_data-snapshot-instead-of-pagememcgkmem-to-avoid-toctou-vm_bug_on
 +++ a/mm/page_owner.c
-@@ -435,6 +435,12 @@ void __folio_copy_owner(struct folio *ne
-  * to skip less than the full buddy block, but that is acceptable for page owner
-  * iteration purposes.
-  *
-+ * The lockless read of buddy_order_unsafe() can also return a garbage order if
-+ * the page is concurrently allocated and PageBuddy is cleared between the check
-+ * and the read. Clamp the advance at the next MAX_ORDER_NR_PAGES boundary so
-+ * that a bogus order cannot carry @pfn into an unvalidated memory section,
-+ * which would break callers that rely on boundary-aligned pfn_valid() checks.
-+ *
-  * Return: true if the page was skipped (caller should continue its loop),
-  *         false if the page is not a buddy page and should be processed normally.
-  */
-@@ -446,8 +452,12 @@ static inline bool skip_buddy_pages(unsi
- 		return false;
- 
- 	order = buddy_order_unsafe(page);
--	if (order <= MAX_PAGE_ORDER)
--		*pfn += (1UL << order) - 1;
-+	if (order <= MAX_PAGE_ORDER) {
-+		unsigned long new_pfn = *pfn + (1UL << order);
-+		unsigned long boundary = ALIGN(*pfn + 1, MAX_ORDER_NR_PAGES);
-+
-+		*pfn = min(new_pfn, boundary) - 1;
-+	}
- 
- 	return true;
- }
+@@ -568,7 +568,7 @@ static inline int print_page_owner_memcg
+ 	cgroup_name(memcg->css.cgroup, name, sizeof(name));
+ 	ret += scnprintf(kbuf + ret, count - ret,
+ 			"Charged %sto %smemcg %s\n",
+-			PageMemcgKmem(page) ? "(via objcg) " : "",
++			(memcg_data & MEMCG_DATA_KMEM) ? "(via objcg) " : "",
+ 			online ? "" : "offline ",
+ 			name);
+ out_unlock:
 _
 
 Patches currently in -mm which might be from ye.liu@linux.dev are
