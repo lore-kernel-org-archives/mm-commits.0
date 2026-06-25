@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 42EE01A9F88
-	for <mm-commits@vger.kernel.org>; Thu, 25 Jun 2026 05:02:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 245CA1A9F88
+	for <mm-commits@vger.kernel.org>; Thu, 25 Jun 2026 05:02:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782363748; cv=none; b=aoOspDddMlgCPbovnrX0HgsKAVCi63lqzmzTgIsp0H+jOeeodi1Emfv2c2INUcVoDiozzMx2dQ0cQR9BqrZYANICEOHI0WRiJrlo5YuQ/mB474CKFlwj/eE2uWKGY9yw5FqHC2sFAKrqztT+at1OGzAtoHom7FYcqAY+H2WxWGo=
+	t=1782363750; cv=none; b=Ns3tdQgOOpa+XTCIsh+SnclLqZYlFLKdYfFIdpUGmKmWKs8KILLmoHkawhTGMtJ6P156E9dTbgjBf6Rpn/pHPdtt3akxF93wkN2GlGKpmuY1W1XlxAi+WFOplUOpkLmxDRpEOwntk9j/qH5dy2koJfl8KWT1iX8WLgoCIbh8FB8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782363748; c=relaxed/simple;
-	bh=2gvgNv1IskUahv7OFSAHnq6UeaQ7YKAt8ij0K+07834=;
-	h=Date:To:From:Subject:Message-Id; b=KU/Bri1HhjDF9OoX9Qt/iQXMsVU+uEb59nfB0AnHvL1cqzjUDQIgrjFHW6BOQSn9BucBUGQEMu/3Gfm9OwP6L1MSYp9rpFxxnev8p00Ku3r20bZkpHEIXQCWeyYKjyDUiZ9PBfw16NTcXMjNwG2hQSQr4Ivur99lDAwzfDyJBQs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ID2z0PEU; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1782363750; c=relaxed/simple;
+	bh=6ZR4kvEmeWan94mCGqMjh4HlneUeZeEGFRG74tKnsf0=;
+	h=Date:To:From:Subject:Message-Id; b=Iwtp8BDkHPm9YNjhJlG6+VoBGGrwefkBDoRCAS8BjID/lsDpJ8iCnISMe9sdH8B9MFo4OuhLlKGYYJQZZ50AiTMe0+EXV8ZRG2dnnnINGALFlNRbFokOzxyw1X5Lci/oK/jzemDZp0gQ7eSiE+Q3q3KCgpvbmU+OhL88hq3TfeY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cQHQ1Lo9; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ID2z0PEU"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D3B581F000E9;
-	Thu, 25 Jun 2026 05:02:26 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cQHQ1Lo9"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A962C1F000E9;
+	Thu, 25 Jun 2026 05:02:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1782363746;
-	bh=g603OwzT7IGi3QCBkBqa6M+N7ezHzzlfGIVpfJI+G9c=;
+	d=linux-foundation.org; s=korg; t=1782363748;
+	bh=bzKAuJJ/aDKL40unq6IuiWKk3B6gSNnUzQaGetCJYzQ=;
 	h=Date:To:From:Subject;
-	b=ID2z0PEUIF3cNrMKGD5nluV1Pba9jg2DjnaJVyu9NI3/0aNamjDFexVBgRCRAlA11
-	 FEPE8yQHWBTZYznnqlMKZuRIG0GWNKG4UirNNnWMrnKLyoqcP3Th0ybtwiSGNnfxlO
-	 AFH1bAlda0UK9D7jZsrWyRLZ56egSMsVSmOJJOds=
-Date: Wed, 24 Jun 2026 22:02:26 -0700
-To: mm-commits@vger.kernel.org,agruenba@redhat.com,willy@infradead.org,akpm@linux-foundation.org
+	b=cQHQ1Lo9FWnnc1zsGmu9ty+/2/TbfiiNqoSr6edmqIU2UO+40+BVwh+lwB1Bxx2Yx
+	 iiV/Xl8I/z+1DMcT0N//f5ecVJLmNsK82Eu6PGv6aU2FhJ1Eq4ORm8e78iJwOn9hPl
+	 6ddmcjLivFGwRdHofS6p5Gk2go+gJtlzfDEWgTos=
+Date: Wed, 24 Jun 2026 22:02:28 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,agruenba@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-add-writebackh-to-docs-build.patch added to mm-new branch
-Message-Id: <20260625050226.D3B581F000E9@smtp.kernel.org>
+Subject: + fix-a-typo-in-the-wbc_init_bio-description.patch added to mm-new branch
+Message-Id: <20260625050228.A962C1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: add writeback.h to docs build
+     Subject: writeback.h: fix a typo in the wbc_init_bio() description
 has been added to the -mm mm-new branch.  Its filename is
-     mm-add-writebackh-to-docs-build.patch
+     fix-a-typo-in-the-wbc_init_bio-description.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-writebackh-to-docs-build.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fix-a-typo-in-the-wbc_init_bio-description.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,36 +69,35 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: add writeback.h to docs build
-Date: Mon, 15 Jun 2026 17:22:41 +0100
+From: Andreas Gruenbacher <agruenba@redhat.com>
+Subject: writeback.h: fix a typo in the wbc_init_bio() description
+Date: Mon, 15 Jun 2026 17:22:42 +0100
 
-There's four functions in this header file with kernel-doc; add them to
-the htmldocs.
+initializtion -> initialization (missing "a")
 
-Link: https://lore.kernel.org/20260615162244.2170866-1-willy@infradead.org
+Link: https://lore.kernel.org/20260615162244.2170866-2-willy@infradead.org
+Signed-off-by: Andreas Gruenbacher <agruenba@redhat.com>
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Andreas Gruenbacher <agruenba@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/core-api/mm-api.rst |    1 +
- 1 file changed, 1 insertion(+)
+ include/linux/writeback.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/Documentation/core-api/mm-api.rst~mm-add-writebackh-to-docs-build
-+++ a/Documentation/core-api/mm-api.rst
-@@ -73,6 +73,7 @@ Readahead
- Writeback
- ---------
+--- a/include/linux/writeback.h~fix-a-typo-in-the-wbc_init_bio-description
++++ a/include/linux/writeback.h
+@@ -244,7 +244,7 @@ void wbc_attach_fdatawrite_inode(struct
+ 		struct inode *inode);
  
-+.. kernel-doc:: include/linux/writeback.h
- .. kernel-doc:: mm/page-writeback.c
-    :export:
- 
+ /**
+- * wbc_init_bio - writeback specific initializtion of bio
++ * wbc_init_bio - writeback specific initialization of bio
+  * @wbc: writeback_control for the writeback in progress
+  * @bio: bio to be initialized
+  *
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from agruenba@redhat.com are
 
-mm-add-writebackh-to-docs-build.patch
-fs-free-any-excess-xarray-nodes-in-clear_inode.patch
+fix-a-typo-in-the-wbc_init_bio-description.patch
 
