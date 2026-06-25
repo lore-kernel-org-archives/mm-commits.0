@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BF5EA3126CA
-	for <mm-commits@vger.kernel.org>; Thu, 25 Jun 2026 19:23:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B872D21CA03
+	for <mm-commits@vger.kernel.org>; Thu, 25 Jun 2026 21:02:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782415429; cv=none; b=pmVb51+3uw9axk+YnXHAHAlcw9FhFy6O+76XIhINp4iM5ZRoAx0k6RGTBBkTKWqPNX4hlTPBmD0vcdtkbH80dUekUVaWLJ7763oMaomqNdhZonnHKojWIZeQlLIFYPE8NbJ6RO83jG2PVFhnkPD7stMnoVcjk8ziHr5ZYOT63f0=
+	t=1782421341; cv=none; b=W2rwwW3MhQDXcxbUmimK3m4ohxd4v0Wc6Ngqrea0C9zS0h3Aiuj2IZQL+QXWme4te7yP3dj7oCbx0v0Ck/Z7wBWBpRjnojpWoh0ZAZWYnOPMD31wK8RMgXFKOb01bbIuvlM4gEGdbkyR1WdUnXcXCA6K+021hM6Ye6Yuon1/bDA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782415429; c=relaxed/simple;
-	bh=+tgytk1JkaXt72SjhShLCYb/FJdHfAJluIXULrBEN4w=;
-	h=Date:To:From:Subject:Message-Id; b=UJtjMssImSQ4awjW8Rwex5j7OBjkPsIYz3Up/YGdh2Rjrkm/3skSPmkKGUemg/B7Vd90I1cKUmI7W/Eq4ziPNEAC4Rz2Rv66zv4udVX9vHiJBW+WwjofsuomVMVibjsje0tCJEt6foVPvseENAxyIU6FPbduy1Uivt0StUlGDI8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PEse6Lw2; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1782421341; c=relaxed/simple;
+	bh=slYGKsvDnZ7jZTnlMHZ0gDv3bdXFVB1tlDw5+4pfr40=;
+	h=Date:To:From:Subject:Message-Id; b=Ec+X9ivDfF8CNXEwl54+OdlHgZP29Klp3tGG6KKiZggAoFq5rAwZk5J1wcGhFUsINGMbDIvdbVXAOkOix0D3gLSxSK59bUDzdZzMhbsZi5NIZttgkomo/be6YkGvYOUPsQ2wAxXlMmOcHeudt47WY58WxB2dSXgYk62+vM3OMiI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=F04tgpyA; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PEse6Lw2"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 06AAF1F000E9;
-	Thu, 25 Jun 2026 19:23:47 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="F04tgpyA"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 28E581F000E9;
+	Thu, 25 Jun 2026 21:02:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1782415428;
-	bh=+KPo8emJvhzU46zBWwls9ucGMVNO56oZHF2mxC1olA4=;
+	d=linux-foundation.org; s=korg; t=1782421340;
+	bh=XkdYRNWACqjfdMLIbouS8O2U9Rt1q2+OVzU2w0wqw5I=;
 	h=Date:To:From:Subject;
-	b=PEse6Lw2rw/k5L1epXraJMxEkFxkQIM/RWQRRdjge4Oq5A/yp8HYBfKF0vgDNkL27
-	 UYqZa0oQqwVeDfLguXfKR4bz/ieMpnXoKT7v/ALpJ+0kyJRtU84HK+7XLO54Q6v7Pb
-	 SZtpZxYriaZ+W4GG6XZcw1OA1DCejLbXevW3D/XU=
-Date: Thu, 25 Jun 2026 12:23:47 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,zhen.ni@easystack.cn,ye.liu@linux.dev,vbabka@kernel.org,surenb@google.com,skhan@linuxfoundation.org,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,jackmanb@google.com,hannes@cmpxchg.org,david@kernel.org,corbet@lwn.net,chenyichong@uniontech.com,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=F04tgpyAxB/EPv49Bw/t9wj2ePKVqb/vBPYFpkZmdkxVV4pjWle/Jwq8Za9x4+04J
+	 uy5kZVL+NeoF/Uvil1a+bHk6z9tUWEReodRDUzjNO+VB1lkRG+E7hBb0MyGLSOteFI
+	 9Vt3aSL/KL+9GLMjMNb0DLmAZqHhCOXKICjgSvR4=
+Date: Thu, 25 Jun 2026 14:02:19 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,shuah@kernel.org,ritesh.list@gmail.com,osalvador@suse.de,mhocko@kernel.org,linmiaohe@huawei.com,liam.howlett@oracle.com,dev.jain@arm.com,david@kernel.org,sayalip@linux.ibm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_owner-add-print_mode-filter-fix.patch added to mm-new branch
-Message-Id: <20260625192348.06AAF1F000E9@smtp.kernel.org>
+Subject: + selftests-mm-handle-einval-when-configuring-gigantic-hugepages.patch added to mm-new branch
+Message-Id: <20260625210220.28E581F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm-page_owner-add-print_mode-filter-fix
+     Subject: selftests/mm: handle EINVAL when configuring gigantic hugepages
 has been added to the -mm mm-new branch.  Its filename is
-     mm-page_owner-add-print_mode-filter-fix.patch
+     selftests-mm-handle-einval-when-configuring-gigantic-hugepages.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_owner-add-print_mode-filter-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-handle-einval-when-configuring-gigantic-hugepages.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,60 +69,114 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-page_owner-add-print_mode-filter-fix
-Date: Thu Jun 25 12:18:25 PM PDT 2026
+From: Sayali Patil <sayalip@linux.ibm.com>
+Subject: selftests/mm: handle EINVAL when configuring gigantic hugepages
+Date: Thu, 25 Jun 2026 18:10:16 +0530
 
-remove local max_input_len. per Zi Yan
+Patch series "selftests/mm: avoid false failures in hugetlb and KSM tests".
 
-Cc: Brendan Jackman <jackmanb@google.com>
+This series fixes issues in the hugetlb and KSM MM selftest categories
+that can report failures when the prerequisites for the tests are not
+satisfied.
+
+Patch 1 updates the hugetlb selftest helpers to handle -EINVAL when
+attempting to configure gigantic HugeTLB pages via nr_hugepages.  PowerPC
+hash MMU pSeries systems expose gigantic hugepage sizes but do not allow
+runtime allocation of such pages, causing the sysfs write to fail.  Handle
+this case gracefully and continue running the test instead of aborting.
+
+Patch 2 fixes the KSM NUMA merge test on systems with memoryless NUMA
+nodes.  The test currently relies on the number of configured NUMA nodes
+and may attempt allocations on nodes that have no memory, resulting in
+spurious failures.  Count only NUMA nodes that contain memory and skip the
+test when fewer than two such nodes are available.
+
+These changes improve handling of unsupported test configurations and
+unmet test prerequisites, avoiding spurious failures.
+
+
+This patch (of 2):
+
+Some MM selftests attempt to configure the amount of HugeTLB pages of
+different sizes by writing to nr_hugepages.
+
+PowerPC hash MMU pSeries systems advertise gigantic hugepage sizes but do
+not support runtime allocation of such pages, writes to the corresponding
+nr_hugepages file fail with -EINVAL.  This causes the test to bail out
+even though the failure is due to a platform limitation rather than the
+functionality being tested.
+
+Treat -EINVAL from the sysfs write as a skipped configuration request and
+continue running the test instead of failing.
+
+Before patch:
+   -------------------------
+   running ./hugetlb-madvise
+   -------------------------
+   TAP version 13
+   1..1
+     [INFO] detected hugetlb page size: 16777216 KiB
+     [INFO] detected hugetlb page size: 16384 KiB
+    ok 1 MADV_DONTNEED and MADV_REMOVE on hugetlb
+    Totals: pass:1 fail:0 xfail:0 xpass:0 skip:0 error:0
+    Bail out! /sys/kernel/mm/hugepages/hugepages-16777216kB/nr_hugepages
+    write(0) failed: Invalid argument
+    Totals: pass:0 fail:0 xfail:0 xpass:0 skip:0 error:0
+    [FAIL]
+
+After patch:
+   -------------------------
+   running ./hugetlb-madvise
+   -------------------------
+   TAP version 13
+   1..1
+    [INFO] detected hugetlb page size: 16777216 KiB
+    [INFO] detected hugetlb page size: 16384 KiB
+   ok 1 MADV_DONTNEED and MADV_REMOVE on hugetlb
+   Totals: pass:1 fail:0 xfail:0 xpass:0 skip:0 error:0
+   /sys/kernel/mm/hugepages/hugepages-16777216kB/nr_hugepages
+   write(0) failed: Invalid argument
+   [PASS]
+
+Link: https://lore.kernel.org/cover.1782365671.git.sayalip@linux.ibm.com
+Link: https://lore.kernel.org/8bfa921e30eb94072685103f6496784aa23bb166.1782365671.git.sayalip@linux.ibm.com
+Fixes: 9d07250ea1eb ("selftests/mm: hugepage_settings: add APIs to get and set nr_hugepages")
+Signed-off-by: Sayali Patil <sayalip@linux.ibm.com>
 Cc: David Hildenbrand <david@kernel.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Liam Howlett <liam@infradead.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Shuah Khan <skhan@linuxfoundation.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Ye Liu <ye.liu@linux.dev>
-Cc: Yichong Chen <chenyichong@uniontech.com>
-Cc: Zhen Ni <zhen.ni@easystack.cn>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: "Ritesh Harjani (IBM)" <ritesh.list@gmail.com>
+Cc: Shuah Khan <shuah@kernel.org>
 Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_owner.c |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ tools/testing/selftests/mm/vm_util.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
---- a/mm/page_owner.c~mm-page_owner-add-print_mode-filter-fix
-+++ a/mm/page_owner.c
-@@ -933,7 +933,6 @@ static ssize_t page_owner_write(struct f
- 	char *orig;
- 	char *token;
- 	int ret;
--	size_t max_input_len;
- 	struct page_owner_filter_state *state = file->private_data;
- 	enum page_owner_print_mode new_print_mode;
- 	unsigned long flags;
-@@ -942,9 +941,7 @@ static ssize_t page_owner_write(struct f
- 	 * Maximum input length for filter commands:
- 	 * 32: print_mode command max length is 17 ("mode=stack_handle").
- 	 */
--	max_input_len = 32;
--
--	if (count > max_input_len)
-+	if (count > 32)
- 		return -EINVAL;
- 
- 	kbuf = memdup_user_nul(buf, count);
+--- a/tools/testing/selftests/mm/vm_util.c~selftests-mm-handle-einval-when-configuring-gigantic-hugepages
++++ a/tools/testing/selftests/mm/vm_util.c
+@@ -735,6 +735,13 @@ void write_file(const char *path, const
+ 	saved_errno = errno;
+ 	close(fd);
+ 	errno = saved_errno;
++
++	if (numwritten < 0 && errno == EINVAL) {
++		ksft_print_msg("%s write(%.*s) failed: %s\n", path,
++			       (int)(buflen - 1), buf, strerror(errno));
++		return;
++	}
++
+ 	if (numwritten < 0)
+ 		ksft_exit_fail_msg("%s write(%.*s) failed: %s\n", path, (int)(buflen - 1),
+ 				buf, strerror(errno));
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from sayalip@linux.ibm.com are
 
-mm-mincore-use-walk_page_range_vma-in-do_mincore-fix.patch
-mm-page_owner-add-print_mode-filter-fix.patch
-drivers-media-v4l2-core-v4l2-vp9c-reduce-inlining.patch
-security-apparmor-apparmorfsc-conditionally-compile-get_loaddata_common_ref.patch
+selftests-mm-handle-einval-when-configuring-gigantic-hugepages.patch
+selftests-mm-fix-ksm-numa-merge-test-for-systems-with-memoryless-numa-nodes.patch
 
