@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AF25F327BEC;
-	Thu, 25 Jun 2026 00:33:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 30F5A348477
+	for <mm-commits@vger.kernel.org>; Thu, 25 Jun 2026 00:34:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782347611; cv=none; b=RNL62ciRAWBjQ/Cb04asKd5gq4phCf+m38hnvNmH0tsLCKPV24gXt2ksnZvyXeTyeJzSQPrW4IdqI7mC7OcJpmeuS6KLmv03XeYQn9FxycFplpqAhiS4BzM7BXcpYuksZdgzFThZ20vLgYvFYcultE8PtSRxvnyrKoqbhw6dMmk=
+	t=1782347669; cv=none; b=Tv9JVXf91fYIBgcKSyPaXw4mzB584DsNthLTmeLqZgeAyRlbvUEeI7v04IH//vI7rkGRy5znKSkW1b1KUgHwT29FxeL/KZj9aQK92b91+EPJTr2HcGXscQohhcdSkGIlusuQ/raymwM9oS4NzZL75U4pZIh9G9GEONANzGiUd5w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782347611; c=relaxed/simple;
-	bh=JuPC2NwHR8p7UCHAMp+5wPB1BpecNAnCCEwlcPzOpMI=;
-	h=Date:To:From:Subject:Message-Id; b=uhzK0+gp8YYLt0dLUXuEkxJevfUwa4ZAboacEJcxMDDEM5TaN5zETShO5nnE7xrOlH5SMelYb17WIl9ik1bsym9500slyoCXHH6Vgfo2rfRbHTmVU75R+QWK3KhN94OP26ecLXn6QdknJFDV06OEV1itwOkuFXSrsW2PP9JTCNU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=o/xEAecB; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1782347669; c=relaxed/simple;
+	bh=TXsVRb7LBeaneiT6vJ7A5ADu0fYIAulAoY8XJyrmMzs=;
+	h=Date:To:From:Subject:Message-Id; b=WrE/mVdOqKY23l//EnmYgbBUPYu7AhlaF0XN6rZu6Gqa7NMz+u0/j66+Vbh1jWfPFUB7Ev2aQ/4rUYfl0sI9y7J2UnJLD4L+XyemaNeFKSvTX4BcQSMZucNN3xHGzkjBiiKvoc1n8/UrvbjzLlz+qrBFRnk2wSr4o0xOuk9YugI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Nst/j+Po; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="o/xEAecB"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 800D61F000E9;
-	Thu, 25 Jun 2026 00:33:20 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Nst/j+Po"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4BEEB1F000E9;
+	Thu, 25 Jun 2026 00:34:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1782347600;
-	bh=WwrEgTb38eyQw+Y8zddZYjuF/WVHCGKJC5HUzhITnIE=;
+	d=linux-foundation.org; s=korg; t=1782347658;
+	bh=m/m+5eEMKppUYD7BV4ffq86CsUKh5PtXCuXBfz+OnuU=;
 	h=Date:To:From:Subject;
-	b=o/xEAecBq78bHhOCGeyLR879mW+RiERsn8jrnpiM3nUfx+TCjm7O2lvCFunIVQwu0
-	 UkNw4PE5ZFFy0YoN8FgRFMK4gLdXn/WiLsC0Adi/EKmSIRqFQUZtdmV4HIU5GGob8c
-	 64uzwoxa/8YbcK0JpX2qv0ONctigCUwV13r0qZ4c=
-Date: Wed, 24 Jun 2026 17:33:20 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,vbabka@kernel.org,surenb@google.com,stable@vger.kernel.org,rppt@kernel.org,mhocko@suse.com,luizcap@redhat.com,ljs@kernel.org,liam@infradead.org,jackmanb@google.com,hannes@cmpxchg.org,david@redhat.com,david@kernel.org,ketan.kishore@oss.qualcomm.com,akpm@linux-foundation.org
+	b=Nst/j+Pop1RvIcUSqWM2foKhr3PWdMtjW9jameEPy1XWJJXEzMDW8TZFUmFHlIwFl
+	 LMG9lDEyY62ZdP/G+Ly4+no3XhlfA7Rw/JXfgt0YeSTBWgIai0SKfM4iSs/FV24pxV
+	 utdxOLB0Rk/VhHATQar6ajZP0RnWs4QSKwBayt/g=
+Date: Wed, 24 Jun 2026 17:34:17 -0700
+To: mm-commits@vger.kernel.org,yuanchu@google.com,willy@infradead.org,weixugc@google.com,vbabka@kernel.org,shikemeng@huaweicloud.com,shakeel.butt@linux.dev,rostedt@goodmis.org,nphamcs@gmail.com,mhocko@suse.com,mhiramat@kernel.org,mathieu.desnoyers@efficios.com,kasong@tencent.com,chrisl@kernel.org,baoquan.he@linux.dev,baohua@kernel.org,axelrasmussen@google.com,jp.kobryn@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_ext-add-count-limit-to-page_ext_iter_next-to-prevent-invalid-pfn-access.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260625003320.800D61F000E9@smtp.kernel.org>
+Subject: + mm-lruvec-trace-lru-add-drains-and-drain-all-requests.patch added to mm-new branch
+Message-Id: <20260625003418.4BEEB1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,26 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: page_ext: add count limit to page_ext_iter_next to prevent invalid PFN access
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-page_ext-add-count-limit-to-page_ext_iter_next-to-prevent-invalid-pfn-access.patch
+     Subject: mm/lruvec: trace LRU add drains and drain-all requests
+has been added to the -mm mm-new branch.  Its filename is
+     mm-lruvec-trace-lru-add-drains-and-drain-all-requests.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_ext-add-count-limit-to-page_ext_iter_next-to-prevent-invalid-pfn-access.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-lruvec-trace-lru-add-drains-and-drain-all-requests.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,129 +69,97 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Ketan <ketan.kishore@oss.qualcomm.com>
-Subject: mm: page_ext: add count limit to page_ext_iter_next to prevent invalid PFN access
-Date: Tue, 23 Jun 2026 02:48:04 +0530
+From: JP Kobryn <jp.kobryn@linux.dev>
+Subject: mm/lruvec: trace LRU add drains and drain-all requests
+Date: Mon, 22 Jun 2026 11:51:27 -0700
 
-The page_ext iteration API does not validate if the PFN still belongs to a
-valid section while advancing the iterator.  When dynamically adding
-memory in the hotplug path, it can lead to a NULL pointer dereference
-during page_ext_lookup at the boundary of the last valid section when
-iterator count equals __pgcount.
+LRU add batches can be drained before they reach capacity.  This can be a
+source of LRU lock contention, but it is not currently possible to
+attribute these drains to callers with existing tracepoints.
 
-The for_each_page_ext() macro calls page_ext_iter_next() as its loop
-increment.  for_each_page_ext() does a "__page_ext =
-page_ext_iter_next(&__iter)" at the end.  This causes page_ext_iter_next()
-to increment iter->index past __pgcount and call page_ext_lookup(start_pfn
-+ __pgcount).  During memory hotplug (online), the PFN at start_pfn +
-__pgcount may belong to a section that has not yet been initialized,
-causing page_ext_lookup() to trigger a NULL pointer dereference.
+Add mm_lru_add_drain to report the CPU and lru_add batch count when an
+lru_add batch is drained.  This allows tracing to distinguish full drains
+from partial drains and attribute them to the calling stack.
 
-[   14.555124][  T846] Call trace:
-[   14.555125][  T846]  lookup_page_ext+0x6c/0x108 (P)
-[   14.555127][  T846]  page_ext_lookup+0x30/0x3c
-[   14.555129][  T846]  __reset_page_owner+0x11c/0x260
-[   14.571201][  T846]  __free_pages_ok+0x5e8/0x8e0
-[   14.571204][  T846]  __free_pages_core+0x78/0xf0
-[   14.571206][  T846]  generic_online_page+0x14/0x24
-[   14.597782][  T846]  online_pages+0x178/0x30c
-[   14.597784][  T846]  memory_block_change_state+0x284/0x32c
-[   14.597787][  T846]  memory_subsys_online+0x4c/0x64
-[   14.597789][  T846]  device_online+0x88/0xb0
-[   14.597791][  T846]  online_memory_block+0x30/0x40
-[   14.597793][  T846]  walk_memory_blocks+0xac/0xe8
-[   14.597794][  T846]  add_memory_resource+0x280/0x298
-[   14.656161][  T846]  add_memory+0x60/0x98
+Add mm_lru_add_drain_all to capture callers of __lru_add_drain_all and
+whether they set the force flag for all CPUs.  The tracepoint resembles
+the signature of the enclosing function, but is needed because of
+potential inlining.
 
-Move the iteration boundary enforcement inside the iterator functions, so
-callers cannot inadvertently access beyond the requested range.
+Note that DECLARE_TRACE() is used for these new trace hooks to avoid
+creating a new trace event ABI.
 
-Link: https://lore.kernel.org/20260623-page_ext-v3-1-a89799a5367c@oss.qualcomm.com
-Fixes: 9039b9096ea2 ("mm: page_owner: use new iteration API")
-Signed-off-by: Ketan Kishore <ketan.kishore@oss.qualcomm.com>
-Suggested-by: David Hildenbrand <david@redhat.com>
-Suggested-by: Matthew Wilcox <willy@infradead.org>
-Acked-by: Zi Yan <ziy@nvidia.com>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Cc: Brendan Jackman <jackmanb@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Luiz Capitulino <luizcap@redhat.com>
+Link: https://lore.kernel.org/20260622185127.24579-1-jp.kobryn@linux.dev
+Signed-off-by: JP Kobryn <jp.kobryn@linux.dev>
+Reviewed-by: Barry Song <baohua@kernel.org>
+Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Baoquan He <baoquan.he@linux.dev>
+Cc: Chris Li <chrisl@kernel.org>
+Cc: Kairui Song <kasong@tencent.com>
+Cc: Kemeng Shi <shikemeng@huaweicloud.com>
+Cc: "Masami Hiramatsu (Google)" <mhiramat@kernel.org>
+Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>
 Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: <stable@vger.kernel.org>
+Cc: Wei Xu <weixugc@google.com>
+Cc: Yuanchu Xie <yuanchu@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page_ext.h |   19 +++++++++++++------
- 1 file changed, 13 insertions(+), 6 deletions(-)
+ include/trace/events/pagemap.h |    8 ++++++++
+ mm/swap.c                      |    7 ++++++-
+ 2 files changed, 14 insertions(+), 1 deletion(-)
 
---- a/include/linux/page_ext.h~mm-page_ext-add-count-limit-to-page_ext_iter_next-to-prevent-invalid-pfn-access
-+++ a/include/linux/page_ext.h
-@@ -120,14 +120,18 @@ struct page_ext_iter {
-  * page_ext_iter_begin() - Prepare for iterating through page extensions.
-  * @iter: page extension iterator.
-  * @pfn: PFN of the page we're interested in.
-+ * @count: maximum number of page extensions to return.
-  *
-  * Must be called with RCU read lock taken.
-  *
-  * Return: NULL if no page_ext exists for this page.
-  */
- static inline struct page_ext *page_ext_iter_begin(struct page_ext_iter *iter,
--						unsigned long pfn)
-+		unsigned long pfn, unsigned long count)
- {
-+	if (!count)
-+		return NULL;
+--- a/include/trace/events/pagemap.h~mm-lruvec-trace-lru-add-drains-and-drain-all-requests
++++ a/include/trace/events/pagemap.h
+@@ -77,6 +77,14 @@ TRACE_EVENT(mm_lru_activate,
+ 	TP_printk("folio=%p pfn=0x%lx", __entry->folio, __entry->pfn)
+ );
+ 
++DECLARE_TRACE(mm_lru_add_drain,
++	      TP_PROTO(int cpu, unsigned int nr_folios),
++	      TP_ARGS(cpu, nr_folios));
 +
- 	iter->index = 0;
- 	iter->start_pfn = pfn;
- 	iter->page_ext = page_ext_lookup(pfn);
-@@ -138,19 +142,22 @@ static inline struct page_ext *page_ext_
- /**
-  * page_ext_iter_next() - Get next page extension
-  * @iter: page extension iterator.
-+ * @count: maximum number of page extensions to return.
-  *
-  * Must be called with RCU read lock taken.
-  *
-  * Return: NULL if no next page_ext exists.
-  */
--static inline struct page_ext *page_ext_iter_next(struct page_ext_iter *iter)
-+static inline struct page_ext *page_ext_iter_next(struct page_ext_iter *iter,
-+		unsigned long count)
++DECLARE_TRACE(mm_lru_add_drain_all,
++	      TP_PROTO(bool force_all_cpus),
++	      TP_ARGS(force_all_cpus));
++
+ #endif /* _TRACE_PAGEMAP_H */
+ 
+ /* This part must be outside protection */
+--- a/mm/swap.c~mm-lruvec-trace-lru-add-drains-and-drain-all-requests
++++ a/mm/swap.c
+@@ -694,9 +694,12 @@ void lru_add_drain_cpu(int cpu)
  {
- 	unsigned long pfn;
+ 	struct cpu_fbatches *fbatches = &per_cpu(cpu_fbatches, cpu);
+ 	struct folio_batch *fbatch = &fbatches->lru_add;
++	unsigned int nr_folios = folio_batch_count(fbatch);
  
- 	if (WARN_ON_ONCE(!iter->page_ext))
- 		return NULL;
+-	if (folio_batch_count(fbatch))
++	if (nr_folios) {
+ 		folio_batch_move_lru(fbatch, lru_add);
++		trace_mm_lru_add_drain_tp(cpu, nr_folios);
++	}
  
--	iter->index++;
-+	if (++iter->index >= count)
-+		return NULL;
- 	pfn = iter->start_pfn + iter->index;
+ 	fbatch = &fbatches->lru_move_tail;
+ 	/* Disabling interrupts below acts as a compiler barrier. */
+@@ -869,6 +872,8 @@ static inline void __lru_add_drain_all(b
+ 	if (WARN_ON(!mm_percpu_wq))
+ 		return;
  
- 	if (page_ext_iter_next_fast_possible(pfn))
-@@ -183,9 +190,9 @@ static inline struct page_ext *page_ext_
-  * IMPORTANT: must be called with RCU read lock taken.
-  */
- #define for_each_page_ext(__page, __pgcount, __page_ext, __iter) \
--	for (__page_ext = page_ext_iter_begin(&__iter, page_to_pfn(__page));\
--		__page_ext && __iter.index < __pgcount;          \
--		__page_ext = page_ext_iter_next(&__iter))
-+	for (__page_ext = page_ext_iter_begin(&__iter, page_to_pfn(__page), __pgcount); \
-+		__page_ext; \
-+		__page_ext = page_ext_iter_next(&__iter, __pgcount))
- 
- #else /* !CONFIG_PAGE_EXTENSION */
- struct page_ext;
++	trace_mm_lru_add_drain_all_tp(force_all_cpus);
++
+ 	/*
+ 	 * Guarantee folio_batch counter stores visible by this CPU
+ 	 * are visible to other CPUs before loading the current drain
 _
 
-Patches currently in -mm which might be from ketan.kishore@oss.qualcomm.com are
+Patches currently in -mm which might be from jp.kobryn@linux.dev are
 
-mm-page_ext-add-count-limit-to-page_ext_iter_next-to-prevent-invalid-pfn-access.patch
+mm-page_alloc-use-existing-highatomic-reserves-on-the-buddy-fastpath.patch
+mm-lruvec-trace-lru-add-drains-and-drain-all-requests.patch
 
