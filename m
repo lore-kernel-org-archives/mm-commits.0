@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F3A02346AC0
-	for <mm-commits@vger.kernel.org>; Thu, 25 Jun 2026 02:39:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 479D6C8CE
+	for <mm-commits@vger.kernel.org>; Thu, 25 Jun 2026 02:39:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782355187; cv=none; b=m8uyMiSEjyRwkccGbWEbQQt4xILEybpzMWpPvjyBiFrFxMra70i7cdYOAbyQ4kMAtRjZPuljueRxPcT1mgU+/qhwf3k4IAGkRhMFArgg6SbogYwUOCb/Tz+JdPpaHbXMPEsPjAO+OKfwo2GtYJ5qEePGKjhQtU9GVkWPZV7Syn0=
+	t=1782355189; cv=none; b=TvkBykyPrSIBZ7WbcHeW3hmsAG2u00BbLvDJulQlkmXbR/xn1kmJJupW95+x3g2Cmg5xlv4vWsr7mnpG3b1Hbvemg5+OFZ5s+D9uh74Lbu70fW1zajRr6tgjawA7i9Sp1gbTyfrtSErVV00Js62tuYAbrgLe7bEb16w/pckK0vw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782355187; c=relaxed/simple;
-	bh=QsSt3/UipVEC2QU3S8Cj6rG75YzLs1xbHQbDesGL9Es=;
-	h=Date:To:From:Subject:Message-Id; b=ugiY5ttkAlx9fj6Lul831uaucZHKZO06RX3BlRiwH4WMTjxxnMkkTbSnSK84p2KSWqLhNtMV0GCCWsKKWJ/0WHiDUoGrVmITYoeCZmWOfPjZv8+vb8BWpd0EKTaQDShw097VxM0UsggqNvDMY+aXbWYCT3kamUStsJa3KKw6op8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=J2bvUlH5; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1782355189; c=relaxed/simple;
+	bh=7I7N3VD6svtTH86eu3jafV+kNPMl+M2bVbr0dvYRtuM=;
+	h=Date:To:From:Subject:Message-Id; b=oCwiMeOHpcKnVxf4ys5OSiBIIl16/V2HryHY/YDJt4LnuS4VnGtQ2tl9ck+KFt2HQICvVLf+UJmXtgQnh7+HTjLR73PxuheVF5rgrJBjzhN2nVE638y/IojSD+erRzDaVyQLIp4dLHx51htg2+geVFeMULbEBcq4ArDgFzyZUJ0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=b5SebpGQ; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="J2bvUlH5"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BFEE21F000E9;
-	Thu, 25 Jun 2026 02:39:45 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="b5SebpGQ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D27491F000E9;
+	Thu, 25 Jun 2026 02:39:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1782355185;
-	bh=1QYf6qgtlJ2vZfR9lNpUv4z+a5S+Y4pIIc0hMVM12ZM=;
+	d=linux-foundation.org; s=korg; t=1782355187;
+	bh=MkC/q3TvgDhVimAZBp4zfB+rxLOsDcstxTpBGZKimV4=;
 	h=Date:To:From:Subject;
-	b=J2bvUlH5WWLg5XPR2Gxw37FB6RwmcOxuG7Eqi/F3QVrq7huCYADUGvtjF73KvVM2j
-	 wT/0fIXDogopAOvUIw0YVV9KUmfuNysG8fA+EW34efrXlvhrnRMrZxYXRdc8VNLk5Y
-	 K1PqqJBSkvH/m7sA9qQXHgPaS5l6eZGDFy2t84J4=
-Date: Wed, 24 Jun 2026 19:39:45 -0700
+	b=b5SebpGQqnS1Do325wiKTofzbDXnoQwhqDnGCIZb1WUAPYyTgDQUP4OGnVH8HxVbB
+	 Xd2JHVXAUbNo3cM3B3R8yJ2NdB2JGANc0Mv8EokbH5OWtCFGv0di4nkK5ZArmzYVyz
+	 N565w65GLrdT5g15q/XTC+E8x2ZMfA0hIX+Jodhg=
+Date: Wed, 24 Jun 2026 19:39:47 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,vbabka@kernel.org,surenb@google.com,rakie.kim@sk.com,pfalcato@suse.de,matthew.brost@intel.com,ljs@kernel.org,liam@infradead.org,joshua.hahnjy@gmail.com,gourry@gourry.net,david@kernel.org,byungchul@sk.com,apopple@nvidia.com,wangkefeng.wang@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mlock-use-walk_page_range_vma-in-mlock_vma_pages_range.patch added to mm-new branch
-Message-Id: <20260625023945.BFEE21F000E9@smtp.kernel.org>
+Subject: + mm-migrate_device-use-walk_page_range_vma-in-migrate_vma_collect.patch added to mm-new branch
+Message-Id: <20260625023947.D27491F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: mlock: use walk_page_range_vma() in mlock_vma_pages_range()
+     Subject: mm: migrate_device: use walk_page_range_vma() in migrate_vma_collect()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-mlock-use-walk_page_range_vma-in-mlock_vma_pages_range.patch
+     mm-migrate_device-use-walk_page_range_vma-in-migrate_vma_collect.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mlock-use-walk_page_range_vma-in-mlock_vma_pages_range.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-migrate_device-use-walk_page_range_vma-in-migrate_vma_collect.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,23 +70,22 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm: mlock: use walk_page_range_vma() in mlock_vma_pages_range()
-Date: Thu, 18 Jun 2026 17:28:44 +0800
+Subject: mm: migrate_device: use walk_page_range_vma() in migrate_vma_collect()
+Date: Thu, 18 Jun 2026 17:28:45 +0800
 
-The mlock_vma_pages_range() uses walk_page_range() to walk the page table.
-Fortunately, the caller always passes start/end that falls within a
-single VMA, apply_vma_lock_flags() iterates per-VMA, and
-apply_mlockall_flags() passes the whole VMA.
+migrate_vma_collect() uses walk_page_range() to walk the page table. 
+Fortunately, migrate_vma_setup() already validates that the entire range
+falls within a single VMA.
 
-Since there is no .test_walk in mlock_walk_ops and VM_PFNMAP was filtered
-by vma_supports_mlock(), it's safe to replace walk_page_range() with
-walk_page_range_vma() to eliminate an unnecessary find_vma() lookup.
+Since there is no .test_walk in migrate_vma_walk_ops and VM_PFNMAP was
+filtered by migrate_vma_setup(), it's safe to replace walk_page_range()
+with walk_page_range_vma() to eliminate an unnecessary find_vma() lookup.
 
-Link: https://lore.kernel.org/20260618092845.3905740-4-wangkefeng.wang@huawei.com
+Link: https://lore.kernel.org/20260618092845.3905740-5-wangkefeng.wang@huawei.com
 Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
 Reviewed-by: Zi Yan <ziy@nvidia.com>
 Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Reviewed-by: Pedro Falcato <pfalcato@suse.de>
+Acked-by: Pedro Falcato <pfalcato@suse.de>
 Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Byungchul Park <byungchul@sk.com>
 Cc: Gregory Price <gourry@gourry.net>
@@ -101,20 +100,20 @@ Cc: Ying Huang <ying.huang@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mlock.c |    2 +-
+ mm/migrate_device.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/mlock.c~mm-mlock-use-walk_page_range_vma-in-mlock_vma_pages_range
-+++ a/mm/mlock.c
-@@ -446,7 +446,7 @@ static void mlock_vma_pages_range(struct
- 	vma_flags_reset_once(vma, new_vma_flags);
+--- a/mm/migrate_device.c~mm-migrate_device-use-walk_page_range_vma-in-migrate_vma_collect
++++ a/mm/migrate_device.c
+@@ -513,7 +513,7 @@ static void migrate_vma_collect(struct m
+ 		migrate->pgmap_owner);
+ 	mmu_notifier_invalidate_range_start(&range);
  
- 	lru_add_drain();
--	walk_page_range(vma->vm_mm, start, end, &mlock_walk_ops, NULL);
-+	walk_page_range_vma(vma, start, end, &mlock_walk_ops, NULL);
- 	lru_add_drain();
+-	walk_page_range(migrate->vma->vm_mm, migrate->start, migrate->end,
++	walk_page_range_vma(migrate->vma, migrate->start, migrate->end,
+ 			&migrate_vma_walk_ops, migrate);
  
- 	if (vma_flags_test(new_vma_flags, VMA_IO_BIT)) {
+ 	mmu_notifier_invalidate_range_end(&range);
 _
 
 Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
