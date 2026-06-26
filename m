@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F23813F9F48
-	for <mm-commits@vger.kernel.org>; Fri, 26 Jun 2026 16:28:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2F5B9481B1
+	for <mm-commits@vger.kernel.org>; Fri, 26 Jun 2026 16:36:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782491333; cv=none; b=YnJ/WfR9OfUXEIm0F1P3JhYqrini9YLphEbhpowk5dMRtyZBcNDSVuZCKfcooSqJJRyZXlMc5c/Ny77pz8KUvnuwAtxK5h4i6aHqKepRFmf7/eEurWTBRGrNH1rGLT+gEYtCZvvUSppFkwBPvsq8PyTG/FVCM0vTqE5PKAihk7s=
+	t=1782491820; cv=none; b=X3lcx/XYIr9/Fr2RhIyJ8Z3MZ1CGVoDIEejR+wu7kONoTInWJi/h+Rg66GOCBXhiMOjoZBv3Wyf1Qt1wx31kBRTA/4iLPx5970A5H/Yj+VOSlsnQIJEljV6zqCx04kVw4/JZHkxefZCKphOdwkrJNT7erRP5MPdTfRbVr/+CjP0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782491333; c=relaxed/simple;
-	bh=vpkbtRMUsxNk+etwqf0IVOBZurby0vOFemkJy8L7ir8=;
-	h=Date:To:From:Subject:Message-Id; b=Rdm0s70rTvxhVKFHO9NZBiUzWyPjybxqRkWH3s1SphCo/iNhMeHmb3Bchey293AhFbk/9bj16akOfdLjr9NT5f2Mnj8/M60G32+lmurP0+1+sEfUGAbi1VWIAFM7ED+vFLzFlC7jKiNgMnjwB9S374cqdHzbteOz0fQQg9sIZbE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=U0ZTerH6; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1782491820; c=relaxed/simple;
+	bh=Vv5uPzYTueNwgog8Gi77V2QnVlYYI/58xeds8jw+KNM=;
+	h=Date:To:From:Subject:Message-Id; b=clpoklLhv5qpyUDfPTHccJ/L8wsL0jvNNXva3VfRxA9smRViTJURS7KNfhExpM7SYDFf+USfFtONeGv4uMA03IE/dAxZyYPEyPBR4g6UYN9pmTakaFJmCVZfJ0gGrLig/3g4rzeaVkbuZUZVsNkrb6kMtDuNUrzI1iVoRmCBK5w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Il6fPZlI; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="U0ZTerH6"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8EE6F1F000E9;
-	Fri, 26 Jun 2026 16:28:51 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Il6fPZlI"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AA1EA1F000E9;
+	Fri, 26 Jun 2026 16:36:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1782491331;
-	bh=u3T4QXNarCMlIgzSYSWNhDQkcRsbgFTcHe8qmhYYaJg=;
+	d=linux-foundation.org; s=korg; t=1782491818;
+	bh=VN39Ag1APFXNoU58LJAD19j7E5gLiUCi1Ldtr48V/CY=;
 	h=Date:To:From:Subject;
-	b=U0ZTerH6z3AYPDHkkna9UpvI39WNKDXYhpzsk6jXVxE2+/NfD6iGNQLaitbfSTRQo
-	 FCRBsLmYpDyDEUoVlBqoSJGWaNNE/J1Rkb7tks6cTefid3YQzMuPygSg4wnuMa+mox
-	 cErKc9yOmAwAMsDBYJQZ/iP8JhJrWH/V0qbhQcNc=
-Date: Fri, 26 Jun 2026 09:28:51 -0700
-To: mm-commits@vger.kernel.org,leitao@debian.org,akpm@linux-foundation.org
+	b=Il6fPZlIc+9uwIWBYDRrLa1C1TpzW6QPUmVNbr5IbSmrfsCSdd1Fz9If+hzt4YOsQ
+	 zinVVgofyCFMTd04eRQbNamjt2gp1iOnAFqou5WkTorD8eUHpffCSOk+ZvsYWe4z5O
+	 uEkPjOhq923urjR3Fmlusz5hrfQjY5WKvwC56+lk=
+Date: Fri, 26 Jun 2026 09:36:58 -0700
+To: mm-commits@vger.kernel.org,include@grrlz.net,ebiederm@xmission.com,oleg@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-add-hwpoison-panic-destructive-test.patch added to mm-new branch
-Message-Id: <20260626162851.8EE6F1F000E9@smtp.kernel.org>
+Subject: + signal-change-sys_kill-to-use-send_sig_noinfo.patch added to mm-nonmm-unstable branch
+Message-Id: <20260626163658.AA1EA1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,26 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: add hwpoison-panic destructive test
-has been added to the -mm mm-new branch.  Its filename is
-     selftests-mm-add-hwpoison-panic-destructive-test.patch
+     Subject: signal: change sys_kill() to use SEND_SIG_NOINFO
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     signal-change-sys_kill-to-use-send_sig_noinfo.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-add-hwpoison-panic-destructive-test.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/signal-change-sys_kill-to-use-send_sig_noinfo.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,370 +58,57 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Breno Leitao <leitao@debian.org>
-Subject: selftests/mm: add hwpoison-panic destructive test
-Date: Fri, 26 Jun 2026 08:33:20 -0700
+From: Oleg Nesterov <oleg@redhat.com>
+Subject: signal: change sys_kill() to use SEND_SIG_NOINFO
+Date: Fri, 26 Jun 2026 17:33:08 +0200
 
-Add a destructive selftest that verifies
-vm.panic_on_unrecoverable_memory_failure actually panics when a hwpoison
-error hits a kernel-owned page.
+prepare_kill_siginfo(PIDTYPE_TGID) fills si_code = SI_USER and sets
+si_pid/si_uid in the sender's namespace.  Then send_signal_locked()
+translates si_pid/si_uid to the target's namespace.
 
-Three "kinds" of kernel-owned page can be targeted, selectable via the
-script's first positional argument (default: rodata):
+SEND_SIG_NOINFO produces the same result: si_code = SI_USER, and
+__send_signal_locked() computes si_pid/si_uid directly in the target's
+namespace.  The force computation is also the same: both check if the
+sender is visible in the target's pid namespace.
 
-  rodata  - a PG_reserved page in the kernel rodata range, sourced
-            from the "Kernel rodata" sub-resource of "System RAM" in
-            /proc/iomem.  That entry is reported on every major
-            architecture and guarantees the chosen PFN is backed by
-            struct page (an online System RAM range, not a firmware
-            hole), is PG_reserved, and is read-only -- so even if
-            the panic fails to fire for some reason, the resulting
-            PG_hwpoison marker on rodata does not corrupt writable
-            kernel state.
+Note: this also fixes the kill(-1, sig) case where send_signal_locked()
+rewrites si_pid/si_uid in the shared siginfo, corrupting it for subsequent
+recipients.  But for other group senders like __kill_pgrp_info() we still
+need the fix from Bradley Morgan [1] who found this problem.
 
-  slab    - a slab page found by walking /proc/kpageflags for the
-            first PFN with KPF_SLAB set (and KPF_HWPOISON / KPF_NOPAGE
-            / KPF_COMPOUND_TAIL clear).  Exercises the get_any_page()
-            path on a non PG_reserved kernel-owned page and so
-            catches regressions where get_any_page() collapses
-            kernel-owned pages into a transient -EIO instead of
-            -ENOTRECOVERABLE.
+TODO: kill prepare_kill_siginfo() and change other users to use
+SEND_SIG_NOINFO too.  This needs trivial changes in __send_signal_locked()
+and TP_STORE_SIGINFO().
 
-  pgtable - same as slab, but the PFN is selected via KPF_PGTABLE.
-
-PageLargeKmalloc, the fourth page type matched by is_kernel_owned_page(),
-is intentionally not covered: it is a PAGE_TYPE_OPS flag with no
-/proc/kpageflags bit, so selecting such a PFN from userspace is not
-feasible.  The slab and pgtable variants already exercise the same
-get_any_page() positive-check branch.
-
-The script enables the sysctl and writes the selected physical address to
-/sys/devices/system/memory/hard_offline_page.  A successful run crashes
-the kernel with
-
-  Memory failure: <pfn>: unrecoverable page
-
-A return from the inject means no panic fired.  Before reporting, the
-script restores the sysctl and best-effort unpoisons the target PFN
-through the hwpoison debugfs interface (hard_offline_page() injects with
-MF_SW_SIMULATED, so the page stays unpoisonable), then re-reads
-/proc/kpageflags: a PFN that is still the kernel-owned type it selected is
-a genuine failure, while one that raced to a different type before the
-inject is skipped as inconclusive.  Test outcome is therefore observed
-externally (serial console, kdump) rather than from the script's own exit
-code.
-
-The script is intentionally NOT wired into run_vmtests.sh: every
-successful run panics the kernel, which is incompatible with the
-sequential "run each category in the same VM" model that run_vmtests.sh
-assumes.  It is also not registered as a TEST_PROGS / ksft_* wrapper so a
-default kselftest run does not opt itself into a panic.  The script is
-meant to be executed manually inside a disposable VM (e.g.  virtme-ng),
-one variant per VM boot, and requires RUN_DESTRUCTIVE=1 in the environment
-as a safety net.
-
-Link: https://lore.kernel.org/20260626-ecc_panic-v10-6-6dacb8ad024d@debian.org
-Signed-off-by: Breno Leitao <leitao@debian.org>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Lance Yang <lance.yang@linux.dev>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: "Masami Hiramatsu (Google)" <mhiramat@kernel.org>
-Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
+Link: https://lore.kernel.org/aj6btAZqYuv59a8w@redhat.com
+Link: https://lore.kernel.org/all/20260622164029.11474-1-include@grrlz.net/ [1]
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Cc: Bradley Morgan <include@grrlz.net>
+Cc: Eric Biederman <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/Makefile          |    4 
- tools/testing/selftests/mm/hwpoison-panic.sh |  249 +++++++++++++++++
- 2 files changed, 253 insertions(+)
+ kernel/signal.c |    6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
 
-diff --git a/tools/testing/selftests/mm/hwpoison-panic.sh a/tools/testing/selftests/mm/hwpoison-panic.sh
-new file mode 100755
---- /dev/null
-+++ a/tools/testing/selftests/mm/hwpoison-panic.sh
-@@ -0,0 +1,249 @@
-+#!/bin/bash
-+# SPDX-License-Identifier: GPL-2.0
-+#
-+# Verify vm.panic_on_unrecoverable_memory_failure by injecting a hwpoison
-+# error on a kernel-owned page and confirming the kernel panics.
-+#
-+# Three "kinds" of kernel-owned page can be targeted, selectable via the
-+# first positional argument (default: rodata):
-+#
-+#   rodata  - a PG_reserved page in the kernel rodata range
-+#             (sourced from /proc/iomem "Kernel rodata").  Exercises
-+#             memory_failure() -> get_any_page() on a PageReserved page.
-+#
-+#   slab    - a slab page found via /proc/kpageflags (KPF_SLAB).
-+#             Exercises memory_failure() -> get_any_page() on a non
-+#             PG_reserved kernel-owned page.  This path is what catches
-+#             regressions where get_any_page() collapses kernel-owned
-+#             pages into a transient -EIO instead of -ENOTRECOVERABLE.
-+#
-+#   pgtable - a page-table page found via /proc/kpageflags (KPF_PGTABLE).
-+#             Same path as slab, different page type.
-+#
-+# This test is DESTRUCTIVE: a successful run crashes the kernel.  It is
-+# meant to be executed inside a disposable VM (e.g. virtme-ng) with a
-+# serial console captured by the harness.  It is skipped unless the
-+# caller opts in via RUN_DESTRUCTIVE=1.
-+#
-+# Test passes externally: the kernel must panic with
-+#   "Memory failure: <pfn>: unrecoverable page"
-+# A return from the inject means no panic fired: that is a failure,
-+# unless the target PFN raced to a different page type before injection,
-+# in which case the run is inconclusive and is skipped.
-+#
-+# Author: Breno Leitao <leitao@debian.org>
-+
-+set -u
-+
-+ksft_skip=4
-+sysctl_path=/proc/sys/vm/panic_on_unrecoverable_memory_failure
-+inject_path=/sys/devices/system/memory/hard_offline_page
-+kpageflags_path=/proc/kpageflags
-+unpoison_path=/sys/kernel/debug/hwpoison/unpoison-pfn
-+
-+# /proc/kpageflags bit positions (see include/uapi/linux/kernel-page-flags.h)
-+KPF_SLAB=7
-+KPF_COMPOUND_TAIL=16
-+KPF_HWPOISON=19
-+KPF_NOPAGE=20
-+KPF_PGTABLE=26
-+KPF_RESERVED=32
-+
-+pagesize=$(getconf PAGE_SIZE)
-+
-+kind=${1:-rodata}
-+
-+ksft_print() { echo "# $*"; }
-+ksft_exit_skip() { ksft_print "$*"; exit "$ksft_skip"; }
-+ksft_exit_fail() { echo "not ok 1 $*"; exit 1; }
-+
-+if [ "$(id -u)" -ne 0 ]; then
-+	ksft_exit_skip "must run as root"
-+fi
-+
-+if [ ! -w "$sysctl_path" ]; then
-+	ksft_exit_skip "$sysctl_path not present (kernel without the sysctl?)"
-+fi
-+
-+if [ ! -w "$inject_path" ]; then
-+	ksft_exit_skip "$inject_path not present (no MEMORY_HOTPLUG?)"
-+fi
-+
-+if [ "${RUN_DESTRUCTIVE:-0}" != "1" ]; then
-+	ksft_exit_skip "destructive test; re-run with RUN_DESTRUCTIVE=1 inside a disposable VM"
-+fi
-+
-+# Pick a PFN inside the kernel image rodata region of /proc/iomem.
-+# This is preferred over a top-level "Reserved" entry because top-level
-+# Reserved ranges are often firmware holes that have no backing struct
-+# page; pfn_to_online_page() returns NULL on those and memory_failure()
-+# bails out with -ENXIO before reaching the panic path.
-+#
-+# "Kernel rodata" is reported as a sub-resource of "System RAM" on every
-+# major architecture, which guarantees:
-+#   - the PFN is backed by struct page (within an online memory range);
-+#   - PG_reserved is set on the page (kernel image area);
-+#   - the memory is read-only, so setting PG_hwpoison on it does not
-+#     corrupt writable kernel state if the panic somehow does not fire.
-+#
-+# /proc/iomem entries look like (indented for sub-resources):
-+#     "  02500000-02ffffff : Kernel rodata"
-+pick_rodata_phys_addr() {
-+	awk -v pagesize="$(getconf PAGE_SIZE)" '
-+	# Convert a hex string to a number without relying on the gawk-only
-+	# strtonum().  mawk lacks it and would otherwise spuriously skip
-+	# this test on distros that ship mawk as /usr/bin/awk.
-+	function hex2num(s,   n, i, c, v) {
-+		n = 0
-+		for (i = 1; i <= length(s); i++) {
-+			c = tolower(substr(s, i, 1))
-+			v = index("0123456789abcdef", c) - 1
-+			if (v < 0)
-+				return -1
-+			n = n * 16 + v
-+		}
-+		return n
-+	}
-+	/: Kernel rodata[[:space:]]*$/ {
-+		sub(/^[[:space:]]+/, "")
-+		n = split($0, a, /[- ]/)
-+		start = hex2num(a[1])
-+		end   = hex2num(a[2])
-+		if (end <= start)
-+			next
-+		# Page-align upward and emit the first byte of that page.
-+		pfn = int((start + pagesize - 1) / pagesize)
-+		printf "0x%x\n", pfn * pagesize
-+		exit 0
-+	}
-+	' /proc/iomem
-+}
-+
-+# Walk /proc/kpageflags and return the phys addr of the first PFN that
-+# has bit $1 set, with KPF_HWPOISON, KPF_NOPAGE and KPF_COMPOUND_TAIL
-+# all clear (so we attack a real, non-tail, not-already-poisoned page).
-+#
-+# We skip the first 16 MiB of PFNs to step past low-memory special
-+# ranges (BIOS/EFI/ACPI/etc.) that often are PG_reserved and would not
-+# exhibit the slab/pgtable type we are looking for.
-+pick_kpageflags_phys_addr() {
-+	local want_bit=$1
-+	local pagesize skip_pfn
-+
-+	[ -r "$kpageflags_path" ] || return
-+
-+	pagesize=$(getconf PAGE_SIZE)
-+	skip_pfn=$(((16 * 1024 * 1024) / pagesize))
-+
-+	od -An -tx8 -v -w8 -j "$((skip_pfn * 8))" "$kpageflags_path" 2>/dev/null | \
-+	awk -v want_bit="$want_bit" \
-+	    -v hwp_bit="$KPF_HWPOISON" \
-+	    -v nopage_bit="$KPF_NOPAGE" \
-+	    -v tail_bit="$KPF_COMPOUND_TAIL" \
-+	    -v base_pfn="$skip_pfn" \
-+	    -v pagesize="$pagesize" '
-+	# Test whether bit "b" is set in the 16-hex-digit value "hex".
-+	# Done with substring + per-digit lookup so we never rely on awk
-+	# bitwise operators (mawk lacks them), 64-bit FP precision or the
-+	# gawk-only strtonum().
-+	function bit_set(hex, b,    di, bi, c, v) {
-+		di = int(b / 4)
-+		bi = b - di * 4
-+		c = substr(hex, length(hex) - di, 1)
-+		v = index("0123456789abcdef", tolower(c)) - 1
-+		if (bi == 0) return (v % 2) == 1
-+		if (bi == 1) return int(v / 2) % 2 == 1
-+		if (bi == 2) return int(v / 4) % 2 == 1
-+		return int(v / 8) % 2 == 1
-+	}
-+	{
-+		gsub(/^[[:space:]]+/, "")
-+		h = $1
-+		if (bit_set(h, want_bit) &&
-+		    !bit_set(h, hwp_bit) &&
-+		    !bit_set(h, nopage_bit) &&
-+		    !bit_set(h, tail_bit)) {
-+			pfn = base_pfn + NR - 1
-+			printf "0x%x\n", pfn * pagesize
-+			exit 0
-+		}
-+	}
-+	'
-+}
-+
-+# Return 0 if /proc/kpageflags bit $2 is set for PFN $1, 1 if it is
-+# clear, or 2 if the word cannot be read.  Used to re-confirm the target
-+# page type after a non-panicking inject.
-+kpageflags_bit_set() {
-+	local word
-+
-+	word=$(od -An -tx8 -v -j "$(($1 * 8))" -N 8 "$kpageflags_path" 2>/dev/null | tr -d '[:space:]')
-+	[ -n "$word" ] || return 2
-+	(( (16#$word >> $2) & 1 ))
-+}
-+
-+# Best-effort: drop the PG_hwpoison marker set by the inject so a failed
-+# run does not leave a poisoned page behind.  hard_offline_page() injects
-+# with MF_SW_SIMULATED, so the page stays unpoisonable through the
-+# hwpoison debugfs interface (needs CONFIG_HWPOISON_INJECT + debugfs).
-+try_unpoison() {
-+	[ -w "$unpoison_path" ] || return 0
-+	echo "$1" > "$unpoison_path" 2>/dev/null || true
-+}
-+
-+case "$kind" in
-+rodata)
-+	phys_addr=$(pick_rodata_phys_addr)
-+	recheck_bit=$KPF_RESERVED
-+	missing_msg='no "Kernel rodata" entry in /proc/iomem'
-+	;;
-+slab)
-+	phys_addr=$(pick_kpageflags_phys_addr "$KPF_SLAB")
-+	recheck_bit=$KPF_SLAB
-+	missing_msg="no usable slab PFN found in $kpageflags_path"
-+	;;
-+pgtable)
-+	phys_addr=$(pick_kpageflags_phys_addr "$KPF_PGTABLE")
-+	recheck_bit=$KPF_PGTABLE
-+	missing_msg="no usable page-table PFN found in $kpageflags_path"
-+	;;
-+*)
-+	ksft_exit_fail "unknown kind '$kind' (expected: rodata|slab|pgtable)"
-+	;;
-+esac
-+
-+if [ -z "$phys_addr" ]; then
-+	ksft_exit_skip "$missing_msg"
-+fi
-+
-+ksft_print "enabling $sysctl_path"
-+prior=$(cat "$sysctl_path")
-+echo 1 > "$sysctl_path" || ksft_exit_fail "failed to enable sysctl"
-+
-+pfn=$((phys_addr / pagesize))
-+ksft_print "injecting hwpoison at phys 0x$(printf '%x' "$phys_addr") (pfn 0x$(printf '%x' "$pfn"), kind=$kind)"
-+ksft_print "expecting kernel panic: 'Memory failure: <pfn>: unrecoverable page'"
-+
-+# A successful run never returns from the inject -- it panics the kernel.
-+# Reaching the code below therefore means no panic fired.  Note whether
-+# the write itself succeeded, then put the machine back: restore the
-+# sysctl and best-effort unpoison the page we just marked.
-+if echo "$phys_addr" > "$inject_path"; then
-+	verdict="inject returned without panic; sysctl ineffective"
-+else
-+	verdict="inject failed before reaching the panic path"
-+fi
-+
-+echo "$prior" > "$sysctl_path"
-+try_unpoison "$pfn"
-+
-+# The page type can change between selection and injection (e.g. a slab
-+# or page-table page is freed and reused).  Only treat a missing panic as
-+# a failure if the target PFN is still the kernel-owned type we aimed at;
-+# if it raced to another type the run is inconclusive, so skip instead.
-+kpageflags_bit_set "$pfn" "$recheck_bit"
-+case $? in
-+0)	ksft_exit_fail "$verdict (page still $kind)" ;;
-+1)	ksft_exit_skip "target PFN no longer $kind; raced before inject, inconclusive" ;;
-+*)	ksft_exit_fail "$verdict (could not reconfirm page type via $kpageflags_path)" ;;
-+esac
---- a/tools/testing/selftests/mm/Makefile~selftests-mm-add-hwpoison-panic-destructive-test
-+++ a/tools/testing/selftests/mm/Makefile
-@@ -174,6 +174,10 @@ TEST_PROGS += ksft_userfaultfd.sh
- TEST_PROGS += ksft_vma_merge.sh
- TEST_PROGS += ksft_vmalloc.sh
+--- a/kernel/signal.c~signal-change-sys_kill-to-use-send_sig_noinfo
++++ a/kernel/signal.c
+@@ -3950,11 +3950,7 @@ static void prepare_kill_siginfo(int sig
+  */
+ SYSCALL_DEFINE2(kill, pid_t, pid, int, sig)
+ {
+-	struct kernel_siginfo info;
+-
+-	prepare_kill_siginfo(sig, &info, PIDTYPE_TGID);
+-
+-	return kill_something_info(sig, &info, pid);
++	return kill_something_info(sig, SEND_SIG_NOINFO, pid);
+ }
  
-+# Destructive: every successful run panics the kernel.  Installed and
-+# kept executable, but not run from a default kselftest invocation.
-+TEST_PROGS_EXTENDED += hwpoison-panic.sh
-+
- TEST_FILES := test_vmalloc.sh
- TEST_FILES += test_hmm.sh
- TEST_FILES += va_high_addr_switch.sh
+ /*
 _
 
-Patches currently in -mm which might be from leitao@debian.org are
+Patches currently in -mm which might be from oleg@redhat.com are
 
-mm-kmemleak-avoid-soft-lockup-when-scanning-task-stacks.patch
-mm-kmemleak-stop-the-task-stack-scan-early-when-interrupted.patch
-mm-kmemleak-stop-the-per-cpu-and-struct-page-scans-early-too.patch
-mm-memory-failure-drop-dead-error_states-entry-for-reserved-pages.patch
-mm-memory-failure-surface-unhandlable-kernel-pages-as-enotrecoverable.patch
-mm-memory-failure-report-mf_msg_kernel-for-unrecoverable-kernel-pages.patch
-mm-memory-failure-add-panic-option-for-unrecoverable-pages.patch
-documentation-document-panic_on_unrecoverable_memory_failure-sysctl.patch
-selftests-mm-add-hwpoison-panic-destructive-test.patch
+signal-change-sys_kill-to-use-send_sig_noinfo.patch
 
