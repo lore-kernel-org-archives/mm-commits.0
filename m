@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5C56D20E023
-	for <mm-commits@vger.kernel.org>; Fri, 26 Jun 2026 00:48:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 379E73F9F5D
+	for <mm-commits@vger.kernel.org>; Fri, 26 Jun 2026 16:28:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782434882; cv=none; b=B+NPFacdW5S9uxTPP4f7V7gIbEDT/99XRtKw/7vWlrzZ2zf55qgwn49ZpzTkzt2QF6A0RmhRu4y7T4L+osMnNXP5FXAtPy6QBYt0M281nFHex17RO+Q4YK/ghpPgOK3VdQXVnb67h5U+k1CcgRDw12qnocuimYgX8pMyQgTji8A=
+	t=1782491322; cv=none; b=GmJbePcOvgWBjVTcnpDNThpVeK7swSkdyODU/CUnJGbgej5301hEk9AKRfJwlKdIo4sSqI/noBvCNx8WTXZqeufWEP2aD8uMZmTDyOrgmP4nZYXxWg9LQW2DnxdTHFc+w3D2sSgVdIDnhI8IMRkqRCh9HJrVRtJNPlC1RVXqtQY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782434882; c=relaxed/simple;
-	bh=I2TRZJl1EEMp2h2pYiLpOJK81h/VbpjWrHMsv2YErXk=;
-	h=Date:To:From:Subject:Message-Id; b=TKte+kBNhDNCYgOqFDl1qTp0YD+MESL3KHcLnDgNZUrfxnlkqDdGtFQWvnKGQNwR1fOW4Ze0SiF7rBVMiP7dvDGDwGwdbtsehR9UWfbkzfxNu39EWN5DEyPitozAr0VENFD7XbhiQ30uWESHki2+YBdEThgyBTOWOP3QLCHUcB8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QI0tLwzC; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1782491322; c=relaxed/simple;
+	bh=agsQmJtDXD+qzWtxXFeT+MAOIIgd1pJwhO91pcMyJ+g=;
+	h=Date:To:From:Subject:Message-Id; b=KzynRIzjA+rVqXUoXDMy/fIj1Myo7e6vtitCnclc1OMw/v81Reve717LYfk+B5qqN4p8YoQ430ldklYdohahfXSq2grLvQ3OqxgAjDFXJPi1ZxNFstv7+OjNRCEmQADSwenihG3uM8SnPTRilXELCCuOORRhVCrEq5AXItFDHzo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GajQsJbm; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QI0tLwzC"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D7E0A1F000E9;
-	Fri, 26 Jun 2026 00:47:59 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GajQsJbm"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C7BED1F000E9;
+	Fri, 26 Jun 2026 16:28:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1782434880;
-	bh=HF0hYuHY+PRQOm2hPdM4I0aLtwh/WfZnWISZUyUPfvQ=;
+	d=linux-foundation.org; s=korg; t=1782491320;
+	bh=p491H0ewYpVSdClBGACgF4RGRy70g03hounswXbilh4=;
 	h=Date:To:From:Subject;
-	b=QI0tLwzCFB6wtoz4WXPeUSgYb1WDill43DRF8S+QaQTXOV6COMIZyAGNxI3gmcuiT
-	 s6V5B3mya+i2r0MW/yf6SlOgtEND8BdpSOKDPXJ3UhFMDrbuzQYKaIVEO7zqMl5s5H
-	 939YAMmoPd/zVuJ9YT89YT+HtxhQTET8ajOzR5vo=
-Date: Thu, 25 Jun 2026 17:47:59 -0700
-To: mm-commits@vger.kernel.org,songmuchun@bytedance.com,akpm@linux-foundation.org
+	b=GajQsJbmd242OMzlU2DDZQkg4mmu9VFtMxmkTAN9xLhEuBIcmE4gMRR0AUbu8jKxl
+	 iM+SWrzjftyhuZhaRHY8JBpEkCBr1X9t0hLeJkJFR2oP7zq+JXsbVq1a/IQ59KtQjM
+	 X7kuj2PHAvr57IwjCVoh01CTrGPEE3TCOE8vFlck=
+Date: Fri, 26 Jun 2026 09:28:40 -0700
+To: mm-commits@vger.kernel.org,leitao@debian.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mm_init-fold-__init_page_from_nid-into-__init_deferred_page.patch added to mm-new branch
-Message-Id: <20260626004759.D7E0A1F000E9@smtp.kernel.org>
+Subject: + mm-memory-failure-drop-dead-error_states-entry-for-reserved-pages.patch added to mm-new branch
+Message-Id: <20260626162840.C7BED1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/mm_init: fold __init_page_from_nid() into __init_deferred_page()
+     Subject: mm/memory-failure: drop dead error_states[] entry for reserved pages
 has been added to the -mm mm-new branch.  Its filename is
-     mm-mm_init-fold-__init_page_from_nid-into-__init_deferred_page.patch
+     mm-memory-failure-drop-dead-error_states-entry-for-reserved-pages.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mm_init-fold-__init_page_from_nid-into-__init_deferred_page.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-failure-drop-dead-error_states-entry-for-reserved-pages.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,131 +69,161 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm/mm_init: fold __init_page_from_nid() into __init_deferred_page()
-Date: Fri, 12 Jun 2026 11:59:03 +0800
+From: Breno Leitao <leitao@debian.org>
+Subject: mm/memory-failure: drop dead error_states[] entry for reserved pages
+Date: Fri, 26 Jun 2026 08:33:15 -0700
 
-__init_page_from_nid() no longer has external users and is only used
-locally in mm/mm_init.c under CONFIG_DEFERRED_STRUCT_PAGE_INIT.
+Patch series "mm/memory-failure: add panic option for unrecoverable
+pages", v10.
 
-Fold it into its sole caller __init_deferred_page() and remove the
-separate helper declaration.
+A multi-bit ECC error on a kernel-owned page that the memory failure
+handler cannot recover is currently swallowed: PG_hwpoison is set, the
+event is logged, and the kernel keeps running.  The corrupted memory
+remains accessible to the kernel and either drives silent data corruption
+or surfaces seconds-to-minutes later as an apparently unrelated crash.  In
+a large fleet that delayed, unattributable crash turns into significant
+engineering effort to root-cause; in a kdump configuration, by the time
+the crash happens the original error context (faulting PFN, MCE/GHES
+record, page state) is long gone.
 
-Link: https://lore.kernel.org/20260612035903.2468601-20-songmuchun@bytedance.com
-Signed-off-by: Muchun Song <songmuchun@bytedance.com>
-Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Frank van der Linden <fvdl@google.com>
+This series adds an opt-in sysctl,
+vm.panic_on_unrecoverable_memory_failure, that converts an unrecoverable
+kernel-page hwpoison event into an immediate panic with a clean
+dmesg/vmcore that still contains the original failure context.  The
+default is disabled so existing workloads see no change.
+
+There is a selftest that test different cases, and I tested it using the
+following variants:
+
+  ┌─────────┬──────────┬───────────────────────────────────────────────────────────┐
+  │ Variant │   PFN    │                          Result                           │
+  ├─────────┼──────────┼───────────────────────────────────────────────────────────┤
+  │ rodata  │ 0x2600   │ Panic with "Memory failure: 0x2600: unrecoverable page"   │
+  ├─────────┼──────────┼───────────────────────────────────────────────────────────┤
+  │ slab    │ 0x100032 │ Panic with "Memory failure: 0x100032: unrecoverable page" │
+  ├─────────┼──────────┼───────────────────────────────────────────────────────────┤
+  │ pgtable │ 0x100000 │ Panic with "Memory failure: 0x100000: unrecoverable page" │
+  └─────────┴──────────┴───────────────────────────────────────────────────────────┘
+
+Each one shows the same call trace, exactly the path the series builds:
+
+  hard_offline_page_store
+    → memory_failure
+      → action_result
+        → panic("Memory failure: %#lx: unrecoverable page")
+
+
+This patch (of 6):
+
+The first entry of error_states[],
+
+	{ reserved,	reserved,	MF_MSG_KERNEL,	me_kernel },
+
+is unreachable.  identify_page_state() has two callers, and neither one
+can dispatch a PG_reserved page to me_kernel():
+
+  * memory_failure() reaches identify_page_state() only after
+    get_hwpoison_page() returned 1.  get_any_page() reaches that
+    return only via __get_hwpoison_page(), which only takes a
+    refcount when the page is HWPoisonHandlable().
+    HWPoisonHandlable() is an allowlist for LRU, free-buddy, and
+    (for soft-offline) movable_ops pages -- PG_reserved pages do
+    not satisfy any of these, so they fail with -EBUSY/-EIO long
+    before identify_page_state() runs.
+
+  * try_memory_failure_hugetlb() reaches identify_page_state() only
+    via the MF_HUGETLB_IN_USED branch, where the page is necessarily
+    a hugetlb folio.  hugetlb folios don't carry PG_reserved at that
+    point: hugetlb_folio_init_vmemmap() calls __folio_clear_reserved()
+    during init, so the reserved entry would not match even if it
+    were still present.
+
+me_kernel() never executes and the entry exists only to be matched against
+by code that cannot see it.
+
+Drop the entry, the me_kernel() helper, and the now-unused "reserved"
+macro.  Leave the MF_MSG_KERNEL enum value in place: it remains part of
+the tracepoint and pr_err() string tables, and follow-on work to classify
+unrecoverable kernel pages can reuse it without churning the user-visible
+enum.
+
+No functional change.
+
+Link: https://lore.kernel.org/20260626-ecc_panic-v10-0-6dacb8ad024d@debian.org
+Link: https://lore.kernel.org/20260626-ecc_panic-v10-1-6dacb8ad024d@debian.org
+Signed-off-by: Breno Leitao <leitao@debian.org>
+Suggested-by: David Hildenbrand <david@kernel.org>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Reviewed-by: Lance Yang <lance.yang@linux.dev>
+Acked-by: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Oscar Salvador (SUSE) <osalvador@kernel.org>
-Cc: "Ritesh Harjani (IBM)" <ritesh.list@gmail.com>
-Cc: Usama Arif <usama.arif@linux.dev>
+Cc: "Masami Hiramatsu (Google)" <mhiramat@kernel.org>
+Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/internal.h |    1 -
- mm/mm_init.c  |   42 ++++++++++++++++--------------------------
- 2 files changed, 16 insertions(+), 27 deletions(-)
+ mm/memory-failure.c |   14 --------------
+ 1 file changed, 14 deletions(-)
 
---- a/mm/internal.h~mm-mm_init-fold-__init_page_from_nid-into-__init_deferred_page
-+++ a/mm/internal.h
-@@ -1760,7 +1760,6 @@ static inline bool pte_needs_soft_dirty_
- 
- void __meminit __init_single_page(struct page *page, unsigned long pfn,
- 				unsigned long zone, int nid);
--void __meminit __init_page_from_nid(unsigned long pfn, int nid);
- 
- /* shrinker related functions */
- unsigned long shrink_slab(gfp_t gfp_mask, int nid, struct mem_cgroup *memcg,
---- a/mm/mm_init.c~mm-mm_init-fold-__init_page_from_nid-into-__init_deferred_page
-+++ a/mm/mm_init.c
-@@ -688,31 +688,6 @@ static __meminit void pageblock_migratet
+--- a/mm/memory-failure.c~mm-memory-failure-drop-dead-error_states-entry-for-reserved-pages
++++ a/mm/memory-failure.c
+@@ -981,17 +981,6 @@ static bool has_extra_refcount(struct pa
  }
- #endif
  
--/*
-- * Initialize a reserved page unconditionally, finding its zone first.
+ /*
+- * Error hit kernel page.
+- * Do nothing, try to be lucky and not touch this instead. For a few cases we
+- * could be more sophisticated.
 - */
--void __meminit __init_page_from_nid(unsigned long pfn, int nid)
+-static int me_kernel(struct page_state *ps, struct page *p)
 -{
--	pg_data_t *pgdat;
--	int zid;
--
--	pgdat = NODE_DATA(nid);
--
--	for (zid = 0; zid < MAX_NR_ZONES; zid++) {
--		struct zone *zone = &pgdat->node_zones[zid];
--
--		if (zone_spans_pfn(zone, pfn))
--			break;
--	}
--	__init_single_page(pfn_to_page(pfn), pfn, zid, nid);
--
--	if (pageblock_aligned(pfn)) {
--		enum migratetype mt =
--			kho_scratch_migratetype(pfn, MIGRATE_MOVABLE);
--		init_pageblock_migratetype(pfn_to_page(pfn), mt, false);
--	}
+-	unlock_page(p);
+-	return MF_IGNORED;
 -}
 -
- #ifdef CONFIG_DEFERRED_STRUCT_PAGE_INIT
- static inline void pgdat_set_deferred_range(pg_data_t *pgdat)
- {
-@@ -771,10 +746,25 @@ defer_init(int nid, unsigned long pfn, u
+-/*
+  * Page in unknown state. Do nothing.
+  * This is a catch-all in case we fail to make sense of the page state.
+  */
+@@ -1199,10 +1188,8 @@ static int me_huge_page(struct page_stat
+ #define mlock		(1UL << PG_mlocked)
+ #define lru		(1UL << PG_lru)
+ #define head		(1UL << PG_head)
+-#define reserved	(1UL << PG_reserved)
  
- static void __meminit __init_deferred_page(unsigned long pfn, int nid)
- {
-+	pg_data_t *pgdat = NODE_DATA(nid);
-+	int zid;
-+
- 	if (early_page_initialised(pfn, nid))
- 		return;
+ static struct page_state error_states[] = {
+-	{ reserved,	reserved,	MF_MSG_KERNEL,	me_kernel },
+ 	/*
+ 	 * free pages are specially detected outside this table:
+ 	 * PG_buddy pages only make a small fraction of all free pages.
+@@ -1234,7 +1221,6 @@ static struct page_state error_states[]
+ #undef mlock
+ #undef lru
+ #undef head
+-#undef reserved
  
--	__init_page_from_nid(pfn, nid);
-+	for (zid = 0; zid < MAX_NR_ZONES; zid++) {
-+		struct zone *zone = &pgdat->node_zones[zid];
-+
-+		if (zone_spans_pfn(zone, pfn))
-+			break;
-+	}
-+	__init_single_page(pfn_to_page(pfn), pfn, zid, nid);
-+
-+	if (pageblock_aligned(pfn)) {
-+		enum migratetype mt =
-+			kho_scratch_migratetype(pfn, MIGRATE_MOVABLE);
-+		init_pageblock_migratetype(pfn_to_page(pfn), mt, false);
-+	}
- }
- #else
- static inline void pgdat_set_deferred_range(pg_data_t *pgdat) {}
+ static void update_per_node_mf_stats(unsigned long pfn,
+ 				     enum mf_result result)
 _
 
-Patches currently in -mm which might be from songmuchun@bytedance.com are
+Patches currently in -mm which might be from leitao@debian.org are
 
-mm-hugetlb-fix-boot-panic-with-config_debug_vm-and-hvo-bootmem-pages.patch
-mm-hugetlb_vmemmap-fix-__hugetlb_vmemmap_optimize_folios.patch
-powerpc-mm-fix-wrong-addr_pfn-tracking-in-compound-vmemmap-population.patch
-mm-hugetlb-initialize-gigantic-bootmem-hugepage-struct-pages-earlier.patch
-mm-mm_init-simplify-deferred_free_pages-migratetype-init.patch
-mm-sparse-panic-on-memmap-and-usemap-allocation-failure.patch
-mm-sparse-move-subsection_map_init-into-sparse_init.patch
-mm-mm_init-defer-sparse_init-until-after-zone-initialization.patch
-mm-mm_init-defer-hugetlb-reservation-until-after-zone-initialization.patch
-mm-mm_init-remove-set_pageblock_order-call-from-sparse_init.patch
-mm-sparse-move-sparse_vmemmap_init_nid_late-into-sparse_init_nid.patch
-mm-hugetlb_cma-validate-hugetlb-cma-range-by-zone-at-reserve-time.patch
-mm-hugetlb-refactor-early-boot-gigantic-hugepage-allocation.patch
-mm-hugetlb-free-cross-zone-bootmem-gigantic-pages-after-allocation.patch
-mm-hugetlb_vmemmap-move-bootmem-hvo-setup-to-early-init.patch
-mm-hugetlb-remove-obsolete-bootmem-cross-zone-checks.patch
-mm-sparse-vmemmap-remove-sparse_vmemmap_init_nid_late.patch
-mm-hugetlb-remove-unused-bootmem-cma-field.patch
-mm-mm_init-fold-__init_page_from_nid-into-__init_deferred_page.patch
+mm-kmemleak-avoid-soft-lockup-when-scanning-task-stacks.patch
+mm-kmemleak-stop-the-task-stack-scan-early-when-interrupted.patch
+mm-kmemleak-stop-the-per-cpu-and-struct-page-scans-early-too.patch
+mm-memory-failure-drop-dead-error_states-entry-for-reserved-pages.patch
+mm-memory-failure-surface-unhandlable-kernel-pages-as-enotrecoverable.patch
+mm-memory-failure-report-mf_msg_kernel-for-unrecoverable-kernel-pages.patch
+mm-memory-failure-add-panic-option-for-unrecoverable-pages.patch
+documentation-document-panic_on_unrecoverable_memory_failure-sysctl.patch
+selftests-mm-add-hwpoison-panic-destructive-test.patch
 
