@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C3BA926B973
-	for <mm-commits@vger.kernel.org>; Fri, 26 Jun 2026 00:47:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0A49421C16A
+	for <mm-commits@vger.kernel.org>; Fri, 26 Jun 2026 00:47:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782434853; cv=none; b=gDyPOBIwlme44RAvC9A+y+w4VDJmSABIh97dKgRKo/KCEC0pa4qi3dMAvxLwLhbwBVVuZkF0yc7NQnwTHcO0SYTrA51OlLOoEyLU1YwoEAxriEJG7ZTt430AlXybMCTZLYbltcU5A7gaGZ9xDhvVHWv4TepalXDu0pNf5ioKLuM=
+	t=1782434855; cv=none; b=CfW1caF16mCqyu8fTqVkhc29LTTYruzramYvZZBGZFaRSRSQFSkqiFomby5ZHnmQiTrA8RQdr0OGGyLQTuJZucx+GmHHJMcmaZoSkLexeiwkb+3vZ8UfgX+Yfp5PtpknjDXbzdFfYPYtQSK4s7UJ8m57OTQO4r8YW6D5z9h90yw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782434853; c=relaxed/simple;
-	bh=Ecg7ojLl1+IkkwF6XRTFJT3snibwiWWnnc7Iww2euIE=;
-	h=Date:To:From:Subject:Message-Id; b=e5aYvUWpt/VEKOaib6GCaf8xozaPJGHVm5gQEcCAj2uXQxSjp1JfcwpIzZcTZmwraq8631YQj7huJPZC9sJNyCRyzXxeQ1h+O47hEzw0fHfQlCMgr8tNmV2V2nWr7OnbRiqRa6rRTG+IPRbldxL0wa5AajwsojVr+q4UIrw7XyE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NTCjOxQk; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1782434855; c=relaxed/simple;
+	bh=dql7nvxFwt3DuW+UEHpdpLxfbCCmmoZTbr/E/8ICuNI=;
+	h=Date:To:From:Subject:Message-Id; b=t5z7AuIKisEjLsormAU8ylh3CmI6OfBNz1c+r5F5sTIfBRB/g/tzsbLWR1jt2S6ot1jOdm7A2uH96xQ2PdS7YVqBAuCpk/ROOPu/C9N8MfA9mydJH23SJgM6/4Equyu80qRUetkbEhS9EZXiTEB1wlvc02H+hK8TMPxwQY/dgfo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Nbn3yYya; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NTCjOxQk"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 48CB41F000E9;
-	Fri, 26 Jun 2026 00:47:31 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Nbn3yYya"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D3DC01F000E9;
+	Fri, 26 Jun 2026 00:47:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1782434851;
-	bh=fwXYB/hR7TrkG8UgBdS/fuhFaBEA3FQDxrK51Y7U7Ps=;
+	d=linux-foundation.org; s=korg; t=1782434853;
+	bh=SNIKLyN7TjCJQyXwCwB97eDRg20AUiDn1RXfoFTFR7U=;
 	h=Date:To:From:Subject;
-	b=NTCjOxQk6VKGypvApEdtxDHretkSqOrQ9f2PE5lERyyLt/ONpz21LdQvzD0hTogl+
-	 sU7kGEbSC8zDwfdCiHNula2nFfdsN0Oo2L9VpXQWGdm0i9W26aZFLMAP89FRi3PPvw
-	 tqnttyN/0MSVHxJsXLjnBWAcZzcrlTrijhWBT+9k=
-Date: Thu, 25 Jun 2026 17:47:30 -0700
+	b=Nbn3yYyaH5DXcMXcKEWeXSCqSoAqN8j+iugreHklgnHwNCgy+MRp6IMvT+4bTNKi4
+	 X3YjvbWEoLItj4i7pATIDNvZ0gaE+/BnHOZpnJULyO8mnRnBAp06SFs+F6/ed5dk8p
+	 P3PPH0tiT2y+R66r8AdRgW1eaqUIVAHrDoUgAnQU=
+Date: Thu, 25 Jun 2026 17:47:33 -0700
 To: mm-commits@vger.kernel.org,songmuchun@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-sparse-move-sparse_vmemmap_init_nid_late-into-sparse_init_nid.patch added to mm-new branch
-Message-Id: <20260626004731.48CB41F000E9@smtp.kernel.org>
+Subject: + mm-hugetlb_cma-validate-hugetlb-cma-range-by-zone-at-reserve-time.patch added to mm-new branch
+Message-Id: <20260626004733.D3DC01F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/sparse: move sparse_vmemmap_init_nid_late() into sparse_init_nid()
+     Subject: mm/hugetlb_cma: validate hugetlb CMA range by zone at reserve time
 has been added to the -mm mm-new branch.  Its filename is
-     mm-sparse-move-sparse_vmemmap_init_nid_late-into-sparse_init_nid.patch
+     mm-hugetlb_cma-validate-hugetlb-cma-range-by-zone-at-reserve-time.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-sparse-move-sparse_vmemmap_init_nid_late-into-sparse_init_nid.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb_cma-validate-hugetlb-cma-range-by-zone-at-reserve-time.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,22 +70,23 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm/sparse: move sparse_vmemmap_init_nid_late() into sparse_init_nid()
-Date: Fri, 12 Jun 2026 11:58:55 +0800
+Subject: mm/hugetlb_cma: validate hugetlb CMA range by zone at reserve time
+Date: Fri, 12 Jun 2026 11:58:56 +0800
 
-sparse_vmemmap_init_nid_late() is still called separately from
-mm_core_init_early(), away from the rest of the sparse initialization
-path.
+Hugetlb CMA allocation currently has to cope with CMA areas that span
+multiple zones.
 
-Now that sparse_init() runs after zone initialization, call
-sparse_vmemmap_init_nid_late() from sparse_init_nid() instead.  This keeps
-both sparse_vmemmap_init_nid_early() and sparse_vmemmap_init_nid_late() in
-the sparse setup path.
+Validate the reserved CMA range up front in hugetlb_cma_reserve() so later
+hugetlb CMA allocations can assume a zone-consistent area.
 
-Link: https://lore.kernel.org/20260612035903.2468601-12-songmuchun@bytedance.com
+Also drop the pfn_valid() check from cma_validate_zones().  mem_section is
+not fully initialized at this point, so the check can trigger false
+warnings.  Keep the sanity check in cma_activate_area() instead.
+
+Link: https://lore.kernel.org/20260612035903.2468601-13-songmuchun@bytedance.com
 Signed-off-by: Muchun Song <songmuchun@bytedance.com>
-Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Reviewed-by: Oscar Salvador (SUSE) <osalvador@kernel.org>
+Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Reviewed-by: Oscar Salvador (SUSE) <osalvador@suse.de>
 Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Frank van der Linden <fvdl@google.com>
@@ -94,46 +95,52 @@ Cc: Lorenzo Stoakes <ljs@kernel.org>
 Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
 Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Oscar Salvador (SUSE) <osalvador@kernel.org>
 Cc: "Ritesh Harjani (IBM)" <ritesh.list@gmail.com>
 Cc: Usama Arif <usama.arif@linux.dev>
 Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mm_init.c |    4 ----
- mm/sparse.c  |    1 +
- 2 files changed, 1 insertion(+), 4 deletions(-)
+ mm/cma.c         |    3 ++-
+ mm/hugetlb_cma.c |    6 ++++--
+ 2 files changed, 6 insertions(+), 3 deletions(-)
 
---- a/mm/mm_init.c~mm-sparse-move-sparse_vmemmap_init_nid_late-into-sparse_init_nid
-+++ a/mm/mm_init.c
-@@ -2674,16 +2674,12 @@ void __init __weak mem_init(void)
- 
- void __init mm_core_init_early(void)
- {
--	int nid;
--
- 	free_area_init();
- 
- 	hugetlb_cma_reserve();
- 	hugetlb_bootmem_alloc();
- 
- 	sparse_init();
--	for_each_node_state(nid, N_MEMORY)
--		sparse_vmemmap_init_nid_late(nid);
- 	memmap_init();
- }
- 
---- a/mm/sparse.c~mm-sparse-move-sparse_vmemmap_init_nid_late-into-sparse_init_nid
-+++ a/mm/sparse.c
-@@ -320,6 +320,7 @@ static void __init sparse_init_nid(int n
+--- a/mm/cma.c~mm-hugetlb_cma-validate-hugetlb-cma-range-by-zone-at-reserve-time
++++ a/mm/cma.c
+@@ -126,7 +126,6 @@ bool cma_validate_zones(struct cma *cma)
+ 		 * to be in the same zone. Simplify by forcing the entire
+ 		 * CMA resv range to be in the same zone.
+ 		 */
+-		WARN_ON_ONCE(!pfn_valid(base_pfn));
+ 		if (pfn_range_intersects_zones(cma->nid, base_pfn, cmr->count)) {
+ 			set_bit(CMA_ZONES_INVALID, &cma->flags);
+ 			return false;
+@@ -165,6 +164,8 @@ static void __init cma_activate_area(str
+ 			bitmap_set(cmr->bitmap, 0, bitmap_count);
  		}
- 	}
- 	sparse_usage_fini();
-+	sparse_vmemmap_init_nid_late(nid);
- }
  
- /*
++		WARN_ON_ONCE(!pfn_valid(cmr->base_pfn));
++
+ 		for (pfn = early_pfn[r]; pfn < cmr->base_pfn + cmr->count;
+ 		     pfn += pageblock_nr_pages)
+ 			init_cma_reserved_pageblock(pfn_to_page(pfn));
+--- a/mm/hugetlb_cma.c~mm-hugetlb_cma-validate-hugetlb-cma-range-by-zone-at-reserve-time
++++ a/mm/hugetlb_cma.c
+@@ -231,9 +231,11 @@ void __init hugetlb_cma_reserve(void)
+ 		res = cma_declare_contiguous_multi(size, gigantic_page_size,
+ 					HUGETLB_PAGE_ORDER, name,
+ 					&hugetlb_cma[nid], nid);
+-		if (res) {
+-			pr_warn("hugetlb_cma: reservation failed: err %d, node %d",
++		if (res || !cma_validate_zones(hugetlb_cma[nid])) {
++			pr_warn("hugetlb_cma: %s: err %d, node %d\n",
++				res ? "reservation failed" : "reserved area spans zones",
+ 				res, nid);
++			hugetlb_cma[nid] = NULL;
+ 			continue;
+ 		}
+ 
 _
 
 Patches currently in -mm which might be from songmuchun@bytedance.com are
