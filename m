@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 05F1B13B7AE
-	for <mm-commits@vger.kernel.org>; Fri, 26 Jun 2026 00:47:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 093FE29D294
+	for <mm-commits@vger.kernel.org>; Fri, 26 Jun 2026 00:47:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782434832; cv=none; b=Xp+JISOZoCzA5aMhqCcFtytSJDVi3TNxJaWTyk9uoZS7o4GGh/F98Pr3I6844MCFYFwSq9gWulgKpKqMsqA7EOl1fWqGslgFmXsSTZ15qiwyVapgYzTo4cYjG8T7VIIIQJLukvO4cZMyRtvnXka6lwMKLjyvJaj5Tfnpww3sZ2s=
+	t=1782434834; cv=none; b=HHiEtc9yBPMinZFn2BG23+IBrk0txpU8FUBBrPrjLtkCsO6CLhOuhCRkmT4Yespa4Eu0nk2+JkVY2tcSAM6u3ONjBXQOsxYlmuztZwL31sfz9b50TVevoMiQ8ZvFxVHp37pt4etAKo5wTaI6WmphgbWlXQLJngyFWYQWK4NJLEU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782434832; c=relaxed/simple;
-	bh=g1XCD95+8FzRqkoufQRUwynJ3jRgcc2URPABAu7xYlQ=;
-	h=Date:To:From:Subject:Message-Id; b=YUnlFCxRU2+g0QR7yEsQNHXvtQfrnFz1cKU3qvStqk/Kn04HX0jwvRx/liMCD1oVlWvT+8yiYdK2UeMsg8UUmAUf441CmIzikT1uGE/x9AoUfl9fssfTCxSzolYX72KX0XmM5L9WxVKysMavDWCQ8h3viiTUSGr0aDL9WAnRAQw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ebc83gHt; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1782434834; c=relaxed/simple;
+	bh=gXqSqOt/x/KtlhJDCkliFhy1JmtneNSQGj8EmBgY3IM=;
+	h=Date:To:From:Subject:Message-Id; b=qg7PbWGY66CwqWDR+dr+yictbYO7q/Y93MD/L/OBhAdCu2Xx9yCZ7fnOPfOw5oTmK0q3JPpHteygPEGT2aeTXAUq7+J2LYmZj7vrAnJxCVClr36mXOXmnVNVEOzfWwHaYqTzqYBrvMX9kdxQ03ASaFTK87y5SeTBsHbsQTdi710=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=l69AwUrn; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ebc83gHt"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8FAAC1F00A3A;
-	Fri, 26 Jun 2026 00:47:10 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="l69AwUrn"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D21DD1F000E9;
+	Fri, 26 Jun 2026 00:47:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1782434830;
-	bh=r/GvJK2bNGdojYy0uxeLTxSi4nBaye39ujSgONDGm5A=;
+	d=linux-foundation.org; s=korg; t=1782434832;
+	bh=PGK3hNxZci/JEEEReVujlTk1O07nF7+dvW+5JkWeng0=;
 	h=Date:To:From:Subject;
-	b=ebc83gHtKGOR/zOfIiSLKBkpItqlul0uE1cklHhqCNTqMqmwmIk0EHted/4Qi0VrZ
-	 O6i1RV2HQ1Vg/R5Ck2nis/Fmi2N/naLIQQTPCe8fPA+/XRJMhVgTabIMDA190o+sBg
-	 2mGotAszjemtvw+WEasIhtxrHPzWn0E5sEMsSra0=
-Date: Thu, 25 Jun 2026 17:47:10 -0700
+	b=l69AwUrnnhJHFJCxE67Fiskzw1BF/ZWORxz12swE0Ol+OSByOsDzB8jiQD5lYWoaM
+	 Up0pnrZsdsxAbkJ2lpIX9j6vjtl1amhxaXaH7ZgjFBjZAGpUlvMMipfk8Ih43vT0KS
+	 BIxj+oD+n7eFNFiH7upb/Ig6PCEmYYz/j35aGe1A=
+Date: Thu, 25 Jun 2026 17:47:12 -0700
 To: mm-commits@vger.kernel.org,songmuchun@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + powerpc-mm-fix-wrong-addr_pfn-tracking-in-compound-vmemmap-population.patch added to mm-new branch
-Message-Id: <20260626004710.8FAAC1F00A3A@smtp.kernel.org>
+Subject: + mm-hugetlb-initialize-gigantic-bootmem-hugepage-struct-pages-earlier.patch added to mm-new branch
+Message-Id: <20260626004712.D21DD1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: powerpc/mm: fix wrong addr_pfn tracking in compound vmemmap population
+     Subject: mm/hugetlb: initialize gigantic bootmem hugepage struct pages earlier
 has been added to the -mm mm-new branch.  Its filename is
-     powerpc-mm-fix-wrong-addr_pfn-tracking-in-compound-vmemmap-population.patch
+     mm-hugetlb-initialize-gigantic-bootmem-hugepage-struct-pages-earlier.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/powerpc-mm-fix-wrong-addr_pfn-tracking-in-compound-vmemmap-population.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-initialize-gigantic-bootmem-hugepage-struct-pages-earlier.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,32 +70,32 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Muchun Song <songmuchun@bytedance.com>
-Subject: powerpc/mm: fix wrong addr_pfn tracking in compound vmemmap population
-Date: Fri, 12 Jun 2026 11:58:47 +0800
+Subject: mm/hugetlb: initialize gigantic bootmem hugepage struct pages earlier
+Date: Fri, 12 Jun 2026 11:58:48 +0800
 
-vmemmap_populate_compound_pages() uses addr_pfn to determine the PFN
-offset within a compound page and to decide whether the current vmemmap
-slot should be populated as a head page mapping or should reuse a tail
-page mapping.
+Gigantic bootmem HugeTLB pages are currently initialized from
+hugetlb_init(), but page_alloc_init_late() runs earlier and walks
+pageblocks to determine zone contiguity.
 
-However, addr_pfn is advanced manually in parallel with addr.  The loop
-itself progresses in vmemmap address space, so each PAGE_SIZE step in addr
-covers PAGE_SIZE / sizeof(struct page) struct page slots.  Since addr_pfn
-is compared against nr_pages in data-PFN units, it should advance by the
-same number of PFNs.  The existing manual increments do not match that and
-therefore do not reliably track the PFN corresponding to the current addr.
+If a bootmem HugeTLB region is marked noinit, set_zone_contiguous() can
+observe still-uninitialized struct pages through
+__pageblock_pfn_to_page().  This may not trigger an immediate failure, but
+it can make set_zone_contiguous() compute the wrong zone contiguity state.
+If extra poisoned-page checks are added in this path, such as
+PF_POISONED_CHECK() in page_zone_id(), it can also trigger an early boot
+panic.
 
-As a result, pfn_offset can be computed from the wrong PFN and the code
-can make the head/tail decision for the wrong compound-page position.
+Initialize gigantic bootmem HugeTLB struct pages from
+page_alloc_init_late(), before zone contiguity is evaluated, so later page
+allocator setup only sees valid struct page state.  This also makes the
+initialization order more natural, as struct pages should be initialized
+before later code inspects them.
 
-Fix this by deriving addr_pfn directly from the current vmemmap address
-instead of carrying it as loop state.
-
-Link: https://lore.kernel.org/20260612035903.2468601-4-songmuchun@bytedance.com
-Fixes: f2b79c0d7968 ("powerpc/book3s64/radix: add support for vmemmap optimization for radix")
+Link: https://lore.kernel.org/20260612035903.2468601-5-songmuchun@bytedance.com
+Fixes: fde1c4ecf916 ("mm: hugetlb: skip initialization of gigantic tail struct pages if freed by HVO")
 Signed-off-by: Muchun Song <songmuchun@bytedance.com>
+Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Acked-by: Oscar Salvador <osalvador@suse.de>
-Reviewed-by: Ritesh Harjani (IBM) <ritesh.list@gmail.com>
 Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Frank van der Linden <fvdl@google.com>
@@ -103,73 +103,93 @@ Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
 Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Cc: Nicholas Piggin <npiggin@gmail.com>
 Cc: Oscar Salvador (SUSE) <osalvador@kernel.org>
+Cc: "Ritesh Harjani (IBM)" <ritesh.list@gmail.com>
 Cc: Usama Arif <usama.arif@linux.dev>
 Cc: Vlastimil Babka <vbabka@kernel.org>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/mm/book3s64/radix_pgtable.c |    7 +------
- 1 file changed, 1 insertion(+), 6 deletions(-)
+ include/linux/hugetlb.h |    5 +++++
+ mm/hugetlb.c            |    5 ++---
+ mm/mm_init.c            |    1 +
+ mm/sparse-vmemmap.c     |    4 ++--
+ 4 files changed, 10 insertions(+), 5 deletions(-)
 
---- a/arch/powerpc/mm/book3s64/radix_pgtable.c~powerpc-mm-fix-wrong-addr_pfn-tracking-in-compound-vmemmap-population
-+++ a/arch/powerpc/mm/book3s64/radix_pgtable.c
-@@ -1314,7 +1314,6 @@ int __meminit vmemmap_populate_compound_
- 	 * covering out both edges.
+--- a/include/linux/hugetlb.h~mm-hugetlb-initialize-gigantic-bootmem-hugepage-struct-pages-earlier
++++ a/include/linux/hugetlb.h
+@@ -171,6 +171,7 @@ extern int movable_gigantic_pages __read
+ extern int sysctl_hugetlb_shm_group __read_mostly;
+ extern struct list_head huge_boot_pages[MAX_NUMNODES];
+ 
++void hugetlb_bootmem_struct_page_init(void);
+ void hugetlb_bootmem_alloc(void);
+ extern nodemask_t hugetlb_bootmem_nodes;
+ void hugetlb_bootmem_set_nodes(void);
+@@ -1293,6 +1294,10 @@ static inline bool hugetlbfs_pagecache_p
+ static inline void hugetlb_bootmem_alloc(void)
+ {
+ }
++
++static inline void hugetlb_bootmem_struct_page_init(void)
++{
++}
+ #endif	/* CONFIG_HUGETLB_PAGE */
+ 
+ static inline spinlock_t *huge_pte_lock(struct hstate *h,
+--- a/mm/hugetlb.c~mm-hugetlb-initialize-gigantic-bootmem-hugepage-struct-pages-earlier
++++ a/mm/hugetlb.c
+@@ -3353,7 +3353,7 @@ static void __init gather_bootmem_preall
+ 		gather_bootmem_prealloc_node(nid);
+ }
+ 
+-static void __init gather_bootmem_prealloc(void)
++void __init hugetlb_bootmem_struct_page_init(void)
+ {
+ 	struct padata_mt_job job = {
+ 		.thread_fn	= gather_bootmem_prealloc_parallel,
+@@ -3582,7 +3582,7 @@ static unsigned long __init hugetlb_page
+  * - For gigantic pages, this is called early in the boot process and
+  *   pages are allocated from memblock allocated or something similar.
+  *   Gigantic pages are actually added to pools later with the routine
+- *   gather_bootmem_prealloc.
++ *   hugetlb_bootmem_struct_page_init.
+  * - For non-gigantic pages, this is called later in the boot process after
+  *   all of mm is up and functional.  Pages are allocated from buddy and
+  *   then added to hugetlb pools.
+@@ -4152,7 +4152,6 @@ static int __init hugetlb_init(void)
+ 	}
+ 
+ 	hugetlb_init_hstates();
+-	gather_bootmem_prealloc();
+ 	report_hugepages();
+ 
+ 	hugetlb_sysfs_init();
+--- a/mm/mm_init.c~mm-hugetlb-initialize-gigantic-bootmem-hugepage-struct-pages-earlier
++++ a/mm/mm_init.c
+@@ -2323,6 +2323,7 @@ void __init page_alloc_init_late(void)
+ 	/* Reinit limits that are based on free pages after the kernel is up */
+ 	files_maxfiles_init();
+ #endif
++	hugetlb_bootmem_struct_page_init();
+ 
+ 	/* Accounting of total+free memory is stable at this point. */
+ 	mem_init_print_info();
+--- a/mm/sparse-vmemmap.c~mm-hugetlb-initialize-gigantic-bootmem-hugepage-struct-pages-earlier
++++ a/mm/sparse-vmemmap.c
+@@ -342,8 +342,8 @@ static __meminit struct page *vmemmap_ge
+ 	 *
+ 	 * Any initialization done here will be overwritten by memmap_init().
+ 	 *
+-	 * gather_bootmem_prealloc() will take care of initialization after
+-	 * memmap_init().
++	 * hugetlb_bootmem_struct_page_init() will take care of initialization
++	 * after memmap_init().
  	 */
- 	unsigned long addr;
--	unsigned long addr_pfn = start_pfn;
- 	unsigned long next;
- 	pgd_t *pgd;
- 	p4d_t *p4d;
-@@ -1335,7 +1334,6 @@ int __meminit vmemmap_populate_compound_
  
- 		if (pmd_leaf(READ_ONCE(*pmd))) {
- 			/* existing huge mapping. Skip the range */
--			addr_pfn += (PMD_SIZE >> PAGE_SHIFT);
- 			next = pmd_addr_end(addr, end);
- 			continue;
- 		}
-@@ -1348,11 +1346,11 @@ int __meminit vmemmap_populate_compound_
- 			 * page whose VMEMMAP_RESERVE_NR pages were mapped and
- 			 * this request fall in those pages.
- 			 */
--			addr_pfn += 1;
- 			next = addr + PAGE_SIZE;
- 			continue;
- 		} else {
- 			unsigned long nr_pages = pgmap_vmemmap_nr(pgmap);
-+			unsigned long addr_pfn = page_to_pfn((struct page *)addr);
- 			unsigned long pfn_offset = addr_pfn - ALIGN_DOWN(addr_pfn, nr_pages);
- 			pte_t *tail_page_pte;
- 
-@@ -1376,7 +1374,6 @@ int __meminit vmemmap_populate_compound_
- 				if (!pte)
- 					return -ENOMEM;
- 
--				addr_pfn += 2;
- 				next = addr + 2 * PAGE_SIZE;
- 				continue;
- 			}
-@@ -1392,7 +1389,6 @@ int __meminit vmemmap_populate_compound_
- 					return -ENOMEM;
- 				vmemmap_verify(pte, node, addr, addr + PAGE_SIZE);
- 
--				addr_pfn += 1;
- 				next = addr + PAGE_SIZE;
- 				continue;
- 			}
-@@ -1402,7 +1398,6 @@ int __meminit vmemmap_populate_compound_
- 				return -ENOMEM;
- 			vmemmap_verify(pte, node, addr, addr + PAGE_SIZE);
- 
--			addr_pfn += 1;
- 			next = addr + PAGE_SIZE;
- 			continue;
- 		}
+ 	p = vmemmap_alloc_block_zero(PAGE_SIZE, node);
 _
 
 Patches currently in -mm which might be from songmuchun@bytedance.com are
