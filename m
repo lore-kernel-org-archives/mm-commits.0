@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8083113B7AE
-	for <mm-commits@vger.kernel.org>; Fri, 26 Jun 2026 00:47:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C3BA926B973
+	for <mm-commits@vger.kernel.org>; Fri, 26 Jun 2026 00:47:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782434849; cv=none; b=a8+X8roQn7NBfsC6yxmmlBcBbHRq3RGgwwi656l/KGGwGuFPE4s4urGd6/a9J4nUFGph+mKuIGSHfXJGY8HZ0kEaDsHScl7SWPA8K2dbkkPCoTO8/E/vcj3GCvuoLGDrq8JPR/ycmDRiCNdm6IsfrmG9Ae2Lfh/lIfwvEOqs8y0=
+	t=1782434853; cv=none; b=gDyPOBIwlme44RAvC9A+y+w4VDJmSABIh97dKgRKo/KCEC0pa4qi3dMAvxLwLhbwBVVuZkF0yc7NQnwTHcO0SYTrA51OlLOoEyLU1YwoEAxriEJG7ZTt430AlXybMCTZLYbltcU5A7gaGZ9xDhvVHWv4TepalXDu0pNf5ioKLuM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782434849; c=relaxed/simple;
-	bh=bPkvu+A3z1brWZK9FjYi2LKmBF2ACmzUAjo9oNINh+8=;
-	h=Date:To:From:Subject:Message-Id; b=qoRU8Wy4woJkvwAss20TlGN55Q1cPuARIdczlF0RTb8AjcVQzP4eZasz15iV+Bb66ITeCRscyI9B8F5ntQ6xuyYXWl9+rMnyezjjdG+7Mm5hD0lot89wNZZSQBp3R0++DVQzzLHO6qOPSHJSE4JaZfkTL3MLgTqLo0LOXjNKhkk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JMgCZNLa; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1782434853; c=relaxed/simple;
+	bh=Ecg7ojLl1+IkkwF6XRTFJT3snibwiWWnnc7Iww2euIE=;
+	h=Date:To:From:Subject:Message-Id; b=e5aYvUWpt/VEKOaib6GCaf8xozaPJGHVm5gQEcCAj2uXQxSjp1JfcwpIzZcTZmwraq8631YQj7huJPZC9sJNyCRyzXxeQ1h+O47hEzw0fHfQlCMgr8tNmV2V2nWr7OnbRiqRa6rRTG+IPRbldxL0wa5AajwsojVr+q4UIrw7XyE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NTCjOxQk; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JMgCZNLa"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 556711F000E9;
-	Fri, 26 Jun 2026 00:47:28 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NTCjOxQk"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 48CB41F000E9;
+	Fri, 26 Jun 2026 00:47:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1782434848;
-	bh=VFnjcJq2jPcqp7aAmW+hT3bKn+wtbA0Gj0b2lvKHbqY=;
+	d=linux-foundation.org; s=korg; t=1782434851;
+	bh=fwXYB/hR7TrkG8UgBdS/fuhFaBEA3FQDxrK51Y7U7Ps=;
 	h=Date:To:From:Subject;
-	b=JMgCZNLayDMEnT6ILaOwrTEzQ8UzQpSWdHLB3+mF9Y0+QYqbST/+FeRIoqcOsccFR
-	 ++nWawHZJblz2RuwkoITYw+YH5jgBoC9sq81TXWKlxFGY2MiENUdemyfam3XY+eUOT
-	 AqmYY1UYg8PD2aLe9AlHd2inxh75nCYRvaII9k2Q=
-Date: Thu, 25 Jun 2026 17:47:27 -0700
+	b=NTCjOxQk6VKGypvApEdtxDHretkSqOrQ9f2PE5lERyyLt/ONpz21LdQvzD0hTogl+
+	 sU7kGEbSC8zDwfdCiHNula2nFfdsN0Oo2L9VpXQWGdm0i9W26aZFLMAP89FRi3PPvw
+	 tqnttyN/0MSVHxJsXLjnBWAcZzcrlTrijhWBT+9k=
+Date: Thu, 25 Jun 2026 17:47:30 -0700
 To: mm-commits@vger.kernel.org,songmuchun@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mm_init-remove-set_pageblock_order-call-from-sparse_init.patch added to mm-new branch
-Message-Id: <20260626004728.556711F000E9@smtp.kernel.org>
+Subject: + mm-sparse-move-sparse_vmemmap_init_nid_late-into-sparse_init_nid.patch added to mm-new branch
+Message-Id: <20260626004731.48CB41F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/mm_init: remove set_pageblock_order() call from sparse_init()
+     Subject: mm/sparse: move sparse_vmemmap_init_nid_late() into sparse_init_nid()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-mm_init-remove-set_pageblock_order-call-from-sparse_init.patch
+     mm-sparse-move-sparse_vmemmap_init_nid_late-into-sparse_init_nid.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mm_init-remove-set_pageblock_order-call-from-sparse_init.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-sparse-move-sparse_vmemmap_init_nid_late-into-sparse_init_nid.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,20 +70,22 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm/mm_init: remove set_pageblock_order() call from sparse_init()
-Date: Fri, 12 Jun 2026 11:58:54 +0800
+Subject: mm/sparse: move sparse_vmemmap_init_nid_late() into sparse_init_nid()
+Date: Fri, 12 Jun 2026 11:58:55 +0800
 
-free_area_init() already sets pageblock_order before sparse_init() runs
-for CONFIG_HUGETLB_PAGE_SIZE_VARIABLE, so sparse_init() does not need to
-call set_pageblock_order() again.
+sparse_vmemmap_init_nid_late() is still called separately from
+mm_core_init_early(), away from the rest of the sparse initialization
+path.
 
-With that call removed, set_pageblock_order() is only used in
-mm/mm_init.c.  Make it static.
+Now that sparse_init() runs after zone initialization, call
+sparse_vmemmap_init_nid_late() from sparse_init_nid() instead.  This keeps
+both sparse_vmemmap_init_nid_early() and sparse_vmemmap_init_nid_late() in
+the sparse setup path.
 
-Link: https://lore.kernel.org/20260612035903.2468601-11-songmuchun@bytedance.com
+Link: https://lore.kernel.org/20260612035903.2468601-12-songmuchun@bytedance.com
 Signed-off-by: Muchun Song <songmuchun@bytedance.com>
 Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Reviewed-by: Oscar Salvador (SUSE) <osalvador@suse.de>
+Reviewed-by: Oscar Salvador (SUSE) <osalvador@kernel.org>
 Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Frank van der Linden <fvdl@google.com>
@@ -92,60 +94,46 @@ Cc: Lorenzo Stoakes <ljs@kernel.org>
 Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
 Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Oscar Salvador (SUSE) <osalvador@kernel.org>
+Cc: Oscar Salvador <osalvador@suse.de>
 Cc: "Ritesh Harjani (IBM)" <ritesh.list@gmail.com>
 Cc: Usama Arif <usama.arif@linux.dev>
 Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/internal.h |    1 -
- mm/mm_init.c  |    4 ++--
- mm/sparse.c   |    3 ---
- 3 files changed, 2 insertions(+), 6 deletions(-)
+ mm/mm_init.c |    4 ----
+ mm/sparse.c  |    1 +
+ 2 files changed, 1 insertion(+), 4 deletions(-)
 
---- a/mm/internal.h~mm-mm_init-remove-set_pageblock_order-call-from-sparse_init
-+++ a/mm/internal.h
-@@ -1435,7 +1435,6 @@ extern unsigned long  __must_check vm_mm
-         unsigned long, unsigned long,
-         unsigned long, unsigned long);
- 
--extern void set_pageblock_order(void);
- unsigned long reclaim_pages(struct list_head *folio_list);
- unsigned int reclaim_clean_pages_from_list(struct zone *zone,
- 					    struct list_head *folio_list);
---- a/mm/mm_init.c~mm-mm_init-remove-set_pageblock_order-call-from-sparse_init
+--- a/mm/mm_init.c~mm-sparse-move-sparse_vmemmap_init_nid_late-into-sparse_init_nid
 +++ a/mm/mm_init.c
-@@ -1496,7 +1496,7 @@ static inline void setup_usemap(struct z
- #ifdef CONFIG_HUGETLB_PAGE_SIZE_VARIABLE
+@@ -2674,16 +2674,12 @@ void __init __weak mem_init(void)
  
- /* Initialise the number of pages represented by NR_PAGEBLOCK_BITS */
--void __init set_pageblock_order(void)
-+static void __init set_pageblock_order(void)
+ void __init mm_core_init_early(void)
  {
- 	unsigned int order = PAGE_BLOCK_MAX_ORDER;
+-	int nid;
+-
+ 	free_area_init();
  
-@@ -1522,7 +1522,7 @@ void __init set_pageblock_order(void)
-  * include/linux/pageblock-flags.h for the values of pageblock_order based on
-  * the kernel config
-  */
--void __init set_pageblock_order(void)
-+static inline void __init set_pageblock_order(void)
- {
+ 	hugetlb_cma_reserve();
+ 	hugetlb_bootmem_alloc();
+ 
+ 	sparse_init();
+-	for_each_node_state(nid, N_MEMORY)
+-		sparse_vmemmap_init_nid_late(nid);
+ 	memmap_init();
  }
  
---- a/mm/sparse.c~mm-mm_init-remove-set_pageblock_order-call-from-sparse_init
+--- a/mm/sparse.c~mm-sparse-move-sparse_vmemmap_init_nid_late-into-sparse_init_nid
 +++ a/mm/sparse.c
-@@ -343,9 +343,6 @@ void __init sparse_init(void)
- 	pnum_begin = first_present_section_nr();
- 	nid_begin = sparse_early_nid(__nr_to_section(pnum_begin));
+@@ -320,6 +320,7 @@ static void __init sparse_init_nid(int n
+ 		}
+ 	}
+ 	sparse_usage_fini();
++	sparse_vmemmap_init_nid_late(nid);
+ }
  
--	/* Setup pageblock_order for HUGETLB_PAGE_SIZE_VARIABLE */
--	set_pageblock_order();
--
- 	for_each_present_section_nr(pnum_begin + 1, pnum_end) {
- 		int nid = sparse_early_nid(__nr_to_section(pnum_end));
- 
+ /*
 _
 
 Patches currently in -mm which might be from songmuchun@bytedance.com are
