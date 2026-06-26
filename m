@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0DB9821C16A
-	for <mm-commits@vger.kernel.org>; Fri, 26 Jun 2026 00:47:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5C56D20E023
+	for <mm-commits@vger.kernel.org>; Fri, 26 Jun 2026 00:48:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782434878; cv=none; b=JS6Q5MTvNP4BdX1hjQbIu2OnrYfrY9SyS7JzwC3L+Rms/AtLvhj/cT/HmrYI8XSgL6neen+g1LkPNZ8Xg0cp6HloWrYGi6wWw6x0tCfxxrWsm+tAbTEdzu/hY6GuUKUgJ3NiQXbfUYGyX/aP0Y6R9EtFH6+4DxY9NYwCTwM1ups=
+	t=1782434882; cv=none; b=B+NPFacdW5S9uxTPP4f7V7gIbEDT/99XRtKw/7vWlrzZ2zf55qgwn49ZpzTkzt2QF6A0RmhRu4y7T4L+osMnNXP5FXAtPy6QBYt0M281nFHex17RO+Q4YK/ghpPgOK3VdQXVnb67h5U+k1CcgRDw12qnocuimYgX8pMyQgTji8A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782434878; c=relaxed/simple;
-	bh=pOMsaeKZuel5/PCrhDh1HQnEgNlWVjXge6/fcmD1POs=;
-	h=Date:To:From:Subject:Message-Id; b=USKZmo0YvJstm4zNaUYEbkdJBm7+A6af65s3a5ia4PnmkHgOM8Fb3YlJG1YYI/bmBx1kI5wbZ2ykIM7UVC0bNGqq9tQ8HM9ULI5yDEYgA2UtXtaKOExFHnyAsg9SK5BPknFMalIIfzHFwn+1kZJNxB1iK/E9uyXKu3VTO/lOoY4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xs5C5ZIe; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1782434882; c=relaxed/simple;
+	bh=I2TRZJl1EEMp2h2pYiLpOJK81h/VbpjWrHMsv2YErXk=;
+	h=Date:To:From:Subject:Message-Id; b=TKte+kBNhDNCYgOqFDl1qTp0YD+MESL3KHcLnDgNZUrfxnlkqDdGtFQWvnKGQNwR1fOW4Ze0SiF7rBVMiP7dvDGDwGwdbtsehR9UWfbkzfxNu39EWN5DEyPitozAr0VENFD7XbhiQ30uWESHki2+YBdEThgyBTOWOP3QLCHUcB8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QI0tLwzC; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xs5C5ZIe"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D669F1F000E9;
-	Fri, 26 Jun 2026 00:47:56 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QI0tLwzC"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D7E0A1F000E9;
+	Fri, 26 Jun 2026 00:47:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1782434876;
-	bh=WDGFnWhVTHKnuqIo3FsU6qVdnLkUGiR5mvLNPpLVthM=;
+	d=linux-foundation.org; s=korg; t=1782434880;
+	bh=HF0hYuHY+PRQOm2hPdM4I0aLtwh/WfZnWISZUyUPfvQ=;
 	h=Date:To:From:Subject;
-	b=xs5C5ZIeND+93HEDEy2faJKwRorjVPrOlgpnt1fXVKlBzZVuqZulefrsVEET7YnrE
-	 XAQmjlyChkTfOshXJdj/zpnxCvLxgibY/dfwoq+KTa+HBhIUmC9rZ1HN/uqPgg4NOG
-	 PZsnd1lvqJtM5gRoHsBqE/zUiFDiJxk7cRu5J/8g=
-Date: Thu, 25 Jun 2026 17:47:56 -0700
+	b=QI0tLwzCFB6wtoz4WXPeUSgYb1WDill43DRF8S+QaQTXOV6COMIZyAGNxI3gmcuiT
+	 s6V5B3mya+i2r0MW/yf6SlOgtEND8BdpSOKDPXJ3UhFMDrbuzQYKaIVEO7zqMl5s5H
+	 939YAMmoPd/zVuJ9YT89YT+HtxhQTET8ajOzR5vo=
+Date: Thu, 25 Jun 2026 17:47:59 -0700
 To: mm-commits@vger.kernel.org,songmuchun@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb-remove-unused-bootmem-cma-field.patch added to mm-new branch
-Message-Id: <20260626004756.D669F1F000E9@smtp.kernel.org>
+Subject: + mm-mm_init-fold-__init_page_from_nid-into-__init_deferred_page.patch added to mm-new branch
+Message-Id: <20260626004759.D7E0A1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/hugetlb: remove unused bootmem cma field
+     Subject: mm/mm_init: fold __init_page_from_nid() into __init_deferred_page()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-hugetlb-remove-unused-bootmem-cma-field.patch
+     mm-mm_init-fold-__init_page_from_nid-into-__init_deferred_page.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-remove-unused-bootmem-cma-field.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mm_init-fold-__init_page_from_nid-into-__init_deferred_page.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,20 +70,18 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm/hugetlb: remove unused bootmem cma field
-Date: Fri, 12 Jun 2026 11:59:02 +0800
+Subject: mm/mm_init: fold __init_page_from_nid() into __init_deferred_page()
+Date: Fri, 12 Jun 2026 11:59:03 +0800
 
-struct huge_bootmem_page no longer needs to keep the CMA pointer.  The
-bootmem path only needs to remember whether a huge page came from CMA,
-which is already encoded in the flags field.
+__init_page_from_nid() no longer has external users and is only used
+locally in mm/mm_init.c under CONFIG_DEFERRED_STRUCT_PAGE_INIT.
 
-Set HUGE_BOOTMEM_CMA when the page is allocated, drop the unused cma field
-together with the redundant assignments, and simplify the early CMA
-bootmem allocation fallback path now that the cma pointer no longer has to
-be stored in struct huge_bootmem_page.
+Fold it into its sole caller __init_deferred_page() and remove the
+separate helper declaration.
 
-Link: https://lore.kernel.org/20260612035903.2468601-19-songmuchun@bytedance.com
+Link: https://lore.kernel.org/20260612035903.2468601-20-songmuchun@bytedance.com
 Signed-off-by: Muchun Song <songmuchun@bytedance.com>
+Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Frank van der Linden <fvdl@google.com>
@@ -91,7 +89,6 @@ Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
 Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Cc: Nicholas Piggin <npiggin@gmail.com>
 Cc: Oscar Salvador <osalvador@suse.de>
 Cc: Oscar Salvador (SUSE) <osalvador@kernel.org>
@@ -101,86 +98,81 @@ Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c     |    5 +----
- mm/hugetlb_cma.c |   29 +++++++++++------------------
- mm/internal.h    |    2 --
- 3 files changed, 12 insertions(+), 24 deletions(-)
+ mm/internal.h |    1 -
+ mm/mm_init.c  |   42 ++++++++++++++++--------------------------
+ 2 files changed, 16 insertions(+), 27 deletions(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-remove-unused-bootmem-cma-field
-+++ a/mm/hugetlb.c
-@@ -3076,10 +3076,7 @@ static bool __init alloc_bootmem_huge_pa
- 	 */
- 	INIT_LIST_HEAD(&m->list);
- 	m->hstate = h;
--	if (!hugetlb_early_cma(h)) {
--		m->cma = NULL;
--		m->flags = 0;
--	}
-+	m->flags = hugetlb_early_cma(h) ? HUGE_BOOTMEM_CMA : 0;
- 
- 	/* CMA pages: zone-crossing is validated in hugetlb_cma_reserve(). */
- 	if (!hugetlb_early_cma(h) &&
---- a/mm/hugetlb_cma.c~mm-hugetlb-remove-unused-bootmem-cma-field
-+++ a/mm/hugetlb_cma.c
-@@ -59,31 +59,24 @@ struct folio *hugetlb_cma_alloc_frozen_f
- void * __init hugetlb_cma_alloc_bootmem(struct hstate *h, int nid, bool node_exact)
- {
- 	struct cma *cma;
--	struct huge_bootmem_page *m;
-+	void *m;
- 	int node;
- 
- 	cma = hugetlb_cma[nid];
- 	m = cma_reserve_early(cma, huge_page_size(h));
--	if (!m) {
--		if (node_exact)
--			return NULL;
-+	if (m || node_exact)
-+		return m;
- 
--		for_each_node_mask(node, hugetlb_bootmem_nodes) {
--			cma = hugetlb_cma[node];
--			if (!cma || node == nid)
--				continue;
--			m = cma_reserve_early(cma, huge_page_size(h));
--			if (m)
--				break;
--		}
-+	for_each_node_mask(node, hugetlb_bootmem_nodes) {
-+		cma = hugetlb_cma[node];
-+		if (!cma || node == nid)
-+			continue;
-+		m = cma_reserve_early(cma, huge_page_size(h));
-+		if (m)
-+			return m;
- 	}
- 
--	if (m) {
--		m->flags = HUGE_BOOTMEM_CMA;
--		m->cma = cma;
--	}
--
--	return m;
-+	return NULL;
- }
- 
- static int __init cmdline_parse_hugetlb_cma(char *p)
---- a/mm/internal.h~mm-hugetlb-remove-unused-bootmem-cma-field
+--- a/mm/internal.h~mm-mm_init-fold-__init_page_from_nid-into-__init_deferred_page
 +++ a/mm/internal.h
-@@ -24,13 +24,11 @@
+@@ -1760,7 +1760,6 @@ static inline bool pte_needs_soft_dirty_
  
- struct folio_batch;
- struct hstate;
--struct cma;
+ void __meminit __init_single_page(struct page *page, unsigned long pfn,
+ 				unsigned long zone, int nid);
+-void __meminit __init_page_from_nid(unsigned long pfn, int nid);
  
- struct huge_bootmem_page {
- 	struct list_head list;
- 	struct hstate *hstate;
- 	unsigned long flags;
--	struct cma *cma;
- };
+ /* shrinker related functions */
+ unsigned long shrink_slab(gfp_t gfp_mask, int nid, struct mem_cgroup *memcg,
+--- a/mm/mm_init.c~mm-mm_init-fold-__init_page_from_nid-into-__init_deferred_page
++++ a/mm/mm_init.c
+@@ -688,31 +688,6 @@ static __meminit void pageblock_migratet
+ }
+ #endif
  
- /*
+-/*
+- * Initialize a reserved page unconditionally, finding its zone first.
+- */
+-void __meminit __init_page_from_nid(unsigned long pfn, int nid)
+-{
+-	pg_data_t *pgdat;
+-	int zid;
+-
+-	pgdat = NODE_DATA(nid);
+-
+-	for (zid = 0; zid < MAX_NR_ZONES; zid++) {
+-		struct zone *zone = &pgdat->node_zones[zid];
+-
+-		if (zone_spans_pfn(zone, pfn))
+-			break;
+-	}
+-	__init_single_page(pfn_to_page(pfn), pfn, zid, nid);
+-
+-	if (pageblock_aligned(pfn)) {
+-		enum migratetype mt =
+-			kho_scratch_migratetype(pfn, MIGRATE_MOVABLE);
+-		init_pageblock_migratetype(pfn_to_page(pfn), mt, false);
+-	}
+-}
+-
+ #ifdef CONFIG_DEFERRED_STRUCT_PAGE_INIT
+ static inline void pgdat_set_deferred_range(pg_data_t *pgdat)
+ {
+@@ -771,10 +746,25 @@ defer_init(int nid, unsigned long pfn, u
+ 
+ static void __meminit __init_deferred_page(unsigned long pfn, int nid)
+ {
++	pg_data_t *pgdat = NODE_DATA(nid);
++	int zid;
++
+ 	if (early_page_initialised(pfn, nid))
+ 		return;
+ 
+-	__init_page_from_nid(pfn, nid);
++	for (zid = 0; zid < MAX_NR_ZONES; zid++) {
++		struct zone *zone = &pgdat->node_zones[zid];
++
++		if (zone_spans_pfn(zone, pfn))
++			break;
++	}
++	__init_single_page(pfn_to_page(pfn), pfn, zid, nid);
++
++	if (pageblock_aligned(pfn)) {
++		enum migratetype mt =
++			kho_scratch_migratetype(pfn, MIGRATE_MOVABLE);
++		init_pageblock_migratetype(pfn_to_page(pfn), mt, false);
++	}
+ }
+ #else
+ static inline void pgdat_set_deferred_range(pg_data_t *pgdat) {}
 _
 
 Patches currently in -mm which might be from songmuchun@bytedance.com are
