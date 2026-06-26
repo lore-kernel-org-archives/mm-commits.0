@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 866253F9F37
-	for <mm-commits@vger.kernel.org>; Fri, 26 Jun 2026 16:40:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7FA493FE37C;
+	Fri, 26 Jun 2026 16:50:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782492031; cv=none; b=qIyUjMgK7tr4psfRC+/tXGZ1dSxRRzyzEH34WMGMDdhFyFa4hlaObmi7v8jJ20QhRvXt/veu34YGAAjSCqsDjrt/ua5DWiIu+8BdslS6W2ZpH9MTtjdXjE8fH5RD+fiZmfbg4Sa3ur8ekWEpoHovHYinq8UbM6S66RWPVUrkAc4=
+	t=1782492649; cv=none; b=HdFA5khuIdqybbSYXriGgVoEirePBxrxXnjPmK7sDLdAcnsyQIKl6koC0Qm05qVGRGsX+VCfQIy8lueOiU9kEm2H8pIMJM6LVBMe7mNPGmNPEaYiJVQZIPzblIO6O+lkMN4JUz5cEcd6iBzydz2uiWsep6WFVgkytiR95h7Egsw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782492031; c=relaxed/simple;
-	bh=YdtnMy/ggUc3wB3vtQzCJVwUv7WI/CGfMU/x1qEFMbc=;
-	h=Date:To:From:Subject:Message-Id; b=leuJvVwX2oYtU6yJxz/eD850BMnvv63WD04oeZROg4kqIl2YqmthpJg5SWJKyaXOo2oFS9wZqP27AvStfcFZKxjA81BZc8R3f0YbLfGOw5hiGDS8ql/dGYxuFJm60vOEJEBokGvEiqrPbfs1mAiR4oBgzeRtyIr4vOAuYzI+tcM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zy+XWdWN; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1782492649; c=relaxed/simple;
+	bh=B++2b+HZFi53LEA6K++93M5y9N7V+BQgGOoJjBhHbvI=;
+	h=Date:To:From:Subject:Message-Id; b=TS8IL/9AB0MxtZxljaNeq8h8Rd2cUYhXDcX+XAf9lS0WYTepSEfWiEgRkzeiYkjvJDD29Slrzlxq/Lc2X8zcnf2EbmEDTdTgOZ49hYP5hUh72v1j7ZHZ8SjTyfFRARvIbb0bUWKTIpyC1a0JP3UZ3+8qf63kR6sK/0CF8H0SMJs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rQ2ihM/q; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zy+XWdWN"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3D4901F00A3A;
-	Fri, 26 Jun 2026 16:40:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rQ2ihM/q"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B274F1F00A3A;
+	Fri, 26 Jun 2026 16:50:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1782492029;
-	bh=Fl/qcAxOIAeFWO79HjnFkeiDY0gZ1o1BaNNLwqM9+8M=;
+	d=linux-foundation.org; s=korg; t=1782492644;
+	bh=8Cs7bMrGB8UWOF+SzDf0hzrnSN5Wx1Mu3hlKuFODmLI=;
 	h=Date:To:From:Subject;
-	b=zy+XWdWNSaN7ATRlhmtWCP0clj9UyWg382OgkVbzwKNHursEV/kTyYqFOHGRaiJ0i
-	 xeZJlXsNP+hIi938vk+wvm00tV99cniHAVFM7M/yv2haEm86fpwMEvDoRuENMc7FRO
-	 ce8JhlTQ6Qe23Ja7X5E/iglx4gAd/CljKwAssl70=
-Date: Fri, 26 Jun 2026 09:40:28 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,shuah@kernel.org,ritesh.list@gmail.com,osalvador@suse.de,mhocko@kernel.org,linmiaohe@huawei.com,liam.howlett@oracle.com,dev.jain@arm.com,david@kernel.org,sayalip@linux.ibm.com,akpm@linux-foundation.org
+	b=rQ2ihM/q4XkL1rVjPAV65cdeTNPHqPSi15N1TN2JgEq6GyiU7cEecJhlaK6jIl7NZ
+	 y63Fx0b/s4+Ka4/88Fe5uc4BiIoOCi/UGhzF0ttXh4cHSbP9kl3piZcceREQjeqyUG
+	 mDrPZ/pomIcVv6PR96bXMVOeB6ZJQ6xXvOVAwswI=
+Date: Fri, 26 Jun 2026 09:50:44 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,pmladek@suse.com,npiggin@gmail.com,mpe@ellerman.id.au,maddy@linux.ibm.com,dianders@chromium.org,include@grrlz.net,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] selftests-mm-fix-ksm-numa-merge-test-for-systems-with-memoryless-numa-nodes.patch removed from -mm tree
-Message-Id: <20260626164029.3D4901F00A3A@smtp.kernel.org>
+Subject: [to-be-updated] watchdog-use-sys_info_with_filter-to-avoid-duplicate-backtraces.patch removed from -mm tree
+Message-Id: <20260626165044.B274F1F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,135 +35,100 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests/mm: fix ksm NUMA merge test for systems with memoryless NUMA nodes
+     Subject: watchdog: use sys_info_with_filter() to avoid duplicate backtraces
 has been removed from the -mm tree.  Its filename was
-     selftests-mm-fix-ksm-numa-merge-test-for-systems-with-memoryless-numa-nodes.patch
+     watchdog-use-sys_info_with_filter-to-avoid-duplicate-backtraces.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Sayali Patil <sayalip@linux.ibm.com>
-Subject: selftests/mm: fix ksm NUMA merge test for systems with memoryless NUMA nodes
-Date: Thu, 25 Jun 2026 18:10:17 +0530
+From: Bradley Morgan <include@grrlz.net>
+Subject: watchdog: use sys_info_with_filter() to avoid duplicate backtraces
+Date: Thu, 25 Jun 2026 15:25:56 +0000
 
-The KSM NUMA merge test allocates identical pages on different NUMA nodes
-and verifies KSM behavior with merge_across_nodes enabled and disabled.
+The watchdog prints all CPU backtraces itself.  When the watchdog mask
+contains only SYS_INFO_ALL_BT, stripping that bit leaves zero and
+sys_info(0) falls back to kernel_sys_info.
 
-On systems with memoryless NUMA nodes, for example:
- #numactl  -H
-      available: 2 nodes (0,4)
-      .....
-      node 0 cpus: 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15
-      node 0 size: 14825 MB
-      node 0 free: 1382 MB
-      node 4 cpus:
-      node 4 size: 0 MB
-      node 4 free: 0 MB
+Use sys_info_with_filter() so an explicit all_bt mask does not request the
+global default.
 
-the test may attempt to allocate memory on a node without memory, causing
-numa_alloc_onnode() to fail and resulting in a spurious test failure.
-
-Add count_mem_nodes() helper to count only nodes with memory and use it
-instead of numa_num_configured_nodes() to ensure the test runs only on
-systems with at least two NUMA nodes that have memory.  Skip the test
-otherwise.
-
-Before patch:
-       ---------------------------
-	running ./ksm_tests -N -m 1
-       ---------------------------
-        mbind: Invalid argument
-        ok 1 KSM NUMA merging
-	Totals: pass:1 fail:0 xfail:0 xpass:0 skip:0 error:0
-        [PASS]
-       ok 1 ksm_tests -N -m 1
-       ---------------------------
-        running ./ksm_tests -N -m 0
-       ---------------------------
-        mbind: Invalid argument
-        not ok 1 KSM NUMA merging
-	Totals: pass:0 fail:1 xfail:0 xpass:0 skip:0 error:0
-        [FAIL]
-       not ok 2 ksm_tests -N -m 0 # exit=1
-
-After patch:
-       ---------------------------
-        running ./ksm_tests -N -m 1
-       ---------------------------
-        SKIP At least 2 NUMA nodes with memory must be available
-	Totals: pass:0 fail:0 xfail:0 xpass:0 skip:1 error:0
-        [SKIP]
-        ok 1 ksm_tests -N -m 1 # SKIP
-       ---------------------------
-        running ./ksm_tests -N -m 0
-       ---------------------------
-        SKIP At least 2 NUMA nodes with memory must be available
-	Totals: pass:0 fail:0 xfail:0 xpass:0 skip:1 error:0
-        [SKIP]
-        ok 2 ksm_tests -N -m 0 # SKIP
-
-Link: https://lore.kernel.org/8540b58ef1fdbc2e5cb2f9fe28a2d2a54a5bc6a8.1782365671.git.sayalip@linux.ibm.com
-Fixes: e3820ab252dd ("selftest/vm: fix ksm selftest to run with different NUMA topologies")
-Signed-off-by: Sayali Patil <sayalip@linux.ibm.com>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: "Ritesh Harjani (IBM)" <ritesh.list@gmail.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Zi Yan <ziy@nvidia.com>
+Link: https://lore.kernel.org/20260625152558.7450-3-include@grrlz.net
+Fixes: a9af76a78760 ("watchdog: add sys_info sysctls to dump sys info on system lockup")
+Signed-off-by: Bradley Morgan <include@grrlz.net>
+Cc: Doug Anderson <dianders@chromium.org>
+Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Petr Mladek <pmladek@suse.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/ksm_tests.c |   26 +++++++++++++++--------
- 1 file changed, 18 insertions(+), 8 deletions(-)
+ kernel/watchdog.c |   12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
 
---- a/tools/testing/selftests/mm/ksm_tests.c~selftests-mm-fix-ksm-numa-merge-test-for-systems-with-memoryless-numa-nodes
-+++ a/tools/testing/selftests/mm/ksm_tests.c
-@@ -450,6 +450,18 @@ static int get_first_mem_node(void)
- 	return get_next_mem_node(numa_max_node());
- }
- 
-+static int count_mem_nodes(void)
-+{
-+	int node, count = 0;
-+
-+	for (node = 0; node <= numa_max_node(); node++) {
-+		if (numa_node_size(node, NULL) > 0)
-+			count++;
-+	}
-+
-+	return count;
-+}
-+
- static int check_ksm_numa_merge(int merge_type, int mapping, int prot, int timeout,
- 				bool merge_across_nodes, size_t page_size)
+--- a/kernel/watchdog.c~watchdog-use-sys_info_with_filter-to-avoid-duplicate-backtraces
++++ a/kernel/watchdog.c
+@@ -208,6 +208,7 @@ void watchdog_hardlockup_check(unsigned
  {
-@@ -463,14 +475,12 @@ static int check_ksm_numa_merge(int merg
- 		return KSFT_FAIL;
+ 	int hardlockup_all_cpu_backtrace;
+ 	unsigned int this_cpu;
++	unsigned long si_mask;
+ 	unsigned long flags;
+ 
+ 	if (per_cpu(watchdog_hardlockup_touched, cpu)) {
+@@ -216,7 +217,8 @@ void watchdog_hardlockup_check(unsigned
+ 		return;
  	}
  
--	if (numa_available() < 0) {
--		ksft_print_msg("NUMA support not enabled\n");
--		return KSFT_SKIP;
--	}
--	if (numa_num_configured_nodes() <= 1) {
--		ksft_print_msg("At least 2 NUMA nodes must be available\n");
--		return KSFT_SKIP;
--	}
-+	if (numa_available() < 0)
-+		ksft_exit_skip("NUMA support not enabled\n");
-+
-+	if (count_mem_nodes() <= 1)
-+		ksft_exit_skip("At least 2 NUMA nodes with memory must be available\n");
-+
- 	if (ksm_write_sysfs(KSM_FP("merge_across_nodes"), merge_across_nodes))
- 		return KSFT_FAIL;
+-	hardlockup_all_cpu_backtrace = (hardlockup_si_mask & SYS_INFO_ALL_BT) ?
++	si_mask = READ_ONCE(hardlockup_si_mask);
++	hardlockup_all_cpu_backtrace = (si_mask & SYS_INFO_ALL_BT) ?
+ 					1 : sysctl_hardlockup_all_cpu_backtrace;
+ 	/*
+ 	 * Check for a hardlockup by making sure the CPU's timer
+@@ -286,7 +288,7 @@ void watchdog_hardlockup_check(unsigned
+ 			clear_bit_unlock(0, &hard_lockup_nmi_warn);
+ 	}
  
+-	sys_info(hardlockup_si_mask & ~SYS_INFO_ALL_BT);
++	sys_info_with_filter(si_mask, SYS_INFO_ALL_BT);
+ 	if (hardlockup_panic)
+ 		nmi_panic(regs, "Hard LOCKUP");
+ 
+@@ -798,6 +800,7 @@ static enum hrtimer_restart watchdog_tim
+ 	struct pt_regs *regs = get_irq_regs();
+ 	int softlockup_all_cpu_backtrace;
+ 	int duration, thresh_count;
++	unsigned long si_mask;
+ 	unsigned long flags;
+ 
+ 	if (!watchdog_enabled)
+@@ -809,7 +812,8 @@ static enum hrtimer_restart watchdog_tim
+ 	if (panic_in_progress())
+ 		return HRTIMER_NORESTART;
+ 
+-	softlockup_all_cpu_backtrace = (softlockup_si_mask & SYS_INFO_ALL_BT) ?
++	si_mask = READ_ONCE(softlockup_si_mask);
++	softlockup_all_cpu_backtrace = (si_mask & SYS_INFO_ALL_BT) ?
+ 					1 : sysctl_softlockup_all_cpu_backtrace;
+ 
+ 	watchdog_hardlockup_kick();
+@@ -900,7 +904,7 @@ static enum hrtimer_restart watchdog_tim
+ 		}
+ 
+ 		add_taint(TAINT_SOFTLOCKUP, LOCKDEP_STILL_OK);
+-		sys_info(softlockup_si_mask & ~SYS_INFO_ALL_BT);
++		sys_info_with_filter(si_mask, SYS_INFO_ALL_BT);
+ 		thresh_count = duration / get_softlockup_thresh();
+ 
+ 		if (softlockup_panic && thresh_count >= softlockup_panic)
 _
 
-Patches currently in -mm which might be from sayalip@linux.ibm.com are
+Patches currently in -mm which might be from include@grrlz.net are
 
+powerpc-watchdog-use-sys_info_with_filter-to-avoid-duplicate-backtraces.patch
+panic-use-sys_info_with_filter-to-avoid-duplicate-backtraces.patch
+lib-string-fix-memchr_inv-for-large-ranges.patch
 
