@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 36C6318C2C
-	for <mm-commits@vger.kernel.org>; Fri, 26 Jun 2026 00:19:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0BC2E64AA4;
+	Fri, 26 Jun 2026 00:46:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782433196; cv=none; b=b3HnE1k2y3SRv8N9d5YSJIY8kekpG2bpq6OIh6A2ENk1hYzyJquNoPtX/jVPmf/KVLzJJsrTG8IVdB9mZiAd/X5xKbH/M0p+8exnNIcLldsqL5i3u+mIxj0VMtkia42FpcL+j/DERFNTcXp6mi/kY5x1v/thVo97eEkgS643MvM=
+	t=1782434805; cv=none; b=UvthRB7jzGQyj1nGqAqjkYjcsMIAGpT+I0dbEnvmBmcshCcc09y+TIyTe1BlTugFxb1qzAlFIE94/5Y/fjwIdS8nmr90WnzKc5RhB6rKrgB/u+V0hrDhNH/aM7lQnxQg+M37JmvSWWqMIpM5eSFIWU0bVOsEaEYKdw4LUNjFuLA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782433196; c=relaxed/simple;
-	bh=mC5DtAxI04wtSfIbfpwT7la6LGU+F2AfAZZ5zjjY5fI=;
-	h=Date:To:From:Subject:Message-Id; b=cnd7Or2ZgNzcH+ZBrkeX9ViHRM0rlgR1R7l5w8N7tUylSTn5GtVmvkCFjvY7ZGC7ybpnwRbRK9yRUrgSufyIUtesrQ6bQwKaFV2Gal99AwvamX7mLiTSrLpk9Hizl1gLPMuCprwxzJWiKoB66t1aJZCeqAAHrC9A10tv36V95uI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=D13CDKH+; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1782434805; c=relaxed/simple;
+	bh=yktQmGAHquSq02GuLsLeNTscAi8DvFCnDel1wHsMS28=;
+	h=Date:To:From:Subject:Message-Id; b=X6/jz3xb43JIrbjbTvKlkDLX3GXsMaCpBL1pBij9HfHdbz9spTzAP2EnfZHsDk0AW//2UNoycmgg8zE31/MZ7xdYqjUN4fYVJo7XKJ8h+Y90ChtwXpAN653ztceyjXheWvN63GRUvV47jBcQHKaVP1/2A6RX2RYdNcd6h/k9M9o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QL1mPHAe; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="D13CDKH+"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B839D1F000E9;
-	Fri, 26 Jun 2026 00:19:54 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QL1mPHAe"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9F3221F000E9;
+	Fri, 26 Jun 2026 00:46:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1782433194;
-	bh=Ds/BMKCBE5Ttd5rcfLnw+14B9pdQmAAl11cRao2I+WM=;
+	d=linux-foundation.org; s=korg; t=1782434803;
+	bh=KEukRefTHyO5CrlGIeWAAXB+3DCk726I+3/AN6vz+LI=;
 	h=Date:To:From:Subject;
-	b=D13CDKH+TbDmW9iF7b4PP+2mf7K4/VaNro/yYpYotUpHqs5xUTA6q/V976xWlku3V
-	 9m9TokSoxnszQoNwxn+dynwHtFSGP9ZNCLKaQebNxTkUyAwx+vecF5/0TuDmfQs7Py
-	 PPZTbAefIwIxRAWup8p9YVu3NhYgYBr+gpqauo/A=
-Date: Thu, 25 Jun 2026 17:19:54 -0700
-To: mm-commits@vger.kernel.org,vishal.moola@gmail.com,chenyichong@uniontech.com,akpm@linux-foundation.org
+	b=QL1mPHAeZJTPe6euLbL21LDy8VGF6feH3JvC6/ac6SEqA5Gxj+QOaUvUMjXumNFg9
+	 y+AvBw8JX7JMTh8BAAI5dO3XubZsr7UZZvLp3GcrPGPXbAvw/GnCqeye5U3gkefFPl
+	 oKvnmseN98CNvSSLhiSdmM5cBaYKXmeNJCRu9DnI=
+Date: Thu, 25 Jun 2026 17:46:43 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,stable@vger.kernel.org,osalvador@suse.de,muchun.song@linux.dev,kas@kernel.org,david@kernel.org,mclapinski@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + tools-mm-page_owner_sort-free-per-record-allocations.patch added to mm-new branch
-Message-Id: <20260626001954.B839D1F000E9@smtp.kernel.org>
+Subject: [alternative-merged] mm-hugetlb-init-tails-before-init_migratetype.patch removed from -mm tree
+Message-Id: <20260626004643.9F3221F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,197 +34,125 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: tools/mm/page_owner_sort: free per-record allocations
-has been added to the -mm mm-new branch.  Its filename is
-     tools-mm-page_owner_sort-free-per-record-allocations.patch
+The quilt patch titled
+     Subject: mm/hugetlb: init tails before init_migratetype
+has been removed from the -mm tree.  Its filename was
+     mm-hugetlb-init-tails-before-init_migratetype.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/tools-mm-page_owner_sort-free-per-record-allocations.patch
-
-This patch will later appear in the mm-new branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because an alternative patch was or shall be merged
 
 ------------------------------------------------------
-From: Yichong Chen <chenyichong@uniontech.com>
-Subject: tools/mm/page_owner_sort: free per-record allocations
-Date: Fri, 12 Jun 2026 13:50:17 +0800
+From: Michal Clapinski <mclapinski@google.com>
+Subject: mm/hugetlb: init tails before init_migratetype
+Date: Mon, 22 Jun 2026 12:19:01 +0200
 
-add_list() allocates comm and txt for each page owner record, but the
-cleanup path only frees the outer list array.  This leaks both buffers for
-every retained record.
+Currently, if you enable HVO, DEFERRED_STRUCT_PAGE_INIT and VM_DEBUG the
+kernel will crash with the following stack trace
 
-Free partial allocations in add_list(), discarded records during culling,
-and retained records on exit.  Return explicit error, skip, and match
-results from filter_record() to handle get_comm() failures.
+get_pfnblock_bitmap_bitidx
+__set_pfnblock_flags_mask
+hugetlb_bootmem_init_migratetype
+prep_and_add_bootmem_folios
+gather_bootmem_prealloc_node
+gather_bootmem_prealloc_parallel
+padata_do_multithreaded
+gather_bootmem_prealloc
+hugetlb_init
 
-Link: https://lore.kernel.org/610C3A89A09303F8+20260612055017.632263-1-chenyichong@uniontech.com
-Signed-off-by: Yichong Chen <chenyichong@uniontech.com>
-Reviewed-by: Vishal Moola <vishal.moola@gmail.com>
+on this code
+
+VM_BUG_ON_PAGE(!zone_spans_pfn(page_zone(page), pfn), page);
+
+This code looks inside the struct page which will be uninitialized
+for hugetlb tail pages, which will cause a false positive.
+
+So let's initialize the tail pages before this happens.
+
+Link: https://lore.kernel.org/20260622101901.223961-1-mclapinski@google.com
+Fixes: 622026e87c40 ("mm/hugetlb: remove fake head pages")
+Signed-off-by: Michal Clapinski <mclapinski@google.com>
+Reviewed-by: Kiryl Shutsemau (Meta) <kas@kernel.org>
+Tested-by: Kiryl Shutsemau (Meta) <kas@kernel.org>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Michal Clapinski <mclapinski@google.com>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/mm/page_owner_sort.c |   63 ++++++++++++++++++++++++++++-------
- 1 file changed, 51 insertions(+), 12 deletions(-)
+ mm/hugetlb.c         |    1 +
+ mm/hugetlb_vmemmap.c |   14 +++++++++-----
+ mm/hugetlb_vmemmap.h |    5 +++++
+ 3 files changed, 15 insertions(+), 5 deletions(-)
 
---- a/tools/mm/page_owner_sort.c~tools-mm-page_owner_sort-free-per-record-allocations
-+++ a/tools/mm/page_owner_sort.c
-@@ -43,6 +43,13 @@ enum FILTER_BIT {
- 	FILTER_TGID = 1<<2,
- 	FILTER_COMM = 1<<3
+--- a/mm/hugetlb.c~mm-hugetlb-init-tails-before-init_migratetype
++++ a/mm/hugetlb.c
+@@ -4127,6 +4127,7 @@ static int __init hugetlb_init(void)
+ 	}
+ 
+ 	hugetlb_init_hstates();
++	hugetlb_vmemmap_init_tails();
+ 	gather_bootmem_prealloc();
+ 	report_hugepages();
+ 
+--- a/mm/hugetlb_vmemmap.c~mm-hugetlb-init-tails-before-init_migratetype
++++ a/mm/hugetlb_vmemmap.c
+@@ -867,14 +867,10 @@ static const struct ctl_table hugetlb_vm
+ 	},
  };
-+
-+enum FILTER_RESULT {
-+	FILTER_ERROR,
-+	FILTER_SKIP,
-+	FILTER_MATCH
-+};
-+
- enum CULL_BIT {
- 	CULL_PID = 1<<1,
- 	CULL_TGID = 1<<2,
-@@ -372,6 +379,9 @@ static char *get_comm(char *buf)
+ 
+-static int __init hugetlb_vmemmap_init(void)
++void __init hugetlb_vmemmap_init_tails(void)
  {
- 	char *comm_str = malloc(TASK_COMM_LEN);
+-	const struct hstate *h;
+ 	struct zone *zone;
  
-+	if (!comm_str)
-+		return NULL;
-+
- 	memset(comm_str, 0, TASK_COMM_LEN);
- 
- 	search_pattern(&comm_pattern, comm_str, buf);
-@@ -386,6 +396,12 @@ static char *get_comm(char *buf)
- 	return comm_str;
- }
- 
-+static void free_block_list(struct block_list *block)
-+{
-+	free(block->comm);
-+	free(block->txt);
-+}
-+
- static int get_arg_type(const char *arg)
- {
- 	if (!strcmp(arg, "pid") || !strcmp(arg, "p"))
-@@ -450,39 +466,57 @@ static bool match_str_list(const char *s
- 	return false;
- }
- 
--static bool is_need(char *buf)
-+static enum FILTER_RESULT filter_record(char *buf)
- {
-+	char *comm;
-+
- 	if ((filter & FILTER_PID) && !match_num_list(get_pid(buf), fc.pids, fc.pids_size))
--		return false;
-+		return FILTER_SKIP;
- 	if ((filter & FILTER_TGID) &&
- 		!match_num_list(get_tgid(buf), fc.tgids, fc.tgids_size))
--		return false;
+-	/* HUGETLB_VMEMMAP_RESERVE_SIZE should cover all used struct pages */
+-	BUILD_BUG_ON(__NR_USED_SUBPAGE > HUGETLB_VMEMMAP_RESERVE_PAGES);
 -
--	char *comm = get_comm(buf);
-+		return FILTER_SKIP;
-+	if (!(filter & FILTER_COMM))
-+		return FILTER_MATCH;
-+
-+	comm = get_comm(buf);
-+	if (!comm)
-+		return FILTER_ERROR;
- 
--	if ((filter & FILTER_COMM) &&
--	!match_str_list(comm, fc.comms, fc.comms_size)) {
-+	if (!match_str_list(comm, fc.comms, fc.comms_size)) {
- 		free(comm);
--		return false;
-+		return FILTER_SKIP;
- 	}
- 	free(comm);
--	return true;
-+	return FILTER_MATCH;
- }
- 
- static bool add_list(char *buf, int len, char *ext_buf)
- {
-+	enum FILTER_RESULT filter_result;
-+
- 	if (list_size == max_size) {
- 		fprintf(stderr, "max_size too small??\n");
- 		return false;
- 	}
--	if (!is_need(buf))
-+	filter_result = filter_record(buf);
-+	if (filter_result == FILTER_ERROR) {
-+		fprintf(stderr, "Out of memory\n");
-+		return false;
-+	}
-+	if (filter_result == FILTER_SKIP)
- 		return true;
-+
- 	list[list_size].pid = get_pid(buf);
- 	list[list_size].tgid = get_tgid(buf);
- 	list[list_size].comm = get_comm(buf);
--	list[list_size].txt = malloc(len+1);
-+	if (!list[list_size].comm) {
-+		fprintf(stderr, "Out of memory\n");
-+		return false;
-+	}
-+	list[list_size].txt = malloc(len + 1);
- 	if (!list[list_size].txt) {
- 		fprintf(stderr, "Out of memory\n");
-+		free(list[list_size].comm);
- 		return false;
- 	}
- 	memcpy(list[list_size].txt, buf, len);
-@@ -841,8 +875,10 @@ int main(int argc, char **argv)
- 		} else {
- 			list[count-1].num += list[i].num;
- 			list[count-1].page_num += list[i].page_num;
-+			free_block_list(&list[i]);
+ 	for_each_zone(zone) {
+ 		for (int i = 0; i < NR_VMEMMAP_TAILS; i++) {
+ 			struct page *tail, *p;
+@@ -890,6 +886,14 @@ static int __init hugetlb_vmemmap_init(v
+ 				init_compound_tail(p + j, NULL, order, zone);
  		}
  	}
-+	list_size = count;
++}
++
++static int __init hugetlb_vmemmap_init(void)
++{
++	const struct hstate *h;
++
++	/* HUGETLB_VMEMMAP_RESERVE_SIZE should cover all used struct pages */
++	BUILD_BUG_ON(__NR_USED_SUBPAGE > HUGETLB_VMEMMAP_RESERVE_PAGES);
  
- 	qsort(list, count, sizeof(list[0]), compare_sort_condition);
+ 	for_each_hstate(h) {
+ 		if (hugetlb_vmemmap_optimizable(h)) {
+--- a/mm/hugetlb_vmemmap.h~mm-hugetlb-init-tails-before-init_migratetype
++++ a/mm/hugetlb_vmemmap.h
+@@ -20,6 +20,7 @@
+ #define HUGETLB_VMEMMAP_RESERVE_PAGES	(HUGETLB_VMEMMAP_RESERVE_SIZE / sizeof(struct page))
  
-@@ -876,8 +912,11 @@ out_free:
- 		free(ext_buf);
- 	if (buf)
- 		free(buf);
--	if (list)
-+	if (list) {
-+		for (i = 0; i < list_size; i++)
-+			free_block_list(&list[i]);
- 		free(list);
-+	}
- out_ts:
- 	regfree(&ts_nsec_pattern);
- out_comm:
+ #ifdef CONFIG_HUGETLB_PAGE_OPTIMIZE_VMEMMAP
++void hugetlb_vmemmap_init_tails(void);
+ int hugetlb_vmemmap_restore_folio(const struct hstate *h, struct folio *folio);
+ long hugetlb_vmemmap_restore_folios(const struct hstate *h,
+ 					struct list_head *folio_list,
+@@ -72,6 +73,10 @@ static inline void hugetlb_vmemmap_optim
+ {
+ }
+ 
++static inline void hugetlb_vmemmap_init_tails(void)
++{
++}
++
+ static inline void hugetlb_vmemmap_optimize_bootmem_folios(struct hstate *h,
+ 						struct list_head *folio_list)
+ {
 _
 
-Patches currently in -mm which might be from chenyichong@uniontech.com are
+Patches currently in -mm which might be from mclapinski@google.com are
 
-tools-mm-page_owner_sort-free-per-record-allocations.patch
 
