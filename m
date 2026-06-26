@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2F5B9481B1
-	for <mm-commits@vger.kernel.org>; Fri, 26 Jun 2026 16:36:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6B1F3296BC8
+	for <mm-commits@vger.kernel.org>; Fri, 26 Jun 2026 16:40:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782491820; cv=none; b=X3lcx/XYIr9/Fr2RhIyJ8Z3MZ1CGVoDIEejR+wu7kONoTInWJi/h+Rg66GOCBXhiMOjoZBv3Wyf1Qt1wx31kBRTA/4iLPx5970A5H/Yj+VOSlsnQIJEljV6zqCx04kVw4/JZHkxefZCKphOdwkrJNT7erRP5MPdTfRbVr/+CjP0=
+	t=1782492029; cv=none; b=PRPYQkt7PPJUc6Sjfem5xN0CoYiDWe/M6HiitZB78IKV8XnltdLA402hTpSmf7/0z3pQnMnb1rV13jqgrXpjyg8TsKOHGm1MlXQrqlD3KRht08nhm7+VZFSeJ9b1FDZhJRMO8zOPnyBeSGRuJF0ISyzDTHCpnLrsAscbIY43KLw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782491820; c=relaxed/simple;
-	bh=Vv5uPzYTueNwgog8Gi77V2QnVlYYI/58xeds8jw+KNM=;
-	h=Date:To:From:Subject:Message-Id; b=clpoklLhv5qpyUDfPTHccJ/L8wsL0jvNNXva3VfRxA9smRViTJURS7KNfhExpM7SYDFf+USfFtONeGv4uMA03IE/dAxZyYPEyPBR4g6UYN9pmTakaFJmCVZfJ0gGrLig/3g4rzeaVkbuZUZVsNkrb6kMtDuNUrzI1iVoRmCBK5w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Il6fPZlI; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1782492029; c=relaxed/simple;
+	bh=zSidRh4LfJaKze4l9l78z4pkpiDH8ad+3rSwlWoxkdU=;
+	h=Date:To:From:Subject:Message-Id; b=HHvTdsOTlfG8/HuiptMwPdGX376y4Glru9RhtxiyWRCCpIqitppbPba19t4eQNkjIYaTfKp9PaqNykuBdDc+HhkxsyE+dqiFZ3LOZ1rkW23bexS5js5kkFVFkXoL+o9kX250uMER5VcCHiKYajQVCW0lZn0/kyVJa1TelHQi39w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=P8H3o9J2; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Il6fPZlI"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AA1EA1F000E9;
-	Fri, 26 Jun 2026 16:36:58 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="P8H3o9J2"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 009B01F000E9;
+	Fri, 26 Jun 2026 16:40:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1782491818;
-	bh=VN39Ag1APFXNoU58LJAD19j7E5gLiUCi1Ldtr48V/CY=;
+	d=linux-foundation.org; s=korg; t=1782492028;
+	bh=hbc9xgR6bwRYAFKcKnXODEdLd+2wXFvH+1jpWgGWe1w=;
 	h=Date:To:From:Subject;
-	b=Il6fPZlIc+9uwIWBYDRrLa1C1TpzW6QPUmVNbr5IbSmrfsCSdd1Fz9If+hzt4YOsQ
-	 zinVVgofyCFMTd04eRQbNamjt2gp1iOnAFqou5WkTorD8eUHpffCSOk+ZvsYWe4z5O
-	 uEkPjOhq923urjR3Fmlusz5hrfQjY5WKvwC56+lk=
-Date: Fri, 26 Jun 2026 09:36:58 -0700
-To: mm-commits@vger.kernel.org,include@grrlz.net,ebiederm@xmission.com,oleg@redhat.com,akpm@linux-foundation.org
+	b=P8H3o9J2k5OyfRV97koHDyITrG4cUHtjfFEW0VgPBdHi4MnAvpfNBt3/qqj/DVDfO
+	 m7fR9znYnjEtv5w7GJ6mHRNuO30yhVY61QCVX6Nwn4Fw95500g14+pa5a6aP7qmvKw
+	 hqATTEVAllODaWOx9Dp3uXxob2DeK3se3zG8oc0o=
+Date: Fri, 26 Jun 2026 09:40:27 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,shuah@kernel.org,ritesh.list@gmail.com,osalvador@suse.de,mhocko@kernel.org,linmiaohe@huawei.com,liam.howlett@oracle.com,dev.jain@arm.com,david@kernel.org,sayalip@linux.ibm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + signal-change-sys_kill-to-use-send_sig_noinfo.patch added to mm-nonmm-unstable branch
-Message-Id: <20260626163658.AA1EA1F000E9@smtp.kernel.org>
+Subject: [to-be-updated] selftests-mm-handle-einval-when-configuring-gigantic-hugepages.patch removed from -mm tree
+Message-Id: <20260626164028.009B01F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,81 +34,121 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: signal: change sys_kill() to use SEND_SIG_NOINFO
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     signal-change-sys_kill-to-use-send_sig_noinfo.patch
+The quilt patch titled
+     Subject: selftests/mm: handle EINVAL when configuring gigantic hugepages
+has been removed from the -mm tree.  Its filename was
+     selftests-mm-handle-einval-when-configuring-gigantic-hugepages.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/signal-change-sys_kill-to-use-send_sig_noinfo.patch
-
-This patch will later appear in the mm-nonmm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Oleg Nesterov <oleg@redhat.com>
-Subject: signal: change sys_kill() to use SEND_SIG_NOINFO
-Date: Fri, 26 Jun 2026 17:33:08 +0200
+From: Sayali Patil <sayalip@linux.ibm.com>
+Subject: selftests/mm: handle EINVAL when configuring gigantic hugepages
+Date: Thu, 25 Jun 2026 18:10:16 +0530
 
-prepare_kill_siginfo(PIDTYPE_TGID) fills si_code = SI_USER and sets
-si_pid/si_uid in the sender's namespace.  Then send_signal_locked()
-translates si_pid/si_uid to the target's namespace.
+Patch series "selftests/mm: avoid false failures in hugetlb and KSM tests".
 
-SEND_SIG_NOINFO produces the same result: si_code = SI_USER, and
-__send_signal_locked() computes si_pid/si_uid directly in the target's
-namespace.  The force computation is also the same: both check if the
-sender is visible in the target's pid namespace.
+This series fixes issues in the hugetlb and KSM MM selftest categories
+that can report failures when the prerequisites for the tests are not
+satisfied.
 
-Note: this also fixes the kill(-1, sig) case where send_signal_locked()
-rewrites si_pid/si_uid in the shared siginfo, corrupting it for subsequent
-recipients.  But for other group senders like __kill_pgrp_info() we still
-need the fix from Bradley Morgan [1] who found this problem.
+Patch 1 updates the hugetlb selftest helpers to handle -EINVAL when
+attempting to configure gigantic HugeTLB pages via nr_hugepages.  PowerPC
+hash MMU pSeries systems expose gigantic hugepage sizes but do not allow
+runtime allocation of such pages, causing the sysfs write to fail.  Handle
+this case gracefully and continue running the test instead of aborting.
 
-TODO: kill prepare_kill_siginfo() and change other users to use
-SEND_SIG_NOINFO too.  This needs trivial changes in __send_signal_locked()
-and TP_STORE_SIGINFO().
+Patch 2 fixes the KSM NUMA merge test on systems with memoryless NUMA
+nodes.  The test currently relies on the number of configured NUMA nodes
+and may attempt allocations on nodes that have no memory, resulting in
+spurious failures.  Count only NUMA nodes that contain memory and skip the
+test when fewer than two such nodes are available.
 
-Link: https://lore.kernel.org/aj6btAZqYuv59a8w@redhat.com
-Link: https://lore.kernel.org/all/20260622164029.11474-1-include@grrlz.net/ [1]
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Cc: Bradley Morgan <include@grrlz.net>
-Cc: Eric Biederman <ebiederm@xmission.com>
+These changes improve handling of unsupported test configurations and
+unmet test prerequisites, avoiding spurious failures.
+
+
+This patch (of 2):
+
+Some MM selftests attempt to configure the amount of HugeTLB pages of
+different sizes by writing to nr_hugepages.
+
+PowerPC hash MMU pSeries systems advertise gigantic hugepage sizes but do
+not support runtime allocation of such pages, writes to the corresponding
+nr_hugepages file fail with -EINVAL.  This causes the test to bail out
+even though the failure is due to a platform limitation rather than the
+functionality being tested.
+
+Treat -EINVAL from the sysfs write as a skipped configuration request and
+continue running the test instead of failing.
+
+Before patch:
+   -------------------------
+   running ./hugetlb-madvise
+   -------------------------
+   TAP version 13
+   1..1
+     [INFO] detected hugetlb page size: 16777216 KiB
+     [INFO] detected hugetlb page size: 16384 KiB
+    ok 1 MADV_DONTNEED and MADV_REMOVE on hugetlb
+    Totals: pass:1 fail:0 xfail:0 xpass:0 skip:0 error:0
+    Bail out! /sys/kernel/mm/hugepages/hugepages-16777216kB/nr_hugepages
+    write(0) failed: Invalid argument
+    Totals: pass:0 fail:0 xfail:0 xpass:0 skip:0 error:0
+    [FAIL]
+
+After patch:
+   -------------------------
+   running ./hugetlb-madvise
+   -------------------------
+   TAP version 13
+   1..1
+    [INFO] detected hugetlb page size: 16777216 KiB
+    [INFO] detected hugetlb page size: 16384 KiB
+   ok 1 MADV_DONTNEED and MADV_REMOVE on hugetlb
+   Totals: pass:1 fail:0 xfail:0 xpass:0 skip:0 error:0
+   /sys/kernel/mm/hugepages/hugepages-16777216kB/nr_hugepages
+   write(0) failed: Invalid argument
+   [PASS]
+
+Link: https://lore.kernel.org/cover.1782365671.git.sayalip@linux.ibm.com
+Link: https://lore.kernel.org/8bfa921e30eb94072685103f6496784aa23bb166.1782365671.git.sayalip@linux.ibm.com
+Fixes: 9d07250ea1eb ("selftests/mm: hugepage_settings: add APIs to get and set nr_hugepages")
+Signed-off-by: Sayali Patil <sayalip@linux.ibm.com>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: "Ritesh Harjani (IBM)" <ritesh.list@gmail.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/signal.c |    6 +-----
- 1 file changed, 1 insertion(+), 5 deletions(-)
+ tools/testing/selftests/mm/vm_util.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
---- a/kernel/signal.c~signal-change-sys_kill-to-use-send_sig_noinfo
-+++ a/kernel/signal.c
-@@ -3950,11 +3950,7 @@ static void prepare_kill_siginfo(int sig
-  */
- SYSCALL_DEFINE2(kill, pid_t, pid, int, sig)
- {
--	struct kernel_siginfo info;
--
--	prepare_kill_siginfo(sig, &info, PIDTYPE_TGID);
--
--	return kill_something_info(sig, &info, pid);
-+	return kill_something_info(sig, SEND_SIG_NOINFO, pid);
- }
- 
- /*
+--- a/tools/testing/selftests/mm/vm_util.c~selftests-mm-handle-einval-when-configuring-gigantic-hugepages
++++ a/tools/testing/selftests/mm/vm_util.c
+@@ -735,6 +735,13 @@ void write_file(const char *path, const
+ 	saved_errno = errno;
+ 	close(fd);
+ 	errno = saved_errno;
++
++	if (numwritten < 0 && errno == EINVAL) {
++		ksft_print_msg("%s write(%.*s) failed: %s\n", path,
++			       (int)(buflen - 1), buf, strerror(errno));
++		return;
++	}
++
+ 	if (numwritten < 0)
+ 		ksft_exit_fail_msg("%s write(%.*s) failed: %s\n", path, (int)(buflen - 1),
+ 				buf, strerror(errno));
 _
 
-Patches currently in -mm which might be from oleg@redhat.com are
+Patches currently in -mm which might be from sayalip@linux.ibm.com are
 
-signal-change-sys_kill-to-use-send_sig_noinfo.patch
+selftests-mm-fix-ksm-numa-merge-test-for-systems-with-memoryless-numa-nodes.patch
 
