@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0A49421C16A
-	for <mm-commits@vger.kernel.org>; Fri, 26 Jun 2026 00:47:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E1C4E26059D
+	for <mm-commits@vger.kernel.org>; Fri, 26 Jun 2026 00:47:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782434855; cv=none; b=CfW1caF16mCqyu8fTqVkhc29LTTYruzramYvZZBGZFaRSRSQFSkqiFomby5ZHnmQiTrA8RQdr0OGGyLQTuJZucx+GmHHJMcmaZoSkLexeiwkb+3vZ8UfgX+Yfp5PtpknjDXbzdFfYPYtQSK4s7UJ8m57OTQO4r8YW6D5z9h90yw=
+	t=1782434858; cv=none; b=QmC2t0eGt0At1TcXG6v//WPD3BG5BRXaNsTPxOMvhdPjFE3QirEPWEQD7HJTvCVrtLs3PA5CYg7JDMOM9YC1TsKcNnFPKm+LFEMxtMv/pCU4DtHGgrs2m7C6qVYxVSHyI3B1aihbsa9sBnYhOLblmNq8hgh51zmPp+NdZKflE1M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782434855; c=relaxed/simple;
-	bh=dql7nvxFwt3DuW+UEHpdpLxfbCCmmoZTbr/E/8ICuNI=;
-	h=Date:To:From:Subject:Message-Id; b=t5z7AuIKisEjLsormAU8ylh3CmI6OfBNz1c+r5F5sTIfBRB/g/tzsbLWR1jt2S6ot1jOdm7A2uH96xQ2PdS7YVqBAuCpk/ROOPu/C9N8MfA9mydJH23SJgM6/4Equyu80qRUetkbEhS9EZXiTEB1wlvc02H+hK8TMPxwQY/dgfo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Nbn3yYya; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1782434858; c=relaxed/simple;
+	bh=i3tS6Pbf6itwnC0FRTjXDpF4ctOiT62mNleyAz6gC28=;
+	h=Date:To:From:Subject:Message-Id; b=po9CwJaWq0f/EuhbM9tDDWKO0Ri9iQ+BkOnOAj4iyzQG3j7LJvuFz3x36IjRHgZMEWMBHEv1Zw8z3jUfr8ascABp1Lx3iJV2HwkdkWQ4/Cq2zvijlHUVVCujhLY5EWv8tbq4dbnySaUsVGGfes/REYc+ZNB+nH2YXT4tVX90wAs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nOcdVnV2; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Nbn3yYya"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D3DC01F000E9;
-	Fri, 26 Jun 2026 00:47:33 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nOcdVnV2"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7C4F21F000E9;
+	Fri, 26 Jun 2026 00:47:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1782434853;
-	bh=SNIKLyN7TjCJQyXwCwB97eDRg20AUiDn1RXfoFTFR7U=;
+	d=linux-foundation.org; s=korg; t=1782434856;
+	bh=oW0iwVqqnkE+3UnTqc0E2HT0UKyo8MW/RZViA3ZN15w=;
 	h=Date:To:From:Subject;
-	b=Nbn3yYyaH5DXcMXcKEWeXSCqSoAqN8j+iugreHklgnHwNCgy+MRp6IMvT+4bTNKi4
-	 X3YjvbWEoLItj4i7pATIDNvZ0gaE+/BnHOZpnJULyO8mnRnBAp06SFs+F6/ed5dk8p
-	 P3PPH0tiT2y+R66r8AdRgW1eaqUIVAHrDoUgAnQU=
-Date: Thu, 25 Jun 2026 17:47:33 -0700
+	b=nOcdVnV2c6UG8rpb6hBPveMEE95NAEhBTmSGjk6SUQw8YP9Js5pP5mV0P5g9JSb5R
+	 zCweVDhUFx9rnY22W1o4sm3HU8igXEMK1ERQT1+Qmj5GHJSQIda6MN6S2ExBDDrZwx
+	 5HmRqRB9LqnRq6iNzaLQOA8nYVw/YOm0qwWSbscM=
+Date: Thu, 25 Jun 2026 17:47:36 -0700
 To: mm-commits@vger.kernel.org,songmuchun@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb_cma-validate-hugetlb-cma-range-by-zone-at-reserve-time.patch added to mm-new branch
-Message-Id: <20260626004733.D3DC01F000E9@smtp.kernel.org>
+Subject: + mm-hugetlb-refactor-early-boot-gigantic-hugepage-allocation.patch added to mm-new branch
+Message-Id: <20260626004736.7C4F21F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/hugetlb_cma: validate hugetlb CMA range by zone at reserve time
+     Subject: mm/hugetlb: refactor early boot gigantic hugepage allocation
 has been added to the -mm mm-new branch.  Its filename is
-     mm-hugetlb_cma-validate-hugetlb-cma-range-by-zone-at-reserve-time.patch
+     mm-hugetlb-refactor-early-boot-gigantic-hugepage-allocation.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb_cma-validate-hugetlb-cma-range-by-zone-at-reserve-time.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-refactor-early-boot-gigantic-hugepage-allocation.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,22 +70,29 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm/hugetlb_cma: validate hugetlb CMA range by zone at reserve time
-Date: Fri, 12 Jun 2026 11:58:56 +0800
+Subject: mm/hugetlb: refactor early boot gigantic hugepage allocation
+Date: Fri, 12 Jun 2026 11:58:57 +0800
 
-Hugetlb CMA allocation currently has to cope with CMA areas that span
-multiple zones.
+The early boot gigantic hugepage allocation helpers currently mix
+allocation with huge_bootmem_page setup, and leave part of the
+initialization flow in architecture code.
 
-Validate the reserved CMA range up front in hugetlb_cma_reserve() so later
-hugetlb CMA allocations can assume a zone-consistent area.
+Refactor the interface to return the allocated huge page pointer and move
+the huge_bootmem_page setup into the generic hugetlb code.  This makes the
+architecture-specific paths focus only on finding memory, while the common
+code handles node placement and early page metadata setup in one place.
 
-Also drop the pfn_valid() check from cma_validate_zones().  mem_section is
-not fully initialized at this point, so the check can trigger false
-warnings.  Keep the sanity check in cma_activate_area() instead.
+This also lets powerpc benefit from memblock_reserved_mark_noinit(), which
+it did not enable before.
 
-Link: https://lore.kernel.org/20260612035903.2468601-13-songmuchun@bytedance.com
+In addition, upcoming cross-zone validation for boot-time gigantic hugetlb
+reservation is common logic.  With this refactoring, that logic can stay
+in the generic code instead of being duplicated in architecture-specific
+paths.
+
+Link: https://lore.kernel.org/20260612035903.2468601-14-songmuchun@bytedance.com
 Signed-off-by: Muchun Song <songmuchun@bytedance.com>
-Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Reviewed-by: Oscar Salvador (SUSE) <osalvador@suse.de>
 Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
 Cc: David Hildenbrand <david@kernel.org>
@@ -102,45 +109,298 @@ Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/cma.c         |    3 ++-
- mm/hugetlb_cma.c |    6 ++++--
- 2 files changed, 6 insertions(+), 3 deletions(-)
+ arch/powerpc/mm/hugetlbpage.c |   13 +---
+ include/linux/hugetlb.h       |   18 +-----
+ mm/hugetlb.c                  |   95 ++++++++++++--------------------
+ mm/hugetlb_cma.c              |   13 +---
+ mm/hugetlb_cma.h              |    8 +-
+ mm/internal.h                 |    9 +++
+ 6 files changed, 64 insertions(+), 92 deletions(-)
 
---- a/mm/cma.c~mm-hugetlb_cma-validate-hugetlb-cma-range-by-zone-at-reserve-time
-+++ a/mm/cma.c
-@@ -126,7 +126,6 @@ bool cma_validate_zones(struct cma *cma)
- 		 * to be in the same zone. Simplify by forcing the entire
- 		 * CMA resv range to be in the same zone.
- 		 */
--		WARN_ON_ONCE(!pfn_valid(base_pfn));
- 		if (pfn_range_intersects_zones(cma->nid, base_pfn, cmr->count)) {
- 			set_bit(CMA_ZONES_INVALID, &cma->flags);
- 			return false;
-@@ -165,6 +164,8 @@ static void __init cma_activate_area(str
- 			bitmap_set(cmr->bitmap, 0, bitmap_count);
- 		}
+--- a/arch/powerpc/mm/hugetlbpage.c~mm-hugetlb-refactor-early-boot-gigantic-hugepage-allocation
++++ a/arch/powerpc/mm/hugetlbpage.c
+@@ -104,17 +104,14 @@ void __init pseries_add_gpage(u64 addr,
+ 	}
+ }
  
-+		WARN_ON_ONCE(!pfn_valid(cmr->base_pfn));
+-static int __init pseries_alloc_bootmem_huge_page(struct hstate *hstate)
++static __init void *pseries_alloc_bootmem_huge_page(struct hstate *hstate)
+ {
+-	struct huge_bootmem_page *m;
++	void *m;
+ 	if (nr_gpages == 0)
+-		return 0;
++		return NULL;
+ 	m = phys_to_virt(gpage_freearray[--nr_gpages]);
+ 	gpage_freearray[nr_gpages] = 0;
+-	list_add(&m->list, &huge_boot_pages[0]);
+-	m->hstate = hstate;
+-	m->flags = 0;
+-	return 1;
++	return m;
+ }
+ 
+ bool __init hugetlb_node_alloc_supported(void)
+@@ -124,7 +121,7 @@ bool __init hugetlb_node_alloc_supported
+ #endif
+ 
+ 
+-int __init alloc_bootmem_huge_page(struct hstate *h, int nid)
++void *__init arch_alloc_bootmem_huge_page(struct hstate *h, int nid)
+ {
+ 
+ #ifdef CONFIG_PPC_BOOK3S_64
+--- a/include/linux/hugetlb.h~mm-hugetlb-refactor-early-boot-gigantic-hugepage-allocation
++++ a/include/linux/hugetlb.h
+@@ -674,19 +674,11 @@ struct hstate {
+ 	char name[HSTATE_NAME_LEN];
+ };
+ 
+-struct cma;
+-
+-struct huge_bootmem_page {
+-	struct list_head list;
+-	struct hstate *hstate;
+-	unsigned long flags;
+-	struct cma *cma;
+-};
+-
+ #define HUGE_BOOTMEM_HVO		0x0001
+ #define HUGE_BOOTMEM_ZONES_VALID	0x0002
+ #define HUGE_BOOTMEM_CMA		0x0004
+ 
++struct huge_bootmem_page;
+ bool hugetlb_bootmem_page_zones_valid(int nid, struct huge_bootmem_page *m);
+ 
+ int isolate_or_dissolve_huge_folio(struct folio *folio, struct list_head *list);
+@@ -706,8 +698,8 @@ void restore_reserve_on_error(struct hst
+ 				unsigned long address, struct folio *folio);
+ 
+ /* arch callback */
+-int __init __alloc_bootmem_huge_page(struct hstate *h, int nid);
+-int __init alloc_bootmem_huge_page(struct hstate *h, int nid);
++void *__init __alloc_bootmem_huge_page(struct hstate *h, int nid);
++void *__init arch_alloc_bootmem_huge_page(struct hstate *h, int nid);
+ bool __init hugetlb_node_alloc_supported(void);
+ 
+ void __init hugetlb_add_hstate(unsigned order);
+@@ -1138,9 +1130,9 @@ alloc_hugetlb_folio_nodemask(struct hsta
+ 	return NULL;
+ }
+ 
+-static inline int __alloc_bootmem_huge_page(struct hstate *h)
++static inline void *__alloc_bootmem_huge_page(struct hstate *h, int nid)
+ {
+-	return 0;
++	return NULL;
+ }
+ 
+ static inline struct hstate *hstate_file(struct file *f)
+--- a/mm/hugetlb.c~mm-hugetlb-refactor-early-boot-gigantic-hugepage-allocation
++++ a/mm/hugetlb.c
+@@ -3027,79 +3027,58 @@ out_end_reservation:
+ 
+ static __init void *alloc_bootmem(struct hstate *h, int nid, bool node_exact)
+ {
+-	struct huge_bootmem_page *m;
+-	int listnode = nid;
+-
+ 	if (hugetlb_early_cma(h))
+-		m = hugetlb_cma_alloc_bootmem(h, &listnode, node_exact);
+-	else {
+-		if (node_exact)
+-			m = memblock_alloc_exact_nid_raw(huge_page_size(h),
++		return hugetlb_cma_alloc_bootmem(h, nid, node_exact);
 +
- 		for (pfn = early_pfn[r]; pfn < cmr->base_pfn + cmr->count;
- 		     pfn += pageblock_nr_pages)
- 			init_cma_reserved_pageblock(pfn_to_page(pfn));
---- a/mm/hugetlb_cma.c~mm-hugetlb_cma-validate-hugetlb-cma-range-by-zone-at-reserve-time
-+++ a/mm/hugetlb_cma.c
-@@ -231,9 +231,11 @@ void __init hugetlb_cma_reserve(void)
- 		res = cma_declare_contiguous_multi(size, gigantic_page_size,
- 					HUGETLB_PAGE_ORDER, name,
- 					&hugetlb_cma[nid], nid);
--		if (res) {
--			pr_warn("hugetlb_cma: reservation failed: err %d, node %d",
-+		if (res || !cma_validate_zones(hugetlb_cma[nid])) {
-+			pr_warn("hugetlb_cma: %s: err %d, node %d\n",
-+				res ? "reservation failed" : "reserved area spans zones",
- 				res, nid);
-+			hugetlb_cma[nid] = NULL;
- 			continue;
- 		}
++	if (node_exact)
++		return memblock_alloc_exact_nid_raw(huge_page_size(h),
+ 				huge_page_size(h), 0,
+ 				MEMBLOCK_ALLOC_ACCESSIBLE, nid);
+-		else {
+-			m = memblock_alloc_try_nid_raw(huge_page_size(h),
++
++	return memblock_alloc_try_nid_raw(huge_page_size(h),
+ 				huge_page_size(h), 0,
+ 				MEMBLOCK_ALLOC_ACCESSIBLE, nid);
+-			/*
+-			 * For pre-HVO to work correctly, pages need to be on
+-			 * the list for the node they were actually allocated
+-			 * from. That node may be different in the case of
+-			 * fallback by memblock_alloc_try_nid_raw. So,
+-			 * extract the actual node first.
+-			 */
+-			if (m)
+-				listnode = early_pfn_to_nid(PHYS_PFN(__pa(m)));
+-		}
+-
+-		if (m) {
+-			m->flags = 0;
+-			m->cma = NULL;
+-		}
+-	}
+-
+-	if (m) {
+-		/*
+-		 * Use the beginning of the huge page to store the
+-		 * huge_bootmem_page struct (until gather_bootmem
+-		 * puts them into the mem_map).
+-		 *
+-		 * Put them into a private list first because mem_map
+-		 * is not up yet.
+-		 */
+-		INIT_LIST_HEAD(&m->list);
+-		list_add(&m->list, &huge_boot_pages[listnode]);
+-		m->hstate = h;
+-	}
+-
+-	return m;
+ }
  
+-int alloc_bootmem_huge_page(struct hstate *h, int nid)
++void *__init arch_alloc_bootmem_huge_page(struct hstate *h, int nid)
+ 	__attribute__ ((weak, alias("__alloc_bootmem_huge_page")));
+-int __alloc_bootmem_huge_page(struct hstate *h, int nid)
++void *__init __alloc_bootmem_huge_page(struct hstate *h, int nid)
+ {
+-	struct huge_bootmem_page *m = NULL; /* initialize for clang */
+ 	int nr_nodes, node = nid;
+ 
+ 	/* do node specific alloc */
+-	if (nid != NUMA_NO_NODE) {
+-		m = alloc_bootmem(h, node, true);
+-		if (!m)
+-			return 0;
+-		goto found;
+-	}
++	if (nid != NUMA_NO_NODE)
++		return alloc_bootmem(h, node, true);
+ 
+ 	/* allocate from next node when distributing huge pages */
+ 	for_each_node_mask_to_alloc(&h->next_nid_to_alloc, nr_nodes, node,
+-				    &hugetlb_bootmem_nodes) {
+-		m = alloc_bootmem(h, node, false);
+-		if (!m)
+-			return 0;
+-		goto found;
+-	}
++				    &hugetlb_bootmem_nodes)
++		return alloc_bootmem(h, node, false);
+ 
+-found:
++	return NULL;
++}
++
++static bool __init alloc_bootmem_huge_page(struct hstate *h, int nid)
++{
++	struct huge_bootmem_page *m = arch_alloc_bootmem_huge_page(h, nid);
++
++	if (!m)
++		return false;
++
++	nid = early_pfn_to_nid(PHYS_PFN(__pa(m)));
++	/*
++	 * Use the beginning of the huge page to store the huge_bootmem_page
++	 * struct (until gather_bootmem puts them into the mem_map).
++	 *
++	 * Put them into a private list first because mem_map is not up yet.
++	 */
++	INIT_LIST_HEAD(&m->list);
++	list_add(&m->list, &huge_boot_pages[nid]);
++	m->hstate = h;
++	if (!hugetlb_early_cma(h)) {
++		m->cma = NULL;
++		m->flags = 0;
++	}
+ 
+ 	/*
+ 	 * Only initialize the head struct page in memmap_init_reserved_pages,
+@@ -3111,7 +3090,7 @@ found:
+ 	memblock_reserved_mark_noinit(__pa((void *)m + PAGE_SIZE),
+ 		huge_page_size(h) - PAGE_SIZE);
+ 
+-	return 1;
++	return true;
+ }
+ 
+ /* Initialize [start_page:end_page_number] tail struct pages of a hugepage */
+--- a/mm/hugetlb_cma.c~mm-hugetlb-refactor-early-boot-gigantic-hugepage-allocation
++++ a/mm/hugetlb_cma.c
+@@ -56,14 +56,13 @@ struct folio *hugetlb_cma_alloc_frozen_f
+ 	return folio;
+ }
+ 
+-struct huge_bootmem_page * __init
+-hugetlb_cma_alloc_bootmem(struct hstate *h, int *nid, bool node_exact)
++void * __init hugetlb_cma_alloc_bootmem(struct hstate *h, int nid, bool node_exact)
+ {
+ 	struct cma *cma;
+ 	struct huge_bootmem_page *m;
+-	int node = *nid;
++	int node;
+ 
+-	cma = hugetlb_cma[*nid];
++	cma = hugetlb_cma[nid];
+ 	m = cma_reserve_early(cma, huge_page_size(h));
+ 	if (!m) {
+ 		if (node_exact)
+@@ -71,13 +70,11 @@ hugetlb_cma_alloc_bootmem(struct hstate
+ 
+ 		for_each_node_mask(node, hugetlb_bootmem_nodes) {
+ 			cma = hugetlb_cma[node];
+-			if (!cma || node == *nid)
++			if (!cma || node == nid)
+ 				continue;
+ 			m = cma_reserve_early(cma, huge_page_size(h));
+-			if (m) {
+-				*nid = node;
++			if (m)
+ 				break;
+-			}
+ 		}
+ 	}
+ 
+--- a/mm/hugetlb_cma.h~mm-hugetlb-refactor-early-boot-gigantic-hugepage-allocation
++++ a/mm/hugetlb_cma.h
+@@ -6,8 +6,7 @@
+ void hugetlb_cma_free_frozen_folio(struct folio *folio);
+ struct folio *hugetlb_cma_alloc_frozen_folio(int order, gfp_t gfp_mask,
+ 				      int nid, nodemask_t *nodemask);
+-struct huge_bootmem_page *hugetlb_cma_alloc_bootmem(struct hstate *h, int *nid,
+-						    bool node_exact);
++void *hugetlb_cma_alloc_bootmem(struct hstate *h, int nid, bool node_exact);
+ bool hugetlb_cma_exclusive_alloc(void);
+ unsigned long hugetlb_cma_total_size(void);
+ void hugetlb_cma_validate_params(void);
+@@ -23,9 +22,8 @@ static inline struct folio *hugetlb_cma_
+ 	return NULL;
+ }
+ 
+-static inline
+-struct huge_bootmem_page *hugetlb_cma_alloc_bootmem(struct hstate *h, int *nid,
+-						    bool node_exact)
++static inline void *hugetlb_cma_alloc_bootmem(struct hstate *h, int nid,
++					      bool node_exact)
+ {
+ 	return NULL;
+ }
+--- a/mm/internal.h~mm-hugetlb-refactor-early-boot-gigantic-hugepage-allocation
++++ a/mm/internal.h
+@@ -23,6 +23,15 @@
+ #include "vma.h"
+ 
+ struct folio_batch;
++struct hstate;
++struct cma;
++
++struct huge_bootmem_page {
++	struct list_head list;
++	struct hstate *hstate;
++	unsigned long flags;
++	struct cma *cma;
++};
+ 
+ /*
+  * Maintains state across a page table move. The operation assumes both source
 _
 
 Patches currently in -mm which might be from songmuchun@bytedance.com are
