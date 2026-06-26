@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B725B13B7AE
-	for <mm-commits@vger.kernel.org>; Fri, 26 Jun 2026 00:47:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 05F1B13B7AE
+	for <mm-commits@vger.kernel.org>; Fri, 26 Jun 2026 00:47:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782434829; cv=none; b=j5oUNOpj61PY5GGAlmq3BFkoKnmcQVZYt3DjRWpbcywlpVE9ELA7xP92Zyjyy1SzQp8Ek+yUxUJOs3arS2oh0t+09l8H80zsWkYv1NWdk6E8pjsljAF+S0f5/PUnFFtjRez1k7DcnPp1ZPvscXSnu7ylQaZOAn98VdsGnF0vu44=
+	t=1782434832; cv=none; b=Xp+JISOZoCzA5aMhqCcFtytSJDVi3TNxJaWTyk9uoZS7o4GGh/F98Pr3I6844MCFYFwSq9gWulgKpKqMsqA7EOl1fWqGslgFmXsSTZ15qiwyVapgYzTo4cYjG8T7VIIIQJLukvO4cZMyRtvnXka6lwMKLjyvJaj5Tfnpww3sZ2s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782434829; c=relaxed/simple;
-	bh=+YXP/MjdKbazHzYJGYsBLG/zyDmT1yi3i0RnpRtW01A=;
-	h=Date:To:From:Subject:Message-Id; b=RLgVUwvD/0PWSh9OMRnLbD+RCjkGv8DK3OCgbQGl81VVUBdDxd7BN//7ObohIDrKT9vJx7vQse2SVW2t6PF+/dRg/I//u+XMePwj/LCAg3aVH5dIJqPz8p6LW9XOnAiVBLU5yoZ9oQadkg3F89JGMHPjHF4lBnEfsvMQBHMueNU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AMVpN04+; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1782434832; c=relaxed/simple;
+	bh=g1XCD95+8FzRqkoufQRUwynJ3jRgcc2URPABAu7xYlQ=;
+	h=Date:To:From:Subject:Message-Id; b=YUnlFCxRU2+g0QR7yEsQNHXvtQfrnFz1cKU3qvStqk/Kn04HX0jwvRx/liMCD1oVlWvT+8yiYdK2UeMsg8UUmAUf441CmIzikT1uGE/x9AoUfl9fssfTCxSzolYX72KX0XmM5L9WxVKysMavDWCQ8h3viiTUSGr0aDL9WAnRAQw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ebc83gHt; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AMVpN04+"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5F8631F000E9;
-	Fri, 26 Jun 2026 00:47:08 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ebc83gHt"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8FAAC1F00A3A;
+	Fri, 26 Jun 2026 00:47:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1782434828;
-	bh=1U59YsdMImvts1PDh/uujH7fZQbnIjlK1SBgfSdhhqU=;
+	d=linux-foundation.org; s=korg; t=1782434830;
+	bh=r/GvJK2bNGdojYy0uxeLTxSi4nBaye39ujSgONDGm5A=;
 	h=Date:To:From:Subject;
-	b=AMVpN04+hg3HdA1eYP2YU/WHk0LNtksBASRLYyebYUXJADYfwi0iKJQ746Qh1H0rq
-	 sLS4DeuhXtA3iRBv+23mjzf8yDntl2OhShcUUCGCDXg4lc3CjKf6AvY/Zss/eHUk7d
-	 BYvRNHjItrcXpgWC6/mEj2KSz6qcZ9dnkmyr4HO0=
-Date: Thu, 25 Jun 2026 17:47:07 -0700
+	b=ebc83gHtKGOR/zOfIiSLKBkpItqlul0uE1cklHhqCNTqMqmwmIk0EHted/4Qi0VrZ
+	 O6i1RV2HQ1Vg/R5Ck2nis/Fmi2N/naLIQQTPCe8fPA+/XRJMhVgTabIMDA190o+sBg
+	 2mGotAszjemtvw+WEasIhtxrHPzWn0E5sEMsSra0=
+Date: Thu, 25 Jun 2026 17:47:10 -0700
 To: mm-commits@vger.kernel.org,songmuchun@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb_vmemmap-fix-__hugetlb_vmemmap_optimize_folios.patch added to mm-new branch
-Message-Id: <20260626004708.5F8631F000E9@smtp.kernel.org>
+Subject: + powerpc-mm-fix-wrong-addr_pfn-tracking-in-compound-vmemmap-population.patch added to mm-new branch
+Message-Id: <20260626004710.8FAAC1F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/hugetlb_vmemmap: fix __hugetlb_vmemmap_optimize_folios()
+     Subject: powerpc/mm: fix wrong addr_pfn tracking in compound vmemmap population
 has been added to the -mm mm-new branch.  Its filename is
-     mm-hugetlb_vmemmap-fix-__hugetlb_vmemmap_optimize_folios.patch
+     powerpc-mm-fix-wrong-addr_pfn-tracking-in-compound-vmemmap-population.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb_vmemmap-fix-__hugetlb_vmemmap_optimize_folios.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/powerpc-mm-fix-wrong-addr_pfn-tracking-in-compound-vmemmap-population.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,32 +70,35 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm/hugetlb_vmemmap: fix __hugetlb_vmemmap_optimize_folios()
-Date: Fri, 12 Jun 2026 11:58:46 +0800
+Subject: powerpc/mm: fix wrong addr_pfn tracking in compound vmemmap population
+Date: Fri, 12 Jun 2026 11:58:47 +0800
 
-__hugetlb_vmemmap_optimize_folios() uses incorrect arguments when handling
-bootmem HugeTLB folios.
+vmemmap_populate_compound_pages() uses addr_pfn to determine the PFN
+offset within a compound page and to decide whether the current vmemmap
+slot should be populated as a head page mapping or should reuse a tail
+page mapping.
 
-The section number passed to register_page_bootmem_memmap() is derived
-from the vmemmap virtual address of folio->page instead of the folio PFN,
-so the bootmem memmap metadata can be registered against the wrong
-section.  The helper is also given HUGETLB_VMEMMAP_RESERVE_SIZE even
-though it expects a page count, not a size in bytes.  In addition, the
-write-protect range is based on pages_per_huge_page(h), which does not
-cover the full HugeTLB vmemmap area and can leave part of the shared tail
-vmemmap mapping writable.
+However, addr_pfn is advanced manually in parallel with addr.  The loop
+itself progresses in vmemmap address space, so each PAGE_SIZE step in addr
+covers PAGE_SIZE / sizeof(struct page) struct page slots.  Since addr_pfn
+is compared against nr_pages in data-PFN units, it should advance by the
+same number of PFNs.  The existing manual increments do not match that and
+therefore do not reliably track the PFN corresponding to the current addr.
 
-Fix the section lookup to use folio_pfn(folio), use
-HUGETLB_VMEMMAP_RESERVE_PAGES when registering the reserved memmap pages,
-and use hugetlb_vmemmap_size(h) for the write-protect range.
+As a result, pfn_offset can be computed from the wrong PFN and the code
+can make the head/tail decision for the wrong compound-page position.
 
-Link: https://lore.kernel.org/20260612035903.2468601-3-songmuchun@bytedance.com
-Fixes: 752fe17af693 ("mm/hugetlb: add pre-HVO framework")
+Fix this by deriving addr_pfn directly from the current vmemmap address
+instead of carrying it as loop state.
+
+Link: https://lore.kernel.org/20260612035903.2468601-4-songmuchun@bytedance.com
+Fixes: f2b79c0d7968 ("powerpc/book3s64/radix: add support for vmemmap optimization for radix")
 Signed-off-by: Muchun Song <songmuchun@bytedance.com>
 Acked-by: Oscar Salvador <osalvador@suse.de>
-Reviewed-by: Frank van der Linden <fvdl@google.com>
+Reviewed-by: Ritesh Harjani (IBM) <ritesh.list@gmail.com>
 Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
 Cc: David Hildenbrand <david@kernel.org>
+Cc: Frank van der Linden <fvdl@google.com>
 Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
 Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
@@ -103,34 +106,70 @@ Cc: Michael Ellerman <mpe@ellerman.id.au>
 Cc: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Cc: Nicholas Piggin <npiggin@gmail.com>
 Cc: Oscar Salvador (SUSE) <osalvador@kernel.org>
-Cc: "Ritesh Harjani (IBM)" <ritesh.list@gmail.com>
 Cc: Usama Arif <usama.arif@linux.dev>
 Cc: Vlastimil Babka <vbabka@kernel.org>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb_vmemmap.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ arch/powerpc/mm/book3s64/radix_pgtable.c |    7 +------
+ 1 file changed, 1 insertion(+), 6 deletions(-)
 
---- a/mm/hugetlb_vmemmap.c~mm-hugetlb_vmemmap-fix-__hugetlb_vmemmap_optimize_folios
-+++ a/mm/hugetlb_vmemmap.c
-@@ -635,12 +635,12 @@ static void __hugetlb_vmemmap_optimize_f
- 			 * mirrored tail page structs RO.
- 			 */
- 			spfn = (unsigned long)&folio->page;
--			epfn = spfn + pages_per_huge_page(h);
-+			epfn = spfn + hugetlb_vmemmap_size(h);
- 			vmemmap_wrprotect_hvo(spfn, epfn, folio_nid(folio),
- 					HUGETLB_VMEMMAP_RESERVE_SIZE);
--			register_page_bootmem_memmap(pfn_to_section_nr(spfn),
-+			register_page_bootmem_memmap(pfn_to_section_nr(folio_pfn(folio)),
- 					&folio->page,
--					HUGETLB_VMEMMAP_RESERVE_SIZE);
-+					HUGETLB_VMEMMAP_RESERVE_PAGES);
+--- a/arch/powerpc/mm/book3s64/radix_pgtable.c~powerpc-mm-fix-wrong-addr_pfn-tracking-in-compound-vmemmap-population
++++ a/arch/powerpc/mm/book3s64/radix_pgtable.c
+@@ -1314,7 +1314,6 @@ int __meminit vmemmap_populate_compound_
+ 	 * covering out both edges.
+ 	 */
+ 	unsigned long addr;
+-	unsigned long addr_pfn = start_pfn;
+ 	unsigned long next;
+ 	pgd_t *pgd;
+ 	p4d_t *p4d;
+@@ -1335,7 +1334,6 @@ int __meminit vmemmap_populate_compound_
+ 
+ 		if (pmd_leaf(READ_ONCE(*pmd))) {
+ 			/* existing huge mapping. Skip the range */
+-			addr_pfn += (PMD_SIZE >> PAGE_SHIFT);
+ 			next = pmd_addr_end(addr, end);
  			continue;
  		}
+@@ -1348,11 +1346,11 @@ int __meminit vmemmap_populate_compound_
+ 			 * page whose VMEMMAP_RESERVE_NR pages were mapped and
+ 			 * this request fall in those pages.
+ 			 */
+-			addr_pfn += 1;
+ 			next = addr + PAGE_SIZE;
+ 			continue;
+ 		} else {
+ 			unsigned long nr_pages = pgmap_vmemmap_nr(pgmap);
++			unsigned long addr_pfn = page_to_pfn((struct page *)addr);
+ 			unsigned long pfn_offset = addr_pfn - ALIGN_DOWN(addr_pfn, nr_pages);
+ 			pte_t *tail_page_pte;
  
+@@ -1376,7 +1374,6 @@ int __meminit vmemmap_populate_compound_
+ 				if (!pte)
+ 					return -ENOMEM;
+ 
+-				addr_pfn += 2;
+ 				next = addr + 2 * PAGE_SIZE;
+ 				continue;
+ 			}
+@@ -1392,7 +1389,6 @@ int __meminit vmemmap_populate_compound_
+ 					return -ENOMEM;
+ 				vmemmap_verify(pte, node, addr, addr + PAGE_SIZE);
+ 
+-				addr_pfn += 1;
+ 				next = addr + PAGE_SIZE;
+ 				continue;
+ 			}
+@@ -1402,7 +1398,6 @@ int __meminit vmemmap_populate_compound_
+ 				return -ENOMEM;
+ 			vmemmap_verify(pte, node, addr, addr + PAGE_SIZE);
+ 
+-			addr_pfn += 1;
+ 			next = addr + PAGE_SIZE;
+ 			continue;
+ 		}
 _
 
 Patches currently in -mm which might be from songmuchun@bytedance.com are
