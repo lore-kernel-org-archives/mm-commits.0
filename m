@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2B1FE20E023
-	for <mm-commits@vger.kernel.org>; Fri, 26 Jun 2026 00:47:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0DB9821C16A
+	for <mm-commits@vger.kernel.org>; Fri, 26 Jun 2026 00:47:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782434874; cv=none; b=GakfEosYiwp1a1ZmVTfXIFuZJfNbSduZbP2yD7pngQ/7E+z6iaE28Rf1qVG69MbFJAs+03MZALETUKQHgGcxU2gzNks6ioWcM/FI1/A3ULaO8fprJSkZGoRl9HQ3FpA3bQ36VoPQQzKrGxqojyofyQ3iQH51Dnv9KKuuWpGDScw=
+	t=1782434878; cv=none; b=JS6Q5MTvNP4BdX1hjQbIu2OnrYfrY9SyS7JzwC3L+Rms/AtLvhj/cT/HmrYI8XSgL6neen+g1LkPNZ8Xg0cp6HloWrYGi6wWw6x0tCfxxrWsm+tAbTEdzu/hY6GuUKUgJ3NiQXbfUYGyX/aP0Y6R9EtFH6+4DxY9NYwCTwM1ups=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782434874; c=relaxed/simple;
-	bh=25CK0YDDNvbdtrtvkLuMv5S7ivfmxlV93/MWPNsBTrE=;
-	h=Date:To:From:Subject:Message-Id; b=rdzRQikgwYfuaJ6GPBbx4a+q+kY4q++ZlUbWuW02EI+/AyidPUgZ84dw/LXWqfdFKMEBNYHNszZPG5lrzbrBXqqTy2Y1RnATGDiCBiZgR/2ErIThrW1tXRazkvyYT6AE5zM0oCtP98HLMMVRtCni32ntozcEO/reI3wmXrxZ8fs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=k+hYnSOh; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1782434878; c=relaxed/simple;
+	bh=pOMsaeKZuel5/PCrhDh1HQnEgNlWVjXge6/fcmD1POs=;
+	h=Date:To:From:Subject:Message-Id; b=USKZmo0YvJstm4zNaUYEbkdJBm7+A6af65s3a5ia4PnmkHgOM8Fb3YlJG1YYI/bmBx1kI5wbZ2ykIM7UVC0bNGqq9tQ8HM9ULI5yDEYgA2UtXtaKOExFHnyAsg9SK5BPknFMalIIfzHFwn+1kZJNxB1iK/E9uyXKu3VTO/lOoY4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xs5C5ZIe; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="k+hYnSOh"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0074F1F000E9;
-	Fri, 26 Jun 2026 00:47:52 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xs5C5ZIe"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D669F1F000E9;
+	Fri, 26 Jun 2026 00:47:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1782434873;
-	bh=Fu3RZNOzWStzlVlgZQCjxto8HhIGa+wSy4DaHjoxD2M=;
+	d=linux-foundation.org; s=korg; t=1782434876;
+	bh=WDGFnWhVTHKnuqIo3FsU6qVdnLkUGiR5mvLNPpLVthM=;
 	h=Date:To:From:Subject;
-	b=k+hYnSOhFhmAhsBs2gZs4wApNS7sKeY29ibVrrp+6NA0yifRibLZpJ8dUeRxekFKd
-	 TbuP16bpbMbTUbVgLcSWXyWrP8OqWK+G01Bys0VZnM4yREeXFdpQ3J3mqvv3Yn1BRt
-	 tNwOg+aOMUfVvY0AQvoNsoUX8K8J0n5vfJk3XTv8=
-Date: Thu, 25 Jun 2026 17:47:52 -0700
+	b=xs5C5ZIeND+93HEDEy2faJKwRorjVPrOlgpnt1fXVKlBzZVuqZulefrsVEET7YnrE
+	 XAQmjlyChkTfOshXJdj/zpnxCvLxgibY/dfwoq+KTa+HBhIUmC9rZ1HN/uqPgg4NOG
+	 PZsnd1lvqJtM5gRoHsBqE/zUiFDiJxk7cRu5J/8g=
+Date: Thu, 25 Jun 2026 17:47:56 -0700
 To: mm-commits@vger.kernel.org,songmuchun@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-sparse-vmemmap-remove-sparse_vmemmap_init_nid_late.patch added to mm-new branch
-Message-Id: <20260626004753.0074F1F000E9@smtp.kernel.org>
+Subject: + mm-hugetlb-remove-unused-bootmem-cma-field.patch added to mm-new branch
+Message-Id: <20260626004756.D669F1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/sparse-vmemmap: remove sparse_vmemmap_init_nid_late()
+     Subject: mm/hugetlb: remove unused bootmem cma field
 has been added to the -mm mm-new branch.  Its filename is
-     mm-sparse-vmemmap-remove-sparse_vmemmap_init_nid_late.patch
+     mm-hugetlb-remove-unused-bootmem-cma-field.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-sparse-vmemmap-remove-sparse_vmemmap_init_nid_late.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-remove-unused-bootmem-cma-field.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,17 +70,20 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm/sparse-vmemmap: remove sparse_vmemmap_init_nid_late()
-Date: Fri, 12 Jun 2026 11:59:01 +0800
+Subject: mm/hugetlb: remove unused bootmem cma field
+Date: Fri, 12 Jun 2026 11:59:02 +0800
 
-hugetlb_vmemmap_init_late() no longer has any users, so the remaining
-late-init path in sparse_vmemmap_init_nid_late() is dead code.
+struct huge_bootmem_page no longer needs to keep the CMA pointer.  The
+bootmem path only needs to remember whether a huge page came from CMA,
+which is already encoded in the flags field.
 
-Remove sparse_vmemmap_init_nid_late() and its declarations.
+Set HUGE_BOOTMEM_CMA when the page is allocated, drop the unused cma field
+together with the redundant assignments, and simplify the early CMA
+bootmem allocation fallback path now that the cma pointer no longer has to
+be stored in struct huge_bootmem_page.
 
-Link: https://lore.kernel.org/20260612035903.2468601-18-songmuchun@bytedance.com
+Link: https://lore.kernel.org/20260612035903.2468601-19-songmuchun@bytedance.com
 Signed-off-by: Muchun Song <songmuchun@bytedance.com>
-Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Frank van der Linden <fvdl@google.com>
@@ -88,6 +91,7 @@ Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
 Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Cc: Nicholas Piggin <npiggin@gmail.com>
 Cc: Oscar Salvador <osalvador@suse.de>
 Cc: Oscar Salvador (SUSE) <osalvador@kernel.org>
@@ -97,107 +101,86 @@ Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |    7 -------
- mm/hugetlb_vmemmap.c   |    4 ----
- mm/hugetlb_vmemmap.h   |    5 -----
- mm/sparse-vmemmap.c    |   11 -----------
- mm/sparse.c            |    1 -
- 5 files changed, 28 deletions(-)
+ mm/hugetlb.c     |    5 +----
+ mm/hugetlb_cma.c |   29 +++++++++++------------------
+ mm/internal.h    |    2 --
+ 3 files changed, 12 insertions(+), 24 deletions(-)
 
---- a/include/linux/mmzone.h~mm-sparse-vmemmap-remove-sparse_vmemmap_init_nid_late
-+++ a/include/linux/mmzone.h
-@@ -2156,8 +2156,6 @@ static inline int preinited_vmemmap_sect
- }
+--- a/mm/hugetlb.c~mm-hugetlb-remove-unused-bootmem-cma-field
++++ a/mm/hugetlb.c
+@@ -3076,10 +3076,7 @@ static bool __init alloc_bootmem_huge_pa
+ 	 */
+ 	INIT_LIST_HEAD(&m->list);
+ 	m->hstate = h;
+-	if (!hugetlb_early_cma(h)) {
+-		m->cma = NULL;
+-		m->flags = 0;
+-	}
++	m->flags = hugetlb_early_cma(h) ? HUGE_BOOTMEM_CMA : 0;
  
- void sparse_vmemmap_init_nid_early(int nid);
--void sparse_vmemmap_init_nid_late(int nid);
--
- #else
- static inline int preinited_vmemmap_section(const struct mem_section *section)
+ 	/* CMA pages: zone-crossing is validated in hugetlb_cma_reserve(). */
+ 	if (!hugetlb_early_cma(h) &&
+--- a/mm/hugetlb_cma.c~mm-hugetlb-remove-unused-bootmem-cma-field
++++ a/mm/hugetlb_cma.c
+@@ -59,31 +59,24 @@ struct folio *hugetlb_cma_alloc_frozen_f
+ void * __init hugetlb_cma_alloc_bootmem(struct hstate *h, int nid, bool node_exact)
  {
-@@ -2166,10 +2164,6 @@ static inline int preinited_vmemmap_sect
- static inline void sparse_vmemmap_init_nid_early(int nid)
- {
- }
--
--static inline void sparse_vmemmap_init_nid_late(int nid)
--{
--}
- #endif
+ 	struct cma *cma;
+-	struct huge_bootmem_page *m;
++	void *m;
+ 	int node;
  
- static inline int online_section_nr(unsigned long nr)
-@@ -2374,7 +2368,6 @@ static inline unsigned long next_present
+ 	cma = hugetlb_cma[nid];
+ 	m = cma_reserve_early(cma, huge_page_size(h));
+-	if (!m) {
+-		if (node_exact)
+-			return NULL;
++	if (m || node_exact)
++		return m;
  
- #else
- #define sparse_vmemmap_init_nid_early(_nid) do {} while (0)
--#define sparse_vmemmap_init_nid_late(_nid) do {} while (0)
- #define pfn_in_present_section pfn_valid
- #endif /* CONFIG_SPARSEMEM */
- 
---- a/mm/hugetlb_vmemmap.c~mm-sparse-vmemmap-remove-sparse_vmemmap_init_nid_late
-+++ a/mm/hugetlb_vmemmap.c
-@@ -808,10 +808,6 @@ void __init hugetlb_vmemmap_init_early(i
- 		m->flags |= HUGE_BOOTMEM_HVO;
+-		for_each_node_mask(node, hugetlb_bootmem_nodes) {
+-			cma = hugetlb_cma[node];
+-			if (!cma || node == nid)
+-				continue;
+-			m = cma_reserve_early(cma, huge_page_size(h));
+-			if (m)
+-				break;
+-		}
++	for_each_node_mask(node, hugetlb_bootmem_nodes) {
++		cma = hugetlb_cma[node];
++		if (!cma || node == nid)
++			continue;
++		m = cma_reserve_early(cma, huge_page_size(h));
++		if (m)
++			return m;
  	}
- }
+ 
+-	if (m) {
+-		m->flags = HUGE_BOOTMEM_CMA;
+-		m->cma = cma;
+-	}
 -
--void __init hugetlb_vmemmap_init_late(int nid)
--{
--}
- #endif
- 
- static const struct ctl_table hugetlb_vmemmap_sysctls[] = {
---- a/mm/hugetlb_vmemmap.h~mm-sparse-vmemmap-remove-sparse_vmemmap_init_nid_late
-+++ a/mm/hugetlb_vmemmap.h
-@@ -29,7 +29,6 @@ void hugetlb_vmemmap_optimize_folios(str
- void hugetlb_vmemmap_optimize_bootmem_folios(struct hstate *h, struct list_head *folio_list);
- #ifdef CONFIG_SPARSEMEM_VMEMMAP_PREINIT
- void hugetlb_vmemmap_init_early(int nid);
--void hugetlb_vmemmap_init_late(int nid);
- #endif
- 
- 
-@@ -81,10 +80,6 @@ static inline void hugetlb_vmemmap_init_
- {
+-	return m;
++	return NULL;
  }
  
--static inline void hugetlb_vmemmap_init_late(int nid)
--{
--}
--
- static inline unsigned int hugetlb_vmemmap_optimizable_size(const struct hstate *h)
- {
- 	return 0;
---- a/mm/sparse.c~mm-sparse-vmemmap-remove-sparse_vmemmap_init_nid_late
-+++ a/mm/sparse.c
-@@ -320,7 +320,6 @@ static void __init sparse_init_nid(int n
- 		}
- 	}
- 	sparse_usage_fini();
--	sparse_vmemmap_init_nid_late(nid);
- }
+ static int __init cmdline_parse_hugetlb_cma(char *p)
+--- a/mm/internal.h~mm-hugetlb-remove-unused-bootmem-cma-field
++++ a/mm/internal.h
+@@ -24,13 +24,11 @@
+ 
+ struct folio_batch;
+ struct hstate;
+-struct cma;
+ 
+ struct huge_bootmem_page {
+ 	struct list_head list;
+ 	struct hstate *hstate;
+ 	unsigned long flags;
+-	struct cma *cma;
+ };
  
  /*
---- a/mm/sparse-vmemmap.c~mm-sparse-vmemmap-remove-sparse_vmemmap_init_nid_late
-+++ a/mm/sparse-vmemmap.c
-@@ -579,17 +579,6 @@ void __init sparse_vmemmap_init_nid_earl
- {
- 	hugetlb_vmemmap_init_early(nid);
- }
--
--/*
-- * This is called just before the initialization of page structures
-- * through memmap_init. Zones are now initialized, so any work that
-- * needs to be done that needs zone information can be done from
-- * here.
-- */
--void __init sparse_vmemmap_init_nid_late(int nid)
--{
--	hugetlb_vmemmap_init_late(nid);
--}
- #endif
- 
- static void subsection_mask_set(unsigned long *map, unsigned long pfn,
 _
 
 Patches currently in -mm which might be from songmuchun@bytedance.com are
