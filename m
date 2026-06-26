@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 741FA3DB62F;
-	Fri, 26 Jun 2026 16:50:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D28DD3FF1D5;
+	Fri, 26 Jun 2026 16:50:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782492650; cv=none; b=Wp1DoVu1kkeubmbW8kiz6FXmGww75ovX9/wxSphOurjGBa4XYqy2JzbSC/UGQeNUKJNvzYyszIVxY6mIBmVqKgO+RhZY3wyxmMAUgtjv+uaVuZ3etTOBmrTW6nUcz0gxlIMX2z6Fu33V1WIk40tOXhwXsCWRcH+nfjOMTez/pWA=
+	t=1782492653; cv=none; b=ZElt/83/h95ACakIBnoNKsTld1o1dgXRgu09+TmSkFmaozog0wQf2nnsJH/UIivE56o6DuBl724W7r8b6MWQuOllMFo4I/mWJSyjx5byezZZVThNqVt+GiN/4ZnTyv3dlAIbK8pgWPSgXMLgVjNw5mNOd7lN7ZO3gRBsGeifksw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782492650; c=relaxed/simple;
-	bh=Zu+Ko0ksgxTt/9Qecq3HRBVRvTLWID+eHA4qqOifSVA=;
-	h=Date:To:From:Subject:Message-Id; b=HkXWk5H4tX4CE0a4Rg5GcKPVBiqnfN4t6iZLpXOX1dJ/AoXh4ZK+0AXH6uCO6gqipU7KLMJrHHWOyN7RUeZZxKHm8Ekbrt32VF6aJB+CrwsTMTRuKoc0yGHydakZFTe21BEdgu///CL2mUUTz8Ob5+qUNjA/1eeccHvKqIfUJeQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bYW2c3v9; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1782492653; c=relaxed/simple;
+	bh=Rdgi4XISxk2RbCfNkPVFbupZyaYg+7Tp5m7WiFvof6U=;
+	h=Date:To:From:Subject:Message-Id; b=SCc/OLfkH39oqmxV++BAGjQ6V7yFueNtNplbxbWN8gV6qqMW2bVf/YS3afCdlqTG0AaR+3C1tvZQwG7RDC1WshTogK17zw0wRxN9tHlsojLECMOg4XXapDanR8hT//BmD30Ls1zgqQ3nJoj+eUfc3A28YnoybYxTG8taPyKq5s8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=y3SHf6US; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bYW2c3v9"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8DB611F000E9;
-	Fri, 26 Jun 2026 16:50:43 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="y3SHf6US"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 038311F00A3E;
+	Fri, 26 Jun 2026 16:50:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1782492643;
-	bh=q+vO4NWNkVOuXNXsWxVR2ZkS9bl0odpcrBbAClMZG5c=;
+	d=linux-foundation.org; s=korg; t=1782492647;
+	bh=L/uu47sRYUdCVB/fjvDNa6+lQH6AhBSXI7KIFWy3uVM=;
 	h=Date:To:From:Subject;
-	b=bYW2c3v9LpfYKIdJPhr+s4xWKckowZfKFTNXxQHCEB9sn0f726R75ab92Jm6E8Qf8
-	 3erHYDSSODWHVwARUVzeV9NFTqB+zHGfPuYsnT7eb5GIfOZF/7QVnT7p2BGOIT24lW
-	 oSAdAbLFcDSykRu996nfJImXf2meM+0ec63xNtiA=
-Date: Fri, 26 Jun 2026 09:50:43 -0700
+	b=y3SHf6USIj5OVh9zWZ74XdBsyj2SRFapY3PNf1mf7DD5giUKUsOE3eYISRFIl1pbi
+	 RJFs/UFuWlsrSLKCyZcj74fUxjzKv9X/uSWvPL1bPnmv7PuMC/jRkoOBlB6CCOkiGN
+	 1J+2YCZS9McwxQpV0BG4+wJzHkzS1uXKd1Ilewis=
+Date: Fri, 26 Jun 2026 09:50:46 -0700
 To: mm-commits@vger.kernel.org,stable@vger.kernel.org,pmladek@suse.com,npiggin@gmail.com,mpe@ellerman.id.au,maddy@linux.ibm.com,dianders@chromium.org,include@grrlz.net,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] sys_info-add-helper-for-callers-that-print-some-sys_info-on-their-own.patch removed from -mm tree
-Message-Id: <20260626165043.8DB611F000E9@smtp.kernel.org>
+Subject: [to-be-updated] panic-use-sys_info_with_filter-to-avoid-duplicate-backtraces.patch removed from -mm tree
+Message-Id: <20260626165047.038311F00A3E@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,107 +35,53 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: sys_info: add helper for callers that print some sys_info on their own
+     Subject: panic: use sys_info_with_filter() to avoid duplicate backtraces
 has been removed from the -mm tree.  Its filename was
-     sys_info-add-helper-for-callers-that-print-some-sys_info-on-their-own.patch
+     panic-use-sys_info_with_filter-to-avoid-duplicate-backtraces.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
 From: Bradley Morgan <include@grrlz.net>
-Subject: sys_info: add helper for callers that print some sys_info on their own
-Date: Thu, 25 Jun 2026 15:25:55 +0000
+Subject: panic: use sys_info_with_filter() to avoid duplicate backtraces
+Date: Thu, 25 Jun 2026 15:25:58 +0000
 
-Patch series "sys_info: prevent duplicate backtraces", v3.
+panic_other_cpus_shutdown() handles SYS_INFO_ALL_BT before stopping the
+other CPUs.  Do not ask sys_info() to handle that bit again later in the
+panic path.
 
-Some callers handle SYS_INFO_ALL_BT themselves before calling sys_info().
-When they strip that bit, an all_bt-only mask becomes zero and sys_info(0)
-falls back to kernel_si_mask, potentially duplicating output.
+Use sys_info_with_filter() so panic_print=all_bt does not request more
+output after the CPUs are stopped.
 
-This series adds sys_info_with_filter() to filter specific bits without
-triggering the kernel_si_mask fallback.
-
-
-This patch (of 4):
-
-Some callers print some sys_info on their own before calling sys_info().
-
-Add a helper which would allow to prevent a duplicated output.
-
-It is a bit tricky because kernel_si_mask should be used only when the
-call-specific si_mask is empty.  But the duplicated output must be
-prevented there as well.
-
-Link: https://lore.kernel.org/20260625152558.7450-1-include@grrlz.net
-Link: https://lore.kernel.org/20260625152558.7450-2-include@grrlz.net
+Link: https://lore.kernel.org/20260625152558.7450-5-include@grrlz.net
 Fixes: a9af76a78760 ("watchdog: add sys_info sysctls to dump sys info on system lockup")
 Signed-off-by: Bradley Morgan <include@grrlz.net>
-Suggested-by: Petr Mladek <pmladek@suse.com>
 Cc: Doug Anderson <dianders@chromium.org>
 Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
 Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Petr Mladek <pmladek@suse.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sys_info.h |    1 +
- lib/sys_info.c           |   20 ++++++++++++++++++--
- 2 files changed, 19 insertions(+), 2 deletions(-)
+ kernel/panic.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/sys_info.h~sys_info-add-helper-for-callers-that-print-some-sys_info-on-their-own
-+++ a/include/linux/sys_info.h
-@@ -18,6 +18,7 @@
- #define SYS_INFO_BLOCKED_TASKS		0x00000080
+--- a/kernel/panic.c~panic-use-sys_info_with_filter-to-avoid-duplicate-backtraces
++++ a/kernel/panic.c
+@@ -680,7 +680,7 @@ void vpanic(const char *fmt, va_list arg
+ 	 */
+ 	atomic_notifier_call_chain(&panic_notifier_list, 0, buf);
  
- void sys_info(unsigned long si_mask);
-+void sys_info_with_filter(unsigned long si_mask, unsigned long si_ignore_mask);
- unsigned long sys_info_parse_param(char *str);
+-	sys_info(panic_print);
++	sys_info_with_filter(panic_print, SYS_INFO_ALL_BT);
  
- #ifdef CONFIG_SYSCTL
---- a/lib/sys_info.c~sys_info-add-helper-for-callers-that-print-some-sys_info-on-their-own
-+++ a/lib/sys_info.c
-@@ -136,8 +136,10 @@ static int __init sys_info_sysctl_init(v
- subsys_initcall(sys_info_sysctl_init);
- #endif
+ 	kmsg_dump_desc(KMSG_DUMP_PANIC, buf);
  
--static void __sys_info(unsigned long si_mask)
-+static void __sys_info(unsigned long si_mask, unsigned long si_ignore_mask)
- {
-+	si_mask &= ~si_ignore_mask;
-+
- 	if (si_mask & SYS_INFO_TASKS)
- 		show_state();
- 
-@@ -160,7 +162,21 @@ static void __sys_info(unsigned long si_
- 		show_state_filter(TASK_UNINTERRUPTIBLE);
- }
- 
-+void sys_info_with_filter(unsigned long si_mask, unsigned long si_ignore_mask)
-+{
-+	unsigned long dump_mask = si_mask & ~si_ignore_mask;
-+
-+	/*
-+	 * Do not fall back to kernel_si_mask when the caller context
-+	 * required only the ignored information.
-+	 */
-+	if (si_mask && !dump_mask)
-+		return;
-+
-+	__sys_info(dump_mask ? : kernel_si_mask, si_ignore_mask);
-+}
-+
- void sys_info(unsigned long si_mask)
- {
--	__sys_info(si_mask ? : kernel_si_mask);
-+	sys_info_with_filter(si_mask, 0);
- }
 _
 
 Patches currently in -mm which might be from include@grrlz.net are
 
-watchdog-use-sys_info_with_filter-to-avoid-duplicate-backtraces.patch
-powerpc-watchdog-use-sys_info_with_filter-to-avoid-duplicate-backtraces.patch
-panic-use-sys_info_with_filter-to-avoid-duplicate-backtraces.patch
 lib-string-fix-memchr_inv-for-large-ranges.patch
 
