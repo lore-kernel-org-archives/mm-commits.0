@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8A1A51C2324
-	for <mm-commits@vger.kernel.org>; Sat, 27 Jun 2026 23:10:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 79F6435C181
+	for <mm-commits@vger.kernel.org>; Sat, 27 Jun 2026 23:11:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782601856; cv=none; b=WhhqBi89rxO5SLW/53GpSM+Z8FAdTDE93I/d2d+5mBz7ETS7NRkB6OwuQY2oCUscrRlDRAx1Juj87HFAIbOeXWGps4jYHLwqUuA52JtiC5y2sKc0QVWBwU+1m1dDplqItiIscEH6t/XB+8m92Z7V4ZXKeWwKwFuI5DddO4bg0r0=
+	t=1782601880; cv=none; b=DIp4K7NzFPuZj/z2E6MTHvoSJSKa2YwP8UOrJ8s+OxlQUMlz6PM9L0NEen9mPWrbyN7C55FpUsmBA/1aiEnTcYrR6n7rMn+s0/ktkD7f8YN+R+1C+tT4pBoOOuRCutjD1dWnP4VIMKC71wfK6JCyAFTY+v23lFFoKg7UtnHFaRE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782601856; c=relaxed/simple;
-	bh=JWS9aunVlVGCQJdmbJZ5nzKFPXNeMhSyd6LW6eG1i5I=;
-	h=Date:To:From:Subject:Message-Id; b=fnjJWQ09Sud7up8LRlfCrqo4MGdCerZsxs/jAZBSWvtOd0LrGFdxwP/uD2HRSXYA3WsROmWUKP9n4B+tXbQqIhzukYFdncpU87mg1HNWBV5MXO1KBFT/UcQFuV47P2KoD6IYQQNVlcdqVnlmiswnXP536fEDbAzuEedOqhcDTOA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2RIVBtkr; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1782601880; c=relaxed/simple;
+	bh=YM+D7CXzkPQgAcvkMPzEZT/Gek70WRIwJ616KC8miZA=;
+	h=Date:To:From:Subject:Message-Id; b=IbaHIM0UqFNyU7/bZ2fF+WbSvTIggWby4/IQXOn/HJLx5TZZarW1MNqFO2XCV+LRg7Es7kXSOkzDG71Z4PMqJ3ObX/uKeawl2bjGa57IbZLqEU7nsoXEbIg4AKtsYXJx2dBgIvmugtWkZhP0UunTFsfYCE3zHKP4U8q2apRL8Ok=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=u3El0wt/; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2RIVBtkr"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 246CC1F000E9;
-	Sat, 27 Jun 2026 23:10:53 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="u3El0wt/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CA8091F000E9;
+	Sat, 27 Jun 2026 23:11:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1782601853;
-	bh=PcpH72zxLt7AqNWCYgIiwAcyAOS9hnu5EIhFwqj7RLY=;
+	d=linux-foundation.org; s=korg; t=1782601874;
+	bh=PtVmgHCrjvu6rOIc0pbLE6T89kEOknEpnqGbeKwJDb0=;
 	h=Date:To:From:Subject;
-	b=2RIVBtkr0/Bf1WzUObnhdorFebWL01t+RWy6L5pUZ6U/3P0+SixLUrAa1xqRLjW8s
-	 +kjjnn1KNGYUInB4TSaZOU2rOoGdYOcRbqWblwnYBi29ZLjeD01OytTqYMScEPAd+j
-	 ajaEgKjPu6/7n2WuCtnL5csu85rJx5HNJUJR9zqg=
-Date: Sat, 27 Jun 2026 16:10:52 -0700
+	b=u3El0wt/92futGa//6kx9pfNVD7x0129kZf36eNKra7E0cpk+EDC085SPN00V/qVE
+	 RzAdUp90V9NCKWxx52u1I22fpISqZDg4gObzG/DTqNV7iTLiHbXRkN9rYwvY6USInb
+	 imCOvYz7/1L7xoXrUo1bvnDVaMybMoJApkIbJlQY=
+Date: Sat, 27 Jun 2026 16:11:14 -0700
 To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
 Subject: + maintainers-s-seongjae-sj.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260627231053.246CC1F000E9@smtp.kernel.org>
+Message-Id: <20260627231114.CA8091F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -62,10 +62,10 @@ From: SJ Park <sj@kernel.org>
 Subject: MAINTAINERS: s/SeongJae/SJ/
 Date: Sat, 27 Jun 2026 12:56:29 -0700
 
-My legal name and preferred first names are SeongJae and SJ, respectively.
-I was using the legal name for commits and tags, while using the
-preferred name for conversations.  It sometimes confuses people including
-myself.  Consistently use the preferred name.
+My legal name and preferred first name are SeongJae and SJ, respectively. 
+I was using the legal name for commits and tags, while using the preferred
+name for conversations.  It sometimes confuses people including myself. 
+Consistently use the preferred name.
 
 Link: https://lore.kernel.org/20260627195630.24519-1-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
