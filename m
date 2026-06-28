@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C3DF021C173
-	for <mm-commits@vger.kernel.org>; Sun, 28 Jun 2026 05:34:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F06C63101A7
+	for <mm-commits@vger.kernel.org>; Sun, 28 Jun 2026 05:41:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782624867; cv=none; b=Lz/ylnSvmOYOGTuSoGvQ07nkZkHMXMvu0n8taqIXkUNMidO75YkPAFp5SIjUWb2eg3MKuFhlqKJpEkZPV4MIfOiQsne1MyJTLKHT1EmWRHuht+vC8aEYLySTO1e5PxmvSFSusCLquFdIh1X0eliDb1Cg81zBi8+pdF9ck1Ht2IU=
+	t=1782625275; cv=none; b=uQrEDaVto9arxzznv2kAt8o3rkCdNWCJEsJcAFqhyHs5ojtnQFGZx1+kZCa3ybiHU/SjumU5J9M1v6axFD3EwGP58Bgs0aYvsDmAvJg0H+cihfFXE3fb+I2TQSragAaJSvakzScrYhcfNhtrFz9WNhFKv9/eaLok67EJb3flH34=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782624867; c=relaxed/simple;
-	bh=0ee9kkymBbVekZSJDXlYoho700H1p//vx3FFkAhFMqs=;
-	h=Date:To:From:Subject:Message-Id; b=tHRuV1nsxdzMCLlC/IwgTyjrpDmZufpAZDT1cI4R1irNfdSYlYUUeICvtyKDbOWKaVPnD10EooVuOO+vPi+Vh+SBDupTKZKrbPWwXeB50tXg6zAKWIcCAy84saDN/hA0qiYjHwSfrfUQMTnFpUDbsVSFXSRar0Oy0hqtl1oWRx4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bovBqPvG; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1782625275; c=relaxed/simple;
+	bh=DLN3H80cHS+g2GvY/KvcT03nH2nTlc0RhmXKNuTi7oE=;
+	h=Date:To:From:Subject:Message-Id; b=XaDBJKC7Lyto/W4zCiToZhi9u0rEfG/khX/AddY4XdwG8/yXOVno5tQj8wqeF9XbJxxd2+GP68AwNu6fWWZyhFDn9kl/PZBhKA2oS1J11BcvX5kbqYSn9oEcEDcrPYqxuj7CTr+BCgFPgVsZpMyNVpM6MgVtyskqYbAehUde/8w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EiFV9D0g; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bovBqPvG"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 511991F000E9;
-	Sun, 28 Jun 2026 05:34:26 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EiFV9D0g"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 66E1E1F000E9;
+	Sun, 28 Jun 2026 05:41:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1782624866;
-	bh=GbiURNbXY5txFypX+qvd2pA6QFyCUbcw8WGzqJshu/w=;
+	d=linux-foundation.org; s=korg; t=1782625273;
+	bh=GMI7ZY4Gq+PcKd8qk84s1MToDUaGtvydgZCOBuEgz/s=;
 	h=Date:To:From:Subject;
-	b=bovBqPvGHafMIl5rBZgdPekVCW3w2NK4i63X3TogwHVojvFyd8rISfPFJ0jYVihLh
-	 0LbkCoF2HEOvKAF+o0U5wfg3aEEiU2oV/rfvC8J27dShXQh+6eQRNkU4IoIVkxw0hY
-	 0FN1kLzew1golSW62jIf2pPzmO4l53pFUXc9pL9g=
-Date: Sat, 27 Jun 2026 22:34:25 -0700
-To: mm-commits@vger.kernel.org,yanquanmin1@huawei.com,sj@kernel.org,nathan@kernel.org,morbo@google.com,justinstitt@google.com,arnd@arndb.de,akpm@linux-foundation.org
+	b=EiFV9D0g+25rTw0XCr5D5rkMv6jj8dbjn0kXBVEe+l03R/M6P6SOn8TBojosn0GqA
+	 ko4xYUDHWqqujZlZjyqqZ1Go8clhxKOvMdAolfTuLkntnRH0j1DhEaTnXntyEhWzUD
+	 6naAaRajOCtmXfUS4dB5++RgjkFnuqBL99AClTO8=
+Date: Sat, 27 Jun 2026 22:41:12 -0700
+To: mm-commits@vger.kernel.org,shikemeng@huaweicloud.com,nphamcs@gmail.com,kasong@tencent.com,david@kernel.org,chrisl@kernel.org,baoquan.he@linux.dev,baohua@kernel.org,ritesh.list@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-core-reduce-kernel-stack-usage.patch added to mm-new branch
-Message-Id: <20260628053426.511991F000E9@smtp.kernel.org>
+Subject: + include-linux-swaph-remove-unused-leftovers.patch added to mm-new branch
+Message-Id: <20260628054113.66E1E1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/core: reduce kernel stack usage
+     Subject: include/linux/swap.h: remove unused leftovers
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-core-reduce-kernel-stack-usage.patch
+     include-linux-swaph-remove-unused-leftovers.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-reduce-kernel-stack-usage.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/include-linux-swaph-remove-unused-leftovers.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,49 +69,71 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: mm/damon/core: reduce kernel stack usage
-Date: Thu, 11 Jun 2026 14:56:57 +0200
+From: "Ritesh Harjani (IBM)" <ritesh.list@gmail.com>
+Subject: include/linux/swap.h: remove unused leftovers
+Date: Thu, 11 Jun 2026 08:39:32 +0530
 
-The main thread function has recently grown to the point of exceeding
-stack frame size warning limits in some configurations.  This is what I
-hit on s390 with clang and CONFIG_KASAN:
+This removed unused leftovers, most of them are forward structure
+declarations.  Also removes SWAP_BATCH macro which isn't used any where in
+the code.
 
-mm/damon/core.c:3440:31: error: stack frame size (1352) exceeds limit (1280) in 'kdamond_fn' [-Werror,-Wframe-larger-than]
- 3440 | static int kdamond_fn(struct damon_ctx *ctx)
+Found these during manual code review.
 
-The largest stack usage here is inside of the kdamond_tune_intervals(), so
-by marking that one as noinline_for_stack, the functions individually stay
-below the warning limit, though kdamond_fn() itself still uses hundreds of
-kilobytes for some reason.
-
-Link: https://lore.kernel.org/20260611125704.3386176-1-arnd@kernel.org
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Reviewed-by: SeongJae Park <sj@kernel.org>
-Cc: Bill Wendling <morbo@google.com>
-Cc: Justin Stitt <justinstitt@google.com>
-Cc: Nathan Chancellor <nathan@kernel.org>
-Cc: Quanmin Yan <yanquanmin1@huawei.com>
+Link: https://lore.kernel.org/68591daf0d679e5a0072d63751f187d14613e2b0.1781146877.git.ritesh.list@gmail.com
+Signed-off-by: Ritesh Harjani (IBM) <ritesh.list@gmail.com>
+Reviewed-by: Barry Song <baohua@kernel.org>
+Acked-by: Chris Li <chrisl@kernel.org>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Cc: Baoquan He <baoquan.he@linux.dev>
+Cc: Kairui Song <kasong@tencent.com>
+Cc: Kemeng Shi <shikemeng@huaweicloud.com>
+Cc: Nhat Pham <nphamcs@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/core.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/swap.h |    7 -------
+ 1 file changed, 7 deletions(-)
 
---- a/mm/damon/core.c~mm-damon-core-reduce-kernel-stack-usage
-+++ a/mm/damon/core.c
-@@ -2039,7 +2039,7 @@ static unsigned long damon_get_intervals
- 	return adaptation_bp;
- }
+--- a/include/linux/swap.h~include-linux-swaph-remove-unused-leftovers
++++ a/include/linux/swap.h
+@@ -16,10 +16,6 @@
+ #include <uapi/linux/mempolicy.h>
+ #include <asm/page.h>
  
--static void kdamond_tune_intervals(struct damon_ctx *c)
-+static noinline_for_stack void kdamond_tune_intervals(struct damon_ctx *c)
+-struct notifier_block;
+-
+-struct bio;
+-
+ #define SWAP_FLAG_PREFER	0x8000	/* set if swap priority specified */
+ #define SWAP_FLAG_PRIO_MASK	0x7fff
+ #define SWAP_FLAG_DISCARD	0x10000 /* enable discard for swap */
+@@ -29,7 +25,6 @@ struct bio;
+ #define SWAP_FLAGS_VALID	(SWAP_FLAG_PRIO_MASK | SWAP_FLAG_PREFER | \
+ 				 SWAP_FLAG_DISCARD | SWAP_FLAG_DISCARD_ONCE | \
+ 				 SWAP_FLAG_DISCARD_PAGES)
+-#define SWAP_BATCH 64
+ 
+ static inline int current_is_kswapd(void)
  {
- 	unsigned long adaptation_bp;
- 	struct damon_attrs new_attrs;
+@@ -175,7 +170,6 @@ static inline void mm_account_reclaimed_
+ 
+ struct address_space;
+ struct sysinfo;
+-struct writeback_control;
+ struct zone;
+ 
+ /*
+@@ -442,7 +436,6 @@ extern sector_t swapdev_block(int, pgoff
+ extern int __swap_count(swp_entry_t entry);
+ extern bool swap_entry_swapped(struct swap_info_struct *si, swp_entry_t entry);
+ extern int swp_swapcount(swp_entry_t entry);
+-struct backing_dev_info;
+ extern struct swap_info_struct *get_swap_device(swp_entry_t entry);
+ sector_t swap_folio_sector(struct folio *folio);
+ 
 _
 
-Patches currently in -mm which might be from arnd@arndb.de are
+Patches currently in -mm which might be from ritesh.list@gmail.com are
 
-mm-damon-core-reduce-kernel-stack-usage.patch
+include-linux-swaph-remove-unused-leftovers.patch
 
