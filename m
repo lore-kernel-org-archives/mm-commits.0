@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9EF03364933
-	for <mm-commits@vger.kernel.org>; Sun, 28 Jun 2026 19:39:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 803172417DE
+	for <mm-commits@vger.kernel.org>; Sun, 28 Jun 2026 19:53:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782675556; cv=none; b=bTjTO4kqAoiK86T/K9WANtpHtz3+qlp9yF5u6A0mvRHTaI43gKC2LGIaMF7Tg4HBwYlm0fGXuJL3U3dDyLsHo3JrhZ8P1ea9vmE+lFRiOuwRf+vXVDk+/Tr3bEDf3w+dAFl/WcTUOidneI4uRpLVGJ5hCnkMbZeRvvFKE9RkEM0=
+	t=1782676389; cv=none; b=t7CzR34jpCknvWlbRmpsQJwDBMNhE8WDhCC1KI2u8wreJV6I12YGICbzbtGAIiwn8E65uB87tlchtWzHtJBgKnB+R5V1jnLVyzwKlu1COEspEGG54YkHF6kTWVzR+B7hO+jhUm0lKMtIb7CljqHohoOKUL6hJHyU7RLiPJvZT2M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782675556; c=relaxed/simple;
-	bh=rkWitYagS6ldsbmp3i4AjuMGUzVSre/CvlNPvzJ3yuQ=;
-	h=Date:To:From:Subject:Message-Id; b=NuVPaOs+UJHEeQTtq/t8rnMHQnod6fVYCtb7e5XJY3OxrqF9n4CjSBjF8dvEgE+AW4hVLBldZrMzGmSF16Jql1ZE5bKA6LqCzrZrOM+Hl3Wd91vLxb/lMsLOhm206nvCxkjURRfOyJNMCaV2md7XNqPiVyd0xVBtWAmAqcEkBsU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=C7bm4j9i; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1782676389; c=relaxed/simple;
+	bh=3zNSzlO+zQ/e+G5mich7E3N2dJZcteGvmJKZ3XIDXcQ=;
+	h=Date:To:From:Subject:Message-Id; b=Pt7zwNbol++9czLjR07wbt0kU+Li3j5unXv4xtdBrQVqFz63cosZZQvX5mcxRhapOzmYsiG1e+t2edIDQ/hJ1cDDOUpKN48SKwWpkATOLt2zxh4VfsN7bJyyipxSqnWhCsfrWogjYjCZ3vvmrosfHnTY8UqHExpx1sh+9bwfDn8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yXMoeT6t; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="C7bm4j9i"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 12EC71F000E9;
-	Sun, 28 Jun 2026 19:39:15 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yXMoeT6t"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 04B111F000E9;
+	Sun, 28 Jun 2026 19:53:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1782675555;
-	bh=KlL6SwpodFg46ObtxceNdVm9Cq0M42YW6vQ4vcW672s=;
+	d=linux-foundation.org; s=korg; t=1782676388;
+	bh=qVmT0rHv8Yf+aZFjdsn1MuV0aKnEXGePmB5sRZDa+Vc=;
 	h=Date:To:From:Subject;
-	b=C7bm4j9ieQi7HD1h0AVnhRG9o9fpxYLNIlfQPPHixk1K3GhP2ovVGyeSOKC3IZICB
-	 7NFEblP2aXdrF3YUIQpLQgM57ypgkT8eyI5B5rm89eMSa17R6WGMmvo196/CzP/cim
-	 czEZRDBmTiWfzsT+Jt75I2guWRaA4Nfd9ewykw+k=
-Date: Sun, 28 Jun 2026 12:39:13 -0700
-To: mm-commits@vger.kernel.org,surenb@google.com,rientjes@google.com,osalvador@suse.de,muchun.song@linux.dev,lkp@intel.com,gthelen@google.com,fvdl@google.com,david@kernel.org,souravpanda@google.com,akpm@linux-foundation.org
+	b=yXMoeT6t/cOeCmq3wrNJ5EWeNXwpAgROjpC06bvQVX3prXh6Lyjd479h8RTReVGxE
+	 OvAm+h8PHp2GccZHTbupU1tSb5GaOOK6OzFx58wfl5cFjx0skgmoQUPaArCLyxh4Om
+	 1UPZlYo6pedZ1tBV3tBrzODu6or6TAYbjg3f5qZE=
+Date: Sun, 28 Jun 2026 12:53:07 -0700
+To: mm-commits@vger.kernel.org,Sergey.Semin@baikalelectronics.ru,raemoar63@gmail.com,maxim.kaurkin@baikalelectronics.ru,linux@roeck-us.net,david@davidgow.net,brendan.higgins@linux.dev,adinata.softwareengineer@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb_cma-support-percentage-based-hugetlb_cma-reservation.patch added to mm-new branch
-Message-Id: <20260628193915.12EC71F000E9@smtp.kernel.org>
+Subject: + lib-math-add-kunit-test-suite-for-polynomial_calc.patch added to mm-nonmm-unstable branch
+Message-Id: <20260628195308.04B111F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,26 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/hugetlb_cma: support percentage-based hugetlb_cma reservation
-has been added to the -mm mm-new branch.  Its filename is
-     mm-hugetlb_cma-support-percentage-based-hugetlb_cma-reservation.patch
+     Subject: lib/math: add KUnit test suite for polynomial_calc()
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     lib-math-add-kunit-test-suite-for-polynomial_calc.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb_cma-support-percentage-based-hugetlb_cma-reservation.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-math-add-kunit-test-suite-for-polynomial_calc.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,199 +58,348 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Sourav Panda <souravpanda@google.com>
-Subject: mm/hugetlb_cma: support percentage-based hugetlb_cma reservation
-Date: Sun, 28 Jun 2026 19:01:55 +0000
+From: Adi Nata <adinata.softwareengineer@gmail.com>
+Subject: lib/math: add KUnit test suite for polynomial_calc()
+Date: Sat, 6 Jun 2026 11:03:09 +0800
 
-Currently, hugetlb_cma reservation only supports absolute sizes (e.g.,
-hugetlb_cma=2G or hugetlb_cma=0:1G,1:1G). This can be restrictive in
-heterogeneous environments or when deploying common kernel command lines
-across machines with different memory capacities.
+Add a KUnit test suite for the polynomial_calc() function, which had no
+in-kernel test coverage.  The tests verify correct evaluation of constant,
+linear, quadratic, and cubic polynomials, including negative coefficients,
+negative input data, zero-coefficient terms.
 
-Add support for percentage-based hugetlb_cma reservation (e.g.,
-hugetlb_cma=20% or hugetlb_cma=0:20%,1:10%).
+The Kconfig entry uses 'select POLYNOMIAL' rather than 'depends on
+POLYNOMIAL' because POLYNOMIAL is a promptless tristate that cannot
+be manually enabled on UML without an explicit selector.
 
-The percentage is calculated against the total memory (for global
-settings) or against the node-specific memory (for node-specific
-settings) using memblock APIs during early boot.
-
-Link: https://lore.kernel.org/20260628190155.3655895-1-souravpanda@google.com
-Signed-off-by: Sourav Panda <souravpanda@google.com>
-Reported-by: kernel test robot <lkp@intel.com>
-Closes: https://lore.kernel.org/oe-kbuild-all/202606262023.IKUrn01I-lkp@intel.com/
-Cc: David Hildenbrand <david@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Frank van der Linden <fvdl@google.com>
-Cc: Greg Thelen <gthelen@google.com>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Suren Baghdasaryan <surenb@google.com>
+Link: https://lore.kernel.org/20260606030319.316752-1-adinata.softwareengineer@gmail.com
+Signed-off-by: Adi Nata <adinata.softwareengineer@gmail.com>
+Cc: Maxim Kaurkin <maxim.kaurkin@baikalelectronics.ru>
+Cc: Serge Semin <Sergey.Semin@baikalelectronics.ru>
+Cc: Guenter Roeck <linux@roeck-us.net>
+Cc: Brendan Higgins <brendan.higgins@linux.dev>
+Cc: David Gow <david@davidgow.net>
+Cc: Rae Moar <raemoar63@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/kernel-parameters.txt |    7 -
- mm/hugetlb_cma.c                                |   96 +++++++++++++-
- 2 files changed, 97 insertions(+), 6 deletions(-)
+ lib/Kconfig.debug                 |   17 +
+ lib/math/tests/Makefile           |    1 
+ lib/math/tests/polynomial_kunit.c |  270 ++++++++++++++++++++++++++++
+ 3 files changed, 288 insertions(+)
 
---- a/Documentation/admin-guide/kernel-parameters.txt~mm-hugetlb_cma-support-percentage-based-hugetlb_cma-reservation
-+++ a/Documentation/admin-guide/kernel-parameters.txt
-@@ -2064,8 +2064,11 @@ Kernel parameters
- 	hugetlb_cma=	[HW,CMA,EARLY] The size of a CMA area used for allocation
- 			of gigantic hugepages. Or using node format, the size
- 			of a CMA area per node can be specified.
--			Format: nn[KMGTPE] or (node format)
--				<node>:nn[KMGTPE][,<node>:nn[KMGTPE]]
-+			The size can be an absolute value (e.g., 2G) or a
-+			percentage of the total memory or node memory (e.g., 20%).
-+			Format: nn[KMGTPE] or nn% or (node format)
-+				<node>:nn[KMGTPE][,<node>:nn[KMGTPE]] or
-+				<node>:nn%[,<node>:nn%]
+--- a/lib/Kconfig.debug~lib-math-add-kunit-test-suite-for-polynomial_calc
++++ a/lib/Kconfig.debug
+@@ -3476,6 +3476,23 @@ config GCD_KUNIT_TEST
  
- 			The size must be a multiple of the gigantic page size.
- 			When using node format, this applies to each per-node size.
---- a/mm/hugetlb_cma.c~mm-hugetlb_cma-support-percentage-based-hugetlb_cma-reservation
-+++ a/mm/hugetlb_cma.c
-@@ -9,6 +9,9 @@
- #include <asm/setup.h>
+ 	  If unsure, say N
  
- #include <linux/hugetlb.h>
-+#include <linux/memblock.h>
-+#include <linux/math.h>
-+#include <linux/math64.h>
- #include "internal.h"
- #include "hugetlb_cma.h"
- 
-@@ -18,6 +21,28 @@ static unsigned long hugetlb_cma_size_in
- static bool hugetlb_cma_only __ro_after_init;
- static unsigned long hugetlb_cma_size __ro_after_init;
- 
-+static unsigned int hugetlb_cma_percent __initdata;
-+static unsigned int hugetlb_cma_percent_in_node[MAX_NUMNODES] __initdata;
++config POLYNOMIAL_KUNIT_TEST
++	tristate "Polynomial calculation (polynomial_calc) test" if !KUNIT_ALL_TESTS
++	depends on KUNIT
++	select POLYNOMIAL
++	default KUNIT_ALL_TESTS
++	help
++	  This option enables the KUnit test suite for the polynomial_calc()
++	  function, which evaluates integer polynomials using factor
++	  redistribution to avoid overflow.
 +
-+#ifdef CONFIG_NUMA
-+static phys_addr_t __init memblock_node_memory_size(int nid)
++	  The test suite verifies correctness for constant, linear, and
++	  quadratic polynomials, negative coefficients, per-step dividers,
++	  divider_leftover, total_divider scaling, and a real sensor
++	  N-to-temperature conversion polynomial.
++
++	  If unsure, say N
++
+ config PRIME_NUMBERS_KUNIT_TEST
+ 	tristate "Prime number generator test" if !KUNIT_ALL_TESTS
+ 	depends on KUNIT
+--- a/lib/math/tests/Makefile~lib-math-add-kunit-test-suite-for-polynomial_calc
++++ a/lib/math/tests/Makefile
+@@ -4,5 +4,6 @@ obj-$(CONFIG_GCD_KUNIT_TEST)		+= gcd_kun
+ obj-$(CONFIG_INT_LOG_KUNIT_TEST)	+= int_log_kunit.o
+ obj-$(CONFIG_INT_POW_KUNIT_TEST)	+= int_pow_kunit.o
+ obj-$(CONFIG_INT_SQRT_KUNIT_TEST)	+= int_sqrt_kunit.o
++obj-$(CONFIG_POLYNOMIAL_KUNIT_TEST)	+= polynomial_kunit.o
+ obj-$(CONFIG_PRIME_NUMBERS_KUNIT_TEST)	+= prime_numbers_kunit.o
+ obj-$(CONFIG_RATIONAL_KUNIT_TEST)	+= rational_kunit.o
+diff --git a/lib/math/tests/polynomial_kunit.c a/lib/math/tests/polynomial_kunit.c
+new file mode 100644
+--- /dev/null
++++ a/lib/math/tests/polynomial_kunit.c
+@@ -0,0 +1,270 @@
++// SPDX-License-Identifier: GPL-2.0-only
++
++#include <kunit/test.h>
++#include <linux/polynomial.h>
++
++struct polynomial_test_param {
++	const struct polynomial *poly;
++	long data;
++	long expected;
++	const char *name;
++};
++
++/* f(x) = 5 */
++static const struct polynomial poly_constant = {
++	.total_divider = 1,
++	.terms = {
++		{0, 5, 1, 1},
++	}
++};
++
++/* f(x) = 2x^2 + 3x + 5 */
++static const struct polynomial poly_simple = {
++	.total_divider = 1,
++	.terms = {
++		{2, 2, 1, 1},
++		{1, 3, 1, 1},
++		{0, 5, 1, 1},
++	}
++};
++
++/* f(x) = -5x + 100 */
++static const struct polynomial poly_negative_coef = {
++	.total_divider = 1,
++	.terms = {
++		{1, -5, 1, 1},
++		{0, 100, 1, 1},
++	}
++};
++
++/* f(x) = (150x + 50) / 10 */
++static const struct polynomial poly_total_divider = {
++	.total_divider = 10,
++	.terms = {
++		{1, 150, 1, 1},
++		{0,  50, 1, 1},
++	}
++};
++
++/*
++ * f(x) = x / 2
++ * divider=2 applied once per multiply: mult_frac(coef, data, 2) = coef*data/2
++ */
++static const struct polynomial poly_step_divider = {
++	.total_divider = 1,
++	.terms = {
++		{1, 1, 2, 1},
++		{0, 0, 1, 1},
++	}
++};
++
++/*
++ * f(x) = (100/500) * x^2 = 0.2 * x^2
++ * Encoded as coef=100, divider=10, divider_leftover=5:
++ *   denom = 10^2 * 5 = 500
++ */
++static const struct polynomial poly_leftover = {
++	.total_divider = 1,
++	.terms = {
++		{2, 100, 10, 5},
++		{0,   0,  1, 1},
++	}
++};
++
++/*
++ * f(x) = 2x^3  (single high-degree term, no constant)
++ * Used to exercise the power loop alone.
++ */
++static const struct polynomial poly_cubic = {
++	.total_divider = 1,
++	.terms = {
++		{3, 2, 1, 1},
++		{0, 0, 1, 1},
++	}
++};
++
++/*
++ * f(x) = 4x + 1  with a zero-coefficient quadratic term.
++ * The deg-2 term contributes nothing regardless of input.
++ */
++static const struct polynomial poly_zero_coef = {
++	.total_divider = 1,
++	.terms = {
++		{2, 0, 1, 1},
++		{1, 4, 1, 1},
++		{0, 1, 1, 1},
++	}
++};
++
++/*
++ * f(x) = 9  with total_divider = 0.
++ * The implementation treats 0 as 1 via `total_divider ?: 1`, so the
++ * result must equal the constant term unchanged.
++ */
++static const struct polynomial poly_zero_total_divider = {
++	.total_divider = 0,
++	.terms = {
++		{0, 9, 1, 1},
++	}
++};
++
++
++static const struct polynomial_test_param test_params[] = {
++	{
++		.poly     = &poly_constant,
++		.data     = 0,
++		.expected = 5,
++		.name     = "Constant polynomial at x=0",
++	},
++	{
++		.poly     = &poly_constant,
++		.data     = 42,
++		.expected = 5,
++		.name     = "Constant polynomial is independent of input",
++	},
++	{
++		.poly     = &poly_simple,
++		.data     = 0,
++		.expected = 5,	/* zero input collapses all power terms */
++		.name     = "Zero input yields constant term only",
++	},
++	{
++		.poly     = &poly_simple,
++		.data     = 10,
++		.expected = 235,	/* 2*100 + 3*10 + 5 */
++		.name     = "Simple quadratic at x=10",
++	},
++	{
++		.poly     = &poly_negative_coef,
++		.data     = 10,
++		.expected = 50,		/* -5*10 + 100 */
++		.name     = "Negative coefficient at x=10",
++	},
++	{
++		.poly     = &poly_negative_coef,
++		.data     = 20,
++		.expected = 0,		/* -5*20 + 100 = 0 */
++		.name     = "Negative coefficient result is zero",
++	},
++	{
++		.poly     = &poly_total_divider,
++		.data     = 3,
++		.expected = 50,		/* (150*3 + 50) / 10 = 500/10 */
++		.name     = "total_divider scales the final sum",
++	},
++	{
++		.poly     = &poly_step_divider,
++		.data     = 100,
++		.expected = 50,		/* 1*100/2 */
++		.name     = "Per-step divider halves input",
++	},
++	{
++		.poly     = &poly_leftover,
++		.data     = 30,
++		.expected = 180,	/* 100*30^2 / (10^2 * 5) = 90000/500 */
++		.name     = "divider_leftover with quadratic term",
++	},
++	/* Boundary: unit and negative-unit input */
++	{
++		/*
++		 * data=1: each mult_frac(tmp, 1, divider) strips one factor of
++		 * divider from coef per degree, so coef is left-shifted right
++		 * until intermediate precision is exhausted.
++		 * 2*1 + 3*1 + 5 = 10
++		 */
++		.poly     = &poly_simple,
++		.data     = 1,
++		.expected = 10,
++		.name     = "Boundary: data=1 (unit input)",
++	},
++	{
++		/*
++		 * data=-1: even degrees produce positive contributions,
++		 * odd degrees produce negative ones.
++		 * 2*(-1)^2 + 3*(-1) + 5 = 2 - 3 + 5 = 4
++		 */
++		.poly     = &poly_simple,
++		.data     = -1,
++		.expected = 4,
++		.name     = "Boundary: data=-1 (negative unit input)",
++	},
++
++	/* Boundary: negative non-trivial input */
++	{
++		/*
++		 * 2*(-3)^2 + 3*(-3) + 5 = 18 - 9 + 5 = 14
++		 * Verifies sign handling for negative data across all degrees.
++		 */
++		.poly     = &poly_simple,
++		.data     = -3,
++		.expected = 14,
++		.name     = "Boundary: negative data with quadratic",
++	},
++
++	/* Boundary: total_divider = 0 is treated as 1 */
++	{
++		.poly     = &poly_zero_total_divider,
++		.data     = 42,
++		.expected = 9,
++		.name     = "Boundary: total_divider=0 defaults to 1",
++	},
++
++	/* Boundary: zero-coefficient high-degree term */
++	{
++		/*
++		 * The deg-2 term has coef=0, so it contributes 0 regardless
++		 * of data. Result: 0 + 4*10 + 1 = 41
++		 */
++		.poly     = &poly_zero_coef,
++		.data     = 10,
++		.expected = 41,
++		.name     = "Boundary: zero-coefficient term is inert",
++	},
++
++	/* Boundary: single high-degree term, no constant */
++	{
++		/* 2 * 5^3 = 250; also verifies the loop terminates on deg-0 */
++		.poly     = &poly_cubic,
++		.data     = 5,
++		.expected = 250,
++		.name     = "Boundary: single cubic term",
++	},
++	{
++		/* 2 * (-2)^3 = -16; odd power preserves sign of negative data */
++		.poly     = &poly_cubic,
++		.data     = -2,
++		.expected = -16,
++		.name     = "Boundary: single cubic term, negative data",
++	},
++
++};
++
++static void get_desc(const struct polynomial_test_param *param, char *desc)
 +{
-+	struct memblock_region *reg;
-+	phys_addr_t size = 0;
-+
-+	for_each_mem_region(reg) {
-+		if (reg->nid == nid)
-+			size += reg->size;
-+	}
-+	return size;
++	strscpy(desc, param->name, KUNIT_PARAM_DESC_SIZE);
 +}
-+#else
-+static phys_addr_t __init memblock_node_memory_size(int nid)
++
++KUNIT_ARRAY_PARAM(polynomial, test_params, get_desc);
++
++static void polynomial_calc_test(struct kunit *test)
 +{
-+	return memblock_phys_mem_size();
++	const struct polynomial_test_param *param = test->param_value;
++
++	KUNIT_EXPECT_EQ(test, polynomial_calc(param->poly, param->data),
++			param->expected);
 +}
-+#endif
 +
- void hugetlb_cma_free_frozen_folio(struct folio *folio)
- {
- 	WARN_ON_ONCE(!cma_release_frozen(hugetlb_cma[folio_nid(folio)],
-@@ -90,14 +115,28 @@ static int __init cmdline_parse_hugetlb_
- 			break;
- 
- 		if (s[count] == ':') {
-+			char *next;
++static struct kunit_case polynomial_test_cases[] = {
++	KUNIT_CASE_PARAM(polynomial_calc_test, polynomial_gen_params),
++	{}
++};
 +
- 			if (tmp >= MAX_NUMNODES)
- 				break;
- 			nid = array_index_nospec(tmp, MAX_NUMNODES);
- 
- 			s += count + 1;
--			tmp = memparse(s, &s);
--			hugetlb_cma_size_in_node[nid] = tmp;
--			hugetlb_cma_size += tmp;
-+			tmp = memparse(s, &next);
-+			if (*next == '%') {
-+				if (tmp > 100) {
-+					pr_warn("hugetlb_cma: invalid percentage %lu for node %d\n",
-+						tmp, nid);
-+					break;
-+				}
-+				hugetlb_cma_percent_in_node[nid] = tmp;
-+				hugetlb_cma_size_in_node[nid] = 0;
-+				s = next + 1;
-+			} else {
-+				hugetlb_cma_size_in_node[nid] = tmp;
-+				hugetlb_cma_percent_in_node[nid] = 0;
-+				s = next;
-+			}
- 
- 			/*
- 			 * Skip the separator if have one, otherwise
-@@ -108,7 +147,28 @@ static int __init cmdline_parse_hugetlb_
- 			else
- 				break;
- 		} else {
--			hugetlb_cma_size = memparse(p, &p);
-+			char *next;
++static struct kunit_suite polynomial_test_suite = {
++	.name = "math-polynomial",
++	.test_cases = polynomial_test_cases,
++};
 +
-+			tmp = memparse(p, &next);
-+			if (*next == '%') {
-+				if (tmp > 100) {
-+					pr_warn("hugetlb_cma: invalid percentage %lu\n", tmp);
-+				} else {
-+					hugetlb_cma_percent = tmp;
-+					hugetlb_cma_size = 0;
-+					for (nid = 0; nid < MAX_NUMNODES; nid++) {
-+						hugetlb_cma_size_in_node[nid] = 0;
-+						hugetlb_cma_percent_in_node[nid] = 0;
-+					}
-+				}
-+			} else {
-+				hugetlb_cma_size = tmp;
-+				hugetlb_cma_percent = 0;
-+				for (nid = 0; nid < MAX_NUMNODES; nid++) {
-+					hugetlb_cma_size_in_node[nid] = 0;
-+					hugetlb_cma_percent_in_node[nid] = 0;
-+				}
-+			}
- 			break;
- 		}
- 	}
-@@ -134,8 +194,36 @@ void __init hugetlb_cma_reserve(void)
- {
- 	unsigned long size, reserved, per_node, order, gigantic_page_size;
- 	bool node_specific_cma_alloc = false;
-+	bool has_node_specific_param = false;
- 	int nid;
- 
-+	for (nid = 0; nid < MAX_NUMNODES; nid++) {
-+		if (hugetlb_cma_size_in_node[nid] || hugetlb_cma_percent_in_node[nid]) {
-+			has_node_specific_param = true;
-+			break;
-+		}
-+	}
++kunit_test_suites(&polynomial_test_suite);
 +
-+	if (has_node_specific_param) {
-+		hugetlb_cma_size = 0;
-+		for (nid = 0; nid < MAX_NUMNODES; nid++) {
-+			if (hugetlb_cma_percent_in_node[nid]) {
-+				phys_addr_t node_gfp_mem = memblock_node_memory_size(nid);
-+				u64 s;
-+
-+				s = mul_u64_u32_div((u64)node_gfp_mem,
-+						    hugetlb_cma_percent_in_node[nid],
-+						    100);
-+
-+				hugetlb_cma_size_in_node[nid] = s;
-+			}
-+			hugetlb_cma_size += hugetlb_cma_size_in_node[nid];
-+		}
-+	} else if (hugetlb_cma_percent) {
-+		hugetlb_cma_size = mul_u64_u32_div((u64)memblock_phys_mem_size(),
-+						   hugetlb_cma_percent, 100);
-+	}
-+
- 	if (!hugetlb_cma_size)
- 		return;
- 
++MODULE_DESCRIPTION("math.polynomial_calc KUnit test suite");
++MODULE_LICENSE("GPL");
 _
 
-Patches currently in -mm which might be from souravpanda@google.com are
+Patches currently in -mm which might be from adinata.softwareengineer@gmail.com are
 
-mm-hugetlb_cma-support-percentage-based-hugetlb_cma-reservation.patch
+lib-math-add-kunit-test-suite-for-polynomial_calc.patch
 
