@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 803172417DE
-	for <mm-commits@vger.kernel.org>; Sun, 28 Jun 2026 19:53:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 17CA533F599
+	for <mm-commits@vger.kernel.org>; Sun, 28 Jun 2026 20:07:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782676389; cv=none; b=t7CzR34jpCknvWlbRmpsQJwDBMNhE8WDhCC1KI2u8wreJV6I12YGICbzbtGAIiwn8E65uB87tlchtWzHtJBgKnB+R5V1jnLVyzwKlu1COEspEGG54YkHF6kTWVzR+B7hO+jhUm0lKMtIb7CljqHohoOKUL6hJHyU7RLiPJvZT2M=
+	t=1782677230; cv=none; b=N+j3DclEpiKr0UouEULrQ8bxq6YAwNpf6+4koAW6mVgh+2Ezs0B/dqEtyIFHqxDhPtMY/bnbJtqqJ1RfYKEQFFVSA313woaZaD/5+afBoDBbheD81oUizlFkYgv+eeCRk6ZibLh941n7G77G91mDGSLB+PV0TK+YI3E/9AloUuc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782676389; c=relaxed/simple;
-	bh=3zNSzlO+zQ/e+G5mich7E3N2dJZcteGvmJKZ3XIDXcQ=;
-	h=Date:To:From:Subject:Message-Id; b=Pt7zwNbol++9czLjR07wbt0kU+Li3j5unXv4xtdBrQVqFz63cosZZQvX5mcxRhapOzmYsiG1e+t2edIDQ/hJ1cDDOUpKN48SKwWpkATOLt2zxh4VfsN7bJyyipxSqnWhCsfrWogjYjCZ3vvmrosfHnTY8UqHExpx1sh+9bwfDn8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yXMoeT6t; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1782677230; c=relaxed/simple;
+	bh=6zOGGeUK8Xd95VrPDHJL3Fn8QUHp3I4o5KILFADOjQg=;
+	h=Date:To:From:Subject:Message-Id; b=tPI0IR73Fbjdz+I+s/KHobUsOEcTdZRQXNKIj8Lk7sV1ImMKtb9pDCxTzNkBWnJoISDqx1kXmREm52z59ryhpsDspb6VsgrNjKvIUistoNvq1xrtygmKL26wbhB2zWWw6HRU4C1pVrrqmi1l2gRS5L3NbZLmWkjLdK9LeFSWPvw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GGddqO6w; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yXMoeT6t"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 04B111F000E9;
-	Sun, 28 Jun 2026 19:53:07 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GGddqO6w"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 740631F000E9;
+	Sun, 28 Jun 2026 20:07:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1782676388;
-	bh=qVmT0rHv8Yf+aZFjdsn1MuV0aKnEXGePmB5sRZDa+Vc=;
+	d=linux-foundation.org; s=korg; t=1782677228;
+	bh=1BrJfb4oyuxdyd7i2S/mJMFRknVNWsjkcNRqDmRNAMM=;
 	h=Date:To:From:Subject;
-	b=yXMoeT6t/cOeCmq3wrNJ5EWeNXwpAgROjpC06bvQVX3prXh6Lyjd479h8RTReVGxE
-	 OvAm+h8PHp2GccZHTbupU1tSb5GaOOK6OzFx58wfl5cFjx0skgmoQUPaArCLyxh4Om
-	 1UPZlYo6pedZ1tBV3tBrzODu6or6TAYbjg3f5qZE=
-Date: Sun, 28 Jun 2026 12:53:07 -0700
-To: mm-commits@vger.kernel.org,Sergey.Semin@baikalelectronics.ru,raemoar63@gmail.com,maxim.kaurkin@baikalelectronics.ru,linux@roeck-us.net,david@davidgow.net,brendan.higgins@linux.dev,adinata.softwareengineer@gmail.com,akpm@linux-foundation.org
+	b=GGddqO6wlTliuYOBV2MrqZG3B5gGmE3Qz0uiOSi9qNcZqbFFF+j1P53RhD+UPRY7P
+	 iqk4fspn5US3oWaYPK8UcmfARbGekk+bpvTUtWOP5UFqh4Kb+9AYNYs/qRRqztfdKj
+	 eOdz2jqEgwJA7rE3E7dEfY3JNgSceMx4cQTaoH8g=
+Date: Sun, 28 Jun 2026 13:07:08 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,joshua.hahnjy@gmail.com,david@kernel.org,imran.f.khan@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-math-add-kunit-test-suite-for-polynomial_calc.patch added to mm-nonmm-unstable branch
-Message-Id: <20260628195308.04B111F000E9@smtp.kernel.org>
+Subject: + mm-vmstat-avoid-taking-zone-lock-in-proc-buddyinfo-reads.patch added to mm-new branch
+Message-Id: <20260628200708.740631F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,26 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: lib/math: add KUnit test suite for polynomial_calc()
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     lib-math-add-kunit-test-suite-for-polynomial_calc.patch
+     Subject: mm/vmstat: avoid taking zone lock in /proc/buddyinfo reads
+has been added to the -mm mm-new branch.  Its filename is
+     mm-vmstat-avoid-taking-zone-lock-in-proc-buddyinfo-reads.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-math-add-kunit-test-suite-for-polynomial_calc.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmstat-avoid-taking-zone-lock-in-proc-buddyinfo-reads.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,348 +69,46 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Adi Nata <adinata.softwareengineer@gmail.com>
-Subject: lib/math: add KUnit test suite for polynomial_calc()
-Date: Sat, 6 Jun 2026 11:03:09 +0800
+From: Imran Khan <imran.f.khan@oracle.com>
+Subject: mm/vmstat: avoid taking zone lock in /proc/buddyinfo reads
+Date: Thu, 4 Jun 2026 21:42:45 +0800
 
-Add a KUnit test suite for the polynomial_calc() function, which had no
-in-kernel test coverage.  The tests verify correct evaluation of constant,
-linear, quadratic, and cubic polynomials, including negative coefficients,
-negative input data, zero-coefficient terms.
+frag_show_print() just reads zone->free_area[order].nr_free, so it can
+safely do this without needing the zone->lock.
 
-The Kconfig entry uses 'select POLYNOMIAL' rather than 'depends on
-POLYNOMIAL' because POLYNOMIAL is a promptless tristate that cannot
-be manually enabled on UML without an explicit selector.
+Pass nolock=true from frag_show(), so that walk_zones_in_node() can skip
+the zone->lock acquisition.
 
-Link: https://lore.kernel.org/20260606030319.316752-1-adinata.softwareengineer@gmail.com
-Signed-off-by: Adi Nata <adinata.softwareengineer@gmail.com>
-Cc: Maxim Kaurkin <maxim.kaurkin@baikalelectronics.ru>
-Cc: Serge Semin <Sergey.Semin@baikalelectronics.ru>
-Cc: Guenter Roeck <linux@roeck-us.net>
-Cc: Brendan Higgins <brendan.higgins@linux.dev>
-Cc: David Gow <david@davidgow.net>
-Cc: Rae Moar <raemoar63@gmail.com>
+Link: https://lore.kernel.org/20260604134245.1580287-1-imran.f.khan@oracle.com
+Signed-off-by: Imran Khan <imran.f.khan@oracle.com>
+Reviewed-by: Joshua Hahn <joshua.hahnjy@gmail.com>
+Acked-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
+Reviewed-by: Lorenzo Stoakes <ljs@kernel.org>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.debug                 |   17 +
- lib/math/tests/Makefile           |    1 
- lib/math/tests/polynomial_kunit.c |  270 ++++++++++++++++++++++++++++
- 3 files changed, 288 insertions(+)
+ mm/vmstat.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/lib/Kconfig.debug~lib-math-add-kunit-test-suite-for-polynomial_calc
-+++ a/lib/Kconfig.debug
-@@ -3476,6 +3476,23 @@ config GCD_KUNIT_TEST
+--- a/mm/vmstat.c~mm-vmstat-avoid-taking-zone-lock-in-proc-buddyinfo-reads
++++ a/mm/vmstat.c
+@@ -1568,7 +1568,7 @@ static void frag_show_print(struct seq_f
+ static int frag_show(struct seq_file *m, void *arg)
+ {
+ 	pg_data_t *pgdat = (pg_data_t *)arg;
+-	walk_zones_in_node(m, pgdat, true, false, frag_show_print);
++	walk_zones_in_node(m, pgdat, true, true, frag_show_print);
+ 	return 0;
+ }
  
- 	  If unsure, say N
- 
-+config POLYNOMIAL_KUNIT_TEST
-+	tristate "Polynomial calculation (polynomial_calc) test" if !KUNIT_ALL_TESTS
-+	depends on KUNIT
-+	select POLYNOMIAL
-+	default KUNIT_ALL_TESTS
-+	help
-+	  This option enables the KUnit test suite for the polynomial_calc()
-+	  function, which evaluates integer polynomials using factor
-+	  redistribution to avoid overflow.
-+
-+	  The test suite verifies correctness for constant, linear, and
-+	  quadratic polynomials, negative coefficients, per-step dividers,
-+	  divider_leftover, total_divider scaling, and a real sensor
-+	  N-to-temperature conversion polynomial.
-+
-+	  If unsure, say N
-+
- config PRIME_NUMBERS_KUNIT_TEST
- 	tristate "Prime number generator test" if !KUNIT_ALL_TESTS
- 	depends on KUNIT
---- a/lib/math/tests/Makefile~lib-math-add-kunit-test-suite-for-polynomial_calc
-+++ a/lib/math/tests/Makefile
-@@ -4,5 +4,6 @@ obj-$(CONFIG_GCD_KUNIT_TEST)		+= gcd_kun
- obj-$(CONFIG_INT_LOG_KUNIT_TEST)	+= int_log_kunit.o
- obj-$(CONFIG_INT_POW_KUNIT_TEST)	+= int_pow_kunit.o
- obj-$(CONFIG_INT_SQRT_KUNIT_TEST)	+= int_sqrt_kunit.o
-+obj-$(CONFIG_POLYNOMIAL_KUNIT_TEST)	+= polynomial_kunit.o
- obj-$(CONFIG_PRIME_NUMBERS_KUNIT_TEST)	+= prime_numbers_kunit.o
- obj-$(CONFIG_RATIONAL_KUNIT_TEST)	+= rational_kunit.o
-diff --git a/lib/math/tests/polynomial_kunit.c a/lib/math/tests/polynomial_kunit.c
-new file mode 100644
---- /dev/null
-+++ a/lib/math/tests/polynomial_kunit.c
-@@ -0,0 +1,270 @@
-+// SPDX-License-Identifier: GPL-2.0-only
-+
-+#include <kunit/test.h>
-+#include <linux/polynomial.h>
-+
-+struct polynomial_test_param {
-+	const struct polynomial *poly;
-+	long data;
-+	long expected;
-+	const char *name;
-+};
-+
-+/* f(x) = 5 */
-+static const struct polynomial poly_constant = {
-+	.total_divider = 1,
-+	.terms = {
-+		{0, 5, 1, 1},
-+	}
-+};
-+
-+/* f(x) = 2x^2 + 3x + 5 */
-+static const struct polynomial poly_simple = {
-+	.total_divider = 1,
-+	.terms = {
-+		{2, 2, 1, 1},
-+		{1, 3, 1, 1},
-+		{0, 5, 1, 1},
-+	}
-+};
-+
-+/* f(x) = -5x + 100 */
-+static const struct polynomial poly_negative_coef = {
-+	.total_divider = 1,
-+	.terms = {
-+		{1, -5, 1, 1},
-+		{0, 100, 1, 1},
-+	}
-+};
-+
-+/* f(x) = (150x + 50) / 10 */
-+static const struct polynomial poly_total_divider = {
-+	.total_divider = 10,
-+	.terms = {
-+		{1, 150, 1, 1},
-+		{0,  50, 1, 1},
-+	}
-+};
-+
-+/*
-+ * f(x) = x / 2
-+ * divider=2 applied once per multiply: mult_frac(coef, data, 2) = coef*data/2
-+ */
-+static const struct polynomial poly_step_divider = {
-+	.total_divider = 1,
-+	.terms = {
-+		{1, 1, 2, 1},
-+		{0, 0, 1, 1},
-+	}
-+};
-+
-+/*
-+ * f(x) = (100/500) * x^2 = 0.2 * x^2
-+ * Encoded as coef=100, divider=10, divider_leftover=5:
-+ *   denom = 10^2 * 5 = 500
-+ */
-+static const struct polynomial poly_leftover = {
-+	.total_divider = 1,
-+	.terms = {
-+		{2, 100, 10, 5},
-+		{0,   0,  1, 1},
-+	}
-+};
-+
-+/*
-+ * f(x) = 2x^3  (single high-degree term, no constant)
-+ * Used to exercise the power loop alone.
-+ */
-+static const struct polynomial poly_cubic = {
-+	.total_divider = 1,
-+	.terms = {
-+		{3, 2, 1, 1},
-+		{0, 0, 1, 1},
-+	}
-+};
-+
-+/*
-+ * f(x) = 4x + 1  with a zero-coefficient quadratic term.
-+ * The deg-2 term contributes nothing regardless of input.
-+ */
-+static const struct polynomial poly_zero_coef = {
-+	.total_divider = 1,
-+	.terms = {
-+		{2, 0, 1, 1},
-+		{1, 4, 1, 1},
-+		{0, 1, 1, 1},
-+	}
-+};
-+
-+/*
-+ * f(x) = 9  with total_divider = 0.
-+ * The implementation treats 0 as 1 via `total_divider ?: 1`, so the
-+ * result must equal the constant term unchanged.
-+ */
-+static const struct polynomial poly_zero_total_divider = {
-+	.total_divider = 0,
-+	.terms = {
-+		{0, 9, 1, 1},
-+	}
-+};
-+
-+
-+static const struct polynomial_test_param test_params[] = {
-+	{
-+		.poly     = &poly_constant,
-+		.data     = 0,
-+		.expected = 5,
-+		.name     = "Constant polynomial at x=0",
-+	},
-+	{
-+		.poly     = &poly_constant,
-+		.data     = 42,
-+		.expected = 5,
-+		.name     = "Constant polynomial is independent of input",
-+	},
-+	{
-+		.poly     = &poly_simple,
-+		.data     = 0,
-+		.expected = 5,	/* zero input collapses all power terms */
-+		.name     = "Zero input yields constant term only",
-+	},
-+	{
-+		.poly     = &poly_simple,
-+		.data     = 10,
-+		.expected = 235,	/* 2*100 + 3*10 + 5 */
-+		.name     = "Simple quadratic at x=10",
-+	},
-+	{
-+		.poly     = &poly_negative_coef,
-+		.data     = 10,
-+		.expected = 50,		/* -5*10 + 100 */
-+		.name     = "Negative coefficient at x=10",
-+	},
-+	{
-+		.poly     = &poly_negative_coef,
-+		.data     = 20,
-+		.expected = 0,		/* -5*20 + 100 = 0 */
-+		.name     = "Negative coefficient result is zero",
-+	},
-+	{
-+		.poly     = &poly_total_divider,
-+		.data     = 3,
-+		.expected = 50,		/* (150*3 + 50) / 10 = 500/10 */
-+		.name     = "total_divider scales the final sum",
-+	},
-+	{
-+		.poly     = &poly_step_divider,
-+		.data     = 100,
-+		.expected = 50,		/* 1*100/2 */
-+		.name     = "Per-step divider halves input",
-+	},
-+	{
-+		.poly     = &poly_leftover,
-+		.data     = 30,
-+		.expected = 180,	/* 100*30^2 / (10^2 * 5) = 90000/500 */
-+		.name     = "divider_leftover with quadratic term",
-+	},
-+	/* Boundary: unit and negative-unit input */
-+	{
-+		/*
-+		 * data=1: each mult_frac(tmp, 1, divider) strips one factor of
-+		 * divider from coef per degree, so coef is left-shifted right
-+		 * until intermediate precision is exhausted.
-+		 * 2*1 + 3*1 + 5 = 10
-+		 */
-+		.poly     = &poly_simple,
-+		.data     = 1,
-+		.expected = 10,
-+		.name     = "Boundary: data=1 (unit input)",
-+	},
-+	{
-+		/*
-+		 * data=-1: even degrees produce positive contributions,
-+		 * odd degrees produce negative ones.
-+		 * 2*(-1)^2 + 3*(-1) + 5 = 2 - 3 + 5 = 4
-+		 */
-+		.poly     = &poly_simple,
-+		.data     = -1,
-+		.expected = 4,
-+		.name     = "Boundary: data=-1 (negative unit input)",
-+	},
-+
-+	/* Boundary: negative non-trivial input */
-+	{
-+		/*
-+		 * 2*(-3)^2 + 3*(-3) + 5 = 18 - 9 + 5 = 14
-+		 * Verifies sign handling for negative data across all degrees.
-+		 */
-+		.poly     = &poly_simple,
-+		.data     = -3,
-+		.expected = 14,
-+		.name     = "Boundary: negative data with quadratic",
-+	},
-+
-+	/* Boundary: total_divider = 0 is treated as 1 */
-+	{
-+		.poly     = &poly_zero_total_divider,
-+		.data     = 42,
-+		.expected = 9,
-+		.name     = "Boundary: total_divider=0 defaults to 1",
-+	},
-+
-+	/* Boundary: zero-coefficient high-degree term */
-+	{
-+		/*
-+		 * The deg-2 term has coef=0, so it contributes 0 regardless
-+		 * of data. Result: 0 + 4*10 + 1 = 41
-+		 */
-+		.poly     = &poly_zero_coef,
-+		.data     = 10,
-+		.expected = 41,
-+		.name     = "Boundary: zero-coefficient term is inert",
-+	},
-+
-+	/* Boundary: single high-degree term, no constant */
-+	{
-+		/* 2 * 5^3 = 250; also verifies the loop terminates on deg-0 */
-+		.poly     = &poly_cubic,
-+		.data     = 5,
-+		.expected = 250,
-+		.name     = "Boundary: single cubic term",
-+	},
-+	{
-+		/* 2 * (-2)^3 = -16; odd power preserves sign of negative data */
-+		.poly     = &poly_cubic,
-+		.data     = -2,
-+		.expected = -16,
-+		.name     = "Boundary: single cubic term, negative data",
-+	},
-+
-+};
-+
-+static void get_desc(const struct polynomial_test_param *param, char *desc)
-+{
-+	strscpy(desc, param->name, KUNIT_PARAM_DESC_SIZE);
-+}
-+
-+KUNIT_ARRAY_PARAM(polynomial, test_params, get_desc);
-+
-+static void polynomial_calc_test(struct kunit *test)
-+{
-+	const struct polynomial_test_param *param = test->param_value;
-+
-+	KUNIT_EXPECT_EQ(test, polynomial_calc(param->poly, param->data),
-+			param->expected);
-+}
-+
-+static struct kunit_case polynomial_test_cases[] = {
-+	KUNIT_CASE_PARAM(polynomial_calc_test, polynomial_gen_params),
-+	{}
-+};
-+
-+static struct kunit_suite polynomial_test_suite = {
-+	.name = "math-polynomial",
-+	.test_cases = polynomial_test_cases,
-+};
-+
-+kunit_test_suites(&polynomial_test_suite);
-+
-+MODULE_DESCRIPTION("math.polynomial_calc KUnit test suite");
-+MODULE_LICENSE("GPL");
 _
 
-Patches currently in -mm which might be from adinata.softwareengineer@gmail.com are
+Patches currently in -mm which might be from imran.f.khan@oracle.com are
 
-lib-math-add-kunit-test-suite-for-polynomial_calc.patch
+mm-vmstat-avoid-taking-zone-lock-in-proc-buddyinfo-reads.patch
 
