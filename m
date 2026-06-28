@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F305418AFE;
-	Sun, 28 Jun 2026 06:15:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 23021C2EA
+	for <mm-commits@vger.kernel.org>; Sun, 28 Jun 2026 06:31:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782627335; cv=none; b=EQ6ATKp6/bi+DJgMAEQEPNZatFZhjxJf0QfqnqyheRqr2YuOPm873vkjm1ksuF9qunsPOAYCOXmLVR9qeYLDVfiZn+5Y8mA/irz29UF8TPnVfG97Sm0aG1PC1n48hgGfDmdMrzjpmCWU2CLel4fdeYW8mcpWvBYRR6wpOR3lT3U=
+	t=1782628275; cv=none; b=dk5t6tpkVsmrm5FQQhbO1tMu3pttjKHCvI6G3jWT0IqHLo7nwqnKQSSJACQA5ZfIL3pkj/qNWZSm69I6WWJ23PrM9Cv0p0xXMdqFSt5YmJ5w4gDR0iYGK2uatEvWbfQuWcnDBVD3E/3IgBBKhJKTIs0dkXGnjgHax0VtIyH45Lo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782627335; c=relaxed/simple;
-	bh=AMQhf81BmeFQOMriFin92dawN0IkgkVyV0b85QZfoaw=;
-	h=Date:To:From:Subject:Message-Id; b=fF8CYdZZM02oVtEByMOj4FQY8nAuOlnhcGvbpkgyOfNw+shl8FsTEGePvgvq+3/4Sm5N0hwMDU4UqPEpelUT439xDonZHpJlGFygdfTLcT/gjOHr6YsZwOgdvqC1C7v5zkZcPdS8jBD+vVfPtHeKA62GpWUsOo3h9S7EEV93YQI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lbSANzlm; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1782628275; c=relaxed/simple;
+	bh=5A11Qy28y2AtDmhlu2+9FDEIF+BIwIV2n0jl1QSwxj4=;
+	h=Date:To:From:Subject:Message-Id; b=QujcnT8VBk373yUTFgtDzXNOGidf2rTqEftn/363PJEJpakzVdMLwzLD43gtdG86iY+ehJeK99WQwtd71UGZ/F4yBtoELn4hFkxYtIGl7g7be7BVz6mvVs2xMYgmGEIUesSfgzu68ZRZdl1SjvpaU20MouZ0XZwIfzrFU+hLVmk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oYBO9o3z; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lbSANzlm"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 874861F000E9;
-	Sun, 28 Jun 2026 06:15:33 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oYBO9o3z"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 99A031F000E9;
+	Sun, 28 Jun 2026 06:31:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1782627333;
-	bh=VQkzvU9WG8XMfasuGV9v0QSt3LxwQr47wVWfhh9kTYA=;
+	d=linux-foundation.org; s=korg; t=1782628273;
+	bh=LssrEQOjJYzCx1FnqHnx5+RqbfLOiSt9tt9j9VWmq/c=;
 	h=Date:To:From:Subject;
-	b=lbSANzlmq6XQc/rgKqnBr/5WcyEt0U7Lis1E9gqKBmwDWDxcJ7qfj5fk5TMMKlCel
-	 nny3PTjhnrpJsoZnrz5v2OB0r4Kz9hBush0Wx1FIrd382Y2yqxrqYcBAyuGEkEnuc2
-	 kHuhkTBriT8SdmvvIIt3Go3KjhSIBkp7iLKM4pyk=
-Date: Sat, 27 Jun 2026 23:15:33 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,tj@kernel.org,stable@vger.kernel.org,rakie.kim@sk.com,matthew.brost@intel.com,longman@redhat.com,linux@rasmusvillemoes.dk,joshua.hahnjy@gmail.com,gourry@gourry.net,david@kernel.org,byungchul@sk.com,apopple@nvidia.com,farhad.alemi@berkeley.edu,akpm@linux-foundation.org
+	b=oYBO9o3zKkNhHHzDxlLZS5FQyfinKlKtYxkPaOGLNJt2VybBVvPVeOaQSBkx8fQJF
+	 8HNB8E6BauL/D8EBcDK3J/2YZD28KoTkXVgPyTvLn++53n6Qm802Ylqr+cRdBR48WL
+	 YoPjrviVRWPRSTh0pya1i8FG0filUJ+AxXLsHKMo=
+Date: Sat, 27 Jun 2026 23:31:13 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,yuanchu@google.com,weixugc@google.com,vbabka@kernel.org,tj@kernel.org,surenb@google.com,sj@kernel.org,shikemeng@huaweicloud.com,shakeel.butt@linux.dev,rppt@kernel.org,rientjes@google.com,nphamcs@gmail.com,mkoutny@suse.com,mhocko@suse.com,longman@redhat.com,ljs@kernel.org,liam@infradead.org,kasong@tencent.com,jackmanb@google.com,hannes@cmpxchg.org,david@kernel.org,chrisl@kernel.org,baoquan.he@linux.dev,baohua@kernel.org,axelrasmussen@google.com,gourry@gourry.net,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + cgroup-cpuset-rebind-mm-mempolicy-to-effective_mems-not-mems_allowed.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260628061533.874861F000E9@smtp.kernel.org>
+Subject: + mm-constify-oom_control-scan_control-and-alloc_context-nodemask.patch added to mm-new branch
+Message-Id: <20260628063113.99A031F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,26 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: cgroup/cpuset: rebind mm mempolicy to effective_mems, not mems_allowed
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     cgroup-cpuset-rebind-mm-mempolicy-to-effective_mems-not-mems_allowed.patch
+     Subject: mm: constify oom_control, scan_control, and alloc_context nodemask
+has been added to the -mm mm-new branch.  Its filename is
+     mm-constify-oom_control-scan_control-and-alloc_context-nodemask.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/cgroup-cpuset-rebind-mm-mempolicy-to-effective_mems-not-mems_allowed.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-constify-oom_control-scan_control-and-alloc_context-nodemask.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,69 +69,285 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Farhad Alemi <farhad.alemi@berkeley.edu>
-Subject: cgroup/cpuset: rebind mm mempolicy to effective_mems, not mems_allowed
-Date: Sun, 14 Jun 2026 06:25:55 -0700
+From: Gregory Price <gourry@gourry.net>
+Subject: mm: constify oom_control, scan_control, and alloc_context nodemask
+Date: Mon, 8 Jun 2026 20:29:19 -0400
 
-Creating a child cpuset where cpuset.mems is never set leads to a div/0
-when a VMA mempolicy with MPOL_F_RELATIVE_NODES rebinds in response to a
-CPU hotplug event.
+The nodemasks in these structures may come from a variety of sources,
+including tasks and cpusets - and should never be modified by any code
+when being passed around inside another context.
 
-Reproduction steps:
- 1) Create a cgroup w/ cpuset controls (do not set cpuset.mems)
- 2) Move the task into the child cpuset
- 3) Create a VMA mempolicy for that task with MPOL_F_RELATIVE_NODES
- 4) unplug and hotplug a cpu
-      echo 0 > /sys/devices/system/cpu/cpu1/online
-      echo 1 > /sys/devices/system/cpu/cpu1/online
- 5) mempolicy rebind does a div/0 in mpol_relative_nodemask on the
-    call to __nodes_fold()
-
-The cpuset code passes (cs->mems_allowed) which is not guaranteed to have
-nodes to the rebind routine.  Use cs->effective_mems instead, which is
-guaranteed to have a non-empty nodemask.
-
-Link: https://lore.kernel.org/linux-mm/CA+0ovCgxbZkXa+OU8w3s84R3KNPNxxRfmsNR-udh+afQBbGNmw@mail.gmail.com/
-Link: https://lore.kernel.org/all/CA+0ovCiEz6SP_sn3kN4Tb+_oC=eHMXy_Ffj=usV3wREdQrUtww@mail.gmail.com/
-Link: https://lore.kernel.org/CA+0ovCgfHJHv5d1mzapWWvF-LhjppzDX8NPPLvCPZxPKg8RiYw@mail.gmail.com
-Fixes: ae1c802382f7 ("cpuset: apply cs->effective_{cpus,mems}")
-Signed-off-by: Farhad Alemi <farhad.alemi@berkeley.edu>
-Suggested-by: Gregory Price <gourry@gourry.net>
-Suggested-by: Waiman Long <longman@redhat.com>
-Closes: https://lore.kernel.org/linux-mm/CA+0ovCgxbZkXa+OU8w3s84R3KNPNxxRfmsNR-udh+afQBbGNmw@mail.gmail.com/
-Acked-by: Waiman Long <longman@redhat.com>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Byungchul Park <byungchul@sk.com>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Gregory Price <gourry@gourry.net>
-Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
-Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
-Cc: Matthew Brost <matthew.brost@intel.com>
-Cc: Rakie Kim <rakie.kim@sk.com>
-Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Cc: Zi Yan <ziy@nvidia.com>
+Link: https://lore.kernel.org/20260609002919.3967782-1-gourry@gourry.net
+Signed-off-by: Gregory Price <gourry@gourry.net>
+Reviewed-by: Lorenzo Stoakes <ljs@kernel.org>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Reviewed-by: Barry Song <baohua@kernel.org>
+Acked-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
+Tested-by: SeongJae Park <sj@kernel.org>
+Acked-by: SeongJae Park <sj@kernel.org>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Baoquan He <baoquan.he@linux.dev>
+Cc: Brendan Jackman <jackmanb@google.com>
+Cc: Chris Li <chrisl@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Kairui Song <kasong@tencent.com>
+Cc: Kemeng Shi <shikemeng@huaweicloud.com>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Michal Koutný <mkoutny@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Tejun Heo <tj@kernel.org>
-Cc: <stable@vger.kernel.org>
+Cc: Waiman Long <longman@redhat.com>
+Cc: Wei Xu <weixugc@google.com>
+Cc: Yuanchu Xie <yuanchu@google.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
+ include/linux/cpuset.h |    4 ++--
+ include/linux/mm.h     |    4 ++--
+ include/linux/mmzone.h |    6 +++---
+ include/linux/oom.h    |    2 +-
+ include/linux/swap.h   |    2 +-
  kernel/cgroup/cpuset.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/internal.h          |    2 +-
+ mm/mmzone.c            |    5 +++--
+ mm/page_alloc.c        |    6 +++---
+ mm/show_mem.c          |    9 ++++++---
+ mm/vmscan.c            |    6 +++---
+ 11 files changed, 26 insertions(+), 22 deletions(-)
 
---- a/kernel/cgroup/cpuset.c~cgroup-cpuset-rebind-mm-mempolicy-to-effective_mems-not-mems_allowed
+--- a/include/linux/cpuset.h~mm-constify-oom_control-scan_control-and-alloc_context-nodemask
++++ a/include/linux/cpuset.h
+@@ -83,7 +83,7 @@ extern bool cpuset_cpus_allowed_fallback
+ extern nodemask_t cpuset_mems_allowed(struct task_struct *p);
+ #define cpuset_current_mems_allowed (current->mems_allowed)
+ void cpuset_init_current_mems_allowed(void);
+-int cpuset_nodemask_valid_mems_allowed(nodemask_t *nodemask);
++int cpuset_nodemask_valid_mems_allowed(const nodemask_t *nodemask);
+ 
+ extern bool cpuset_current_node_allowed(int node, gfp_t gfp_mask);
+ 
+@@ -224,7 +224,7 @@ static inline nodemask_t cpuset_mems_all
+ #define cpuset_current_mems_allowed (node_states[N_MEMORY])
+ static inline void cpuset_init_current_mems_allowed(void) {}
+ 
+-static inline int cpuset_nodemask_valid_mems_allowed(nodemask_t *nodemask)
++static inline int cpuset_nodemask_valid_mems_allowed(const nodemask_t *nodemask)
+ {
+ 	return 1;
+ }
+--- a/include/linux/mm.h~mm-constify-oom_control-scan_control-and-alloc_context-nodemask
++++ a/include/linux/mm.h
+@@ -4043,7 +4043,7 @@ extern int __meminit early_pfn_to_nid(un
+ extern void mem_init(void);
+ extern void __init mmap_init(void);
+ 
+-extern void __show_mem(unsigned int flags, nodemask_t *nodemask, int max_zone_idx);
++extern void __show_mem(unsigned int flags, const nodemask_t *nodemask, int max_zone_idx);
+ static inline void show_mem(void)
+ {
+ 	__show_mem(0, NULL, MAX_NR_ZONES - 1);
+@@ -4053,7 +4053,7 @@ extern void si_meminfo(struct sysinfo *
+ extern void si_meminfo_node(struct sysinfo *val, int nid);
+ 
+ extern __printf(3, 4)
+-void warn_alloc(gfp_t gfp_mask, nodemask_t *nodemask, const char *fmt, ...);
++void warn_alloc(gfp_t gfp_mask, const nodemask_t *nodemask, const char *fmt, ...);
+ 
+ extern void setup_per_cpu_pageset(void);
+ 
+--- a/include/linux/mmzone.h~mm-constify-oom_control-scan_control-and-alloc_context-nodemask
++++ a/include/linux/mmzone.h
+@@ -1815,7 +1815,7 @@ static inline int zonelist_node_idx(cons
+ 
+ struct zoneref *__next_zones_zonelist(struct zoneref *z,
+ 					enum zone_type highest_zoneidx,
+-					nodemask_t *nodes);
++					const nodemask_t *nodes);
+ 
+ /**
+  * next_zones_zonelist - Returns the next zone at or below highest_zoneidx within the allowed nodemask using a cursor within a zonelist as a starting point
+@@ -1834,7 +1834,7 @@ struct zoneref *__next_zones_zonelist(st
+  */
+ static __always_inline struct zoneref *next_zones_zonelist(struct zoneref *z,
+ 					enum zone_type highest_zoneidx,
+-					nodemask_t *nodes)
++					const nodemask_t *nodes)
+ {
+ 	if (likely(!nodes && zonelist_zone_idx(z) <= highest_zoneidx))
+ 		return z;
+@@ -1860,7 +1860,7 @@ static __always_inline struct zoneref *n
+  */
+ static inline struct zoneref *first_zones_zonelist(struct zonelist *zonelist,
+ 					enum zone_type highest_zoneidx,
+-					nodemask_t *nodes)
++					const nodemask_t *nodes)
+ {
+ 	return next_zones_zonelist(zonelist->_zonerefs,
+ 							highest_zoneidx, nodes);
+--- a/include/linux/oom.h~mm-constify-oom_control-scan_control-and-alloc_context-nodemask
++++ a/include/linux/oom.h
+@@ -30,7 +30,7 @@ struct oom_control {
+ 	struct zonelist *zonelist;
+ 
+ 	/* Used to determine mempolicy */
+-	nodemask_t *nodemask;
++	const nodemask_t *nodemask;
+ 
+ 	/* Memory cgroup in which oom is invoked, or NULL for global oom */
+ 	struct mem_cgroup *memcg;
+--- a/include/linux/swap.h~mm-constify-oom_control-scan_control-and-alloc_context-nodemask
++++ a/include/linux/swap.h
+@@ -345,7 +345,7 @@ extern void swap_setup(void);
+ /* linux/mm/vmscan.c */
+ extern unsigned long zone_reclaimable_pages(struct zone *zone);
+ extern unsigned long try_to_free_pages(struct zonelist *zonelist, int order,
+-					gfp_t gfp_mask, nodemask_t *mask);
++					gfp_t gfp_mask, const nodemask_t *mask);
+ unsigned long lruvec_lru_size(struct lruvec *lruvec, enum lru_list lru, int zone_idx);
+ 
+ #define MEMCG_RECLAIM_MAY_SWAP (1 << 1)
+--- a/kernel/cgroup/cpuset.c~mm-constify-oom_control-scan_control-and-alloc_context-nodemask
 +++ a/kernel/cgroup/cpuset.c
-@@ -2653,7 +2653,7 @@ void cpuset_update_tasks_nodemask(struct
+@@ -4157,7 +4157,7 @@ nodemask_t cpuset_mems_allowed(struct ta
+  *
+  * Are any of the nodes in the nodemask allowed in current->mems_allowed?
+  */
+-int cpuset_nodemask_valid_mems_allowed(nodemask_t *nodemask)
++int cpuset_nodemask_valid_mems_allowed(const nodemask_t *nodemask)
+ {
+ 	return nodes_intersects(*nodemask, current->mems_allowed);
+ }
+--- a/mm/internal.h~mm-constify-oom_control-scan_control-and-alloc_context-nodemask
++++ a/mm/internal.h
+@@ -675,7 +675,7 @@ void page_alloc_sysctl_init(void);
+  */
+ struct alloc_context {
+ 	struct zonelist *zonelist;
+-	nodemask_t *nodemask;
++	const nodemask_t *nodemask;
+ 	struct zoneref *preferred_zoneref;
+ 	int migratetype;
  
- 		migrate = is_memory_migrate(cs);
+--- a/mm/mmzone.c~mm-constify-oom_control-scan_control-and-alloc_context-nodemask
++++ a/mm/mmzone.c
+@@ -43,7 +43,8 @@ struct zone *next_zone(struct zone *zone
+ 	return zone;
+ }
  
--		mpol_rebind_mm(mm, &cs->mems_allowed);
-+		mpol_rebind_mm(mm, &cs->effective_mems);
- 		if (migrate)
- 			cpuset_migrate_mm(mm, &cs->old_mems_allowed, &newmems);
- 		else
+-static inline int zref_in_nodemask(struct zoneref *zref, nodemask_t *nodes)
++static inline int zref_in_nodemask(struct zoneref *zref,
++				   const nodemask_t *nodes)
+ {
+ #ifdef CONFIG_NUMA
+ 	return node_isset(zonelist_node_idx(zref), *nodes);
+@@ -55,7 +56,7 @@ static inline int zref_in_nodemask(struc
+ /* Returns the next zone at or below highest_zoneidx in a zonelist */
+ struct zoneref *__next_zones_zonelist(struct zoneref *z,
+ 					enum zone_type highest_zoneidx,
+-					nodemask_t *nodes)
++					const nodemask_t *nodes)
+ {
+ 	/*
+ 	 * Find the next suitable zone to use for the allocation.
+--- a/mm/page_alloc.c~mm-constify-oom_control-scan_control-and-alloc_context-nodemask
++++ a/mm/page_alloc.c
+@@ -3979,7 +3979,7 @@ try_this_zone:
+ 	return NULL;
+ }
+ 
+-static void warn_alloc_show_mem(gfp_t gfp_mask, nodemask_t *nodemask)
++static void warn_alloc_show_mem(gfp_t gfp_mask, const nodemask_t *nodemask)
+ {
+ 	unsigned int filter = SHOW_MEM_FILTER_NODES;
+ 
+@@ -3999,7 +3999,7 @@ static void warn_alloc_show_mem(gfp_t gf
+ 	mem_cgroup_show_protected_memory(NULL);
+ }
+ 
+-void warn_alloc(gfp_t gfp_mask, nodemask_t *nodemask, const char *fmt, ...)
++void warn_alloc(gfp_t gfp_mask, const nodemask_t *nodemask, const char *fmt, ...)
+ {
+ 	struct va_format vaf;
+ 	va_list args;
+@@ -4695,7 +4695,7 @@ check_retry_cpuset(int cpuset_mems_cooki
+ 	return false;
+ }
+ 
+-static void check_alloc_stall_warn(gfp_t gfp_mask, nodemask_t *nodemask,
++static void check_alloc_stall_warn(gfp_t gfp_mask, const nodemask_t *nodemask,
+ 				unsigned int order, unsigned long alloc_start_time)
+ {
+ 	static DEFINE_SPINLOCK(alloc_stall_lock);
+--- a/mm/show_mem.c~mm-constify-oom_control-scan_control-and-alloc_context-nodemask
++++ a/mm/show_mem.c
+@@ -116,7 +116,8 @@ void si_meminfo_node(struct sysinfo *val
+  * Determine whether the node should be displayed or not, depending on whether
+  * SHOW_MEM_FILTER_NODES was passed to show_free_areas().
+  */
+-static bool show_mem_node_skip(unsigned int flags, int nid, nodemask_t *nodemask)
++static bool show_mem_node_skip(unsigned int flags, int nid,
++			       const nodemask_t *nodemask)
+ {
+ 	if (!(flags & SHOW_MEM_FILTER_NODES))
+ 		return false;
+@@ -177,7 +178,8 @@ static bool node_has_managed_zones(pg_da
+  * SHOW_MEM_FILTER_NODES: suppress nodes that are not allowed by current's
+  *   cpuset.
+  */
+-static void show_free_areas(unsigned int filter, nodemask_t *nodemask, int max_zone_idx)
++static void show_free_areas(unsigned int filter, const nodemask_t *nodemask,
++			    int max_zone_idx)
+ {
+ 	unsigned long free_pcp = 0;
+ 	int cpu, nid;
+@@ -402,7 +404,8 @@ static void show_free_areas(unsigned int
+ 	show_swap_cache_info();
+ }
+ 
+-void __show_mem(unsigned int filter, nodemask_t *nodemask, int max_zone_idx)
++void __show_mem(unsigned int filter, const nodemask_t *nodemask,
++		int max_zone_idx)
+ {
+ 	unsigned long total = 0, reserved = 0, highmem = 0;
+ 	struct zone *zone;
+--- a/mm/vmscan.c~mm-constify-oom_control-scan_control-and-alloc_context-nodemask
++++ a/mm/vmscan.c
+@@ -79,7 +79,7 @@ struct scan_control {
+ 	 * Nodemask of nodes allowed by the caller. If NULL, all nodes
+ 	 * are scanned.
+ 	 */
+-	nodemask_t	*nodemask;
++	const nodemask_t *nodemask;
+ 
+ 	/*
+ 	 * The memory cgroup that hit its limit and as a result is the
+@@ -6594,7 +6594,7 @@ static bool allow_direct_reclaim(pg_data
+  * happens, the page allocator should not consider triggering the OOM killer.
+  */
+ static bool throttle_direct_reclaim(gfp_t gfp_mask, struct zonelist *zonelist,
+-					nodemask_t *nodemask)
++				    const nodemask_t *nodemask)
+ {
+ 	struct zoneref *z;
+ 	struct zone *zone;
+@@ -6674,7 +6674,7 @@ out:
+ }
+ 
+ unsigned long try_to_free_pages(struct zonelist *zonelist, int order,
+-				gfp_t gfp_mask, nodemask_t *nodemask)
++				gfp_t gfp_mask, const nodemask_t *nodemask)
+ {
+ 	unsigned long nr_reclaimed;
+ 	struct scan_control sc = {
 _
 
-Patches currently in -mm which might be from farhad.alemi@berkeley.edu are
+Patches currently in -mm which might be from gourry@gourry.net are
 
-cgroup-cpuset-rebind-mm-mempolicy-to-effective_mems-not-mems_allowed.patch
+mm-constify-oom_control-scan_control-and-alloc_context-nodemask.patch
 
