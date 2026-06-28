@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F06C63101A7
-	for <mm-commits@vger.kernel.org>; Sun, 28 Jun 2026 05:41:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F305418AFE;
+	Sun, 28 Jun 2026 06:15:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782625275; cv=none; b=uQrEDaVto9arxzznv2kAt8o3rkCdNWCJEsJcAFqhyHs5ojtnQFGZx1+kZCa3ybiHU/SjumU5J9M1v6axFD3EwGP58Bgs0aYvsDmAvJg0H+cihfFXE3fb+I2TQSragAaJSvakzScrYhcfNhtrFz9WNhFKv9/eaLok67EJb3flH34=
+	t=1782627335; cv=none; b=EQ6ATKp6/bi+DJgMAEQEPNZatFZhjxJf0QfqnqyheRqr2YuOPm873vkjm1ksuF9qunsPOAYCOXmLVR9qeYLDVfiZn+5Y8mA/irz29UF8TPnVfG97Sm0aG1PC1n48hgGfDmdMrzjpmCWU2CLel4fdeYW8mcpWvBYRR6wpOR3lT3U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782625275; c=relaxed/simple;
-	bh=DLN3H80cHS+g2GvY/KvcT03nH2nTlc0RhmXKNuTi7oE=;
-	h=Date:To:From:Subject:Message-Id; b=XaDBJKC7Lyto/W4zCiToZhi9u0rEfG/khX/AddY4XdwG8/yXOVno5tQj8wqeF9XbJxxd2+GP68AwNu6fWWZyhFDn9kl/PZBhKA2oS1J11BcvX5kbqYSn9oEcEDcrPYqxuj7CTr+BCgFPgVsZpMyNVpM6MgVtyskqYbAehUde/8w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EiFV9D0g; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1782627335; c=relaxed/simple;
+	bh=AMQhf81BmeFQOMriFin92dawN0IkgkVyV0b85QZfoaw=;
+	h=Date:To:From:Subject:Message-Id; b=fF8CYdZZM02oVtEByMOj4FQY8nAuOlnhcGvbpkgyOfNw+shl8FsTEGePvgvq+3/4Sm5N0hwMDU4UqPEpelUT439xDonZHpJlGFygdfTLcT/gjOHr6YsZwOgdvqC1C7v5zkZcPdS8jBD+vVfPtHeKA62GpWUsOo3h9S7EEV93YQI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lbSANzlm; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EiFV9D0g"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 66E1E1F000E9;
-	Sun, 28 Jun 2026 05:41:13 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lbSANzlm"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 874861F000E9;
+	Sun, 28 Jun 2026 06:15:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1782625273;
-	bh=GMI7ZY4Gq+PcKd8qk84s1MToDUaGtvydgZCOBuEgz/s=;
+	d=linux-foundation.org; s=korg; t=1782627333;
+	bh=VQkzvU9WG8XMfasuGV9v0QSt3LxwQr47wVWfhh9kTYA=;
 	h=Date:To:From:Subject;
-	b=EiFV9D0g+25rTw0XCr5D5rkMv6jj8dbjn0kXBVEe+l03R/M6P6SOn8TBojosn0GqA
-	 ko4xYUDHWqqujZlZjyqqZ1Go8clhxKOvMdAolfTuLkntnRH0j1DhEaTnXntyEhWzUD
-	 6naAaRajOCtmXfUS4dB5++RgjkFnuqBL99AClTO8=
-Date: Sat, 27 Jun 2026 22:41:12 -0700
-To: mm-commits@vger.kernel.org,shikemeng@huaweicloud.com,nphamcs@gmail.com,kasong@tencent.com,david@kernel.org,chrisl@kernel.org,baoquan.he@linux.dev,baohua@kernel.org,ritesh.list@gmail.com,akpm@linux-foundation.org
+	b=lbSANzlmq6XQc/rgKqnBr/5WcyEt0U7Lis1E9gqKBmwDWDxcJ7qfj5fk5TMMKlCel
+	 nny3PTjhnrpJsoZnrz5v2OB0r4Kz9hBush0Wx1FIrd382Y2yqxrqYcBAyuGEkEnuc2
+	 kHuhkTBriT8SdmvvIIt3Go3KjhSIBkp7iLKM4pyk=
+Date: Sat, 27 Jun 2026 23:15:33 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,tj@kernel.org,stable@vger.kernel.org,rakie.kim@sk.com,matthew.brost@intel.com,longman@redhat.com,linux@rasmusvillemoes.dk,joshua.hahnjy@gmail.com,gourry@gourry.net,david@kernel.org,byungchul@sk.com,apopple@nvidia.com,farhad.alemi@berkeley.edu,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + include-linux-swaph-remove-unused-leftovers.patch added to mm-new branch
-Message-Id: <20260628054113.66E1E1F000E9@smtp.kernel.org>
+Subject: + cgroup-cpuset-rebind-mm-mempolicy-to-effective_mems-not-mems_allowed.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260628061533.874861F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,26 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: include/linux/swap.h: remove unused leftovers
-has been added to the -mm mm-new branch.  Its filename is
-     include-linux-swaph-remove-unused-leftovers.patch
+     Subject: cgroup/cpuset: rebind mm mempolicy to effective_mems, not mems_allowed
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     cgroup-cpuset-rebind-mm-mempolicy-to-effective_mems-not-mems_allowed.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/include-linux-swaph-remove-unused-leftovers.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/cgroup-cpuset-rebind-mm-mempolicy-to-effective_mems-not-mems_allowed.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,71 +58,69 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: "Ritesh Harjani (IBM)" <ritesh.list@gmail.com>
-Subject: include/linux/swap.h: remove unused leftovers
-Date: Thu, 11 Jun 2026 08:39:32 +0530
+From: Farhad Alemi <farhad.alemi@berkeley.edu>
+Subject: cgroup/cpuset: rebind mm mempolicy to effective_mems, not mems_allowed
+Date: Sun, 14 Jun 2026 06:25:55 -0700
 
-This removed unused leftovers, most of them are forward structure
-declarations.  Also removes SWAP_BATCH macro which isn't used any where in
-the code.
+Creating a child cpuset where cpuset.mems is never set leads to a div/0
+when a VMA mempolicy with MPOL_F_RELATIVE_NODES rebinds in response to a
+CPU hotplug event.
 
-Found these during manual code review.
+Reproduction steps:
+ 1) Create a cgroup w/ cpuset controls (do not set cpuset.mems)
+ 2) Move the task into the child cpuset
+ 3) Create a VMA mempolicy for that task with MPOL_F_RELATIVE_NODES
+ 4) unplug and hotplug a cpu
+      echo 0 > /sys/devices/system/cpu/cpu1/online
+      echo 1 > /sys/devices/system/cpu/cpu1/online
+ 5) mempolicy rebind does a div/0 in mpol_relative_nodemask on the
+    call to __nodes_fold()
 
-Link: https://lore.kernel.org/68591daf0d679e5a0072d63751f187d14613e2b0.1781146877.git.ritesh.list@gmail.com
-Signed-off-by: Ritesh Harjani (IBM) <ritesh.list@gmail.com>
-Reviewed-by: Barry Song <baohua@kernel.org>
-Acked-by: Chris Li <chrisl@kernel.org>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Cc: Baoquan He <baoquan.he@linux.dev>
-Cc: Kairui Song <kasong@tencent.com>
-Cc: Kemeng Shi <shikemeng@huaweicloud.com>
-Cc: Nhat Pham <nphamcs@gmail.com>
+The cpuset code passes (cs->mems_allowed) which is not guaranteed to have
+nodes to the rebind routine.  Use cs->effective_mems instead, which is
+guaranteed to have a non-empty nodemask.
+
+Link: https://lore.kernel.org/linux-mm/CA+0ovCgxbZkXa+OU8w3s84R3KNPNxxRfmsNR-udh+afQBbGNmw@mail.gmail.com/
+Link: https://lore.kernel.org/all/CA+0ovCiEz6SP_sn3kN4Tb+_oC=eHMXy_Ffj=usV3wREdQrUtww@mail.gmail.com/
+Link: https://lore.kernel.org/CA+0ovCgfHJHv5d1mzapWWvF-LhjppzDX8NPPLvCPZxPKg8RiYw@mail.gmail.com
+Fixes: ae1c802382f7 ("cpuset: apply cs->effective_{cpus,mems}")
+Signed-off-by: Farhad Alemi <farhad.alemi@berkeley.edu>
+Suggested-by: Gregory Price <gourry@gourry.net>
+Suggested-by: Waiman Long <longman@redhat.com>
+Closes: https://lore.kernel.org/linux-mm/CA+0ovCgxbZkXa+OU8w3s84R3KNPNxxRfmsNR-udh+afQBbGNmw@mail.gmail.com/
+Acked-by: Waiman Long <longman@redhat.com>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Byungchul Park <byungchul@sk.com>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Gregory Price <gourry@gourry.net>
+Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
+Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
+Cc: Matthew Brost <matthew.brost@intel.com>
+Cc: Rakie Kim <rakie.kim@sk.com>
+Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Cc: Zi Yan <ziy@nvidia.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |    7 -------
- 1 file changed, 7 deletions(-)
+ kernel/cgroup/cpuset.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/swap.h~include-linux-swaph-remove-unused-leftovers
-+++ a/include/linux/swap.h
-@@ -16,10 +16,6 @@
- #include <uapi/linux/mempolicy.h>
- #include <asm/page.h>
+--- a/kernel/cgroup/cpuset.c~cgroup-cpuset-rebind-mm-mempolicy-to-effective_mems-not-mems_allowed
++++ a/kernel/cgroup/cpuset.c
+@@ -2653,7 +2653,7 @@ void cpuset_update_tasks_nodemask(struct
  
--struct notifier_block;
--
--struct bio;
--
- #define SWAP_FLAG_PREFER	0x8000	/* set if swap priority specified */
- #define SWAP_FLAG_PRIO_MASK	0x7fff
- #define SWAP_FLAG_DISCARD	0x10000 /* enable discard for swap */
-@@ -29,7 +25,6 @@ struct bio;
- #define SWAP_FLAGS_VALID	(SWAP_FLAG_PRIO_MASK | SWAP_FLAG_PREFER | \
- 				 SWAP_FLAG_DISCARD | SWAP_FLAG_DISCARD_ONCE | \
- 				 SWAP_FLAG_DISCARD_PAGES)
--#define SWAP_BATCH 64
+ 		migrate = is_memory_migrate(cs);
  
- static inline int current_is_kswapd(void)
- {
-@@ -175,7 +170,6 @@ static inline void mm_account_reclaimed_
- 
- struct address_space;
- struct sysinfo;
--struct writeback_control;
- struct zone;
- 
- /*
-@@ -442,7 +436,6 @@ extern sector_t swapdev_block(int, pgoff
- extern int __swap_count(swp_entry_t entry);
- extern bool swap_entry_swapped(struct swap_info_struct *si, swp_entry_t entry);
- extern int swp_swapcount(swp_entry_t entry);
--struct backing_dev_info;
- extern struct swap_info_struct *get_swap_device(swp_entry_t entry);
- sector_t swap_folio_sector(struct folio *folio);
- 
+-		mpol_rebind_mm(mm, &cs->mems_allowed);
++		mpol_rebind_mm(mm, &cs->effective_mems);
+ 		if (migrate)
+ 			cpuset_migrate_mm(mm, &cs->old_mems_allowed, &newmems);
+ 		else
 _
 
-Patches currently in -mm which might be from ritesh.list@gmail.com are
+Patches currently in -mm which might be from farhad.alemi@berkeley.edu are
 
-include-linux-swaph-remove-unused-leftovers.patch
+cgroup-cpuset-rebind-mm-mempolicy-to-effective_mems-not-mems_allowed.patch
 
