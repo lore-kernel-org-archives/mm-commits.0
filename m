@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0DA8D40D569
-	for <mm-commits@vger.kernel.org>; Sun, 28 Jun 2026 01:44:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6961017BA6
+	for <mm-commits@vger.kernel.org>; Sun, 28 Jun 2026 01:46:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782611085; cv=none; b=tUzdOY7/dw8j/eKJNSoKFKzlDKToqRsjhBFzYxdxGkjno6Gj7pEP9AxCfCYEkFVA/g/ZD/QHnIg9Tlu0xcsygYZdJ3Ndi57DKzdIPVP1Rv6+l8MdMoh7JEcOycmBsZjFsldGFh7kumYf/Jk+BzJvlPw2Ww1yy8F9wF6e/4QOA+A=
+	t=1782611169; cv=none; b=T0GapsFN+ffD0Y5dSC5FbDfLsqHS5R98lS5NTq0eYSWnsGhJ9IcmfCLebiku7iLStUHYoShmEFiN3YUfWTUPQB3tg/1VvJSTtrGWc5gjZva0hGLo7+61dvbKPWmvFmkIux1FrEdjsHy10dP3rIAe7RJqPHSwcoVLzgJ8u0TEsOU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782611085; c=relaxed/simple;
-	bh=40yyS44KPZLYPZTCQyP3eZ8bZPgs9vB1COfdxS5LXsQ=;
-	h=Date:To:From:Subject:Message-Id; b=gJRr6cl1ye2PsDFaPurO+5MRbASVKtzCJH+54aHsS+CGNjRR1faGn/1Op0Mw9xd9OlBjCRX7PYWhFJJLn9x1d7Tyye7jT6x2RcoffRXf+GbQwtq1kdJ8uyijt5UKqagRnRD6xPdBbBNIHw5ww3nLNqajm1LP+ceRDJn5rm8VO+s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0oGcCl9Q; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1782611169; c=relaxed/simple;
+	bh=2iXpWJLV52KvmZzmTCyhGb2QY2jFkHia6V5QYS0lbx8=;
+	h=Date:To:From:Subject:Message-Id; b=Xoup19r1Z0xfEPPjY3re73BxQ9zJkfmP5tbwcvnL/sr/XKmObXrk5T3ca32n76sGHmPFx8ytXY3RBBsUnup9cFKIgD1gJ3xcT6MYqr03LIx0gEx9h7yfx4Cd1DZeHZuOHD0daa4q0sh+gWc+faRORZh0yd8y8rnqISO8A2yKJ4I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yXjrM/ng; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0oGcCl9Q"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 857451F000E9;
-	Sun, 28 Jun 2026 01:44:43 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yXjrM/ng"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EF5871F000E9;
+	Sun, 28 Jun 2026 01:46:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1782611083;
-	bh=CkHTNtzNlBHs/bAH2AYWhb2ig7mmaThDyrVAvf4UblI=;
+	d=linux-foundation.org; s=korg; t=1782611168;
+	bh=luB/kH272on34DxfIa2nQ2nRFRGkDlNIRgWquJn5JWs=;
 	h=Date:To:From:Subject;
-	b=0oGcCl9QZcSCKnKZPkfVn76w6S+peK5oMKrxqQGMQsmJaX2+lHmhmQzw61lkqMcz3
-	 +mS9WsLCKIG9QoH2NIGCFZOOmRS76tGosCggzHYxavNzwSDEZf0Rufei7wra5LDj5M
-	 i33m0NMg76v2VoMUbbB0a1dBeM1GLLgBTlgvFuME=
-Date: Sat, 27 Jun 2026 18:44:43 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,rdunlap@infradead.org,akpm@linux-foundation.org
+	b=yXjrM/ngcMKLEJDyfvmktJr6rG53WVxspisPAZxdQahFKJAYpoPwPNEK15mXIn7YF
+	 n+VmM43KuPNKS2vHK6kWZgWEaZ+BFSAsavRn46uQT93DWyMlC3edO7gX1N6rwPJH97
+	 74C4qd34ku3MQgldRUa3hfphQRLp44ZY9muIQU68=
+Date: Sat, 27 Jun 2026 18:46:07 -0700
+To: mm-commits@vger.kernel.org,rdunlap@infradead.org,manuelebner@mailbox.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + radix-tree-add-correct-some-kernel-doc.patch added to mm-new branch
-Message-Id: <20260628014443.857451F000E9@smtp.kernel.org>
+Subject: + docs-mm-fix-brackets.patch added to mm-new branch
+Message-Id: <20260628014607.EF5871F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: radix-tree: add/correct some kernel-doc
+     Subject: docs/mm: fix brackets
 has been added to the -mm mm-new branch.  Its filename is
-     radix-tree-add-correct-some-kernel-doc.patch
+     docs-mm-fix-brackets.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/radix-tree-add-correct-some-kernel-doc.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-mm-fix-brackets.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,67 +69,56 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: radix-tree: add/correct some kernel-doc
-Date: Sat, 27 Jun 2026 11:58:58 -0700
+From: Manuel Ebner <manuelebner@mailbox.org>
+Subject: docs/mm: fix brackets
+Date: Sat, 27 Jun 2026 11:32:59 +0200
 
-Correct some kernel-doc issues in radix-tree.h:
-- use "DOC:" so that a kernel-doc comment is parsed correctly
-  (or we could just use "/*" for that comment)
-- add one function parameter description
-- add one function parameter name inside the prototype
+Remove unnecessary ')' and missing '('.
 
-to fix these warnings:
-
-Warning: include/linux/radix-tree.h:164 Incorrect use of kernel-doc format:
- * radix_tree_deref_slot - dereference a slot
-Warning: include/linux/radix-tree.h:177 cannot understand function
- prototype: '* @slot: slot pointer, returned by radix_tree_lookup_slot
-Warning: include/linux/radix-tree.h:192 function parameter 'treelock'
- not described in 'radix_tree_deref_slot_protected'
-Warning: include/linux/radix-tree.h:309 function parameter '' not
- described in 'radix_tree_next_chunk'
-
-Link: https://lore.kernel.org/20260627185859.1632928-1-rdunlap@infradead.org
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Link: https://lore.kernel.org/20260627093258.31265-2-manuelebner@mailbox.org
+Signed-off-by: Manuel Ebner <manuelebner@mailbox.org>
+Acked-by: Randy Dunlap <rdunlap@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/radix-tree.h |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ Documentation/mm/hmm.rst           |    4 ++--
+ Documentation/mm/process_addrs.rst |    2 +-
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
---- a/include/linux/radix-tree.h~radix-tree-add-correct-some-kernel-doc
-+++ a/include/linux/radix-tree.h
-@@ -111,7 +111,7 @@ struct radix_tree_iter {
- };
+--- a/Documentation/mm/hmm.rst~docs-mm-fix-brackets
++++ a/Documentation/mm/hmm.rst
+@@ -191,7 +191,7 @@ like a CPU page fault. The usage pattern
+       mmap_read_unlock(mm);
  
- /**
-- * Radix-tree synchronization
-+ * DOC: Radix-tree synchronization
-  *
-  * The radix-tree API requires that users provide all synchronisation (with
-  * specific exceptions, noted below).
-@@ -182,6 +182,7 @@ static inline void *radix_tree_deref_slo
- /**
-  * radix_tree_deref_slot_protected - dereference a slot with tree lock held
-  * @slot: slot pointer, returned by radix_tree_lookup_slot
-+ * @treelock: caller must hold this spinlock
-  *
-  * Similar to radix_tree_deref_slot.  The caller does not hold the RCU read
-  * lock but it must hold the tree lock to prevent parallel updates.
-@@ -306,7 +307,7 @@ radix_tree_iter_init(struct radix_tree_i
-  * Also it fills @iter with data about chunk: position in the tree (index),
-  * its end (next_index), and constructs a bit mask for tagged iterating (tags).
-  */
--void __rcu **radix_tree_next_chunk(const struct radix_tree_root *,
-+void __rcu **radix_tree_next_chunk(const struct radix_tree_root *root,
- 			     struct radix_tree_iter *iter, unsigned flags);
+       take_lock(driver->update);
+-      if (mmu_interval_read_retry(&ni, range.notifier_seq) {
++      if (mmu_interval_read_retry(&ni, range.notifier_seq)) {
+           release_lock(driver->update);
+           goto again;
+       }
+@@ -316,7 +316,7 @@ between device driver specific code and
+    system memory and device private memory.
  
- /**
+    One of the first steps migrate_vma_setup() does is to invalidate other
+-   device's MMUs with the ``mmu_notifier_invalidate_range_start(()`` and
++   device's MMUs with the ``mmu_notifier_invalidate_range_start()`` and
+    ``mmu_notifier_invalidate_range_end()`` calls around the page table
+    walks to fill in the ``args->src`` array with PFNs to be migrated.
+    The ``invalidate_range_start()`` callback is passed a
+--- a/Documentation/mm/process_addrs.rst~docs-mm-fix-brackets
++++ a/Documentation/mm/process_addrs.rst
+@@ -724,7 +724,7 @@ the zap and the invocation of :c:func:`!
+ 
+ Since it is assumed that all such steps have been taken, page table entries are
+ cleared without page table locks (in the :c:func:`!pgd_clear`, :c:func:`!p4d_clear`,
+-:c:func:`!pud_clear`, and :c:func:`!pmd_clear` functions.
++:c:func:`!pud_clear`, and :c:func:`!pmd_clear` functions).
+ 
+ .. note:: It is possible for leaf page tables to be torn down independent of
+           the page tables above it as is done by
 _
 
-Patches currently in -mm which might be from rdunlap@infradead.org are
+Patches currently in -mm which might be from manuelebner@mailbox.org are
 
-radix-tree-add-correct-some-kernel-doc.patch
+docs-mm-fix-brackets.patch
 
