@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B564149620;
-	Sun, 28 Jun 2026 04:48:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 440C72110E
+	for <mm-commits@vger.kernel.org>; Sun, 28 Jun 2026 04:52:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782622103; cv=none; b=bnreiePS0GlawLaOyLpzliLOPs1BxpXuSgr2seGfZE0SQaBd9ZVTxKWhTKDSGcJR0MJ7T3HLR0Qx40bvRpuccKkTw1mPwowWCx4rOPSCg3G8Fnjc+AvxH3p4hz4EdEnf5L+qtPHMY33IGYUm+pNVyATb781zVZvjIoaLHPW6Dko=
+	t=1782622322; cv=none; b=PFSd6mRMnZ8/NHz0sjRvy+3AI5ywFDTcAqFlqZPXEE2Sdi1wQ2UvM062890WcdYtSkaMpwzVnN9txYhwntd2mhZ3DFCaWRsVh8Nz0sABxXK8iXwPZhviQPMTnXl9+/YHIwyHohqBLBo6VHaMUl+DQ7DE3p/kvmTwSSOU8HS3GKg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782622103; c=relaxed/simple;
-	bh=h3tFK2sbs61DxXpCwpvURsRrQOyh+mHidU0sV4EWToA=;
-	h=Date:To:From:Subject:Message-Id; b=T5SJ6Pa6nky/yaacJyTbg+DLoIuOvy2putDw12RreNPzozCh/pyLGQeCVNo69F3IEuji+MJQOln7kVOt+4jBuNZnwADFqhGFOuYNnWNFaejIBnowOcJRBxtCrRqocpuHi9EA3E+1PBToyFCt3larw8pTxsfyqr16qUSwqtwEynE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uwrcRDFA; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1782622322; c=relaxed/simple;
+	bh=wOVkhIFnbONP5k7E2PBaKJso4MutSiHzQETnl/6x4aE=;
+	h=Date:To:From:Subject:Message-Id; b=lIWC7uUZb0+dPxJoop+6aJqnktxCtj49QtXXHPWOUauwgu1e22oGb1/I53oV87HS+HWyw7cvdybaCLtFdQFHHfULQRfzHtif3arItSdScgqpGbTe4fHhHwjjxatB7uj6nEm8oZZWoKqQ8hvilYvwgdW3zu/vlcMPLVLMD16pyiU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YAb+NIZ9; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uwrcRDFA"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 282601F000E9;
-	Sun, 28 Jun 2026 04:48:22 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YAb+NIZ9"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0644F1F000E9;
+	Sun, 28 Jun 2026 04:52:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1782622102;
-	bh=b0oA15E2s8/df0k7f0vCFdyXzUu287GovqPnGOvfPew=;
+	d=linux-foundation.org; s=korg; t=1782622321;
+	bh=GeCQVD86y+ZRPihyUhHm8dbN0iIi5W/dJtlDoOxFNp4=;
 	h=Date:To:From:Subject;
-	b=uwrcRDFAvRgl5oQwfHMNVIx1vjEYeTGiK9egtbM5/NvEJtr1GwT8MLetK3ZFkDgpv
-	 uo6DdAXWLBheCILlKMx9y/qSABYh9Ho4xJPRGXMasTxN/Q0r3FWK43T/GBS6i21/Fu
-	 /MyEtBiawPIHhAvFO2jMkq2ZN18Cjc1+Ff2wEXoo=
-Date: Sat, 27 Jun 2026 21:48:21 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,xu.xin16@zte.com.cn,willy@infradead.org,wangkefeng.wang@huawei.com,svetly.todorov@memverge.com,sunnanyong@huawei.com,stable@vger.kernel.org,luizcap@redhat.com,linmiaohe@huawei.com,david@kernel.org,chengming.zhou@linux.dev,tujinjiang@huawei.com,akpm@linux-foundation.org
+	b=YAb+NIZ9yDcLHuJ+dV+7mAmUlzzhpUixW/5YqR/t5+sfCdhuGb12OsbOZ93i4hD0m
+	 UGr1vu8IqKHVDwaY3ULxeZgY30vIpvGVW6nhvMYDkAlZCwpdq4G+UD0q1xTaHgGx3S
+	 osfYyjOjcLzZT9mgTHD7Ol8vvzwAARVOBDjEgmZM=
+Date: Sat, 27 Jun 2026 21:52:00 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,sj@kernel.org,rppt@kernel.org,ljs@kernel.org,liam@infradead.org,kent.overstreet@linux.dev,jackmanb@google.com,harry@kernel.org,hao.ge@linux.dev,david@kernel.org,surenb@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + fs-proc-fix-kpf_ksm-reported-for-all-anonymous-pages.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260628044822.282601F000E9@smtp.kernel.org>
+Subject: + maintainers-move-inactive-maintainer-to-credits.patch added to mm-new branch
+Message-Id: <20260628045201.0644F1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,26 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: fs/proc: fix KPF_KSM reported for all anonymous pages
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     fs-proc-fix-kpf_ksm-reported-for-all-anonymous-pages.patch
+     Subject: MAINTAINERS: move inactive maintainer to CREDITS
+has been added to the -mm mm-new branch.  Its filename is
+     maintainers-move-inactive-maintainer-to-credits.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-proc-fix-kpf_ksm-reported-for-all-anonymous-pages.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maintainers-move-inactive-maintainer-to-credits.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,55 +69,70 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Jinjiang Tu <tujinjiang@huawei.com>
-Subject: fs/proc: fix KPF_KSM reported for all anonymous pages
-Date: Fri, 26 Jun 2026 09:32:52 +0800
+From: Suren Baghdasaryan <surenb@google.com>
+Subject: MAINTAINERS: move inactive maintainer to CREDITS
+Date: Thu, 25 Jun 2026 11:48:56 -0700
 
-Reading /proc/kpageflags for any anonymous page returns KPF_KSM set, even
-when KSM is not in use.  As a result, tools misclassify all anonymous
-pages as KSM merged.
+Patch series "move alloc_tag.c file under mm/".
 
-In stable_page_flags(), if the page is anonymous, then use (mapping &
-FOLIO_MAPPING_KSM) check to identify if the anonymous page is KSM page. 
-However, FOLIO_MAPPING_KSM is FOLIO_MAPPING_ANON | FOLIO_MAPPING_ANON_KSM,
-(mapping & FOLIO_MAPPING_KSM) check returns true for all anonymous pages.
+Memory allocation profiling is ultimately an mm feature and now that we
+need to use some internal mm definitions in it [1], the time is right to
+move its implementation under mm/. The move is straight-forward, involving
+just alloc_tag.c file. Update config, makefiles and maintainers as well.
 
-To fix it, use FOLIO_MAPPING_ANON_KSM instead.
 
-Link: https://lore.kernel.org/20260626013252.2846774-1-tujinjiang@huawei.com
-Fixes: dee3d0bef2b0 ("proc: rewrite stable_page_flags()")
-Signed-off-by: Jinjiang Tu <tujinjiang@huawei.com>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Acked-by: Zi Yan <ziy@nvidia.com>
-Cc: Chengming Zhou <chengming.zhou@linux.dev>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Luiz Capitulino <luizcap@redhat.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Nanyong Sun <sunnanyong@huawei.com>
-Cc: Svetly Todorov <svetly.todorov@memverge.com>
-Cc: xu xin <xu.xin16@zte.com.cn>
-Cc: <stable@vger.kernel.org>
+This patch (of 2):
+
+Move Kent Overstreet from maintainers for Memory Allocation Profiling to
+CREDITS in recognition of his co-authorship and contributions to this
+feature.
+
+Link: https://lore.kernel.org/20260625184857.2193482-2-surenb@google.com
+Link: https://lore.kernel.org/all/20260622-alloc-trylock-v2-13-31f31367d420@google.com/ [1]
+Signed-off-by: Suren Baghdasaryan <surenb@google.com>
+Acked-by: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Kent Overstreet <kent.overstreet@linux.dev>
+Cc: Brendan Jackman <jackmanb@google.com>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Hao Ge <hao.ge@linux.dev>
+Cc: Harry Yoo (Oracle) <harry@kernel.org>
+Cc: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/page.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ CREDITS     |    4 ++++
+ MAINTAINERS |    1 -
+ 2 files changed, 4 insertions(+), 1 deletion(-)
 
---- a/fs/proc/page.c~fs-proc-fix-kpf_ksm-reported-for-all-anonymous-pages
-+++ a/fs/proc/page.c
-@@ -173,7 +173,7 @@ u64 stable_page_flags(const struct page
- 		u |= 1 << KPF_MMAP;
- 	if (is_anon) {
- 		u |= 1 << KPF_ANON;
--		if (mapping & FOLIO_MAPPING_KSM)
-+		if ((mapping & FOLIO_MAPPING_FLAGS) == FOLIO_MAPPING_KSM)
- 			u |= 1 << KPF_KSM;
- 	}
+--- a/CREDITS~maintainers-move-inactive-maintainer-to-credits
++++ a/CREDITS
+@@ -3096,6 +3096,10 @@ N: Jens Osterkamp
+ E: jens@de.ibm.com
+ D: Maintainer of Spidernet network driver for Cell
  
++N: Kent Overstreet
++E: kent.overstreet@linux.dev
++D: Co-authored and contributed to Memory Allocation Profiling
++
+ N: Gadi Oxman
+ E: gadio@netvision.net.il
+ D: Original author and maintainer of IDE/ATAPI floppy/tape drivers
+--- a/MAINTAINERS~maintainers-move-inactive-maintainer-to-credits
++++ a/MAINTAINERS
+@@ -16886,7 +16886,6 @@ F:	tools/testing/memblock/
+ 
+ MEMORY ALLOCATION PROFILING
+ M:	Suren Baghdasaryan <surenb@google.com>
+-M:	Kent Overstreet <kent.overstreet@linux.dev>
+ R:	Hao Ge <hao.ge@linux.dev>
+ L:	linux-mm@kvack.org
+ S:	Maintained
 _
 
-Patches currently in -mm which might be from tujinjiang@huawei.com are
+Patches currently in -mm which might be from surenb@google.com are
 
-fs-proc-fix-kpf_ksm-reported-for-all-anonymous-pages.patch
+maintainers-move-inactive-maintainer-to-credits.patch
 
