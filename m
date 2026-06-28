@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0289649620
-	for <mm-commits@vger.kernel.org>; Sun, 28 Jun 2026 01:53:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 869B528690
+	for <mm-commits@vger.kernel.org>; Sun, 28 Jun 2026 02:16:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782611584; cv=none; b=SttNYyXDCHzXSJTsoAnFapF9ydgsy+IR/CMsP7jV2JTuNioTV6DomLVq9kGC9/zgi/VqqOxXqUNQ9MIFEiv4EpXdyRIYrOKYt8dL3fqEVs+O/ollxom7TbWp29pFGcCmADnQ+upOkmwEK0eqRkVWMb7MFy4dD47Las2YJxmNBdA=
+	t=1782612974; cv=none; b=Bb62W+itQBmljzFcDDeO1dFEGNFNG2Ha+x2u4SjzGIRs0DEyMS+Y8sUM+sR483W6Nwy0dOqBzE10lGeZdpvNsnUaP6h5PZAeeZyV0J71FB6dmVWuuuNYbqLB4kEOs1cUFuwg60WedC5Xh/GzPo+5AjwqEumaiE/lpfoBrHchLOE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782611584; c=relaxed/simple;
-	bh=p7Tw2R2XES7ilOBa9/q12/z7u7b63sjufMQThK4qKWI=;
-	h=Date:To:From:Subject:Message-Id; b=Lyrs9KHjqYXswcr+R6qUsyNGQwp1h1zjhjxtZEJWLyeR7Yzj2j2My+zQrVCc/2Rqp7GiFlMrpRaOswOjEXkaCzN3/GVxmhq5BJJOfzopNg1plX7fK6V0sSfVlr0D+0FNvtBOoeEFv6SFKbDIpkXGc57TwAB6JlnStYX64wqS+OE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ixm3q18v; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1782612974; c=relaxed/simple;
+	bh=SXzZN9AfodYiKbJH7r6A+16MA6bWqz3kXVH7RQNAAig=;
+	h=Date:To:From:Subject:Message-Id; b=RsJQ/QjMUea+zFIVu/c5VOlZ0oWwKRC2Vxz7stX/Af/klyWLLTam0Mh7DYwhgYxDoGScTeSMD9gA9UTsAtu3ACqV42Udh68iWuosp5e3zVl6FPj1QB5FcKCeoWg/k4XRqCGOm0JDOspu5bRkWWPmW/XfXk8neqkvMsmDBSB9kEw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RlOYWfAZ; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ixm3q18v"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8A9021F000E9;
-	Sun, 28 Jun 2026 01:53:02 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RlOYWfAZ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F3E321F000E9;
+	Sun, 28 Jun 2026 02:16:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1782611582;
-	bh=5cIwRID5HImaq85u0MC+EVR4Vna79xc3+SqNzrYzYTw=;
+	d=linux-foundation.org; s=korg; t=1782612973;
+	bh=JoTBaBo41kau2hCJkPoXRtV7n+KHpKq8PV+6/7RMraU=;
 	h=Date:To:From:Subject;
-	b=ixm3q18vUbykt1cA3b13ZQLrcfsfOXf81eA5Yz0bwhO+OYAgd9dfNKTR9mGaY8g30
-	 6WEydzjH1FOfnEXjSOl5i7uyOFsFD25VsUukMQyxdjVoep4JHFzUpb7aZn3znRHpgy
-	 uErB2lPoMSpxpnxnzQBLenOIlDehGjJ6QhZkkdxE=
-Date: Sat, 27 Jun 2026 18:53:02 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,sj@kernel.org,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,corbet@lwn.net,zenghui.yu@linux.dev,akpm@linux-foundation.org
+	b=RlOYWfAZkkQ3u2aKGDhbjR01lV3HVMR1o/ieNkFfMmFs9qs2Ll/zA+CvgE/MqA1x7
+	 9eIHLxUvmzsIETljvblYHgIjykHbFgsHbpCKTtcr3LhCvqlNLBsRSfCxCQP1AUZMXo
+	 BQFCbnjOI6VdjIq0G9Fao76e75EZbDYYCyJIFeKM=
+Date: Sat, 27 Jun 2026 19:16:12 -0700
+To: mm-commits@vger.kernel.org,yuanchu@google.com,weixugc@google.com,vbabka@kernel.org,shikemeng@huaweicloud.com,shakeel.butt@linux.dev,pfalcato@suse.de,nphamcs@gmail.com,ljs@kernel.org,liam@infradead.org,kasong@tencent.com,jannh@google.com,david@kernel.org,chrisl@kernel.org,baoquan.he@linux.dev,baohua@kernel.org,axelrasmussen@google.com,wangxuewen@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + docs-pagemap-fix-flags-location-member-name-and-sample-code.patch added to mm-new branch
-Message-Id: <20260628015302.8A9021F000E9@smtp.kernel.org>
+Subject: + mm-annotate-data-race-in-cpu_needs_drain.patch added to mm-new branch
+Message-Id: <20260628021612.F3E321F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: docs: pagemap: fix flags location, member name and sample code
+     Subject: mm: annotate data-race in cpu_needs_drain()
 has been added to the -mm mm-new branch.  Its filename is
-     docs-pagemap-fix-flags-location-member-name-and-sample-code.patch
+     mm-annotate-data-race-in-cpu_needs_drain.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-pagemap-fix-flags-location-member-name-and-sample-code.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-annotate-data-race-in-cpu_needs_drain.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,87 +69,64 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Zenghui Yu <zenghui.yu@linux.dev>
-Subject: docs: pagemap: fix flags location, member name and sample code
-Date: Sat, 27 Jun 2026 00:27:10 +0800
+From: Xuewen Wang <wangxuewen@kylinos.cn>
+Subject: mm: annotate data-race in cpu_needs_drain()
+Date: Fri, 26 Jun 2026 13:37:00 +0800
 
-The userland visible page flags (KPF_*) were initially moved to
-include/linux/kernel-page-flags.h in commit 1a9b5b7fe0c5 ("mm: export
-stable page flags"), and later moved to
-include/uapi/linux/kernel-page-flags.h in commit 607ca46e97a1 ("UAPI:
-(Scripted) Disintegrate include/linux").  Update the doc to reflect the
-current location of these flags.
+KCSAN reports a data-race when cpu_needs_drain() reads another CPU's
+per-cpu folio_batch->nr without locking, while the owning CPU writes to it
+via folio_batch_add().
 
-The member @walk_end of struct pm_scan_arg {} was wrongly written as
-"end_walk".
+Reading a slightly stale value is harmless -- cpu_needs_drain() only
+decides whether to schedule a drain, and the next iteration of
+__lru_add_drain_all() will re-check.  Use data_race() to annotate the
+intentional race.
 
-The first sample code of the PAGEMAP_SCAN ioctl wrongly used the
-PM_SCAN_CHECK_WPASYNC flag twice, instead of the PM_SCAN_WP_MATCHING flag.
-The second one included the wrong category in the required mask -
-PAGE_IS_FILE should be used instead of PAGE_IS_SWAPPED as per the
-intention.
-
-Fix them all together.
-
-Link: https://lore.kernel.org/20260626162710.25844-1-zenghui.yu@linux.dev
-Signed-off-by: Zenghui Yu <zenghui.yu@linux.dev>
+Link: https://lore.kernel.org/20260626053700.2036899-1-wangxuewen@kylinos.cn
+Signed-off-by: Xuewen Wang <wangxuewen@kylinos.cn>
 Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Reviewed-by: SeongJae Park <sj@kernel.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
+Reviewed-by: Pedro Falcato <pfalcato@suse.de>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Baoquan He <baoquan.he@linux.dev>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Chris Li <chrisl@kernel.org>
+Cc: Jann Horn <jannh@google.com>
+Cc: Kairui Song <kasong@tencent.com>
+Cc: Kemeng Shi <shikemeng@huaweicloud.com>
 Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
 Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Wei Xu <weixugc@google.com>
+Cc: Yuanchu Xie <yuanchu@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/mm/pagemap.rst |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ mm/swap.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/Documentation/admin-guide/mm/pagemap.rst~docs-pagemap-fix-flags-location-member-name-and-sample-code
-+++ a/Documentation/admin-guide/mm/pagemap.rst
-@@ -67,7 +67,7 @@ number of times a page is mapped.
-  * ``/proc/kpageflags``.  This file contains a 64-bit set of flags for each
-    page, indexed by PFN.
+--- a/mm/swap.c~mm-annotate-data-race-in-cpu_needs_drain
++++ a/mm/swap.c
+@@ -831,13 +831,13 @@ static bool cpu_needs_drain(unsigned int
+ 	struct cpu_fbatches *fbatches = &per_cpu(cpu_fbatches, cpu);
  
--   The flags are (from ``fs/proc/page.c``, above kpageflags_read):
-+   The flags are (from ``include/uapi/linux/kernel-page-flags.h``):
+ 	/* Check these in order of likelihood that they're not zero */
+-	return folio_batch_count(&fbatches->lru_add) ||
++	return data_race(folio_batch_count(&fbatches->lru_add) ||
+ 		folio_batch_count(&fbatches->lru_move_tail) ||
+ 		folio_batch_count(&fbatches->lru_deactivate_file) ||
+ 		folio_batch_count(&fbatches->lru_deactivate) ||
+ 		folio_batch_count(&fbatches->lru_lazyfree) ||
+ 		folio_batch_count(&fbatches->lru_activate) ||
+-		need_mlock_drain(cpu) ||
++		need_mlock_drain(cpu)) ||
+ 		has_bh_in_lru(cpu, NULL);
+ }
  
-     0. LOCKED
-     1. ERROR
-@@ -264,7 +264,7 @@ The ``struct pm_scan_arg`` is used as th
-     provided or not.
-  3. The range is specified through ``start`` and ``end``.
-  4. The walk can abort before visiting the complete range such as the user buffer
--    can get full etc. The walk ending address is specified in``end_walk``.
-+    can get full etc. The walk ending address is specified in ``walk_end``.
-  5. The output buffer of ``struct page_region`` array and size is specified in
-     ``vec`` and ``vec_len``.
-  6. The optional maximum requested pages are specified in the ``max_pages``.
-@@ -275,7 +275,7 @@ Find pages which have been written and W
- 
-    struct pm_scan_arg arg = {
-    .size = sizeof(arg),
--   .flags = PM_SCAN_CHECK_WPASYNC | PM_SCAN_CHECK_WPASYNC,
-+   .flags = PM_SCAN_WP_MATCHING | PM_SCAN_CHECK_WPASYNC,
-    ..
-    .category_mask = PAGE_IS_WRITTEN,
-    .return_mask = PAGE_IS_WRITTEN,
-@@ -288,7 +288,7 @@ present or huge::
-    .size = sizeof(arg),
-    .flags = 0,
-    ..
--   .category_mask = PAGE_IS_WRITTEN | PAGE_IS_SWAPPED,
-+   .category_mask = PAGE_IS_WRITTEN | PAGE_IS_FILE,
-    .category_inverted = PAGE_IS_SWAPPED,
-    .category_anyof_mask = PAGE_IS_PRESENT | PAGE_IS_HUGE,
-    .return_mask = PAGE_IS_WRITTEN | PAGE_IS_SWAPPED |
 _
 
-Patches currently in -mm which might be from zenghui.yu@linux.dev are
+Patches currently in -mm which might be from wangxuewen@kylinos.cn are
 
-tools-mm-add-thp_swap_allocator_test-binary-to-gitignore.patch
-docs-pagemap-fix-flags-location-member-name-and-sample-code.patch
+mm-annotate-data-race-in-cpu_needs_drain.patch
 
