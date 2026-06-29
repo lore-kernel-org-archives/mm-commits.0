@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 954A816DEB1;
-	Mon, 29 Jun 2026 04:55:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5C81016DEB1
+	for <mm-commits@vger.kernel.org>; Mon, 29 Jun 2026 04:55:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782708936; cv=none; b=IItTz5m+0/CvH4UOa5BaJswC4M7aFCArKEnBniP1tLykr19KKIj6BIHHUA4X+B8wuuUPwe009Zi5VtZ8l4RgAgDK+jYQbyyp7goUWRwBf1IEZ/ORT73ndeq1O9AeiFVvlNswhZt8PFcZup2FHzo10V6voXPoedmbXLevZEABYfo=
+	t=1782708938; cv=none; b=DaMGsb7cwHi/ANxzW/vMoDODjHl+kVLgoGMZZ+Qn2UtJ9uLOdSAExrP26RajsleEwohIg5Ik04j8MQySuuIUUN3/ALBYrNsE8a+AcsRGjIIugzLwKx/vfqe99DORqZ2KCQlp7I2Md6zBn6um+VvvMiEFWyLATBZznkVD1FwFTdA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782708936; c=relaxed/simple;
-	bh=30fQ+qyTw5uaroHIsxExRVlDtxsuQcrhnVkiuXLcKSI=;
-	h=Date:To:From:Subject:Message-Id; b=IJwicRPJeodokSCIg5E/mM5p7qAMfXHl7dpJeqLGZU9sw6Q79lKkGEYwivrUH2MNVGuDS4xT+SDKrd5r6usonHpcAXcm9luqPLPw5NMPbKje/HU2eUetlEwt97h56rdY2h6LRT/mvQcKATplOoi1U87ZoKn5vUtrPr54SLLkbyE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Fn0sHgVi; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1782708938; c=relaxed/simple;
+	bh=dUEPQxIr8AetmyNltm9EhWwAw9yK/2d+P6V8Xi2dYD8=;
+	h=Date:To:From:Subject:Message-Id; b=CfJD+wOtzouee3zvC+2hMC+80M/QGuNl8IlX92OV+GYMIRNfJNbbs4n4kSSwkfxyge9uP6gpi41AW3AgQ/LhuBv7A/iNLw5R7YYe11RGa5NNFMgfc/QAPpRY825pPYpX6puG45VQb7yjLN3l08ENoz7m3qVxzjggM6AUyTXdUAM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=E134pB4t; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Fn0sHgVi"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3E7521F000E9;
-	Mon, 29 Jun 2026 04:55:35 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="E134pB4t"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2FAC21F000E9;
+	Mon, 29 Jun 2026 04:55:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1782708935;
-	bh=22ieR5B5jsR1Oni3QT5o66WWA2bZMz4TWo1T4D0wvE0=;
+	d=linux-foundation.org; s=korg; t=1782708937;
+	bh=/gGhC3mV6z23bL9nEHVTsx2rVPY8wwYTWO5vl/o6LmM=;
 	h=Date:To:From:Subject;
-	b=Fn0sHgViD92saxYrSJ5S944MHUEZeranBPzTa5xT4UnI2XSckEbnyLxpjzFBdEE0b
-	 yIQvjhPzKxX5Zf4az1LMQ++RSAOfT8dDUCwjQeYw/JEs7+3EzfG0LvmaqD1KhtF2gl
-	 0ESlpmGcmta7YkmD0UDYg0QLJpLdJLw2Lw0ePFfk=
-Date: Sun, 28 Jun 2026 21:55:34 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
+	b=E134pB4t5Y+Kn9eayJfBWc63TM1U/LEsqeYafIEpZEyOTOxcx7cdwVubfTT84+uJP
+	 vn4Q8uuPdEizbEK+oIofMneovYs3urQxc9/a7ulRf80Xm3pPqgxxSGfYyH377guYn0
+	 zwkJYcMKFdXSlxv2+unySU/aB42DbZ2Zdr9nLFC0=
+Date: Sun, 28 Jun 2026 21:55:36 -0700
+To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-sysfs-schemes-kobject_del-scheme-action-destination-dirs.patch added to mm-new branch
-Message-Id: <20260629045535.3E7521F000E9@smtp.kernel.org>
+Subject: + mm-damon-sysfs-kobject_del-probe-dirs.patch added to mm-new branch
+Message-Id: <20260629045537.2FAC21F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/sysfs-schemes: kobject_del() scheme action destination dirs
+     Subject: mm/damon/sysfs: kobject_del() probe dirs
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-sysfs-schemes-kobject_del-scheme-action-destination-dirs.patch
+     mm-damon-sysfs-kobject_del-probe-dirs.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-schemes-kobject_del-scheme-action-destination-dirs.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-kobject_del-probe-dirs.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,38 +70,33 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/sysfs-schemes: kobject_del() scheme action destination dirs
-Date: Sun, 28 Jun 2026 15:01:16 -0700
+Subject: mm/damon/sysfs: kobject_del() probe dirs
+Date: Sun, 28 Jun 2026 15:01:17 -0700
 
 On CONFIG_DEBUG_KOBJECT_RELEASE enabled kernel, lack of kobject_del()
 could cause directories creation failures due to the name conflicts.  Fix
-those issues for scheme action destination directories by adding
-kobject_del() calls.
+those issues for data attribute probe directories by adding kobject_del()
+calls.
 
-Link: https://lore.kernel.org/20260628220121.97360-8-sj@kernel.org
-Fixes: 2cd0bf85a203 ("mm/damon/sysfs-schemes: implement DAMOS action destinations directory")
+Link: https://lore.kernel.org/20260628220121.97360-9-sj@kernel.org
+Fixes: bf3ea3d30880 ("mm/damon/sysfs: implement probe dir")
 Signed-off-by: SJ Park <sj@kernel.org>
-Cc: <stable@vger.kernel.org> # 6.17.x
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/sysfs-schemes.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ mm/damon/sysfs.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/damon/sysfs-schemes.c~mm-damon-sysfs-schemes-kobject_del-scheme-action-destination-dirs
-+++ a/mm/damon/sysfs-schemes.c
-@@ -2143,8 +2143,10 @@ static void damos_sysfs_dests_rm_dirs(
- 	struct damos_sysfs_dest **dests_arr = dests->dests_arr;
- 	int i;
+--- a/mm/damon/sysfs.c~mm-damon-sysfs-kobject_del-probe-dirs
++++ a/mm/damon/sysfs.c
+@@ -1137,6 +1137,7 @@ static void damon_sysfs_probes_rm_dirs(
  
--	for (i = 0; i < dests->nr; i++)
-+	for (i = 0; i < dests->nr; i++) {
-+		kobject_del(&dests_arr[i]->kobj);
- 		kobject_put(&dests_arr[i]->kobj);
-+	}
- 	dests->nr = 0;
- 	kfree(dests_arr);
- 	dests->dests_arr = NULL;
+ 	for (i = 0; i < probes->nr; i++) {
+ 		damon_sysfs_probe_rm_dirs(probes_arr[i]);
++		kobject_del(&probes_arr[i]->kobj);
+ 		kobject_put(&probes_arr[i]->kobj);
+ 	}
+ 	probes->nr = 0;
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
