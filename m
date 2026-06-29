@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8B89F37D13D
-	for <mm-commits@vger.kernel.org>; Mon, 29 Jun 2026 04:41:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D4E081DF25C;
+	Mon, 29 Jun 2026 04:49:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782708109; cv=none; b=YujnBdlaMtbzpyKhpopUzx6SpyS3rUjR+3l4trbo3lpnsCM+y6YUPXvLnQytA3ur9CnG76TKEjYz6RQW5vnmNyauW2F/8MmUKnc0ftia6TKqwh3CypDr1uJI9k3VOND6MJcxcWBGRBPTiel6NBIoJ6UkB0D6q2XBfDdcmY5TaiE=
+	t=1782708557; cv=none; b=kHTDwFNwm/55Q9rwA3IlFlQU795xLqb/5tyDifNGP7BvfwUEiv7eW3GrUOPRIyzjVfyLWZD6MqewSnW9rSjj8z29vJMD+HTCKFal6l7B0uOToNVfS+LdKso1INWgJa2l8L4dO+v8yzx4KUeye+PgqtqG9Rj83gPCD4pkFgJ5N9M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782708109; c=relaxed/simple;
-	bh=gXohQgk9n4I4bBRgQGFTZxftA/vpP+WmciOVL0DcmJg=;
-	h=Date:To:From:Subject:Message-Id; b=iGTN0rfZxURGn99HgRqT3reEB0undB+oW2mf56rXrqmu4rm9IDVf5kuxszchmMn38tJpbQy6AaVswNCwQPPqJVH6TCAgnWAuIxywTP9Rtsa7okXX7+q9EgW2x2nJ+X2edqu8fLUUyf4aVK2OsIbX13S5+X8xyQZ1ywASk8+uccE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pekB15Fn; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1782708557; c=relaxed/simple;
+	bh=p4uewAu253esug5xjLmZOpgTZyDLs9geys2Ub7PBNgY=;
+	h=Date:To:From:Subject:Message-Id; b=FS336ByMzmUUYjiC5GwJg6lvVnUS9OwAZg4oL4mJIttZHnBa6oTtu/UeO51kquYwnCq4M3+LL3SpufJcfs6IcbsPHiNlhTvY3jcQ+9eAB3qP14TwsmL598p93KUaNQ/njN8nSzLYxLKJB60V85tdGIjGZrEIv4GEoBhvdKcZGQE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RVh2e6qe; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pekB15Fn"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0C22F1F000E9;
-	Mon, 29 Jun 2026 04:41:48 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RVh2e6qe"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 685351F000E9;
+	Mon, 29 Jun 2026 04:49:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1782708108;
-	bh=71aY+7kZga9n9TYdZVTHOZjftqegOYTtCNJp7US2x5Q=;
+	d=linux-foundation.org; s=korg; t=1782708555;
+	bh=ALmp3s1F3X2/2id5qraGCKUfWA1B5hMnH5I4uaTU5CU=;
 	h=Date:To:From:Subject;
-	b=pekB15FnvhQPhWEVkjoXDwK+FG/PvlWEO4UOk6pmXybs2l3A0cupY0cSZXAyuMnjc
-	 XrdmaUWhvvXCqr2K7DNyCanVB7HcQuHYXjGid2WI2ALylTw9tWgi6LrCmal+pSJ3yM
-	 JppkrBLRLWrY5aJYupqie/tLSlbfsfX3YD4eOYBw=
-Date: Sun, 28 Jun 2026 21:41:47 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,zhen.ni@easystack.cn,ye.liu@linux.dev,vishal.moola@gmail.com,chenyichong@uniontech.com,akpm@linux-foundation.org
+	b=RVh2e6qeXz+5v88TVLsmrMTL5G34xD5/mh08FZSEF7lmvQh0Dnnt4tcYbGm2eT2Rg
+	 fyDNGufIvmSBxw2lUG2H8leprr4uOpqD+xyznO62o3/Tnzt1S6t9CiZ64a8jHdVt9Q
+	 AnPKa6J8O/E7ChY7PZudDW/yd7YRutTAKPi/noro=
+Date: Sun, 28 Jun 2026 21:49:15 -0700
+To: mm-commits@vger.kernel.org,zenghui.yu@linux.dev,stable@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + tools-mm-page_owner_sort-bound-pattern-output-copies.patch added to mm-new branch
-Message-Id: <20260629044148.0C22F1F000E9@smtp.kernel.org>
+Subject: + samples-damon-wsse-handle-damon_start-failure.patch added to mm-new branch
+Message-Id: <20260629044915.685351F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: tools/mm/page_owner_sort: bound pattern output copies
+     Subject: samples/damon/wsse: handle damon_start() failure
 has been added to the -mm mm-new branch.  Its filename is
-     tools-mm-page_owner_sort-bound-pattern-output-copies.patch
+     samples-damon-wsse-handle-damon_start-failure.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/tools-mm-page_owner_sort-bound-pattern-output-copies.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/samples-damon-wsse-handle-damon_start-failure.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,115 +69,85 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Yichong Chen <chenyichong@uniontech.com>
-Subject: tools/mm/page_owner_sort: bound pattern output copies
-Date: Mon, 29 Jun 2026 09:43:16 +0800
+From: SJ Park <sj@kernel.org>
+Subject: samples/damon/wsse: handle damon_start() failure
+Date: Sun, 28 Jun 2026 14:54:40 -0700
 
-search_pattern() copies a regex capture into caller-provided buffers
-without knowing their sizes.  Several callers pass fixed-size buffers,
-including FIELD_BUFF and TASK_COMM_LEN.
+Patch series "samples/damon: handle damon_{start,stop}() failures".
 
-Pass the destination size to search_pattern(), reject captures that do not
-fit before copying them, and terminate the output string inside
-search_pattern().
+All DAMON sample modules are not correctly handling failures from
+damon_start().  Among those, mtier also has an additional problem for
+handling of damon_stop() failures.  wsse and prcl also have a problem in
+their damon_call() failure handling.  As a result, memory leaks, next
+DAMON operation disruptions, and use-after-free can happen.  Fix those.
 
-Link: https://lore.kernel.org/20260629014316.130307-4-chenyichong@uniontech.com
-Signed-off-by: Yichong Chen <chenyichong@uniontech.com>
-Cc: Vishal Moola <vishal.moola@gmail.com>
-Cc: Ye Liu <ye.liu@linux.dev>
-Cc: Zhen Ni <zhen.ni@easystack.cn>
-Cc: Zi Yan <ziy@nvidia.com>
+Note that only the damon_start() failure caused issues can reliably be
+reproduced.  Reproducing those issues require the admin permission,
+though.
+
+
+This patch (of 6):
+
+damon_sample_wsse_start() callers assume it will clean up resources when
+it fails.  And the function does the cleanup for context buildup failures.
+However, it is not doing the cleanup for damon_start() failure.  As a
+result, when damon_start() fails, it leaks the memory for DAMON context. 
+Free the context in case of the failure to fix the issues.
+
+Note that the issue can reliably be reproduced because the module calls
+damon_start() in the exclusive mode.  For example,
+
+    $ sudo damo start
+    $ echo $$ | sudo tee /sys/module/damon_sample_wsse/parameters/target_pid
+    $ echo Y | sudo tee /sys/module/damon_sample_wsse/parameters/enabled
+    $ sudo cat /proc/allocinfo | grep damon_new_ctx
+
+Because the first command is running another DAMON instance, the third
+command fails the damon_start() call because the new DAMON instance cannot
+exclusively run.  And without this fix, by repeating the third and the
+fourth commands above, we can show the memory consumption is only
+increasing due to the leaks.  It requires the sudo permission though.
+
+The issue was discovered [1] by Sashiko.
+
+Link: https://lore.kernel.org/20260628215447.96166-2-sj@kernel.org
+Link: https://lore.kernel.org/20260609145814.70163-1-sj@kernel.org [1]
+Fixes: b757c6cfc696 ("samples/damon/wsse: start and stop DAMON as the user requests")
+Signed-off-by: SJ Park <sj@kernel.org>
+Reviewed-by: Zenghui Yu <zenghui.yu@linux.dev>
+Cc: <stable@vger.kernel.org> # 6.14.x
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/mm/page_owner_sort.c |   27 +++++++++++++++++++++------
- 1 file changed, 21 insertions(+), 6 deletions(-)
+ samples/damon/wsse.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
---- a/tools/mm/page_owner_sort.c~tools-mm-page_owner_sort-bound-pattern-output-copies
-+++ a/tools/mm/page_owner_sort.c
-@@ -237,7 +237,8 @@ static int remove_pattern(regex_t *patte
- 	return len - (pmatch[1].rm_eo - pmatch[1].rm_so);
- }
+--- a/samples/damon/wsse.c~samples-damon-wsse-handle-damon_start-failure
++++ a/samples/damon/wsse.c
+@@ -87,8 +87,10 @@ static int damon_sample_wsse_start(void)
+ 	target->pid = target_pidp;
  
--static int search_pattern(regex_t *pattern, char *pattern_str, char *buf)
-+static int search_pattern(regex_t *pattern, char *pattern_str,
-+			  size_t pattern_str_size, char *buf)
- {
- 	int err, val_len;
- 	regmatch_t pmatch[2];
-@@ -249,8 +250,14 @@ static int search_pattern(regex_t *patte
- 		return -1;
- 	}
- 	val_len = pmatch[1].rm_eo - pmatch[1].rm_so;
-+	if ((size_t)val_len >= pattern_str_size) {
-+		if (debug_on)
-+			fprintf(stderr, "pattern too long in %s\n", buf);
-+		return -1;
+ 	err = damon_start(&ctx, 1, true);
+-	if (err)
++	if (err) {
++		damon_destroy_ctx(ctx);
+ 		return err;
 +	}
- 
- 	memcpy(pattern_str, buf + pmatch[1].rm_so, val_len);
-+	pattern_str[val_len] = '\0';
- 
- 	return 0;
+ 	repeat_call_control.data = ctx;
+ 	return damon_call(ctx, &repeat_call_control);
  }
-@@ -307,7 +314,8 @@ static int get_page_num(char *buf)
- 	char order_str[FIELD_BUFF] = {0};
- 	char *endptr;
- 
--	search_pattern(&order_pattern, order_str, buf);
-+	if (search_pattern(&order_pattern, order_str, sizeof(order_str), buf) < 0)
-+		return 0;
- 	errno = 0;
- 	order_val = strtol(order_str, &endptr, 10);
- 	if (order_val > 64 || errno != 0 || endptr == order_str || *endptr != '\0') {
-@@ -325,7 +333,8 @@ static pid_t get_pid(char *buf)
- 	char pid_str[FIELD_BUFF] = {0};
- 	char *endptr;
- 
--	search_pattern(&pid_pattern, pid_str, buf);
-+	if (search_pattern(&pid_pattern, pid_str, sizeof(pid_str), buf) < 0)
-+		return -1;
- 	errno = 0;
- 	pid = strtol(pid_str, &endptr, 10);
- 	if (errno != 0 || endptr == pid_str || *endptr != '\0') {
-@@ -344,7 +353,8 @@ static pid_t get_tgid(char *buf)
- 	char tgid_str[FIELD_BUFF] = {0};
- 	char *endptr;
- 
--	search_pattern(&tgid_pattern, tgid_str, buf);
-+	if (search_pattern(&tgid_pattern, tgid_str, sizeof(tgid_str), buf) < 0)
-+		return -1;
- 	errno = 0;
- 	tgid = strtol(tgid_str, &endptr, 10);
- 	if (errno != 0 || endptr == tgid_str || *endptr != '\0') {
-@@ -363,7 +373,9 @@ static __u64 get_ts_nsec(char *buf)
- 	char ts_nsec_str[FIELD_BUFF] = {0};
- 	char *endptr;
- 
--	search_pattern(&ts_nsec_pattern, ts_nsec_str, buf);
-+	if (search_pattern(&ts_nsec_pattern, ts_nsec_str,
-+			   sizeof(ts_nsec_str), buf) < 0)
-+		return -1;
- 	errno = 0;
- 	ts_nsec = strtoull(ts_nsec_str, &endptr, 10);
- 	if (errno != 0 || endptr == ts_nsec_str || *endptr != '\0') {
-@@ -384,7 +396,10 @@ static char *get_comm(char *buf)
- 
- 	memset(comm_str, 0, TASK_COMM_LEN);
- 
--	search_pattern(&comm_pattern, comm_str, buf);
-+	if (search_pattern(&comm_pattern, comm_str, TASK_COMM_LEN, buf) < 0) {
-+		free(comm_str);
-+		return NULL;
-+	}
- 	errno = 0;
- 	if (errno != 0) {
- 		if (debug_on)
 _
 
-Patches currently in -mm which might be from chenyichong@uniontech.com are
+Patches currently in -mm which might be from sj@kernel.org are
 
-tools-mm-page_owner_sort-return-explicit-filter-results.patch
-tools-mm-page_owner_sort-free-per-record-allocations.patch
-tools-mm-page_owner_sort-bound-pattern-output-copies.patch
+mm-damon-sysfs-schemes-fix-dir-put-orders-in-access_pattern_add_dirs.patch
+mm-damon-sysfs-schemes-put-stats-for-scheme_add_dirs-internal-error.patch
+mm-damon-ops-common-handle-extreme-intervals-in-damon_hot_score.patch
+maintainers-s-seongjae-sj.patch
+samples-damon-wsse-handle-damon_start-failure.patch
+samples-damon-prcl-handle-damon_start-failure.patch
+samples-damon-mtier-handle-damon_start-failure.patch
+samples-damon-mtier-handle-damon_stop-failure.patch
+samples-damon-wsse-stop-and-free-damon-ctx-when-damon_call-fails.patch
+samples-damon-prcl-stop-and-free-damon-ctx-when-damon_call-fails.patch
 
