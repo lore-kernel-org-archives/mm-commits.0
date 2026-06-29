@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3486D40D59F
-	for <mm-commits@vger.kernel.org>; Mon, 29 Jun 2026 17:06:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 14EE3379C26
+	for <mm-commits@vger.kernel.org>; Mon, 29 Jun 2026 17:22:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782752806; cv=none; b=DX9F+RtP4rE06CsnyVufQTmNz+2v/13fT+kzFR0G31UUBS+SarMo1FgFWqeNnGY5IDMDpmk0XR26MWMiMJbYjgEc1sYgS0q7+sU5c2Zk1oFW690pYdyUNpST8IGVXxj2P0W2Uc98nDswypjF6AYylaKDIvpQM3B+7+tCIuajpgM=
+	t=1782753767; cv=none; b=Gnp2WZdjyp1mLiBuwLmxbS+p7KLAZ9KxTNGT3nS1x9ODDMblB3kN5ympb6kraDlQhz9wVlsvCm2PW/AVi+g8uG2GMON5EklitmgpfEO7d9+3aRhZTH/oVXrwUA5XS8SM782HesWuZxs/z+tSqymrESMQkTOVBN4lJo1GLIEHKiY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782752806; c=relaxed/simple;
-	bh=tazbszd+zvQNhODzwzUQls/VGxoHXna4ZX+Tk6qFt7w=;
-	h=Date:To:From:Subject:Message-Id; b=aZhx+wqsAuce7WX5nIOubEd+4z8h8CZ4djBzKoHz70xTdD7wvSRvqYN1Bj5ogPDwQCIBtH9oq2/RDrELbsFjntN1ct5HMFu4pdOabAXlv1MrQNx2FGRQIqWWmJ2FYb9o/JpUhc7D/NyLwPor9gC/zdjbQNbYWEIRctH9Vyy4MF4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gNbYO+5T; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1782753767; c=relaxed/simple;
+	bh=HKMGRRWOA/OrEDgbRBEK4Bc9cLoGK1ACUb4mvKo3sXo=;
+	h=Date:To:From:Subject:Message-Id; b=styeeuxo68FRlV1wjL8ipac8onJ6bzAgww4Ao5TIOiJcB1kzFK7j40fbUyk5z4/ku8o5O/Q+zyN/mCSoosfRINF7buw7nt/ojsv9aY1tkGg8NTgr31IqEPa78a1GWPqDisRqGShXjrq7nYbihTtRWo4dYcPkpDFT0NE9ckJxm1M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GWJCcpav; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gNbYO+5T"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A96FD1F000E9;
-	Mon, 29 Jun 2026 17:06:43 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GWJCcpav"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9573F1F000E9;
+	Mon, 29 Jun 2026 17:22:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1782752803;
-	bh=fWUZKstcmfsQ4GoKRJBZp/vamZCHrNkFWUkSHSsdaSM=;
+	d=linux-foundation.org; s=korg; t=1782753765;
+	bh=SC3I5kcO+PveLEW+jjD3hz9HIabi1O9B7tuZjt/AARA=;
 	h=Date:To:From:Subject;
-	b=gNbYO+5TMR37bjiXzoNmxfXLDG9Wvucvv5aFtlkwMN5OTH4W3J8FgQrxwjyqctakq
-	 OY+eIsdweTMWIgU65iglUDXTYoVwPXpoIdX7Q1KMsg2IUp00AKGm+jsifPTIlULqNr
-	 /RR0LOEfNTUst/3jecVWMMRnflsdN81xqF5oShUA=
-Date: Mon, 29 Jun 2026 10:06:43 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,tj@kernel.org,surenb@google.com,shakeel.butt@linux.dev,rppt@kernel.org,roman.gushchin@linux.dev,mkoutny@suse.com,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,hannes@cmpxchg.org,david@kernel.org,usama.arif@linux.dev,akpm@linux-foundation.org
+	b=GWJCcpavR3ptQ22RXmJRqdqLLrqDtdJi9sCUX+SNUSzIOjWqq7QS7s89i51qGUUjq
+	 TCHP/NA0bzvjNB+AA4X8X/RiR3eY9COSQzeLeqFC4MkUkgxi4RJIMefLFP7Fhe46qi
+	 b2rZ6+cvQrky6I5i9b1vAeFGZQ/ZuJHX/ZvyRR8g=
+Date: Mon, 29 Jun 2026 10:22:45 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,rppt@kernel.org,peterz@infradead.org,osalvador@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,jannh@google.com,davem@davemloft.net,andreas@gaisler.com,david@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmpressure-split-v1-userspace-eventfd-code-into-vmpressure-v1c.patch added to mm-new branch
-Message-Id: <20260629170643.A96FD1F000E9@smtp.kernel.org>
+Subject: + sparc-mm-drop-custom-pte_clear_not_present_full.patch added to mm-new branch
+Message-Id: <20260629172245.9573F1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/vmpressure: split v1 userspace eventfd code into vmpressure-v1.c
+     Subject: sparc/mm: drop custom pte_clear_not_present_full()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-vmpressure-split-v1-userspace-eventfd-code-into-vmpressure-v1c.patch
+     sparc-mm-drop-custom-pte_clear_not_present_full.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmpressure-split-v1-userspace-eventfd-code-into-vmpressure-v1c.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/sparc-mm-drop-custom-pte_clear_not_present_full.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,840 +69,78 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Usama Arif <usama.arif@linux.dev>
-Subject: mm/vmpressure: split v1 userspace eventfd code into vmpressure-v1.c
-Date: Mon, 29 Jun 2026 05:59:37 -0700
+From: "David Hildenbrand (Arm)" <david@kernel.org>
+Subject: sparc/mm: drop custom pte_clear_not_present_full()
+Date: Mon, 29 Jun 2026 15:49:47 +0200
 
-Clean up mm/vmpressure.c by separating the cgroup v1 userspace eventfd
-interface from the shared and v2 in-kernel code.
+Patch series "mm: cleanup clear_not_present_full_ptes()", v2.
 
-Currently, almost half of mm/vmpressure.c exists to serve tree=true:
-struct vmpressure_event, the events list and its mutex, the work_struct
-and vmpressure_work_fn that drains tree_scanned/tree_reclaimed, the parent
-walk, vmpressure_event(), vmpressure_register_event(),
-vmpressure_unregister_event(), and vmpressure_prio() (which always calls
-vmpressure() with tree=true).
+While doing some review, I stumbled over clear_not_present_full_ptes() and
+concluded that it needs some love.
 
-Move it all into a new mm/vmpressure-v1.c built only when
-CONFIG_MEMCG_V1=y (following the existing memcontrol-v1.o pattern).
+Let's remove pte_clear_not_present_full() and cleanup
+clear_not_present_full_ptes(), renaming it to clear_non_present_ptes().
 
-vmpressure.c keeps the shared bits (constants, vmpressure_calc_level, the
-runtime hierarchy check, the tree=false body, init/cleanup plumbing) and
-calls into three small v1 hooks for the tree=true accumulator and the v1
-portions of init/cleanup.  The hooks have static-inline no-op stubs in
-include/linux/vmpressure.h for the !MEMCG_V1 case, so callers don't need
-ifdefs.  vmpressure_prio() gets the same treatment, which means vmscan.c's
-call site disappears at compile time on v2-only kernels.
 
-The only #ifdef CONFIG_MEMCG_V1 in source remains around the v1-only
-fields inside struct vmpressure itself.
+This patch (of 3):
 
-Memory savings on CONFIG_MEMCG_V1=n (measured with pahole):
+On sparc64, pte_clear_not_present_full() nowadays does a simple
+__set_pte_at().  In __set_pte_at() -> maybe_tlb_batch_add(), we check
+pte_accessible() to see whether to call tlb_batch_add().
 
-  struct vmpressure :  112B ->   24B
-  struct mem_cgroup : 1664B -> 1536B
+However, non-present PTEs are surely not accessible, so tlb_batch_add() is
+never called and the "full" parameter is irrelevant.
 
-This split is the first step toward eventually making vmpressure
-CONFIG_MEMCG_V1 only.  The v2 in-kernel socket pressure path (tree=false)
-cannot be removed today immediately: PSI is not an exact replacement for
-vmpressure, and switching networking socket-buffer back-off to PSI may
-regress networking performance or increase memory pressure in workloads
-that today rely on vmpressure's hysteresis.  The medium-term plan is to
-introduce a PSI-based socket-pressure path, keep vmpressure available for
-v2 behind a defconfig as an opt-out for several releases, and only then
-drop the tree=false path entirely, at which point everything that remains
-in mm/vmpressure-v1.c is the whole subsystem.
+Let's drop the helper and just let common code do a pte_clear().
 
-Link: https://lore.kernel.org/20260629130042.2649505-3-usama.arif@linux.dev
-Signed-off-by: Usama Arif <usama.arif@linux.dev>
-Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+pte_clear() on sparc64 maps to set_pte_at()->set_ptes()->__set_pte_at()
+... so it ends up calling the same function, just with "full=0".
+
+Given that "full" is irrelevant, there is no change.
+
+We added pte_clear_not_present_full() for sparc64 in commit 90f08e399d05
+("sparc: mmu_gather rework"), and I suspect that it was already not
+required back then.
+
+Link: https://lore.kernel.org/20260629-clear_not_present_full_ptes-v2-0-96089871a1e7@kernel.org
+Link: https://lore.kernel.org/20260629-clear_not_present_full_ptes-v2-1-96089871a1e7@kernel.org
+Signed-off-by: David Hildenbrand (Arm) <david@kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Andreas Larsson <andreas@gaisler.com>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: Jann Horn <jannh@google.com>
 Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
 Cc: Michal Hocko <mhocko@suse.com>
-Cc: Michal Koutný <mkoutny@suse.com>
 Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Peter Zijlstra <peterz@infradead.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Tejun Heo <tj@kernel.org>
 Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Oscar Salvador (SUSE) <osalvador@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/vmpressure.h |   46 ++++-
- mm/Makefile                |    2 
- mm/vmpressure-v1.c         |  305 +++++++++++++++++++++++++++++++++++
- mm/vmpressure.c            |  292 +--------------------------------
- 4 files changed, 357 insertions(+), 288 deletions(-)
+ arch/sparc/include/asm/pgtable_64.h |    4 ----
+ 1 file changed, 4 deletions(-)
 
---- a/include/linux/vmpressure.h~mm-vmpressure-split-v1-userspace-eventfd-code-into-vmpressure-v1c
-+++ a/include/linux/vmpressure.h
-@@ -13,18 +13,31 @@
- struct vmpressure {
- 	unsigned long scanned;
- 	unsigned long reclaimed;
-+	/* The lock is used to keep the scanned/reclaimed in sync. */
-+	spinlock_t sr_lock;
+--- a/arch/sparc/include/asm/pgtable_64.h~sparc-mm-drop-custom-pte_clear_not_present_full
++++ a/arch/sparc/include/asm/pgtable_64.h
+@@ -945,10 +945,6 @@ static inline void set_ptes(struct mm_st
+ #define pte_clear(mm,addr,ptep)		\
+ 	set_pte_at((mm), (addr), (ptep), __pte(0UL))
  
-+#ifdef CONFIG_MEMCG_V1
-+	/*
-+	 * tree=true accumulators feed the v1 userspace eventfd interface
-+	 * (memory.pressure_level). Drained by @work. v2 has no equivalent
-+	 * interface, so this state is omitted on CONFIG_MEMCG_V1=n builds.
-+	 */
- 	unsigned long tree_scanned;
- 	unsigned long tree_reclaimed;
--	/* The lock is used to keep the scanned/reclaimed above in sync. */
--	spinlock_t sr_lock;
+-#define __HAVE_ARCH_PTE_CLEAR_NOT_PRESENT_FULL
+-#define pte_clear_not_present_full(mm,addr,ptep,fullmm)	\
+-	__set_pte_at((mm), (addr), (ptep), __pte(0UL), (fullmm))
 -
- 	/* The list of vmpressure_event structs. */
- 	struct list_head events;
- 	/* Have to grab the lock on events traversal or modifications. */
- 	struct mutex events_lock;
- 
- 	struct work_struct work;
-+#endif
-+};
-+
-+enum vmpressure_levels {
-+	VMPRESSURE_LOW = 0,
-+	VMPRESSURE_MEDIUM,
-+	VMPRESSURE_CRITICAL,
-+	VMPRESSURE_NUM_LEVELS,
- };
- 
- struct mem_cgroup;
-@@ -32,18 +45,41 @@ struct mem_cgroup;
- #ifdef CONFIG_MEMCG
- void vmpressure(gfp_t gfp, int order, struct mem_cgroup *memcg, bool tree,
- 		unsigned long scanned, unsigned long reclaimed);
--extern void vmpressure_prio(gfp_t gfp, struct mem_cgroup *memcg, int prio);
--
- extern void vmpressure_init(struct vmpressure *vmpr);
- extern void vmpressure_cleanup(struct vmpressure *vmpr);
- extern struct vmpressure *memcg_to_vmpressure(struct mem_cgroup *memcg);
- extern struct mem_cgroup *vmpressure_to_memcg(struct vmpressure *vmpr);
-+
-+/* Shared with mm/vmpressure-v1.c. */
-+extern const unsigned long vmpressure_win;
-+extern enum vmpressure_levels vmpressure_calc_level(unsigned long scanned,
-+						    unsigned long reclaimed);
-+
-+#ifdef CONFIG_MEMCG_V1
-+extern void vmpressure_prio(gfp_t gfp, struct mem_cgroup *memcg, int prio);
- extern int vmpressure_register_event(struct mem_cgroup *memcg,
- 				     struct eventfd_ctx *eventfd,
- 				     const char *args);
- extern void vmpressure_unregister_event(struct mem_cgroup *memcg,
- 					struct eventfd_ctx *eventfd);
-+
-+/* v1 hooks called from mm/vmpressure.c; no-ops below when !MEMCG_V1. */
-+extern void vmpressure_v1_init(struct vmpressure *vmpr);
-+extern void vmpressure_v1_cleanup(struct vmpressure *vmpr);
-+extern void vmpressure_v1_account_tree(struct vmpressure *vmpr,
-+				       unsigned long scanned,
-+				       unsigned long reclaimed);
- #else
-+static inline void vmpressure_prio(gfp_t gfp, struct mem_cgroup *memcg,
-+				   int prio) {}
-+static inline void vmpressure_v1_init(struct vmpressure *vmpr) {}
-+static inline void vmpressure_v1_cleanup(struct vmpressure *vmpr) {}
-+static inline void vmpressure_v1_account_tree(struct vmpressure *vmpr,
-+					      unsigned long scanned,
-+					      unsigned long reclaimed) {}
-+#endif /* CONFIG_MEMCG_V1 */
-+
-+#else /* !CONFIG_MEMCG */
- static inline void vmpressure(gfp_t gfp, int order, struct mem_cgroup *memcg,
- 			      bool tree, unsigned long scanned,
- 			      unsigned long reclaimed) {}
---- a/mm/Makefile~mm-vmpressure-split-v1-userspace-eventfd-code-into-vmpressure-v1c
-+++ a/mm/Makefile
-@@ -101,7 +101,7 @@ obj-$(CONFIG_DEVICE_MIGRATION) += migrat
- obj-$(CONFIG_TRANSPARENT_HUGEPAGE) += huge_memory.o khugepaged.o
- obj-$(CONFIG_PAGE_COUNTER) += page_counter.o
- obj-$(CONFIG_LIVEUPDATE_MEMFD) += memfd_luo.o
--obj-$(CONFIG_MEMCG_V1) += memcontrol-v1.o
-+obj-$(CONFIG_MEMCG_V1) += memcontrol-v1.o vmpressure-v1.o
- obj-$(CONFIG_MEMCG) += memcontrol.o vmpressure.o
- ifdef CONFIG_BPF_SYSCALL
- obj-$(CONFIG_MEMCG) += bpf_memcontrol.o
---- a/mm/vmpressure.c~mm-vmpressure-split-v1-userspace-eventfd-code-into-vmpressure-v1c
-+++ a/mm/vmpressure.c
-@@ -7,16 +7,15 @@
-  *
-  * Based on ideas from Andrew Morton, David Rientjes, KOSAKI Motohiro,
-  * Leonid Moiseichuk, Mel Gorman, Minchan Kim and Pekka Enberg.
-+ *
-+ * Tree-mode (cgroup v1 userspace eventfd) bookkeeping lives in
-+ * mm/vmpressure-v1.c; this file holds the shared code and the in-kernel
-+ * (tree=false) socket-pressure path that runs on cgroup v2.
-  */
- 
- #include <linux/cgroup.h>
--#include <linux/fs.h>
- #include <linux/log2.h>
--#include <linux/sched.h>
- #include <linux/mm.h>
--#include <linux/vmstat.h>
--#include <linux/eventfd.h>
--#include <linux/slab.h>
- #include <linux/swap.h>
- #include <linux/printk.h>
- #include <linux/vmpressure.h>
-@@ -35,7 +34,7 @@
-  * TODO: Make the window size depend on machine size, as we do for vmstat
-  * thresholds. Currently we set it to 512 pages (2MB for 4KB pages).
-  */
--static const unsigned long vmpressure_win = SWAP_CLUSTER_MAX * 16;
-+const unsigned long vmpressure_win = SWAP_CLUSTER_MAX * 16;
- 
- /*
-  * These thresholds are used when we account memory pressure through
-@@ -46,68 +45,6 @@ static const unsigned long vmpressure_wi
- static const unsigned int vmpressure_level_med = 60;
- static const unsigned int vmpressure_level_critical = 95;
- 
--/*
-- * When there are too little pages left to scan, vmpressure() may miss the
-- * critical pressure as number of pages will be less than "window size".
-- * However, in that case the vmscan priority will raise fast as the
-- * reclaimer will try to scan LRUs more deeply.
-- *
-- * The vmscan logic considers these special priorities:
-- *
-- * prio == DEF_PRIORITY (12): reclaimer starts with that value
-- * prio <= DEF_PRIORITY - 2 : kswapd becomes somewhat overwhelmed
-- * prio == 0                : close to OOM, kernel scans every page in an lru
-- *
-- * Any value in this range is acceptable for this tunable (i.e. from 12 to
-- * 0). Current value for the vmpressure_level_critical_prio is chosen
-- * empirically, but the number, in essence, means that we consider
-- * critical level when scanning depth is ~10% of the lru size (vmscan
-- * scans 'lru_size >> prio' pages, so it is actually 12.5%, or one
-- * eights).
-- */
--static const unsigned int vmpressure_level_critical_prio = ilog2(100 / 10);
--
--static struct vmpressure *work_to_vmpressure(struct work_struct *work)
--{
--	return container_of(work, struct vmpressure, work);
--}
--
--static struct vmpressure *vmpressure_parent(struct vmpressure *vmpr)
--{
--	struct mem_cgroup *memcg = vmpressure_to_memcg(vmpr);
--
--	memcg = parent_mem_cgroup(memcg);
--	if (!memcg)
--		return NULL;
--	return memcg_to_vmpressure(memcg);
--}
--
--enum vmpressure_levels {
--	VMPRESSURE_LOW = 0,
--	VMPRESSURE_MEDIUM,
--	VMPRESSURE_CRITICAL,
--	VMPRESSURE_NUM_LEVELS,
--};
--
--enum vmpressure_modes {
--	VMPRESSURE_NO_PASSTHROUGH = 0,
--	VMPRESSURE_HIERARCHY,
--	VMPRESSURE_LOCAL,
--	VMPRESSURE_NUM_MODES,
--};
--
--static const char * const vmpressure_str_levels[] = {
--	[VMPRESSURE_LOW] = "low",
--	[VMPRESSURE_MEDIUM] = "medium",
--	[VMPRESSURE_CRITICAL] = "critical",
--};
--
--static const char * const vmpressure_str_modes[] = {
--	[VMPRESSURE_NO_PASSTHROUGH] = "default",
--	[VMPRESSURE_HIERARCHY] = "hierarchy",
--	[VMPRESSURE_LOCAL] = "local",
--};
--
- static enum vmpressure_levels vmpressure_level(unsigned long pressure)
- {
- 	if (pressure >= vmpressure_level_critical)
-@@ -117,8 +54,8 @@ static enum vmpressure_levels vmpressure
- 	return VMPRESSURE_LOW;
- }
- 
--static enum vmpressure_levels vmpressure_calc_level(unsigned long scanned,
--						    unsigned long reclaimed)
-+enum vmpressure_levels vmpressure_calc_level(unsigned long scanned,
-+					     unsigned long reclaimed)
- {
- 	unsigned long scale = scanned + reclaimed;
- 	unsigned long pressure = 0;
-@@ -147,74 +84,6 @@ out:
- 	return vmpressure_level(pressure);
- }
- 
--struct vmpressure_event {
--	struct eventfd_ctx *efd;
--	enum vmpressure_levels level;
--	enum vmpressure_modes mode;
--	struct list_head node;
--};
--
--static bool vmpressure_event(struct vmpressure *vmpr,
--			     const enum vmpressure_levels level,
--			     bool ancestor, bool signalled)
--{
--	struct vmpressure_event *ev;
--	bool ret = false;
--
--	mutex_lock(&vmpr->events_lock);
--	list_for_each_entry(ev, &vmpr->events, node) {
--		if (ancestor && ev->mode == VMPRESSURE_LOCAL)
--			continue;
--		if (signalled && ev->mode == VMPRESSURE_NO_PASSTHROUGH)
--			continue;
--		if (level < ev->level)
--			continue;
--		eventfd_signal(ev->efd);
--		ret = true;
--	}
--	mutex_unlock(&vmpr->events_lock);
--
--	return ret;
--}
--
--static void vmpressure_work_fn(struct work_struct *work)
--{
--	struct vmpressure *vmpr = work_to_vmpressure(work);
--	unsigned long scanned;
--	unsigned long reclaimed;
--	enum vmpressure_levels level;
--	bool ancestor = false;
--	bool signalled = false;
--
--	spin_lock(&vmpr->sr_lock);
--	/*
--	 * Several contexts might be calling vmpressure(), so it is
--	 * possible that the work was rescheduled again before the old
--	 * work context cleared the counters. In that case we will run
--	 * just after the old work returns, but then scanned might be zero
--	 * here. No need for any locks here since we don't care if
--	 * vmpr->reclaimed is in sync.
--	 */
--	scanned = vmpr->tree_scanned;
--	if (!scanned) {
--		spin_unlock(&vmpr->sr_lock);
--		return;
--	}
--
--	reclaimed = vmpr->tree_reclaimed;
--	vmpr->tree_scanned = 0;
--	vmpr->tree_reclaimed = 0;
--	spin_unlock(&vmpr->sr_lock);
--
--	level = vmpressure_calc_level(scanned, reclaimed);
--
--	do {
--		if (vmpressure_event(vmpr, level, ancestor, signalled))
--			signalled = true;
--		ancestor = true;
--	} while ((vmpr = vmpressure_parent(vmpr)));
--}
--
- /**
-  * vmpressure() - Account memory pressure through scanned/reclaimed ratio
-  * @gfp:	reclaimer's gfp mask
-@@ -283,14 +152,7 @@ void vmpressure(gfp_t gfp, int order, st
- 		return;
- 
- 	if (tree) {
--		spin_lock(&vmpr->sr_lock);
--		scanned = vmpr->tree_scanned += scanned;
--		vmpr->tree_reclaimed += reclaimed;
--		spin_unlock(&vmpr->sr_lock);
--
--		if (scanned < vmpressure_win)
--			return;
--		schedule_work(&vmpr->work);
-+		vmpressure_v1_account_tree(vmpr, scanned, reclaimed);
- 	} else {
- 		enum vmpressure_levels level;
- 
-@@ -333,134 +195,6 @@ void vmpressure(gfp_t gfp, int order, st
- }
- 
- /**
-- * vmpressure_prio() - Account memory pressure through reclaimer priority level
-- * @gfp:	reclaimer's gfp mask
-- * @memcg:	cgroup memory controller handle
-- * @prio:	reclaimer's priority
-- *
-- * This function should be called from the reclaim path every time when
-- * the vmscan's reclaiming priority (scanning depth) changes.
-- *
-- * This function does not return any value.
-- */
--void vmpressure_prio(gfp_t gfp, struct mem_cgroup *memcg, int prio)
--{
--	/*
--	 * We only use prio for accounting critical level. For more info
--	 * see comment for vmpressure_level_critical_prio variable above.
--	 */
--	if (prio > vmpressure_level_critical_prio)
--		return;
--
--	/*
--	 * OK, the prio is below the threshold, updating vmpressure
--	 * information before shrinker dives into long shrinking of long
--	 * range vmscan. Passing scanned = vmpressure_win, reclaimed = 0
--	 * to the vmpressure() basically means that we signal 'critical'
--	 * level.
--	 */
--	vmpressure(gfp, 0, memcg, true, vmpressure_win, 0);
--}
--
--#define MAX_VMPRESSURE_ARGS_LEN	(strlen("critical") + strlen("hierarchy") + 2)
--
--/**
-- * vmpressure_register_event() - Bind vmpressure notifications to an eventfd
-- * @memcg:	memcg that is interested in vmpressure notifications
-- * @eventfd:	eventfd context to link notifications with
-- * @args:	event arguments (pressure level threshold, optional mode)
-- *
-- * This function associates eventfd context with the vmpressure
-- * infrastructure, so that the notifications will be delivered to the
-- * @eventfd. The @args parameter is a comma-delimited string that denotes a
-- * pressure level threshold (one of vmpressure_str_levels, i.e. "low", "medium",
-- * or "critical") and an optional mode (one of vmpressure_str_modes, i.e.
-- * "hierarchy" or "local").
-- *
-- * To be used as memcg event method.
-- *
-- * Return: 0 on success, -ENOMEM on memory failure or -EINVAL if @args could
-- * not be parsed.
-- */
--int vmpressure_register_event(struct mem_cgroup *memcg,
--			      struct eventfd_ctx *eventfd, const char *args)
--{
--	struct vmpressure *vmpr = memcg_to_vmpressure(memcg);
--	struct vmpressure_event *ev;
--	enum vmpressure_modes mode = VMPRESSURE_NO_PASSTHROUGH;
--	enum vmpressure_levels level;
--	char *spec, *spec_orig;
--	char *token;
--	int ret = 0;
--
--	spec_orig = spec = kstrndup(args, MAX_VMPRESSURE_ARGS_LEN, GFP_KERNEL);
--	if (!spec)
--		return -ENOMEM;
--
--	/* Find required level */
--	token = strsep(&spec, ",");
--	ret = match_string(vmpressure_str_levels, VMPRESSURE_NUM_LEVELS, token);
--	if (ret < 0)
--		goto out;
--	level = ret;
--
--	/* Find optional mode */
--	token = strsep(&spec, ",");
--	if (token) {
--		ret = match_string(vmpressure_str_modes, VMPRESSURE_NUM_MODES, token);
--		if (ret < 0)
--			goto out;
--		mode = ret;
--	}
--
--	ev = kzalloc_obj(*ev);
--	if (!ev) {
--		ret = -ENOMEM;
--		goto out;
--	}
--
--	ev->efd = eventfd;
--	ev->level = level;
--	ev->mode = mode;
--
--	mutex_lock(&vmpr->events_lock);
--	list_add(&ev->node, &vmpr->events);
--	mutex_unlock(&vmpr->events_lock);
--	ret = 0;
--out:
--	kfree(spec_orig);
--	return ret;
--}
--
--/**
-- * vmpressure_unregister_event() - Unbind eventfd from vmpressure
-- * @memcg:	memcg handle
-- * @eventfd:	eventfd context that was used to link vmpressure with the @cg
-- *
-- * This function does internal manipulations to detach the @eventfd from
-- * the vmpressure notifications, and then frees internal resources
-- * associated with the @eventfd (but the @eventfd itself is not freed).
-- *
-- * To be used as memcg event method.
-- */
--void vmpressure_unregister_event(struct mem_cgroup *memcg,
--				 struct eventfd_ctx *eventfd)
--{
--	struct vmpressure *vmpr = memcg_to_vmpressure(memcg);
--	struct vmpressure_event *ev;
--
--	mutex_lock(&vmpr->events_lock);
--	list_for_each_entry(ev, &vmpr->events, node) {
--		if (ev->efd != eventfd)
--			continue;
--		list_del(&ev->node);
--		kfree(ev);
--		break;
--	}
--	mutex_unlock(&vmpr->events_lock);
--}
--
--/**
-  * vmpressure_init() - Initialize vmpressure control structure
-  * @vmpr:	Structure to be initialized
-  *
-@@ -470,9 +204,7 @@ void vmpressure_unregister_event(struct
- void vmpressure_init(struct vmpressure *vmpr)
- {
- 	spin_lock_init(&vmpr->sr_lock);
--	mutex_init(&vmpr->events_lock);
--	INIT_LIST_HEAD(&vmpr->events);
--	INIT_WORK(&vmpr->work, vmpressure_work_fn);
-+	vmpressure_v1_init(vmpr);
- }
- 
- /**
-@@ -484,9 +216,5 @@ void vmpressure_init(struct vmpressure *
-  */
- void vmpressure_cleanup(struct vmpressure *vmpr)
- {
--	/*
--	 * Make sure there is no pending work before eventfd infrastructure
--	 * goes away.
--	 */
--	flush_work(&vmpr->work);
-+	vmpressure_v1_cleanup(vmpr);
- }
-diff --git a/mm/vmpressure-v1.c a/mm/vmpressure-v1.c
-new file mode 100644
---- /dev/null
-+++ a/mm/vmpressure-v1.c
-@@ -0,0 +1,305 @@
-+// SPDX-License-Identifier: GPL-2.0-only
-+/*
-+ * cgroup v1 userspace vmpressure interface (memory.pressure_level /
-+ * cgroup.event_control). Split out of mm/vmpressure.c so that v2-only
-+ * kernels (CONFIG_MEMCG_V1=n) drop the whole eventfd accumulator,
-+ * its work item, and the per-memcg state it requires.
-+ */
-+
-+#include <linux/cgroup.h>
-+#include <linux/eventfd.h>
-+#include <linux/list.h>
-+#include <linux/log2.h>
-+#include <linux/memcontrol.h>
-+#include <linux/mutex.h>
-+#include <linux/slab.h>
-+#include <linux/string.h>
-+#include <linux/swap.h>
-+#include <linux/vmpressure.h>
-+#include <linux/workqueue.h>
-+
-+/*
-+ * When there are too little pages left to scan, vmpressure() may miss the
-+ * critical pressure as number of pages will be less than "window size".
-+ * However, in that case the vmscan priority will raise fast as the
-+ * reclaimer will try to scan LRUs more deeply.
-+ *
-+ * The vmscan logic considers these special priorities:
-+ *
-+ * prio == DEF_PRIORITY (12): reclaimer starts with that value
-+ * prio <= DEF_PRIORITY - 2 : kswapd becomes somewhat overwhelmed
-+ * prio == 0                : close to OOM, kernel scans every page in an lru
-+ *
-+ * Any value in this range is acceptable for this tunable (i.e. from 12 to
-+ * 0). Current value for the vmpressure_level_critical_prio is chosen
-+ * empirically, but the number, in essence, means that we consider
-+ * critical level when scanning depth is ~10% of the lru size (vmscan
-+ * scans 'lru_size >> prio' pages, so it is actually 12.5%, or one
-+ * eights).
-+ */
-+static const unsigned int vmpressure_level_critical_prio = ilog2(100 / 10);
-+
-+enum vmpressure_modes {
-+	VMPRESSURE_NO_PASSTHROUGH = 0,
-+	VMPRESSURE_HIERARCHY,
-+	VMPRESSURE_LOCAL,
-+	VMPRESSURE_NUM_MODES,
-+};
-+
-+static const char * const vmpressure_str_levels[] = {
-+	[VMPRESSURE_LOW] = "low",
-+	[VMPRESSURE_MEDIUM] = "medium",
-+	[VMPRESSURE_CRITICAL] = "critical",
-+};
-+
-+static const char * const vmpressure_str_modes[] = {
-+	[VMPRESSURE_NO_PASSTHROUGH] = "default",
-+	[VMPRESSURE_HIERARCHY] = "hierarchy",
-+	[VMPRESSURE_LOCAL] = "local",
-+};
-+
-+struct vmpressure_event {
-+	struct eventfd_ctx *efd;
-+	enum vmpressure_levels level;
-+	enum vmpressure_modes mode;
-+	struct list_head node;
-+};
-+
-+static struct vmpressure *work_to_vmpressure(struct work_struct *work)
-+{
-+	return container_of(work, struct vmpressure, work);
-+}
-+
-+static struct vmpressure *vmpressure_parent(struct vmpressure *vmpr)
-+{
-+	struct mem_cgroup *memcg = vmpressure_to_memcg(vmpr);
-+
-+	memcg = parent_mem_cgroup(memcg);
-+	if (!memcg)
-+		return NULL;
-+	return memcg_to_vmpressure(memcg);
-+}
-+
-+static bool vmpressure_event(struct vmpressure *vmpr,
-+			     const enum vmpressure_levels level,
-+			     bool ancestor, bool signalled)
-+{
-+	struct vmpressure_event *ev;
-+	bool ret = false;
-+
-+	mutex_lock(&vmpr->events_lock);
-+	list_for_each_entry(ev, &vmpr->events, node) {
-+		if (ancestor && ev->mode == VMPRESSURE_LOCAL)
-+			continue;
-+		if (signalled && ev->mode == VMPRESSURE_NO_PASSTHROUGH)
-+			continue;
-+		if (level < ev->level)
-+			continue;
-+		eventfd_signal(ev->efd);
-+		ret = true;
-+	}
-+	mutex_unlock(&vmpr->events_lock);
-+
-+	return ret;
-+}
-+
-+static void vmpressure_work_fn(struct work_struct *work)
-+{
-+	struct vmpressure *vmpr = work_to_vmpressure(work);
-+	unsigned long scanned;
-+	unsigned long reclaimed;
-+	enum vmpressure_levels level;
-+	bool ancestor = false;
-+	bool signalled = false;
-+
-+	spin_lock(&vmpr->sr_lock);
-+	/*
-+	 * Several contexts might be calling vmpressure(), so it is
-+	 * possible that the work was rescheduled again before the old
-+	 * work context cleared the counters. In that case we will run
-+	 * just after the old work returns, but then scanned might be zero
-+	 * here. No need for any locks here since we don't care if
-+	 * vmpr->reclaimed is in sync.
-+	 */
-+	scanned = vmpr->tree_scanned;
-+	if (!scanned) {
-+		spin_unlock(&vmpr->sr_lock);
-+		return;
-+	}
-+
-+	reclaimed = vmpr->tree_reclaimed;
-+	vmpr->tree_scanned = 0;
-+	vmpr->tree_reclaimed = 0;
-+	spin_unlock(&vmpr->sr_lock);
-+
-+	level = vmpressure_calc_level(scanned, reclaimed);
-+
-+	do {
-+		if (vmpressure_event(vmpr, level, ancestor, signalled))
-+			signalled = true;
-+		ancestor = true;
-+	} while ((vmpr = vmpressure_parent(vmpr)));
-+}
-+
-+/*
-+ * Tree-mode accumulator: accumulate per-memcg scanned/reclaimed and
-+ * schedule the work that walks the parent chain and signals registered
-+ * eventfd listeners once we cross the window threshold.
-+ */
-+void vmpressure_v1_account_tree(struct vmpressure *vmpr,
-+				unsigned long scanned,
-+				unsigned long reclaimed)
-+{
-+	spin_lock(&vmpr->sr_lock);
-+	scanned = vmpr->tree_scanned += scanned;
-+	vmpr->tree_reclaimed += reclaimed;
-+	spin_unlock(&vmpr->sr_lock);
-+
-+	if (scanned < vmpressure_win)
-+		return;
-+	schedule_work(&vmpr->work);
-+}
-+
-+void vmpressure_v1_init(struct vmpressure *vmpr)
-+{
-+	mutex_init(&vmpr->events_lock);
-+	INIT_LIST_HEAD(&vmpr->events);
-+	INIT_WORK(&vmpr->work, vmpressure_work_fn);
-+}
-+
-+void vmpressure_v1_cleanup(struct vmpressure *vmpr)
-+{
-+	/*
-+	 * Make sure there is no pending work before eventfd infrastructure
-+	 * goes away.
-+	 */
-+	flush_work(&vmpr->work);
-+}
-+
-+/**
-+ * vmpressure_prio() - Account memory pressure through reclaimer priority level
-+ * @gfp:	reclaimer's gfp mask
-+ * @memcg:	cgroup memory controller handle
-+ * @prio:	reclaimer's priority
-+ *
-+ * This function should be called from the reclaim path every time when
-+ * the vmscan's reclaiming priority (scanning depth) changes.
-+ *
-+ * This function does not return any value.
-+ */
-+void vmpressure_prio(gfp_t gfp, struct mem_cgroup *memcg, int prio)
-+{
-+	/*
-+	 * We only use prio for accounting critical level. For more info
-+	 * see comment for vmpressure_level_critical_prio variable above.
-+	 */
-+	if (prio > vmpressure_level_critical_prio)
-+		return;
-+
-+	/*
-+	 * OK, the prio is below the threshold, updating vmpressure
-+	 * information before shrinker dives into long shrinking of long
-+	 * range vmscan. Passing scanned = vmpressure_win, reclaimed = 0
-+	 * to the vmpressure() basically means that we signal 'critical'
-+	 * level.
-+	 */
-+	vmpressure(gfp, 0, memcg, true, vmpressure_win, 0);
-+}
-+
-+#define MAX_VMPRESSURE_ARGS_LEN	(strlen("critical") + strlen("hierarchy") + 2)
-+
-+/**
-+ * vmpressure_register_event() - Bind vmpressure notifications to an eventfd
-+ * @memcg:	memcg that is interested in vmpressure notifications
-+ * @eventfd:	eventfd context to link notifications with
-+ * @args:	event arguments (pressure level threshold, optional mode)
-+ *
-+ * This function associates eventfd context with the vmpressure
-+ * infrastructure, so that the notifications will be delivered to the
-+ * @eventfd. The @args parameter is a comma-delimited string that denotes a
-+ * pressure level threshold (one of vmpressure_str_levels, i.e. "low", "medium",
-+ * or "critical") and an optional mode (one of vmpressure_str_modes, i.e.
-+ * "hierarchy" or "local").
-+ *
-+ * To be used as memcg event method.
-+ *
-+ * Return: 0 on success, -ENOMEM on memory failure or -EINVAL if @args could
-+ * not be parsed.
-+ */
-+int vmpressure_register_event(struct mem_cgroup *memcg,
-+			      struct eventfd_ctx *eventfd, const char *args)
-+{
-+	struct vmpressure *vmpr = memcg_to_vmpressure(memcg);
-+	struct vmpressure_event *ev;
-+	enum vmpressure_modes mode = VMPRESSURE_NO_PASSTHROUGH;
-+	enum vmpressure_levels level;
-+	char *spec, *spec_orig;
-+	char *token;
-+	int ret = 0;
-+
-+	spec_orig = spec = kstrndup(args, MAX_VMPRESSURE_ARGS_LEN, GFP_KERNEL);
-+	if (!spec)
-+		return -ENOMEM;
-+
-+	/* Find required level */
-+	token = strsep(&spec, ",");
-+	ret = match_string(vmpressure_str_levels, VMPRESSURE_NUM_LEVELS, token);
-+	if (ret < 0)
-+		goto out;
-+	level = ret;
-+
-+	/* Find optional mode */
-+	token = strsep(&spec, ",");
-+	if (token) {
-+		ret = match_string(vmpressure_str_modes, VMPRESSURE_NUM_MODES, token);
-+		if (ret < 0)
-+			goto out;
-+		mode = ret;
-+	}
-+
-+	ev = kzalloc_obj(*ev);
-+	if (!ev) {
-+		ret = -ENOMEM;
-+		goto out;
-+	}
-+
-+	ev->efd = eventfd;
-+	ev->level = level;
-+	ev->mode = mode;
-+
-+	mutex_lock(&vmpr->events_lock);
-+	list_add(&ev->node, &vmpr->events);
-+	mutex_unlock(&vmpr->events_lock);
-+	ret = 0;
-+out:
-+	kfree(spec_orig);
-+	return ret;
-+}
-+
-+/**
-+ * vmpressure_unregister_event() - Unbind eventfd from vmpressure
-+ * @memcg:	memcg handle
-+ * @eventfd:	eventfd context that was used to link vmpressure with the @cg
-+ *
-+ * This function does internal manipulations to detach the @eventfd from
-+ * the vmpressure notifications, and then frees internal resources
-+ * associated with the @eventfd (but the @eventfd itself is not freed).
-+ *
-+ * To be used as memcg event method.
-+ */
-+void vmpressure_unregister_event(struct mem_cgroup *memcg,
-+				 struct eventfd_ctx *eventfd)
-+{
-+	struct vmpressure *vmpr = memcg_to_vmpressure(memcg);
-+	struct vmpressure_event *ev;
-+
-+	mutex_lock(&vmpr->events_lock);
-+	list_for_each_entry(ev, &vmpr->events, node) {
-+		if (ev->efd != eventfd)
-+			continue;
-+		list_del(&ev->node);
-+		kfree(ev);
-+		break;
-+	}
-+	mutex_unlock(&vmpr->events_lock);
-+}
+ #ifdef DCACHE_ALIASING_POSSIBLE
+ #define __HAVE_ARCH_MOVE_PTE
+ #define move_pte(pte, old_addr, new_addr)				\
 _
 
-Patches currently in -mm which might be from usama.arif@linux.dev are
+Patches currently in -mm which might be from david@kernel.org are
 
-mm-swap_state-remove-unnecessary-lru_add_drain-from-readahead.patch
-mm-vmpressure-skip-tree=true-accounting-on-cgroup-v2.patch
-mm-vmpressure-split-v1-userspace-eventfd-code-into-vmpressure-v1c.patch
+sparc-mm-drop-custom-pte_clear_not_present_full.patch
+mm-drop-pte_clear_not_present_full.patch
+mm-cleanup-clear_not_present_full_ptes-and-rename-to-clear_non_present_ptes.patch
 
