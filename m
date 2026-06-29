@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D9D8637FF4D
-	for <mm-commits@vger.kernel.org>; Mon, 29 Jun 2026 17:44:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D992537FF4D
+	for <mm-commits@vger.kernel.org>; Mon, 29 Jun 2026 17:44:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782755044; cv=none; b=C2EG9iJyFIqLDlCin8cL2Ho35m5vxbnE9HOYhhiInXFD4GpIJJu0Sm4R2BdEtGDJ/G4IDYQjNfxrT3WQrVRCs6V+pNo7H8501cT47FeNy+mCOHYgSAAT46koUKYSHexPLrsUvVIH4PICDWq75RXtKJWxsIjiO4I7M534k7HTBS8=
+	t=1782755046; cv=none; b=UaQCUWoX8llS89yx8fPf7+vQ4+dLuN9bnYYgPjLYrtKPrmQUldOatOIfWJkxIyydmRlAmlO4PDv4crAJT6f2i3JDbWOvad359DqvKclOD0AucUQQd1rsivfKQMDa6ogNWorHaQ2c2JtNvCs5IFsQ7Ge4pieNjdINzR04Y7zFOYw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782755044; c=relaxed/simple;
-	bh=MDf/JwmMPT+KvVf6Acy6DLSwUqOK4Q2KRCItPoe0Rjc=;
-	h=Date:To:From:Subject:Message-Id; b=KJIZCcxFanIh+GR/P0p5svlNf/09GFSlo7o56CqPxfFjjXWzF+dARTVF+LyHX6LJizlCwZ/vrlloz5nratE+iv8a6fVKQvj1mA9P45u4LfInW4cgeLN2SVsMSlNhIB0hVoyHWftmiMwtjf/DTp+kEliD0Kdz+ogFqx2egdlqR5Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hzFEzu9y; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1782755046; c=relaxed/simple;
+	bh=DUtu8yJSALP2bSJ3QiMeUZUMIIJxD6vXQErUbMKaTJQ=;
+	h=Date:To:From:Subject:Message-Id; b=qccaQIF+QPJ4B/AGkGXIsMyWNQoWC0xpsQTxAUSqTdoAdDMLdgkBWdDywmeZ8xqrfF8gfI5Spk1hSFbUt5cCc30JTaLY4c2PalPeNpHsgEZXMfNwB0WWEQRg5bKi7LLs4qXzemlXCPa95g1/TxeZvF/8WBl7LLK7bAJC/YgrjRA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=eprEyfN0; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hzFEzu9y"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7B0761F000E9;
-	Mon, 29 Jun 2026 17:44:02 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="eprEyfN0"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6413E1F00ACF;
+	Mon, 29 Jun 2026 17:44:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1782755042;
-	bh=vREUpUvH9UqFSkPsmMUdtm3hNVxw7N9y1/daMb8Ehps=;
+	d=linux-foundation.org; s=korg; t=1782755044;
+	bh=Br3tmf2u+Uc6hoyWRkRyQHIQ67teUdYLXpzjTk6oFv4=;
 	h=Date:To:From:Subject;
-	b=hzFEzu9yujQAtlwRfBAZkNL7qYEDeYQ5QWaC3OEoGxIs9zPdCI0086mqQhTtr0X74
-	 dtb1n15AJtabrgGvtcfuqZb3WQmFaX+WpGSBAfAoB1WM00nOPyxArSJ4lnoe/uh1Yx
-	 lWUntwVNnmoXcgJiwhgCC7FE/eu74jttyH43BjHE=
-Date: Mon, 29 Jun 2026 10:44:02 -0700
+	b=eprEyfN0zKkyeuDXR4IgvL83kD1/kx6G2L0fsJ9tSorlGR+zkdjQLhjP0U+KYnEBX
+	 8xMdAFNwPONQTfXeSJrcb/+STBGgoT8XzRVJUtkLVCX+edLE+Cfs4IWzPtn8tUQ9FM
+	 JQRGx9rjJug5Gkj5QWMdidxO6Yu0UBjLhxCZ1e1Q=
+Date: Mon, 29 Jun 2026 10:44:04 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,lianux.mm@gmail.com,chentao@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-damon-prevent-cross-context-state-pollution-in-damonctx.patch added to mm-new branch
-Message-Id: <20260629174402.7B0761F000E9@smtp.kernel.org>
+Subject: + selftests-damon-damos_tried_regions-fix-expectation-output-and-join-typeerror.patch added to mm-new branch
+Message-Id: <20260629174404.6413E1F00ACF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/damon: prevent cross-context state pollution in DamonCtx
+     Subject: selftests/damon/damos_tried_regions: fix expectation output and join TypeError
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-damon-prevent-cross-context-state-pollution-in-damonctx.patch
+     selftests-damon-damos_tried_regions-fix-expectation-output-and-join-typeerror.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-damon-prevent-cross-context-state-pollution-in-damonctx.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-damon-damos_tried_regions-fix-expectation-output-and-join-typeerror.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,38 +70,18 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Kunwu Chan <chentao@kylinos.cn>
-Subject: selftests/damon: prevent cross-context state pollution in DamonCtx
-Date: Mon, 29 Jun 2026 07:46:44 -0700
+Subject: selftests/damon/damos_tried_regions: fix expectation output and join TypeError
+Date: Mon, 29 Jun 2026 07:46:45 -0700
 
-Patch series "selftests/damon: misc fixes for test bugs", v3.
+The expectation print has wrong operator precedence: '%' binds before the
+conditional expression, so the else branch prints 'not met' without the
+prefix 'expectation (>= 14) is'.  Add parentheses to fix it.
 
-This series fixes several bugs in the DAMON selftests.  Most are trivial
-but makes test output wrong or even silently pass the one test case for
-'avail_operation' file existence check.
+Also, '\n'.join() on the list of ints raises TypeError; convert to str in
+the list comprehension.
 
-Patch 1 fixes mutable default arguments in DamonCtx.__init__() that cause
-state to leak between test instances.
-
-Patch 2 fixes wrong operator precedence and join TypeError in
-damos_tried_regions.py.
-
-Patch 3 fixes several wrong strings that produce dead elif branches,
-skipped file existence checks, and broken dict key lookups.
-
-
-This patch (of 3):
-
-DamonCtx.__init__() uses mutable default values for monitoring_attrs,
-targets, and schemes.  In Python these are evaluated once at function
-definition time, so multiple DamonCtx instances can unintentionally share
-the same lists and DamonAttrs instance.
-
-Replace the mutable defaults with None sentinels and initialize the
-objects when needed.
-
-Link: https://lore.kernel.org/20260629144648.134092-1-sj@kernel.org
-Link: https://lore.kernel.org/20260601032314.424013-2-kunwu.chan@linux.dev
-Link: https://lore.kernel.org/20260629144648.134092-2-sj@kernel.org
+Link: https://lore.kernel.org/20260601032314.424013-3-kunwu.chan@linux.dev
+Link: https://lore.kernel.org/20260629144648.134092-3-sj@kernel.org
 Co-developed-by: Wang Lian <lianux.mm@gmail.com>
 Signed-off-by: Wang Lian <lianux.mm@gmail.com>
 Signed-off-by: Kunwu Chan <chentao@kylinos.cn>
@@ -112,37 +92,24 @@ Cc: Wang Lian <lianux.mm@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/damon/_damon_sysfs.py |   10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+ tools/testing/selftests/damon/damos_tried_regions.py |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/tools/testing/selftests/damon/_damon_sysfs.py~selftests-damon-prevent-cross-context-state-pollution-in-damonctx
-+++ a/tools/testing/selftests/damon/_damon_sysfs.py
-@@ -624,17 +624,23 @@ class DamonCtx:
-     pause = None
-     idx = None
+--- a/tools/testing/selftests/damon/damos_tried_regions.py~selftests-damon-damos_tried_regions-fix-expectation-output-and-join-typeerror
++++ a/tools/testing/selftests/damon/damos_tried_regions.py
+@@ -55,10 +55,10 @@ def main():
+     collected_nr_regions.sort()
+     sample = collected_nr_regions[4]
+     print('50-th percentile nr_regions: %d' % sample)
+-    print('expectation (>= 14) is %s' % 'met' if sample >= 14 else 'not met')
++    print('expectation (>= 14) is %s' % ('met' if sample >= 14 else 'not met'))
+     if collected_nr_regions[4] < 14:
+         print('full nr_regions:')
+-        print('\n'.join(collected_nr_regions))
++        print('\n'.join(['%d' % x for x in collected_nr_regions]))
+         exit(1)
  
--    def __init__(self, ops='paddr', monitoring_attrs=DamonAttrs(), targets=[],
--            schemes=[], pause=False):
-+    def __init__(self, ops='paddr', monitoring_attrs=None, targets=None,
-+            schemes=None, pause=False):
-         self.ops = ops
-+        if monitoring_attrs is None:
-+            monitoring_attrs = DamonAttrs()
-         self.monitoring_attrs = monitoring_attrs
-         self.monitoring_attrs.context = self
- 
-+        if targets is None:
-+            targets = []
-         self.targets = targets
-         for idx, target in enumerate(self.targets):
-             target.idx = idx
-             target.context = self
- 
-+        if schemes is None:
-+            schemes = []
-         self.schemes = schemes
-         for idx, scheme in enumerate(self.schemes):
-             scheme.idx = idx
+ if __name__ == '__main__':
 _
 
 Patches currently in -mm which might be from chentao@kylinos.cn are
