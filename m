@@ -1,32 +1,23 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C03F0309EFC
-	for <mm-commits@vger.kernel.org>; Mon, 29 Jun 2026 05:03:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AEE5B317148
+	for <mm-commits@vger.kernel.org>; Mon, 29 Jun 2026 05:03:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782709433; cv=none; b=lHT9/roGFuO88WziiIAoN5sTQQ2lp7E9Po+g80jzEJQFD6x9cqTnu4uNbbGN1Sb8NjTQqDrVhOFQM0OmOmImPj3+MQnUKHV8upYCrGo3GtihNuZJuMkwlffF6FdBZVVO+KpubFPWQAnlLr6GXhmXZuxvDu1HCWxuEuYUgndJ7gs=
+	t=1782709435; cv=none; b=l9j3SZZLHf8j9M41AkqJOUy3zdrQjxEHk2r9OMvZgnQRHPRtFnvMhxksmorIQJfDCrTTCBO+ilKDIMmkKZ3vFRWj28ffj2F7FlEisXuWzIwkgDsp5qRKVBYsXVoFpJ/hSCsNOso1FrrZPHZW+VFTrvRpPLVwi4hnnqd6hc3rrts=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782709433; c=relaxed/simple;
-	bh=0Kljec2+LcLa3x7jVceNDSXMHukmXY0ihj12F/HRxdI=;
-	h=Date:To:From:Subject:Message-Id; b=lujpz3DHO5tZz68NDn4Bz2lkvz+QJSVVij1nJ/qxec1JkepyImEGAklQYJAy0YFQooBRyUW2tlE0JpPurlg1q5SPUx3lvrWzfx3kR99z6M8EtptSSWdrXeKMy761AWPuWl1d/zoQaZNsfpijM4YErdBFxFc9zuGVwc23E2Y5LCM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=g15i4sm+; arc=none smtp.client-ip=100.103.45.18
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="g15i4sm+"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3A3A91F000E9;
-	Mon, 29 Jun 2026 05:03:52 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1782709432;
-	bh=RbBX67dQYcF4P1VwJ43UFce9ELJs9jzIJO/y5SQJHE8=;
-	h=Date:To:From:Subject;
-	b=g15i4sm+EBMdzk3btKRj9a6ccj3z3i7QpVpgS5O4lrTwn3Er+OoYnVvKh/a3vhW/i
-	 sMPLXr/o5XLWd3d6FyM0IqVqBp+TTi6GJq3s07APdAaEBprvh600j9ijyELbfLCefZ
-	 G6WCALcdlrFGzxi8106mn9fZKZPlvmW4f7UcH4B4=
-Date: Sun, 28 Jun 2026 22:03:51 -0700
+	s=arc-20240116; t=1782709435; c=relaxed/simple;
+	bh=nMyFGhvpIg3j06tziM+bjgm4uwM192nO//ItLFuf5S8=;
+	h=Date:To:From:Subject:Message-Id; b=vBJbw+AHv+5NWEsCXfDXGrTI0FFgs1KemhhDDK4Xy56oAQJ11jLpsdAQcshe6djD+qEni85vb85wKRU3cGCweD2G8mfXL9RLSMis2Qhwp93Jwatnq1PuxFPn5HghT9/WNz+tgORUMa0qMyfAgGKyaa+XtV3l2FE5EhqRiA4ajUU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4451D1F000E9;
+	Mon, 29 Jun 2026 05:03:54 +0000 (UTC)
+Date: Sun, 28 Jun 2026 22:03:53 -0700
 To: mm-commits@vger.kernel.org,rdunlap@infradead.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-add-a-kernel-doc-comment-for-damon_ctx-probes.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260629050352.3A3A91F000E9@smtp.kernel.org>
+Subject: + mm-damon-add-a-kernel-doc-comment-for-damon_ctx-rnd_state.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260629050354.4451D1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +26,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon: add a kernel-doc comment for damon_ctx->probes
+     Subject: mm/damon: add a kernel-doc comment for damon_ctx->rnd_state
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-damon-add-a-kernel-doc-comment-for-damon_ctx-probes.patch
+     mm-damon-add-a-kernel-doc-comment-for-damon_ctx-rnd_state.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-add-a-kernel-doc-comment-for-damon_ctx-probes.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-add-a-kernel-doc-comment-for-damon_ctx-rnd_state.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,41 +50,42 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon: add a kernel-doc comment for damon_ctx->probes
-Date: Sun, 28 Jun 2026 15:08:03 -0700
+Subject: mm/damon: add a kernel-doc comment for damon_ctx->rnd_state
+Date: Sun, 28 Jun 2026 15:08:04 -0700
 
-The two fields of damon_ctx struct dont have their kernel-doc comments.
-That causes kernel document builds to warn.  Fix those.
+Fix below kernel document build warning:
 
+    WARNING: ../include/linux/damon.h:909 struct member 'rnd_state' not described in 'damon_ctx'
 
-This patch (of 2):
-
-Fix below document build warning:
-
-    WARNING: ../include/linux/damon.h:909 struct member 'probes' not described in 'damon_ctx'
-
-Link: https://lore.kernel.org/20260628220808.98931-1-sj@kernel.org
-Link: https://lore.kernel.org/20260628220808.98931-2-sj@kernel.org
-Fixes: 18c777859f28 ("mm/damon/core: embed damon_probe objects in damon_ctx")
+Link: https://lore.kernel.org/20260628220808.98931-3-sj@kernel.org
+Fixes: 9012c4e647df ("mm/damon: replace damon_rand() with a per-ctx lockless PRNG")
 Signed-off-by: SJ Park <sj@kernel.org>
 Reported-by: Randy Dunlap <rdunlap@infradead.org>
 Closes: https://lore.kernel.org/4df95955-b255-4e5a-90c4-35db02f3111f@infradead.org
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/damon.h |    1 +
- 1 file changed, 1 insertion(+)
+ include/linux/damon.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/damon.h~mm-damon-add-a-kernel-doc-comment-for-damon_ctx-probes
+--- a/include/linux/damon.h~mm-damon-add-a-kernel-doc-comment-for-damon_ctx-rnd_state
 +++ a/include/linux/damon.h
-@@ -841,6 +841,7 @@ struct damon_attrs {
-  * including damon_call() and damos_walk().
-  *
-  * @ops:	Set of monitoring operations for given use cases.
-+ * @probes:	Head of probes (&damon_probe) list.
-  * @addr_unit:	Scale factor for core to ops address conversion.
-  * @min_region_sz:	Minimum region size.
+@@ -847,6 +847,7 @@ struct damon_attrs {
   * @pause:	Pause kdamond main loop.
+  * @adaptive_targets:	Head of monitoring targets (&damon_target) list.
+  * @schemes:		Head of schemes (&damos) list.
++ * @rnd_state:	Per-ctx PRNG state for damon_rand().
+  */
+ struct damon_ctx {
+ 	struct damon_attrs attrs;
+@@ -904,7 +905,6 @@ struct damon_ctx {
+ 	struct list_head adaptive_targets;
+ 	struct list_head schemes;
+ 
+-	/* Per-ctx PRNG state for damon_rand(); kdamond is the sole consumer. */
+ 	struct rnd_state rnd_state;
+ };
+ 
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
