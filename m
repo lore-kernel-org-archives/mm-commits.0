@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 24360342C8B
-	for <mm-commits@vger.kernel.org>; Mon, 29 Jun 2026 23:32:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2170E2FD69E
+	for <mm-commits@vger.kernel.org>; Mon, 29 Jun 2026 23:59:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782775967; cv=none; b=QzZetZaiUOIRQOvECQc33WVPBhFmBALwwnAmC4m1Hntw2P7L4hbhw57PHIJbpxGjq0KTuBTubAPVHYZSGvlJWzn0ISxKLBRWl4NI6tYu/z9QEXqcnausVyAKB3KB9A+BGG4yoVAF0mCkOia1r6V06jyhfopTFPaTgYMdfRZJhhI=
+	t=1782777566; cv=none; b=HdvgbIoR3521ixIIUsvPKLVsfROfyb0PDkx76yJv5nJJJh6A81BpOk9bgSdS3Hsl2GK3nngBh38vjEK9F5qOokFgIhPYnLQjFDpoFt4iFtYvBHitFd4x2TiSDil4Vp7BQrq118y5sHpxrNNAR5p3uQRBoXsJkNF/nRW4PxmmwjI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782775967; c=relaxed/simple;
-	bh=fQN40+Du+srwkI20G0etr/hnypYsnhRyE/SGHJVYnH4=;
-	h=Date:To:From:Subject:Message-Id; b=bIK4q+vmV2Xf4iidjfwgEnZ0u2bBT7pQQQWeJ/NlOa032FWk/wHRToNW9PBo7+UtKaCBDqGoxStzcqrDQ4KXveJLc3OW3zykAXf/6yVdCcPbTfkMCpg8t1U+JhHEOhWEghNZPQDvFtH8mWf6Hp3HxPu/VxYXHa2rzabPwjw9/QQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=K9236wg2; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1782777566; c=relaxed/simple;
+	bh=yPvGQ+GVV6JM6qlTjipgfnFRiygY+6YU5RsUtI9eg/o=;
+	h=Date:To:From:Subject:Message-Id; b=C7fE7otdf2CQrxbYhBLLwenejGhjWMhqCEQ9J3BRK0SGmCAqbyo1//xcF+HoXsRJCHHk2tGf/Y5cKui8sYehBtztqvb8s1nNZKx/QsAUTNla8LzBh+RD/00IN+E0tVKzOtiiz0QZIRFaio4ObqH9CW3EgPZqYc8ETOUkNectjTQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rh4SIJQY; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="K9236wg2"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 81CB41F000E9;
-	Mon, 29 Jun 2026 23:32:45 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rh4SIJQY"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 93DFE1F000E9;
+	Mon, 29 Jun 2026 23:59:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1782775965;
-	bh=cNTUV/wb++sWo8TelQH2Py1Bx0SmeONnVNJLdZhJLjQ=;
+	d=linux-foundation.org; s=korg; t=1782777564;
+	bh=DSrgcNAsx4IxsnZUcGfsaVYIj12piQ4r1/4Zjj5Pn3Y=;
 	h=Date:To:From:Subject;
-	b=K9236wg2aQWu+DC7Co7lLvKFER3tXA0k6HODa2IoM07PhSpHzRAooFNuqV6Z6ukK9
-	 QDKnzMhKu/5hciNFnZ6nzMvc2EUp+cmLfrkkvby8GJJAtuzcGvJIsA/C9hZOKiT1GR
-	 28qAoYn+faK3becU0GdnraKkb/mYwV4e9ww+gcfM=
-Date: Mon, 29 Jun 2026 16:32:45 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,harry@kernel.org,hannes@cmpxchg.org,gourry@gourry.net,jackmanb@google.com,akpm@linux-foundation.org
+	b=rh4SIJQYx3uX868ZsMRuqHe5/aLGoffjgpyrZVa7OzXh6ygdlC+JGjudAMoeNyI92
+	 PSOzdj7rvyA3JqmPgqRMWTNk2tg3kVUWGhZK5D9REiMvWsDTFfRMli+jNMNh44jKfm
+	 /cpFi+aT/H0d1owFg1ijC21q5bEOFI8rA20+wYeU=
+Date: Mon, 29 Jun 2026 16:59:24 -0700
+To: mm-commits@vger.kernel.org,xuanzhuo@linux.alibaba.com,rppt@kernel.org,pabeni@redhat.com,mst@redhat.com,ljs@kernel.org,jasowang@redhat.com,eperezma@redhat.com,chenyichong@uniontech.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_alloc-drop-flag-conversion-optimisation.patch added to mm-unstable branch
-Message-Id: <20260629233245.81CB41F000E9@smtp.kernel.org>
+Subject: + tools-virtio-add-missing-compat-definitions-for-vhost_net_test.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260629235924.93DFE1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/page_alloc: drop flag-conversion "optimisation"
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-page_alloc-drop-flag-conversion-optimisation.patch
+     Subject: tools/virtio: add missing compat definitions for vhost_net_test
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     tools-virtio-add-missing-compat-definitions-for-vhost_net_test.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-drop-flag-conversion-optimisation.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/tools-virtio-add-missing-compat-definitions-for-vhost_net_test.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,146 +58,217 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Brendan Jackman <jackmanb@google.com>
-Subject: mm/page_alloc: drop flag-conversion "optimisation"
-Date: Mon, 15 Jun 2026 10:54:34 +0000
+From: Yichong Chen <chenyichong@uniontech.com>
+Subject: tools/virtio: add missing compat definitions for vhost_net_test
+Date: Mon, 29 Jun 2026 10:21:23 +0800
 
-This code uses flag equivalences to try to optimise conversion from GFP_
-to ALLOC_ but there's no clear reason to believe it makes things faster. 
-Even if it gets rid of conditional branches, it just trades them for a
-data dependency.
+Patch series "tools: Fix tools/virtio test build", v2.
 
-CPUs are pretty good at conditional branches.  But, in my GCC x86 build it
-doesn't look like there are any branches anyway, the compiler found some
-conditional instruction tricks.  (Caveat: This was extracted & annotated
-by Gemini AI, I did not actually read the disasm myself)
+This series fixes build failures hit by:
 
-Old code:
+  make -C tools/virtio test
 
-        ae50:    8b 04 24                 mov    (%rsp),%eax           # Load gfp_mask
-        ...
-        ae5d:    41 89 c4                 mov    %eax,%r12d
-        ae64:    41 81 e4 20 08 00 00     and    $0x820,%r12d          # Mask both flags at once
-        ...
-        ae6f:    44 89 e1                 mov    %r12d,%ecx
-        ae77:    83 c9 40                 or     $0x40,%ecx            # OR with ALLOC_CPUSET (0x40)
-        ae7a:    89 4c 24 60              mov    %ecx,0x60(%rsp)       # Store to alloc_flags
+Patch 1 adds tools/virtio compatibility definitions needed by current
+virtio headers when building the tools/virtio tests.  Patch 2 makes
+tools/include/linux/overflow.h include stdint.h for SIZE_MAX, which is
+used by its size helper functions.
 
-New code:
+With the series applied, make -C tools/virtio test builds virtio_test,
+vringh_test and vhost_net_test successfully.
 
-  For  __GFP_HIGH  ( 0x20 ):
-  It uses the Carry Flag (via  sbb ) to conditionally add  0x20  to the base  0x40  ( ALLOC_CPUSET ) flag:
+Tested on x86_64 and arm64 with:
 
-        ae63:    83 e0 20                 and    $0x20,%eax            # Test __GFP_HIGH
-        ...
-        ae6a:    83 f8 01                 cmp    $0x1,%eax             # Set carry flag if 0
-        ae6f:    45 19 e4                 sbb    %r12d,%r12d           # %r12d = (gfp & 0x20) ? 0 : -1
-        ae80:    41 83 e4 e0              and    $0xffffffe0,%r12d     # %r12d = (gfp & 0x20) ? 0 : -32
-        ae87:    41 83 c4 60              add    $0x60,%r12d           # %r12d = (gfp & 0x20) ? 0x60 : 0x40
+  make -C tools/virtio clean
+  make -C tools/virtio test
 
-  For  __GFP_KSWAPD_RECLAIM  ( 0x800 ):
-  It uses a conditional move ( cmov ) later in the function to set the  ALLOC_KSWAPD  ( 0x800 ) bit:
 
-        ae72:    25 00 08 00 00           and    $0x800,%eax           # Test __GFP_KSWAPD_RECLAIM
-        ae77:    89 44 24 30              mov    %eax,0x30(%rsp)       # Store result
-        ...
-        af2c:    80 cf 08                 or     $0x8,%bh              # Set ALLOC_KSWAPD (0x800) in temp reg
-        af2f:    45 85 c9                 test   %r9d,%r9d             # Check if __GFP_KSWAPD_RECLAIM was set
-        af32:    0f 44 d8                 cmove  %eax,%ebx             # If not, revert to flags without it
+This patch (of 2):
 
-Testing with a modified version[0] of lib/free_pages_test.c (adding
-printks with timing)...
+vhost_net_test builds virtio_ring.c in userspace.
 
-Old results from a Sapphire Rapids consumer CPU:
+Recent virtio headers pull in helper headers that are not provided by the
+tools/virtio compatibility layer, including asm/percpu_types.h,
+linux/completion.h, linux/mod_devicetable.h and linux/virtio_features.h.
 
-[   67.157118] page_alloc_test: Testing with GFP_KERNEL
-[   67.157122] page_alloc_test: Starting 1,000,000 allocations...
-[   70.704446] page_alloc_test: Completed. Time: 3543002 us (Avg: 3543.00 ns per alloc+free loop)
-[   70.704456] page_alloc_test: Testing with GFP_KERNEL | __GFP_COMP
-[   70.704460] page_alloc_test: Starting 1,000,000 allocations...
-[   70.944672] page_alloc_test: Completed. Time: 239980 us (Avg: 239.98 ns per alloc+free loop)
-[   70.944675] page_alloc_test: Test completed
+Add the missing compat definitions and the DMA attribute used by the
+current virtio ring code.
 
-New results:
+Link: https://lore.kernel.org/20260629022124.131894-1-chenyichong@uniontech.com
+Link: https://lore.kernel.org/20260629022124.131894-2-chenyichong@uniontech.com
+Signed-off-by: Yichong Chen <chenyichong@uniontech.com>
+Acked-by: Eugenio Pérez <eperezma@redhat.com>
+Cc: chenyichong <chenyichong@uniontech.com>
+Cc: Jason Wang <jasowang@redhat.com>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: "Michael S. Tsirkin" <mst@redhat.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Paolo Abeni <pabeni@redhat.com>
+Cc: Xuan Zhuo <xuanzhuo@linux.alibaba.com>
 
-[   70.079015] page_alloc_test: Testing with GFP_KERNEL
-[   70.079020] page_alloc_test: Starting 1,000,000 allocations...
-[   73.669396] page_alloc_test: Completed. Time: 3586954 us (Avg: 3586.95 ns per alloc+free loop)
-[   73.669402] page_alloc_test: Testing with GFP_KERNEL | __GFP_COMP
-[   73.669405] page_alloc_test: Starting 1,000,000 allocations...
-[   73.905084] page_alloc_test: Completed. Time: 235496 us (Avg: 235.49 ns per alloc+free loop)
-[   73.905086] page_alloc_test: Test completed
-
-Seems like a wash.
-
-So, drop the flag value coupling here and let the compiler and CPU do
-their job. Superscalar CPUs are pretty neat after all.
-
-(Used AI for the disasm but the rest is all manual).
-
-Link: https://lore.kernel.org/20260629-gfp-pessimisation-v2-1-311ece6a8637@google.com
-Link: https://lore.kernel.org/20260615-gfp-pessimisation-v2-1-65f1319e6818@google.com
-Link: https://github.com/bjackman/aethelred/blob/2ccdc84ef087c2a631914f58e106e99e19bd3b98/page-alloc-test/page-alloc-test.c [1]
-Signed-off-by: Brendan Jackman <jackmanb@google.com>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
-Reviewed-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
-Reviewed-by: Gregory Price <gourry@gourry.net>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Harry Yoo (Oracle) <harry@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   23 +++++++----------------
- 1 file changed, 7 insertions(+), 16 deletions(-)
+ tools/virtio/asm/percpu_types.h      |    7 ++
+ tools/virtio/linux/completion.h      |    9 ++
+ tools/virtio/linux/device.h          |    1 
+ tools/virtio/linux/dma-mapping.h     |    1 
+ tools/virtio/linux/mod_devicetable.h |   14 ++++
+ tools/virtio/linux/virtio_features.h |   79 +++++++++++++++++++++++++
+ 6 files changed, 111 insertions(+)
 
---- a/mm/page_alloc.c~mm-page_alloc-drop-flag-conversion-optimisation
-+++ a/mm/page_alloc.c
-@@ -3742,13 +3742,10 @@ static bool zone_allows_reclaim(struct z
- static inline unsigned int
- alloc_flags_nofragment(struct zone *zone, gfp_t gfp_mask)
- {
--	unsigned int alloc_flags;
-+	unsigned int alloc_flags = 0;
+diff --git a/tools/virtio/asm/percpu_types.h a/tools/virtio/asm/percpu_types.h
+new file mode 100644
+--- /dev/null
++++ a/tools/virtio/asm/percpu_types.h
+@@ -0,0 +1,7 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++#ifndef _ASM_PERCPU_TYPES_H
++#define _ASM_PERCPU_TYPES_H
++
++#define __percpu_qual
++
++#endif /* _ASM_PERCPU_TYPES_H */
+diff --git a/tools/virtio/linux/completion.h a/tools/virtio/linux/completion.h
+new file mode 100644
+--- /dev/null
++++ a/tools/virtio/linux/completion.h
+@@ -0,0 +1,9 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++#ifndef _LINUX_COMPLETION_H
++#define _LINUX_COMPLETION_H
++
++struct completion {
++	unsigned int done;
++};
++
++#endif /* _LINUX_COMPLETION_H */
+--- a/tools/virtio/linux/device.h~tools-virtio-add-missing-compat-definitions-for-vhost_net_test
++++ a/tools/virtio/linux/device.h
+@@ -1,4 +1,5 @@
+ #ifndef LINUX_DEVICE_H
++#define LINUX_DEVICE_H
  
--	/*
--	 * __GFP_KSWAPD_RECLAIM is assumed to be the same as ALLOC_KSWAPD
--	 * to save a branch.
--	 */
--	alloc_flags = (__force int) (gfp_mask & __GFP_KSWAPD_RECLAIM);
-+	if (gfp_mask & __GFP_KSWAPD_RECLAIM)
-+		alloc_flags |= ALLOC_KSWAPD;
+ struct device {
+ 	void *parent;
+--- a/tools/virtio/linux/dma-mapping.h~tools-virtio-add-missing-compat-definitions-for-vhost_net_test
++++ a/tools/virtio/linux/dma-mapping.h
+@@ -61,5 +61,6 @@ enum dma_data_direction {
+ #define DMA_MAPPING_ERROR		(~(dma_addr_t)0)
  
- 	if (defrag_mode) {
- 		alloc_flags |= ALLOC_NOFRAGMENT;
-@@ -4505,21 +4502,15 @@ gfp_to_alloc_flags(gfp_t gfp_mask, unsig
- 	unsigned int alloc_flags = ALLOC_WMARK_MIN | ALLOC_CPUSET;
+ #define DMA_ATTR_CPU_CACHE_CLEAN	(1UL << 11)
++#define DMA_ATTR_DEBUGGING_IGNORE_CACHELINES	0
  
- 	/*
--	 * __GFP_HIGH is assumed to be the same as ALLOC_MIN_RESERVE
--	 * and __GFP_KSWAPD_RECLAIM is assumed to be the same as ALLOC_KSWAPD
--	 * to save two branches.
--	 */
--	BUILD_BUG_ON(__GFP_HIGH != (__force gfp_t) ALLOC_MIN_RESERVE);
--	BUILD_BUG_ON(__GFP_KSWAPD_RECLAIM != (__force gfp_t) ALLOC_KSWAPD);
--
--	/*
- 	 * The caller may dip into page reserves a bit more if the caller
- 	 * cannot run direct reclaim, or if the caller has realtime scheduling
- 	 * policy or is asking for __GFP_HIGH memory.  GFP_ATOMIC requests will
- 	 * set both ALLOC_NON_BLOCK and ALLOC_MIN_RESERVE(__GFP_HIGH).
- 	 */
--	alloc_flags |= (__force int)
--		(gfp_mask & (__GFP_HIGH | __GFP_KSWAPD_RECLAIM));
-+	if (gfp_mask & __GFP_HIGH)
-+		alloc_flags |= ALLOC_MIN_RESERVE;
-+	if (gfp_mask & __GFP_KSWAPD_RECLAIM)
-+		alloc_flags |= ALLOC_KSWAPD;
- 
- 	alloc_flags |= gfp_to_alloc_flags_nonblocking(gfp_mask, order);
- 
+ #endif
+diff --git a/tools/virtio/linux/mod_devicetable.h a/tools/virtio/linux/mod_devicetable.h
+new file mode 100644
+--- /dev/null
++++ a/tools/virtio/linux/mod_devicetable.h
+@@ -0,0 +1,14 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++#ifndef _LINUX_MOD_DEVICETABLE_H
++#define _LINUX_MOD_DEVICETABLE_H
++
++#include <linux/types.h>
++
++struct virtio_device_id {
++	__u32 device;
++	__u32 vendor;
++};
++
++#define VIRTIO_DEV_ANY_ID	0xffffffff
++
++#endif /* _LINUX_MOD_DEVICETABLE_H */
+diff --git a/tools/virtio/linux/virtio_features.h a/tools/virtio/linux/virtio_features.h
+new file mode 100644
+--- /dev/null
++++ a/tools/virtio/linux/virtio_features.h
+@@ -0,0 +1,79 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++#ifndef _LINUX_VIRTIO_FEATURES_H
++#define _LINUX_VIRTIO_FEATURES_H
++
++#include <linux/bug.h>
++#include <linux/string.h>
++#include <linux/types.h>
++
++#define VIRTIO_FEATURES_U64S	2
++#define VIRTIO_FEATURES_BITS	(VIRTIO_FEATURES_U64S * 64)
++
++#define VIRTIO_BIT(b)		(1ULL << ((b) & 0x3f))
++#define VIRTIO_U64(b)		((b) >> 6)
++
++#define VIRTIO_DECLARE_FEATURES(name)			\
++	union {						\
++		u64 name;					\
++		u64 name##_array[VIRTIO_FEATURES_U64S];\
++	}
++
++static inline bool virtio_features_chk_bit(unsigned int bit)
++{
++	return bit < VIRTIO_FEATURES_BITS;
++}
++
++static inline bool virtio_features_test_bit(const u64 *features,
++					    unsigned int bit)
++{
++	return virtio_features_chk_bit(bit) &&
++	       !!(features[VIRTIO_U64(bit)] & VIRTIO_BIT(bit));
++}
++
++static inline void virtio_features_set_bit(u64 *features, unsigned int bit)
++{
++	if (virtio_features_chk_bit(bit))
++		features[VIRTIO_U64(bit)] |= VIRTIO_BIT(bit);
++}
++
++static inline void virtio_features_clear_bit(u64 *features, unsigned int bit)
++{
++	if (virtio_features_chk_bit(bit))
++		features[VIRTIO_U64(bit)] &= ~VIRTIO_BIT(bit);
++}
++
++static inline void virtio_features_zero(u64 *features)
++{
++	memset(features, 0, sizeof(features[0]) * VIRTIO_FEATURES_U64S);
++}
++
++static inline void virtio_features_from_u64(u64 *features, u64 from)
++{
++	virtio_features_zero(features);
++	features[0] = from;
++}
++
++static inline bool virtio_features_equal(const u64 *f1, const u64 *f2)
++{
++	int i;
++
++	for (i = 0; i < VIRTIO_FEATURES_U64S; ++i)
++		if (f1[i] != f2[i])
++			return false;
++	return true;
++}
++
++static inline void virtio_features_copy(u64 *to, const u64 *from)
++{
++	memcpy(to, from, sizeof(to[0]) * VIRTIO_FEATURES_U64S);
++}
++
++static inline void virtio_features_andnot(u64 *to, const u64 *f1, const u64 *f2)
++{
++	int i;
++
++	for (i = 0; i < VIRTIO_FEATURES_U64S; i++)
++		to[i] = f1[i] & ~f2[i];
++}
++
++#endif /* _LINUX_VIRTIO_FEATURES_H */
 _
 
-Patches currently in -mm which might be from jackmanb@google.com are
+Patches currently in -mm which might be from chenyichong@uniontech.com are
 
-mm-page_alloc-drop-flag-conversion-optimisation.patch
+tools-virtio-add-missing-compat-definitions-for-vhost_net_test.patch
+tools-include-include-stdinth-for-size_max-in-overflowh.patch
+tools-mm-page_owner_sort-return-explicit-filter-results.patch
+tools-mm-page_owner_sort-free-per-record-allocations.patch
+tools-mm-page_owner_sort-bound-pattern-output-copies.patch
 
