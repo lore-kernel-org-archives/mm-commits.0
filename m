@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F0CAB28D8DA;
-	Mon, 29 Jun 2026 04:55:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0C765282F38;
+	Mon, 29 Jun 2026 04:55:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782708927; cv=none; b=tjzttJEAdv0gh9LcnjMl7epN+XLagPGRmxwaVNvwlYnFN+ITCxIkNReEdconM0TSfSsQvfSbbGMIIxJutapszBLabjDdKCCZnJVCQYHg06weafFBBtvV2GcrCTCFdbTVERaX7hOUATLvEIWNo3SI5E09zPid7uVKpXCBYzwNWA8=
+	t=1782708929; cv=none; b=FrMxDeSzsuQfLxlmWRfxKFceACbsnZNTh/PPDYddrdxMAS21+sHN8vCuY6nf7wJfqdxVfk9vLDt/+KwMqT5d4HFY2rgCXqLfn8HwlPfXHbR1NEnZX4hHoGOlnATdTtr2LFdrhGK8ZCg+uVCtWcW3VATiZPjaODgexvCO2gUc17Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782708927; c=relaxed/simple;
-	bh=VDyS2KUexwdQdGpfb3n5VHoxSPdYz+Jn0wgdSPi6/sY=;
-	h=Date:To:From:Subject:Message-Id; b=DW5ow8XHop4czw3dBENs8z3cTg8FyJiHKHOvdO555nioDw98o3ydQBcHXp5LkI4PPczbBs42aSJvO+KTIMrt+bvC9imxkVaRZp8IUvntmOAGj0Fc57yR/ngpdPha2XIBYJMo6wE034TFrbChs5VJCgWgq1sX10CBbeq9DNJowSc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wIP00Ftd; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1782708929; c=relaxed/simple;
+	bh=2Nwog4m9bs5azG4Adq6eAitXZ3aCpzfFL+O5vHVMh6s=;
+	h=Date:To:From:Subject:Message-Id; b=qmnLYVRh2O7ztQm05P/UHxk6UdXDatbNCa4BXi9RtylIt6RvzN0qWcdKrDn4vgMp8KDaSevcjKBzmGJGK+zGb4tOON2DWpudQD2cFVEpYh2UfxrmXeKQfEVABzZ7VkxnDcAAI/lkePAND7iB/UUFKNE9Bu1TU8VWTdkb8h18gzg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=InZmBaoy; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wIP00Ftd"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 98ABC1F000E9;
-	Mon, 29 Jun 2026 04:55:25 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="InZmBaoy"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7D1C41F000E9;
+	Mon, 29 Jun 2026 04:55:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1782708925;
-	bh=FSfYmJge6ypJS5F7/TGx5JRdrBa6lqDbRc6ijitqm1o=;
+	d=linux-foundation.org; s=korg; t=1782708927;
+	bh=kCLVdomg+jjEmU6RVKlDtavJPfUD9967DqibhLcGsQA=;
 	h=Date:To:From:Subject;
-	b=wIP00FtdaQEeVDoKEzG5DS6js1eX/ZSZErVeYLpgC5MR63Gh4+GjRtWE5qVwhQpIl
-	 mMp/OTF1vhmOJ2G77AIxrIk9cnadgs2hGQKxk8+bTeJBZZ5bk+s92MhQhScf1FyvWO
-	 hIt7PG70EzDjoe5UcOLNJh9r/N7vTwnOyN7gf+zM=
-Date: Sun, 28 Jun 2026 21:55:25 -0700
+	b=InZmBaoyuThP1CSuF4R8oRLZlSVBs/GjzA7oT+Nmx+ffRiPRzlJS0ZrsnyPSkyEuv
+	 eXS8ZJ5eZrmi//h6WhwVidaRvnybjbJtXXOa5+WudQDuYnS1I+5yp1LYxXbNuEeR7v
+	 sebgjZzw/9VSI10eQoHHmX9UnjufG4j+VhM+VaPI=
+Date: Sun, 28 Jun 2026 21:55:27 -0700
 To: mm-commits@vger.kernel.org,stable@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-sysfs-kobject_del-region-and-target-error-dirs.patch added to mm-new branch
-Message-Id: <20260629045525.98ABC1F000E9@smtp.kernel.org>
+Subject: + mm-damon-sysfs-schemes-kobject_del-scheme-dirs.patch added to mm-new branch
+Message-Id: <20260629045527.7D1C41F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/sysfs: kobject_del() region and target (error) dirs
+     Subject: mm/damon/sysfs-schemes: kobject_del() scheme dirs
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-sysfs-kobject_del-region-and-target-error-dirs.patch
+     mm-damon-sysfs-schemes-kobject_del-scheme-dirs.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-kobject_del-region-and-target-error-dirs.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-schemes-kobject_del-scheme-dirs.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,55 +70,50 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/sysfs: kobject_del() region and target (error) dirs
-Date: Sun, 28 Jun 2026 15:01:11 -0700
+Subject: mm/damon/sysfs-schemes: kobject_del() scheme dirs
+Date: Sun, 28 Jun 2026 15:01:12 -0700
 
 On CONFIG_DEBUG_KOBJECT_RELEASE enabled kernel, lack of kobject_del()
 could cause directories creation failures due to the name conflicts.  Fix
-those issues for the normal creation path of region directories and the
-error path of target directories, by adding kobject_del() calls.
+those issues for scheme directories by adding kobject_del() calls.
 
-Link: https://lore.kernel.org/20260628220121.97360-3-sj@kernel.org
-Fixes: 2031b14ea757 ("mm/damon/sysfs: support the physical address space monitoring")
+Link: https://lore.kernel.org/20260628220121.97360-4-sj@kernel.org
+Fixes: 7e84b1f8212a ("mm/damon/sysfs: support DAMON-based Operation Schemes")
 Signed-off-by: SJ Park <sj@kernel.org>
 Cc: <stable@vger.kernel.org> # 5.18.x
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/sysfs.c |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ mm/damon/sysfs-schemes.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
---- a/mm/damon/sysfs.c~mm-damon-sysfs-kobject_del-region-and-target-error-dirs
-+++ a/mm/damon/sysfs.c
-@@ -105,8 +105,10 @@ static void damon_sysfs_regions_rm_dirs(
- 	struct damon_sysfs_region **regions_arr = regions->regions_arr;
- 	int i;
+--- a/mm/damon/sysfs-schemes.c~mm-damon-sysfs-schemes-kobject_del-scheme-dirs
++++ a/mm/damon/sysfs-schemes.c
+@@ -2681,6 +2681,7 @@ void damon_sysfs_schemes_rm_dirs(struct
  
--	for (i = 0; i < regions->nr; i++)
-+	for (i = 0; i < regions->nr; i++) {
-+		kobject_del(&regions_arr[i]->kobj);
- 		kobject_put(&regions_arr[i]->kobj);
-+	}
- 	regions->nr = 0;
- 	kfree(regions_arr);
- 	regions->regions_arr = NULL;
-@@ -370,13 +372,15 @@ static int damon_sysfs_targets_add_dirs(
- 
- 		err = damon_sysfs_target_add_dirs(target);
+ 	for (i = 0; i < schemes->nr; i++) {
+ 		damon_sysfs_scheme_rm_dirs(schemes_arr[i]);
++		kobject_del(&schemes_arr[i]->kobj);
+ 		kobject_put(&schemes_arr[i]->kobj);
+ 	}
+ 	schemes->nr = 0;
+@@ -2722,13 +2723,15 @@ static int damon_sysfs_schemes_add_dirs(
+ 			goto out;
+ 		err = damon_sysfs_scheme_add_dirs(scheme);
  		if (err)
 -			goto out;
 +			goto del_out;
  
- 		targets_arr[i] = target;
- 		targets->nr++;
+ 		schemes_arr[i] = scheme;
+ 		schemes->nr++;
  	}
  	return 0;
  
 +del_out:
-+	kobject_del(&target->kobj);
++	kobject_del(&scheme->kobj);
  out:
- 	damon_sysfs_targets_rm_dirs(targets);
- 	kobject_put(&target->kobj);
+ 	damon_sysfs_schemes_rm_dirs(schemes);
+ 	kobject_put(&scheme->kobj);
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
