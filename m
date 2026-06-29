@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 47CD039282B
-	for <mm-commits@vger.kernel.org>; Mon, 29 Jun 2026 18:26:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0F8F03C109B
+	for <mm-commits@vger.kernel.org>; Mon, 29 Jun 2026 18:26:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782757620; cv=none; b=Wi/ZE0RVk6u3vcF84soBQzXU02kK7eTHHAtg45v9Jt9X5OdRaYMCQi1sl8yxUlMhG1I7r3kMSH9G8ZHwtx92HOORSgGn4oqJMIQMn7+mcuiPETE64KyR2jNLNbhWiSFVCV+WiVUKtLVh1v4hkq6pUjUanQ5N1dRtozSkuUDOwrQ=
+	t=1782757622; cv=none; b=JlYkm/dMuRiIHZk4D1iI6Du3m4HsZFU2uw71rcMZNGqyk7iznKDYLAh9timfueEIwrZsnapG909UlsmF/RLmWeHdF1W0doY5zmU/RzF3jtBoa6yWOpyAMM5+Qq3petGu1dWPV58O11Jlw0Td4t5nHbTKCY5w6p2Vup09TllEohQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782757620; c=relaxed/simple;
-	bh=dwCr9G9ViuU7haUetsxYc9gpCd9IZMMpwPauxSqUg9Y=;
-	h=Date:To:From:Subject:Message-Id; b=FBx4BnFNdXNP1ThEx01R0Nrk2/WxWoBXabkg+E/PlvaKGEm/cA+87PR7QRAuqV9SpVOjjNpC5r39WHosv8RESefwEkRS4a8SHJxpqfF9SYYusOPDfbfPNpthRNTR3UNxdNQAvbI/WA++lVJz9/e4x03un2t5eaYTgwWiEujW+N8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Jb7Nrt+/; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1782757622; c=relaxed/simple;
+	bh=9Sfl7qCp1iDFPhyc8g2a0nWaFk5rC49aZPMHTRqgNN4=;
+	h=Date:To:From:Subject:Message-Id; b=QM6qUVoMkTQ+VcucI1a7Bz0UU0J9EAY5LeIoXHB3/bONJHD2Vsr3xRZFJpM6DRPb8Yslr6KSu3QpNywScyq5BBdo2OM5eKtoI/HVXfMGljqG/WPmGSrgFF/QP3W6bhsqVl27NqHoE4cH2GLfPody3qMw6xHNCbx7wmhd0QtLUiI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Enj6elv2; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Jb7Nrt+/"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7273B1F00ACA;
-	Mon, 29 Jun 2026 18:26:57 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Enj6elv2"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7EF411F000E9;
+	Mon, 29 Jun 2026 18:26:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1782757617;
-	bh=/xurefpbBUA8AB7FAiGn4QKXKAysPP/co7D98IFNHFw=;
+	d=linux-foundation.org; s=korg; t=1782757619;
+	bh=D4+/oZKvegS7a/HiRKxZNC/t9nSnzFu9IMgZERrpwzg=;
 	h=Date:To:From:Subject;
-	b=Jb7Nrt+/8SoUnqgxUz3ppIcWR9eD94EC/Zc/o5taBFGcgYH19prlq/Y2UFkOEjRlu
-	 9OxqK+NayUGUdj2c8ZnXX+2hPxX1IS2sZwntzhqgdmNAfbhhchNpYhGKFVOYrIE5iW
-	 kAtvy22GjUZEmYhFRSFWRo8Q+yQ0gxpWTXMk7cRE=
-Date: Mon, 29 Jun 2026 11:26:57 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,skhan@linuxfoundation.org,sj@kkernel.org,sj@kernel.org,saileshnandanavanam@gmail.com,rppt@kernel.org,plafer@proton.me,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,doehyunbaek@gmail.com,david@kernel.org,corbet@lwn.net,brendan.higgins@linux.dev,akinobu.mita@gmail.com,gutierrez.asier@huawei-partners.com,akpm@linux-foundation.org
+	b=Enj6elv2kXpYw6SIqnsnQBnjwS3kKWj3/MhELCAD1iewnMgwF3xFmSai8O8PHl9nk
+	 5dt9TE/RpXeP2TxiLZkXPZKF8x5SYuHdS9JZcDOqqrFM697L7WcGNiUVfTOF3zCRJm
+	 seeXlsa2DK+vUertkAm0Hg2uE0WsccU/8FcMuM6c=
+Date: Mon, 29 Jun 2026 11:26:59 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,skhan@linuxfoundation.org,sj@kkernel.org,sj@kernel.org,rppt@kernel.org,plafer@proton.me,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,gutierrez.asier@huawei-partners.com,doehyunbaek@gmail.com,david@kernel.org,corbet@lwn.net,brendan.higgins@linux.dev,akinobu.mita@gmail.com,saileshnandanavanam@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + samples-damon-fix-typos-in-kconfig-help-text.patch added to mm-new branch
-Message-Id: <20260629182657.7273B1F00ACA@smtp.kernel.org>
+Subject: + mm-damon-tests-core-kunit-add-kunit-test-for-walk_control_obsolete-behavior.patch added to mm-new branch
+Message-Id: <20260629182659.7EF411F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: samples/damon: fix typos in Kconfig help text
+     Subject: mm/damon/tests/core-kunit: add KUnit test for walk_control_obsolete behavior
 has been added to the -mm mm-new branch.  Its filename is
-     samples-damon-fix-typos-in-kconfig-help-text.patch
+     mm-damon-tests-core-kunit-add-kunit-test-for-walk_control_obsolete-behavior.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/samples-damon-fix-typos-in-kconfig-help-text.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-tests-core-kunit-add-kunit-test-for-walk_control_obsolete-behavior.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,18 +69,33 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Asier Gutierrez <gutierrez.asier@huawei-partners.com>
-Subject: samples/damon: fix typos in Kconfig help text
-Date: Mon, 29 Jun 2026 07:55:35 -0700
+From: Sailesh Nandanavanam <saileshnandanavanam@gmail.com>
+Subject: mm/damon/tests/core-kunit: add KUnit test for walk_control_obsolete behavior
+Date: Mon, 29 Jun 2026 07:55:36 -0700
 
-Fix a couple  of typos in samples/damon/Kconfig help text. Change "Thps"
-to "This", and "tierign" to "tiering".
+Add a KUnit test to verify that damos_walk() rejects new requests when
+walk_control_obsolete is set.
 
-Link: https://lore.kernel.org/20260629145538.134832-5-sj@kernel.org
-Signed-off-by: Asier Gutierrez <gutierrez.asier@huawei-partners.com>
+Commit 33c3f6c2b48c ("mm/damon/core: fix damos_walk() vs kdamond_fn() exit
+race") introduced walk_control_obsolete to prevent a race condition where
+new requests could be registered during kdamond shutdown and never
+handled.
+
+This test simulates the shutdown condition by setting
+walk_control_obsolete and verifies that damos_walk() returns -ECANCELED
+immediately.
+
+This validates the invariant introduced by the fix and helps prevent
+regressions.
+
+Link: https://patch.msgid.link/20260612062337.2459-1-saileshnandanavanam@gmail.com
+Link: https://lore.kernel.org/20260629145538.134832-6-sj@kernel.org
+Suggested-by: SJ Park <sj@kernel.org>
+Signed-off-by: Sailesh Nandanavanam <saileshnandanavanam@gmail.com>
 Signed-off-by: SJ Park <sj@kernel.org>
 Reviewed-by: SJ Park <sj@kernel.org>
 Cc: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: Asier Gutierrez <gutierrez.asier@huawei-partners.com>
 Cc: Brendan Higgins <brendan.higgins@linux.dev>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Doehyun Baek <doehyunbaek@gmail.com>
@@ -90,7 +105,6 @@ Cc: Lorenzo Stoakes <ljs@kernel.org>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Philippe Laferriere <plafer@proton.me>
-Cc: Sailesh Nandanavanam <saileshnandanavanam@gmail.com>
 Cc: Shuah Khan <skhan@linuxfoundation.org>
 Cc: SJ Park <sj@kkernel.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
@@ -98,23 +112,56 @@ Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- samples/damon/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/damon/tests/core-kunit.h |   28 ++++++++++++++++++++++++++++
+ 1 file changed, 28 insertions(+)
 
---- a/samples/damon/Kconfig~samples-damon-fix-typos-in-kconfig-help-text
-+++ a/samples/damon/Kconfig
-@@ -31,7 +31,7 @@ config SAMPLE_DAMON_MTIER
- 	bool "DAMON sample module for memory tiering"
- 	depends on DAMON && DAMON_PADDR
- 	help
--	  Thps builds DAMON sample module for memory tierign.
-+	  This builds DAMON sample module for memory tiering.
+--- a/mm/damon/tests/core-kunit.h~mm-damon-tests-core-kunit-add-kunit-test-for-walk_control_obsolete-behavior
++++ a/mm/damon/tests/core-kunit.h
+@@ -1456,6 +1456,33 @@ static void damon_test_is_last_region(st
+ 	damon_free_target(t);
+ }
  
- 	  The module assumes the system is constructed with two NUMA nodes,
- 	  which seems as local and remote nodes to all CPUs.  For example,
++/*
++ * Verify that damos_walk() rejects new requests when
++ * walk_control_obsolete is set.
++ *
++ * This tests the invariant introduced by:
++ * commit 33c3f6c2b48c ("mm/damon/core: fix damos_walk() vs kdamond_fn() exit race")
++ */
++static void damon_test_walk_control_obsolete(struct kunit *test)
++{
++	struct damon_ctx *ctx;
++	struct damos_walk_control control = {};
++	int ret;
++
++	ctx = damon_new_ctx();
++	if (!ctx)
++		kunit_skip(test, "ctx alloc fail");
++
++	/* Simulate shutdown phase */
++	ctx->walk_control_obsolete = true;
++
++	ret = damos_walk(ctx, &control);
++
++	KUNIT_EXPECT_EQ(test, ret, -ECANCELED);
++
++	damon_destroy_ctx(ctx);
++}
++
+ static struct kunit_case damon_test_cases[] = {
+ 	KUNIT_CASE(damon_test_target),
+ 	KUNIT_CASE(damon_test_regions),
+@@ -1485,6 +1512,7 @@ static struct kunit_case damon_test_case
+ 	KUNIT_CASE(damon_test_set_filters_default_reject),
+ 	KUNIT_CASE(damon_test_apply_min_nr_regions),
+ 	KUNIT_CASE(damon_test_is_last_region),
++	KUNIT_CASE(damon_test_walk_control_obsolete),
+ 	{},
+ };
+ 
 _
 
-Patches currently in -mm which might be from gutierrez.asier@huawei-partners.com are
+Patches currently in -mm which might be from saileshnandanavanam@gmail.com are
 
-samples-damon-fix-typos-in-kconfig-help-text.patch
+mm-damon-tests-core-kunit-add-kunit-test-for-walk_control_obsolete-behavior.patch
 
