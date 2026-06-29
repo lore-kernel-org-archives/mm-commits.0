@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C8D9737B417;
-	Mon, 29 Jun 2026 17:41:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D9D8637FF4D
+	for <mm-commits@vger.kernel.org>; Mon, 29 Jun 2026 17:44:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782754908; cv=none; b=Cu4vhfta/ymUhAz79UgyuXoubJrWBGtCSByd2iARmyH07wjfrfvMQxh+65SA8AlKrHevluH1WZcJUolKejTxYRcgOn70wviYL/l5curxnJD/tD0J96+4iJUCVmfuoMR81h6lciO924GVfcofTTCmtVuFZE2hFMVu0DFZGpVyw38=
+	t=1782755044; cv=none; b=C2EG9iJyFIqLDlCin8cL2Ho35m5vxbnE9HOYhhiInXFD4GpIJJu0Sm4R2BdEtGDJ/G4IDYQjNfxrT3WQrVRCs6V+pNo7H8501cT47FeNy+mCOHYgSAAT46koUKYSHexPLrsUvVIH4PICDWq75RXtKJWxsIjiO4I7M534k7HTBS8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782754908; c=relaxed/simple;
-	bh=umCHY0WzhRo9BnV9a4Rue5Pb9esGaLf2ekRSTfsrgUg=;
-	h=Date:To:From:Subject:Message-Id; b=QMEliudPhOTBl+IwcjQDmko4zQ/rYvzy+YefZUrIHMz8+2wDy7pJXbkt94n7UFr6tGlaTAiZ3xISPEesEDT5TLIPaP9uPN2bPNl7hP1Cde/kS2ASvryJBpI0lt6Lok1AFjCi87Xf+zAFJzCnmHjQVbWPpZhM5rP4ZeFQfmwwCAo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RDRWYMEA; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1782755044; c=relaxed/simple;
+	bh=MDf/JwmMPT+KvVf6Acy6DLSwUqOK4Q2KRCItPoe0Rjc=;
+	h=Date:To:From:Subject:Message-Id; b=KJIZCcxFanIh+GR/P0p5svlNf/09GFSlo7o56CqPxfFjjXWzF+dARTVF+LyHX6LJizlCwZ/vrlloz5nratE+iv8a6fVKQvj1mA9P45u4LfInW4cgeLN2SVsMSlNhIB0hVoyHWftmiMwtjf/DTp+kEliD0Kdz+ogFqx2egdlqR5Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hzFEzu9y; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RDRWYMEA"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 425081F00A3A;
-	Mon, 29 Jun 2026 17:41:44 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hzFEzu9y"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7B0761F000E9;
+	Mon, 29 Jun 2026 17:44:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1782754904;
-	bh=mon0FP5pD7CxKi+sn0r1+EpOnERjsocTWpwnXmAnPI8=;
+	d=linux-foundation.org; s=korg; t=1782755042;
+	bh=vREUpUvH9UqFSkPsmMUdtm3hNVxw7N9y1/daMb8Ehps=;
 	h=Date:To:From:Subject;
-	b=RDRWYMEAV7bqH1etaXbD6Tc5oPw5YnEa2+0lhYBqjftznK1hhZ54kN0DrSiLOyxo8
-	 HELTaBFsStKZeL8Lf2aY23+/FwRD/eCqW2BQjFNkCmYrkVdCUDqse3ljSeoYaFRem+
-	 fMJVCSx+dIENi0a+s7wTUFK3i34l0App+BSbNgbo=
-Date: Mon, 29 Jun 2026 10:41:43 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,sj@kernel.org,yuzenghui@huawei.com,akpm@linux-foundation.org
+	b=hzFEzu9yujQAtlwRfBAZkNL7qYEDeYQ5QWaC3OEoGxIs9zPdCI0086mqQhTtr0X74
+	 dtb1n15AJtabrgGvtcfuqZb3WQmFaX+WpGSBAfAoB1WM00nOPyxArSJ4lnoe/uh1Yx
+	 lWUntwVNnmoXcgJiwhgCC7FE/eu74jttyH43BjHE=
+Date: Mon, 29 Jun 2026 10:44:02 -0700
+To: mm-commits@vger.kernel.org,sj@kernel.org,lianux.mm@gmail.com,chentao@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + samples-damon-mtier-fail-early-if-address-range-parameters-are-invalid.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260629174144.425081F00A3A@smtp.kernel.org>
+Subject: + selftests-damon-prevent-cross-context-state-pollution-in-damonctx.patch added to mm-new branch
+Message-Id: <20260629174402.7B0761F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,26 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: samples/damon/mtier: fail early if address range parameters are invalid
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     samples-damon-mtier-fail-early-if-address-range-parameters-are-invalid.patch
+     Subject: selftests/damon: prevent cross-context state pollution in DamonCtx
+has been added to the -mm mm-new branch.  Its filename is
+     selftests-damon-prevent-cross-context-state-pollution-in-damonctx.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/samples-damon-mtier-fail-early-if-address-range-parameters-are-invalid.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-damon-prevent-cross-context-state-pollution-in-damonctx.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,77 +69,85 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Zenghui Yu <yuzenghui@huawei.com>
-Subject: samples/damon/mtier: fail early if address range parameters are invalid
-Date: Mon, 29 Jun 2026 07:44:31 -0700
+From: Kunwu Chan <chentao@kylinos.cn>
+Subject: selftests/damon: prevent cross-context state pollution in DamonCtx
+Date: Mon, 29 Jun 2026 07:46:44 -0700
 
-The comment on top of `struct damon_region` clearly says that
+Patch series "selftests/damon: misc fixes for test bugs", v3.
 
-    For any use case, @ar should be non-zero positive size.
+This series fixes several bugs in the DAMON selftests.  Most are trivial
+but makes test output wrong or even silently pass the one test case for
+'avail_operation' file existence check.
 
-which is now verified in damon_verify_new_region() if the kernel is built
-with DAMON_DEBUG_SANITY.
+Patch 1 fixes mutable default arguments in DamonCtx.__init__() that cause
+state to leak between test instances.
 
-The WARN_ONCE() can be triggered if the mtier sample module is enabled
-before node{0,1}_{start,end}_addr have been properly initialized, which is
-obviously not good.
+Patch 2 fixes wrong operator precedence and join TypeError in
+damos_tried_regions.py.
 
- ------------[ cut here ]------------
- start 0 >= end 0
- WARNING: mm/damon/core.c:217 at damon_new_region+0xf4/0x118, CPU#59: bash/341468
- Call trace:
-  damon_new_region+0xf4/0x118 (P)
-  damon_set_regions+0xfc/0x3c0
-  damon_sample_mtier_build_ctx+0xe8/0x3a8
-  damon_sample_mtier_start+0x1c/0x90
-  damon_sample_mtier_enable_store+0x98/0xb0
-  param_attr_store+0xb4/0x128
-  module_attr_store+0x2c/0x50
-  sysfs_kf_write+0x58/0x90
-  kernfs_fop_write_iter+0x16c/0x238
-  vfs_write+0x2c0/0x370
-  ksys_write+0x74/0x118
-  __arm64_sys_write+0x24/0x38
-  invoke_syscall+0xa8/0x118
-  el0_svc_common.constprop.0+0x48/0xf0
-  do_el0_svc+0x24/0x38
-  el0_svc+0x54/0x370
-  el0t_64_sync_handler+0xa0/0xe8
-  el0t_64_sync+0x1ac/0x1b0
- ---[ end trace 0000000000000000 ]---
+Patch 3 fixes several wrong strings that produce dead elif branches,
+skipped file existence checks, and broken dict key lookups.
 
-Note that the same issue can happen if detect_node_addresses is true, and
-node 0 or 1 is memoryless.  Fix it together by checking the validity of
-parameters right before damon_new_region() and fail early if they're
-invalid.
 
-Link: https://lore.kernel.org/20260629144432.133962-1-sj@kernel.org
-Fixes: 82a08bde3cf7 ("samples/damon: implement a DAMON module for memory tiering")
-Signed-off-by: Zenghui Yu <yuzenghui@huawei.com>
+This patch (of 3):
+
+DamonCtx.__init__() uses mutable default values for monitoring_attrs,
+targets, and schemes.  In Python these are evaluated once at function
+definition time, so multiple DamonCtx instances can unintentionally share
+the same lists and DamonAttrs instance.
+
+Replace the mutable defaults with None sentinels and initialize the
+objects when needed.
+
+Link: https://lore.kernel.org/20260629144648.134092-1-sj@kernel.org
+Link: https://lore.kernel.org/20260601032314.424013-2-kunwu.chan@linux.dev
+Link: https://lore.kernel.org/20260629144648.134092-2-sj@kernel.org
+Co-developed-by: Wang Lian <lianux.mm@gmail.com>
+Signed-off-by: Wang Lian <lianux.mm@gmail.com>
+Signed-off-by: Kunwu Chan <chentao@kylinos.cn>
 Signed-off-by: SJ Park <sj@kernel.org>
 Reviewed-by: SJ Park <sj@kernel.org>
-Cc: <stable@vger.kernel.org> # 6.16.x
+Cc: Kunwu Chan <chentao@kylinos.cn>
+Cc: Wang Lian <lianux.mm@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- samples/damon/mtier.c |    3 +++
- 1 file changed, 3 insertions(+)
+ tools/testing/selftests/damon/_damon_sysfs.py |   10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
 
---- a/samples/damon/mtier.c~samples-damon-mtier-fail-early-if-address-range-parameters-are-invalid
-+++ a/samples/damon/mtier.c
-@@ -120,6 +120,9 @@ static struct damon_ctx *damon_sample_mt
- 		addr.end = promote ? node1_end_addr : node0_end_addr;
- 	}
+--- a/tools/testing/selftests/damon/_damon_sysfs.py~selftests-damon-prevent-cross-context-state-pollution-in-damonctx
++++ a/tools/testing/selftests/damon/_damon_sysfs.py
+@@ -624,17 +624,23 @@ class DamonCtx:
+     pause = None
+     idx = None
  
-+	if (addr.start >= addr.end)
-+		goto free_out;
-+
- 	range.start = addr.start;
- 	range.end = addr.end;
+-    def __init__(self, ops='paddr', monitoring_attrs=DamonAttrs(), targets=[],
+-            schemes=[], pause=False):
++    def __init__(self, ops='paddr', monitoring_attrs=None, targets=None,
++            schemes=None, pause=False):
+         self.ops = ops
++        if monitoring_attrs is None:
++            monitoring_attrs = DamonAttrs()
+         self.monitoring_attrs = monitoring_attrs
+         self.monitoring_attrs.context = self
  
++        if targets is None:
++            targets = []
+         self.targets = targets
+         for idx, target in enumerate(self.targets):
+             target.idx = idx
+             target.context = self
+ 
++        if schemes is None:
++            schemes = []
+         self.schemes = schemes
+         for idx, scheme in enumerate(self.schemes):
+             scheme.idx = idx
 _
 
-Patches currently in -mm which might be from yuzenghui@huawei.com are
+Patches currently in -mm which might be from chentao@kylinos.cn are
 
-samples-damon-mtier-fail-early-if-address-range-parameters-are-invalid.patch
+selftests-damon-prevent-cross-context-state-pollution-in-damonctx.patch
+selftests-damon-damos_tried_regions-fix-expectation-output-and-join-typeerror.patch
+selftests-damon-fix-dead-code-skipped-checks-and-broken-lookups.patch
 
