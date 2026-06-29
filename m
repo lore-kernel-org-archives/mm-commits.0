@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C8CF92D12EC
-	for <mm-commits@vger.kernel.org>; Mon, 29 Jun 2026 19:02:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 758FB314D37;
+	Mon, 29 Jun 2026 23:11:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782759756; cv=none; b=I4KVxR0UDyVeNEcDpGEXSgMKlxCaHUfcZw6tC/UyFBfpy9edgQrsZ5ADadCJ5tIrI5tqqd82xOzgBGffMEoGaZSmLY0J1Rsin4xTfh0b/i4sUSevBXXV/iy/4nb3cB77mJZaATYXuvxIPARbDy6UawV4TofzyqVAvwxXLy1twh0=
+	t=1782774667; cv=none; b=Hr1/ksH/iCe/JdG4EC+6WOcT15beEjdCDpVeauKCW5L1SpEgpITA7YkHDq69ZKTdjy+aMEgj1jlzSmwZcDp5PgsaYc86JFfnjpExbqPGgIEbk8AN+C/JrXsPp+X/4CcKvrOKD4LPhyALK+KNdspjdL5QkiGy/6pZpWWgsJ7rlt0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782759756; c=relaxed/simple;
-	bh=YbJUCUBkZ9pyyaq91noAFiz1KGsU0i+qwOsHVeRvynM=;
-	h=Date:To:From:Subject:Message-Id; b=nxKYa2sP7qTLZzjknGRQx1bP580ZgwzaSa2cFt72OwJTqUIuwkuYcFi6ezxUklwDY4Hla2wILNsu6bqvwDIjqbN6RcIEqrbN/kTkl80kPtK1Jj9kjj/aPOEs1rdRWH8o9Xlxo+VJlbEY135i7E7XFTrNBlbvTLeawaRnNFHy3zM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0dcnF/7x; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1782774667; c=relaxed/simple;
+	bh=q9NkZ492aB1EfwWDCRs5iUarWXOTV9qwLaHWrkdLZFo=;
+	h=Date:To:From:Subject:Message-Id; b=miji09/5O2CQKuB01dDdmXEoPOKapIv13wfYcrzkq0oXHsoQG1g5mBexRG8YZGPUs2XShRKcPetpXPAJaqX9Drd07ilPs4GCgEIKNCJmT5Bqvk22wuxYRkzg2WYhXQ7BMyxPWMcUimeyeKzs0kzI1H9Xrp4TDa4GiTOXWnbFudU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oPU363xd; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0dcnF/7x"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 79DCC1F000E9;
-	Mon, 29 Jun 2026 19:02:35 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oPU363xd"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D7F941F000E9;
+	Mon, 29 Jun 2026 23:11:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1782759755;
-	bh=Ngp+fXNayaLjGwB6E5MClUR84JxRfQdYOGztc0PZD5o=;
+	d=linux-foundation.org; s=korg; t=1782774666;
+	bh=HsS4jFT58CO08bn2w46NjfQSbm90g92nvw5Ob+rCTTc=;
 	h=Date:To:From:Subject;
-	b=0dcnF/7xgqx+0yinSXSApvxVKd3Ru8z9LkKpSohLfERMYbmYvhgib7+j8ChI2HyMJ
-	 SOFnKNvkwFJz7jorhVIX0pP36m/1yV12QnbvINPThKwagXN57rvHRR6g/7+vBAh5vv
-	 S+MnBnquymjeWdjIDOK+UYYdRx2QIJ8chG0JCBKQ=
-Date: Mon, 29 Jun 2026 12:02:35 -0700
-To: mm-commits@vger.kernel.org,sj@kernel.org,shu17az@gmail.com,jiayuan.chen@shopee.com,akpm@linux-foundation.org
+	b=oPU363xd1xiVm/srT95Sz70e+pE9+dHqwKHIYnlfJx+6qZ02Fx9pz0kXzIfRveyQV
+	 B5IG3roZC1GgZk5/CIk1zShuIc4SQcFlsi4kYIvrVlhoOFaliJF7GfWwLDgl4Dzox/
+	 ci+hg2/9nYjDWe8Qmvc31w1VooLPs23V80zsc18A=
+Date: Mon, 29 Jun 2026 16:11:05 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,stable@vger.kernel.org,rakie.kim@sk.com,nehagholkar@gmail.com,matthew.brost@intel.com,joshua.hahnjy@gmail.com,gourry@gourry.net,david@kernel.org,byungchul@sk.com,apopple@nvidia.com,hannes@cmpxchg.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-tests-core-kunit-test-split-above-max_nr_regions-2.patch added to mm-new branch
-Message-Id: <20260629190235.79DCC1F000E9@smtp.kernel.org>
+Subject: + mm-mempolicy-fix-automatic-numa-balancing-for-shmem.patch added to mm-new branch
+Message-Id: <20260629231105.D7F941F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/tests/core-kunit: test split above max_nr_regions/2
+     Subject: mm: mempolicy: fix automatic numa balancing for shmem
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-tests-core-kunit-test-split-above-max_nr_regions-2.patch
+     mm-mempolicy-fix-automatic-numa-balancing-for-shmem.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-tests-core-kunit-test-split-above-max_nr_regions-2.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mempolicy-fix-automatic-numa-balancing-for-shmem.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,118 +69,97 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Jiayuan Chen <jiayuan.chen@shopee.com>
-Subject: mm/damon/tests/core-kunit: test split above max_nr_regions/2
-Date: Mon, 29 Jun 2026 07:56:29 -0700
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: mempolicy: fix automatic numa balancing for shmem
+Date: Mon, 29 Jun 2026 12:33:37 -0400
 
-Add a test that exercises kdamond_split_regions() when the total region
-count is already above max_nr_regions / 2, asserting that the function
-still splits a fraction of the regions (makes progress) and does not
-overshoot max_nr_regions.
+Neha reports that mapped shmem aren't considered for NUMA balancing,
+noting convergence problems and bandwidth bottlenecking for cachelib based
+workloads on tiered memory systems.
 
-The region size and min_region_sz are picked so the split arithmetic does
-not depend on the page size.
+Looking at the code and going through the git history, this doesn't
+actually seem intentional:
 
-All tests pass:
-  damon: pass:31 fail:0 skip:0 total:31
-  Totals: pass:31 fail:0 skip:0 total:31
+Commit fc3147245d19 ("mm: numa: Limit NUMA scanning to migrate-on-fault
+VMAs") added a vma_policy_mof() gate to task_numa_work() so VMAs whose
+policy lacks MPOL_F_MOF are skipped from NUMA balancing scans.  The
+motivation was a real usecase: Oracle was pinning shared segments with
+mbind(MPOL_BIND) so trapping faults was both expensive and pointless.
 
-Link: https://lore.kernel.org/20260626085851.70754-3-jiayuan.chen@linux.dev
-Link: https://lore.kernel.org/20260629145630.134891-3-sj@kernel.org
-Signed-off-by: Jiayuan Chen <jiayuan.chen@shopee.com>
-Signed-off-by: SJ Park <sj@kernel.org>
-Reviewed-by: SJ Park <sj@kernel.org>
-Cc: Shu Anzai <shu17az@gmail.com>
+The handling of NULL from vm_ops->get_policy, however, treated "user
+explicitly opted out" the same as "user never specified anything." For
+VMAs whose shared policy is absent - the common case for shmem - the scan
+was disabled too.
+
+This issue is old.  It probably hurts less in conventional NUMA.  But it's
+very noticable on tiered systems, where entire tmpfs workingsets can get
+stuck on lower-bandwidth memory.
+
+Fix this by having vma_policy_mof() use __get_vma_policy() directly, and
+thereby handle the fallback to task policy (-> preferred_node_policy() has
+MPOL_F_MOF per default).  Every other consumer of vm_ops->get_policy
+already handles it this way, the scan-eligibility check was the outlier.
+
+This preserves Mel's intended fix: don't scan stuff the user explicitly
+pinned.  But allow default policy vmas to participate in balancing.
+
+Link: https://lore.kernel.org/20260629163337.1264881-1-hannes@cmpxchg.org
+Fixes: fc3147245d19 ("mm: numa: Limit NUMA scanning to migrate-on-fault VMAs")
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Reported-by: Neha Gholkar <nehagholkar@gmail.com>
+Tested-by: Neha Gholkar <nehagholkar@gmail.com>
+Reviewed-by: Gregory Price <gourry@gourry.net>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Byungchul Park <byungchul@sk.com>
+Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
+Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
+Cc: Matthew Brost <matthew.brost@intel.com>
+Cc: Rakie Kim <rakie.kim@sk.com>
+Cc: Zi Yan <ziy@nvidia.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/tests/core-kunit.h |   64 ++++++++++++++++++++++++++++++++++
- 1 file changed, 64 insertions(+)
+ mm/mempolicy.c |   21 ++++++---------------
+ 1 file changed, 6 insertions(+), 15 deletions(-)
 
---- a/mm/damon/tests/core-kunit.h~mm-damon-tests-core-kunit-test-split-above-max_nr_regions-2
-+++ a/mm/damon/tests/core-kunit.h
-@@ -335,6 +335,69 @@ static void damon_test_split_regions_of(
- 	damon_destroy_ctx(c);
+--- a/mm/mempolicy.c~mm-mempolicy-fix-automatic-numa-balancing-for-shmem
++++ a/mm/mempolicy.c
+@@ -2057,24 +2057,15 @@ struct mempolicy *get_vma_policy(struct
+ bool vma_policy_mof(struct vm_area_struct *vma)
+ {
+ 	struct mempolicy *pol;
++	pgoff_t ilx;
++	bool mof;
+ 
+-	if (vma->vm_ops && vma->vm_ops->get_policy) {
+-		bool ret = false;
+-		pgoff_t ilx;		/* ignored here */
+-
+-		pol = vma->vm_ops->get_policy(vma, vma->vm_start, &ilx);
+-		if (pol && (pol->flags & MPOL_F_MOF))
+-			ret = true;
+-		mpol_cond_put(pol);
+-
+-		return ret;
+-	}
+-
+-	pol = vma->vm_policy;
++	pol = __get_vma_policy(vma, vma->vm_start, &ilx);
+ 	if (!pol)
+ 		pol = get_task_policy(current);
+-
+-	return pol->flags & MPOL_F_MOF;
++	mof = pol->flags & MPOL_F_MOF;
++	mpol_cond_put(pol);
++	return mof;
  }
  
-+/*
-+ * When the total region count is already above max_nr_regions / 2,
-+ * kdamond_split_regions() must keep refining the resolution by splitting a
-+ * fraction of the regions (making progress), without exceeding
-+ * max_nr_regions.
-+ */
-+static void damon_test_split_above_half_progresses(struct kunit *test)
-+{
-+	struct damon_ctx *c;
-+	struct damon_target *t;
-+	struct damon_region *r;
-+	unsigned long start;
-+	unsigned int nr_before, nr_after, i;
-+	const unsigned int nr_init = 760;
-+	const unsigned long region_sz = 100;
-+
-+	c = damon_new_ctx();
-+	if (!c)
-+		kunit_skip(test, "ctx alloc fail");
-+
-+	/* Keep the split arithmetic independent of the page size */
-+	c->min_region_sz = 1;
-+	c->attrs.min_nr_regions = 10;
-+	c->attrs.max_nr_regions = 1500;
-+
-+	t = damon_new_target();
-+	if (!t) {
-+		damon_destroy_ctx(c);
-+		kunit_skip(test, "target alloc fail");
-+	}
-+
-+	for (i = 0; i < nr_init; i++) {
-+		start = i * region_sz;
-+		r = damon_new_region(start, start + region_sz);
-+		if (!r) {
-+			damon_free_target(t);
-+			damon_destroy_ctx(c);
-+			kunit_skip(test, "region alloc fail");
-+		}
-+		r->nr_accesses = (i & 1) ? 0 : 100;
-+		r->age = 5;
-+		damon_add_region(r, t);
-+	}
-+
-+	damon_add_target(c, t);
-+
-+	nr_before = damon_nr_regions(t);
-+	/* Above max_nr_regions / 2, so the blanket-split path is skipped */
-+	KUNIT_EXPECT_GT(test, (unsigned long)nr_before,
-+			c->attrs.max_nr_regions / 2);
-+
-+	kdamond_split_regions(c);
-+
-+	nr_after = damon_nr_regions(t);
-+	/* Still made progress ... */
-+	KUNIT_EXPECT_GT(test, nr_after, nr_before);
-+	/* ... but did not overshoot the configured maximum */
-+	KUNIT_EXPECT_LE(test, (unsigned long)nr_after,
-+			c->attrs.max_nr_regions);
-+
-+	damon_destroy_ctx(c);
-+}
-+
- static void damon_test_ops_registration(struct kunit *test)
- {
- 	struct damon_ctx *c = damon_new_ctx();
-@@ -1491,6 +1554,7 @@ static struct kunit_case damon_test_case
- 	KUNIT_CASE(damon_test_merge_two),
- 	KUNIT_CASE(damon_test_merge_regions_of),
- 	KUNIT_CASE(damon_test_split_regions_of),
-+	KUNIT_CASE(damon_test_split_above_half_progresses),
- 	KUNIT_CASE(damon_test_ops_registration),
- 	KUNIT_CASE(damon_test_set_regions),
- 	KUNIT_CASE(damon_test_nr_accesses_to_accesses_bp),
+ bool apply_policy_zone(struct mempolicy *policy, enum zone_type zone)
 _
 
-Patches currently in -mm which might be from jiayuan.chen@shopee.com are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
-mm-damon-core-split-a-fraction-of-regions-when-nr_regions-exceeds-max-2.patch
-mm-damon-tests-core-kunit-test-split-above-max_nr_regions-2.patch
+mm-mempolicy-fix-automatic-numa-balancing-for-shmem.patch
 
