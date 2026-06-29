@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5ED94388E57
-	for <mm-commits@vger.kernel.org>; Mon, 29 Jun 2026 18:26:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 47CD039282B
+	for <mm-commits@vger.kernel.org>; Mon, 29 Jun 2026 18:26:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782757617; cv=none; b=V//ni4/KYkYSgMeEvlKxrSbbWocLMSl7t1SoAPvNzMNSrU1CNJIHsNCtISSWRwPFkCGAnu7AJXNDFJO+BrMOeZZvjtFLjLsvzpwdNbYkzCjJK5E1lS2Jr8Vko8PnIoudxTF5ALNkslTdyOxOUJ11XkGufcMZ0FbqL+W5i3SyrZE=
+	t=1782757620; cv=none; b=Wi/ZE0RVk6u3vcF84soBQzXU02kK7eTHHAtg45v9Jt9X5OdRaYMCQi1sl8yxUlMhG1I7r3kMSH9G8ZHwtx92HOORSgGn4oqJMIQMn7+mcuiPETE64KyR2jNLNbhWiSFVCV+WiVUKtLVh1v4hkq6pUjUanQ5N1dRtozSkuUDOwrQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782757617; c=relaxed/simple;
-	bh=0AJ0BZXyh+7bbEkjSK/cu8fj/XFL1CYkjpZeY0OxxY8=;
-	h=Date:To:From:Subject:Message-Id; b=HRFZxZ4tPF7GStU/TdawHCglB6QPr7VL4ukdKNu6jIEJjkEilOUD/r5nSpZn4nLrEaJsDyUl4QmFQMUj7K4vhJoJ8jhMlS3ZwhVdutHy/1mFebaWfm6f2+urV/E4e4OUVERvJ/jDamvhs4rRpsQgyXZ26wSLpAcqfg9qptor4ew=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XWCfbEVe; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1782757620; c=relaxed/simple;
+	bh=dwCr9G9ViuU7haUetsxYc9gpCd9IZMMpwPauxSqUg9Y=;
+	h=Date:To:From:Subject:Message-Id; b=FBx4BnFNdXNP1ThEx01R0Nrk2/WxWoBXabkg+E/PlvaKGEm/cA+87PR7QRAuqV9SpVOjjNpC5r39WHosv8RESefwEkRS4a8SHJxpqfF9SYYusOPDfbfPNpthRNTR3UNxdNQAvbI/WA++lVJz9/e4x03un2t5eaYTgwWiEujW+N8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Jb7Nrt+/; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XWCfbEVe"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E67071F00A3D;
-	Mon, 29 Jun 2026 18:26:54 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Jb7Nrt+/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7273B1F00ACA;
+	Mon, 29 Jun 2026 18:26:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1782757615;
-	bh=0Rxc2WwlJ9SvY2RcpnqT9eGwdJxSLcZt20uf8p6KZPs=;
+	d=linux-foundation.org; s=korg; t=1782757617;
+	bh=/xurefpbBUA8AB7FAiGn4QKXKAysPP/co7D98IFNHFw=;
 	h=Date:To:From:Subject;
-	b=XWCfbEVedH8hyTIAVpnZC9G8ZQKEq5+wNmx02YGSR4gyN311+h0T73Edbtg/0VSeW
-	 jsGzO2WUEEsy7kgFUkGP+hzfWBXjmLyZeajb+BWC9eEX0neOnXG8OckqkV20V74Xj7
-	 3dHgaLtaJl8GWfEOGbey9rf7m8EFqUBvBdj/uVPY=
-Date: Mon, 29 Jun 2026 11:26:54 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,skhan@linuxfoundation.org,sj@kkernel.org,sj@kernel.org,saileshnandanavanam@gmail.com,rppt@kernel.org,plafer@proton.me,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,gutierrez.asier@huawei-partners.com,david@kernel.org,corbet@lwn.net,brendan.higgins@linux.dev,akinobu.mita@gmail.com,doehyunbaek@gmail.com,akpm@linux-foundation.org
+	b=Jb7Nrt+/8SoUnqgxUz3ppIcWR9eD94EC/Zc/o5taBFGcgYH19prlq/Y2UFkOEjRlu
+	 9OxqK+NayUGUdj2c8ZnXX+2hPxX1IS2sZwntzhqgdmNAfbhhchNpYhGKFVOYrIE5iW
+	 kAtvy22GjUZEmYhFRSFWRo8Q+yQ0gxpWTXMk7cRE=
+Date: Mon, 29 Jun 2026 11:26:57 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,skhan@linuxfoundation.org,sj@kkernel.org,sj@kernel.org,saileshnandanavanam@gmail.com,rppt@kernel.org,plafer@proton.me,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,doehyunbaek@gmail.com,david@kernel.org,corbet@lwn.net,brendan.higgins@linux.dev,akinobu.mita@gmail.com,gutierrez.asier@huawei-partners.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + docs-admin-guidemm-damon-fix-damon-documentation-details.patch added to mm-new branch
-Message-Id: <20260629182654.E67071F00A3D@smtp.kernel.org>
+Subject: + samples-damon-fix-typos-in-kconfig-help-text.patch added to mm-new branch
+Message-Id: <20260629182657.7273B1F00ACA@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: Docs/{admin-guide,mm}/damon: fix DAMON documentation details
+     Subject: samples/damon: fix typos in Kconfig help text
 has been added to the -mm mm-new branch.  Its filename is
-     docs-admin-guidemm-damon-fix-damon-documentation-details.patch
+     samples-damon-fix-typos-in-kconfig-help-text.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-admin-guidemm-damon-fix-damon-documentation-details.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/samples-damon-fix-typos-in-kconfig-help-text.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,109 +69,52 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Doehyun Baek <doehyunbaek@gmail.com>
-Subject: Docs/{admin-guide,mm}/damon: fix DAMON documentation details
-Date: Mon, 29 Jun 2026 07:55:34 -0700
+From: Asier Gutierrez <gutierrez.asier@huawei-partners.com>
+Subject: samples/damon: fix typos in Kconfig help text
+Date: Mon, 29 Jun 2026 07:55:35 -0700
 
-Fix minor DAMON documentation issues.  Correct the sysfs scheme file name
-apply_interval_us, the DAMON_STAT module count, a malformed reference, a
-misplaced label indentation, and a few typos.
+Fix a couple  of typos in samples/damon/Kconfig help text. Change "Thps"
+to "This", and "tierign" to "tiering".
 
-Link: https://lore.kernel.org/20260629145538.134832-4-sj@kernel.org
-Signed-off-by: Doehyun Baek <doehyunbaek@gmail.com>
+Link: https://lore.kernel.org/20260629145538.134832-5-sj@kernel.org
+Signed-off-by: Asier Gutierrez <gutierrez.asier@huawei-partners.com>
 Signed-off-by: SJ Park <sj@kernel.org>
 Reviewed-by: SJ Park <sj@kernel.org>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: "Liam R. Howlett" <liam@infradead.org>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Shuah Khan <skhan@linuxfoundation.org>
 Cc: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Asier Gutierrez <gutierrez.asier@huawei-partners.com>
 Cc: Brendan Higgins <brendan.higgins@linux.dev>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Doehyun Baek <doehyunbaek@gmail.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: "Liam R. Howlett" <liam@infradead.org>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Philippe Laferriere <plafer@proton.me>
 Cc: Sailesh Nandanavanam <saileshnandanavanam@gmail.com>
+Cc: Shuah Khan <skhan@linuxfoundation.org>
 Cc: SJ Park <sj@kkernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/mm/damon/usage.rst |    8 ++++----
- Documentation/mm/damon/design.rst            |   12 ++++++------
- 2 files changed, 10 insertions(+), 10 deletions(-)
+ samples/damon/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/Documentation/admin-guide/mm/damon/usage.rst~docs-admin-guidemm-damon-fix-damon-documentation-details
-+++ a/Documentation/admin-guide/mm/damon/usage.rst
-@@ -246,7 +246,7 @@ writing to and reading from the files.
- Under ``nr_regions`` directory, two files for the lower-bound and upper-bound
- of DAMON's monitoring regions (``min`` and ``max``, respectively), which
- controls the monitoring overhead, exist.  You can set and get the values by
--writing to and rading from the files.
-+writing to and reading from the files.
+--- a/samples/damon/Kconfig~samples-damon-fix-typos-in-kconfig-help-text
++++ a/samples/damon/Kconfig
+@@ -31,7 +31,7 @@ config SAMPLE_DAMON_MTIER
+ 	bool "DAMON sample module for memory tiering"
+ 	depends on DAMON && DAMON_PADDR
+ 	help
+-	  Thps builds DAMON sample module for memory tierign.
++	  This builds DAMON sample module for memory tiering.
  
- For more details about the intervals and monitoring regions range, please refer
- to the Design document (:doc:`/mm/damon/design`).
-@@ -264,7 +264,7 @@ Please refer to  the :ref:`design docume
- <damon_design_monitoring_intervals_autotuning>` for the internal of the tuning
- mechanism.  Reading and writing the four files under ``intervals_goal``
- directory shows and updates the tuning parameters that described in the
--:ref:design doc <damon_design_monitoring_intervals_autotuning>` with the same
-+:ref:`design doc <damon_design_monitoring_intervals_autotuning>` with the same
- names.  The tuning starts with the user-set ``sample_us`` and ``aggr_us``.  The
- tuning-applied current values of the two intervals can be read from the
- ``sample_us`` and ``aggr_us`` files after writing ``update_tuned_intervals`` to
-@@ -377,7 +377,7 @@ schemes/<N>/
- In each scheme directory, nine directories (``access_pattern``, ``quotas``,
- ``watermarks``, ``core_filters``, ``ops_filters``, ``filters``, ``dests``,
- ``stats``, and ``tried_regions``) and three files (``action``, ``target_nid``
--and ``apply_interval``) exist.
-+and ``apply_interval_us``) exist.
- 
- The ``action`` file is for setting and getting the scheme's :ref:`action
- <damon_design_damos_action>`.  The keywords that can be written to and read
-@@ -743,7 +743,7 @@ counter).  Finally the tenth field (``X`
- (refer to :ref:`design <damon_design_age_tracking>` for more details of the
- counter).
- 
--If the event was ``damon:damos_beofre_apply``, the ``perf script`` output would
-+If the event was ``damon:damos_before_apply``, the ``perf script`` output would
- be somewhat like below::
- 
-     kdamond.0 47293 [000] 80801.060214: damon:damos_before_apply: ctx_idx=0 scheme_idx=0 target_idx=0 nr_regions=11 121932607488-135128711168: 0 136
---- a/Documentation/mm/damon/design.rst~docs-admin-guidemm-damon-fix-damon-documentation-details
-+++ a/Documentation/mm/damon/design.rst
-@@ -86,7 +86,7 @@ To know how user-space can do the config
- documentation.
- 
- 
-- .. _damon_design_vaddr_target_regions_construction:
-+.. _damon_design_vaddr_target_regions_construction:
- 
- VMA-based Target Address Range Construction
- -------------------------------------------
-@@ -930,11 +930,11 @@ control parameters for the usage would a
- purpose.
- 
- To support such cases, yet more DAMON API user kernel modules that provide more
--simple and optimized user space interfaces are available.  Currently, two
--modules for proactive reclamation and LRU lists manipulation are provided.  For
--more detail, please read the usage documents for those
--(:doc:`/admin-guide/mm/damon/stat`, :doc:`/admin-guide/mm/damon/reclaim` and
--:doc:`/admin-guide/mm/damon/lru_sort`).
-+simple and optimized user space interfaces are available.  Currently, three
-+modules for access monitoring statistics, proactive reclamation, and LRU lists
-+manipulation are provided.  For more detail, please read the usage documents for
-+those (:doc:`/admin-guide/mm/damon/stat`, :doc:`/admin-guide/mm/damon/reclaim`
-+and :doc:`/admin-guide/mm/damon/lru_sort`).
- 
- .. _damon_design_special_purpose_modules_exclusivity:
- 
+ 	  The module assumes the system is constructed with two NUMA nodes,
+ 	  which seems as local and remote nodes to all CPUs.  For example,
 _
 
-Patches currently in -mm which might be from doehyunbaek@gmail.com are
+Patches currently in -mm which might be from gutierrez.asier@huawei-partners.com are
 
-docs-admin-guidemm-damon-fix-damon-documentation-details.patch
+samples-damon-fix-typos-in-kconfig-help-text.patch
 
