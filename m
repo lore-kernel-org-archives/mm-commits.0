@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E631837F8B1
-	for <mm-commits@vger.kernel.org>; Mon, 29 Jun 2026 17:44:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BA3A0380FDF
+	for <mm-commits@vger.kernel.org>; Mon, 29 Jun 2026 17:53:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782755048; cv=none; b=WVKqRyOZ6NnbGJREjppv3/zv1/GUFbyZwOwnZ/BIk1iEJXoNh6nMhbxAOWvnkrUvMFl4mJqFLKkfHxnI7cM/m1KsDt7mgPojmDt01VHopgxizvNB9Q46ob4aw+okLK4oYFIqXBaQxEQjsyiBKqY3uw2okmA7NUt8pheyKzy7c8M=
+	t=1782755618; cv=none; b=cj1+GGAmOTbwyrg6Wm5Gs1gM0Wm7beUyP64MGtwmE+ssKlt28oY9RZtrGQw5pXcrfEuVl1Sj5DfMG0c2PIUqaeKiPz1mJrL5xSRWDHyDM1ppIFhaozXSKHHlR9Hc/nIHk1x5QRwAEkoonycQBl9iUqrvVhXKi80qclH5TCrStdQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782755048; c=relaxed/simple;
-	bh=0V1dMY4K4MP9tEp7ZrvSVDNRhoqUFi48uVDmt0N67go=;
-	h=Date:To:From:Subject:Message-Id; b=f+4ZfAxcVQyesQXUr3WdBNDAsVB8xdLrweXu3Ir4GEYLZEwwRhNPjl93DUG6fom7HuoNIEN1QYPU6pUn8HeNBVrGcn/setwotxuQwsDgeM7xS7XGaZTXT6+1ZRl+cSIH78llsi/+PJFNehEVa6RBWuyR8TOsJyIi80stnGhRnGw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=msmf2BhV; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1782755618; c=relaxed/simple;
+	bh=lpq0mllg35fwQdfunK/39nszGXNmblKaADI6o+SGVBM=;
+	h=Date:To:From:Subject:Message-Id; b=RX6ML9DHTmhvJI7NFsjQz6PC4D9WhGkprdyDfPPwGdaOiPLrawvhUU+8p1tJGAVF/6ViRk1jD8uNPVhW+TBCwSEXR8orFzD+XNNR16Vb4yrVdzihiK/OAOd0DOx3UdUYIXm8CnOfPR+/0fGSNOaJsrOJThmOdPNtcp0rXYSCdvs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ShVwXoQM; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="msmf2BhV"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6769B1F000E9;
-	Mon, 29 Jun 2026 17:44:06 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ShVwXoQM"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 298821F000E9;
+	Mon, 29 Jun 2026 17:53:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1782755046;
-	bh=MydwZXqJQ0ZN1zPnMsatZyU1/2womDRZdlLO2xXjoRc=;
+	d=linux-foundation.org; s=korg; t=1782755617;
+	bh=aQwq5YaEEYaKnJd9wiVDEI7tuCs3T0v+avbEukD5Dvc=;
 	h=Date:To:From:Subject;
-	b=msmf2BhVaI8AAXKEopVusVd5EKTOMLY0yo5zNI2IGSWpdnDOfK5Kz90FMaCQTwjsr
-	 dJ32UxQrxOGH8Wwsf8cIXjEWNcN89feFU0C9W/k/fwJCNmu/Fii0U/Gy+pQlRIEsWk
-	 0yHPpSRqWT2k8/wsB/YJCfQ3rZEzg3Kgs+k4GlM0=
-Date: Mon, 29 Jun 2026 10:44:06 -0700
-To: mm-commits@vger.kernel.org,sj@kernel.org,lianux.mm@gmail.com,chentao@kylinos.cn,akpm@linux-foundation.org
+	b=ShVwXoQMsa24J16VtQCRQPYkC41JilqVqwDpEsIOj0X/kUy1jv6SKDrWWOSpWPSmB
+	 rhgnBzAgHsWC4QyyaJk+u0fLhhwFhey1JB4KiPMvcTf6sE22A++KmmsxNiOU3r4XAC
+	 RpoNOSbElvjWFRJCUwYKsspFnj7x80aGxO/Ej4Rs=
+Date: Mon, 29 Jun 2026 10:53:36 -0700
+To: mm-commits@vger.kernel.org,sj@kernel.org,niecheng1@uniontech.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-damon-fix-dead-code-skipped-checks-and-broken-lookups.patch added to mm-new branch
-Message-Id: <20260629174406.6769B1F000E9@smtp.kernel.org>
+Subject: + selftests-damon-_damon_sysfspy-fix-memcg_path-assignment.patch added to mm-new branch
+Message-Id: <20260629175337.298821F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/damon: fix dead code, skipped checks, and broken lookups
+     Subject: selftests/damon/_damon_sysfs.py: fix memcg_path assignment
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-damon-fix-dead-code-skipped-checks-and-broken-lookups.patch
+     selftests-damon-_damon_sysfspy-fix-memcg_path-assignment.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-damon-fix-dead-code-skipped-checks-and-broken-lookups.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-damon-_damon_sysfspy-fix-memcg_path-assignment.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,147 +69,52 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Kunwu Chan <chentao@kylinos.cn>
-Subject: selftests/damon: fix dead code, skipped checks, and broken lookups
-Date: Mon, 29 Jun 2026 07:46:46 -0700
+From: Cheng Nie <niecheng1@uniontech.com>
+Subject: selftests/damon/_damon_sysfs.py: fix memcg_path assignment
+Date: Mon, 29 Jun 2026 07:48:10 -0700
 
-'hugeapge_size' in drgn_dump_damon_status.py was a dead elif branch. 
-$fail_reason in sysfs.sh was undefined, silently emptying the error
-message.  'exit' instead of 'exist' in sysfs.sh skipped a file existence
-check.  'nohugeapge' in sysfs.py broke an action dict lookup.
+Patch series "selftests/damon: fix memcg_path staging handling", v5.
 
-Fix other wrong strings in the same files.
+Fix a bug in _damon_sysfs.py for damos_filter memcg_path setup, and add
+a test case of it in sysfs.py.
 
-Link: https://lore.kernel.org/20260601032314.424013-4-kunwu.chan@linux.dev
-Link: https://lore.kernel.org/20260629144648.134092-4-sj@kernel.org
-Co-developed-by: Wang Lian <lianux.mm@gmail.com>
-Signed-off-by: Wang Lian <lianux.mm@gmail.com>
-Signed-off-by: Kunwu Chan <chentao@kylinos.cn>
+
+This patch (of 2):
+
+DamosFilter stores memcg_path for sysfs staging, but the constructor
+assigns it with a trailing comma and therefore turns it into a tuple.
+
+Fix the assignment so memcg_path is stored as the intended string.  This
+makes memcg filter staging and follow-up validation use the written path
+correctly.
+
+Link: https://lore.kernel.org/20260629144812.134159-1-sj@kernel.org
+Link: https://lore.kernel.org/464AE12D4BC6B6F4+20260601090519.240482-1-niecheng1@uniontech.com
+Link: https://lore.kernel.org/20260629144812.134159-2-sj@kernel.org
+Signed-off-by: Cheng Nie <niecheng1@uniontech.com>
 Signed-off-by: SJ Park <sj@kernel.org>
 Reviewed-by: SJ Park <sj@kernel.org>
-Cc: Kunwu Chan <chentao@kylinos.cn>
-Cc: Wang Lian <lianux.mm@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/damon/_damon_sysfs.py                                      |    2 +-
- tools/testing/selftests/damon/damos_apply_interval.py                              |    2 +-
- tools/testing/selftests/damon/damos_quota_goal.py                                  |    2 +-
- tools/testing/selftests/damon/drgn_dump_damon_status.py                            |    2 +-
- tools/testing/selftests/damon/sysfs.py                                             |    4 ++--
- tools/testing/selftests/damon/sysfs.sh                                             |    6 +++---
- tools/testing/selftests/damon/sysfs_update_schemes_tried_regions_wss_estimation.py |    2 +-
- 7 files changed, 10 insertions(+), 10 deletions(-)
+ tools/testing/selftests/damon/_damon_sysfs.py |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/tools/testing/selftests/damon/_damon_sysfs.py~selftests-damon-fix-dead-code-skipped-checks-and-broken-lookups
+--- a/tools/testing/selftests/damon/_damon_sysfs.py~selftests-damon-_damon_sysfspy-fix-memcg_path-assignment
 +++ a/tools/testing/selftests/damon/_damon_sysfs.py
-@@ -837,7 +837,7 @@ class Kdamond:
-                 for goal in scheme.quota.goals:
-                     err = goal.stage()
-                     if err is not None:
--                        print('commit_schemes_quota_goals failed stagign: %s'%
-+                        print('commit_schemes_quota_goals failed staging: %s'%
-                               err)
-                         exit(1)
-         return write_file(os.path.join(self.sysfs_dir(), 'state'),
---- a/tools/testing/selftests/damon/damos_apply_interval.py~selftests-damon-fix-dead-code-skipped-checks-and-broken-lookups
-+++ a/tools/testing/selftests/damon/damos_apply_interval.py
-@@ -56,7 +56,7 @@ def main():
-     # Because the second scheme was having the apply interval that is ten times
-     # lower than that of the first scheme, the second scheme should be tried
-     # about ten times more frequently than the first scheme.  For possible
--    # timing errors, check if it was at least nine times more freuqnetly tried.
-+    # timing errors, check if it was at least nine times more frequently tried.
-     ratio = nr_tried_stats[1] / nr_tried_stats[0]
-     if ratio < 9:
-         print('%d / %d = %f (< 9)' %
---- a/tools/testing/selftests/damon/damos_quota_goal.py~selftests-damon-fix-dead-code-skipped-checks-and-broken-lookups
-+++ a/tools/testing/selftests/damon/damos_quota_goal.py
-@@ -66,7 +66,7 @@ def main():
-             # effective quota was already minimum that cannot be more reduced
-             if expect_increase is False and last_effective_bytes == 1:
-                 continue
--            print('efective bytes not changed: %d' % goal.effective_bytes)
-+            print('effective bytes not changed: %d' % goal.effective_bytes)
-             exit(1)
- 
-         increased = last_effective_bytes < goal.effective_bytes
---- a/tools/testing/selftests/damon/drgn_dump_damon_status.py~selftests-damon-fix-dead-code-skipped-checks-and-broken-lookups
-+++ a/tools/testing/selftests/damon/drgn_dump_damon_status.py
-@@ -163,7 +163,7 @@ def damos_filter_to_dict(damos_filter):
-                                int(damos_filter.addr_range.end)]
-     elif type_ == 'target':
-         dict_['target_idx'] = int(damos_filter.target_idx)
--    elif type_ == 'hugeapge_size':
-+    elif type_ == 'hugepage_size':
-         dict_['sz_range'] = [int(damos_filter.sz_range.min),
-                              int(damos_filter.sz_range.max)]
-     return dict_
---- a/tools/testing/selftests/damon/sysfs.py~selftests-damon-fix-dead-code-skipped-checks-and-broken-lookups
-+++ a/tools/testing/selftests/damon/sysfs.py
-@@ -119,7 +119,7 @@ def assert_access_pattern_committed(patt
-                 'max_nr_accesses', dump)
-     assert_true(dump['min_age_region'] == pattern.age[0], 'min_age_region',
-                 dump)
--    assert_true(dump['max_age_region'] == pattern.age[1], 'miaxage_region',
-+    assert_true(dump['max_age_region'] == pattern.age[1], 'max_age_region',
-                 dump)
- 
- def assert_scheme_committed(scheme, dump):
-@@ -129,7 +129,7 @@ def assert_scheme_committed(scheme, dump
-             'cold': 1,
-             'pageout': 2,
-             'hugepage': 3,
--            'nohugeapge': 4,
-+            'nohugepage': 4,
-             'collapse': 5,
-             'lru_prio': 6,
-             'lru_deprio': 7,
---- a/tools/testing/selftests/damon/sysfs.sh~selftests-damon-fix-dead-code-skipped-checks-and-broken-lookups
-+++ a/tools/testing/selftests/damon/sysfs.sh
-@@ -3,7 +3,7 @@
- 
- source _common.sh
- 
--# Kselftest frmework requirement - SKIP code is 4.
-+# Kselftest framework requirement - SKIP code is 4.
- ksft_skip=4
- 
- ensure_write_succ()
-@@ -28,7 +28,7 @@ ensure_write_fail()
- 
- 	if (echo "$content" > "$file") 2> /dev/null
- 	then
--		echo "writing $content to $file succeed ($fail_reason)"
-+		echo "writing $content to $file succeeded ($reason)"
- 		echo "expected failure because $reason"
- 		exit 1
- 	fi
-@@ -363,7 +363,7 @@ test_context()
- {
- 	context_dir=$1
- 	ensure_dir "$context_dir" "exist"
--	ensure_file "$context_dir/avail_operations" "exit" 400
-+	ensure_file "$context_dir/avail_operations" "exist" 400
- 	ensure_file "$context_dir/operations" "exist" 600
- 	ensure_file "$context_dir/addr_unit" "exist" 600
- 	ensure_file "$context_dir/pause" "exist" 600
---- a/tools/testing/selftests/damon/sysfs_update_schemes_tried_regions_wss_estimation.py~selftests-damon-fix-dead-code-skipped-checks-and-broken-lookups
-+++ a/tools/testing/selftests/damon/sysfs_update_schemes_tried_regions_wss_estimation.py
-@@ -7,7 +7,7 @@ import time
- import _damon_sysfs
- 
- def pass_wss_estimation(sz_region):
--    # access two regions of given size, 2 seocnds per each region
-+    # access two regions of given size, 2 seconds per each region
-     proc = subprocess.Popen(
-             ['./access_memory', '2', '%d' % sz_region, '2000', 'repeat'])
-     kdamonds = _damon_sysfs.Kdamonds([_damon_sysfs.Kdamond(
+@@ -271,7 +271,7 @@ class DamosFilter:
+         self.type_ = type_
+         self.matching = matching
+         self.allow = allow
+-        self.memcg_path = memcg_path,
++        self.memcg_path = memcg_path
+         self.addr_start = addr_start
+         self.addr_end = addr_end
+         self.target_idx = target_idx
 _
 
-Patches currently in -mm which might be from chentao@kylinos.cn are
+Patches currently in -mm which might be from niecheng1@uniontech.com are
 
-selftests-damon-prevent-cross-context-state-pollution-in-damonctx.patch
-selftests-damon-damos_tried_regions-fix-expectation-output-and-join-typeerror.patch
-selftests-damon-fix-dead-code-skipped-checks-and-broken-lookups.patch
+selftests-damon-_damon_sysfspy-fix-memcg_path-assignment.patch
+selftests-damon-sysfspy-validate-memcg_path-staging-readback.patch
 
