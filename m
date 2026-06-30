@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 856C647AF69
-	for <mm-commits@vger.kernel.org>; Tue, 30 Jun 2026 20:35:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1E52434DCC7
+	for <mm-commits@vger.kernel.org>; Tue, 30 Jun 2026 20:50:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782851743; cv=none; b=sWZBHX1jpJU4SJ9GltJOLVJ7sS2VivYixKLBp5cBbVOIxJCyvlxgvHDRsI6HFOve48X6AQewTzYqLr8edZWARRwRnParjsHwMndKFi/y1RtJKQhijt+H/WWb4CB1UfaCN/Je5vYmPbrRzuRZ86TEkgABx7ST9GPr8xsh6IPYrYA=
+	t=1782852613; cv=none; b=uEtHQUqVMwC8pjEtTzi+BYo0ONgbAD8ynJQOM4z3sf1rB3ptmkaf5tg7uDpFXXhelsqmHPM9FyoEMKOML0PnoL8VQSTVQvzPc9JkfXUF0fV8QYEBaKQ4MlyvdY97wu0UyfeGlU7lARL7vgdmEkyql+ifR2DQwKZhRhMCunk9Xp8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782851743; c=relaxed/simple;
-	bh=i1xcMqFQ+BVfpSJ1ibTMWr5s88tKPPya1oz+7Y9hIlg=;
-	h=Date:To:From:Subject:Message-Id; b=PXpCeb8wrQE6r39U0UAHqEt/wRpmO/GKA+MpviK+NtCWVpJfB7u92LdMQkgQuard/b/BdP4K1YWgzsvA+N+B3xb6HiESvFzW3L3zHJsoyhPs4wQSVYn+r7Hn6Z24mNpdACx5Qc6ulUK/6fHPY0bfK+CqpE2nvDVwBC+PUjZ+gIc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HPJ++G3Y; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1782852613; c=relaxed/simple;
+	bh=HpPwTWZAzWpyCvJ1vy1ICWIXIGvkhNfk6GdEYvv0fNA=;
+	h=Date:To:From:Subject:Message-Id; b=CuFuC4w1jUOpFcy3HRbPGq26EKbPmPUFN/azboBca31kgYTuURJi7X+n3CJ5EbqLRmMSrSiqEArpRov6R35aPbIYpOCZBaEy7lrqw0x0EDSGrazfETlxXql9Q0sI7Ipw0ZS0uS6nqZqznVloJfEmEAvwgf7MsU2UZ/TRCcJduOQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=k4eS8NhZ; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HPJ++G3Y"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 595751F000E9;
-	Tue, 30 Jun 2026 20:35:42 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="k4eS8NhZ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 845351F000E9;
+	Tue, 30 Jun 2026 20:50:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1782851742;
-	bh=AoZVJmfFh7lBjSYOgFATglVYQVLGqzPzq/IhvFOVKfw=;
+	d=linux-foundation.org; s=korg; t=1782852611;
+	bh=WDDo3tZ/AHiP7tx3fi1FIvUhhDQU7ZC37etcPih5q6g=;
 	h=Date:To:From:Subject;
-	b=HPJ++G3YOHQK2ii2tsZjEdnccHxyy/9aXuX1Jigmqck1ORo0RQfozbmapcPanWrkq
-	 Qf0M8U7TVHug5RKCHMr2cURPAgYQDBP5tQYIqecQYOtSC80AxWL49/Vrxlrj3Oe2jG
-	 IQQ/jZPCeGuDixNtycutht94acCXm+iUjYG3J71Y=
-Date: Tue, 30 Jun 2026 13:35:41 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,shuah@kernel.org,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,corbet@lwn.net,brendan.higgins@linux.dev,sj@kernel.org,akpm@linux-foundation.org
+	b=k4eS8NhZGp8BwdIQJQWLdL7NSK6OxSKfPakKSrh4C0wmJ/PgvkeDeImv/0zYlLYbf
+	 tOxcy1Ys71jH22CQoNVIioyteUS/k8vweQPHO7EBKCg8sjy1CgCNlF5vwN8fm3osO8
+	 CcRnLDUDS0oiqOfVMcYnC7e8fTyBLVwinGeGB0Os=
+Date: Tue, 30 Jun 2026 13:50:11 -0700
+To: mm-commits@vger.kernel.org,leitao@debian.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-sysfs-fix-typos-in-probe_addrm_dirs-s-attr-probe.patch added to mm-new branch
-Message-Id: <20260630203542.595751F000E9@smtp.kernel.org>
+Subject: [to-be-updated] mm-memory-failure-drop-dead-error_states-entry-for-reserved-pages.patch removed from -mm tree
+Message-Id: <20260630205011.845351F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,144 +34,170 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: mm/damon/sysfs: fix typos in probe_{add,rm}_dirs: s/attr/probe/
-has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-sysfs-fix-typos-in-probe_addrm_dirs-s-attr-probe.patch
+The quilt patch titled
+     Subject: mm/memory-failure: drop dead error_states[] entry for reserved pages
+has been removed from the -mm tree.  Its filename was
+     mm-memory-failure-drop-dead-error_states-entry-for-reserved-pages.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-fix-typos-in-probe_addrm_dirs-s-attr-probe.patch
-
-This patch will later appear in the mm-new branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: SJ Park <sj@kernel.org>
-Subject: mm/damon/sysfs: fix typos in probe_{add,rm}_dirs: s/attr/probe/
-Date: Tue, 30 Jun 2026 07:17:25 -0700
+From: Breno Leitao <leitao@debian.org>
+Subject: mm/memory-failure: drop dead error_states[] entry for reserved pages
+Date: Fri, 26 Jun 2026 08:33:15 -0700
 
-damon_sysfs_probe_{add,rm}_dirs names a variable for damon_sysf_probe as
-'attr'.  Probably a trivial copy-pasta error, but it makes the code not
-pleasant to read.  Fix those.
+Patch series "mm/memory-failure: add panic option for unrecoverable
+pages", v10.
 
-Link: https://lore.kernel.org/20260630141726.92246-12-sj@kernel.org
-Signed-off-by: SJ Park <sj@kernel.org>
-Cc: Brendan Higgins <brendan.higgins@linux.dev>
-Cc: David Hildenbrand <david@kernel.org>
+A multi-bit ECC error on a kernel-owned page that the memory failure
+handler cannot recover is currently swallowed: PG_hwpoison is set, the
+event is logged, and the kernel keeps running.  The corrupted memory
+remains accessible to the kernel and either drives silent data corruption
+or surfaces seconds-to-minutes later as an apparently unrelated crash.  In
+a large fleet that delayed, unattributable crash turns into significant
+engineering effort to root-cause; in a kdump configuration, by the time
+the crash happens the original error context (faulting PFN, MCE/GHES
+record, page state) is long gone.
+
+This series adds an opt-in sysctl,
+vm.panic_on_unrecoverable_memory_failure, that converts an unrecoverable
+kernel-page hwpoison event into an immediate panic with a clean
+dmesg/vmcore that still contains the original failure context.  The
+default is disabled so existing workloads see no change.
+
+There is a selftest that test different cases, and I tested it using the
+following variants:
+
+  ┌─────────┬──────────┬───────────────────────────────────────────────────────────┐
+  │ Variant │   PFN    │                          Result                           │
+  ├─────────┼──────────┼───────────────────────────────────────────────────────────┤
+  │ rodata  │ 0x2600   │ Panic with "Memory failure: 0x2600: unrecoverable page"   │
+  ├─────────┼──────────┼───────────────────────────────────────────────────────────┤
+  │ slab    │ 0x100032 │ Panic with "Memory failure: 0x100032: unrecoverable page" │
+  ├─────────┼──────────┼───────────────────────────────────────────────────────────┤
+  │ pgtable │ 0x100000 │ Panic with "Memory failure: 0x100000: unrecoverable page" │
+  └─────────┴──────────┴───────────────────────────────────────────────────────────┘
+
+Each one shows the same call trace, exactly the path the series builds:
+
+  hard_offline_page_store
+    → memory_failure
+      → action_result
+        → panic("Memory failure: %#lx: unrecoverable page")
+
+
+This patch (of 6):
+
+The first entry of error_states[],
+
+	{ reserved,	reserved,	MF_MSG_KERNEL,	me_kernel },
+
+is unreachable.  identify_page_state() has two callers, and neither one
+can dispatch a PG_reserved page to me_kernel():
+
+  * memory_failure() reaches identify_page_state() only after
+    get_hwpoison_page() returned 1.  get_any_page() reaches that
+    return only via __get_hwpoison_page(), which only takes a
+    refcount when the page is HWPoisonHandlable().
+    HWPoisonHandlable() is an allowlist for LRU, free-buddy, and
+    (for soft-offline) movable_ops pages -- PG_reserved pages do
+    not satisfy any of these, so they fail with -EBUSY/-EIO long
+    before identify_page_state() runs.
+
+  * try_memory_failure_hugetlb() reaches identify_page_state() only
+    via the MF_HUGETLB_IN_USED branch, where the page is necessarily
+    a hugetlb folio.  hugetlb folios don't carry PG_reserved at that
+    point: hugetlb_folio_init_vmemmap() calls __folio_clear_reserved()
+    during init, so the reserved entry would not match even if it
+    were still present.
+
+me_kernel() never executes and the entry exists only to be matched against
+by code that cannot see it.
+
+Drop the entry, the me_kernel() helper, and the now-unused "reserved"
+macro.  Leave the MF_MSG_KERNEL enum value in place: it remains part of
+the tracepoint and pr_err() string tables, and follow-on work to classify
+unrecoverable kernel pages can reuse it without churning the user-visible
+enum.
+
+No functional change.
+
+Link: https://lore.kernel.org/20260626-ecc_panic-v10-0-6dacb8ad024d@debian.org
+Link: https://lore.kernel.org/20260626-ecc_panic-v10-1-6dacb8ad024d@debian.org
+Signed-off-by: Breno Leitao <leitao@debian.org>
+Suggested-by: David Hildenbrand <david@kernel.org>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Reviewed-by: Lance Yang <lance.yang@linux.dev>
+Acked-by: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: "Masami Hiramatsu (Google)" <mhiramat@kernel.org>
+Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
 Cc: Shuah Khan <shuah@kernel.org>
+Cc: Steven Rostedt <rostedt@goodmis.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/sysfs.c |   16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ mm/memory-failure.c |   14 --------------
+ 1 file changed, 14 deletions(-)
 
---- a/mm/damon/sysfs.c~mm-damon-sysfs-fix-typos-in-probe_addrm_dirs-s-attr-probe
-+++ a/mm/damon/sysfs.c
-@@ -1073,7 +1073,7 @@ static struct damon_sysfs_probe *damon_s
- 	return kzalloc_obj(struct damon_sysfs_probe);
+--- a/mm/memory-failure.c~mm-memory-failure-drop-dead-error_states-entry-for-reserved-pages
++++ a/mm/memory-failure.c
+@@ -981,17 +981,6 @@ static bool has_extra_refcount(struct pa
  }
  
--static int damon_sysfs_probe_add_dirs(struct damon_sysfs_probe *attr)
-+static int damon_sysfs_probe_add_dirs(struct damon_sysfs_probe *probe)
- {
- 	struct damon_sysfs_filters *filters;
- 	int err;
-@@ -1081,22 +1081,22 @@ static int damon_sysfs_probe_add_dirs(st
- 	filters = damon_sysfs_filters_alloc();
- 	if (!filters)
- 		return -ENOMEM;
--	attr->filters = filters;
-+	probe->filters = filters;
+ /*
+- * Error hit kernel page.
+- * Do nothing, try to be lucky and not touch this instead. For a few cases we
+- * could be more sophisticated.
+- */
+-static int me_kernel(struct page_state *ps, struct page *p)
+-{
+-	unlock_page(p);
+-	return MF_IGNORED;
+-}
+-
+-/*
+  * Page in unknown state. Do nothing.
+  * This is a catch-all in case we fail to make sense of the page state.
+  */
+@@ -1199,10 +1188,8 @@ static int me_huge_page(struct page_stat
+ #define mlock		(1UL << PG_mlocked)
+ #define lru		(1UL << PG_lru)
+ #define head		(1UL << PG_head)
+-#define reserved	(1UL << PG_reserved)
  
- 	err = kobject_init_and_add(&filters->kobj, &damon_sysfs_filters_ktype,
--			&attr->kobj, "filters");
-+			&probe->kobj, "filters");
- 	if (err) {
- 		kobject_put(&filters->kobj);
--		attr->filters = NULL;
-+		probe->filters = NULL;
- 	}
- 	return err;
- }
+ static struct page_state error_states[] = {
+-	{ reserved,	reserved,	MF_MSG_KERNEL,	me_kernel },
+ 	/*
+ 	 * free pages are specially detected outside this table:
+ 	 * PG_buddy pages only make a small fraction of all free pages.
+@@ -1234,7 +1221,6 @@ static struct page_state error_states[]
+ #undef mlock
+ #undef lru
+ #undef head
+-#undef reserved
  
--static void damon_sysfs_probe_rm_dirs(struct damon_sysfs_probe *attr)
-+static void damon_sysfs_probe_rm_dirs(struct damon_sysfs_probe *probe)
- {
--	if (attr->filters) {
--		damon_sysfs_filters_rm_dirs(attr->filters);
--		kobject_put(&attr->filters->kobj);
-+	if (probe->filters) {
-+		damon_sysfs_filters_rm_dirs(probe->filters);
-+		kobject_put(&probe->filters->kobj);
- 	}
- }
- 
+ static void update_per_node_mf_stats(unsigned long pfn,
+ 				     enum mf_result result)
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from leitao@debian.org are
 
-mm-damon-sysfs-schemes-fix-dir-put-orders-in-access_pattern_add_dirs.patch
-mm-damon-sysfs-schemes-put-stats-for-scheme_add_dirs-internal-error.patch
-mm-damon-ops-common-handle-extreme-intervals-in-damon_hot_score.patch
-mm-damon-add-a-kernel-doc-comment-for-damon_ctx-probes.patch
-mm-damon-add-a-kernel-doc-comment-for-damon_ctx-rnd_state.patch
-maintainers-s-seongjae-sj.patch
-samples-damon-wsse-handle-damon_start-failure.patch
-samples-damon-prcl-handle-damon_start-failure.patch
-samples-damon-mtier-handle-damon_start-failure.patch
-samples-damon-mtier-handle-damon_stop-failure.patch
-samples-damon-wsse-stop-and-free-damon-ctx-when-damon_call-fails.patch
-samples-damon-prcl-stop-and-free-damon-ctx-when-damon_call-fails.patch
-mm-damon-sysfs-kobject_del-target-normal-context-and-kdamond-dirs.patch
-mm-damon-sysfs-kobject_del-region-and-target-error-dirs.patch
-mm-damon-sysfs-schemes-kobject_del-scheme-dirs.patch
-mm-damon-sysfs-schemes-kobject_del-scheme-region-dirs.patch
-mm-damon-sysfs-schemes-kobject_del-scheme-filter-dirs.patch
-mm-damon-sysfs-schemes-kobject_del-scheme-quota-goal-dirs.patch
-mm-damon-sysfs-schemes-kobject_del-scheme-action-destination-dirs.patch
-mm-damon-sysfs-kobject_del-probe-dirs.patch
-mm-damon-sysfs-kobject_del-probe-filter-dirs.patch
-mm-damon-sysfs-kobject_del-probe-dirs-in-probes_addd_dir-error-path.patch
-mm-damon-sysfs-schemes-kobject_del-region-for-populate_region-error.patch
-docs-mm-damon-design-update-for-damos_quota_node_eligible_mem_bp.patch
-docs-abi-damon-document-probe-files.patch
-mm-damon-tests-core-kunit-test-damon_rand.patch
-selftests-damon-sysfssh-test-multiple-probe-dirs-creation.patch
-selftests-damon-sysfssh-test-coreops_filters-directories.patch
-selftests-damon-sysfssh-test-dests-dir.patch
-selftests-damon-sysfssh-test-all-files-in-quota-goal-dir.patch
-mm-damon-core-reduce-range-setup-in-damon_commit_target_regions.patch
-mm-damon-sysfs-split-probe-setup-function-out.patch
-mm-damon-sysfs-split-out-filters-setup-function.patch
-mm-damon-sysfs-fix-typos-in-probe_addrm_dirs-s-attr-probe.patch
+mm-kmemleak-avoid-soft-lockup-when-scanning-task-stacks.patch
+mm-kmemleak-stop-the-task-stack-scan-early-when-interrupted.patch
+mm-kmemleak-stop-the-per-cpu-and-struct-page-scans-early-too.patch
+a.patch
+mm-memory-failure-surface-unhandlable-kernel-pages-as-enotrecoverable.patch
+mm-memory-failure-report-mf_msg_kernel-for-unrecoverable-kernel-pages.patch
+mm-memory-failure-add-panic-option-for-unrecoverable-pages.patch
+documentation-document-panic_on_unrecoverable_memory_failure-sysctl.patch
+selftests-mm-add-hwpoison-panic-destructive-test.patch
+mm-kmemleak-skip-the-remaining-scan-phases-when-interrupted.patch
 
