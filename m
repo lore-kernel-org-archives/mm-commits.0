@@ -1,69 +1,63 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ED6243BC680
-	for <mm-commits@vger.kernel.org>; Tue, 30 Jun 2026 18:41:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B1FFE23EA8A
+	for <mm-commits@vger.kernel.org>; Tue, 30 Jun 2026 18:41:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782844885; cv=none; b=WSmOHDEvn8jkf078OAD05v3Ifx9tUC75g9+qcbYi/DbMUO1uNdWnjmt1zHCXYJNMrE/4HSyAtd4kayB/Q8cqzX485SJyjS5/6lX10Wj4wR49ZMTGlVTCJKC4+21VDGA9VzrUMoaRAOhuIwPU6jA6Lpv0XKtxxJ4PpcMh11jUxA4=
+	t=1782844890; cv=none; b=Q3Cp+Ts2N+I5sgf4GqqOeE6Dx94VhK1bR07Tv3BXzoqwnqDLByBRuWN5+RjKREyJCou2gcxN5xEO7hmSuU04Ae9+9BBEgeoCTdaySOhlJWKYFpiZ7VPwANH0L65+BwuiiSsYMmFwJvvyIL1dU+j/7K+sY9ITvLKKPILvehYXxPI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782844885; c=relaxed/simple;
-	bh=6zntXJWALHRBtZU7uqS6TYxDCSsiG9g7MgmT7N5Pk9o=;
-	h=Date:From:To:Cc:Subject:Message-Id:In-Reply-To:References:
-	 Mime-Version:Content-Type; b=DMd3w82mwDAsErr5b29awernUduelFummrHMhAtQEevRa6S9gLwASki8AEAWPpvmed3EmNpqI0Wm4Ht+m2V8rMI6clAjh4r87OLxsL+JpxyALrvArOkqDFVe/9mPk2H738KHwlrUg3R+yo0xZ94ZQMbKd+mvQYB25JeGRFucCms=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QzMu861D; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1782844890; c=relaxed/simple;
+	bh=1Jg3MZNgE+afLciWzuE0rsB5tIKVv1MjE1vMUBAMgf8=;
+	h=Date:To:From:Subject:Message-Id; b=jg3pu77rY9wY1oDW7UsWE+Jhrp7SBTDZwNkE1ZP2xXwFId9w9BSFvRyuIjYUIHe9N4u0mydcl0G6q5osAsnYGFZUCSlSYPa3HgA4JutkLS5/NCd58uKDOpTqxeTOkpxo40X5Sh0qtqtbd047dwptso5FCviixzScoGh36jJLYEU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RYE1NoTl; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QzMu861D"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 442851F000E9;
-	Tue, 30 Jun 2026 18:41:23 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RYE1NoTl"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4B62B1F00A3A;
+	Tue, 30 Jun 2026 18:41:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1782844883;
-	bh=ZxDMLZGmdOwaoXnC4HajV5npir5XPQg4QmBeqMX7AWA=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References;
-	b=QzMu861Dua4FbzXE9DZsyP5ei5Io6q8jRzzsRAe37WnViSMqxy0N9JmQqLAY7MCze
-	 Pqzs/0MSJklW9EKehW17QJurH/ii/CrlCMkrwYkGrkLv2T0fFCS9Bc0Na2ThyaJeMa
-	 HuzreYid5aZOtgxUIwl98dYNTY+CSvyY5eLS9ES8=
-Date: Tue, 30 Jun 2026 11:41:22 -0700
+	d=linux-foundation.org; s=korg; t=1782844889;
+	bh=ozKfT7xSOiVfwrias6Uy97FOHbpkcxH3/3Qf2pMZqP4=;
+	h=Date:To:From:Subject;
+	b=RYE1NoTlcUnauRGs/K4mkQcbXRfa6xtiVQK9+/7JU3icf4fmboAYdWEZJcKW45X2g
+	 oQPYSBDCbXdgBA4fd2SRolhxW6UQVLyrL5e5ZWn+yj6B1tgGgtCCgrV+SxfuyuAQYI
+	 pll1nFJ8BVDaToEvo9uIDGnGqUAXVVFrV5HK18k0=
+Date: Tue, 30 Jun 2026 11:41:28 -0700
+To: mm-commits@vger.kernel.org,xueyuan.chen21@gmail.com,will@kernel.org,urezki@gmail.com,ryan.roberts@arm.com,rppt@kernel.org,leo.yan@arm.com,jiangwenxiaomi@gmail.com,jiangwen6@xiaomi.com,dev.jain@arm.com,david@kernel.org,catalin.marinas@arm.com,baohua@kernel.org,anshuman.khandual@arm.com,ajd@linux.ibm.com,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-To: kernel test robot <lkp@intel.com>
-Cc: David Hildenbrand <david@kernel.org>, Linux Memory Management List
- <linux-mm@kvack.org>, mm-commits@vger.kernel.org, Barry Song (Xiaomi)
- <baohua@kernel.org>
-Subject: Re: [akpm-mm:mm-new] BUILD SUCCESS WITH WARNING
- 15654b0268cd65b4e673510c0377774e61b86397
-Message-Id: <20260630114122.2a7202249ff0bc6f32df708b@linux-foundation.org>
-In-Reply-To: <202607010249.92RC46mZ-lkp@intel.com>
-References: <202607010249.92RC46mZ-lkp@intel.com>
-X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+Subject: + mm-vmalloc-map-contiguous-pages-in-batches-for-vmap-if-possible-fix.patch added to mm-unstable branch
+Message-Id: <20260630184129.4B62B1F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-
-On Wed, 01 Jul 2026 02:30:11 +0800 kernel test robot <lkp@intel.com> wrote:
-
-> tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm.git mm-new
-> branch HEAD: 15654b0268cd65b4e673510c0377774e61b86397  mm/swap, PM: hibernate: atomically replace hibernation pin
-> 
-> Warning (recently discovered and may have been fixed):
-> 
->     https://lore.kernel.org/oe-kbuild-all/202606291606.9h8aGniQ-lkp@intel.com
->     https://lore.kernel.org/oe-kbuild-all/202606291933.Cw5TBs54-lkp@intel.com
-> 
->     mm/vmalloc.c:3590:16: warning: unused variable 'start' [-Wunused-variable]
->     mm/vmalloc.c:3590:23: warning: unused variable 'start' [-Wunused-variable]
-
-Sigh, OK, I surrender.  Below.
-
->     mm/zsmalloc.c:1480:21: warning: 'obj_to_class_idx' defined but not used [-Wunused-function]
-
-hm, I think I (re)fixed that one.
 
 
+The patch titled
+     Subject: mm-vmalloc-map-contiguous-pages-in-batches-for-vmap-if-possible-fix
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-vmalloc-map-contiguous-pages-in-batches-for-vmap-if-possible-fix.patch
+
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmalloc-map-contiguous-pages-in-batches-for-vmap-if-possible-fix.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
+
+------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
 Subject: mm-vmalloc-map-contiguous-pages-in-batches-for-vmap-if-possible-fix
 Date: Tue Jun 30 11:35:55 AM PDT 2026
@@ -102,4 +96,15 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  	return err;
  }
 _
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+mm-mincore-use-walk_page_range_vma-in-do_mincore-fix.patch
+csky-implement-flush_cache_vmap-in-c.patch
+mm-vmalloc-map-contiguous-pages-in-batches-for-vmap-if-possible-fix.patch
+mm-page_owner-add-print_mode-filter-fix.patch
+mm-annotate-data-race-in-cpu_needs_drain-fix.patch
+mm-zsmalloc-encode-class-index-in-obj-value-for-lockless-class-lookup-fix.patch
+mm-zsmalloc-drop-pool-lock-from-zs_free-on-64-bit-systems-fix.patch
+drivers-media-v4l2-core-v4l2-vp9c-reduce-inlining.patch
 
