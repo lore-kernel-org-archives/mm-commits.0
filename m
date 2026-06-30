@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0EE0C265CAD
-	for <mm-commits@vger.kernel.org>; Tue, 30 Jun 2026 23:06:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EC8C331F9BE
+	for <mm-commits@vger.kernel.org>; Tue, 30 Jun 2026 23:06:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782860819; cv=none; b=ULyLBpBhydqiZIryofZeGHEVxqwg+RBmbQP1944CFIwCz37RRXDQtEQQHEgD4e5lY1s27L45YISIvpNQzgZqeLAIUdyz/4p4JyU01cOIYYJN5uNNfC+abjNuwcVhtYyqShb3h+g8/bugfJ0GlKdGqdcnd6tg6Gk2Oe3iN5q2iUY=
+	t=1782860821; cv=none; b=nitv7CTkLQfCaN1zqzY7kAVQqXZn8xqrN8MuZCc05cEDeITl3bhdqjMIAp7X8bjciuaNB1U4RH97EL5Ff7m8OykkMUrwYuaszKB85fEpvQwTD7FC+BwRIRiCfCZF16twc7zP1Z7IY1ECWgfs4YaGyc2r68epG7rmn25LnkNIwTI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782860819; c=relaxed/simple;
-	bh=gOh9Fg6zpNIWp95rkKvJc3p8TAb3bscTAQ2UtwMdD+I=;
-	h=Date:To:From:Subject:Message-Id; b=hW4e0NpIFIH1upLJEXOUwpvvATK4f+F3i2MaKkpwmyq3NgBSym7oIS1iphcD6heyvlXEnlM1tiPk+PBcCx7egyuhDLPwyWOJ5LRpdG2cIiu0arGXkr+0mfqwVjPhzIaZntDg6mdK6nfg3itJjYtGt/8/kfmeqPEhT7HfnqBBrdo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EWHyJrEO; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1782860821; c=relaxed/simple;
+	bh=cq/ZTgw8iR5ad0rc9XuctalYCEmDNLlV2e+1n9UBgK4=;
+	h=Date:To:From:Subject:Message-Id; b=TMyZp5cdkDp9Nvjbqka//zRgObdiUY1NK/ttGTeWmPVw41uiQnfryxm4OmnKlOwoEsjDspvGvE7WM7U671GzXRllUmvc3vebXTG/9uSxUkyuv5js1x+n301JPHm0Q/7JRcittyXmuLIE8q3ylVyqBKt8OrENMEV/kkPzRatVDuM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oEHMzaXs; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EWHyJrEO"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9ABB91F000E9;
-	Tue, 30 Jun 2026 23:06:57 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oEHMzaXs"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 927A81F000E9;
+	Tue, 30 Jun 2026 23:06:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1782860817;
-	bh=mxmtvQ6+0CNAaBe401yTDL7FrboywnDgW6M2dL5L60A=;
+	d=linux-foundation.org; s=korg; t=1782860819;
+	bh=p0zhDENQWkDXo54cxu5BxeZCII6VF7AQuq67d3z0ebM=;
 	h=Date:To:From:Subject;
-	b=EWHyJrEOz/swP7TSXAKPLRNQvO9Mmz2dt0/2PN5LUzdA9RzH2BbiSlx9fe8rup8Jf
-	 cAamandTsnXS4VClPVBIAdX5wVITHXsUg6UAPpXRHIbCDclvu69iqpgsjfYgCaRhh+
-	 pmufVEUfrljf8M1Hcm70fjezAZiueGr2C46ckjUM=
-Date: Tue, 30 Jun 2026 16:06:57 -0700
+	b=oEHMzaXsZOEV8SGfSvO11YyyvubjJc2rjX+IQE0y2zX74oG8WQePUGF/YxrvJ/VDY
+	 Kjfs6rcXPs9JPuqgDk3IJ6PF9d4S3TI64xlY0M2F+AVkpJu0xlg0BTtN3uEn1Mxv1v
+	 /P4dI3Nn6sM5kHkK6FKPf7cGwr45YzgatGx2RmDo=
+Date: Tue, 30 Jun 2026 16:06:59 -0700
 To: mm-commits@vger.kernel.org,will@kernel.org,riel@surriel.com,peterz@infradead.org,mingo@redhat.com,longman@redhat.com,joe@perches.com,jgg@ziepe.ca,clm@meta.com,cel@kernel.org,boqun.feng@gmail.com,liam@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + maple_tree-drop-dead-code-from-mas_extend_spanning_null.patch added to mm-new branch
-Message-Id: <20260630230657.9ABB91F000E9@smtp.kernel.org>
+Subject: + maple_tree-drop-maple_alloc_slots.patch added to mm-new branch
+Message-Id: <20260630230659.927A81F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: maple_tree: drop dead code from mas_extend_spanning_null()
+     Subject: maple_tree: drop MAPLE_ALLOC_SLOTS
 has been added to the -mm mm-new branch.  Its filename is
-     maple_tree-drop-dead-code-from-mas_extend_spanning_null.patch
+     maple_tree-drop-maple_alloc_slots.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-drop-dead-code-from-mas_extend_spanning_null.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-drop-maple_alloc_slots.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,26 +70,12 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Liam R. Howlett (Oracle)" <liam@infradead.org>
-Subject: maple_tree: drop dead code from mas_extend_spanning_null()
-Date: Tue, 30 Jun 2026 15:08:29 -0400
+Subject: maple_tree: drop MAPLE_ALLOC_SLOTS
+Date: Tue, 30 Jun 2026 15:08:30 -0400
 
-mas_extend_spanning_null() had a clause if the end of the range being
-written (mas->last) is the same as the end of the existing range it is
-overwriting (wr_mas->r_max), action will be taken.
+MAPLE_ALLOC_SLOTS is no longer used, so remove it.
 
-This code path is not possible because the only calling function
-increments mas->last (unless it's ULONG_MAX) to walk to one beyond the
-write and then resets the value back to the initial value.
-
-In the case of mas->last == ULONG_MAX, then the second part of the
-statement will always be false - mas->last cannot be less than the node
-max.
-
-This code never executed and is flawed anyways (the arguments are
-incorrectly ordered), so removing it is the safest action.  Since the code
-never executes, it is not fixing any issue so Fixes tag is not given.
-
-Link: https://lore.kernel.org/20260630190843.3563858-6-liam@infradead.org
+Link: https://lore.kernel.org/20260630190843.3563858-7-liam@infradead.org
 Signed-off-by: Liam R. Howlett (Oracle) <liam@infradead.org>
 Cc: Boqun Feng <boqun.feng@gmail.com>
 Cc: Chris Mason <clm@meta.com>
@@ -104,25 +90,25 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/maple_tree.c |    7 -------
- 1 file changed, 7 deletions(-)
+ include/linux/maple_tree.h |    2 --
+ 1 file changed, 2 deletions(-)
 
---- a/lib/maple_tree.c~maple_tree-drop-dead-code-from-mas_extend_spanning_null
-+++ a/lib/maple_tree.c
-@@ -2996,13 +2996,6 @@ static inline void mas_extend_spanning_n
- 		if (r_mas->last < r_wr_mas->r_max)
- 			r_mas->last = r_wr_mas->r_max;
- 		r_mas->offset++;
--	} else if ((r_mas->last == r_wr_mas->r_max) &&
--	    (r_mas->last < r_mas->max) &&
--	    !mas_slot_locked(r_mas, r_wr_mas->slots, r_mas->offset + 1)) {
--		r_mas->last = mas_safe_pivot(r_mas, r_wr_mas->pivots,
--					     r_wr_mas->type, r_mas->offset + 1);
--		r_mas->offset++;
--		r_wr_mas->r_max = r_mas->last;
- 	}
- }
+--- a/include/linux/maple_tree.h~maple_tree-drop-maple_alloc_slots
++++ a/include/linux/maple_tree.h
+@@ -29,13 +29,11 @@
+ #define MAPLE_NODE_SLOTS	31	/* 256 bytes including ->parent */
+ #define MAPLE_RANGE64_SLOTS	16	/* 256 bytes */
+ #define MAPLE_ARANGE64_SLOTS	10	/* 240 bytes */
+-#define MAPLE_ALLOC_SLOTS	(MAPLE_NODE_SLOTS - 1)
+ #else
+ /* 32bit sizes */
+ #define MAPLE_NODE_SLOTS	63	/* 256 bytes including ->parent */
+ #define MAPLE_RANGE64_SLOTS	32	/* 256 bytes */
+ #define MAPLE_ARANGE64_SLOTS	21	/* 240 bytes */
+-#define MAPLE_ALLOC_SLOTS	(MAPLE_NODE_SLOTS - 2)
+ #endif /* defined(CONFIG_64BIT) || defined(BUILD_VDSO32_64) */
  
+ #define MAPLE_NODE_MASK		255UL
 _
 
 Patches currently in -mm which might be from liam@infradead.org are
