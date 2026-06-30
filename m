@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F335945104C
-	for <mm-commits@vger.kernel.org>; Tue, 30 Jun 2026 19:51:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3E1773DE422
+	for <mm-commits@vger.kernel.org>; Tue, 30 Jun 2026 19:51:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782849068; cv=none; b=nIMeOC6GTmg15EHFPFkU8U4VCOYFf/k0+4YQeMrrBqEcTYs4lNz0zXV9wqYRgRP6Yx/9/XNiXQn5feQB5yyROz7+JuuQV1QlbP2TIRyCfOk1hd8Tesf2q1CD3NQea5OUCJHq3jmhqu1aDzLJ2YaukXdRqvx6Rr6lD8sZtqthmYA=
+	t=1782849069; cv=none; b=EiQXoXRoPnCdhAWMeQOQ5/k6y0yTWohO006JM3PLVGn1qtO4cILLvaNhqCuk7D97qg/jLNYtVLPhAvugP79cvbFVCeu9swIoP8l3enO55ZEa9LhigHWaO3J4TeQInTPDCdp+dys+qnZ4UEyE2VG/MKnSmhFb4DWbp/9Yn3a1CZ8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782849068; c=relaxed/simple;
-	bh=NOpl4G6b1SCPY9SB7U/Ad4vlTkrYZIzAtUPWpXaerVQ=;
-	h=Date:To:From:Subject:Message-Id; b=OP6TbFQjZHiMeVU8plnK+zq3iLo3CF96rvbnrOykM4oFaAP550gsSug1Ssnc0+YmkfSdCQPGyBY2dpskfn+AqPXHcNi12fGJuwM3mFeXtBlNgwb2xxPiaGeCEdNBCPoWrouC8zF//PiPhNthFn5XAn9KBByh80CG+vozhVLeNbY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xcN+UWgV; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1782849069; c=relaxed/simple;
+	bh=sQVfCpqvHZPwvpNkBOzU+FTVtUAFws//O9FdLefkriQ=;
+	h=Date:To:From:Subject:Message-Id; b=L9E8W9XRIO0LYPo6Nly6YLwtZxY2L9HimQHl/LRS1+w5REuE9mDojj8BHtOvMAITbnWZjpGmNXkuPXbrBqgRTWINUsVrFPSWkNEhWn3i+LqHkJ/o+KGnfeQEs6jEes2w1b5JV91H8vODeIAxyYTO239qxV51Bzk6D+aUndQvKRk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=aA7sy0IE; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xcN+UWgV"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8C7411F000E9;
-	Tue, 30 Jun 2026 19:51:05 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="aA7sy0IE"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CC8F21F00A3A;
+	Tue, 30 Jun 2026 19:51:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1782849065;
-	bh=AaJ7BU0T1LbqZi8kxeRpHKow0z8b2TwZtqqd7mE7SKs=;
+	d=linux-foundation.org; s=korg; t=1782849067;
+	bh=mKxwd7Fzn3uHUDFOsBgtlp2/RgyiyQ9q9peVBOhX00c=;
 	h=Date:To:From:Subject;
-	b=xcN+UWgV8B9R2uOvgdM7hFIvAMUFgt18xW4mREVdSMCt9ACqSlB2QnZEJdvFa1jq5
-	 5z79mPcSAPRBsj65skx/T42l4Wcgrr5/INKQf6K3PAi6BpcsFUhQxfwmesNR9Zbqn7
-	 0w/HhCqzmVZd4wOFZPl/v8YZVwipisVCdiq/imO8=
-Date: Tue, 30 Jun 2026 12:51:05 -0700
+	b=aA7sy0IE33XolvOD0/qtyM6qEDSMWXbS8Mm5mIzhU/0dT8YNwD8vAn6XGpl+tDlcN
+	 4HsFkpOQqrAwGhIfvrM2qgxtU2USKhq/iMWwFVNCTANoIcG2VFkJ8a+7mzp759IaCF
+	 po+11lZ/woYt7K1FW7iN8Y1uE/3zi/ROu2izrfpM=
+Date: Tue, 30 Jun 2026 12:51:07 -0700
 To: mm-commits@vger.kernel.org,usama.arif@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-huge_memory-move-softleaf_to_folio-inside-migration-branch.patch added to mm-new branch
-Message-Id: <20260630195105.8C7411F000E9@smtp.kernel.org>
+Subject: + mm-migrate_device-move-softleaf_to_folio-inside-device-private-branch.patch added to mm-new branch
+Message-Id: <20260630195107.CC8F21F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/huge_memory: move softleaf_to_folio() inside migration branch
+     Subject: mm/migrate_device: move softleaf_to_folio() inside device-private branch
 has been added to the -mm mm-new branch.  Its filename is
-     mm-huge_memory-move-softleaf_to_folio-inside-migration-branch.patch
+     mm-migrate_device-move-softleaf_to_folio-inside-device-private-branch.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-move-softleaf_to_folio-inside-migration-branch.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-migrate_device-move-softleaf_to_folio-inside-device-private-branch.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,31 +70,34 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Usama Arif <usama.arif@linux.dev>
-Subject: mm/huge_memory: move softleaf_to_folio() inside migration branch
-Date: Tue, 30 Jun 2026 09:34:41 -0700
+Subject: mm/migrate_device: move softleaf_to_folio() inside device-private branch
+Date: Tue, 30 Jun 2026 09:34:42 -0700
 
-change_non_present_huge_pmd() calls softleaf_to_folio() unconditionally at
-the top of the function.  softleaf_to_folio() extracts a PFN from the
-entry and converts it to a folio pointer, which is only meaningful for
-migration and device_private entries that encode a real PFN.
+migrate_vma_collect_pmd() calls softleaf_to_folio() on a non-present PMD
+before checking the entry's type.  softleaf_to_folio() converts the
+entry's offset to a PFN, which is only meaningful for migration or
+device-private entries.
 
-A swap entry encodes a swap offset instead, so softleaf_to_folio() would
-produce a bogus pointer and crash on mprotect() when a PMD swap entry is
-present.
+A PMD swap entry's offset is a swap offset, not a PFN, so the lookup would
+either return a bogus folio pointer or trip pfn_to_page validation on a
+debug kernel.  In the non-device-private path the returned folio is then
+unused (the OR short-circuits to migrate_vma_collect_skip()), but the
+lookup itself is already unsafe.
 
-Move the call into the migration_write branch where the folio is actually
-used, so the function is safe for any non-present PMD type.
+Move the softleaf_to_folio() call inside the device-private branch where
+the folio is actually needed, mirroring the equivalent
+change_non_present_huge_pmd() fix.
 
-Link: https://lore.kernel.org/20260630164143.1595669-5-usama.arif@linux.dev
+Link: https://lore.kernel.org/20260630164143.1595669-6-usama.arif@linux.dev
 Signed-off-by: Usama Arif <usama.arif@linux.dev>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Reviewed-by: Dev Jain <dev.jain@arm.com>
 Reviewed-by: Zi Yan <ziy@nvidia.com>
 Cc: Alexandre Ghiti <alex@ghiti.fr>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Baoquan He <baoquan.he@linux.dev>
 Cc: Barry Song <baohua@kernel.org>
 Cc: Chris Li <chrisl@kernel.org>
+Cc: David Hildenbrand (Arm) <david@kernel.org>
+Cc: Dev Jain <dev.jain@arm.com>
 Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Kairui Song <kasong@tencent.com>
@@ -113,25 +116,30 @@ Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/migrate_device.c |   11 +++++++----
+ 1 file changed, 7 insertions(+), 4 deletions(-)
 
---- a/mm/huge_memory.c~mm-huge_memory-move-softleaf_to_folio-inside-migration-branch
-+++ a/mm/huge_memory.c
-@@ -2557,11 +2557,12 @@ static void change_non_present_huge_pmd(
- 		bool uffd_wp_resolve)
- {
- 	softleaf_t entry = softleaf_from_pmd(*pmd);
--	const struct folio *folio = softleaf_to_folio(entry);
- 	pmd_t newpmd;
+--- a/mm/migrate_device.c~mm-migrate_device-move-softleaf_to_folio-inside-device-private-branch
++++ a/mm/migrate_device.c
+@@ -166,11 +166,14 @@ static int migrate_vma_collect_huge_pmd(
+ 	} else if (!pmd_present(*pmdp)) {
+ 		const softleaf_t entry = softleaf_from_pmd(*pmdp);
  
- 	VM_WARN_ON(!pmd_is_valid_softleaf(*pmd));
- 	if (softleaf_is_migration_write(entry)) {
-+		const struct folio *folio = softleaf_to_folio(entry);
+-		folio = softleaf_to_folio(entry);
+-
+ 		if (!softleaf_is_device_private(entry) ||
+-			!(migrate->flags & MIGRATE_VMA_SELECT_DEVICE_PRIVATE) ||
+-			(folio->pgmap->owner != migrate->pgmap_owner)) {
++		    !(migrate->flags & MIGRATE_VMA_SELECT_DEVICE_PRIVATE)) {
++			spin_unlock(ptl);
++			return migrate_vma_collect_skip(start, end, walk);
++		}
 +
- 		/*
- 		 * A protection check is difficult so
- 		 * just be safe and disable write
++		folio = softleaf_to_folio(entry);
++		if (folio->pgmap->owner != migrate->pgmap_owner) {
+ 			spin_unlock(ptl);
+ 			return migrate_vma_collect_skip(start, end, walk);
+ 		}
 _
 
 Patches currently in -mm which might be from usama.arif@linux.dev are
