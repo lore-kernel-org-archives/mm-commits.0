@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C48683DE44F
-	for <mm-commits@vger.kernel.org>; Tue, 30 Jun 2026 19:51:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E632047A0DC
+	for <mm-commits@vger.kernel.org>; Tue, 30 Jun 2026 20:35:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782849072; cv=none; b=L9zRNrUXbgp+sg1KAx91WoUraM5n2ua5bQcaciIlhymDJ7saDBlPTFYNMsWgrh+gAON3o1XBjJqvginVk9PhqBOTZQd7twFgX1fhPMSeqetn8PE7HTYEHYwD5wpx9NNjmkAJs5RI7ZhNz9cJiRqh+bvg6jUt+uqKAi/n4c3TqY8=
+	t=1782851724; cv=none; b=dQbTK95OM3Ur2ODqVxLj7s7s/t2ae3N39WlLAKqu1V0FxlQYdRnIRbXtsrBNINrTi+pxz1V4Q8j3Rpm5J15YryHHojgLvJFONbWev5tEiM4gxq9poiwrKhia2Be+9QyN7hjzZ+3Bt76VW+2ZX3J2dFxzQH4s3N76K9SurHYJcBM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782849072; c=relaxed/simple;
-	bh=nrZmWpVwqJFaECDwG5apl9Eh9aEXza8VBwT8jpAeJbM=;
-	h=Date:To:From:Subject:Message-Id; b=pQHxW8FpSIclQsItHt6N10evd7vF3ynnx/4dh1Q1AcRiPswERmp/XZjfsRyqf9jYw/NsnRr9bwxrIgijuKg6C6JjugW/pDf0+Sd33Aakw/ww+FS+IJDNOijv5W01rpXwjnMmWybZWTNIIpgDGbNh0YCCEuBJg5wzkFybbF0ATFs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2jmDNVGY; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1782851724; c=relaxed/simple;
+	bh=zlvaZButBg/BXIwhLMzE3x/s5LRIOE7oj6GFd/Qbico=;
+	h=Date:To:From:Subject:Message-Id; b=ZKygmQqFLojt6oLbsAdDQSlGbo19Ak3N1YjHbxrwQRhCOMg9JIeaOwcY9GPbDjaOoMBY9THNmHClk3tUyTC8I6gVgZ2Ex6IwLR+JGJHE1ov+SVGgWpEo6zyDDVeFZI8gpDkVqygQGDf7849OJI+5ntDOxxKrLg5E3xzqI3NfU0g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bWPLexOj; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2jmDNVGY"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 589F91F000E9;
-	Tue, 30 Jun 2026 19:51:10 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bWPLexOj"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5EC7B1F000E9;
+	Tue, 30 Jun 2026 20:35:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1782849070;
-	bh=Zvi0qc2rIGBMpQBi2ayq9L1B2Tvu6jPlxwkB2JldveI=;
+	d=linux-foundation.org; s=korg; t=1782851722;
+	bh=99VHhlLzjR1rB7NKjC0X1HdEBEirhJepe8bPGepscRQ=;
 	h=Date:To:From:Subject;
-	b=2jmDNVGYZUDXRzMeUvOUfUUVm4UKbxiDiSi6bDeziSka4qykHJ4cTDbL6GJpzCCNs
-	 y9xmwfSt8FIPPfMlP2bhgFbpSSrPAAhKo+TEqOycKscz3opbB2+cjQoQ378uQvdlNY
-	 7tBXA8b82AbKlFviHwSM0hgg+vQfwOhEp5pCC7SE=
-Date: Tue, 30 Jun 2026 12:51:09 -0700
-To: mm-commits@vger.kernel.org,usama.arif@linux.dev,akpm@linux-foundation.org
+	b=bWPLexOjZjUwsi7DrdU1dpT43cPR5TiwsP2SLQ37CpBHe86UGQYXeybCFeza3Bd4h
+	 JHjCVQBbLpzcVPFNjpF6086MrhWqAbKjXiGkQYtzkxsXHzv1+vdntr0EDj6b6Oobqj
+	 7Q95Rx+IJEUIlK9Nf92BcKLO3/lTaNMLBlkpmJuQ=
+Date: Tue, 30 Jun 2026 13:35:21 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,shuah@kernel.org,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,corbet@lwn.net,brendan.higgins@linux.dev,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-rename-arch_enable_thp_migration-to-arch_supports_pmd_softleaf.patch added to mm-new branch
-Message-Id: <20260630195110.589F91F000E9@smtp.kernel.org>
+Subject: + docs-mm-damon-design-update-for-damos_quota_node_eligible_mem_bp.patch added to mm-new branch
+Message-Id: <20260630203522.5EC7B1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: rename ARCH_ENABLE_THP_MIGRATION to ARCH_SUPPORTS_PMD_SOFTLEAF
+     Subject: Docs/mm/damon/design: update for DAMOS_QUOTA_NODE_ELIGIBLE_MEM_BP
 has been added to the -mm mm-new branch.  Its filename is
-     mm-rename-arch_enable_thp_migration-to-arch_supports_pmd_softleaf.patch
+     docs-mm-damon-design-update-for-damos_quota_node_eligible_mem_bp.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-rename-arch_enable_thp_migration-to-arch_supports_pmd_softleaf.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-mm-damon-design-update-for-damos_quota_node_eligible_mem_bp.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,454 +69,99 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Usama Arif <usama.arif@linux.dev>
-Subject: mm: rename ARCH_ENABLE_THP_MIGRATION to ARCH_SUPPORTS_PMD_SOFTLEAF
-Date: Tue, 30 Jun 2026 09:34:43 -0700
+From: SJ Park <sj@kernel.org>
+Subject: Docs/mm/damon/design: update for DAMOS_QUOTA_NODE_ELIGIBLE_MEM_BP
+Date: Tue, 30 Jun 2026 07:17:15 -0700
 
-CONFIG_ARCH_ENABLE_THP_MIGRATION started life gating just PMD-level
-migration entries, but has grown to gate the entire PMD-level softleaf
-machinery: migration entries, device-private entries, and soon swap
-entries.
+Patch series "mm/damon: update, optimize, and clean up doc, tests, and
+code".
 
-Rename CONFIG_ARCH_ENABLE_THP_MIGRATION to CONFIG_ARCH_SUPPORTS_PMD
-_SOFTLEAF to make this clear.  This is a pure rename: the set of selecting
-architectures (x86, arm64, s390, riscv, loongarch, and powerpc on
-PPC_BOOK3S_64) and the gating semantics are unchanged.
+Patches 1 and 2 update the design and ABI documents for recently added
+DAMON features.  Patches 3-7 add or update more unit and self tests for
+DAMON to cover recently changed or added functions and sysfs files.  Patch
+8 optimizes damon_commit_target_regions() to skip unnecessary adjacent
+ranges setup.  Patches 9-11 clean and fix up recently added DAMON sysfs
+interface code for readability.
 
-No functional change intended.
 
-Link: https://lore.kernel.org/20260630164143.1595669-7-usama.arif@linux.dev
-Signed-off-by: Usama Arif <usama.arif@linux.dev>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
-Cc: Alexandre Ghiti <alex@ghiti.fr>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Baoquan He <baoquan.he@linux.dev>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: David Hildenbrand (Arm) <david@kernel.org>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Kairui Song <kasong@tencent.com>
-Cc: Kemeng Shi <shikemeng@huaweicloud.com>
-Cc: Kiryl Shutsemau <kas@kernel.org>
-Cc: Lance Yang <lance.yang@linux.dev>
+This patch (of 11):
+
+Commit 9138e27a3bc3 ("mm/damon: add node_eligible_mem_bp goal metric")
+introduced DAMOS_QUOTA_NODE_ELIGIBLE_MEM_BP but forgot updating the DAMON
+design document for that.  Update.
+
+Link: https://lore.kernel.org/20260630141726.92246-1-sj@kernel.org
+Link: https://lore.kernel.org/20260630141726.92246-2-sj@kernel.org
+Signed-off-by: SJ Park <sj@kernel.org>
+Cc: Brendan Higgins <brendan.higgins@linux.dev>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: Nico Pache <npache@redhat.com>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: SeongJae Park <sj@kernel.org>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/Kconfig                           |    2 +-
- arch/arm64/include/asm/pgtable.h             |    4 ++--
- arch/loongarch/Kconfig                       |    2 +-
- arch/powerpc/include/asm/book3s/64/pgtable.h |    2 +-
- arch/powerpc/platforms/Kconfig.cputype       |    2 +-
- arch/riscv/Kconfig                           |    2 +-
- arch/riscv/include/asm/pgtable.h             |    8 ++++----
- arch/s390/Kconfig                            |    2 +-
- arch/s390/include/asm/pgtable.h              |    2 +-
- arch/x86/Kconfig                             |    2 +-
- arch/x86/include/asm/pgtable.h               |    2 +-
- include/linux/huge_mm.h                      |    2 +-
- include/linux/leafops.h                      |    8 ++++----
- include/linux/pgtable.h                      |    2 +-
- include/linux/swapops.h                      |    6 +++---
- mm/Kconfig                                   |    2 +-
- mm/debug_vm_pgtable.c                        |    8 ++++----
- mm/hmm.c                                     |    4 ++--
- mm/huge_memory.c                             |    2 +-
- mm/migrate.c                                 |    4 ++--
- mm/migrate_device.c                          |    6 +++---
- mm/rmap.c                                    |    2 +-
- 22 files changed, 38 insertions(+), 38 deletions(-)
+ Documentation/mm/damon/design.rst |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
---- a/arch/arm64/include/asm/pgtable.h~mm-rename-arch_enable_thp_migration-to-arch_supports_pmd_softleaf
-+++ a/arch/arm64/include/asm/pgtable.h
-@@ -1534,10 +1534,10 @@ static inline pmd_t pmdp_establish(struc
- #define __pte_to_swp_entry(pte)	((swp_entry_t) { pte_val(pte) })
- #define __swp_entry_to_pte(swp)	((pte_t) { (swp).val })
+--- a/Documentation/mm/damon/design.rst~docs-mm-damon-design-update-for-damos_quota_node_eligible_mem_bp
++++ a/Documentation/mm/damon/design.rst
+@@ -686,9 +686,11 @@ mechanism tries to make ``current_value`
+   (1/10,000).
+ - ``inactive_mem_bp``: Inactive to active + inactive (LRU) memory size ratio in
+   bp (1/10,000).
++- ``node_eligible_mem_bp``: Scheme target access pattern-eligible memory ratio
++  of a node in bp (1/10,000).
  
--#ifdef CONFIG_ARCH_ENABLE_THP_MIGRATION
-+#ifdef CONFIG_ARCH_SUPPORTS_PMD_SOFTLEAF
- #define __pmd_to_swp_entry(pmd)		((swp_entry_t) { pmd_val(pmd) })
- #define __swp_entry_to_pmd(swp)		__pmd((swp).val)
--#endif /* CONFIG_ARCH_ENABLE_THP_MIGRATION */
-+#endif /* CONFIG_ARCH_SUPPORTS_PMD_SOFTLEAF */
+-``nid`` is optionally required for only ``node_mem_used_bp``,
+-``node_mem_free_bp``, ``node_memcg_used_bp`` and ``node_memcg_free_bp`` to
++``nid`` is optionally required for ``node_mem_used_bp``, ``node_mem_free_bp``,
++``node_memcg_used_bp``, ``node_memcg_free_bp`` and ``node_eligible_mem_bp`` to
+ point the specific NUMA node.
  
- /*
-  * Ensure that there are not more swap files than can be encoded in the kernel
---- a/arch/arm64/Kconfig~mm-rename-arch_enable_thp_migration-to-arch_supports_pmd_softleaf
-+++ a/arch/arm64/Kconfig
-@@ -17,7 +17,7 @@ config ARM64
- 	select ARCH_ENABLE_HUGEPAGE_MIGRATION if HUGETLB_PAGE && MIGRATION
- 	select ARCH_ENABLE_MEMORY_HOTPLUG
- 	select ARCH_ENABLE_SPLIT_PMD_PTLOCK if PGTABLE_LEVELS > 2
--	select ARCH_ENABLE_THP_MIGRATION if TRANSPARENT_HUGEPAGE
-+	select ARCH_SUPPORTS_PMD_SOFTLEAF if TRANSPARENT_HUGEPAGE
- 	select ARCH_HAS_CACHE_LINE_SIZE
- 	select ARCH_HAS_CC_PLATFORM
- 	select ARCH_HAS_CPU_CACHE_INVALIDATE_MEMREGION
---- a/arch/loongarch/Kconfig~mm-rename-arch_enable_thp_migration-to-arch_supports_pmd_softleaf
-+++ a/arch/loongarch/Kconfig
-@@ -12,7 +12,7 @@ config LOONGARCH
- 	select ARCH_NEEDS_DEFER_KASAN
- 	select ARCH_DISABLE_KASAN_INLINE
- 	select ARCH_ENABLE_MEMORY_HOTPLUG
--	select ARCH_ENABLE_THP_MIGRATION if TRANSPARENT_HUGEPAGE
-+	select ARCH_SUPPORTS_PMD_SOFTLEAF if TRANSPARENT_HUGEPAGE
- 	select ARCH_HAS_ACPI_TABLE_UPGRADE	if ACPI
- 	select ARCH_HAS_CPU_FINALIZE_INIT
- 	select ARCH_HAS_CURRENT_STACK_POINTER
---- a/arch/powerpc/include/asm/book3s/64/pgtable.h~mm-rename-arch_enable_thp_migration-to-arch_supports_pmd_softleaf
-+++ a/arch/powerpc/include/asm/book3s/64/pgtable.h
-@@ -1060,7 +1060,7 @@ static inline pte_t *pmdp_ptep(pmd_t *pm
- #define pmd_mksoft_dirty(pmd)  pte_pmd(pte_mksoft_dirty(pmd_pte(pmd)))
- #define pmd_clear_soft_dirty(pmd) pte_pmd(pte_clear_soft_dirty(pmd_pte(pmd)))
- 
--#ifdef CONFIG_ARCH_ENABLE_THP_MIGRATION
-+#ifdef CONFIG_ARCH_SUPPORTS_PMD_SOFTLEAF
- #define pmd_swp_mksoft_dirty(pmd)	pte_pmd(pte_swp_mksoft_dirty(pmd_pte(pmd)))
- #define pmd_swp_soft_dirty(pmd)		pte_swp_soft_dirty(pmd_pte(pmd))
- #define pmd_swp_clear_soft_dirty(pmd)	pte_pmd(pte_swp_clear_soft_dirty(pmd_pte(pmd)))
---- a/arch/powerpc/platforms/Kconfig.cputype~mm-rename-arch_enable_thp_migration-to-arch_supports_pmd_softleaf
-+++ a/arch/powerpc/platforms/Kconfig.cputype
-@@ -112,7 +112,7 @@ config PPC_THP
-        depends on PPC_RADIX_MMU || (PPC_64S_HASH_MMU && PAGE_SIZE_64KB)
-        select HAVE_ARCH_TRANSPARENT_HUGEPAGE
-        select HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD
--       select ARCH_ENABLE_THP_MIGRATION if TRANSPARENT_HUGEPAGE
-+       select ARCH_SUPPORTS_PMD_SOFTLEAF if TRANSPARENT_HUGEPAGE
- 
- choice
- 	prompt "CPU selection"
---- a/arch/riscv/include/asm/pgtable.h~mm-rename-arch_enable_thp_migration-to-arch_supports_pmd_softleaf
-+++ a/arch/riscv/include/asm/pgtable.h
-@@ -946,7 +946,7 @@ static inline pmd_t pmd_clear_soft_dirty
- 	return pte_pmd(pte_clear_soft_dirty(pmd_pte(pmd)));
- }
- 
--#ifdef CONFIG_ARCH_ENABLE_THP_MIGRATION
-+#ifdef CONFIG_ARCH_SUPPORTS_PMD_SOFTLEAF
- static inline bool pmd_swp_soft_dirty(pmd_t pmd)
- {
- 	return pte_swp_soft_dirty(pmd_pte(pmd));
-@@ -961,7 +961,7 @@ static inline pmd_t pmd_swp_clear_soft_d
- {
- 	return pte_pmd(pte_swp_clear_soft_dirty(pmd_pte(pmd)));
- }
--#endif /* CONFIG_ARCH_ENABLE_THP_MIGRATION */
-+#endif /* CONFIG_ARCH_SUPPORTS_PMD_SOFTLEAF */
- #endif /* CONFIG_HAVE_ARCH_SOFT_DIRTY */
- 
- static inline void set_pmd_at(struct mm_struct *mm, unsigned long addr,
-@@ -1208,10 +1208,10 @@ static inline pte_t pte_swp_clear_exclus
- 	return __pte(pte_val(pte) & ~_PAGE_SWP_EXCLUSIVE);
- }
- 
--#ifdef CONFIG_ARCH_ENABLE_THP_MIGRATION
-+#ifdef CONFIG_ARCH_SUPPORTS_PMD_SOFTLEAF
- #define __pmd_to_swp_entry(pmd) ((swp_entry_t) { pmd_val(pmd) })
- #define __swp_entry_to_pmd(swp) __pmd((swp).val)
--#endif /* CONFIG_ARCH_ENABLE_THP_MIGRATION */
-+#endif /* CONFIG_ARCH_SUPPORTS_PMD_SOFTLEAF */
- 
- /*
-  * In the RV64 Linux scheme, we give the user half of the virtual-address space
---- a/arch/riscv/Kconfig~mm-rename-arch_enable_thp_migration-to-arch_supports_pmd_softleaf
-+++ a/arch/riscv/Kconfig
-@@ -22,7 +22,7 @@ config RISCV
- 	select ARCH_ENABLE_HUGEPAGE_MIGRATION if HUGETLB_PAGE && MIGRATION
- 	select ARCH_ENABLE_MEMORY_HOTPLUG if SPARSEMEM_VMEMMAP
- 	select ARCH_ENABLE_SPLIT_PMD_PTLOCK if PGTABLE_LEVELS > 2
--	select ARCH_ENABLE_THP_MIGRATION if TRANSPARENT_HUGEPAGE
-+	select ARCH_SUPPORTS_PMD_SOFTLEAF if TRANSPARENT_HUGEPAGE
- 	select ARCH_HAS_BINFMT_FLAT
- 	select ARCH_HAS_CC_CAN_LINK
- 	select ARCH_HAS_CURRENT_STACK_POINTER
---- a/arch/s390/include/asm/pgtable.h~mm-rename-arch_enable_thp_migration-to-arch_supports_pmd_softleaf
-+++ a/arch/s390/include/asm/pgtable.h
-@@ -903,7 +903,7 @@ static inline pmd_t pmd_clear_soft_dirty
- 	return clear_pmd_bit(pmd, __pgprot(_SEGMENT_ENTRY_SOFT_DIRTY));
- }
- 
--#ifdef CONFIG_ARCH_ENABLE_THP_MIGRATION
-+#ifdef CONFIG_ARCH_SUPPORTS_PMD_SOFTLEAF
- #define pmd_swp_soft_dirty(pmd)		pmd_soft_dirty(pmd)
- #define pmd_swp_mksoft_dirty(pmd)	pmd_mksoft_dirty(pmd)
- #define pmd_swp_clear_soft_dirty(pmd)	pmd_clear_soft_dirty(pmd)
---- a/arch/s390/Kconfig~mm-rename-arch_enable_thp_migration-to-arch_supports_pmd_softleaf
-+++ a/arch/s390/Kconfig
-@@ -82,7 +82,7 @@ config S390
- 	select ARCH_CORRECT_STACKTRACE_ON_KRETPROBE
- 	select ARCH_ENABLE_MEMORY_HOTPLUG if SPARSEMEM
- 	select ARCH_ENABLE_SPLIT_PMD_PTLOCK if PGTABLE_LEVELS > 2
--	select ARCH_ENABLE_THP_MIGRATION if TRANSPARENT_HUGEPAGE
-+	select ARCH_SUPPORTS_PMD_SOFTLEAF if TRANSPARENT_HUGEPAGE
- 	select ARCH_HAS_CC_CAN_LINK
- 	select ARCH_HAS_CPU_FINALIZE_INIT
- 	select ARCH_HAS_CURRENT_STACK_POINTER
---- a/arch/x86/include/asm/pgtable.h~mm-rename-arch_enable_thp_migration-to-arch_supports_pmd_softleaf
-+++ a/arch/x86/include/asm/pgtable.h
-@@ -1545,7 +1545,7 @@ static inline pte_t pte_swp_clear_soft_d
- 	return pte_clear_flags(pte, _PAGE_SWP_SOFT_DIRTY);
- }
- 
--#ifdef CONFIG_ARCH_ENABLE_THP_MIGRATION
-+#ifdef CONFIG_ARCH_SUPPORTS_PMD_SOFTLEAF
- static inline pmd_t pmd_swp_mksoft_dirty(pmd_t pmd)
- {
- 	return pmd_set_flags(pmd, _PAGE_SWP_SOFT_DIRTY);
---- a/arch/x86/Kconfig~mm-rename-arch_enable_thp_migration-to-arch_supports_pmd_softleaf
-+++ a/arch/x86/Kconfig
-@@ -70,7 +70,7 @@ config X86
- 	select ARCH_ENABLE_HUGEPAGE_MIGRATION if X86_64 && HUGETLB_PAGE && MIGRATION
- 	select ARCH_ENABLE_MEMORY_HOTPLUG if X86_64
- 	select ARCH_ENABLE_SPLIT_PMD_PTLOCK if (PGTABLE_LEVELS > 2) && (X86_64 || X86_PAE)
--	select ARCH_ENABLE_THP_MIGRATION if X86_64 && TRANSPARENT_HUGEPAGE
-+	select ARCH_SUPPORTS_PMD_SOFTLEAF if X86_64 && TRANSPARENT_HUGEPAGE
- 	select ARCH_HAS_ACPI_TABLE_UPGRADE	if ACPI
- 	select ARCH_HAS_CPU_ATTACK_VECTORS	if CPU_MITIGATIONS
- 	select ARCH_HAS_CACHE_LINE_SIZE
---- a/include/linux/huge_mm.h~mm-rename-arch_enable_thp_migration-to-arch_supports_pmd_softleaf
-+++ a/include/linux/huge_mm.h
-@@ -567,7 +567,7 @@ static inline struct folio *get_persiste
- 
- static inline bool thp_migration_supported(void)
- {
--	return IS_ENABLED(CONFIG_ARCH_ENABLE_THP_MIGRATION);
-+	return IS_ENABLED(CONFIG_ARCH_SUPPORTS_PMD_SOFTLEAF);
- }
- 
- void split_huge_pmd_locked(struct vm_area_struct *vma, unsigned long address,
---- a/include/linux/leafops.h~mm-rename-arch_enable_thp_migration-to-arch_supports_pmd_softleaf
-+++ a/include/linux/leafops.h
-@@ -81,7 +81,7 @@ static inline pte_t softleaf_to_pte(soft
- 	return swp_entry_to_pte(entry);
- }
- 
--#ifdef CONFIG_ARCH_ENABLE_THP_MIGRATION
-+#ifdef CONFIG_ARCH_SUPPORTS_PMD_SOFTLEAF
- /**
-  * softleaf_from_pmd() - Obtain a leaf entry from a PMD entry.
-  * @pmd: PMD entry.
-@@ -587,7 +587,7 @@ static inline bool pte_is_uffd_marker(pt
- 	return false;
- }
- 
--#if defined(CONFIG_ZONE_DEVICE) && defined(CONFIG_ARCH_ENABLE_THP_MIGRATION)
-+#if defined(CONFIG_ZONE_DEVICE) && defined(CONFIG_ARCH_SUPPORTS_PMD_SOFTLEAF)
- 
- /**
-  * pmd_is_device_private_entry() - Check if PMD contains a device private swap
-@@ -606,14 +606,14 @@ static inline bool pmd_is_device_private
- 	return softleaf_is_device_private(softleaf_from_pmd(pmd));
- }
- 
--#else  /* CONFIG_ZONE_DEVICE && CONFIG_ARCH_ENABLE_THP_MIGRATION */
-+#else  /* CONFIG_ZONE_DEVICE && CONFIG_ARCH_SUPPORTS_PMD_SOFTLEAF */
- 
- static inline bool pmd_is_device_private_entry(pmd_t pmd)
- {
- 	return false;
- }
- 
--#endif /* CONFIG_ZONE_DEVICE && CONFIG_ARCH_ENABLE_THP_MIGRATION */
-+#endif /* CONFIG_ZONE_DEVICE && CONFIG_ARCH_SUPPORTS_PMD_SOFTLEAF */
- 
- /**
-  * pmd_is_migration_entry() - Does this PMD entry encode a migration entry?
---- a/include/linux/pgtable.h~mm-rename-arch_enable_thp_migration-to-arch_supports_pmd_softleaf
-+++ a/include/linux/pgtable.h
-@@ -1839,7 +1839,7 @@ static inline pgprot_t pgprot_modify(pgp
- #endif
- 
- #ifdef CONFIG_HAVE_ARCH_SOFT_DIRTY
--#ifndef CONFIG_ARCH_ENABLE_THP_MIGRATION
-+#ifndef CONFIG_ARCH_SUPPORTS_PMD_SOFTLEAF
- static inline pmd_t pmd_swp_mksoft_dirty(pmd_t pmd)
- {
- 	return pmd;
---- a/include/linux/swapops.h~mm-rename-arch_enable_thp_migration-to-arch_supports_pmd_softleaf
-+++ a/include/linux/swapops.h
-@@ -321,7 +321,7 @@ static inline swp_entry_t make_guard_swp
- 
- struct page_vma_mapped_walk;
- 
--#ifdef CONFIG_ARCH_ENABLE_THP_MIGRATION
-+#ifdef CONFIG_ARCH_SUPPORTS_PMD_SOFTLEAF
- extern int set_pmd_migration_entry(struct page_vma_mapped_walk *pvmw,
- 		struct page *page);
- 
-@@ -338,7 +338,7 @@ static inline pmd_t swp_entry_to_pmd(swp
- 	return __swp_entry_to_pmd(arch_entry);
- }
- 
--#else  /* CONFIG_ARCH_ENABLE_THP_MIGRATION */
-+#else  /* CONFIG_ARCH_SUPPORTS_PMD_SOFTLEAF */
- static inline int set_pmd_migration_entry(struct page_vma_mapped_walk *pvmw,
- 		struct page *page)
- {
-@@ -358,7 +358,7 @@ static inline pmd_t swp_entry_to_pmd(swp
- 	return __pmd(0);
- }
- 
--#endif  /* CONFIG_ARCH_ENABLE_THP_MIGRATION */
-+#endif  /* CONFIG_ARCH_SUPPORTS_PMD_SOFTLEAF */
- 
- #endif /* CONFIG_MMU */
- #endif /* _LINUX_SWAPOPS_H */
---- a/mm/debug_vm_pgtable.c~mm-rename-arch_enable_thp_migration-to-arch_supports_pmd_softleaf
-+++ a/mm/debug_vm_pgtable.c
-@@ -751,7 +751,7 @@ static void __init pmd_leaf_soft_dirty_t
- 	pmd_t pmd;
- 
- 	if (!pgtable_supports_soft_dirty() ||
--	    !IS_ENABLED(CONFIG_ARCH_ENABLE_THP_MIGRATION))
-+	    !IS_ENABLED(CONFIG_ARCH_SUPPORTS_PMD_SOFTLEAF))
- 		return;
- 
- 	if (!has_transparent_hugepage())
-@@ -819,7 +819,7 @@ static void __init pte_swap_tests(struct
- 	WARN_ON(memcmp(&pte1, &pte2, sizeof(pte1)));
- }
- 
--#ifdef CONFIG_ARCH_ENABLE_THP_MIGRATION
-+#ifdef CONFIG_ARCH_SUPPORTS_PMD_SOFTLEAF
- static void __init pmd_softleaf_tests(struct pgtable_debug_args *args)
- {
- 	swp_entry_t arch_entry;
-@@ -837,9 +837,9 @@ static void __init pmd_softleaf_tests(st
- 	pmd2 = __swp_entry_to_pmd(arch_entry);
- 	WARN_ON(memcmp(&pmd1, &pmd2, sizeof(pmd1)));
- }
--#else  /* !CONFIG_ARCH_ENABLE_THP_MIGRATION */
-+#else  /* !CONFIG_ARCH_SUPPORTS_PMD_SOFTLEAF */
- static void __init pmd_softleaf_tests(struct pgtable_debug_args *args) { }
--#endif /* CONFIG_ARCH_ENABLE_THP_MIGRATION */
-+#endif /* CONFIG_ARCH_SUPPORTS_PMD_SOFTLEAF */
- 
- static void __init swap_migration_tests(struct pgtable_debug_args *args)
- {
---- a/mm/hmm.c~mm-rename-arch_enable_thp_migration-to-arch_supports_pmd_softleaf
-+++ a/mm/hmm.c
-@@ -331,7 +331,7 @@ fault:
- 	return hmm_vma_fault(addr, end, required_fault, walk);
- }
- 
--#ifdef CONFIG_ARCH_ENABLE_THP_MIGRATION
-+#ifdef CONFIG_ARCH_SUPPORTS_PMD_SOFTLEAF
- static int hmm_vma_handle_absent_pmd(struct mm_walk *walk, unsigned long start,
- 				     unsigned long end, unsigned long *hmm_pfns,
- 				     pmd_t pmd)
-@@ -391,7 +391,7 @@ static int hmm_vma_handle_absent_pmd(str
- 		return -EFAULT;
- 	return hmm_pfns_fill(start, end, range, HMM_PFN_ERROR);
- }
--#endif  /* CONFIG_ARCH_ENABLE_THP_MIGRATION */
-+#endif  /* CONFIG_ARCH_SUPPORTS_PMD_SOFTLEAF */
- 
- static int hmm_vma_walk_pmd(pmd_t *pmdp,
- 			    unsigned long start,
---- a/mm/huge_memory.c~mm-rename-arch_enable_thp_migration-to-arch_supports_pmd_softleaf
-+++ a/mm/huge_memory.c
-@@ -4864,7 +4864,7 @@ static int __init split_huge_pages_debug
- late_initcall(split_huge_pages_debugfs);
- #endif
- 
--#ifdef CONFIG_ARCH_ENABLE_THP_MIGRATION
-+#ifdef CONFIG_ARCH_SUPPORTS_PMD_SOFTLEAF
- int set_pmd_migration_entry(struct page_vma_mapped_walk *pvmw,
- 		struct page *page)
- {
---- a/mm/Kconfig~mm-rename-arch_enable_thp_migration-to-arch_supports_pmd_softleaf
-+++ a/mm/Kconfig
-@@ -703,7 +703,7 @@ config DEVICE_MIGRATION
- config ARCH_ENABLE_HUGEPAGE_MIGRATION
- 	bool
- 
--config ARCH_ENABLE_THP_MIGRATION
-+config ARCH_SUPPORTS_PMD_SOFTLEAF
- 	bool
- 
- config HUGETLB_PAGE_SIZE_VARIABLE
---- a/mm/migrate.c~mm-rename-arch_enable_thp_migration-to-arch_supports_pmd_softleaf
-+++ a/mm/migrate.c
-@@ -362,7 +362,7 @@ static bool remove_migration_pte(struct
- 			idx = linear_page_index(vma, pvmw.address) - pvmw.pgoff;
- 		new = folio_page(folio, idx);
- 
--#ifdef CONFIG_ARCH_ENABLE_THP_MIGRATION
-+#ifdef CONFIG_ARCH_SUPPORTS_PMD_SOFTLEAF
- 		/* PMD-mapped THP migration entry */
- 		if (!pvmw.pte) {
- 			VM_BUG_ON_FOLIO(folio_test_hugetlb(folio) ||
-@@ -545,7 +545,7 @@ fail:
- }
- #endif
- 
--#ifdef CONFIG_ARCH_ENABLE_THP_MIGRATION
-+#ifdef CONFIG_ARCH_SUPPORTS_PMD_SOFTLEAF
- void pmd_migration_entry_wait(struct mm_struct *mm, pmd_t *pmd)
- {
- 	spinlock_t *ptl;
---- a/mm/migrate_device.c~mm-rename-arch_enable_thp_migration-to-arch_supports_pmd_softleaf
-+++ a/mm/migrate_device.c
-@@ -771,7 +771,7 @@ int migrate_vma_setup(struct migrate_vma
- }
- EXPORT_SYMBOL(migrate_vma_setup);
- 
--#ifdef CONFIG_ARCH_ENABLE_THP_MIGRATION
-+#ifdef CONFIG_ARCH_SUPPORTS_PMD_SOFTLEAF
- /**
-  * migrate_vma_insert_huge_pmd_page: Insert a huge folio into @migrate->vma->vm_mm
-  * at @addr. folio is already allocated as a part of the migration process with
-@@ -926,7 +926,7 @@ static int migrate_vma_split_unmapped_fo
- 		migrate->src[i+idx] = migrate_pfn(pfn + i) | flags;
- 	return ret;
- }
--#else /* !CONFIG_ARCH_ENABLE_THP_MIGRATION */
-+#else /* !CONFIG_ARCH_SUPPORTS_PMD_SOFTLEAF */
- static int migrate_vma_insert_huge_pmd_page(struct migrate_vma *migrate,
- 					 unsigned long addr,
- 					 struct page *page,
-@@ -947,7 +947,7 @@ static int migrate_vma_split_unmapped_fo
- static unsigned long migrate_vma_nr_pages(unsigned long *src)
- {
- 	unsigned long nr = 1;
--#ifdef CONFIG_ARCH_ENABLE_THP_MIGRATION
-+#ifdef CONFIG_ARCH_SUPPORTS_PMD_SOFTLEAF
- 	if (*src & MIGRATE_PFN_COMPOUND)
- 		nr = HPAGE_PMD_NR;
- #else
---- a/mm/rmap.c~mm-rename-arch_enable_thp_migration-to-arch_supports_pmd_softleaf
-+++ a/mm/rmap.c
-@@ -2472,7 +2472,7 @@ static bool try_to_migrate_one(struct fo
- 				page_vma_mapped_walk_restart(&pvmw);
- 				continue;
- 			}
--#ifdef CONFIG_ARCH_ENABLE_THP_MIGRATION
-+#ifdef CONFIG_ARCH_SUPPORTS_PMD_SOFTLEAF
- 			pmdval = pmdp_get(pvmw.pmd);
- 			if (likely(pmd_present(pmdval)))
- 				pfn = pmd_pfn(pmdval);
+ ``path`` is optionally required for only ``node_memcg_used_bp`` and
 _
 
-Patches currently in -mm which might be from usama.arif@linux.dev are
+Patches currently in -mm which might be from sj@kernel.org are
 
-mm-swap_state-remove-unnecessary-lru_add_drain-from-readahead.patch
-mm-vmpressure-skip-tree=true-accounting-on-cgroup-v2.patch
-mm-vmpressure-split-v1-userspace-eventfd-code-into-vmpressure-v1c.patch
-mm-add-softleaf_to_pmd-and-convert-existing-callers.patch
-mm-extract-mm_prepare_for_swap_entries-helper.patch
-fs-proc-use-softleaf_has_pfn-in-pagemap-pmd-walker.patch
-mm-huge_memory-move-softleaf_to_folio-inside-migration-branch.patch
-mm-migrate_device-move-softleaf_to_folio-inside-device-private-branch.patch
-mm-rename-arch_enable_thp_migration-to-arch_supports_pmd_softleaf.patch
+mm-damon-sysfs-schemes-fix-dir-put-orders-in-access_pattern_add_dirs.patch
+mm-damon-sysfs-schemes-put-stats-for-scheme_add_dirs-internal-error.patch
+mm-damon-ops-common-handle-extreme-intervals-in-damon_hot_score.patch
+mm-damon-add-a-kernel-doc-comment-for-damon_ctx-probes.patch
+mm-damon-add-a-kernel-doc-comment-for-damon_ctx-rnd_state.patch
+maintainers-s-seongjae-sj.patch
+samples-damon-wsse-handle-damon_start-failure.patch
+samples-damon-prcl-handle-damon_start-failure.patch
+samples-damon-mtier-handle-damon_start-failure.patch
+samples-damon-mtier-handle-damon_stop-failure.patch
+samples-damon-wsse-stop-and-free-damon-ctx-when-damon_call-fails.patch
+samples-damon-prcl-stop-and-free-damon-ctx-when-damon_call-fails.patch
+mm-damon-sysfs-kobject_del-target-normal-context-and-kdamond-dirs.patch
+mm-damon-sysfs-kobject_del-region-and-target-error-dirs.patch
+mm-damon-sysfs-schemes-kobject_del-scheme-dirs.patch
+mm-damon-sysfs-schemes-kobject_del-scheme-region-dirs.patch
+mm-damon-sysfs-schemes-kobject_del-scheme-filter-dirs.patch
+mm-damon-sysfs-schemes-kobject_del-scheme-quota-goal-dirs.patch
+mm-damon-sysfs-schemes-kobject_del-scheme-action-destination-dirs.patch
+mm-damon-sysfs-kobject_del-probe-dirs.patch
+mm-damon-sysfs-kobject_del-probe-filter-dirs.patch
+mm-damon-sysfs-kobject_del-probe-dirs-in-probes_addd_dir-error-path.patch
+mm-damon-sysfs-schemes-kobject_del-region-for-populate_region-error.patch
+docs-mm-damon-design-update-for-damos_quota_node_eligible_mem_bp.patch
+docs-abi-damon-document-probe-files.patch
+mm-damon-tests-core-kunit-test-damon_rand.patch
+selftests-damon-sysfssh-test-multiple-probe-dirs-creation.patch
+selftests-damon-sysfssh-test-coreops_filters-directories.patch
+selftests-damon-sysfssh-test-dests-dir.patch
+selftests-damon-sysfssh-test-all-files-in-quota-goal-dir.patch
+mm-damon-core-reduce-range-setup-in-damon_commit_target_regions.patch
+mm-damon-sysfs-split-probe-setup-function-out.patch
+mm-damon-sysfs-split-out-filters-setup-function.patch
+mm-damon-sysfs-fix-typos-in-probe_addrm_dirs-s-attr-probe.patch
 
