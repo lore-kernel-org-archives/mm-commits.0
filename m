@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2507C2F7EEE
-	for <mm-commits@vger.kernel.org>; Tue, 30 Jun 2026 23:07:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 769E02F7EEE
+	for <mm-commits@vger.kernel.org>; Tue, 30 Jun 2026 23:07:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782860833; cv=none; b=iuHiCi+nq/tTmlICiN8XWed3d3FG9Ov1C/hPQdjTp0rysIILzJf0kDPFSomyIIYddTz92fpHMcfU/pEfTdwYavhUeqP+etrR3tHcNQ/Df/Vl39jsqjKJqy0KbwhdYOeTMtxj894YEnB2MLjvjivyWbgJItu7YgCGKbQhcLL0n1w=
+	t=1782860835; cv=none; b=pBRIObUSNaeWri3PlihFTmDQdizV8+21iMtXHNnlVRVgKWcY64CgUaAUnVUg4cjukP8G3fOOLLbnIEs27omK/Q1BpzVioLKterw5/QAI3ELa06wTa/eiSYT2flIL5HvQTEV8D5cW1NV0ZSbpRlgrCA6tbddQm01a9jmx92RJD2Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782860833; c=relaxed/simple;
-	bh=3ER2pDbzUalOkQiSbC5vwaEpkmhlCbTqoQ9UcIGOlEE=;
-	h=Date:To:From:Subject:Message-Id; b=ER4ciaHxUUgcrjrhrr0XezuMrpBOl2C6mI42rreQmlGaMAccNKzBm3SBkBUt6QsINIM8ciXd7ztnCJZdd0J+iESFM73I8JDp97HzJ1Jb4T04Sbv0cEGyrfd5Hg2py9JgFomskOmjL/G50XGmWDpF6/4SeVuZy34YddIXOOXEMzU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=r9y7Xhsu; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1782860835; c=relaxed/simple;
+	bh=4eiZO0mVrQjNlpDi0R3dDb2MRKMqtDTus2jEoT/XNgI=;
+	h=Date:To:From:Subject:Message-Id; b=qqn9Rzle8SHoHj8gKn4jawxvwfk84pIeld6e3AGxDfQ9tJi3e2LoD+PLYbXrizIqa9D/xMq9s1GA9gDCHFqMIZOzErd+RBAbR3QPtROka4LtpigG9xxZIyllT7MIUeF+iArhwfmjeCJBhbeo1Dua/YmCGYjjv07G9UqRNjENofs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DhxAmweM; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="r9y7Xhsu"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EBCA61F000E9;
-	Tue, 30 Jun 2026 23:07:11 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DhxAmweM"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 141A61F000E9;
+	Tue, 30 Jun 2026 23:07:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1782860832;
-	bh=E56Vptsvrg4yyQvPsVh2biY9uJU3YfOa6Q/O0Ma7SFQ=;
+	d=linux-foundation.org; s=korg; t=1782860834;
+	bh=sQ0XpIq0qXArM6SfoY5Do7OANyvxFsH03kF4X8Pm0Is=;
 	h=Date:To:From:Subject;
-	b=r9y7XhsuLS7vLINc0/eSphi7ibdQGVl+T9COCL8k04Jxn5eTJguiGuiTEg9P5Cu2Z
-	 eHs0yUx6FgHrsUDBGGT4gzzXiQnOJNZ/bFIyW+U6B5zlL6NYzEomkBVujiiR2SGysR
-	 fEFMOhkP+j73Gh7Tvd2Wwb/XT53OvH8pjtTqA1XE=
-Date: Tue, 30 Jun 2026 16:07:11 -0700
+	b=DhxAmweMUQl+0LY9r7q4tMiCe5JoEWAVLkNBuuQVr5Hbewc1RkU1mLEgs4ZzqTk0K
+	 /rD228pfDO4EF8Nn9OmU8H0+DsQJc3f+q9hTN5S9vcMus5Yqr9+LSMfLTGCqzcMET6
+	 /FchSTjQs+BP5BRFp/3CFg7cC3e9tEswozc278xE=
+Date: Tue, 30 Jun 2026 16:07:13 -0700
 To: mm-commits@vger.kernel.org,will@kernel.org,riel@surriel.com,peterz@infradead.org,mingo@redhat.com,longman@redhat.com,joe@perches.com,jgg@ziepe.ca,clm@meta.com,cel@kernel.org,boqun.feng@gmail.com,liam@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + maple_tree-catch-race-in-mas_alloc_cyclic.patch added to mm-new branch
-Message-Id: <20260630230711.EBCA61F000E9@smtp.kernel.org>
+Subject: + maple_tree-document-that-erase-may-use-gfp_kernel-for-allocations.patch added to mm-new branch
+Message-Id: <20260630230714.141A61F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: maple_tree: catch race in mas_alloc_cyclic()
+     Subject: maple_tree: document that erase may use GFP_KERNEL for allocations
 has been added to the -mm mm-new branch.  Its filename is
-     maple_tree-catch-race-in-mas_alloc_cyclic.patch
+     maple_tree-document-that-erase-may-use-gfp_kernel-for-allocations.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-catch-race-in-mas_alloc_cyclic.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-document-that-erase-may-use-gfp_kernel-for-allocations.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,105 +70,98 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Liam R. Howlett (Oracle)" <liam@infradead.org>
-Subject: maple_tree: catch race in mas_alloc_cyclic()
-Date: Tue, 30 Jun 2026 15:08:36 -0400
+Subject: maple_tree: document that erase may use GFP_KERNEL for allocations
+Date: Tue, 30 Jun 2026 15:08:37 -0400
 
-If mas_alloc_cyclic() is called during a low memory situation, it is
-possible the lock may be dropped so reclaim can occur.  There is a window
-where some other task may allocate the same id and cause the mas_insert()
-to fail with -EEXIST.  In this scenario the function will return -EEXIST,
-which is not expected.
+State that the mas_erase() and mtree_erase() functions may use GFP_KERNEL
+on allocation retry.  Don't just depend on people reading the
+documentation by adding a check that will warn of the use.
 
-Modifying the retry on mas_nomem() to re-search for a slot means that any
-race with other writes will not matter as the lock will be held between
-finding the index and writing the index.
-
-Moving the flag logic avoids cases where the flag is modified on drop
-lock/reacquire or when the write fails after clearing the flag.
-
-No existing users are exposed to this issue.
-
-Link: https://lore.kernel.org/20260630190843.3563858-13-liam@infradead.org
-Fixes: 9b6713cc75229 ("maple_tree: Add mtree_alloc_cyclic()")
+Link: https://lore.kernel.org/20260630190843.3563858-14-liam@infradead.org
 Signed-off-by: Liam R. Howlett (Oracle) <liam@infradead.org>
-Reported-by: Chris Mason <clm@meta.com>
-Reviewed-by: Chuck Lever <cel@kernel.org>
-Cc: Boqun Feng <boqun.feng@gmail.com>
-Cc: Ingo Molnar <mingo@redhat.com>
+Reviewed-by: Rik van Riel <riel@surriel.com>
 Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Boqun Feng <boqun.feng@gmail.com>
+Cc: Chris Mason <clm@meta.com>
+Cc: Chuck Lever <cel@kernel.org>
+Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Joe Perches <joe@perches.com>
 Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Rik van Riel <riel@surriel.com>
 Cc: Waiman Long <longman@redhat.com>
 Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/maple_tree.c |   43 ++++++++++++++++++++++++-------------------
- 1 file changed, 24 insertions(+), 19 deletions(-)
+ lib/maple_tree.c |   23 +++++++++++++++++++++--
+ 1 file changed, 21 insertions(+), 2 deletions(-)
 
---- a/lib/maple_tree.c~maple_tree-catch-race-in-mas_alloc_cyclic
+--- a/lib/maple_tree.c~maple_tree-document-that-erase-may-use-gfp_kernel-for-allocations
 +++ a/lib/maple_tree.c
-@@ -3867,35 +3867,40 @@ int mas_alloc_cyclic(struct ma_state *ma
- 		void *entry, unsigned long range_lo, unsigned long range_hi,
- 		unsigned long *next, gfp_t gfp)
- {
--	unsigned long min = range_lo;
--	int ret = 0;
--
--	range_lo = max(min, *next);
--	ret = mas_empty_area(mas, range_lo, range_hi, 1);
--	if ((mas->tree->ma_flags & MT_FLAGS_ALLOC_WRAPPED) && ret == 0) {
--		mas->tree->ma_flags &= ~MT_FLAGS_ALLOC_WRAPPED;
--		ret = 1;
--	}
--	if (ret < 0 && range_lo > min) {
--		mas_reset(mas);
--		ret = mas_empty_area(mas, min, range_hi, 1);
--		if (ret == 0)
--			ret = 1;
--	}
--	if (ret < 0)
--		return ret;
-+	int ret;
-+	unsigned long min;
+@@ -5657,6 +5657,10 @@ EXPORT_SYMBOL_GPL(mas_find_range_rev);
+  * Searches for @mas->index, sets @mas->index and @mas->last to the range and
+  * erases that range.
+  *
++ * Note that erase requires allocations and will use GFP_KERNEL to do so if
++ * necessary.  If the allocation fails, the internal lock will be dropped to
++ * retry.
++ *
+  * Return: the entry that was erased or %NULL, @mas->index and @mas->last are updated.
+  */
+ void *mas_erase(struct ma_state *mas)
+@@ -5665,13 +5669,21 @@ void *mas_erase(struct ma_state *mas)
+ 	unsigned long index = mas->index;
+ 	MA_WR_STATE(wr_mas, mas, NULL);
  
-+	min = range_lo;
- 	do {
-+		range_lo = max(min, *next);
-+		ret = mas_empty_area(mas, range_lo, range_hi, 1);
-+		if (ret < 0 && range_lo > min) {
-+			mas_reset(mas);
-+			ret = mas_empty_area(mas, min, range_hi, 1);
-+			if (ret == 0)
-+				ret = 1;
-+		}
-+		if (ret < 0)
-+			goto out;
++	/*
++	 * In low memory situations, the allocation is retried with the gfp flag
++	 * GFP_KERNEL.  The internal spinlock is dropped in mas_nomem(), however
++	 * the external lock is not dropped.
++	 */
++	if (mt_external_lock(mas->tree))
++		might_alloc(GFP_KERNEL);
 +
- 		mas_insert(mas, entry);
- 	} while (mas_nomem(mas, gfp));
--	if (mas_is_err(mas))
--		return xa_err(mas->node);
+ 	if (!mas_is_active(mas) || !mas_is_start(mas))
+ 		mas->status = ma_start;
  
-+	if (mas_is_err(mas)) {
-+		ret = xa_err(mas->node);
+ write_retry:
+ 	entry = mas_state_walk(mas);
+ 	if (!entry)
+-		return NULL;
 +		goto out;
-+	}
-+
-+	if ((mas->tree->ma_flags & MT_FLAGS_ALLOC_WRAPPED) && ret == 0) {
-+		mas->tree->ma_flags &= ~MT_FLAGS_ALLOC_WRAPPED;
-+		ret = 1;
-+	}
- 	*startp = mas->index;
- 	*next = *startp + 1;
- 	if (*next == 0)
- 		mas->tree->ma_flags |= MT_FLAGS_ALLOC_WRAPPED;
  
-+out:
- 	mas_destroy(mas);
- 	return ret;
- }
+ 	/* Must reset to ensure spanning writes of last slot are detected */
+ 	mas_reset(mas);
+@@ -5682,8 +5694,10 @@ write_retry:
+ 		goto write_retry;
+ 	}
+ 
+-	if (mas_is_err(mas))
++	if (mas_is_err(mas)) {
++		entry = NULL;
+ 		goto out;
++	}
+ 
+ 	mas_wr_store_entry(&wr_mas);
+ out:
+@@ -6011,6 +6025,10 @@ EXPORT_SYMBOL(mtree_alloc_rrange);
+  * Erasing is the same as a walk to an entry then a store of a NULL to that
+  * ENTIRE range.  In fact, it is implemented as such using the advanced API.
+  *
++ * Note that erase requires allocations and will use GFP_KERNEL to do so if
++ * necessary.  If the allocation fails, the internal lock will be dropped to
++ * retry.
++ *
+  * Return: The entry stored at the @index or %NULL
+  */
+ void *mtree_erase(struct maple_tree *mt, unsigned long index)
+@@ -6020,6 +6038,7 @@ void *mtree_erase(struct maple_tree *mt,
+ 	MA_STATE(mas, mt, index, index);
+ 	trace_ma_op(TP_FCT, &mas);
+ 
++	might_alloc(GFP_KERNEL);
+ 	mtree_lock(mt);
+ 	entry = mas_erase(&mas);
+ 	mtree_unlock(mt);
 _
 
 Patches currently in -mm which might be from liam@infradead.org are
