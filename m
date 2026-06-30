@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 33CFF2F7EEE
-	for <mm-commits@vger.kernel.org>; Tue, 30 Jun 2026 23:07:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2507C2F7EEE
+	for <mm-commits@vger.kernel.org>; Tue, 30 Jun 2026 23:07:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782860831; cv=none; b=hF411INrvOGAWWIIgqFoqy6TGdlp2PKEI1nEYqUB14DLqupp5SfSgxLuqezPOZXjWvwxQ7Q5T1IvjfqmXZup+ydIZ2XMKLNVfSHaVNih8cnftX/yfy3ryQHGVihLqJ+Z/8lXzcRb1JIDOAr6WkN4Y4lMC2x145Uc5IwClYlCDqY=
+	t=1782860833; cv=none; b=iuHiCi+nq/tTmlICiN8XWed3d3FG9Ov1C/hPQdjTp0rysIILzJf0kDPFSomyIIYddTz92fpHMcfU/pEfTdwYavhUeqP+etrR3tHcNQ/Df/Vl39jsqjKJqy0KbwhdYOeTMtxj894YEnB2MLjvjivyWbgJItu7YgCGKbQhcLL0n1w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782860831; c=relaxed/simple;
-	bh=Xp/EJ3W8JYF4kKviy1LPtUZsc7ZkJhISYI7RDrMp6X8=;
-	h=Date:To:From:Subject:Message-Id; b=CUX5AuGLfJyoWSzK8+2Wft+uqsJ106DW36VfUllk84YF22qNGf/Y8dxsei5u99+oblcH5O7wVg1GIDZ3cTlJd3jsI9N5fGiLkvQtfIijiZYQAH2F7dVkIVyh2OO3sdAWJujhA/UdSrrjqio49UiAnB9STvdoBUKp/l7pm569LmY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RjlfE1fe; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1782860833; c=relaxed/simple;
+	bh=3ER2pDbzUalOkQiSbC5vwaEpkmhlCbTqoQ9UcIGOlEE=;
+	h=Date:To:From:Subject:Message-Id; b=ER4ciaHxUUgcrjrhrr0XezuMrpBOl2C6mI42rreQmlGaMAccNKzBm3SBkBUt6QsINIM8ciXd7ztnCJZdd0J+iESFM73I8JDp97HzJ1Jb4T04Sbv0cEGyrfd5Hg2py9JgFomskOmjL/G50XGmWDpF6/4SeVuZy34YddIXOOXEMzU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=r9y7Xhsu; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RjlfE1fe"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BDDA81F000E9;
-	Tue, 30 Jun 2026 23:07:09 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="r9y7Xhsu"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EBCA61F000E9;
+	Tue, 30 Jun 2026 23:07:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1782860829;
-	bh=BBbuO9Rp0RbsTyoX8FzEW89mc6YbiWbESwhZSWOdpko=;
+	d=linux-foundation.org; s=korg; t=1782860832;
+	bh=E56Vptsvrg4yyQvPsVh2biY9uJU3YfOa6Q/O0Ma7SFQ=;
 	h=Date:To:From:Subject;
-	b=RjlfE1feqGVLTxJURAwfNVn/7+mw3wcVIgfCY7a2iyf+9sKkrVj7+UIr4/yMK6KWI
-	 vfgqTweGBIQWaEPiv3dI3Pq86sr+Vbkgm27Gxg4z8G+oMvNbLSr5HtSFJ8ujzOBNJj
-	 TYNhXmVZ08SQ+/89BKvcENFTjdNlxpxQURB3dnGk=
-Date: Tue, 30 Jun 2026 16:07:09 -0700
+	b=r9y7XhsuLS7vLINc0/eSphi7ibdQGVl+T9COCL8k04Jxn5eTJguiGuiTEg9P5Cu2Z
+	 eHs0yUx6FgHrsUDBGGT4gzzXiQnOJNZ/bFIyW+U6B5zlL6NYzEomkBVujiiR2SGysR
+	 fEFMOhkP+j73Gh7Tvd2Wwb/XT53OvH8pjtTqA1XE=
+Date: Tue, 30 Jun 2026 16:07:11 -0700
 To: mm-commits@vger.kernel.org,will@kernel.org,riel@surriel.com,peterz@infradead.org,mingo@redhat.com,longman@redhat.com,joe@perches.com,jgg@ziepe.ca,clm@meta.com,cel@kernel.org,boqun.feng@gmail.com,liam@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + maple_tree-add-bulk-parent-set-helper.patch added to mm-new branch
-Message-Id: <20260630230709.BDDA81F000E9@smtp.kernel.org>
+Subject: + maple_tree-catch-race-in-mas_alloc_cyclic.patch added to mm-new branch
+Message-Id: <20260630230711.EBCA61F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: maple_tree: add bulk parent set helper
+     Subject: maple_tree: catch race in mas_alloc_cyclic()
 has been added to the -mm mm-new branch.  Its filename is
-     maple_tree-add-bulk-parent-set-helper.patch
+     maple_tree-catch-race-in-mas_alloc_cyclic.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-add-bulk-parent-set-helper.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-catch-race-in-mas_alloc_cyclic.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,22 +70,30 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Liam R. Howlett (Oracle)" <liam@infradead.org>
-Subject: maple_tree: add bulk parent set helper
-Date: Tue, 30 Jun 2026 15:08:35 -0400
+Subject: maple_tree: catch race in mas_alloc_cyclic()
+Date: Tue, 30 Jun 2026 15:08:36 -0400
 
-Instead of calculating the parent pointer each time for a child, cache the
-majority of the parent pointer and only change the slot per child.
+If mas_alloc_cyclic() is called during a low memory situation, it is
+possible the lock may be dropped so reclaim can occur.  There is a window
+where some other task may allocate the same id and cause the mas_insert()
+to fail with -EEXIST.  In this scenario the function will return -EEXIST,
+which is not expected.
 
-Drop the mas_set_parent() function since the last user has been removed.
+Modifying the retry on mas_nomem() to re-search for a slot means that any
+race with other writes will not matter as the lock will be held between
+finding the index and writing the index.
 
-Testing on a tree containing 2048 entries of height 4 had an increased
-gain of 3.51% on nodes tracking gaps.
+Moving the flag logic avoids cases where the flag is modified on drop
+lock/reacquire or when the write fails after clearing the flag.
 
-Link: https://lore.kernel.org/20260630190843.3563858-12-liam@infradead.org
+No existing users are exposed to this issue.
+
+Link: https://lore.kernel.org/20260630190843.3563858-13-liam@infradead.org
+Fixes: 9b6713cc75229 ("maple_tree: Add mtree_alloc_cyclic()")
 Signed-off-by: Liam R. Howlett (Oracle) <liam@infradead.org>
+Reported-by: Chris Mason <clm@meta.com>
+Reviewed-by: Chuck Lever <cel@kernel.org>
 Cc: Boqun Feng <boqun.feng@gmail.com>
-Cc: Chris Mason <clm@meta.com>
-Cc: Chuck Lever <cel@kernel.org>
 Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Jason Gunthorpe <jgg@ziepe.ca>
 Cc: Joe Perches <joe@perches.com>
@@ -96,138 +104,71 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/maple_tree.c |   97 +++++++++++++++++++--------------------------
- 1 file changed, 42 insertions(+), 55 deletions(-)
+ lib/maple_tree.c |   43 ++++++++++++++++++++++++-------------------
+ 1 file changed, 24 insertions(+), 19 deletions(-)
 
---- a/lib/maple_tree.c~maple_tree-add-bulk-parent-set-helper
+--- a/lib/maple_tree.c~maple_tree-catch-race-in-mas_alloc_cyclic
 +++ a/lib/maple_tree.c
-@@ -456,46 +456,6 @@ enum maple_type mas_parent_type(struct m
- }
- 
- /*
-- * mas_set_parent() - Set the parent node and encode the slot
-- * @mas: The maple state
-- * @enode: The encoded maple node.
-- * @parent: The encoded maple node that is the parent of @enode.
-- * @slot: The slot that @enode resides in @parent.
-- *
-- * Slot number is encoded in the enode->parent bit 3-6 or 2-6, depending on the
-- * parent type.
-- */
--static inline
--void mas_set_parent(struct ma_state *mas, struct maple_enode *enode,
--		    const struct maple_enode *parent, unsigned char slot)
--{
--	unsigned long val = (unsigned long)parent;
--	unsigned long shift;
--	unsigned long type;
--	enum maple_type p_type = mte_node_type(parent);
+@@ -3867,35 +3867,40 @@ int mas_alloc_cyclic(struct ma_state *ma
+ 		void *entry, unsigned long range_lo, unsigned long range_hi,
+ 		unsigned long *next, gfp_t gfp)
+ {
+-	unsigned long min = range_lo;
+-	int ret = 0;
 -
--	MAS_BUG_ON(mas, p_type == maple_dense);
--	MAS_BUG_ON(mas, p_type == maple_leaf_64);
--
--	switch (p_type) {
--	case maple_range_64:
--	case maple_arange_64:
--		shift = MAPLE_PARENT_SLOT_SHIFT;
--		type = MAPLE_PARENT_RANGE64;
--		break;
--	default:
--	case maple_dense:
--	case maple_leaf_64:
--		shift = type = 0;
--		break;
+-	range_lo = max(min, *next);
+-	ret = mas_empty_area(mas, range_lo, range_hi, 1);
+-	if ((mas->tree->ma_flags & MT_FLAGS_ALLOC_WRAPPED) && ret == 0) {
+-		mas->tree->ma_flags &= ~MT_FLAGS_ALLOC_WRAPPED;
+-		ret = 1;
 -	}
--
--	val &= ~MAPLE_NODE_MASK; /* Clear all node metadata in parent */
--	val |= (slot << shift) | type;
--	mte_to_node(enode)->parent = ma_parent_ptr(val);
--}
--
--/*
-  * mte_parent_slot() - get the parent slot of @enode.
-  * @enode: The encoded maple node.
-  *
-@@ -877,6 +837,42 @@ static inline void ma_set_meta_gap(struc
- }
+-	if (ret < 0 && range_lo > min) {
+-		mas_reset(mas);
+-		ret = mas_empty_area(mas, min, range_hi, 1);
+-		if (ret == 0)
+-			ret = 1;
+-	}
+-	if (ret < 0)
+-		return ret;
++	int ret;
++	unsigned long min;
  
- /*
-+ * mas_set_parent_slots() - Bulk operation to set many slot parent pointers
-+ * @mas: The maple state
-+ * @parent: The encoded maple node that is the parent of @enode.
-+ * @slot: The slot that of the @enode.
-+ * @start_slot: The offset into @slot
-+ * @count: The number of slots to set (eg: exclusive)
-+ */
-+static inline
-+void mas_set_parent_slots(struct ma_state *mas, struct maple_enode *parent,
-+	void __rcu **slots, unsigned char start_slot, unsigned char count)
-+{
-+	unsigned long val;
-+	unsigned long shift;
-+	unsigned long type;
-+	enum maple_type p_type = mte_node_type(parent);
-+	unsigned char i;
++	min = range_lo;
+ 	do {
++		range_lo = max(min, *next);
++		ret = mas_empty_area(mas, range_lo, range_hi, 1);
++		if (ret < 0 && range_lo > min) {
++			mas_reset(mas);
++			ret = mas_empty_area(mas, min, range_hi, 1);
++			if (ret == 0)
++				ret = 1;
++		}
++		if (ret < 0)
++			goto out;
 +
-+	MAS_BUG_ON(mas, p_type != maple_range_64 &&
-+			p_type != maple_arange_64);
-+
-+	shift = MAPLE_PARENT_SLOT_SHIFT;
-+	type = MAPLE_PARENT_RANGE64;
-+
-+	val = (unsigned long)parent;
-+	val &= ~MAPLE_NODE_MASK;
-+
-+	for (i = 0; i < count; i++) {
-+		unsigned long pval = val | ((start_slot + i) << shift) | type;
-+		struct maple_enode *child;
-+
-+		child = mt_slot_locked(mas->tree, slots, i);
-+		mte_to_node(child)->parent = ma_parent_ptr(pval);
+ 		mas_insert(mas, entry);
+ 	} while (mas_nomem(mas, gfp));
+-	if (mas_is_err(mas))
+-		return xa_err(mas->node);
+ 
++	if (mas_is_err(mas)) {
++		ret = xa_err(mas->node);
++		goto out;
 +	}
-+}
 +
-+/*
-  * mat_add() - Add a @dead_enode to the ma_topiary of a list of dead nodes.
-  * @mat: the ma_topiary, a linked list of dead nodes.
-  * @dead_enode: the node to be marked as dead and added to the tail of the list
-@@ -1608,14 +1604,10 @@ static inline void mas_adopt_children(st
- 	struct maple_node *node = mte_to_node(parent);
- 	void __rcu **slots = ma_slots(node, type);
- 	unsigned long *pivots = ma_pivots(node, type);
--	struct maple_enode *child;
--	unsigned char offset;
-+	unsigned char end;
++	if ((mas->tree->ma_flags & MT_FLAGS_ALLOC_WRAPPED) && ret == 0) {
++		mas->tree->ma_flags &= ~MT_FLAGS_ALLOC_WRAPPED;
++		ret = 1;
++	}
+ 	*startp = mas->index;
+ 	*next = *startp + 1;
+ 	if (*next == 0)
+ 		mas->tree->ma_flags |= MT_FLAGS_ALLOC_WRAPPED;
  
--	offset = ma_data_end(node, type, pivots, mas->max);
--	do {
--		child = mas_slot_locked(mas, slots, offset);
--		mas_set_parent(mas, child, parent, offset);
--	} while (offset--);
-+	end = ma_data_end(node, type, pivots, mas->max);
-+	mas_set_parent_slots(mas, parent, slots, 0, end + 1);
++out:
+ 	mas_destroy(mas);
+ 	return ret;
  }
- 
- /*
-@@ -1997,15 +1989,10 @@ unsigned long node_copy(struct ma_state
- 	s_slots = ma_slots(src, s_mt) + start;
- 	s_pivots = ma_pivots(src, s_mt) + start;
- 	memcpy(d_slots, s_slots, size * sizeof(void __rcu *));
--	if (!ma_is_leaf(d_mt) && s_mt == maple_copy) {
--		struct maple_enode *edst = mt_mk_node(dst, d_mt);
- 
--
--		for (int i = 0; i < size; i++)
--			mas_set_parent(mas,
--				       mt_slot_locked(mas->tree, d_slots, i),
--				       edst, d_start + i);
--	}
-+	if (!ma_is_leaf(d_mt) && s_mt == maple_copy)
-+		mas_set_parent_slots(mas, mt_mk_node(dst, d_mt),
-+				     d_slots, d_start, size);
- 
- 	d_gaps = ma_gaps(dst, d_mt);
- 	if (d_gaps) {
 _
 
 Patches currently in -mm which might be from liam@infradead.org are
