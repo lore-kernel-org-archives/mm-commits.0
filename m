@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D4AC544B693
-	for <mm-commits@vger.kernel.org>; Tue, 30 Jun 2026 20:50:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 86D8744B693
+	for <mm-commits@vger.kernel.org>; Tue, 30 Jun 2026 20:50:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782852617; cv=none; b=fS55wWxfPGxP9ljYtOStoE7EihJnM7ad2NE3N6oiSiAeK0mvzdoy3XVqDYR5Ii7FAdMIyEZKvMaYhuDOf+52cK0BrFKwzD3Ta7ET/+87Lzv8Ov7yoCUMZDQI96fYrDuJk3+sBf7gcq4o+1B0DbtIsTBGOk05uSz2g9V9bDKARyY=
+	t=1782852618; cv=none; b=H6pY0i+yN5vLeyq2o+NMeEfxaxC9kXCL+7fVobJLLqIIciCBoJ2XElLY6lvRT6TSMq8K2ODzhEK9FKbM8/+dcu40XxcYBseJmzrpTpvDhSxm1I2aUMj8qTtpXwqdiCqG+0JMM/WXIWiTUWDsOr7mIuvMUbeDKZia0BV3FTDspQo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782852617; c=relaxed/simple;
-	bh=OPToWmVxyxWcPtJSRtoMcMkvOnkq6GN3Zaci18P7rns=;
-	h=Date:To:From:Subject:Message-Id; b=MadeLuNRIdl3bqLVqyb/4+0SQiBgMhyy/ZcrWeKTMzzpsx+nZY0wDeBWuTgeWkplRhaPB3qjrwSw20Q9QOmwdqDaQuHeIMNsYBWhCxtnsHLFtEoyYlLh2URgRfhZKEHPbUmrDIBbXUuIDPQbTpMwLdlt0UuWQlhRISn2481em6Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Wn4ynqws; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1782852618; c=relaxed/simple;
+	bh=grkIZJz7SEvwA1XziBNPEQwCCScInOfq4A7KBrlp8mU=;
+	h=Date:To:From:Subject:Message-Id; b=UIUe0BlzlX8tjblQILTPDfl9S9MNj4lYzKkOgFTWAD4V7uY0fNbtpF7VDgb1qjN2Ebrw7Ry4Zdqw9taJjzXGmME58rXoGkdzntyZE8hNietsx0A1IU8IIYFleEHU4dMhUF28YXUaXcoZSpS6FhuXggnP/krfgM5RKCcDfjkmx8Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EnGM/S3C; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Wn4ynqws"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7E2CE1F00A3A;
-	Tue, 30 Jun 2026 20:50:15 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EnGM/S3C"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 26F301F000E9;
+	Tue, 30 Jun 2026 20:50:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1782852615;
-	bh=0QJ4ptErKGgPOFqKdBN8WeiHE/RrQoOPDmR9nd4c+ZM=;
+	d=linux-foundation.org; s=korg; t=1782852617;
+	bh=z2sUXSicFok02DqxshkXs+TvVwcmqLJKtm5j0snE4rA=;
 	h=Date:To:From:Subject;
-	b=Wn4ynqwsug1C9fPHDXKGEzZLpZMiZbbqaYUOM8jpmFkZsOVO4SF4jbUGFPy3VKqiN
-	 5keOcbCWV/PvN37TBl78c+zF8TA8K/Ko1H2ZE1/VqqFV08+88vp5mNjNEN1I/6BxMZ
-	 +ew6xfTmlj/Dpf5YFgM25/EpH6fMtfx1oUZ5mu3Y=
-Date: Tue, 30 Jun 2026 13:50:15 -0700
+	b=EnGM/S3Cqodv1iNBLUVId0RGo2oScu5V8iBZJ5xk3I+DOk7T8Hq0hk515HUg1cTs6
+	 yw/K9dy6bxliuhRNSqyCcTYVygunL/LinqsO2j/L0mYtd9ZZfl+RhrcKwM+lqHIC+Y
+	 8oAvqH11e5/+jV6dWnvxIXdDl8Lnpx/owETu0bM0=
+Date: Tue, 30 Jun 2026 13:50:16 -0700
 To: mm-commits@vger.kernel.org,leitao@debian.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-memory-failure-add-panic-option-for-unrecoverable-pages.patch removed from -mm tree
-Message-Id: <20260630205015.7E2CE1F00A3A@smtp.kernel.org>
+Subject: [to-be-updated] documentation-document-panic_on_unrecoverable_memory_failure-sysctl.patch removed from -mm tree
+Message-Id: <20260630205017.26F301F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,43 +35,24 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/memory-failure: add panic option for unrecoverable pages
+     Subject: Documentation: document panic_on_unrecoverable_memory_failure sysctl
 has been removed from the -mm tree.  Its filename was
-     mm-memory-failure-add-panic-option-for-unrecoverable-pages.patch
+     documentation-document-panic_on_unrecoverable_memory_failure-sysctl.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
 From: Breno Leitao <leitao@debian.org>
-Subject: mm/memory-failure: add panic option for unrecoverable pages
-Date: Fri, 26 Jun 2026 08:33:18 -0700
+Subject: Documentation: document panic_on_unrecoverable_memory_failure sysctl
+Date: Fri, 26 Jun 2026 08:33:19 -0700
 
-Add a sysctl panic_on_unrecoverable_memory_failure (disabled by default)
-that triggers a kernel panic when memory_failure() encounters pages that
-cannot be recovered.  This provides a clean crash with useful debug
-information rather than allowing silent data corruption or a delayed crash
-at an unrelated code path.
+Add documentation for the new vm.panic_on_unrecoverable_memory_failure
+sysctl, describing which failures trigger a panic (kernel-owned pages the
+handler cannot recover) and which are intentionally left out (transient
+allocator races and unclassified pages).
 
-Panic eligibility is intentionally narrow: only MF_MSG_KERNEL with result
-== MF_IGNORED panics.  After the previous patch, MF_MSG_KERNEL covers
-PG_reserved pages and the kernel-owned pages promoted from
-get_hwpoison_page() via -ENOTRECOVERABLE (slab, page tables,
-large-kmalloc).
-
-All other action types are excluded:
-
-- MF_MSG_GET_HWPOISON and MF_MSG_KERNEL_HIGH_ORDER can be reached by
-  transient refcount races with the page allocator (an in-flight buddy
-  allocation has refcount 0 and is no longer on the buddy free list,
-  briefly), and panicking on them would risk killing the box for what
-  is actually a recoverable userspace page.
-
-- MF_MSG_UNKNOWN means identify_page_state() could not classify the
-  page; that is precisely the wrong basis for a panic decision.
-
-Link: https://lore.kernel.org/20260626-ecc_panic-v10-4-6dacb8ad024d@debian.org
+Link: https://lore.kernel.org/20260626-ecc_panic-v10-5-6dacb8ad024d@debian.org
 Signed-off-by: Breno Leitao <leitao@debian.org>
-Acked-by: Miaohe Lin <linmiaohe@huawei.com>
 Cc: David Hildenbrand (Arm) <david@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Lance Yang <lance.yang@linux.dev>
@@ -79,6 +60,7 @@ Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
 Cc: "Masami Hiramatsu (Google)" <mhiramat@kernel.org>
 Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
@@ -89,61 +71,104 @@ Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |   23 +++++++++++++++++++++++
- 1 file changed, 23 insertions(+)
+ Documentation/admin-guide/sysctl/vm.rst |   80 ++++++++++++++++++++++
+ 1 file changed, 80 insertions(+)
 
---- a/mm/memory-failure.c~mm-memory-failure-add-panic-option-for-unrecoverable-pages
-+++ a/mm/memory-failure.c
-@@ -74,6 +74,8 @@ static int sysctl_memory_failure_recover
+--- a/Documentation/admin-guide/sysctl/vm.rst~documentation-document-panic_on_unrecoverable_memory_failure-sysctl
++++ a/Documentation/admin-guide/sysctl/vm.rst
+@@ -67,6 +67,7 @@ Currently, these files are in /proc/sys/
+ - page-cluster
+ - page_lock_unfairness
+ - panic_on_oom
++- panic_on_unrecoverable_memory_failure
+ - percpu_pagelist_high_fraction
+ - stat_interval
+ - stat_refresh
+@@ -925,6 +926,85 @@ panic_on_oom=2+kdump gives you very stro
+ why oom happens. You can get snapshot.
  
- static int sysctl_enable_soft_offline __read_mostly = 1;
  
-+static int sysctl_panic_on_unrecoverable_mf __read_mostly;
++panic_on_unrecoverable_memory_failure
++======================================
 +
- atomic_long_t num_poisoned_pages __read_mostly = ATOMIC_LONG_INIT(0);
- 
- static bool hw_memory_failure __read_mostly;
-@@ -155,6 +157,15 @@ static const struct ctl_table memory_fai
- 		.proc_handler	= proc_dointvec_minmax,
- 		.extra1		= SYSCTL_ZERO,
- 		.extra2		= SYSCTL_ONE,
-+	},
-+	{
-+		.procname	= "panic_on_unrecoverable_memory_failure",
-+		.data		= &sysctl_panic_on_unrecoverable_mf,
-+		.maxlen		= sizeof(sysctl_panic_on_unrecoverable_mf),
-+		.mode		= 0644,
-+		.proc_handler	= proc_dointvec_minmax,
-+		.extra1		= SYSCTL_ZERO,
-+		.extra2		= SYSCTL_ONE,
- 	}
- };
- 
-@@ -1255,6 +1266,15 @@ static void update_per_node_mf_stats(uns
- 	++mf_stats->total;
- }
- 
-+static bool panic_on_unrecoverable_mf(enum mf_action_page_type type,
-+				      enum mf_result result)
-+{
-+	if (!sysctl_panic_on_unrecoverable_mf)
-+		return false;
++When a hardware memory error (e.g. multi-bit ECC) hits a kernel page
++that cannot be recovered by the memory failure handler, the default
++behaviour is to ignore the error and continue operation.  This is
++dangerous because the corrupted data remains accessible to the kernel,
++risking silent data corruption or a delayed crash when the poisoned
++memory is next accessed.
 +
-+	return type == MF_MSG_KERNEL && result == MF_IGNORED;
-+}
++When enabled, this sysctl triggers a panic on memory failure events
++hitting kernel-owned pages that the handler cannot recover:
++``PageReserved`` (firmware reservations, kernel image, vDSO, zero
++page, and similar memblock-reserved regions), ``PageSlab``,
++``PageTable``, and ``PageLargeKmalloc``.  These are owned by the
++kernel and the memory failure handler cannot reliably evict their
++contents.
 +
- /*
-  * "Dirty/Clean" indication is not 100% accurate due to the possibility of
-  * setting PG_dirty outside page lock. See also comment above set_page_dirty().
-@@ -1272,6 +1292,9 @@ static int action_result(unsigned long p
- 	pr_err("%#lx: recovery action for %s: %s\n",
- 		pfn, action_page_types[type], action_name[result]);
- 
-+	if (panic_on_unrecoverable_mf(type, result))
-+		panic("Memory failure: %#lx: unrecoverable page", pfn);
++Other unrecoverable kernel-owned populations (vmalloc allocations,
++kernel stack pages, ...) are not currently covered because the
++handler has no page-type signal that distinguishes them from a
++userspace folio temporarily off the LRU during migration or
++compaction.  Such pages still go through the standard
++MF_MSG_GET_HWPOISON path: ``PG_hwpoison`` is set on them and a
++delayed crash on the next access remains possible.  Coverage may
++grow as the handler gains stronger kernel-ownership signals.
 +
- 	return (result == MF_RECOVERED || result == MF_DELAYED) ? 0 : -EBUSY;
- }
++Recoverable failure paths are also intentionally left out: in-flight
++buddy allocations and other transient races with the page allocator
++can reach the same diagnostic, and panicking on them would risk
++killing the box for a page destined for userspace where the standard
++SIGBUS recovery path applies.  Pages whose state could not be
++classified at all are not covered either, since an unknown state is
++not a sound basis for a panic decision.
++
++For many environments it is preferable to panic immediately with a clean
++crash dump that captures the original error context, rather than to
++continue and face a random crash later whose cause is difficult to
++diagnose.
++
++Use cases
++---------
++
++This option is most useful in environments where unattributed crashes
++are expensive to debug or where data integrity must take precedence
++over availability:
++
++* Large fleets, where multi-bit ECC errors on kernel pages are observed
++  regularly and post-mortem analysis of an unrelated downstream crash
++  (often seconds to minutes after the original error) consumes
++  significant engineering effort.
++
++* Systems configured with kdump, where panicking at the moment of the
++  hardware error produces a vmcore that still contains the faulting
++  address, the affected page state, and the originating MCE/GHES
++  record — context that is typically lost by the time a delayed crash
++  occurs.
++
++* High-availability clusters that rely on fast, deterministic node
++  failure for failover, and prefer an immediate panic over silent data
++  corruption propagating to replicas or persistent storage.
++
++* Kernel and platform developers reproducing hwpoison issues with
++  tools such as ``mce-inject`` or error-injection debugfs interfaces,
++  where panicking on the unrecoverable path makes regressions
++  immediately visible instead of surfacing as later, unrelated
++  failures.
++
++= =====================================================================
++0 Try to continue operation (default).
++1 Panic immediately.  If the ``panic`` sysctl is also non-zero then the
++  machine will be rebooted.
++= =====================================================================
++
++Example::
++
++     echo 1 > /proc/sys/vm/panic_on_unrecoverable_memory_failure
++
++
+ percpu_pagelist_high_fraction
+ =============================
  
 _
 
@@ -153,7 +178,6 @@ mm-kmemleak-avoid-soft-lockup-when-scanning-task-stacks.patch
 mm-kmemleak-stop-the-task-stack-scan-early-when-interrupted.patch
 mm-kmemleak-stop-the-per-cpu-and-struct-page-scans-early-too.patch
 a.patch
-documentation-document-panic_on_unrecoverable_memory_failure-sysctl.patch
 selftests-mm-add-hwpoison-panic-destructive-test.patch
 mm-kmemleak-skip-the-remaining-scan-phases-when-interrupted.patch
 
