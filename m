@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0E1A73CF034
-	for <mm-commits@vger.kernel.org>; Mon, 29 Jun 2026 23:59:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6607E288AD;
+	Tue, 30 Jun 2026 00:07:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782777571; cv=none; b=kjX07IhADA7q4R7O8hyaLOgfCEmo5+I+AWrUiAFxhUKWXE+x1f5WM7b8xU+ZNRfwcIffdhnjCMtTp5oqmsuXbLAswaOtILHZ2mxfsWBBu/5uKvo9nEXxjV2mFYcvjPXRNy+/d82Lx1I1idm4Oaiji+ZXy8NwjNpdZHFb/2QUGds=
+	t=1782778028; cv=none; b=t6Tg+Cu8Xeh8+1jQ9nTYKFhZNDJ8Hawg7/ScDzYeFAg3PLlQ9kaavq5zqRw3+Hwby2uGw0onq6kAvxIhf6qYoWFcqgzu3fl6zUVNqt0RdspU+ISiPOCYQovSYetp9D4qQhuqqHKrtqQbEYRtu2NrpX8SdgQJVKJ03NA0MCyu2s4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782777571; c=relaxed/simple;
-	bh=SpBLXtPOTr3C6ifslINN1q5EnfM97o1kfmKGSyuHgl0=;
-	h=Date:To:From:Subject:Message-Id; b=EwcZtqk8HlDYfsuavcF/rPhim1YN9RuxL1MhhvhS2Wth/fBSX4+2L6bv6BIFcTXvsyFGIo5WwW3yuCiT+HkC1bqSAem/TDyIztTvYi29ckK5B6mXItaGfaFqGR2kgBXp37jnFzeHma49RWJaknf2MlqApNMmM9JxGMHdYjxMMBA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UaoeGXvn; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1782778028; c=relaxed/simple;
+	bh=48oVKqp++UwmWwYbOQj+zEgCOQDZdYF1TON13bpfwL4=;
+	h=Date:To:From:Subject:Message-Id; b=qSZ599SjqXdtsbiyM/2cW/p4beL7ZFbjUuM6TqqNORAoQ7FH0ACCe/p5R8rGxzKTWU+TnXU4QAvmUPUZOG07d1cRxMAA1xpbYWN0INBR4nnSAdc/gM0B2S6akHKZrG3O9ZbtfWDtxsp5PlxwycuxUmB34n2MlP5O0UjQ3Nyl5jA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=StLhMONR; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UaoeGXvn"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9D7611F000E9;
-	Mon, 29 Jun 2026 23:59:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="StLhMONR"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 088041F000E9;
+	Tue, 30 Jun 2026 00:07:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1782777569;
-	bh=7/HyTpJ7uBZBEA19F1nDtPpESc0y9APBCF5iR5PGU40=;
+	d=linux-foundation.org; s=korg; t=1782778027;
+	bh=ypL546/XRnjqYdyZKSkW5L04xouqnRJrLMHPXAQ1Nfw=;
 	h=Date:To:From:Subject;
-	b=UaoeGXvnHAEeqgJSgiS7vz0a4vPnaP17MAjymqeSokh9C1TThhJOy0zQlrn+y/Rmc
-	 90tTR7tshGxFB2sca4wtRTbhQEUq27P0zYU8qfQR0pdAzyJ9HwrdAfslX/7aZh+iIR
-	 sTVYpkFwGR0x8cdVtPpUtnSE4bJ9Ypd3mPIuYR0A=
-Date: Mon, 29 Jun 2026 16:59:29 -0700
-To: mm-commits@vger.kernel.org,xuanzhuo@linux.alibaba.com,rppt@kernel.org,pabeni@redhat.com,mst@redhat.com,ljs@kernel.org,jasowang@redhat.com,eperezma@redhat.com,chenyichong@uniontech.com,akpm@linux-foundation.org
+	b=StLhMONREzRcNqTWCCQBU1fb7SGoaXxbUguI1FG3CIMCnpNZIm+dl0usNUw4SB1F+
+	 3yxSa4CsorbFAnsJA1e7mg6CD4OYmUPAu4vKrWQdr2PeZjycYGY98E0uQDz+1DaxM7
+	 6wn/wL0DvpVbB8jCeUr7rUd8d1yjBM65m/JekOjY=
+Date: Mon, 29 Jun 2026 17:07:06 -0700
+To: mm-commits@vger.kernel.org,zenghui.yu@linux.dev,stable@vger.kernel.org,leon@kernel.org,jgg@ziepe.ca,balbirs@nvidia.com,apopple@nvidia.com,skinsburskii@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + tools-include-include-stdinth-for-size_max-in-overflowh.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260629235929.9D7611F000E9@smtp.kernel.org>
+Subject: + lib-test_hmm-use-device-devt-for-coherent-device-range-selection.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260630000707.088041F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: tools/include: include stdint.h for SIZE_MAX in overflow.h
+     Subject: lib: test_hmm: use device devt for coherent device range selection
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     tools-include-include-stdinth-for-size_max-in-overflowh.patch
+     lib-test_hmm-use-device-devt-for-coherent-device-range-selection.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/tools-include-include-stdinth-for-size_max-in-overflowh.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-test_hmm-use-device-devt-for-coherent-device-range-selection.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,45 +58,55 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Yichong Chen <chenyichong@uniontech.com>
-Subject: tools/include: include stdint.h for SIZE_MAX in overflow.h
-Date: Mon, 29 Jun 2026 10:21:24 +0800
+From: Stanislav Kinsburskii <skinsburskii@gmail.com>
+Subject: lib: test_hmm: use device devt for coherent device range selection
+Date: Mon, 29 Jun 2026 16:30:14 -0700
 
-tools/include/linux/overflow.h uses SIZE_MAX in its size helper functions.
+Commit af69016dab96 ("lib: test_hmm: implement a device release method")
+moved the initial dmirror_allocate_chunk() call before cdev_device_add(). 
+That means the struct cdev has not been added yet, so cdev_add() has not
+initialized mdevice->cdevice.dev.
 
-Include stdint.h so tools users that include overflow.h without another
-SIZE_MAX provider can build.
+The coherent-device range selection uses the device minor to choose
+between spm_addr_dev0 and spm_addr_dev1.  Reading
+MINOR(mdevice->cdevice.dev) before cdev_add() therefore always sees an
+uninitialized dev_t.  As a result, both coherent devices select the same
+physical range, and adding the second device fails due to the overlapping
+dev_pagemap range.
 
-Link: https://lore.kernel.org/20260629022124.131894-3-chenyichong@uniontech.com
-Signed-off-by: Yichong Chen <chenyichong@uniontech.com>
-Acked-by: Eugenio Pérez <eperezma@redhat.com>
-Cc: Jason Wang <jasowang@redhat.com>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: "Michael S. Tsirkin" <mst@redhat.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Paolo Abeni <pabeni@redhat.com>
-Cc: Xuan Zhuo <xuanzhuo@linux.alibaba.com>
+Use mdevice->device.devt instead.  It is initialized in
+dmirror_device_init() before dmirror_allocate_chunk() is called and is the
+same dev_t later passed to cdev_device_add().
+
+Link: https://lore.kernel.org/178277581197.172200.16265155329935822153.stgit@skinsburskii
+Fixes: af69016dab96 ("lib: test_hmm: implement a device release method")
+Signed-off-by: Stanislav Kinsburskii <skinsburskii@gmail.com>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Balbir Singh <balbirs@nvidia.com>
+Cc: Zenghui Yu (Huawei) <zenghui.yu@linux.dev>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Leon Romanovsky <leon@kernel.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/include/linux/overflow.h |    1 +
- 1 file changed, 1 insertion(+)
+ lib/test_hmm.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/tools/include/linux/overflow.h~tools-include-include-stdinth-for-size_max-in-overflowh
-+++ a/tools/include/linux/overflow.h
-@@ -1,4 +1,5 @@
- /* SPDX-License-Identifier: GPL-2.0 OR MIT */
-+#include <stdint.h>
- #ifndef __LINUX_OVERFLOW_H
- #define __LINUX_OVERFLOW_H
- 
+--- a/lib/test_hmm.c~lib-test_hmm-use-device-devt-for-coherent-device-range-selection
++++ a/lib/test_hmm.c
+@@ -581,7 +581,7 @@ static int dmirror_allocate_chunk(struct
+ 		devmem->pagemap.type = MEMORY_DEVICE_PRIVATE;
+ 		break;
+ 	case HMM_DMIRROR_MEMORY_DEVICE_COHERENT:
+-		devmem->pagemap.range.start = (MINOR(mdevice->cdevice.dev) - 2) ?
++		devmem->pagemap.range.start = (MINOR(mdevice->device.devt) - 2) ?
+ 							spm_addr_dev0 :
+ 							spm_addr_dev1;
+ 		devmem->pagemap.range.end = devmem->pagemap.range.start +
 _
 
-Patches currently in -mm which might be from chenyichong@uniontech.com are
+Patches currently in -mm which might be from skinsburskii@gmail.com are
 
-tools-virtio-add-missing-compat-definitions-for-vhost_net_test.patch
-tools-include-include-stdinth-for-size_max-in-overflowh.patch
-tools-mm-page_owner_sort-return-explicit-filter-results.patch
-tools-mm-page_owner_sort-free-per-record-allocations.patch
-tools-mm-page_owner_sort-bound-pattern-output-copies.patch
+lib-test_hmm-use-device-devt-for-coherent-device-range-selection.patch
 
