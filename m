@@ -1,126 +1,146 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7DCC838C407
-	for <mm-commits@vger.kernel.org>; Tue, 30 Jun 2026 04:14:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4090B40BCC6
+	for <mm-commits@vger.kernel.org>; Tue, 30 Jun 2026 10:57:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782792873; cv=none; b=NV6S+xOO2rbsMeL2h5oVv7IL3MFPyatYW8Tpxhr+On9KWxKgK1QFqkhA6tYo09WzdBP8vRff6eiGE7YnbuTU1Kn+f6NjYlUDtAximroXAGKE0jLb2UMNO1Nh/GjGu4pE6MJU1xYnGM4jR73747P8urZFtmca2clDujyHFyvQWXQ=
+	t=1782817044; cv=none; b=qeeetkZYeTF0MjWGHzPzcmL6HHY1TeUaQtDRCmNICFyrFzw6Glc9ms0Jws6Dfwl45EjrpXsnEHNzkXRvjKiS2C5NiwRm0r+1gt+dvgGqTxyDist6T44mzqX5YhxVnkeOwhwRFW+K/eyrTzRFMfC7PGZrk403OGfLM/nhYDBPtS0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782792873; c=relaxed/simple;
-	bh=mPSQJ0cpgFrZHjKI9wAF2Q7eDojVn0wqapkm61Ps1/c=;
-	h=Date:To:From:Subject:Message-Id; b=iK4BJ2xq714FwPeQugR9pxIU8S58Lw7nzkTC6GD0BrWVJNRsiAe5KtwCdFnWuKpppgin6lG82MGBgaGIWhoLzQO7fUjlEmhrjyuMq5iecjAJpiHjagVUi/YDnMDZdMVhycGywxmefIA8JLB+QCJW9zqfqvxN1bwsQf8hKI8vTHA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HX7yR3Ee; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1782817044; c=relaxed/simple;
+	bh=SFJyhzApgCLMGmQKlBrEgilM7Tdt6DP5MxjLh24ot3s=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=WAa01sNFVVMkAR6m4jRUvazUvgwAdVk21JTibdPx+VarCNeVKbOtq8GJbVh/nVZ4lN8Twpufvvrh4YMypiLZrU4OJgVvycMPQQMQZHehjrHk8sSWFio88XLIPuxCMJbICT0/HgsZtDxmeAVEJE17p8bYxP4B7QgH+y0nq3Z/v6M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ml0Ca4UA; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HX7yR3Ee"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EE4921F000E9;
-	Tue, 30 Jun 2026 04:14:31 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1782792872;
-	bh=d9xpYYC4/EplMDqSfT6b4phRHm6icGc5BzhTBgFMWPQ=;
-	h=Date:To:From:Subject;
-	b=HX7yR3EeAhF5jbIi8V26Frt+OEEW6lR/d24WDgYRhTMQjPgiDS9JxVenP5WSUvhML
-	 PVpDxyXMdTdMcKp/rclEtKj4IM1tzMsvEd7nC6SKYDIxkXQYHJh+Vk7NrUl8fZSf+X
-	 /TSIoDgVqAMe74+L6cdKmttGkanfSHE61OHfBrOM=
-Date: Mon, 29 Jun 2026 21:14:31 -0700
-To: mm-commits@vger.kernel.org,peterz@infradead.org,oleg@redhat.com,elver@google.com,brauner@kernel.org,adrianhuang0701@gmail.com,andrea.calabrese@amarulasolutions.com,akpm@linux-foundation.org
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kernel-refactor-shorten-has_pending_signals.patch added to mm-nonmm-unstable branch
-Message-Id: <20260630041431.EE4921F000E9@smtp.kernel.org>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ml0Ca4UA"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E5D911F00A3D
+	for <mm-commits@vger.kernel.org>; Tue, 30 Jun 2026 10:57:22 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1782817042;
+	bh=2+HA/JoBOxFhZJaSk9aZ5CarxkWj6UA49Z/NltJ50Cg=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc;
+	b=ml0Ca4UA8WnoIceeByIqxj9zleRHe4d4FldENXK+iKmBFAipQ75AEdeo/fGCqmRJC
+	 Qubr3JAb4291J+0F8rRqobUgfrwR7AEdiTQvF3tERlrAkYYJAQt4tCZDdZDoc0Fmbx
+	 FAaWWdZewjg/UrTOTRfiw+6Wi7dHvD0F0+oujEHCJvNwNi9jzf9SgfnQ17icKyQsNW
+	 jsIphJi6kruZaAP1WC44aB58wb14jYgWJSz1GFqjOlCjw9IYclQq4dPwYUUbWJuVCd
+	 rMjHy84CAguLrfYAops3rN5vfJdoFQTBYkmIA3Z+9ui4Xe/zGr01rwoQEuNm97vpkN
+	 GtkF6n/sh4ACQ==
+Received: by mail-qt1-f180.google.com with SMTP id d75a77b69052e-51c04bf4711so21815591cf.2
+        for <mm-commits@vger.kernel.org>; Tue, 30 Jun 2026 03:57:22 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AFNElJ+BN0xhP93wN3AQszGuB/GJu1I2DrYw5BDXCvrzfgvEKCJQdTTzYBHBYPo24WuWglN16fimx+O3arVW@vger.kernel.org
+X-Gm-Message-State: AOJu0YxUPxC09kg+tPBQD43b2BmTj5uqhiDoYbeaPC79JrBKuBgM+0eA
+	5XzYxuADvfZ3Ntc00VrW78bBOBF6x5Zc0N2aFRUprhH7l1oWKHlyYzRDzT3TwR/iX3jGSgFySVA
+	i3B6ROgUyeDnLPw31pqNizDp/ZHqleZQ=
+X-Received: by 2002:a05:622a:207:b0:51a:8c86:bd40 with SMTP id
+ d75a77b69052e-51c1ca5ad03mr786431cf.61.1782817042418; Tue, 30 Jun 2026
+ 03:57:22 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+References: <202606291606.9h8aGniQ-lkp@intel.com> <20260629171909.1d6e96dd15a80b8f463bb68a@linux-foundation.org>
+In-Reply-To: <20260629171909.1d6e96dd15a80b8f463bb68a@linux-foundation.org>
+From: Barry Song <baohua@kernel.org>
+Date: Tue, 30 Jun 2026 18:57:10 +0800
+X-Gmail-Original-Message-ID: <CAGsJ_4wViR10e-9B1qqv5MNTMGVHVGLDiDzqh8PM=PPfm5rCTA@mail.gmail.com>
+X-Gm-Features: AVVi8CfRjXxRj_MDC-E8kjBOS5LOmhQQQo2Vt2_pEXaIk32vDSLRHRLAK_LHPZk
+Message-ID: <CAGsJ_4wViR10e-9B1qqv5MNTMGVHVGLDiDzqh8PM=PPfm5rCTA@mail.gmail.com>
+Subject: Re: [akpm-mm:mm-new 59/142] mm/vmalloc.c:3590:23: warning: unused
+ variable 'start'
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: kernel test robot <lkp@intel.com>, oe-kbuild-all@lists.linux.dev, 
+	David Hildenbrand <david@kernel.org>, Linux Memory Management List <linux-mm@kvack.org>, mm-commits@vger.kernel.org, 
+	Dev Jain <dev.jain@arm.com>, Wen Jiang <jiangwen6@xiaomi.com>, Guo Ren <guoren@kernel.org>, 
+	linux-csky@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
+On Tue, Jun 30, 2026 at 8:19=E2=80=AFAM Andrew Morton <akpm@linux-foundatio=
+n.org> wrote:
+>
+> On Mon, 29 Jun 2026 16:58:34 +0800 kernel test robot <lkp@intel.com> wrot=
+e:
+>
+> > tree:   https://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm.git mm-=
+new
+> > head:   88cefc306c43b58d9bb65c9e96e284306710d961
+> > commit: 80c453511b6ee1af0e4db83c3db0020215c4eaf0 [59/142] mm/vmalloc: m=
+ap contiguous pages in batches for vmap() if possible
+> > config: csky-allnoconfig (https://download.01.org/0day-ci/archive/20260=
+629/202606291606.9h8aGniQ-lkp@intel.com/config)
+> > compiler: csky-linux-gcc (GCC) 16.1.0
+> > reproduce (this is a W=3D1 build): (https://download.01.org/0day-ci/arc=
+hive/20260629/202606291606.9h8aGniQ-lkp@intel.com/reproduce)
+> >
+> > If you fix the issue in a separate patch/commit (i.e. not just a new ve=
+rsion of
+> > the same patch/commit), kindly add following tags
+> > | Reported-by: kernel test robot <lkp@intel.com>
+> > | Closes: https://lore.kernel.org/oe-kbuild-all/202606291606.9h8aGniQ-l=
+kp@intel.com/
+> >
+> > All warnings (new ones prefixed by >>):
+> >
+> >    mm/vmalloc.c: In function 'vmap_batched':
+> > >> mm/vmalloc.c:3590:23: warning: unused variable 'start' [-Wunused-var=
+iable]
+> >     3590 |         unsigned long start =3D addr, map_addr =3D addr;
+> >          |                       ^~~~~
+>
+> Sigh.
+>
+>         unsigned long start =3D addr, map_addr =3D addr;
+>         ...
+>         flush_cache_vmap(start, end);
+>
+> See, this is our punishment for writing kernel code in CPP rather than
+> in C.
+>
+> I'll queue (and test) the below.  It should be OK -
+> arch/csky/abiv1/inc/abi/cacheflush.h directly includes asm/cache.h
+> which declares cache_wbinv_all().
+>
+>
+> From: Andrew Morton <akpm@linux-foundation.org>
+> Subject: csky: implement flush_cache_vmap() in C
+> Date: Mon Jun 29 05:07:51 PM PDT 2026
+>
+> To avoid getting an unused-var warning from
+>
+>         unsigned long start =3D something;
+>         ...
+>         flush_cache_vmap(start, ...);
+>
+> Cc: Guo Ren <guoren@kernel.org>
+> Cc: Andrew Donnellan <ajd@linux.ibm.com>
+> Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+> Cc: "Barry Song (Xiaomi)" <baohua@kernel.org>
+> Cc: Catalin Marinas <catalin.marinas@arm.com>
+> Cc: David Hildenbrand <david@kernel.org>
+> Cc: Dev Jain <dev.jain@arm.com>
+> Cc: Leo Yan <leo.yan@arm.com>
+> Cc: Mike Rapoport <rppt@kernel.org>
+> Cc: Ryan Roberts <ryan.roberts@arm.com>
+> Cc: Uladzislau Rezki <urezki@gmail.com>
+> Cc: Wen Jiang <jiangwen6@xiaomi.com>
+> Cc: Wen Jiang <jiangwenxiaomi@gmail.com>
+> Cc: Will Deacon <will@kernel.org>
+> Cc: Xueyuan Chen <xueyuan.chen21@gmail.com>
+> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 
-The patch titled
-     Subject: kernel: refactor: shorten has_pending_signals
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     kernel-refactor-shorten-has_pending_signals.patch
+Thanks for the fix. We even have a checkpatch check and coding
+style documentation for this:
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kernel-refactor-shorten-has_pending_signals.patch
+6813216bbdba ("Documentation: coding-style: ask function-like
+macros to evaluate parameters")
 
-This patch will later appear in the mm-nonmm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+b1be5844c1a ("scripts: checkpatch: check unused parameters for
+function-like macros")
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+Reviewed-by: Barry Song <baohua@kernel.org>
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
-
-------------------------------------------------------
-From: Andrea Calabrese <andrea.calabrese@amarulasolutions.com>
-Subject: kernel: refactor: shorten has_pending_signals
-Date: Wed, 20 May 2026 08:28:50 +0200
-
-In has_pending_signals there was a switch/case used for optimizations. 
-However, today's compilers perform loop unrolling efficiently, thus it is
-not needed anymore.
-
-Put i inside the for declaration so we do not risk its escape from the
-scope.  Moreover, i starts now from 0 and counts up, as it is a more usual
-pattern.
-
-Link: https://lore.kernel.org/20260520062849.183621-2-andrea.calabrese@amarulasolutions.com
-Signed-off-by: Andrea Calabrese <andrea.calabrese@amarulasolutions.com>
-Acked-by: Oleg Nesterov <oleg@redhat.com>
-Cc: Adrian Huang <adrianhuang0701@gmail.com>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Marco Elver <elver@google.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- kernel/signal.c |   26 ++++----------------------
- 1 file changed, 4 insertions(+), 22 deletions(-)
-
---- a/kernel/signal.c~kernel-refactor-shorten-has_pending_signals
-+++ a/kernel/signal.c
-@@ -130,28 +130,10 @@ static bool sig_ignored(struct task_stru
-  */
- static inline bool has_pending_signals(sigset_t *signal, sigset_t *blocked)
- {
--	unsigned long ready;
--	long i;
--
--	switch (_NSIG_WORDS) {
--	default:
--		for (i = _NSIG_WORDS, ready = 0; --i >= 0 ;)
--			ready |= signal->sig[i] &~ blocked->sig[i];
--		break;
--
--	case 4: ready  = signal->sig[3] &~ blocked->sig[3];
--		ready |= signal->sig[2] &~ blocked->sig[2];
--		ready |= signal->sig[1] &~ blocked->sig[1];
--		ready |= signal->sig[0] &~ blocked->sig[0];
--		break;
--
--	case 2: ready  = signal->sig[1] &~ blocked->sig[1];
--		ready |= signal->sig[0] &~ blocked->sig[0];
--		break;
--
--	case 1: ready  = signal->sig[0] &~ blocked->sig[0];
--	}
--	return ready !=	0;
-+	unsigned long ready = 0;
-+	for (long i = 0; i < _NSIG_WORDS; i++)
-+		ready |= signal->sig[i] & ~blocked->sig[i];
-+	return ready != 0;
- }
- 
- #define PENDING(p,b) has_pending_signals(&(p)->signal, (b))
-_
-
-Patches currently in -mm which might be from andrea.calabrese@amarulasolutions.com are
-
-kernel-refactor-shorten-has_pending_signals.patch
-
+Best Regards
+Barry
