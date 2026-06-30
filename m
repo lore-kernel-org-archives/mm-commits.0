@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6B1FC33F58C
-	for <mm-commits@vger.kernel.org>; Tue, 30 Jun 2026 02:26:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C6A513655CC
+	for <mm-commits@vger.kernel.org>; Tue, 30 Jun 2026 02:29:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782786372; cv=none; b=EhKJcAr+czfsaRy9Vy7B97+F7fDRyMKGuk6MlpHNP1nmgJOKvGRSUuQQbRh6t2k1jXsZz29xLduI6wv8SHnvzp7WWSF8wHyyR5SVIjeF+/FhaKjpTlAF+pBHXOz7JRw8QukBGvxMjUNECqC92EriVATjLSTPCAgGITsD6AWBQsI=
+	t=1782786547; cv=none; b=mMYQ+DA3OQOCHxX2jcMZ3/n0csN0BybufBdKECXDNvt+85jS4unR+y15UMzdDsTHX7s7fo3xLY3gxKDVI/LrEpTgvuFz7BsLOEwa6X6J9fXZMAC4iM7jzyZzMdm62tQOpEYYeUPNdlGFpsBzc8sx177go1pkLdVBNSqvELLUfPI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782786372; c=relaxed/simple;
-	bh=nium4Q8D4H/DI6Nn4cON+mcdurvOW1A6gvncIAekJsY=;
-	h=Date:To:From:Subject:Message-Id; b=qon2FCcgOXxD2hKkFG+L0BiMW2F3W6Vy7/gRRdHxcDXcwrfZ5oFs/2ZxzRWCwkIFGk78pVdRzCPEAdTaYVVmQ76UJLYtmPMQPxXl/QRwpzfHphxJ2Fq3yThl1czyCUoPEa2Wira6RkTzgzH7bXaMUz965D4aqDum7oXY1E+7WZs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WH8YVxLZ; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1782786547; c=relaxed/simple;
+	bh=qdPxZP9C/TaNmVLil7NRJzIG21r9nAp7jomcHvq9pv8=;
+	h=Date:To:From:Subject:Message-Id; b=U/kh1ax5BrSFfWXa1xSpZpUeJeA7LIo7OVvjcKZHO3g7Jtk47Q+zAefpA4U6/PtDeRJK5pIeD8GE44BMv5VnhnIM/+jTkq60BqKZWiD/6qST+cz9G3QkPeoHyk/x+CgB8m0s260iI+ehq4TP8VsJnI4KXg7c5ixcw0qnhOIdt1E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=eHiXKmOZ; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WH8YVxLZ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 003261F000E9;
-	Tue, 30 Jun 2026 02:26:10 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="eHiXKmOZ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 50CD71F000E9;
+	Tue, 30 Jun 2026 02:29:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1782786371;
-	bh=H8RTZIwkV0KJf4mNMz5g7s7gLrnHa0qLFLwL8fSl02A=;
+	d=linux-foundation.org; s=korg; t=1782786546;
+	bh=746yT+EsJgRU6zRnUJ7mtJREahhX3SUJX+KmUfPkaiY=;
 	h=Date:To:From:Subject;
-	b=WH8YVxLZFHsPnkaJNoL69iUrypPZlh+3MxC7gm/OZsx8pZ6Y71UrdnUXAqk32jxoC
-	 mYANS3KnuKlVXG3ZknuB6LyQk+sSxyhI1DES7i1M2oVoEQNyr1jCAzbOuuxh6EllqM
-	 xPjrTRyUFxEspb8pIQi+I6zQccnd8XqXbSrrZ75c=
-Date: Mon, 29 Jun 2026 19:26:10 -0700
-To: mm-commits@vger.kernel.org,ye.liu@linux.dev,akpm@linux-foundation.org
+	b=eHiXKmOZSZNOZKpymOk/7QSuymRHR2sFd0/nrHPkTPpj96zXGypDV1U4jz/jd4Rsc
+	 0WU+NxD4g206AJ0QYtZFk27R7YJDBo+UD7UDE+o0hxfOOK07f8CYdT7W88nQ3mSqlY
+	 Ch8WW8IIgAG7WpBJeafnyCqcFJfdCLTkITy8lnXw=
+Date: Mon, 29 Jun 2026 19:29:05 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,surenb@google.com,mhocko@suse.com,jackmanb@google.com,hannes@cmpxchg.org,ye.liu@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-page_owner-drop-redundant-page_owner-prefix-from-static-symbols.patch removed from -mm tree
-Message-Id: <20260630022611.003261F000E9@smtp.kernel.org>
+Subject: + mm-page_owner-add-mr_never-to-enum-migrate_reason-and-use-it-for-last_migrate_reason.patch added to mm-unstable branch
+Message-Id: <20260630022906.50CD71F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,149 +34,129 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: mm/page_owner: drop redundant page_owner prefix from static symbols
-has been removed from the -mm tree.  Its filename was
-     mm-page_owner-drop-redundant-page_owner-prefix-from-static-symbols.patch
+The patch titled
+     Subject: mm/page_owner: add MR_NEVER to enum migrate_reason and use it for last_migrate_reason
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-page_owner-add-mr_never-to-enum-migrate_reason-and-use-it-for-last_migrate_reason.patch
 
-This patch was dropped because an updated version will be issued
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_owner-add-mr_never-to-enum-migrate_reason-and-use-it-for-last_migrate_reason.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
 ------------------------------------------------------
 From: Ye Liu <ye.liu@linux.dev>
-Subject: mm/page_owner: drop redundant page_owner prefix from static symbols
-Date: Fri, 26 Jun 2026 10:45:45 +0800
+Subject: mm/page_owner: add MR_NEVER to enum migrate_reason and use it for last_migrate_reason
+Date: Tue, 30 Jun 2026 09:53:19 +0800
 
-All of these symbols are file-scoped (static) in page_owner.c, so the
-page_owner_ prefix is pure noise.  Rename them to shorter, still-clear
-names:
-
-  page_owner_stack_op      -> stack_op
-  page_owner_stack_open    -> stack_open
-  page_owner_stack_fops    -> stack_fops
-  page_owner_pages_threshold -> pages_threshold
-  page_owner_threshold_get -> threshold_get
-  page_owner_threshold_set -> threshold_set
-  page_owner_threshold_fops -> threshold_fops
+The last_migrate_reason field uses -1 as a sentinel value to mean "no
+migration has happened".  Replace the four bare -1 occurrences by adding a
+proper MR_NEVER member to enum migrate_reason, defining a corresponding
+"never_migrated" string in the MIGRATE_REASON trace macro, and removing
+the local MIGRATE_REASON_NONE define.
 
 No functional change.
 
-Link: https://lore.kernel.org/20260626024550.25677-7-ye.liu@linux.dev
+Link: https://lore.kernel.org/20260630015331.147174-3-ye.liu@linux.dev
 Signed-off-by: Ye Liu <ye.liu@linux.dev>
-Acked-by: Zi Yan <ziy@nvidia.com>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
 Cc: Brendan Jackman <jackmanb@google.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Vlastimil Babka (SUSE) <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_owner.c |   35 +++++++++++++++++------------------
- 1 file changed, 17 insertions(+), 18 deletions(-)
+ include/linux/migrate_mode.h   |    1 +
+ include/trace/events/migrate.h |    3 ++-
+ mm/page_owner.c                |    8 ++++----
+ 3 files changed, 7 insertions(+), 5 deletions(-)
 
---- a/mm/page_owner.c~mm-page_owner-drop-redundant-page_owner-prefix-from-static-symbols
+--- a/include/linux/migrate_mode.h~mm-page_owner-add-mr_never-to-enum-migrate_reason-and-use-it-for-last_migrate_reason
++++ a/include/linux/migrate_mode.h
+@@ -25,6 +25,7 @@ enum migrate_reason {
+ 	MR_LONGTERM_PIN,
+ 	MR_DEMOTION,
+ 	MR_DAMON,
++	MR_NEVER,		/* page has never been migrated */
+ 	MR_TYPES
+ };
+ 
+--- a/include/trace/events/migrate.h~mm-page_owner-add-mr_never-to-enum-migrate_reason-and-use-it-for-last_migrate_reason
++++ a/include/trace/events/migrate.h
+@@ -23,7 +23,8 @@
+ 	EM( MR_CONTIG_RANGE,	"contig_range")			\
+ 	EM( MR_LONGTERM_PIN,	"longterm_pin")			\
+ 	EM( MR_DEMOTION,	"demotion")			\
+-	EMe(MR_DAMON,		"damon")
++	EM( MR_DAMON,		"damon")			\
++	EMe(MR_NEVER,		"never_migrated")
+ 
+ /*
+  * First define the enums in the above macros to be exported to userspace
+--- a/mm/page_owner.c~mm-page_owner-add-mr_never-to-enum-migrate_reason-and-use-it-for-last_migrate_reason
 +++ a/mm/page_owner.c
-@@ -901,7 +901,7 @@ static void *stack_next(struct seq_file
- 	return stack;
- }
+@@ -339,7 +339,7 @@ noinline void __set_page_owner(struct pa
+ 	depot_stack_handle_t handle;
  
--static unsigned long page_owner_pages_threshold;
-+static unsigned long pages_threshold;
+ 	handle = save_stack(gfp_mask);
+-	__update_page_owner_handle(page, handle, order, gfp_mask, -1,
++	__update_page_owner_handle(page, handle, order, gfp_mask, MR_NEVER,
+ 				   ts_nsec, current->pid, current->tgid,
+ 				   current->comm);
+ 	inc_stack_record_count(handle, gfp_mask, 1 << order);
+@@ -596,7 +596,7 @@ print_page_owner(char __user *buf, size_
+ 	if (ret >= count)
+ 		goto err;
  
- static int stack_print(struct seq_file *m, void *v)
- {
-@@ -918,7 +918,7 @@ static int stack_print(struct seq_file *
- 	nr_base_pages = refcount_read(&stack_record->count) - 1;
+-	if (page_owner->last_migrate_reason != -1) {
++	if (page_owner->last_migrate_reason != MR_NEVER) {
+ 		ret += scnprintf(kbuf + ret, count - ret,
+ 			"Page has been migrated, last migrate reason: %s\n",
+ 			migrate_reason_names[page_owner->last_migrate_reason]);
+@@ -667,7 +667,7 @@ void __dump_page_owner(const struct page
+ 		stack_depot_print(handle);
+ 	}
  
- 	if (ctx->flags & STACK_PRINT_FLAG_PAGES &&
--	    (nr_base_pages < 1 || nr_base_pages < page_owner_pages_threshold))
-+	    (nr_base_pages < 1 || nr_base_pages < pages_threshold))
- 		return 0;
+-	if (page_owner->last_migrate_reason != -1)
++	if (page_owner->last_migrate_reason != MR_NEVER)
+ 		pr_alert("page has been migrated, last migrate reason: %s\n",
+ 			migrate_reason_names[page_owner->last_migrate_reason]);
+ 	page_ext_put(page_ext);
+@@ -826,7 +826,7 @@ static void init_pages_in_zone(struct zo
  
- 	if (ctx->flags & STACK_PRINT_FLAG_STACK) {
-@@ -940,16 +940,16 @@ static void stack_stop(struct seq_file *
- {
- }
- 
--static const struct seq_operations page_owner_stack_op = {
-+static const struct seq_operations stack_op = {
- 	.start	= stack_start,
- 	.next	= stack_next,
- 	.stop	= stack_stop,
- 	.show	= stack_print
- };
- 
--static int page_owner_stack_open(struct inode *inode, struct file *file)
-+static int stack_open(struct inode *inode, struct file *file)
- {
--	int ret = seq_open_private(file, &page_owner_stack_op,
-+	int ret = seq_open_private(file, &stack_op,
- 				   sizeof(struct stack_print_ctx));
- 
- 	if (!ret) {
-@@ -962,28 +962,27 @@ static int page_owner_stack_open(struct
- 	return ret;
- }
- 
--static const struct file_operations page_owner_stack_fops = {
--	.open		= page_owner_stack_open,
-+static const struct file_operations stack_fops = {
-+	.open		= stack_open,
- 	.read		= seq_read,
- 	.llseek		= seq_lseek,
- 	.release	= seq_release_private,
- };
- 
--static int page_owner_threshold_get(void *data, u64 *val)
-+static int threshold_get(void *data, u64 *val)
- {
--	*val = READ_ONCE(page_owner_pages_threshold);
-+	*val = READ_ONCE(pages_threshold);
- 	return 0;
- }
- 
--static int page_owner_threshold_set(void *data, u64 val)
-+static int threshold_set(void *data, u64 val)
- {
--	WRITE_ONCE(page_owner_pages_threshold, val);
-+	WRITE_ONCE(pages_threshold, val);
- 	return 0;
- }
- 
--DEFINE_SIMPLE_ATTRIBUTE(page_owner_threshold_fops, &page_owner_threshold_get,
--			&page_owner_threshold_set, "%llu\n");
--
-+DEFINE_SIMPLE_ATTRIBUTE(threshold_fops, &threshold_get,
-+			&threshold_set, "%llu\n");
- 
- static int __init pageowner_init(void)
- {
-@@ -999,17 +998,17 @@ static int __init pageowner_init(void)
- 	debugfs_create_file("show_stacks", 0400, dir,
- 			    (void *)(STACK_PRINT_FLAG_STACK |
- 				     STACK_PRINT_FLAG_PAGES),
--			     &page_owner_stack_fops);
-+			     &stack_fops);
- 	debugfs_create_file("show_handles", 0400, dir,
- 			    (void *)(STACK_PRINT_FLAG_HANDLE |
- 				     STACK_PRINT_FLAG_PAGES),
--			    &page_owner_stack_fops);
-+			    &stack_fops);
- 	debugfs_create_file("show_stacks_handles", 0400, dir,
- 			    (void *)(STACK_PRINT_FLAG_STACK |
- 				     STACK_PRINT_FLAG_HANDLE),
--			    &page_owner_stack_fops);
-+			    &stack_fops);
- 	debugfs_create_file("count_threshold", 0600, dir, NULL,
--			    &page_owner_threshold_fops);
-+			    &threshold_fops);
- 	return 0;
- }
- late_initcall(pageowner_init)
+ 			/* Found early allocated page */
+ 			__update_page_owner_handle(page, early_handle, 0, 0,
+-						   -1, local_clock(), current->pid,
++						   MR_NEVER, local_clock(), current->pid,
+ 						   current->tgid, current->comm);
+ 			count++;
+ ext_put_continue:
 _
 
 Patches currently in -mm which might be from ye.liu@linux.dev are
 
+mm-page_owner-extract-skip_buddy_pages-helper-to-unify-buddy-page-skipping.patch
+mm-page_owner-add-mr_never-to-enum-migrate_reason-and-use-it-for-last_migrate_reason.patch
+mm-use-enum-migrate_reason-instead-of-int-for-migration-reason-parameters.patch
+mm-page_owner-hoist-config_memcg-to-function-level-for-print_page_owner_memcg.patch
+mm-page_owner-add-missing-newline-to-count_threshold-format-string.patch
+mm-page_owner-move-free_ts_nsec-output-to-free-section-in-__dump_page_owner.patch
+mm-page_owner-drop-redundant-page_owner-prefix-from-static-symbols.patch
 mm-page_owner-clamp-skip_buddy_pages-pfn-advance-at-max_order_nr_pages-boundary.patch
 mm-page_owner-use-memcg_data-snapshot-instead-of-pagememcgkmem-to-avoid-toctou-vm_bug_on.patch
 
