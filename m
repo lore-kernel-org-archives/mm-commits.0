@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6A6AA239085
-	for <mm-commits@vger.kernel.org>; Wed,  1 Jul 2026 22:34:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E44153672BA
+	for <mm-commits@vger.kernel.org>; Wed,  1 Jul 2026 22:36:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782945245; cv=none; b=ZOvTl3W+IlDiANo3nuidRAqOaYg6YK7fNPFF4rim4ZsrGXSld4mVfeGpTHqoWnfCwCj/kBPsm2Z6lM8n1jYRvXDHme2duay9NXUj2nOye3XIWLxfAW+jXcT4wHp7b+b7E/ZXLqjzmtHjKC0DzGq9A8rItfNwrhtXhKw5nwBIA4w=
+	t=1782945408; cv=none; b=cKDRx1TfVD1aKSCeqNQDfRyOiD4Sl9SyoN4usMD6incP2OS8yjTlJ4ASCgb1IpIgSQhrqqNx5TPzzHcKg1JVwqJVq8YKXjMJ2X2/KSe4hCiwDAvZKorgfoBUpc7ZR2q6UPHGh8utXCFYQCsjnvEUOORxxCWuqMHyvicAdsYzuLo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782945245; c=relaxed/simple;
-	bh=Wx5rkICyp8zNh9Q1PMVTBDBWvt8ML/k3MEm8JB7x6JM=;
-	h=Date:To:From:Subject:Message-Id; b=ZQbHyQxQsU4nljB8Ixfhn5S18+ej5lTdDx1cafa7huyIaPbBlxcbvh7kaZ59wzfqzzCtzxFijEjhQNyq0kEMxozwxyOTgHW+Jkh+NFkzU/yC63GjZppFOuw/DqPz7t6K8PoDQyBom3TFxrpAVeZE2+4VeS5M2NRBvnKvCQwb3YQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FSCvaqrw; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1782945408; c=relaxed/simple;
+	bh=r+jGuYRd4srR2VcQXvyUq6ylLeC5ExdZFdK3nhqG68w=;
+	h=Date:To:From:Subject:Message-Id; b=OoUV1bbBzP2zpn3vfxZxOeSYE4PK2SX71m4t76a6oZFQA9eaH2NortrUM9of5dAPVCylk2ZcxmwTGwJqTRfd1CsDL/Hke08vBb18yf3LqMSLWvaFURuudRToWw3lwLwLUxIUxavmo1VEHTXfiPZ3zXDMSk0WbCvZYFdGmQ6WOis=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=N56kFGWU; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FSCvaqrw"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E47BD1F000E9;
-	Wed,  1 Jul 2026 22:34:03 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="N56kFGWU"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6D4ED1F000E9;
+	Wed,  1 Jul 2026 22:36:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1782945244;
-	bh=4bOdziaasQ4ZOOORRQKbRza/0DQe3kaFHCVOwhCWkMw=;
+	d=linux-foundation.org; s=korg; t=1782945406;
+	bh=4PhioU1/tAoPLg6BJ+SBPGPftABdO5HgxeTTgCrZvlg=;
 	h=Date:To:From:Subject;
-	b=FSCvaqrw4J3etj0eiUZpv3S37VZthg7y8YOr6ojb7lYJuBn8s37+vahtJT4CpF+n5
-	 TrItWIshuJXTkMEw5hMFN0FSMqrd4PUkVSz1Wltj81RRzXJkfeZwNKTHtcsi0hixa2
-	 D4Q920GBg8ub388NbCDWXyyQF2MvTRdtuZQbDeHw=
-Date: Wed, 01 Jul 2026 15:34:03 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,sashiko-bot@kernel.org,rppt@kernel.org,osalvador@suse.de,mgorman@techsingularity.net,hannes@cmpxchg.org,david@kernel.org,gourry@gourry.net,akpm@linux-foundation.org
+	b=N56kFGWUKGpY9nw0gcAU8dES2B6DzFwCFvbATiNIzGfjxX6es/ZxaSaGyf7cMPfD/
+	 I2UtkV9STneApfsMYWabLG0DOdoByU2KAmV47HdlOgs+C4vPrNnpEjwqdk0HnjwCoM
+	 4Jif5KobyNCtB7Arxq5p+dP66dWRNDvlkg/6/ic4=
+Date: Wed, 01 Jul 2026 15:36:46 -0700
+To: mm-commits@vger.kernel.org,skinsburskii@linux.microsoft.com,rcampbell@nvidia.com,leon@kernel.org,jgg@ziepe.ca,skinsburskii@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mm_init-handle-alloc_percpu-failure-in-free_area_init_core_hotplug.patch added to mm-new branch
-Message-Id: <20260701223403.E47BD1F000E9@smtp.kernel.org>
+Subject: + lib-test_hmm-fail-dmirror_fault-when-the-mirrored-mm-is-gone.patch added to mm-new branch
+Message-Id: <20260701223646.6D4ED1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/mm_init: handle alloc_percpu failure in free_area_init_core_hotplug
+     Subject: lib/test_hmm: fail dmirror_fault() when the mirrored mm is gone
 has been added to the -mm mm-new branch.  Its filename is
-     mm-mm_init-handle-alloc_percpu-failure-in-free_area_init_core_hotplug.patch
+     lib-test_hmm-fail-dmirror_fault-when-the-mirrored-mm-is-gone.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mm_init-handle-alloc_percpu-failure-in-free_area_init_core_hotplug.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-test_hmm-fail-dmirror_fault-when-the-mirrored-mm-is-gone.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,109 +69,50 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Gregory Price <gourry@gourry.net>
-Subject: mm/mm_init: handle alloc_percpu failure in free_area_init_core_hotplug
-Date: Wed, 1 Jul 2026 18:16:13 -0400
+From: Stanislav Kinsburskii <skinsburskii@gmail.com>
+Subject: lib/test_hmm: fail dmirror_fault() when the mirrored mm is gone
+Date: Wed, 01 Jul 2026 15:02:20 -0700
 
-We miss a failed allocation check for pgdat->per_cpu_nodestats, which
-results in a NULL deref when we offset into the per-cpu area.
+dmirror_fault() is called from the dmirror_read() and dmirror_write()
+retry loops after dmirror_do_read() or dmirror_do_write() finds a missing
+device page table entry.
 
-Propagate -ENOMEM up the stack and leave per_cpu_nodestats pointing at
-boot_nodestats so a later online can retry the allocation.
+If the mirrored mm has already exited, mmget_not_zero() fails.  The
+current code returns 0 in that case, which tells the caller that faulting
+succeeded even though no page was faulted and no device page table entry
+was installed.  The caller then retries the same address, hits -ENOENT
+again, and can loop forever without making progress.
 
-hotadd_init_pgdat() returns NULL on failure, which __try_online_node()
-already maps to -ENOMEM.
+Return -EFAULT instead, so the ioctl fails when the mirrored mm is no
+longer faultable.
 
-On failure nothing needs to be unwound:
-  - the node is never marked online
-  - per_cpu_nodestats is left pointing at boot_nodestats
-  - __add_memory_resource() cleans up pending memblock resources
-  - later online attempts retry the per_cpu_nodestats allocation
-
-Link: https://lore.kernel.org/20260701221613.2818148-1-gourry@gourry.net
-Fixes: 75ef71840539 ("mm, vmstat: add infrastructure for per-node vmstats")
-Signed-off-by: Gregory Price <gourry@gourry.net>
-Reported-by: Sashiko <sashiko-bot@kernel.org>
-Link: https://sashiko.dev/#/patchset/20260627202243.758289-1-gourry%40gourry.net
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Vlastimil Babka <vbabka@kernel.org>
+Link: https://lore.kernel.org/178294308408.327222.3319445682023999403.stgit@skinsburskii
+Fixes: b2ef9f5a5cb37 ("mm/hmm/test: add selftest driver for HMM")
+Signed-off-by: Stanislav Kinsburskii <skinsburskii@linux.microsoft.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Leon Romanovsky <leon@kernel.org>
+Cc: Ralph Campbell <rcampbell@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memory_hotplug.h |    2 +-
- mm/memory_hotplug.c            |    3 ++-
- mm/mm_init.c                   |   14 +++++++++++---
- 3 files changed, 14 insertions(+), 5 deletions(-)
+ lib/test_hmm.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/memory_hotplug.h~mm-mm_init-handle-alloc_percpu-failure-in-free_area_init_core_hotplug
-+++ a/include/linux/memory_hotplug.h
-@@ -289,7 +289,7 @@ static inline void __remove_memory(u64 s
- /* Default online_type (MMOP_*) when new memory blocks are added. */
- extern enum mmop mhp_get_default_online_type(void);
- extern void mhp_set_default_online_type(enum mmop online_type);
--extern void __ref free_area_init_core_hotplug(struct pglist_data *pgdat);
-+int __ref free_area_init_core_hotplug(struct pglist_data *pgdat);
- extern int __add_memory(int nid, u64 start, u64 size, mhp_t mhp_flags);
- extern int add_memory(int nid, u64 start, u64 size, mhp_t mhp_flags);
- extern int add_memory_resource(int nid, struct resource *resource,
---- a/mm/memory_hotplug.c~mm-mm_init-handle-alloc_percpu-failure-in-free_area_init_core_hotplug
-+++ a/mm/memory_hotplug.c
-@@ -1263,7 +1263,8 @@ static pg_data_t *hotadd_init_pgdat(int
- 	pgdat = NODE_DATA(nid);
+--- a/lib/test_hmm.c~lib-test_hmm-fail-dmirror_fault-when-the-mirrored-mm-is-gone
++++ a/lib/test_hmm.c
+@@ -407,7 +407,7 @@ static int dmirror_fault(struct dmirror
  
- 	/* init node's zones as empty zones, we don't have any present pages.*/
--	free_area_init_core_hotplug(pgdat);
-+	if (free_area_init_core_hotplug(pgdat))
-+		return NULL;
+ 	/* Since the mm is for the mirrored process, get a reference first. */
+ 	if (!mmget_not_zero(mm))
+-		return 0;
++		return -EFAULT;
  
- 	/*
- 	 * The node we allocated has no zone fallback lists. For avoiding
---- a/mm/mm_init.c~mm-mm_init-handle-alloc_percpu-failure-in-free_area_init_core_hotplug
-+++ a/mm/mm_init.c
-@@ -1526,7 +1526,7 @@ static inline void __init set_pageblock_
-  * NOTE: this function is only called during memory hotplug
-  */
- #ifdef CONFIG_MEMORY_HOTPLUG
--void __ref free_area_init_core_hotplug(struct pglist_data *pgdat)
-+int __ref free_area_init_core_hotplug(struct pglist_data *pgdat)
- {
- 	int nid = pgdat->node_id;
- 	enum zone_type z;
-@@ -1534,8 +1534,14 @@ void __ref free_area_init_core_hotplug(s
- 
- 	pgdat_init_internals(pgdat);
- 
--	if (pgdat->per_cpu_nodestats == &boot_nodestats)
--		pgdat->per_cpu_nodestats = alloc_percpu(struct per_cpu_nodestat);
-+	if (pgdat->per_cpu_nodestats == &boot_nodestats) {
-+		struct per_cpu_nodestat __percpu *p;
-+
-+		p = alloc_percpu(struct per_cpu_nodestat);
-+		if (!p)
-+			return -ENOMEM;
-+		pgdat->per_cpu_nodestats = p;
-+	}
- 
- 	/*
- 	 * Reset the nr_zones, order and highest_zoneidx before reuse.
-@@ -1573,6 +1579,8 @@ void __ref free_area_init_core_hotplug(s
- 		zone->present_pages = 0;
- 		zone_init_internals(zone, z, nid, 0);
- 	}
-+
-+	return 0;
- }
- #endif
- 
+ 	for (addr = start; addr < end; addr = range.end) {
+ 		range.start = addr;
 _
 
-Patches currently in -mm which might be from gourry@gourry.net are
+Patches currently in -mm which might be from skinsburskii@gmail.com are
 
-mm-vmstat-fold-stranded-per-cpu-node-stats-when-a-node-comes-online.patch
-mm-constify-oom_control-scan_control-and-alloc_context-nodemask.patch
-mm-mm_init-handle-alloc_percpu-failure-in-free_area_init_core_hotplug.patch
+lib-test_hmm-use-device-devt-for-coherent-device-range-selection.patch
+lib-test_hmm-fail-dmirror_fault-when-the-mirrored-mm-is-gone.patch
 
