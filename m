@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6155439A7F6
-	for <mm-commits@vger.kernel.org>; Wed,  1 Jul 2026 23:28:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3B4B039A7F6
+	for <mm-commits@vger.kernel.org>; Wed,  1 Jul 2026 23:28:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782948516; cv=none; b=gJZqasa6ZuRh5kYSoV8wVLIX2ncHVPCMEWHi+wAUm6Vaq9lp8OX12jleVme+ZPuD4zRt0nOBruLMC+DcplO4ZIZKKLyOkqCm3tTb60R2iZYQdhW9I5wapbHrfd7GsRz+b6AFBakByais95UJXUGSVsx2VlXrjC8XnZhzimfocIo=
+	t=1782948518; cv=none; b=vDfix/vnqoMWQfJrYVGuR2yf8lEObKsbbgrFKcv2u1+UTCEVLZKRgAUx6Ch1CH2MH+oIsUrW1lvl0lC1EfxI9OHSU/NoYhuBq1aYJ70bvXoy6SkixDHvMyfNuhGru4syxmr5Cvh6SkpzITZi8szka2+cDj+pVCgIS7UIiM800CA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782948516; c=relaxed/simple;
-	bh=rXW1XM4kR7nvsr/Fr7GT6kq/PraGGjsFH8RR1FuE6q4=;
-	h=Date:To:From:Subject:Message-Id; b=Z6YNn4cGqC48KMCjLDIEB8A1hK5hjg7RSCPHFBh7ViY97JEHU1ihVjGw8knSCuK4fI6LnKgOR0X7eVn++hKsOytgYvCj1M3DeeimqH4kl4CQf5al1AxaZSJNRVoPlb7CsVx8eqD0lrKwYMsBHgObptn4Qwmz3L4d2R9pJT8MVqM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wIzFrD7P; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1782948518; c=relaxed/simple;
+	bh=cvhethVp0vdHz+P4eKszIAUKFDzis2XvWIFRdC7W8U0=;
+	h=Date:To:From:Subject:Message-Id; b=m6mXfK3tUbllbCv0EmVcr6eoF4dTXnle4Hd2zBSE0j7fm21bppO1StHKihah/A2rGKvHEHcBkhp1JrNeHgF6RKLbCuo2+XA/65FkiND6e/NK0MkUEw8uLwb64QQqL5qYsknSRz+jTAvbjGi67OrVjyFqltyj4ecWN9HYa6hdb2Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QZIyHnDS; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wIzFrD7P"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A77991F000E9;
-	Wed,  1 Jul 2026 23:28:34 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QZIyHnDS"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BDBFD1F000E9;
+	Wed,  1 Jul 2026 23:28:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1782948514;
-	bh=xrcLBEV6BiVlMuXhdcVJT3AKbkPSBnYuPRivqcfQPKY=;
+	d=linux-foundation.org; s=korg; t=1782948516;
+	bh=Dsycgaf1TaiF/h+HPjaW642/lny0FoJXM1mrlTfyP+4=;
 	h=Date:To:From:Subject;
-	b=wIzFrD7P8zkWo9/btSScbfhZ67L+OvKu3BZJuq6dW02RYEENoxKzSqZJGUnDsLgl5
-	 0wHqK/zBk16pACtwLx1zZu/k/mSTWf8zAGd0ypR/Ng5mC4xShov40CIR5I/wITbTNj
-	 Z0/9gYVsLVnt8SyR4TIw8YhVV7B7Aa23iMvXhiUg=
-Date: Wed, 01 Jul 2026 16:28:34 -0700
+	b=QZIyHnDSwfdClsX5VoRU2hNn8XSqBcN4jne1nRbc0iHWjZvb6/aqlwpA/exgpep+G
+	 LoKWXAlrlVUsNY+yh/HMdC/+JG4VWezuBlyiaHI0CoE7bChXPXvyIfUoYbAnRISGKn
+	 MeikxD4eXnX2nY4b3bsIKPof6qgrRob34ryj3yjI=
+Date: Wed, 01 Jul 2026 16:28:36 -0700
 To: mm-commits@vger.kernel.org,lizhe.67@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-add-a-template-based-fast-path-for-zone-device-page-init.patch added to mm-new branch
-Message-Id: <20260701232834.A77991F000E9@smtp.kernel.org>
+Subject: + mm-extend-the-template-fast-path-to-zone-device-compound-tails.patch added to mm-new branch
+Message-Id: <20260701232836.BDBFD1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: add a template-based fast path for zone-device page init
+     Subject: mm: extend the template fast path to zone-device compound tails
 has been added to the -mm mm-new branch.  Its filename is
-     mm-add-a-template-based-fast-path-for-zone-device-page-init.patch
+     mm-extend-the-template-fast-path-to-zone-device-compound-tails.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-a-template-based-fast-path-for-zone-device-page-init.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-extend-the-template-fast-path-to-zone-device-compound-tails.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,42 +70,42 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Li Zhe" <lizhe.67@bytedance.com>
-Subject: mm: add a template-based fast path for zone-device page init
-Date: Wed, 1 Jul 2026 17:05:49 +0800
+Subject: mm: extend the template fast path to zone-device compound tails
+Date: Wed, 1 Jul 2026 17:05:50 +0800
 
-memmap_init_zone_device() repeats nearly identical head-page
-initialization for each PFN.  Prepare one reusable ZONE_DEVICE head-page
-template through the existing slow path, refresh the PFN-dependent fields
-in that template before each copy, and memcpy it into each destination
-page.
+The template fast path from the previous patch only accelerates head
+pages.  Compound tails in memmap_init_compound() still go through the slow
+path one by one.
 
-The optimized path assigns _refcount through the copied template, so keep
-it disabled when the page_ref_set tracepoint is enabled.
+Build separate head and tail templates and reuse one prepared tail
+template across the tail pages in a compound range.  Head pages preserve
+the existing refcount policy, while compound tails always start with a
+refcount of 0 after prep_compound_tail().
 
-This patch accelerates head-page initialization.  The pfns_per_compound ==
-1 case gets the full benefit here, compound tails are handled in the next
-patch.
+This extends the template-copy fast path to pfns_per_compound > 1 without
+changing the existing slow path.  Tail-page PFN-dependent fields are
+refreshed in the reusable tail template before each copy.
 
-Tested in a VM with a 100 GB fsdax namespace device configured with
-map=dev on Intel Ice Lake server.  This test exercises the nd_pmem rebind
-path (pfns_per_compound == 1).
+Tested in a VM with a 100 GB devdax namespace (align=2097152) on Intel Ice
+Lake server.  This test exercises the dax_pmem rebind path and measures
+memmap initialization latency.
 
 Test procedure:
-Rebind the nd_pmem driver 30 times and collect the memmap initialization
-time from the pr_debug() output of memmap_init_zone_device().
+Unbind and rebind the dax_pmem driver 30 times, collect memmap
+initialization time from the pr_debug() output of memmap_init_zone_device().
 
 Base(v7.2-rc1):
-  First binding: 1456 ms
-  Average of subsequent rebinds: 244.28 ms
+  First binding: 1462 ms
+  Average of subsequent rebinds: 273.31 ms
 
 With this patch and its prerequisites applied:
-  First binding: 1440 ms
-  Average of subsequent rebinds: 217.19 ms
+  First binding: 1403 ms
+  Average of subsequent rebinds: 244.37 ms
 
-This reduces the average rebind time from 244.28 ms to 217.19 ms, or
-about 11%.
+This reduces the average rebind time from 273.31 ms to 244.37 ms, or
+about 10.6%.
 
-Link: https://lore.kernel.org/20260701090553.62691-5-lizhe.67@bytedance.com
+Link: https://lore.kernel.org/20260701090553.62691-6-lizhe.67@bytedance.com
 Signed-off-by: Li Zhe <lizhe.67@bytedance.com>
 Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Arnd Bergmann <arnd@arndb.de>
@@ -118,117 +118,98 @@ Cc: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mm_init.c |   76 +++++++++++++++++++++++++++++++++++++++++++++++--
- 1 file changed, 74 insertions(+), 2 deletions(-)
+ mm/mm_init.c |   47 ++++++++++++++++++++++++++++++++++++++++-------
+ 1 file changed, 40 insertions(+), 7 deletions(-)
 
---- a/mm/mm_init.c~mm-add-a-template-based-fast-path-for-zone-device-page-init
+--- a/mm/mm_init.c~mm-extend-the-template-fast-path-to-zone-device-compound-tails
 +++ a/mm/mm_init.c
-@@ -1056,6 +1056,50 @@ static void __ref zone_device_page_init_
- 		set_page_count(page, 0);
+@@ -1071,6 +1071,16 @@ static inline void zone_device_template_
+ 	memcpy(template, src, sizeof(*template));
  }
  
-+static inline bool zone_device_page_init_optimization_enabled(void)
++static inline void zone_device_tail_page_init(struct page *page,
++		unsigned long pfn, unsigned long zone_idx, int nid,
++		struct dev_pagemap *pgmap, const struct page *head,
++		unsigned int order)
 +{
-+	/*
-+	 * The template fast path copies a preinitialized struct page image.
-+	 * Skip it when the page_ref_set tracepoint is enabled.
-+	 */
-+	return !page_ref_tracepoint_active(page_ref_set);
-+}
-+
-+static inline void zone_device_template_page_init(struct page *template,
-+						  struct page *src)
-+{
-+	memcpy(template, src, sizeof(*template));
-+}
-+
-+/*
-+ * 'template' is a reusable page prototype rather than a strictly immutable
-+ * object. Most ZONE_DEVICE fields stay constant across the pages covered by
-+ * the current template, but section bits and page->virtual may still depend
-+ * on the PFN. Refresh those PFN-dependent fields in the template before
-+ * copying it into @page.
-+ */
-+static inline void zone_device_page_update_template(struct page *template,
-+		unsigned long pfn)
-+{
-+	set_page_section_from_pfn(template, pfn);
-+#ifdef WANT_PAGE_VIRTUAL
-+	if (!is_highmem_idx(ZONE_DEVICE))
-+		set_page_address(template, __va(pfn << PAGE_SHIFT));
-+#endif
-+}
-+
-+static void zone_device_page_init_from_template(struct page *page,
-+		unsigned long pfn, struct page *template)
-+{
-+	/*
-+	 * 'template' carries the invariant portion of a ZONE_DEVICE struct
-+	 * page. Update the PFN-dependent fields in place before copying it
-+	 * to the destination page.
-+	 */
-+	zone_device_page_update_template(template, pfn);
-+	memcpy(page, template, sizeof(*page));
++	zone_device_page_init_slow(page, pfn, zone_idx, nid, pgmap);
++	prep_compound_tail(page, head, order);
++	set_page_count(page, 0);
 +}
 +
  /*
-  * With compound page geometry and when struct pages are stored in ram most
-  * tail pages are reused. Consequently, the amount of unique struct pages to
-@@ -1111,6 +1155,7 @@ void __ref memmap_init_zone_device(struc
- 				   unsigned long nr_pages,
- 				   struct dev_pagemap *pgmap)
+  * 'template' is a reusable page prototype rather than a strictly immutable
+  * object. Most ZONE_DEVICE fields stay constant across the pages covered by
+@@ -1128,10 +1138,12 @@ static void __ref memmap_init_compound(s
+ 				       unsigned long head_pfn,
+ 				       unsigned long zone_idx, int nid,
+ 				       struct dev_pagemap *pgmap,
+-				       unsigned long nr_pages)
++				       unsigned long nr_pages,
++				       bool use_template)
  {
-+	bool use_template = zone_device_page_init_optimization_enabled();
- 	unsigned long pfn, end_pfn = start_pfn + nr_pages;
- 	struct pglist_data *pgdat = zone->zone_pgdat;
- 	struct vmem_altmap *altmap = pgmap_altmap(pgmap);
-@@ -1118,6 +1163,7 @@ void __ref memmap_init_zone_device(struc
- 	unsigned long zone_idx = zone_idx(zone);
- 	unsigned long start = jiffies;
- 	int nid = pgdat->node_id;
+ 	unsigned long pfn, end_pfn = head_pfn + nr_pages;
+ 	unsigned int order = pgmap->vmemmap_shift;
 +	struct page template;
  
- 	if (WARN_ON_ONCE(!pgmap || zone_idx != ZONE_DEVICE))
- 		return;
-@@ -1132,10 +1178,36 @@ void __ref memmap_init_zone_device(struc
- 		nr_pages = end_pfn - start_pfn;
- 	}
- 
--	for (pfn = start_pfn; pfn < end_pfn; pfn += pfns_per_compound) {
--		struct page *page = pfn_to_page(pfn);
+ 	/*
+ 	 * We have to initialize the pages, including setting up page links.
+@@ -1140,12 +1152,31 @@ static void __ref memmap_init_compound(s
+ 	 * the pages in the same go.
+ 	 */
+ 	__SetPageHead(head);
+-	for (pfn = head_pfn + 1; pfn < end_pfn; pfn++) {
 +
-+	if (!nr_pages)
-+		return;
-+
-+	pfn = start_pfn;
++	pfn = head_pfn + 1;
 +	/*
-+	 * Seed the reusable head-page template from the first real struct
-+	 * page, because the existing page-init and pageblock helpers expect
-+	 * a real memmap entry rather than a stack object.
++	 * All tails of the same compound page share the state established by
++	 * prep_compound_tail(). Reuse one tail template for the whole range and
++	 * refresh only the PFN-dependent fields in that template before each copy.
 +	 */
 +	if (use_template) {
-+		struct page *page = pfn_to_page(start_pfn);
+ 		struct page *page = pfn_to_page(pfn);
  
- 		zone_device_page_init_slow(page, pfn, zone_idx, nid, pgmap);
+-		zone_device_page_init_slow(page, pfn, zone_idx, nid, pgmap);
+-		prep_compound_tail(page, head, order);
+-		set_page_count(page, 0);
++		zone_device_tail_page_init(page, pfn, zone_idx, nid,
++					   pgmap, head, order);
 +		zone_device_template_page_init(&template, page);
-+		if (pfns_per_compound != 1)
-+			memmap_init_compound(page, pfn, zone_idx, nid, pgmap,
-+				compound_nr_pages(start_pfn, altmap, pgmap));
-+		pfn += pfns_per_compound;
++		pfn++;
 +	}
 +
-+	for (; pfn < end_pfn; pfn += pfns_per_compound) {
++	for (; pfn < end_pfn; pfn++) {
 +		struct page *page = pfn_to_page(pfn);
 +
 +		if (use_template)
 +			zone_device_page_init_from_template(page, pfn,
 +							    &template);
 +		else
-+			zone_device_page_init_slow(page, pfn, zone_idx,
-+						   nid, pgmap);
++			zone_device_tail_page_init(page, pfn, zone_idx, nid,
++						   pgmap, head, order);
+ 	}
+ 	prep_compound_head(head, order);
+ }
+@@ -1195,7 +1226,8 @@ void __ref memmap_init_zone_device(struc
+ 		zone_device_template_page_init(&template, page);
+ 		if (pfns_per_compound != 1)
+ 			memmap_init_compound(page, pfn, zone_idx, nid, pgmap,
+-				compound_nr_pages(start_pfn, altmap, pgmap));
++				compound_nr_pages(start_pfn, altmap, pgmap),
++				use_template);
+ 		pfn += pfns_per_compound;
+ 	}
  
- 		if (IS_ALIGNED(pfn, PAGES_PER_SECTION))
- 			cond_resched();
+@@ -1216,7 +1248,8 @@ void __ref memmap_init_zone_device(struc
+ 			continue;
+ 
+ 		memmap_init_compound(page, pfn, zone_idx, nid, pgmap,
+-				     compound_nr_pages(pfn, altmap, pgmap));
++				     compound_nr_pages(pfn, altmap, pgmap),
++				     use_template);
+ 	}
+ 
+ 	pageblock_migratetype_init_range(start_pfn, nr_pages, MIGRATE_MOVABLE, false);
 _
 
 Patches currently in -mm which might be from lizhe.67@bytedance.com are
