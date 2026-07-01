@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 74DEF431E64;
-	Wed,  1 Jul 2026 22:46:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6F3583CC300
+	for <mm-commits@vger.kernel.org>; Wed,  1 Jul 2026 22:55:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782945989; cv=none; b=b02kOSp97HJjlrX/e4Kdz4bkGKSB5Tv9lbBFhgWvLHA1mmN5XllRiJnatTM1MB8t8HWJUVQylDo9N1aodNK5wZp5Md1M/kWRPpzLtDaePcwmQypFNjStoPcvd+0rN0EIwe3XnaNmPyITY/fWFzSfodFgp1Q20lPQBDzKc4t27oc=
+	t=1782946515; cv=none; b=nwg96I3REW3vPtUskkUzQJUoNmE+HirZm20+E2G9kVxdiAE/l2TcS/ixKqe6PnXOml6HPY4Lv6xK8wv/Jp4flAPLSC8p1tly5tgsjAexRx4+T07eN3feLbhO2ePMyl02+ZU/uu96WZ5of5mk684+JXhcsQfOO1QQxDoXrm5Uxr8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782945989; c=relaxed/simple;
-	bh=4BQJ6/La1Zi2CpPURsblT4GCBiuiaNq4adJS1fpqD7I=;
-	h=Date:To:From:Subject:Message-Id; b=dM9P3p0XOffh/4PIXYD0ZuxQ5I5JZ4LD2MdoEAE1sgbY2HvaC6PoZnSAzwhYpspoobRk8pIsY60I+cJ9NUQFysV86WFrY7WAzjEsmR198dMUNN9rWNQsBTroAzgOuHo8hovFopRQWDdoprr1DsgGCWdozil5ogjHITZN3fGurQs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=i18iBZCM; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1782946515; c=relaxed/simple;
+	bh=tzKIbHevlniLj/+5YU05+jiBjF2Ozt7u6pjUDGDfKLI=;
+	h=Date:To:From:Subject:Message-Id; b=QT4tc3WUVxfai6yQ8aAE38HkdtBJmRp6VZxpUc+dK6rIyBk2kMQJpVoUe6PDRGiPTy3nlJnDfXMQe+MrgBWrCFTABlGsHxUBbjhu6r4QmmAPuwfLMXn90f4821c4isps1FV8Wtz6U52+z1bw/dEVX6KWm8rRDEeTmS7yej5Iqu4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wFuAVs1o; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="i18iBZCM"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E07E61F000E9;
-	Wed,  1 Jul 2026 22:46:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wFuAVs1o"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AE6C01F000E9;
+	Wed,  1 Jul 2026 22:55:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1782945988;
-	bh=W6fw8oIYPIPzVJtISldNy1Ra4fPh7hv35nBAA7MOXeA=;
+	d=linux-foundation.org; s=korg; t=1782946512;
+	bh=ciB5g13xljRCOVAbq8a+Oy6pzzErF4JDahXdtl4Wf1s=;
 	h=Date:To:From:Subject;
-	b=i18iBZCMsnU5FSyElcXjd7gJNcnOAmaznCriHLx9lOgagi/2LoYZQsPgGIC5T4r/8
-	 nDT93b9ODG4SXu2k+UqSSaKafaxi5Nf6m7aVnGbY3InXTqqTiw8S2oUCWqLb1rk5wM
-	 Qj17U+mVOSlGkybsPdwg9ciiAeZbYnx/cL486EbU=
-Date: Wed, 01 Jul 2026 15:46:27 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,nathan@kernel.org,david.laight.linux@gmail.com,rkr0k0r@gmail.com,akpm@linux-foundation.org
+	b=wFuAVs1odYOGe22oF0Tk8SKTlRNrtsrzwQciLCEpelin8ejV2WEQoxiXBTLrQ0vc0
+	 OBVJ3iRThk80DkTg1VYDA9kNPsleoFr3M2J5iAwIJu2wvwRTvAEbhKwvHsuS5tz5FD
+	 pC8MVLMM6ZYmNQgIcfX6Td1JJ4tInrRr6SvS/xqk=
+Date: Wed, 01 Jul 2026 15:55:12 -0700
+To: mm-commits@vger.kernel.org,xueyuan.chen21@gmail.com,senozhatsky@chromium.org,nphamcs@gmail.com,minchan@kernel.org,lkp@intel.com,joshua.hahnjy@gmail.com,haowenchao@xiaomi.com,baohua@kernel.org,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + tools-compiler-match-glibc-242-definition-of-__attribute_const__.patch added to mm-nonmm-unstable branch
-Message-Id: <20260701224627.E07E61F000E9@smtp.kernel.org>
+Subject: + mm-zsmalloc-drop-pool-lock-from-zs_free-on-64-bit-systems-fix-fix.patch added to mm-unstable branch
+Message-Id: <20260701225512.AE6C01F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: tools/compiler: match glibc 2.42 definition of __attribute_const__
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     tools-compiler-match-glibc-242-definition-of-__attribute_const__.patch
+     Subject: mm-zsmalloc-drop-pool-lock-from-zs_free-on-64-bit-systems-fix-fix
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-zsmalloc-drop-pool-lock-from-zs_free-on-64-bit-systems-fix-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/tools-compiler-match-glibc-242-definition-of-__attribute_const__.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zsmalloc-drop-pool-lock-from-zs_free-on-64-bit-systems-fix-fix.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,55 +58,56 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: "Joy H.J. Lee" <rkr0k0r@gmail.com>
-Subject: tools/compiler: match glibc 2.42 definition of __attribute_const__
-Date: Thu, 2 Jul 2026 05:06:35 +0900
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-zsmalloc-drop-pool-lock-from-zs_free-on-64-bit-systems-fix-fix
+Date: Wed Jul  1 03:52:15 PM PDT 2026
 
-glibc 2.42 added __attribute_const__ to sys/cdefs.h:
+fix obj_to_class_idx() warning yet again
 
-    # define __attribute_const__ __attribute__ ((__const__))
-
-GCC 15 warns when a macro is redefined to a different replacement list
-(-Wbuiltin-macro-redefined). Since host tool Makefiles (resolve_btfids,
-objtool) pass -Werror, this conflict becomes fatal.
-
-The warning is suppressed on standard native builds because GCC treats
-/usr/include as a system header path (-isystem), and macro-redefinition
-warnings from system headers are silently suppressed by GCC. It fires
-when glibc headers are on a regular include path (-I) instead, which
-is the case in cross-compilation setups such as NixOS, where the
-sysroot's glibc is passed explicitly via -I rather than -isystem.
-
-Per (C11 6.10.3), identical replacement lists are accepted silently.
-Match the glibc definition exactly, including the space before "((", so
-the redefinition is accepted without warning regardless of whether
-glibc headers are treated as system or non-system includes.
-
-Link: https://lore.kernel.org/20260701200635.3992767-1-rkr0k0r@gmail.com
-Signed-off-by: Joy H.J. Lee <rkr0k0r@gmail.com>
-Cc: Nathan Chancellor <nathan@kernel.org>
-Cc: David Laight <david.laight.linux@gmail.com>
-Cc: <stable@vger.kernel.org>
+Reported-by: kernel test robot <lkp@intel.com>
+Link: https://lore.kernel.org/202607020359.FMDmPwjF-lkp@intel.com
+Cc: Barry Song <baohua@kernel.org>
+Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
+Cc: Wenchao Hao <haowenchao@xiaomi.com>
+Cc: Xueyuan Chen <xueyuan.chen21@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/include/linux/compiler.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/zsmalloc.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/tools/include/linux/compiler.h~tools-compiler-match-glibc-242-definition-of-__attribute_const__
-+++ a/tools/include/linux/compiler.h
-@@ -119,7 +119,7 @@
- #define __read_mostly
+--- a/mm/zsmalloc.c~mm-zsmalloc-drop-pool-lock-from-zs_free-on-64-bit-systems-fix-fix
++++ a/mm/zsmalloc.c
+@@ -1457,11 +1457,13 @@ static void obj_free(int class_size, uns
+ 	mod_zspage_inuse(zspage, -1);
+ }
  
- #ifndef __attribute_const__
--# define __attribute_const__
-+# define __attribute_const__ __attribute__ ((__const__))
- #endif
++#if (ZS_OBJ_CLASS_BITS > 0) || defined(CONFIG_COMPACTION)
+ /* Folds to 0 when ZS_OBJ_CLASS_BITS == 0; no ifdef needed at callers. */
+ static unsigned int obj_to_class_idx(unsigned long obj)
+ {
+ 	return (obj >> ZS_OBJ_IDX_BITS) & ZS_OBJ_CLASS_MASK;
+ }
++#endif
  
- #ifndef __maybe_unused
+ /*
+  * Resolve @handle to its zspage / size_class and acquire class->lock.
 _
 
-Patches currently in -mm which might be from rkr0k0r@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-tools-compiler-match-glibc-242-definition-of-__attribute_const__.patch
+mm-page_vma_mapped-fix-device-private-pmd-handling-fix.patch
+mm-mincore-use-walk_page_range_vma-in-do_mincore-fix.patch
+csky-implement-flush_cache_vmap-in-c.patch
+mm-vmalloc-map-contiguous-pages-in-batches-for-vmap-if-possible-fix.patch
+mm-page_owner-add-print_mode-filter-fix.patch
+mm-annotate-data-race-in-cpu_needs_drain-fix.patch
+mm-zsmalloc-encode-class-index-in-obj-value-for-lockless-class-lookup-fix.patch
+mm-zsmalloc-drop-pool-lock-from-zs_free-on-64-bit-systems-fix.patch
+mm-zsmalloc-drop-pool-lock-from-zs_free-on-64-bit-systems-fix-fix.patch
+mm-fix-assert_exclusive_bits-by-passing-memdesc_flags_t-by-pointer-fix.patch
+drivers-media-v4l2-core-v4l2-vp9c-reduce-inlining.patch
 
