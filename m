@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 23493312832
-	for <mm-commits@vger.kernel.org>; Wed,  1 Jul 2026 19:04:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7054138758A
+	for <mm-commits@vger.kernel.org>; Wed,  1 Jul 2026 19:26:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782932646; cv=none; b=LA74ZsZauCe8k+AMqFYQTkiGm25dzXaIiBQUbp4JdFpqdZRWh0rE2LOBk9vEyFBd8aUlmTEosMKq/88G0Z8OsHLENVrXqNrz2lhXAJB/NVt4JkAkOCG/h8dQtsG1AAUiZdfhbaV9df3V3xwX55KEC6ohzgMCQ1Z8ZxpStg0rbzE=
+	t=1782933974; cv=none; b=BdjWiNiSuxJip/hWGfWJF3pvTuYm3h22NaJ3gkrDespAjgGmo8NE99vVQlwNfsElILvqcbRfssSsK+zFUcK8lyA/q2UYSX5PNxtn7U9CxE+ALI2bvN2mgbU6LdS1EeVpD93d0WYVeeF89piIymc022XMFcQQNcPyOD6Ee6LD4MY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782932646; c=relaxed/simple;
-	bh=fmWlpfkHLUKIjjMtxumGSfEwe2auzSeQ4MxF2PNOFIs=;
-	h=Date:To:From:Subject:Message-Id; b=fTQU1YH8kCcDiQC9bstJNYEMBx/Sw4SuKxn/knY32aY0mo86Ojf6jKBCEZEur1erECBmbEokWKaZHoqVdo8dWNBqJicLJVpMdxjDA8ycDPBZZiTuqIY2jAuks5sZ47REIxSJPrd2aULy23RaWvahNKAJaYj8QY+HSUu2CPfepLk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nMfvdJHN; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1782933974; c=relaxed/simple;
+	bh=qZLI4ai70ymsjOtmOvbFTelOhWilXDw5P6s0RnzRiUU=;
+	h=Date:To:From:Subject:Message-Id; b=JZUcmMf/bnE+4Fg1GufEJm3Agc+3tK1UY9Q/luuhjOvn5g1S4hw6JW9fpoBIJQUIrb2Z/JD2IMEr2q9V4uf9DzmI53iX6fWX4yhFjkZa3/pGzzRPQjPEoVUMp17X/UHPjijOGeFeLUv9XG4JHyQYtTmtoLF0hwnf0DHkbMM/JLk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QltXkMss; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nMfvdJHN"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8DC471F000E9;
-	Wed,  1 Jul 2026 19:04:04 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QltXkMss"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DE9211F000E9;
+	Wed,  1 Jul 2026 19:26:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1782932644;
-	bh=BHRWDt+x+tVBmBiOkigaPDdeWNOZm7KDO4Gehkzf44k=;
+	d=linux-foundation.org; s=korg; t=1782933973;
+	bh=+lWS+RtMNNDDhxS+cLB9Fv0d3t+xi5fD4t3yDXgcNt8=;
 	h=Date:To:From:Subject;
-	b=nMfvdJHNfSP46ODHShDr/9n+wLRpfwiJULHipm9GYkivLTR72yQIGy1S8vyNrQtYb
-	 UlZD1oTChCOL5o3MuVkFzN9GWtZbdCKyFzmgcmREoTALIXR1TKD6OzZ+OxVOK+W2E8
-	 lcikthUVpTaGbUJokIkSWkujT6nx8CoATLRR2JbM=
-Date: Wed, 01 Jul 2026 12:04:04 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,sj@kernel.org,richard.weiyang@gmail.com,ljs@kernel.org,lance.yang@linux.dev,klarasmodin@gmail.com,david@kernel.org,balbirs@nvidia.com,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=QltXkMssSbn8axv1p6+NMo3ArG9wUCNYhNKeUedXpB5p15+Y2PkXro1ol0ov9/wgw
+	 f6oWvbqDGmqc8b3TtKlKeZJt3HghFAbC6u+MMY3xxYDYWme6ZUSCRtYleH5+dcdP57
+	 mv+YguSK2PMESdpvE8M0yuV5HQmNyIScxXHXl8Lg=
+Date: Wed, 01 Jul 2026 12:26:12 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,shakeel.butt@linux.dev,sashiko-bot@kernel.org,rakie.kim@sk.com,matthew.brost@intel.com,joshua.hahnjy@gmail.com,hannes@cmpxchg.org,gourry@gourry.net,david@kernel.org,byungchul@sk.com,apopple@nvidia.com,usama.arif@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_vma_mapped-fix-device-private-pmd-handling-fix.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260701190404.8DC471F000E9@smtp.kernel.org>
+Subject: + mm-migrate_device-pin-large-folios-before-splitting.patch added to mm-new branch
+Message-Id: <20260701192612.DE9211F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,26 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm-page_vma_mapped-fix-device-private-pmd-handling-fix
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-page_vma_mapped-fix-device-private-pmd-handling-fix.patch
+     Subject: mm/migrate_device: pin large folios before splitting
+has been added to the -mm mm-new branch.  Its filename is
+     mm-migrate_device-pin-large-folios-before-splitting.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_vma_mapped-fix-device-private-pmd-handling-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-migrate_device-pin-large-folios-before-splitting.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,53 +69,117 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-page_vma_mapped-fix-device-private-pmd-handling-fix
-Date: Wed Jul  1 12:00:04 PM PDT 2026
+From: Usama Arif <usama.arif@linux.dev>
+Subject: mm/migrate_device: pin large folios before splitting
+Date: Wed, 1 Jul 2026 07:06:38 -0700
 
-fix Raspberry Pi 1 build, per David
+migrate_vma_collect_pmd() can detect a large folio while holding the PTE
+lock, then drop the PTE lock before calling migrate_vma_split_folio(). 
+The split helper took its own reference, but only after the lock had
+already been dropped.
 
-Reported-by: Klara Modin <klarasmodin@gmail.com>
-Tested-by: Klara Modin <klarasmodin@gmail.com>
-Cc: Balbir Singh <balbirs@nvidia.com>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Lance Yang <lance.yang@linux.dev>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: SeongJae Park <sj@kernel.org>
-Cc: Wei Yang <richard.weiyang@gmail.com>
-Cc: Zi Yan <ziy@nvidia.com>
+One way to hit this is device migration over a range that contains a large
+folio.  The walker reads the PTE while holding the PTE lock and derives
+the folio either from a present PTE via vm_normal_page(), or from a
+non-present PTE that encodes a device-private softleaf entry.  It then has
+to drop the PTE lock because split_folio() can block.  Before
+migrate_vma_split_folio() gets a folio reference, concurrent reclaim,
+migration, or truncation can replace or clear the entry and drop the last
+reference to the folio.  The split helper would then take a reference and
+lock on a stale folio pointer.
+
+Take a temporary reference before dropping the PTE lock and pass that
+reference into migrate_vma_split_folio().  The helper consumes the
+reference, so split_folio() still sees only the expected caller pin
+instead of an extra pin that could make the split fail.
+
+Link: https://lore.kernel.org/20260701140638.840773-1-usama.arif@linux.dev
+Fixes: 022a12deda53 ("mm/migrate_device: handle partially mapped folios during collection")
+Signed-off-by: Usama Arif <usama.arif@linux.dev>
+Reported-by: sashiko-bot <sashiko-bot@kernel.org>
+Link: https://sashiko.dev/#/patchset/20260630164143.1595669-1-usama.arif%40linux.dev
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Byungchul Park <byungchul@sk.com>
+Cc: Gregory Price <gourry@gourry.net>
+Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
+Cc: Matthew Brost <matthew.brost@intel.com>
+Cc: Rakie Kim <rakie.kim@sk.com>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_vma_mapped.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ mm/migrate_device.c |   21 ++++++++++++++++++---
+ 1 file changed, 18 insertions(+), 3 deletions(-)
 
---- a/mm/page_vma_mapped.c~mm-page_vma_mapped-fix-device-private-pmd-handling-fix
-+++ a/mm/page_vma_mapped.c
-@@ -243,8 +243,9 @@ restart:
- 		 */
- 		pmde = pmdp_get_lockless(pvmw->pmd);
+--- a/mm/migrate_device.c~mm-migrate_device-pin-large-folios-before-splitting
++++ a/mm/migrate_device.c
+@@ -77,6 +77,9 @@ static int migrate_vma_collect_hole(unsi
+  * @folio: the folio to split
+  * @fault_page: struct page associated with the fault if any
+  *
++ * If @folio is not the folio containing @fault_page, the caller must hold a
++ * reference on @folio. The helper consumes that reference.
++ *
+  * Returns 0 on success
+  */
+ static int migrate_vma_split_folio(struct folio *folio,
+@@ -86,10 +89,8 @@ static int migrate_vma_split_folio(struc
+ 	struct folio *fault_folio = fault_page ? page_folio(fault_page) : NULL;
+ 	struct folio *new_fault_folio = NULL;
  
--		if (pmd_trans_huge(pmde) || pmd_is_migration_entry(pmde) ||
--		    pmd_is_device_private_entry(pmde)) {
-+		if (IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE) &&
-+		    (pmd_trans_huge(pmde) || pmd_is_migration_entry(pmde) ||
-+		    pmd_is_device_private_entry(pmde))) {
- 			pvmw->ptl = pmd_lock(mm, pvmw->pmd);
- 			pmde = *pvmw->pmd;
- 			if (pmd_is_migration_entry(pmde)) {
+-	if (folio != fault_folio) {
+-		folio_get(folio);
++	if (folio != fault_folio)
+ 		folio_lock(folio);
+-	}
+ 
+ 	ret = split_folio(folio);
+ 	if (ret) {
+@@ -310,6 +311,13 @@ again:
+ 			if (folio_test_large(folio)) {
+ 				int ret;
+ 
++				/*
++				 * Keep the folio stable after dropping the PTE
++				 * lock. migrate_vma_split_folio() consumes this
++				 * reference.
++				 */
++				if (folio != fault_folio)
++					folio_get(folio);
+ 				lazy_mmu_mode_disable();
+ 				pte_unmap_unlock(ptep, ptl);
+ 				ret = migrate_vma_split_folio(folio,
+@@ -353,6 +361,13 @@ again:
+ 			if (folio && folio_test_large(folio)) {
+ 				int ret;
+ 
++				/*
++				 * Keep the folio stable after dropping the
++				 * PTE lock. migrate_vma_split_folio() consumes
++				 * this reference.
++				 */
++				if (folio != fault_folio)
++					folio_get(folio);
+ 				lazy_mmu_mode_disable();
+ 				pte_unmap_unlock(ptep, ptl);
+ 				ret = migrate_vma_split_folio(folio,
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from usama.arif@linux.dev are
 
-mm-page_vma_mapped-fix-device-private-pmd-handling-fix.patch
-mm-mincore-use-walk_page_range_vma-in-do_mincore-fix.patch
-csky-implement-flush_cache_vmap-in-c.patch
-mm-vmalloc-map-contiguous-pages-in-batches-for-vmap-if-possible-fix.patch
-mm-page_owner-add-print_mode-filter-fix.patch
-mm-annotate-data-race-in-cpu_needs_drain-fix.patch
-mm-zsmalloc-encode-class-index-in-obj-value-for-lockless-class-lookup-fix.patch
-mm-zsmalloc-drop-pool-lock-from-zs_free-on-64-bit-systems-fix.patch
-mm-fix-assert_exclusive_bits-by-passing-memdesc_flags_t-by-pointer-fix.patch
-drivers-media-v4l2-core-v4l2-vp9c-reduce-inlining.patch
+mm-swap_state-remove-unnecessary-lru_add_drain-from-readahead.patch
+mm-add-softleaf_to_pmd-and-convert-existing-callers.patch
+mm-extract-mm_prepare_for_swap_entries-helper.patch
+fs-proc-use-softleaf_has_pfn-in-pagemap-pmd-walker.patch
+mm-huge_memory-move-softleaf_to_folio-inside-migration-branch.patch
+mm-migrate_device-move-softleaf_to_folio-inside-device-private-branch.patch
+mm-rename-arch_enable_thp_migration-to-arch_supports_pmd_softleaf.patch
+mm-vmpressure-skip-tree=true-accounting-on-cgroup-v2.patch
+mm-vmpressure-skip-tree=true-accounting-on-cgroup-v2-fix.patch
+mm-vmpressure-move-v1-userspace-eventfd-code-into-memcontrol-v1c.patch
+mm-migrate_device-pin-large-folios-before-splitting.patch
 
