@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7054138758A
-	for <mm-commits@vger.kernel.org>; Wed,  1 Jul 2026 19:26:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C55873AE6E4;
+	Wed,  1 Jul 2026 19:31:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782933974; cv=none; b=BdjWiNiSuxJip/hWGfWJF3pvTuYm3h22NaJ3gkrDespAjgGmo8NE99vVQlwNfsElILvqcbRfssSsK+zFUcK8lyA/q2UYSX5PNxtn7U9CxE+ALI2bvN2mgbU6LdS1EeVpD93d0WYVeeF89piIymc022XMFcQQNcPyOD6Ee6LD4MY=
+	t=1782934316; cv=none; b=rsulzCWyFx/Z2kbOy3juD5etwhfYoNQN24ZVyB+i8oG5XWrpC6K3vShbA+3rUKhTAoy4IfOyDg3cw/qcEY6Sv16OlKXsPfqi5agSPMELOd9x2cPE8ZDJXPuL6lpGslaOfnqMqyzA5qj3udvAUSsGEziAscCjwTeubF4rHXNTiEc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782933974; c=relaxed/simple;
-	bh=qZLI4ai70ymsjOtmOvbFTelOhWilXDw5P6s0RnzRiUU=;
-	h=Date:To:From:Subject:Message-Id; b=JZUcmMf/bnE+4Fg1GufEJm3Agc+3tK1UY9Q/luuhjOvn5g1S4hw6JW9fpoBIJQUIrb2Z/JD2IMEr2q9V4uf9DzmI53iX6fWX4yhFjkZa3/pGzzRPQjPEoVUMp17X/UHPjijOGeFeLUv9XG4JHyQYtTmtoLF0hwnf0DHkbMM/JLk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QltXkMss; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1782934316; c=relaxed/simple;
+	bh=mtoy1bemrt/o8Y5hQi5y2uyiWF1JfeaOio21TW76uzE=;
+	h=Date:To:From:Subject:Message-Id; b=DKcmyQlw0PFstG/hjt/zGKZyu1So+Z0XMnAfVVNFqXHhad3cnTPebXofjua5//DJ6hCHU74FOKX6MqsNySrEzlpuF1/yQ41WP8hiKVBU7RoQg3Zex3BBG1fEHzR4TKXZFUjHtwB2IWp8gKnQ7XtR77MS59pkBvImdFhNl8Tkt/4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qqH1xyKw; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QltXkMss"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DE9211F000E9;
-	Wed,  1 Jul 2026 19:26:12 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qqH1xyKw"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 424E11F000E9;
+	Wed,  1 Jul 2026 19:31:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1782933973;
-	bh=+lWS+RtMNNDDhxS+cLB9Fv0d3t+xi5fD4t3yDXgcNt8=;
+	d=linux-foundation.org; s=korg; t=1782934314;
+	bh=OdaLzoOClqQkNqoF1rwEjHrEodYV7nvd4sM8AxyIPFc=;
 	h=Date:To:From:Subject;
-	b=QltXkMssSbn8axv1p6+NMo3ArG9wUCNYhNKeUedXpB5p15+Y2PkXro1ol0ov9/wgw
-	 f6oWvbqDGmqc8b3TtKlKeZJt3HghFAbC6u+MMY3xxYDYWme6ZUSCRtYleH5+dcdP57
-	 mv+YguSK2PMESdpvE8M0yuV5HQmNyIScxXHXl8Lg=
-Date: Wed, 01 Jul 2026 12:26:12 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,shakeel.butt@linux.dev,sashiko-bot@kernel.org,rakie.kim@sk.com,matthew.brost@intel.com,joshua.hahnjy@gmail.com,hannes@cmpxchg.org,gourry@gourry.net,david@kernel.org,byungchul@sk.com,apopple@nvidia.com,usama.arif@linux.dev,akpm@linux-foundation.org
+	b=qqH1xyKwwkSSrzUNh9C0s/9gAD1chX9NW+O2LXRMSj10AQ5mcCA+QXAZkTsimC2R8
+	 VOvZrOmtWb7gSbIeo/91AtP7FV1hwIgaIYc1L9Fy4q3tSrrtpYHDDJqsU6g33Wls8Q
+	 WrEUOULgMADu8SJmJeWOoaL+aMNtO/pZhUqMxLHQ=
+Date: Wed, 01 Jul 2026 12:31:53 -0700
+To: mm-commits@vger.kernel.org,yuzhao@google.com,vbabka@kernel.org,surenb@google.com,stable@vger.kernel.org,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,jackmanb@google.com,hannes@cmpxchg.org,david@kernel.org,ziy@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-migrate_device-pin-large-folios-before-splitting.patch added to mm-new branch
-Message-Id: <20260701192612.DE9211F000E9@smtp.kernel.org>
+Subject: [to-be-updated] mm-page_alloc-free-allocated-pfns-if-the-range-does-not-match.patch removed from -mm tree
+Message-Id: <20260701193154.424E11F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,152 +34,88 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: mm/migrate_device: pin large folios before splitting
-has been added to the -mm mm-new branch.  Its filename is
-     mm-migrate_device-pin-large-folios-before-splitting.patch
+The quilt patch titled
+     Subject: mm/page_alloc: free allocated PFNs if the range does not match
+has been removed from the -mm tree.  Its filename was
+     mm-page_alloc-free-allocated-pfns-if-the-range-does-not-match.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-migrate_device-pin-large-folios-before-splitting.patch
-
-This patch will later appear in the mm-new branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Usama Arif <usama.arif@linux.dev>
-Subject: mm/migrate_device: pin large folios before splitting
-Date: Wed, 1 Jul 2026 07:06:38 -0700
+From: Zi Yan <ziy@nvidia.com>
+Subject: mm/page_alloc: free allocated PFNs if the range does not match
+Date: Mon, 29 Jun 2026 21:35:33 -0400
 
-migrate_vma_collect_pmd() can detect a large folio while holding the PTE
-lock, then drop the PTE lock before calling migrate_vma_split_folio(). 
-The split helper took its own reference, but only after the lock had
-already been dropped.
+When using __GFP_COMP in alloc_contig_frozen_range(), if the allocated
+range does not match the requested one, the code errors out with EINVAL
+without freeing the allocated PFNs and causes free page leaks.  Fix it by
+calling release_free_list() in the error path.
 
-One way to hit this is device migration over a range that contains a large
-folio.  The walker reads the PTE while holding the PTE lock and derives
-the folio either from a present PTE via vm_normal_page(), or from a
-non-present PTE that encodes a device-private softleaf entry.  It then has
-to drop the PTE lock because split_folio() can block.  Before
-migrate_vma_split_folio() gets a folio reference, concurrent reclaim,
-migration, or truncation can replace or clear the entry and drop the last
-reference to the folio.  The split helper would then take a reference and
-lock on a stale folio pointer.
+The issue is reported by Sashiko[1].
 
-Take a temporary reference before dropping the PTE lock and pass that
-reference into migrate_vma_split_folio().  The helper consumes the
-reference, so split_folio() still sees only the expected caller pin
-instead of an extra pin that could make the split fail.
-
-Link: https://lore.kernel.org/20260701140638.840773-1-usama.arif@linux.dev
-Fixes: 022a12deda53 ("mm/migrate_device: handle partially mapped folios during collection")
-Signed-off-by: Usama Arif <usama.arif@linux.dev>
-Reported-by: sashiko-bot <sashiko-bot@kernel.org>
-Link: https://sashiko.dev/#/patchset/20260630164143.1595669-1-usama.arif%40linux.dev
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Byungchul Park <byungchul@sk.com>
-Cc: Gregory Price <gourry@gourry.net>
-Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
+Link: https://lore.kernel.org/20260629-free-pfn-on-alloc-contig-range-error-path-v1-1-496ff9ca22db@nvidia.com
+Link: https://sashiko.dev/#/patchset/20260628-keep-subpage-private-zero-at-free-v1-0-f4ce3930d10f@nvidia.com [1]
+Fixes: e98337d11bbd ("mm/contig_alloc: support __GFP_COMP")
+Signed-off-by: Zi Yan <ziy@nvidia.com>
+Reviewed-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
+Cc: Brendan Jackman <jackmanb@google.com>
+Cc: David Hildenbrand <david@kernel.org>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
-Cc: Matthew Brost <matthew.brost@intel.com>
-Cc: Rakie Kim <rakie.kim@sk.com>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Yu Zhao <yuzhao@google.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate_device.c |   21 ++++++++++++++++++---
- 1 file changed, 18 insertions(+), 3 deletions(-)
+ mm/compaction.c |    2 +-
+ mm/internal.h   |    1 +
+ mm/page_alloc.c |    6 ++++--
+ 3 files changed, 6 insertions(+), 3 deletions(-)
 
---- a/mm/migrate_device.c~mm-migrate_device-pin-large-folios-before-splitting
-+++ a/mm/migrate_device.c
-@@ -77,6 +77,9 @@ static int migrate_vma_collect_hole(unsi
-  * @folio: the folio to split
-  * @fault_page: struct page associated with the fault if any
-  *
-+ * If @folio is not the folio containing @fault_page, the caller must hold a
-+ * reference on @folio. The helper consumes that reference.
-+ *
-  * Returns 0 on success
-  */
- static int migrate_vma_split_folio(struct folio *folio,
-@@ -86,10 +89,8 @@ static int migrate_vma_split_folio(struc
- 	struct folio *fault_folio = fault_page ? page_folio(fault_page) : NULL;
- 	struct folio *new_fault_folio = NULL;
+--- a/mm/compaction.c~mm-page_alloc-free-allocated-pfns-if-the-range-does-not-match
++++ a/mm/compaction.c
+@@ -88,7 +88,7 @@ static struct page *mark_allocated_nopro
+ }
+ #define mark_allocated(...)	alloc_hooks(mark_allocated_noprof(__VA_ARGS__))
  
--	if (folio != fault_folio) {
--		folio_get(folio);
-+	if (folio != fault_folio)
- 		folio_lock(folio);
--	}
+-static unsigned long release_free_list(struct list_head *freepages)
++unsigned long release_free_list(struct list_head *freepages)
+ {
+ 	int order;
+ 	unsigned long high_pfn = 0;
+--- a/mm/internal.h~mm-page_alloc-free-allocated-pfns-if-the-range-does-not-match
++++ a/mm/internal.h
+@@ -828,6 +828,7 @@ static inline void clear_zone_contiguous
+ }
  
- 	ret = split_folio(folio);
- 	if (ret) {
-@@ -310,6 +311,13 @@ again:
- 			if (folio_test_large(folio)) {
- 				int ret;
- 
-+				/*
-+				 * Keep the folio stable after dropping the PTE
-+				 * lock. migrate_vma_split_folio() consumes this
-+				 * reference.
-+				 */
-+				if (folio != fault_folio)
-+					folio_get(folio);
- 				lazy_mmu_mode_disable();
- 				pte_unmap_unlock(ptep, ptl);
- 				ret = migrate_vma_split_folio(folio,
-@@ -353,6 +361,13 @@ again:
- 			if (folio && folio_test_large(folio)) {
- 				int ret;
- 
-+				/*
-+				 * Keep the folio stable after dropping the
-+				 * PTE lock. migrate_vma_split_folio() consumes
-+				 * this reference.
-+				 */
-+				if (folio != fault_folio)
-+					folio_get(folio);
- 				lazy_mmu_mode_disable();
- 				pte_unmap_unlock(ptep, ptl);
- 				ret = migrate_vma_split_folio(folio,
+ extern int __isolate_free_page(struct page *page, unsigned int order);
++extern unsigned long release_free_list(struct list_head *freepages);
+ extern void __putback_isolated_page(struct page *page, unsigned int order,
+ 				    int mt);
+ extern void memblock_free_pages(unsigned long pfn, unsigned int order);
+--- a/mm/page_alloc.c~mm-page_alloc-free-allocated-pfns-if-the-range-does-not-match
++++ a/mm/page_alloc.c
+@@ -7244,9 +7244,11 @@ int alloc_contig_frozen_range_noprof(uns
+ 		check_new_pages(head, order);
+ 		prep_new_page(head, order, gfp_mask, 0);
+ 	} else {
++		release_free_list(cc.freepages);
+ 		ret = -EINVAL;
+-		WARN(true, "PFN range: requested [%lu, %lu), allocated [%lu, %lu)\n",
+-		     start, end, outer_start, outer_end);
++		WARN(true,
++		     "PFN range: allocated [%lu, %lu) does not match requested [%lu, %lu), freeing allocated PFNs\n",
++		     outer_start, outer_end, start, end);
+ 	}
+ done:
+ 	undo_isolate_page_range(start, end);
 _
 
-Patches currently in -mm which might be from usama.arif@linux.dev are
+Patches currently in -mm which might be from ziy@nvidia.com are
 
-mm-swap_state-remove-unnecessary-lru_add_drain-from-readahead.patch
-mm-add-softleaf_to_pmd-and-convert-existing-callers.patch
-mm-extract-mm_prepare_for_swap_entries-helper.patch
-fs-proc-use-softleaf_has_pfn-in-pagemap-pmd-walker.patch
-mm-huge_memory-move-softleaf_to_folio-inside-migration-branch.patch
-mm-migrate_device-move-softleaf_to_folio-inside-device-private-branch.patch
-mm-rename-arch_enable_thp_migration-to-arch_supports_pmd_softleaf.patch
-mm-vmpressure-skip-tree=true-accounting-on-cgroup-v2.patch
-mm-vmpressure-skip-tree=true-accounting-on-cgroup-v2-fix.patch
-mm-vmpressure-move-v1-userspace-eventfd-code-into-memcontrol-v1c.patch
-mm-migrate_device-pin-large-folios-before-splitting.patch
+mm-compaction-handle-free_pages_prepare-properly-in-compaction_free.patch
 
