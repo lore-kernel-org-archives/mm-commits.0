@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 245D13EDAA6
-	for <mm-commits@vger.kernel.org>; Wed,  1 Jul 2026 23:28:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D6ED93F44CD
+	for <mm-commits@vger.kernel.org>; Wed,  1 Jul 2026 23:28:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782948510; cv=none; b=CYbsHKI689jpTU2gijLlT+pwQR2WL6BKFRLp/QM9BSyNgbZ6Obv5DFmbDd6wsc9pxDjbH/yZMt0oGir5xqV3oVq7xHzf8lKaY4V6KFO/12B6yn6jeS6Oev/pXlhGqYUsxYt65BP3Y8+cKfv7PStVanqReJrRi7z2NDu59LZbRD4=
+	t=1782948512; cv=none; b=eg6UM/tf/AkBUuciuC6TyZGnTQC49SLLR9cmsDdMNv1/tF+SkwiLR2bANZP4OgGf/hO6Lfp+sa2iVS5/uWr/wQxbiy4yuItdBQ5eqImw9HX7dZ2PY1c8mkOYmxeAbt1ah4xNHvXt91AArbX17HgULPw9RGYmB3Um3RR442Kn2BQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782948510; c=relaxed/simple;
-	bh=uQtTbnUfsl4LNxaEyUjnEJSPKxjdHgUJRrf1by3gHGA=;
-	h=Date:To:From:Subject:Message-Id; b=emI4lsSboMPTC8+AD13Rbm/oDccv+l0lJfY5ZnJ01W2XkEiwpHuv9n413QhT1LXq6Ruoxu+SGpU7uEkHd+sfHu5ATRtIC2m4aEHXW+eIZW4gSNWccsii+D8eN0Vo/tyAcem9Dh5mjrsW9W5c8hvQ5fBxOlHiFOiRDL68ybeE+PA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LumdmrOU; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1782948512; c=relaxed/simple;
+	bh=1N//cC6502feEnKqMWHxsASOkH2UH+s2bOQxEvCNqns=;
+	h=Date:To:From:Subject:Message-Id; b=hH9M0IeSdXnRVUrt+wgH1HvseEJiz85HqOT2FlkydMcESuvvfVRpVi9SB5oQxYgD3AwTlzC6UGbg6hll98UoD+vcUy37xkAW9ymFloNu21UEQR8sNNzVHL0174f10nBaeK55phiSuKtRc8Iz2b60FEwInj7pi3MbAZAnpafQPHs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pKwXpj0O; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LumdmrOU"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9F26D1F000E9;
-	Wed,  1 Jul 2026 23:28:28 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pKwXpj0O"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9E8AE1F000E9;
+	Wed,  1 Jul 2026 23:28:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1782948508;
-	bh=+azBB7Wb9crRqpHMCsRPvZjEDuOLraFbxPmRTmiDJEg=;
+	d=linux-foundation.org; s=korg; t=1782948510;
+	bh=sumKZxWHJ7sQWd5uil4wQDVaYf7Qn3J8H6yxnJJ/en4=;
 	h=Date:To:From:Subject;
-	b=LumdmrOUbYhT6Y3LoUiCqopjlHJdMMyiXZRYoxAgbuA+HYr5lU/qzOoJTJpHXTDIx
-	 mtlPcuQKSuEI3jVzrE1qHcIRnj4KsjYKc136yjR0Ogf0kujOfrjstmrQ3fSFSIuu1q
-	 qdvQwM7TzLogREl9lAzLYWkOvL3IPXOzupY5GvRI=
-Date: Wed, 01 Jul 2026 16:28:28 -0700
+	b=pKwXpj0OnNhDzaTHsFpdC6K+Q0YeGa0nPAE49sSs2HK7HQMXDv5nR001tJksmxFl5
+	 OjOTm2FwIWicjYmmfKlLlUkf2c5zt8V/wUf7npc5zsNIDCFdrMLc3LSo/zJ7X2F47D
+	 9XoOZZ6dtO4qybsBB9VRzcrjdUflYhVCd1i1d95o=
+Date: Wed, 01 Jul 2026 16:28:30 -0700
 To: mm-commits@vger.kernel.org,lizhe.67@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-fix-stale-zone_device-refcount-comment.patch added to mm-new branch
-Message-Id: <20260701232828.9F26D1F000E9@smtp.kernel.org>
+Subject: + mm-factor-zone-device-page-init-helpers-out-of-__init_zone_device_page.patch added to mm-new branch
+Message-Id: <20260701232830.9E8AE1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: fix stale ZONE_DEVICE refcount comment
+     Subject: mm: factor zone-device page init helpers out of __init_zone_device_page
 has been added to the -mm mm-new branch.  Its filename is
-     mm-fix-stale-zone_device-refcount-comment.patch
+     mm-factor-zone-device-page-init-helpers-out-of-__init_zone_device_page.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-fix-stale-zone_device-refcount-comment.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-factor-zone-device-page-init-helpers-out-of-__init_zone_device_page.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,158 +70,129 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Li Zhe" <lizhe.67@bytedance.com>
-Subject: mm: fix stale ZONE_DEVICE refcount comment
-Date: Wed, 1 Jul 2026 17:05:46 +0800
+Subject: mm: factor zone-device page init helpers out of __init_zone_device_page
+Date: Wed, 1 Jul 2026 17:05:47 +0800
 
-Patch series "mm: optimize zone-device memmap initialization", v5.
+memmap_init_zone_device() currently mixes refcount policy and core
+ZONE_DEVICE page setup in a single helper.
 
-memmap_init_zone_device() can take a noticeable amount of time when large
-pmem namespaces are bound or rebound, because it initializes nearly
-identical struct page descriptors one PFN at a time.  This series reduces
-that ZONE_DEVICE memmap initialization overhead by reusing prepared struct
-page templates and, on x86, using memcpy_nt() for the template copy path.
+Factor the refcount-reset predicate into pagemap_resets_refcount(), move
+the common page initialization into __zone_device_page_init(), and wrap
+the existing slow path in zone_device_page_init_slow().
 
-The main target is large fsdax/devdax pmem configurations, where the cost
-of initializing the memmap shows up directly in nd_pmem/dax_pmem bind and
-rebind latency.
-
-Patches 1-3 are preparatory cleanups and helper extraction.  Patches 4-5
-add the template-copy fast path for head pages and compound tails. 
-Patches 6-8 introduce memcpy_nt()/memcpy_nt_drain(), extend the x86
-fixed-size memcpy_flushcache() inline cases used by that helper, and
-switch the template-copy path over to memcpy_nt().
-
-The fast path remains disabled when the page_ref_set tracepoint is active,
-and sanitized builds stay on the slow path so their instrumented stores
-are preserved.  Architectures without a specialized memcpy_nt() backend
-continue to fall back to memcpy().
-
-Tested in a VM with a 100 GB fsdax namespace device configured with
-map=dev and a 100 GB devdax namespace (align=2097152) on Intel Ice Lake
-server.
-
-Test procedure:
-Rebind the nd_pmem and dax_pmem driver 30 times and collect the memmap
-initialization time from the pr_debug() output of
-memmap_init_zone_device().
-
-Base(v7.2-rc1):
-  First binding for nd_pmem driver: 1456 ms
-  Average of subsequent rebinds: 244.28 ms
-
-  First binding for dax_pmem driver: 1462 ms
-  Average of subsequent rebinds: 273.31 ms
-
-With this series applied:
-  First binding for nd_pmem driver: 1272 ms
-  Average of subsequent rebinds: 96.79 ms
-
-  First binding for dax_pmem driver: 1354 ms
-  Average of subsequent rebinds: 119.04 ms
-
-This reduces the average rebind time by about 60.4% for nd_pmem and 56.4%
-for dax_pmem.
-
-As an additional data point, I also ran a smaller set of measurements on
-the same physical x86_64 host with a 100 GB PMEM region created via the
-memmap= kernel command line, configured as fsdax and devdax namespaces
-with map=dev and 2 MiB alignment.
-
-For brevity, the individual patches keep only the VM results rather than
-including a second set of physical-host measurements throughout the
-series.  The physical-host numbers below are included only as supplemental
-evidence that the same optimization also provides a similar benefit on a
-non-virtualized system.
-
-Test procedure:
-Reconfigure the namespace mode, rebind the nd_pmem or dax_pmem driver
-once, and collect the memmap initialization time from the pr_debug()
-output of memmap_init_zone_device().
-
-Base (v7.2-rc1):
-  nd_pmem / fsdax: 179 ms
-  dax_pmem / devdax: 264 ms
-
-With this series applied:
-  nd_pmem / fsdax: 82 ms
-  dax_pmem / devdax: 113 ms
-
-This reduces the measured rebind time by about 54.2% for nd_pmem and 57.2%
-for dax_pmem on that setup, which is broadly consistent with the VM
-results above.
-
-As another supplemental data point, I also measured the test_hmm.ko module
-on the same physical x86_64 host, using the test_hmm.ko setup from the
-previous discussion that times ten 64 GB memremap_pages()/memunmap_pages()
-iterations during module insertion[1].  By default, module insertion
-initializes two DEVICE_PRIVATE dmirror devices, so two avg memremap values
-are reported; each value is the average for one 64 GB chunk.
-
-This is not the primary target workload of the series, but it exercises
-the same large ZONE_DEVICE memmap initialization path and shows the same
-direction of improvement.
-
-Base (v7.2-rc1):
-  avg memremap reported during module insertion: 116689362 ns, 116539263 ns
-
-With this series applied:
-  avg memremap reported during module insertion: 54607108 ns, 54458236 ns
-
-This corresponds to about a 53.2% reduction based on the mean of the
-reported values, which is again consistent with the pmem bind/rebind
-results above.
-
-
-This patch (of 8):
-
-The comment in __init_zone_device_page() still uses the old MEMORY_TYPE_*
-names and implies that FS_DAX pages regain a refcount of 1 in the free
-path.  That no longer matches the code.
-
-Update the comment to describe the current policy correctly:
-MEMORY_DEVICE_GENERIC pages regain a refcount of 1 in the free path, while
-the remaining ZONE_DEVICE types start from 0 here and raise the count
-again when the allocator or driver hands the page out.
+This keeps the slow-path behaviour unchanged and gives later patches
+reusable helper boundaries.
 
 No functional change intended.
 
-Link: https://lore.kernel.org/20260701090553.62691-2-lizhe.67@bytedance.com
-Link: https://lore.kernel.org/all/aiEoByaQdRR3xtM5@nvdebian.thelocal/ [1]
+Link: https://lore.kernel.org/20260701090553.62691-3-lizhe.67@bytedance.com
 Signed-off-by: Li Zhe <lizhe.67@bytedance.com>
+Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Balbir Singh <balbirs@nvidia.com>
 Cc: "Borislav Petkov (AMD)" <bp@alien8.de>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Kees Cook <kees@kernel.org>
-Cc: Li Zhe <lizhe.67@bytedance.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Balbir Singh <balbirs@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mm_init.c |   10 +++-------
- 1 file changed, 3 insertions(+), 7 deletions(-)
+ mm/mm_init.c |   57 ++++++++++++++++++++++++++++++++-----------------
+ 1 file changed, 38 insertions(+), 19 deletions(-)
 
---- a/mm/mm_init.c~mm-fix-stale-zone_device-refcount-comment
+--- a/mm/mm_init.c~mm-factor-zone-device-page-init-helpers-out-of-__init_zone_device_page
 +++ a/mm/mm_init.c
-@@ -1020,13 +1020,9 @@ static void __ref __init_zone_device_pag
- 	page->zone_device_data = NULL;
+@@ -995,11 +995,38 @@ static void __init memmap_init(void)
+ }
  
- 	/*
--	 * ZONE_DEVICE pages other than MEMORY_TYPE_GENERIC are released
--	 * directly to the driver page allocator which will set the page count
--	 * to 1 when allocating the page.
--	 *
--	 * MEMORY_TYPE_GENERIC and MEMORY_TYPE_FS_DAX pages automatically have
--	 * their refcount reset to one whenever they are freed (ie. after
--	 * their refcount drops to 0).
+ #ifdef CONFIG_ZONE_DEVICE
+-static void __ref __init_zone_device_page(struct page *page, unsigned long pfn,
++/*
++ * Return true when the free path for this pagemap type restores the page
++ * refcount to 1, so memmap_init_zone_device() can keep the count set by
++ * __init_single_page(). Otherwise initialize the refcount to 0 and leave
++ * it to the allocator or pgmap callbacks to raise it when the page is
++ * handed out again.
++ */
++static inline bool pagemap_resets_refcount(const struct dev_pagemap *pgmap)
++{
++	/*
 +	 * MEMORY_DEVICE_GENERIC pages regain a refcount of 1 in the free
 +	 * path. The remaining ZONE_DEVICE types start from 0 here and raise
 +	 * the count again when the allocator or driver hands the page out.
++	 */
++	switch (pgmap->type) {
++	case MEMORY_DEVICE_FS_DAX:
++	case MEMORY_DEVICE_PRIVATE:
++	case MEMORY_DEVICE_COHERENT:
++	case MEMORY_DEVICE_PCI_P2PDMA:
++		return false;
++	case MEMORY_DEVICE_GENERIC:
++		return true;
++	default:
++		WARN_ONCE(1, "Unknown memory type!");
++		return true;
++	}
++}
++
++static void __ref __zone_device_page_init(struct page *page, unsigned long pfn,
+ 					  unsigned long zone_idx, int nid,
+ 					  struct dev_pagemap *pgmap)
+ {
+-
+ 	__init_single_page(page, pfn, zone_idx, nid);
+ 
+ 	/*
+@@ -1018,23 +1045,15 @@ static void __ref __init_zone_device_pag
  	 */
- 	switch (pgmap->type) {
- 	case MEMORY_DEVICE_FS_DAX:
+ 	page_folio(page)->pgmap = pgmap;
+ 	page->zone_device_data = NULL;
++}
+ 
+-	/*
+-	 * MEMORY_DEVICE_GENERIC pages regain a refcount of 1 in the free
+-	 * path. The remaining ZONE_DEVICE types start from 0 here and raise
+-	 * the count again when the allocator or driver hands the page out.
+-	 */
+-	switch (pgmap->type) {
+-	case MEMORY_DEVICE_FS_DAX:
+-	case MEMORY_DEVICE_PRIVATE:
+-	case MEMORY_DEVICE_COHERENT:
+-	case MEMORY_DEVICE_PCI_P2PDMA:
++static void __ref zone_device_page_init_slow(struct page *page,
++		unsigned long pfn, unsigned long zone_idx, int nid,
++		struct dev_pagemap *pgmap)
++{
++	__zone_device_page_init(page, pfn, zone_idx, nid, pgmap);
++	if (!pagemap_resets_refcount(pgmap))
+ 		set_page_count(page, 0);
+-		break;
+-
+-	case MEMORY_DEVICE_GENERIC:
+-		break;
+-	}
+ }
+ 
+ /*
+@@ -1080,7 +1099,7 @@ static void __ref memmap_init_compound(s
+ 	for (pfn = head_pfn + 1; pfn < end_pfn; pfn++) {
+ 		struct page *page = pfn_to_page(pfn);
+ 
+-		__init_zone_device_page(page, pfn, zone_idx, nid, pgmap);
++		zone_device_page_init_slow(page, pfn, zone_idx, nid, pgmap);
+ 		prep_compound_tail(page, head, order);
+ 		set_page_count(page, 0);
+ 	}
+@@ -1116,7 +1135,7 @@ void __ref memmap_init_zone_device(struc
+ 	for (pfn = start_pfn; pfn < end_pfn; pfn += pfns_per_compound) {
+ 		struct page *page = pfn_to_page(pfn);
+ 
+-		__init_zone_device_page(page, pfn, zone_idx, nid, pgmap);
++		zone_device_page_init_slow(page, pfn, zone_idx, nid, pgmap);
+ 
+ 		if (IS_ALIGNED(pfn, PAGES_PER_SECTION))
+ 			cond_resched();
 _
 
 Patches currently in -mm which might be from lizhe.67@bytedance.com are
