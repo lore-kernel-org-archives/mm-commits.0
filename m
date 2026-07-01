@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A2A04146A66
-	for <mm-commits@vger.kernel.org>; Wed,  1 Jul 2026 05:20:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 783E7146A66
+	for <mm-commits@vger.kernel.org>; Wed,  1 Jul 2026 05:20:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782883256; cv=none; b=HHcAcLmhPL+GfdPrOxaWSwyEBGfqNAOlsiTxW/acya4PXISsSG1QPQggPaR2rrsXMzHq9PoXBKuectNmcLV8jPWC7GGn4ZuoBOe/w+7lPMQyM2xYk1WGxaRv8JAvFxr6GwO/Ubi4vCRBKhtnYDMvcusrWUsE9kFyQF7b7Og3bbw=
+	t=1782883259; cv=none; b=YX/C0HkXAaFK0cYzczEXZpf2C/oPALRj7/yTQm4iPMde0nMaso4Myj1A7Gf5M18q2kUWgEY80RCqATapDhvM0RoG+4lz5OgVuMR6r8GxRMtkyh/Drh1CraeiHblzAIc2zgMrlOCX66nZoGr8c9SNuqdnuc0AFVEXEHUdN2LSu2U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782883256; c=relaxed/simple;
-	bh=IpwKqLGtStB2ljBX5dLi+U5uL7mTI5dBD3WEf27isHU=;
-	h=Date:To:From:Subject:Message-Id; b=niTWKBjMXOGbN6Zo4iDLGX6+EeTXLMpwdUeMyogdSjKxu1QLGNoOGvoA5BXGc4/UKewke5f0XtLe37fDMi1boR7RsT3EAOSMOzN/jAK41uqidkX4bgKT4QMTZCQM8UKLHHnZxAlUDJqgshQOoauBCSfo+8vpYFTw3VfRM2tN8AI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ggJfvnyI; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1782883259; c=relaxed/simple;
+	bh=aZyhpmU8r2XcE/UmjUZtCiuLZmrqmSDLh3HB7kfz95w=;
+	h=Date:To:From:Subject:Message-Id; b=Es6/m2KMsMbCjlhyp6fbVDFKr+EhKi3bDp3Wzyz6u0KqNP/yTeJyalSh4EbdJdeB0JOAeT+XMv6Tgxx6r9Q8raIlZupVkK/N7ngVGQHXvbKguGg9IdKIiqoiYnQrMOZQmwExCvB4X+5bFhFiCAPoB7h3GvWAcGW8JTKWoUJymA8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RN5RmOQQ; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ggJfvnyI"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3E9131F000E9;
-	Wed,  1 Jul 2026 05:20:55 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RN5RmOQQ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5078D1F000E9;
+	Wed,  1 Jul 2026 05:20:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1782883255;
-	bh=C73TJbIsOuRGoGHo91rMzHVF/FnW6IO8QD8hjE3Y1os=;
+	d=linux-foundation.org; s=korg; t=1782883258;
+	bh=MCfFj7dSDZfn72PLyYCKrQBYD3ObzYBvM8OjUQLaEqk=;
 	h=Date:To:From:Subject;
-	b=ggJfvnyIZqq2DJrExQkuUI7P/XT63ImUWW85TzKFgdU3sBZWYWd6HEoS5Og0ruBKG
-	 eoJBjbn2ZzXYg5p+K1JeBO1anYXzBOO/AqCo3YWLRNJLRW1LJZV3FPgh38d9wSHzOk
-	 j+iD0X6tt/qgd4ez74XbYGS+/iQCzY0BcbxfSM7M=
-Date: Tue, 30 Jun 2026 22:20:54 -0700
+	b=RN5RmOQQyOBEXQzM4fPCWa1QwdTPpSYvPfe5v8rKDT52ttQ94IHjJc7BZGVPO5z7w
+	 YTzhpW+eqK/g+OAPVKMsr2w/Ci99I7DnG4F5QIJXkf8Nj/bboNh3wJkM5YePRmgeAI
+	 /6BkwyaJAXPJ7MJ0RXmVYWlbU6xjjuah7cdo3WH0=
+Date: Tue, 30 Jun 2026 22:20:57 -0700
 To: mm-commits@vger.kernel.org,zwisler@google.com,yury.khrustalev@arm.com,vbabka@kernel.org,usama.anjum@collabora.com,surenb@google.com,shuah@kernel.org,rppt@kernel.org,mhocko@suse.com,maddy@linux.ibm.com,ljs@kernel.org,liam@infradead.org,kevin.brodsky@arm.com,keith.lucas@oracle.com,joey.gouly@arm.com,jhubbard@nvidia.com,david@kernel.org,lihongfu@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-add-missing-mmap-return-checks-in-pkey-tests.patch added to mm-new branch
-Message-Id: <20260701052055.3E9131F000E9@smtp.kernel.org>
+Subject: + selftests-mm-add-missing-pthread_create-return-checks-in-pkey-tests.patch added to mm-new branch
+Message-Id: <20260701052058.5078D1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: add missing mmap() return checks in pkey tests
+     Subject: selftests/mm: add missing pthread_create() return checks in pkey tests
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-mm-add-missing-mmap-return-checks-in-pkey-tests.patch
+     selftests-mm-add-missing-pthread_create-return-checks-in-pkey-tests.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-add-missing-mmap-return-checks-in-pkey-tests.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-add-missing-pthread_create-return-checks-in-pkey-tests.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,13 +70,13 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Hongfu Li <lihongfu@kylinos.cn>
-Subject: selftests/mm: add missing mmap() return checks in pkey tests
-Date: Tue, 30 Jun 2026 15:32:34 +0800
+Subject: selftests/mm: add missing pthread_create() return checks in pkey tests
+Date: Tue, 30 Jun 2026 15:32:35 +0800
 
-Add missing checks against mmap() return value, replace (void *)-1 with
-MAP_FAILED for better readability and consistency.
+Add missing pthread_create() return checks in pkey sighandler tests to
+avoid hanging in pthread_cond_wait() when thread creation fails.
 
-Link: https://lore.kernel.org/20260630073235.3802271-5-lihongfu@kylinos.cn
+Link: https://lore.kernel.org/20260630073235.3802271-6-lihongfu@kylinos.cn
 Signed-off-by: Hongfu Li <lihongfu@kylinos.cn>
 Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Acked-by: Liam R. Howlett (Oracle) <liam@infradead.org>
@@ -97,96 +97,31 @@ Cc: Yury Khrustalev <yury.khrustalev@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/pkey-powerpc.h          |    2 -
- tools/testing/selftests/mm/pkey_sighandler_tests.c |    2 +
- tools/testing/selftests/mm/protection_keys.c       |   12 ++++++-----
- 3 files changed, 10 insertions(+), 6 deletions(-)
+ tools/testing/selftests/mm/pkey_sighandler_tests.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
---- a/tools/testing/selftests/mm/pkey-powerpc.h~selftests-mm-add-missing-mmap-return-checks-in-pkey-tests
-+++ a/tools/testing/selftests/mm/pkey-powerpc.h
-@@ -126,7 +126,7 @@ static inline void *malloc_pkey_with_mpr
- 			size, prot, pkey);
- 	pkey_assert(pkey < NR_PKEYS);
- 	ptr = mmap(NULL, size, prot, MAP_ANONYMOUS|MAP_PRIVATE, -1, 0);
--	pkey_assert(ptr != (void *)-1);
-+	pkey_assert(ptr != MAP_FAILED);
- 
- 	ret = syscall(__NR_subpage_prot, ptr, size, NULL);
- 	if (ret) {
---- a/tools/testing/selftests/mm/pkey_sighandler_tests.c~selftests-mm-add-missing-mmap-return-checks-in-pkey-tests
+--- a/tools/testing/selftests/mm/pkey_sighandler_tests.c~selftests-mm-add-missing-pthread_create-return-checks-in-pkey-tests
 +++ a/tools/testing/selftests/mm/pkey_sighandler_tests.c
-@@ -317,6 +317,7 @@ static void test_sigsegv_handler_with_di
- 	/* Set up alternate signal stack that will use the default MPK */
- 	sigstack.ss_sp = mmap(0, STACK_SIZE, PROT_READ | PROT_WRITE,
- 			      MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-+	pkey_assert(sigstack.ss_sp != MAP_FAILED);
- 	sigstack.ss_flags = 0;
- 	sigstack.ss_size = STACK_SIZE;
+@@ -224,7 +224,8 @@ static void test_sigsegv_handler_with_pk
+ 	pthread_attr_init(&attr);
+ 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
  
-@@ -492,6 +493,7 @@ static void test_pkru_sigreturn(void)
- 	/* Set up alternate signal stack that will use the default MPK */
- 	sigstack.ss_sp = mmap(0, STACK_SIZE, PROT_READ | PROT_WRITE,
- 			      MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-+	pkey_assert(sigstack.ss_sp != MAP_FAILED);
- 	sigstack.ss_flags = 0;
- 	sigstack.ss_size = STACK_SIZE;
+-	pthread_create(&thr, &attr, thread_segv_with_pkey0_disabled, NULL);
++	ret = pthread_create(&thr, &attr, thread_segv_with_pkey0_disabled, NULL);
++	pkey_assert(ret == 0);
  
---- a/tools/testing/selftests/mm/protection_keys.c~selftests-mm-add-missing-mmap-return-checks-in-pkey-tests
-+++ a/tools/testing/selftests/mm/protection_keys.c
-@@ -586,7 +586,7 @@ static void *malloc_pkey_with_mprotect(l
- 			size, prot, pkey);
- 	pkey_assert(pkey < NR_PKEYS);
- 	ptr = mmap(NULL, size, prot, MAP_ANONYMOUS|MAP_PRIVATE, -1, 0);
--	pkey_assert(ptr != (void *)-1);
-+	pkey_assert(ptr != MAP_FAILED);
- 	ret = mprotect_pkey((void *)ptr, PAGE_SIZE, prot, pkey);
- 	pkey_assert(!ret);
- 	record_pkey_malloc(ptr, size, prot);
-@@ -609,7 +609,7 @@ static void *malloc_pkey_anon_huge(long
- 	 */
- 	size = ALIGN_UP(size, HPAGE_SIZE * 2);
- 	ptr = mmap(NULL, size, PROT_NONE, MAP_ANONYMOUS|MAP_PRIVATE, -1, 0);
--	pkey_assert(ptr != (void *)-1);
-+	pkey_assert(ptr != MAP_FAILED);
- 	record_pkey_malloc(ptr, size, prot);
- 	mprotect_pkey(ptr, size, prot, pkey);
+ 	pthread_mutex_lock(&mutex);
+ 	while (siginfo.si_signo == 0)
+@@ -263,7 +264,8 @@ static void test_sigsegv_handler_cannot_
+ 	pthread_attr_init(&attr);
+ 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
  
-@@ -667,7 +667,7 @@ static void *malloc_pkey_hugetlb(long si
- 	size = ALIGN_UP(size, HPAGE_SIZE * 2);
- 	pkey_assert(pkey < NR_PKEYS);
- 	ptr = mmap(NULL, size, PROT_NONE, flags, -1, 0);
--	pkey_assert(ptr != (void *)-1);
-+	pkey_assert(ptr != MAP_FAILED);
- 	mprotect_pkey(ptr, size, prot, pkey);
+-	pthread_create(&thr, &attr, thread_segv_pkuerr_stack, NULL);
++	ret = pthread_create(&thr, &attr, thread_segv_pkuerr_stack, NULL);
++	pkey_assert(ret == 0);
  
- 	record_pkey_malloc(ptr, size, prot);
-@@ -696,7 +696,7 @@ static void *malloc_pkey(long size, int
- 		pkey_assert(malloc_type < nr_malloc_types);
- 
- 		ret = pkey_malloc[malloc_type](size, prot, pkey);
--		pkey_assert(ret != (void *)-1);
-+		pkey_assert(ret != MAP_FAILED);
- 
- 		malloc_type++;
- 		if (malloc_type >= nr_malloc_types)
-@@ -1114,6 +1114,7 @@ static void arch_force_pkey_reg_init(voi
- 	 * doing the XSAVE size enumeration dance.
- 	 */
- 	buf = mmap(NULL, 1*MB, PROT_READ|PROT_WRITE, MAP_ANONYMOUS|MAP_PRIVATE, -1, 0);
-+	pkey_assert(buf != MAP_FAILED);
- 
- 	/* These __builtins require compiling with -mxsave */
- 
-@@ -1680,7 +1681,8 @@ int main(void)
- 		ksft_print_msg("running PKEY tests for unsupported CPU/OS\n");
- 
- 		ptr  = mmap(NULL, size, PROT_NONE, MAP_ANONYMOUS|MAP_PRIVATE, -1, 0);
--		assert(ptr != (void *)-1);
-+		if (ptr == MAP_FAILED)
-+			ksft_exit_fail_perror("mmap");
- 		test_mprotect_pkey_on_unsupported_cpu(ptr, 1);
- 		ksft_test_result_pass("pkey on unsupported CPU/OS\n");
- 		ksft_finished();
+ 	pthread_mutex_lock(&mutex);
+ 	while (siginfo.si_signo == 0)
 _
 
 Patches currently in -mm which might be from lihongfu@kylinos.cn are
