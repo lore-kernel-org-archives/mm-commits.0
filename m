@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D1FAC36897F
-	for <mm-commits@vger.kernel.org>; Wed,  1 Jul 2026 03:41:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 24FBA368964
+	for <mm-commits@vger.kernel.org>; Wed,  1 Jul 2026 03:41:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782877312; cv=none; b=OGp0vWDHywWgvRtLnxwA/KbyFU0Vn0gFALEuJReit7XvWd6vIBFYhRMBkMhYxAOyCBoSkBYT89QYcm90951ecNlDLGmXlpxKyWL0ws4cL1R+PXBKXnUZlwVt7pZwZR73Aqi2htUlNuk410npGU0izqfQhaEzt+2ET+DduaHOhos=
+	t=1782877314; cv=none; b=SK3dtl4Zbfw1AgHS5oRVoztNIF2POp90JIZG5DipNvMZvsjVoNAZZJOwRo9mmndhRnscQ+gLFNKVD+YVwSt2JHv4Kqae96ngohSj5oXh39CNzQptnehYRnVJdmFD2PE43dR8Z/sOh8OqfmD9pZ+rQAOQt6dPVhRa0bp/4AW917c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782877312; c=relaxed/simple;
-	bh=7ZhV47H5fEshtTPgAbR+7kDC8/OCXD+yShIk1fDFVxo=;
-	h=Date:To:From:Subject:Message-Id; b=hEfFnS1CJXuehMxzU0i4mEw4gPdayMlRKBg6JeCX6msRUZEJRb4/fZGXowi+w+gpcY+bm/aUmTY5jB9UzQ+Cf4b6Ip31V+SqL6EF5Sn4izgy5ktHZfoSnJibWnxAMGHDWiVkaisJ5/yqErOPCcT50ezAypE5hE4MgSEMsFSuoQ0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=e1//izyr; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1782877314; c=relaxed/simple;
+	bh=kgydyyEexEl0thW8s/Zc7z4twpqb9DaF9JrvQJEBQFs=;
+	h=Date:To:From:Subject:Message-Id; b=J006XkAsP/7nBQgGRAczkghtVkYqsJcMP1E5BYPMMDMkaHHo4iiOF4uyPu1GwB9oT7zFegC87P3/DLP5Gg3RYm4GpzIeO2ADHTTmoOGwxQRZwymmnm+VXIWWyUp5IBPCfz1yucLD0XhT1nvzx2AMHAZn6+i6+Y+nWx/oEgasxj0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rATx104e; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="e1//izyr"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9862C1F000E9;
-	Wed,  1 Jul 2026 03:41:50 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rATx104e"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A8F4E1F000E9;
+	Wed,  1 Jul 2026 03:41:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1782877310;
-	bh=WaIZdvxtbYosdUCBmr4d8vXsoNot5LnvXu+74f2YhFU=;
+	d=linux-foundation.org; s=korg; t=1782877312;
+	bh=DtGM4qVoSVseGlOfiQXDUUEa1YmfMeD/ZGQ2EAX9yfQ=;
 	h=Date:To:From:Subject;
-	b=e1//izyrAp4f/kkjZ/A83QrUAhjpuN5jpJo52bj25Zey9tJ70kmgSo7MzlKQNBYkj
-	 oHLCtb9G//YiTUp1slOpVgyA75sQNA6pb4G9ZPJDVT9hZFCY+q1YrA8X/CwVVkjB6i
-	 AxUrdjUG2h0hyLI9knfnHVw8iOjhR8ZHSnbZKKC4=
-Date: Tue, 30 Jun 2026 20:41:50 -0700
+	b=rATx104ey06nOP6JFqzYxQPnLYdCmZtW1KttuKYi4H4GkirhBYYbBEIEK7taJ++XO
+	 nvzQhAhKFIhN3L8K2lB+MCc4KR96fnaDk/S/w9qnU71ZJlakOJsZ6fhWFv8Fme2y3e
+	 Lr695OWjTKkTCaFaP9S15R07SA6ver6sMpCxQvgQ=
+Date: Tue, 30 Jun 2026 20:41:52 -0700
 To: mm-commits@vger.kernel.org,ye.liu@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_owner-extract-skip_buddy_pages-helper-to-unify-buddy-page-skipping.patch added to mm-unstable branch
-Message-Id: <20260701034150.9862C1F000E9@smtp.kernel.org>
+Subject: + mm-page_owner-add-mr_never-to-enum-migrate_reason-and-use-it-for-last_migrate_reason.patch added to mm-unstable branch
+Message-Id: <20260701034152.A8F4E1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/page_owner: extract skip_buddy_pages() helper to unify buddy page skipping
+     Subject: mm/page_owner: add MR_NEVER to enum migrate_reason and use it for last_migrate_reason
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-page_owner-extract-skip_buddy_pages-helper-to-unify-buddy-page-skipping.patch
+     mm-page_owner-add-mr_never-to-enum-migrate_reason-and-use-it-for-last_migrate_reason.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_owner-extract-skip_buddy_pages-helper-to-unify-buddy-page-skipping.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_owner-add-mr_never-to-enum-migrate_reason-and-use-it-for-last_migrate_reason.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,68 +59,20 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Ye Liu <ye.liu@linux.dev>
-Subject: mm/page_owner: extract skip_buddy_pages() helper to unify buddy page skipping
-Date: Wed, 1 Jul 2026 09:22:27 +0800
+Subject: mm/page_owner: add MR_NEVER to enum migrate_reason and use it for last_migrate_reason
+Date: Wed, 1 Jul 2026 09:22:28 +0800
 
-Patch series "mm/page_owner: misc cleanups", v4.
-
-This series collects a few cleanups for mm/page_owner.c that have been
-accumulated while reading through the file.  There is no functional change
--- the goal is to make the code easier to read and maintain.
-
-Patch 1 consolidates three identical PageBuddy skip blocks into a single
-skip_buddy_pages() helper, eliminating the duplication and keeping the
-lockless-read comment in one place.
-
-Patch 2 replaces the -1 magic number used for "never migrated" with a
-proper MR_NEVER member in enum migrate_reason, adds the corresponding
-"never_migrated" string in the MIGRATE_REASON trace macro, and updates the
-GDB page_owner script to use MR_NEVER so that lx-dump-page-owner correctly
-detects unmigrated pages.
-
-Patch 3 follows up by converting the remaining 'int reason' parameters
-throughout the migration and hugetlb callchains to 'enum migrate_reason',
-making the type explicit and gaining compiler checking.  The 'short
-last_migrate_reason' struct field in page_owner is intentionally left as
-'short' since it is per-page metadata where size matters.
-
-Patch 4 hoists the CONFIG_MEMCG guard out of print_page_owner_memcg()'s
-body so that the real implementation and the empty stub are two clearly
-separate definitions, the common kernel idiom.
-
-Patch 5 adds a missing \n to the count_threshold debugfs attribute format
-string so that cat(1) output is properly terminated.
-
-Patch 6 moves free_ts_nsec from the allocation summary line to the free
-section in __dump_page_owner(), grouping it with free_pid and free_tgid
-where it logically belongs.  This also makes the dump output consistent
-with print_page_owner().
-
-Patch 7 drops the redundant page_owner_ prefix from file-scoped static
-symbols (stack_fops, threshold_fops, etc.).  Since they cannot collide
-across translation units, the prefix carries no information.
-
-
-This patch (of 7):
-
-Three places in page_owner.c duplicate the same pattern: check if a page
-is PageBuddy, read its order via buddy_order_unsafe(), advance the pfn
-past the buddy block if the order is valid, and continue.
-
-Consolidate them into a single inline helper skip_buddy_pages().  The
-function returns true (skip) for any buddy page and advances @pfn past the
-block when the order is valid; returns false if the page is not a buddy
-page and should be processed normally.
-
-The old init_pages_in_zone() variant used "order > 0" as an extra guard
-before advancing pfn, but the continue was unconditional and (1UL << 0) -
-1 == 0, so the behaviour is identical.  The comment about zone->lock is
-preserved in the helper's kernel-doc.
+The last_migrate_reason field uses -1 as a sentinel value to mean "no
+migration has happened".  Replace the four bare -1 occurrences by adding a
+proper MR_NEVER member to enum migrate_reason, defining a corresponding
+"never_migrated" string in the MIGRATE_REASON trace macro, and updating
+the GDB page_owner script to use MR_NEVER instead of the hardcoded -1 so
+that lx-dump-page-owner does not incorrectly report unmigrated pages as
+migrated.
 
 No functional change.
 
-Link: https://lore.kernel.org/20260701012239.315262-1-ye.liu@linux.dev
-Link: https://lore.kernel.org/20260701012239.315262-2-ye.liu@linux.dev
+Link: https://lore.kernel.org/20260701012239.315262-3-ye.liu@linux.dev
 Signed-off-by: Ye Liu <ye.liu@linux.dev>
 Reviewed-by: Zi Yan <ziy@nvidia.com>
 Reviewed-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
@@ -128,98 +80,102 @@ Cc: Brendan Jackman <jackmanb@google.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_owner.c |   52 +++++++++++++++++++++++-----------------------
- 1 file changed, 26 insertions(+), 26 deletions(-)
+ include/linux/migrate_mode.h    |    1 +
+ include/trace/events/migrate.h  |    3 ++-
+ mm/page_owner.c                 |    8 ++++----
+ scripts/gdb/linux/page_owner.py |    4 +++-
+ 4 files changed, 10 insertions(+), 6 deletions(-)
 
---- a/mm/page_owner.c~mm-page_owner-extract-skip_buddy_pages-helper-to-unify-buddy-page-skipping
+--- a/include/linux/migrate_mode.h~mm-page_owner-add-mr_never-to-enum-migrate_reason-and-use-it-for-last_migrate_reason
++++ a/include/linux/migrate_mode.h
+@@ -25,6 +25,7 @@ enum migrate_reason {
+ 	MR_LONGTERM_PIN,
+ 	MR_DEMOTION,
+ 	MR_DAMON,
++	MR_NEVER,		/* page has never been migrated */
+ 	MR_TYPES
+ };
+ 
+--- a/include/trace/events/migrate.h~mm-page_owner-add-mr_never-to-enum-migrate_reason-and-use-it-for-last_migrate_reason
++++ a/include/trace/events/migrate.h
+@@ -23,7 +23,8 @@
+ 	EM( MR_CONTIG_RANGE,	"contig_range")			\
+ 	EM( MR_LONGTERM_PIN,	"longterm_pin")			\
+ 	EM( MR_DEMOTION,	"demotion")			\
+-	EMe(MR_DAMON,		"damon")
++	EM( MR_DAMON,		"damon")			\
++	EMe(MR_NEVER,		"never_migrated")
+ 
+ /*
+  * First define the enums in the above macros to be exported to userspace
+--- a/mm/page_owner.c~mm-page_owner-add-mr_never-to-enum-migrate_reason-and-use-it-for-last_migrate_reason
 +++ a/mm/page_owner.c
-@@ -422,6 +422,29 @@ void __folio_copy_owner(struct folio *ne
- 	rcu_read_unlock();
- }
+@@ -339,7 +339,7 @@ noinline void __set_page_owner(struct pa
+ 	depot_stack_handle_t handle;
  
-+/*
-+ * Check if a page is a buddy page and advance @pfn past the entire buddy block.
-+ * This safely reads the buddy order without the zone lock, which may cause us
-+ * to skip less than the full buddy block, but that is acceptable for page owner
-+ * iteration purposes.
-+ *
-+ * Return: true if the page was skipped (caller should continue its loop),
-+ *         false if the page is not a buddy page and should be processed normally.
-+ */
-+static inline bool skip_buddy_pages(unsigned long *pfn, struct page *page)
-+{
-+	unsigned long order;
-+
-+	if (!PageBuddy(page))
-+		return false;
-+
-+	order = buddy_order_unsafe(page);
-+	if (order <= MAX_PAGE_ORDER)
-+		*pfn += (1UL << order) - 1;
-+
-+	return true;
-+}
-+
- void pagetypeinfo_showmixedcount_print(struct seq_file *m,
- 				       pg_data_t *pgdat, struct zone *zone)
- {
-@@ -461,14 +484,8 @@ void pagetypeinfo_showmixedcount_print(s
- 			if (page_zone(page) != zone)
- 				continue;
+ 	handle = save_stack(gfp_mask);
+-	__update_page_owner_handle(page, handle, order, gfp_mask, -1,
++	__update_page_owner_handle(page, handle, order, gfp_mask, MR_NEVER,
+ 				   ts_nsec, current->pid, current->tgid,
+ 				   current->comm);
+ 	inc_stack_record_count(handle, gfp_mask, 1 << order);
+@@ -596,7 +596,7 @@ print_page_owner(char __user *buf, size_
+ 	if (ret >= count)
+ 		goto err;
  
--			if (PageBuddy(page)) {
--				unsigned long freepage_order;
--
--				freepage_order = buddy_order_unsafe(page);
--				if (freepage_order <= MAX_PAGE_ORDER)
--					pfn += (1UL << freepage_order) - 1;
-+			if (skip_buddy_pages(&pfn, page))
- 				continue;
--			}
+-	if (page_owner->last_migrate_reason != -1) {
++	if (page_owner->last_migrate_reason != MR_NEVER) {
+ 		ret += scnprintf(kbuf + ret, count - ret,
+ 			"Page has been migrated, last migrate reason: %s\n",
+ 			migrate_reason_names[page_owner->last_migrate_reason]);
+@@ -667,7 +667,7 @@ void __dump_page_owner(const struct page
+ 		stack_depot_print(handle);
+ 	}
  
- 			if (PageReserved(page))
- 				continue;
-@@ -697,13 +714,8 @@ read_page_owner(struct file *file, char
- 		}
+-	if (page_owner->last_migrate_reason != -1)
++	if (page_owner->last_migrate_reason != MR_NEVER)
+ 		pr_alert("page has been migrated, last migrate reason: %s\n",
+ 			migrate_reason_names[page_owner->last_migrate_reason]);
+ 	page_ext_put(page_ext);
+@@ -826,7 +826,7 @@ static void init_pages_in_zone(struct zo
  
- 		page = pfn_to_page(pfn);
--		if (PageBuddy(page)) {
--			unsigned long freepage_order = buddy_order_unsafe(page);
--
--			if (freepage_order <= MAX_PAGE_ORDER)
--				pfn += (1UL << freepage_order) - 1;
-+		if (skip_buddy_pages(&pfn, page))
- 			continue;
--		}
+ 			/* Found early allocated page */
+ 			__update_page_owner_handle(page, early_handle, 0, 0,
+-						   -1, local_clock(), current->pid,
++						   MR_NEVER, local_clock(), current->pid,
+ 						   current->tgid, current->comm);
+ 			count++;
+ ext_put_continue:
+--- a/scripts/gdb/linux/page_owner.py~mm-page_owner-add-mr_never-to-enum-migrate_reason-and-use-it-for-last_migrate_reason
++++ a/scripts/gdb/linux/page_owner.py
+@@ -34,6 +34,7 @@ class DumpPageOwner(gdb.Command):
+     max_pfn = None
+     p_ops = None
+     migrate_reason_names = None
++    mr_never = None
  
- 		page_ext = page_ext_get(page);
- 		if (unlikely(!page_ext))
-@@ -798,20 +810,8 @@ static void init_pages_in_zone(struct zo
- 			if (page_zone(page) != zone)
- 				continue;
+     def __init__(self):
+         super(DumpPageOwner, self).__init__("lx-dump-page-owner", gdb.COMMAND_SUPPORT)
+@@ -65,6 +66,7 @@ class DumpPageOwner(gdb.Command):
+         self.max_pfn = int(gdb.parse_and_eval("max_pfn"))
+         self.page_ext_size = int(gdb.parse_and_eval("page_ext_size"))
+         self.migrate_reason_names = gdb.parse_and_eval('migrate_reason_names')
++        self.mr_never = int(gdb.parse_and_eval('MR_NEVER'))
  
--			/*
--			 * To avoid having to grab zone->lock, be a little
--			 * careful when reading buddy page order. The only
--			 * danger is that we skip too much and potentially miss
--			 * some early allocated pages, which is better than
--			 * heavy lock contention.
--			 */
--			if (PageBuddy(page)) {
--				unsigned long order = buddy_order_unsafe(page);
--
--				if (order > 0 && order <= MAX_PAGE_ORDER)
--					pfn += (1UL << order) - 1;
-+			if (skip_buddy_pages(&pfn, page))
- 				continue;
--			}
+     def page_ext_invalid(self, page_ext):
+         if page_ext == gdb.Value(0):
+@@ -138,7 +140,7 @@ class DumpPageOwner(gdb.Command):
+         else:
+             gdb.write('page last free stack trace:\n')
+             stackdepot.stack_depot_print(page_owner["free_handle"])
+-        if page_owner['last_migrate_reason'] != -1:
++        if page_owner['last_migrate_reason'] != self.mr_never:
+             gdb.write('page has been migrated, last migrate reason: %s\n' % self.migrate_reason_names[page_owner['last_migrate_reason']])
  
- 			if (PageReserved(page))
- 				continue;
+     def read_page_owner(self):
 _
 
 Patches currently in -mm which might be from ye.liu@linux.dev are
