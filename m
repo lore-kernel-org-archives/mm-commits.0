@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E44153672BA
-	for <mm-commits@vger.kernel.org>; Wed,  1 Jul 2026 22:36:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3286D239085
+	for <mm-commits@vger.kernel.org>; Wed,  1 Jul 2026 22:38:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782945408; cv=none; b=cKDRx1TfVD1aKSCeqNQDfRyOiD4Sl9SyoN4usMD6incP2OS8yjTlJ4ASCgb1IpIgSQhrqqNx5TPzzHcKg1JVwqJVq8YKXjMJ2X2/KSe4hCiwDAvZKorgfoBUpc7ZR2q6UPHGh8utXCFYQCsjnvEUOORxxCWuqMHyvicAdsYzuLo=
+	t=1782945509; cv=none; b=EcEu2E0ljZ1YojHtPfExa2jL7doHWAZiisB5FG2GOH6Bzk0NKmEYjCLif5crrtTp89HdiAUjYpmyUKxsmFXdChc0qbsZ4Yglbd0uXGAN6xDH9PKpcdw1CxYoZ9aq+FRvqMWDtatNndYdsDae+zhgEjm6tb3Yi77F/a+k5m7L+3M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782945408; c=relaxed/simple;
-	bh=r+jGuYRd4srR2VcQXvyUq6ylLeC5ExdZFdK3nhqG68w=;
-	h=Date:To:From:Subject:Message-Id; b=OoUV1bbBzP2zpn3vfxZxOeSYE4PK2SX71m4t76a6oZFQA9eaH2NortrUM9of5dAPVCylk2ZcxmwTGwJqTRfd1CsDL/Hke08vBb18yf3LqMSLWvaFURuudRToWw3lwLwLUxIUxavmo1VEHTXfiPZ3zXDMSk0WbCvZYFdGmQ6WOis=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=N56kFGWU; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1782945509; c=relaxed/simple;
+	bh=OumXBrlhpspaKhVOWALY/JtM2UvvPXTpLN5QjdFu0O8=;
+	h=Date:To:From:Subject:Message-Id; b=DVwEQ4c9Siv8MHD65IZ9r+Lwu4KViYIUs8uZAjGQLn8hO5FYGzR6c1lJsgLge/0O+NQ7O5mMJeE3ghvvnl+COTJuKE0rmIuAQArJ4aan7p0IA7kAKxUrq7mwtSbOOt2nbgeY+CHPoaCVKYQC8YYCHwjYBSNISqYMWJgEJlY3gPo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HAam/kTl; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="N56kFGWU"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6D4ED1F000E9;
-	Wed,  1 Jul 2026 22:36:46 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HAam/kTl"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B3EE61F000E9;
+	Wed,  1 Jul 2026 22:38:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1782945406;
-	bh=4PhioU1/tAoPLg6BJ+SBPGPftABdO5HgxeTTgCrZvlg=;
+	d=linux-foundation.org; s=korg; t=1782945507;
+	bh=a1p57i5HUk/DXyD4we4rcaG+kjIet1a5r4wwY4U1Ci4=;
 	h=Date:To:From:Subject;
-	b=N56kFGWUKGpY9nw0gcAU8dES2B6DzFwCFvbATiNIzGfjxX6es/ZxaSaGyf7cMPfD/
-	 I2UtkV9STneApfsMYWabLG0DOdoByU2KAmV47HdlOgs+C4vPrNnpEjwqdk0HnjwCoM
-	 4Jif5KobyNCtB7Arxq5p+dP66dWRNDvlkg/6/ic4=
-Date: Wed, 01 Jul 2026 15:36:46 -0700
-To: mm-commits@vger.kernel.org,skinsburskii@linux.microsoft.com,rcampbell@nvidia.com,leon@kernel.org,jgg@ziepe.ca,skinsburskii@gmail.com,akpm@linux-foundation.org
+	b=HAam/kTl7l/10yDStQlCqfbobKYQ6F7+z/AJAqDci6IzhI2aAXQ9LHvLyvq8arQZT
+	 ILa4gFVs3APxlIZ7tSnHQXP8n9wsvhP1PDxVaiqhytZtwrTxWoJ7NAAdeBJM5ok05N
+	 pHQDHvvN8EZjgmfjBJvy2aZgfzhkmg8RNDMao5mQ=
+Date: Wed, 01 Jul 2026 15:38:27 -0700
+To: mm-commits@vger.kernel.org,rcampbell@nvidia.com,leon@kernel.org,jgg@ziepe.ca,skinsburskii@linux.microsoft.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
 Subject: + lib-test_hmm-fail-dmirror_fault-when-the-mirrored-mm-is-gone.patch added to mm-new branch
-Message-Id: <20260701223646.6D4ED1F000E9@smtp.kernel.org>
+Message-Id: <20260701223827.B3EE61F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -69,7 +69,7 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Stanislav Kinsburskii <skinsburskii@gmail.com>
+From: Stanislav Kinsburskii <skinsburskii@linux.microsoft.com>
 Subject: lib/test_hmm: fail dmirror_fault() when the mirrored mm is gone
 Date: Wed, 01 Jul 2026 15:02:20 -0700
 
@@ -111,8 +111,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  		range.start = addr;
 _
 
-Patches currently in -mm which might be from skinsburskii@gmail.com are
+Patches currently in -mm which might be from skinsburskii@linux.microsoft.com are
 
-lib-test_hmm-use-device-devt-for-coherent-device-range-selection.patch
 lib-test_hmm-fail-dmirror_fault-when-the-mirrored-mm-is-gone.patch
 
