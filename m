@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5235C312832
-	for <mm-commits@vger.kernel.org>; Wed,  1 Jul 2026 22:56:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 65753431E79;
+	Wed,  1 Jul 2026 23:11:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782946598; cv=none; b=sl2FTnBMRnsdvrUmw1Lk+grUikpEmdPxDyytgPfpnPeAAYy/XevmOCr+r+b8ef2zkXFV0i8AuRpKwdpgq7agUwbf/GT6O9ILLnD/b3QonXCtHyoK3s2jjTQEIJ+TsWZhAnqqIDnrMZPpC8S28ZYB5k/fcKm2XmfymQ3jn+h43HY=
+	t=1782947489; cv=none; b=g3Hq8K/BRzUD5VKPekR/jPd5O/RJE4EYhc3cItIMppcXQBKLVU/XSNJZrm1ZfugdkrJsCPv1/eQJwbKj/TLzCQgbs6ssMLrRUmqAN9kZWmsoIwYZ6XPSGR+4SeTNgHYadCGoM7G6h64jLbGj4su8TutRYOXWxKyUeAOubiDUX04=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782946598; c=relaxed/simple;
-	bh=HqbwWydfSg1o4eOsGT3l6SnDnhOkqnqeKlcx6A532l0=;
-	h=Date:To:From:Subject:Message-Id; b=IrR9CG6bWY3ptoIUNRBLUeN9kYEHETp+Iu6RMT4BS8S4Wy5C5QZM+EXHc80bf8KoqVbgVxcvaVpj8/emPymxb7H6d0Lrxe8uG3vAZ5K6TE5T6kosMQhPjA8ZN1rsqrn5XfftLqCxuUDy1+EqrFLiBKzbx5q0rW76GHAYZ1LcNng=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TxMBSPnX; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1782947489; c=relaxed/simple;
+	bh=h5LXKJOWtBREEwH9SKFU6B/NnbboPTLfI8vVxphLRto=;
+	h=Date:To:From:Subject:Message-Id; b=OcRP7+u/GsrHWAYMvcdM/Bluh4jFQsLypkO+rjWXzHfua7k50NNluZKADIx8DRXQu12fMplqm4wBZZl8Tlge3jGX9YNv8ouOo/I3cpW3cwRSi0nUF4+jEnk7ApMbJ8ea8DrT2WrjomcScY//G3oqQVirNXQ0xK7zn1fBbX5IIa4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2vOKAxmG; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TxMBSPnX"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C553F1F000E9;
-	Wed,  1 Jul 2026 22:56:36 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2vOKAxmG"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 232B71F000E9;
+	Wed,  1 Jul 2026 23:11:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1782946596;
-	bh=w6s8/cZQcYAZvyhdh/wTj6ghu2CGVSWqvU6bICc9A8c=;
+	d=linux-foundation.org; s=korg; t=1782947488;
+	bh=VTNUYM9aZgrQdeoDLF1EaG062c4kTsgS3pScygAgo5I=;
 	h=Date:To:From:Subject;
-	b=TxMBSPnXhwZlZQJ1FnaqiCPw2Z4GqC0/BjxjV1AR4NfLLyD2Dhz5KIouHQCcTYu/W
-	 8qzR1lrQSRvweahcFW9tfzkm6ps9lkyZp/QoQNYwFQFthO5d0jYpQuyLfMC7oYzUbV
-	 6JPnMhwW7iLJPpzFvysDi1cakSkHbhNfXvphQq90=
-Date: Wed, 01 Jul 2026 15:56:36 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,shakeel.butt@linux.dev,rppt@kernel.org,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,ljs@kernel.org,liam.howlett@oracle.com,gourry@gourry.net,david@kernel.org,hannes@cmpxchg.org,akpm@linux-foundation.org
+	b=2vOKAxmGcV9dxWxAtst3fUo75Wkc0kgJdi5J/HfqV8wGUbf4Roumx6KVSD5IWWThU
+	 rb7mDTEstxgHJl4yFq9cY3kyCUWqwjTODA2/3/mckH1Hdr8+R9vyZ6PmY4Mc8LzpS1
+	 4risVXdtbV8qkmJAWMAMJ0CrsVtD4erB8ONXqDVI=
+Date: Wed, 01 Jul 2026 16:11:27 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,schwab@linux-m68k.org,geert@linux-m68k.org,david@kernel.org,ankur.a.arora@oracle.com,linux@weissschuh.net,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-gfp_types-fix-__gfp_account-gfp_kernel_account-documentation.patch added to mm-new branch
-Message-Id: <20260701225636.C553F1F000E9@smtp.kernel.org>
+Subject: + m68k-avoid-wunused-but-set-parameter-in-clear_user_page.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260701231128.232B71F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,26 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: gfp_types: fix __GFP_ACCOUNT, GFP_KERNEL_ACCOUNT documentation
-has been added to the -mm mm-new branch.  Its filename is
-     mm-gfp_types-fix-__gfp_account-gfp_kernel_account-documentation.patch
+     Subject: m68k: avoid -Wunused-but-set-parameter in clear_user_page()
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     m68k-avoid-wunused-but-set-parameter-in-clear_user_page.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-gfp_types-fix-__gfp_account-gfp_kernel_account-documentation.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/m68k-avoid-wunused-but-set-parameter-in-clear_user_page.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,60 +58,62 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: gfp_types: fix __GFP_ACCOUNT, GFP_KERNEL_ACCOUNT documentation
-Date: Wed, 1 Jul 2026 14:21:02 -0400
+From: =?utf-8?q?Thomas_Wei=C3=9Fschuh?= <linux@weissschuh.net>
+Subject: m68k: avoid -Wunused-but-set-parameter in clear_user_page()
+Date: Mon, 25 May 2026 10:33:52 +0200
 
-Gregory points out that these descriptions are cursed and confusing,
-considering what these flags actually do.  This is mostly due to historic
-implementation choices and cgroup1 baggage.  Improve the description of
-their actual effects.
+The loop in clear_user_pages() iterates over all pages and calls
+clear_user_page() for each of them.  During the loop "vaddr" is modified. 
+However on m68k clear_user() is a macro which does not use "vaddr".  The
+compiler sees a variable which is modified but never used and emits a
+warning for that:
 
-Link: https://lore.kernel.org/20260701182102.1586784-1-hannes@cmpxchg.org
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Reported-by: Gregory Price <gourry@gourry.net>
-Reviewed-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
-Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
-Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+include/linux/highmem.h: In function 'clear_user_pages':
+include/linux/highmem.h:234:63: warning: parameter 'vaddr' set but not used [-Wunused-but-set-parameter=]
+    static inline void clear_user_pages(void *addr, unsigned long vaddr,
+
+Other architectures use an inline function for clear_user_page() which
+avoids the warning.  This is not possible on m68k, as dlush_dcache_page()
+is another macro which is not yet defined where clear_user_page() is
+defined.  Including cacheflush_mm.h will trigger recursive and lots of
+other issues.
+
+So hide the warning with a cast to (void) instead.
+
+While we are here, do the same for copy_user_page().
+
+Link: https://lore.kernel.org/20260525-m68k-clear_user_page-v2-1-0c8981c6eca1@weissschuh.net
+Fixes: 62a9f5a85b98 ("mm: introduce clear_pages() and clear_user_pages()")
+Signed-off-by: Thomas Weißschuh <linux@weissschuh.net>
+Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Andreas Schwab <schwab@linux-m68k.org>
+Cc: Ankur Arora <ankur.a.arora@oracle.com>
 Cc: David Hildenbrand <david@kernel.org>
-Cc: Gregory Price <gourry@gourry.net>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/gfp_types.h |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ arch/m68k/include/asm/page_mm.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/include/linux/gfp_types.h~mm-gfp_types-fix-__gfp_account-gfp_kernel_account-documentation
-+++ a/include/linux/gfp_types.h
-@@ -136,7 +136,8 @@ enum {
-  * %__GFP_THISNODE forces the allocation to be satisfied from the requested
-  * node with no fallbacks or placement policy enforcements.
-  *
-- * %__GFP_ACCOUNT causes the allocation to be accounted to kmemcg.
-+ * %__GFP_ACCOUNT causes the allocation to be accounted to the active
-+ * cgroup context.
-  *
-  * %__GFP_NO_OBJ_EXT causes slab allocation to have no object extension.
-  * mark_obj_codetag_empty() should be called upon freeing for objects allocated
-@@ -320,7 +321,7 @@ enum {
-  * %ZONE_NORMAL or a lower zone for direct access but can direct reclaim.
-  *
-  * %GFP_KERNEL_ACCOUNT is the same as GFP_KERNEL, except the allocation is
-- * accounted to kmemcg.
-+ * accounted to the active cgroup context.
-  *
-  * %GFP_NOWAIT is for kernel allocations that should not stall for direct
-  * reclaim, start physical IO or use any filesystem callback.  It is very
+--- a/arch/m68k/include/asm/page_mm.h~m68k-avoid-wunused-but-set-parameter-in-clear_user_page
++++ a/arch/m68k/include/asm/page_mm.h
+@@ -55,10 +55,12 @@ static inline void clear_page(void *page
+ #define clear_user_page(addr, vaddr, page)	\
+ 	do {	clear_page(addr);		\
+ 		flush_dcache_page(page);	\
++		(void)(vaddr);			\
+ 	} while (0)
+ #define copy_user_page(to, from, vaddr, page)	\
+ 	do {	copy_page(to, from);		\
+ 		flush_dcache_page(page);	\
++		(void)(vaddr);			\
+ 	} while (0)
+ 
+ extern unsigned long m68k_memoffset;
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from linux@weissschuh.net are
 
-mm-mempolicy-fix-automatic-numa-balancing-for-shmem.patch
-mm-gfp_types-fix-__gfp_account-gfp_kernel_account-documentation.patch
+m68k-avoid-wunused-but-set-parameter-in-clear_user_page.patch
 
