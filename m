@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E80A93F44CD
-	for <mm-commits@vger.kernel.org>; Wed,  1 Jul 2026 23:28:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C56E6284690
+	for <mm-commits@vger.kernel.org>; Wed,  1 Jul 2026 23:57:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782948525; cv=none; b=IAt9W66YTxnp8LUXLuAPqIOwyKXogE4Q1IdsQ5C4O+OMGhp+V2b+9mR7O8xF71twcean6pV0hpmlgt8EsaTt74P+MTM5RcM/jwIlqRpHzcWcLXx3pTwb1aFnJg3WaOuRj4Nqi9AoxgEirVUnyz4WorjmPeGm9R97vT8RESufkEI=
+	t=1782950245; cv=none; b=pFMmDzTZ7mniCKeLiisT7IVQmH2XOwsxUGgjQBYxe9a2fChZMleTEg4TZsqdf/ledrtcBH6d2NjSJXjAgbk0kAUeErtPVmXyiJYr6Y1V7vdijPBSc1zu/I5IZYnXi67o6YW7FGl/4ggEMRQezvnW38ETQaOv/mvQfvbSej7pt/E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782948525; c=relaxed/simple;
-	bh=zZidrhRSPce/kDc+r+WLJkhF8OiALTX9A0LpiPRqwQE=;
-	h=Date:To:From:Subject:Message-Id; b=da/5rt1z6CagXfSdd2CETQY7HkwOkch7PRwCUPohujCVg551ktDEGwOE9GOEh6QDG76oOOvU0VqckoHsU7KhJSBEQNnQgrkIvDbi/AEZ124+HZBQS3BX33v2pjQ5uiM0zfylyihanYYuQNNAisbllt62GrtxpuS4lLW7ubE0cNc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XriHgsZX; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1782950245; c=relaxed/simple;
+	bh=F9Bq8P+RxaYn6CLzVGAMsb/nJetKosqO8gY5K9RJxro=;
+	h=Date:To:From:Subject:Message-Id; b=GCnyZutxCp8cnqYDDhmSw41mr7clgnRhJqa7hcYQSvd3ry9ClvZraBfdwNy3AkpofHfyPHG7T6LOqR1mRt1ooOaN+GG0GsNSDYPKdcYTYuE7QKsU1YhXxevXbs7EzeAQz2ms+RuvZXdt8v39Q40eU1YdBit3sPU4I2ptbF+aCQQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AnYr7C7u; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XriHgsZX"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 730D41F000E9;
-	Wed,  1 Jul 2026 23:28:43 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AnYr7C7u"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3BD771F000E9;
+	Wed,  1 Jul 2026 23:57:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1782948523;
-	bh=/8bx/7cgv6yJOQrPspasD5YIt+c9Kteeny39rUimB0g=;
+	d=linux-foundation.org; s=korg; t=1782950243;
+	bh=w9mhb3ewzyN4xUad7it06z+15wdPwqum6cI3pM9bYaY=;
 	h=Date:To:From:Subject;
-	b=XriHgsZXDooc3R9FGRF0ghUG+OR+xVgorhmQXlPcEWVYzv+Z9DJuK517KR/xOZmwS
-	 BXfzukyzvJcpNtsxHZmPNoq1v9B/nP2NuzYQ1tF0iGrcFeMkzYJN3rEE/+stgH6jCC
-	 zP1n8GHmB3XG8x42Fe2mnsyiNf41KKrNoHCQ6cqc=
-Date: Wed, 01 Jul 2026 16:28:43 -0700
-To: mm-commits@vger.kernel.org,lizhe.67@bytedance.com,akpm@linux-foundation.org
+	b=AnYr7C7uEjCCYieWnfcASp1YFgPdjA8dnxhBiSap/ZQk2+PIkphUMWkriSgwNc3BT
+	 BMWsaJfxNFAyCLKoJtIoOVmx2MieBXE5J6oP4w+1S/MfOS0cH0HPseBSht91Jf5qE5
+	 JbVZ6RvfgdhloJ5SxSqUVwhyKPmjevmro0yROZAY=
+Date: Wed, 01 Jul 2026 16:57:22 -0700
+To: mm-commits@vger.kernel.org,ye.liu@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-use-memcpy_nt-in-zone-device-template-copies.patch added to mm-new branch
-Message-Id: <20260701232843.730D41F000E9@smtp.kernel.org>
+Subject: [to-be-updated] mm-page_owner-extract-skip_buddy_pages-helper-to-unify-buddy-page-skipping.patch removed from -mm tree
+Message-Id: <20260701235723.3BD771F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,196 +34,184 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: mm: use memcpy_nt() in zone-device template copies
-has been added to the -mm mm-new branch.  Its filename is
-     mm-use-memcpy_nt-in-zone-device-template-copies.patch
+The quilt patch titled
+     Subject: mm/page_owner: extract skip_buddy_pages() helper to unify buddy page skipping
+has been removed from the -mm tree.  Its filename was
+     mm-page_owner-extract-skip_buddy_pages-helper-to-unify-buddy-page-skipping.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-use-memcpy_nt-in-zone-device-template-copies.patch
-
-This patch will later appear in the mm-new branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: "Li Zhe" <lizhe.67@bytedance.com>
-Subject: mm: use memcpy_nt() in zone-device template copies
-Date: Wed, 1 Jul 2026 17:05:53 +0800
+From: Ye Liu <ye.liu@linux.dev>
+Subject: mm/page_owner: extract skip_buddy_pages() helper to unify buddy page skipping
+Date: Wed, 1 Jul 2026 09:22:27 +0800
 
-The template fast path currently uses memcpy() for the actual struct page
-copy.  Switch zone_device_page_init_from_template() to memcpy_nt() and add
-memcpy_nt_drain() before memmap_init_compound(), before
-prep_compound_head() updates overlapping tail metadata, and before
-returning from memmap_init_zone_device().
+Patch series "mm/page_owner: misc cleanups", v4.
 
-ZONE_DEVICE memmap initialization is largely write-once: each struct page
-is populated once, and most destination cachelines are not expected to be
-reused immediately afterwards.  On x86, a regular cached memcpy() can
-therefore incur write-allocate traffic by pulling destination cachelines
-into the cache before writeback, and can populate the cache with data that
-has little near-term reuse.  Using memcpy_nt() lets this path request
-non-temporal stores for that copy pattern, which can reduce cache
-pollution and avoid part of the associated write-allocate overhead, while
-architectures without a specialized backend still fall back to memcpy().
+This series collects a few cleanups for mm/page_owner.c that have been
+accumulated while reading through the file.  There is no functional change
+-- the goal is to make the code easier to read and maintain.
 
-When memcpy_nt() maps to non-temporal stores, order those stores before
-memmap_init_compound(), before prep_compound_head() updates overlapping
-compound metadata, and before returning from memmap_init_zone_device().
+Patch 1 consolidates three identical PageBuddy skip blocks into a single
+skip_buddy_pages() helper, eliminating the duplication and keeping the
+lockless-read comment in one place.
 
-Keep sanitized builds on the slow path so KASAN/KMSAN retain their
-instrumented stores.
+Patch 2 replaces the -1 magic number used for "never migrated" with a
+proper MR_NEVER member in enum migrate_reason, adds the corresponding
+"never_migrated" string in the MIGRATE_REASON trace macro, and updates the
+GDB page_owner script to use MR_NEVER so that lx-dump-page-owner correctly
+detects unmigrated pages.
 
-Tested in a VM with a 100 GB fsdax namespace device configured with
-map=dev and a 100 GB devdax namespace (align=2097152) on Intel Ice Lake
-server.
+Patch 3 follows up by converting the remaining 'int reason' parameters
+throughout the migration and hugetlb callchains to 'enum migrate_reason',
+making the type explicit and gaining compiler checking.  The 'short
+last_migrate_reason' struct field in page_owner is intentionally left as
+'short' since it is per-page metadata where size matters.
 
-Test procedure:
-Rebind the nd_pmem and dax_pmem driver 30 times and collect the memmap
-initialization time from the pr_debug() output of
-memmap_init_zone_device().
+Patch 4 hoists the CONFIG_MEMCG guard out of print_page_owner_memcg()'s
+body so that the real implementation and the empty stub are two clearly
+separate definitions, the common kernel idiom.
 
-Base(v7.2-rc1):
-  First binding for nd_pmem driver: 1456 ms
-  Average of subsequent rebinds: 244.28 ms
+Patch 5 adds a missing \n to the count_threshold debugfs attribute format
+string so that cat(1) output is properly terminated.
 
-  First binding for dax_pmem driver: 1462 ms
-  Average of subsequent rebinds: 273.31 ms
+Patch 6 moves free_ts_nsec from the allocation summary line to the free
+section in __dump_page_owner(), grouping it with free_pid and free_tgid
+where it logically belongs.  This also makes the dump output consistent
+with print_page_owner().
 
-With this series:
-  First binding for nd_pmem driver: 1272 ms
-  Average of subsequent rebinds: 96.79 ms
+Patch 7 drops the redundant page_owner_ prefix from file-scoped static
+symbols (stack_fops, threshold_fops, etc.).  Since they cannot collide
+across translation units, the prefix carries no information.
 
-  First binding for dax_pmem driver: 1354 ms
-  Average of subsequent rebinds: 119.04 ms
 
-This reduces the average rebind time by about 60.4% for nd_pmem and
-56.4% for dax_pmem.
+This patch (of 7):
 
-Link: https://lore.kernel.org/20260701090553.62691-9-lizhe.67@bytedance.com
-Signed-off-by: Li Zhe <lizhe.67@bytedance.com>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Balbir Singh <balbirs@nvidia.com>
-Cc: "Borislav Petkov (AMD)" <bp@alien8.de>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Kees Cook <kees@kernel.org>
-Cc: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Three places in page_owner.c duplicate the same pattern: check if a page
+is PageBuddy, read its order via buddy_order_unsafe(), advance the pfn
+past the buddy block if the order is valid, and continue.
+
+Consolidate them into a single inline helper skip_buddy_pages().  The
+function returns true (skip) for any buddy page and advances @pfn past the
+block when the order is valid; returns false if the page is not a buddy
+page and should be processed normally.
+
+The old init_pages_in_zone() variant used "order > 0" as an extra guard
+before advancing pfn, but the continue was unconditional and (1UL << 0) -
+1 == 0, so the behaviour is identical.  The comment about zone->lock is
+preserved in the helper's kernel-doc.
+
+No functional change.
+
+Link: https://lore.kernel.org/20260701012239.315262-1-ye.liu@linux.dev
+Link: https://lore.kernel.org/20260701012239.315262-2-ye.liu@linux.dev
+Signed-off-by: Ye Liu <ye.liu@linux.dev>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Reviewed-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
+Cc: Brendan Jackman <jackmanb@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mm_init.c |   39 +++++++++++++++++++++++++++++++++++++--
- 1 file changed, 37 insertions(+), 2 deletions(-)
+ mm/page_owner.c |   52 +++++++++++++++++++++++-----------------------
+ 1 file changed, 26 insertions(+), 26 deletions(-)
 
---- a/mm/mm_init.c~mm-use-memcpy_nt-in-zone-device-template-copies
-+++ a/mm/mm_init.c
-@@ -1059,10 +1059,20 @@ static void __ref zone_device_page_init_
- static inline bool zone_device_page_init_optimization_enabled(void)
- {
- 	/*
-+	 * Keep sanitized builds on the slow path so their stores stay
-+	 * instrumented.
-+	 */
-+	if (IS_ENABLED(CONFIG_KASAN) || IS_ENABLED(CONFIG_KMSAN))
+--- a/mm/page_owner.c~mm-page_owner-extract-skip_buddy_pages-helper-to-unify-buddy-page-skipping
++++ a/mm/page_owner.c
+@@ -422,6 +422,29 @@ void __folio_copy_owner(struct folio *ne
+ 	rcu_read_unlock();
+ }
+ 
++/*
++ * Check if a page is a buddy page and advance @pfn past the entire buddy block.
++ * This safely reads the buddy order without the zone lock, which may cause us
++ * to skip less than the full buddy block, but that is acceptable for page owner
++ * iteration purposes.
++ *
++ * Return: true if the page was skipped (caller should continue its loop),
++ *         false if the page is not a buddy page and should be processed normally.
++ */
++static inline bool skip_buddy_pages(unsigned long *pfn, struct page *page)
++{
++	unsigned long order;
++
++	if (!PageBuddy(page))
 +		return false;
 +
-+	/*
- 	 * The template fast path copies a preinitialized struct page image.
- 	 * Skip it when the page_ref_set tracepoint is enabled.
- 	 */
--	return !page_ref_tracepoint_active(page_ref_set);
-+	if (page_ref_tracepoint_active(page_ref_set))
-+		return false;
++	order = buddy_order_unsafe(page);
++	if (order <= MAX_PAGE_ORDER)
++		*pfn += (1UL << order) - 1;
 +
 +	return true;
- }
- 
- static inline void zone_device_template_page_init(struct page *template,
-@@ -1107,7 +1117,7 @@ static void zone_device_page_init_from_t
- 	 * to the destination page.
- 	 */
- 	zone_device_page_update_template(template, pfn);
--	memcpy(page, template, sizeof(*page));
-+	memcpy_nt(page, template, sizeof(*page));
- }
- 
- /*
-@@ -1178,6 +1188,15 @@ static void __ref memmap_init_compound(s
- 			zone_device_tail_page_init(page, pfn, zone_idx, nid,
- 						   pgmap, head, order);
- 	}
++}
 +
-+	/*
-+	 * When the template path is enabled, order the preceding tail-page copies
-+	 * before prep_compound_head() updates the overlapping compound metadata
-+	 * in the first tail-page descriptors. If memcpy_nt() fell back to
-+	 * regular cached stores, memcpy_nt_drain() may be a no-op.
-+	 */
-+	if (use_template)
-+		memcpy_nt_drain();
- 	prep_compound_head(head, order);
- }
+ void pagetypeinfo_showmixedcount_print(struct seq_file *m,
+ 				       pg_data_t *pgdat, struct zone *zone)
+ {
+@@ -461,14 +484,8 @@ void pagetypeinfo_showmixedcount_print(s
+ 			if (page_zone(page) != zone)
+ 				continue;
  
-@@ -1247,10 +1266,26 @@ void __ref memmap_init_zone_device(struc
- 		if (pfns_per_compound == 1)
+-			if (PageBuddy(page)) {
+-				unsigned long freepage_order;
+-
+-				freepage_order = buddy_order_unsafe(page);
+-				if (freepage_order <= MAX_PAGE_ORDER)
+-					pfn += (1UL << freepage_order) - 1;
++			if (skip_buddy_pages(&pfn, page))
+ 				continue;
+-			}
+ 
+ 			if (PageReserved(page))
+ 				continue;
+@@ -697,13 +714,8 @@ read_page_owner(struct file *file, char
+ 		}
+ 
+ 		page = pfn_to_page(pfn);
+-		if (PageBuddy(page)) {
+-			unsigned long freepage_order = buddy_order_unsafe(page);
+-
+-			if (freepage_order <= MAX_PAGE_ORDER)
+-				pfn += (1UL << freepage_order) - 1;
++		if (skip_buddy_pages(&pfn, page))
  			continue;
+-		}
  
-+		/*
-+		 * When the template path is enabled, order the preceding head-page copy
-+		 * before memmap_init_compound(), which immediately updates compound-head
-+		 * metadata. If memcpy_nt() fell back to regular cached stores,
-+		 * memcpy_nt_drain() may be a no-op.
-+		 */
-+		if (use_template)
-+			memcpy_nt_drain();
-+
- 		memmap_init_compound(page, pfn, zone_idx, nid, pgmap,
- 				     compound_nr_pages(pfn, altmap, pgmap),
- 				     use_template);
- 	}
-+	/*
-+	 * Ensure any prior template copies are ordered before returning.
-+	 * On architectures where memcpy_nt() used regular cached stores,
-+	 * memcpy_nt_drain() may be a no-op.
-+	 */
-+	if (use_template)
-+		memcpy_nt_drain();
+ 		page_ext = page_ext_get(page);
+ 		if (unlikely(!page_ext))
+@@ -798,20 +810,8 @@ static void init_pages_in_zone(struct zo
+ 			if (page_zone(page) != zone)
+ 				continue;
  
- 	pageblock_migratetype_init_range(start_pfn, nr_pages, MIGRATE_MOVABLE, false);
+-			/*
+-			 * To avoid having to grab zone->lock, be a little
+-			 * careful when reading buddy page order. The only
+-			 * danger is that we skip too much and potentially miss
+-			 * some early allocated pages, which is better than
+-			 * heavy lock contention.
+-			 */
+-			if (PageBuddy(page)) {
+-				unsigned long order = buddy_order_unsafe(page);
+-
+-				if (order > 0 && order <= MAX_PAGE_ORDER)
+-					pfn += (1UL << order) - 1;
++			if (skip_buddy_pages(&pfn, page))
+ 				continue;
+-			}
  
+ 			if (PageReserved(page))
+ 				continue;
 _
 
-Patches currently in -mm which might be from lizhe.67@bytedance.com are
+Patches currently in -mm which might be from ye.liu@linux.dev are
 
-mm-fix-stale-zone_device-refcount-comment.patch
-mm-factor-zone-device-page-init-helpers-out-of-__init_zone_device_page.patch
-mm-add-a-set_page_section_from_pfn-helper.patch
-mm-add-a-template-based-fast-path-for-zone-device-page-init.patch
-mm-extend-the-template-fast-path-to-zone-device-compound-tails.patch
-string-introduce-memcpy_nt-helpers.patch
-x86-string-extend-memcpy_flushcache-fixed-size-fastpaths.patch
-mm-use-memcpy_nt-in-zone-device-template-copies.patch
+mm-page_owner-add-mr_never-to-enum-migrate_reason-and-use-it-for-last_migrate_reason.patch
+mm-use-enum-migrate_reason-instead-of-int-for-migration-reason-parameters.patch
+mm-page_owner-hoist-config_memcg-to-function-level-for-print_page_owner_memcg.patch
+mm-page_owner-add-missing-newline-to-count_threshold-format-string.patch
+mm-page_owner-move-free_ts_nsec-output-to-free-section-in-__dump_page_owner.patch
+mm-page_owner-drop-redundant-page_owner-prefix-from-static-symbols.patch
 
