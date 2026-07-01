@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 60A6E349CC0
-	for <mm-commits@vger.kernel.org>; Wed,  1 Jul 2026 22:33:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6A6AA239085
+	for <mm-commits@vger.kernel.org>; Wed,  1 Jul 2026 22:34:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782945192; cv=none; b=da49hti/+NB/CY+eKMHL4ozci22VBlAKbQxP8bqqGju/lNKtfrd1CcpCDX0H0u55UG0/BeLfhg1emLTtrDgaq4xdb5jjGI6Jea2gWmlF6bpRRneekMgzv3F72LJs035sBa7uoZO6ySKq3sysWVyTgZV+tc0VJuv8MRuxducV+S8=
+	t=1782945245; cv=none; b=ZOvTl3W+IlDiANo3nuidRAqOaYg6YK7fNPFF4rim4ZsrGXSld4mVfeGpTHqoWnfCwCj/kBPsm2Z6lM8n1jYRvXDHme2duay9NXUj2nOye3XIWLxfAW+jXcT4wHp7b+b7E/ZXLqjzmtHjKC0DzGq9A8rItfNwrhtXhKw5nwBIA4w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782945192; c=relaxed/simple;
-	bh=hrVuCd7lCaDrpMeJMRpPDlscvpOHt7KaRtzrPNT1H9Q=;
-	h=Date:To:From:Subject:Message-Id; b=RzgodR0bkXHh8VmpCvcNv5pwv4Qh4f7msnD5Y4Dv8CCkAn/CIls3otxjsv3WKE3bBgIM81NVXFRYku9jyVJgnSHPndjGv2g2yfjsoHa7b5q2Qb0sI2Qym1pgExUO5D7nGVD/sWVUkpX/WwuVnmYGkOybqlmkoXOHsSXzj7XG/Ec=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=m+7hKFLN; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1782945245; c=relaxed/simple;
+	bh=Wx5rkICyp8zNh9Q1PMVTBDBWvt8ML/k3MEm8JB7x6JM=;
+	h=Date:To:From:Subject:Message-Id; b=ZQbHyQxQsU4nljB8Ixfhn5S18+ej5lTdDx1cafa7huyIaPbBlxcbvh7kaZ59wzfqzzCtzxFijEjhQNyq0kEMxozwxyOTgHW+Jkh+NFkzU/yC63GjZppFOuw/DqPz7t6K8PoDQyBom3TFxrpAVeZE2+4VeS5M2NRBvnKvCQwb3YQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FSCvaqrw; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="m+7hKFLN"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C716E1F00A3D;
-	Wed,  1 Jul 2026 22:33:10 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FSCvaqrw"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E47BD1F000E9;
+	Wed,  1 Jul 2026 22:34:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1782945190;
-	bh=Vg7DyVYHqmF8arogU4lc/rjR3tarn5IwEJMrnZxEn0Q=;
+	d=linux-foundation.org; s=korg; t=1782945244;
+	bh=4bOdziaasQ4ZOOORRQKbRza/0DQe3kaFHCVOwhCWkMw=;
 	h=Date:To:From:Subject;
-	b=m+7hKFLNXX3wKcMTFCPjtk5o6dGEXhqa8BzlHKACc5OP6DIFfuteOoIwFNPGA53Sa
-	 htI1nwGHl+fO+AjB6NsXsoOfKHum0Gw+oij8X8QzID7Iy51qEUfvfH1CnrVOy+k03F
-	 VYyWLHV6AgoNJU0LL1wovF4knmwl56tyYWdrGMAk=
-Date: Wed, 01 Jul 2026 15:33:10 -0700
-To: mm-commits@vger.kernel.org,gourry@gourry.net,akpm@linux-foundation.org
+	b=FSCvaqrw4J3etj0eiUZpv3S37VZthg7y8YOr6ojb7lYJuBn8s37+vahtJT4CpF+n5
+	 TrItWIshuJXTkMEw5hMFN0FSMqrd4PUkVSz1Wltj81RRzXJkfeZwNKTHtcsi0hixa2
+	 D4Q920GBg8ub388NbCDWXyyQF2MvTRdtuZQbDeHw=
+Date: Wed, 01 Jul 2026 15:34:03 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,sashiko-bot@kernel.org,rppt@kernel.org,osalvador@suse.de,mgorman@techsingularity.net,hannes@cmpxchg.org,david@kernel.org,gourry@gourry.net,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-mm_init-handle-alloc_percpu-failure-in-free_area_init_core_hotplug.patch removed from -mm tree
-Message-Id: <20260701223310.C716E1F00A3D@smtp.kernel.org>
+Subject: + mm-mm_init-handle-alloc_percpu-failure-in-free_area_init_core_hotplug.patch added to mm-new branch
+Message-Id: <20260701223403.E47BD1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,17 +34,44 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
+The patch titled
      Subject: mm/mm_init: handle alloc_percpu failure in free_area_init_core_hotplug
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm mm-new branch.  Its filename is
      mm-mm_init-handle-alloc_percpu-failure-in-free_area_init_core_hotplug.patch
 
-This patch was dropped because an updated version will be issued
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mm_init-handle-alloc_percpu-failure-in-free_area_init_core_hotplug.patch
+
+This patch will later appear in the mm-new branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
 ------------------------------------------------------
 From: Gregory Price <gourry@gourry.net>
 Subject: mm/mm_init: handle alloc_percpu failure in free_area_init_core_hotplug
-Date: Tue, 30 Jun 2026 17:40:39 -0400
+Date: Wed, 1 Jul 2026 18:16:13 -0400
 
 We miss a failed allocation check for pgdat->per_cpu_nodestats, which
 results in a NULL deref when we offset into the per-cpu area.
@@ -55,11 +82,17 @@ boot_nodestats so a later online can retry the allocation.
 hotadd_init_pgdat() returns NULL on failure, which __try_online_node()
 already maps to -ENOMEM.
 
-Assisted-by: Sashiko:unknown-model
-Link: https://lore.kernel.org/20260630214039.2263562-1-gourry@gourry.net
+On failure nothing needs to be unwound:
+  - the node is never marked online
+  - per_cpu_nodestats is left pointing at boot_nodestats
+  - __add_memory_resource() cleans up pending memblock resources
+  - later online attempts retry the per_cpu_nodestats allocation
+
+Link: https://lore.kernel.org/20260701221613.2818148-1-gourry@gourry.net
 Fixes: 75ef71840539 ("mm, vmstat: add infrastructure for per-node vmstats")
 Signed-off-by: Gregory Price <gourry@gourry.net>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Reported-by: Sashiko <sashiko-bot@kernel.org>
+Link: https://sashiko.dev/#/patchset/20260627202243.758289-1-gourry%40gourry.net
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Mel Gorman <mgorman@techsingularity.net>
@@ -81,7 +114,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  extern enum mmop mhp_get_default_online_type(void);
  extern void mhp_set_default_online_type(enum mmop online_type);
 -extern void __ref free_area_init_core_hotplug(struct pglist_data *pgdat);
-+extern int __ref free_area_init_core_hotplug(struct pglist_data *pgdat);
++int __ref free_area_init_core_hotplug(struct pglist_data *pgdat);
  extern int __add_memory(int nid, u64 start, u64 size, mhp_t mhp_flags);
  extern int add_memory(int nid, u64 start, u64 size, mhp_t mhp_flags);
  extern int add_memory_resource(int nid, struct resource *resource,
@@ -140,4 +173,5 @@ Patches currently in -mm which might be from gourry@gourry.net are
 
 mm-vmstat-fold-stranded-per-cpu-node-stats-when-a-node-comes-online.patch
 mm-constify-oom_control-scan_control-and-alloc_context-nodemask.patch
+mm-mm_init-handle-alloc_percpu-failure-in-free_area_init_core_hotplug.patch
 
