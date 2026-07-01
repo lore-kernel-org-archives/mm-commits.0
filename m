@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 716FC38331D
-	for <mm-commits@vger.kernel.org>; Wed,  1 Jul 2026 04:11:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 255612E7F17
+	for <mm-commits@vger.kernel.org>; Wed,  1 Jul 2026 05:20:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782879074; cv=none; b=aBOR748ynfKTpTidF6NITuqic2TFNKIR86zd5Mz2zz/+zlWbIPXQBL1KEJv8mldKmddOVJ5lw6VTrfXFd0mrYaVY8QRjCEGCkSLhpIPtn2j2rEH6deAukeK7aJqkiJ11jghomJsYg1MWb5qA7OxNOKNGSx8h3rAcihNs6TBcpQ4=
+	t=1782883249; cv=none; b=gDL0cNrmfuYH15M1ek8itbE2fdQJUm7Di1lWszCaQXVPJhdVfvV7GxWo2JCzlTGLjbccvEnBsyCtdaPuYwDxIMCAvi1IP1mzMkrjgCfZtcDIUCt9BaHlJR41w5DWqRfki6cuFWGBQGm4pHfPuJgVdnZdkUu+hE6zj0ZK6cftujw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782879074; c=relaxed/simple;
-	bh=RIqZcZ9zyrRPZJqgmdqdEAT57VY3wOGOHOhQhWHzfuU=;
-	h=Date:To:From:Subject:Message-Id; b=nlyZCcTaN4rJWJjCo1cuuQReQu4rLAqTqocyD6RiO7CzSS/uX6O9bntilmdUUwGLk+yA9MVfYzyTdyKumSSQqj4O+09hXP6qdJZxiAacr8UWg6DjU2MJPWQ6uUrg5uUGkO4WSBJSj8LEvvv++EcoAhrnMECd0Gcco3wl9kNs7S8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sRJq8+qY; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1782883249; c=relaxed/simple;
+	bh=qZCjuH5fOjyWAgVYLuiKWev4gVw0Wz3DCn9VC0BYShs=;
+	h=Date:To:From:Subject:Message-Id; b=S1xJTATLn+M3JVkahJpOHu+TZU67dI62KdF7VtIMKfF2iW+UfgnuQLjcdhjd+kyFp66M7Y+wSTsVjEx2pXp4FQX1doGzMDmxVKMxeRvVU7pSRH67xeosC2OwuSm7Td3deYuSvJc1pzzH8HSsNuw+Iudpw07HaEJYmUOVjzWEZ3U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2UkXuX1+; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sRJq8+qY"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B77681F00A3A;
-	Wed,  1 Jul 2026 04:11:05 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2UkXuX1+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CB8FC1F00A3F;
+	Wed,  1 Jul 2026 05:20:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1782879065;
-	bh=zmc7CKOzWoLPyIz1hE1787NC2SNn2inaJ2UI/NuPQrg=;
+	d=linux-foundation.org; s=korg; t=1782883247;
+	bh=JLLoymwClW1EdeakQxmx/4gXxSWOHSShkJUVtzpS9FA=;
 	h=Date:To:From:Subject;
-	b=sRJq8+qY0t+o5I2xYsd1+VFo8Yo5S6lcBl5pw+TY3+rKyZhy7B+L5Y0WowhJYN+K8
-	 HmRUUcBEhDKAJQ6B2rStbaX8ieJJqhREjoVroAQIZXe9RuMOiAspUkYKV+jH0p6XSs
-	 cqhR65oyPOxA9n33H+Cydrdl4r2CO9KYSmB4MjTk=
-Date: Tue, 30 Jun 2026 21:11:05 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,rppt@kernel.org,palmer@dabbelt.com,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,alex@ghiti.fr,wangruikang@iscas.ac.cn,akpm@linux-foundation.org
+	b=2UkXuX1+xAZ+A5A6e+bfQBbWj/Ews0YJyD7jkNhxuPLF5jpldqTfYT7NzHcBGaMXu
+	 o/izYnD0K5D808OmD/99V1t7bJpGbs/6riuhfJq94gSaXSYZLOLKSSDnPJi6MZYfmj
+	 ZPpk7Vm/37FP7dP5POctqsGLTxreP8gPj1KAK08I=
+Date: Tue, 30 Jun 2026 22:20:47 -0700
+To: mm-commits@vger.kernel.org,zwisler@google.com,yury.khrustalev@arm.com,vbabka@kernel.org,usama.anjum@collabora.com,surenb@google.com,shuah@kernel.org,rppt@kernel.org,mhocko@suse.com,maddy@linux.ibm.com,ljs@kernel.org,liam@infradead.org,kevin.brodsky@arm.com,keith.lucas@oracle.com,joey.gouly@arm.com,jhubbard@nvidia.com,david@kernel.org,lihongfu@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + riscv-mm-avoid-spurious-fault-after-hotplugging-vmemmap.patch added to mm-nonmm-unstable branch
-Message-Id: <20260701041105.B77681F00A3A@smtp.kernel.org>
+Subject: + selftests-mm-move-pkey-selftest-helpers-to-pkey_utilc.patch added to mm-new branch
+Message-Id: <20260701052047.CB8FC1F00A3F@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,26 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: riscv: mm: avoid spurious fault after hotplugging vmemmap
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     riscv-mm-avoid-spurious-fault-after-hotplugging-vmemmap.patch
+     Subject: selftests/mm: move pkey selftest helpers to pkey_util.c
+has been added to the -mm mm-new branch.  Its filename is
+     selftests-mm-move-pkey-selftest-helpers-to-pkey_utilc.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/riscv-mm-avoid-spurious-fault-after-hotplugging-vmemmap.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-move-pkey-selftest-helpers-to-pkey_utilc.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,98 +69,262 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Vivian Wang <wangruikang@iscas.ac.cn>
-Subject: riscv: mm: avoid spurious fault after hotplugging vmemmap
-Date: Tue, 30 Jun 2026 15:51:59 +0800
+From: Hongfu Li <lihongfu@kylinos.cn>
+Subject: selftests/mm: move pkey selftest helpers to pkey_util.c
+Date: Tue, 30 Jun 2026 15:32:31 +0800
 
-section_activate() does not flush TLB after populating new vmemmap pages. 
-On most architectures, this is okay.  However it is a problem on RISC-V
-since there the TLB caching non-present entries is permitted, which causes
-spurious faults on some hardwares.
+Patch series "selftests/mm: refactor pkey helpers and fix mmap error
+handling", v8.
 
-This seems to be most easily reproduced with DEBUG_VM=y and
-PAGE_POISONING=y, which causes these newly mapped struct pages to be
-poisoned i.e.  written to immediately after mapping.
+The main changes in this series are to refactor shared tracing and
+assertion helpers into a common file, unify both pkey selftests on
+pkey_assert() and per-test tracing for consistent diagnostics, and add
+missing mmap() return checks with MAP_FAILED used throughout for
+readability and consistency.
 
-Add a hook vmemmap_populate_finalize() in __populate_section_memmap()
-after population, to allow architectures to handle such situations as
-needed.  Then implement it on RISC-V to arrange for the existing exception
-handler code to deal with these faults if they happen.
 
-Link: https://lore.kernel.org/20260630-mark-after-vmemmap-populate-v4-1-febbc15da028@iscas.ac.cn
-Signed-off-by: Vivian Wang <wangruikang@iscas.ac.cn>
-Cc: Alexandre Ghiti <alex@ghiti.fr>
+This patch (of 5):
+
+Move pkey selftest debugging helpers into shared code so both pkey
+selftests can use the same tracing and abort-hook logic.
+
+Link: https://lore.kernel.org/20260630073235.3802271-1-lihongfu@kylinos.cn
+Link: https://lore.kernel.org/20260630073235.3802271-2-lihongfu@kylinos.cn
+Signed-off-by: Hongfu Li <lihongfu@kylinos.cn>
+Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Acked-by: Liam R. Howlett (Oracle) <liam@infradead.org>
 Cc: David Hildenbrand <david@kernel.org>
-Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Joey Gouly <joey.gouly@arm.com>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Keith Lucas <keith.lucas@oracle.com>
+Cc: Kevin Brodsky <kevin.brodsky@arm.com>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
 Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Palmer Dabbelt <palmer@dabbelt.com>
+Cc: Muhammad Usama Anjum <usama.anjum@collabora.com>
+Cc: Ross Zwisler <zwisler@google.com>
+Cc: Shuah Khan <shuah@kernel.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Yury Khrustalev <yury.khrustalev@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/riscv/include/asm/pgtable.h |    4 ++++
- arch/riscv/mm/init.c             |    6 ++++++
- mm/sparse-vmemmap.c              |    8 ++++++++
- 3 files changed, 18 insertions(+)
+ tools/testing/selftests/mm/pkey-helpers.h    |    4 
+ tools/testing/selftests/mm/pkey_util.c       |   86 +++++++++++++++++
+ tools/testing/selftests/mm/protection_keys.c |   83 ----------------
+ 3 files changed, 89 insertions(+), 84 deletions(-)
 
---- a/arch/riscv/include/asm/pgtable.h~riscv-mm-avoid-spurious-fault-after-hotplugging-vmemmap
-+++ a/arch/riscv/include/asm/pgtable.h
-@@ -1260,6 +1260,10 @@ static inline pte_t pte_swp_clear_exclus
- #define TASK_SIZE	FIXADDR_START
- #endif
+--- a/tools/testing/selftests/mm/pkey-helpers.h~selftests-mm-move-pkey-selftest-helpers-to-pkey_utilc
++++ a/tools/testing/selftests/mm/pkey-helpers.h
+@@ -68,7 +68,9 @@ static inline void sigsafe_printf(const
+ #define dprintf3(args...) dprintf_level(3, args)
+ #define dprintf4(args...) dprintf_level(4, args)
  
-+/* Needed on SPARSEMEM_VMEMMAP */
-+#define vmemmap_populate_finalize vmemmap_populate_finalize
-+void __meminit vmemmap_populate_finalize(void);
-+
- #else /* CONFIG_MMU */
+-extern void abort_hooks(void);
++void tracing_on(void);
++void tracing_off(void);
++void abort_hooks(void);
+ #define pkey_assert(condition) do {		\
+ 	if (!(condition)) {			\
+ 		dprintf0("# assert() at %s::%d test_nr: %d iteration: %d\n", \
+--- a/tools/testing/selftests/mm/pkey_util.c~selftests-mm-move-pkey-selftest-helpers-to-pkey_utilc
++++ a/tools/testing/selftests/mm/pkey_util.c
+@@ -2,9 +2,95 @@
+ #define __SANE_USERSPACE_TYPES__
+ #include <sys/syscall.h>
+ #include <unistd.h>
++#include <fcntl.h>
++#include <stdio.h>
++#include <string.h>
  
- #define PAGE_SHARED		__pgprot(0)
---- a/arch/riscv/mm/init.c~riscv-mm-avoid-spurious-fault-after-hotplugging-vmemmap
-+++ a/arch/riscv/mm/init.c
-@@ -1372,6 +1372,12 @@ int __meminit vmemmap_populate(unsigned
- 	 */
- 	return vmemmap_populate_hugepages(start, end, node, altmap);
- }
-+
-+void __meminit vmemmap_populate_finalize(void)
+ #include "pkey-helpers.h"
+ 
++#if CONTROL_TRACING > 0
++static void cat_into_file(char *str, char *file)
 +{
-+	/* Avoid faults on cached non-present TLB entries. */
-+	mark_new_valid_map();
++	int fd = open(file, O_RDWR);
++	int ret;
++
++	dprintf2("%s(): writing '%s' to '%s'\n", __func__, str, file);
++	/*
++	 * these need to be raw because they are called under
++	 * pkey_assert()
++	 */
++	if (fd < 0) {
++		fprintf(stderr, "error opening '%s'\n", str);
++		perror("error: ");
++		exit(__LINE__);
++	}
++
++	ret = write(fd, str, strlen(str));
++	if (ret != strlen(str)) {
++		perror("write to file failed");
++		fprintf(stderr, "filename: '%s' str: '%s'\n", file, str);
++		exit(__LINE__);
++	}
++	close(fd);
 +}
- #endif
- 
- #if defined(CONFIG_MMU) && defined(CONFIG_64BIT)
---- a/mm/sparse-vmemmap.c~riscv-mm-avoid-spurious-fault-after-hotplugging-vmemmap
-+++ a/mm/sparse-vmemmap.c
-@@ -544,6 +544,12 @@ static int __meminit vmemmap_populate_co
- 
- #endif
- 
-+#ifndef vmemmap_populate_finalize
-+static void __meminit vmemmap_populate_finalize(void)
++
++static int warned_tracing;
++static int tracing_root_ok(void)
 +{
++	if (geteuid() != 0) {
++		if (!warned_tracing)
++			fprintf(stderr, "WARNING: not run as root, "
++					"can not do tracing control\n");
++		warned_tracing = 1;
++		return 0;
++	}
++	return 1;
 +}
 +#endif
 +
- struct page * __meminit __populate_section_memmap(unsigned long pfn,
- 		unsigned long nr_pages, int nid, struct vmem_altmap *altmap,
- 		struct dev_pagemap *pgmap)
-@@ -564,6 +570,8 @@ struct page * __meminit __populate_secti
- 	if (r < 0)
- 		return NULL;
- 
-+	vmemmap_populate_finalize();
++void tracing_on(void)
++{
++#if CONTROL_TRACING > 0
++#define TRACEDIR "/sys/kernel/tracing"
++	char pidstr[32];
 +
- 	return pfn_to_page(pfn);
++	if (!tracing_root_ok())
++		return;
++
++	sprintf(pidstr, "%d", getpid());
++	cat_into_file("0", TRACEDIR "/tracing_on");
++	cat_into_file("\n", TRACEDIR "/trace");
++	if (1) {
++		cat_into_file("function_graph", TRACEDIR "/current_tracer");
++		cat_into_file("1", TRACEDIR "/options/funcgraph-proc");
++	} else {
++		cat_into_file("nop", TRACEDIR "/current_tracer");
++	}
++	cat_into_file(pidstr, TRACEDIR "/set_ftrace_pid");
++	cat_into_file("1", TRACEDIR "/tracing_on");
++	dprintf1("enabled tracing\n");
++#endif
++}
++
++void tracing_off(void)
++{
++#if CONTROL_TRACING > 0
++	if (!tracing_root_ok())
++		return;
++	cat_into_file("0", "/sys/kernel/tracing/tracing_on");
++#endif
++}
++
++void abort_hooks(void)
++{
++	fflush(stdout);
++	fprintf(stderr, "running %s()...\n", __func__);
++	tracing_off();
++#ifdef SLEEP_ON_ABORT
++	sleep(SLEEP_ON_ABORT);
++#endif
++}
++
+ int sys_pkey_alloc(unsigned long flags, unsigned long init_val)
+ {
+ 	int ret = syscall(SYS_pkey_alloc, flags, init_val);
+--- a/tools/testing/selftests/mm/protection_keys.c~selftests-mm-move-pkey-selftest-helpers-to-pkey_utilc
++++ a/tools/testing/selftests/mm/protection_keys.c
+@@ -62,89 +62,6 @@ noinline int read_ptr(int *ptr)
+ 	return *ptr;
  }
  
+-#if CONTROL_TRACING > 0
+-static void cat_into_file(char *str, char *file)
+-{
+-	int fd = open(file, O_RDWR);
+-	int ret;
+-
+-	dprintf2("%s(): writing '%s' to '%s'\n", __func__, str, file);
+-	/*
+-	 * these need to be raw because they are called under
+-	 * pkey_assert()
+-	 */
+-	if (fd < 0) {
+-		fprintf(stderr, "error opening '%s'\n", str);
+-		perror("error: ");
+-		exit(__LINE__);
+-	}
+-
+-	ret = write(fd, str, strlen(str));
+-	if (ret != strlen(str)) {
+-		perror("write to file failed");
+-		fprintf(stderr, "filename: '%s' str: '%s'\n", file, str);
+-		exit(__LINE__);
+-	}
+-	close(fd);
+-}
+-
+-static int warned_tracing;
+-static int tracing_root_ok(void)
+-{
+-	if (geteuid() != 0) {
+-		if (!warned_tracing)
+-			fprintf(stderr, "WARNING: not run as root, "
+-					"can not do tracing control\n");
+-		warned_tracing = 1;
+-		return 0;
+-	}
+-	return 1;
+-}
+-#endif
+-
+-static void tracing_on(void)
+-{
+-#if CONTROL_TRACING > 0
+-#define TRACEDIR "/sys/kernel/tracing"
+-	char pidstr[32];
+-
+-	if (!tracing_root_ok())
+-		return;
+-
+-	sprintf(pidstr, "%d", getpid());
+-	cat_into_file("0", TRACEDIR "/tracing_on");
+-	cat_into_file("\n", TRACEDIR "/trace");
+-	if (1) {
+-		cat_into_file("function_graph", TRACEDIR "/current_tracer");
+-		cat_into_file("1", TRACEDIR "/options/funcgraph-proc");
+-	} else {
+-		cat_into_file("nop", TRACEDIR "/current_tracer");
+-	}
+-	cat_into_file(pidstr, TRACEDIR "/set_ftrace_pid");
+-	cat_into_file("1", TRACEDIR "/tracing_on");
+-	dprintf1("enabled tracing\n");
+-#endif
+-}
+-
+-static void tracing_off(void)
+-{
+-#if CONTROL_TRACING > 0
+-	if (!tracing_root_ok())
+-		return;
+-	cat_into_file("0", "/sys/kernel/tracing/tracing_on");
+-#endif
+-}
+-
+-void abort_hooks(void)
+-{
+-	fflush(stdout);
+-	fprintf(stderr, "running %s()...\n", __func__);
+-	tracing_off();
+-#ifdef SLEEP_ON_ABORT
+-	sleep(SLEEP_ON_ABORT);
+-#endif
+-}
+-
+ /*
+  * This attempts to have roughly a page of instructions followed by a few
+  * instructions that do a write, and another page of instructions.  That
 _
 
-Patches currently in -mm which might be from wangruikang@iscas.ac.cn are
+Patches currently in -mm which might be from lihongfu@kylinos.cn are
 
-riscv-mm-avoid-spurious-fault-after-hotplugging-vmemmap.patch
+selftests-mm-move-pkey-selftest-helpers-to-pkey_utilc.patch
+selftests-mm-unify-pkey-sighandler-selftest-assertions-and-tracing.patch
+selftests-mm-use-pkey_assert-on-clone_raw-failure-in-pkey-test.patch
+selftests-mm-add-missing-mmap-return-checks-in-pkey-tests.patch
+selftests-mm-add-missing-pthread_create-return-checks-in-pkey-tests.patch
 
