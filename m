@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2434E3B47F7
-	for <mm-commits@vger.kernel.org>; Wed,  1 Jul 2026 23:57:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4133B3A3E76
+	for <mm-commits@vger.kernel.org>; Wed,  1 Jul 2026 23:57:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782950249; cv=none; b=k76nJhtsBzBooCQ78sPdKZ42DZUB5oDRzu6YengCS0gXmKF0ICOLg2QG5d0djnR70MXmfmVUFNGr74QvQG8q2wJt/DIdKmjBHflvv44VQxUo9NJjGQ/aorQ6KUGLwOBH3+3fdOrt6H9FgmSt5X1fwuhHrUx0nWqKslMJ6yC5sCQ=
+	t=1782950252; cv=none; b=Q9v6tNtgis1ICew2NZUj6bVJhM8gj9gIp8prHh8XwblpJj+leQkUinaq7kOBRVR6bCp6k9Iq3QRbbTeZS1A7XrGkos5Eq5NpWBoGKJH4DwS6hXlxncrtwAk5uPp1k07olFXUvZGA782rqw5RrmkXg6IDyV03MicDba2heX6R7Gs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782950249; c=relaxed/simple;
-	bh=s1CRqUjk4gKgCruhc50e4RwgAQqaoI4vE5peUppoQj8=;
-	h=Date:To:From:Subject:Message-Id; b=lFfURO3TvqCckPZj34pFZFmn1AmQXbkqXLEY+NnPGfEd9RAISAChVRjhvySLrEUlMk6tOB1dkJf9lJkEa9/0katzpi5DdmetyYsUgrX+fd4uXwc6fYoOuHdX/LJMgtdVNKQPz6pHYzJ5sWKSYMVLZ7Rp7o9IEP9RAgTl/J5sOcw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Red0Di+2; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1782950252; c=relaxed/simple;
+	bh=AGXkKcWL/8K6fdhzhIeH9htW3JQGg/Ypv/gvGY31HFM=;
+	h=Date:To:From:Subject:Message-Id; b=DyhFaCuP5CdeNUuX2firSUC3WeX3XNjrdS5xiJLHiQM1j+PQ5P4Mql02LXIZyPgd4ENBz+rCNiqqNK2MDCe8Lghm9HkUFKVnrjN2P41dhoO//No6mFvvKBHNr9s9SEtVFpSa0os6u0Vi4Ew96KPMOP0H01HhyMM4NYUhxl/t+uo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SpOuy32i; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Red0Di+2"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C538D1F00A3A;
-	Wed,  1 Jul 2026 23:57:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SpOuy32i"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C92291F00A3A;
+	Wed,  1 Jul 2026 23:57:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1782950247;
-	bh=SbVLe7AZm5RYXvk3KCYZ0+gTO1JCOxGhDsqAs+b/0r4=;
+	d=linux-foundation.org; s=korg; t=1782950250;
+	bh=8jzzSo3XYPO8wz/ZzMO/DJpAdNLD21G9iMopv8eLZ+8=;
 	h=Date:To:From:Subject;
-	b=Red0Di+22VKeJFIKBFCX1imlvqH0fQIzE3LDB9njHkdDbXQZZAEbDRsJVi6s7Z+qO
-	 LXtU/RMEqyVXbuBY0Cug5IBxBNllgCyedoRKe4kozipm4TOfXw67F62ROCLbdLk3gI
-	 CMrftEDe+S/Ci+nG8iR4ny81LRT1WXzur6y0ApPw=
-Date: Wed, 01 Jul 2026 16:57:27 -0700
+	b=SpOuy32iUqnxDXwOoOIimge/Qd4V3cSXGCrXIIJER4IllvMrqy0t1FNp2NTREBR27
+	 dXvJF7eqejYGkwnJzQMtVgR4MNtFr4L5+y5RCjLZARn2MC+OqkSvSbofr2CzsSIdpW
+	 CLn9bhv3JVMIBOofXIW1/hzu3vGjnWVoPIrcdOsw=
+Date: Wed, 01 Jul 2026 16:57:30 -0700
 To: mm-commits@vger.kernel.org,ye.liu@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-page_owner-hoist-config_memcg-to-function-level-for-print_page_owner_memcg.patch removed from -mm tree
-Message-Id: <20260701235727.C538D1F00A3A@smtp.kernel.org>
+Subject: [to-be-updated] mm-page_owner-move-free_ts_nsec-output-to-free-section-in-__dump_page_owner.patch removed from -mm tree
+Message-Id: <20260701235730.C92291F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,28 +35,31 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/page_owner: hoist CONFIG_MEMCG to function level for print_page_owner_memcg()
+     Subject: mm/page_owner: move free_ts_nsec output to free section in __dump_page_owner()
 has been removed from the -mm tree.  Its filename was
-     mm-page_owner-hoist-config_memcg-to-function-level-for-print_page_owner_memcg.patch
+     mm-page_owner-move-free_ts_nsec-output-to-free-section-in-__dump_page_owner.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
 From: Ye Liu <ye.liu@linux.dev>
-Subject: mm/page_owner: hoist CONFIG_MEMCG to function level for print_page_owner_memcg()
-Date: Wed, 1 Jul 2026 09:22:30 +0800
+Subject: mm/page_owner: move free_ts_nsec output to free section in __dump_page_owner()
+Date: Wed, 1 Jul 2026 09:22:32 +0800
 
-The print_page_owner_memcg() function has CONFIG_MEMCG guarding its entire
-body via #ifdef inside the function, which leaves a no-op { return ret; }
-when the config is disabled.  Hoist the #ifdef to the top level so the
-real implementation and the empty stub are two clearly separated
-definitions.
+The free_ts_nsec field is a free-event timestamp, but it was printed in
+the allocation summary line alongside ts_nsec (allocation time).  Move it
+to the free section where it logically belongs, together with free_pid and
+free_tgid.  This also makes __dump_page_owner() consistent with
+print_page_owner(), which only prints ts_nsec in the allocation summary.
 
-No functional change.
+The output now groups all free-related information (pid, tgid, timestamp,
+stack trace) in one place.
 
-Link: https://lore.kernel.org/20260701012239.315262-5-ye.liu@linux.dev
+No functional change except output formatting.
+
+Link: https://lore.kernel.org/20260701012239.315262-7-ye.liu@linux.dev
 Signed-off-by: Ye Liu <ye.liu@linux.dev>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
+Acked-by: Zi Yan <ziy@nvidia.com>
 Reviewed-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
 Cc: Brendan Jackman <jackmanb@google.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
@@ -65,49 +68,39 @@ Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_owner.c |   10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+ mm/page_owner.c |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
---- a/mm/page_owner.c~mm-page_owner-hoist-config_memcg-to-function-level-for-print_page_owner_memcg
+--- a/mm/page_owner.c~mm-page_owner-move-free_ts_nsec-output-to-free-section-in-__dump_page_owner
 +++ a/mm/page_owner.c
-@@ -522,13 +522,13 @@ ext_put_continue:
- 	seq_putc(m, '\n');
- }
+@@ -653,10 +653,10 @@ void __dump_page_owner(const struct page
+ 	else
+ 		pr_alert("page_owner tracks the page as freed\n");
  
-+#ifdef CONFIG_MEMCG
- /*
-  * Looking for memcg information and print it out
-  */
- static inline int print_page_owner_memcg(char *kbuf, size_t count, int ret,
- 					 struct page *page)
- {
--#ifdef CONFIG_MEMCG
- 	unsigned long memcg_data;
- 	struct mem_cgroup *memcg;
- 	bool online;
-@@ -556,10 +556,16 @@ static inline int print_page_owner_memcg
- 			name);
- out_unlock:
- 	rcu_read_unlock();
--#endif /* CONFIG_MEMCG */
+-	pr_alert("page last allocated via order %u, migratetype %s, gfp_mask %#x(%pGg), pid %d, tgid %d (%s), ts %llu, free_ts %llu\n",
++	pr_alert("page last allocated via order %u, migratetype %s, gfp_mask %#x(%pGg), pid %d, tgid %d (%s), ts %llu\n",
+ 		 page_owner->order, migratetype_names[mt], gfp_mask, &gfp_mask,
+ 		 page_owner->pid, page_owner->tgid, page_owner->comm,
+-		 page_owner->ts_nsec, page_owner->free_ts_nsec);
++		 page_owner->ts_nsec);
  
- 	return ret;
- }
-+#else
-+static inline int print_page_owner_memcg(char *kbuf, size_t count, int ret,
-+					 struct page *page)
-+{
-+	return ret;
-+}
-+#endif
+ 	handle = READ_ONCE(page_owner->handle);
+ 	if (!handle)
+@@ -668,8 +668,9 @@ void __dump_page_owner(const struct page
+ 	if (!handle) {
+ 		pr_alert("page_owner free stack trace missing\n");
+ 	} else {
+-		pr_alert("page last free pid %d tgid %d stack trace:\n",
+-			  page_owner->free_pid, page_owner->free_tgid);
++		pr_alert("page last free pid %d tgid %d ts %llu stack trace:\n",
++			  page_owner->free_pid, page_owner->free_tgid,
++			  page_owner->free_ts_nsec);
+ 		stack_depot_print(handle);
+ 	}
  
- static ssize_t
- print_page_owner(char __user *buf, size_t count, unsigned long pfn,
 _
 
 Patches currently in -mm which might be from ye.liu@linux.dev are
 
-mm-page_owner-add-missing-newline-to-count_threshold-format-string.patch
-mm-page_owner-move-free_ts_nsec-output-to-free-section-in-__dump_page_owner.patch
 mm-page_owner-drop-redundant-page_owner-prefix-from-static-symbols.patch
 
