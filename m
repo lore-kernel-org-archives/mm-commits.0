@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1DF8228504D
-	for <mm-commits@vger.kernel.org>; Wed,  1 Jul 2026 05:24:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0DE2E28504D
+	for <mm-commits@vger.kernel.org>; Wed,  1 Jul 2026 05:25:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782883452; cv=none; b=qnbCmDElFu+4egPVXI1SYtaqmJHV46zriW7vaHexi3KITMlldmdckBGlOGw44btOeELiIIId+qCd9S1q4XPBkn+T+SYW9r0GJWHZGeaZnvhfxfVHKw0frcz7LcMAnZx+gMbaVcMtHP1u9Kw9AwZoKRleUTkw2O/K9FSZPbm/n/Q=
+	t=1782883521; cv=none; b=fnDINDjosvkcbjBAs52Oetk6a7sL7Zvbty4MqQSUMBdYhLI58M4j1RqAGozWVnuBcO9Rba9I00pSj6WgyMaCqXEn8WqatXnfpae5xgZxC+XUX4qQpocsJY513XEcYBvKr9iLk060t7mxa++i8l5ITgFNcelErCaBuanvdWQjQSc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782883452; c=relaxed/simple;
-	bh=XX6bYupslr946BCUMUG8eIDlcEEQPOFPanzWgjKCiJc=;
-	h=Date:To:From:Subject:Message-Id; b=gIN9VB1jnXNd5bbu2QGjy/QjtBT1KB3OHDcMOl/FWb/OCqvjzYK+k/dTfWfISKkXVNUFMjrW3vNfFMJMUkwzUX3kZtds0mu999irk+rG11QKOWxU4uGLxD4ol7G5E34d+C1IJo1WNflFfs7N1cHOBM+Qf8Whroo5gf/CUyTojJI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PTodkF0x; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1782883521; c=relaxed/simple;
+	bh=t1iKFvZwyTqqF3kxPQ7HylMt3XBDCdpc2jX5SlAEpf8=;
+	h=Date:To:From:Subject:Message-Id; b=boFIraduDqOlwsQpcTGUBY0bKiOOV9xgYS7nBr06K3LY1JFOp46wEUnpmx+E9kRzmcb1RGkvyPuQ/W6F5YfIZ0MfVqyvhbjS7gQBsaK43vOJ06f0NofCs+54sP0d4ojgRNk81qjbTaZ37so0uOHrtw69GQcdtbM4ByGvFW/xgGc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=U8Gbtu5H; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PTodkF0x"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A98E31F000E9;
-	Wed,  1 Jul 2026 05:24:10 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="U8Gbtu5H"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 89C191F000E9;
+	Wed,  1 Jul 2026 05:25:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1782883450;
-	bh=gg+VxDE8tFqGB8PO9VHtkwVy0hwhJO9jYWrcVFXq4z4=;
+	d=linux-foundation.org; s=korg; t=1782883519;
+	bh=x4WaaGsXgC3hbvnux/abCtBPYGh4uBQDfhQtjze3XGA=;
 	h=Date:To:From:Subject;
-	b=PTodkF0xa6cMb7kORCGV4KK0nlzz3y/WMGfQFLBXkiqPAtmKvtBe8mJnWPBKM57an
-	 n7tFM75dDLt3/84pFHXxeoY7xL0MnfvDZ94V3JvYvKbeMc8fwv59dFOIjTT1rhlCJV
-	 Hmh+Hnl33DNPWcn2bJ26+SJhK0+R7NMUcxKcJxP0=
-Date: Tue, 30 Jun 2026 22:24:10 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,zhuhui@kylinos.cn,akpm@linux-foundation.org
+	b=U8Gbtu5HpS8szauLV41vrsGADCzO3f+N9g+zyKqBb7wg62ZAvBYmCeGFtYZCZ1wVM
+	 CFvYSTKiyShds7hhkf9Znssi3tSuvSaquZ5hxRoZo4zIdeJ5Z/VNoJp2lrhbrB66dF
+	 GAHgzNncJwYcvkfHO2LQz3rew69I+OguZV6PTPDs=
+Date: Tue, 30 Jun 2026 22:25:19 -0700
+To: mm-commits@vger.kernel.org,yuanchu@google.com,weixugc@google.com,vbabka@kernel.org,surenb@google.com,shakeel.butt@linux.dev,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,kasong@tencent.com,david@kernel.org,baohua@kernel.org,axelrasmussen@google.com,zhuhui@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-avoid-kcsan-false-positive-in-memdesc_nid.patch removed from -mm tree
-Message-Id: <20260701052410.A98E31F000E9@smtp.kernel.org>
+Subject: + mm-fix-assert_exclusive_bits-by-passing-memdesc_flags_t-by-pointer.patch added to mm-new branch
+Message-Id: <20260701052519.89C191F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,59 +34,332 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: mm: avoid KCSAN false positive in memdesc_nid()
-has been removed from the -mm tree.  Its filename was
-     mm-avoid-kcsan-false-positive-in-memdesc_nid.patch
+The patch titled
+     Subject: mm: fix ASSERT_EXCLUSIVE_BITS by passing memdesc_flags_t by pointer
+has been added to the -mm mm-new branch.  Its filename is
+     mm-fix-assert_exclusive_bits-by-passing-memdesc_flags_t-by-pointer.patch
 
-This patch was dropped because an updated version will be issued
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-fix-assert_exclusive_bits-by-passing-memdesc_flags_t-by-pointer.patch
+
+This patch will later appear in the mm-new branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
 ------------------------------------------------------
 From: Hui Zhu <zhuhui@kylinos.cn>
-Subject: mm: avoid KCSAN false positive in memdesc_nid()
-Date: Tue, 23 Jun 2026 16:44:32 +0800
+Subject: mm: fix ASSERT_EXCLUSIVE_BITS by passing memdesc_flags_t by pointer
+Date: Tue, 30 Jun 2026 15:08:10 +0800
 
-KCSAN reports a data race between page_to_nid()/folio_nid() reading
+KCSAN reports a data race between page_to_nid()/folio_pgdat() reading
 page->flags and folio_trylock()/folio_lock() concurrently doing
 test_and_set_bit_lock(PG_locked, ...) on the same word, e.g.:
 
   BUG: KCSAN: data-race in __lruvec_stat_mod_folio / shmem_get_folio_gfp
 
-The node id occupies a fixed bit-range of page->flags that is set once at
-page init and never modified afterwards, so it can never overlap with the
-low PG_locked/PG_waiters bits touched by the folio lock path.
+The race is benign: nid/zone bits are set once at page init and never
+overlap with PG_locked.  However, ASSERT_EXCLUSIVE_BITS() inside
+memdesc_nid/zonenum() was checking a by-value copy of the flags word, not
+the live page->flags, so it failed to annotate the real access.
 
-Use ASSERT_EXCLUSIVE_BITS() in memdesc_nid() to scope the exemption to
-just the node-id bits, consistent with how memdesc_zonenum() already
-handles the same class of race for the zone-id bits.
+Change memdesc_nid(), memdesc_zonenum(), memdesc_section(), and
+memdesc_is_zone_device() to take a const memdesc_flags_t * and update all
+callers to pass &page->flags / &folio->flags, so ASSERT_EXCLUSIVE_BITS()
+operates on the actual shared word.
 
-Link: https://lore.kernel.org/20260623084432.701120-1-hui.zhu@linux.dev
+Guard the ASSERT_EXCLUSIVE_BITS() calls in memdesc_zonenum() and
+memdesc_section() under ZONES_WIDTH != 0 / SECTIONS_WIDTH != 0 to avoid a
+zero-mask check on configs where the corresponding field is absent.  Under
+CONFIG_NUMA=n, stub out page_to_nid() and folio_nid() as plain "return 0"
+instead of reading page->flags when NODES_MASK is 0 and the check can
+never fire.
+
+Link: https://lore.kernel.org/20260630070810.470763-1-hui.zhu@linux.dev
 Signed-off-by: Hui Zhu <zhuhui@kylinos.cn>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Co-developed-by: David Hildenbrand (Arm) <david@kernel.org>
+Signed-off-by: David Hildenbrand (Arm) <david@kernel.org>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Kairui Song <kasong@tencent.com>
 Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Wei Xu <weixugc@google.com>
+Cc: Yuanchu Xie <yuanchu@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    1 +
- 1 file changed, 1 insertion(+)
+ include/asm-generic/memory_model.h |    2 -
+ include/linux/mm.h                 |   42 +++++++++++++++++++++------
+ include/linux/mm_inline.h          |    4 +-
+ include/linux/mmzone.h             |   26 +++++++++-------
+ mm/page_alloc.c                    |    6 +--
+ mm/slab.h                          |    2 -
+ mm/sparse.c                        |    2 -
+ 7 files changed, 56 insertions(+), 28 deletions(-)
 
---- a/include/linux/mm.h~mm-avoid-kcsan-false-positive-in-memdesc_nid
+--- a/include/asm-generic/memory_model.h~mm-fix-assert_exclusive_bits-by-passing-memdesc_flags_t-by-pointer
++++ a/include/asm-generic/memory_model.h
+@@ -53,7 +53,7 @@ static inline int pfn_valid(unsigned lon
+  */
+ #define __page_to_pfn(pg)					\
+ ({	const struct page *__pg = (pg);				\
+-	int __sec = memdesc_section(__pg->flags);		\
++	int __sec = memdesc_section(&__pg->flags);		\
+ 	(unsigned long)(__pg - __section_mem_map_addr(__nr_to_section(__sec)));	\
+ })
+ 
+--- a/include/linux/mm.h~mm-fix-assert_exclusive_bits-by-passing-memdesc_flags_t-by-pointer
 +++ a/include/linux/mm.h
-@@ -2290,6 +2290,7 @@ int memdesc_nid(memdesc_flags_t mdf);
+@@ -37,6 +37,7 @@
+ #include <linux/bitmap.h>
+ #include <linux/bitops.h>
+ #include <linux/iommu-debug-pagealloc.h>
++#include <linux/kcsan-checks.h>
+ 
+ struct mempolicy;
+ struct anon_vma;
+@@ -2286,23 +2287,45 @@ static inline int page_zone_id(struct pa
+ }
+ 
+ #ifdef NODE_NOT_IN_PAGE_FLAGS
+-int memdesc_nid(memdesc_flags_t mdf);
++int memdesc_nid(const memdesc_flags_t *mdf);
  #else
- static inline int memdesc_nid(memdesc_flags_t mdf)
+-static inline int memdesc_nid(memdesc_flags_t mdf)
++#ifdef CONFIG_NUMA
++static inline int memdesc_nid(const memdesc_flags_t *mdf)
  {
-+	ASSERT_EXCLUSIVE_BITS(mdf.f, NODES_MASK << NODES_PGSHIFT);
- 	return (mdf.f >> NODES_PGSHIFT) & NODES_MASK;
+-	return (mdf.f >> NODES_PGSHIFT) & NODES_MASK;
++	ASSERT_EXCLUSIVE_BITS(mdf->f, NODES_MASK << NODES_PGSHIFT);
++	return (mdf->f >> NODES_PGSHIFT) & NODES_MASK;
++}
++#else
++static inline int memdesc_nid(const memdesc_flags_t *mdf)
++{
++	return 0;
  }
  #endif
++#endif
++
++#ifdef CONFIG_NUMA
++static inline int page_to_nid(const struct page *page)
++{
++	const struct page *p = PF_POISONED_CHECK(page);
+ 
++	return memdesc_nid(&p->flags);
++}
++
++static inline int folio_nid(const struct folio *folio)
++{
++	return memdesc_nid(&folio->flags);
++}
++#else
+ static inline int page_to_nid(const struct page *page)
+ {
+-	return memdesc_nid(PF_POISONED_CHECK(page)->flags);
++	return 0;
+ }
+ 
+ static inline int folio_nid(const struct folio *folio)
+ {
+-	return memdesc_nid(folio->flags);
++	return 0;
+ }
++#endif
+ 
+ #ifdef CONFIG_NUMA_BALANCING
+ /* page access time bits needs to hold at least 4 seconds */
+@@ -2541,12 +2564,15 @@ static inline void set_page_section(stru
+ 	page->flags.f |= (section & SECTIONS_MASK) << SECTIONS_PGSHIFT;
+ }
+ 
+-static inline unsigned long memdesc_section(memdesc_flags_t mdf)
++static inline unsigned long memdesc_section(const memdesc_flags_t *mdf)
+ {
+-	return (mdf.f >> SECTIONS_PGSHIFT) & SECTIONS_MASK;
++#if SECTIONS_WIDTH != 0
++	ASSERT_EXCLUSIVE_BITS(mdf->f, SECTIONS_MASK << SECTIONS_PGSHIFT);
++#endif
++	return (mdf->f >> SECTIONS_PGSHIFT) & SECTIONS_MASK;
+ }
+ #else /* !SECTION_IN_PAGE_FLAGS */
+-static inline unsigned long memdesc_section(memdesc_flags_t mdf)
++static inline unsigned long memdesc_section(const memdesc_flags_t *mdf)
+ {
+ 	return 0;
+ }
+--- a/include/linux/mm_inline.h~mm-fix-assert_exclusive_bits-by-passing-memdesc_flags_t-by-pointer
++++ a/include/linux/mm_inline.h
+@@ -650,7 +650,7 @@ static inline bool vma_has_recency(const
+ static inline size_t num_pages_contiguous(struct page **pages, size_t nr_pages)
+ {
+ 	struct page *cur_page = pages[0];
+-	unsigned long section = memdesc_section(cur_page->flags);
++	unsigned long section = memdesc_section(&cur_page->flags);
+ 	size_t i;
+ 
+ 	for (i = 1; i < nr_pages; i++) {
+@@ -660,7 +660,7 @@ static inline size_t num_pages_contiguou
+ 		 * In unproblematic kernel configs, page_to_section() == 0 and
+ 		 * the whole check will get optimized out.
+ 		 */
+-		if (memdesc_section(cur_page->flags) != section)
++		if (memdesc_section(&cur_page->flags) != section)
+ 			break;
+ 	}
+ 
+--- a/include/linux/mmzone.h~mm-fix-assert_exclusive_bits-by-passing-memdesc_flags_t-by-pointer
++++ a/include/linux/mmzone.h
+@@ -1272,31 +1272,33 @@ static inline bool zone_is_empty(const s
+ #define KASAN_TAG_MASK		((1UL << KASAN_TAG_WIDTH) - 1)
+ #define ZONEID_MASK		((1UL << ZONEID_SHIFT) - 1)
+ 
+-static inline enum zone_type memdesc_zonenum(memdesc_flags_t flags)
++static inline enum zone_type memdesc_zonenum(const memdesc_flags_t *flags)
+ {
+-	ASSERT_EXCLUSIVE_BITS(flags.f, ZONES_MASK << ZONES_PGSHIFT);
+-	return (flags.f >> ZONES_PGSHIFT) & ZONES_MASK;
++#if ZONES_WIDTH != 0
++	ASSERT_EXCLUSIVE_BITS(flags->f, ZONES_MASK << ZONES_PGSHIFT);
++#endif
++	return (flags->f >> ZONES_PGSHIFT) & ZONES_MASK;
+ }
+ 
+ static inline enum zone_type page_zonenum(const struct page *page)
+ {
+-	return memdesc_zonenum(page->flags);
++	return memdesc_zonenum(&page->flags);
+ }
+ 
+ static inline enum zone_type folio_zonenum(const struct folio *folio)
+ {
+-	return memdesc_zonenum(folio->flags);
++	return memdesc_zonenum(&folio->flags);
+ }
+ 
+ #ifdef CONFIG_ZONE_DEVICE
+-static inline bool memdesc_is_zone_device(memdesc_flags_t mdf)
++static inline bool memdesc_is_zone_device(const memdesc_flags_t *mdf)
+ {
+ 	return memdesc_zonenum(mdf) == ZONE_DEVICE;
+ }
+ 
+ static inline struct dev_pagemap *page_pgmap(const struct page *page)
+ {
+-	VM_WARN_ON_ONCE_PAGE(!memdesc_is_zone_device(page->flags), page);
++	VM_WARN_ON_ONCE_PAGE(!memdesc_is_zone_device(&page->flags), page);
+ 	return page_folio(page)->pgmap;
+ }
+ 
+@@ -1311,9 +1313,9 @@ static inline struct dev_pagemap *page_p
+ static inline bool zone_device_pages_have_same_pgmap(const struct page *a,
+ 						     const struct page *b)
+ {
+-	if (memdesc_is_zone_device(a->flags) != memdesc_is_zone_device(b->flags))
++	if (memdesc_is_zone_device(&a->flags) != memdesc_is_zone_device(&b->flags))
+ 		return false;
+-	if (!memdesc_is_zone_device(a->flags))
++	if (!memdesc_is_zone_device(&a->flags))
+ 		return true;
+ 	return page_pgmap(a) == page_pgmap(b);
+ }
+@@ -1321,7 +1323,7 @@ static inline bool zone_device_pages_hav
+ extern void memmap_init_zone_device(struct zone *, unsigned long,
+ 				    unsigned long, struct dev_pagemap *);
+ #else
+-static inline bool memdesc_is_zone_device(memdesc_flags_t mdf)
++static inline bool memdesc_is_zone_device(const memdesc_flags_t *mdf)
+ {
+ 	return false;
+ }
+@@ -1338,12 +1340,12 @@ static inline struct dev_pagemap *page_p
+ 
+ static inline bool is_zone_device_page(const struct page *page)
+ {
+-	return memdesc_is_zone_device(page->flags);
++	return memdesc_is_zone_device(&page->flags);
+ }
+ 
+ static inline bool folio_is_zone_device(const struct folio *folio)
+ {
+-	return memdesc_is_zone_device(folio->flags);
++	return memdesc_is_zone_device(&folio->flags);
+ }
+ 
+ static inline bool is_zone_movable_page(const struct page *page)
+--- a/mm/page_alloc.c~mm-fix-assert_exclusive_bits-by-passing-memdesc_flags_t-by-pointer
++++ a/mm/page_alloc.c
+@@ -6913,15 +6913,15 @@ static void __free_contig_range_common(u
+ 			continue;
+ 		}
+ 
+-		if (start && memdesc_section(page->flags) != start_sec) {
++		if (start && memdesc_section(&page->flags) != start_sec) {
+ 			free_prepared_contig_range(start, i - nr_start);
+ 			start = page;
+ 			nr_start = i;
+-			start_sec = memdesc_section(page->flags);
++			start_sec = memdesc_section(&page->flags);
+ 		} else if (!start) {
+ 			start = page;
+ 			nr_start = i;
+-			start_sec = memdesc_section(page->flags);
++			start_sec = memdesc_section(&page->flags);
+ 		}
+ 	}
+ 
+--- a/mm/slab.h~mm-fix-assert_exclusive_bits-by-passing-memdesc_flags_t-by-pointer
++++ a/mm/slab.h
+@@ -179,7 +179,7 @@ static inline void *slab_address(const s
+ 
+ static inline int slab_nid(const struct slab *slab)
+ {
+-	return memdesc_nid(slab->flags);
++	return memdesc_nid(&slab->flags);
+ }
+ 
+ static inline pg_data_t *slab_pgdat(const struct slab *slab)
+--- a/mm/sparse.c~mm-fix-assert_exclusive_bits-by-passing-memdesc_flags_t-by-pointer
++++ a/mm/sparse.c
+@@ -43,7 +43,7 @@ static u8 section_to_node_table[NR_MEM_S
+ static u16 section_to_node_table[NR_MEM_SECTIONS] __cacheline_aligned;
+ #endif
+ 
+-int memdesc_nid(memdesc_flags_t mdf)
++int memdesc_nid(const memdesc_flags_t *mdf)
+ {
+ 	return section_to_node_table[memdesc_section(mdf)];
+ }
 _
 
 Patches currently in -mm which might be from zhuhui@kylinos.cn are
 
+mm-fix-assert_exclusive_bits-by-passing-memdesc_flags_t-by-pointer.patch
 
