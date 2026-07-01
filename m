@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 24FBA368964
-	for <mm-commits@vger.kernel.org>; Wed,  1 Jul 2026 03:41:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 43A6227144B
+	for <mm-commits@vger.kernel.org>; Wed,  1 Jul 2026 03:41:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782877314; cv=none; b=SK3dtl4Zbfw1AgHS5oRVoztNIF2POp90JIZG5DipNvMZvsjVoNAZZJOwRo9mmndhRnscQ+gLFNKVD+YVwSt2JHv4Kqae96ngohSj5oXh39CNzQptnehYRnVJdmFD2PE43dR8Z/sOh8OqfmD9pZ+rQAOQt6dPVhRa0bp/4AW917c=
+	t=1782877317; cv=none; b=uvdWTttrmNIawKcTuARDIGRiqswgkcR4BFN0NHJU3tZ3UuFhRgve58d3UciovhXPh4xolKLP4pnGXsP0id4mrrcGEd2cQkuxZKh6VGXxmMNvu2E3U49jlbhJ7W3T/qhe+Rug4KPcDhDiafFRxzGgxQOi9VRXj42otmnRHbFfdB4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782877314; c=relaxed/simple;
-	bh=kgydyyEexEl0thW8s/Zc7z4twpqb9DaF9JrvQJEBQFs=;
-	h=Date:To:From:Subject:Message-Id; b=J006XkAsP/7nBQgGRAczkghtVkYqsJcMP1E5BYPMMDMkaHHo4iiOF4uyPu1GwB9oT7zFegC87P3/DLP5Gg3RYm4GpzIeO2ADHTTmoOGwxQRZwymmnm+VXIWWyUp5IBPCfz1yucLD0XhT1nvzx2AMHAZn6+i6+Y+nWx/oEgasxj0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rATx104e; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1782877317; c=relaxed/simple;
+	bh=MkVZcVkcVmtFN/z1dfD5EJWRsifYmGFCSVb16NorQrc=;
+	h=Date:To:From:Subject:Message-Id; b=J67AC4fdhLC9XoP2GG1KIoYazwLXcyBhAt7/EdmgL1YUf7+T02o82PIfXMQYSOuti0oRD0PdseL7VgKsoq2N8p/TqukG3dpeJrtb3xeecED5UJwM8LZECb/sBSt/Vn4lyAbgJq4oAkiQ7iRH+xN/IAokKkMJrS4/049mPN7CeDc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ouw4rg/i; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rATx104e"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A8F4E1F000E9;
-	Wed,  1 Jul 2026 03:41:52 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ouw4rg/i"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 179EE1F000E9;
+	Wed,  1 Jul 2026 03:41:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1782877312;
-	bh=DtGM4qVoSVseGlOfiQXDUUEa1YmfMeD/ZGQ2EAX9yfQ=;
+	d=linux-foundation.org; s=korg; t=1782877316;
+	bh=tV5+lXyJObqM8hbi+kA3+M0o4IV3F4nh7xPyOC96dHk=;
 	h=Date:To:From:Subject;
-	b=rATx104ey06nOP6JFqzYxQPnLYdCmZtW1KttuKYi4H4GkirhBYYbBEIEK7taJ++XO
-	 nvzQhAhKFIhN3L8K2lB+MCc4KR96fnaDk/S/w9qnU71ZJlakOJsZ6fhWFv8Fme2y3e
-	 Lr695OWjTKkTCaFaP9S15R07SA6ver6sMpCxQvgQ=
-Date: Tue, 30 Jun 2026 20:41:52 -0700
+	b=ouw4rg/i2SqdSjxSpuJOEzIIdWZqbyKoLyKvopc+InsOQnoNcqCSa7uNmPvQpMdc+
+	 LuWP5sqkGEQgB1GkaKwir6gGsMny8QzgCwndlhRA32J70c3HVFu3NsrF9KwRzXBGcE
+	 iKWA9apOhhR1PD5yD/AkNzOn+IMw9EjTmefnNOSs=
+Date: Tue, 30 Jun 2026 20:41:55 -0700
 To: mm-commits@vger.kernel.org,ye.liu@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_owner-add-mr_never-to-enum-migrate_reason-and-use-it-for-last_migrate_reason.patch added to mm-unstable branch
-Message-Id: <20260701034152.A8F4E1F000E9@smtp.kernel.org>
+Subject: + mm-use-enum-migrate_reason-instead-of-int-for-migration-reason-parameters.patch added to mm-unstable branch
+Message-Id: <20260701034156.179EE1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/page_owner: add MR_NEVER to enum migrate_reason and use it for last_migrate_reason
+     Subject: mm: use enum migrate_reason instead of int for migration reason parameters
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-page_owner-add-mr_never-to-enum-migrate_reason-and-use-it-for-last_migrate_reason.patch
+     mm-use-enum-migrate_reason-instead-of-int-for-migration-reason-parameters.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_owner-add-mr_never-to-enum-migrate_reason-and-use-it-for-last_migrate_reason.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-use-enum-migrate_reason-instead-of-int-for-migration-reason-parameters.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,20 +59,29 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Ye Liu <ye.liu@linux.dev>
-Subject: mm/page_owner: add MR_NEVER to enum migrate_reason and use it for last_migrate_reason
-Date: Wed, 1 Jul 2026 09:22:28 +0800
+Subject: mm: use enum migrate_reason instead of int for migration reason parameters
+Date: Wed, 1 Jul 2026 09:22:29 +0800
 
-The last_migrate_reason field uses -1 as a sentinel value to mean "no
-migration has happened".  Replace the four bare -1 occurrences by adding a
-proper MR_NEVER member to enum migrate_reason, defining a corresponding
-"never_migrated" string in the MIGRATE_REASON trace macro, and updating
-the GDB page_owner script to use MR_NEVER instead of the hardcoded -1 so
-that lx-dump-page-owner does not incorrectly report unmigrated pages as
-migrated.
+Replace all 'int reason' function parameters that carry migrate_reason
+values with the proper 'enum migrate_reason' type.  This makes the intent
+explicit and leverages compiler type checking.  The affected subsystems
+are:
+
+  - page_owner: __folio_set_owner_migrate_reason(),
+                folio_set_owner_migrate_reason()
+  - migrate: migrate_pages(), migrate_pages_sync(),
+             migrate_pages_batch(), migrate_folios_move(),
+             migrate_hugetlbs(), unmap_and_move_huge_page()
+  - hugetlb: move_hugetlb_state(), htlb_allow_alloc_fallback()
+  - trace: mm_migrate_pages and mm_migrate_pages_start events
+
+The 'short last_migrate_reason' struct field and internal helper parameter
+in page_owner are intentionally left as 'short' since they store per-page
+metadata where size matters.
 
 No functional change.
 
-Link: https://lore.kernel.org/20260701012239.315262-3-ye.liu@linux.dev
+Link: https://lore.kernel.org/20260701012239.315262-4-ye.liu@linux.dev
 Signed-off-by: Ye Liu <ye.liu@linux.dev>
 Reviewed-by: Zi Yan <ziy@nvidia.com>
 Reviewed-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
@@ -83,99 +92,228 @@ Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/migrate_mode.h    |    1 +
- include/trace/events/migrate.h  |    3 ++-
- mm/page_owner.c                 |    8 ++++----
- scripts/gdb/linux/page_owner.py |    4 +++-
- 4 files changed, 10 insertions(+), 6 deletions(-)
+ include/linux/hugetlb.h        |    9 +++++----
+ include/linux/migrate.h        |    6 ++++--
+ include/linux/page_owner.h     |    7 ++++---
+ include/trace/events/migrate.h |    8 ++++----
+ mm/hugetlb.c                   |    3 ++-
+ mm/migrate.c                   |   12 ++++++------
+ mm/page_owner.c                |    2 +-
+ 7 files changed, 26 insertions(+), 21 deletions(-)
 
---- a/include/linux/migrate_mode.h~mm-page_owner-add-mr_never-to-enum-migrate_reason-and-use-it-for-last_migrate_reason
-+++ a/include/linux/migrate_mode.h
-@@ -25,6 +25,7 @@ enum migrate_reason {
- 	MR_LONGTERM_PIN,
- 	MR_DEMOTION,
- 	MR_DAMON,
-+	MR_NEVER,		/* page has never been migrated */
- 	MR_TYPES
- };
+--- a/include/linux/hugetlb.h~mm-use-enum-migrate_reason-instead-of-int-for-migration-reason-parameters
++++ a/include/linux/hugetlb.h
+@@ -154,7 +154,8 @@ long hugetlb_unreserve_pages(struct inod
+ bool folio_isolate_hugetlb(struct folio *folio, struct list_head *list);
+ int get_hwpoison_hugetlb_folio(struct folio *folio, bool *hugetlb, bool unpoison);
+ void folio_putback_hugetlb(struct folio *folio);
+-void move_hugetlb_state(struct folio *old_folio, struct folio *new_folio, int reason);
++void move_hugetlb_state(struct folio *old_folio, struct folio *new_folio,
++			enum migrate_reason reason);
+ void hugetlb_fix_reserve_counts(struct inode *inode);
+ extern struct mutex *hugetlb_fault_mutex_table;
+ u32 hugetlb_fault_mutex_hash(struct address_space *mapping, pgoff_t idx);
+@@ -424,7 +425,7 @@ static inline void folio_putback_hugetlb
+ }
  
---- a/include/trace/events/migrate.h~mm-page_owner-add-mr_never-to-enum-migrate_reason-and-use-it-for-last_migrate_reason
+ static inline void move_hugetlb_state(struct folio *old_folio,
+-					struct folio *new_folio, int reason)
++					struct folio *new_folio, enum migrate_reason reason)
+ {
+ }
+ 
+@@ -956,7 +957,7 @@ static inline gfp_t htlb_modify_alloc_ma
+ 	return modified_mask;
+ }
+ 
+-static inline bool htlb_allow_alloc_fallback(int reason)
++static inline bool htlb_allow_alloc_fallback(enum migrate_reason reason)
+ {
+ 	bool allowed_fallback = false;
+ 
+@@ -1238,7 +1239,7 @@ static inline gfp_t htlb_modify_alloc_ma
+ 	return 0;
+ }
+ 
+-static inline bool htlb_allow_alloc_fallback(int reason)
++static inline bool htlb_allow_alloc_fallback(enum migrate_reason reason)
+ {
+ 	return false;
+ }
+--- a/include/linux/migrate.h~mm-use-enum-migrate_reason-instead-of-int-for-migration-reason-parameters
++++ a/include/linux/migrate.h
+@@ -57,7 +57,8 @@ void putback_movable_pages(struct list_h
+ int migrate_folio(struct address_space *mapping, struct folio *dst,
+ 		struct folio *src, enum migrate_mode mode);
+ int migrate_pages(struct list_head *l, new_folio_t new, free_folio_t free,
+-		  unsigned long private, enum migrate_mode mode, int reason,
++		  unsigned long private, enum migrate_mode mode,
++		  enum migrate_reason reason,
+ 		  unsigned int *ret_succeeded);
+ struct folio *alloc_migration_target(struct folio *src, unsigned long private);
+ bool isolate_movable_ops_page(struct page *page, isolate_mode_t mode);
+@@ -77,7 +78,8 @@ int set_movable_ops(const struct movable
+ static inline void putback_movable_pages(struct list_head *l) {}
+ static inline int migrate_pages(struct list_head *l, new_folio_t new,
+ 		free_folio_t free, unsigned long private,
+-		enum migrate_mode mode, int reason, unsigned int *ret_succeeded)
++		enum migrate_mode mode, enum migrate_reason reason,
++		unsigned int *ret_succeeded)
+ 	{ return -ENOSYS; }
+ static inline struct folio *alloc_migration_target(struct folio *src,
+ 		unsigned long private)
+--- a/include/linux/page_owner.h~mm-use-enum-migrate_reason-instead-of-int-for-migration-reason-parameters
++++ a/include/linux/page_owner.h
+@@ -3,6 +3,7 @@
+ #define __LINUX_PAGE_OWNER_H
+ 
+ #include <linux/jump_label.h>
++#include <linux/migrate_mode.h>
+ 
+ #ifdef CONFIG_PAGE_OWNER
+ extern struct static_key_false page_owner_inited;
+@@ -14,7 +15,7 @@ extern void __set_page_owner(struct page
+ extern void __split_page_owner(struct page *page, int old_order,
+ 			int new_order);
+ extern void __folio_copy_owner(struct folio *newfolio, struct folio *old);
+-extern void __folio_set_owner_migrate_reason(struct folio *folio, int reason);
++extern void __folio_set_owner_migrate_reason(struct folio *folio, enum migrate_reason reason);
+ extern void __dump_page_owner(const struct page *page);
+ extern void pagetypeinfo_showmixedcount_print(struct seq_file *m,
+ 					pg_data_t *pgdat, struct zone *zone);
+@@ -43,7 +44,7 @@ static inline void folio_copy_owner(stru
+ 	if (static_branch_unlikely(&page_owner_inited))
+ 		__folio_copy_owner(newfolio, old);
+ }
+-static inline void folio_set_owner_migrate_reason(struct folio *folio, int reason)
++static inline void folio_set_owner_migrate_reason(struct folio *folio, enum migrate_reason reason)
+ {
+ 	if (static_branch_unlikely(&page_owner_inited))
+ 		__folio_set_owner_migrate_reason(folio, reason);
+@@ -68,7 +69,7 @@ static inline void split_page_owner(stru
+ static inline void folio_copy_owner(struct folio *newfolio, struct folio *folio)
+ {
+ }
+-static inline void folio_set_owner_migrate_reason(struct folio *folio, int reason)
++static inline void folio_set_owner_migrate_reason(struct folio *folio, enum migrate_reason reason)
+ {
+ }
+ static inline void dump_page_owner(const struct page *page)
+--- a/include/trace/events/migrate.h~mm-use-enum-migrate_reason-instead-of-int-for-migration-reason-parameters
 +++ a/include/trace/events/migrate.h
-@@ -23,7 +23,8 @@
- 	EM( MR_CONTIG_RANGE,	"contig_range")			\
- 	EM( MR_LONGTERM_PIN,	"longterm_pin")			\
- 	EM( MR_DEMOTION,	"demotion")			\
--	EMe(MR_DAMON,		"damon")
-+	EM( MR_DAMON,		"damon")			\
-+	EMe(MR_NEVER,		"never_migrated")
+@@ -52,7 +52,7 @@ TRACE_EVENT(mm_migrate_pages,
+ 	TP_PROTO(unsigned long succeeded, unsigned long failed,
+ 		 unsigned long thp_succeeded, unsigned long thp_failed,
+ 		 unsigned long thp_split, unsigned long large_folio_split,
+-		 enum migrate_mode mode, int reason),
++		 enum migrate_mode mode, enum migrate_reason reason),
  
- /*
-  * First define the enums in the above macros to be exported to userspace
---- a/mm/page_owner.c~mm-page_owner-add-mr_never-to-enum-migrate_reason-and-use-it-for-last_migrate_reason
+ 	TP_ARGS(succeeded, failed, thp_succeeded, thp_failed,
+ 		thp_split, large_folio_split, mode, reason),
+@@ -65,7 +65,7 @@ TRACE_EVENT(mm_migrate_pages,
+ 		__field(	unsigned long,		thp_split)
+ 		__field(	unsigned long,		large_folio_split)
+ 		__field(	enum migrate_mode,	mode)
+-		__field(	int,			reason)
++		__field(	enum migrate_reason,	reason)
+ 	),
+ 
+ 	TP_fast_assign(
+@@ -92,13 +92,13 @@ TRACE_EVENT(mm_migrate_pages,
+ 
+ TRACE_EVENT(mm_migrate_pages_start,
+ 
+-	TP_PROTO(enum migrate_mode mode, int reason),
++	TP_PROTO(enum migrate_mode mode, enum migrate_reason reason),
+ 
+ 	TP_ARGS(mode, reason),
+ 
+ 	TP_STRUCT__entry(
+ 		__field(enum migrate_mode, mode)
+-		__field(int, reason)
++		__field(enum migrate_reason, reason)
+ 	),
+ 
+ 	TP_fast_assign(
+--- a/mm/hugetlb.c~mm-use-enum-migrate_reason-instead-of-int-for-migration-reason-parameters
++++ a/mm/hugetlb.c
+@@ -7182,7 +7182,8 @@ void folio_putback_hugetlb(struct folio
+ 	folio_put(folio);
+ }
+ 
+-void move_hugetlb_state(struct folio *old_folio, struct folio *new_folio, int reason)
++void move_hugetlb_state(struct folio *old_folio, struct folio *new_folio,
++			enum migrate_reason reason)
+ {
+ 	struct hstate *h = folio_hstate(old_folio);
+ 
+--- a/mm/migrate.c~mm-use-enum-migrate_reason-instead-of-int-for-migration-reason-parameters
++++ a/mm/migrate.c
+@@ -1469,7 +1469,7 @@ out:
+ static int unmap_and_move_huge_page(new_folio_t get_new_folio,
+ 		free_folio_t put_new_folio, unsigned long private,
+ 		struct folio *src, int force, enum migrate_mode mode,
+-		int reason, struct list_head *ret)
++		enum migrate_reason reason, struct list_head *ret)
+ {
+ 	struct folio *dst;
+ 	int rc = -EAGAIN;
+@@ -1626,7 +1626,7 @@ struct migrate_pages_stats {
+  */
+ static int migrate_hugetlbs(struct list_head *from, new_folio_t get_new_folio,
+ 			    free_folio_t put_new_folio, unsigned long private,
+-			    enum migrate_mode mode, int reason,
++			    enum migrate_mode mode, enum migrate_reason reason,
+ 			    struct migrate_pages_stats *stats,
+ 			    struct list_head *ret_folios)
+ {
+@@ -1716,7 +1716,7 @@ static int migrate_hugetlbs(struct list_
+ static void migrate_folios_move(struct list_head *src_folios,
+ 		struct list_head *dst_folios,
+ 		free_folio_t put_new_folio, unsigned long private,
+-		enum migrate_mode mode, int reason,
++		enum migrate_mode mode, enum migrate_reason reason,
+ 		struct list_head *ret_folios,
+ 		struct migrate_pages_stats *stats,
+ 		int *retry, int *thp_retry, int *nr_failed,
+@@ -1799,7 +1799,7 @@ static void migrate_folios_undo(struct l
+  */
+ static int migrate_pages_batch(struct list_head *from,
+ 		new_folio_t get_new_folio, free_folio_t put_new_folio,
+-		unsigned long private, enum migrate_mode mode, int reason,
++		unsigned long private, enum migrate_mode mode, enum migrate_reason reason,
+ 		struct list_head *ret_folios, struct list_head *split_folios,
+ 		struct migrate_pages_stats *stats, int nr_pass)
+ {
+@@ -2011,7 +2011,7 @@ out:
+ 
+ static int migrate_pages_sync(struct list_head *from, new_folio_t get_new_folio,
+ 		free_folio_t put_new_folio, unsigned long private,
+-		enum migrate_mode mode, int reason,
++		enum migrate_mode mode, enum migrate_reason reason,
+ 		struct list_head *ret_folios, struct list_head *split_folios,
+ 		struct migrate_pages_stats *stats)
+ {
+@@ -2088,7 +2088,7 @@ static int migrate_pages_sync(struct lis
+  */
+ int migrate_pages(struct list_head *from, new_folio_t get_new_folio,
+ 		free_folio_t put_new_folio, unsigned long private,
+-		enum migrate_mode mode, int reason, unsigned int *ret_succeeded)
++		enum migrate_mode mode, enum migrate_reason reason, unsigned int *ret_succeeded)
+ {
+ 	int rc, rc_gather;
+ 	int nr_pages;
+--- a/mm/page_owner.c~mm-use-enum-migrate_reason-instead-of-int-for-migration-reason-parameters
 +++ a/mm/page_owner.c
-@@ -339,7 +339,7 @@ noinline void __set_page_owner(struct pa
- 	depot_stack_handle_t handle;
- 
- 	handle = save_stack(gfp_mask);
--	__update_page_owner_handle(page, handle, order, gfp_mask, -1,
-+	__update_page_owner_handle(page, handle, order, gfp_mask, MR_NEVER,
- 				   ts_nsec, current->pid, current->tgid,
- 				   current->comm);
+@@ -345,7 +345,7 @@ noinline void __set_page_owner(struct pa
  	inc_stack_record_count(handle, gfp_mask, 1 << order);
-@@ -596,7 +596,7 @@ print_page_owner(char __user *buf, size_
- 	if (ret >= count)
- 		goto err;
+ }
  
--	if (page_owner->last_migrate_reason != -1) {
-+	if (page_owner->last_migrate_reason != MR_NEVER) {
- 		ret += scnprintf(kbuf + ret, count - ret,
- 			"Page has been migrated, last migrate reason: %s\n",
- 			migrate_reason_names[page_owner->last_migrate_reason]);
-@@ -667,7 +667,7 @@ void __dump_page_owner(const struct page
- 		stack_depot_print(handle);
- 	}
- 
--	if (page_owner->last_migrate_reason != -1)
-+	if (page_owner->last_migrate_reason != MR_NEVER)
- 		pr_alert("page has been migrated, last migrate reason: %s\n",
- 			migrate_reason_names[page_owner->last_migrate_reason]);
- 	page_ext_put(page_ext);
-@@ -826,7 +826,7 @@ static void init_pages_in_zone(struct zo
- 
- 			/* Found early allocated page */
- 			__update_page_owner_handle(page, early_handle, 0, 0,
--						   -1, local_clock(), current->pid,
-+						   MR_NEVER, local_clock(), current->pid,
- 						   current->tgid, current->comm);
- 			count++;
- ext_put_continue:
---- a/scripts/gdb/linux/page_owner.py~mm-page_owner-add-mr_never-to-enum-migrate_reason-and-use-it-for-last_migrate_reason
-+++ a/scripts/gdb/linux/page_owner.py
-@@ -34,6 +34,7 @@ class DumpPageOwner(gdb.Command):
-     max_pfn = None
-     p_ops = None
-     migrate_reason_names = None
-+    mr_never = None
- 
-     def __init__(self):
-         super(DumpPageOwner, self).__init__("lx-dump-page-owner", gdb.COMMAND_SUPPORT)
-@@ -65,6 +66,7 @@ class DumpPageOwner(gdb.Command):
-         self.max_pfn = int(gdb.parse_and_eval("max_pfn"))
-         self.page_ext_size = int(gdb.parse_and_eval("page_ext_size"))
-         self.migrate_reason_names = gdb.parse_and_eval('migrate_reason_names')
-+        self.mr_never = int(gdb.parse_and_eval('MR_NEVER'))
- 
-     def page_ext_invalid(self, page_ext):
-         if page_ext == gdb.Value(0):
-@@ -138,7 +140,7 @@ class DumpPageOwner(gdb.Command):
-         else:
-             gdb.write('page last free stack trace:\n')
-             stackdepot.stack_depot_print(page_owner["free_handle"])
--        if page_owner['last_migrate_reason'] != -1:
-+        if page_owner['last_migrate_reason'] != self.mr_never:
-             gdb.write('page has been migrated, last migrate reason: %s\n' % self.migrate_reason_names[page_owner['last_migrate_reason']])
- 
-     def read_page_owner(self):
+-void __folio_set_owner_migrate_reason(struct folio *folio, int reason)
++void __folio_set_owner_migrate_reason(struct folio *folio, enum migrate_reason reason)
+ {
+ 	struct page_ext *page_ext = page_ext_get(&folio->page);
+ 	struct page_owner *page_owner;
 _
 
 Patches currently in -mm which might be from ye.liu@linux.dev are
