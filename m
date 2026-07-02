@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B3C4F2B9BA
-	for <mm-commits@vger.kernel.org>; Thu,  2 Jul 2026 00:23:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AF17C2B9BA
+	for <mm-commits@vger.kernel.org>; Thu,  2 Jul 2026 00:23:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782951782; cv=none; b=WgiuI9oGooQcwDjWvmOsRjNZrzkbjyu77by1TChkQIVMVf8i163onJNuXWuRU0pOnw85HnkSpxtEl3q2JjgHXQTy9NXHQ4iDJgVm4Opp5WLpnaNK816btX5n/MDBS6PRHQ1AOOVX3SS0io+jjyVizV+2PIxNjKf+kXS9tThApUE=
+	t=1782951784; cv=none; b=dbQgiE6jP3rvtcUEi76mR0pTxE5oWN/DI9paUxGB5XIxoiWe7eDKhlc3T0xGOX4oXy0c4NJmik9uMyrhxPhVKhFHBUa29i6z8WXn2TEIoBFTzEb8QCC7jsH/9V2nfrK30gSBulCS3c/YR+6ATyxwnTR3vfT+3GtyLK/d79T0N0M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782951782; c=relaxed/simple;
-	bh=VZ4d9AqGjJ8hHFUQUDn54o/MeEhCxUb25zRUn9AikKo=;
-	h=Date:To:From:Subject:Message-Id; b=h+8Mo5fyNZnKKEXfDMpd+RUXnI5YXoUqXq3BuI78N7oCRrePONXoRIPlL03b8835WzjCDG3POGjV9EYXAEFJhOt2iiTr90Whdoxt7QRSviZN9ej+JKMS6i2zizrBWp07S32Vd4UdOb5znXSeQ7XOSPLbWX59OE6fXUPfE72xCsk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=E9eozWXI; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1782951784; c=relaxed/simple;
+	bh=M9jUIOkCuIz6nPvd9iz9O/b/P19FN6mXdroXO2irPb8=;
+	h=Date:To:From:Subject:Message-Id; b=Tk7U1RvV7vBK0szp06Z5t84LswtZExr6fsYkqL9y61dfqDn2cuRZpJzk6SijyEnoj1qxJ6XwPq++FpH1pAuGRSKbO8me0toghsnbk9J11d2jxbsqLxMpFMnIudm2EHdH3tlsUkMTfieFbYq5wizZ31+uFVEaXfVP8RUXHetrTTQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TQh4++i8; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="E9eozWXI"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3C9251F000E9;
-	Thu,  2 Jul 2026 00:23:01 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TQh4++i8"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3D8831F000E9;
+	Thu,  2 Jul 2026 00:23:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1782951781;
-	bh=RF/d//r/pn+rRDZwU6Vj52OTJbKG/8o2FIKHqEcIwBA=;
+	d=linux-foundation.org; s=korg; t=1782951783;
+	bh=dBoJv2RuXxChl2ecSnLsW4s+pf4IPA0jw2h/NqNCBmg=;
 	h=Date:To:From:Subject;
-	b=E9eozWXIuxvt0QAhbfjsz8JX7hR0SZVDHTXEnIf0qN1nkh8SSA2/8uUOO4CavH5Hn
-	 4Th9x3JJwZ4ej7n1ydP8tn904ugWisYM1qZnNTqBd5fKmvCNVgkRY2Rb6i7w23MCXX
-	 hZjEXgKC7a4b4AkTFH+hJ5lM9H0X7F7MpUs1F2TY=
-Date: Wed, 01 Jul 2026 17:23:00 -0700
+	b=TQh4++i8zqv3RnWyapUkIr/MK6HiXSIoXBRJ0elXaQDUaTqzSDeZgcRr05rVW3BuE
+	 2G9uESETW5pBmT2xCNJEl0QjV9erms5Fo99kmwB2XjhVIHs1+lHRjS/P1HzDEFy/NC
+	 QFZehMtPXqjC7/vbBQsJx7VwYx+271zbFCnABahs=
+Date: Wed, 01 Jul 2026 17:23:02 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-tests-core-kunit-test-damon_mvsum.patch added to mm-new branch
-Message-Id: <20260702002301.3C9251F000E9@smtp.kernel.org>
+Subject: + mm-damon-core-always-update-last_nr_accesses-for-intervals-change.patch added to mm-new branch
+Message-Id: <20260702002303.3D8831F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/tests/core-kunit: test damon_mvsum()
+     Subject: mm/damon/core: always update ->last_nr_accesses for intervals change
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-tests-core-kunit-test-damon_mvsum.patch
+     mm-damon-core-always-update-last_nr_accesses-for-intervals-change.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-tests-core-kunit-test-damon_mvsum.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-always-update-last_nr_accesses-for-intervals-change.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,14 +70,30 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/tests/core-kunit: test damon_mvsum()
-Date: Mon, 29 Jun 2026 21:07:55 -0700
+Subject: mm/damon/core: always update ->last_nr_accesses for intervals change
+Date: Mon, 29 Jun 2026 21:07:56 -0700
 
-Add a simple unit test for damon_nr_accesses_mvsum()'s internal core
-logic, damon_mvsum().  The test contains cases for just-started windows,
-partially completed windows, and just-completed windows.
+Each iteration of kdamond_fn() main loop caches and use the next
+aggregation time (next_aggregation_sis) because it can be updated in the
+middle, inside kdamond_call().  If that happens,
+damon_update_monitoring_result() is called for scaling the access
+frequency information of each region according to the changed intervals. 
+The function does not update damon_region->last_nr_accesses when it is at
+the end of the aggregation, because it will anyway be reset after the
+function is executed, in kdamond_reset_aggregated().
 
-Link: https://lore.kernel.org/20260630040812.149729-3-sj@kernel.org
+Let's suppose damon_nr_accesses_mvsum() is called with the not yet updated
+last_nr_accesses.  It will use the fresh next_aggregation_sis in the
+context instead of the cached one, unlike kdamond_fn().  As a result, use
+of not updated last_nr_acceses with the updated next_aggregation_sis
+result in returning wrong value.
+
+There is no such damon_nr_accesses_nvsum() call at the moment, so this is
+no problem.  It is planned to add such calls, though.  Prevent the issue
+by updating last_nr_accesses always.  This adds overhead, but that's fine
+because the overhead is not big, and it is anyway not a fast path.
+
+Link: https://lore.kernel.org/20260630040812.149729-4-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Cc: Brendan Higgins <brendan.higgins@linux.dev>
 Cc: "Masami Hiramatsu (Google)" <mhiramat@kernel.org>
@@ -87,50 +103,29 @@ Cc: Steven Rostedt <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/tests/core-kunit.h |   25 +++++++++++++++++++++++++
- 1 file changed, 25 insertions(+)
+ mm/damon/core.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/damon/tests/core-kunit.h~mm-damon-tests-core-kunit-test-damon_mvsum
-+++ a/mm/damon/tests/core-kunit.h
-@@ -682,6 +682,30 @@ static void damon_test_moving_sum(struct
- 	}
- }
- 
-+static void damon_test_mvsum(struct kunit *test)
-+{
-+	unsigned long input_expects[] = {
-+		/* current value, last value, remaining window (bp) */
-+		0, 49, 10000, 49,	/* 0 + 49 * 1 */
-+		3, 10, 7000, 10,	/* 3 + 10 * 0.7 */
-+		3, 10, 5000, 8,		/* 3 + 10 * 0.5 */
-+		32, 100, 1000, 42,	/* 32 + 100 * 0.1 */
-+		42, 49, 0, 42,		/* 42 + 49 * 0 */
-+	};
-+
-+	int i;
-+
-+	for (i = 0; i < ARRAY_SIZE(input_expects); i += 4) {
-+		unsigned long current_nr = input_expects[i];
-+		unsigned long last_nr = input_expects[i + 1];
-+		unsigned long left_window_bp = input_expects[i + 2];
-+		unsigned long expect = input_expects[i + 3];
-+
-+		KUNIT_EXPECT_EQ(test, damon_mvsum(current_nr, last_nr,
-+					left_window_bp), expect);
-+	}
-+}
-+
- static void damos_test_new_filter(struct kunit *test)
+--- a/mm/damon/core.c~mm-damon-core-always-update-last_nr_accesses-for-intervals-change
++++ a/mm/damon/core.c
+@@ -871,6 +871,8 @@ static void damon_update_monitoring_resu
+ 		struct damon_attrs *old_attrs, struct damon_attrs *new_attrs,
+ 		bool aggregating)
  {
- 	struct damos_filter *filter;
-@@ -1575,6 +1599,7 @@ static struct kunit_case damon_test_case
- 	KUNIT_CASE(damon_test_update_monitoring_result),
- 	KUNIT_CASE(damon_test_set_attrs),
- 	KUNIT_CASE(damon_test_moving_sum),
-+	KUNIT_CASE(damon_test_mvsum),
- 	KUNIT_CASE(damos_test_new_filter),
- 	KUNIT_CASE(damos_test_commit_quota_goal),
- 	KUNIT_CASE(damos_test_commit_quota_goals),
++	r->last_nr_accesses = damon_nr_accesses_for_new_attrs(
++			r->last_nr_accesses, old_attrs, new_attrs);
+ 	if (!aggregating) {
+ 		r->nr_accesses = damon_nr_accesses_for_new_attrs(
+ 				r->nr_accesses, old_attrs, new_attrs);
+@@ -882,8 +884,6 @@ static void damon_update_monitoring_resu
+ 		 * interval.  In other words, make the status like
+ 		 * kdamond_reset_aggregated() is called.
+ 		 */
+-		r->last_nr_accesses = damon_nr_accesses_for_new_attrs(
+-				r->last_nr_accesses, old_attrs, new_attrs);
+ 		r->nr_accesses_bp = r->last_nr_accesses * 10000;
+ 		r->nr_accesses = 0;
+ 	}
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
