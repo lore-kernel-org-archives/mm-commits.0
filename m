@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DAD68171AF
-	for <mm-commits@vger.kernel.org>; Thu,  2 Jul 2026 00:34:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7DFC81B85F8
+	for <mm-commits@vger.kernel.org>; Thu,  2 Jul 2026 00:51:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782952473; cv=none; b=ZIVWguOvvCPLGuPnbFIFaOwEdSq8dVsybri7qer7F/1XRcdiVXclErO5nhVGi+Lwudxs7o6DbE7JWkJ5bItmh99ii4ySzd+aoeoOOo8z3cVROPqpKmUzQY91asoHNn3WxUyxzIn+x5K3zU5skhP20qAlZ/DhKxffM60iFl0nC7c=
+	t=1782953508; cv=none; b=XubivVgGCc9Nw4Lib7i/MWaeK+f9GZyVF5Y3YXp4Tt6zZufeKAS+kNhFwTCRTjvZwlNqBu6h7NYMmbLPEflUudqy4CQOEFgbLJLSOeTZPrtxJ0UvconNT72FegGIP3hlk0PWyZZpdL4awlRCWCuNeYLDVSpx42Fwca0OWGQsvII=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782952473; c=relaxed/simple;
-	bh=I5YEH4fcjs7DTVHFDhTKKBEflGN7r8CMLUqP1NgFxTA=;
-	h=Date:To:From:Subject:Message-Id; b=D2amnAaaG0Ia8rOncG1dLavckt1EZ/W2OiMvgz/r52+FdOgC262/JL7VoxHME6bRYN3pvX53/N/eS9+cgdGnq8UIrOECd77cCFzAhdVI4wusiKBONtKweGBVsJRVBoFWXFIK+6DrxHh5knjywrAIQtOXbEjqitDFTggOmON85l0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fK7Ewhv7; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1782953508; c=relaxed/simple;
+	bh=rQoAiT6GhtkoCu+BV6bk5EZgQOUm8E4vqmmlPkFs+ds=;
+	h=Date:To:From:Subject:Message-Id; b=dNX75TnsKg2xhGW40cJBUCe8HMRwnb5p974WZlnneJDaLy3tHQ3UIkii82XyByDirZbL5X0LCMiYq2QLFy/YKiTBamZ+Id6FYEAXa82nFNSFEU16geJyJtPcEgRhL4wYyC5jEq5EnlwZsju/+YHmJKa9z4YqrPYVGkEYTf8MPi4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AQfAj7hk; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fK7Ewhv7"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 73D301F000E9;
-	Thu,  2 Jul 2026 00:34:31 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AQfAj7hk"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8F8FE1F000E9;
+	Thu,  2 Jul 2026 00:51:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1782952471;
-	bh=VAu7EWQRGXBHxhamVyq+pYCtAt8WcWAaypQfHIrT90g=;
+	d=linux-foundation.org; s=korg; t=1782953506;
+	bh=zuxjUw9engSR0R/FK81DB0CKuf20Via5y2Wx5BCM8F0=;
 	h=Date:To:From:Subject;
-	b=fK7Ewhv73z0pzSpdOFuNCHnSstRK93iUwA1ZoTacJ4vstis+4e9262QokPYxVaHrT
-	 rH1aMufgsJEeZ2xJ8GaLJdNBbdw7s3ThGYzqbW+Xl8Uw+dmNxdQcYEr30uJyzlebKB
-	 WlV5qngn9pD5h4bVXqLtpDKfaXAetrxsAkVzpaVc=
-Date: Wed, 01 Jul 2026 17:34:31 -0700
-To: mm-commits@vger.kernel.org,visitorckw@gmail.com,thomas.weissschuh@linutronix.de,pabeni@redhat.com,kuba@kernel.org,horms@kernel.org,geert@linux-m68k.org,edumazet@google.com,davidgow@google.com,davem@davemloft.net,brendan.higgins@linux.dev,note351@hotmail.com,akpm@linux-foundation.org
+	b=AQfAj7hkh3GqlLHuUOlyBdEKCUgAQx1FelWje42tuF+sxk8OluV7JO1xwP8hY7aQL
+	 J1BBgoNLRn7ft0nmIO8gi+01Z+SK9sMZUhxWkDS/fOazW/M1407mRhlnf9LdGpFmkh
+	 UiN0olLyvncApgSXUBkGivxpchH+kFKJWw4g+KxM=
+Date: Wed, 01 Jul 2026 17:51:46 -0700
+To: mm-commits@vger.kernel.org,jack@suse.cz,hirofumi@mail.parknet.co.jp,david.laight.linux@gmail.com,brauner@kernel.org,adinata.softwareengineer@gmail.com,arnd@arndb.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-random32-convert-selftest-to-kunit.patch added to mm-nonmm-unstable branch
-Message-Id: <20260702003431.73D301F000E9@smtp.kernel.org>
+Subject: + fat-avoid-stack-overflow-warning.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260702005146.8F8FE1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: lib/random32: convert selftest to KUnit
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     lib-random32-convert-selftest-to-kunit.patch
+     Subject: fat: avoid stack overflow warning
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     fat-avoid-stack-overflow-warning.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-random32-convert-selftest-to-kunit.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fat-avoid-stack-overflow-warning.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,490 +58,81 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Kir Chou <note351@hotmail.com>
-Subject: lib/random32: convert selftest to KUnit
-Date: Tue, 30 Jun 2026 12:04:46 +0900
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: fat: avoid stack overflow warning
+Date: Fri, 15 May 2026 22:44:46 +0200
 
-Convert the existing prandom selftest (lib/random32.c) to use the KUnit
-framework (lib/tests/random32_kunit.c).  Unlike typical KUnit tests, this
-file is directly #included into lib/random32.c.
+Building the fat kunit tests on with -fsanitize=alignment reveals some
+rather excessive stack usage:
 
-The new test:
-- Removes the legacy CONFIG_RANDOM32_SELFTEST from lib/random32.c.
-- Adds CONFIG_PRANDOM_KUNIT_TEST (defaulting to KUNIT_ALL_TESTS).
-- Moves the test logic to lib/tests/random32_kunit.c.
+fs/fat/fat_test.c: In function 'fat_clus_to_blknr_test':
+fs/fat/fat_test.c:33:1: error: the frame size of 4736 bytes is larger than 1536 bytes [-Werror=frame-larger-than=]
+   33 | }
+      | ^
+fs/fat/fat_test.c: In function 'fat_get_blknr_offset_test':
+fs/fat/fat_test.c:52:1: error: the frame size of 4800 bytes is larger than 1536 bytes [-Werror=frame-larger-than=]
 
-This commit is verified by `./tools/testing/kunit/kunit.py run`
-with the .kunit/.kunitconfig:
+The problem is clearly related to the on-stack copy of a local
+msdos_sb_info structure.  Avoid this by making that copy 'static const'
+and changing the called functions to accept a constant input.
 
-CONFIG_KUNIT=y
-CONFIG_PRANDOM_KUNIT_TEST=y
-
-Link: https://lore.kernel.org/20260630030447.77522-1-note351@hotmail.com
-Signed-off-by: Kir Chou <note351@hotmail.com>
-Reviewed-by: David Gow <davidgow@google.com>
-Cc: Brendan Higgins <brendan.higgins@linux.dev>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Eric Dumazet <edumazet@google.com>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Jakub Kacinski <kuba@kernel.org>
-Cc: Kuan-Wei Chiu <visitorckw@gmail.com>
-Cc: Paolo Abeni <pabeni@redhat.com>
-Cc: Simon Horman <horms@kernel.org>
-Cc: Thomas Weißschuh <thomas.weissschuh@linutronix.de>
+Link: https://lore.kernel.org/20260515204456.2692208-1-arnd@kernel.org
+Fixes: 410002f8139c ("kunit: fat: test cluster and directory i_pos layout helpers")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Acked-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Adi Nata <adinata.softwareengineer@gmail.com>
+Cc: David Laight <david.laight.linux@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig                |    6 -
- lib/Kconfig.debug          |    9 +
- lib/random32.c             |  184 +----------------------------------
- lib/tests/Makefile         |    1 
- lib/tests/random32_kunit.c |  181 ++++++++++++++++++++++++++++++++++
- 5 files changed, 201 insertions(+), 180 deletions(-)
+ fs/fat/fat.h      |    4 ++--
+ fs/fat/fat_test.c |    4 ++--
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
---- a/lib/Kconfig~lib-random32-convert-selftest-to-kunit
-+++ a/lib/Kconfig
-@@ -159,12 +159,6 @@ config AUDIT_COMPAT_GENERIC
- 	depends on AUDIT_GENERIC && AUDIT_ARCH_COMPAT_GENERIC && COMPAT
- 	default y
- 
--config RANDOM32_SELFTEST
--	bool "PRNG perform self test on init"
--	help
--	  This option enables the 32 bit PRNG library functions to perform a
--	  self test on initialization.
--
- #
- # compression support is select'ed if needed
- #
---- a/lib/Kconfig.debug~lib-random32-convert-selftest-to-kunit
-+++ a/lib/Kconfig.debug
-@@ -3520,6 +3520,15 @@ config GLOB_KUNIT_TEST
- 
- 	  If unsure, say N
- 
-+config PRANDOM_KUNIT_TEST
-+	tristate "KUnit test for prandom" if !KUNIT_ALL_TESTS
-+	depends on KUNIT
-+	default KUNIT_ALL_TESTS
-+	help
-+	  Enable this option to test the prandom functions at runtime.
-+
-+	  If unsure, say N
-+
- endif # RUNTIME_TESTING_MENU
- 
- config ARCH_USE_MEMTEST
---- a/lib/random32.c~lib-random32-convert-selftest-to-kunit
-+++ a/lib/random32.c
-@@ -41,6 +41,7 @@
- #include <linux/bitops.h>
- #include <linux/slab.h>
- #include <linux/unaligned.h>
-+#include <kunit/visibility.h>
- 
- /**
-  *	prandom_u32_state - seeded pseudo-random number generator.
-@@ -92,7 +93,14 @@ void prandom_bytes_state(struct rnd_stat
+--- a/fs/fat/fat.h~fat-avoid-stack-overflow-warning
++++ a/fs/fat/fat.h
+@@ -249,13 +249,13 @@ static inline unsigned char fat_checksum
+ 	return s;
  }
- EXPORT_SYMBOL(prandom_bytes_state);
  
--static void prandom_warmup(struct rnd_state *state)
-+/*
-+ * Only declared here so that it has a prototype when made
-+ * non-static for KUnit testing (avoids -Wmissing-prototypes).
-+ */
-+#if IS_ENABLED(CONFIG_KUNIT)
-+void prandom_warmup(struct rnd_state *state);
-+#endif
-+VISIBLE_IF_KUNIT void prandom_warmup(struct rnd_state *state)
+-static inline sector_t fat_clus_to_blknr(struct msdos_sb_info *sbi, int clus)
++static inline sector_t fat_clus_to_blknr(const struct msdos_sb_info *sbi, int clus)
  {
- 	/* Calling RNG ten times to satisfy recurrence condition */
- 	prandom_u32_state(state);
-@@ -106,6 +114,7 @@ static void prandom_warmup(struct rnd_st
- 	prandom_u32_state(state);
- 	prandom_u32_state(state);
+ 	return ((sector_t)clus - FAT_START_ENT) * sbi->sec_per_clus
+ 		+ sbi->data_start;
  }
-+EXPORT_SYMBOL_IF_KUNIT(prandom_warmup);
  
- void prandom_seed_full_state(struct rnd_state __percpu *pcpu_state)
+-static inline void fat_get_blknr_offset(struct msdos_sb_info *sbi,
++static inline void fat_get_blknr_offset(const struct msdos_sb_info *sbi,
+ 				loff_t i_pos, sector_t *blknr, int *offset)
  {
-@@ -125,176 +134,3 @@ void prandom_seed_full_state(struct rnd_
- 	}
- }
- EXPORT_SYMBOL(prandom_seed_full_state);
--
--#ifdef CONFIG_RANDOM32_SELFTEST
--static struct prandom_test1 {
--	u32 seed;
--	u32 result;
--} test1[] = {
--	{ 1U, 3484351685U },
--	{ 2U, 2623130059U },
--	{ 3U, 3125133893U },
--	{ 4U,  984847254U },
--};
--
--static struct prandom_test2 {
--	u32 seed;
--	u32 iteration;
--	u32 result;
--} test2[] = {
--	/* Test cases against taus113 from GSL library. */
--	{  931557656U, 959U, 2975593782U },
--	{ 1339693295U, 876U, 3887776532U },
--	{ 1545556285U, 961U, 1615538833U },
--	{  601730776U, 723U, 1776162651U },
--	{ 1027516047U, 687U,  511983079U },
--	{  416526298U, 700U,  916156552U },
--	{ 1395522032U, 652U, 2222063676U },
--	{  366221443U, 617U, 2992857763U },
--	{ 1539836965U, 714U, 3783265725U },
--	{  556206671U, 994U,  799626459U },
--	{  684907218U, 799U,  367789491U },
--	{ 2121230701U, 931U, 2115467001U },
--	{ 1668516451U, 644U, 3620590685U },
--	{  768046066U, 883U, 2034077390U },
--	{ 1989159136U, 833U, 1195767305U },
--	{  536585145U, 996U, 3577259204U },
--	{ 1008129373U, 642U, 1478080776U },
--	{ 1740775604U, 939U, 1264980372U },
--	{ 1967883163U, 508U,   10734624U },
--	{ 1923019697U, 730U, 3821419629U },
--	{  442079932U, 560U, 3440032343U },
--	{ 1961302714U, 845U,  841962572U },
--	{ 2030205964U, 962U, 1325144227U },
--	{ 1160407529U, 507U,  240940858U },
--	{  635482502U, 779U, 4200489746U },
--	{ 1252788931U, 699U,  867195434U },
--	{ 1961817131U, 719U,  668237657U },
--	{ 1071468216U, 983U,  917876630U },
--	{ 1281848367U, 932U, 1003100039U },
--	{  582537119U, 780U, 1127273778U },
--	{ 1973672777U, 853U, 1071368872U },
--	{ 1896756996U, 762U, 1127851055U },
--	{  847917054U, 500U, 1717499075U },
--	{ 1240520510U, 951U, 2849576657U },
--	{ 1685071682U, 567U, 1961810396U },
--	{ 1516232129U, 557U,    3173877U },
--	{ 1208118903U, 612U, 1613145022U },
--	{ 1817269927U, 693U, 4279122573U },
--	{ 1510091701U, 717U,  638191229U },
--	{  365916850U, 807U,  600424314U },
--	{  399324359U, 702U, 1803598116U },
--	{ 1318480274U, 779U, 2074237022U },
--	{  697758115U, 840U, 1483639402U },
--	{ 1696507773U, 840U,  577415447U },
--	{ 2081979121U, 981U, 3041486449U },
--	{  955646687U, 742U, 3846494357U },
--	{ 1250683506U, 749U,  836419859U },
--	{  595003102U, 534U,  366794109U },
--	{   47485338U, 558U, 3521120834U },
--	{  619433479U, 610U, 3991783875U },
--	{  704096520U, 518U, 4139493852U },
--	{ 1712224984U, 606U, 2393312003U },
--	{ 1318233152U, 922U, 3880361134U },
--	{  855572992U, 761U, 1472974787U },
--	{   64721421U, 703U,  683860550U },
--	{  678931758U, 840U,  380616043U },
--	{  692711973U, 778U, 1382361947U },
--	{  677703619U, 530U, 2826914161U },
--	{   92393223U, 586U, 1522128471U },
--	{ 1222592920U, 743U, 3466726667U },
--	{  358288986U, 695U, 1091956998U },
--	{ 1935056945U, 958U,  514864477U },
--	{  735675993U, 990U, 1294239989U },
--	{ 1560089402U, 897U, 2238551287U },
--	{   70616361U, 829U,   22483098U },
--	{  368234700U, 731U, 2913875084U },
--	{   20221190U, 879U, 1564152970U },
--	{  539444654U, 682U, 1835141259U },
--	{ 1314987297U, 840U, 1801114136U },
--	{ 2019295544U, 645U, 3286438930U },
--	{  469023838U, 716U, 1637918202U },
--	{ 1843754496U, 653U, 2562092152U },
--	{  400672036U, 809U, 4264212785U },
--	{  404722249U, 965U, 2704116999U },
--	{  600702209U, 758U,  584979986U },
--	{  519953954U, 667U, 2574436237U },
--	{ 1658071126U, 694U, 2214569490U },
--	{  420480037U, 749U, 3430010866U },
--	{  690103647U, 969U, 3700758083U },
--	{ 1029424799U, 937U, 3787746841U },
--	{ 2012608669U, 506U, 3362628973U },
--	{ 1535432887U, 998U,   42610943U },
--	{ 1330635533U, 857U, 3040806504U },
--	{ 1223800550U, 539U, 3954229517U },
--	{ 1322411537U, 680U, 3223250324U },
--	{ 1877847898U, 945U, 2915147143U },
--	{ 1646356099U, 874U,  965988280U },
--	{  805687536U, 744U, 4032277920U },
--	{ 1948093210U, 633U, 1346597684U },
--	{  392609744U, 783U, 1636083295U },
--	{  690241304U, 770U, 1201031298U },
--	{ 1360302965U, 696U, 1665394461U },
--	{ 1220090946U, 780U, 1316922812U },
--	{  447092251U, 500U, 3438743375U },
--	{ 1613868791U, 592U,  828546883U },
--	{  523430951U, 548U, 2552392304U },
--	{  726692899U, 810U, 1656872867U },
--	{ 1364340021U, 836U, 3710513486U },
--	{ 1986257729U, 931U,  935013962U },
--	{  407983964U, 921U,  728767059U },
--};
--
--static void prandom_state_selftest_seed(struct rnd_state *state, u32 seed)
--{
--#define LCG(x)	 ((x) * 69069U)	/* super-duper LCG */
--	state->s1 = __seed(LCG(seed),        2U);
--	state->s2 = __seed(LCG(state->s1),   8U);
--	state->s3 = __seed(LCG(state->s2),  16U);
--	state->s4 = __seed(LCG(state->s3), 128U);
--}
--
--static int __init prandom_state_selftest(void)
--{
--	int i, j, errors = 0, runs = 0;
--	bool error = false;
--
--	for (i = 0; i < ARRAY_SIZE(test1); i++) {
--		struct rnd_state state;
--
--		prandom_state_selftest_seed(&state, test1[i].seed);
--		prandom_warmup(&state);
--
--		if (test1[i].result != prandom_u32_state(&state))
--			error = true;
--	}
--
--	if (error)
--		pr_warn("prandom: seed boundary self test failed\n");
--	else
--		pr_info("prandom: seed boundary self test passed\n");
--
--	for (i = 0; i < ARRAY_SIZE(test2); i++) {
--		struct rnd_state state;
--
--		prandom_state_selftest_seed(&state, test2[i].seed);
--		prandom_warmup(&state);
--
--		for (j = 0; j < test2[i].iteration - 1; j++)
--			prandom_u32_state(&state);
--
--		if (test2[i].result != prandom_u32_state(&state))
--			errors++;
--
--		runs++;
--		cond_resched();
--	}
--
--	if (errors)
--		pr_warn("prandom: %d/%d self tests failed\n", errors, runs);
--	else
--		pr_info("prandom: %d self tests passed\n", runs);
--	return 0;
--}
--core_initcall(prandom_state_selftest);
--#endif
---- a/lib/tests/Makefile~lib-random32-convert-selftest-to-kunit
-+++ a/lib/tests/Makefile
-@@ -44,6 +44,7 @@ obj-$(CONFIG_OVERFLOW_KUNIT_TEST) += ove
- # GCC < 12.1 can miscompile errptr() test when branch profiling is enabled.
- CFLAGS_printf_kunit.o += -DDISABLE_BRANCH_PROFILING
- obj-$(CONFIG_PRINTF_KUNIT_TEST) += printf_kunit.o
-+obj-$(CONFIG_PRANDOM_KUNIT_TEST) += random32_kunit.o
- obj-$(CONFIG_RANDSTRUCT_KUNIT_TEST) += randstruct_kunit.o
- obj-$(CONFIG_SCANF_KUNIT_TEST) += scanf_kunit.o
- obj-$(CONFIG_SEQ_BUF_KUNIT_TEST) += seq_buf_kunit.o
-diff --git a/lib/tests/random32_kunit.c a/lib/tests/random32_kunit.c
-new file mode 100644
---- /dev/null
-+++ a/lib/tests/random32_kunit.c
-@@ -0,0 +1,181 @@
-+// SPDX-License-Identifier: GPL-2.0
-+/*
-+ * Test cases for random32 functions.
-+ */
-+
-+#include <linux/prandom.h>
-+#include <kunit/test.h>
-+
-+/* prandom_warmup() is static in lib/random32.c; exposed for testing only. */
-+void prandom_warmup(struct rnd_state *state);
-+
-+static const struct prandom_test1 {
-+	u32 seed;
-+	u32 result;
-+} test1[] = {
-+	{ 1U, 3484351685U },
-+	{ 2U, 2623130059U },
-+	{ 3U, 3125133893U },
-+	{ 4U,  984847254U },
-+};
-+
-+static const struct prandom_test2 {
-+	u32 seed;
-+	u32 iteration;
-+	u32 result;
-+} test2[] = {
-+	/* Test cases against taus113 from GSL library. */
-+	{  931557656U, 959U, 2975593782U },
-+	{ 1339693295U, 876U, 3887776532U },
-+	{ 1545556285U, 961U, 1615538833U },
-+	{  601730776U, 723U, 1776162651U },
-+	{ 1027516047U, 687U,  511983079U },
-+	{  416526298U, 700U,  916156552U },
-+	{ 1395522032U, 652U, 2222063676U },
-+	{  366221443U, 617U, 2992857763U },
-+	{ 1539836965U, 714U, 3783265725U },
-+	{  556206671U, 994U,  799626459U },
-+	{  684907218U, 799U,  367789491U },
-+	{ 2121230701U, 931U, 2115467001U },
-+	{ 1668516451U, 644U, 3620590685U },
-+	{  768046066U, 883U, 2034077390U },
-+	{ 1989159136U, 833U, 1195767305U },
-+	{  536585145U, 996U, 3577259204U },
-+	{ 1008129373U, 642U, 1478080776U },
-+	{ 1740775604U, 939U, 1264980372U },
-+	{ 1967883163U, 508U,   10734624U },
-+	{ 1923019697U, 730U, 3821419629U },
-+	{  442079932U, 560U, 3440032343U },
-+	{ 1961302714U, 845U,  841962572U },
-+	{ 2030205964U, 962U, 1325144227U },
-+	{ 1160407529U, 507U,  240940858U },
-+	{  635482502U, 779U, 4200489746U },
-+	{ 1252788931U, 699U,  867195434U },
-+	{ 1961817131U, 719U,  668237657U },
-+	{ 1071468216U, 983U,  917876630U },
-+	{ 1281848367U, 932U, 1003100039U },
-+	{  582537119U, 780U, 1127273778U },
-+	{ 1973672777U, 853U, 1071368872U },
-+	{ 1896756996U, 762U, 1127851055U },
-+	{  847917054U, 500U, 1717499075U },
-+	{ 1240520510U, 951U, 2849576657U },
-+	{ 1685071682U, 567U, 1961810396U },
-+	{ 1516232129U, 557U,    3173877U },
-+	{ 1208118903U, 612U, 1613145022U },
-+	{ 1817269927U, 693U, 4279122573U },
-+	{ 1510091701U, 717U,  638191229U },
-+	{  365916850U, 807U,  600424314U },
-+	{  399324359U, 702U, 1803598116U },
-+	{ 1318480274U, 779U, 2074237022U },
-+	{  697758115U, 840U, 1483639402U },
-+	{ 1696507773U, 840U,  577415447U },
-+	{ 2081979121U, 981U, 3041486449U },
-+	{  955646687U, 742U, 3846494357U },
-+	{ 1250683506U, 749U,  836419859U },
-+	{  595003102U, 534U,  366794109U },
-+	{   47485338U, 558U, 3521120834U },
-+	{  619433479U, 610U, 3991783875U },
-+	{  704096520U, 518U, 4139493852U },
-+	{ 1712224984U, 606U, 2393312003U },
-+	{ 1318233152U, 922U, 3880361134U },
-+	{  855572992U, 761U, 1472974787U },
-+	{   64721421U, 703U,  683860550U },
-+	{  678931758U, 840U,  380616043U },
-+	{  692711973U, 778U, 1382361947U },
-+	{  677703619U, 530U, 2826914161U },
-+	{   92393223U, 586U, 1522128471U },
-+	{ 1222592920U, 743U, 3466726667U },
-+	{  358288986U, 695U, 1091956998U },
-+	{ 1935056945U, 958U,  514864477U },
-+	{  735675993U, 990U, 1294239989U },
-+	{ 1560089402U, 897U, 2238551287U },
-+	{   70616361U, 829U,   22483098U },
-+	{  368234700U, 731U, 2913875084U },
-+	{   20221190U, 879U, 1564152970U },
-+	{  539444654U, 682U, 1835141259U },
-+	{ 1314987297U, 840U, 1801114136U },
-+	{ 2019295544U, 645U, 3286438930U },
-+	{  469023838U, 716U, 1637918202U },
-+	{ 1843754496U, 653U, 2562092152U },
-+	{  400672036U, 809U, 4264212785U },
-+	{  404722249U, 965U, 2704116999U },
-+	{  600702209U, 758U,  584979986U },
-+	{  519953954U, 667U, 2574436237U },
-+	{ 1658071126U, 694U, 2214569490U },
-+	{  420480037U, 749U, 3430010866U },
-+	{  690103647U, 969U, 3700758083U },
-+	{ 1029424799U, 937U, 3787746841U },
-+	{ 2012608669U, 506U, 3362628973U },
-+	{ 1535432887U, 998U,   42610943U },
-+	{ 1330635533U, 857U, 3040806504U },
-+	{ 1223800550U, 539U, 3954229517U },
-+	{ 1322411537U, 680U, 3223250324U },
-+	{ 1877847898U, 945U, 2915147143U },
-+	{ 1646356099U, 874U,  965988280U },
-+	{  805687536U, 744U, 4032277920U },
-+	{ 1948093210U, 633U, 1346597684U },
-+	{  392609744U, 783U, 1636083295U },
-+	{  690241304U, 770U, 1201031298U },
-+	{ 1360302965U, 696U, 1665394461U },
-+	{ 1220090946U, 780U, 1316922812U },
-+	{  447092251U, 500U, 3438743375U },
-+	{ 1613868791U, 592U,  828546883U },
-+	{  523430951U, 548U, 2552392304U },
-+	{  726692899U, 810U, 1656872867U },
-+	{ 1364340021U, 836U, 3710513486U },
-+	{ 1986257729U, 931U,  935013962U },
-+	{  407983964U, 921U,  728767059U },
-+};
-+
-+static void prandom_state_test_seed(struct rnd_state *state, u32 seed)
-+{
-+#define LCG(x)	 ((x) * 69069U)	/* super-duper LCG */
-+	state->s1 = __seed(LCG(seed),        2U);
-+	state->s2 = __seed(LCG(state->s1),   8U);
-+	state->s3 = __seed(LCG(state->s2),  16U);
-+	state->s4 = __seed(LCG(state->s3), 128U);
-+}
-+
-+static void test_prandom_seed_boundary(struct kunit *test)
-+{
-+	int i;
-+	struct rnd_state state;
-+
-+	for (i = 0; i < ARRAY_SIZE(test1); i++) {
-+		prandom_state_test_seed(&state, test1[i].seed);
-+		prandom_warmup(&state);
-+		KUNIT_EXPECT_EQ(test, test1[i].result, prandom_u32_state(&state));
-+	}
-+}
-+
-+static void test_prandom_taus113(struct kunit *test)
-+{
-+	int i, j;
-+	struct rnd_state state;
-+
-+	for (i = 0; i < ARRAY_SIZE(test2); i++) {
-+		prandom_state_test_seed(&state, test2[i].seed);
-+		prandom_warmup(&state);
-+
-+		for (j = 0; j < test2[i].iteration - 1; j++)
-+			prandom_u32_state(&state);
-+
-+		KUNIT_EXPECT_EQ(test, test2[i].result, prandom_u32_state(&state));
-+	}
-+}
-+
-+static struct kunit_case prandom_test_cases[] = {
-+	KUNIT_CASE(test_prandom_seed_boundary),
-+	KUNIT_CASE(test_prandom_taus113),
-+	{}
-+};
-+
-+static struct kunit_suite prandom_test_suite = {
-+	.name = "prandom",
-+	.test_cases = prandom_test_cases,
-+};
-+
-+kunit_test_suite(prandom_test_suite);
-+
-+MODULE_DESCRIPTION("KUnit test for prandom");
-+MODULE_LICENSE("GPL");
+ 	*blknr = i_pos >> sbi->dir_per_block_bits;
+--- a/fs/fat/fat_test.c~fat-avoid-stack-overflow-warning
++++ a/fs/fat/fat_test.c
+@@ -22,7 +22,7 @@ static void fat_checksum_test(struct kun
+ 
+ static void fat_clus_to_blknr_test(struct kunit *test)
+ {
+-	struct msdos_sb_info sbi = {
++	static const struct msdos_sb_info sbi = {
+ 		.sec_per_clus = 4,
+ 		.data_start = 100,
+ 	};
+@@ -34,7 +34,7 @@ static void fat_clus_to_blknr_test(struc
+ 
+ static void fat_get_blknr_offset_test(struct kunit *test)
+ {
+-	struct msdos_sb_info sbi = {
++	static const struct msdos_sb_info sbi = {
+ 		.dir_per_block = 16,
+ 		.dir_per_block_bits = 4,
+ 	};
 _
 
-Patches currently in -mm which might be from note351@hotmail.com are
+Patches currently in -mm which might be from arnd@arndb.de are
 
-lib-random32-convert-selftest-to-kunit.patch
+fat-avoid-stack-overflow-warning.patch
+mm-damon-core-reduce-kernel-stack-usage.patch
 
