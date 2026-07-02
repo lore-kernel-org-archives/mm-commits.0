@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 829EF431E5B
-	for <mm-commits@vger.kernel.org>; Thu,  2 Jul 2026 00:15:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9FA6A431E5B
+	for <mm-commits@vger.kernel.org>; Thu,  2 Jul 2026 00:15:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782951339; cv=none; b=U/8wImS6fC9NcNrsIDTudD3UxlCLOANwQlHdZyc9Wh2bpsNJ4hEqk1koLlScUz1uN719dmAgSGC9I2jpZMBO1kIdxBVL2Aw5nnvYlN2vdBwxhSq9+XN4kBT9Gx8MIpS2ltt+kzP/ztFsZRRYkudq31wZVOOdBoAt3KrrYRFGUm0=
+	t=1782951341; cv=none; b=UERSkorr3Ix6PrxQLnGY4rb4m+Ad0FpK35ST+XI+Y3dEvjPr8rOWJg+0Y62KWYB5g+yLosBLPxcGd8ai72G/QWRdfo7ipmKN5dG3kdDOyLXRTXZJ/6Cz1sE/9qHUSn45fhB8oB/6/f7Y5qkoU/w3B3cKPkfp07jJY3rt5PN1aVE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782951339; c=relaxed/simple;
-	bh=hkRqxSHVVXIuUUk9a7qgIoWlwsSrWIMgBGCBWbzuaTQ=;
-	h=Date:To:From:Subject:Message-Id; b=bPXTTaCNa5VV/9D1JAAag8LfAJC73a+vGne8giwtrvZgCrn0xCN2LC8DvMgCB86gQon1IC0wCQlGxfSyTYXq1s+w4y2XYsgbhqsuyiTOrlJwSPvtemA9GHX4uOSDDdgD0Q2rSpDB3cBQvrynPj0rLnLBNmHAmT1qFDfDGYAVEnM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0S9pyw1V; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1782951341; c=relaxed/simple;
+	bh=3ugLIEeNrMGtZb6qpOxl9gGYdi3Odsv96jdC5BdVl+4=;
+	h=Date:To:From:Subject:Message-Id; b=SyCGwk9G/hvAS+HXmkInNJUAJ1xxqGDbarqcv7utZw8is5/ilAFTrh0GGU81SAJnCxSDGJgtlytWzAUz3f1slikzikcy4V4S1kn8fJ6iIe6AHF6jpI9+dpogleGN1EMWAtqP5cnqJPFX3tjiprMeY64INDEKnSO/rL0s0m6iFRM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CQMm1IPJ; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0S9pyw1V"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 18DE51F000E9;
-	Thu,  2 Jul 2026 00:15:38 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CQMm1IPJ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3A22E1F000E9;
+	Thu,  2 Jul 2026 00:15:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1782951338;
-	bh=6D56tKxzyFrXXGNLErXuulgxR4kyXW6IhYSZJaJQMhU=;
+	d=linux-foundation.org; s=korg; t=1782951340;
+	bh=U5QvyvKgIi1f5OfmY/4VRohC0bBh9e/392UoiO53cn0=;
 	h=Date:To:From:Subject;
-	b=0S9pyw1VzoQgCbs5K8X60JLtuOPt/OU4YvvG6lqZuN10X56DunPM82wc17lN8CmsI
-	 pASXHgO7DvIn/c7JzTIUZkCsuL3xiK0vLn+DFUdHT+lWzthhGadeiO709ekEM2TVvt
-	 PQBqhH+5vmXxb7qkzp4IauLp5YboUe/xKOhY73/4=
-Date: Wed, 01 Jul 2026 17:15:37 -0700
+	b=CQMm1IPJnbx8H+5nM2UiQcnq0vh40sDMqi07d3sVFO31qFz5JzXXcmvJBQg28SWqK
+	 HKMW5KYpVTkd7rMu88YCx6wQ1Z2Cvgad2BRXWF5mg8ICBK2gJmaAPW3eglZF/F1+qT
+	 Q2Lr6E1Fwb7D1rsv5gZrqj0yUBZOEzQ/4HNEkQ0E=
+Date: Wed, 01 Jul 2026 17:15:39 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,vbabka@kernel.org,surenb@google.com,rppt@kernel.org,rakie.kim@sk.com,mhocko@suse.com,matthew.brost@intel.com,ljs@kernel.org,liam@infradead.org,joshua.hahnjy@gmail.com,jic23@kernel.org,gourry@gourry.net,dev.jain@arm.com,david@kernel.org,byungchul@sk.com,apopple@nvidia.com,shivankg@amd.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-migrate-rename-page-to-folio-leftovers.patch added to mm-unstable branch
-Message-Id: <20260702001538.18DE51F000E9@smtp.kernel.org>
+Subject: + mm-migrate-fix-stale-list-name-in-migrate_folios_move-comment.patch added to mm-unstable branch
+Message-Id: <20260702001540.3A22E1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/migrate: rename page to folio leftovers
+     Subject: mm/migrate: fix stale list name in migrate_folios_move() comment
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-migrate-rename-page-to-folio-leftovers.patch
+     mm-migrate-fix-stale-list-name-in-migrate_folios_move-comment.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-migrate-rename-page-to-folio-leftovers.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-migrate-fix-stale-list-name-in-migrate_folios_move-comment.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,39 +59,23 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Shivank Garg <shivankg@amd.com>
-Subject: mm/migrate: rename page to folio leftovers
-Date: Wed, 1 Jul 2026 05:17:20 +0000
+Subject: mm/migrate: fix stale list name in migrate_folios_move() comment
+Date: Wed, 1 Jul 2026 05:17:21 +0000
 
-Patch series "mm/migrate: preparatory cleanups for batch copy and
-offload", v2.
+The return-value description in migrate_folios_move() still refers to
+unmap_folios, but that list no longer exists.  Update this name to
+src_folios.
 
-This is a small set of mm/migrate cleanups split out of the batch-copy and
-offload RFC [1], so they can be reviewed and merged independently ahead of
-that larger series.
-
-No functional change intended.
-
-
-This patch (of 3):
-
-Rename migrate_folio_undo_src()'s page_was_mapped parameter to was_mapped,
-unmap_and_move_huge_page() to unmap_and_move_hugetlb_folio(), its
-page_was_mapped variable to was_mapped and fix stale "page" wording in its
-comments.
-
-Also fix migrate_folio() kerneldoc to say "folio" instead of "page".
-
-Link: https://lore.kernel.org/20260701-migrate-cleanups-prep-v2-0-d9e8f17130b1@amd.com
-Link: https://lore.kernel.org/20260701-migrate-cleanups-prep-v2-1-d9e8f17130b1@amd.com
-Link: https://lore.kernel.org/all/20260428155043.39251-2-shivankg@amd.com [1]
+Link: https://lore.kernel.org/20260701-migrate-cleanups-prep-v2-2-d9e8f17130b1@amd.com
 Signed-off-by: Shivank Garg <shivankg@amd.com>
-Suggested-by: Dev Jain <dev.jain@arm.com>
-Suggested-by: David Hildenbrand (Arm) <david@kernel.org>
 Reviewed-by: Zi Yan <ziy@nvidia.com>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
 Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Byungchul Park <byungchul@sk.com>
+Cc: Dev Jain <dev.jain@arm.com>
 Cc: Gregory Price <gourry@gourry.net>
 Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
+Cc: Jonathan Cameron <jic23@kernel.org>
 Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
 Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
@@ -101,117 +85,23 @@ Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Rakie Kim <rakie.kim@sk.com>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Jonathan Cameron <jic23@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |   36 +++++++++++++++++-------------------
- 1 file changed, 17 insertions(+), 19 deletions(-)
+ mm/migrate.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/migrate.c~mm-migrate-rename-page-to-folio-leftovers
+--- a/mm/migrate.c~mm-migrate-fix-stale-list-name-in-migrate_folios_move-comment
 +++ a/mm/migrate.c
-@@ -884,7 +884,7 @@ static int __migrate_folio(struct addres
-  * @mapping: The address_space containing the folio.
-  * @dst: The folio to migrate the data to.
-  * @src: The folio containing the current data.
-- * @mode: How to migrate the page.
-+ * @mode: How to migrate the folio.
-  *
-  * Common logic to directly migrate a single LRU folio suitable for
-  * folios that do not have private data.
-@@ -1157,13 +1157,10 @@ static void __migrate_folio_extract(stru
- }
- 
- /* Restore the source folio to the original state upon failure */
--static void migrate_folio_undo_src(struct folio *src,
--				   int page_was_mapped,
--				   struct anon_vma *anon_vma,
--				   bool locked,
--				   struct list_head *ret)
-+static void migrate_folio_undo_src(struct folio *src, int was_mapped,
-+		struct anon_vma *anon_vma, bool locked, struct list_head *ret)
- {
--	if (page_was_mapped)
-+	if (was_mapped)
- 		remove_migration_ptes(src, src, 0);
- 	/* Drop an anon_vma reference if we took one */
- 	if (anon_vma)
-@@ -1449,7 +1446,8 @@ out:
- }
- 
- /*
-- * Counterpart of unmap_and_move_page() for hugepage migration.
-+ * Counterpart of migrate_folio_unmap() and migrate_folio_move() for hugetlb
-+ * folio migration.
-  *
-  * This function doesn't wait the completion of hugepage I/O
-  * because there is no race between I/O and migration for hugepage.
-@@ -1466,20 +1464,20 @@ out:
-  * because then pte is replaced with migration swap entry and direct I/O code
-  * will wait in the page fault for migration to complete.
-  */
--static int unmap_and_move_huge_page(new_folio_t get_new_folio,
-+static int unmap_and_move_hugetlb_folio(new_folio_t get_new_folio,
- 		free_folio_t put_new_folio, unsigned long private,
- 		struct folio *src, int force, enum migrate_mode mode,
- 		enum migrate_reason reason, struct list_head *ret)
- {
- 	struct folio *dst;
- 	int rc = -EAGAIN;
--	int page_was_mapped = 0;
-+	int was_mapped = 0;
- 	struct anon_vma *anon_vma = NULL;
- 	struct address_space *mapping = NULL;
- 	enum ttu_flags ttu = 0;
- 
- 	if (folio_ref_count(src) == 1) {
--		/* page was freed from under us. So we are done. */
-+		/* folio was freed from under us. So we are done. */
- 		folio_putback_hugetlb(src);
- 		return 0;
- 	}
-@@ -1501,8 +1499,8 @@ static int unmap_and_move_huge_page(new_
- 	}
- 
- 	/*
--	 * Check for pages which are in the process of being freed.  Without
--	 * folio_mapping() set, hugetlbfs specific move page routine will not
-+	 * Check for folios which are in the process of being freed.  Without
-+	 * folio_mapping() set, hugetlbfs specific move folio routine will not
- 	 * be called and we could leak usage counts for subpools.
- 	 */
- 	if (hugetlb_folio_subpool(src) && !folio_mapping(src)) {
-@@ -1532,13 +1530,13 @@ static int unmap_and_move_huge_page(new_
- 		}
- 
- 		try_to_migrate(src, ttu);
--		page_was_mapped = 1;
-+		was_mapped = 1;
- 	}
- 
- 	if (!folio_mapped(src))
- 		rc = move_to_new_folio(dst, src, mode);
- 
--	if (page_was_mapped)
-+	if (was_mapped)
- 		remove_migration_ptes(src, !rc ? dst : src, ttu);
- 
- 	if (ttu & TTU_RMAP_LOCKED)
-@@ -1663,10 +1661,10 @@ static int migrate_hugetlbs(struct list_
- 				continue;
- 			}
- 
--			rc = unmap_and_move_huge_page(get_new_folio,
--						      put_new_folio, private,
--						      folio, pass > 2, mode,
--						      reason, ret_folios);
-+			rc = unmap_and_move_hugetlb_folio(get_new_folio,
-+							  put_new_folio, private,
-+							  folio, pass > 2, mode,
-+							  reason, ret_folios);
- 			/*
- 			 * The rules are:
- 			 *	0: hugetlb folio will be put back
+@@ -1739,7 +1739,7 @@ static void migrate_folios_move(struct l
+ 		/*
+ 		 * The rules are:
+ 		 *	0: folio will be freed
+-		 *	-EAGAIN: stay on the unmap_folios list
++		 *	-EAGAIN: stay on the src_folios list
+ 		 *	Other errno: put on ret_folios list
+ 		 */
+ 		switch (rc) {
 _
 
 Patches currently in -mm which might be from shivankg@amd.com are
