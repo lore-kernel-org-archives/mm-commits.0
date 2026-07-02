@@ -1,124 +1,85 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.14])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EB725344D9D;
-	Thu,  2 Jul 2026 17:28:48 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6AE2437A828
+	for <mm-commits@vger.kernel.org>; Thu,  2 Jul 2026 17:43:37 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.14
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783013330; cv=none; b=hUcMlQscTTWSuEVxstEZCjUT6ruwueP4h40tg6e4+/dJyWTBZw7E1tsP8viEqQDAVq+bErXELMEO5nBMRQob9NBb7nwM771K4vtLafNTsbLPuRJBlc+ZfA5yELG+1GUB7YbXPNFT/n3JfocO2uGiJFg5Nduqpb/N8IbeqMUaWYI=
+	t=1783014219; cv=none; b=Ay0jzH3zg9c5iCgoD9WRGKHTLYrH4b6IgCqeLEStTz55wb9KB97dqzm/M2QppSWiXAV9PFagiSQECb7Zj/Lv2nBYr/byW+fuOHT2uVD+mdVzTv8Hp8y0g87hBe7GSL3LAyE11zUWTh6qTzLiV3bOpr0Wbva2zMX6sa8J5hEf6jg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783013330; c=relaxed/simple;
-	bh=B0uxHwpIxrFiI/RZmPGq7grcs09n9q6dO4zjjMU5Hz4=;
-	h=Date:To:From:Subject:Message-Id; b=uplJswWI8QIX3Bc+cPjOXcYDo0ULyybh6FuS/QG+nuPgZOalSRvmJ4WQVTolaY/jO4s3X1FxvWNy+9P39fUI6Wj6J7b/K9RUC7tFbfYOH2ojuJ0TWpgMYx+RaEujn+3ubX572pg+4YM2M1riLrA3eAZpMAWGYuMNT3m9kbMF9ME=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sKmTeny8; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783014219; c=relaxed/simple;
+	bh=QEGMOc3SpuqbmNd6M2wJK5ocPmc94n1B/IOdlFDjgHY=;
+	h=Date:From:To:Cc:Subject:Message-ID; b=C+P9WqwbfVn6FxhwyWNKNhOIdieK2bNxhR+26aqK0VbbwjBJ1ZjjzXGz0lvs5tpxNdx3P8B7Pyc9cCznnFSf0S7BPokuUXTt0p4gR/i2LPn0ee2+bcxBZzEsReIv6b44egov8g/sTGg30kbxPyPT9KzuBw6kKfpX3xDp5DPc80I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=gZxFaTxm; arc=none smtp.client-ip=198.175.65.14
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sKmTeny8"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6E26F1F000E9;
-	Thu,  2 Jul 2026 17:28:48 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783013328;
-	bh=eV+dCEWl4LqK4dvP3NfiJG3u+uuVA3Q2YVjzCs2Gdpo=;
-	h=Date:To:From:Subject;
-	b=sKmTeny8ixOZpNgMkTDB66xhxpxOjVGzF9wLE5AvQeoXvobENZObRg95DEmLyZjkW
-	 HkbXNzLArjCruH18eMVH79E1+EBA8IH9+CXUFWKVktm23nJZp0lJxiyObWCDfDbHk7
-	 O5PdhNB4a5tV09lWTFVfTWJo8H2LIAw3UhW7xB0A=
-Date: Thu, 02 Jul 2026 10:28:47 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,rostedt@goodmis.org,mhiramat@kernel.org,leitao@debian.org,include@grrlz.net,akpm@linux-foundation.org
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [alternative-merged] lib-bootconfig-fix-undefined-behavior-involving-null-pointer-arithmetic.patch removed from -mm tree
-Message-Id: <20260702172848.6E26F1F000E9@smtp.kernel.org>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="gZxFaTxm"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1783014218; x=1814550218;
+  h=date:from:to:cc:subject:message-id;
+  bh=QEGMOc3SpuqbmNd6M2wJK5ocPmc94n1B/IOdlFDjgHY=;
+  b=gZxFaTxm11B4TOXSVGgpWlV2Tv3+9hcDYcRM0J0dc9+duR9GDSpsHIrd
+   RNO73j/8TQZi4G4rfKJ6gI3S2fhYb6wKPmHUCD6yNxtNp4vLZysqdwsDg
+   91yZZ9ZFfZt8sgT8ZN8QKu2dvvzwzUj2LTduDPaxKarnCLfycW4NBdnDI
+   XT2jw0mKz761UE0tYKjOQLp/+yoPwQKIQ9A1LOiOaEVdLnPTxbPxwhAaj
+   uV8RXg58pJDk9grQKYELMprGrXqISmbxCt7rAlNbDUpLUjIIjEOBnOnsq
+   4r1FClSt8+NPs8SN4t/tQTslT49ZTHvKom54DBCTCVx9+BV3zKBNH2zM0
+   A==;
+X-CSE-ConnectionGUID: /Odp+o0ST2qCpgGPDuv4pw==
+X-CSE-MsgGUID: Qxhx+GFJQ7aPizfermPLdQ==
+X-IronPort-AV: E=McAfee;i="6800,10657,11835"; a="87688600"
+X-IronPort-AV: E=Sophos;i="6.25,144,1779174000"; 
+   d="scan'208";a="87688600"
+Received: from orviesa005.jf.intel.com ([10.64.159.145])
+  by orvoesa106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Jul 2026 10:43:37 -0700
+X-CSE-ConnectionGUID: 7BhZeXN6RvKxoVjeSEDdLA==
+X-CSE-MsgGUID: 7JE9EWfPRHKgCLJ+37a3Qg==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.25,144,1779174000"; 
+   d="scan'208";a="257263034"
+Received: from lkp-server02.sh.intel.com (HELO ea128546eb3d) ([10.239.97.151])
+  by orviesa005.jf.intel.com with ESMTP; 02 Jul 2026 10:43:35 -0700
+Received: from kbuild by ea128546eb3d with local (Exim 4.98.2)
+	(envelope-from <lkp@intel.com>)
+	id 1wfLRj-00000000B2x-1n7W;
+	Thu, 02 Jul 2026 17:43:31 +0000
+Date: Fri, 03 Jul 2026 01:43:00 +0800
+From: kernel test robot <lkp@intel.com>
+To: Kir Chou <note351@hotmail.com>
+Cc: llvm@lists.linux.dev, oe-kbuild-all@lists.linux.dev,
+ David Hildenbrand <david@kernel.org>,
+ Andrew Morton <akpm@linux-foundation.org>,
+ Linux Memory Management List <linux-mm@kvack.org>,
+ mm-commits@vger.kernel.org, David Gow <davidgow@google.com>
+Subject: [akpm-mm:mm-nonmm-unstable 59/59] WARNING: modpost: module
+ random32_kunit uses symbol prandom_warmup from namespace
+ EXPORTED_FOR_KUNIT_TESTING, but does not import it.
+Message-ID: <202607030125.ziX4WI61-lkp@intel.com>
+User-Agent: s-nail v14.9.25
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
+tree:   https://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm.git mm-nonmm-unstable
+head:   2ee1282ed36ff65ff425a4c6d3121bd701dcd547
+commit: 1f9afe351aeb325ebb94489d40d8ab65f30f8d2a [59/59] lib/random32: convert selftest to KUnit
+config: arm-randconfig-001-20260702 (https://download.01.org/0day-ci/archive/20260703/202607030125.ziX4WI61-lkp@intel.com/config)
+compiler: clang version 17.0.6 (https://github.com/llvm/llvm-project 6009708b4367171ccdbf4b5905cb6a803753fe18)
+reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20260703/202607030125.ziX4WI61-lkp@intel.com/reproduce)
 
-The quilt patch titled
-     Subject: lib/bootconfig: fix undefined behavior involving NULL pointer arithmetic
-has been removed from the -mm tree.  Its filename was
-     lib-bootconfig-fix-undefined-behavior-involving-null-pointer-arithmetic.patch
+If you fix the issue in a separate patch/commit (i.e. not just a new version of
+the same patch/commit), kindly add following tags
+| Reported-by: kernel test robot <lkp@intel.com>
+| Closes: https://lore.kernel.org/oe-kbuild-all/202607030125.ziX4WI61-lkp@intel.com/
 
-This patch was dropped because an alternative patch was or shall be merged
+All warnings (new ones prefixed by >>, old ones prefixed by <<):
 
-------------------------------------------------------
-From: Bradley Morgan <include@grrlz.net>
-Subject: lib/bootconfig: fix undefined behavior involving NULL pointer arithmetic
-Date: Tue, 30 Jun 2026 17:47:46 +0000
+>> WARNING: modpost: module random32_kunit uses symbol prandom_warmup from namespace EXPORTED_FOR_KUNIT_TESTING, but does not import it.
 
-When xbc_snprint_cmdline() is called during the size-probing phase (with
-buf = NULL and size = 0), the function computes the end pointer as 'buf +
-size' (NULL + 0) and repeatedly advances 'buf' via 'buf += ret'.
-
-Under the C standard, performing pointer arithmetic on a NULL pointer is
-undefined behavior.  While harmless inside the kernel, this code is also
-compiled into the userspace host tool 'tools/bootconfig', where host
-compilers with UBSan or FORTIFY_SOURCE enabled abort the build when they
-detect NULL pointer arithmetic.
-
-Fix this by guarding the pointer arithmetic so 'buf' is only advanced when
-non-NULL, and track the running written length in a separate 'len' counter
-for the return value (which cannot be recovered from pointer math when
-'buf' is NULL).  The rest() helper and snprintf call sites are unchanged.
-
-Link: https://lore.kernel.org/20260630174746.14795-1-include@grrlz.net
-Fixes: 51887d03aca1 ("bootconfig: init: Allow admin to use bootconfig for kernel command line")
-Assisted-by: GLM:glm-5.2
-Signed-off-by: Bradley Morgan <include@grrlz.net>
-Cc: Masami Hiramatsu <mhiramat@kernel.org>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Breno Leitao <leitao@debian.org>
-Cc: <stable@vger.kernel.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- lib/bootconfig.c |   13 +++++++++----
- 1 file changed, 9 insertions(+), 4 deletions(-)
-
---- a/lib/bootconfig.c~lib-bootconfig-fix-undefined-behavior-involving-null-pointer-arithmetic
-+++ a/lib/bootconfig.c
-@@ -427,8 +427,9 @@ static char xbc_namebuf[XBC_KEYLEN_MAX]
- int __init xbc_snprint_cmdline(char *buf, size_t size, struct xbc_node *root)
- {
- 	struct xbc_node *knode, *vnode;
--	char *end = buf + size;
-+	char *end = buf ? buf + size : NULL;
- 	const char *val, *q;
-+	size_t len = 0;
- 	int ret;
- 
- 	xbc_node_for_each_key_value(root, knode, val) {
-@@ -442,7 +443,9 @@ int __init xbc_snprint_cmdline(char *buf
- 			ret = snprintf(buf, rest(buf, end), "%s ", xbc_namebuf);
- 			if (ret < 0)
- 				return ret;
--			buf += ret;
-+			len += ret;
-+			if (buf)
-+				buf += ret;
- 			continue;
- 		}
- 		xbc_array_for_each_value(vnode, val) {
-@@ -456,11 +459,13 @@ int __init xbc_snprint_cmdline(char *buf
- 				       xbc_namebuf, q, val, q);
- 			if (ret < 0)
- 				return ret;
--			buf += ret;
-+			len += ret;
-+			if (buf)
-+				buf += ret;
- 		}
- 	}
- 
--	return buf - (end - size);
-+	return len;
- }
- #undef rest
- 
-_
-
-Patches currently in -mm which might be from include@grrlz.net are
-
-lib-string-fix-memchr_inv-for-large-ranges.patch
-signal-avoid-shared-siginfo-namespace-rewrites.patch
-
+--
+0-DAY CI Kernel Test Service
+https://github.com/intel/lkp-tests/wiki
