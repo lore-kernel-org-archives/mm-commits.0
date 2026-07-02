@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C45351F30BB
-	for <mm-commits@vger.kernel.org>; Thu,  2 Jul 2026 00:23:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 709051E7C12
+	for <mm-commits@vger.kernel.org>; Thu,  2 Jul 2026 00:23:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782951797; cv=none; b=b7a+uFymkEiwEbLRS9tDmx/gSyRLDU4yEXVaYaQ+M1bjYj6H4waw7FP7LDeP8Z8lgiiRgM3lw8sEzoMyS7eURj8AB+UhyBvaXGZNQ790lo3caQW0BG5PGGq2OmTQpttHLaxNxeRRkL8K/WX7XCXAPJABqb5Zaetcvv/kZahwduo=
+	t=1782951798; cv=none; b=PtmrDraazRTvLOIALa1fLFdpgJihq0/YxVpMwrBSPksAv/IBgPfteOhcc2Hzt+N4EYxwetYcFsaPkXLUQvzqjRAOXud7tVjmwmFhacQwzV/yelSJWAGEPv3MgHKKEcHQ1oU4g4NJIGX7QhZg0rub23sLXqHZZIt76rIKgnO7dzc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782951797; c=relaxed/simple;
-	bh=AA92ezHzvZl+4txwuYlL/BVMxl7sfRvjy7W8x1l9ZeE=;
-	h=Date:To:From:Subject:Message-Id; b=UpDX/TLE9hyFh9jRYsLpLcULadavhay+c8wmba0DTSf649hoeb3GJpkfpS0x8P48W4te31rWZQq/WcmCWxkh6rtup93tOFqfvWGWHsaCyGjw2iuzCH209k7mGR+w5IDhCbKeA335LBK0yEhSL1WwaW2zzHiulSpJzrZ48euIo1o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RORVKZNi; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1782951798; c=relaxed/simple;
+	bh=mV+y5IgjrWqI597exV5FYmMBSKa6HI+53IGO/y8bM8k=;
+	h=Date:To:From:Subject:Message-Id; b=m8HbczqGusjEii1yzXzMdjN7ZNltr2apbYBZSA7vqBfVKhqoz0f5mLwXY8d8sY5xVS3t0Mqa7VC9D2sYZKPWaCfVsW5TPIxhjCd4esaIZxDrQ1j/4Nab4YDkboV0PA8NBsUINBKEAOfbilUUOVJYrE0nGFPM4qFYb+8LUdK+1bw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=czY7SCrT; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RORVKZNi"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5E8A01F000E9;
-	Thu,  2 Jul 2026 00:23:15 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="czY7SCrT"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 44C881F000E9;
+	Thu,  2 Jul 2026 00:23:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1782951795;
-	bh=ep5p3kkI6Uk6grSbjwca/DQ88rKtGbpapHdnDvrUvas=;
+	d=linux-foundation.org; s=korg; t=1782951797;
+	bh=x0Oce8t6zu9dHrbXgIqTtU1TVLXnL2Ux7iXkHGPZVa0=;
 	h=Date:To:From:Subject;
-	b=RORVKZNiA6uDWqjdkK1r4VE1yPkln0lYhuJ0NbcCdzo70o4RN6uXea+yxUoG4Zylx
-	 82bbAhAB0BBJE0aTaSqWo4IsI44NB+xda8h6zuybTgt5ojf1U+T9ByVkMhNDjBjnIa
-	 +PxD93PGAu17w/MsWpZwAvCeyh5c8mdBLjKvr/Cs=
-Date: Wed, 01 Jul 2026 17:23:14 -0700
+	b=czY7SCrTSKu7H0AGeQkKmMd0HZvIZzFlp2qIRUCWhdVqNttL+C4QOqLP4hIUP/xr6
+	 RIY5WOFCdFrSN+oQfbtb+xm4C104E7apTIa/E6wO5aePMoqY8NhSwDnzjNK/y5X6Ph
+	 Q1EVQNMByolz7za/Pgirxn6bH06zfH9TWDuWX/p8=
+Date: Wed, 01 Jul 2026 17:23:16 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-core-remove-damon_verify_reset_aggregated.patch added to mm-new branch
-Message-Id: <20260702002315.5E8A01F000E9@smtp.kernel.org>
+Subject: + mm-damon-core-remove-damon_verify_merge_regions_of.patch added to mm-new branch
+Message-Id: <20260702002317.44C881F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/core: remove damon_verify_reset_aggregated()
+     Subject: mm/damon/core: remove damon_verify_merge_regions_of()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-core-remove-damon_verify_reset_aggregated.patch
+     mm-damon-core-remove-damon_verify_merge_regions_of.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-remove-damon_verify_reset_aggregated.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-remove-damon_verify_merge_regions_of.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,13 +70,14 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/core: remove damon_verify_reset_aggregated()
-Date: Mon, 29 Jun 2026 21:08:02 -0700
+Subject: mm/damon/core: remove damon_verify_merge_regions_of()
+Date: Mon, 29 Jun 2026 21:08:03 -0700
 
-nr_accesses_bp is no longer being used in real use cases.  Remove its
-validation function.
+damon_verify_merge_regions_of() is only for nr_accesses_bp validation. 
+But nr_accesses_bp is no more being used for a real purpose.  Remove the
+validation.
 
-Link: https://lore.kernel.org/20260630040812.149729-10-sj@kernel.org
+Link: https://lore.kernel.org/20260630040812.149729-11-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Cc: Brendan Higgins <brendan.higgins@linux.dev>
 Cc: "Masami Hiramatsu (Google)" <mhiramat@kernel.org>
@@ -86,43 +87,40 @@ Cc: Steven Rostedt <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/core.c |   18 ------------------
- 1 file changed, 18 deletions(-)
+ mm/damon/core.c |   15 ---------------
+ 1 file changed, 15 deletions(-)
 
---- a/mm/damon/core.c~mm-damon-core-remove-damon_verify_reset_aggregated
+--- a/mm/damon/core.c~mm-damon-core-remove-damon_verify_merge_regions_of
 +++ a/mm/damon/core.c
-@@ -2012,23 +2012,6 @@ int damos_walk(struct damon_ctx *ctx, st
- 	return 0;
+@@ -3127,20 +3127,6 @@ static void damon_merge_two_regions(stru
+ 	damon_destroy_region(r, t);
  }
  
 -#ifdef CONFIG_DAMON_DEBUG_SANITY
--static void damon_verify_reset_aggregated(struct damon_region *r,
--		struct damon_ctx *c)
+-static void damon_verify_merge_regions_of(struct damon_region *r)
 -{
--	WARN_ONCE(r->nr_accesses_bp != r->last_nr_accesses * 10000,
--			"nr_accesses_bp %u last_nr_accesses %u sis %lu %lu\n",
--			r->nr_accesses_bp, r->last_nr_accesses,
--			c->passed_sample_intervals, c->next_aggregation_sis);
+-	WARN_ONCE(r->nr_accesses != r->nr_accesses_bp / 10000,
+-			"nr_accesses (%u) != nr_accesses_bp (%u)\n",
+-			r->nr_accesses, r->nr_accesses_bp);
 -}
 -#else
--static void damon_verify_reset_aggregated(struct damon_region *r,
--		struct damon_ctx *c)
+-static void damon_verify_merge_regions_of(struct damon_region *r)
 -{
 -}
 -#endif
 -
 -
  /*
-  * Reset the aggregated monitoring results ('nr_accesses' of each region).
-  */
-@@ -2057,7 +2040,6 @@ static void kdamond_reset_aggregated(str
- 			r->nr_accesses = 0;
- 			for (i = 0; i < DAMON_MAX_PROBES; i++)
- 				r->probe_hits[i] = 0;
--			damon_verify_reset_aggregated(r, c);
- 		}
- 		ti++;
- 	}
+  * Merge adjacent regions having similar access frequencies
+  *
+@@ -3154,7 +3140,6 @@ static void damon_merge_regions_of(struc
+ 	struct damon_region *r, *prev = NULL, *next;
+ 
+ 	damon_for_each_region_safe(r, next, t) {
+-		damon_verify_merge_regions_of(r);
+ 		if (abs(r->nr_accesses - r->last_nr_accesses) > thres)
+ 			r->age = 0;
+ 		else if ((r->nr_accesses == 0) != (r->last_nr_accesses == 0))
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
