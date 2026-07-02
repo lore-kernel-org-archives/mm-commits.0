@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F1A8A63B9
-	for <mm-commits@vger.kernel.org>; Thu,  2 Jul 2026 00:11:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 829EF431E5B
+	for <mm-commits@vger.kernel.org>; Thu,  2 Jul 2026 00:15:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782951119; cv=none; b=X9VcBwWJSoA7eBztnUB9fwBFXlIwpgBtb11OV0mXBVTyRSK73HEG3hoBALTy5RVVGddvm3fzmCiJo0vbOgrLI9f+NgnAHBhkDi+IxT1gP9xyIjg1Jqv/oXTRPr3lF/5ZOEz5aLJkp1wv2bToZDssLTTo64MXvOGmhpXOCtBygQU=
+	t=1782951339; cv=none; b=U/8wImS6fC9NcNrsIDTudD3UxlCLOANwQlHdZyc9Wh2bpsNJ4hEqk1koLlScUz1uN719dmAgSGC9I2jpZMBO1kIdxBVL2Aw5nnvYlN2vdBwxhSq9+XN4kBT9Gx8MIpS2ltt+kzP/ztFsZRRYkudq31wZVOOdBoAt3KrrYRFGUm0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782951119; c=relaxed/simple;
-	bh=Uhn11uZ2bMCedl1UGk3TiYqtwFeSprezqXYPpqHNfl0=;
-	h=Date:To:From:Subject:Message-Id; b=SCWwBfi6IqWovs31wbB/8Tdv92tEZKpm80Ikc4QZnWRVQXRZuu1w3R8fnV5juZrxadx5dqLoW+hrFDbcc9gRuASX1q0mC00A38/UQPm+vPzayYp2fGogAUdnThRV8EW0lnZxevBQ0hJuUTOCp3fvQIg6I5++AUMPyMaIdFWSvck=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GHsNYhXN; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1782951339; c=relaxed/simple;
+	bh=hkRqxSHVVXIuUUk9a7qgIoWlwsSrWIMgBGCBWbzuaTQ=;
+	h=Date:To:From:Subject:Message-Id; b=bPXTTaCNa5VV/9D1JAAag8LfAJC73a+vGne8giwtrvZgCrn0xCN2LC8DvMgCB86gQon1IC0wCQlGxfSyTYXq1s+w4y2XYsgbhqsuyiTOrlJwSPvtemA9GHX4uOSDDdgD0Q2rSpDB3cBQvrynPj0rLnLBNmHAmT1qFDfDGYAVEnM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0S9pyw1V; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GHsNYhXN"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 985711F000E9;
-	Thu,  2 Jul 2026 00:11:54 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0S9pyw1V"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 18DE51F000E9;
+	Thu,  2 Jul 2026 00:15:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1782951114;
-	bh=gMQeYuXbZxf2p5ceuQa385cCy03E5FRfDMjUALYactk=;
+	d=linux-foundation.org; s=korg; t=1782951338;
+	bh=6D56tKxzyFrXXGNLErXuulgxR4kyXW6IhYSZJaJQMhU=;
 	h=Date:To:From:Subject;
-	b=GHsNYhXNRolN6vmqkZQSj+B0k+HAgdvkrK2aJhzzQxH68w90CqA0Op0R5xyR6PuYp
-	 g6AKzypofgCpC7jFdbbXaUHBlGc0ctTAyQoQ8DUNyF9cMsYandf02WHqIfNC2YS+cV
-	 5PKFcBNDYwHcJgvcb8pvc3l6HA1HrbWw89gf8X3c=
-Date: Wed, 01 Jul 2026 17:11:54 -0700
-To: mm-commits@vger.kernel.org,ye.liu@linux.dev,akpm@linux-foundation.org
+	b=0S9pyw1VzoQgCbs5K8X60JLtuOPt/OU4YvvG6lqZuN10X56DunPM82wc17lN8CmsI
+	 pASXHgO7DvIn/c7JzTIUZkCsuL3xiK0vLn+DFUdHT+lWzthhGadeiO709ekEM2TVvt
+	 PQBqhH+5vmXxb7qkzp4IauLp5YboUe/xKOhY73/4=
+Date: Wed, 01 Jul 2026 17:15:37 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,vbabka@kernel.org,surenb@google.com,rppt@kernel.org,rakie.kim@sk.com,mhocko@suse.com,matthew.brost@intel.com,ljs@kernel.org,liam@infradead.org,joshua.hahnjy@gmail.com,jic23@kernel.org,gourry@gourry.net,dev.jain@arm.com,david@kernel.org,byungchul@sk.com,apopple@nvidia.com,shivankg@amd.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_owner-use-memcg_data-snapshot-instead-of-pagememcgkmem-to-avoid-toctou-vm_bug_on.patch added to mm-unstable branch
-Message-Id: <20260702001154.985711F000E9@smtp.kernel.org>
+Subject: + mm-migrate-rename-page-to-folio-leftovers.patch added to mm-unstable branch
+Message-Id: <20260702001538.18DE51F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/page_owner: use memcg_data snapshot instead of PageMemcgKmem() to avoid TOCTOU VM_BUG_ON
+     Subject: mm/migrate: rename page to folio leftovers
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-page_owner-use-memcg_data-snapshot-instead-of-pagememcgkmem-to-avoid-toctou-vm_bug_on.patch
+     mm-migrate-rename-page-to-folio-leftovers.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_owner-use-memcg_data-snapshot-instead-of-pagememcgkmem-to-avoid-toctou-vm_bug_on.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-migrate-rename-page-to-folio-leftovers.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,67 +58,165 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Ye Liu <ye.liu@linux.dev>
-Subject: mm/page_owner: use memcg_data snapshot instead of PageMemcgKmem() to avoid TOCTOU VM_BUG_ON
-Date: Wed, 1 Jul 2026 14:10:52 +0800
+From: Shivank Garg <shivankg@amd.com>
+Subject: mm/migrate: rename page to folio leftovers
+Date: Wed, 1 Jul 2026 05:17:20 +0000
 
-print_page_owner_memcg() takes a snapshot of page->memcg_data via
-READ_ONCE at the top of the function and guards against tail pages and
-NULL memcg_data.  However, at the end it calls PageMemcgKmem(page) which
-internally calls folio_memcg_kmem() — and that function re-reads
-folio->memcg_data and page->compound_head locklessly, wrapping both in
-VM_BUG_ON assertions:
+Patch series "mm/migrate: preparatory cleanups for batch copy and
+offload", v2.
 
-    VM_BUG_ON_PGFLAGS(PageTail(&folio->page), &folio->page);
-    VM_BUG_ON_FOLIO(folio->memcg_data & MEMCG_DATA_OBJEXTS, folio);
+This is a small set of mm/migrate cleanups split out of the batch-copy and
+offload RFC [1], so they can be reviewed and merged independently ahead of
+that larger series.
 
-If the page is concurrently freed and reallocated as a THP tail page or a
-slab page between the initial guards and this final call, the VM_BUG_ON
-assertions can fire on debug builds (CONFIG_DEBUG_VM=y), causing a kernel
-panic.
+No functional change intended.
 
-Fix by reusing the memcg_data snapshot already taken at function entry
-instead of calling PageMemcgKmem(), which is semantically equivalent:
-PageMemcgKmem()->folio_memcg_kmem()->folio->memcg_data & MEMCG_DATA_KMEM. 
-This avoids both the TOCTOU window and the assertions entirely.
 
-Link: https://lore.kernel.org/20260701061101.344679-10-ye.liu@linux.dev
-Signed-off-by: Ye Liu <ye.liu@linux.dev>
-Reviewed-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
-Cc: Brendan Jackman <jackmanb@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Zi Yan <ziy@nvidia.com>
+This patch (of 3):
+
+Rename migrate_folio_undo_src()'s page_was_mapped parameter to was_mapped,
+unmap_and_move_huge_page() to unmap_and_move_hugetlb_folio(), its
+page_was_mapped variable to was_mapped and fix stale "page" wording in its
+comments.
+
+Also fix migrate_folio() kerneldoc to say "folio" instead of "page".
+
+Link: https://lore.kernel.org/20260701-migrate-cleanups-prep-v2-0-d9e8f17130b1@amd.com
+Link: https://lore.kernel.org/20260701-migrate-cleanups-prep-v2-1-d9e8f17130b1@amd.com
+Link: https://lore.kernel.org/all/20260428155043.39251-2-shivankg@amd.com [1]
+Signed-off-by: Shivank Garg <shivankg@amd.com>
+Suggested-by: Dev Jain <dev.jain@arm.com>
+Suggested-by: David Hildenbrand (Arm) <david@kernel.org>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Byungchul Park <byungchul@sk.com>
+Cc: Gregory Price <gourry@gourry.net>
+Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
+Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
+Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Matthew Brost <matthew.brost@intel.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Rakie Kim <rakie.kim@sk.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Jonathan Cameron <jic23@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_owner.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/migrate.c |   36 +++++++++++++++++-------------------
+ 1 file changed, 17 insertions(+), 19 deletions(-)
 
---- a/mm/page_owner.c~mm-page_owner-use-memcg_data-snapshot-instead-of-pagememcgkmem-to-avoid-toctou-vm_bug_on
-+++ a/mm/page_owner.c
-@@ -561,7 +561,7 @@ static inline int print_page_owner_memcg
- 	cgroup_name(memcg->css.cgroup, name, sizeof(name));
- 	ret += scnprintf(kbuf + ret, count - ret,
- 			"Charged %sto %smemcg %s\n",
--			PageMemcgKmem(page) ? "(via objcg) " : "",
-+			(memcg_data & MEMCG_DATA_KMEM) ? "(via objcg) " : "",
- 			online ? "" : "offline ",
- 			name);
- out_unlock:
+--- a/mm/migrate.c~mm-migrate-rename-page-to-folio-leftovers
++++ a/mm/migrate.c
+@@ -884,7 +884,7 @@ static int __migrate_folio(struct addres
+  * @mapping: The address_space containing the folio.
+  * @dst: The folio to migrate the data to.
+  * @src: The folio containing the current data.
+- * @mode: How to migrate the page.
++ * @mode: How to migrate the folio.
+  *
+  * Common logic to directly migrate a single LRU folio suitable for
+  * folios that do not have private data.
+@@ -1157,13 +1157,10 @@ static void __migrate_folio_extract(stru
+ }
+ 
+ /* Restore the source folio to the original state upon failure */
+-static void migrate_folio_undo_src(struct folio *src,
+-				   int page_was_mapped,
+-				   struct anon_vma *anon_vma,
+-				   bool locked,
+-				   struct list_head *ret)
++static void migrate_folio_undo_src(struct folio *src, int was_mapped,
++		struct anon_vma *anon_vma, bool locked, struct list_head *ret)
+ {
+-	if (page_was_mapped)
++	if (was_mapped)
+ 		remove_migration_ptes(src, src, 0);
+ 	/* Drop an anon_vma reference if we took one */
+ 	if (anon_vma)
+@@ -1449,7 +1446,8 @@ out:
+ }
+ 
+ /*
+- * Counterpart of unmap_and_move_page() for hugepage migration.
++ * Counterpart of migrate_folio_unmap() and migrate_folio_move() for hugetlb
++ * folio migration.
+  *
+  * This function doesn't wait the completion of hugepage I/O
+  * because there is no race between I/O and migration for hugepage.
+@@ -1466,20 +1464,20 @@ out:
+  * because then pte is replaced with migration swap entry and direct I/O code
+  * will wait in the page fault for migration to complete.
+  */
+-static int unmap_and_move_huge_page(new_folio_t get_new_folio,
++static int unmap_and_move_hugetlb_folio(new_folio_t get_new_folio,
+ 		free_folio_t put_new_folio, unsigned long private,
+ 		struct folio *src, int force, enum migrate_mode mode,
+ 		enum migrate_reason reason, struct list_head *ret)
+ {
+ 	struct folio *dst;
+ 	int rc = -EAGAIN;
+-	int page_was_mapped = 0;
++	int was_mapped = 0;
+ 	struct anon_vma *anon_vma = NULL;
+ 	struct address_space *mapping = NULL;
+ 	enum ttu_flags ttu = 0;
+ 
+ 	if (folio_ref_count(src) == 1) {
+-		/* page was freed from under us. So we are done. */
++		/* folio was freed from under us. So we are done. */
+ 		folio_putback_hugetlb(src);
+ 		return 0;
+ 	}
+@@ -1501,8 +1499,8 @@ static int unmap_and_move_huge_page(new_
+ 	}
+ 
+ 	/*
+-	 * Check for pages which are in the process of being freed.  Without
+-	 * folio_mapping() set, hugetlbfs specific move page routine will not
++	 * Check for folios which are in the process of being freed.  Without
++	 * folio_mapping() set, hugetlbfs specific move folio routine will not
+ 	 * be called and we could leak usage counts for subpools.
+ 	 */
+ 	if (hugetlb_folio_subpool(src) && !folio_mapping(src)) {
+@@ -1532,13 +1530,13 @@ static int unmap_and_move_huge_page(new_
+ 		}
+ 
+ 		try_to_migrate(src, ttu);
+-		page_was_mapped = 1;
++		was_mapped = 1;
+ 	}
+ 
+ 	if (!folio_mapped(src))
+ 		rc = move_to_new_folio(dst, src, mode);
+ 
+-	if (page_was_mapped)
++	if (was_mapped)
+ 		remove_migration_ptes(src, !rc ? dst : src, ttu);
+ 
+ 	if (ttu & TTU_RMAP_LOCKED)
+@@ -1663,10 +1661,10 @@ static int migrate_hugetlbs(struct list_
+ 				continue;
+ 			}
+ 
+-			rc = unmap_and_move_huge_page(get_new_folio,
+-						      put_new_folio, private,
+-						      folio, pass > 2, mode,
+-						      reason, ret_folios);
++			rc = unmap_and_move_hugetlb_folio(get_new_folio,
++							  put_new_folio, private,
++							  folio, pass > 2, mode,
++							  reason, ret_folios);
+ 			/*
+ 			 * The rules are:
+ 			 *	0: hugetlb folio will be put back
 _
 
-Patches currently in -mm which might be from ye.liu@linux.dev are
+Patches currently in -mm which might be from shivankg@amd.com are
 
-mm-page_owner-extract-skip_buddy_pages-helper-to-unify-buddy-page-skipping.patch
-mm-page_owner-add-mr_never-to-enum-migrate_reason-and-use-it-for-last_migrate_reason.patch
-mm-use-enum-migrate_reason-instead-of-int-for-migration-reason-parameters.patch
-mm-page_owner-hoist-config_memcg-to-function-level-for-print_page_owner_memcg.patch
-mm-page_owner-add-missing-newline-to-count_threshold-format-string.patch
-mm-page_owner-move-free_ts_nsec-output-to-free-section-in-__dump_page_owner.patch
-mm-page_owner-drop-redundant-page_owner-prefix-from-static-symbols.patch
-mm-page_owner-clamp-skip_buddy_pages-pfn-advance-at-max_order_nr_pages-boundary.patch
-mm-page_owner-use-memcg_data-snapshot-instead-of-pagememcgkmem-to-avoid-toctou-vm_bug_on.patch
+mm-migrate-rename-page-to-folio-leftovers.patch
+mm-migrate-fix-stale-list-name-in-migrate_folios_move-comment.patch
+mm-migrate-use-migrate_info-field-instead-of-private.patch
 
