@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 43BC53932D5
-	for <mm-commits@vger.kernel.org>; Thu,  2 Jul 2026 21:29:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 73E5D38C2AA;
+	Thu,  2 Jul 2026 21:35:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783027781; cv=none; b=ujilUXfvepBhqBsDUUPFTyNm4CgQLV11bIRq8s5OSxAkJu+i/JJDRqe+WaLCJL1JWIEcilSItmGVpDfbPpITMner3LKMt/2xvuEiuNJjrw9T27AuQ5oYT9XMTpYZYNQ1kWFUCEqtFFVoQj4AyrKVbEVMyhEWEz7zWttbKBQOGc8=
+	t=1783028107; cv=none; b=d27G/uAw0+XRhY+cFxWaZNDblcQetzSigMAxzoqPnR5aooxSWRk6xk9g49xgOEyTiF7e3/cdErbT7P3PLdVWyuAvnTY6u6s5WcTQC2jUXIe+Ou6WuDwYI8i85N8vZhrOmza+Pf/kB+dkCyHMYXIYxqbL9hSp59w1aFs7V9RuYU0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783027781; c=relaxed/simple;
-	bh=rtK635P3OJKg4zpFF732ATW/ajBYmWjZZZ0ahA87p9c=;
-	h=Date:To:From:Subject:Message-Id; b=tIDYaLwyGuZEEWCn1sHccCpCv6ZUksQc1s7Sak/QYVqBwqLZeY4VHHzGtNNxn0QvBBd7tCS7XY17gFzSkrQOT/LkXRNnpf8AcjiLS8gQXQBew/0bVU4sTj2c/hj//2hisXYMd6rjB8WZPk7Lj5zA6w7niH/DZ/aN3kSJXVFcX7M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YOYya/PJ; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783028107; c=relaxed/simple;
+	bh=3bOUGYvyxSb+VbTe5yG+v/6uMTDuQVwjKxnDCAeWlLM=;
+	h=Date:To:From:Subject:Message-Id; b=kShkNviTXXKmyyJI/uP9RlLW02z6pmJAn8178v70I/gbXNJ0PWEQfvtoOXxbZ2jsD3vEZ+YWdxjywpS/vGhs+17nHjqfpDuZkHcJGfWyz6Wl0sjgJTCzfDGMVCpwDDh1xYq9ddCy88D6snnP4fGCYMaeCb0RehTus96XOYKg6So=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Te5dRGJ7; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YOYya/PJ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BDC271F000E9;
-	Thu,  2 Jul 2026 21:29:39 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Te5dRGJ7"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DCB381F000E9;
+	Thu,  2 Jul 2026 21:35:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783027779;
-	bh=yeZfeaunaA/l18Sfxz6+ljIrb5pZB7iFUprlSzXw/8M=;
+	d=linux-foundation.org; s=korg; t=1783028106;
+	bh=LQeciwc9CKUEDLecvWUrR2XSbiW5G7ZO/tuvK40MfGI=;
 	h=Date:To:From:Subject;
-	b=YOYya/PJ0/fSxM269txrNWQIUYl3NR2zsk5Q+P0nvmaatCpq/6dHhw1bQwb2sZpXf
-	 yLyljJa7CHGIj18GRxwpe1Oc1agy5w9jaaoqYdzrPunD5n2VQDxiDCEmnPy49rahAX
-	 ep4YMw3AzeK/DJyNFbq8d+ba+FRtkDZCpjeRENuY=
-Date: Thu, 02 Jul 2026 14:29:39 -0700
-To: mm-commits@vger.kernel.org,dmantipov@yandex.ru,andriy.shevchenko@intel.com,adobriyan@gmail.com,akpm@linux-foundation.org
+	b=Te5dRGJ7GRKxRTSfrgAsItuz9d5DVbpKYvhnt4l32UCsC/nrOF64LkJKoNXHjEQdr
+	 ccg+M/bIP7ukDbNvNK5cnCtMW15M/mcdIG/BjpcVyuXpOffi+ZabKxFXyjggSyNfOe
+	 lWmL8eI3A/tW/AOFVM5N0rlaaBp/ZamH2BJCBhUc=
+Date: Thu, 02 Jul 2026 14:35:05 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,willy@infradead.org,stable@vger.kernel.org,rakie.kim@sk.com,osalvador@suse.de,matthew.brost@intel.com,ljs@kernel.org,joshua.hahnjy@gmail.com,gourry@gourry.net,david@kernel.org,byungchul@sk.com,baohua@kernel.org,apopple@nvidia.com,npache@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + revert-lib-fix-_parse_integer_limit-to-handle-overflow.patch added to mm-nonmm-unstable branch
-Message-Id: <20260702212939.BDC271F000E9@smtp.kernel.org>
+Subject: + mm-decrement-mthp_stat_nr_anon-in-free_zone_device_folio.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260702213505.DCB381F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: Revert "lib: fix _parse_integer_limit() to handle overflow"
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     revert-lib-fix-_parse_integer_limit-to-handle-overflow.patch
+     Subject: mm: decrement MTHP_STAT_NR_ANON in free_zone_device_folio()
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-decrement-mthp_stat_nr_anon-in-free_zone_device_folio.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/revert-lib-fix-_parse_integer_limit-to-handle-overflow.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-decrement-mthp_stat_nr_anon-in-free_zone_device_folio.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,103 +58,82 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: Revert "lib: fix _parse_integer_limit() to handle overflow"
-Date: Thu, 2 Jul 2026 21:06:38 +0300
+From: Nico Pache <npache@redhat.com>
+Subject: mm: decrement MTHP_STAT_NR_ANON in free_zone_device_folio()
+Date: Thu, 2 Jul 2026 11:25:46 -0600
 
-This reverts commit 6e30111dbb40 ("lib: fix _parse_integer_limit() to
-handle overflow").
+Patch series "mm: fix PMD level mTHP accounting bugs".
 
-1) this patch breaks scanf() which uses _parse_integer_limit()
-   internally, and is supposed to get overflowed result
-   (however incorrect it may be)
+While running selftests I noticed the PMD level per-mTHP stats (nr_anon)
+remained elevated after each run.  After further investigation I noticed
+this accounting error occurs for both the migration.private_anon_htlb_test
+and the HMM tests.
 
-2) using check_mul_overflow() and check_add_overflow() as written
-   doesn't add any overflow protection because it is under branch
-   where such overflow can't happen if radix is kept <=16,
+In the HMM case this is due to folio_add_new_anon_rmap() incrementing the
+mTHP stats, but never containing a corresponding decrement in
+free_zone_device_folio().  We solve this by making sure to decrement the
+counter when freeing device memory.
 
-3) kernel-doc comment legitimize the function while exactly
-   the opposite should be done. Not a fan.
+In the migration case, we are incrementing this counter without first
+checking whether this folio is a hugetlb folio, which relies on a separate
+accounting system.  We solve this by adding the proper hugetlb check
+before incrementing this counter.
 
-Link: https://lore.kernel.org/20260702180638.39196-1-adobriyan@gmail.com
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Andriy Shevchenko <andriy.shevchenko@intel.com>
-Cc: Dmitry Antipov <dmantipov@yandex.ru>
+With these changes in place, the two tests no longer cause elevated PMD
+level accounting issues.
+
+
+This patch (of 2):
+
+When a zone device folio is mapped as anonymous, folio_add_new_anon_rmap()
+increments MTHP_STAT_NR_ANON.  The corresponding decrement lives in
+__free_pages_prepare() in page_alloc.c, but zone device folios are freed
+via free_zone_device_folio() which never calls __free_pages_prepare(). 
+This causes nr_anon to remain permanently elevated after zone device
+folios are freed.
+
+Add the missing mod_mthp_stat() decrement to free_zone_device_folio() so
+that the counter is properly balanced.
+
+Link: https://lore.kernel.org/20260702172548.37075-1-npache@redhat.com
+Link: https://lore.kernel.org/20260702172548.37075-2-npache@redhat.com
+Fixes: 5d65c8d758f2 ("mm: count the number of anonymous THPs per size")
+Co-developed-by: David Hildenbrand <david@kernel.org>
+Signed-off-by: David Hildenbrand <david@kernel.org>
+Signed-off-by: Nico Pache <npache@redhat.com>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Byungchul Park <byungchul@sk.com>
+Cc: Gregory Price <gourry@gourry.net>
+Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
+Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Matthew Brost <matthew.brost@intel.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Rakie Kim <rakie.kim@sk.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/kstrtox.c |   37 +++++++++++++++----------------------
- 1 file changed, 15 insertions(+), 22 deletions(-)
+ mm/memremap.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/lib/kstrtox.c~revert-lib-fix-_parse_integer_limit-to-handle-overflow
-+++ a/lib/kstrtox.c
-@@ -39,30 +39,25 @@ const char *_parse_integer_fixup_radix(c
- 	return s;
- }
+--- a/mm/memremap.c~mm-decrement-mthp_stat_nr_anon-in-free_zone_device_folio
++++ a/mm/memremap.c
+@@ -425,6 +425,7 @@ void free_zone_device_folio(struct folio
+ 	mem_cgroup_uncharge(folio);
  
--/**
-- * _parse_integer_limit - Convert integer string representation to an integer
-- * @s: Integer string representation
-- * @base: Radix
-- * @p: Where to store result
-- * @max_chars: Maximum amount of characters to convert
-+/*
-+ * Convert non-negative integer string representation in explicitly given radix
-+ * to an integer. A maximum of max_chars characters will be converted.
-  *
-- * Convert non-negative integer string representation in explicitly given
-- * radix to an integer. If overflow occurs, value at @p is set to ULLONG_MAX.
-+ * Return number of characters consumed maybe or-ed with overflow bit.
-+ * If overflow occurs, result integer (incorrect) is still returned.
-  *
-- * This function is the workhorse of other string conversion functions and it
-- * is discouraged to use it explicitly. Consider kstrto*() family instead.
-- *
-- * Return: Number of characters consumed, maybe ORed with overflow bit
-+ * Don't you dare use this function.
-  */
- noinline
- unsigned int _parse_integer_limit(const char *s, unsigned int base, unsigned long long *p,
- 				  size_t max_chars)
- {
--	unsigned int rv, overflow = 0;
- 	unsigned long long res;
-+	unsigned int rv;
- 
- 	res = 0;
--	for (rv = 0; rv < max_chars; rv++, s++) {
-+	rv = 0;
-+	while (max_chars--) {
- 		unsigned int c = *s;
- 		unsigned int lc = _tolower(c);
- 		unsigned int val;
-@@ -81,17 +76,15 @@ unsigned int _parse_integer_limit(const
- 		 * it in the max base we support (16)
- 		 */
- 		if (unlikely(res & (~0ull << 60))) {
--			if (check_mul_overflow(res, base, &res) ||
--			    check_add_overflow(res, val, &res)) {
--				res = ULLONG_MAX;
--				overflow = KSTRTOX_OVERFLOW;
--			}
--		} else {
--			res = res * base + val;
-+			if (res > div_u64(ULLONG_MAX - val, base))
-+				rv |= KSTRTOX_OVERFLOW;
- 		}
-+		res = res * base + val;
-+		rv++;
-+		s++;
+ 	if (folio_test_anon(folio)) {
++		mod_mthp_stat(folio_order(folio), MTHP_STAT_NR_ANON, -1);
+ 		for (i = 0; i < nr; i++)
+ 			__ClearPageAnonExclusive(folio_page(folio, i));
  	}
- 	*p = res;
--	return rv | overflow;
-+	return rv;
- }
- 
- noinline
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from npache@redhat.com are
 
-revert-lib-fix-_parse_integer_limit-to-handle-overflow.patch
+mm-decrement-mthp_stat_nr_anon-in-free_zone_device_folio.patch
+mm-migrate-exclude-hugetlb-folios-from-mthp_stat_nr_anon-accounting.patch
 
