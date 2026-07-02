@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0233C1C3F31;
-	Thu,  2 Jul 2026 00:26:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EDD2C431E53;
+	Thu,  2 Jul 2026 00:32:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782951989; cv=none; b=IL0DzKLob/0iLGsFwac10zvsGd6/+JTAtGSsb2uOsf+bwVUSEnFCd3AxwzeFCVQ7KcHmKs19Bt5dYS4QAdQSQxt30Qozp/eAPOTWPnZ/gxwMOUW/fs/l3J/Bh+rk1QaChd1RsWKAbp/s+eayJ58XCrF4DHIIlgfNZ3i84mMvI6o=
+	t=1782952345; cv=none; b=uhME3A98Yly2ooFMiSfKaV9M5Bzyhp/K0//3e5/ChkV2GlLAMJS/ePcj0LweFtyXKR0Mczc70mO9W/4jdW17s97PEppliKly6a8PDVSczaOc71nkUg/RDg1Fn+Inn4ypwYrcxYkZdZrkG5kb17hp6OnG9z/0+fAYRJD8kx7NEmM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782951989; c=relaxed/simple;
-	bh=ipFtFK94sUsgj9AdUE7oBFGBzr3OeWnI1xjywekxkZY=;
-	h=Date:To:From:Subject:Message-Id; b=AwguqrOPWzYgtkCK+QtwgOK8Zfb/j9mr95ZZlBAViNYpxffHBDOqDYcVeVopKgv0yKhc675WDz6wI9hBbL9IGDAVODeccDnQLVe5B8n5SgOVHzj+gZH8qXx9agV5L7q+8jQeeWrp/d6dYYu9hCB5J4V/dCwmqdJOpGN9WvXQVHc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cTrhLCdn; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1782952345; c=relaxed/simple;
+	bh=+NIsTwvWHACM3Yz5EP0EQfv55ysBa1WuTH0Bywo+aUY=;
+	h=Date:To:From:Subject:Message-Id; b=IqC4A3sMrI+MY46HkqEkbKGlPqMrbmG7ySK7sOs0xG59qcwr0DRSrF67HUcFvJ5BueHI7/Y69PSeMoDsC7xNF5vdT6segqvpr0wdfKqbxE751chVjfA6+lZ1NMV2B7bFvl1fsT89s2DzrvNUGWjqmTqMdws9MRKj9mDULk2jIlM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KMH9MiQV; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cTrhLCdn"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 525C11F00A3A;
-	Thu,  2 Jul 2026 00:26:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KMH9MiQV"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7CEFA1F000E9;
+	Thu,  2 Jul 2026 00:32:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1782951987;
-	bh=6rd2QA4eiWO5uNFT3wEIdbF+6hcIl8xZuBnxCs25bUM=;
+	d=linux-foundation.org; s=korg; t=1782952343;
+	bh=OCTsahi7cPsMEYQZE+icz78dBTjEfh+NvNJzY5qKVHM=;
 	h=Date:To:From:Subject;
-	b=cTrhLCdnnF6qGsnMUbli3DN6zUG7wiOxn8lhf//Ii4sFD1/87rgZr/marJoHKVFtI
-	 0usOVemT3tDqItK06UkhwLpSsdBF++sIgoum0XtGhQdour66QZSuxSReP3x6551EW5
-	 hn9heLTuG2twoLLvNPNTybqvrRpxdgid0UcBimPg=
-Date: Wed, 01 Jul 2026 17:26:26 -0700
-To: mm-commits@vger.kernel.org,yangyingliang@huawei.com,stable@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
+	b=KMH9MiQV6phsEMN7Za//6DzSZWNiVbQDf4qzbUHGhoOWMEqo7eS4FNLFXcTnIdv4C
+	 diHAqMxzPOLrMhecplv4WVDSKAfyPso/0uUlt8kCpGvrk3ONE2j7lio95MOrJqj2xu
+	 jI3NabbCDH4xZEjjbzpWDJ+JqbX0mwuFj1OCNdZY=
+Date: Wed, 01 Jul 2026 17:32:23 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,stable@vger.kernel.org,jack@suse.cz,hughd@google.com,brauner@kernel.org,yanzhen20011121@163.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-core-validate-ranges-in-damon_set_regions.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260702002627.525C11F00A3A@smtp.kernel.org>
+Subject: + mm-fix-mapping_seek_hole_data-overflow-on-last-page.patch added to mm-new branch
+Message-Id: <20260702003223.7CEFA1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,26 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/core: validate ranges in damon_set_regions()
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-damon-core-validate-ranges-in-damon_set_regions.patch
+     Subject: mm: fix mapping_seek_hole_data() overflow on last page
+has been added to the -mm mm-new branch.  Its filename is
+     mm-fix-mapping_seek_hole_data-overflow-on-last-page.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-validate-ranges-in-damon_set_regions.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-fix-mapping_seek_hole_data-overflow-on-last-page.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,116 +69,72 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: SJ Park <sj@kernel.org>
-Subject: mm/damon/core: validate ranges in damon_set_regions()
-Date: Mon, 29 Jun 2026 20:52:19 -0700
+From: Zhen Yan <yanzhen20011121@163.com>
+Subject: mm: fix mapping_seek_hole_data() overflow on last page
+Date: Tue, 30 Jun 2026 20:50:47 +0800
 
-DAMON core logic assumes zero length regions don't exist.  However, a few
-DAMON API callers including DAMON_SYSFS, DAMON_RECLAIM and DAMON_LRU_SORT
-allow users to set empty monitoring target regions.  This could result in
-WARN_ONCE() on CONFIG_DAMON_DEBUG_SANITY enabled kernel, and
-divide-by-zero from damon_merge_two_regions().
+A local unprivileged process can create a shmem/tmpfs file with i_size ==
+LLONG_MAX using memfd_create() and fallocate().  If the last page is
+present in the page cache, lseek(SEEK_HOLE) on that page returns
+0x8000000000000000 as a successful offset, which is LLONG_MIN when stored
+in loff_t.
 
-For example, the WANR_ONCE() can be triggered like below.
+The same file has readable data at the last byte, but SEEK_DATA from that
+offset returns ENXIO.
 
-    # grep DAMON_DEBUG_SANITY /boot/config-$(uname -r)
-    # CONFIG_DAMON_DEBUG_SANITY=y
-    # damo start
-    # cd /sys/kernel/mm/damon/admin/kdamonds/0
-    # echo 0 > contexts/0/targets/0/regions/0/start
-    # echo 0 > contexts/0/targets/0/regions/0/end
-    # echo commit > state
-    # dmesg
-    [....]
-    [   73.705780] ------------[ cut here ]------------
-    [   73.707552] start 0 >= end 0
-    [   73.708452] WARNING: mm/damon/core.c:359 at damon_new_region+0x6e/0x80, CPU#1: kdamond.0/758
-    [...]
+The overflow is in mapping_seek_hole_data():
 
-All DAMON API callers eventually use damon_set_regions() to setup the
-regions.  Add the validation logic in the function.
+  pos = round_up((u64)pos + 1, seek_size);
 
-Link: https://lore.kernel.org/20260630035221.146458-1-sj@kernel.org
-Fixes: 43b0536cb471 ("mm/damon: introduce DAMON-based Reclamation (DAMON_RECLAIM)")
-Signed-off-by: SJ Park <sj@kernel.org>
-Cc: Yang yingliang <yangyingliang@huawei.com>
-Cc: <stable@vger.kernel.org> # 5.16.x
+For the final page below LLONG_MAX, the next page boundary is
+0x8000000000000000, which is then used as a signed file offset.  When
+assigned to the loff_t pos, this overflows to LLONG_MIN, so a subsequent
+"pos > end" comparison does not catch it.
+
+Keep mapping_seek_hole_data() inside its documented [start, end) search
+range: compute round_up() into a u64 variable and compare against (u64)end
+so the overflow is detected, then clamp pos to end when the rounded-up
+value goes past the search limit.
+
+Link: https://lore.kernel.org/20260630125047.703170-1-yanzhen20011121@163.com
+Signed-off-by: Zhen Yan <yanzhen20011121@163.com>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/core.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ mm/filemap.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
---- a/mm/damon/core.c~mm-damon-core-validate-ranges-in-damon_set_regions
-+++ a/mm/damon/core.c
-@@ -356,6 +356,12 @@ int damon_set_regions(struct damon_targe
- 	unsigned int i;
- 	int err;
+--- a/mm/filemap.c~mm-fix-mapping_seek_hole_data-overflow-on-last-page
++++ a/mm/filemap.c
+@@ -3229,6 +3229,7 @@ loff_t mapping_seek_hole_data(struct add
+ 	while ((folio = find_get_entry(&xas, max, XA_PRESENT))) {
+ 		loff_t pos = (u64)xas.xa_index << PAGE_SHIFT;
+ 		size_t seek_size;
++		u64 next;
  
-+	for (i = 0; i < nr_ranges; i++) {
-+		if (ALIGN_DOWN(ranges[i].start, min_region_sz) >=
-+				ALIGN(ranges[i].end, min_region_sz))
-+			return -EINVAL;
-+	}
-+
- 	/* Remove regions which are not in the new ranges */
- 	damon_for_each_region_safe(r, next, t) {
- 		for (i = 0; i < nr_ranges; i++) {
+ 		if (start < pos) {
+ 			if (!seek_data)
+@@ -3237,7 +3238,11 @@ loff_t mapping_seek_hole_data(struct add
+ 		}
+ 
+ 		seek_size = seek_folio_size(&xas, folio);
+-		pos = round_up((u64)pos + 1, seek_size);
++		next = round_up((u64)pos + 1, seek_size);
++		if (next > (u64)end)
++			pos = end;
++		else
++			pos = next;
+ 		start = folio_seek_hole_data(&xas, mapping, folio, start, pos,
+ 				seek_data);
+ 		if (start < pos)
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from yanzhen20011121@163.com are
 
-mm-damon-sysfs-schemes-fix-dir-put-orders-in-access_pattern_add_dirs.patch
-mm-damon-sysfs-schemes-put-stats-for-scheme_add_dirs-internal-error.patch
-mm-damon-ops-common-handle-extreme-intervals-in-damon_hot_score.patch
-mm-damon-add-a-kernel-doc-comment-for-damon_ctx-probes.patch
-mm-damon-add-a-kernel-doc-comment-for-damon_ctx-rnd_state.patch
-maintainers-s-seongjae-sj.patch
-mm-damon-core-validate-ranges-in-damon_set_regions.patch
-samples-damon-wsse-handle-damon_start-failure.patch
-samples-damon-prcl-handle-damon_start-failure.patch
-samples-damon-mtier-handle-damon_start-failure.patch
-samples-damon-mtier-handle-damon_stop-failure.patch
-samples-damon-wsse-stop-and-free-damon-ctx-when-damon_call-fails.patch
-samples-damon-prcl-stop-and-free-damon-ctx-when-damon_call-fails.patch
-mm-damon-sysfs-kobject_del-target-normal-context-and-kdamond-dirs.patch
-mm-damon-sysfs-kobject_del-region-and-target-error-dirs.patch
-mm-damon-sysfs-schemes-kobject_del-scheme-dirs.patch
-mm-damon-sysfs-schemes-kobject_del-scheme-region-dirs.patch
-mm-damon-sysfs-schemes-kobject_del-scheme-filter-dirs.patch
-mm-damon-sysfs-schemes-kobject_del-scheme-quota-goal-dirs.patch
-mm-damon-sysfs-schemes-kobject_del-scheme-action-destination-dirs.patch
-mm-damon-sysfs-kobject_del-probe-dirs.patch
-mm-damon-sysfs-kobject_del-probe-filter-dirs.patch
-mm-damon-sysfs-kobject_del-probe-dirs-in-probes_addd_dir-error-path.patch
-mm-damon-sysfs-schemes-kobject_del-region-for-populate_region-error.patch
-docs-mm-damon-design-update-for-damos_quota_node_eligible_mem_bp.patch
-docs-abi-damon-document-probe-files.patch
-mm-damon-tests-core-kunit-test-damon_rand.patch
-selftests-damon-sysfssh-test-multiple-probe-dirs-creation.patch
-selftests-damon-sysfssh-test-coreops_filters-directories.patch
-selftests-damon-sysfssh-test-dests-dir.patch
-selftests-damon-sysfssh-test-all-files-in-quota-goal-dir.patch
-mm-damon-core-reduce-range-setup-in-damon_commit_target_regions.patch
-mm-damon-sysfs-split-probe-setup-function-out.patch
-mm-damon-sysfs-split-out-filters-setup-function.patch
-mm-damon-sysfs-fix-typos-in-probe_addrm_dirs-s-attr-probe.patch
-mm-damon-core-introduce-damon_nr_accesses_mvsum.patch
-mm-damon-tests-core-kunit-test-damon_mvsum.patch
-mm-damon-core-always-update-last_nr_accesses-for-intervals-change.patch
-mm-damon-core-handle-unreset-nr_accesses-in-damon_nr_accesses_mvsum.patch
-mm-damon-core-use-damon_nr_accesses_mvsum-in-__damos_valid_target.patch
-mm-damon-core-use-damon_nr_accesses_mvsum-for-damos-region-tracing.patch
-mm-damon-sysfs-schemes-use-damon_nr_accesses_mvsum-for-damo-regions.patch
-mm-damon-core-remove-damon_warn_fix_nr_accesses_corruption.patch
-mm-damon-core-remove-damon_verify_reset_aggregated.patch
-mm-damon-core-remove-damon_verify_merge_regions_of.patch
-mm-damon-tests-core-kunit-remove-nr_accesses_bp-setup-and-tests.patch
-selftests-damon-drgn_dump_damon_status-do-not-dump-nr_accesses_bp.patch
-mm-damon-core-remove-nr_accesses_bp-setups-and-updates.patch
-mm-damon-core-remove-attrs-param-from-damon_update_region_access_rate.patch
-mm-damon-paddr-remove-attrs-param-from-__damon_pa_check_access.patch
-mm-damon-vaddr-remove-attrs-param-from-__damon_va_check_access.patch
-mm-damon-core-remove-damon_moving_sum-and-its-unit-test.patch
-mm-damon-core-remove-damon_region-nr_accesses_bp.patch
+mm-fix-mapping_seek_hole_data-overflow-on-last-page.patch
 
