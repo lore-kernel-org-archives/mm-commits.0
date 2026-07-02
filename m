@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D95822C0268;
-	Thu,  2 Jul 2026 02:03:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EB8C8274641;
+	Thu,  2 Jul 2026 02:03:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782957819; cv=none; b=GMzwwiVIJQO0UAyqcK8+nvXR7/NioYKccD2wnV2vaGIejULVfdP0+5O5nn192RolXnTYFwqOTRfoyFY17D/JxjLFlfBK5EZ9eObMA0FYXhKFjVqcLE3XV5BYA3j3gvJi3ggAOcQ3Fe+xBznnIMijg+2+GPaxCsTnbTo7SRqfgYw=
+	t=1782957820; cv=none; b=QYqLexPPjb2OPnbAHN1hV5wgZgcihxhI6Y/d3NnJvDSLyGMMLzrjLB5ZLJlPLTKvlp2T2DkgrLcF1J6GxBVI+AUqckFpQ5xIFq8uZpsN1xh3Ox80EM7mEY647kz+2I0p1kB/6x6pQ5gZ6+QeJDW2Mu3HWZfD68Tfu0APVgib/r8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782957819; c=relaxed/simple;
-	bh=0E5/Qy4NS5/UKj3zIql3QL3cRmqjt0otCSTgfiSNF+A=;
-	h=Date:To:From:Subject:Message-Id; b=qi5UfwpbRz+7YPGgFjGcOQ7jivDeScUMWjQ1iOkwwQgH41Ln6x1XFqVF7qX5bVKfbcPcfbVCb7bg4KQ5fE1tQwLxCKnrRgtYoXqd6voHQvj4ZOkcY80k54aNC/JHHynujCryJqSYonOefP7dQMokTqQHspHDVpXDKbYBM7ON+Ks=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nbKPJViw; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1782957820; c=relaxed/simple;
+	bh=3kW+2ihceWJW2fmN7qaPMOx5nAMe2Wnp6cj/gK241hE=;
+	h=Date:To:From:Subject:Message-Id; b=kDctMRkZG02QrZcbEa3ISZYYamHKeGq3MU3yocH6yF32iMTEkm8k48TSaRyDKMRWojLQL2w9mqXxBa9dHWiEDLPUsH5A9YUCVoqKlJ1/q4Xg5hA4kQmWm+tnxXe4362YGXeoE5tOB70NfP3rEnZwPOGckt5ZpYXRidbgKCcSdeE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2hahxo8W; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nbKPJViw"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6A4451F00A3A;
-	Thu,  2 Jul 2026 02:03:37 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2hahxo8W"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B00021F000E9;
+	Thu,  2 Jul 2026 02:03:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1782957817;
-	bh=A1nMR+lL5N39L7ZXZcjAeXV60HSJwat3K5dE6Jcb2BI=;
+	d=linux-foundation.org; s=korg; t=1782957818;
+	bh=tl9xL+txI7+dKr5OvkITpANXW0bgLdUpKQg4NbaD8kw=;
 	h=Date:To:From:Subject;
-	b=nbKPJViw2xJDgjWtBEufphtrNV+CyGV63gPgqWxu4psho/ivK837j/xRNXznygoTV
-	 xMDN1XM9E5eauAL/Gz6TsVT7AAIBCmyRd8KwcrEbWhnauTMC12o/JheNc1pJaJ98xI
-	 KRxTTX2C+eeokwLlE8o1SLoBmTtdLLzzET3LCkPU=
-Date: Wed, 01 Jul 2026 19:03:37 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,vbabka@kernel.org,surenb@google.com,stable@vger.kernel.org,rppt@kernel.org,mhocko@suse.com,luizcap@redhat.com,ljs@kernel.org,liam@infradead.org,jackmanb@google.com,hannes@cmpxchg.org,david@redhat.com,david@kernel.org,ketan.kishore@oss.qualcomm.com,akpm@linux-foundation.org
+	b=2hahxo8W9i6oD4PNRxKc8+2wy/EqYDMDLIYZPP+PmT5+qtOeoJbt3+XyF3FxLLshK
+	 ANuNxtu9sA3ZqHwDeQAmacBO6UHA1jAhgW/XtteKngpcrQbk9aTmTt/J+/2zcqcat9
+	 oEdUtnOUM7ggNypoVLPNE7nfIaN/5SxkToelrRRU=
+Date: Wed, 01 Jul 2026 19:03:38 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,xu.xin16@zte.com.cn,willy@infradead.org,wangkefeng.wang@huawei.com,svetly.todorov@memverge.com,sunnanyong@huawei.com,stable@vger.kernel.org,luizcap@redhat.com,linmiaohe@huawei.com,david@kernel.org,chengming.zhou@linux.dev,tujinjiang@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-page_ext-add-count-limit-to-page_ext_iter_next-to-prevent-invalid-pfn-access.patch removed from -mm tree
-Message-Id: <20260702020337.6A4451F00A3A@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] fs-proc-fix-kpf_ksm-reported-for-all-anonymous-pages.patch removed from -mm tree
+Message-Id: <20260702020338.B00021F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,136 +35,63 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: page_ext: add count limit to page_ext_iter_next to prevent invalid PFN access
+     Subject: fs/proc: fix KPF_KSM reported for all anonymous pages
 has been removed from the -mm tree.  Its filename was
-     mm-page_ext-add-count-limit-to-page_ext_iter_next-to-prevent-invalid-pfn-access.patch
+     fs-proc-fix-kpf_ksm-reported-for-all-anonymous-pages.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Ketan <ketan.kishore@oss.qualcomm.com>
-Subject: mm: page_ext: add count limit to page_ext_iter_next to prevent invalid PFN access
-Date: Tue, 23 Jun 2026 02:48:04 +0530
+From: Jinjiang Tu <tujinjiang@huawei.com>
+Subject: fs/proc: fix KPF_KSM reported for all anonymous pages
+Date: Fri, 26 Jun 2026 09:32:52 +0800
 
-The page_ext iteration API does not validate if the PFN still belongs to a
-valid section while advancing the iterator.  When dynamically adding
-memory in the hotplug path, it can lead to a NULL pointer dereference
-during page_ext_lookup at the boundary of the last valid section when
-iterator count equals __pgcount.
+Reading /proc/kpageflags for any anonymous page returns KPF_KSM set, even
+when KSM is not in use.  As a result, tools misclassify all anonymous
+pages as KSM merged.
 
-The for_each_page_ext() macro calls page_ext_iter_next() as its loop
-increment.  for_each_page_ext() does a "__page_ext =
-page_ext_iter_next(&__iter)" at the end.  This causes page_ext_iter_next()
-to increment iter->index past __pgcount and call page_ext_lookup(start_pfn
-+ __pgcount).  During memory hotplug (online), the PFN at start_pfn +
-__pgcount may belong to a section that has not yet been initialized,
-causing page_ext_lookup() to trigger a NULL pointer dereference.
+In stable_page_flags(), if the page is anonymous, then use (mapping &
+FOLIO_MAPPING_KSM) check to identify if the anonymous page is KSM page. 
+However, FOLIO_MAPPING_KSM is FOLIO_MAPPING_ANON | FOLIO_MAPPING_ANON_KSM,
+(mapping & FOLIO_MAPPING_KSM) check returns true for all anonymous pages.
 
-[   14.555124][  T846] Call trace:
-[   14.555125][  T846]  lookup_page_ext+0x6c/0x108 (P)
-[   14.555127][  T846]  page_ext_lookup+0x30/0x3c
-[   14.555129][  T846]  __reset_page_owner+0x11c/0x260
-[   14.571201][  T846]  __free_pages_ok+0x5e8/0x8e0
-[   14.571204][  T846]  __free_pages_core+0x78/0xf0
-[   14.571206][  T846]  generic_online_page+0x14/0x24
-[   14.597782][  T846]  online_pages+0x178/0x30c
-[   14.597784][  T846]  memory_block_change_state+0x284/0x32c
-[   14.597787][  T846]  memory_subsys_online+0x4c/0x64
-[   14.597789][  T846]  device_online+0x88/0xb0
-[   14.597791][  T846]  online_memory_block+0x30/0x40
-[   14.597793][  T846]  walk_memory_blocks+0xac/0xe8
-[   14.597794][  T846]  add_memory_resource+0x280/0x298
-[   14.656161][  T846]  add_memory+0x60/0x98
+To fix it, use FOLIO_MAPPING_ANON_KSM instead.
 
-Move the iteration boundary enforcement inside the iterator functions, so
-callers cannot inadvertently access beyond the requested range.
-
-Link: https://lore.kernel.org/20260623-page_ext-v3-1-a89799a5367c@oss.qualcomm.com
-Fixes: 9039b9096ea2 ("mm: page_ext: add an iteration API for page extensions")
-Signed-off-by: Ketan Kishore <ketan.kishore@oss.qualcomm.com>
-Suggested-by: David Hildenbrand <david@redhat.com>
-Suggested-by: Matthew Wilcox <willy@infradead.org>
-Acked-by: Zi Yan <ziy@nvidia.com>
+Link: https://lore.kernel.org/20260629033122.774318-1-tujinjiang@huawei.com
+Link: https://lore.kernel.org/20260626013252.2846774-1-tujinjiang@huawei.com
+Fixes: dee3d0bef2b0 ("proc: rewrite stable_page_flags()")
+Signed-off-by: Jinjiang Tu <tujinjiang@huawei.com>
 Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Cc: Brendan Jackman <jackmanb@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
+Acked-by: Zi Yan <ziy@nvidia.com>
+Reviewed-by: Xu Xin <xu.xin16@zte.com.cn>
+Cc: Chengming Zhou <chengming.zhou@linux.dev>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
 Cc: Luiz Capitulino <luizcap@redhat.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Nanyong Sun <sunnanyong@huawei.com>
+Cc: Svetly Todorov <svetly.todorov@memverge.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page_ext.h |   19 +++++++++++++------
- 1 file changed, 13 insertions(+), 6 deletions(-)
+ fs/proc/page.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/page_ext.h~mm-page_ext-add-count-limit-to-page_ext_iter_next-to-prevent-invalid-pfn-access
-+++ a/include/linux/page_ext.h
-@@ -120,14 +120,18 @@ struct page_ext_iter {
-  * page_ext_iter_begin() - Prepare for iterating through page extensions.
-  * @iter: page extension iterator.
-  * @pfn: PFN of the page we're interested in.
-+ * @count: maximum number of page extensions to return.
-  *
-  * Must be called with RCU read lock taken.
-  *
-  * Return: NULL if no page_ext exists for this page.
-  */
- static inline struct page_ext *page_ext_iter_begin(struct page_ext_iter *iter,
--						unsigned long pfn)
-+		unsigned long pfn, unsigned long count)
- {
-+	if (!count)
-+		return NULL;
-+
- 	iter->index = 0;
- 	iter->start_pfn = pfn;
- 	iter->page_ext = page_ext_lookup(pfn);
-@@ -138,19 +142,22 @@ static inline struct page_ext *page_ext_
- /**
-  * page_ext_iter_next() - Get next page extension
-  * @iter: page extension iterator.
-+ * @count: maximum number of page extensions to return.
-  *
-  * Must be called with RCU read lock taken.
-  *
-  * Return: NULL if no next page_ext exists.
-  */
--static inline struct page_ext *page_ext_iter_next(struct page_ext_iter *iter)
-+static inline struct page_ext *page_ext_iter_next(struct page_ext_iter *iter,
-+		unsigned long count)
- {
- 	unsigned long pfn;
+--- a/fs/proc/page.c~fs-proc-fix-kpf_ksm-reported-for-all-anonymous-pages
++++ a/fs/proc/page.c
+@@ -173,7 +173,7 @@ u64 stable_page_flags(const struct page
+ 		u |= 1 << KPF_MMAP;
+ 	if (is_anon) {
+ 		u |= 1 << KPF_ANON;
+-		if (mapping & FOLIO_MAPPING_KSM)
++		if ((mapping & FOLIO_MAPPING_FLAGS) == FOLIO_MAPPING_KSM)
+ 			u |= 1 << KPF_KSM;
+ 	}
  
- 	if (WARN_ON_ONCE(!iter->page_ext))
- 		return NULL;
- 
--	iter->index++;
-+	if (++iter->index >= count)
-+		return NULL;
- 	pfn = iter->start_pfn + iter->index;
- 
- 	if (page_ext_iter_next_fast_possible(pfn))
-@@ -183,9 +190,9 @@ static inline struct page_ext *page_ext_
-  * IMPORTANT: must be called with RCU read lock taken.
-  */
- #define for_each_page_ext(__page, __pgcount, __page_ext, __iter) \
--	for (__page_ext = page_ext_iter_begin(&__iter, page_to_pfn(__page));\
--		__page_ext && __iter.index < __pgcount;          \
--		__page_ext = page_ext_iter_next(&__iter))
-+	for (__page_ext = page_ext_iter_begin(&__iter, page_to_pfn(__page), __pgcount); \
-+		__page_ext; \
-+		__page_ext = page_ext_iter_next(&__iter, __pgcount))
- 
- #else /* !CONFIG_PAGE_EXTENSION */
- struct page_ext;
 _
 
-Patches currently in -mm which might be from ketan.kishore@oss.qualcomm.com are
+Patches currently in -mm which might be from tujinjiang@huawei.com are
 
 
