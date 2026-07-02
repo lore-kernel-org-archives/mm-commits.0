@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 92EA73A257A
-	for <mm-commits@vger.kernel.org>; Thu,  2 Jul 2026 21:27:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 43BC53932D5
+	for <mm-commits@vger.kernel.org>; Thu,  2 Jul 2026 21:29:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783027677; cv=none; b=tTpcYQyZM8QzzNWAACEIfsBpyTErv2Ee28IYoJHp+r+vn61ZcZN9wyNLFatNi2qM460t9ee6mtoBoxxEt8/ZKCMgY9Uciz/Ryt+UQfOAB0YJ7zjWZHrFwPc3t9tuT9/cqHTtAPPUfKGY/D5p3Vj55SxQFHDmTPPRMlvLkGuZctU=
+	t=1783027781; cv=none; b=ujilUXfvepBhqBsDUUPFTyNm4CgQLV11bIRq8s5OSxAkJu+i/JJDRqe+WaLCJL1JWIEcilSItmGVpDfbPpITMner3LKMt/2xvuEiuNJjrw9T27AuQ5oYT9XMTpYZYNQ1kWFUCEqtFFVoQj4AyrKVbEVMyhEWEz7zWttbKBQOGc8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783027677; c=relaxed/simple;
-	bh=vjbAdDWRz7zs0yAOGO6te7Z5a8ZHQU9tl9zVwv1ZTIU=;
-	h=Date:To:From:Subject:Message-Id; b=il1DlEKQLNqigigfWAuqkJ8P9LBkS0Imt8hrZlNwTkkmmc41jcxVJvss2bAnuu9Mr9XFq3z42920DMGauufE4tld34M8ropHudZKftMgL62N4NjiFq8YDko+1BGXTWTyTik7q0ZFhNJmFTkjaS7WRGHbAoH9+KHE8pUiwJ2oLOY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qsrV2Ifx; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783027781; c=relaxed/simple;
+	bh=rtK635P3OJKg4zpFF732ATW/ajBYmWjZZZ0ahA87p9c=;
+	h=Date:To:From:Subject:Message-Id; b=tIDYaLwyGuZEEWCn1sHccCpCv6ZUksQc1s7Sak/QYVqBwqLZeY4VHHzGtNNxn0QvBBd7tCS7XY17gFzSkrQOT/LkXRNnpf8AcjiLS8gQXQBew/0bVU4sTj2c/hj//2hisXYMd6rjB8WZPk7Lj5zA6w7niH/DZ/aN3kSJXVFcX7M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YOYya/PJ; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qsrV2Ifx"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3D2761F000E9;
-	Thu,  2 Jul 2026 21:27:56 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YOYya/PJ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BDC271F000E9;
+	Thu,  2 Jul 2026 21:29:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783027676;
-	bh=70li3Ab8d/gl/LH4BymOLcr/hMB+goMLQmhTjbhmWMw=;
+	d=linux-foundation.org; s=korg; t=1783027779;
+	bh=yeZfeaunaA/l18Sfxz6+ljIrb5pZB7iFUprlSzXw/8M=;
 	h=Date:To:From:Subject;
-	b=qsrV2IfxNvWjVpS3lDLUauI355fTjv7uxfCw+ht0n0gefu4EgbdnYCTc86Y5TUtI2
-	 EyaY/eqwoctQbqZA2J0eaWt/ayP6AZ45nCCzNBEymkx8P7xJe603Et4gal3l8o61we
-	 kN0CvAgt3JdW/qZjv7CbsynP+C7LtWYiSluPzMHI=
-Date: Thu, 02 Jul 2026 14:27:55 -0700
-To: mm-commits@vger.kernel.org,yosry@kernel.org,souravpanda@google.com,shakeel.butt@linux.dev,nphamcs@gmail.com,hawk@kernel.org,hannes@cmpxchg.org,chengming.zhou@linux.dev,yunzhao@cloudflare.com,akpm@linux-foundation.org
+	b=YOYya/PJ0/fSxM269txrNWQIUYl3NR2zsk5Q+P0nvmaatCpq/6dHhw1bQwb2sZpXf
+	 yLyljJa7CHGIj18GRxwpe1Oc1agy5w9jaaoqYdzrPunD5n2VQDxiDCEmnPy49rahAX
+	 ep4YMw3AzeK/DJyNFbq8d+ba+FRtkDZCpjeRENuY=
+Date: Thu, 02 Jul 2026 14:29:39 -0700
+To: mm-commits@vger.kernel.org,dmantipov@yandex.ru,andriy.shevchenko@intel.com,adobriyan@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-zswap-use-ratelimited-stats-flush-in-zswap_shrinker_count.patch added to mm-new branch
-Message-Id: <20260702212756.3D2761F000E9@smtp.kernel.org>
+Subject: + revert-lib-fix-_parse_integer_limit-to-handle-overflow.patch added to mm-nonmm-unstable branch
+Message-Id: <20260702212939.BDC271F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,26 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/zswap: use ratelimited stats flush in zswap_shrinker_count()
-has been added to the -mm mm-new branch.  Its filename is
-     mm-zswap-use-ratelimited-stats-flush-in-zswap_shrinker_count.patch
+     Subject: Revert "lib: fix _parse_integer_limit() to handle overflow"
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     revert-lib-fix-_parse_integer_limit-to-handle-overflow.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zswap-use-ratelimited-stats-flush-in-zswap_shrinker_count.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/revert-lib-fix-_parse_integer_limit-to-handle-overflow.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,112 +58,103 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Yunzhao Li <yunzhao@cloudflare.com>
-Subject: mm/zswap: use ratelimited stats flush in zswap_shrinker_count()
-Date: Thu, 2 Jul 2026 11:07:35 -0700
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: Revert "lib: fix _parse_integer_limit() to handle overflow"
+Date: Thu, 2 Jul 2026 21:06:38 +0300
 
-zswap_shrinker_count() calls mem_cgroup_flush_stats(), which takes the
-global cgroup rstat lock synchronously.  On machines with many CPUs and
-NUMA nodes, this creates severe lock contention in the kswapd reclaim
-path:
+This reverts commit 6e30111dbb40 ("lib: fix _parse_integer_limit() to
+handle overflow").
 
-  - Multiple kswapd threads (one per NUMA node) run concurrently.
-  - do_shrink_slab() invokes zswap_shrinker_count() for each
-    memcg-aware shrinker pass.
-  - Each call flushes the full cgroup rstat hierarchy under the global
-    lock.
+1) this patch breaks scanf() which uses _parse_integer_limit()
+   internally, and is supposed to get overflowed result
+   (however incorrect it may be)
 
-On AMD EPYC 9684X machines (96 cores, 192 threads, 12 NUMA nodes) running
-production workloads with zswap enabled, perf shows 2.88% of kernel cycles
-in osq_lock contention from this path:
+2) using check_mul_overflow() and check_add_overflow() as written
+   doesn't add any overflow protection because it is under branch
+   where such overflow can't happen if radix is kept <=16,
 
-     2.88%  [k] osq_lock
-              --__mutex_lock.constprop.0
-                  --__cgroup_rstat_lock
-                      --cgroup_rstat_flush_locked
-                          --cgroup_rstat_flush
-                              --zswap_shrinker_count
-                                  do_shrink_slab
-                                  shrink_slab
-                                  shrink_node
-                                  balance_pgdat
-                                  kswapd
+3) kernel-doc comment legitimize the function while exactly
+   the opposite should be done. Not a fan.
 
-84% of kswapd kernel cycles are spent in
-shrink_slab -> zswap_shrinker_count -> cgroup_rstat_flush, not in actual
-page reclaim (shrink_lruvec).
-
-Controlled A/B on identical hardware and workload:
-
-  shrinker=Y: 2.88% osq_lock, memory PSI 1.58%
-  shrinker=N: 0.00% osq_lock, memory PSI 0.57%
-
-eBPF-based rstat lock wait measurement across 8 production metals
-confirms the contention splits cleanly along shrinker enablement:
-
-  shrinker=Y: 50-250x more contended lock acquisitions (248/s vs 1.1/s)
-  shrinker=N: baseline lock wait (0.0017 s/s vs 1.04 s/s)
-
-zswap_shrinker_count() only produces a heuristic estimate, scaled by
-compression ratio via mult_frac(). The actual writeback happens in
-zswap_shrinker_scan(). Slightly stale stats are acceptable here.
-
-Switch to mem_cgroup_flush_stats_ratelimited(), which only flushes if
-the periodic 2-second flusher is one full cycle late. This matches the
-approach already used in prepare_scan_control() (mm/vmscan.c) for the
-same reclaim path.
-
-After applying this patch, rstat flush latency and lock wait time on
-shrinker=Y machines dropped to the same level as shrinker=N controls,
-while the zswap shrinker continues to function (pool size remains
-bounded under the max_pool_percent cap).
-
-Previously discussed:
-  - Chengming Zhou (Dec 2023): rstat contention from
-    zswap_shrinker_count [1]
-  - Shakeel Butt (Aug 2024): zswap_shrinker_count still uses sync
-    flush [2]
-  - Yosry Ahmed (Aug 2024): suggested eliminating in-kernel
-    flushers [3]
-  - Jesper Dangaard Brouer (Sep 2024): cgroup/rstat V11 patch [4]
-
-Link: https://lore.kernel.org/20260702180908.150136-1-yunzhao@cloudflare.com
-Link: https://lore.kernel.org/linux-mm/20231206103935.3440502-1-zhouchengming@bytedance.com/ [1]
-Link: https://lore.kernel.org/linux-mm/CALvZod7LFxLCxVpOFH8b2Ppm8T40HPGMKQwX_=NPCWB_mFW+oQ@mail.gmail.com/ [2]
-Link: https://lore.kernel.org/linux-mm/CAJD7tkYvFyOSX+rP_FKGBhxvZiCDxtpsNp-c5CGOA-4Bq9oXSg@mail.gmail.com/ [3]
-Link: https://lore.kernel.org/linux-mm/172616070094.2055617.17676042522679701515.stgit@firesoul/ [4]
-Suggested-by: Jesper Dangaard Brouer <hawk@kernel.org>
-Signed-off-by: Jesper Dangaard Brouer <hawk@kernel.org>
-Signed-off-by: Yunzhao Li <yunzhao@cloudflare.com>
-Tested-by: Yunzhao Li <yunzhao@cloudflare.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Jesper Dangaard Brouer <hawk@kernel.org>
-Cc: Chengming Zhou <chengming.zhou@linux.dev>
-Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Yosry Ahmed <yosry@kernel.org>
-Cc: Yunzhao Li <yunzhao@cloudflare.com>
-Cc: Sourav Panda <souravpanda@google.com>
+Link: https://lore.kernel.org/20260702180638.39196-1-adobriyan@gmail.com
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Andriy Shevchenko <andriy.shevchenko@intel.com>
+Cc: Dmitry Antipov <dmantipov@yandex.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zswap.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/kstrtox.c |   37 +++++++++++++++----------------------
+ 1 file changed, 15 insertions(+), 22 deletions(-)
 
---- a/mm/zswap.c~mm-zswap-use-ratelimited-stats-flush-in-zswap_shrinker_count
-+++ a/mm/zswap.c
-@@ -1217,7 +1217,7 @@ static unsigned long zswap_shrinker_coun
- 	 * Without memcg, use the zswap pool-wide metrics.
- 	 */
- 	if (!mem_cgroup_disabled()) {
--		mem_cgroup_flush_stats(memcg);
-+		mem_cgroup_flush_stats_ratelimited(memcg);
- 		nr_backing = memcg_page_state(memcg, MEMCG_ZSWAP_B) >> PAGE_SHIFT;
- 		nr_stored = memcg_page_state(memcg, MEMCG_ZSWAPPED);
- 	} else {
+--- a/lib/kstrtox.c~revert-lib-fix-_parse_integer_limit-to-handle-overflow
++++ a/lib/kstrtox.c
+@@ -39,30 +39,25 @@ const char *_parse_integer_fixup_radix(c
+ 	return s;
+ }
+ 
+-/**
+- * _parse_integer_limit - Convert integer string representation to an integer
+- * @s: Integer string representation
+- * @base: Radix
+- * @p: Where to store result
+- * @max_chars: Maximum amount of characters to convert
++/*
++ * Convert non-negative integer string representation in explicitly given radix
++ * to an integer. A maximum of max_chars characters will be converted.
+  *
+- * Convert non-negative integer string representation in explicitly given
+- * radix to an integer. If overflow occurs, value at @p is set to ULLONG_MAX.
++ * Return number of characters consumed maybe or-ed with overflow bit.
++ * If overflow occurs, result integer (incorrect) is still returned.
+  *
+- * This function is the workhorse of other string conversion functions and it
+- * is discouraged to use it explicitly. Consider kstrto*() family instead.
+- *
+- * Return: Number of characters consumed, maybe ORed with overflow bit
++ * Don't you dare use this function.
+  */
+ noinline
+ unsigned int _parse_integer_limit(const char *s, unsigned int base, unsigned long long *p,
+ 				  size_t max_chars)
+ {
+-	unsigned int rv, overflow = 0;
+ 	unsigned long long res;
++	unsigned int rv;
+ 
+ 	res = 0;
+-	for (rv = 0; rv < max_chars; rv++, s++) {
++	rv = 0;
++	while (max_chars--) {
+ 		unsigned int c = *s;
+ 		unsigned int lc = _tolower(c);
+ 		unsigned int val;
+@@ -81,17 +76,15 @@ unsigned int _parse_integer_limit(const
+ 		 * it in the max base we support (16)
+ 		 */
+ 		if (unlikely(res & (~0ull << 60))) {
+-			if (check_mul_overflow(res, base, &res) ||
+-			    check_add_overflow(res, val, &res)) {
+-				res = ULLONG_MAX;
+-				overflow = KSTRTOX_OVERFLOW;
+-			}
+-		} else {
+-			res = res * base + val;
++			if (res > div_u64(ULLONG_MAX - val, base))
++				rv |= KSTRTOX_OVERFLOW;
+ 		}
++		res = res * base + val;
++		rv++;
++		s++;
+ 	}
+ 	*p = res;
+-	return rv | overflow;
++	return rv;
+ }
+ 
+ noinline
 _
 
-Patches currently in -mm which might be from yunzhao@cloudflare.com are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
-mm-zswap-use-ratelimited-stats-flush-in-zswap_shrinker_count.patch
+revert-lib-fix-_parse_integer_limit-to-handle-overflow.patch
 
