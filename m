@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C0FAC3D5C0C
-	for <mm-commits@vger.kernel.org>; Thu,  2 Jul 2026 23:48:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0B2EC3D6CA6
+	for <mm-commits@vger.kernel.org>; Thu,  2 Jul 2026 23:48:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783036099; cv=none; b=VUraK/V5qkxuKuGakufl50zNAWJbSA9mvj+i2/7UwzLxw+JeBxIEPMqWKhLliuY6AWyQMTz5/3CP4yT4dU5OobSI1iSmE0rfcCEJIk9x27lRpW+zw2mVdSpkScGvPqBxcWdVRNFBDQFr9hCQWoXZhb1T72TamvhE0qwsPysXWcg=
+	t=1783036101; cv=none; b=ahELfLjEXs8seqjZAZwEuTMQd0x4Cceia/1PHYRxZe96aka56K8Fq3OSYIIwyuqmuMOn7ZEttW2MNTQV/RMpaN1luscmLvZEocqnXEmp7zAg+eLLyEX5/COh3BS8zaCExG5+ymFZ6EvdXp4B6wjyaMXsoOo/OMeUjrv3GtNj6wY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783036099; c=relaxed/simple;
-	bh=mijfk2eEGdG5ncwouFHRGrkdewskpb8fyCuZ6MRC5B8=;
-	h=Date:To:From:Subject:Message-Id; b=TplgBGvp84sxp3KY9DVABbE/zDFyP0vZiEgdaOigfXKJLcqy79OQSLtxrd91fjn7mD4yZIWj7gioMLFfVcL53YJtCyd5f/PuzechGyOXrBxcqUwwJqHrMPFfFpCXnN51/pR3mfaduNEzvDMRuZnzbnq1B3reSi3UAxhpv8vNmCA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MMfZR8an; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783036101; c=relaxed/simple;
+	bh=F1EbXg0Gv3UC3vIPlwtsLTyxi97mwA4Ta38Mk8E3P2E=;
+	h=Date:To:From:Subject:Message-Id; b=pZ0WlX4o3eczeZKB+kghs1RXbmMka/PbA4Jj+9a6MAgBdNlW5P6NbL9kE4D2wBOMoVYH46QeRpPoHiaPPVB1BsHCMxLlpA/n0ufu6Lieqv+m3ucr5hS3FRf9GiPhvKxZ02daD7UsMahhJiRqrk4EGDK1o42P7+UlspKs+UEac4A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zmwuGJjY; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MMfZR8an"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 611041F000E9;
-	Thu,  2 Jul 2026 23:48:17 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zmwuGJjY"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7AAA41F000E9;
+	Thu,  2 Jul 2026 23:48:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783036097;
-	bh=p4Au+pA2L6T1pGSQgCGQpmuPjHJEKkUn9Px/1Z4LOUs=;
+	d=linux-foundation.org; s=korg; t=1783036099;
+	bh=+6PYH5CRqXSx5F9tGxqUSjuNgLNydNM/xQfnjtu3skI=;
 	h=Date:To:From:Subject;
-	b=MMfZR8ankh6leO/wKwJOXLsu03kKE6NoO+rnG7R+Ar5qMmXfYPp0xor4RDeITkk3H
-	 G1ZwjHwvYi/FGE6gMYnfIStcQSBovT+cNsKESpTENgGcbtC6MCSB6jjaQssg0R23kz
-	 lHNl3jbufUmboKGMK46yAPlh9k7DiHhQ4TzGexWs=
-Date: Thu, 02 Jul 2026 16:48:17 -0700
+	b=zmwuGJjYdqv2aLz/XG3H1GGHiRQolYzoiLahdXKcQrgdKIBDSai8YsX6EaLcfqhak
+	 gngo11v1vKCFr2WOUXg/qNpEZ4Nf2FqG402FI4yyK0QYE1L0DBXw+Xz/Y4cffnv5rw
+	 pXgwLYQk7ihyf694TbtepKbPxRNKCC5DfU2ZBJUw=
+Date: Thu, 02 Jul 2026 16:48:19 -0700
 To: mm-commits@vger.kernel.org,yuanchu@google.com,yingfu.zhou@shopee.com,weixugc@google.com,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,ljs@kernel.org,kasong@tencent.com,jiayuan.chen@linux.dev,hannes@cmpxchg.org,david@kernel.org,baohua@kernel.org,axelrasmussen@google.com,jiayuan.chen@shopee.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + memcg-bail-out-memorymax-when-memcg-is-dying.patch added to mm-new branch
-Message-Id: <20260702234817.611041F000E9@smtp.kernel.org>
+Subject: + memcg-bail-out-proactive-reclaim-when-memcg-is-dying.patch added to mm-new branch
+Message-Id: <20260702234819.7AAA41F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: memcg: bail out memory.max when memcg is dying
+     Subject: memcg: bail out proactive reclaim when memcg is dying
 has been added to the -mm mm-new branch.  Its filename is
-     memcg-bail-out-memorymax-when-memcg-is-dying.patch
+     memcg-bail-out-proactive-reclaim-when-memcg-is-dying.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memcg-bail-out-memorymax-when-memcg-is-dying.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memcg-bail-out-proactive-reclaim-when-memcg-is-dying.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,16 +70,16 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Jiayuan Chen <jiayuan.chen@shopee.com>
-Subject: memcg: bail out memory.max when memcg is dying
-Date: Thu, 2 Jul 2026 20:02:28 +0800
+Subject: memcg: bail out proactive reclaim when memcg is dying
+Date: Thu, 2 Jul 2026 20:02:29 +0800
 
-memory.max has the same high-latency reclaim loop as memory.high, and may
-additionally invoke the OOM killer on a cgroup that is already going away,
-further delaying its removal.
+Proactive reclaim via memory.reclaim can run for a long time - swap I/O
+or thrashing again dominating the latency - and delays cgroup removal in
+the same way.
 
-Mitigate this by bailing out of the loop once memcg_is_dying().
+Mitigate this by stopping the reclaim once memcg_is_dying().
 
-Link: https://lore.kernel.org/20260702120235.376752-3-jiayuan.chen@linux.dev
+Link: https://lore.kernel.org/20260702120235.376752-4-jiayuan.chen@linux.dev
 Signed-off-by: Jiayuan Chen <jiayuan.chen@shopee.com>
 Reported-by: Zhou Yingfu <yingfu.zhou@shopee.com>
 Acked-by: Johannes Weiner <hannes@cmpxchg.org>
@@ -98,22 +98,22 @@ Cc: Yuanchu Xie <yuanchu@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    4 ++++
+ mm/vmscan.c |    4 ++++
  1 file changed, 4 insertions(+)
 
---- a/mm/memcontrol.c~memcg-bail-out-memorymax-when-memcg-is-dying
-+++ a/mm/memcontrol.c
-@@ -4849,6 +4849,10 @@ static ssize_t memory_max_write(struct k
+--- a/mm/vmscan.c~memcg-bail-out-proactive-reclaim-when-memcg-is-dying
++++ a/mm/vmscan.c
+@@ -7904,6 +7904,10 @@ int user_proactive_reclaim(char *buf,
  		if (signal_pending(current))
- 			break;
+ 			return -EINTR;
  
 +		/* cgroup_rmdir() waits for us with cgroup_mutex held. */
-+		if (memcg_is_dying(memcg))
-+			break;
++		if (memcg && memcg_is_dying(memcg))
++			return -EAGAIN;
 +
- 		if (!drained) {
- 			drain_all_stock(memcg);
- 			drained = true;
+ 		/*
+ 		 * This is the final attempt, drain percpu lru caches in the
+ 		 * hope of introducing more evictable pages.
 _
 
 Patches currently in -mm which might be from jiayuan.chen@shopee.com are
