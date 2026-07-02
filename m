@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 82B6D3D332B
-	for <mm-commits@vger.kernel.org>; Thu,  2 Jul 2026 22:42:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 89BE8357CFA
+	for <mm-commits@vger.kernel.org>; Thu,  2 Jul 2026 23:02:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783032136; cv=none; b=Mt/mtDO0u+W7rNWQq1C474EO6opmdAm0PCBqDz+4ZZL6hasosFQu2DWRtiWA2VFLjaD84RhNGDdF4cnIJyZg8v0/XJvgdSEqy7DswsfJby1cZrn9JVoyEBNWXAylPkV7ZpEMfhsubDi0SwS6BQY7N1QBLWR5c2RyEWSPeeMAjWo=
+	t=1783033338; cv=none; b=gQ4zW5NMrg/g2m5xDK8+pGUS7DMCyh7NZKMiuvLXs6qTBPVoZlyBB8YviiC1zQVa3tzxC6QJF0dFNpD53eno+Uzm8hVYtean+2+2me6exhj4dqoO84wZxdKRaL0RyJacwHZr53ONLMRFTtkJ39RllR/+kQTobs3qcXKE3rxU/XM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783032136; c=relaxed/simple;
-	bh=CccCQ/gfqjgYOcoFhzW5AHsZ7BFoSW/QxcEnb3iJkPI=;
-	h=Date:To:From:Subject:Message-Id; b=NCY74t8zARO+T6DlZJ8AQs27gl88o6sVI+F1tlgf9JMRW8zGUawegM3y1AM2Hy8v+rgHXoG0zZIczDqtu4C1BnLAMtGSiSOkstpgld8uSVCotLEsHo4iismhqzn+YNVaTNucUXu/89tgVnEsICEqb5esWDH79i3stIPMaaSSG1A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=a/dzBoNl; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783033338; c=relaxed/simple;
+	bh=rCGlyRxxCjTqDSVTQEpPbJZF0fTXk0VI52KFpmI5+ck=;
+	h=Date:To:From:Subject:Message-Id; b=n1wHc4zt2P4o7r/eXjSOc5EIBcIPJiVih/n5VeeTu5e5Gmz+47xJP5K7+SVCRkvntjQ/sAkbV8atJfvWSYCvXyz5UIsUJPbSSqJ6Xg9aMwl1BYbjgRi51j+5Tq7Y7vxNe1M2arkgGcQnFDsWcEZNc9P8gq7OrSZbxJIUhP9DB1s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PmBfCLZj; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="a/dzBoNl"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8EE791F000E9;
-	Thu,  2 Jul 2026 22:42:11 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PmBfCLZj"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1BD2F1F000E9;
+	Thu,  2 Jul 2026 23:02:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783032131;
-	bh=3sG5lWENbLIEmNOU2FAUQbdRgNAiLgeVqfmxh5/37mw=;
+	d=linux-foundation.org; s=korg; t=1783033336;
+	bh=AoBcQvayWKEyer7V2GDiBGMFYnz4WoGiYPuHMQYoo4Q=;
 	h=Date:To:From:Subject;
-	b=a/dzBoNlaCYaaoENXSKudIjOcND0AxG0IhZY6S3FBpUgcpq6uG8Bz0K/2QPH55AJQ
-	 RhaxYYxs6mLbF2FBjarG7NcKF7JQnOzWJaY28BRsyGSw8/M2qPh+6wsNVqkHG0Y6pv
-	 DJ3u6vcCgkd6kOVzYHWcD94AWauCf12BlWXo8Luw=
-Date: Thu, 02 Jul 2026 15:42:11 -0700
-To: mm-commits@vger.kernel.org,kent.overstreet@linux.dev,catalin.marinas@arm.com,bigeasy@linutronix.de,arnd@arndb.de,leitao@debian.org,akpm@linux-foundation.org
+	b=PmBfCLZj2+rUxq/cv8b9ws/6wLPVjPnqfr/KU9cJybcp8jgPffc6aw1tZhUZd7cS9
+	 QlRuW+ghwq3LJ2aYdYf/GkHBfEhTVWPbhoLzCh1po+hR/1w1SECX+YiYeI9LykCXoZ
+	 8psmpWnZW8APJWWeY72f+fEKfLd+lHeL9QxQ97s4=
+Date: Thu, 02 Jul 2026 16:02:15 -0700
+To: mm-commits@vger.kernel.org,yang.yang29@zte.com.cn,xu.xin16@zte.com.cn,fan.yu9@zte.com.cn,corbet@lwn.net,wang.yaxin@zte.com.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + radix-tree-fix-kmemleak-false-positives-on-tree-head-reassignment.patch added to mm-new branch
-Message-Id: <20260702224211.8EE791F000E9@smtp.kernel.org>
+Subject: + delaytop-add-delay-max-for-delaytop.patch added to mm-nonmm-unstable branch
+Message-Id: <20260702230216.1BD2F1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,26 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: radix-tree: fix kmemleak false positives on tree head reassignment
-has been added to the -mm mm-new branch.  Its filename is
-     radix-tree-fix-kmemleak-false-positives-on-tree-head-reassignment.patch
+     Subject: delaytop: add delay max for delaytop
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     delaytop-add-delay-max-for-delaytop.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/radix-tree-fix-kmemleak-false-positives-on-tree-head-reassignment.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/delaytop-add-delay-max-for-delaytop.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,84 +58,394 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Breno Leitao <leitao@debian.org>
-Subject: radix-tree: fix kmemleak false positives on tree head reassignment
-Date: Thu, 02 Jul 2026 05:58:34 -0700
+From: Wang Yaxin <wang.yaxin@zte.com.cn>
+Subject: delaytop: add delay max for delaytop
+Date: Thu, 2 Jul 2026 20:58:15 +0800 (CST)
 
-Kmemleak periodically reports transient false positives for radix tree
-nodes allocated through the IDR, for example:
+Patch series "delaytop: add delay max, timestamp and sorting for top
+latency analysis".
 
-  unreferenced object 0xffff0004d6ac4200 (size 576):
-    comm "tcpeventd", pid 6412
-    backtrace (crc 335d668a):
-      kmem_cache_alloc_noprof
-      radix_tree_node_alloc
-      radix_tree_extend
-      idr_get_free
-      idr_alloc_cyclic
-      map_create
-      __sys_bpf
+Previously delaytop only showed average delays. This patch adds:
 
-radix_tree_extend() (grow) and radix_tree_shrink() (shrink) repoint
-root->xa_head to a new node.  If a kmemleak scan has already walked past
-root->xa_head, the new head is not reachable from any scanned pointer
-until the following scan, so kmemleak reports it as leaked even though it
-is live.
+1. delay_max fields to track the maximum delay value for each delay type
+   (cpu, blkio, irq, swapin, freepages, thrashing, compact, wpcopy)
+   per task.
 
-This is the same race fixed for the XArray API in commit a1a029bcea59
-("XArray: fix kmemleak false positive in xas_shrink()").  The IDR uses the
-radix tree API directly and hits it on both the grow and the shrink path,
-so mark the new head as a transient leak in both.
+2. The -t/--type option displays only the specified delay type with avg/max
+   values side by side, allowing focused analysis:
+     delaytop -t cpu    # Show only CPU delay with avg/max
+     delaytop -t wpcopy # Show Copy-on-Write delay with avg/max
 
-Link: https://lore.kernel.org/20260702-radix-tree-v1-1-a87c125b0f96@debian.org
-Signed-off-by: Breno Leitao <leitao@debian.org>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Kent Overstreet <kent.overstreet@linux.dev>
-Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+3. Wall-clock timestamp when each maximum delay occurred, displayed in the
+   MAX_TIMESTAMP column when using -t/--type option. This enables:
+   - Identifying the time when a process experienced an abnormal delay max
+   - Correlating delay max across multiple processes at the same timestamp
+   - Cross-referencing with logs, traces, or other metrics at that time
+
+4. When using -t/--type option, tasks are sorted by maximum delay value in
+   descending order (largest delay first), enabling quick identification of
+   top N processes with highest delay spikes.
+
+
+This patch (of 3):
+
+Previously delaytop only showed average delays.  Add delay_max fields to
+track the maximum delay value for each delay type (cpu, blkio, irq,
+swapin, freepages, thrashing, compact, wpcopy) per task.
+
+This provides a global view of all tasks' delay spikes, which is essential
+for identifying processes that experienced brief but significant latency
+events that would be hidden by average-only metrics.
+
+The -t/--type option displays only the specified delay type with avg/max
+values side by side, allowing focused analysis:
+  delaytop -t cpu    # Show only CPU delay with avg/max
+  delaytop -t wpcopy    # Show Copy-on-Write delay with avg/max
+
+Link: https://lore.kernel.org/20260702205704180NZ3cu_QF04KfBIL6vjTHL@zte.com.cn
+Link: https://lore.kernel.org/202607022058152607Y25X-YgssuvncpVNHljz@zte.com.cn
+Signed-off-by: Wang Yaxin <wang.yaxin@zte.com.cn>
+Cc: Fan Yu <fan.yu9@zte.com.cn>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: xu xin <xu.xin16@zte.com.cn>
+Cc: Yang Yang <yang.yang29@zte.com.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/radix-tree.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ tools/accounting/delaytop.c |  165 ++++++++++++++++++++++++++--------
+ 1 file changed, 131 insertions(+), 34 deletions(-)
 
---- a/lib/radix-tree.c~radix-tree-fix-kmemleak-false-positives-on-tree-head-reassignment
-+++ a/lib/radix-tree.c
-@@ -455,6 +455,8 @@ static int radix_tree_extend(struct radi
- 		node->slots[0] = (void __rcu *)entry;
- 		entry = node_to_entry(node);
- 		rcu_assign_pointer(root->xa_head, entry);
-+		/* new head may be missed by an in-progress kmemleak scan */
-+		kmemleak_transient_leak(node);
- 		shift += RADIX_TREE_MAP_SHIFT;
- 	} while (shift <= maxshift);
- out:
-@@ -495,8 +497,11 @@ static inline bool radix_tree_shrink(str
- 		if (!node->shift && is_idr(root))
+--- a/tools/accounting/delaytop.c~delaytop-add-delay-max-for-delaytop
++++ a/tools/accounting/delaytop.c
+@@ -75,13 +75,21 @@
+ 	{#name, #cmd, \
+ 	offsetof(struct task_info, name##_delay_total), \
+ 	offsetof(struct task_info, name##_count), \
++	offsetof(struct task_info, name##_delay_max), \
+ 	modes}
+-#define END_FIELD {NULL, 0, 0}
++#define SORT_FIELD_NO_MAX(name, cmd, modes) \
++	{#name, #cmd, \
++	offsetof(struct task_info, name##_delay_total), \
++	offsetof(struct task_info, name##_count), \
++	0, \
++	modes}
++#define END_FIELD {NULL, 0, 0, 0, 0, 0}
+ 
+ /* Display mode types */
+ #define MODE_TYPE_ALL	(0xFFFFFFFF)
+ #define MODE_DEFAULT	(1 << 0)
+ #define MODE_MEMVERBOSE	(1 << 1)
++#define MODE_TYPE	(1 << 2)	/* Display specific type with avg/max */
+ 
+ /* PSI statistics structure */
+ struct psi_stats {
+@@ -108,20 +116,28 @@ struct task_info {
+ 	char command[TASK_COMM_LEN];
+ 	unsigned long long cpu_count;
+ 	unsigned long long cpu_delay_total;
++	unsigned long long cpu_delay_max;
+ 	unsigned long long blkio_count;
+ 	unsigned long long blkio_delay_total;
++	unsigned long long blkio_delay_max;
+ 	unsigned long long swapin_count;
+ 	unsigned long long swapin_delay_total;
++	unsigned long long swapin_delay_max;
+ 	unsigned long long freepages_count;
+ 	unsigned long long freepages_delay_total;
++	unsigned long long freepages_delay_max;
+ 	unsigned long long thrashing_count;
+ 	unsigned long long thrashing_delay_total;
++	unsigned long long thrashing_delay_max;
+ 	unsigned long long compact_count;
+ 	unsigned long long compact_delay_total;
++	unsigned long long compact_delay_max;
+ 	unsigned long long wpcopy_count;
+ 	unsigned long long wpcopy_delay_total;
++	unsigned long long wpcopy_delay_max;
+ 	unsigned long long irq_count;
+ 	unsigned long long irq_delay_total;
++	unsigned long long irq_delay_max;
+ 	unsigned long long mem_count;
+ 	unsigned long long mem_delay_total;
+ };
+@@ -141,6 +157,7 @@ struct field_desc {
+ 	const char *cmd_char;	/* Interactive command */
+ 	unsigned long total_offset; /* Offset of total delay in task_info */
+ 	unsigned long count_offset; /* Offset of count in task_info */
++	unsigned long max_offset;  /* Offset of max delay in task_info */
+ 	size_t supported_modes; /* Supported display modes */
+ };
+ 
+@@ -153,6 +170,7 @@ struct config {
+ 	int monitor_pid;		/* Monitor specific PID */
+ 	char *container_path;	/* Path to container cgroup */
+ 	const struct field_desc *sort_field;	/* Current sort field */
++	const struct field_desc *type_field;	/* Type field for -t option */
+ 	size_t display_mode;	/* Current display mode */
+ };
+ 
+@@ -164,15 +182,15 @@ static int task_count;
+ static int running = 1;
+ static struct container_stats container_stats;
+ static const struct field_desc sort_fields[] = {
+-	SORT_FIELD(cpu,		c,	MODE_DEFAULT),
+-	SORT_FIELD(blkio,	i,	MODE_DEFAULT),
+-	SORT_FIELD(irq,		q,	MODE_DEFAULT),
+-	SORT_FIELD(mem,		m,	MODE_DEFAULT | MODE_MEMVERBOSE),
+-	SORT_FIELD(swapin,	s,	MODE_MEMVERBOSE),
+-	SORT_FIELD(freepages,	r,	MODE_MEMVERBOSE),
+-	SORT_FIELD(thrashing,	t,	MODE_MEMVERBOSE),
+-	SORT_FIELD(compact,	p,	MODE_MEMVERBOSE),
+-	SORT_FIELD(wpcopy,	w,	MODE_MEMVERBOSE),
++	SORT_FIELD(cpu,		c,	MODE_DEFAULT | MODE_TYPE),
++	SORT_FIELD(blkio,	i,	MODE_DEFAULT | MODE_TYPE),
++	SORT_FIELD(irq,		q,	MODE_DEFAULT | MODE_TYPE),
++	SORT_FIELD_NO_MAX(mem,	m,	MODE_DEFAULT | MODE_MEMVERBOSE),
++	SORT_FIELD(swapin,	s,	MODE_MEMVERBOSE | MODE_TYPE),
++	SORT_FIELD(freepages,	r,	MODE_MEMVERBOSE | MODE_TYPE),
++	SORT_FIELD(thrashing,	t,	MODE_MEMVERBOSE | MODE_TYPE),
++	SORT_FIELD(compact,	p,	MODE_MEMVERBOSE | MODE_TYPE),
++	SORT_FIELD(wpcopy,	w,	MODE_MEMVERBOSE | MODE_TYPE),
+ 	END_FIELD
+ };
+ static int sort_selected;
+@@ -265,6 +283,7 @@ static void usage(void)
+ 	"  -p, --pid=PID            Monitor only the specified PID\n"
+ 	"  -C, --container=PATH     Monitor the container at specified cgroup path\n"
+ 	"  -s, --sort=FIELD         Sort by delay field (default: cpu)\n"
++	"  -t, --type=FIELD         Display only specified delay type with avg/max\n"
+ 	"  -M, --memverbose         Display memory detailed information\n");
+ 	exit(0);
+ }
+@@ -283,6 +302,7 @@ static void parse_args(int argc, char **
+ 		{"processes", required_argument, 0, 'P'},
+ 		{"sort", required_argument, 0, 's'},
+ 		{"container", required_argument, 0, 'C'},
++		{"type", required_argument, 0, 't'},
+ 		{"memverbose", no_argument, 0, 'M'},
+ 		{0, 0, 0, 0}
+ 	};
+@@ -292,6 +312,7 @@ static void parse_args(int argc, char **
+ 	cfg.iterations = 0;
+ 	cfg.max_processes = 20;
+ 	cfg.sort_field = &sort_fields[0];	/* Default sorted by CPU delay */
++	cfg.type_field = NULL;				/* No type field by default */
+ 	cfg.output_one_time = 0;
+ 	cfg.monitor_pid = 0;	/* 0 means monitor all PIDs */
+ 	cfg.container_path = NULL;
+@@ -300,7 +321,7 @@ static void parse_args(int argc, char **
+ 	while (1) {
+ 		int option_index = 0;
+ 
+-		c = getopt_long(argc, argv, "hd:n:p:oP:C:s:M", long_options, &option_index);
++		c = getopt_long(argc, argv, "hd:n:p:oP:C:s:t:M", long_options, &option_index);
+ 		if (c == -1)
  			break;
  
--		if (radix_tree_is_internal_node(child))
-+		if (radix_tree_is_internal_node(child)) {
- 			entry_to_node(child)->parent = NULL;
-+			/* new head may be missed by an in-progress kmemleak scan */
-+			kmemleak_transient_leak(entry_to_node(child));
-+		}
+@@ -363,9 +384,32 @@ static void parse_args(int argc, char **
  
- 		/*
- 		 * We don't need rcu_assign_pointer(), since we are simply
+ 			cfg.sort_field = field;
+ 			break;
++		case 't':
++			if (strlen(optarg) == 0) {
++				fprintf(stderr, "Error: empty type field\n");
++				exit(1);
++			}
++
++			field = get_field_by_name(optarg);
++			/* Show available fields if invalid option provided */
++			if (!field || !(field->supported_modes & MODE_TYPE)) {
++				fprintf(stderr, "Error: invalid type field '%s'\n", optarg);
++				display_available_fields(MODE_TYPE);
++				exit(1);
++			}
++
++			cfg.type_field = field;
++			cfg.display_mode = MODE_TYPE;
++			break;
+ 		case 'M':
+ 			cfg.display_mode = MODE_MEMVERBOSE;
+-			cfg.sort_field = get_field_by_name("mem");
++			/* Find first field supporting MODE_MEMVERBOSE for sorting */
++			for (field = sort_fields; field->name != NULL; field++) {
++				if (field->supported_modes & MODE_MEMVERBOSE) {
++					cfg.sort_field = field;
++					break;
++				}
++			}
+ 			break;
+ 		default:
+ 			fprintf(stderr, "Try 'delaytop --help' for more information.\n");
+@@ -690,7 +734,12 @@ static void fetch_and_fill_task_info(int
+ 			nested_len = NLA_PAYLOAD(na->nla_len);
+ 			while (nested_len > 0) {
+ 				if (nested->nla_type == TASKSTATS_TYPE_STATS) {
+-					memcpy(&stats, NLA_DATA(nested), sizeof(stats));
++					size_t payload_len = NLA_PAYLOAD(nested->nla_len);
++
++					memset(&stats, 0, sizeof(stats));
++					if (payload_len > sizeof(stats))
++						payload_len = sizeof(stats);
++					memcpy(&stats, NLA_DATA(nested), payload_len);
+ 					if (task_count < MAX_TASKS) {
+ 						tasks[task_count].pid = pid;
+ 						tasks[task_count].tgid = pid;
+@@ -699,20 +748,28 @@ static void fetch_and_fill_task_info(int
+ 						tasks[task_count].command[TASK_COMM_LEN - 1] = '\0';
+ 						SET_TASK_STAT(task_count, cpu_count);
+ 						SET_TASK_STAT(task_count, cpu_delay_total);
++						SET_TASK_STAT(task_count, cpu_delay_max);
+ 						SET_TASK_STAT(task_count, blkio_count);
+ 						SET_TASK_STAT(task_count, blkio_delay_total);
++						SET_TASK_STAT(task_count, blkio_delay_max);
+ 						SET_TASK_STAT(task_count, swapin_count);
+ 						SET_TASK_STAT(task_count, swapin_delay_total);
++						SET_TASK_STAT(task_count, swapin_delay_max);
+ 						SET_TASK_STAT(task_count, freepages_count);
+ 						SET_TASK_STAT(task_count, freepages_delay_total);
++						SET_TASK_STAT(task_count, freepages_delay_max);
+ 						SET_TASK_STAT(task_count, thrashing_count);
+ 						SET_TASK_STAT(task_count, thrashing_delay_total);
++						SET_TASK_STAT(task_count, thrashing_delay_max);
+ 						SET_TASK_STAT(task_count, compact_count);
+ 						SET_TASK_STAT(task_count, compact_delay_total);
++						SET_TASK_STAT(task_count, compact_delay_max);
+ 						SET_TASK_STAT(task_count, wpcopy_count);
+ 						SET_TASK_STAT(task_count, wpcopy_delay_total);
++						SET_TASK_STAT(task_count, wpcopy_delay_max);
+ 						SET_TASK_STAT(task_count, irq_count);
+ 						SET_TASK_STAT(task_count, irq_delay_total);
++						SET_TASK_STAT(task_count, irq_delay_max);
+ 						set_mem_count(&tasks[task_count]);
+ 						set_mem_delay_total(&tasks[task_count]);
+ 						task_count++;
+@@ -777,14 +834,14 @@ static int compare_tasks(const void *a,
+ 	const struct task_info *t2 = (const struct task_info *)b;
+ 	unsigned long long total1;
+ 	unsigned long long total2;
+-	unsigned long count1;
+-	unsigned long count2;
++	unsigned long long count1;
++	unsigned long long count2;
+ 	double avg1, avg2;
+ 
+ 	total1 = *(unsigned long long *)((char *)t1 + cfg.sort_field->total_offset);
+ 	total2 = *(unsigned long long *)((char *)t2 + cfg.sort_field->total_offset);
+-	count1 = *(unsigned long *)((char *)t1 + cfg.sort_field->count_offset);
+-	count2 = *(unsigned long *)((char *)t2 + cfg.sort_field->count_offset);
++	count1 = *(unsigned long long *)((char *)t1 + cfg.sort_field->count_offset);
++	count2 = *(unsigned long long *)((char *)t2 + cfg.sort_field->count_offset);
+ 
+ 	avg1 = average_ms(total1, count1);
+ 	avg2 = average_ms(total2, count2);
+@@ -794,6 +851,26 @@ static int compare_tasks(const void *a,
+ 	return 0;
+ }
+ 
++/* Get delay values for a specific field */
++static void get_field_delay_values(const struct task_info *task, const struct field_desc *field,
++				   double *avg_ms, double *max_ms)
++{
++	unsigned long long total, count, max;
++
++	if (!field || !field->max_offset) {
++		*avg_ms = 0;
++		*max_ms = 0;
++		return;
++	}
++
++	total = *(unsigned long long *)((char *)task + field->total_offset);
++	count = *(unsigned long long *)((char *)task + field->count_offset);
++	*avg_ms = average_ms(total, count);
++
++	max = *(unsigned long long *)((char *)task + field->max_offset);
++	*max_ms = (double)max / 1000000.0;  /* Convert nanoseconds to milliseconds */
++}
++
+ /* Sort tasks by selected field */
+ static void sort_tasks(void)
+ {
+@@ -847,7 +924,12 @@ static void get_container_stats(void)
+ 	while (nl_len > 0) {
+ 		if (na->nla_type == CGROUPSTATS_TYPE_CGROUP_STATS) {
+ 			/* Get the cgroupstats structure */
+-			memcpy(&stats, NLA_DATA(na), sizeof(stats));
++			size_t payload_len = NLA_PAYLOAD(na->nla_len);
++
++			memset(&stats, 0, sizeof(stats));
++			if (payload_len > sizeof(stats))
++				payload_len = sizeof(stats);
++			memcpy(&stats, NLA_DATA(na), payload_len);
+ 
+ 			/* Fill container stats */
+ 			container_stats.nr_sleeping = stats.nr_sleeping;
+@@ -950,29 +1032,44 @@ static void display_results(int psi_ret)
+ 	suc &= BOOL_FPRINT(out, "Top %d processes (sorted by %s delay):\n",
+ 			cfg.max_processes, get_name_by_field(cfg.sort_field));
+ 
+-	suc &= BOOL_FPRINT(out, "%8s  %8s  %-17s", "PID", "TGID", "COMMAND");
+-	if (cfg.display_mode == MODE_MEMVERBOSE) {
+-		suc &= BOOL_FPRINT(out, "%8s %8s %8s %8s %8s %8s\n",
+-			"MEM(ms)", "SWAP(ms)", "RCL(ms)",
+-			"THR(ms)", "CMP(ms)", "WP(ms)");
+-		suc &= BOOL_FPRINT(out, "-----------------------");
+-		suc &= BOOL_FPRINT(out, "-----------------------");
+-		suc &= BOOL_FPRINT(out, "-----------------------");
+-		suc &= BOOL_FPRINT(out, "---------------------\n");
++	if (cfg.display_mode == MODE_TYPE && cfg.type_field) {
++		/* Display mode for -t option: show only specified type with avg/max */
++		suc &= BOOL_FPRINT(out, "%8s  %8s  %-17s %12s %12s\n",
++			"PID", "TGID", "COMMAND",
++			"AVG(ms)", "MAX(ms)");
++		suc &= BOOL_FPRINT(out, "----------------------------------------------------\n");
+ 	} else {
+-		suc &= BOOL_FPRINT(out, "%8s %8s %8s %8s\n",
+-			"CPU(ms)", "IO(ms)", "IRQ(ms)", "MEM(ms)");
+-		suc &= BOOL_FPRINT(out, "-----------------------");
+-		suc &= BOOL_FPRINT(out, "-----------------------");
+-		suc &= BOOL_FPRINT(out, "--------------------------\n");
++		suc &= BOOL_FPRINT(out, "%8s  %8s  %-17s", "PID", "TGID", "COMMAND");
++		if (cfg.display_mode == MODE_MEMVERBOSE) {
++			suc &= BOOL_FPRINT(out, "%8s %8s %8s %8s %8s %8s\n",
++				"MEM(ms)", "SWAP(ms)", "RCL(ms)",
++				"THR(ms)", "CMP(ms)", "WP(ms)");
++			suc &= BOOL_FPRINT(out, "-----------------------");
++			suc &= BOOL_FPRINT(out, "-----------------------");
++			suc &= BOOL_FPRINT(out, "-----------------------");
++			suc &= BOOL_FPRINT(out, "---------------------\n");
++		} else {
++			suc &= BOOL_FPRINT(out, "%8s %8s %8s %8s\n",
++				"CPU(ms)", "IO(ms)", "IRQ(ms)", "MEM(ms)");
++			suc &= BOOL_FPRINT(out, "-----------------------");
++			suc &= BOOL_FPRINT(out, "-----------------------");
++			suc &= BOOL_FPRINT(out, "--------------------------\n");
++		}
+ 	}
+ 
+ 	count = task_count < cfg.max_processes ? task_count : cfg.max_processes;
+ 
+ 	for (i = 0; i < count; i++) {
+-		suc &= BOOL_FPRINT(out, "%8d  %8d  %-15s",
++		suc &= BOOL_FPRINT(out, "%8d  %8d  %-17s",
+ 			tasks[i].pid, tasks[i].tgid, tasks[i].command);
+-		if (cfg.display_mode == MODE_MEMVERBOSE) {
++		if (cfg.display_mode == MODE_TYPE && cfg.type_field) {
++			double avg_ms, max_ms;
++
++			get_field_delay_values(&tasks[i], cfg.type_field, &avg_ms, &max_ms);
++
++			suc &= BOOL_FPRINT(out, "%12.2f %12.2f\n",
++				avg_ms, max_ms);
++		} else if (cfg.display_mode == MODE_MEMVERBOSE) {
+ 			suc &= BOOL_FPRINT(out, DELAY_FMT_MEMVERBOSE,
+ 				TASK_AVG(tasks[i], mem),
+ 				TASK_AVG(tasks[i], swapin),
 _
 
-Patches currently in -mm which might be from leitao@debian.org are
+Patches currently in -mm which might be from wang.yaxin@zte.com.cn are
 
-mm-kmemleak-avoid-soft-lockup-when-scanning-task-stacks.patch
-mm-kmemleak-stop-the-task-stack-scan-early-when-interrupted.patch
-mm-kmemleak-stop-the-per-cpu-and-struct-page-scans-early-too.patch
-mm-memory-failure-drop-dead-error_states-entry-for-reserved-pages.patch
-mm-memory-failure-surface-unhandlable-kernel-pages-as-enotrecoverable.patch
-mm-memory-failure-report-mf_msg_kernel-for-unrecoverable-kernel-pages.patch
-mm-memory-failure-add-panic-option-for-unrecoverable-pages.patch
-documentation-document-panic_on_unrecoverable_memory_failure-sysctl.patch
-selftests-mm-add-hwpoison-panic-destructive-test.patch
-mm-kmemleak-skip-the-remaining-scan-phases-when-interrupted.patch
-radix-tree-fix-kmemleak-false-positives-on-tree-head-reassignment.patch
+delaytop-add-delay-max-for-delaytop.patch
+delaytop-add-timestamp-of-delay-max.patch
+delaytop-sort-by-max-delay-to-highlight-top-latency-processes.patch
 
