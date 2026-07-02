@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 709051E7C12
-	for <mm-commits@vger.kernel.org>; Thu,  2 Jul 2026 00:23:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 551CA1E7C12
+	for <mm-commits@vger.kernel.org>; Thu,  2 Jul 2026 00:23:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782951798; cv=none; b=PtmrDraazRTvLOIALa1fLFdpgJihq0/YxVpMwrBSPksAv/IBgPfteOhcc2Hzt+N4EYxwetYcFsaPkXLUQvzqjRAOXud7tVjmwmFhacQwzV/yelSJWAGEPv3MgHKKEcHQ1oU4g4NJIGX7QhZg0rub23sLXqHZZIt76rIKgnO7dzc=
+	t=1782951800; cv=none; b=rNDupPiXYkWPsFTkAoEiVC4vLGC0ZZd3QPJFtDoYHhWaLlvwBAdlcyXWBiPdrWmvn+qLQq5M7r+QeWp5PH5DUd9BegB4ig7o1t6kzZAlsVhiGYeDzQ4UDC/68u2uDF4FGAH9gpeQqej5blZnQJCv2cm+ri2nZbDqugod9+hVw0k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782951798; c=relaxed/simple;
-	bh=mV+y5IgjrWqI597exV5FYmMBSKa6HI+53IGO/y8bM8k=;
-	h=Date:To:From:Subject:Message-Id; b=m8HbczqGusjEii1yzXzMdjN7ZNltr2apbYBZSA7vqBfVKhqoz0f5mLwXY8d8sY5xVS3t0Mqa7VC9D2sYZKPWaCfVsW5TPIxhjCd4esaIZxDrQ1j/4Nab4YDkboV0PA8NBsUINBKEAOfbilUUOVJYrE0nGFPM4qFYb+8LUdK+1bw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=czY7SCrT; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1782951800; c=relaxed/simple;
+	bh=QHh+bla2k09uR1kfWVLrhXJ/p111hKhGeJrBZO/0w1c=;
+	h=Date:To:From:Subject:Message-Id; b=IQ6otjhQxftbIDzRZWgMe1KVURMNuKBXJH3JAKDqvydnzqcWNizhdHHatocvPUv8nnDdEK1IsFek6owY7SXu5D4trHie24n8mVY7S668qLDPsFPJ+VjlPnWDP3lq5pkdGsiyI04PtoQELpUp4d6P23rFZG5g6w8/LfaONP8H410=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fvA/W0Zm; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="czY7SCrT"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 44C881F000E9;
-	Thu,  2 Jul 2026 00:23:17 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fvA/W0Zm"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 294401F000E9;
+	Thu,  2 Jul 2026 00:23:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1782951797;
-	bh=x0Oce8t6zu9dHrbXgIqTtU1TVLXnL2Ux7iXkHGPZVa0=;
+	d=linux-foundation.org; s=korg; t=1782951799;
+	bh=7TJAG785flB+kV9hLgy81RBP/0Wi78iCfNJU9u+qNlw=;
 	h=Date:To:From:Subject;
-	b=czY7SCrTSKu7H0AGeQkKmMd0HZvIZzFlp2qIRUCWhdVqNttL+C4QOqLP4hIUP/xr6
-	 RIY5WOFCdFrSN+oQfbtb+xm4C104E7apTIa/E6wO5aePMoqY8NhSwDnzjNK/y5X6Ph
-	 Q1EVQNMByolz7za/Pgirxn6bH06zfH9TWDuWX/p8=
-Date: Wed, 01 Jul 2026 17:23:16 -0700
+	b=fvA/W0ZmLowy/OrJ5Ec/IeOWFwXIXG0tT2OQqcJh8vxGC2XGGHjIIxftLQemyk1EK
+	 fU7FRl4uSNhfZy0PO6kCjf0T8ryVbqgbDlW0TBmoRDWM0g+O/zcKt2ou4TS8f86RsM
+	 UPASaoOEN/zwM7vxn7KQ1o7XqbOyOUZlf9y+U3Vo=
+Date: Wed, 01 Jul 2026 17:23:18 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-core-remove-damon_verify_merge_regions_of.patch added to mm-new branch
-Message-Id: <20260702002317.44C881F000E9@smtp.kernel.org>
+Subject: + mm-damon-tests-core-kunit-remove-nr_accesses_bp-setup-and-tests.patch added to mm-new branch
+Message-Id: <20260702002319.294401F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/core: remove damon_verify_merge_regions_of()
+     Subject: mm/damon/tests/core-kunit: remove nr_accesses_bp setup and tests
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-core-remove-damon_verify_merge_regions_of.patch
+     mm-damon-tests-core-kunit-remove-nr_accesses_bp-setup-and-tests.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-remove-damon_verify_merge_regions_of.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-tests-core-kunit-remove-nr_accesses_bp-setup-and-tests.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,14 +70,14 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/core: remove damon_verify_merge_regions_of()
-Date: Mon, 29 Jun 2026 21:08:03 -0700
+Subject: mm/damon/tests/core-kunit: remove nr_accesses_bp setup and tests
+Date: Mon, 29 Jun 2026 21:08:04 -0700
 
-damon_verify_merge_regions_of() is only for nr_accesses_bp validation. 
-But nr_accesses_bp is no more being used for a real purpose.  Remove the
-validation.
+DAMON core unit tests set up nr_accesses_bp for representing realistic
+damon_region, and also test the field.  nr_acceses_bp is no longer being
+used for a real use case.  Remove the setup and tests.
 
-Link: https://lore.kernel.org/20260630040812.149729-11-sj@kernel.org
+Link: https://lore.kernel.org/20260630040812.149729-12-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Cc: Brendan Higgins <brendan.higgins@linux.dev>
 Cc: "Masami Hiramatsu (Google)" <mhiramat@kernel.org>
@@ -87,40 +87,75 @@ Cc: Steven Rostedt <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/core.c |   15 ---------------
- 1 file changed, 15 deletions(-)
+ mm/damon/tests/core-kunit.h |    8 --------
+ 1 file changed, 8 deletions(-)
 
---- a/mm/damon/core.c~mm-damon-core-remove-damon_verify_merge_regions_of
-+++ a/mm/damon/core.c
-@@ -3127,20 +3127,6 @@ static void damon_merge_two_regions(stru
- 	damon_destroy_region(r, t);
- }
+--- a/mm/damon/tests/core-kunit.h~mm-damon-tests-core-kunit-remove-nr_accesses_bp-setup-and-tests
++++ a/mm/damon/tests/core-kunit.h
+@@ -114,7 +114,6 @@ static void damon_test_aggregate(struct
+ 				kunit_skip(test, "region alloc fail");
+ 			}
+ 			r->nr_accesses = accesses[it][ir];
+-			r->nr_accesses_bp = accesses[it][ir] * 10000;
+ 			damon_add_region(r, t);
+ 		}
+ 		it++;
+@@ -151,7 +150,6 @@ static void damon_test_split_at(struct k
+ 		damon_free_target(t);
+ 		kunit_skip(test, "region alloc fail");
+ 	}
+-	r->nr_accesses_bp = 420000;
+ 	r->nr_accesses = 42;
+ 	r->last_nr_accesses = 15;
+ 	r->age = 10;
+@@ -164,7 +162,6 @@ static void damon_test_split_at(struct k
+ 	KUNIT_EXPECT_EQ(test, r_new->ar.start, 25ul);
+ 	KUNIT_EXPECT_EQ(test, r_new->ar.end, 100ul);
  
--#ifdef CONFIG_DAMON_DEBUG_SANITY
--static void damon_verify_merge_regions_of(struct damon_region *r)
--{
--	WARN_ONCE(r->nr_accesses != r->nr_accesses_bp / 10000,
--			"nr_accesses (%u) != nr_accesses_bp (%u)\n",
--			r->nr_accesses, r->nr_accesses_bp);
--}
--#else
--static void damon_verify_merge_regions_of(struct damon_region *r)
--{
--}
--#endif
--
--
- /*
-  * Merge adjacent regions having similar access frequencies
-  *
-@@ -3154,7 +3140,6 @@ static void damon_merge_regions_of(struc
- 	struct damon_region *r, *prev = NULL, *next;
+-	KUNIT_EXPECT_EQ(test, r->nr_accesses_bp, r_new->nr_accesses_bp);
+ 	KUNIT_EXPECT_EQ(test, r->nr_accesses, r_new->nr_accesses);
+ 	KUNIT_EXPECT_EQ(test, r->last_nr_accesses, r_new->last_nr_accesses);
+ 	KUNIT_EXPECT_EQ(test, r->age, r_new->age);
+@@ -187,7 +184,6 @@ static void damon_test_merge_two(struct
+ 		kunit_skip(test, "region alloc fail");
+ 	}
+ 	r->nr_accesses = 10;
+-	r->nr_accesses_bp = 100000;
+ 	r->age = 9;
+ 	damon_add_region(r, t);
+ 	r2 = damon_new_region(100, 300);
+@@ -196,7 +192,6 @@ static void damon_test_merge_two(struct
+ 		kunit_skip(test, "second region alloc fail");
+ 	}
+ 	r2->nr_accesses = 20;
+-	r2->nr_accesses_bp = 200000;
+ 	r2->age = 21;
+ 	damon_add_region(r2, t);
  
- 	damon_for_each_region_safe(r, next, t) {
--		damon_verify_merge_regions_of(r);
- 		if (abs(r->nr_accesses - r->last_nr_accesses) > thres)
- 			r->age = 0;
- 		else if ((r->nr_accesses == 0) != (r->last_nr_accesses == 0))
+@@ -204,7 +199,6 @@ static void damon_test_merge_two(struct
+ 	KUNIT_EXPECT_EQ(test, r->ar.start, 0ul);
+ 	KUNIT_EXPECT_EQ(test, r->ar.end, 300ul);
+ 	KUNIT_EXPECT_EQ(test, r->nr_accesses, 16u);
+-	KUNIT_EXPECT_EQ(test, r->nr_accesses_bp, 160000u);
+ 	KUNIT_EXPECT_EQ(test, r->age, 17u);
+ 
+ 	i = 0;
+@@ -252,7 +246,6 @@ static void damon_test_merge_regions_of(
+ 			kunit_skip(test, "region alloc fail");
+ 		}
+ 		r->nr_accesses = nrs[i];
+-		r->nr_accesses_bp = nrs[i] * 10000;
+ 		damon_add_region(r, t);
+ 	}
+ 
+@@ -615,7 +608,6 @@ static void damon_test_update_monitoring
+ 		kunit_skip(test, "region alloc fail");
+ 
+ 	r->nr_accesses = 15;
+-	r->nr_accesses_bp = 150000;
+ 	r->age = 20;
+ 
+ 	new_attrs = (struct damon_attrs){
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
