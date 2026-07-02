@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 77C592877DE;
-	Thu,  2 Jul 2026 02:03:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8BA6E533D6;
+	Thu,  2 Jul 2026 02:03:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782957811; cv=none; b=khv6+q6ZRql5VR89n2ykFeTOh/dxLjs7oo20SU+qnjvLvo6Y/rxY00p+lq3Cr3Fh8jNR5O4WQO+OJnaAEgR8MLqXItF/k5C2vYmRE0OehRwKSUs8/9Jb1nYcBdiv2/xRWDXtXuiC5a9MYvLDPC0Ts+xDz44ynuCJKuCOOBw9bbk=
+	t=1782957812; cv=none; b=aKFyQ+hoI5igLCz8Q3spo2BRcmKk3Ju26vQ1VH8zToKobY2bWN4/5eZ7VqCxp+jjQUpupbbF2swNB6o1VyQ23hySy+TLIPBNKAIi4zvEpSN71Zu1CXD671QjaXkc1o9HR46y43M5SYBwp9okY3lzf3Ou4cRrDac+rMbNvR84hqg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782957811; c=relaxed/simple;
-	bh=40937JmfOOx0ITyEbxAvn2IZ2HimuLZXq8xjifaB8tw=;
-	h=Date:To:From:Subject:Message-Id; b=ZtON+ZZHC61MADjB1gHJ97tAGvkuOaNWCFg0on2AiNUxp3+fFpSFSkW6rfyfcGxcd7V4Hxf7l/O5gdTXtiXEQt1UR5WtK9PjD0UTa1sEqYqz3X2dTqoo7m0PEAmZccVInOMVCGlVhLYhBEvFuGlPlyQ3f7a+1v5EPTbsTUuiJEc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=F8KjRdsl; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1782957812; c=relaxed/simple;
+	bh=90f4leq0Fa7VaW+qBlnQ1gqFSQgwcHe4LvYAJNUUCXE=;
+	h=Date:To:From:Subject:Message-Id; b=Dw+qsGKyYBLfuW0zTMshJjUZ0WQ9KEm/sEhwM5er7NbUgppG9BvlHjITW2CPkckf5Go3cq7C1kqNObj2vLjw2U5ZGpBb/OhfuvDhdxaV8qiaX8C8O04lsdSWZWnSkNVvIGl4Fo+my99cu7NoWnmmCQOHxKAbRz89698ytTIsUnM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZzbxyLuJ; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="F8KjRdsl"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F420D1F000E9;
-	Thu,  2 Jul 2026 02:03:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZzbxyLuJ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2D7D11F00A3A;
+	Thu,  2 Jul 2026 02:03:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1782957810;
-	bh=OzDDJLfNQJqIZ+/UPIJwNmxg+HcPnudLRuKNgfoDILA=;
+	d=linux-foundation.org; s=korg; t=1782957811;
+	bh=RBjhVdjiV0bTj+7KzBqsxsajhlMMHjG7XCVwHXwJUHY=;
 	h=Date:To:From:Subject;
-	b=F8KjRdsltdufbjsc/zrxZLZkq/uTl8rhBs9aIJcp8piXGaJ+A/okogFnXaJjf6D9d
-	 pBf3SpkVSJyxj1iQsOjX/XC1Qh4VIAPEYSlI4wprGcCeeTfjJHPy4cCp7NMnD+NH5w
-	 Hejns3yndpx0ez2jdro6AdOXca8IY0m0dTfwafCs=
-Date: Wed, 01 Jul 2026 19:03:29 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,roman.gushchin@linux.dev,muchun.song@linux.dev,david@fromorbit.com,zhengqi.arch@bytedance.com,akpm@linux-foundation.org
+	b=ZzbxyLuJywUqQp/LIor+o5T4ZP0MAmETrmGevI6asp6hqX7BTEgVpkjd2A9N+JDwh
+	 lGLqP62T/pHujSPyggL9KPiCFj6mtnuW5a51vYd/xiQRYklBEldseSANOLS4VTCaqO
+	 FQF7nfi70TF0kf9jbkKwB1dxdQw82aJABF5JPzHw=
+Date: Wed, 01 Jul 2026 19:03:30 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-shrinker-fix-null-pointer-dereference-in-debugfs.patch removed from -mm tree
-Message-Id: <20260702020329.F420D1F000E9@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-damon-sysfs-schemes-fix-dir-put-orders-in-access_pattern_add_dirs.patch removed from -mm tree
+Message-Id: <20260702020331.2D7D11F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,84 +35,126 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: shrinker: fix NULL pointer dereference in debugfs
+     Subject: mm/damon/sysfs-schemes: fix dir put orders in access_pattern_add_dirs()
 has been removed from the -mm tree.  Its filename was
-     mm-shrinker-fix-null-pointer-dereference-in-debugfs.patch
+     mm-damon-sysfs-schemes-fix-dir-put-orders-in-access_pattern_add_dirs.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Qi Zheng <zhengqi.arch@bytedance.com>
-Subject: mm: shrinker: fix NULL pointer dereference in debugfs
-Date: Wed, 17 Jun 2026 17:00:52 +0800
+From: SeongJae Park <sj@kernel.org>
+Subject: mm/damon/sysfs-schemes: fix dir put orders in access_pattern_add_dirs()
+Date: Wed, 17 Jun 2026 17:56:47 -0700
 
-shrinker_debugfs_add() creates both "count" and "scan" debugfs files
-unconditionally.
+Patch series "mm/damon/sysfs-schemes: fix wrong directories put orders in
+error paths".
 
-That assumes every shrinker implements both count_objects() and
-scan_objects(), which is not guaranteed.  For example, the xen-backend
-shrinker sets count_objects() but leaves scan_objects() NULL, so writing
-to its scan file calls through a NULL function pointer and panics the
-kernel:
+Error paths of damon_sysfs_access_pattern_add_dirs() and
+damon_sysfs_scheme_add_dirs() functions put references to directories in
+wrong orders.  As a result, uninitialized memory dereference and/or
+memory leak can happen.  Fix those.
 
-BUG: kernel NULL pointer dereference, address: 0000000000000000
-RIP: 0010:0x0
-Code: Unable to access opcode bytes at 0xffffffffffffffd6.
-Call Trace:
- <TASK>
- shrinker_debugfs_scan_write+0x12e/0x270
- full_proxy_write+0x5f/0x90
- vfs_write+0xde/0x420
- ? filp_flush+0x75/0x90
- ? filp_close+0x1d/0x30
- ? do_dup2+0xb8/0x120
- ksys_write+0x68/0xf0
- ? filp_flush+0x75/0x90
- do_syscall_64+0xb3/0x5b0
- entry_SYSCALL_64_after_hwframe+0x76/0x7e
 
-The count path has the same issue in principle if a shrinker omits
-count_objects().
+This patch (of 2):
 
-To fix it, only create "count" and "scan" debugfs files when the
-corresponding callbacks are present.
+In access_pattern_add_dirs(), error handling path puts references starting
+from setup failed directories.  If the failure happpened from the initial
+allication in the setup functions, uninitialized memory dereference
+happen.  The allocation failures will not commonly happen, but the
+consequence is quite bad.  Fix the wrong reference put orders.
 
-Link: https://lore.kernel.org/20260617090052.27325-1-qi.zheng@linux.dev
-Fixes: bbf535fd6f06 ("mm: shrinkers: add scan interface for shrinker debugfs")
-Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
-Reviewed-by: Muchun Song <muchun.song@linux.dev>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Qi Zheng <zhengqi.arch@bytedance.com>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: <stable@vger.kernel.org>
+The issue was discovered [1] by Sashiko.
+
+Link: https://lore.kernel.org/20260618005650.83868-2-sj@kernel.org
+Link: https://lore.kernel.org/20260617060005.86852-1-sj@kernel.org [1]
+Fixes: 7e84b1f8212a ("mm/damon/sysfs: support DAMON-based Operation Schemes")
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Cc: <stable@vger.kernel.org> # 5.18.x
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shrinker_debug.c |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ mm/damon/sysfs-schemes.c |    9 +++------
+ 1 file changed, 3 insertions(+), 6 deletions(-)
 
---- a/mm/shrinker_debug.c~mm-shrinker-fix-null-pointer-dereference-in-debugfs
-+++ a/mm/shrinker_debug.c
-@@ -183,10 +183,12 @@ int shrinker_debugfs_add(struct shrinker
- 	}
- 	shrinker->debugfs_entry = entry;
+--- a/mm/damon/sysfs-schemes.c~mm-damon-sysfs-schemes-fix-dir-put-orders-in-access_pattern_add_dirs
++++ a/mm/damon/sysfs-schemes.c
+@@ -1993,22 +1993,19 @@ static int damon_sysfs_access_pattern_ad
+ 	err = damon_sysfs_access_pattern_add_range_dir(access_pattern,
+ 			&access_pattern->sz, "sz");
+ 	if (err)
+-		goto put_sz_out;
++		return err;
  
--	debugfs_create_file("count", 0440, entry, shrinker,
--			    &shrinker_debugfs_count_fops);
--	debugfs_create_file("scan", 0220, entry, shrinker,
--			    &shrinker_debugfs_scan_fops);
-+	if (shrinker->count_objects)
-+		debugfs_create_file("count", 0440, entry, shrinker,
-+				    &shrinker_debugfs_count_fops);
-+	if (shrinker->scan_objects)
-+		debugfs_create_file("scan", 0220, entry, shrinker,
-+				    &shrinker_debugfs_scan_fops);
+ 	err = damon_sysfs_access_pattern_add_range_dir(access_pattern,
+ 			&access_pattern->nr_accesses, "nr_accesses");
+ 	if (err)
+-		goto put_nr_accesses_sz_out;
++		goto put_sz_out;
+ 
+ 	err = damon_sysfs_access_pattern_add_range_dir(access_pattern,
+ 			&access_pattern->age, "age");
+ 	if (err)
+-		goto put_age_nr_accesses_sz_out;
++		goto put_nr_accesses_sz_out;
  	return 0;
- }
  
+-put_age_nr_accesses_sz_out:
+-	kobject_put(&access_pattern->age->kobj);
+-	access_pattern->age = NULL;
+ put_nr_accesses_sz_out:
+ 	kobject_put(&access_pattern->nr_accesses->kobj);
+ 	access_pattern->nr_accesses = NULL;
 _
 
-Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
+Patches currently in -mm which might be from sj@kernel.org are
 
+maintainers-s-seongjae-sj.patch
+mm-damon-core-validate-ranges-in-damon_set_regions.patch
+samples-damon-wsse-handle-damon_start-failure.patch
+samples-damon-prcl-handle-damon_start-failure.patch
+samples-damon-mtier-handle-damon_start-failure.patch
+samples-damon-mtier-handle-damon_stop-failure.patch
+samples-damon-wsse-stop-and-free-damon-ctx-when-damon_call-fails.patch
+samples-damon-prcl-stop-and-free-damon-ctx-when-damon_call-fails.patch
+mm-damon-sysfs-kobject_del-target-normal-context-and-kdamond-dirs.patch
+mm-damon-sysfs-kobject_del-region-and-target-error-dirs.patch
+mm-damon-sysfs-schemes-kobject_del-scheme-dirs.patch
+mm-damon-sysfs-schemes-kobject_del-scheme-region-dirs.patch
+mm-damon-sysfs-schemes-kobject_del-scheme-filter-dirs.patch
+mm-damon-sysfs-schemes-kobject_del-scheme-quota-goal-dirs.patch
+mm-damon-sysfs-schemes-kobject_del-scheme-action-destination-dirs.patch
+mm-damon-sysfs-kobject_del-probe-dirs.patch
+mm-damon-sysfs-kobject_del-probe-filter-dirs.patch
+mm-damon-sysfs-kobject_del-probe-dirs-in-probes_addd_dir-error-path.patch
+mm-damon-sysfs-schemes-kobject_del-region-for-populate_region-error.patch
+docs-mm-damon-design-update-for-damos_quota_node_eligible_mem_bp.patch
+docs-abi-damon-document-probe-files.patch
+mm-damon-tests-core-kunit-test-damon_rand.patch
+selftests-damon-sysfssh-test-multiple-probe-dirs-creation.patch
+selftests-damon-sysfssh-test-coreops_filters-directories.patch
+selftests-damon-sysfssh-test-dests-dir.patch
+selftests-damon-sysfssh-test-all-files-in-quota-goal-dir.patch
+mm-damon-core-reduce-range-setup-in-damon_commit_target_regions.patch
+mm-damon-sysfs-split-probe-setup-function-out.patch
+mm-damon-sysfs-split-out-filters-setup-function.patch
+mm-damon-sysfs-fix-typos-in-probe_addrm_dirs-s-attr-probe.patch
+mm-damon-core-introduce-damon_nr_accesses_mvsum.patch
+mm-damon-tests-core-kunit-test-damon_mvsum.patch
+mm-damon-core-always-update-last_nr_accesses-for-intervals-change.patch
+mm-damon-core-handle-unreset-nr_accesses-in-damon_nr_accesses_mvsum.patch
+mm-damon-core-use-damon_nr_accesses_mvsum-in-__damos_valid_target.patch
+mm-damon-core-use-damon_nr_accesses_mvsum-for-damos-region-tracing.patch
+mm-damon-sysfs-schemes-use-damon_nr_accesses_mvsum-for-damo-regions.patch
+mm-damon-core-remove-damon_warn_fix_nr_accesses_corruption.patch
+mm-damon-core-remove-damon_verify_reset_aggregated.patch
+mm-damon-core-remove-damon_verify_merge_regions_of.patch
+mm-damon-tests-core-kunit-remove-nr_accesses_bp-setup-and-tests.patch
+selftests-damon-drgn_dump_damon_status-do-not-dump-nr_accesses_bp.patch
+mm-damon-core-remove-nr_accesses_bp-setups-and-updates.patch
+mm-damon-core-remove-attrs-param-from-damon_update_region_access_rate.patch
+mm-damon-paddr-remove-attrs-param-from-__damon_pa_check_access.patch
+mm-damon-vaddr-remove-attrs-param-from-__damon_va_check_access.patch
+mm-damon-core-remove-damon_moving_sum-and-its-unit-test.patch
+mm-damon-core-remove-damon_region-nr_accesses_bp.patch
 
