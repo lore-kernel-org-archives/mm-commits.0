@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 43FE7274641;
-	Thu,  2 Jul 2026 02:03:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D95822C0268;
+	Thu,  2 Jul 2026 02:03:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782957817; cv=none; b=O8Rvz9etcWNhlT4KkHYpjEZ49+IKfmNQlqeP/I6M+8UR8b/sdv/BKIWqVnsWssTLKS8NCqOexVN48CVjS3yELXyD5lhjVhICKk/hysfEmXln9S1nWkHIENgGnxDgMF0Zu8bl0i9mFRDmEbp0vQmuplSF9EHgoe7QCgMeMh9e1os=
+	t=1782957819; cv=none; b=GMzwwiVIJQO0UAyqcK8+nvXR7/NioYKccD2wnV2vaGIejULVfdP0+5O5nn192RolXnTYFwqOTRfoyFY17D/JxjLFlfBK5EZ9eObMA0FYXhKFjVqcLE3XV5BYA3j3gvJi3ggAOcQ3Fe+xBznnIMijg+2+GPaxCsTnbTo7SRqfgYw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782957817; c=relaxed/simple;
-	bh=chdDI0qumb+k/Kq/v5mhwGYduCv65aAfmV2HQgdTjOA=;
-	h=Date:To:From:Subject:Message-Id; b=G4DSXgt2kFbgOXcTtLZ1c9P5aGpZkiockvDCzEneYHhvH93rLMJFtdt9wNBuNWm8kH5MDYXb0rrGwf7i+Q50w/7ptBegpj+cEgeh0s6NNuZ4iLEsWfDAlPJInj96pJkbmZwtlKNWDKV+Odw2So9ICJQM4RKQYpKTa4K9qGmrF3A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QVwQSf/g; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1782957819; c=relaxed/simple;
+	bh=0E5/Qy4NS5/UKj3zIql3QL3cRmqjt0otCSTgfiSNF+A=;
+	h=Date:To:From:Subject:Message-Id; b=qi5UfwpbRz+7YPGgFjGcOQ7jivDeScUMWjQ1iOkwwQgH41Ln6x1XFqVF7qX5bVKfbcPcfbVCb7bg4KQ5fE1tQwLxCKnrRgtYoXqd6voHQvj4ZOkcY80k54aNC/JHHynujCryJqSYonOefP7dQMokTqQHspHDVpXDKbYBM7ON+Ks=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nbKPJViw; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QVwQSf/g"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 08A0C1F000E9;
-	Thu,  2 Jul 2026 02:03:36 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nbKPJViw"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6A4451F00A3A;
+	Thu,  2 Jul 2026 02:03:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1782957816;
-	bh=7FNXPJ7vFX5bNWaFaOjTpDHLMgJ1YkLce/eEP8W+Mps=;
+	d=linux-foundation.org; s=korg; t=1782957817;
+	bh=A1nMR+lL5N39L7ZXZcjAeXV60HSJwat3K5dE6Jcb2BI=;
 	h=Date:To:From:Subject;
-	b=QVwQSf/gxhaPPvOvZEShTFzKqTQ51ymMmXnZHEZlAHLZKkIJaKCCx7W385ocgZ9Fa
-	 JAgJWqVIwyq9BmCK5tdDl5UtjfrTD0POSp0rTRO08kB0Sdrby7E6dRrG6RFvJ31Etz
-	 bmAd+ty/T6wTBz6uoZrY2vjXGg/RSUxcGxfosKUQ=
-Date: Wed, 01 Jul 2026 19:03:35 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
+	b=nbKPJViw2xJDgjWtBEufphtrNV+CyGV63gPgqWxu4psho/ivK837j/xRNXznygoTV
+	 xMDN1XM9E5eauAL/Gz6TsVT7AAIBCmyRd8KwcrEbWhnauTMC12o/JheNc1pJaJ98xI
+	 KRxTTX2C+eeokwLlE8o1SLoBmTtdLLzzET3LCkPU=
+Date: Wed, 01 Jul 2026 19:03:37 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,vbabka@kernel.org,surenb@google.com,stable@vger.kernel.org,rppt@kernel.org,mhocko@suse.com,luizcap@redhat.com,ljs@kernel.org,liam@infradead.org,jackmanb@google.com,hannes@cmpxchg.org,david@redhat.com,david@kernel.org,ketan.kishore@oss.qualcomm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-damon-ops-common-handle-extreme-intervals-in-damon_hot_score.patch removed from -mm tree
-Message-Id: <20260702020336.08A0C1F000E9@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-page_ext-add-count-limit-to-page_ext_iter_next-to-prevent-invalid-pfn-access.patch removed from -mm tree
+Message-Id: <20260702020337.6A4451F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,149 +35,136 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/damon/ops-common: handle extreme intervals in damon_hot_score()
+     Subject: mm: page_ext: add count limit to page_ext_iter_next to prevent invalid PFN access
 has been removed from the -mm tree.  Its filename was
-     mm-damon-ops-common-handle-extreme-intervals-in-damon_hot_score.patch
+     mm-page_ext-add-count-limit-to-page_ext_iter_next-to-prevent-invalid-pfn-access.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/ops-common: handle extreme intervals in damon_hot_score()
-Date: Tue, 23 Jun 2026 06:58:31 -0700
+From: Ketan <ketan.kishore@oss.qualcomm.com>
+Subject: mm: page_ext: add count limit to page_ext_iter_next to prevent invalid PFN access
+Date: Tue, 23 Jun 2026 02:48:04 +0530
 
-Fix three issues in damon_hot_score() that comes from wrong handling of
-extreme (zero or too high) monitoring intervals user setup.
+The page_ext iteration API does not validate if the PFN still belongs to a
+valid section while advancing the iterator.  When dynamically adding
+memory in the hotplug path, it can lead to a NULL pointer dereference
+during page_ext_lookup at the boundary of the last valid section when
+iterator count equals __pgcount.
 
-When the user sets sampling interval zero, damon_max_nr_accesses(), which
-is called from damon_hot_score(), causes a divide-by-zero.  Needless to
-say, it is a problem.
+The for_each_page_ext() macro calls page_ext_iter_next() as its loop
+increment.  for_each_page_ext() does a "__page_ext =
+page_ext_iter_next(&__iter)" at the end.  This causes page_ext_iter_next()
+to increment iter->index past __pgcount and call page_ext_lookup(start_pfn
++ __pgcount).  During memory hotplug (online), the PFN at start_pfn +
+__pgcount may belong to a section that has not yet been initialized,
+causing page_ext_lookup() to trigger a NULL pointer dereference.
 
-When the user sets the aggregation interval zero, the function returns
-zero.  It is wrong, since the real maximum nr_acceses in the setup should
-be one.  Worse yet, it can cause another divide-by-zero from its caller,
-damon_hot_score(), since it uses damon_max_nr_accesses() return value as a
-denominator.
+[   14.555124][  T846] Call trace:
+[   14.555125][  T846]  lookup_page_ext+0x6c/0x108 (P)
+[   14.555127][  T846]  page_ext_lookup+0x30/0x3c
+[   14.555129][  T846]  __reset_page_owner+0x11c/0x260
+[   14.571201][  T846]  __free_pages_ok+0x5e8/0x8e0
+[   14.571204][  T846]  __free_pages_core+0x78/0xf0
+[   14.571206][  T846]  generic_online_page+0x14/0x24
+[   14.597782][  T846]  online_pages+0x178/0x30c
+[   14.597784][  T846]  memory_block_change_state+0x284/0x32c
+[   14.597787][  T846]  memory_subsys_online+0x4c/0x64
+[   14.597789][  T846]  device_online+0x88/0xb0
+[   14.597791][  T846]  online_memory_block+0x30/0x40
+[   14.597793][  T846]  walk_memory_blocks+0xac/0xe8
+[   14.597794][  T846]  add_memory_resource+0x280/0x298
+[   14.656161][  T846]  add_memory+0x60/0x98
 
-When the user sets the aggregation interval very high, damon_hot_score()
-could return a value out of [0, DAMOS_MAX_SCORE] range.  Since the return
-value is used as an index to the regions_score_histogram array, which is
-DAMOS_MAX_SCORE+1 size, it causes out of bounds array access.
+Move the iteration boundary enforcement inside the iterator functions, so
+callers cannot inadvertently access beyond the requested range.
 
-The issues can be relatively easily reproduced like below.  The sysfs
-write permission is required, though.
-
-    # ./damo start --damos_action lru_prio --damos_quota_space 100M \
-            --damos_quota_interval 1s
-    # cd /sys/kernel/mm/damon/admin/kdamonds/0
-    # echo 0 > contexts/0/monitoring_attrs/intervals/sample_us
-    # echo 0 > contexts/0/monitoring_attrs/intervals/aggr_us
-    # echo commit > state
-    # dmesg
-    [...]
-    [  131.329762] Oops: divide error: 0000 [#1] SMP NOPTI
-    [...]
-    [  131.336089] RIP: 0010:damon_hot_score+0x27/0xd0
-    [...]
-
-Fix the divide-by-zero intervals problems by explicitly handling the zero
-intervals in damon_max_nr_accesses().  Fix the out-of-bound array access
-by applying [0, DAMOS_MAX_SCORE] bounds before returning from
-damon_hot_score().
-
-The issue was discovered [1] by Sashiko.
-
-Link: https://lore.kernel.org/20260623135834.67189-1-sj@kernel.org
-Link: https://lore.kernel.org/20260619202459.145010-1-sj@kernel.org [1]
-Fixes: 198f0f4c58b9 ("mm/damon/vaddr,paddr: support pageout prioritization")
-Signed-off-by: SeongJae Park <sj@kernel.org>
-Cc: <stable@vger.kernel.org> # 5.16.x
+Link: https://lore.kernel.org/20260623-page_ext-v3-1-a89799a5367c@oss.qualcomm.com
+Fixes: 9039b9096ea2 ("mm: page_ext: add an iteration API for page extensions")
+Signed-off-by: Ketan Kishore <ketan.kishore@oss.qualcomm.com>
+Suggested-by: David Hildenbrand <david@redhat.com>
+Suggested-by: Matthew Wilcox <willy@infradead.org>
+Acked-by: Zi Yan <ziy@nvidia.com>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Cc: Brendan Jackman <jackmanb@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Luiz Capitulino <luizcap@redhat.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/damon.h |    8 ++++++--
- mm/damon/ops-common.c |    1 +
- 2 files changed, 7 insertions(+), 2 deletions(-)
+ include/linux/page_ext.h |   19 +++++++++++++------
+ 1 file changed, 13 insertions(+), 6 deletions(-)
 
---- a/include/linux/damon.h~mm-damon-ops-common-handle-extreme-intervals-in-damon_hot_score
-+++ a/include/linux/damon.h
-@@ -1065,9 +1065,13 @@ static inline bool damon_target_has_pid(
- 
- static inline unsigned int damon_max_nr_accesses(const struct damon_attrs *attrs)
+--- a/include/linux/page_ext.h~mm-page_ext-add-count-limit-to-page_ext_iter_next-to-prevent-invalid-pfn-access
++++ a/include/linux/page_ext.h
+@@ -120,14 +120,18 @@ struct page_ext_iter {
+  * page_ext_iter_begin() - Prepare for iterating through page extensions.
+  * @iter: page extension iterator.
+  * @pfn: PFN of the page we're interested in.
++ * @count: maximum number of page extensions to return.
+  *
+  * Must be called with RCU read lock taken.
+  *
+  * Return: NULL if no page_ext exists for this page.
+  */
+ static inline struct page_ext *page_ext_iter_begin(struct page_ext_iter *iter,
+-						unsigned long pfn)
++		unsigned long pfn, unsigned long count)
  {
--	/* {aggr,sample}_interval are unsigned long, hence could overflow */
--	return min(attrs->aggr_interval / attrs->sample_interval,
-+	unsigned long sample_interval;
-+	unsigned long max_nr_accesses;
++	if (!count)
++		return NULL;
 +
-+	sample_interval = attrs->sample_interval ? : 1;
-+	max_nr_accesses = min(attrs->aggr_interval / sample_interval,
- 			(unsigned long)UINT_MAX);
-+	return max_nr_accesses ? : 1;
- }
+ 	iter->index = 0;
+ 	iter->start_pfn = pfn;
+ 	iter->page_ext = page_ext_lookup(pfn);
+@@ -138,19 +142,22 @@ static inline struct page_ext *page_ext_
+ /**
+  * page_ext_iter_next() - Get next page extension
+  * @iter: page extension iterator.
++ * @count: maximum number of page extensions to return.
+  *
+  * Must be called with RCU read lock taken.
+  *
+  * Return: NULL if no next page_ext exists.
+  */
+-static inline struct page_ext *page_ext_iter_next(struct page_ext_iter *iter)
++static inline struct page_ext *page_ext_iter_next(struct page_ext_iter *iter,
++		unsigned long count)
+ {
+ 	unsigned long pfn;
  
+ 	if (WARN_ON_ONCE(!iter->page_ext))
+ 		return NULL;
  
---- a/mm/damon/ops-common.c~mm-damon-ops-common-handle-extreme-intervals-in-damon_hot_score
-+++ a/mm/damon/ops-common.c
-@@ -143,6 +143,7 @@ int damon_hot_score(struct damon_ctx *c,
- 	 * Transform it to fit in [0, DAMOS_MAX_SCORE]
- 	 */
- 	hotness = hotness * DAMOS_MAX_SCORE / DAMON_MAX_SUBSCORE;
-+	hotness = max(min(hotness, DAMOS_MAX_SCORE), 0);
+-	iter->index++;
++	if (++iter->index >= count)
++		return NULL;
+ 	pfn = iter->start_pfn + iter->index;
  
- 	return hotness;
- }
+ 	if (page_ext_iter_next_fast_possible(pfn))
+@@ -183,9 +190,9 @@ static inline struct page_ext *page_ext_
+  * IMPORTANT: must be called with RCU read lock taken.
+  */
+ #define for_each_page_ext(__page, __pgcount, __page_ext, __iter) \
+-	for (__page_ext = page_ext_iter_begin(&__iter, page_to_pfn(__page));\
+-		__page_ext && __iter.index < __pgcount;          \
+-		__page_ext = page_ext_iter_next(&__iter))
++	for (__page_ext = page_ext_iter_begin(&__iter, page_to_pfn(__page), __pgcount); \
++		__page_ext; \
++		__page_ext = page_ext_iter_next(&__iter, __pgcount))
+ 
+ #else /* !CONFIG_PAGE_EXTENSION */
+ struct page_ext;
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from ketan.kishore@oss.qualcomm.com are
 
-maintainers-s-seongjae-sj.patch
-mm-damon-core-validate-ranges-in-damon_set_regions.patch
-samples-damon-wsse-handle-damon_start-failure.patch
-samples-damon-prcl-handle-damon_start-failure.patch
-samples-damon-mtier-handle-damon_start-failure.patch
-samples-damon-mtier-handle-damon_stop-failure.patch
-samples-damon-wsse-stop-and-free-damon-ctx-when-damon_call-fails.patch
-samples-damon-prcl-stop-and-free-damon-ctx-when-damon_call-fails.patch
-mm-damon-sysfs-kobject_del-target-normal-context-and-kdamond-dirs.patch
-mm-damon-sysfs-kobject_del-region-and-target-error-dirs.patch
-mm-damon-sysfs-schemes-kobject_del-scheme-dirs.patch
-mm-damon-sysfs-schemes-kobject_del-scheme-region-dirs.patch
-mm-damon-sysfs-schemes-kobject_del-scheme-filter-dirs.patch
-mm-damon-sysfs-schemes-kobject_del-scheme-quota-goal-dirs.patch
-mm-damon-sysfs-schemes-kobject_del-scheme-action-destination-dirs.patch
-mm-damon-sysfs-kobject_del-probe-dirs.patch
-mm-damon-sysfs-kobject_del-probe-filter-dirs.patch
-mm-damon-sysfs-kobject_del-probe-dirs-in-probes_addd_dir-error-path.patch
-mm-damon-sysfs-schemes-kobject_del-region-for-populate_region-error.patch
-docs-mm-damon-design-update-for-damos_quota_node_eligible_mem_bp.patch
-docs-abi-damon-document-probe-files.patch
-mm-damon-tests-core-kunit-test-damon_rand.patch
-selftests-damon-sysfssh-test-multiple-probe-dirs-creation.patch
-selftests-damon-sysfssh-test-coreops_filters-directories.patch
-selftests-damon-sysfssh-test-dests-dir.patch
-selftests-damon-sysfssh-test-all-files-in-quota-goal-dir.patch
-mm-damon-core-reduce-range-setup-in-damon_commit_target_regions.patch
-mm-damon-sysfs-split-probe-setup-function-out.patch
-mm-damon-sysfs-split-out-filters-setup-function.patch
-mm-damon-sysfs-fix-typos-in-probe_addrm_dirs-s-attr-probe.patch
-mm-damon-core-introduce-damon_nr_accesses_mvsum.patch
-mm-damon-tests-core-kunit-test-damon_mvsum.patch
-mm-damon-core-always-update-last_nr_accesses-for-intervals-change.patch
-mm-damon-core-handle-unreset-nr_accesses-in-damon_nr_accesses_mvsum.patch
-mm-damon-core-use-damon_nr_accesses_mvsum-in-__damos_valid_target.patch
-mm-damon-core-use-damon_nr_accesses_mvsum-for-damos-region-tracing.patch
-mm-damon-sysfs-schemes-use-damon_nr_accesses_mvsum-for-damo-regions.patch
-mm-damon-core-remove-damon_warn_fix_nr_accesses_corruption.patch
-mm-damon-core-remove-damon_verify_reset_aggregated.patch
-mm-damon-core-remove-damon_verify_merge_regions_of.patch
-mm-damon-tests-core-kunit-remove-nr_accesses_bp-setup-and-tests.patch
-selftests-damon-drgn_dump_damon_status-do-not-dump-nr_accesses_bp.patch
-mm-damon-core-remove-nr_accesses_bp-setups-and-updates.patch
-mm-damon-core-remove-attrs-param-from-damon_update_region_access_rate.patch
-mm-damon-paddr-remove-attrs-param-from-__damon_pa_check_access.patch
-mm-damon-vaddr-remove-attrs-param-from-__damon_va_check_access.patch
-mm-damon-core-remove-damon_moving_sum-and-its-unit-test.patch
-mm-damon-core-remove-damon_region-nr_accesses_bp.patch
 
