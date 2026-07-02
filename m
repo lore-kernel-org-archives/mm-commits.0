@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2F4173D6CA5
-	for <mm-commits@vger.kernel.org>; Thu,  2 Jul 2026 23:48:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5BA8E282F36
+	for <mm-commits@vger.kernel.org>; Thu,  2 Jul 2026 23:49:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783036103; cv=none; b=m62LfYkoKszqWvv6vpEnGeHtK4s+nEWyUwv8cJu6NrcycuJGhGUp0tEOszTMyL+oOkh2c6eDVpbLv7ET3eNKXe8rQasQsgzqYpUAKXRXMKMk8PJKSnGwYtNmmG4pgWgZNss+Vm23QWiztPlIsGu0NxLUQmMxpKBygnujTKQ/cJs=
+	t=1783036198; cv=none; b=i1PJgwFz5A0iufcVNI08zLUZAnRwl0xhpd3+IbDftA5TOyYztqHpFp8XJfCa08ALcOSJfeKnugTXcC04ghi/ypp/dBhHYLlkOLVrihNo0Y4tJ6JXoZhLZ/8y8Sm+qJhxZmLAk34kQ/s/rhE/ZrVg2qyPVOdVdF8F7UcKl+8Ei58=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783036103; c=relaxed/simple;
-	bh=JhA/zXWvApK0oZcl8Hgm4unYvtEixQKP578Duyx9uFw=;
-	h=Date:To:From:Subject:Message-Id; b=bF0fevRwAhK9eNLcKnnWejKRrGiqemOwA40p8tihmzDzjhJbVoKX3NEMq4TaCw1Zd3WW+mu1OjRMcKogReAnUNdw3wcf6pw6VuWRUjlw+KKtR/cs5R+fP1VbExLB+o/bggCgDJholruHMcGw60VarCGsw1k5bzwMXrSnVgxtufE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wuY33pBt; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783036198; c=relaxed/simple;
+	bh=MNtY7eLdn6pmTyo/Scc3wscVX2IAk0Vv0IQT84B3B7s=;
+	h=Date:To:From:Subject:Message-Id; b=Hhqtd3wcYEA8d1CherNepN3fWR/9QxJldDKhnHewSjiu6p3SlC8aY2i5tutEE+1050/BRY7qH//x2x16DyMyd7V2pp5Nsai+0gnYAYkUQcbBAvG5ZhqbM4eO0+yvssRSTNaeOwU3x0ueFsjXvDuPwFoDcQ/psPrt3DTU+UiP6e4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jf0j8jfX; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wuY33pBt"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 94FEC1F00A3A;
-	Thu,  2 Jul 2026 23:48:21 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jf0j8jfX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 263B71F000E9;
+	Thu,  2 Jul 2026 23:49:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783036101;
-	bh=oFaFCciGUPllPwV9hkhZDFGwa5scwwU1gjv9UFc8iKs=;
+	d=linux-foundation.org; s=korg; t=1783036197;
+	bh=DWkldmTb2Tp5MM4JdZZMmsZZVhPSj+X6rGdiayrtRjU=;
 	h=Date:To:From:Subject;
-	b=wuY33pBtZR6HiNbuKfT2eUQWEW3juBB4pMtg3HEW8wKtODXcpZ3nSFZjBMGR4g3cQ
-	 a/m+OKBnlJ39T0mFxkgfQUSG5/E/M7clIM6Kzjlq1FHNUQdC/+B478GZIOfj44Nc6P
-	 jAXj7y8xv9L59XMl7V/gX1wou5SpO7KcROLRVQIg=
-Date: Thu, 02 Jul 2026 16:48:21 -0700
-To: mm-commits@vger.kernel.org,yuanchu@google.com,yingfu.zhou@shopee.com,weixugc@google.com,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,ljs@kernel.org,kasong@tencent.com,jiayuan.chen@linux.dev,hannes@cmpxchg.org,david@kernel.org,baohua@kernel.org,axelrasmussen@google.com,jiayuan.chen@shopee.com,akpm@linux-foundation.org
+	b=jf0j8jfXS/zVuukU1pyzeb9H5sqJ8ly1Sw7pGlqqASF06zKTNcGCVUe8ffGGmL9Aj
+	 6LkXLVr4JdM5i1q42g3qNZdLYaPnxADdQl0la2LOzo1zIEzQN7+8uGSp9JBlFQl5cB
+	 USKi+ahXIdOyRaRQrFRxdKe6B7qO+8qkMK/Tbxuo=
+Date: Thu, 02 Jul 2026 16:49:56 -0700
+To: mm-commits@vger.kernel.org,urezki@gmail.com,feng.tang@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + memcg-v1-bail-out-reclaim-when-memcg-is-dying.patch added to mm-new branch
-Message-Id: <20260702234821.94FEC1F00A3A@smtp.kernel.org>
+Subject: + mm-vmalloc-add-alignment-info-in-warning-print-as-possible-failure-reason.patch added to mm-new branch
+Message-Id: <20260702234957.263B71F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: memcg-v1: bail out reclaim when memcg is dying
+     Subject: mm/vmalloc: add alignment info in warning print as possible failure reason
 has been added to the -mm mm-new branch.  Its filename is
-     memcg-v1-bail-out-reclaim-when-memcg-is-dying.patch
+     mm-vmalloc-add-alignment-info-in-warning-print-as-possible-failure-reason.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memcg-v1-bail-out-reclaim-when-memcg-is-dying.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmalloc-add-alignment-info-in-warning-print-as-possible-failure-reason.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,80 +69,51 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Jiayuan Chen <jiayuan.chen@shopee.com>
-Subject: memcg-v1: bail out reclaim when memcg is dying
-Date: Thu, 2 Jul 2026 20:02:30 +0800
+From: Feng Tang <feng.tang@linux.alibaba.com>
+Subject: mm/vmalloc: add alignment info in warning print as possible failure reason
+Date: Thu, 2 Jul 2026 19:26:10 +0800
 
-The legacy memory.limit_in_bytes and memory.memsw.limit_in_bytes writers
-retry page_counter_set_max() by reclaiming synchronously in the writer
-context.  memory.force_empty similarly loops in synchronous reclaim until
-the cgroup is empty or reclaim stops making progress.
+When running 'fix_align_alloc_test' case of test_vmalloc module with
+command:
+    insmod ./test_vmalloc.ko run_test_mask=64
 
-These writes hold a kernfs active reference on the file.  If cgroup
-removal starts in parallel, the remover sets CSS_DYING and then waits in
-kernfs_drain() under cgroup_mutex for the active reference to drain. 
-Continuing reclaim after the memcg is dying can therefore delay cgroup
-removal and keep cgroup_mutex held for a long time.
+It will fail, which is the expected result, as the case increment
+the alignment parameter gradually to 64bit limit. And the dmesg has
+warning msg:
+    "vmalloc_test/0: vmalloc error: size 4096, vm_struct allocation failed, mode:0xdc0(GFP_KERNEL|__GFP_ZERO), nodemask=(null),cpuset=/,mems_allowed=0"
 
-Stop the v1 reclaim loops once the memcg is dying.  For limit resizing,
-keep the existing -EBUSY semantics when the new limit could not be
-installed.  For memory.force_empty, keep the existing best-effort success
-semantics.
+It doesn't give the alignment info, which is the real reason for the
+failure (not the 'size').
 
-Link: https://lore.kernel.org/20260702120235.376752-5-jiayuan.chen@linux.dev
-Signed-off-by: Jiayuan Chen <jiayuan.chen@shopee.com>
-Reported-by: Zhou Yingfu <yingfu.zhou@shopee.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Jiayuan Chen <jiayuan.chen@linux.dev>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Kairui Song <kasong@tencent.com>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Wei Xu <weixugc@google.com>
-Cc: Yuanchu Xie <yuanchu@google.com>
+Add alignment info to the warning print to give the necessary hint
+for possible failure reason, and the message will be:
+    "vmalloc_test/0: vmalloc error: size 4096, align 0x800000000000, vm_struct allocation failed, mode:0xdc0(GFP_KERNEL|__GFP_ZERO), nodemask=(null),cpuset=/,mems_allowed=0"
+
+Link: https://lore.kernel.org/20260702112610.21589-1-feng.tang@linux.alibaba.com
+Signed-off-by: Feng Tang <feng.tang@linux.alibaba.com>
+Cc: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol-v1.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ mm/vmalloc.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/memcontrol-v1.c~memcg-v1-bail-out-reclaim-when-memcg-is-dying
-+++ a/mm/memcontrol-v1.c
-@@ -1805,6 +1805,10 @@ static int mem_cgroup_resize_max(struct
- 		if (!ret)
- 			break;
- 
-+		/* cgroup_rmdir() waits for us with cgroup_mutex held. */
-+		if (memcg_is_dying(memcg))
-+			break;
-+
- 		if (!drained) {
- 			drain_all_stock(memcg);
- 			drained = true;
-@@ -1843,6 +1847,10 @@ static int mem_cgroup_force_empty(struct
- 		if (signal_pending(current))
- 			return -EINTR;
- 
-+		/* cgroup_rmdir() waits for us with cgroup_mutex held. */
-+		if (memcg_is_dying(memcg))
-+			break;
-+
- 		if (!try_to_free_mem_cgroup_pages(memcg, 1, GFP_KERNEL,
- 						  MEMCG_RECLAIM_MAY_SWAP, NULL))
- 			nr_retries--;
+--- a/mm/vmalloc.c~mm-vmalloc-add-alignment-info-in-warning-print-as-possible-failure-reason
++++ a/mm/vmalloc.c
+@@ -4195,8 +4195,8 @@ again:
+ 	if (!area) {
+ 		bool nofail = gfp_mask & __GFP_NOFAIL;
+ 		warn_alloc(gfp_mask, NULL,
+-			"vmalloc error: size %lu, vm_struct allocation failed%s",
+-			size, (nofail) ? ". Retrying." : "");
++			"vmalloc error: size %lu, align 0x%lx, vm_struct allocation failed%s",
++			size, align, (nofail) ? ". Retrying." : "");
+ 		if (nofail) {
+ 			schedule_timeout_uninterruptible(1);
+ 			goto again;
 _
 
-Patches currently in -mm which might be from jiayuan.chen@shopee.com are
+Patches currently in -mm which might be from feng.tang@linux.alibaba.com are
 
-mm-damon-core-split-a-fraction-of-regions-when-nr_regions-exceeds-max-2.patch
-mm-damon-tests-core-kunit-test-split-above-max_nr_regions-2.patch
-memcg-bail-out-memoryhigh-when-memcg-is-dying.patch
-memcg-bail-out-memorymax-when-memcg-is-dying.patch
-memcg-bail-out-proactive-reclaim-when-memcg-is-dying.patch
-memcg-v1-bail-out-reclaim-when-memcg-is-dying.patch
+mm-vmalloc-add-alignment-info-in-warning-print-as-possible-failure-reason.patch
 
