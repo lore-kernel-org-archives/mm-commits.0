@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 895EE1A6816;
-	Fri,  3 Jul 2026 01:47:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6A54A233721;
+	Fri,  3 Jul 2026 01:47:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783043227; cv=none; b=f21g3nOMt+s4yjTqUrVztGelTj2dk8+GsYtPfFAwN3n+5lq2VTDR+4FHm/3epWgxSN/mJ+DWaBfwaUauHNYav63+EamA06xfx5Ku4GSc5nR1CfcPI/hHRGNGxPVKxVe0cguEhdB80FRuGPziv2u771O4IbWfoCLaRsu0Kd/NEe4=
+	t=1783043228; cv=none; b=PUREu87//tAFptaaRyVdMYGqnPJCahjTS9FTptEnPp9rsEINdUWsBb6yS3sIO2YaEEcxmEDifqbmqZq1RTF372j+qR8oBwr0LABsyuKkRpckZPJnoFRUr3UYNzPmBrW6OyRe+LKfoi5XBa/kloqiEjXBmgZiRhuqCQg295WPF+8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783043227; c=relaxed/simple;
-	bh=d6+f6GcFY/2apG7Zx6B+FrFlOf9s5ByKshuTkguZrSQ=;
-	h=Date:To:From:Subject:Message-Id; b=qwyB35U6gc3pzybQL70Jeik/kp7JFhaLQ98PJgrBiTkq62Z3QVZWy0Nx0QuoavmPEbs5kb12GVDYnXDgHGYsuEN2eWzPYkuNdfyu0IpYiN/oV3Oy1Xet3x09MaBAuBmCSIHHmA7n6+SGqJfycfmpPs8XHPcdfO/BZkVLXnqsSCM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tkzj8Y7z; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783043228; c=relaxed/simple;
+	bh=85bL5EhufkK8E/+zvpSd1INtd01eMnchbkxwYvSLNPc=;
+	h=Date:To:From:Subject:Message-Id; b=TsJ7cWW2LGbQorGcxyNf+v/LGtwPed6EI0C/9vRJ+Wv1WswD/Jw1Msa6RCxNMPbT94I5zHm5wD8oRv3IQDOcqg31jAPvBVNkksfKrzDSTC5WkVSm0zg+/IwjtgSG9Nd63WLwfc6zmVrMUqU+ZdPtnHsJUTtVNVA3reiuLOCsHj8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Cnd+AMmr; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tkzj8Y7z"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EDB131F000E9;
-	Fri,  3 Jul 2026 01:47:04 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Cnd+AMmr"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 037291F00A3A;
+	Fri,  3 Jul 2026 01:47:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783043225;
-	bh=A8wITDBYl52eY9vK+nDryhThfpP3zFMVcFkCt85hTWo=;
+	d=linux-foundation.org; s=korg; t=1783043227;
+	bh=EKb0Yg6YMSVtW3/6aW9IZAyttrAjzdvMbJKcxVIeODg=;
 	h=Date:To:From:Subject;
-	b=tkzj8Y7z29oFGKVL87gYtr7Iw3cS0GcDT6hKZ3MC3Xrtxpk9vIouW5b6VYKq+FqdW
-	 5Df5yH4qIMraWwzyhxnCjINnykPLrRi3E+GtejJqMjuYrddzKqSGC4TwnTa99JSiiE
-	 E9LvGpL9BCpLQbTETjlw9la3TKMtMKG60xaShSDo=
-Date: Thu, 02 Jul 2026 18:47:04 -0700
+	b=Cnd+AMmrQffLp3y7OJzh81nr8kC3QnDHJGtOm1Chvsd7Ti8bdvMtNBKkTmTgAKHIu
+	 /Sc71Fn/lO5YRajRMHbVIHfPnfWiOsGgjnq0usOpS9vjMJaSSbFjx2FrYIRaOZSazl
+	 C6+jUoxnmUJVgmEb/T0urYWuNA15GaCpDp2kVZZg=
+Date: Thu, 02 Jul 2026 18:47:06 -0700
 To: mm-commits@vger.kernel.org,stable@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,heming.zhao@suse.com,gechangwei@live.cn,hexlabsecurity@proton.me,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + ocfs2-bound-namelen-in-dlm_migrate_request_handler.patch added to mm-new branch
-Message-Id: <20260703014704.EDB131F000E9@smtp.kernel.org>
+Subject: + ocfs2-validate-lengths-in-dlm_mig_lockres_handler.patch added to mm-new branch
+Message-Id: <20260703014707.037291F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: ocfs2: bound namelen in dlm_migrate_request_handler
+     Subject: ocfs2: validate lengths in dlm_mig_lockres_handler
 has been added to the -mm mm-new branch.  Its filename is
-     ocfs2-bound-namelen-in-dlm_migrate_request_handler.patch
+     ocfs2-validate-lengths-in-dlm_mig_lockres_handler.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-bound-namelen-in-dlm_migrate_request_handler.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-validate-lengths-in-dlm_mig_lockres_handler.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,98 +70,62 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Bryam Vargas <hexlabsecurity@proton.me>
-Subject: ocfs2: bound namelen in dlm_migrate_request_handler
-Date: Mon, 29 Jun 2026 00:01:43 -0500
+Subject: ocfs2: validate lengths in dlm_mig_lockres_handler
+Date: Mon, 29 Jun 2026 00:01:44 -0500
 
-Patch series "ocfs2/dlm: bound peer-controlled lengths in the o2dlm".
+A node receiving a DLM_MIG_LOCKRES message trusts several fields of the
+peer-supplied dlm_migratable_lockres without validation.  num_locks and
+lockname_len are bounded only on the sending side, and the message is
+never checked to actually carry num_locks migratable_lock entries.  As a
+result dlm_process_recovery_data() walks mres->ml[0..num_locks) past the
+kmalloc(data_len) copy of the message (an out-of-bounds read that ends in
+a BUG_ON panic), and dlm_init_lockres() copies lockname_len bytes into the
+fixed 32-byte o2dlm_lockname slab object (a heap out-of-bounds write). 
+Both are reachable by any node in the domain.
 
-The o2dlm receive handlers trust u8 length and count fields from the wire
-without bounding them, so a node in a DLM domain can corrupt or panic any
-other node with a malformed message.  Three defects:
+Validate these fields right after dlm_grab(), before anything uses them --
+including the not-joined error path, which already prints mres->lockname
+with the unbounded lockname_len as a %.*s precision.  Reject the message
+unless lockname_len <= DLM_LOCKID_NAME_MAX, num_locks <=
+DLM_MAX_MIGRATABLE_LOCKS (the bound the sender already asserts), and the
+payload is large enough to hold the claimed locks.  Conforming recovery
+and migration messages are unaffected.
 
-  - dlm_migrate_request_handler() passes migrate->namelen unchecked to
-    dlm_init_mle(), which memcpy()s it into the 32-byte mname[] of an
-    o2dlm_mle slab object: a heap out-of-bounds write of up to ~215
-    attacker-controlled bytes.
-
-  - dlm_mig_lockres_handler() passes mres->lockname_len unchecked to
-    dlm_init_lockres(), which memcpy()s it into the 32-byte o2dlm_lockname
-    slab object: a heap out-of-bounds write of up to ~223 bytes.
-
-  - the same handler trusts mres->num_locks without checking that the
-    message is large enough to hold that many entries, so
-    dlm_process_recovery_data() walks mres->ml[] past the kmalloc(data_len)
-    copy and trips a BUG_ON (an out-of-bounds read ending in a panic).
-
-The other o2dlm receive handlers already reject an oversized name; the
-migration and recovery handlers have omitted it since the DLM was added
-(see the Fixes tags).  Patch 1 bounds namelen; patch 2 validates
-lockname_len, num_locks, and the payload size.  Conforming recovery and
-migration traffic is unaffected.
-
-o2net authenticates peers only by the DLM domain key, so any node that has
-joined the domain -- including a compromised or malicious member -- can
-send these messages.  There is no local trigger; the attacker must already
-be a member of the cluster.
-
-Each sink was confirmed under KASAN with an out-of-tree module mirroring
-it exactly -- a kmem_cache/kmalloc of the real destination size, then the
-same unclamped memcpy/loop: slab-out-of-bounds Write for the two writes,
-Read for the recovery walk, and a panic.  A userspace AddressSanitizer
-build faults identically under -m32 and -m64.  Scrubbed logs are available
-on request.
-
-I reported this privately to security@kernel.org and the ocfs2 maintainers
-on 2026-06-20; with no response after the standard embargo period I am
-posting the fix publicly.  I have no embargo requirement.
-
-
-This patch (of 2):
-
-A node receiving a DLM_MIGRATE_REQUEST message trusts the peer-supplied
-name length (migrate->namelen) without bounding it.  dlm_init_mle() then
-copies that many bytes into the fixed DLM_LOCKID_NAME_MAX-byte mname[]
-array of an o2dlm_mle slab object, so a malformed message from a cluster
-peer overflows the slab object by up to ~215 bytes: a heap out-of-bounds
-write of attacker-controlled data, reachable by any node in the domain.
-
-Reject an oversized name, the way dlm_master_request_handler() and the
-other o2dlm receive handlers already do; the migration handler omits the
-check entirely.  Conforming messages are unaffected.
-
-Link: https://lore.kernel.org/20260629-b4-disp-94fb6521-v1-0-6953bcc0421f@proton.me
-Link: https://lore.kernel.org/20260629-b4-disp-94fb6521-v1-1-6953bcc0421f@proton.me
+Link: https://lore.kernel.org/20260629-b4-disp-94fb6521-v1-2-6953bcc0421f@proton.me
 Fixes: 6714d8e86bf4 ("[PATCH] OCFS2: The Second Oracle Cluster Filesystem")
 Signed-off-by: Bryam Vargas <hexlabsecurity@proton.me>
 Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Heming Zhao <heming.zhao@suse.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Jun Piao <piaojun@huawei.com>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
 Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Jun Piao <piaojun@huawei.com>
+Cc: Heming Zhao <heming.zhao@suse.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/dlm/dlmmaster.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ fs/ocfs2/dlm/dlmrecovery.c |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
---- a/fs/ocfs2/dlm/dlmmaster.c~ocfs2-bound-namelen-in-dlm_migrate_request_handler
-+++ a/fs/ocfs2/dlm/dlmmaster.c
-@@ -3099,6 +3099,12 @@ int dlm_migrate_request_handler(struct o
+--- a/fs/ocfs2/dlm/dlmrecovery.c~ocfs2-validate-lengths-in-dlm_mig_lockres_handler
++++ a/fs/ocfs2/dlm/dlmrecovery.c
+@@ -1357,6 +1357,15 @@ int dlm_mig_lockres_handler(struct o2net
+ 	if (!dlm_grab(dlm))
+ 		return -EINVAL;
  
- 	name = migrate->name;
- 	namelen = migrate->namelen;
-+	if (namelen > DLM_LOCKID_NAME_MAX) {
-+		mlog(ML_ERROR, "%s: invalid name length %u in migrate request\n",
-+		     dlm->name, namelen);
-+		ret = -EINVAL;
-+		goto leave;
++	if (mres->lockname_len > DLM_LOCKID_NAME_MAX ||
++	    mres->num_locks > DLM_MAX_MIGRATABLE_LOCKS ||
++	    be16_to_cpu(msg->data_len) < struct_size(mres, ml, mres->num_locks)) {
++		mlog(ML_ERROR, "%s: invalid lockres migration message from %u\n",
++		     dlm->name, mres->master);
++		dlm_put(dlm);
++		return -EINVAL;
 +	}
- 	hash = dlm_lockid_hash(name, namelen);
- 
- 	/* preallocate.. if this fails, abort */
++
+ 	if (!dlm_joined(dlm)) {
+ 		mlog(ML_ERROR, "Domain %s not joined! "
+ 			  "lockres %.*s, master %u\n",
 _
 
 Patches currently in -mm which might be from hexlabsecurity@proton.me are
