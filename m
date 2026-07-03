@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5BA8E282F36
-	for <mm-commits@vger.kernel.org>; Thu,  2 Jul 2026 23:49:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 895EE1A6816;
+	Fri,  3 Jul 2026 01:47:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783036198; cv=none; b=i1PJgwFz5A0iufcVNI08zLUZAnRwl0xhpd3+IbDftA5TOyYztqHpFp8XJfCa08ALcOSJfeKnugTXcC04ghi/ypp/dBhHYLlkOLVrihNo0Y4tJ6JXoZhLZ/8y8Sm+qJhxZmLAk34kQ/s/rhE/ZrVg2qyPVOdVdF8F7UcKl+8Ei58=
+	t=1783043227; cv=none; b=f21g3nOMt+s4yjTqUrVztGelTj2dk8+GsYtPfFAwN3n+5lq2VTDR+4FHm/3epWgxSN/mJ+DWaBfwaUauHNYav63+EamA06xfx5Ku4GSc5nR1CfcPI/hHRGNGxPVKxVe0cguEhdB80FRuGPziv2u771O4IbWfoCLaRsu0Kd/NEe4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783036198; c=relaxed/simple;
-	bh=MNtY7eLdn6pmTyo/Scc3wscVX2IAk0Vv0IQT84B3B7s=;
-	h=Date:To:From:Subject:Message-Id; b=Hhqtd3wcYEA8d1CherNepN3fWR/9QxJldDKhnHewSjiu6p3SlC8aY2i5tutEE+1050/BRY7qH//x2x16DyMyd7V2pp5Nsai+0gnYAYkUQcbBAvG5ZhqbM4eO0+yvssRSTNaeOwU3x0ueFsjXvDuPwFoDcQ/psPrt3DTU+UiP6e4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jf0j8jfX; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783043227; c=relaxed/simple;
+	bh=d6+f6GcFY/2apG7Zx6B+FrFlOf9s5ByKshuTkguZrSQ=;
+	h=Date:To:From:Subject:Message-Id; b=qwyB35U6gc3pzybQL70Jeik/kp7JFhaLQ98PJgrBiTkq62Z3QVZWy0Nx0QuoavmPEbs5kb12GVDYnXDgHGYsuEN2eWzPYkuNdfyu0IpYiN/oV3Oy1Xet3x09MaBAuBmCSIHHmA7n6+SGqJfycfmpPs8XHPcdfO/BZkVLXnqsSCM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tkzj8Y7z; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jf0j8jfX"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 263B71F000E9;
-	Thu,  2 Jul 2026 23:49:57 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tkzj8Y7z"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EDB131F000E9;
+	Fri,  3 Jul 2026 01:47:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783036197;
-	bh=DWkldmTb2Tp5MM4JdZZMmsZZVhPSj+X6rGdiayrtRjU=;
+	d=linux-foundation.org; s=korg; t=1783043225;
+	bh=A8wITDBYl52eY9vK+nDryhThfpP3zFMVcFkCt85hTWo=;
 	h=Date:To:From:Subject;
-	b=jf0j8jfXS/zVuukU1pyzeb9H5sqJ8ly1Sw7pGlqqASF06zKTNcGCVUe8ffGGmL9Aj
-	 6LkXLVr4JdM5i1q42g3qNZdLYaPnxADdQl0la2LOzo1zIEzQN7+8uGSp9JBlFQl5cB
-	 USKi+ahXIdOyRaRQrFRxdKe6B7qO+8qkMK/Tbxuo=
-Date: Thu, 02 Jul 2026 16:49:56 -0700
-To: mm-commits@vger.kernel.org,urezki@gmail.com,feng.tang@linux.alibaba.com,akpm@linux-foundation.org
+	b=tkzj8Y7z29oFGKVL87gYtr7Iw3cS0GcDT6hKZ3MC3Xrtxpk9vIouW5b6VYKq+FqdW
+	 5Df5yH4qIMraWwzyhxnCjINnykPLrRi3E+GtejJqMjuYrddzKqSGC4TwnTa99JSiiE
+	 E9LvGpL9BCpLQbTETjlw9la3TKMtMKG60xaShSDo=
+Date: Thu, 02 Jul 2026 18:47:04 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,heming.zhao@suse.com,gechangwei@live.cn,hexlabsecurity@proton.me,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmalloc-add-alignment-info-in-warning-print-as-possible-failure-reason.patch added to mm-new branch
-Message-Id: <20260702234957.263B71F000E9@smtp.kernel.org>
+Subject: + ocfs2-bound-namelen-in-dlm_migrate_request_handler.patch added to mm-new branch
+Message-Id: <20260703014704.EDB131F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/vmalloc: add alignment info in warning print as possible failure reason
+     Subject: ocfs2: bound namelen in dlm_migrate_request_handler
 has been added to the -mm mm-new branch.  Its filename is
-     mm-vmalloc-add-alignment-info-in-warning-print-as-possible-failure-reason.patch
+     ocfs2-bound-namelen-in-dlm_migrate_request_handler.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmalloc-add-alignment-info-in-warning-print-as-possible-failure-reason.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-bound-namelen-in-dlm_migrate_request_handler.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,51 +69,103 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Feng Tang <feng.tang@linux.alibaba.com>
-Subject: mm/vmalloc: add alignment info in warning print as possible failure reason
-Date: Thu, 2 Jul 2026 19:26:10 +0800
+From: Bryam Vargas <hexlabsecurity@proton.me>
+Subject: ocfs2: bound namelen in dlm_migrate_request_handler
+Date: Mon, 29 Jun 2026 00:01:43 -0500
 
-When running 'fix_align_alloc_test' case of test_vmalloc module with
-command:
-    insmod ./test_vmalloc.ko run_test_mask=64
+Patch series "ocfs2/dlm: bound peer-controlled lengths in the o2dlm".
 
-It will fail, which is the expected result, as the case increment
-the alignment parameter gradually to 64bit limit. And the dmesg has
-warning msg:
-    "vmalloc_test/0: vmalloc error: size 4096, vm_struct allocation failed, mode:0xdc0(GFP_KERNEL|__GFP_ZERO), nodemask=(null),cpuset=/,mems_allowed=0"
+The o2dlm receive handlers trust u8 length and count fields from the wire
+without bounding them, so a node in a DLM domain can corrupt or panic any
+other node with a malformed message.  Three defects:
 
-It doesn't give the alignment info, which is the real reason for the
-failure (not the 'size').
+  - dlm_migrate_request_handler() passes migrate->namelen unchecked to
+    dlm_init_mle(), which memcpy()s it into the 32-byte mname[] of an
+    o2dlm_mle slab object: a heap out-of-bounds write of up to ~215
+    attacker-controlled bytes.
 
-Add alignment info to the warning print to give the necessary hint
-for possible failure reason, and the message will be:
-    "vmalloc_test/0: vmalloc error: size 4096, align 0x800000000000, vm_struct allocation failed, mode:0xdc0(GFP_KERNEL|__GFP_ZERO), nodemask=(null),cpuset=/,mems_allowed=0"
+  - dlm_mig_lockres_handler() passes mres->lockname_len unchecked to
+    dlm_init_lockres(), which memcpy()s it into the 32-byte o2dlm_lockname
+    slab object: a heap out-of-bounds write of up to ~223 bytes.
 
-Link: https://lore.kernel.org/20260702112610.21589-1-feng.tang@linux.alibaba.com
-Signed-off-by: Feng Tang <feng.tang@linux.alibaba.com>
-Cc: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
+  - the same handler trusts mres->num_locks without checking that the
+    message is large enough to hold that many entries, so
+    dlm_process_recovery_data() walks mres->ml[] past the kmalloc(data_len)
+    copy and trips a BUG_ON (an out-of-bounds read ending in a panic).
+
+The other o2dlm receive handlers already reject an oversized name; the
+migration and recovery handlers have omitted it since the DLM was added
+(see the Fixes tags).  Patch 1 bounds namelen; patch 2 validates
+lockname_len, num_locks, and the payload size.  Conforming recovery and
+migration traffic is unaffected.
+
+o2net authenticates peers only by the DLM domain key, so any node that has
+joined the domain -- including a compromised or malicious member -- can
+send these messages.  There is no local trigger; the attacker must already
+be a member of the cluster.
+
+Each sink was confirmed under KASAN with an out-of-tree module mirroring
+it exactly -- a kmem_cache/kmalloc of the real destination size, then the
+same unclamped memcpy/loop: slab-out-of-bounds Write for the two writes,
+Read for the recovery walk, and a panic.  A userspace AddressSanitizer
+build faults identically under -m32 and -m64.  Scrubbed logs are available
+on request.
+
+I reported this privately to security@kernel.org and the ocfs2 maintainers
+on 2026-06-20; with no response after the standard embargo period I am
+posting the fix publicly.  I have no embargo requirement.
+
+
+This patch (of 2):
+
+A node receiving a DLM_MIGRATE_REQUEST message trusts the peer-supplied
+name length (migrate->namelen) without bounding it.  dlm_init_mle() then
+copies that many bytes into the fixed DLM_LOCKID_NAME_MAX-byte mname[]
+array of an o2dlm_mle slab object, so a malformed message from a cluster
+peer overflows the slab object by up to ~215 bytes: a heap out-of-bounds
+write of attacker-controlled data, reachable by any node in the domain.
+
+Reject an oversized name, the way dlm_master_request_handler() and the
+other o2dlm receive handlers already do; the migration handler omits the
+check entirely.  Conforming messages are unaffected.
+
+Link: https://lore.kernel.org/20260629-b4-disp-94fb6521-v1-0-6953bcc0421f@proton.me
+Link: https://lore.kernel.org/20260629-b4-disp-94fb6521-v1-1-6953bcc0421f@proton.me
+Fixes: 6714d8e86bf4 ("[PATCH] OCFS2: The Second Oracle Cluster Filesystem")
+Signed-off-by: Bryam Vargas <hexlabsecurity@proton.me>
+Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Heming Zhao <heming.zhao@suse.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Jun Piao <piaojun@huawei.com>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/ocfs2/dlm/dlmmaster.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
---- a/mm/vmalloc.c~mm-vmalloc-add-alignment-info-in-warning-print-as-possible-failure-reason
-+++ a/mm/vmalloc.c
-@@ -4195,8 +4195,8 @@ again:
- 	if (!area) {
- 		bool nofail = gfp_mask & __GFP_NOFAIL;
- 		warn_alloc(gfp_mask, NULL,
--			"vmalloc error: size %lu, vm_struct allocation failed%s",
--			size, (nofail) ? ". Retrying." : "");
-+			"vmalloc error: size %lu, align 0x%lx, vm_struct allocation failed%s",
-+			size, align, (nofail) ? ". Retrying." : "");
- 		if (nofail) {
- 			schedule_timeout_uninterruptible(1);
- 			goto again;
+--- a/fs/ocfs2/dlm/dlmmaster.c~ocfs2-bound-namelen-in-dlm_migrate_request_handler
++++ a/fs/ocfs2/dlm/dlmmaster.c
+@@ -3099,6 +3099,12 @@ int dlm_migrate_request_handler(struct o
+ 
+ 	name = migrate->name;
+ 	namelen = migrate->namelen;
++	if (namelen > DLM_LOCKID_NAME_MAX) {
++		mlog(ML_ERROR, "%s: invalid name length %u in migrate request\n",
++		     dlm->name, namelen);
++		ret = -EINVAL;
++		goto leave;
++	}
+ 	hash = dlm_lockid_hash(name, namelen);
+ 
+ 	/* preallocate.. if this fails, abort */
 _
 
-Patches currently in -mm which might be from feng.tang@linux.alibaba.com are
+Patches currently in -mm which might be from hexlabsecurity@proton.me are
 
-mm-vmalloc-add-alignment-info-in-warning-print-as-possible-failure-reason.patch
+ocfs2-bound-namelen-in-dlm_migrate_request_handler.patch
+ocfs2-validate-lengths-in-dlm_mig_lockres_handler.patch
 
