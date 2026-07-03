@@ -1,130 +1,86 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.17])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 094C01B3B19
-	for <mm-commits@vger.kernel.org>; Fri,  3 Jul 2026 01:48:47 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4652E32720D
+	for <mm-commits@vger.kernel.org>; Fri,  3 Jul 2026 08:32:04 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.17
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783043329; cv=none; b=anvqJUQ9Jn10bnnT16+oGUGetvGzWhrGVNQCJWLjQfMdtls2E1yu89dLXZZi9sYTkRFSDiDuyJbKVdQLSDP6n7pcSfNhM1poJxqC6SnIe/0z3HrEn21zTavFNHzmL1nYESrZ2LpmKFHjygX7b4KHpoTj8Q1hRjoKTbrzex51sh8=
+	t=1783067526; cv=none; b=cLgOcDuMYdbbsK4mWwNeuMHuxPxnlkdFag78vAldTz4CwkuoqwbxwXLorxJqTdN0iDKiUC0baIjJ8P3fruNCDa/dh+8YId7pv9+s/wehCvh6ok4DXS1Ywfkhk2+A5XFUF13IHLPlQaLn3GpkhA1WRzFL7pTGjRMVCWDEcg5r8L8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783043329; c=relaxed/simple;
-	bh=PqdnQcddbcUzWrIWSeMmA66nDw06YOop7jw+NJbn3YI=;
-	h=Date:To:From:Subject:Message-Id; b=LfH/vKnppb4yrXj1etLc2m76/mFQGsmh7jltyjPCR/eerB7hrkmiL1+EVJGcsSuJ95KyAsbdE/ymfI2zWH2KA2ta6Cf0z61mjbQfXZgB4s8F/pKyyEVF3gIlQXF64k/iPhNOdQnn7qZdlqCO1qIvpP/drTyz6MvV1zZ8ezPwMxU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uzYjLO4w; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783067526; c=relaxed/simple;
+	bh=tmEvE928znH8qNFZmFA9+hqKVw8A78urxl5SprV9/2A=;
+	h=Date:From:To:Cc:Subject:Message-ID; b=WRwLeHst5OW7rbg5bvv4xf41o1XXln8PV7QNVJfw222DDov46MQsrCpwQmRpjFlJtjU7xX+vrnCT9q/lu1PXCFbG7vrAeP3liIRzOOk9za0ivAEfbYNJRyxBeksj2WSX+n8UnQvjXEYDv+hunDnCi/RxsVyEYShazfzyiYHTUjo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=eFozm25M; arc=none smtp.client-ip=198.175.65.17
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uzYjLO4w"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7859E1F000E9;
-	Fri,  3 Jul 2026 01:48:47 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783043327;
-	bh=LT0kcwEMqiPU0C7lhkOh9Hb8fndRPATj9k+FL+aCBCg=;
-	h=Date:To:From:Subject;
-	b=uzYjLO4wtYYppYUH8xeaWg774VioZQ61cNIJgzRMS8erUzYGLd+syM6vZIMyYxImm
-	 O7fleeeJCnA6P7eyzHOY3yoY10yxaxFSvzNIocXuKl1Hs3nwRCigiR7xvtLqDZwyRv
-	 WPczlqqsS6RaWFO+iSOMbsZwlEWonvwbThgikY3g=
-Date: Thu, 02 Jul 2026 18:48:47 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,shakeel.butt@linux.dev,rakie.kim@sk.com,matthew.brost@intel.com,joshua.hahnjy@gmail.com,hannes@cmpxchg.org,gourry@gourry.net,david@kernel.org,byungchul@sk.com,apopple@nvidia.com,usama.arif@linux.dev,akpm@linux-foundation.org
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-migrate_device-pin-large-folios-before-splitting-fix.patch added to mm-unstable branch
-Message-Id: <20260703014847.7859E1F000E9@smtp.kernel.org>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="eFozm25M"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1783067524; x=1814603524;
+  h=date:from:to:cc:subject:message-id;
+  bh=tmEvE928znH8qNFZmFA9+hqKVw8A78urxl5SprV9/2A=;
+  b=eFozm25MVtGkMqKFPqjnS7HsTODq0My8nGptlB7oYFMHbN9E/o57rZcW
+   4NUfRu89NiZlYdGkESYufkHFS3YgpKfcrpVcmbxTMfmfICMqFVu6jvlI6
+   UVU6vlOaQA7uwNvvnWzMjcVSmAR/NrjeS2Cq8tQpLom37XWg7dkbp7Df8
+   gORA/KNT+xSVNi4FNhG5WwVgjO0HZ9L+I7nglh+PS5FtbEhrGk/1f88ue
+   uZ7IvPGnCUnAae1haDlaYlOW5phIkOH8zf3HcR3VK0WXsgkALOVD0sIIa
+   Po7kKfRS9ySQNzJEQjcg94YwP4Q+oUnoWOV0zd/KRPK2zBMnRqHaTbjYQ
+   w==;
+X-CSE-ConnectionGUID: ofWZVBJ1Sw6Dlt50KQZL9Q==
+X-CSE-MsgGUID: +MYo2f82Sou0ua5Zgsyx/Q==
+X-IronPort-AV: E=McAfee;i="6800,10657,11835"; a="83852769"
+X-IronPort-AV: E=Sophos;i="6.25,145,1779174000"; 
+   d="scan'208";a="83852769"
+Received: from fmviesa010.fm.intel.com ([10.60.135.150])
+  by orvoesa109.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Jul 2026 01:32:04 -0700
+X-CSE-ConnectionGUID: 03LZJP41SLaCC+oO1VZ0zw==
+X-CSE-MsgGUID: 9cNI3tVrTpa7JRE8fDZIvw==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.25,145,1779174000"; 
+   d="scan'208";a="249090055"
+Received: from igk-lkp-server01.igk.intel.com (HELO e5a8ed462067) ([10.211.93.152])
+  by fmviesa010.fm.intel.com with ESMTP; 03 Jul 2026 01:32:01 -0700
+Received: from kbuild by e5a8ed462067 with local (Exim 4.98.2)
+	(envelope-from <lkp@intel.com>)
+	id 1wfZJW-000000001SH-1ObJ;
+	Fri, 03 Jul 2026 08:31:58 +0000
+Date: Fri, 03 Jul 2026 10:30:59 +0200
+From: kernel test robot <lkp@intel.com>
+To: Breno Leitao <leitao@debian.org>
+Cc: oe-kbuild-all@lists.linux.dev, David Hildenbrand <david@kernel.org>,
+ Andrew Morton <akpm@linux-foundation.org>,
+ Linux Memory Management List <linux-mm@kvack.org>,
+ mm-commits@vger.kernel.org
+Subject: [akpm-mm:mm-new 242/252] radix-tree.c:459:17: error:
+ implicit declaration of function 'kmemleak_transient_leak'
+Message-ID: <202607031019.AffpLUyg-lkp@intel.com>
+User-Agent: s-nail v14.9.25
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
+tree:   https://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm.git mm-new
+head:   e031e55776cf9193b4720a253e92539ca536d224
+commit: 58b5601b28c144be1905eef7964bfa8457f58292 [242/252] radix-tree: fix kmemleak false positives on tree head reassignment
+config: powerpc64-allnoconfig-bpf (https://download.01.org/0day-ci/archive/20260703/202607031019.AffpLUyg-lkp@intel.com/config)
+compiler: powerpc64-linux-gnu-gcc (Debian 14.2.0-19) 14.2.0
+reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20260703/202607031019.AffpLUyg-lkp@intel.com/reproduce)
 
-The patch titled
-     Subject: condense comment about folio reference
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-migrate_device-pin-large-folios-before-splitting-fix.patch
+If you fix the issue in a separate patch/commit (i.e. not just a new version of
+the same patch/commit), kindly add following tags
+| Reported-by: kernel test robot <lkp@intel.com>
+| Closes: https://lore.kernel.org/oe-kbuild-all/202607031019.AffpLUyg-lkp@intel.com/
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-migrate_device-pin-large-folios-before-splitting-fix.patch
+All errors (new ones prefixed by >>):
 
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+   radix-tree.c: In function 'radix_tree_extend':
+>> radix-tree.c:459:17: error: implicit declaration of function 'kmemleak_transient_leak' [-Wimplicit-function-declaration]
+     459 |                 kmemleak_transient_leak(node);
+         |                 ^~~~~~~~~~~~~~~~~~~~~~~
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
-
-------------------------------------------------------
-From: Usama Arif <usama.arif@linux.dev>
-Subject: condense comment about folio reference
-Date: Wed, 1 Jul 2026 11:12:54 -0700
-
-per various review comments
-
-Link: https://lore.kernel.org/87bbf335-648f-4065-abc8-3eaab5a3beeb@linux.dev
-Signed-off-by: Usama Arif <usama.arif@linux.dev>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Byungchul Park <byungchul@sk.com>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Gregory Price <gourry@gourry.net>
-Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
-Cc: Matthew Brost <matthew.brost@intel.com>
-Cc: Rakie Kim <rakie.kim@sk.com>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Zi Yan <ziy@nvidia.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- mm/migrate_device.c |   12 ++----------
- 1 file changed, 2 insertions(+), 10 deletions(-)
-
---- a/mm/migrate_device.c~mm-migrate_device-pin-large-folios-before-splitting-fix
-+++ a/mm/migrate_device.c
-@@ -311,11 +311,7 @@ again:
- 			if (folio_test_large(folio)) {
- 				int ret;
- 
--				/*
--				 * Keep the folio stable after dropping the PTE
--				 * lock. migrate_vma_split_folio() consumes this
--				 * reference.
--				 */
-+				/* migrate_vma_split_folio() consumes this reference */
- 				if (folio != fault_folio)
- 					folio_get(folio);
- 				lazy_mmu_mode_disable();
-@@ -361,11 +357,7 @@ again:
- 			if (folio && folio_test_large(folio)) {
- 				int ret;
- 
--				/*
--				 * Keep the folio stable after dropping the
--				 * PTE lock. migrate_vma_split_folio() consumes
--				 * this reference.
--				 */
-+				/* migrate_vma_split_folio() consumes this reference */
- 				if (folio != fault_folio)
- 					folio_get(folio);
- 				lazy_mmu_mode_disable();
-_
-
-Patches currently in -mm which might be from usama.arif@linux.dev are
-
-mm-swap_state-remove-unnecessary-lru_add_drain-from-readahead.patch
-mm-add-softleaf_to_pmd-and-convert-existing-callers.patch
-mm-extract-mm_prepare_for_swap_entries-helper.patch
-fs-proc-use-softleaf_has_pfn-in-pagemap-pmd-walker.patch
-mm-huge_memory-move-softleaf_to_folio-inside-migration-branch.patch
-mm-migrate_device-move-softleaf_to_folio-inside-device-private-branch.patch
-mm-rename-arch_enable_thp_migration-to-arch_supports_pmd_softleaf.patch
-mm-vmpressure-skip-tree=true-accounting-on-cgroup-v2.patch
-mm-vmpressure-skip-tree=true-accounting-on-cgroup-v2-fix.patch
-mm-vmpressure-move-v1-userspace-eventfd-code-into-memcontrol-v1c.patch
-mm-migrate_device-pin-large-folios-before-splitting.patch
-mm-migrate_device-pin-large-folios-before-splitting-fix.patch
-
+--
+0-DAY CI Kernel Test Service
+https://github.com/intel/lkp-tests/wiki
