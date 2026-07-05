@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AA1EE35E940
-	for <mm-commits@vger.kernel.org>; Sun,  5 Jul 2026 20:20:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 56F97221DAE
+	for <mm-commits@vger.kernel.org>; Sun,  5 Jul 2026 20:36:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783282831; cv=none; b=DDodzsrgK91V384tNIh7RFs6H4830mcWdp2fcxvA4FjBwSRnyKauYsdgtiShlaxozz5IGOF9mdf1kPgCshNc589+7UoT5UAa+bsmcXHPqY7FLM4hdvgE+X9DwpSflgeUNNabAWdsbP0QAqRhWoA2CEpW5IkzXlC+s4GbxUde5OU=
+	t=1783283787; cv=none; b=DQ97oKtWbRWTi+dp0H7RaqRuv9pOZHnfGckwtot8Jhz5ZEKWxDzs0ovdRH4qwZ0WJdBDTvcXttTeJKFpr8NEDECT62h2a/XhKPrvGEx4h7etOOVS2lLZHCtHIWlTb0Mf1pCCKebttH1sGSSDU8J8D+DAkzduteEcc4YQnkNyuzc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783282831; c=relaxed/simple;
-	bh=hhykGrCq2V78+tJ7vRDEwvpocFA1m3RG8+nfbUO6iF4=;
-	h=Date:To:From:Subject:Message-Id; b=pBJ807vzWdHktnGRULKXVdiWD6XSZt2t1HdZ+My4mBTKhY9bvsUHWLqpOFcicG/L34MuvhIcH28GEGSVOr/V13YVRmL+8r1cb6leA0NiV6N64zeeUKxZZcw1bV8is88CIlzkBb7LyM3G4jDSg3bTev4hUi1ncIQGErelA/jeN4c=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Yn+WsPwl; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783283787; c=relaxed/simple;
+	bh=2Fa7gyEHh8RimzSLftwVdSvG4I1+8gp5mPi/RzsLCdE=;
+	h=Date:To:From:Subject:Message-Id; b=VTY9oxvFX9y537c5/xhUuHNBVTwrPUfdpA8vBMLRl5THil5Do7STsFiW4ifZfratO0Kqdv1suvvhSIPj1QE6GoSohRML0MHsTYgv7WcsLxC0xjqUszUYdACSpyoLlVn63w4+eeYmMExO2vuQ4wzsJ+sOJrtsVSCY11qCKAWaQFg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UIHppxmi; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Yn+WsPwl"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 191991F000E9;
-	Sun,  5 Jul 2026 20:20:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UIHppxmi"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C33981F000E9;
+	Sun,  5 Jul 2026 20:36:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783282830;
-	bh=gtnmY1hz89uQjfHeW+nL9nAW/EfSyj7sxyii5tXnA/w=;
+	d=linux-foundation.org; s=korg; t=1783283785;
+	bh=vVb2H8MiJGoZiHC4LIq/8CqOqrMbdhU8PIBFkzs86GE=;
 	h=Date:To:From:Subject;
-	b=Yn+WsPwlyjOclE3CRTjqptZe6JP4jet/jzm1IV3Oh9O722ZbjErEiuT4+K45YB3te
-	 xx6NWBVL2pmA6rwSDd/AR1UR7noNWopvBXD0O3Cm78QsdT+myom340VM/NdNTyt35k
-	 spVcrqOWnF+6q2sgUf0FIVHbY8y5pSPF2C0ZO0FA=
-Date: Sun, 05 Jul 2026 13:20:29 -0700
-To: mm-commits@vger.kernel.org,sashiko-bot@kernel.org,gregkh@linuxfoundation.org,giometti@enneenne.com,calvin@wbinvd.org,akpm@linux-foundation.org
+	b=UIHppxmivZk/lZ8NLiLCzmWg4AZz8Q868eRN+kLOKiLrj6S38TFQyIiaOzq1KSF+N
+	 IEC/IQmb17wmqZ2BrcZE8UftHnkAN9eNVWIbwA+bO0Brq0N6RhCfFkx8QpxvArF8P7
+	 tbtJoTzLjviEs5NTgJ66n0+iE2YOup+6yWmItB9Y=
+Date: Sun, 05 Jul 2026 13:36:25 -0700
+To: mm-commits@vger.kernel.org,baohua@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + pps-dont-allow-pps_kc_bind-on-removed-devices.patch added to mm-nonmm-unstable branch
-Message-Id: <20260705202030.191991F000E9@smtp.kernel.org>
+Subject: [to-be-updated] arm64-hugetlb-extend-batching-of-multiple-cont_pte-in-a-single-pte-setup.patch removed from -mm tree
+Message-Id: <20260705203625.C33981F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,157 +34,117 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: pps: don't allow PPS_KC_BIND on removed devices
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     pps-dont-allow-pps_kc_bind-on-removed-devices.patch
+The quilt patch titled
+     Subject: arm64/hugetlb: extend batching of multiple CONT_PTE in a single PTE setup
+has been removed from the -mm tree.  Its filename was
+     arm64-hugetlb-extend-batching-of-multiple-cont_pte-in-a-single-pte-setup.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/pps-dont-allow-pps_kc_bind-on-removed-devices.patch
-
-This patch will later appear in the mm-nonmm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Calvin Owens <calvin@wbinvd.org>
-Subject: pps: don't allow PPS_KC_BIND on removed devices
-Date: Wed, 3 Jun 2026 10:25:44 -0700
+From: "Barry Song (Xiaomi)" <baohua@kernel.org>
+Subject: arm64/hugetlb: extend batching of multiple CONT_PTE in a single PTE setup
+Date: Thu, 18 Jun 2026 16:47:21 +0800
 
-If userspace holds its file descriptor open, it can call PPS_KC_BIND on a
-device which has been unplugged, leaving pps_kc_hardpps_dev as a dangling
-pointer after close().
+Patch series "mm/vmalloc: Speed up ioremap, vmalloc and vmap with
+contiguous memory", v4.
 
-After that sequence, PPS_KC_BIND is broken until the system is rebooted,
-because the pointer comparison in pps_kc_bind() can never be true.
+This patchset accelerates ioremap, vmalloc, and vmap when the memory is
+physically fully or partially contiguous.  Two techniques are used:
 
-    calling  pps_ktimer_init+0x0/0x1000 [pps_ktimer] @ 1081
-    initcall pps_ktimer_init+0x0/0x1000 [pps_ktimer] returned 0 after 811 usecs
-    pps pps0: bound kernel consumer: edge=0x1
-    pps pps0: unbound kernel consumer on device removal
-    pps pps0: bound kernel consumer: edge=0x1
-    calling  pps_ktimer_init+0x0/0x1000 [pps_ktimer] @ 1085
-    initcall pps_ktimer_init+0x0/0x1000 [pps_ktimer] returned 0 after 340 usecs
-    pps pps0: another kernel consumer is already bound
+1. Avoid page table rewalk when setting PTEs/PMDs for multiple memory
+   segments
+2. Use batched mappings wherever possible in both vmalloc and ARM64
+   layers
 
-Here is a short reproducer, which uses rmmod of the pps-ktimer testcase
-to simulate a device being unplugged:
+Besides accelerating the mapping path, this also enables large mappings
+(PMD and cont-PTE) for vmap, which are currently not supported.
 
-    #include <stdlib.h>
-    #include <stdio.h>
-    #include <unistd.h>
-    #include <fcntl.h>
-    #include <sys/ioctl.h>
-    #include <linux/pps.h>
-    #include <errno.h>
-    #include <err.h>
+Patches 1-2 extend ARM64 vmalloc CONT-PTE mapping to support multiple
+CONT-PTE regions instead of just one.
 
-    int main(void)
-    {
-        while (1) {
-            int fd;
+Patch 3 extracts a common helper vmap_set_ptes() that consolidates PTE
+mapping logic between the ioremap and vmalloc/vmap paths, handling both
+CONT_PTE and regular PTE mappings.  This prepares for the next patch.
 
-            if (system("insmod ./pps-ktimer.ko"))
-                err(1, "insmod failed");
+Patch 4 extends the page table walk path to support page shifts other than
+PAGE_SHIFT and eliminates the page table rewalk for huge vmalloc mappings.
+The function is renamed from vmap_small_pages_range_noflush() to
+vmap_pages_range_noflush_walk().
 
-            fd = open("/dev/pps0", O_RDWR);
-            if (fd == -1)
-                err(1, "open failed");
+Patches 5-6 add huge vmap support for contiguous pages, including support
+for non-compound pages with pfn alignment verification.
 
-            struct pps_bind_args args = {
-                .tsformat = PPS_TSFMT_TSPEC,
-                .edge = PPS_CAPTUREASSERT,
-                .consumer = PPS_KC_HARDPPS,
-            };
+On the RK3588 8-core ARM64 SoC, with tasks pinned to a little core and the
+performance CPUfreq policy enabled, benchmark results:
 
-            if (ioctl(fd, PPS_KC_BIND, &args))
-                err(1, "first PPS_KC_BIND failed");
+* ioremap(1 MB): 1.35x faster (3407 ns -> 2526 ns)
+* vmalloc(1 MB) mapping time (excluding allocation) with
+  VM_ALLOW_HUGE_VMAP: 1.42x faster (5.00 us -> 3.53us)
+* vmap(100MB) with order-8 pages: 8.3x faster (1235 us -> 149 us)
 
-            if (system("rmmod pps-ktimer"))
-                err(1, "rmmod failed");
+Many thanks to Xueyuan Chen for his testing efforts on RK3588 boards.
 
-            if (ioctl(fd, PPS_KC_BIND, &args)) {
-                if (errno != ENODEV)
-                    err(1, "second PPS_KC_BIND failed");
-                else
-                    puts("Got ENODEV, kernel is patched");
-            }
 
-            close(fd);
-        }
-    }
+This patch (of 6):
 
-Fix this by setting a flag when the device is unplugged, returning -ENODEV
-from PPS_KC_BIND if the flag is set.
+For sizes aligned to CONT_PTE_SIZE and smaller than PMD_SIZE, we can
+handle CONT_PTE_SIZE groups together.
 
-For userspace to encounter this new behavior, it must do something which
-breaks the interface today, so this fix shouldn't cause any observable
-behavior change for working programs.
-
-Link: https://lore.kernel.org/672778c177ac9b6fdcb445e35c97ac4ca7d1149f.1780506611.git.calvin@wbinvd.org
-Signed-off-by: Calvin Owens <calvin@wbinvd.org>
-Reported-by: Sashiko <sashiko-bot@kernel.org>
-Closes: https://sashiko.dev/#/patchset/cover.1779733602.git.calvin%40wbinvd.org?part=1
-Acked-by: Rodolfo Giometti <giometti@enneenne.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Link: https://lore.kernel.org/20260618084726.1070022-1-jiangwen6@xiaomi.com
+Link: https://lore.kernel.org/20260618084726.1070022-2-jiangwen6@xiaomi.com
+Signed-off-by: Barry Song (Xiaomi) <baohua@kernel.org>
+Signed-off-by: Wen Jiang <jiangwen6@xiaomi.com>
+Tested-by: Xueyuan Chen <xueyuan.chen21@gmail.com>
+Tested-by: Leo Yan <leo.yan@arm.com>
+Cc: Andrew Donnellan <ajd@linux.ibm.com>
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Uladzislau Rezki <urezki@gmail.com>
+Cc: Will Deacon <will@kernel.org>
+Cc: Wen Jiang <jiangwenxiaomi@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pps/kc.c           |   10 ++++++++++
- include/linux/pps_kernel.h |    1 +
- 2 files changed, 11 insertions(+)
+ arch/arm64/mm/hugetlbpage.c |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
---- a/drivers/pps/kc.c~pps-dont-allow-pps_kc_bind-on-removed-devices
-+++ a/drivers/pps/kc.c
-@@ -38,6 +38,14 @@ int pps_kc_bind(struct pps_device *pps,
- 	/* Check if another consumer is already bound */
- 	spin_lock_irq(&pps_kc_hardpps_lock);
+--- a/arch/arm64/mm/hugetlbpage.c~arm64-hugetlb-extend-batching-of-multiple-cont_pte-in-a-single-pte-setup
++++ a/arch/arm64/mm/hugetlbpage.c
+@@ -110,6 +110,12 @@ static inline int num_contig_ptes(unsign
+ 		contig_ptes = CONT_PTES;
+ 		break;
+ 	default:
++		if (size > 0 && size < PMD_SIZE &&
++				IS_ALIGNED(size, CONT_PTE_SIZE)) {
++			contig_ptes = size >> PAGE_SHIFT;
++			*pgsize = PAGE_SIZE;
++			break;
++		}
+ 		WARN_ON(!__hugetlb_valid_size(size));
+ 	}
  
-+	/*
-+	 * Don't allow PPS_KC_BIND on a removed device.
-+	 */
-+	if (pps->kc_removed) {
-+		spin_unlock_irq(&pps_kc_hardpps_lock);
-+		return -ENODEV;
-+	}
+@@ -359,6 +365,10 @@ pte_t arch_make_huge_pte(pte_t entry, un
+ 	case CONT_PTE_SIZE:
+ 		return pte_mkcont(entry);
+ 	default:
++		if (pagesize > 0 && pagesize < PMD_SIZE &&
++				IS_ALIGNED(pagesize, CONT_PTE_SIZE))
++			return pte_mkcont(entry);
 +
- 	if (bind_args->edge == 0)
- 		if (pps_kc_hardpps_dev == pps) {
- 			pps_kc_hardpps_mode = 0;
-@@ -79,6 +87,8 @@ int pps_kc_bind(struct pps_device *pps,
- void pps_kc_remove(struct pps_device *pps)
- {
- 	spin_lock_irq(&pps_kc_hardpps_lock);
-+
-+	pps->kc_removed = true;
- 	if (pps == pps_kc_hardpps_dev) {
- 		pps_kc_hardpps_mode = 0;
- 		pps_kc_hardpps_dev = NULL;
---- a/include/linux/pps_kernel.h~pps-dont-allow-pps_kc_bind-on-removed-devices
-+++ a/include/linux/pps_kernel.h
-@@ -60,6 +60,7 @@ struct pps_device {
- 	struct device dev;
- 	struct fasync_struct *async_queue;	/* fasync method */
- 	spinlock_t lock;
-+	bool kc_removed;
- };
- 
- /*
+ 		break;
+ 	}
+ 	pr_warn("%s: unrecognized huge page size 0x%lx\n",
 _
 
-Patches currently in -mm which might be from calvin@wbinvd.org are
+Patches currently in -mm which might be from baohua@kernel.org are
 
-pps-dont-try-to-wait-for-negative-timeouts-in-pps_fetch.patch
-pps-dont-allow-pps_kc_bind-on-removed-devices.patch
+arm64-vmalloc-allow-arch_vmap_pte_range_map_size-to-batch-multiple-cont_pte.patch
+mm-vmalloc-extend-page-table-walk-to-support-larger-page_shift-sizes-and-eliminate-page-table-rewalk.patch
+mm-vmalloc-map-contiguous-pages-in-batches-for-vmap-if-possible.patch
+mm-vmalloc-align-vm_area-so-vmap-can-batch-mappings.patch
 
