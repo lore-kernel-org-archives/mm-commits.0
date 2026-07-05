@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E152939FCCD
-	for <mm-commits@vger.kernel.org>; Sun,  5 Jul 2026 19:16:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EA4FA264612
+	for <mm-commits@vger.kernel.org>; Sun,  5 Jul 2026 19:16:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783278995; cv=none; b=BU9ZPXHXEG58nxNbpJ+ptCHLuFFscLIrKzK3bJj/MybLZX+dY6BHhN2918j/zi7ceblROOzHIg022AJhA55gjx1B5iPva6GCzR5ajikKKfFUXEl0zoPKbSkm5dbC2Lx9nObUsYIUQSgFBpStqaYDHpHNPwKn0lzcqMRsYietTa0=
+	t=1783278997; cv=none; b=YLroutK+ca1D2XQUdQwiHgnOymfrCGZ7BIi7IYuXfKt6G/+H/UvhcC0EP72RGi78ZvK1+mM6/c4v/gonbhCYUfOOddrqEmOADzbbY1XfFt/Q+8nTyntKXgLDo/Xtb/8W3YjS4ImYZ6HeA9/gtxyPe1bLGyNASZV6lTP9lxNEOug=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783278995; c=relaxed/simple;
-	bh=Wj4dEAAHqNkG/pnE+VJu6mLhcVv0Cg/+jGA2jdFWKS4=;
-	h=Date:To:From:Subject:Message-Id; b=ig+LzHI5Xe44VRubuewNEMmf6omZQ9+urJsL2KYajZEER/yvLPoHR5FwbdkjJQuyCr7C4Quq9Os9EFxcWwrHBCf6CUUUnt6C6YbrTyL7W5VdXeogm59O+4EblaXylmJvT1ewYxrg/SRMIpLqsbwKQU0oLepkqPrEYjB4mpuNu90=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=b6l6CnYC; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783278997; c=relaxed/simple;
+	bh=mJIVDaMbB/U21j3TzdfuiT+WyfyKvGZrkn/LxlSnfq0=;
+	h=Date:To:From:Subject:Message-Id; b=GEE9beCsPZ0owTgmlEpq/89p7FXJaHE5sqmFwNtulW6Y+iWb0FYX4L0R1rmO+2WU9IoAPvd6+rQ5ZXSJm4I6r1EYdjiq2L9DsEnVUOPo677gUC4J9PlN8CY+qPfssqcvLVk0U26E5O0EH0h7zazXDPv1S6oS3hoQOd5d9Y0tlbQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=P/q/rP5P; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="b6l6CnYC"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A5BC81F000E9;
-	Sun,  5 Jul 2026 19:16:33 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="P/q/rP5P"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7DE5F1F000E9;
+	Sun,  5 Jul 2026 19:16:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783278993;
-	bh=XRXGcujAW551jYU2+Ib+YxOUUSgNjKsFkoD3sjSTnDk=;
+	d=linux-foundation.org; s=korg; t=1783278995;
+	bh=VjmpDHU/U8Ri2LbxX9fuYf1irqNBowEuKXit1tpf2/M=;
 	h=Date:To:From:Subject;
-	b=b6l6CnYCOdkJVQTtOOeOWCPKhzn6xkNmgUcS9+csKn49fLnVzy2JxCNFbn1GJibf3
-	 R3G7snWA8ARZCGOZBUAttXbFAqaHJLZGZmBsaqtCkr1sxUo8ePaZKKU+o3UNFdiYOX
-	 k3YAlSNBe21cnddGUy0dggvqAcIxv3KLmx+ss2Rc=
-Date: Sun, 05 Jul 2026 12:16:33 -0700
+	b=P/q/rP5PNGKwyY9uGuiRnggrWMuye/xT6PEOaB2Jk1A6Da4Z/tz/DWMODGe0jvIDk
+	 XGF080rbwdldeAk5ozJmOEeiE9DIkwoYVLS99WoZqnbJbD9Vs0f40Cy8G3Rk4GWTML
+	 oY51vfPQBqxa7ZoBpiwH8M6+h5G74QQ/mKMO9Ubo=
+Date: Sun, 05 Jul 2026 12:16:35 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-reclaim-remove-duplicated-min_region_sz-power-of-2-check.patch added to mm-new branch
-Message-Id: <20260705191633.A5BC81F000E9@smtp.kernel.org>
+Subject: + mm-damon-lru_sort-remove-duplicated-min_region_sz-power_of_2-check.patch added to mm-new branch
+Message-Id: <20260705191635.7DE5F1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/reclaim: remove duplicated min_region_sz power of 2 check
+     Subject: mm/damon/lru_sort: remove duplicated min_region_sz power_of_2() check
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-reclaim-remove-duplicated-min_region_sz-power-of-2-check.patch
+     mm-damon-lru_sort-remove-duplicated-min_region_sz-power_of_2-check.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-reclaim-remove-duplicated-min_region_sz-power-of-2-check.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-lru_sort-remove-duplicated-min_region_sz-power_of_2-check.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,24 +70,24 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/reclaim: remove duplicated min_region_sz power of 2 check
-Date: Sun, 5 Jul 2026 08:55:55 -0700
+Subject: mm/damon/lru_sort: remove duplicated min_region_sz power_of_2() check
+Date: Sun, 5 Jul 2026 08:55:56 -0700
 
-DAMON_RECLAIM validates the user input for min_region_sz.  The same
+DAMON_LRU_SORT validates the user input for min_region_sz.  The same
 validation is done inside damon_start() and damon_commit_ctx().  Remove
-the duplicate.
+the unnecessary duplicate.
 
-Link: https://lore.kernel.org/20260705155600.96555-5-sj@kernel.org
+Link: https://lore.kernel.org/20260705155600.96555-6-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/reclaim.c |    5 -----
+ mm/damon/lru_sort.c |    5 -----
  1 file changed, 5 deletions(-)
 
---- a/mm/damon/reclaim.c~mm-damon-reclaim-remove-duplicated-min_region_sz-power-of-2-check
-+++ a/mm/damon/reclaim.c
-@@ -208,11 +208,6 @@ static int damon_reclaim_apply_parameter
+--- a/mm/damon/lru_sort.c~mm-damon-lru_sort-remove-duplicated-min_region_sz-power_of_2-check
++++ a/mm/damon/lru_sort.c
+@@ -284,11 +284,6 @@ static int damon_lru_sort_apply_paramete
  	param_ctx->addr_unit = addr_unit;
  	param_ctx->min_region_sz = max(DAMON_MIN_REGION_SZ / addr_unit, 1);
  
@@ -96,7 +96,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 -		goto out;
 -	}
 -
- 	if (!damon_reclaim_mon_attrs.aggr_interval) {
+ 	if (!damon_lru_sort_mon_attrs.sample_interval) {
  		err = -EINVAL;
  		goto out;
 _
