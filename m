@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EE78D2FFDEA
-	for <mm-commits@vger.kernel.org>; Sun,  5 Jul 2026 07:45:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C6D6F2727E2
+	for <mm-commits@vger.kernel.org>; Sun,  5 Jul 2026 07:45:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783237542; cv=none; b=LYfutaubyD57hVENCLzDUHFt6aDOo51B9LKRD1xpge9asOgFN8zc2bz8zmMXL1rgUWyJhY9UzRGzghwvdRWM9qszxGgOTPKYRF3g9vzM8nmciNtYv9SWc6th3PHgYlAocdn+fHNwMgNjEnmG6nbp/629snV70KEaoQANgfFIIJg=
+	t=1783237546; cv=none; b=pnEuKdSPJQHOASxe+QuvyrVXdx63Cupr+nw3IFqrjSorSaAkoRVK+FcivtMgpyD2Uq/zb/N+EndMRFXHnSlK1vy3lkFodclCN+l+Gq6GZ0ZhcK1weHci/C1ESPqGztiuEaLaPf0kTFgwvOUuqYWcDGuXiXTyUteoOdtlCOhU/1o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783237542; c=relaxed/simple;
-	bh=v14VHmq9Zc3e6ngomxELR/YIT5aEWFnyWrcO5Bk0bp0=;
-	h=Date:To:From:Subject:Message-Id; b=BN6/8VuxXxuDm2Hj/o/p5CgDtMRze4iB+WtM4/jrqiHXK8GeHGzMXNO60zxy6mnKKsEtSrqzRtKUXkIZOTHZBrLCOKw5u3Sfc/Xy8bm3WKLH1eFbKxTuVZfZgT9i4ctogomEpaNj0XHta2yursM34gidgBy3QmOV+ji+4mJQYKY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VfI81oFs; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783237546; c=relaxed/simple;
+	bh=NR/1L1HCYBZMXOfdQoh4fE8nqeVfiSF6524Tv+c7ILk=;
+	h=Date:To:From:Subject:Message-Id; b=qULT9Q5d0bR96Z4W2Xh/zOEKCwyyZWqxH2AwupfZzKhiAlM+h3L3dMdF7ZssEHPrfRQ0ic/1e4fRjygvdlIGHfdDYH7WKUMYUm36c3e6vjpPLOWnqbXJA2xpegb8Bckz2adouPUgh0iOqzcaTQvKso3Vd0Abgp6wyVfV9kLeqt0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WMmLvtK3; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VfI81oFs"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D0CE41F00A3A;
-	Sun,  5 Jul 2026 07:45:35 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WMmLvtK3"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3A41D1F000E9;
+	Sun,  5 Jul 2026 07:45:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783237535;
-	bh=phvb2et3DUt/JksoRtoFnC0bDxgdMzBvRYgEicJ9C2Q=;
+	d=linux-foundation.org; s=korg; t=1783237538;
+	bh=KHq9ubxRp/LzqeY3CumApPdXfqoeQiMtaN0yYI3nXO8=;
 	h=Date:To:From:Subject;
-	b=VfI81oFs1FSaWlX+ICFLcTR51WUtI5cI522uSVtTZRIhHSwwCIgAwynGNqEqqJMso
-	 D/hiSq4+NjGwzTVi8EXOjmYT9dYYmkpHTc/pGmsAFbyS+JPAj7saBSfd+Hn+UwtgDf
-	 2zEZdCNSbh0kPWcUoZ5gccrSH96uDKOtrQdqwxlA=
-Date: Sun, 05 Jul 2026 00:45:35 -0700
+	b=WMmLvtK36I1Sck7zluSPItLFvTJ4Xwmf8NPgPjECsxexUqXY1pqqy47IaZLeIQIAP
+	 scitqo++WcasSB27EUcAUPBn2xvh/mvREZtXpLyLWkC8WomoCLAtsbQCLOLx80D0o0
+	 ih37mZyB5birwBwvCRuo8EBYF9AQohnTMm8/+XxM=
+Date: Sun, 05 Jul 2026 00:45:37 -0700
 To: mm-commits@vger.kernel.org,dev.jain@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + arm64-make-huge_ptep_get-handled-unaligned-addresses.patch added to mm-new branch
-Message-Id: <20260705074535.D0CE41F00A3A@smtp.kernel.org>
+Subject: + mm-rmap-use-huge_ptep_get-in-try_to_unmap_one.patch added to mm-new branch
+Message-Id: <20260705074538.3A41D1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: arm64: make huge_ptep_get handled unaligned addresses
+     Subject: mm/rmap: use huge_ptep_get() in try_to_unmap_one()
 has been added to the -mm mm-new branch.  Its filename is
-     arm64-make-huge_ptep_get-handled-unaligned-addresses.patch
+     mm-rmap-use-huge_ptep_get-in-try_to_unmap_one.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arm64-make-huge_ptep_get-handled-unaligned-addresses.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-rmap-use-huge_ptep_get-in-try_to_unmap_one.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,45 +70,27 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Dev Jain <dev.jain@arm.com>
-Subject: arm64: make huge_ptep_get handled unaligned addresses
-Date: Fri, 3 Jul 2026 11:41:54 +0000
+Subject: mm/rmap: use huge_ptep_get() in try_to_unmap_one()
+Date: Fri, 3 Jul 2026 11:41:55 +0000
 
-Patch series "Fix incorrect access of hugetlb pte entries", v3.
+try_to_unmap_one() handles hugetlb folios when memory failure needs to
+replace a poisoned hugetlb mapping with a hwpoison entry.  In that case
+page_vma_mapped_walk() returns the pte pointer to the hugetlb folio in
+pvmw.pte, but the code reads it with ptep_get().
 
-There are various places which use ptep_get() to get the pte entry
-corresponding to a hugetlb folio.  Some arches (like s390) have special
-handling to compute the pteval, so they provide huge_ptep_get().  Use this
-helper consistently.
+On arches which provide their own huge_ptep_get() to dereference a huge
+pte pointer, accessing via ptep_get() would cause pte_pfn(), pte_present()
+etc to misbehave.
 
-Additionally, some code paths may provide huge_ptep_get with an unaligned
-address.  This is a problem on arm64 (I checked other arches and it looks
-fine for them), which is fixed in patch 1.  The fix is made to be
-backport-friendly: the cleaner fix would be to perhaps pass the hstate to
-huge_ptep_get() - that is wider churn and we can do that later.
+It is not clear whether this has a trivially visible effect to userspace.
 
+Just use huge_ptep_get() for dereferencing a huge pte pointer.
 
-This patch (of 6):
-
-huge_ptep_get() can be handed a virtual address pointing to the middle of
-a contpmd/contpte mapped hugetlb folio (examples of callers are
-pagemap_hugetlb_range, page_mapped_in_vma).
-
-The arm64 helper rewalks the pgtables in find_num_contig to answer whether
-the huge pte we have maps a contpmd or a contpte hugetlb folio, and
-returns CONT_PMDS or CONT_PTES, so that it can collect a/d bits over the
-contiguous ptes.  We can falsely return CONT_PTES instead of CONT_PMDS if
-the addr is not aligned.
-
-Fix this by aligning the pmdp pointer down to a contpmd base before
-checking equality with the passed huge pte pointer, to correctly answer
-whether the huge pte is the base of a contpmd block.
-
-Link: https://lore.kernel.org/20260703114202.365553-1-dev.jain@arm.com
-Link: https://lore.kernel.org/20260703114202.365553-2-dev.jain@arm.com
-Fixes: 29cb80519689 ("arm64: hugetlb: Cleanup huge_pte size discovery mechanisms")
+Link: https://lore.kernel.org/20260703114202.365553-3-dev.jain@arm.com
+Fixes: c7ab0d2fdc84 ("mm: convert try_to_unmap_one() to use page_vma_mapped_walk()")
 Signed-off-by: Dev Jain <dev.jain@arm.com>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Acked-by: Muchun Song <muchun.song@linux.dev>
+Reported-by: David Hildenbrand <david@kernel.org>
+Reviewed-by: Muchun Song <muchun.song@linux.dev>
 Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Andi Kleen <ak@linux.intel.com>
 Cc: Anshuman Khandual <anshuman.khandual@arm.com>
@@ -142,20 +124,56 @@ Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/mm/hugetlbpage.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/hugetlb.h |    2 ++
+ mm/rmap.c               |   16 ++++++++++------
+ 2 files changed, 12 insertions(+), 6 deletions(-)
 
---- a/arch/arm64/mm/hugetlbpage.c~arm64-make-huge_ptep_get-handled-unaligned-addresses
-+++ a/arch/arm64/mm/hugetlbpage.c
-@@ -87,7 +87,7 @@ static int find_num_contig(struct mm_str
- 	p4dp = p4d_offset(pgdp, addr);
- 	pudp = pud_offset(p4dp, addr);
- 	pmdp = pmd_offset(pudp, addr);
--	if ((pte_t *)pmdp == ptep) {
-+	if ((pte_t *)PTR_ALIGN_DOWN(pmdp, sizeof(*pmdp) * CONT_PMDS) == ptep) {
- 		*pgsize = PMD_SIZE;
- 		return CONT_PMDS;
- 	}
+--- a/include/linux/hugetlb.h~mm-rmap-use-huge_ptep_get-in-try_to_unmap_one
++++ a/include/linux/hugetlb.h
+@@ -1270,6 +1270,8 @@ static inline void hugetlb_count_sub(lon
+ {
+ }
+ 
++pte_t huge_ptep_get(struct mm_struct *mm, unsigned long addr, pte_t *ptep);
++
+ static inline pte_t huge_ptep_clear_flush(struct vm_area_struct *vma,
+ 					  unsigned long addr, pte_t *ptep)
+ {
+--- a/mm/rmap.c~mm-rmap-use-huge_ptep_get-in-try_to_unmap_one
++++ a/mm/rmap.c
+@@ -2095,14 +2095,19 @@ static bool try_to_unmap_one(struct foli
+ 		/* Unexpected PMD-mapped THP? */
+ 		VM_BUG_ON_FOLIO(!pvmw.pte, folio);
+ 
+-		/*
+-		 * Handle PFN swap PTEs, such as device-exclusive ones, that
+-		 * actually map pages.
+-		 */
+-		pteval = ptep_get(pvmw.pte);
++		address = pvmw.address;
++		if (folio_test_hugetlb(folio)) {
++			pteval = huge_ptep_get(mm, address, pvmw.pte);
++		} else {
++			pteval = ptep_get(pvmw.pte);
++		}
+ 		if (likely(pte_present(pteval))) {
+ 			pfn = pte_pfn(pteval);
+ 		} else {
++			/*
++			 * Handle PFN swap PTEs, such as device-exclusive ones,
++			 * that actually map pages.
++			 */
+ 			const softleaf_t entry = softleaf_from_pte(pteval);
+ 
+ 			pfn = softleaf_to_pfn(entry);
+@@ -2110,7 +2115,6 @@ static bool try_to_unmap_one(struct foli
+ 		}
+ 
+ 		subpage = folio_page(folio, pfn - folio_pfn(folio));
+-		address = pvmw.address;
+ 		anon_exclusive = folio_test_anon(folio) &&
+ 				 PageAnonExclusive(subpage);
+ 
 _
 
 Patches currently in -mm which might be from dev.jain@arm.com are
