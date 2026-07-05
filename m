@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 30628264612
-	for <mm-commits@vger.kernel.org>; Sun,  5 Jul 2026 19:16:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E152939FCCD
+	for <mm-commits@vger.kernel.org>; Sun,  5 Jul 2026 19:16:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783278993; cv=none; b=oiEEC8a6cZRjmVglHayv+Bh5Ebasg8RSTAsv/cfDg0VssVlbqFWESx/rMGhra3u3MI/oxkNNks7PEY3OFaPjfZt+F3tyrJi8a69JFpq89wbtFzpx9llYaXetKp11G4VYBcuD8qsYqIKU4Wc05t/85O1YkMuGJbX79MsLLaHlZN4=
+	t=1783278995; cv=none; b=BU9ZPXHXEG58nxNbpJ+ptCHLuFFscLIrKzK3bJj/MybLZX+dY6BHhN2918j/zi7ceblROOzHIg022AJhA55gjx1B5iPva6GCzR5ajikKKfFUXEl0zoPKbSkm5dbC2Lx9nObUsYIUQSgFBpStqaYDHpHNPwKn0lzcqMRsYietTa0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783278993; c=relaxed/simple;
-	bh=s+wqoZ0+u71+EIHIdBvfT7oEb1c9cCy/d8oHlQFyrbo=;
-	h=Date:To:From:Subject:Message-Id; b=DVjxm8kbLYoQsPI/H1SUTa7hqK+5xwylTQd/l1WrA2AqVOefxIuZ3XZ7TtEP0kfJ8SAqVj2ajOlKv1L+r9NhXPRuyvqMF/8m/tfEuiOpxHAL7hYJJKpTJ33wHFghZ7ZmFq7lS4U4/oPJATlvXZGTwgb9xiT7NOQ1UKnSVqg5b74=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FlRDqClH; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783278995; c=relaxed/simple;
+	bh=Wj4dEAAHqNkG/pnE+VJu6mLhcVv0Cg/+jGA2jdFWKS4=;
+	h=Date:To:From:Subject:Message-Id; b=ig+LzHI5Xe44VRubuewNEMmf6omZQ9+urJsL2KYajZEER/yvLPoHR5FwbdkjJQuyCr7C4Quq9Os9EFxcWwrHBCf6CUUUnt6C6YbrTyL7W5VdXeogm59O+4EblaXylmJvT1ewYxrg/SRMIpLqsbwKQU0oLepkqPrEYjB4mpuNu90=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=b6l6CnYC; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FlRDqClH"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C26DC1F000E9;
-	Sun,  5 Jul 2026 19:16:31 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="b6l6CnYC"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A5BC81F000E9;
+	Sun,  5 Jul 2026 19:16:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783278991;
-	bh=sei41tRENWG0L3bM7PDEoi+xvJTUu/PbTtgfRxINI8g=;
+	d=linux-foundation.org; s=korg; t=1783278993;
+	bh=XRXGcujAW551jYU2+Ib+YxOUUSgNjKsFkoD3sjSTnDk=;
 	h=Date:To:From:Subject;
-	b=FlRDqClHqgwtmeoieSAM8pdAZkQ5ZUYp6BsfgD7CnfOtkqLJ+nEACk7pYZK3UoBAF
-	 tgxTRxUXY0bA+5OEPX5JbTfIjkQr+mRJfwGUf9jKISl3yiH4ZZ8kqAKwvpfyGeO2Y8
-	 GW0D9CX61J2C0sGulIeLW9P/QHCyIo0k6JkJw1iI=
-Date: Sun, 05 Jul 2026 12:16:31 -0700
+	b=b6l6CnYCOdkJVQTtOOeOWCPKhzn6xkNmgUcS9+csKn49fLnVzy2JxCNFbn1GJibf3
+	 R3G7snWA8ARZCGOZBUAttXbFAqaHJLZGZmBsaqtCkr1sxUo8ePaZKKU+o3UNFdiYOX
+	 k3YAlSNBe21cnddGUy0dggvqAcIxv3KLmx+ss2Rc=
+Date: Sun, 05 Jul 2026 12:16:33 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-sysfs-remove-duplicated-commit-input-validity-check.patch added to mm-new branch
-Message-Id: <20260705191631.C26DC1F000E9@smtp.kernel.org>
+Subject: + mm-damon-reclaim-remove-duplicated-min_region_sz-power-of-2-check.patch added to mm-new branch
+Message-Id: <20260705191633.A5BC81F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/sysfs: remove duplicated commit input validity check
+     Subject: mm/damon/reclaim: remove duplicated min_region_sz power of 2 check
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-sysfs-remove-duplicated-commit-input-validity-check.patch
+     mm-damon-reclaim-remove-duplicated-min_region_sz-power-of-2-check.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-remove-duplicated-commit-input-validity-check.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-reclaim-remove-duplicated-min_region_sz-power-of-2-check.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,78 +70,35 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/sysfs: remove duplicated commit input validity check
-Date: Sun, 5 Jul 2026 08:55:54 -0700
+Subject: mm/damon/reclaim: remove duplicated min_region_sz power of 2 check
+Date: Sun, 5 Jul 2026 08:55:55 -0700
 
-DAMON sysfs interface does parameters validation-purpose
-damon_commit_ctx() calls for parameters update.  Now the same logic is
-embedded inside damon_commit_ctx() itself.  Hence, the validation in DAMON
-sysfs interface is just an unnecessary duplicate.  Remove it.
+DAMON_RECLAIM validates the user input for min_region_sz.  The same
+validation is done inside damon_start() and damon_commit_ctx().  Remove
+the duplicate.
 
-Link: https://lore.kernel.org/20260705155600.96555-4-sj@kernel.org
+Link: https://lore.kernel.org/20260705155600.96555-5-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/sysfs.c |   32 +-------------------------------
- 1 file changed, 1 insertion(+), 31 deletions(-)
+ mm/damon/reclaim.c |    5 -----
+ 1 file changed, 5 deletions(-)
 
---- a/mm/damon/sysfs.c~mm-damon-sysfs-remove-duplicated-commit-input-validity-check
-+++ a/mm/damon/sysfs.c
-@@ -2099,26 +2099,6 @@ static struct damon_ctx *damon_sysfs_bui
- 		struct damon_sysfs_context *sys_ctx);
+--- a/mm/damon/reclaim.c~mm-damon-reclaim-remove-duplicated-min_region_sz-power-of-2-check
++++ a/mm/damon/reclaim.c
+@@ -208,11 +208,6 @@ static int damon_reclaim_apply_parameter
+ 	param_ctx->addr_unit = addr_unit;
+ 	param_ctx->min_region_sz = max(DAMON_MIN_REGION_SZ / addr_unit, 1);
  
- /*
-- * Return a new damon_ctx for testing new parameters to commit.
-- */
--static struct damon_ctx *damon_sysfs_new_test_ctx(
--		struct damon_ctx *running_ctx)
--{
--	struct damon_ctx *test_ctx;
--	int err;
--
--	test_ctx = damon_new_ctx();
--	if (!test_ctx)
--		return NULL;
--	err = damon_commit_ctx(test_ctx, running_ctx);
--	if (err) {
--		damon_destroy_ctx(test_ctx);
--		return NULL;
--	}
--	return test_ctx;
--}
--
--/*
-  * damon_sysfs_commit_input() - Commit user inputs to a running kdamond.
-  * @kdamond:	The kobject wrapper for the associated kdamond.
-  *
-@@ -2127,7 +2107,7 @@ static struct damon_ctx *damon_sysfs_new
- static int damon_sysfs_commit_input(void *data)
- {
- 	struct damon_sysfs_kdamond *kdamond = data;
--	struct damon_ctx *param_ctx, *test_ctx;
-+	struct damon_ctx *param_ctx;
- 	int err;
- 
- 	if (!damon_sysfs_kdamond_running(kdamond))
-@@ -2139,17 +2119,7 @@ static int damon_sysfs_commit_input(void
- 	param_ctx = damon_sysfs_build_ctx(kdamond->contexts->contexts_arr[0]);
- 	if (IS_ERR(param_ctx))
- 		return PTR_ERR(param_ctx);
--	test_ctx = damon_sysfs_new_test_ctx(kdamond->damon_ctx);
--	if (!test_ctx) {
--		damon_destroy_ctx(param_ctx);
--		return -ENOMEM;
--	}
--	err = damon_commit_ctx(test_ctx, param_ctx);
--	if (err)
+-	if (!is_power_of_2(param_ctx->min_region_sz)) {
+-		err = -EINVAL;
 -		goto out;
- 	err = damon_commit_ctx(kdamond->damon_ctx, param_ctx);
--out:
--	damon_destroy_ctx(test_ctx);
- 	damon_destroy_ctx(param_ctx);
- 	return err;
- }
+-	}
+-
+ 	if (!damon_reclaim_mon_attrs.aggr_interval) {
+ 		err = -EINVAL;
+ 		goto out;
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
