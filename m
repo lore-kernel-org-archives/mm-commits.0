@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8ED4E86341
-	for <mm-commits@vger.kernel.org>; Sun,  5 Jul 2026 02:10:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 446D220DD51
+	for <mm-commits@vger.kernel.org>; Sun,  5 Jul 2026 02:11:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783217413; cv=none; b=UOfF8QJ252OqNHCmD7TBMDAIq/ehUzcKMr+m+GA2j3BfyRcKRXhRgl5CT5Tpxs9tZdlKTSiW1XhtvBT3SNqmgewmrBMEZBpN46X1zpxVo1mVF/E0v/6gac2zU45ihZ8btGI/OkwDWa9ckkE8gS9R3OD014c9Ra3RPwVzenlg2GY=
+	t=1783217505; cv=none; b=cWuf3rYuVicKk16SycY8Hr7BWHhFKtlzVFLV1+lo3o5I12LhVIKnwufmOiIc4SbCYyM0SiP3y3xaxgmGQvWUQdw1Zgeta78h3JOGtS4yooezx4roAGWX5CbFW+2ADXHFLoO+dkoAJaPqlIyJexp/+afzCxSJ1uhZ9dIHNE0YSeI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783217413; c=relaxed/simple;
-	bh=1WJT9FKng6P4q4b7haRziieew0RX/S8UeNblL3Kdx3I=;
-	h=Date:To:From:Subject:Message-Id; b=d+WuWNHZZUFxZ0YphOf1qD5ZICgxmFVWkIWyQEAiX267UQSMpE9iOvZew/NovkHyveTymq2iH/McQkNVyxGULVHwo2rBL3zRsaG4pynSZ1siz4LkMHaFXykdD3qbkkPhlaK+2dNbmhKXS1dycIql/g24Z1yvICn0TmuSf2j8eww=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=S2QRlUIF; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783217505; c=relaxed/simple;
+	bh=cQWrC3T+lQ/g3YKFhzgNqaqOPnX4TJbKFfZpRhAL7Yg=;
+	h=Date:To:From:Subject:Message-Id; b=DhxiBHGI/YVwgGo3zqzfEfzKslcUCv7qUXkbtL0QuSJmZ6orXa+R6wFUHGNiQ2hMwzLnXp1OGFPTNAGG+fq+Q4slmk3nd9jj9osczRWW/ha7zhxQAdHcWO4R41e3pvvrt9+NvKvU72RMP10f80ZLeyXmiiICNEWp3CfnnZVyz6M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FFT7xoqI; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="S2QRlUIF"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 642E31F000E9;
-	Sun,  5 Jul 2026 02:10:12 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FFT7xoqI"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1861D1F000E9;
+	Sun,  5 Jul 2026 02:11:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783217412;
-	bh=JIgqE6DVrHyE6okfopmyUJPkiRRy/DbSN4XQRbe/Voo=;
+	d=linux-foundation.org; s=korg; t=1783217504;
+	bh=JbEWqylWemFjeFErwjpyVu5f5Yelk9FdbjDHUV1/PhI=;
 	h=Date:To:From:Subject;
-	b=S2QRlUIFgyBsKSeZIbimgHdNvjS7RG35urHsBI4H9CEK/edEgxqoATxmo95pjcX//
-	 4ntu+x62TtCZLmKJbGtw3D15zLija2tNLiZaiAx3JgCkKIjBq5zS/4U32owEbDkR71
-	 o5Jeocs1Avgu4FRSL8NoqIp924ZpPXjo4bAt6lBI=
-Date: Sat, 04 Jul 2026 19:10:12 -0700
+	b=FFT7xoqIJEGiNuSUPTQDXJ+fArnzp/qq0POu7OV92RE6eJuXeL3Ja7HL0unGTU+z6
+	 C9REA1FYdPFHx7Ih1PPfx/TJBZY3S+Pq25/b/e33bskbMUF5OeIJq8Sjzpm92L91Eb
+	 r2ofuOA+9rhcPs/SADetI4w83UzsBvKOfO6uX4mo=
+Date: Sat, 04 Jul 2026 19:11:43 -0700
 To: mm-commits@vger.kernel.org,kent.overstreet@linux.dev,catalin.marinas@arm.com,bigeasy@linutronix.de,arnd@arndb.de,leitao@debian.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] radix-tree-fix-kmemleak-false-positives-on-tree-head-reassignment.patch removed from -mm tree
-Message-Id: <20260705021012.642E31F000E9@smtp.kernel.org>
+Subject: + radix-tree-fix-kmemleak-false-positives-on-tree-head-reassignment.patch added to mm-new branch
+Message-Id: <20260705021144.1861D1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,17 +34,44 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
+The patch titled
      Subject: radix-tree: fix kmemleak false positives on tree head reassignment
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm mm-new branch.  Its filename is
      radix-tree-fix-kmemleak-false-positives-on-tree-head-reassignment.patch
 
-This patch was dropped because an updated version will be issued
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/radix-tree-fix-kmemleak-false-positives-on-tree-head-reassignment.patch
+
+This patch will later appear in the mm-new branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
 ------------------------------------------------------
 From: Breno Leitao <leitao@debian.org>
 Subject: radix-tree: fix kmemleak false positives on tree head reassignment
-Date: Thu, 02 Jul 2026 05:58:34 -0700
+Date: Fri, 03 Jul 2026 08:22:03 -0700
 
 Kmemleak periodically reports transient false positives for radix tree
 nodes allocated through the IDR, for example:
@@ -71,7 +98,10 @@ This is the same race fixed for the XArray API in commit a1a029bcea59
 radix tree API directly and hits it on both the grow and the shrink path,
 so mark the new head as a transient leak in both.
 
-Link: https://lore.kernel.org/20260702-radix-tree-v1-1-a87c125b0f96@debian.org
+Add a matching kmemleak_transient_leak() stub to the radix tree test
+harness so the userspace lib/radix-tree.c build keeps building.
+
+Link: https://lore.kernel.org/20260703-radix-tree-v2-1-38bb6efb5f6e@debian.org
 Signed-off-by: Breno Leitao <leitao@debian.org>
 Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
@@ -80,8 +110,9 @@ Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/radix-tree.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ lib/radix-tree.c                      |    7 ++++++-
+ tools/testing/shared/linux/kmemleak.h |    1 +
+ 2 files changed, 7 insertions(+), 1 deletion(-)
 
 --- a/lib/radix-tree.c~radix-tree-fix-kmemleak-false-positives-on-tree-head-reassignment
 +++ a/lib/radix-tree.c
@@ -107,6 +138,11 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  
  		/*
  		 * We don't need rcu_assign_pointer(), since we are simply
+--- a/tools/testing/shared/linux/kmemleak.h~radix-tree-fix-kmemleak-false-positives-on-tree-head-reassignment
++++ a/tools/testing/shared/linux/kmemleak.h
+@@ -1 +1,2 @@
+ static inline void kmemleak_update_trace(const void *ptr) { }
++static inline void kmemleak_transient_leak(const void *ptr) { }
 _
 
 Patches currently in -mm which might be from leitao@debian.org are
@@ -122,4 +158,5 @@ mm-memory-failure-add-panic-option-for-unrecoverable-pages.patch
 documentation-document-panic_on_unrecoverable_memory_failure-sysctl.patch
 selftests-mm-add-hwpoison-panic-destructive-test.patch
 mm-kmemleak-skip-the-remaining-scan-phases-when-interrupted.patch
+radix-tree-fix-kmemleak-false-positives-on-tree-head-reassignment.patch
 
