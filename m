@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BC48F26B08F
-	for <mm-commits@vger.kernel.org>; Sun,  5 Jul 2026 21:01:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6DBB3322533
+	for <mm-commits@vger.kernel.org>; Sun,  5 Jul 2026 22:15:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783285301; cv=none; b=bkBXSaPsWUbnRlxtL+KzKmes+pzpbXdnk3TH6YGZ6Pmn//gcFP9aZRDhZq2w1Gdqgis44lBGC71pWyoHbGk8m8fupKwiAgvb+jAFxRk+bcPrhPNd2gIf2TPQHS+WSOpJNdR3MSKz6abNd20KB66G7/4884vYtrM8cgCB005prLg=
+	t=1783289744; cv=none; b=h9eDYwuYokhunXT+VwddMccvoVhYJ/hoPqyIgQFwX7VMRX88nl8pmN7qVzqQ2wPNShzgCNDOJ2iTgwuWDSbmdylXucN/EpidHOv3aH4pJFlW79pN5AlhoaVO4VejLv0FafO4P4UZLx0kdyjU18if72Od2ni+u6jGqvjocjq2tUM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783285301; c=relaxed/simple;
-	bh=oVdCvxnzuIsI6kmwejlIltqCJQ0O0y38ZffkAu0ziAk=;
-	h=Date:To:From:Subject:Message-Id; b=FP6ihw6ixiFX1CLQMJoIv5O1828Qy+5QvaqTMkWNlIPiWpBXBMwvw9QYLANLFDiUwyqXivxT/fhTxyVNPZQTgNrk/FRq+cFc9sxc4fNrPZYeIKq1n5ecd7ruhhfPQR0SEQRzRipa7s9KvXEMBweorb5DWhjFJmt9u3642q+h1o0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bx7qoirb; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783289744; c=relaxed/simple;
+	bh=uHAW4lL8BDwDXbujo2ahTjY4XwLTUx/55txnt1M3FXk=;
+	h=Date:To:From:Subject:Message-Id; b=rPZ5SDMg5vWjUStLMwnUCMDmsEO8X3BaM/H0ky/TGOBDLOcoD1V0tlX6JjrSvio4BsKQOp2QcT6Mxq39RFwU9Kdalbix3sK8uVdloAlSS6d3IZch7GH1f/DDdRrG1pNGh6g3cV+Hu6nx97mQhEGhA6MuZdsueaZnzkGoFF4JUik=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cNcQTx+8; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bx7qoirb"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4F81D1F00A3A;
-	Sun,  5 Jul 2026 21:01:39 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cNcQTx+8"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 175A51F000E9;
+	Sun,  5 Jul 2026 22:15:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783285299;
-	bh=vX73QvhRII31KyHrpikvFNhXGrmfMWsaXf3noyDRPtk=;
+	d=linux-foundation.org; s=korg; t=1783289743;
+	bh=2KLs0f5rzLxSyjP9V6dH+rNcH0Uu+zUuoP2tRtfqArY=;
 	h=Date:To:From:Subject;
-	b=bx7qoirbp/RP/PwGNgjhgQVzDsgei3WAu1l7822LfWiGJKM2wh2G7BG+4Np+nkapO
-	 u9dhiIO8Q+8jf2k6PXlX+30VUz14Vi1sxMrqaZgVj/gDhaH0Xdd3bGNZy5VUjNv+Lh
-	 TvS/R7PdiMJRmaPTykn67waxkhSdCSR3zACeb3ec=
-Date: Sun, 05 Jul 2026 14:01:38 -0700
-To: mm-commits@vger.kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,nphamcs@gmail.com,muchun.song@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,chengming.zhou@linux.dev,jiayuan.chen@shopee.com,akpm@linux-foundation.org
+	b=cNcQTx+8MJaZibN4XUI9o0V1TWrUaRKswpsXnbplUbzfTS6WeZgYnRoNej0UX0VI0
+	 1kyN7H1FVGA4NaRzTIgJPjV0nqtPHllZzTdadayHarAa/DTs/unOnkTpR6ZHvOqrYy
+	 gqvMyfv+zGFyqXAaFeo9gq/KnVgKNlgIGw/AjQJ0=
+Date: Sun, 05 Jul 2026 15:15:42 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,pfalcato@suse.de,ljs@kernel.org,liam@infradead.org,jannh@google.com,thehajime@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memcg-reset-zswap-settings-in-css_reset.patch added to mm-new branch
-Message-Id: <20260705210139.4F81D1F00A3A@smtp.kernel.org>
+Subject: + mm-nommu-add-sysctl_max_map_count-check-for-do_mmap.patch added to mm-new branch
+Message-Id: <20260705221543.175A51F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: memcg: reset zswap settings in css_reset
+     Subject: mm: nommu: add sysctl_max_map_count() check for do_mmap()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-memcg-reset-zswap-settings-in-css_reset.patch
+     mm-nommu-add-sysctl_max_map_count-check-for-do_mmap.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcg-reset-zswap-settings-in-css_reset.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-nommu-add-sysctl_max_map_count-check-for-do_mmap.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,93 +69,53 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Jiayuan Chen <jiayuan.chen@shopee.com>
-Subject: mm: memcg: reset zswap settings in css_reset
-Date: Thu, 2 Jul 2026 10:48:25 +0800
+From: Hajime Tazaki <thehajime@gmail.com>
+Subject: mm: nommu: add sysctl_max_map_count() check for do_mmap()
+Date: Thu, 2 Jul 2026 10:28:30 +0900
 
-mem_cgroup_css_reset() is called when the memory controller is disabled on
-a cgroup but the memcg cannot be destroyed because it is pinned by a
-subsystem dependency -- for example, the io controller declares
-.depends_on = 1 << memory_cgrp_id, so memory remains in the cgroup_ss_mask
-and the css is hidden rather than killed.
+The sysctl variable vm.max_map_count (sysctl_max_map_count) is not exposed
+under !MMU configurations, but its default value (DEFAULT_MAX_MAP_COUNT)
+is still used as a allocation limit.  Currently, this limit is enforced
+when a VMA entry is split into two chunks (split_vma()), but it is not
+checked during initial allocation (do_mmap()).  As a result, if a user
+requests a large number of memory allocations, the system will continue
+allocating until it hits an Out-Of-Memory (OOM) condition.
 
-The purpose of css_reset is to revert the memcg to its vanilla state so
-that no policies are applied and the css can be safely made visible again
-later.  Currently, all page counters (memory.max, swap.max, kmem.max,
-tcpmem.max) and other limits (soft_limit, memory.high, swap.high) are
-reset to their defaults, but zswap_max and zswap_writeback are not.
+This commit introduces a check at the beginning of do_mmap() in nommu.c to
+prevent this situation.
 
-These fields are initialized in css_alloc (zswap_max = PAGE_COUNTER_MAX,
-zswap_writeback inherited from parent) but were missing from css_reset. 
-As a result, stale zswap policies remain in effect after css_reset: the
-zswap charge path (obj_cgroup_may_zswap) continues to enforce the old
-zswap_max limit, and the writeback path continues to honor the old
-zswap_writeback setting, even though the memory controller has been
-"disabled" on this cgroup.
+This issue was detected using the Linux Test Project (LTP) test linked
+below.
 
-Reset zswap_max to PAGE_COUNTER_MAX and zswap_writeback to true, matching
-their defaults in css_alloc.
-
-Test:
-	echo "+memory +io" > /sys/fs/cgroup/cgroup.subtree_control
-
-	mkdir /sys/fs/cgroup/test
-	mkdir /sys/fs/cgroup/test/child
-
-	echo "+memory +io" > /sys/fs/cgroup/test/cgroup.subtree_control
-	echo 10000 > /sys/fs/cgroup/test/child/memory.zswap.max
-
-	# child/memory.swap.max and child/memory.zswam.max disappear
-	echo "-memory" > /sys/fs/cgroup/test/cgroup.subtree_control
-
-	# re-enable memory control
-	echo "+memory" > /sys/fs/cgroup/test/cgroup.subtree_control
-
-	# before this patch
-	cat /sys/fs/cgroup/test/child/memory.zswap.max
-	    8192
-
-	# after this patch, same as memory.swap.max
-	cat /sys/fs/cgroup/test/child/memory.zswap.max
-	    max
-
-Link: https://lore.kernel.org/20260702024827.353185-1-jiayuan.chen@linux.dev
-Signed-off-by: Jiayuan Chen <jiayuan.chen@shopee.com>
-Cc: Chengming Zhou <chengming.zhou@linux.dev>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Link: https://github.com/linux-test-project/ltp/blob/master/testcases/kernel/syscalls/munmap/munmap04.c
+Link: https://lore.kernel.org/20260702012830.667205-1-thehajime@gmail.com
+Signed-off-by: Hajime Tazaki <thehajime@gmail.com>
+Cc: Jann Horn <jannh@google.com>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Pedro Falcato <pfalcato@suse.de>
+Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ mm/nommu.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/mm/memcontrol.c~mm-memcg-reset-zswap-settings-in-css_reset
-+++ a/mm/memcontrol.c
-@@ -4362,6 +4362,10 @@ static void mem_cgroup_css_reset(struct
+--- a/mm/nommu.c~mm-nommu-add-sysctl_max_map_count-check-for-do_mmap
++++ a/mm/nommu.c
+@@ -1035,6 +1035,9 @@ unsigned long do_mmap(struct file *file,
+ 	if (ret < 0)
+ 		return ret;
  
- 	page_counter_set_max(&memcg->memory, PAGE_COUNTER_MAX);
- 	page_counter_set_max(&memcg->swap, PAGE_COUNTER_MAX);
-+#ifdef CONFIG_ZSWAP
-+	WRITE_ONCE(memcg->zswap_max, PAGE_COUNTER_MAX);
-+	WRITE_ONCE(memcg->zswap_writeback, true);
-+#endif
- #ifdef CONFIG_MEMCG_V1
- 	page_counter_set_max(&memcg->kmem, PAGE_COUNTER_MAX);
- 	page_counter_set_max(&memcg->tcpmem, PAGE_COUNTER_MAX);
++	if (current->mm->map_count >= get_sysctl_max_map_count())
++		return -ENOMEM;
++
+ 	/* we ignore the address hint */
+ 	addr = 0;
+ 	len = PAGE_ALIGN(len);
 _
 
-Patches currently in -mm which might be from jiayuan.chen@shopee.com are
+Patches currently in -mm which might be from thehajime@gmail.com are
 
-mm-damon-core-split-a-fraction-of-regions-when-nr_regions-exceeds-max-2.patch
-mm-damon-tests-core-kunit-test-split-above-max_nr_regions-2.patch
-memcg-bail-out-memoryhigh-when-memcg-is-dying.patch
-memcg-bail-out-memorymax-when-memcg-is-dying.patch
-memcg-bail-out-proactive-reclaim-when-memcg-is-dying.patch
-memcg-v1-bail-out-reclaim-when-memcg-is-dying.patch
-mm-memcg-reset-zswap-settings-in-css_reset.patch
+mm-nommu-add-sysctl_max_map_count-check-for-do_mmap.patch
 
