@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B243F2C0296
-	for <mm-commits@vger.kernel.org>; Sun,  5 Jul 2026 07:46:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DDBD33624B2;
+	Sun,  5 Jul 2026 07:51:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783237615; cv=none; b=N3YOla2Ag6wNblzP/ZV5yvdV2QjUE3oidehaHkrevJwYA5aNXii3qfAQtvFgGdRk7a6ztQv5aRaprVZclzDPAS5lrALmt/AIGcH324APJEp7ZheUXbhw83oG41hwM2ZY67nGWR6SGw8wtlESu5MRXnOFC215dH9spFMm2imlOQM=
+	t=1783237893; cv=none; b=UWM6bdhduwvAROcOJ4rZWZiqjwk359GrvCXKDNilxA4sUtbzUyjG9sOuU8GrU9wbsiNYAnx/5Ek5QjVTi1tH+aq6l3KX2fO7HnwNEQ9vC4VpZmRijET3/KsLnl6duywM86RCaCosM/7K3jZ6xe/bQ0LAG+5YA5M8rVKPXMurkPM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783237615; c=relaxed/simple;
-	bh=9LSeVHgOnuzl8IomVs/q8T/XGQe65j5L/ZZ5Hh8KVII=;
-	h=Date:To:From:Subject:Message-Id; b=HcaWh/XsAj77bBNS9w5IxquGSpRBdSRXG6p7tqoTDkWr5RTy7wRe3LDg5N2pn+N6QA8rELKSkYGpsdIj4/Or59gpciOewD/TZv93SsPgB1uK3Ayv1SMAsTRdx/CaYsj032ymNR/+fceZPKKO8KIhA1ZwoU9ABgrQpXMLKh0sCDY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2Yi8h3aq; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783237893; c=relaxed/simple;
+	bh=/JpF1ycmBG57aN43O+qRI9YRboZ6l0Z71UnSnayW/x4=;
+	h=Date:To:From:Subject:Message-Id; b=HznBLmpUU3dD85nRT3lT8yFfY0v7RpcuGkSHX6VFvS/fGp6frcwg+Fz286DvGDshFMT/dfMhop9mpDsZ23oOZ71xmhTs1W+kqrVRrFjJQZhcwKjGYhVe0dcsq6E8rNtoG3R0QQBMEMgErbV0LgRaVgyceLJuq6zkuJrkSndJjUo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sB/bosu+; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2Yi8h3aq"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 475DD1F000E9;
-	Sun,  5 Jul 2026 07:46:54 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sB/bosu+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 65BC91F00A3A;
+	Sun,  5 Jul 2026 07:51:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783237614;
-	bh=deNlPqcqTN3/EUAWk8XtVlKnn17q4DXNChK+BerYt5U=;
+	d=linux-foundation.org; s=korg; t=1783237891;
+	bh=BVM2Jv6bvyIMxQd3CRQfcscHMQEpiWzaw1dIAWXLHPs=;
 	h=Date:To:From:Subject;
-	b=2Yi8h3aq6f+FMfAvs4MMCPpbkAhlM9+drkcggM6pRkcEWD7xXiK5JUqN+5p/HQaIa
-	 WRX+32Lper19eC/lLjYqXynmgxb15PTzCcHNFM0+5O6l0+BP5cB3+eZCr8Q5zbjrfz
-	 QyimIDK1I5Hm4lh0UE3a2xIQmxhM+rVbBI5pvB1Q=
-Date: Sun, 05 Jul 2026 00:46:53 -0700
-To: mm-commits@vger.kernel.org,dev.jain@arm.com,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=sB/bosu+SFZOiX+cF2m332u9Amo+IaeztChHKOrKGKZnxVjxtYJMFLOBjvs/l4aUj
+	 fIr3YDFhj+Ez37PTvE3/PGq9IjUk7HEXgQB1tBfVrvFDbEvqAWYvpT/VI/1HAkyOiQ
+	 MpiigyuOsMbGIIViujn6tEI+//cJUq/49K6ZZi98=
+Date: Sun, 05 Jul 2026 00:51:30 -0700
+To: mm-commits@vger.kernel.org,vladimirelitokarev@gmail.com,viro@zeniv.linux.org.uk,torvalds@linuxfoundation.org,stable@vger.kernel.org,peterx@redhat.com,oleg@redhat.com,ljs@kernel.org,jack@suse.cz,david@kernel.org,brauner@kernel.org,rppt@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-rmap-use-huge_ptep_get-in-try_to_migrate_one-checkpatch-fixes.patch added to mm-new branch
-Message-Id: <20260705074654.475DD1F000E9@smtp.kernel.org>
+Subject: + userfaultfd-prevent-registration-of-special-vmas.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260705075131.65BC91F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,26 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm-rmap-use-huge_ptep_get-in-try_to_migrate_one-checkpatch-fixes
-has been added to the -mm mm-new branch.  Its filename is
-     mm-rmap-use-huge_ptep_get-in-try_to_migrate_one-checkpatch-fixes.patch
+     Subject: userfaultfd: prevent registration of special VMAs
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     userfaultfd-prevent-registration-of-special-vmas.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-rmap-use-huge_ptep_get-in-try_to_migrate_one-checkpatch-fixes.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/userfaultfd-prevent-registration-of-special-vmas.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,70 +58,63 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-rmap-use-huge_ptep_get-in-try_to_migrate_one-checkpatch-fixes
-Date: Sun Jul  5 12:46:13 AM PDT 2026
+From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
+Subject: userfaultfd: prevent registration of special VMAs
+Date: Thu, 18 Jun 2026 12:50:17 +0300
 
-ERROR: Please use git commit description style 'commit <12+ chars of sha1> ("<title line>")' - ie: 'Commit a98a2f0c8ce1 ("mm/rmap: split migration into its own function")'
-#18: 
-Commit a98a2f0c8ce1 copied the bug from try_to_unmap_one into
+Vova Tokarev says:
 
-WARNING: braces {} are not necessary for any arm of this statement
-#74: FILE: mm/rmap.c:2504:
-+		if (folio_test_hugetlb(folio)) {
-[...]
-+		} else {
-[...]
+  userfaultfd allows registration on shadow stack VMAs.  With userfaultfd
+  access, you can register on the shadow stack, discard a page ... and
+  inject a page with chosen return addresses via UFFDIO_COPY.
 
-total: 1 errors, 1 warnings, 31 lines checked
+Update vma_can_userfault() to reject VM_SHADOW_STACK.
 
-NOTE: For some of the reported defects, checkpatch may be able to
-      mechanically convert to the typical style using --fix or --fix-inplace.
+While on it, also reject VM_SPECIAL so that if a driver would implement
+vm_uffd_ops, it wouldn't be possible to register special VMAs with
+userfaultfd.
 
-./patches/mm-rmap-use-huge_ptep_get-in-try_to_migrate_one.patch has style problems, please review.
+Since VM_SPECIAL includes VM_DONTEXPAND which is set but hugetlb, exclude
+hugetlb VMAs from the check for VM_SPECIAL.
 
-NOTE: If any of the errors are false positives, please report
-      them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Dev Jain <dev.jain@arm.com>
+Link: https://lore.kernel.org/20260618095017.2553004-1-rppt@kernel.org
+Fixes: 54007f818206 ("mm: Introduce VM_SHADOW_STACK for shadow stack memory")
+Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Reported-by: vova tokarev <vladimirelitokarev@gmail.com>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Reviewed-by: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Linus Torvalds <torvalds@linuxfoundation.org>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/rmap.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ mm/userfaultfd.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
---- a/mm/rmap.c~mm-rmap-use-huge_ptep_get-in-try_to_migrate_one-checkpatch-fixes
-+++ a/mm/rmap.c
-@@ -2501,11 +2501,10 @@ static bool try_to_migrate_one(struct fo
- 		VM_BUG_ON_FOLIO(!pvmw.pte, folio);
+--- a/mm/userfaultfd.c~userfaultfd-prevent-registration-of-special-vmas
++++ a/mm/userfaultfd.c
+@@ -2111,7 +2111,10 @@ static bool vma_can_userfault(struct vm_
+ {
+ 	const struct vm_uffd_ops *ops = vma_uffd_ops(vma);
  
- 		address = pvmw.address;
--		if (folio_test_hugetlb(folio)) {
-+		if (folio_test_hugetlb(folio))
- 			pteval = huge_ptep_get(mm, address, pvmw.pte);
--		} else {
-+		else
- 			pteval = ptep_get(pvmw.pte);
--		}
- 		if (likely(pte_present(pteval))) {
- 			pfn = pte_pfn(pteval);
- 		} else {
+-	if (vma->vm_flags & VM_DROPPABLE)
++	if (vma->vm_flags & (VM_DROPPABLE | VM_SHADOW_STACK))
++		return false;
++
++	if (!is_vm_hugetlb_page(vma) && (vma->vm_flags & VM_SPECIAL))
+ 		return false;
+ 
+ 	vm_flags &= __VM_UFFD_FLAGS;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from rppt@kernel.org are
 
-mm-page_vma_mapped-fix-device-private-pmd-handling-fix.patch
-mm-mincore-use-walk_page_range_vma-in-do_mincore-fix.patch
-csky-implement-flush_cache_vmap-in-c.patch
-mm-vmalloc-map-contiguous-pages-in-batches-for-vmap-if-possible-fix.patch
-mm-page_owner-add-print_mode-filter-fix.patch
-mm-annotate-data-race-in-cpu_needs_drain-fix.patch
-mm-zsmalloc-encode-class-index-in-obj-value-for-lockless-class-lookup-fix.patch
-mm-zsmalloc-drop-pool-lock-from-zs_free-on-64-bit-systems-fix.patch
-mm-zsmalloc-drop-pool-lock-from-zs_free-on-64-bit-systems-fix-fix.patch
-mm-fix-assert_exclusive_bits-by-passing-memdesc_flags_t-by-pointer-fix.patch
-mm-rmap-use-huge_ptep_get-in-try_to_migrate_one-checkpatch-fixes.patch
-drivers-media-v4l2-core-v4l2-vp9c-reduce-inlining.patch
+userfaultfd-prevent-registration-of-special-vmas.patch
+selftests-mm-uffd-dont-treat-uffdio_copy-enoent-as-a-failure.patch
 
