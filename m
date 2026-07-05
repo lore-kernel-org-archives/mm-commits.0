@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 93F3133EC
-	for <mm-commits@vger.kernel.org>; Sun,  5 Jul 2026 02:05:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E2B1D33EC
+	for <mm-commits@vger.kernel.org>; Sun,  5 Jul 2026 02:05:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783217126; cv=none; b=Dni0zGrWfd0XZq9pl+rzeWbdOQqe/K+/KePXa32am8psPku1Qd+/xVTeNz/S7d3/mwLdUF8YzpygP9r30hOUAnz/TTFK6gYO4K0YvOdqd/tLH3vJkWmIyKLRO8HWVxntQBNOnw/V5NN4WWF8jTkCm0HMgZlJaBVdL9JVvhn+85A=
+	t=1783217129; cv=none; b=fztE9Lvx2SNIYA/SVZ3SUSbUZuzbyAkBxpzMvd+Vccg3YpU7vmS27FTD9WTYjWQx9DJk+fXUAAqob9HkCG7U5TQn8yNS2syBl9axpk5u2A5uoZO/CSnWqcpnL8SVQUkc/nxgdsn43pxWf5HzIhdbR9ABzNbVFQl+Y0PRMDU2T2k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783217126; c=relaxed/simple;
-	bh=dT1dy+yH06ykEFH5gxAozrfVl60f8n4QVvdGkeNIQrE=;
-	h=Date:To:From:Subject:Message-Id; b=XieZhw8TL8gDb3DDTKbr0gLCpIYkF4WyFe0hhN6ixIhQv5q3hc5/J9QqxvDLsXYOoJBFmk5Su1g2+WVVxq1/L7lq/dFu4xAodaNWbMHWHkelcdMMjDu7GK59w70mso7WnQlDbKkIZu99owrPxNp0ot1Fm3Fj3T+CHrJssqcHlv0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uIcLtisa; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783217129; c=relaxed/simple;
+	bh=6K2yoIh3kfQN2o0UtNyTzRKBwZi/eb3SbTubLNAvui0=;
+	h=Date:To:From:Subject:Message-Id; b=N6pkU8rIYLm1nGK5zzPUPO4mpLb8SDvTcNia7maZyVgZJ+tgUtYyXCBktMuBRQjwaaPnMD7ADXt6jeYyWH+tFKmb6Rh63bIptJnJjnf8BesNhyCiafooMpKqb0otwu8jjmrp3UU34h7MVPujs+JFZcmC3+GuHbL4JEr4EuJYu18=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KjVDX3et; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uIcLtisa"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1A98F1F000E9;
-	Sun,  5 Jul 2026 02:05:25 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KjVDX3et"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 786C01F000E9;
+	Sun,  5 Jul 2026 02:05:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783217125;
-	bh=NFQaVuTnN7yV2g3YUZhzzzhH3qzJVF/19n6PQ7OvWUc=;
+	d=linux-foundation.org; s=korg; t=1783217127;
+	bh=ETJ74ThjMxim8s1UrTawom2NbwY4RNRn1ynSTR3fulk=;
 	h=Date:To:From:Subject;
-	b=uIcLtisaqBDOTfiZv6Jkc7JkycqrStoNvkhwSo9UD+ytBHPw52Equo7OeN//84z15
-	 G29BHtaONyuh0dy0TiKQSs+4wspIyLC0iKRDnnf8iQlyPep8k4PfgIE6jajYLusNve
-	 Zo9D8QhRsOkR81v+jHmIEmrC6XyqTn80KjcDRLdU=
-Date: Sat, 04 Jul 2026 19:05:24 -0700
+	b=KjVDX3et0hTVgk9z9QFYqmZ2jiS8rm9LG4bS+8DWz3KICobr/CcBub4v5R0cr6I/w
+	 lDjwgN/NAIJlx+6n/LkrtzGHG1xIKC5oO3LERs109fpRsLnJdZObGWLshuWLOJQSmv
+	 pGJ5C2UrGwnagjrgoriZkIOHG64SUF5clrX2qv/A=
+Date: Sat, 04 Jul 2026 19:05:27 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-core-introduce-damon_probe_hits_mvsum.patch added to mm-new branch
-Message-Id: <20260705020525.1A98F1F000E9@smtp.kernel.org>
+Subject: + mm-damon-sysfs-schemes-set-probe-hits-as-pseudo-moving-sums.patch added to mm-new branch
+Message-Id: <20260705020527.786C01F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/core: introduce damon_probe_hits_mvsum()
+     Subject: mm/damon/sysfs-schemes: set probe hits as pseudo moving sums
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-core-introduce-damon_probe_hits_mvsum.patch
+     mm-damon-sysfs-schemes-set-probe-hits-as-pseudo-moving-sums.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-introduce-damon_probe_hits_mvsum.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-schemes-set-probe-hits-as-pseudo-moving-sums.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,63 +70,36 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/core: introduce damon_probe_hits_mvsum()
-Date: Fri, 3 Jul 2026 10:06:02 -0700
+Subject: mm/damon/sysfs-schemes: set probe hits as pseudo moving sums
+Date: Fri, 3 Jul 2026 10:06:03 -0700
 
-Implement a function for getting a reasonable best effort quality pseudo
-moving sums of probe_hits on demands.  It reuses the internal function for
-the pseudo moving sum for data access frequency (nr_accesses).
+DAMON sysfs interface exposes damon_region->probe_hits via probe hit
+files.  Because the counters are completed only at the end of the
+aggregation interval, users can show incomplete values if they requested
+the file content update (update_schemes_tried_regions command) in the
+middle of an aggregation interval.  Set the value as the pseudo moving sum
+value of the counter, similar to that for nr_accesses.
 
-Link: https://lore.kernel.org/20260703170605.94472-3-sj@kernel.org
+Link: https://lore.kernel.org/20260703170605.94472-4-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/damon.h |    2 ++
- mm/damon/core.c       |   21 +++++++++++++++++++++
- 2 files changed, 23 insertions(+)
+ mm/damon/sysfs-schemes.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/include/linux/damon.h~mm-damon-core-introduce-damon_probe_hits_mvsum
-+++ a/include/linux/damon.h
-@@ -1003,6 +1003,8 @@ void damon_add_probe(struct damon_ctx *c
- struct damon_region *damon_new_region(unsigned long start, unsigned long end);
- unsigned int damon_nr_accesses_mvsum(struct damon_region *r,
- 		struct damon_ctx *ctx);
-+unsigned char damon_probe_hits_mvsum(int probe_idx, struct damon_region *r,
-+		struct damon_ctx *ctx);
+--- a/mm/damon/sysfs-schemes.c~mm-damon-sysfs-schemes-set-probe-hits-as-pseudo-moving-sums
++++ a/mm/damon/sysfs-schemes.c
+@@ -110,7 +110,8 @@ static int damos_sysfs_probes_add_dirs(s
+ 		struct damos_sysfs_probe *sys_probe;
+ 		int err;
  
- int damon_set_regions(struct damon_target *t, struct damon_addr_range *ranges,
- 		unsigned int nr_ranges, unsigned long min_region_sz);
---- a/mm/damon/core.c~mm-damon-core-introduce-damon_probe_hits_mvsum
-+++ a/mm/damon/core.c
-@@ -273,6 +273,27 @@ unsigned int damon_nr_accesses_mvsum(str
- 			left_window_bp);
- }
- 
-+unsigned char damon_probe_hits_mvsum(int probe_idx, struct damon_region *r,
-+		struct damon_ctx *ctx)
-+{
-+	unsigned long sample_interval, aggr_interval;
-+	unsigned long window_len, left_window, left_window_bp;
-+
-+	sample_interval = ctx->attrs.sample_interval ? : 1;
-+	aggr_interval =  ctx->attrs.aggr_interval ? : 1;
-+	window_len = aggr_interval / sample_interval;
-+	if (time_after_eq(ctx->passed_sample_intervals,
-+				ctx->next_aggregation_sis))
-+		left_window = 0;
-+	else
-+		left_window = ctx->next_aggregation_sis -
-+			ctx->passed_sample_intervals;
-+	left_window_bp = mult_frac(left_window, 10000, window_len);
-+
-+	return damon_mvsum(r->probe_hits[probe_idx],
-+			r->last_probe_hits[probe_idx], left_window_bp);
-+}
-+
- #ifdef CONFIG_DAMON_DEBUG_SANITY
- static void damon_verify_new_region(unsigned long start, unsigned long end)
- {
+-		sys_probe = damos_sysfs_probe_alloc(region->probe_hits[i]);
++		sys_probe = damos_sysfs_probe_alloc(
++				damon_probe_hits_mvsum(i, region, ctx));
+ 		if (!sys_probe) {
+ 			damos_sysfs_probes_rm_dirs(probes);
+ 			return -ENOMEM;
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
