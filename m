@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 66ECA33EC;
-	Sun,  5 Jul 2026 02:09:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8ED4E86341
+	for <mm-commits@vger.kernel.org>; Sun,  5 Jul 2026 02:10:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783217388; cv=none; b=KyWsmd37kKZsV59md1VRzI/VI28a7W3GUlzJ1xNgVOMzBWnardouPrF0K2qqOelIF5xxXo5kvAxluPW6KFOxM5Mcp71DNr+vy8taqRUXUmBHml4Bsx6Go+jYts00Fc8EyuCD4m3uCa8ivLizeJjlJsOQDdclMig3wVF6mNukpEE=
+	t=1783217413; cv=none; b=UOfF8QJ252OqNHCmD7TBMDAIq/ehUzcKMr+m+GA2j3BfyRcKRXhRgl5CT5Tpxs9tZdlKTSiW1XhtvBT3SNqmgewmrBMEZBpN46X1zpxVo1mVF/E0v/6gac2zU45ihZ8btGI/OkwDWa9ckkE8gS9R3OD014c9Ra3RPwVzenlg2GY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783217388; c=relaxed/simple;
-	bh=+/Lqf+ZJ1qW2UK8whU8NOqI5qJwSvaVBBJi000cusPQ=;
-	h=Date:To:From:Subject:Message-Id; b=lzPcWZeCFmqfTz5h4t3ifr9WU9zcmmbbST8aahDscVOwcaaHLvI1frPVWwvyrJk9PcJxxacTYu40S8wb1foPuIMSGHQBLyiBZOQb3iUpc11YaH/qjyRY0lobIMXQW/dX3E4SXGNYs6a0nZCMpm+3uzYMugaa5U0VUmQZQ4vXC90=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=w8QYyz2G; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783217413; c=relaxed/simple;
+	bh=1WJT9FKng6P4q4b7haRziieew0RX/S8UeNblL3Kdx3I=;
+	h=Date:To:From:Subject:Message-Id; b=d+WuWNHZZUFxZ0YphOf1qD5ZICgxmFVWkIWyQEAiX267UQSMpE9iOvZew/NovkHyveTymq2iH/McQkNVyxGULVHwo2rBL3zRsaG4pynSZ1siz4LkMHaFXykdD3qbkkPhlaK+2dNbmhKXS1dycIql/g24Z1yvICn0TmuSf2j8eww=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=S2QRlUIF; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="w8QYyz2G"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3AA751F000E9;
-	Sun,  5 Jul 2026 02:09:47 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="S2QRlUIF"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 642E31F000E9;
+	Sun,  5 Jul 2026 02:10:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783217387;
-	bh=Ej69p+5G438yY/D6Cf3vGWBeZNjFw8yZGGYysrgn4W4=;
+	d=linux-foundation.org; s=korg; t=1783217412;
+	bh=JIgqE6DVrHyE6okfopmyUJPkiRRy/DbSN4XQRbe/Voo=;
 	h=Date:To:From:Subject;
-	b=w8QYyz2G17i/UIc2+tdWTLb6dE4W5yxtCT/zOuvBW0P3LD8DD7tVfs331DMLTwgTt
-	 rViICisPeMmdP6M7a0wC+sDGOZA+NOZlBkrYEbt7pmYceR3Vw2gxt+4pUNCqypz+89
-	 JAlG9yK5BQDvhq2VHL313xOn9vwhvGqx4b/Id9z0=
-Date: Sat, 04 Jul 2026 19:09:46 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,ptikhomirov@virtuozzo.com,catalin.marinas@arm.com,leitao@debian.org,akpm@linux-foundation.org
+	b=S2QRlUIFgyBsKSeZIbimgHdNvjS7RG35urHsBI4H9CEK/edEgxqoATxmo95pjcX//
+	 4ntu+x62TtCZLmKJbGtw3D15zLija2tNLiZaiAx3JgCkKIjBq5zS/4U32owEbDkR71
+	 o5Jeocs1Avgu4FRSL8NoqIp924ZpPXjo4bAt6lBI=
+Date: Sat, 04 Jul 2026 19:10:12 -0700
+To: mm-commits@vger.kernel.org,kent.overstreet@linux.dev,catalin.marinas@arm.com,bigeasy@linutronix.de,arnd@arndb.de,leitao@debian.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-kmemleak-fix-checksum-computation-for-per-cpu-objects.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260705020947.3AA751F000E9@smtp.kernel.org>
+Subject: [to-be-updated] radix-tree-fix-kmemleak-false-positives-on-tree-head-reassignment.patch removed from -mm tree
+Message-Id: <20260705021012.642E31F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,99 +34,79 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: mm/kmemleak: fix checksum computation for per-cpu objects
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-kmemleak-fix-checksum-computation-for-per-cpu-objects.patch
+The quilt patch titled
+     Subject: radix-tree: fix kmemleak false positives on tree head reassignment
+has been removed from the -mm tree.  Its filename was
+     radix-tree-fix-kmemleak-false-positives-on-tree-head-reassignment.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-kmemleak-fix-checksum-computation-for-per-cpu-objects.patch
-
-This patch will later appear in the mm-hotfixes-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
 From: Breno Leitao <leitao@debian.org>
-Subject: mm/kmemleak: fix checksum computation for per-cpu objects
-Date: Fri, 03 Jul 2026 09:17:24 -0700
+Subject: radix-tree: fix kmemleak false positives on tree head reassignment
+Date: Thu, 02 Jul 2026 05:58:34 -0700
 
-The per-cpu object checksum folds each CPU's CRC together with XOR and
-seeds every CRC with 0.  Both choices make update_checksum() miss content
-changes:
+Kmemleak periodically reports transient false positives for radix tree
+nodes allocated through the IDR, for example:
 
-  - XOR is self-cancelling, so equal contents on two CPUs cancel out and
-    simultaneous identical changes leave the checksum unchanged.
-  - crc32(0, ...) over all-zero content is 0, so a freshly allocated,
-    zeroed per-cpu area checksums to 0, matching the initial value, and
-    the object is never seen to change.
+  unreferenced object 0xffff0004d6ac4200 (size 576):
+    comm "tcpeventd", pid 6412
+    backtrace (crc 335d668a):
+      kmem_cache_alloc_noprof
+      radix_tree_node_alloc
+      radix_tree_extend
+      idr_get_free
+      idr_alloc_cyclic
+      map_create
+      __sys_bpf
 
-See discussions at [0].
+radix_tree_extend() (grow) and radix_tree_shrink() (shrink) repoint
+root->xa_head to a new node.  If a kmemleak scan has already walked past
+root->xa_head, the new head is not reachable from any scanned pointer
+until the following scan, so kmemleak reports it as leaked even though it
+is live.
 
-When update_checksum() wrongly reports an actively modified object as
-unchanged, kmemleak stops greying it for an extra scan and can report a
-live per-cpu object as a leak.
+This is the same race fixed for the XArray API in commit a1a029bcea59
+("XArray: fix kmemleak false positive in xas_shrink()").  The IDR uses the
+radix tree API directly and hits it on both the grow and the shrink path,
+so mark the new head as a transient leak in both.
 
-Fold the per-cpu CRC as a single rolling checksum across all CPUs and
-initialise the object checksum to ~0 so the first computed value always
-registers as a change, even for content that hashes to 0. 
-reset_checksum() is seeded the same way.
-
-Link: https://lore.kernel.org/all/akfYImSNDh3OjIfR@gmail.com [0]
-Link: https://lore.kernel.org/20260703-kmemleak_checksum-v1-1-5e0ab7d6966f@debian.org
-Fixes: 6c99d4eb7c5e ("kmemleak: enable tracking for percpu pointers")
+Link: https://lore.kernel.org/20260702-radix-tree-v1-1-a87c125b0f96@debian.org
 Signed-off-by: Breno Leitao <leitao@debian.org>
-Co-developed-by: Catalin Marinas <catalin.marinas@arm.com>
-Signed-off-by: Catalin Marinas <catalin.marinas@arm.com>
-Reviewed-by: Pavel Tikhomirov <ptikhomirov@virtuozzo.com>
-Cc: <stable@vger.kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Kent Overstreet <kent.overstreet@linux.dev>
+Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kmemleak.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ lib/radix-tree.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
---- a/mm/kmemleak.c~mm-kmemleak-fix-checksum-computation-for-per-cpu-objects
-+++ a/mm/kmemleak.c
-@@ -687,7 +687,7 @@ static struct kmemleak_object *__alloc_o
- 	atomic_set(&object->use_count, 1);
- 	object->excess_ref = 0;
- 	object->count = 0;			/* white color initially */
--	object->checksum = 0;
-+	object->checksum = ~0;
- 	object->del_state = 0;
+--- a/lib/radix-tree.c~radix-tree-fix-kmemleak-false-positives-on-tree-head-reassignment
++++ a/lib/radix-tree.c
+@@ -455,6 +455,8 @@ static int radix_tree_extend(struct radi
+ 		node->slots[0] = (void __rcu *)entry;
+ 		entry = node_to_entry(node);
+ 		rcu_assign_pointer(root->xa_head, entry);
++		/* new head may be missed by an in-progress kmemleak scan */
++		kmemleak_transient_leak(node);
+ 		shift += RADIX_TREE_MAP_SHIFT;
+ 	} while (shift <= maxshift);
+ out:
+@@ -495,8 +497,11 @@ static inline bool radix_tree_shrink(str
+ 		if (!node->shift && is_idr(root))
+ 			break;
  
- 	/* task information */
-@@ -981,7 +981,7 @@ static void reset_checksum(unsigned long
- 	}
+-		if (radix_tree_is_internal_node(child))
++		if (radix_tree_is_internal_node(child)) {
+ 			entry_to_node(child)->parent = NULL;
++			/* new head may be missed by an in-progress kmemleak scan */
++			kmemleak_transient_leak(entry_to_node(child));
++		}
  
- 	raw_spin_lock_irqsave(&object->lock, flags);
--	object->checksum = 0;
-+	object->checksum = ~0;
- 	raw_spin_unlock_irqrestore(&object->lock, flags);
- 	put_object(object);
- }
-@@ -1410,7 +1410,8 @@ static bool update_checksum(struct kmeml
- 		for_each_possible_cpu(cpu) {
- 			void *ptr = per_cpu_ptr((void __percpu *)object->pointer, cpu);
- 
--			object->checksum ^= crc32(0, kasan_reset_tag((void *)ptr), object->size);
-+			object->checksum = crc32(object->checksum,
-+						 kasan_reset_tag((void *)ptr), object->size);
- 		}
- 	} else {
- 		object->checksum = crc32(0, kasan_reset_tag((void *)object->pointer), object->size);
+ 		/*
+ 		 * We don't need rcu_assign_pointer(), since we are simply
 _
 
 Patches currently in -mm which might be from leitao@debian.org are
@@ -142,5 +122,4 @@ mm-memory-failure-add-panic-option-for-unrecoverable-pages.patch
 documentation-document-panic_on_unrecoverable_memory_failure-sysctl.patch
 selftests-mm-add-hwpoison-panic-destructive-test.patch
 mm-kmemleak-skip-the-remaining-scan-phases-when-interrupted.patch
-radix-tree-fix-kmemleak-false-positives-on-tree-head-reassignment.patch
 
