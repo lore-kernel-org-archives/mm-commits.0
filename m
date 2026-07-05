@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DA1313603E8
-	for <mm-commits@vger.kernel.org>; Sun,  5 Jul 2026 07:32:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EE78D2FFDEA
+	for <mm-commits@vger.kernel.org>; Sun,  5 Jul 2026 07:45:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783236723; cv=none; b=Ho0wu2CgD+DlTXRLW/AmQ3x8DyrUcj7UV/7C0LRmhCDRtVr3BllbqndmD9stLG8z0pqwISTJ4Dp8ibChqfPvULjpxH9I87sLYz4v3fOWbwKCXkwn9rI8OCl1Qu+hntdSNPzZBx8MDb1dCuY3KOBIRd3kB2Nyx+TEi5VR7Lbvdn8=
+	t=1783237542; cv=none; b=LYfutaubyD57hVENCLzDUHFt6aDOo51B9LKRD1xpge9asOgFN8zc2bz8zmMXL1rgUWyJhY9UzRGzghwvdRWM9qszxGgOTPKYRF3g9vzM8nmciNtYv9SWc6th3PHgYlAocdn+fHNwMgNjEnmG6nbp/629snV70KEaoQANgfFIIJg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783236723; c=relaxed/simple;
-	bh=2h9SZDjbWYiOQDHH7df+1ZLhlF3pI1OHK6n2Lb9eo0E=;
-	h=Date:To:From:Subject:Message-Id; b=cTs/js1xxr37XlTVdhRy/QuWY0jnYYPdGfdauT0Um44q9aQHXkwqttFPBjUQZvpkBCgELsJqXjefxL6IZri01HU4038tleZuzedZv5hD3KhScaXiuGxDwSxlnFYtkTaqcQkfCp6+wK+R4R2MrAiK2RYcDi0qGoJbhcf25BCTBQU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AGDvYffJ; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783237542; c=relaxed/simple;
+	bh=v14VHmq9Zc3e6ngomxELR/YIT5aEWFnyWrcO5Bk0bp0=;
+	h=Date:To:From:Subject:Message-Id; b=BN6/8VuxXxuDm2Hj/o/p5CgDtMRze4iB+WtM4/jrqiHXK8GeHGzMXNO60zxy6mnKKsEtSrqzRtKUXkIZOTHZBrLCOKw5u3Sfc/Xy8bm3WKLH1eFbKxTuVZfZgT9i4ctogomEpaNj0XHta2yursM34gidgBy3QmOV+ji+4mJQYKY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VfI81oFs; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AGDvYffJ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id ACB291F000E9;
-	Sun,  5 Jul 2026 07:32:01 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VfI81oFs"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D0CE41F00A3A;
+	Sun,  5 Jul 2026 07:45:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783236721;
-	bh=87yPhfAKlgZ/1L36iYJ498N2fmPQloYuB9VmC3wjWJE=;
+	d=linux-foundation.org; s=korg; t=1783237535;
+	bh=phvb2et3DUt/JksoRtoFnC0bDxgdMzBvRYgEicJ9C2Q=;
 	h=Date:To:From:Subject;
-	b=AGDvYffJp+Wmc0Q51Rb/2KIpwvK5hQZcZ7vsUH3M49UsDm2Qb62V6sM++fS6mFQcA
-	 dbY/JZ+10CWk/FRqoy6Ct4YK4h4gr95Ig/BS7FQgMgusB69Muxo79ZMPEYu0zQnh+/
-	 rGyM8CmvtzvON9uAbOmGDzSXJqCWE94xEsXjmYhk=
-Date: Sun, 05 Jul 2026 00:32:01 -0700
-To: mm-commits@vger.kernel.org,jackmanb@google.com,akpm@linux-foundation.org
+	b=VfI81oFs1FSaWlX+ICFLcTR51WUtI5cI522uSVtTZRIhHSwwCIgAwynGNqEqqJMso
+	 D/hiSq4+NjGwzTVi8EXOjmYT9dYYmkpHTc/pGmsAFbyS+JPAj7saBSfd+Hn+UwtgDf
+	 2zEZdCNSbh0kPWcUoZ5gccrSH96uDKOtrQdqwxlA=
+Date: Sun, 05 Jul 2026 00:45:35 -0700
+To: mm-commits@vger.kernel.org,dev.jain@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-factor-out-can_spin_trylock.patch added to mm-new branch
-Message-Id: <20260705073201.ACB291F000E9@smtp.kernel.org>
+Subject: + arm64-make-huge_ptep_get-handled-unaligned-addresses.patch added to mm-new branch
+Message-Id: <20260705074535.D0CE41F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: factor out can_spin_trylock()
+     Subject: arm64: make huge_ptep_get handled unaligned addresses
 has been added to the -mm mm-new branch.  Its filename is
-     mm-factor-out-can_spin_trylock.patch
+     arm64-make-huge_ptep_get-handled-unaligned-addresses.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-factor-out-can_spin_trylock.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arm64-make-huge_ptep_get-handled-unaligned-addresses.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,132 +69,103 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Brendan Jackman <jackmanb@google.com>
-Subject: mm: factor out can_spin_trylock()
-Date: Fri, 03 Jul 2026 12:31:58 +0000
+From: Dev Jain <dev.jain@arm.com>
+Subject: arm64: make huge_ptep_get handled unaligned addresses
+Date: Fri, 3 Jul 2026 11:41:54 +0000
 
-Deduplicate checks for whether the current context is safe for
-spin_trylock().
+Patch series "Fix incorrect access of hugetlb pte entries", v3.
 
-Does this function really belong in mm/internal.h or is it generic?  Not
-sure.  If someone ends up duplicating this logic elsewhere in the kernel,
-that would be a shame.  But if it goes in some generic header, someone
-treats it as documentation about where it's guaranteed safe to
-spin_trylock(), and then it emerges that there are other subtle
-preconditions that didn't affect the mm usecase, that would be worse.  So,
-just be conservative and keep it local.
+There are various places which use ptep_get() to get the pte entry
+corresponding to a hugetlb folio.  Some arches (like s390) have special
+handling to compute the pteval, so they provide huge_ptep_get().  Use this
+helper consistently.
 
-Link: https://lore.kernel.org/20260703-alloc-trylock-v5-18-c87b714e19d3@google.com
-Signed-off-by: Brendan Jackman <jackmanb@google.com>
-Suggested-by: Harry Yoo <harry@kernel.org>
-Link: https://lore.kernel.org/all/397859cb-b127-4cc6-9c71-044afc99bf0c@kernel.org/
-Reviewed-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
-Reviewed-by: Harry Yoo (Oracle) <harry@kernel.org>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
+Additionally, some code paths may provide huge_ptep_get with an unaligned
+address.  This is a problem on arm64 (I checked other arches and it looks
+fine for them), which is fixed in patch 1.  The fix is made to be
+backport-friendly: the cleaner fix would be to perhaps pass the hstate to
+huge_ptep_get() - that is wider churn and we can do that later.
+
+
+This patch (of 6):
+
+huge_ptep_get() can be handed a virtual address pointing to the middle of
+a contpmd/contpte mapped hugetlb folio (examples of callers are
+pagemap_hugetlb_range, page_mapped_in_vma).
+
+The arm64 helper rewalks the pgtables in find_num_contig to answer whether
+the huge pte we have maps a contpmd or a contpte hugetlb folio, and
+returns CONT_PMDS or CONT_PTES, so that it can collect a/d bits over the
+contiguous ptes.  We can falsely return CONT_PTES instead of CONT_PMDS if
+the addr is not aligned.
+
+Fix this by aligning the pmdp pointer down to a contpmd base before
+checking equality with the passed huge pte pointer, to correctly answer
+whether the huge pte is the base of a contpmd block.
+
+Link: https://lore.kernel.org/20260703114202.365553-1-dev.jain@arm.com
+Link: https://lore.kernel.org/20260703114202.365553-2-dev.jain@arm.com
+Fixes: 29cb80519689 ("arm64: hugetlb: Cleanup huge_pte size discovery mechanisms")
+Signed-off-by: Dev Jain <dev.jain@arm.com>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Acked-by: Muchun Song <muchun.song@linux.dev>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Andi Kleen <ak@linux.intel.com>
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Byungchul Park <byungchul@sk.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Gregory Price <gourry@gourry.net>
+Cc: Harry Yoo <harry@kernel.org>
+Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
+Cc: Jann Horn <jannh@google.com>
+Cc: Josh Poimboeuf <jpoimboe@kernel.org>
+Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
+Cc: Jun'ichi "Nick" Nomura <j-nomura@ce.jp.nec.com>
+Cc: Kiryl Shutsemau <kas@kernel.org>
+Cc: Lance Yang <lance.yang@linux.dev>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Matthew Brost <matthew.brost@intel.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Pedro Falcato <pfalcato@suse.de>
+Cc: Rakie Kim <rakie.kim@sk.com>
+Cc: Ralph Campbell <rcampbell@nvidia.com>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Will Deacon <will@kernel.org>
+Cc: Zi Yan <ziy@nvidia.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/internal.h   |   23 +++++++++++++++++++++++
- mm/page_alloc.c |   17 +----------------
- mm/slub.c       |   10 +---------
- 3 files changed, 25 insertions(+), 25 deletions(-)
+ arch/arm64/mm/hugetlbpage.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/internal.h~mm-factor-out-can_spin_trylock
-+++ a/mm/internal.h
-@@ -1716,4 +1716,27 @@ static inline void mm_prepare_for_swap_e
+--- a/arch/arm64/mm/hugetlbpage.c~arm64-make-huge_ptep_get-handled-unaligned-addresses
++++ a/arch/arm64/mm/hugetlbpage.c
+@@ -87,7 +87,7 @@ static int find_num_contig(struct mm_str
+ 	p4dp = p4d_offset(pgdp, addr);
+ 	pudp = pud_offset(p4dp, addr);
+ 	pmdp = pmd_offset(pudp, addr);
+-	if ((pte_t *)pmdp == ptep) {
++	if ((pte_t *)PTR_ALIGN_DOWN(pmdp, sizeof(*pmdp) * CONT_PMDS) == ptep) {
+ 		*pgsize = PMD_SIZE;
+ 		return CONT_PMDS;
  	}
- }
- 
-+static inline bool can_spin_trylock(void)
-+{
-+	/*
-+	 * In PREEMPT_RT spin_trylock() will call raw_spin_lock() which is
-+	 * unsafe in NMI. If spin_trylock() is called from hard IRQ the current
-+	 * task may be waiting for one rt_spin_lock, but rt_spin_trylock() will
-+	 * mark the task as the owner of another rt_spin_lock which will
-+	 * confuse PI logic, so return immediately if called from hard IRQ or
-+	 * NMI.
-+	 *
-+	 * Note, irqs_disabled() case is ok. spin_trylock() can be called
-+	 * from raw_spin_lock_irqsave region.
-+	 */
-+	if (IS_ENABLED(CONFIG_PREEMPT_RT) && (in_nmi() || in_hardirq()))
-+		return false;
-+
-+	/* On UP, spin_trylock() always succeeds even when it is locked */
-+	if (!IS_ENABLED(CONFIG_SMP) && in_nmi())
-+		return false;
-+
-+	return true;
-+}
-+
- #endif	/* __MM_INTERNAL_H */
---- a/mm/page_alloc.c~mm-factor-out-can_spin_trylock
-+++ a/mm/page_alloc.c
-@@ -5291,22 +5291,7 @@ static inline bool alloc_order_allowed(g
- 
- static inline bool alloc_nolock_allowed(void)
- {
--	/*
--	 * In PREEMPT_RT spin_trylock() will call raw_spin_lock() which is
--	 * unsafe in NMI. If spin_trylock() is called from hard IRQ the current
--	 * task may be waiting for one rt_spin_lock, but rt_spin_trylock() will
--	 * mark the task as the owner of another rt_spin_lock which will
--	 * confuse PI logic, so return immediately if called from hard IRQ or
--	 * NMI.
--	 *
--	 * Note, irqs_disabled() case is ok. This function can be called
--	 * from raw_spin_lock_irqsave region.
--	 */
--	if (IS_ENABLED(CONFIG_PREEMPT_RT) && (in_nmi() || in_hardirq()))
--		return false;
--
--	/* On UP, spin_trylock() always succeeds even when it is locked */
--	if (!IS_ENABLED(CONFIG_SMP) && in_nmi())
-+	if (!can_spin_trylock())
- 		return false;
- 
- 	/* Bailout, since _deferred_grow_zone() needs to take a lock */
---- a/mm/slub.c~mm-factor-out-can_spin_trylock
-+++ a/mm/slub.c
-@@ -5408,15 +5408,7 @@ static void *__kmalloc_nolock_noprof(DEC
- 	if (unlikely(!size))
- 		return ZERO_SIZE_PTR;
- 
--	/*
--	 * See the comment for the same check in
--	 * alloc_frozen_pages_nolock_noprof()
--	 */
--	if (IS_ENABLED(CONFIG_PREEMPT_RT) && (in_nmi() || in_hardirq()))
--		return NULL;
--
--	/* On UP, spin_trylock() always succeeds even when it is locked */
--	if (!IS_ENABLED(CONFIG_SMP) && in_nmi())
-+	if (!can_spin_trylock())
- 		return NULL;
- 
- retry:
 _
 
-Patches currently in -mm which might be from jackmanb@google.com are
+Patches currently in -mm which might be from dev.jain@arm.com are
 
-mm-page_alloc-drop-flag-conversion-optimisation.patch
-mm-secretmem-disable-under-highmem.patch
-mm-page_alloc-rename-alloc_trylock-alloc_nolock.patch
-mm-page_alloc-some-renames-to-clarify-alloc_flags-scopes.patch
-mm-name-some-args-in-a-function-declaration.patch
-mm-split-out-internal-page_alloch.patch
-mm-page_alloc-unify-__alloc_frozen_pages_noprof.patch
-mm-page_alloc-relax-gfp-warn-in-nolock-allocs.patch
-mm-move-some-stuff-to-mm-page_alloch.patch
-perf-x86-intel-use-higher-level-allocator-api.patch
-kvm-vmx-use-higher-level-allocator-api.patch
-x86-virt-use-higher-level-allocator-api.patch
-sgi-xp-use-higher-level-allocator-api.patch
-net-funeth-switch-to-higher-level-allocator-api.patch
-mm-remove-__alloc_pages_node.patch
-mm-move-__alloc_pages-to-mm-page_alloch.patch
-mm-replace-__gfp_no_codetag-with-alloc_no_codetag.patch
-mm-page_alloc-drop-alloc_flags-arg-from-alloc_flags_cma.patch
-mm-factor-out-can_spin_trylock.patch
+mm-swap-rename-subpage-page-in-folio_dup_swap-folio_put_swap.patch
+mm-mprotect-drop-sub-from-batching-context.patch
+arm64-make-huge_ptep_get-handled-unaligned-addresses.patch
+mm-rmap-use-huge_ptep_get-in-try_to_unmap_one.patch
+mm-rmap-use-huge_ptep_get-in-try_to_migrate_one.patch
+mm-migrate-use-huge_ptep_get-in-remove_migration_pte.patch
+mm-page_vma_mapped-use-huge_ptep_get-for-hugetlb.patch
+mm-mprotect-use-huge_ptep_get-for-hugetlb.patch
 
