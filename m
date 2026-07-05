@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B921C33EC;
-	Sun,  5 Jul 2026 02:08:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 66ECA33EC;
+	Sun,  5 Jul 2026 02:09:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783217316; cv=none; b=XkyUjvrdGMBtqNK789alS9o6wC7pIgWzJBOz0JTjzB/wSAaTsuNTXSjge0rDpiMYsCB9fhyVmoXPgdqWY7DuXJZrxrXpMX63H7+OFKjCnPX4KAafZqmA0s8+0ZEuuuNEINgS49N3SyEppzHyQ2G+cLgEklChK55BA91NUBzJMHA=
+	t=1783217388; cv=none; b=KyWsmd37kKZsV59md1VRzI/VI28a7W3GUlzJ1xNgVOMzBWnardouPrF0K2qqOelIF5xxXo5kvAxluPW6KFOxM5Mcp71DNr+vy8taqRUXUmBHml4Bsx6Go+jYts00Fc8EyuCD4m3uCa8ivLizeJjlJsOQDdclMig3wVF6mNukpEE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783217316; c=relaxed/simple;
-	bh=K8uZavCQeUgea7zB4hYYIvIG6sH9+3ecv5iIlBvhGv4=;
-	h=Date:To:From:Subject:Message-Id; b=WA114UwKs+5wtJJu3ajNCseQljmgoxOtWZ75jvrIvkRarQuoel5TeMsBXkip/zuk4sIK1GDOEYEqGMhuyAv1Gan6Hh3pFKWhpi/wz68BtZwaI4KfXmtH79AB8Faw4auGSgIU7N+n9rrn8pmdPRlDHYojJrKHLIfYjirYEewk1ng=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SPCeXuYk; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783217388; c=relaxed/simple;
+	bh=+/Lqf+ZJ1qW2UK8whU8NOqI5qJwSvaVBBJi000cusPQ=;
+	h=Date:To:From:Subject:Message-Id; b=lzPcWZeCFmqfTz5h4t3ifr9WU9zcmmbbST8aahDscVOwcaaHLvI1frPVWwvyrJk9PcJxxacTYu40S8wb1foPuIMSGHQBLyiBZOQb3iUpc11YaH/qjyRY0lobIMXQW/dX3E4SXGNYs6a0nZCMpm+3uzYMugaa5U0VUmQZQ4vXC90=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=w8QYyz2G; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SPCeXuYk"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4C3B91F000E9;
-	Sun,  5 Jul 2026 02:08:34 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="w8QYyz2G"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3AA751F000E9;
+	Sun,  5 Jul 2026 02:09:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783217314;
-	bh=t2AEulRwgKrnEVh0Q4wW0w1WYMx8uVZJdLcvsN5ut/U=;
+	d=linux-foundation.org; s=korg; t=1783217387;
+	bh=Ej69p+5G438yY/D6Cf3vGWBeZNjFw8yZGGYysrgn4W4=;
 	h=Date:To:From:Subject;
-	b=SPCeXuYk0ggdQemPMrLwnD8GoYRJa4DcV3+a9jwXO6F+SvGLrm3sCnW7tQvm68RkC
-	 LGOiN2cbtG8q+nIACdg54ImoSJQix7aoNXxKIt8+R6N/N3YRtAJbGpxZtEVCwU52sw
-	 IvOEHufJbLBR+gqqBJ95hjuyGQlmO5Pe+5NLlIqU=
-Date: Sat, 04 Jul 2026 19:08:33 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
+	b=w8QYyz2G17i/UIc2+tdWTLb6dE4W5yxtCT/zOuvBW0P3LD8DD7tVfs331DMLTwgTt
+	 rViICisPeMmdP6M7a0wC+sDGOZA+NOZlBkrYEbt7pmYceR3Vw2gxt+4pUNCqypz+89
+	 JAlG9yK5BQDvhq2VHL313xOn9vwhvGqx4b/Id9z0=
+Date: Sat, 04 Jul 2026 19:09:46 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,ptikhomirov@virtuozzo.com,catalin.marinas@arm.com,leitao@debian.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-core-disallow-overlapping-input-ranges-for-damon_set_regions.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260705020834.4C3B91F000E9@smtp.kernel.org>
+Subject: + mm-kmemleak-fix-checksum-computation-for-per-cpu-objects.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260705020947.3AA751F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/core: disallow overlapping input ranges for damon_set_regions()
+     Subject: mm/kmemleak: fix checksum computation for per-cpu objects
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-damon-core-disallow-overlapping-input-ranges-for-damon_set_regions.patch
+     mm-kmemleak-fix-checksum-computation-for-per-cpu-objects.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-disallow-overlapping-input-ranges-for-damon_set_regions.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-kmemleak-fix-checksum-computation-for-per-cpu-objects.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,125 +58,89 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: SJ Park <sj@kernel.org>
-Subject: mm/damon/core: disallow overlapping input ranges for damon_set_regions()
-Date: Fri, 3 Jul 2026 09:56:08 -0700
+From: Breno Leitao <leitao@debian.org>
+Subject: mm/kmemleak: fix checksum computation for per-cpu objects
+Date: Fri, 03 Jul 2026 09:17:24 -0700
 
-damon_set_regions() assumes the input ranges are sorted by the address and
-don't overlap each other.  Hence the assumption was initially to be
-explicitly validated.  But commit 97d482f4592f ("mm/damon/sysfs: reuse
-damon_set_regions() for regions setting") has mistakenly removed the
-validation.
+The per-cpu object checksum folds each CPU's CRC together with XOR and
+seeds every CRC with 0.  Both choices make update_checksum() miss content
+changes:
 
-This can make DAMON behave in unexpected ways.  At the best, the
-monitoring results snapshot will just look weird since there will be
-overlapping regions.  DAMOS will also work weirdly, applying the same
-action multiple times for overlapping regions, and make DAMOS quota weird.
-More seriously, depending on the setup and regions updates sequence,
-negative size regions can be made.  It will trigger WARN_ONCE() if the
-kernel is built with CONFIG_DAMON_DEBUG_SANITY=y.  Depending on the
-monitoring results, the negative size region can further trigger division
-by zero in damon_merge_two_regions().
+  - XOR is self-cancelling, so equal contents on two CPUs cancel out and
+    simultaneous identical changes leave the checksum unchanged.
+  - crc32(0, ...) over all-zero content is 0, so a freshly allocated,
+    zeroed per-cpu area checksums to 0, matching the initial value, and
+    the object is never seen to change.
 
-Note that some of the consequences including the WARN_ONCE() and the
-divide by zero depend on commits that were introduced after the root cause
-commit 97d482f4592f ("mm/damon/sysfs: reuse damon_set_regions() for
-regions setting").
+See discussions at [0].
 
-Fix the problems by checking the assumption and returning an error if
-the input ranges don't meet the assumption.
+When update_checksum() wrongly reports an actively modified object as
+unchanged, kmemleak stops greying it for an extra scan and can report a
+live per-cpu object as a leak.
 
-The issue was discovered [1] by Sashiko.
+Fold the per-cpu CRC as a single rolling checksum across all CPUs and
+initialise the object checksum to ~0 so the first computed value always
+registers as a change, even for content that hashes to 0. 
+reset_checksum() is seeded the same way.
 
-Link: https://lore.kernel.org/20260703165610.92894-1-sj@kernel.org
-Link: https://lore.kernel.org/20260630041806.151124-1-sj@kernel.org [1]
-Fixes: 97d482f4592f ("mm/damon/sysfs: reuse damon_set_regions() for regions setting")
-Signed-off-by: SJ Park <sj@kernel.org>
-Cc: <stable@vger.kernel.org> # 5.19.x
+Link: https://lore.kernel.org/all/akfYImSNDh3OjIfR@gmail.com [0]
+Link: https://lore.kernel.org/20260703-kmemleak_checksum-v1-1-5e0ab7d6966f@debian.org
+Fixes: 6c99d4eb7c5e ("kmemleak: enable tracking for percpu pointers")
+Signed-off-by: Breno Leitao <leitao@debian.org>
+Co-developed-by: Catalin Marinas <catalin.marinas@arm.com>
+Signed-off-by: Catalin Marinas <catalin.marinas@arm.com>
+Reviewed-by: Pavel Tikhomirov <ptikhomirov@virtuozzo.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/core.c |   11 +++++++++--
- 1 file changed, 9 insertions(+), 2 deletions(-)
+ mm/kmemleak.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
---- a/mm/damon/core.c~mm-damon-core-disallow-overlapping-input-ranges-for-damon_set_regions
-+++ a/mm/damon/core.c
-@@ -354,12 +354,19 @@ int damon_set_regions(struct damon_targe
- {
- 	struct damon_region *r, *next;
- 	unsigned int i;
-+	unsigned long last_end;
- 	int err;
+--- a/mm/kmemleak.c~mm-kmemleak-fix-checksum-computation-for-per-cpu-objects
++++ a/mm/kmemleak.c
+@@ -687,7 +687,7 @@ static struct kmemleak_object *__alloc_o
+ 	atomic_set(&object->use_count, 1);
+ 	object->excess_ref = 0;
+ 	object->count = 0;			/* white color initially */
+-	object->checksum = 0;
++	object->checksum = ~0;
+ 	object->del_state = 0;
  
- 	for (i = 0; i < nr_ranges; i++) {
--		if (ALIGN_DOWN(ranges[i].start, min_region_sz) >=
--				ALIGN(ranges[i].end, min_region_sz))
-+		unsigned long start, end;
-+
-+		start = ALIGN_DOWN(ranges[i].start, min_region_sz);
-+		end = ALIGN(ranges[i].end, min_region_sz);
-+		if (start >= end)
-+			return -EINVAL;
-+		if (i > 0 && last_end > start)
- 			return -EINVAL;
-+		last_end = end;
+ 	/* task information */
+@@ -981,7 +981,7 @@ static void reset_checksum(unsigned long
  	}
  
- 	/* Remove regions which are not in the new ranges */
+ 	raw_spin_lock_irqsave(&object->lock, flags);
+-	object->checksum = 0;
++	object->checksum = ~0;
+ 	raw_spin_unlock_irqrestore(&object->lock, flags);
+ 	put_object(object);
+ }
+@@ -1410,7 +1410,8 @@ static bool update_checksum(struct kmeml
+ 		for_each_possible_cpu(cpu) {
+ 			void *ptr = per_cpu_ptr((void __percpu *)object->pointer, cpu);
+ 
+-			object->checksum ^= crc32(0, kasan_reset_tag((void *)ptr), object->size);
++			object->checksum = crc32(object->checksum,
++						 kasan_reset_tag((void *)ptr), object->size);
+ 		}
+ 	} else {
+ 		object->checksum = crc32(0, kasan_reset_tag((void *)object->pointer), object->size);
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from leitao@debian.org are
 
-maintainers-s-seongjae-sj.patch
-mm-damon-core-validate-ranges-in-damon_set_regions.patch
-mm-damon-core-disallow-overlapping-input-ranges-for-damon_set_regions.patch
-samples-damon-wsse-handle-damon_start-failure.patch
-samples-damon-prcl-handle-damon_start-failure.patch
-samples-damon-mtier-handle-damon_start-failure.patch
-samples-damon-mtier-handle-damon_stop-failure.patch
-samples-damon-wsse-stop-and-free-damon-ctx-when-damon_call-fails.patch
-samples-damon-prcl-stop-and-free-damon-ctx-when-damon_call-fails.patch
-mm-damon-sysfs-kobject_del-target-normal-context-and-kdamond-dirs.patch
-mm-damon-sysfs-kobject_del-region-and-target-error-dirs.patch
-mm-damon-sysfs-schemes-kobject_del-scheme-dirs.patch
-mm-damon-sysfs-schemes-kobject_del-scheme-region-dirs.patch
-mm-damon-sysfs-schemes-kobject_del-scheme-filter-dirs.patch
-mm-damon-sysfs-schemes-kobject_del-scheme-quota-goal-dirs.patch
-mm-damon-sysfs-schemes-kobject_del-scheme-action-destination-dirs.patch
-mm-damon-sysfs-kobject_del-probe-dirs.patch
-mm-damon-sysfs-kobject_del-probe-filter-dirs.patch
-mm-damon-sysfs-kobject_del-probe-dirs-in-probes_addd_dir-error-path.patch
-mm-damon-sysfs-schemes-kobject_del-region-for-populate_region-error.patch
-docs-mm-damon-design-update-for-damos_quota_node_eligible_mem_bp.patch
-docs-abi-damon-document-probe-files.patch
-mm-damon-tests-core-kunit-test-damon_rand.patch
-selftests-damon-sysfssh-test-multiple-probe-dirs-creation.patch
-selftests-damon-sysfssh-test-coreops_filters-directories.patch
-selftests-damon-sysfssh-test-dests-dir.patch
-selftests-damon-sysfssh-test-all-files-in-quota-goal-dir.patch
-mm-damon-core-reduce-range-setup-in-damon_commit_target_regions.patch
-mm-damon-sysfs-split-probe-setup-function-out.patch
-mm-damon-sysfs-split-out-filters-setup-function.patch
-mm-damon-sysfs-fix-typos-in-probe_addrm_dirs-s-attr-probe.patch
-mm-damon-core-introduce-damon_nr_accesses_mvsum.patch
-mm-damon-tests-core-kunit-test-damon_mvsum.patch
-mm-damon-core-always-update-last_nr_accesses-for-intervals-change.patch
-mm-damon-core-handle-unreset-nr_accesses-in-damon_nr_accesses_mvsum.patch
-mm-damon-core-use-damon_nr_accesses_mvsum-in-__damos_valid_target.patch
-mm-damon-core-use-damon_nr_accesses_mvsum-for-damos-region-tracing.patch
-mm-damon-sysfs-schemes-use-damon_nr_accesses_mvsum-for-damo-regions.patch
-mm-damon-core-remove-damon_warn_fix_nr_accesses_corruption.patch
-mm-damon-core-remove-damon_verify_reset_aggregated.patch
-mm-damon-core-remove-damon_verify_merge_regions_of.patch
-mm-damon-tests-core-kunit-remove-nr_accesses_bp-setup-and-tests.patch
-selftests-damon-drgn_dump_damon_status-do-not-dump-nr_accesses_bp.patch
-mm-damon-core-remove-nr_accesses_bp-setups-and-updates.patch
-mm-damon-core-remove-attrs-param-from-damon_update_region_access_rate.patch
-mm-damon-paddr-remove-attrs-param-from-__damon_pa_check_access.patch
-mm-damon-vaddr-remove-attrs-param-from-__damon_va_check_access.patch
-mm-damon-core-remove-damon_moving_sum-and-its-unit-test.patch
-mm-damon-core-remove-damon_region-nr_accesses_bp.patch
-mm-damon-add-damon_region-last_probe_hits.patch
-mm-damon-core-introduce-damon_probe_hits_mvsum.patch
-mm-damon-sysfs-schemes-set-probe-hits-as-pseudo-moving-sums.patch
+mm-kmemleak-fix-checksum-computation-for-per-cpu-objects.patch
+mm-kmemleak-avoid-soft-lockup-when-scanning-task-stacks.patch
+mm-kmemleak-stop-the-task-stack-scan-early-when-interrupted.patch
+mm-kmemleak-stop-the-per-cpu-and-struct-page-scans-early-too.patch
+mm-memory-failure-drop-dead-error_states-entry-for-reserved-pages.patch
+mm-memory-failure-surface-unhandlable-kernel-pages-as-enotrecoverable.patch
+mm-memory-failure-report-mf_msg_kernel-for-unrecoverable-kernel-pages.patch
+mm-memory-failure-add-panic-option-for-unrecoverable-pages.patch
+documentation-document-panic_on_unrecoverable_memory_failure-sysctl.patch
+selftests-mm-add-hwpoison-panic-destructive-test.patch
+mm-kmemleak-skip-the-remaining-scan-phases-when-interrupted.patch
+radix-tree-fix-kmemleak-false-positives-on-tree-head-reassignment.patch
 
