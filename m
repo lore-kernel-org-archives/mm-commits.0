@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 65AEB3033EC
-	for <mm-commits@vger.kernel.org>; Sun,  5 Jul 2026 19:16:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2A61839FCAE
+	for <mm-commits@vger.kernel.org>; Sun,  5 Jul 2026 19:16:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783278989; cv=none; b=mn6gZ14M0Hw8BwIZe5WGlpYV1hmrZHyJGohiKpRPqBvDyHY631Jrvjek4I54izFTtn6mewDl6w5iqJzdqYoh770PY8OSvUz9WW2AUnldtTtHjvM+YYIpZOMkKdj2ej45wwVNzhgM/ApgdbwHz2YDXXxWLJP92b/h5t+dpBrLrpQ=
+	t=1783278991; cv=none; b=l9HzaffCIypwO4H/SxDbU4wyWIm035b4CWXzrtDXNdOHSsQR2iaEJvG5Ei3lsDFWdBXwg081ONbz6/EwNM9pSbEUJ5UynaRWFWRe+YUO4oMHQhaITMFratGcSPqtQhCD8xLAcTgJomATKRQXp/19aoZA+f7sZxJwbjC6/P1uhSE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783278989; c=relaxed/simple;
-	bh=i9LlD/KcxLG3aUiCljiaiHv4SPEnmM85ISrnsQ42UvU=;
-	h=Date:To:From:Subject:Message-Id; b=lGw9L6YYZn2CeS5DFa4Z3zkXOQRiozEM1F6vJEZ2WOJRWLrLfJU71ngqVLPh5/EKfschhr34XFJ+7gZh42GeLbtlF7bl4rWbKk51UbtO087cBQ3kN6uHA7IQttN/wecp97DKg9eNQHnGaOIhTMwoU9TS2KC6jgp0kNim5UQgWe4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RDF/4BcJ; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783278991; c=relaxed/simple;
+	bh=WaZHVRyTv+PgR6dSiopaGIuI7NVWLPLy4tASycgrFKE=;
+	h=Date:To:From:Subject:Message-Id; b=iIvaxtj98U07AUjIM50ZL6MLU0miIi+8FTP/25Zwz5moIo8r+alXQgRPRBlXbjMOa7+pL1blTYcGuDKpb6z1JWOdDRa3DIMDKghuvXUaCdhq8eA3BCtPtK3arkdfLIUrudsHtbM9fowaWjGJ+GUMq37iBO2WZOyXVIFIQU/ikYI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yA1R5y9R; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RDF/4BcJ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D66BA1F000E9;
-	Sun,  5 Jul 2026 19:16:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yA1R5y9R"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CCC5D1F00A3A;
+	Sun,  5 Jul 2026 19:16:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783278987;
-	bh=lZKkDFHSMCBnQ9YRWMGrDeBVurYsp0c1fpMc5KQ/bwA=;
+	d=linux-foundation.org; s=korg; t=1783278989;
+	bh=HEmI5aiWkLTYQ7sKTrxGem8KRvrGx6FTB5hV54OQHoo=;
 	h=Date:To:From:Subject;
-	b=RDF/4BcJETJ7pVMqlfPI3fUzEYJBPq2d+DA2Qkku0ruAaTb4PajidSU+AOOuITjK4
-	 0UZR8DsM0mdIT3Gk9ax+ayodqrjHd1W+ueIBSYIxMYkW8G1ZzCjlVgPZT2VytfmtkX
-	 bUDwg33I82oXrsEEYKqLXwzr3l3qo0tdCrsYaZEk=
-Date: Sun, 05 Jul 2026 12:16:27 -0700
+	b=yA1R5y9R2gUjmAMVWcodDZmCR9Anpi89diMw86vSbe4oACG/W3BI8S+Vbtv/HS8T/
+	 Iu4wl1QiM40mN0YLRTk2kZPt7q9NTdkYRpfYIXKwDJNjoL9a3X0/5tQvi7j6LPKC7G
+	 HnxdOMbXHJ3qP9kO8EsM00MgKGbFGEsuho2ihvqc=
+Date: Sun, 05 Jul 2026 12:16:29 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-core-safely-validate-src-on-damon_commit_ctx.patch added to mm-new branch
-Message-Id: <20260705191627.D66BA1F000E9@smtp.kernel.org>
+Subject: + mm-damon-core-do-parameter-testing-commit-on-damon_start.patch added to mm-new branch
+Message-Id: <20260705191629.CCC5D1F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/core: safely validate src on damon_commit_ctx()
+     Subject: mm/damon/core: do parameter testing commit on damon_start()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-core-safely-validate-src-on-damon_commit_ctx.patch
+     mm-damon-core-do-parameter-testing-commit-on-damon_start.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-safely-validate-src-on-damon_commit_ctx.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-do-parameter-testing-commit-on-damon_start.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,166 +70,54 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/core: safely validate src on damon_commit_ctx()
-Date: Sun, 5 Jul 2026 08:55:52 -0700
+Subject: mm/damon/core: do parameter testing commit on damon_start()
+Date: Sun, 5 Jul 2026 08:55:53 -0700
 
-Patch series "mm/damon: validate all parameters in the core".
+damon_start() and damon_commit_ctx() are two main DAMON core API functions
+for setting whole DAMON parameters.  While damon_commit_ctx() does
+holistic parameters testing, damon_start() just believes the caller
+validated the whole thing.  Embed the holistic parameter check that is
+already in damon_commit_ctx() into damon_start().  After this change, the
+callers can safely call damon_start() without validating the parameters.
 
-DAMON has a number of parameters.  Some of the parameters are validated by
-DAMON, while some are validated by DAMON API callers.  Each caller has
-their own set of parameters that are exposed to users.  Hence each caller
-has their own ways to do the validation.  There is no clear lines for the
-responsibilities.  It is confusing and easy to make mistakes at
-validations.  Actually we found a few bugs in the class.
-
-Define DAMON core as the place to do all the validations and implement
-those.  damon_set_regions(), damon_start() and damon_commit_ctx() are the
-three main DAMON core API functions for setup of DAMON parameters.  Make
-the three functions to do safe and holistic parameter checks.  The first
-one is already providing the validation, so changes are only for the last
-two functions.
-
-This might add unnecessary validations for some use cases.  The overhead
-should be negligible as parameters update is expected to only rarely
-happen.  It reduces the number of places to check and fix for bugs of the
-class from all callers to the single component.  The maintenance
-efficiency gain is obvious.
-
-Further cleanup documents and caller code.  Make the lines of validation
-duties clearer.  Remove validations that are no more needed owing to the
-core validations.
-
-Patches Sequence
-================
-
-Patch 1 implements the core holistic parameters validation for
-damon_commit_ctx().  Patch 2 extends the validation to damon_start(). 
-Patch 3 removes the duplicated holistic parameters validation in DAMON
-sysfs interface, which is now embedded into the core layer.  Patches 4 and
-5 remove duplicated min_region_sz validation in DAMON modules.  Patches 6
-updates kernel doc to clarify damon_set_regions() is doing the range
-validation.  Patches 7 and 8 remove monitoring target range validations
-that doesn't necessary thanks to the validation in damon_set_regions().
-
-
-This patch (of 8):
-
-damon_commit_ctx() does its holistic parameter set validation while
-applying the new parameter in the set one by one.  If it finds a parameter
-is invalid, because some invalid parameters may already be committed (it
-is called "commit" but not atomic and irreversable), it stops the running
-DAMON context.
-
-The callers of the function therefore have to validate the parameters
-before calling it.  Because the function already embeds holistic
-validation, DAMON_SYSFS reuses it in a safe way.  It creates a
-test-purpose context that is not running but mimics the running one, and
-calls damon_commit_ctx() against the test purpose context.  If it
-succeeds, the parameters are considered valid, and a real
-damon_commit_ctx() call against the running context is made with those.
-
-Other callers such as DAMON_RECLAIM and DAMON_LRU_SORT do not expose full
-parameters to users.  For efficiency, they validate only the known set of
-parameters.  The efficiency gain is arguably small and doubtful, though. 
-Meanwhile the maintenance overhead of the multiple different validations
-is clearly high.  We actually found and fixed a few bugs in the class.
-
-Update damon_commit_ctx() to embed DAMON_SYSFS' safe and holistic
-validation approach.  Callers can simply call damon_commit_ctx() without
-worrying if their parameters are invalid.
-
-Note that damon_commit_ctx() can still cause an unexpected stop of the
-running context, if internal memory allocation fails.  It is arguably
-unlikely since those internal allocations are too small to fail, but
-theoretically possible.  It should also be better addressed, but not
-necessarily a blocker of this small and incremental improvement effort.
-
-Link: https://lore.kernel.org/20260705155600.96555-1-sj@kernel.org
-Link: https://lore.kernel.org/20260705155600.96555-2-sj@kernel.org
+Link: https://lore.kernel.org/20260705155600.96555-3-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/core.c |   61 +++++++++++++++++++++++++++++++++++-----------
- 1 file changed, 47 insertions(+), 14 deletions(-)
+ mm/damon/core.c |   14 ++++++++++++--
+ 1 file changed, 12 insertions(+), 2 deletions(-)
 
---- a/mm/damon/core.c~mm-damon-core-safely-validate-src-on-damon_commit_ctx
+--- a/mm/damon/core.c~mm-damon-core-do-parameter-testing-commit-on-damon_start
 +++ a/mm/damon/core.c
-@@ -1664,20 +1664,7 @@ static int damon_commit_probes(struct da
- 	return 0;
+@@ -1865,6 +1865,8 @@ static int __damon_start(struct damon_ct
+ 	return err;
  }
  
--/**
-- * damon_commit_ctx() - Commit parameters of a DAMON context to another.
-- * @dst:	The commit destination DAMON context.
-- * @src:	The commit source DAMON context.
-- *
-- * This function copies user-specified parameters from @src to @dst and update
-- * the internal status and results accordingly.  Users should use this function
-- * for context-level parameters update of running context, instead of manual
-- * in-place updates.
-- *
-- * This function should be called from parameters-update safe context, like
-- * damon_call().
-- */
--int damon_commit_ctx(struct damon_ctx *dst, struct damon_ctx *src)
-+static int __damon_commit_ctx(struct damon_ctx *dst, struct damon_ctx *src)
- {
- 	int err;
- 	struct damos *scheme;
-@@ -1732,6 +1719,52 @@ int damon_commit_ctx(struct damon_ctx *d
- 	return 0;
- }
- 
-+static struct damon_ctx *damon_new_test_ctx(struct damon_ctx *dst)
-+{
-+	struct damon_ctx *test_ctx;
-+	int err;
-+
-+	test_ctx = damon_new_ctx();
-+	if (!test_ctx)
-+		return NULL;
-+	err = __damon_commit_ctx(test_ctx, dst);
-+	if (err) {
-+		damon_destroy_ctx(test_ctx);
-+		return NULL;
-+	}
-+	return test_ctx;
-+}
-+
-+/**
-+ * damon_commit_ctx() - Commit parameters of a DAMON context to another.
-+ * @dst:	The commit destination DAMON context.
-+ * @src:	The commit source DAMON context.
-+ *
-+ * This function copies user-specified parameters from @src to @dst and update
-+ * the internal status and results accordingly.  Users should use this function
-+ * for context-level parameters update of running context, instead of manual
-+ * in-place updates.
-+ *
-+ * This function should be called from parameters-update safe context, like
-+ * damon_call().
-+ */
-+int damon_commit_ctx(struct damon_ctx *dst, struct damon_ctx *src)
-+{
-+	struct damon_ctx *test_ctx;
-+	int err;
-+
-+	test_ctx = damon_new_test_ctx(dst);
-+	if (!test_ctx)
-+		return -ENOMEM;
-+	err = __damon_commit_ctx(test_ctx, src);
-+	if (err)
-+		goto out;
-+	err = __damon_commit_ctx(dst, src);
-+out:
-+	damon_destroy_ctx(test_ctx);
-+	return err;
-+}
++static int __damon_commit_ctx(struct damon_ctx *dst, struct damon_ctx *src);
 +
  /**
-  * damon_nr_running_ctxs() - Return number of currently running contexts.
-  */
+  * damon_start() - Starts the monitorings for a given group of contexts.
+  * @ctxs:	an array of the pointers for contexts to start monitoring
+@@ -1886,8 +1888,16 @@ int damon_start(struct damon_ctx **ctxs,
+ 	int err = 0;
+ 
+ 	for (i = 0; i < nr_ctxs; i++) {
+-		if (!is_power_of_2(ctxs[i]->min_region_sz))
+-			return -EINVAL;
++		struct damon_ctx *test_ctx;
++
++		test_ctx = damon_new_ctx();
++		if (!test_ctx)
++			return -ENOMEM;
++
++		err = __damon_commit_ctx(test_ctx, ctxs[i]);
++		damon_destroy_ctx(test_ctx);
++		if (err)
++			return err;
+ 	}
+ 
+ 	mutex_lock(&damon_lock);
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
