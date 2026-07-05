@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EF6A434FF45
-	for <mm-commits@vger.kernel.org>; Sun,  5 Jul 2026 07:31:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 827B332D0FC
+	for <mm-commits@vger.kernel.org>; Sun,  5 Jul 2026 07:31:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783236670; cv=none; b=fjp2W1q7DiyDthsII5t3JZwVvKOHi2isxMgTt5LaJ/a9k2jRIo2nYn4KhMe45Ni7otVlCKlad2pkMoUy9y+79pnx4u4ce8Jc8xcDS8Ane5OXX5kssL8rYuG6pqucEcOMSzfKSYs0Bmlfhsp/KM22BAJUM7RnjDX9DgjF3MFCC1o=
+	t=1783236672; cv=none; b=OVocP8h/sw+y17nv8oYWZka9I79EUIA4G5j3ExAjPuwrbgJ7ffd2S0mZvwWDNHCEJB8zvXI70PWZbtlwGt9i3R2WhlS5qKsBjrEV4sviQWHon57W5fih9V6r6JtLdzJvZJ6gdzgBhA9lKxuBTuwqwqlWvnVMUsnZN970F1YxnJM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783236670; c=relaxed/simple;
-	bh=8wyw9kedpBMz5Tf+4gVWajl+GehK59ZorAtxtc8uSVU=;
-	h=Date:To:From:Subject:Message-Id; b=RAZeEloUUBIakVIPz7wAA71CE8RXuY0SKpyD/4gOFA9S8e+pILEuxrPYAeftoup2SGu/f7LbKXCoRulHcepaB1WKv5/umiiwtMN8xyNyNTyPX6BHsKk+f8l9S7sJejbh7lDBGBb+fOoCV9xQ/jj+MkkP39lskdbk8J5z1eVe2rw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1byPHAIG; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783236672; c=relaxed/simple;
+	bh=0DPC9rH9H6uGJOfz0et7UW9m4AEOuo8lfBivroHorH4=;
+	h=Date:To:From:Subject:Message-Id; b=bxVJ7mbyK6PzA6NOz+bF+qlGHGE3LCknist4X8pRvsynhGD+77HSVIDcYNjo4maeRm53wMwXMBMKz6N2re41gJQuIhQgC4VPIpToGLieFCjKu+lc5QNIJYyNiSzUguz3Qbcf5BGKM0dxrMk+kX/uaRCDjdfl37OKkoSvuV2jIog=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UEJectzc; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1byPHAIG"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 87C441F000E9;
-	Sun,  5 Jul 2026 07:31:08 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UEJectzc"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 152771F000E9;
+	Sun,  5 Jul 2026 07:31:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783236668;
-	bh=zUYFSNauTFDtTXUpTjX1t0NWQ9iJH/mavhM/BqgFQQ8=;
+	d=linux-foundation.org; s=korg; t=1783236671;
+	bh=0CngKKa36E71BzaC+460PrSHQrY+hxNHHmPeSMn3eyI=;
 	h=Date:To:From:Subject;
-	b=1byPHAIGk4BrSGZMVgNtJpkXmwR4JncK9ecJZvtDcW1JW3XCVAWMFGXsN0zDBBnkw
-	 PcF/b3kK0PA1VxdMAWmjF2J9XFdX34kJCqM+M2ivOWYcLQrXmgCYM6Nn/85iMVNCtz
-	 JR80rsRszLjbwPg2z4jIef7ne58v2x0Js2OD16Gg=
-Date: Sun, 05 Jul 2026 00:31:08 -0700
+	b=UEJectzcdhEYd82i6j98amhJoO+Uss2aVVAsR6ld4feoYVBATSB0jFDD8apR2HVtD
+	 Yz5+zC0HAgtu9Ef0T+yu6JbqaNU4QD8VuD/XqlyAnNIXv992XTHmLrJd1coNVA1v9/
+	 fW4jPEv4dJL7mJsls0/yfr9Qin9j7jxMHW+ZvMBU=
+Date: Sun, 05 Jul 2026 00:31:10 -0700
 To: mm-commits@vger.kernel.org,jackmanb@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_alloc-rename-alloc_trylock-alloc_nolock.patch added to mm-new branch
-Message-Id: <20260705073108.87C441F000E9@smtp.kernel.org>
+Subject: + mm-page_alloc-some-renames-to-clarify-alloc_flags-scopes.patch added to mm-new branch
+Message-Id: <20260705073111.152771F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/page_alloc: rename ALLOC_TRYLOCK -> ALLOC_NOLOCK
+     Subject: mm/page_alloc: some renames to clarify alloc_flags scopes
 has been added to the -mm mm-new branch.  Its filename is
-     mm-page_alloc-rename-alloc_trylock-alloc_nolock.patch
+     mm-page_alloc-some-renames-to-clarify-alloc_flags-scopes.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-rename-alloc_trylock-alloc_nolock.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-some-renames-to-clarify-alloc_flags-scopes.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,165 +70,155 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Brendan Jackman <jackmanb@google.com>
-Subject: mm/page_alloc: rename ALLOC_TRYLOCK -> ALLOC_NOLOCK
-Date: Fri, 03 Jul 2026 12:31:41 +0000
+Subject: mm/page_alloc: some renames to clarify alloc_flags scopes
+Date: Fri, 03 Jul 2026 12:31:42 +0000
 
-Patch series "mm: Some cleanups for page allocator APIs", v5.
+It's pretty confusing that:
 
-Some tweaks and cleanups for page allocator entrypoint and flags.  This is
-motivated by preparation for __GFP_UNMAPPED [1] (which will probably
-become ALLOC_UNMAPPED in its next iteration), but all this is supposed to
-be an improvement to the codebase in its own right: unifying code paths,
-reducing API surface, and removing GFP flags.
+- The slowpath and fastpath have a totally distinct set of alloc_flags.
 
-This started with unifying __alloc_frozen_pages[_nolock]_noprof() and
-expanded from there.
+- gfp_to_alloc_flags() sounds generic but it only influences the
+  slowpath.
 
-Unifying the nolock allocator entrypoint with the normal allocator
-entrypoint means adding an alloc_flags argument to the later (only exposed
-within mm/).  This presents an opportunity to take advantage of that arg
-to remove some GFP flags, if we add that alloc_flags arg a bit more
-broadly to allocator entrypoints.
+Rename some variables to highlight which alloc_flags are
+fastpath-specific.  Rename gfp_to_alloc_flags() to highlight that it's
+slowpath-specific.
 
-To distinguish between mm-internal and "public" allocator entrypoints, it
-makes sense to use the __ prefix.  There are already some public APIs with
-that prefix.  For *alloc_pages*, just removing those variants seems like a
-nice cleanup anyway, so do that.  For get_free_pages, the "__" variant is
-the _only_ variant and it's very widely used, so it doesn't seem
-worthwhile to modify that.  Therefore, scope this "__" change specifically
-to the *alloc_pages* API, which means we leave the *folio_alloc* API
-untouched too, even though that could probably be cleaned up if so
-desired.
+gfp_to_alloc_flags_cma() and gfp_to_alloc_flags_nonblocking() currently
+have perfectly harmless names, but to keep the naming consistent also
+rename those to the alloc_flags_*() pattern (which already exists for
+alloc_flags_nofragment()).
 
-
-This patch (of 18):
-
-It's confusing that the function is called "nolock" but the flag is called
-"trylock", align them.
-
-The function's terminology is more visible and has more mindshare so use that.
-
-Link: https://lore.kernel.org/20260703-alloc-trylock-v5-0-c87b714e19d3@google.com
-Link: https://lore.kernel.org/20260703-alloc-trylock-v5-1-c87b714e19d3@google.com
-Link: https://lore.kernel.org/linux-mm/2399b3ad-4eac-4a14-94c3-27e9f07972a1@kernel.org/
-Link: https://lore.kernel.org/all/20260320-page_alloc-unmapped-v2-0-28bf1bd54f41@google.com/ [1]
+Link: https://lore.kernel.org/20260703-alloc-trylock-v5-2-c87b714e19d3@google.com
 Signed-off-by: Brendan Jackman <jackmanb@google.com>
-Suggested-by: "Vlastimil Babka (SUSE)" <vbabka@kernel.org>
-Reviewed-by: Suren Baghdasaryan <surenb@google.com>
-Reviewed-by: Harry Yoo (Oracle) <harry@kernel.org>
 Reviewed-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
-Acked-by: Zi Yan <ziy@nvidia.com>
-Cc: Adrian Hunter <adrian.hunter@intel.com>
-Cc: Alexander Shishkin <alexander.shishkin@linux.intel.com>
-Cc: Alexei Starovoitov <ast@kernel.org>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Arnaldo Carvalho de Melo <acme@kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: "Borislav Petkov (AMD)" <bp@alien8.de>
-Cc: Byungchul Park <byungchul@sk.com>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Dimitris Michailidis <dmichail@fungible.com>
-Cc: Eric Dumazet <edumazet@google.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Gregory Price <gourry@gourry.net>
-Cc: Harry Yoo <harry@kernel.org>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
-Cc: Ian Rogers <irogers@google.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Jakub Kacinski <kuba@kernel.org>
-Cc: James Clark <james.clark@linaro.org>
-Cc: Jiri Olsa <jolsa@kernel.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Marc Rutland <mark.rutland@arm.com>
-Cc: Matthew Brost <matthew.brost@intel.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Namhyung kim <namhyung@kernel.org>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Paolo Abeni <pabeni@redhat.com>
-Cc: Paolo Bonzini <pbonzini@redhat.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Rakie Kim <rakie.kim@sk.com>
-Cc: Reiji Watanabe <reijiw@google.com>
-Cc: Robin Holt <robinmholt@gmail.com>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Sean Christopherson <seanjc@google.com>
-Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Steve Wahl <steve.wahl@hpe.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
+Acked-by: JP Kobryn <jp.kobryn@linux.dev>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/internal.h   |    2 +-
- mm/page_alloc.c |   10 +++++-----
- 2 files changed, 6 insertions(+), 6 deletions(-)
+ include/linux/skbuff.h |    2 +-
+ mm/page_alloc.c        |   28 ++++++++++++++--------------
+ 2 files changed, 15 insertions(+), 15 deletions(-)
 
---- a/mm/internal.h~mm-page_alloc-rename-alloc_trylock-alloc_nolock
-+++ a/mm/internal.h
-@@ -1480,7 +1480,7 @@ unsigned int reclaim_clean_pages_from_li
- #define ALLOC_NOFRAGMENT	  0x0
- #endif
- #define ALLOC_HIGHATOMIC	0x200 /* Allows access to MIGRATE_HIGHATOMIC */
--#define ALLOC_TRYLOCK		0x400 /* Only use spin_trylock in allocation path */
-+#define ALLOC_NOLOCK		0x400 /* Only use spin_trylock in allocation path */
- #define ALLOC_KSWAPD		0x800 /* allow waking of kswapd, __GFP_KSWAPD_RECLAIM set */
- 
- /* Flags that allow allocations below the min watermark. */
---- a/mm/page_alloc.c~mm-page_alloc-rename-alloc_trylock-alloc_nolock
-+++ a/mm/page_alloc.c
-@@ -2530,7 +2530,7 @@ static int rmqueue_bulk(struct zone *zon
- 	unsigned long flags;
- 	int i;
- 
--	if (unlikely(alloc_flags & ALLOC_TRYLOCK)) {
-+	if (unlikely(alloc_flags & ALLOC_NOLOCK)) {
- 		if (!spin_trylock_irqsave(&zone->lock, flags))
- 			return 0;
- 	} else {
-@@ -3218,7 +3218,7 @@ struct page *rmqueue_buddy(struct zone *
- 
- 	do {
- 		page = NULL;
--		if (unlikely(alloc_flags & ALLOC_TRYLOCK)) {
-+		if (unlikely(alloc_flags & ALLOC_NOLOCK)) {
- 			if (!spin_trylock_irqsave(&zone->lock, flags))
- 				return NULL;
- 		} else {
-@@ -5059,7 +5059,7 @@ static inline bool prepare_alloc_pages(g
- 	 * Don't invoke should_fail logic, since it may call
- 	 * get_random_u32() and printk() which need to spin_lock.
+--- a/include/linux/skbuff.h~mm-page_alloc-some-renames-to-clarify-alloc_flags-scopes
++++ a/include/linux/skbuff.h
+@@ -3573,7 +3573,7 @@ static inline struct page *__dev_alloc_p
+ 	 * 3.  If requesting a order 0 page it will not be compound
+ 	 *     due to the check to see if order has a value in prep_new_page
+ 	 * 4.  __GFP_MEMALLOC is ignored if __GFP_NOMEMALLOC is set due to
+-	 *     code in gfp_to_alloc_flags that should be enforcing this.
++	 *     code in alloc_flags_slowpath() that should be enforcing this.
  	 */
--	if (!(*alloc_flags & ALLOC_TRYLOCK) &&
-+	if (!(*alloc_flags & ALLOC_NOLOCK) &&
+ 	gfp_mask |= __GFP_COMP | __GFP_MEMALLOC;
+ 
+--- a/mm/page_alloc.c~mm-page_alloc-some-renames-to-clarify-alloc_flags-scopes
++++ a/mm/page_alloc.c
+@@ -3774,8 +3774,8 @@ alloc_flags_nofragment(struct zone *zone
+ }
+ 
+ /* Must be called after current_gfp_context() which can change gfp_mask */
+-static inline unsigned int gfp_to_alloc_flags_cma(gfp_t gfp_mask,
+-						  unsigned int alloc_flags)
++static inline unsigned int alloc_flags_cma(gfp_t gfp_mask,
++					   unsigned int alloc_flags)
+ {
+ #ifdef CONFIG_CMA
+ 	if (gfp_migratetype(gfp_mask) == MIGRATE_MOVABLE)
+@@ -4474,7 +4474,7 @@ static void wake_all_kswapds(unsigned in
+ }
+ 
+ static inline unsigned int
+-gfp_to_alloc_flags_nonblocking(gfp_t gfp_mask, unsigned int order)
++alloc_flags_nonblocking(gfp_t gfp_mask, unsigned int order)
+ {
+ 	unsigned int alloc_flags = 0;
+ 
+@@ -4497,7 +4497,7 @@ gfp_to_alloc_flags_nonblocking(gfp_t gfp
+ }
+ 
+ static inline unsigned int
+-gfp_to_alloc_flags(gfp_t gfp_mask, unsigned int order)
++alloc_flags_slowpath(gfp_t gfp_mask, unsigned int order)
+ {
+ 	unsigned int alloc_flags = ALLOC_WMARK_MIN | ALLOC_CPUSET;
+ 
+@@ -4512,7 +4512,7 @@ gfp_to_alloc_flags(gfp_t gfp_mask, unsig
+ 	if (gfp_mask & __GFP_KSWAPD_RECLAIM)
+ 		alloc_flags |= ALLOC_KSWAPD;
+ 
+-	alloc_flags |= gfp_to_alloc_flags_nonblocking(gfp_mask, order);
++	alloc_flags |= alloc_flags_nonblocking(gfp_mask, order);
+ 
+ 	if (!(gfp_mask & __GFP_DIRECT_RECLAIM)) {
+ 		/*
+@@ -4525,7 +4525,7 @@ gfp_to_alloc_flags(gfp_t gfp_mask, unsig
+ 	} else if (unlikely(rt_or_dl_task(current)) && in_task())
+ 		alloc_flags |= ALLOC_MIN_RESERVE;
+ 
+-	alloc_flags = gfp_to_alloc_flags_cma(gfp_mask, alloc_flags);
++	alloc_flags = alloc_flags_cma(gfp_mask, alloc_flags);
+ 
+ 	if (defrag_mode)
+ 		alloc_flags |= ALLOC_NOFRAGMENT;
+@@ -4791,7 +4791,7 @@ restart:
+ 	 * kswapd needs to be woken up, and to avoid the cost of setting up
+ 	 * alloc_flags precisely. So we do that now.
+ 	 */
+-	alloc_flags = gfp_to_alloc_flags(gfp_mask, order);
++	alloc_flags = alloc_flags_slowpath(gfp_mask, order);
+ 
+ 	/*
+ 	 * We need to recalculate the starting point for the zonelist iterator
+@@ -4832,7 +4832,7 @@ retry:
+ 
+ 	reserve_flags = __gfp_pfmemalloc_flags(gfp_mask);
+ 	if (reserve_flags)
+-		alloc_flags = gfp_to_alloc_flags_cma(gfp_mask, reserve_flags) |
++		alloc_flags = alloc_flags_cma(gfp_mask, reserve_flags) |
+ 					  (alloc_flags & ALLOC_KSWAPD);
+ 
+ 	/*
+@@ -5063,7 +5063,7 @@ static inline bool prepare_alloc_pages(g
  	    should_fail_alloc_page(gfp_mask, order))
  		return false;
  
-@@ -7804,7 +7804,7 @@ static bool cond_accept_memory(struct zo
- 		return false;
+-	*alloc_flags = gfp_to_alloc_flags_cma(gfp_mask, *alloc_flags);
++	*alloc_flags = alloc_flags_cma(gfp_mask, *alloc_flags);
  
- 	/* Bailout, since try_to_accept_memory_one() needs to take a lock */
--	if (alloc_flags & ALLOC_TRYLOCK)
-+	if (alloc_flags & ALLOC_NOLOCK)
- 		return false;
- 
- 	wmark = promo_wmark_pages(zone);
-@@ -7896,7 +7896,7 @@ struct page *alloc_frozen_pages_nolock_n
- 	 */
- 	gfp_t alloc_gfp = __GFP_NOWARN | __GFP_ZERO | __GFP_NOMEMALLOC | __GFP_COMP
- 			| gfp_flags;
--	unsigned int alloc_flags = ALLOC_TRYLOCK;
-+	unsigned int alloc_flags = ALLOC_NOLOCK;
- 	struct alloc_context ac = { };
+ 	/* Dirty zone balancing only done in the fast path */
+ 	ac->spread_dirty_pages = (gfp_mask & __GFP_WRITE);
+@@ -5277,7 +5277,7 @@ struct page *__alloc_frozen_pages_noprof
+ 		int preferred_nid, nodemask_t *nodemask)
+ {
  	struct page *page;
+-	unsigned int alloc_flags = ALLOC_WMARK_LOW;
++	unsigned int fastpath_alloc_flags = ALLOC_WMARK_LOW;
+ 	gfp_t alloc_gfp; /* The gfp_t that was actually used for allocation */
+ 	struct alloc_context ac = { };
+ 
+@@ -5299,18 +5299,18 @@ struct page *__alloc_frozen_pages_noprof
+ 	gfp = current_gfp_context(gfp);
+ 	alloc_gfp = gfp;
+ 	if (!prepare_alloc_pages(gfp, order, preferred_nid, nodemask, &ac,
+-			&alloc_gfp, &alloc_flags))
++			&alloc_gfp, &fastpath_alloc_flags))
+ 		return NULL;
+ 
+ 	/*
+ 	 * Forbid the first pass from falling back to types that fragment
+ 	 * memory until all local zones are considered.
+ 	 */
+-	alloc_flags |= alloc_flags_nofragment(zonelist_zone(ac.preferred_zoneref), gfp);
+-	alloc_flags |= gfp_to_alloc_flags_nonblocking(gfp, order) & ALLOC_HIGHATOMIC;
++	fastpath_alloc_flags |= alloc_flags_nofragment(zonelist_zone(ac.preferred_zoneref), gfp);
++	fastpath_alloc_flags |= alloc_flags_nonblocking(gfp, order) & ALLOC_HIGHATOMIC;
+ 
+ 	/* First allocation attempt */
+-	page = get_page_from_freelist(alloc_gfp, order, alloc_flags, &ac);
++	page = get_page_from_freelist(alloc_gfp, order, fastpath_alloc_flags, &ac);
+ 	if (likely(page))
+ 		goto out;
  
 _
 
