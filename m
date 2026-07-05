@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E23F0225413
-	for <mm-commits@vger.kernel.org>; Sun,  5 Jul 2026 07:31:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C546D35F161
+	for <mm-commits@vger.kernel.org>; Sun,  5 Jul 2026 07:31:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783236695; cv=none; b=XVuK64WN8aZ2nvjM1ATO+QuDYx1rxQ5yG/mUdI7LZjKdVhA0K76RGqfN++/S7WY8VsJmd6gqf8JX/QF7XNvk0CETX8ysloptRCD+EV00LEucTVJc/DUZcTVKpONUPz53f66BpmF8uJpI9bdH1NQi0XRYXxMJh+z409K7Xtvl3ao=
+	t=1783236698; cv=none; b=Fzsm6fefZhRC5QLPKS1kWOQhw5E3TENNUEXShsUgWchMKD+/EMowGwRDpEnQbeSOMK73AqxrJEkHSBapj4jJu082k/Rk4O6A6kt41LZAmgRAsfg0VMbkZMcRv++1CsyrFxLY22H9hViwND1RpEmQ8qEmK+AMhK62nRBA//s1CgQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783236695; c=relaxed/simple;
-	bh=f8FoVCRMUNxQegTBCrthci+jRubnw4HUIcxUd04aDbY=;
-	h=Date:To:From:Subject:Message-Id; b=IicdqQZeliaajEmz8bbUVtbTl+g+Yd9D2nu3TU9s0uGXcwO6dbGlSMevjPLcXSez9bcVZokL8qNThtQma4BcJdGHcW/5hHILbNIFhWOlBJ1m2tHXeCoxLLeDZgsVNPrSH3hyi69UFfNkYOgCwDU4sNEWM7Y0gc2NnnoWoPbYd4w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=u8eVqidi; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783236698; c=relaxed/simple;
+	bh=wFmgSQZswp6LPs9HZmJE/FK5oHVrKel6zS+MV4afbV0=;
+	h=Date:To:From:Subject:Message-Id; b=ZX3eDYhDPkJ/t6FRuVu4ThJcZUdnsspDStZaAtOGeMt0DJUCgwuFuZ/KaP3sNmpmagLb0TlIHTuK2PKsJvReWO7C0pFFnFdQAqfqSGO22yiueVnj3VZxWOIrVtFlcEdqWobEWVdYhCtkLgiUxOM7iyctNAuKla10THengGXuy/Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MbfVuAMd; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="u8eVqidi"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 917DF1F000E9;
-	Sun,  5 Jul 2026 07:31:33 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MbfVuAMd"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 94B701F000E9;
+	Sun,  5 Jul 2026 07:31:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783236693;
-	bh=gc7B7HGK/w+lH91F6pvNpK8qpXBo7KtCl67XN0ZJMW8=;
+	d=linux-foundation.org; s=korg; t=1783236696;
+	bh=epex+8lz5BBJmjPjJZZthxnmcOEHsJDYIV+95VXp+Y8=;
 	h=Date:To:From:Subject;
-	b=u8eVqidikQbxNJxBSkvvk1lqbAmlSZBNkQVENXO1xQPNOm4xa6fsrW1NHnqCn3hvC
-	 bwI4n3C/rCdRWoyg+H9OdLWpDvv7bu3FXDYtFlVQ0s41OhH1XuimQPXWHrQjeqqcsY
-	 LwnjIS6CMVaXEc9BNAn469F71bAHmyocsyaGixPE=
-Date: Sun, 05 Jul 2026 00:31:33 -0700
+	b=MbfVuAMdcT+f6U29Es6kK5Y7NGNF9Jlmjr50jSCtYuSqweWlaeT8HA6va+iQom1MC
+	 PUwRwxI+hGj1aQDrTrw0ckSaJDVebu52RwwGdUMGRAdxftA0ckrPk6rdZ4ML/LiWdu
+	 QPDbQGLY6nrMB4W82NnqHgTAneir2zHWA2ZaSBUw=
+Date: Sun, 05 Jul 2026 00:31:36 -0700
 To: mm-commits@vger.kernel.org,jackmanb@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-move-some-stuff-to-mm-page_alloch.patch added to mm-new branch
-Message-Id: <20260705073133.917DF1F000E9@smtp.kernel.org>
+Subject: + perf-x86-intel-use-higher-level-allocator-api.patch added to mm-new branch
+Message-Id: <20260705073136.94B701F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: move some stuff to mm/page_alloc.h
+     Subject: perf/x86/intel: use higher-level allocator API
 has been added to the -mm mm-new branch.  Its filename is
-     mm-move-some-stuff-to-mm-page_alloch.patch
+     perf-x86-intel-use-higher-level-allocator-api.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-move-some-stuff-to-mm-page_alloch.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/perf-x86-intel-use-higher-level-allocator-api.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,115 +70,61 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Brendan Jackman <jackmanb@google.com>
-Subject: mm: move some stuff to mm/page_alloc.h
-Date: Fri, 03 Jul 2026 12:31:47 +0000
+Subject: perf/x86/intel: use higher-level allocator API
+Date: Fri, 03 Jul 2026 12:31:48 +0000
 
-Some of this stuff in the public header is only used internally so shrink
-the scope to avoid silently growing new users.
+The difference between __alloc_pages_node() and alloc_pages_node() is that
+the latter allows you to pass NUMA_NO_NODE.
 
-drain_local_pages() is still used from kernel/power/snapshot.c so that
-needs to stay behind.
+The former is going away and the latter works fine here so switch over.
 
-Link: https://lore.kernel.org/20260703-alloc-trylock-v5-7-c87b714e19d3@google.com
+No functional change intended.
+
+Link: https://lore.kernel.org/20260703-alloc-trylock-v5-8-c87b714e19d3@google.com
 Signed-off-by: Brendan Jackman <jackmanb@google.com>
+Reviewed-by: Suren Baghdasaryan <surenb@google.com>
 Reviewed-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
 Reviewed-by: Zi Yan <ziy@nvidia.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Arnaldo Carvalho de Melo <acme@kernel.org>
+Cc: Namhyung Kim <namhyung@kernel.org>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Alexander Shishkin <alexander.shishkin@linux.intel.com>
+Cc: Jiri Olsa <jolsa@kernel.org>
+Cc: Ian Rogers <irogers@google.com>
+Cc: Adrian Hunter <adrian.hunter@intel.com>
+Cc: James Clark <james.clark@linaro.org>
+Assisted-by: Gemini:unknown-version
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/gfp.h |   26 --------------------------
- mm/page_alloc.h     |   27 +++++++++++++++++++++++++++
- mm/vmstat.c         |    1 +
- 3 files changed, 28 insertions(+), 26 deletions(-)
+ arch/x86/events/intel/ds.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/include/linux/gfp.h~mm-move-some-stuff-to-mm-page_alloch
-+++ a/include/linux/gfp.h
-@@ -17,28 +17,6 @@ struct mempolicy;
- #define __default_gfp(a,b,...) b
- #define default_gfp(...) __default_gfp(,##__VA_ARGS__,GFP_KERNEL)
+--- a/arch/x86/events/intel/ds.c~perf-x86-intel-use-higher-level-allocator-api
++++ a/arch/x86/events/intel/ds.c
+@@ -832,7 +832,7 @@ static void *dsalloc_pages(size_t size,
+ 	int node = cpu_to_node(cpu);
+ 	struct page *page;
  
--/* Convert GFP flags to their corresponding migrate type */
--#define GFP_MOVABLE_MASK (__GFP_RECLAIMABLE|__GFP_MOVABLE)
--#define GFP_MOVABLE_SHIFT 3
--
--static inline int gfp_migratetype(const gfp_t gfp_flags)
--{
--	VM_WARN_ON((gfp_flags & GFP_MOVABLE_MASK) == GFP_MOVABLE_MASK);
--	BUILD_BUG_ON((1UL << GFP_MOVABLE_SHIFT) != ___GFP_MOVABLE);
--	BUILD_BUG_ON((___GFP_MOVABLE >> GFP_MOVABLE_SHIFT) != MIGRATE_MOVABLE);
--	BUILD_BUG_ON((___GFP_RECLAIMABLE >> GFP_MOVABLE_SHIFT) != MIGRATE_RECLAIMABLE);
--	BUILD_BUG_ON(((___GFP_MOVABLE | ___GFP_RECLAIMABLE) >>
--		      GFP_MOVABLE_SHIFT) != MIGRATE_HIGHATOMIC);
--
--	if (unlikely(page_group_by_mobility_disabled))
--		return MIGRATE_UNMOVABLE;
--
--	/* Group based on mobility */
--	return (__force unsigned long)(gfp_flags & GFP_MOVABLE_MASK) >> GFP_MOVABLE_SHIFT;
--}
--#undef GFP_MOVABLE_MASK
--#undef GFP_MOVABLE_SHIFT
--
- static inline bool gfpflags_allow_blocking(const gfp_t gfp_flags)
- {
- 	return !!(gfp_flags & __GFP_DIRECT_RECLAIM);
-@@ -395,10 +373,6 @@ extern void free_pages(unsigned long add
- #define __free_page(page) __free_pages((page), 0)
- #define free_page(addr) free_pages((addr), 0)
- 
--void page_alloc_init_cpuhp(void);
--bool decay_pcp_high(struct zone *zone, struct per_cpu_pages *pcp);
--void drain_zone_pages(struct zone *zone, struct per_cpu_pages *pcp);
--void drain_all_pages(struct zone *zone);
- void drain_local_pages(struct zone *zone);
- 
- void page_alloc_init_late(void);
---- a/mm/page_alloc.h~mm-move-some-stuff-to-mm-page_alloch
-+++ a/mm/page_alloc.h
-@@ -266,6 +266,33 @@ static inline bool free_area_empty(struc
- 	return list_empty(&area->free_list[migratetype]);
+-	page = __alloc_pages_node(node, flags | __GFP_ZERO, order);
++	page = alloc_pages_node(node, flags | __GFP_ZERO, order);
+ 	return page ? page_address(page) : NULL;
  }
  
-+/* Convert GFP flags to their corresponding migrate type */
-+#define GFP_MOVABLE_MASK (__GFP_RECLAIMABLE|__GFP_MOVABLE)
-+#define GFP_MOVABLE_SHIFT 3
-+
-+static inline int gfp_migratetype(const gfp_t gfp_flags)
-+{
-+	VM_WARN_ON((gfp_flags & GFP_MOVABLE_MASK) == GFP_MOVABLE_MASK);
-+	BUILD_BUG_ON((1UL << GFP_MOVABLE_SHIFT) != ___GFP_MOVABLE);
-+	BUILD_BUG_ON((___GFP_MOVABLE >> GFP_MOVABLE_SHIFT) != MIGRATE_MOVABLE);
-+	BUILD_BUG_ON((___GFP_RECLAIMABLE >> GFP_MOVABLE_SHIFT) != MIGRATE_RECLAIMABLE);
-+	BUILD_BUG_ON(((___GFP_MOVABLE | ___GFP_RECLAIMABLE) >>
-+		      GFP_MOVABLE_SHIFT) != MIGRATE_HIGHATOMIC);
-+
-+	if (unlikely(page_group_by_mobility_disabled))
-+		return MIGRATE_UNMOVABLE;
-+
-+	/* Group based on mobility */
-+	return (__force unsigned long)(gfp_flags & GFP_MOVABLE_MASK) >> GFP_MOVABLE_SHIFT;
-+}
-+#undef GFP_MOVABLE_MASK
-+#undef GFP_MOVABLE_SHIFT
-+
-+bool decay_pcp_high(struct zone *zone, struct per_cpu_pages *pcp);
-+void drain_zone_pages(struct zone *zone, struct per_cpu_pages *pcp);
-+void drain_all_pages(struct zone *zone);
-+
-+void page_alloc_init_cpuhp(void);
- void page_alloc_sysctl_init(void);
+@@ -1088,9 +1088,9 @@ void init_arch_pebs_on_cpu(int cpu)
  
- #endif /* __MM_PAGE_ALLOC_H */
---- a/mm/vmstat.c~mm-move-some-stuff-to-mm-page_alloch
-+++ a/mm/vmstat.c
-@@ -30,6 +30,7 @@
- #include <linux/sched/isolation.h>
- 
- #include "internal.h"
-+#include "page_alloc.h"
- 
- #ifdef CONFIG_PROC_FS
- #ifdef CONFIG_NUMA
+ 	/*
+ 	 * 4KB-aligned pointer of the output buffer
+-	 * (__alloc_pages_node() return page aligned address)
++	 * (alloc_pages_node() returns page aligned address)
+ 	 * Buffer Size = 4KB * 2^SIZE
+-	 * contiguous physical buffer (__alloc_pages_node() with order)
++	 * contiguous physical buffer (alloc_pages_node() with order)
+ 	 */
+ 	arch_pebs_base = virt_to_phys(cpuc->pebs_vaddr) | PEBS_BUFFER_SHIFT;
+ 	wrmsrq_on_cpu(cpu, MSR_IA32_PEBS_BASE, arch_pebs_base);
 _
 
 Patches currently in -mm which might be from jackmanb@google.com are
