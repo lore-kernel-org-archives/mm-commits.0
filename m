@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 14C76314D15
-	for <mm-commits@vger.kernel.org>; Sun,  5 Jul 2026 08:04:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C5E7323FC41
+	for <mm-commits@vger.kernel.org>; Sun,  5 Jul 2026 08:16:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783238645; cv=none; b=fN9OFo8VU5SgvF7VD/s/IjFmess+iSreu75IOV1qBGtEXvOf+bNslahSDc/ywg+4E50lh9PC+df2v8puF9LdD6TX+QZug3Z0oBh2N19ufP+kN6/OzW9YuD5QG2npYfVZbo01Vv3C3Id9uPBZhQ68gqOw0YO9D3ln0JUgq6tjU/8=
+	t=1783239404; cv=none; b=C7DbH63QpEXA24U5LY9VxH9zRcdu9QqNM+00J6BGpEXZu52BbifNnQDiB3W3V9ZlIWcytzxrcE+wpYtuiFiFIpmQWKrVpul+4QbgZUCKMknXezRnH1unVKU893TkG6KnYtohtGHxK9NoWrFC/rGkTqHRolv7NBMNpsqAxTQTA9U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783238645; c=relaxed/simple;
-	bh=+I8Jzv8yyp30n4pTGZVjn/IvX2YkNrMMIk3o0RmV4Rk=;
-	h=Date:To:From:Subject:Message-Id; b=cp29onIVqfHedV5r0nMGbnEOY09dkjS54JP4AisgJv7r9lGKasvenClJi0vFQ68+V7okgX53VULtihAoEbEJJn/3wMHTyRO6IogOfrUeg9J1QBnnmbA5Vn8C5j6GZzFB59oRy3EcgiTs8YLHgj9TMAVXuDWNXU0Bztwb0C58QMc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EWzbLDHA; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783239404; c=relaxed/simple;
+	bh=9p2+TR2/rlN8mc98ORaOvTkjlwvowjsW0Y0yywVaS4M=;
+	h=Date:To:From:Subject:Message-Id; b=px5TcSC9AkTTUXLdKn3R/O17tZxlecx7rRlQIumfYU0B/AsHwwg+hQrr/IV0O36EZKFQOnTY11yjl4sxBmdX4LJ/CLdAZLIF4/L2hA2k8lNsYr4GHd3u5jbP2TmTUmE1el9GNiS+evbwdbGDakGjtZ0XERKqu7lkpnNZEYyjK6o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lvsOkggR; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EWzbLDHA"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C34771F000E9;
-	Sun,  5 Jul 2026 08:04:03 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lvsOkggR"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 55FAE1F000E9;
+	Sun,  5 Jul 2026 08:16:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783238643;
-	bh=Ru34VBtrFFk9tpne14BPyj+xlVEP8yLPD5ziJA+5yyM=;
+	d=linux-foundation.org; s=korg; t=1783239402;
+	bh=knIOIVzVX7RImbW+++iRSbpNvPyq+qeFumlhWoLubDk=;
 	h=Date:To:From:Subject;
-	b=EWzbLDHA80xTJgZMiNYMiFH+ykuxOHxD/BDuGQOn2l0Xgyj0xat+7JD+CJ7k45uiW
-	 GGv2MtVGzc8u73DDl2gLNYFHjdCoy1P4b0eA0TUOtxpNYDSTgvmm/CHtsB6TvZuJRt
-	 eLwoJxD5JLGvskV6mCO3b5EKPdKqiFzMB/ru3urg=
-Date: Sun, 05 Jul 2026 01:04:03 -0700
-To: mm-commits@vger.kernel.org,visitorckw@gmail.com,thomas.weissschuh@linutronix.de,pabeni@redhat.com,kuba@kernel.org,horms@kernel.org,geert@linux-m68k.org,edumazet@google.com,davidgow@google.com,davem@davemloft.net,brendan.higgins@linux.dev,note351@hotmail.com,akpm@linux-foundation.org
+	b=lvsOkggRPuYKVhx7LeS0iXZBz+TnE/NEnzsATr2rE5jF6ACbmEOS3e4lOxSuSQRDd
+	 IwoB3RJRgAR5a9sbT1r/fMNRJL7RwIsZPMk2FqTYRgONPONnF5uIvpVgJ5TII6GU4g
+	 +1rRfCuzDgEcw0AK6qQ8Qn7Ok97EVp7WV9f4GmKc=
+Date: Sun, 05 Jul 2026 01:16:41 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,xuanzhuo@linux.alibaba.com,vbabka@kernel.org,surenb@google.com,rppt@kernel.org,pankaj.gupta@amd.com,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,jasowang@redhat.com,jackmanb@google.com,hannes@cmpxchg.org,gourry@gourry.net,eperezma@redhat.com,david@kernel.org,alexander.h.duyck@linux.intel.com,mst@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-random32-convert-selftest-to-kunit.patch added to mm-nonmm-unstable branch
-Message-Id: <20260705080403.C34771F000E9@smtp.kernel.org>
+Subject: + mm-page_reporting-allow-driver-to-set-batch-capacity.patch added to mm-new branch
+Message-Id: <20260705081642.55FAE1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,26 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: lib/random32: convert selftest to KUnit
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     lib-random32-convert-selftest-to-kunit.patch
+     Subject: mm: page_reporting: allow driver to set batch capacity
+has been added to the -mm mm-new branch.  Its filename is
+     mm-page_reporting-allow-driver-to-set-batch-capacity.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-random32-convert-selftest-to-kunit.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_reporting-allow-driver-to-set-batch-capacity.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,491 +69,190 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Kir Chou <note351@hotmail.com>
-Subject: lib/random32: convert selftest to KUnit
-Date: Fri, 3 Jul 2026 14:00:59 +0900
+From: "Michael S. Tsirkin" <mst@redhat.com>
+Subject: mm: page_reporting: allow driver to set batch capacity
+Date: Sun, 5 Jul 2026 02:25:13 -0400
 
-Convert the existing prandom selftest (lib/random32.c) to use the KUnit
-framework (lib/tests/random32_kunit.c).  Unlike typical KUnit tests, this
-file is directly #included into lib/random32.c.
+At the moment, if a virtio balloon device has a page reporting vq but its
+size is < PAGE_REPORTING_CAPACITY (32), the balloon driver fails probe.
 
-The new test:
-- Removes the legacy CONFIG_RANDOM32_SELFTEST from lib/random32.c.
-- Adds CONFIG_PRANDOM_KUNIT_TEST (defaulting to KUNIT_ALL_TESTS).
-- Moves the test logic to lib/tests/random32_kunit.c.
+But, there's no way for host to know this value, so it can easily create a
+smaller vq and suddenly adding the reporting capability to the device
+makes all of the driver fail.  Not pretty.
 
-This commit is verified by `./tools/testing/kunit/kunit.py run`
-with the .kunit/.kunitconfig:
+Add a capacity field to page_reporting_dev_info so drivers can control the
+maximum number of pages per report batch.
 
-CONFIG_KUNIT=y
-CONFIG_PRANDOM_KUNIT_TEST=y
+In virtio-balloon, set the capacity to the reporting virtqueue size,
+letting page_reporting adapt to whatever the device provides.
 
-Link: https://lore.kernel.org/20260703050100.23944-1-note351@hotmail.com
-Signed-off-by: Kir Chou <note351@hotmail.com>
-Reviewed-by: David Gow <davidgow@google.com>
-Cc: Brendan Higgins <brendan.higgins@linux.dev>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Eric Dumazet <edumazet@google.com>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Jakub Kacinski <kuba@kernel.org>
-Cc: Kuan-Wei Chiu <visitorckw@gmail.com>
-Cc: Paolo Abeni <pabeni@redhat.com>
-Cc: Simon Horman <horms@kernel.org>
-Cc: Thomas Weißschuh <thomas.weissschuh@linutronix.de>
+Capacity need not be a power of two.  Code previously called out division
+by PAGE_REPORTING_CAPACITY as cheap since it was a power of 2, but no
+performance difference was observed with non-power-of-2 values.
+
+If capacity is 0 or exceeds PAGE_REPORTING_CAPACITY, it defaults to
+PAGE_REPORTING_CAPACITY.  The 0 check and the clamping is done in
+page_reporting_register(), before the reporting work is scheduled, so we
+never get division by 0.
+
+Link: https://lore.kernel.org/444c24cf39f3f3620fc90ef4695bd6b0979f4c4b.1783232420.git.mst@redhat.com
+Fixes: b0c504f15471 ("virtio-balloon: add support for providing free page reports to host")
+Signed-off-by: Michael S. Tsirkin <mst@redhat.com>
+Assisted-by: Claude:claude-opus-4-6
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Reviewed-by: Gregory Price <gourry@gourry.net>
+Acked-by: Zi Yan <ziy@nvidia.com>
+Reviewed-by: Pankaj Gupta <pankaj.gupta@amd.com>
+Cc: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+Cc: Brendan Jackman <jackmanb@google.com>
+Cc: Eugenio Pérez <eperezma@redhat.com>
+Cc: Jason Wang <jasowang@redhat.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Xuan Zhuo <xuanzhuo@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig                |    6 -
- lib/Kconfig.debug          |    9 +
- lib/random32.c             |  184 +----------------------------------
- lib/tests/Makefile         |    1 
- lib/tests/random32_kunit.c |  182 ++++++++++++++++++++++++++++++++++
- 5 files changed, 202 insertions(+), 180 deletions(-)
+ drivers/virtio/virtio_balloon.c |    5 +----
+ include/linux/page_reporting.h  |    4 +++-
+ mm/page_reporting.c             |   24 ++++++++++++------------
+ 3 files changed, 16 insertions(+), 17 deletions(-)
 
---- a/lib/Kconfig~lib-random32-convert-selftest-to-kunit
-+++ a/lib/Kconfig
-@@ -159,12 +159,6 @@ config AUDIT_COMPAT_GENERIC
- 	depends on AUDIT_GENERIC && AUDIT_ARCH_COMPAT_GENERIC && COMPAT
- 	default y
+--- a/drivers/virtio/virtio_balloon.c~mm-page_reporting-allow-driver-to-set-batch-capacity
++++ a/drivers/virtio/virtio_balloon.c
+@@ -1017,10 +1017,6 @@ static int virtballoon_probe(struct virt
+ 		unsigned int capacity;
  
--config RANDOM32_SELFTEST
--	bool "PRNG perform self test on init"
--	help
--	  This option enables the 32 bit PRNG library functions to perform a
--	  self test on initialization.
--
- #
- # compression support is select'ed if needed
- #
---- a/lib/Kconfig.debug~lib-random32-convert-selftest-to-kunit
-+++ a/lib/Kconfig.debug
-@@ -3520,6 +3520,15 @@ config GLOB_KUNIT_TEST
+ 		capacity = virtqueue_get_vring_size(vb->reporting_vq);
+-		if (capacity < PAGE_REPORTING_CAPACITY) {
+-			err = -ENOSPC;
+-			goto out_unregister_oom;
+-		}
  
- 	  If unsure, say N
+ 		vb->pr_dev_info.order = PAGE_REPORTING_ORDER_UNSPECIFIED;
  
-+config PRANDOM_KUNIT_TEST
-+	tristate "KUnit test for prandom" if !KUNIT_ALL_TESTS
-+	depends on KUNIT
-+	default KUNIT_ALL_TESTS
-+	help
-+	  Enable this option to test the prandom functions at runtime.
+@@ -1041,6 +1037,7 @@ static int virtballoon_probe(struct virt
+ 		vb->pr_dev_info.order = 5;
+ #endif
+ 
++		vb->pr_dev_info.capacity = capacity;
+ 		err = page_reporting_register(&vb->pr_dev_info);
+ 		if (err)
+ 			goto out_unregister_oom;
+--- a/include/linux/page_reporting.h~mm-page_reporting-allow-driver-to-set-batch-capacity
++++ a/include/linux/page_reporting.h
+@@ -5,7 +5,6 @@
+ #include <linux/mmzone.h>
+ #include <linux/scatterlist.h>
+ 
+-/* This value should always be a power of 2, see page_reporting_cycle() */
+ #define PAGE_REPORTING_CAPACITY		32
+ #define PAGE_REPORTING_ORDER_UNSPECIFIED	-1
+ 
+@@ -22,6 +21,9 @@ struct page_reporting_dev_info {
+ 
+ 	/* Minimal order of page reporting */
+ 	unsigned int order;
 +
-+	  If unsure, say N
-+
- endif # RUNTIME_TESTING_MENU
++	/* Max pages per report batch; 0 (default) means PAGE_REPORTING_CAPACITY */
++	unsigned int capacity;
+ };
  
- config ARCH_USE_MEMTEST
---- a/lib/random32.c~lib-random32-convert-selftest-to-kunit
-+++ a/lib/random32.c
-@@ -41,6 +41,7 @@
- #include <linux/bitops.h>
- #include <linux/slab.h>
- #include <linux/unaligned.h>
-+#include <kunit/visibility.h>
+ /* Tear-down and bring-up for page reporting devices */
+--- a/mm/page_reporting.c~mm-page_reporting-allow-driver-to-set-batch-capacity
++++ a/mm/page_reporting.c
+@@ -174,11 +174,8 @@ page_reporting_cycle(struct page_reporti
+ 	 * any pages that may have already been present from the previous
+ 	 * list processed. This should result in us reporting all pages on
+ 	 * an idle system in about 30 seconds.
+-	 *
+-	 * The division here should be cheap since PAGE_REPORTING_CAPACITY
+-	 * should always be a power of 2.
+ 	 */
+-	budget = DIV_ROUND_UP(area->nr_free, PAGE_REPORTING_CAPACITY * 16);
++	budget = DIV_ROUND_UP(area->nr_free, prdev->capacity * 16);
  
- /**
-  *	prandom_u32_state - seeded pseudo-random number generator.
-@@ -92,7 +93,14 @@ void prandom_bytes_state(struct rnd_stat
- }
- EXPORT_SYMBOL(prandom_bytes_state);
+ 	/* loop through free list adding unreported pages to sg list */
+ 	list_for_each_entry_safe(page, next, list, lru) {
+@@ -223,10 +220,10 @@ page_reporting_cycle(struct page_reporti
+ 		spin_unlock_irq(&zone->lock);
  
--static void prandom_warmup(struct rnd_state *state)
-+/*
-+ * Only declared here so that it has a prototype when made
-+ * non-static for KUnit testing (avoids -Wmissing-prototypes).
-+ */
-+#if IS_ENABLED(CONFIG_KUNIT)
-+void prandom_warmup(struct rnd_state *state);
-+#endif
-+VISIBLE_IF_KUNIT void prandom_warmup(struct rnd_state *state)
+ 		/* begin processing pages in local list */
+-		err = prdev->report(prdev, sgl, PAGE_REPORTING_CAPACITY);
++		err = prdev->report(prdev, sgl, prdev->capacity);
+ 
+ 		/* reset offset since the full list was reported */
+-		*offset = PAGE_REPORTING_CAPACITY;
++		*offset = prdev->capacity;
+ 
+ 		/* update budget to reflect call to report function */
+ 		budget--;
+@@ -235,7 +232,7 @@ page_reporting_cycle(struct page_reporti
+ 		spin_lock_irq(&zone->lock);
+ 
+ 		/* flush reported pages from the sg list */
+-		page_reporting_drain(prdev, sgl, PAGE_REPORTING_CAPACITY, !err);
++		page_reporting_drain(prdev, sgl, prdev->capacity, !err);
+ 
+ 		/*
+ 		 * Reset next to first entry, the old next isn't valid
+@@ -261,13 +258,13 @@ static int
+ page_reporting_process_zone(struct page_reporting_dev_info *prdev,
+ 			    struct scatterlist *sgl, struct zone *zone)
  {
- 	/* Calling RNG ten times to satisfy recurrence condition */
- 	prandom_u32_state(state);
-@@ -106,6 +114,7 @@ static void prandom_warmup(struct rnd_st
- 	prandom_u32_state(state);
- 	prandom_u32_state(state);
- }
-+EXPORT_SYMBOL_IF_KUNIT(prandom_warmup);
+-	unsigned int order, mt, leftover, offset = PAGE_REPORTING_CAPACITY;
++	unsigned int order, mt, leftover, offset = prdev->capacity;
+ 	unsigned long watermark;
+ 	int err = 0;
  
- void prandom_seed_full_state(struct rnd_state __percpu *pcpu_state)
- {
-@@ -125,176 +134,3 @@ void prandom_seed_full_state(struct rnd_
+ 	/* Generate minimum watermark to be able to guarantee progress */
+ 	watermark = low_wmark_pages(zone) +
+-		    (PAGE_REPORTING_CAPACITY << page_reporting_order);
++		    (prdev->capacity << page_reporting_order);
+ 
+ 	/*
+ 	 * Cancel request if insufficient free memory or if we failed
+@@ -291,7 +288,7 @@ page_reporting_process_zone(struct page_
  	}
- }
- EXPORT_SYMBOL(prandom_seed_full_state);
--
--#ifdef CONFIG_RANDOM32_SELFTEST
--static struct prandom_test1 {
--	u32 seed;
--	u32 result;
--} test1[] = {
--	{ 1U, 3484351685U },
--	{ 2U, 2623130059U },
--	{ 3U, 3125133893U },
--	{ 4U,  984847254U },
--};
--
--static struct prandom_test2 {
--	u32 seed;
--	u32 iteration;
--	u32 result;
--} test2[] = {
--	/* Test cases against taus113 from GSL library. */
--	{  931557656U, 959U, 2975593782U },
--	{ 1339693295U, 876U, 3887776532U },
--	{ 1545556285U, 961U, 1615538833U },
--	{  601730776U, 723U, 1776162651U },
--	{ 1027516047U, 687U,  511983079U },
--	{  416526298U, 700U,  916156552U },
--	{ 1395522032U, 652U, 2222063676U },
--	{  366221443U, 617U, 2992857763U },
--	{ 1539836965U, 714U, 3783265725U },
--	{  556206671U, 994U,  799626459U },
--	{  684907218U, 799U,  367789491U },
--	{ 2121230701U, 931U, 2115467001U },
--	{ 1668516451U, 644U, 3620590685U },
--	{  768046066U, 883U, 2034077390U },
--	{ 1989159136U, 833U, 1195767305U },
--	{  536585145U, 996U, 3577259204U },
--	{ 1008129373U, 642U, 1478080776U },
--	{ 1740775604U, 939U, 1264980372U },
--	{ 1967883163U, 508U,   10734624U },
--	{ 1923019697U, 730U, 3821419629U },
--	{  442079932U, 560U, 3440032343U },
--	{ 1961302714U, 845U,  841962572U },
--	{ 2030205964U, 962U, 1325144227U },
--	{ 1160407529U, 507U,  240940858U },
--	{  635482502U, 779U, 4200489746U },
--	{ 1252788931U, 699U,  867195434U },
--	{ 1961817131U, 719U,  668237657U },
--	{ 1071468216U, 983U,  917876630U },
--	{ 1281848367U, 932U, 1003100039U },
--	{  582537119U, 780U, 1127273778U },
--	{ 1973672777U, 853U, 1071368872U },
--	{ 1896756996U, 762U, 1127851055U },
--	{  847917054U, 500U, 1717499075U },
--	{ 1240520510U, 951U, 2849576657U },
--	{ 1685071682U, 567U, 1961810396U },
--	{ 1516232129U, 557U,    3173877U },
--	{ 1208118903U, 612U, 1613145022U },
--	{ 1817269927U, 693U, 4279122573U },
--	{ 1510091701U, 717U,  638191229U },
--	{  365916850U, 807U,  600424314U },
--	{  399324359U, 702U, 1803598116U },
--	{ 1318480274U, 779U, 2074237022U },
--	{  697758115U, 840U, 1483639402U },
--	{ 1696507773U, 840U,  577415447U },
--	{ 2081979121U, 981U, 3041486449U },
--	{  955646687U, 742U, 3846494357U },
--	{ 1250683506U, 749U,  836419859U },
--	{  595003102U, 534U,  366794109U },
--	{   47485338U, 558U, 3521120834U },
--	{  619433479U, 610U, 3991783875U },
--	{  704096520U, 518U, 4139493852U },
--	{ 1712224984U, 606U, 2393312003U },
--	{ 1318233152U, 922U, 3880361134U },
--	{  855572992U, 761U, 1472974787U },
--	{   64721421U, 703U,  683860550U },
--	{  678931758U, 840U,  380616043U },
--	{  692711973U, 778U, 1382361947U },
--	{  677703619U, 530U, 2826914161U },
--	{   92393223U, 586U, 1522128471U },
--	{ 1222592920U, 743U, 3466726667U },
--	{  358288986U, 695U, 1091956998U },
--	{ 1935056945U, 958U,  514864477U },
--	{  735675993U, 990U, 1294239989U },
--	{ 1560089402U, 897U, 2238551287U },
--	{   70616361U, 829U,   22483098U },
--	{  368234700U, 731U, 2913875084U },
--	{   20221190U, 879U, 1564152970U },
--	{  539444654U, 682U, 1835141259U },
--	{ 1314987297U, 840U, 1801114136U },
--	{ 2019295544U, 645U, 3286438930U },
--	{  469023838U, 716U, 1637918202U },
--	{ 1843754496U, 653U, 2562092152U },
--	{  400672036U, 809U, 4264212785U },
--	{  404722249U, 965U, 2704116999U },
--	{  600702209U, 758U,  584979986U },
--	{  519953954U, 667U, 2574436237U },
--	{ 1658071126U, 694U, 2214569490U },
--	{  420480037U, 749U, 3430010866U },
--	{  690103647U, 969U, 3700758083U },
--	{ 1029424799U, 937U, 3787746841U },
--	{ 2012608669U, 506U, 3362628973U },
--	{ 1535432887U, 998U,   42610943U },
--	{ 1330635533U, 857U, 3040806504U },
--	{ 1223800550U, 539U, 3954229517U },
--	{ 1322411537U, 680U, 3223250324U },
--	{ 1877847898U, 945U, 2915147143U },
--	{ 1646356099U, 874U,  965988280U },
--	{  805687536U, 744U, 4032277920U },
--	{ 1948093210U, 633U, 1346597684U },
--	{  392609744U, 783U, 1636083295U },
--	{  690241304U, 770U, 1201031298U },
--	{ 1360302965U, 696U, 1665394461U },
--	{ 1220090946U, 780U, 1316922812U },
--	{  447092251U, 500U, 3438743375U },
--	{ 1613868791U, 592U,  828546883U },
--	{  523430951U, 548U, 2552392304U },
--	{  726692899U, 810U, 1656872867U },
--	{ 1364340021U, 836U, 3710513486U },
--	{ 1986257729U, 931U,  935013962U },
--	{  407983964U, 921U,  728767059U },
--};
--
--static void prandom_state_selftest_seed(struct rnd_state *state, u32 seed)
--{
--#define LCG(x)	 ((x) * 69069U)	/* super-duper LCG */
--	state->s1 = __seed(LCG(seed),        2U);
--	state->s2 = __seed(LCG(state->s1),   8U);
--	state->s3 = __seed(LCG(state->s2),  16U);
--	state->s4 = __seed(LCG(state->s3), 128U);
--}
--
--static int __init prandom_state_selftest(void)
--{
--	int i, j, errors = 0, runs = 0;
--	bool error = false;
--
--	for (i = 0; i < ARRAY_SIZE(test1); i++) {
--		struct rnd_state state;
--
--		prandom_state_selftest_seed(&state, test1[i].seed);
--		prandom_warmup(&state);
--
--		if (test1[i].result != prandom_u32_state(&state))
--			error = true;
--	}
--
--	if (error)
--		pr_warn("prandom: seed boundary self test failed\n");
--	else
--		pr_info("prandom: seed boundary self test passed\n");
--
--	for (i = 0; i < ARRAY_SIZE(test2); i++) {
--		struct rnd_state state;
--
--		prandom_state_selftest_seed(&state, test2[i].seed);
--		prandom_warmup(&state);
--
--		for (j = 0; j < test2[i].iteration - 1; j++)
--			prandom_u32_state(&state);
--
--		if (test2[i].result != prandom_u32_state(&state))
--			errors++;
--
--		runs++;
--		cond_resched();
--	}
--
--	if (errors)
--		pr_warn("prandom: %d/%d self tests failed\n", errors, runs);
--	else
--		pr_info("prandom: %d self tests passed\n", runs);
--	return 0;
--}
--core_initcall(prandom_state_selftest);
--#endif
---- a/lib/tests/Makefile~lib-random32-convert-selftest-to-kunit
-+++ a/lib/tests/Makefile
-@@ -43,6 +43,7 @@ CFLAGS_overflow_kunit.o = $(call cc-disa
- obj-$(CONFIG_OVERFLOW_KUNIT_TEST) += overflow_kunit.o
- # GCC < 12.1 can miscompile errptr() test when branch profiling is enabled.
- CFLAGS_printf_kunit.o += -DDISABLE_BRANCH_PROFILING
-+obj-$(CONFIG_PRANDOM_KUNIT_TEST) += random32_kunit.o
- obj-$(CONFIG_PRINTF_KUNIT_TEST) += printf_kunit.o
- obj-$(CONFIG_RANDSTRUCT_KUNIT_TEST) += randstruct_kunit.o
- obj-$(CONFIG_SCANF_KUNIT_TEST) += scanf_kunit.o
-diff --git a/lib/tests/random32_kunit.c a/lib/tests/random32_kunit.c
-new file mode 100644
---- /dev/null
-+++ a/lib/tests/random32_kunit.c
-@@ -0,0 +1,182 @@
-+// SPDX-License-Identifier: GPL-2.0
-+/*
-+ * Test cases for random32 functions.
-+ */
+ 
+ 	/* report the leftover pages before going idle */
+-	leftover = PAGE_REPORTING_CAPACITY - offset;
++	leftover = prdev->capacity - offset;
+ 	if (leftover) {
+ 		sgl = &sgl[offset];
+ 		err = prdev->report(prdev, sgl, leftover);
+@@ -323,11 +320,11 @@ static void page_reporting_process(struc
+ 	atomic_set(&prdev->state, state);
+ 
+ 	/* allocate scatterlist to store pages being reported on */
+-	sgl = kmalloc_objs(*sgl, PAGE_REPORTING_CAPACITY);
++	sgl = kmalloc_objs(*sgl, prdev->capacity);
+ 	if (!sgl)
+ 		goto err_out;
+ 
+-	sg_init_table(sgl, PAGE_REPORTING_CAPACITY);
++	sg_init_table(sgl, prdev->capacity);
+ 
+ 	for_each_zone(zone) {
+ 		err = page_reporting_process_zone(prdev, sgl, zone);
+@@ -378,6 +375,9 @@ int page_reporting_register(struct page_
+ 			page_reporting_order = pageblock_order;
+ 	}
+ 
++	if (!prdev->capacity || prdev->capacity > PAGE_REPORTING_CAPACITY)
++		prdev->capacity = PAGE_REPORTING_CAPACITY;
 +
-+#include <linux/prandom.h>
-+#include <kunit/test.h>
-+
-+/* prandom_warmup() is static in lib/random32.c; exposed for testing only. */
-+void prandom_warmup(struct rnd_state *state);
-+
-+static const struct prandom_test1 {
-+	u32 seed;
-+	u32 result;
-+} test1[] = {
-+	{ 1U, 3484351685U },
-+	{ 2U, 2623130059U },
-+	{ 3U, 3125133893U },
-+	{ 4U,  984847254U },
-+};
-+
-+static const struct prandom_test2 {
-+	u32 seed;
-+	u32 iteration;
-+	u32 result;
-+} test2[] = {
-+	/* Test cases against taus113 from GSL library. */
-+	{  931557656U, 959U, 2975593782U },
-+	{ 1339693295U, 876U, 3887776532U },
-+	{ 1545556285U, 961U, 1615538833U },
-+	{  601730776U, 723U, 1776162651U },
-+	{ 1027516047U, 687U,  511983079U },
-+	{  416526298U, 700U,  916156552U },
-+	{ 1395522032U, 652U, 2222063676U },
-+	{  366221443U, 617U, 2992857763U },
-+	{ 1539836965U, 714U, 3783265725U },
-+	{  556206671U, 994U,  799626459U },
-+	{  684907218U, 799U,  367789491U },
-+	{ 2121230701U, 931U, 2115467001U },
-+	{ 1668516451U, 644U, 3620590685U },
-+	{  768046066U, 883U, 2034077390U },
-+	{ 1989159136U, 833U, 1195767305U },
-+	{  536585145U, 996U, 3577259204U },
-+	{ 1008129373U, 642U, 1478080776U },
-+	{ 1740775604U, 939U, 1264980372U },
-+	{ 1967883163U, 508U,   10734624U },
-+	{ 1923019697U, 730U, 3821419629U },
-+	{  442079932U, 560U, 3440032343U },
-+	{ 1961302714U, 845U,  841962572U },
-+	{ 2030205964U, 962U, 1325144227U },
-+	{ 1160407529U, 507U,  240940858U },
-+	{  635482502U, 779U, 4200489746U },
-+	{ 1252788931U, 699U,  867195434U },
-+	{ 1961817131U, 719U,  668237657U },
-+	{ 1071468216U, 983U,  917876630U },
-+	{ 1281848367U, 932U, 1003100039U },
-+	{  582537119U, 780U, 1127273778U },
-+	{ 1973672777U, 853U, 1071368872U },
-+	{ 1896756996U, 762U, 1127851055U },
-+	{  847917054U, 500U, 1717499075U },
-+	{ 1240520510U, 951U, 2849576657U },
-+	{ 1685071682U, 567U, 1961810396U },
-+	{ 1516232129U, 557U,    3173877U },
-+	{ 1208118903U, 612U, 1613145022U },
-+	{ 1817269927U, 693U, 4279122573U },
-+	{ 1510091701U, 717U,  638191229U },
-+	{  365916850U, 807U,  600424314U },
-+	{  399324359U, 702U, 1803598116U },
-+	{ 1318480274U, 779U, 2074237022U },
-+	{  697758115U, 840U, 1483639402U },
-+	{ 1696507773U, 840U,  577415447U },
-+	{ 2081979121U, 981U, 3041486449U },
-+	{  955646687U, 742U, 3846494357U },
-+	{ 1250683506U, 749U,  836419859U },
-+	{  595003102U, 534U,  366794109U },
-+	{   47485338U, 558U, 3521120834U },
-+	{  619433479U, 610U, 3991783875U },
-+	{  704096520U, 518U, 4139493852U },
-+	{ 1712224984U, 606U, 2393312003U },
-+	{ 1318233152U, 922U, 3880361134U },
-+	{  855572992U, 761U, 1472974787U },
-+	{   64721421U, 703U,  683860550U },
-+	{  678931758U, 840U,  380616043U },
-+	{  692711973U, 778U, 1382361947U },
-+	{  677703619U, 530U, 2826914161U },
-+	{   92393223U, 586U, 1522128471U },
-+	{ 1222592920U, 743U, 3466726667U },
-+	{  358288986U, 695U, 1091956998U },
-+	{ 1935056945U, 958U,  514864477U },
-+	{  735675993U, 990U, 1294239989U },
-+	{ 1560089402U, 897U, 2238551287U },
-+	{   70616361U, 829U,   22483098U },
-+	{  368234700U, 731U, 2913875084U },
-+	{   20221190U, 879U, 1564152970U },
-+	{  539444654U, 682U, 1835141259U },
-+	{ 1314987297U, 840U, 1801114136U },
-+	{ 2019295544U, 645U, 3286438930U },
-+	{  469023838U, 716U, 1637918202U },
-+	{ 1843754496U, 653U, 2562092152U },
-+	{  400672036U, 809U, 4264212785U },
-+	{  404722249U, 965U, 2704116999U },
-+	{  600702209U, 758U,  584979986U },
-+	{  519953954U, 667U, 2574436237U },
-+	{ 1658071126U, 694U, 2214569490U },
-+	{  420480037U, 749U, 3430010866U },
-+	{  690103647U, 969U, 3700758083U },
-+	{ 1029424799U, 937U, 3787746841U },
-+	{ 2012608669U, 506U, 3362628973U },
-+	{ 1535432887U, 998U,   42610943U },
-+	{ 1330635533U, 857U, 3040806504U },
-+	{ 1223800550U, 539U, 3954229517U },
-+	{ 1322411537U, 680U, 3223250324U },
-+	{ 1877847898U, 945U, 2915147143U },
-+	{ 1646356099U, 874U,  965988280U },
-+	{  805687536U, 744U, 4032277920U },
-+	{ 1948093210U, 633U, 1346597684U },
-+	{  392609744U, 783U, 1636083295U },
-+	{  690241304U, 770U, 1201031298U },
-+	{ 1360302965U, 696U, 1665394461U },
-+	{ 1220090946U, 780U, 1316922812U },
-+	{  447092251U, 500U, 3438743375U },
-+	{ 1613868791U, 592U,  828546883U },
-+	{  523430951U, 548U, 2552392304U },
-+	{  726692899U, 810U, 1656872867U },
-+	{ 1364340021U, 836U, 3710513486U },
-+	{ 1986257729U, 931U,  935013962U },
-+	{  407983964U, 921U,  728767059U },
-+};
-+
-+static void prandom_state_test_seed(struct rnd_state *state, u32 seed)
-+{
-+#define LCG(x)	 ((x) * 69069U)	/* super-duper LCG */
-+	state->s1 = __seed(LCG(seed),        2U);
-+	state->s2 = __seed(LCG(state->s1),   8U);
-+	state->s3 = __seed(LCG(state->s2),  16U);
-+	state->s4 = __seed(LCG(state->s3), 128U);
-+}
-+
-+static void test_prandom_seed_boundary(struct kunit *test)
-+{
-+	int i;
-+	struct rnd_state state;
-+
-+	for (i = 0; i < ARRAY_SIZE(test1); i++) {
-+		prandom_state_test_seed(&state, test1[i].seed);
-+		prandom_warmup(&state);
-+		KUNIT_EXPECT_EQ(test, test1[i].result, prandom_u32_state(&state));
-+	}
-+}
-+
-+static void test_prandom_taus113(struct kunit *test)
-+{
-+	int i, j;
-+	struct rnd_state state;
-+
-+	for (i = 0; i < ARRAY_SIZE(test2); i++) {
-+		prandom_state_test_seed(&state, test2[i].seed);
-+		prandom_warmup(&state);
-+
-+		for (j = 0; j < test2[i].iteration - 1; j++)
-+			prandom_u32_state(&state);
-+
-+		KUNIT_EXPECT_EQ(test, test2[i].result, prandom_u32_state(&state));
-+	}
-+}
-+
-+static struct kunit_case prandom_test_cases[] = {
-+	KUNIT_CASE(test_prandom_seed_boundary),
-+	KUNIT_CASE(test_prandom_taus113),
-+	{}
-+};
-+
-+static struct kunit_suite prandom_test_suite = {
-+	.name = "prandom",
-+	.test_cases = prandom_test_cases,
-+};
-+
-+kunit_test_suite(prandom_test_suite);
-+
-+MODULE_DESCRIPTION("KUnit test for prandom");
-+MODULE_LICENSE("GPL");
-+MODULE_IMPORT_NS("EXPORTED_FOR_KUNIT_TESTING");
+ 	/* initialize state and work structures */
+ 	atomic_set(&prdev->state, PAGE_REPORTING_IDLE);
+ 	INIT_DELAYED_WORK(&prdev->work, &page_reporting_process);
 _
 
-Patches currently in -mm which might be from note351@hotmail.com are
+Patches currently in -mm which might be from mst@redhat.com are
 
-lib-random32-convert-selftest-to-kunit.patch
+mm-page_reporting-allow-driver-to-set-batch-capacity.patch
 
