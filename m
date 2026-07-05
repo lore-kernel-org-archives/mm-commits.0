@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C5E7323FC41
-	for <mm-commits@vger.kernel.org>; Sun,  5 Jul 2026 08:16:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8188A3603D8
+	for <mm-commits@vger.kernel.org>; Sun,  5 Jul 2026 08:33:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783239404; cv=none; b=C7DbH63QpEXA24U5LY9VxH9zRcdu9QqNM+00J6BGpEXZu52BbifNnQDiB3W3V9ZlIWcytzxrcE+wpYtuiFiFIpmQWKrVpul+4QbgZUCKMknXezRnH1unVKU893TkG6KnYtohtGHxK9NoWrFC/rGkTqHRolv7NBMNpsqAxTQTA9U=
+	t=1783240436; cv=none; b=JnWrkl4dkMaOqAvxpyVZXGC6L75k5APRoq+oMBb0ySEZfrN89QTQfJADGjHEZVrxS5mt3fRseZc65DuGR1TOg9dB7WKlnZF6AWUR/2KXxRm+KlHNLDbfv6WIkjtb8xOqYW7Z88Xg2gh6zqDi/Hv0TrNIVhxcpGlEq1OsuBEjUq4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783239404; c=relaxed/simple;
-	bh=9p2+TR2/rlN8mc98ORaOvTkjlwvowjsW0Y0yywVaS4M=;
-	h=Date:To:From:Subject:Message-Id; b=px5TcSC9AkTTUXLdKn3R/O17tZxlecx7rRlQIumfYU0B/AsHwwg+hQrr/IV0O36EZKFQOnTY11yjl4sxBmdX4LJ/CLdAZLIF4/L2hA2k8lNsYr4GHd3u5jbP2TmTUmE1el9GNiS+evbwdbGDakGjtZ0XERKqu7lkpnNZEYyjK6o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lvsOkggR; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783240436; c=relaxed/simple;
+	bh=Et/s0A4fGQSoZDG6T0zgSBYe2BwkjCPi4fOBzJXN1iE=;
+	h=Date:To:From:Subject:Message-Id; b=i77YMkl+HD38OdBT5cfZ9RDwxHrhWCUWg44fJleT0rhLWU1gR/SP/F1PfOdbsKF5kFNhVJSIxFYhFhqyNsmhK4JkRPBGdSyrlhHiuc/0R+ybz/LLI+SbRhNzEq+8xNMqWTWqdBfa6Vy4EULnOVXoDAWkvIvWlkBuUmVLAV7yZEA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GV3wvPB4; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lvsOkggR"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 55FAE1F000E9;
-	Sun,  5 Jul 2026 08:16:42 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GV3wvPB4"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E8CDE1F000E9;
+	Sun,  5 Jul 2026 08:33:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783239402;
-	bh=knIOIVzVX7RImbW+++iRSbpNvPyq+qeFumlhWoLubDk=;
+	d=linux-foundation.org; s=korg; t=1783240432;
+	bh=11lWWHSMeLljimTAiwK1Hsushm7+REjpcpkJjxHFpQc=;
 	h=Date:To:From:Subject;
-	b=lvsOkggRPuYKVhx7LeS0iXZBz+TnE/NEnzsATr2rE5jF6ACbmEOS3e4lOxSuSQRDd
-	 IwoB3RJRgAR5a9sbT1r/fMNRJL7RwIsZPMk2FqTYRgONPONnF5uIvpVgJ5TII6GU4g
-	 +1rRfCuzDgEcw0AK6qQ8Qn7Ok97EVp7WV9f4GmKc=
-Date: Sun, 05 Jul 2026 01:16:41 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,xuanzhuo@linux.alibaba.com,vbabka@kernel.org,surenb@google.com,rppt@kernel.org,pankaj.gupta@amd.com,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,jasowang@redhat.com,jackmanb@google.com,hannes@cmpxchg.org,gourry@gourry.net,eperezma@redhat.com,david@kernel.org,alexander.h.duyck@linux.intel.com,mst@redhat.com,akpm@linux-foundation.org
+	b=GV3wvPB47O/oksTfOKCOY5wJSeTQ8gJUdq+59ALgOEmmZdZx1jrUfJKgonohvYULZ
+	 6PQ2ZjPj9frjFpbNugaxLPWEA5cYEG35c/Z7toqZXmk3UMRmAmWnBExRZCLuIpz3FS
+	 n9AjUEE5y4HulMyZRtLkeRPXrRVas6um8ySL2WgA=
+Date: Sun, 05 Jul 2026 01:33:51 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,will@kernel.org,vbabka@kernel.org,ryan.roberts@arm.com,riel@surriel.com,rcampbell@nvidia.com,rakie.kim@sk.com,pfalcato@suse.de,osalvador@suse.de,nao.horiguchi@gmail.com,muchun.song@linux.dev,mel@csn.ul.ie,matthew.brost@intel.com,ljs@kernel.org,liam@infradead.org,lance.yang@linux.dev,kas@kernel.org,jpoimboe@kernel.org,joshua.hahnjy@gmail.com,j-nomura@ce.jp.nec.com,jannh@google.com,harry@kernel.org,gourry@gourry.net,dev.jain@arm.com,david@kernel.org,dave.hansen@intel.com,catalin.marinas@arm.com,byungchul@sk.com,apopple@nvidia.com,anshuman.khandual@arm.com,ak@linux.intel.com,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_reporting-allow-driver-to-set-batch-capacity.patch added to mm-new branch
-Message-Id: <20260705081642.55FAE1F000E9@smtp.kernel.org>
+Subject: + mm-mprotect-use-huge_ptep_get-for-hugetlb-fix.patch added to mm-new branch
+Message-Id: <20260705083351.E8CDE1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: page_reporting: allow driver to set batch capacity
+     Subject: mm-mprotect-use-huge_ptep_get-for-hugetlb-fix
 has been added to the -mm mm-new branch.  Its filename is
-     mm-page_reporting-allow-driver-to-set-batch-capacity.patch
+     mm-mprotect-use-huge_ptep_get-for-hugetlb-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_reporting-allow-driver-to-set-batch-capacity.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mprotect-use-huge_ptep_get-for-hugetlb-fix.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,190 +69,76 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: "Michael S. Tsirkin" <mst@redhat.com>
-Subject: mm: page_reporting: allow driver to set batch capacity
-Date: Sun, 5 Jul 2026 02:25:13 -0400
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-mprotect-use-huge_ptep_get-for-hugetlb-fix
+Date: Sun Jul  5 01:31:08 AM PDT 2026
 
-At the moment, if a virtio balloon device has a page reporting vq but its
-size is < PAGE_REPORTING_CAPACITY (32), the balloon driver fails probe.
+s/EACCESS/EACCES/
 
-But, there's no way for host to know this value, so it can easily create a
-smaller vq and suddenly adding the reporting capability to the device
-makes all of the driver fail.  Not pretty.
-
-Add a capacity field to page_reporting_dev_info so drivers can control the
-maximum number of pages per report batch.
-
-In virtio-balloon, set the capacity to the reporting virtqueue size,
-letting page_reporting adapt to whatever the device provides.
-
-Capacity need not be a power of two.  Code previously called out division
-by PAGE_REPORTING_CAPACITY as cheap since it was a power of 2, but no
-performance difference was observed with non-power-of-2 values.
-
-If capacity is 0 or exceeds PAGE_REPORTING_CAPACITY, it defaults to
-PAGE_REPORTING_CAPACITY.  The 0 check and the clamping is done in
-page_reporting_register(), before the reporting work is scheduled, so we
-never get division by 0.
-
-Link: https://lore.kernel.org/444c24cf39f3f3620fc90ef4695bd6b0979f4c4b.1783232420.git.mst@redhat.com
-Fixes: b0c504f15471 ("virtio-balloon: add support for providing free page reports to host")
-Signed-off-by: Michael S. Tsirkin <mst@redhat.com>
-Assisted-by: Claude:claude-opus-4-6
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Reviewed-by: Gregory Price <gourry@gourry.net>
-Acked-by: Zi Yan <ziy@nvidia.com>
-Reviewed-by: Pankaj Gupta <pankaj.gupta@amd.com>
-Cc: Alexander Duyck <alexander.h.duyck@linux.intel.com>
-Cc: Brendan Jackman <jackmanb@google.com>
-Cc: Eugenio Pérez <eperezma@redhat.com>
-Cc: Jason Wang <jasowang@redhat.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Andi Kleen <ak@linux.intel.com>
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Byungchul Park <byungchul@sk.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: David Hildenbrand (Arm) <david@kernel.org>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Gregory Price <gourry@gourry.net>
+Cc: Harry Yoo <harry@kernel.org>
+Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
+Cc: Jann Horn <jannh@google.com>
+Cc: Josh Poimboeuf <jpoimboe@kernel.org>
+Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
+Cc: Jun'ichi "Nick" Nomura <j-nomura@ce.jp.nec.com>
+Cc: Kiryl Shutsemau <kas@kernel.org>
+Cc: Lance Yang <lance.yang@linux.dev>
 Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Matthew Brost <matthew.brost@intel.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Pedro Falcato <pfalcato@suse.de>
+Cc: Rakie Kim <rakie.kim@sk.com>
+Cc: Ralph Campbell <rcampbell@nvidia.com>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
 Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Xuan Zhuo <xuanzhuo@linux.alibaba.com>
+Cc: Will Deacon <will@kernel.org>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/virtio/virtio_balloon.c |    5 +----
- include/linux/page_reporting.h  |    4 +++-
- mm/page_reporting.c             |   24 ++++++++++++------------
- 3 files changed, 16 insertions(+), 17 deletions(-)
+ mm/mprotect.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/drivers/virtio/virtio_balloon.c~mm-page_reporting-allow-driver-to-set-batch-capacity
-+++ a/drivers/virtio/virtio_balloon.c
-@@ -1017,10 +1017,6 @@ static int virtballoon_probe(struct virt
- 		unsigned int capacity;
+--- a/mm/mprotect.c~mm-mprotect-use-huge_ptep_get-for-hugetlb-fix
++++ a/mm/mprotect.c
+@@ -708,7 +708,7 @@ static int prot_none_hugetlb_entry(pte_t
  
- 		capacity = virtqueue_get_vring_size(vb->reporting_vq);
--		if (capacity < PAGE_REPORTING_CAPACITY) {
--			err = -ENOSPC;
--			goto out_unregister_oom;
--		}
- 
- 		vb->pr_dev_info.order = PAGE_REPORTING_ORDER_UNSPECIFIED;
- 
-@@ -1041,6 +1037,7 @@ static int virtballoon_probe(struct virt
- 		vb->pr_dev_info.order = 5;
- #endif
- 
-+		vb->pr_dev_info.capacity = capacity;
- 		err = page_reporting_register(&vb->pr_dev_info);
- 		if (err)
- 			goto out_unregister_oom;
---- a/include/linux/page_reporting.h~mm-page_reporting-allow-driver-to-set-batch-capacity
-+++ a/include/linux/page_reporting.h
-@@ -5,7 +5,6 @@
- #include <linux/mmzone.h>
- #include <linux/scatterlist.h>
- 
--/* This value should always be a power of 2, see page_reporting_cycle() */
- #define PAGE_REPORTING_CAPACITY		32
- #define PAGE_REPORTING_ORDER_UNSPECIFIED	-1
- 
-@@ -22,6 +21,9 @@ struct page_reporting_dev_info {
- 
- 	/* Minimal order of page reporting */
- 	unsigned int order;
-+
-+	/* Max pages per report batch; 0 (default) means PAGE_REPORTING_CAPACITY */
-+	unsigned int capacity;
- };
- 
- /* Tear-down and bring-up for page reporting devices */
---- a/mm/page_reporting.c~mm-page_reporting-allow-driver-to-set-batch-capacity
-+++ a/mm/page_reporting.c
-@@ -174,11 +174,8 @@ page_reporting_cycle(struct page_reporti
- 	 * any pages that may have already been present from the previous
- 	 * list processed. This should result in us reporting all pages on
- 	 * an idle system in about 30 seconds.
--	 *
--	 * The division here should be cheap since PAGE_REPORTING_CAPACITY
--	 * should always be a power of 2.
- 	 */
--	budget = DIV_ROUND_UP(area->nr_free, PAGE_REPORTING_CAPACITY * 16);
-+	budget = DIV_ROUND_UP(area->nr_free, prdev->capacity * 16);
- 
- 	/* loop through free list adding unreported pages to sg list */
- 	list_for_each_entry_safe(page, next, list, lru) {
-@@ -223,10 +220,10 @@ page_reporting_cycle(struct page_reporti
- 		spin_unlock_irq(&zone->lock);
- 
- 		/* begin processing pages in local list */
--		err = prdev->report(prdev, sgl, PAGE_REPORTING_CAPACITY);
-+		err = prdev->report(prdev, sgl, prdev->capacity);
- 
- 		/* reset offset since the full list was reported */
--		*offset = PAGE_REPORTING_CAPACITY;
-+		*offset = prdev->capacity;
- 
- 		/* update budget to reflect call to report function */
- 		budget--;
-@@ -235,7 +232,7 @@ page_reporting_cycle(struct page_reporti
- 		spin_lock_irq(&zone->lock);
- 
- 		/* flush reported pages from the sg list */
--		page_reporting_drain(prdev, sgl, PAGE_REPORTING_CAPACITY, !err);
-+		page_reporting_drain(prdev, sgl, prdev->capacity, !err);
- 
- 		/*
- 		 * Reset next to first entry, the old next isn't valid
-@@ -261,13 +258,13 @@ static int
- page_reporting_process_zone(struct page_reporting_dev_info *prdev,
- 			    struct scatterlist *sgl, struct zone *zone)
- {
--	unsigned int order, mt, leftover, offset = PAGE_REPORTING_CAPACITY;
-+	unsigned int order, mt, leftover, offset = prdev->capacity;
- 	unsigned long watermark;
- 	int err = 0;
- 
- 	/* Generate minimum watermark to be able to guarantee progress */
- 	watermark = low_wmark_pages(zone) +
--		    (PAGE_REPORTING_CAPACITY << page_reporting_order);
-+		    (prdev->capacity << page_reporting_order);
- 
- 	/*
- 	 * Cancel request if insufficient free memory or if we failed
-@@ -291,7 +288,7 @@ page_reporting_process_zone(struct page_
- 	}
- 
- 	/* report the leftover pages before going idle */
--	leftover = PAGE_REPORTING_CAPACITY - offset;
-+	leftover = prdev->capacity - offset;
- 	if (leftover) {
- 		sgl = &sgl[offset];
- 		err = prdev->report(prdev, sgl, leftover);
-@@ -323,11 +320,11 @@ static void page_reporting_process(struc
- 	atomic_set(&prdev->state, state);
- 
- 	/* allocate scatterlist to store pages being reported on */
--	sgl = kmalloc_objs(*sgl, PAGE_REPORTING_CAPACITY);
-+	sgl = kmalloc_objs(*sgl, prdev->capacity);
- 	if (!sgl)
- 		goto err_out;
- 
--	sg_init_table(sgl, PAGE_REPORTING_CAPACITY);
-+	sg_init_table(sgl, prdev->capacity);
- 
- 	for_each_zone(zone) {
- 		err = page_reporting_process_zone(prdev, sgl, zone);
-@@ -378,6 +375,9 @@ int page_reporting_register(struct page_
- 			page_reporting_order = pageblock_order;
- 	}
- 
-+	if (!prdev->capacity || prdev->capacity > PAGE_REPORTING_CAPACITY)
-+		prdev->capacity = PAGE_REPORTING_CAPACITY;
-+
- 	/* initialize state and work structures */
- 	atomic_set(&prdev->state, PAGE_REPORTING_IDLE);
- 	INIT_DELAYED_WORK(&prdev->work, &page_reporting_process);
+ 	if (pfn_modify_allowed(pte_pfn(entry), *(pgprot_t *)(walk->private)))
+ 		return 0;
+-	return -EACCESS;
++	return -EACCES;
+ }
+ #else
+ #define prot_none_hugetlb_entry	NULL
 _
 
-Patches currently in -mm which might be from mst@redhat.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-page_reporting-allow-driver-to-set-batch-capacity.patch
+mm-page_vma_mapped-fix-device-private-pmd-handling-fix.patch
+mm-mincore-use-walk_page_range_vma-in-do_mincore-fix.patch
+csky-implement-flush_cache_vmap-in-c.patch
+mm-vmalloc-map-contiguous-pages-in-batches-for-vmap-if-possible-fix.patch
+mm-page_owner-add-print_mode-filter-fix.patch
+mm-annotate-data-race-in-cpu_needs_drain-fix.patch
+mm-zsmalloc-encode-class-index-in-obj-value-for-lockless-class-lookup-fix.patch
+mm-zsmalloc-drop-pool-lock-from-zs_free-on-64-bit-systems-fix.patch
+mm-zsmalloc-drop-pool-lock-from-zs_free-on-64-bit-systems-fix-fix.patch
+mm-fix-assert_exclusive_bits-by-passing-memdesc_flags_t-by-pointer-fix.patch
+mm-rmap-use-huge_ptep_get-in-try_to_migrate_one-checkpatch-fixes.patch
+mm-mprotect-use-huge_ptep_get-for-hugetlb-fix.patch
+drivers-media-v4l2-core-v4l2-vp9c-reduce-inlining.patch
 
