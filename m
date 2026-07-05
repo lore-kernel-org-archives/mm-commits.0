@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A8B20264612
-	for <mm-commits@vger.kernel.org>; Sun,  5 Jul 2026 19:16:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B043B38BF6A
+	for <mm-commits@vger.kernel.org>; Sun,  5 Jul 2026 19:16:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783278999; cv=none; b=ex5vIlvXkbrSsRYiC+Jsl81u4ENoWFUNEloY8cniQ84F9zZXOc2OpMJtq0EcWmL8H9XiiuUsLylh//JS258XGfhJ7cpkWDWPjN59NCbqrNDg0nSU8SHy9Ob+18rrTN7v++37egVI0rEzaL/vK7fzbCN07WDpMCZGsfo4KC8EnOk=
+	t=1783279000; cv=none; b=uhOP0XTwLGEwb5jFyUgG8AhcxmNWWj0H43vAL4nuu2BG2auO2T2HXKxMrisWSaBbKpMnSQ3YPuCc2KKkbrYnTWOPwlUIGpaHDXGLU3jFksGG0mvkfPTs3mLV8vGK74sUOi67d6g0O646Cg//s365lEQ3sBcqOmphz/DbdB4Perg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783278999; c=relaxed/simple;
-	bh=2T4tLcByFHI0Q/xmV8oJZ7WtS6jDM/X1kvoy878jXsA=;
-	h=Date:To:From:Subject:Message-Id; b=YvIj1ZQbeaEHKYytCyeHde3D8vSxoUGAlye6m1A5c0CwjH2W/bmHRJ7PgO+64BSY1qpg5pN55ga+fxJ4NDev9o913C2m3Hrj+RuTC32hpg7r+8rrLqaAmOJV0AI4dUH1YZdZOk3WJV6jZ2s7YUzgmDi2ycLph+c2HcnHvCDnanY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vgwPVGzd; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783279000; c=relaxed/simple;
+	bh=N4VAgZqb2+zn9LkTDq2U3U1u5zrpKZO8HqUjVqlrg/M=;
+	h=Date:To:From:Subject:Message-Id; b=TVTwSEXUj092oYIxcM4gVFhsXTRJNJQ4FG56XDTOWhZCai7zqfZPbSBxti8QPmI/ISjTxPbE8Hq0qQJeCNa/UdJqI0fs4PpaDlHdvru5rOq8oN8DWWwvd19t+xOZ8yG75Hy8kt1SQU2VFPknrHZI1EGV3TUwlFmhDbIqIQzgVQk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WGsGdhvu; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vgwPVGzd"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5490F1F000E9;
-	Sun,  5 Jul 2026 19:16:37 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WGsGdhvu"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 337C21F000E9;
+	Sun,  5 Jul 2026 19:16:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783278997;
-	bh=7KPgc4t4BIJC1hqqaM+ycyl2cttAOKYDLJ+ux5hn8Qc=;
+	d=linux-foundation.org; s=korg; t=1783278999;
+	bh=FGNXIZYh4GPjlnpRuIb25T4MoyO0teVxS/1YgYdlkYw=;
 	h=Date:To:From:Subject;
-	b=vgwPVGzd0F6Dy+5q0F04b0XetHAp5MfwXRZQfhcBj3dPthXPKOhfaIkoYKri3DFg4
-	 VHld+Ki7AiBid2538HA2pdhOCxO/6xWpueDzFbRjSITGDnjfiX2z4p1gPZSUC3B5t1
-	 wJoVr51+/X7QBijXwno3vIXKASzgrXb1jJEl48Xg=
-Date: Sun, 05 Jul 2026 12:16:36 -0700
+	b=WGsGdhvulpt0F9U7rNGkrnTTW6wnqqZ9mjhWG6Rww63+rRAEKM0P6C7kYfXXCac57
+	 +x2EXlfkC+T7HYzv54ce5fMvgLdUvqUMxg5UWHwR4No3C9TceTGqVlhg/xIGzp+DoJ
+	 uqInz6mIZj7dqDFLqQqqV+DHGblt/XYv8G0KC32M=
+Date: Sun, 05 Jul 2026 12:16:38 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-document-region-size-validation-in-damon_set_regions.patch added to mm-new branch
-Message-Id: <20260705191637.5490F1F000E9@smtp.kernel.org>
+Subject: + mm-damon-core-remove-start-end-check-in-damon_set_region_system_rams.patch added to mm-new branch
+Message-Id: <20260705191639.337C21F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon: document region size validation in damon_set_regions()
+     Subject: mm/damon/core: remove start, end check in damon_set_region_system_rams()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-document-region-size-validation-in-damon_set_regions.patch
+     mm-damon-core-remove-start-end-check-in-damon_set_region_system_rams.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-document-region-size-validation-in-damon_set_regions.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-remove-start-end-check-in-damon_set_region_system_rams.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,36 +70,35 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon: document region size validation in damon_set_regions()
-Date: Sun, 5 Jul 2026 08:55:57 -0700
+Subject: mm/damon/core: remove start, end check in damon_set_region_system_rams()
+Date: Sun, 5 Jul 2026 08:55:58 -0700
 
-The kernel doc comment of damon_region clearly specifies every region
-should have positive size.  But it is unclear who should verify it. 
-damon_set_regions() is the recommended DAMON core function for setting
-regions from the callers, and has the verification.  Update the comment to
-clarify the callers should be ok to pass any values for region addresses,
-as long as they use damon_set_regions().
+damon_set_region_system_rams() validates user inputs to avoid creating a
+negative size region.  But DAMON core avoids zero size, too.  The check is
+incomplete.  The complete check is done inside damon_set_regions(), which
+is eventually called from damon_set_region_system_rams_default().  Drop
+the incomplete and unnecessary check.
 
-Link: https://lore.kernel.org/20260705155600.96555-7-sj@kernel.org
+Link: https://lore.kernel.org/20260705155600.96555-8-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/damon.h |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/damon/core.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
---- a/include/linux/damon.h~mm-damon-document-region-size-validation-in-damon_set_regions
-+++ a/include/linux/damon.h
-@@ -49,7 +49,8 @@ struct damon_size_range {
-  * @list:		List head for siblings.
-  * @age:		Age of this region.
-  *
-- * For any use case, @ar should be non-zero positive size.
-+ * For any use case, @ar should be non-zero positive size.  damon_set_regions()
-+ * does the validation.
-  *
-  * @nr_accesses is reset to zero for every &damon_attrs->aggr_interval and be
-  * increased for every &damon_attrs->sample_interval if an access to the region
+--- a/mm/damon/core.c~mm-damon-core-remove-start-end-check-in-damon_set_region_system_rams
++++ a/mm/damon/core.c
+@@ -3846,9 +3846,6 @@ int damon_set_region_system_rams_default
+ {
+ 	struct damon_addr_range addr_range;
+ 
+-	if (*start > *end)
+-		return -EINVAL;
+-
+ 	if (!*start && !*end &&
+ 		!damon_find_system_rams_range(start, end, addr_unit))
+ 		return -EINVAL;
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
