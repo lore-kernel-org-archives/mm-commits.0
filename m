@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B043B38BF6A
-	for <mm-commits@vger.kernel.org>; Sun,  5 Jul 2026 19:16:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 31BF4264612
+	for <mm-commits@vger.kernel.org>; Sun,  5 Jul 2026 19:16:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783279000; cv=none; b=uhOP0XTwLGEwb5jFyUgG8AhcxmNWWj0H43vAL4nuu2BG2auO2T2HXKxMrisWSaBbKpMnSQ3YPuCc2KKkbrYnTWOPwlUIGpaHDXGLU3jFksGG0mvkfPTs3mLV8vGK74sUOi67d6g0O646Cg//s365lEQ3sBcqOmphz/DbdB4Perg=
+	t=1783279002; cv=none; b=uOcPJ6nSE/Fam18XWb1ECTxsGSbP6YrOMStYOhuA8Ssl01jQFvTC19eoUAnpc44muE7P2lUi7myb5Hr6mvqU8ZYKEL2hmv+DU7GHMh/aJj5gp7mr5j0S8bLiTqcwNHo/5aCRhS01jkHIkNJSq9VthuQZQWqUwOTDaOJ4AvQrJoI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783279000; c=relaxed/simple;
-	bh=N4VAgZqb2+zn9LkTDq2U3U1u5zrpKZO8HqUjVqlrg/M=;
-	h=Date:To:From:Subject:Message-Id; b=TVTwSEXUj092oYIxcM4gVFhsXTRJNJQ4FG56XDTOWhZCai7zqfZPbSBxti8QPmI/ISjTxPbE8Hq0qQJeCNa/UdJqI0fs4PpaDlHdvru5rOq8oN8DWWwvd19t+xOZ8yG75Hy8kt1SQU2VFPknrHZI1EGV3TUwlFmhDbIqIQzgVQk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WGsGdhvu; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783279002; c=relaxed/simple;
+	bh=z52oZMLW5Fiei2LXiZ6dnmTJ9+h52rY2ED5LONF+RXo=;
+	h=Date:To:From:Subject:Message-Id; b=BepWQ/N5ISZd0ssDSl7vGUhdbfZbGtgACjuhRSu/WYQIl/j+LkJmLuqlCnHwZ+2ka+SqXvX/PwgGY1wLcSvWKcwY6I9yc9KnVUVT08EORZULVODeMvCgtllyeJxHU9AXK9QWw1Go+XwRU6Xmn1TebBLbKKt01peqPqFtLLy2h8g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=A0WsPFLy; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WGsGdhvu"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 337C21F000E9;
-	Sun,  5 Jul 2026 19:16:39 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="A0WsPFLy"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 070A41F00A3A;
+	Sun,  5 Jul 2026 19:16:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783278999;
-	bh=FGNXIZYh4GPjlnpRuIb25T4MoyO0teVxS/1YgYdlkYw=;
+	d=linux-foundation.org; s=korg; t=1783279001;
+	bh=f6A+HocJ8P6gGC51yMTiiV4zCub5X8S2Q2tNnUc6jRc=;
 	h=Date:To:From:Subject;
-	b=WGsGdhvulpt0F9U7rNGkrnTTW6wnqqZ9mjhWG6Rww63+rRAEKM0P6C7kYfXXCac57
-	 +x2EXlfkC+T7HYzv54ce5fMvgLdUvqUMxg5UWHwR4No3C9TceTGqVlhg/xIGzp+DoJ
-	 uqInz6mIZj7dqDFLqQqqV+DHGblt/XYv8G0KC32M=
-Date: Sun, 05 Jul 2026 12:16:38 -0700
+	b=A0WsPFLyttmNfRoFobfZqtr1NUZUB9v0ITLLZ56X3XqzAulybaiROifyEASoTOw9c
+	 W+luliVpCCaknhcVFR5zpEJn9pCfooD9Yhumjrzc8w7IcyG7EyMS/Te1fgofT0MPW5
+	 5M3sRc9fA57fRehz5fYdJUHwtuH2VSxvFhFNtW/o=
+Date: Sun, 05 Jul 2026 12:16:40 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-core-remove-start-end-check-in-damon_set_region_system_rams.patch added to mm-new branch
-Message-Id: <20260705191639.337C21F000E9@smtp.kernel.org>
+Subject: + mm-damon-sysfs-remove-region-size-validation.patch added to mm-new branch
+Message-Id: <20260705191641.070A41F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/core: remove start, end check in damon_set_region_system_rams()
+     Subject: mm/damon/sysfs: remove region size validation
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-core-remove-start-end-check-in-damon_set_region_system_rams.patch
+     mm-damon-sysfs-remove-region-size-validation.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-remove-start-end-check-in-damon_set_region_system_rams.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-remove-region-size-validation.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,35 +70,35 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/core: remove start, end check in damon_set_region_system_rams()
-Date: Sun, 5 Jul 2026 08:55:58 -0700
+Subject: mm/damon/sysfs: remove region size validation
+Date: Sun, 5 Jul 2026 08:55:59 -0700
 
-damon_set_region_system_rams() validates user inputs to avoid creating a
-negative size region.  But DAMON core avoids zero size, too.  The check is
-incomplete.  The complete check is done inside damon_set_regions(), which
-is eventually called from damon_set_region_system_rams_default().  Drop
-the incomplete and unnecessary check.
+DAMON_SYSFS validates user inputs for monitoring target regions to
+disallow negative size regions.  DAMON core assumes only positive size
+regions, though.  The validation is incomplete.  Fortunately
+damon_set_regions(), which is eventually used by DAMON_SYSFS, does the
+complete validation.  Remove the incomplete and unnecessary validation.
 
-Link: https://lore.kernel.org/20260705155600.96555-8-sj@kernel.org
+Link: https://lore.kernel.org/20260705155600.96555-9-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/core.c |    3 ---
+ mm/damon/sysfs.c |    3 ---
  1 file changed, 3 deletions(-)
 
---- a/mm/damon/core.c~mm-damon-core-remove-start-end-check-in-damon_set_region_system_rams
-+++ a/mm/damon/core.c
-@@ -3846,9 +3846,6 @@ int damon_set_region_system_rams_default
- {
- 	struct damon_addr_range addr_range;
+--- a/mm/damon/sysfs.c~mm-damon-sysfs-remove-region-size-validation
++++ a/mm/damon/sysfs.c
+@@ -1987,9 +1987,6 @@ static int damon_sysfs_set_regions(struc
+ 		struct damon_sysfs_region *sys_region =
+ 			sysfs_regions->regions_arr[i];
  
--	if (*start > *end)
--		return -EINVAL;
+-		if (sys_region->ar.start > sys_region->ar.end)
+-			goto out;
 -
- 	if (!*start && !*end &&
- 		!damon_find_system_rams_range(start, end, addr_unit))
- 		return -EINVAL;
+ 		ranges[i].start = sys_region->ar.start;
+ 		ranges[i].end = sys_region->ar.end;
+ 		if (i == 0)
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
