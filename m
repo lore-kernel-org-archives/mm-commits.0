@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EA4FA264612
-	for <mm-commits@vger.kernel.org>; Sun,  5 Jul 2026 19:16:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A8B20264612
+	for <mm-commits@vger.kernel.org>; Sun,  5 Jul 2026 19:16:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783278997; cv=none; b=YLroutK+ca1D2XQUdQwiHgnOymfrCGZ7BIi7IYuXfKt6G/+H/UvhcC0EP72RGi78ZvK1+mM6/c4v/gonbhCYUfOOddrqEmOADzbbY1XfFt/Q+8nTyntKXgLDo/Xtb/8W3YjS4ImYZ6HeA9/gtxyPe1bLGyNASZV6lTP9lxNEOug=
+	t=1783278999; cv=none; b=ex5vIlvXkbrSsRYiC+Jsl81u4ENoWFUNEloY8cniQ84F9zZXOc2OpMJtq0EcWmL8H9XiiuUsLylh//JS258XGfhJ7cpkWDWPjN59NCbqrNDg0nSU8SHy9Ob+18rrTN7v++37egVI0rEzaL/vK7fzbCN07WDpMCZGsfo4KC8EnOk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783278997; c=relaxed/simple;
-	bh=mJIVDaMbB/U21j3TzdfuiT+WyfyKvGZrkn/LxlSnfq0=;
-	h=Date:To:From:Subject:Message-Id; b=GEE9beCsPZ0owTgmlEpq/89p7FXJaHE5sqmFwNtulW6Y+iWb0FYX4L0R1rmO+2WU9IoAPvd6+rQ5ZXSJm4I6r1EYdjiq2L9DsEnVUOPo677gUC4J9PlN8CY+qPfssqcvLVk0U26E5O0EH0h7zazXDPv1S6oS3hoQOd5d9Y0tlbQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=P/q/rP5P; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783278999; c=relaxed/simple;
+	bh=2T4tLcByFHI0Q/xmV8oJZ7WtS6jDM/X1kvoy878jXsA=;
+	h=Date:To:From:Subject:Message-Id; b=YvIj1ZQbeaEHKYytCyeHde3D8vSxoUGAlye6m1A5c0CwjH2W/bmHRJ7PgO+64BSY1qpg5pN55ga+fxJ4NDev9o913C2m3Hrj+RuTC32hpg7r+8rrLqaAmOJV0AI4dUH1YZdZOk3WJV6jZ2s7YUzgmDi2ycLph+c2HcnHvCDnanY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vgwPVGzd; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="P/q/rP5P"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7DE5F1F000E9;
-	Sun,  5 Jul 2026 19:16:35 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vgwPVGzd"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5490F1F000E9;
+	Sun,  5 Jul 2026 19:16:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783278995;
-	bh=VjmpDHU/U8Ri2LbxX9fuYf1irqNBowEuKXit1tpf2/M=;
+	d=linux-foundation.org; s=korg; t=1783278997;
+	bh=7KPgc4t4BIJC1hqqaM+ycyl2cttAOKYDLJ+ux5hn8Qc=;
 	h=Date:To:From:Subject;
-	b=P/q/rP5PNGKwyY9uGuiRnggrWMuye/xT6PEOaB2Jk1A6Da4Z/tz/DWMODGe0jvIDk
-	 XGF080rbwdldeAk5ozJmOEeiE9DIkwoYVLS99WoZqnbJbD9Vs0f40Cy8G3Rk4GWTML
-	 oY51vfPQBqxa7ZoBpiwH8M6+h5G74QQ/mKMO9Ubo=
-Date: Sun, 05 Jul 2026 12:16:35 -0700
+	b=vgwPVGzd0F6Dy+5q0F04b0XetHAp5MfwXRZQfhcBj3dPthXPKOhfaIkoYKri3DFg4
+	 VHld+Ki7AiBid2538HA2pdhOCxO/6xWpueDzFbRjSITGDnjfiX2z4p1gPZSUC3B5t1
+	 wJoVr51+/X7QBijXwno3vIXKASzgrXb1jJEl48Xg=
+Date: Sun, 05 Jul 2026 12:16:36 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-lru_sort-remove-duplicated-min_region_sz-power_of_2-check.patch added to mm-new branch
-Message-Id: <20260705191635.7DE5F1F000E9@smtp.kernel.org>
+Subject: + mm-damon-document-region-size-validation-in-damon_set_regions.patch added to mm-new branch
+Message-Id: <20260705191637.5490F1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/lru_sort: remove duplicated min_region_sz power_of_2() check
+     Subject: mm/damon: document region size validation in damon_set_regions()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-lru_sort-remove-duplicated-min_region_sz-power_of_2-check.patch
+     mm-damon-document-region-size-validation-in-damon_set_regions.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-lru_sort-remove-duplicated-min_region_sz-power_of_2-check.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-document-region-size-validation-in-damon_set_regions.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,35 +70,36 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/lru_sort: remove duplicated min_region_sz power_of_2() check
-Date: Sun, 5 Jul 2026 08:55:56 -0700
+Subject: mm/damon: document region size validation in damon_set_regions()
+Date: Sun, 5 Jul 2026 08:55:57 -0700
 
-DAMON_LRU_SORT validates the user input for min_region_sz.  The same
-validation is done inside damon_start() and damon_commit_ctx().  Remove
-the unnecessary duplicate.
+The kernel doc comment of damon_region clearly specifies every region
+should have positive size.  But it is unclear who should verify it. 
+damon_set_regions() is the recommended DAMON core function for setting
+regions from the callers, and has the verification.  Update the comment to
+clarify the callers should be ok to pass any values for region addresses,
+as long as they use damon_set_regions().
 
-Link: https://lore.kernel.org/20260705155600.96555-6-sj@kernel.org
+Link: https://lore.kernel.org/20260705155600.96555-7-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/lru_sort.c |    5 -----
- 1 file changed, 5 deletions(-)
+ include/linux/damon.h |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/mm/damon/lru_sort.c~mm-damon-lru_sort-remove-duplicated-min_region_sz-power_of_2-check
-+++ a/mm/damon/lru_sort.c
-@@ -284,11 +284,6 @@ static int damon_lru_sort_apply_paramete
- 	param_ctx->addr_unit = addr_unit;
- 	param_ctx->min_region_sz = max(DAMON_MIN_REGION_SZ / addr_unit, 1);
- 
--	if (!is_power_of_2(param_ctx->min_region_sz)) {
--		err = -EINVAL;
--		goto out;
--	}
--
- 	if (!damon_lru_sort_mon_attrs.sample_interval) {
- 		err = -EINVAL;
- 		goto out;
+--- a/include/linux/damon.h~mm-damon-document-region-size-validation-in-damon_set_regions
++++ a/include/linux/damon.h
+@@ -49,7 +49,8 @@ struct damon_size_range {
+  * @list:		List head for siblings.
+  * @age:		Age of this region.
+  *
+- * For any use case, @ar should be non-zero positive size.
++ * For any use case, @ar should be non-zero positive size.  damon_set_regions()
++ * does the validation.
+  *
+  * @nr_accesses is reset to zero for every &damon_attrs->aggr_interval and be
+  * increased for every &damon_attrs->sample_interval if an access to the region
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
