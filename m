@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2BCE2371873
-	for <mm-commits@vger.kernel.org>; Sun,  5 Jul 2026 22:27:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 101984CB5B
+	for <mm-commits@vger.kernel.org>; Sun,  5 Jul 2026 22:34:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783290447; cv=none; b=NSHD0zS6xoYzKES9m/v4zM4tlSaKB946DLwrI15fxSh7hGf3LrHNMbIU2DblOd8JkmyHS7o59tq/zytg+Dx5Eiq0Y9JdpHY1uj63poTjYhdRiXZars2y8H5XWOOLJ+hJCGE2t3SSriIEKEYqmwSBzcBEUbXJwsuM3dbld4cPRM0=
+	t=1783290862; cv=none; b=bpB2jYxGyT1OJkCNPAwjn2PBHfGtP1oPNVbio6WKsZwp3iL8jqarb9piowCj6oWCbhZUEpVr8/zQAbK0JxsNrDvUaKEWAW2qgKAO+yyA9OJLTL9U0A3Ve9h4AL1ZSNh8ffL0IaQC3PbMUVJ9VTLz7rNPEh2MTDzUPdz/vdp7ai4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783290447; c=relaxed/simple;
-	bh=2CTMJimz6TR4PZGZ3nFvSfumco0FMCKk9IgUYrFkBUA=;
-	h=Date:To:From:Subject:Message-Id; b=k7+8YJlbwzoB5WRKeDzu9rvnakeukV793HhDQTGqCVFCXs/vbEMbV1OBJq9AE6qi3Dcp+HNuH1C8Z15JKKelL7XCqKNMfiR9JiBOjAYH2e3nb/WU2foU3bvRJqkR+kqfSX/xT7VefA11v6vqKIad/AP04Aw9cKtWCUznYC2Zcsg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vbHt179c; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783290862; c=relaxed/simple;
+	bh=OhLutzh2UgEcSGR/+FTeEDHvnYV6GHT3oD1W2TO8U9s=;
+	h=Date:To:From:Subject:Message-Id; b=oeCBn9cW75FVyNAXf7+H5E7iugiA7lxSjD2WZ2fJNOvIKaZQIfvk9f/hWltXmRBqHoVeCE6wk8gswFWzIwt1EuCiXU0ygHUWfCqlZSf3zNEWUgtYQMBzYwLmZBA6MBXe3fyjpXawfiU+eeSTspA89rKe6GKqvEdNevcC6adcKj0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0djL/58C; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vbHt179c"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B32161F000E9;
-	Sun,  5 Jul 2026 22:27:25 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0djL/58C"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 746ED1F000E9;
+	Sun,  5 Jul 2026 22:34:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783290445;
-	bh=O7lOHbZgA5kxz86fElouUyEdtN1IJrjlcU4YCUyDrcg=;
+	d=linux-foundation.org; s=korg; t=1783290860;
+	bh=AdWNUGfSN/LB/MIXbae/rExlzNk9kv0r2W1MST6QZTI=;
 	h=Date:To:From:Subject;
-	b=vbHt179c008Yuy6BrXWjR1Ps7GCt6Mfgn48yxRZqeG9GTKC9ToZzoQ59tG3OeLDmK
-	 Fu5AwBNKBh8rfz2BasCOUrVSKGiKaJtfFh0cXWcjKjLZYRSJoMeF78wRb+Rbi0pSgy
-	 exjeRl1lzITMRFN14Vh+D5rvZ9Bm09ewpdlRQzBA=
-Date: Sun, 05 Jul 2026 15:27:25 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,pfalcato@suse.de,ljs@kernel.org,liam@infradead.org,jannh@google.com,thehajime@gmail.com,akpm@linux-foundation.org
+	b=0djL/58CIl3+IHqmf5bkk4gdDAj0LjZfQEuxX2bW6fVVf9mvx4vSLlg97VfHEARbI
+	 RY3hGIng1V2vQaZuUvge9fLeOfRFqj8dcubGC8NGli7kRqNBo/z3QBTd8yw9ff8ue3
+	 cc/fa9XKBXFV1u93c/E3QR2EpER0SSw54Fw5E7pM=
+Date: Sun, 05 Jul 2026 15:34:20 -0700
+To: mm-commits@vger.kernel.org,osalvador@suse.de,muchun.song@linux.dev,david@kernel.org,guanwentao@uniontech.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-nommu-point-to-the-write-iterator-upon-split_vma.patch added to mm-new branch
-Message-Id: <20260705222725.B32161F000E9@smtp.kernel.org>
+Subject: + mm-hugetlb-avoid-unnecessary-tlb-flush-for-empty-folio-list-in-vmemmap-optimize.patch added to mm-unstable branch
+Message-Id: <20260705223420.746ED1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,26 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: nommu: point to the write iterator upon split_vma
-has been added to the -mm mm-new branch.  Its filename is
-     mm-nommu-point-to-the-write-iterator-upon-split_vma.patch
+     Subject: mm/hugetlb: avoid unnecessary TLB flush for empty folio list in vmemmap optimize
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-hugetlb-avoid-unnecessary-tlb-flush-for-empty-folio-list-in-vmemmap-optimize.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-nommu-point-to-the-write-iterator-upon-split_vma.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-avoid-unnecessary-tlb-flush-for-empty-folio-list-in-vmemmap-optimize.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,95 +58,58 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Hajime Tazaki <thehajime@gmail.com>
-Subject: mm: nommu: point to the write iterator upon split_vma
-Date: Thu, 2 Jul 2026 10:25:46 +0900
+From: Wentao Guan <guanwentao@uniontech.com>
+Subject: mm/hugetlb: avoid unnecessary TLB flush for empty folio list in vmemmap optimize
+Date: Tue, 30 Jun 2026 19:38:57 +0800
 
-When a user invokes munmap(2) on a partial region allocated by mmap(), the
-kernel may split the original region if necessary and shrink it to the
-correct size.  At the beginning of vmi_shrink_vma(), the unused part is
-cleared; however, an assertion is triggered if the shrink occurs after
-split_vma().
+Since 79359d6d24df ("hugetlb: perform vmemmap optimization on a list of
+pages") __hugetlb_vmemmap_optimize_folios() unconditionally issues a final
+flush_tlb_all() in its out path.  However, a TLB flush must be paired with
+an actual page table modification.
 
-This commit fixes the issue by correctly configuring the pointer to the
-iterator at the end of split_vma().
+When the input folio list is empty, neither PMD splitting nor PTE
+remapping takes place, so no page tables are modified and the flush is
+pure overhead.  An empty list is reached in common paths such as
+gather_bootmem_prealloc_node() on nodes without bootmem gigantic pages,
+hugetlb_pages_alloc_boot_node() when no pages were allocated, and runtime
+allocation failure paths in set_max_huge_pages().
 
-This bug was detected using the Linux Test Project (LTP) test linked
-below, running on a nommu UML (User-Mode Linux) environment (via an
-out-of-tree extension to UML).
+Add an early return for empty lists.  This restores the basic invariant
+that TLB flushes are only issued when page tables have been modified, and
+it also makes the NULL hstate passed by gather_bootmem_prealloc_node() on
+an empty list harmless.
 
-Here is a minimal reproducible chunk of code for this issue:
-
-	void *addr;
-	size_t pagesize = getpagesize();
-
-	addr = mmap(NULL, pagesize * 4, PROT_READ | PROT_WRITE,
-		    MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
-	munmap(addr + pagesize * 1, pagesize);
-
-This is the console output with CONFIG_DEBUG_MAPLE_TREE=y.
-
-nommu: WARN at __mas_set_range:791 (1)
-MAS: tree=0000000091c23b08 enode=0000000065057663
-(ma_active)
-Store Type:
-node_store
-[9/9] index=70af8000 last=ffffffffffffffff
-     min=0 max=ffffffffffffffff sheaf=0000000000000000, request 0
-depth=0, flags=0
-maple_tree(0000000091c23b08) flags 307, height 1 root 0000000083394c06
-0-ffffffffffffffff: node 0000000010c90bd6 depth 0 type 1 parent
-0000000050e1ddf8 contents: 0000000000000000 707A
-7FFF 00000000eb0ac2b5 707AFFFF 0000000000000000 7093FFFF
-0000000045ead616 7095FFFF 0000000000000000 7096CFFF 000
-00000681c7151 7096FFFF 0000000000000000 70AF3FFF 000000006c78b9e9
-70AF4FFF 000000001914ab0b 70AF7FFF 00000000000
-00000 FFFFFFFFFFFFFFFF 0000000000000000 0 0000000000000000 0
-0000000000000000 0 0000000000000000 0 0000000000000
-000 0 00000000bca8be4f
-  0-707a7fff: 0000000000000000
-  707a8000-707affff: 00000000eb0ac2b5
-  707b0000-7093ffff: 0000000000000000
-  70940000-7095ffff: 0000000045ead616
-  70960000-7096cfff: 0000000000000000
-  7096d000-7096ffff: 00000000681c7151
-  70970000-70af3fff: 0000000000000000
-  70af4000-70af4fff: 000000006c78b9e9
-  70af5000-70af7fff: 000000001914ab0b
-  70af8000-ffffffffffffffff: 0000000000000000
-nommu: Pass: 796 Run:797
-
-Link: https://github.com/linux-test-project/ltp/blob/master/testcases/kernel/syscalls/mseal/mseal02.c
-Link: https://lore.kernel.org/20260702012546.665383-1-thehajime@gmail.com
-Signed-off-by: Hajime Tazaki <thehajime@gmail.com>
-Cc: Jann Horn <jannh@google.com>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Pedro Falcato <pfalcato@suse.de>
-Cc: Vlastimil Babka <vbabka@kernel.org>
+Assisted-by: kimi-cli:kimi-k2.7 code
+Assisted-by: Github Copilot:gpt-5.2 #Reported-by
+Link: https://lore.kernel.org/20260701053422.3664813-1-guanwentao@uniontech.com
+Link: https://lore.kernel.org/20260630113857.3319612-1-guanwentao@uniontech.com
+Fixes: 79359d6d24df ("hugetlb: perform vmemmap optimization on a list of pages")
+Signed-off-by: Wentao Guan <guanwentao@uniontech.com>
+Reviewed-by: Muchun Song <muchun.song@linux.dev>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Guan Wentao <guanwentao@uniontech.com>
+Cc: Oscar Salvador <osalvador@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/nommu.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ mm/hugetlb_vmemmap.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/mm/nommu.c~mm-nommu-point-to-the-write-iterator-upon-split_vma
-+++ a/mm/nommu.c
-@@ -1370,6 +1370,10 @@ static int split_vma(struct vma_iterator
- 	setup_vma_to_mm(vma, mm);
- 	setup_vma_to_mm(new, mm);
- 	vma_iter_store_new(vmi, new);
-+
-+	/* vmi should point lower address */
-+	if (new_below)
-+		vma_next(vmi);
- 	mm->map_count++;
- 	return 0;
+--- a/mm/hugetlb_vmemmap.c~mm-hugetlb-avoid-unnecessary-tlb-flush-for-empty-folio-list-in-vmemmap-optimize
++++ a/mm/hugetlb_vmemmap.c
+@@ -624,6 +624,9 @@ static void __hugetlb_vmemmap_optimize_f
+ 	LIST_HEAD(vmemmap_pages);
+ 	unsigned long flags = VMEMMAP_REMAP_NO_TLB_FLUSH;
  
++	if (list_empty(folio_list))
++		return;
++
+ 	nr_to_optimize = 0;
+ 	list_for_each_entry(folio, folio_list, lru) {
+ 		int ret;
 _
 
-Patches currently in -mm which might be from thehajime@gmail.com are
+Patches currently in -mm which might be from guanwentao@uniontech.com are
 
-mm-nommu-add-sysctl_max_map_count-check-for-do_mmap.patch
-mm-nommu-point-to-the-write-iterator-upon-split_vma.patch
+mm-hugetlb-avoid-unnecessary-tlb-flush-for-empty-folio-list-in-vmemmap-optimize.patch
 
