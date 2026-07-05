@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A2CBF70809
-	for <mm-commits@vger.kernel.org>; Sun,  5 Jul 2026 01:06:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 93F3133EC
+	for <mm-commits@vger.kernel.org>; Sun,  5 Jul 2026 02:05:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783213585; cv=none; b=Y/1/9YSbm4GKRtfYfxVaBlrIBahHoVMGb3vvTdMCRbItK0aFfyz7Zw4OYIffc6oDnWGMwiA2cgPMVRjtykqBfu7KLKmOXKxN9Y7ZSrMaSZZNxvef2YR1i0T8n5SNfcqGPub42RK72hTWmIudYDnCTJtnx7cVIU0fTkt3v/tIOQc=
+	t=1783217126; cv=none; b=Dni0zGrWfd0XZq9pl+rzeWbdOQqe/K+/KePXa32am8psPku1Qd+/xVTeNz/S7d3/mwLdUF8YzpygP9r30hOUAnz/TTFK6gYO4K0YvOdqd/tLH3vJkWmIyKLRO8HWVxntQBNOnw/V5NN4WWF8jTkCm0HMgZlJaBVdL9JVvhn+85A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783213585; c=relaxed/simple;
-	bh=5wqE2H94b2eAJ0crbFTbb00/F/9UxU1uAnvrYGaqnHc=;
-	h=Date:To:From:Subject:Message-Id; b=h8nLdean/7cjQiGNG5w6eFlIzjs7plyRFNFM2hfiBETnk73YsugSk4CXlPPu3x35H/f+hdozbVJfVynEYAWeJxdm4ZuAChYzZKFJfWSN2Q1PE1a9MLb4xGe5uS1pi0t2JhINb7W67bkcoA9bV7xe9FdEXSmSg7qc7+mWQRsQ3iU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2W7f7hqG; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783217126; c=relaxed/simple;
+	bh=dT1dy+yH06ykEFH5gxAozrfVl60f8n4QVvdGkeNIQrE=;
+	h=Date:To:From:Subject:Message-Id; b=XieZhw8TL8gDb3DDTKbr0gLCpIYkF4WyFe0hhN6ixIhQv5q3hc5/J9QqxvDLsXYOoJBFmk5Su1g2+WVVxq1/L7lq/dFu4xAodaNWbMHWHkelcdMMjDu7GK59w70mso7WnQlDbKkIZu99owrPxNp0ot1Fm3Fj3T+CHrJssqcHlv0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uIcLtisa; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2W7f7hqG"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2EC821F000E9;
-	Sun,  5 Jul 2026 01:06:24 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uIcLtisa"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1A98F1F000E9;
+	Sun,  5 Jul 2026 02:05:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783213584;
-	bh=AisfbAonOOvmfNNDDq41ZEU+ao5TFZlPfC3+YC2Ti5E=;
+	d=linux-foundation.org; s=korg; t=1783217125;
+	bh=NFQaVuTnN7yV2g3YUZhzzzhH3qzJVF/19n6PQ7OvWUc=;
 	h=Date:To:From:Subject;
-	b=2W7f7hqGjonz2WKAmmFvjnqhS7+YcGeujIdT7N3YtAFW1BsRrpZwcMGHDVJ6mqCbY
-	 1A2CeyxIf1GRapTmPKEkL2aShXoBP3tW/t5gTSdq+1h+3VsVTbDypaLnzfStL8jr6X
-	 2ZpXZ+rNk+XIMQIxRPB+8RvFOSTSYdu51hz64Epk=
-Date: Sat, 04 Jul 2026 18:06:23 -0700
-To: mm-commits@vger.kernel.org,giometti@enneenne.com,calvin@wbinvd.org,bigeasy@linutronix.de,by@by-online.de,akpm@linux-foundation.org
+	b=uIcLtisaqBDOTfiZv6Jkc7JkycqrStoNvkhwSo9UD+ytBHPw52Equo7OeN//84z15
+	 G29BHtaONyuh0dy0TiKQSs+4wspIyLC0iKRDnnf8iQlyPep8k4PfgIE6jajYLusNve
+	 Zo9D8QhRsOkR81v+jHmIEmrC6XyqTn80KjcDRLdU=
+Date: Sat, 04 Jul 2026 19:05:24 -0700
+To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + pps-pps-gpio-split-irq-handler-into-hardirq-timestamper-threaded-handler.patch added to mm-nonmm-unstable branch
-Message-Id: <20260705010624.2EC821F000E9@smtp.kernel.org>
+Subject: + mm-damon-core-introduce-damon_probe_hits_mvsum.patch added to mm-new branch
+Message-Id: <20260705020525.1A98F1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,26 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: pps: pps-gpio: split IRQ handler into hardirq timestamper + threaded handler
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     pps-pps-gpio-split-irq-handler-into-hardirq-timestamper-threaded-handler.patch
+     Subject: mm/damon/core: introduce damon_probe_hits_mvsum()
+has been added to the -mm mm-new branch.  Its filename is
+     mm-damon-core-introduce-damon_probe_hits_mvsum.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/pps-pps-gpio-split-irq-handler-into-hardirq-timestamper-threaded-handler.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-introduce-damon_probe_hits_mvsum.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,111 +69,118 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Michael Byczkowski <by@by-online.de>
-Subject: pps: pps-gpio: split IRQ handler into hardirq timestamper + threaded handler
-Date: Mon, 1 Jun 2026 17:44:09 -0700
+From: SJ Park <sj@kernel.org>
+Subject: mm/damon/core: introduce damon_probe_hits_mvsum()
+Date: Fri, 3 Jul 2026 10:06:02 -0700
 
-Split the pps-gpio interrupt handler into a primary (hardirq) handler that
-captures the PPS timestamp at interrupt entry, and a threaded handler that
-processes the event.  This produces the same two-part handler structure on
-both PREEMPT_RT and non-RT kernels.
+Implement a function for getting a reasonable best effort quality pseudo
+moving sums of probe_hits on demands.  It reuses the internal function for
+the pseudo moving sum for data access frequency (nr_accesses).
 
-On non-RT kernels the threaded portion runs immediately after the primary,
-with no behavioral change compared to the previous single-handler
-implementation.
-
-On PREEMPT_RT, where interrupt handlers are force-threaded by default, the
-previous single-handler implementation captured the timestamp inside the
-threaded portion, after IRQ-thread scheduling delay.  With the split, the
-timestamp is captured in true hardirq context as it is on non-RT kernels,
-eliminating a significant source of PPS jitter on RT systems.
-
-Link: https://lore.kernel.org/2e32729029fbf6977ecf04665eb00f2efd3e2c17.1780359378.git.calvin@wbinvd.org
-Signed-off-by: Michael Byczkowski <by@by-online.de>
-Signed-off-by: Calvin Owens <calvin@wbinvd.org>
-Reviewed-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Tested-by: Michael Byczkowski <by@by-online.de>
-Tested-by: Calvin Owens <calvin@wbinvd.org>
-Acked-by: Rodolfo Giometti <giometti@enneenne.com>
+Link: https://lore.kernel.org/20260703170605.94472-3-sj@kernel.org
+Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pps/clients/pps-gpio.c |   37 ++++++++++++++++++++-----------
- 1 file changed, 25 insertions(+), 12 deletions(-)
+ include/linux/damon.h |    2 ++
+ mm/damon/core.c       |   21 +++++++++++++++++++++
+ 2 files changed, 23 insertions(+)
 
---- a/drivers/pps/clients/pps-gpio.c~pps-pps-gpio-split-irq-handler-into-hardirq-timestamper-threaded-handler
-+++ a/drivers/pps/clients/pps-gpio.c
-@@ -35,33 +35,44 @@ struct pps_gpio_device_data {
- 	bool capture_clear;
- 	unsigned int echo_active_ms;	/* PPS echo active duration */
- 	unsigned long echo_timeout;	/* timer timeout value in jiffies */
-+	struct pps_event_time ts;	/* timestamp captured in hardirq */
- };
+--- a/include/linux/damon.h~mm-damon-core-introduce-damon_probe_hits_mvsum
++++ a/include/linux/damon.h
+@@ -1003,6 +1003,8 @@ void damon_add_probe(struct damon_ctx *c
+ struct damon_region *damon_new_region(unsigned long start, unsigned long end);
+ unsigned int damon_nr_accesses_mvsum(struct damon_region *r,
+ 		struct damon_ctx *ctx);
++unsigned char damon_probe_hits_mvsum(int probe_idx, struct damon_region *r,
++		struct damon_ctx *ctx);
  
- /*
-  * Report the PPS event
-  */
+ int damon_set_regions(struct damon_target *t, struct damon_addr_range *ranges,
+ 		unsigned int nr_ranges, unsigned long min_region_sz);
+--- a/mm/damon/core.c~mm-damon-core-introduce-damon_probe_hits_mvsum
++++ a/mm/damon/core.c
+@@ -273,6 +273,27 @@ unsigned int damon_nr_accesses_mvsum(str
+ 			left_window_bp);
+ }
  
--static irqreturn_t pps_gpio_irq_handler(int irq, void *data)
-+/*
-+ * Primary hardirq handler -- runs in hardirq context even on PREEMPT_RT.
-+ * Only captures the timestamp; all other work is deferred to the thread.
-+ */
-+static irqreturn_t pps_gpio_irq_hardirq(int irq, void *data)
- {
--	const struct pps_gpio_device_data *info;
--	struct pps_event_time ts;
--	int rising_edge;
-+	struct pps_gpio_device_data *info = data;
-+
-+	pps_get_ts(&info->ts);
- 
--	/* Get the time stamp first */
--	pps_get_ts(&ts);
-+	return IRQ_WAKE_THREAD;
-+}
- 
--	info = data;
-+/*
-+ * Threaded handler -- processes the PPS event using the timestamp
-+ * captured in hardirq context above.
-+ */
-+static irqreturn_t pps_gpio_irq_thread(int irq, void *data)
++unsigned char damon_probe_hits_mvsum(int probe_idx, struct damon_region *r,
++		struct damon_ctx *ctx)
 +{
-+	struct pps_gpio_device_data *info = data;
-+	int rising_edge;
- 
--	/* Small trick to bypass the check on edge's direction when capture_clear is unset */
- 	rising_edge = info->capture_clear ?
- 		      gpiod_get_value(info->gpio_pin) : !info->assert_falling_edge;
- 	if ((rising_edge && !info->assert_falling_edge) ||
- 			(!rising_edge && info->assert_falling_edge))
--		pps_event(info->pps, &ts, PPS_CAPTUREASSERT, data);
-+		pps_event(info->pps, &info->ts, PPS_CAPTUREASSERT, data);
- 	else if (info->capture_clear &&
- 			((rising_edge && info->assert_falling_edge) ||
- 			(!rising_edge && !info->assert_falling_edge)))
--		pps_event(info->pps, &ts, PPS_CAPTURECLEAR, data);
-+		pps_event(info->pps, &info->ts, PPS_CAPTURECLEAR, data);
- 	else
- 		dev_warn_ratelimited(&info->pps->dev, "IRQ did not trigger any PPS event\n");
- 
-@@ -210,8 +221,10 @@ static int pps_gpio_probe(struct platfor
- 	}
- 
- 	/* register IRQ interrupt handler */
--	ret = request_irq(data->irq, pps_gpio_irq_handler,
--			  get_irqf_trigger_flags(data), data->info.name, data);
-+	ret = request_threaded_irq(data->irq,
-+			  pps_gpio_irq_hardirq, pps_gpio_irq_thread,
-+			  get_irqf_trigger_flags(data) | IRQF_ONESHOT,
-+			  data->info.name, data);
- 	if (ret) {
- 		pps_unregister_source(data->pps);
- 		dev_err(dev, "failed to acquire IRQ %d\n", data->irq);
++	unsigned long sample_interval, aggr_interval;
++	unsigned long window_len, left_window, left_window_bp;
++
++	sample_interval = ctx->attrs.sample_interval ? : 1;
++	aggr_interval =  ctx->attrs.aggr_interval ? : 1;
++	window_len = aggr_interval / sample_interval;
++	if (time_after_eq(ctx->passed_sample_intervals,
++				ctx->next_aggregation_sis))
++		left_window = 0;
++	else
++		left_window = ctx->next_aggregation_sis -
++			ctx->passed_sample_intervals;
++	left_window_bp = mult_frac(left_window, 10000, window_len);
++
++	return damon_mvsum(r->probe_hits[probe_idx],
++			r->last_probe_hits[probe_idx], left_window_bp);
++}
++
+ #ifdef CONFIG_DAMON_DEBUG_SANITY
+ static void damon_verify_new_region(unsigned long start, unsigned long end)
+ {
 _
 
-Patches currently in -mm which might be from by@by-online.de are
+Patches currently in -mm which might be from sj@kernel.org are
 
-pps-pps-gpio-split-irq-handler-into-hardirq-timestamper-threaded-handler.patch
+maintainers-s-seongjae-sj.patch
+mm-damon-core-validate-ranges-in-damon_set_regions.patch
+samples-damon-wsse-handle-damon_start-failure.patch
+samples-damon-prcl-handle-damon_start-failure.patch
+samples-damon-mtier-handle-damon_start-failure.patch
+samples-damon-mtier-handle-damon_stop-failure.patch
+samples-damon-wsse-stop-and-free-damon-ctx-when-damon_call-fails.patch
+samples-damon-prcl-stop-and-free-damon-ctx-when-damon_call-fails.patch
+mm-damon-sysfs-kobject_del-target-normal-context-and-kdamond-dirs.patch
+mm-damon-sysfs-kobject_del-region-and-target-error-dirs.patch
+mm-damon-sysfs-schemes-kobject_del-scheme-dirs.patch
+mm-damon-sysfs-schemes-kobject_del-scheme-region-dirs.patch
+mm-damon-sysfs-schemes-kobject_del-scheme-filter-dirs.patch
+mm-damon-sysfs-schemes-kobject_del-scheme-quota-goal-dirs.patch
+mm-damon-sysfs-schemes-kobject_del-scheme-action-destination-dirs.patch
+mm-damon-sysfs-kobject_del-probe-dirs.patch
+mm-damon-sysfs-kobject_del-probe-filter-dirs.patch
+mm-damon-sysfs-kobject_del-probe-dirs-in-probes_addd_dir-error-path.patch
+mm-damon-sysfs-schemes-kobject_del-region-for-populate_region-error.patch
+docs-mm-damon-design-update-for-damos_quota_node_eligible_mem_bp.patch
+docs-abi-damon-document-probe-files.patch
+mm-damon-tests-core-kunit-test-damon_rand.patch
+selftests-damon-sysfssh-test-multiple-probe-dirs-creation.patch
+selftests-damon-sysfssh-test-coreops_filters-directories.patch
+selftests-damon-sysfssh-test-dests-dir.patch
+selftests-damon-sysfssh-test-all-files-in-quota-goal-dir.patch
+mm-damon-core-reduce-range-setup-in-damon_commit_target_regions.patch
+mm-damon-sysfs-split-probe-setup-function-out.patch
+mm-damon-sysfs-split-out-filters-setup-function.patch
+mm-damon-sysfs-fix-typos-in-probe_addrm_dirs-s-attr-probe.patch
+mm-damon-core-introduce-damon_nr_accesses_mvsum.patch
+mm-damon-tests-core-kunit-test-damon_mvsum.patch
+mm-damon-core-always-update-last_nr_accesses-for-intervals-change.patch
+mm-damon-core-handle-unreset-nr_accesses-in-damon_nr_accesses_mvsum.patch
+mm-damon-core-use-damon_nr_accesses_mvsum-in-__damos_valid_target.patch
+mm-damon-core-use-damon_nr_accesses_mvsum-for-damos-region-tracing.patch
+mm-damon-sysfs-schemes-use-damon_nr_accesses_mvsum-for-damo-regions.patch
+mm-damon-core-remove-damon_warn_fix_nr_accesses_corruption.patch
+mm-damon-core-remove-damon_verify_reset_aggregated.patch
+mm-damon-core-remove-damon_verify_merge_regions_of.patch
+mm-damon-tests-core-kunit-remove-nr_accesses_bp-setup-and-tests.patch
+selftests-damon-drgn_dump_damon_status-do-not-dump-nr_accesses_bp.patch
+mm-damon-core-remove-nr_accesses_bp-setups-and-updates.patch
+mm-damon-core-remove-attrs-param-from-damon_update_region_access_rate.patch
+mm-damon-paddr-remove-attrs-param-from-__damon_pa_check_access.patch
+mm-damon-vaddr-remove-attrs-param-from-__damon_va_check_access.patch
+mm-damon-core-remove-damon_moving_sum-and-its-unit-test.patch
+mm-damon-core-remove-damon_region-nr_accesses_bp.patch
+mm-damon-add-damon_region-last_probe_hits.patch
+mm-damon-core-introduce-damon_probe_hits_mvsum.patch
+mm-damon-sysfs-schemes-set-probe-hits-as-pseudo-moving-sums.patch
+mm-damon-core-disallow-overlapping-input-ranges-for-damon_set_regions.patch
 
