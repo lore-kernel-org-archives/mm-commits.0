@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C8C3B35F191
-	for <mm-commits@vger.kernel.org>; Sun,  5 Jul 2026 07:31:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B7E6D35F191
+	for <mm-commits@vger.kernel.org>; Sun,  5 Jul 2026 07:31:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783236708; cv=none; b=LvSFvbCj7W/jUc185oFBuwz6II7LQrxfzgzevFs+CcHqY9Pwj/W7Loc4y4ylt80LKVsBvfbQJSrBxrH5bzsOWJ9O2uDXMWYPW3iZjh4MXYtl7gsFqwIGIhMGWE+nBFv69SW2+NOGjuCPFFEpPJStvz/fBIjTcYmbjeVEoX3SfuM=
+	t=1783236710; cv=none; b=IaOJxhDe8OpRX1I0ggEhwRoKBBMF+d4iLSd2Ud0DHNoEAhtmwoNEfiV/8tKb6oKLboz50nylBvxHQKUraca6+OHAjNjLsvcKdg0gwkfuCW69e/0LvVsV1iV1HB35EL3JqWbP2B6fpws5kNnKWTT7/dFM0El9/X6djk0UzxQyMq0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783236708; c=relaxed/simple;
-	bh=d70KeOB04ngEj7G8XkWhbq1GG7mAGufnMnuVEPLAoyY=;
-	h=Date:To:From:Subject:Message-Id; b=t7MkXPFvjObqQkAluYW7HtSv0H9UuYSFVcJDzJBgohZpfnD4XsvLuceTwCbOEV3vRUpHleCFZ+ssXVWeC7FLLkxAHat47hj618m8fX697iZc2fRdr2mjygtMMCrqINyKPjAlrQP4VGf0T+skbAmTFxmGzJgWMk4dPc4BIop6PWY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=V8csIZvK; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783236710; c=relaxed/simple;
+	bh=A6+UhMq3dM5Kk7v5YgTFfVJ4GdQAzzxbYJ2Zi2ytUkk=;
+	h=Date:To:From:Subject:Message-Id; b=d8NsCA4q0Fw+NwXqxl0GjalGgOdkKHg90NRn8QQcJB8rKkg03OG9zlWd1LTSX/Wvils/vIhByr5/ny+RM+XxhlnCXRUm4Q/kadP6wXyJbBwoFbHhBWJ9XpyVPowm/Wv1QQ7SYjhQKt4wy2B1Y4MvTLw3R++6DUFLCJWKVsrTwrE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=S4QJnMCR; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="V8csIZvK"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 945B31F000E9;
-	Sun,  5 Jul 2026 07:31:46 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="S4QJnMCR"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 843321F000E9;
+	Sun,  5 Jul 2026 07:31:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783236706;
-	bh=1Ss2916NPzmNGYZrSPJrzhEAdTsWThJ6/HihotZXaM0=;
+	d=linux-foundation.org; s=korg; t=1783236708;
+	bh=ykaWsQrGqs9eeKFTQjljTLjgVm1stQZ14SmXnTRmQcA=;
 	h=Date:To:From:Subject;
-	b=V8csIZvKBj5NiBd736aoPGfj3WCuDVcTZIGxjnOCU/SZMV/6AUM+U/sCCwDR2Ebo+
-	 05f4SnqCsyjyWEIrLtR/oq4Q0H27xcwVlzqU9wwxHqqqPTq0Li+EBAFZpenpJXCBpT
-	 1Udv1Y49CvTyzjXfHn2F3ZYYevOi/ZdSt3MqN2SY=
-Date: Sun, 05 Jul 2026 00:31:46 -0700
+	b=S4QJnMCRKav7cGjVE08i6g2XcVe2az3MhLhOfGzX5uwDGjuIy8RR6ftaKGsvxyNSE
+	 3EzQrdHdcgCisakdVLpA3/6CwQ4AAEAj4JaTl43QtoJeZ89zTSjoUX/DyPRa+2MYBO
+	 Pcdyy86w07hxMEN+V4SWDhqSdTSrQ+PEIwTpL2cc=
+Date: Sun, 05 Jul 2026 00:31:48 -0700
 To: mm-commits@vger.kernel.org,jackmanb@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-remove-__alloc_pages_node.patch added to mm-new branch
-Message-Id: <20260705073146.945B31F000E9@smtp.kernel.org>
+Subject: + mm-move-__alloc_pages-to-mm-page_alloch.patch added to mm-new branch
+Message-Id: <20260705073148.843321F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: remove __alloc_pages_node()
+     Subject: mm: move __alloc_pages() to mm/page_alloc.h
 has been added to the -mm mm-new branch.  Its filename is
-     mm-remove-__alloc_pages_node.patch
+     mm-move-__alloc_pages-to-mm-page_alloch.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-__alloc_pages_node.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-move-__alloc_pages-to-mm-page_alloch.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,73 +70,122 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Brendan Jackman <jackmanb@google.com>
-Subject: mm: remove __alloc_pages_node()
-Date: Fri, 03 Jul 2026 12:31:53 +0000
+Subject: mm: move __alloc_pages() to mm/page_alloc.h
+Date: Fri, 03 Jul 2026 12:31:54 +0000
 
-There were only a few users, which have been removed.  The only advantage
-of this API over alloc_pages_node() is avoiding a single conditional
-branch.  The disadvantages are:
+It's no longer used outside of mm/.
 
-1. More API surface, more sources of confusion, more maintenance.
+Since this means __alloc_pages_noprof() is no longer visible from gfp.h,
+this also means moving the definition of alloc_pages_node_noprof into
+the .c file.
 
-2. Worse impact of CPU hotplug bugs: most users of __alloc_pages_node()
-   were using the result of cpu_to_node(); if the CPU gets hotplugged
-   out this will return NUMA_NO_NODE. If one of these paths fails to
-   protect against a concurrent hotplug then page_alloc.c will use
-   NUMA_NO_NODE as an index into NODE_DATA() and cause some horrible
-   memory corruption or other. With alloc_pages_node(), the code might
-   just work fine.
+Also remove references to this API from the documentation tree -
+referring to the specific function name was already questionable but
+now the function is not even public it definitely seems wrong.
 
-Ulterior motive: this frees up the __* variants of the allocator APIs to
-serve specifically for use as mm-internal API.
-
-Link: https://lore.kernel.org/20260703-alloc-trylock-v5-13-c87b714e19d3@google.com
+Link: https://lore.kernel.org/20260703-alloc-trylock-v5-14-c87b714e19d3@google.com
 Signed-off-by: Brendan Jackman <jackmanb@google.com>
-Reviewed-by: Suren Baghdasaryan <surenb@google.com>
 Reviewed-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
 Reviewed-by: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/gfp.h |   20 ++++----------------
- 1 file changed, 4 insertions(+), 16 deletions(-)
+ Documentation/admin-guide/cgroup-v1/cpusets.rst |    2 -
+ Documentation/admin-guide/mm/transhuge.rst      |    2 -
+ include/linux/gfp.h                             |   16 --------------
+ mm/page_alloc.c                                 |   13 ++++++++++-
+ mm/page_alloc.h                                 |    4 +++
+ 5 files changed, 19 insertions(+), 18 deletions(-)
 
---- a/include/linux/gfp.h~mm-remove-__alloc_pages_node
-+++ a/include/linux/gfp.h
-@@ -256,21 +256,6 @@ static inline void warn_if_node_offline(
- 	dump_stack();
- }
+--- a/Documentation/admin-guide/cgroup-v1/cpusets.rst~mm-move-__alloc_pages-to-mm-page_alloch
++++ a/Documentation/admin-guide/cgroup-v1/cpusets.rst
+@@ -284,7 +284,7 @@ take action.
+ ==>
+     Unless this feature is enabled by writing "1" to the special file
+     /dev/cpuset/memory_pressure_enabled, the hook in the rebalance
+-    code of __alloc_pages() for this metric reduces to simply noticing
++    code of the page allocator for this metric reduces to simply noticing
+     that the cpuset_memory_pressure_enabled flag is zero.  So only
+     systems that enable this feature will compute the metric.
  
--/*
-- * Allocate pages, preferring the node given as nid. The node must be valid and
-- * online. For more general interface, see alloc_pages_node().
-- */
--static inline struct page *
--__alloc_pages_node_noprof(int nid, gfp_t gfp_mask, unsigned int order)
+--- a/Documentation/admin-guide/mm/transhuge.rst~mm-move-__alloc_pages-to-mm-page_alloch
++++ a/Documentation/admin-guide/mm/transhuge.rst
+@@ -761,7 +761,7 @@ compact_fail
+ 	but failed.
+ 
+ It is possible to establish how long the stalls were using the function
+-tracer to record how long was spent in __alloc_pages() and
++tracer to record how long was spent in the page allocator and
+ using the mm_page_alloc tracepoint to identify which allocations were
+ for huge pages.
+ 
+--- a/include/linux/gfp.h~mm-move-__alloc_pages-to-mm-page_alloch
++++ a/include/linux/gfp.h
+@@ -204,10 +204,6 @@ static inline void arch_free_page(struct
+ static inline void arch_alloc_page(struct page *page, int order) { }
+ #endif
+ 
+-struct page *__alloc_pages_noprof(gfp_t gfp, unsigned int order, int preferred_nid,
+-		nodemask_t *nodemask);
+-#define __alloc_pages(...)			alloc_hooks(__alloc_pages_noprof(__VA_ARGS__))
+-
+ struct folio *__folio_alloc_noprof(gfp_t gfp, unsigned int order, int preferred_nid,
+ 		nodemask_t *nodemask);
+ #define __folio_alloc(...)			alloc_hooks(__folio_alloc_noprof(__VA_ARGS__))
+@@ -272,17 +268,7 @@ struct folio *__folio_alloc_node_noprof(
+  * prefer the current CPU's closest node. Otherwise node must be valid and
+  * online.
+  */
+-static inline struct page *alloc_pages_node_noprof(int nid, gfp_t gfp_mask,
+-						   unsigned int order)
 -{
+-	if (nid == NUMA_NO_NODE)
+-		nid = numa_mem_id();
+-
 -	VM_BUG_ON(nid < 0 || nid >= MAX_NUMNODES);
 -	warn_if_node_offline(nid, gfp_mask);
 -
 -	return __alloc_pages_noprof(gfp_mask, order, nid, NULL);
 -}
--
--#define  __alloc_pages_node(...)		alloc_hooks(__alloc_pages_node_noprof(__VA_ARGS__))
--
- static inline
- struct folio *__folio_alloc_node_noprof(gfp_t gfp, unsigned int order, int nid)
- {
-@@ -293,7 +278,10 @@ static inline struct page *alloc_pages_n
- 	if (nid == NUMA_NO_NODE)
- 		nid = numa_mem_id();
++struct page *alloc_pages_node_noprof(int nid, gfp_t gfp_mask, unsigned int order);
  
--	return __alloc_pages_node_noprof(nid, gfp_mask, order);
+ #define  alloc_pages_node(...)			alloc_hooks(alloc_pages_node_noprof(__VA_ARGS__))
+ 
+--- a/mm/page_alloc.c~mm-move-__alloc_pages-to-mm-page_alloch
++++ a/mm/page_alloc.c
+@@ -5431,7 +5431,18 @@ struct page *__alloc_pages_noprof(gfp_t
+ 		set_page_refcounted(page);
+ 	return page;
+ }
+-EXPORT_SYMBOL(__alloc_pages_noprof);
++
++struct page *alloc_pages_node_noprof(int nid, gfp_t gfp_mask, unsigned int order)
++{
++	if (nid == NUMA_NO_NODE)
++		nid = numa_mem_id();
++
 +	VM_BUG_ON(nid < 0 || nid >= MAX_NUMNODES);
 +	warn_if_node_offline(nid, gfp_mask);
 +
 +	return __alloc_pages_noprof(gfp_mask, order, nid, NULL);
- }
++}
++EXPORT_SYMBOL(alloc_pages_node_noprof);
  
- #define  alloc_pages_node(...)			alloc_hooks(alloc_pages_node_noprof(__VA_ARGS__))
+ struct folio *__folio_alloc_noprof(gfp_t gfp, unsigned int order, int preferred_nid,
+ 		nodemask_t *nodemask)
+--- a/mm/page_alloc.h~mm-move-__alloc_pages-to-mm-page_alloch
++++ a/mm/page_alloc.h
+@@ -244,6 +244,10 @@ struct page *alloc_frozen_pages_nolock_n
+ 	alloc_hooks(alloc_frozen_pages_nolock_noprof(__VA_ARGS__))
+ void free_frozen_pages_nolock(struct page *page, unsigned int order);
+ 
++struct page *__alloc_pages_noprof(gfp_t gfp, unsigned int order, int preferred_nid,
++		nodemask_t *nodemask);
++#define __alloc_pages(...)			alloc_hooks(__alloc_pages_noprof(__VA_ARGS__))
++
+ extern void zone_pcp_reset(struct zone *zone);
+ extern void zone_pcp_disable(struct zone *zone);
+ extern void zone_pcp_enable(struct zone *zone);
 _
 
 Patches currently in -mm which might be from jackmanb@google.com are
