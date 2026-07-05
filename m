@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A69BF2727EB
-	for <mm-commits@vger.kernel.org>; Sun,  5 Jul 2026 20:36:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CC48A64AA4
+	for <mm-commits@vger.kernel.org>; Sun,  5 Jul 2026 20:36:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783283791; cv=none; b=fJSXQp55rc6PUoJTRU4OKlVf8pOWqI0HNoy5yzke0BX8O1puLbIVGVO3rmBY3Uj5VSNtOEiJWFW0X0cZPKAKVfYNTZg0ld9r/eUQB5Q8/NShdhjl3bNzSZLDl0Pqd3MwRJxqi7grVDG04CDKA4lZt5BTGL1itJHTTZ6EM3XWPX8=
+	t=1783283792; cv=none; b=FoiwrZRYBhoZyKVvtyWlsl9YJHAm7f662cQX603MTowhkeMuXCiryaUxJazDmFLxr5ycyX8JEoLbv6Jd8Ji5IVMQXcp5iirUBoPVAheX/+8CKB7Dm6ucVB8FM5wfM51vGdW4O8r1DydEA8qm9M5kMvdBgGHSY9bp5RL57S03XVc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783283791; c=relaxed/simple;
-	bh=I/SxdG53S7HNDK4jsgG8X0DYW/yePgKveVz5oDBv7SU=;
-	h=Date:To:From:Subject:Message-Id; b=bMUkksqrvxQgUuuiA8b8/NeSxDeEjMwY13QEzPYQUePaS756wBqzyZZAR4DHYPhmA25VAlniahV14pLZlkm3cGSvsLQT1RF1j7Mj3bgNUSnMMDSfjstJ0AZQKGr3Fha5w5X0acXf/589dibnzU+COgVzx1H5i+8Hdd4YY8aOxlQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2msiCF69; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783283792; c=relaxed/simple;
+	bh=BA+4VGoIMlygW2KtZIyN6ygpEKt398/jM3Mo5twG3cQ=;
+	h=Date:To:From:Subject:Message-Id; b=IzPfji9n/f3IQ8ftxT0zftio8b0uCcBNfe5fpob/0cEWslSnE1XkWlfPgt9LqrfOPE15OUohDLkwdFwMYuBSAnYBwUo6XDlHvyLSpbnhia4Pmo2+E6ZpYAz5eOhNNpFHKBqZeRv+VSlyXfV0zhKXvyxttrKN8+AaHV4r8ZWJZU0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XjJ7doAw; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2msiCF69"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 63CA01F00A3A;
-	Sun,  5 Jul 2026 20:36:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XjJ7doAw"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A33581F000E9;
+	Sun,  5 Jul 2026 20:36:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783283789;
-	bh=eqS+s9GiTWcX7A26Rjaeq5ZQHii5SsDOVungXqfxKVo=;
+	d=linux-foundation.org; s=korg; t=1783283790;
+	bh=E7B7fAVP9xoilZebgukRovgf/MPPc0i+fQJ3XoC0YDU=;
 	h=Date:To:From:Subject;
-	b=2msiCF69BF8ErjwW6c6zucjC3tx3QuRb+fek3ia/A2eRo5BfzkuGGHm0TVDk3CEoG
-	 6EQk1sF09R390cmtXbWR+EMIRUx4VMg45Ava7naSglvMcgq1Fy55W4R89l/Q1VVS9M
-	 sLRV9dbKl68ubG0K551Yqydmh3SjlBupAf0GeuV8=
-Date: Sun, 05 Jul 2026 13:36:29 -0700
+	b=XjJ7doAwrRQ3+/cIcwscdToviynA3pVs4+6b7Ga4BlIC478ROtqJuGy4eY0HO7Nnz
+	 2yPU0QRtZmINFdXKNYxP6NYuOju14STuJCnA0KOZAJvoXFLXCDowWkYcFYZ3X2hWxg
+	 yFyajZEcqNR3w6XcaWgnJ11q6cQ42/Lw8Fu7wZmA=
+Date: Sun, 05 Jul 2026 13:36:30 -0700
 To: mm-commits@vger.kernel.org,baohua@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-vmalloc-extend-page-table-walk-to-support-larger-page_shift-sizes-and-eliminate-page-table-rewalk.patch removed from -mm tree
-Message-Id: <20260705203629.63CA01F00A3A@smtp.kernel.org>
+Subject: [to-be-updated] mm-vmalloc-map-contiguous-pages-in-batches-for-vmap-if-possible.patch removed from -mm tree
+Message-Id: <20260705203630.A33581F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,39 +35,44 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/vmalloc: extend page table walk to support larger page_shift sizes and eliminate page table rewalk
+     Subject: mm/vmalloc: map contiguous pages in batches for vmap() if possible
 has been removed from the -mm tree.  Its filename was
-     mm-vmalloc-extend-page-table-walk-to-support-larger-page_shift-sizes-and-eliminate-page-table-rewalk.patch
+     mm-vmalloc-map-contiguous-pages-in-batches-for-vmap-if-possible.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
 From: "Barry Song (Xiaomi)" <baohua@kernel.org>
-Subject: mm/vmalloc: extend page table walk to support larger page_shift sizes and eliminate page table rewalk
-Date: Thu, 18 Jun 2026 16:47:24 +0800
+Subject: mm/vmalloc: map contiguous pages in batches for vmap() if possible
+Date: Thu, 18 Jun 2026 16:47:25 +0800
 
-vmap_pages_range_noflush_walk() (formerly
-vmap_small_pages_range_noflush()) provides a clean interface by taking
-struct page **pages and mapping them via direct PTE iteration.  This
-avoids the page table rewalk seen when using vmap_range_noflush() for
-page_shift values other than PAGE_SHIFT.
+In many cases, the pages passed to vmap() may include high-order pages. 
+For example, the systemheap often allocates pages in descending order:
+order 8, then 4, then 0.  Currently, vmap() iterates over every page
+individually—even pages inside a high-order block are handled one by
+one.
 
-Extend it to support larger page_shift values, and add PMD- and
-contiguous-PTE mappings as well.  Rename it to
-vmap_pages_range_noflush_walk() since it now handles more than just small
-pages.
+This patch detects physically contiguous pages (regardless of whether they
+are compound or non-compound) by scanning with num_pages_contiguous(), and
+maps them as a single contiguous block whenever possible.  The mapping
+order is determined by taking the minimum of the contiguous page count and
+the pfn alignment, allowing graceful degradation when pfn alignment is
+less than the contiguous range.
 
-For vmalloc() allocations with VM_ALLOW_HUGE_VMAP, we no longer need to
-iterate over pages one by one via vmap_range_noflush(), which would
-otherwise lead to page table rewalk.  The code is now unified with the
-PAGE_SHIFT case by simply calling vmap_pages_range_noflush_walk().
+Pages with the same page_shift are coalesced and mapped via
+vmap_pages_range_noflush_walk() to avoid page table rewalk.
 
-Link: https://lore.kernel.org/20260618084726.1070022-5-jiangwen6@xiaomi.com
+As users typically allocate memory in descending orders (e.g.  8 → 4 →
+0), once an order-0 page is encountered, we stop scanning for contiguous
+pages since subsequent pages are likely order-0 as well.
+
+Link: https://lore.kernel.org/20260618084726.1070022-6-jiangwen6@xiaomi.com
 Signed-off-by: Barry Song (Xiaomi) <baohua@kernel.org>
+Co-developed-by: Dev Jain <dev.jain@arm.com>
+Signed-off-by: Dev Jain <dev.jain@arm.com>
 Signed-off-by: Wen Jiang <jiangwen6@xiaomi.com>
 Tested-by: Xueyuan Chen <xueyuan.chen21@gmail.com>
 Tested-by: Leo Yan <leo.yan@arm.com>
-Reviewed-by: Dev Jain <dev.jain@arm.com>
 Cc: Andrew Donnellan <ajd@linux.ibm.com>
 Cc: Anshuman Khandual <anshuman.khandual@arm.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
@@ -80,189 +85,115 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |   81 ++++++++++++++++++++++++++++---------------------
- 1 file changed, 47 insertions(+), 34 deletions(-)
+ mm/vmalloc.c |   87 +++++++++++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 85 insertions(+), 2 deletions(-)
 
---- a/mm/vmalloc.c~mm-vmalloc-extend-page-table-walk-to-support-larger-page_shift-sizes-and-eliminate-page-table-rewalk
+--- a/mm/vmalloc.c~mm-vmalloc-map-contiguous-pages-in-batches-for-vmap-if-possible
 +++ a/mm/vmalloc.c
-@@ -127,7 +127,8 @@ static int vmap_pte_range(pmd_t *pmd, un
- 	pte_t *pte;
- 	u64 pfn;
- 	struct page *page;
--	unsigned long size = PAGE_SIZE;
-+	unsigned long size;
-+	unsigned int steps;
+@@ -3550,6 +3550,89 @@ void vunmap(const void *addr)
+ }
+ EXPORT_SYMBOL(vunmap);
  
- 	if (WARN_ON_ONCE(!PAGE_ALIGNED(end - addr)))
- 		return -EINVAL;
-@@ -149,8 +150,8 @@ static int vmap_pte_range(pmd_t *pmd, un
- 		}
- 
- 		size = vmap_set_ptes(pte, addr, end, pfn, prot, max_page_shift);
--		pfn += PFN_DOWN(size);
--	} while (pte += PFN_DOWN(size), addr += size, addr != end);
-+		steps = PFN_DOWN(size);
-+	} while (pte += steps, pfn += steps, addr += size, addr != end);
- 
- 	lazy_mmu_mode_disable();
- 	*mask |= PGTBL_PTE_MODIFIED;
-@@ -542,8 +543,10 @@ void vunmap_range(unsigned long addr, un
- 
- static int vmap_pages_pte_range(pmd_t *pmd, unsigned long addr,
- 		unsigned long end, pgprot_t prot, struct page **pages, int *nr,
--		pgtbl_mod_mask *mask)
-+		pgtbl_mod_mask *mask, unsigned int shift)
- {
-+	unsigned long pfn, size;
-+	unsigned int steps;
- 	int err = 0;
- 	pte_t *pte;
- 
-@@ -574,9 +577,10 @@ static int vmap_pages_pte_range(pmd_t *p
- 			break;
- 		}
- 
--		set_pte_at(&init_mm, addr, pte, mk_pte(page, prot));
--		(*nr)++;
--	} while (pte++, addr += PAGE_SIZE, addr != end);
-+		pfn = page_to_pfn(page);
-+		size = vmap_set_ptes(pte, addr, end, pfn, prot, shift);
-+		steps = PFN_DOWN(size);
-+	} while (pte += steps, *nr += steps, addr += size, addr != end);
- 
- 	lazy_mmu_mode_disable();
- 	*mask |= PGTBL_PTE_MODIFIED;
-@@ -586,7 +590,7 @@ static int vmap_pages_pte_range(pmd_t *p
- 
- static int vmap_pages_pmd_range(pud_t *pud, unsigned long addr,
- 		unsigned long end, pgprot_t prot, struct page **pages, int *nr,
--		pgtbl_mod_mask *mask)
-+		pgtbl_mod_mask *mask, unsigned int shift)
- {
- 	pmd_t *pmd;
- 	unsigned long next;
-@@ -596,7 +600,27 @@ static int vmap_pages_pmd_range(pud_t *p
- 		return -ENOMEM;
- 	do {
- 		next = pmd_addr_end(addr, end);
--		if (vmap_pages_pte_range(pmd, addr, next, prot, pages, nr, mask))
++static inline unsigned int vm_shift(pgprot_t prot, unsigned long size)
++{
++	if (arch_vmap_pmd_supported(prot) && size >= PMD_SIZE)
++		return PMD_SHIFT;
 +
-+		if (shift >= PMD_SHIFT) {
-+			struct page *page = pages[*nr];
-+			phys_addr_t phys_addr;
++	return arch_vmap_pte_supported_shift(size);
++}
 +
-+			if (WARN_ON(!page))
-+				return -ENOMEM;
-+			if (WARN_ON(!pfn_valid(page_to_pfn(page))))
-+				return -EINVAL;
++static inline int get_vmap_batch_order(struct page **pages,
++		pgprot_t prot, unsigned int max_steps, unsigned int idx)
++{
++	unsigned int nr_contig;
++	int order;
 +
-+			phys_addr = page_to_phys(page);
++	if (!IS_ENABLED(CONFIG_HAVE_ARCH_HUGE_VMAP))
++		return 0;
 +
-+			if (vmap_try_huge_pmd(pmd, addr, next, phys_addr, prot,
-+						shift)) {
-+				*mask |= PGTBL_PMD_MODIFIED;
-+				*nr += 1 << (PMD_SHIFT - PAGE_SHIFT);
-+				continue;
-+			}
++	nr_contig = num_pages_contiguous(&pages[idx], max_steps);
++	if (nr_contig < 2)
++		return 0;
++
++	order = ilog2(nr_contig);
++
++	/* Limit order by pfn alignment */
++	order = min_t(int, order, __ffs(page_to_pfn(pages[idx])));
++
++	if (vm_shift(prot, PAGE_SIZE << order) == PAGE_SHIFT)
++		return 0;
++
++	return order;
++}
++
++static int vmap_batched(unsigned long addr, unsigned long end,
++		pgprot_t prot, struct page **pages)
++{
++	unsigned int count = (end - addr) >> PAGE_SHIFT;
++	unsigned int prev_shift = 0, idx = 0;
++	unsigned long start = addr, map_addr = addr;
++	int err;
++
++	err = kmsan_vmap_pages_range_noflush(addr, end, prot, pages,
++						PAGE_SHIFT, GFP_KERNEL);
++	if (err)
++		goto out;
++
++	for (unsigned int i = 0; i < count; ) {
++		unsigned int shift = PAGE_SHIFT +
++			get_vmap_batch_order(pages, prot, count - i, i);
++
++		if (!i)
++			prev_shift = shift;
++
++		if (shift != prev_shift) {
++			err = vmap_pages_range_noflush_walk(map_addr, addr,
++					prot, pages + idx, prev_shift);
++			if (err)
++				goto out;
++			prev_shift = shift;
++			map_addr = addr;
++			idx = i;
 +		}
 +
-+		if (vmap_pages_pte_range(pmd, addr, next, prot, pages, nr, mask, shift))
- 			return -ENOMEM;
- 	} while (pmd++, addr = next, addr != end);
- 	return 0;
-@@ -604,7 +628,7 @@ static int vmap_pages_pmd_range(pud_t *p
++		/*
++		 * Once small pages are encountered, the remaining pages
++		 * are likely small as well.
++		 */
++		if (shift == PAGE_SHIFT)
++			break;
++
++		addr += 1UL << shift;
++		i += 1U << (shift - PAGE_SHIFT);
++	}
++
++	/* Remaining */
++	if (map_addr < end)
++		err = vmap_pages_range_noflush_walk(map_addr, end,
++				prot, pages + idx, prev_shift);
++
++out:
++	flush_cache_vmap(start, end);
++	return err;
++}
++
+ /**
+  * vmap - map an array of pages into virtually contiguous space
+  * @pages: array of page pointers
+@@ -3593,8 +3676,8 @@ void *vmap(struct page **pages, unsigned
+ 		return NULL;
  
- static int vmap_pages_pud_range(p4d_t *p4d, unsigned long addr,
- 		unsigned long end, pgprot_t prot, struct page **pages, int *nr,
--		pgtbl_mod_mask *mask)
-+		pgtbl_mod_mask *mask, unsigned int shift)
- {
- 	pud_t *pud;
- 	unsigned long next;
-@@ -614,7 +638,7 @@ static int vmap_pages_pud_range(p4d_t *p
- 		return -ENOMEM;
- 	do {
- 		next = pud_addr_end(addr, end);
--		if (vmap_pages_pmd_range(pud, addr, next, prot, pages, nr, mask))
-+		if (vmap_pages_pmd_range(pud, addr, next, prot, pages, nr, mask, shift))
- 			return -ENOMEM;
- 	} while (pud++, addr = next, addr != end);
- 	return 0;
-@@ -622,7 +646,7 @@ static int vmap_pages_pud_range(p4d_t *p
- 
- static int vmap_pages_p4d_range(pgd_t *pgd, unsigned long addr,
- 		unsigned long end, pgprot_t prot, struct page **pages, int *nr,
--		pgtbl_mod_mask *mask)
-+		pgtbl_mod_mask *mask, unsigned int shift)
- {
- 	p4d_t *p4d;
- 	unsigned long next;
-@@ -632,14 +656,18 @@ static int vmap_pages_p4d_range(pgd_t *p
- 		return -ENOMEM;
- 	do {
- 		next = p4d_addr_end(addr, end);
--		if (vmap_pages_pud_range(p4d, addr, next, prot, pages, nr, mask))
-+		if (vmap_pages_pud_range(p4d, addr, next, prot, pages, nr, mask, shift))
- 			return -ENOMEM;
- 	} while (p4d++, addr = next, addr != end);
- 	return 0;
- }
- 
--static int vmap_small_pages_range_noflush(unsigned long addr, unsigned long end,
--		pgprot_t prot, struct page **pages)
-+/*
-+ * It can take an array of pages which are not all contiguous, but it
-+ * may have contiguous chunks, as hinted by @shift.
-+ */
-+static int vmap_pages_range_noflush_walk(unsigned long addr, unsigned long end,
-+		pgprot_t prot, struct page **pages, unsigned int shift)
- {
- 	unsigned long start = addr;
- 	pgd_t *pgd;
-@@ -654,7 +682,7 @@ static int vmap_small_pages_range_noflus
- 		next = pgd_addr_end(addr, end);
- 		if (pgd_bad(*pgd))
- 			mask |= PGTBL_PGD_MODIFIED;
--		err = vmap_pages_p4d_range(pgd, addr, next, prot, pages, &nr, &mask);
-+		err = vmap_pages_p4d_range(pgd, addr, next, prot, pages, &nr, &mask, shift);
- 		if (err)
- 			break;
- 	} while (pgd++, addr = next, addr != end);
-@@ -677,27 +705,12 @@ static int vmap_small_pages_range_noflus
- int __vmap_pages_range_noflush(unsigned long addr, unsigned long end,
- 		pgprot_t prot, struct page **pages, unsigned int page_shift)
- {
--	unsigned int i, nr = (end - addr) >> PAGE_SHIFT;
--
- 	WARN_ON(page_shift < PAGE_SHIFT);
- 
--	if (!IS_ENABLED(CONFIG_HAVE_ARCH_HUGE_VMALLOC) ||
--			page_shift == PAGE_SHIFT)
--		return vmap_small_pages_range_noflush(addr, end, prot, pages);
--
--	for (i = 0; i < nr; i += 1U << (page_shift - PAGE_SHIFT)) {
--		int err;
--
--		err = vmap_range_noflush(addr, addr + (1UL << page_shift),
--					page_to_phys(pages[i]), prot,
--					page_shift);
--		if (err)
--			return err;
--
--		addr += 1UL << page_shift;
--	}
-+	if (!IS_ENABLED(CONFIG_HAVE_ARCH_HUGE_VMALLOC))
-+		page_shift = PAGE_SHIFT;
- 
--	return 0;
-+	return vmap_pages_range_noflush_walk(addr, end, prot, pages, page_shift);
- }
- 
- int vmap_pages_range_noflush(unsigned long addr, unsigned long end,
+ 	addr = (unsigned long)area->addr;
+-	if (vmap_pages_range(addr, addr + size, pgprot_nx(prot),
+-				pages, PAGE_SHIFT) < 0) {
++	if (vmap_batched(addr, addr + size, pgprot_nx(prot),
++				pages) < 0) {
+ 		vunmap(area->addr);
+ 		return NULL;
+ 	}
 _
 
 Patches currently in -mm which might be from baohua@kernel.org are
 
-mm-vmalloc-map-contiguous-pages-in-batches-for-vmap-if-possible.patch
 mm-vmalloc-align-vm_area-so-vmap-can-batch-mappings.patch
 
