@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F037C35F191
-	for <mm-commits@vger.kernel.org>; Sun,  5 Jul 2026 07:31:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D9B4335F191
+	for <mm-commits@vger.kernel.org>; Sun,  5 Jul 2026 07:31:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783236704; cv=none; b=BrfYtpLDkX4n5cg/wNYtPokK9FLgFJ9lmtRz3TTpRWYMd0mVqL9KwH/1KkEzbzw7xONFcLNPsOrGXxIR3cYtJA2BlxUKPOf9ZDaUpnwxeAI5mzMDEfSvGu8nH5ztkMDv0E6+7pAKL7DG5je8s8qGJgCE7rLS1j0Afkf7j7x6IrU=
+	t=1783236706; cv=none; b=de61++T2Jd4vDYOdA/bN3c5ItNs8niD7Z8fZYvGrT44U2KpFNv8xZYDkymCtkVbePJVdvY7h3d4FPirB5w376eHHQ3je6pemjE9ZwW51az6RoV5xpH/kKA3YOiX/5vadFMvgfPakFKEU4PNT3RLDaO7ovBtqE6PgaFaQnCKZ2Aw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783236704; c=relaxed/simple;
-	bh=qehlmtCJspNkfJnvjL2M70S72Zal0HQDnSHTNXCQ5xU=;
-	h=Date:To:From:Subject:Message-Id; b=Qwevt/CC4LHGidbEI+UKR50j9zt7wuiJ+EsFkr4l2fICBHnibbYvSUrs4M2SNCyPi8SDR2/GZ8cxXZ/j3oR/lUENcbTUG5WZvc9i/ccEefclPcVRCzHT3DWwoNL1MsUh1nAXombJ+NVVT/TI0jzM4gLanePnUsdQwDTaGUykABo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MP08gPSK; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783236706; c=relaxed/simple;
+	bh=ijpWjxIpkKUnXwqATNSKH9LF/mrjDxKvpGuNckk3hHQ=;
+	h=Date:To:From:Subject:Message-Id; b=MC5H2nmIVO+llTaC48GqbWU4F9IpN4z32CFws6tE3dKVVVwebiX1ARg+XYwS+e1y2LQt+Pi9GBVynKbXeyHXgregMQcknASGcIguIIY4maUZuW2HSWEHWe7UKH6a3tGrh5A5vjKxHxkcG52rFIkY/cmOoSdDZ2xpuA/nW4SEWVU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pCXavRrU; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MP08gPSK"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A3E121F000E9;
-	Sun,  5 Jul 2026 07:31:42 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pCXavRrU"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A52151F000E9;
+	Sun,  5 Jul 2026 07:31:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783236702;
-	bh=QM/1kZtpox+TRXqacsYbVH6JDG3hqTKNlfPAXXHMhBU=;
+	d=linux-foundation.org; s=korg; t=1783236704;
+	bh=DNHML8W6PxN/FXCFns0p8WfO7ZOa+ujVxz6rqJJUBOE=;
 	h=Date:To:From:Subject;
-	b=MP08gPSKpanUWitfBHYn70bEeuNHZaChcqBTEPE52H0Ktbjo3rY8SAESs8hVpL95z
-	 Kw2R98qvSBuMpCZeIPbi4BDG50KtpXhhmjQxCIo5rk8t+4T3ioZFIFeMdAf+Eb0ETs
-	 9IxQxdgKunEXWIR920lpmHh1LBSPTOl/75wWU0rA=
-Date: Sun, 05 Jul 2026 00:31:42 -0700
+	b=pCXavRrUMCN0CnCzC1+u6Jgded4gr2/WzU1ScYfg9lU/yb4YVI1RR9ScLCt+fBMNk
+	 cYCIR6MkPnSIiGkYJXSHRsp5CB1EvnoazRMjOIbiC9xUnD3s2bYo60TRN+n/l69goX
+	 yy1CyRc35xXGHXAZ7KrUpDRgfFdUgTb4b7OSUYAA=
+Date: Sun, 05 Jul 2026 00:31:44 -0700
 To: mm-commits@vger.kernel.org,jackmanb@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + sgi-xp-use-higher-level-allocator-api.patch added to mm-new branch
-Message-Id: <20260705073142.A3E121F000E9@smtp.kernel.org>
+Subject: + net-funeth-switch-to-higher-level-allocator-api.patch added to mm-new branch
+Message-Id: <20260705073144.A52151F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: sgi-xp: use higher-level allocator API
+     Subject: net/funeth: switch to higher-level allocator API
 has been added to the -mm mm-new branch.  Its filename is
-     sgi-xp-use-higher-level-allocator-api.patch
+     net-funeth-switch-to-higher-level-allocator-api.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/sgi-xp-use-higher-level-allocator-api.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/net-funeth-switch-to-higher-level-allocator-api.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,8 +70,8 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Brendan Jackman <jackmanb@google.com>
-Subject: sgi-xp: use higher-level allocator API
-Date: Fri, 03 Jul 2026 12:31:51 +0000
+Subject: net/funeth: switch to higher-level allocator API
+Date: Fri, 03 Jul 2026 12:31:52 +0000
 
 The difference between __alloc_pages_node() and alloc_pages_node() is
 that the latter allows you to pass NUMA_NO_NODE.
@@ -80,38 +80,35 @@ The former is going away and the latter works fine here so switch over.
 
 No functional change intended.
 
-Link: https://lore.kernel.org/20260703-alloc-trylock-v5-11-c87b714e19d3@google.com
+Link: https://lore.kernel.org/20260703-alloc-trylock-v5-12-c87b714e19d3@google.com
 Signed-off-by: Brendan Jackman <jackmanb@google.com>
-Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Reviewed-by: Suren Baghdasaryan <surenb@google.com>
-Acked-by: Steve Wahl <steve.wahl@hpe.com>
 Reviewed-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
 Reviewed-by: Zi Yan <ziy@nvidia.com>
-Cc: Robin Holt <robinmholt@gmail.com>
-Cc: Steve Wahl <steve.wahl@hpe.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Assisted-by: Gemini:unknown-model
+Cc: Dimitris Michailidis <dmichail@fungible.com>
+Cc: Andrew Lunn <andrew+netdev@lunn.ch>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Eric Dumazet <edumazet@google.com>
+Cc: Jakub Kicinski <kuba@kernel.org>
+Cc: Paolo Abeni <pabeni@redhat.com>
+Assisted-by: Gemini:unknown-version
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/sgi-xp/xpc_uv.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ drivers/net/ethernet/fungible/funeth/funeth_rx.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/drivers/misc/sgi-xp/xpc_uv.c~sgi-xp-use-higher-level-allocator-api
-+++ a/drivers/misc/sgi-xp/xpc_uv.c
-@@ -170,9 +170,8 @@ xpc_create_gru_mq_uv(unsigned int mq_siz
- 	mq->mmr_blade = uv_cpu_to_blade_id(cpu);
+--- a/drivers/net/ethernet/fungible/funeth/funeth_rx.c~net-funeth-switch-to-higher-level-allocator-api
++++ a/drivers/net/ethernet/fungible/funeth/funeth_rx.c
+@@ -103,7 +103,7 @@ static int funeth_alloc_page(struct fune
+ 	if (cache_get(q, rb))
+ 		return 0;
  
- 	nid = cpu_to_node(cpu);
--	page = __alloc_pages_node(nid,
--				      GFP_KERNEL | __GFP_ZERO | __GFP_THISNODE,
--				      pg_order);
-+	page = alloc_pages_node(nid, GFP_KERNEL | __GFP_ZERO | __GFP_THISNODE,
-+				pg_order);
- 	if (page == NULL) {
- 		dev_err(xpc_part, "xpc_create_gru_mq_uv() failed to alloc %d "
- 			"bytes of memory on nid=%d for GRU mq\n", mq_size, nid);
+-	p = __alloc_pages_node(node, gfp | __GFP_NOWARN, 0);
++	p = alloc_pages_node(node, gfp | __GFP_NOWARN, 0);
+ 	if (unlikely(!p))
+ 		return -ENOMEM;
+ 
 _
 
 Patches currently in -mm which might be from jackmanb@google.com are
