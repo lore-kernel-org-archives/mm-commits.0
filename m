@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DB2E336C597
-	for <mm-commits@vger.kernel.org>; Mon,  6 Jul 2026 17:56:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D15D83BA244
+	for <mm-commits@vger.kernel.org>; Mon,  6 Jul 2026 17:56:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783360608; cv=none; b=KFRnIMjsn1BHFAFyxgDP73Dcv4Ts9/3eHpbg+eH1B4Flx0LCheTMKn1bHCEPvlvTLvciba1hxVil4aMDmw438eQmx31aYRXetazhVxgvZoOjsuxijo1YBBSWvkQ2S7ZTfa9RdRA9u6XExHyRPrByrxUQuy21peRq/B1C4Pw4Q9o=
+	t=1783360612; cv=none; b=aVv53y1x/Z5fpS+70cwvjecb6mckPXRG3V4LlgMeuCxgX53MzJYnPFEbvEtCC4CdqPTmWIcZLYf0DSyIH08yC0zD7esNMqLVRXzv+WJPRsaTwcL45BY0i4H45nYwzCkxShrKJu19FqWrixayx0d0YKCweVXJ2lTtVNQsngCNWpg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783360608; c=relaxed/simple;
-	bh=j0ER/0sUzTSRmOywoNPS0mG0hNyyhR975Ch4H46I8EA=;
-	h=Date:To:From:Subject:Message-Id; b=SEFaWRXKBaVIm6dlZypV4ddun6sZO8rr8pZPc1gILgRMBN6dd5qFNKEMdnU65vo7P3fAj1kNGd4ISlM7UhUruvkp6vZSupdMYv9ifVNMfLhfm8O1+XYrkIxZwU6hnQ0acpo+Nzp0VoAN1eith2xFM4Lj9XTLkuqEs1ZK8m7IiI8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JIz2TFWi; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783360612; c=relaxed/simple;
+	bh=8nMgtsPm8QpewQCdybHPia60qJreUaLykDZLTf6BWgs=;
+	h=Date:To:From:Subject:Message-Id; b=ggUYkNPB24yTZgutxfjNWQDN00MzfDEED1VgXOFXTdnePSFY9lQ2j3YHYygQUoBoNVzPrp7Tm/92rOstEPxHbSn05sGQQasfnDEtNX3tk8cVMmNXxbWzm2/IbBBNsLbtUmVfDCnbu10kYmJwKH+J1WE9A7gXyoIR0NaP/5A9JGs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IYAjMPc1; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JIz2TFWi"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A6DB61F000E9;
-	Mon,  6 Jul 2026 17:56:46 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IYAjMPc1"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5A15E1F000E9;
+	Mon,  6 Jul 2026 17:56:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783360606;
-	bh=7ZPISuxKVicSRN3Y+24jQhQ0AsfyUwoY6SOFaD+2qso=;
+	d=linux-foundation.org; s=korg; t=1783360610;
+	bh=MW4WUXgH8942fZ3gckw8f3SdLms/itkorZs4FREsFtE=;
 	h=Date:To:From:Subject;
-	b=JIz2TFWinR8wIuAZtHUa136hv2Xa7kFXn2WucB3Hl4T73X3U2nA/5uJqR+aLYnFMg
-	 9ybvfPZuR5QcymiftXK7lfRoRIQhNNGUN4039gS1GWZMHXuPbQ51ePQ2/Ihc9KoR2R
-	 tQ1pwsWvkD3W0v7PLDsDNnBk6lTed4J/hFb2g7/w=
-Date: Mon, 06 Jul 2026 10:56:46 -0700
+	b=IYAjMPc1pB4uMzfScX+I4wNZLPlmu3syHy/4UNxggiFCh/DbaAEVNEODQ+3A71DNn
+	 Qjo4GL5Gux0LIAZqQFvdzdWKvki/KafwS0rf0l+IRouFPps14ES0r7ZpEjqeHvVOur
+	 5IrDhW2tHeJ4DozYmb2ArokLwlrgSG6KIK6kDA38=
+Date: Mon, 06 Jul 2026 10:56:49 -0700
 To: mm-commits@vger.kernel.org,usama.arif@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-add-softleaf_to_pmd-and-convert-existing-callers.patch added to mm-unstable branch
-Message-Id: <20260706175646.A6DB61F000E9@smtp.kernel.org>
+Subject: + mm-extract-mm_prepare_for_swap_entries-helper.patch added to mm-unstable branch
+Message-Id: <20260706175650.5A15E1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: add softleaf_to_pmd() and convert existing callers
+     Subject: mm: extract mm_prepare_for_swap_entries() helper
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-add-softleaf_to_pmd-and-convert-existing-callers.patch
+     mm-extract-mm_prepare_for_swap_entries-helper.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-softleaf_to_pmd-and-convert-existing-callers.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-extract-mm_prepare_for_swap_entries-helper.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,95 +59,39 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Usama Arif <usama.arif@linux.dev>
-Subject: mm: add softleaf_to_pmd() and convert existing callers
-Date: Mon, 6 Jul 2026 04:42:03 -0700
+Subject: mm: extract mm_prepare_for_swap_entries() helper
+Date: Mon, 6 Jul 2026 04:42:04 -0700
 
-Patch series "mm: preparatory patches for PMD level swap entries", v2.
+When a swap entry is installed in a page table, the mm must be added to
+init_mm.mmlist so that swapoff can find and unuse its swap entries.  This
+double-checked locking pattern is currently open-coded in
+try_to_unmap_one() and copy_nonpresent_pte().
 
-This is the preparatory part of the PMD page table swapin work.  The full
-PMD swap entry series has been split into two parts:
+Move it into mm_prepare_for_swap_entries() in mm/internal.h and convert
+both callers so it can be reused by upcoming PMD-level swap entry code
+paths that also need to register the mm with swapoff.
 
-  1. this preparatory series, which contains the first 6 patches. Zi [1]
-     and Lance [2] suggested to separate this out from the core series.
-  2. the PMD swap entry core series, which depends on this one. I will
-     send this once the preparatory series is merged in mm-new as v3
-     as the combined is currently at v2 [1].
-     I have not marked this prep series as v3, as its not really adding
-     support for PMD swap entries.
+copy_nonpresent_pte() previously inserted into &src_mm->mmlist rather than
+&init_mm.mmlist, but the insertion point is irrelevant, mmlist is a
+circular list and swapoff walks it entirely from init_mm.mmlist, so only
+membership matters, not position.
 
-This series does not introduce PMD swap entries and does not install any
-new page-table entry type.  It only cleans up existing PMD softleaf
-helpers and call sites so the follow-up PMD swap entry series can be
-smaller and easier to review.
-
-It should be safe to merge independently.  The patches are either helper
-additions, refactors of existing open-coded logic, defensive checks that
-preserve current migration/device-private behavior, or a mechanical rename
-of the PMD softleaf Kconfig gate.  The follow-up series depends on these
-helpers, but this series does not depend on the follow-up series.
-
-Patch breakdown:
-
-  1. mm: add softleaf_to_pmd() and convert existing callers
-     Add the PMD counterpart to softleaf_to_pte() and convert existing
-     swp_entry_to_pmd() users that are constructing PMD softleaf
-     entries.
-
-  2. mm: extract mm_prepare_for_swap_entries() helper
-     Hoist the "register mm with swapoff" double-checked-locking
-     pattern out of try_to_unmap_one() and copy_nonpresent_pte() so
-     future PMD-level users do not need another open-coded copy.
-
-  3. fs/proc: use softleaf_has_pfn() in pagemap PMD walker
-     Avoid assuming every non-present PMD softleaf entry encodes a PFN.
-     Existing migration/device-private behavior is preserved.
-
-  4. mm/huge_memory: move softleaf_to_folio() inside migration branch
-     Keep the folio lookup in change_non_present_huge_pmd() scoped to
-     the migration-entry branch that actually needs it.
-
-  5. mm/migrate_device: move softleaf_to_folio() inside device-private
-     branch
-     Apply the same ordering cleanup to migrate_vma_collect_pmd(): only
-     derive a folio after confirming the PMD entry is device-private.
-
-  6. mm: rename ARCH_ENABLE_THP_MIGRATION to ARCH_HAS_PMD_SOFTLEAVES
-     Rename the architecture gate to describe what it actually enables:
-     PMD softleaf entries.  Migration remains the only current user in
-     this series; the follow-up series adds PMD swap entries.
-
-
-This patch (of 6):
-
-Add softleaf_to_pmd() as the PMD counterpart to softleaf_to_pte(),
-completing the symmetry of the softleaf abstraction for page table leaf
-entries.
-
-The upcoming PMD swap entry support needs to construct PMD entries from
-swap entries.  Converting existing swp_entry_to_pmd() callers to
-softleaf_to_pmd() in a prep patch keeps the feature patches focused on new
-functionality rather than mixing refactoring with new code.
-
-Link: https://lore.kernel.org/20260706114320.1643046-1-usama.arif@linux.dev
-Link: https://lore.kernel.org/20260706114320.1643046-2-usama.arif@linux.dev
-Link: https://lore.kernel.org/all/6E99CC4E-A026-4DE3-8A5A-34216771F521@nvidia.com/ [1]
-Link: https://lore.kernel.org/all/b08cafbb-a4b7-4609-84ae-dbb2cfcfc8be@linux.dev/#t [2]
-Link: https://lore.kernel.org/all/20260602142537.198755-1-usama.arif@linux.dev/ [3]
+Link: https://lore.kernel.org/20260706114320.1643046-3-usama.arif@linux.dev
 Signed-off-by: Usama Arif <usama.arif@linux.dev>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Reviewed-by: Dev Jain <dev.jain@arm.com>
 Reviewed-by: Zi Yan <ziy@nvidia.com>
-Reviewed-by: Lance Yang <lance.yang@linux.dev>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
 Cc: Alexandre Ghiti <alex@ghiti.fr>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Baoquan He <baoquan.he@linux.dev>
 Cc: Barry Song <baohua@kernel.org>
 Cc: Chris Li <chrisl@kernel.org>
-Cc: Dev Jain <dev.jain@arm.com>
 Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Kairui Song <kasong@tencent.com>
 Cc: Kemeng Shi <shikemeng@huaweicloud.com>
 Cc: Kiryl Shutsemau <kas@kernel.org>
+Cc: Lance Yang <lance.yang@linux.dev>
 Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
@@ -160,132 +104,62 @@ Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/leafops.h |   20 ++++++++++++++++++++
- mm/debug_vm_pgtable.c   |    4 ++--
- mm/huge_memory.c        |   12 ++++++------
- mm/migrate_device.c     |    2 +-
- 4 files changed, 29 insertions(+), 9 deletions(-)
+ mm/internal.h |   10 ++++++++++
+ mm/memory.c   |    9 +--------
+ mm/rmap.c     |    7 +------
+ 3 files changed, 12 insertions(+), 14 deletions(-)
 
---- a/include/linux/leafops.h~mm-add-softleaf_to_pmd-and-convert-existing-callers
-+++ a/include/linux/leafops.h
-@@ -108,6 +108,21 @@ static inline softleaf_t softleaf_from_p
- 	return swp_entry(__swp_type(arch_entry), __swp_offset(arch_entry));
- }
+--- a/mm/internal.h~mm-extract-mm_prepare_for_swap_entries-helper
++++ a/mm/internal.h
+@@ -1955,4 +1955,14 @@ static inline int get_sysctl_max_map_cou
+ bool may_expand_vm(struct mm_struct *mm, const vma_flags_t *vma_flags,
+ 		   unsigned long npages);
  
-+/**
-+ * softleaf_to_pmd() - Obtain a PMD entry from a leaf entry.
-+ * @entry: Leaf entry.
-+ *
-+ * This generates an architecture-specific PMD entry that can be utilised to
-+ * encode the metadata the leaf entry encodes.
-+ *
-+ * Returns: Architecture-specific PMD entry encoding leaf entry.
-+ */
-+static inline pmd_t softleaf_to_pmd(softleaf_t entry)
++static inline void mm_prepare_for_swap_entries(struct mm_struct *mm)
 +{
-+	/* Temporary until swp_entry_t eliminated. */
-+	return swp_entry_to_pmd(entry);
++	if (list_empty(&mm->mmlist)) {
++		spin_lock(&mmlist_lock);
++		if (list_empty(&mm->mmlist))
++			list_add(&mm->mmlist, &init_mm.mmlist);
++		spin_unlock(&mmlist_lock);
++	}
 +}
 +
- #else
+ #endif	/* __MM_INTERNAL_H */
+--- a/mm/memory.c~mm-extract-mm_prepare_for_swap_entries-helper
++++ a/mm/memory.c
+@@ -953,14 +953,7 @@ copy_nonpresent_pte(struct mm_struct *ds
+ 		if (swap_dup_entry_direct(entry) < 0)
+ 			return -EIO;
  
- static inline softleaf_t softleaf_from_pmd(pmd_t pmd)
-@@ -115,6 +130,11 @@ static inline softleaf_t softleaf_from_p
- 	return softleaf_mk_none();
- }
- 
-+static inline pmd_t softleaf_to_pmd(softleaf_t entry)
-+{
-+	return __pmd(0);
-+}
-+
- #endif
- 
- /**
---- a/mm/debug_vm_pgtable.c~mm-add-softleaf_to_pmd-and-convert-existing-callers
-+++ a/mm/debug_vm_pgtable.c
-@@ -758,7 +758,7 @@ static void __init pmd_leaf_soft_dirty_t
- 		return;
- 
- 	pr_debug("Validating PMD swap soft dirty\n");
--	pmd = swp_entry_to_pmd(args->leaf_entry);
-+	pmd = softleaf_to_pmd(args->leaf_entry);
- 	WARN_ON(!pmd_is_huge(pmd));
- 	WARN_ON(!pmd_is_valid_softleaf(pmd));
- 
-@@ -829,7 +829,7 @@ static void __init pmd_softleaf_tests(st
- 		return;
- 
- 	pr_debug("Validating PMD swap\n");
--	pmd1 = swp_entry_to_pmd(args->leaf_entry);
-+	pmd1 = softleaf_to_pmd(args->leaf_entry);
- 	WARN_ON(!pmd_is_huge(pmd1));
- 	WARN_ON(!pmd_is_valid_softleaf(pmd1));
- 
---- a/mm/huge_memory.c~mm-add-softleaf_to_pmd-and-convert-existing-callers
-+++ a/mm/huge_memory.c
-@@ -1819,7 +1819,7 @@ static void copy_huge_non_present_pmd(
- 	if (softleaf_is_migration_write(entry) ||
- 	    softleaf_is_migration_read_exclusive(entry)) {
- 		entry = make_readable_migration_entry(swp_offset(entry));
--		pmd = swp_entry_to_pmd(entry);
-+		pmd = softleaf_to_pmd(entry);
- 		if (pmd_swp_soft_dirty(*src_pmd))
- 			pmd = pmd_swp_mksoft_dirty(pmd);
- 		if (pmd_swp_uffd_wp(*src_pmd))
-@@ -1832,7 +1832,7 @@ static void copy_huge_non_present_pmd(
- 		 */
- 		if (softleaf_is_device_private_write(entry)) {
- 			entry = make_readable_device_private_entry(swp_offset(entry));
--			pmd = swp_entry_to_pmd(entry);
-+			pmd = softleaf_to_pmd(entry);
- 
- 			if (pmd_swp_soft_dirty(*src_pmd))
- 				pmd = pmd_swp_mksoft_dirty(pmd);
-@@ -2570,12 +2570,12 @@ static void change_non_present_huge_pmd(
- 			entry = make_readable_exclusive_migration_entry(swp_offset(entry));
- 		else
- 			entry = make_readable_migration_entry(swp_offset(entry));
--		newpmd = swp_entry_to_pmd(entry);
-+		newpmd = softleaf_to_pmd(entry);
- 		if (pmd_swp_soft_dirty(*pmd))
- 			newpmd = pmd_swp_mksoft_dirty(newpmd);
- 	} else if (softleaf_is_device_private_write(entry)) {
- 		entry = make_readable_device_private_entry(swp_offset(entry));
--		newpmd = swp_entry_to_pmd(entry);
-+		newpmd = softleaf_to_pmd(entry);
- 		if (pmd_swp_uffd_wp(*pmd))
- 			newpmd = pmd_swp_mkuffd_wp(newpmd);
- 	} else {
-@@ -4927,7 +4927,7 @@ int set_pmd_migration_entry(struct page_
- 	}
- 
- 	/* Set PMD. */
--	pmdswp = swp_entry_to_pmd(entry);
-+	pmdswp = softleaf_to_pmd(entry);
- 	if (softdirty)
- 		pmdswp = pmd_swp_mksoft_dirty(pmdswp);
- 	if (uffd_wp)
-@@ -4980,7 +4980,7 @@ void remove_migration_pmd(struct page_vm
- 		else
- 			entry = make_readable_device_private_entry(
- 							page_to_pfn(new));
--		pmde = swp_entry_to_pmd(entry);
-+		pmde = softleaf_to_pmd(entry);
- 
- 		if (pmd_swp_soft_dirty(*pvmw->pmd))
- 			pmde = pmd_swp_mksoft_dirty(pmde);
---- a/mm/migrate_device.c~mm-add-softleaf_to_pmd-and-convert-existing-callers
-+++ a/mm/migrate_device.c
-@@ -835,7 +835,7 @@ static int migrate_vma_insert_huge_pmd_p
- 		else
- 			swp_entry = make_readable_device_private_entry(
- 						page_to_pfn(page));
--		entry = swp_entry_to_pmd(swp_entry);
-+		entry = softleaf_to_pmd(swp_entry);
- 	} else {
- 		if (folio_is_zone_device(folio) &&
- 		    !folio_is_device_coherent(folio)) {
+-		/* make sure dst_mm is on swapoff's mmlist. */
+-		if (unlikely(list_empty(&dst_mm->mmlist))) {
+-			spin_lock(&mmlist_lock);
+-			if (list_empty(&dst_mm->mmlist))
+-				list_add(&dst_mm->mmlist,
+-						&src_mm->mmlist);
+-			spin_unlock(&mmlist_lock);
+-		}
++		mm_prepare_for_swap_entries(dst_mm);
+ 		/* Mark the swap entry as shared. */
+ 		if (pte_swp_exclusive(orig_pte)) {
+ 			pte = pte_swp_clear_exclusive(orig_pte);
+--- a/mm/rmap.c~mm-extract-mm_prepare_for_swap_entries-helper
++++ a/mm/rmap.c
+@@ -2304,12 +2304,7 @@ static bool try_to_unmap_one(struct foli
+ 				set_pte_at(mm, address, pvmw.pte, pteval);
+ 				goto walk_abort;
+ 			}
+-			if (list_empty(&mm->mmlist)) {
+-				spin_lock(&mmlist_lock);
+-				if (list_empty(&mm->mmlist))
+-					list_add(&mm->mmlist, &init_mm.mmlist);
+-				spin_unlock(&mmlist_lock);
+-			}
++			mm_prepare_for_swap_entries(mm);
+ 			dec_mm_counter(mm, MM_ANONPAGES);
+ 			inc_mm_counter(mm, MM_SWAPENTS);
+ 			swp_pte = swp_entry_to_pte(entry);
 _
 
 Patches currently in -mm which might be from usama.arif@linux.dev are
