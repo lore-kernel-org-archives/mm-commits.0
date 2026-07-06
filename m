@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A02CB19ABD8;
-	Mon,  6 Jul 2026 00:25:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F12952C181
+	for <mm-commits@vger.kernel.org>; Mon,  6 Jul 2026 00:39:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783297503; cv=none; b=FVnnLA9lCV6MP/iiMiOMTWNrHfPI1lDVDJ8H6MVNI4Qd7non+1fnXEn7wuItFTdwZiAumeYL+l3J1KulvYApHc1bP27w4Scqtmfv5rZFd/OcysI5e4a6OtLwnZrGKr+YXWY+T4A3fE+eLjEiZjoA77ByGcjtQ5uGEaXLnZDFWoM=
+	t=1783298370; cv=none; b=Zoq46N3O0iLw7hjUEIo8Vq1H9NRQzeDgCcygtGG/K/U5H4jWlsC3PCzkkEKRsg2vSNEZAqoLpCkyzbvD8BoJwNa14QVjtJ+mxR6BGFQKyTU4Qx3WdCI0IkibAv0RXKiOEpfgWd261S+jeFYD/pDCKQ6h8AE7kc2hHXH96n8HZGQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783297503; c=relaxed/simple;
-	bh=bCGdQ2URblDgbOtay0qpBnB6xMFjeIx5gHRDomOOfb4=;
-	h=Date:To:From:Subject:Message-Id; b=k9ezPNCu56l83LE/2pHI4vfSvZ1bgdz9tOeZOMSkWjxx08swEFlHIpxjBWBFiLN2yI7MC7ssv/ENcdczo9e+a4E90rJKFX29JX8JFwrNWdhs1AeTqtoE5I5FKX3BL8Q6L8Lk6Hp/RE81DJKQ42y5h7wT7B9F7pW003gf0rtokwk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GhzzuSo3; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783298370; c=relaxed/simple;
+	bh=h0RrlGC7F5fSZyZjK9BTOMYkgkQy3DJ7uqSEdFRR00w=;
+	h=Date:To:From:Subject:Message-Id; b=WkuvCLEthi8dtAPiC1Qw4WdtH2DA7EHNV7RFAOdtXLOZpKd3V3jQeQyQRiRMcSmRQKNZvuEtyy3R79HbWpx8mIK1tg7k1Oo3XlACqawJoGe3lqySUFlHu+JLnZLmqAj06oBfDQcn0hcLf2nhRy6NcjhgcCu5ciXB03A7Anmoh5E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ehgNt3vu; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GhzzuSo3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1E2A81F000E9;
-	Mon,  6 Jul 2026 00:25:02 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ehgNt3vu"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 587C21F000E9;
+	Mon,  6 Jul 2026 00:39:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783297502;
-	bh=f9x0hn9xNIk0s66fvdI0ZtWo+WKKUa3VOwQiKb65Zpo=;
+	d=linux-foundation.org; s=korg; t=1783298368;
+	bh=w0sfTS/kgdET3kZkjLkJcNFm3Si3NNTdIScZ9CLGTNE=;
 	h=Date:To:From:Subject;
-	b=GhzzuSo3hMf1XF9MC8yo5fxLg8R8e0z5l4LmlaC1IVM/T2rqgwckCMkJUGTeFKC/N
-	 sFVeOWOd83GgpAAOiG1m2gvbMWnBWBpiDIPoBMM7q4DPb4leF1VAH4mD+tMSvKnac1
-	 FLjoWi/ErKHT0BItl/mS46TusgSknhHLVOwo12aU=
-Date: Sun, 05 Jul 2026 17:25:01 -0700
-To: mm-commits@vger.kernel.org,vishal.l.verma@intel.com,stable@vger.kernel.org,dave.jiang@intel.com,dan.j.williams@intel.com,alison.schofield@intel.com,lgs201920130244@gmail.com,akpm@linux-foundation.org
+	b=ehgNt3vuj3vAhgXJQPGk3Vik4uIsHUvc3Xypdk2oSj/Lwm7/1PRfxjotusX6vhb4n
+	 YJxpUmwdXJvP+dhVIXKbTC/JHkwvUCHlkXNXXsYxxqsFVkOjM4ZGK6or/kWyAVDtil
+	 k8N1CF4OpxzcdBJtFgnOxbpKHQ3RwxbZSSeUM3Q4=
+Date: Sun, 05 Jul 2026 17:39:27 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,sj@kernel.org,richard.weiyang@gmail.com,ljs@kernel.org,lance.yang@linux.dev,klarasmodin@gmail.com,david@kernel.org,balbirs@nvidia.com,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] device-dax-fix-refcount-leak-in-__devm_create_dev_dax-error-path.patch removed from -mm tree
-Message-Id: <20260706002502.1E2A81F000E9@smtp.kernel.org>
+Subject: [folded-merged] mm-page_vma_mapped-fix-device-private-pmd-handling-fix.patch removed from -mm tree
+Message-Id: <20260706003928.587C21F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,81 +35,62 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: device-dax: fix refcount leak in __devm_create_dev_dax() error path
+     Subject: mm-page_vma_mapped-fix-device-private-pmd-handling-fix
 has been removed from the -mm tree.  Its filename was
-     device-dax-fix-refcount-leak-in-__devm_create_dev_dax-error-path.patch
+     mm-page_vma_mapped-fix-device-private-pmd-handling-fix.patch
 
-This patch was dropped because an updated version will be issued
+This patch was dropped because it was folded into mm-page_vma_mapped-fix-device-private-pmd-handling.patch
 
 ------------------------------------------------------
-From: Guangshuo Li <lgs201920130244@gmail.com>
-Subject: device-dax: fix refcount leak in __devm_create_dev_dax() error path
-Date: Sun, 12 Apr 2026 15:00:10 +0800
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-page_vma_mapped-fix-device-private-pmd-handling-fix
+Date: Wed Jul  1 12:00:04 PM PDT 2026
 
-After device_initialize(), the embedded struct device in dev_dax is
-expected to be released through the device core with put_device().
+fix Raspberry Pi 1 build, per David
 
-In __devm_create_dev_dax(), several failure paths after
-device_initialize() free dev_dax directly instead of dropping the device
-reference, which bypasses the normal device core lifetime handling and
-leaks the reference held on the embedded struct device.
-
-Fix this by assigning dev->type before device_initialize(), so the release
-callback is available, use put_device() in the post-initialization error
-paths, and keep dev_dax range cleanup explicit since it is not handled by
-dev_dax_release().
-
-Link: https://lore.kernel.org/20260412070010.2402830-1-lgs201920130244@gmail.com
-Fixes: c2f3011ee697f ("device-dax: add an allocation interface for device-dax instances")
-Signed-off-by: Guangshuo Li <lgs201920130244@gmail.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Dave Jiang <dave.jiang@intel.com>
-Cc: Vishal Verma <vishal.l.verma@intel.com>
-Cc: Alison Schofield <alison.schofield@intel.com>
-Cc: <stable@vger.kernel.org>
+Reported-by: Klara Modin <klarasmodin@gmail.com>
+Tested-by: Klara Modin <klarasmodin@gmail.com>
+Cc: Balbir Singh <balbirs@nvidia.com>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Lance Yang <lance.yang@linux.dev>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: SeongJae Park <sj@kernel.org>
+Cc: Wei Yang <richard.weiyang@gmail.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/dax/bus.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ mm/page_vma_mapped.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
---- a/drivers/dax/bus.c~device-dax-fix-refcount-leak-in-__devm_create_dev_dax-error-path
-+++ a/drivers/dax/bus.c
-@@ -1485,6 +1485,7 @@ static struct dev_dax *__devm_create_dev
- 	}
+--- a/mm/page_vma_mapped.c~mm-page_vma_mapped-fix-device-private-pmd-handling-fix
++++ a/mm/page_vma_mapped.c
+@@ -243,8 +243,9 @@ restart:
+ 		 */
+ 		pmde = pmdp_get_lockless(pvmw->pmd);
  
- 	dev = &dev_dax->dev;
-+	dev->type = &dev_dax_type;
- 	device_initialize(dev);
- 	dev_set_name(dev, "dax%d.%d", dax_region->id, dev_dax->id);
- 
-@@ -1531,7 +1532,6 @@ static struct dev_dax *__devm_create_dev
- 	dev->devt = inode->i_rdev;
- 	dev->bus = &dax_bus_type;
- 	dev->parent = parent;
--	dev->type = &dev_dax_type;
- 
- 	rc = device_add(dev);
- 	if (rc) {
-@@ -1554,14 +1554,13 @@ static struct dev_dax *__devm_create_dev
- 	return dev_dax;
- 
- err_alloc_dax:
--	kfree(dev_dax->pgmap);
- err_pgmap:
- 	free_dev_dax_ranges(dev_dax);
- err_range:
--	free_dev_dax_id(dev_dax);
-+	put_device(dev);
-+	return ERR_PTR(rc);
- err_id:
- 	kfree(dev_dax);
--
- 	return ERR_PTR(rc);
- }
- 
+-		if (pmd_trans_huge(pmde) || pmd_is_migration_entry(pmde) ||
+-		    pmd_is_device_private_entry(pmde)) {
++		if (IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE) &&
++		    (pmd_trans_huge(pmde) || pmd_is_migration_entry(pmde) ||
++		    pmd_is_device_private_entry(pmde))) {
+ 			pvmw->ptl = pmd_lock(mm, pvmw->pmd);
+ 			pmde = *pvmw->pmd;
+ 			if (pmd_is_migration_entry(pmde)) {
 _
 
-Patches currently in -mm which might be from lgs201920130244@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+mm-page_vma_mapped-fix-device-private-pmd-handling.patch
+mm-mincore-use-walk_page_range_vma-in-do_mincore-fix.patch
+csky-implement-flush_cache_vmap-in-c.patch
+mm-page_owner-add-print_mode-filter-fix.patch
+mm-annotate-data-race-in-cpu_needs_drain-fix.patch
+mm-zsmalloc-encode-class-index-in-obj-value-for-lockless-class-lookup-fix.patch
+mm-zsmalloc-drop-pool-lock-from-zs_free-on-64-bit-systems-fix.patch
+mm-zsmalloc-drop-pool-lock-from-zs_free-on-64-bit-systems-fix-fix.patch
+mm-fix-assert_exclusive_bits-by-passing-memdesc_flags_t-by-pointer-fix.patch
+mm-rmap-use-huge_ptep_get-in-try_to_migrate_one-checkpatch-fixes.patch
+mm-mprotect-use-huge_ptep_get-for-hugetlb-fix.patch
+drivers-media-v4l2-core-v4l2-vp9c-reduce-inlining.patch
 
