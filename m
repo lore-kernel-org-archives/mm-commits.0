@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 22AB73E3D8F
-	for <mm-commits@vger.kernel.org>; Mon,  6 Jul 2026 23:15:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2B8C63BB669
+	for <mm-commits@vger.kernel.org>; Mon,  6 Jul 2026 23:15:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783379760; cv=none; b=j7ajISVFNG7baVnkvU0cIKoXr3h4KgbyMCDvxAi206NUAt8j0spNQpPvQx4KHMT339WvhzIvjxgCPNXw3lxi8iGN8zm40bzG7DAWAxACW1lK6ptw/ukZLG1yUzfkl1660dMiVjD3cbVdi/JcvhwnNflUzGAxv+ykWCGTPmuSlVM=
+	t=1783379761; cv=none; b=V0AaKosNcDceJbg6x4DliXFJinvrtKUju19YNfRMm97DnikkIhN8zHr6yf+U3K8eyyRkgujA/lEIf8OwVH7t+pTSZwW7W+W2MDUv3wRCTXjoq2AFMV+b7Oi8HudiNfpolsfCblwhIrFlAU3dPLrJg05MVMwIhd6UYJEV3FqQVoo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783379760; c=relaxed/simple;
-	bh=Db1jZBvGbNFdpCexEgITNfQXpANiAPf/VzkXXoppFeU=;
-	h=Date:To:From:Subject:Message-Id; b=BMaU4Gx+Fr6aO7TRtO4A8T/FdvpEg0/EqJVcI8utkQabMaDatJzGDLxQUiwJNgSDSjcdPJ52zUTfil6F018X9ZBiceRhBVj9GSjZCwYT4Pe8+9mEBWgHH9c1zQBEH3RgulWIJ6RojimME9doCrDy4asxcnxCbPPAXold3XStFRc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=djfPj/kR; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783379761; c=relaxed/simple;
+	bh=dn7Ug/H+yLZHyCe0mqdJqFRf5likaSP92wIiMo9GjwM=;
+	h=Date:To:From:Subject:Message-Id; b=dWURritbq4vbzr1/kpatTu++jf5e4gjaFAJG9EtV+DnsQ4Pg8ukBDQ0/O2x/pIbyM2bYYLcwYD5aQFfocO/0zrsy+hvvvC9Nz03rj9pDP6EE/a68LotlS2mXhCl+UZDZV3cQluG0Vegcq1oSw2bJS/1+kG7orL5YVdXJCw3vOCw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gJIOz+7V; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="djfPj/kR"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B52471F000E9;
-	Mon,  6 Jul 2026 23:15:57 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gJIOz+7V"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B7D331F00A3A;
+	Mon,  6 Jul 2026 23:15:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783379757;
-	bh=RuQHjBb2gvAxDYOCKLJ/JEG3v+aJP5EOxQKy15vhvdg=;
+	d=linux-foundation.org; s=korg; t=1783379759;
+	bh=eMbvAyfP9bnfBI8CY/CFHZTs4lbd0JlAj9+F8SABQRE=;
 	h=Date:To:From:Subject;
-	b=djfPj/kRceRrRy/APKlBe44c+79xlQkF+zHn5pWsjmcqkBkDSaRnCsxRCZAFoxXwB
-	 aPitdTdxG7hdv8aWnZm7f+CXRRkIEO6JlIl/XUxJPT+MQx+5CtRLfiO6RrSaDC0cKK
-	 JQbjKKC3iPkpBlPQZd3rZRqYnq/CGn9Z2pwDCDD4=
-Date: Mon, 06 Jul 2026 16:15:57 -0700
+	b=gJIOz+7V6NShxZR/eLa54obeh1EMhMVK05micmngwU7kUxvgpw+my8gIr7whVI5T+
+	 RrqFUo/5gq8zmY8TsudZ52rVGHitRKobwID50gZKQzKUACa5mukn7K+ItBNuQMoMfe
+	 uisTa3KuLomWvZjleriWuok6BXh7WKlYyivoIriA=
+Date: Mon, 06 Jul 2026 16:15:59 -0700
 To: mm-commits@vger.kernel.org,vbabka@kernel.org,usama.arif@linux.dev,surenb@google.com,shikemeng@huaweicloud.com,shakeel.butt@linux.dev,rppt@kernel.org,nphamcs@gmail.com,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,kasong@tencent.com,david@kernel.org,chrisl@kernel.org,baoquan.he@linux.dev,baohua@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-entirely-remove-lru_add_drain-in-do_swap_page.patch added to mm-new branch
-Message-Id: <20260706231557.B52471F000E9@smtp.kernel.org>
+Subject: + mm-clarify-the-folio_free_swap-for-do_swap_page.patch added to mm-new branch
+Message-Id: <20260706231559.B7D331F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: entirely remove lru_add_drain in do_swap_page
+     Subject: mm: clarify the folio_free_swap() for do_swap_page()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-entirely-remove-lru_add_drain-in-do_swap_page.patch
+     mm-clarify-the-folio_free_swap-for-do_swap_page.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-entirely-remove-lru_add_drain-in-do_swap_page.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-clarify-the-folio_free_swap-for-do_swap_page.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,40 +70,24 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Barry Song (Xiaomi)" <baohua@kernel.org>
-Subject: mm: entirely remove lru_add_drain in do_swap_page
-Date: Thu, 2 Jul 2026 07:59:54 +0800
+Subject: mm: clarify the folio_free_swap() for do_swap_page()
+Date: Thu, 2 Jul 2026 07:59:55 +0800
 
-We are doing a lot of redundant lru_add_drain() calls in do_swap_page(),
-especially for synchronous I/O devices.  For example, the test program
-below currently ends up draining lru_cache 100% of the time:
+Since commit 4b34f1d82c654 ("mm, swap: free the swap cache after folio is
+mapped"), we have relied on do_wp_page() to handle the non-exclusive case,
+where the folio may either be reused or require CoW.
 
-int main(int argc, char *argv[])
-{
-        int i;
- #define SIZE 100*1024*1024
-	while(1) {
-		volatile int *p = mmap(0, SIZE, PROT_READ | PROT_WRITE,
-                        MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+As a result, using the refcount in do_swap_page() to decide when to free
+the swap cache is no longer necessary, since do_wp_page() can handle this
+more cleanly and consistently.
 
-		for (int i = 0; i < SIZE/sizeof(int); i++)
-			p[i] =  i%64;
-		madvise((void *)p, SIZE, MADV_PAGEOUT);
-		for (int i = 0; i < SIZE/sizeof(int); i++)
-			p[i] =  i%64;
-		munmap(p, SIZE);
-	}
-	return 0;
-}
+We can now simply use FAULT_FLAG_WRITE together with exclusivity to decide
+when to free the swap cache in do_swap_page().
 
-Folio reuse now relies primarily on the exclusive hint, making lru_cache
-draining to drop the refcount in lru_cache largely irrelevant.  For a
-kernel build with a minimal configuration running in a 1 GB memcg, this
-patch skips more than 43,000 redundant local LRU drains.
-
-Link: https://lore.kernel.org/20260701235955.36126-4-baohua@kernel.org
+Link: https://lore.kernel.org/20260701235955.36126-5-baohua@kernel.org
 Signed-off-by: Barry Song (Xiaomi) <baohua@kernel.org>
+Suggested-by: David Hildenbrand (Arm) <david@kernel.org>
 Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
 Cc: Baoquan He <baoquan.he@linux.dev>
 Cc: Chris Li <chrisl@kernel.org>
 Cc: Kairui Song <kasong@tencent.com>
@@ -113,34 +97,76 @@ Cc: Lorenzo Stoakes <ljs@kernel.org>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Usama Arif <usama.arif@linux.dev>
 Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |   10 ----------
- 1 file changed, 10 deletions(-)
+ mm/memory.c |   20 ++++++++------------
+ 1 file changed, 8 insertions(+), 12 deletions(-)
 
---- a/mm/memory.c~mm-entirely-remove-lru_add_drain-in-do_swap_page
+--- a/mm/memory.c~mm-clarify-the-folio_free_swap-for-do_swap_page
 +++ a/mm/memory.c
-@@ -4894,16 +4894,6 @@ vm_fault_t do_swap_page(struct vm_fault
- 	} else if (folio != swapcache)
- 		page = folio_page(folio, 0);
- 
--	/*
+@@ -4509,7 +4509,7 @@ static vm_fault_t remove_device_exclusiv
+ static inline bool should_try_to_free_swap(struct swap_info_struct *si,
+ 					   struct folio *folio,
+ 					   struct vm_area_struct *vma,
+-					   unsigned int extra_refs,
++					   bool exclusive,
+ 					   unsigned int fault_flags)
+ {
+ 	if (!folio_test_swapcache(folio))
+@@ -4525,14 +4525,12 @@ static inline bool should_try_to_free_sw
+ 	if (mem_cgroup_swap_full(folio) || (vma->vm_flags & VM_LOCKED) ||
+ 	    folio_test_mlocked(folio))
+ 		return true;
++
+ 	/*
 -	 * If we want to map a page that's in the swapcache writable, we
 -	 * have to detect via the refcount if we're really the exclusive
--	 * owner. Try removing the extra reference from the local LRU
--	 * caches if required.
--	 */
--	if ((vmf->flags & FAULT_FLAG_WRITE) &&
--	    !folio_test_ksm(folio) && !folio_test_lru(folio))
--		lru_add_drain();
--
- 	folio_throttle_swaprate(folio, GFP_KERNEL);
+-	 * user. Try freeing the swapcache to get rid of the swapcache
+-	 * reference only in case it's likely that we'll be the exclusive user.
++	 * Free the swapcache only if we are the exclusive user and
++	 * this is a write fault.
+ 	 */
+-	return (fault_flags & FAULT_FLAG_WRITE) && !folio_test_ksm(folio) &&
+-		folio_ref_count(folio) == (extra_refs + folio_nr_pages(folio));
++	return (fault_flags & FAULT_FLAG_WRITE) && exclusive;
+ }
  
- 	/*
+ static vm_fault_t pte_marker_clear(struct vm_fault *vmf)
+@@ -5036,10 +5034,8 @@ check_folio:
+ 		if ((vma->vm_flags & VM_WRITE) && !userfaultfd_pte_wp(vma, pte) &&
+ 		    !pte_needs_soft_dirty_wp(vma, pte)) {
+ 			pte = pte_mkwrite(pte, vma);
+-			if (vmf->flags & FAULT_FLAG_WRITE) {
++			if (vmf->flags & FAULT_FLAG_WRITE)
+ 				pte = pte_mkdirty(pte);
+-				vmf->flags &= ~FAULT_FLAG_WRITE;
+-			}
+ 		}
+ 		rmap_flags |= RMAP_EXCLUSIVE;
+ 	}
+@@ -5079,7 +5075,7 @@ check_folio:
+ 	 * Do it after mapping, so raced page faults will likely see the folio
+ 	 * in swap cache and wait on the folio lock.
+ 	 */
+-	if (should_try_to_free_swap(si, folio, vma, nr_pages, vmf->flags))
++	if (should_try_to_free_swap(si, folio, vma, exclusive, vmf->flags))
+ 		folio_free_swap(folio);
+ 
+ 	folio_unlock(folio);
+@@ -5096,7 +5092,7 @@ check_folio:
+ 		folio_put(swapcache);
+ 	}
+ 
+-	if (vmf->flags & FAULT_FLAG_WRITE) {
++	if ((vmf->flags & FAULT_FLAG_WRITE) && !pte_write(pte)) {
+ 		ret |= do_wp_page(vmf);
+ 		if (ret & VM_FAULT_ERROR)
+ 			ret &= VM_FAULT_ERROR;
 _
 
 Patches currently in -mm which might be from baohua@kernel.org are
