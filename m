@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1A2382AD0C
-	for <mm-commits@vger.kernel.org>; Mon,  6 Jul 2026 00:58:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BAD3813B7AE
+	for <mm-commits@vger.kernel.org>; Mon,  6 Jul 2026 01:01:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783299535; cv=none; b=jnrFBkOY5xnlAM6dYG4RqW+ihCUb4SM7JXt5axN4TZJJRPMHEtAU2TdbzkV5r9ASmCHPjzXQjf/XZabuMtILRAKQDi/5oPwEJap/QH46OVkbqktsUuz6WtGinWIk5bDW/RAsQOqoK9KRoJxo1O8JCCKiNZPTx38p5S8/BTWPgSk=
+	t=1783299663; cv=none; b=PcYyutQpSZkYVDthBIA4NM0MfQsz+8tC2lsgnVxGtHNfhJdrkaBkxg+JBOhCkrO4c5oFdrTyDUxu78bl5pmkJlgFgNoMUCFnds8NyVnsarO6oMYNf8bGdQMKvrk1tWVOsJbliCJnJyIqHUdjGwFGqA/IqmwzCvJoU5Lr7iT9E+g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783299535; c=relaxed/simple;
-	bh=WrSXwLAu97x26t/ke85NrxPrWBrTqe9xWkbVtQrA3WU=;
-	h=Date:To:From:Subject:Message-Id; b=Xd9kzAQC1CnyX2GafCStocLHIjGl1+g1zVLoP3yphtw4bX62xBwYSxlgt4HfR+ItwVveivkq6mU8yztbEwisjL20cUJM56mXBLzfgS5W1wih3KeY+6v8FxEnOaBG47vP3OxYAlPy9Dz2L+feSxMlVoqoIOI/kDZcrNP0keIgNnk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rmNV/ym+; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783299663; c=relaxed/simple;
+	bh=3enqslEUYdMs6v5cdy7qZwnD7Kaq6wXjLJXyxoxM5OA=;
+	h=Date:To:From:Subject:Message-Id; b=NvuZ3/Gz4UTZilibSqGnQqifjwy8d+qw1HAWcQ04ERAW+9FKYtjm/kiIz46EtM6x3doL7lNj4ejlTKOHJ/6eJNcwTqVXW0DtD0dxC4KlSzBpe+6Wc+RaJ7B2wLe8Sa8WoePdEVzlEwAXa/ork7/F7psSEqCEf2XGKTIfYRKJVGs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TSlzeFv9; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rmNV/ym+"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 764C31F000E9;
-	Mon,  6 Jul 2026 00:58:53 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TSlzeFv9"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3F22B1F000E9;
+	Mon,  6 Jul 2026 01:01:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783299533;
-	bh=3gK47HFfYPjFhKwgtRsA7OZLievS5nlMjcseN9xF8PE=;
+	d=linux-foundation.org; s=korg; t=1783299662;
+	bh=wp//TH3VGN7thpQFVlLxEBpHWO/u4sCDZbQy+WXvkqM=;
 	h=Date:To:From:Subject;
-	b=rmNV/ym+VE2pfikiGMbXphjOP0j2nLV66/qCkf0A4rPEf/I7DnMYfIvOczOFjYbKn
-	 JN9zQFTHpxE9Bi1S/3Swvsk9AIJoCnuf/FERj+vIiympczskt14JAuBXJtEETUF8w6
-	 Yssj+vbMRLsRqgU6ovgfZE4oZWCw95Rxe5zm9rVY=
-Date: Sun, 05 Jul 2026 17:58:53 -0700
-To: mm-commits@vger.kernel.org,sj@kernel.org,liam@infradead.org,andrewjballance@gmail.com,aliceryhl@google.com,enelsonmoore@gmail.com,akpm@linux-foundation.org
+	b=TSlzeFv9isrParUFHAUbizBDAB5RobUpa9mlFQ5Sb18tAVfGTUhqvxNmvx+eTd6ya
+	 WMrjQv4j8fGmqEfAHIvFgmNBCwwjQKWP79olqRZ4PORO06rj+ZB2vnUegzyIlSi/0M
+	 T9VG/CbkkFyqF58GFF94GNprvb7MGdenEVVlsAmg=
+Date: Sun, 05 Jul 2026 18:01:01 -0700
+To: mm-commits@vger.kernel.org,tj@kernel.org,dennis@kernel.org,thuth@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + maple_tree-remove-undocumented-config_maple_rcu_disabled-macro.patch added to mm-new branch
-Message-Id: <20260706005853.764C31F000E9@smtp.kernel.org>
+Subject: + percpu-replace-__assembly__-with-__assembler__-in-percpu-defsh-header-file.patch added to mm-new branch
+Message-Id: <20260706010102.3F22B1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: maple_tree: remove undocumented CONFIG_MAPLE_RCU_DISABLED macro
+     Subject: percpu: replace __ASSEMBLY__ with __ASSEMBLER__ in percpu-defs.h header file
 has been added to the -mm mm-new branch.  Its filename is
-     maple_tree-remove-undocumented-config_maple_rcu_disabled-macro.patch
+     percpu-replace-__assembly__-with-__assembler__-in-percpu-defsh-header-file.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-remove-undocumented-config_maple_rcu_disabled-macro.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/percpu-replace-__assembly__-with-__assembler__-in-percpu-defsh-header-file.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,56 +69,53 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Ethan Nelson-Moore <enelsonmoore@gmail.com>
-Subject: maple_tree: remove undocumented CONFIG_MAPLE_RCU_DISABLED macro
-Date: Wed, 10 Jun 2026 15:09:04 -0700
+From: Thomas Huth <thuth@redhat.com>
+Subject: percpu: replace __ASSEMBLY__ with __ASSEMBLER__ in percpu-defs.h header file
+Date: Fri, 19 Jun 2026 17:47:04 +0200
 
-<linux/maple_tree.h> consults the macro CONFIG_MAPLE_RCU_DISABLED to
-determine whether to disable the mt_in_rcu() function (by making it always
-return false).  This macro is not reachable via Kconfig, despite its name,
-and is not documented anywhere.  Remove it to avoid polluting the CONFIG_*
-namespace.
+While the GCC and Clang compilers already define __ASSEMBLER__
+automatically when compiling assembly code, __ASSEMBLY__ is a macro that
+only gets defined by the Makefiles in the kernel.  This can be very
+confusing when switching between userspace and kernelspace coding, or when
+dealing with uapi headers that rather should use __ASSEMBLER__ instead. 
+So let's standardize now on the __ASSEMBLER__ macro that is provided by
+the compilers.
 
-Discovered while searching for CONFIG_* symbols referenced in code but not
-defined in any Kconfig file.
+This is a completely mechanical patch (done with a simple "sed -i"
+statement.
 
-Link: https://lore.kernel.org/20260610220905.99860-1-enelsonmoore@gmail.com
-Signed-off-by: Ethan Nelson-Moore <enelsonmoore@gmail.com>
-Acked-by: SeongJae Park <sj@kernel.org>
-Reviewed-by: Liam Howlett <liam@infradead.org>
-Reviewed-by: Alice Ryhl <aliceryhl@google.com>
-Cc: Andrew Ballance <andrewjballance@gmail.com>
+Link: https://lore.kernel.org/20260619154704.41293-1-thuth@redhat.com
+Signed-off-by: Thomas Huth <thuth@redhat.com>
+Cc: Dennis Zhou <dennis@kernel.org>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/maple_tree.h |    4 ----
- 1 file changed, 4 deletions(-)
+ include/linux/percpu-defs.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/include/linux/maple_tree.h~maple_tree-remove-undocumented-config_maple_rcu_disabled-macro
-+++ a/include/linux/maple_tree.h
-@@ -11,7 +11,6 @@
- #include <linux/kernel.h>
- #include <linux/rcupdate.h>
- #include <linux/spinlock.h>
--/* #define CONFIG_MAPLE_RCU_DISABLED */
+--- a/include/linux/percpu-defs.h~percpu-replace-__assembly__-with-__assembler__-in-percpu-defsh-header-file
++++ a/include/linux/percpu-defs.h
+@@ -203,7 +203,7 @@
+ /*
+  * Accessors and operations.
+  */
+-#ifndef __ASSEMBLY__
++#ifndef __ASSEMBLER__
  
  /*
-  * Allocated nodes are mutable until they have been inserted into the tree,
-@@ -868,9 +867,6 @@ static inline void mt_init(struct maple_
+  * __verify_pcpu_ptr() verifies @ptr is a percpu pointer without evaluating
+@@ -514,5 +514,5 @@ do {									\
+ #define this_cpu_inc_return(pcp)	this_cpu_add_return(pcp, 1)
+ #define this_cpu_dec_return(pcp)	this_cpu_add_return(pcp, -1)
  
- static inline bool mt_in_rcu(struct maple_tree *mt)
- {
--#ifdef CONFIG_MAPLE_RCU_DISABLED
--	return false;
--#endif
- 	return mt->ma_flags & MT_FLAGS_USE_RCU;
- }
- 
+-#endif /* __ASSEMBLY__ */
++#endif /* __ASSEMBLER__ */
+ #endif /* _LINUX_PERCPU_DEFS_H */
 _
 
-Patches currently in -mm which might be from enelsonmoore@gmail.com are
+Patches currently in -mm which might be from thuth@redhat.com are
 
-mm-hugetlb-correct-config_cgroup_hugetlb-macro-name-in-comment.patch
-mm-fix-config_stack_growsup-typo-in-tools-testing-vma-include-duph.patch
-maple_tree-remove-undocumented-config_maple_rcu_disabled-macro.patch
+mm-replace-__assembly__-with-__assembler__-in-memory-management-header-files.patch
+percpu-replace-__assembly__-with-__assembler__-in-percpu-defsh-header-file.patch
 
