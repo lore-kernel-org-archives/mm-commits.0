@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9F3742F12CE
-	for <mm-commits@vger.kernel.org>; Mon,  6 Jul 2026 17:10:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A2FE52F5321
+	for <mm-commits@vger.kernel.org>; Mon,  6 Jul 2026 17:10:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783357838; cv=none; b=HJ+fpOQf9dlCkz/7KTxndsUpTcvAUIl9n5w8++QIJEecWWAJ2MTbTiopi5jTJBXM7N/KHQh9rY06AwKfU5mfxNCMAKU8MBEdgTt1yVfBiBU8z0oRVJexeTvIIrCefMD7uE+qLGHJ9Qg0Ev5xiAYoJEjejk1UL3R6D51ilmRW4a0=
+	t=1783357841; cv=none; b=d0zqKz8/9Ez0Yw3NsyPH1geo/p5FciDdsNXihgzRK9B32ysBS4Q/oPW+pLbUKCHCZOqEKam045cANG5/3dIWUs3+z7k9ltOObYGwJ5qqzDQzf7D2+ySx4L21/o4eIFqw38yfrBfCnUXooiEy3Iy6McgA54a+G1HbkDFOBTGHcWY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783357838; c=relaxed/simple;
-	bh=Rovwj4Yu0vB34OlXl45mB4UH1fvyuvyER0lwyhFbtIU=;
-	h=Date:To:From:Subject:Message-Id; b=t+1Gu4IFE8vp6Imjk72y61meYzwGVCeoXmK9rCytaUlJZ/1sfwiJFncsF7ENyerdXQUUlrFZArp0eEuW0LTdwPXnrb4lL1vaBL8GKFJBjDABIOWRB86WbBtVtm3s90jQ18YEpQr6cvZjwOLMwjUJii1kK4NFCwfw8oLo37tmffA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oyndsqww; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783357841; c=relaxed/simple;
+	bh=NAkDK80r4HiERi+/EGTNezQ2frLHBaoFwF/+qjW0YMk=;
+	h=Date:To:From:Subject:Message-Id; b=fPnN5o1zyH58OirnrTb6CSqZF1m4vxH4zQzIRqZO4EvWjJ6lATGKoxuFDQXb7wuHd7OFzTMX25wKVBXxEdblypQVwi94kx+egLyTzaB5PYnZB7FWSKh5kOhyJ2xM2tdvTzttNx05QJmtmYDHSrBbob/7YFz6qrNZhJw2EPQzJdI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lVArU1UN; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oyndsqww"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 629101F000E9;
-	Mon,  6 Jul 2026 17:10:37 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lVArU1UN"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 511B11F00ADF;
+	Mon,  6 Jul 2026 17:10:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783357837;
-	bh=YT8s7mkEBmPnt62NpW6vy+ZWG4xGi/ziv0YeQazI9tY=;
+	d=linux-foundation.org; s=korg; t=1783357839;
+	bh=XB4/Dk7N+tFvvZ8QF9lmmUV0BhWdLnd3588fosEdOio=;
 	h=Date:To:From:Subject;
-	b=oyndsqwwARXnT4e5VegOb9OuQsizX0raS/fCP71Fy0qKqnTz8CvoqRJgTGuaj+V7f
-	 +vhjhtz20S9C96pNG4O+gfDcI8wNlUon337+DZfEJvQmqAoRKLvu1jdgCfXsoiRggL
-	 FwMSKTXwvo1T7uyO58C5FYSIaJYjue81WIklXGu8=
-Date: Mon, 06 Jul 2026 10:10:37 -0700
+	b=lVArU1UNYBmTB/CVie0WO1/i+3Lzso93GsUcz7e0bsKKQlfdz+mI5ueBxWIQ+0Qnh
+	 s8fH/MbZ+OaaRSZOpHQ8jxWFbuAXi1cf11Tu8TPTYyaqZBSHNuvupS9gDOzGgMv10S
+	 MuRBeNBDF6CMKAEBACf1id8xwUAl7a/TZJNlZODc=
+Date: Mon, 06 Jul 2026 10:10:38 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-reclaaim-ignore-damon_stop-return-value.patch added to mm-new branch
-Message-Id: <20260706171037.629101F000E9@smtp.kernel.org>
+Subject: + mm-damon-lru_sort-ignore-damon_stop-return-value.patch added to mm-new branch
+Message-Id: <20260706171039.511B11F00ADF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/reclaim: ignore damon_stop() return value
+     Subject: mm/damon/lru_sort: ignore damon_stop() return value
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-reclaaim-ignore-damon_stop-return-value.patch
+     mm-damon-lru_sort-ignore-damon_stop-return-value.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-reclaaim-ignore-damon_stop-return-value.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-lru_sort-ignore-damon_stop-return-value.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,22 +70,22 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/reclaim: ignore damon_stop() return value
-Date: Mon, 6 Jul 2026 07:06:20 -0700
+Subject: mm/damon/lru_sort: ignore damon_stop() return value
+Date: Mon, 6 Jul 2026 07:06:21 -0700
 
 damon_stop() return value is guaranteed to be 0.  Ignore it.
 
-Link: https://lore.kernel.org/20260706140628.87414-6-sj@kernel.org
+Link: https://lore.kernel.org/20260706140628.87414-7-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/reclaim.c |    6 ++++--
+ mm/damon/lru_sort.c |    6 ++++--
  1 file changed, 4 insertions(+), 2 deletions(-)
 
---- a/mm/damon/reclaim.c~mm-damon-reclaaim-ignore-damon_stop-return-value
-+++ a/mm/damon/reclaim.c
-@@ -332,8 +332,10 @@ static int damon_reclaim_turn(bool on)
+--- a/mm/damon/lru_sort.c~mm-damon-lru_sort-ignore-damon_stop-return-value
++++ a/mm/damon/lru_sort.c
+@@ -409,8 +409,10 @@ static int damon_lru_sort_turn(bool on)
  {
  	int err;
  
@@ -96,7 +96,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 +		return 0;
 +	}
  
- 	err = damon_reclaim_apply_parameters();
+ 	err = damon_lru_sort_apply_parameters();
  	if (err)
 _
 
