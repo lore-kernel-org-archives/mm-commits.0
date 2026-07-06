@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 027522236E0
-	for <mm-commits@vger.kernel.org>; Mon,  6 Jul 2026 23:48:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E43E22236E0
+	for <mm-commits@vger.kernel.org>; Mon,  6 Jul 2026 23:48:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783381685; cv=none; b=OBzL1r7kLvAuDS6Et7Mg+98Ee38spjfYXaJ+Q/LV+WV2G1MpMVgE9KXTV/1jGjKY5mIHnRIWOEnSWxr6GKs7gm1pzPT6D5a7xHJyJ64X2eDga4iUf7h7LPMcf3+z2AzrcmSwYlmKCDYyrcrURexF/To5ouI2l1HI3sexrmqWU6A=
+	t=1783381687; cv=none; b=IXpYUgC59Y+VAAgQzybupCM6N6RRhJGerrwcg6oyLGML/DqZvgb/b4SZNOybeLvdTQVpK8c5uZD33luxUbY8X6GK5aUbQ3rKJZSlO3crLp/aQ5LR0pqHzREgELyiY81tHIXdxKPxFrtzBEC2KX9p3dO2q1h/HAvanA/kqmIr5A0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783381685; c=relaxed/simple;
-	bh=ZjwQrm8S6Y1DcehIKBrMeOr//BvqTGVLx0C3sarobgQ=;
-	h=Date:To:From:Subject:Message-Id; b=OU1HWJmCWkS/S14ojSsjVzvl3oAS1Wnss2kqjyUDBgMMTY77dsc5Bdk5rO9cikCkOfm6MnafIA3mUsGD8XYIUAvAow7KAW3u7doVSnDwkke2U1/WERjmQEGoaJKvUyujyn4r7RJ9/DMaJVduvIT/8frxxAYSQVdWyIpbF2wqL5g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LjNe9TkY; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783381687; c=relaxed/simple;
+	bh=Kh1QkZ0d2Y3RLpeJMu5SX/RJKtLPCdpsXTz7CpB3VoU=;
+	h=Date:To:From:Subject:Message-Id; b=X2hdZXUY+7pFmr0TXSffWl5JmCJ8SWjQ5Z1OjgN938UmobxlrWBbMNi9WQwLG27zrDg5h/pngOxIx5G84pdjNfLwCqLLmMyxEVl74LKp4JdvfLN/0FG7lEbQrO6wDb7UJmo7OQ5A+ebRA3xfCz0yiEJg2AuVPqlTpB0w91keyvw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AtBFOHUo; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LjNe9TkY"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 63BA91F000E9;
-	Mon,  6 Jul 2026 23:48:03 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AtBFOHUo"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 766821F000E9;
+	Mon,  6 Jul 2026 23:48:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783381683;
-	bh=vezXjbU8vwv/ngEHhlCKVqaVI/PViC1tjaX/eprXpNU=;
+	d=linux-foundation.org; s=korg; t=1783381685;
+	bh=9mgPmQ7p9kP7l1cl/kde/bmCn2kHXPRPuaS4MbW/fFM=;
 	h=Date:To:From:Subject;
-	b=LjNe9TkYr4Y8etQ/S1Iybbj7Kt9kq5e9iVHwsWHWlRzijhhnMt1Sk38ZZJokGr99X
-	 O8eKygr+wGNViR34ohTkKAMnIZTgQ/h6XJBeCwjeW7/l7fo7e3+bafqPjoh5qQO/l+
-	 zqZ55BXpYvw+3lSQpEB3KTc/IFX/4dSJg0mQUfSM=
-Date: Mon, 06 Jul 2026 16:48:02 -0700
+	b=AtBFOHUouPuHPY7GlSdx5lJ5v++VikfXQ2cxp/Ql/d3KKxPzJoKo4ojSfsl9dwG37
+	 7/RkgKCyc/5Sd4OsBS6Cahy2FFwwPCATPiRf7vAIZxRq30lZCsa0zupClTdja1te9n
+	 mCyr0Cwu+RlqUXH3DIqaHjN63t8doaY6pUjTvuB4=
+Date: Mon, 06 Jul 2026 16:48:05 -0700
 To: mm-commits@vger.kernel.org,wang.yaxin@zte.com.cn,vbabka@kernel.org,surenb@google.com,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,hughd@google.com,david@kernel.org,chengming.zhou@linux.dev,xu.xin16@zte.com.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + ksm-optimize-rmap_walk_ksm-by-passing-a-suitablepage-index.patch added to mm-new branch
-Message-Id: <20260706234803.63BA91F000E9@smtp.kernel.org>
+Subject: + ksm-add-mremap-selftests-for-ksm_rmap_walk.patch added to mm-new branch
+Message-Id: <20260706234805.766821F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: ksm: optimize rmap_walk_ksm by passing a suitablepage index
+     Subject: ksm: add mremap selftests for ksm_rmap_walk
 has been added to the -mm mm-new branch.  Its filename is
-     ksm-optimize-rmap_walk_ksm-by-passing-a-suitablepage-index.patch
+     ksm-add-mremap-selftests-for-ksm_rmap_walk.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ksm-optimize-rmap_walk_ksm-by-passing-a-suitablepage-index.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ksm-add-mremap-selftests-for-ksm_rmap_walk.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,109 +70,23 @@ and is updated there most days
 
 ------------------------------------------------------
 From: xu xin <xu.xin16@zte.com.cn>
-Subject: ksm: optimize rmap_walk_ksm by passing a suitablepage index
-Date: Fri, 3 Jul 2026 16:25:10 +0800 (CST)
+Subject: ksm: add mremap selftests for ksm_rmap_walk
+Date: Fri, 3 Jul 2026 16:26:37 +0800 (CST)
 
-User impact / Why this matters to Linux users
-=============================================
-When a system runs with KSM enabled and memory becomes tight, KSM pages
-may be swapped out or migrated. The kernel then performs a reverse map
-walk by rmap_walk_ksm to locate all page table entries that reference
-these pages. If A large number of unrelated VMAs can attach to a single
-anon_vma related with this KSM page, then rmap_walk might be severe
-performance bottleneck.  In our embedded test environment, we observed
-~20,000 VMAs sharing one anon_vma without any fork â€“ purely from VMA
-splitsï¼Œ which cause 200~700ms duration of rmap_walk_ksm.
+The existing tools/testing/selftests/mm/rmap.c has already one testcase
+for ksm_rmap_walk in TEST_F(migrate, ksm), which takes use of migration of
+page from one NUMA node to another NUMA node.  However, it just lacks the
+scenario of mremapped VMAs.
 
-When one of those VMAs mapped a KSM page, then this KSM page's rmapping
-will become bottleneck with hold its anon_vma lock for a long time. The
-anon_vma lock is not only used by KSM; it is a core lock protecting the
-VMA interval tree and is acquired by many critical memory operations:
+We add the calling of mremap() and then trigger KSM to merge pages before
+migrating, which is specifically to test an optimization which is
+introduced by this patch ("ksm: Optimize rmap_walk_ksm by passing a
+suitable address pgoff").
 
-  â€' Page faults: do_anonymous_page(), do_wp_page() (during COW)
-  â€' Memory reclaim: try_to_unmap()
-  â€' Page migration & compaction: migrate_pages(), compact_zone()
-  â€' mlock / munlock: mlock_fixup()
-  â€' Process exit: exit_mmap() (tearing down VMAs)
-  â€' Cgroup memory accounting: mem_cgroup_move_charge()
+This test can reproduce the issue that Hugh points out at
+https://lore.kernel.org/all/02e1b8df-d568-8cbb-b8f6-46d5476d9d75@google.com/
 
-If one thread holds the anon_vma lock for hundreds of milliseconds
-because of an inefficient KSM rmap walk, any other thread that
-tries to acquire the same lock (e.g., an application taking a page
-fault, kswapd reclaiming pages, or a migration thread) will block.
-This leads to stalled application threads, increased latency
-spikes, and in extreme cases container timeouts or watchdog
-triggers.
-
-This patch reduces the worst-case anon_vma lock hold time during
-ksm_rmap_walk from >500 ms to <1 ms, thereby almost eliminating
-this source of lock contention and improving system responsiveness
-under memory pressure.
-
-Real-world examples:
-====================
- - JVM / Go runtime: These use mmap for heap regions and later call
-mprotect(PROT_NONE) for garbage collection barriers or guard pages,
-splitting the original VMA into thousands of small pieces over time.
-
- - Database engines (MySQL, PostgreSQL): Large shared memory buffers
-or anonymous mappings are managed with madvise(MADV_DONTNEED) to
-release specific pages, which also splits VMAs.
-
-Root Cause
-==========
-Through local debugging trace analysis, we found that most of the
-latency of rmap_walk_ksm occurs within anon_vma_interval_tree_foreach,
-leading to an excessively long hold time on the anon_vma lock (even
-reaching 500ms or more), which in turn causes upper-layer applications
-(waiting for the anon_vma lock) to be blocked for extended periods.
-
-Further investigation revealed that 99.9% of iterations inside the
-anon_vma_interval_tree_foreach loop are skipped due to the first check
-"if (addr < vma->vm_start || addr >= vma->vm_end)), indicating that a
-large number of loop iterations are ineffective. This inefficiency
-arises because the start page index and the end page index parameters
-passed to anon_vma_interval_tree_foreach span the entire address space
-from 0 to ULONG_MAX, resulting in very poor loop efficiency.
-
-Solution
-========
-We cannot rely solely on anon_vma to locate all PTEs mapping this page
-but also need to have the original page's linear_page_index. Since the
-implementation of anon_vma_interval_tree_foreach â€” it essentially
-iterates to find a suitable VMA such that the provided page index
-falls within the candidate's vm_pgoff range.
-
-vm_pgoff <= original linear page offset <= (vm_pgoff + vma_pages(v) - 1)
-
-Fortunately, an earlier commit introduced the linear_page_index to struct
-ksm_rmap_item, allowing for optimizing the RMAP walk.
-
-Test results
-============
-A rmap testbench can be obtained with two Out-Of-Tree patches at [1][2].
-After applying the OOT patches and building rmap_benchmark from:
-tools/testing/rmap/rmap_benchmark.c, we can start the performance test.
-
-The testing result in QEMU is shown as follows:
-
-KSM rmapping	Maximum duration		Average duration
-
-Before:		705.12 ms (705119858 ns)	532.04 ms (532041586 ns)
-After:		1.67 ms (1665917 ns)		1.44 ms (1443784 ns)
-
-The benchmark numbers are realistic, since we observed ~20,000 VMAs
-sharing one anon_vma on a production system running a Java application
-with KSM enabled. The lock hold time before the patch was measured at
-228â€¯ms (max) during rmap walks triggered by memory compaction and page
-migration. The benchmark reproduces that VMA count and lockâ€‘hold
-behavior in a controlled environment.
-
-Link: https://lore.kernel.org/20260703162510242nxmjbcLy5ccp1dbZSK3EU@zte.com.cn
-Link: https://lore.kernel.org/all/202605301703094695zmVgcSC27BNR0rH0N8_x@zte.com.cn [1]
-Link: https://lore.kernel.org/all/20260530170404509QpJmBtpSjn3uQHeVKA2iA@zte.com.cn/ [2]
-Co-developed-by: Wang Yaxin <wang.yaxin@zte.com.cn>
-Signed-off-by: Wang Yaxin <wang.yaxin@zte.com.cn>
+Link: https://lore.kernel.org/20260703162637070FU4ekl58Hw_Z7OSuJryZB@zte.com.cn
 Signed-off-by: xu xin <xu.xin16@zte.com.cn>
 Acked-by: David Hildenbrand (Arm) <david@kernel.org>
 Cc: Chengming Zhou <chengming.zhou@linux.dev>
@@ -183,42 +97,101 @@ Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Wang Yaxin <wang.yaxin@zte.com.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/ksm.c |   13 ++++++++++++-
- 1 file changed, 12 insertions(+), 1 deletion(-)
+ tools/testing/selftests/mm/rmap.c |   81 ++++++++++++++++++++++++++++
+ 1 file changed, 81 insertions(+)
 
---- a/mm/ksm.c~ksm-optimize-rmap_walk_ksm-by-passing-a-suitablepage-index
-+++ a/mm/ksm.c
-@@ -3208,6 +3208,7 @@ again:
- 	hlist_for_each_entry(rmap_item, &stable_node->hlist, hlist) {
- 		/* Ignore the stable/unstable/sqnr flags */
- 		const unsigned long addr = rmap_item->address & PAGE_MASK;
-+		const unsigned long index = rmap_item->linear_page_index;
- 		struct anon_vma *anon_vma = rmap_item->anon_vma;
- 		struct anon_vma_chain *vmac;
- 		struct vm_area_struct *vma;
-@@ -3221,8 +3222,18 @@ again:
- 			anon_vma_lock_read(anon_vma);
- 		}
+--- a/tools/testing/selftests/mm/rmap.c~ksm-add-mremap-selftests-for-ksm_rmap_walk
++++ a/tools/testing/selftests/mm/rmap.c
+@@ -430,4 +430,85 @@ TEST_F(migrate, ksm)
+ 	propagate_children(_metadata, data);
+ }
  
-+		/*
-+		 * Currently, KSM folios are always small folios, so it's
-+		 * sufficient to search for a single page. We can simply use
-+		 * the linear_page_index of the original de-duplicate
-+		 * anonymous page that we remembered in the rmap_item while
-+		 * de-duplicating. Note that mremap() always de-duplicates KSM
-+		 * folios: so if there was mremap() in our parent or our child,
-+		 * we wouldn't have the KSM folio mapped in these processes
-+		 * anymore.
-+		 */
- 		anon_vma_interval_tree_foreach(vmac, &anon_vma->rb_root,
--					       0, ULONG_MAX) {
-+					       index, index) {
- 
- 			cond_resched();
- 			vma = vmac->vma;
++static bool range_maps_the_same_pfn(int pagemap_fd, void *region, int nr_pages)
++{
++	int i;
++	int retries = 0;
++	unsigned long first_pfn;
++
++retry:
++	if (retries > 10)
++		return false;
++
++	first_pfn = pagemap_get_pfn(pagemap_fd, region);
++	for (i = 0; i < nr_pages; i++) {
++		if (pagemap_get_pfn(pagemap_fd, region + i * getpagesize()) != first_pfn) {
++			/*
++			 * Retry up to 10 times at most in case of the low chance of page
++			 * compaction migrating the page while we check for pfn.
++			 */
++			retries++;
++			goto retry;
++		}
++	}
++
++	return true;
++}
++
++TEST_F(migrate, ksm_and_mremap)
++{
++	unsigned long old_pfn, new_pfn;
++	void *region, *mremap_region;
++	const int nr_pages = 16;
++	size_t mmap_size;
++	int pagemap_fd;
++
++	/* Skip if KSM is not available */
++	if (ksm_stop() < 0)
++		SKIP(return, "accessing \"/sys/kernel/mm/ksm/run\" failed");
++	if (ksm_get_full_scans() < 0)
++		SKIP(return, "accessing \"/sys/kernel/mm/ksm/full_scan\" failed");
++
++	pagemap_fd = open("/proc/self/pagemap", O_RDONLY);
++	if (pagemap_fd < 0)
++		SKIP(return, "opening pagemap failed");
++
++	/* Allocate and populate twice the anon pages initially. */
++	mmap_size = 2 * nr_pages * getpagesize();
++	region = mmap(NULL, mmap_size, PROT_READ | PROT_WRITE,
++		      MAP_PRIVATE | MAP_ANON, -1, 0);
++	ASSERT_NE(region, MAP_FAILED);
++	memset(region, 0x77, mmap_size);
++
++	/* mremap the second half over the first half, to stress rmap handling */
++	mmap_size /= 2;
++	mremap_region = mremap(region + mmap_size, mmap_size, mmap_size,
++			       MREMAP_MAYMOVE | MREMAP_FIXED, region);
++	ASSERT_EQ(mremap_region, region);
++
++	/* Merge all pages into a single KSM page. */
++	madvise(region, mmap_size, MADV_MERGEABLE);
++	ASSERT_EQ(ksm_start(), 0);
++
++	/* The whole range should map the same KSM page. */
++	old_pfn = pagemap_get_pfn(pagemap_fd, region);
++	if (old_pfn == -1ul)
++		SKIP(return, "Obtaining PFN failed");
++	ksm_start();
++	ASSERT_TRUE(range_maps_the_same_pfn(pagemap_fd, region, nr_pages));
++
++	/*
++	 * Migrate the KSM page; the whole range should map the new (migrated)
++	 * KSM page.
++	 */
++	ASSERT_EQ(try_to_move_page(region), 0);
++
++	new_pfn = pagemap_get_pfn(pagemap_fd, region);
++	if (new_pfn == -1ul)
++		SKIP(return, "Obtaining PFN failed");
++	ASSERT_NE(new_pfn, old_pfn);
++	ASSERT_TRUE(range_maps_the_same_pfn(pagemap_fd, region, nr_pages));
++}
++
++
+ TEST_HARNESS_MAIN
 _
 
 Patches currently in -mm which might be from xu.xin16@zte.com.cn are
