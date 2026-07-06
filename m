@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E43E22236E0
-	for <mm-commits@vger.kernel.org>; Mon,  6 Jul 2026 23:48:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 30F363A5437
+	for <mm-commits@vger.kernel.org>; Mon,  6 Jul 2026 23:50:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783381687; cv=none; b=IXpYUgC59Y+VAAgQzybupCM6N6RRhJGerrwcg6oyLGML/DqZvgb/b4SZNOybeLvdTQVpK8c5uZD33luxUbY8X6GK5aUbQ3rKJZSlO3crLp/aQ5LR0pqHzREgELyiY81tHIXdxKPxFrtzBEC2KX9p3dO2q1h/HAvanA/kqmIr5A0=
+	t=1783381850; cv=none; b=nkJx/oZsPTSG/mF+CAtCDkb/EA7pNkSBpLVSSW8KBMlsZttKh/NBejB3De8iQrnNS9G0Ds74FdHVGVTHAwYdJR0hWet1UVH/7fUSv5QBnhkisMb+CePtf+PqKRn3pzv5zWzkKN5SyDlTeWpN7v4DPfGO1lFRCJXFzKyHkytsAqo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783381687; c=relaxed/simple;
-	bh=Kh1QkZ0d2Y3RLpeJMu5SX/RJKtLPCdpsXTz7CpB3VoU=;
-	h=Date:To:From:Subject:Message-Id; b=X2hdZXUY+7pFmr0TXSffWl5JmCJ8SWjQ5Z1OjgN938UmobxlrWBbMNi9WQwLG27zrDg5h/pngOxIx5G84pdjNfLwCqLLmMyxEVl74LKp4JdvfLN/0FG7lEbQrO6wDb7UJmo7OQ5A+ebRA3xfCz0yiEJg2AuVPqlTpB0w91keyvw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AtBFOHUo; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783381850; c=relaxed/simple;
+	bh=LLfzZrE6tBsrOOHBKF8AfB+u1uxguOzG+fSfex2n4Fs=;
+	h=Date:To:From:Subject:Message-Id; b=KLN55658GVbuZoCnylSzjS0pmgLB6xw9jbSy9mP6Xt3ApLObYE8P0LvdsFeN/WEXWACySlp2ZZwNJ6refbEbuVBTVrjnAen9gMJrmObxJqO/o+tvBLzS1DiI9n1YsgKoc/cEugMHiegQ0SjgyxK+ShNjJCd92FY1iXgBFsoCLw4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nawfQXQQ; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AtBFOHUo"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 766821F000E9;
-	Mon,  6 Jul 2026 23:48:05 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nawfQXQQ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C04CB1F000E9;
+	Mon,  6 Jul 2026 23:50:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783381685;
-	bh=9mgPmQ7p9kP7l1cl/kde/bmCn2kHXPRPuaS4MbW/fFM=;
+	d=linux-foundation.org; s=korg; t=1783381848;
+	bh=mDS5AGvXL8SPfGvfyG2aMpzxr+36aqNaRha6i0muCxM=;
 	h=Date:To:From:Subject;
-	b=AtBFOHUouPuHPY7GlSdx5lJ5v++VikfXQ2cxp/Ql/d3KKxPzJoKo4ojSfsl9dwG37
-	 7/RkgKCyc/5Sd4OsBS6Cahy2FFwwPCATPiRf7vAIZxRq30lZCsa0zupClTdja1te9n
-	 mCyr0Cwu+RlqUXH3DIqaHjN63t8doaY6pUjTvuB4=
-Date: Mon, 06 Jul 2026 16:48:05 -0700
-To: mm-commits@vger.kernel.org,wang.yaxin@zte.com.cn,vbabka@kernel.org,surenb@google.com,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,hughd@google.com,david@kernel.org,chengming.zhou@linux.dev,xu.xin16@zte.com.cn,akpm@linux-foundation.org
+	b=nawfQXQQfmC0AS0yVW96l3DpGQ5UCwGzuoFFKeUstvmNnNRWdGnV0jXI7SeTbQbIy
+	 MhbccMhlZSv4Eojl1ith2zE47JtDreh3JN3X/kviUokopOsxPiSEbDs3JFC+GJJnbQ
+	 dGmtUHMsikVkYOxC+W1hHzGnCHBDBrgWzIOcgKj4=
+Date: Mon, 06 Jul 2026 16:50:48 -0700
+To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,heming.zhao@suse.com,gechangwei@live.cn,zzzccc427@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + ksm-add-mremap-selftests-for-ksm_rmap_walk.patch added to mm-new branch
-Message-Id: <20260706234805.766821F000E9@smtp.kernel.org>
+Subject: + ocfs2-validate-inline-xattrs-during-inode-block-validation.patch added to mm-nonmm-unstable branch
+Message-Id: <20260706235048.C04CB1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,26 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: ksm: add mremap selftests for ksm_rmap_walk
-has been added to the -mm mm-new branch.  Its filename is
-     ksm-add-mremap-selftests-for-ksm_rmap_walk.patch
+     Subject: ocfs2: validate inline xattrs during inode block validation
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     ocfs2-validate-inline-xattrs-during-inode-block-validation.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ksm-add-mremap-selftests-for-ksm_rmap_walk.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-validate-inline-xattrs-during-inode-block-validation.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,134 +58,244 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: xu xin <xu.xin16@zte.com.cn>
-Subject: ksm: add mremap selftests for ksm_rmap_walk
-Date: Fri, 3 Jul 2026 16:26:37 +0800 (CST)
+From: Cen Zhang <zzzccc427@gmail.com>
+Subject: ocfs2: validate inline xattrs during inode block validation
+Date: Sun, 5 Jul 2026 10:53:10 +0800
 
-The existing tools/testing/selftests/mm/rmap.c has already one testcase
-for ksm_rmap_walk in TEST_F(migrate, ksm), which takes use of migration of
-page from one NUMA node to another NUMA node.  However, it just lacks the
-scenario of mremapped VMAs.
+Patch series "ocfs2: validate xattr entry bounds", v7.
 
-We add the calling of mremap() and then trigger KSM to merge pages before
-migrating, which is specifically to test an optimization which is
-introduced by this patch ("ksm: Optimize rmap_walk_ksm by passing a
-suitable address pgoff").
+This series validates OCFS2 xattr entry name/value bounds when xattr
+metadata is read and validated, before getxattr() or listxattr() can walk
+out-of-range entry arrays or offsets from corrupted metadata.
 
-This test can reproduce the issue that Hugh points out at
-https://lore.kernel.org/all/02e1b8df-d568-8cbb-b8f6-46d5476d9d75@google.com/
 
-Link: https://lore.kernel.org/20260703162637070FU4ekl58Hw_Z7OSuJryZB@zte.com.cn
-Signed-off-by: xu xin <xu.xin16@zte.com.cn>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Cc: Chengming Zhou <chengming.zhou@linux.dev>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: "Liam R. Howlett" <liam@infradead.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Wang Yaxin <wang.yaxin@zte.com.cn>
+This patch (of 2):
+
+ocfs2_validate_inode_block() verifies a dinode before OCFS2 users walk
+metadata from it, but inline xattr metadata is still checked only in
+operation-specific consumers.  The existing ibody lookup helper validates
+inline header placement and entry count, but inode block validation does
+not reject entry name/value bounds.
+
+Add a flat xattr entry validator and call it from inode block validation
+for inline xattrs.  Keep the operation paths on their existing
+header/count lookup checks; the full entry bounds check now runs when the
+inode block is validated at read time.
+
+Reject corrupted inline xattr metadata before ocfs2_xattr_ibody_get() or
+listxattr() can walk past the inline storage.
+
+Validation reproduced this kernel report:
+BUG: KASAN: use-after-free in ocfs2_xattr_find_entry+0x5a/0x170
+Read of size 2 at addr ffff8881242a2000 by task python3/529
+Call Trace:
+  dump_stack_lvl+0x66/0xa0
+  print_report+0xce/0x630
+  kasan_report+0xe0/0x110
+  ocfs2_xattr_find_entry+0x5a/0x170
+  ocfs2_xattr_get_nolock+0x20a/0x820
+  ocfs2_xattr_get+0x10c/0x1e0
+  __vfs_getxattr+0xe2/0x130
+  vfs_getxattr+0x185/0x1b0
+
+Link: https://lore.kernel.org/20260705025311.3429854-1-zzzccc427@gmail.com
+Link: https://lore.kernel.org/20260705025311.3429854-2-zzzccc427@gmail.com
+Fixes: cf1d6c763fbc ("ocfs2: Add extended attribute support")
+Signed-off-by: Cen Zhang <zzzccc427@gmail.com>
+Assisted-by: Codex:gpt-5.5
+Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Heming Zhao <heming.zhao@suse.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Jun Piao <piaojun@huawei.com>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Mark Fasheh <mark@fasheh.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/rmap.c |   81 ++++++++++++++++++++++++++++
- 1 file changed, 81 insertions(+)
+ fs/ocfs2/inode.c |    4 +
+ fs/ocfs2/xattr.c |  118 ++++++++++++++++++++++++++++++++++++++++-----
+ fs/ocfs2/xattr.h |    2 
+ 3 files changed, 111 insertions(+), 13 deletions(-)
 
---- a/tools/testing/selftests/mm/rmap.c~ksm-add-mremap-selftests-for-ksm_rmap_walk
-+++ a/tools/testing/selftests/mm/rmap.c
-@@ -430,4 +430,85 @@ TEST_F(migrate, ksm)
- 	propagate_children(_metadata, data);
+--- a/fs/ocfs2/inode.c~ocfs2-validate-inline-xattrs-during-inode-block-validation
++++ a/fs/ocfs2/inode.c
+@@ -1608,6 +1608,10 @@ int ocfs2_validate_inode_block(struct su
+ 		goto bail;
+ 	}
+ 
++	rc = ocfs2_validate_inode_xattr(sb, bh->b_blocknr, di);
++	if (rc)
++		goto bail;
++
+ 	if (le16_to_cpu(di->i_dyn_features) & OCFS2_INLINE_DATA_FL) {
+ 		struct ocfs2_inline_data *data = &di->id2.i_data;
+ 
+--- a/fs/ocfs2/xattr.c~ocfs2-validate-inline-xattrs-during-inode-block-validation
++++ a/fs/ocfs2/xattr.c
+@@ -950,41 +950,133 @@ static int ocfs2_xattr_list_entries(stru
+ 	return result;
  }
  
-+static bool range_maps_the_same_pfn(int pagemap_fd, void *region, int nr_pages)
-+{
+-static int ocfs2_xattr_ibody_lookup_header(struct inode *inode,
+-					   struct ocfs2_dinode *di,
+-					   struct ocfs2_xattr_header **header)
++static int ocfs2_validate_xattr_entries_flat(struct super_block *sb, u64 blkno,
++					     struct ocfs2_xattr_header *xh,
++					     size_t region_size)
+ {
++	u16 xattr_count = le16_to_cpu(xh->xh_count);
++	size_t entries_limit = region_size;
++	size_t nv_limit = region_size;
++	size_t max_entries;
 +	int i;
-+	int retries = 0;
-+	unsigned long first_pfn;
 +
-+retry:
-+	if (retries > 10)
-+		return false;
++	if (region_size < sizeof(*xh))
++		return ocfs2_error(sb,
++				   "Invalid xattr in block %llu: region size %zu is too small\n",
++				   (unsigned long long)blkno, region_size);
 +
-+	first_pfn = pagemap_get_pfn(pagemap_fd, region);
-+	for (i = 0; i < nr_pages; i++) {
-+		if (pagemap_get_pfn(pagemap_fd, region + i * getpagesize()) != first_pfn) {
-+			/*
-+			 * Retry up to 10 times at most in case of the low chance of page
-+			 * compaction migrating the page while we check for pfn.
-+			 */
-+			retries++;
-+			goto retry;
++	max_entries = (entries_limit - sizeof(*xh)) /
++		      sizeof(struct ocfs2_xattr_entry);
++
++	if (xattr_count > max_entries)
++		return ocfs2_error(sb,
++				   "Invalid xattr in block %llu: entry count %u exceeds maximum %zu\n",
++				   (unsigned long long)blkno,
++				   xattr_count, max_entries);
++
++	for (i = 0; i < xattr_count; i++) {
++		struct ocfs2_xattr_entry *xe = &xh->xh_entries[i];
++		size_t name_offset = le16_to_cpu(xe->xe_name_offset);
++		size_t value_offset;
++
++		if (name_offset > nv_limit ||
++		    xe->xe_name_len > nv_limit - name_offset)
++			return ocfs2_error(sb,
++					   "Invalid xattr in block %llu: entry %d name is out of bounds\n",
++					   (unsigned long long)blkno, i);
++
++		value_offset = name_offset + OCFS2_XATTR_SIZE(xe->xe_name_len);
++		if (value_offset > nv_limit)
++			return ocfs2_error(sb,
++					   "Invalid xattr in block %llu: entry %d value starts out of bounds\n",
++					   (unsigned long long)blkno, i);
++
++		if (ocfs2_xattr_is_local(xe)) {
++			if (le64_to_cpu(xe->xe_value_size) >
++			    nv_limit - value_offset)
++				return ocfs2_error(sb,
++						   "Invalid xattr in block %llu: entry %d value is out of bounds\n",
++						   (unsigned long long)blkno,
++						   i);
++		} else if (sizeof(struct ocfs2_xattr_value_root) >
++			   nv_limit - value_offset) {
++			return ocfs2_error(sb,
++					   "Invalid xattr in block %llu: entry %d value root is out of bounds\n",
++					   (unsigned long long)blkno, i);
 +		}
 +	}
 +
-+	return true;
++	return 0;
 +}
 +
-+TEST_F(migrate, ksm_and_mremap)
++static int ocfs2_xattr_ibody_lookup_header_raw(struct super_block *sb,
++					       u64 blkno,
++					       struct ocfs2_dinode *di,
++					       struct ocfs2_xattr_header **header,
++					       u16 *inline_size_ret)
 +{
-+	unsigned long old_pfn, new_pfn;
-+	void *region, *mremap_region;
-+	const int nr_pages = 16;
-+	size_t mmap_size;
-+	int pagemap_fd;
++	struct ocfs2_xattr_header *xh;
+ 	u16 xattr_count;
+ 	size_t max_entries;
+ 	u16 inline_size = le16_to_cpu(di->i_xattr_inline_size);
+ 
+-	if (inline_size > inode->i_sb->s_blocksize ||
++	if (inline_size > sb->s_blocksize ||
+ 	    inline_size < sizeof(struct ocfs2_xattr_header)) {
+-		ocfs2_error(inode->i_sb,
+-			    "Invalid xattr inline size %u in inode %llu\n",
+-			    inline_size,
+-			    (unsigned long long)OCFS2_I(inode)->ip_blkno);
++		ocfs2_error(sb,
++			    "Invalid inode %llu: xattr inline size %u\n",
++			    (unsigned long long)blkno, inline_size);
+ 		return -EFSCORRUPTED;
+ 	}
+ 
+-	*header = (struct ocfs2_xattr_header *)
+-		((void *)di + inode->i_sb->s_blocksize - inline_size);
++	xh = (struct ocfs2_xattr_header *)
++		((void *)di + sb->s_blocksize - inline_size);
+ 
+-	xattr_count = le16_to_cpu((*header)->xh_count);
++	xattr_count = le16_to_cpu(xh->xh_count);
+ 	max_entries = (inline_size - sizeof(struct ocfs2_xattr_header)) /
+ 		      sizeof(struct ocfs2_xattr_entry);
+ 
+ 	if (xattr_count > max_entries) {
+-		ocfs2_error(inode->i_sb,
++		ocfs2_error(sb,
+ 			    "xattr entry count %u exceeds maximum %zu in inode %llu\n",
+ 			    xattr_count, max_entries,
+-			    (unsigned long long)OCFS2_I(inode)->ip_blkno);
++			    (unsigned long long)blkno);
+ 		return -EFSCORRUPTED;
+ 	}
+ 
++	*header = xh;
++	if (inline_size_ret)
++		*inline_size_ret = inline_size;
 +
-+	/* Skip if KSM is not available */
-+	if (ksm_stop() < 0)
-+		SKIP(return, "accessing \"/sys/kernel/mm/ksm/run\" failed");
-+	if (ksm_get_full_scans() < 0)
-+		SKIP(return, "accessing \"/sys/kernel/mm/ksm/full_scan\" failed");
+ 	return 0;
+ }
+ 
++int ocfs2_validate_inode_xattr(struct super_block *sb, u64 blkno,
++			       struct ocfs2_dinode *di)
++{
++	struct ocfs2_xattr_header *xh;
++	u16 inline_size;
++	int ret;
 +
-+	pagemap_fd = open("/proc/self/pagemap", O_RDONLY);
-+	if (pagemap_fd < 0)
-+		SKIP(return, "opening pagemap failed");
++	if (!(le16_to_cpu(di->i_dyn_features) & OCFS2_INLINE_XATTR_FL))
++		return 0;
 +
-+	/* Allocate and populate twice the anon pages initially. */
-+	mmap_size = 2 * nr_pages * getpagesize();
-+	region = mmap(NULL, mmap_size, PROT_READ | PROT_WRITE,
-+		      MAP_PRIVATE | MAP_ANON, -1, 0);
-+	ASSERT_NE(region, MAP_FAILED);
-+	memset(region, 0x77, mmap_size);
++	ret = ocfs2_xattr_ibody_lookup_header_raw(sb, blkno, di, &xh,
++						  &inline_size);
++	if (ret)
++		return ret;
 +
-+	/* mremap the second half over the first half, to stress rmap handling */
-+	mmap_size /= 2;
-+	mremap_region = mremap(region + mmap_size, mmap_size, mmap_size,
-+			       MREMAP_MAYMOVE | MREMAP_FIXED, region);
-+	ASSERT_EQ(mremap_region, region);
-+
-+	/* Merge all pages into a single KSM page. */
-+	madvise(region, mmap_size, MADV_MERGEABLE);
-+	ASSERT_EQ(ksm_start(), 0);
-+
-+	/* The whole range should map the same KSM page. */
-+	old_pfn = pagemap_get_pfn(pagemap_fd, region);
-+	if (old_pfn == -1ul)
-+		SKIP(return, "Obtaining PFN failed");
-+	ksm_start();
-+	ASSERT_TRUE(range_maps_the_same_pfn(pagemap_fd, region, nr_pages));
-+
-+	/*
-+	 * Migrate the KSM page; the whole range should map the new (migrated)
-+	 * KSM page.
-+	 */
-+	ASSERT_EQ(try_to_move_page(region), 0);
-+
-+	new_pfn = pagemap_get_pfn(pagemap_fd, region);
-+	if (new_pfn == -1ul)
-+		SKIP(return, "Obtaining PFN failed");
-+	ASSERT_NE(new_pfn, old_pfn);
-+	ASSERT_TRUE(range_maps_the_same_pfn(pagemap_fd, region, nr_pages));
++	return ocfs2_validate_xattr_entries_flat(sb, blkno, xh, inline_size);
 +}
 +
++static int ocfs2_xattr_ibody_lookup_header(struct inode *inode,
++					   struct ocfs2_dinode *di,
++					   struct ocfs2_xattr_header **header)
++{
++	return ocfs2_xattr_ibody_lookup_header_raw(inode->i_sb,
++						   OCFS2_I(inode)->ip_blkno,
++						   di, header, NULL);
++}
 +
- TEST_HARNESS_MAIN
+ int ocfs2_has_inline_xattr_value_outside(struct inode *inode,
+ 					 struct ocfs2_dinode *di)
+ {
+--- a/fs/ocfs2/xattr.h~ocfs2-validate-inline-xattrs-during-inode-block-validation
++++ a/fs/ocfs2/xattr.h
+@@ -43,6 +43,8 @@ int ocfs2_xattr_set_handle(handle_t *, s
+ 			   struct ocfs2_alloc_context *);
+ int ocfs2_has_inline_xattr_value_outside(struct inode *inode,
+ 					 struct ocfs2_dinode *di);
++int ocfs2_validate_inode_xattr(struct super_block *sb, u64 blkno,
++			       struct ocfs2_dinode *di);
+ int ocfs2_xattr_remove(struct inode *, struct buffer_head *);
+ int ocfs2_init_security_get(struct inode *, struct inode *,
+ 			    const struct qstr *,
 _
 
-Patches currently in -mm which might be from xu.xin16@zte.com.cn are
+Patches currently in -mm which might be from zzzccc427@gmail.com are
 
-ksm-add-linear_page_index-into-ksm_rmap_item.patch
-ksm-optimize-rmap_walk_ksm-by-passing-a-suitablepage-index.patch
-ksm-add-mremap-selftests-for-ksm_rmap_walk.patch
+ocfs2-cluster-keep-heartbeat-local-node-stable.patch
+ocfs2-validate-inline-xattrs-during-inode-block-validation.patch
+ocfs2-validate-external-xattr-entries-when-reading-metadata.patch
 
