@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E4654435AAC;
-	Mon,  6 Jul 2026 22:35:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 116E314F112
+	for <mm-commits@vger.kernel.org>; Mon,  6 Jul 2026 23:15:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783377321; cv=none; b=W/e5Qc1LWDbIfV383S1b7/qcXRHRHmZc/aZkuunPYt65w6Mq0bDOqWCa8c+EP5fA5zpZrk1cup8xATySCnaERjHX4IQaowMi9dUm9FUbHEqKh8itKtP/k7mSHzkHpTNXoQRzesUvXb2AkvyVEAtJcnhv5e3kNNsimWoYW49r7x8=
+	t=1783379753; cv=none; b=ccypQwkb0uTFgRyHwiMQJZXbGM1E8wAZqs79PSMsQsZp7Eib2Cd17Fik5Ry3y6FIljLEp2rtq8pASzjdvmfBafVtS4tqd6uqwPWXNPhXgnCLc55egzSs7AKNEwcHebdBc7uHSiBsqdvv9lVR5gQElVTuhIbX59aPje87UL6qd6U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783377321; c=relaxed/simple;
-	bh=6Nl2iQ6tZq+bO9CkJVUSPDv3GsulWOnR0YIBzQO4yo0=;
-	h=Date:To:From:Subject:Message-Id; b=EVRs+6g09vcNTtqnA/LFET06zzq4Aj1dPznKEAmHUtcGPrV3WE6nZWH/rWGQOIZnQ14eAf9u/Jc6x168NozUT71OI3wRYW9hfL7JzueGQMgBinDehsu3hDJfMwJgfE/e+CoDfTPMtbZuV7QzsSXQ8TRSW66FKQ2DFtnadPILZFY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qfnb+9l5; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783379753; c=relaxed/simple;
+	bh=VRRFjDBvQLgLh1iMtMXquST/KBMmLaim2gMP1TRjnqw=;
+	h=Date:To:From:Subject:Message-Id; b=EqEeXxGRtRHbV5OuqW1U88XKEavlP7Y1QHUJmAvk4u+g3XhPL2dn1gmAvsRIlYhvY28SQ1MrJoi2UNKYh90RSnQ68L6Zi1UYFGeLI/IC1oCiaMiQ7csdH3Rvr3g50OCOO61cGr8ykcLt9qYJ6/HVUkCSqL1xm+yN0A1BuPE4X3o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vHApRQo6; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qfnb+9l5"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BD6A71F000E9;
-	Mon,  6 Jul 2026 22:35:19 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vHApRQo6"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 783D61F000E9;
+	Mon,  6 Jul 2026 23:15:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783377319;
-	bh=hGTsLnzqyox/bUn+Vll9LL7sKRpbkVRK/Zhsm92XuB8=;
+	d=linux-foundation.org; s=korg; t=1783379751;
+	bh=xJr1iShGie+YNQbif70k7E+l+mkSSZLScclIXs4M8Zo=;
 	h=Date:To:From:Subject;
-	b=qfnb+9l5AKoLXg3Ep9dzMjM/kUcV6yEGZE0KxDZzGrqFZPI2b5O5N9f//z3dCBkVE
-	 S3LzFMQtlGjsRy8Gcbf6HjztjQ2Y294Y1C38tAORFJgZq41G7XnqIS3PBG+Mflh1TL
-	 AH3opeh3sxzlVtjT3AJgeGOISYzfzJzGd86BjQJg=
-Date: Mon, 06 Jul 2026 15:35:19 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,tj@kernel.org,stable@vger.kernel.org,ridong.chen@linux.dev,rakie.kim@sk.com,mkoutny@suse.com,matthew.brost@intel.com,longman@redhat.com,linux@rasmusvillemoes.dk,joshua.hahnjy@gmail.com,hannes@cmpxchg.org,gourry@gourry.net,david@kernel.org,byungchul@sk.com,apopple@nvidia.com,farhad.alemi@berkeley.edu,akpm@linux-foundation.org
+	b=vHApRQo6KHOzu7b+bllS8+OnkskbBCS+m7u/JZVzmPRayvArwSAgESLhos2Fry9od
+	 JN1hvKHjn0E7eaO5jG2bEiPLau+2lWfcaKCwHXNyq7Lg0Fh1CrLn1/ElZ52jrRANeh
+	 O9HbLITqlEPwkOgqfRvmCCXyvzSOPg4iso2s6wWA=
+Date: Mon, 06 Jul 2026 16:15:51 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,usama.arif@linux.dev,surenb@google.com,shikemeng@huaweicloud.com,shakeel.butt@linux.dev,rppt@kernel.org,nphamcs@gmail.com,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,kasong@tencent.com,david@kernel.org,chrisl@kernel.org,baoquan.he@linux.dev,baohua@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + cgroup-cpuset-rebind-mm-mempolicy-to-effective_mems-not-mems_allowed.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260706223519.BD6A71F000E9@smtp.kernel.org>
+Subject: + mm-avoid-unnecessary-lru-drain-for-wp_can_reuse_anon_folio.patch added to mm-new branch
+Message-Id: <20260706231551.783D61F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,26 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: cgroup/cpuset: rebind mm mempolicy to effective_mems, not mems_allowed
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     cgroup-cpuset-rebind-mm-mempolicy-to-effective_mems-not-mems_allowed.patch
+     Subject: mm: avoid unnecessary lru drain for wp_can_reuse_anon_folio()
+has been added to the -mm mm-new branch.  Its filename is
+     mm-avoid-unnecessary-lru-drain-for-wp_can_reuse_anon_folio.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/cgroup-cpuset-rebind-mm-mempolicy-to-effective_mems-not-mems_allowed.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-avoid-unnecessary-lru-drain-for-wp_can_reuse_anon_folio.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,77 +69,108 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Farhad Alemi <farhad.alemi@berkeley.edu>
-Subject: cgroup/cpuset: rebind mm mempolicy to effective_mems, not mems_allowed
-Date: Mon, 6 Jul 2026 10:20:23 +0200
+From: "Barry Song (Xiaomi)" <baohua@kernel.org>
+Subject: mm: avoid unnecessary lru drain for wp_can_reuse_anon_folio()
+Date: Thu, 2 Jul 2026 07:59:52 +0800
 
-Creating a child cpuset where cpuset.mems is never set leads to a div/0
-when a VMA mempolicy with MPOL_F_RELATIVE_NODES rebinds in response to a
-CPU hotplug event.
+Patch series "mm: drop redundant lru_add_drain in anon folio reuse paths",
+v3.
 
-Reproduction steps:
- 1) Create a cgroup w/ cpuset controls (do not set cpuset.mems)
- 2) Move the task into the child cpuset
- 3) Create a VMA mempolicy for that task with MPOL_F_RELATIVE_NODES
- 4) unplug and hotplug a cpu
-      echo 0 > /sys/devices/system/cpu/cpu1/online
-      echo 1 > /sys/devices/system/cpu/cpu1/online
- 5) mempolicy rebind does a div/0 in mpol_relative_nodemask on the
-    call to __nodes_fold()
+We are doing a large number of redundant lru_add_drain() calls in both
+wp_can_reuse_anon_folio() and do_swap_page(), leading to LRU lock
+contention and unnecessary overhead.
 
-The cpuset code passes (cs->mems_allowed) which is not guaranteed to have
-nodes to the rebind routine.  Use cs->effective_mems instead, which is
-guaranteed to have a non-empty nodemask once we reach that code path.
+In wp_can_reuse_anon_folio(), we can check the refcount against the
+lru_cache before deciding to drain.  In do_swap_page(), the drain is now
+entirely redundant after Kairui's work to route SYNC I/O through the
+swapcache in the same way as ASYNC I/O.
 
-[david@kernel.org: add a comment, slightly rephrase description]
-Link: https://lore.kernel.org/all/CA+0ovCiEz6SP_sn3kN4Tb+_oC=eHMXy_Ffj=usV3wREdQrUtww@mail.gmail.com/
-Link: https://lore.kernel.org/20260706082023.60832-1-david@kernel.org
-Signed-off-by: Farhad Alemi <farhad.alemi@berkeley.edu>
-Signed-off-by: David Hildenbrand (Arm) <david@kernel.org>
-Suggested-by: Gregory Price <gourry@gourry.net>
-Suggested-by: Waiman Long <longman@redhat.com>
-Acked-by: Waiman Long <longman@redhat.com>
-Fixes: ae1c802382f7 ("cpuset: apply cs->effective_{cpus,mems}")
-Closes: https://lore.kernel.org/linux-mm/CA+0ovCgxbZkXa+OU8w3s84R3KNPNxxRfmsNR-udh+afQBbGNmw@mail.gmail.com/
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Byungchul Park <byungchul@sk.com>
-Cc: Gregory Price <gourry@gourry.net>
-Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
-Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
-Cc: Matthew Brost <matthew.brost@intel.com>
-Cc: Rakie Kim <rakie.kim@sk.com>
-Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Cc: Zi Yan <ziy@nvidia.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Ridong Chen <ridong.chen@linux.dev>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: "Michal Koutný" <mkoutny@suse.com>
-Cc: <stable@vger.kernel.org>
+Build the kernel within a 1 GB memcg using 20 threads with zRAM swap.  The
+number of lru_add_drain() calls is reduced from 276,278 to 226,318, a
+reduction of about 18%.
+
+Build the kernel within an 800 MB memcg using 20 threads with zRAM swap. 
+The number of lru_add_drain() calls is reduced from 778,950 to 541,149, a
+reduction of 30.5%.
+
+
+This patch (of 4):
+
+There is a case where `folio_ref_count(folio) == 3` and
+`!folio_test_swapcache(folio)`. In that case, both
+`folio_ref_count(folio) > 3` and
+`folio_ref_count(folio) > 1 + folio_test_swapcache(folio)` evaluate
+false, causing an unnecessary local LRU drain.
+
+During an Ubuntu boot, I observed over 5,000 redundant local LRU drains. 
+For a kernel build with a minimal configuration, I observed more than
+20,000 redundant drains.
+
+Fix this by checking against: `1 + in_swapcache + in_lrucache` instead of
+hardcoding `folio_ref_count(folio) > 3`.
+
+Link: https://lore.kernel.org/20260701235955.36126-1-baohua@kernel.org
+Link: https://lore.kernel.org/20260701235955.36126-2-baohua@kernel.org
+Signed-off-by: Barry Song (Xiaomi) <baohua@kernel.org>
+Suggested-by: David Hildenbrand (Arm) <david@kernel.org>
+Reviewed-by: Kairui Song <kasong@tencent.com>
+Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Cc: Baoquan He <baoquan.he@linux.dev>
+Cc: Chris Li <chrisl@kernel.org>
+Cc: Kemeng Shi <shikemeng@huaweicloud.com>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Usama Arif <usama.arif@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cgroup/cpuset.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ mm/memory.c |   10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
 
---- a/kernel/cgroup/cpuset.c~cgroup-cpuset-rebind-mm-mempolicy-to-effective_mems-not-mems_allowed
-+++ a/kernel/cgroup/cpuset.c
-@@ -2653,7 +2653,12 @@ void cpuset_update_tasks_nodemask(struct
+--- a/mm/memory.c~mm-avoid-unnecessary-lru-drain-for-wp_can_reuse_anon_folio
++++ a/mm/memory.c
+@@ -4174,6 +4174,9 @@ static bool __wp_can_reuse_large_anon_fo
+ static bool wp_can_reuse_anon_folio(struct folio *folio,
+ 				    struct vm_area_struct *vma)
+ {
++	const bool in_lru_cache = !folio_test_lru(folio);
++	const bool in_swapcache = folio_test_swapcache(folio);
++
+ 	if (IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE) && folio_test_large(folio))
+ 		return __wp_can_reuse_large_anon_folio(folio, vma);
  
- 		migrate = is_memory_migrate(cs);
- 
--		mpol_rebind_mm(mm, &cs->mems_allowed);
-+		/*
-+		 * For v1 we can have empty effective_mems, but we cannot
-+		 * attach any tasks (see cpuset_can_attach_check()). For v2,
-+		 * effective_mems is guaranteed to not be empty.
-+		 */
-+		mpol_rebind_mm(mm, &cs->effective_mems);
- 		if (migrate)
- 			cpuset_migrate_mm(mm, &cs->old_mems_allowed, &newmems);
- 		else
+@@ -4184,15 +4187,16 @@ static bool wp_can_reuse_anon_folio(stru
+ 	 *
+ 	 * KSM doesn't necessarily raise the folio refcount.
+ 	 */
+-	if (folio_test_ksm(folio) || folio_ref_count(folio) > 3)
++	if (folio_test_ksm(folio) ||
++	    folio_ref_count(folio) > 1 + in_lru_cache + in_swapcache)
+ 		return false;
+-	if (!folio_test_lru(folio))
++	if (in_lru_cache)
+ 		/*
+ 		 * We cannot easily detect+handle references from
+ 		 * remote LRU caches or references to LRU folios.
+ 		 */
+ 		lru_add_drain();
+-	if (folio_ref_count(folio) > 1 + folio_test_swapcache(folio))
++	if (folio_ref_count(folio) > 1 + in_swapcache)
+ 		return false;
+ 	if (!folio_trylock(folio))
+ 		return false;
 _
 
-Patches currently in -mm which might be from farhad.alemi@berkeley.edu are
+Patches currently in -mm which might be from baohua@kernel.org are
 
-cgroup-cpuset-rebind-mm-mempolicy-to-effective_mems-not-mems_allowed.patch
+mm-avoid-unnecessary-lru-drain-for-wp_can_reuse_anon_folio.patch
+mm-drop-stale-folio_ref_count==1-check-in-do_swap_page-reuse-logic.patch
+mm-entirely-remove-lru_add_drain-in-do_swap_page.patch
+mm-clarify-the-folio_free_swap-for-do_swap_page.patch
 
