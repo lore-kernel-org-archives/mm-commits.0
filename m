@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E21972F5321
-	for <mm-commits@vger.kernel.org>; Mon,  6 Jul 2026 17:10:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E8F4F2F3600
+	for <mm-commits@vger.kernel.org>; Mon,  6 Jul 2026 17:10:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783357833; cv=none; b=EiWb4gxlQTYOo8ZkDQ/28KwIO9100ujXmJqTXhATtxzbF7SSoV8jVfNveKZc8L637jT+Vh4iViRAavUFxpSeuODQvjLkZmUjCZuuCzh6AkSz8g620lr/9A7AFa1jYdqEzFKzNZ6MWYvsf3Evkptd7cZ2/P4FL3W0yXGsE5Cuv6s=
+	t=1783357835; cv=none; b=jALS2owjupQGl1N7tVMiANICG5FWr9PFqBz7YdSceh/E0drwV6mwPySx//GENkzeRjKPnBSl+fgq4Q1+cWzZlyM6vIVB1sVkA6Bj/shqvU+RyrMvczETDxxmo0Nyl1lhQBJ16tiyqpft10kGbQUtbVBD8if5ObeTynEkjxIIALI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783357833; c=relaxed/simple;
-	bh=jHfqJz99efIKLPgcVHjKBYBkZtzsCyWUX6jWlMX/5cQ=;
-	h=Date:To:From:Subject:Message-Id; b=S+wnjwUFtoHI/s+FwCVYJMM04tDQEaB5Xpa2k5dUz6HtN5AD1VMno1gSj5k+63M3CCQGx9ShmexajY7Y0HahGgzwSZHKhFDNYbHi6TPDw9KSWAJ+wGzCKYzKdfBoAseW74kpqv3mJGoIGMzVjlgZnGBbvt9f7J+N/L73OL+2AJw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vWXe+7gD; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783357835; c=relaxed/simple;
+	bh=4hf90vCwPWF8Wu7zGa6i6srEEqkXLp3BwwUXuYdT/FM=;
+	h=Date:To:From:Subject:Message-Id; b=kx4eL76zOW6R0z5ytG9QJZYEJ8t9Zc7G5JjiT0ZN4Z7jmN4rwOdCCbJPdnX7j9+R4AscjWwfVbl1GCLQMZSajNfkzzW0thimzatnzCIi379bfUkulkcbhxMXEE23Xqby0MwOC+GA02xZh9ZrBhiYYpDAXezJguu7fjMLdZGGQuA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=g647VVKA; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vWXe+7gD"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A05D91F000E9;
-	Mon,  6 Jul 2026 17:10:31 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="g647VVKA"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7F6691F000E9;
+	Mon,  6 Jul 2026 17:10:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783357831;
-	bh=mTERebKAlE2R3N9cw9UvdZUCPCUGzcuTshJRkDlsDfk=;
+	d=linux-foundation.org; s=korg; t=1783357833;
+	bh=8P3/K7eK/pGcYyM2qNZiQt6tlgngafPvoX3iBEB5ea8=;
 	h=Date:To:From:Subject;
-	b=vWXe+7gD+dL3GRefrGdBGd5+bBsIWlG9HF8aWGO5SaKQsdYIwrhWJJrdbPQRp8C+C
-	 jZaNMjrnsV3ZAzrz31ryT4KcExrZ0JhcfgPVxE02VqjWeWtleUzsn0b294gR27/1kq
-	 P8P7xvT07b5ESryje0tjM5djuuNkA1CghMxvx6ys=
-Date: Mon, 06 Jul 2026 10:10:31 -0700
+	b=g647VVKAyVvaCkMnTpgcUPyyqpt3iaDHniHrHgtGK2lPP8L1wqUc/UantF8cXDE4X
+	 23Kl46sUF7KjPhSDt12LviTZ9L5/vR5xbSl7c2bygIwHzYW9cQ4Go0frwLwydinUEb
+	 PgxONw0+2Fbp7UCf6wwcmgET7Oc5xznqGemAvRK4=
+Date: Mon, 06 Jul 2026 10:10:33 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + samples-damon-mtier-do-not-stop-first-context-for-damon_start-failure.patch added to mm-new branch
-Message-Id: <20260706171031.A05D91F000E9@smtp.kernel.org>
+Subject: + mm-damon-core-make-damon_stop-never-fails.patch added to mm-new branch
+Message-Id: <20260706171033.7F6691F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: samples/damon/mtier: do not stop first context for damon_start() failure
+     Subject: mm/damon/core: make damon_stop() never fail
 has been added to the -mm mm-new branch.  Its filename is
-     samples-damon-mtier-do-not-stop-first-context-for-damon_start-failure.patch
+     mm-damon-core-make-damon_stop-never-fails.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/samples-damon-mtier-do-not-stop-first-context-for-damon_start-failure.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-make-damon_stop-never-fails.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,33 +70,73 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: samples/damon/mtier: do not stop first context for damon_start() failure
-Date: Mon, 6 Jul 2026 07:06:17 -0700
+Subject: mm/damon/core: make damon_stop() never fail
+Date: Mon, 6 Jul 2026 07:06:18 -0700
 
-damon_start() was able to fail while keeping the first context running. 
-mtier hence stops the first context in the case.  damon_start() is
-refactored to avoid that.  The error handling is no longer necessary. 
-Remove it.
+damon_stop() has no reason to fail.  It returns an error code only for
+possible future changes that can make it fail.  Such a change has not been
+made yet, and this only makes the error handling complicated and
+confusing.  Ensure it returns no error.
 
-Link: https://lore.kernel.org/20260706140628.87414-3-sj@kernel.org
+Link: https://lore.kernel.org/20260706140628.87414-4-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- samples/damon/mtier.c |    2 --
- 1 file changed, 2 deletions(-)
+ mm/damon/core.c |   21 ++++++---------------
+ 1 file changed, 6 insertions(+), 15 deletions(-)
 
---- a/samples/damon/mtier.c~samples-damon-mtier-do-not-stop-first-context-for-damon_start-failure
-+++ a/samples/damon/mtier.c
-@@ -193,8 +193,6 @@ static int damon_sample_mtier_start(void
- 	if (!err)
- 		return 0;
+--- a/mm/damon/core.c~mm-damon-core-make-damon_stop-never-fails
++++ a/mm/damon/core.c
+@@ -1926,10 +1926,8 @@ int damon_start(struct damon_ctx **ctxs,
+ /*
+  * __damon_stop() - Stops monitoring of a given context.
+  * @ctx:	monitoring context
+- *
+- * Return: 0 on success, negative error code otherwise.
+  */
+-static int __damon_stop(struct damon_ctx *ctx)
++static void __damon_stop(struct damon_ctx *ctx)
+ {
+ 	struct task_struct *tsk;
  
--	if (damon_is_running(ctxs[0]))
--		damon_stop(ctxs, 1);
- 	damon_destroy_ctx(ctxs[0]);
- 	damon_destroy_ctx(ctxs[1]);
- 	return err;
+@@ -1939,31 +1937,24 @@ static int __damon_stop(struct damon_ctx
+ 		get_task_struct(tsk);
+ 		mutex_unlock(&ctx->kdamond_lock);
+ 		kthread_stop_put(tsk);
+-		return 0;
++		return;
+ 	}
+ 	mutex_unlock(&ctx->kdamond_lock);
+-
+-	return -EPERM;
+ }
+ 
+ /**
+  * damon_stop() - Stops the monitorings for a given group of contexts.
+  * @ctxs:	an array of the pointers for contexts to stop monitoring
+  * @nr_ctxs:	size of @ctxs
+- *
+- * Return: 0 on success, negative error code otherwise.
+  */
+ int damon_stop(struct damon_ctx **ctxs, int nr_ctxs)
+ {
+-	int i, err = 0;
++	int i;
+ 
+-	for (i = 0; i < nr_ctxs; i++) {
++	for (i = 0; i < nr_ctxs; i++)
+ 		/* nr_running_ctxs is decremented in kdamond_fn */
+-		err = __damon_stop(ctxs[i]);
+-		if (err)
+-			break;
+-	}
+-	return err;
++		__damon_stop(ctxs[i]);
++	return 0;
+ }
+ 
+ /**
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
