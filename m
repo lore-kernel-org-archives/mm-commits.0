@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A2FE52F5321
-	for <mm-commits@vger.kernel.org>; Mon,  6 Jul 2026 17:10:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ACE2835AC32
+	for <mm-commits@vger.kernel.org>; Mon,  6 Jul 2026 17:10:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783357841; cv=none; b=d0zqKz8/9Ez0Yw3NsyPH1geo/p5FciDdsNXihgzRK9B32ysBS4Q/oPW+pLbUKCHCZOqEKam045cANG5/3dIWUs3+z7k9ltOObYGwJ5qqzDQzf7D2+ySx4L21/o4eIFqw38yfrBfCnUXooiEy3Iy6McgA54a+G1HbkDFOBTGHcWY=
+	t=1783357843; cv=none; b=F+Ew4qd9LM+l8QkAGb7hJtGj1tO9BkHWTQOUetZ4RfDyDwjEpgPQ3+IVNemeP5wSKxr1lhMlt2ljBrtr9YD9xWgpYMqFlJrK2Nm+bcbo0x3TL+ph8swNN09whCSeK8qLaFfN9Er/vjjQQdXp0NAuNHdzLjUdTIxi0pfI//mxnI4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783357841; c=relaxed/simple;
-	bh=NAkDK80r4HiERi+/EGTNezQ2frLHBaoFwF/+qjW0YMk=;
-	h=Date:To:From:Subject:Message-Id; b=fPnN5o1zyH58OirnrTb6CSqZF1m4vxH4zQzIRqZO4EvWjJ6lATGKoxuFDQXb7wuHd7OFzTMX25wKVBXxEdblypQVwi94kx+egLyTzaB5PYnZB7FWSKh5kOhyJ2xM2tdvTzttNx05QJmtmYDHSrBbob/7YFz6qrNZhJw2EPQzJdI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lVArU1UN; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783357843; c=relaxed/simple;
+	bh=WVOtd7p2jPcmG2s967Oxce5WAqCslSJr58eRp2YgdC4=;
+	h=Date:To:From:Subject:Message-Id; b=qtdgAx6kVnm+MuDiqZfVxB9iUU3uN38qHWL9ISc0x7ic495XeMG7rkjW4XvA+CEfynVg8y4m5GaD14wkTMHp34azhFwh/m22X9r1SIbUbvOv57Py+JVWOK000+czajWdXjbynljknHRAqzM4uD1G/X2ltnL9BvI/OvYu0br4V0E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=etNau03j; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lVArU1UN"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 511B11F00ADF;
-	Mon,  6 Jul 2026 17:10:39 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="etNau03j"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 455431F00A3F;
+	Mon,  6 Jul 2026 17:10:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783357839;
-	bh=XB4/Dk7N+tFvvZ8QF9lmmUV0BhWdLnd3588fosEdOio=;
+	d=linux-foundation.org; s=korg; t=1783357841;
+	bh=XNXrugTNa+o23tFk3/QJO8DSNwP7pacudrzCtSaYRNM=;
 	h=Date:To:From:Subject;
-	b=lVArU1UNYBmTB/CVie0WO1/i+3Lzso93GsUcz7e0bsKKQlfdz+mI5ueBxWIQ+0Qnh
-	 s8fH/MbZ+OaaRSZOpHQ8jxWFbuAXi1cf11Tu8TPTYyaqZBSHNuvupS9gDOzGgMv10S
-	 MuRBeNBDF6CMKAEBACf1id8xwUAl7a/TZJNlZODc=
-Date: Mon, 06 Jul 2026 10:10:38 -0700
+	b=etNau03jlUlnyicn/n0fjyZ7bm+d730xqq9ax3jml4OD0eWR2u4SPHDCRSN7y9Co0
+	 AaC9dfVnbwZfgdTEIBWxbOWpqHF/TOkNHnRLcL1YoUyHLYou9Is6nYq/ar243NCfPZ
+	 eEDfJZ125FKnojic/kVwmmdbU6NdUU8ApRAr1YrI=
+Date: Mon, 06 Jul 2026 10:10:40 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-lru_sort-ignore-damon_stop-return-value.patch added to mm-new branch
-Message-Id: <20260706171039.511B11F00ADF@smtp.kernel.org>
+Subject: + mm-damon-core-change-damon_stop-return-type-to-void.patch added to mm-new branch
+Message-Id: <20260706171041.455431F00A3F@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/lru_sort: ignore damon_stop() return value
+     Subject: mm/damon/core: change damon_stop() return type to void
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-lru_sort-ignore-damon_stop-return-value.patch
+     mm-damon-core-change-damon_stop-return-type-to-void.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-lru_sort-ignore-damon_stop-return-value.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-change-damon_stop-return-type-to-void.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,34 +70,50 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/lru_sort: ignore damon_stop() return value
-Date: Mon, 6 Jul 2026 07:06:21 -0700
+Subject: mm/damon/core: change damon_stop() return type to void
+Date: Mon, 6 Jul 2026 07:06:22 -0700
 
-damon_stop() return value is guaranteed to be 0.  Ignore it.
+damon_stop() always returns 0, and nobody cares.  Change the return type
+to void.
 
-Link: https://lore.kernel.org/20260706140628.87414-7-sj@kernel.org
+Link: https://lore.kernel.org/20260706140628.87414-8-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/lru_sort.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ include/linux/damon.h |    2 +-
+ mm/damon/core.c       |    3 +--
+ 2 files changed, 2 insertions(+), 3 deletions(-)
 
---- a/mm/damon/lru_sort.c~mm-damon-lru_sort-ignore-damon_stop-return-value
-+++ a/mm/damon/lru_sort.c
-@@ -409,8 +409,10 @@ static int damon_lru_sort_turn(bool on)
+--- a/include/linux/damon.h~mm-damon-core-change-damon_stop-return-type-to-void
++++ a/include/linux/damon.h
+@@ -1070,7 +1070,7 @@ static inline unsigned int damon_max_nr_
+ 
+ bool damon_initialized(void);
+ int damon_start(struct damon_ctx **ctxs, int nr_ctxs, bool exclusive);
+-int damon_stop(struct damon_ctx **ctxs, int nr_ctxs);
++void damon_stop(struct damon_ctx **ctxs, int nr_ctxs);
+ bool damon_is_running(struct damon_ctx *ctx);
+ int damon_kdamond_pid(struct damon_ctx *ctx);
+ 
+--- a/mm/damon/core.c~mm-damon-core-change-damon_stop-return-type-to-void
++++ a/mm/damon/core.c
+@@ -1947,14 +1947,13 @@ static void __damon_stop(struct damon_ct
+  * @ctxs:	an array of the pointers for contexts to stop monitoring
+  * @nr_ctxs:	size of @ctxs
+  */
+-int damon_stop(struct damon_ctx **ctxs, int nr_ctxs)
++void damon_stop(struct damon_ctx **ctxs, int nr_ctxs)
  {
- 	int err;
+ 	int i;
  
--	if (!on)
--		return damon_stop(&ctx, 1);
-+	if (!on) {
-+		damon_stop(&ctx, 1);
-+		return 0;
-+	}
+ 	for (i = 0; i < nr_ctxs; i++)
+ 		/* nr_running_ctxs is decremented in kdamond_fn */
+ 		__damon_stop(ctxs[i]);
+-	return 0;
+ }
  
- 	err = damon_lru_sort_apply_parameters();
- 	if (err)
+ /**
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
