@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 268103AD53F
-	for <mm-commits@vger.kernel.org>; Mon,  6 Jul 2026 17:35:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3AFCB372B24
+	for <mm-commits@vger.kernel.org>; Mon,  6 Jul 2026 17:45:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783359346; cv=none; b=KBvO3N8PmESttF1XAzzhRDpof6sGgAak81XI7Q5sckQZZ/7YhjN56RZ2wWsjWtaRjkfDj3+zYXCNmLKj9T4qY472MWcGb4FebmTQkXvyO/FujutOPSiWbRtC+s7ogevSgizH3xFCEP7rZRGsz9ACu0/DdzFuMOOIby4jtpLOheQ=
+	t=1783359941; cv=none; b=K3V/bqGMylvnFKeLACikjgzRIDbDcM1kS9RWBY5TOp1eSiEf77/fUAkYaHovizFeZHKazdDNutfSUedP1zmq/lXi7MmSSYisZa9q5uBpscNm8J5hwyTQqtkPud3cNWhQbzJyPYRmbpvdEnfN4od7fVBi8h6tRIRubK2qW6wUCWA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783359346; c=relaxed/simple;
-	bh=iE9Rqytq9j4TtYnjqooQxruw/aEebfL0s2eGNLX3cws=;
-	h=Date:To:From:Subject:Message-Id; b=iQwGtpCHpHV5O5eijW6ChJL1We8lH3vojuFlLwVUAXs3MGTfPRkLMt9/dW5b/MLPdSyK2Can4E5Ze/0DlMWja1REvupir3gkQNy4LkOc1tyw8f3Cy26q8vGhsqu4jUsf8jaQQ7nEPH8Z3C6CXbkoxJk8d8XrMSuodPBsyWBQzfk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yW/YhykA; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783359941; c=relaxed/simple;
+	bh=qdi1+pCnpuOeELpaZd+4r7KcNIZxz8V8Dfwm7vw/iKM=;
+	h=Date:To:From:Subject:Message-Id; b=PRGyjpq5bt5vN4ml5m1ILalOL1J9/92cuNhgLkfEwLzwMmJlMyxKLuAXPeiuxBMgGANjOj/y2Wt+j/Sn6EQlyMjSAVtyKp5d81Bbn6cgtbynGVco3SVbu0n050yPGkA6bCH16n1+cTKs4luQREchWozaJ/VAOPLeCIn8w6J+0E8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HNhYTMQ9; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yW/YhykA"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A03D71F000E9;
-	Mon,  6 Jul 2026 17:35:44 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HNhYTMQ9"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B75051F00A3A;
+	Mon,  6 Jul 2026 17:45:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783359344;
-	bh=3IO1tBwfTt7LO5Bh6dVrjJO0MFn8h3L96YqlNGz4gRw=;
+	d=linux-foundation.org; s=korg; t=1783359939;
+	bh=cno84OxYGsCu9MO6qatRRIWYDvQCDg+BqvN4Zsp2DaQ=;
 	h=Date:To:From:Subject;
-	b=yW/YhykAribxfMl3RvYzjmSlfGlIMc9YgHdia0wBXIX813b4Os7MomQtsL3CTte1z
-	 sgO25nLsgy+ijWuUE/VkxBJ5zhabgDE5UK9ercxflOjdjekpRn9jOYTi91PL8lhstR
-	 x3DjUYo5ilrmOIBXEfkUjAIvrMzbLZhLSKarga+k=
-Date: Mon, 06 Jul 2026 10:35:44 -0700
-To: mm-commits@vger.kernel.org,giometti@enneenne.com,calvin@wbinvd.org,akpm@linux-foundation.org
+	b=HNhYTMQ9UBfLn8/1cepghpsgM+t/JxLBTE5mtbiZUQg6YvPQ+q4vwWEXRA2sgd6/+
+	 0mBZSS3IN0m4NeLm0VNc6tr5HHYbUWjgsaCiz4ByTZRfYyLEJAG/ETmKk+ogOyOBW9
+	 nObht4qVtiRu28YhQk+O4ykKZwlpXhSA/OiYo/XE=
+Date: Mon, 06 Jul 2026 10:45:39 -0700
+To: mm-commits@vger.kernel.org,kees@kernel.org,akpm@linux-foundation.org,include@grrlz.net,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + pps-gpio-remove-dead-capture_clear-code.patch added to mm-nonmm-unstable branch
-Message-Id: <20260706173544.A03D71F000E9@smtp.kernel.org>
+Subject: + reboot-use-lookup-tables-for-sysfs-mode-and-type-strings.patch added to mm-nonmm-unstable branch
+Message-Id: <20260706174539.B75051F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: pps-gpio: remove dead capture_clear code
+     Subject: reboot: use lookup tables for sysfs mode and type strings
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     pps-gpio-remove-dead-capture_clear-code.patch
+     reboot-use-lookup-tables-for-sysfs-mode-and-type-strings.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/pps-gpio-remove-dead-capture_clear-code.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/reboot-use-lookup-tables-for-sysfs-mode-and-type-strings.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,119 +58,211 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Calvin Owens <calvin@wbinvd.org>
-Subject: pps-gpio: remove dead capture_clear code
-Date: Mon, 6 Jul 2026 10:19:07 -0700
+From: Bradley Morgan <include@grrlz.net>
+Subject: reboot: use lookup tables for sysfs mode and type strings
+Date: Mon, 6 Jul 2026 12:28:11 +0000
 
-The capture_clear field is never set, and all code conditional on it being
-set has been unreachable since the platform data logic was removed from
-pps-gpio in ee89646619ba ("pps: clients: gpio: Get rid of legacy platform
-data").
+Replace switch and if else chains in the mode and type sysfs handlers with
+lookup tables, removing duplicated string macros.
 
-I think the only logical thing to do here is to remove it all, since no
-in-tree code ever actually used it in the first place, and it has been
-completely dead code for over five years (since v5.13).
-
-Sashiko asked some questions about the gpiod_get_value() call which caused
-me to look deeper and figure this out, but it did not actually notice
-capture_clear is never set.
-
-Link: https://lore.kernel.org/f70196bafcf75d9782dd36ed784e42345b6e8a1b.1783355507.git.calvin@wbinvd.org
-Fixes: ee89646619ba ("pps: clients: gpio: Get rid of legacy platform data")
-Signed-off-by: Calvin Owens <calvin@wbinvd.org>
-Closes: https://sashiko.dev/#/patchset/cover.1779733602.git.calvin%40wbinvd.org?part=1
-Acked-by: Rodolfo Giometti <giometti@enneenne.com>
+Link: https://lore.kernel.org/20260706122811.6695-1-include@grrlz.net
+Signed-off-by: Bradley Morgan <include@grrlz.net>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Kees Cook <kees@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pps/clients/pps-gpio.c |   35 ++-----------------------------
- 1 file changed, 3 insertions(+), 32 deletions(-)
+ kernel/reboot.c |  136 +++++++++++++++++-----------------------------
+ 1 file changed, 51 insertions(+), 85 deletions(-)
 
---- a/drivers/pps/clients/pps-gpio.c~pps-gpio-remove-dead-capture_clear-code
-+++ a/drivers/pps/clients/pps-gpio.c
-@@ -32,7 +32,6 @@ struct pps_gpio_device_data {
- 	struct gpio_desc *echo_pin;
- 	struct timer_list echo_timer;	/* timer to reset echo active state */
- 	bool assert_falling_edge;
--	bool capture_clear;
- 	unsigned int echo_active_ms;	/* PPS echo active duration */
- 	unsigned long echo_timeout;	/* timer timeout value in jiffies */
- 	struct pps_event_time ts;	/* timestamp captured in hardirq */
-@@ -62,19 +61,8 @@ static irqreturn_t pps_gpio_irq_hardirq(
- static irqreturn_t pps_gpio_irq_thread(int irq, void *data)
+--- a/kernel/reboot.c~reboot-use-lookup-tables-for-sysfs-mode-and-type-strings
++++ a/kernel/reboot.c
+@@ -1177,68 +1177,43 @@ __setup("reboot=", reboot_setup);
+ 
+ #ifdef CONFIG_SYSFS
+ 
+-#define REBOOT_COLD_STR		"cold"
+-#define REBOOT_WARM_STR		"warm"
+-#define REBOOT_HARD_STR		"hard"
+-#define REBOOT_SOFT_STR		"soft"
+-#define REBOOT_GPIO_STR		"gpio"
+ #define REBOOT_UNDEFINED_STR	"undefined"
+ 
+-#define BOOT_TRIPLE_STR		"triple"
+-#define BOOT_KBD_STR		"kbd"
+-#define BOOT_BIOS_STR		"bios"
+-#define BOOT_ACPI_STR		"acpi"
+-#define BOOT_EFI_STR		"efi"
+-#define BOOT_PCI_STR		"pci"
++static const char *const reboot_mode_strs[] = {
++	[REBOOT_COLD]	= "cold",
++	[REBOOT_WARM]	= "warm",
++	[REBOOT_HARD]	= "hard",
++	[REBOOT_SOFT]	= "soft",
++	[REBOOT_GPIO]	= "gpio",
++};
+ 
+ static ssize_t mode_show(struct kobject *kobj, struct kobj_attribute *attr, char *buf)
  {
- 	struct pps_gpio_device_data *info = data;
--	int rising_edge;
+-	const char *val;
++	const char *val = REBOOT_UNDEFINED_STR;
  
--	rising_edge = info->capture_clear ?
--		      gpiod_get_value(info->gpio_pin) : !info->assert_falling_edge;
--	if ((rising_edge && !info->assert_falling_edge) ||
--			(!rising_edge && info->assert_falling_edge))
--		pps_event(info->pps, &info->ts, PPS_CAPTUREASSERT, data);
--	else if (info->capture_clear &&
--			((rising_edge && info->assert_falling_edge) ||
--			(!rising_edge && !info->assert_falling_edge)))
--		pps_event(info->pps, &info->ts, PPS_CAPTURECLEAR, data);
--	else
--		dev_warn_ratelimited(&info->pps->dev, "IRQ did not trigger any PPS event\n");
-+	pps_event(info->pps, &info->ts, PPS_CAPTUREASSERT, data);
- 
- 	return IRQ_HANDLED;
- }
-@@ -90,11 +78,6 @@ static void pps_gpio_echo(struct pps_dev
- 		if (pps->params.mode & PPS_ECHOASSERT)
- 			gpiod_set_value(info->echo_pin, 1);
- 		break;
--
--	case PPS_CAPTURECLEAR:
--		if (pps->params.mode & PPS_ECHOCLEAR)
--			gpiod_set_value(info->echo_pin, 1);
+-	switch (reboot_mode) {
+-	case REBOOT_COLD:
+-		val = REBOOT_COLD_STR;
 -		break;
+-	case REBOOT_WARM:
+-		val = REBOOT_WARM_STR;
+-		break;
+-	case REBOOT_HARD:
+-		val = REBOOT_HARD_STR;
+-		break;
+-	case REBOOT_SOFT:
+-		val = REBOOT_SOFT_STR;
+-		break;
+-	case REBOOT_GPIO:
+-		val = REBOOT_GPIO_STR;
+-		break;
+-	default:
+-		val = REBOOT_UNDEFINED_STR;
+-	}
++	if ((unsigned int)reboot_mode < ARRAY_SIZE(reboot_mode_strs))
++		val = reboot_mode_strs[reboot_mode];
+ 
+ 	return sysfs_emit(buf, "%s\n", val);
+ }
+ static ssize_t mode_store(struct kobject *kobj, struct kobj_attribute *attr,
+ 			  const char *buf, size_t count)
+ {
++	unsigned int i;
++
+ 	if (!capable(CAP_SYS_BOOT))
+ 		return -EPERM;
+ 
+-	if (!strncmp(buf, REBOOT_COLD_STR, strlen(REBOOT_COLD_STR)))
+-		reboot_mode = REBOOT_COLD;
+-	else if (!strncmp(buf, REBOOT_WARM_STR, strlen(REBOOT_WARM_STR)))
+-		reboot_mode = REBOOT_WARM;
+-	else if (!strncmp(buf, REBOOT_HARD_STR, strlen(REBOOT_HARD_STR)))
+-		reboot_mode = REBOOT_HARD;
+-	else if (!strncmp(buf, REBOOT_SOFT_STR, strlen(REBOOT_SOFT_STR)))
+-		reboot_mode = REBOOT_SOFT;
+-	else if (!strncmp(buf, REBOOT_GPIO_STR, strlen(REBOOT_GPIO_STR)))
+-		reboot_mode = REBOOT_GPIO;
+-	else
+-		return -EINVAL;
+-
+-	reboot_default = 0;
++	for (i = 0; i < ARRAY_SIZE(reboot_mode_strs); i++) {
++		if (!strncmp(buf, reboot_mode_strs[i],
++			     strlen(reboot_mode_strs[i]))) {
++			reboot_mode = i;
++			reboot_default = 0;
++			return count;
++		}
++	}
+ 
+-	return count;
++	return -EINVAL;
+ }
+ static struct kobj_attribute reboot_mode_attr = __ATTR_RW(mode);
+ 
+@@ -1265,31 +1240,28 @@ static ssize_t force_store(struct kobjec
+ }
+ static struct kobj_attribute reboot_force_attr = __ATTR_RW(force);
+ 
++static const struct {
++	enum reboot_type type;
++	const char *str;
++} reboot_type_strs[] = {
++	{ BOOT_TRIPLE,		"triple" },
++	{ BOOT_KBD,		"kbd" },
++	{ BOOT_BIOS,		"bios" },
++	{ BOOT_ACPI,		"acpi" },
++	{ BOOT_EFI,		"efi" },
++	{ BOOT_CF9_FORCE,	"pci" },
++};
++
+ static ssize_t type_show(struct kobject *kobj, struct kobj_attribute *attr, char *buf)
+ {
+-	const char *val;
++	const char *val = REBOOT_UNDEFINED_STR;
++	unsigned int i;
+ 
+-	switch (reboot_type) {
+-	case BOOT_TRIPLE:
+-		val = BOOT_TRIPLE_STR;
+-		break;
+-	case BOOT_KBD:
+-		val = BOOT_KBD_STR;
+-		break;
+-	case BOOT_BIOS:
+-		val = BOOT_BIOS_STR;
+-		break;
+-	case BOOT_ACPI:
+-		val = BOOT_ACPI_STR;
+-		break;
+-	case BOOT_EFI:
+-		val = BOOT_EFI_STR;
+-		break;
+-	case BOOT_CF9_FORCE:
+-		val = BOOT_PCI_STR;
+-		break;
+-	default:
+-		val = REBOOT_UNDEFINED_STR;
++	for (i = 0; i < ARRAY_SIZE(reboot_type_strs); i++) {
++		if (reboot_type == reboot_type_strs[i].type) {
++			val = reboot_type_strs[i].str;
++			break;
++		}
  	}
  
- 	/* fire the timer */
-@@ -156,15 +139,8 @@ static int pps_gpio_setup(struct device
- static unsigned long
- get_irqf_trigger_flags(const struct pps_gpio_device_data *data)
+ 	return sysfs_emit(buf, "%s\n", val);
+@@ -1297,27 +1269,21 @@ static ssize_t type_show(struct kobject
+ static ssize_t type_store(struct kobject *kobj, struct kobj_attribute *attr,
+ 			  const char *buf, size_t count)
  {
--	unsigned long flags = data->assert_falling_edge ?
--		IRQF_TRIGGER_FALLING : IRQF_TRIGGER_RISING;
++	unsigned int i;
++
+ 	if (!capable(CAP_SYS_BOOT))
+ 		return -EPERM;
+ 
+-	if (!strncmp(buf, BOOT_TRIPLE_STR, strlen(BOOT_TRIPLE_STR)))
+-		reboot_type = BOOT_TRIPLE;
+-	else if (!strncmp(buf, BOOT_KBD_STR, strlen(BOOT_KBD_STR)))
+-		reboot_type = BOOT_KBD;
+-	else if (!strncmp(buf, BOOT_BIOS_STR, strlen(BOOT_BIOS_STR)))
+-		reboot_type = BOOT_BIOS;
+-	else if (!strncmp(buf, BOOT_ACPI_STR, strlen(BOOT_ACPI_STR)))
+-		reboot_type = BOOT_ACPI;
+-	else if (!strncmp(buf, BOOT_EFI_STR, strlen(BOOT_EFI_STR)))
+-		reboot_type = BOOT_EFI;
+-	else if (!strncmp(buf, BOOT_PCI_STR, strlen(BOOT_PCI_STR)))
+-		reboot_type = BOOT_CF9_FORCE;
+-	else
+-		return -EINVAL;
 -
--	if (data->capture_clear) {
--		flags |= ((flags & IRQF_TRIGGER_RISING) ?
--				IRQF_TRIGGER_FALLING : IRQF_TRIGGER_RISING);
--	}
--
--	return flags;
-+	return data->assert_falling_edge ? IRQF_TRIGGER_FALLING :
-+					   IRQF_TRIGGER_RISING;
+-	reboot_default = 0;
++	for (i = 0; i < ARRAY_SIZE(reboot_type_strs); i++) {
++		if (!strncmp(buf, reboot_type_strs[i].str,
++			     strlen(reboot_type_strs[i].str))) {
++			reboot_type = reboot_type_strs[i].type;
++			reboot_default = 0;
++			return count;
++		}
++	}
+ 
+-	return count;
++	return -EINVAL;
  }
- 
- static int pps_gpio_probe(struct platform_device *pdev)
-@@ -197,9 +173,6 @@ static int pps_gpio_probe(struct platfor
- 	/* initialize PPS specific parts of the bookkeeping data structure. */
- 	data->info.mode = PPS_CAPTUREASSERT | PPS_OFFSETASSERT |
- 		PPS_ECHOASSERT | PPS_CANWAIT | PPS_TSFMT_TSPEC;
--	if (data->capture_clear)
--		data->info.mode |= PPS_CAPTURECLEAR | PPS_OFFSETCLEAR |
--			PPS_ECHOCLEAR;
- 	data->info.owner = THIS_MODULE;
- 	snprintf(data->info.name, PPS_MAX_NAME_LEN - 1, "%s.%d",
- 		 pdev->name, pdev->id);
-@@ -211,8 +184,6 @@ static int pps_gpio_probe(struct platfor
- 
- 	/* register PPS source */
- 	pps_default_params = PPS_CAPTUREASSERT | PPS_OFFSETASSERT;
--	if (data->capture_clear)
--		pps_default_params |= PPS_CAPTURECLEAR | PPS_OFFSETCLEAR;
- 	data->pps = pps_register_source(&data->info, pps_default_params);
- 	if (IS_ERR(data->pps)) {
- 		dev_err(dev, "failed to register IRQ %d as PPS source\n",
+ static struct kobj_attribute reboot_type_attr = __ATTR_RW(type);
+ #endif
 _
 
-Patches currently in -mm which might be from calvin@wbinvd.org are
+Patches currently in -mm which might be from include@grrlz.net are
 
-pps-dont-try-to-wait-for-negative-timeouts-in-pps_fetch.patch
-pps-dont-allow-pps_kc_bind-on-removed-devices.patch
-pps-gpio-remove-dead-capture_clear-code.patch
+lib-string-fix-memchr_inv-for-large-ranges.patch
+signal-avoid-shared-siginfo-namespace-rewrites.patch
+panic-fix-va_list-reuse-in-panic_try_force_cpu.patch
+reboot-use-lookup-tables-for-sysfs-mode-and-type-strings.patch
 
