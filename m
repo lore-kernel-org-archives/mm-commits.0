@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2D3614302F3;
-	Mon,  6 Jul 2026 18:06:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 763A63EEAE2
+	for <mm-commits@vger.kernel.org>; Mon,  6 Jul 2026 22:32:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783361189; cv=none; b=H7Qhx+UY3qw1AQwx/AgUvVAsrmuTUroewhHBK0KtXHB5hqFkDnUcMRdB+uSSlGQsCsJQ4CLbtBbiTzUJFIQQsDoNaAYQ7dijcVSsqeazgYV8+ejYj/YF34aBt6gSNu1b7RP2+ac8e9GQIGukiu59qUWLeQzFmdBXaKZW72uhGag=
+	t=1783377148; cv=none; b=QNmYetoVuUNeBwBnFwLzWQ4Q7ckT3deUyf79Jb/8qPCpv1fJ8oB1wSkynTeEgK7Pn5syR/CkU3GTYPxLSXw/NAj5m1Xix1MdGw2Vo3b/wePmeOcuWIkhoVnj0HoWj+GcA0KMsPLFfqm8tMtmqWMJOpJEF1ztCE6dcz7AsHDLqXc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783361189; c=relaxed/simple;
-	bh=U/XU5QSt04WZywyqElkxbILKieKrJREY3mz7f8xdNPc=;
-	h=Date:To:From:Subject:Message-Id; b=RzE7AgH08M6MJN9obXuO2qZXuTDrvH4vKIB1HSeHmI5DiQg7tAUVTQANxAzrbQYVD0H77apGkH4yc/6+4bw/wYsX/oBgzuAzPVVA3kSm5lyRuzGaeKK9trhdsraV9vKs7AC6vzH5wHftsZu1ABHHcGtUpYwHC7jqe6FbDsIEQ50=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CHBIGUb6; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783377148; c=relaxed/simple;
+	bh=QyvRTbwlqhMhTBnlK0ws1l7cUc2dN+AqzNIWRD2zvKk=;
+	h=Date:To:From:Subject:Message-Id; b=qfD7xfAmBAhfvKm3A3LmG9BYM5x3yXC837wc/UOe7azZ8AwUmckYrAmHl9HKlZ+0pzxyO6yIbskwH+SiF0nusVRBGB+HlqX1i3zDy99Hw9rerLCRqYf/9pyAnH27gsTqPFLzmRD2m8lhaGWGYGruOapr25bkFstACL0nBmW9Tc8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HadwITFm; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CHBIGUb6"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C00371F00A3A;
-	Mon,  6 Jul 2026 18:06:24 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HadwITFm"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DF0371F000E9;
+	Mon,  6 Jul 2026 22:32:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783361184;
-	bh=DX+8hr1aSZWh+N2wGr+OQFCFR1ChliSGeKsc8pyNpcU=;
+	d=linux-foundation.org; s=korg; t=1783377147;
+	bh=JB9VPag0mORnq1I4m6WL+A+pbWHvwklisevpyp8mHmw=;
 	h=Date:To:From:Subject;
-	b=CHBIGUb6hXZOm5amHSMFLuxTSQBTiOQWupvgMDcuJbDJOswlOvzMGoENiLQbdxqXY
-	 sSJ3wRw2TSLKP/C+p78bpoAAui6AYjbq3WWXKXaoBNSwOaFHSF3D3o7iMMRGkt/4yf
-	 c3dEqYmGiRonPlUpmTYU47HnIh/YkPOmdFBKMBDc=
-Date: Mon, 06 Jul 2026 11:06:24 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,usama.anjum@collabora.com,surenb@google.com,stable@vger.kernel.org,shuah@kernel.org,rppt@kernel.org,pfalcato@suse.de,peterx@redhat.com,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,jannh@google.com,david@kernel.org,kas@kernel.org,akpm@linux-foundation.org
+	b=HadwITFmFcnN56w3cuZR2xctVQrCQM8nWhnNBkQOp4DNs0kduwtCTepYXs0UmjQtE
+	 djA1FINs1yuLKfB3/iRi+oDN2nyjOmihhKPMp3R3JipXVjRwMJySEW6VppOqbglEy5
+	 0l7idgyisUnRa1fUY3/aIqdl3oqG7ej/+ZeVhzzE=
+Date: Mon, 06 Jul 2026 15:32:26 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,tj@kernel.org,surenb@google.com,ryan.roberts@arm.com,rppt@kernel.org,npache@redhat.com,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,lance.yang@linux.dev,jackmanb@google.com,hannes@cmpxchg.org,dev.jain@arm.com,dennis@kernel.org,david@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,apopple@nvidia.com,ziy@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + fs-proc-task_mmu-fix-pagemap_scan-written-state-for-unpopulated-ptes.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260706180624.C00371F00A3A@smtp.kernel.org>
+Subject: + mm-percpu-km-clear-page-private-before-free-them.patch added to mm-new branch
+Message-Id: <20260706223226.DF0371F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,26 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: fs/proc/task_mmu: fix PAGEMAP_SCAN written state for unpopulated ptes
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     fs-proc-task_mmu-fix-pagemap_scan-written-state-for-unpopulated-ptes.patch
+     Subject: mm/percpu-km: clear page->private before free them
+has been added to the -mm mm-new branch.  Its filename is
+     mm-percpu-km-clear-page-private-before-free-them.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-proc-task_mmu-fix-pagemap_scan-written-state-for-unpopulated-ptes.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-percpu-km-clear-page-private-before-free-them.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,160 +69,126 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: "Kiryl Shutsemau (Meta)" <kas@kernel.org>
-Subject: fs/proc/task_mmu: fix PAGEMAP_SCAN written state for unpopulated ptes
-Date: Mon, 6 Jul 2026 11:43:08 +0100
+From: Zi Yan <ziy@nvidia.com>
+Subject: mm/percpu-km: clear page->private before free them
+Date: Fri, 03 Jul 2026 09:47:46 -0400
 
-PAGEMAP_SCAN reports an unpopulated pte on a uffd-wp VMA differently
-depending on which path serves the request.  The PAGE_IS_WRITTEN fast path
-in pagemap_scan_pmd_entry() treats a pte_none (no uffd-wp marker) as
-written and, under PM_SCAN_WP_MATCHING, arms a marker.  The generic path
-does not: pagemap_page_category() returns 0 for pte_none, so a request
-that cannot use the fast path (extra category bit, category_anyof_mask or
-category_inverted) reports the same pte as clean and skips arming it.
+Patch series "Keep tail page private zero at free and folio split", v2.
 
-So a range that was populated and then MADV_DONTNEED'd reads as written
-via one mask and clean via another, and in the latter case is not re-armed
-for the next round -- an incremental-dump consumer (e.g.  CRIU) using a
-richer mask drops the zapped range and stops tracking writes to it.
+This patchset makes sure tail_page->private is zero before compound or
+high-order pages are returned to the allocator.  It also checks tail pages
+that become new folio heads during large folio split, before their private
+fields are used by new folios.
 
-Return PAGE_IS_WRITTEN for a pte_none on a uffd-wp VMA, mirroring the
-present and swap branches just below which already report it whenever the
-entry is not write-protected.
+Note on ZONE_DEVICE and DAX page/folio
+===
+ZONE_DEVICE and DAX use prep_compound_tail() to reinitialize folios, so
+tail_page->private was reset before this patchset. There was a concern that
+after this patchset stale ->private can appear after ZONE_DEVICE/DAX folio
+initialization. My reasoning is that no code sets ZONE_DEVICE/DAX
+page->private, so their page->private stays zero all the time.
+ZONE_DEVICE_PRIVATE page migration only supports anonymous memory without
+swapcache, so after the migration ->private remains zero.
 
-Add a pagemap_ioctl selftest that asserts the two paths agree over a
-MADV_DONTNEED'd range.
+Motivation
+===
 
-Link: https://lore.kernel.org/20260706104308.34741-1-kirill@shutemov.name
-Fixes: 12f6b01a0bcb ("fs/proc/task_mmu: add fast paths to get/clear PAGE_IS_WRITTEN flag")
-Signed-off-by: Kiryl Shutsemau <kas@kernel.org>
-Cc: Muhammad Usama Anjum <usama.anjum@collabora.com>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Jann Horn <jannh@google.com>
+page->private is zeroed at page free time since commit ac1ea219590c0
+("mm/page_alloc: clear page->private in free_pages_prepare()"), since we
+concluded that it might be too much to ask every page user to free a page
+with ->private zeroed. The holder of the last page reference might not know
+whether ->private needs to be cleared.
+
+For compound and high-order pages, tail_page->private can also leak to
+later users if it is left uncleared. The page allocation path does not zero
+every tail_page->private field, so they can be seen by new users and cause
+unexpected issues[1].
+
+Check tail_page->private at page free time, and check tail pages that
+become new folio heads during large folio split. With those checks in
+place, prep_compound_tail() no longer needs to clear tail_page->private
+when preparing compound page metadata.
+
+Overview
+===
+
+1. Patch 1 clears all pages ->private before percpu-km frees them.
+2. Patch 2 removes setting page->private in compaction code when a free
+   page is taken out of the buddy allocator. cc->freepages is indexed by
+   page order, so storing the free page order in page->private is
+   redundant. In alloc_contig_frozen_range_noprof(),
+   isolate_freepages_range() is used to grab free pages from buddy
+   allocator and it leaves the aforementioned page->private set until
+   either split_free_frozen_pages() or prep_new_page() is called. That
+   stale value without resetting triggers the tail_page->private nonzero
+   check once set_page_private(0) is removed from prep_compound_tail().
+
+3. Patch 3 adds back the page->private check for tail pages promoted to new
+   folio heads in __split_folio_to_order().
+4. Patch 4 adds a tail_page->private check in the page free path.
+5. Patch 5 removes tail_page->private zeroing from prep_compound_tail().
+
+
+This patch (of 5):
+
+page->private is cleared in free page path.  In a subsequent commit,
+tail_page->private will be checked and ensured to be zero.  Clearing
+percpu-km allocated pages' ->private to prevent triggering warnings later.
+
+Link: https://lore.kernel.org/20260703-keep-subpage-private-zero-at-free-v2-0-2970fe777dd6@nvidia.com
+Link: https://lore.kernel.org/20260703-keep-subpage-private-zero-at-free-v2-1-2970fe777dd6@nvidia.com
+Link: https://lore.kernel.org/all/20260206174017.128673-1-mikhail.v.gavrilov@gmail.com/ [1]
+Signed-off-by: Zi Yan <ziy@nvidia.com>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Brendan Jackman <jackmanb@google.com>
+Cc: Dennis Zhou <dennis@kernel.org>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Lance Yang <lance.yang@linux.dev>
 Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Pedro Falcato <pfalcato@suse.de>
-Cc: Shuah Khan <shuah@kernel.org>
+Cc: Nico Pache <npache@redhat.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
 Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Tejun Heo <tj@kernel.org>
 Cc: Vlastimil Babka <vbabka@kernel.org>
-Assisted-by: Claude:claude-fable-5
-Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c                         |   14 ++++
- tools/testing/selftests/mm/pagemap_ioctl.c |   55 ++++++++++++++++++-
- 2 files changed, 67 insertions(+), 2 deletions(-)
+ mm/percpu-km.c |    9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
---- a/fs/proc/task_mmu.c~fs-proc-task_mmu-fix-pagemap_scan-written-state-for-unpopulated-ptes
-+++ a/fs/proc/task_mmu.c
-@@ -2432,8 +2432,20 @@ static unsigned long pagemap_page_catego
- {
- 	unsigned long categories;
+--- a/mm/percpu-km.c~mm-percpu-km-clear-page-private-before-free-them
++++ a/mm/percpu-km.c
+@@ -94,8 +94,15 @@ static void pcpu_destroy_chunk(struct pc
+ 	pcpu_stats_chunk_dealloc();
+ 	trace_percpu_destroy_chunk(chunk->base_addr);
  
--	if (pte_none(pte))
-+	if (pte_none(pte)) {
-+		/*
-+		 * An unpopulated pte carries no uffd-wp marker, so like any
-+		 * other entry that is not write-protected it reads as written
-+		 * on a uffd-wp VMA. This matches the PAGE_IS_WRITTEN fast path
-+		 * in pagemap_scan_pmd_entry(); without it a scan forced onto
-+		 * this generic path (extra category bits, anyof or inverted
-+		 * masks) would report the same pte differently and, under
-+		 * PM_SCAN_WP_MATCHING, skip arming its marker.
-+		 */
-+		if (userfaultfd_wp(vma))
-+			return PAGE_IS_WRITTEN;
- 		return 0;
+-	if (chunk->data)
++	if (chunk->data) {
++		struct page *pages = (struct page *)chunk->data;
++		int i;
++
++		/* clear chunk info from each page before free them */
++		for (i = 0; i < nr_pages; i++)
++			pcpu_set_page_chunk(pages + i, NULL);
+ 		__free_pages(chunk->data, order_base_2(nr_pages));
 +	}
- 
- 	if (pte_present(pte)) {
- 		struct page *page;
---- a/tools/testing/selftests/mm/pagemap_ioctl.c~fs-proc-task_mmu-fix-pagemap_scan-written-state-for-unpopulated-ptes
-+++ a/tools/testing/selftests/mm/pagemap_ioctl.c
-@@ -1051,6 +1051,56 @@ static void test_simple(void)
- 	ksft_test_result(i == TEST_ITERATIONS, "Test %s\n", __func__);
+ 	pcpu_free_chunk(chunk);
  }
  
-+/*
-+ * A range that was populated and then MADV_DONTNEED'd is genuine pte_none
-+ * with no uffd-wp marker. Such a pte must read the same regardless of which
-+ * PAGEMAP_SCAN path serves the request: the PAGE_IS_WRITTEN fast path and the
-+ * generic path (reached e.g. via category_anyof_mask) must agree.
-+ */
-+static void unpopulated_scan_test(void)
-+{
-+	int npages = 16, i;
-+	long mem_size = npages * page_size;
-+	struct page_region regions[16];
-+	long fast = 0, slow = 0, ret;
-+	char *mem;
-+
-+	mem = mmap(NULL, mem_size, PROT_READ | PROT_WRITE,
-+		   MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-+	if (mem == MAP_FAILED)
-+		ksft_exit_fail_msg("%s mmap failed\n", __func__);
-+
-+	wp_init(mem, mem_size);
-+
-+	/* Populate, then drop: the ptes become pte_none without a marker. */
-+	memset(mem, 1, mem_size);
-+	if (madvise(mem, mem_size, MADV_DONTNEED))
-+		ksft_exit_fail_msg("%s MADV_DONTNEED failed\n", __func__);
-+
-+	/* Fast path: category_mask == return_mask == PAGE_IS_WRITTEN. */
-+	ret = pagemap_ioctl(mem, mem_size, regions, npages, 0, 0,
-+			    PAGE_IS_WRITTEN, 0, 0, PAGE_IS_WRITTEN);
-+	if (ret < 0)
-+		ksft_exit_fail_msg("%s fast scan failed\n", __func__);
-+	for (i = 0; i < ret; i++)
-+		fast += LEN(regions[i]);
-+
-+	/* Generic path: same query expressed via category_anyof_mask. */
-+	ret = pagemap_ioctl(mem, mem_size, regions, npages, 0, 0,
-+			    0, PAGE_IS_WRITTEN, 0, PAGE_IS_WRITTEN);
-+	if (ret < 0)
-+		ksft_exit_fail_msg("%s generic scan failed\n", __func__);
-+	for (i = 0; i < ret; i++)
-+		slow += LEN(regions[i]);
-+
-+	ksft_test_result(fast == slow,
-+			 "%s unpopulated ptes agree across scan paths (%ld vs %ld)\n",
-+			 __func__, fast, slow);
-+
-+	wp_free(mem, mem_size);
-+	munmap(mem, mem_size);
-+}
-+
- int sanity_tests(void)
- {
- 	unsigned long long mem_size, vec_size;
-@@ -1559,7 +1609,7 @@ int main(int __attribute__((unused)) arg
- 	if (!hugetlb_setup_default(4))
- 		ksft_print_msg("HugeTLB test will be skipped\n");
- 
--	ksft_set_plan(117);
-+	ksft_set_plan(118);
- 
- 	page_size = getpagesize();
- 	hpage_size = read_pmd_pagesize();
-@@ -1737,6 +1787,9 @@ int main(int __attribute__((unused)) arg
- 	/* 17. ZEROPFN tests */
- 	zeropfn_tests();
- 
-+	/* 18. Unpopulated pte scan-path consistency */
-+	unpopulated_scan_test();
-+
- 	close(pagemap_fd);
- 	ksft_finished();
- }
 _
 
-Patches currently in -mm which might be from kas@kernel.org are
+Patches currently in -mm which might be from ziy@nvidia.com are
 
-mm-hugetlb-fix-swap-entry-corruption-when-clearing-uffd-wp-at-fork.patch
-fs-proc-task_mmu-fix-pagemap_scan-written-state-for-unpopulated-ptes.patch
+mm-percpu-km-clear-page-private-before-free-them.patch
+mm-compaction-stop-recording-free-page-order-in-page-private.patch
+mm-huge_memory-add-page-private-check-back-in-__split_folio_to_order.patch
+mm-page_alloc-make-sure-tail_page-private-is-zero-at-page-free-time.patch
+mm-page_alloc-remove-set_page_private-in-prep_compound_tail.patch
 
