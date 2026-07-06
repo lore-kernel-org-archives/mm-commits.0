@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ACE2835AC32
-	for <mm-commits@vger.kernel.org>; Mon,  6 Jul 2026 17:10:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1CEAA2F7ACE
+	for <mm-commits@vger.kernel.org>; Mon,  6 Jul 2026 17:10:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783357843; cv=none; b=F+Ew4qd9LM+l8QkAGb7hJtGj1tO9BkHWTQOUetZ4RfDyDwjEpgPQ3+IVNemeP5wSKxr1lhMlt2ljBrtr9YD9xWgpYMqFlJrK2Nm+bcbo0x3TL+ph8swNN09whCSeK8qLaFfN9Er/vjjQQdXp0NAuNHdzLjUdTIxi0pfI//mxnI4=
+	t=1783357845; cv=none; b=VTN4q9NZHtNWdt/PdQQ+sQPkuNct97IL9ZhfoapCV3MN9IWzTHmVZW5+/NLJNBrKtPvNCeg5fkB5LZfnBVqIbAwjtzijncH/Z27NPwpmNDs7VnjdDn4WjSsy81VJc9Zm42U5flDz4EL0E3l0yYKAKDPnOu1o+qrsp2lXkGtQk1c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783357843; c=relaxed/simple;
-	bh=WVOtd7p2jPcmG2s967Oxce5WAqCslSJr58eRp2YgdC4=;
-	h=Date:To:From:Subject:Message-Id; b=qtdgAx6kVnm+MuDiqZfVxB9iUU3uN38qHWL9ISc0x7ic495XeMG7rkjW4XvA+CEfynVg8y4m5GaD14wkTMHp34azhFwh/m22X9r1SIbUbvOv57Py+JVWOK000+czajWdXjbynljknHRAqzM4uD1G/X2ltnL9BvI/OvYu0br4V0E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=etNau03j; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783357845; c=relaxed/simple;
+	bh=YtMXWGu+e5hf2TvIyyHbHh9RC5rA/vjPgTOtKant6Mg=;
+	h=Date:To:From:Subject:Message-Id; b=XzzvXRX+NM8UcM6SrWJn6FXSDKrLXijB9vrlZqCWu2Wjelv5y8i8QrJA6PW0whDe1+4oW9Ad7wAOY+kHBBLIsjixevYbibLRAhKXnDc8JwcBl5CLaO1QgZpJtyTHWyFNnLpmbWkVd4Y1gdX6Yjkwq8jtr3NyEsPUYGMpg0Sqyb4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=F4sojT2Z; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="etNau03j"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 455431F00A3F;
-	Mon,  6 Jul 2026 17:10:41 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="F4sojT2Z"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A8BDF1F00A3D;
+	Mon,  6 Jul 2026 17:10:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783357841;
-	bh=XNXrugTNa+o23tFk3/QJO8DSNwP7pacudrzCtSaYRNM=;
+	d=linux-foundation.org; s=korg; t=1783357843;
+	bh=4fG+dNBroO19zXuQ9AX/AAZgM95RwqtOJzxdWbKKVuI=;
 	h=Date:To:From:Subject;
-	b=etNau03jlUlnyicn/n0fjyZ7bm+d730xqq9ax3jml4OD0eWR2u4SPHDCRSN7y9Co0
-	 AaC9dfVnbwZfgdTEIBWxbOWpqHF/TOkNHnRLcL1YoUyHLYou9Is6nYq/ar243NCfPZ
-	 eEDfJZ125FKnojic/kVwmmdbU6NdUU8ApRAr1YrI=
-Date: Mon, 06 Jul 2026 10:10:40 -0700
+	b=F4sojT2ZoriqSgiYPtoIcIN2MHBqa93kiNRB78OHpRo8zc/72i/wF+8XRO+J3YbhU
+	 JcQlW9K+FQWV12bQOAqX18/OSqETzvMOOaT1JJsv907wpzRaXTk5ofO0/r20/5qdlX
+	 a4UdxbYBHBq9O/E8Nw8FUz+IWuytBaVc5fnpDg7U=
+Date: Mon, 06 Jul 2026 10:10:43 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-core-change-damon_stop-return-type-to-void.patch added to mm-new branch
-Message-Id: <20260706171041.455431F00A3F@smtp.kernel.org>
+Subject: + samples-damon-mtier-stop-all-contexts-with-single-damon_stop-call.patch added to mm-new branch
+Message-Id: <20260706171043.A8BDF1F00A3D@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/core: change damon_stop() return type to void
+     Subject: samples/damon/mtier: stop all contexts with single damon_stop() call
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-core-change-damon_stop-return-type-to-void.patch
+     samples-damon-mtier-stop-all-contexts-with-single-damon_stop-call.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-change-damon_stop-return-type-to-void.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/samples-damon-mtier-stop-all-contexts-with-single-damon_stop-call.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,50 +70,35 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/core: change damon_stop() return type to void
-Date: Mon, 6 Jul 2026 07:06:22 -0700
+Subject: samples/damon/mtier: stop all contexts with single damon_stop() call
+Date: Mon, 6 Jul 2026 07:06:23 -0700
 
-damon_stop() always returns 0, and nobody cares.  Change the return type
-to void.
+damon_stop() was theoretically able to return failure while keeping the
+second context for mtier running.  mtier stops its contexts one by one
+with two damon_stop() call for the reason.  damon_stop() is refactored to
+always successfully stop all requested DAMON contexts.  The two calls are
+unnecessary.  Use only single damon_stop() call for all contexts.
 
-Link: https://lore.kernel.org/20260706140628.87414-8-sj@kernel.org
+Link: https://lore.kernel.org/20260706140628.87414-9-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/damon.h |    2 +-
- mm/damon/core.c       |    3 +--
- 2 files changed, 2 insertions(+), 3 deletions(-)
+ samples/damon/mtier.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/include/linux/damon.h~mm-damon-core-change-damon_stop-return-type-to-void
-+++ a/include/linux/damon.h
-@@ -1070,7 +1070,7 @@ static inline unsigned int damon_max_nr_
+--- a/samples/damon/mtier.c~samples-damon-mtier-stop-all-contexts-with-single-damon_stop-call
++++ a/samples/damon/mtier.c
+@@ -200,8 +200,7 @@ static int damon_sample_mtier_start(void
  
- bool damon_initialized(void);
- int damon_start(struct damon_ctx **ctxs, int nr_ctxs, bool exclusive);
--int damon_stop(struct damon_ctx **ctxs, int nr_ctxs);
-+void damon_stop(struct damon_ctx **ctxs, int nr_ctxs);
- bool damon_is_running(struct damon_ctx *ctx);
- int damon_kdamond_pid(struct damon_ctx *ctx);
- 
---- a/mm/damon/core.c~mm-damon-core-change-damon_stop-return-type-to-void
-+++ a/mm/damon/core.c
-@@ -1947,14 +1947,13 @@ static void __damon_stop(struct damon_ct
-  * @ctxs:	an array of the pointers for contexts to stop monitoring
-  * @nr_ctxs:	size of @ctxs
-  */
--int damon_stop(struct damon_ctx **ctxs, int nr_ctxs)
-+void damon_stop(struct damon_ctx **ctxs, int nr_ctxs)
+ static void damon_sample_mtier_stop(void)
  {
- 	int i;
- 
- 	for (i = 0; i < nr_ctxs; i++)
- 		/* nr_running_ctxs is decremented in kdamond_fn */
- 		__damon_stop(ctxs[i]);
--	return 0;
+-	damon_stop(ctxs, 1);
+-	damon_stop(&ctxs[1], 1);
++	damon_stop(ctxs, 2);
+ 	damon_destroy_ctx(ctxs[0]);
+ 	damon_destroy_ctx(ctxs[1]);
  }
- 
- /**
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
