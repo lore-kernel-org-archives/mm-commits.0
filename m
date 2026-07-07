@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B6DE210785
-	for <mm-commits@vger.kernel.org>; Tue,  7 Jul 2026 20:35:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6236213FEE
+	for <mm-commits@vger.kernel.org>; Tue,  7 Jul 2026 20:36:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783456533; cv=none; b=Vwy0+ZGT9W9XCiQTCyuQxGFFz5bjkjTfaKpdXCaPCrXYmhiTRCad9SdyAZdGhs4FZ3mGKBA5+FzaKsRpYHZHO7GfvBFZGD0ZZkIx0XZG3BRC/EQ7lgAaTyxy5J/n98Cewqcfwb/AUmA+rF88lXyx6zX6dWGqEdBnaMvODnxZD88=
+	t=1783456586; cv=none; b=EudJw9ebF4yAStLHuF/ZidYjufpwNuh7Qm+Y8ZZ6lF+SuRNbXc9H2mZpJcKSdjb8dVSsx7pu1r2isquaSujb6JWDNAFd/bJ/MgNOu/SPwk/eyK2P3tyZCAkeFXdmYEyNgHEwT5Ifyq89m1ReY2UI6YaXixb6tlWvVFaTI743DqU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783456533; c=relaxed/simple;
-	bh=D9+LsjXmwSq3SDKQd/AsRaaF7jTLj+Y1sl2aSRvrBL0=;
-	h=Date:To:From:Subject:Message-Id; b=E/lNQ+gWTdZIas2pM6OVF6f8MCiP9wP+4Pa14ytjO3U4nQ73dRc1ehiOaaboTbNIW5aP+/gEbv3Nr4RI7RHdhZL5sYG1QU6E9uTEKanBJjgdlYygD2xz+LyhQ0ZxODfLL24yk+xUbL38mk1qJGyGKqmvEBUCGuVUsWmyycB4EJM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZmA4IwSn; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783456586; c=relaxed/simple;
+	bh=4ZMAjorA4cqoKUOgmYVr/tia/s0RXop0w90O61i+t50=;
+	h=Date:To:From:Subject:Message-Id; b=qvrWMYusKi5AjgRKMK9CvMOOSPUuKt0THu329koJu70B9T0cvnleQeyGHMmyAf2O8Nv8+wRD+mf6zE2b3IBrVpSqpjbC3X446UTCEtqfc+/UHYVzWVhmHaIuusF3v9Jrzg69kIKOFsbBJJ8uOGe6+iPA0E30bdDB7qKKr2BlzHo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=J7KOiJcf; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZmA4IwSn"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 46CDA1F000E9;
-	Tue,  7 Jul 2026 20:35:32 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="J7KOiJcf"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1CBE31F000E9;
+	Tue,  7 Jul 2026 20:36:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783456532;
-	bh=GRBMBMrDCu3WqMXbG/CH7WAXv/YPLXXuU/ONB1Jnh/Q=;
+	d=linux-foundation.org; s=korg; t=1783456585;
+	bh=Km3vUVqYYhwHn++eaqbHic/w2mojLk1MQ588LsQCpDU=;
 	h=Date:To:From:Subject;
-	b=ZmA4IwSnrKB396d4WeYOX354x9yXXRNgUJQ2b3yj5rEjU47eIa6g5btb9sy4lDWiF
-	 Ka8k+RN27zFQw/ImGuFQlvcurK9fs+4Q8ZTF9Tlf0kt9WEq3gZHMs3eMGfpvE6yM2e
-	 nJQ/gEsfpWNsp0slREP5HbizHc30tArqwktGYjCs=
-Date: Tue, 07 Jul 2026 13:35:31 -0700
-To: mm-commits@vger.kernel.org,rostedt@goodmis.org,peterz@infradead.org,mingo@redhat.com,ljs@kernel.org,liam@infradead.org,kees@kernel.org,dietmar.eggemann@arm.com,jansef.jian@hj-micro.com,akpm@linux-foundation.org
+	b=J7KOiJcfywxfbHoc276cIBOjLdxcnStu4wJvY7LIzd27KijZowGfnopmRPzOxHaPu
+	 pabykFLbMnX8avJtSC4YrHSHbu3MJq3HF92Zwf1eTIC2pNgodY8lz+qjrewjx9tp7m
+	 6H0e/96EjuRTael7BQGlWKcB8YagUb06v+QT5RJg=
+Date: Tue, 07 Jul 2026 13:36:24 -0700
+To: mm-commits@vger.kernel.org,nathan@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kernel-fork-declare-max_threads-__read_mostly.patch added to mm-nonmm-unstable branch
-Message-Id: <20260707203532.46CDA1F000E9@smtp.kernel.org>
+Subject: + get_maintainerignore-add-nathan-chancellor.patch added to mm-nonmm-unstable branch
+Message-Id: <20260707203625.1CBE31F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kernel/fork: declare max_threads __read_mostly
+     Subject: .get_maintainer.ignore: add Nathan Chancellor
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     kernel-fork-declare-max_threads-__read_mostly.patch
+     get_maintainerignore-add-nathan-chancellor.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kernel-fork-declare-max_threads-__read_mostly.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/get_maintainerignore-add-nathan-chancellor.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,60 +58,35 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: JianChunfu <jansef.jian@hj-micro.com>
-Subject: kernel/fork: declare max_threads __read_mostly
-Date: Tue, 7 Jul 2026 17:23:54 +0800
+From: Nathan Chancellor <nathan@kernel.org>
+Subject: .get_maintainer.ignore: add Nathan Chancellor
+Date: Tue, 07 Jul 2026 12:52:25 -0700
 
-max_threads is initialized once by fork_init()->set_max_threads(), and
-thereafter is mostly read in hot path, such as copy_process().
+I do work all over the tree as part of ClangBuiltLinux and Kbuild, which
+ultimately results in a lot of irrelevant CCs when submitters run
+get_maintainer.pl with the default git fallback enabled.  Add myself to
+.get_maintainer.ignore so I only get CC'd through explicitly maintained
+files/patterns or a submitter intentionally adding me to the list.
 
-The fact that it is mostly read and not written to makes it candidates for
-__read_mostly declarations.
-
-I have already tested on my machine(arm64,256core,kernel-7.1.3) with
-'hackbench -P -l 500 -g 100/500/1000/2000' and the results show that there
-is an average of 13% improvement in performance.
-
-before patch:
-	hackbench -g    100      500      1000      2000
-                    1.094    4.651    13.305    36.322
-
-after patch:
-	hackbench -g    100      500      1000      2000
-                    0.823    4.487    11.107    32.987
-
-Above data are the average values obtained from multiple tests, and there
-was indeed some fluctuation in the data during the tests.
-
-Link: https://lore.kernel.org/20260707092354.465847-1-jansef.jian@hj-micro.com
-Signed-off-by: JianChunfu <jansef.jian@hj-micro.com>
-Cc: Dietmar Eggemann <dietmar.eggemann@arm.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Kees Cook <kees@kernel.org>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Steven Rostedt <rostedt@goodmis.org>
+Link: https://lore.kernel.org/20260707-add-nathan-to-get_maintainers-ignore-v1-1-810926e8eea3@kernel.org
+Signed-off-by: Nathan Chancellor <nathan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/fork.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ .get_maintainer.ignore |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/kernel/fork.c~kernel-fork-declare-max_threads-__read_mostly
-+++ a/kernel/fork.c
-@@ -143,7 +143,7 @@
- unsigned long total_forks;	/* Handle normal Linux uptimes. */
- int nr_threads;			/* The idle threads do not count.. */
- 
--static int max_threads;		/* tunable limit on nr_threads */
-+static int max_threads __read_mostly;		/* tunable limit on nr_threads */
- 
- #define NAMED_ARRAY_INDEX(x)	[x] = __stringify(x)
- 
+--- a/.get_maintainer.ignore~get_maintainerignore-add-nathan-chancellor
++++ a/.get_maintainer.ignore
+@@ -5,4 +5,5 @@ Askar Safin <safinaskar@gmail.com>
+ Christoph Hellwig <hch@lst.de>
+ Jeff Kirsher <jeffrey.t.kirsher@intel.com>
+ Marc Gonzalez <marc.w.gonzalez@free.fr>
++Nathan Chancellor <nathan@kernel.org>
+ Ralf Baechle <ralf@linux-mips.org>
 _
 
-Patches currently in -mm which might be from jansef.jian@hj-micro.com are
+Patches currently in -mm which might be from nathan@kernel.org are
 
-kernel-fork-declare-max_threads-__read_mostly.patch
+get_maintainerignore-add-nathan-chancellor.patch
 
