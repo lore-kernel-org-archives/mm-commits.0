@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6F3B7230BE9
-	for <mm-commits@vger.kernel.org>; Tue,  7 Jul 2026 19:53:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 90D2A366045
+	for <mm-commits@vger.kernel.org>; Tue,  7 Jul 2026 19:55:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783454019; cv=none; b=cydlZbDuQNttuHK+h2WG80hlnOF1sP5miL/PeTMzdyY7mYYkzXrEdhNhSJmzHLokwviDCU2+k94E85ZRb8xT2ygg6XhCtUMmumC+Vax9XOIrRmFUjkyRHHvHLWoX9sFjjd7BObJQJPxpQM+IZxcpZ4ImZOuR9nr9MMD9rQcHS9M=
+	t=1783454156; cv=none; b=Fzb95+Jq1AeKgDAAWN3yVjV2vBq/PBSb6GKNVV4x0d084Rf+xfZi9tmAZnbT92gQAXFa9N76IfXfpnkjEEKldxZrO3IuxScwWZMezNfxFapogx9I3L9xNuoHtFH09Lhux2LFNl7Jt4HAojJUcy2B+xtQ3ji41W8ZdpHaX2I+6H0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783454019; c=relaxed/simple;
-	bh=dCrH16ouTobB3ID8aj9IfetXcQZKs8TrvEkcfZmjGDw=;
-	h=Date:To:From:Subject:Message-Id; b=R9oHXkhhh0a9gB9dS/BaOpRWe6b8yUBAAn02eYqm6O2Rw/+cnwaJhgTt7ni6sVm2KWGFkv4LjTLLUMNyn2me4mvxV0tchavky/ZfqfRkwZtvP51WBcApJMYMP/5iJz2DdERu+2KSramOmMq9pCcdRnyVyWBqyw9OoyXYx/Ui1Os=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ok7VcvB3; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783454156; c=relaxed/simple;
+	bh=++q4meppws5oh+QBFbgJ+Ng1vIaP1T5gc8M2zUjtojY=;
+	h=Date:To:From:Subject:Message-Id; b=QU3aWHbXrc9IQIMOtEgCCjUE2ykG8Lsje1k4qAMkGKuklxAlu2VzeR1aMBEJ/2WzBcNdqIR9QjWj8pS2OHznd/XpJ6BLona+GWZUAfwoDdm+VQb0TsKFQYHH1tTXj5Emgan4xakcoHxGdPC5qaAMSk9PhxC0+6xIHqLyKZzaB5Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Di16+Pmk; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ok7VcvB3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E7DE41F000E9;
-	Tue,  7 Jul 2026 19:53:37 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Di16+Pmk"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 187901F000E9;
+	Tue,  7 Jul 2026 19:55:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783454018;
-	bh=wt1//u5i4o5mUj4Y1OPz0ppw3mNtRm6ippTr515JGhk=;
+	d=linux-foundation.org; s=korg; t=1783454155;
+	bh=ZeqnIdEgLU9K98YRMwWw1anN1gXqq2JdgUIfTR127DI=;
 	h=Date:To:From:Subject;
-	b=ok7VcvB3b68/oqUUtxSniNeJyX+LPTPaUY5jVXJ6vq+BjwIlYPgyf4Vhai/DmdKoa
-	 A66ivNU2XCpScjS9yaCk/TI1Ip21xeb4HoyA/xhs/bFpqdi4a+i00+qhdRBXWlVS2b
-	 wCullPXjb3Y7/ISX8S/kt9Lqlt22wKq9k8QxTfBY=
-Date: Tue, 07 Jul 2026 12:53:37 -0700
-To: mm-commits@vger.kernel.org,zhuhui@kylinos.cn,yuanchu@google.com,weixugc@google.com,vbabka@kernel.org,surenb@google.com,shakeel.butt@linux.dev,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,kasong@tencent.com,david@kernel.org,baohua@kernel.org,axelrasmussen@google.com,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=Di16+PmkAN8tqOBaVQ++EKQSy0F7vd4pUCM/RcGUnNbFCi1Qb4pgMru62am+Cpl7k
+	 gZWdNGlUO698U6xj0Rec2iArzynCu7bHhXBcTT7ebOJfJ8IFUBMSv77jLP5c5ne4M7
+	 1b75Fobsz4tG6rY5AIwYR3mVv6b7l5oP9bfSEF1U=
+Date: Tue, 07 Jul 2026 12:55:54 -0700
+To: mm-commits@vger.kernel.org,linux@roeck-us.net,kees@kernel.org,error27@gmail.com,david@davidgow.net,acarmina@redhat.com,npache@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [obsolete] mm-fix-assert_exclusive_bits-by-passing-memdesc_flags_t-by-pointer-fix.patch removed from -mm tree
-Message-Id: <20260707195337.E7DE41F000E9@smtp.kernel.org>
+Subject: + kunit-bugc-fix-backtrace-supression-test-failure-as-a-module.patch added to mm-nonmm-unstable branch
+Message-Id: <20260707195555.187901F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,63 +34,75 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: mm-fix-assert_exclusive_bits-by-passing-memdesc_flags_t-by-pointer-fix
-has been removed from the -mm tree.  Its filename was
-     mm-fix-assert_exclusive_bits-by-passing-memdesc_flags_t-by-pointer-fix.patch
+The patch titled
+     Subject: kunit/bug.c: fix backtrace-supression-test failure as a module
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     kunit-bugc-fix-backtrace-supression-test-failure-as-a-module.patch
 
-This patch was dropped because it is obsolete
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kunit-bugc-fix-backtrace-supression-test-failure-as-a-module.patch
+
+This patch will later appear in the mm-nonmm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-fix-assert_exclusive_bits-by-passing-memdesc_flags_t-by-pointer-fix
-Date: Tue Jun 30 10:52:22 PM PDT 2026
+From: Nico Pache <npache@redhat.com>
+Subject: kunit/bug.c: fix backtrace-supression-test failure as a module
+Date: Tue, 7 Jul 2026 12:54:05 -0600
 
-fix page_owner.c
+When running the backtrace-supression-test as a module most cases produce
+failures.
 
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: David Hildenbrand (Arm) <david@kernel.org>
-Cc: Hui Zhu <zhuhui@kylinos.cn>
-Cc: Kairui Song <kasong@tencent.com>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Wei Xu <weixugc@google.com>
-Cc: Yuanchu Xie <yuanchu@google.com>
+Upon further investigating the issue presents itself due to the ifdef that
+wraps the kunit_is_suppressed_warning, which is not compiled in if using
+CONFIG_KUNIT_MODULE.
+
+Fix this by switching to IS_ENABLED(CONFIG_KUNIT) which properly checks
+for either CONFIG_KUNIT_MODULE or CONFIG_KUNIT.
+
+Link: https://lore.kernel.org/20260707185405.571277-1-npache@redhat.com
+Fixes: bbc960d009a6 ("kunit: Add backtrace suppression self-tests")
+Signed-off-by: Nico Pache <npache@redhat.com>
+Cc: Alessandro Carminati <acarmina@redhat.com>
+Cc: Dan Carpenter <error27@gmail.com>
+Cc: David Gow <david@davidgow.net>
+Cc: Guenetr Roeck <linux@roeck-us.net>
+Cc: Kees Cook <kees@kernel.org>
+Cc: Nico Pache <npache@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_owner.c |    2 +-
+ lib/bug.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/page_owner.c~mm-fix-assert_exclusive_bits-by-passing-memdesc_flags_t-by-pointer-fix
-+++ a/mm/page_owner.c
-@@ -819,7 +819,7 @@ read_page_owner(struct file *file, char
- 				spin_unlock_irqrestore(&state->lock, flags);
- 				goto ext_put_continue;
- 			}
--			nid = memdesc_nid(page_flags);
-+			nid = memdesc_nid(&page_flags);
- 			if (!node_isset(nid, state->nid_filter)) {
- 				spin_unlock_irqrestore(&state->lock, flags);
- 				goto ext_put_continue;
+--- a/lib/bug.c~kunit-bugc-fix-backtrace-supression-test-failure-as-a-module
++++ a/lib/bug.c
+@@ -219,7 +219,7 @@ static enum bug_trap_type __report_bug(s
+ 	no_cut   = bug->flags & BUGFLAG_NO_CUT_HERE;
+ 	has_args = bug->flags & BUGFLAG_ARGS;
+ 
+-#ifdef CONFIG_KUNIT
++#if IS_ENABLED(CONFIG_KUNIT)
+ 	/*
+ 	 * Before the once logic so suppressed warnings do not consume
+ 	 * the single-fire budget of WARN_ON_ONCE().
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from npache@redhat.com are
 
-mm-mincore-use-walk_page_range_vma-in-do_mincore-fix.patch
-csky-implement-flush_cache_vmap-in-c.patch
-mm-annotate-data-race-in-cpu_needs_drain-fix.patch
-mm-zsmalloc-encode-class-index-in-obj-value-for-lockless-class-lookup-fix.patch
-mm-zsmalloc-drop-pool-lock-from-zs_free-on-64-bit-systems-fix.patch
-mm-zsmalloc-drop-pool-lock-from-zs_free-on-64-bit-systems-fix-fix.patch
-mm-rmap-use-huge_ptep_get-in-try_to_migrate_one-checkpatch-fixes.patch
-mm-mprotect-use-huge_ptep_get-for-hugetlb-fix.patch
-mm-drop-stale-folio_ref_count==1-check-in-do_swap_page-reuse-logic-fix.patch
-drivers-media-v4l2-core-v4l2-vp9c-reduce-inlining.patch
+mm-decrement-mthp_stat_nr_anon-in-free_zone_device_folio.patch
+mm-migrate-exclude-hugetlb-folios-from-mthp_stat_nr_anon-accounting.patch
+kunit-bugc-fix-backtrace-supression-test-failure-as-a-module.patch
 
