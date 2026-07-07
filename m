@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C828A2D47E9
-	for <mm-commits@vger.kernel.org>; Tue,  7 Jul 2026 19:20:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F019D2D47E9
+	for <mm-commits@vger.kernel.org>; Tue,  7 Jul 2026 19:21:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783452022; cv=none; b=qAx+7bU8sfe12BRGYFMNt3lIT1L3qHBnARUEHnumaQk8FOig/Ap+rCUGAT3ilDFLjCDeO3FDQu+c3ceI3z1tP0Sk4z57jkVP7YyQFUBQn5Mo4JKD2CazfxbEKsAZoc8vf39aJoNnoEFYCAK5vSwBwE+Klvo8PnFbsVIHRDODDmE=
+	t=1783452076; cv=none; b=XTsAGEm1f/26JYWfgbGBrt3Pa2bl5ITJ480RuIyATW1D/f9e/6Q2NzKv2T9du1l0Dip38fwDWoOrq4jetHMql57zYP2NUP4YFYIRmDTeSwm1OZoGSybJpkVar/L0C5j3EagWBs6A8hfVMC2HbNHvSFYsXzXpO9DNCg6nOY0/9Z4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783452022; c=relaxed/simple;
-	bh=SUqVjy7wWL4YTU7f1U9yzlJlk3AkH+TfMNt5k1SQ770=;
-	h=Date:To:From:Subject:Message-Id; b=NWrzXBvs305QDuD5oMIACU9HJK9tIKl8UseZwxy00IlUYhVpgkPrAYPRUm7M64Nb5iP1LhLWm01RoL/edf8xGTkmV0Qf1JWmDxKHmKueCRkekkbwxZyFveTR4pKUwbYqAhQrTpBFMJ81kp64MXR6mTP1jLuo/d8dl1vCvXX8pXI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xEjcqopP; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783452076; c=relaxed/simple;
+	bh=cD4Ph5yxNvWBRELtrahru5Sdm/crQWFUrTDkPtuEVR0=;
+	h=Date:To:From:Subject:Message-Id; b=bOFM40cak5yy1PuMgn42UalnRzlqBCBg/C4CdYNHsKAIXcl0XlCowmXO8vyVugY0O8+GKH9syJVIO2C+4mOgxCNZHA68bs6ryCmb8BN+2kIOHWL4cXEZRxj6q/q4twcjSZ91/RdjBWFszaE2TarLAlGOLoOk7wYVw2fbRidL8XE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=A5Q+2wzI; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xEjcqopP"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 939111F000E9;
-	Tue,  7 Jul 2026 19:20:20 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="A5Q+2wzI"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8AD851F000E9;
+	Tue,  7 Jul 2026 19:21:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783452020;
-	bh=vSUV0IgNmkMKKwdBC4L3Ja/wf0GRTNqCLUKcQVXuuhI=;
+	d=linux-foundation.org; s=korg; t=1783452074;
+	bh=XExpXz3ZimMECKncL+macb7K1y0vXsrwDyVSaoosMVg=;
 	h=Date:To:From:Subject;
-	b=xEjcqopP66fK/eppV8Eb50eBBMO+Qg5iljIetq/Mwoo07len8IbH7GO4G11IzRwx0
-	 ACq/AHFoM7rol5wE90VWxRreBNE3AW6c+LckmGFep1fxJ0cc9+Ut9Yy5Zb+Lsz9yMS
-	 7LZjBdBSuDCuiJy4kh18qTiRWJalNyD7dzCXts0I=
-Date: Tue, 07 Jul 2026 12:20:20 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,surenb@google.com,mhocko@suse.com,jackmanb@google.com,hannes@cmpxchg.org,zhen.ni@easystack.cn,akpm@linux-foundation.org
+	b=A5Q+2wzI64TSrLXI9igOcBBFnN6RysxExkbypNTJaQrbTZBAxdYBLepMJCYKb1IXH
+	 t+fBmpD1PfszJwCBK77F8V3znQaeKvuUXasCLKc8yQwMUG/hSbX9R3coGUnMlKbR10
+	 9eMZ1UFm58LOzQ2qLn9s0t49gR3NindJqUovLiHs=
+Date: Tue, 07 Jul 2026 12:21:14 -0700
+To: mm-commits@vger.kernel.org,zhen.ni@easystack.cn,vbabka@kernel.org,surenb@google.com,mhocko@suse.com,jackmanb@google.com,hannes@cmpxchg.org,ziy@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_owner-document-page_owner-filter.patch added to mm-unstable branch
-Message-Id: <20260707192020.939111F000E9@smtp.kernel.org>
+Subject: + mm-page_owner-add-numa-node-filter-fix.patch added to mm-unstable branch
+Message-Id: <20260707192114.8AD851F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/page_owner: document page_owner filter
+     Subject: mm-page_owner-add-numa-node-filter-fix
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-page_owner-document-page_owner-filter.patch
+     mm-page_owner-add-numa-node-filter-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_owner-document-page_owner-filter.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_owner-add-numa-node-filter-fix.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,130 +58,45 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Zhen Ni <zhen.ni@easystack.cn>
-Subject: mm/page_owner: document page_owner filter
-Date: Tue, 7 Jul 2026 19:54:11 +0800
+From: "Zi Yan" <ziy@nvidia.com>
+Subject: mm-page_owner-add-numa-node-filter-fix
+Date: Tue, 07 Jul 2026 11:54:37 -0400
 
-Add documentation for the page_owner_filter userspace tool and
-kernel-level filtering features.
+build fix
 
-Link: https://lore.kernel.org/20260707115411.1714314-5-zhen.ni@easystack.cn
-Signed-off-by: Zhen Ni <zhen.ni@easystack.cn>
-Acked-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
-Acked-by: Zi Yan <ziy@nvidia.com>
+Link: https://lore.kernel.org/DJSGLP9VFLRI.355AAWR2VHIEL@nvidia.com
+Signed-off-by: "Zi Yan" <ziy@nvidia.com>
 Cc: Brendan Jackman <jackmanb@google.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka (SUSE) <vbabka@kernel.org>
+Cc: Zhen Ni <zhen.ni@easystack.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/mm/page_owner.rst |   77 +++++++++++++++++++++++++++++-
- 1 file changed, 75 insertions(+), 2 deletions(-)
+ mm/page_owner.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/Documentation/mm/page_owner.rst~mm-page_owner-document-page_owner-filter
-+++ a/Documentation/mm/page_owner.rst
-@@ -65,7 +65,14 @@ un-tracking state.
- Usage
- =====
- 
--1) Build user-space helper::
-+1) Build user-space helpers::
-+
-+To filter page_owner output:
-+
-+	cd tools/mm
-+	make page_owner_filter
-+
-+To sort and analyze page_owner output:
- 
- 	cd tools/mm
- 	make page_owner_sort
-@@ -74,7 +81,11 @@ Usage
- 
- 3) Do the job that you want to debug.
- 
--4) Analyze information from page owner::
-+4) (Optional) Filter page_owner output::
-+
-+	./page_owner_filter -m handle -n 0,1,2 > filtered_page_owner.txt
-+
-+5) Analyze information from page owner::
- 
- 	cat /sys/kernel/debug/page_owner_stacks/show_stacks > stacks.txt
- 	cat stacks.txt
-@@ -263,3 +274,65 @@ STANDARD FORMAT SPECIFIERS
- 	f		free		whether the page has been released or not
- 	st		stacktrace	stack trace of the page allocation
- 	ator		allocator	memory allocator for pages
-+
-+Filtering page_owner output
-+============================
-+
-+page_owner supports filtering output at the kernel level before reading,
-+which reduces the amount of data that needs to be processed in userspace.
-+
-+The page_owner_filter tool provides a convenient interface for this filtering
-+capability. It supports two types of filters:
-+
-+1. **print_mode filter**: Control what information is printed for each page
-+	- ``stack``: Print full stack traces (default, compatible with existing usage)
-+	- ``handle``: Print only stack handle numbers (much faster, smaller output)
-+	- ``stack_handle``: Print both stack traces and handle numbers
-+
-+	The ``handle`` mode uses numeric identifiers instead of full stack traces.
-+	The mapping from handles to actual stack traces can be obtained via the
-+	show_stacks_handles interface.
-+
-+2. **NUMA node filter**: Filter pages by NUMA node ID
-+	- Supports single node: ``-n 0``
-+	- Multiple nodes: ``-n 0,1,2``
-+	- Ranges: ``-n 0-3``
-+	- Mixed format: ``-n 0,2-3,5``
-+
-+Usage examples::
-+
-+	# Filter by print mode
-+	./page_owner_filter -m handle
-+	./page_owner_filter -m stack_handle
-+
-+	# Filter by NUMA node
-+	./page_owner_filter -n 0
-+	./page_owner_filter -n 0-3
-+
-+	# Combined filters
-+	./page_owner_filter -m stack -n 0,1,2
-+	./page_owner_filter -m handle -n 0,2-3
-+
-+	# Save to file
-+	./page_owner_filter -m handle -o filtered_output.txt
-+
-+The handle mode is particularly useful for monitoring and performance-critical
-+scenarios as it dramatically reduces output size. Testing shows handle mode can
-+reduce output size by ~66% (84MB vs 244MB) and improve read performance by ~4.4x
-+compared to full stack output.
-+
-+The NUMA node filter is useful for NUMA-aware memory allocation analysis and debugging.
-+
-+Behind the scenes, page_owner_filter opens /sys/kernel/debug/page_owner and
-+writes filter commands before reading the filtered output. The filtering uses
-+per-file-descriptor state, allowing each open() to have independent filter settings.
-+
-+Each file descriptor maintains its own filter state, so you can have multiple
-+independent filtering operations running concurrently. For example, in different
-+terminals you can run different filters simultaneously::
-+
-+	# Terminal 1: Filter node 0
-+	./page_owner_filter -n 0 > node0_output.txt
-+
-+	# Terminal 2: Filter node 1 (runs concurrently)
-+	./page_owner_filter -n 1 > node1_output.txt
+--- a/mm/page_owner.c~mm-page_owner-add-numa-node-filter-fix
++++ a/mm/page_owner.c
+@@ -811,7 +811,7 @@ read_page_owner(struct file *file, char
+ 			 */
+ 			if (page_flags.f == PAGE_POISON_PATTERN)
+ 				goto ext_put_continue;
+-			nid = memdesc_nid(page_flags);
++			nid = memdesc_nid(&page_flags);
+ 			if (!node_isset(nid, state->nid_filter))
+ 				goto ext_put_continue;
+ 		}
 _
 
-Patches currently in -mm which might be from zhen.ni@easystack.cn are
+Patches currently in -mm which might be from ziy@nvidia.com are
 
-mm-page_owner-add-print_mode-filter.patch
-mm-page_owner-add-numa-node-filter.patch
-tools-mm-add-page_owner_filter-userspace-tool.patch
-mm-page_owner-document-page_owner-filter.patch
+mm-page_owner-add-numa-node-filter-fix.patch
+mm-percpu-km-clear-page-private-before-free-them.patch
+mm-compaction-stop-recording-free-page-order-in-page-private.patch
+mm-huge_memory-add-page-private-check-back-in-__split_folio_to_order.patch
+mm-page_alloc-make-sure-tail_page-private-is-zero-at-page-free-time.patch
+mm-page_alloc-remove-set_page_private-in-prep_compound_tail.patch
 
