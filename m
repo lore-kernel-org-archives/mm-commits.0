@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 42EC434753B
-	for <mm-commits@vger.kernel.org>; Tue,  7 Jul 2026 21:17:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4C5C943CEC1
+	for <mm-commits@vger.kernel.org>; Tue,  7 Jul 2026 21:42:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783459074; cv=none; b=CVeK8l+/2zAwATO/x2yESA5z97u2G4UY7rsE9oJc2ZNb9J88HmhQlpw/wmT51+ylg6+dnIV/DScni6F2FqX/zE/jQRPS/1MYeg5MaNUI/mMIyYNEz+wUT0fjaN+Em9VZkBDHmiUb5Y+UrvwSKXflXREvdol/PkmwJjlohBVQSEM=
+	t=1783460549; cv=none; b=KMLH5feDW37czFsUOxUe6/zdPicazx8k9ZzY/00l/Hm8iQerHjaVSoKYCaTcInMvCQzkyakbitqqbMPJiPfCHrszMf5lkw2PNzvMbAwnMMyyRIzy2w4cxnRUGWspbzLyfHBCn3aAMIp3hfAYIPWKlQguENQ5tGtAETWA77EOYIs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783459074; c=relaxed/simple;
-	bh=EVrVRk4jcYd3VHC1ReiqDbq3gP/TLjfs/55zYmE5O9Q=;
-	h=Date:To:From:Subject:Message-Id; b=b/r/3KP3MxgyAIhbUMhSb4qAXWnOP9FtNl80z/bsgoobKYxHCX8KWZqv1yD/mpqjlYpZvAFSw8Kojv9Xy3iEjJDANW71f5Ch17hlfnDcZblJ5UVkeoLIeMTPSOgPh3y2pWYt7c8mocNUy2qJRBc9gC+lDddMw4aJzqu3ybJzidg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=veS9eOiN; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783460549; c=relaxed/simple;
+	bh=bZede8xmPLyvOSum0MMzHeRXCNPvui+T84QCUT25AvE=;
+	h=Date:To:From:Subject:Message-Id; b=nSpEcFwKI3pgLCK5lLNzTa6YssEPyS6j7NEU23YqDvBeB5uVgCOPuyILSx53/QU7N99QrBqHpk8WhkfwZhMG4oPwjyFWVi7CrMJgMNPCfFPgFQoOgP+EO7+a0q6u1lXntORl+6VxIY1gp9oWoeeUau76JsNrJiTpgtslj3ING2U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jIrkysBu; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="veS9eOiN"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B10EE1F000E9;
-	Tue,  7 Jul 2026 21:17:52 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jIrkysBu"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B15B71F00A3A;
+	Tue,  7 Jul 2026 21:42:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783459072;
-	bh=LB2dSOJ5tUmXLDIsnIwYQKVJp3Y3dDSCyrWqxksclaE=;
+	d=linux-foundation.org; s=korg; t=1783460547;
+	bh=b+OWTDWIMSPFkwOGt8VVUcZaD+QP3LZj9X0FJU0gpfg=;
 	h=Date:To:From:Subject;
-	b=veS9eOiNfVDs383e4HSGIeDXAzPphpSoZFEkFUiABs/FhwJlEIPY6qNDJ6KaFmDyc
-	 WKBJpUkPk76FVLGO42U3p2+LRbsRQJU0OALRJx9IlmRyaIIv9EdgvupqjSAa/xKMvI
-	 qDEya/PNVaMhMel9CA7rGYD4uPjB7Xfiply4GHpY=
-Date: Tue, 07 Jul 2026 14:17:52 -0700
-To: mm-commits@vger.kernel.org,robh@kernel.org,lukas.bulwahn@gmail.com,joe@perches.com,dwaipayanray1@gmail.com,briannorris@chromium.org,apw@canonical.com,wenst@chromium.org,akpm@linux-foundation.org
+	b=jIrkysBuUT8LmSQRQSANTHxS29AD8hcWnZNeVffCu+W83j0WWvQNk6rq7UR92A42x
+	 ui3piOmAKFv4UfeTqDQ4M/cNiE2TvC9f3GQrcqG2QDR3j02yLcFntXyz8IDsiunv/g
+	 oAgmNl8z4LhrasDHdpfaI0o9WO58I/urJWY6AjGY=
+Date: Tue, 07 Jul 2026 14:42:27 -0700
+To: mm-commits@vger.kernel.org,rppt@kernel.org,yanlonglong@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + checkpatch-dont-emit-warnings-for-id-base-usb-pci-dt-compatibles.patch added to mm-nonmm-unstable branch
-Message-Id: <20260707211752.B10EE1F000E9@smtp.kernel.org>
+Subject: + selftests-mm-mseal_test-fix-mmap-return-value-check-in-test_seal_zero_address.patch added to mm-new branch
+Message-Id: <20260707214227.B15B71F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,26 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: checkpatch: don't emit warnings for ID-base USB & PCI DT compatibles
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     checkpatch-dont-emit-warnings-for-id-base-usb-pci-dt-compatibles.patch
+     Subject: selftests/mm/mseal_test: Fix mmap return value check in test_seal_zero_address
+has been added to the -mm mm-new branch.  Its filename is
+     selftests-mm-mseal_test-fix-mmap-return-value-check-in-test_seal_zero_address.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/checkpatch-dont-emit-warnings-for-id-base-usb-pci-dt-compatibles.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-mseal_test-fix-mmap-return-value-check-in-test_seal_zero_address.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,65 +69,38 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Chen-Yu Tsai <wenst@chromium.org>
-Subject: checkpatch: don't emit warnings for ID-base USB & PCI DT compatibles
-Date: Tue, 7 Jul 2026 15:46:27 +0800
+From: longlong yan <yanlonglong@kylinos.cn>
+Subject: selftests/mm/mseal_test: Fix mmap return value check in test_seal_zero_address
+Date: Tue, 7 Jul 2026 11:17:45 +0800
 
-The USB and PCI device bindings define some compatible patterns based on
-device IDs that use the comma to separate vendor and product IDs.
+The return value for a failed mmap function is MAP_FAILED.  According to
+the definition of FAIL_TEST_IF FALSE,ptr must be determined to be distinct
+from MAP_FAILED
 
-These prefix patterns include:
-
-  - ^usb(if)?[0-9a-f]{1,4},
-  - ^pci[0-9a-f]{2,4},
-  - ^pciclass,
-
-These are not real vendor prefixes.  Don't emit warnings for them. 
-Instead just skip over the DT compatible check altogether, and leave the
-real check to the DT validator.  This avoids false positive warnings about
-undocumented DT vendor prefixes and compatibles.
-
-Note that the script mostly only checks the first compatible string of
-each node, as it processes the source file line-by-line, and the check
-only matches on the line with 'compatible = "..."'.  Otherwise there would
-be more warnings from arch/mips/boot/dts/loongson/ls7a-pch.dtsi since that
-file also includes compatibles like "pciclass0c0310" and "pciclass0c03"
-which are not accepted either.  "pci0014,7a24.0" is not valid either, but
-this patch leaves the real check to the DT validator.
-
-Link: https://lore.kernel.org/20260707074629.3132930-1-wenst@chromium.org
-Signed-off-by: Chen-Yu Tsai <wenst@chromium.org>
-Reviewed-by: Brian Norris <briannorris@chromium.org>
-Tested-by: Brian Norris <briannorris@chromium.org>
-Cc: Andy Whitcroft <apw@canonical.com>
-Cc: Dwaipayan Ray <dwaipayanray1@gmail.com>
-Cc: Joe Perches <joe@perches.com>
-Cc: Lukas Bulwahn <lukas.bulwahn@gmail.com>
-Cc: Rob Herring <robh@kernel.org>
+Link: https://lore.kernel.org/20260707031745.1039-1-yanlonglong@kylinos.cn
+Fixes: 4926c7a52de7 ("selftest mm/mseal memory sealing")
+Signed-off-by: longlong yan <yanlonglong@kylinos.cn>
+Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    6 ++++++
- 1 file changed, 6 insertions(+)
+ tools/testing/selftests/mm/mseal_test.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/scripts/checkpatch.pl~checkpatch-dont-emit-warnings-for-id-base-usb-pci-dt-compatibles
-+++ a/scripts/checkpatch.pl
-@@ -3781,6 +3781,12 @@ sub process {
- 			my $vp_file = $dt_path . "vendor-prefixes.yaml";
+--- a/tools/testing/selftests/mm/mseal_test.c~selftests-mm-mseal_test-fix-mmap-return-value-check-in-test_seal_zero_address
++++ a/tools/testing/selftests/mm/mseal_test.c
+@@ -482,7 +482,7 @@ static void test_seal_zero_address(void)
+ 	/* use mmap to change protection. */
+ 	ptr = mmap(0, size, PROT_NONE,
+ 		   MAP_ANONYMOUS | MAP_PRIVATE | MAP_FIXED, -1, 0);
+-	FAIL_TEST_IF_FALSE(ptr == 0);
++	FAIL_TEST_IF_FALSE(ptr != (void *)-1);
  
- 			foreach my $compat (@compats) {
-+				# Skip ID-based PCI and USB compatible patterns.
-+				# DT validation will check them properly.
-+				next if $compat =~ /^pciclass,/;
-+				next if $compat =~ /^pci[a-f0-9]{2,4},/;
-+				next if $compat =~ /^usb(if)?[a-f0-9]{1,4},/;
-+
- 				my $compat2 = $compat;
- 				$compat2 =~ s/\,[a-zA-Z0-9]*\-/\,<\.\*>\-/;
- 				my $compat3 = $compat;
+ 	size = get_vma_size(ptr, &prot);
+ 	FAIL_TEST_IF_FALSE(size == 4 * page_size);
 _
 
-Patches currently in -mm which might be from wenst@chromium.org are
+Patches currently in -mm which might be from yanlonglong@kylinos.cn are
 
-checkpatch-dont-emit-warnings-for-id-base-usb-pci-dt-compatibles.patch
+selftests-mm-mseal_test-fix-mmap-return-value-check-in-test_seal_zero_address.patch
 
