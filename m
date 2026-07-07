@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 96FC42E7372
-	for <mm-commits@vger.kernel.org>; Tue,  7 Jul 2026 19:20:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D7DB32E7372
+	for <mm-commits@vger.kernel.org>; Tue,  7 Jul 2026 19:20:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783452014; cv=none; b=UvEVx2xIZXiwUb7m0oPS8dwD7+ZsriUDRBD5+JdLHkdksCZjpWzgV4aCU5GPawfBLhra3JqsolTECHGIdA7FzMpzwQ5oa6fBJ6XdVoLsos4ObFgXLKJUrd+ju9SstEM8GunJrNjdRaOHonaNbjbegsYSh7HmNWfG7dRWybR07b8=
+	t=1783452016; cv=none; b=lxQTwTB1CsO+KEb9NSlYRaHAcXldSEPAQVeG9LwASWkYEUzVrwWNBmuei/QtlrZ8Ds2+9RWdiipS3RJlD0h2Ehsi5Rl7hl2+S2CgG9GI9S5ovKhORnDkHFv7NDWYRIGwu15fNxmmZaZYlozebSm1q8AJD1WjMWfShIqcihii3lU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783452014; c=relaxed/simple;
-	bh=Tgd24iTsRasMSjsXWwr7CuI9rJAzgfOdU0H6TSZJ3HA=;
-	h=Date:To:From:Subject:Message-Id; b=Cq0K8WqIlseefI1CT9azMYkFRM6PPtkoPyi4ID54wAGzRez37w06jO+eOsOBiIVj0QTomjlN+JHYshk612xIjgGU6Y39YszIgEiFBQtbV8C6u7PtZRzxcv1+d50cX41lnHW6GJ31ZTOjSQx+TqyDuW5CcVIIIYYdF9zLC2kO9XY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=u5HOeh4F; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783452016; c=relaxed/simple;
+	bh=bIhqlcbIWuQMhhwJUFGwz7V9lEHrNo9OULti35fKwqM=;
+	h=Date:To:From:Subject:Message-Id; b=kbjcMNB5O1yDjhCCaEQVznRd43sv1rm6bpf8ph/0cnMq94XH6084j9R3gsaS7nhdw2/FzDTOlq851Y7scx1iloseG4U7RjtzG8I00xVH4OLwqRim2CIbOa4BL16bIngaVmuf4JPFmZU6vcXFOdxcvLIlH+BDfuG160Xb4R9KnYg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rkGDwmEv; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="u5HOeh4F"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 34CBF1F00A3D;
-	Tue,  7 Jul 2026 19:20:12 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rkGDwmEv"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 65D921F000E9;
+	Tue,  7 Jul 2026 19:20:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783452012;
-	bh=j6gAtPLEoRpSPMzpRCF+dAi1Z991VeOwSZY/EtZR2zQ=;
+	d=linux-foundation.org; s=korg; t=1783452014;
+	bh=cSqGLNO5n3pzs/hThV5p9vpYoPLDgxHkiSuLWZIO3Co=;
 	h=Date:To:From:Subject;
-	b=u5HOeh4FxZOsDWteWqHYGZXGUVSlbiDgLuH3CcOPdeTbNE1ZWJnfTTFHElpwwkcTY
-	 iAqxAWOc8PcqfCzXorgpGRKYsOEihQtz+KGewMu6URgJDb0rkDXHtqsDAhrjPnJOwC
-	 k3KzUjFvbBKvEdQuLZ/86ufasN2wIKG1sEB+5Y3A=
-Date: Tue, 07 Jul 2026 12:20:11 -0700
+	b=rkGDwmEv23TAX2GDhPE+K7uzXkadX4iovO4bl0linTWvaQ7sk2eMy+Xjuz9iOVD0Q
+	 TwQrmFWJxhPmbDmrtUnCyxvZn+tLVMxt/7SEbOmrzudoCpfauCzy8foloOc203m0aI
+	 nc6POCr6YUTBWWCEU1Z2Ym7n/4gKrXYM7MMREhck=
+Date: Tue, 07 Jul 2026 12:20:14 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,surenb@google.com,mhocko@suse.com,jackmanb@google.com,hannes@cmpxchg.org,zhen.ni@easystack.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_owner-add-print_mode-filter.patch added to mm-unstable branch
-Message-Id: <20260707192012.34CBF1F00A3D@smtp.kernel.org>
+Subject: + mm-page_owner-add-numa-node-filter.patch added to mm-unstable branch
+Message-Id: <20260707192014.65D921F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/page_owner: add print_mode filter
+     Subject: mm/page_owner: add NUMA node filter
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-page_owner-add-print_mode-filter.patch
+     mm-page_owner-add-numa-node-filter.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_owner-add-print_mode-filter.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_owner-add-numa-node-filter.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,144 +59,31 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Zhen Ni <zhen.ni@easystack.cn>
-Subject: mm/page_owner: add print_mode filter
-Date: Tue, 7 Jul 2026 19:54:08 +0800
+Subject: mm/page_owner: add NUMA node filter
+Date: Tue, 7 Jul 2026 19:54:09 +0800
 
-Patch series "mm/page_owner: add per-fd filter infrastructure for
-print_mode and NUMA filtering", v12.
+Add NUMA node filtering functionality to page_owner to allow filtering
+pages by specific NUMA node(s).  This is useful for NUMA-aware memory
+allocation analysis and debugging.
 
-This patch series introduces per-file-descriptor filtering capabilities to the
-page_owner feature.
-
-Problem Statement
-=================
-
-In production environments with large memory configurations (e.g.,
-250GB+), collecting page_owner information often results in files ranging
-from several gigabytes to over 10GB.  This creates significant challenges:
-
-1. Storage pressure on production systems
-2. Difficulty transferring large files from production environments
-3. Post-processing overhead with tools/mm/page_owner_sort.c
-
-The primary contributor to file size is redundant stack trace information.
-While the kernel already deduplicates stacks via stackdepot, page_owner
-retrieves and stores full stack traces for each page, only to deduplicate
-them again during post-processing.
-
-Additionally, in NUMA-aware environments (e.g., DPDK-based cloud
-deployments where QEMU processes are bound to specific NUMA nodes), OOM
-events are often node-specific rather than system-wide.  Previously,
-page_owner could not filter by NUMA node, forcing users to collect and
-analyze data for all nodes.
-
-Solution
-========
-
-This patch series introduces a per-file-descriptor filter infrastructure
-with two initial filters:
-
-1. **Print Mode Filter**: Outputs only stack handles instead of
-   full stack traces. The handle-to-stack mapping can be retrieved
-   from the existing show_stacks_handles interface. This dramatically
-   reduces output size while preserving all allocation metadata.
-
-2. **NUMA Node Filter**: Allows filtering pages by specific NUMA node(s)
-   using flexible nodelist format, enabling targeted analysis of memory
-   issues in NUMA-aware deployments.
-
-The per-fd design allows multiple concurrent page_owner reads with
-different filters, solving coordination issues in multi-user production
-environments.
-
-Implementation
-==============
-
-The series is structured as follows:
-
-- Patch 1: Implement print_mode filter infrastructure
-  * Add file->private_data to store per-fd filter state
-  * Add .open, .release, and .write file operations
-  * Support "stack", "handle", and "stack_handle" modes via "mode=" write commands
-- Patch 2: Implement NUMA node filter infrastructure
-  * Add nid_filter field to per-fd state
-  * Support flexible nodelist format via "nid=" write commands (single, multiple, ranges)
-  * Validate nodes and reject non-existent nodes using nodes_subset()
-- Patch 3: Add page_owner_filter userspace tool
-  * Manages per-fd filters via write() interface
-  * Provides user-friendly command-line interface
-  * Includes comprehensive input validation
-- Patch 4: Document filter features and usage
-
-Usage Example
-=============
-
-Using the page_owner_filter tool with per-fd filters:
-
-    # ./page_owner_filter -m stack_handle -n "0,2-3" -o page_owner.txt
-
-The tool opens /sys/kernel/debug/page_owner, sets filters via write(),
-then reads the filtered output to the specified file (or stdout).
-
-Sample print_mode output (showing handles only):
-
-    Page allocated via order 0, mask 0x0(), pid 0, tgid 0 (swapper),
-    ts 0 ns PFN 0x40000 type Unmovable Block 512 type Unmovable
-    Flags 0x3fffe0000000000(node=0|zone=0|lastcpupid=0x1ffff)
-    handle: 1048577
-
-    Page allocated via order 0, mask 0x252000(__GFP_NOWARN|
-    __GFP_NORETRY|__GFP_COMP|__GFP_THISNODE), pid 0, tgid 0 (swapper),
-    ts 0 ns PFN 0x40002 type Unmovable Block 512 type Unmovable
-    Flags 0x23fffe0000000200(workingset|node=0|zone=0|lastcpupid=0x1ffff)
-    handle: 1048577
-
-
-This patch (of 4):
-
-Add a print_mode filter to page_owner that allows users to choose between
-printing stack traces, stack handles, or both, providing flexibility for
-different debugging and analysis scenarios.
-
-The filter provides three modes via page_owner:
-- Writing "mode=stack" prints stack traces for each page (default)
-- Writing "mode=handle" prints only the handle number
-- Writing "mode=stack_handle" prints both stack traces and handles
-
-The default stack mode maintains backward compatibility with existing
-usage, displaying complete stack traces for each page allocation.
-
-The handle mode dramatically reduces log size and improves performance by
-showing only the handle number instead of the full stack trace.  Testing
-shows handle mode reduces output size by ~66% (84MB vs 244MB) and improves
-read performance by ~4.4x compared to full stack output.  The mapping from
-handles to actual stack traces can be obtained via the show_stacks_handles
-interface.
-
-The stack_handle mode prints both stack traces and handles, making it
-easier to identify pages with the same allocation pattern by comparing
-handle numbers instead of comparing large stack traces.
+The filter supports flexible input formats:
+- Single node: nid=0
+- Multiple nodes: nid=0,2,3
+- Node range: nid=0-3
+- Mixed format: nid=0,2-4,7
 
 Example usage:
   # Using the page_owner_filter tool (recommended)
-  ./page_owner_filter -m stack          # Print only stack traces (default)
-  ./page_owner_filter -m handle         # Print only handles
-  ./page_owner_filter -m stack_handle   # Print both stack and handles
+  ./page_owner_filter -n 0-3
+  ./page_owner_filter -m stack_handle -n 0,2-4,7
 
-Sample output (handle mode):
-  Page allocated via order 0, migratetype Unmovable, gfp_mask 0x1100ca,
-  pid 1, tgid 1 (systemd), ts 123456789 ns
-  PFN 0x1000 type Unmovable Block 1 type Unmovable
-  Flags 0x3fffe800000084(referenced|lru|active|private|node=0|zone=1)
-  handle: 17432583
-  ...
-
-This implementation uses per-file-descriptor filter state stored in
+The implementation uses per-file-descriptor filter state stored in
 file->private_data, allowing each opener to have independent filter
-configuration.
+configuration.  It uses nodemask_t for efficient multi-node filtering and
+nodelist_parse() for flexible input parsing.  Node validity is verified
+using nodes_subset() to reject nodes without memory.
 
-Link: https://lore.kernel.org/20260707115411.1714314-1-zhen.ni@easystack.cn
-Link: https://lore.kernel.org/20260707115411.1714314-2-zhen.ni@easystack.cn
+Link: https://lore.kernel.org/20260707115411.1714314-3-zhen.ni@easystack.cn
 Signed-off-by: Zhen Ni <zhen.ni@easystack.cn>
 Tested-by: Zi Yan <ziy@nvidia.com>
 Acked-by: Zi Yan <ziy@nvidia.com>
@@ -208,186 +95,125 @@ Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_owner.c |  116 +++++++++++++++++++++++++++++++++++++++++++---
- 1 file changed, 110 insertions(+), 6 deletions(-)
+ mm/page_owner.c |   54 ++++++++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 52 insertions(+), 2 deletions(-)
 
---- a/mm/page_owner.c~mm-page_owner-add-print_mode-filter
+--- a/mm/page_owner.c~mm-page_owner-add-numa-node-filter
 +++ a/mm/page_owner.c
-@@ -54,6 +54,22 @@ struct stack_print_ctx {
- 	u8 flags;
+@@ -68,6 +68,8 @@ static const char * const page_owner_pri
+ 
+ struct page_owner_filter_state {
+ 	enum page_owner_print_mode print_mode;
++	nodemask_t nid_filter;
++	bool nid_filter_enabled;
  };
  
-+enum page_owner_print_mode {
-+	PAGE_OWNER_PRINT_STACK,
-+	PAGE_OWNER_PRINT_HANDLE,
-+	PAGE_OWNER_PRINT_STACK_HANDLE,
-+};
-+
-+static const char * const page_owner_print_mode_strings[] = {
-+	[PAGE_OWNER_PRINT_STACK]	= "stack",
-+	[PAGE_OWNER_PRINT_HANDLE]	= "handle",
-+	[PAGE_OWNER_PRINT_STACK_HANDLE]	= "stack_handle",
-+};
-+
-+struct page_owner_filter_state {
-+	enum page_owner_print_mode print_mode;
-+};
-+
  static bool page_owner_enabled __initdata;
- DEFINE_STATIC_KEY_FALSE(page_owner_inited);
+@@ -799,6 +801,21 @@ read_page_owner(struct file *file, char
+ 		if (!handle)
+ 			goto ext_put_continue;
  
-@@ -580,16 +596,20 @@ static inline int print_page_owner_memcg
- static ssize_t
- print_page_owner(char __user *buf, size_t count, unsigned long pfn,
- 		struct page *page, struct page_owner *page_owner,
--		depot_stack_handle_t handle)
-+		depot_stack_handle_t handle,
-+		struct page_owner_filter_state *state)
- {
- 	int ret, pageblock_mt, page_mt;
- 	char *kbuf;
-+	enum page_owner_print_mode print_mode;
- 
- 	count = min_t(size_t, count, PAGE_SIZE);
- 	kbuf = kmalloc(count, GFP_KERNEL);
- 	if (!kbuf)
- 		return -ENOMEM;
- 
-+	print_mode = state->print_mode;
++		if (state->nid_filter_enabled) {
++			int nid;
++			memdesc_flags_t page_flags = READ_ONCE(page->flags);
 +
- 	ret = scnprintf(kbuf, count,
- 			"Page allocated via order %u, mask %#x(%pGg), pid %d, tgid %d (%s), ts %llu ns\n",
- 			page_owner->order, page_owner->gfp_mask,
-@@ -608,9 +628,18 @@ print_page_owner(char __user *buf, size_
- 			migratetype_names[pageblock_mt],
- 			&page->flags.f);
- 
--	ret += stack_depot_snprint(handle, kbuf + ret, count - ret, 0);
--	if (ret >= count)
--		goto err;
-+	if (print_mode != PAGE_OWNER_PRINT_HANDLE) {
-+		ret += stack_depot_snprint(handle, kbuf + ret, count - ret, 0);
-+		if (ret >= count)
-+			goto err;
-+	}
++			/*
++			 * Bypass PF_POISONED_CHECK() in page_to_nid() to avoid
++			 * VM_BUG_ON when accessing poisoned pages.
++			 */
++			if (page_flags.f == PAGE_POISON_PATTERN)
++				goto ext_put_continue;
++			nid = memdesc_nid(page_flags);
++			if (!node_isset(nid, state->nid_filter))
++				goto ext_put_continue;
++		}
 +
-+	if (print_mode != PAGE_OWNER_PRINT_STACK) {
-+		ret += scnprintf(kbuf + ret, count - ret, "handle: %u\n",
-+				 handle);
-+		if (ret >= count)
-+			goto err;
-+	}
+ 		/* Record the next PFN to read in the file offset */
+ 		*ppos = pfn + 1;
  
- 	if (page_owner->last_migrate_reason != MR_NEVER) {
- 		ret += scnprintf(kbuf + ret, count - ret,
-@@ -698,6 +727,7 @@ read_page_owner(struct file *file, char
- 	struct page_ext *page_ext;
- 	struct page_owner *page_owner;
- 	depot_stack_handle_t handle;
-+	struct page_owner_filter_state *state = file->private_data;
- 
- 	if (!static_branch_unlikely(&page_owner_inited))
- 		return -EINVAL;
-@@ -775,7 +805,7 @@ read_page_owner(struct file *file, char
- 		page_owner_tmp = *page_owner;
- 		page_ext_put(page_ext);
- 		return print_page_owner(buf, count, pfn, page,
--				&page_owner_tmp, handle);
-+				&page_owner_tmp, handle, state);
+@@ -808,6 +825,7 @@ read_page_owner(struct file *file, char
+ 				&page_owner_tmp, handle, state);
  ext_put_continue:
  		page_ext_put(page_ext);
++		cond_resched();
  	}
-@@ -864,7 +894,81 @@ static void init_early_allocated_pages(v
- 		init_pages_in_zone(zone);
- }
  
-+static int page_owner_open(struct inode *inode, struct file *file)
-+{
-+	struct page_owner_filter_state *state;
-+
-+	state = kzalloc_obj(*state);
-+	if (!state)
-+		return -ENOMEM;
-+
-+	state->print_mode = PAGE_OWNER_PRINT_STACK;
-+	file->private_data = state;
-+	return 0;
-+}
-+
-+static int page_owner_release(struct inode *inode, struct file *file)
-+{
-+	kfree(file->private_data);
-+	return 0;
-+}
-+
-+static ssize_t page_owner_write(struct file *file,
-+				 const char __user *buf,
-+				 size_t count, loff_t *ppos)
-+{
-+	char *kbuf;
-+	char *orig;
-+	char *token;
-+	int ret;
-+	struct page_owner_filter_state *state = file->private_data;
-+	enum page_owner_print_mode new_print_mode;
-+
-+	/*
-+	 * Maximum input length for filter commands:
-+	 * 32: print_mode command max length is 17 ("mode=stack_handle").
-+	 */
-+	if (count > 32)
-+		return -EINVAL;
-+
-+	kbuf = memdup_user_nul(buf, count);
-+	if (IS_ERR(kbuf))
-+		return PTR_ERR(kbuf);
-+
-+	orig = kbuf;
-+
-+	new_print_mode = state->print_mode;
-+
-+	while ((token = strsep(&kbuf, " \t\n")) != NULL) {
-+		if (*token == '\0')
-+			continue;
-+
-+		if (!strncmp(token, "mode=", 5)) {
-+			ret = sysfs_match_string(page_owner_print_mode_strings,
-+						token + 5);
+ 	return 0;
+@@ -903,6 +921,8 @@ static int page_owner_open(struct inode
+ 		return -ENOMEM;
+ 
+ 	state->print_mode = PAGE_OWNER_PRINT_STACK;
++	nodes_clear(state->nid_filter);
++	state->nid_filter_enabled = false;
+ 	file->private_data = state;
+ 	return 0;
+ }
+@@ -923,12 +943,17 @@ static ssize_t page_owner_write(struct f
+ 	int ret;
+ 	struct page_owner_filter_state *state = file->private_data;
+ 	enum page_owner_print_mode new_print_mode;
++	nodemask_t new_nid_filter;
++	bool new_nid_filter_enabled;
+ 
+ 	/*
+ 	 * Maximum input length for filter commands:
+-	 * 32: print_mode command max length is 17 ("mode=stack_handle").
++	 * - 32: print_mode command max length is 17 ("mode=stack_handle")
++	 *        with sufficient buffer
++	 * - 6 * MAX_NUMNODES: worst case for nid list
++	 *   Worst case per node: ",NNNNN" (comma + 5-digit node number) = 6 bytes
+ 	 */
+-	if (count > 32)
++	if (count > 32 + 6 * MAX_NUMNODES)
+ 		return -EINVAL;
+ 
+ 	kbuf = memdup_user_nul(buf, count);
+@@ -938,6 +963,8 @@ static ssize_t page_owner_write(struct f
+ 	orig = kbuf;
+ 
+ 	new_print_mode = state->print_mode;
++	new_nid_filter = state->nid_filter;
++	new_nid_filter_enabled = state->nid_filter_enabled;
+ 
+ 	while ((token = strsep(&kbuf, " \t\n")) != NULL) {
+ 		if (*token == '\0')
+@@ -949,13 +976,36 @@ static ssize_t page_owner_write(struct f
+ 			if (ret < 0)
+ 				goto out_free;
+ 			new_print_mode = ret;
++		} else if (!strncmp(token, "nid=", 4)) {
++			ret = nodelist_parse(token + 4, new_nid_filter);
 +			if (ret < 0)
 +				goto out_free;
-+			new_print_mode = ret;
-+		} else {
-+			ret = -EINVAL;
-+			goto out_free;
-+		}
-+	}
 +
-+	state->print_mode = new_print_mode;
++			if (nodes_empty(new_nid_filter)) {
++				ret = -EINVAL;
++				goto out_free;
++			}
 +
-+	ret = count;
++			/*
++			 * We want to filter memory allocations by numa nodes, so make sure
++			 * that the specified nodes have memory.
++			 */
++			if (!nodes_subset(new_nid_filter, node_states[N_MEMORY])) {
++				ret = -EINVAL;
++				goto out_free;
++			}
 +
-+out_free:
-+	kfree(orig);
-+	return ret;
-+}
-+
- static const struct file_operations page_owner_fops = {
-+	.owner		= THIS_MODULE,
-+	.open		= page_owner_open,
-+	.release	= page_owner_release,
-+	.write		= page_owner_write,
- 	.read		= read_page_owner,
- 	.llseek		= lseek_page_owner,
- };
-@@ -995,7 +1099,7 @@ static int __init pageowner_init(void)
- 		return 0;
++			new_nid_filter_enabled = true;
+ 		} else {
+ 			ret = -EINVAL;
+ 			goto out_free;
+ 		}
  	}
  
--	debugfs_create_file("page_owner", 0400, NULL, NULL, &page_owner_fops);
-+	debugfs_create_file("page_owner", 0600, NULL, NULL, &page_owner_fops);
- 	dir = debugfs_create_dir("page_owner_stacks", NULL);
- 	debugfs_create_file("show_stacks", 0400, dir,
- 			    (void *)(STACK_PRINT_FLAG_STACK |
++	/* Commit all filter changes */
+ 	state->print_mode = new_print_mode;
++	state->nid_filter = new_nid_filter;
++	state->nid_filter_enabled = new_nid_filter_enabled;
+ 
+ 	ret = count;
+ 
 _
 
 Patches currently in -mm which might be from zhen.ni@easystack.cn are
