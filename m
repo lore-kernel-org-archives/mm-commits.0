@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 70B863F6C33
-	for <mm-commits@vger.kernel.org>; Wed,  8 Jul 2026 21:25:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 770743F5BCB
+	for <mm-commits@vger.kernel.org>; Wed,  8 Jul 2026 21:47:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783545941; cv=none; b=TZaoTY2gxEF/wo1wSzqp2yU9TJIa9a/3GLviY/h5xkkHnT4MPN6KfUBwxUkhamdGzYmTz3OZrOs0tKoV7Wuv8gL5yPWZO4mnXENjclAsKBPQkof33YFHFvI//S+bEg8TA+jsvIuUU5/QMP2PB8aCG225EJ31uDq8Vd4uFUxzKRc=
+	t=1783547234; cv=none; b=qF8QgoeNLbJ46WLAUYXa2y4Mk+ZrVK5SHBAg/DFzsI3FV7iZUsy+NM+rFTB0DxP/L5vySHXJg3X11glorv0HZpdjHsUsxTKCzuSA2bE8s71z7FEh5I98dD5InOl9iFQ0adF7Fxt0C9ZfjPUdW9a9ff9hM2tChpgo2kgazrrgA4U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783545941; c=relaxed/simple;
-	bh=eOWpdVviRFFsSTajnz/qB537d3VZy1L89puhudBxX58=;
-	h=Date:To:From:Subject:Message-Id; b=o+rGR/SG3ZMDJRMqgabeOzW52cByEaLZOPsxPXN46gQ2eb/wsHfudKM8SHQ+8U1Fm/dc3q/EnWwbowXXSUuCtVXOBPNleGt4NJu+d0wiYzp3sfKn3u1mK7ATnH1Qw4RBs3zGQqPSYctfWP5AbOgUPp3T3O+NuxWH9bb9tvPydic=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bUi6h+cu; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783547234; c=relaxed/simple;
+	bh=/kawo7pDkowYOjiVGDUkGjDqcHs0V6FfoADiY2Uehro=;
+	h=Date:To:From:Subject:Message-Id; b=Uc2lSPKRtLq/hOg//favRVQSLHfpde6uVle2Mrumcez8/oL5lm/fCnJMyN2xi67PjCQhXzR/yqMYX2RHr2xtA27CRj6Ve8WBQ9DBVSZjo9d7nBn1in3bJyMkrIIGAX6cIvRVNDc+sPJZ+GBkRMu9PifZv8fGylcdaxKx2gX9KkY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=opZ9oza3; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bUi6h+cu"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4BFE31F00A3A;
-	Wed,  8 Jul 2026 21:25:39 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="opZ9oza3"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D38991F000E9;
+	Wed,  8 Jul 2026 21:47:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783545939;
-	bh=/O5pw9ErdsORFaaSnL82ytIkqDJ8TH1YVfqhplhyM8Y=;
+	d=linux-foundation.org; s=korg; t=1783547232;
+	bh=ofopQQZ+cB4LIpeouI+wxleRuNIKFoqDL5HUt0DBFjU=;
 	h=Date:To:From:Subject;
-	b=bUi6h+cudhIRutsi0sQ4QM5BbWSJFAnF4FPc/bR/UThzqLutEqR1B2g1TY9B7i1x1
-	 NqVKz9eWMtUz51PSYdqvFAg4HRJDYn+RC30VQtuGEGRLu/4ylCT1xSuHYMuSgb0vcO
-	 /EMyPYEfLFBzYuekDTRi9aCCqSAD9dpl+RfdcmgY=
-Date: Wed, 08 Jul 2026 14:25:38 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,svens@linux.ibm.com,surenb@google.com,rppt@kernel.org,peterz@infradead.org,osalvador@suse.de,muchun.song@linux.dev,mingo@redhat.com,mhocko@suse.com,luto@kernel.org,ljs@kernel.org,liam@infradead.org,jackmanb@google.com,hpa@zytor.com,hca@linux.ibm.com,hannes@cmpxchg.org,gor@linux.ibm.com,gerald.schaefer@linux.ibm.com,bp@alien8.de,borntraeger@linux.ibm.com,agordeev@linux.ibm.com,david@kernel.org,akpm@linux-foundation.org
+	b=opZ9oza3zKN7eMJdYB0QzhNRkSumb6qTwB/3GSqI61owFKyfTs/W4+opBtf98e2Nt
+	 e73E8Av/+Gz/UywN8uv6uKdbnzAo7ZcLnyCxG7Wo+Sn5pJbN/Aj3O99CufyWozwoew
+	 4B7Q55VJ18V5WSbwOkWrhEdebBlsB7TLYO0hkl74=
+Date: Wed, 08 Jul 2026 14:47:12 -0700
+To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-bootmem_info-remove-config_have_bootmem_info_node.patch added to mm-new branch
-Message-Id: <20260708212539.4BFE31F00A3A@smtp.kernel.org>
+Subject: + mm-damon-core-remove-comment-and-test-for-nr_to_bp-divide-by-zero.patch added to mm-new branch
+Message-Id: <20260708214712.D38991F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/bootmem_info: remove CONFIG_HAVE_BOOTMEM_INFO_NODE
+     Subject: mm/damon/core: remove comment and test for nr_to_bp() divide-by-zero
 has been added to the -mm mm-new branch.  Its filename is
-     mm-bootmem_info-remove-config_have_bootmem_info_node.patch
+     mm-damon-core-remove-comment-and-test-for-nr_to_bp-divide-by-zero.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-bootmem_info-remove-config_have_bootmem_info_node.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-remove-comment-and-test-for-nr_to_bp-divide-by-zero.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,269 +69,184 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: "David Hildenbrand (Arm)" <david@kernel.org>
-Subject: mm/bootmem_info: remove CONFIG_HAVE_BOOTMEM_INFO_NODE
-Date: Wed, 08 Jul 2026 16:11:05 +0200
+From: SJ Park <sj@kernel.org>
+Subject: mm/damon/core: remove comment and test for nr_to_bp() divide-by-zero
+Date: Wed, 8 Jul 2026 06:53:51 -0700
 
-The whole infrastructure is unused now.  Let's remove the config option
-along with mm/bootmem_info.  + include/linux/bootmem_info.h.
+Patch series "mm/damon: update probe hits for runtime parameter commits".
 
-Link: https://lore.kernel.org/20260708-bootmem_info_part2-v1-10-156ce4986598@kernel.org
-Signed-off-by: David Hildenbrand (Arm) <david@kernel.org>
-Cc: Alexander Gordeev <agordeev@linux.ibm.com>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: "Borislav Petkov (AMD)" <bp@alien8.de>
-Cc: Brendan Jackman <jackmanb@google.com>
-Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
-Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
-Cc: Heiko Carstens <hca@linux.ibm.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Sven Schnelle <svens@linux.ibm.com>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Zi Yan <ziy@nvidia.com>
+DAMON users can update DAMON parameters such as sampling and aggregation
+intervals at runtime.  For such changes, monitoring results that depend on
+the intervals should be properly updated for better accuracy.  For
+example, the access frequency counter (nr_accesses) is updated.  The data
+attribute monitoring counter (probe_hits) is not being updated, though. 
+Do the updates for new parameters.
+
+Patch 1 removes obsolete comments and test code for a function that this
+series will touch.  Patches 2-5 rename functions that are being used for
+nr_accesses update, to be able to be used for probe_hits without
+confusion.  Patch 6 does the probe_hits update.  Patch 7 update
+damon_probe_hits_mvsum() to cover a corner case from the update for better
+accuracy.
+
+
+This patch (of 7):
+
+The comments on damon_nr_accesses_to_accesses_bp() and its unit test warn
+it can trigger division-by-zero when the aggregation interval is zero. 
+Commit 35d4a3cf70a8 ("mm/damon/ops-common: handle extreme intervals in
+damon_hot_score()") modified damon_max_nr_accesses() to always return
+non-zero.  Hence no division-by-zero of the note can happen.  Remove the
+obsolete comment on the function.  The test code was written to test the
+division-by-zero case, which cannot happen anymore.  Having it makes no
+sense.  Entirely remove the test code and its comment.
+
+Link: https://lore.kernel.org/20260708135359.122587-1-sj@kernel.org
+Link: https://lore.kernel.org/20260708135359.122587-2-sj@kernel.org
+Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS                  |    1 
- include/linux/bootmem_info.h |   89 ---------------------------------
- mm/Kconfig                   |    7 --
- mm/Makefile                  |    1 
- mm/bootmem_info.c            |   72 --------------------------
- 5 files changed, 170 deletions(-)
+ mm/damon/core.c             |    8 +-------
+ mm/damon/tests/core-kunit.h |   23 -----------------------
+ 2 files changed, 1 insertion(+), 30 deletions(-)
 
-diff --git a/include/linux/bootmem_info.h a/include/linux/bootmem_info.h
-deleted file mode 100644
---- a/include/linux/bootmem_info.h
-+++ /dev/null
-@@ -1,89 +0,0 @@
--/* SPDX-License-Identifier: GPL-2.0 */
--#ifndef __LINUX_BOOTMEM_INFO_H
--#define __LINUX_BOOTMEM_INFO_H
--
--#include <linux/mm.h>
--#include <linux/kmemleak.h>
--
--/*
-- * Types for free bootmem stored in the low bits of page->private.
-- */
--enum bootmem_type {
--	MEMORY_HOTPLUG_MIN_BOOTMEM_TYPE = 1,
--	SECTION_INFO = MEMORY_HOTPLUG_MIN_BOOTMEM_TYPE,
--	MIX_SECTION_INFO,
--	NODE_INFO,
--	MEMORY_HOTPLUG_MAX_BOOTMEM_TYPE = NODE_INFO,
--};
--
--#ifdef CONFIG_HAVE_BOOTMEM_INFO_NODE
--void __init register_page_bootmem_info_node(struct pglist_data *pgdat);
--void register_page_bootmem_memmap(unsigned long section_nr, struct page *map,
--				  unsigned long nr_pages);
--
--void get_page_bootmem(unsigned long info, struct page *page,
--		enum bootmem_type type);
--void put_page_bootmem(struct page *page);
--
--static inline enum bootmem_type bootmem_type(const struct page *page)
--{
--	return (unsigned long)page->private & 0xf;
--}
--
--static inline unsigned long bootmem_info(const struct page *page)
--{
--	return (unsigned long)page->private >> 4;
--}
--
--/*
-- * Any memory allocated via the memblock allocator and not via the
-- * buddy will be marked reserved already in the memmap. For those
-- * pages, we can call this function to free it to buddy allocator.
-- */
--static inline void free_bootmem_page(struct page *page)
--{
--	enum bootmem_type type = bootmem_type(page);
--
--	if (type == SECTION_INFO || type == MIX_SECTION_INFO) {
--		VM_WARN_ON_PAGE(page_ref_count(page) != 2, page);
--		put_page_bootmem(page);
--	} else {
--		free_reserved_page(page);
--	}
--}
--#else
--static inline void register_page_bootmem_info_node(struct pglist_data *pgdat)
--{
--}
--
--static inline void register_page_bootmem_memmap(unsigned long section_nr,
--		struct page *map, unsigned long nr_pages)
--{
--}
--
--static inline void put_page_bootmem(struct page *page)
--{
--}
--
--static inline enum bootmem_type bootmem_type(const struct page *page)
--{
--	return SECTION_INFO;
--}
--
--static inline unsigned long bootmem_info(const struct page *page)
--{
--	return 0;
--}
--
--static inline void get_page_bootmem(unsigned long info, struct page *page,
--				    enum bootmem_type type)
--{
--}
--
--static inline void free_bootmem_page(struct page *page)
--{
--	free_reserved_page(page);
--}
--#endif
--
--#endif /* __LINUX_BOOTMEM_INFO_H */
---- a/MAINTAINERS~mm-bootmem_info-remove-config_have_bootmem_info_node
-+++ a/MAINTAINERS
-@@ -16877,7 +16877,6 @@ T:	git git://git.kernel.org/pub/scm/linu
- F:	Documentation/core-api/boot-time-mm.rst
- F:	include/linux/kho/abi/memblock.h
- F:	include/linux/memblock.h
--F:	mm/bootmem_info.c
- F:	mm/memblock.c
- F:	mm/memtest.c
- F:	mm/mm_init.c
-diff --git a/mm/bootmem_info.c a/mm/bootmem_info.c
-deleted file mode 100644
---- a/mm/bootmem_info.c
-+++ /dev/null
-@@ -1,72 +0,0 @@
--// SPDX-License-Identifier: GPL-2.0
--/*
-- * Bootmem core functions.
-- *
-- * Copyright (c) 2020, Bytedance.
-- *
-- *     Author: Muchun Song <songmuchun@bytedance.com>
-- *
-- */
--#include <linux/mm.h>
--#include <linux/compiler.h>
--#include <linux/memblock.h>
--#include <linux/bootmem_info.h>
--#include <linux/memory_hotplug.h>
--#include <linux/kmemleak.h>
--
--void get_page_bootmem(unsigned long info, struct page *page,
--		enum bootmem_type type)
--{
--	BUG_ON(type > 0xf);
--	BUG_ON(info > (ULONG_MAX >> 4));
--	set_page_private(page, info << 4 | type);
--	page_ref_inc(page);
--}
--
--void put_page_bootmem(struct page *page)
--{
--	enum bootmem_type type = bootmem_type(page);
--
--	BUG_ON(type < MEMORY_HOTPLUG_MIN_BOOTMEM_TYPE ||
--	       type > MEMORY_HOTPLUG_MAX_BOOTMEM_TYPE);
--
--	if (page_ref_dec_return(page) == 1) {
--		set_page_private(page, 0);
--		free_reserved_page(page);
--	}
--}
--
--static void __init register_page_bootmem_info_section(unsigned long start_pfn)
--{
--	unsigned long section_nr;
--	struct mem_section *ms;
--
--	start_pfn = SECTION_ALIGN_DOWN(start_pfn);
--	section_nr = pfn_to_section_nr(start_pfn);
--	ms = __nr_to_section(section_nr);
--
--	if (!preinited_vmemmap_section(ms))
--		register_page_bootmem_memmap(section_nr, pfn_to_page(start_pfn),
--					     PAGES_PER_SECTION);
--}
--
--void __init register_page_bootmem_info_node(struct pglist_data *pgdat)
--{
--	unsigned long pfn, end_pfn;
--	int node = pgdat->node_id;
--
--	pfn = pgdat->node_start_pfn;
--	end_pfn = pgdat_end_pfn(pgdat);
--
--	/* register section info */
--	for (; pfn < end_pfn; pfn += PAGES_PER_SECTION) {
--		/*
--		 * Some platforms can assign the same pfn to multiple nodes - on
--		 * node0 as well as nodeN.  To avoid registering a pfn against
--		 * multiple nodes we check that this pfn does not already
--		 * reside in some other nodes.
--		 */
--		if (pfn_valid(pfn) && (early_pfn_to_nid(pfn) == node))
--			register_page_bootmem_info_section(pfn);
--	}
--}
---- a/mm/Kconfig~mm-bootmem_info-remove-config_have_bootmem_info_node
-+++ a/mm/Kconfig
-@@ -509,13 +509,6 @@ config EXCLUSIVE_SYSTEM_RAM
- 	def_bool y
- 	depends on !DEVMEM || STRICT_DEVMEM
+--- a/mm/damon/core.c~mm-damon-core-remove-comment-and-test-for-nr_to_bp-divide-by-zero
++++ a/mm/damon/core.c
+@@ -883,13 +883,7 @@ static unsigned int damon_accesses_bp_to
+ 	return accesses_bp * damon_max_nr_accesses(attrs) / 10000;
+ }
  
--#
--# Only be set on architectures that have completely implemented memory hotplug
--# feature. If you are not sure, don't touch it.
--#
--config HAVE_BOOTMEM_INFO_NODE
--	def_bool n
--
- config ARCH_ENABLE_MEMORY_HOTPLUG
- 	bool
+-/*
+- * Convert nr_accesses to access ratio in bp (per 10,000).
+- *
+- * Callers should ensure attrs.aggr_interval is not zero, like
+- * damon_update_monitoring_results() does .  Otherwise, divide-by-zero would
+- * happen.
+- */
++/* Convert nr_accesses to access ratio in bp (per 10,000) */
+ static unsigned int damon_nr_accesses_to_accesses_bp(
+ 		unsigned int nr_accesses, struct damon_attrs *attrs)
+ {
+--- a/mm/damon/tests/core-kunit.h~mm-damon-core-remove-comment-and-test-for-nr_to_bp-divide-by-zero
++++ a/mm/damon/tests/core-kunit.h
+@@ -575,28 +575,6 @@ static void damon_test_set_regions(struc
+ 			}, 3);
+ }
  
---- a/mm/Makefile~mm-bootmem_info-remove-config_have_bootmem_info_node
-+++ a/mm/Makefile
-@@ -141,7 +141,6 @@ obj-$(CONFIG_MEMFD_CREATE) += memfd.o
- obj-$(CONFIG_MAPPING_DIRTY_HELPERS) += mapping_dirty_helpers.o
- obj-$(CONFIG_PTDUMP) += ptdump.o
- obj-$(CONFIG_PAGE_REPORTING) += page_reporting.o
--obj-$(CONFIG_HAVE_BOOTMEM_INFO_NODE) += bootmem_info.o
- obj-$(CONFIG_GENERIC_IOREMAP) += ioremap.o
- obj-$(CONFIG_SHRINKER_DEBUG) += shrinker_debug.o
- obj-$(CONFIG_EXECMEM) += execmem.o
+-static void damon_test_nr_accesses_to_accesses_bp(struct kunit *test)
+-{
+-	struct damon_attrs attrs = {
+-		.sample_interval = 10,
+-		.aggr_interval = ((unsigned long)UINT_MAX + 1) * 10
+-	};
+-
+-	/*
+-	 * In some cases such as 32bit architectures where UINT_MAX is
+-	 * ULONG_MAX, attrs.aggr_interval becomes zero.  Calling
+-	 * damon_nr_accesses_to_accesses_bp() in the case will cause
+-	 * divide-by-zero.  Such case is prohibited in normal execution since
+-	 * the caution is documented on the comment for the function, and
+-	 * damon_update_monitoring_results() does the check.  Skip the test in
+-	 * the case.
+-	 */
+-	if (!attrs.aggr_interval)
+-		kunit_skip(test, "aggr_interval is zero.");
+-
+-	KUNIT_EXPECT_EQ(test, damon_nr_accesses_to_accesses_bp(123, &attrs), 0);
+-}
+-
+ static void damon_test_update_monitoring_result(struct kunit *test)
+ {
+ 	struct damon_attrs old_attrs = {
+@@ -1572,7 +1550,6 @@ static struct kunit_case damon_test_case
+ 	KUNIT_CASE(damon_test_split_above_half_progresses),
+ 	KUNIT_CASE(damon_test_ops_registration),
+ 	KUNIT_CASE(damon_test_set_regions),
+-	KUNIT_CASE(damon_test_nr_accesses_to_accesses_bp),
+ 	KUNIT_CASE(damon_test_update_monitoring_result),
+ 	KUNIT_CASE(damon_test_set_attrs),
+ 	KUNIT_CASE(damon_test_mvsum),
 _
 
-Patches currently in -mm which might be from david@kernel.org are
+Patches currently in -mm which might be from sj@kernel.org are
 
-sparc-mm-drop-custom-pte_clear_not_present_full.patch
-mm-drop-pte_clear_not_present_full.patch
-mm-cleanup-clear_not_present_full_ptes-and-rename-to-clear_non_present_ptes.patch
-x86-mm-drop-order-parameter-from-free_pagetable.patch
-mm-provide-free_reserved_pages-removing-x86-variant.patch
-s390-mm-use-free_reserved_pages-in-vmem_free_pages.patch
-mm-bootmem_info-allow-calling-free_bootmem_page-on-pages-without-a-bootmem_type.patch
-x86-mm-stop-marking-vmemmap-as-section_info.patch
-x86-mm-stop-marking-page-tables-as-mix_section_info.patch
-x86-mm-remove-config_have_bootmem_info_node.patch
-mm-hugetlb_vmemmap-remove-bootmem_info-leftovers.patch
-mm-sparse-remove-bootmem_infoh-include.patch
-mm-bootmem_info-remove-config_have_bootmem_info_node.patch
+maintainers-s-seongjae-sj.patch
+mm-damon-core-validate-ranges-in-damon_set_regions.patch
+mm-damon-core-disallow-overlapping-input-ranges-for-damon_set_regions.patch
+samples-damon-wsse-handle-damon_start-failure.patch
+samples-damon-prcl-handle-damon_start-failure.patch
+samples-damon-mtier-handle-damon_start-failure.patch
+samples-damon-mtier-handle-damon_stop-failure.patch
+samples-damon-wsse-stop-and-free-damon-ctx-when-damon_call-fails.patch
+samples-damon-prcl-stop-and-free-damon-ctx-when-damon_call-fails.patch
+mm-damon-sysfs-kobject_del-target-normal-context-and-kdamond-dirs.patch
+mm-damon-sysfs-kobject_del-region-and-target-error-dirs.patch
+mm-damon-sysfs-schemes-kobject_del-scheme-dirs.patch
+mm-damon-sysfs-schemes-kobject_del-scheme-region-dirs.patch
+mm-damon-sysfs-schemes-kobject_del-scheme-filter-dirs.patch
+mm-damon-sysfs-schemes-kobject_del-scheme-quota-goal-dirs.patch
+mm-damon-sysfs-schemes-kobject_del-scheme-action-destination-dirs.patch
+mm-damon-sysfs-kobject_del-probe-dirs.patch
+mm-damon-sysfs-kobject_del-probe-filter-dirs.patch
+mm-damon-sysfs-kobject_del-probe-dirs-in-probes_addd_dir-error-path.patch
+mm-damon-sysfs-schemes-kobject_del-region-for-populate_region-error.patch
+docs-mm-damon-design-update-for-damos_quota_node_eligible_mem_bp.patch
+docs-abi-damon-document-probe-files.patch
+mm-damon-tests-core-kunit-test-damon_rand.patch
+selftests-damon-sysfssh-test-multiple-probe-dirs-creation.patch
+selftests-damon-sysfssh-test-coreops_filters-directories.patch
+selftests-damon-sysfssh-test-dests-dir.patch
+selftests-damon-sysfssh-test-all-files-in-quota-goal-dir.patch
+mm-damon-core-reduce-range-setup-in-damon_commit_target_regions.patch
+mm-damon-sysfs-split-probe-setup-function-out.patch
+mm-damon-sysfs-split-out-filters-setup-function.patch
+mm-damon-sysfs-fix-typos-in-probe_addrm_dirs-s-attr-probe.patch
+mm-damon-core-introduce-damon_nr_accesses_mvsum.patch
+mm-damon-tests-core-kunit-test-damon_mvsum.patch
+mm-damon-core-always-update-last_nr_accesses-for-intervals-change.patch
+mm-damon-core-handle-unreset-nr_accesses-in-damon_nr_accesses_mvsum.patch
+mm-damon-core-use-damon_nr_accesses_mvsum-in-__damos_valid_target.patch
+mm-damon-core-use-damon_nr_accesses_mvsum-for-damos-region-tracing.patch
+mm-damon-sysfs-schemes-use-damon_nr_accesses_mvsum-for-damo-regions.patch
+mm-damon-core-remove-damon_warn_fix_nr_accesses_corruption.patch
+mm-damon-core-remove-damon_verify_reset_aggregated.patch
+mm-damon-core-remove-damon_verify_merge_regions_of.patch
+mm-damon-tests-core-kunit-remove-nr_accesses_bp-setup-and-tests.patch
+selftests-damon-drgn_dump_damon_status-do-not-dump-nr_accesses_bp.patch
+mm-damon-core-remove-nr_accesses_bp-setups-and-updates.patch
+mm-damon-core-remove-attrs-param-from-damon_update_region_access_rate.patch
+mm-damon-paddr-remove-attrs-param-from-__damon_pa_check_access.patch
+mm-damon-vaddr-remove-attrs-param-from-__damon_va_check_access.patch
+mm-damon-core-remove-damon_moving_sum-and-its-unit-test.patch
+mm-damon-core-remove-damon_region-nr_accesses_bp.patch
+mm-damon-add-damon_region-last_probe_hits.patch
+mm-damon-core-introduce-damon_probe_hits_mvsum.patch
+mm-damon-sysfs-schemes-set-probe-hits-as-pseudo-moving-sums.patch
+mm-damon-core-safely-validate-src-on-damon_commit_ctx.patch
+mm-damon-core-do-parameter-testing-commit-on-damon_start.patch
+mm-damon-sysfs-remove-duplicated-commit-input-validity-check.patch
+mm-damon-reclaim-remove-duplicated-min_region_sz-power-of-2-check.patch
+mm-damon-lru_sort-remove-duplicated-min_region_sz-power_of_2-check.patch
+mm-damon-document-region-size-validation-in-damon_set_regions.patch
+mm-damon-core-remove-start-end-check-in-damon_set_region_system_rams.patch
+mm-damon-sysfs-remove-region-size-validation.patch
+mm-damon-core-stop-ctxs-in-damon_start-before-returning-an-error.patch
+samples-damon-mtier-do-not-stop-first-context-for-damon_start-failure.patch
+mm-damon-core-make-damon_stop-never-fails.patch
+mm-damon-sysfs-ignore-damon_stop-return-value.patch
+mm-damon-reclaaim-ignore-damon_stop-return-value.patch
+mm-damon-lru_sort-ignore-damon_stop-return-value.patch
+mm-damon-core-change-damon_stop-return-type-to-void.patch
+samples-damon-mtier-stop-all-contexts-with-single-damon_stop-call.patch
+mm-damon-core-wait-ctx-stop-in-damon_call-before-reruning-an-error.patch
+samples-damon-wsse-do-not-stop-ctx-for-damon_call-failure.patch
+samples-damon-prcl-do-not-stop-damon-for-damon_call-failure.patch
+mm-damon-core-remove-comment-and-test-for-nr_to_bp-divide-by-zero.patch
+mm-damon-core-s-damon_max_nr_accesses-damon_nr_samples_per_aggr.patch
+mm-damon-core-s-accesses_bp_to_nr_accesses-sample_bp_to_count.patch
+mm-damon-core-s-nr_accesses_to_accesses_bp-sample_count_to_bp.patch
+mm-damon-core-s-nr_accesses_for_new_attrs-nr_samples_for_new_attrs.patch
+mm-damon-core-update-probe-hits-for-new-parameter-commit.patch
+mm-damon-core-handle-unreset-probe_hits-in-probe_hits_mvsum.patch
 
