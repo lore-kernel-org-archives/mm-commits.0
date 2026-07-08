@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5F84D3EFD07
-	for <mm-commits@vger.kernel.org>; Wed,  8 Jul 2026 21:14:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 33A9A36F8EF
+	for <mm-commits@vger.kernel.org>; Wed,  8 Jul 2026 21:18:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783545259; cv=none; b=cFA+g0fLrxwzXOxMNjrr5fzGjjy7kU32naXgyLiv8R02fd271OnfaNt51FMEJAbFlxk+OHKg3Fy4vJQNVbstwMoZ4BXw3h8JYYKutBMAL4lGUjWoqyg/PRScoxpfiOga/nFBracSsd9/rVFpNSwtEwAi2LRo5QqIwwKjep9BvnA=
+	t=1783545515; cv=none; b=YRZxY2N3kP8Srl+UqeIC7CbZgN3JPD4JeNGHMOK2w8SS1k+pJKCAhvKdQVkMD5u+TCPoyFjREPyzGqBKlFIyLomk+3mYRHr/U+bZE1MDk7xkZH5YJkDmMRFuT0SpOXLQmRHc4L9TeDctrhgsRWggZLK533VvyLphQpNZfGa+m8M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783545259; c=relaxed/simple;
-	bh=RWHYpaaV4R8u8d/ZV30FRO8gZNlaLhVzfz+ErfdM0ZI=;
-	h=Date:To:From:Subject:Message-Id; b=E13dSBOifST82vDJfIFI0G/eo5ujMMhZe1eIzs+Zjpmv90SHsM8RcKO3b3ycUzcV+RE63SAdlEdUavfomii+4+haM2fNk9JIelnPwIcXvmS8HgGHObn5LSDA4efYHo++b5lTZ5TV/iMgKYdR/4q4n+mU7wbLM+Lk0koYftDMc1I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JY495Bm/; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783545515; c=relaxed/simple;
+	bh=6BUj+OQvCjZ11S5SZDxtyT/IEjwDPUWqcQ+rqd3Qh/Q=;
+	h=Date:To:From:Subject:Message-Id; b=k20jNxQo6teo1311Sq2KbsXet0OONgrLDLOqrwTKk4JapOgTqksqPiLumxivaJLzhx2c0BsHr4t+gH5SKfAWGFeVtMVo/8UWClzv7gSJgLEY+KVzxWPeW+nva7fGx0EjYVSlOIWzRJWggn8VDkgr7CO6EQbVr3lKz681A5p1LNk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vTtyFhqd; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JY495Bm/"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C08831F00A3D;
-	Wed,  8 Jul 2026 21:14:16 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vTtyFhqd"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C87981F000E9;
+	Wed,  8 Jul 2026 21:18:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783545256;
-	bh=Mh34TJZMI/bwvxqq+BTTGgMUP2ECREpF1/VKV8Pn3w8=;
+	d=linux-foundation.org; s=korg; t=1783545513;
+	bh=ZC04fVLu/tU9PTt/76DqL56ADHzP+UhMciCziB2yf7A=;
 	h=Date:To:From:Subject;
-	b=JY495Bm/fSVBvM+C8Z+Ql9qANm0TPFnkkak84LfjKgNfcollqsvUf+CK/P7ogGCSN
-	 LUGVeKOQWH/0mT3RPbQBNrX/XkbT8TBzoX32659kz0yR3SUdLQWUgXlBdNNGPl3hNU
-	 SGMZaihC7S4RkXnfxTJjbhmKjlajWiUOYhUxCzhI=
-Date: Wed, 08 Jul 2026 14:14:16 -0700
-To: mm-commits@vger.kernel.org,surenb@google.com,souravpanda@google.com,kent.overstreet@linux.dev,hao.ge@linux.dev,corbet@lwn.net,abhishekbapat@google.com,akpm@linux-foundation.org
+	b=vTtyFhqdhIkxGHnZGzXsrtHuc9n3SkMLPzwNGIOlmg8co3+Orw20e+Ul292rE1tgR
+	 31Dw3HPraSR+lljwBvMM96xO7dTdvXyouyohvlRqN8IWOPrHSq8aQqbQwVbc+4mnSk
+	 OnBQcQ3EzBTfc0OC+33RmNeorHIsyNwIS+ijgO6M=
+Date: Wed, 08 Jul 2026 14:18:33 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,usama.arif@linux.dev,surenb@google.com,shikemeng@huaweicloud.com,shakeel.butt@linux.dev,rppt@kernel.org,nphamcs@gmail.com,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,kasong@tencent.com,david@kernel.org,chrisl@kernel.org,baoquan.he@linux.dev,baohua@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kselftest-alloc_tag-extend-the-allocinfo-ioctl-kselftest.patch added to mm-new branch
-Message-Id: <20260708211416.C08831F00A3D@smtp.kernel.org>
+Subject: + mm-avoid-unnecessary-lru-drain-for-wp_can_reuse_anon_folio-fix.patch added to mm-unstable branch
+Message-Id: <20260708211833.C87981F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,26 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kselftest: alloc_tag: extend the allocinfo ioctl kselftest
-has been added to the -mm mm-new branch.  Its filename is
-     kselftest-alloc_tag-extend-the-allocinfo-ioctl-kselftest.patch
+     Subject: mm: rename in_lru_cache to maybe_in_lru_cache
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-avoid-unnecessary-lru-drain-for-wp_can_reuse_anon_folio-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kselftest-alloc_tag-extend-the-allocinfo-ioctl-kselftest.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-avoid-unnecessary-lru-drain-for-wp_can_reuse_anon_folio-fix.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,285 +58,65 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Abhishek Bapat <abhishekbapat@google.com>
-Subject: kselftest: alloc_tag: extend the allocinfo ioctl kselftest
-Date: Wed, 8 Jul 2026 18:01:28 +0000
+From: "Barry Song (Xiaomi)" <baohua@kernel.org>
+Subject: mm: rename in_lru_cache to maybe_in_lru_cache
+Date: Wed, 8 Jul 2026 22:46:43 +0800
 
-Add the following 2 scenarios to the allocinfo ioctl kselftest:
-1. Validate size based filtering
-2. Validate lineno based filtering
+!folio_test_lru(folio) doesn't necessarily mean folio is in lru cache.  so
+let's put "maybe" prefix.
 
-The first test uses "do_init_module" as the candidate function for the
-test.  This is because the associated site will only allocate memory when
-a kernel module is loaded.  The return value of get_content_id() changes
-every time modules are loaded or unloaded.  Hence, as long as
-get_content_id() values at the start and the end of the test are the same,
-the memory allocated by the do_init_module call site should also remain
-the same.  Consequently, the test can assume consistency between the value
-returned by the ioctl and the procfs resulting in less flakiness.
-
-Link: https://lore.kernel.org/e5171926b48802531284c1cb5f04734017141341.1783532853.git.abhishekbapat@google.com
-Signed-off-by: Abhishek Bapat <abhishekbapat@google.com>
-Cc: Hao Ge <hao.ge@linux.dev>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Kent Overstreet <kent.overstreet@linux.dev>
-Cc: Sourav Panda <souravpanda@google.com>
+Link: https://lore.kernel.org/20260708145718.82690-1-baohua@kernel.org
+Signed-off-by: Barry Song (Xiaomi) <baohua@kernel.org>
+Suggested-by: David Hildenbrand (Arm) <david@kernel.org>
+Cc: Baoquan He <baoquan.he@linux.dev>
+Cc: Chris Li <chrisl@kernel.org>
+Cc: Kairui Song <kasong@tencent.com>
+Cc: Kemeng Shi <shikemeng@huaweicloud.com>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
 Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Usama Arif <usama.arif@linux.dev>
+Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/alloc_tag/allocinfo_ioctl_test.c |  216 +++++++++-
- 1 file changed, 215 insertions(+), 1 deletion(-)
+ mm/memory.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/tools/testing/selftests/alloc_tag/allocinfo_ioctl_test.c~kselftest-alloc_tag-extend-the-allocinfo-ioctl-kselftest
-+++ a/tools/testing/selftests/alloc_tag/allocinfo_ioctl_test.c
-@@ -5,6 +5,7 @@
-  * Copyright (C) 2026 Google, Inc.
-  */
- 
-+#include <errno.h>
- #include <fcntl.h>
- #include <stdio.h>
- #include <stdlib.h>
-@@ -312,11 +313,212 @@ static int test_function_filter(void)
- 	return run_filter_test(&filter);
- }
- 
-+static int test_size_filter(void)
-+{
-+	int fd;
-+	struct allocinfo_tag_data_vec *tags = malloc(sizeof(*tags));
-+	struct allocinfo_tag_data_vec *procfs_entries = malloc(sizeof(*procfs_entries));
-+	struct allocinfo_filter filter;
-+	int ret = KSFT_PASS;
-+	__u64 target_size, i, pos;
-+	struct allocinfo_tag_data *found_tag = NULL;
-+	const char *target_function = "do_init_module";
-+	struct allocinfo_content_id start_cont_id, end_cont_id;
-+	int retry = 0;
-+	const int max_retries = 10;
-+
-+	if (!tags || !procfs_entries) {
-+		ksft_print_msg("Memory allocation failed.\n");
-+		ret = KSFT_FAIL;
-+		goto freemem;
-+	}
-+
-+	fd = open(ALLOCINFO_PROC, O_RDONLY);
-+	if (fd < 0) {
-+		ksft_print_msg("Failed to open " ALLOCINFO_PROC ": %s\n", strerror(errno));
-+		ret = KSFT_SKIP;
-+		goto freemem;
-+	}
-+
-+	do {
-+		found_tag = NULL;
-+		pos = 0;
-+
-+		if (__allocinfo_get_content_id(fd, &start_cont_id)) {
-+			ksft_print_msg("allocinfo_get_content_id failed\n");
-+			ret = KSFT_FAIL;
-+			goto exit;
-+		}
-+
-+		memset(&filter, 0, sizeof(filter));
-+		filter.mask |= ALLOCINFO_FILTER_MASK_FUNCTION;
-+		strncpy(filter.fields.function, target_function, ALLOCINFO_STR_SIZE);
-+
-+		if (get_filtered_procfs_entries(procfs_entries, &filter)) {
-+			ksft_print_msg("Error retrieving entries from " ALLOCINFO_PROC "\n");
-+			ret = KSFT_SKIP;
-+			goto exit;
-+		}
-+
-+		if (procfs_entries->count == 0) {
-+			ksft_print_msg("Function %s not found in procfs\n", target_function);
-+			ret = KSFT_SKIP;
-+			goto exit;
-+		}
-+
-+		target_size = procfs_entries->tag[0].counter.bytes;
-+
-+		memset(&filter, 0, sizeof(filter));
-+		filter.mask |= ALLOCINFO_FILTER_MASK_MIN_SIZE | ALLOCINFO_FILTER_MASK_MAX_SIZE;
-+		filter.min_size = target_size;
-+		filter.max_size = target_size;
-+
-+		while (1) {
-+			struct allocinfo_get_at get_at_params;
-+
-+			memset(&get_at_params, 0, sizeof(get_at_params));
-+			memcpy(&get_at_params.filter, &filter, sizeof(filter));
-+			get_at_params.pos = pos;
-+
-+			if (__allocinfo_get_at(fd, &get_at_params))
-+				break;
-+
-+			tags->count = 0;
-+			memcpy(&tags->tag[tags->count++], &get_at_params.data,
-+			       sizeof(get_at_params.data));
-+
-+			while (tags->count < VEC_MAX_ENTRIES &&
-+			       __allocinfo_get_next(fd, &tags->tag[tags->count]) == 0)
-+				tags->count++;
-+
-+			for (i = 0; i < tags->count; i++) {
-+				if (strcmp(tags->tag[i].tag.function, target_function) == 0) {
-+					found_tag = &tags->tag[i];
-+					break;
-+				}
-+			}
-+
-+			if (found_tag || tags->count < VEC_MAX_ENTRIES)
-+				break;
-+
-+			pos += tags->count;
-+		}
-+
-+		if (__allocinfo_get_content_id(fd, &end_cont_id)) {
-+			ksft_print_msg("allocinfo_get_content_id failed\n");
-+			ret = KSFT_FAIL;
-+			goto exit;
-+		}
-+
-+		if (start_cont_id.id == end_cont_id.id)
-+			break;
-+
-+		ksft_print_msg("Module load detected during size verification, retrying...\n");
-+	} while (retry++ < max_retries);
-+
-+	if (start_cont_id.id == end_cont_id.id && !found_tag) {
-+		ksft_print_msg("Entry with function %s not found in IOCTL results\n",
-+			       target_function);
-+		ret = KSFT_FAIL;
-+	} else if (start_cont_id.id != end_cont_id.id) {
-+		ksft_print_msg("Failed to match content_ids for procfs and IOCTL, skipping...\n");
-+		ret = KSFT_SKIP;
-+	} else if (found_tag && found_tag->counter.bytes != target_size) {
-+		ksft_print_msg("IOCTL entry size %llu does not match target size %llu\n",
-+			       found_tag->counter.bytes, target_size);
-+		ret = KSFT_FAIL;
-+	}
-+
-+exit:
-+	close(fd);
-+freemem:
-+	free(tags);
-+	free(procfs_entries);
-+	return ret;
-+}
-+
-+static int test_lineno_filter(void)
-+{
-+	struct allocinfo_tag_data_vec *tags = malloc(sizeof(*tags));
-+	struct allocinfo_tag_data_vec *procfs_entries = malloc(sizeof(*procfs_entries));
-+	struct allocinfo_filter filter;
-+	enum ioctl_ret ioctl_status;
-+	int ret = KSFT_PASS;
-+	__u64 target_lineno, i;
-+	struct allocinfo_tag_data *target_tag;
-+	bool found = false;
-+
-+	if (!tags || !procfs_entries) {
-+		ksft_print_msg("Memory allocation failed.\n");
-+		ret = KSFT_FAIL;
-+		goto exit;
-+	}
-+
-+	memset(&filter, 0, sizeof(filter));
-+
-+	if (get_filtered_procfs_entries(procfs_entries, &filter)) {
-+		ksft_print_msg("Error retrieving entries from " ALLOCINFO_PROC "\n");
-+		ret = KSFT_SKIP;
-+		goto exit;
-+	}
-+	if (procfs_entries->count == 0) {
-+		ksft_print_msg("Could not retrieve procfs entries\n");
-+		ret = KSFT_SKIP;
-+		goto exit;
-+	}
-+	/*
-+	 * We depend on the procfs results to determine the line number for the filter before
-+	 * making the ioctl query. Hence, we cannot reuse run_filter_test here.
-+	 */
-+	target_tag = &procfs_entries->tag[0];
-+	target_lineno = target_tag->tag.lineno;
-+
-+	filter.mask |= ALLOCINFO_FILTER_MASK_LINENO;
-+	filter.fields.lineno = target_lineno;
-+
-+	ioctl_status = get_filtered_ioctl_entries(tags, &filter, 0);
-+	if (ioctl_status == IOCTL_INVALID_DATA) {
-+		ksft_print_msg("Trouble retrieving valid IOCTL entries, skipping.\n");
-+		ret = KSFT_SKIP;
-+		goto exit;
-+	}
-+	if (ioctl_status == IOCTL_FAILURE) {
-+		ksft_print_msg("Error retrieving IOCTL entries.\n");
-+		ret = KSFT_FAIL;
-+		goto exit;
-+	}
-+
-+	for (i = 0; i < tags->count; i++) {
-+		if (tags->tag[i].tag.lineno != target_lineno) {
-+			ksft_print_msg("IOCTL entry %llu has incorrect lineno %llu.\n",
-+				       i, tags->tag[i].tag.lineno);
-+			ret = KSFT_FAIL;
-+			goto exit;
-+		}
-+
-+		if (strncmp(tags->tag[i].tag.function, target_tag->tag.function,
-+			    ALLOCINFO_STR_SIZE) == 0 &&
-+		    strncmp(tags->tag[i].tag.filename, target_tag->tag.filename,
-+			    ALLOCINFO_STR_SIZE) == 0)
-+			found = true;
-+	}
-+
-+	if (!found) {
-+		ksft_print_msg("Original procfs entry not found in IOCTL lineno filter results.\n");
-+		ret = KSFT_FAIL;
-+	}
-+
-+exit:
-+	free(tags);
-+	free(procfs_entries);
-+	return ret;
-+}
-+
- int main(int argc, char *argv[])
+--- a/mm/memory.c~mm-avoid-unnecessary-lru-drain-for-wp_can_reuse_anon_folio-fix
++++ a/mm/memory.c
+@@ -4174,7 +4174,7 @@ static bool __wp_can_reuse_large_anon_fo
+ static bool wp_can_reuse_anon_folio(struct folio *folio,
+ 				    struct vm_area_struct *vma)
  {
- 	int ret;
+-	const bool in_lru_cache = !folio_test_lru(folio);
++	const bool maybe_in_lru_cache = !folio_test_lru(folio);
+ 	const bool in_swapcache = folio_test_swapcache(folio);
  
--	ksft_set_plan(2);
-+	ksft_set_plan(4);
- 
- 	ret = test_filename_filter();
- 	if (ret == KSFT_SKIP)
-@@ -330,5 +532,17 @@ int main(int argc, char *argv[])
- 	else
- 		ksft_test_result(ret == KSFT_PASS, "test_function_filter\n");
- 
-+	ret = test_size_filter();
-+	if (ret == KSFT_SKIP)
-+		ksft_test_result_skip("Skipping test_size_filter\n");
-+	else
-+		ksft_test_result(ret == KSFT_PASS, "test_size_filter\n");
-+
-+	ret = test_lineno_filter();
-+	if (ret == KSFT_SKIP)
-+		ksft_test_result_skip("Skipping test_lineno_filter\n");
-+	else
-+		ksft_test_result(ret == KSFT_PASS, "test_lineno_filter\n");
-+
- 	ksft_finished();
- }
+ 	if (IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE) && folio_test_large(folio))
+@@ -4188,9 +4188,9 @@ static bool wp_can_reuse_anon_folio(stru
+ 	 * KSM doesn't necessarily raise the folio refcount.
+ 	 */
+ 	if (folio_test_ksm(folio) ||
+-	    folio_ref_count(folio) > 1 + in_lru_cache + in_swapcache)
++	    folio_ref_count(folio) > 1 + maybe_in_lru_cache + in_swapcache)
+ 		return false;
+-	if (in_lru_cache)
++	if (maybe_in_lru_cache)
+ 		/*
+ 		 * We cannot easily detect+handle references from
+ 		 * remote LRU caches or references to LRU folios.
 _
 
-Patches currently in -mm which might be from abhishekbapat@google.com are
+Patches currently in -mm which might be from baohua@kernel.org are
 
-alloc_tag-add-ioctl-filters-to-proc-allocinfo.patch
-alloc_tag-add-size-based-filtering-to-ioctl.patch
-alloc_tag-add-accuracy-based-filtering-to-ioctl.patch
-kselftest-alloc_tag-add-kselftest-for-ioctl-interface.patch
-kselftest-alloc_tag-extend-the-allocinfo-ioctl-kselftest.patch
+mm-avoid-unnecessary-lru-drain-for-wp_can_reuse_anon_folio.patch
+mm-avoid-unnecessary-lru-drain-for-wp_can_reuse_anon_folio-fix.patch
+mm-drop-stale-folio_ref_count==1-check-in-do_swap_page-reuse-logic.patch
+mm-entirely-remove-lru_add_drain-in-do_swap_page.patch
+mm-clarify-the-folio_free_swap-for-do_swap_page.patch
 
