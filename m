@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7F5C83F4DC3
-	for <mm-commits@vger.kernel.org>; Wed,  8 Jul 2026 21:25:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B1C883FADF2
+	for <mm-commits@vger.kernel.org>; Wed,  8 Jul 2026 21:25:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783545935; cv=none; b=Lkba7sP6M4zS6rQU5Zhhcd1zQA3k+5yw4n6uTkWuSb5xjcAFypWBGdArnwRsi9hOfTQP7ov1CGWKUjyQH10cvBVzPMJsVpAUsEItMxT9VLnJEmoUQcnrJysssjaS8vpBORrH4cfB2DGI4ywWoh8Ky9QADhJ4OnelhnP+/AJxRpk=
+	t=1783545937; cv=none; b=tCeholyZZU4mxvgz05SOo/5pq0IrDrGK7x9oO2KOYj43/7CYCugRGM9nRar/rlxP/SQb3kmPNTjSLmzigRvRnIpXPnDyeZ6Ixo40M6Ce9zlk6N3mQu/Vtwfl1qks1616TvHJ/o7nvEdV0EKB4+vDVMvB7dpQxnkydaeISL16Fi0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783545935; c=relaxed/simple;
-	bh=W1qC5s0d9IEzcKicn2+m9b0wp5Ot057aup/+s8x0UJU=;
-	h=Date:To:From:Subject:Message-Id; b=imc1rVCe1u1OAQE6AwXBulpZWXTnQh+IwXPL4I3EcVSWU31ikxIb0yg5vTxqcIQqm/gbJHHc0O8ztQmlbvwc/jJoJluuXP8KEJ9WoCyZ+x5k/4QmS2iO07qHW91YtRj+dCkzNsdiE/hk3lo8dBGQVds8/u4Imf72jZPfqCfdUjo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=A/Gl/c2R; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783545937; c=relaxed/simple;
+	bh=A08H/RRQLBVXOI5ypqrjkQTVMRPP6SU5JX1Vb5Occdk=;
+	h=Date:To:From:Subject:Message-Id; b=ZDLkA5NBfWvWL6E0VWVBsrlaQgETkzvA0OeGraxPL4X9Tkkxhz0AKwdKUHe7+6PjXSxBC3R0JtIpsx8IUDVBitmOryr8cfIGhic+p+uzsfIF2LtGiTEVoNHkTsIiXlzGzeOZocAhHUZmQNMksg1rX68yTn4CeTR0OBnmdw3UWGY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vgPJLMj/; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="A/Gl/c2R"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5B36E1F00A3A;
-	Wed,  8 Jul 2026 21:25:34 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vgPJLMj/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8D3841F000E9;
+	Wed,  8 Jul 2026 21:25:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783545934;
-	bh=QHuIg42blFZMz7qppg+2VrNGYc6UJSB+HCJNCznq6rg=;
+	d=linux-foundation.org; s=korg; t=1783545935;
+	bh=hs0BWcj4aXfa0aNSI490vZ1B7iolPh9WAH/arKrj7PQ=;
 	h=Date:To:From:Subject;
-	b=A/Gl/c2RgL6uO7Rd0xT+noPEPPcvks0l5tdEPVqJQowld6Jew1IPAHpGF8Br08xF1
-	 QtjUlIeEQWrewS9bFlj5GPDjv6OgF9FU3HgZivCZJ3EjH8jVlwpGRD8h40mGTbSEYk
-	 MtZh++UuC73QEd1GfPliNkhXERtUr2Pl5mUV/0g4=
-Date: Wed, 08 Jul 2026 14:25:33 -0700
+	b=vgPJLMj/VlcgZgy+qtJT2ntyfMa6JVZI1dd2NtfKjLGkeSnt6vZV92fm/WLv8KZVh
+	 5KhGzkvqCSiR6+z6rpDx/K5TUem/4loAuO1TQMofeBAUydZU3TN5fUzL5Btm8WoAb7
+	 E70PO/WWUqKMLKgi6CvYN7l4rtoPHQo5DDTWxDqY=
+Date: Wed, 08 Jul 2026 14:25:35 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,svens@linux.ibm.com,surenb@google.com,rppt@kernel.org,peterz@infradead.org,osalvador@suse.de,muchun.song@linux.dev,mingo@redhat.com,mhocko@suse.com,luto@kernel.org,ljs@kernel.org,liam@infradead.org,jackmanb@google.com,hpa@zytor.com,hca@linux.ibm.com,hannes@cmpxchg.org,gor@linux.ibm.com,gerald.schaefer@linux.ibm.com,bp@alien8.de,borntraeger@linux.ibm.com,agordeev@linux.ibm.com,david@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + x86-mm-stop-marking-page-tables-as-mix_section_info.patch added to mm-new branch
-Message-Id: <20260708212534.5B36E1F00A3A@smtp.kernel.org>
+Subject: + x86-mm-remove-config_have_bootmem_info_node.patch added to mm-new branch
+Message-Id: <20260708212535.8D3841F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: x86/mm: stop marking page tables as MIX_SECTION_INFO
+     Subject: x86/mm: remove CONFIG_HAVE_BOOTMEM_INFO_NODE
 has been added to the -mm mm-new branch.  Its filename is
-     x86-mm-stop-marking-page-tables-as-mix_section_info.patch
+     x86-mm-remove-config_have_bootmem_info_node.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-mm-stop-marking-page-tables-as-mix_section_info.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-mm-remove-config_have_bootmem_info_node.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,17 +70,14 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "David Hildenbrand (Arm)" <david@kernel.org>
-Subject: x86/mm: stop marking page tables as MIX_SECTION_INFO
-Date: Wed, 08 Jul 2026 16:11:01 +0200
+Subject: x86/mm: remove CONFIG_HAVE_BOOTMEM_INFO_NODE
+Date: Wed, 08 Jul 2026 16:11:02 +0200
 
-There is no good reason to mark boot page tables as MIX_SECTION_INFO: we
-only free boot page tables when they are completely empty, and memory
-offlining/hotunplug doesn't benefit from it in any way.
+CONFIG_HAVE_BOOTMEM_INFO_NODE now essentially doesn't do anything.
 
-So just stop marking page tables as MIX_SECTION_INFO.  In
-free_pagetable(), we can now simply free reserved pages directly.
+So let's remove support for CONFIG_HAVE_BOOTMEM_INFO_NODE.
 
-Link: https://lore.kernel.org/20260708-bootmem_info_part2-v1-6-156ce4986598@kernel.org
+Link: https://lore.kernel.org/20260708-bootmem_info_part2-v1-7-156ce4986598@kernel.org
 Signed-off-by: David Hildenbrand (Arm) <david@kernel.org>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Andy Lutomirski <luto@kernel.org>
@@ -107,85 +104,75 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/init_64.c |   59 +---------------------------------------
- 1 file changed, 2 insertions(+), 57 deletions(-)
+ arch/x86/mm/init_64.c |   26 --------------------------
+ mm/Kconfig            |    1 -
+ 2 files changed, 27 deletions(-)
 
---- a/arch/x86/mm/init_64.c~x86-mm-stop-marking-page-tables-as-mix_section_info
+--- a/arch/x86/mm/init_64.c~x86-mm-remove-config_have_bootmem_info_node
 +++ a/arch/x86/mm/init_64.c
-@@ -1002,21 +1002,10 @@ int arch_add_memory(int nid, u64 start,
+@@ -33,7 +33,6 @@
+ #include <linux/nmi.h>
+ #include <linux/gfp.h>
+ #include <linux/kcore.h>
+-#include <linux/bootmem_info.h>
  
- static void __meminit free_pagetable(struct page *page)
- {
--	/* bootmem page has reserved flag */
--	if (PageReserved(page)) {
--#ifdef CONFIG_HAVE_BOOTMEM_INFO_NODE
--		enum bootmem_type type = bootmem_type(page);
+ #include <asm/processor.h>
+ #include <asm/bios_ebda.h>
+@@ -1286,16 +1285,6 @@ void __ref arch_remove_memory(u64 start,
+ 
+ static struct kcore_list kcore_vsyscall;
+ 
+-static void __init register_page_bootmem_info(void)
+-{
+-#if defined(CONFIG_NUMA) || defined(CONFIG_HUGETLB_PAGE_OPTIMIZE_VMEMMAP)
+-	int i;
 -
--		if (type == MIX_SECTION_INFO)
--			put_page_bootmem(page);
--		else
--			free_reserved_page(page);
--#else
-+	if (PageReserved(page))
- 		free_reserved_page(page);
+-	for_each_online_node(i)
+-		register_page_bootmem_info_node(NODE_DATA(i));
 -#endif
--	} else {
-+	else
- 		pagetable_free(page_ptdesc(page));
--	}
+-}
+-
+ /*
+  * Pre-allocates page-table pages for the vmalloc area in the kernel page-table.
+  * Only the level which needs to be synchronized between all page-tables is
+@@ -1358,14 +1347,6 @@ void __init mem_init(void)
+ 	after_bootmem = 1;
+ 	x86_init.hyper.init_after_bootmem();
+ 
+-	/*
+-	 * Must be done after boot memory is put on freelist, because here we
+-	 * might set fields in deferred struct pages that have not yet been
+-	 * initialized, and memblock_free_all() initializes all the reserved
+-	 * deferred pages for us.
+-	 */
+-	register_page_bootmem_info();
+-
+ 	/* Register memory areas for /proc/kcore */
+ 	if (get_gate_vma(&init_mm))
+ 		kclist_add(&kcore_vsyscall, (void *)VSYSCALL_ADDR, PAGE_SIZE, KCORE_USER);
+@@ -1564,13 +1545,6 @@ int __meminit vmemmap_populate(unsigned
+ 	return err;
  }
  
- static void __meminit free_vmemmap_pages(struct page *page, unsigned int order,
-@@ -1579,50 +1568,6 @@ int __meminit vmemmap_populate(unsigned
- void register_page_bootmem_memmap(unsigned long section_nr,
- 				  struct page *start_page, unsigned long nr_pages)
+-#ifdef CONFIG_HAVE_BOOTMEM_INFO_NODE
+-void register_page_bootmem_memmap(unsigned long section_nr,
+-				  struct page *start_page, unsigned long nr_pages)
+-{
+-}
+-#endif
+-
+ void __meminit vmemmap_populate_print_last(void)
  {
--	unsigned long addr = (unsigned long)start_page;
--	unsigned long end = (unsigned long)(start_page + nr_pages);
--	unsigned long next;
--	pgd_t *pgd;
--	p4d_t *p4d;
--	pud_t *pud;
--	pmd_t *pmd;
--
--	for (; addr < end; addr = next) {
--		pgd = pgd_offset_k(addr);
--		if (pgd_none(*pgd)) {
--			next = (addr + PAGE_SIZE) & PAGE_MASK;
--			continue;
--		}
--		get_page_bootmem(section_nr, pgd_page(*pgd), MIX_SECTION_INFO);
--
--		p4d = p4d_offset(pgd, addr);
--		if (p4d_none(*p4d)) {
--			next = (addr + PAGE_SIZE) & PAGE_MASK;
--			continue;
--		}
--		get_page_bootmem(section_nr, p4d_page(*p4d), MIX_SECTION_INFO);
--
--		pud = pud_offset(p4d, addr);
--		if (pud_none(*pud)) {
--			next = (addr + PAGE_SIZE) & PAGE_MASK;
--			continue;
--		}
--		get_page_bootmem(section_nr, pud_page(*pud), MIX_SECTION_INFO);
--
--		pmd = pmd_offset(pud, addr);
--		if (pmd_none(*pmd)) {
--			next = (addr + PAGE_SIZE) & PAGE_MASK;
--			continue;
--		}
--
--		if (!boot_cpu_has(X86_FEATURE_PSE) || !pmd_leaf(*pmd)) {
--			next = (addr + PAGE_SIZE) & PAGE_MASK;
--			get_page_bootmem(section_nr, pmd_page(*pmd),
--					 MIX_SECTION_INFO);
--		} else {
--			next = pmd_addr_end(addr, end);
--		}
--	}
- }
- #endif
+ 	if (p_start) {
+--- a/mm/Kconfig~x86-mm-remove-config_have_bootmem_info_node
++++ a/mm/Kconfig
+@@ -590,7 +590,6 @@ endchoice
+ 
+ config MEMORY_HOTREMOVE
+ 	bool "Allow for memory hot remove"
+-	select HAVE_BOOTMEM_INFO_NODE if X86_64
+ 	depends on MEMORY_HOTPLUG
+ 	select MIGRATION
  
 _
 
