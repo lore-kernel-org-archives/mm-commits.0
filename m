@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 773443FA5CA
-	for <mm-commits@vger.kernel.org>; Wed,  8 Jul 2026 21:25:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EEAB83F9F43
+	for <mm-commits@vger.kernel.org>; Wed,  8 Jul 2026 21:25:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783545931; cv=none; b=CAWlWg9Ux+N1ZeBFDhvskkqKt4DVFUfVXoqp77uuYIfK3FSk3LxJavGkcMZmida3RqINZuZ7w8Oi7Vva7QjYsh4ToxkbFOfzNGBcOlbpyhilxZx/SbbCR4uyrYj5E0egt6g2B4Tz/+lVqt39m00ZIoOG8sCnYttMUHvvI+e3ADc=
+	t=1783545932; cv=none; b=DFD/cOph7m/DaywnzBtycWoyykZ3LJ4SyIQ5snB0jcnEssbilY13uOH5gYT6I1j8DNxc7oXNQQwIOmkh7M0InLhH3YtKeok0fBHYwYldF3LEGNXNS5oZYWiSMEZtvDKJr1+MYgCC5KtWB7fUapOtujwSSzUguUwWVtmLhP2KM7s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783545931; c=relaxed/simple;
-	bh=G6vC4UBrZdZ8D+CMBoepWWxYOCF803KHhCO5GekHnhU=;
-	h=Date:To:From:Subject:Message-Id; b=f84HFHVZDBUKrF+cr4YiTyARHm3OhbkSXbAFYlzTfya8EOZkhbpHT/6HQIyrZIRoKslDkNss5Nk91GbpoPd67F3/E7LPs+wrXhfitrkb7TNdXWa1Yn47S2JqcOYn9CkRustVczcddUQy/vOkM2Gf9zAKZ6MuqRLXUg/lOKtCNhw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=a2FpvFo2; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783545932; c=relaxed/simple;
+	bh=ZuPBLn9xSwTeDLohTfCRfMIbcQ78WDU1StJ/pMTRlRA=;
+	h=Date:To:From:Subject:Message-Id; b=bsJGLYOZVx9pX5ukdikyb7ZbexzJkjmYwCj1ibgs3uCs4ve2BxLmjaipte8E3y4dpKtDKdM+XJ4JUENrjmrisOfSMPYNbyJFd/WF77H1X38NUAHl+Yqv4Rq9wOJxtjvJlV2LSuhrddVRteBQ230Cw4Hp6T4quup9EvPaUf47mSg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Deahz09Q; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="a2FpvFo2"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 121C41F00A3A;
-	Wed,  8 Jul 2026 21:25:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Deahz09Q"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 97FB51F000E9;
+	Wed,  8 Jul 2026 21:25:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783545929;
-	bh=A1KWtCJ3ZAlCrJkHWPUR2KSEDKbBvWSl/tokZ+cJHgY=;
+	d=linux-foundation.org; s=korg; t=1783545930;
+	bh=qU/eMccONVyb+LWJvb+aJY4flmQBYu7clYFFcqlUGVI=;
 	h=Date:To:From:Subject;
-	b=a2FpvFo2SMqghJWRewM8MYcDs9erMudBYtmGPojX66WjY4Ta4fLGwKH6a9UAXNCff
-	 THUYbi6D+EbqFb42BXWyolV2SIrWkrz2J3fi1ngaxU5+wJIh5zL+U6nLWOBJwCjXCQ
-	 U22aYiSU/5+OSqHg4VTy4tucM1yqscrVPYSmgrD4=
-Date: Wed, 08 Jul 2026 14:25:28 -0700
+	b=Deahz09Qeyhm+MS0aC2V+6g7MZMBVvakZpUuV5Mwcp9dJ0xI5/KE2hdJ47XZNx6LX
+	 hPJpMxPiVNsftaV5yAqugeTaQf3g7+9rDcBodYqAhAl0q/K//8V/caRpEqSwB2C/Za
+	 weaXe0y+5FK7CvwtdpgtqrUGCQ1OlAHu48T70cOY=
+Date: Wed, 08 Jul 2026 14:25:30 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,svens@linux.ibm.com,surenb@google.com,rppt@kernel.org,peterz@infradead.org,osalvador@suse.de,muchun.song@linux.dev,mingo@redhat.com,mhocko@suse.com,luto@kernel.org,ljs@kernel.org,liam@infradead.org,jackmanb@google.com,hpa@zytor.com,hca@linux.ibm.com,hannes@cmpxchg.org,gor@linux.ibm.com,gerald.schaefer@linux.ibm.com,bp@alien8.de,borntraeger@linux.ibm.com,agordeev@linux.ibm.com,david@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-provide-free_reserved_pages-removing-x86-variant.patch added to mm-new branch
-Message-Id: <20260708212529.121C41F00A3A@smtp.kernel.org>
+Subject: + s390-mm-use-free_reserved_pages-in-vmem_free_pages.patch added to mm-new branch
+Message-Id: <20260708212530.97FB51F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: provide free_reserved_pages(), removing x86 variant
+     Subject: s390/mm: use free_reserved_pages() in vmem_free_pages()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-provide-free_reserved_pages-removing-x86-variant.patch
+     s390-mm-use-free_reserved_pages-in-vmem_free_pages.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-provide-free_reserved_pages-removing-x86-variant.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/s390-mm-use-free_reserved_pages-in-vmem_free_pages.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,22 +70,12 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "David Hildenbrand (Arm)" <david@kernel.org>
-Subject: mm: provide free_reserved_pages(), removing x86 variant
-Date: Wed, 08 Jul 2026 16:10:57 +0200
+Subject: s390/mm: use free_reserved_pages() in vmem_free_pages()
+Date: Wed, 08 Jul 2026 16:10:58 +0200
 
-Let's extend free_reserved_page() in page_alloc.c to
-free_reserved_pages(), dropping the custom x86 variant.  The common-code
-variant will consume an order, so adjust the x86 callers accordingly.
+Let's use our new generic helper.
 
-Make free_reserved_pages() assume that we are freeing ordinary high-order
-pages, just with the special "reserved" flavor.  The target use case for
-now is freeing vmemmap PMD pages.
-
-Set the refcount directly to 0 (instead of 1) and call
-__free_frozen_pages().  Add some kerneldoc.  Use a single
-adjust_managed_page_count() call.
-
-Link: https://lore.kernel.org/20260708-bootmem_info_part2-v1-2-156ce4986598@kernel.org
+Link: https://lore.kernel.org/20260708-bootmem_info_part2-v1-3-156ce4986598@kernel.org
 Signed-off-by: David Hildenbrand (Arm) <david@kernel.org>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Andy Lutomirski <luto@kernel.org>
@@ -112,96 +102,29 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/init_64.c |    8 +-------
- include/linux/mm.h    |    8 ++++++--
- mm/page_alloc.c       |   33 ++++++++++++++++++++++++++-------
- 3 files changed, 33 insertions(+), 16 deletions(-)
+ arch/s390/mm/vmem.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
---- a/arch/x86/mm/init_64.c~mm-provide-free_reserved_pages-removing-x86-variant
-+++ a/arch/x86/mm/init_64.c
-@@ -1000,12 +1000,6 @@ int arch_add_memory(int nid, u64 start,
- 	return add_pages(nid, start_pfn, nr_pages, params);
- }
+--- a/arch/s390/mm/vmem.c~s390-mm-use-free_reserved_pages-in-vmem_free_pages
++++ a/arch/s390/mm/vmem.c
+@@ -39,7 +39,6 @@ static void __ref *vmem_alloc_pages(unsi
  
--static void free_reserved_pages(struct page *page, unsigned long nr_pages)
--{
--	while (nr_pages--)
--		free_reserved_page(page++);
--}
--
- static void __meminit free_pagetable(struct page *page)
+ static void vmem_free_pages(unsigned long addr, int order, struct vmem_altmap *altmap)
  {
- 	/* bootmem page has reserved flag */
-@@ -1038,7 +1032,7 @@ static void __meminit free_vmemmap_pages
- 			while (nr_pages--)
- 				put_page_bootmem(page++);
- 		} else {
--			free_reserved_pages(page, nr_pages);
-+			free_reserved_pages(page, order);
- 		}
+-	unsigned int nr_pages = 1 << order;
+ 	struct page *page;
+ 
+ 	if (altmap) {
+@@ -49,8 +48,7 @@ static void vmem_free_pages(unsigned lon
+ 	page = virt_to_page((void *)addr);
+ 	if (PageReserved(page)) {
+ 		/* allocated from memblock */
+-		while (nr_pages--)
+-			free_reserved_page(page++);
++		free_reserved_pages(page, order);
  	} else {
- 		__free_pages(page, order);
---- a/include/linux/mm.h~mm-provide-free_reserved_pages-removing-x86-variant
-+++ a/include/linux/mm.h
-@@ -3993,8 +3993,12 @@ extern unsigned long free_reserved_area(
- 
- extern void adjust_managed_page_count(struct page *page, long count);
- 
--/* Free the reserved page into the buddy system, so it gets managed. */
--void free_reserved_page(struct page *page);
-+void free_reserved_pages(struct page *page, unsigned int order);
-+
-+static inline void free_reserved_page(struct page *page)
-+{
-+	free_reserved_pages(page, 0);
-+}
- 
- static inline void mark_page_reserved(struct page *page)
- {
---- a/mm/page_alloc.c~mm-provide-free_reserved_pages-removing-x86-variant
-+++ a/mm/page_alloc.c
-@@ -6388,15 +6388,34 @@ void adjust_managed_page_count(struct pa
- }
- EXPORT_SYMBOL(adjust_managed_page_count);
- 
--void free_reserved_page(struct page *page)
-+/**
-+ * free_reserved_pages - free reserved pages
-+ * @page: First page to free.
-+ * @order: The page order to free.
-+ *
-+ * Free pages allocated through memblock during boot, letting the buddy
-+ * manage them from now on.
-+ *
-+ * @page must be naturally aligned to the order and the order must not
-+ * exceed MAX_PAGE_ORDER. All pages must be reserved.
-+ */
-+void free_reserved_pages(struct page *page, unsigned int order)
- {
--	clear_page_tag_ref(page);
--	ClearPageReserved(page);
--	init_page_count(page);
--	__free_page(page);
--	adjust_managed_page_count(page, 1);
-+	const unsigned long nr_pages = 1UL << order;
-+	int i;
-+
-+	VM_WARN_ON_ONCE(!IS_ALIGNED(page_to_pfn(page), nr_pages));
-+	VM_WARN_ON_ONCE(order > MAX_PAGE_ORDER);
-+
-+	for (i = 0; i < nr_pages; i++) {
-+		clear_page_tag_ref(page + i);
-+		ClearPageReserved(page + i);
-+		set_page_count(page + i, 0);
-+	}
-+	adjust_managed_page_count(page, nr_pages);
-+	__free_frozen_pages(page, order, FPI_NONE);
- }
--EXPORT_SYMBOL(free_reserved_page);
-+EXPORT_SYMBOL(free_reserved_pages);
- 
- static int page_alloc_cpu_dead(unsigned int cpu)
- {
+ 		free_pages(addr, order);
+ 	}
 _
 
 Patches currently in -mm which might be from david@kernel.org are
