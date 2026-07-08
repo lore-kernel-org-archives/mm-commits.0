@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 54FD53FA5C4
-	for <mm-commits@vger.kernel.org>; Wed,  8 Jul 2026 21:25:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 773443FA5CA
+	for <mm-commits@vger.kernel.org>; Wed,  8 Jul 2026 21:25:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783545929; cv=none; b=pi2w6C8Lya72aiCM4gDiDaTT9WrAvwbUFN2LabGo/kvpp9kzkZ8fGCDO23g03pqSRWQ+Q6KAJbbmo+Ria+tvLZcLIMsOkdKm6OYfc8rDcSfP9Y4miOFXYcpbY7f1laoB5/dtoCOGJTUdHyhDShnp80CAoVX3F0Z+ZdeEWVxSdXc=
+	t=1783545931; cv=none; b=CAWlWg9Ux+N1ZeBFDhvskkqKt4DVFUfVXoqp77uuYIfK3FSk3LxJavGkcMZmida3RqINZuZ7w8Oi7Vva7QjYsh4ToxkbFOfzNGBcOlbpyhilxZx/SbbCR4uyrYj5E0egt6g2B4Tz/+lVqt39m00ZIoOG8sCnYttMUHvvI+e3ADc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783545929; c=relaxed/simple;
-	bh=dDbM2/9iBhWl5R7Kgs9mnQUBG5qMcxejjDItHiP2eOk=;
-	h=Date:To:From:Subject:Message-Id; b=jXqt/asDwuJchhySuLzrpG38/9kmiMQIgwMyAilnOwTRdXju6BCWdRdQXhyA3HZNw6Ujx+8Wr/DhLHTeexuW7DzBXY8HXTMOJhHy3+x8KVielROksSupu49+E0jUgvm8vP8iayzgtQxIgn48C8DjAHVzczShBd6qcSkjfvHD76M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BJkSSQkP; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783545931; c=relaxed/simple;
+	bh=G6vC4UBrZdZ8D+CMBoepWWxYOCF803KHhCO5GekHnhU=;
+	h=Date:To:From:Subject:Message-Id; b=f84HFHVZDBUKrF+cr4YiTyARHm3OhbkSXbAFYlzTfya8EOZkhbpHT/6HQIyrZIRoKslDkNss5Nk91GbpoPd67F3/E7LPs+wrXhfitrkb7TNdXWa1Yn47S2JqcOYn9CkRustVczcddUQy/vOkM2Gf9zAKZ6MuqRLXUg/lOKtCNhw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=a2FpvFo2; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BJkSSQkP"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C52351F000E9;
-	Wed,  8 Jul 2026 21:25:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="a2FpvFo2"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 121C41F00A3A;
+	Wed,  8 Jul 2026 21:25:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783545927;
-	bh=+l+BJ++6Vyr+FUF59WT3TKhry1oyI1wuTSvg4f+8V7Q=;
+	d=linux-foundation.org; s=korg; t=1783545929;
+	bh=A1KWtCJ3ZAlCrJkHWPUR2KSEDKbBvWSl/tokZ+cJHgY=;
 	h=Date:To:From:Subject;
-	b=BJkSSQkPva1XpoDb+wf/my1NFAGi9fQF7fxsVxybYj5PBuxKbuUgehuwvAwt5pvKA
-	 KvXNao8YjqbVNbSISQ9nCslJm4FxJG8Rbw2z5coAhOcHC93MtXbV1b7ZkmaiRz4brI
-	 DDNui78eH2plGDdOnbQe+PQ99n8BezmUOsPXwQe0=
-Date: Wed, 08 Jul 2026 14:25:27 -0700
+	b=a2FpvFo2SMqghJWRewM8MYcDs9erMudBYtmGPojX66WjY4Ta4fLGwKH6a9UAXNCff
+	 THUYbi6D+EbqFb42BXWyolV2SIrWkrz2J3fi1ngaxU5+wJIh5zL+U6nLWOBJwCjXCQ
+	 U22aYiSU/5+OSqHg4VTy4tucM1yqscrVPYSmgrD4=
+Date: Wed, 08 Jul 2026 14:25:28 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,svens@linux.ibm.com,surenb@google.com,rppt@kernel.org,peterz@infradead.org,osalvador@suse.de,muchun.song@linux.dev,mingo@redhat.com,mhocko@suse.com,luto@kernel.org,ljs@kernel.org,liam@infradead.org,jackmanb@google.com,hpa@zytor.com,hca@linux.ibm.com,hannes@cmpxchg.org,gor@linux.ibm.com,gerald.schaefer@linux.ibm.com,bp@alien8.de,borntraeger@linux.ibm.com,agordeev@linux.ibm.com,david@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + x86-mm-drop-order-parameter-from-free_pagetable.patch added to mm-new branch
-Message-Id: <20260708212527.C52351F000E9@smtp.kernel.org>
+Subject: + mm-provide-free_reserved_pages-removing-x86-variant.patch added to mm-new branch
+Message-Id: <20260708212529.121C41F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: x86/mm: drop order parameter from free_pagetable()
+     Subject: mm: provide free_reserved_pages(), removing x86 variant
 has been added to the -mm mm-new branch.  Its filename is
-     x86-mm-drop-order-parameter-from-free_pagetable.patch
+     mm-provide-free_reserved_pages-removing-x86-variant.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-mm-drop-order-parameter-from-free_pagetable.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-provide-free_reserved_pages-removing-x86-variant.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,22 +70,22 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "David Hildenbrand (Arm)" <david@kernel.org>
-Subject: x86/mm: drop order parameter from free_pagetable()
-Date: Wed, 08 Jul 2026 16:10:56 +0200
+Subject: mm: provide free_reserved_pages(), removing x86 variant
+Date: Wed, 08 Jul 2026 16:10:57 +0200
 
-Patch series "mm: remove CONFIG_HAVE_BOOTMEM_INFO_NODE (Part 2)".
+Let's extend free_reserved_page() in page_alloc.c to
+free_reserved_pages(), dropping the custom x86 variant.  The common-code
+variant will consume an order, so adjust the x86 callers accordingly.
 
-Let's remove the remaining pieces of CONFIG_HAVE_BOOTMEM_INFO_NODE,
-performing some smaller cleanups around freeing of reserved vmemmap
-pages on the way.
+Make free_reserved_pages() assume that we are freeing ordinary high-order
+pages, just with the special "reserved" flavor.  The target use case for
+now is freeing vmemmap PMD pages.
 
+Set the refcount directly to 0 (instead of 1) and call
+__free_frozen_pages().  Add some kerneldoc.  Use a single
+adjust_managed_page_count() call.
 
-This patch (of 10):
-
-All callers pass 0, so let's drop the parameter.
-
-Link: https://lore.kernel.org/20260708-bootmem_info_part2-v1-0-156ce4986598@kernel.org
-Link: https://lore.kernel.org/20260708-bootmem_info_part2-v1-1-156ce4986598@kernel.org
+Link: https://lore.kernel.org/20260708-bootmem_info_part2-v1-2-156ce4986598@kernel.org
 Signed-off-by: David Hildenbrand (Arm) <david@kernel.org>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Andy Lutomirski <luto@kernel.org>
@@ -112,67 +112,96 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/init_64.c |   21 +++++++++------------
- 1 file changed, 9 insertions(+), 12 deletions(-)
+ arch/x86/mm/init_64.c |    8 +-------
+ include/linux/mm.h    |    8 ++++++--
+ mm/page_alloc.c       |   33 ++++++++++++++++++++++++++-------
+ 3 files changed, 33 insertions(+), 16 deletions(-)
 
---- a/arch/x86/mm/init_64.c~x86-mm-drop-order-parameter-from-free_pagetable
+--- a/arch/x86/mm/init_64.c~mm-provide-free_reserved_pages-removing-x86-variant
 +++ a/arch/x86/mm/init_64.c
-@@ -1006,22 +1006,19 @@ static void free_reserved_pages(struct p
- 		free_reserved_page(page++);
+@@ -1000,12 +1000,6 @@ int arch_add_memory(int nid, u64 start,
+ 	return add_pages(nid, start_pfn, nr_pages, params);
  }
  
--static void __meminit free_pagetable(struct page *page, int order)
-+static void __meminit free_pagetable(struct page *page)
+-static void free_reserved_pages(struct page *page, unsigned long nr_pages)
+-{
+-	while (nr_pages--)
+-		free_reserved_page(page++);
+-}
+-
+ static void __meminit free_pagetable(struct page *page)
  {
  	/* bootmem page has reserved flag */
- 	if (PageReserved(page)) {
--		unsigned long nr_pages = 1 << order;
- #ifdef CONFIG_HAVE_BOOTMEM_INFO_NODE
- 		enum bootmem_type type = bootmem_type(page);
- 
--		if (type == MIX_SECTION_INFO) {
--			while (nr_pages--)
--				put_page_bootmem(page++);
--		} else {
+@@ -1038,7 +1032,7 @@ static void __meminit free_vmemmap_pages
+ 			while (nr_pages--)
+ 				put_page_bootmem(page++);
+ 		} else {
 -			free_reserved_pages(page, nr_pages);
--		}
-+		if (type == MIX_SECTION_INFO)
-+			put_page_bootmem(page);
-+		else
-+			free_reserved_page(page);
- #else
--		free_reserved_pages(page, nr_pages);
-+		free_reserved_page(page);
- #endif
++			free_reserved_pages(page, order);
+ 		}
  	} else {
- 		pagetable_free(page_ptdesc(page));
-@@ -1060,7 +1057,7 @@ static void __meminit free_pte_table(pte
- 	}
+ 		__free_pages(page, order);
+--- a/include/linux/mm.h~mm-provide-free_reserved_pages-removing-x86-variant
++++ a/include/linux/mm.h
+@@ -3993,8 +3993,12 @@ extern unsigned long free_reserved_area(
  
- 	/* free a pte table */
--	free_pagetable(pmd_page(*pmd), 0);
-+	free_pagetable(pmd_page(*pmd));
- 	spin_lock(&init_mm.page_table_lock);
- 	pmd_clear(pmd);
- 	spin_unlock(&init_mm.page_table_lock);
-@@ -1078,7 +1075,7 @@ static void __meminit free_pmd_table(pmd
- 	}
+ extern void adjust_managed_page_count(struct page *page, long count);
  
- 	/* free a pmd table */
--	free_pagetable(pud_page(*pud), 0);
-+	free_pagetable(pud_page(*pud));
- 	spin_lock(&init_mm.page_table_lock);
- 	pud_clear(pud);
- 	spin_unlock(&init_mm.page_table_lock);
-@@ -1096,7 +1093,7 @@ static void __meminit free_pud_table(pud
- 	}
+-/* Free the reserved page into the buddy system, so it gets managed. */
+-void free_reserved_page(struct page *page);
++void free_reserved_pages(struct page *page, unsigned int order);
++
++static inline void free_reserved_page(struct page *page)
++{
++	free_reserved_pages(page, 0);
++}
  
- 	/* free a pud table */
--	free_pagetable(p4d_page(*p4d), 0);
-+	free_pagetable(p4d_page(*p4d));
- 	spin_lock(&init_mm.page_table_lock);
- 	p4d_clear(p4d);
- 	spin_unlock(&init_mm.page_table_lock);
+ static inline void mark_page_reserved(struct page *page)
+ {
+--- a/mm/page_alloc.c~mm-provide-free_reserved_pages-removing-x86-variant
++++ a/mm/page_alloc.c
+@@ -6388,15 +6388,34 @@ void adjust_managed_page_count(struct pa
+ }
+ EXPORT_SYMBOL(adjust_managed_page_count);
+ 
+-void free_reserved_page(struct page *page)
++/**
++ * free_reserved_pages - free reserved pages
++ * @page: First page to free.
++ * @order: The page order to free.
++ *
++ * Free pages allocated through memblock during boot, letting the buddy
++ * manage them from now on.
++ *
++ * @page must be naturally aligned to the order and the order must not
++ * exceed MAX_PAGE_ORDER. All pages must be reserved.
++ */
++void free_reserved_pages(struct page *page, unsigned int order)
+ {
+-	clear_page_tag_ref(page);
+-	ClearPageReserved(page);
+-	init_page_count(page);
+-	__free_page(page);
+-	adjust_managed_page_count(page, 1);
++	const unsigned long nr_pages = 1UL << order;
++	int i;
++
++	VM_WARN_ON_ONCE(!IS_ALIGNED(page_to_pfn(page), nr_pages));
++	VM_WARN_ON_ONCE(order > MAX_PAGE_ORDER);
++
++	for (i = 0; i < nr_pages; i++) {
++		clear_page_tag_ref(page + i);
++		ClearPageReserved(page + i);
++		set_page_count(page + i, 0);
++	}
++	adjust_managed_page_count(page, nr_pages);
++	__free_frozen_pages(page, order, FPI_NONE);
+ }
+-EXPORT_SYMBOL(free_reserved_page);
++EXPORT_SYMBOL(free_reserved_pages);
+ 
+ static int page_alloc_cpu_dead(unsigned int cpu)
+ {
 _
 
 Patches currently in -mm which might be from david@kernel.org are
