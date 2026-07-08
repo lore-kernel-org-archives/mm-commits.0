@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 770743F5BCB
-	for <mm-commits@vger.kernel.org>; Wed,  8 Jul 2026 21:47:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CDD453F6C5A
+	for <mm-commits@vger.kernel.org>; Wed,  8 Jul 2026 21:47:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783547234; cv=none; b=qF8QgoeNLbJ46WLAUYXa2y4Mk+ZrVK5SHBAg/DFzsI3FV7iZUsy+NM+rFTB0DxP/L5vySHXJg3X11glorv0HZpdjHsUsxTKCzuSA2bE8s71z7FEh5I98dD5InOl9iFQ0adF7Fxt0C9ZfjPUdW9a9ff9hM2tChpgo2kgazrrgA4U=
+	t=1783547236; cv=none; b=kDAK9PHuEkXr+dyP1fJKSyEvMrAHW9420y68V0r5t+3A0Releis/4R/4P+/+QmB1yjHf2XBEqS+FugvkI5XcXhO0ASPb9FicY7rQegWJZ3kQCfcwbTsH7ctEgqlM1+kIIYJIOMjk1DDHovpcCXDFHbDOCH7tM+wotTzyLkzGcPE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783547234; c=relaxed/simple;
-	bh=/kawo7pDkowYOjiVGDUkGjDqcHs0V6FfoADiY2Uehro=;
-	h=Date:To:From:Subject:Message-Id; b=Uc2lSPKRtLq/hOg//favRVQSLHfpde6uVle2Mrumcez8/oL5lm/fCnJMyN2xi67PjCQhXzR/yqMYX2RHr2xtA27CRj6Ve8WBQ9DBVSZjo9d7nBn1in3bJyMkrIIGAX6cIvRVNDc+sPJZ+GBkRMu9PifZv8fGylcdaxKx2gX9KkY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=opZ9oza3; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783547236; c=relaxed/simple;
+	bh=OTn9k5yRTLFyN+sDsUq/cZgLZxVIjtZ4ktI8+4Tzs0Y=;
+	h=Date:To:From:Subject:Message-Id; b=r0q66sKIVJGqm3bxL+oAXu8856hNTP/8kdG9TFYO+uzEzDClfPFgUHplAegF2AVFUotjSIiHfwZsjXBoUp6/eQcWpqFmWaKgZq1x/xwzIBk6LQw5L/nqANNxmdyEd3VXWIyY541+KGtUOVj1DitY/DAGsZseRhIpln0bcaBhPTo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sl3chcQB; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="opZ9oza3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D38991F000E9;
-	Wed,  8 Jul 2026 21:47:12 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sl3chcQB"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 34A411F00A3A;
+	Wed,  8 Jul 2026 21:47:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783547232;
-	bh=ofopQQZ+cB4LIpeouI+wxleRuNIKFoqDL5HUt0DBFjU=;
+	d=linux-foundation.org; s=korg; t=1783547234;
+	bh=t6bsnlRexYeEboEWOE9j9DcIAB+x5jCxDwaVsP1tnPg=;
 	h=Date:To:From:Subject;
-	b=opZ9oza3zKN7eMJdYB0QzhNRkSumb6qTwB/3GSqI61owFKyfTs/W4+opBtf98e2Nt
-	 e73E8Av/+Gz/UywN8uv6uKdbnzAo7ZcLnyCxG7Wo+Sn5pJbN/Aj3O99CufyWozwoew
-	 4B7Q55VJ18V5WSbwOkWrhEdebBlsB7TLYO0hkl74=
-Date: Wed, 08 Jul 2026 14:47:12 -0700
+	b=sl3chcQBOU69vs8qoSWh+Zu96LEODIP6p2f6kZ9sPe7nB2Z/44QAZQjCal2v79owm
+	 9+3YYnjGhUiWAfNWZxW/OZYIDWxGii2m7XatGaLvKe5NTx9+F4CNdqLSdm+UEralC+
+	 V9Vrm/gPcjWci6Ueij6Y0+6/HGLvBh+B4YdzH6JY=
+Date: Wed, 08 Jul 2026 14:47:13 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-core-remove-comment-and-test-for-nr_to_bp-divide-by-zero.patch added to mm-new branch
-Message-Id: <20260708214712.D38991F000E9@smtp.kernel.org>
+Subject: + mm-damon-core-s-damon_max_nr_accesses-damon_nr_samples_per_aggr.patch added to mm-new branch
+Message-Id: <20260708214714.34A411F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/core: remove comment and test for nr_to_bp() divide-by-zero
+     Subject: mm/damon/core: s/damon_max_nr_accesses()/damon_nr_samples_per_aggr()/
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-core-remove-comment-and-test-for-nr_to_bp-divide-by-zero.patch
+     mm-damon-core-s-damon_max_nr_accesses-damon_nr_samples_per_aggr.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-remove-comment-and-test-for-nr_to_bp-divide-by-zero.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-s-damon_max_nr_accesses-damon_nr_samples_per_aggr.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,103 +70,89 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/core: remove comment and test for nr_to_bp() divide-by-zero
-Date: Wed, 8 Jul 2026 06:53:51 -0700
+Subject: mm/damon/core: s/damon_max_nr_accesses()/damon_nr_samples_per_aggr()/
+Date: Wed, 8 Jul 2026 06:53:52 -0700
 
-Patch series "mm/damon: update probe hits for runtime parameter commits".
+damon_max_nr_accesses() actually returns the number of samples DAMON
+checks for each region per each aggregation interval.  Rename it to better
+describe what it really does and not confusing for more general uses.
 
-DAMON users can update DAMON parameters such as sampling and aggregation
-intervals at runtime.  For such changes, monitoring results that depend on
-the intervals should be properly updated for better accuracy.  For
-example, the access frequency counter (nr_accesses) is updated.  The data
-attribute monitoring counter (probe_hits) is not being updated, though. 
-Do the updates for new parameters.
-
-Patch 1 removes obsolete comments and test code for a function that this
-series will touch.  Patches 2-5 rename functions that are being used for
-nr_accesses update, to be able to be used for probe_hits without
-confusion.  Patch 6 does the probe_hits update.  Patch 7 update
-damon_probe_hits_mvsum() to cover a corner case from the update for better
-accuracy.
-
-
-This patch (of 7):
-
-The comments on damon_nr_accesses_to_accesses_bp() and its unit test warn
-it can trigger division-by-zero when the aggregation interval is zero. 
-Commit 35d4a3cf70a8 ("mm/damon/ops-common: handle extreme intervals in
-damon_hot_score()") modified damon_max_nr_accesses() to always return
-non-zero.  Hence no division-by-zero of the note can happen.  Remove the
-obsolete comment on the function.  The test code was written to test the
-division-by-zero case, which cannot happen anymore.  Having it makes no
-sense.  Entirely remove the test code and its comment.
-
-Link: https://lore.kernel.org/20260708135359.122587-1-sj@kernel.org
-Link: https://lore.kernel.org/20260708135359.122587-2-sj@kernel.org
+Link: https://lore.kernel.org/20260708135359.122587-3-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/core.c             |    8 +-------
- mm/damon/tests/core-kunit.h |   23 -----------------------
- 2 files changed, 1 insertion(+), 30 deletions(-)
+ include/linux/damon.h |   10 ++++++----
+ mm/damon/core.c       |    4 ++--
+ mm/damon/lru_sort.c   |    2 +-
+ mm/damon/ops-common.c |    2 +-
+ 4 files changed, 10 insertions(+), 8 deletions(-)
 
---- a/mm/damon/core.c~mm-damon-core-remove-comment-and-test-for-nr_to_bp-divide-by-zero
-+++ a/mm/damon/core.c
-@@ -883,13 +883,7 @@ static unsigned int damon_accesses_bp_to
- 	return accesses_bp * damon_max_nr_accesses(attrs) / 10000;
+--- a/include/linux/damon.h~mm-damon-core-s-damon_max_nr_accesses-damon_nr_samples_per_aggr
++++ a/include/linux/damon.h
+@@ -1056,15 +1056,17 @@ static inline bool damon_target_has_pid(
+ 	return ctx->ops.id == DAMON_OPS_VADDR || ctx->ops.id == DAMON_OPS_FVADDR;
  }
  
--/*
-- * Convert nr_accesses to access ratio in bp (per 10,000).
-- *
-- * Callers should ensure attrs.aggr_interval is not zero, like
-- * damon_update_monitoring_results() does .  Otherwise, divide-by-zero would
-- * happen.
-- */
-+/* Convert nr_accesses to access ratio in bp (per 10,000) */
+-static inline unsigned int damon_max_nr_accesses(const struct damon_attrs *attrs)
++/* Returns number of samples per aggregation interval */
++static inline unsigned int damon_nr_samples_per_aggr(
++		const struct damon_attrs *attrs)
+ {
+ 	unsigned long sample_interval;
+-	unsigned long max_nr_accesses;
++	unsigned long nr_samples;
+ 
+ 	sample_interval = attrs->sample_interval ? : 1;
+-	max_nr_accesses = min(attrs->aggr_interval / sample_interval,
++	nr_samples = min(attrs->aggr_interval / sample_interval,
+ 			(unsigned long)UINT_MAX);
+-	return max_nr_accesses ? : 1;
++	return nr_samples ? : 1;
+ }
+ 
+ 
+--- a/mm/damon/core.c~mm-damon-core-s-damon_max_nr_accesses-damon_nr_samples_per_aggr
++++ a/mm/damon/core.c
+@@ -880,14 +880,14 @@ static unsigned int damon_age_for_new_at
+ static unsigned int damon_accesses_bp_to_nr_accesses(
+ 		unsigned int accesses_bp, struct damon_attrs *attrs)
+ {
+-	return accesses_bp * damon_max_nr_accesses(attrs) / 10000;
++	return accesses_bp * damon_nr_samples_per_aggr(attrs) / 10000;
+ }
+ 
+ /* Convert nr_accesses to access ratio in bp (per 10,000) */
  static unsigned int damon_nr_accesses_to_accesses_bp(
  		unsigned int nr_accesses, struct damon_attrs *attrs)
  {
---- a/mm/damon/tests/core-kunit.h~mm-damon-core-remove-comment-and-test-for-nr_to_bp-divide-by-zero
-+++ a/mm/damon/tests/core-kunit.h
-@@ -575,28 +575,6 @@ static void damon_test_set_regions(struc
- 			}, 3);
+-	return mult_frac(nr_accesses, 10000, damon_max_nr_accesses(attrs));
++	return mult_frac(nr_accesses, 10000, damon_nr_samples_per_aggr(attrs));
  }
  
--static void damon_test_nr_accesses_to_accesses_bp(struct kunit *test)
--{
--	struct damon_attrs attrs = {
--		.sample_interval = 10,
--		.aggr_interval = ((unsigned long)UINT_MAX + 1) * 10
--	};
--
--	/*
--	 * In some cases such as 32bit architectures where UINT_MAX is
--	 * ULONG_MAX, attrs.aggr_interval becomes zero.  Calling
--	 * damon_nr_accesses_to_accesses_bp() in the case will cause
--	 * divide-by-zero.  Such case is prohibited in normal execution since
--	 * the caution is documented on the comment for the function, and
--	 * damon_update_monitoring_results() does the check.  Skip the test in
--	 * the case.
--	 */
--	if (!attrs.aggr_interval)
--		kunit_skip(test, "aggr_interval is zero.");
--
--	KUNIT_EXPECT_EQ(test, damon_nr_accesses_to_accesses_bp(123, &attrs), 0);
--}
--
- static void damon_test_update_monitoring_result(struct kunit *test)
- {
- 	struct damon_attrs old_attrs = {
-@@ -1572,7 +1550,6 @@ static struct kunit_case damon_test_case
- 	KUNIT_CASE(damon_test_split_above_half_progresses),
- 	KUNIT_CASE(damon_test_ops_registration),
- 	KUNIT_CASE(damon_test_set_regions),
--	KUNIT_CASE(damon_test_nr_accesses_to_accesses_bp),
- 	KUNIT_CASE(damon_test_update_monitoring_result),
- 	KUNIT_CASE(damon_test_set_attrs),
- 	KUNIT_CASE(damon_test_mvsum),
+ static unsigned int damon_nr_accesses_for_new_attrs(unsigned int nr_accesses,
+--- a/mm/damon/lru_sort.c~mm-damon-core-s-damon_max_nr_accesses-damon_nr_samples_per_aggr
++++ a/mm/damon/lru_sort.c
+@@ -303,7 +303,7 @@ static int damon_lru_sort_apply_paramete
+ 		goto out;
+ 
+ 	err = -ENOMEM;
+-	hot_thres = damon_max_nr_accesses(&attrs) *
++	hot_thres = damon_nr_samples_per_aggr(&attrs) *
+ 		hot_thres_access_freq / 1000;
+ 	hot_scheme = damon_lru_sort_new_hot_scheme(hot_thres);
+ 	if (!hot_scheme)
+--- a/mm/damon/ops-common.c~mm-damon-core-s-damon_max_nr_accesses-damon_nr_samples_per_aggr
++++ a/mm/damon/ops-common.c
+@@ -112,7 +112,7 @@ int damon_hot_score(struct damon_ctx *c,
+ 	int hotness;
+ 
+ 	freq_subscore = r->nr_accesses * DAMON_MAX_SUBSCORE /
+-		damon_max_nr_accesses(&c->attrs);
++		damon_nr_samples_per_aggr(&c->attrs);
+ 
+ 	age_in_sec = (unsigned long)r->age * c->attrs.aggr_interval / 1000000;
+ 	if (age_in_sec)
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
