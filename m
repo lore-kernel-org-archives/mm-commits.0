@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 374733FAE01
-	for <mm-commits@vger.kernel.org>; Wed,  8 Jul 2026 21:25:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 40F3C3F4DC3
+	for <mm-commits@vger.kernel.org>; Wed,  8 Jul 2026 21:25:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783545938; cv=none; b=UMnH/Q7R/TQtcj6mHIGfbvut7+CheUw35nIV6DmJ6ZnwMOy18zPPcRVwbGXFtF7C/SCBshCfkUm0z2SC1iAHrOLrPG4unR5aeMx5FpMo6XfrEp4WQti8rvEWBG1+tz4JHxalSNhpTjbXHbwDmJpZGyXTWQolZc+49uKdrPZ7Nz4=
+	t=1783545939; cv=none; b=rlXKavs4haJBNLeOtzlhhK7UU65nLzmdH+906IBksbPMliPuVvILLa4spYrpaCdh2b/5uSSLfUH6SJ9sTJv3Jp31c7oEfdmxFVvnr+SJ3iU3IeMx1WlaidK0T45HjqxWam6jJ7vigrM/ukmYiUu0Vw+L3teuxRM4zYEBzHkzfWI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783545938; c=relaxed/simple;
-	bh=r1DWC+dfkT7zavmGX517xdMtsCiYky5PJL/j+P/EFu8=;
-	h=Date:To:From:Subject:Message-Id; b=uWH8Z7z1Af/GAix2ekv0zL+rfRETOUdFl36fMeTZ3IzTWBGXrHdnM0opECphIAttmvMlQBNxuLpgXuU81SJhsVh7chdtZr9ABLrrRtxAiRHpfJBT/l6+PuHjkanmlh9NokvfW1tUtPoTeEuqZqLSPJTSMdcPcS329J2ep1Yu2Pw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=f8I2zNdO; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783545939; c=relaxed/simple;
+	bh=V7xBpVNHeqbRegQzuGvm6It3vWgK6CXcgu+M8BAWFOI=;
+	h=Date:To:From:Subject:Message-Id; b=N46G6uAzl2nLre7MBnzJj65ZT7TgJWkKXH0x4d6iMGIM4IERpWqSE7/yoRR5U7UsAw0oLn/ouyFCO67jQVsQLsN7H64ORJLlcdqYBdx2/pmV4OoXHtGMHf/lgbr+yBBqxPweSIIzQAjNZzZQ0lwPDxpUNr6RfYWd7iDG51TTaPU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1dZJm0u4; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="f8I2zNdO"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DB2601F00A3A;
-	Wed,  8 Jul 2026 21:25:36 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1dZJm0u4"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1BA3A1F000E9;
+	Wed,  8 Jul 2026 21:25:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783545937;
-	bh=kl5YgTcK5D6Jquqp5MHDYJyIljuNkLgGtSkSgBaSdEI=;
+	d=linux-foundation.org; s=korg; t=1783545938;
+	bh=NSgltcPSLc3d/l+pibEI+l/moucNgKlMqRcd4IV5Vw8=;
 	h=Date:To:From:Subject;
-	b=f8I2zNdOzgAj/DOd3wntPqe3Upcs04YKnbRW+fV6plFPA2nV1VdZO5ZmQNfR9Yh/z
-	 FhUK2ek11yRH+vQJHc55ApJ3WfcFeoklbVcpRl/dz2JbXgid4SRipxNnjNdhMHzuiA
-	 sI+lb9jBjYAPerjM4Kd8JyVKClp9ieOx7yJzBDO4=
-Date: Wed, 08 Jul 2026 14:25:36 -0700
+	b=1dZJm0u49tiphaYkkd2sDyBJD6ibow8NKAhodf9fG0WwZLoHGFca/9sGJTXWelBsF
+	 Zh+T+cmpxvSW4Zh5IWA8EB3xKF0k9rgwDBpGWVMvF4bw4ytK2GCN6Ymw8c7VR37ryr
+	 vPb4Y7XcIAnYcXw0te6HhhjMfAnbGrfXiNuTnf60=
+Date: Wed, 08 Jul 2026 14:25:37 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,svens@linux.ibm.com,surenb@google.com,rppt@kernel.org,peterz@infradead.org,osalvador@suse.de,muchun.song@linux.dev,mingo@redhat.com,mhocko@suse.com,luto@kernel.org,ljs@kernel.org,liam@infradead.org,jackmanb@google.com,hpa@zytor.com,hca@linux.ibm.com,hannes@cmpxchg.org,gor@linux.ibm.com,gerald.schaefer@linux.ibm.com,bp@alien8.de,borntraeger@linux.ibm.com,agordeev@linux.ibm.com,david@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb_vmemmap-remove-bootmem_info-leftovers.patch added to mm-new branch
-Message-Id: <20260708212536.DB2601F00A3A@smtp.kernel.org>
+Subject: + mm-sparse-remove-bootmem_infoh-include.patch added to mm-new branch
+Message-Id: <20260708212538.1BA3A1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/hugetlb_vmemmap: remove bootmem_info leftovers
+     Subject: mm/sparse: remove bootmem_info.h include
 has been added to the -mm mm-new branch.  Its filename is
-     mm-hugetlb_vmemmap-remove-bootmem_info-leftovers.patch
+     mm-sparse-remove-bootmem_infoh-include.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb_vmemmap-remove-bootmem_info-leftovers.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-sparse-remove-bootmem_infoh-include.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,13 +70,12 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "David Hildenbrand (Arm)" <david@kernel.org>
-Subject: mm/hugetlb_vmemmap: remove bootmem_info leftovers
-Date: Wed, 08 Jul 2026 16:11:03 +0200
+Subject: mm/sparse: remove bootmem_info.h include
+Date: Wed, 08 Jul 2026 16:11:04 +0200
 
-We never set CONFIG_HAVE_BOOTMEM_INFO_NODE, so we can just switch to
-free_reserved_page() and drop the register_page_bootmem_memmap() call.
+No longer required, so let's remove it.
 
-Link: https://lore.kernel.org/20260708-bootmem_info_part2-v1-8-156ce4986598@kernel.org
+Link: https://lore.kernel.org/20260708-bootmem_info_part2-v1-9-156ce4986598@kernel.org
 Signed-off-by: David Hildenbrand (Arm) <david@kernel.org>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Andy Lutomirski <luto@kernel.org>
@@ -103,45 +102,19 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb_vmemmap.c |    8 ++------
- 1 file changed, 2 insertions(+), 6 deletions(-)
+ mm/sparse.c |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/mm/hugetlb_vmemmap.c~mm-hugetlb_vmemmap-remove-bootmem_info-leftovers
-+++ a/mm/hugetlb_vmemmap.c
-@@ -12,7 +12,6 @@
- 
- #include <linux/pgtable.h>
- #include <linux/moduleparam.h>
+--- a/mm/sparse.c~mm-sparse-remove-bootmem_infoh-include
++++ a/mm/sparse.c
+@@ -13,7 +13,6 @@
+ #include <linux/vmalloc.h>
+ #include <linux/swap.h>
+ #include <linux/swapops.h>
 -#include <linux/bootmem_info.h>
- #include <linux/mmdebug.h>
- #include <linux/pagewalk.h>
- #include <linux/pgalloc.h>
-@@ -177,13 +176,13 @@ static int vmemmap_remap_range(unsigned
-  * Free a vmemmap page. A vmemmap page can be allocated from the memblock
-  * allocator or buddy allocator. If the PG_reserved flag is set, it means
-  * that it allocated from the memblock allocator, just free it via the
-- * free_bootmem_page(). Otherwise, use __free_page().
-+ * free_reserved_page(). Otherwise, use __free_page().
-  */
- static inline void free_vmemmap_page(struct page *page)
- {
- 	if (PageReserved(page)) {
- 		memmap_boot_pages_add(-1);
--		free_bootmem_page(page);
-+		free_reserved_page(page);
- 	} else {
- 		memmap_pages_add(-1);
- 		__free_page(page);
-@@ -641,9 +640,6 @@ static void __hugetlb_vmemmap_optimize_f
- 			epfn = spfn + hugetlb_vmemmap_size(h);
- 			vmemmap_wrprotect_hvo(spfn, epfn, folio_nid(folio),
- 					HUGETLB_VMEMMAP_RESERVE_SIZE);
--			register_page_bootmem_memmap(pfn_to_section_nr(folio_pfn(folio)),
--					&folio->page,
--					HUGETLB_VMEMMAP_RESERVE_PAGES);
- 			continue;
- 		}
- 
+ #include <linux/vmstat.h>
+ #include "internal.h"
+ #include <asm/dma.h>
 _
 
 Patches currently in -mm which might be from david@kernel.org are
