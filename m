@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A90603F483F
-	for <mm-commits@vger.kernel.org>; Wed,  8 Jul 2026 21:14:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 778503F44E7
+	for <mm-commits@vger.kernel.org>; Wed,  8 Jul 2026 21:14:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783545254; cv=none; b=IKEIPCTe9lmRJEDXNlmAvjsXa1wjGbinoUyvzlS2uoFOV10cLsIrFd2VJso6Dzxo5zdiSqBB7xDp0YmQKSJaA8j/LsdGA5IeRYIpqzyX6WaKpA2B5HBFYBsWBrskh0OhjUGlbYiOc4I4/jaGCdgrg9xj+GxcNQObqb5a4tBeSg8=
+	t=1783545257; cv=none; b=m3EgiqUFe91eOQu0lr3mi8kdGg+OK/ar5etEICJx/6/RzKpf+vonB4s5lkatY+aB/VJ8AAMrAABsvqxKEMfbbOznrtS9tQXEm9moYsNRaxbKB+4gfvC6EGx3eMihskvuqAja7g2uIZPdQbnipSMZheKZrkc/dlkAHGGMpmYfZVw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783545254; c=relaxed/simple;
-	bh=b0yM7o8Nkg47YD6ROq0Rl6zkfBSWP2Njn/Zr0/0cz8E=;
-	h=Date:To:From:Subject:Message-Id; b=Mtny5o8xxCV8aud+sfIUM7QOYVFkcLrGDUWASmT8NczKh46AyQtymITYuUYSWVgC5JFzO0emWZBwGBxK1N7clXzzWOzL+SygjTRmKlbTQgUF8i9jJ89vRAnoSnSWqZMYFlvLCaoxrGq64ygoIl+Zj7Y0C4gQvaqed6IUYhjJaws=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CFeSCQB+; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783545257; c=relaxed/simple;
+	bh=IYnsjIKj9DRZVYGi42bl8nUFaX3So1RdfGtQ6gWeFhY=;
+	h=Date:To:From:Subject:Message-Id; b=IWfyblPdXOMtVqbPq2N6TQwF3vKzU/Q0Wn+IZ+YU9Y9ZXrsCUJlaApv/QKz0fVgoWm4riAW2aTe9DNfX0TcvxKBbhuXP4ZPY7cvtjXm88ylqGJe/qiaHMpfR6dzGjj7K1SqwzsAift4QRBmokSG+hwbk3AIiY15AuwMLmLzb1vs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2qltRxTR; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CFeSCQB+"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C8E2B1F00A3A;
-	Wed,  8 Jul 2026 21:14:10 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2qltRxTR"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 75FFC1F000E9;
+	Wed,  8 Jul 2026 21:14:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783545250;
-	bh=+KvoOF7KTumYwm4GxftGjR1bxzE0l9xcV+Osj/fOaA0=;
+	d=linux-foundation.org; s=korg; t=1783545253;
+	bh=qUFnftqnslwq5aeibY45pZSFbOESxNQvq7D2I6UiGJI=;
 	h=Date:To:From:Subject;
-	b=CFeSCQB+4S3D4NjpvEipkkQPFTafZy+Qp+oK5jStbhBDZV/mC3mtozowl9Eo+tSXk
-	 y6Xn2KStQcHGB4K7obfpi3fNzJS2mtRNdTHer8bvcb3fnL2gzBAnB72eWlgfAEjfpC
-	 jh9O81mUkeGeqsTbeOC1Vtvt8QtJLeOKjO4tMa54=
-Date: Wed, 08 Jul 2026 14:14:10 -0700
+	b=2qltRxTRl46f+1jFDppE3wfSP1iD+tX3SsBsOUMDGQkqjxXRVg9qyB0/HVdsrhQvf
+	 ISFKdH2FvQO+8F728fONWtd8bMwlDZkLUAANUI1q4xraoM7uSe7rYBwbLh/D/5NqQT
+	 cTSEU/+3hgZuX+q8oecpQ9kP9yUSMTu9h6aXWJlQ=
+Date: Wed, 08 Jul 2026 14:14:13 -0700
 To: mm-commits@vger.kernel.org,surenb@google.com,souravpanda@google.com,kent.overstreet@linux.dev,hao.ge@linux.dev,corbet@lwn.net,abhishekbapat@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + alloc_tag-add-ioctl-filters-to-proc-allocinfo.patch added to mm-new branch
-Message-Id: <20260708211410.C8E2B1F00A3A@smtp.kernel.org>
+Subject: + alloc_tag-add-accuracy-based-filtering-to-ioctl.patch added to mm-new branch
+Message-Id: <20260708211413.75FFC1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: alloc_tag: add ioctl filters to /proc/allocinfo
+     Subject: alloc_tag: add accuracy based filtering to ioctl
 has been added to the -mm mm-new branch.  Its filename is
-     alloc_tag-add-ioctl-filters-to-proc-allocinfo.patch
+     alloc_tag-add-accuracy-based-filtering-to-ioctl.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/alloc_tag-add-ioctl-filters-to-proc-allocinfo.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/alloc_tag-add-accuracy-based-filtering-to-ioctl.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,13 +70,13 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Abhishek Bapat <abhishekbapat@google.com>
-Subject: alloc_tag: add ioctl filters to /proc/allocinfo
-Date: Wed, 8 Jul 2026 18:01:24 +0000
+Subject: alloc_tag: add accuracy based filtering to ioctl
+Date: Wed, 8 Jul 2026 18:01:26 +0000
 
-Extend the capability of the IOCTL mechanism to filter allocations based
-on tag's module name, function name, file name and line number.
+Extend the allocinfo filtering mechanism to allow users to filter tags
+based on their accuracy.
 
-Link: https://lore.kernel.org/6a6100c0c58cb2911f39126b9fe177a8c17db16f.1783532853.git.abhishekbapat@google.com
+Link: https://lore.kernel.org/396a5e4bc3b2990223ab355f2cd3ceb6aa15499e.1783532853.git.abhishekbapat@google.com
 Signed-off-by: Abhishek Bapat <abhishekbapat@google.com>
 Acked-by: Hao Ge <hao.ge@linux.dev>
 Acked-by: Suren Baghdasaryan <surenb@google.com>
@@ -86,170 +86,61 @@ Cc: Sourav Panda <souravpanda@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/uapi/linux/alloc_tag.h |   26 +++++++++++
- mm/alloc_tag.c                 |   68 +++++++++++++++++++++++++++++--
- 2 files changed, 89 insertions(+), 5 deletions(-)
+ include/uapi/linux/alloc_tag.h |    4 ++++
+ mm/alloc_tag.c                 |    8 ++++++++
+ 2 files changed, 12 insertions(+)
 
---- a/include/uapi/linux/alloc_tag.h~alloc_tag-add-ioctl-filters-to-proc-allocinfo
+--- a/include/uapi/linux/alloc_tag.h~alloc_tag-add-accuracy-based-filtering-to-ioctl
 +++ a/include/uapi/linux/alloc_tag.h
-@@ -45,8 +45,32 @@ struct allocinfo_tag_data {
- 	struct allocinfo_counter counter;
+@@ -31,6 +31,8 @@ struct allocinfo_tag {
+ 	char function[ALLOCINFO_STR_SIZE];
+ 	char filename[ALLOCINFO_STR_SIZE];
+ 	__u64 lineno;
++	/* filter criteria only; see allocinfo_counter.accurate for actual accuracy */
++	__u64 inaccurate;
  };
  
-+enum {
-+	ALLOCINFO_FILTER_MODNAME,
-+	ALLOCINFO_FILTER_FUNCTION,
-+	ALLOCINFO_FILTER_FILENAME,
-+	ALLOCINFO_FILTER_LINENO,
-+	__ALLOCINFO_FILTER_LAST = ALLOCINFO_FILTER_LINENO
-+};
-+
-+#define ALLOCINFO_FILTER_MASK_MODNAME		(1 << ALLOCINFO_FILTER_MODNAME)
-+#define ALLOCINFO_FILTER_MASK_FUNCTION		(1 << ALLOCINFO_FILTER_FUNCTION)
-+#define ALLOCINFO_FILTER_MASK_FILENAME		(1 << ALLOCINFO_FILTER_FILENAME)
-+#define ALLOCINFO_FILTER_MASK_LINENO		(1 << ALLOCINFO_FILTER_LINENO)
-+
-+#define ALLOCINFO_FILTER_MASKS \
-+	((1 << (__ALLOCINFO_FILTER_LAST + 1)) - 1)
-+
-+struct allocinfo_filter {
-+	__u64 mask; /* bitmask of the filter fields used */
-+	struct allocinfo_tag fields;
-+};
-+
- struct allocinfo_get_at {
--	__u64 pos;	/* input */
-+	/* inputs */
-+	__u64 pos;
-+	struct allocinfo_filter filter;
-+	/* output */
- 	struct allocinfo_tag_data data;
- };
+ /* The alignment ensures 32-bit compatible interfaces are not broken */
+@@ -50,6 +52,7 @@ enum {
+ 	ALLOCINFO_FILTER_FUNCTION,
+ 	ALLOCINFO_FILTER_FILENAME,
+ 	ALLOCINFO_FILTER_LINENO,
++	ALLOCINFO_FILTER_INACCURATE,
+ 	ALLOCINFO_FILTER_MIN_SIZE,
+ 	ALLOCINFO_FILTER_MAX_SIZE,
+ 	__ALLOCINFO_FILTER_LAST = ALLOCINFO_FILTER_MAX_SIZE
+@@ -59,6 +62,7 @@ enum {
+ #define ALLOCINFO_FILTER_MASK_FUNCTION		(1 << ALLOCINFO_FILTER_FUNCTION)
+ #define ALLOCINFO_FILTER_MASK_FILENAME		(1 << ALLOCINFO_FILTER_FILENAME)
+ #define ALLOCINFO_FILTER_MASK_LINENO		(1 << ALLOCINFO_FILTER_LINENO)
++#define ALLOCINFO_FILTER_MASK_INACCURATE	(1 << ALLOCINFO_FILTER_INACCURATE)
+ #define ALLOCINFO_FILTER_MASK_MIN_SIZE		(1 << ALLOCINFO_FILTER_MIN_SIZE)
+ #define ALLOCINFO_FILTER_MASK_MAX_SIZE		(1 << ALLOCINFO_FILTER_MAX_SIZE)
  
---- a/mm/alloc_tag.c~alloc_tag-add-ioctl-filters-to-proc-allocinfo
+--- a/mm/alloc_tag.c~alloc_tag-add-accuracy-based-filtering-to-ioctl
 +++ a/mm/alloc_tag.c
-@@ -52,6 +52,7 @@ struct allocinfo_private {
- 	struct codetag_iterator iter;
- 	struct codetag_iterator reported_iter;
- 	bool print_header;
-+	struct allocinfo_filter filter;
- 	/* ioctl uses a separate iterator not to interfere with reads */
- 	struct codetag_iterator ioctl_iter;
- 	bool positioned; /* seq_open_private() sets to 0 */
-@@ -194,6 +195,12 @@ static void allocinfo_copy_str(char *des
- 	strscpy_pad(dest, allocinfo_str(src), ALLOCINFO_STR_SIZE);
- }
- 
-+/* Compare two strings and only consider the trimmed suffix if s1 is too long */
-+static int allocinfo_cmp_str(const char *str, const char *template)
-+{
-+	return strncmp(allocinfo_str(str), template, ALLOCINFO_STR_SIZE);
-+}
+@@ -252,6 +252,8 @@ static bool matches_filter(struct codeta
+ 			   struct alloc_tag_counters *counters,
+ 			   bool *fetched_counters)
+ {
++	bool inaccurate;
 +
- /*
-  * Populates the UAPI allocinfo_tag_data structure with active runtime
-  * profiling counters extracted from the given kernel codetag.
-@@ -234,6 +241,40 @@ static int allocinfo_ioctl_get_content_i
- }
+ 	if (!filter || !filter->mask)
+ 		return true;
  
- /*
-+ * Verifies whether a given codetag satisfies the active filtering criteria by
-+ * matching its characteristics against the specified filter.
-+ */
-+static bool matches_filter(struct codetag *ct, struct allocinfo_filter *filter)
-+{
-+	if (!filter || !filter->mask)
-+		return true;
-+
-+	if (filter->mask & ALLOCINFO_FILTER_MASK_MODNAME) {
-+		/* user wants to filter by modname but ct->modname is NULL */
-+		if (!ct->modname) {
-+			/* validate if user was attempting to filter for built-in allocations */
-+			if (filter->fields.modname[0] != '\0')
-+				return false;
-+		} else if (allocinfo_cmp_str(ct->modname, filter->fields.modname))
+@@ -277,6 +279,12 @@ static bool matches_filter(struct codeta
+ 	    ct->lineno != filter->fields.lineno)
+ 		return false;
+ 
++	if (filter->mask & ALLOCINFO_FILTER_MASK_INACCURATE) {
++		inaccurate = !!(ct->flags & CODETAG_FLAG_INACCURATE);
++		if (inaccurate != !!(filter->fields.inaccurate))
 +			return false;
 +	}
 +
-+	if ((filter->mask & ALLOCINFO_FILTER_MASK_FUNCTION) &&
-+	    ct->function && allocinfo_cmp_str(ct->function, filter->fields.function))
-+		return false;
-+
-+	if ((filter->mask & ALLOCINFO_FILTER_MASK_FILENAME) &&
-+	    ct->filename && allocinfo_cmp_str(ct->filename, filter->fields.filename))
-+		return false;
-+
-+	if ((filter->mask & ALLOCINFO_FILTER_MASK_LINENO) &&
-+	    ct->lineno != filter->fields.lineno)
-+		return false;
-+
-+	return true;
-+}
-+
-+/*
-  * Seeks the ioctl iterator to the specified 0-indexed tag position, reads its
-  * profiling data and returns it to userspace.
-  */
-@@ -241,29 +282,46 @@ static int allocinfo_ioctl_get_at(struct
- {
- 	struct allocinfo_private *priv;
- 	struct codetag *ct;
--	__u64 pos;
- 	struct allocinfo_get_at params = {0};
-+	__u64 skip_count;
- 
- 	if (copy_from_user(&params, arg, sizeof(params)))
- 		return -EFAULT;
- 
-+	if (params.filter.mask & ~ALLOCINFO_FILTER_MASKS)
-+		return -EINVAL;
-+
- 	priv = m->private;
--	pos = params.pos;
- 
- 	mutex_lock(&priv->ioctl_lock);
- 	codetag_lock_module_list(alloc_tag_cttype);
- 
--	if (pos >= codetag_get_count(alloc_tag_cttype)) {
-+	if (params.pos >= codetag_get_count(alloc_tag_cttype)) {
- 		codetag_unlock_module_list(alloc_tag_cttype);
- 		mutex_unlock(&priv->ioctl_lock);
- 		return -ENOENT;
- 	}
- 
-+	skip_count = params.pos;
-+
-+	if (params.filter.mask)
-+		priv->filter = params.filter;
-+	else
-+		priv->filter.mask = 0;
-+
- 	/* Find the codetag */
- 	priv->ioctl_iter = codetag_get_ct_iter(alloc_tag_cttype);
- 	ct = codetag_next_ct(&priv->ioctl_iter);
--	while (ct && pos--)
-+
-+	while (ct) {
-+		if (matches_filter(ct, &priv->filter)) {
-+			if (skip_count == 0)
-+				break;
-+			skip_count--;
-+		}
- 		ct = codetag_next_ct(&priv->ioctl_iter);
-+	}
-+
- 	if (ct) {
- 		allocinfo_to_params(ct, &params.data);
- 		priv->positioned = true;
-@@ -304,6 +362,8 @@ static int allocinfo_ioctl_get_next(stru
- 	}
- 
- 	ct = codetag_next_ct(&priv->ioctl_iter);
-+	while (ct && !matches_filter(ct, &priv->filter))
-+		ct = codetag_next_ct(&priv->ioctl_iter);
- 	if (ct)
- 		allocinfo_to_params(ct, &params);
- 
+ 	if (filter->mask & (ALLOCINFO_FILTER_MASK_MIN_SIZE | ALLOCINFO_FILTER_MASK_MAX_SIZE)) {
+ 		if (!*fetched_counters) {
+ 			*counters = allocinfo_prefetch_counters(ct);
 _
 
 Patches currently in -mm which might be from abhishekbapat@google.com are
