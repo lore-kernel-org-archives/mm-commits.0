@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EEAB83F9F43
-	for <mm-commits@vger.kernel.org>; Wed,  8 Jul 2026 21:25:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 59A793F4DC3
+	for <mm-commits@vger.kernel.org>; Wed,  8 Jul 2026 21:25:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783545932; cv=none; b=DFD/cOph7m/DaywnzBtycWoyykZ3LJ4SyIQ5snB0jcnEssbilY13uOH5gYT6I1j8DNxc7oXNQQwIOmkh7M0InLhH3YtKeok0fBHYwYldF3LEGNXNS5oZYWiSMEZtvDKJr1+MYgCC5KtWB7fUapOtujwSSzUguUwWVtmLhP2KM7s=
+	t=1783545933; cv=none; b=ojnUYDHqY9mqCGEBNLom9yjB1owZFJ7vBjdf+YnA68szqzkaN+zRPKXQ0lcdx8ZmZWvh0eOni77Mwh9SuSDSUObxUhrGO38T5cQsxJWfzzcyqXL7GbTCuQqL0pNG0utYH7liqx3kjie+gt8s/0yoSxxg/GmnRJrcNJEqjDUQsx0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783545932; c=relaxed/simple;
-	bh=ZuPBLn9xSwTeDLohTfCRfMIbcQ78WDU1StJ/pMTRlRA=;
-	h=Date:To:From:Subject:Message-Id; b=bsJGLYOZVx9pX5ukdikyb7ZbexzJkjmYwCj1ibgs3uCs4ve2BxLmjaipte8E3y4dpKtDKdM+XJ4JUENrjmrisOfSMPYNbyJFd/WF77H1X38NUAHl+Yqv4Rq9wOJxtjvJlV2LSuhrddVRteBQ230Cw4Hp6T4quup9EvPaUf47mSg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Deahz09Q; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783545933; c=relaxed/simple;
+	bh=fm0D3ZF4W0geZj/f2+sF5UwjDe7hCfw0ePKOX4BwcUk=;
+	h=Date:To:From:Subject:Message-Id; b=oTYE7zN4pMPSGRJF6/+Ygx1/cG71zi1u0smY9Wy2Va47MsBaZVV+nDjL9I8VnUflLZXCqpzJQYMPSk4BBjGp0Tyb49YqSU/7Z/dkTZT5WgGFrKLIG3r0r3o+XCCXGahh2E5pjsL0XUwdNdcJ4zZM63XfV4zuO9erDwERSh5doVU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vS/iwDfW; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Deahz09Q"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 97FB51F000E9;
-	Wed,  8 Jul 2026 21:25:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vS/iwDfW"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CDCEF1F00A3A;
+	Wed,  8 Jul 2026 21:25:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783545930;
-	bh=qU/eMccONVyb+LWJvb+aJY4flmQBYu7clYFFcqlUGVI=;
+	d=linux-foundation.org; s=korg; t=1783545931;
+	bh=JKfH6Mdb7o+6ixWaaV0m4khC41M208/zD7HeAASwDfs=;
 	h=Date:To:From:Subject;
-	b=Deahz09Qeyhm+MS0aC2V+6g7MZMBVvakZpUuV5Mwcp9dJ0xI5/KE2hdJ47XZNx6LX
-	 hPJpMxPiVNsftaV5yAqugeTaQf3g7+9rDcBodYqAhAl0q/K//8V/caRpEqSwB2C/Za
-	 weaXe0y+5FK7CvwtdpgtqrUGCQ1OlAHu48T70cOY=
-Date: Wed, 08 Jul 2026 14:25:30 -0700
+	b=vS/iwDfWvGHTQbS9Gxurr0uWNAaiJyXqHx3UXlZHyYLtoYNkqIAJy3eEigWp55Pgn
+	 PtBTk73IaMkwTU8jWinSTeiBTaQrDHTXwnKKpQoXizyZpcToPUW/aW4JMKdflMxxDS
+	 JikxKNGUB/lomXD1qr38glPgt5VhfaCIONcxTpBc=
+Date: Wed, 08 Jul 2026 14:25:31 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,svens@linux.ibm.com,surenb@google.com,rppt@kernel.org,peterz@infradead.org,osalvador@suse.de,muchun.song@linux.dev,mingo@redhat.com,mhocko@suse.com,luto@kernel.org,ljs@kernel.org,liam@infradead.org,jackmanb@google.com,hpa@zytor.com,hca@linux.ibm.com,hannes@cmpxchg.org,gor@linux.ibm.com,gerald.schaefer@linux.ibm.com,bp@alien8.de,borntraeger@linux.ibm.com,agordeev@linux.ibm.com,david@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + s390-mm-use-free_reserved_pages-in-vmem_free_pages.patch added to mm-new branch
-Message-Id: <20260708212530.97FB51F000E9@smtp.kernel.org>
+Subject: + mm-bootmem_info-allow-calling-free_bootmem_page-on-pages-without-a-bootmem_type.patch added to mm-new branch
+Message-Id: <20260708212531.CDCEF1F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: s390/mm: use free_reserved_pages() in vmem_free_pages()
+     Subject: mm/bootmem_info: allow calling free_bootmem_page() on pages without a bootmem_type
 has been added to the -mm mm-new branch.  Its filename is
-     s390-mm-use-free_reserved_pages-in-vmem_free_pages.patch
+     mm-bootmem_info-allow-calling-free_bootmem_page-on-pages-without-a-bootmem_type.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/s390-mm-use-free_reserved_pages-in-vmem_free_pages.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-bootmem_info-allow-calling-free_bootmem_page-on-pages-without-a-bootmem_type.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,12 +70,17 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "David Hildenbrand (Arm)" <david@kernel.org>
-Subject: s390/mm: use free_reserved_pages() in vmem_free_pages()
-Date: Wed, 08 Jul 2026 16:10:58 +0200
+Subject: mm/bootmem_info: allow calling free_bootmem_page() on pages without a bootmem_type
+Date: Wed, 08 Jul 2026 16:10:59 +0200
 
-Let's use our new generic helper.
+As preparation for further changes, let's temporarily allow freeing pages
+that were not previously registered.
 
-Link: https://lore.kernel.org/20260708-bootmem_info_part2-v1-3-156ce4986598@kernel.org
+This will allow freeing unregistered vmemmap pages allocated during boot
+through free_bootmem_page() from hugetlb code, until we fully rip all of
+that out.
+
+Link: https://lore.kernel.org/20260708-bootmem_info_part2-v1-4-156ce4986598@kernel.org
 Signed-off-by: David Hildenbrand (Arm) <david@kernel.org>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Andy Lutomirski <luto@kernel.org>
@@ -102,29 +107,29 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/mm/vmem.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ include/linux/bootmem_info.h |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
---- a/arch/s390/mm/vmem.c~s390-mm-use-free_reserved_pages-in-vmem_free_pages
-+++ a/arch/s390/mm/vmem.c
-@@ -39,7 +39,6 @@ static void __ref *vmem_alloc_pages(unsi
- 
- static void vmem_free_pages(unsigned long addr, int order, struct vmem_altmap *altmap)
+--- a/include/linux/bootmem_info.h~mm-bootmem_info-allow-calling-free_bootmem_page-on-pages-without-a-bootmem_type
++++ a/include/linux/bootmem_info.h
+@@ -44,12 +44,12 @@ static inline void free_bootmem_page(str
  {
--	unsigned int nr_pages = 1 << order;
- 	struct page *page;
+ 	enum bootmem_type type = bootmem_type(page);
  
- 	if (altmap) {
-@@ -49,8 +48,7 @@ static void vmem_free_pages(unsigned lon
- 	page = virt_to_page((void *)addr);
- 	if (PageReserved(page)) {
- 		/* allocated from memblock */
--		while (nr_pages--)
--			free_reserved_page(page++);
-+		free_reserved_pages(page, order);
- 	} else {
- 		free_pages(addr, order);
- 	}
+-	VM_BUG_ON_PAGE(page_ref_count(page) != 2, page);
+-
+-	if (type == SECTION_INFO || type == MIX_SECTION_INFO)
++	if (type == SECTION_INFO || type == MIX_SECTION_INFO) {
++		VM_WARN_ON_PAGE(page_ref_count(page) != 2, page);
+ 		put_page_bootmem(page);
+-	else
+-		VM_BUG_ON_PAGE(1, page);
++	} else {
++		free_reserved_page(page);
++	}
+ }
+ #else
+ static inline void register_page_bootmem_info_node(struct pglist_data *pgdat)
 _
 
 Patches currently in -mm which might be from david@kernel.org are
