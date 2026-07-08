@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 679893F6C5A
-	for <mm-commits@vger.kernel.org>; Wed,  8 Jul 2026 21:47:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1A0A13F7ABD
+	for <mm-commits@vger.kernel.org>; Wed,  8 Jul 2026 21:47:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783547240; cv=none; b=RSAANXc3iIIsfdmh52WuwJAbseukd5BePBkURXcH7ZvD7aGCauvRHE1/ffmCdVRnBIn45/R66neueE6F64y+OFs+uZNNayBk7crEJ7Eywl7B7p8le4kZlGPHNmEK0SK/qajMNUJNvXhegGLG4zvePjjaaq6tZQ/qI4vqfHz6mN8=
+	t=1783547242; cv=none; b=tM8dhG8DyIRdjTG8Sb80VwHk0W6d2ztgn65XPwOqNk4AuIAnuoLpJSURbkttAHHc9hwfQbwSDizvv707nYdGy+ifP56RFeGx3Y6DLx5UpsS/K5B8e7LApQllaZ7XYCixxtiTMLAj3AAmSjPo9vbKG776HapA7yxXztdURro7MqY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783547240; c=relaxed/simple;
-	bh=feZ4lc68BJdDu2Z9AuSkFKop7JXm5TQoxeCNe9g5e/I=;
-	h=Date:To:From:Subject:Message-Id; b=ekpzyQOHoTURAkf6rCg1SpPnwIJ1Zr0ESEk5/2cXgv+u8HQc+VKYvR0ariFv+MZY9GbFrhkQ9jML8bwo5x3WwaEyAhR2zBmjFqWLAJrglolIHUc/thhgCItauFu+SRyQW0lgTokMKUmmOOPwMBCq01Kkak+ozNv8pwKOJrl9V40=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=i2Vd31Bi; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783547242; c=relaxed/simple;
+	bh=SPa6uWQyvLjuYGKy/vBTN/bUPGfKZV6tJh2iLwaM3Us=;
+	h=Date:To:From:Subject:Message-Id; b=bMR8WS/NT0d7po6S+Uq2X2WXTobAlJyVnxOVv4jJR/jmx47hIvLZFdXOdExZxMOIfQw0VuWwrGHzXDfwWdyN8tQoQB819xdozQZgvwgaud+4vdG+2KK2B7U6JAS8x0yURuTbfXO9vgP0znttC01INfUCiQi6WVhGWCrbxpkjk/w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jgavkMD9; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="i2Vd31Bi"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3C29F1F00A3A;
-	Wed,  8 Jul 2026 21:47:19 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jgavkMD9"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8E83C1F00A3E;
+	Wed,  8 Jul 2026 21:47:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783547239;
-	bh=WoMGFJUEnuZM8OgnWi/SOHTA0mVEoSSsrWzSw8na2A8=;
+	d=linux-foundation.org; s=korg; t=1783547240;
+	bh=EZCt4ONnqplE/0ThKJQX/uUcSWI/F+RF7m8/uYXKXOc=;
 	h=Date:To:From:Subject;
-	b=i2Vd31Bicwg120zkmyaypQYC0uuo2WtcdIzbMYOCxfaaQX3LsLYJ+6k/C0yEY1wTd
-	 yM5Vl4+BW3rwYo48yeT6WT+TqSdEE6A0FK4qsRJyBzQsBYgNKN93np3Y5kqORld/Vl
-	 jeEtE7yUaWnGVD7sZvy6OZIMP4NNiHHlKclZJCKs=
-Date: Wed, 08 Jul 2026 14:47:18 -0700
+	b=jgavkMD9zmXP5OFHv01o4GXMQEvL2ozyG279iz62qBFcJE/GHPdisByl5ohF27+BY
+	 xwmpiTQkUOMgfNmmxJ0KGsZhZY21ASjjIwIGcFtAXiddtCBeI/NdzcKcAhfMs2Ii/2
+	 zPUrNbB/nqulCJjWryD/KLltwomAF66ZH48fw7jw=
+Date: Wed, 08 Jul 2026 14:47:20 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-core-update-probe-hits-for-new-parameter-commit.patch added to mm-new branch
-Message-Id: <20260708214719.3C29F1F00A3A@smtp.kernel.org>
+Subject: + mm-damon-core-handle-unreset-probe_hits-in-probe_hits_mvsum.patch added to mm-new branch
+Message-Id: <20260708214720.8E83C1F00A3E@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/core: update probe hits for new parameter commit
+     Subject: mm/damon/core: handle unreset probe_hits in probe_hits_mvsum()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-core-update-probe-hits-for-new-parameter-commit.patch
+     mm-damon-core-handle-unreset-probe_hits-in-probe_hits_mvsum.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-update-probe-hits-for-new-parameter-commit.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-handle-unreset-probe_hits-in-probe_hits_mvsum.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,116 +70,44 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/core: update probe hits for new parameter commit
-Date: Wed, 8 Jul 2026 06:53:56 -0700
+Subject: mm/damon/core: handle unreset probe_hits in probe_hits_mvsum()
+Date: Wed, 8 Jul 2026 06:53:57 -0700
 
-Users can update DAMON parameters at runtime.  If the samples and/or
-aggregation intervals are updated in this way, monitoring results
-depending on the intervals should also be updated for a more accurate
-snapshot.  The age and nr_accesses are properly updated, while probe_hits
-are not updated in the way.  Do the update.
+If damon_update_monitoring_result() is called at the end of the
+aggregation interval, probe_hits is not reset.  That's because the value
+will be exposed to the user via damon_region_aggregated trace event.
 
-Link: https://lore.kernel.org/20260708135359.122587-7-sj@kernel.org
+Meanwhile, damon_probe_hits_mvsum() can be called in this state.  Due to
+its logic, it will return a value that is incorrectly high.  This could
+happen if the user requested DAMOS schemes applied regions sysfs files
+update exactly in the time sequence.
+
+The impact is minor, but better to avoid.  Check the timing and simply
+return the fully aggregated last_probe_hits, like
+damon_nr_accesses_mvsum() also does.  It is not 100% accurate since it is
+the last interval's aggregation.  But better than the value that is
+completely reset.
+
+Link: https://lore.kernel.org/20260708135359.122587-8-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/core.c             |   28 +++++++++++++++++++++++++---
- mm/damon/tests/core-kunit.h |   13 ++++++++++---
- 2 files changed, 35 insertions(+), 6 deletions(-)
+ mm/damon/core.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/mm/damon/core.c~mm-damon-core-update-probe-hits-for-new-parameter-commit
+--- a/mm/damon/core.c~mm-damon-core-handle-unreset-probe_hits-in-probe_hits_mvsum
 +++ a/mm/damon/core.c
-@@ -897,10 +897,32 @@ static unsigned int damon_nr_samples_for
- 			damon_sample_count_to_bp(nr, old_attrs), new_attrs);
- }
+@@ -290,6 +290,9 @@ unsigned char damon_probe_hits_mvsum(int
+ 			ctx->passed_sample_intervals;
+ 	left_window_bp = mult_frac(left_window, 10000, window_len);
  
-+static void damon_update_probe_hits(struct damon_region *r,
-+		struct damon_attrs *old_attrs, struct damon_attrs *new_attrs,
-+		bool aggregating, struct damon_ctx *ctx)
-+{
-+	struct damon_probe *p;
-+	int i = 0;
++	if (left_window_bp == 10000)
++		return r->last_probe_hits[probe_idx];
 +
-+	damon_for_each_probe(p, ctx) {
-+		r->last_probe_hits[i] = damon_nr_samples_for_new_attrs(
-+				r->last_probe_hits[i], old_attrs, new_attrs);
-+		if (!aggregating)
-+			r->probe_hits[i] = damon_nr_samples_for_new_attrs(
-+					r->probe_hits[i], old_attrs,
-+					new_attrs);
-+		else
-+			r->probe_hits[i] = 0;
-+		i++;
-+	}
-+}
-+
- static void damon_update_monitoring_result(struct damon_region *r,
- 		struct damon_attrs *old_attrs, struct damon_attrs *new_attrs,
--		bool aggregating)
-+		bool aggregating, struct damon_ctx *ctx)
- {
-+	damon_update_probe_hits(r, old_attrs, new_attrs, aggregating, ctx);
-+
- 	r->last_nr_accesses = damon_nr_samples_for_new_attrs(
- 			r->last_nr_accesses, old_attrs, new_attrs);
- 	if (!aggregating)
-@@ -940,8 +962,8 @@ static void damon_update_monitoring_resu
- 
- 	damon_for_each_target(t, ctx)
- 		damon_for_each_region(r, t)
--			damon_update_monitoring_result(
--					r, old_attrs, new_attrs, aggregating);
-+			damon_update_monitoring_result(r, old_attrs, new_attrs,
-+					aggregating, ctx);
+ 	return damon_mvsum(r->probe_hits[probe_idx],
+ 			r->last_probe_hits[probe_idx], left_window_bp);
  }
- 
- /*
---- a/mm/damon/tests/core-kunit.h~mm-damon-core-update-probe-hits-for-new-parameter-commit
-+++ a/mm/damon/tests/core-kunit.h
-@@ -581,32 +581,39 @@ static void damon_test_update_monitoring
- 		.sample_interval = 10, .aggr_interval = 1000,};
- 	struct damon_attrs new_attrs;
- 	struct damon_region *r = damon_new_region(3, 7);
-+	struct damon_ctx *ctx;
- 
- 	if (!r)
- 		kunit_skip(test, "region alloc fail");
-+	ctx = damon_new_ctx();
-+	if (!ctx) {
-+		damon_free_region(r);
-+		kunit_skip(test, "ctx alloc fail");
-+	}
- 
- 	r->nr_accesses = 15;
- 	r->age = 20;
- 
- 	new_attrs = (struct damon_attrs){
- 		.sample_interval = 100, .aggr_interval = 10000,};
--	damon_update_monitoring_result(r, &old_attrs, &new_attrs, false);
-+	damon_update_monitoring_result(r, &old_attrs, &new_attrs, false, ctx);
- 	KUNIT_EXPECT_EQ(test, r->nr_accesses, 15);
- 	KUNIT_EXPECT_EQ(test, r->age, 2);
- 
- 	new_attrs = (struct damon_attrs){
- 		.sample_interval = 1, .aggr_interval = 1000};
--	damon_update_monitoring_result(r, &old_attrs, &new_attrs, false);
-+	damon_update_monitoring_result(r, &old_attrs, &new_attrs, false, ctx);
- 	KUNIT_EXPECT_EQ(test, r->nr_accesses, 150);
- 	KUNIT_EXPECT_EQ(test, r->age, 2);
- 
- 	new_attrs = (struct damon_attrs){
- 		.sample_interval = 1, .aggr_interval = 100};
--	damon_update_monitoring_result(r, &old_attrs, &new_attrs, false);
-+	damon_update_monitoring_result(r, &old_attrs, &new_attrs, false, ctx);
- 	KUNIT_EXPECT_EQ(test, r->nr_accesses, 150);
- 	KUNIT_EXPECT_EQ(test, r->age, 20);
- 
- 	damon_free_region(r);
-+	damon_destroy_ctx(ctx);
- }
- 
- static void damon_test_set_attrs(struct kunit *test)
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
