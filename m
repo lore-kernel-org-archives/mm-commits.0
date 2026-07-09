@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6EA9E379C3C;
-	Thu,  9 Jul 2026 22:50:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 645293EDE5D
+	for <mm-commits@vger.kernel.org>; Thu,  9 Jul 2026 22:51:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783637405; cv=none; b=H/3Abl0CtqBzD94rldWiGRzqCVfJh786zoq/O2etplxcCwrK09POstVlythbcD19wm/P0jvB9bA0+zI/2cE4tUvCjbG/kj/bNzedVJwtWK9vP76HqhU0n/xZ2AOz2thdfL2TdH/4nK8O6wCGBWx6SYfqA2dYcvbrdXYQpSuybFE=
+	t=1783637486; cv=none; b=VKb2/h4qVrEAz2YzW43V8CUlUQ1Z6wW0SFOMH7N9lUCSux63rn9s3ctU8Cl5krlXTlD4mEyk5D0iflhs4M5/Y4B8FMiVeCIFLjz7lfeIKNgldM1hjVbLoYCCtFzC3QvSyQYL755LzEBvqEuK27kEmhYwwCdgfxxxAZ8iygRmJ2g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783637405; c=relaxed/simple;
-	bh=8+iHs92c7Hm4zjQKRmyjwa3pbf7Bm6ChHdHovxoRJKE=;
-	h=Date:To:From:Subject:Message-Id; b=SkfxdKZrBpaVtzUSfnaefAYmiCDxApwlGD46wnvo9r3Q8nVqO24eWU2L1tqlV7uKHuQuliiF1+tW/fDpm+Q0FZhizVWhruTbgMg+385b6RkNyEg9sddZlafrPcXwxd2pDVyY9+jrYUCKF+PxglOcDJJdm3CWuAuzBN20s+3ur7M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yhX5Z0v8; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783637486; c=relaxed/simple;
+	bh=VAlWBac+2r0s+eih3EwvqvoVbVIin06GzFEA7uO4y7Q=;
+	h=Date:To:From:Subject:Message-Id; b=DH540iwJiFarGMxYo+1m/LrHVFuUf3c4UbPs+t4oyNjZRb9avV+Y0c3BeCvkFcLR866sDudBoYe13SHrHA8X+Jj1N8GlQ6I9YRapKpEPdZRVcNSmi77ydSHaSLRvMGmW8502lzxfI5WYSsHxJadNU47NburW7RBOD3vvHhr1Bjw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GhYkM0AW; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yhX5Z0v8"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 466691F000E9;
-	Thu,  9 Jul 2026 22:50:04 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GhYkM0AW"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E0B521F00A3A;
+	Thu,  9 Jul 2026 22:51:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783637404;
-	bh=rnlSBTLSUGsHJ53Y5Xp2RJwfNLDJuqeP0TrX+awToTY=;
+	d=linux-foundation.org; s=korg; t=1783637484;
+	bh=NTolCQBz1qSPM1LDatyFfLFwbIWpbgbidpZdWiIJkR4=;
 	h=Date:To:From:Subject;
-	b=yhX5Z0v8UCpFWgk5H5kpfJ3fcSor76GUHHeGvxZO8tQkwmd2mKBQNTz6FgaSxdGXb
-	 2Pf2H4YUSmcRiftvIa3E+RFdAElZnKC3vLA2mQA7HjYlmbc0BOAiuHWzYR0H9Oo2AG
-	 +Q8OgXQb1KQhyTt6jAekEEbRCyZ54NJRkEvpOAAw=
-Date: Thu, 09 Jul 2026 15:50:03 -0700
-To: mm-commits@vger.kernel.org,yi1.lai@intel.com,stable@vger.kernel.org,rostedt@goodmis.org,qiuxu.zhuo@intel.com,linmiaohe@huawei.com,lance.yang@linux.dev,david@kernel.org,bp@alien8.de,xieyuanbin1@huawei.com,akpm@linux-foundation.org
+	b=GhYkM0AWuUhcTEPe+smI/gpdDYpAM2HSQXMX0Z5YzaJFq+so19KazrHJt6lWUnShf
+	 EiE2w61AqshHGmkMllpV1ZnyzuUtpnAKUtF0kBkSkP0UZQ3mRFNslpYWUbhi8xq5Gw
+	 r4hjxEmouFkoaZj4E63Qqx1RsGwHU3XQjXeCj744=
+Date: Thu, 09 Jul 2026 15:51:23 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,sj@kernel.org,shuah@kernel.org,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,leon@kernel.org,jgg@ziepe.ca,david@kernel.org,balbirs@nvidia.com,lihongfu@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-memory-failure-trace-change-memory_failure_event-to-ras-subsystem.patch removed from -mm tree
-Message-Id: <20260709225004.466691F000E9@smtp.kernel.org>
+Subject: + selftests-mm-fix-memleak-in-migration-benchmark.patch added to mm-new branch
+Message-Id: <20260709225123.E0B521F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,65 +34,149 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: mm/memory-failure: trace: change memory_failure_event to ras subsystem
-has been removed from the -mm tree.  Its filename was
-     mm-memory-failure-trace-change-memory_failure_event-to-ras-subsystem.patch
+The patch titled
+     Subject: selftests/mm: fix memleak in migration benchmark
+has been added to the -mm mm-new branch.  Its filename is
+     selftests-mm-fix-memleak-in-migration-benchmark.patch
 
-This patch was dropped because it was merged into the mm-hotfixes-stable branch
-of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-fix-memleak-in-migration-benchmark.patch
+
+This patch will later appear in the mm-new branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
 ------------------------------------------------------
-From: Xie Yuanbin <xieyuanbin1@huawei.com>
-Subject: mm/memory-failure: trace: change memory_failure_event to ras subsystem
-Date: Fri, 5 Jun 2026 16:12:13 +0800
+From: Hongfu Li <lihongfu@kylinos.cn>
+Subject: selftests/mm: fix memleak in migration benchmark
+Date: Thu, 9 Jul 2026 16:18:43 +0800
 
-Commit 97f0b1345219 ("tracing: add trace event for memory-failure")
-introduced memory_failure_event in ras subsystem.  commit 31807483d395
-("mm/memory-failure: remove the selection of RAS") changed
-memory_failure_event to memory_failure subsystem.  This breaks the
-backward compatibility, some user programs rely on it.
+Several early return paths in run_migration_benchmark() skip
+hmm_buffer_free(), leaking the buffer.  Replace with a single cleanup
+label.
 
-Change memory_failure_event to ras subsystem to keep backward
-compatibility.
-
-Link: https://lore.kernel.org/20260605081213.154660-1-xieyuanbin1@huawei.com
-Fixes: 31807483d395 ("mm/memory-failure: remove the selection of RAS")
-Signed-off-by: Xie Yuanbin <xieyuanbin1@huawei.com>
-Reported-by: Yi Lai <yi1.lai@intel.com>
-Reported-by: Qiuxu Zhuo <qiuxu.zhuo@intel.com>
-Closes: https://lore.kernel.org/linux-mm/CY8PR11MB7134346A3E4BB28ECA28D6E989132@CY8PR11MB7134.namprd11.prod.outlook.com
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Reviewed-by: Qiuxu Zhuo <qiuxu.zhuo@intel.com>
-Reviewed-by: Lance Yang <lance.yang@linux.dev>
-Reviewed-by: Miaohe Lin <linmiaohe@huawei.com>
-Tested-by: Qiuxu Zhuo <qiuxu.zhuo@intel.com>
-Reviewed-by: Lance Yang <lance.yang@linux.dev>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: <stable@vger.kernel.org>
+Link: https://lore.kernel.org/20260709081843.1451202-1-lihongfu@kylinos.cn
+Fixes: 271a7b2e3c13 ("selftests/mm/hmm-tests: new throughput tests including THP")
+Signed-off-by: Hongfu Li <lihongfu@kylinos.cn>
+Reviewed-by: David Hildenbrand (Arm) <david@kernel.org>
+Reviewed-by: SJ Park <sj@kernel.org>
+Cc: Balbir Singh <balbirs@nvidia.com>
+Cc: Hongfu Li <lihongfu@kylinos.cn>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Leon Romanovsky <leon@kernel.org>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/trace/events/memory-failure.h |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ tools/testing/selftests/mm/hmm-tests.c |   21 ++++++++++++---------
+ 1 file changed, 12 insertions(+), 9 deletions(-)
 
---- a/include/trace/events/memory-failure.h~mm-memory-failure-trace-change-memory_failure_event-to-ras-subsystem
-+++ a/include/trace/events/memory-failure.h
-@@ -1,6 +1,10 @@
- /* SPDX-License-Identifier: GPL-2.0 */
- #undef TRACE_SYSTEM
--#define TRACE_SYSTEM memory_failure
-+/*
-+ * For historical versions, memory_failure_event is in ras subsystem,
-+ * some user programs depend on it.
-+ */
-+#define TRACE_SYSTEM ras
- #define TRACE_INCLUDE_FILE memory-failure
+--- a/tools/testing/selftests/mm/hmm-tests.c~selftests-mm-fix-memleak-in-migration-benchmark
++++ a/tools/testing/selftests/mm/hmm-tests.c
+@@ -2829,8 +2829,11 @@ static inline int run_migration_benchmar
+ 	buffer->ptr = mmap(NULL, buffer_size, PROT_READ | PROT_WRITE,
+ 			  MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
  
- #if !defined(_TRACE_MEMORY_FAILURE_H) || defined(TRACE_HEADER_MULTI_READ)
+-	if (buffer->ptr == MAP_FAILED)
+-		return -1;
++	if (buffer->ptr == MAP_FAILED) {
++		buffer->ptr = NULL;
++		ret = -1;
++		goto cleanup;
++	}
+ 
+ 	/* Apply THP hint if requested */
+ 	if (use_thp)
+@@ -2839,7 +2842,7 @@ static inline int run_migration_benchmar
+ 		ret = madvise(buffer->ptr, buffer_size, MADV_NOHUGEPAGE);
+ 
+ 	if (ret)
+-		return ret;
++		goto cleanup;
+ 
+ 	/* Initialize memory to make sure pages are allocated */
+ 	ptr = (int *)buffer->ptr;
+@@ -2849,11 +2852,11 @@ static inline int run_migration_benchmar
+ 	/* Warmup iteration */
+ 	ret = hmm_migrate_sys_to_dev(fd, buffer, npages);
+ 	if (ret)
+-		return ret;
++		goto cleanup;
+ 
+ 	ret = hmm_migrate_dev_to_sys(fd, buffer, npages);
+ 	if (ret)
+-		return ret;
++		goto cleanup;
+ 
+ 	/* Benchmark iterations */
+ 	for (i = 0; i < iterations; i++) {
+@@ -2862,7 +2865,7 @@ static inline int run_migration_benchmar
+ 
+ 		ret = hmm_migrate_sys_to_dev(fd, buffer, npages);
+ 		if (ret)
+-			return ret;
++			goto cleanup;
+ 
+ 		end = get_time_ms();
+ 		s2d_total += (end - start);
+@@ -2872,7 +2875,7 @@ static inline int run_migration_benchmar
+ 
+ 		ret = hmm_migrate_dev_to_sys(fd, buffer, npages);
+ 		if (ret)
+-			return ret;
++			goto cleanup;
+ 
+ 		end = get_time_ms();
+ 		d2s_total += (end - start);
+@@ -2886,9 +2889,9 @@ static inline int run_migration_benchmar
+ 	results->throughput_d2s = (buffer_size / (1024.0 * 1024.0 * 1024.0)) /
+ 				 (results->dev_to_sys_time / 1000.0);
+ 
+-	/* Cleanup */
++cleanup:
+ 	hmm_buffer_free(buffer);
+-	return 0;
++	return ret;
+ }
+ 
+ /*
 _
 
-Patches currently in -mm which might be from xieyuanbin1@huawei.com are
+Patches currently in -mm which might be from lihongfu@kylinos.cn are
 
+selftests-mm-move-pkey-selftest-helpers-to-pkey_utilc.patch
+selftests-mm-unify-pkey-sighandler-selftest-assertions-and-tracing.patch
+selftests-mm-use-pkey_assert-on-clone_raw-failure-in-pkey-test.patch
+selftests-mm-add-missing-mmap-return-checks-in-pkey-tests.patch
+selftests-mm-add-missing-pthread_create-return-checks-in-pkey-tests.patch
+selftests-mm-fix-clone-cleartid-race-in-pkey-sighandler-tests.patch
+selftests-mm-fix-memleak-in-migration-benchmark.patch
 
