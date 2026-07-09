@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9D0781D6195
-	for <mm-commits@vger.kernel.org>; Thu,  9 Jul 2026 22:26:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B3D4531F99A;
+	Thu,  9 Jul 2026 22:49:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783636000; cv=none; b=q6P9lGOo65rE375419s2cKmRMmZqy4KFsCAItLccWHI65//qo5t1EhLranKg5bT5w6qpM4MW0Racr2xeisvY1OpGcrbE2jNgtcn6W1yC+lcsjewiKU5Q0MHakPtCxFuf09aYTn93xapSURKVxTgqew/lfGxzd3mU5R4chN+7PiE=
+	t=1783637394; cv=none; b=Zst8QyoiCeUryXJ4WvYB0dNMntYnTcR3zUO8yMo5c+ZoE/ruRb478qI610EwXQfhAEV8++E5H/NVt457HZErjafFpnI+xkB8iWZvlYLP3KDCZlygjm+ycyJZTCE/Wl/0EgNEQDxA3du4KOeJgzdMNPHdEDAVu63qmcE/eJvF74U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783636000; c=relaxed/simple;
-	bh=n8x55Y6GoUIhj1WjAiP45+G9tUZugDKodusScoALqT0=;
-	h=Date:To:From:Subject:Message-Id; b=ej/AurotJxp+/n0/SrAwrfVAH608Fiwuap3TO4Dkt2OA/HMadKG773jVhwW5hRoI5e747vmy1Zrd0kxarOxzaPlNPz7SD6MP2EuI7t7P8bQcN69Jqht3mdVSLhpYiAn23jpUkrOae9xR7AC/UjWujy8ZtSa44bV2jA7tLj1QJ1A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=simywHF5; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783637394; c=relaxed/simple;
+	bh=Okqp7MLfijeHbLRmU4RLIPd328cKzS9iZVT5PGhMZE4=;
+	h=Date:To:From:Subject:Message-Id; b=p874YptvTT9rx8OagFyUVZxq29qOw+Y2scIS9KrYGcLhNZjqiKPzmg7loQ8w2f8oVRdzi4WcqVJWjVyQ33HkIsQ2BikaxRJPJ3RMtxenL73zft348RSXF8mfYKrLrD9Zh+Vsbf3aPTs4bUFedAnuV1MasYNULgwx0ZWFephzu4k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CMJW5v9Y; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="simywHF5"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 38F361F000E9;
-	Thu,  9 Jul 2026 22:26:39 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CMJW5v9Y"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 556241F00A3A;
+	Thu,  9 Jul 2026 22:49:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783635999;
-	bh=NP6xise93ordlQAWBTGRC7NrMyccGjS2+GWUNe3KBAM=;
+	d=linux-foundation.org; s=korg; t=1783637392;
+	bh=0Lo1AHINaaeIUQHLTwQMOvobS1f/aUGZxPodZlyVvU4=;
 	h=Date:To:From:Subject;
-	b=simywHF51HqdDwTt4tjqtALngGq36rMQ2iCnAR0unM9Em12jHkWVAMJyoQow5LLu9
-	 GIje4hN24HR/LXheYV77D9crmPCBfzkvwdO66X/bAciIZnKqd3QY/KvCZ+aa85pyrY
-	 rCu70oCKp/V6Fba4YjeWh9FYi89M2ghpf4W5XIBA=
-Date: Thu, 09 Jul 2026 15:26:38 -0700
-To: mm-commits@vger.kernel.org,david@kernel.org,chengming.zhou@linux.dev,xu.xin16@zte.com.cn,akpm@linux-foundation.org
+	b=CMJW5v9YqhldQcYr35/PgaaX3oHYUr2UH3EBL+C80vpTC2sersOC0+gYLWyA3vJqM
+	 gCxsn4t28PhfRmiiwm6VwfQfs/NkLzEuwK6Ast/934Eb2Y7vSHj3xX9DNqUFrY4i3L
+	 5aVVZWlqH3c1cgIxO6v4brW5SQHv2XzhWt2493hk=
+Date: Thu, 09 Jul 2026 15:49:51 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,stable@vger.kernel.org,sj@kernel.org,ljs@kernel.org,lance.yang@linux.dev,klarasmodin@gmail.com,david@kernel.org,balbirs@nvidia.com,richard.weiyang@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + ksm-use-precise-linear_page_index-instead-of-the-whole-address-space.patch added to mm-new branch
-Message-Id: <20260709222639.38F361F000E9@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-page_vma_mapped-fix-device-private-pmd-handling.patch removed from -mm tree
+Message-Id: <20260709224952.556241F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,85 +34,130 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: ksm: Use precise linear_page_index instead of the whole address space
-has been added to the -mm mm-new branch.  Its filename is
-     ksm-use-precise-linear_page_index-instead-of-the-whole-address-space.patch
+The quilt patch titled
+     Subject: mm/page_vma_mapped: fix device-private PMD handling
+has been removed from the -mm tree.  Its filename was
+     mm-page_vma_mapped-fix-device-private-pmd-handling.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ksm-use-precise-linear_page_index-instead-of-the-whole-address-space.patch
-
-This patch will later appear in the mm-new branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because it was merged into the mm-hotfixes-stable branch
+of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: xu xin <xu.xin16@zte.com.cn>
-Subject: ksm: Use precise linear_page_index instead of the whole address space
-Date: Thu, 9 Jul 2026 17:33:12 +0800 (CST)
+From: Wei Yang <richard.weiyang@gmail.com>
+Subject: mm/page_vma_mapped: fix device-private PMD handling
+Date: Tue, 30 Jun 2026 02:15:40 +0000
 
-Since we now have linear_page_index available that we can use here,
-allowing for optimizing the RMAP walk, we can also use it to locate more
-precisely all related-processes when error hits the KSM page, which will
-decrease a lot of invalid iterations.
+Commit 65edfda6f3f2 ("mm/rmap: extend rmap and migration support
+device-private entries") introduced the concept of device-private PMD
+entries, but did not correctly update the rmap walk code to account for
+them.
 
-Link: https://lore.kernel.org/20260709173312403qgj1Af6pRkFMDSsmc19sM@zte.com.cn
-Signed-off-by: xu xin <xu.xin16@zte.com.cn>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Cc: Chengming Zhou <chengming.zhou@linux.dev>
+As a result, when page_vma_mapped_walk() encounters device-private PMD
+entries, it takes no action other than to acquire the PMD lock and exit.
+
+However this is highly problematic for two reasons - firstly, device
+private entries possess a PFN so check_pmd() needs to be called to ensure
+an overlapping PFN range.
+
+Secondly, and more importantly, if PVMW_MIGRATION is set the caller
+assumes the returned entry is a migration entry, resulting in memory
+corruption when the caller tries to interpret the device private entry as
+such.
+
+In addition, commit 146287290023 ("mm/huge_memory: implement
+device-private THP splitting") allowed device private PMDs to be split
+like THP mappings, but again did not update this code path.
+
+As a result, we might race a PMD split prior to acquiring the PMD lock.
+
+This patch addresses all of these issues by invoking check_pmd(), ensuring
+PMVW_MIGRATION is not set and checks whether a split raced us we do for
+PMD THP and migration entries.
+
+Instead of checking for a subset of the cases after taking the pmd_lock(),
+put device-private along with pmd_trans_huge() and
+pmd_is_migration_entry().  Also remove thp_migration_supported() as it is
+already guarded by pmd_is_migration_entry().
+
+[akpm@linux-foundation.org: fix Raspberry Pi 1 build, per David]
+Link: https://lore.kernel.org/20260630021540.17297-1-richard.weiyang@gmail.com
+Fixes: 65edfda6f3f2 ("mm/rmap: extend rmap and migration support device-private entries")
+Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
+Suggested-by: David Hildenbrand <david@kernel.org>
+Reviewed-by: Lance Yang <lance.yang@linux.dev>
+Acked-by: Balbir Singh <balbirs@nvidia.com>
+Tested-by: Klara Modin <klarasmodin@gmail.com>
+Cc: SeongJae Park <sj@kernel.org>
+Cc: Zi Yan <ziy@nvidia.com>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: <stable@vger.kernel.org>q
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/ksm.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ mm/page_vma_mapped.c |   31 +++++++++++++++++--------------
+ 1 file changed, 17 insertions(+), 14 deletions(-)
 
---- a/mm/ksm.c~ksm-use-precise-linear_page_index-instead-of-the-whole-address-space
-+++ a/mm/ksm.c
-@@ -3290,12 +3290,13 @@ void collect_procs_ksm(const struct foli
- 		for_each_process(tsk) {
- 			struct anon_vma_chain *vmac;
- 			const unsigned long addr = rmap_item->address & PAGE_MASK;
-+			const unsigned long index = rmap_item->linear_page_index;
- 			struct task_struct *t =
- 				task_early_kill(tsk, force_early);
- 			if (!t)
- 				continue;
--			anon_vma_interval_tree_foreach(vmac, &av->rb_root, 0,
--						       ULONG_MAX)
-+			anon_vma_interval_tree_foreach(vmac, &av->rb_root, index,
-+						       index)
- 			{
- 				vma = vmac->vma;
- 				if (vma->vm_mm == t->mm) {
+--- a/mm/page_vma_mapped.c~mm-page_vma_mapped-fix-device-private-pmd-handling
++++ a/mm/page_vma_mapped.c
+@@ -243,21 +243,31 @@ restart:
+ 		 */
+ 		pmde = pmdp_get_lockless(pvmw->pmd);
+ 
+-		if (pmd_trans_huge(pmde) || pmd_is_migration_entry(pmde)) {
++		if (IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE) &&
++		    (pmd_trans_huge(pmde) || pmd_is_migration_entry(pmde) ||
++		    pmd_is_device_private_entry(pmde))) {
+ 			pvmw->ptl = pmd_lock(mm, pvmw->pmd);
+ 			pmde = *pvmw->pmd;
+-			if (!pmd_present(pmde)) {
++			if (pmd_is_migration_entry(pmde)) {
+ 				softleaf_t entry;
+ 
+-				if (!thp_migration_supported() ||
+-				    !(pvmw->flags & PVMW_MIGRATION))
++				if (!(pvmw->flags & PVMW_MIGRATION))
+ 					return not_found(pvmw);
+ 				entry = softleaf_from_pmd(pmde);
++				if (!check_pmd(softleaf_to_pfn(entry), pvmw))
++					return not_found(pvmw);
++				return true;
++			} else if (pmd_is_device_private_entry(pmde)) {
++				softleaf_t entry;
+ 
+-				if (!softleaf_is_migration(entry) ||
+-				    !check_pmd(softleaf_to_pfn(entry), pvmw))
++				if (pvmw->flags & PVMW_MIGRATION)
++					return not_found(pvmw);
++				entry = softleaf_from_pmd(pmde);
++				if (!check_pmd(softleaf_to_pfn(entry), pvmw))
+ 					return not_found(pvmw);
+ 				return true;
++			} else if (!pmd_present(pmde)) {
++				return not_found(pvmw);
+ 			}
+ 			if (likely(pmd_trans_huge(pmde))) {
+ 				if (pvmw->flags & PVMW_MIGRATION)
+@@ -266,17 +276,10 @@ restart:
+ 					return not_found(pvmw);
+ 				return true;
+ 			}
+-			/* THP pmd was split under us: handle on pte level */
++			/* THP/device-private pmd was split under us: handle on pte level */
+ 			spin_unlock(pvmw->ptl);
+ 			pvmw->ptl = NULL;
+ 		} else if (!pmd_present(pmde)) {
+-			const softleaf_t entry = softleaf_from_pmd(pmde);
+-
+-			if (softleaf_is_device_private(entry)) {
+-				pvmw->ptl = pmd_lock(mm, pvmw->pmd);
+-				return true;
+-			}
+-
+ 			if ((pvmw->flags & PVMW_SYNC) &&
+ 			    thp_vma_suitable_order(vma, pvmw->address,
+ 						   PMD_ORDER) &&
 _
 
-Patches currently in -mm which might be from xu.xin16@zte.com.cn are
+Patches currently in -mm which might be from richard.weiyang@gmail.com are
 
-ksm-add-linear_page_index-into-ksm_rmap_item.patch
-ksm-optimize-rmap_walk_ksm-by-passing-a-suitablepage-index.patch
-ksm-add-mremap-selftests-for-ksm_rmap_walk.patch
-mm-ksm-initialize-the-addr-only-once-in-collect_procs_ksm.patch
-ksm-use-precise-linear_page_index-instead-of-the-whole-address-space.patch
 
