@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7B34643B485
-	for <mm-commits@vger.kernel.org>; Thu,  9 Jul 2026 18:41:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8BCB4449983
+	for <mm-commits@vger.kernel.org>; Thu,  9 Jul 2026 18:48:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783622487; cv=none; b=UM2kfOLzscYHuokX+wHEQ7aYRA1MKQQUjhlcbDJ49YxOSAf8jP6EUhs4jbOOoNZ/1AEmBRXElbmfj0yOjdbV5OZw4f1BVrYgpaAACu2O4jlSs54DOiQ+07ztZ44ClGyjIBplSTStKEr56GWyc23nVtpv0GIMu8vm6dXQe+uXt+g=
+	t=1783622923; cv=none; b=rYlGJyb34HGjg3cwa0uSzg+6FH7oNBSbYHS3v/qJPGsrPckZRWxiNdJTG4WXfCWF1ZboA8t/rAvIj5KoGYyhcuV6FS8RT76s9gJalhyOzv1hNOYW+RqD6bQRGpZMnRBj+9i1/IBtflh4aE7lWGXzAIgBVyr3LMSbERb2i8rssBg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783622487; c=relaxed/simple;
-	bh=DZ9zuUh40mxNYqvDInY5ha3CPRKK85i9tWVo2tkaO68=;
-	h=Date:To:From:Subject:Message-Id; b=H1hCeW4jhKn617VOo5Y4IOy7qaiQulRlb3frsxo3FzHluwRi3yuFR8KsjderVD0Roexe/hUvJ+fxd2PIlm+/8tMi2LOEmgEquz0waQDjM+r/Mec/4+34DJXb5VAns3mqx3qiUsMe3dNlDGAnOKfeZncmFPXDmijCBBbN3nbksxw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=W32Erd0l; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783622923; c=relaxed/simple;
+	bh=IlTIz3vaZp7N8bcPlkeYy7w7iO4pwSskQFQ83OihSY0=;
+	h=Date:To:From:Subject:Message-Id; b=sFQeS2bkbVhMFdFQSpw9EeL2c2dhR6cexptyIUTSrWq42Qjvr4AsQuyo08INbkuXNK8s/5AlXjdppDrzS7INAbEylQAPz6vPHutMe+Q5kC581ElssTpG0/YCOqVW8pfB94LVqpW/8s09BVTqvITe+X4NzsrF8xw4bgbFxQGaKms=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OCcAi02O; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="W32Erd0l"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0462D1F000E9;
-	Thu,  9 Jul 2026 18:41:24 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OCcAi02O"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0C6DD1F000E9;
+	Thu,  9 Jul 2026 18:48:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783622485;
-	bh=EaLs/h0SQqxhJ2vOuzp91OucvkGlNCfawLTvf5C7gkc=;
+	d=linux-foundation.org; s=korg; t=1783622922;
+	bh=ckREh7GYAWDc5adfslyzMfQ44TYDPxGd6lGnESoYaHk=;
 	h=Date:To:From:Subject;
-	b=W32Erd0lkRGCuKKOwvMcWDXcb8mZtS1RkNjLikMP2VaMl/c962I2kHE8fTDeHRu5x
-	 Zo+rcXFWMZ5hcm3b3W091C/TqlejiUlZ00+4XXw0ssNmmwSJWFA7tSqbB0gkjB7JQ0
-	 vZqMEbRle3Pc3q1rIh49wc7aRruQhDprheZxmUqQ=
-Date: Thu, 09 Jul 2026 11:41:24 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,akpm@linux-foundation.org
+	b=OCcAi02OsuToKgQ9bRNVg4T5gb8mdeiA2UdTaWptNc/zEEvbGv/0KXqQU+901SNy/
+	 vgC5lBzIPhSTOvgIJbxDHUHvYrext7zXEbP2CEQjKLuYlV7SZgZ0f+/n4WjLZg+7oO
+	 ZjV9ikaZeFHjuZK+aADnMoYNme1+v+Mq42KtzAco=
+Date: Thu, 09 Jul 2026 11:48:41 -0700
+To: mm-commits@vger.kernel.org,leitao@debian.org,catalin.marinas@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_alloc-remove-set_page_private-in-prep_compound_tail.patch added to mm-unstable branch
-Message-Id: <20260709184125.0462D1F000E9@smtp.kernel.org>
+Subject: + mm-kmemleak-confirm-suspected-leaks-with-a-second-scan.patch added to mm-new branch
+Message-Id: <20260709184842.0C6DD1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,26 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/page_alloc: remove set_page_private() in prep_compound_tail()
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-page_alloc-remove-set_page_private-in-prep_compound_tail.patch
+     Subject: mm: kmemleak: confirm suspected leaks with a second scan
+has been added to the -mm mm-new branch.  Its filename is
+     mm-kmemleak-confirm-suspected-leaks-with-a-second-scan.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-remove-set_page_private-in-prep_compound_tail.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-kmemleak-confirm-suspected-leaks-with-a-second-scan.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,60 +69,165 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Zi Yan <ziy@nvidia.com>
-Subject: mm/page_alloc: remove set_page_private() in prep_compound_tail()
-Date: Thu, 09 Jul 2026 14:06:05 -0400
+From: Catalin Marinas <catalin.marinas@arm.com>
+Subject: mm: kmemleak: confirm suspected leaks with a second scan
+Date: Thu, 9 Jul 2026 18:24:47 +0100
 
-Tail pages are expected to have (and optionally be checked) zeroed
-->private when they are freed.  It stays true during subsequent
-reallocation, so replace the tail_page->private initialization with a
-VM_WARN_ON_ONCE() in compound page preparation.
+The kmemleak marking phase is not atomic.  While the object graph is
+traversed, the kernel can modify pointers, free objects or allocate new
+ones.  If a reference to an object is moved from one location to another,
+kmemleak scanning may miss it.  We have explicit annotations like
+kmemleak_transient_leak() but identifying and maintaining them is not
+trivial.
 
-Link: https://lore.kernel.org/20260709-keep-subpage-private-zero-at-free-v3-5-7e4fe155f5b9@nvidia.com
-Signed-off-by: Zi Yan <ziy@nvidia.com>
-Acked-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Reviewed-by: Lance Yang <lance.yang@linux.dev>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Brendan Jackman <jackmanb@google.com>
-Cc: Dennis Zhou <dennis@kernel.org>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Nico Pache <npache@redhat.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Tejun Heo <tj@kernel.org>
+Given that such transient leaks are short-lived, rather than just
+reporting such objects as leaks, do another scan to confirm the suspected
+objects.  If no new leaks are found during the first scan, skip the
+confirmation one.
+
+Link: https://lore.kernel.org/20260709173347.689607-1-catalin.marinas@arm.com
+Signed-off-by: Catalin Marinas <catalin.marinas@arm.com>
+Assisted-by: Claude:claude-opus-4-8
+Cc: Breno Leitao <leitao@debian.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/internal.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/kmemleak.c |   55 ++++++++++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 53 insertions(+), 2 deletions(-)
 
---- a/mm/internal.h~mm-page_alloc-remove-set_page_private-in-prep_compound_tail
-+++ a/mm/internal.h
-@@ -741,7 +741,7 @@ static inline void prep_compound_tail(st
- {
- 	tail->mapping = TAIL_MAPPING;
- 	set_compound_head(tail, head, order);
--	set_page_private(tail, 0);
-+	VM_WARN_ON_ONCE(tail->private);
- }
+--- a/mm/kmemleak.c~mm-kmemleak-confirm-suspected-leaks-with-a-second-scan
++++ a/mm/kmemleak.c
+@@ -175,6 +175,8 @@ struct kmemleak_object {
+ #define OBJECT_PHYS		(1 << 4)
+ /* flag set for per-CPU pointers */
+ #define OBJECT_PERCPU		(1 << 5)
++/* flag set on an object left unreferenced by the full scan, pending confirmation */
++#define OBJECT_SUSPECT		(1 << 6)
  
- static inline void init_compound_tail(struct page *tail,
+ /* set when __remove_object() called */
+ #define DELSTATE_REMOVED	(1 << 0)
+@@ -235,6 +237,8 @@ static unsigned long jiffies_min_age;
+ static unsigned long jiffies_last_scan;
+ /* delay between automatic memory scannings */
+ static unsigned long jiffies_scan_wait;
++/* number of objects flagged OBJECT_SUSPECT during the current scan */
++static int nr_suspects;
+ /* enables or disables the task stacks scanning */
+ static int kmemleak_stack_scan = 1;
+ /* protects the memory scanning, parameters and debug/kmemleak file access */
+@@ -1440,6 +1444,11 @@ static void update_refs(struct kmemleak_
+ 	 */
+ 	object->count++;
+ 	if (color_gray(object)) {
++		/* referenced after all, no longer a suspect */
++		if (object->flags & OBJECT_SUSPECT) {
++			object->flags &= ~OBJECT_SUSPECT;
++			nr_suspects--;
++		}
+ 		/* put_object() called when removing from gray_list */
+ 		WARN_ON(!get_object(object));
+ 		list_add_tail(&object->gray_list, &gray_list);
+@@ -1849,11 +1858,11 @@ static void kmemleak_scan(void)
+ 	struct kmemleak_object *object;
+ 	struct zone *zone;
+ 	int __maybe_unused i;
+-	struct xarray dedup;
+-	int new_leaks = 0;
+ 	int stop = 0;
+ 
+ 	jiffies_last_scan = jiffies;
++	if (full)
++		nr_suspects = 0;
+ 
+ 	/* prepare the kmemleak_object's */
+ 	rcu_read_lock();
+@@ -1883,6 +1892,8 @@ static void kmemleak_scan(void)
+ 
+ 		/* reset the reference count (whiten the object) */
+ 		object->count = 0;
++		if (full)
++			object->flags &= ~OBJECT_SUSPECT;
+ 		if (color_gray(object) && get_object(object))
+ 			list_add_tail(&object->gray_list, &gray_list);
+ 
+@@ -1950,6 +1961,10 @@ static void kmemleak_scan(void)
+ scan_gray:
+ 	scan_gray_list();
+ 
++	/* a confirmation scan does not look for modified objects */
++	if (!full)
++		return nr_suspects;
++
+ 	/*
+ 	 * Check for new or unreferenced objects modified since the previous
+ 	 * scan and color them gray until the next scan.
+@@ -1972,6 +1987,11 @@ scan_gray:
+ 			/* color it gray temporarily */
+ 			object->count = object->min_count;
+ 			list_add_tail(&object->gray_list, &gray_list);
++		} else if (unreferenced_object(object) &&
++			   !(object->flags & OBJECT_REPORTED)) {
++			/* flag the objects left unreferenced by this scan */
++			object->flags |= OBJECT_SUSPECT;
++			nr_suspects++;
+ 		}
+ 		raw_spin_unlock_irq(&object->lock);
+ 	}
+@@ -1982,6 +2002,26 @@ scan_gray:
+ 	 */
+ 	scan_gray_list();
+ 
++	return nr_suspects;
++}
++
++/*
++ * Scan the memory and report the unreferenced objects as leaks. Must be
++ * called with the scan_mutex held.
++ */
++static void kmemleak_scan(void)
++{
++	struct kmemleak_object *object;
++	struct xarray dedup;
++	int new_leaks = 0;
++
++	/*
++	 * Full scan. Objects left unreferenced are flagged OBJECT_SUSPECT and
++	 * counted in the return value; nothing to confirm or report otherwise.
++	 */
++	if (!__kmemleak_scan(true))
++		return;
++
+ 	/*
+ 	 * If scanning was stopped do not report any new unreferenced objects.
+ 	 */
+@@ -1989,6 +2029,16 @@ scan_gray:
+ 		return;
+ 
+ 	/*
++	 * A live object whose only reference is moved by, for example, a
++	 * concurrent RCU update can be missed for one scan and reported as a
++	 * transient false positive. Scan again and only report the objects
++	 * left unreferenced (still flagged OBJECT_SUSPECT) by both scans.
++	 */
++	__kmemleak_scan(false);
++	if (scan_should_stop())
++		return;
++
++	/*
+ 	 * Scanning result reporting. When verbose printing is enabled, dedupe
+ 	 * by stackdepot trace_handle so each unique backtrace is logged once
+ 	 * per scan, annotated with the number of objects that share it. The
+@@ -2015,6 +2065,7 @@ scan_gray:
+ 		trace_handle = 0;
+ 		dedup_print = false;
+ 		if (unreferenced_object(object) &&
++		    (object->flags & OBJECT_SUSPECT) &&
+ 		    !(object->flags & OBJECT_REPORTED)) {
+ 			object->flags |= OBJECT_REPORTED;
+ 			if (kmemleak_verbose) {
 _
 
-Patches currently in -mm which might be from ziy@nvidia.com are
+Patches currently in -mm which might be from catalin.marinas@arm.com are
 
-mm-page_owner-add-numa-node-filter-fix.patch
-mm-percpu-km-clear-page-private-before-free-them.patch
-mm-compaction-stop-recording-free-page-order-in-page-private.patch
-mm-huge_memory-add-page-private-check-back-in-__split_folio_to_order.patch
-mm-page_alloc-make-sure-tail_page-private-is-zero-at-page-free-time.patch
-mm-page_alloc-remove-set_page_private-in-prep_compound_tail.patch
+mm-kmemleak-confirm-suspected-leaks-with-a-second-scan.patch
 
