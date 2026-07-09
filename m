@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 36B3543B3E0
-	for <mm-commits@vger.kernel.org>; Thu,  9 Jul 2026 18:41:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5B44E43B3C0
+	for <mm-commits@vger.kernel.org>; Thu,  9 Jul 2026 18:41:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783622482; cv=none; b=abq4EaGDETRhLCRnB9FK93guFzhCo/xkBOtXzXjFP0jDDqEh6STgD97v3YjbInhrVzY90THbp2sGXQILP478ebZ7gcj6U7L4ulBtNBJMOLb8AOtd3tDsIcdj+DtptCN7Ly8yaKoCP+YeH6FFFTG/6YiCydB0D32X5M/lKN+F4LE=
+	t=1783622484; cv=none; b=f6Rpi+sdsuBXL5Jna/0FCekHxB0iZzPyGdxyM2efPR+R22WaReEF7Ks87bc6aRuO77Py21CGlwxBDo03e4qbS3WQLxFLn8ki9Awie9txKdYFCAxDexwuCzD8++QWK/c0YpF+o4xlsB1r6iMdj8EBz6GcD6PNB6jrIK7ctdd44MA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783622482; c=relaxed/simple;
-	bh=JYPIhZ3Rr4bx3pSh9s/ADV90OE8+7VmE6F0d80QWRHM=;
-	h=Date:To:From:Subject:Message-Id; b=JnoOCOlgQSSgHa79AOzL1kQwmakhmT/UvgCyAqTVQDVGgVAsWEcsNCBS8sgZVuRA4rYosgHJNxtyLzxqjRSywPtvU7wD8Im7RX0LhAGmpJcJpzXzStJCyHTdFROyC4ZE8BMpybr0BU0Yj5Og6BfUfPhKEFC9FRUo1FxehIJbMBQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LCtqgnxE; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783622484; c=relaxed/simple;
+	bh=FrKgv9BAj1KhGftC/ONxxUcVTi4d3oC+LOXDjWe8ksQ=;
+	h=Date:To:From:Subject:Message-Id; b=F+ncqjIPRvfUBgtQf1PQLb0miytZjkI3A8YQJ2qjWTJDncKflRmh9EI3nZ7Oy4TUhO4XHA3jhvksDBYNqoVOpTkfJ8oEXbDEtDozDPws7F0mvg2uA+cI1IBNjPndO/9mtO90zT4rpiikgIywW+GUcuXMMl7buUYaHtA5E1U8Okg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lIA7afT/; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LCtqgnxE"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B422B1F00A3A;
-	Thu,  9 Jul 2026 18:41:20 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lIA7afT/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D984A1F000E9;
+	Thu,  9 Jul 2026 18:41:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783622480;
-	bh=rKEWKfsX8HDOzhWCURCxKYLwO1CJV8OEPBjEK3fHFNE=;
+	d=linux-foundation.org; s=korg; t=1783622483;
+	bh=zfRJmfgzMUbdo45krh8QFdxSuXMYinarjYqa6PrMEn4=;
 	h=Date:To:From:Subject;
-	b=LCtqgnxEQEr4/+MfUeVaxU1YA9kAkhzQc8TTkFDbg0bsJbtW8xVsgn0tvCN+7TeY0
-	 9mO7btFF0m3SZPTRQb3wtzGBMopafGHD/ub9RASNVhcnLfrrE5AF01kNMbMQfhcG0E
-	 SCLLVxd1yzCypPNYiHgiv7KDqUOxnRrKVWrrYxQo=
-Date: Thu, 09 Jul 2026 11:41:20 -0700
+	b=lIA7afT//lwG0nMMKsZE5+aWx7D+bOpa7QH5RPwrp9q0J/1GqMWBQop3XfGbzlOq7
+	 DN3E/VlVgpv4RAX+e0F0GwV7e8vaEtbz35AqWP/7A9kZLxUPkZyXs4djY1V9SewFOY
+	 /MDQkrNd5PiEuzHZ05rCRML/lJgY9pQEcnkbCsrg=
+Date: Thu, 09 Jul 2026 11:41:22 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-huge_memory-add-page-private-check-back-in-__split_folio_to_order.patch added to mm-unstable branch
-Message-Id: <20260709184120.B422B1F00A3A@smtp.kernel.org>
+Subject: + mm-page_alloc-make-sure-tail_page-private-is-zero-at-page-free-time.patch added to mm-unstable branch
+Message-Id: <20260709184122.D984A1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/huge_memory: add page->private check back in __split_folio_to_order()
+     Subject: mm/page_alloc: make sure tail_page->private is zero at page free time
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-huge_memory-add-page-private-check-back-in-__split_folio_to_order.patch
+     mm-page_alloc-make-sure-tail_page-private-is-zero-at-page-free-time.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-add-page-private-check-back-in-__split_folio_to_order.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-make-sure-tail_page-private-is-zero-at-page-free-time.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,26 +59,26 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Zi Yan <ziy@nvidia.com>
-Subject: mm/huge_memory: add page->private check back in __split_folio_to_order()
-Date: Thu, 09 Jul 2026 14:06:03 -0400
+Subject: mm/page_alloc: make sure tail_page->private is zero at page free time
+Date: Thu, 09 Jul 2026 14:06:04 -0400
 
-page->private should not be set in tail pages.  Commit 4265d67e405a
-("mm/migrate_device: add THP splitting during migration") removed a
-DEBUG_VM check without a proper reason[1].  Add it back.
+Any code using tail_page->private of a folio, a compound page or a
+high-order page is supposed to reset it after use, otherwise ->private
+data can leak to new page user and cause unexpected issues.  Add a
+bad_page() check at page free path for it.
 
-Link: https://lore.kernel.org/all/13f3fcda-7328-4aa5-afc6-75a294a82b2a@nvidia.com/ [1]
-Link: https://lore.kernel.org/20260709-keep-subpage-private-zero-at-free-v3-3-7e4fe155f5b9@nvidia.com
+Link: https://lore.kernel.org/20260709-keep-subpage-private-zero-at-free-v3-4-7e4fe155f5b9@nvidia.com
 Signed-off-by: Zi Yan <ziy@nvidia.com>
-Reviewed-by: Lance Yang <lance.yang@linux.dev>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
 Reviewed-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
 Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Barry Song <baohua@kernel.org>
 Cc: Brendan Jackman <jackmanb@google.com>
+Cc: David Hildenbrand (Arm) <david@kernel.org>
 Cc: Dennis Zhou <dennis@kernel.org>
 Cc: Dev Jain <dev.jain@arm.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Lance Yang <lance.yang@linux.dev>
 Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
 Cc: Michal Hocko <mhocko@suse.com>
@@ -90,25 +90,38 @@ Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+ mm/page_alloc.c |   14 +++++++++++---
+ 1 file changed, 11 insertions(+), 3 deletions(-)
 
---- a/mm/huge_memory.c~mm-huge_memory-add-page-private-check-back-in-__split_folio_to_order
-+++ a/mm/huge_memory.c
-@@ -3591,6 +3591,13 @@ static void __split_folio_to_order(struc
- 		new_folio->mapping = folio->mapping;
- 		new_folio->index = folio->index + i;
- 
-+		/*
-+		 * page->private should not be set in tail pages. Warn once
-+		 * if private is unexpectedly set. Do it before swap.val assignment
-+		 * since private overlaps with swap.val.
-+		 */
-+		VM_WARN_ON_ONCE_PAGE(new_folio->private, new_head);
+--- a/mm/page_alloc.c~mm-page_alloc-make-sure-tail_page-private-is-zero-at-page-free-time
++++ a/mm/page_alloc.c
+@@ -1377,15 +1377,23 @@ static __always_inline bool __free_pages
+ #endif
+ 		}
+ 		for (i = 1; i < (1 << order); i++) {
++			struct page *tail_page = page + i;
 +
- 		if (folio_test_swapcache(folio))
- 			new_folio->swap.val = folio->swap.val + i;
- 
+ 			if (compound)
+-				bad += free_tail_page_prepare(page, page + i);
++				bad += free_tail_page_prepare(page, tail_page);
+ 			if (is_check_pages_enabled()) {
+-				if (free_page_is_bad(page + i)) {
++				if (free_page_is_bad(tail_page)) {
++					bad++;
++					continue;
++				}
++
++				if (tail_page->private) {
++					bad_page(tail_page, "nonzero private");
+ 					bad++;
+ 					continue;
+ 				}
+ 			}
+-			(page + i)->flags.f &= ~PAGE_FLAGS_CHECK_AT_PREP;
++			tail_page->flags.f &= ~PAGE_FLAGS_CHECK_AT_PREP;
+ 		}
+ 	}
+ 	if (folio_test_anon(folio)) {
 _
 
 Patches currently in -mm which might be from ziy@nvidia.com are
