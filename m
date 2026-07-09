@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 20A524499AB;
-	Thu,  9 Jul 2026 21:37:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BCA0A3D34AB
+	for <mm-commits@vger.kernel.org>; Thu,  9 Jul 2026 21:58:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783633025; cv=none; b=tfJF8pG/NrKF+3gm9F6uZEUsl4Q+u3d2m00QX2sxDS0L/6kcQM/EevO5Ply/f+DpL8rtiLlo84/UKfSu9yVT21EjVTjhY8P6QCmAGVmBYM3wQPLen5TqTBOZDVxRoeDtvrJaGHjLi///5BdJJOjFoF9BwTyevJQtkUBQdBWW5CA=
+	t=1783634295; cv=none; b=ZIyqxajA31pEiZmI1AEVWlkWv8bkHQYklUhqvazl9lafaD3FMGwf7ur4RH/pWBGQv1nLviZTPb8ajSZbvqZcSbgTwWB8E9lpvv7wMrBOcNh36xyk4CadeTiHEGY+D+m2wo76hTP2nfxnHLpsjVKv3Bxd2jwYBlX/X+jGbYoprDo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783633025; c=relaxed/simple;
-	bh=RhgYNwi3nu2DKCYq9fwdnfknrJJ8lS+kAuuxezYJpHw=;
-	h=Date:To:From:Subject:Message-Id; b=U9gGL/x782tOJ3f12EO02/gTv64EypvLCcM9UnnLKKoXADJZEntLV9A54quROTSiaAv5HAhSLlr9FrxwHhEi4b5PxXFvyvgntO+O2MORwEdQBlR3WHW+yRO2JxnRKOZlMvvz/0vPxnmxfgudg+/j3Ts+OZzlruhoYILemzgqt7U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fpHNkJDW; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783634295; c=relaxed/simple;
+	bh=h2O9+jFjRFphcKbvaCiQ6mHrkd8UJo2ELPSjHxp2rLY=;
+	h=Date:To:From:Subject:Message-Id; b=Sva/hor8TIDethDshKOlJpHGg9hsWZ+dWnK5PgZr3x68JREQHqrtt9bkpbMsvUy+ERAIofYMI+6PIgq6bvW/vcI4w/Nax8x8N+hmFtbZzeoDwUBmlopRRW4kCrkGckKRz3a2S0am69gnfJoK8r/fg39LjrXyouY63T0Ua9x665A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=A8R16jhW; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fpHNkJDW"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7FDD91F00A3A;
-	Thu,  9 Jul 2026 21:37:03 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="A8R16jhW"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2A3AE1F000E9;
+	Thu,  9 Jul 2026 21:58:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783633023;
-	bh=nCWVjzIEzU9eOYfm2dNBWZa14PTVFafJPf5PNE2ocdQ=;
+	d=linux-foundation.org; s=korg; t=1783634291;
+	bh=wT3X7olW7tMDdIEXK+GAcFuv+jIeRtR/XLwpL9qsH+8=;
 	h=Date:To:From:Subject;
-	b=fpHNkJDWXf2pJKQLSJNWCXUuDo7lMtaSWvECXBC5pYndfM0IWLEH4jLX9CEQPXwRN
-	 0ShzKzKJwhMXCZUVq3Wl3aK2e4P2hwnDQXF3zxVj0VjuGYjpFIPyS/dRdZltd22pIv
-	 hhPpVOIPqTsql3Rvt6UQJz0tn2oa8d0P0O/R+qSo=
-Date: Thu, 09 Jul 2026 14:37:02 -0700
-To: mm-commits@vger.kernel.org,tj@kernel.org,stable@vger.kernel.org,sashiko-bot@kernel.org,dennis@kernel.org,cl@linux.com,ziy@nvidia.com,akpm@linux-foundation.org
+	b=A8R16jhWSGOBreA5+ZFkBgQwNl+F1zM8bBfQ4mimtiMXQRreK1Gxmt8leYlgaBQQV
+	 KJH+rjgsBenGwxzzUhWVK9s5r61n3Ap2LfouxupTPYoN9sXN/qFnkxtiY8s4JZON1S
+	 sdyJukU2pe1dMy92LDeYuy/5ww7OElXrjr66Q8A4=
+Date: Thu, 09 Jul 2026 14:58:10 -0700
+To: mm-commits@vger.kernel.org,kas@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-percpu-km-fix-bitmap-overflow-and-accounting-in-pcpu_create_chunk.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260709213703.7FDD91F00A3A@smtp.kernel.org>
+Subject: [to-be-updated] fs-proc-task_mmu-fix-pagemap_scan-written-state-for-pmd-holes.patch removed from -mm tree
+Message-Id: <20260709215811.2A3AE1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,87 +34,220 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: mm/percpu-km: fix bitmap overflow and accounting in pcpu_create_chunk()
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-percpu-km-fix-bitmap-overflow-and-accounting-in-pcpu_create_chunk.patch
+The quilt patch titled
+     Subject: fs/proc/task_mmu: fix PAGEMAP_SCAN written state for PMD holes
+has been removed from the -mm tree.  Its filename was
+     fs-proc-task_mmu-fix-pagemap_scan-written-state-for-pmd-holes.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-percpu-km-fix-bitmap-overflow-and-accounting-in-pcpu_create_chunk.patch
-
-This patch will later appear in the mm-hotfixes-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Zi Yan <ziy@nvidia.com>
-Subject: mm/percpu-km: fix bitmap overflow and accounting in pcpu_create_chunk()
-Date: Thu, 09 Jul 2026 15:12:01 -0400
+From: "Kiryl Shutsemau (Meta)" <kas@kernel.org>
+Subject: fs/proc/task_mmu: fix PAGEMAP_SCAN written state for PMD holes
+Date: Wed, 8 Jul 2026 11:34:29 +0100
 
-In pcpu_create_chunk(), nr_pages is the total contiguous backing
-allocation, i.e., nr_units * pcpu_unit_pages, but pcpu_chunk_populated()
-uses it to set chunk->populated, whose size is pcpu_unit_pages, bitmap. 
-Since bit N in chunk->populated means page offset N inside every unit is
-backed.  When nr_units > 1, the function writes beyond chunk->populated. 
-Fix it by using chunk->nr_pages.
+PAGEMAP_SCAN reports an unpopulated PTE in a uffd-wp VMA as written
+(pagemap_page_category() and the PAGE_IS_WRITTEN fast path), but a range
+with no page table at all -- a PMD hole -- is skipped. 
+pagemap_scan_pte_hole() evaluates the hole against p->cur_vma_category,
+which pagemap_scan_test_walk() builds from only PAGE_IS_WPALLOWED and
+PAGE_IS_SOFT_DIRTY, so PAGE_IS_WRITTEN is never set: the hole is neither
+reported nor, under PM_SCAN_WP_MATCHING, armed.
 
-It also fixes the global pcpu_nr_empty_pop_pages accounting, since
-pcpu_balance_free() only iterates up to chunk->nr_pages.
+This is reachable.  An anonymous THP is write-protected in place as a huge
+PMD (change_huge_pmd(), anon is not split), and a full-PMD MADV_DONTNEED
+clears it to pmd_none.  A WP-async consumer such as CRIU then misses the
+2MB drop -- the range is not reported written and the next incremental
+dump keeps stale data.  (A file/shmem THP is split on write-protect, so a
+later DONTNEED leaves a populated page table of pte_none entries, which
+are already reported; only anon THP reaches the hole path.)
 
-Commit a63d4ac4ab609 ("percpu: make percpu-km set chunk->populated bitmap
-properly") introduced the bitmap overflow issue.  Later, commit
-b539b87fed37f ("percpu: implmeent pcpu_nr_empty_pop_pages and
-chunk->nr_populated") added pcpu_nr_empty_pop_pages and caused the
-accounting issue.
+Add PAGE_IS_WRITTEN to the categories evaluated for a hole in a
+non-hugetlb uffd-wp VMA, matching the pte_none handling in
+pagemap_page_category().  The existing PM_SCAN_WP_MATCHING path then also
+arms the range: uffd_wp_range() allocates the page table and installs
+markers under WP_UNPOPULATED, so the next scan sees it clean until
+re-written.
 
-Link: https://lore.kernel.org/20260709-fix-pcpu_create_chunk-in-percpu-km-v1-1-1f64745a84cc@nvidia.com
-Fixes: a63d4ac4ab609 ("percpu: make percpu-km set chunk->populated bitmap properly")
-Reported-by: Sashiko <sashiko-bot@kernel.org>
-Closes: https://sashiko.dev/#/patchset/20260703-keep-subpage-private-zero-at-free-v2-0-2970fe777dd6%40nvidia.com?part=1
-Assisted-by: Codex:GPT-5
-Signed-off-by: Zi Yan <ziy@nvidia.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Dennis Zhou <dennis@kernel.org>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Zi Yan <ziy@nvidia.com>
+hugetlb is excluded on purpose: an allocated-but-empty huge entry reads as
+not-written via pagemap_hugetlb_category(), so reporting an unallocated
+hugetlb hole (which also reaches this path) as written would be
+inconsistent within the same VMA.  hugetlb hole handling is left as-is.
+
+Add a pagemap_ioctl selftest that forms an anon THP, drops it with
+MADV_DONTNEED and checks the resulting PMD hole is reported written.
+
+Link: https://lore.kernel.org/20260708103429.150655-1-kirill@shutemov.name
+Fixes: 2bad466cc9d9 ("mm/uffd: UFFD_FEATURE_WP_UNPOPULATED")
+Signed-off-by: Kiryl Shutsemau <kas@kernel.org>
+Cc: Muhammad Usama Anjum <usama.anjum@collabora.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Jann Horn <jannh@google.com>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Pedro Falcato <pfalcato@suse.de>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Assisted-by: Claude:claude-fable-5
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/percpu-km.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/proc/task_mmu.c                         |   25 +++++++
+ tools/testing/selftests/mm/pagemap_ioctl.c |   60 ++++++++++++++++++-
+ 2 files changed, 82 insertions(+), 3 deletions(-)
 
---- a/mm/percpu-km.c~mm-percpu-km-fix-bitmap-overflow-and-accounting-in-pcpu_create_chunk
-+++ a/mm/percpu-km.c
-@@ -75,7 +75,7 @@ static struct pcpu_chunk *pcpu_create_ch
- 	chunk->base_addr = page_address(pages);
+--- a/fs/proc/task_mmu.c~fs-proc-task_mmu-fix-pagemap_scan-written-state-for-pmd-holes
++++ a/fs/proc/task_mmu.c
+@@ -3049,12 +3049,33 @@ static int pagemap_scan_pte_hole(unsigne
+ {
+ 	struct pagemap_scan_private *p = walk->private;
+ 	struct vm_area_struct *vma = walk->vma;
++	unsigned long categories;
+ 	int ret, err;
  
- 	spin_lock_irqsave(&pcpu_lock, flags);
--	pcpu_chunk_populated(chunk, 0, nr_pages);
-+	pcpu_chunk_populated(chunk, 0, chunk->nr_pages);
- 	spin_unlock_irqrestore(&pcpu_lock, flags);
+-	if (!vma || !pagemap_scan_is_interesting_page(p->cur_vma_category, p))
++	if (!vma)
+ 		return 0;
  
- 	pcpu_stats_chunk_alloc();
+-	ret = pagemap_scan_output(p->cur_vma_category, p, addr, &end);
++	/*
++	 * An unpopulated range with no page table -- e.g. a 2MB anon THP
++	 * dropped via MADV_DONTNEED, which pagemap_page_category() never sees
++	 * -- reads as written on a uffd-wp VMA, matching the pte_none case
++	 * there. Reporting it also lets the PM_SCAN_WP_MATCHING arming below
++	 * install markers (uffd_wp_range() allocates the page table under
++	 * WP_UNPOPULATED), so the next scan sees it clean until re-written.
++	 *
++	 * hugetlb is excluded: an allocated-but-empty huge entry reads as
++	 * not-written via pagemap_hugetlb_category(), so reporting an
++	 * unallocated hugetlb hole as written here would be inconsistent
++	 * within the same VMA.
++	 */
++	categories = p->cur_vma_category;
++	if (userfaultfd_wp(vma) && !is_vm_hugetlb_page(vma))
++		categories |= PAGE_IS_WRITTEN;
++
++	if (!pagemap_scan_is_interesting_page(categories, p))
++		return 0;
++
++	ret = pagemap_scan_output(categories, p, addr, &end);
+ 	if (addr == end)
+ 		return ret;
+ 
+--- a/tools/testing/selftests/mm/pagemap_ioctl.c~fs-proc-task_mmu-fix-pagemap_scan-written-state-for-pmd-holes
++++ a/tools/testing/selftests/mm/pagemap_ioctl.c
+@@ -25,6 +25,10 @@
+ #include "kselftest.h"
+ #include "hugepage_settings.h"
+ 
++#ifndef MADV_COLLAPSE
++#define MADV_COLLAPSE 25
++#endif
++
+ #define PAGEMAP_BITS_ALL		(PAGE_IS_WPALLOWED | PAGE_IS_WRITTEN |	\
+ 					 PAGE_IS_FILE | PAGE_IS_PRESENT |	\
+ 					 PAGE_IS_SWAPPED | PAGE_IS_PFNZERO |	\
+@@ -1102,6 +1106,59 @@ static void unpopulated_scan_test(void)
+ 	munmap(mem, mem_size);
+ }
+ 
++/*
++ * A 2MB anon THP dropped with MADV_DONTNEED leaves a pmd_none hole with no
++ * page table, which pagemap_page_category() never sees. PAGEMAP_SCAN must
++ * still report it as written on a uffd-wp VMA, via pagemap_scan_pte_hole().
++ */
++static void unpopulated_thp_hole_test(void)
++{
++	long npages, written = 0, ret, i;
++	struct page_region regions[16];
++	char *area, *mem;
++
++	if (!hpage_size) {
++		ksft_test_result_skip("%s THP not supported\n", __func__);
++		return;
++	}
++	npages = hpage_size / page_size;
++
++	/* Get a PMD-aligned range so the range can be a single THP. */
++	area = mmap(NULL, 2 * hpage_size, PROT_READ | PROT_WRITE,
++		    MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
++	if (area == MAP_FAILED)
++		ksft_exit_fail_msg("%s mmap failed\n", __func__);
++	mem = (char *)(((unsigned long)area + hpage_size - 1) & ~(hpage_size - 1));
++
++	memset(mem, 1, hpage_size);
++	if (madvise(mem, hpage_size, MADV_COLLAPSE) ||
++	    !check_huge_anon(mem, 1, hpage_size)) {
++		ksft_test_result_skip("%s could not form a THP\n", __func__);
++		munmap(area, 2 * hpage_size);
++		return;
++	}
++
++	wp_init(mem, hpage_size);
++
++	/* Drop the whole PMD: it is cleared to a pmd_none hole. */
++	if (madvise(mem, hpage_size, MADV_DONTNEED))
++		ksft_exit_fail_msg("%s MADV_DONTNEED failed\n", __func__);
++
++	ret = pagemap_ioctl(mem, hpage_size, regions, 16, 0, 0,
++			    PAGE_IS_WRITTEN, 0, 0, PAGE_IS_WRITTEN);
++	if (ret < 0)
++		ksft_exit_fail_msg("%s scan failed\n", __func__);
++	for (i = 0; i < ret; i++)
++		written += LEN(regions[i]);
++
++	ksft_test_result(written == npages,
++			 "%s pmd-hole reported written (%ld of %ld)\n",
++			 __func__, written, npages);
++
++	wp_free(mem, hpage_size);
++	munmap(area, 2 * hpage_size);
++}
++
+ int sanity_tests(void)
+ {
+ 	unsigned long long mem_size, vec_size;
+@@ -1610,7 +1667,7 @@ int main(int __attribute__((unused)) arg
+ 	if (!hugetlb_setup_default(4))
+ 		ksft_print_msg("HugeTLB test will be skipped\n");
+ 
+-	ksft_set_plan(118);
++	ksft_set_plan(119);
+ 
+ 	page_size = getpagesize();
+ 	hpage_size = read_pmd_pagesize();
+@@ -1790,6 +1847,7 @@ int main(int __attribute__((unused)) arg
+ 
+ 	/* 18. Unpopulated pte scan-path consistency */
+ 	unpopulated_scan_test();
++	unpopulated_thp_hole_test();
+ 
+ 	close(pagemap_fd);
+ 	ksft_finished();
 _
 
-Patches currently in -mm which might be from ziy@nvidia.com are
+Patches currently in -mm which might be from kas@kernel.org are
 
-mm-percpu-km-fix-bitmap-overflow-and-accounting-in-pcpu_create_chunk.patch
-mm-page_owner-add-numa-node-filter-fix.patch
-mm-percpu-km-clear-page-private-before-free-them.patch
-mm-compaction-stop-recording-free-page-order-in-page-private.patch
-mm-huge_memory-add-page-private-check-back-in-__split_folio_to_order.patch
-mm-page_alloc-make-sure-tail_page-private-is-zero-at-page-free-time.patch
-mm-page_alloc-remove-set_page_private-in-prep_compound_tail.patch
+fs-proc-task_mmu-fix-pagemap_scan-written-state-for-unpopulated-ptes.patch
+mm-hugetlb-fix-swap-entry-corruption-when-clearing-uffd-wp-at-fork.patch
+mm-decouple-protnone-helpers-from-config_numa_balancing.patch
+mm-rename-uffd-wp-pte-bit-macros-to-uffd.patch
+mm-rename-uffd-wp-pte-accessors-to-uffd.patch
+userfaultfd-test-uffd-vma-flags-through-the-vma_flags_t-api.patch
+mm-add-vm_uffd_rwp-vma-flag.patch
+mm-add-mm_cp_uffd_rwp-change_protection-flag.patch
+mm-preserve-rwp-marker-across-pte-rewrites.patch
+mm-handle-vm_uffd_rwp-in-khugepaged-rmap-and-gup.patch
+userfaultfd-add-uffdio_register_mode_rwp-and-uffdio_rwprotect-plumbing.patch
+mm-userfaultfd-add-rwp-fault-delivery-and-expose-uffdio_register_mode_rwp.patch
+mm-pagemap-add-page_is_accessed-for-rwp-tracking.patch
+userfaultfd-add-uffd_feature_rwp_async-for-async-fault-resolution.patch
+userfaultfd-add-uffdio_set_mode-for-runtime-sync-async-toggle.patch
+documentation-userfaultfd-document-rwp-working-set-tracking.patch
 
