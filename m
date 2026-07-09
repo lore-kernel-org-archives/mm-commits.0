@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8A1CC2472AE
-	for <mm-commits@vger.kernel.org>; Thu,  9 Jul 2026 23:05:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 973D72472AE
+	for <mm-commits@vger.kernel.org>; Thu,  9 Jul 2026 23:05:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783638322; cv=none; b=YTkzeLq3aDPYNwFuQ59IgvpIahiwU/z+qa5jwzJr86CSJI4X+RLEgBnqraG1LX3J51CJN1R/llcR503w+mg6llLUvveQnxj5MN3/xLb1a2MUZdZqN/WQALuWt/faLgkOgDYUZzpA20/ZhnNYVSihkKpDsTZfMKO0DKtt7Fsl0EE=
+	t=1783638324; cv=none; b=PsC6PVixsFrZy2EUbO1DhQetVBjrOXWRT7irdqEVD9tuFoc3ge68H//mmjsCyPu+WHAMzqIfwNRdMsjJxWt7vSvMJ7GIeW179AHpa0XQiP1te2eKd70sBc8bSd7+ni5xm9DxGpZPyQ6RVl0UmvIZ0ugUgCaKUHlo0g9fYdRVebo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783638322; c=relaxed/simple;
-	bh=4npt5e47066kmID0DtCTWNX4hKckxSCS5eHf0tq7VM8=;
-	h=Date:To:From:Subject:Message-Id; b=bOF4TSkckweQCnGL2Hsotjb5t5FGhupNSEQb+6eo8JAkAYKEH7YxTdz+5CHIMgmxA25ipS5uTcZ2ic6RuZsD7LhVBB63D8him0laQfgjI7niBiYhL+HzsZy/CORVBLiiyRWcB96d2JgSgwr0F9apnQ5SB0KZAKHGypfgbLML9q8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=z+4U1Zo8; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783638324; c=relaxed/simple;
+	bh=/ctCUMKOkm+4uYtfgtFrWQoWG0UOwJThGzLcOiZ5A94=;
+	h=Date:To:From:Subject:Message-Id; b=jpNu2rQbq/zTDp2XNns4S3jXED+op0eYfp+CmurbW87I7Vv1el0pHk+yMXHEK2ZrVSRdwi1eEbESQo1FEKxPU+rz1VutI+BLIXYc1zrVkvhhYWwjK5tNfvvs1vxq5F5W3AjX6WW35l1S2dxFBMke16QK0k1ZeJmtwP8CRVOizkU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hn6w/rmK; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="z+4U1Zo8"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 147711F000E9;
-	Thu,  9 Jul 2026 23:05:21 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hn6w/rmK"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 24D7F1F000E9;
+	Thu,  9 Jul 2026 23:05:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783638321;
-	bh=DbD08XLt+mMvuk//kxBfeS9gbjLc9uQZRxdevJoXs6s=;
+	d=linux-foundation.org; s=korg; t=1783638323;
+	bh=GJEI0QHl07u8ikh5lg9yN4g8WAlNnUcEYTVb4RgXMJc=;
 	h=Date:To:From:Subject;
-	b=z+4U1Zo8J8dj8c4wVqC5ye1zo42UykFMGCujm1gonVj+J/EmRL7VINYp7ZztiBb42
-	 b1Hl0um0FQR6tcgRL7sg4/ao4771Jz/Jt9h2craiRlNvSj4WKJh9++krGSWVC7VyUk
-	 yBkrUM9c5I4xAXAfE2IM55aVHjZdCZLCo/OMlyew=
-Date: Thu, 09 Jul 2026 16:05:20 -0700
-To: mm-commits@vger.kernel.org,xueyuan.chen21@gmail.com,will@kernel.org,urezki@gmail.com,ryan.roberts@arm.com,rppt@kernel.org,leo.yan@arm.com,jiangwenxiaomi@gmail.com,jiangwen6@xiaomi.com,dev.jain@arm.com,david@kernel.org,catalin.marinas@arm.com,anshuman.khandual@arm.com,ajd@linux.ibm.com,baohua@kernel.org,akpm@linux-foundation.org
+	b=hn6w/rmKBjIhkKVSbBZXTzqoHqn8EdT4Ht9pcF+mA5WMw6JtIwBOH0GXCAWUrKsJs
+	 WdyUqN1HT5jij1x/RKerVnrWQH0fYlyfRtwQ+Kg1eWicbiOh0kuyCuz3U1UMBvGbGa
+	 oVs3FvBzaAHaCcBKsDxRoHvf/fwtDz3Vp59yXDbg=
+Date: Thu, 09 Jul 2026 16:05:22 -0700
+To: mm-commits@vger.kernel.org,xueyuan.chen21@gmail.com,will@kernel.org,urezki@gmail.com,ryan.roberts@arm.com,rppt@kernel.org,leo.yan@arm.com,jiangwen6@xiaomi.com,dev.jain@arm.com,david@kernel.org,catalin.marinas@arm.com,baohua@kernel.org,anshuman.khandual@arm.com,ajd@linux.ibm.com,jiangwenxiaomi@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + arm64-vmalloc-allow-arch_vmap_pte_range_map_size-to-batch-multiple-cont_pte.patch added to mm-new branch
-Message-Id: <20260709230521.147711F000E9@smtp.kernel.org>
+Subject: + mm-vmalloc-extract-vmap_set_ptes-to-consolidate-pte-mapping-logic.patch added to mm-new branch
+Message-Id: <20260709230523.24D7F1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: arm64/vmalloc: allow arch_vmap_pte_range_map_size to batch multiple CONT_PTE
+     Subject: mm/vmalloc: extract vmap_set_ptes() to consolidate PTE mapping logic
 has been added to the -mm mm-new branch.  Its filename is
-     arm64-vmalloc-allow-arch_vmap_pte_range_map_size-to-batch-multiple-cont_pte.patch
+     mm-vmalloc-extract-vmap_set_ptes-to-consolidate-pte-mapping-logic.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arm64-vmalloc-allow-arch_vmap_pte_range_map_size-to-batch-multiple-cont_pte.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmalloc-extract-vmap_set_ptes-to-consolidate-pte-mapping-logic.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,68 +69,101 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: "Barry Song (Xiaomi)" <baohua@kernel.org>
-Subject: arm64/vmalloc: allow arch_vmap_pte_range_map_size to batch multiple CONT_PTE
-Date: Thu, 9 Jul 2026 15:38:19 +0800
+From: Wen Jiang <jiangwenxiaomi@gmail.com>
+Subject: mm/vmalloc: extract vmap_set_ptes() to consolidate PTE mapping logic
+Date: Thu, 9 Jul 2026 15:38:20 +0800
 
-Allow arch_vmap_pte_range_map_size to batch across multiple CONT_PTE
-blocks, reducing both PTE setup and TLB flush iterations.
+Extract the common PTE mapping logic from vmap_pte_range() into a shared
+helper vmap_set_ptes().  This handles both CONT_PTE and regular PTE
+mappings in a single function, preparing for the next patch which will
+extend vmap_pages_pte_range() to also use this helper.
 
-Link: https://lore.kernel.org/20260709073823.6643-3-jiangwen6@xiaomi.com
-Signed-off-by: Barry Song (Xiaomi) <baohua@kernel.org>
+The #ifdef CONFIG_HUGETLB_PAGE guard is moved inside vmap_set_ptes(), so
+callers no longer need to handle the conditional compilation.
+
+No functional change.
+
+Link: https://lore.kernel.org/20260709073823.6643-4-jiangwen6@xiaomi.com
 Signed-off-by: Wen Jiang <jiangwen6@xiaomi.com>
 Tested-by: Xueyuan Chen <xueyuan.chen21@gmail.com>
 Tested-by: Leo Yan <leo.yan@arm.com>
+Reviewed-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
 Reviewed-by: Dev Jain <dev.jain@arm.com>
 Cc: Andrew Donnellan <ajd@linux.ibm.com>
 Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: "Barry Song (Xiaomi)" <baohua@kernel.org>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
-Cc: Wen Jiang <jiangwenxiaomi@gmail.com>
 Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/include/asm/vmalloc.h |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ mm/vmalloc.c |   42 +++++++++++++++++++++++++++++-------------
+ 1 file changed, 29 insertions(+), 13 deletions(-)
 
---- a/arch/arm64/include/asm/vmalloc.h~arm64-vmalloc-allow-arch_vmap_pte_range_map_size-to-batch-multiple-cont_pte
-+++ a/arch/arm64/include/asm/vmalloc.h
-@@ -23,6 +23,8 @@ static inline unsigned long arch_vmap_pt
- 						unsigned long end, u64 pfn,
- 						unsigned int max_page_shift)
- {
+--- a/mm/vmalloc.c~mm-vmalloc-extract-vmap_set_ptes-to-consolidate-pte-mapping-logic
++++ a/mm/vmalloc.c
+@@ -92,6 +92,33 @@ struct vfree_deferred {
+ static DEFINE_PER_CPU(struct vfree_deferred, vfree_deferred);
+ 
+ /*** Page table manipulation functions ***/
++
++/*
++ * Try contiguous mappings at the PTE level for arches which support them, and if
++ * requested by the caller. Fall back to PAGE_SIZE mappings otherwise.
++ *
++ * Return: mapping size.
++ */
++static __always_inline unsigned long vmap_set_ptes(pte_t *pte,
++		unsigned long addr, unsigned long end, u64 pfn,
++		pgprot_t prot, unsigned int max_page_shift)
++{
++#ifdef CONFIG_HUGETLB_PAGE
 +	unsigned long size;
 +
- 	/*
- 	 * If the block is at least CONT_PTE_SIZE in size, and is naturally
- 	 * aligned in both virtual and physical space, then we can pte-map the
-@@ -40,7 +42,9 @@ static inline unsigned long arch_vmap_pt
- 	if (!IS_ALIGNED(PFN_PHYS(pfn), CONT_PTE_SIZE))
- 		return PAGE_SIZE;
++	size = arch_vmap_pte_range_map_size(addr, end, pfn, max_page_shift);
++	if (size != PAGE_SIZE) {
++		pte_t entry = pfn_pte(pfn, prot);
++
++		entry = arch_make_huge_pte(entry, ilog2(size), 0);
++		set_huge_pte_at(&init_mm, addr, pte, entry, size);
++		return size;
++	}
++#endif
++	set_pte_at(&init_mm, addr, pte, pfn_pte(pfn, prot));
++	return PAGE_SIZE;
++}
++
+ static int vmap_pte_range(pmd_t *pmd, unsigned long addr, unsigned long end,
+ 			phys_addr_t phys_addr, pgprot_t prot,
+ 			unsigned int max_page_shift, pgtbl_mod_mask *mask)
+@@ -120,19 +147,8 @@ static int vmap_pte_range(pmd_t *pmd, un
+ 			BUG();
+ 		}
  
--	return CONT_PTE_SIZE;
-+	size = min3(end - addr, 1UL << max_page_shift, PMD_SIZE >> 1);
-+	size = rounddown_pow_of_two(size);
-+	return size;
- }
+-#ifdef CONFIG_HUGETLB_PAGE
+-		size = arch_vmap_pte_range_map_size(addr, end, pfn, max_page_shift);
+-		if (size != PAGE_SIZE) {
+-			pte_t entry = pfn_pte(pfn, prot);
+-
+-			entry = arch_make_huge_pte(entry, ilog2(size), 0);
+-			set_huge_pte_at(&init_mm, addr, pte, entry, size);
+-			pfn += PFN_DOWN(size);
+-			continue;
+-		}
+-#endif
+-		set_pte_at(&init_mm, addr, pte, pfn_pte(pfn, prot));
+-		pfn++;
++		size = vmap_set_ptes(pte, addr, end, pfn, prot, max_page_shift);
++		pfn += PFN_DOWN(size);
+ 	} while (pte += PFN_DOWN(size), addr += size, addr != end);
  
- #define arch_vmap_pte_range_unmap_size arch_vmap_pte_range_unmap_size
+ 	lazy_mmu_mode_disable();
 _
 
-Patches currently in -mm which might be from baohua@kernel.org are
+Patches currently in -mm which might be from jiangwenxiaomi@gmail.com are
 
-mm-avoid-unnecessary-lru-drain-for-wp_can_reuse_anon_folio.patch
-mm-avoid-unnecessary-lru-drain-for-wp_can_reuse_anon_folio-fix.patch
-mm-drop-stale-folio_ref_count==1-check-in-do_swap_page-reuse-logic.patch
-mm-entirely-remove-lru_add_drain-in-do_swap_page.patch
-mm-clarify-the-folio_free_swap-for-do_swap_page.patch
-arm64-hugetlb-extend-batching-of-multiple-cont_pte-in-a-single-pte-setup.patch
-arm64-vmalloc-allow-arch_vmap_pte_range_map_size-to-batch-multiple-cont_pte.patch
-mm-vmalloc-extend-page-table-walk-to-support-larger-page_shift-sizes-and-eliminate-page-table-rewalk.patch
-mm-vmalloc-map-contiguous-pages-in-batches-for-vmap-if-possible.patch
-mm-vmalloc-align-vm_area-so-vmap-can-batch-mappings.patch
+mm-vmalloc-extract-vmap_set_ptes-to-consolidate-pte-mapping-logic.patch
 
