@@ -1,91 +1,99 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.16])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D79442D781B
-	for <mm-commits@vger.kernel.org>; Thu,  9 Jul 2026 04:37:18 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 966FD404BDA
+	for <mm-commits@vger.kernel.org>; Thu,  9 Jul 2026 10:00:36 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.16
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783571840; cv=none; b=n6sih7Fr1dd1II1XNl9Z7LiNvK91Z6xmAAM8nbpvHQ0xW7R7tJVKHAufQqd7PfWjHI9PGCQQ2l11YycM3FBMmIctKkEZPOULUt2sUriTdGDCQag0wy4zJlx76l1G4mcQa/XF0vFaF3r0d/zQaZSegZ2UHjMYwKDoaExEIv2yvoc=
+	t=1783591238; cv=none; b=p2D5fviHl2B1ZFk+QkpdR0aK8f7pN9dr3Ze0U5mYWS0/3PqVVd2KX7kIAjYRLIePrmIW7B6noQVv2XWPv71ltgrBJFmldqBjO/kW5YaCXyp2v/OvfhKFbkduxsEkyKxhUBtqjcOObqIcHuDFOsKFwCze5DTWP0hjSJLVLk+xAeA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783571840; c=relaxed/simple;
-	bh=vYExeJHEXeBV6q91ppXwq9ic5a3quekJQIS+krjdiYo=;
-	h=Date:To:From:Subject:Message-Id; b=RRKdxUCXKZsazxpznxSFtCHjFEDAclIDfTt6EXaem+VKckukQfHnC+FgK7De6iHZbFtfWeVUjxhffc8yt1xZbq0WUlve2w07yErsjt2cz0gYvi4/rAnXWqng+MCf751XbqqHw9zxY8dtCDSEf964Uk7o+iGW9Xpy7LF0XH+4dhg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=H6BOcbmQ; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783591238; c=relaxed/simple;
+	bh=0cJoZC+qaLhu9Bg6i+Ath8h0hHRAV8J8wL90JZ+AZZE=;
+	h=Date:From:To:Cc:Subject:Message-ID; b=laMMLOp+N9HXuV5qMD2dPS2K/vUb5+Xzxja34Of4nrflEApYKKfaz4ZVeTbHS4xLQcBd17WlYXTTo6WVIqGv2qPFzGGvRo7+7WtVnJO54oRxeqo1FZQh2P5LLASovam+6Dr66j7YjAb4mdwkT1FHfUmMvRbnMisnbpoRbNRzlqg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=PXSI5eSx; arc=none smtp.client-ip=192.198.163.16
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="H6BOcbmQ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5D9521F000E9;
-	Thu,  9 Jul 2026 04:37:18 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783571838;
-	bh=c/5KvIBCPSJ3JfvkpUaXOkcNRC5sZ0PTFGoP05TYgvI=;
-	h=Date:To:From:Subject;
-	b=H6BOcbmQI/wOTRzVyl62hRocoVZ3aKhL4tzTVnPcU8ft9E6t3jGBMUcb/YUuM5/4D
-	 4oG37Rvo89Ra3Cn+cOnHEo3nQ7MlcHedEbc4e25nTrJzVDhOLCWtWhMYqa1+ZNiOsv
-	 YwrDsk6hyfI+KYhnrv+szD9mTcCezlZbuGdU8RC4=
-Date: Wed, 08 Jul 2026 21:37:17 -0700
-To: mm-commits@vger.kernel.org,linux@roeck-us.net,kees@kernel.org,error27@gmail.com,david@davidgow.net,acarmina@redhat.com,npache@redhat.com,akpm@linux-foundation.org
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [alternative-merged] kunit-bugc-fix-backtrace-supression-test-failure-as-a-module.patch removed from -mm tree
-Message-Id: <20260709043718.5D9521F000E9@smtp.kernel.org>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="PXSI5eSx"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1783591237; x=1815127237;
+  h=date:from:to:cc:subject:message-id;
+  bh=0cJoZC+qaLhu9Bg6i+Ath8h0hHRAV8J8wL90JZ+AZZE=;
+  b=PXSI5eSx9sW4FQno5+KNI/j7xyFDgOQtXRB2iuGLmO8FCU93WVRBwJ3Q
+   R0/pYFXoiBC7wKjALOni6jwoap2OLqe2YbssWgLlGRZE8YMiycsfm4oC5
+   WLreIJWMQZ+cvyQclfpxkXHpKuXEC9Zl008m5swsKUsDfljmbJFBa4BZf
+   Ft4h0g0bafkV8Dz6EfW5fpSNGqsRNTcM8mhGRYKnhrT0lWvmIEeLq+IcX
+   tt1hUt6j/1A0XL30yLc2rx8m3YFqDZK71PUYrV0wRBNHCIq8XEx8SbwjX
+   wxkFtgzrfNDBWiSWAEKYoRK1EMNGhph9oS8iiCNPRX/5L9/jCC+Ujfg3K
+   w==;
+X-CSE-ConnectionGUID: uI0ngRgkTjW1TUOfvRqysg==
+X-CSE-MsgGUID: /B51OpRqTjq4L19uYwR/mg==
+X-IronPort-AV: E=McAfee;i="6800,10657,11841"; a="71787462"
+X-IronPort-AV: E=Sophos;i="6.25,154,1779174000"; 
+   d="scan'208";a="71787462"
+Received: from orviesa005.jf.intel.com ([10.64.159.145])
+  by fmvoesa110.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 Jul 2026 03:00:36 -0700
+X-CSE-ConnectionGUID: OmH+vFaKQ8ehc0En6Au0aQ==
+X-CSE-MsgGUID: ZKk3Lb4bQzOcoydwEY77DQ==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.25,154,1779174000"; 
+   d="scan'208";a="258845039"
+Received: from lkp-server02.sh.intel.com (HELO ea128546eb3d) ([10.239.97.151])
+  by orviesa005.jf.intel.com with ESMTP; 09 Jul 2026 03:00:34 -0700
+Received: from kbuild by ea128546eb3d with local (Exim 4.98.2)
+	(envelope-from <lkp@intel.com>)
+	id 1whlYU-00000000HX9-3zxq;
+	Thu, 09 Jul 2026 10:00:30 +0000
+Date: Thu, 09 Jul 2026 17:59:52 +0800
+From: kernel test robot <lkp@intel.com>
+To: Suren Baghdasaryan <surenb@google.com>
+Cc: oe-kbuild-all@lists.linux.dev, David Hildenbrand <david@kernel.org>,
+ Andrew Morton <akpm@linux-foundation.org>,
+ Linux Memory Management List <linux-mm@kvack.org>,
+ mm-commits@vger.kernel.org, Abhishek Bapat <abhishekbapat@google.com>
+Subject: [akpm-mm:mm-new 344/369] mm/alloc_tag.c:356:58: error:
+ implicit declaration of function 'compat_ptr'
+Message-ID: <202607091820.qbjlGhKK-lkp@intel.com>
+User-Agent: s-nail v14.9.25
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
+tree:   https://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm.git mm-new
+head:   59e34180e138a293260301c139cf7ee800978533
+commit: 27ace96bf8195484c9e9e1a08eb5af5a4e81f9f0 [344/369] alloc_tag: add ioctl to /proc/allocinfo
+config: sparc64-randconfig-001-20260709 (https://download.01.org/0day-ci/archive/20260709/202607091820.qbjlGhKK-lkp@intel.com/config)
+compiler: sparc64-linux-gcc (GCC) 15.2.0
+reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20260709/202607091820.qbjlGhKK-lkp@intel.com/reproduce)
 
-The quilt patch titled
-     Subject: kunit/bug.c: fix backtrace-supression-test failure as a module
-has been removed from the -mm tree.  Its filename was
-     kunit-bugc-fix-backtrace-supression-test-failure-as-a-module.patch
+If you fix the issue in a separate patch/commit (i.e. not just a new version of
+the same patch/commit), kindly add following tags
+| Reported-by: kernel test robot <lkp@intel.com>
+| Closes: https://lore.kernel.org/oe-kbuild-all/202607091820.qbjlGhKK-lkp@intel.com/
 
-This patch was dropped because an alternative patch was or shall be merged
+All errors (new ones prefixed by >>):
 
-------------------------------------------------------
-From: Nico Pache <npache@redhat.com>
-Subject: kunit/bug.c: fix backtrace-supression-test failure as a module
-Date: Tue, 7 Jul 2026 12:54:05 -0600
+   mm/alloc_tag.c: In function 'allocinfo_compat_ioctl':
+>> mm/alloc_tag.c:356:58: error: implicit declaration of function 'compat_ptr' [-Wimplicit-function-declaration]
+     356 |         return allocinfo_ioctl(file, cmd, (unsigned long)compat_ptr(arg));
+         |                                                          ^~~~~~~~~~
 
-When running the backtrace-supression-test as a module most cases produce
-failures.
 
-Upon further investigating the issue presents itself due to the ifdef that
-wraps the kunit_is_suppressed_warning, which is not compiled in if using
-CONFIG_KUNIT_MODULE.
+vim +/compat_ptr +356 mm/alloc_tag.c
 
-Fix this by switching to IS_ENABLED(CONFIG_KUNIT) which properly checks
-for either CONFIG_KUNIT_MODULE or CONFIG_KUNIT.
+   351	
+   352	#ifdef CONFIG_COMPAT
+   353	static long allocinfo_compat_ioctl(struct file *file, unsigned int cmd,
+   354					   unsigned long arg)
+   355	{
+ > 356		return allocinfo_ioctl(file, cmd, (unsigned long)compat_ptr(arg));
+   357	}
+   358	#endif
+   359	
 
-Link: https://lore.kernel.org/20260707185405.571277-1-npache@redhat.com
-Fixes: bbc960d009a6 ("kunit: Add backtrace suppression self-tests")
-Signed-off-by: Nico Pache <npache@redhat.com>
-Cc: Alessandro Carminati <acarmina@redhat.com>
-Cc: Dan Carpenter <error27@gmail.com>
-Cc: David Gow <david@davidgow.net>
-Cc: Guenetr Roeck <linux@roeck-us.net>
-Cc: Kees Cook <kees@kernel.org>
-Cc: Nico Pache <npache@redhat.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- lib/bug.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
---- a/lib/bug.c~kunit-bugc-fix-backtrace-supression-test-failure-as-a-module
-+++ a/lib/bug.c
-@@ -219,7 +219,7 @@ static enum bug_trap_type __report_bug(s
- 	no_cut   = bug->flags & BUGFLAG_NO_CUT_HERE;
- 	has_args = bug->flags & BUGFLAG_ARGS;
- 
--#ifdef CONFIG_KUNIT
-+#if IS_ENABLED(CONFIG_KUNIT)
- 	/*
- 	 * Before the once logic so suppressed warnings do not consume
- 	 * the single-fire budget of WARN_ON_ONCE().
-_
-
-Patches currently in -mm which might be from npache@redhat.com are
-
-mm-decrement-mthp_stat_nr_anon-in-free_zone_device_folio.patch
-mm-migrate-exclude-hugetlb-folios-from-mthp_stat_nr_anon-accounting.patch
-
+--
+0-DAY CI Kernel Test Service
+https://github.com/intel/lkp-tests/wiki
