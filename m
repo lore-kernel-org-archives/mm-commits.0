@@ -1,82 +1,107 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5D07B316905;
-	Thu,  9 Jul 2026 00:22:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6A5262E1EE0
+	for <mm-commits@vger.kernel.org>; Thu,  9 Jul 2026 01:43:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783556547; cv=none; b=i/77ovcWm1yK7URoQ/3ny9w96JFGesh8xjKmMGCu0KrLVVLU+PKh6Z2XcveDFnnUguNwdAkpkNHVpWTrtBm/b7RFzCc7tY1L7IbVrFdDiLcA4fGgLei6DZ5v4Dgx34SjUh8dpQohS58RwwlPcc4mmaKVM8japAQJyh8zGc6NYME=
+	t=1783561410; cv=none; b=kO/6TTzbCTRzAingHAlNdIWtAOo//01T3/4qMgZAd66GYMKaIuUy15tnMkmAir1UkXWn9kmxCaDhdLkgvssy+CVM8Y7WTeumeqRenEP+bDWYDxaGsjR5ig1dlX1jvUr+T0yDboPi2Cc/PO7fxnHt4vYJ2N9hA6+Ldk4t9mYCNr4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783556547; c=relaxed/simple;
-	bh=5otryLbL9wcehZn3JqeQ5NUvUHsoZRGcqi1rWDe5amk=;
-	h=Date:From:To:Cc:Subject:Message-Id:In-Reply-To:References:
-	 Mime-Version:Content-Type; b=YyYPD07cFbShwAgnFXDIgTSfPpqXYtr3rM48JXxr6cPgtkDxA6e5QciWrKD50FvwluHdnJHS2Np6VcUO8zSf7IAZNYcFrai7Yj6SxDEXMoKimo919I8esDc9UJFf9HL6UAHtOqvn3v+s5iKXiz/CpxjKNRGbhM2iOdCq7ndnoAk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SB4Vm80u; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783561410; c=relaxed/simple;
+	bh=H1V/b84+Bv7FL1vphhScfw/c0sVzqHU/MLYNBB0CRYQ=;
+	h=Date:To:From:Subject:Message-Id; b=mr5sVz47kP/QWHsEWLhLdrsSSHMZ1hE5GWB45rZ9ZdhWoCvcIrgDZttj3OGHXxdlkYDBUA+ILP7BrEQDId2h4zGMqVwxrTqVpZg4no4p44YlLF0cph2dCbborMDJYovVF8OvhOGDKOYKeNEw3GtXgKmupYf84tNktLIkKY//C3c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=X9ib7Tq3; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SB4Vm80u"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 57D521F000E9;
-	Thu,  9 Jul 2026 00:22:25 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="X9ib7Tq3"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EC1F61F000E9;
+	Thu,  9 Jul 2026 01:43:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783556545;
-	bh=IFnt3Ev2dcFJzcdhHsm14oZW2o5/ZmcubtTPCpiK30k=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References;
-	b=SB4Vm80uRCpDeWODkTtcoxRBu/TZxPbDoj4rha6005eIZgtN8+gCEBn0JHU87x/Pd
-	 GnYGX2v2Y6HCRSIIs+bSOIVpwQWlOqhfUje9GKX6JjxrCagbTAaquM4muIFsr7UfR2
-	 GWfABpESVZZgwWxhqZYdNXWzLyiF46kN2z8yPgig=
-Date: Wed, 8 Jul 2026 17:22:24 -0700
+	d=linux-foundation.org; s=korg; t=1783561409;
+	bh=oBSPFppv3VLNcPKWaNu21fZRBJwXJ2OGUU3DcFX0cdY=;
+	h=Date:To:From:Subject;
+	b=X9ib7Tq3Nbu8iDYxsPI0vq6lv+Gp0gP2N0uMC++Lyi8muQguPD1pAKQrTffsKGP+i
+	 z3Fy/oaEA3hy9PAwbzlMNLKuvTgCjRkidFRSmr/gZsWYEIwJMWrYQbJRCX+2c772vG
+	 LUixO8wJoT9XzfB5QAygWhIPyp5Vv97TKQq7CArQ=
+Date: Wed, 08 Jul 2026 18:43:28 -0700
+To: mm-commits@vger.kernel.org,zhen.ni@easystack.cn,corbet@lwn.net,rdunlap@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-To: Matthew Wilcox <willy@infradead.org>
-Cc: mm-commits@vger.kernel.org, vbabka@kernel.org, surenb@google.com,
- stable@vger.kernel.org, sourabhjain@linux.ibm.com, rppt@kernel.org,
- ritesh.list@gmail.com, mhocko@suse.com, luizcap@redhat.com, ljs@kernel.org,
- liam@infradead.org, david@kernel.org, aboorvad@linux.ibm.com
-Subject: Re: +
- mm-util-dont-read-__page_2-for-order-1-folios-in-snapshot_page.patch added
- to mm-hotfixes-unstable branch
-Message-Id: <20260708172224.f919bee522da26d700cef447@linux-foundation.org>
-In-Reply-To: <ak7J8oaLkNsWNOrx@casper.infradead.org>
-References: <20260708205653.14D251F000E9@smtp.kernel.org>
-	<ak7J8oaLkNsWNOrx@casper.infradead.org>
-X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+Subject: + mm-page_owner-document-page_owner-filter-fix.patch added to mm-unstable branch
+Message-Id: <20260709014328.EC1F61F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
 
-On Wed, 8 Jul 2026 23:06:42 +0100 Matthew Wilcox <willy@infradead.org> wrote:
 
-> On Wed, Jul 08, 2026 at 01:56:52PM -0700, Andrew Morton wrote:
-> > From: Aboorva Devarajan <aboorvad@linux.ibm.com>
-> > Subject: mm/util: don't read __page_2 for order-1 folios in snapshot_page()
-> > Date: Thu, 9 Jul 2026 01:49:54 +0530
-> > 
-> > snapshot_page() currently reads __page_2 after checking nr_pages > 1, but
-> > it should only do so when nr_pages > 2.
-> > 
-> > If an order-1 folio is allocated at the end of a vmemmap section,
-> > __page_2 will not exist and reading it will cause a fault.
-> > 
-> > During DLPAR memory remove on a 22 TB ppc64le LPAR, snapshot_page() oopsed
-> > on the page isolation path while reading an order-1 folio's __page_2 from
-> > an adjacent absent section (unmapped vmemmap).
-> > 
-> > Fix this to avoid reading memmap that doesn't exist (e.g., a vmemmap
-> > hole).
-> > 
-> > Link: https://lore.kernel.org/20260708201954.686111-1-aboorvad@linux.ibm.com
-> > Fixes: 31a31da8a618 ("mm: move _pincount in folio to page[2] on 32bit")
-> > Signed-off-by: Aboorva Devarajan <aboorvad@linux.ibm.com>
-> > Reported-by: Sourabh Jain <sourabhjain@linux.ibm.com>
-> > Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-> > Reviewed-by: Lorenzo Stoakes <ljs@kernel.org>
-> > Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-> 
-> You're taking my R-b without taking my rewording of the second
-> paragraph?
+The patch titled
+     Subject: mm/page_owner: avoid docs build warning
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-page_owner-document-page_owner-filter-fix.patch
 
-I added your sentence.  Aboorva's info was potentially useful, absent a
-Link: to a report,
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_owner-document-page_owner-filter-fix.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
+
+------------------------------------------------------
+From: Randy Dunlap <rdunlap@infradead.org>
+Subject: mm/page_owner: avoid docs build warning
+Date: Wed, 8 Jul 2026 14:35:48 -0700
+
+Fix literal block and indentation to prevent a docs build warning:
+
+Documentation/mm/page_owner.rst:70: WARNING: Literal block expected; none found. [docutils]
+
+Link: https://lore.kernel.org/20260708213548.469155-1-rdunlap@infradead.org
+Fixes: c34eea8cecca ("mm/page_owner: document page_owner filter")
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Zhen Ni <zhen.ni@easystack.cn>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ Documentation/mm/page_owner.rst |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+--- a/Documentation/mm/page_owner.rst~mm-page_owner-document-page_owner-filter-fix
++++ a/Documentation/mm/page_owner.rst
+@@ -65,14 +65,15 @@ un-tracking state.
+ Usage
+ =====
+ 
+-1) Build user-space helpers::
++1) Build user-space helpers:
++::
+ 
+-To filter page_owner output:
++   To filter page_owner output:
+ 
+ 	cd tools/mm
+ 	make page_owner_filter
+ 
+-To sort and analyze page_owner output:
++   To sort and analyze page_owner output:
+ 
+ 	cd tools/mm
+ 	make page_owner_sort
+_
+
+Patches currently in -mm which might be from rdunlap@infradead.org are
+
+mm-page_owner-document-page_owner-filter-fix.patch
+radix-tree-add-correct-some-kernel-doc.patch
+
