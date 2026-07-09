@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CF91638758E
-	for <mm-commits@vger.kernel.org>; Thu,  9 Jul 2026 23:15:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5D63B2DB789
+	for <mm-commits@vger.kernel.org>; Thu,  9 Jul 2026 23:51:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783638909; cv=none; b=KQaPJFQnNNe8lrKR72kjkL7igr4zB5t4xIogYz5svQ2uH/qiJhKKfqYsyydRzaXznO9cMn7snmQSl+NEdY14JB5V/K4WpY4NqSkjIJZF4FxAkBIvZXQ61bkKlSj4rSfiEhG49Uw1WW1MtaBoQRL0abn2MdDLqLOAmcphxjMGA9I=
+	t=1783641091; cv=none; b=JVZ16pWHFAyQKL9mXFmrrjIFu2II+lo9coQNGh49EoTSO5G+uFFDdQ3vO/aNKf+kAH3O5HLl5j6RrJZwlAsj4kwgQAb61GaqV94OcD2TgQGjISD9F+GL8sQaeUpE7uEzD4CSHgTrzUWnkj20IQYC3U4gsa166mLbfOT/yqC+rlI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783638909; c=relaxed/simple;
-	bh=XK2uiuXsb+0dy00xci8u/mHkPTHcyA4P61KrT735IYc=;
-	h=Date:To:From:Subject:Message-Id; b=o4wq7Zh791N4xritAkOsemmzJUlsnSvTKLwFOqwKqU8TrqJ8Sbj9tOM4bdk41g4Aeovpc5C4N1UYDgEMlZq68xheURk+sVZ8TsuhmPV7DpVcEJtjG98V2FqUfEQextFSPThhGHONH9Z7T6bcCZCunx6MEp3cdT64CLt9vm5Bjp0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=icjc3nU7; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783641091; c=relaxed/simple;
+	bh=WJNRJE9rQM0oLDlQtDpsN/DKJTpZIcywaMbW6yZwUvA=;
+	h=Date:To:From:Subject:Message-Id; b=OcbrSEj62dCkB7vBugUzt/5gyQH3vGeIgUs3cnQIYx/bHB2lH9ox0iPBGkuZRP6hsT8JI3aViACLRU+3mtw0n/fvAOqd3Und+xba4cekl7ghOGKeEKwcAPnHhLbNp0KlMivtvDlPdmbMfO01m+apuRQjCSiuhzIGO5JXjrTJA8U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZnqB2KxH; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="icjc3nU7"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5C09B1F000E9;
-	Thu,  9 Jul 2026 23:15:07 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZnqB2KxH"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C477A1F000E9;
+	Thu,  9 Jul 2026 23:51:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783638907;
-	bh=p0QzQ4gvwVtOFsNKOVq2mcerUpN1l35w8M3pmc+QX0Y=;
+	d=linux-foundation.org; s=korg; t=1783641089;
+	bh=FX0HJPbM4O/yzwwjMTF3AoOFC1m3AXMpLfhphgVAAh0=;
 	h=Date:To:From:Subject;
-	b=icjc3nU7UHPaHpavjiUzrhx7yZR0ANX7nP2r1OAzUDFyCagrOjsEjEX7npm4q/21H
-	 RNRDt7jxNi7mIA7x5gkhgZrMNNujOOppkYrAOYh9fBEPKe+GVDJknVqeTaLwZ8dLjA
-	 lBfYBoDobj7n6N1MYlOwjEgTu0Y3rD/AJkqLXgMw=
-Date: Thu, 09 Jul 2026 16:15:06 -0700
-To: mm-commits@vger.kernel.org,pjw@kernel.org,thecharlesjenkins@gmail.com,akpm@linux-foundation.org
+	b=ZnqB2KxHJvu1DYh9VJ5ZPqoP3oqZ+HrTfsrxK8g2wL/SMbqIS9ILzSsuZJhvHRxgS
+	 AgzxnkleDrSk/bQe5CFaUIPmoJ5YbYfWenUSIUHDiNamt6kuC2dz3EjEpGnXLFS6mS
+	 EzK4YXoHkbGxva5bB00Il+NFjt2e05fQAYPLlovM=
+Date: Thu, 09 Jul 2026 16:51:29 -0700
+To: mm-commits@vger.kernel.org,viro@zeniv.linux.org.uk,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,heming.zhao@suse.com,gechangwei@live.cn,dmantipov@yandex.ru,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mailmap-add-entry-for-charlie-jenkins.patch added to mm-nonmm-unstable branch
-Message-Id: <20260709231507.5C09B1F000E9@smtp.kernel.org>
+Subject: + ocfs2-do-not-use-make_bad_inode-in-ocfs2_read_inode_block_full.patch added to mm-nonmm-unstable branch
+Message-Id: <20260709235129.C477A1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mailmap: add entry for Charlie Jenkins
+     Subject: ocfs2: do not use make_bad_inode() in ocfs2_read_inode_block_full()
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     mailmap-add-entry-for-charlie-jenkins.patch
+     ocfs2-do-not-use-make_bad_inode-in-ocfs2_read_inode_block_full.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mailmap-add-entry-for-charlie-jenkins.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-do-not-use-make_bad_inode-in-ocfs2_read_inode_block_full.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,34 +58,50 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Charlie Jenkins <thecharlesjenkins@gmail.com>
-Subject: mailmap: add entry for Charlie Jenkins
-Date: Thu, 09 Jul 2026 00:31:04 -0700
+From: Dmitry Antipov <dmantipov@yandex.ru>
+Subject: ocfs2: do not use make_bad_inode() in ocfs2_read_inode_block_full()
+Date: Thu, 9 Jul 2026 09:01:01 +0300
 
-My Rivos email started bouncing so redirect to my personal email.
+This reverts commit 58b6fcd2ab34 ("ocfs2: mark inode bad upon validation
+failure during read").
 
-Link: https://lore.kernel.org/20260709-mailmap-v1-1-74d98b8149d6@gmail.com
-Signed-off-by: Charlie Jenkins <thecharlesjenkins@gmail.com>
-Cc: Paul Walmsley <pjw@kernel.org>
+Since 'make_bad_inode()' resets inode type to S_IFREG, doing this for
+directory inode during active VFS lookup is likely to confuse the latter,
+including VFS_BUG_ON_INODE() triggered in this case.
+
+Link: https://lore.kernel.org/20260709060101.207262-1-dmantipov@yandex.ru
+Fixes: 58b6fcd2ab34 ("ocfs2: mark inode bad upon validation failure during read")
+Signed-off-by: Dmitry Antipov <dmantipov@yandex.ru>
+Suggested-by: Al Viro <viro@zeniv.linux.org.uk>
+Reported-by: syzbot+d222f4b7129379c3d5bc@syzkaller.appspotmail.com
+Closes: https://syzkaller.appspot.com/bug?extid=d222f4b7129379c3d5bc
+Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Jun Piao <piaojun@huawei.com>
+Cc: Heming Zhao <heming.zhao@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- .mailmap |    1 +
- 1 file changed, 1 insertion(+)
+ fs/ocfs2/inode.c |    2 --
+ 1 file changed, 2 deletions(-)
 
---- a/.mailmap~mailmap-add-entry-for-charlie-jenkins
-+++ a/.mailmap
-@@ -185,6 +185,7 @@ Carlos Bilbao <carlos.bilbao@kernel.org>
- Changbin Du <changbin.du@intel.com> <changbin.du@gmail.com>
- Chao Yu <chao@kernel.org> <chao2.yu@samsung.com>
- Chao Yu <chao@kernel.org> <yuchao0@huawei.com>
-+Charlie Jenkins <thecharlesjenkins@gmail.com> <charlie@rivosinc.com>
- Chen-Yu Tsai <wens@kernel.org> <wens@csie.org>
- Chester Lin <chester62515@gmail.com> <clin@suse.com>
- Chris Chiu <chris.chiu@canonical.com> <chiu@endlessm.com>
+--- a/fs/ocfs2/inode.c~ocfs2-do-not-use-make_bad_inode-in-ocfs2_read_inode_block_full
++++ a/fs/ocfs2/inode.c
+@@ -1952,8 +1952,6 @@ int ocfs2_read_inode_block_full(struct i
+ 	rc = ocfs2_read_blocks(INODE_CACHE(inode), OCFS2_I(inode)->ip_blkno,
+ 			       1, &tmp, flags, ocfs2_validate_inode_block);
+ 
+-	if (rc < 0)
+-		make_bad_inode(inode);
+ 	/* If ocfs2_read_blocks() got us a new bh, pass it up. */
+ 	if (!rc && !*bh)
+ 		*bh = tmp;
 _
 
-Patches currently in -mm which might be from thecharlesjenkins@gmail.com are
+Patches currently in -mm which might be from dmantipov@yandex.ru are
 
-mailmap-add-entry-for-charlie-jenkins.patch
+ocfs2-do-not-use-make_bad_inode-in-ocfs2_read_inode_block_full.patch
 
