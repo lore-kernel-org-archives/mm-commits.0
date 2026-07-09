@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6615931AABC
-	for <mm-commits@vger.kernel.org>; Thu,  9 Jul 2026 22:59:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0AE2313A86C
+	for <mm-commits@vger.kernel.org>; Thu,  9 Jul 2026 23:01:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783637984; cv=none; b=uTWN+dlpP1BlQLeReTxpqGzznFqD9bTeE/nspdGGQKy8ztAWbFtPLz7b4YrLjnCugf4WRmWj+9euonxkqkIfvXwVpgQ/IY9s/xhXG+Kb9KBHoIDPZIPQjb9TzhFkPq/PKS6qLPO8y9g7rhy0UI9VWwvNlvK7Tzo9QMwuqqZcMwk=
+	t=1783638066; cv=none; b=Rlvm6/Psd2sdhBieBSUb7D7yab4thkYqBiWG5khw2k8pGljHP4kIsqNlqPCeDK8K/0TfejS/dXYPgKrxZQdmWi/x9V3RIgg3RTdubzwAvHQ/t9ro2QxupE0CIxChvQdZauPs2Z5tzO6NcKv3xP8waa660WBt+60ehRBMiPvvrzc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783637984; c=relaxed/simple;
-	bh=W27utw41uC4OaY7DXyn391WA/PepwwHXRpEoEklQdMo=;
-	h=Date:To:From:Subject:Message-Id; b=SQhT1FufsuYSuCTdN9DIkTc7XxrD35FHVy6Fk76blarh7veLXXapgnnw7nqRDJqd2PFKfXRy7NovLZSOaKGAilacB0z+wMGP+w1l9hT3WBaEL1Y15N5rE+3RzcXmrWQ+jJIhyby7j6v6gPYE/7vSQTo9Th4nb11fq2NdTHHDYTw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fSJcvozw; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783638066; c=relaxed/simple;
+	bh=j69xh28v1iDBKngSxgqFuz38bMdWF2uE4adn363+Rk0=;
+	h=Date:To:From:Subject:Message-Id; b=Wt8adpUx4vKHAiG/0c47PXEP4p5hgojWtO7uawAlZcbhTI/fxYhZfEH6SOCFvw0vO2r7oHOnYnWB17jk1s9zb7gF+ysk34i5TBUsFMxgj2aLn64ctz/zG/Rd3kRfRQ5Yu9wnuVQ6aFBDzCviULJqDHyMH1p7u6NXQ00VXWH/cP4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WnAf8Cx2; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fSJcvozw"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 071461F000E9;
-	Thu,  9 Jul 2026 22:59:42 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WnAf8Cx2"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8F91C1F000E9;
+	Thu,  9 Jul 2026 23:01:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783637982;
-	bh=2DyhBiq8ory+QTJckV2kvijlGcaJsqDC9JtKYTjoYhY=;
+	d=linux-foundation.org; s=korg; t=1783638063;
+	bh=eBGmK7WjNIkVro9jkTgOvCocVdU39/qWGAtBa2Gl+TA=;
 	h=Date:To:From:Subject;
-	b=fSJcvozwlIevT5QifYhEWgRXRLhDZsSqfcG+IbvIqRHrftO2JvHEeaJKXynWBEicW
-	 XcjTs8vhILIuZnlo3EEeJ0f852DEPxSibZcEovxydLPinZMBzB5afhSzwFTT3Zgxdn
-	 HPX3QwkHPc/VHTskyqbdhaIvaY0jhpgQSfNOinQk=
-Date: Thu, 09 Jul 2026 15:59:41 -0700
-To: mm-commits@vger.kernel.org,kas@kernel.org,akpm@linux-foundation.org
+	b=WnAf8Cx27UhisTMTzLzRksA7mNNkR5nxPZGASFjo81AbdZQ5hBEDXo4AtMnBTUx4t
+	 Ay3YRiFBO4asV3P0d58PuH3MN9N1EHwUmLhhirdK+elG5d4Y++94QcbpQInLccVQDo
+	 6fA2Q96OELA47Im0pYPNEw4QvnpB3ZZ5zi5XrrY0=
+Date: Thu, 09 Jul 2026 16:01:03 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,surenb@google.com,sj@kernel.org,seanjc@google.com,rppt@kernel.org,peterx@redhat.com,pbonzini@redhat.com,ljs@kernel.org,liam.howlett@oracle.com,jthoughton@google.com,david@kernel.org,corbet@lwn.net,aarcange@redhat.com,kas@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] selftests-mm-add-userfaultfd-rwp-tests.patch removed from -mm tree
-Message-Id: <20260709225942.071461F000E9@smtp.kernel.org>
+Subject: + selftests-mm-add-userfaultfd-rwp-tests.patch added to mm-unstable branch
+Message-Id: <20260709230103.8F91C1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,17 +34,33 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
+The patch titled
      Subject: selftests/mm: add userfaultfd RWP tests
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm mm-unstable branch.  Its filename is
      selftests-mm-add-userfaultfd-rwp-tests.patch
 
-This patch was dropped because an updated version will be issued
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-add-userfaultfd-rwp-tests.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
 ------------------------------------------------------
 From: "Kiryl Shutsemau (Meta)" <kas@kernel.org>
 Subject: selftests/mm: add userfaultfd RWP tests
-Date: Wed, 8 Jul 2026 12:14:15 +0100
+Date: Thu, 16 Apr 2026 14:33:41 +0100
 
 Coverage for UFFDIO_REGISTER_MODE_RWP and UFFDIO_RWPROTECT:
 
@@ -73,7 +89,12 @@ All tests run against anon, shmem, shmem-private, hugetlb, and
 hugetlb-private memory, except rwp-fork-pin which is anon-only —
 copy_present_page() is the private-anon pinned-exclusive fork path.
 
-Link: https://lore.kernel.org/20260708111417.173443-15-kirill@shutemov.name
+Snapshot the RWP additions into tools/include/uapi/linux/userfaultfd.h so
+the selftest builds without requiring "make headers" first, matching the
+mechanism established by commit 580ea358af0a ("selftests/mm: fix
+additional build errors for selftests").
+
+Link: https://lore.kernel.org/ak-Z9KO2mP9HMOPW@thinkstation
 Signed-off-by: Kiryl Shutsemau <kas@kernel.org>
 Assisted-by: Claude:claude-opus-4-6
 Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
@@ -93,9 +114,151 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
+ tools/include/uapi/linux/userfaultfd.h       |   54 
  tools/testing/selftests/mm/uffd-unit-tests.c |  919 +++++++++++++++++
- 1 file changed, 919 insertions(+)
+ 2 files changed, 969 insertions(+), 4 deletions(-)
 
+--- a/tools/include/uapi/linux/userfaultfd.h~selftests-mm-add-userfaultfd-rwp-tests
++++ a/tools/include/uapi/linux/userfaultfd.h
+@@ -25,7 +25,8 @@
+ #define UFFD_API ((__u64)0xAA)
+ #define UFFD_API_REGISTER_MODES (UFFDIO_REGISTER_MODE_MISSING |	\
+ 				 UFFDIO_REGISTER_MODE_WP |	\
+-				 UFFDIO_REGISTER_MODE_MINOR)
++				 UFFDIO_REGISTER_MODE_MINOR |	\
++				 UFFDIO_REGISTER_MODE_RWP)
+ #define UFFD_API_FEATURES (UFFD_FEATURE_PAGEFAULT_FLAG_WP |	\
+ 			   UFFD_FEATURE_EVENT_FORK |		\
+ 			   UFFD_FEATURE_EVENT_REMAP |		\
+@@ -42,10 +43,13 @@
+ 			   UFFD_FEATURE_WP_UNPOPULATED |	\
+ 			   UFFD_FEATURE_POISON |		\
+ 			   UFFD_FEATURE_WP_ASYNC |		\
+-			   UFFD_FEATURE_MOVE)
++			   UFFD_FEATURE_MOVE |			\
++			   UFFD_FEATURE_RWP |			\
++			   UFFD_FEATURE_RWP_ASYNC)
+ #define UFFD_API_IOCTLS				\
+ 	((__u64)1 << _UFFDIO_REGISTER |		\
+ 	 (__u64)1 << _UFFDIO_UNREGISTER |	\
++	 (__u64)1 << _UFFDIO_SET_MODE |		\
+ 	 (__u64)1 << _UFFDIO_API)
+ #define UFFD_API_RANGE_IOCTLS			\
+ 	((__u64)1 << _UFFDIO_WAKE |		\
+@@ -54,13 +58,15 @@
+ 	 (__u64)1 << _UFFDIO_MOVE |		\
+ 	 (__u64)1 << _UFFDIO_WRITEPROTECT |	\
+ 	 (__u64)1 << _UFFDIO_CONTINUE |		\
+-	 (__u64)1 << _UFFDIO_POISON)
++	 (__u64)1 << _UFFDIO_POISON |		\
++	 (__u64)1 << _UFFDIO_RWPROTECT)
+ #define UFFD_API_RANGE_IOCTLS_BASIC		\
+ 	((__u64)1 << _UFFDIO_WAKE |		\
+ 	 (__u64)1 << _UFFDIO_COPY |		\
+ 	 (__u64)1 << _UFFDIO_WRITEPROTECT |	\
+ 	 (__u64)1 << _UFFDIO_CONTINUE |		\
+-	 (__u64)1 << _UFFDIO_POISON)
++	 (__u64)1 << _UFFDIO_POISON |		\
++	 (__u64)1 << _UFFDIO_RWPROTECT)
+ 
+ /*
+  * Valid ioctl command number range with this API is from 0x00 to
+@@ -79,6 +85,8 @@
+ #define _UFFDIO_WRITEPROTECT		(0x06)
+ #define _UFFDIO_CONTINUE		(0x07)
+ #define _UFFDIO_POISON			(0x08)
++#define _UFFDIO_RWPROTECT		(0x09)
++#define _UFFDIO_SET_MODE		(0x0A)
+ #define _UFFDIO_API			(0x3F)
+ 
+ /* userfaultfd ioctl ids */
+@@ -103,6 +111,10 @@
+ 				      struct uffdio_continue)
+ #define UFFDIO_POISON		_IOWR(UFFDIO, _UFFDIO_POISON, \
+ 				      struct uffdio_poison)
++#define UFFDIO_RWPROTECT	_IOWR(UFFDIO, _UFFDIO_RWPROTECT,	\
++				      struct uffdio_rwprotect)
++#define UFFDIO_SET_MODE		_IOW(UFFDIO, _UFFDIO_SET_MODE,	\
++				     struct uffdio_set_mode)
+ 
+ /* read() structure */
+ struct uffd_msg {
+@@ -158,6 +170,7 @@ struct uffd_msg {
+ #define UFFD_PAGEFAULT_FLAG_WRITE	(1<<0)	/* If this was a write fault */
+ #define UFFD_PAGEFAULT_FLAG_WP		(1<<1)	/* If reason is VM_UFFD_WP */
+ #define UFFD_PAGEFAULT_FLAG_MINOR	(1<<2)	/* If reason is VM_UFFD_MINOR */
++#define UFFD_PAGEFAULT_FLAG_RWP		(1<<3)	/* If reason is VM_UFFD_RWP */
+ 
+ struct uffdio_api {
+ 	/* userland asks for an API number and the features to enable */
+@@ -230,6 +243,18 @@ struct uffdio_api {
+ 	 *
+ 	 * UFFD_FEATURE_MOVE indicates that the kernel supports moving an
+ 	 * existing page contents from userspace.
++	 *
++	 * UFFD_FEATURE_RWP indicates that the kernel supports
++	 * UFFDIO_REGISTER_MODE_RWP for read-write protection tracking.
++	 * Pages are made inaccessible via UFFDIO_RWPROTECT and faults
++	 * are delivered when the pages are re-accessed.
++	 *
++	 * UFFD_FEATURE_RWP_ASYNC indicates asynchronous mode for
++	 * UFFDIO_REGISTER_MODE_RWP.  When set, faults on read-write
++	 * protected pages are auto-resolved by the kernel (PTE
++	 * permissions restored immediately) without delivering a message
++	 * to the userfaultfd handler.  Use PAGEMAP_SCAN with inverted
++	 * PAGE_IS_ACCESSED to find pages that were not re-accessed.
+ 	 */
+ #define UFFD_FEATURE_PAGEFAULT_FLAG_WP		(1<<0)
+ #define UFFD_FEATURE_EVENT_FORK			(1<<1)
+@@ -248,6 +273,8 @@ struct uffdio_api {
+ #define UFFD_FEATURE_POISON			(1<<14)
+ #define UFFD_FEATURE_WP_ASYNC			(1<<15)
+ #define UFFD_FEATURE_MOVE			(1<<16)
++#define UFFD_FEATURE_RWP			(1<<17)
++#define UFFD_FEATURE_RWP_ASYNC			(1<<18)
+ 	__u64 features;
+ 
+ 	__u64 ioctls;
+@@ -263,6 +290,7 @@ struct uffdio_register {
+ #define UFFDIO_REGISTER_MODE_MISSING	((__u64)1<<0)
+ #define UFFDIO_REGISTER_MODE_WP		((__u64)1<<1)
+ #define UFFDIO_REGISTER_MODE_MINOR	((__u64)1<<2)
++#define UFFDIO_REGISTER_MODE_RWP	((__u64)1<<3)
+ 	__u64 mode;
+ 
+ 	/*
+@@ -356,6 +384,14 @@ struct uffdio_poison {
+ 	__s64 updated;
+ };
+ 
++struct uffdio_rwprotect {
++	struct uffdio_range range;
++	/* !RWP means undo RWP-protection */
++#define UFFDIO_RWPROTECT_MODE_RWP		((__u64)1<<0)
++#define UFFDIO_RWPROTECT_MODE_DONTWAKE		((__u64)1<<1)
++	__u64 mode;
++};
++
+ struct uffdio_move {
+ 	__u64 dst;
+ 	__u64 src;
+@@ -374,6 +410,16 @@ struct uffdio_move {
+ 	__s64 move;
+ };
+ 
++struct uffdio_set_mode {
++	/*
++	 * Toggle async mode for features at runtime.
++	 * Supported: UFFD_FEATURE_RWP_ASYNC.
++	 * Setting a bit in both enable and disable is invalid.
++	 */
++	__u64 enable;
++	__u64 disable;
++};
++
+ /*
+  * Flags for the userfaultfd(2) system call itself.
+  */
 --- a/tools/testing/selftests/mm/uffd-unit-tests.c~selftests-mm-add-userfaultfd-rwp-tests
 +++ a/tools/testing/selftests/mm/uffd-unit-tests.c
 @@ -7,6 +7,8 @@
@@ -1079,5 +1242,6 @@ mm-userfaultfd-add-rwp-fault-delivery-and-expose-uffdio_register_mode_rwp.patch
 mm-pagemap-add-page_is_accessed-for-rwp-tracking.patch
 userfaultfd-add-uffd_feature_rwp_async-for-async-fault-resolution.patch
 userfaultfd-add-uffdio_set_mode-for-runtime-sync-async-toggle.patch
+selftests-mm-add-userfaultfd-rwp-tests.patch
 documentation-userfaultfd-document-rwp-working-set-tracking.patch
 
