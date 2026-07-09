@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 54B292F0C79
-	for <mm-commits@vger.kernel.org>; Thu,  9 Jul 2026 01:53:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5D50529993D
+	for <mm-commits@vger.kernel.org>; Thu,  9 Jul 2026 01:53:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783561985; cv=none; b=bMyv+SPWge/hvlfikOKPSXXzOXoOvQero1KwSNXG53jAnJ0E2jstgxxy6Gh1rp/Ub2KObVD0C03nLYOnIcd/QdhdpxDDOoUYAXYLukDuqi/8j2kDRTko2dAI/GR1j4PCQUDwscdDmoAafcA/zJHdkmzTNz0IDeiZC7/YoONDUzA=
+	t=1783562039; cv=none; b=d2WCKyoWGu9u9l9pQggwqoYGm1KotKhBO+l9BZ5e+aWZXHupCQNYfrELvhsqgEElkoMWICC9WgNBe72WtGRwmfZCDADGCOsTI0raGofmOMDCKLmB2sJFOnSLo/qlC5hNEDrjkVAUEdvUR3Sx4GWaSV1SVAIoW/srEf54kgW+A/M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783561985; c=relaxed/simple;
-	bh=2BKqGwo5Xi2+tRcj9Yyw5SlKfLEiJpmThFNzOcLAty8=;
-	h=Date:To:From:Subject:Message-Id; b=oiqRUtktbibDZoYlhujwwUNb1dNCFLCUAyoVT3w3t7ARnHHoFPpunZjLqV2XUXuF75D7EKsUsn0InHqXBDONCKLfU+nIlxtiQ51Q95e0BM6ADA+o9XsWH/nTzK1tfQEKyaahn5Ze8KbNxv410L8/HuqAmqAHSRzuL1lNb2mrd0k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HTqDaNRJ; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783562039; c=relaxed/simple;
+	bh=vtlHdqvkQV1vz+WzBhe0F5BHrZHuqFUBC70Aq9J/eqY=;
+	h=Date:To:From:Subject:Message-Id; b=gssODViWUtTzXw8WU8SJsJsnkUk/m6RelVz4LxnFRpy6jYNpxBmenglxP56atmLQzpwbP4JhO2XI1qmXBP3FfvypkWWqBHW72JpFnePIhO9XNMMhazmNUl8/OUCHe9OnmuTxaD96tJpsYphjENhcKx2/evRg+ROnJWZNCawJLJs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EJeKBl5M; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HTqDaNRJ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D2E3E1F000E9;
-	Thu,  9 Jul 2026 01:53:02 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EJeKBl5M"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 19DC21F00A3D;
+	Thu,  9 Jul 2026 01:53:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783561982;
-	bh=xlQZa9Tjj7gvOT6taRhAawxnTRU19U+B8RDARTIeJBo=;
+	d=linux-foundation.org; s=korg; t=1783562038;
+	bh=R287CttAnxPnFaA1Oxoh8UWnCsCpiErjcEBBKdfAu/g=;
 	h=Date:To:From:Subject;
-	b=HTqDaNRJrkjkNzUdQbAGrX7vjvb4eRFljnc6YDFvJWy04850EQIXG14jjTcqUbvfO
-	 Igk5ZzbUWBFEKc2yQbMxODPScPkvia89IARyfFixvoBMLwkbSADfiDmVpGrwcQ/chX
-	 bPjbuqEiYTeML5TmJz0eoiD/tERYffH6vnFkz/38=
-Date: Wed, 08 Jul 2026 18:53:02 -0700
-To: mm-commits@vger.kernel.org,yuanchu@google.com,willy@infradead.org,weixugc@google.com,vbabka@kernel.org,surenb@google.com,shikemeng@huaweicloud.com,shakeel.butt@linux.dev,rppt@kernel.org,nphamcs@gmail.com,mhocko@suse.com,mhocko@kernel.org,ljs@kernel.org,liam@infradead.org,kasong@tencent.com,hughd@google.com,hannes@cmpxchg.org,david@kernel.org,corbet@lwn.net,chrisl@kernel.org,bhe@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,axelrasmussen@google.com,wujianyue000@gmail.com,akpm@linux-foundation.org
+	b=EJeKBl5MD1lZLTpBT3ASRgugr9RzZ8JsmRKXX97vM1YgGcLxOYTmnGJprSTR6zWdr
+	 RBdRKBRBNZjGWErWuOJP8t0N1Fe6HqKsl/Y/sVOG52h7B+2hyZ7U0P60Eg4MNT82kd
+	 ss+Kqs2pvyKg2C3fbV3HNCBuqneLDem524EkGj/U=
+Date: Wed, 08 Jul 2026 18:53:57 -0700
+To: mm-commits@vger.kernel.org,hughd@google.com,elver@google.com,baolin.wang@linux.alibaba.com,jaeyeon.lee.dev@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-move-reclaim-internal-declarations-out-of-swaph.patch added to mm-new branch
-Message-Id: <20260709015302.D2E3E1F000E9@smtp.kernel.org>
+Subject: + mm-shmem-annotate-benign-data-race-in-shmem_getattr.patch added to mm-new branch
+Message-Id: <20260709015358.19DC21F00A3D@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: move reclaim-internal declarations out of swap.h
+     Subject: mm/shmem: annotate benign data-race in shmem_getattr()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-move-reclaim-internal-declarations-out-of-swaph.patch
+     mm-shmem-annotate-benign-data-race-in-shmem_getattr.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-move-reclaim-internal-declarations-out-of-swaph.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-shmem-annotate-benign-data-race-in-shmem_getattr.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,253 +69,45 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Jianyue Wu <wujianyue000@gmail.com>
-Subject: mm: move reclaim-internal declarations out of swap.h
-Date: Wed, 08 Jul 2026 19:35:45 +0800
+From: Jaeyeon Lee <jaeyeon.lee.dev@gmail.com>
+Subject: mm/shmem: annotate benign data-race in shmem_getattr()
+Date: Wed, 8 Jul 2026 13:19:41 +0200
 
-Keep include/linux/swap.h focused on swap-facing interfaces by moving
-MM-internal reclaim and workingset declarations into mm/internal.h.
+shmem_getattr() reads info->alloced, info->swapped and i_mapping->nrpages
+without info->lock to decide whether shmem_recalc_inode() should be
+called.  shmem_recalc_inode() recomputes these under info->lock, so a
+stale read here only affects whether shmem_recalc_inode() runs.
 
-Leave the small set of LRU helper declarations that are used outside mm/
-in swap.h so this cleanup does not need a new public header under
-include/linux/.
+Annotate data_race() to silence KCSAN.
 
-Link: https://lore.kernel.org/20260708-ch-swap-series-plus-folio-lru-cleanup-v9-3-2bc72b4f8730@gmail.com
-Signed-off-by: Jianyue Wu <wujianyue000@gmail.com>
-Suggested-by: Barry Song <baohua@kernel.org>
-Suggested-by: Baoquan He <bhe@redhat.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
+Link: https://lore.kernel.org/20260708111941.35460-1-jaeyeon.lee.dev@gmail.com
+Signed-off-by: Jaeyeon Lee <jaeyeon.lee.dev@gmail.com>
+Reported-by: syzbot+dfb578404df369f6599b@syzkaller.appspotmail.com
+Closes: https://syzkaller.appspot.com/bug?extid=dfb578404df369f6599b
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: David Hildenbrand <david@kernel.org>
 Cc: Hugh Dickins <hughd@google.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Kairui Song <kasong@tencent.com>
-Cc: Kemeng Shi <shikemeng@huaweicloud.com>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Wei Xu <weixugc@google.com>
-Cc: Yuanchu Xie <yuanchu@google.com>
+Cc: Marco Elver <elver@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |   75 +++--------------------------------------
- mm/internal.h        |   67 ++++++++++++++++++++++++++++++++++++
- mm/memfd.c           |    1 
- 3 files changed, 75 insertions(+), 68 deletions(-)
+ mm/shmem.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/include/linux/swap.h~mm-move-reclaim-internal-declarations-out-of-swaph
-+++ a/include/linux/swap.h
-@@ -287,39 +287,19 @@ static inline swp_entry_t page_swap_entr
- 	return entry;
- }
+--- a/mm/shmem.c~mm-shmem-annotate-benign-data-race-in-shmem_getattr
++++ a/mm/shmem.c
+@@ -1287,7 +1287,8 @@ static int shmem_getattr(struct mnt_idma
+ 	struct inode *inode = path->dentry->d_inode;
+ 	struct shmem_inode_info *info = SHMEM_I(inode);
  
--/* linux/mm/workingset.c */
--bool workingset_test_recent(void *shadow, bool file, bool *workingset,
--				bool flush);
--void workingset_age_nonresident(struct lruvec *lruvec, unsigned long nr_pages);
--void *workingset_eviction(struct folio *folio, struct mem_cgroup *target_memcg);
--void workingset_refault(struct folio *folio, void *shadow);
--void workingset_activation(struct folio *folio);
--
- /* linux/mm/page_alloc.c */
- extern unsigned long totalreserve_pages;
+-	if (info->alloced - info->swapped != inode->i_mapping->nrpages)
++	/* Fast-path hint; recalc under info->lock corrects any stale read. */
++	if (data_race(info->alloced - info->swapped != inode->i_mapping->nrpages))
+ 		shmem_recalc_inode(inode, 0, 0);
  
- /* Definition of global_zone_page_state not available yet */
- #define nr_free_pages() global_zone_page_state(NR_FREE_PAGES)
- 
-+/* linux/mm/folio.c */
-+void folio_add_lru(struct folio *folio);
-+void folio_mark_accessed(struct folio *folio);
-+void lru_add_drain_all(void);
- 
--/* linux/mm/swap.c */
--void lru_note_cost_unlock_irq(struct lruvec *lruvec, bool file,
--		unsigned int nr_io, unsigned int nr_rotated);
--void lru_note_cost_refault(struct folio *);
--void folio_add_lru(struct folio *);
--void folio_add_lru_vma(struct folio *, struct vm_area_struct *);
--void mark_page_accessed(struct page *);
--void folio_mark_accessed(struct folio *);
--
--static inline bool folio_may_be_lru_cached(struct folio *folio)
--{
--	/*
--	 * Holding PMD-sized folios in per-CPU LRU cache unbalances accounting.
--	 * Holding small numbers of low-order mTHP folios in per-CPU LRU cache
--	 * will be sensible, but nobody has implemented and tested that yet.
--	 */
--	return !folio_test_large(folio);
--}
-+/* linux/mm/folio-compat.c */
-+void mark_page_accessed(struct page *page);
- 
- extern atomic_t lru_disable_count;
- 
-@@ -328,42 +308,6 @@ static inline bool lru_cache_disabled(vo
- 	return atomic_read(&lru_disable_count);
- }
- 
--static inline void lru_cache_enable(void)
--{
--	atomic_dec(&lru_disable_count);
--}
--
--extern void lru_cache_disable(void);
--extern void lru_add_drain(void);
--extern void lru_add_drain_cpu(int cpu);
--extern void lru_add_drain_cpu_zone(struct zone *zone);
--extern void lru_add_drain_all(void);
--void folio_deactivate(struct folio *folio);
--void folio_mark_lazyfree(struct folio *folio);
--
--/* linux/mm/vmscan.c */
--extern unsigned long zone_reclaimable_pages(struct zone *zone);
--extern unsigned long try_to_free_pages(struct zonelist *zonelist, int order,
--					gfp_t gfp_mask, const nodemask_t *mask);
--unsigned long lruvec_lru_size(struct lruvec *lruvec, enum lru_list lru, int zone_idx);
--
--#define MEMCG_RECLAIM_MAY_SWAP (1 << 1)
--#define MEMCG_RECLAIM_PROACTIVE (1 << 2)
--#define MIN_SWAPPINESS 0
--#define MAX_SWAPPINESS 200
--
--/* Just reclaim from anon folios in proactive memory reclaim */
--#define SWAPPINESS_ANON_ONLY (MAX_SWAPPINESS + 1)
--
--extern unsigned long try_to_free_mem_cgroup_pages(struct mem_cgroup *memcg,
--						  unsigned long nr_pages,
--						  gfp_t gfp_mask,
--						  unsigned int reclaim_options,
--						  int *swappiness);
--extern unsigned long mem_cgroup_shrink_node(struct mem_cgroup *mem,
--						gfp_t gfp_mask, bool noswap,
--						pg_data_t *pgdat,
--						unsigned long *nr_scanned);
- extern unsigned long shrink_all_memory(unsigned long nr_pages);
- extern int vm_swappiness;
- long remove_mapping(struct address_space *mapping, struct folio *folio);
-@@ -384,11 +328,6 @@ static inline void reclaim_unregister_no
- }
- #endif /* CONFIG_SYSFS && CONFIG_NUMA */
- 
--#ifdef CONFIG_NUMA
--extern int sysctl_min_unmapped_ratio;
--extern int sysctl_min_slab_ratio;
--#endif
--
- void check_move_unevictable_folios(struct folio_batch *fbatch);
- 
- extern void __meminit kswapd_run(int nid);
-@@ -544,7 +483,7 @@ static inline int mem_cgroup_swappiness(
- 
- void lru_reparent_memcg(struct mem_cgroup *memcg, struct mem_cgroup *parent, int nid);
- #else
--static inline int mem_cgroup_swappiness(struct mem_cgroup *mem)
-+static inline int mem_cgroup_swappiness(struct mem_cgroup *memcg)
- {
- 	return READ_ONCE(vm_swappiness);
- }
---- a/mm/internal.h~mm-move-reclaim-internal-declarations-out-of-swaph
-+++ a/mm/internal.h
-@@ -31,6 +31,73 @@ struct huge_bootmem_page {
- 	unsigned long flags;
- };
- 
-+/* mm/workingset.c */
-+bool workingset_test_recent(void *shadow, bool file, bool *workingset,
-+			    bool flush);
-+void workingset_age_nonresident(struct lruvec *lruvec, unsigned long nr_pages);
-+void *workingset_eviction(struct folio *folio,
-+			  struct mem_cgroup *target_memcg);
-+void workingset_refault(struct folio *folio, void *shadow);
-+void workingset_activation(struct folio *folio);
-+
-+/* mm/folio.c */
-+void lru_note_cost_unlock_irq(struct lruvec *lruvec, bool file,
-+		unsigned int nr_io, unsigned int nr_rotated);
-+void lru_note_cost_refault(struct folio *folio);
-+void folio_add_lru_vma(struct folio *folio, struct vm_area_struct *vma);
-+
-+static inline bool folio_may_be_lru_cached(struct folio *folio)
-+{
-+	/*
-+	 * Holding PMD-sized folios in per-CPU LRU cache unbalances accounting.
-+	 * Holding small numbers of low-order mTHP folios in per-CPU LRU cache
-+	 * will be sensible, but nobody has implemented and tested that yet.
-+	 */
-+	return !folio_test_large(folio);
-+}
-+
-+static inline void lru_cache_enable(void)
-+{
-+	atomic_dec(&lru_disable_count);
-+}
-+
-+void lru_cache_disable(void);
-+void lru_add_drain(void);
-+void lru_add_drain_cpu(int cpu);
-+void lru_add_drain_cpu_zone(struct zone *zone);
-+void folio_deactivate(struct folio *folio);
-+void folio_mark_lazyfree(struct folio *folio);
-+
-+/* mm/vmscan.c */
-+unsigned long zone_reclaimable_pages(struct zone *zone);
-+unsigned long try_to_free_pages(struct zonelist *zonelist, int order,
-+				gfp_t gfp_mask, const nodemask_t *mask);
-+unsigned long lruvec_lru_size(struct lruvec *lruvec, enum lru_list lru,
-+			      int zone_idx);
-+
-+#define MEMCG_RECLAIM_MAY_SWAP (1 << 1)
-+#define MEMCG_RECLAIM_PROACTIVE (1 << 2)
-+#define MIN_SWAPPINESS 0
-+#define MAX_SWAPPINESS 200
-+
-+/* Just reclaim from anon folios in proactive memory reclaim */
-+#define SWAPPINESS_ANON_ONLY (MAX_SWAPPINESS + 1)
-+
-+unsigned long try_to_free_mem_cgroup_pages(struct mem_cgroup *memcg,
-+					   unsigned long nr_pages,
-+					   gfp_t gfp_mask,
-+					   unsigned int reclaim_options,
-+					   int *swappiness);
-+unsigned long mem_cgroup_shrink_node(struct mem_cgroup *memcg,
-+				     gfp_t gfp_mask, bool noswap,
-+				     pg_data_t *pgdat,
-+				     unsigned long *nr_scanned);
-+
-+#ifdef CONFIG_NUMA
-+extern int sysctl_min_unmapped_ratio;
-+extern int sysctl_min_slab_ratio;
-+#endif
-+
- /*
-  * Maintains state across a page table move. The operation assumes both source
-  * and destination VMAs already exist and are specified by the user.
---- a/mm/memfd.c~mm-move-reclaim-internal-declarations-out-of-swaph
-+++ a/mm/memfd.c
-@@ -19,6 +19,7 @@
- #include <linux/memfd.h>
- #include <linux/pid_namespace.h>
- #include <uapi/linux/memfd.h>
-+#include "internal.h"
- #include "swap.h"
- 
- /*
+ 	if (info->fsflags & FS_APPEND_FL)
 _
 
-Patches currently in -mm which might be from wujianyue000@gmail.com are
+Patches currently in -mm which might be from jaeyeon.lee.dev@gmail.com are
 
-mm-swap-colocate-page-cluster-sysctl-with-swap-readahead.patch
-mm-rename-swapc-to-folioc.patch
-mm-move-reclaim-internal-declarations-out-of-swaph.patch
+mm-shmem-annotate-benign-data-race-in-shmem_getattr.patch
 
