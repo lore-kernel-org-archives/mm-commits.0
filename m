@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 277EF385D71;
-	Thu,  9 Jul 2026 22:49:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 22C9F2AEF5;
+	Thu,  9 Jul 2026 22:49:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783637396; cv=none; b=VhkZxpkUbYlkswywQRUtNQo3mHyh+VzKTjq+ZUDi0AQDQ+r8+S2ScCQNAj9EU1PKE/w6+eOmgTJDjoO2HVklHg1qqCGO4ERngJhZ2nRUcCDRDcL9mUFwR8un8H/4In4k6pqKEhbKx41ObQPzK4uwBb/xTn0eDIV5nQ9bLM1jgsM=
+	t=1783637397; cv=none; b=KaKwa7K0DvGWrrzAiDznhZF3jIJ6GqO8Fg8qth+4PeM29SWH5bO/cGvtPwnIrnr0WVfxswtLkw6nEjtd2QBHIP/RMl+bld8JM81VPbXSsCYnE7uOi9IA9mNGHmN30YVitsJEZCP/EWp0tST34FPpkIdNneNZXwULmlxtrrZZVaQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783637396; c=relaxed/simple;
-	bh=5yknw9e9aQ6pLOFteDO8pasGmD5vSTpAWoZl+pj8kUA=;
-	h=Date:To:From:Subject:Message-Id; b=ClIrfMcuvSiVOuW+6uCbzXotoiHBIu93sfJAqb5YIVctr4h+4cApCz7iA+WQa59HXBY5ELf8bVkdA1GTIqwr+yOLiCfCXHdKMH8RZZuca0yWdxZZtAMWqH0n+D0mcSbn/4aNUzGsbx6rxEXzW8Wv1GZRHWOQ+fm/lde3JYh+fKU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cMsqjdiq; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783637397; c=relaxed/simple;
+	bh=J2ZHywfMWzulZuy2OjWCdxoBkkP/zZ82wfTx4AbpumY=;
+	h=Date:To:From:Subject:Message-Id; b=V29x3KwEvaDEsTCmYiTJ4AMQyHQIftCruoukFyBv8XoUyIhT+wmwW9kVvW3zuJGibepDR+DlbW5dGGQCwWBHCJthiDxkHMJI9cMMwJHIPKnqwnfOXi0cYgiIvI8a8TPHUWT1MMmTDrik2h4WisU3k4v7RaqIF1rrW5ZV5h9RU8Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CUpBrn30; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cMsqjdiq"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BA3F41F000E9;
-	Thu,  9 Jul 2026 22:49:54 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CUpBrn30"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DDEA81F00A3A;
+	Thu,  9 Jul 2026 22:49:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783637394;
-	bh=zZeANOfNamqNh/8IHZcgS5mxJmoi6gOCUziTKaJq5RQ=;
+	d=linux-foundation.org; s=korg; t=1783637396;
+	bh=cAlVrl6XaLaTpGvh18XYl4py9y1ozHd2thqHEBxpXEo=;
 	h=Date:To:From:Subject;
-	b=cMsqjdiqW5IFVx3TccIp4GtsEmV8e0yXwb7ujbTr6snw+Cy2nGnzlhWBMHC2GShqZ
-	 AcjVBiWQs4HCSF2Y340rRskM0YsuDTt0Z9/y7mEFUiRCE+N9r0N7hCfUdphsore4HZ
-	 l7nhqjP0IBj3+fHnWQwnjYmE5BCWz19CiPdYCGCc=
-Date: Thu, 09 Jul 2026 15:49:54 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,yang@os.amperecomputing.com,stable@vger.kernel.org,ryan.roberts@arm.com,npache@redhat.com,ljs@kernel.org,liam@infradead.org,lance.yang@linux.dev,dev.jain@arm.com,david@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,riel@surriel.com,akpm@linux-foundation.org
+	b=CUpBrn30HDmvibGopaXoCKT9z8sRqpx6/cYjHE5+Vim94SdaWOOdLMYRqZiCef3fI
+	 Vwniq97KQSZG6kovxWRIiN9c3XM6WqSJBPQLgwWbfsAHNXU0XlRQ6MJOZ/LBySECrL
+	 neZtwkcfSznHkwoUDv7XS2I+K8yE5J5Mgg1yTVZE=
+Date: Thu, 09 Jul 2026 15:49:55 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,schwab@linux-m68k.org,geert@linux-m68k.org,david@kernel.org,ankur.a.arora@oracle.com,linux@weissschuh.net,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-huge_memory-set-pg_has_hwpoisoned-only-after-new-folio-head-is-established.patch removed from -mm tree
-Message-Id: <20260709224954.BA3F41F000E9@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] m68k-avoid-wunused-but-set-parameter-in-clear_user_page.patch removed from -mm tree
+Message-Id: <20260709224955.DDEA81F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,116 +35,69 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/huge_memory: set PG_has_hwpoisoned only after new folio head is established
+     Subject: m68k: avoid -Wunused-but-set-parameter in clear_user_page()
 has been removed from the -mm tree.  Its filename was
-     mm-huge_memory-set-pg_has_hwpoisoned-only-after-new-folio-head-is-established.patch
+     m68k-avoid-wunused-but-set-parameter-in-clear_user_page.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Rik van Riel <riel@surriel.com>
-Subject: mm/huge_memory: set PG_has_hwpoisoned only after new folio head is established
-Date: Wed, 1 Jul 2026 13:42:34 -0400
+From: Thomas Weißschuh <linux@weissschuh.net>
+Subject: m68k: avoid -Wunused-but-set-parameter in clear_user_page()
+Date: Mon, 25 May 2026 10:33:52 +0200
 
-__split_folio_to_order() copies the hwpoison state onto each new sub-folio
-while splitting a folio to a non-zero order.  It does so via
+The loop in clear_user_pages() iterates over all pages and calls
+clear_user_page() for each of them.  During the loop "vaddr" is modified. 
+However on m68k clear_user() is a macro which does not use "vaddr".  The
+compiler sees a variable which is modified but never used and emits a
+warning for that:
 
-	if (handle_hwpoison && page_range_has_hwpoisoned(new_head, new_nr_pages))
-		folio_set_has_hwpoisoned(new_folio);
+include/linux/highmem.h: In function 'clear_user_pages':
+include/linux/highmem.h:234:63: warning: parameter 'vaddr' set but not used [-Wunused-but-set-parameter=]
+    static inline void clear_user_pages(void *addr, unsigned long vaddr,
 
-*before* clear_compound_head(new_head)/prep_compound_page(new_head, ...)
-turns @new_head from a tail page into a proper folio head.
+Other architectures use an inline function for clear_user_page() which
+avoids the warning.  This is not possible on m68k, as dlush_dcache_page()
+is another macro which is not yet defined where clear_user_page() is
+defined.  Including cacheflush_mm.h will trigger recursive and lots of
+other issues.
 
-PG_has_hwpoisoned is a FOLIO_SECOND_PAGE flag, so
-folio_set_has_hwpoisoned() resolves to folio_flags(folio, 1).  With the
-new compound_info-based page-flags layout, folio_flags() asserts the page
-is not a tail:
+So hide the warning with a cast to (void) instead.
 
-	VM_BUG_ON_PGFLAGS(page->compound_info & 1, page);
-	VM_BUG_ON_PGFLAGS(n > 0 && !test_bit(PG_head, &page->flags.f), page);
+While we are here, do the same for copy_user_page().
 
-At the current call site @new_head still has the tail marker
-(compound_info bit 0 set, PG_head clear), so on CONFIG_DEBUG_VM kernels
-this hits:
-
-  kernel BUG at include/linux/page-flags.h:354
-  folio_flags+0x82
-  folio_set_has_hwpoisoned
-  __split_folio_to_order
-  __split_unmapped_folio
-  __folio_split
-  truncate_inode_partial_folio  (shmem hole-punch / MADV_REMOVE)
-
-Reproduced by syzkaller: hwpoison-inject a few subpages of a large shmem
-folio, then MADV_REMOVE (fallocate punch hole) on the same range, which
-splits the partial folio to a non-zero order.
-
-memory_failure() tries to split the poisoned folio to order 0 first, but
-that split is best-effort; when it fails the folio is left large with
-PG_has_hwpoisoned set, the case fa5a06170036 added this hwpoison copying
-for.
-
-Move the folio_set_has_hwpoisoned() call to after
-clear_compound_head()/prep_compound_page(), where @new_folio is a real
-order-new_order head folio (handle_hwpoison implies new_order != 0, so a
-second page always exists).  The flag still lands on the same struct page
-(page[1] of the new folio); only the ordering relative to compound-head
-setup changes, satisfying the FOLIO_SECOND_PAGE precondition.
-
-Link: https://lore.kernel.org/20260701174235.3173401-1-riel@surriel.com
-Fixes: fa5a06170036 ("mm/huge_memory: preserve PG_has_hwpoisoned if a folio is split to >0 order")
-Signed-off-by: Rik van Riel <riel@surriel.com>
-Assisted-by: Claude:claude-opus-4-8
-Reviewed-by: Zi Yan <ziy@nvidia.com>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Tested-by: Lance Yang <lance.yang@linux.dev>
-Reviewed-by: Lorenzo Stoakes <ljs@kernel.org>
-Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Lance Yang <lance.yang@linux.dev>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Nico Pache <npache@redhat.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Yang Shi <yang@os.amperecomputing.com>
+Link: https://lore.kernel.org/20260525-m68k-clear_user_page-v2-1-0c8981c6eca1@weissschuh.net
+Fixes: 62a9f5a85b98 ("mm: introduce clear_pages() and clear_user_pages()")
+Signed-off-by: Thomas Weißschuh <linux@weissschuh.net>
+Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Andreas Schwab <schwab@linux-m68k.org>
+Cc: Ankur Arora <ankur.a.arora@oracle.com>
+Cc: David Hildenbrand <david@kernel.org>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   12 ++++++++----
- 1 file changed, 8 insertions(+), 4 deletions(-)
+ arch/m68k/include/asm/page_mm.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/mm/huge_memory.c~mm-huge_memory-set-pg_has_hwpoisoned-only-after-new-folio-head-is-established
-+++ a/mm/huge_memory.c
-@@ -3587,10 +3587,6 @@ static void __split_folio_to_order(struc
- 				 (1L << PG_dropbehind) |
- 				 LRU_GEN_MASK | LRU_REFS_MASK));
+--- a/arch/m68k/include/asm/page_mm.h~m68k-avoid-wunused-but-set-parameter-in-clear_user_page
++++ a/arch/m68k/include/asm/page_mm.h
+@@ -55,10 +55,12 @@ static inline void clear_page(void *page
+ #define clear_user_page(addr, vaddr, page)	\
+ 	do {	clear_page(addr);		\
+ 		flush_dcache_page(page);	\
++		(void)(vaddr);			\
+ 	} while (0)
+ #define copy_user_page(to, from, vaddr, page)	\
+ 	do {	copy_page(to, from);		\
+ 		flush_dcache_page(page);	\
++		(void)(vaddr);			\
+ 	} while (0)
  
--		if (handle_hwpoison &&
--		    page_range_has_hwpoisoned(new_head, new_nr_pages))
--			folio_set_has_hwpoisoned(new_folio);
--
- 		new_folio->mapping = folio->mapping;
- 		new_folio->index = folio->index + i;
- 
-@@ -3612,6 +3608,14 @@ static void __split_folio_to_order(struc
- 			folio_set_large_rmappable(new_folio);
- 		}
- 
-+		/*
-+		 * PG_has_hwpoisoned is on the 2nd page, so set it after
-+		 * the compound head is prepped.
-+		 */
-+		if (handle_hwpoison &&
-+		    page_range_has_hwpoisoned(new_head, new_nr_pages))
-+			folio_set_has_hwpoisoned(new_folio);
-+
- 		if (folio_test_young(folio))
- 			folio_set_young(new_folio);
- 		if (folio_test_idle(folio))
+ extern unsigned long m68k_memoffset;
 _
 
-Patches currently in -mm which might be from riel@surriel.com are
+Patches currently in -mm which might be from linux@weissschuh.net are
 
 
