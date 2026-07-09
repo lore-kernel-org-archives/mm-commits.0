@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6D58C346A19
-	for <mm-commits@vger.kernel.org>; Thu,  9 Jul 2026 22:21:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 03E751A9FA8
+	for <mm-commits@vger.kernel.org>; Thu,  9 Jul 2026 22:22:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783635718; cv=none; b=TLLX++tas6tw8/R9U84NGzns49ctZnxpqpgjL2Eak85BdBc8YmpJVPh1JlN8v72kkZPzcua8m6qqWp7Yr1hBiuTguur/SkSEF2RutRie1Ym4GHIRW/oD6Zss+itDLbZYuzicwmpuamSAmERJkxTdB63lEjIBpwtJP2tsw13bdik=
+	t=1783635723; cv=none; b=l7vp34NAjwXqoU8LpAoWCgXzTKV0uE12b6J8Hg7CjvLErM5C/3lAsbsGM9I7dwSWtWUdckmMKW+oPg9WrcBSAKcieHsirP8uSds0wxIZwlX0fg8TpBookCdkzGT4FQHKhQ8sVIzGyzj9vyokGIw3iz9cSNBWybjNiCsAJsigJrs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783635718; c=relaxed/simple;
-	bh=UoyJ95V4wGmU1rmh+pdTY9AaUYR1PVLqPE1j1gOlFyE=;
-	h=Date:To:From:Subject:Message-Id; b=mlVBzjP0c8wgir6/mVu/HTIsG/+zW0K7ZRMy5EdSgeLQ6SRydnOVic+7KacLf9Yvd8xvjoCEhYvZaXlimCBBiE5oXEg/IzXGMcBab41AhlnECKqfoocZnfH6dPRz4m3+/DN04NDe6+3Hl/TtAY/azauCbuwwKg0v5YDyFIjABwk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KdEOqClC; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783635723; c=relaxed/simple;
+	bh=I2znzbyzmH+h5by8MF8f0p2Nvf85HpWPtLDzOY8bLb0=;
+	h=Date:To:From:Subject:Message-Id; b=SWgiDX5v9Kc68LnBQvg4nj0D3K93JRciaHmeBhD4akaBBICiCYaS8nc0v8rjOQVHupJ/OxkrHgHk7jPQvYQpD495lJ/SxOGix2w7ppPUMGelg7r/ExU507osVKGNomsiO9QHW/QteWZOWOBSeT5SkxAXOWp2lBRzfroINhMD2IM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hi/SC/vS; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KdEOqClC"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E24A21F000E9;
-	Thu,  9 Jul 2026 22:21:56 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hi/SC/vS"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9980B1F000E9;
+	Thu,  9 Jul 2026 22:22:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783635717;
-	bh=0YsvrDz/ne7Sh7Zlgpyf2d8gPZaCWds7x4GAyEYn8i8=;
+	d=linux-foundation.org; s=korg; t=1783635721;
+	bh=vPmYDNNJsNXkf5MfLTfN/NRjefuYSqHLHEq5saRjujU=;
 	h=Date:To:From:Subject;
-	b=KdEOqClC8uap18VcfvrnvUQUoy5eqnaw7nYaAn/KoEIKfyj8nGF8Q1wSZWSjuCb0I
-	 GfQs2qdRBt1Ty5bA4ecqX3IZ7Vs7lnJn00Br0skyBAlEqMXY10Gkpw3uskyUvtYx9F
-	 mfa0Z7k4iGOlmZm68mvhSLBhmVe8K/vPvK3vx3vQ=
-Date: Thu, 09 Jul 2026 15:21:56 -0700
+	b=hi/SC/vSxSGxhq3uKzq6JGFAtDYUGCINNeSY1YoBWabDOs4uASguwj6Ngu97exdmF
+	 u5obPC/h+PJi4isPbfjAnVjy/zVdxEi0UoCkYVlOZjCeznGadHXbeXBKa/G12iZ0XD
+	 PDGo4epu0gw1IqZQknVKAF9vDIsjBX5VVuBRgqWc=
+Date: Thu, 09 Jul 2026 15:22:01 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,urezki@gmail.com,tj@kernel.org,surenb@google.com,pratyush@kernel.org,pasha.tatashin@soleen.com,osalvador@suse.de,muchun.song@linux.dev,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,jackmanb@google.com,hannes@cmpxchg.org,graf@amazon.com,glider@google.com,elver@google.com,dvyukov@google.com,dennis@kernel.org,david@kernel.org,rppt@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-split-out-sparse-declarations-from-internalh.patch added to mm-new branch
-Message-Id: <20260709222156.E24A21F000E9@smtp.kernel.org>
+Subject: + mm-split-out-vmalloc-declarations-from-internalh.patch added to mm-new branch
+Message-Id: <20260709222201.9980B1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: split out sparse declarations from internal.h
+     Subject: mm: split out vmalloc declarations from internal.h
 has been added to the -mm mm-new branch.  Its filename is
-     mm-split-out-sparse-declarations-from-internalh.patch
+     mm-split-out-vmalloc-declarations-from-internalh.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-split-out-sparse-declarations-from-internalh.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-split-out-vmalloc-declarations-from-internalh.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,17 +70,16 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
-Subject: mm: split out sparse declarations from internal.h
-Date: Thu, 09 Jul 2026 13:00:04 +0300
+Subject: mm: split out vmalloc declarations from internal.h
+Date: Thu, 09 Jul 2026 13:00:05 +0300
 
 mm/internal.h becomes more and more bloated.
 
-Move declarations related to SPARSE and SPARSE_VMEMMAP memory models to
-a new mm/sparse.h header.
+Move declarations related to vmalloc to a new mm/vmalloc.h header.
 
 No functional changes.
 
-Link: https://lore.kernel.org/20260709-internal-h-v2-2-695631425968@kernel.org
+Link: https://lore.kernel.org/20260709-internal-h-v2-3-695631425968@kernel.org
 Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Acked-by: Muchun Song <muchun.song@linux.dev>
 Acked-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
@@ -105,183 +104,214 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS         |    1 
- mm/internal.h       |   52 ----------------------------------
- mm/mm_init.c        |    1 
- mm/sparse-vmemmap.c |    1 
- mm/sparse.c         |    1 
- mm/sparse.h         |   63 ++++++++++++++++++++++++++++++++++++++++++
- 6 files changed, 67 insertions(+), 52 deletions(-)
+ MAINTAINERS                        |    1 
+ kernel/liveupdate/kexec_handover.c |    2 -
+ mm/execmem.c                       |    1 
+ mm/internal.h                      |   40 -----------------------
+ mm/kmsan/hooks.c                   |    1 
+ mm/kmsan/shadow.c                  |    1 
+ mm/mm_init.c                       |    1 
+ mm/percpu-vm.c                     |    1 
+ mm/vmalloc.c                       |    1 
+ mm/vmalloc.h                       |   46 +++++++++++++++++++++++++++
+ 10 files changed, 54 insertions(+), 41 deletions(-)
 
---- a/MAINTAINERS~mm-split-out-sparse-declarations-from-internalh
+--- a/kernel/liveupdate/kexec_handover.c~mm-split-out-vmalloc-declarations-from-internalh
++++ a/kernel/liveupdate/kexec_handover.c
+@@ -34,8 +34,8 @@
+  * KHO is tightly coupled with mm init and needs access to some of mm
+  * internal APIs.
+  */
+-#include "../../mm/internal.h"
+ #include "../../mm/mm_init.h"
++#include "../../mm/vmalloc.h"
+ #include "../kexec_internal.h"
+ #include "kexec_handover_internal.h"
+ 
+--- a/MAINTAINERS~mm-split-out-vmalloc-declarations-from-internalh
 +++ a/MAINTAINERS
-@@ -16999,6 +16999,7 @@ F:	mm/pgtable-generic.c
- F:	mm/ptdump.c
- F:	mm/sparse-vmemmap.c
- F:	mm/sparse.c
-+F:	mm/sparse.h
- F:	mm/util.c
- F:	mm/vmpressure.c
- F:	mm/vmstat.c
---- a/mm/internal.h~mm-split-out-sparse-declarations-from-internalh
-+++ a/mm/internal.h
-@@ -807,58 +807,6 @@ static inline void init_compound_tail(st
- 	prep_compound_tail(tail, head, order);
- }
+@@ -28815,6 +28815,7 @@ W:	http://www.linux-mm.org
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+ F:	include/linux/vmalloc.h
+ F:	mm/vmalloc.c
++F:	mm/vmalloc.h
+ F:	lib/test_vmalloc.c
  
--/*
-- * mm/sparse.c
-- */
--#ifdef CONFIG_SPARSEMEM
--void sparse_init(void);
--int sparse_index_init(unsigned long section_nr, int nid);
--
--static inline void sparse_init_one_section(struct mem_section *ms,
--		unsigned long pnum, struct page *mem_map,
--		struct mem_section_usage *usage, unsigned long flags)
--{
--	unsigned long coded_mem_map;
--
--	BUILD_BUG_ON(SECTION_MAP_LAST_BIT > PFN_SECTION_SHIFT);
--
--	/*
--	 * We encode the start PFN of the section into the mem_map such that
--	 * page_to_pfn() on !CONFIG_SPARSEMEM_VMEMMAP can simply subtract it
--	 * from the page pointer to obtain the PFN.
--	 */
--	coded_mem_map = (unsigned long)(mem_map - section_nr_to_pfn(pnum));
--	VM_WARN_ON_ONCE(coded_mem_map & ~SECTION_MAP_MASK);
--
--	ms->section_mem_map &= ~SECTION_MAP_MASK;
--	ms->section_mem_map |= coded_mem_map;
--	ms->section_mem_map |= flags | SECTION_HAS_MEM_MAP;
--	ms->usage = usage;
--}
--
--static inline void __section_mark_present(struct mem_section *ms,
--		unsigned long section_nr)
--{
--	if (section_nr > __highest_present_section_nr)
--		__highest_present_section_nr = section_nr;
--
--	ms->section_mem_map |= SECTION_MARKED_PRESENT;
--}
--#else
--static inline void sparse_init(void) {}
--#endif /* CONFIG_SPARSEMEM */
--
--/*
-- * mm/sparse-vmemmap.c
-- */
--#ifdef CONFIG_SPARSEMEM_VMEMMAP
--void sparse_init_subsection_map(void);
--#else
--static inline void sparse_init_subsection_map(void)
--{
--}
--#endif /* CONFIG_SPARSEMEM_VMEMMAP */
--
- #if defined CONFIG_COMPACTION || defined CONFIG_CMA
+ VME SUBSYSTEM
+--- a/mm/execmem.c~mm-split-out-vmalloc-declarations-from-internalh
++++ a/mm/execmem.c
+@@ -20,6 +20,7 @@
+ #include <asm/tlbflush.h>
  
- /*
---- a/mm/mm_init.c~mm-split-out-sparse-declarations-from-internalh
-+++ a/mm/mm_init.c
-@@ -35,6 +35,7 @@
  #include "internal.h"
- #include "mm_init.h"
- #include "page_alloc.h"
-+#include "sparse.h"
++#include "vmalloc.h"
+ 
+ static struct execmem_info *execmem_info __ro_after_init;
+ static struct execmem_info default_execmem_info __ro_after_init;
+--- a/mm/internal.h~mm-split-out-vmalloc-declarations-from-internalh
++++ a/mm/internal.h
+@@ -1092,9 +1092,6 @@ static inline void mlock_new_folio(struc
+ static inline bool need_mlock_drain(int cpu) { return false; }
+ static inline void mlock_drain_local(void) { }
+ static inline void mlock_drain_remote(int cpu) { }
+-static inline void vunmap_range_noflush(unsigned long start, unsigned long end)
+-{
+-}
+ #endif /* !CONFIG_MMU */
+ 
+ #define NODE_RECLAIM_NOSCAN	-2
+@@ -1209,37 +1206,6 @@ struct migration_target_control {
+ size_t splice_folio_into_pipe(struct pipe_inode_info *pipe,
+ 			      struct folio *folio, loff_t fpos, size_t size);
+ 
+-/*
+- * mm/vmalloc.c
+- */
+-#ifdef CONFIG_MMU
+-void __init vmalloc_init(void);
+-int __must_check vmap_pages_range_noflush(unsigned long addr, unsigned long end,
+-	pgprot_t prot, struct page **pages, unsigned int page_shift, gfp_t gfp_mask);
+-unsigned int get_vm_area_page_order(struct vm_struct *vm);
+-#else
+-static inline void vmalloc_init(void)
+-{
+-}
+-
+-static inline
+-int __must_check vmap_pages_range_noflush(unsigned long addr, unsigned long end,
+-	pgprot_t prot, struct page **pages, unsigned int page_shift, gfp_t gfp_mask)
+-{
+-	return -EINVAL;
+-}
+-#endif
+-
+-void clear_vm_uninitialized_flag(struct vm_struct *vm);
+-
+-int __must_check __vmap_pages_range_noflush(unsigned long addr,
+-			       unsigned long end, pgprot_t prot,
+-			       struct page **pages, unsigned int page_shift);
+-
+-void vunmap_range_noflush(unsigned long start, unsigned long end);
+-
+-void __vunmap_range_noflush(unsigned long start, unsigned long end);
+-
+ static inline bool vma_is_single_threaded_private(struct vm_area_struct *vma)
+ {
+ 	if (vma->vm_flags & VM_SHARED)
+@@ -1267,12 +1233,6 @@ int numa_migrate_check(struct folio *fol
+ void free_zone_device_folio(struct folio *folio);
+ int migrate_device_coherent_folio(struct folio *folio);
+ 
+-struct vm_struct *__get_vm_area_node(unsigned long size,
+-				     unsigned long align, unsigned long shift,
+-				     unsigned long vm_flags, unsigned long start,
+-				     unsigned long end, int node, gfp_t gfp_mask,
+-				     const void *caller);
+-
+ /*
+  * mm/gup.c
+  */
+--- a/mm/kmsan/hooks.c~mm-split-out-vmalloc-declarations-from-internalh
++++ a/mm/kmsan/hooks.c
+@@ -21,6 +21,7 @@
+ #include <linux/usb.h>
+ 
+ #include "../internal.h"
++#include "../vmalloc.h"
+ #include "../slab.h"
+ #include "kmsan.h"
+ 
+--- a/mm/kmsan/shadow.c~mm-split-out-vmalloc-declarations-from-internalh
++++ a/mm/kmsan/shadow.c
+@@ -17,6 +17,7 @@
+ #include <linux/stddef.h>
+ 
+ #include "../internal.h"
++#include "../vmalloc.h"
+ #include "kmsan.h"
+ 
+ #define shadow_page_for(page) ((page)->kmsan_shadow)
+--- a/mm/mm_init.c~mm-split-out-vmalloc-declarations-from-internalh
++++ a/mm/mm_init.c
+@@ -38,6 +38,7 @@
+ #include "sparse.h"
  #include "slab.h"
  #include "shuffle.h"
++#include "vmalloc.h"
  
---- a/mm/sparse.c~mm-split-out-sparse-declarations-from-internalh
-+++ a/mm/sparse.c
-@@ -16,6 +16,7 @@
- #include <linux/vmstat.h>
+ #include <asm/setup.h>
+ 
+--- a/mm/percpu-vm.c~mm-split-out-vmalloc-declarations-from-internalh
++++ a/mm/percpu-vm.c
+@@ -9,6 +9,7 @@
+  * This is the default chunk allocator.
+  */
  #include "internal.h"
- #include "mm_init.h"
-+#include "sparse.h"
- #include <asm/dma.h>
++#include "vmalloc.h"
  
- /*
-diff --git a/mm/sparse.h a/mm/sparse.h
+ static struct page *pcpu_chunk_page(struct pcpu_chunk *chunk,
+ 				    unsigned int cpu, int page_idx)
+--- a/mm/vmalloc.c~mm-split-out-vmalloc-declarations-from-internalh
++++ a/mm/vmalloc.c
+@@ -49,6 +49,7 @@
+ 
+ #include "internal.h"
+ #include "pgalloc-track.h"
++#include "vmalloc.h"
+ 
+ #ifdef CONFIG_HAVE_ARCH_HUGE_VMAP
+ static unsigned int __ro_after_init ioremap_max_page_shift = BITS_PER_LONG - 1;
+diff --git a/mm/vmalloc.h a/mm/vmalloc.h
 new file mode 100644
 --- /dev/null
-+++ a/mm/sparse.h
-@@ -0,0 +1,63 @@
++++ a/mm/vmalloc.h
+@@ -0,0 +1,46 @@
 +/* SPDX-License-Identifier: GPL-2.0-or-later */
 +/*
-+ * sparse.h:
-+ *
-+ * mm/ internal sparse and sparse-vmemmap declarations
++ * mm-internal APIs for vmalloc
 + */
++#ifndef __MM_VMALLOC_H
++#define __MM_VMALLOC_H
 +
-+#ifndef __MM_SPARSE_H
-+#define __MM_SPARSE_H
++#ifdef CONFIG_MMU
++void __init vmalloc_init(void);
++int __must_check vmap_pages_range_noflush(unsigned long addr, unsigned long end,
++		pgprot_t prot, struct page **pages,
++		unsigned int page_shift, gfp_t gfp_mask);
++unsigned int get_vm_area_page_order(struct vm_struct *vm);
++#else
++static inline void vmalloc_init(void) {}
 +
-+#include <linux/mmzone.h>
-+
-+/*
-+ * mm/sparse.c
-+ */
-+#ifdef CONFIG_SPARSEMEM
-+void sparse_init(void);
-+int sparse_index_init(unsigned long section_nr, int nid);
-+
-+static inline void sparse_init_one_section(struct mem_section *ms,
-+		unsigned long pnum, struct page *mem_map,
-+		struct mem_section_usage *usage, unsigned long flags)
++static inline
++int __must_check vmap_pages_range_noflush(unsigned long addr, unsigned long end,
++		pgprot_t prot, struct page **pages,
++		unsigned int page_shift, gfp_t gfp_mask)
 +{
-+	unsigned long coded_mem_map;
-+
-+	BUILD_BUG_ON(SECTION_MAP_LAST_BIT > PFN_SECTION_SHIFT);
-+
-+	/*
-+	 * We encode the start PFN of the section into the mem_map such that
-+	 * page_to_pfn() on !CONFIG_SPARSEMEM_VMEMMAP can simply subtract it
-+	 * from the page pointer to obtain the PFN.
-+	 */
-+	coded_mem_map = (unsigned long)(mem_map - section_nr_to_pfn(pnum));
-+	VM_WARN_ON_ONCE(coded_mem_map & ~SECTION_MAP_MASK);
-+
-+	ms->section_mem_map &= ~SECTION_MAP_MASK;
-+	ms->section_mem_map |= coded_mem_map;
-+	ms->section_mem_map |= flags | SECTION_HAS_MEM_MAP;
-+	ms->usage = usage;
++	return -EINVAL;
 +}
 +
-+static inline void __section_mark_present(struct mem_section *ms,
-+		unsigned long section_nr)
++static inline void vunmap_range_noflush(unsigned long start, unsigned long end)
 +{
-+	if (section_nr > __highest_present_section_nr)
-+		__highest_present_section_nr = section_nr;
-+
-+	ms->section_mem_map |= SECTION_MARKED_PRESENT;
 +}
-+#else
-+static inline void sparse_init(void) {}
-+#endif /* CONFIG_SPARSEMEM */
++#endif
 +
-+/*
-+ * mm/sparse-vmemmap.c
-+ */
-+#ifdef CONFIG_SPARSEMEM_VMEMMAP
-+void sparse_init_subsection_map(void);
-+#else
-+static inline void sparse_init_subsection_map(void) {}
-+#endif /* CONFIG_SPARSEMEM_VMEMMAP */
++struct vm_struct *__get_vm_area_node(unsigned long size,
++		unsigned long align, unsigned long shift,
++		unsigned long vm_flags, unsigned long start,
++		unsigned long end, int node, gfp_t gfp_mask,
++		const void *caller);
 +
-+#endif /* __MM_SPARSE_H */
---- a/mm/sparse-vmemmap.c~mm-split-out-sparse-declarations-from-internalh
-+++ a/mm/sparse-vmemmap.c
-@@ -42,6 +42,7 @@
- 
- #include "internal.h"
- #include "mm_init.h"
-+#include "sparse.h"
- 
- /*
-  * Allocate a block of memory to be used to back the virtual memory map
++void clear_vm_uninitialized_flag(struct vm_struct *vm);
++
++int __must_check __vmap_pages_range_noflush(unsigned long addr,
++		unsigned long end, pgprot_t prot,
++		struct page **pages, unsigned int page_shift);
++
++void vunmap_range_noflush(unsigned long start, unsigned long end);
++
++void __vunmap_range_noflush(unsigned long start, unsigned long end);
++
++#endif /* __MM_VMALLOC_H */
 _
 
 Patches currently in -mm which might be from rppt@kernel.org are
