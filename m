@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 053131DC98F
-	for <mm-commits@vger.kernel.org>; Fri, 10 Jul 2026 02:28:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B3C23224B04;
+	Fri, 10 Jul 2026 02:31:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783650538; cv=none; b=XGOuyfD6z2uDKVeZM6Hcktst9yHLHLn0K117NLb/JzPNa/OJvevnAyPtqsd1XqQLEAWiU+V2IPBIn7eq93R8RHBhgajEcDom8NEgswamv4uNLiDKxg2xI6iMBHwn33t//EqPmhRRVL2a0QbsOtkbLjUxBkFaXxtdNgUsSUgof0Q=
+	t=1783650717; cv=none; b=tyE272IAVJQgMgqOJ6ifXZagpWD1c+QKylhxZHekUOgmO0bV/2BXAfTYBQaEs4kkLOdVy/EZ0gK9nPf//xOI7Q2jDDs9TfUnmDQ5MvSRPpV7NHtaLmC1CEjt1EwrV92DdSeVPgVovToWX/H/06MKzaUrrYxCtT7DveYlUNiYyLw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783650538; c=relaxed/simple;
-	bh=oIsj/B1+2+AWMiiT+QQ+CdWaNJUI7ibxzLtpYTJGoRQ=;
-	h=Date:To:From:Subject:Message-Id; b=EKcXZRMOwLQRERIVZebfaq7zi7C3CLwYK6A60CtyfIKOv104o+DBk/IgxWHjf5MK6vQrPMRSgcqMsNzPaBqXVVIJ8exlwy0eatTOEfTv6jBhTUerjzwHP7jDyskZxZEYA8DElWPO7fiC6xv+T1lDmBzx8m1V1USqwuQkzgx3p+Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oqQQipSM; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783650717; c=relaxed/simple;
+	bh=OZl/pOxovyRa8FYhD4CGWyx4UocLjGqfpDIJbizbRwA=;
+	h=Date:To:From:Subject:Message-Id; b=LTnTD/sWnUrYMqA1ga00sgQBNp44Nfzflz4LkupL+TkocUxUGlQiuWHPjQ3Wl5JZgPwl6RrTdsG+ohUaeGA63wdZYb1cP2sA/+8iJhZ2RPK2HqdCNNV9UyJyOt+4gcYf6IEO7ur5vElmBRZRvInr/CiazlqSxLwesCQnV3NnoFo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Yk2R5VlR; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oqQQipSM"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6B2021F000E9;
-	Fri, 10 Jul 2026 02:28:56 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Yk2R5VlR"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 328021F000E9;
+	Fri, 10 Jul 2026 02:31:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783650536;
-	bh=M+JJfX0eM7ykwf2+IVxuhuFr+RdTSHxPdf/Ik4Ji4wQ=;
+	d=linux-foundation.org; s=korg; t=1783650715;
+	bh=14ZvpJishve1TB2QfFEw/MzMNEN7+RrHDWhnVlZEg0s=;
 	h=Date:To:From:Subject;
-	b=oqQQipSMvBJvoqLg0BTeOnsIolvawDosjHK7/Ky4YbTe1sK/RnEeQn+lL/9RCyDkp
-	 lExYFI8GcetyvC66zwqLdtTygHkcrdPqczIz6/3JZBbTueKKhjjGkVg8U1TE3z9XJ+
-	 7iAk9eBtwSED79F58wAmiwa45/OZJpI3m8AXIOMA=
-Date: Thu, 09 Jul 2026 19:28:56 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,sougupta@nvidia.com,david@kernel.org,balbirs@nvidia.com,apopple@nvidia.com,jhubbard@nvidia.com,akpm@linux-foundation.org
+	b=Yk2R5VlRlfvRIqxuyQy+Y2vDzPoVYYNiGKEO49W4czZSjaxJmIvOiyHmSMaEuI7ja
+	 0pKVWH1xF1G4JUQCMwqHHPongab3bwgSrRd41RX7BYCru+BXpDsuiJhC9QMDVWWvBM
+	 VWvovmey9tySV/Luw0TJi+OxF7rR2BOnZ312t0KU=
+Date: Thu, 09 Jul 2026 19:31:54 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,stable@vger.kernel.org,rakie.kim@sk.com,matthew.brost@intel.com,joshua.hahnjy@gmail.com,gourry@gourry.net,david@kernel.org,byungchul@sk.com,balbirs@nvidia.com,apopple@nvidia.com,wangkefeng.wang@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-gup-fix-gup-fast-fallback-for-null-mapping-order-0-folios.patch added to mm-new branch
-Message-Id: <20260710022856.6B2021F000E9@smtp.kernel.org>
+Subject: + mm-migrate_device-fix-pte_pfn-pte_dirty-called-on-non-present-pte.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260710023155.328021F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,26 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/gup: fix GUP-fast fallback for NULL-mapping order-0 folios
-has been added to the -mm mm-new branch.  Its filename is
-     mm-gup-fix-gup-fast-fallback-for-null-mapping-order-0-folios.patch
+     Subject: mm: migrate_device: fix pte_pfn/pte_dirty called on non-present PTE
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-migrate_device-fix-pte_pfn-pte_dirty-called-on-non-present-pte.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-gup-fix-gup-fast-fallback-for-null-mapping-order-0-folios.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-migrate_device-fix-pte_pfn-pte_dirty-called-on-non-present-pte.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,69 +58,68 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: John Hubbard <jhubbard@nvidia.com>
-Subject: mm/gup: fix GUP-fast fallback for NULL-mapping order-0 folios
-Date: Tue, 7 Jul 2026 17:57:45 -0700
+From: Kefeng Wang <wangkefeng.wang@huawei.com>
+Subject: mm: migrate_device: fix pte_pfn/pte_dirty called on non-present PTE
+Date: Mon, 6 Jul 2026 19:19:58 +0800
 
-Since commit f002882ca369 ("mm: merge folio_is_secretmem() and
-folio_fast_pin_allowed() into gup_fast_folio_allowed()"),
-gup_fast_folio_allowed() falls back to the slow path for any order-0 folio
-with a NULL mapping when CONFIG_SECRETMEM=y.  This causes a performance
-regression for drivers that allocate pages with alloc_page() and insert
-them into VMAs via vm_insert_page().  These pages legitimately have a NULL
-folio->mapping, but they cannot be secretmem pages.
+pte_pfn() and pte_dirty() have undefined behaviour when called on a
+non-present PTE. In migrate_vma_collect_pmd(), these functions may be
+invoked on non-present entries (e.g., device-private entries), leading
+to potential crashes from pte_pfn() or incorrect dirty folio accounting
+from pte_dirty(). Fix both by guarding with pte_present() checks.
 
-Secretmem pages are always added to the secretmem inode's page cache via
-filemap_add_folio(), which sets folio->mapping to the inode's i_mapping. 
-A folio with a NULL mapping can never be a secretmem folio.  The
-NULL-mapping check was intended to handle truncated file-backed pages (a
-reject_file_backed concern), not secretmem detection.
-
-When only check_secretmem is true (and reject_file_backed is false), a
-NULL mapping is sufficient to prove the folio is not secretmem, so the
-fast path can proceed.
-
-Link: https://lore.kernel.org/20260708005745.164928-1-jhubbard@nvidia.com
-Fixes: f002882ca369 ("mm: merge folio_is_secretmem() and folio_fast_pin_allowed() into gup_fast_folio_allowed()")
-Signed-off-by: John Hubbard <jhubbard@nvidia.com>
-Tested-by: Sourab Gupta <sougupta@nvidia.com>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Link: https://lore.kernel.org/20260708003955.4024340-1-wangkefeng.wang@huawei.com
+Link: https://lore.kernel.org/20260706111958.3649651-1-wangkefeng.wang@huawei.com
+Fixes: fd35ca3d12cc ("mm/migrate_device.c: copy pte dirty bit to page")
+Fixes: 6c287605fd56 ("mm: remember exclusively mapped anonymous pages with PG_anon_exclusive")
+Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+Reviewed-by: Balbir Singh <balbirs@nvidia.com>
+Acked-by: Zi Yan <ziy@nvidia.com>
 Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Balbir Singh <balbirs@nvidia.com>
-Cc: Zi Yan <ziy@nvidia.com>
+Cc: Byungchul Park <byungchul@sk.com>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Gregory Price <gourry@gourry.net>
+Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
+Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
+Cc: Matthew Brost <matthew.brost@intel.com>
+Cc: Rakie Kim <rakie.kim@sk.com>
+Cc: Ying Huang <ying.huang@linux.alibaba.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |   13 +++++++++----
- 1 file changed, 9 insertions(+), 4 deletions(-)
+ mm/migrate_device.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
---- a/mm/gup.c~mm-gup-fix-gup-fast-fallback-for-null-mapping-order-0-folios
-+++ a/mm/gup.c
-@@ -2784,12 +2784,17 @@ static bool gup_fast_folio_allowed(struc
- 	mapping = READ_ONCE(folio->mapping);
+--- a/mm/migrate_device.c~mm-migrate_device-fix-pte_pfn-pte_dirty-called-on-non-present-pte
++++ a/mm/migrate_device.c
+@@ -401,7 +401,8 @@ again:
+ 			bool anon_exclusive;
+ 			pte_t swp_pte;
  
- 	/*
--	 * The mapping may have been truncated, in any case we cannot determine
--	 * if this mapping is safe - fall back to slow path to determine how to
--	 * proceed.
-+	 * If the mapping is NULL (truncated, or never set), we cannot
-+	 * determine whether the folio is file-backed, so a long-term writable
-+	 * pin must fall back to the slow path.
-+	 *
-+	 * Otherwise, a NULL mapping proves this is not a secretmem folio
-+	 * (secretmem folios always have a valid mapping to the secretmem
-+	 * inode's address_space), so in that case, we can continue with the
-+	 * fast path.
- 	 */
- 	if (!mapping)
--		return false;
-+		return !reject_file_backed;
+-			flush_cache_page(vma, addr, pte_pfn(pte));
++			if (pte_present(pte))
++				flush_cache_page(vma, addr, pte_pfn(pte));
+ 			anon_exclusive = folio_test_anon(folio) &&
+ 					  PageAnonExclusive(page);
+ 			if (anon_exclusive) {
+@@ -422,7 +423,7 @@ again:
+ 			migrate->cpages++;
  
- 	/* Anonymous folios pose no problem. */
- 	mapping_flags = (unsigned long)mapping & FOLIO_MAPPING_FLAGS;
+ 			/* Set the dirty flag on the folio now the pte is gone. */
+-			if (pte_dirty(pte))
++			if (pte_present(pte) && pte_dirty(pte))
+ 				folio_mark_dirty(folio);
+ 
+ 			/* Setup special migration page table entry */
 _
 
-Patches currently in -mm which might be from jhubbard@nvidia.com are
+Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
 
-mm-gup-fix-gup-fast-fallback-for-null-mapping-order-0-folios.patch
+mm-migrate_device-fix-pte_pfn-pte_dirty-called-on-non-present-pte.patch
+mm-remove-pagetranscompound.patch
+mm-mincore-use-walk_page_range_vma-in-do_mincore.patch
+mm-mprotect-use-walk_page_range_vma-in-mprotect_fixup.patch
+mm-mlock-use-walk_page_range_vma-in-mlock_vma_pages_range.patch
+mm-migrate_device-use-walk_page_range_vma-in-migrate_vma_collect.patch
 
