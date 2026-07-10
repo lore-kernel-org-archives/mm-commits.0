@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 140AC39B4A3
-	for <mm-commits@vger.kernel.org>; Fri, 10 Jul 2026 20:24:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0D44D39E197
+	for <mm-commits@vger.kernel.org>; Fri, 10 Jul 2026 20:24:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783715060; cv=none; b=K025pydP8ThJk+NzUMkktaPjn4XfjsmgPOQQ3sylsgCcpljge+JbqhcsI0jZqLgZKcmlm/Qu6auOfMDHu4txD9q6xyVNzQco5ZCVSmPy8k5Z7K0ZwhYpA569doipzd97W0KyqhKGZkN1M4fopD55zKbtRXLU07RxP/UU/7HABRE=
+	t=1783715062; cv=none; b=JB0CQCzm5cNoVJPbcd+zrG33YxSRwWlpwL7JDDsnOkIbMOYZM/pjnWih+vBrhTW8gbgiIvTaA1wCRvrWy2AtX2eG9khI3FvF93UICEyLK4NcadHz3/rP8CC5Bjfc/+Kf20yrUXOlmlwrnQca+zj66p6GVe5vdi1nXgBUNVJHCTQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783715060; c=relaxed/simple;
-	bh=6WqqoZ8TYVI4o4/T7t1h2cLGp+FfI8LEMGnMjEOcIX0=;
-	h=Date:To:From:Subject:Message-Id; b=J/4RKTtcxkYLTdcyrgT/KT6aInnXYWzANNRjQZlZt+YhhyKp0BZ9iJIPY9xoFid6+jZUg+zj/06/+CAzO7vVTIszprpTnumQ03WbnHkZd7gJIorIqSHUW8FxpxIm980RFZU0qc+GfgoF29QnZFhoQbClfBzuv7HMf2MZdeUnBI0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=P0pCInCm; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783715062; c=relaxed/simple;
+	bh=Hm/CW3yha4kwWKpJ4puIdC0hZaLnTIlRopqMHmWAmMY=;
+	h=Date:To:From:Subject:Message-Id; b=ZlreTzu0/6HvCHHr/BqcxDYns6rSOazafHS95KSxN6HebdONedIEbf9wAs/L/v6X1UZ3jKlknzD83quIzQU/2pISdDjRMLgW/lLdwqr4S9jgb/Wu1Ily5DdvC6Pxsk2izQlHZSB0MGPfofQAGWVZpClfUfU3AaetXf8zAAdcGlc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LVF7Mkm+; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="P0pCInCm"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 815AB1F000E9;
-	Fri, 10 Jul 2026 20:24:18 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LVF7Mkm+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 862F31F00A3A;
+	Fri, 10 Jul 2026 20:24:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783715058;
-	bh=9/xHtkdLMa1dk0J7jGm1N61pnH7Oajsjo5v/yROIIY4=;
+	d=linux-foundation.org; s=korg; t=1783715060;
+	bh=EbWMyB61AOz0fl4CNTe+yMsL6OIlc2sT/rC2NKrj8JQ=;
 	h=Date:To:From:Subject;
-	b=P0pCInCmN1SzmBNgxlGlmwmwTq9TJYGXBNdHbfq+g4RZSUpQg2yiExg4v9Tb8FoQZ
-	 ICq2hbsXYE6eT94EEmUm8I9qDvYtFzfIY+EQEOXgUS86ZlHcVzkhQIsMzfQ0thUEMy
-	 ydTyBZm5Dbpa2Dqx+S0/N+y7cjL8klxWMkNiR+xc=
-Date: Fri, 10 Jul 2026 13:24:18 -0700
+	b=LVF7Mkm+Edq041hwYLew9a7I/kZrlc4xLGTZBP5gdg0QponjLfv3u285+4yHucIh7
+	 FlHJizJVF+FuZT4JlV0zSVuc+YUufKS1Y4BNbrw8R9X5DzpdmyjhZTg9aA/ng1x/o7
+	 FeUDsrHnZ24vF8iJ1UXCWbQILYUVW7TUjEdsHZmE=
+Date: Fri, 10 Jul 2026 13:24:20 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-core-get-merge-threshold-from-probe-hits-when-weights-are-set.patch added to mm-new branch
-Message-Id: <20260710202418.815AB1F000E9@smtp.kernel.org>
+Subject: + mm-damon-core-implement-damon_has_probe_weight.patch added to mm-new branch
+Message-Id: <20260710202420.862F31F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/core: get merge threshold from probe hits when weights are set
+     Subject: mm/damon/core: implement damon_has_probe_weight()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-core-get-merge-threshold-from-probe-hits-when-weights-are-set.patch
+     mm-damon-core-implement-damon_has_probe_weight.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-get-merge-threshold-from-probe-hits-when-weights-are-set.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-implement-damon_has_probe_weight.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,16 +70,16 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/core: get merge threshold from probe hits when weights are set
-Date: Fri, 10 Jul 2026 06:46:43 -0700
+Subject: mm/damon/core: implement damon_has_probe_weight()
+Date: Fri, 10 Jul 2026 06:46:44 -0700
 
-When probe weights are set, DAMON merges regions based on their probe hits
-weighted sum.  But the merge threshold is calculated based on the access
-frequency.  Update it to retrieve the maximum probe hits weighted sum in
-the snapshot from apply_probes() ops callback, and generate the threshold
-based on it.
+DAMON monitors only data attributes when probe weights are set.  However,
+the function for detecting it is intentionally returning false always. 
+The intention was to make changes for complete support of the mode in a
+safe and incremental way.  Now all the building blocks are made.  Complete
+the mode detection function so that the mode can really start working.
 
-Link: https://lore.kernel.org/20260710134651.18084-15-sj@kernel.org
+Link: https://lore.kernel.org/20260710134651.18084-16-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
@@ -92,43 +92,24 @@ Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/core.c |   18 ++++++++++++++----
- 1 file changed, 14 insertions(+), 4 deletions(-)
+ mm/damon/core.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
---- a/mm/damon/core.c~mm-damon-core-get-merge-threshold-from-probe-hits-when-weights-are-set
+--- a/mm/damon/core.c~mm-damon-core-implement-damon_has_probe_weight
 +++ a/mm/damon/core.c
-@@ -3763,7 +3763,8 @@ static int kdamond_fn(void *data)
- 		unsigned long next_ops_update_sis = ctx->next_ops_update_sis;
- 		unsigned long sample_interval = ctx->attrs.sample_interval;
- 		bool access_check_disabled = damon_has_probe_weights(ctx);
--		unsigned int max_merge_score = 0;
-+		unsigned int max_merge_score = 0, max_wsum;
-+		bool get_max_wsum;
+@@ -211,6 +211,12 @@ static struct damon_probe *damon_nth_pro
  
- 		if (kdamond_wait_activation(ctx))
- 			break;
-@@ -3776,9 +3777,18 @@ static int kdamond_fn(void *data)
+ static bool damon_has_probe_weights(struct damon_ctx *c)
+ {
++	struct damon_probe *p;
++
++	damon_for_each_probe(p, c) {
++		if (p->weight)
++			return true;
++	}
+ 	return false;
+ }
  
- 		if (!access_check_disabled && ctx->ops.check_accesses)
- 			max_merge_score = ctx->ops.check_accesses(ctx);
--		if (ctx->ops.apply_probes)
--			ctx->ops.apply_probes(ctx, access_check_disabled,
--					false);
-+		if (ctx->ops.apply_probes) {
-+			if (time_after_eq(ctx->passed_sample_intervals,
-+						next_aggregation_sis) &&
-+					access_check_disabled)
-+				get_max_wsum = true;
-+			else
-+				get_max_wsum = false;
-+			max_wsum = ctx->ops.apply_probes(ctx,
-+					access_check_disabled, get_max_wsum);
-+			if (get_max_wsum)
-+				max_merge_score = max_wsum;
-+		}
- 
- 		if (time_after_eq(ctx->passed_sample_intervals,
- 					next_aggregation_sis)) {
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
