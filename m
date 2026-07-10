@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 72065277C88
-	for <mm-commits@vger.kernel.org>; Fri, 10 Jul 2026 23:17:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6D863360EF7;
+	Fri, 10 Jul 2026 23:19:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783725435; cv=none; b=mdT8XfhlEYPNRVy99rEKerUlDcMEaj5tN0gzQbMz8uHl8HlRBac+il/yMv9GG4KkqCojfaRhnVinxOabbWyiHFgOguFgbW2JNUFSUfkzeFKjp1RdRdyEB3GExA8r4sttQK1nlsq4y394zbh90tgdQGWO2y64rItLTCxdm90XoVI=
+	t=1783725553; cv=none; b=ELi9GDN6EfRZ8WU7ulvoWY4V5VLIEtB+6+rvlZqkuaAOV9AYQCJfQ5eGBDTEnoACLyeA74LNTIJWKJ1aDlr/BNfL5YME9qo0tag2GAKxxpOYSGfRRFfzAmHKYm9XtxrfH3/j49inuermHVGlMK/hcQwihbGh2dkLOIPuL+Celoo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783725435; c=relaxed/simple;
-	bh=i39lsngF1a6F21dBGg5wM1ex3dR+jvuC8aRtAxixKxs=;
-	h=Date:To:From:Subject:Message-Id; b=orR0Fj0H+lSKe0nZSgphHLwz9NfNOR5fjgoM/vEmLbRL1dCHJo5hO8Eh5XL+6Lm/VH8gYUGy1omyhCGK6XOWu8drkdcUIvrNRLplkMq+L/zTfWKWDOSeFMbS4BuLvAsNhlfEbZB9SXZdFfpxY3HRpGbaGz7O2IwnenDs+r0plj8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=K2z1MBBM; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783725553; c=relaxed/simple;
+	bh=mTaVaa98Af/nTI2ctXWuLJoCcQ2V1no+7UyZJEu8x4o=;
+	h=Date:To:From:Subject:Message-Id; b=ZpV8+AgQ/DDAWcYH0vjwcYf9L6pWtVqQDBaF949n2Hgi2ARt+lBVsn64eavc/H0nde7cSo+Iv9ENPomtJgeYlxAnyOOEtNYeK1TE2slRI87S/0xFKU71ymzFufHiuTuIP5Q7AFSXwG1RFKpgmoFFaM/duwtrk01zI10zRbxYMs0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xF91JRt2; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="K2z1MBBM"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DFFFE1F000E9;
-	Fri, 10 Jul 2026 23:17:12 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xF91JRt2"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CFD8F1F00A3A;
+	Fri, 10 Jul 2026 23:19:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783725433;
-	bh=mPZNV/DQU6/1X6gW/xvBrwjBtAz25SXknJQegX+88QE=;
+	d=linux-foundation.org; s=korg; t=1783725551;
+	bh=af2EvGil4zboyjZrY02ZrkCnxx57MEHgkJTbMIU/LJE=;
 	h=Date:To:From:Subject;
-	b=K2z1MBBMLYTCCJIWXo+xDUSkLJhKbLBkHjqaKaE3COwocZOV9P8kAwfG0Umb6knl/
-	 CSOjvuIjqAbmPfERXG9u3mgjpqqVg+SMhZRiPjClQwlVMpMUfLimk0pZFni6L+sBgl
-	 GlERzxvMJUFf3qwKbhHJp7GMGPXqsybIzlnqQMw4=
-Date: Fri, 10 Jul 2026 16:17:12 -0700
-To: mm-commits@vger.kernel.org,zhengqi.arch@bytedance.com,akpm@linux-foundation.org
+	b=xF91JRt2M+0jVsKmpAxdc5zDRU5yLHahbsrT6ViIy8Pfe6Ql2z0MJ1DOa+GXbuA6g
+	 LCHlwAaOVXAexmaSip8wAKeMgQLYvQEy4w4geu+LQFnpWdDlImcpj/J6ilpLhUjYT8
+	 N7qSrJNLJRfKena99tpyqp65fddyFKofJR1F9qPA=
+Date: Fri, 10 Jul 2026 16:19:11 -0700
+To: mm-commits@vger.kernel.org,yuanchu@google.com,weixugc@google.com,stable@vger.kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,peiyang_he@smail.nju.edu.cn,muchun.song@linux.dev,mhocko@kernel.org,ljs@kernel.org,kasong@tencent.com,harry@kernel.org,hannes@cmpxchg.org,david@kernel.org,baohua@kernel.org,axelrasmussen@google.com,zhengqi.arch@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-mglru-fix-stale-batch-updates-after-memcg-reparenting.patch removed from -mm tree
-Message-Id: <20260710231712.DFFFE1F000E9@smtp.kernel.org>
+Subject: + mm-mglru-fix-stale-batch-updates-after-memcg-reparenting.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260710231911.CFD8F1F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,17 +34,33 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
+The patch titled
      Subject: mm: mglru: fix stale batch updates after memcg reparenting
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
      mm-mglru-fix-stale-batch-updates-after-memcg-reparenting.patch
 
-This patch was dropped because an updated version will be issued
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mglru-fix-stale-batch-updates-after-memcg-reparenting.patch
+
+This patch will later appear in the mm-hotfixes-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
 ------------------------------------------------------
 From: Qi Zheng <zhengqi.arch@bytedance.com>
 Subject: mm: mglru: fix stale batch updates after memcg reparenting
-Date: Wed, 1 Jul 2026 15:52:51 +0800
+Date: Fri, 10 Jul 2026 23:43:18 +0800
 
 The mglru page table walker batches per-generation size deltas in
 walk->nr_pages while walking page tables without holding the lruvec lock. 
@@ -87,7 +103,7 @@ flushing the pending batch.  A non-dying memcg keeps the original lruvec
 stable against RCU-delayed offlining; a dying memcg redirects the deltas
 to the first non-dying ancestor.
 
-Link: https://lore.kernel.org/20260701075251.56413-1-qi.zheng@linux.dev
+Link: https://lore.kernel.org/20260710154318.75388-1-qi.zheng@linux.dev
 Fixes: f304652609ea ("mm: vmscan: prepare for reparenting MGLRU folios")
 Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
 Reported-by: Peiyang He <peiyang_he@smail.nju.edu.cn>
@@ -109,18 +125,19 @@ Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   41 ++++++++++++++++++++++++++++++++++-------
- 1 file changed, 34 insertions(+), 7 deletions(-)
+ include/linux/memcontrol.h |   25 +++++++++++++++++++++++++
+ mm/vmscan.c                |   11 ++++-------
+ 2 files changed, 29 insertions(+), 7 deletions(-)
 
---- a/mm/vmscan.c~mm-mglru-fix-stale-batch-updates-after-memcg-reparenting
-+++ a/mm/vmscan.c
-@@ -3262,10 +3262,40 @@ static void update_batch_size(struct lru
- 	walk->nr_pages[new_gen][type][zone] += delta;
+--- a/include/linux/memcontrol.h~mm-mglru-fix-stale-batch-updates-after-memcg-reparenting
++++ a/include/linux/memcontrol.h
+@@ -1472,6 +1472,31 @@ static inline void lruvec_lock_irq(struc
+ 	spin_lock_irq(&lruvec->lru_lock);
  }
  
-+#ifdef CONFIG_MEMCG
-+static struct lruvec *lock_batch_lruvec(struct lruvec *lruvec)
++static inline struct lruvec *lruvec_live_lock_irq(struct lruvec *lruvec)
 +{
++#ifdef CONFIG_MEMCG
 +	struct pglist_data *pgdat = lruvec_pgdat(lruvec);
 +	struct mem_cgroup *memcg = lruvec_memcg(lruvec);
 +
@@ -136,27 +153,28 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 +	}
 +
 +	spin_lock_irq(&lruvec->lru_lock);
-+
-+	return lruvec;
-+}
 +#else
-+static struct lruvec *lock_batch_lruvec(struct lruvec *lruvec)
-+{
 +	lruvec_lock_irq(lruvec);
-+
-+	return lruvec;
-+}
 +#endif
 +
++	return lruvec;
++}
++
+ static inline void lruvec_unlock(struct lruvec *lruvec)
+ {
+ 	spin_unlock(&lruvec->lru_lock);
+--- a/mm/vmscan.c~mm-mglru-fix-stale-batch-updates-after-memcg-reparenting
++++ a/mm/vmscan.c
+@@ -3265,7 +3265,7 @@ static void update_batch_size(struct lru
  static void reset_batch_size(struct lru_gen_mm_walk *walk)
  {
  	int gen, type, zone;
 -	struct lruvec *lruvec = walk->lruvec;
-+	struct lruvec *lruvec = lock_batch_lruvec(walk->lruvec);
++	struct lruvec *lruvec = lruvec_live_lock_irq(walk->lruvec);
  	struct lru_gen_folio *lrugen = &lruvec->lrugen;
  
  	walk->batched = 0;
-@@ -3285,6 +3315,8 @@ static void reset_batch_size(struct lru_
+@@ -3285,6 +3285,8 @@ static void reset_batch_size(struct lru_
  			lru += LRU_ACTIVE;
  		__update_lru_size(lruvec, lru, zone, delta);
  	}
@@ -165,7 +183,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  }
  
  static int should_skip_vma(unsigned long start, unsigned long end, struct mm_walk *args)
-@@ -3779,11 +3811,8 @@ static void walk_mm(struct mm_struct *mm
+@@ -3779,11 +3781,8 @@ static void walk_mm(struct mm_struct *mm
  			mmap_read_unlock(mm);
  		}
  
@@ -178,7 +196,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  
  		cond_resched();
  	} while (err == -EAGAIN);
-@@ -4867,9 +4896,7 @@ retry:
+@@ -4867,9 +4866,7 @@ retry:
  	walk = current->reclaim_state->mm_walk;
  	if (walk && walk->batched) {
  		walk->lruvec = lruvec;
@@ -192,4 +210,5 @@ _
 
 Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
 
+mm-mglru-fix-stale-batch-updates-after-memcg-reparenting.patch
 
