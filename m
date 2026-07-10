@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E80C439F160
-	for <mm-commits@vger.kernel.org>; Fri, 10 Jul 2026 20:24:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A53C239C632
+	for <mm-commits@vger.kernel.org>; Fri, 10 Jul 2026 20:24:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783715066; cv=none; b=kJzmySHsUdqH0XTqFZRv9hD812woTPVQYk+qW9Lxm2dwZ4xcBeIOrW/8k2gNsLS+eJZePxI7zR7VZJIAni8tGstVvF5D3qLFNSJjcFPyms93M7u9kjeFFk2XFpU6ym+yrMaF6pHgTnywwqMdfOmC+l7sXMjbZJkzar8hrcsNrBo=
+	t=1783715068; cv=none; b=OcFVzxJbqXKBceHVNSJ1A39qpi1XpaHxxIx7SPhuGUk0qTm3a7IC6NTcjmiishUYqxZsstTOQZmf2sL3E0gs40SbVG4m0lkhJkRErsnkZr0tXFWkyz4uXMZalWYWhRV3JBVO67+TnBubsU3T2IdpuAmrgVPUZkeKyBwlBqInbYs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783715066; c=relaxed/simple;
-	bh=aBwK8mPABsbE1BGxS3uG15CH6eBpmsJxx84gJIjxEMg=;
-	h=Date:To:From:Subject:Message-Id; b=IBZ075b1WE0ZkbqRK3he83RUe6NxZnwZKCtxNI5LPca9yAgQAv2IXmjPVBNFA3Vr4i6/R025skmutfKrateNEhEAlZKMhh9wsKCs9I7wrKspWn5aIrBReAokCDVy9dFi/N5vwIYg8AC6arp4R3dtMWXUGpMqKhMJnNFElvaMZZY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OeXmF59I; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783715068; c=relaxed/simple;
+	bh=B6uNRQC9nuVvGHs/NBPXu0nEVHvA/ImakzCfliRuZVM=;
+	h=Date:To:From:Subject:Message-Id; b=Rn4+q/1GQZKcfVAxDzwrfaFeWEaNhLgnb9NqRqVBad9a2bc0Mv2Udq43g4M1aojC5F9gcm0kgSeJOxB6aZy9AKk2NTX3IAv1S5ovSCZrdNQpfmBOkFYV9suoRPBw6us/Upv9KJjCNlKnBQG+x+p6UcVetf4Zjpr/wA5BpPWJpiU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pvJDZTdW; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OeXmF59I"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 84DB21F00A3A;
-	Fri, 10 Jul 2026 20:24:24 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pvJDZTdW"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 794C41F000E9;
+	Fri, 10 Jul 2026 20:24:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783715064;
-	bh=AD/N5Cd9ZmHWaMGy/otQHlGO9SbXCq89Ikp79tSzzMI=;
+	d=linux-foundation.org; s=korg; t=1783715066;
+	bh=YjksEZNHEFdK185N7ojOcKeZ+1imxPzEsvLdEnVQe7M=;
 	h=Date:To:From:Subject;
-	b=OeXmF59IzqZM3exLciRsnzCrjYHsVl/AFJF+6VyjCalHpcoozcs/QBwsgHBKPQkiF
-	 0RSJrwQFmKmbCLP7ZtYN/QusyO+nQcrjMYKOUCOqPJhcDQRzoNZEjWJ1BmNEaXyrUQ
-	 Y3mjubv8nCZOnFbAd6HRSDdXROYkAfHZdsPEuQq4=
-Date: Fri, 10 Jul 2026 13:24:24 -0700
+	b=pvJDZTdWB/ImTO+jLeypyF7JguOkMo8asWteMCfKH0b7HAYfu9Fj0ZhEU/sMKxWdY
+	 08iWci8YlsLmDKHVI1MojmZXqk03PO0vLzb1v11yDVOGPoxG7ppEdcsGiAllvjBo0z
+	 5MtJwFVr0kfn8JpAcEpLLABt6qJc43XPHksOfHec=
+Date: Fri, 10 Jul 2026 13:24:26 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + docs-mm-damon-design-document-attrs-only-monitoring.patch added to mm-new branch
-Message-Id: <20260710202424.84DB21F00A3A@smtp.kernel.org>
+Subject: + docs-admin-guide-mm-damon-usage-document-weight-sysfs-file.patch added to mm-new branch
+Message-Id: <20260710202426.794C41F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: Docs/mm/damon/design: document attrs-only monitoring
+     Subject: Docs/admin-guide/mm/damon/usage: document weight sysfs file
 has been added to the -mm mm-new branch.  Its filename is
-     docs-mm-damon-design-document-attrs-only-monitoring.patch
+     docs-admin-guide-mm-damon-usage-document-weight-sysfs-file.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-mm-damon-design-document-attrs-only-monitoring.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-admin-guide-mm-damon-usage-document-weight-sysfs-file.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,12 +70,12 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: Docs/mm/damon/design: document attrs-only monitoring
-Date: Fri, 10 Jul 2026 06:46:46 -0700
+Subject: Docs/admin-guide/mm/damon/usage: document weight sysfs file
+Date: Fri, 10 Jul 2026 06:46:47 -0700
 
-Update DAMON design document for the attributes only monitoring mode.
+Update DAMON usage document for newly added probe weight file.
 
-Link: https://lore.kernel.org/20260710134651.18084-18-sj@kernel.org
+Link: https://lore.kernel.org/20260710134651.18084-19-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
@@ -88,34 +88,54 @@ Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/mm/damon/design.rst |   20 ++++++++++++++++++++
- 1 file changed, 20 insertions(+)
+ Documentation/admin-guide/mm/damon/usage.rst |   11 ++++++++---
+ Documentation/mm/damon/design.rst            |    5 +++++
+ 2 files changed, 13 insertions(+), 3 deletions(-)
 
---- a/Documentation/mm/damon/design.rst~docs-mm-damon-design-document-attrs-only-monitoring
+--- a/Documentation/admin-guide/mm/damon/usage.rst~docs-admin-guide-mm-damon-usage-document-weight-sysfs-file
++++ a/Documentation/admin-guide/mm/damon/usage.rst
+@@ -73,9 +73,10 @@ comma (",").
+     │ │ │ │ │ │ │ intervals_goal/access_bp,aggrs,min_sample_us,max_sample_us
+     │ │ │ │ │ │ nr_regions/min,max
+     │ │ │ │ │ │ :ref:`probes <damon_usage_sysfs_probes>`/nr_probes
+-    │ │ │ │ │ │ │ 0/filters/nr_filters
+-    │ │ │ │ │ │ │ │ 0/type,matching,allow,path
+-    │ │ │ │ │ │ │ │ ...
++    │ │ │ │ │ │ │ 0/weight
++    │ │ │ │ │ │ │ │ filters/nr_filters
++    │ │ │ │ │ │ │ │ │ 0/type,matching,allow,path
++    │ │ │ │ │ │ │ │ │ ...
+     │ │ │ │ │ │ │ ...
+     │ │ │ │ │ :ref:`targets <sysfs_targets>`/nr_targets
+     │ │ │ │ │ │ :ref:`0 <sysfs_target>`/pid_target,obsolete_target
+@@ -286,6 +287,10 @@ In each probe directory, one directory,
+ contains files for installing filters for the probe, that is used to determine
+ the data attribute for the probe.
+ 
++Each probe directory also contains ``weight`` file.  Reading from and writing
++to the file gets and sets the :ref:`attributes-only monitoring
++<damon_design_attrs_only_monitoring>` weight for the attribute of the probe.
++
+ In the beginning, ``filters`` directory has only one file, ``nr_filters``.
+ Writing a number (``N``) to the file creates the number of child directories
+ named ``0`` to ``N-1``.  Each directory represents each filter and works in a
+--- a/Documentation/mm/damon/design.rst~docs-admin-guide-mm-damon-usage-document-weight-sysfs-file
 +++ a/Documentation/mm/damon/design.rst
-@@ -316,6 +316,26 @@ Another way to do this for higher accura
+@@ -316,6 +316,8 @@ Another way to do this for higher accura
  information in page level.  But, because it is operated in page level, the
  overhead is proportional to the size of the memory.
  
-+Data Attributes-only Monitoring
-+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
++.. _damon_design_attrs_only_monitoring:
 +
-+Data access is the primary monitoring information for DAMON.  Hence it
-+:ref:`adjusts <damon_design_data_attrs_monitoring>` regions using the access
-+:ref:`counter <damon_design_region_based_sampling>` (``nr_accesses``).  In some
-+use cases, however, users may want some of :ref:`attributes
-+<damon_design_data_attrs_monitoring>` to be the primary information.
-+
-+Data attributes-only monitoring mode supports this use case.  For the mode,
-+each attribute probe has their priority weight value.  Users can describe by
-+what combination of the attributes the primary information is decided, by
-+setting the priority weight value.  If the total sum of the weights is not
-+zero, the mode is enabled.  The regions adjustment mechanism uses the weighted
-+sum of the :ref:`probe hit counts <damon_design_data_attrs_monitoring>` instead
-+of ``nr_accesses`` in the case.  When the mode is enabled, access monitoring is
-+automatically turned off.  The access counter (``nr_accesses``) will always be
-+zero and not updated.  Hence the mode is called Data Attributes "only"
-+monitoring.
+ Data Attributes-only Monitoring
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 
+@@ -336,6 +338,9 @@ automatically turned off.  The access co
+ zero and not updated.  Hence the mode is called Data Attributes "only"
+ monitoring.
+ 
++Refer to the :ref:`admin guide <damon_usage_sysfs_probes>` to know how users
++can use the mode.
 +
  Dynamic Target Space Updates Handling
  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
