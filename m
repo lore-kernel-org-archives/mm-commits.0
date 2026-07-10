@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7A9601F91E3
-	for <mm-commits@vger.kernel.org>; Fri, 10 Jul 2026 22:46:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 586991F91E3
+	for <mm-commits@vger.kernel.org>; Fri, 10 Jul 2026 22:46:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783723595; cv=none; b=Ibp4BwI78eaKj60s78VRZ3Du1MYl1vXiLfMjFqBW5DjlK2uV8J15VAmAPCxJZSQz4IIQI8fGWuzloBr7end8IA5KBvmBIB7ZrtvtPK6q54+JIoNDK/BTdang3RXueSQt1UG6e8y+X1GkG8fUZC9mWv0U93pNkl1b++BBvKUuzBw=
+	t=1783723597; cv=none; b=TyRx4SQNWjHwYnzPgFvXxx17yPqwNQC0Hbje9ky23zuVu25fyPiawnOv4S9sjJhkM8LZ3ns/aLg/u/JAG3CFGY8yEFLu5CL46s2zqHu5JaR0NomzFDqbfqNkKivbplNF3hVteZ34cbOQYfF0zvuMsowkLWTz3qw5q68gn8eDNpc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783723595; c=relaxed/simple;
-	bh=i9pCyP1/tThHFiKtNOD0bi4OWPvzjU86NrXmU57D5Xg=;
-	h=Date:To:From:Subject:Message-Id; b=Sf7ub8ftBt4TFOLcVlDqcO/yPMRWsaRXUKKWNhNDlNoY4az6WIcVrei/CgYDBVMbtfnP+BvlY9+V9SBFg3BaKcoY07jqsxTMNJDiVb69VGMLa9ECX2XMkIiYXDgj+DR5A9vmqM65U+NzbRaE/1AhUC0p6mWwPTtQVLRGkss7f1Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qfPutvFj; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783723597; c=relaxed/simple;
+	bh=vSZf4jHs1+KHfhqLt9QKIFXRXM7uw3AkG68bGS3RzWY=;
+	h=Date:To:From:Subject:Message-Id; b=GLoHzmbx4axsIoT9ji7LFcpfzGBzLJuHchb0HZ5lK3hyr8NvG4VJOKoCAV0f3yyNWYjnNehH/88XDYHs7eCOGxB+XnEz2uQoJJdHGynrDJutxFvHtS/e7TBFAmoq9uCxqjL5rHD/98oOJKvjVFNza7qvYmf0v+eDrSscQ6IJTQY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=G2dP/lod; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qfPutvFj"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 188521F000E9;
-	Fri, 10 Jul 2026 22:46:34 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="G2dP/lod"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2CD211F000E9;
+	Fri, 10 Jul 2026 22:46:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783723594;
-	bh=M3hPNVuQRz1lunVcYhLtoMfDQ0hALGMoA7iKpZyVd44=;
+	d=linux-foundation.org; s=korg; t=1783723596;
+	bh=CTMw7oZjfyhAkI/9EUqdq5RKLiR+Tc7b7nvcK0PaAN4=;
 	h=Date:To:From:Subject;
-	b=qfPutvFjUpXAhkqFKh5U1OxGXyrlMmgeW3bxlZZQvdwMt/rskjhmBOK/oMgUaVl0E
-	 +sW/uVB9EW6W+Qrr0hc8WL3gY6RxKKtMWDkb32DKmIsK4aaPldhvkVm/+0y3EEhpD+
-	 DhQqMTrSeA4aJKGn3JHcSKHyUebts0i5RILJMYU0=
-Date: Fri, 10 Jul 2026 15:46:33 -0700
+	b=G2dP/lodIhVdFUgKVO7RyNK7aq6CdStwplxTnYXVhgCTVOpj8gQcAg4Emc9Xa2xT0
+	 kHIYdQCRdI+FPW+H6euEGZEtKsM7dzHoBLhpi2JW+2XfOXqasWyya1K50WhrUK2n6F
+	 y3hoiO531E+KD4s8EGnOv43tYPgdG8pAL1UwG4TU=
+Date: Fri, 10 Jul 2026 15:46:35 -0700
 To: mm-commits@vger.kernel.org,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vma-minor-cleanup-of-expand_.patch added to mm-new branch
-Message-Id: <20260710224634.188521F000E9@smtp.kernel.org>
+Subject: + mm-introduce-and-use-linear_page_delta.patch added to mm-new branch
+Message-Id: <20260710224636.2CD211F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/vma: minor cleanup of expand_[upwards, downwards]()
+     Subject: mm: introduce and use linear_page_delta()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-vma-minor-cleanup-of-expand_.patch
+     mm-introduce-and-use-linear_page_delta.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vma-minor-cleanup-of-expand_.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-introduce-and-use-linear_page_delta.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,25 +70,28 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <ljs@kernel.org>
-Subject: mm/vma: minor cleanup of expand_[upwards, downwards]()
-Date: Fri, 10 Jul 2026 21:16:57 +0100
+Subject: mm: introduce and use linear_page_delta()
+Date: Fri, 10 Jul 2026 21:16:58 +0100
 
-Adjust the stack expansion functions expand_upwards() and
-expand_downwards() such that they are expressed in terms of named constant
-values, and make use of vma_start_pgoff().
+It's often useful to obtain the number of pages a given address lies at
+within a VMA.
 
-This clearly documents that we are referencing the page offset of the start
-of the VMA.
+Add linear_page_delta() to determine this and update linear_page_index() to
+make use of it.
 
-Additionally this cleans up the overflow check in expand_upwards().
+Add comments to describe both linear_page_delta() and linear_page_index().
+
+We refer the reader to the comment for vma_start_pgoff() so we don't
+duplicate information about the meaning of a VMA's page offset, which is
+also less likely to result in bitrot.
 
 No functional change intended.
 
-Link: https://lore.kernel.org/20260710-b4-pre-scalable-cow-v2-16-2a5aa403d977@kernel.org
+Link: https://lore.kernel.org/20260710-b4-pre-scalable-cow-v2-17-2a5aa403d977@kernel.org
 Signed-off-by: Lorenzo Stoakes <ljs@kernel.org>
-Reviewed-by: Pedro Falcato <pfalcato@suse.de>
+Reviewed-by: Ackerley Tng <ackerleytng@google.com>
 Reviewed-by: Gregory Price <gourry@gourry.net>
-Cc: Ackerley Tng <ackerleytng@google.com>
+Reviewed-by: Pedro Falcato <pfalcato@suse.de>
 Cc: David Hildenbrand (Arm) <david@kernel.org>
 Cc: Kai Huang <kai.huang@intel.com>
 Cc: Marek Szyprowski <m.szyprowski@samsung.com>
@@ -98,46 +101,62 @@ Cc: Vlastimil Babka (SUSE) <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vma.c |   17 +++++++----------
- 1 file changed, 7 insertions(+), 10 deletions(-)
+ include/linux/pagemap.h |   33 +++++++++++++++++++++++++++++++--
+ 1 file changed, 31 insertions(+), 2 deletions(-)
 
---- a/mm/vma.c~mm-vma-minor-cleanup-of-expand_
-+++ a/mm/vma.c
-@@ -3216,13 +3216,12 @@ int expand_upwards(struct vm_area_struct
+--- a/include/linux/pagemap.h~mm-introduce-and-use-linear_page_delta
++++ a/include/linux/pagemap.h
+@@ -1063,11 +1063,40 @@ static inline pgoff_t folio_pgoff(const
+ 	return folio->index;
+ }
  
- 	/* Somebody else might have raced and expanded it already */
- 	if (address > vma->vm_end) {
--		unsigned long size, grow;
--
--		size = address - vma->vm_start;
--		grow = (address - vma->vm_end) >> PAGE_SHIFT;
-+		const unsigned long size = address - vma->vm_start;
-+		const unsigned long grow = (address - vma->vm_end) >> PAGE_SHIFT;
-+		const pgoff_t pgoff = vma_start_pgoff(vma);
++/**
++ * linear_page_delta() - Determine the relative page offset of @address within
++ * @vma.
++ * @vma: The VMA in which @address resides.
++ * @address: The address whose relative page offset is required.
++ *
++ * The result is identical for both file-backed and anonymous mappings and
++ * simply determines how many pages @address lies from @vma->vm_start.
++ *
++ * Returns: The number of pages @address is offset by within @vma.
++ */
++static inline pgoff_t linear_page_delta(const struct vm_area_struct *vma,
++					const unsigned long address)
++{
++	return (address - vma->vm_start) >> PAGE_SHIFT;
++}
++
++/**
++ * linear_page_index() - Determine the absolute page offset of @address within
++ * @vma.
++ * @vma: The VMA in which @address resides.
++ * @address: The address whose absolute page offset is required.
++ *
++ * See the comment for vma_start_pgoff() for a description of what the page
++ * offset signifies.
++ *
++ * Returns: The absolute page offset of @address within @vma.
++ */
+ static inline pgoff_t linear_page_index(const struct vm_area_struct *vma,
+ 					const unsigned long address)
+ {
+ 	pgoff_t pgoff;
+-	pgoff = (address - vma->vm_start) >> PAGE_SHIFT;
++
++	pgoff = linear_page_delta(vma, address);
+ 	pgoff += vma->vm_pgoff;
+ 	return pgoff;
+ }
+@@ -1219,7 +1248,7 @@ static inline vm_fault_t folio_lock_or_r
+ void folio_wait_bit(struct folio *folio, int bit_nr);
+ int folio_wait_bit_killable(struct folio *folio, int bit_nr);
  
- 		error = -ENOMEM;
--		if (vma->vm_pgoff + (size >> PAGE_SHIFT) >= vma->vm_pgoff) {
-+		if (pgoff + (size >> PAGE_SHIFT) >= pgoff) {
- 			error = acct_stack_growth(vma, size, grow);
- 			if (!error) {
- 				if (vma_test(vma, VMA_LOCKED_BIT))
-@@ -3295,13 +3294,11 @@ int expand_downwards(struct vm_area_stru
- 
- 	/* Somebody else might have raced and expanded it already */
- 	if (address < vma->vm_start) {
--		unsigned long size, grow;
--
--		size = vma->vm_end - address;
--		grow = (vma->vm_start - address) >> PAGE_SHIFT;
-+		const unsigned long size = vma->vm_end - address;
-+		const unsigned long grow = (vma->vm_start - address) >> PAGE_SHIFT;
- 
- 		error = -ENOMEM;
--		if (grow <= vma->vm_pgoff) {
-+		if (grow <= vma_start_pgoff(vma)) {
- 			error = acct_stack_growth(vma, size, grow);
- 			if (!error) {
- 				if (vma_test(vma, VMA_LOCKED_BIT))
+-/* 
++/*
+  * Wait for a folio to be unlocked.
+  *
+  * This must be called with the caller "holding" the folio,
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
