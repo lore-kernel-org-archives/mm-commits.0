@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B1EA72F7F01
-	for <mm-commits@vger.kernel.org>; Fri, 10 Jul 2026 22:45:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AEA5D305057
+	for <mm-commits@vger.kernel.org>; Fri, 10 Jul 2026 22:45:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783723540; cv=none; b=CZYMB+y+ZBCtXiNhBZ5scOzc2d6IkpBa9dGPx7AdrKsfVy39ke6ikLEx5pFRDWlbfkgcz7aWadnC6ybJpUd7iUO+jJh5HdE7GqB6ZIWhCWmpKD3k/1eRh5UYkMWYUCi2nsH5OZIjPAPltNlIynDblFou38N8YNI5XZkgZFKbuVk=
+	t=1783723543; cv=none; b=n+okNhoTOmi5U0VDbwDO80tFAWp5ZisozWHX8zVYKMpTep5g7fAMtqzrqmKuC9fPVX9h4Xahbx+apI7v2eqWDHTwVkRrmcmCadpvWdVtK5LJwSy0dGAWCfW8JltzHlK7lJaIOyugbuWjGial8L3TbN2ZTST+yk1eQzyG2lzl7mo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783723540; c=relaxed/simple;
-	bh=EHTz4pKFGZwe7AoQ6xEWBpzqiLuKcP4CTiF2Zf1XK7U=;
-	h=Date:To:From:Subject:Message-Id; b=ZGrAEnbwpcLPdrJzqczRZ6UU3d2cpU7kK06UWR86xdX9Ao47dDyK4o7zOhsmUe26rZR+HvXfk4OAyxdPdfgaryoLM0uFKNqnEHeVS4v+5ImMxs4ChUmcZzv3ZCRGkJpGPjjtZVyHv04oK6OQkRsu2EQfspMcKJqTGfi4SE/qOA0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fTaI+DTm; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783723543; c=relaxed/simple;
+	bh=apR3dODnkHAoo9tuKTFWCdNaTqjcNcozjpBRgNF0tIU=;
+	h=Date:To:From:Subject:Message-Id; b=mY90BQ3vcSA44OfSI6RBLg0rqJT3uM+IYm1KockSwnEnHy4EbewHVYsq3qazDObPBwbmohZnwy3ozTpxLoOZ0ndIE0GFEwhFj16tjYnPDh9M9K1peg0qgRK1YfFwTxQpKY+UN8bqsolYBE+fJ71+3aOh1H9iXeaiQkigxiiupEM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=d2vbfUiG; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fTaI+DTm"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5A6B91F000E9;
-	Fri, 10 Jul 2026 22:45:38 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="d2vbfUiG"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 46CEE1F000E9;
+	Fri, 10 Jul 2026 22:45:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783723538;
-	bh=J7QUcxh4vcyloYtJnd6B9/Jc2wxR32eUTeZ+Me7TXgc=;
+	d=linux-foundation.org; s=korg; t=1783723541;
+	bh=1J8TogDzDmL7CxXfMonIdH3rE9ZVnatx6a5xL4awOb4=;
 	h=Date:To:From:Subject;
-	b=fTaI+DTmypyEKQR4IhS/bTPiiWwwZEdNq6TII7OS8CWFjTHQDwwXPh+sJKN4FeqVg
-	 oaLEtfyHVSuOGDCp8uF5I/KuKPIRziKOaEcVr1VdihJvDuCWkebdBexpO7NKmbGyVk
-	 Ge7fUj6arFcqtHvUmKWgtylPIqZQ2fa3aiFRtIb8=
-Date: Fri, 10 Jul 2026 15:45:37 -0700
+	b=d2vbfUiG30jem07KkwCq6WEG64YXoK8vyfqaiqRFhj7QcfWWF9dG2EzSWXMTD/RaB
+	 mEktSwUxjtDzq/NoCWO8PF4jgdNgO9MSwjSuPiPlD/gF1zw//rNHjAL7F4jYKJikI2
+	 exegRhjNgDE/S87MqT0eFv7CcJ67DQjB5SX28Jis=
+Date: Fri, 10 Jul 2026 15:45:40 -0700
 To: mm-commits@vger.kernel.org,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-move-vma_start_pgoff-into-mmh-and-clean-up.patch added to mm-new branch
-Message-Id: <20260710224538.5A6B91F000E9@smtp.kernel.org>
+Subject: + mm-add-kdoc-comments-for-vma_start-last_pgoff.patch added to mm-new branch
+Message-Id: <20260710224541.46CEE1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: move vma_start_pgoff() into mm.h and clean up
+     Subject: mm: add kdoc comments for vma_start/last_pgoff()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-move-vma_start_pgoff-into-mmh-and-clean-up.patch
+     mm-add-kdoc-comments-for-vma_start-last_pgoff.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-move-vma_start_pgoff-into-mmh-and-clean-up.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-kdoc-comments-for-vma_start-last_pgoff.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,91 +70,26 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <ljs@kernel.org>
-Subject: mm: move vma_start_pgoff() into mm.h and clean up
-Date: Fri, 10 Jul 2026 21:16:42 +0100
+Subject: mm: add kdoc comments for vma_start/last_pgoff()
+Date: Fri, 10 Jul 2026 21:16:43 +0100
 
-Patch series "mm: make VMA page offset handling more consistent", v2.
+Describe what vma_start_pgoff() and vma_last_pgoff() actually provide in
+detail.
 
-This series performs a series of cleanups and improvements around how the
-vma->vm_pgoff field is used.
+This is in order that we can differentiate this between functions that will
+be added in a subsequent patch which provide a different page offset.
 
-Folios belonging to file-backed mappings are simply indexed by the page
-offset within the file they map (excepting pfnmap and driver mappings
-which sometimes do things different).
-
-However, anonymous folios belonging to pure anonymous mappings are indexed
-by their "virtual" page offset, which is equal to addr >> PAGE_SHIFT at
-the time at which the VMA was first faulted in.
-
-The page offset of a VMA is stored in vma->vm_pgoff and indicates the page
-offset of the start of the VMA range, whether it be file-backed or
-anonymous.
-
-The work here both cleans up how we reference this field, as well as
-laying the foundations for a future series which addresses the
-inconsistency of CoW'd folios in MAP_PRIVATE-file backed mappings, which
-are indexed as if they were file-backed but behave as if they were
-anonymous.
-
-This future series will make it such that all anonymous folios are indexed
-by virtual page offset whether belonging to VMAs who satisfy
-vma_is_anonymous() or MAP_PRIVATE-mapped file-backed mappings.
-
-This series:
-
-* Exposes vma_start_pgoff() and updates the kernel to use it consistently.
-* Adds and uses the useful vma_end_pgoff() helper.
-* Parameterises the file-backed mapping helpers vma_interval_tree_*()
-  by address_space rather than rb_root_cached.
-* Renames: the misleadingly-named vma_interval_tree_*() helpers to
-  mapping_rmap_tree_*() to be consistent with the renamed
-  anon_rmap_tree_*().
-* Parameterises anon_rmap_tree_*() by anon_vma.
-* Moves mm/interval_tree.c to the rmap section.
-* Adds vmg_*() helpers for page offset.
-* Clarifies the confusing vmg_adjust_set_range() function.
-* Introduces linear_page_delta() to provide relative pgoff within a VMA.
-* Replaces open-coded versions of linear_page_delta() and
-  linear_page_index() with invocations of these functions.
-* Introduces and uses vma_assert_can_modify() to account for whether a VMA
-  can be modified (detached or write locked).
-* Adds and uses vma_[add,sub]_pgoff() to adjust VMA page offset.
-* Moves __install_special_mapping() to vma.c.
-* Makes vma_set_range() static and internal to vma.c.
-* Introduces and makes use of vma_set_pgoff().
-* Fixes incorrect vma.h header inclusion.
-* Defaults VMA userland tests to 64-bit vma flags size.
-* Updates VMA userland tests to give better output on failure.
-* Various smaller cleanups.
-* Updated the vma_set_pgoff() assert to account for MAP_PRIVATE /dev/zero
-  correctly.
-
-
-This patch (of 33):
-
-vma_last_pgoff() already lives there, so it's a bit odd to keep
-vma_start_pgoff() in mm/interval_tree.c. Move them together.
-
-These each return unsigned long, which pgoff_t is typedef'd to. Make this
-consistent and have these functions return pgoff_t instead.
-
-Additionally, express vma_last_pgoff() in terms of vma_start_pgoff(), since
-we wrap the vma->vm_pgoff access, we may as well use it here.
-
-Also while we're here, const-ify the VMA and cleanup a bit.
-
-Also update the VMA userland tests to reflect the change.
+We go to lengths to describe the edge cases that can be run into here.
 
 No functional change intended.
 
-Link: https://lore.kernel.org/20260710-b4-pre-scalable-cow-v2-0-2a5aa403d977@kernel.org
-Link: https://lore.kernel.org/20260710-b4-pre-scalable-cow-v2-1-2a5aa403d977@kernel.org
+Link: https://lore.kernel.org/20260710-b4-pre-scalable-cow-v2-2-2a5aa403d977@kernel.org
 Signed-off-by: Lorenzo Stoakes <ljs@kernel.org>
-Reviewed-by: Gregory Price <gourry@gourry.net>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
 Reviewed-by: Pedro Falcato <pfalcato@suse.de>
+Reviewed-by: Gregory Price <gourry@gourry.net>
 Reviewed-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
 Cc: Ackerley Tng <ackerleytng@google.com>
+Cc: David Hildenbrand (Arm) <david@kernel.org>
 Cc: Kai Huang <kai.huang@intel.com>
 Cc: Marek Szyprowski <m.szyprowski@samsung.com>
 Cc: SJ Park <sj@kernel.org>
@@ -162,58 +97,53 @@ Cc: Thomas Zimmermann <tzimmermann@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h              |    9 +++++++--
- mm/interval_tree.c              |    5 -----
- tools/testing/vma/include/dup.h |    5 +++++
- 3 files changed, 12 insertions(+), 7 deletions(-)
+ include/linux/mm.h |   30 ++++++++++++++++++++++++++++++
+ 1 file changed, 30 insertions(+)
 
---- a/include/linux/mm.h~mm-move-vma_start_pgoff-into-mmh-and-clean-up
+--- a/include/linux/mm.h~mm-add-kdoc-comments-for-vma_start-last_pgoff
 +++ a/include/linux/mm.h
-@@ -4311,9 +4311,14 @@ static inline unsigned long vma_pages(co
+@@ -4311,11 +4311,41 @@ static inline unsigned long vma_pages(co
  	return (vma->vm_end - vma->vm_start) >> PAGE_SHIFT;
  }
  
--static inline unsigned long vma_last_pgoff(struct vm_area_struct *vma)
-+static inline pgoff_t vma_start_pgoff(const struct vm_area_struct *vma)
++/**
++ * vma_start_pgoff() - Get the page offset of the start of @vma
++ * @vma: The VMA whose page offset is required.
++ *
++ * If the VMA is file-backed, this is the page offset into the file.
++ *
++ * If @vma is anonymous, this is the virtual page offset of the start of the
++ * VMA - if unfaulted, then vma->vm_start >> PAGE_SHIFT, if faulted then the
++ * virtual page offset at the time of first fault.
++ *
++ * If @vma is a MAP_PRIVATE file-backed mapping, then this returns the
++ * page offset within the file.
++ *
++ * Edge cases: nommu does not abide by these, MAP_PRIVATE-/dev/zero satisfies
++ * vma_is_anonymous() but has file-backed page offset, and MAP_PRIVATE-pfnmap
++ * regions have their page offset set to the first PFN in the range.
++ *
++ * Returns: The page offset of the start of @vma.
++ */
+ static inline pgoff_t vma_start_pgoff(const struct vm_area_struct *vma)
  {
--	return vma->vm_pgoff + vma_pages(vma) - 1;
-+	return vma->vm_pgoff;
-+}
-+
-+static inline pgoff_t vma_last_pgoff(const struct vm_area_struct *vma)
-+{
-+	return vma_start_pgoff(vma) + vma_pages(vma) - 1;
+ 	return vma->vm_pgoff;
  }
  
- static inline unsigned long vma_desc_size(const struct vm_area_desc *desc)
---- a/mm/interval_tree.c~mm-move-vma_start_pgoff-into-mmh-and-clean-up
-+++ a/mm/interval_tree.c
-@@ -10,11 +10,6 @@
- #include <linux/rmap.h>
- #include <linux/interval_tree_generic.h>
- 
--static inline unsigned long vma_start_pgoff(struct vm_area_struct *v)
--{
--	return v->vm_pgoff;
--}
--
- INTERVAL_TREE_DEFINE(struct vm_area_struct, shared.rb,
- 		     unsigned long, shared.rb_subtree_last,
- 		     vma_start_pgoff, vma_last_pgoff, /* empty */, vma_interval_tree)
---- a/tools/testing/vma/include/dup.h~mm-move-vma_start_pgoff-into-mmh-and-clean-up
-+++ a/tools/testing/vma/include/dup.h
-@@ -1301,6 +1301,11 @@ static inline unsigned long vma_pages(co
- 	return (vma->vm_end - vma->vm_start) >> PAGE_SHIFT;
- }
- 
-+static inline pgoff_t vma_start_pgoff(const struct vm_area_struct *vma)
-+{
-+	return vma->vm_pgoff;
-+}
-+
- static inline int vfs_mmap_prepare(struct file *file, struct vm_area_desc *desc)
++/**
++ * vma_last_pgoff() - Get the page offset of the last page in @vma
++ * @vma: The VMA whose last page offset is required.
++ *
++ * This returns the last page offset contained within @vma.
++ *
++ * See the description of vma_start_pgoff() for a description of VMA page
++ * offsets.
++ *
++ * Returns: The last page offset of @vma.
++ */
+ static inline pgoff_t vma_last_pgoff(const struct vm_area_struct *vma)
  {
- 	return file->f_op->mmap_prepare(desc);
+ 	return vma_start_pgoff(vma) + vma_pages(vma) - 1;
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
