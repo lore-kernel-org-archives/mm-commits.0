@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1749A39E197
-	for <mm-commits@vger.kernel.org>; Fri, 10 Jul 2026 20:24:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E80C439F160
+	for <mm-commits@vger.kernel.org>; Fri, 10 Jul 2026 20:24:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783715064; cv=none; b=TfzwlXnslgvy3xBqpx8koMm2Zs8S55pemfXdBgHnRnLe4wdkNhXGwR5EkRqFKlDs6zydtxhi+Qj7oQz2pEf3PSaoz94bJLPm3bDyIpNXcmwgEGqCDSuY4snhH0GvX0qdGEgfuy6p8I6GRHtI6eWA3TTK6fot89wdZKybzuW/Ylo=
+	t=1783715066; cv=none; b=kJzmySHsUdqH0XTqFZRv9hD812woTPVQYk+qW9Lxm2dwZ4xcBeIOrW/8k2gNsLS+eJZePxI7zR7VZJIAni8tGstVvF5D3qLFNSJjcFPyms93M7u9kjeFFk2XFpU6ym+yrMaF6pHgTnywwqMdfOmC+l7sXMjbZJkzar8hrcsNrBo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783715064; c=relaxed/simple;
-	bh=aCsAZBoPAQ+OWSqvLLiMt2l4Du6A5rZolNawJgravAA=;
-	h=Date:To:From:Subject:Message-Id; b=J8oG3/jGRqEv2iwjeQBWwehxllPIuJbGcnJj+SELSm5pko1rqTSee0i65DM43D4ZOYwPxV9xFJm4BF5RBSSxDqGXk9cKch0nu1B+bGXvP4h2DqWCEO1r04Dm3DispbRLIa7X2eOq6nMbxRC55RR7j3LGQHjXmKGNUu9+7UmXqB4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vEi3ph/G; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783715066; c=relaxed/simple;
+	bh=aBwK8mPABsbE1BGxS3uG15CH6eBpmsJxx84gJIjxEMg=;
+	h=Date:To:From:Subject:Message-Id; b=IBZ075b1WE0ZkbqRK3he83RUe6NxZnwZKCtxNI5LPca9yAgQAv2IXmjPVBNFA3Vr4i6/R025skmutfKrateNEhEAlZKMhh9wsKCs9I7wrKspWn5aIrBReAokCDVy9dFi/N5vwIYg8AC6arp4R3dtMWXUGpMqKhMJnNFElvaMZZY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OeXmF59I; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vEi3ph/G"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 84D971F000E9;
-	Fri, 10 Jul 2026 20:24:22 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OeXmF59I"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 84DB21F00A3A;
+	Fri, 10 Jul 2026 20:24:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783715062;
-	bh=McxBXzaZbbPen+flbSmVotnOnH2oH2Mu9vl5yumvg5A=;
+	d=linux-foundation.org; s=korg; t=1783715064;
+	bh=AD/N5Cd9ZmHWaMGy/otQHlGO9SbXCq89Ikp79tSzzMI=;
 	h=Date:To:From:Subject;
-	b=vEi3ph/GPLy9YKRu37DSEyaR2E6yaUm5uSp1sT1kVCoQnbzLZtHQA9PQBq7lmhJ6u
-	 aJ3SQuWuNwjJglUh7jceslD48QVzQZ70/a3cQFQKxiRmV67JcpQETRiuEq5ryew2fn
-	 GT3cjH9M4dMy2wWvygGO/Bkr5hFjWsb3PN0VnIK0=
-Date: Fri, 10 Jul 2026 13:24:22 -0700
+	b=OeXmF59IzqZM3exLciRsnzCrjYHsVl/AFJF+6VyjCalHpcoozcs/QBwsgHBKPQkiF
+	 0RSJrwQFmKmbCLP7ZtYN/QusyO+nQcrjMYKOUCOqPJhcDQRzoNZEjWJ1BmNEaXyrUQ
+	 Y3mjubv8nCZOnFbAd6HRSDdXROYkAfHZdsPEuQq4=
+Date: Fri, 10 Jul 2026 13:24:24 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-sysfs-implement-probe-weight-file.patch added to mm-new branch
-Message-Id: <20260710202422.84D971F000E9@smtp.kernel.org>
+Subject: + docs-mm-damon-design-document-attrs-only-monitoring.patch added to mm-new branch
+Message-Id: <20260710202424.84DB21F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/sysfs: implement probe/weight file
+     Subject: Docs/mm/damon/design: document attrs-only monitoring
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-sysfs-implement-probe-weight-file.patch
+     docs-mm-damon-design-document-attrs-only-monitoring.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-implement-probe-weight-file.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-mm-damon-design-document-attrs-only-monitoring.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,14 +70,12 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/sysfs: implement probe/weight file
-Date: Fri, 10 Jul 2026 06:46:45 -0700
+Subject: Docs/mm/damon/design: document attrs-only monitoring
+Date: Fri, 10 Jul 2026 06:46:46 -0700
 
-Implement a new sysfs file, 'weight', under probe directory.  Users will
-be able to set the probe weight and enable the attributes only monitoring
-using it.
+Update DAMON design document for the attributes only monitoring mode.
 
-Link: https://lore.kernel.org/20260710134651.18084-17-sj@kernel.org
+Link: https://lore.kernel.org/20260710134651.18084-18-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
@@ -90,63 +88,38 @@ Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/sysfs.c |   25 +++++++++++++++++++++++++
- 1 file changed, 25 insertions(+)
+ Documentation/mm/damon/design.rst |   20 ++++++++++++++++++++
+ 1 file changed, 20 insertions(+)
 
---- a/mm/damon/sysfs.c~mm-damon-sysfs-implement-probe-weight-file
-+++ a/mm/damon/sysfs.c
-@@ -1065,6 +1065,7 @@ static const struct kobj_type damon_sysf
+--- a/Documentation/mm/damon/design.rst~docs-mm-damon-design-document-attrs-only-monitoring
++++ a/Documentation/mm/damon/design.rst
+@@ -316,6 +316,26 @@ Another way to do this for higher accura
+ information in page level.  But, because it is operated in page level, the
+ overhead is proportional to the size of the memory.
  
- struct damon_sysfs_probe {
- 	struct kobject kobj;
-+	unsigned int weight;
- 	struct damon_sysfs_filters *filters;
- };
++Data Attributes-only Monitoring
++~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
++
++Data access is the primary monitoring information for DAMON.  Hence it
++:ref:`adjusts <damon_design_data_attrs_monitoring>` regions using the access
++:ref:`counter <damon_design_region_based_sampling>` (``nr_accesses``).  In some
++use cases, however, users may want some of :ref:`attributes
++<damon_design_data_attrs_monitoring>` to be the primary information.
++
++Data attributes-only monitoring mode supports this use case.  For the mode,
++each attribute probe has their priority weight value.  Users can describe by
++what combination of the attributes the primary information is decided, by
++setting the priority weight value.  If the total sum of the weights is not
++zero, the mode is enabled.  The regions adjustment mechanism uses the weighted
++sum of the :ref:`probe hit counts <damon_design_data_attrs_monitoring>` instead
++of ``nr_accesses`` in the case.  When the mode is enabled, access monitoring is
++automatically turned off.  The access counter (``nr_accesses``) will always be
++zero and not updated.  Hence the mode is called Data Attributes "only"
++monitoring.
++
+ Dynamic Target Space Updates Handling
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  
-@@ -1100,12 +1101,35 @@ static void damon_sysfs_probe_rm_dirs(st
- 	}
- }
- 
-+static ssize_t weight_show(struct kobject *kobj, struct kobj_attribute *attr,
-+		char *buf)
-+{
-+	struct damon_sysfs_probe *probe = container_of(kobj,
-+			struct damon_sysfs_probe, kobj);
-+
-+	return sysfs_emit(buf, "%u\n", probe->weight);
-+}
-+
-+static ssize_t weight_store(struct kobject *kobj,
-+		struct kobj_attribute *attr, const char *buf, size_t count)
-+{
-+	struct damon_sysfs_probe *probe = container_of(kobj,
-+			struct damon_sysfs_probe, kobj);
-+	int err = kstrtouint(buf, 0, &probe->weight);
-+
-+	return err ? err : count;
-+}
-+
- static void damon_sysfs_probe_release(struct kobject *kobj)
- {
- 	kfree(container_of(kobj, struct damon_sysfs_probe, kobj));
- }
- 
-+static struct kobj_attribute damon_sysfs_probe_weight_attr =
-+		__ATTR_RW_MODE(weight, 0600);
-+
- static struct attribute *damon_sysfs_probe_attrs[] = {
-+	&damon_sysfs_probe_weight_attr.attr,
- 	NULL,
- };
- ATTRIBUTE_GROUPS(damon_sysfs_probe);
-@@ -1965,6 +1989,7 @@ static int damon_sysfs_set_probes(struct
- 			return -ENOMEM;
- 		damon_add_probe(ctx, p);
- 		sys_probe = sys_probes->probes_arr[i];
-+		p->weight = sys_probe->weight;
- 		err = damon_sysfs_set_probe(p, sys_probe);
- 		if (err)
- 			return err;
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
