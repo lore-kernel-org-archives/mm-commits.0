@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 64E1739A070
-	for <mm-commits@vger.kernel.org>; Fri, 10 Jul 2026 20:24:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 74ED439BFE6
+	for <mm-commits@vger.kernel.org>; Fri, 10 Jul 2026 20:24:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783715043; cv=none; b=S2ZZ7oOuORtMyFwiB6QYxf+VSNOLD3hkx5qu1TqVOliiXu7C+2ry/6Uk29kQSgxopjY8dlCSmJuMp43GgBAt8ZLNwoaq8XB81n8iBCrd3EF/vKQ11i0m0fJWvbVQts/ETpBfkCzi2Rn0QBwOOaDEOtCXMmsfDm6K3BsYSwDv9Iw=
+	t=1783715046; cv=none; b=rhQGV4P9RBJPHMvgLz5N/33yY8NhFfe+N8zQQInofBu2I4k5+uEL1QVvKwr0a88d6XLK7qdNLUApISKKAhSBXeApqVfR/5yCTTFWcw62v4JIs08jsypBUcdmktzqRzEEhfBV1PHEMAzC0t7WDzPFzbZE+nFvJaJ7K3n8WXlrk6Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783715043; c=relaxed/simple;
-	bh=ILQqCcjSEp4pMBVJLFmaCHDEXhSNJ1xQO6TQR2Fnics=;
-	h=Date:To:From:Subject:Message-Id; b=Pvz9PZvqH0yGQvfrxVvbWH4P25ToOoWjlDqx0YPMzy5WHMIBhiTwYpmnm3K8dPxTWMqOvyXcb7oofwoF6Dx2R6SLOzHZdOTb8BjHBXkavMPCIZdI8kQqssHjj0QBYgx2denm8ydPrRTWKsy7/i79hskJ7aKKTq8zUhoGxTKtMw4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MtND41+g; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783715046; c=relaxed/simple;
+	bh=JCA6OKbNez35CxymrFsUa7sAEG7vilSiRC7yVD+mTs4=;
+	h=Date:To:From:Subject:Message-Id; b=ktBf/UkwfPs7SJzFhQ7L/8oZzkbM8GtJISdA2ixHLKkQHAaV/ENfPM9PXlAC18MFd7LEml56sufw/Pn1WC6KcuPRQnGzNJiu50Fwq562aV6BzpeNCqiQeSSfx+xQdD1aYMJ7k/EHotEgrVzESxfQ+2lY97Y46gBbW9HmwdGXRwM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YDiJ518m; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MtND41+g"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EA16A1F000E9;
-	Fri, 10 Jul 2026 20:24:01 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YDiJ518m"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E91BD1F000E9;
+	Fri, 10 Jul 2026 20:24:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783715042;
-	bh=OVMXPdV2jAdK7QdNGxtnSJP4SeY4Z/jK3qaI1VD7eDo=;
+	d=linux-foundation.org; s=korg; t=1783715044;
+	bh=jCwEDgdzbNZe1hGQVXk8Cjw2ad8sLp7+vN9iTgeb7vM=;
 	h=Date:To:From:Subject;
-	b=MtND41+gVCiHAp1PFXQjHKZ3oMFN29jRLEICBs28y1y+80uuzKDZcoAE4AIcxsyh/
-	 KbrGlg2kiu0kkBICecMbtiiIA+VibjQ/2wtzsbOxXHHrLHVFvn0cLdA88BBBhNideZ
-	 l/Ot6ZjPyjfrA0dy+M9ZOB0aMspHZoJhnBtQpiB8=
-Date: Fri, 10 Jul 2026 13:24:01 -0700
+	b=YDiJ518maI11ZCn8EvnIRCtfCqreO2UVDE1cDzZhvjv3rHB1ubp3JH+ybPWIgOx8Y
+	 dm5M8cFbQeAUtw17PyJs11T/euyAUeeuFc70/cWkLJsSpyl7L2TyOgZzHJeAuESj+T
+	 +7wECOal2vO3SWysg8BAY0WTyKeBnbYJptgjBdvQ=
+Date: Fri, 10 Jul 2026 13:24:03 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-paddr-respect-return_max_wsum.patch added to mm-new branch
-Message-Id: <20260710202401.EA16A1F000E9@smtp.kernel.org>
+Subject: + mm-damon-core-use-abs_diff-instead-of-abs.patch added to mm-new branch
+Message-Id: <20260710202403.E91BD1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/paddr: respect return_max_wsum
+     Subject: mm/damon/core: use abs_diff() instead of abs()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-paddr-respect-return_max_wsum.patch
+     mm-damon-core-use-abs_diff-instead-of-abs.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-paddr-respect-return_max_wsum.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-use-abs_diff-instead-of-abs.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,13 +70,20 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/paddr: respect return_max_wsum
-Date: Fri, 10 Jul 2026 06:46:35 -0700
+Subject: mm/damon/core: use abs_diff() instead of abs()
+Date: Fri, 10 Jul 2026 06:46:36 -0700
 
-apply_probes() ops implementation in DAMON_PADDR is ignoring
-return_max_wsum.  Respect it.
+Use of abs() in damon_merge_regions_of() could cause a silent integer
+overflow since the macro casts unsigned int to signed int.  It is unlikely
+to have such a large value for nr_accesses.  Even though it happens, the
+user impact is just degraded monitoring results.  Users showing bad
+monitoring results for weird setup is quite trivial.  But the code is
+obviously wrong.  Use abs_diff() instead.
 
-Link: https://lore.kernel.org/20260710134651.18084-7-sj@kernel.org
+The issue was discovered [1] by Sashiko.
+
+Link: https://lore.kernel.org/20260710134651.18084-8-sj@kernel.org
+Link: https://lore.kernel.org/20260705213817.100841-1-sj@kernel.org/ [1]
 Signed-off-by: SJ Park <sj@kernel.org>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
@@ -89,41 +96,29 @@ Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/paddr.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ mm/damon/core.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/damon/paddr.c~mm-damon-paddr-respect-return_max_wsum
-+++ a/mm/damon/paddr.c
-@@ -172,6 +172,7 @@ static unsigned int damon_pa_apply_probe
- 	struct damon_target *t;
- 	struct damon_region *r;
- 	struct damon_probe *p;
-+	unsigned int max_wsum = 0;
+--- a/mm/damon/core.c~mm-damon-core-use-abs_diff-instead-of-abs
++++ a/mm/damon/core.c
+@@ -3261,7 +3261,7 @@ static void damon_merge_regions_of(struc
+ 	struct damon_region *r, *prev = NULL, *next;
  
- 	damon_for_each_target(t, ctx) {
- 		damon_for_each_region(r, t) {
-@@ -182,7 +183,6 @@ static unsigned int damon_pa_apply_probe
- 			if (set_samples)
- 				r->sampling_addr = damon_rand(ctx, r->ar.start,
- 						r->ar.end);
--
- 			pa = damon_pa_phys_addr(r->sampling_addr,
- 					ctx->addr_unit);
- 			folio = damon_get_folio(PHYS_PFN(pa));
-@@ -193,9 +193,12 @@ static unsigned int damon_pa_apply_probe
- 			}
- 			if (folio)
- 				folio_put(folio);
-+			if (return_max_wsum)
-+				max_wsum = max(damon_probe_hits_wsum(r, false,
-+							ctx), max_wsum);
- 		}
- 	}
--	return 0;
-+	return max_wsum;
- }
+ 	damon_for_each_region_safe(r, next, t) {
+-		if (abs(r->nr_accesses - r->last_nr_accesses) > thres)
++		if (abs_diff(r->nr_accesses, r->last_nr_accesses) > thres)
+ 			r->age = 0;
+ 		else if ((r->nr_accesses == 0) != (r->last_nr_accesses == 0))
+ 			r->age = 0;
+@@ -3269,7 +3269,7 @@ static void damon_merge_regions_of(struc
+ 			r->age++;
  
- /*
+ 		if (prev && prev->ar.end == r->ar.start &&
+-		    abs(prev->nr_accesses - r->nr_accesses) <= thres &&
++		    abs_diff(prev->nr_accesses, r->nr_accesses) <= thres &&
+ 		    damon_sz_region(prev) + damon_sz_region(r) <= sz_limit)
+ 			damon_merge_two_regions(t, prev, r);
+ 		else
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
