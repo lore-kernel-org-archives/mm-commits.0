@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A072B1C3BF7
-	for <mm-commits@vger.kernel.org>; Fri, 10 Jul 2026 21:09:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E73EE34AB03;
+	Fri, 10 Jul 2026 21:13:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783717761; cv=none; b=OHz/jAD6W0aLpa3q3GRDPk5iCN7/HdgH4q9f+7P4eq6sF3PbiWC3L+pYZUhIGb4ZBKfyyVRuk1hEdofsZeXeoLVTHvbzGcY7frGPM83RVBxkQtXNoWYhWQ09Yw8v9HwhhI8REXG0RI2Mh54yRq+ZgaT0BqkM3t30BllZjM5Bn3c=
+	t=1783718040; cv=none; b=VHsefMswJqHDT29I4b2oAZkDCZann64xI4GTS5wgVKvUKEHXso0RBUL4OFdluqx6moqIC+TGoRo0juuPJ0cLlfvsh3GUPM+8R0YwUlPAcrPoElGq8xmFXkzsjAKMGWTbKBEnRey9umYYy1xoszON5nRwwZoMvnbGVt+6EficTIc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783717761; c=relaxed/simple;
-	bh=Y4cjf3ZpYe+N9SXJhHmoW1yqoMUugdY4YvOVQo+4aaM=;
-	h=Date:To:From:Subject:Message-Id; b=CgBy1leypax8XblcAwm9TZBQqOzQ1YIYDrQQxrOHSvOIwfHnoJklI5rp8vJbxmdaQ5luJIPXTX48C48raUVqo4jzKwhrRm3jZd+tTYgqkncWCGaibWmiYHedip5mhQ6cZ7cLikBFVkMZd+IEBZvsCSGhs9FyhttqCjcjeI1inZY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=J+nVXTfK; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783718040; c=relaxed/simple;
+	bh=2jNkSeGHmKz74qHwutetfraRgjGQ6xmhRvxb/i9MEnc=;
+	h=Date:To:From:Subject:Message-Id; b=W+GXgpRepVZQRWv1ZfnaaJlZwrGIMWRU5nghyBf6+dj2KP2OgG1fhG5oxE4KnV2wqZazGs2DsRYI42Lm5k50YLXE+/y5JLs7mlzMeb4C91Y7vKLKcbKhVo7yY4s9qbCtPinNIhGfMVgoqN/8QKzh+zpRSJPyrnSgfZU8asCgcHs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DGGXHLp9; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="J+nVXTfK"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 522461F000E9;
-	Fri, 10 Jul 2026 21:09:19 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DGGXHLp9"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 70AF61F000E9;
+	Fri, 10 Jul 2026 21:13:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783717759;
-	bh=s445dqB+pA7BaO1EuUCVta6A+9W1TcVHfL289VGJ4JU=;
+	d=linux-foundation.org; s=korg; t=1783718038;
+	bh=x7tH793k9Jsv5uRtN86SydGoCVis2tauwfZGqIqnKtA=;
 	h=Date:To:From:Subject;
-	b=J+nVXTfKkhbYPCWY0FppugO3rQmQT9V6wNIgQ6TXBPh8VrtdESjLHcy8fL0DDvBRe
-	 DUQkxWIzRHF7F1tjKp3tgyJS0Mo0sOZf+GXFbCHUdSPRCW2yGVRsv+qL2CR1ID+PhD
-	 c4qCn9/g+BEY2rY0Wqt+h6Et2Tbt/Qf+BbHzB9xM=
-Date: Fri, 10 Jul 2026 14:09:18 -0700
-To: mm-commits@vger.kernel.org,shikemeng@huaweicloud.com,shakeel.butt@linux.dev,roman.gushchin@linux.dev,nphamcs@gmail.com,muchun.song@linux.dev,mhocko@kernel.org,kasong@tencent.com,hannes@cmpxchg.org,chrisl@kernel.org,baoquan.he@linux.dev,baohua@kernel.org,chenridong@xiaomi.com,akpm@linux-foundation.org
+	b=DGGXHLp91qyD8REcyph08bxP6SOYI25rXNzPGTN0z8yKuG23kwBi0diEx5aw/s06v
+	 SCvGwryeBiGZJ5uGY/RkaVK+G7On9mg4hwtn5hs40jPfzV/gIDwaNM/yNs+NiZAiUS
+	 ukYC0OtarIistJWsOo2+EGbD0/Hr/fNA3uy56Pgw=
+Date: Fri, 10 Jul 2026 14:13:58 -0700
+To: mm-commits@vger.kernel.org,will@kernel.org,vbabka@kernel.org,urezki@gmail.com,toshi.kani@hpe.com,surenb@google.com,stable@vger.kernel.org,shakeel.butt@linux.dev,ryan.roberts@arm.com,rppt@kernel.org,mhocko@suse.com,liam@infradead.org,devnexen@gmail.com,dev.jain@arm.com,david@kernel.org,catalin.marinas@arm.com,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + memcg-move-mem_cgroup_swappiness-to-memcontrolh.patch added to mm-new branch
-Message-Id: <20260710210919.522461F000E9@smtp.kernel.org>
+Subject: + mm-vmalloc-acquire-init_mm-read-lock-on-huge-vmap-promotion.patch added to mm-new branch
+Message-Id: <20260710211358.70AF61F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: memcg: move mem_cgroup_swappiness to memcontrol.h
+     Subject: mm/vmalloc: acquire init_mm read lock on huge vmap promotion
 has been added to the -mm mm-new branch.  Its filename is
-     memcg-move-mem_cgroup_swappiness-to-memcontrolh.patch
+     mm-vmalloc-acquire-init_mm-read-lock-on-huge-vmap-promotion.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memcg-move-mem_cgroup_swappiness-to-memcontrolh.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmalloc-acquire-init_mm-read-lock-on-huge-vmap-promotion.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,148 +69,346 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Ridong Chen <chenridong@xiaomi.com>
-Subject: memcg: move mem_cgroup_swappiness to memcontrol.h
-Date: Fri, 10 Jul 2026 19:12:24 +0800
+From: Lorenzo Stoakes <ljs@kernel.org>
+Subject: mm/vmalloc: acquire init_mm read lock on huge vmap promotion
+Date: Fri, 10 Jul 2026 11:49:18 +0100
 
-The per-memcg swappiness knob is v1-only; v2 always uses global
-vm_swappiness and ignores the per-cgroup field.
+Patch series "mm: fix UAF caused by race between ptdump and vmap".
 
-Guard memcg->swappiness with CONFIG_MEMCG_V1, and move the helper to
-memcontrol.h where it belongs.
+Kernel page table walkers fall into two broad categories - those ranges
+where no exclusion is required via walk_kernel_page_table_range_lockless()
+and those where exclusion is required via walk_kernel_page_table_range()
+or walk_page_range_debug().
 
-No functional change for v1; v2-only kernels drop the unused field.
+The former category is used only by arm64 arch code operating on ranges it
+both wholly owns and does not concurrently write.
 
-Link: https://lore.kernel.org/20260710111224.2355668-1-ridong.chen@linux.dev
-Signed-off-by: Ridong Chen <chenridong@xiaomi.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Baoquan He <baoquan.he@linux.dev>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: Kairui Song <kasong@tencent.com>
-Cc: Kemeng Shi <shikemeng@huaweicloud.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
+The latter category consists of kernel page table walkers operating on
+ranges that are wholly owned (but which need exclusion against concurrent
+writers).
+
+The lock used for exclusion is the mmap lock, and for kernel ranges this
+the mmap lock on init_mm.
+
+ptdump is a special case being both the only user of
+walk_page_range_debug(), and the only case in which it walks ranges it
+does not own.
+
+This presents a problem, as page tables may be freed under ptdump.  And
+indeed there is a use-after-free bug in the kernel as a result, which this
+series addresses.
+
+vmap promotes page tables to huge leaf entries where possible, freeing the
+lower leaf page table when it does.  It does this with no meaningful locks
+held against concurrent ptdump walks.
+
+As a result, use-after-free can currently occur.  This series addresses
+the issue by having the vmap huge promotion logic acquire the mmap read
+lock while both setting the huge page table entry and freeing the prior
+leaf page table.
+
+The ptdump code already acquires the mmap write lock, so by doing so we
+ensure that the ptdump walker only ever observes either the huge page
+table entry or the existing page table entry, and nothing is freed
+underneath it.
+
+A mitigation for this issue was already applied for arm64 in commit
+fa93b45fd397 ("arm64: Enable vmalloc-huge with ptdump"), which this series
+has to deal with carefully.
+
+This mitigation resolves the issue by acquiring the mmap read lock on
+init_mm on vmap page table free if a ptdump is in progress.
+
+However the fix in this series would cause a deadlock if we were to simply
+apply it for arm64 without also reverting the change.
+
+This is because vmap may acquire the read lock before ptdump attempts to
+acquire the write lock, which then gets queued, and rwsem starvation rules
+mean that the (unacknowledged) nested mmap read lock in the arm64 code
+would also block, meaning the original read lock is never released and
+thus deadlock.
+
+This series works around this by #ifndef CONFIG_ARM64'ing the mmap read
+lock in vmap logic, then partially reverting commit a93b45fd397 ("arm64:
+Enable vmalloc-huge with ptdump"), keeping the enablement of huge vmap
+support, and removing the ifdeffery with the partial revert patch.
+
+
+This patch (of 2):
+
+Currently there is a nasty race between ptdump and vmap when attempting to
+map a huge P4D, PMD or PUD entry.
+
+ptdump is invoked by arch code to walk kernel or EFI page tables, either
+to output it for debugging purposes, or to assert that there are no W+X
+(i.e.  executable writable pages) exposed in these ranges.
+
+The feature is enabled generally via CONFIG_PTDUMP (whose implementation
+is in mm/ptdump.c), and expose a debugfs interface for it if
+CONFIG_PTDUMP_DEBUGFS is defined.
+
+If CONFIG_PTDUMP is enabled, then /sys/kernel/debug/check_wx_pages is
+enabled which checks kernel ranges to perform the W+X check.  If
+CONFIG_DEBUG_WX is enabled, this is done on boot.
+
+(Note that arm32 implements its own page table walker and uses
+CONFIG_ARM_DEBUG_WX and CONFIG_ARM_PTDUMP_DEBUGFS for this.)
+
+The EFI implementations vary by architecture, but are not relevant to the
+bug, as the issue is when kernel page ranges are walked.
+
+ptdump_walk_pgd() holds both the mem hotplug lock and the mmap write lock
+before invoking walk_page_range_debug(), however this runs into an issue
+with vmalloc ranges.
+
+When vmap maps a P4D, PUD or a PMD sized range and encounters an existing
+P4d/PUD/PMD entry pointing to a PUD/PMD/PTE page table, it invokes
+vmap_try_huge_[p4d,pud,pmd]() to try to convert it to a huge page table
+mapping if possible.
+
+However, when it does this, it holds no meaningful locks against other
+kernel page table walkers, invoking
+[p4d,pud,pmd]_free_[pud,pmd,pte]_page() which calls pagetable_free() and
+pagetable_free_kernel() in turn (pte_fragment_free() for powerpc).
+
+This means that a use-after-free becomes possible if the ptdump page table
+walker happens to be walking a PUD, PMD or PTE page table after it has
+been freed.
+
+Since commit 5ba2f0a15564 ("mm: introduce deferred freeing for kernel page
+tables"), if CONFIG_ASYNC_KERNEL_PGTABLE_FREE is set,
+pagetable_free_kernel() will batch the page table freeing operation,
+otherwise it frees the page table directly.
+
+While the KASAN report that syzbot highlighted indicated that the issue
+arose in a workqueue introduced by this change, this is coincidental and
+the commit did not alter the race which has existed for quite some time.
+
+This patch resolves the issue by simply having
+vmap_try_huge_[p4d,pud,pmd]() hold the mmap read lock on init_mm while
+invoking [p4d,pud,pmd]_free_[pud,pmd,pte]_page() and
+[p4d,pud,pmd]_set_huge().
+
+This way, page table walkers either observe a newly promoted huge
+P4D/PUD/PMD leaf entry or the prior PUD/PMD/PTE entry and never get passed
+a dangling pointer, whether the page is freed asynchronously or not.
+
+All other kernel page table walkers that touch vmalloc ranges either
+exclusively own the memory walked or acquire the mmap lock, so this
+correctly excludes those walkers.
+
+We acquire the mmap read lock as a trylock, as this is an optimisation
+that is permitted not to succeed, a race is very unlikely, and doing so
+eliminates latency sleeping on the lock would have otherwise caused.
+
+We also define a guard class for mmap_read_trylock() so we can use
+cleanup.h to make the scope handling cleaner in the implementation.
+
+One wrinkle here is commit fa93b45fd397 ("arm64: Enable vmalloc-huge with
+ptdump"), which addresses the issue for arm64 only by explicitly acquiring
+the mmap read lock on kernel page table freeing should a concurrent ptdump
+be in progress.
+
+This is problematic as vmap may acquire the mmap read lock prior to ptdump
+attempting to acquire an mmap write lock, leading to a deadlock when the
+mmap read lock is slept upon on page table freeing due to rwsem
+anti-starvation.
+
+We work around this by predicating the mmap lock being taken on
+!CONFIG_ARM64 for the time being.
+
+With this patch applied, a follow up will partially revert commit
+fa93b45fd397 ("arm64: Enable vmalloc-huge with ptdump") and at that stage
+remove the arm64 ifdeffery.
+
+We also update walk_page_range_debug() to assert the mmap write lock
+unconditionally and update the comment here to reflect this change.
+
+The issue has existed as long as ptdump was available and vmap freed page
+tables when promoting to a huge leaf entry, that is, since commit
+b6bdb7517c3d ("mm/vmalloc: add interfaces to free unmapped page table")
+for huge ioremap, and commit 121e6f3258fe ("mm/vmalloc: hugepage vmalloc
+mappings") for huge vmalloc.
+
+Since the former is the earlier of the two we choose that for our Fixes
+tag.
+
+This patch is based on work by David Carlier (linked), with gratitude!
+
+Link: https://lore.kernel.org/20260710-series-vmap-race-fix-v1-0-5b3794c113fe@kernel.org
+Link: https://lore.kernel.org/20260710-series-vmap-race-fix-v1-1-5b3794c113fe@kernel.org
+Fixes: b6bdb7517c3d ("mm/vmalloc: add interfaces to free unmapped page table")
+Signed-off-by: Lorenzo Stoakes <ljs@kernel.org>
+Reported-by: syzbot+fd95a72470f5a44e464c@syzkaller.appspotmail.com
+Closes: https://lore.kernel.org/all/6a287988.39669fcc.33b062.00a0.GAE@google.com/T/
+Link: https://lore.kernel.org/linux-mm/20260706203128.162335-1-devnexen@gmail.com/
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
 Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Toshi Kani <toshi.kani@hpe.com>
+Cc: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Will Deacon <will@kernel.org>
+Cc: David CARLIER <devnexen@gmail.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |   25 +++++++++++++++++++++++--
- include/linux/swap.h       |   19 -------------------
- mm/memcontrol.c            |    3 +--
- 3 files changed, 24 insertions(+), 23 deletions(-)
+ include/linux/mmap_lock.h |    1 
+ mm/pagewalk.c             |   22 ++++++++-------
+ mm/vmalloc.c              |   50 +++++++++++++++++++++++++++++-------
+ 3 files changed, 54 insertions(+), 19 deletions(-)
 
---- a/include/linux/memcontrol.h~memcg-move-mem_cgroup_swappiness-to-memcontrolh
-+++ a/include/linux/memcontrol.h
-@@ -239,8 +239,6 @@ struct mem_cgroup {
- 	 */
- 	bool oom_group;
+--- a/include/linux/mmap_lock.h~mm-vmalloc-acquire-init_mm-read-lock-on-huge-vmap-promotion
++++ a/include/linux/mmap_lock.h
+@@ -621,6 +621,7 @@ static inline void mmap_read_unlock(stru
  
--	int swappiness;
+ DEFINE_GUARD(mmap_read_lock, struct mm_struct *,
+ 	     mmap_read_lock(_T), mmap_read_unlock(_T))
++DEFINE_GUARD_COND(mmap_read_lock, _try, mmap_read_trylock(_T))
+ 
+ static inline void mmap_read_unlock_non_owner(struct mm_struct *mm)
+ {
+--- a/mm/pagewalk.c~mm-vmalloc-acquire-init_mm-read-lock-on-huge-vmap-promotion
++++ a/mm/pagewalk.c
+@@ -678,6 +678,8 @@ int walk_kernel_page_table_range_lockles
+  * will also not lock the PTEs for the pte_entry() callback.
+  *
+  * This is for debugging purposes ONLY.
++ *
++ * The mmap write lock must be held.
+  */
+ int walk_page_range_debug(struct mm_struct *mm, unsigned long start,
+ 			  unsigned long end, const struct mm_walk_ops *ops,
+@@ -691,6 +693,16 @@ int walk_page_range_debug(struct mm_stru
+ 		.no_vma		= true
+ 	};
+ 
++	/*
++	 * When walking userland page tables, an mmap write lock must be held to
++	 * account for munmap() downgrading to an mmap read lock when tearing
++	 * down page tables.
++	 *
++	 * When walking kernel page tables, an mmap write lock must also be held
++	 * to account for page table freeing on vmap huge page mapping.
++	 */
++	mmap_assert_write_locked(mm);
++
+ 	/* For convenience, we allow traversal of kernel mappings. */
+ 	if (mm == &init_mm)
+ 		return walk_kernel_page_table_range(start, end, ops,
+@@ -700,16 +712,6 @@ int walk_page_range_debug(struct mm_stru
+ 	if (!check_ops_safe(ops))
+ 		return -EINVAL;
+ 
+-	/*
+-	 * The mmap lock protects the page walker from changes to the page
+-	 * tables during the walk.  However a read lock is insufficient to
+-	 * protect those areas which don't have a VMA as munmap() detaches
+-	 * the VMAs before downgrading to a read lock and actually tearing
+-	 * down PTEs/page tables. In which case, the mmap write lock should
+-	 * be held.
+-	 */
+-	mmap_assert_write_locked(mm);
 -
- 	/* memory.events and memory.events.local */
- 	struct cgroup_file events_file;
- 	struct cgroup_file events_local_file;
-@@ -318,6 +316,9 @@ struct mem_cgroup {
- 	/* List of events which userspace want to receive */
- 	struct list_head event_list;
- 	spinlock_t event_list_lock;
-+
-+	int swappiness;
-+
- #endif /* CONFIG_MEMCG_V1 */
+ 	return walk_pgd_range(start, end, &walk);
+ }
  
- 	struct mem_cgroup_per_node *nodeinfo[];
-@@ -365,6 +366,9 @@ enum objext_flags {
+--- a/mm/vmalloc.c~mm-vmalloc-acquire-init_mm-read-lock-on-huge-vmap-promotion
++++ a/mm/vmalloc.c
+@@ -43,6 +43,7 @@
+ #include <asm/tlbflush.h>
+ #include <asm/shmparam.h>
+ #include <linux/page_owner.h>
++#include <linux/cleanup.h>
  
- #define OBJEXTS_FLAGS_MASK (__NR_OBJEXTS_FLAGS - 1)
+ #define CREATE_TRACE_POINTS
+ #include <trace/events/vmalloc.h>
+@@ -176,10 +177,25 @@ static int vmap_try_huge_pmd(pmd_t *pmd,
+ 	if (!IS_ALIGNED(phys_addr, PMD_SIZE))
+ 		return 0;
  
-+/* Defined in mm/vmscan.c; used by mem_cgroup_swappiness(). */
-+extern int vm_swappiness;
-+
- #ifdef CONFIG_MEMCG
- /*
-  * After the initialization objcg->memcg is always pointing at
-@@ -1440,6 +1444,23 @@ static inline void mem_cgroup_flush_work
- static inline int mem_cgroup_init(void) { return 0; }
- #endif /* CONFIG_MEMCG */
+-	if (pmd_present(*pmd) && !pmd_free_pte_page(pmd, addr))
+-		return 0;
++	if (!pmd_present(*pmd))
++		return pmd_set_huge(pmd, phys_addr, prot);
  
-+static inline int mem_cgroup_swappiness(struct mem_cgroup *memcg)
-+{
-+#ifdef CONFIG_MEMCG_V1
-+	/* Cgroup2 doesn't have per-cgroup swappiness */
-+	if (cgroup_subsys_on_dfl(memory_cgrp_subsys))
-+		return READ_ONCE(vm_swappiness);
-+
-+	/* root ? */
-+	if (mem_cgroup_disabled() || mem_cgroup_is_root(memcg))
-+		return READ_ONCE(vm_swappiness);
-+
-+	return READ_ONCE(memcg->swappiness);
-+#else
-+	return READ_ONCE(vm_swappiness);
+-	return pmd_set_huge(pmd, phys_addr, prot);
++	/*
++	 * Kernel page table walkers either walk ranges they own exclusively
++	 * using the mmap lock for mutual exclusion, or hold the mmap write lock
++	 * on init_mm (ptdump being the motivating case).
++	 *
++	 * Therefore, acquire the mmap read lock to prevent use-after-free when
++	 * freeing page tables.
++	 */
++#ifndef CONFIG_ARM64
++	scoped_cond_guard(mmap_read_lock_try, return 0, &init_mm)
 +#endif
-+}
-+
- /*
-  * Extended information for slab objects stored as an array in page->memcg_data
-  * if MEMCG_DATA_OBJEXTS is set.
---- a/include/linux/swap.h~memcg-move-mem_cgroup_swappiness-to-memcontrolh
-+++ a/include/linux/swap.h
-@@ -309,7 +309,6 @@ static inline bool lru_cache_disabled(vo
++	{
++		if (!pmd_free_pte_page(pmd, addr))
++			return 0;
++		return pmd_set_huge(pmd, phys_addr, prot);
++	}
  }
  
- extern unsigned long shrink_all_memory(unsigned long nr_pages);
--extern int vm_swappiness;
- long remove_mapping(struct address_space *mapping, struct folio *folio);
+ static int vmap_pmd_range(pud_t *pud, unsigned long addr, unsigned long end,
+@@ -228,10 +244,18 @@ static int vmap_try_huge_pud(pud_t *pud,
+ 	if (!IS_ALIGNED(phys_addr, PUD_SIZE))
+ 		return 0;
  
- #if defined(CONFIG_SYSFS) && defined(CONFIG_NUMA)
-@@ -468,25 +467,7 @@ static inline int add_swap_extent(struct
+-	if (pud_present(*pud) && !pud_free_pmd_page(pud, addr))
+-		return 0;
++	if (!pud_present(*pud))
++		return pud_set_huge(pud, phys_addr, prot);
+ 
+-	return pud_set_huge(pud, phys_addr, prot);
++	/* See comment in vmap_try_huge_pmd(). */
++#ifndef CONFIG_ARM64
++	scoped_cond_guard(mmap_read_lock_try, return 0, &init_mm)
++#endif
++	{
++		if (!pud_free_pmd_page(pud, addr))
++			return 0;
++		return pud_set_huge(pud, phys_addr, prot);
++	}
  }
- #endif /* CONFIG_SWAP */
- #ifdef CONFIG_MEMCG
--static inline int mem_cgroup_swappiness(struct mem_cgroup *memcg)
--{
--	/* Cgroup2 doesn't have per-cgroup swappiness */
--	if (cgroup_subsys_on_dfl(memory_cgrp_subsys))
--		return READ_ONCE(vm_swappiness);
--
--	/* root ? */
--	if (mem_cgroup_disabled() || mem_cgroup_is_root(memcg))
--		return READ_ONCE(vm_swappiness);
--
--	return READ_ONCE(memcg->swappiness);
--}
--
- void lru_reparent_memcg(struct mem_cgroup *memcg, struct mem_cgroup *parent, int nid);
--#else
--static inline int mem_cgroup_swappiness(struct mem_cgroup *memcg)
--{
--	return READ_ONCE(vm_swappiness);
--}
- #endif
  
- #if defined(CONFIG_SWAP) && defined(CONFIG_MEMCG) && defined(CONFIG_BLK_CGROUP)
---- a/mm/memcontrol.c~memcg-move-mem_cgroup_swappiness-to-memcontrolh
-+++ a/mm/memcontrol.c
-@@ -4174,11 +4174,10 @@ mem_cgroup_css_alloc(struct cgroup_subsy
- #endif
- 	page_counter_set_high(&memcg->swap, PAGE_COUNTER_MAX);
- 	if (parent) {
--		WRITE_ONCE(memcg->swappiness, mem_cgroup_swappiness(parent));
--
- 		page_counter_init(&memcg->memory, &parent->memory, memcg_on_dfl);
- 		page_counter_init(&memcg->swap, &parent->swap, false);
- #ifdef CONFIG_MEMCG_V1
-+		WRITE_ONCE(memcg->swappiness, mem_cgroup_swappiness(parent));
- 		memcg->memory.track_failcnt = !memcg_on_dfl;
- 		WRITE_ONCE(memcg->oom_kill_disable, READ_ONCE(parent->oom_kill_disable));
- 		page_counter_init(&memcg->kmem, &parent->kmem, false);
+ static int vmap_pud_range(p4d_t *p4d, unsigned long addr, unsigned long end,
+@@ -280,10 +304,18 @@ static int vmap_try_huge_p4d(p4d_t *p4d,
+ 	if (!IS_ALIGNED(phys_addr, P4D_SIZE))
+ 		return 0;
+ 
+-	if (p4d_present(*p4d) && !p4d_free_pud_page(p4d, addr))
+-		return 0;
++	if (!p4d_present(*p4d))
++		return p4d_set_huge(p4d, phys_addr, prot);
+ 
+-	return p4d_set_huge(p4d, phys_addr, prot);
++	/* See comment in vmap_try_huge_pmd(). */
++#ifndef CONFIG_ARM64
++	scoped_cond_guard(mmap_read_lock_try, return 0, &init_mm)
++#endif
++	{
++		if (!p4d_free_pud_page(p4d, addr))
++			return 0;
++		return p4d_set_huge(p4d, phys_addr, prot);
++	}
+ }
+ 
+ static int vmap_p4d_range(pgd_t *pgd, unsigned long addr, unsigned long end,
 _
 
-Patches currently in -mm which might be from chenridong@xiaomi.com are
+Patches currently in -mm which might be from ljs@kernel.org are
 
-memcg-move-mem_cgroup_swappiness-to-memcontrolh.patch
+mm-move-alloc-tag-to-mm.patch
+mm-ptdump-always-stabilise-against-page-table-freeing-using-init_mm.patch
+mm-vmalloc-acquire-init_mm-read-lock-on-huge-vmap-promotion.patch
+revert-arm64-enable-vmalloc-huge-with-ptdump.patch
 
