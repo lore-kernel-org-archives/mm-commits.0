@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B6E60404BD2
-	for <mm-commits@vger.kernel.org>; Fri, 10 Jul 2026 22:47:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 47B2D407599
+	for <mm-commits@vger.kernel.org>; Fri, 10 Jul 2026 22:47:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783723648; cv=none; b=RQimCZ+ilwvgjgEJButh2plNKSnexQdS+kR7Uq1Lj/VpmNDRWT5drGQW/2c7aTDtXb3q2jbtt33JQaF588+Xdb3s6bGLAT4q8JgZMJiB01Z7Pa59RTBKbWGmRVECHmSHgqnuzSYx25KD89ajadlz6rJCzS1z8pDt6hkBwnpUJY0=
+	t=1783723651; cv=none; b=Cjsr09iHHCLrH4AfBpAGerJ1gQvNBE+SeEgrhMtXyb2ZaZvVEPmSgEGnaulUYiGTqE2UCyswmcDh+m4KiOwicRK/Qfyid+z1WVPRLg4lS64sytuaGbzIT1fTLcZSvti1Q7Jhw/22AreFSkmV+S+yRTZDW5VZQjdLGtolTj6HasI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783723648; c=relaxed/simple;
-	bh=0l3zYYID5pyF4GXVnuPkW7Fr9+FkzmZGuHAYZiqvFas=;
-	h=Date:To:From:Subject:Message-Id; b=HIldZEqmNeVwCnwylBUvFn/VgyBdAOn1jCFEOmDCEdUCm/HrP7zbkmMPxfoI4nUPRtyXRsm+oIs4zo4GJYm6LHVLlmqxOdjydMjdj7lMFqA5KV8ZjQnUFW4TZCxjGaCN7WqSDU6+4XfAyWNgcxZWXEM7ZAR+X1H/89cX5z+16Wc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Z7TMwBSQ; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783723651; c=relaxed/simple;
+	bh=mv6OYlxAkZeVwTKSXsLor9r1pwX9Tgmc4GFC8OMKLhI=;
+	h=Date:To:From:Subject:Message-Id; b=h4uOaHsb8w+QXK9UarlbDr9YBFaWKqBkrHFJd2C9iNhqBAGzypIZxogjU9GhzbdoVYpPi2ctRyG7SjPRg7NyhLLxVssXlQLiPx7RxGM+Py9NRyc6AY26zmmstjK5NBZ1Cr8NfqNwB8LJB0POq2iXe47CZks/qsYPZqjOPv53pAo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Cf0tHO1r; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Z7TMwBSQ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 511931F000E9;
-	Fri, 10 Jul 2026 22:47:26 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Cf0tHO1r"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D762F1F000E9;
+	Fri, 10 Jul 2026 22:47:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783723646;
-	bh=YaBNPS5bMF8dihRab6aVoX6OJSofBIUn0AVbEME1eq4=;
+	d=linux-foundation.org; s=korg; t=1783723650;
+	bh=13xS1C+S7wvORbcuBblCxgbh7Nt5DvvqWjlefUX/OmI=;
 	h=Date:To:From:Subject;
-	b=Z7TMwBSQvlJOOjnCgSs0KjkYS71cTnUd3o5bKXQRDDMyvPAL2XL3De+JjNl3SSvIE
-	 Xd86UNhc2j+54J1NITqNTQmINTHtJvQ4SvXRPjYrPmcU/Zf6zpcXMxKM7NzlNBDq4y
-	 XjIJf/ib5JfxXzXbkL5Ykz98N9roTa1qVX/dvpkk=
-Date: Fri, 10 Jul 2026 15:47:25 -0700
+	b=Cf0tHO1rBoUlROx0oURWqc93PUAHHGd3MKnKWNlYoBPQntEtD1m0boM0Srs2aP8a8
+	 htBKkKQxrFZUvQtnVQ8yzljFx1d+BZyXSmmqNbRmJiNU1NbI9nteDKAHVb/JGRFNO2
+	 ql2YM0x7dScvvOQu0/eYnxzRqIN7BNpfiJ4kx1xg=
+Date: Fri, 10 Jul 2026 15:47:29 -0700
 To: mm-commits@vger.kernel.org,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vma-introduce-and-use-vma_set_pgoff.patch added to mm-new branch
-Message-Id: <20260710224726.511931F000E9@smtp.kernel.org>
+Subject: + mm-vma-correct-incorrect-vmah-inclusion.patch added to mm-new branch
+Message-Id: <20260710224729.D762F1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/vma: introduce and use vma_set_pgoff()
+     Subject: mm/vma: correct incorrect vma.h inclusion
 has been added to the -mm mm-new branch.  Its filename is
-     mm-vma-introduce-and-use-vma_set_pgoff.patch
+     mm-vma-correct-incorrect-vmah-inclusion.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vma-introduce-and-use-vma_set_pgoff.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vma-correct-incorrect-vmah-inclusion.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,52 +70,33 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <ljs@kernel.org>
-Subject: mm/vma: introduce and use vma_set_pgoff()
-Date: Fri, 10 Jul 2026 21:17:10 +0100
+Subject: mm/vma: correct incorrect vma.h inclusion
+Date: Fri, 10 Jul 2026 21:17:11 +0100
 
-In order to lay the foundation for work that permits us to track the
-virtual page offset of MAP_PRIVATE file-backed mappings, we abstract the
-assignment of vma->vm_pgoff to vma_set_pgoff().
+The only files which should be including vma.h are the implementation files
+for the core VMA logic - vma.c, vma_init.c, and vma_exec.c.
 
-We additionally add a lock check here using the newly introduced
-vma_assert_can_modify(). This asserts the VMA write lock if the VMA is
-attached.
+This is in order to allow for userland testing of core VMA logic. In this
+cases, vma_internal.h and vma.h are included, providing both the
+dependencies upon which the core VMA logic requires and its declarations.
 
-We also assert that, if this is an anonymous VMA and unfaulted, that its
-(virtual) page offset is equal to the page offset of the VMA's address.
+Userland testable VMA logic is achieved by having separate vma_internal.h
+implementations for userland and kernel.
 
-We must be careful about MAP_PRIVATE-/dev/zero which violates fundamental
-assumptions about anonymous memory, so we check for !vma->vm_file after
-using vma_is_anonymous() which these mappings satisfy.
+Callers other than the core VMA implementation should include internal.h
+instead. This header does not need to include vma_internal.h as it only
+contains the vma.h declarations, for which the includes already present
+suffice.
 
-Additionally, we only perform the assert if CONFIG_MMU is defined, as nommu
-does not set vma->vm_pgoff = addr >> PAGE_SHIFT. This isn't really relevant
-to rmap as it has no anon rmap (nor needs it), but we must avoid it
-asserting falsely.
+Update code to reflect this, update comments to reflect the fact there are
+3 VMA implementation files and document things more clearly.
 
-All of this logic is kept in assert_sane_pgoff() to keep things clear.
-
-In order to maintain correctness given this assert, we also update
-__install_special_mapping() to invoke vma_set_range() after it's set
-vma->vm_ops (which determine whether the VMA is anonymous or not).
-
-We do not use vma_set_pgoff() in vm_area_init_from(), as at the point of
-forking, we don't necessarily have correct locking state.
-
-Updating vma_set_range() covers most cases, but in addition to this we also
-update insert_vm_struct(), compat_set_vma_from_desc() and nommu callers.
-
-We also update vma_add_pgoff() and vma_sub_pgoff() to use vma_set_pgoff().
-
-While we're here, we drop a BUG_ON() and update insert_vm_struct()'s
-comment to reflect the fact anonymous mappings can be added here.
-
-Finally, we update the CONFIG_MMU, CONFIG_PER_VMA_LOCK defines in the VMA
-userland tests so IS_ENABLED() will work correctly with them.
+While we're here, slightly improve the language of the comment describing
+vma_exec.c.
 
 No functional change intended.
 
-Link: https://lore.kernel.org/20260710-b4-pre-scalable-cow-v2-29-2a5aa403d977@kernel.org
+Link: https://lore.kernel.org/20260710-b4-pre-scalable-cow-v2-30-2a5aa403d977@kernel.org
 Signed-off-by: Lorenzo Stoakes <ljs@kernel.org>
 Reviewed-by: Pedro Falcato <pfalcato@suse.de>
 Reviewed-by: Gregory Price <gourry@gourry.net>
@@ -129,146 +110,112 @@ Cc: Vlastimil Babka (SUSE) <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/nommu.c                       |    2 -
- mm/vma.c                         |   14 +++++------
- mm/vma.h                         |   35 ++++++++++++++++++++++++++---
- tools/testing/vma/vma_internal.h |    4 +--
- 4 files changed, 42 insertions(+), 13 deletions(-)
+ mm/mmu_notifier.c |    2 +-
+ mm/nommu.c        |    1 -
+ mm/vma.c          |    4 ++++
+ mm/vma.h          |    9 ++++++++-
+ mm/vma_exec.c     |    8 ++++++--
+ mm/vma_init.c     |    4 ++++
+ mm/vma_internal.h |    4 ++--
+ 7 files changed, 25 insertions(+), 7 deletions(-)
 
---- a/mm/nommu.c~mm-vma-introduce-and-use-vma_set_pgoff
+--- a/mm/mmu_notifier.c~mm-vma-correct-incorrect-vmah-inclusion
++++ a/mm/mmu_notifier.c
+@@ -19,7 +19,7 @@
+ #include <linux/sched/mm.h>
+ #include <linux/slab.h>
+ 
+-#include "vma.h"
++#include "internal.h"
+ 
+ /* global SRCU for all MMs */
+ DEFINE_STATIC_SRCU(srcu);
+--- a/mm/nommu.c~mm-vma-correct-incorrect-vmah-inclusion
 +++ a/mm/nommu.c
-@@ -1062,7 +1062,7 @@ unsigned long do_mmap(struct file *file,
- 	region->vm_pgoff = pgoff;
+@@ -41,7 +41,6 @@
+ #include <asm/tlbflush.h>
+ #include <asm/mmu_context.h>
+ #include "internal.h"
+-#include "vma.h"
  
- 	vm_flags_init(vma, vm_flags);
--	vma->vm_pgoff = pgoff;
-+	vma_set_pgoff(vma, pgoff);
- 
- 	if (file) {
- 		region->vm_file = get_file(file);
---- a/mm/vma.c~mm-vma-introduce-and-use-vma_set_pgoff
+ unsigned long highest_memmap_pfn;
+ int heap_stack_gap = 0;
+--- a/mm/vma.c~mm-vma-correct-incorrect-vmah-inclusion
 +++ a/mm/vma.c
-@@ -81,7 +81,7 @@ static void vma_set_range(struct vm_area
- 			  unsigned long end, pgoff_t pgoff)
- {
- 	__vma_set_range(vma, start, end);
--	vma->vm_pgoff = pgoff;
-+	vma_set_pgoff(vma, pgoff);
- }
- 
- /* Was this VMA ever forked from a parent, i.e. maybe contains CoW mappings? */
-@@ -3347,9 +3347,9 @@ int __vm_munmap(unsigned long start, siz
- 	return ret;
- }
- 
--/* Insert vm structure into process list sorted by address
-- * and into the inode's i_mmap tree.  If vm_file is non-NULL
-- * then i_mmap_rwsem is taken here.
-+/*
-+ * Insert vm structure into process list sorted by address
-+ * and into the inode's i_mmap tree if file-backed.
+@@ -4,6 +4,10 @@
+  * VMA-specific functions.
   */
- int insert_vm_struct(struct mm_struct *mm, struct vm_area_struct *vma)
- {
-@@ -3375,8 +3375,8 @@ int insert_vm_struct(struct mm_struct *m
- 	 * Similarly in do_mmap and in do_brk_flags.
- 	 */
- 	if (vma_is_anonymous(vma)) {
--		BUG_ON(vma->anon_vma);
--		vma->vm_pgoff = vma->vm_start >> PAGE_SHIFT;
-+		WARN_ON_ONCE(vma->anon_vma);
-+		vma_set_pgoff(vma, vma->vm_start >> PAGE_SHIFT);
- 	}
  
- 	if (vma_link(mm, vma)) {
-@@ -3422,7 +3422,6 @@ struct vm_area_struct *__install_special
- 	if (unlikely(vma == NULL))
- 		return ERR_PTR(-ENOMEM);
++/*
++ * To allow for userland testing we place internal dependencies in
++ * vma_internal.h and external VMA API declarations in vma.h.
++ */
+ #include "vma_internal.h"
+ #include "vma.h"
  
--	vma_set_range(vma, addr, addr + len, 0);
- 	vm_flags |= mm->def_flags | VM_DONTEXPAND;
- 	if (pgtable_supports_soft_dirty())
- 		vm_flags |= VM_SOFTDIRTY;
-@@ -3431,6 +3430,7 @@ struct vm_area_struct *__install_special
+--- a/mm/vma_exec.c~mm-vma-correct-incorrect-vmah-inclusion
++++ a/mm/vma_exec.c
+@@ -1,10 +1,14 @@
+ // SPDX-License-Identifier: GPL-2.0-only
  
- 	vma->vm_ops = ops;
- 	vma->vm_private_data = priv;
-+	vma_set_range(vma, addr, addr + len, 0);
+ /*
+- * Functions explicitly implemented for exec functionality which however are
+- * explicitly VMA-only logic.
++ * Functions provided for exec functionality which however are
++ * specifically VMA-only logic.
+  */
  
- 	ret = insert_vm_struct(mm, vma);
- 	if (ret)
---- a/mm/vma.h~mm-vma-introduce-and-use-vma_set_pgoff
++/*
++ * To allow for userland testing we place internal dependencies in
++ * vma_internal.h and external VMA API declarations in vma.h.
++ */
+ #include "vma_internal.h"
+ #include "vma.h"
+ 
+--- a/mm/vma.h~mm-vma-correct-incorrect-vmah-inclusion
 +++ a/mm/vma.h
-@@ -247,16 +247,45 @@ static inline pgoff_t vmg_end_pgoff(cons
- 	return vmg_start_pgoff(vmg) + vmg_pages(vmg);
- }
+@@ -2,7 +2,14 @@
+ /*
+  * vma.h
+  *
+- * Core VMA manipulation API implemented in vma.c.
++ * Core VMA manipulation API implemented in vma.c, vma_init.c and vma_exec.c.
++ *
++ * Note that, in order for VMA logic to be userland testable, this header
++ * intentionally includes no dependencies.
++ *
++ * This is specifically scoped to mm-only. Users of this functionality (other
++ * than the core VMA implementation itself) should not include this header
++ * directly, but rather include internal.h.
+  */
+ #ifndef __MM_VMA_H
+ #define __MM_VMA_H
+--- a/mm/vma_init.c~mm-vma-correct-incorrect-vmah-inclusion
++++ a/mm/vma_init.c
+@@ -5,6 +5,10 @@
+  * between CONFIG_MMU and non-CONFIG_MMU kernel configurations.
+  */
  
-+static inline void assert_sane_pgoff(struct vm_area_struct *vma, pgoff_t pgoff)
-+{
-+	/* nommu doesn't set a virtual pgoff for anon VMAs. */
-+	if (!IS_ENABLED(CONFIG_MMU))
-+		return;
-+	/*
-+	 * File-backed VMAs have arbitrary page offset (either page offset into
-+	 * file or for pfnmap the PFN of the start of the range or drivers may
-+	 * set arbitrary page offset).
-+	 */
-+	if (!vma_is_anonymous(vma))
-+		return;
-+	/* MAP_PRIVATE-/dev/zero is anon, non-NULL vm_file, but has file pgoff. */
-+	if (vma->vm_file)
-+		return;
-+	/* If faulted in, could have been remapped. */
-+	if (vma->anon_vma)
-+		return;
-+	/* OK this is really an anon VMA - expect virtual page offset. */
-+	VM_WARN_ON_ONCE(pgoff != vma->vm_start >> PAGE_SHIFT);
-+}
-+
-+static inline void vma_set_pgoff(struct vm_area_struct *vma, pgoff_t pgoff)
-+{
-+	vma_assert_can_modify(vma);
-+	assert_sane_pgoff(vma, pgoff);
-+	vma->vm_pgoff = pgoff;
-+}
-+
- static inline void vma_add_pgoff(struct vm_area_struct *vma, pgoff_t delta)
- {
- 	vma_assert_can_modify(vma);
--	vma->vm_pgoff += delta;
-+	vma_set_pgoff(vma, vma_start_pgoff(vma) + delta);
- }
++/*
++ * To allow for userland testing we place internal dependencies in
++ * vma_internal.h and external VMA API declarations in vma.h.
++ */
+ #include "vma_internal.h"
+ #include "vma.h"
  
- static inline void vma_sub_pgoff(struct vm_area_struct *vma, pgoff_t delta)
- {
- 	vma_assert_can_modify(vma);
--	vma->vm_pgoff -= delta;
-+	vma_set_pgoff(vma, vma_start_pgoff(vma) - delta);
- }
+--- a/mm/vma_internal.h~mm-vma-correct-incorrect-vmah-inclusion
++++ a/mm/vma_internal.h
+@@ -2,8 +2,8 @@
+ /*
+  * vma_internal.h
+  *
+- * Headers required by vma.c, which can be substituted accordingly when testing
+- * VMA functionality.
++ * Headers required by vma.c, vma_init.c and vma_exec.c, which can be
++ * substituted accordingly when testing VMA functionality.
+  */
  
- #define VMG_STATE(name, mm_, vmi_, start_, end_, vma_flags_, pgoff_)	\
-@@ -331,7 +360,7 @@ static inline void compat_set_vma_from_d
- 	 */
- 
- 	/* Mutable fields. Populated with initial state. */
--	vma->vm_pgoff = desc->pgoff;
-+	vma_set_pgoff(vma, desc->pgoff);
- 	if (desc->vm_file != vma->vm_file)
- 		vma_set_file(vma, desc->vm_file);
- 	vma->flags = desc->vma_flags;
---- a/tools/testing/vma/vma_internal.h~mm-vma-introduce-and-use-vma_set_pgoff
-+++ a/tools/testing/vma/vma_internal.h
-@@ -14,8 +14,8 @@
- 
- #include <stdlib.h>
- 
--#define CONFIG_MMU
--#define CONFIG_PER_VMA_LOCK
-+#define CONFIG_MMU		1
-+#define CONFIG_PER_VMA_LOCK	1
- 
- #ifdef __CONCAT
- #undef __CONCAT
+ #ifndef __MM_VMA_INTERNAL_H
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
