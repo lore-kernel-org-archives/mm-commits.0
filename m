@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 326FD126C03
-	for <mm-commits@vger.kernel.org>; Fri, 10 Jul 2026 01:53:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 657A834EEFD
+	for <mm-commits@vger.kernel.org>; Fri, 10 Jul 2026 01:53:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783648408; cv=none; b=tIz/qdfGtm73Bx5w8IrrfgsyHv0YI30R+2uAgNctFn8rqtiUjjs5HoslFSG46I9P2E/r78B/zqhyJNv2UvKjZMN7M1o7hd5CvItC+TkQzHbXH4sWl5rWwvfGR7TfgrRAN9eKb97cPln/2v0llcpCwdnreHft3Xf1gd5o+BSCs/8=
+	t=1783648411; cv=none; b=YkmHupZS/BlYWM/92WKcQ1/lQrRgavcgT0p9FoZyRUSqSjkSFQ2c+b+/6Yl13mBxJg6REfyugEHWnewT6XnrQ5j80CwFnwqLa8PEcp4KFEc7G/3r4T4KJ3vkqUzA/o88xpK0xvDn1o8IWOHuXRoO2GOQVOCjM3YVP+QNrKLFEpI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783648408; c=relaxed/simple;
-	bh=kDh53wwFQ/fhwgU0BRsjesWFzZLJQfferi2+S+D8B+U=;
-	h=Date:To:From:Subject:Message-Id; b=gWB+UQgEi7YLpFsAqc7o4GeodbS6xSgbrLtSycjQdeDQp9LECMXBwxY0krTreHUqg+tYDQRZwbu/RkLrBjDr4jlRD3Lywk6usyGu0N/Kv+XsMdixOW4oL6nY6J+3shYa2tHql0Qr0crV1Z8tcFmlGSrs5DitUcw3FZBRWJbGvJk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YjBbzXbg; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783648411; c=relaxed/simple;
+	bh=NmW6JIUIu3eBzqyr5uMxjaFubUIxjveDVKWeEthCOlg=;
+	h=Date:To:From:Subject:Message-Id; b=qXNtyzwatbkB7XRsLGt7iwcXPE6BXJk+iawho/FPVfTykeeVqQmlRcwDn/N3luRjqAvipx/8wahO24r76jc0FcO8p6uLHrMT1lTKdllRqmLRUWgJZYn+zZVJoBt+P3lJgaZIGlIw/woeoqqlIy4h3txkJ80OKELoFPTS6p4jDm8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rGDyiHub; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YjBbzXbg"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B55301F000E9;
-	Fri, 10 Jul 2026 01:53:26 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rGDyiHub"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E56271F000E9;
+	Fri, 10 Jul 2026 01:53:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783648406;
-	bh=GJNqxACr8DojoXTu52PDkr7XxaD7FXOOqF8BIKBs9cU=;
+	d=linux-foundation.org; s=korg; t=1783648410;
+	bh=PxEkYLB3QjNjEaD+9RZ6ndJYrMzcmqO/PxlFVyASq34=;
 	h=Date:To:From:Subject;
-	b=YjBbzXbgfxWmJjC4TDcXSjzpxCagiyuqOGXMgfo3jJZiMceoinRjqQfGwfT/NOCfu
-	 ZydYwWRNlov3DFEjZviHbKD5kjjTgmd3LSs9uuDEXkyQ2jda2WEquK4fGKFFrXWc7W
-	 ZxdSu43Bod2Z3ZgBOUPHOXiHBIGKQxsMGcPxiu1w=
-Date: Thu, 09 Jul 2026 18:53:26 -0700
+	b=rGDyiHubplPDBJiTx4QdUafDjaYSlvMSFNuEnYzfbMCCnC/B+lp1rIDdAV6cOehj7
+	 E9k2nLFj5g3Fi0IIsNFTVI0x5C1Um0/zGny7zxHuSl2HvnWt31G5OfPGob+sfn3AYb
+	 DME+uxDF8uEnbX31BW8XhzRZwel+fqtLb75p+bX4=
+Date: Thu, 09 Jul 2026 18:53:29 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,shuah@kernel.org,ritesh.list@gmail.com,osalvador@suse.de,mhocko@kernel.org,linmiaohe@huawei.com,liam.howlett@oracle.com,dev.jain@arm.com,david@kernel.org,sayalip@linux.ibm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-handle-einval-when-configuring-gigantic-hugepages.patch added to mm-new branch
-Message-Id: <20260710015326.B55301F000E9@smtp.kernel.org>
+Subject: + selftests-mm-fix-ksm-numa-merge-test-for-systems-with-memoryless-numa-nodes.patch added to mm-new branch
+Message-Id: <20260710015329.E56271F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: handle EINVAL when configuring gigantic hugepages
+     Subject: selftests/mm: fix ksm NUMA merge test for systems with memoryless NUMA nodes
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-mm-handle-einval-when-configuring-gigantic-hugepages.patch
+     selftests-mm-fix-ksm-numa-merge-test-for-systems-with-memoryless-numa-nodes.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-handle-einval-when-configuring-gigantic-hugepages.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-fix-ksm-numa-merge-test-for-systems-with-memoryless-numa-nodes.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,82 +70,74 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Sayali Patil <sayalip@linux.ibm.com>
-Subject: selftests/mm: handle EINVAL when configuring gigantic hugepages
-Date: Wed, 8 Jul 2026 12:29:05 +0530
+Subject: selftests/mm: fix ksm NUMA merge test for systems with memoryless NUMA nodes
+Date: Wed, 8 Jul 2026 12:29:06 +0530
 
-Patch series "selftests/mm: avoid false failures in hugetlb and KSM
-tests", v3.
+The KSM NUMA merge test allocates identical pages on different NUMA nodes
+and verifies KSM behavior with merge_across_nodes enabled and disabled.
 
-This series fixes issues in the hugetlb and KSM MM selftest categories
-that can report failures when the prerequisites for the tests are not
-satisfied.
+On systems with memoryless NUMA nodes, for example:
+ #numactl  -H
+      available: 2 nodes (0,4)
+      .....
+      node 0 cpus: 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15
+      node 0 size: 14825 MB
+      node 0 free: 1382 MB
+      node 4 cpus:
+      node 4 size: 0 MB
+      node 4 free: 0 MB
 
-Patch 1 updates the hugetlb selftest helpers to handle -EINVAL when
-attempting to configure gigantic HugeTLB pages via nr_hugepages.  PowerPC
-hash MMU pSeries systems expose gigantic hugepage sizes but do not allow
-runtime allocation of such pages, causing the sysfs write to fail.  Handle
-this case gracefully and continue running the test instead of aborting.
+the test may attempt to allocate memory on a node without memory, causing
+numa_alloc_onnode() to fail and resulting in a spurious test failure.
 
-Patch 2 fixes the KSM NUMA merge test on systems with memoryless NUMA
-nodes.  The test currently relies on the number of configured NUMA nodes
-and may attempt allocations on nodes that have no memory, resulting in
-spurious failures.  Use the existing helpers to identify NUMA nodes that
-contain memory and skip the test when fewer than two such nodes are
-available.
+The test currently checks numa_num_configured_nodes() to determine whether
+sufficient NUMA nodes are available.  However, configured nodes do not
+necessarily have memory.
 
-Patch 3 fixes a pre-existing operator precedence issue in ksm_tests, where
-a ternary expression combined with logical OR operators could be evaluated
-differently than intended.  Added parentheses to ensure the correct
-evaluation order.
-
-These changes improve handling of unsupported test configurations and
-unmet test prerequisites, avoiding spurious failures.
-
-
-This patch (of 3):
-
-Some MM selftests attempt to configure the amount of HugeTLB pages of
-different sizes by writing to nr_hugepages.
-
-PowerPC hash MMU pSeries systems advertise gigantic hugepage sizes but do
-not support runtime allocation of such pages, writes to the corresponding
-nr_hugepages file fail with -EINVAL.  This causes the test to bail out
-even though the failure is due to a platform limitation rather than the
-functionality being tested.
-
-Ignore -EINVAL when configuring nr_hugepages so that tests continue to run
-on systems where gigantic hugepage allocation is unsupported.
+Reuse the existing get_first_mem_node() and get_next_mem_node() helpers to
+locate NUMA nodes that actually contain memory, and skip the test when
+fewer than two such nodes are available.
 
 Before patch:
-   -------------------------
-   running ./hugetlb-madvise
-   -------------------------
-   TAP version 13
-   1..1
-     [INFO] detected hugetlb page size: 16777216 KiB
-     [INFO] detected hugetlb page size: 16384 KiB
-    ok 1 MADV_DONTNEED and MADV_REMOVE on hugetlb
-    Totals: pass:1 fail:0 xfail:0 xpass:0 skip:0 error:0
-    Bail out! /sys/kernel/mm/hugepages/hugepages-16777216kB/nr_hugepages
-    write(0) failed: Invalid argument
-    Totals: pass:0 fail:0 xfail:0 xpass:0 skip:0 error:0
-    [FAIL]
+       ---------------------------
+	running ./ksm_tests -N -m 1
+       ---------------------------
+        mbind: Invalid argument
+        ok 1 KSM NUMA merging
+	Totals: pass:1 fail:0 xfail:0 xpass:0 skip:0 error:0
+        [PASS]
+       ok 1 ksm_tests -N -m 1
+       ---------------------------
+        running ./ksm_tests -N -m 0
+       ---------------------------
+        mbind: Invalid argument
+        not ok 1 KSM NUMA merging
+	Totals: pass:0 fail:1 xfail:0 xpass:0 skip:0 error:0
+        [FAIL]
+       not ok 2 ksm_tests -N -m 0 # exit=1
 
 After patch:
-   -------------------------
-   running ./hugetlb-madvise
-   -------------------------
-   TAP version 13
-   1..1
-    [INFO] detected hugetlb page size: 16777216 KiB
-    [INFO] detected hugetlb page size: 16384 KiB
-   ok 1 MADV_DONTNEED and MADV_REMOVE on hugetlb
-   Totals: pass:1 fail:0 xfail:0 xpass:0 skip:0 error:0
-   [PASS]
+       ---------------------------
+        running ./ksm_tests -N -m 1
+       ---------------------------
+        At least 2 NUMA nodes with memory must be available
+	ok 1
+	SKIP KSM NUMA merging
+	Totals: pass:0 fail:0 xfail:0 xpass:0 skip:1 error:0
+        [PASS]
+        ok 1 ksm_tests -N -m 1
+       ---------------------------
+        running ./ksm_tests -N -m 0
+       ---------------------------
+        At least 2 NUMA nodes with memory must be available
+	ok 1
+	SKIP KSM NUMA merging
+	Totals: pass:0 fail:0 xfail:0 xpass:0 skip:1 error:0
+        [PASS]
+        ok 2 ksm_tests -N -m 0
 
-Link: https://lore.kernel.org/cover.1783446924.git.sayalip@linux.ibm.com
-Link: https://lore.kernel.org/2e3b585cbb30b2fc495dcd49d75de6f6da61861c.1783446924.git.sayalip@linux.ibm.com
-Fixes: 27477b28b74f ("selftests/mm: hugepage_settings: add APIs to get and set nr_hugepages")
+Link: https://lore.kernel.org/78a3b0e3fb94004c0710872c5bab6f7381b7d63c.1783446924.git.sayalip@linux.ibm.com
+Fixes: e3820ab252dd ("selftest/vm: fix ksm selftest to run with different NUMA topologies")
 Co-developed-by: David Hildenbrand (Arm) <david@kernel.org>
 Signed-off-by: David Hildenbrand (Arm) <david@kernel.org>
 Signed-off-by: Sayali Patil <sayalip@linux.ibm.com>
@@ -160,92 +152,57 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/hugepage_settings.c |    2 -
- tools/testing/selftests/mm/vm_util.c           |   26 ++++++++++++---
- tools/testing/selftests/mm/vm_util.h           |    1 
- 3 files changed, 24 insertions(+), 5 deletions(-)
+ tools/testing/selftests/mm/ksm_tests.c |   16 +++++++++-------
+ 1 file changed, 9 insertions(+), 7 deletions(-)
 
---- a/tools/testing/selftests/mm/hugepage_settings.c~selftests-mm-handle-einval-when-configuring-gigantic-hugepages
-+++ a/tools/testing/selftests/mm/hugepage_settings.c
-@@ -437,7 +437,7 @@ void hugetlb_set_nr_pages(unsigned long
- 
- 	hugetlb_sysfs_path(path, sizeof(path), size, "nr_hugepages");
- 
--	write_num(path, nr);
-+	write_num_ignore_einval(path, nr);
+--- a/tools/testing/selftests/mm/ksm_tests.c~selftests-mm-fix-ksm-numa-merge-test-for-systems-with-memoryless-numa-nodes
++++ a/tools/testing/selftests/mm/ksm_tests.c
+@@ -440,9 +440,9 @@ static int get_next_mem_node(int node)
+ 		mem_node = i % (max_node + 1);
+ 		node_size = numa_node_size(mem_node, NULL);
+ 		if (node_size > 0)
+-			break;
++			return mem_node;
+ 	}
+-	return mem_node;
++	return -ENODEV;
  }
  
- unsigned long hugetlb_free_pages(unsigned long size)
---- a/tools/testing/selftests/mm/vm_util.c~selftests-mm-handle-einval-when-configuring-gigantic-hugepages
-+++ a/tools/testing/selftests/mm/vm_util.c
-@@ -719,7 +719,7 @@ int read_file(const char *path, char *bu
- 	return (unsigned int) numread;
- }
- 
--void write_file(const char *path, const char *buf, size_t buflen)
-+static void __write_file(const char *path, const char *buf, size_t buflen, bool ignore_einval)
+ static int get_first_mem_node(void)
+@@ -455,8 +455,8 @@ static int check_ksm_numa_merge(int merg
  {
- 	int fd, saved_errno;
- 	ssize_t numwritten;
-@@ -735,14 +735,22 @@ void write_file(const char *path, const
- 	saved_errno = errno;
- 	close(fd);
- 	errno = saved_errno;
--	if (numwritten < 0)
-+	if (numwritten < 0) {
-+		if (ignore_einval && errno == EINVAL)
-+			return;
- 		ksft_exit_fail_msg("%s write(%.*s) failed: %s\n", path, (int)(buflen - 1),
- 				buf, strerror(errno));
-+	}
- 	if (numwritten != buflen - 1)
- 		ksft_exit_fail_msg("%s write(%.*s) is truncated, expected %zu bytes, got %zd bytes\n",
- 				path, (int)(buflen - 1), buf, buflen - 1, numwritten);
- }
+ 	void *numa1_map_ptr, *numa2_map_ptr;
+ 	struct timespec start_time;
++	int first_node, second_node;
+ 	int page_count = 2;
+-	int first_node;
  
-+void write_file(const char *path, const char *buf, size_t buflen)
-+{
-+	__write_file(path, buf, buflen, /* ignore_einval = */ false);
-+}
+ 	if (clock_gettime(CLOCK_MONOTONIC_RAW, &start_time)) {
+ 		ksft_perror("clock_gettime");
+@@ -467,17 +467,19 @@ static int check_ksm_numa_merge(int merg
+ 		ksft_print_msg("NUMA support not enabled\n");
+ 		return KSFT_SKIP;
+ 	}
+-	if (numa_num_configured_nodes() <= 1) {
+-		ksft_print_msg("At least 2 NUMA nodes must be available\n");
++	first_node = get_first_mem_node();
++	second_node = get_next_mem_node(first_node);
 +
- unsigned long read_num(const char *path)
- {
- 	char buf[21];
-@@ -753,12 +761,22 @@ unsigned long read_num(const char *path)
- 	return strtoul(buf, NULL, 10);
- }
++	if (second_node < 0) {
++		ksft_print_msg("At least 2 NUMA nodes with memory must be available\n");
+ 		return KSFT_SKIP;
+ 	}
+ 	if (ksm_write_sysfs(KSM_FP("merge_across_nodes"), merge_across_nodes))
+ 		return KSFT_FAIL;
  
--void write_num(const char *path, unsigned long num)
-+static void __write_num(const char *path, unsigned long num, bool ignore_einval)
- {
- 	char buf[21];
- 
- 	sprintf(buf, "%lu", num);
--	write_file(path, buf, strlen(buf) + 1);
-+	__write_file(path, buf, strlen(buf) + 1, ignore_einval);
-+}
-+
-+void write_num(const char *path, unsigned long num)
-+{
-+	return __write_num(path, num, /* ignore_einval = */ false);
-+}
-+
-+void write_num_ignore_einval(const char *path, unsigned long num)
-+{
-+	return __write_num(path, num, /* ignore_einval = */ true);
- }
- 
- static unsigned long shmall, shmmax;
---- a/tools/testing/selftests/mm/vm_util.h~selftests-mm-handle-einval-when-configuring-gigantic-hugepages
-+++ a/tools/testing/selftests/mm/vm_util.h
-@@ -168,6 +168,7 @@ void write_file(const char *path, const
- int read_file(const char *path, char *buf, size_t buflen);
- unsigned long read_num(const char *path);
- void write_num(const char *path, unsigned long num);
-+void write_num_ignore_einval(const char *path, unsigned long num);
- 
- void shm_limits_prepare(unsigned long length);
- void __shm_limits_restore(void);
+ 	/* allocate 2 pages in 2 different NUMA nodes and fill them with the same data */
+-	first_node = get_first_mem_node();
+ 	numa1_map_ptr = numa_alloc_onnode(page_size, first_node);
+-	numa2_map_ptr = numa_alloc_onnode(page_size, get_next_mem_node(first_node));
++	numa2_map_ptr = numa_alloc_onnode(page_size, second_node);
+ 	if (!numa1_map_ptr || !numa2_map_ptr) {
+ 		ksft_perror("numa_alloc_onnode");
+ 		return KSFT_FAIL;
 _
 
 Patches currently in -mm which might be from sayalip@linux.ibm.com are
