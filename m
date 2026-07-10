@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DC56D34AB03
-	for <mm-commits@vger.kernel.org>; Fri, 10 Jul 2026 21:14:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2FF0A37F8DF
+	for <mm-commits@vger.kernel.org>; Fri, 10 Jul 2026 22:13:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783718043; cv=none; b=UWdgUHJhwwEFbGLtyKEUTeW5jpH0EdSfDNmbqiIZWMSAIAiuLrg7JkiUs4tHlnzQBbX9USDnJPdwPwE6Oa3h1PqSVzcCWaZG88AoHKEhYfeslYT6z6mLy1kTyY9omvIlDA5M4kaYE3Ww1Yyyt+wFG1OFIyeNKuIWPJK+dYCqLH8=
+	t=1783721593; cv=none; b=oQ7+Zcv56SxS/c4KutgpOj55HQWwp8LpbPVpGU08p/4mdto4+cYdtughBNg/70eQS0vm49kTHhFin5QhjlrjH6FfEGYmHF691DHZUi8c99gVTRDxVkMCdow5/uST/fsGE+/U1+N56VZHGcGOzkxCpSyAb/nnhoKXk6EqlL7i4H4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783718043; c=relaxed/simple;
-	bh=tjbYgmPHZB+klVaBP1s1qZOeI2ZJUuWCy6dWBQ4q5GE=;
-	h=Date:To:From:Subject:Message-Id; b=azqKSa8c60fxCloDDMvftsmeF6gvGzX1yhEqQDc3nlkcfoncNaF4U23li5TFmQPqSlYck0gXrC1Wz5Hifz6Qp4DRtQCROWxTch6NTu6kPnBw4dVSFUiNdrkvBHGbgdJb/a3mNMLIGV+0uDhsnRebT6wamaIaw2B65OPn1kXgiC4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kzWc5PY5; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783721593; c=relaxed/simple;
+	bh=Yq/XbQki4sZne7MCfBMcnNGN59FiiAy+rGzsaIwyekc=;
+	h=Date:To:From:Subject:Message-Id; b=tvaxthAQZLezz488pm1QTMGk/4CGNkRjPKxFT7suXrUfmYOsn1qHGdCJymVX0T2ucXre9zqufplGeLX5BCp/AXJZRN39zk/DrehwcYn/GLKe9byE3NCaWvwpm66uqNob1GHUVjNNIVczP5VbnFUmn35N+EVicHxuEAQ/b1bn5M8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cZ62iyFm; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kzWc5PY5"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9FEB61F000E9;
-	Fri, 10 Jul 2026 21:14:01 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cZ62iyFm"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CB1101F000E9;
+	Fri, 10 Jul 2026 22:13:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783718041;
-	bh=ko73lEztljDB0q+f7Mq3XOm62ypbAHD9iwPdS4SIaxU=;
+	d=linux-foundation.org; s=korg; t=1783721591;
+	bh=JDhj9KzlbG401+nA1lVdt1Z5R3RUp9kil2wdZ6vEpQY=;
 	h=Date:To:From:Subject;
-	b=kzWc5PY5TX/ES0Z86UNVU1C50NBJa2M4eIoX6TuX71e1IV6+N5ge1DQWy4Gp0yvXo
-	 T280HgcCPmYSAW3nifh0zZ2NQSeRSTOz+mJEswaZEhvsYw3ma2zGmImnkVWgS0NPna
-	 F/iG+fD+IjX8bxvqAFMHQ0LaAfddtqOyC4ZjBZJY=
-Date: Fri, 10 Jul 2026 14:14:01 -0700
-To: mm-commits@vger.kernel.org,will@kernel.org,vbabka@kernel.org,urezki@gmail.com,toshi.kani@hpe.com,surenb@google.com,shakeel.butt@linux.dev,ryan.roberts@arm.com,rppt@kernel.org,mhocko@suse.com,liam@infradead.org,devnexen@gmail.com,dev.jain@arm.com,david@kernel.org,catalin.marinas@arm.com,ljs@kernel.org,akpm@linux-foundation.org
+	b=cZ62iyFmb5DUGzsVkLrrPp38IhYxxt4VUccRc1gKQztVm/s47LlSQwusEl8U9YcD3
+	 L4fnUzZAKh/l7LEo6j7uu4sPEz6e680pFGngUJVeYAcInTJMu+gZvLiQcnsrIUXk4P
+	 0wMZW/b1dNTwlxN/DywoPPswNcLCkOIVCgKogoeo=
+Date: Fri, 10 Jul 2026 15:13:11 -0700
+To: mm-commits@vger.kernel.org,skinsburskii@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + revert-arm64-enable-vmalloc-huge-with-ptdump.patch added to mm-new branch
-Message-Id: <20260710211401.9FEB61F000E9@smtp.kernel.org>
+Subject: + mm-hmm-move-page-fault-handling-out-of-walk-callbacks.patch added to mm-new branch
+Message-Id: <20260710221311.CB1101F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: Revert "arm64: Enable vmalloc-huge with ptdump"
+     Subject: mm/hmm: move page fault handling out of walk callbacks
 has been added to the -mm mm-new branch.  Its filename is
-     revert-arm64-enable-vmalloc-huge-with-ptdump.patch
+     mm-hmm-move-page-fault-handling-out-of-walk-callbacks.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/revert-arm64-enable-vmalloc-huge-with-ptdump.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hmm-move-page-fault-handling-out-of-walk-callbacks.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,219 +69,311 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Lorenzo Stoakes <ljs@kernel.org>
-Subject: Revert "arm64: Enable vmalloc-huge with ptdump"
-Date: Fri, 10 Jul 2026 11:49:19 +0100
+From: Stanislav Kinsburskii <skinsburskii@gmail.com>
+Subject: mm/hmm: move page fault handling out of walk callbacks
+Date: Fri, 10 Jul 2026 14:26:27 -0700
 
-This partially reverts commit fa93b45fd397 ("arm64: Enable vmalloc-huge
-with ptdump"), retaining vmalloc-huge support but eliminating the now
-redundant mitigation against a race between huge vmap page table freeing
-and ptdump, as this issue has now been fixed at core.
+Patch series "mm/hmm: Add mmap lock-drop support for userfaultfd-backed
+mappings", v8.
 
-We also simultaneously remove the arm64 ifdeffery when acquiring the mmap
-read lock upon vmap huge page table promotion as it is no longer required.
+This series extends the HMM framework to support userfaultfd-backed memory
+by allowing the mmap read lock to be dropped during hmm_range_fault().
 
-Link: https://lore.kernel.org/20260710-series-vmap-race-fix-v1-2-5b3794c113fe@kernel.org
-Signed-off-by: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: David CARLIER <devnexen@gmail.com>
+Some page fault handlers most notably userfaultfd require the mmap lock to
+be released so that userspace can resolve the fault.  The current HMM
+interface never sets FAULT_FLAG_ALLOW_RETRY, making it impossible to fault
+in pages from userfaultfd-registered regions.
+
+This series follows the established int *locked pattern from
+get_user_pages_remote() in mm/gup.c.  A new helper function,
+hmm_range_fault_locked(), accepts an int *locked parameter.  When the mmap
+lock is dropped during fault resolution (VM_FAULT_RETRY or
+VM_FAULT_COMPLETED), the function returns 0 with *locked = 0, signalling
+the caller to restart its walk.  The existing hmm_range_fault() is
+refactored into a thin wrapper that passes NULL, preserving current
+behavior for all existing callers.
+
+Possible approaches to lift this limitation are documented in
+Documentation/mm/hmm.rst.
+
+
+This patch (of 8):
+
+hmm_range_fault() currently triggers page faults from inside the
+page-table walk callbacks: hmm_vma_walk_pmd(), hmm_vma_walk_pud(),
+hmm_vma_walk_hugetlb_entry() and the pte-level helper all call
+hmm_vma_fault(), which in turn calls handle_mm_fault() while the walker
+still holds nested locks.  The pte spinlock is dropped explicitly by each
+caller, and the hugetlb path manually drops and retakes
+hugetlb_vma_lock_read around the fault to dodge a deadlock against the
+walk framework's unconditional unlock.
+
+This layering does not extend cleanly to fault handlers that may release
+mmap_lock (VM_FAULT_RETRY, VM_FAULT_COMPLETED).  If the lock is dropped
+while walk_page_range() is mid-traversal, the VMA can be freed before the
+walk framework's matching hugetlb_vma_unlock_read(), turning that unlock
+into a use-after-free.
+
+Split the responsibilities the way get_user_pages() does.  Walk callbacks
+become inspect-only: when they detect a range that needs to be faulted in,
+they record it in struct hmm_vma_walk and return a private sentinel
+(HMM_FAULT_PENDING).  The outer loop in hmm_range_fault() then drops out
+of walk_page_range(), invokes a new helper hmm_do_fault() that calls
+handle_mm_fault() with only mmap_lock held, and restarts the walk so the
+now-present entries are collected into hmm_pfns.
+
+No functional change for existing callers.  As a side effect the hugetlb
+callback no longer needs the hugetlb_vma_{un}lock_read dance, and every
+fault-path exit from the callbacks now releases the pte spinlock on a
+single, common path.  This refactor is also a precursor for adding an
+unlockable variant of hmm_range_fault() in a follow-up patch.
+
+Link: https://lore.kernel.org/178371866223.900500.12312667138651735591.stgit@skinsburskii
+Link: https://lore.kernel.org/178371878774.900500.3975008123082170472.stgit@skinsburskii
+Signed-off-by: Stanislav Kinsburskii <skinsburskii@gmail.com>
+Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
+Cc: Danilo Krummrich <dakr@kernel.org>
+Cc: Dave Airlie <airlied@gmail.com>
 Cc: David Hildenbrand <david@kernel.org>
-Cc: Dev Jain <dev.jain@arm.com>
+Cc: Dexuan Cui <decui@microsoft.com>
+Cc: Haiyang Zhang <haiyangz@microsoft.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Kees Cook <kees@kernel.org>
+Cc: K. Y. Srinivasan <kys@microsoft.com>
+Cc: Leon Romanovsky <leon@kernel.org>
 Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Lizhi Hou <lizhi.hou@amd.com>
+Cc: Long Li <longli@microsoft.com>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Lyude <lyude@redhat.com>
+Cc: Maarten Lankhorst <maarten.lankhorst@linux.intel.com>
+Cc: Maxime Ripard <mripard@kernel.org>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Oded Gabbay <ogabbay@kernel.org>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Shuah Khan <shuah@kernel.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Toshi Kani <toshi.kani@hpe.com>
-Cc: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
+Cc: Thomas Zimemrmann <tzimmermann@suse.de>
 Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Will Deacon <will@kernel.org>
+Cc: Wei Liu <wei.liu@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/include/asm/ptdump.h |    2 -
- arch/arm64/mm/mmu.c             |   43 ++----------------------------
- arch/arm64/mm/ptdump.c          |   11 +------
- mm/vmalloc.c                    |   15 ++--------
- 4 files changed, 9 insertions(+), 62 deletions(-)
+ mm/hmm.c |  118 +++++++++++++++++++++++++++++++++--------------------
+ 1 file changed, 75 insertions(+), 43 deletions(-)
 
---- a/arch/arm64/include/asm/ptdump.h~revert-arm64-enable-vmalloc-huge-with-ptdump
-+++ a/arch/arm64/include/asm/ptdump.h
-@@ -7,8 +7,6 @@
+--- a/mm/hmm.c~mm-hmm-move-page-fault-handling-out-of-walk-callbacks
++++ a/mm/hmm.c
+@@ -33,8 +33,17 @@
+ struct hmm_vma_walk {
+ 	struct hmm_range	*range;
+ 	unsigned long		last;
++	unsigned long		end;
++	unsigned int		required_fault;
+ };
  
- #include <linux/ptdump.h>
- 
--DECLARE_STATIC_KEY_FALSE(arm64_ptdump_lock_key);
--
- #ifdef CONFIG_PTDUMP
- 
- #include <linux/mm_types.h>
---- a/arch/arm64/mm/mmu.c~revert-arm64-enable-vmalloc-huge-with-ptdump
-+++ a/arch/arm64/mm/mmu.c
-@@ -49,8 +49,6 @@
- #define NO_CONT_MAPPINGS	BIT(1)
- #define NO_EXEC_MAPPINGS	BIT(2)	/* assumes FEAT_HPDS is not used */
- 
--DEFINE_STATIC_KEY_FALSE(arm64_ptdump_lock_key);
--
- u64 kimage_voffset __ro_after_init;
- EXPORT_SYMBOL(kimage_voffset);
- 
-@@ -1857,8 +1855,7 @@ int pmd_clear_huge(pmd_t *pmdp)
- 	return 1;
++/*
++ * Internal sentinel returned by walk callbacks when they need a page fault.
++ * The callback stores end/required_fault in hmm_vma_walk; the outer loop
++ * consumes the sentinel and never propagates it to the caller.
++ */
++#define HMM_FAULT_PENDING	-EAGAIN
++
+ enum {
+ 	HMM_NEED_FAULT = 1 << 0,
+ 	HMM_NEED_WRITE_FAULT = 1 << 1,
+@@ -60,37 +69,25 @@ static int hmm_pfns_fill(unsigned long a
  }
  
--static int __pmd_free_pte_page(pmd_t *pmdp, unsigned long addr,
--			       bool acquire_mmap_lock)
-+int pmd_free_pte_page(pmd_t *pmdp, unsigned long addr)
+ /*
+- * hmm_vma_fault() - fault in a range lacking valid pmd or pte(s)
+- * @addr: range virtual start address (inclusive)
+- * @end: range virtual end address (exclusive)
+- * @required_fault: HMM_NEED_* flags
+- * @walk: mm_walk structure
+- * Return: -EBUSY after page fault, or page fault error
++ * hmm_record_fault() - record a range that needs to be faulted in
+  *
+- * This function will be called whenever pmd_none() or pte_none() returns true,
+- * or whenever there is no page directory covering the virtual address range.
++ * Called by the walk callbacks when they discover that part of the range
++ * needs a page fault.  The callback records what to fault and returns
++ * HMM_FAULT_PENDING; the outer loop in hmm_range_fault() drops back out of
++ * walk_page_range() and invokes handle_mm_fault() from a context where no
++ * page-table or hugetlb_vma_lock is held.
+  */
+-static int hmm_vma_fault(unsigned long addr, unsigned long end,
+-			 unsigned int required_fault, struct mm_walk *walk)
++static int hmm_record_fault(unsigned long addr, unsigned long end,
++			    unsigned int required_fault,
++			    struct mm_walk *walk)
  {
- 	pte_t *table;
- 	pmd_t pmd;
-@@ -1870,25 +1867,13 @@ static int __pmd_free_pte_page(pmd_t *pm
- 		return 1;
- 	}
+ 	struct hmm_vma_walk *hmm_vma_walk = walk->private;
+-	struct vm_area_struct *vma = walk->vma;
+-	unsigned int fault_flags = FAULT_FLAG_REMOTE;
  
--	/* See comment in pud_free_pmd_page for static key logic */
- 	table = pte_offset_kernel(pmdp, addr);
- 	pmd_clear(pmdp);
- 	__flush_tlb_kernel_pgtable(addr);
--	if (static_branch_unlikely(&arm64_ptdump_lock_key) && acquire_mmap_lock) {
--		mmap_read_lock(&init_mm);
--		mmap_read_unlock(&init_mm);
+ 	WARN_ON_ONCE(!required_fault);
+ 	hmm_vma_walk->last = addr;
+-
+-	if (required_fault & HMM_NEED_WRITE_FAULT) {
+-		if (!(vma->vm_flags & VM_WRITE))
+-			return -EPERM;
+-		fault_flags |= FAULT_FLAG_WRITE;
 -	}
 -
- 	pte_free_kernel(NULL, table);
- 	return 1;
+-	for (; addr < end; addr += PAGE_SIZE)
+-		if (handle_mm_fault(vma, addr, fault_flags, NULL) &
+-		    VM_FAULT_ERROR)
+-			return -EFAULT;
+-	return -EBUSY;
++	hmm_vma_walk->end = end;
++	hmm_vma_walk->required_fault = required_fault;
++	return HMM_FAULT_PENDING;
  }
  
--int pmd_free_pte_page(pmd_t *pmdp, unsigned long addr)
--{
--	/* If ptdump is walking the pagetables, acquire init_mm.mmap_lock */
--	return __pmd_free_pte_page(pmdp, addr, /* acquire_mmap_lock = */ true);
--}
+ static unsigned int hmm_pte_need_fault(const struct hmm_vma_walk *hmm_vma_walk,
+@@ -174,7 +171,7 @@ static int hmm_vma_walk_hole(unsigned lo
+ 		return hmm_pfns_fill(addr, end, range, HMM_PFN_ERROR);
+ 	}
+ 	if (required_fault)
+-		return hmm_vma_fault(addr, end, required_fault, walk);
++		return hmm_record_fault(addr, end, required_fault, walk);
+ 	return hmm_pfns_fill(addr, end, range, 0);
+ }
+ 
+@@ -209,7 +206,7 @@ static int hmm_vma_handle_pmd(struct mm_
+ 	required_fault =
+ 		hmm_range_need_fault(hmm_vma_walk, hmm_pfns, npages, cpu_flags);
+ 	if (required_fault)
+-		return hmm_vma_fault(addr, end, required_fault, walk);
++		return hmm_record_fault(addr, end, required_fault, walk);
+ 
+ 	pfn = pmd_pfn(pmd) + ((addr & ~PMD_MASK) >> PAGE_SHIFT);
+ 	for (i = 0; addr < end; addr += PAGE_SIZE, i++, pfn++) {
+@@ -328,7 +325,7 @@ out:
+ fault:
+ 	pte_unmap(ptep);
+ 	/* Fault any virtual address we were asked to fault */
+-	return hmm_vma_fault(addr, end, required_fault, walk);
++	return hmm_record_fault(addr, end, required_fault, walk);
+ }
+ 
+ #ifdef CONFIG_ARCH_HAS_PMD_SOFTLEAVES
+@@ -371,7 +368,7 @@ static int hmm_vma_handle_absent_pmd(str
+ 					      npages, 0);
+ 	if (required_fault) {
+ 		if (softleaf_is_device_private(entry))
+-			return hmm_vma_fault(addr, end, required_fault, walk);
++			return hmm_record_fault(addr, end, required_fault, walk);
+ 		else
+ 			return -EFAULT;
+ 	}
+@@ -517,7 +514,7 @@ static int hmm_vma_walk_pud(pud_t *pudp,
+ 						      npages, cpu_flags);
+ 		if (required_fault) {
+ 			spin_unlock(ptl);
+-			return hmm_vma_fault(addr, end, required_fault, walk);
++			return hmm_record_fault(addr, end, required_fault, walk);
+ 		}
+ 
+ 		pfn = pud_pfn(pud) + ((addr & ~PUD_MASK) >> PAGE_SHIFT);
+@@ -564,21 +561,8 @@ static int hmm_vma_walk_hugetlb_entry(pt
+ 	required_fault =
+ 		hmm_pte_need_fault(hmm_vma_walk, pfn_req_flags, cpu_flags);
+ 	if (required_fault) {
+-		int ret;
 -
- int pud_free_pmd_page(pud_t *pudp, unsigned long addr)
- {
- 	pmd_t *table;
-@@ -1904,36 +1889,16 @@ int pud_free_pmd_page(pud_t *pudp, unsig
+ 		spin_unlock(ptl);
+-		hugetlb_vma_unlock_read(vma);
+-		/*
+-		 * Avoid deadlock: drop the vma lock before calling
+-		 * hmm_vma_fault(), which will itself potentially take and
+-		 * drop the vma lock. This is also correct from a
+-		 * protection point of view, because there is no further
+-		 * use here of either pte or ptl after dropping the vma
+-		 * lock.
+-		 */
+-		ret = hmm_vma_fault(addr, end, required_fault, walk);
+-		hugetlb_vma_lock_read(vma);
+-		return ret;
++		return hmm_record_fault(addr, end, required_fault, walk);
  	}
  
- 	table = pmd_offset(pudp, addr);
--
--	/*
--	 * Our objective is to prevent ptdump from reading a PMD table which has
--	 * been freed. In this race, if pud_free_pmd_page observes the key on
--	 * (which got flipped by ptdump) then the mmap lock sequence here will,
--	 * as a result of the mmap write lock/unlock sequence in ptdump, give
--	 * us the correct synchronization. If not, this means that ptdump has
--	 * yet not started walking the pagetables - the sequence of barriers
--	 * issued by __flush_tlb_kernel_pgtable() guarantees that ptdump will
--	 * observe an empty PUD.
--	 */
--	pud_clear(pudp);
--	__flush_tlb_kernel_pgtable(addr);
--	if (static_branch_unlikely(&arm64_ptdump_lock_key)) {
--		mmap_read_lock(&init_mm);
--		mmap_read_unlock(&init_mm);
--	}
--
- 	pmdp = table;
- 	next = addr;
- 	end = addr + PUD_SIZE;
- 	do {
- 		if (pmd_present(pmdp_get(pmdp)))
--			/*
--			 * PMD has been isolated, so ptdump won't see it. No
--			 * need to acquire init_mm.mmap_lock.
--			 */
--			__pmd_free_pte_page(pmdp, next, /* acquire_mmap_lock = */ false);
-+			pmd_free_pte_page(pmdp, next);
- 	} while (pmdp++, next += PMD_SIZE, next != end);
+ 	pfn = pte_pfn(entry) + ((start & ~hmask) >> PAGE_SHIFT);
+@@ -637,6 +621,44 @@ static const struct mm_walk_ops hmm_walk
+ 	.walk_lock	= PGWALK_RDLOCK,
+ };
  
-+	pud_clear(pudp);
-+	__flush_tlb_kernel_pgtable(addr);
- 	pmd_free(NULL, table);
- 	return 1;
- }
---- a/arch/arm64/mm/ptdump.c~revert-arm64-enable-vmalloc-huge-with-ptdump
-+++ a/arch/arm64/mm/ptdump.c
-@@ -283,13 +283,6 @@ void note_page_flush(struct ptdump_state
- 	note_page(pt_st, 0, -1, pte_val(pte_zero));
- }
- 
--static void arm64_ptdump_walk_pgd(struct ptdump_state *st, struct mm_struct *mm)
--{
--	static_branch_inc(&arm64_ptdump_lock_key);
--	ptdump_walk_pgd(st, mm, NULL);
--	static_branch_dec(&arm64_ptdump_lock_key);
--}
--
- void ptdump_walk(struct seq_file *s, struct ptdump_info *info)
- {
- 	unsigned long end = ~0UL;
-@@ -318,7 +311,7 @@ void ptdump_walk(struct seq_file *s, str
- 		}
- 	};
- 
--	arm64_ptdump_walk_pgd(&st.ptdump, info->mm);
-+	ptdump_walk_pgd(&st.ptdump, info->mm, NULL);
- }
- 
- static void __init ptdump_initialize(void)
-@@ -360,7 +353,7 @@ bool ptdump_check_wx(void)
- 		}
- 	};
- 
--	arm64_ptdump_walk_pgd(&st.ptdump, &init_mm);
-+	ptdump_walk_pgd(&st.ptdump, &init_mm, NULL);
- 
- 	if (st.wx_pages || st.uxn_pages) {
- 		pr_warn("Checked W+X mappings: FAILED, %lu W+X pages found, %lu non-UXN pages found\n",
---- a/mm/vmalloc.c~revert-arm64-enable-vmalloc-huge-with-ptdump
-+++ a/mm/vmalloc.c
-@@ -188,10 +188,7 @@ static int vmap_try_huge_pmd(pmd_t *pmd,
- 	 * Therefore, acquire the mmap read lock to prevent use-after-free when
- 	 * freeing page tables.
- 	 */
--#ifndef CONFIG_ARM64
--	scoped_cond_guard(mmap_read_lock_try, return 0, &init_mm)
--#endif
--	{
-+	scoped_cond_guard(mmap_read_lock_try, return 0, &init_mm) {
- 		if (!pmd_free_pte_page(pmd, addr))
- 			return 0;
- 		return pmd_set_huge(pmd, phys_addr, prot);
-@@ -248,10 +245,7 @@ static int vmap_try_huge_pud(pud_t *pud,
- 		return pud_set_huge(pud, phys_addr, prot);
- 
- 	/* See comment in vmap_try_huge_pmd(). */
--#ifndef CONFIG_ARM64
--	scoped_cond_guard(mmap_read_lock_try, return 0, &init_mm)
--#endif
--	{
-+	scoped_cond_guard(mmap_read_lock_try, return 0, &init_mm) {
- 		if (!pud_free_pmd_page(pud, addr))
- 			return 0;
- 		return pud_set_huge(pud, phys_addr, prot);
-@@ -308,10 +302,7 @@ static int vmap_try_huge_p4d(p4d_t *p4d,
- 		return p4d_set_huge(p4d, phys_addr, prot);
- 
- 	/* See comment in vmap_try_huge_pmd(). */
--#ifndef CONFIG_ARM64
--	scoped_cond_guard(mmap_read_lock_try, return 0, &init_mm)
--#endif
--	{
-+	scoped_cond_guard(mmap_read_lock_try, return 0, &init_mm) {
- 		if (!p4d_free_pud_page(p4d, addr))
- 			return 0;
- 		return p4d_set_huge(p4d, phys_addr, prot);
++/*
++ * hmm_do_fault - fault in a range recorded by a walk callback
++ *
++ * Called from the outer loop in hmm_range_fault() after a callback
++ * returned HMM_FAULT_PENDING.  At this point we hold only mmap_lock;
++ * the page-table spinlock and any hugetlb_vma_lock acquired by the walk
++ * framework have already been released by the unwind.
++ *
++ * Returns -EBUSY on success (all pages faulted, caller should re-walk).
++ * Returns a negative errno on failure.
++ */
++static int hmm_do_fault(struct mm_struct *mm,
++			struct hmm_vma_walk *hmm_vma_walk)
++{
++	unsigned long addr = hmm_vma_walk->last;
++	unsigned long end = hmm_vma_walk->end;
++	unsigned int required_fault = hmm_vma_walk->required_fault;
++	unsigned int fault_flags = FAULT_FLAG_REMOTE;
++	struct vm_area_struct *vma;
++
++	vma = vma_lookup(mm, addr);
++	if (!vma)
++		return -EFAULT;
++
++	if (required_fault & HMM_NEED_WRITE_FAULT) {
++		if (!(vma->vm_flags & VM_WRITE))
++			return -EPERM;
++		fault_flags |= FAULT_FLAG_WRITE;
++	}
++
++	for (; addr < end; addr += PAGE_SIZE)
++		if (handle_mm_fault(vma, addr, fault_flags, NULL) &
++		    VM_FAULT_ERROR)
++			return -EFAULT;
++
++	return -EBUSY;
++}
++
+ /**
+  * hmm_range_fault - try to fault some address in a virtual address range
+  * @range:	argument structure
+@@ -675,6 +697,16 @@ int hmm_range_fault(struct hmm_range *ra
+ 		ret = walk_page_range(mm, hmm_vma_walk.last, range->end,
+ 				      &hmm_walk_ops, &hmm_vma_walk);
+ 		/*
++		 * When HMM_FAULT_PENDING is returned a walk callback
++		 * recorded a range that needs handle_mm_fault();
++		 * hmm_do_fault() runs the fault outside walk_page_range()
++		 * (so no page-table or hugetlb_vma_lock is held) and
++		 * returns -EBUSY so the loop re-walks and picks up the
++		 * now-present entries.
++		 */
++		if (ret == HMM_FAULT_PENDING)
++			ret = hmm_do_fault(mm, &hmm_vma_walk);
++		/*
+ 		 * When -EBUSY is returned the loop restarts with
+ 		 * hmm_vma_walk.last set to an address that has not been stored
+ 		 * in pfns. All entries < last in the pfn array are set to their
 _
 
-Patches currently in -mm which might be from ljs@kernel.org are
+Patches currently in -mm which might be from skinsburskii@gmail.com are
 
-mm-move-alloc-tag-to-mm.patch
-mm-ptdump-always-stabilise-against-page-table-freeing-using-init_mm.patch
-mm-vmalloc-acquire-init_mm-read-lock-on-huge-vmap-promotion.patch
-revert-arm64-enable-vmalloc-huge-with-ptdump.patch
+lib-test_hmm-use-device-devt-for-coherent-device-range-selection.patch
+mm-hmm-move-page-fault-handling-out-of-walk-callbacks.patch
+mm-hmm-add-hmm_range_fault_unlocked_timeout-for-mmap-lock-drop-support.patch
+selftests-mm-add-hmm-test-for-mmap-lock-dropping-faults.patch
+mshv-use-hmm_range_fault_unlocked_timeout-for-region-faults.patch
+drm-nouveau-use-hmm_range_fault_unlocked_timeout-for-svm-faults.patch
+rdma-umem-use-hmm_range_fault_unlocked_timeout-for-odp-faults.patch
+accel-amdxdna-use-hmm_range_fault_unlocked_timeout-for-range-population.patch
+drm-gpusvm-use-hmm_range_fault_unlocked_timeout-for-range-faults.patch
 
