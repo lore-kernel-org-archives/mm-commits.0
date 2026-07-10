@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B74A139EB5B
-	for <mm-commits@vger.kernel.org>; Fri, 10 Jul 2026 20:24:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 23C4039A7FE
+	for <mm-commits@vger.kernel.org>; Fri, 10 Jul 2026 20:24:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783715054; cv=none; b=oSC+mVEwdEEruNrHmcsJX4fwBe+503FhZhie8g8gsyeJe1YmqNUAMZwXg+Zh7HIg7jgrymItdziZ5psoEoBe7m6iM9pRJw3mIqMOqsJiEnuPBUXw836sq4fNDVmmt1PgvWo6XlFb+PRv5jZqtqHZfKN5xrqFfCbqOM9nVlWMXNw=
+	t=1783715056; cv=none; b=gJvg1UpmQ+U8tD1x1P19Qqqguj6yatj0wDYd9YGCFLKpKzYz3g1MngiPNaiu21ANEC9YXSlomnMCoPaWSipCRFstzRCJaZnHnEOht/emfTdbzeB0dWfgQ6rkNbPmvMm8FiS5EjRx9Aci8PzejwUHUFvsN35lqOiB/UEkIpa0v1U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783715054; c=relaxed/simple;
-	bh=ZwXvP8Q4PSyiTKCvjQtnHdkBfiz8D4mf5+S+s94sVEk=;
-	h=Date:To:From:Subject:Message-Id; b=S8CqPDkoI6zMLrE9xaGblZ8t6xIDFn/7uoznlEn9vrpb50CzvYNJLxRcQgd4xwEX3I6xQzPf2DJrBjeStwNSxJ2rN+t37pp2QYFz0ZzlEvWYrTbdF/XJFJ9qyQ8m9k+dy1t3Hm/bjwZTOp+sD3AuvKHOtbfb3KM9RVILv/BsdYY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ab5rHgVJ; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783715056; c=relaxed/simple;
+	bh=b6whXUC7kYI8Z2uY2G6MI6Zj8nUIu4e2I/6A92fn7aU=;
+	h=Date:To:From:Subject:Message-Id; b=XCdNmej2GDhgsl+cFtHfDwKYnjrWacBFi4TVjbQER9MQatUNqfK48MFYmnft9dcaTJyo8RkAmrgfZ7BN7hoH5C57oW9qlos1reckzeyrx92tU61u6qITI8fbdB1cgIG9iLhxuHPBP1lhQZgzy69A6xFtUOTFcdty2J1lyfTXaM4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HVQo6+vU; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ab5rHgVJ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 89AB31F000E9;
-	Fri, 10 Jul 2026 20:24:12 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HVQo6+vU"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 897581F000E9;
+	Fri, 10 Jul 2026 20:24:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783715052;
-	bh=lyeUBYw7mwXhAJV3llLxUjQk/4V5vwG9a3cTFQQ0KxM=;
+	d=linux-foundation.org; s=korg; t=1783715054;
+	bh=67EWSfUYDaVFaxqx2JT9RZHsrB5NCI9ApwDtwXap2YI=;
 	h=Date:To:From:Subject;
-	b=ab5rHgVJDx38fH1iyL5ERgXo2VQ7rqZ1Hc8R+YMm32lFIGi9zgqAw+3SfR3kksryl
-	 ti3QbXHCGBLYUZbG9v1g3PrEMK8rwtd19HoRinhKl8Y7KXXhCemHcX5IB5eJQ9iAoO
-	 OV+J5qgJIO2AggnJvtaex6U9XFJr6jf7KPm4MYQg=
-Date: Fri, 10 Jul 2026 13:24:12 -0700
+	b=HVQo6+vUVz4n2xfAUQLpN4mR4i6QgW5OubCk6ah2ZmWnNRyjopxpgjvTYZOqcanau
+	 sTOSq5hzY3KRao7Gd4lOTAZ2N3SfVKZ6GubhgpZclmRK/x2WVh7+2Fz/QJC5BPwO69
+	 T/5/hI/CNhadoDDBdFUFCiFB3fqNt9Z4oOHUK9SM=
+Date: Fri, 10 Jul 2026 13:24:14 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-core-disable-access-monitoring-when-probe-weights-are-set.patch added to mm-new branch
-Message-Id: <20260710202412.89AB31F000E9@smtp.kernel.org>
+Subject: + mm-damon-core-set-samples-in-apply_probes-if-probe-weights-are-set.patch added to mm-new branch
+Message-Id: <20260710202414.897581F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/core: disable access monitoring when probe weights are set
+     Subject: mm/damon/core: set samples in apply_probes() if probe weights are set
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-core-disable-access-monitoring-when-probe-weights-are-set.patch
+     mm-damon-core-set-samples-in-apply_probes-if-probe-weights-are-set.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-disable-access-monitoring-when-probe-weights-are-set.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-set-samples-in-apply_probes-if-probe-weights-are-set.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,14 +70,14 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/core: disable access monitoring when probe weights are set
-Date: Fri, 10 Jul 2026 06:46:40 -0700
+Subject: mm/damon/core: set samples in apply_probes() if probe weights are set
+Date: Fri, 10 Jul 2026 06:46:41 -0700
 
-When users set probe weights, they are interested in the data attributes. 
-Not necessarily they are interested in data access patterns.  Disable the
-data access monitoring in the case.
+When probe weights are set, the prepare_access_checks() ops callback is
+not invoked, so sampling addresses of regions are unset.  Ask
+apply_probes() to set those together in the case.
 
-Link: https://lore.kernel.org/20260710134651.18084-12-sj@kernel.org
+Link: https://lore.kernel.org/20260710134651.18084-13-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
@@ -90,32 +90,21 @@ Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/core.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ mm/damon/core.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/mm/damon/core.c~mm-damon-core-disable-access-monitoring-when-probe-weights-are-set
+--- a/mm/damon/core.c~mm-damon-core-set-samples-in-apply_probes-if-probe-weights-are-set
 +++ a/mm/damon/core.c
-@@ -3763,17 +3763,18 @@ static int kdamond_fn(void *data)
- 		unsigned long next_aggregation_sis = ctx->next_aggregation_sis;
- 		unsigned long next_ops_update_sis = ctx->next_ops_update_sis;
- 		unsigned long sample_interval = ctx->attrs.sample_interval;
-+		bool access_check_disabled = damon_has_probe_weights(ctx);
- 
- 		if (kdamond_wait_activation(ctx))
- 			break;
- 
--		if (ctx->ops.prepare_access_checks)
-+		if (!access_check_disabled && ctx->ops.prepare_access_checks)
- 			ctx->ops.prepare_access_checks(ctx);
- 
- 		kdamond_usleep(sample_interval);
- 		ctx->passed_sample_intervals++;
- 
--		if (ctx->ops.check_accesses)
-+		if (!access_check_disabled && ctx->ops.check_accesses)
+@@ -3777,7 +3777,8 @@ static int kdamond_fn(void *data)
+ 		if (!access_check_disabled && ctx->ops.check_accesses)
  			max_nr_accesses = ctx->ops.check_accesses(ctx);
  		if (ctx->ops.apply_probes)
- 			ctx->ops.apply_probes(ctx, false, false);
+-			ctx->ops.apply_probes(ctx, false, false);
++			ctx->ops.apply_probes(ctx, access_check_disabled,
++					false);
+ 
+ 		if (time_after_eq(ctx->passed_sample_intervals,
+ 					next_aggregation_sis)) {
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
