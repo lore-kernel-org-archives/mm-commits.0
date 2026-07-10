@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8B9FA404BFD
-	for <mm-commits@vger.kernel.org>; Fri, 10 Jul 2026 22:46:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1775F404BFD
+	for <mm-commits@vger.kernel.org>; Fri, 10 Jul 2026 22:46:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783723588; cv=none; b=cOAf11mNG23mHfPoY+9yHiFHXHrjz7HE5TdKJvbhSSGv45ASlV2U8/5c4/skdJ139DHImP3PHqZAAVzgfEwR5ch4KNyMpacuP0Ql04XtSLgSPr19J9uJItgCmy6WWXoVa2Zm1WxmrkpnD+QQ7POXq//mSWt5rf3Tbu3qE1Ej+KQ=
+	t=1783723591; cv=none; b=OVsrwFHGyyHgC/1b/40jfUkCrJm1ej8OqsXhBa8v0HOBRgMCC1i1+VknVGnnkAjWAAEwbRXeaoxMqv50hRzbgBfVT3R2bs+O1VUn8AKSetGT3D0LIFpJGjbTpaL6hWdQQuYkKJOJvhS4Ut05wRtwUekY+T9DSmsawEC+2JVDoOc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783723588; c=relaxed/simple;
-	bh=84fSNLx1yqaHz7zujgtXq9P9KH/bEiVGpiI/c+pH8d0=;
-	h=Date:To:From:Subject:Message-Id; b=gVz8ohtnNTxIzeVfODwU3bngSdgj7ohkYjpbrYa5ZSoxcbPo3YCplJMbNEyXlkChP7hcOLrOfS+IXlh1sJlsMEcsA+egewIpW/jR3usnPzTNDa8fhDXwok7vxBvE9calIqGTCYC+eykYyfdBEtZ2MuZrtCmRfRiZPFs8itGEqZ8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MgCSCR2S; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783723591; c=relaxed/simple;
+	bh=57k9N1pQOMSgoYfvi45CMjUjCOI+9lQOUKq93mSUUDc=;
+	h=Date:To:From:Subject:Message-Id; b=NF73JsdEmHJEbQm/+yxs+U+XAqJI4eASQeOAOPckYema8sQpmMcDqyQD3bBY1s80aZaJLQbTE8tOkb6QiHW4rp1/QDr3v+JnKi6VCgxPFSiHz+uIT+GfqTukTrYHL68LFCKfmF/4TLgbr1B817jU5luiGhr7bx74EEi/bgzRaQY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wOTYvNwT; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MgCSCR2S"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 60D671F000E9;
-	Fri, 10 Jul 2026 22:46:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wOTYvNwT"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D72D71F000E9;
+	Fri, 10 Jul 2026 22:46:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783723587;
-	bh=hLFtde7JPgILU82JpikhjGYQBez75SmC+AK8UZ30Ilg=;
+	d=linux-foundation.org; s=korg; t=1783723590;
+	bh=TXhLH6n6sxenlkeQuNt9EN8wFXIbp+sVcMzHENES1/M=;
 	h=Date:To:From:Subject;
-	b=MgCSCR2Sz32v+p2WjjkQwZxrwHe2hID639epNBA+5OHDJneC4T+zH8iyIbfisLw3c
-	 naoTDVQYbnm7qHcUyY+e0PibvpRrE7CN9qgyK0noiEr7nxRQO2epWWip5yLldKnjl2
-	 xMvizInT4ebGHRvUPwsK1s8VS0exNZNzfwuy9KUY=
-Date: Fri, 10 Jul 2026 15:46:26 -0700
+	b=wOTYvNwTh/oHd4g7igfj5NQSqc5oamSKjvLUTyeBR5mWorp/vr0TD3QXBhbAyOk8K
+	 rB/SN9L1RchnObFneEbVwXLkQn+jej7Fe4b8EULOVjlMDkAIt2DbzLprj8lDeoFbXh
+	 PbgMfLfrShM4Dyh5LR75C5A+kYnq0rR8WAcWykxA=
+Date: Fri, 10 Jul 2026 15:46:29 -0700
 To: mm-commits@vger.kernel.org,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vma-introduce-and-use-vmg_pages-vmg__pgoff.patch added to mm-new branch
-Message-Id: <20260710224627.60D671F000E9@smtp.kernel.org>
+Subject: + mm-vma-clean-up-anon_vma_compatible.patch added to mm-new branch
+Message-Id: <20260710224629.D72D71F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/vma: introduce and use vmg_pages(), vmg_[start, end]_pgoff()
+     Subject: mm/vma: clean up anon_vma_compatible()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-vma-introduce-and-use-vmg_pages-vmg__pgoff.patch
+     mm-vma-clean-up-anon_vma_compatible.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vma-introduce-and-use-vmg_pages-vmg__pgoff.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vma-clean-up-anon_vma_compatible.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,21 +70,18 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <ljs@kernel.org>
-Subject: mm/vma: introduce and use vmg_pages(), vmg_[start, end]_pgoff()
-Date: Fri, 10 Jul 2026 21:16:54 +0100
+Subject: mm/vma: clean up anon_vma_compatible()
+Date: Fri, 10 Jul 2026 21:16:55 +0100
 
-In the VMA logic we often need to determine the number of pages in the
-specified merge range, as well as the start and end page offsets of that
-range.
-
-Introduce and use helpers for these purposes.
+Break up the existing very large conditional, add comments and use
+vma_[start/end]_pgoff() to make clearer what we're doing here.
 
 No functional change intended.
 
-Link: https://lore.kernel.org/20260710-b4-pre-scalable-cow-v2-13-2a5aa403d977@kernel.org
+Link: https://lore.kernel.org/20260710-b4-pre-scalable-cow-v2-14-2a5aa403d977@kernel.org
 Signed-off-by: Lorenzo Stoakes <ljs@kernel.org>
-Reviewed-by: Pedro Falcato <pfalcato@suse.de>
 Reviewed-by: Gregory Price <gourry@gourry.net>
+Reviewed-by: Pedro Falcato <pfalcato@suse.de>
 Cc: Ackerley Tng <ackerleytng@google.com>
 Cc: David Hildenbrand (Arm) <david@kernel.org>
 Cc: Kai Huang <kai.huang@intel.com>
@@ -95,79 +92,42 @@ Cc: Vlastimil Babka (SUSE) <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vma.c |   11 ++++-------
- mm/vma.h |   17 +++++++++++++++++
- 2 files changed, 21 insertions(+), 7 deletions(-)
+ mm/vma.c |   21 ++++++++++++++++-----
+ 1 file changed, 16 insertions(+), 5 deletions(-)
 
---- a/mm/vma.c~mm-vma-introduce-and-use-vmg_pages-vmg__pgoff
+--- a/mm/vma.c~mm-vma-clean-up-anon_vma_compatible
 +++ a/mm/vma.c
-@@ -197,11 +197,9 @@ static void init_multi_vma_prep(struct v
-  */
- static bool can_vma_merge_before(struct vma_merge_struct *vmg)
+@@ -1967,14 +1967,25 @@ static int anon_vma_compatible(struct vm
  {
--	pgoff_t pglen = PHYS_PFN(vmg->end - vmg->start);
--
- 	if (is_mergeable_vma(vmg, /* merge_next = */ true) &&
- 	    is_mergeable_anon_vma(vmg, /* merge_next = */ true)) {
--		if (vmg->next->vm_pgoff == vmg->pgoff + pglen)
-+		if (vmg_end_pgoff(vmg) == vma_start_pgoff(vmg->next))
- 			return true;
- 	}
+ 	vma_flags_t diff = vma_flags_diff_pair(&a->flags, &b->flags);
  
-@@ -221,7 +219,7 @@ static bool can_vma_merge_after(struct v
- {
- 	if (is_mergeable_vma(vmg, /* merge_next = */ false) &&
- 	    is_mergeable_anon_vma(vmg, /* merge_next = */ false)) {
--		if (vmg->prev->vm_pgoff + vma_pages(vmg->prev) == vmg->pgoff)
-+		if (vma_end_pgoff(vmg->prev) == vmg_start_pgoff(vmg))
- 			return true;
- 	}
- 	return false;
-@@ -759,7 +757,7 @@ static int commit_merge(struct vma_merge
- 	 */
- 	vma_adjust_trans_huge(vma, vmg->start, vmg->end,
- 			      vmg->__adjust_middle_start ? vmg->middle : NULL);
--	vma_set_range(vma, vmg->start, vmg->end, vmg->pgoff);
-+	vma_set_range(vma, vmg->start, vmg->end, vmg_start_pgoff(vmg));
- 	vmg_adjust_set_range(vmg);
- 	vma_iter_store_overwrite(vmg->vmi, vmg->target);
++	/* Ignore flags that mprotect() can change. */
+ 	vma_flags_clear_mask(&diff, VMA_ACCESS_FLAGS);
++	/* Ignore flags that do not impact merging. */
+ 	vma_flags_clear_mask(&diff, VMA_IGNORE_MERGE_FLAGS);
  
-@@ -962,8 +960,7 @@ static __must_check struct vm_area_struc
- 		 *    middle     next
- 		 * shrink/delete extend
- 		 */
--
--		pgoff_t pglen = PHYS_PFN(vmg->end - vmg->start);
-+		const pgoff_t pglen = vmg_pages(vmg);
- 
- 		VM_WARN_ON_VMG(!merge_right, vmg);
- 		/* If we are offset into a VMA, then prev must be middle. */
---- a/mm/vma.h~mm-vma-introduce-and-use-vmg_pages-vmg__pgoff
-+++ a/mm/vma.h
-@@ -230,6 +230,23 @@ static inline bool vmg_nomem(struct vma_
- 	return vmg->state == VMA_MERGE_ERROR_NOMEM;
+-	return a->vm_end == b->vm_start &&
+-		mpol_equal(vma_policy(a), vma_policy(b)) &&
+-		a->vm_file == b->vm_file &&
+-		vma_flags_empty(&diff) &&
+-		b->vm_pgoff == a->vm_pgoff + ((b->vm_start - a->vm_start) >> PAGE_SHIFT);
++	/* Must be adjacent. */
++	if (a->vm_end != b->vm_start)
++		return false;
++	/* Must have matching policy. */
++	if (!mpol_equal(vma_policy(a), vma_policy(b)))
++		return false;
++	/* Must both be anon or map the same file (MAP_PRIVATE case). */
++	if (a->vm_file != b->vm_file)
++		return false;
++	/* Flags must be equivalent modulo mprotect(). */
++	if (!vma_flags_empty(&diff))
++		return false;
++	/* Page offset must align. */
++	return vma_end_pgoff(a) == vma_start_pgoff(b);
  }
  
-+static inline pgoff_t vmg_start_pgoff(const struct vma_merge_struct *vmg)
-+{
-+	return vmg->pgoff;
-+}
-+
-+static inline pgoff_t vmg_pages(const struct vma_merge_struct *vmg)
-+{
-+	const unsigned long size = vmg->end - vmg->start;
-+
-+	return size >> PAGE_SHIFT;
-+}
-+
-+static inline pgoff_t vmg_end_pgoff(const struct vma_merge_struct *vmg)
-+{
-+	return vmg_start_pgoff(vmg) + vmg_pages(vmg);
-+}
-+
- /* Assumes addr >= vma->vm_start. */
- static inline pgoff_t vma_pgoff_offset(struct vm_area_struct *vma,
- 				       unsigned long addr)
+ /*
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
