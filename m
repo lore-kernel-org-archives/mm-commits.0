@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0D86D39A048
-	for <mm-commits@vger.kernel.org>; Fri, 10 Jul 2026 20:24:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7AC05386C0C;
+	Fri, 10 Jul 2026 20:30:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783715070; cv=none; b=pEypAjDbxLwlZOvOKEVMDqJTeHuhPNEZtyk3NsRSAMgrSBWfg3KF43fCHAziPa85Thtq8D/vY8bBT9n2XrqFVrlPoaz95GqRh8I9BYx1CaLRq5ms6Qm4XDDkMv3rqTNbP+GvZNycWl4mCnzNDpt+CROpuPvIU7RlkUrvbL/WxaM=
+	t=1783715439; cv=none; b=JH2ml29UgntRlDtG71ajeVrIM+fB2divI8IO3ByT++Ef3BijpTL+l0lko6f0MQegcScQeFXFcrQJ4jS8MrFwlFIM7GecJeRJmrLJMErZRdkpZDPZCycIulrndFs2OU+lxcBPWzvjjN9juSdUII8In88lI8qLF8fpuCcHj2jTMNc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783715070; c=relaxed/simple;
-	bh=8QCQLMvQXMkmZ6S2Rx1cUkkyx6WTgc1hYAhE9nBGM6s=;
-	h=Date:To:From:Subject:Message-Id; b=niX8eTTkHlhLuOux8t2T28VHpEn/M1N6/xWk3uCnWODZMRRR9Qxw1Ybq/1903d3eMWcb+l/Rrf7TFAEBPtYDPUtVzKdAo9IlTILMTWS+7wrptYTMAAEos8wvcfiWAETEeqQokSfoG10Y0+vvoIXPPEClUnBtV2pAU71gLfpRGug=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XVL3SGKD; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783715439; c=relaxed/simple;
+	bh=R7LRuc74n5LW/RBCNp2eG+ofzRJBmko4ipVfFnO4NcA=;
+	h=Date:To:From:Subject:Message-Id; b=LvP/Ma/HPKz7EL/HPQc4FL9rF4h6bkvD/qK4XycUHSK/4xJmJXOFGSAgfl3UgYIXlm7s2UCEuCUP7eXA+VF9dn/9ttZTYzvhSdawsjc8qM4Ek6DOAjGp43RRTB2pWcBv0fxS9KmlBSvykLrlv14BLr4o9S7FIQ6QdD872+s9yVU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=irotu+9r; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XVL3SGKD"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D70381F000E9;
-	Fri, 10 Jul 2026 20:24:28 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="irotu+9r"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 162981F00A3A;
+	Fri, 10 Jul 2026 20:30:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783715068;
-	bh=t8JCn6wO/0eZHmlQH087t2TLP9DY95z5WDlZJR5h/Xc=;
+	d=linux-foundation.org; s=korg; t=1783715438;
+	bh=hCnA6rEGGa45TF6auX/WM9XguXoir8aRCVKt8jDXcH0=;
 	h=Date:To:From:Subject;
-	b=XVL3SGKDuO0Z+VKkSWopj1WB1z3N8de1AMTHCp4vmVIZNGLEYia48Vku/aRW+kUKL
-	 VdMeR7G8hKglxoWU/gvhoiO5oma+AJXrSdlhsMevaM/XNP3Nj9kiXAE+3dKhHXfIxG
-	 +i/791qbTdPaCat1FSs56pOgEfNLlUhwEbfc0aiM=
-Date: Fri, 10 Jul 2026 13:24:28 -0700
-To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
+	b=irotu+9r9j+v7c4jiWa/PLA0lqctuw/ufLQdky8H8P4mTORYZNbSQ9Ys/tm17D4Nx
+	 zOHrhEgjE7CwgdMLh46sKSCGPGl+PrpFFQAGRjAxqB9fVM+ZY7RUUyZ1eYERKchA/M
+	 bhWGEY/3Y4Xa53QZXY4+rGpHzZ0eIye/uMhw/StQ=
+Date: Fri, 10 Jul 2026 13:30:37 -0700
+To: mm-commits@vger.kernel.org,will@kernel.org,vbabka@kernel.org,toshi.kani@hpe.com,surenb@google.com,stable@vger.kernel.org,shakeel.butt@linux.dev,ryan.roberts@arm.com,rppt@kernel.org,mhocko@suse.com,liam@infradead.org,dev.jain@arm.com,david@kernel.org,catalin.marinas@arm.com,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + docs-abi-damon-document-probe-weight-file.patch added to mm-new branch
-Message-Id: <20260710202428.D70381F000E9@smtp.kernel.org>
+Subject: + mm-ptdump-always-stabilise-against-page-table-freeing-using-init_mm.patch added to mm-new branch
+Message-Id: <20260710203038.162981F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: Docs/ABI/damon: document probe weight file
+     Subject: mm/ptdump: always stabilise against page table freeing using init_mm
 has been added to the -mm mm-new branch.  Its filename is
-     docs-abi-damon-document-probe-weight-file.patch
+     mm-ptdump-always-stabilise-against-page-table-freeing-using-init_mm.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-abi-damon-document-probe-weight-file.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-ptdump-always-stabilise-against-page-table-freeing-using-init_mm.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,139 +69,88 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: SJ Park <sj@kernel.org>
-Subject: Docs/ABI/damon: document probe weight file
-Date: Fri, 10 Jul 2026 06:46:48 -0700
+From: Lorenzo Stoakes <ljs@kernel.org>
+Subject: mm/ptdump: always stabilise against page table freeing using init_mm
+Date: Fri, 10 Jul 2026 14:29:21 +0100
 
-Update DAMON ABI document for the newly added probe weight sysfs file.
+x86 and arm64 invoke ptdump_walk_pgd() with non-init_mm mm whilst still
+walking kernel page table ranges.
 
-Link: https://lore.kernel.org/20260710134651.18084-20-sj@kernel.org
-Signed-off-by: SJ Park <sj@kernel.org>
+For x86 this is done in ptdump_curknl_show() and ptdump_efi_show(), the
+first passing current->mm, and the second passing efi_mm (we reach kernel
+mappings that init_mm protects for current->mm due to x86 cloning shared
+kernel page tables for arbitrary mm's).
+
+arm64 does so via ptdump_debugfs_register(), configured by efi_ptdump_info
+for efi ranges against efi_mm.
+
+The init_mm mmap lock is used to stabilise page table freeing against
+ptdump, so take a nested lock on init_mm to ensure that we are correctly
+stabilised.
+
+We take this after mmap write locking the non-init_mm mm.  Nothing
+acquires the init_mm lock first before locking an arbitrary mm, so no
+deadlock is possible.
+
+Other fixes have been sent which update the two cases which can cause
+races with ptdump in init_mm ranges to acquire the init_mm mmap write lock
+- vmap and x86 CPA huge page promotion.
+
+For arm64, commit fa93b45fd397 ("arm64: Enable vmalloc-huge with ptdump")
+already provides exclusion against init_mm for the vmap case, which this
+patch also pairs with.
+
+The first point at which ptdump can race kernel page table freeing is
+commit b6bdb7517c3d ("mm/vmalloc: add interfaces to free unmapped page
+table"), so we target this in the Fixes tag.
+
+Link: https://lore.kernel.org/20260710-b4-fix-non-init_mm-ptdump-v1-1-2d40982c98ec@kernel.org
+Fixes: b6bdb7517c3d ("mm/vmalloc: add interfaces to free unmapped page table")
+Signed-off-by: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: David Hildenbrand <david@kernel.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Dev Jain <dev.jain@arm.com>
 Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
 Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Toshi Kani <toshi.kani@hpe.com>
 Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Will Deacon <will@kernel.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/ABI/testing/sysfs-kernel-mm-damon |    6 ++++++
- 1 file changed, 6 insertions(+)
+ mm/ptdump.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
---- a/Documentation/ABI/testing/sysfs-kernel-mm-damon~docs-abi-damon-document-probe-weight-file
-+++ a/Documentation/ABI/testing/sysfs-kernel-mm-damon
-@@ -164,6 +164,12 @@ Description:	Writing a number 'N' to thi
- 		directories for each DAMON probe named '0' to 'N-1' under the
- 		probes/ directory.
+--- a/mm/ptdump.c~mm-ptdump-always-stabilise-against-page-table-freeing-using-init_mm
++++ a/mm/ptdump.c
+@@ -178,11 +178,18 @@ void ptdump_walk_pgd(struct ptdump_state
  
-+What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/monitoring_attrs/probes/<P>/weight
-+Date:		Jul 2026
-+Contact:	SJ Park <sj@kernel.org>
-+Description:	Writing to and reading from this file sets and gets the
-+		per-probe attribute weight.
+ 	get_online_mems();
+ 	mmap_write_lock(mm);
++	/* To stabilise page tables we must hold the init_mm lock too. */
++	if (mm != &init_mm)
++		mmap_write_lock_nested(&init_mm, SINGLE_DEPTH_NESTING);
 +
- What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/monitoring_attrs/probes/<P>/filters/nr_filters
- Date:		May 2026
- Contact:	SJ Park <sj@kernel.org>
+ 	while (range->start != range->end) {
+ 		walk_page_range_debug(mm, range->start, range->end,
+ 				      &ptdump_ops, pgd, st);
+ 		range++;
+ 	}
++
++	if (mm != &init_mm)
++		mmap_write_unlock(&init_mm);
+ 	mmap_write_unlock(mm);
+ 	put_online_mems();
+ 
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from ljs@kernel.org are
 
-samples-damon-wsse-handle-damon_start-failure.patch
-samples-damon-prcl-handle-damon_start-failure.patch
-samples-damon-mtier-handle-damon_start-failure.patch
-samples-damon-mtier-handle-damon_stop-failure.patch
-samples-damon-wsse-stop-and-free-damon-ctx-when-damon_call-fails.patch
-samples-damon-prcl-stop-and-free-damon-ctx-when-damon_call-fails.patch
-mm-damon-sysfs-kobject_del-target-normal-context-and-kdamond-dirs.patch
-mm-damon-sysfs-kobject_del-region-and-target-error-dirs.patch
-mm-damon-sysfs-schemes-kobject_del-scheme-dirs.patch
-mm-damon-sysfs-schemes-kobject_del-scheme-region-dirs.patch
-mm-damon-sysfs-schemes-kobject_del-scheme-filter-dirs.patch
-mm-damon-sysfs-schemes-kobject_del-scheme-quota-goal-dirs.patch
-mm-damon-sysfs-schemes-kobject_del-scheme-action-destination-dirs.patch
-mm-damon-sysfs-kobject_del-probe-dirs.patch
-mm-damon-sysfs-kobject_del-probe-filter-dirs.patch
-mm-damon-sysfs-kobject_del-probe-dirs-in-probes_addd_dir-error-path.patch
-mm-damon-sysfs-schemes-kobject_del-region-for-populate_region-error.patch
-docs-mm-damon-design-update-for-damos_quota_node_eligible_mem_bp.patch
-docs-abi-damon-document-probe-files.patch
-mm-damon-tests-core-kunit-test-damon_rand.patch
-selftests-damon-sysfssh-test-multiple-probe-dirs-creation.patch
-selftests-damon-sysfssh-test-coreops_filters-directories.patch
-selftests-damon-sysfssh-test-dests-dir.patch
-selftests-damon-sysfssh-test-all-files-in-quota-goal-dir.patch
-mm-damon-core-reduce-range-setup-in-damon_commit_target_regions.patch
-mm-damon-sysfs-split-probe-setup-function-out.patch
-mm-damon-sysfs-split-out-filters-setup-function.patch
-mm-damon-sysfs-fix-typos-in-probe_addrm_dirs-s-attr-probe.patch
-mm-damon-core-introduce-damon_nr_accesses_mvsum.patch
-mm-damon-tests-core-kunit-test-damon_mvsum.patch
-mm-damon-core-always-update-last_nr_accesses-for-intervals-change.patch
-mm-damon-core-handle-unreset-nr_accesses-in-damon_nr_accesses_mvsum.patch
-mm-damon-core-use-damon_nr_accesses_mvsum-in-__damos_valid_target.patch
-mm-damon-core-use-damon_nr_accesses_mvsum-for-damos-region-tracing.patch
-mm-damon-sysfs-schemes-use-damon_nr_accesses_mvsum-for-damo-regions.patch
-mm-damon-core-remove-damon_warn_fix_nr_accesses_corruption.patch
-mm-damon-core-remove-damon_verify_reset_aggregated.patch
-mm-damon-core-remove-damon_verify_merge_regions_of.patch
-mm-damon-tests-core-kunit-remove-nr_accesses_bp-setup-and-tests.patch
-selftests-damon-drgn_dump_damon_status-do-not-dump-nr_accesses_bp.patch
-mm-damon-core-remove-nr_accesses_bp-setups-and-updates.patch
-mm-damon-core-remove-attrs-param-from-damon_update_region_access_rate.patch
-mm-damon-paddr-remove-attrs-param-from-__damon_pa_check_access.patch
-mm-damon-vaddr-remove-attrs-param-from-__damon_va_check_access.patch
-mm-damon-core-remove-damon_moving_sum-and-its-unit-test.patch
-mm-damon-core-remove-damon_region-nr_accesses_bp.patch
-mm-damon-add-damon_region-last_probe_hits.patch
-mm-damon-core-introduce-damon_probe_hits_mvsum.patch
-mm-damon-sysfs-schemes-set-probe-hits-as-pseudo-moving-sums.patch
-mm-damon-core-safely-validate-src-on-damon_commit_ctx.patch
-mm-damon-core-do-parameter-testing-commit-on-damon_start.patch
-mm-damon-sysfs-remove-duplicated-commit-input-validity-check.patch
-mm-damon-reclaim-remove-duplicated-min_region_sz-power-of-2-check.patch
-mm-damon-lru_sort-remove-duplicated-min_region_sz-power_of_2-check.patch
-mm-damon-document-region-size-validation-in-damon_set_regions.patch
-mm-damon-core-remove-start-end-check-in-damon_set_region_system_rams.patch
-mm-damon-sysfs-remove-region-size-validation.patch
-mm-damon-core-stop-ctxs-in-damon_start-before-returning-an-error.patch
-samples-damon-mtier-do-not-stop-first-context-for-damon_start-failure.patch
-mm-damon-core-make-damon_stop-never-fails.patch
-mm-damon-sysfs-ignore-damon_stop-return-value.patch
-mm-damon-reclaaim-ignore-damon_stop-return-value.patch
-mm-damon-lru_sort-ignore-damon_stop-return-value.patch
-mm-damon-core-change-damon_stop-return-type-to-void.patch
-samples-damon-mtier-stop-all-contexts-with-single-damon_stop-call.patch
-mm-damon-core-wait-ctx-stop-in-damon_call-before-reruning-an-error.patch
-samples-damon-wsse-do-not-stop-ctx-for-damon_call-failure.patch
-samples-damon-prcl-do-not-stop-damon-for-damon_call-failure.patch
-mm-damon-core-remove-comment-and-test-for-nr_to_bp-divide-by-zero.patch
-mm-damon-core-s-damon_max_nr_accesses-damon_nr_samples_per_aggr.patch
-mm-damon-core-s-accesses_bp_to_nr_accesses-sample_bp_to_count.patch
-mm-damon-core-s-nr_accesses_to_accesses_bp-sample_count_to_bp.patch
-mm-damon-core-s-nr_accesses_for_new_attrs-nr_samples_for_new_attrs.patch
-mm-damon-core-update-probe-hits-for-new-parameter-commit.patch
-mm-damon-core-handle-unreset-probe_hits-in-probe_hits_mvsum.patch
-mm-damon-core-introduce-damon_probe-weight.patch
-mm-damon-core-ask-apply_probes-ops-callback-to-set-sampling-address.patch
-mm-damon-paddr-set-samples-in-apply_probes-if-requested.patch
-mm-damon-core-ask-apply_probe-to-return-max-probe-hits-weighted-sum.patch
-mm-damon-core-implement-damon_probe_hits_wsum.patch
-mm-damon-paddr-respect-return_max_wsum.patch
-mm-damon-core-use-abs_diff-instead-of-abs.patch
-mm-damon-core-extend-merge-function-to-work-with-probe-hits.patch
-mm-damon-core-disallow-probe_hits-overflow-on-attrs-only-monitoring.patch
-mm-damon-core-validate-params-for-probe-hits-weighted-sum-overflow.patch
-mm-damon-core-disable-access-monitoring-when-probe-weights-are-set.patch
-mm-damon-core-set-samples-in-apply_probes-if-probe-weights-are-set.patch
-mm-damon-core-s-max_nr_accesses-max_merge_score-in-kdamond_fn.patch
-mm-damon-core-get-merge-threshold-from-probe-hits-when-weights-are-set.patch
-mm-damon-core-implement-damon_has_probe_weight.patch
-mm-damon-sysfs-implement-probe-weight-file.patch
-docs-mm-damon-design-document-attrs-only-monitoring.patch
-docs-admin-guide-mm-damon-usage-document-weight-sysfs-file.patch
-docs-abi-damon-document-probe-weight-file.patch
+mm-move-alloc-tag-to-mm.patch
+mm-ptdump-always-stabilise-against-page-table-freeing-using-init_mm.patch
 
