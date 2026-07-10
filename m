@@ -1,124 +1,332 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.16])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4E55C1F4634
-	for <mm-commits@vger.kernel.org>; Fri, 10 Jul 2026 05:20:04 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0946528373
+	for <mm-commits@vger.kernel.org>; Fri, 10 Jul 2026 18:34:14 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.16
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783660806; cv=none; b=WCVpyaA8DEYcT0z3wZ6HKjs/tfTISPIgKfdBxRbb/OjmABPd5Uk7MMzWYDZgsygKygXabKS69435ohh2j4D77XJnc/mTQYA5W6Z7S12Z6YmaQOpuHufV3pMD7ZBR+JaEIHEWSboi5K4v70bapgr0gT73zSoqc62WpxqY2fggiqQ=
+	t=1783708457; cv=none; b=VR4L4cOT9M2pAUQi1nzXrCPQOyjSKPkwkcCpRgWiDsMGqXJ1YLeCoLNcCMkxrfDB+C+m4KslXI51qBHxKT7HGJmJSAwwHbzSXlFNIVnNd3VedRwGBAl91qIOM93BxZwfKMIJQHwwxaoUskaSTo5aG850HQJ5641hI1b3SUhqt4A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783660806; c=relaxed/simple;
-	bh=unnTTU6yZOypfxf7oHgV68WHb+pmcIsg4DxnkPgr9cc=;
-	h=Date:To:From:Subject:Message-Id; b=YDpUoVVZT8Vr26cUsGn5ROrvTyqX4bLSrEyKYV0qOfiHYutLwQLsHWO9Vs/sEX37DhRW1KM5jyfDzOnm/DtYlr+OeF/QrQmPTs58dQ3nohJls9Ru8DFeVgENWs2tekL0pgsJafYm6R++o1YqAiZuFLNKiD5tmc7IOmNE+6Ev4+c=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LEiVUbhj; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783708457; c=relaxed/simple;
+	bh=ZcIjVUKfGR42ZJkIibRURQlrMGo5jsp/NGFaiuKysCM=;
+	h=Date:From:To:Cc:Subject:Message-ID; b=amsd3BshqS1+PpS6NRKcPheDzuENTUW6VLwQgZ8HoEH2sefkfhhzVFJNKlcptwe+YmmfBQEnwc7otzdle1gHuWK+ZpS2ezzqCqTQ1urY1AnXQsfAXvVDo8usDsGRbytQt/FGpmFGHdonp1GnXEdYzuZXt7rzGHE2VCXYAvpnshw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=HMBuyIvw; arc=none smtp.client-ip=192.198.163.16
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LEiVUbhj"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AE1631F000E9;
-	Fri, 10 Jul 2026 05:20:04 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783660804;
-	bh=anyoVx4lbt+XTXUyfkLQHWUE0rOoDD1OQPmp1YG2tIQ=;
-	h=Date:To:From:Subject;
-	b=LEiVUbhjO5tlCwTAzt+y+Uy8c/ohFanDQNOv8I0daWSWTnChpIiTjMD9LEKGFzqSQ
-	 clPSY4CzkM3h1d8zZ1AA1r/+I1h6LYowXZPauu2cS4HEN1+4vhpgF+7fFZnIbgV9fs
-	 UXkawOGIJA73eXAL95hsC9EI2lGj1ECrNAcKLnvg=
-Date: Thu, 09 Jul 2026 22:20:04 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,jack@suse.cz,hch@lst.de,akpm@linux-foundation.org
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-remove-wb_writeout_inc.patch added to mm-new branch
-Message-Id: <20260710052004.AE1631F000E9@smtp.kernel.org>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="HMBuyIvw"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1783708455; x=1815244455;
+  h=date:from:to:cc:subject:message-id;
+  bh=ZcIjVUKfGR42ZJkIibRURQlrMGo5jsp/NGFaiuKysCM=;
+  b=HMBuyIvw+ZirqKEG0oFoSKigxuGtb2+kCs+BExd9VSB+53mAoYbsEhFX
+   YiYIv4p8CyClHp6Wskwv1s1NiNh1ueu7mS6ZUuNwAKacewtLM1yjSjRMe
+   YPxQYcpHdXQ2Qntw8dMNqZhtTz6T0RdcwlR/6LG4rixoaid7jKp15qGh0
+   4Q5hvJMtAOo/pXFH5O5MRJCRY46Z5Wyc4kvGF51NUFq3nnRuvswl8I99m
+   G0qR4NalIetsolKvRa3oedCxTfPUk0oaVpAe/NZ6vrdmyW+KPlvKmL4oG
+   UAwHXaPPDq5FGwq3W7bP6Wj4vSOcEiw1QIxDOqVFPDMV5NcqCKjxD1KSX
+   g==;
+X-CSE-ConnectionGUID: qA5Jb3m8QfmtMEFdq5Wb7A==
+X-CSE-MsgGUID: XtAJbRJ2T4eD1WE/uGYilQ==
+X-IronPort-AV: E=McAfee;i="6800,10657,11841"; a="71932737"
+X-IronPort-AV: E=Sophos;i="6.25,154,1779174000"; 
+   d="scan'208";a="71932737"
+Received: from orviesa005.jf.intel.com ([10.64.159.145])
+  by fmvoesa110.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 Jul 2026 11:34:14 -0700
+X-CSE-ConnectionGUID: TPCtsg/PSiqk0+YKAV80cA==
+X-CSE-MsgGUID: U5/+YWenT/+AAoriCRNxeQ==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.25,154,1779174000"; 
+   d="scan'208";a="259281299"
+Received: from lkp-server02.sh.intel.com (HELO ea128546eb3d) ([10.239.97.151])
+  by orviesa005.jf.intel.com with ESMTP; 10 Jul 2026 11:34:13 -0700
+Received: from kbuild by ea128546eb3d with local (Exim 4.98.2)
+	(envelope-from <lkp@intel.com>)
+	id 1wiG37-00000000JG5-3nAE;
+	Fri, 10 Jul 2026 18:34:09 +0000
+Date: Sat, 11 Jul 2026 02:33:52 +0800
+From: kernel test robot <lkp@intel.com>
+To: David Hildenbrand <david@kernel.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>,
+ Linux Memory Management List <linux-mm@kvack.org>,
+ mm-commits@vger.kernel.org
+Subject: [akpm-mm:mm-new] BUILD SUCCESS WITH UNVERIFIED WARNING
+ 1e692e85500fd3a971da0241f044f4572b2be8b6
+Message-ID: <202607110232.GeLHzsfO-lkp@intel.com>
+User-Agent: s-nail v14.9.25
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
+tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm.git mm-new
+branch HEAD: 1e692e85500fd3a971da0241f044f4572b2be8b6  mm/swap, PM: hibernate: atomically replace hibernation pin
 
-The patch titled
-     Subject: mm: remove wb_writeout_inc
-has been added to the -mm mm-new branch.  Its filename is
-     mm-remove-wb_writeout_inc.patch
+Unverified Warning (likely false positive, kindly check if interested):
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-wb_writeout_inc.patch
+    https://lore.kernel.org/oe-kbuild/202607021433.DYT5fDqE-lkp@intel.com
 
-This patch will later appear in the mm-new branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+    mm/vmpressure.c:123 vmpressure() warn: check likely/unlikely parentheses
 
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
+Warning ids grouped by kconfigs:
 
-The mm-new branch of mm.git is not included in linux-next
+recent_errors
+`-- microblaze-randconfig-r071-20260710
+    `-- mm-vmpressure.c-vmpressure()-warn:check-likely-unlikely-parentheses
 
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
+elapsed time: 749m
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+configs tested: 244
+configs skipped: 12
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+tested configs:
+alpha                             allnoconfig    gcc-16.1.0
+alpha                            allyesconfig    gcc-16.1.0
+alpha                               defconfig    gcc-16.1.0
+arc                              allmodconfig    clang-23
+arc                              allmodconfig    gcc-16.1.0
+arc                               allnoconfig    gcc-16.1.0
+arc                              allyesconfig    clang-23
+arc                              allyesconfig    gcc-16.1.0
+arc                                 defconfig    gcc-16.1.0
+arc                            randconfig-001    clang-23
+arc                   randconfig-001-20260710    clang-23
+arc                   randconfig-001-20260710    gcc-12.5.0
+arc                            randconfig-002    clang-23
+arc                   randconfig-002-20260710    clang-23
+arc                   randconfig-002-20260710    gcc-10.5.0
+arm                               allnoconfig    clang-17
+arm                               allnoconfig    gcc-16.1.0
+arm                              allyesconfig    clang-23
+arm                              allyesconfig    gcc-16.1.0
+arm                                 defconfig    clang-23
+arm                            randconfig-001    clang-23
+arm                   randconfig-001-20260710    clang-23
+arm                   randconfig-001-20260710    gcc-8.5.0
+arm                            randconfig-002    clang-23
+arm                   randconfig-002-20260710    clang-23
+arm                   randconfig-002-20260710    gcc-16.1.0
+arm                            randconfig-003    clang-23
+arm                   randconfig-003-20260710    clang-23
+arm                            randconfig-004    clang-23
+arm                   randconfig-004-20260710    clang-23
+arm64                            allmodconfig    clang-23
+arm64                             allnoconfig    gcc-16.1.0
+arm64                               defconfig    gcc-16.1.0
+arm64                 randconfig-001-20260710    gcc-10.5.0
+arm64                 randconfig-001-20260710    gcc-8.5.0
+arm64                 randconfig-002-20260710    gcc-10.5.0
+arm64                 randconfig-002-20260710    gcc-8.5.0
+arm64                 randconfig-003-20260710    gcc-10.5.0
+arm64                 randconfig-003-20260710    gcc-16.1.0
+arm64                 randconfig-004-20260710    gcc-10.5.0
+arm64                 randconfig-004-20260710    gcc-8.5.0
+csky                             allmodconfig    gcc-16.1.0
+csky                              allnoconfig    gcc-16.1.0
+csky                                defconfig    gcc-16.1.0
+csky                  randconfig-001-20260710    gcc-10.5.0
+csky                  randconfig-002-20260710    gcc-10.5.0
+csky                  randconfig-002-20260710    gcc-16.1.0
+hexagon                          allmodconfig    clang-23
+hexagon                          allmodconfig    gcc-16.1.0
+hexagon                           allnoconfig    clang-23
+hexagon                           allnoconfig    gcc-16.1.0
+hexagon                             defconfig    clang-23
+hexagon               randconfig-001-20260710    clang-23
+hexagon               randconfig-001-20260710    gcc-12.5.0
+hexagon               randconfig-002-20260710    clang-20
+hexagon               randconfig-002-20260710    gcc-12.5.0
+i386                             allmodconfig    clang-22
+i386                             allmodconfig    gcc-14
+i386                              allnoconfig    gcc-14
+i386                              allnoconfig    gcc-16.1.0
+i386                             allyesconfig    clang-22
+i386                             allyesconfig    gcc-14
+i386        buildonly-randconfig-001-20260710    clang-22
+i386        buildonly-randconfig-002-20260710    clang-22
+i386        buildonly-randconfig-002-20260710    gcc-14
+i386        buildonly-randconfig-003-20260710    clang-22
+i386        buildonly-randconfig-003-20260710    gcc-14
+i386        buildonly-randconfig-004-20260710    clang-22
+i386        buildonly-randconfig-005-20260710    clang-22
+i386        buildonly-randconfig-006-20260710    clang-22
+i386                                defconfig    clang-22
+i386                  randconfig-001-20260710    gcc-14
+i386                  randconfig-002-20260710    clang-22
+i386                  randconfig-003-20260710    gcc-14
+i386                  randconfig-004-20260710    clang-22
+i386                  randconfig-005-20260710    gcc-14
+i386                  randconfig-006-20260710    clang-22
+i386                  randconfig-007-20260710    clang-22
+i386                           randconfig-011    gcc-14
+i386                  randconfig-011-20260710    gcc-14
+i386                           randconfig-012    gcc-14
+i386                  randconfig-012-20260710    clang-22
+i386                  randconfig-012-20260710    gcc-14
+i386                           randconfig-013    gcc-14
+i386                  randconfig-013-20260710    gcc-14
+i386                           randconfig-014    gcc-14
+i386                  randconfig-014-20260710    gcc-14
+i386                           randconfig-015    gcc-14
+i386                  randconfig-015-20260710    clang-22
+i386                  randconfig-015-20260710    gcc-14
+i386                           randconfig-016    gcc-14
+i386                  randconfig-016-20260710    gcc-14
+i386                           randconfig-017    gcc-14
+i386                  randconfig-017-20260710    gcc-14
+loongarch                        allmodconfig    clang-19
+loongarch                        allmodconfig    clang-23
+loongarch                         allnoconfig    clang-20
+loongarch                         allnoconfig    gcc-16.1.0
+loongarch                           defconfig    clang-23
+loongarch             randconfig-001-20260710    gcc-12.5.0
+loongarch             randconfig-002-20260710    clang-18
+loongarch             randconfig-002-20260710    gcc-12.5.0
+m68k                             allmodconfig    gcc-16.1.0
+m68k                              allnoconfig    gcc-16.1.0
+m68k                             allyesconfig    clang-23
+m68k                             allyesconfig    gcc-16.1.0
+m68k                                defconfig    clang-23
+m68k                                defconfig    gcc-16.1.0
+microblaze                        allnoconfig    gcc-16.1.0
+microblaze                       allyesconfig    gcc-16.1.0
+microblaze                          defconfig    clang-23
+microblaze                          defconfig    gcc-16.1.0
+mips                             allmodconfig    gcc-16.1.0
+mips                              allnoconfig    gcc-16.1.0
+mips                             allyesconfig    gcc-16.1.0
+nios2                            allmodconfig    clang-20
+nios2                            allmodconfig    gcc-11.5.0
+nios2                             allnoconfig    clang-23
+nios2                             allnoconfig    gcc-11.5.0
+nios2                               defconfig    clang-23
+nios2                               defconfig    gcc-11.5.0
+nios2                 randconfig-001-20260710    gcc-12.5.0
+nios2                 randconfig-001-20260710    gcc-8.5.0
+nios2                 randconfig-002-20260710    gcc-12.5.0
+nios2                 randconfig-002-20260710    gcc-8.5.0
+openrisc                         allmodconfig    clang-20
+openrisc                         allmodconfig    gcc-16.1.0
+openrisc                          allnoconfig    clang-23
+openrisc                          allnoconfig    gcc-16.1.0
+openrisc                            defconfig    gcc-16.1.0
+parisc                           allmodconfig    gcc-16.1.0
+parisc                            allnoconfig    clang-23
+parisc                            allnoconfig    gcc-16.1.0
+parisc                           allyesconfig    gcc-16.1.0
+parisc                              defconfig    gcc-16.1.0
+parisc                         randconfig-001    gcc-8.5.0
+parisc                randconfig-001-20260710    gcc-9.5.0
+parisc                         randconfig-002    gcc-12.5.0
+parisc                randconfig-002-20260710    gcc-11.5.0
+parisc64                            defconfig    clang-23
+parisc64                            defconfig    gcc-16.1.0
+powerpc                          allmodconfig    gcc-16.1.0
+powerpc                           allnoconfig    clang-23
+powerpc                           allnoconfig    gcc-16.1.0
+powerpc                       eiger_defconfig    clang-23
+powerpc                 mpc836x_rdk_defconfig    clang-23
+powerpc                        randconfig-001    gcc-10.5.0
+powerpc               randconfig-001-20260710    gcc-14.3.0
+powerpc                        randconfig-002    gcc-8.5.0
+powerpc               randconfig-002-20260710    clang-17
+powerpc64                      randconfig-001    clang-17
+powerpc64             randconfig-001-20260710    clang-23
+powerpc64                      randconfig-002    clang-23
+powerpc64             randconfig-002-20260710    clang-17
+riscv                            allmodconfig    clang-23
+riscv                             allnoconfig    clang-23
+riscv                             allnoconfig    gcc-16.1.0
+riscv                            allyesconfig    clang-23
+riscv                               defconfig    clang-23
+riscv                 randconfig-001-20260710    clang-17
+riscv                 randconfig-002-20260710    clang-17
+s390                             allmodconfig    clang-23
+s390                              allnoconfig    clang-23
+s390                             allyesconfig    gcc-16.1.0
+s390                                defconfig    clang-18
+s390                  randconfig-001-20260710    gcc-9.5.0
+s390                  randconfig-002-20260710    gcc-8.5.0
+sh                               allmodconfig    gcc-16.1.0
+sh                                allnoconfig    clang-23
+sh                                allnoconfig    gcc-16.1.0
+sh                               allyesconfig    gcc-16.1.0
+sh                                  defconfig    gcc-14
+sh                                  defconfig    gcc-16.1.0
+sh                    randconfig-001-20260710    gcc-16.1.0
+sh                    randconfig-002-20260710    gcc-12.5.0
+sh                   sh7724_generic_defconfig    gcc-16.1.0
+sparc                             allnoconfig    clang-23
+sparc                             allnoconfig    gcc-16.1.0
+sparc                               defconfig    gcc-16.1.0
+sparc                 randconfig-001-20260710    gcc-15.2.0
+sparc                 randconfig-002-20260710    gcc-13.4.0
+sparc64                          allmodconfig    clang-20
+sparc64                             defconfig    clang-23
+sparc64                             defconfig    gcc-14
+sparc64               randconfig-001-20260710    gcc-15.2.0
+sparc64               randconfig-002-20260710    gcc-13.4.0
+um                               allmodconfig    clang-17
+um                                allnoconfig    clang-17
+um                                allnoconfig    clang-23
+um                               allyesconfig    gcc-14
+um                               allyesconfig    gcc-16.1.0
+um                                  defconfig    clang-23
+um                                  defconfig    gcc-14
+um                             i386_defconfig    gcc-14
+um                    randconfig-001-20260710    gcc-14
+um                    randconfig-002-20260710    clang-23
+um                           x86_64_defconfig    clang-23
+um                           x86_64_defconfig    gcc-14
+x86_64                           allmodconfig    clang-22
+x86_64                            allnoconfig    clang-22
+x86_64                            allnoconfig    clang-23
+x86_64                           allyesconfig    clang-22
+x86_64      buildonly-randconfig-001-20260710    clang-22
+x86_64      buildonly-randconfig-001-20260710    gcc-14
+x86_64      buildonly-randconfig-002-20260710    clang-22
+x86_64      buildonly-randconfig-003-20260710    clang-22
+x86_64      buildonly-randconfig-004-20260710    clang-22
+x86_64      buildonly-randconfig-005-20260710    clang-22
+x86_64      buildonly-randconfig-006-20260710    clang-22
+x86_64                              defconfig    gcc-14
+x86_64                                  kexec    clang-22
+x86_64                randconfig-001-20260710    clang-22
+x86_64                randconfig-002-20260710    gcc-14
+x86_64                randconfig-003-20260710    gcc-14
+x86_64                randconfig-004-20260710    clang-22
+x86_64                randconfig-005-20260710    gcc-14
+x86_64                randconfig-006-20260710    clang-22
+x86_64                randconfig-011-20260710    clang-22
+x86_64                randconfig-011-20260710    gcc-14
+x86_64                randconfig-012-20260710    clang-22
+x86_64                randconfig-012-20260710    gcc-14
+x86_64                randconfig-013-20260710    clang-22
+x86_64                randconfig-014-20260710    clang-22
+x86_64                randconfig-015-20260710    clang-22
+x86_64                randconfig-015-20260710    gcc-14
+x86_64                randconfig-016-20260710    clang-22
+x86_64                randconfig-071-20260710    clang-22
+x86_64                randconfig-071-20260710    gcc-14
+x86_64                randconfig-072-20260710    gcc-14
+x86_64                randconfig-073-20260710    gcc-14
+x86_64                randconfig-074-20260710    clang-22
+x86_64                randconfig-074-20260710    gcc-14
+x86_64                randconfig-075-20260710    clang-22
+x86_64                randconfig-075-20260710    gcc-14
+x86_64                randconfig-076-20260710    gcc-14
+x86_64                               rhel-9.4    clang-22
+x86_64                          rhel-9.4-func    clang-22
+x86_64                    rhel-9.4-kselftests    clang-22
+x86_64                          rhel-9.4-rust    clang-22
+xtensa                            allnoconfig    clang-23
+xtensa                            allnoconfig    gcc-16.1.0
+xtensa                           allyesconfig    clang-20
+xtensa                           allyesconfig    gcc-16.1.0
+xtensa                randconfig-002-20260710    gcc-9.5.0
 
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
-
-------------------------------------------------------
-From: Christoph Hellwig <hch@lst.de>
-Subject: mm: remove wb_writeout_inc
-Date: Fri, 10 Jul 2026 07:10:52 +0200
-
-Remove this entirely unused but exported function.
-
-Link: https://lore.kernel.org/20260710051052.1839523-1-hch@lst.de
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- include/linux/backing-dev.h |    2 --
- mm/page-writeback.c         |   10 ----------
- 2 files changed, 12 deletions(-)
-
---- a/include/linux/backing-dev.h~mm-remove-wb_writeout_inc
-+++ a/include/linux/backing-dev.h
-@@ -76,8 +76,6 @@ static inline s64 wb_stat_sum(struct bdi
- 	return percpu_counter_sum_positive(&wb->stat[item]);
- }
- 
--extern void wb_writeout_inc(struct bdi_writeback *wb);
--
- /*
-  * maximal error of a stat counter.
-  */
---- a/mm/page-writeback.c~mm-remove-wb_writeout_inc
-+++ a/mm/page-writeback.c
-@@ -584,16 +584,6 @@ static inline void __wb_writeout_add(str
- 				       wb->bdi->max_prop_frac, nr);
- }
- 
--void wb_writeout_inc(struct bdi_writeback *wb)
--{
--	unsigned long flags;
--
--	local_irq_save(flags);
--	__wb_writeout_add(wb, 1);
--	local_irq_restore(flags);
--}
--EXPORT_SYMBOL_GPL(wb_writeout_inc);
--
- /*
-  * On idle system, we can be called long after we scheduled because we use
-  * deferred timers so count with missed periods.
-_
-
-Patches currently in -mm which might be from hch@lst.de are
-
-mm-remove-wb_writeout_inc.patch
-
+--
+0-DAY CI Kernel Test Service
+https://github.com/intel/lkp-tests/wiki
