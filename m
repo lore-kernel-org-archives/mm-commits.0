@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6C81334EEFD
-	for <mm-commits@vger.kernel.org>; Fri, 10 Jul 2026 01:53:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 053131DC98F
+	for <mm-commits@vger.kernel.org>; Fri, 10 Jul 2026 02:28:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783648413; cv=none; b=kXvuE8UjRjeUbNJsUAlP9Dnb6G2yudWBZVvlKYvv9CNBcTo/dLvXDGVALG35SMJaJ8Xwv3P941cGlOoK/6e1PteyLArD4SATjrryZc1aEfYlRu5tXr5LU8pV/uC2Fj2r/fdWObdTJBy5nlcQ1hkQ4SDY0EuA6JeiGb4u2vY6CNE=
+	t=1783650538; cv=none; b=XGOuyfD6z2uDKVeZM6Hcktst9yHLHLn0K117NLb/JzPNa/OJvevnAyPtqsd1XqQLEAWiU+V2IPBIn7eq93R8RHBhgajEcDom8NEgswamv4uNLiDKxg2xI6iMBHwn33t//EqPmhRRVL2a0QbsOtkbLjUxBkFaXxtdNgUsSUgof0Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783648413; c=relaxed/simple;
-	bh=kBNd4dptx8UMyhMOOeKx/IOS7D/SYmHbrJVVizYr8PQ=;
-	h=Date:To:From:Subject:Message-Id; b=M1F7RFt9PibIswwUFz9gSiVd8fx3RcSZn0oxxLl8ockPOcwUs/thB07pHKHAxLh2OmeJOoeiVfIK5HQ0xEsq0C58kWcexbe2FkxVjKdc/3yvp8vuQmaiOVaHvX+nTMsH/ltgbvIkioo3KiL0UW39meAw+BqusUYQckwWw0bMDCg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=INHDcdCa; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783650538; c=relaxed/simple;
+	bh=oIsj/B1+2+AWMiiT+QQ+CdWaNJUI7ibxzLtpYTJGoRQ=;
+	h=Date:To:From:Subject:Message-Id; b=EKcXZRMOwLQRERIVZebfaq7zi7C3CLwYK6A60CtyfIKOv104o+DBk/IgxWHjf5MK6vQrPMRSgcqMsNzPaBqXVVIJ8exlwy0eatTOEfTv6jBhTUerjzwHP7jDyskZxZEYA8DElWPO7fiC6xv+T1lDmBzx8m1V1USqwuQkzgx3p+Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oqQQipSM; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="INHDcdCa"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 015741F000E9;
-	Fri, 10 Jul 2026 01:53:31 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oqQQipSM"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6B2021F000E9;
+	Fri, 10 Jul 2026 02:28:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783648412;
-	bh=eIrRy8Yfgptwayi8ebsEh/NeHsSQTCmNwMmk41C25Qk=;
+	d=linux-foundation.org; s=korg; t=1783650536;
+	bh=M+JJfX0eM7ykwf2+IVxuhuFr+RdTSHxPdf/Ik4Ji4wQ=;
 	h=Date:To:From:Subject;
-	b=INHDcdCaeZ4eIM6P2xlPpcocICxEhvH1lfTEThhHFpjevAAgTVHGRC3TRMQ5vw6ev
-	 c0pWQe1Azg19XnXBZgJsL5hajZFJCmxzs9BqZ9pJtpEzlJgLpWFNb6DSDWjx8uelqE
-	 LiXpLpzfpYdlULngiXqMqdX5vs4PIGKTbRXdVzjI=
-Date: Thu, 09 Jul 2026 18:53:31 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,shuah@kernel.org,ritesh.list@gmail.com,osalvador@suse.de,mhocko@kernel.org,linmiaohe@huawei.com,liam.howlett@oracle.com,dev.jain@arm.com,david@kernel.org,sayalip@linux.ibm.com,akpm@linux-foundation.org
+	b=oqQQipSMvBJvoqLg0BTeOnsIolvawDosjHK7/Ky4YbTe1sK/RnEeQn+lL/9RCyDkp
+	 lExYFI8GcetyvC66zwqLdtTygHkcrdPqczIz6/3JZBbTueKKhjjGkVg8U1TE3z9XJ+
+	 7iAk9eBtwSED79F58wAmiwa45/OZJpI3m8AXIOMA=
+Date: Thu, 09 Jul 2026 19:28:56 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,sougupta@nvidia.com,david@kernel.org,balbirs@nvidia.com,apopple@nvidia.com,jhubbard@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-fix-ternary-operator-precedence-in-ksm_tests.patch added to mm-new branch
-Message-Id: <20260710015332.015741F000E9@smtp.kernel.org>
+Subject: + mm-gup-fix-gup-fast-fallback-for-null-mapping-order-0-folios.patch added to mm-new branch
+Message-Id: <20260710022856.6B2021F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: fix ternary operator precedence in ksm_tests
+     Subject: mm/gup: fix GUP-fast fallback for NULL-mapping order-0 folios
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-mm-fix-ternary-operator-precedence-in-ksm_tests.patch
+     mm-gup-fix-gup-fast-fallback-for-null-mapping-order-0-folios.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-fix-ternary-operator-precedence-in-ksm_tests.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-gup-fix-gup-fast-fallback-for-null-mapping-order-0-folios.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,85 +69,69 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Sayali Patil <sayalip@linux.ibm.com>
-Subject: selftests/mm: fix ternary operator precedence in ksm_tests
-Date: Wed, 8 Jul 2026 12:29:07 +0530
+From: John Hubbard <jhubbard@nvidia.com>
+Subject: mm/gup: fix GUP-fast fallback for NULL-mapping order-0 folios
+Date: Tue, 7 Jul 2026 17:57:45 -0700
 
-The KSM selftest uses conditional expressions to skip accesses to
-merge_across_nodes on systems without NUMA support.  However, the ternary
-operator is combined with logical OR without parentheses:
+Since commit f002882ca369 ("mm: merge folio_is_secretmem() and
+folio_fast_pin_allowed() into gup_fast_folio_allowed()"),
+gup_fast_folio_allowed() falls back to the slow path for any order-0 folio
+with a NULL mapping when CONFIG_SECRETMEM=y.  This causes a performance
+regression for drivers that allocate pages with alloc_page() and insert
+them into VMAs via vm_insert_page().  These pages legitimately have a NULL
+folio->mapping, but they cannot be secretmem pages.
 
-a || numa_available() ? 0 : b || c
+Secretmem pages are always added to the secretmem inode's page cache via
+filemap_add_folio(), which sets folio->mapping to the inode's i_mapping. 
+A folio with a NULL mapping can never be a secretmem folio.  The
+NULL-mapping check was intended to handle truncated file-backed pages (a
+reject_file_backed concern), not secretmem detection.
 
-Due to operator precedence rules, this is parsed as:
+When only check_secretmem is true (and reject_file_backed is false), a
+NULL mapping is sufficient to prove the folio is not secretmem, so the
+fast path can proceed.
 
-(a || numa_available()) ? 0 : (b || c)
-
-instead of the intended:
-
-a || (numa_available() ? 0 : b) || c
-
-Add parentheses around the conditional expressions to ensure the
-correct evaluation order.
-
-Link: https://lore.kernel.org/ce859430287ed2642848c933a90eb9a69da361f0.1783446924.git.sayalip@linux.ibm.com
-Fixes: 9aa1af954db0 ("selftests: vm: check numa_available() before operating "merge_across_nodes" in ksm_tests")
-Signed-off-by: Sayali Patil <sayalip@linux.ibm.com>
+Link: https://lore.kernel.org/20260708005745.164928-1-jhubbard@nvidia.com
+Fixes: f002882ca369 ("mm: merge folio_is_secretmem() and folio_fast_pin_allowed() into gup_fast_folio_allowed()")
+Signed-off-by: John Hubbard <jhubbard@nvidia.com>
+Tested-by: Sourab Gupta <sougupta@nvidia.com>
 Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: "Ritesh Harjani (IBM)" <ritesh.list@gmail.com>
-Cc: Shuah Khan <shuah@kernel.org>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Balbir Singh <balbirs@nvidia.com>
 Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/ksm_tests.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ mm/gup.c |   13 +++++++++----
+ 1 file changed, 9 insertions(+), 4 deletions(-)
 
---- a/tools/testing/selftests/mm/ksm_tests.c~selftests-mm-fix-ternary-operator-precedence-in-ksm_tests
-+++ a/tools/testing/selftests/mm/ksm_tests.c
-@@ -288,8 +288,8 @@ static bool assert_ksm_pages_count(long
- static int ksm_save_def(struct ksm_sysfs *ksm_sysfs)
- {
- 	if (ksm_read_sysfs(KSM_FP("max_page_sharing"), &ksm_sysfs->max_page_sharing) ||
--	    numa_available() ? 0 :
--		ksm_read_sysfs(KSM_FP("merge_across_nodes"), &ksm_sysfs->merge_across_nodes) ||
-+	    (numa_available() ? 0 :
-+		ksm_read_sysfs(KSM_FP("merge_across_nodes"), &ksm_sysfs->merge_across_nodes)) ||
- 	    ksm_read_sysfs(KSM_FP("sleep_millisecs"), &ksm_sysfs->sleep_millisecs) ||
- 	    ksm_read_sysfs(KSM_FP("pages_to_scan"), &ksm_sysfs->pages_to_scan) ||
- 	    ksm_read_sysfs(KSM_FP("run"), &ksm_sysfs->run) ||
-@@ -304,8 +304,8 @@ static int ksm_save_def(struct ksm_sysfs
- static int ksm_restore(struct ksm_sysfs *ksm_sysfs)
- {
- 	if (ksm_write_sysfs(KSM_FP("max_page_sharing"), ksm_sysfs->max_page_sharing) ||
--	    numa_available() ? 0 :
--		ksm_write_sysfs(KSM_FP("merge_across_nodes"), ksm_sysfs->merge_across_nodes) ||
-+	    (numa_available() ? 0 :
-+		ksm_write_sysfs(KSM_FP("merge_across_nodes"), ksm_sysfs->merge_across_nodes)) ||
- 	    ksm_write_sysfs(KSM_FP("pages_to_scan"), ksm_sysfs->pages_to_scan) ||
- 	    ksm_write_sysfs(KSM_FP("run"), ksm_sysfs->run) ||
- 	    ksm_write_sysfs(KSM_FP("sleep_millisecs"), ksm_sysfs->sleep_millisecs) ||
-@@ -846,8 +846,8 @@ int main(int argc, char *argv[])
+--- a/mm/gup.c~mm-gup-fix-gup-fast-fallback-for-null-mapping-order-0-folios
++++ a/mm/gup.c
+@@ -2784,12 +2784,17 @@ static bool gup_fast_folio_allowed(struc
+ 	mapping = READ_ONCE(folio->mapping);
  
- 	if (ksm_write_sysfs(KSM_FP("run"), 2) ||
- 	    ksm_write_sysfs(KSM_FP("sleep_millisecs"), 0) ||
--	    numa_available() ? 0 :
--		ksm_write_sysfs(KSM_FP("merge_across_nodes"), 1) ||
-+	    (numa_available() ? 0 :
-+		ksm_write_sysfs(KSM_FP("merge_across_nodes"), 1)) ||
- 	    ksm_write_sysfs(KSM_FP("pages_to_scan"), page_count))
- 		ksft_exit_fail_msg("Cannot set up KSM tunables\n");
+ 	/*
+-	 * The mapping may have been truncated, in any case we cannot determine
+-	 * if this mapping is safe - fall back to slow path to determine how to
+-	 * proceed.
++	 * If the mapping is NULL (truncated, or never set), we cannot
++	 * determine whether the folio is file-backed, so a long-term writable
++	 * pin must fall back to the slow path.
++	 *
++	 * Otherwise, a NULL mapping proves this is not a secretmem folio
++	 * (secretmem folios always have a valid mapping to the secretmem
++	 * inode's address_space), so in that case, we can continue with the
++	 * fast path.
+ 	 */
+ 	if (!mapping)
+-		return false;
++		return !reject_file_backed;
  
+ 	/* Anonymous folios pose no problem. */
+ 	mapping_flags = (unsigned long)mapping & FOLIO_MAPPING_FLAGS;
 _
 
-Patches currently in -mm which might be from sayalip@linux.ibm.com are
+Patches currently in -mm which might be from jhubbard@nvidia.com are
 
-selftests-mm-handle-einval-when-configuring-gigantic-hugepages.patch
-selftests-mm-fix-ksm-numa-merge-test-for-systems-with-memoryless-numa-nodes.patch
-selftests-mm-fix-ternary-operator-precedence-in-ksm_tests.patch
+mm-gup-fix-gup-fast-fallback-for-null-mapping-order-0-folios.patch
 
