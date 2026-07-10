@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ABE4B39A800
-	for <mm-commits@vger.kernel.org>; Fri, 10 Jul 2026 20:23:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 64E1739A070
+	for <mm-commits@vger.kernel.org>; Fri, 10 Jul 2026 20:24:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783715041; cv=none; b=Bt/Qyqyrsy7hC4T2y/75DFAUHe7R6Sm0biLkLyoGDTKf5cRBAi87FHSerr0e8NQlfATqmzotlFmnNPLvo1Lg4wOqTjzpLZR9Mqf0HgXPF8RXLuf3DLn6RgfbEG+fSILFszplza4aZVwMvPwiXGIGv+2fKfBEKeDHahVrghz0FWE=
+	t=1783715043; cv=none; b=S2ZZ7oOuORtMyFwiB6QYxf+VSNOLD3hkx5qu1TqVOliiXu7C+2ry/6Uk29kQSgxopjY8dlCSmJuMp43GgBAt8ZLNwoaq8XB81n8iBCrd3EF/vKQ11i0m0fJWvbVQts/ETpBfkCzi2Rn0QBwOOaDEOtCXMmsfDm6K3BsYSwDv9Iw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783715041; c=relaxed/simple;
-	bh=s3sGnFcKIsQrKuTrgYAWX/gGzkPMFt5TE5uWdc7NrZ4=;
-	h=Date:To:From:Subject:Message-Id; b=bPp9jbWdoAvwJa1jBDMFg1Yh1wFzgr6tz+H7HJzX8XZ3gP8YKRgoeA87KnEAXrMi+i921TplA+uRHEHj972CYvT1wdUC5N33yhHmQdjcF5noZs6koQX72lWtVqAXwPVdPyezZXJX6ERF+89K8nITtSQnQ5qMmD5MDgpqeVDVaT0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=iJg/vzqO; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783715043; c=relaxed/simple;
+	bh=ILQqCcjSEp4pMBVJLFmaCHDEXhSNJ1xQO6TQR2Fnics=;
+	h=Date:To:From:Subject:Message-Id; b=Pvz9PZvqH0yGQvfrxVvbWH4P25ToOoWjlDqx0YPMzy5WHMIBhiTwYpmnm3K8dPxTWMqOvyXcb7oofwoF6Dx2R6SLOzHZdOTb8BjHBXkavMPCIZdI8kQqssHjj0QBYgx2denm8ydPrRTWKsy7/i79hskJ7aKKTq8zUhoGxTKtMw4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MtND41+g; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="iJg/vzqO"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6771C1F000E9;
-	Fri, 10 Jul 2026 20:23:59 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MtND41+g"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EA16A1F000E9;
+	Fri, 10 Jul 2026 20:24:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783715039;
-	bh=1mgbWaQ8U8CkDRQfVLFKi2FmXb4vyQAPCR/7zc3W0nI=;
+	d=linux-foundation.org; s=korg; t=1783715042;
+	bh=OVMXPdV2jAdK7QdNGxtnSJP4SeY4Z/jK3qaI1VD7eDo=;
 	h=Date:To:From:Subject;
-	b=iJg/vzqOwWNEpgJLtBMaa1aU4MuNNqfdQ5pdBQHc6nWeEmIorQ8UP8NInXd+M2DbU
-	 /LB67HpfDkamwU/fndzpAl/oJAr8EEMlN5bT/b9+yIzJhPNJC7/Gv1jdqhrwuogGwD
-	 s/m1tqzFt3lxn+0eFI+9A/ZfA1hCRQCRITNfA9bc=
-Date: Fri, 10 Jul 2026 13:23:59 -0700
+	b=MtND41+gVCiHAp1PFXQjHKZ3oMFN29jRLEICBs28y1y+80uuzKDZcoAE4AIcxsyh/
+	 KbrGlg2kiu0kkBICecMbtiiIA+VibjQ/2wtzsbOxXHHrLHVFvn0cLdA88BBBhNideZ
+	 l/Ot6ZjPyjfrA0dy+M9ZOB0aMspHZoJhnBtQpiB8=
+Date: Fri, 10 Jul 2026 13:24:01 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-core-implement-damon_probe_hits_wsum.patch added to mm-new branch
-Message-Id: <20260710202359.6771C1F000E9@smtp.kernel.org>
+Subject: + mm-damon-paddr-respect-return_max_wsum.patch added to mm-new branch
+Message-Id: <20260710202401.EA16A1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/core: implement damon_probe_hits_wsum()
+     Subject: mm/damon/paddr: respect return_max_wsum
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-core-implement-damon_probe_hits_wsum.patch
+     mm-damon-paddr-respect-return_max_wsum.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-implement-damon_probe_hits_wsum.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-paddr-respect-return_max_wsum.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,14 +70,13 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/core: implement damon_probe_hits_wsum()
-Date: Fri, 10 Jul 2026 06:46:34 -0700
+Subject: mm/damon/paddr: respect return_max_wsum
+Date: Fri, 10 Jul 2026 06:46:35 -0700
 
-When damon_probe->weight is set, the weighted sum of probe hits will be
-useful.  It will be useful for not only the users but also DAMON internal
-logics like regions merging.  Implement a function for calculating it.
+apply_probes() ops implementation in DAMON_PADDR is ignoring
+return_max_wsum.  Respect it.
 
-Link: https://lore.kernel.org/20260710134651.18084-6-sj@kernel.org
+Link: https://lore.kernel.org/20260710134651.18084-7-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
@@ -90,54 +89,41 @@ Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/damon.h |    2 ++
- mm/damon/core.c       |   24 ++++++++++++++++++++++++
- 2 files changed, 26 insertions(+)
+ mm/damon/paddr.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
---- a/include/linux/damon.h~mm-damon-core-implement-damon_probe_hits_wsum
-+++ a/include/linux/damon.h
-@@ -1012,6 +1012,8 @@ unsigned int damon_nr_accesses_mvsum(str
- 		struct damon_ctx *ctx);
- unsigned char damon_probe_hits_mvsum(int probe_idx, struct damon_region *r,
- 		struct damon_ctx *ctx);
-+unsigned int damon_probe_hits_wsum(struct damon_region *r, bool last,
-+		struct damon_ctx *ctx);
+--- a/mm/damon/paddr.c~mm-damon-paddr-respect-return_max_wsum
++++ a/mm/damon/paddr.c
+@@ -172,6 +172,7 @@ static unsigned int damon_pa_apply_probe
+ 	struct damon_target *t;
+ 	struct damon_region *r;
+ 	struct damon_probe *p;
++	unsigned int max_wsum = 0;
  
- int damon_set_regions(struct damon_target *t, struct damon_addr_range *ranges,
- 		unsigned int nr_ranges, unsigned long min_region_sz);
---- a/mm/damon/core.c~mm-damon-core-implement-damon_probe_hits_wsum
-+++ a/mm/damon/core.c
-@@ -393,6 +393,30 @@ static bool damon_is_last_region(struct
- 	return list_is_last(&r->list, &t->regions_list);
+ 	damon_for_each_target(t, ctx) {
+ 		damon_for_each_region(r, t) {
+@@ -182,7 +183,6 @@ static unsigned int damon_pa_apply_probe
+ 			if (set_samples)
+ 				r->sampling_addr = damon_rand(ctx, r->ar.start,
+ 						r->ar.end);
+-
+ 			pa = damon_pa_phys_addr(r->sampling_addr,
+ 					ctx->addr_unit);
+ 			folio = damon_get_folio(PHYS_PFN(pa));
+@@ -193,9 +193,12 @@ static unsigned int damon_pa_apply_probe
+ 			}
+ 			if (folio)
+ 				folio_put(folio);
++			if (return_max_wsum)
++				max_wsum = max(damon_probe_hits_wsum(r, false,
++							ctx), max_wsum);
+ 		}
+ 	}
+-	return 0;
++	return max_wsum;
  }
  
-+/**
-+ * damon_probe_hits_wsum() - Returns probe hits weighted sum of a region.
-+ * @r:		region to get the weighted sum of.
-+ * @last:	if the request is for last-window aggregated probe hits.
-+ * @ctx:	context of &r.
-+ *
-+ * Return: the weighted sum of probe hits of the region.
-+ */
-+unsigned int damon_probe_hits_wsum(struct damon_region *r, bool last,
-+		struct damon_ctx *ctx)
-+{
-+	struct damon_probe *probe;
-+	unsigned int sum = 0;
-+	int i = 0;
-+
-+	damon_for_each_probe(probe, ctx) {
-+		if (last)
-+			sum += r->last_probe_hits[i++] * probe->weight;
-+		else
-+			sum += r->probe_hits[i++] * probe->weight;
-+	}
-+	return sum;
-+}
-+
  /*
-  * Check whether a region is intersecting an address range
-  *
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
