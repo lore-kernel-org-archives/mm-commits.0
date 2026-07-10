@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0788239C00D
-	for <mm-commits@vger.kernel.org>; Fri, 10 Jul 2026 20:24:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C514E39D6D5
+	for <mm-commits@vger.kernel.org>; Fri, 10 Jul 2026 20:24:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783715051; cv=none; b=cHLHHjB7wjT3/wgHDgQIxeXHC5TMvZYT7X6dYXG3FSvNatpeYu04XnebcguuZ8lAYn58W3jmZLCLTor+1NlWpTsr+hBE3suT2+4zSY1DInfTbyE2CHrckoJ3o1u+oEa+EDHpmGyffx/PypeN9ruDRoczXOD9a35Vch2a1Nbri2o=
+	t=1783715052; cv=none; b=L5Nz5eqitkw4cgnYU+V/cBWsCutN6LeIQEv4EANXrA6XGlMDFDYk3pYQ7pmaUumh+J3dLoUJOdS/97NEK5EpXuP2SRGiw+HX7YVRXSEsDAz+Bsi/MmzdUV1hlQjHDI6eFgebRqEqf1g8ZkjqRrl8RWuDja9Am1cl33UV1RtIbKM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783715051; c=relaxed/simple;
-	bh=iYyQGV/aaYZnQkakGpPNQJcf9oWGHGLZVjJaWqfFUUM=;
-	h=Date:To:From:Subject:Message-Id; b=lvPGhljKorQxenHOpHxWQMjX1svO6P0bdSFcovArsY3CxrhX/mYh+UY0vGIPTSiukOfJNDRH/GP3zdL0ajQJCnplcaayK9IlWdPAj0bZOi50Xn7pX5veZp3XCongd6yJrchnS6HhA5E31b+qlbZvXk7jeWVbXQtATQvJNIbodTQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pyg5d/G/; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783715052; c=relaxed/simple;
+	bh=TwKYNXjekSsnGxekXJ2ZJvM8aRKZEALQFkYkNflZN/g=;
+	h=Date:To:From:Subject:Message-Id; b=bCUER3Wm+C+jQaCjErrBoIAO2hxMuUnGR/OPrXNEKtTX8E7hPucCcS8xFvWFNGPBiyJbrccpOYt9hZH+HWsOwceAbV/z9g11Rchg42wwlSecVO44cCQGncgG+FJPrBPMKhYhvzG1G/Xca0NMlwdAxu6ktHX/Xg4cKNHU5wHuQEw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tiIFPB2l; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pyg5d/G/"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 781481F000E9;
-	Fri, 10 Jul 2026 20:24:08 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tiIFPB2l"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 82F8B1F00A3A;
+	Fri, 10 Jul 2026 20:24:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783715048;
-	bh=iVZHHSkZd9GmI+TFclRtB9znbTkrUIkDRd0KLwxTJaQ=;
+	d=linux-foundation.org; s=korg; t=1783715050;
+	bh=YXnRkvwLFUMUPCrZ35rl3KRBHYFaCwO8rBcqxqnam5U=;
 	h=Date:To:From:Subject;
-	b=pyg5d/G/l+SKJmgWNcmkp3GSTIyZWvKnWKvRDRwB/CcUa23mfrYmQsTS4OVXOA48/
-	 VDxsb7FwWkgUIdEO3Zb+fKVaqICutqL8JogAxyEV+NUXll0d91luVavcJTwfjSTCIw
-	 DDtES1zdqrq8sEYmCwj1dx8tiaNWcAp1c+umfgkI=
-Date: Fri, 10 Jul 2026 13:24:08 -0700
+	b=tiIFPB2la9m6I/3lenki6QX9tf226B6V4jpmOuIPNE2aqr0OJjJrA+rJgVR21TPOY
+	 NnbxdE01523BQ3yx97YeKsA9k15QakobUlIRykb8q9QjCrbgNO/fqDLwvu1qPaHDqX
+	 kl6xbZdjzSeXLWZDXm0OwDhd4q+V5qbWq1rEXiYc=
+Date: Fri, 10 Jul 2026 13:24:10 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-core-disallow-probe_hits-overflow-on-attrs-only-monitoring.patch added to mm-new branch
-Message-Id: <20260710202408.781481F000E9@smtp.kernel.org>
+Subject: + mm-damon-core-validate-params-for-probe-hits-weighted-sum-overflow.patch added to mm-new branch
+Message-Id: <20260710202410.82F8B1F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/core: disallow probe_hits overflow on attrs only monitoring
+     Subject: mm/damon/core: validate params for probe hits weighted sum overflow
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-core-disallow-probe_hits-overflow-on-attrs-only-monitoring.patch
+     mm-damon-core-validate-params-for-probe-hits-weighted-sum-overflow.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-disallow-probe_hits-overflow-on-attrs-only-monitoring.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-validate-params-for-probe-hits-weighted-sum-overflow.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,20 +70,23 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/core: disallow probe_hits overflow on attrs only monitoring
-Date: Fri, 10 Jul 2026 06:46:38 -0700
+Subject: mm/damon/core: validate params for probe hits weighted sum overflow
+Date: Fri, 10 Jul 2026 06:46:39 -0700
 
-When any damon_probe->weight is set, DAMON will do only probe monitoring. 
-probe_hits is 'unsigned char'.  It could overflow when the aggregation
-interval is larger than the sampling interval times 256. 
-damon_as_probe_weights() always return false, so such overflow cannot
-happen.  Even if it happens, it only degrades the monitoring results.
+damon_probe_hits_wsum() could overflow in weird setups.  Users could set
+the weight unreasonably high.  They could also set the aggregation
+interval unreasonably high compared to the sampling interval.  Such user
+setup is unlikely.  Even if such setup is used, damon_has_probe_weights()
+always returns false, so the overflow cannot happen.  The function may be
+completed in future, though.  Even if the overflow happens, the
+consequence is degraded monitoring results for the unreasonable setup.  It
+is just a trivial user experience issue.
 
-That said, the overflow is not intentional.  It is better to be prevented
-as long as the cost is not expensive.  Disallow the overflow by adding a
-validation logic on the core layer parameters validation function.
+It is still better to be prevented unless the cost is expensive.  Avoid
+the overflow by adding the parameter validation in the core layer
+parameters validation function.
 
-Link: https://lore.kernel.org/20260710134651.18084-10-sj@kernel.org
+Link: https://lore.kernel.org/20260710134651.18084-11-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
@@ -96,41 +99,40 @@ Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/core.c |   16 ++++++++++++++++
- 1 file changed, 16 insertions(+)
+ mm/damon/core.c |   15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
 
---- a/mm/damon/core.c~mm-damon-core-disallow-probe_hits-overflow-on-attrs-only-monitoring
+--- a/mm/damon/core.c~mm-damon-core-validate-params-for-probe-hits-weighted-sum-overflow
 +++ a/mm/damon/core.c
-@@ -1332,6 +1332,19 @@ static void damos_set_filters_default_re
- 		damos_filters_default_reject(&s->ops_filters);
+@@ -1335,6 +1335,9 @@ static void damos_set_filters_default_re
+ static bool damon_valid_probe_params(struct damon_ctx *ctx)
+ {
+ 	unsigned long sample_interval;
++	unsigned char max_probe_hits;
++	struct damon_probe *probe;
++	unsigned int wsum, wsum_to_add;
+ 
+ 	if (!damon_has_probe_weights(ctx))
+ 		return true;
+@@ -1342,6 +1345,18 @@ static bool damon_valid_probe_params(str
+ 	sample_interval = ctx->attrs.sample_interval ? : 1;
+ 	if (ctx->attrs.aggr_interval / sample_interval > U8_MAX)
+ 		return false;
++
++	/* invalid if probe hits weighted sum can overflow */
++	max_probe_hits = damon_nr_samples_per_aggr(&ctx->attrs);
++	wsum = 0;
++	damon_for_each_probe(probe, ctx) {
++		if (probe->weight > UINT_MAX / max_probe_hits)
++			return false;
++		wsum_to_add = probe->weight * max_probe_hits;
++		if (UINT_MAX - wsum < wsum_to_add)
++			return false;
++		wsum += wsum_to_add;
++	}
+ 	return true;
  }
  
-+static bool damon_valid_probe_params(struct damon_ctx *ctx)
-+{
-+	unsigned long sample_interval;
-+
-+	if (!damon_has_probe_weights(ctx))
-+		return true;
-+
-+	sample_interval = ctx->attrs.sample_interval ? : 1;
-+	if (ctx->attrs.aggr_interval / sample_interval > U8_MAX)
-+		return false;
-+	return true;
-+}
-+
- /*
-  * damos_commit_dests() - Copy migration destinations from @src to @dst.
-  * @dst:	Destination structure to update.
-@@ -1736,6 +1749,9 @@ static int __damon_commit_ctx(struct dam
- 		}
- 	}
- 
-+	if (!damon_valid_probe_params(src))
-+		return -EINVAL;
-+
- 	err = damon_commit_schemes(dst, src);
- 	if (err)
- 		return err;
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
