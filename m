@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 23C4039A7FE
-	for <mm-commits@vger.kernel.org>; Fri, 10 Jul 2026 20:24:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BD29839A04F
+	for <mm-commits@vger.kernel.org>; Fri, 10 Jul 2026 20:24:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783715056; cv=none; b=gJvg1UpmQ+U8tD1x1P19Qqqguj6yatj0wDYd9YGCFLKpKzYz3g1MngiPNaiu21ANEC9YXSlomnMCoPaWSipCRFstzRCJaZnHnEOht/emfTdbzeB0dWfgQ6rkNbPmvMm8FiS5EjRx9Aci8PzejwUHUFvsN35lqOiB/UEkIpa0v1U=
+	t=1783715058; cv=none; b=TB2f86/ND70apTmV7YF/8exCyYQ8YMqsAjZpUu35PQIMx9k2gcd92EHDtAKD0T1oga+4fPhUMhMv/cOXTc3UIqC34uVZCg//AnOgddZ/ekq6KKqYCuNZjFoQRv6ruah68nOO4bEEO93cN6rg8N0BYLstak1GMUELhkiH7Vb+KlE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783715056; c=relaxed/simple;
-	bh=b6whXUC7kYI8Z2uY2G6MI6Zj8nUIu4e2I/6A92fn7aU=;
-	h=Date:To:From:Subject:Message-Id; b=XCdNmej2GDhgsl+cFtHfDwKYnjrWacBFi4TVjbQER9MQatUNqfK48MFYmnft9dcaTJyo8RkAmrgfZ7BN7hoH5C57oW9qlos1reckzeyrx92tU61u6qITI8fbdB1cgIG9iLhxuHPBP1lhQZgzy69A6xFtUOTFcdty2J1lyfTXaM4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HVQo6+vU; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783715058; c=relaxed/simple;
+	bh=RPtXw+a5CA9phT5Q5sUYojPcMfATDI9j2riIsoFDVAI=;
+	h=Date:To:From:Subject:Message-Id; b=PXC9K15xlmiP8uf2+yiMdbPpotJ+pp1kPPc7N1alx4uEma2yyQgCnIQwbM9lYSW2X+ec1bcCI+I8pIPpq2b2m1tMhqThJTGvHidUmSuyQt0lb5S28DDqYSu4b+KqtBnPBIuw641HpkJSt29892hj+rjHNi07dLjxrPhKJT1KPO8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SGkixZab; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HVQo6+vU"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 897581F000E9;
-	Fri, 10 Jul 2026 20:24:14 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SGkixZab"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 804021F00A3A;
+	Fri, 10 Jul 2026 20:24:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783715054;
-	bh=67EWSfUYDaVFaxqx2JT9RZHsrB5NCI9ApwDtwXap2YI=;
+	d=linux-foundation.org; s=korg; t=1783715056;
+	bh=PXFmg/micE5+j5iyM1KCpbtkTMkUW12i2HBd0Tfuz7k=;
 	h=Date:To:From:Subject;
-	b=HVQo6+vUVz4n2xfAUQLpN4mR4i6QgW5OubCk6ah2ZmWnNRyjopxpgjvTYZOqcanau
-	 sTOSq5hzY3KRao7Gd4lOTAZ2N3SfVKZ6GubhgpZclmRK/x2WVh7+2Fz/QJC5BPwO69
-	 T/5/hI/CNhadoDDBdFUFCiFB3fqNt9Z4oOHUK9SM=
-Date: Fri, 10 Jul 2026 13:24:14 -0700
+	b=SGkixZabdMchJhtUjPdsTHLBQVhCYroZleWeE8Y80TgqmiXarfWrK40h4lp9dZ0hP
+	 tiGuZuJ/ykxLIadYtlNgy/7If1rmCZqSeaGxamhOMumsAvqQc5SyPJtaXHi24mqetw
+	 HgLzDNbFWyXhG3Pep4b/56WB3LYAtGQy3aZ9K7tg=
+Date: Fri, 10 Jul 2026 13:24:16 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-core-set-samples-in-apply_probes-if-probe-weights-are-set.patch added to mm-new branch
-Message-Id: <20260710202414.897581F000E9@smtp.kernel.org>
+Subject: + mm-damon-core-s-max_nr_accesses-max_merge_score-in-kdamond_fn.patch added to mm-new branch
+Message-Id: <20260710202416.804021F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/core: set samples in apply_probes() if probe weights are set
+     Subject: mm/damon/core: s/max_nr_accesses/max_merge_score/ in kdamond_fn()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-core-set-samples-in-apply_probes-if-probe-weights-are-set.patch
+     mm-damon-core-s-max_nr_accesses-max_merge_score-in-kdamond_fn.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-set-samples-in-apply_probes-if-probe-weights-are-set.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-s-max_nr_accesses-max_merge_score-in-kdamond_fn.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,14 +70,15 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/core: set samples in apply_probes() if probe weights are set
-Date: Fri, 10 Jul 2026 06:46:41 -0700
+Subject: mm/damon/core: s/max_nr_accesses/max_merge_score/ in kdamond_fn()
+Date: Fri, 10 Jul 2026 06:46:42 -0700
 
-When probe weights are set, the prepare_access_checks() ops callback is
-not invoked, so sampling addresses of regions are unset.  Ask
-apply_probes() to set those together in the case.
+When probe weights are set, DAMON merge logic works with the probe hits
+weighted sum.  The core logic is setting the merge threshold based on the
+access frequency, though.  Before using probe hits based threshold, rename
+the variables to look more general.
 
-Link: https://lore.kernel.org/20260710134651.18084-13-sj@kernel.org
+Link: https://lore.kernel.org/20260710134651.18084-14-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
@@ -90,21 +91,45 @@ Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/core.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/damon/core.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/mm/damon/core.c~mm-damon-core-set-samples-in-apply_probes-if-probe-weights-are-set
+--- a/mm/damon/core.c~mm-damon-core-s-max_nr_accesses-max_merge_score-in-kdamond_fn
 +++ a/mm/damon/core.c
-@@ -3777,7 +3777,8 @@ static int kdamond_fn(void *data)
- 		if (!access_check_disabled && ctx->ops.check_accesses)
- 			max_nr_accesses = ctx->ops.check_accesses(ctx);
- 		if (ctx->ops.apply_probes)
--			ctx->ops.apply_probes(ctx, false, false);
-+			ctx->ops.apply_probes(ctx, access_check_disabled,
-+					false);
+@@ -3730,7 +3730,6 @@ static void kdamond_init_ctx(struct damo
+ static int kdamond_fn(void *data)
+ {
+ 	struct damon_ctx *ctx = data;
+-	unsigned int max_nr_accesses = 0;
+ 	unsigned long sz_limit = 0;
  
+ 	pr_debug("kdamond (%d) starts\n", current->pid);
+@@ -3764,6 +3763,7 @@ static int kdamond_fn(void *data)
+ 		unsigned long next_ops_update_sis = ctx->next_ops_update_sis;
+ 		unsigned long sample_interval = ctx->attrs.sample_interval;
+ 		bool access_check_disabled = damon_has_probe_weights(ctx);
++		unsigned int max_merge_score = 0;
+ 
+ 		if (kdamond_wait_activation(ctx))
+ 			break;
+@@ -3775,7 +3775,7 @@ static int kdamond_fn(void *data)
+ 		ctx->passed_sample_intervals++;
+ 
+ 		if (!access_check_disabled && ctx->ops.check_accesses)
+-			max_nr_accesses = ctx->ops.check_accesses(ctx);
++			max_merge_score = ctx->ops.check_accesses(ctx);
+ 		if (ctx->ops.apply_probes)
+ 			ctx->ops.apply_probes(ctx, access_check_disabled,
+ 					false);
+@@ -3783,7 +3783,7 @@ static int kdamond_fn(void *data)
  		if (time_after_eq(ctx->passed_sample_intervals,
  					next_aggregation_sis)) {
+ 			kdamond_merge_regions(ctx,
+-					max_nr_accesses / 10,
++					max_merge_score / 10,
+ 					sz_limit);
+ 			/* online updates might be made */
+ 			sz_limit = damon_apply_min_nr_regions(ctx);
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
