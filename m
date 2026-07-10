@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3201A407569
-	for <mm-commits@vger.kernel.org>; Fri, 10 Jul 2026 22:47:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 693ED404BD2
+	for <mm-commits@vger.kernel.org>; Fri, 10 Jul 2026 22:47:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783723633; cv=none; b=TUmPVX1XAC2Fn9AtiE4XF9SWzoOpj5+RsQ8MScfXT7TAgCD/71NDxJCV9KhQcgptT7WYu514kiF642HY3ZtAKIM1omlau/D0Z0z6xzc66WUcMnb3VJUbgNRrHbmPRMk7zXjKIZl56wIFueqPmpaL0u3DxR9wkfhKgSyT06xgWkw=
+	t=1783723636; cv=none; b=Avol0YomHTYVaAaH5swOWPzKw4kumXWzj/b8DVvpk1+XzA0U1ReauHB8SZfwsL1G5FhrGgJS6zybYO9IK6mbeTeGtZWwSU6gviekqXPKDm9iaZ7sUg5tALiohUuqhSUU8y4/MmCn44lNpCAFlA+fRZZnuyy4k4JLCJD04LNFJoY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783723633; c=relaxed/simple;
-	bh=LRZ83OYcGfzEy9ocSZBLW3jbr+dUHB84lTLI/lE5+BI=;
-	h=Date:To:From:Subject:Message-Id; b=ptxgf0/zWwW1uDLbTd2j0pqpRSOZeTcQoYeBuN19krCdlowB/VgwgzzYxzSdGJt/lxSw7QaOkmyNEnSTDhcee0TK20Sw2U8DPXcQiMBjcrTWTLp33YbNy6iLRanz5H7u6+BgRZrnTyl9n4Eg344KjxV8puz7OFT8h8UCCROJwxo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oAwaexfC; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783723636; c=relaxed/simple;
+	bh=EpwOc/VyCMBrhAIYgjjTkHQHK+3VIaJWZuRmMbehMhg=;
+	h=Date:To:From:Subject:Message-Id; b=bl6H2K7FWlpfc4iJRfRWSlOyIQTbe00kGhx1pn+HyHaVUT69cMDtCcUbwMm/HVKojI2TfsMGHYy3U9IeU3YTJIiwD//UEi5ofuW5XESX0Py5CwJiKogeM/JhHno+AEczpo/5iDELBuUq9H+zF5v/MgxQo8vbtJqQddW2NkRpQfg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=r7qjXZHe; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oAwaexfC"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 069851F000E9;
-	Fri, 10 Jul 2026 22:47:12 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="r7qjXZHe"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 04BB11F000E9;
+	Fri, 10 Jul 2026 22:47:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783723632;
-	bh=5AUotlXrzvH54kzYY8BCJkIY8fvBzBZvDJzyRqkaMG0=;
+	d=linux-foundation.org; s=korg; t=1783723635;
+	bh=+X7T8+VA+o0AHoSXz1nhrv7koaamDaM6z02O5m5FlHA=;
 	h=Date:To:From:Subject;
-	b=oAwaexfCud3MP+GDCZijsWdzZaO62xD0AdZzt7VlBWFRaykMsgkJDAJzaTd6TVWWs
-	 pVqxkTf0oAJrFKEZ8g54jU+46XUYIic2Q+JbTSgK8dfNbZHeFGvx67xAlmsjfm4LrR
-	 YoY9uYWM6GUTnABNA7SMsSaDlUQF/X5VPSI5mmaU=
-Date: Fri, 10 Jul 2026 15:47:11 -0700
+	b=r7qjXZHeu9DeI/fLZpK32V31irx/pT92cjh8Sdmx/+NbYfZUMsHNDtgw1XPl7U4tv
+	 m45UHK+RHJ6jlv40k/mnhakKCetZ9s4sXs6me8GJBxp0i1/IqvK02YfQXq6pF5aNX3
+	 xaghxBYIDPSgIHFKdTRuSvO0sKKgELDRsAnuAS0Q=
+Date: Fri, 10 Jul 2026 15:47:14 -0700
 To: mm-commits@vger.kernel.org,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vma-move-__install_special_mapping-to-vmac.patch added to mm-new branch
-Message-Id: <20260710224712.069851F000E9@smtp.kernel.org>
+Subject: + mm-vma-make-vma_set_range-static-drop-insert_vm_struct-decl.patch added to mm-new branch
+Message-Id: <20260710224715.04BB11F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/vma: move __install_special_mapping() to vma.c
+     Subject: mm/vma: make vma_set_range() static, drop insert_vm_struct() decl
 has been added to the -mm mm-new branch.  Its filename is
-     mm-vma-move-__install_special_mapping-to-vmac.patch
+     mm-vma-make-vma_set_range-static-drop-insert_vm_struct-decl.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vma-move-__install_special_mapping-to-vmac.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vma-make-vma_set_range-static-drop-insert_vm_struct-decl.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,25 +70,22 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <ljs@kernel.org>
-Subject: mm/vma: move __install_special_mapping() to vma.c
-Date: Fri, 10 Jul 2026 21:17:05 +0100
+Subject: mm/vma: make vma_set_range() static, drop insert_vm_struct() decl
+Date: Fri, 10 Jul 2026 21:17:06 +0100
 
-This function is operating on VMAs and rightly belongs in vma.c, where it
-can be subject to VMA userland testing and allows us to isolate it from the
+With __install_special_mapping() moved to vma.c, vma_set_range() can be
+made into a static function there and is now completely isolated from the
 rest of mm.
 
-The _install_special_mapping() function will remain in mmap.c as a wrapper,
-since this is used by architecture-specific code.
+While we're here, we can also remove the insert_vm_struct() declaration
+from mm.h - the function is implemented in vma.c and already declared in
+vma.h, and has no users outside of mm.
 
-Doing so allows us to isolate more functions in vma.c for the same reasons.
-
-This forms part of work to allow for tracking MAP_PRIVATE file-backed
-mappings by their anonymous virtual page offset, as doing so allows us to
-isolate and keep code that interacts with this together.
+Also update the VMA userland tests to reflect this change.
 
 No functional change intended.
 
-Link: https://lore.kernel.org/20260710-b4-pre-scalable-cow-v2-24-2a5aa403d977@kernel.org
+Link: https://lore.kernel.org/20260710-b4-pre-scalable-cow-v2-25-2a5aa403d977@kernel.org
 Signed-off-by: Lorenzo Stoakes <ljs@kernel.org>
 Reviewed-by: Pedro Falcato <pfalcato@suse.de>
 Reviewed-by: Gregory Price <gourry@gourry.net>
@@ -102,114 +99,84 @@ Cc: Vlastimil Babka (SUSE) <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |   38 --------------------------------------
- mm/vma.c  |   38 ++++++++++++++++++++++++++++++++++++++
- mm/vma.h  |    5 +++++
- 3 files changed, 43 insertions(+), 38 deletions(-)
+ include/linux/mm.h         |    1 -
+ mm/internal.h              |    9 ---------
+ mm/vma.c                   |    8 ++++++++
+ tools/testing/vma/shared.c |    9 ---------
+ tools/testing/vma/shared.h |    5 -----
+ 5 files changed, 8 insertions(+), 24 deletions(-)
 
---- a/mm/mmap.c~mm-vma-move-__install_special_mapping-to-vmac
-+++ a/mm/mmap.c
-@@ -1447,44 +1447,6 @@ static vm_fault_t special_mapping_fault(
- 	return VM_FAULT_SIGBUS;
+--- a/include/linux/mm.h~mm-vma-make-vma_set_range-static-drop-insert_vm_struct-decl
++++ a/include/linux/mm.h
+@@ -4134,7 +4134,6 @@ void anon_rmap_tree_verify(struct anon_v
+ 
+ /* mmap.c */
+ extern int __vm_enough_memory(const struct mm_struct *mm, long pages, int cap_sys_admin);
+-extern int insert_vm_struct(struct mm_struct *, struct vm_area_struct *);
+ extern void exit_mmap(struct mm_struct *);
+ bool mmap_read_lock_maybe_expand(struct mm_struct *mm, struct vm_area_struct *vma,
+ 				 unsigned long addr, bool write);
+--- a/mm/internal.h~mm-vma-make-vma_set_range-static-drop-insert_vm_struct-decl
++++ a/mm/internal.h
+@@ -1360,15 +1360,6 @@ static inline bool gup_must_unshare(stru
  }
  
--static struct vm_area_struct *__install_special_mapping(
--	struct mm_struct *mm,
--	unsigned long addr, unsigned long len,
--	vm_flags_t vm_flags, void *priv,
--	const struct vm_operations_struct *ops)
+ 
+-static __always_inline void vma_set_range(struct vm_area_struct *vma,
+-					  unsigned long start, unsigned long end,
+-					  pgoff_t pgoff)
 -{
--	int ret;
--	struct vm_area_struct *vma;
--
--	vma = vm_area_alloc(mm);
--	if (unlikely(vma == NULL))
--		return ERR_PTR(-ENOMEM);
--
--	vma_set_range(vma, addr, addr + len, 0);
--	vm_flags |= mm->def_flags | VM_DONTEXPAND;
--	if (pgtable_supports_soft_dirty())
--		vm_flags |= VM_SOFTDIRTY;
--	vm_flags_init(vma, vm_flags & ~VM_LOCKED_MASK);
--	vma->vm_page_prot = vm_get_page_prot(vma->vm_flags);
--
--	vma->vm_ops = ops;
--	vma->vm_private_data = priv;
--
--	ret = insert_vm_struct(mm, vma);
--	if (ret)
--		goto out;
--
--	vm_stat_account(mm, vma->vm_flags, len >> PAGE_SHIFT);
--
--	perf_event_mmap(vma);
--
--	return vma;
--
--out:
--	vm_area_free(vma);
--	return ERR_PTR(ret);
+-	vma->vm_start = start;
+-	vma->vm_end = end;
+-	vma->vm_pgoff = pgoff;
 -}
 -
- bool vma_is_special_mapping(const struct vm_area_struct *vma,
- 	const struct vm_special_mapping *sm)
+ static inline bool vma_soft_dirty_enabled(struct vm_area_struct *vma)
  {
---- a/mm/vma.c~mm-vma-move-__install_special_mapping-to-vmac
+ 	/*
+--- a/mm/vma.c~mm-vma-make-vma_set_range-static-drop-insert_vm_struct-decl
 +++ a/mm/vma.c
-@@ -3399,3 +3399,41 @@ __weak unsigned long vma_mmu_pagesize(st
- {
- 	return vma_kernel_pagesize(vma);
- }
-+
-+struct vm_area_struct *__install_special_mapping(
-+	struct mm_struct *mm,
-+	unsigned long addr, unsigned long len,
-+	vm_flags_t vm_flags, void *priv,
-+	const struct vm_operations_struct *ops)
-+{
-+	int ret;
-+	struct vm_area_struct *vma;
-+
-+	vma = vm_area_alloc(mm);
-+	if (unlikely(vma == NULL))
-+		return ERR_PTR(-ENOMEM);
-+
-+	vma_set_range(vma, addr, addr + len, 0);
-+	vm_flags |= mm->def_flags | VM_DONTEXPAND;
-+	if (pgtable_supports_soft_dirty())
-+		vm_flags |= VM_SOFTDIRTY;
-+	vm_flags_init(vma, vm_flags & ~VM_LOCKED_MASK);
-+	vma->vm_page_prot = vm_get_page_prot(vma->vm_flags);
-+
-+	vma->vm_ops = ops;
-+	vma->vm_private_data = priv;
-+
-+	ret = insert_vm_struct(mm, vma);
-+	if (ret)
-+		goto out;
-+
-+	vm_stat_account(mm, vma->vm_flags, len >> PAGE_SHIFT);
-+
-+	perf_event_mmap(vma);
-+
-+	return vma;
-+
-+out:
-+	vm_area_free(vma);
-+	return ERR_PTR(ret);
-+}
---- a/mm/vma.h~mm-vma-move-__install_special_mapping-to-vmac
-+++ a/mm/vma.h
-@@ -775,4 +775,9 @@ static inline bool map_deny_write_exec(c
- }
- #endif
+@@ -70,6 +70,14 @@ struct mmap_state {
+ 		.state = VMA_MERGE_START,				\
+ 	}
  
-+struct vm_area_struct *__install_special_mapping(struct mm_struct *mm,
-+		unsigned long addr, unsigned long len,
-+		vm_flags_t vm_flags, void *priv,
-+		const struct vm_operations_struct *ops);
++static void vma_set_range(struct vm_area_struct *vma, unsigned long start,
++			  unsigned long end, pgoff_t pgoff)
++{
++	vma->vm_start = start;
++	vma->vm_end = end;
++	vma->vm_pgoff = pgoff;
++}
 +
- #endif	/* __MM_VMA_H */
+ /* Was this VMA ever forked from a parent, i.e. maybe contains CoW mappings? */
+ static bool vma_is_fork_child(struct vm_area_struct *vma)
+ {
+--- a/tools/testing/vma/shared.c~mm-vma-make-vma_set_range-static-drop-insert_vm_struct-decl
++++ a/tools/testing/vma/shared.c
+@@ -120,12 +120,3 @@ unsigned long rlimit(unsigned int limit)
+ {
+ 	return (unsigned long)-1;
+ }
+-
+-void vma_set_range(struct vm_area_struct *vma,
+-		   unsigned long start, unsigned long end,
+-		   pgoff_t pgoff)
+-{
+-	vma->vm_start = start;
+-	vma->vm_end = end;
+-	vma->vm_pgoff = pgoff;
+-}
+--- a/tools/testing/vma/shared.h~mm-vma-make-vma_set_range-static-drop-insert_vm_struct-decl
++++ a/tools/testing/vma/shared.h
+@@ -125,8 +125,3 @@ void __vma_set_dummy_anon_vma(struct vm_
+ /* Provide a simple dummy VMA/anon_vma dummy setup for testing. */
+ void vma_set_dummy_anon_vma(struct vm_area_struct *vma,
+ 			    struct anon_vma_chain *avc);
+-
+-/* Helper function to specify a VMA's range. */
+-void vma_set_range(struct vm_area_struct *vma,
+-		   unsigned long start, unsigned long end,
+-		   pgoff_t pgoff);
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
