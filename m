@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6DE59407569
-	for <mm-commits@vger.kernel.org>; Fri, 10 Jul 2026 22:47:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B6E60404BD2
+	for <mm-commits@vger.kernel.org>; Fri, 10 Jul 2026 22:47:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783723645; cv=none; b=Ok+LXudVM5m3Hb/rq/8MVFA9ZHlZzm+HxnreyNsuOWCiwg0cFWqB8lTPITW+fOoP08Plf6RmNl/t0Win12EaH4z9TqwAanHtBzEeW8E36StasGp0Y4GVW2ZJNzQgeM4BAkoo2WmUslQOUWxhpHqH/gViWm4Qr96p/6KcWI5kNhs=
+	t=1783723648; cv=none; b=RQimCZ+ilwvgjgEJButh2plNKSnexQdS+kR7Uq1Lj/VpmNDRWT5drGQW/2c7aTDtXb3q2jbtt33JQaF588+Xdb3s6bGLAT4q8JgZMJiB01Z7Pa59RTBKbWGmRVECHmSHgqnuzSYx25KD89ajadlz6rJCzS1z8pDt6hkBwnpUJY0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783723645; c=relaxed/simple;
-	bh=Vxv4aiUJbpR3MFUZIswYbeECmIEq2Cywpt/VIBTMC9s=;
-	h=Date:To:From:Subject:Message-Id; b=tXNjB3gfLqSS9sQU/f5U+U5Qk2efFjG37moJ4qxdjRmioMlA6QBz1QRexFc222xJrpVYDUiDN9PUBY7Z8+EziadMSkWycbXmJiDBvzyItXgke205x5vw2rN1TNEzLgbEuZ52cj50Kg5oU2GwBiWERNAwY5gb7W9EvAwoMikhn3Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sBg/iYPg; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783723648; c=relaxed/simple;
+	bh=0l3zYYID5pyF4GXVnuPkW7Fr9+FkzmZGuHAYZiqvFas=;
+	h=Date:To:From:Subject:Message-Id; b=HIldZEqmNeVwCnwylBUvFn/VgyBdAOn1jCFEOmDCEdUCm/HrP7zbkmMPxfoI4nUPRtyXRsm+oIs4zo4GJYm6LHVLlmqxOdjydMjdj7lMFqA5KV8ZjQnUFW4TZCxjGaCN7WqSDU6+4XfAyWNgcxZWXEM7ZAR+X1H/89cX5z+16Wc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Z7TMwBSQ; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sBg/iYPg"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3AA5B1F000E9;
-	Fri, 10 Jul 2026 22:47:24 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Z7TMwBSQ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 511931F000E9;
+	Fri, 10 Jul 2026 22:47:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783723644;
-	bh=NUpvr6CHWAlUQqNyRfCdocjVobaaQ7YybQT7QTzJDvw=;
+	d=linux-foundation.org; s=korg; t=1783723646;
+	bh=YaBNPS5bMF8dihRab6aVoX6OJSofBIUn0AVbEME1eq4=;
 	h=Date:To:From:Subject;
-	b=sBg/iYPgD5HciexzJ+7tKIsLzHGvryMa5EW1EKQhg8DLjqrOg+sewSMLmZTpuLq9q
-	 S/r05mWzpw5y3tGmJrCvPOnTgqhglyrns2zwlafTPOx0GnXAOL78Iy3FHen7N7nGuU
-	 osfKWQhO2ULi0nKmqDiAGAxzZ5IULLh5refF1Sgw=
-Date: Fri, 10 Jul 2026 15:47:23 -0700
+	b=Z7TMwBSQvlJOOjnCgSs0KjkYS71cTnUd3o5bKXQRDDMyvPAL2XL3De+JjNl3SSvIE
+	 Xd86UNhc2j+54J1NITqNTQmINTHtJvQ4SvXRPjYrPmcU/Zf6zpcXMxKM7NzlNBDq4y
+	 XjIJf/ib5JfxXzXbkL5Ykz98N9roTa1qVX/dvpkk=
+Date: Fri, 10 Jul 2026 15:47:25 -0700
 To: mm-commits@vger.kernel.org,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vma-slightly-rework-the-anonymous-check-in-__mmap_new_vma.patch added to mm-new branch
-Message-Id: <20260710224724.3AA5B1F000E9@smtp.kernel.org>
+Subject: + mm-vma-introduce-and-use-vma_set_pgoff.patch added to mm-new branch
+Message-Id: <20260710224726.511931F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/vma: slightly rework the anonymous check in __mmap_new_vma()
+     Subject: mm/vma: introduce and use vma_set_pgoff()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-vma-slightly-rework-the-anonymous-check-in-__mmap_new_vma.patch
+     mm-vma-introduce-and-use-vma_set_pgoff.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vma-slightly-rework-the-anonymous-check-in-__mmap_new_vma.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vma-introduce-and-use-vma_set_pgoff.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,72 +70,205 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <ljs@kernel.org>
-Subject: mm/vma: slightly rework the anonymous check in __mmap_new_vma()
-Date: Fri, 10 Jul 2026 21:17:09 +0100
+Subject: mm/vma: introduce and use vma_set_pgoff()
+Date: Fri, 10 Jul 2026 21:17:10 +0100
 
-Determine if the VMA is anonymous early on, so we separate the logic which
-invokes callbacks from the rest of the logic.
+In order to lay the foundation for work that permits us to track the
+virtual page offset of MAP_PRIVATE file-backed mappings, we abstract the
+assignment of vma->vm_pgoff to vma_set_pgoff().
 
-This is in order that a subsequent commit which asserts correct virtual
-page offset for anonymous mappings correctly asserts this for new anonymous
-mappings.
+We additionally add a lock check here using the newly introduced
+vma_assert_can_modify(). This asserts the VMA write lock if the VMA is
+attached.
+
+We also assert that, if this is an anonymous VMA and unfaulted, that its
+(virtual) page offset is equal to the page offset of the VMA's address.
+
+We must be careful about MAP_PRIVATE-/dev/zero which violates fundamental
+assumptions about anonymous memory, so we check for !vma->vm_file after
+using vma_is_anonymous() which these mappings satisfy.
+
+Additionally, we only perform the assert if CONFIG_MMU is defined, as nommu
+does not set vma->vm_pgoff = addr >> PAGE_SHIFT. This isn't really relevant
+to rmap as it has no anon rmap (nor needs it), but we must avoid it
+asserting falsely.
+
+All of this logic is kept in assert_sane_pgoff() to keep things clear.
+
+In order to maintain correctness given this assert, we also update
+__install_special_mapping() to invoke vma_set_range() after it's set
+vma->vm_ops (which determine whether the VMA is anonymous or not).
+
+We do not use vma_set_pgoff() in vm_area_init_from(), as at the point of
+forking, we don't necessarily have correct locking state.
+
+Updating vma_set_range() covers most cases, but in addition to this we also
+update insert_vm_struct(), compat_set_vma_from_desc() and nommu callers.
+
+We also update vma_add_pgoff() and vma_sub_pgoff() to use vma_set_pgoff().
+
+While we're here, we drop a BUG_ON() and update insert_vm_struct()'s
+comment to reflect the fact anonymous mappings can be added here.
+
+Finally, we update the CONFIG_MMU, CONFIG_PER_VMA_LOCK defines in the VMA
+userland tests so IS_ENABLED() will work correctly with them.
 
 No functional change intended.
 
-Link: https://lore.kernel.org/20260710-b4-pre-scalable-cow-v2-28-2a5aa403d977@kernel.org
+Link: https://lore.kernel.org/20260710-b4-pre-scalable-cow-v2-29-2a5aa403d977@kernel.org
 Signed-off-by: Lorenzo Stoakes <ljs@kernel.org>
+Reviewed-by: Pedro Falcato <pfalcato@suse.de>
 Reviewed-by: Gregory Price <gourry@gourry.net>
 Cc: Ackerley Tng <ackerleytng@google.com>
 Cc: David Hildenbrand (Arm) <david@kernel.org>
 Cc: Kai Huang <kai.huang@intel.com>
 Cc: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: Pedro Falcato <pfalcato@suse.de>
 Cc: SJ Park <sj@kernel.org>
 Cc: Thomas Zimmermann <tzimmermann@suse.de>
 Cc: Vlastimil Babka (SUSE) <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vma.c |   11 ++++++++---
- 1 file changed, 8 insertions(+), 3 deletions(-)
+ mm/nommu.c                       |    2 -
+ mm/vma.c                         |   14 +++++------
+ mm/vma.h                         |   35 ++++++++++++++++++++++++++---
+ tools/testing/vma/vma_internal.h |    4 +--
+ 4 files changed, 42 insertions(+), 13 deletions(-)
 
---- a/mm/vma.c~mm-vma-slightly-rework-the-anonymous-check-in-__mmap_new_vma
-+++ a/mm/vma.c
-@@ -2587,6 +2587,8 @@ static int __mmap_new_file_vma(struct mm
- static int __mmap_new_vma(struct mmap_state *map, struct vm_area_struct **vmap,
- 	struct mmap_action *action)
- {
-+	const bool is_anon = !map->file &&
-+		!vma_flags_test(&map->vma_flags, VMA_SHARED_BIT);
- 	struct vma_iterator *vmi = map->vmi;
- 	int error = 0;
- 	struct vm_area_struct *vma;
-@@ -2601,6 +2603,10 @@ static int __mmap_new_vma(struct mmap_st
- 		return -ENOMEM;
+--- a/mm/nommu.c~mm-vma-introduce-and-use-vma_set_pgoff
++++ a/mm/nommu.c
+@@ -1062,7 +1062,7 @@ unsigned long do_mmap(struct file *file,
+ 	region->vm_pgoff = pgoff;
  
- 	vma_iter_config(vmi, map->addr, map->end);
-+
-+	if (is_anon)
-+		vma_set_anonymous(vma);
-+
- 	vma_set_range(vma, map->addr, map->end, map->pgoff);
- 	vma->flags = map->vma_flags;
- 	vma->vm_page_prot = map->page_prot;
-@@ -2610,12 +2616,11 @@ static int __mmap_new_vma(struct mmap_st
- 		goto free_vma;
+ 	vm_flags_init(vma, vm_flags);
+-	vma->vm_pgoff = pgoff;
++	vma_set_pgoff(vma, pgoff);
+ 
+ 	if (file) {
+ 		region->vm_file = get_file(file);
+--- a/mm/vma.c~mm-vma-introduce-and-use-vma_set_pgoff
++++ a/mm/vma.c
+@@ -81,7 +81,7 @@ static void vma_set_range(struct vm_area
+ 			  unsigned long end, pgoff_t pgoff)
+ {
+ 	__vma_set_range(vma, start, end);
+-	vma->vm_pgoff = pgoff;
++	vma_set_pgoff(vma, pgoff);
+ }
+ 
+ /* Was this VMA ever forked from a parent, i.e. maybe contains CoW mappings? */
+@@ -3347,9 +3347,9 @@ int __vm_munmap(unsigned long start, siz
+ 	return ret;
+ }
+ 
+-/* Insert vm structure into process list sorted by address
+- * and into the inode's i_mmap tree.  If vm_file is non-NULL
+- * then i_mmap_rwsem is taken here.
++/*
++ * Insert vm structure into process list sorted by address
++ * and into the inode's i_mmap tree if file-backed.
+  */
+ int insert_vm_struct(struct mm_struct *mm, struct vm_area_struct *vma)
+ {
+@@ -3375,8 +3375,8 @@ int insert_vm_struct(struct mm_struct *m
+ 	 * Similarly in do_mmap and in do_brk_flags.
+ 	 */
+ 	if (vma_is_anonymous(vma)) {
+-		BUG_ON(vma->anon_vma);
+-		vma->vm_pgoff = vma->vm_start >> PAGE_SHIFT;
++		WARN_ON_ONCE(vma->anon_vma);
++		vma_set_pgoff(vma, vma->vm_start >> PAGE_SHIFT);
  	}
  
-+	/* Invoke callbacks. */
- 	if (map->file)
- 		error = __mmap_new_file_vma(map, vma);
--	else if (vma_flags_test(&map->vma_flags, VMA_SHARED_BIT))
-+	else if (!is_anon)
- 		error = shmem_zero_setup(vma);
--	else
--		vma_set_anonymous(vma);
+ 	if (vma_link(mm, vma)) {
+@@ -3422,7 +3422,6 @@ struct vm_area_struct *__install_special
+ 	if (unlikely(vma == NULL))
+ 		return ERR_PTR(-ENOMEM);
  
- 	if (error)
- 		goto free_iter_vma;
+-	vma_set_range(vma, addr, addr + len, 0);
+ 	vm_flags |= mm->def_flags | VM_DONTEXPAND;
+ 	if (pgtable_supports_soft_dirty())
+ 		vm_flags |= VM_SOFTDIRTY;
+@@ -3431,6 +3430,7 @@ struct vm_area_struct *__install_special
+ 
+ 	vma->vm_ops = ops;
+ 	vma->vm_private_data = priv;
++	vma_set_range(vma, addr, addr + len, 0);
+ 
+ 	ret = insert_vm_struct(mm, vma);
+ 	if (ret)
+--- a/mm/vma.h~mm-vma-introduce-and-use-vma_set_pgoff
++++ a/mm/vma.h
+@@ -247,16 +247,45 @@ static inline pgoff_t vmg_end_pgoff(cons
+ 	return vmg_start_pgoff(vmg) + vmg_pages(vmg);
+ }
+ 
++static inline void assert_sane_pgoff(struct vm_area_struct *vma, pgoff_t pgoff)
++{
++	/* nommu doesn't set a virtual pgoff for anon VMAs. */
++	if (!IS_ENABLED(CONFIG_MMU))
++		return;
++	/*
++	 * File-backed VMAs have arbitrary page offset (either page offset into
++	 * file or for pfnmap the PFN of the start of the range or drivers may
++	 * set arbitrary page offset).
++	 */
++	if (!vma_is_anonymous(vma))
++		return;
++	/* MAP_PRIVATE-/dev/zero is anon, non-NULL vm_file, but has file pgoff. */
++	if (vma->vm_file)
++		return;
++	/* If faulted in, could have been remapped. */
++	if (vma->anon_vma)
++		return;
++	/* OK this is really an anon VMA - expect virtual page offset. */
++	VM_WARN_ON_ONCE(pgoff != vma->vm_start >> PAGE_SHIFT);
++}
++
++static inline void vma_set_pgoff(struct vm_area_struct *vma, pgoff_t pgoff)
++{
++	vma_assert_can_modify(vma);
++	assert_sane_pgoff(vma, pgoff);
++	vma->vm_pgoff = pgoff;
++}
++
+ static inline void vma_add_pgoff(struct vm_area_struct *vma, pgoff_t delta)
+ {
+ 	vma_assert_can_modify(vma);
+-	vma->vm_pgoff += delta;
++	vma_set_pgoff(vma, vma_start_pgoff(vma) + delta);
+ }
+ 
+ static inline void vma_sub_pgoff(struct vm_area_struct *vma, pgoff_t delta)
+ {
+ 	vma_assert_can_modify(vma);
+-	vma->vm_pgoff -= delta;
++	vma_set_pgoff(vma, vma_start_pgoff(vma) - delta);
+ }
+ 
+ #define VMG_STATE(name, mm_, vmi_, start_, end_, vma_flags_, pgoff_)	\
+@@ -331,7 +360,7 @@ static inline void compat_set_vma_from_d
+ 	 */
+ 
+ 	/* Mutable fields. Populated with initial state. */
+-	vma->vm_pgoff = desc->pgoff;
++	vma_set_pgoff(vma, desc->pgoff);
+ 	if (desc->vm_file != vma->vm_file)
+ 		vma_set_file(vma, desc->vm_file);
+ 	vma->flags = desc->vma_flags;
+--- a/tools/testing/vma/vma_internal.h~mm-vma-introduce-and-use-vma_set_pgoff
++++ a/tools/testing/vma/vma_internal.h
+@@ -14,8 +14,8 @@
+ 
+ #include <stdlib.h>
+ 
+-#define CONFIG_MMU
+-#define CONFIG_PER_VMA_LOCK
++#define CONFIG_MMU		1
++#define CONFIG_PER_VMA_LOCK	1
+ 
+ #ifdef __CONCAT
+ #undef __CONCAT
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
