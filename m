@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 47B2D407599
-	for <mm-commits@vger.kernel.org>; Fri, 10 Jul 2026 22:47:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 70B1140756D
+	for <mm-commits@vger.kernel.org>; Fri, 10 Jul 2026 22:47:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783723651; cv=none; b=Cjsr09iHHCLrH4AfBpAGerJ1gQvNBE+SeEgrhMtXyb2ZaZvVEPmSgEGnaulUYiGTqE2UCyswmcDh+m4KiOwicRK/Qfyid+z1WVPRLg4lS64sytuaGbzIT1fTLcZSvti1Q7Jhw/22AreFSkmV+S+yRTZDW5VZQjdLGtolTj6HasI=
+	t=1783723656; cv=none; b=CejUjYgq+Y/6aiqY3lveuWeBhuIydV5AW1EAIRm+N0sNAAl1vcP16qt7cd4bbK7OL/ztADGRaudOEDPmua0IlhVHn0nRuoNFIXbpa2u0Nk+mq0/GdRK7rg6lJxauTFIqv7i0l5CUuRNwYOOkSWVOhYnWOIiBls+CXP82Q73YbG0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783723651; c=relaxed/simple;
-	bh=mv6OYlxAkZeVwTKSXsLor9r1pwX9Tgmc4GFC8OMKLhI=;
-	h=Date:To:From:Subject:Message-Id; b=h4uOaHsb8w+QXK9UarlbDr9YBFaWKqBkrHFJd2C9iNhqBAGzypIZxogjU9GhzbdoVYpPi2ctRyG7SjPRg7NyhLLxVssXlQLiPx7RxGM+Py9NRyc6AY26zmmstjK5NBZ1Cr8NfqNwB8LJB0POq2iXe47CZks/qsYPZqjOPv53pAo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Cf0tHO1r; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783723656; c=relaxed/simple;
+	bh=RGH3V4JC/fbhgutkHOxQM/fEpSmh9gSb37scHD2W3Uw=;
+	h=Date:To:From:Subject:Message-Id; b=D7f93nobNnXdU/WiKjfMnZYVKL0lOWxkYDaPFFq8R+4iy1Iy5vOZeOXMOFGSlXZV/ONjUsX3UeBfIzOnhuMUYtVM8XeoLu8GQjZabrIwmHOh66ufCms4aVE1z1uoQFCBTc39WiXrxnUAAOkc4UU2rXeRQkGQgWvjxBF3NuBvYp8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tolsmCyP; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Cf0tHO1r"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D762F1F000E9;
-	Fri, 10 Jul 2026 22:47:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tolsmCyP"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A13281F000E9;
+	Fri, 10 Jul 2026 22:47:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783723650;
-	bh=13xS1C+S7wvORbcuBblCxgbh7Nt5DvvqWjlefUX/OmI=;
+	d=linux-foundation.org; s=korg; t=1783723654;
+	bh=s/ou2lFnyKg1uDqNCmawXkZg2BPSP9C0NSQSZ6Zx4+A=;
 	h=Date:To:From:Subject;
-	b=Cf0tHO1rBoUlROx0oURWqc93PUAHHGd3MKnKWNlYoBPQntEtD1m0boM0Srs2aP8a8
-	 htBKkKQxrFZUvQtnVQ8yzljFx1d+BZyXSmmqNbRmJiNU1NbI9nteDKAHVb/JGRFNO2
-	 ql2YM0x7dScvvOQu0/eYnxzRqIN7BNpfiJ4kx1xg=
-Date: Fri, 10 Jul 2026 15:47:29 -0700
+	b=tolsmCyPSFEgnhB4dZWG/CWS0RAqNMnV05DvxdTXd/NwkQ+NtGZdBcXtQAKxx/QnJ
+	 /STnkiu3Va6Rwg7EVr53ewIhDG4DdQCv3a5pSgwFyVYVAvF7O8H+CWOQ+rgFtKKgl5
+	 tQgvpvBjJXuqtTieFnzAJ5wsrw1NWmRqCvyRN7BA=
+Date: Fri, 10 Jul 2026 15:47:34 -0700
 To: mm-commits@vger.kernel.org,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vma-correct-incorrect-vmah-inclusion.patch added to mm-new branch
-Message-Id: <20260710224729.D762F1F000E9@smtp.kernel.org>
+Subject: + mm-vma-use-guard-clauses-in-can_vma_merge_.patch added to mm-new branch
+Message-Id: <20260710224734.A13281F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/vma: correct incorrect vma.h inclusion
+     Subject: mm/vma: use guard clauses in can_vma_merge_[before, after]()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-vma-correct-incorrect-vmah-inclusion.patch
+     mm-vma-use-guard-clauses-in-can_vma_merge_.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vma-correct-incorrect-vmah-inclusion.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vma-use-guard-clauses-in-can_vma_merge_.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,33 +70,19 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <ljs@kernel.org>
-Subject: mm/vma: correct incorrect vma.h inclusion
-Date: Fri, 10 Jul 2026 21:17:11 +0100
+Subject: mm/vma: use guard clauses in can_vma_merge_[before, after]()
+Date: Fri, 10 Jul 2026 21:17:12 +0100
 
-The only files which should be including vma.h are the implementation files
-for the core VMA logic - vma.c, vma_init.c, and vma_exec.c.
+Rather than combining a bunch of conditionals in a single expression,
+simplify by inverting the mergeability requirements into guard clauses.
 
-This is in order to allow for userland testing of core VMA logic. In this
-cases, vma_internal.h and vma.h are included, providing both the
-dependencies upon which the core VMA logic requires and its declarations.
-
-Userland testable VMA logic is achieved by having separate vma_internal.h
-implementations for userland and kernel.
-
-Callers other than the core VMA implementation should include internal.h
-instead. This header does not need to include vma_internal.h as it only
-contains the vma.h declarations, for which the includes already present
-suffice.
-
-Update code to reflect this, update comments to reflect the fact there are
-3 VMA implementation files and document things more clearly.
-
-While we're here, slightly improve the language of the comment describing
-vma_exec.c.
+that is - instead of checking what must be true for the conditions to be
+met, instead check the inverse of the requirements and return false if any
+are true, defaulting to true.
 
 No functional change intended.
 
-Link: https://lore.kernel.org/20260710-b4-pre-scalable-cow-v2-30-2a5aa403d977@kernel.org
+Link: https://lore.kernel.org/20260710-b4-pre-scalable-cow-v2-31-2a5aa403d977@kernel.org
 Signed-off-by: Lorenzo Stoakes <ljs@kernel.org>
 Reviewed-by: Pedro Falcato <pfalcato@suse.de>
 Reviewed-by: Gregory Price <gourry@gourry.net>
@@ -110,112 +96,52 @@ Cc: Vlastimil Babka (SUSE) <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmu_notifier.c |    2 +-
- mm/nommu.c        |    1 -
- mm/vma.c          |    4 ++++
- mm/vma.h          |    9 ++++++++-
- mm/vma_exec.c     |    8 ++++++--
- mm/vma_init.c     |    4 ++++
- mm/vma_internal.h |    4 ++--
- 7 files changed, 25 insertions(+), 7 deletions(-)
+ mm/vma.c |   27 ++++++++++++++-------------
+ 1 file changed, 14 insertions(+), 13 deletions(-)
 
---- a/mm/mmu_notifier.c~mm-vma-correct-incorrect-vmah-inclusion
-+++ a/mm/mmu_notifier.c
-@@ -19,7 +19,7 @@
- #include <linux/sched/mm.h>
- #include <linux/slab.h>
- 
--#include "vma.h"
-+#include "internal.h"
- 
- /* global SRCU for all MMs */
- DEFINE_STATIC_SRCU(srcu);
---- a/mm/nommu.c~mm-vma-correct-incorrect-vmah-inclusion
-+++ a/mm/nommu.c
-@@ -41,7 +41,6 @@
- #include <asm/tlbflush.h>
- #include <asm/mmu_context.h>
- #include "internal.h"
--#include "vma.h"
- 
- unsigned long highest_memmap_pfn;
- int heap_stack_gap = 0;
---- a/mm/vma.c~mm-vma-correct-incorrect-vmah-inclusion
+--- a/mm/vma.c~mm-vma-use-guard-clauses-in-can_vma_merge_
 +++ a/mm/vma.c
-@@ -4,6 +4,10 @@
-  * VMA-specific functions.
+@@ -215,13 +215,13 @@ static void init_multi_vma_prep(struct v
   */
- 
-+/*
-+ * To allow for userland testing we place internal dependencies in
-+ * vma_internal.h and external VMA API declarations in vma.h.
-+ */
- #include "vma_internal.h"
- #include "vma.h"
- 
---- a/mm/vma_exec.c~mm-vma-correct-incorrect-vmah-inclusion
-+++ a/mm/vma_exec.c
-@@ -1,10 +1,14 @@
- // SPDX-License-Identifier: GPL-2.0-only
+ static bool can_vma_merge_before(struct vma_merge_struct *vmg)
+ {
+-	if (is_mergeable_vma(vmg, /* merge_next = */ true) &&
+-	    is_mergeable_anon_vma(vmg, /* merge_next = */ true)) {
+-		if (vmg_end_pgoff(vmg) == vma_start_pgoff(vmg->next))
+-			return true;
+-	}
+-
+-	return false;
++	if (!is_mergeable_vma(vmg, /* merge_next = */ true))
++		return false;
++	if (!is_mergeable_anon_vma(vmg, /* merge_next = */ true))
++		return false;
++	if (vmg_end_pgoff(vmg) != vma_start_pgoff(vmg->next))
++		return false;
++	return true;
+ }
  
  /*
-- * Functions explicitly implemented for exec functionality which however are
-- * explicitly VMA-only logic.
-+ * Functions provided for exec functionality which however are
-+ * specifically VMA-only logic.
+@@ -235,12 +235,13 @@ static bool can_vma_merge_before(struct
   */
+ static bool can_vma_merge_after(struct vma_merge_struct *vmg)
+ {
+-	if (is_mergeable_vma(vmg, /* merge_next = */ false) &&
+-	    is_mergeable_anon_vma(vmg, /* merge_next = */ false)) {
+-		if (vma_end_pgoff(vmg->prev) == vmg_start_pgoff(vmg))
+-			return true;
+-	}
+-	return false;
++	if (!is_mergeable_vma(vmg, /* merge_next = */ false))
++		return false;
++	if (!is_mergeable_anon_vma(vmg, /* merge_next = */ false))
++		return false;
++	if (vma_end_pgoff(vmg->prev) != vmg_start_pgoff(vmg))
++		return false;
++	return true;
+ }
  
-+/*
-+ * To allow for userland testing we place internal dependencies in
-+ * vma_internal.h and external VMA API declarations in vma.h.
-+ */
- #include "vma_internal.h"
- #include "vma.h"
- 
---- a/mm/vma.h~mm-vma-correct-incorrect-vmah-inclusion
-+++ a/mm/vma.h
-@@ -2,7 +2,14 @@
- /*
-  * vma.h
-  *
-- * Core VMA manipulation API implemented in vma.c.
-+ * Core VMA manipulation API implemented in vma.c, vma_init.c and vma_exec.c.
-+ *
-+ * Note that, in order for VMA logic to be userland testable, this header
-+ * intentionally includes no dependencies.
-+ *
-+ * This is specifically scoped to mm-only. Users of this functionality (other
-+ * than the core VMA implementation itself) should not include this header
-+ * directly, but rather include internal.h.
-  */
- #ifndef __MM_VMA_H
- #define __MM_VMA_H
---- a/mm/vma_init.c~mm-vma-correct-incorrect-vmah-inclusion
-+++ a/mm/vma_init.c
-@@ -5,6 +5,10 @@
-  * between CONFIG_MMU and non-CONFIG_MMU kernel configurations.
-  */
- 
-+/*
-+ * To allow for userland testing we place internal dependencies in
-+ * vma_internal.h and external VMA API declarations in vma.h.
-+ */
- #include "vma_internal.h"
- #include "vma.h"
- 
---- a/mm/vma_internal.h~mm-vma-correct-incorrect-vmah-inclusion
-+++ a/mm/vma_internal.h
-@@ -2,8 +2,8 @@
- /*
-  * vma_internal.h
-  *
-- * Headers required by vma.c, which can be substituted accordingly when testing
-- * VMA functionality.
-+ * Headers required by vma.c, vma_init.c and vma_exec.c, which can be
-+ * substituted accordingly when testing VMA functionality.
-  */
- 
- #ifndef __MM_VMA_INTERNAL_H
+ static void __vma_link_file(struct vm_area_struct *vma,
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
