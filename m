@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 47C50405C48
-	for <mm-commits@vger.kernel.org>; Fri, 10 Jul 2026 22:47:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 965B1407569
+	for <mm-commits@vger.kernel.org>; Fri, 10 Jul 2026 22:47:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783723640; cv=none; b=spnWeLS7Gsj8vv8Loq6KJBr11lwlTNj8JRTh+9ysys/yMcAIHFGXh5KMOKdt29CQSjmYBUl94s14xTTs0IiwCt4gltZJWq5HqaAqg3CV2wX+NjwPIXlW6QeJ87QGyiMVQLyxDr21TMIBnipNo+J6MC2+pn1rfmDlHl41tQED4sw=
+	t=1783723643; cv=none; b=MEMZUdJhzhsua3d6qj1VnUTECRi9P5oa/fPl6U6aGao3YtR98C9/jFJxR6WYB7BVGrBdTlFfm5+toXre1pkjp+U8Gcp6jG0lKW0StOkOvyhTWfV2XW2Oi2MmGe8qaDXZq/j9E7Cao1v6YMbZh1RHxosUE/fCts1LZqYX2BBm+Pc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783723640; c=relaxed/simple;
-	bh=K/faW64LW2BK7m8vAOZDWTCb+dAiKDMsr30AobD85E4=;
-	h=Date:To:From:Subject:Message-Id; b=JmZNjRlaSUEX697zy/t+zNai+lPlmm4BJAYuYg8qD/76FRKK5R4MGrlusZ+tntZJeW4C+RMqUCsDVJsPQWE70nDUzSqgVBri3yqtwqH6eMfUgXbJkbmTiSimYeTbexLsZCYl2vmAsETFkunwBy6QZ9/Js8eMQ93x5u8M5YVAJGM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Th0HDEdQ; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783723643; c=relaxed/simple;
+	bh=dMIgiOiLw4RoM+un9S1ICMk+CbkQF32Dwci28jpPgK4=;
+	h=Date:To:From:Subject:Message-Id; b=Lu6NHX/tKXSIfoscHQU6YGITpfx4IkbP3dHNqXdvGnEXUZqi5+oNey5sIg8p6aacIs4rc2kSMWXaP6yx/HXtEUPox59rDa1FsXQ7+OnpobSJ5Ek+rHpvOTMVICwMgbro2UWybUYNRp+hRMjMcjoHl+XbWwaniD6eoMPzcMIkRoc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XhZvyIyC; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Th0HDEdQ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D5B191F000E9;
-	Fri, 10 Jul 2026 22:47:18 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XhZvyIyC"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 37DA61F000E9;
+	Fri, 10 Jul 2026 22:47:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783723638;
-	bh=zp64SZ7wQshlySMrPODzEpk0WWfqFs8/BwjckSKMihc=;
+	d=linux-foundation.org; s=korg; t=1783723642;
+	bh=towHv8RkLtaQJtbivPSxdukU/NpU/vVWxgWB0QwRal0=;
 	h=Date:To:From:Subject;
-	b=Th0HDEdQjE8NB/VUgW8Exfqy69B5vciUwQKfwt7pEbIY/QLgACmZApiKMi9vcE7WV
-	 TWg3YjbhdlCjsfsIbTETHWJJozjSe7zILprZdPOr4eFWFMTFCGydOfPQ96J7rOHejX
-	 XxNME8ROoJ9l1roW4x1kszBSabb4gkNh7xMd1Vu4=
-Date: Fri, 10 Jul 2026 15:47:18 -0700
+	b=XhZvyIyCnCmxWVgyEYMIK8EkQvzEMxl1V/zLt/i3TFoGRNsbDFJM9UJzRhYDbOamF
+	 6GVy5VA9ykmgTWI0GS2XtJKRcEYsfQV1BpcEQVQ2uhduTVbhBKwMApei9K/j9MZ92p
+	 nvHORBbETaiQqlXADs1MJWFGtaNZuqBnNtNXq9Nc=
+Date: Fri, 10 Jul 2026 15:47:21 -0700
 To: mm-commits@vger.kernel.org,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vma-update-vma_shrink-to-not-pass-start-pgoff-parameters.patch added to mm-new branch
-Message-Id: <20260710224718.D5B191F000E9@smtp.kernel.org>
+Subject: + mm-vma-update-vmg_adjust_set_range-to-offset-pgoff-instead.patch added to mm-new branch
+Message-Id: <20260710224722.37DA61F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/vma: update vma_shrink() to not pass start, pgoff parameters
+     Subject: mm/vma: update vmg_adjust_set_range() to offset pgoff instead
 has been added to the -mm mm-new branch.  Its filename is
-     mm-vma-update-vma_shrink-to-not-pass-start-pgoff-parameters.patch
+     mm-vma-update-vmg_adjust_set_range-to-offset-pgoff-instead.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vma-update-vma_shrink-to-not-pass-start-pgoff-parameters.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vma-update-vmg_adjust_set_range-to-offset-pgoff-instead.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,22 +70,24 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <ljs@kernel.org>
-Subject: mm/vma: update vma_shrink() to not pass start, pgoff parameters
-Date: Fri, 10 Jul 2026 21:17:07 +0100
+Subject: mm/vma: update vmg_adjust_set_range() to offset pgoff instead
+Date: Fri, 10 Jul 2026 21:17:08 +0100
 
-vma_shrink() is only used by relocate_vma_down() to shrink the tail of a
-VMA. Therefore neither the start nor the pgoff parameters make any sense.
+We are calculating the pgoff as an offset, since we have vma_add_pgoff()
+and vma_sub_pgoff() available, just offset this value directly and use
+__vma_set_range() for vma->vm_[start, end] values.
 
-It seemed we were passing the pgoff parameter solely to satisfy
-vma_set_range()'s requirement for pgoff being specified.
+We take care to update the range before offsetting the page offset, so the
+adjusted VMA's vm_start and vm_pgoff are mutually consistent at the point
+the page offset helpers operate - this matters once vma_set_pgoff() comes
+to assert invariants which relate the two.
 
-Since vma_set_range() is now isolated to vma.c, we can simply introduce
-__vma_set_range() which sets only vma->vm_[start, end], and invoke this
-instead, removing start and pgoff from vma_shrink() altogether.
+Doing so lays the foundation for future work which allows for use of
+virtual page offsets for MAP_PRIVATE-file backed mappings.
 
 No functional change intended.
 
-Link: https://lore.kernel.org/20260710-b4-pre-scalable-cow-v2-26-2a5aa403d977@kernel.org
+Link: https://lore.kernel.org/20260710-b4-pre-scalable-cow-v2-27-2a5aa403d977@kernel.org
 Signed-off-by: Lorenzo Stoakes <ljs@kernel.org>
 Reviewed-by: Pedro Falcato <pfalcato@suse.de>
 Reviewed-by: Gregory Price <gourry@gourry.net>
@@ -99,116 +101,48 @@ Cc: Vlastimil Babka (SUSE) <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vma.c                        |   31 ++++++++++++++++--------------
- mm/vma.h                        |    3 --
- mm/vma_exec.c                   |    2 -
- tools/testing/vma/tests/merge.c |    2 -
- 4 files changed, 20 insertions(+), 18 deletions(-)
+ mm/vma.c |   15 ++++-----------
+ 1 file changed, 4 insertions(+), 11 deletions(-)
 
---- a/mm/vma.c~mm-vma-update-vma_shrink-to-not-pass-start-pgoff-parameters
+--- a/mm/vma.c~mm-vma-update-vmg_adjust_set_range-to-offset-pgoff-instead
 +++ a/mm/vma.c
-@@ -70,11 +70,17 @@ struct mmap_state {
- 		.state = VMA_MERGE_START,				\
- 	}
- 
--static void vma_set_range(struct vm_area_struct *vma, unsigned long start,
--			  unsigned long end, pgoff_t pgoff)
-+static void __vma_set_range(struct vm_area_struct *vma, unsigned long start,
-+			    unsigned long end)
- {
- 	vma->vm_start = start;
- 	vma->vm_end = end;
-+}
-+
-+static void vma_set_range(struct vm_area_struct *vma, unsigned long start,
-+			  unsigned long end, pgoff_t pgoff)
-+{
-+	__vma_set_range(vma, start, end);
- 	vma->vm_pgoff = pgoff;
- }
- 
-@@ -1279,27 +1285,24 @@ nomem:
- 	return -ENOMEM;
- }
- 
--/*
-- * vma_shrink() - Reduce an existing VMAs memory area
-+/**
-+ * vma_shrink() - Shrink the end of a VMA
-  * @vmi: The vma iterator
-  * @vma: The VMA to modify
-- * @start: The new start
-  * @end: The new end
-  *
-+ * Note that the caller may only shrink the end of the VMA.
-+ *
-  * Returns: 0 on success, -ENOMEM otherwise
+@@ -714,9 +714,6 @@ void validate_mm(struct mm_struct *mm)
   */
- int vma_shrink(struct vma_iterator *vmi, struct vm_area_struct *vma,
--	       unsigned long start, unsigned long end, pgoff_t pgoff)
-+	       unsigned long end)
+ static void vmg_adjust_set_range(struct vma_merge_struct *vmg)
  {
- 	struct vma_prepare vp;
- 
--	WARN_ON((vma->vm_start != start) && (vma->vm_end != end));
+-	struct vm_area_struct *adjust;
+-	pgoff_t pgoff;
 -
--	if (vma->vm_start < start)
--		vma_iter_config(vmi, vma->vm_start, start);
--	else
--		vma_iter_config(vmi, end, vma->vm_end);
-+	VM_WARN_ON_ONCE(end > vma->vm_end);
+ 	if (vmg->__adjust_middle_start) {
+ 		/*
+ 		 * vmg->start    vmg->end
+@@ -735,8 +732,8 @@ static void vmg_adjust_set_range(struct
+ 		struct vm_area_struct *middle = vmg->middle;
+ 		const unsigned long delta = vmg->end - middle->vm_start;
  
-+	vma_iter_config(vmi, end, vma->vm_end);
- 	if (vma_iter_prealloc(vmi, NULL))
- 		return -ENOMEM;
+-		pgoff = vma_start_pgoff(middle) + (delta >> PAGE_SHIFT);
+-		adjust = middle;
++		__vma_set_range(middle, vmg->end, middle->vm_end);
++		vma_add_pgoff(middle, delta >> PAGE_SHIFT);
+ 	} else if (vmg->__adjust_next_start) {
+ 		/*
+ 		 *                Originally:
+@@ -764,13 +761,9 @@ static void vmg_adjust_set_range(struct
+ 		struct vm_area_struct *next = vmg->next;
+ 		const unsigned long delta = next->vm_start - vmg->end;
  
-@@ -1307,10 +1310,10 @@ int vma_shrink(struct vma_iterator *vmi,
- 
- 	init_vma_prep(&vp, vma);
- 	vma_prepare(&vp);
--	vma_adjust_trans_huge(vma, start, end, NULL);
-+	vma_adjust_trans_huge(vma, vma->vm_start, end, NULL);
- 
- 	vma_iter_clear(vmi);
--	vma_set_range(vma, start, end, pgoff);
-+	__vma_set_range(vma, vma->vm_start, end);
- 	vma_complete(&vp, vmi, vma->vm_mm);
- 	validate_mm(vma->vm_mm);
- 	return 0;
---- a/mm/vma_exec.c~mm-vma-update-vma_shrink-to-not-pass-start-pgoff-parameters
-+++ a/mm/vma_exec.c
-@@ -89,7 +89,7 @@ int relocate_vma_down(struct vm_area_str
- 
- 	vma_prev(&vmi);
- 	/* Shrink the vma to just the new range */
--	return vma_shrink(&vmi, vma, new_start, new_end, vma_start_pgoff(vma));
-+	return vma_shrink(&vmi, vma, new_end);
+-		pgoff = vma_start_pgoff(next) - (delta >> PAGE_SHIFT);
+-		adjust = next;
+-	} else {
+-		return;
++		__vma_set_range(next, vmg->end, next->vm_end);
++		vma_sub_pgoff(next, delta >> PAGE_SHIFT);
+ 	}
+-
+-	vma_set_range(adjust, vmg->end, adjust->vm_end, pgoff);
  }
  
  /*
---- a/mm/vma.h~mm-vma-update-vma_shrink-to-not-pass-start-pgoff-parameters
-+++ a/mm/vma.h
-@@ -297,8 +297,7 @@ void validate_mm(struct mm_struct *mm);
- 
- __must_check int vma_expand(struct vma_merge_struct *vmg);
- __must_check int vma_shrink(struct vma_iterator *vmi,
--		struct vm_area_struct *vma,
--		unsigned long start, unsigned long end, pgoff_t pgoff);
-+		struct vm_area_struct *vma, unsigned long end);
- 
- static inline int vma_iter_store_gfp(struct vma_iterator *vmi,
- 			struct vm_area_struct *vma, gfp_t gfp)
---- a/tools/testing/vma/tests/merge.c~mm-vma-update-vma_shrink-to-not-pass-start-pgoff-parameters
-+++ a/tools/testing/vma/tests/merge.c
-@@ -227,7 +227,7 @@ static bool test_simple_shrink(void)
- 
- 	ASSERT_FALSE(attach_vma(&mm, vma));
- 
--	ASSERT_FALSE(vma_shrink(&vmi, vma, 0, 0x1000, 0));
-+	ASSERT_FALSE(vma_shrink(&vmi, vma, 0x1000));
- 
- 	ASSERT_EQ(vma->vm_start, 0);
- 	ASSERT_EQ(vma->vm_end, 0x1000);
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
