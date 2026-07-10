@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DCDB13BFE25
-	for <mm-commits@vger.kernel.org>; Fri, 10 Jul 2026 22:13:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 684103C8C43
+	for <mm-commits@vger.kernel.org>; Fri, 10 Jul 2026 22:13:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783721607; cv=none; b=jRaOEeXJLftc3HyxddC1NUYF+PkzgTVLVo6ItTvys/AHk7H73A2TR1vK4xuSG3usWOraLf6yf6Imo5f9DjEEDF7k+9r3lAWqMFkb/YU6IPPdo1dcUHxHHmsmINGFBwnHK0/hWFL65Azm8WPbCIW1XD2ghYdXz+leRwzi6CcrPG0=
+	t=1783721609; cv=none; b=ffv2B7hu3RAniJiaOx+lmgW08AWDi4I6viyBcYlLxXSAcwljJJG5bviLlW+4M70q47FAT7Sh4S1pef1we1AB7/wrO+3Vmv7P40pvPm1mKttIzcxWge//bwzr9lYbHbUcKitN88f3W8B9W3K9KZeg5DyLACLWT6UjqRrW44sPsew=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783721607; c=relaxed/simple;
-	bh=dg7r02lr9R4mIAZE1g4XWEOdiDl/7dYqC9FTrus52sg=;
-	h=Date:To:From:Subject:Message-Id; b=SRMywgP3swbU63WlldNXFgx+gBf9EW/HmxcYlL/E69W/SgXIWMj3jh+onfKYFMNT7a/j8GdwarVFi78EGZ1TmJgieBdFg2gjU9L6xAZVtuLvrEnha/U3rfBArTaoCSSnDP9ujY6xE0N1smblCBf+CMNWdYIjd4s5fOp25KiKb+U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sGmZJwsO; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783721609; c=relaxed/simple;
+	bh=Fzi0XqPI9NGklTt15pZqLYEApZms7+htQ7Hpt3fUgXs=;
+	h=Date:To:From:Subject:Message-Id; b=AnDS5AmLRnWxYORgF42PGuFZZ1BMS1G33xFJEG5uHfjff6ehQZ6ZmJ6jzEpKag39XYhB/jyqBGVgfuFEkqIsgeGb0NfnA6WMHXCmD/WXqPLy28dBmQ7qA1rYG0d2wooS4DEB2Flr9GYUlknKLWV3oS47dBQ6sFPn01KvLOY/b7c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ygqvA0zR; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sGmZJwsO"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 81AF41F000E9;
-	Fri, 10 Jul 2026 22:13:25 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ygqvA0zR"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C7B8A1F000E9;
+	Fri, 10 Jul 2026 22:13:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783721605;
-	bh=GY9xaribgVN48Y13wmMzT+h+MfDYdj+eL86Bg3Lky+0=;
+	d=linux-foundation.org; s=korg; t=1783721607;
+	bh=l68+5f6iRm6SMcb6xg+kKmE+KOuuhvg6nKvbyejKf68=;
 	h=Date:To:From:Subject;
-	b=sGmZJwsOf1NaEkfq1E7S96eV7OhE2ZJ3HnxSbIIIckuL8RISwpFTsbIMMZmCZODQ3
-	 cJLs9oDFWjwgiHnRerLwyAlaf0tgMkZjJy/HFraxcEwGBOBCeqcZ7UVnnejm7Kd9Ci
-	 vbzjFRx4njQcgFORAr4+hZjZSp2Loud5FCsJ8IKQ=
-Date: Fri, 10 Jul 2026 15:13:25 -0700
+	b=ygqvA0zRyCKfaIky5CHLEHPBz8OpxjTp4C9YEztOiPG25fniw+SiiLsq0ODxzfdni
+	 h6o4QOxBn7WGab/5XR3u5V8Ku0Bugrqo19VW7gViMhRS7efdoGD7suLb9HGM3mR10e
+	 vY060jIbU8UYfarLeI0rON1+OO9+rg0gleLUPjVQ=
+Date: Fri, 10 Jul 2026 15:13:27 -0700
 To: mm-commits@vger.kernel.org,skinsburskii@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + rdma-umem-use-hmm_range_fault_unlocked_timeout-for-odp-faults.patch added to mm-new branch
-Message-Id: <20260710221325.81AF41F000E9@smtp.kernel.org>
+Subject: + accel-amdxdna-use-hmm_range_fault_unlocked_timeout-for-range-population.patch added to mm-new branch
+Message-Id: <20260710221327.C7B8A1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: RDMA/umem: use hmm_range_fault_unlocked_timeout() for ODP faults
+     Subject: accel/amdxdna: use hmm_range_fault_unlocked_timeout() for range population
 has been added to the -mm mm-new branch.  Its filename is
-     rdma-umem-use-hmm_range_fault_unlocked_timeout-for-odp-faults.patch
+     accel-amdxdna-use-hmm_range_fault_unlocked_timeout-for-range-population.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/rdma-umem-use-hmm_range_fault_unlocked_timeout-for-odp-faults.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/accel-amdxdna-use-hmm_range_fault_unlocked_timeout-for-range-population.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,23 +70,23 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Stanislav Kinsburskii <skinsburskii@gmail.com>
-Subject: RDMA/umem: use hmm_range_fault_unlocked_timeout() for ODP faults
-Date: Fri, 10 Jul 2026 14:27:05 -0700
+Subject: accel/amdxdna: use hmm_range_fault_unlocked_timeout() for range population
+Date: Fri, 10 Jul 2026 14:27:12 -0700
 
-ib_umem_odp_map_dma_and_lock() takes mmap_read_lock() only around
-hmm_range_fault(), then retries -EBUSY until HMM_RANGE_DEFAULT_TIMEOUT
-expires.
+aie2_populate_range() takes mmap_read_lock() only around
+hmm_range_fault().  It keeps a single HMM_RANGE_DEFAULT_TIMEOUT deadline
+for the populate pass and retries -EBUSY until that deadline expires.
 
 Use hmm_range_fault_unlocked_timeout() instead.  The HMM helper now owns
-the mmap lock and refreshes range->notifier_seq for its internal retries. 
-ODP keeps using HMM_RANGE_DEFAULT_TIMEOUT for each HMM fault attempt,
-while interval invalidation retries continue to be handled by the existing
-outer loop.
+the mmap lock and refreshes mapp->range.notifier_seq for its internal
+retries.  Pass the remaining jiffies from the existing deadline to HMM,
+while preserving the driver's existing outer loop for interval
+invalidation retries and for selecting the next invalid mapping.
 
-ODP still validates the interval notifier sequence while holding
-umem_mutex before DMA mapping pages.
+Keep returning -ETIME when the retry budget expires, matching the driver's
+existing timeout error convention.
 
-Link: https://lore.kernel.org/178371882559.900500.4008217424194230517.stgit@skinsburskii
+Link: https://lore.kernel.org/178371883276.900500.12789147320642521200.stgit@skinsburskii
 Signed-off-by: Stanislav Kinsburskii <skinsburskii@gmail.com>
 Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
 Cc: Danilo Krummrich <dakr@kernel.org>
@@ -117,51 +117,37 @@ Cc: Wei Liu <wei.liu@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/infiniband/core/umem_odp.c |   18 +++++-------------
- 1 file changed, 5 insertions(+), 13 deletions(-)
+ drivers/accel/amdxdna/aie2_ctx.c |   17 +++--------------
+ 1 file changed, 3 insertions(+), 14 deletions(-)
 
---- a/drivers/infiniband/core/umem_odp.c~rdma-umem-use-hmm_range_fault_unlocked_timeout-for-odp-faults
-+++ a/drivers/infiniband/core/umem_odp.c
-@@ -329,7 +329,7 @@ int ib_umem_odp_map_dma_and_lock(struct
- 	struct mm_struct *owning_mm = umem_odp->umem.owning_mm;
- 	int pfn_index, dma_index, ret = 0, start_idx;
- 	unsigned int page_shift, hmm_order, pfn_start_idx;
--	unsigned long num_pfns, current_seq;
-+	unsigned long num_pfns;
- 	struct hmm_range range = {};
- 	unsigned long timeout;
- 
-@@ -363,26 +363,18 @@ int ib_umem_odp_map_dma_and_lock(struct
+--- a/drivers/accel/amdxdna/aie2_ctx.c~accel-amdxdna-use-hmm_range_fault_unlocked_timeout-for-range-population
++++ a/drivers/accel/amdxdna/aie2_ctx.c
+@@ -1061,22 +1061,11 @@ again:
+ 		return -EFAULT;
  	}
  
- 	range.hmm_pfns = &(umem_odp->map.pfn_list[pfn_start_idx]);
--	timeout = jiffies + msecs_to_jiffies(HMM_RANGE_DEFAULT_TIMEOUT);
-+	timeout = msecs_to_jiffies(HMM_RANGE_DEFAULT_TIMEOUT);
- 
- retry:
--	current_seq = range.notifier_seq =
--		mmu_interval_read_begin(&umem_odp->notifier);
+-	mapp->range.notifier_seq = mmu_interval_read_begin(&mapp->notifier);
+-	mmap_read_lock(mm);
+-	ret = hmm_range_fault(&mapp->range);
+-	mmap_read_unlock(mm);
++	ret = hmm_range_fault_unlocked_timeout(&mapp->range,
++			max_t(long, timeout - jiffies, 1));
+ 	if (ret) {
+-		if (time_after(jiffies, timeout)) {
++		if (ret == -EBUSY)
+ 			ret = -ETIME;
+-			goto put_mm;
+-		}
 -
--	mmap_read_lock(owning_mm);
--	ret = hmm_range_fault(&range);
--	mmap_read_unlock(owning_mm);
--	if (unlikely(ret)) {
--		if (ret == -EBUSY && !time_after(jiffies, timeout))
--			goto retry;
-+	ret = hmm_range_fault_unlocked_timeout(&range, timeout);
-+	if (unlikely(ret))
- 		goto out_put_mm;
--	}
- 
- 	start_idx = (range.start - ib_umem_start(umem_odp)) >> page_shift;
- 	dma_index = start_idx;
- 
- 	mutex_lock(&umem_odp->umem_mutex);
--	if (mmu_interval_read_retry(&umem_odp->notifier, current_seq)) {
-+	if (mmu_interval_read_retry(&umem_odp->notifier, range.notifier_seq)) {
- 		mutex_unlock(&umem_odp->umem_mutex);
- 		goto retry;
+-		if (ret == -EBUSY) {
+-			amdxdna_umap_put(mapp);
+-			mmput(mm);
+-			goto again;
+-		}
+-
+ 		goto put_mm;
  	}
+ 
 _
 
 Patches currently in -mm which might be from skinsburskii@gmail.com are
