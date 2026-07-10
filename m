@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B2D0D407599
-	for <mm-commits@vger.kernel.org>; Fri, 10 Jul 2026 22:47:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9C0F9409113
+	for <mm-commits@vger.kernel.org>; Fri, 10 Jul 2026 22:59:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783723660; cv=none; b=Rbi4EO8QKtTAK7Mbp/N6w3tTaaifINdWiAs6cmlpnIbW9oH5EFkajz84ZKBSRkv36rlvn4SZFVlD9U+Fz3weOWCmaGtBTxrNAY6k/qGzvrq+p5iXVFZqKpFe0b/rmiLn0hzixgDOMxDXwrAR8GTDhreLnHd/zaIcAQs03aWZZkc=
+	t=1783724395; cv=none; b=pbEQsLpbm572k8hpMS1L6RxYZoIIPATSZGcnAn5FoglIC5qco9ic0/pEICmuPjeyjBw+EfV/bCzojqvgvKkwLqsIt0WDv9om10XauG1bCp8VXJpGaPv+L41Z1dppSnDvMJ9J2Gx3Q8x98fJ/KH2ptoRl22gO+scsJLThwAVU2jI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783723660; c=relaxed/simple;
-	bh=pg0zpkS93bTdrhnRTGgFVB5ErSbP9Azppkr3CeresJo=;
-	h=Date:To:From:Subject:Message-Id; b=e5vibxGq3bKNTbNqJPFtZXjkHfF9dL24HhzTMmpcZzNerN1WH/qkVEPyX+8n256BK+kHripmqkklN3RKcpoxA7R061iP/joCb3Tgr+b6H8eBmPTWifVbukTBuh2cBkmmKAKm2miwUg/USzcuT/VLNw5Lrs1QfhuOapZA9KoMsKQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=t4OI3EE9; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783724395; c=relaxed/simple;
+	bh=8G4Urv0+g3wOIFiWRl8oqqT/G+/JuTLLQ4SUHZGiaxc=;
+	h=Date:To:From:Subject:Message-Id; b=ccYUnSXagmrIAth6JyLTViqG8BgALaFoDarrblbhCyrV+VuczeopIGj/8GMiU9ZVWQ01W94b8PVLABUybosaoMmSxWniyKqHDOve5WJsu78YMo/TxHWx01N2FF2Yg490671MwL8/Vf9y2y4p6cE/neIBxDdm8goK1H7PV2EoxIs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OSKoY16S; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="t4OI3EE9"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 85DA41F000E9;
-	Fri, 10 Jul 2026 22:47:38 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OSKoY16S"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 31A7C1F000E9;
+	Fri, 10 Jul 2026 22:59:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783723658;
-	bh=6rJVrE/1eMC6/84sdKr9Qqgk3ykGIjYaOMU70PTC++Y=;
+	d=linux-foundation.org; s=korg; t=1783724394;
+	bh=hd6VQ3PZWDhKR+i7b+0Jzkshmr5No0IW/fWtaaxW4pI=;
 	h=Date:To:From:Subject;
-	b=t4OI3EE9DNI5SWca4G6CKb9vXDoIpFGD9B4+ljdJ1rO4pt8ZmZfU8Pl9biEDJG52C
-	 rERBEUi0W4bXlvEIj2jsusvyb+bTArtSUbcuY60ARRl4UzLf4iET2ppEiRub/lbw0U
-	 bcCulq2wkadjlhCrPWm2sBK32PxHxpvnXn7Kn6vY=
-Date: Fri, 10 Jul 2026 15:47:38 -0700
-To: mm-commits@vger.kernel.org,ljs@kernel.org,akpm@linux-foundation.org
+	b=OSKoY16SVlJXkeGssc05t4Z2aDdrfjQb53RWI4NeTUTvfbw0GpyqnCJfVCC0tBz9l
+	 PC1OWawg/rAGtEvXM5hXgh/inJKXqzvHum6n3mxPUfrA/QClnH3jncIGi6vqWaHkJ3
+	 +VS3Ey1vZpmcYZpSB2ZqED5ppGnlZG3POuhH+f9U=
+Date: Fri, 10 Jul 2026 15:59:53 -0700
+To: mm-commits@vger.kernel.org,thomas.orgis@uni-hamburg.de,balbirs@nvidia.com,cyyzero16@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + tools-testing-vma-output-compared-expression-on-assert_.patch added to mm-new branch
-Message-Id: <20260710224738.85DA41F000E9@smtp.kernel.org>
+Subject: + taskstats-return-ebadf-when-cgroupstats-receives-an-invalid-fd.patch added to mm-nonmm-unstable branch
+Message-Id: <20260710225954.31A7C1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,26 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: tools/testing/vma: output compared expression on ASSERT_[EQ, NE]()
-has been added to the -mm mm-new branch.  Its filename is
-     tools-testing-vma-output-compared-expression-on-assert_.patch
+     Subject: taskstats: return -EBADF when cgroupstats receives an invalid fd
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     taskstats-return-ebadf-when-cgroupstats-receives-an-invalid-fd.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/tools-testing-vma-output-compared-expression-on-assert_.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/taskstats-return-ebadf-when-cgroupstats-receives-an-invalid-fd.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,132 +58,71 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Lorenzo Stoakes <ljs@kernel.org>
-Subject: tools/testing/vma: output compared expression on ASSERT_[EQ, NE]()
-Date: Fri, 10 Jul 2026 21:17:14 +0100
+From: Yiyang Chen <cyyzero16@gmail.com>
+Subject: taskstats: return -EBADF when cgroupstats receives an invalid fd
+Date: Sat, 11 Jul 2026 04:07:36 +0800
 
-Update the macros to output the compared values at hex for easier debugging
-when test asserts fail.
+Patch series "taskstats: fix cgroupstats invalid fd handling and add
+selftests".
 
-We have to be careful not to re-evaluate expressions as they may have
-side-effects. So update the code to take local copies and use these for
-both the test and the debug output.
+This series fixes an issue where cgroupstats mishandles invalid file
+descriptors, and introduces a functional kselftest to prevent regressions.
 
-Also remove unused IS_SET() macro.
+When an invalid file descriptor is passed via CGROUPSTATS_CMD_ATTR_FD,
+cgroupstats_user_cmd() returns 0 instead of an error code. This leads to
+two broken behaviors depending on netlink flags:
+- Callers without NLM_F_ACK block indefinitely on recv().
+- Callers with NLM_F_ACK receive a misleading success ACK (errno == 0)
+  but no actual statistics payload.
 
-Link: https://lore.kernel.org/20260710-b4-pre-scalable-cow-v2-33-2a5aa403d977@kernel.org
-Signed-off-by: Lorenzo Stoakes <ljs@kernel.org>
-Reviewed-by: Gregory Price <gourry@gourry.net>
-Cc: Ackerley Tng <ackerleytng@google.com>
-Cc: David Hildenbrand (Arm) <david@kernel.org>
-Cc: Kai Huang <kai.huang@intel.com>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: Pedro Falcato <pfalcato@suse.de>
-Cc: SJ Park <sj@kernel.org>
-Cc: Thomas Zimmermann <tzimmermann@suse.de>
-Cc: Vlastimil Babka (SUSE) <vbabka@kernel.org>
+The first patch addresses this by returning -EBADF when the fd cannot be
+resolved.  The second patch adds a comprehensive kselftest covering both
+the valid cgroup v1 query and the invalid fd paths (with and without
+NLM_F_ACK) to ensure the fixes work as intended.
+
+
+This patch (of 2):
+
+cgroupstats_user_cmd() returns 0 without sending a reply or a netlink
+error when the fd passed via CGROUPSTATS_CMD_ATTR_FD does not resolve to
+an open file in the caller's table.  As a result:
+
+- clients that did not set NLM_F_ACK block on recv() indefinitely
+  waiting for a CGROUPSTATS_CMD_NEW message that is never emitted;
+
+- clients that set NLM_F_ACK receive a misleading "success" ACK (errno
+  == 0) with no statistics payload.
+
+Return -EBADF instead so the netlink layer propagates the error to
+userspace as expected.
+
+Link: https://lore.kernel.org/cover.1783713230.git.cyyzero16@gmail.com
+Link: https://lore.kernel.org/b4fd9e288e4a48efebaf41b4ffcdb204b06675c4.1783713230.git.cyyzero16@gmail.com
+Signed-off-by: Yiyang Chen <cyyzero16@gmail.com>
+Cc: Balbir Singh <balbirs@nvidia.com>
+Cc: Dr. Thomas Orgis <thomas.orgis@uni-hamburg.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/vma/shared.h |   38 +++++++++++++++++++++++------------
- 1 file changed, 26 insertions(+), 12 deletions(-)
+ kernel/taskstats.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/tools/testing/vma/shared.h~tools-testing-vma-output-compared-expression-on-assert_
-+++ a/tools/testing/vma/shared.h
-@@ -21,19 +21,35 @@
- 		}							\
- 	} while (0)
+--- a/kernel/taskstats.c~taskstats-return-ebadf-when-cgroupstats-receives-an-invalid-fd
++++ a/kernel/taskstats.c
+@@ -423,7 +423,7 @@ static int cgroupstats_user_cmd(struct s
+ 	fd = nla_get_u32(info->attrs[CGROUPSTATS_CMD_ATTR_FD]);
+ 	CLASS(fd, f)(fd);
+ 	if (fd_empty(f))
+-		return 0;
++		return -EBADF;
  
--#define ASSERT_TRUE(_expr)						\
--	do {								\
--		if (!(_expr)) {						\
--			fprintf(stderr,					\
--				"Assert FAILED at %s:%d:%s(): %s is FALSE.\n", \
--				__FILE__, __LINE__, __FUNCTION__, #_expr); \
--			return false;					\
--		}							\
-+#define __ASSERT_TRUE(_expr, _fmt, ...)					   \
-+	do {								   \
-+		if (!(_expr)) {						   \
-+			fprintf(stderr,					   \
-+				"Assert FAILED at %s:%d:%s(): %s is FALSE" \
-+				_fmt ".\n",				   \
-+				__FILE__, __LINE__, __FUNCTION__, #_expr   \
-+				__VA_OPT__(,) __VA_ARGS__);		   \
-+			return false;					   \
-+		}							   \
- 	} while (0)
+ 	size = nla_total_size(sizeof(struct cgroupstats));
  
-+#define __TO_SCALAR(x)	((unsigned long long)(uintptr_t)(x))
-+
-+#define ASSERT_TRUE(_expr) __ASSERT_TRUE(_expr, "")
- #define ASSERT_FALSE(_expr) ASSERT_TRUE(!(_expr))
--#define ASSERT_EQ(_val1, _val2) ASSERT_TRUE((_val1) == (_val2))
--#define ASSERT_NE(_val1, _val2) ASSERT_TRUE((_val1) != (_val2))
-+#define ASSERT_EQ(_val1, _val2) do {				 \
-+	__typeof__(_val1) __val1 = (_val1);			 \
-+	__typeof__(_val2) __val2 = (_val2);			 \
-+	__ASSERT_TRUE(__val1 == __val2, " (0x%llx != 0x%llx)",	 \
-+		      __TO_SCALAR(__val1), __TO_SCALAR(__val2)); \
-+	} while (0)
-+
-+#define ASSERT_NE(_val1, _val2) do {				 \
-+	__typeof__(_val1) __val1 = (_val1);			 \
-+	__typeof__(_val2) __val2 = (_val2);			 \
-+	__ASSERT_TRUE(__val1 != __val2, " (0x%llx == 0x%llx)",	 \
-+		      __TO_SCALAR(__val1), __TO_SCALAR(__val2)); \
-+	} while (0)
- 
- #define ASSERT_FLAGS_SAME_MASK(_flags, _flags_other) \
- 	ASSERT_TRUE(vma_flags_same_mask((_flags), (_flags_other)))
-@@ -53,8 +69,6 @@
- #define ASSERT_FLAGS_NONEMPTY(_flags) \
- 	ASSERT_FALSE(vma_flags_empty(_flags))
- 
--#define IS_SET(_val, _flags) ((_val & _flags) == _flags)
--
- extern bool fail_prealloc;
- 
- /* Override vma_iter_prealloc() so we can choose to fail it. */
 _
 
-Patches currently in -mm which might be from ljs@kernel.org are
+Patches currently in -mm which might be from cyyzero16@gmail.com are
 
-mm-move-alloc-tag-to-mm.patch
-mm-ptdump-always-stabilise-against-page-table-freeing-using-init_mm.patch
-mm-vmalloc-acquire-init_mm-read-lock-on-huge-vmap-promotion.patch
-revert-arm64-enable-vmalloc-huge-with-ptdump.patch
-mm-move-vma_start_pgoff-into-mmh-and-clean-up.patch
-mm-add-kdoc-comments-for-vma_start-last_pgoff.patch
-tools-testing-vma-use-vma_start_pgoff-in-merge-tests.patch
-mm-introduce-and-use-vma_end_pgoff.patch
-mm-rmap-update-mm-interval_treec-comments.patch
-mm-rmap-parameterise-vma_interval_tree_-by-address_space.patch
-mm-rmap-elide-unnecessary-static-inlines-in-interval_treec.patch
-mm-rmap-rename-vma_interval_tree_-to-mapping_rmap_tree_.patch
-mm-rmap-parameterise-anon_vma_interval_tree_-by-anon_vma.patch
-mm-rmap-rename-anon_vma_interval_tree_-params-and-use-pgoff_t.patch
-mm-rmap-rename-anon_vma_interval_tree_-to-anon_rmap_tree_.patch
-maintainers-move-mm-interval_treec-to-rmap-section.patch
-mm-vma-introduce-and-use-vmg_pages-vmg__pgoff.patch
-mm-vma-clean-up-anon_vma_compatible.patch
-mm-vma-refactor-vmg_adjust_set_range-for-clarity.patch
-mm-vma-minor-cleanup-of-expand_.patch
-mm-introduce-and-use-linear_page_delta.patch
-mm-vma-use-vma_start_pgoff-linear_page_index-in-mm-code.patch
-mm-prefer-vma__pgoff-to-vma-vm_pgoff-in-kernel.patch
-mm-vma-remove-duplicative-vma_pgoff_offset-helper.patch
-mm-use-linear_page_-consistently.patch
-mm-vma-introduce-vma_assert_can_modify.patch
-mm-vma-add-and-use-vma__pgoff.patch
-mm-vma-move-__install_special_mapping-to-vmac.patch
-mm-vma-make-vma_set_range-static-drop-insert_vm_struct-decl.patch
-mm-vma-update-vma_shrink-to-not-pass-start-pgoff-parameters.patch
-mm-vma-update-vmg_adjust_set_range-to-offset-pgoff-instead.patch
-mm-vma-slightly-rework-the-anonymous-check-in-__mmap_new_vma.patch
-mm-vma-introduce-and-use-vma_set_pgoff.patch
-mm-vma-correct-incorrect-vmah-inclusion.patch
-mm-vma-use-guard-clauses-in-can_vma_merge_.patch
-tools-testing-vma-default-vma-mm-flag-bits-to-64-bit.patch
-tools-testing-vma-output-compared-expression-on-assert_.patch
+taskstats-remove-dead-taskstats_exit_mutex-declaration.patch
+taskstats-return-ebadf-when-cgroupstats-receives-an-invalid-fd.patch
+selftests-acct-add-cgroupstats-functional-test.patch
 
