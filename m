@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 684103C8C43
-	for <mm-commits@vger.kernel.org>; Fri, 10 Jul 2026 22:13:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 79FD13C8C43
+	for <mm-commits@vger.kernel.org>; Fri, 10 Jul 2026 22:13:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783721609; cv=none; b=ffv2B7hu3RAniJiaOx+lmgW08AWDi4I6viyBcYlLxXSAcwljJJG5bviLlW+4M70q47FAT7Sh4S1pef1we1AB7/wrO+3Vmv7P40pvPm1mKttIzcxWge//bwzr9lYbHbUcKitN88f3W8B9W3K9KZeg5DyLACLWT6UjqRrW44sPsew=
+	t=1783721611; cv=none; b=IH3B1KRdzVZF9PunALjMz1ZRS3ybMlvP1SMXQtSRzRzKEKKZ7VriOZuhwJq4Qlbc9tW3p2PjhjwVVIMrFnc+jPLRrM5HhTKDZxS1KtKhXo33v5BlmWsAtzZoUu49KpdSbTCwLJCObsp/Cgpo/7K0i8p0HElyzMUbJBncvNIm2hA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783721609; c=relaxed/simple;
-	bh=Fzi0XqPI9NGklTt15pZqLYEApZms7+htQ7Hpt3fUgXs=;
-	h=Date:To:From:Subject:Message-Id; b=AnDS5AmLRnWxYORgF42PGuFZZ1BMS1G33xFJEG5uHfjff6ehQZ6ZmJ6jzEpKag39XYhB/jyqBGVgfuFEkqIsgeGb0NfnA6WMHXCmD/WXqPLy28dBmQ7qA1rYG0d2wooS4DEB2Flr9GYUlknKLWV3oS47dBQ6sFPn01KvLOY/b7c=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ygqvA0zR; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783721611; c=relaxed/simple;
+	bh=xsU6sk69cpZk4WvAIPsxiD1xD9uQf2UK0nKee+RmqcA=;
+	h=Date:To:From:Subject:Message-Id; b=TMk+d1an34BQwwhKdzx5o0dIy7Qun0EajZzdD7N3O7qtrB5m3epMNNZRmsR4VCKAvb36UMSu3Wps75IVfRhufEofo05NQNvKw+uz+2gq/J4+j1J6bd50GI7dVaazDq9PhJQeYMPw5LL/avCqaiRu/oTecYlu1DZ7B4eJm1f29L0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Xm42E+Ec; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ygqvA0zR"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C7B8A1F000E9;
-	Fri, 10 Jul 2026 22:13:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Xm42E+Ec"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0CF0B1F000E9;
+	Fri, 10 Jul 2026 22:13:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783721607;
-	bh=l68+5f6iRm6SMcb6xg+kKmE+KOuuhvg6nKvbyejKf68=;
+	d=linux-foundation.org; s=korg; t=1783721610;
+	bh=p/+va9hXsFCjfBUhaWjjs4P/m1iwSKO/Fm6QGYXG6pU=;
 	h=Date:To:From:Subject;
-	b=ygqvA0zRyCKfaIky5CHLEHPBz8OpxjTp4C9YEztOiPG25fniw+SiiLsq0ODxzfdni
-	 h6o4QOxBn7WGab/5XR3u5V8Ku0Bugrqo19VW7gViMhRS7efdoGD7suLb9HGM3mR10e
-	 vY060jIbU8UYfarLeI0rON1+OO9+rg0gleLUPjVQ=
-Date: Fri, 10 Jul 2026 15:13:27 -0700
+	b=Xm42E+EcqYuAD6G/8N6PMTxxOTXXVsHv9HSyTr+J0D8k/XkLUcLxjk0bGORe2NRex
+	 NcD0nzhtqnVvQSH+qWRTRonrfZfllAZQndvlipGsekXr3Iy0MVzjK2oXt0ecaS9r45
+	 fK6/7Qmwv7Xs3DvSJfKaolR4TCJfuBpdgwgb4UtI=
+Date: Fri, 10 Jul 2026 15:13:29 -0700
 To: mm-commits@vger.kernel.org,skinsburskii@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + accel-amdxdna-use-hmm_range_fault_unlocked_timeout-for-range-population.patch added to mm-new branch
-Message-Id: <20260710221327.C7B8A1F000E9@smtp.kernel.org>
+Subject: + drm-gpusvm-use-hmm_range_fault_unlocked_timeout-for-range-faults.patch added to mm-new branch
+Message-Id: <20260710221330.0CF0B1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: accel/amdxdna: use hmm_range_fault_unlocked_timeout() for range population
+     Subject: drm/gpusvm: use hmm_range_fault_unlocked_timeout() for range faults
 has been added to the -mm mm-new branch.  Its filename is
-     accel-amdxdna-use-hmm_range_fault_unlocked_timeout-for-range-population.patch
+     drm-gpusvm-use-hmm_range_fault_unlocked_timeout-for-range-faults.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/accel-amdxdna-use-hmm_range_fault_unlocked_timeout-for-range-population.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/drm-gpusvm-use-hmm_range_fault_unlocked_timeout-for-range-faults.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,23 +70,24 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Stanislav Kinsburskii <skinsburskii@gmail.com>
-Subject: accel/amdxdna: use hmm_range_fault_unlocked_timeout() for range population
-Date: Fri, 10 Jul 2026 14:27:12 -0700
+Subject: drm/gpusvm: use hmm_range_fault_unlocked_timeout() for range faults
+Date: Fri, 10 Jul 2026 14:27:19 -0700
 
-aie2_populate_range() takes mmap_read_lock() only around
-hmm_range_fault().  It keeps a single HMM_RANGE_DEFAULT_TIMEOUT deadline
-for the populate pass and retries -EBUSY until that deadline expires.
+Several GPU SVM paths take mmap_read_lock() only to call
+hmm_range_fault(), then retry -EBUSY until HMM_RANGE_DEFAULT_TIMEOUT
+expires.  Those paths use MMU interval notifiers whose mm matches the mm
+that was locked for the HMM fault.
 
-Use hmm_range_fault_unlocked_timeout() instead.  The HMM helper now owns
-the mmap lock and refreshes mapp->range.notifier_seq for its internal
-retries.  Pass the remaining jiffies from the existing deadline to HMM,
-while preserving the driver's existing outer loop for interval
-invalidation retries and for selecting the next invalid mapping.
+Use hmm_range_fault_unlocked_timeout() for those faults and pass the
+remaining retry budget to HMM.  The helper owns mmap_lock acquisition and
+refreshes range->notifier_seq internally for each retry, while GPU SVM
+keeps its existing driver-lock validation with mmu_interval_read_retry()
+after a successful fault.
 
-Keep returning -ETIME when the retry budget expires, matching the driver's
-existing timeout error convention.
+Leave drm_gpusvm_check_pages() on hmm_range_fault() because that path is
+called with the mmap lock already held by its caller.
 
-Link: https://lore.kernel.org/178371883276.900500.12789147320642521200.stgit@skinsburskii
+Link: https://lore.kernel.org/178371883977.900500.2198446134676328631.stgit@skinsburskii
 Signed-off-by: Stanislav Kinsburskii <skinsburskii@gmail.com>
 Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
 Cc: Danilo Krummrich <dakr@kernel.org>
@@ -117,36 +118,87 @@ Cc: Wei Liu <wei.liu@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/accel/amdxdna/aie2_ctx.c |   17 +++--------------
- 1 file changed, 3 insertions(+), 14 deletions(-)
+ drivers/gpu/drm/drm_gpusvm.c |   52 ++++-----------------------------
+ 1 file changed, 7 insertions(+), 45 deletions(-)
 
---- a/drivers/accel/amdxdna/aie2_ctx.c~accel-amdxdna-use-hmm_range_fault_unlocked_timeout-for-range-population
-+++ a/drivers/accel/amdxdna/aie2_ctx.c
-@@ -1061,22 +1061,11 @@ again:
- 		return -EFAULT;
+--- a/drivers/gpu/drm/drm_gpusvm.c~drm-gpusvm-use-hmm_range_fault_unlocked_timeout-for-range-faults
++++ a/drivers/gpu/drm/drm_gpusvm.c
+@@ -788,22 +788,8 @@ enum drm_gpusvm_scan_result drm_gpusvm_s
+ 	hmm_range.hmm_pfns = pfns;
+ 
+ retry:
+-	hmm_range.notifier_seq = mmu_interval_read_begin(notifier);
+-	mmap_read_lock(range->gpusvm->mm);
+-
+-	while (true) {
+-		err = hmm_range_fault(&hmm_range);
+-		if (err == -EBUSY) {
+-			if (time_after(jiffies, timeout))
+-				break;
+-
+-			hmm_range.notifier_seq =
+-				mmu_interval_read_begin(notifier);
+-			continue;
+-		}
+-		break;
+-	}
+-	mmap_read_unlock(range->gpusvm->mm);
++	err = hmm_range_fault_unlocked_timeout(&hmm_range,
++					       max(timeout - jiffies, 1L));
+ 	if (err)
+ 		goto err_free;
+ 
+@@ -1439,21 +1425,8 @@ retry:
  	}
  
--	mapp->range.notifier_seq = mmu_interval_read_begin(&mapp->notifier);
--	mmap_read_lock(mm);
--	ret = hmm_range_fault(&mapp->range);
--	mmap_read_unlock(mm);
-+	ret = hmm_range_fault_unlocked_timeout(&mapp->range,
-+			max_t(long, timeout - jiffies, 1));
- 	if (ret) {
+ 	hmm_range.hmm_pfns = pfns;
+-	while (true) {
+-		mmap_read_lock(mm);
+-		err = hmm_range_fault(&hmm_range);
+-		mmap_read_unlock(mm);
+-
+-		if (err == -EBUSY) {
+-			if (time_after(jiffies, timeout))
+-				break;
+-
+-			hmm_range.notifier_seq =
+-				mmu_interval_read_begin(notifier);
+-			continue;
+-		}
+-		break;
+-	}
++	err = hmm_range_fault_unlocked_timeout(&hmm_range,
++				max_t(long, timeout - jiffies, 1));
+ 	mmput(mm);
+ 	if (err)
+ 		goto err_free;
+@@ -1736,24 +1709,13 @@ int drm_gpusvm_range_evict(struct drm_gp
+ 		return -ENOMEM;
+ 
+ 	hmm_range.hmm_pfns = pfns;
+-	while (!time_after(jiffies, timeout)) {
+-		hmm_range.notifier_seq = mmu_interval_read_begin(notifier);
 -		if (time_after(jiffies, timeout)) {
-+		if (ret == -EBUSY)
- 			ret = -ETIME;
--			goto put_mm;
+-			err = -ETIME;
+-			break;
 -		}
 -
--		if (ret == -EBUSY) {
--			amdxdna_umap_put(mapp);
--			mmput(mm);
--			goto again;
--		}
--
- 		goto put_mm;
- 	}
+-		mmap_read_lock(mm);
+-		err = hmm_range_fault(&hmm_range);
+-		mmap_read_unlock(mm);
+-		if (err != -EBUSY)
+-			break;
+-	}
++	err = hmm_range_fault_unlocked_timeout(&hmm_range,
++				max_t(long, timeout - jiffies, 1));
+ 
+ 	kvfree(pfns);
+ 	mmput(mm);
+ 
+-	return err;
++	return err == -EBUSY ? -ETIME : err;
+ }
+ EXPORT_SYMBOL_GPL(drm_gpusvm_range_evict);
  
 _
 
