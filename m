@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 657A834EEFD
-	for <mm-commits@vger.kernel.org>; Fri, 10 Jul 2026 01:53:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6C81334EEFD
+	for <mm-commits@vger.kernel.org>; Fri, 10 Jul 2026 01:53:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783648411; cv=none; b=YkmHupZS/BlYWM/92WKcQ1/lQrRgavcgT0p9FoZyRUSqSjkSFQ2c+b+/6Yl13mBxJg6REfyugEHWnewT6XnrQ5j80CwFnwqLa8PEcp4KFEc7G/3r4T4KJ3vkqUzA/o88xpK0xvDn1o8IWOHuXRoO2GOQVOCjM3YVP+QNrKLFEpI=
+	t=1783648413; cv=none; b=kXvuE8UjRjeUbNJsUAlP9Dnb6G2yudWBZVvlKYvv9CNBcTo/dLvXDGVALG35SMJaJ8Xwv3P941cGlOoK/6e1PteyLArD4SATjrryZc1aEfYlRu5tXr5LU8pV/uC2Fj2r/fdWObdTJBy5nlcQ1hkQ4SDY0EuA6JeiGb4u2vY6CNE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783648411; c=relaxed/simple;
-	bh=NmW6JIUIu3eBzqyr5uMxjaFubUIxjveDVKWeEthCOlg=;
-	h=Date:To:From:Subject:Message-Id; b=qXNtyzwatbkB7XRsLGt7iwcXPE6BXJk+iawho/FPVfTykeeVqQmlRcwDn/N3luRjqAvipx/8wahO24r76jc0FcO8p6uLHrMT1lTKdllRqmLRUWgJZYn+zZVJoBt+P3lJgaZIGlIw/woeoqqlIy4h3txkJ80OKELoFPTS6p4jDm8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rGDyiHub; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783648413; c=relaxed/simple;
+	bh=kBNd4dptx8UMyhMOOeKx/IOS7D/SYmHbrJVVizYr8PQ=;
+	h=Date:To:From:Subject:Message-Id; b=M1F7RFt9PibIswwUFz9gSiVd8fx3RcSZn0oxxLl8ockPOcwUs/thB07pHKHAxLh2OmeJOoeiVfIK5HQ0xEsq0C58kWcexbe2FkxVjKdc/3yvp8vuQmaiOVaHvX+nTMsH/ltgbvIkioo3KiL0UW39meAw+BqusUYQckwWw0bMDCg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=INHDcdCa; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rGDyiHub"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E56271F000E9;
-	Fri, 10 Jul 2026 01:53:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="INHDcdCa"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 015741F000E9;
+	Fri, 10 Jul 2026 01:53:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783648410;
-	bh=PxEkYLB3QjNjEaD+9RZ6ndJYrMzcmqO/PxlFVyASq34=;
+	d=linux-foundation.org; s=korg; t=1783648412;
+	bh=eIrRy8Yfgptwayi8ebsEh/NeHsSQTCmNwMmk41C25Qk=;
 	h=Date:To:From:Subject;
-	b=rGDyiHubplPDBJiTx4QdUafDjaYSlvMSFNuEnYzfbMCCnC/B+lp1rIDdAV6cOehj7
-	 E9k2nLFj5g3Fi0IIsNFTVI0x5C1Um0/zGny7zxHuSl2HvnWt31G5OfPGob+sfn3AYb
-	 DME+uxDF8uEnbX31BW8XhzRZwel+fqtLb75p+bX4=
-Date: Thu, 09 Jul 2026 18:53:29 -0700
+	b=INHDcdCaeZ4eIM6P2xlPpcocICxEhvH1lfTEThhHFpjevAAgTVHGRC3TRMQ5vw6ev
+	 c0pWQe1Azg19XnXBZgJsL5hajZFJCmxzs9BqZ9pJtpEzlJgLpWFNb6DSDWjx8uelqE
+	 LiXpLpzfpYdlULngiXqMqdX5vs4PIGKTbRXdVzjI=
+Date: Thu, 09 Jul 2026 18:53:31 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,shuah@kernel.org,ritesh.list@gmail.com,osalvador@suse.de,mhocko@kernel.org,linmiaohe@huawei.com,liam.howlett@oracle.com,dev.jain@arm.com,david@kernel.org,sayalip@linux.ibm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-fix-ksm-numa-merge-test-for-systems-with-memoryless-numa-nodes.patch added to mm-new branch
-Message-Id: <20260710015329.E56271F000E9@smtp.kernel.org>
+Subject: + selftests-mm-fix-ternary-operator-precedence-in-ksm_tests.patch added to mm-new branch
+Message-Id: <20260710015332.015741F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: fix ksm NUMA merge test for systems with memoryless NUMA nodes
+     Subject: selftests/mm: fix ternary operator precedence in ksm_tests
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-mm-fix-ksm-numa-merge-test-for-systems-with-memoryless-numa-nodes.patch
+     selftests-mm-fix-ternary-operator-precedence-in-ksm_tests.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-fix-ksm-numa-merge-test-for-systems-with-memoryless-numa-nodes.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-fix-ternary-operator-precedence-in-ksm_tests.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,77 +70,30 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Sayali Patil <sayalip@linux.ibm.com>
-Subject: selftests/mm: fix ksm NUMA merge test for systems with memoryless NUMA nodes
-Date: Wed, 8 Jul 2026 12:29:06 +0530
+Subject: selftests/mm: fix ternary operator precedence in ksm_tests
+Date: Wed, 8 Jul 2026 12:29:07 +0530
 
-The KSM NUMA merge test allocates identical pages on different NUMA nodes
-and verifies KSM behavior with merge_across_nodes enabled and disabled.
+The KSM selftest uses conditional expressions to skip accesses to
+merge_across_nodes on systems without NUMA support.  However, the ternary
+operator is combined with logical OR without parentheses:
 
-On systems with memoryless NUMA nodes, for example:
- #numactl  -H
-      available: 2 nodes (0,4)
-      .....
-      node 0 cpus: 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15
-      node 0 size: 14825 MB
-      node 0 free: 1382 MB
-      node 4 cpus:
-      node 4 size: 0 MB
-      node 4 free: 0 MB
+a || numa_available() ? 0 : b || c
 
-the test may attempt to allocate memory on a node without memory, causing
-numa_alloc_onnode() to fail and resulting in a spurious test failure.
+Due to operator precedence rules, this is parsed as:
 
-The test currently checks numa_num_configured_nodes() to determine whether
-sufficient NUMA nodes are available.  However, configured nodes do not
-necessarily have memory.
+(a || numa_available()) ? 0 : (b || c)
 
-Reuse the existing get_first_mem_node() and get_next_mem_node() helpers to
-locate NUMA nodes that actually contain memory, and skip the test when
-fewer than two such nodes are available.
+instead of the intended:
 
-Before patch:
-       ---------------------------
-	running ./ksm_tests -N -m 1
-       ---------------------------
-        mbind: Invalid argument
-        ok 1 KSM NUMA merging
-	Totals: pass:1 fail:0 xfail:0 xpass:0 skip:0 error:0
-        [PASS]
-       ok 1 ksm_tests -N -m 1
-       ---------------------------
-        running ./ksm_tests -N -m 0
-       ---------------------------
-        mbind: Invalid argument
-        not ok 1 KSM NUMA merging
-	Totals: pass:0 fail:1 xfail:0 xpass:0 skip:0 error:0
-        [FAIL]
-       not ok 2 ksm_tests -N -m 0 # exit=1
+a || (numa_available() ? 0 : b) || c
 
-After patch:
-       ---------------------------
-        running ./ksm_tests -N -m 1
-       ---------------------------
-        At least 2 NUMA nodes with memory must be available
-	ok 1
-	SKIP KSM NUMA merging
-	Totals: pass:0 fail:0 xfail:0 xpass:0 skip:1 error:0
-        [PASS]
-        ok 1 ksm_tests -N -m 1
-       ---------------------------
-        running ./ksm_tests -N -m 0
-       ---------------------------
-        At least 2 NUMA nodes with memory must be available
-	ok 1
-	SKIP KSM NUMA merging
-	Totals: pass:0 fail:0 xfail:0 xpass:0 skip:1 error:0
-        [PASS]
-        ok 2 ksm_tests -N -m 0
+Add parentheses around the conditional expressions to ensure the
+correct evaluation order.
 
-Link: https://lore.kernel.org/78a3b0e3fb94004c0710872c5bab6f7381b7d63c.1783446924.git.sayalip@linux.ibm.com
-Fixes: e3820ab252dd ("selftest/vm: fix ksm selftest to run with different NUMA topologies")
-Co-developed-by: David Hildenbrand (Arm) <david@kernel.org>
-Signed-off-by: David Hildenbrand (Arm) <david@kernel.org>
+Link: https://lore.kernel.org/ce859430287ed2642848c933a90eb9a69da361f0.1783446924.git.sayalip@linux.ibm.com
+Fixes: 9aa1af954db0 ("selftests: vm: check numa_available() before operating "merge_across_nodes" in ksm_tests")
 Signed-off-by: Sayali Patil <sayalip@linux.ibm.com>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
 Cc: Dev Jain <dev.jain@arm.com>
 Cc: Liam Howlett <liam.howlett@oracle.com>
 Cc: Miaohe Lin <linmiaohe@huawei.com>
@@ -152,57 +105,44 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/ksm_tests.c |   16 +++++++++-------
- 1 file changed, 9 insertions(+), 7 deletions(-)
+ tools/testing/selftests/mm/ksm_tests.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
---- a/tools/testing/selftests/mm/ksm_tests.c~selftests-mm-fix-ksm-numa-merge-test-for-systems-with-memoryless-numa-nodes
+--- a/tools/testing/selftests/mm/ksm_tests.c~selftests-mm-fix-ternary-operator-precedence-in-ksm_tests
 +++ a/tools/testing/selftests/mm/ksm_tests.c
-@@ -440,9 +440,9 @@ static int get_next_mem_node(int node)
- 		mem_node = i % (max_node + 1);
- 		node_size = numa_node_size(mem_node, NULL);
- 		if (node_size > 0)
--			break;
-+			return mem_node;
- 	}
--	return mem_node;
-+	return -ENODEV;
- }
- 
- static int get_first_mem_node(void)
-@@ -455,8 +455,8 @@ static int check_ksm_numa_merge(int merg
+@@ -288,8 +288,8 @@ static bool assert_ksm_pages_count(long
+ static int ksm_save_def(struct ksm_sysfs *ksm_sysfs)
  {
- 	void *numa1_map_ptr, *numa2_map_ptr;
- 	struct timespec start_time;
-+	int first_node, second_node;
- 	int page_count = 2;
--	int first_node;
+ 	if (ksm_read_sysfs(KSM_FP("max_page_sharing"), &ksm_sysfs->max_page_sharing) ||
+-	    numa_available() ? 0 :
+-		ksm_read_sysfs(KSM_FP("merge_across_nodes"), &ksm_sysfs->merge_across_nodes) ||
++	    (numa_available() ? 0 :
++		ksm_read_sysfs(KSM_FP("merge_across_nodes"), &ksm_sysfs->merge_across_nodes)) ||
+ 	    ksm_read_sysfs(KSM_FP("sleep_millisecs"), &ksm_sysfs->sleep_millisecs) ||
+ 	    ksm_read_sysfs(KSM_FP("pages_to_scan"), &ksm_sysfs->pages_to_scan) ||
+ 	    ksm_read_sysfs(KSM_FP("run"), &ksm_sysfs->run) ||
+@@ -304,8 +304,8 @@ static int ksm_save_def(struct ksm_sysfs
+ static int ksm_restore(struct ksm_sysfs *ksm_sysfs)
+ {
+ 	if (ksm_write_sysfs(KSM_FP("max_page_sharing"), ksm_sysfs->max_page_sharing) ||
+-	    numa_available() ? 0 :
+-		ksm_write_sysfs(KSM_FP("merge_across_nodes"), ksm_sysfs->merge_across_nodes) ||
++	    (numa_available() ? 0 :
++		ksm_write_sysfs(KSM_FP("merge_across_nodes"), ksm_sysfs->merge_across_nodes)) ||
+ 	    ksm_write_sysfs(KSM_FP("pages_to_scan"), ksm_sysfs->pages_to_scan) ||
+ 	    ksm_write_sysfs(KSM_FP("run"), ksm_sysfs->run) ||
+ 	    ksm_write_sysfs(KSM_FP("sleep_millisecs"), ksm_sysfs->sleep_millisecs) ||
+@@ -846,8 +846,8 @@ int main(int argc, char *argv[])
  
- 	if (clock_gettime(CLOCK_MONOTONIC_RAW, &start_time)) {
- 		ksft_perror("clock_gettime");
-@@ -467,17 +467,19 @@ static int check_ksm_numa_merge(int merg
- 		ksft_print_msg("NUMA support not enabled\n");
- 		return KSFT_SKIP;
- 	}
--	if (numa_num_configured_nodes() <= 1) {
--		ksft_print_msg("At least 2 NUMA nodes must be available\n");
-+	first_node = get_first_mem_node();
-+	second_node = get_next_mem_node(first_node);
-+
-+	if (second_node < 0) {
-+		ksft_print_msg("At least 2 NUMA nodes with memory must be available\n");
- 		return KSFT_SKIP;
- 	}
- 	if (ksm_write_sysfs(KSM_FP("merge_across_nodes"), merge_across_nodes))
- 		return KSFT_FAIL;
+ 	if (ksm_write_sysfs(KSM_FP("run"), 2) ||
+ 	    ksm_write_sysfs(KSM_FP("sleep_millisecs"), 0) ||
+-	    numa_available() ? 0 :
+-		ksm_write_sysfs(KSM_FP("merge_across_nodes"), 1) ||
++	    (numa_available() ? 0 :
++		ksm_write_sysfs(KSM_FP("merge_across_nodes"), 1)) ||
+ 	    ksm_write_sysfs(KSM_FP("pages_to_scan"), page_count))
+ 		ksft_exit_fail_msg("Cannot set up KSM tunables\n");
  
- 	/* allocate 2 pages in 2 different NUMA nodes and fill them with the same data */
--	first_node = get_first_mem_node();
- 	numa1_map_ptr = numa_alloc_onnode(page_size, first_node);
--	numa2_map_ptr = numa_alloc_onnode(page_size, get_next_mem_node(first_node));
-+	numa2_map_ptr = numa_alloc_onnode(page_size, second_node);
- 	if (!numa1_map_ptr || !numa2_map_ptr) {
- 		ksft_perror("numa_alloc_onnode");
- 		return KSFT_FAIL;
 _
 
 Patches currently in -mm which might be from sayalip@linux.ibm.com are
