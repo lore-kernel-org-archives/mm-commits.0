@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6D863360EF7;
-	Fri, 10 Jul 2026 23:19:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C8516409616
+	for <mm-commits@vger.kernel.org>; Fri, 10 Jul 2026 23:54:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783725553; cv=none; b=ELi9GDN6EfRZ8WU7ulvoWY4V5VLIEtB+6+rvlZqkuaAOV9AYQCJfQ5eGBDTEnoACLyeA74LNTIJWKJ1aDlr/BNfL5YME9qo0tag2GAKxxpOYSGfRRFfzAmHKYm9XtxrfH3/j49inuermHVGlMK/hcQwihbGh2dkLOIPuL+Celoo=
+	t=1783727649; cv=none; b=sIa3viAHbBzeldPXf1FcufPOr0qTD96tX/oJawwDiyd1CRjN7ii/VG6ZYJRynngVKdciduOrO9tz49AX5veVc+iaGCP41cc1lUGbl+Ue5GMqkTGn1FjEpEdrEcJbKNyB/10jOd7aQEWdAcoSgMMQUHQl3pfu+hDf8entRoKAo5w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783725553; c=relaxed/simple;
-	bh=mTaVaa98Af/nTI2ctXWuLJoCcQ2V1no+7UyZJEu8x4o=;
-	h=Date:To:From:Subject:Message-Id; b=ZpV8+AgQ/DDAWcYH0vjwcYf9L6pWtVqQDBaF949n2Hgi2ARt+lBVsn64eavc/H0nde7cSo+Iv9ENPomtJgeYlxAnyOOEtNYeK1TE2slRI87S/0xFKU71ymzFufHiuTuIP5Q7AFSXwG1RFKpgmoFFaM/duwtrk01zI10zRbxYMs0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xF91JRt2; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783727649; c=relaxed/simple;
+	bh=K/sgaLda/Rci3WzdPvdNCadzjscHUnIseGSoJvWbG30=;
+	h=Date:To:From:Subject:Message-Id; b=VR2vrQ9S882QRdNxl9Cz/rvvy4/XSQFjY+/3qkJpXGjbMRASp9poR/2aX56DkV7ihnk7pZVOjUqz88Kw5FCwkxDOYyN7LVtZvJ+alDMRT0Z2et7MjDGa+HOIcOXwXI3kTJkMSKglCMNo+mZzpQEOtJac6PmNT0ELi8aeFzwraH8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yvMGDGNG; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xF91JRt2"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CFD8F1F00A3A;
-	Fri, 10 Jul 2026 23:19:11 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yvMGDGNG"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6D9D71F000E9;
+	Fri, 10 Jul 2026 23:54:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783725551;
-	bh=af2EvGil4zboyjZrY02ZrkCnxx57MEHgkJTbMIU/LJE=;
+	d=linux-foundation.org; s=korg; t=1783727647;
+	bh=Lw2OoZTgVuYEKd6ef6US3RrycSGR1RHxqF8qh7CW7rs=;
 	h=Date:To:From:Subject;
-	b=xF91JRt2M+0jVsKmpAxdc5zDRU5yLHahbsrT6ViIy8Pfe6Ql2z0MJ1DOa+GXbuA6g
-	 LCHlwAaOVXAexmaSip8wAKeMgQLYvQEy4w4geu+LQFnpWdDlImcpj/J6ilpLhUjYT8
-	 N7qSrJNLJRfKena99tpyqp65fddyFKofJR1F9qPA=
-Date: Fri, 10 Jul 2026 16:19:11 -0700
-To: mm-commits@vger.kernel.org,yuanchu@google.com,weixugc@google.com,stable@vger.kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,peiyang_he@smail.nju.edu.cn,muchun.song@linux.dev,mhocko@kernel.org,ljs@kernel.org,kasong@tencent.com,harry@kernel.org,hannes@cmpxchg.org,david@kernel.org,baohua@kernel.org,axelrasmussen@google.com,zhengqi.arch@bytedance.com,akpm@linux-foundation.org
+	b=yvMGDGNGiXpf7HpL3ZdhziN+2CzOGsI1SqRKJ0iyZYoK3NPNSKOmCG4/h8OBr1zBj
+	 3AA+jI7FaFULCe8C7SP3jWfYqgjsSYNTJ+x1U+9PAJBF5T4zqBdNMRtHcCgI1nhpFG
+	 paGapxoTQ3KwGKTiofNxpy7+jRa8+XBeBbgtcwdE=
+Date: Fri, 10 Jul 2026 16:54:07 -0700
+To: mm-commits@vger.kernel.org,usama.arif@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mglru-fix-stale-batch-updates-after-memcg-reparenting.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260710231911.CFD8F1F00A3A@smtp.kernel.org>
+Subject: + mm-mempolicy-skip-non-present-pmds-when-queueing-folios.patch added to mm-new branch
+Message-Id: <20260710235407.6D9D71F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,26 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: mglru: fix stale batch updates after memcg reparenting
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-mglru-fix-stale-batch-updates-after-memcg-reparenting.patch
+     Subject: mm/mempolicy: skip non-present PMDs when queueing folios
+has been added to the -mm mm-new branch.  Its filename is
+     mm-mempolicy-skip-non-present-pmds-when-queueing-folios.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mglru-fix-stale-batch-updates-after-memcg-reparenting.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mempolicy-skip-non-present-pmds-when-queueing-folios.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,157 +69,114 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Qi Zheng <zhengqi.arch@bytedance.com>
-Subject: mm: mglru: fix stale batch updates after memcg reparenting
-Date: Fri, 10 Jul 2026 23:43:18 +0800
+From: Usama Arif <usama.arif@linux.dev>
+Subject: mm/mempolicy: skip non-present PMDs when queueing folios
+Date: Fri, 10 Jul 2026 03:55:21 -0700
 
-The mglru page table walker batches per-generation size deltas in
-walk->nr_pages while walking page tables without holding the lruvec lock. 
-The reset_batch_size() later folds those deltas into walk->lruvec under
-the lruvec lock.
+Patch series "mm: handle device-private PMDs in walk callbacks", v3.
 
-The page table walker can run concurrently with the memcg reparenting path
-as follows:
+Since commit 368076f52ebe ("mm/huge_memory: add device-private THP support
+to PMD operations") a PMD may hold a device-private swap entry whenever an
+HMM-based GPU driver migrates an anonymous THP folio to device memory via
+migrate_vma_pages().
 
-CPU0                           CPU1
-====                           ====
+pmd_trans_huge_lock() succeeds for such PMDs (pmd_is_huge() returns true
+for any non-present, non-none huge PMD), so several MM walk callbacks that
+used to assume present THP or migration entry are now reachable with a
+device-private PMD.  The results range from a VM_BUG_ON() firing on debug
+kernels, to an oops on a bogus vmemmap dereference, to silently isolating
+an unrelated live folio from LRU in the aliasing case.
 
-walk_mm
---> walk_page_range
-    --> update_batch_size
-        --> walk->nr_pages += delta
 
-                              mem_cgroup_css_offline
-                              --> memcg_reparent_objcgs
-                                  --> lock lruvec
-                                      lru_gen_reparent_memcg
-                                      --> reparent child folios to parent
-                                      unlock lruvec
+This patch (of 3):
 
-    lock lruvec
-    reset_batch_size
-    --> child lrugen->nr_pages += delta
+queue_folios_pmd() is called under pmd_trans_huge_lock(), whose
+pmd_is_huge() check returns true for any non-present, non-none PMD
+softleaf.  Passing such a PMD to pmd_folio() treats the softleaf encoding
+as a hardware PFN and can return a bogus folio pointer.
 
-This will trigger the following warning in lru_gen_exit_memcg():
+Mirror queue_folios_pte_range(): handle non-present entries before looking
+up a folio.  Keep migration entries counted as failures, but skip other
+non-present PMDs such as device-private entries.
 
-	VM_WARN_ON_ONCE(memchr_inv(lruvec->lrugen.nr_pages, 0,
-				   sizeof(lruvec->lrugen.nr_pages)));
+Potential trigger: an HMM-based GPU driver migrates an anonymous THP folio
+to device memory via migrate_vma_pages(), leaving a device-private PMD. 
+Userspace then calls mbind(), migrate_pages() or set_mempolicy_home_node()
+on that range.
 
-And the user-visible impact of underestimated nr_pages in MGLRU was
-premature OOMs because MGLRU does not try to reclaim memory when nr_pages
-reaches zero, but there are still more pages.
-
-To fix it, make reset_batch_size() check CSS_DYING under RCU before
-flushing the pending batch.  A non-dying memcg keeps the original lruvec
-stable against RCU-delayed offlining; a dying memcg redirects the deltas
-to the first non-dying ancestor.
-
-Link: https://lore.kernel.org/20260710154318.75388-1-qi.zheng@linux.dev
-Fixes: f304652609ea ("mm: vmscan: prepare for reparenting MGLRU folios")
-Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
-Reported-by: Peiyang He <peiyang_he@smail.nju.edu.cn>
-Closes: https://lore.kernel.org/all/5A9E929D82717101+12fcf643-efb8-4b9a-a53a-1e28cc894f0b@smail.nju.edu.cn
-Reviewed-by: Harry Yoo (Oracle) <harry@kernel.org>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
+Link: https://lore.kernel.org/20260710105557.1987433-1-usama.arif@linux.dev
+Link: https://lore.kernel.org/20260710105557.1987433-2-usama.arif@linux.dev
+Fixes: 368076f52ebe ("mm/huge_memory: add device-private THP support to PMD operations")
+Signed-off-by: Usama Arif <usama.arif@linux.dev>
+Reported-by: sashiko-bot <sashiko-bot@kernel.org>
+Link: https://sashiko.dev/#/patchset/20260703173903.3789516-1-usama.arif%40linux.dev?part=6
+Reviewed-by: Joshua Hahn <joshua.hahnjy@gmail.com>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Balbir Singh <balbirs@nvidia.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Barry Song <baohua@kernel.org>
-Cc: David Hildenbrand <david@kernel.org>
+Cc: Byungchul Park <byungchul@sk.com>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Gregory Price <gourry@gourry.net>
+Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
+Cc: Jann Horn <jannh@google.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Kairui Song <kasong@tencent.com>
+Cc: Lance Yang <lance.yang@linux.dev>
+Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Matthew Brost <matthew.brost@intel.com>
+Cc: Nico Pache <npache@redhat.com>
+Cc: Rakie Kim <rakie.kim@sk.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
 Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Wei Xu <weixugc@google.com>
-Cc: Yuanchu Xie <yuanchu@google.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |   25 +++++++++++++++++++++++++
- mm/vmscan.c                |   11 ++++-------
- 2 files changed, 29 insertions(+), 7 deletions(-)
+ mm/mempolicy.c |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
---- a/include/linux/memcontrol.h~mm-mglru-fix-stale-batch-updates-after-memcg-reparenting
-+++ a/include/linux/memcontrol.h
-@@ -1472,6 +1472,31 @@ static inline void lruvec_lock_irq(struc
- 	spin_lock_irq(&lruvec->lru_lock);
- }
- 
-+static inline struct lruvec *lruvec_live_lock_irq(struct lruvec *lruvec)
-+{
-+#ifdef CONFIG_MEMCG
-+	struct pglist_data *pgdat = lruvec_pgdat(lruvec);
-+	struct mem_cgroup *memcg = lruvec_memcg(lruvec);
-+
-+	rcu_read_lock();
-+
-+	/*
-+	 * The memcg can be NULL when the memory controller is disabled.
-+	 * Otherwise, the caller keeps the memcg owning @lruvec alive.
-+	 */
-+	while (unlikely(memcg && css_is_dying(&memcg->css))) {
-+		memcg = parent_mem_cgroup(memcg);
-+		lruvec = mem_cgroup_lruvec(memcg, pgdat);
-+	}
-+
-+	spin_lock_irq(&lruvec->lru_lock);
-+#else
-+	lruvec_lock_irq(lruvec);
-+#endif
-+
-+	return lruvec;
-+}
-+
- static inline void lruvec_unlock(struct lruvec *lruvec)
+--- a/mm/mempolicy.c~mm-mempolicy-skip-non-present-pmds-when-queueing-folios
++++ a/mm/mempolicy.c
+@@ -654,12 +654,14 @@ static void queue_folios_pmd(pmd_t *pmd,
  {
- 	spin_unlock(&lruvec->lru_lock);
---- a/mm/vmscan.c~mm-mglru-fix-stale-batch-updates-after-memcg-reparenting
-+++ a/mm/vmscan.c
-@@ -3265,7 +3265,7 @@ static void update_batch_size(struct lru
- static void reset_batch_size(struct lru_gen_mm_walk *walk)
- {
- 	int gen, type, zone;
--	struct lruvec *lruvec = walk->lruvec;
-+	struct lruvec *lruvec = lruvec_live_lock_irq(walk->lruvec);
- 	struct lru_gen_folio *lrugen = &lruvec->lrugen;
+ 	struct folio *folio;
+ 	struct queue_pages *qp = walk->private;
++	pmd_t pmdval = pmdp_get(pmd);
  
- 	walk->batched = 0;
-@@ -3285,6 +3285,8 @@ static void reset_batch_size(struct lru_
- 			lru += LRU_ACTIVE;
- 		__update_lru_size(lruvec, lru, zone, delta);
+-	if (unlikely(pmd_is_migration_entry(*pmd))) {
+-		qp->nr_failed++;
++	if (unlikely(!pmd_present(pmdval))) {
++		if (pmd_is_migration_entry(pmdval))
++			qp->nr_failed++;
+ 		return;
  	}
-+
-+	lruvec_unlock_irq(lruvec);
- }
- 
- static int should_skip_vma(unsigned long start, unsigned long end, struct mm_walk *args)
-@@ -3779,11 +3781,8 @@ static void walk_mm(struct mm_struct *mm
- 			mmap_read_unlock(mm);
- 		}
- 
--		if (walk->batched) {
--			lruvec_lock_irq(lruvec);
-+		if (walk->batched)
- 			reset_batch_size(walk);
--			lruvec_unlock_irq(lruvec);
--		}
- 
- 		cond_resched();
- 	} while (err == -EAGAIN);
-@@ -4867,9 +4866,7 @@ retry:
- 	walk = current->reclaim_state->mm_walk;
- 	if (walk && walk->batched) {
- 		walk->lruvec = lruvec;
--		lruvec_lock_irq(lruvec);
- 		reset_batch_size(walk);
--		lruvec_unlock_irq(lruvec);
- 	}
- 
- 	mod_lruvec_state(lruvec, PGDEMOTE_KSWAPD + reclaimer_offset(sc),
+-	folio = pmd_folio(*pmd);
++	folio = pmd_folio(pmdval);
+ 	if (is_huge_zero_folio(folio)) {
+ 		walk->action = ACTION_CONTINUE;
+ 		return;
 _
 
-Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
+Patches currently in -mm which might be from usama.arif@linux.dev are
 
-mm-mglru-fix-stale-batch-updates-after-memcg-reparenting.patch
+userfaultfd-wait-on-source-pmd-during-uffdio_move.patch
+mm-swap_state-remove-unnecessary-lru_add_drain-from-readahead.patch
+mm-add-softleaf_to_pmd-and-convert-existing-callers.patch
+mm-extract-mm_prepare_for_swap_entries-helper.patch
+fs-proc-use-softleaf_has_pfn-in-pagemap-pmd-walker.patch
+mm-huge_memory-move-softleaf_to_folio-inside-migration-branch.patch
+mm-migrate_device-move-softleaf_to_folio-inside-device-private-branch.patch
+mm-rename-arch_enable_thp_migration-to-arch_has_pmd_softleaves.patch
+mm-vmpressure-skip-tree=true-accounting-on-cgroup-v2.patch
+mm-vmpressure-skip-tree=true-accounting-on-cgroup-v2-fix.patch
+mm-vmpressure-move-v1-userspace-eventfd-code-into-memcontrol-v1c.patch
+mm-migrate_device-pin-large-folios-before-splitting.patch
+mm-migrate_device-pin-large-folios-before-splitting-fix.patch
+mm-mempolicy-skip-non-present-pmds-when-queueing-folios.patch
+mm-madvise-skip-device-private-pmds-in-cold-and-pageout-walks.patch
+mm-huge_memory-skip-device-private-pmds-in-madvise_free_huge_pmd.patch
 
