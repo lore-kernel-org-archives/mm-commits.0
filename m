@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2853B383C7B
-	for <mm-commits@vger.kernel.org>; Fri, 10 Jul 2026 23:54:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B68EA41C71
+	for <mm-commits@vger.kernel.org>; Sat, 11 Jul 2026 00:04:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783727653; cv=none; b=UmtXwbW8+aANhomiS3arHs7GJagu1R4MQ1DOiDKfRW86mkBy3fmxmi/nepB5VS+s0Eo1ghaiftaapcymsTPatJYX9gy16bOtugc1ZP8bgk8tJP3/x6hUge0UM7YJIj6PHxI+pKsxbs4NBbDurJ57fU7rr/4KFsyjwR5L6Fv6MNo=
+	t=1783728273; cv=none; b=WT/jvpUp9IKtrixgLy6nVfRtWp2+sKjR67LOsP6LmTap+rMO927vLP+0ESPJbn7/JSwb7gneAEf7AtwiKBH0/Ktck0wUnX/5DYtlf/PS4esPjPYl0BK/iL3XzvJG3gp3LkJhiw+uRENsxsu/LhAZoFBdTlZ91f0MUiUfZecLrgE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783727653; c=relaxed/simple;
-	bh=QgW3t1IcDLrM7MJYWbBs4PHYLdhmWTIhSbjso/adM9c=;
-	h=Date:To:From:Subject:Message-Id; b=DuNzPhjdFwSsV3hbNnRuitpvUXGmvZpXpiAjx411dieXZ2AzKVFdRv4ahoL3wZhd2XgBR+QNdEndqRQlR8Vk3+ZtOVgomW2fve2EfEa59zAraAVDSNAGFJIP3J3uvw6fe2PMmdX4YO5xxBvDdNLnQZxdpFRAzu5XVkqUWZJDyw8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MJWbvY32; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783728273; c=relaxed/simple;
+	bh=DKQI/VIpMrZ2nGhLqrb5nXK2YCCuRP5mkIBpLKUZ7tg=;
+	h=Date:To:From:Subject:Message-Id; b=Zb/t1plo5UhsaGykxv7ZS++hM6xv/S0KNCaAAyoPx1IptMrdY/r6U0yvKEig+idDYVUHomypg9BD9HhC8kVXafa9Pm6sRzF8cp2123zmujxJq11SKeovDr29Hh0fJuvUF9rUzFT18hzYGnj6Q5F0hjSKEu+ewIh0Aj+OWz40YUQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=aFidnRqP; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MJWbvY32"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F0C3E1F000E9;
-	Fri, 10 Jul 2026 23:54:11 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="aFidnRqP"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4B2FE1F000E9;
+	Sat, 11 Jul 2026 00:04:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783727652;
-	bh=ln3K4GXH0oWlka08aFgGXeaDUWYAtUFrtxQzGftCPaU=;
+	d=linux-foundation.org; s=korg; t=1783728271;
+	bh=G0zmkrQAe3OOpbsniGrqUaL8mcnCsig7a59umugSjTM=;
 	h=Date:To:From:Subject;
-	b=MJWbvY32uF6nEIXQrbZkBAcs9djM9A5t6jxC1l0mXVjte7EBQLu9wVKPsztqGGyly
-	 0jNZsPLAYoJkOOePUOly6QYeod6rWFbv/VYK9C+fDwkXmX5ef749worTP2C0cmttdz
-	 kI/4w35BmFyVMSuFCyaCBQ1nQ7p0BbRkXkx7Sa3Y=
-Date: Fri, 10 Jul 2026 16:54:11 -0700
-To: mm-commits@vger.kernel.org,usama.arif@linux.dev,akpm@linux-foundation.org
+	b=aFidnRqP6ItFUDlB+J6z6UEC3a3jAxKFg25k4jX3p1U9Vt7SvDQGult9KyN/Y8kkS
+	 u9VfkQWUr+E1tloGfHJe8fMSxftolFnAASfQSBQNCqTIym2b4CwiTieVNI2Glj2TzK
+	 1aIBnf/xGl17/6Er/x75xWQ7hUiTzJcXI98Mu9P0=
+Date: Fri, 10 Jul 2026 17:04:30 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,shuah@kernel.org,rppt@kernel.org,muchun.song@linux.dev,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,songmuchun@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-huge_memory-skip-device-private-pmds-in-madvise_free_huge_pmd.patch added to mm-new branch
-Message-Id: <20260710235411.F0C3E1F000E9@smtp.kernel.org>
+Subject: + selftests-mm-remove-obsolete-hugetlb-vmemmap-test.patch added to mm-new branch
+Message-Id: <20260711000431.4B2FE1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/huge_memory: skip device-private PMDs in madvise_free_huge_pmd
+     Subject: selftests/mm: remove obsolete hugetlb vmemmap test
 has been added to the -mm mm-new branch.  Its filename is
-     mm-huge_memory-skip-device-private-pmds-in-madvise_free_huge_pmd.patch
+     selftests-mm-remove-obsolete-hugetlb-vmemmap-test.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-skip-device-private-pmds-in-madvise_free_huge_pmd.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-remove-obsolete-hugetlb-vmemmap-test.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,92 +69,234 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Usama Arif <usama.arif@linux.dev>
-Subject: mm/huge_memory: skip device-private PMDs in madvise_free_huge_pmd
-Date: Fri, 10 Jul 2026 03:55:23 -0700
+From: Muchun Song <songmuchun@bytedance.com>
+Subject: selftests/mm: remove obsolete hugetlb vmemmap test
+Date: Fri, 10 Jul 2026 17:24:27 +0800
 
-madvise_free_pte_range() checks pmd_trans_huge(*pmd) unlocked, then
-madvise_free_huge_pmd() takes pmd_trans_huge_lock().  pmd_is_huge()
-returns true for a device-private PMD, so orig_pmd can be device-private
-and enter the !pmd_present() branch.
+The hugetlb vmemmap selftest was added to check the old HVO layout where
+tail vmemmap pages reused the head page.  That assumption no longer
+matches the current HVO mapping layout.
 
-Skip device-private PMDs in that non-present branch and continue to out
-before calling pmd_folio().  Downgrade the check to VM_WARN_ON_ONCE() so
-an unexpected PMD softleaf logs a warning rather than panicking.  Drop the
-thp_migration_supported() guard: it expands to
-IS_ENABLED(CONFIG_ARCH_SUPPORTS_PMD_SOFTLEAF), and both
-pmd_is_migration_entry() and pmd_is_device_private_entry() already return
-false when that config is not selected, so the guard suppresses only the
-case where the warning would already be silent.
+HVO now keeps a private backing page for the head vmemmap page and remaps
+redundant tail vmemmap pages to a shared read-only backing page.  The old
+page flag check is therefore testing an obsolete implementation detail
+rather than the current ABI or behavior.
 
-Potential trigger: an HMM-based GPU driver races with madvise(MADV_FREE):
-migrate_vma_pages() flips the PMD to a device-private entry between the
-caller's pmd_trans_huge() check and the callee's pmd_trans_huge_lock().
+Remove the stale test and its build, run, and ignore entries.
 
-Link: https://lore.kernel.org/20260710105557.1987433-4-usama.arif@linux.dev
-Fixes: 368076f52ebe ("mm/huge_memory: add device-private THP support to PMD operations")
-Signed-off-by: Usama Arif <usama.arif@linux.dev>
-Reviewed-by: Joshua Hahn <joshua.hahnjy@gmail.com>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
-Reviewed-by: Balbir Singh <balbirs@nvidia.com>
+Link: https://lore.kernel.org/20260710092427.3459121-1-songmuchun@bytedance.com
+Signed-off-by: Muchun Song <songmuchun@bytedance.com>
+Reviewed-by: Lorenzo Stoakes <ljs@kernel.org>
 Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Byungchul Park <byungchul@sk.com>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Gregory Price <gourry@gourry.net>
-Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
-Cc: Jann Horn <jannh@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Lance Yang <lance.yang@linux.dev>
 Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Matthew Brost <matthew.brost@intel.com>
-Cc: Nico Pache <npache@redhat.com>
-Cc: Rakie Kim <rakie.kim@sk.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: sashiko-bot <sashiko-bot@kernel.org>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ tools/testing/selftests/mm/.gitignore        |    2 
+ tools/testing/selftests/mm/Makefile          |    1 
+ tools/testing/selftests/mm/hugetlb-vmemmap.c |  132 -----------------
+ tools/testing/selftests/mm/run_vmtests.sh    |    1 
+ 4 files changed, 136 deletions(-)
 
---- a/mm/huge_memory.c~mm-huge_memory-skip-device-private-pmds-in-madvise_free_huge_pmd
-+++ a/mm/huge_memory.c
-@@ -2331,8 +2331,8 @@ bool madvise_free_huge_pmd(struct mmu_ga
- 		goto out;
- 
- 	if (unlikely(!pmd_present(orig_pmd))) {
--		VM_BUG_ON(thp_migration_supported() &&
--				  !pmd_is_migration_entry(orig_pmd));
-+		VM_WARN_ON_ONCE(!pmd_is_migration_entry(orig_pmd) &&
-+				!pmd_is_device_private_entry(orig_pmd));
- 		goto out;
- 	}
- 
+--- a/tools/testing/selftests/mm/.gitignore~selftests-mm-remove-obsolete-hugetlb-vmemmap-test
++++ a/tools/testing/selftests/mm/.gitignore
+@@ -3,11 +3,9 @@ cow
+ hugepage-mmap
+ hugepage-mremap
+ hugepage-shm
+-hugepage-vmemmap
+ hugetlb-mmap
+ hugetlb-mremap
+ hugetlb-shm
+-hugetlb-vmemmap
+ hugetlb-madvise
+ hugetlb-read-hwpoison
+ hugetlb-soft-offline
+diff --git a/tools/testing/selftests/mm/hugetlb-vmemmap.c a/tools/testing/selftests/mm/hugetlb-vmemmap.c
+deleted file mode 100644
+--- a/tools/testing/selftests/mm/hugetlb-vmemmap.c
++++ /dev/null
+@@ -1,132 +0,0 @@
+-// SPDX-License-Identifier: GPL-2.0
+-/*
+- * A test case of using hugepage memory in a user application using the
+- * mmap system call with MAP_HUGETLB flag.  Before running this program
+- * make sure the administrator has allocated enough default sized huge
+- * pages to cover the 2 MB allocation.
+- */
+-#include <stdlib.h>
+-#include <stdio.h>
+-#include <unistd.h>
+-#include <sys/mman.h>
+-#include <fcntl.h>
+-#include "vm_util.h"
+-#include "hugepage_settings.h"
+-
+-#define PAGE_COMPOUND_HEAD	(1UL << 15)
+-#define PAGE_COMPOUND_TAIL	(1UL << 16)
+-#define PAGE_HUGE		(1UL << 17)
+-
+-#define HEAD_PAGE_FLAGS		(PAGE_COMPOUND_HEAD | PAGE_HUGE)
+-#define TAIL_PAGE_FLAGS		(PAGE_COMPOUND_TAIL | PAGE_HUGE)
+-
+-#define PM_PFRAME_BITS		55
+-#define PM_PFRAME_MASK		~((1UL << PM_PFRAME_BITS) - 1)
+-
+-static size_t pagesize;
+-static size_t maplength;
+-
+-static void write_bytes(char *addr, size_t length)
+-{
+-	unsigned long i;
+-
+-	for (i = 0; i < length; i++)
+-		*(addr + i) = (char)i;
+-}
+-
+-static unsigned long virt_to_pfn(void *addr)
+-{
+-	int fd;
+-	unsigned long pagemap;
+-
+-	fd = open("/proc/self/pagemap", O_RDONLY);
+-	if (fd < 0)
+-		return -1UL;
+-
+-	lseek(fd, (unsigned long)addr / pagesize * sizeof(pagemap), SEEK_SET);
+-	read(fd, &pagemap, sizeof(pagemap));
+-	close(fd);
+-
+-	return pagemap & ~PM_PFRAME_MASK;
+-}
+-
+-static int check_page_flags(unsigned long pfn)
+-{
+-	int fd, i;
+-	unsigned long pageflags;
+-
+-	fd = open("/proc/kpageflags", O_RDONLY);
+-	if (fd < 0)
+-		return -1;
+-
+-	lseek(fd, pfn * sizeof(pageflags), SEEK_SET);
+-
+-	read(fd, &pageflags, sizeof(pageflags));
+-	if ((pageflags & HEAD_PAGE_FLAGS) != HEAD_PAGE_FLAGS) {
+-		close(fd);
+-		ksft_print_msg("Head page flags (%lx) is invalid\n", pageflags);
+-		return -1;
+-	}
+-
+-	/*
+-	 * pages other than the first page must be tail and shouldn't be head;
+-	 * this also verifies kernel has correctly set the fake page_head to tail
+-	 * while hugetlb_free_vmemmap is enabled.
+-	 */
+-	for (i = 1; i < maplength / pagesize; i++) {
+-		read(fd, &pageflags, sizeof(pageflags));
+-		if ((pageflags & TAIL_PAGE_FLAGS) != TAIL_PAGE_FLAGS ||
+-		    (pageflags & HEAD_PAGE_FLAGS) == HEAD_PAGE_FLAGS) {
+-			close(fd);
+-			ksft_print_msg("Tail page flags (%lx) is invalid\n", pageflags);
+-			return -1;
+-		}
+-	}
+-
+-	close(fd);
+-
+-	return 0;
+-}
+-
+-int main(int argc, char **argv)
+-{
+-	void *addr;
+-	unsigned long pfn;
+-	int ret;
+-
+-	ksft_print_header();
+-	ksft_set_plan(1);
+-
+-	if (!hugetlb_setup_default(1))
+-		ksft_exit_skip("Not enough free huge pages\n");
+-
+-	pagesize  = psize();
+-	maplength = default_huge_page_size();
+-	if (!maplength)
+-		ksft_exit_skip("Unable to determine huge page size\n");
+-
+-	addr = mmap(NULL, maplength, PROT_READ | PROT_WRITE,
+-			MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB, -1, 0);
+-	if (addr == MAP_FAILED)
+-		ksft_exit_fail_perror("mmap");
+-
+-	/* Trigger allocation of HugeTLB page. */
+-	write_bytes(addr, maplength);
+-
+-	pfn = virt_to_pfn(addr);
+-	if (pfn == -1UL) {
+-		ksft_perror("virt_to_pfn");
+-		munmap(addr, maplength);
+-		ksft_exit_fail();
+-	}
+-
+-	ksft_print_msg("Returned address is %p whose pfn is %lx\n", addr, pfn);
+-
+-	ret = check_page_flags(pfn);
+-
+-	if (munmap(addr, maplength))
+-		ksft_exit_fail_perror("munmap");
+-
+-	ksft_test_result(!ret, "HugeTLB vmemmap page flags\n");
+-	ksft_finished();
+-}
+--- a/tools/testing/selftests/mm/Makefile~selftests-mm-remove-obsolete-hugetlb-vmemmap-test
++++ a/tools/testing/selftests/mm/Makefile
+@@ -66,7 +66,6 @@ TEST_GEN_FILES += hugetlb-mremap
+ TEST_GEN_FILES += hugetlb-read-hwpoison
+ TEST_GEN_FILES += hugetlb-shm
+ TEST_GEN_FILES += hugetlb-soft-offline
+-TEST_GEN_FILES += hugetlb-vmemmap
+ TEST_GEN_FILES += khugepaged
+ TEST_GEN_FILES += madv_populate
+ TEST_GEN_FILES += map_fixed_noreplace
+--- a/tools/testing/selftests/mm/run_vmtests.sh~selftests-mm-remove-obsolete-hugetlb-vmemmap-test
++++ a/tools/testing/selftests/mm/run_vmtests.sh
+@@ -262,7 +262,6 @@ echo "TAP version 13" | tap_output
+ CATEGORY="hugetlb" run_test ./hugetlb-mmap
+ CATEGORY="hugetlb" run_test ./hugetlb-shm
+ CATEGORY="hugetlb" run_test ./hugetlb-mremap
+-CATEGORY="hugetlb" run_test ./hugetlb-vmemmap
+ CATEGORY="hugetlb" run_test ./hugetlb-madvise
+ CATEGORY="hugetlb" run_test ./hugetlb_dio
+ CATEGORY="hugetlb" run_test ./hugetlb_fault_after_madv
 _
 
-Patches currently in -mm which might be from usama.arif@linux.dev are
+Patches currently in -mm which might be from songmuchun@bytedance.com are
 
-userfaultfd-wait-on-source-pmd-during-uffdio_move.patch
-mm-swap_state-remove-unnecessary-lru_add_drain-from-readahead.patch
-mm-add-softleaf_to_pmd-and-convert-existing-callers.patch
-mm-extract-mm_prepare_for_swap_entries-helper.patch
-fs-proc-use-softleaf_has_pfn-in-pagemap-pmd-walker.patch
-mm-huge_memory-move-softleaf_to_folio-inside-migration-branch.patch
-mm-migrate_device-move-softleaf_to_folio-inside-device-private-branch.patch
-mm-rename-arch_enable_thp_migration-to-arch_has_pmd_softleaves.patch
-mm-vmpressure-skip-tree=true-accounting-on-cgroup-v2.patch
-mm-vmpressure-skip-tree=true-accounting-on-cgroup-v2-fix.patch
-mm-vmpressure-move-v1-userspace-eventfd-code-into-memcontrol-v1c.patch
-mm-migrate_device-pin-large-folios-before-splitting.patch
-mm-migrate_device-pin-large-folios-before-splitting-fix.patch
-mm-mempolicy-skip-non-present-pmds-when-queueing-folios.patch
-mm-madvise-skip-device-private-pmds-in-cold-and-pageout-walks.patch
-mm-huge_memory-skip-device-private-pmds-in-madvise_free_huge_pmd.patch
+mm-hugetlb-fix-boot-panic-with-config_debug_vm-and-hvo-bootmem-pages.patch
+mm-hugetlb_vmemmap-fix-__hugetlb_vmemmap_optimize_folios.patch
+powerpc-mm-fix-wrong-addr_pfn-tracking-in-compound-vmemmap-population.patch
+mm-hugetlb-initialize-gigantic-bootmem-hugepage-struct-pages-earlier.patch
+mm-mm_init-simplify-deferred_free_pages-migratetype-init.patch
+mm-sparse-panic-on-memmap-and-usemap-allocation-failure.patch
+mm-sparse-move-subsection_map_init-into-sparse_init.patch
+mm-mm_init-defer-sparse_init-until-after-zone-initialization.patch
+mm-mm_init-defer-hugetlb-reservation-until-after-zone-initialization.patch
+mm-mm_init-remove-set_pageblock_order-call-from-sparse_init.patch
+mm-sparse-move-sparse_vmemmap_init_nid_late-into-sparse_init_nid.patch
+mm-hugetlb_cma-validate-hugetlb-cma-range-by-zone-at-reserve-time.patch
+mm-hugetlb-refactor-early-boot-gigantic-hugepage-allocation.patch
+mm-hugetlb-free-cross-zone-bootmem-gigantic-pages-after-allocation.patch
+mm-hugetlb_vmemmap-move-bootmem-hvo-setup-to-early-init.patch
+mm-hugetlb-remove-obsolete-bootmem-cross-zone-checks.patch
+mm-sparse-vmemmap-remove-sparse_vmemmap_init_nid_late.patch
+mm-hugetlb-remove-unused-bootmem-cma-field.patch
+mm-mm_init-fold-__init_page_from_nid-into-__init_deferred_page.patch
+selftests-mm-remove-obsolete-hugetlb-vmemmap-test.patch
 
