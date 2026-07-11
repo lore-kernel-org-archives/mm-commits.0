@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E413173463
-	for <mm-commits@vger.kernel.org>; Sat, 11 Jul 2026 00:26:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 042BF73463
+	for <mm-commits@vger.kernel.org>; Sat, 11 Jul 2026 00:26:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783729595; cv=none; b=En7CHvK+02nJsjrhOPg6Psp6s28ZWq1srED3MAJ5eLL6HA5bIxvP7YeQerYoV6J2VMkTE9I1I/lHDkStyVC928mHrg0Iz4q3v1Uq4CmKGSrvpn0n/H9TlKThxGnyvSkQ5F9Wj792PzCqF3RBHj9memSJOCoSofM5vSLknsN1VxE=
+	t=1783729597; cv=none; b=JioSnHY4wFcaAeFfehqqIh5c6ONdkPYdqr3oGb40UtpN3OddjQ35caORpEWltDaM2WyhTOkT6STHT6RTls4CFjn+vfoyEcgbn1sz30tI0RO4IYpluwMsrrv675Tlx7OOkq/fJZjaEyT9IRxm9TzXDr8qmy5VOorzrbiNIwul/CQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783729595; c=relaxed/simple;
-	bh=lHz4JlO5vfy5SxkPqnE735IB2V9p7VCiSaMRg3/T1ZI=;
-	h=Date:To:From:Subject:Message-Id; b=R83k+unFxUV7lpRvr3gewGI04MYz2hihThc/SdzGcblY0oqrNYeoj1/eo4kXYnNjABE+nkwA1LFn4lBpBJ3FHnQnNchtkWlnoUb390CdQKtV3Mic5buNuTarvc/lCPe7OPLoSusgO9lv0rfXG3V8mQH6WDMfI7WPlrcfyU+71IQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZUEropAl; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783729597; c=relaxed/simple;
+	bh=3+p+BirRtD5b8f0FI7pZOGFfVdmvUkFa7RAxhsk+uYE=;
+	h=Date:To:From:Subject:Message-Id; b=BbrEfZccpCg+41iZKBoKtJ/BTCcxP8KBRAzQJmYud2GgBys3NMXJPlJ+ofS5LURg8qeJ6NnRtEjk9O3DrKSYzp7qZwVVK703TgBgQ09/VCDaoZepXU582GuCSsNkXm6gQI3OTQ8X9bpcRm3pujvMcMcUpV93vkg4p6OCscms6eA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lycCncbR; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZUEropAl"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 80F7A1F000E9;
-	Sat, 11 Jul 2026 00:26:33 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lycCncbR"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 771BB1F000E9;
+	Sat, 11 Jul 2026 00:26:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783729593;
-	bh=V6GrRVgQAN+jxIlFqPUe8hxexiufZdP/zmRSaiGdCvI=;
+	d=linux-foundation.org; s=korg; t=1783729595;
+	bh=WVqw1aS3TaLvms0unciSu0htmnvsMB2ITvXegMGSr80=;
 	h=Date:To:From:Subject;
-	b=ZUEropAlwmKqGgToUhJf8q79DiSDNUG+lQx3XaebAOzL1DWQBxNeOiazanIXpcX+l
-	 11F5fiOOaKhpPJn6vD/dFj2pV2wb4mC6SCrn9ATR1BNYlLA5FnFS42WqZyiPLR+53u
-	 eZwHsS+/zYW+rggC8UnWrP0MVznvhI9O4Y2qlV3U=
-Date: Fri, 10 Jul 2026 17:26:33 -0700
+	b=lycCncbRXwWJzzHu1NLjc8jJa/gm7i4zRUvdkpNY/cIXNeVBpSpwtFIPmgUB7zSBE
+	 tU9NEgL5zhSi1TZZFuiuygVIEjY4ykEHl7RKAWKW1FbIffBUI479X32QL0QY3tUkxf
+	 Pb9kWXAXWj0Er58x+q+czWqK+5kPUmGUdYhgXNhU=
+Date: Fri, 10 Jul 2026 17:26:35 -0700
 To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,jlbec@evilplan.org,heming.zhao@suse.com,gechangwei@live.cn,joseph.qi@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + ocfs2-cluster-use-gfp_nofs-for-heartbeat-bio-allocation.patch added to mm-nonmm-unstable branch
-Message-Id: <20260711002633.80F7A1F000E9@smtp.kernel.org>
+Subject: + ocfs2-cluster-use-an-on-stack-bio-for-the-heartbeat-write.patch added to mm-nonmm-unstable branch
+Message-Id: <20260711002635.771BB1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: ocfs2: cluster: use GFP_NOFS for heartbeat bio allocation
+     Subject: ocfs2: cluster: use an on-stack bio for the heartbeat write
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     ocfs2-cluster-use-gfp_nofs-for-heartbeat-bio-allocation.patch
+     ocfs2-cluster-use-an-on-stack-bio-for-the-heartbeat-write.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-cluster-use-gfp_nofs-for-heartbeat-bio-allocation.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-cluster-use-an-on-stack-bio-for-the-heartbeat-write.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,27 +59,28 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Joseph Qi <joseph.qi@linux.alibaba.com>
-Subject: ocfs2: cluster: use GFP_NOFS for heartbeat bio allocation
-Date: Fri, 10 Jul 2026 15:17:55 +0800
+Subject: ocfs2: cluster: use an on-stack bio for the heartbeat write
+Date: Fri, 10 Jul 2026 15:17:56 +0800
 
-o2hb_setup_one_bio() allocates the heartbeat bio with GFP_ATOMIC.  The
-disk heartbeat runs in the o2hb kernel thread (o2hb_do_disk_heartbeat),
-which is process context and can sleep, so there is no atomicity
-requirement here.
+The disk heartbeat write always covers this node's own single slot, i.e. 
+one heartbeat block that lives within a single page.  It is submitted by
+o2hb_issue_node_write() and waited on by the caller before the ctxt goes
+out of scope, so its lifetime is well bounded.
 
-GFP_ATOMIC lacks __GFP_DIRECT_RECLAIM, so the allocation is not served
-from the fs_bio_set mempool reserve and can return NULL under memory
-pressure.  A failed heartbeat allocation aborts the heartbeat and can lead
-to the local node being fenced, which is exactly what the old comment
-worried about.
+Turn it into an on-stack bio embedded in struct o2hb_bio_wait_ctxt rather
+than allocating one from the mempool.  This removes any allocation from
+the fence-critical write path entirely: a delayed or blocked heartbeat
+write is what leads to the local node being fenced, so it should not
+depend on the state of a shared bio pool.
 
-Use GFP_NOFS instead.  It keeps __GFP_DIRECT_RECLAIM so the allocation is
-backed by the fs_bio_set mempool and cannot fail, while avoiding recursion
-back into the filesystem during heartbeat I/O.  As the allocation can no
-longer fail, drop the dead ERR_PTR(-ENOMEM) path in o2hb_setup_one_bio()
-and the now-redundant IS_ERR() handling in its callers.
+Because the bio is embedded rather than allocated, add a dedicated
+o2hb_write_bio_end_io() that does not call bio_put(), and tear the bio
+down with bio_uninit() once the caller has waited on the I/O.
 
-Link: https://lore.kernel.org/20260710071756.3586797-1-joseph.qi@linux.alibaba.com
+The read path still allocates via o2hb_setup_one_bio() with GFP_NOFS,
+since it issues a variable number of bios in a loop.
+
+Link: https://lore.kernel.org/20260710071756.3586797-2-joseph.qi@linux.alibaba.com
 Signed-off-by: Joseph Qi <joseph.qi@linux.alibaba.com>
 Cc: Mark Fasheh <mark@fasheh.com>
 Cc: Joel Becker <jlbec@evilplan.org>
@@ -90,102 +91,105 @@ Cc: Heming Zhao <heming.zhao@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/cluster/heartbeat.c |   41 ++++++---------------------------
- 1 file changed, 8 insertions(+), 33 deletions(-)
+ fs/ocfs2/cluster/heartbeat.c |   50 +++++++++++++++++++++++++++++----
+ 1 file changed, 45 insertions(+), 5 deletions(-)
 
---- a/fs/ocfs2/cluster/heartbeat.c~ocfs2-cluster-use-gfp_nofs-for-heartbeat-bio-allocation
+--- a/fs/ocfs2/cluster/heartbeat.c~ocfs2-cluster-use-an-on-stack-bio-for-the-heartbeat-write
 +++ a/fs/ocfs2/cluster/heartbeat.c
-@@ -522,16 +522,12 @@ static struct bio *o2hb_setup_one_bio(st
- 	struct bio *bio;
- 	struct page *page;
+@@ -272,6 +272,9 @@ struct o2hb_bio_wait_ctxt {
+ 	atomic_t          wc_num_reqs;
+ 	struct completion wc_io_complete;
+ 	int               wc_error;
++	/* On-stack bio used by the synchronous write path only. */
++	struct bio        wc_write_bio;
++	struct bio_vec    wc_write_bvec;
+ };
  
--	/* Testing has shown this allocation to take long enough under
--	 * GFP_KERNEL that the local node can get fenced. It would be
--	 * nicest if we could pre-allocate these bios and avoid this
--	 * all together. */
--	bio = bio_alloc(reg_bdev(reg), 16, opf, GFP_ATOMIC);
--	if (!bio) {
--		mlog(ML_ERROR, "Could not alloc slots BIO!\n");
--		bio = ERR_PTR(-ENOMEM);
--		goto bail;
--	}
-+	/*
-+	 * The heartbeat runs in process context and can sleep, so use
-+	 * GFP_NOFS. It is backed by the fs_bio_set mempool and thus cannot
-+	 * fail, while avoiding recursion back into the filesystem.
-+	 */
-+	bio = bio_alloc(reg_bdev(reg), 16, opf, GFP_NOFS);
- 
- 	/* Must put everything in 512 byte sectors for the bio... */
- 	bio->bi_iter.bi_sector = (reg->hr_start_block + cs) << (bits - 9);
-@@ -556,7 +552,6 @@ static struct bio *o2hb_setup_one_bio(st
- 		vec_start = 0;
- 	}
- 
--bail:
- 	*current_slot = cs;
- 	return bio;
- }
-@@ -566,7 +561,6 @@ static int o2hb_read_slots(struct o2hb_r
- 			   unsigned int max_slots)
- {
- 	unsigned int current_slot = begin_slot;
--	int status;
- 	struct o2hb_bio_wait_ctxt wc;
- 	struct bio *bio;
- 
-@@ -575,30 +569,18 @@ static int o2hb_read_slots(struct o2hb_r
- 	while(current_slot < max_slots) {
- 		bio = o2hb_setup_one_bio(reg, &wc, &current_slot, max_slots,
- 					 REQ_OP_READ);
--		if (IS_ERR(bio)) {
--			status = PTR_ERR(bio);
--			mlog_errno(status);
--			goto bail_and_wait;
--		}
--
- 		atomic_inc(&wc.wc_num_reqs);
- 		submit_bio(bio);
- 	}
- 
--	status = 0;
--
--bail_and_wait:
- 	o2hb_wait_on_io(&wc);
--	if (wc.wc_error && !status)
--		status = wc.wc_error;
- 
--	return status;
-+	return wc.wc_error;
+ #define O2HB_NEGO_TIMEOUT_MS (O2HB_MAX_WRITE_TIMEOUT_MS/2)
+@@ -507,6 +510,23 @@ static void o2hb_bio_end_io(struct bio *
+ 	bio_put(bio);
  }
  
- static int o2hb_issue_node_write(struct o2hb_region *reg,
++/*
++ * End I/O for the synchronous write path. The write bio is embedded in
++ * the wait ctxt rather than allocated, so it must not be freed here; it
++ * is torn down with bio_uninit() once the caller has waited on it.
++ */
++static void o2hb_write_bio_end_io(struct bio *bio)
++{
++	struct o2hb_bio_wait_ctxt *wc = bio->bi_private;
++
++	if (bio->bi_status) {
++		mlog(ML_ERROR, "IO Error %d\n", bio->bi_status);
++		wc->wc_error = blk_status_to_errno(bio->bi_status);
++	}
++
++	o2hb_bio_wait_dec(wc, 1);
++}
++
+ /* Setup a Bio to cover I/O against num_slots slots starting at
+  * start_slot. */
+ static struct bio *o2hb_setup_one_bio(struct o2hb_region *reg,
+@@ -582,7 +602,11 @@ static int o2hb_issue_node_write(struct
  				 struct o2hb_bio_wait_ctxt *write_wc)
  {
--	int status;
  	unsigned int slot;
- 	struct bio *bio;
+-	struct bio *bio;
++	unsigned int bits = reg->hr_block_bits;
++	unsigned int spp = reg->hr_slots_per_page;
++	unsigned int vec_start, vec_len;
++	struct page *page;
++	struct bio *bio = &write_wc->wc_write_bio;
  
-@@ -610,18 +592,11 @@ static int o2hb_issue_node_write(struct
+ 	o2hb_bio_wait_init(write_wc);
  
- 	bio = o2hb_setup_one_bio(reg, write_wc, &slot, slot+1,
- 				 REQ_OP_WRITE | REQ_SYNC);
--	if (IS_ERR(bio)) {
--		status = PTR_ERR(bio);
--		mlog_errno(status);
--		goto bail;
--	}
+@@ -590,8 +614,21 @@ static int o2hb_issue_node_write(struct
+ 	if (slot >= O2NM_MAX_NODES)
+ 		return -EINVAL;
+ 
+-	bio = o2hb_setup_one_bio(reg, write_wc, &slot, slot+1,
+-				 REQ_OP_WRITE | REQ_SYNC);
++	/*
++	 * The heartbeat write always covers our own single slot, i.e. one
++	 * block that lives within a single page. Use an on-stack bio (embedded
++	 * in write_wc) so this fence-critical path never has to allocate.
++	 */
++	bio_init(bio, reg_bdev(reg), &write_wc->wc_write_bvec, 1,
++		 REQ_OP_WRITE | REQ_SYNC);
++	bio->bi_iter.bi_sector = (reg->hr_start_block + slot) << (bits - 9);
++	bio->bi_private = write_wc;
++	bio->bi_end_io = o2hb_write_bio_end_io;
++
++	page = reg->hr_slot_data[slot / spp];
++	vec_start = (slot << bits) % PAGE_SIZE;
++	vec_len = PAGE_SIZE / spp;
++	__bio_add_page(bio, page, vec_len, vec_start);
  
  	atomic_inc(&write_wc->wc_num_reqs);
  	submit_bio(bio);
+@@ -1133,6 +1170,7 @@ static int o2hb_do_disk_heartbeat(struct
+ 	 * people we find in our steady state have seen us.
+ 	 */
+ 	o2hb_wait_on_io(&write_wc);
++	bio_uninit(&write_wc.wc_write_bio);
+ 	if (write_wc.wc_error) {
+ 		/* Do not re-arm the write timeout on I/O error - we
+ 		 * can't be sure that the new block ever made it to
+@@ -1245,10 +1283,12 @@ static int o2hb_thread(void *data)
+ 	if (!reg->hr_unclean_stop && !reg->hr_aborted_start) {
+ 		o2hb_prepare_block(reg, 0);
+ 		ret = o2hb_issue_node_write(reg, &write_wc);
+-		if (ret == 0)
++		if (ret == 0) {
+ 			o2hb_wait_on_io(&write_wc);
+-		else
++			bio_uninit(&write_wc.wc_write_bio);
++		} else {
+ 			mlog_errno(ret);
++		}
+ 	}
  
--	status = 0;
--bail:
--	return status;
-+	return 0;
- }
- 
- static u32 o2hb_compute_block_crc_le(struct o2hb_region *reg,
+ 	/* Unpin node */
 _
 
 Patches currently in -mm which might be from joseph.qi@linux.alibaba.com are
