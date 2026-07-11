@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B68EA41C71
-	for <mm-commits@vger.kernel.org>; Sat, 11 Jul 2026 00:04:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E413173463
+	for <mm-commits@vger.kernel.org>; Sat, 11 Jul 2026 00:26:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783728273; cv=none; b=WT/jvpUp9IKtrixgLy6nVfRtWp2+sKjR67LOsP6LmTap+rMO927vLP+0ESPJbn7/JSwb7gneAEf7AtwiKBH0/Ktck0wUnX/5DYtlf/PS4esPjPYl0BK/iL3XzvJG3gp3LkJhiw+uRENsxsu/LhAZoFBdTlZ91f0MUiUfZecLrgE=
+	t=1783729595; cv=none; b=En7CHvK+02nJsjrhOPg6Psp6s28ZWq1srED3MAJ5eLL6HA5bIxvP7YeQerYoV6J2VMkTE9I1I/lHDkStyVC928mHrg0Iz4q3v1Uq4CmKGSrvpn0n/H9TlKThxGnyvSkQ5F9Wj792PzCqF3RBHj9memSJOCoSofM5vSLknsN1VxE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783728273; c=relaxed/simple;
-	bh=DKQI/VIpMrZ2nGhLqrb5nXK2YCCuRP5mkIBpLKUZ7tg=;
-	h=Date:To:From:Subject:Message-Id; b=Zb/t1plo5UhsaGykxv7ZS++hM6xv/S0KNCaAAyoPx1IptMrdY/r6U0yvKEig+idDYVUHomypg9BD9HhC8kVXafa9Pm6sRzF8cp2123zmujxJq11SKeovDr29Hh0fJuvUF9rUzFT18hzYGnj6Q5F0hjSKEu+ewIh0Aj+OWz40YUQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=aFidnRqP; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783729595; c=relaxed/simple;
+	bh=lHz4JlO5vfy5SxkPqnE735IB2V9p7VCiSaMRg3/T1ZI=;
+	h=Date:To:From:Subject:Message-Id; b=R83k+unFxUV7lpRvr3gewGI04MYz2hihThc/SdzGcblY0oqrNYeoj1/eo4kXYnNjABE+nkwA1LFn4lBpBJ3FHnQnNchtkWlnoUb390CdQKtV3Mic5buNuTarvc/lCPe7OPLoSusgO9lv0rfXG3V8mQH6WDMfI7WPlrcfyU+71IQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZUEropAl; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="aFidnRqP"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4B2FE1F000E9;
-	Sat, 11 Jul 2026 00:04:31 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZUEropAl"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 80F7A1F000E9;
+	Sat, 11 Jul 2026 00:26:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783728271;
-	bh=G0zmkrQAe3OOpbsniGrqUaL8mcnCsig7a59umugSjTM=;
+	d=linux-foundation.org; s=korg; t=1783729593;
+	bh=V6GrRVgQAN+jxIlFqPUe8hxexiufZdP/zmRSaiGdCvI=;
 	h=Date:To:From:Subject;
-	b=aFidnRqP6ItFUDlB+J6z6UEC3a3jAxKFg25k4jX3p1U9Vt7SvDQGult9KyN/Y8kkS
-	 u9VfkQWUr+E1tloGfHJe8fMSxftolFnAASfQSBQNCqTIym2b4CwiTieVNI2Glj2TzK
-	 1aIBnf/xGl17/6Er/x75xWQ7hUiTzJcXI98Mu9P0=
-Date: Fri, 10 Jul 2026 17:04:30 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,shuah@kernel.org,rppt@kernel.org,muchun.song@linux.dev,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,songmuchun@bytedance.com,akpm@linux-foundation.org
+	b=ZUEropAlwmKqGgToUhJf8q79DiSDNUG+lQx3XaebAOzL1DWQBxNeOiazanIXpcX+l
+	 11F5fiOOaKhpPJn6vD/dFj2pV2wb4mC6SCrn9ATR1BNYlLA5FnFS42WqZyiPLR+53u
+	 eZwHsS+/zYW+rggC8UnWrP0MVznvhI9O4Y2qlV3U=
+Date: Fri, 10 Jul 2026 17:26:33 -0700
+To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,jlbec@evilplan.org,heming.zhao@suse.com,gechangwei@live.cn,joseph.qi@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-remove-obsolete-hugetlb-vmemmap-test.patch added to mm-new branch
-Message-Id: <20260711000431.4B2FE1F000E9@smtp.kernel.org>
+Subject: + ocfs2-cluster-use-gfp_nofs-for-heartbeat-bio-allocation.patch added to mm-nonmm-unstable branch
+Message-Id: <20260711002633.80F7A1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,26 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: remove obsolete hugetlb vmemmap test
-has been added to the -mm mm-new branch.  Its filename is
-     selftests-mm-remove-obsolete-hugetlb-vmemmap-test.patch
+     Subject: ocfs2: cluster: use GFP_NOFS for heartbeat bio allocation
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     ocfs2-cluster-use-gfp_nofs-for-heartbeat-bio-allocation.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-remove-obsolete-hugetlb-vmemmap-test.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-cluster-use-gfp_nofs-for-heartbeat-bio-allocation.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,234 +58,139 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Muchun Song <songmuchun@bytedance.com>
-Subject: selftests/mm: remove obsolete hugetlb vmemmap test
-Date: Fri, 10 Jul 2026 17:24:27 +0800
+From: Joseph Qi <joseph.qi@linux.alibaba.com>
+Subject: ocfs2: cluster: use GFP_NOFS for heartbeat bio allocation
+Date: Fri, 10 Jul 2026 15:17:55 +0800
 
-The hugetlb vmemmap selftest was added to check the old HVO layout where
-tail vmemmap pages reused the head page.  That assumption no longer
-matches the current HVO mapping layout.
+o2hb_setup_one_bio() allocates the heartbeat bio with GFP_ATOMIC.  The
+disk heartbeat runs in the o2hb kernel thread (o2hb_do_disk_heartbeat),
+which is process context and can sleep, so there is no atomicity
+requirement here.
 
-HVO now keeps a private backing page for the head vmemmap page and remaps
-redundant tail vmemmap pages to a shared read-only backing page.  The old
-page flag check is therefore testing an obsolete implementation detail
-rather than the current ABI or behavior.
+GFP_ATOMIC lacks __GFP_DIRECT_RECLAIM, so the allocation is not served
+from the fs_bio_set mempool reserve and can return NULL under memory
+pressure.  A failed heartbeat allocation aborts the heartbeat and can lead
+to the local node being fenced, which is exactly what the old comment
+worried about.
 
-Remove the stale test and its build, run, and ignore entries.
+Use GFP_NOFS instead.  It keeps __GFP_DIRECT_RECLAIM so the allocation is
+backed by the fs_bio_set mempool and cannot fail, while avoiding recursion
+back into the filesystem during heartbeat I/O.  As the allocation can no
+longer fail, drop the dead ERR_PTR(-ENOMEM) path in o2hb_setup_one_bio()
+and the now-redundant IS_ERR() handling in its callers.
 
-Link: https://lore.kernel.org/20260710092427.3459121-1-songmuchun@bytedance.com
-Signed-off-by: Muchun Song <songmuchun@bytedance.com>
-Reviewed-by: Lorenzo Stoakes <ljs@kernel.org>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
+Link: https://lore.kernel.org/20260710071756.3586797-1-joseph.qi@linux.alibaba.com
+Signed-off-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Jun Piao <piaojun@huawei.com>
+Cc: Heming Zhao <heming.zhao@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/.gitignore        |    2 
- tools/testing/selftests/mm/Makefile          |    1 
- tools/testing/selftests/mm/hugetlb-vmemmap.c |  132 -----------------
- tools/testing/selftests/mm/run_vmtests.sh    |    1 
- 4 files changed, 136 deletions(-)
+ fs/ocfs2/cluster/heartbeat.c |   41 ++++++---------------------------
+ 1 file changed, 8 insertions(+), 33 deletions(-)
 
---- a/tools/testing/selftests/mm/.gitignore~selftests-mm-remove-obsolete-hugetlb-vmemmap-test
-+++ a/tools/testing/selftests/mm/.gitignore
-@@ -3,11 +3,9 @@ cow
- hugepage-mmap
- hugepage-mremap
- hugepage-shm
--hugepage-vmemmap
- hugetlb-mmap
- hugetlb-mremap
- hugetlb-shm
--hugetlb-vmemmap
- hugetlb-madvise
- hugetlb-read-hwpoison
- hugetlb-soft-offline
-diff --git a/tools/testing/selftests/mm/hugetlb-vmemmap.c a/tools/testing/selftests/mm/hugetlb-vmemmap.c
-deleted file mode 100644
---- a/tools/testing/selftests/mm/hugetlb-vmemmap.c
-+++ /dev/null
-@@ -1,132 +0,0 @@
--// SPDX-License-Identifier: GPL-2.0
--/*
-- * A test case of using hugepage memory in a user application using the
-- * mmap system call with MAP_HUGETLB flag.  Before running this program
-- * make sure the administrator has allocated enough default sized huge
-- * pages to cover the 2 MB allocation.
-- */
--#include <stdlib.h>
--#include <stdio.h>
--#include <unistd.h>
--#include <sys/mman.h>
--#include <fcntl.h>
--#include "vm_util.h"
--#include "hugepage_settings.h"
--
--#define PAGE_COMPOUND_HEAD	(1UL << 15)
--#define PAGE_COMPOUND_TAIL	(1UL << 16)
--#define PAGE_HUGE		(1UL << 17)
--
--#define HEAD_PAGE_FLAGS		(PAGE_COMPOUND_HEAD | PAGE_HUGE)
--#define TAIL_PAGE_FLAGS		(PAGE_COMPOUND_TAIL | PAGE_HUGE)
--
--#define PM_PFRAME_BITS		55
--#define PM_PFRAME_MASK		~((1UL << PM_PFRAME_BITS) - 1)
--
--static size_t pagesize;
--static size_t maplength;
--
--static void write_bytes(char *addr, size_t length)
--{
--	unsigned long i;
--
--	for (i = 0; i < length; i++)
--		*(addr + i) = (char)i;
--}
--
--static unsigned long virt_to_pfn(void *addr)
--{
--	int fd;
--	unsigned long pagemap;
--
--	fd = open("/proc/self/pagemap", O_RDONLY);
--	if (fd < 0)
--		return -1UL;
--
--	lseek(fd, (unsigned long)addr / pagesize * sizeof(pagemap), SEEK_SET);
--	read(fd, &pagemap, sizeof(pagemap));
--	close(fd);
--
--	return pagemap & ~PM_PFRAME_MASK;
--}
--
--static int check_page_flags(unsigned long pfn)
--{
--	int fd, i;
--	unsigned long pageflags;
--
--	fd = open("/proc/kpageflags", O_RDONLY);
--	if (fd < 0)
--		return -1;
--
--	lseek(fd, pfn * sizeof(pageflags), SEEK_SET);
--
--	read(fd, &pageflags, sizeof(pageflags));
--	if ((pageflags & HEAD_PAGE_FLAGS) != HEAD_PAGE_FLAGS) {
--		close(fd);
--		ksft_print_msg("Head page flags (%lx) is invalid\n", pageflags);
--		return -1;
+--- a/fs/ocfs2/cluster/heartbeat.c~ocfs2-cluster-use-gfp_nofs-for-heartbeat-bio-allocation
++++ a/fs/ocfs2/cluster/heartbeat.c
+@@ -522,16 +522,12 @@ static struct bio *o2hb_setup_one_bio(st
+ 	struct bio *bio;
+ 	struct page *page;
+ 
+-	/* Testing has shown this allocation to take long enough under
+-	 * GFP_KERNEL that the local node can get fenced. It would be
+-	 * nicest if we could pre-allocate these bios and avoid this
+-	 * all together. */
+-	bio = bio_alloc(reg_bdev(reg), 16, opf, GFP_ATOMIC);
+-	if (!bio) {
+-		mlog(ML_ERROR, "Could not alloc slots BIO!\n");
+-		bio = ERR_PTR(-ENOMEM);
+-		goto bail;
 -	}
--
--	/*
--	 * pages other than the first page must be tail and shouldn't be head;
--	 * this also verifies kernel has correctly set the fake page_head to tail
--	 * while hugetlb_free_vmemmap is enabled.
--	 */
--	for (i = 1; i < maplength / pagesize; i++) {
--		read(fd, &pageflags, sizeof(pageflags));
--		if ((pageflags & TAIL_PAGE_FLAGS) != TAIL_PAGE_FLAGS ||
--		    (pageflags & HEAD_PAGE_FLAGS) == HEAD_PAGE_FLAGS) {
--			close(fd);
--			ksft_print_msg("Tail page flags (%lx) is invalid\n", pageflags);
--			return -1;
++	/*
++	 * The heartbeat runs in process context and can sleep, so use
++	 * GFP_NOFS. It is backed by the fs_bio_set mempool and thus cannot
++	 * fail, while avoiding recursion back into the filesystem.
++	 */
++	bio = bio_alloc(reg_bdev(reg), 16, opf, GFP_NOFS);
+ 
+ 	/* Must put everything in 512 byte sectors for the bio... */
+ 	bio->bi_iter.bi_sector = (reg->hr_start_block + cs) << (bits - 9);
+@@ -556,7 +552,6 @@ static struct bio *o2hb_setup_one_bio(st
+ 		vec_start = 0;
+ 	}
+ 
+-bail:
+ 	*current_slot = cs;
+ 	return bio;
+ }
+@@ -566,7 +561,6 @@ static int o2hb_read_slots(struct o2hb_r
+ 			   unsigned int max_slots)
+ {
+ 	unsigned int current_slot = begin_slot;
+-	int status;
+ 	struct o2hb_bio_wait_ctxt wc;
+ 	struct bio *bio;
+ 
+@@ -575,30 +569,18 @@ static int o2hb_read_slots(struct o2hb_r
+ 	while(current_slot < max_slots) {
+ 		bio = o2hb_setup_one_bio(reg, &wc, &current_slot, max_slots,
+ 					 REQ_OP_READ);
+-		if (IS_ERR(bio)) {
+-			status = PTR_ERR(bio);
+-			mlog_errno(status);
+-			goto bail_and_wait;
 -		}
+-
+ 		atomic_inc(&wc.wc_num_reqs);
+ 		submit_bio(bio);
+ 	}
+ 
+-	status = 0;
+-
+-bail_and_wait:
+ 	o2hb_wait_on_io(&wc);
+-	if (wc.wc_error && !status)
+-		status = wc.wc_error;
+ 
+-	return status;
++	return wc.wc_error;
+ }
+ 
+ static int o2hb_issue_node_write(struct o2hb_region *reg,
+ 				 struct o2hb_bio_wait_ctxt *write_wc)
+ {
+-	int status;
+ 	unsigned int slot;
+ 	struct bio *bio;
+ 
+@@ -610,18 +592,11 @@ static int o2hb_issue_node_write(struct
+ 
+ 	bio = o2hb_setup_one_bio(reg, write_wc, &slot, slot+1,
+ 				 REQ_OP_WRITE | REQ_SYNC);
+-	if (IS_ERR(bio)) {
+-		status = PTR_ERR(bio);
+-		mlog_errno(status);
+-		goto bail;
 -	}
--
--	close(fd);
--
--	return 0;
--}
--
--int main(int argc, char **argv)
--{
--	void *addr;
--	unsigned long pfn;
--	int ret;
--
--	ksft_print_header();
--	ksft_set_plan(1);
--
--	if (!hugetlb_setup_default(1))
--		ksft_exit_skip("Not enough free huge pages\n");
--
--	pagesize  = psize();
--	maplength = default_huge_page_size();
--	if (!maplength)
--		ksft_exit_skip("Unable to determine huge page size\n");
--
--	addr = mmap(NULL, maplength, PROT_READ | PROT_WRITE,
--			MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB, -1, 0);
--	if (addr == MAP_FAILED)
--		ksft_exit_fail_perror("mmap");
--
--	/* Trigger allocation of HugeTLB page. */
--	write_bytes(addr, maplength);
--
--	pfn = virt_to_pfn(addr);
--	if (pfn == -1UL) {
--		ksft_perror("virt_to_pfn");
--		munmap(addr, maplength);
--		ksft_exit_fail();
--	}
--
--	ksft_print_msg("Returned address is %p whose pfn is %lx\n", addr, pfn);
--
--	ret = check_page_flags(pfn);
--
--	if (munmap(addr, maplength))
--		ksft_exit_fail_perror("munmap");
--
--	ksft_test_result(!ret, "HugeTLB vmemmap page flags\n");
--	ksft_finished();
--}
---- a/tools/testing/selftests/mm/Makefile~selftests-mm-remove-obsolete-hugetlb-vmemmap-test
-+++ a/tools/testing/selftests/mm/Makefile
-@@ -66,7 +66,6 @@ TEST_GEN_FILES += hugetlb-mremap
- TEST_GEN_FILES += hugetlb-read-hwpoison
- TEST_GEN_FILES += hugetlb-shm
- TEST_GEN_FILES += hugetlb-soft-offline
--TEST_GEN_FILES += hugetlb-vmemmap
- TEST_GEN_FILES += khugepaged
- TEST_GEN_FILES += madv_populate
- TEST_GEN_FILES += map_fixed_noreplace
---- a/tools/testing/selftests/mm/run_vmtests.sh~selftests-mm-remove-obsolete-hugetlb-vmemmap-test
-+++ a/tools/testing/selftests/mm/run_vmtests.sh
-@@ -262,7 +262,6 @@ echo "TAP version 13" | tap_output
- CATEGORY="hugetlb" run_test ./hugetlb-mmap
- CATEGORY="hugetlb" run_test ./hugetlb-shm
- CATEGORY="hugetlb" run_test ./hugetlb-mremap
--CATEGORY="hugetlb" run_test ./hugetlb-vmemmap
- CATEGORY="hugetlb" run_test ./hugetlb-madvise
- CATEGORY="hugetlb" run_test ./hugetlb_dio
- CATEGORY="hugetlb" run_test ./hugetlb_fault_after_madv
+ 
+ 	atomic_inc(&write_wc->wc_num_reqs);
+ 	submit_bio(bio);
+ 
+-	status = 0;
+-bail:
+-	return status;
++	return 0;
+ }
+ 
+ static u32 o2hb_compute_block_crc_le(struct o2hb_region *reg,
 _
 
-Patches currently in -mm which might be from songmuchun@bytedance.com are
+Patches currently in -mm which might be from joseph.qi@linux.alibaba.com are
 
-mm-hugetlb-fix-boot-panic-with-config_debug_vm-and-hvo-bootmem-pages.patch
-mm-hugetlb_vmemmap-fix-__hugetlb_vmemmap_optimize_folios.patch
-powerpc-mm-fix-wrong-addr_pfn-tracking-in-compound-vmemmap-population.patch
-mm-hugetlb-initialize-gigantic-bootmem-hugepage-struct-pages-earlier.patch
-mm-mm_init-simplify-deferred_free_pages-migratetype-init.patch
-mm-sparse-panic-on-memmap-and-usemap-allocation-failure.patch
-mm-sparse-move-subsection_map_init-into-sparse_init.patch
-mm-mm_init-defer-sparse_init-until-after-zone-initialization.patch
-mm-mm_init-defer-hugetlb-reservation-until-after-zone-initialization.patch
-mm-mm_init-remove-set_pageblock_order-call-from-sparse_init.patch
-mm-sparse-move-sparse_vmemmap_init_nid_late-into-sparse_init_nid.patch
-mm-hugetlb_cma-validate-hugetlb-cma-range-by-zone-at-reserve-time.patch
-mm-hugetlb-refactor-early-boot-gigantic-hugepage-allocation.patch
-mm-hugetlb-free-cross-zone-bootmem-gigantic-pages-after-allocation.patch
-mm-hugetlb_vmemmap-move-bootmem-hvo-setup-to-early-init.patch
-mm-hugetlb-remove-obsolete-bootmem-cross-zone-checks.patch
-mm-sparse-vmemmap-remove-sparse_vmemmap_init_nid_late.patch
-mm-hugetlb-remove-unused-bootmem-cma-field.patch
-mm-mm_init-fold-__init_page_from_nid-into-__init_deferred_page.patch
-selftests-mm-remove-obsolete-hugetlb-vmemmap-test.patch
+ocfs2-fix-boundary-check-in-ocfs2_check_dir_entry-to-use-buffer-offset.patch
+ocfs2-cluster-use-gfp_nofs-for-heartbeat-bio-allocation.patch
+ocfs2-cluster-use-an-on-stack-bio-for-the-heartbeat-write.patch
 
