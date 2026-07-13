@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4E411357D1A
-	for <mm-commits@vger.kernel.org>; Mon, 13 Jul 2026 19:57:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5BE3231283E;
+	Mon, 13 Jul 2026 19:59:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783972647; cv=none; b=hnUhgdroNmh/xpK0HtqQjpuJp45qMrlNpatB9yT3UGdvIVScI+/zKFPaxoz+S5I8Cl2hiPaBtsxUMrSbk5XukEFdWAc978IqNBJ7YgP9+J3vHrMj8fbYj0j94k/NAEeJ4XiA5IUweWNdc2vw8WSyfWsBEFnvSFMyNYWLo3qyIy8=
+	t=1783972760; cv=none; b=New4Qp4Btti3tcpCgGgz0RKJ2UKPpWGQbGFWGXrYhWo7jIJ7tPlq+auVaeD7/ARlWV+Gk+9SL83EfQZItazWJEYIjME7EP/oPqJTDHyDUGi2fRztIKPqTyG4ua0JQzWgZg8oDbTciciJadYMEZnbW722SuW5udE4AsLNchPD9Zg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783972647; c=relaxed/simple;
-	bh=ven1osiqDsV0O+UZN6GWBuiyQJ2rNG8ytLqMmy6FB94=;
-	h=Date:To:From:Subject:Message-Id; b=nelV+weIFQgAV7hzfYDyCweGBUA/6ud8+5mAIkn8wQrxb3H5+q/gtFHKPaU7ke767gSsHvq8bRoV9wdnDKGaAnv7fE/Ha/FJs/qsiZyPriINJK/LG/Qrq+eBzuqe9LVNskT4ZTwl5Ok8L93xRxxS7j+KF4LNqxhftesQxY2VVlc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NaBVfFas; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783972760; c=relaxed/simple;
+	bh=Apy9mRRYzWmoQg6ncTKp2wNjakOPkPBVy71t6WXPbyo=;
+	h=Date:To:From:Subject:Message-Id; b=As8OontdF/UzS1i4o4cLh+/vt6OB1gP0LCJpq/xRBpcTcy6HrH/iyEsbQHkNyT0gHb4S0aWhI+OIBYccS9eYRtYbJwIbP3PLs65BVCl05lcbRdHs8ZLqsLgOomNmJ95NEiG3iXve3VW8rvfX+GyftEh3ajEdQ2BZKxw+wcCMlrI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tGfpEgy2; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NaBVfFas"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C67E31F00A3A;
-	Mon, 13 Jul 2026 19:57:25 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tGfpEgy2"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 230C01F000E9;
+	Mon, 13 Jul 2026 19:59:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783972645;
-	bh=FDcHZEymjKCvHwgfrgSSM5plfFePYyIyYYDPdGM1+N4=;
+	d=linux-foundation.org; s=korg; t=1783972759;
+	bh=JYdQLERzhBRpObVIusmPTCsbavr8zH0CU8vdERSNF2U=;
 	h=Date:To:From:Subject;
-	b=NaBVfFasYQryKJzMt9oJsIl2Byu9Gmz9fQdv/ZAQ3ijh/c6hewNsNUVMtyIoN/1sM
-	 q9zYDceJIabcVaVYToUSbU4hRtwwRMKFyhljLj9QdFBwljY4jb79BkZx43r/dXKa3z
-	 37EklBzWN/LM8vWbkAZE9+urBwbk82BpH41qnjsA=
-Date: Mon, 13 Jul 2026 12:57:25 -0700
-To: mm-commits@vger.kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,cuitao@kylinos.cn,zhangguopeng@kylinos.cn,akpm@linux-foundation.org
+	b=tGfpEgy25k2+RwJYSy0DBiEdHhl7svXbYwqN/9hP88DMYwNTJAITyoqBVwDs8YjOf
+	 omnXwIfnjbBlpUKggznRiZPY6T6GoyYC2sQNZ20GTtutAfIvMzneGsEgQmjgfwAoO8
+	 YEGTHIana0zAjvqJdonGML8DJysWdxjEyBirZSwk=
+Date: Mon, 13 Jul 2026 12:59:18 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@suse.com,hannes@cmpxchg.org,zhangguopeng@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memcg-v1-account-vmpressure-event-allocations.patch added to mm-new branch
-Message-Id: <20260713195725.C67E31F00A3A@smtp.kernel.org>
+Subject: + mm-memcg-v1-fix-wrong-linux-mm-list-address-in-deprecation-warnings.patch added to mm-new branch
+Message-Id: <20260713195919.230C01F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: memcg-v1: account vmpressure event allocations
+     Subject: mm: memcg-v1: fix wrong linux-mm list address in deprecation warnings
 has been added to the -mm mm-new branch.  Its filename is
-     mm-memcg-v1-account-vmpressure-event-allocations.patch
+     mm-memcg-v1-fix-wrong-linux-mm-list-address-in-deprecation-warnings.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcg-v1-account-vmpressure-event-allocations.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcg-v1-fix-wrong-linux-mm-list-address-in-deprecation-warnings.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,42 +70,54 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Guopeng Zhang <zhangguopeng@kylinos.cn>
-Subject: mm: memcg-v1: account vmpressure event allocations
-Date: Mon, 13 Jul 2026 16:55:20 +0800
+Subject: mm: memcg-v1: fix wrong linux-mm list address in deprecation warnings
+Date: Mon, 13 Jul 2026 16:57:56 +0800
 
-Commit 72797d218b43 ("mm/memcg: v1: account event registrations and drop
-world-writable cgroup.event_control") accounted cgroup v1 event
-registration allocations with GFP_KERNEL_ACCOUNT, but missed struct
-vmpressure_event.
+The deprecation warnings for memory.oom_control and memory.pressure_level
+use linux-mm-@kvack.org instead of the linux-mm mailing list address. 
+Remove the extra hyphen.
 
-Use GFP_KERNEL_ACCOUNT for this allocation as well.
-
-Link: https://lore.kernel.org/20260713085520.2953121-1-guopeng.zhang@linux.dev
-Fixes: 72797d218b43 ("mm/memcg: v1: account event registrations and drop world-writable cgroup.event_control")
+Link: https://lore.kernel.org/20260713085756.2973549-1-guopeng.zhang@linux.dev
 Signed-off-by: Guopeng Zhang <zhangguopeng@kylinos.cn>
-Acked-by: Tao Cui <cuitao@kylinos.cn>
+Acked-by: Michal Hocko <mhocko@suse.com>
 Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Reviewed-by: Muchun Song <muchun.song@linux.dev>
-Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol-v1.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/memcontrol-v1.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/mm/memcontrol-v1.c~mm-memcg-v1-account-vmpressure-event-allocations
+--- a/mm/memcontrol-v1.c~mm-memcg-v1-fix-wrong-linux-mm-list-address-in-deprecation-warnings
 +++ a/mm/memcontrol-v1.c
-@@ -1721,7 +1721,7 @@ int vmpressure_register_event(struct mem
- 		mode = ret;
- 	}
+@@ -1182,13 +1182,13 @@ static ssize_t memcg_write_event_control
+ 		event->unregister_event = mem_cgroup_usage_unregister_event;
+ 	} else if (!strcmp(name, "memory.oom_control")) {
+ 		pr_warn_once("oom_control is deprecated and will be removed. "
+-			     "Please report your usecase to linux-mm-@kvack.org"
++			     "Please report your usecase to linux-mm@kvack.org"
+ 			     " if you depend on this functionality.\n");
+ 		event->register_event = mem_cgroup_oom_register_event;
+ 		event->unregister_event = mem_cgroup_oom_unregister_event;
+ 	} else if (!strcmp(name, "memory.pressure_level")) {
+ 		pr_warn_once("pressure_level is deprecated and will be removed. "
+-			     "Please report your usecase to linux-mm-@kvack.org "
++			     "Please report your usecase to linux-mm@kvack.org "
+ 			     "if you depend on this functionality.\n");
+ 		event->register_event = vmpressure_register_event;
+ 		event->unregister_event = vmpressure_unregister_event;
+@@ -2340,7 +2340,7 @@ static int mem_cgroup_oom_control_write(
+ 	struct mem_cgroup *memcg = mem_cgroup_from_css(css);
  
--	ev = kzalloc_obj(*ev);
-+	ev = kzalloc_obj(*ev, GFP_KERNEL_ACCOUNT);
- 	if (!ev) {
- 		ret = -ENOMEM;
- 		goto out;
+ 	pr_warn_once("oom_control is deprecated and will be removed. "
+-		     "Please report your usecase to linux-mm-@kvack.org if you "
++		     "Please report your usecase to linux-mm@kvack.org if you "
+ 		     "depend on this functionality.\n");
+ 
+ 	/* cannot set to root cgroup and only 0 and 1 are allowed */
 _
 
 Patches currently in -mm which might be from zhangguopeng@kylinos.cn are
@@ -113,4 +125,5 @@ Patches currently in -mm which might be from zhangguopeng@kylinos.cn are
 mm-memcg-remove-stray-text-from-obj_stock_pcp-comment.patch
 mm-memcontrol-update-state_local-when-flushing-nmi-stats.patch
 mm-memcg-v1-account-vmpressure-event-allocations.patch
+mm-memcg-v1-fix-wrong-linux-mm-list-address-in-deprecation-warnings.patch
 
