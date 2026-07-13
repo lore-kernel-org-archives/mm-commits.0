@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EBAA135BDD5
-	for <mm-commits@vger.kernel.org>; Mon, 13 Jul 2026 20:16:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9BA78347505
+	for <mm-commits@vger.kernel.org>; Mon, 13 Jul 2026 20:16:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783973817; cv=none; b=hR66OwTyKE8Con6AVrRKjz2F9csB8zPmjU71Mde0F4Kl/mKiSFv9f0lndNYXiWol3eKY3WxNYTfcYVtzhuBcEWfJUQw7HfKu6MxC4IHboB16pC98EoWDR+ze9eCpDjn85csqP+ql1poEpSnTKeOJYeVVn8GMC/9vhVcTrP7py8w=
+	t=1783973820; cv=none; b=bpe+X+HlQvEe/dBnifF7xoIouUGPC7SmGhOdfeHS7Mrawyg9adfkzzwWGaRq5d9OEEXlpMLCJNSlZwhUFsoXyhgdmqyc6nIR9o5L/nroIP4xa749ARB951ffG+x9C1VhxIdPcNxZpxo284JBaFmnn6IOGSuen3Q4I1BlneyBkkE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783973817; c=relaxed/simple;
-	bh=gyNYaITzmSmQ19TJdXEOkMlZ4lK9tlTRXyLYU4EO4Bw=;
-	h=Date:To:From:Subject:Message-Id; b=rMri6JpxFKvZlmd+d4UC8xvzZYfRhuZekFJ0GvBJFqAPFlD6k2mYjf8ut+Z8QtVZMwiQToQMrYfItMlaHbTjkSyd/94w+40FvvI48U0CxKmdxgBkzlPj5JZkuLZ+jmElMfQUIpp1uqjK6Mh9ksdRhkPnurR8Y9jJ6ulzUqVhW4E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1W8VNhGd; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783973820; c=relaxed/simple;
+	bh=80bpyRYtgp+5cP+SYrzd52YicqnwtXvz1rOp+EINcwE=;
+	h=Date:To:From:Subject:Message-Id; b=IEB6OukOehSrMFlEIGVelIxXELGPi7OXDu64vPitEDA8i3cZfYLNRM3RzXUPMb3hatRZBYXKmJHpD+vxb8ZTo9+Sov4hXhXANWs4Y3HaW0JAoB464yIEus7qFEQGsncELjwxHhEgeOl7rivwRQ5pYLkVz+0pxVi6NlQGPaCCRJg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DtGA/VdM; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1W8VNhGd"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5AE301F000E9;
-	Mon, 13 Jul 2026 20:16:54 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DtGA/VdM"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D3C3D1F000E9;
+	Mon, 13 Jul 2026 20:16:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783973814;
-	bh=yoAMDkIrgnoc7KXvPksxyKmVUxbHsRgDQXO3hLxQfFc=;
+	d=linux-foundation.org; s=korg; t=1783973817;
+	bh=1bGuWYynWE7G1iCm2uFkqSV/SwOt7NkhKrwzvuCdXAU=;
 	h=Date:To:From:Subject;
-	b=1W8VNhGdiLHFxYrwWU4SjzJ+PNfzFmVkbjkDlAS6+IDvLmF3EQFstamdAtiVTWUKI
-	 AG722wdUiKtvHxw4JqJnssB53rDCpp+dZvPSReMwtuiDZJgreZ/5In1mR20deFe7Wu
-	 pk0P8ZB6ACaJWZB5i/jy/FzpICsa3QHqfA75XsRA=
-Date: Mon, 13 Jul 2026 13:16:53 -0700
+	b=DtGA/VdMyZ4GnmZaDC0V9xCcs/8AZlaEBIVtvevb1IKFYNFQsjZ9Qh5aVJCDDV+H6
+	 NloWdpPD0NNyAWTDxE2w6zuhNBfn57zs38EPSFxzrXVIFLGmo5uHQNC+x+44TwqDbs
+	 spXxwryd2NlUC7b2CfIg+Que1PrzntMgnT2s+iuI=
+Date: Mon, 13 Jul 2026 13:16:57 -0700
 To: mm-commits@vger.kernel.org,youngjun.park@lge.com,shikemeng@huaweicloud.com,nphamcs@gmail.com,kasong@tencent.com,chrisl@kernel.org,baoquan.he@linux.dev,baolin.wang@linux.alibaba.com,baohua@kernel.org,hch@lst.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-swap-use-swap_ops-to-register-swap-devices-methods.patch added to mm-new branch
-Message-Id: <20260713201654.5AE301F000E9@smtp.kernel.org>
+Subject: + mm-swap-remove-swp_fs_ops.patch added to mm-new branch
+Message-Id: <20260713201657.D3C3D1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/swap: use swap_ops to register swap device's methods
+     Subject: mm/swap: remove SWP_FS_OPS
 has been added to the -mm mm-new branch.  Its filename is
-     mm-swap-use-swap_ops-to-register-swap-devices-methods.patch
+     mm-swap-remove-swp_fs_ops.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-use-swap_ops-to-register-swap-devices-methods.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-remove-swp_fs_ops.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,192 +70,247 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Christoph Hellwig <hch@lst.de>
-Subject: mm/swap: use swap_ops to register swap device's methods
-Date: Mon, 13 Jul 2026 11:33:42 +0200
+Subject: mm/swap: remove SWP_FS_OPS
+Date: Mon, 13 Jul 2026 11:33:43 +0200
 
-This simplifies codes and makes logic clearer.  And also makes later any
-new swap device type being added easier to handle.
+Provide a swap_fs_activate helper that directly sets up swap_fs_ops, and a
+flag in struct swap_ops to indicate of NOFS swapping is allowed.
 
-Currently there are two types of swap devices: fs and bdev.
-
-[hch@lst.de: updated for the new submit and can_merge abstraction]
-Link: https://lore.kernel.org/20260713093350.2154226-6-hch@lst.de
-Signed-off-by: Baoquan He <baoquan.he@linux.dev>
+Link: https://lore.kernel.org/20260713093350.2154226-7-hch@lst.de
 Signed-off-by: Christoph Hellwig <hch@lst.de>
-Suggested-by: Chris Li <chrisl@kernel.org>
-Reviewed-by: Nhat Pham <nphamcs@gmail.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Baoquan He <baoquan.he@linux.dev>
 Cc: Barry Song <baohua@kernel.org>
+Cc: Chris Li <chrisl@kernel.org>
 Cc: Kairui Song <kasong@tencent.com>
 Cc: Kemeng Shi <shikemeng@huaweicloud.com>
+Cc: Nhat Pham <nphamcs@gmail.com>
 Cc: Youngjun Park <youngjun.park@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |    1 
- mm/page_io.c         |   68 +++++++++++++++++++++++++----------------
- mm/swap.h            |   10 ++++++
- mm/swapfile.c        |    4 ++
- 4 files changed, 58 insertions(+), 25 deletions(-)
+ Documentation/filesystems/locking.rst |    5 +++--
+ Documentation/filesystems/vfs.rst     |    4 ++--
+ fs/nfs/file.c                         |    4 +---
+ fs/smb/client/file.c                  |    4 +---
+ include/linux/swap.h                  |    6 +++++-
+ mm/page_io.c                          |   10 +++++++++-
+ mm/swap.h                             |   22 ++++++++++------------
+ mm/swapfile.c                         |    2 --
+ mm/vmscan.c                           |   15 +++++++--------
+ 9 files changed, 38 insertions(+), 34 deletions(-)
 
---- a/include/linux/swap.h~mm-swap-use-swap_ops-to-register-swap-devices-methods
+--- a/Documentation/filesystems/locking.rst~mm-swap-remove-swp_fs_ops
++++ a/Documentation/filesystems/locking.rst
+@@ -355,13 +355,14 @@ should perform any validation and prepar
+ writes can be performed with minimal memory allocation.  It should call
+ add_swap_extent(), or the helper iomap_swapfile_activate(), and return
+ the number of extents added.  If IO should be submitted through
+-->swap_rw(), it should set SWP_FS_OPS, otherwise IO will be submitted
++->swap_rw(), it should call swap_fs_activate, otherwise IO will be submitted
+ directly to the block device ``sis->bdev``.
+ 
+ ->swap_deactivate() will be called in the sys_swapoff()
+ path after ->swap_activate() returned success.
+ 
+-->swap_rw will be called for swap IO if SWP_FS_OPS was set by ->swap_activate().
++->swap_rw will be called for swap IO if swap_fs_activate was called by
++->swap_activate().
+ 
+ file_lock_operations
+ ====================
+--- a/Documentation/filesystems/vfs.rst~mm-swap-remove-swp_fs_ops
++++ a/Documentation/filesystems/vfs.rst
+@@ -977,7 +977,7 @@ cache in your filesystem.  The following
+ 	can be performed with minimal memory allocation.  It should call
+ 	add_swap_extent(), or the helper iomap_swapfile_activate(), and
+ 	return the number of extents added.  If IO should be submitted
+-	through ->swap_rw(), it should set SWP_FS_OPS, otherwise IO will
++	through ->swap_rw(), it should call swap_fs_activate, otherwise IO will
+ 	be submitted directly to the block device ``sis->bdev``.
+ 
+ ``swap_deactivate``
+@@ -985,7 +985,7 @@ cache in your filesystem.  The following
+ 	successful.
+ 
+ ``swap_rw``
+-	Called to read or write swap pages when SWP_FS_OPS is set.
++	Called to read or write swap pages when swap_fs_activate was called.
+ 
+ The File Object
+ ===============
+--- a/fs/nfs/file.c~mm-swap-remove-swp_fs_ops
++++ a/fs/nfs/file.c
+@@ -597,7 +597,7 @@ static int nfs_swap_activate(struct swap
+ 	ret = rpc_clnt_swap_activate(clnt);
+ 	if (ret)
+ 		return ret;
+-	ret = add_swap_extent(sis, 0, sis->max, 0);
++	ret = swap_fs_activate(sis);
+ 	if (ret < 0) {
+ 		rpc_clnt_swap_deactivate(clnt);
+ 		return ret;
+@@ -607,8 +607,6 @@ static int nfs_swap_activate(struct swap
+ 
+ 	if (cl->rpc_ops->enable_swap)
+ 		cl->rpc_ops->enable_swap(inode);
+-
+-	sis->flags |= SWP_FS_OPS;
+ 	return ret;
+ }
+ 
+--- a/fs/smb/client/file.c~mm-swap-remove-swp_fs_ops
++++ a/fs/smb/client/file.c
+@@ -3387,9 +3387,7 @@ static int cifs_swap_activate(struct swa
+ 	 * but we could add call to grab a byte range lock to prevent others
+ 	 * from reading or writing the file
+ 	 */
+-
+-	sis->flags |= SWP_FS_OPS;
+-	return add_swap_extent(sis, 0, sis->max, 0);
++	return swap_fs_activate(sis);
+ }
+ 
+ static void cifs_swap_deactivate(struct file *file)
+--- a/include/linux/swap.h~mm-swap-remove-swp_fs_ops
 +++ a/include/linux/swap.h
-@@ -276,6 +276,7 @@ struct swap_info_struct {
- 	struct work_struct reclaim_work; /* reclaim worker */
- 	struct list_head discard_clusters; /* discard clusters list */
- 	struct plist_node avail_list;   /* entry in swap_avail_head */
-+	const struct swap_ops *ops;
+@@ -202,7 +202,6 @@ enum {
+ 	SWP_SOLIDSTATE	= (1 << 4),	/* blkdev seeks are cheap */
+ 	SWP_BLKDEV	= (1 << 6),	/* its a block device */
+ 	SWP_ACTIVATED	= (1 << 7),	/* set after swap_activate success */
+-	SWP_FS_OPS	= (1 << 8),	/* swapfile operations go through fs */
+ 	SWP_AREA_DISCARD = (1 << 9),	/* single-time swap area discards */
+ 	SWP_PAGE_DISCARD = (1 << 10),	/* freed swap page-cluster discards */
+ 	SWP_STABLE_WRITES = (1 << 11),	/* no overwrite PG_writeback pages */
+@@ -335,6 +334,7 @@ extern void __meminit kswapd_stop(int ni
+ 
+ #ifdef CONFIG_SWAP
+ 
++int swap_fs_activate(struct swap_info_struct *sis);
+ int add_swap_extent(struct swap_info_struct *sis, unsigned long start_page,
+ 		unsigned long nr_pages, sector_t start_block);
+ int generic_swapfile_activate(struct swap_info_struct *, struct file *,
+@@ -460,6 +460,10 @@ static inline bool folio_free_swap(struc
+ 	return false;
+ }
+ 
++static inline int swap_fs_activate(struct swap_info_struct *sis)
++{
++	return -EINVAL;
++}
+ static inline int add_swap_extent(struct swap_info_struct *sis,
+ 				  unsigned long start_page,
+ 				  unsigned long nr_pages, sector_t start_block)
+--- a/mm/page_io.c~mm-swap-remove-swp_fs_ops
++++ a/mm/page_io.c
+@@ -686,12 +686,20 @@ static bool swap_fs_can_merge(struct fol
+ 		swap_dev_pos(prev_folio->swap) + prev_folio_size;
+ }
+ 
+-const struct swap_ops swap_fs_ops = {
++static const struct swap_ops swap_fs_ops = {
++	.flags			= SWAP_OPS_F_REQUIRE_NOFS,
+ 	.submit_write		= swap_fs_submit_write,
+ 	.submit_read		= swap_fs_submit_read,
+ 	.can_merge		= swap_fs_can_merge,
  };
  
- static inline swp_entry_t page_swap_entry(struct page *page)
---- a/mm/page_io.c~mm-swap-use-swap_ops-to-register-swap-devices-methods
-+++ a/mm/page_io.c
-@@ -334,21 +334,7 @@ static bool swap_can_merge(struct swap_i
- 
- 	if (ctx->sis != sis)
- 		return false;
--
--	if (sis->flags & SWP_FS_OPS) {
--		if (swap_dev_pos(folio->swap) !=
--		    swap_dev_pos(prev_folio->swap) + prev_folio_size)
--			return false;
--	} else {
--		if (swap_folio_sector(folio) !=
--		    swap_folio_sector(prev_folio) +
--		    (prev_folio_size >> SECTOR_SHIFT))
--			return false;
--		if (rw == WRITE && !folio_blkg_can_merge(folio, prev_folio))
--			return false;
--	}
--
--	return true;
-+	return sis->ops->can_merge(folio, prev_folio, prev_folio_size, rw);
- }
- 
- static void swap_add_folio(struct swap_io_ctx *ctx, struct folio *folio, int rw)
-@@ -646,6 +632,23 @@ static void swap_bdev_submit_read(struct
- 	}
- }
- 
-+static bool swap_bdev_can_merge(struct folio *folio, struct folio *prev_folio,
-+		size_t prev_folio_size, int rw)
++int swap_fs_activate(struct swap_info_struct *sis)
 +{
-+	if (swap_folio_sector(folio) !=
-+	    swap_folio_sector(prev_folio) + (prev_folio_size >> SECTOR_SHIFT))
-+		return false;
-+	if (rw == WRITE && !folio_blkg_can_merge(folio, prev_folio))
-+		return false;
-+	return true;
++	sis->ops = &swap_fs_ops;
++	return add_swap_extent(sis, 0, sis->max, 0);
 +}
-+
-+const struct swap_ops swap_bdev_ops = {
-+	.submit_write		= swap_bdev_submit_write,
-+	.submit_read		= swap_bdev_submit_read,
-+	.can_merge		= swap_bdev_can_merge,
-+};
-+
- static void swap_fs_submit(struct swap_io_ctx *ctx, int rw)
- {
- 	struct swap_iocb *sio = ctx->sio;
-@@ -666,15 +669,34 @@ static void swap_fs_submit(struct swap_i
- 		sio->iocb.ki_complete(&sio->iocb, ret);
- }
- 
-+static void swap_fs_submit_write(struct swap_io_ctx *ctx)
-+{
-+	swap_fs_submit(ctx, WRITE);
-+}
-+
-+static void swap_fs_submit_read(struct swap_io_ctx *ctx)
-+{
-+	swap_fs_submit(ctx, READ);
-+}
-+
-+static bool swap_fs_can_merge(struct folio *folio, struct folio *prev_folio,
-+		size_t prev_folio_size, int rw)
-+{
-+	return swap_dev_pos(folio->swap) ==
-+		swap_dev_pos(prev_folio->swap) + prev_folio_size;
-+}
-+
-+const struct swap_ops swap_fs_ops = {
-+	.submit_write		= swap_fs_submit_write,
-+	.submit_read		= swap_fs_submit_read,
-+	.can_merge		= swap_fs_can_merge,
-+};
++EXPORT_SYMBOL_GPL(swap_fs_activate);
 +
  void swap_write_submit(struct swap_io_ctx *ctx)
  {
  	if (!ctx->sio)
- 		return;
--
--	if (ctx->sis->flags & SWP_FS_OPS)
--		swap_fs_submit(ctx, WRITE);
--	else
--		swap_bdev_submit_write(ctx);
-+	ctx->sis->ops->submit_write(ctx);
- 	ctx->sio = NULL;
- 	ctx->sis = NULL;
- }
-@@ -683,11 +705,7 @@ void swap_read_submit(struct swap_io_ctx
- {
- 	if (!ctx->sio)
- 		return;
--
--	if (ctx->sis->flags & SWP_FS_OPS)
--		swap_fs_submit(ctx, READ);
--	else
--		swap_bdev_submit_read(ctx);
-+	ctx->sis->ops->submit_read(ctx);
- 	ctx->sio = NULL;
- 	ctx->sis = NULL;
- }
---- a/mm/swapfile.c~mm-swap-use-swap_ops-to-register-swap-devices-methods
+--- a/mm/swapfile.c~mm-swap-remove-swp_fs_ops
 +++ a/mm/swapfile.c
-@@ -2950,6 +2950,8 @@ static int setup_swap_extents(struct swa
- 	if (ret)
- 		return ret;
- 
-+	sis->ops = &swap_bdev_ops;
-+
- 	if (S_ISBLK(inode->i_mode)) {
- 		ret = add_swap_extent(sis, 0, sis->max, 0);
- 		*span = sis->pages;
-@@ -2960,6 +2962,8 @@ static int setup_swap_extents(struct swa
+@@ -2962,8 +2962,6 @@ static int setup_swap_extents(struct swa
  		ret = mapping->a_ops->swap_activate(sis, swap_file, span);
  		if (ret < 0)
  			return ret;
-+		if (sis->flags & SWP_FS_OPS)
-+			sis->ops = &swap_fs_ops;
+-		if (sis->flags & SWP_FS_OPS)
+-			sis->ops = &swap_fs_ops;
  		sis->flags |= SWP_ACTIVATED;
  		return ret;
  	}
---- a/mm/swap.h~mm-swap-use-swap_ops-to-register-swap-devices-methods
+--- a/mm/swap.h~mm-swap-remove-swp_fs_ops
 +++ a/mm/swap.h
-@@ -82,6 +82,13 @@ struct swap_io_ctx {
+@@ -82,7 +82,17 @@ struct swap_io_ctx {
  	struct swap_info_struct	*sis;
  };
  
-+struct swap_ops {
-+	bool (*can_merge)(struct folio *folio, struct folio *prev_folio,
-+			size_t prev_folio_size, int rw);
-+	void (*submit_write)(struct swap_io_ctx *ctx);
-+	void (*submit_read)(struct swap_io_ctx *ctx);
-+};
++/*
++ * SWAP_OPS_F_REQUIRE_NOFS:
++ *	When set, all reclaim operations must operated as GFS_NOFS and not
++ *	just GFP_NOIO, as GFP_NOIO allocations could recourse into the
++ *	file system backing this swap file.
++ */
++#define SWAP_OPS_F_REQUIRE_NOFS		(1U << 0)
 +
- #ifdef CONFIG_SWAP
- #include <linux/swapops.h> /* for swp_offset */
- #include <linux/blk_types.h> /* for bio_end_io_t */
-@@ -469,6 +476,9 @@ static inline unsigned int folio_swap_fl
+ struct swap_ops {
++	unsigned int		flags;
++
+ 	bool (*can_merge)(struct folio *folio, struct folio *prev_folio,
+ 			size_t prev_folio_size, int rw);
+ 	void (*submit_write)(struct swap_io_ctx *ctx);
+@@ -333,11 +343,6 @@ struct folio *swapin_sync(swp_entry_t en
+ void swap_update_readahead(struct folio *folio, struct vm_area_struct *vma,
+ 			   unsigned long addr);
  
+-static inline unsigned int folio_swap_flags(struct folio *folio)
+-{
+-	return __swap_entry_to_info(folio->swap)->flags;
+-}
+-
+ #else /* CONFIG_SWAP */
+ static inline struct swap_cluster_info *swap_cluster_lock(
+ 	struct swap_info_struct *si, pgoff_t offset, bool irq)
+@@ -468,16 +473,9 @@ static inline void __swap_cache_replace_
+ 		struct folio *old, struct folio *new)
+ {
+ }
+-
+-static inline unsigned int folio_swap_flags(struct folio *folio)
+-{
+-	return 0;
+-}
+-
  #endif /* CONFIG_SWAP */
  
-+extern const struct swap_ops swap_bdev_ops;
-+extern const struct swap_ops swap_fs_ops;
-+
+ extern const struct swap_ops swap_bdev_ops;
+-extern const struct swap_ops swap_fs_ops;
+ 
  int shmem_writeout(struct swap_io_ctx *ctx, struct folio *folio,
  		struct list_head *folio_list);
+--- a/mm/vmscan.c~mm-swap-remove-swp_fs_ops
++++ a/mm/vmscan.c
+@@ -1033,16 +1033,15 @@ static bool may_enter_fs(struct folio *f
+ {
+ 	if (gfp_mask & __GFP_FS)
+ 		return true;
+-	if (!folio_test_swapcache(folio) || !(gfp_mask & __GFP_IO))
+-		return false;
+ 	/*
+-	 * We can "enter_fs" for swap-cache with only __GFP_IO
+-	 * providing this isn't SWP_FS_OPS.
+-	 * ->flags can be updated non-atomically,
+-	 * but that will never affect SWP_FS_OPS, so the data_race
+-	 * is safe.
++	 * We can "enter_fs" for swap-cache with only __GFP_IO unless backed by
++	 * a swapfile that requires GFP_NOFS I/O.
+ 	 */
+-	return !data_race(folio_swap_flags(folio) & SWP_FS_OPS);
++	if (folio_test_swapcache(folio) && (gfp_mask & __GFP_IO) &&
++	    !(__swap_entry_to_info(folio->swap)->ops->flags &
++			SWAP_OPS_F_REQUIRE_NOFS))
++		return true;
++	return false;
+ }
  
+ /*
 _
 
 Patches currently in -mm which might be from hch@lst.de are
