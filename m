@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E8815347505
-	for <mm-commits@vger.kernel.org>; Mon, 13 Jul 2026 20:17:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C9FB9328616
+	for <mm-commits@vger.kernel.org>; Mon, 13 Jul 2026 20:37:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783973825; cv=none; b=Ti2BTFCCzWaoaiGb+eeGjKprgEBq0MgW5WGgeTgLooTJd/jybfZtjePpxqkUFRfHeVCP0rGoTY0gK8gd33CLJbIZqVoSvMxq8ND0wbDA2Q2OP0ce+OShRSQwdKUbFBUMl4twXuojV9lzMSQA9bBZ6MaByOwceSyqSalLzb7i3wM=
+	t=1783975050; cv=none; b=gG5LEVEqxNnbIPYY4AhVHvwACKVwy9S8+IzNOo4N6GPyihZp4t1dyH41NlPGK8XGfg8y48XIYI9UD6gjT96jctPXela6Mn9IS6/qb+7rt8hxp5M5vpBO62DbLzFYXO2XWY04N0c8KEzLDg8fTQzwrJF2i71stDkw7/VxvtYyML4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783973825; c=relaxed/simple;
-	bh=EmhcviqChrJ+ElQpwHDoM6viQdDrEce/DZlRQHVNyWU=;
-	h=Date:To:From:Subject:Message-Id; b=ETIyl10CLBfh5XxAnbhKAdpb2GDoJ/J+LYPLp+caWxBZ0hp0ad3ecNCrMAA75l85jiXMYe0+esS5q86YXluxtJepZEgaJwn2IsJZp35T9dtGgzPhOkshAAxADqDspj5aXCgzGCqNH3rx41eKf1WxqZkFk+Sg+matEnLki0LqsAw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=d7r0z+3J; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783975050; c=relaxed/simple;
+	bh=2WnVacvEvlBIgv/CwUzzoaoTxzkLvyxou9qK8kTApJU=;
+	h=Date:To:From:Subject:Message-Id; b=mSs6lnnr81RRNsjDEdNOw4D1OCo0au00NT8pmrFpyObzKww+ZIGJsOrp3J4IjwmRexR/Gm19c23wpX+3sMjxIgulhEMM1hgE2kGzHICMvL+48mDeGOAcq/5lKxiKPL+Gu6L3HCas9e6apcvW3QqprHubOzcGgVcVyWCb+T++pZE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=F7iKuRFX; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="d7r0z+3J"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 832CA1F000E9;
-	Mon, 13 Jul 2026 20:17:03 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="F7iKuRFX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4098B1F000E9;
+	Mon, 13 Jul 2026 20:37:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783973823;
-	bh=I2yVnTTOQoQ+jhDUj/6HeSvN3ExogfJUVSYsgb4O0y4=;
+	d=linux-foundation.org; s=korg; t=1783975048;
+	bh=HvYIN1rnFgjjjUKdU1aieXhEoVI0niVJ8VhLxazQG/s=;
 	h=Date:To:From:Subject;
-	b=d7r0z+3J/6A4D8AEUQPEzJ/y26R0+Ws49oDfoGCiJsmlsnV5XUV45nuu8kOlpyBWR
-	 W037iF0T4EYkEWsJtTh4opnN3sBZasd1xD3V/u4kA15muIfZ8wFJmG2qPUS9sP8Tk3
-	 D6+kDj3EvaXxzaLHfZTeXgAB3Arn49/hWOuk7+2w=
-Date: Mon, 13 Jul 2026 13:17:03 -0700
-To: mm-commits@vger.kernel.org,youngjun.park@lge.com,shikemeng@huaweicloud.com,nphamcs@gmail.com,kasong@tencent.com,chrisl@kernel.org,baoquan.he@linux.dev,baolin.wang@linux.alibaba.com,baohua@kernel.org,hch@lst.de,akpm@linux-foundation.org
+	b=F7iKuRFX0CDKWPa1peV/0st/bpFooxc8iLDvlT/VMut9tsrJFQO5zs77++S5AM01X
+	 4qsyTUOe3l3kGmn++hQ6TQx6j6ccr8V8F1BsLhgJaSEKZ4bJtjL51lMj6ymDgv28Qg
+	 nHx9Rl0ItfX5D4RJyubmPEkqsbYZeLeoe365JG34=
+Date: Mon, 13 Jul 2026 13:37:27 -0700
+To: mm-commits@vger.kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@suse.com,hannes@cmpxchg.org,zhangguopeng@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmstat-add-nrswpinout-counters.patch added to mm-new branch
-Message-Id: <20260713201703.832CA1F000E9@smtp.kernel.org>
+Subject: + mm-memcg-v1-make-mem_cgroup_oom_notify_cb-return-void.patch added to mm-new branch
+Message-Id: <20260713203728.4098B1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/vmstat: add NRSWP{IN,OUT} counters
+     Subject: mm: memcg-v1: make mem_cgroup_oom_notify_cb() return void
 has been added to the -mm mm-new branch.  Its filename is
-     mm-vmstat-add-nrswpinout-counters.patch
+     mm-memcg-v1-make-mem_cgroup_oom_notify_cb-return-void.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmstat-add-nrswpinout-counters.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcg-v1-make-mem_cgroup_oom_notify_cb-return-void.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,93 +69,59 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Christoph Hellwig <hch@lst.de>
-Subject: mm/vmstat: add NRSWP{IN,OUT} counters
-Date: Mon, 13 Jul 2026 11:33:44 +0200
+From: Guopeng Zhang <zhangguopeng@kylinos.cn>
+Subject: mm: memcg-v1: make mem_cgroup_oom_notify_cb() return void
+Date: Mon, 13 Jul 2026 17:37:37 +0800
 
-Count how many swap I/Os we cause.  Due to batching this can be different
-than the current counter number of pages written/read, and tracking this
-information is useful to see how efficient the batching is.
+Commit 7d74b06f240f ("memcg: use for_each_mem_cgroup") replaced the
+mem_cgroup_walk_tree() call in mem_cgroup_oom_notify() with
+for_each_mem_cgroup_tree(), but left mem_cgroup_oom_notify_cb() with the
+int return type required by the old callback interface.
 
-The counters are added at the end of enum vm_event_item and the
-vmstat_text array under the assumption that the order of fields in
-/proc/vmstat is an ABI.  If that is not the case, they could be grouped
-with the other swap counters.
+The function now has a single direct caller and no failure path.  Make it
+return void.
 
-Link: https://lore.kernel.org/20260713093350.2154226-8-hch@lst.de
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Reviewed-by: Nhat Pham <nphamcs@gmail.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Baoquan He <baoquan.he@linux.dev>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: Kairui Song <kasong@tencent.com>
-Cc: Kemeng Shi <shikemeng@huaweicloud.com>
-Cc: Youngjun Park <youngjun.park@lge.com>
+Link: https://lore.kernel.org/20260713093737.3299646-1-guopeng.zhang@linux.dev
+Signed-off-by: Guopeng Zhang <zhangguopeng@kylinos.cn>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Reviewed-by: Muchun Song <muchun.song@linux.dev>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/vm_event_item.h |    4 ++++
- mm/page_io.c                  |    2 ++
- mm/vmstat.c                   |    6 +++++-
- 3 files changed, 11 insertions(+), 1 deletion(-)
+ mm/memcontrol-v1.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/include/linux/vm_event_item.h~mm-vmstat-add-nrswpinout-counters
-+++ a/include/linux/vm_event_item.h
-@@ -175,6 +175,10 @@ enum vm_event_item { PGPGIN, PGPGOUT, PS
- 		KSTACK_REST,
- #endif
- #endif /* CONFIG_DEBUG_STACK_USAGE */
-+#ifdef CONFIG_SWAP
-+		NRSWPIN,
-+		NRSWPOUT,
-+#endif /* CONFIG_SWAP */
- 		NR_VM_EVENT_ITEMS
- };
+--- a/mm/memcontrol-v1.c~mm-memcg-v1-make-mem_cgroup_oom_notify_cb-return-void
++++ a/mm/memcontrol-v1.c
+@@ -752,7 +752,7 @@ static int compare_thresholds(const void
+ 	return 0;
+ }
  
---- a/mm/page_io.c~mm-vmstat-add-nrswpinout-counters
-+++ a/mm/page_io.c
-@@ -704,6 +704,7 @@ void swap_write_submit(struct swap_io_ct
+-static int mem_cgroup_oom_notify_cb(struct mem_cgroup *memcg)
++static void mem_cgroup_oom_notify_cb(struct mem_cgroup *memcg)
  {
- 	if (!ctx->sio)
- 		return;
-+	count_vm_events(NRSWPOUT, 1);
- 	ctx->sis->ops->submit_write(ctx);
- 	ctx->sio = NULL;
- 	ctx->sis = NULL;
-@@ -713,6 +714,7 @@ void swap_read_submit(struct swap_io_ctx
- {
- 	if (!ctx->sio)
- 		return;
-+	count_vm_events(NRSWPIN, 1);
- 	ctx->sis->ops->submit_read(ctx);
- 	ctx->sio = NULL;
- 	ctx->sis = NULL;
---- a/mm/vmstat.c~mm-vmstat-add-nrswpinout-counters
-+++ a/mm/vmstat.c
-@@ -1489,7 +1489,11 @@ const char * const vmstat_text[] = {
- #if THREAD_SIZE > 65536
- 	[I(KSTACK_REST)]			= "kstack_rest",
- #endif
--#endif
-+#endif /* CONFIG_DEBUG_STACK_USAGE */
-+#ifdef CONFIG_SWAP
-+	[I(NRSWPIN)]				= "nrswpin",
-+	[I(NRSWPOUT)]				= "nrswpout",
-+#endif /* CONFIG_SWAP */
- #undef I
- #endif /* CONFIG_VM_EVENT_COUNTERS */
- };
+ 	struct mem_cgroup_eventfd_list *ev;
+ 
+@@ -762,7 +762,6 @@ static int mem_cgroup_oom_notify_cb(stru
+ 		eventfd_signal(ev->eventfd);
+ 
+ 	spin_unlock(&memcg_oom_lock);
+-	return 0;
+ }
+ 
+ static void mem_cgroup_oom_notify(struct mem_cgroup *memcg)
 _
 
-Patches currently in -mm which might be from hch@lst.de are
+Patches currently in -mm which might be from zhangguopeng@kylinos.cn are
 
-mm-remove-wb_writeout_inc.patch
-shmem-provide-a-shmem_write_folio-wrapper.patch
-mm-swap-introduce-struct-swap_io_ctx.patch
-mm-swap-also-use-struct-swap_iocb-for-block-i-o.patch
-mm-swap-remove-count_swpout_vm_event.patch
-mm-swap-use-swap_ops-to-register-swap-devices-methods.patch
-mm-swap-remove-swp_fs_ops.patch
-mm-vmstat-add-nrswpinout-counters.patch
+mm-memcg-remove-stray-text-from-obj_stock_pcp-comment.patch
+mm-memcontrol-update-state_local-when-flushing-nmi-stats.patch
+mm-memcg-v1-account-vmpressure-event-allocations.patch
+mm-memcg-v1-fix-wrong-linux-mm-list-address-in-deprecation-warnings.patch
+mm-memcontrol-drop-unused-cpu-argument-from-flush_nmi_stats.patch
+mm-memcontrol-factor-out-memcg-kmem-uncharge-sequence.patch
+mm-memcg-v1-make-mem_cgroup_oom_notify_cb-return-void.patch
 
