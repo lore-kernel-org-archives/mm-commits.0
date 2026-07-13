@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4A8BC2DC32C;
-	Mon, 13 Jul 2026 19:55:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4E411357D1A
+	for <mm-commits@vger.kernel.org>; Mon, 13 Jul 2026 19:57:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783972543; cv=none; b=JhArgmsDSky5Sbr3dL1O6nkZYLLbGTfAzSS5rchGv/pCHM2n8F/jejnWw8ePIFVj1Kt7YSEZQGcbAt8/s4nicWC+lrJTnIWaZyMcv1aoiMnqwDTXe4LY0nGeVGb5UppgCr6qGj2cy1wNTstf4LBXOS0+YWtMsz/wlj0IFU+AIIw=
+	t=1783972647; cv=none; b=hnUhgdroNmh/xpK0HtqQjpuJp45qMrlNpatB9yT3UGdvIVScI+/zKFPaxoz+S5I8Cl2hiPaBtsxUMrSbk5XukEFdWAc978IqNBJ7YgP9+J3vHrMj8fbYj0j94k/NAEeJ4XiA5IUweWNdc2vw8WSyfWsBEFnvSFMyNYWLo3qyIy8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783972543; c=relaxed/simple;
-	bh=dUnNB4ouGIOaRGQxG1/q6bDzutNOMENEQc4K0qy0jCY=;
-	h=Date:To:From:Subject:Message-Id; b=Wg4uA/lpD+VCyNKSB5ZENU7nknyBJIQHxXRskTSApH2zmP3sY6C+DxoTVnXbxNWSSA8DBNCTmc3Nm83r/eaGovU7tv6cSbcvPGA3ShO2MzYrrYj92nnAUBcBRioKQnYunxGrF5sRB9r9iKZeu+IAjPioANd0T/qvNfgwIjkpABA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2UPw6bhE; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783972647; c=relaxed/simple;
+	bh=ven1osiqDsV0O+UZN6GWBuiyQJ2rNG8ytLqMmy6FB94=;
+	h=Date:To:From:Subject:Message-Id; b=nelV+weIFQgAV7hzfYDyCweGBUA/6ud8+5mAIkn8wQrxb3H5+q/gtFHKPaU7ke767gSsHvq8bRoV9wdnDKGaAnv7fE/Ha/FJs/qsiZyPriINJK/LG/Qrq+eBzuqe9LVNskT4ZTwl5Ok8L93xRxxS7j+KF4LNqxhftesQxY2VVlc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NaBVfFas; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2UPw6bhE"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CF5DE1F000E9;
-	Mon, 13 Jul 2026 19:55:41 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NaBVfFas"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C67E31F00A3A;
+	Mon, 13 Jul 2026 19:57:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783972541;
-	bh=SHmw69AMKArRDaKtCOz6/AyRBl+Agy13pKh0JZOLQ6g=;
+	d=linux-foundation.org; s=korg; t=1783972645;
+	bh=FDcHZEymjKCvHwgfrgSSM5plfFePYyIyYYDPdGM1+N4=;
 	h=Date:To:From:Subject;
-	b=2UPw6bhEg/W/IHkA7ZKZZgp6NShAPC62fHBZJ/nkt0YZf8Mv/c2U3R5qbGVwelqdd
-	 cZXRTdYPTymNpOrw94A6MLVUUsa62TexkI7wI3l7nyI0QI5G/QBFwTq2sws5q5PZZ2
-	 7Lw/D7/oBYdc21HRU0Rt4AXn7oyVhkHipvN3mp7U=
-Date: Mon, 13 Jul 2026 12:55:41 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,stable@vger.kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,cuitao@kylinos.cn,alex@ghiti.fr,zhangguopeng@kylinos.cn,akpm@linux-foundation.org
+	b=NaBVfFasYQryKJzMt9oJsIl2Byu9Gmz9fQdv/ZAQ3ijh/c6hewNsNUVMtyIoN/1sM
+	 q9zYDceJIabcVaVYToUSbU4hRtwwRMKFyhljLj9QdFBwljY4jb79BkZx43r/dXKa3z
+	 37EklBzWN/LM8vWbkAZE9+urBwbk82BpH41qnjsA=
+Date: Mon, 13 Jul 2026 12:57:25 -0700
+To: mm-commits@vger.kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,cuitao@kylinos.cn,zhangguopeng@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memcontrol-update-state_local-when-flushing-nmi-stats.patch added to mm-new branch
-Message-Id: <20260713195541.CF5DE1F000E9@smtp.kernel.org>
+Subject: + mm-memcg-v1-account-vmpressure-event-allocations.patch added to mm-new branch
+Message-Id: <20260713195725.C67E31F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: memcontrol: update state_local when flushing NMI stats
+     Subject: mm: memcg-v1: account vmpressure event allocations
 has been added to the -mm mm-new branch.  Its filename is
-     mm-memcontrol-update-state_local-when-flushing-nmi-stats.patch
+     mm-memcg-v1-account-vmpressure-event-allocations.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcontrol-update-state_local-when-flushing-nmi-stats.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcg-v1-account-vmpressure-event-allocations.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,72 +70,47 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Guopeng Zhang <zhangguopeng@kylinos.cn>
-Subject: mm: memcontrol: update state_local when flushing NMI stats
-Date: Mon, 13 Jul 2026 16:50:53 +0800
+Subject: mm: memcg-v1: account vmpressure event allocations
+Date: Mon, 13 Jul 2026 16:55:20 +0800
 
-flush_nmi_stats() updates state[] for kmem and slab counters but leaves
-the corresponding state_local[] counters unchanged.  Local kmem and slab
-statistics therefore miss updates collected through the NMI-safe atomic
-path.
+Commit 72797d218b43 ("mm/memcg: v1: account event registrations and drop
+world-writable cgroup.event_control") accounted cgroup v1 event
+registration allocations with GFP_KERNEL_ACCOUNT, but missed struct
+vmpressure_event.
 
-Update state_local[] together with state[].
+Use GFP_KERNEL_ACCOUNT for this allocation as well.
 
-Link: https://lore.kernel.org/20260713085053.2916813-1-guopeng.zhang@linux.dev
-Fixes: 940b01fc8dc1 ("memcg: nmi safe memcg stats for specific archs")
+Link: https://lore.kernel.org/20260713085520.2953121-1-guopeng.zhang@linux.dev
+Fixes: 72797d218b43 ("mm/memcg: v1: account event registrations and drop world-writable cgroup.event_control")
 Signed-off-by: Guopeng Zhang <zhangguopeng@kylinos.cn>
 Acked-by: Tao Cui <cuitao@kylinos.cn>
 Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Alexandre Ghiti <alex@ghiti.fr>
+Reviewed-by: Muchun Song <muchun.song@linux.dev>
 Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
 Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ mm/memcontrol-v1.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/memcontrol.c~mm-memcontrol-update-state_local-when-flushing-nmi-stats
-+++ a/mm/memcontrol.c
-@@ -4442,6 +4442,7 @@ static void flush_nmi_stats(struct mem_c
- 		int index = memcg_stats_index(MEMCG_KMEM);
- 
- 		memcg->vmstats->state[index] += kmem;
-+		memcg->vmstats->state_local[index] += kmem;
- 		if (parent)
- 			parent->vmstats->state_pending[index] += kmem;
+--- a/mm/memcontrol-v1.c~mm-memcg-v1-account-vmpressure-event-allocations
++++ a/mm/memcontrol-v1.c
+@@ -1721,7 +1721,7 @@ int vmpressure_register_event(struct mem
+ 		mode = ret;
  	}
-@@ -4459,9 +4460,11 @@ static void flush_nmi_stats(struct mem_c
- 			int index = memcg_stats_index(NR_SLAB_RECLAIMABLE_B);
  
- 			lstats->state[index] += slab;
-+			lstats->state_local[index] += slab;
- 			if (plstats)
- 				plstats->state_pending[index] += slab;
- 			memcg->vmstats->state[index] += slab;
-+			memcg->vmstats->state_local[index] += slab;
- 			if (parent)
- 				parent->vmstats->state_pending[index] += slab;
- 		}
-@@ -4470,9 +4473,11 @@ static void flush_nmi_stats(struct mem_c
- 			int index = memcg_stats_index(NR_SLAB_UNRECLAIMABLE_B);
- 
- 			lstats->state[index] += slab;
-+			lstats->state_local[index] += slab;
- 			if (plstats)
- 				plstats->state_pending[index] += slab;
- 			memcg->vmstats->state[index] += slab;
-+			memcg->vmstats->state_local[index] += slab;
- 			if (parent)
- 				parent->vmstats->state_pending[index] += slab;
- 		}
+-	ev = kzalloc_obj(*ev);
++	ev = kzalloc_obj(*ev, GFP_KERNEL_ACCOUNT);
+ 	if (!ev) {
+ 		ret = -ENOMEM;
+ 		goto out;
 _
 
 Patches currently in -mm which might be from zhangguopeng@kylinos.cn are
 
 mm-memcg-remove-stray-text-from-obj_stock_pcp-comment.patch
 mm-memcontrol-update-state_local-when-flushing-nmi-stats.patch
+mm-memcg-v1-account-vmpressure-event-allocations.patch
 
