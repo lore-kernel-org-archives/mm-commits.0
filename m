@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 93D5334BA24
-	for <mm-commits@vger.kernel.org>; Mon, 13 Jul 2026 20:43:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5BD30309EEC;
+	Mon, 13 Jul 2026 23:02:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783975400; cv=none; b=ILVMnJHOu0sl396sXlloBoPLF6QlDYJw00HJdjlSNoS2YwE39WR3P0PRCu2QQAirIhWA3cq9Jr8vm0sEH/bw8+owJYehdab3hF0sERVrxSVQnsblNGLhwd78tRH4QPkQYHQZ/A+DDAk7KbCkTgeqjgL0qBP1VoVo+PZnoI8mVSI=
+	t=1783983733; cv=none; b=uc46csup8Q9gXURlRC+g+rtq+IxOW9AJvWwAp1d/NS3goXALQ5G/N85M3O2HbNZYRCHCd2lB4uXpiXWnJXy+Y7tQPC1gLunDx1GHj7B7XOwAnwuZ5ZP/4iyKnJJ3UurnpeSUFlkOTyuoFXmf5yryKhf9UoLPI1RC9+7ayIPKaug=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783975400; c=relaxed/simple;
-	bh=XaEY23QG/vI69vp3k8O0aUY/f9Stz2/FMHB4a9DaQ9s=;
-	h=Date:To:From:Subject:Message-Id; b=Jne4CjpHs++khQ3JKtKnMAdESKxG2hBXNPNi+p5h8WU+njr/rOQdgaT5DqSfpeTKKhazgfVWTOVke3yRV9wn+0AQS9o9Zxov61yC/VEULBL53jSBV3ahxBFTWmC3q4sMDcuTxr1jopWj1O/vN+MrI6TOEawj5pLwnjALvnzU5DI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ItZH8/sJ; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783983733; c=relaxed/simple;
+	bh=Xwb4JUOFvErGMW5pK7HquCWrZTDek9wKddSCHRmb8BA=;
+	h=Date:To:From:Subject:Message-Id; b=jnFE6/or0nMVQIEeHwJ68tUesyueddPJoIz3eoaOV0oiwaPK8rDIjn8FFyKPCIZtcu/Gwsrk5+kc38lwmb4r/1Jw84OfwAJwHtH1tobj+2MjXE3k7iWRjuiqkVynXtLqyLAOTw1Y5B3hd0tF2TAPQzykI81MswUU3pmLQcXA7Ig=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KHXguKsA; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ItZH8/sJ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4A7E41F000E9;
-	Mon, 13 Jul 2026 20:43:19 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KHXguKsA"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 031FC1F000E9;
+	Mon, 13 Jul 2026 23:02:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783975399;
-	bh=4OYgEh3D9j2188jdDKv7ZPUl+WuZZyXdp7fnSmws8YM=;
+	d=linux-foundation.org; s=korg; t=1783983732;
+	bh=rp6xdnUpg579Gpc0SsT7O6Ssf2d36mK3EDG9HzUOYf8=;
 	h=Date:To:From:Subject;
-	b=ItZH8/sJT7A5iuhDaK2iFldjhdcRabWolm6NKeT2vd1g00P+iTf+Hr8aAfuEbxHud
-	 Ld1wgAASUsoCm0gKBXL81447eWialdGx9SrGM6Muwqey2r4VcUlJyHvwarcroUxLX4
-	 NsGD8TclRjrcg9s29fXQhDz4ojjTcwZsTyO1IC7I=
-Date: Mon, 13 Jul 2026 13:43:18 -0700
-To: mm-commits@vger.kernel.org,sj@kernel.org,husong@kylinos.cn,akpm@linux-foundation.org
+	b=KHXguKsALFT58oxDcJcIvN01J3jtBnIld7J/y36HFAwlQ8ogwNpqt5+GRogyvrhUz
+	 7oAig6WbxS3rvEv6nJDtxGw9anbAqhTql8YwfJNPnM1TnExDgWA9jyAJCDzvloAvfD
+	 n/yqBreIzDxeDbfLtQTQptzpmbFZa1mFJqEFGgtE=
+Date: Mon, 13 Jul 2026 16:02:11 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,shuah@kernel.org,richard.weiyang@linux.alibaba.com,osalvador@suse.de,muchun.song@linux.dev,david@kernel.org,baoquan.he@linux.dev,caixiangfeng@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-tests-core-kunit-test-damon_nr_accesses_mvsum.patch added to mm-new branch
-Message-Id: <20260713204319.4A7E41F000E9@smtp.kernel.org>
+Subject: + mm-hugetlb-fix-list-corruption-in-allocate_file_region_entries.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260713230212.031FC1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,26 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/tests/core-kunit: test damon_nr_accesses_mvsum()
-has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-tests-core-kunit-test-damon_nr_accesses_mvsum.patch
+     Subject: mm/hugetlb: fix list corruption in allocate_file_region_entries()
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-hugetlb-fix-list-corruption-in-allocate_file_region_entries.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-tests-core-kunit-test-damon_nr_accesses_mvsum.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-fix-list-corruption-in-allocate_file_region_entries.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,97 +58,76 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Song Hu <husong@kylinos.cn>
-Subject: mm/damon/tests/core-kunit: test damon_nr_accesses_mvsum()
-Date: Mon, 13 Jul 2026 17:46:48 +0800
+From: "Xiangfeng Cai" <caixiangfeng@bytedance.com>
+Subject: mm/hugetlb: fix list corruption in allocate_file_region_entries()
+Date: Tue, 14 Jul 2026 01:14:55 +0800
 
-damon_nr_accesses_mvsum() wraps damon_mvsum() with the monitoring
-intervals of the context to compute the pseudo moving sum of a region's
-access frequency, with a special case for when the whole aggregation
-window remains.  damon_mvsum() itself is already covered by
-damon_test_mvsum(), but the wrapper is not.
+allocate_file_region_entries() tops up resv->region_cache with freshly
+allocated file_region descriptors.  The allocation uses GFP_KERNEL, so
+resv->lock is dropped around it: the new entries are gathered on a
+stack-local list head, allocated_regions, and spliced into
+resv->region_cache once the lock is re-acquired.
 
-Add a table-driven KUnit test that exercises the full-window-remaining
-boundary (with both reset and not-yet-reset nr_accesses), partially
-elapsed windows, and the no-window-remaining case.
+The splice used list_splice(), which moves the entries but does not
+re-initialize the source head, so allocated_regions is left pointing at an
+entry that now lives on resv->region_cache.  The top-up runs in a while
+loop that re-checks the cache deficit after re-acquiring the lock.  For a
+shared mapping the resv_map is shared by every mapper of the hugetlbfs
+inode, so a concurrent region_chg()/region_add()/region_del() on the same
+resv_map can consume cache entries during the unlocked window and force a
+second iteration.  That iteration calls list_add() on the stale head and
+corrupts the list; with CONFIG_DEBUG_LIST the __list_add_valid() check
+trips:
 
-Link: https://lore.kernel.org/20260713094648.897239-1-husong@kylinos.cn
-Signed-off-by: Song Hu <husong@kylinos.cn>
-Reviewed-by: SJ Park <sj@kernel.org>
+  list_add corruption. next->prev should be prev (ffffc900011ff7f8),
+  but was ffff88814c281460. (next=ffff88814c545640).
+  kernel BUG at lib/list_debug.c:31!
+   allocate_file_region_entries+0x191/0x420
+   region_chg+0x267/0x300
+   hugetlb_reserve_pages+0x387/0xc80
+   hugetlbfs_file_mmap+0x2ce/0x3f0
+   mmap_region+0x1348/0x1a80
+   do_mmap+0x85e/0xb90
+   vm_mmap_pgoff+0x18c/0x330
+   ksys_mmap_pgoff+0x2a1/0x3e0
+   do_syscall_64+0xd7/0x420
+
+Without CONFIG_DEBUG_LIST the bad list_add() silently links a kernel-stack
+address into resv->region_cache, leading to later use-after-free.
+
+Use list_splice_init() so the source head is re-initialized empty after
+each splice, making the retry loop safe.
+
+Link: https://lore.kernel.org/20260713171456.300518-2-caixiangfeng@bytedance.com
+Fixes: d3ec7b6e09e5 ("mm/hugetlb: use list_splice to merge two list at once")
+Signed-off-by: Xiangfeng Cai <caixiangfeng@bytedance.com>
+Cc: Baoquan He <baoquan.he@linux.dev>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Wei Yang <richard.weiyang@linux.alibaba.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/tests/core-kunit.h |   49 ++++++++++++++++++++++++++++++++++
- 1 file changed, 49 insertions(+)
+ mm/hugetlb.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/damon/tests/core-kunit.h~mm-damon-tests-core-kunit-test-damon_nr_accesses_mvsum
-+++ a/mm/damon/tests/core-kunit.h
-@@ -677,6 +677,54 @@ static void damon_test_mvsum(struct kuni
- 	}
- }
+--- a/mm/hugetlb.c~mm-hugetlb-fix-list-corruption-in-allocate_file_region_entries
++++ a/mm/hugetlb.c
+@@ -693,7 +693,7 @@ static int allocate_file_region_entries(
  
-+/*
-+ * Test damon_nr_accesses_mvsum(), which wraps damon_mvsum() with the
-+ * monitoring intervals of the context.  With a sample interval of 1 and an
-+ * aggregation interval of 10, an aggregation window is 10 sample intervals
-+ * long.  Each row below specifies the passed sample intervals, the next
-+ * aggregation time in sample intervals, the current and last nr_accesses of a
-+ * region, and the expected return value.
-+ */
-+static void damon_test_nr_accesses_mvsum(struct kunit *test)
-+{
-+	unsigned long input_expects[] = {
-+		/* passed, next_aggr, nr_accesses, last_nr_accesses, expect */
-+		0, 10, 5, 3, 3,		/* full window left, unreset */
-+		0, 10, 0, 7, 7,		/* full window left, reset */
-+		5, 10, 3, 10, 8,	/* half window left */
-+		8, 10, 3, 10, 5,	/* 20% window left */
-+		10, 10, 42, 49, 42,	/* no window left */
-+	};
-+	struct damon_ctx *c = damon_new_ctx();
-+	struct damon_region *r;
-+	int i;
-+
-+	if (!c)
-+		kunit_skip(test, "ctx alloc fail");
-+
-+	r = damon_new_region(0, 4096);
-+	if (!r) {
-+		damon_destroy_ctx(c);
-+		kunit_skip(test, "region alloc fail");
-+	}
-+
-+	c->attrs.sample_interval = 1;
-+	c->attrs.aggr_interval = 10;
-+
-+	for (i = 0; i < ARRAY_SIZE(input_expects); i += 5) {
-+		c->passed_sample_intervals = input_expects[i];
-+		c->next_aggregation_sis = input_expects[i + 1];
-+		r->nr_accesses = input_expects[i + 2];
-+		r->last_nr_accesses = input_expects[i + 3];
-+
-+		KUNIT_EXPECT_EQ(test, (unsigned int)input_expects[i + 4],
-+				damon_nr_accesses_mvsum(r, c));
-+	}
-+
-+	damon_free_region(r);
-+	damon_destroy_ctx(c);
-+}
-+
- static void damos_test_new_filter(struct kunit *test)
- {
- 	struct damos_filter *filter;
-@@ -1569,6 +1617,7 @@ static struct kunit_case damon_test_case
- 	KUNIT_CASE(damon_test_update_monitoring_result),
- 	KUNIT_CASE(damon_test_set_attrs),
- 	KUNIT_CASE(damon_test_mvsum),
-+	KUNIT_CASE(damon_test_nr_accesses_mvsum),
- 	KUNIT_CASE(damos_test_new_filter),
- 	KUNIT_CASE(damos_test_commit_quota_goal),
- 	KUNIT_CASE(damos_test_commit_quota_goals),
+ 		spin_lock(&resv->lock);
+ 
+-		list_splice(&allocated_regions, &resv->region_cache);
++		list_splice_init(&allocated_regions, &resv->region_cache);
+ 		resv->region_cache_count += to_allocate;
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from husong@kylinos.cn are
+Patches currently in -mm which might be from caixiangfeng@bytedance.com are
 
-mm-damon-tests-core-kunit-test-damon_nr_accesses_mvsum.patch
+mm-hugetlb-fix-list-corruption-in-allocate_file_region_entries.patch
 
