@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5BD30309EEC;
-	Mon, 13 Jul 2026 23:02:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 113D33368B1
+	for <mm-commits@vger.kernel.org>; Mon, 13 Jul 2026 23:04:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783983733; cv=none; b=uc46csup8Q9gXURlRC+g+rtq+IxOW9AJvWwAp1d/NS3goXALQ5G/N85M3O2HbNZYRCHCd2lB4uXpiXWnJXy+Y7tQPC1gLunDx1GHj7B7XOwAnwuZ5ZP/4iyKnJJ3UurnpeSUFlkOTyuoFXmf5yryKhf9UoLPI1RC9+7ayIPKaug=
+	t=1783983873; cv=none; b=OcYk7nGg5g3lfwzHCq76tNS7146k7lXHlsT949MkgRIurct4a/ZKW/xvp0ET10ZFNeYGojCKFWcII2flqZd127ymmIUXQfZCEWK3A5Sn9BQPatnXiBuwS6CJByV6h467FoYE0ch8e9oNljKo7zwDMylbJWCoMpYo03mxJrYa9UY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783983733; c=relaxed/simple;
-	bh=Xwb4JUOFvErGMW5pK7HquCWrZTDek9wKddSCHRmb8BA=;
-	h=Date:To:From:Subject:Message-Id; b=jnFE6/or0nMVQIEeHwJ68tUesyueddPJoIz3eoaOV0oiwaPK8rDIjn8FFyKPCIZtcu/Gwsrk5+kc38lwmb4r/1Jw84OfwAJwHtH1tobj+2MjXE3k7iWRjuiqkVynXtLqyLAOTw1Y5B3hd0tF2TAPQzykI81MswUU3pmLQcXA7Ig=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KHXguKsA; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783983873; c=relaxed/simple;
+	bh=bQFb/9gKpFgRzgpxzDvaj2sAtA2pp2EMz74vAjSfeew=;
+	h=Date:To:From:Subject:Message-Id; b=WNguicT3BSf2eUjsaKWN5wg+qCB/VJK9QAUdgq6wnqqO+p6N/+8/rqRlb5JvrckXtsbo8w+3WEEzOd85zM3w1LKigD7r6cUni9qk0fxZu1bQ4nMGVnH0YNt8Bn6ya/SH43o3f4TKQMBNPu0V304HuJsHh6AEMcPC8ROVVnTEKjM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YcnceVGA; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KHXguKsA"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 031FC1F000E9;
-	Mon, 13 Jul 2026 23:02:11 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YcnceVGA"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 863E51F000E9;
+	Mon, 13 Jul 2026 23:04:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783983732;
-	bh=rp6xdnUpg579Gpc0SsT7O6Ssf2d36mK3EDG9HzUOYf8=;
+	d=linux-foundation.org; s=korg; t=1783983871;
+	bh=adZHixWd7uGKfuPpSsREHruXRftzWhHHmb7YNfhaNso=;
 	h=Date:To:From:Subject;
-	b=KHXguKsALFT58oxDcJcIvN01J3jtBnIld7J/y36HFAwlQ8ogwNpqt5+GRogyvrhUz
-	 7oAig6WbxS3rvEv6nJDtxGw9anbAqhTql8YwfJNPnM1TnExDgWA9jyAJCDzvloAvfD
-	 n/yqBreIzDxeDbfLtQTQptzpmbFZa1mFJqEFGgtE=
-Date: Mon, 13 Jul 2026 16:02:11 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,shuah@kernel.org,richard.weiyang@linux.alibaba.com,osalvador@suse.de,muchun.song@linux.dev,david@kernel.org,baoquan.he@linux.dev,caixiangfeng@bytedance.com,akpm@linux-foundation.org
+	b=YcnceVGAIUp2TUF4Ly/m0MzNMPmgEMzILOeSREF3bZFgTFg7iMzLzH6isRhDkQrax
+	 /InYVYK+scWRRlDwlW5YZkOPA5NMASNDl7664fE4PEBP5znu9Lu7U4cVv2rmEOLK2Y
+	 fkN1kT07TYM3qEypw3/P2F7tKAlm5yIpPsbSufEQ=
+Date: Mon, 13 Jul 2026 16:04:31 -0700
+To: mm-commits@vger.kernel.org,shuah@kernel.org,richard.weiyang@linux.alibaba.com,osalvador@suse.de,muchun.song@linux.dev,david@kernel.org,baoquan.he@linux.dev,caixiangfeng@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb-fix-list-corruption-in-allocate_file_region_entries.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260713230212.031FC1F000E9@smtp.kernel.org>
+Subject: + selftests-mm-add-hugetlb_region_cache_race-regression-test.patch added to mm-new branch
+Message-Id: <20260713230431.863E51F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,26 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/hugetlb: fix list corruption in allocate_file_region_entries()
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-hugetlb-fix-list-corruption-in-allocate_file_region_entries.patch
+     Subject: selftests/mm: add hugetlb_region_cache_race regression test
+has been added to the -mm mm-new branch.  Its filename is
+     selftests-mm-add-hugetlb_region_cache_race-regression-test.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-fix-list-corruption-in-allocate_file_region_entries.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-add-hugetlb_region_cache_race-regression-test.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -59,47 +70,33 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Xiangfeng Cai" <caixiangfeng@bytedance.com>
-Subject: mm/hugetlb: fix list corruption in allocate_file_region_entries()
-Date: Tue, 14 Jul 2026 01:14:55 +0800
+Subject: selftests/mm: add hugetlb_region_cache_race regression test
+Date: Tue, 14 Jul 2026 01:14:56 +0800
 
-allocate_file_region_entries() tops up resv->region_cache with freshly
-allocated file_region descriptors.  The allocation uses GFP_KERNEL, so
-resv->lock is dropped around it: the new entries are gathered on a
-stack-local list head, allocated_regions, and spliced into
-resv->region_cache once the lock is re-acquired.
+Add a regression test for the list corruption in
+allocate_file_region_entries() fixed by the previous patch ("mm/hugetlb:
+fix list corruption in allocate_file_region_entries()").
 
-The splice used list_splice(), which moves the entries but does not
-re-initialize the source head, so allocated_regions is left pointing at an
-entry that now lives on resv->region_cache.  The top-up runs in a while
-loop that re-checks the cache deficit after re-acquiring the lock.  For a
-shared mapping the resv_map is shared by every mapper of the hugetlbfs
-inode, so a concurrent region_chg()/region_add()/region_del() on the same
-resv_map can consume cache entries during the unlocked window and force a
-second iteration.  That iteration calls list_add() on the stale head and
-corrupts the list; with CONFIG_DEBUG_LIST the __list_add_valid() check
-trips:
+Triggering the bug requires a concurrent reservation operation to drain
+resv->region_cache while allocate_file_region_entries() has dropped
+resv->lock for its GFP_KERNEL allocation, forcing its retry loop to run
+again.  As the mmap() and fallocate(PUNCH_HOLE) paths serialise on
+inode_lock, the cache has to be drained by faults from a separate address
+space.  The test forks several processes sharing one hugetlb inode via
+memfd_create(MFD_HUGETLB); each mmap()s and faults ranges and punches
+holes to keep the shared resv_map fragmented.
 
-  list_add corruption. next->prev should be prev (ffffc900011ff7f8),
-  but was ffff88814c281460. (next=ffff88814c545640).
-  kernel BUG at lib/list_debug.c:31!
-   allocate_file_region_entries+0x191/0x420
-   region_chg+0x267/0x300
-   hugetlb_reserve_pages+0x387/0xc80
-   hugetlbfs_file_mmap+0x2ce/0x3f0
-   mmap_region+0x1348/0x1a80
-   do_mmap+0x85e/0xb90
-   vm_mmap_pgoff+0x18c/0x330
-   ksys_mmap_pgoff+0x2a1/0x3e0
-   do_syscall_64+0xd7/0x420
+Two modes are provided:
 
-Without CONFIG_DEBUG_LIST the bad list_add() silently links a kernel-stack
-address into resv->region_cache, leading to later use-after-free.
+ - default: a safe single-process functional check that exercises the buggy
+   line without forcing a second loop iteration; safe on any kernel.
 
-Use list_splice_init() so the source head is re-initialized empty after
-each splice, making the retry loop safe.
+ - --trigger: the concurrent reproducer, which panics a vulnerable
+   CONFIG_DEBUG_LIST=y kernel and is therefore opt-in.  It faults pages in,
+   so it needs as many free huge pages as the file is large.
 
-Link: https://lore.kernel.org/20260713171456.300518-2-caixiangfeng@bytedance.com
-Fixes: d3ec7b6e09e5 ("mm/hugetlb: use list_splice to merge two list at once")
+Assisted-by: Claude:claude-opus-4-8
+Link: https://lore.kernel.org/20260713171456.300518-3-caixiangfeng@bytedance.com
 Signed-off-by: Xiangfeng Cai <caixiangfeng@bytedance.com>
 Cc: Baoquan He <baoquan.he@linux.dev>
 Cc: David Hildenbrand <david@kernel.org>
@@ -107,27 +104,369 @@ Cc: Muchun Song <muchun.song@linux.dev>
 Cc: Oscar Salvador <osalvador@suse.de>
 Cc: Shuah Khan <shuah@kernel.org>
 Cc: Wei Yang <richard.weiyang@linux.alibaba.com>
-Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ tools/testing/selftests/mm/.gitignore                  |    1 
+ tools/testing/selftests/mm/Makefile                    |    1 
+ tools/testing/selftests/mm/hugetlb_region_cache_race.c |  315 ++++++++++
+ tools/testing/selftests/mm/run_vmtests.sh              |    1 
+ 4 files changed, 318 insertions(+)
 
---- a/mm/hugetlb.c~mm-hugetlb-fix-list-corruption-in-allocate_file_region_entries
-+++ a/mm/hugetlb.c
-@@ -693,7 +693,7 @@ static int allocate_file_region_entries(
+--- a/tools/testing/selftests/mm/.gitignore~selftests-mm-add-hugetlb_region_cache_race-regression-test
++++ a/tools/testing/selftests/mm/.gitignore
+@@ -59,6 +59,7 @@ hugetlb_madv_vs_map
+ mseal_test
+ droppable
+ hugetlb_dio
++hugetlb_region_cache_race
+ pkey_sighandler_tests_32
+ pkey_sighandler_tests_64
+ guard-regions
+diff --git a/tools/testing/selftests/mm/hugetlb_region_cache_race.c a/tools/testing/selftests/mm/hugetlb_region_cache_race.c
+new file mode 100644
+--- /dev/null
++++ a/tools/testing/selftests/mm/hugetlb_region_cache_race.c
+@@ -0,0 +1,315 @@
++// SPDX-License-Identifier: GPL-2.0
++/*
++ * Regression test for list corruption in
++ * mm/hugetlb.c:allocate_file_region_entries().
++ *
++ * Fork processes sharing a hugetlb inode via `memfd_create(MFD_HUGETLB)`
++ * and have them fault ranges and punch holes to fragment the shared
++ * `resv_map` while draining `resv->region_cache` from a separate address
++ * space.
++ */
++#define _GNU_SOURCE
++#include <errno.h>
++#include <fcntl.h>
++#include <setjmp.h>
++#include <signal.h>
++#include <stdbool.h>
++#include <stdint.h>
++#include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
++#include <time.h>
++#include <unistd.h>
++#include <sys/mman.h>
++#include <sys/syscall.h>
++#include <sys/wait.h>
++
++#include <linux/falloc.h>
++#include <linux/memfd.h>
++
++#include "../kselftest.h"
++#include "hugepage_settings.h"
++
++/* Tunables (overridable via argv). */
++static unsigned long file_pages = 64;	/* huge pages backing the shared file */
++static unsigned int nr_procs;		/* 0 => auto (2 * nr online cpus) */
++static unsigned int duration_sec = 5;	/* --trigger run time */
++
++static unsigned long huge_page_size;	/* bytes */
++static int memfd = -1;
++static volatile int *stop;		/* shared across forked children */
++
++/*
++ * Per-process SIGBUS escape: a fault can fail (pool exhausted) and raise
++ * SIGBUS; jump back and abandon the rest of the current range instead of
++ * dying.  Each child is single-threaded, so a file-scope buffer is fine.
++ */
++static sigjmp_buf sigbus_env;
++
++static void sigbus_handler(int sig)
++{
++	siglongjmp(sigbus_env, 1);
++}
++
++static void install_sigbus_handler(void)
++{
++	struct sigaction sa = {
++		.sa_handler = sigbus_handler,
++	};
++
++	sigemptyset(&sa.sa_mask);
++	sigaction(SIGBUS, &sa, NULL);
++}
++
++static long sys_memfd_create(const char *name, unsigned int flags)
++{
++	return syscall(__NR_memfd_create, name, flags);
++}
++
++/*
++ * Map [start, start+len) of the shared file and fault every page in.
++ *
++ * The mmap() drives mmap-time hugetlb_reserve_pages -> region_chg (the
++ * wide-window victim when the range is fragmented) + region_add.  The
++ * subsequent stores fault pages in *without* inode_lock, driving the
++ * lock-free region_add/region_chg that drains resv->region_cache -- the
++ * concurrency the buggy loop needs from *other* processes.
++ */
++static void map_and_fault_range(unsigned long start, unsigned long len)
++{
++	unsigned long i;
++	char *addr;
++
++	if (!len)
++		return;
++	addr = mmap(NULL, len * huge_page_size, PROT_READ | PROT_WRITE,
++		    MAP_SHARED, memfd, start * huge_page_size);
++	if (addr == MAP_FAILED)
++		return;		/* ENOMEM under pool pressure is fine */
++
++	for (i = 0; i < len; i++) {
++		if (sigsetjmp(sigbus_env, 1) == 0)
++			*(volatile char *)(addr + i * huge_page_size) = (char)i;
++		else
++			break;	/* SIGBUS: pool exhausted, stop faulting */
++	}
++	munmap(addr, len * huge_page_size);
++}
++
++/*
++ * Remove [start, start+len) huge pages from the shared file, driving
++ * hugetlbfs_punch_hole -> remove_inode_hugepages -> region_del for the pages
++ * that were faulted in above.  This frees pages back to the pool (bounding
++ * residency) and re-fragments the resv_map so later region_chg calls keep
++ * needing multiple entries.
++ */
++static void punch_range(unsigned long start, unsigned long len)
++{
++	if (!len)
++		return;
++	fallocate(memfd, FALLOC_FL_PUNCH_HOLE | FALLOC_FL_KEEP_SIZE,
++		  start * huge_page_size, len * huge_page_size);
++}
++
++/*
++ * One forked worker.  Each worker is simultaneously a victim (its wide
++ * mmap-time region_chg) and, for the other workers, a lock-free cache
++ * drainer (its faults) -- exactly the shared-inode map+fault churn seen in
++ * the original crash (QEMU prealloc + SPDK/Bytelight on one guest-RAM file).
++ */
++static void child_worker(unsigned int id)
++{
++	unsigned int seed = id * 2654435761u ^ (unsigned int)time(NULL) ^
++			    ((unsigned int)getpid() << 1);
++
++	install_sigbus_handler();
++
++	while (!*stop) {
++		unsigned long start = rand_r(&seed) % file_pages;
++		unsigned long len = 1 + rand_r(&seed) % (file_pages - start);
++
++		/*
++		 * Bias toward map+fault (victims and drainers); punch a
++		 * quarter of the time to keep the map fragmented and to cap
++		 * how many pages stay resident.
++		 */
++		if (rand_r(&seed) % 4)
++			map_and_fault_range(start, len);
++		else
++			punch_range(start, len);
++	}
++}
++
++/*
++ * Safe, single-process functional check.  It fragments the shared resv_map
++ * (reservations for a shared mapping persist on the inode after munmap) so
++ * that a subsequent whole-file mmap makes region_chg compute
++ * regions_needed > 1, forcing allocate_file_region_entries to allocate and
++ * splice several entries.  This exercises the buggy line, but without
++ * concurrency it always makes exactly one loop iteration, so it cannot trip
++ * the race and is safe on any kernel.  Returns 0 on success.
++ */
++static int functional_check(void)
++{
++	unsigned long i;
++	void *addr;
++
++	/* Punch everything so we start from an empty resv_map. */
++	punch_range(0, file_pages);
++
++	/* Reserve every other huge page -> ~file_pages/2 disjoint regions. */
++	for (i = 0; i < file_pages; i += 2)
++		map_and_fault_range(i, 1);
++
++	/*
++	 * One mapping spanning the whole file must fill all the holes in a
++	 * single region_chg -> a multi-entry region_cache refill.
++	 */
++	addr = mmap(NULL, file_pages * huge_page_size, PROT_READ | PROT_WRITE,
++		    MAP_SHARED, memfd, 0);
++	if (addr == MAP_FAILED) {
++		ksft_print_msg("whole-file mmap failed: %s\n", strerror(errno));
++		return -1;
++	}
++	munmap(addr, file_pages * huge_page_size);
++	punch_range(0, file_pages);
++	return 0;
++}
++
++static int run_trigger(void)
++{
++	pid_t *pids;
++	unsigned int i, started = 0;
++
++	stop = mmap(NULL, sizeof(*stop), PROT_READ | PROT_WRITE,
++		    MAP_SHARED | MAP_ANONYMOUS, -1, 0);
++	if (stop == MAP_FAILED)
++		ksft_exit_fail_msg("mmap(stop flag): %s\n", strerror(errno));
++	*stop = 0;
++
++	pids = calloc(nr_procs, sizeof(*pids));
++	if (!pids)
++		ksft_exit_fail_msg("calloc: %s\n", strerror(errno));
++
++	ksft_print_msg("stressing %u processes for %us on %lu huge pages (%lu MiB)\n",
++		       nr_procs, duration_sec, file_pages,
++		       (file_pages * huge_page_size) >> 20);
++	ksft_print_msg("WARNING: a vulnerable kernel will panic here\n");
++
++	for (i = 0; i < nr_procs; i++) {
++		pid_t pid = fork();
++
++		if (pid < 0) {
++			ksft_print_msg("fork: %s\n", strerror(errno));
++			break;
++		}
++		if (pid == 0) {
++			free(pids);
++			child_worker(i);
++			_exit(0);
++		}
++		pids[started++] = pid;
++	}
++
++	if (!started) {
++		free(pids);
++		munmap((void *)stop, sizeof(*stop));
++		ksft_exit_fail_msg("no worker processes started\n");
++	}
++
++	sleep(duration_sec);
++	*stop = 1;
++
++	for (i = 0; i < started; i++)
++		waitpid(pids[i], NULL, 0);
++	free(pids);
++	munmap((void *)stop, sizeof(*stop));
++	return 0;
++}
++
++static void usage(const char *prog)
++{
++	fprintf(stderr,
++		"usage: %s [--trigger] [-s huge_pages] [-t procs] [-d seconds]\n"
++		"  (default) run a safe single-process functional check\n"
++		"  --trigger fork+fault concurrent reproducer (CAN PANIC A BUGGY HOST)\n"
++		"  -s  huge pages backing the shared file (default %lu)\n"
++		"  -t  worker processes for --trigger (default 2 * nr_cpus)\n"
++		"  -d  --trigger run time in seconds (default %u)\n",
++		prog, file_pages, duration_sec);
++}
++
++int main(int argc, char *argv[])
++{
++	bool trigger = false;
++	int i, ret;
++
++	for (i = 1; i < argc; i++) {
++		if (!strcmp(argv[i], "--trigger")) {
++			trigger = true;
++		} else if (!strcmp(argv[i], "-s") && i + 1 < argc) {
++			file_pages = strtoul(argv[++i], NULL, 0);
++		} else if (!strcmp(argv[i], "-t") && i + 1 < argc) {
++			nr_procs = strtoul(argv[++i], NULL, 0);
++		} else if (!strcmp(argv[i], "-d") && i + 1 < argc) {
++			duration_sec = strtoul(argv[++i], NULL, 0);
++		} else {
++			usage(argv[0]);
++			return KSFT_FAIL;
++		}
++	}
++
++	ksft_print_header();
++	ksft_set_plan(1);
++
++	if (file_pages < 4)
++		file_pages = 4;
++	if (!nr_procs) {
++		long cpus = sysconf(_SC_NPROCESSORS_ONLN);
++
++		nr_procs = cpus > 0 ? (unsigned int)cpus * 2 : 4;
++	}
++	if (nr_procs < 2)
++		nr_procs = 2;
++
++	huge_page_size = default_huge_page_size();
++	if (!huge_page_size)
++		ksft_exit_skip("no hugetlbfs / huge page size available\n");
++
++	/*
++	 * Both modes fault pages in (functional_check touches every page it
++	 * maps, and --trigger's workers fault the ranges they map), so the
++	 * whole file may become resident; require that many *free* huge pages,
++	 * not just reservations.
++	 */
++	if (hugetlb_free_default_pages() < file_pages)
++		ksft_exit_skip("need %lu free huge pages, have %lu (set nr_hugepages)\n",
++			       file_pages, hugetlb_free_default_pages());
++
++	memfd = sys_memfd_create("hugetlb_region_cache_race",
++				 MFD_HUGETLB |
++				 (__builtin_ctzl(huge_page_size) << MFD_HUGE_SHIFT));
++	if (memfd < 0)
++		ksft_exit_skip("memfd_create(MFD_HUGETLB): %s\n",
++			       strerror(errno));
++	if (ftruncate(memfd, file_pages * huge_page_size)) {
++		close(memfd);
++		ksft_exit_fail_msg("ftruncate: %s\n", strerror(errno));
++	}
++
++	if (trigger)
++		ret = run_trigger();
++	else
++		ret = functional_check();
++
++	close(memfd);
++
++	if (ret)
++		ksft_test_result_fail("hugetlb region_cache race check\n");
++	else if (trigger)
++		ksft_test_result_pass("survived concurrent region_cache churn\n");
++	else
++		ksft_test_result_pass("multi-entry region_cache refill works\n");
++
++	ksft_finished();
++}
+--- a/tools/testing/selftests/mm/Makefile~selftests-mm-add-hugetlb_region_cache_race-regression-test
++++ a/tools/testing/selftests/mm/Makefile
+@@ -64,6 +64,7 @@ TEST_GEN_FILES += hugetlb-madvise
+ TEST_GEN_FILES += hugetlb-mmap
+ TEST_GEN_FILES += hugetlb-mremap
+ TEST_GEN_FILES += hugetlb-read-hwpoison
++TEST_GEN_FILES += hugetlb_region_cache_race
+ TEST_GEN_FILES += hugetlb-shm
+ TEST_GEN_FILES += hugetlb-soft-offline
+ TEST_GEN_FILES += khugepaged
+--- a/tools/testing/selftests/mm/run_vmtests.sh~selftests-mm-add-hugetlb_region_cache_race-regression-test
++++ a/tools/testing/selftests/mm/run_vmtests.sh
+@@ -266,6 +266,7 @@ CATEGORY="hugetlb" run_test ./hugetlb-ma
+ CATEGORY="hugetlb" run_test ./hugetlb_dio
+ CATEGORY="hugetlb" run_test ./hugetlb_fault_after_madv
+ CATEGORY="hugetlb" run_test ./hugetlb_madv_vs_map
++CATEGORY="hugetlb" run_test ./hugetlb_region_cache_race
  
- 		spin_lock(&resv->lock);
- 
--		list_splice(&allocated_regions, &resv->region_cache);
-+		list_splice_init(&allocated_regions, &resv->region_cache);
- 		resv->region_cache_count += to_allocate;
- 	}
- 
+ if test_selected "hugetlb"; then
+ 	echo "NOTE: These hugetlb tests provide minimal coverage.  Use"	  | tap_prefix
 _
 
 Patches currently in -mm which might be from caixiangfeng@bytedance.com are
 
 mm-hugetlb-fix-list-corruption-in-allocate_file_region_entries.patch
+selftests-mm-add-hugetlb_region_cache_race-regression-test.patch
 
