@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D8278355819
-	for <mm-commits@vger.kernel.org>; Mon, 13 Jul 2026 19:26:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BBE5B356757
+	for <mm-commits@vger.kernel.org>; Mon, 13 Jul 2026 19:26:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783970767; cv=none; b=GaLEM91xVemzsGJbhzYzWnfizlaCQT41kd1T6XsenRx5PwPjRUUWTM8/x62rtM0BzHMQdWcX3sDl+va2wiBh2M6328McLr0DtzEvjroy3ClJOOdyLxLKlsGft0TAUPvlY2EXqUjZ8eRlzRRUTWKBogX7RgRXnhNR68H4mqmR2Pw=
+	t=1783970769; cv=none; b=k8gfRi9aZm6Yu3M4eVOPuADqPPecUZAe0/IPGJfxM36IuUxCPVxztmORcxy7gjc/lMeRYY8UxNcQCZjmxhIeo68l6t98sz56umNrR/9viql3owNFEckBgjbM7sTAPvvvgq5khJ3VxgGrSC02l4HwPM9jaU1RljIY+vcUdBs3eN0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783970767; c=relaxed/simple;
-	bh=JgGizYJg1A/J3wH8n1WjXhVjBW/XTc4Y5/+14+DMCJI=;
-	h=Date:To:From:Subject:Message-Id; b=MNuNBJRoP3W25/LUxMnIbu1In85/cN4+OyjKwuvGf6k8EH+4UKD6Drz5MH9CvOuE3hA/WbcY06/8N3ua5c7O4HGsmcw9diW6s7uZ6fTjxmAhwDaIWxKZjNn6XqtZf7B9RA7CG8jSsDMW0XaJ9trFJ+3le3IseE0m+MowF2JnQ94=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qmvPk1pY; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783970769; c=relaxed/simple;
+	bh=nj7bWVOGqr7v2/nIp8XhjAfYieg0Q3u34E7pTAiw0hw=;
+	h=Date:To:From:Subject:Message-Id; b=A0bFA2u3vcCZAmgTrxEwN2708z+8mXWUjsEPC6M2MuJ56jSe5x1BARtQ3xJcdTCKaJD2S/lW4XjwYiHbEsxjZpmXJIzHtKzyI1Ca/u/FKkS6cNYclgTiSCB7bCOUJAeY0Uam9QuhJMVzxTn1m0bvua/g7A6OPW2cOz+tOyOk9vI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MsuI6W4X; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qmvPk1pY"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6373C1F000E9;
-	Mon, 13 Jul 2026 19:26:05 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MsuI6W4X"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8E8641F000E9;
+	Mon, 13 Jul 2026 19:26:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783970765;
-	bh=C6428fyLQK40Ce9mcPADEIynvybcAJzQREzia0DDLfI=;
+	d=linux-foundation.org; s=korg; t=1783970767;
+	bh=irYHJvRtRkb/ON1uptSCXPJOu7Blxnl5VMehmhg91F8=;
 	h=Date:To:From:Subject;
-	b=qmvPk1pYHetSV3KvryvCstzUmg1ffZ9Ri5V8Wl3ljByKwRD2viQkmjGP7VwCGRX5J
-	 GfHmTNcNEaA4V9yq9CMSgXnW8AoMrVTtlR8u+dmvNuf/Vwncb0UkZqp57WD1ItFiNj
-	 7VXVAMpwaD7GItM480muw/G8zuQ8LXp2/NGo+1YQ=
-Date: Mon, 13 Jul 2026 12:26:04 -0700
+	b=MsuI6W4XEIwtiAlo2xpEDEGqjE1qcRTqW9p+ymWrb0zAAvcsVOSP5RqPjjoKXm2bj
+	 1zqS8RZ4tLDs/Tct82NAMuWidmT/pQBCtQpRy3gJpbPm7E5bPXwgKWH1EM0hAzHWM8
+	 pMpMlYzIcSgtPe+TyAAbMTShRnBq6+2VqkELhG4A=
+Date: Mon, 13 Jul 2026 12:26:07 -0700
 To: mm-commits@vger.kernel.org,vbabka@kernel.org,ryan.roberts@arm.com,riel@surriel.com,osalvador@suse.de,muchun.song@linux.dev,ljs@kernel.org,liam@infradead.org,lance.yang@linux.dev,jannh@google.com,harry@kernel.org,david@kernel.org,anshuman.khandual@arm.com,dev.jain@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-rmap-refactor-anon-folio-unmap-in-try_to_unmap_one.patch added to mm-new branch
-Message-Id: <20260713192605.6373C1F000E9@smtp.kernel.org>
+Subject: + mm-rmap-add-anon-folio-unmap-dispatcher.patch added to mm-new branch
+Message-Id: <20260713192607.8E8641F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/rmap: refactor anon folio unmap in try_to_unmap_one
+     Subject: mm/rmap: add anon folio unmap dispatcher
 has been added to the -mm mm-new branch.  Its filename is
-     mm-rmap-refactor-anon-folio-unmap-in-try_to_unmap_one.patch
+     mm-rmap-add-anon-folio-unmap-dispatcher.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-rmap-refactor-anon-folio-unmap-in-try_to_unmap_one.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-rmap-add-anon-folio-unmap-dispatcher.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,19 +70,23 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Dev Jain <dev.jain@arm.com>
-Subject: mm/rmap: refactor anon folio unmap in try_to_unmap_one
-Date: Mon, 13 Jul 2026 05:00:47 +0000
+Subject: mm/rmap: add anon folio unmap dispatcher
+Date: Mon, 13 Jul 2026 05:00:48 +0000
 
-Refactor anonymous swapbacked folio unmap to ttu_anon_swapbacked_folio(). 
-While at it, rename the remaining subpage variables to page; folios have
-pages, not subpages.
+Add ttu_anon_folio() as the common entry point for anonymous folio
+unmapping.  It dispatches to the lazyfree or swapbacked helper as
+appropriate.
+
+Keep restoration of cleared PTEs in the caller, where the PTEs were
+removed.
 
 No functional change intended.
 
-Link: https://lore.kernel.org/20260713050050.1017741-5-dev.jain@arm.com
+Link: https://lore.kernel.org/20260713050050.1017741-6-dev.jain@arm.com
 Signed-off-by: Dev Jain <dev.jain@arm.com>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
 Cc: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: David Hildenbrand (Arm) <david@kernel.org>
+Cc: Dev Jain <dev.jain@arm.com>
 Cc: Harry Yoo <harry@kernel.org>
 Cc: Jann Horn <jannh@google.com>
 Cc: Lance Yang <lance.yang@linux.dev>
@@ -96,179 +100,73 @@ Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/rmap.c |  115 ++++++++++++++++++++++++++++++----------------------
- 1 file changed, 68 insertions(+), 47 deletions(-)
+ mm/rmap.c |   45 +++++++++++++++++++++++----------------------
+ 1 file changed, 23 insertions(+), 22 deletions(-)
 
---- a/mm/rmap.c~mm-rmap-refactor-anon-folio-unmap-in-try_to_unmap_one
+--- a/mm/rmap.c~mm-rmap-add-anon-folio-unmap-dispatcher
 +++ a/mm/rmap.c
-@@ -2112,6 +2112,66 @@ static bool ttu_anon_lazyfree_folio(stru
+@@ -2172,6 +2172,26 @@ static bool ttu_anon_swapbacked_folio(st
  	return true;
  }
  
-+static pte_t swp_pte_prepare(swp_entry_t entry, pte_t old_pte,
-+		bool anon_exclusive)
++static bool ttu_anon_folio(struct vm_area_struct *vma, struct folio *folio,
++		struct page *page, unsigned long address, pte_t *ptep,
++		pte_t pteval, unsigned long nr_pages)
 +{
-+	pte_t swp_pte = swp_entry_to_pte(entry);
-+
-+	if (anon_exclusive)
-+		swp_pte = pte_swp_mkexclusive(swp_pte);
-+
-+	if (likely(pte_present(old_pte))) {
-+		if (pte_soft_dirty(old_pte))
-+			swp_pte = pte_swp_mksoft_dirty(swp_pte);
-+		if (pte_uffd(old_pte))
-+			swp_pte = pte_swp_mkuffd(swp_pte);
-+	} else {
-+		/* Device-exclusive entry */
-+		if (pte_swp_soft_dirty(old_pte))
-+			swp_pte = pte_swp_mksoft_dirty(swp_pte);
-+		if (pte_swp_uffd(old_pte))
-+			swp_pte = pte_swp_mkuffd(swp_pte);
-+	}
-+
-+	return swp_pte;
-+}
-+
-+static bool ttu_anon_swapbacked_folio(struct vm_area_struct *vma,
-+		struct folio *folio, struct page *page, unsigned long address,
-+		pte_t *ptep, pte_t pteval)
-+{
-+	const bool anon_exclusive = folio_test_anon(folio) &&
-+				    PageAnonExclusive(page);
-+	swp_entry_t entry = page_swap_entry(page);
-+	struct mm_struct *mm = vma->vm_mm;
-+
-+	if (folio_dup_swap(folio, page) < 0)
-+		return false;
-+
 +	/*
-+	 * arch_unmap_one() is expected to be a NOP on
-+	 * architectures where we could have PFN swap PTEs,
-+	 * so we'll not check/care.
++	 * Store the swap location in the pte.
++	 * See handle_pte_fault() ...
 +	 */
-+	if (arch_unmap_one(mm, vma, address, pteval) < 0) {
-+		folio_put_swap(folio, page);
++	if (WARN_ON_ONCE(folio_test_swapbacked(folio) !=
++			 folio_test_swapcache(folio)))
 +		return false;
-+	}
 +
-+	/* See folio_try_share_anon_rmap(): clear PTE first. */
-+	if (anon_exclusive && folio_try_share_anon_rmap_pte(folio, page)) {
-+		folio_put_swap(folio, page);
-+		return false;
-+	}
++	if (!folio_test_swapbacked(folio))
++		return ttu_anon_lazyfree_folio(vma, folio, nr_pages);
 +
-+	mm_prepare_for_swap_entries(mm);
-+	dec_mm_counter(mm, MM_ANONPAGES);
-+	inc_mm_counter(mm, MM_SWAPENTS);
-+	set_pte_at(mm, address, ptep,
-+		   swp_pte_prepare(entry, pteval, anon_exclusive));
-+	return true;
++	/* nr_pages > 1 not supported yet */
++	return ttu_anon_swapbacked_folio(vma, folio, page, address, ptep,
++					 pteval);
 +}
 +
  /*
   * @arg: enum ttu_flags will be passed to this argument
   */
-@@ -2120,9 +2180,9 @@ static bool try_to_unmap_one(struct foli
- {
- 	struct mm_struct *mm = vma->vm_mm;
- 	DEFINE_FOLIO_VMA_WALK(pvmw, folio, vma, address, 0);
--	bool anon_exclusive, ret = true;
-+	bool ret = true;
- 	pte_t pteval;
--	struct page *subpage;
-+	struct page *page;
- 	struct mmu_notifier_range range;
- 	enum ttu_flags flags = (enum ttu_flags)(long)arg;
- 	unsigned long nr_pages = 1, end_addr;
-@@ -2233,9 +2293,7 @@ static bool try_to_unmap_one(struct foli
- 			pfn = softleaf_to_pfn(entry);
- 		}
- 
--		subpage = folio_page(folio, pfn - folio_pfn(folio));
--		anon_exclusive = folio_test_anon(folio) &&
--				 PageAnonExclusive(subpage);
-+		page = folio_page(folio, pfn - folio_pfn(folio));
- 
- 		if (likely(pte_present(pteval))) {
- 			nr_pages = folio_unmap_pte_batch(folio, &pvmw, flags, pteval);
-@@ -2274,7 +2332,7 @@ static bool try_to_unmap_one(struct foli
- 
- 		/* With TTU_HWPOISON, we only expect small folios here. */
- 		if (folio_test_hwpoison(folio) && (flags & TTU_HWPOISON)) {
--			pteval = swp_entry_to_pte(make_hwpoison_entry(subpage));
-+			pteval = swp_entry_to_pte(make_hwpoison_entry(page));
- 			dec_mm_counter(mm, mm_counter(folio));
- 			set_pte_at(mm, address, pvmw.pte, pteval);
- 		} else if (likely(pte_present(pteval)) && pte_unused(pteval) &&
-@@ -2291,8 +2349,6 @@ static bool try_to_unmap_one(struct foli
+@@ -2349,31 +2369,12 @@ static bool try_to_unmap_one(struct foli
  			 */
  			dec_mm_counter(mm, mm_counter(folio));
  		} else if (folio_test_anon(folio)) {
--			swp_entry_t entry = page_swap_entry(subpage);
--			pte_t swp_pte;
- 			/*
- 			 * Store the swap location in the pte.
- 			 * See handle_pte_fault() ...
-@@ -2313,47 +2369,12 @@ static bool try_to_unmap_one(struct foli
- 				goto finish_unmap;
- 			}
- 
--			if (folio_dup_swap(folio, subpage) < 0) {
-+			if (!ttu_anon_swapbacked_folio(vma, folio, page, address,
-+						pvmw.pte, pteval)) {
- 				set_pte_at(mm, address, pvmw.pte, pteval);
+-			/*
+-			 * Store the swap location in the pte.
+-			 * See handle_pte_fault() ...
+-			 */
+-			if (unlikely(folio_test_swapbacked(folio) !=
+-					folio_test_swapcache(folio))) {
+-				WARN_ON_ONCE(1);
++			if (!ttu_anon_folio(vma, folio, page, address,
++					    pvmw.pte, pteval, nr_pages)) {
++				set_ptes(mm, address, pvmw.pte, pteval, nr_pages);
  				goto walk_abort;
  			}
+ 
+-			/* MADV_FREE page check */
+-			if (!folio_test_swapbacked(folio)) {
+-				if (!ttu_anon_lazyfree_folio(vma, folio,
+-							     nr_pages)) {
+-					set_ptes(mm, address, pvmw.pte, pteval, nr_pages);
+-					goto walk_abort;
+-				}
+-				goto finish_unmap;
+-			}
 -
--			/*
--			 * arch_unmap_one() is expected to be a NOP on
--			 * architectures where we could have PFN swap PTEs,
--			 * so we'll not check/care.
--			 */
--			if (arch_unmap_one(mm, vma, address, pteval) < 0) {
--				folio_put_swap(folio, subpage);
+-			if (!ttu_anon_swapbacked_folio(vma, folio, page, address,
+-						pvmw.pte, pteval)) {
 -				set_pte_at(mm, address, pvmw.pte, pteval);
 -				goto walk_abort;
 -			}
--
--			/* See folio_try_share_anon_rmap(): clear PTE first. */
--			if (anon_exclusive &&
--			    folio_try_share_anon_rmap_pte(folio, subpage)) {
--				folio_put_swap(folio, subpage);
--				set_pte_at(mm, address, pvmw.pte, pteval);
--				goto walk_abort;
--			}
--			mm_prepare_for_swap_entries(mm);
--			dec_mm_counter(mm, MM_ANONPAGES);
--			inc_mm_counter(mm, MM_SWAPENTS);
--			swp_pte = swp_entry_to_pte(entry);
--			if (anon_exclusive)
--				swp_pte = pte_swp_mkexclusive(swp_pte);
--			if (likely(pte_present(pteval))) {
--				if (pte_soft_dirty(pteval))
--					swp_pte = pte_swp_mksoft_dirty(swp_pte);
--				if (pte_uffd(pteval))
--					swp_pte = pte_swp_mkuffd(swp_pte);
--			} else {
--				if (pte_swp_soft_dirty(pteval))
--					swp_pte = pte_swp_mksoft_dirty(swp_pte);
--				if (pte_swp_uffd(pteval))
--					swp_pte = pte_swp_mkuffd(swp_pte);
--			}
--			set_pte_at(mm, address, pvmw.pte, swp_pte);
-+			goto finish_unmap;
+ 			goto finish_unmap;
  		} else {
  			/*
- 			 * This is a locked file-backed folio,
-@@ -2369,7 +2390,7 @@ static bool try_to_unmap_one(struct foli
- 			add_mm_counter(mm, mm_counter_file(folio), -nr_pages);
- 		}
- finish_unmap:
--		folio_remove_rmap_ptes(folio, subpage, nr_pages, vma);
-+		folio_remove_rmap_ptes(folio, page, nr_pages, vma);
- 		if (vma->vm_flags & VM_LOCKED)
- 			mlock_drain_local();
- 		folio_put_refs(folio, nr_pages);
 _
 
 Patches currently in -mm which might be from dev.jain@arm.com are
