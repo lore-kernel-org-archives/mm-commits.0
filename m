@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D14564499B9
-	for <mm-commits@vger.kernel.org>; Mon, 13 Jul 2026 20:04:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DB385358381
+	for <mm-commits@vger.kernel.org>; Mon, 13 Jul 2026 20:06:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783973064; cv=none; b=rdK6Dxwr9kjIdtWKf5s+KEZqkLUkh8VOOJUqOeTn9HYB9gFmT336rM3lVHcyR4LkKE9rG0+85+C/MYv+vIpoeCikwqu5xdDC7yvpdPvw5IA4KNkwK+XAdp1fzNPX8XAoGqild6QTrR/r6w0q8Swv81T2jV/7WwTXmQHQCSJRONo=
+	t=1783973179; cv=none; b=g+XqH9pu7X8aDqY3CjNvI6fIe6RIq8vYRhgiw8dBCkGQ47bZtOBUXt4frOlqjSK404S4uhhUY114YogAOPdCK+DAgJGcb7WgW2KEQaWBzK5znrSdysQ4OrUvYP+H/sKXkX+zpnxGdFhWcxYujYRcr+bmB78wRKZMov6m3bj5nGo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783973064; c=relaxed/simple;
-	bh=IB3FrVXAc07eCVbgRLY9FrCdOBpDEEMV8loRpgIg9zM=;
-	h=Date:To:From:Subject:Message-Id; b=hPt5aY6sstugamakjjOmpzhPvlA4N3K+aMBdTIaD8yh28dgBDwcPoxoqkfgHSIkGChLjm6nPqpNOsLXvRcXptFFom+9etsQSO+evz/gJTAYjUOPKw3xsiD2iRFohLijfpYyxyLdtQaIUkeZAg8XvTLMpIm8lz8/TSD1YvCfDimY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Lrn90r2r; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783973179; c=relaxed/simple;
+	bh=eWFyQBCc1tzpMAHNQ+hwNLEFKooueM+rE5azpI7r7xA=;
+	h=Date:To:From:Subject:Message-Id; b=t9+PAZqAuJkSnep/bJw8a/LRzbZDetqq3mGvI9WQ/v5VZGt25XkMGq4O43JEKVzjUKsOe1RBqgzqXZ6dSe+JhJQLrYVziht6ns7zxSvz8Ka48uHxFBwYKLQQ8lyucouZk5XseFtGot8mIXgNS4jLXC7QWXq+++9VrIH5XyYSnVU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qBVBsSt6; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Lrn90r2r"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3FEC31F000E9;
-	Mon, 13 Jul 2026 20:04:22 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qBVBsSt6"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 88C2F1F000E9;
+	Mon, 13 Jul 2026 20:06:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783973062;
-	bh=6/y0tbOTWiNUvBuGX1RVZPqUzqgXSM+cB+oYPWW+uEM=;
+	d=linux-foundation.org; s=korg; t=1783973177;
+	bh=Z+WoLPm9VmhX3vhf4DqpjLefD0jo9DPzeeeOGAqR7O8=;
 	h=Date:To:From:Subject;
-	b=Lrn90r2rmygmAvg686YY3Ut/4rAq7UFki0tinpGn99+gt3QUXT6Rcxpn2M7RSo1Dn
-	 qcGLmJD5GsXYkiFkLPfkp8YcmKrg1UBi1jUNCQKuXgOlDC7uvcxEZ4fUMSS8FhVxEb
-	 vsq41IYRTUCFere8iiPMHSWriIzcgg3jjevFS9lc=
-Date: Mon, 13 Jul 2026 13:04:21 -0700
-To: mm-commits@vger.kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@suse.com,hannes@cmpxchg.org,zhangguopeng@kylinos.cn,akpm@linux-foundation.org
+	b=qBVBsSt6IThcntuZmcrDBlylG+jhoS6FgMlEALp1/kZY8KVBzhNxuN/l3EPT1yln2
+	 5/T6DO99a3LxQ4LLhSkkoTdJNRjCeAU76C6g3O1UD+yYrOaUQS8s3frpdVHodE+tDZ
+	 zRXualwbY4rurUNh5G+BYHtzMknPFwAz27wSc8Pg=
+Date: Mon, 13 Jul 2026 13:06:17 -0700
+To: mm-commits@vger.kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,cuitao@kylinos.cn,zhangguopeng@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memcontrol-drop-unused-cpu-argument-from-flush_nmi_stats.patch added to mm-new branch
-Message-Id: <20260713200422.3FEC31F000E9@smtp.kernel.org>
+Subject: + mm-memcontrol-factor-out-memcg-kmem-uncharge-sequence.patch added to mm-new branch
+Message-Id: <20260713200617.88C2F1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: memcontrol: drop unused cpu argument from flush_nmi_stats
+     Subject: mm: memcontrol: factor out memcg kmem uncharge sequence
 has been added to the -mm mm-new branch.  Its filename is
-     mm-memcontrol-drop-unused-cpu-argument-from-flush_nmi_stats.patch
+     mm-memcontrol-factor-out-memcg-kmem-uncharge-sequence.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcontrol-drop-unused-cpu-argument-from-flush_nmi_stats.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcontrol-factor-out-memcg-kmem-uncharge-sequence.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,59 +70,72 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Guopeng Zhang <zhangguopeng@kylinos.cn>
-Subject: mm: memcontrol: drop unused cpu argument from flush_nmi_stats
-Date: Mon, 13 Jul 2026 17:00:10 +0800
+Subject: mm: memcontrol: factor out memcg kmem uncharge sequence
+Date: Mon, 13 Jul 2026 17:03:04 +0800
 
-flush_nmi_stats() does not use its cpu argument.  Remove it from the
-function and its !CONFIG_MEMCG_NMI_SAFETY_REQUIRES_ATOMIC stub.  The
-caller still uses cpu for the subsequent per-CPU rstat flush.
+The kmem-uncharge sequence (mod_memcg_state(MEMCG_KMEM) +
+memcg1_account_kmem + conditional memcg_uncharge) is duplicated verbatim
+in obj_cgroup_release() and drain_obj_stock_slot().  Factor it into a
+small memcg_uncharge_kmem() helper.  The reference get/put stays at the
+call sites, as they differ.
 
 No functional change.
 
-Link: https://lore.kernel.org/20260713090010.2991906-1-guopeng.zhang@linux.dev
+Link: https://lore.kernel.org/20260713090304.3015329-1-guopeng.zhang@linux.dev
 Signed-off-by: Guopeng Zhang <zhangguopeng@kylinos.cn>
-Acked-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Tao Cui <cuitao@kylinos.cn>
 Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Reviewed-by: Muchun Song <muchun.song@linux.dev>
+Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Cc: Shakeel Butt <shakeel.butt@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
+ mm/memcontrol.c |   18 ++++++++++--------
+ 1 file changed, 10 insertions(+), 8 deletions(-)
 
---- a/mm/memcontrol.c~mm-memcontrol-drop-unused-cpu-argument-from-flush_nmi_stats
+--- a/mm/memcontrol.c~mm-memcontrol-factor-out-memcg-kmem-uncharge-sequence
 +++ a/mm/memcontrol.c
-@@ -4432,8 +4432,7 @@ static void mem_cgroup_stat_aggregate(st
- }
+@@ -137,6 +137,14 @@ bool mem_cgroup_kmem_disabled(void)
  
- #ifdef CONFIG_MEMCG_NMI_SAFETY_REQUIRES_ATOMIC
--static void flush_nmi_stats(struct mem_cgroup *memcg, struct mem_cgroup *parent,
--			    int cpu)
-+static void flush_nmi_stats(struct mem_cgroup *memcg, struct mem_cgroup *parent)
+ static void memcg_uncharge(struct mem_cgroup *memcg, unsigned int nr_pages);
+ 
++static void memcg_uncharge_kmem(struct mem_cgroup *memcg, unsigned int nr_pages)
++{
++	mod_memcg_state(memcg, MEMCG_KMEM, -nr_pages);
++	memcg1_account_kmem(memcg, -nr_pages);
++	if (!mem_cgroup_is_root(memcg))
++		memcg_uncharge(memcg, nr_pages);
++}
++
+ static void obj_cgroup_release(struct percpu_ref *ref)
  {
- 	int nid;
+ 	struct obj_cgroup *objcg = container_of(ref, struct obj_cgroup, refcnt);
+@@ -172,10 +180,7 @@ static void obj_cgroup_release(struct pe
+ 		struct mem_cgroup *memcg;
  
-@@ -4484,8 +4483,7 @@ static void flush_nmi_stats(struct mem_c
+ 		memcg = get_mem_cgroup_from_objcg(objcg);
+-		mod_memcg_state(memcg, MEMCG_KMEM, -nr_pages);
+-		memcg1_account_kmem(memcg, -nr_pages);
+-		if (!mem_cgroup_is_root(memcg))
+-			memcg_uncharge(memcg, nr_pages);
++		memcg_uncharge_kmem(memcg, nr_pages);
+ 		mem_cgroup_put(memcg);
  	}
- }
- #else
--static void flush_nmi_stats(struct mem_cgroup *memcg, struct mem_cgroup *parent,
--			    int cpu)
-+static void flush_nmi_stats(struct mem_cgroup *memcg, struct mem_cgroup *parent)
- {}
- #endif
  
-@@ -4497,7 +4495,7 @@ static void mem_cgroup_css_rstat_flush(s
- 	struct aggregate_control ac;
- 	int nid;
+@@ -3329,10 +3334,7 @@ static void drain_obj_stock_slot(struct
  
--	flush_nmi_stats(memcg, parent, cpu);
-+	flush_nmi_stats(memcg, parent);
+ 			memcg = get_mem_cgroup_from_objcg(old);
  
- 	statc = per_cpu_ptr(memcg->vmstats_percpu, cpu);
+-			mod_memcg_state(memcg, MEMCG_KMEM, -nr_pages);
+-			memcg1_account_kmem(memcg, -nr_pages);
+-			if (!mem_cgroup_is_root(memcg))
+-				memcg_uncharge(memcg, nr_pages);
++			memcg_uncharge_kmem(memcg, nr_pages);
  
+ 			css_put(&memcg->css);
+ 		}
 _
 
 Patches currently in -mm which might be from zhangguopeng@kylinos.cn are
@@ -132,4 +145,5 @@ mm-memcontrol-update-state_local-when-flushing-nmi-stats.patch
 mm-memcg-v1-account-vmpressure-event-allocations.patch
 mm-memcg-v1-fix-wrong-linux-mm-list-address-in-deprecation-warnings.patch
 mm-memcontrol-drop-unused-cpu-argument-from-flush_nmi_stats.patch
+mm-memcontrol-factor-out-memcg-kmem-uncharge-sequence.patch
 
