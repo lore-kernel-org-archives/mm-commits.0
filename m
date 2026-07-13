@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BBE5B356757
-	for <mm-commits@vger.kernel.org>; Mon, 13 Jul 2026 19:26:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4A8BC2DC32C;
+	Mon, 13 Jul 2026 19:55:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783970769; cv=none; b=k8gfRi9aZm6Yu3M4eVOPuADqPPecUZAe0/IPGJfxM36IuUxCPVxztmORcxy7gjc/lMeRYY8UxNcQCZjmxhIeo68l6t98sz56umNrR/9viql3owNFEckBgjbM7sTAPvvvgq5khJ3VxgGrSC02l4HwPM9jaU1RljIY+vcUdBs3eN0=
+	t=1783972543; cv=none; b=JhArgmsDSky5Sbr3dL1O6nkZYLLbGTfAzSS5rchGv/pCHM2n8F/jejnWw8ePIFVj1Kt7YSEZQGcbAt8/s4nicWC+lrJTnIWaZyMcv1aoiMnqwDTXe4LY0nGeVGb5UppgCr6qGj2cy1wNTstf4LBXOS0+YWtMsz/wlj0IFU+AIIw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783970769; c=relaxed/simple;
-	bh=nj7bWVOGqr7v2/nIp8XhjAfYieg0Q3u34E7pTAiw0hw=;
-	h=Date:To:From:Subject:Message-Id; b=A0bFA2u3vcCZAmgTrxEwN2708z+8mXWUjsEPC6M2MuJ56jSe5x1BARtQ3xJcdTCKaJD2S/lW4XjwYiHbEsxjZpmXJIzHtKzyI1Ca/u/FKkS6cNYclgTiSCB7bCOUJAeY0Uam9QuhJMVzxTn1m0bvua/g7A6OPW2cOz+tOyOk9vI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MsuI6W4X; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783972543; c=relaxed/simple;
+	bh=dUnNB4ouGIOaRGQxG1/q6bDzutNOMENEQc4K0qy0jCY=;
+	h=Date:To:From:Subject:Message-Id; b=Wg4uA/lpD+VCyNKSB5ZENU7nknyBJIQHxXRskTSApH2zmP3sY6C+DxoTVnXbxNWSSA8DBNCTmc3Nm83r/eaGovU7tv6cSbcvPGA3ShO2MzYrrYj92nnAUBcBRioKQnYunxGrF5sRB9r9iKZeu+IAjPioANd0T/qvNfgwIjkpABA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2UPw6bhE; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MsuI6W4X"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8E8641F000E9;
-	Mon, 13 Jul 2026 19:26:07 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2UPw6bhE"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CF5DE1F000E9;
+	Mon, 13 Jul 2026 19:55:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783970767;
-	bh=irYHJvRtRkb/ON1uptSCXPJOu7Blxnl5VMehmhg91F8=;
+	d=linux-foundation.org; s=korg; t=1783972541;
+	bh=SHmw69AMKArRDaKtCOz6/AyRBl+Agy13pKh0JZOLQ6g=;
 	h=Date:To:From:Subject;
-	b=MsuI6W4XEIwtiAlo2xpEDEGqjE1qcRTqW9p+ymWrb0zAAvcsVOSP5RqPjjoKXm2bj
-	 1zqS8RZ4tLDs/Tct82NAMuWidmT/pQBCtQpRy3gJpbPm7E5bPXwgKWH1EM0hAzHWM8
-	 pMpMlYzIcSgtPe+TyAAbMTShRnBq6+2VqkELhG4A=
-Date: Mon, 13 Jul 2026 12:26:07 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,ryan.roberts@arm.com,riel@surriel.com,osalvador@suse.de,muchun.song@linux.dev,ljs@kernel.org,liam@infradead.org,lance.yang@linux.dev,jannh@google.com,harry@kernel.org,david@kernel.org,anshuman.khandual@arm.com,dev.jain@arm.com,akpm@linux-foundation.org
+	b=2UPw6bhEg/W/IHkA7ZKZZgp6NShAPC62fHBZJ/nkt0YZf8Mv/c2U3R5qbGVwelqdd
+	 cZXRTdYPTymNpOrw94A6MLVUUsa62TexkI7wI3l7nyI0QI5G/QBFwTq2sws5q5PZZ2
+	 7Lw/D7/oBYdc21HRU0Rt4AXn7oyVhkHipvN3mp7U=
+Date: Mon, 13 Jul 2026 12:55:41 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,stable@vger.kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,cuitao@kylinos.cn,alex@ghiti.fr,zhangguopeng@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-rmap-add-anon-folio-unmap-dispatcher.patch added to mm-new branch
-Message-Id: <20260713192607.8E8641F000E9@smtp.kernel.org>
+Subject: + mm-memcontrol-update-state_local-when-flushing-nmi-stats.patch added to mm-new branch
+Message-Id: <20260713195541.CF5DE1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/rmap: add anon folio unmap dispatcher
+     Subject: mm: memcontrol: update state_local when flushing NMI stats
 has been added to the -mm mm-new branch.  Its filename is
-     mm-rmap-add-anon-folio-unmap-dispatcher.patch
+     mm-memcontrol-update-state_local-when-flushing-nmi-stats.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-rmap-add-anon-folio-unmap-dispatcher.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcontrol-update-state_local-when-flushing-nmi-stats.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,119 +69,73 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Dev Jain <dev.jain@arm.com>
-Subject: mm/rmap: add anon folio unmap dispatcher
-Date: Mon, 13 Jul 2026 05:00:48 +0000
+From: Guopeng Zhang <zhangguopeng@kylinos.cn>
+Subject: mm: memcontrol: update state_local when flushing NMI stats
+Date: Mon, 13 Jul 2026 16:50:53 +0800
 
-Add ttu_anon_folio() as the common entry point for anonymous folio
-unmapping.  It dispatches to the lazyfree or swapbacked helper as
-appropriate.
+flush_nmi_stats() updates state[] for kmem and slab counters but leaves
+the corresponding state_local[] counters unchanged.  Local kmem and slab
+statistics therefore miss updates collected through the NMI-safe atomic
+path.
 
-Keep restoration of cleared PTEs in the caller, where the PTEs were
-removed.
+Update state_local[] together with state[].
 
-No functional change intended.
-
-Link: https://lore.kernel.org/20260713050050.1017741-6-dev.jain@arm.com
-Signed-off-by: Dev Jain <dev.jain@arm.com>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Harry Yoo <harry@kernel.org>
-Cc: Jann Horn <jannh@google.com>
-Cc: Lance Yang <lance.yang@linux.dev>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
+Link: https://lore.kernel.org/20260713085053.2916813-1-guopeng.zhang@linux.dev
+Fixes: 940b01fc8dc1 ("memcg: nmi safe memcg stats for specific archs")
+Signed-off-by: Guopeng Zhang <zhangguopeng@kylinos.cn>
+Acked-by: Tao Cui <cuitao@kylinos.cn>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Alexandre Ghiti <alex@ghiti.fr>
+Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
 Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/rmap.c |   45 +++++++++++++++++++++++----------------------
- 1 file changed, 23 insertions(+), 22 deletions(-)
+ mm/memcontrol.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
---- a/mm/rmap.c~mm-rmap-add-anon-folio-unmap-dispatcher
-+++ a/mm/rmap.c
-@@ -2172,6 +2172,26 @@ static bool ttu_anon_swapbacked_folio(st
- 	return true;
- }
+--- a/mm/memcontrol.c~mm-memcontrol-update-state_local-when-flushing-nmi-stats
++++ a/mm/memcontrol.c
+@@ -4442,6 +4442,7 @@ static void flush_nmi_stats(struct mem_c
+ 		int index = memcg_stats_index(MEMCG_KMEM);
  
-+static bool ttu_anon_folio(struct vm_area_struct *vma, struct folio *folio,
-+		struct page *page, unsigned long address, pte_t *ptep,
-+		pte_t pteval, unsigned long nr_pages)
-+{
-+	/*
-+	 * Store the swap location in the pte.
-+	 * See handle_pte_fault() ...
-+	 */
-+	if (WARN_ON_ONCE(folio_test_swapbacked(folio) !=
-+			 folio_test_swapcache(folio)))
-+		return false;
-+
-+	if (!folio_test_swapbacked(folio))
-+		return ttu_anon_lazyfree_folio(vma, folio, nr_pages);
-+
-+	/* nr_pages > 1 not supported yet */
-+	return ttu_anon_swapbacked_folio(vma, folio, page, address, ptep,
-+					 pteval);
-+}
-+
- /*
-  * @arg: enum ttu_flags will be passed to this argument
-  */
-@@ -2349,31 +2369,12 @@ static bool try_to_unmap_one(struct foli
- 			 */
- 			dec_mm_counter(mm, mm_counter(folio));
- 		} else if (folio_test_anon(folio)) {
--			/*
--			 * Store the swap location in the pte.
--			 * See handle_pte_fault() ...
--			 */
--			if (unlikely(folio_test_swapbacked(folio) !=
--					folio_test_swapcache(folio))) {
--				WARN_ON_ONCE(1);
-+			if (!ttu_anon_folio(vma, folio, page, address,
-+					    pvmw.pte, pteval, nr_pages)) {
-+				set_ptes(mm, address, pvmw.pte, pteval, nr_pages);
- 				goto walk_abort;
- 			}
+ 		memcg->vmstats->state[index] += kmem;
++		memcg->vmstats->state_local[index] += kmem;
+ 		if (parent)
+ 			parent->vmstats->state_pending[index] += kmem;
+ 	}
+@@ -4459,9 +4460,11 @@ static void flush_nmi_stats(struct mem_c
+ 			int index = memcg_stats_index(NR_SLAB_RECLAIMABLE_B);
  
--			/* MADV_FREE page check */
--			if (!folio_test_swapbacked(folio)) {
--				if (!ttu_anon_lazyfree_folio(vma, folio,
--							     nr_pages)) {
--					set_ptes(mm, address, pvmw.pte, pteval, nr_pages);
--					goto walk_abort;
--				}
--				goto finish_unmap;
--			}
--
--			if (!ttu_anon_swapbacked_folio(vma, folio, page, address,
--						pvmw.pte, pteval)) {
--				set_pte_at(mm, address, pvmw.pte, pteval);
--				goto walk_abort;
--			}
- 			goto finish_unmap;
- 		} else {
- 			/*
+ 			lstats->state[index] += slab;
++			lstats->state_local[index] += slab;
+ 			if (plstats)
+ 				plstats->state_pending[index] += slab;
+ 			memcg->vmstats->state[index] += slab;
++			memcg->vmstats->state_local[index] += slab;
+ 			if (parent)
+ 				parent->vmstats->state_pending[index] += slab;
+ 		}
+@@ -4470,9 +4473,11 @@ static void flush_nmi_stats(struct mem_c
+ 			int index = memcg_stats_index(NR_SLAB_UNRECLAIMABLE_B);
+ 
+ 			lstats->state[index] += slab;
++			lstats->state_local[index] += slab;
+ 			if (plstats)
+ 				plstats->state_pending[index] += slab;
+ 			memcg->vmstats->state[index] += slab;
++			memcg->vmstats->state_local[index] += slab;
+ 			if (parent)
+ 				parent->vmstats->state_pending[index] += slab;
+ 		}
 _
 
-Patches currently in -mm which might be from dev.jain@arm.com are
+Patches currently in -mm which might be from zhangguopeng@kylinos.cn are
 
-mm-swap-rename-subpage-page-in-folio_dup_swap-folio_put_swap.patch
-mm-mprotect-drop-sub-from-batching-context.patch
-arm64-make-huge_ptep_get-handled-unaligned-addresses.patch
-mm-rmap-use-huge_ptep_get-in-try_to_unmap_one.patch
-mm-rmap-use-huge_ptep_get-in-try_to_migrate_one.patch
-mm-migrate-use-huge_ptep_get-in-remove_migration_pte.patch
-mm-page_vma_mapped-use-huge_ptep_get-for-hugetlb.patch
-mm-mprotect-use-huge_ptep_get-for-hugetlb.patch
-mm-rmap-convert-page-folio-for-hwpoison-checks.patch
-mm-rmap-add-try_to_unmap_hugetlb_one.patch
-mm-rmap-refactor-some-code-around-lazyfree-folio-unmapping.patch
-mm-rmap-refactor-anon-folio-unmap-in-try_to_unmap_one.patch
-mm-rmap-add-anon-folio-unmap-dispatcher.patch
+mm-memcg-remove-stray-text-from-obj_stock_pcp-comment.patch
+mm-memcontrol-update-state_local-when-flushing-nmi-stats.patch
 
