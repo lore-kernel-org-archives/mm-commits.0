@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9037137D11C
-	for <mm-commits@vger.kernel.org>; Tue, 14 Jul 2026 02:26:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A3D2F37AA92
+	for <mm-commits@vger.kernel.org>; Tue, 14 Jul 2026 02:26:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783995965; cv=none; b=OZ8WFB9dDd+1sYCSP4OQF5V0JptiM9l5Bi41K1jBHDLI4E9r6+Z+SegNiwtzZmzmvGvzO1OAe6C3pzaPrHblwe+ZnTms6jWA1Q0ZW6qG1+AUoOwsHfHuJzLWcqR00ggU3/m5zWFz/TOlCsaQV/o0P7qx24QefqTkovxGi33YxrQ=
+	t=1783995968; cv=none; b=PYooiYbX3i8ZtVB8Ex4VRUi3d6oIbiIWgPXtu7xsjlpnzS4pdS15hJ/AOevk59DusBTmarqYjynfHCiqJhizl3fXd2jSchOf1s0j3QudXyRmYeulYXz3gQTz2t66CZexFA+nvAb4VXhAQEzKSZLY7YWPhDAwBKNQluyK/bywP5E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783995965; c=relaxed/simple;
-	bh=vlC4o4Z1G2bPS724qHOmodkDcB2IUn92jKsrHmtDrGw=;
-	h=Date:To:From:Subject:Message-Id; b=MCBC16UBQksV/jUc9c7CdVe2YZugkvkNr37zs175wuwsRrMPBKB3P+8zmd9E3+wGQ5Bi+kEmmPavvRMkCuGSPTF+Y0k/IxUCzX6RDOI1Ia8Xu2wXjMYtSMXg0WaoMc3ZGBM8xgSylO8QtAqabtI/4ckKk37vLV5z/eCzd+26lCw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HF7YYFk/; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783995968; c=relaxed/simple;
+	bh=DAi+lFdt0DzjwO27jq7jnJ7MCfkn4Da/M9Yfmwl3Nvk=;
+	h=Date:To:From:Subject:Message-Id; b=ogA8rP2q7N9dvr0LaZnoxWUKzZTkGbKbngjVpDK2H8rFrSszFKKDpwgL9TXKRW1VCGIfIru7UF+z0bx6gNO8IXos7ctDNoDs/y9kCK3JNbnQNSNz1iJ0iYPq7udeb/pdEj2Y3WOAJKU6lNaBY6Uk4oTk58FbO6tTegQDt75EKXc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=apYRGx2j; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HF7YYFk/"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1A15A1F000E9;
-	Tue, 14 Jul 2026 02:26:03 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="apYRGx2j"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2FEBB1F000E9;
+	Tue, 14 Jul 2026 02:26:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783995963;
-	bh=r09tzu8XfxCv3g3GF78y5jMdlIkk30xa/SN1C2SnmKU=;
+	d=linux-foundation.org; s=korg; t=1783995966;
+	bh=xs/14dubnbAmApEoXYqh6mlotwkqAGeQmUzowV+1S4k=;
 	h=Date:To:From:Subject;
-	b=HF7YYFk/aMU07C8CTk90mMnzsKHTIEXhlBSXI3xXpa9ZYNFNtB5FzHqaRtA+e/+Ds
-	 dUqCwYmhXHcH5PJ3FulFop7PH0OHAVQo2iGqVMy7sxjqdfxA5/Meg5NRRSQiJaoMMx
-	 UEdpQdIzN+mIia3HITWSiw0ed8zaST87P/RBarLY=
-Date: Mon, 13 Jul 2026 19:26:02 -0700
+	b=apYRGx2jmPddUi/GZAZKqjMF1c3VPvIxaFwyAGAj9sE5EimnbVcXBWsOJn4D3oLZv
+	 tVESz8fxg1+1f5aEirvjl7ap50wjKCGJyEuXCCApYCZuaxiVwfwCJi1dlglKlCUOgy
+	 rqQXOVv+OkILvwylgLb8mIS7iBzlEqGxtIMcPny8=
+Date: Mon, 13 Jul 2026 19:26:05 -0700
 To: mm-commits@vger.kernel.org,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-update-generic_get_unmapped_area-to-use-vma_flags_t.patch added to mm-new branch
-Message-Id: <20260714022603.1A15A1F000E9@smtp.kernel.org>
+Subject: + mm-prefer-mm-def_vma_flags-in-mm-logic.patch added to mm-new branch
+Message-Id: <20260714022606.2FEBB1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: update generic_get_unmapped_area[_topdown]() to use vma_flags_t
+     Subject: mm: prefer mm->def_vma_flags in mm logic
 has been added to the -mm mm-new branch.  Its filename is
-     mm-update-generic_get_unmapped_area-to-use-vma_flags_t.patch
+     mm-prefer-mm-def_vma_flags-in-mm-logic.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-update-generic_get_unmapped_area-to-use-vma_flags_t.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-prefer-mm-def_vma_flags-in-mm-logic.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,23 +70,26 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <ljs@kernel.org>
-Subject: mm: update generic_get_unmapped_area[_topdown]() to use vma_flags_t
-Date: Sat, 11 Jul 2026 19:45:01 +0100
+Subject: mm: prefer mm->def_vma_flags in mm logic
+Date: Sat, 11 Jul 2026 19:45:02 +0100
 
-As part of the changes converting VMA flags from a system word size to a
-bitmap, extend this change to generic_get_unmapped_area() and
-generic_get_unmapped_area_topdown(), which also allows us to convert
-stack_guard_placement() as well.
+Currently mm->def_flags (of type vm_flags_t) is union'd with
+mm->def_vma_flags (of type vma_flags_t).
 
-We retain arch_get_unmapped_area() and arch_get_unmapped_area_topdown()
-as-is for now, using legacy_to_vma_flags() as necessary to do so.
+As part of the effort to convert vm_flags_t usage to vma_flags_t (in order
+to no longer be arbitrarily limited to a system word size for VMA flags),
+prefer mm->def_vma_flags to mm->def_flags throughout the mm logic.
+
+We update dump_mm() to use the %*pb format which means we make no
+assumption about the number of VMA flag bits on output when outputting
+default VMA flags.
 
 No functional change intended.
 
-Link: https://lore.kernel.org/20260711-b4-vma-flags-mm-v2-4-0fa2357d5431@kernel.org
+Link: https://lore.kernel.org/20260711-b4-vma-flags-mm-v2-5-0fa2357d5431@kernel.org
 Signed-off-by: Lorenzo Stoakes <ljs@kernel.org>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
 Reviewed-by: Lance Yang <lance.yang@linux.dev>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Barry Song <baohua@kernel.org>
 Cc: Christian Brauner <brauner@kernel.org>
@@ -107,117 +110,120 @@ Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/mm/book3s64/slice.c |    6 ++++--
- include/linux/sched/mm.h         |    4 ++--
- mm/mmap.c                        |   16 ++++++++--------
- 3 files changed, 14 insertions(+), 12 deletions(-)
+ mm/debug.c |    5 +++--
+ mm/mlock.c |   13 +++++++------
+ mm/mmap.c  |   11 ++++++-----
+ mm/vma.c   |    2 +-
+ 4 files changed, 17 insertions(+), 14 deletions(-)
 
---- a/arch/powerpc/mm/book3s64/slice.c~mm-update-generic_get_unmapped_area-to-use-vma_flags_t
-+++ a/arch/powerpc/mm/book3s64/slice.c
-@@ -659,7 +659,8 @@ unsigned long arch_get_unmapped_area(str
- 	unsigned int psize;
+--- a/mm/debug.c~mm-prefer-mm-def_vma_flags-in-mm-logic
++++ a/mm/debug.c
+@@ -197,7 +197,7 @@ void dump_mm(const struct mm_struct *mm)
+ 		"numa_next_scan %lu numa_scan_offset %lu numa_scan_seq %d\n"
+ #endif
+ 		"tlb_flush_pending %d\n"
+-		"def_flags: %#lx(%pGv)\n",
++		"def_flags: %*pb(%pGv)\n",
  
- 	if (radix_enabled())
--		return generic_get_unmapped_area(filp, addr, len, pgoff, flags, vm_flags);
-+		return generic_get_unmapped_area(filp, addr, len, pgoff, flags,
-+						 legacy_to_vma_flags(vm_flags));
+ 		mm, mm->task_size,
+ 		mm->mmap_base, mm->mmap_legacy_base,
+@@ -226,7 +226,8 @@ void dump_mm(const struct mm_struct *mm)
+ 		mm->numa_next_scan, mm->numa_scan_offset, mm->numa_scan_seq,
+ #endif
+ 		atomic_read(&mm->tlb_flush_pending),
+-		mm->def_flags, &mm->def_flags
++		NUM_VMA_FLAG_BITS, mm->def_vma_flags.__vma_flags,
++		&mm->def_vma_flags
+ 	);
+ }
+ EXPORT_SYMBOL(dump_mm);
+--- a/mm/mlock.c~mm-prefer-mm-def_vma_flags-in-mm-logic
++++ a/mm/mlock.c
+@@ -699,26 +699,27 @@ SYSCALL_DEFINE2(munlock, unsigned long,
  
- 	if (filp && is_file_hugepages(filp))
- 		psize = file_to_psize(filp);
-@@ -679,7 +680,8 @@ unsigned long arch_get_unmapped_area_top
- 	unsigned int psize;
- 
- 	if (radix_enabled())
--		return generic_get_unmapped_area_topdown(filp, addr0, len, pgoff, flags, vm_flags);
-+		return generic_get_unmapped_area_topdown(filp, addr0, len,
-+				pgoff, flags, legacy_to_vma_flags(vm_flags));
- 
- 	if (filp && is_file_hugepages(filp))
- 		psize = file_to_psize(filp);
---- a/include/linux/sched/mm.h~mm-update-generic_get_unmapped_area-to-use-vma_flags_t
-+++ a/include/linux/sched/mm.h
-@@ -200,11 +200,11 @@ unsigned long mm_get_unmapped_area_vmafl
- unsigned long
- generic_get_unmapped_area(struct file *filp, unsigned long addr,
- 			  unsigned long len, unsigned long pgoff,
--			  unsigned long flags, vm_flags_t vm_flags);
-+			  unsigned long flags, vma_flags_t vma_flags);
- unsigned long
- generic_get_unmapped_area_topdown(struct file *filp, unsigned long addr,
- 				  unsigned long len, unsigned long pgoff,
--				  unsigned long flags, vm_flags_t vm_flags);
-+				  unsigned long flags, vma_flags_t vma_flags);
- #else
- static inline void arch_pick_mmap_layout(struct mm_struct *mm,
- 					 const struct rlimit *rlim_stack) {}
---- a/mm/mmap.c~mm-update-generic_get_unmapped_area-to-use-vma_flags_t
-+++ a/mm/mmap.c
-@@ -657,9 +657,9 @@ SYSCALL_DEFINE1(old_mmap, struct mmap_ar
-  * Determine if the allocation needs to ensure that there is no
-  * existing mapping within it's guard gaps, for use as start_gap.
+ /*
+  * Take the MCL_* flags passed into mlockall (or 0 if called from munlockall)
+- * and translate into the appropriate modifications to mm->def_flags and/or the
+- * flags for all current VMAs.
++ * and translate into the appropriate modifications to mm->def_vma_flags and/or
++ * the flags for all current VMAs.
+  *
+  * There are a couple of subtleties with this.  If mlockall() is called multiple
+  * times with different flags, the values do not necessarily stack.  If mlockall
+  * is called once including the MCL_FUTURE flag and then a second time without
+- * it, VM_LOCKED and VM_LOCKONFAULT will be cleared from mm->def_flags.
++ * it, VM_LOCKED and VM_LOCKONFAULT will be cleared from mm->def_vma_flags.
   */
--static inline unsigned long stack_guard_placement(vm_flags_t vm_flags)
-+static inline unsigned long stack_guard_placement(vma_flags_t vma_flags)
+ static int apply_mlockall_flags(int flags)
  {
--	if (vm_flags & VM_SHADOW_STACK)
-+	if (vma_flags_test_single_mask(&vma_flags, VMA_SHADOW_STACK))
- 		return PAGE_SIZE;
+ 	VMA_ITERATOR(vmi, current->mm, 0);
++	struct mm_struct *mm = current->mm;
+ 	struct vm_area_struct *vma, *prev = NULL;
+ 	vm_flags_t to_add = 0;
  
- 	return 0;
-@@ -701,7 +701,7 @@ unsigned long vm_unmapped_area(struct vm
- unsigned long
- generic_get_unmapped_area(struct file *filp, unsigned long addr,
- 			  unsigned long len, unsigned long pgoff,
--			  unsigned long flags, vm_flags_t vm_flags)
-+			  unsigned long flags, vma_flags_t vma_flags)
+-	current->mm->def_flags &= ~VM_LOCKED_MASK;
++	vma_flags_clear_mask(&mm->def_vma_flags, VMA_LOCKED_MASK);
+ 	if (flags & MCL_FUTURE) {
+-		current->mm->def_flags |= VM_LOCKED;
++		vma_flags_set(&mm->def_vma_flags, VMA_LOCKED_BIT);
+ 
+ 		if (flags & MCL_ONFAULT)
+-			current->mm->def_flags |= VM_LOCKONFAULT;
++			vma_flags_set(&mm->def_vma_flags, VMA_LOCKONFAULT_BIT);
+ 
+ 		if (!(flags & MCL_CURRENT))
+ 			goto out;
+--- a/mm/mmap.c~mm-prefer-mm-def_vma_flags-in-mm-logic
++++ a/mm/mmap.c
+@@ -102,15 +102,16 @@ void vma_set_page_prot(struct vm_area_st
+  */
+ static int check_brk_limits(unsigned long addr, unsigned long len)
  {
- 	struct mm_struct *mm = current->mm;
- 	struct vm_area_struct *vma, *prev;
-@@ -726,7 +726,7 @@ generic_get_unmapped_area(struct file *f
- 	info.length = len;
- 	info.low_limit = mm->mmap_base;
- 	info.high_limit = mmap_end;
--	info.start_gap = stack_guard_placement(vm_flags);
-+	info.start_gap = stack_guard_placement(vma_flags);
- 	if (filp && is_file_hugepages(filp))
- 		info.align_mask = huge_page_mask_align(filp);
- 	return vm_unmapped_area(&info);
-@@ -739,7 +739,7 @@ arch_get_unmapped_area(struct file *filp
- 		       unsigned long flags, vm_flags_t vm_flags)
- {
- 	return generic_get_unmapped_area(filp, addr, len, pgoff, flags,
--					 vm_flags);
-+					 legacy_to_vma_flags(vm_flags));
++	const struct mm_struct *mm = current->mm;
++	const bool is_def_locked =
++		vma_flags_test(&mm->def_vma_flags, VMA_LOCKED_BIT);
+ 	unsigned long mapped_addr;
+ 
+ 	mapped_addr = get_unmapped_area(NULL, addr, len, 0, MAP_FIXED);
+ 	if (IS_ERR_VALUE(mapped_addr))
+ 		return mapped_addr;
+ 
+-	return mlock_future_ok(current->mm,
+-			      current->mm->def_flags & VM_LOCKED, len)
+-		? 0 : -EAGAIN;
++	return mlock_future_ok(mm, is_def_locked, len) ? 0 : -EAGAIN;
  }
- #endif
  
-@@ -750,7 +750,7 @@ arch_get_unmapped_area(struct file *filp
- unsigned long
- generic_get_unmapped_area_topdown(struct file *filp, unsigned long addr,
- 				  unsigned long len, unsigned long pgoff,
--				  unsigned long flags, vm_flags_t vm_flags)
-+				  unsigned long flags, vma_flags_t vma_flags)
- {
- 	struct vm_area_struct *vma, *prev;
- 	struct mm_struct *mm = current->mm;
-@@ -778,7 +778,7 @@ generic_get_unmapped_area_topdown(struct
- 	info.length = len;
- 	info.low_limit = PAGE_SIZE;
- 	info.high_limit = arch_get_mmap_base(addr, mm->mmap_base);
--	info.start_gap = stack_guard_placement(vm_flags);
-+	info.start_gap = stack_guard_placement(vma_flags);
- 	if (filp && is_file_hugepages(filp))
- 		info.align_mask = huge_page_mask_align(filp);
- 	addr = vm_unmapped_area(&info);
-@@ -807,7 +807,7 @@ arch_get_unmapped_area_topdown(struct fi
- 			       unsigned long flags, vm_flags_t vm_flags)
- {
- 	return generic_get_unmapped_area_topdown(filp, addr, len, pgoff, flags,
--						 vm_flags);
-+						 legacy_to_vma_flags(vm_flags));
- }
- #endif
+ SYSCALL_DEFINE1(brk, unsigned long, brk)
+@@ -197,7 +198,7 @@ SYSCALL_DEFINE1(brk, unsigned long, brk)
+ 		goto out;
  
+ 	mm->brk = brk;
+-	if (mm->def_flags & VM_LOCKED)
++	if (vma_flags_test(&mm->def_vma_flags, VMA_LOCKED_BIT))
+ 		populate = true;
+ 
+ success:
+@@ -1247,7 +1248,7 @@ int vm_brk_flags(unsigned long addr, uns
+ 
+ 	vma = vma_prev(&vmi);
+ 	ret = do_brk_flags(&vmi, vma, addr, len, vma_flags);
+-	populate = ((mm->def_flags & VM_LOCKED) != 0);
++	populate = vma_flags_test(&mm->def_vma_flags, VMA_LOCKED_BIT);
+ 	mmap_write_unlock(mm);
+ 	userfaultfd_unmap_complete(mm, &uf);
+ 	if (populate && !ret)
+--- a/mm/vma.c~mm-prefer-mm-def_vma_flags-in-mm-logic
++++ a/mm/vma.c
+@@ -3426,7 +3426,7 @@ struct vm_area_struct *__install_special
+ 	if (unlikely(vma == NULL))
+ 		return ERR_PTR(-ENOMEM);
+ 
+-	vm_flags |= mm->def_flags | VM_DONTEXPAND;
++	vm_flags |= vma_flags_to_legacy(mm->def_vma_flags) | VM_DONTEXPAND;
+ 	if (pgtable_supports_soft_dirty())
+ 		vm_flags |= VM_SOFTDIRTY;
+ 	vm_flags_init(vma, vm_flags & ~VM_LOCKED_MASK);
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
