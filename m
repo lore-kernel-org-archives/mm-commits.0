@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 516C72931C7
-	for <mm-commits@vger.kernel.org>; Tue, 14 Jul 2026 19:21:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 47C4D2931C7
+	for <mm-commits@vger.kernel.org>; Tue, 14 Jul 2026 19:21:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784056907; cv=none; b=N7J5Rlpn2lQcm3gDKCFOb3uUM6JvEIgTddYcXm4vPZtSOtTcd61bWgrUxcljW0zK00i+c1nr3uUsEYe0DZeuoirXF3Tes4c4sukF9P+WfYRUahkUPIoQa/GoLeClB4UMjvg2tk5AKP00mAUJwUc+pMFtmX74x0ievwgVuN/DCWU=
+	t=1784056909; cv=none; b=Fli9RukTsoOl11O846iBw02PfU4oGdmryKHc/zCTOVifQTkfatROyPvM6LiahOpJftPeLWeCZA9kRiMb5vOUNcflLenzI5UoyI7Ls31xvoZsGo5MLAb/96AIaxtdCJRviAf/JJV/3s52MTBBJtWO9ygwEd+N7jDflokZO3b0rVs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784056907; c=relaxed/simple;
-	bh=YtSE8Ikokzu+2TeBnVUiVfSMUsSt46WsaX4NX60Zjyc=;
-	h=Date:To:From:Subject:Message-Id; b=bmN6S4yFRh8Yk8JF0saYJGWmHb0P/nkBNL+06i74d/SfhLmDh05Hqvc9mCNnysRfvOdn7AvzefPKdsYrWv/DRE392i/yyGGzedMLJ42Py5LpR7o2H4BteztwBk+6MMz/JVrz2HfRK4PMoFatpVtGmGnd7dXVTtDHYDSiFpv/5gA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fijq5GjO; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1784056909; c=relaxed/simple;
+	bh=2XrV8e9V+iEElpYYd9ib854clqb1ynx3DMyy4kSNcd4=;
+	h=Date:To:From:Subject:Message-Id; b=dhagl6s8UV8snJc6LNicZ1h3ZzudPCj6uh3TTOOyWPtuTT3JIy4a0KwWU5ireUz+5f1oSOlQoS4xii5Q5531+WwgWLK5vLWCZu+QNyr3+3xHbtRb7YfbeG/AF85Hqp+1gvu74aRQYMK/X1Nr0wAVAChtk+gvAjm4XY6DIg6vm0Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vkWYP+yd; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fijq5GjO"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C34911F000E9;
-	Tue, 14 Jul 2026 19:21:45 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vkWYP+yd"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B5B6E1F00A3A;
+	Tue, 14 Jul 2026 19:21:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1784056905;
-	bh=pkoKQpgWGgP8pFJGMeFq9X7Ikounhpw+g3Ir0ajeVFI=;
+	d=linux-foundation.org; s=korg; t=1784056907;
+	bh=SB14Q2Pi+ogA7PSzYIpE0pk9N1JPW7m+14r5KL6CIx4=;
 	h=Date:To:From:Subject;
-	b=fijq5GjOBbgCGCENW2yqhdUrOgQblfvK/9Sa1BadsWVbKZnHAHCtzQdqIUQGMuM8A
-	 rzKIVVEUMGdHUel/sMwy8Cgi8Udji0zNdQfGEhvXqqA5dxY1adVCvB9PDD/371oQvr
-	 8bwzPwSfDnV3EcPKMIqV0BKaGIOffSIMZ5v+EFhE=
-Date: Tue, 14 Jul 2026 12:21:45 -0700
+	b=vkWYP+ydsweAtGjRUuIha6VKxoGFhIhqX+BQySHJ56SdJHtMOvE2zVqIORiDmNOxg
+	 ydUf1uTTOuTphpSSHN2EKbegyZreTMSXyRkw02FqSqeB1b7WsqeBx4IkGUeYzKfTgl
+	 hP6ud5wCpICWQq1qPqQAIX/3ik9YJhOoCUAnANxw=
+Date: Tue, 14 Jul 2026 12:21:47 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-core-hide-private-damon_region-fields.patch added to mm-new branch
-Message-Id: <20260714192145.C34911F000E9@smtp.kernel.org>
+Subject: + mm-damon-core-hide-private-damon_target-fields.patch added to mm-new branch
+Message-Id: <20260714192147.B5B6E1F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/core: hide private damon_region fields
+     Subject: mm/damon/core: hide private damon_target fields
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-core-hide-private-damon_region-fields.patch
+     mm-damon-core-hide-private-damon_target-fields.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-hide-private-damon_region-fields.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-hide-private-damon_target-fields.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,68 +70,49 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/core: hide private damon_region fields
-Date: Tue, 14 Jul 2026 07:35:34 -0700
+Subject: mm/damon/core: hide private damon_target fields
+Date: Tue, 14 Jul 2026 07:35:35 -0700
 
-Patch series "mm/damon/core: hide core-private struct fields".
+'nr_regions', 'regions_list' and 'list' fields of damon_target are
+intended to be used by only the DAMON core layer.  Those are mistakenly
+not marked as private.  Mark as private.
 
-DAMON core structs hide core-private fields using 'private:' comment tags.
-It is incomplete and inconsistent.  The linked list heads in a few
-structs, for example, are intended to be hidden, and always be used using
-the wrapper macros like damon_for_each_region().  But those were
-mistakenly marked as non-private.  A few core layer-only fields were also
-mistakenly added as non-private.
-
-This only encourages callers to directly use the private fields.  It is
-easy to make mistakes, and difficult to control.  Mark all such DAMON core
-struct fields as private.
-
-Patches 1-8 mark the private fields for damon_region, damon_target,
-damos_quota_goal, damos_quota, damos_filter, damos, damon_filter and
-damon_probe, respectively.  Patch 9 removes DAMON_SYSFS's direct access to
-core-private field, damon_ctx->ops.  Finally patch 10 mark the private
-fields for damon_ctx.
-
-
-This patch (of 10):
-
-damon_region->list is intended to be used by only the DAMON core layer. 
-But it is mistakenly not marked as private.  Hide it from the callers by
-marking it private.
-
-Link: https://lore.kernel.org/20260714143544.101305-1-sj@kernel.org
-Link: https://lore.kernel.org/20260714143544.101305-2-sj@kernel.org
+Link: https://lore.kernel.org/20260714143544.101305-3-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/damon.h |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ include/linux/damon.h |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
---- a/include/linux/damon.h~mm-damon-core-hide-private-damon_region-fields
+--- a/include/linux/damon.h~mm-damon-core-hide-private-damon_target-fields
 +++ a/include/linux/damon.h
-@@ -46,7 +46,6 @@ struct damon_size_range {
-  * @sampling_addr:	Address of the sample for the next access check.
-  * @nr_accesses:	Access frequency of this region.
-  * @probe_hits:		Number of probe-positive region samples.
+@@ -79,9 +79,6 @@ struct damon_region {
+ /**
+  * struct damon_target - Represents a monitoring target.
+  * @pid:		The PID of the virtual address space to monitor.
+- * @nr_regions:		Number of monitoring target regions of this target.
+- * @regions_list:	Head of the monitoring target regions of this target.
 - * @list:		List head for siblings.
-  * @age:		Age of this region.
+  * @obsolete:		Whether the commit destination target is obsolete.
   *
-  * For any use case, @ar should be non-zero positive size.  damon_set_regions()
-@@ -68,9 +67,11 @@ struct damon_region {
- 	unsigned long sampling_addr;
- 	unsigned int nr_accesses;
- 	unsigned char probe_hits[DAMON_MAX_PROBES];
--	struct list_head list;
- 	unsigned int age;
--/* private: Internal value for age calculation. */
-+/* private: internal use only. */
+  * Each monitoring context could have multiple targets.  For example, a context
+@@ -95,10 +92,14 @@ struct damon_region {
+  */
+ struct damon_target {
+ 	struct pid *pid;
++	bool obsolete;
++/* private: */
++	/* Number of monitoring target regions of this target. */
+ 	unsigned int nr_regions;
++	/* Head of the monitoring target regions of this target. */
+ 	struct list_head regions_list;
 +	/* List head for siblings. */
-+	struct list_head list;
-+	/* for age calculation. */
- 	unsigned int last_nr_accesses;
- 	unsigned char last_probe_hits[DAMON_MAX_PROBES];
+ 	struct list_head list;
+-	bool obsolete;
  };
+ 
+ /**
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
