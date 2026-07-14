@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6DA402931F5
-	for <mm-commits@vger.kernel.org>; Tue, 14 Jul 2026 19:22:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1E4EA43A7E7
+	for <mm-commits@vger.kernel.org>; Tue, 14 Jul 2026 19:26:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784056924; cv=none; b=pBsea2BJA3luQXvMpWAF4L0OF1pYu7fgND8Le4kn/dJsbwCsTkd1OXOoJt+JKqnNVIsZqWJY1Ou8pX9puu9457egFIICz2Bj4ui5koRmzUeYcCEoT/YxQ/duCmiM8KqtlsMj9cGHnmfu6d1/bVVEnQKGEvZbvYVmr3ZBHXl9muk=
+	t=1784057195; cv=none; b=Xg6p4MeUlhurf9L77ZWs5KpvIrq7Z63VL/1ZTw52zGnqPzyh2j60KQGjNwtb/OHVtTG1TUn18DmTCu0GDkXay3eFdBxyc/qLQAQ6uUEK2g0m7SQZTTN3KrnXNuBHZexWizEiEmof1NkkClJw8WsiDWH7zJLldI0U8cvbQG/Hv4I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784056924; c=relaxed/simple;
-	bh=kwlE0XH8CxvFn8mVFSbeH7bQm6qygRMyCp+MIfQSB5g=;
-	h=Date:To:From:Subject:Message-Id; b=YO4TVTSJmzPJ/dOoZIMpRGH2tnJVsVZ7bwE5SRwwVt10rDpNSSNcijkNMLPXJ9qzAU1obZbZmJjrjmVsmuHWgLOXJGE/5FI7fu7a9wT8SnYzBtmio2HaNuXldbcL8pPAkDEjH+EIy+gZn/P3q9alb5ozng0BIQomDpB0YbSUxYw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mIpVtTra; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1784057195; c=relaxed/simple;
+	bh=Pw2LMSdoWpGr3T4UPdxV/fCYvIOEXvoyn/Rtop7x8Jo=;
+	h=Date:To:From:Subject:Message-Id; b=HW8lLUS6sLyS1enzLcN5tb4zYactpW6IVMkcfzzbcyrsdui7/U0jY17b/uzUzX8qnKkKkgu26JA5sMxA+E1p3wSiOuNFD+htBgYCFNAZyg725iUeCLhue7yp3h0ipgeuoD6a5vZsHXSieo+y7fcrJg9krdSnZNCnKsP00Bl95kU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vh81EuGC; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mIpVtTra"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E0FE71F000E9;
-	Tue, 14 Jul 2026 19:22:02 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vh81EuGC"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A66591F00ACF;
+	Tue, 14 Jul 2026 19:26:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1784056923;
-	bh=agSOqmartjaMHhKI/WEY9JtLl591lCOjwEnR47i47O4=;
+	d=linux-foundation.org; s=korg; t=1784057187;
+	bh=51JHTjOLNVt9mPiYTfXj1zKF1NQT2ofaGyf9Er+3QXg=;
 	h=Date:To:From:Subject;
-	b=mIpVtTraN11VlTb+yWkIW5aDnZxe0OeuCIpJXdOgHu4iBH3VbGv1zCsMeJ9YLmyUm
-	 gh/gYf2XvSwViRAhFmQm1joOrzZ7ttKJ9QXakfpejFNIWumo3zYqAVU6C6G0KIDMnj
-	 Rb8TvGmJC/cFv8hS2GNMg0uYtW19SxJuIMUwZUro=
-Date: Tue, 14 Jul 2026 12:22:02 -0700
-To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
+	b=vh81EuGCnFJJFL2FcCOJ/dLPTP4c63vTe0EF5ba5VOiuHfQFNU8Q/lsAcMGKyM+Np
+	 PNDxorQUwgG/PN+Vwq+VCQlIOGbrS//4ls607qzrh/fQPjRbV7pZD8N27b3d1X6k3K
+	 ywmOvQ98IMWRMytheaLHLQ2LitT4GfA5eaacHA2w=
+Date: Tue, 14 Jul 2026 12:26:27 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,sj@kernel.org,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,corbet@lwn.net,husong@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-core-hide-core-private-damon_ctx-fields.patch added to mm-new branch
-Message-Id: <20260714192202.E0FE71F000E9@smtp.kernel.org>
+Subject: + docs-abi-damon-fix-typos.patch added to mm-unstable branch
+Message-Id: <20260714192627.A66591F00ACF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,26 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/core: hide core-private damon_ctx fields
-has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-core-hide-core-private-damon_ctx-fields.patch
+     Subject: Docs/ABI/damon: fix typos
+has been added to the -mm mm-unstable branch.  Its filename is
+     docs-abi-damon-fix-typos.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-hide-core-private-damon_ctx-fields.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-abi-damon-fix-typos.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,170 +58,60 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: SJ Park <sj@kernel.org>
-Subject: mm/damon/core: hide core-private damon_ctx fields
-Date: Tue, 14 Jul 2026 07:35:43 -0700
+From: Song Hu <husong@kylinos.cn>
+Subject: Docs/ABI/damon: fix typos
+Date: Tue, 14 Jul 2026 07:01:14 -0700
 
-'ops', 'probes', 'adaptive_targets', 'schemes', and 'rnd_state' fields of
-damon_ctx are intended to be used by only the DAMON core layer.  However,
-those are mistakenly not marked as private.  Mark as private.
+Fix two typos in the DAMON sysfs ABI document:
 
-Link: https://lore.kernel.org/20260714143544.101305-11-sj@kernel.org
+  - "WDate:" -> "Date:" on the nr_regions/min entry
+  - "manimum" -> "minimum" in the nr_accesses/min description
+
+Link: https://lore.kernel.org/20260714140117.94147-3-sj@kernel.org
+Signed-off-by: Song Hu <husong@kylinos.cn>
+Reviewed-by: SJ Park <sj@kernel.org>
 Signed-off-by: SJ Park <sj@kernel.org>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/damon.h |   15 ++++++++-------
- 1 file changed, 8 insertions(+), 7 deletions(-)
+ Documentation/ABI/testing/sysfs-kernel-mm-damon |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/include/linux/damon.h~mm-damon-core-hide-core-private-damon_ctx-fields
-+++ a/include/linux/damon.h
-@@ -848,14 +848,9 @@ struct damon_attrs {
-  * thread other than the kdamond should be made using safe DAMON APIs,
-  * including damon_call() and damos_walk().
-  *
-- * @ops:	Set of monitoring operations for given use cases.
-- * @probes:	Head of probes (&damon_probe) list.
-  * @addr_unit:	Scale factor for core to ops address conversion.
-  * @min_region_sz:	Minimum region size.
-  * @pause:	Pause kdamond main loop.
-- * @adaptive_targets:	Head of monitoring targets (&damon_target) list.
-- * @schemes:		Head of schemes (&damos) list.
-- * @rnd_state:	Per-ctx PRNG state for damon_rand().
-  */
- struct damon_ctx {
- 	struct damon_attrs attrs;
-@@ -904,15 +899,21 @@ struct damon_ctx {
- 	struct mutex kdamond_lock;
+--- a/Documentation/ABI/testing/sysfs-kernel-mm-damon~docs-abi-damon-fix-typos
++++ a/Documentation/ABI/testing/sysfs-kernel-mm-damon
+@@ -144,7 +144,7 @@ Description:	Writing a value to this fil
  
- /* public: */
--	struct damon_operations ops;
--	struct list_head probes;
- 	unsigned long addr_unit;
- 	unsigned long min_region_sz;
- 	bool pause;
+ What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/monitoring_attrs/nr_regions/min
  
-+/* private: */
-+	/* Set of monitoring operations for given use cases. */
-+	struct damon_operations ops;
-+	/* Head of monitoring targets (&damon_target) list. */
- 	struct list_head adaptive_targets;
-+	/* Head of probes (&damon_probe) list. */
-+	struct list_head probes;
-+	/* Head of schemes (&damos) list. */
- 	struct list_head schemes;
+-WDate:		Mar 2022
++Date:		Mar 2022
+ Contact:	SJ Park <sj@kernel.org>
+ Description:	Writing a value to this file sets the minimum number of
+ 		monitoring regions of the DAMON context as the value.  Reading
+@@ -287,7 +287,7 @@ Description:	Writing to and reading from
+ What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/access_pattern/nr_accesses/min
+ Date:		Mar 2022
+ Contact:	SJ Park <sj@kernel.org>
+-Description:	Writing to and reading from this file sets and gets the manimum
++Description:	Writing to and reading from this file sets and gets the minimum
+ 		'nr_accesses' of the scheme's target regions.
  
-+	/* @rnd_state:	Per-ctx PRNG state for damon_rand(). */
- 	struct rnd_state rnd_state;
- };
- 
+ What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/access_pattern/nr_accesses/max
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from husong@kylinos.cn are
 
-samples-damon-wsse-handle-damon_start-failure.patch
-samples-damon-prcl-handle-damon_start-failure.patch
-samples-damon-mtier-handle-damon_start-failure.patch
-samples-damon-mtier-handle-damon_stop-failure.patch
-samples-damon-wsse-stop-and-free-damon-ctx-when-damon_call-fails.patch
-samples-damon-prcl-stop-and-free-damon-ctx-when-damon_call-fails.patch
-mm-damon-sysfs-kobject_del-target-normal-context-and-kdamond-dirs.patch
-mm-damon-sysfs-kobject_del-region-and-target-error-dirs.patch
-mm-damon-sysfs-schemes-kobject_del-scheme-dirs.patch
-mm-damon-sysfs-schemes-kobject_del-scheme-region-dirs.patch
-mm-damon-sysfs-schemes-kobject_del-scheme-filter-dirs.patch
-mm-damon-sysfs-schemes-kobject_del-scheme-quota-goal-dirs.patch
-mm-damon-sysfs-schemes-kobject_del-scheme-action-destination-dirs.patch
-mm-damon-sysfs-kobject_del-probe-dirs.patch
-mm-damon-sysfs-kobject_del-probe-filter-dirs.patch
-mm-damon-sysfs-kobject_del-probe-dirs-in-probes_addd_dir-error-path.patch
-mm-damon-sysfs-schemes-kobject_del-region-for-populate_region-error.patch
-docs-mm-damon-design-update-for-damos_quota_node_eligible_mem_bp.patch
-docs-abi-damon-document-probe-files.patch
-mm-damon-tests-core-kunit-test-damon_rand.patch
-selftests-damon-sysfssh-test-multiple-probe-dirs-creation.patch
-selftests-damon-sysfssh-test-coreops_filters-directories.patch
-selftests-damon-sysfssh-test-dests-dir.patch
-selftests-damon-sysfssh-test-all-files-in-quota-goal-dir.patch
-mm-damon-core-reduce-range-setup-in-damon_commit_target_regions.patch
-mm-damon-sysfs-split-probe-setup-function-out.patch
-mm-damon-sysfs-split-out-filters-setup-function.patch
-mm-damon-sysfs-fix-typos-in-probe_addrm_dirs-s-attr-probe.patch
-mm-damon-core-introduce-damon_nr_accesses_mvsum.patch
-mm-damon-tests-core-kunit-test-damon_mvsum.patch
-mm-damon-core-always-update-last_nr_accesses-for-intervals-change.patch
-mm-damon-core-handle-unreset-nr_accesses-in-damon_nr_accesses_mvsum.patch
-mm-damon-core-use-damon_nr_accesses_mvsum-in-__damos_valid_target.patch
-mm-damon-core-use-damon_nr_accesses_mvsum-for-damos-region-tracing.patch
-mm-damon-sysfs-schemes-use-damon_nr_accesses_mvsum-for-damo-regions.patch
-mm-damon-core-remove-damon_warn_fix_nr_accesses_corruption.patch
-mm-damon-core-remove-damon_verify_reset_aggregated.patch
-mm-damon-core-remove-damon_verify_merge_regions_of.patch
-mm-damon-tests-core-kunit-remove-nr_accesses_bp-setup-and-tests.patch
-selftests-damon-drgn_dump_damon_status-do-not-dump-nr_accesses_bp.patch
-mm-damon-core-remove-nr_accesses_bp-setups-and-updates.patch
-mm-damon-core-remove-attrs-param-from-damon_update_region_access_rate.patch
-mm-damon-paddr-remove-attrs-param-from-__damon_pa_check_access.patch
-mm-damon-vaddr-remove-attrs-param-from-__damon_va_check_access.patch
-mm-damon-core-remove-damon_moving_sum-and-its-unit-test.patch
-mm-damon-core-remove-damon_region-nr_accesses_bp.patch
-mm-damon-add-damon_region-last_probe_hits.patch
-mm-damon-core-introduce-damon_probe_hits_mvsum.patch
-mm-damon-sysfs-schemes-set-probe-hits-as-pseudo-moving-sums.patch
-mm-damon-core-safely-validate-src-on-damon_commit_ctx.patch
-mm-damon-core-do-parameter-testing-commit-on-damon_start.patch
-mm-damon-sysfs-remove-duplicated-commit-input-validity-check.patch
-mm-damon-reclaim-remove-duplicated-min_region_sz-power-of-2-check.patch
-mm-damon-lru_sort-remove-duplicated-min_region_sz-power_of_2-check.patch
-mm-damon-document-region-size-validation-in-damon_set_regions.patch
-mm-damon-core-remove-start-end-check-in-damon_set_region_system_rams.patch
-mm-damon-sysfs-remove-region-size-validation.patch
-mm-damon-core-stop-ctxs-in-damon_start-before-returning-an-error.patch
-samples-damon-mtier-do-not-stop-first-context-for-damon_start-failure.patch
-mm-damon-core-make-damon_stop-never-fails.patch
-mm-damon-sysfs-ignore-damon_stop-return-value.patch
-mm-damon-reclaaim-ignore-damon_stop-return-value.patch
-mm-damon-lru_sort-ignore-damon_stop-return-value.patch
-mm-damon-core-change-damon_stop-return-type-to-void.patch
-samples-damon-mtier-stop-all-contexts-with-single-damon_stop-call.patch
-mm-damon-core-wait-ctx-stop-in-damon_call-before-reruning-an-error.patch
-samples-damon-wsse-do-not-stop-ctx-for-damon_call-failure.patch
-samples-damon-prcl-do-not-stop-damon-for-damon_call-failure.patch
-mm-damon-core-remove-comment-and-test-for-nr_to_bp-divide-by-zero.patch
-mm-damon-core-s-damon_max_nr_accesses-damon_nr_samples_per_aggr.patch
-mm-damon-core-s-accesses_bp_to_nr_accesses-sample_bp_to_count.patch
-mm-damon-core-s-nr_accesses_to_accesses_bp-sample_count_to_bp.patch
-mm-damon-core-s-nr_accesses_for_new_attrs-nr_samples_for_new_attrs.patch
-mm-damon-core-update-probe-hits-for-new-parameter-commit.patch
-mm-damon-core-handle-unreset-probe_hits-in-probe_hits_mvsum.patch
-mm-damon-core-introduce-damon_probe-weight.patch
-mm-damon-core-ask-apply_probes-ops-callback-to-set-sampling-address.patch
-mm-damon-paddr-set-samples-in-apply_probes-if-requested.patch
-mm-damon-core-ask-apply_probe-to-return-max-probe-hits-weighted-sum.patch
-mm-damon-core-implement-damon_probe_hits_wsum.patch
-mm-damon-paddr-respect-return_max_wsum.patch
-mm-damon-core-use-abs_diff-instead-of-abs.patch
-mm-damon-core-extend-merge-function-to-work-with-probe-hits.patch
-mm-damon-core-disallow-probe_hits-overflow-on-attrs-only-monitoring.patch
-mm-damon-core-validate-params-for-probe-hits-weighted-sum-overflow.patch
-mm-damon-core-disable-access-monitoring-when-probe-weights-are-set.patch
-mm-damon-core-set-samples-in-apply_probes-if-probe-weights-are-set.patch
-mm-damon-core-s-max_nr_accesses-max_merge_score-in-kdamond_fn.patch
-mm-damon-core-get-merge-threshold-from-probe-hits-when-weights-are-set.patch
-mm-damon-core-implement-damon_has_probe_weight.patch
-mm-damon-sysfs-implement-probe-weight-file.patch
-docs-mm-damon-design-document-attrs-only-monitoring.patch
-docs-admin-guide-mm-damon-usage-document-weight-sysfs-file.patch
-docs-abi-damon-document-probe-weight-file.patch
-mm-damon-core-skip-aging-from-repeated-aggressive-merging.patch
-mm-damon-core-hide-private-damon_region-fields.patch
-mm-damon-core-hide-private-damon_target-fields.patch
-mm-damon-core-hide-private-damos_quota_goal-fields.patch
-mm-damon-core-hide-private-damos_quota-fields.patch
-mm-damon-core-hide-private-damos_filter-fields.patch
-mm-damon-core-hide-private-damos-fields.patch
-mm-damon-core-hide-private-damon_filter-fields.patch
-mm-damon-core-hide-private-damon_probe-fields.patch
-mm-damon-sysfs-do-not-directly-access-damon_ctx-ops.patch
-mm-damon-core-hide-core-private-damon_ctx-fields.patch
+mm-damon-tests-core-kunit-test-damon_nr_accesses_mvsum.patch
+docs-abi-damon-fix-typo-in-intervals_goal-sysfs-path.patch
+docs-abi-damon-fix-typos.patch
+docs-abi-damon-document-update_tuned_intervals-state-command.patch
+docs-abi-damon-document-tried_regions-probe-hits.patch
 
