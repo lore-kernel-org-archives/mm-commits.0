@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1E9FD191F94
-	for <mm-commits@vger.kernel.org>; Tue, 14 Jul 2026 01:24:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5AD7235C1B2;
+	Tue, 14 Jul 2026 01:33:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783992269; cv=none; b=BHUibQ4jVtXW/YJm+4YasSTu864od7fc8s7rlLne3CH0b/an1XqPakcw24Aq9jAVYcSwYcHWz2ozeQqbZqy4vkFk1+8//xEdGwFbRzuhvl8V26rgA547x3vhn7Yba+QP6fRyoT+gHaL3UK/fdYCFNzhMNLMchxHzRlb8sXH7H/o=
+	t=1783992834; cv=none; b=r9LYiVq4N73yN8w+sr+ZfmEjvXe/NltocmTSNLUy/28+IjQK9xa80g8yRAIXIAPp+S9jmBdTIr/nRHe2sNZemWzY253QBNpYOK4z2xf7G5a741Aabcx/G0AqGR0bOjoRIoqD4Kjo1gs1m+GOlZpADWR6Ce4EylQJAHHy7tu6Wl8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783992269; c=relaxed/simple;
-	bh=dDAYvxV89E2Bk1ff9bIlBDEIZvbkMTmp2LbrsdWKkcs=;
-	h=Date:To:From:Subject:Message-Id; b=mVP13uP3QVV6Gb34O7CLXxEKsSyFamqAQgjlp+yyJivE3+JJYJUVRcG7D8ozE4PLuO24f0Pt90stO5KzV3kuP9Beo3xhmXwqNpvVvXRagC6vFoDCo8yiTC422oVYU+EiWJIzSiUjUUyH7k8vmTT+glfT+YpOyfxp3GU5V0n/VBs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fjMzQK4t; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783992834; c=relaxed/simple;
+	bh=8oHan6rSm30Vqz3u377DIRawPv0tLeiGoQYeQBbltLU=;
+	h=Date:To:From:Subject:Message-Id; b=a92yvtnOllp5ElAEOOkiIodXQTtM/we0E8fvAMUq7EvkCuaWnMDYNzgEUsp8QAZ/rhljZRSeXUL01iC1ZTnzk484a95ujIftrp6qhj9q1UegbT9lEHfD+igKO4rWbXMkk3iZXmdSIeewn9CAURa8GgfKfJNMCyyJvD6vFIjEcpk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=q6pNfvHZ; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fjMzQK4t"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8B70D1F000E9;
-	Tue, 14 Jul 2026 01:24:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="q6pNfvHZ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BFDB51F000E9;
+	Tue, 14 Jul 2026 01:33:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783992267;
-	bh=uAfNHTVF57qAGJA42A4kWYa62SKFX91N8iOiKkKAvs0=;
+	d=linux-foundation.org; s=korg; t=1783992832;
+	bh=YCxJQd5pc3BLKBBIw9utdCdqZj4h4t4WrngHkCHjt7s=;
 	h=Date:To:From:Subject;
-	b=fjMzQK4tnCkjyLlbJSjB4yGWCPd+YZTCGGL0EIEkDQdtoQPIRA3Qdrb46k0UW/Tpi
-	 mCyeum7e99d+LKvcVr61MYYc0FtT4Nl9y5C5RHe1ueHpaCPea4OwfVECQTlevbKASg
-	 n9vz2s0SkMf+SmmWYnehqsuynqS0BHcbV6MdyFWQ=
-Date: Mon, 13 Jul 2026 18:24:27 -0700
-To: mm-commits@vger.kernel.org,balbirs@nvidia.com,akpm@linux-foundation.org,cyyzero16@gmail.com,akpm@linux-foundation.org
+	b=q6pNfvHZ67xgVjV+OHEY9AAX3QnfRQgCU/vkjVA6XCR8Jq+FeWgBPEgtcC9Rs5o66
+	 uD16Dt05TxS4HYuQG1ABG5u7clJ+YQxbfmOM96QBe79P2cK35Ty7z/9aKbUnopFm74
+	 qDVxNzklkloqsonWyKMdpbFr+BwisamZnua3G1gU=
+Date: Mon, 13 Jul 2026 18:33:52 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-acct-share-netlink-helpers.patch added to mm-nonmm-unstable branch
-Message-Id: <20260714012427.8B70D1F000E9@smtp.kernel.org>
+Subject: + mm-damon-core-skip-aging-from-repeated-aggressive-merging.patch added to mm-new branch
+Message-Id: <20260714013352.BFDB51F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,26 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/acct: share netlink helpers
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     selftests-acct-share-netlink-helpers.patch
+     Subject: mm/damon/core: skip aging from repeated aggressive merging
+has been added to the -mm mm-new branch.  Its filename is
+     mm-damon-core-skip-aging-from-repeated-aggressive-merging.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-acct-share-netlink-helpers.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-skip-aging-from-repeated-aggressive-merging.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,578 +69,197 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Yiyang Chen <cyyzero16@gmail.com>
-Subject: selftests/acct: share netlink helpers
-Date: Mon, 13 Jul 2026 01:13:31 +0800
+From: SJ Park <sj@kernel.org>
+Subject: mm/damon/core: skip aging from repeated aggressive merging
+Date: Sun, 12 Jul 2026 09:54:30 -0700
 
-Extract the duplicated generic netlink boilerplate (netlink_open,
-send_request, get_family_id, and NLA walker macros) from cgroupstats.c and
-taskstats_fill_stats_tgid.c into a shared netlink_helper.{h,c}.
+The number of DAMON regions could temporarily exceed the user-defined
+maximum number of regions limit for corner cases.  For example, users
+could lower the limit via runtime parameters update.  For such a case,
+kdamond_merge_regions() repeats merging regions in the case doubling the
+merge threshold.  The repeated merge operation could update the age of
+regions multiple times.  This corrupts the monitoring results.  Fix the
+issue by asking the merge operation to skip aging for the corner case.
 
-Link: https://lore.kernel.org/a2adf27308b5cd90d50b59e8519b87da49486bee.1783876192.git.cyyzero16@gmail.com
-Signed-off-by: Yiyang Chen <cyyzero16@gmail.com>
-Suggested-by: Andrew Morton <akpm@linux-foundation.org>
-Acked-by: Balbir Singh <balbirs@nvidia.com>
+The user impact is degradation of the monitoring quality.  The impact
+should be mild, since the degradation is only temporal, and it is not
+common to happen in realistic setups.
+
+The issue was discovered [1,2] by Sashiko.
+
+Link: https://lore.kernel.org/20260712165432.87609-1-sj@kernel.org
+Link: https://lore.kernel.org/20260621203548.10718-1-sj@kernel.org [1]
+Link: https://lore.kernel.org/20260709145425.96247-1-sj@kernel.org [2]
+Fixes: 310d6c15e910 ("mm/damon/core: merge regions aggressively when max_nr_regions is unmet")
+Signed-off-by: SJ Park <sj@kernel.org>
+Cc: <stable@vger.kernel.org> # 6.10
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/acct/.gitignore                  |    1 
- tools/testing/selftests/acct/Makefile                    |   10 
- tools/testing/selftests/acct/cgroupstats.c               |  133 ---------
- tools/testing/selftests/acct/netlink_helper.c            |  116 ++++++++
- tools/testing/selftests/acct/netlink_helper.h            |   44 +++
- tools/testing/selftests/acct/taskstats_fill_stats_tgid.c |  134 ----------
- 6 files changed, 184 insertions(+), 254 deletions(-)
+ mm/damon/core.c             |   21 +++++++++++++--------
+ mm/damon/tests/core-kunit.h |    2 +-
+ 2 files changed, 14 insertions(+), 9 deletions(-)
 
---- a/tools/testing/selftests/acct/cgroupstats.c~selftests-acct-share-netlink-helpers
-+++ a/tools/testing/selftests/acct/cgroupstats.c
-@@ -6,139 +6,19 @@
- #include <linux/cgroupstats.h>
- #include <linux/genetlink.h>
- #include <linux/netlink.h>
-+#include <stdbool.h>
- #include <stdint.h>
- #include <stdio.h>
- #include <stdlib.h>
- #include <string.h>
-+#include <sys/mount.h>
- #include <sys/socket.h>
- #include <sys/types.h>
--#include <sys/mount.h>
--#include <time.h>
- #include <unistd.h>
- 
-+#include "netlink_helper.h"
- #include "kselftest.h"
- 
--#ifndef NLA_ALIGN
--#define NLA_ALIGNTO 4
--#define NLA_ALIGN(len) (((len) + NLA_ALIGNTO - 1) & ~(NLA_ALIGNTO - 1))
--#define NLA_HDRLEN ((int)NLA_ALIGN(sizeof(struct nlattr)))
--#endif
--
--#define RECV_TIMEOUT_SEC 2
--
--static void *nla_data(const struct nlattr *na)
--{
--	return (void *)((char *)na + NLA_HDRLEN);
--}
--
--static int netlink_open(void)
--{
--	struct timeval tv = { .tv_sec = RECV_TIMEOUT_SEC };
--	struct sockaddr_nl addr = {
--		.nl_family = AF_NETLINK,
--		.nl_pid = getpid(),
--	};
--	int fd;
--
--	fd = socket(AF_NETLINK, SOCK_RAW, NETLINK_GENERIC);
--	if (fd < 0)
--		return -errno;
--
--	/*
--	 * Ensure that a missing kernel reply fails the individual test
--	 * case instead of hanging the whole test binary.
--	 */
--	if (setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) < 0) {
--		int err = -errno;
--
--		close(fd);
--		return err;
--	}
--
--	if (bind(fd, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
--		int err = -errno;
--
--		close(fd);
--		return err;
--	}
--
--	return fd;
--}
--
--static int send_request(int fd, void *buf, size_t len)
--{
--	struct sockaddr_nl addr = {
--		.nl_family = AF_NETLINK,
--	};
--
--	if (sendto(fd, buf, len, 0, (struct sockaddr *)&addr, sizeof(addr)) < 0)
--		return -errno;
--
--	return 0;
--}
--
--static int get_family_id(int fd, const char *name)
--{
--	struct {
--		struct nlmsghdr nlh;
--		struct genlmsghdr genl;
--		char buf[256];
--	} req = { 0 };
--	char resp[8192];
--	struct nlmsghdr *nlh;
--	struct genlmsghdr *genl;
--	struct nlattr *na;
--	int len;
--	int rem;
--	int ret;
--
--	req.nlh.nlmsg_len = NLMSG_LENGTH(GENL_HDRLEN);
--	req.nlh.nlmsg_type = GENL_ID_CTRL;
--	req.nlh.nlmsg_flags = NLM_F_REQUEST;
--	req.nlh.nlmsg_seq = 1;
--	req.nlh.nlmsg_pid = getpid();
--
--	req.genl.cmd = CTRL_CMD_GETFAMILY;
--	req.genl.version = 1;
--
--	na = (struct nlattr *)((char *)&req + NLMSG_ALIGN(req.nlh.nlmsg_len));
--	na->nla_type = CTRL_ATTR_FAMILY_NAME;
--	na->nla_len = NLA_HDRLEN + strlen(name) + 1;
--	memcpy(nla_data(na), name, strlen(name) + 1);
--	req.nlh.nlmsg_len = NLMSG_ALIGN(req.nlh.nlmsg_len) + NLA_ALIGN(na->nla_len);
--
--	ret = send_request(fd, &req, req.nlh.nlmsg_len);
--	if (ret)
--		return ret;
--
--	len = recv(fd, resp, sizeof(resp), 0);
--	if (len < 0)
--		return -errno;
--
--	for (nlh = (struct nlmsghdr *)resp; NLMSG_OK(nlh, len);
--	     nlh = NLMSG_NEXT(nlh, len)) {
--		if (nlh->nlmsg_type == NLMSG_ERROR) {
--			struct nlmsgerr *err = NLMSG_DATA(nlh);
--
--			return err->error ? err->error : -ENOENT;
--		}
--
--		genl = (struct genlmsghdr *)NLMSG_DATA(nlh);
--		rem = nlh->nlmsg_len - NLMSG_HDRLEN - GENL_HDRLEN;
--		na = (struct nlattr *)((char *)genl + GENL_HDRLEN);
--		while (rem >= (int)sizeof(*na) &&
--		       na->nla_len >= (int)sizeof(*na) &&
--		       na->nla_len <= rem) {
--			if (na->nla_type == CTRL_ATTR_FAMILY_ID)
--				return *(uint16_t *)nla_data(na);
--			rem -= NLA_ALIGN(na->nla_len);
--			na = (struct nlattr *)((char *)na + NLA_ALIGN(na->nla_len));
--		}
--	}
--
--	return -ENOENT;
--}
--
- static int send_cgroupstats_cmd(int fd, int family_id, uint32_t cgroup_fd,
- 				int flags)
+--- a/mm/damon/core.c~mm-damon-core-skip-aging-from-repeated-aggressive-merging
++++ a/mm/damon/core.c
+@@ -3308,7 +3308,7 @@ static unsigned int damon_merge_score(st
+  * sz_limit	size upper limit of each region
+  */
+ static void damon_merge_regions_of(struct damon_target *t, unsigned int thres,
+-		unsigned long sz_limit, struct damon_ctx *ctx)
++		unsigned long sz_limit, struct damon_ctx *ctx, bool count_age)
  {
-@@ -203,15 +83,12 @@ static int recv_cgroupstats_response(int
+ 	struct damon_region *r, *prev = NULL, *next;
+ 	bool use_probe_hits = damon_has_probe_weights(ctx);
+@@ -3319,12 +3319,14 @@ static void damon_merge_regions_of(struc
+ 		score = damon_merge_score(r, false, ctx, use_probe_hits);
+ 		last_score = damon_merge_score(r, true, ctx, use_probe_hits);
  
- 		rem = nlh->nlmsg_len - NLMSG_HDRLEN - GENL_HDRLEN;
- 		na = (struct nlattr *)((char *)genl + GENL_HDRLEN);
--		while (rem >= (int)sizeof(*na) &&
--		       na->nla_len >= (int)sizeof(*na) &&
--		       na->nla_len <= rem) {
-+		while (nla_ok(na, rem)) {
- 			if (na->nla_type == CGROUPSTATS_TYPE_CGROUP_STATS) {
- 				memcpy(stats, nla_data(na), sizeof(*stats));
- 				return 0;
- 			}
--			rem -= NLA_ALIGN(na->nla_len);
--			na = (struct nlattr *)((char *)na + NLA_ALIGN(na->nla_len));
-+			na = nla_next(na, &rem);
+-		if (abs_diff(score, last_score) > thres)
+-			r->age = 0;
+-		else if ((score == 0) != (last_score == 0))
+-			r->age = 0;
+-		else
+-			r->age++;
++		if (count_age) {
++			if (abs_diff(score, last_score) > thres)
++				r->age = 0;
++			else if ((score == 0) != (last_score == 0))
++				r->age = 0;
++			else
++				r->age++;
++		}
+ 
+ 		if (!prev)
+ 			goto set_prev_continue;
+@@ -3366,15 +3368,18 @@ static void kdamond_merge_regions(struct
+ 	struct damon_target *t;
+ 	unsigned int nr_regions;
+ 	unsigned int max_thres;
++	bool count_age = true;
+ 
+ 	max_thres = c->attrs.aggr_interval /
+ 		(c->attrs.sample_interval ?  c->attrs.sample_interval : 1);
+ 	do {
+ 		nr_regions = 0;
+ 		damon_for_each_target(t, c) {
+-			damon_merge_regions_of(t, threshold, sz_limit, c);
++			damon_merge_regions_of(t, threshold, sz_limit, c,
++					count_age);
+ 			nr_regions += damon_nr_regions(t);
  		}
++		count_age = false;
+ 		threshold = max(1, threshold * 2);
+ 	} while (nr_regions > c->attrs.max_nr_regions &&
+ 			threshold / 2 < max_thres);
+--- a/mm/damon/tests/core-kunit.h~mm-damon-core-skip-aging-from-repeated-aggressive-merging
++++ a/mm/damon/tests/core-kunit.h
+@@ -257,7 +257,7 @@ static void damon_test_merge_regions_of(
+ 		damon_add_region(r, t);
  	}
  
---- a/tools/testing/selftests/acct/.gitignore~selftests-acct-share-netlink-helpers
-+++ a/tools/testing/selftests/acct/.gitignore
-@@ -1,4 +1,5 @@
- acct_syscall
- taskstats_fill_stats_tgid
-+cgroupstats
- config
- process_log
---- a/tools/testing/selftests/acct/Makefile~selftests-acct-share-netlink-helpers
-+++ a/tools/testing/selftests/acct/Makefile
-@@ -3,7 +3,17 @@ TEST_GEN_PROGS := acct_syscall
- TEST_GEN_PROGS += taskstats_fill_stats_tgid
- TEST_GEN_PROGS += cgroupstats
- 
-+NETLINK_HELPER_PROGS := cgroupstats taskstats_fill_stats_tgid
-+
- CFLAGS += -Wall
- LDLIBS += -lpthread
- 
- include ../lib.mk
-+
-+$(NETLINK_HELPER_PROGS): %: %.c netlink_helper.c netlink_helper.h
-+	$(call msg,CC,,$@)
-+	$(Q)$(LINK.c) $< netlink_helper.c $(LDLIBS) -o $@
-+
-+$(addprefix $(OUTPUT)/,$(NETLINK_HELPER_PROGS)): $(OUTPUT)/%: %.c netlink_helper.c netlink_helper.h
-+	$(call msg,CC,,$@)
-+	$(Q)$(LINK.c) $< netlink_helper.c $(LDLIBS) -o $@
-diff --git a/tools/testing/selftests/acct/netlink_helper.c a/tools/testing/selftests/acct/netlink_helper.c
-new file mode 100644
---- /dev/null
-+++ a/tools/testing/selftests/acct/netlink_helper.c
-@@ -0,0 +1,116 @@
-+// SPDX-License-Identifier: GPL-2.0
-+
-+#include <errno.h>
-+#include <stdint.h>
-+#include <string.h>
-+#include <sys/socket.h>
-+#include <sys/time.h>
-+#include <unistd.h>
-+#include <linux/genetlink.h>
-+
-+#include "netlink_helper.h"
-+
-+int netlink_open(void)
-+{
-+	struct timeval tv = { .tv_sec = ACCT_RCV_TIMEOUT_SEC };
-+	struct sockaddr_nl addr = {
-+		.nl_family = AF_NETLINK,
-+		.nl_pid = getpid(),
-+	};
-+	int fd;
-+
-+	fd = socket(AF_NETLINK, SOCK_RAW, NETLINK_GENERIC);
-+	if (fd < 0)
-+		return -errno;
-+
-+	if (setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) < 0) {
-+		int err = -errno;
-+
-+		close(fd);
-+		return err;
-+	}
-+
-+	if (bind(fd, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
-+		int err = -errno;
-+
-+		close(fd);
-+		return err;
-+	}
-+
-+	return fd;
-+}
-+
-+int send_request(int fd, void *buf, size_t len)
-+{
-+	struct sockaddr_nl addr = {
-+		.nl_family = AF_NETLINK,
-+	};
-+
-+	if (sendto(fd, buf, len, 0, (struct sockaddr *)&addr, sizeof(addr)) < 0)
-+		return -errno;
-+
-+	return 0;
-+}
-+
-+/*
-+ * Resolve the generic netlink family ID for @name.
-+ * Returns the family ID (>= 0) on success, negative errno on failure.
-+ */
-+int get_family_id(int fd, const char *name)
-+{
-+	struct {
-+		struct nlmsghdr nlh;
-+		struct genlmsghdr genl;
-+		char buf[256];
-+	} req = { 0 };
-+	char resp[8192];
-+	struct nlmsghdr *nlh;
-+	struct genlmsghdr *genl;
-+	struct nlattr *na;
-+	int len;
-+	int rem;
-+	int ret;
-+
-+	req.nlh.nlmsg_len = NLMSG_LENGTH(GENL_HDRLEN);
-+	req.nlh.nlmsg_type = GENL_ID_CTRL;
-+	req.nlh.nlmsg_flags = NLM_F_REQUEST;
-+	req.nlh.nlmsg_seq = 1;
-+	req.nlh.nlmsg_pid = getpid();
-+
-+	req.genl.cmd = CTRL_CMD_GETFAMILY;
-+	req.genl.version = 1;
-+
-+	na = (struct nlattr *)((char *)&req + NLMSG_ALIGN(req.nlh.nlmsg_len));
-+	na->nla_type = CTRL_ATTR_FAMILY_NAME;
-+	na->nla_len = NLA_HDRLEN + strlen(name) + 1;
-+	memcpy(nla_data(na), name, strlen(name) + 1);
-+	req.nlh.nlmsg_len = NLMSG_ALIGN(req.nlh.nlmsg_len) + NLA_ALIGN(na->nla_len);
-+
-+	ret = send_request(fd, &req, req.nlh.nlmsg_len);
-+	if (ret)
-+		return ret;
-+
-+	len = recv(fd, resp, sizeof(resp), 0);
-+	if (len < 0)
-+		return -errno;
-+
-+	for (nlh = (struct nlmsghdr *)resp; NLMSG_OK(nlh, len);
-+	     nlh = NLMSG_NEXT(nlh, len)) {
-+		if (nlh->nlmsg_type == NLMSG_ERROR) {
-+			struct nlmsgerr *err = NLMSG_DATA(nlh);
-+
-+			return err->error ? err->error : -ENOENT;
-+		}
-+
-+		genl = (struct genlmsghdr *)NLMSG_DATA(nlh);
-+		rem = nlh->nlmsg_len - NLMSG_HDRLEN - GENL_HDRLEN;
-+		na = (struct nlattr *)((char *)genl + GENL_HDRLEN);
-+		while (nla_ok(na, rem)) {
-+			if (na->nla_type == CTRL_ATTR_FAMILY_ID)
-+				return *(uint16_t *)nla_data(na);
-+			na = nla_next(na, &rem);
-+		}
-+	}
-+
-+	return -ENOENT;
-+}
-diff --git a/tools/testing/selftests/acct/netlink_helper.h a/tools/testing/selftests/acct/netlink_helper.h
-new file mode 100644
---- /dev/null
-+++ a/tools/testing/selftests/acct/netlink_helper.h
-@@ -0,0 +1,44 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+/*
-+ * Shared generic netlink helpers for the acct selftests.
-+ */
-+#ifndef ACSELFTESTS_ACCT_NETLINK_HELPER_H
-+#define ACSELFTESTS_ACCT_NETLINK_HELPER_H
-+
-+#include <stdbool.h>
-+#include <linux/netlink.h>
-+
-+#ifndef NLA_ALIGNTO
-+#define NLA_ALIGNTO 4
-+#define NLA_ALIGN(len) (((len) + NLA_ALIGNTO - 1) & ~(NLA_ALIGNTO - 1))
-+#define NLA_HDRLEN ((int)NLA_ALIGN(sizeof(struct nlattr)))
-+#endif
-+
-+/* Fail an individual test case instead of hanging the whole binary. */
-+#define ACCT_RCV_TIMEOUT_SEC 2
-+
-+static inline void *nla_data(const struct nlattr *na)
-+{
-+	return (void *)((char *)na + NLA_HDRLEN);
-+}
-+
-+static inline bool nla_ok(const struct nlattr *na, int remaining)
-+{
-+	return remaining >= (int)sizeof(*na) &&
-+	       na->nla_len >= sizeof(*na) &&
-+	       na->nla_len <= remaining;
-+}
-+
-+static inline struct nlattr *nla_next(const struct nlattr *na, int *remaining)
-+{
-+	int aligned_len = NLA_ALIGN(na->nla_len);
-+
-+	*remaining -= aligned_len;
-+	return (struct nlattr *)((char *)na + aligned_len);
-+}
-+
-+int netlink_open(void);
-+int send_request(int fd, void *buf, size_t len);
-+int get_family_id(int fd, const char *name);
-+
-+#endif /* ACSELFTESTS_ACCT_NETLINK_HELPER_H */
---- a/tools/testing/selftests/acct/taskstats_fill_stats_tgid.c~selftests-acct-share-netlink-helpers
-+++ a/tools/testing/selftests/acct/taskstats_fill_stats_tgid.c
-@@ -16,14 +16,9 @@
- #include <time.h>
- #include <unistd.h>
- 
-+#include "netlink_helper.h"
- #include "kselftest.h"
- 
--#ifndef NLA_ALIGN
--#define NLA_ALIGNTO 4
--#define NLA_ALIGN(len) (((len) + NLA_ALIGNTO - 1) & ~(NLA_ALIGNTO - 1))
--#define NLA_HDRLEN ((int)NLA_ALIGN(sizeof(struct nlattr)))
--#endif
--
- #define BUSY_NS (200ULL * 1000 * 1000)
- 
- struct worker_ctx {
-@@ -35,26 +30,6 @@ struct worker_ctx {
- 
- static unsigned long busy_sink;
- 
--static void *taskstats_nla_data(const struct nlattr *na)
--{
--	return (void *)((char *)na + NLA_HDRLEN);
--}
--
--static bool taskstats_nla_ok(const struct nlattr *na, int remaining)
--{
--	return remaining >= (int)sizeof(*na) &&
--	       na->nla_len >= sizeof(*na) &&
--	       na->nla_len <= remaining;
--}
--
--static struct nlattr *taskstats_nla_next(const struct nlattr *na, int *remaining)
--{
--	int aligned_len = NLA_ALIGN(na->nla_len);
--
--	*remaining -= aligned_len;
--	return (struct nlattr *)((char *)na + aligned_len);
--}
--
- static uint64_t timespec_diff_ns(const struct timespec *start,
- 				 const struct timespec *end)
- {
-@@ -84,99 +59,6 @@ static void burn_cpu_for_ns(uint64_t run
- 	busy_sink = acc;
- }
- 
--static int netlink_open(void)
--{
--	struct sockaddr_nl addr = {
--		.nl_family = AF_NETLINK,
--		.nl_pid = getpid(),
--	};
--	int fd;
--
--	fd = socket(AF_NETLINK, SOCK_RAW, NETLINK_GENERIC);
--	if (fd < 0)
--		return -errno;
--
--	if (bind(fd, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
--		int err = -errno;
--
--		close(fd);
--		return err;
--	}
--
--	return fd;
--}
--
--static int send_request(int fd, void *buf, size_t len)
--{
--	struct sockaddr_nl addr = {
--		.nl_family = AF_NETLINK,
--	};
--
--	if (sendto(fd, buf, len, 0, (struct sockaddr *)&addr, sizeof(addr)) < 0)
--		return -errno;
--
--	return 0;
--}
--
--static int get_family_id(int fd, const char *name)
--{
--	struct {
--		struct nlmsghdr nlh;
--		struct genlmsghdr genl;
--		char buf[256];
--	} req = { 0 };
--	char resp[8192];
--	struct nlmsghdr *nlh;
--	struct genlmsghdr *genl;
--	struct nlattr *na;
--	int len;
--	int rem;
--	int ret;
--
--	req.nlh.nlmsg_len = NLMSG_LENGTH(GENL_HDRLEN);
--	req.nlh.nlmsg_type = GENL_ID_CTRL;
--	req.nlh.nlmsg_flags = NLM_F_REQUEST;
--	req.nlh.nlmsg_seq = 1;
--	req.nlh.nlmsg_pid = getpid();
--
--	req.genl.cmd = CTRL_CMD_GETFAMILY;
--	req.genl.version = 1;
--
--	na = (struct nlattr *)((char *)&req + NLMSG_ALIGN(req.nlh.nlmsg_len));
--	na->nla_type = CTRL_ATTR_FAMILY_NAME;
--	na->nla_len = NLA_HDRLEN + strlen(name) + 1;
--	memcpy(taskstats_nla_data(na), name, strlen(name) + 1);
--	req.nlh.nlmsg_len = NLMSG_ALIGN(req.nlh.nlmsg_len) + NLA_ALIGN(na->nla_len);
--
--	ret = send_request(fd, &req, req.nlh.nlmsg_len);
--	if (ret)
--		return ret;
--
--	len = recv(fd, resp, sizeof(resp), 0);
--	if (len < 0)
--		return -errno;
--
--	for (nlh = (struct nlmsghdr *)resp; NLMSG_OK(nlh, len);
--	     nlh = NLMSG_NEXT(nlh, len)) {
--		if (nlh->nlmsg_type == NLMSG_ERROR) {
--			struct nlmsgerr *err = NLMSG_DATA(nlh);
--
--			return err->error ? err->error : -ENOENT;
--		}
--
--		genl = (struct genlmsghdr *)NLMSG_DATA(nlh);
--		rem = nlh->nlmsg_len - NLMSG_HDRLEN - GENL_HDRLEN;
--		na = (struct nlattr *)((char *)genl + GENL_HDRLEN);
--		while (taskstats_nla_ok(na, rem)) {
--			if (na->nla_type == CTRL_ATTR_FAMILY_ID)
--				return *(uint16_t *)taskstats_nla_data(na);
--			na = taskstats_nla_next(na, &rem);
--		}
--	}
--
--	return -ENOENT;
--}
--
- static int get_taskstats(int fd, int family_id, uint16_t attr_type, uint32_t id,
- 			 struct taskstats *stats)
- {
-@@ -209,7 +91,7 @@ static int get_taskstats(int fd, int fam
- 	na = (struct nlattr *)((char *)&req + NLMSG_ALIGN(req.nlh.nlmsg_len));
- 	na->nla_type = attr_type;
- 	na->nla_len = NLA_HDRLEN + sizeof(id);
--	memcpy(taskstats_nla_data(na), &id, sizeof(id));
-+	memcpy(nla_data(na), &id, sizeof(id));
- 	req.nlh.nlmsg_len = NLMSG_ALIGN(req.nlh.nlmsg_len) + NLA_ALIGN(na->nla_len);
- 
- 	ret = send_request(fd, &req, req.nlh.nlmsg_len);
-@@ -231,21 +113,21 @@ static int get_taskstats(int fd, int fam
- 		genl = (struct genlmsghdr *)NLMSG_DATA(nlh);
- 		rem = nlh->nlmsg_len - NLMSG_HDRLEN - GENL_HDRLEN;
- 		na = (struct nlattr *)((char *)genl + GENL_HDRLEN);
--		while (taskstats_nla_ok(na, rem)) {
-+		while (nla_ok(na, rem)) {
- 			if (na->nla_type == TASKSTATS_TYPE_AGGR_PID ||
- 			    na->nla_type == TASKSTATS_TYPE_AGGR_TGID) {
--				nested = (struct nlattr *)taskstats_nla_data(na);
-+				nested = (struct nlattr *)nla_data(na);
- 				nrem = na->nla_len - NLA_HDRLEN;
--				while (taskstats_nla_ok(nested, nrem)) {
-+				while (nla_ok(nested, nrem)) {
- 					if (nested->nla_type == TASKSTATS_TYPE_STATS) {
--						memcpy(stats, taskstats_nla_data(nested),
-+						memcpy(stats, nla_data(nested),
- 						       sizeof(*stats));
- 						return 0;
- 					}
--					nested = taskstats_nla_next(nested, &nrem);
-+					nested = nla_next(nested, &nrem);
- 				}
- 			}
--			na = taskstats_nla_next(na, &rem);
-+			na = nla_next(na, &rem);
- 		}
- 	}
- 
+-	damon_merge_regions_of(t, 9, 9999, ctx);
++	damon_merge_regions_of(t, 9, 9999, ctx, true);
+ 	/* 0-112, 114-130, 130-156, 156-170, 170-230, 230-10170 */
+ 	KUNIT_EXPECT_EQ(test, damon_nr_regions(t), 6u);
+ 	for (i = 0; i < 6; i++) {
 _
 
-Patches currently in -mm which might be from cyyzero16@gmail.com are
+Patches currently in -mm which might be from sj@kernel.org are
 
-taskstats-remove-dead-taskstats_exit_mutex-declaration.patch
-taskstats-return-ebadf-when-cgroupstats-receives-an-invalid-fd.patch
-selftests-acct-add-cgroupstats-functional-test.patch
-selftests-acct-share-netlink-helpers.patch
+samples-damon-wsse-handle-damon_start-failure.patch
+samples-damon-prcl-handle-damon_start-failure.patch
+samples-damon-mtier-handle-damon_start-failure.patch
+samples-damon-mtier-handle-damon_stop-failure.patch
+samples-damon-wsse-stop-and-free-damon-ctx-when-damon_call-fails.patch
+samples-damon-prcl-stop-and-free-damon-ctx-when-damon_call-fails.patch
+mm-damon-sysfs-kobject_del-target-normal-context-and-kdamond-dirs.patch
+mm-damon-sysfs-kobject_del-region-and-target-error-dirs.patch
+mm-damon-sysfs-schemes-kobject_del-scheme-dirs.patch
+mm-damon-sysfs-schemes-kobject_del-scheme-region-dirs.patch
+mm-damon-sysfs-schemes-kobject_del-scheme-filter-dirs.patch
+mm-damon-sysfs-schemes-kobject_del-scheme-quota-goal-dirs.patch
+mm-damon-sysfs-schemes-kobject_del-scheme-action-destination-dirs.patch
+mm-damon-sysfs-kobject_del-probe-dirs.patch
+mm-damon-sysfs-kobject_del-probe-filter-dirs.patch
+mm-damon-sysfs-kobject_del-probe-dirs-in-probes_addd_dir-error-path.patch
+mm-damon-sysfs-schemes-kobject_del-region-for-populate_region-error.patch
+docs-mm-damon-design-update-for-damos_quota_node_eligible_mem_bp.patch
+docs-abi-damon-document-probe-files.patch
+mm-damon-tests-core-kunit-test-damon_rand.patch
+selftests-damon-sysfssh-test-multiple-probe-dirs-creation.patch
+selftests-damon-sysfssh-test-coreops_filters-directories.patch
+selftests-damon-sysfssh-test-dests-dir.patch
+selftests-damon-sysfssh-test-all-files-in-quota-goal-dir.patch
+mm-damon-core-reduce-range-setup-in-damon_commit_target_regions.patch
+mm-damon-sysfs-split-probe-setup-function-out.patch
+mm-damon-sysfs-split-out-filters-setup-function.patch
+mm-damon-sysfs-fix-typos-in-probe_addrm_dirs-s-attr-probe.patch
+mm-damon-core-introduce-damon_nr_accesses_mvsum.patch
+mm-damon-tests-core-kunit-test-damon_mvsum.patch
+mm-damon-core-always-update-last_nr_accesses-for-intervals-change.patch
+mm-damon-core-handle-unreset-nr_accesses-in-damon_nr_accesses_mvsum.patch
+mm-damon-core-use-damon_nr_accesses_mvsum-in-__damos_valid_target.patch
+mm-damon-core-use-damon_nr_accesses_mvsum-for-damos-region-tracing.patch
+mm-damon-sysfs-schemes-use-damon_nr_accesses_mvsum-for-damo-regions.patch
+mm-damon-core-remove-damon_warn_fix_nr_accesses_corruption.patch
+mm-damon-core-remove-damon_verify_reset_aggregated.patch
+mm-damon-core-remove-damon_verify_merge_regions_of.patch
+mm-damon-tests-core-kunit-remove-nr_accesses_bp-setup-and-tests.patch
+selftests-damon-drgn_dump_damon_status-do-not-dump-nr_accesses_bp.patch
+mm-damon-core-remove-nr_accesses_bp-setups-and-updates.patch
+mm-damon-core-remove-attrs-param-from-damon_update_region_access_rate.patch
+mm-damon-paddr-remove-attrs-param-from-__damon_pa_check_access.patch
+mm-damon-vaddr-remove-attrs-param-from-__damon_va_check_access.patch
+mm-damon-core-remove-damon_moving_sum-and-its-unit-test.patch
+mm-damon-core-remove-damon_region-nr_accesses_bp.patch
+mm-damon-add-damon_region-last_probe_hits.patch
+mm-damon-core-introduce-damon_probe_hits_mvsum.patch
+mm-damon-sysfs-schemes-set-probe-hits-as-pseudo-moving-sums.patch
+mm-damon-core-safely-validate-src-on-damon_commit_ctx.patch
+mm-damon-core-do-parameter-testing-commit-on-damon_start.patch
+mm-damon-sysfs-remove-duplicated-commit-input-validity-check.patch
+mm-damon-reclaim-remove-duplicated-min_region_sz-power-of-2-check.patch
+mm-damon-lru_sort-remove-duplicated-min_region_sz-power_of_2-check.patch
+mm-damon-document-region-size-validation-in-damon_set_regions.patch
+mm-damon-core-remove-start-end-check-in-damon_set_region_system_rams.patch
+mm-damon-sysfs-remove-region-size-validation.patch
+mm-damon-core-stop-ctxs-in-damon_start-before-returning-an-error.patch
+samples-damon-mtier-do-not-stop-first-context-for-damon_start-failure.patch
+mm-damon-core-make-damon_stop-never-fails.patch
+mm-damon-sysfs-ignore-damon_stop-return-value.patch
+mm-damon-reclaaim-ignore-damon_stop-return-value.patch
+mm-damon-lru_sort-ignore-damon_stop-return-value.patch
+mm-damon-core-change-damon_stop-return-type-to-void.patch
+samples-damon-mtier-stop-all-contexts-with-single-damon_stop-call.patch
+mm-damon-core-wait-ctx-stop-in-damon_call-before-reruning-an-error.patch
+samples-damon-wsse-do-not-stop-ctx-for-damon_call-failure.patch
+samples-damon-prcl-do-not-stop-damon-for-damon_call-failure.patch
+mm-damon-core-remove-comment-and-test-for-nr_to_bp-divide-by-zero.patch
+mm-damon-core-s-damon_max_nr_accesses-damon_nr_samples_per_aggr.patch
+mm-damon-core-s-accesses_bp_to_nr_accesses-sample_bp_to_count.patch
+mm-damon-core-s-nr_accesses_to_accesses_bp-sample_count_to_bp.patch
+mm-damon-core-s-nr_accesses_for_new_attrs-nr_samples_for_new_attrs.patch
+mm-damon-core-update-probe-hits-for-new-parameter-commit.patch
+mm-damon-core-handle-unreset-probe_hits-in-probe_hits_mvsum.patch
+mm-damon-core-introduce-damon_probe-weight.patch
+mm-damon-core-ask-apply_probes-ops-callback-to-set-sampling-address.patch
+mm-damon-paddr-set-samples-in-apply_probes-if-requested.patch
+mm-damon-core-ask-apply_probe-to-return-max-probe-hits-weighted-sum.patch
+mm-damon-core-implement-damon_probe_hits_wsum.patch
+mm-damon-paddr-respect-return_max_wsum.patch
+mm-damon-core-use-abs_diff-instead-of-abs.patch
+mm-damon-core-extend-merge-function-to-work-with-probe-hits.patch
+mm-damon-core-disallow-probe_hits-overflow-on-attrs-only-monitoring.patch
+mm-damon-core-validate-params-for-probe-hits-weighted-sum-overflow.patch
+mm-damon-core-disable-access-monitoring-when-probe-weights-are-set.patch
+mm-damon-core-set-samples-in-apply_probes-if-probe-weights-are-set.patch
+mm-damon-core-s-max_nr_accesses-max_merge_score-in-kdamond_fn.patch
+mm-damon-core-get-merge-threshold-from-probe-hits-when-weights-are-set.patch
+mm-damon-core-implement-damon_has_probe_weight.patch
+mm-damon-sysfs-implement-probe-weight-file.patch
+docs-mm-damon-design-document-attrs-only-monitoring.patch
+docs-admin-guide-mm-damon-usage-document-weight-sysfs-file.patch
+docs-abi-damon-document-probe-weight-file.patch
+mm-damon-core-skip-aging-from-repeated-aggressive-merging.patch
 
