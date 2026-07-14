@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A49B139CCE0
-	for <mm-commits@vger.kernel.org>; Tue, 14 Jul 2026 17:14:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7EC14305699
+	for <mm-commits@vger.kernel.org>; Tue, 14 Jul 2026 17:16:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784049248; cv=none; b=q/K05TEZL4H2fJzZX7swtWT1oSiITvV122hIOtWcHyb1uqzYq8FLP78djDJjd+jWHTBWfyE9Tdj8GEVJKgxmv240GTQVV5WEgutx4Cn0AQvyt/VKIuxpZMhnb29oi+XIfDPK1rgwVaRfgK0fARPKRgKccinx8OZ5wYTw6PWyxAY=
+	t=1784049414; cv=none; b=fgxzgbjYnA84xVWRQyg3HXL5q1gDJfSFGCkDRTtMgYl40GXHuT3x3mB2+migBVkQdS0+FKM4nLCc70q6uH6fbEZPd0s2ClXPj8Dt6UHNV7qKtHIpJX6BaBLS4nhUc7Tcnl7qug4LxVI4/lpVK1t16iSBS9wLk1THyYAOwsE4hPw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784049248; c=relaxed/simple;
-	bh=m81o1pJ1ACHYKvlZO/Oq7nB0DhnpHvtaihANNrGcI3Q=;
-	h=Date:To:From:Subject:Message-Id; b=pPKyh0bdgaw6HdHYVOgWpxkkIjELtv+40D7xQV1HOypM/u9Jn7SlqZcPnfaXXiywx77xL6mz5GWYCYnyZ+FRr2XzDbm7CyaVgtP6BibkrzXig8OrzKRprMhVUvkNLlAMigibx2bdW5cXY7HYOYWvFAxhb/nXmHUCpWUVTlWN7XQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PA+3Y9EG; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1784049414; c=relaxed/simple;
+	bh=A8+x6co2gS8vGXz/ZanBMu+mVz64wFaR/+wAiJidUdU=;
+	h=Date:To:From:Subject:Message-Id; b=QsNOU5PKudSdxu5Nz71pXrqocZvtJGNtni6/y2ycg/iqGToZqmrblQV47hc1X7/rEPpmIjNyqFVdEqNFf/bfQLX7HQoTL3PvLaTCpsqrGrG+DlsYgzSzl7IjddHGy0kbjeQpb2Uax9SX1FOA8Ea976HkQsB+s83A0LBKHJaDWaE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2thXtTuG; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PA+3Y9EG"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 31FD21F00A3A;
-	Tue, 14 Jul 2026 17:14:06 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2thXtTuG"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0FA451F0155B;
+	Tue, 14 Jul 2026 17:16:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1784049246;
-	bh=xDUklH5CZOOmXti3vJKUVFMIL89NwZ+3moHzzIgk/Xs=;
+	d=linux-foundation.org; s=korg; t=1784049413;
+	bh=+S05WbEWkCNSods6Er/iDL1W1I5Ttqx7OXztS1aUD/w=;
 	h=Date:To:From:Subject;
-	b=PA+3Y9EGm2G+w/Kq8JWLbNb9y9wBzwLa2ZtgQNiYoE1XFwjZ46/Al+7yIG2v0eWMB
-	 8YNZ7D5eMvN5clMprPv/KOvzOKSVAW9s2qEHoRw3wSoFsk4eO5Ldx96H6T5e/H2PvS
-	 34QoExraQnWHkkoT7IqklLcNhJK3rFVYe6ICOCjE=
-Date: Tue, 14 Jul 2026 10:14:05 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,rppt@kernel.org,palmer@dabbelt.com,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,alex@ghiti.fr,wangruikang@iscas.ac.cn,akpm@linux-foundation.org
+	b=2thXtTuGEGGKI0UtxGEaiok7Be/MLWoVJ2V7LQ/g5gAu/gaZqrc8xyw/SSCTl0Sv0
+	 zttmC89JlimdPBhLvMbqDLVc1vr70HwXPNk8f7UWHWfsrBqPWXzObk8P2+P6B/U5HO
+	 WKeKlq2o2L9JKjeOq5UlGbilFEsAiETkG1q632bQ=
+Date: Tue, 14 Jul 2026 10:16:52 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,songmuchun@bytedance.com,sj@kernel.org,shuah@kernel.org,rppt@kernel.org,muchun.song@linux.dev,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [alternative-merged] riscv-mm-avoid-spurious-fault-after-hotplugging-vmemmap.patch removed from -mm tree
-Message-Id: <20260714171406.31FD21F00A3A@smtp.kernel.org>
+Subject: [folded-merged] selftests-mm-remove-obsolete-hugetlb-vmemmap-test-fix.patch removed from -mm tree
+Message-Id: <20260714171653.0FA451F0155B@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,105 +35,65 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: riscv: mm: avoid spurious fault after hotplugging vmemmap
+     Subject: selftests-mm-remove-obsolete-hugetlb-vmemmap-test-fix
 has been removed from the -mm tree.  Its filename was
-     riscv-mm-avoid-spurious-fault-after-hotplugging-vmemmap.patch
+     selftests-mm-remove-obsolete-hugetlb-vmemmap-test-fix.patch
 
-This patch was dropped because an alternative patch was or shall be merged
+This patch was dropped because it was folded into selftests-mm-remove-obsolete-hugetlb-vmemmap-test.patch
 
 ------------------------------------------------------
-From: Vivian Wang <wangruikang@iscas.ac.cn>
-Subject: riscv: mm: avoid spurious fault after hotplugging vmemmap
-Date: Tue, 30 Jun 2026 15:51:59 +0800
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: selftests-mm-remove-obsolete-hugetlb-vmemmap-test-fix
+Date: Sun Jul 12 12:09:22 AM PDT 2026
 
-section_activate() does not flush TLB after populating new vmemmap pages. 
-On most architectures, this is okay.  However it is a problem on RISC-V
-since there the TLB caching non-present entries is permitted, which causes
-spurious faults on some hardwares.
+don't clean old executables out of .gitignore
 
-This seems to be most easily reproduced with DEBUG_VM=y and
-PAGE_POISONING=y, which causes these newly mapped struct pages to be
-poisoned i.e.  written to immediately after mapping.
-
-Add a hook vmemmap_populate_finalize() in __populate_section_memmap()
-after population, to allow architectures to handle such situations as
-needed.  Then implement it on RISC-V to arrange for the existing exception
-handler code to deal with these faults if they happen.
-
-Link: https://lore.kernel.org/20260630-mark-after-vmemmap-populate-v4-1-febbc15da028@iscas.ac.cn
-Signed-off-by: Vivian Wang <wangruikang@iscas.ac.cn>
-Cc: Alexandre Ghiti <alex@ghiti.fr>
-Cc: David Hildenbrand <david@kernel.org>
+Link: https://lore.kernel.org/CAHk-=wiHK5_oBUdUiNAaevmN9f-ORe+QBqbRefAZaw-RbgEn3w@mail.gmail.com
+Cc: David Hildenbrand (Arm) <david@kernel.org>
 Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Palmer Dabbelt <palmer@dabbelt.com>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Muchun Song <songmuchun@bytedance.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: SJ Park <sj@kernel.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/riscv/include/asm/pgtable.h |    4 ++++
- arch/riscv/mm/init.c             |    6 ++++++
- mm/sparse-vmemmap.c              |    8 ++++++++
- 3 files changed, 18 insertions(+)
+ tools/testing/selftests/mm/.gitignore |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/arch/riscv/include/asm/pgtable.h~riscv-mm-avoid-spurious-fault-after-hotplugging-vmemmap
-+++ a/arch/riscv/include/asm/pgtable.h
-@@ -1260,6 +1260,10 @@ static inline pte_t pte_swp_clear_exclus
- #define TASK_SIZE	FIXADDR_START
- #endif
- 
-+/* Needed on SPARSEMEM_VMEMMAP */
-+#define vmemmap_populate_finalize vmemmap_populate_finalize
-+void __meminit vmemmap_populate_finalize(void);
-+
- #else /* CONFIG_MMU */
- 
- #define PAGE_SHARED		__pgprot(0)
---- a/arch/riscv/mm/init.c~riscv-mm-avoid-spurious-fault-after-hotplugging-vmemmap
-+++ a/arch/riscv/mm/init.c
-@@ -1372,6 +1372,12 @@ int __meminit vmemmap_populate(unsigned
- 	 */
- 	return vmemmap_populate_hugepages(start, end, node, altmap);
- }
-+
-+void __meminit vmemmap_populate_finalize(void)
-+{
-+	/* Avoid faults on cached non-present TLB entries. */
-+	mark_new_valid_map();
-+}
- #endif
- 
- #if defined(CONFIG_MMU) && defined(CONFIG_64BIT)
---- a/mm/sparse-vmemmap.c~riscv-mm-avoid-spurious-fault-after-hotplugging-vmemmap
-+++ a/mm/sparse-vmemmap.c
-@@ -544,6 +544,12 @@ static int __meminit vmemmap_populate_co
- 
- #endif
- 
-+#ifndef vmemmap_populate_finalize
-+static void __meminit vmemmap_populate_finalize(void)
-+{
-+}
-+#endif
-+
- struct page * __meminit __populate_section_memmap(unsigned long pfn,
- 		unsigned long nr_pages, int nid, struct vmem_altmap *altmap,
- 		struct dev_pagemap *pgmap)
-@@ -564,6 +570,8 @@ struct page * __meminit __populate_secti
- 	if (r < 0)
- 		return NULL;
- 
-+	vmemmap_populate_finalize();
-+
- 	return pfn_to_page(pfn);
- }
- 
+--- a/tools/testing/selftests/mm/.gitignore~selftests-mm-remove-obsolete-hugetlb-vmemmap-test-fix
++++ a/tools/testing/selftests/mm/.gitignore
+@@ -3,9 +3,11 @@ cow
+ hugepage-mmap
+ hugepage-mremap
+ hugepage-shm
++hugepage-vmemmap
+ hugetlb-mmap
+ hugetlb-mremap
+ hugetlb-shm
++hugetlb-vmemmap
+ hugetlb-madvise
+ hugetlb-read-hwpoison
+ hugetlb-soft-offline
 _
 
-Patches currently in -mm which might be from wangruikang@iscas.ac.cn are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-riscv-mm-fix-concurrency-in-mark_new_valid_map.patch
+mm-mincore-use-walk_page_range_vma-in-do_mincore-fix.patch
+csky-implement-flush_cache_vmap-in-c.patch
+mm-annotate-data-race-in-cpu_needs_drain-fix.patch
+mm-zsmalloc-encode-class-index-in-obj-value-for-lockless-class-lookup-fix.patch
+mm-zsmalloc-drop-pool-lock-from-zs_free-on-64-bit-systems-fix.patch
+mm-zsmalloc-drop-pool-lock-from-zs_free-on-64-bit-systems-fix-fix.patch
+mm-rmap-use-huge_ptep_get-in-try_to_migrate_one-checkpatch-fixes.patch
+mm-mprotect-use-huge_ptep_get-for-hugetlb-fix.patch
+mm-drop-stale-folio_ref_count==1-check-in-do_swap_page-reuse-logic-fix.patch
+alloc_tag-add-ioctl-to-proc-allocinfo-fix.patch
+selftests-mm-remove-obsolete-hugetlb-vmemmap-test.patch
+drivers-media-v4l2-core-v4l2-vp9c-reduce-inlining.patch
 
