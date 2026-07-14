@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3F2882931C7
-	for <mm-commits@vger.kernel.org>; Tue, 14 Jul 2026 19:21:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EE856356758
+	for <mm-commits@vger.kernel.org>; Tue, 14 Jul 2026 19:21:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784056911; cv=none; b=jwvo7mr64eQs8YbmLUl1Aan5W0m6+uKbjiCEV4OC8jMHoDQqsSKtPycDqTLMaPB4iwbg7B1rY4xQ0O6Yw07TWTWbbveIlZnsdGluoGOFGRtmLbIet/CE7PMFYpYFPVBGELI/vuiYT4N3HiANIPb/PJpaUymvV9TooN/lNtiSY2w=
+	t=1784056913; cv=none; b=Ui1eKkYxE7ZW1XSkx9v5YDD6FiKMSgdvWXicGV67kyWiND7n4bGwbgIF9r8upFVMcrPvQU5Dc+pPNeG1pUB33VqrMyRhmAAhoyy5vZk++Mmveulix7USJC8aDf6S0QKnrxocjYcsik2r7kO7TSL+6bjO9f2NDp5UyX+iy3xj6z4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784056911; c=relaxed/simple;
-	bh=0wxMKn/QggtH/hD8SR77SyYYD4m7Uy5/rli3a/MyUGM=;
-	h=Date:To:From:Subject:Message-Id; b=GLaSwUgyxDbbWq2mmJWf5TroKBSycGpDRSJdXN1phYEOaQAYa76f+MX8QKhyB6boapjj7kdoFl03xyrulCUmTlrTthmLhWqhcVSEXOpQN12BuRtpLoCxQww6LyBDcIYppXEcwYKXrTMNGnGHbTVCht05956mCrwlULhRrdDRTSU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1YsdjKKa; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1784056913; c=relaxed/simple;
+	bh=MObqiMrsAVEmWMO8mPFFnhEln7OXVzBVxgPci/w1K34=;
+	h=Date:To:From:Subject:Message-Id; b=ShzYIN74lZiQLNCLYuqHuA6Qc4ja26EcCHFsTKrni6DTa2xYwX4a2taoAzu9etZuMvPUAT0bE+W5EcArYPM48Jf+pR9/C12myz5auJOH3WEJFl7uG1tSJ59wufprOQD3k0tKYLFMvDxvnuXFUPRtRrp+sXiphZREuQmQRyAzgPw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mUWoFmIr; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1YsdjKKa"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A483B1F000E9;
-	Tue, 14 Jul 2026 19:21:49 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mUWoFmIr"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8C1091F00A3A;
+	Tue, 14 Jul 2026 19:21:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1784056909;
-	bh=GPNf8JGPWxglliSEfcelM/spi/0ymeeG5BVmFjGCI60=;
+	d=linux-foundation.org; s=korg; t=1784056911;
+	bh=7iq8uumQjJDUN+WwM1mrPf/CGu+r9/0BvL875FkOZZE=;
 	h=Date:To:From:Subject;
-	b=1YsdjKKaeTKCc3C+nWm6coxqhSU1dHh7pLg2s93SQWGymalhkel0+PxHQcQ3Mipal
-	 diFwgPWhaWEtWSOs4yyRXee7HLE/L+m7I2hJvab8PtUZOkR89KWFFHjhHuSHPnufmK
-	 w+9RR7CuX0rveSe5OJ7RZHu7S9Jqg8mv0HbbhKRs=
-Date: Tue, 14 Jul 2026 12:21:49 -0700
+	b=mUWoFmIrb9BTOFBjHRuoYTw6MdLr2sLzNKYRPtpN85FTLuAILqK4KXRfcyAC0Murt
+	 vb6saRu0hEkOn3zXAUXgclHiaI4/c0YV/ZW2IjquPDTv9KLt0zDIQ3P5weQm/k2dhS
+	 KIy2ZaxGFj842qxxkv/hfVGRP25cq6DB61UxD9xg=
+Date: Tue, 14 Jul 2026 12:21:51 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-core-hide-private-damos_quota_goal-fields.patch added to mm-new branch
-Message-Id: <20260714192149.A483B1F000E9@smtp.kernel.org>
+Subject: + mm-damon-core-hide-private-damos_quota-fields.patch added to mm-new branch
+Message-Id: <20260714192151.8C1091F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/core: hide private damos_quota_goal fields
+     Subject: mm/damon/core: hide private damos_quota fields
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-core-hide-private-damos_quota_goal-fields.patch
+     mm-damon-core-hide-private-damos_quota-fields.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-hide-private-damos_quota_goal-fields.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-hide-private-damos_quota-fields.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,53 +70,57 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/core: hide private damos_quota_goal fields
-Date: Tue, 14 Jul 2026 07:35:36 -0700
+Subject: mm/damon/core: hide private damos_quota fields
+Date: Tue, 14 Jul 2026 07:35:37 -0700
 
-'last_psi_total' and 'list' of damos_quota_goal are intended to be used by
-only the DAMON core layer.  Those are mistakenly not marked as private,
-though.  Mark as private.
+damos_quota->goals is intended to be used by only the DAMON core layer. 
+But it is mistakenly not marked as private.  Mark as private.
 
-Link: https://lore.kernel.org/20260714143544.101305-4-sj@kernel.org
+Link: https://lore.kernel.org/20260714143544.101305-5-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/damon.h |    9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ include/linux/damon.h |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
---- a/include/linux/damon.h~mm-damon-core-hide-private-damos_quota_goal-fields
+--- a/include/linux/damon.h~mm-damon-core-hide-private-damos_quota-fields
 +++ a/include/linux/damon.h
-@@ -175,10 +175,8 @@ enum damos_quota_goal_metric {
-  * @metric:		Metric to be used for representing the goal.
-  * @target_value:	Target value of @metric to achieve with the tuning.
-  * @current_value:	Current value of @metric.
-- * @last_psi_total:	Last measured total PSI
-  * @nid:		Node id.
-  * @memcg_id:		Memcg id.
-- * @list:		List head for siblings.
+@@ -228,7 +228,6 @@ enum damos_quota_goal_tuner {
+  * @reset_interval:	Charge reset interval in milliseconds.
+  * @ms:			Maximum milliseconds that the scheme can use.
+  * @sz:			Maximum bytes of memory that the action can be applied.
+- * @goals:		Head of quota tuning goals (&damos_quota_goal) list.
+  * @goal_tuner:		Goal-based @esz tuning algorithm to use.
+  * @esz:		Effective size quota in bytes.
+  * @fail_charge_num:	Failed regions charge rate numerator.
+@@ -255,7 +254,7 @@ enum damos_quota_goal_tuner {
+  * the scheme's action.  DAMON then compares it against &sz and uses smaller
+  * one as the effective quota.
   *
-  * Data structure for getting the current score of the quota tuning goal.  The
-  * score is calculated by how close @current_value and @target_value are.  Then
-@@ -201,12 +199,17 @@ struct damos_quota_goal {
- 	unsigned long current_value;
- 	/* metric-dependent fields */
- 	union {
--		u64 last_psi_total;
- 		struct {
- 			int nid;
- 			u64 memcg_id;
- 		};
-+/* private: */
-+		/* Last measured total PSI */
-+		u64 last_psi_total;
+- * If @goals is not empty, DAMON calculates yet another size quota based on the
++ * If goals is not empty, DAMON calculates yet another size quota based on the
+  * goals using its internal feedback loop algorithm, for every @reset_interval.
+  * Then, if the new size quota is smaller than the effective quota, it uses the
+  * new size quota as the effective quota.
+@@ -276,7 +275,7 @@ struct damos_quota {
+ 	unsigned long reset_interval;
+ 	unsigned long ms;
+ 	unsigned long sz;
+-	struct list_head goals;
 +
- 	};
-+/* private: */
-+	/* List head for siblings. */
- 	struct list_head list;
- };
+ 	enum damos_quota_goal_tuner goal_tuner;
+ 	unsigned long esz;
  
+@@ -288,6 +287,8 @@ struct damos_quota {
+ 	unsigned int weight_age;
+ 
+ /* private: */
++	/* Head of quota tuning goals (&damos_quota_goal) list. */
++	struct list_head goals;
+ 	/* For throughput estimation */
+ 	unsigned long total_charged_sz;
+ 	unsigned long total_charged_ns;
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
