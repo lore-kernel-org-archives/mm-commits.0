@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F02FE35F191
-	for <mm-commits@vger.kernel.org>; Tue, 14 Jul 2026 01:39:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 95C0D35F191
+	for <mm-commits@vger.kernel.org>; Tue, 14 Jul 2026 01:39:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783993164; cv=none; b=UbipyNQ2Xz3ei3IS1srMvrQ4GXvqKgcG15MklTqkux4gN9RH8X+HZs0ZhYwjqgUQYqD0Y36c2ed/xw7RagE4hu2z2+xgHBNw9awwGUL6H7A4VFr0xroAS0sfUk8zJbAHOvOXaQg4l/TiwyDbR9IBCMXw76UOdvWcWJnI7gdHHeo=
+	t=1783993167; cv=none; b=SRBC94GBrIyoc51uDAVewpy/oqAnY5lBwvQwE2twYCrLOiP3Z+CkCt1klm/sNidoK1Pj1BDdcbus12hxTS/ziQufESNRba9WkFX/3vDv+epCb5+Qz0qsuovccN6zrIt0b7XZVkRc1V3qL2NgTEvEFuLaiJZqf6bC7KV6+r6I+cU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783993164; c=relaxed/simple;
-	bh=Ai5eSfsqRV0j5LeQgYsIX6NaaDRT6VTyYQhrisDt6X4=;
-	h=Date:To:From:Subject:Message-Id; b=sMiDiwthmw3Rnzl8hWfza6L/jnR7Oi+M5lRRxQ29AYXH0CZegZFDih2Ac+AxWqm92PJ+k3/Nu1EprSmfHtphkvwTpENdmcNS3Hap5RfjtA8YpHzD1obKcRLwzJFGh9/vdiiRgcsrFoIZatSufsl3MebwWQMxcMkmsxefmRRa9ao=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QQnIazAF; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783993167; c=relaxed/simple;
+	bh=k5mOgKRF2irFD8IU63HG7p1QePdj+26oQmYOHRMx76E=;
+	h=Date:To:From:Subject:Message-Id; b=M0WxI2QNIaz0LhOzQmYZPYeyovPb1fklxgYQXTXaCEtqaKTBKsK5amBflXwoFjhXBIsCR1pEl5sJb86MnBJB8ckPLQqBSXWTWtMArRxOLIm+cSBaEh9wnAmAwGzL+xmguY/Q30sxjLnghBd5zfJ7+vaj9qy6AbEGBSZPBpCts3M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zYn45STb; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QQnIazAF"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7591A1F000E9;
-	Tue, 14 Jul 2026 01:39:22 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zYn45STb"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 34AE81F000E9;
+	Tue, 14 Jul 2026 01:39:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783993162;
-	bh=kbQGlK1K3TblP1hBXxEX8JM7s/hZobktCQXh4Y/jvNk=;
+	d=linux-foundation.org; s=korg; t=1783993165;
+	bh=VH7iZV3wX0KzN3dpIxRXwanNRuB5SjLwL8993t1jafY=;
 	h=Date:To:From:Subject;
-	b=QQnIazAFBLH/0ZMOTxOLXGIKuZ3I1ZzGJ4to9A4xaMurhfkt4cSYgqnxyLImjMaNP
-	 oYypzWILvrS1tDhfED2cYDyjj8jAz/R5ChV9c9BwItTfyZ1ZDzzDbhX+ytEk8NBCHp
-	 /uYpLaNYR5Nemw0+KYvsumt7xsQkt+Y0ZENPhDfE=
-Date: Mon, 13 Jul 2026 18:39:22 -0700
+	b=zYn45STbYA4BX+Rkyx7UuRCJVDzm8tuxGqIpOflbLQunDDkY4q5p5mQSAJ9F7rzg/
+	 tcwqxdB6Lusz3mD6G018e3eHp32vKMckQe3jEQKc4sXjaiV9WYGNpGsA9PN7TOFLnE
+	 txtPKAZjOqIzkPhpyfoCKSYkUoECGRJsBlYo3rU0=
+Date: Mon, 13 Jul 2026 18:39:24 -0700
 To: mm-commits@vger.kernel.org,vishal.l.verma@intel.com,vbabka@kernel.org,surenb@google.com,shuah@kernel.org,rppt@kernel.org,rafael@kernel.org,pankaj.gupta@amd.com,osalvador@suse.de,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,hare@suse.de,gregkh@linuxfoundation.org,djbw@kernel.org,david@kernel.org,dave.jiang@intel.com,dakr@kernel.org,alison.schofield@intel.com,gourry@gourry.net,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memory_hotplug-add-__add_memory_driver_managed-with-online_type-arg.patch added to mm-new branch
-Message-Id: <20260714013922.7591A1F000E9@smtp.kernel.org>
+Subject: + mm-memory_hotplug-add-offline_and_remove_memory_ranges.patch added to mm-new branch
+Message-Id: <20260714013925.34AE81F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/memory_hotplug: add __add_memory_driver_managed() with online_type arg
+     Subject: mm/memory_hotplug: add offline_and_remove_memory_ranges()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-memory_hotplug-add-__add_memory_driver_managed-with-online_type-arg.patch
+     mm-memory_hotplug-add-offline_and_remove_memory_ranges.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory_hotplug-add-__add_memory_driver_managed-with-online_type-arg.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory_hotplug-add-offline_and_remove_memory_ranges.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,45 +70,43 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Gregory Price <gourry@gourry.net>
-Subject: mm/memory_hotplug: add __add_memory_driver_managed() with online_type arg
-Date: Sun, 12 Jul 2026 11:44:59 -0400
+Subject: mm/memory_hotplug: add offline_and_remove_memory_ranges()
+Date: Sun, 12 Jul 2026 11:45:00 -0400
 
-Existing callers of add_memory_driver_managed cannot select the preferred
-online type (ZONE_NORMAL vs ZONE_MOVABLE), requiring it to hot-add memory
-as offline blocks, and then follow up by onlining each memory block
-individually.
+offline_and_remove_memory() handles a single contiguous range.
 
-Most drivers prefer the system default, but the CXL driver wants to plumb
-a preferred policy through the dax kmem driver.
+Callers that manage a device composed of several ranges (dax/kmem)
+currently have to call it in a loop, which gives up atomicity.
 
-Refactor APIs to add a new interface which allows the dax kmem module to
-select a preferred policy.
+In addition to pushing rollback logic into the driver, the lack of
+atomicity creates a race condition between system daemons trying to manage
+the same resource:
 
-Overriding the configured auto-online policy is only safe for known
-in-tree modules, where we know the override reflects a different,
-user-requested policy.  We do not want arbitrary out-of-tree drivers
-silently overriding the system-wide onlining policy, so restrict the new
-interface to the kmem module using EXPORT_SYMBOL_FOR_MODULES() rather than
-a plain EXPORT_SYMBOL_GPL().  Other in-tree modules (e.g.  cxl_core) can
-be added to the allowed list as the need arises.
+   - Manager 1:  Offlines memory blocks.    Removes device.
+                                        ^^^^
+   - Manager 2:  Detects offline memory blocks, re-onlines them.
 
-Refactor add_memory_driver_managed, extract __add_memory_driver_managed
-- Add proper kernel-doc for add_memory_driver_managed while refactoring
-- New helper accepts an explicit online_type.
-- New helper validates online_type is between OFFLINE and ONLINE_MOVABLE
+Add offline_and_remove_memory_ranges(), which takes an array of ranges and
+processes them as one operation under a single lock_device_hotplug():
 
-Refactor: add_memory_resource, extract __add_memory_resource
-- new helper accepts an explicit online_type
+  - Phase 1 offlines every block of every range.
+  - Phase 2 removes the ranges only if all ranges are offline.
+  - If any offline fails, the whole operation is reverted.
 
-Original APIs now explicitly pass the system-default to new helpers.
+This gives callers all-or-nothing semantics for the offline step, so a
+failed or interrupted unplug leaves the device in a consistent state.
 
-No functional change for existing users.
+This also resolves the battling managers race - the second manager's
+operation simply fails when the block is destroyed / cannot be onlined.
 
-Link: https://lore.kernel.org/20260712154505.3564379-6-gourry@gourry.net
+offline_and_remove_memory() becomes a thin wrapper that passes its single
+range to the new helper, so the offline/rollback logic lives in one place.
+
+Link: https://lore.kernel.org/20260712154505.3564379-7-gourry@gourry.net
 Signed-off-by: Gregory Price <gourry@gourry.net>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Reviewed-by: Pankaj Gupta <pankaj.gupta@amd.com>
+Suggested-by: David Hildenbrand (Arm) <david@kernel.org>
 Reviewed-by: Dave Jiang <dave.jiang@intel.com>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
 Reviewed-by: Dan Williams <djbw@kernel.org>
 Cc: Alison Schofield <alison.schofield@intel.com>
 Cc: Danilo Krummrich <dakr@kernel.org>
@@ -119,6 +117,7 @@ Cc: Lorenzo Stoakes <ljs@kernel.org>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Pankaj Gupta <pankaj.gupta@amd.com>
 Cc: "Rafael J. Wysocki" <rafael@kernel.org>
 Cc: Shuah Khan <shuah@kernel.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
@@ -127,151 +126,162 @@ Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memory_hotplug.h |    3 +
- mm/memory_hotplug.c            |   61 ++++++++++++++++++++++++++-----
- 2 files changed, 56 insertions(+), 8 deletions(-)
+ include/linux/memory_hotplug.h |    8 ++
+ mm/memory_hotplug.c            |   94 ++++++++++++++++++++++---------
+ 2 files changed, 75 insertions(+), 27 deletions(-)
 
---- a/include/linux/memory_hotplug.h~mm-memory_hotplug-add-__add_memory_driver_managed-with-online_type-arg
+--- a/include/linux/memory_hotplug.h~mm-memory_hotplug-add-offline_and_remove_memory_ranges
 +++ a/include/linux/memory_hotplug.h
-@@ -295,6 +295,9 @@ extern int __add_memory(int nid, u64 sta
- extern int add_memory(int nid, u64 start, u64 size, mhp_t mhp_flags);
- extern int add_memory_resource(int nid, struct resource *resource,
- 			       mhp_t mhp_flags);
-+int __add_memory_driver_managed(int nid, u64 start, u64 size,
-+				const char *resource_name, mhp_t mhp_flags,
-+				enum mmop online_type);
- extern int add_memory_driver_managed(int nid, u64 start, u64 size,
- 				     const char *resource_name,
- 				     mhp_t mhp_flags);
---- a/mm/memory_hotplug.c~mm-memory_hotplug-add-__add_memory_driver_managed-with-online_type-arg
-+++ a/mm/memory_hotplug.c
-@@ -1497,10 +1497,10 @@ out:
-  *
-  * we are OK calling __meminit stuff here - we have CONFIG_MEMORY_HOTPLUG
-  */
--int add_memory_resource(int nid, struct resource *res, mhp_t mhp_flags)
-+static int __add_memory_resource(int nid, struct resource *res, mhp_t mhp_flags,
-+				 enum mmop online_type)
- {
- 	struct mhp_params params = { .pgprot = pgprot_mhp(PAGE_KERNEL) };
--	enum mmop online_type = mhp_get_default_online_type();
- 	enum memblock_flags memblock_flags = MEMBLOCK_NONE;
- 	struct memory_group *group = NULL;
- 	u64 start, size;
-@@ -1588,7 +1588,7 @@ int add_memory_resource(int nid, struct
- 		merge_system_ram_resource(res);
+@@ -268,6 +268,8 @@ extern int offline_pages(unsigned long s
+ extern int remove_memory(u64 start, u64 size);
+ extern void __remove_memory(u64 start, u64 size);
+ extern int offline_and_remove_memory(u64 start, u64 size);
++int offline_and_remove_memory_ranges(const struct range *ranges,
++		unsigned int nr_ranges);
  
- 	/* online pages if requested */
--	if (mhp_get_default_online_type() != MMOP_OFFLINE)
-+	if (online_type != MMOP_OFFLINE)
- 		walk_memory_blocks(start, size, &online_type,
- 				   online_memory_block);
- 
-@@ -1606,7 +1606,13 @@ error_mem_hotplug_end:
- 	return ret;
+ #else
+ static inline void try_offline_node(int nid) {}
+@@ -284,6 +286,12 @@ static inline int remove_memory(u64 star
  }
  
--/* requires device_hotplug_lock, see add_memory_resource() */
-+int add_memory_resource(int nid, struct resource *res, mhp_t mhp_flags)
-+{
-+	return __add_memory_resource(nid, res, mhp_flags,
-+				     mhp_get_default_online_type());
-+}
+ static inline void __remove_memory(u64 start, u64 size) {}
 +
-+/* requires device_hotplug_lock, see __add_memory_resource() */
- int __add_memory(int nid, u64 start, u64 size, mhp_t mhp_flags)
- {
- 	struct resource *res;
-@@ -1634,7 +1640,15 @@ int add_memory(int nid, u64 start, u64 s
- }
- EXPORT_SYMBOL_GPL(add_memory);
++static inline int offline_and_remove_memory_ranges(const struct range *ranges,
++		unsigned int nr_ranges)
++{
++	return -EBUSY;
++}
+ #endif /* CONFIG_MEMORY_HOTREMOVE */
  
--/*
-+/**
-+ * __add_memory_driver_managed - add driver-managed memory with explicit online_type
-+ * @nid: NUMA node ID where the memory will be added
-+ * @start: Start physical address of the memory range
-+ * @size: Size of the memory range in bytes
-+ * @resource_name: Resource name in format "System RAM ($DRIVER)"
-+ * @mhp_flags: Memory hotplug flags
-+ * @online_type: Auto-Online behavior (offline, online, kernel, movable)
-+ *
-  * Add special, driver-managed memory to the system as system RAM. Such
-  * memory is not exposed via the raw firmware-provided memmap as system
-  * RAM, instead, it is detected and added by a driver - during cold boot,
-@@ -1642,6 +1656,7 @@ EXPORT_SYMBOL_GPL(add_memory);
-  *
-  * Reasons why this memory should not be used for the initial memmap of a
-  * kexec kernel or for placing kexec images:
-+ *
-  * - The booting kernel is in charge of determining how this memory will be
-  *   used (e.g., use persistent memory as system RAM)
-  * - Coordination with a hypervisor is required before this memory
-@@ -1654,9 +1669,12 @@ EXPORT_SYMBOL_GPL(add_memory);
-  *
-  * The resource_name (visible via /proc/iomem) has to have the format
-  * "System RAM ($DRIVER)".
-+ *
-+ * Return: 0 on success, negative error code on failure.
+ #ifdef CONFIG_MEMORY_HOTPLUG
+--- a/mm/memory_hotplug.c~mm-memory_hotplug-add-offline_and_remove_memory_ranges
++++ a/mm/memory_hotplug.c
+@@ -2432,58 +2432,98 @@ static int try_reonline_memory_block(str
   */
--int add_memory_driver_managed(int nid, u64 start, u64 size,
--			      const char *resource_name, mhp_t mhp_flags)
-+int __add_memory_driver_managed(int nid, u64 start, u64 size,
-+		const char *resource_name, mhp_t mhp_flags,
-+		enum mmop online_type)
+ int offline_and_remove_memory(u64 start, u64 size)
  {
- 	struct resource *res;
- 	int rc;
-@@ -1666,6 +1684,9 @@ int add_memory_driver_managed(int nid, u
- 	    resource_name[strlen(resource_name) - 1] != ')')
+-	const unsigned long mb_count = size / memory_block_size_bytes();
++	struct range range = {
++		.start = start,
++		.end = start + size - 1,
++	};
++
++	return offline_and_remove_memory_ranges(&range, 1);
++}
++EXPORT_SYMBOL_GPL(offline_and_remove_memory);
++
++/**
++ * offline_and_remove_memory_ranges - offline and remove multiple memory ranges
++ * @ranges: array of physical address ranges to offline and remove
++ * @nr_ranges: number of entries in @ranges
++ *
++ * Offline and remove several memory ranges as one operation, serialized
++ * against other hotplug operations by a single lock_device_hotplug().
++ *
++ * This offlines all ranges before removing any of them.  If offlining any
++ * range fails, the entire process is reverted and nothing is removed.
++ * This provides a fully atomic semantic for unplugging an entire device.
++ *
++ * Each range must be memory-block aligned in start and size.
++ *
++ * Return: 0 on success, negative errno on failure (never positive).  On
++ * failure no range has been removed.
++ */
++int offline_and_remove_memory_ranges(const struct range *ranges,
++		unsigned int nr_ranges)
++{
++	unsigned long mb_count = 0;
+ 	uint8_t *online_types, *tmp;
+-	int rc;
++	unsigned int i;
++	int rc = 0;
+ 
+-	if (!IS_ALIGNED(start, memory_block_size_bytes()) ||
+-	    !IS_ALIGNED(size, memory_block_size_bytes()) || !size)
++	if (!ranges || !nr_ranges)
  		return -EINVAL;
  
-+	if (online_type < MMOP_OFFLINE || online_type > MMOP_ONLINE_MOVABLE)
-+		return -EINVAL;
++	for (i = 0; i < nr_ranges; i++) {
++		const u64 start = ranges[i].start;
++		const u64 size = range_len(&ranges[i]);
 +
++		if (!IS_ALIGNED(start, memory_block_size_bytes()) ||
++		    !IS_ALIGNED(size, memory_block_size_bytes()) || !size)
++			return -EINVAL;
++		mb_count += size / memory_block_size_bytes();
++	}
++
+ 	/*
+-	 * We'll remember the old online type of each memory block, so we can
+-	 * try to revert whatever we did when offlining one memory block fails
+-	 * after offlining some others succeeded.
++	 * Remember the old online type of every memory block across all ranges,
++	 * so we can revert if offlining a later block fails.  All entries start
++	 * as MMOP_OFFLINE so blocks we never touched are skipped on rollback.
+ 	 */
+ 	online_types = kmalloc_array(mb_count, sizeof(*online_types),
+ 				     GFP_KERNEL);
+ 	if (!online_types)
+ 		return -ENOMEM;
+-	/*
+-	 * Initialize all states to MMOP_OFFLINE, so when we abort processing in
+-	 * try_offline_memory_block(), we'll skip all unprocessed blocks in
+-	 * try_reonline_memory_block().
+-	 */
+ 	memset(online_types, MMOP_OFFLINE, mb_count);
+ 
  	lock_device_hotplug();
  
- 	res = register_memory_resource(start, size, resource_name);
-@@ -1674,7 +1695,7 @@ int add_memory_driver_managed(int nid, u
- 		goto out_unlock;
+-	tmp = online_types;
+-	rc = walk_memory_blocks(start, size, &tmp, try_offline_memory_block);
+-
+ 	/*
+-	 * In case we succeeded to offline all memory, remove it.
+-	 * This cannot fail as it cannot get onlined in the meantime.
++	 * Phase 1: offline every block in every range.  An already-offline
++	 * block folds to success, so out-of-band offlining never blocks unplug.
+ 	 */
+-	if (!rc) {
+-		rc = try_remove_memory(start, size);
++	tmp = online_types;
++	for (i = 0; i < nr_ranges; i++) {
++		rc = walk_memory_blocks(ranges[i].start, range_len(&ranges[i]),
++					&tmp, try_offline_memory_block);
+ 		if (rc)
+-			pr_err("%s: Failed to remove memory: %d", __func__, rc);
++			break;
  	}
  
--	rc = add_memory_resource(nid, res, mhp_flags);
-+	rc = __add_memory_resource(nid, res, mhp_flags, online_type);
- 	if (rc < 0)
- 		release_memory_resource(res);
- 
-@@ -1682,6 +1703,30 @@ out_unlock:
+-	/*
+-	 * Rollback what we did. While memory onlining might theoretically fail
+-	 * (nacked by a notifier), it barely ever happens.
+-	 */
++	/* If any failure occurred at all, rollback any changes and bail */
+ 	if (rc) {
+ 		tmp = online_types;
+-		walk_memory_blocks(start, size, &tmp,
+-				   try_reonline_memory_block);
++		for (i = 0; i < nr_ranges; i++)
++			walk_memory_blocks(ranges[i].start,
++					   range_len(&ranges[i]), &tmp,
++					   try_reonline_memory_block);
++		goto out_unlock;
+ 	}
++
++	/* Phase 2: Remove. This should never fail holding the hotplug lock */
++	for (i = 0; i < nr_ranges; i++)
++		WARN_ON_ONCE(try_remove_memory(ranges[i].start,
++					       range_len(&ranges[i])));
++
++out_unlock:
  	unlock_device_hotplug();
+ 
+ 	kfree(online_types);
  	return rc;
  }
-+EXPORT_SYMBOL_FOR_MODULES(__add_memory_driver_managed, "kmem");
-+
-+/**
-+ * add_memory_driver_managed - add driver-managed memory
-+ * @nid: NUMA node ID where the memory will be added
-+ * @start: Start physical address of the memory range
-+ * @size: Size of the memory range in bytes
-+ * @resource_name: Resource name in format "System RAM ($DRIVER)"
-+ * @mhp_flags: Memory hotplug flags
-+ *
-+ * Add driver-managed memory with the system default online type set by
-+ * build config or kernel boot parameter.
-+ *
-+ * See __add_memory_driver_managed for more details.
-+ *
-+ * Return: 0 on success, negative error code on failure.
-+ */
-+int add_memory_driver_managed(int nid, u64 start, u64 size,
-+			      const char *resource_name, mhp_t mhp_flags)
-+{
-+	return __add_memory_driver_managed(nid, start, size, resource_name,
-+			mhp_flags,
-+			mhp_get_default_online_type());
-+}
- EXPORT_SYMBOL_GPL(add_memory_driver_managed);
- 
- /*
+-EXPORT_SYMBOL_GPL(offline_and_remove_memory);
++EXPORT_SYMBOL_GPL(offline_and_remove_memory_ranges);
+ #endif /* CONFIG_MEMORY_HOTREMOVE */
 _
 
 Patches currently in -mm which might be from gourry@gourry.net are
