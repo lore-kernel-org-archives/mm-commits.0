@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9D03D1E9B1A
-	for <mm-commits@vger.kernel.org>; Tue, 14 Jul 2026 01:15:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1DA241EEA31
+	for <mm-commits@vger.kernel.org>; Tue, 14 Jul 2026 01:16:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783991741; cv=none; b=Nu7JhkJnGb99oQrezwHryAj/yydfGveDkFoVmjJUIEPYB+yOfgoERvPmKVTAic90AGCxHbfI4AeKyIs/5tkR+LX8Nzby0oSqe1yKcV48KKo8RpqQlzF6Qxn/INAjtZ/5ETDwKWrbxas7wpxEZii1S9KbIrs3k4aYqG0z6G4BcEI=
+	t=1783991820; cv=none; b=eyuAEuyM/ONHk2v9sycLpeVjQI+NaDwMdcRcNJRX7RapUnwPoF59WeIdeQygPHEaiR98WSMxzmic/8sG/4cWF8TYFGM/SREkEuPTEBh5tpLmnjeMutgdKUIlTq2OL13VWRj/jxd7BLWpkqjjvIlXBaVPCKqeB07zalD6gT0CFtY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783991741; c=relaxed/simple;
-	bh=qZRe3lxsvBeLS3mE1RSGibT8YCYOEPXs6SArPv0n3/g=;
-	h=Date:To:From:Subject:Message-Id; b=Ah/pUBSrLgPxayd+1igMzOVxYlMDdNZNErMnLZ850QCcLH7O2P5t52bBVh5neG+/pHf6QqBM346M1kw6c2ppaMsa1rZeKT0pIKQ7nx88cPxCnZdc7rVSZRcfdYwWxT0EH01DAIdKRbMwKA+W+DB/xOarzFCQjj0qolB8EtXzfhE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yfXYZ8Wi; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783991820; c=relaxed/simple;
+	bh=zDmyLETzi5E4O62hHCMiybIGg/rc+2b9o+5jmloyq0g=;
+	h=Date:To:From:Subject:Message-Id; b=iwlvrjGerC1XsGyW5cBbdggNcp4a6+jjd1ZFvCz4QKdIzP+wDiSJTtCR0P2kFiTXrzmsYHsvaOGi6nuTcE7IfVTvVi3r0FUiE+U9m8jY2pLqJCI1jpR7DQWHO7MOFScsVVfop6h8tWaRb5wnRE6DYbRM6D2fWh4DgRcRk8rUUSI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=b6USCzxq; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yfXYZ8Wi"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4A2C61F000E9;
-	Tue, 14 Jul 2026 01:15:40 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="b6USCzxq"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8F5F81F000E9;
+	Tue, 14 Jul 2026 01:16:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783991740;
-	bh=jLN7n/tAqNi6UNTfDXPgZZwd7WifxQ7Pt9+SxL2xZMo=;
+	d=linux-foundation.org; s=korg; t=1783991818;
+	bh=vlzlrihe1rqydEWFHXpCGp9GHFAR4ABDvchpFFxO/Rg=;
 	h=Date:To:From:Subject;
-	b=yfXYZ8WifDni5q+KrU+wqIRba0vJKN3qSeNDh4HONuT4I44aJHoOjd77CdY9WR/jQ
-	 Ip1KoP8XJb/hWfsfbL8CuyABFLfappvPzmZ8MKON8mwncI6gd3v94Yd1biZY15l+hu
-	 hcTQkU1YpW9Kj9LwUpMI4qLM+Ezth6MtffFxtqEg=
-Date: Mon, 13 Jul 2026 18:15:39 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,ryan.roberts@arm.com,npache@redhat.com,ljs@kernel.org,liam@infradead.org,lance.yang@linux.dev,dev.jain@arm.com,david@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,zenghongling@kylinos.cn,akpm@linux-foundation.org
+	b=b6USCzxqJSThDN27q/WKtPFdf2I6gZEMbO0Mb6qcTmQUMAakrgi/qcVkwN57fwnz5
+	 gVSedkbtPzc6QDp5WckRe2esrt3Cz53vDASfRFUFcFlUYvs6q4VpTYefqAhQFNECgz
+	 ZU0Tfg0uju6it8dds5XdDlrY3SAuV+znr7M9ORAY=
+Date: Mon, 13 Jul 2026 18:16:58 -0700
+To: mm-commits@vger.kernel.org,shikemeng@huaweicloud.com,nphamcs@gmail.com,kasong@tencent.com,chrisl@kernel.org,baoquan.he@linux.dev,baohua@kernel.org,youngjun.park@lge.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-huge_memory-fix-kobject-cleanup-in-thpsize_create-error.patch added to mm-new branch
-Message-Id: <20260714011540.4A2C61F000E9@smtp.kernel.org>
+Subject: + mm-swap-clarify-unreachable-cond_resched-in-swap_reclaim_full_clusters.patch added to mm-new branch
+Message-Id: <20260714011658.8F5F81F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: huge_memory: fix kobject cleanup in thpsize_create error
+     Subject: mm/swap: clarify unreachable cond_resched() in swap_reclaim_full_clusters
 has been added to the -mm mm-new branch.  Its filename is
-     mm-huge_memory-fix-kobject-cleanup-in-thpsize_create-error.patch
+     mm-swap-clarify-unreachable-cond_resched-in-swap_reclaim_full_clusters.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-fix-kobject-cleanup-in-thpsize_create-error.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-clarify-unreachable-cond_resched-in-swap_reclaim_full_clusters.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,65 +69,64 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Hongling Zeng <zenghongling@kylinos.cn>
-Subject: mm: huge_memory: fix kobject cleanup in thpsize_create error
-Date: Mon, 13 Jul 2026 13:41:54 +0800
+From: Youngjun Park <youngjun.park@lge.com>
+Subject: mm/swap: clarify unreachable cond_resched() in swap_reclaim_full_clusters
+Date: Mon, 13 Jul 2026 13:50:14 +0900
 
-When kobject_init_and_add() fails, the kobject API requires calling
-kobject_put() to properly clean up the memory, not direct kfree().
+Commit 66366d291f66 ("mm/swap: add cond_resched() in
+swap_reclaim_full_clusters to prevent softlockup") added cond_resched() to
+prevent soft lockups during heavy swap reclaim.
 
-According to the kobject API documentation, kobject_init_and_add() calls
-kobject_init() internally.  If the subsequent kobject_add() fails, the
-kobject has still been initialized and must be cleaned up via the
-reference count mechanism (kobject_put), not direct kfree().
+Currently, there are two call sites for this function:
+1. swap_reclaim_work(): called with force=true in a workqueue context.
+2. cluster_alloc_swap_entry(): called with force=false, holding a
+   local_lock and potentially a global cluster spinlock (atomic context).
 
-Direct kfree() leaves the kobject's internal state (including the
-reference count and kset membership) uncleaned, which can cause:
- - Memory leaks of kobject internal structures
- - Potential use-after-free if there are pending references
- - Inconsistent state with the rest of the error handling code
+In the second case, calling cond_resched() would normally cause a
+"scheduling while atomic" bug.  However, it is currently safe because when
+force=false, 'to_scan' is initialized to 1.  The loop decrements it to 0
+and breaks before ever reaching cond_resched().
 
-This fix matches the pattern used elsewhere in the kernel and in the same
-function (err_put label) which correctly uses kobject_put().
+This implicit dependency is hard to notice and recently triggered a false
+positive in AI Sashiko review.
 
-Link: https://lore.kernel.org/20260713054154.120915-1-zenghongling@kylinos.cn
-Fixes: 3485b88390b0 ("mm: thp: introduce multi-size THP sysfs interface")
-Signed-off-by: Hongling Zeng <zenghongling@kylinos.cn>
-Suggested-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Add a comment to explicitly clarify that cond_resched() is unreachable in
+atomic contexts.  This improves readability and prevents future misuse if
+the loop logic or 'to_scan' initialization is modified.
+
+Link: https://sashiko.dev/#/patchset/20260713025644.170839-1-youngjun.park@lge.com?part=4
+Link: https://lore.kernel.org/20260713045014.219653-1-youngjun.park@lge.com
+Signed-off-by: Youngjun Park <youngjun.park@lge.com>
+Cc: Baoquan He <baoquan.he@linux.dev>
 Cc: Barry Song <baohua@kernel.org>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Hongling Zeng <zenghongling@kylinos.cn>
-Cc: Lance Yang <lance.yang@linux.dev>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Nico Pache <npache@redhat.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Zi Yan <ziy@nvidia.com>
+Cc: Chris Li <chrisl@kernel.org>
+Cc: Kairui Song <kasong@tencent.com>
+Cc: Kemeng Shi <shikemeng@huaweicloud.com>
+Cc: Nhat Pham <nphamcs@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ mm/swapfile.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
---- a/mm/huge_memory.c~mm-huge_memory-fix-kobject-cleanup-in-thpsize_create-error
-+++ a/mm/huge_memory.c
-@@ -818,10 +818,8 @@ static struct thpsize *thpsize_create(in
- 
- 	ret = kobject_init_and_add(&thpsize->kobj, &thpsize_ktype, parent,
- 				   "hugepages-%lukB", size);
--	if (ret) {
--		kfree(thpsize);
--		goto err;
--	}
-+	if (ret)
-+		goto err_put;
- 
- 
- 	ret = sysfs_add_group(&thpsize->kobj, &any_ctrl_attr_grp);
+--- a/mm/swapfile.c~mm-swap-clarify-unreachable-cond_resched-in-swap_reclaim_full_clusters
++++ a/mm/swapfile.c
+@@ -1072,6 +1072,12 @@ static void swap_reclaim_full_clusters(s
+ 		swap_cluster_unlock(ci);
+ 		if (to_scan <= 0)
+ 			break;
++
++		/*
++		 * When 'force' is false, 'to_scan' is initialized to 1.
++		 * The loop breaks above, making this cond_resched() unreachable
++		 * in atomic contexts.
++		 */
+ 		cond_resched();
+ 	}
+ }
 _
 
-Patches currently in -mm which might be from zenghongling@kylinos.cn are
+Patches currently in -mm which might be from youngjun.park@lge.com are
 
-mm-huge_memory-fix-kobject-cleanup-in-thpsize_create-error.patch
+mm-swap-clarify-unreachable-cond_resched-in-swap_reclaim_full_clusters.patch
 
