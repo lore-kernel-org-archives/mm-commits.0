@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E121937D11C
-	for <mm-commits@vger.kernel.org>; Tue, 14 Jul 2026 02:26:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CD64C37AA92
+	for <mm-commits@vger.kernel.org>; Tue, 14 Jul 2026 02:26:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783995971; cv=none; b=RxB4g+E9xZtiZYaCji+aVZF/oAQpuXXy2C/hAm1NYCX8r4J2mPk3sN3tVSNzmnpqTU/phcGdOjoKZzpZmAcW56hesp35I1gGYdcJ3UUe6MBBy0557jxn+RqAdB43KR12mnuOh05r5RzPFXZosZoUaxHHlXoVxLkMtGaJs0a4i80=
+	t=1783995975; cv=none; b=Br4Y/a+gpUU+lq0T8TsVMKtQqTPJqrB8+BTKGvQzlkGA9HYKdeYNPuOWzcguTDOppSYwoTX5Pw/B+hrmpIaLzHVkrG5aimfptslYDGLGscZJe5Xljolcxr3/OcdZ/9xwPqq2O7LrE3KCjEfLKViNBf4KX16sz+xWK+kozN9dkPU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783995971; c=relaxed/simple;
-	bh=HDUx8xnOVw8j9f27F28bry+2HdAIc5jqvBXRQ6eaznk=;
-	h=Date:To:From:Subject:Message-Id; b=TLf+hPVE4Kt5WGeD1dXxmNotLm51AGnvqRq9/201p8xPskcoUt9dIEOYRMVbfTgJ4bF1rrB06Y8CZ+sPseUywd2cSa27n9OzAON6MI7GgJDNHmK9/cPy/vgq+eGKxdQvdLNb0L/Ck3cZVLIHy5XwdJe0f1W2jXlW0v1qs7QZ8JE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ut2shwai; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783995975; c=relaxed/simple;
+	bh=A6jr49tLONH4NrnmpLSr3SbSSd26qeIXvDh7UISPtCA=;
+	h=Date:To:From:Subject:Message-Id; b=do7wtLKA5tk0Pb6IDLqED+njx7asLHGQXALun5HVlrVURmzM/ERhbhkO9u++HVkEBcQ/G8K1rrVmf1aUIw5ElGO9vUTO3cIiU+PQd6e6a+hjrfChkfYfZv/kNnQtjh6C6l4iPfRXh2gl2xawRtBsmS7K1vj6Qtkkq2DbuLJ+TuE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kqxBUaFD; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ut2shwai"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B535D1F00A3A;
-	Tue, 14 Jul 2026 02:26:09 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kqxBUaFD"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A2C491F000E9;
+	Tue, 14 Jul 2026 02:26:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783995969;
-	bh=+GGe1eqxc9KVWDB8w2WRDV3n6v5yZb5Dx4h+QzZOx2o=;
+	d=linux-foundation.org; s=korg; t=1783995973;
+	bh=jhjZZL3nxtET3JPQsh+oEtA3USg8oYVwzxnl8aBxKcw=;
 	h=Date:To:From:Subject;
-	b=ut2shwaiUcPHHVhNC6jmjb+v72+71LBTElk7A77Am0AUAWreQZHLQbqQceNscwxS/
-	 olT5f9vchEKg237IfEuiSZhM+mcysdmsadNUZWMLhRP+6FKn4FiZmhRZwdxQBKIuaF
-	 da9iKVimY5pvfKk86JCReZnc7VU35kiu7+iMMjcA=
-Date: Mon, 13 Jul 2026 19:26:09 -0700
+	b=kqxBUaFDF9J81CEGh5XEREZyXRl8BimugsYGBCiZpTgtO0BQmqha4arDv4c/WIBhv
+	 VtXCsY02ofRNllbY0AXSagTQbr+jGf0GF3/5BKcWZ3K5L1MUSMhWvuGOhbOubLSOqE
+	 Bgb7AxsdTVMJ6ZYopADyYluv1PThFRcL7LpQw3oY=
+Date: Mon, 13 Jul 2026 19:26:13 -0700
 To: mm-commits@vger.kernel.org,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vma-convert-vm_pgprot_modify-to-use-vma_flags_t-and-rename.patch added to mm-new branch
-Message-Id: <20260714022609.B535D1F00A3A@smtp.kernel.org>
+Subject: + mm-vma-rename-vma_get_page_prot-to-vma_flags_to_page_prot.patch added to mm-new branch
+Message-Id: <20260714022613.A2C491F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/vma: convert vm_pgprot_modify() to use vma_flags_t and rename
+     Subject: mm/vma: rename vma_get_page_prot to vma_flags_to_page_prot
 has been added to the -mm mm-new branch.  Its filename is
-     mm-vma-convert-vm_pgprot_modify-to-use-vma_flags_t-and-rename.patch
+     mm-vma-rename-vma_get_page_prot-to-vma_flags_to_page_prot.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vma-convert-vm_pgprot_modify-to-use-vma_flags_t-and-rename.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vma-rename-vma_get_page_prot-to-vma_flags_to_page_prot.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,24 +70,18 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <ljs@kernel.org>
-Subject: mm/vma: convert vm_pgprot_modify() to use vma_flags_t and rename
-Date: Sat, 11 Jul 2026 19:45:03 +0100
+Subject: mm/vma: rename vma_get_page_prot to vma_flags_to_page_prot
+Date: Sat, 11 Jul 2026 19:45:04 +0100
 
-Update vm_pgprot_modify() to use the new VMA flags type vma_flags_t, and
-rename to vma_pgprot_modify() accordingly.
+Having vma_get_page_prot() refer to VMA flags and vma_set_page_prot()
+refer to a VMA is confusing.
 
-This is part of the ongoing work to convert vm_flags_t to vma_flags_t, in
-order to eliminate the arbitrary limit of the number of bits in a system
-word on available VMA flags.
-
-Update VMA userland tests accordingly, updating vma_set_page_prot() to no
-longer inline vma_pgprot_modify(), rather we can simply define
-vma_pgprot_modify() as a static inline function and the tests will pick it
-up from vma.h.
+Rename vma_get_page_prot() to vma_flags_to_page_prot() to resolve this
+confusion.
 
 No functional change intended.
 
-Link: https://lore.kernel.org/20260711-b4-vma-flags-mm-v2-6-0fa2357d5431@kernel.org
+Link: https://lore.kernel.org/20260711-b4-vma-flags-mm-v2-7-0fa2357d5431@kernel.org
 Signed-off-by: Lorenzo Stoakes <ljs@kernel.org>
 Reviewed-by: Lance Yang <lance.yang@linux.dev>
 Reviewed-by: Zi Yan <ziy@nvidia.com>
@@ -111,91 +105,65 @@ Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c                       |    8 ++++----
+ include/linux/mm.h              |    4 ++--
  mm/vma.c                        |    2 +-
- mm/vma.h                        |    6 ++++--
- tools/testing/vma/include/dup.h |   12 +++++-------
- 4 files changed, 14 insertions(+), 14 deletions(-)
+ mm/vma.h                        |    2 +-
+ tools/testing/vma/include/dup.h |    2 +-
+ 4 files changed, 5 insertions(+), 5 deletions(-)
 
---- a/mm/mmap.c~mm-vma-convert-vm_pgprot_modify-to-use-vma_flags_t-and-rename
-+++ a/mm/mmap.c
-@@ -80,13 +80,13 @@ core_param(ignore_rlimit_data, ignore_rl
- /* Update vma->vm_page_prot to reflect vma->vm_flags. */
- void vma_set_page_prot(struct vm_area_struct *vma)
- {
--	vm_flags_t vm_flags = vma->vm_flags;
-+	vma_flags_t vma_flags = vma->flags;
- 	pgprot_t vm_page_prot;
- 
--	vm_page_prot = vm_pgprot_modify(vma->vm_page_prot, vm_flags);
-+	vm_page_prot = vma_pgprot_modify(vma->vm_page_prot, vma_flags);
- 	if (vma_wants_writenotify(vma, vm_page_prot)) {
--		vm_flags &= ~VM_SHARED;
--		vm_page_prot = vm_pgprot_modify(vm_page_prot, vm_flags);
-+		vma_flags_clear(&vma_flags, VMA_SHARED_BIT);
-+		vm_page_prot = vma_pgprot_modify(vm_page_prot, vma_flags);
- 	}
- 	/* remove_protection_ptes reads vma->vm_page_prot without mmap_lock */
- 	WRITE_ONCE(vma->vm_page_prot, vm_page_prot);
---- a/mm/vma.c~mm-vma-convert-vm_pgprot_modify-to-use-vma_flags_t-and-rename
-+++ a/mm/vma.c
-@@ -2176,7 +2176,7 @@ bool vma_wants_writenotify(struct vm_are
- 	/* The open routine did something to the protections that pgprot_modify
- 	 * won't preserve? */
- 	if (pgprot_val(vm_page_prot) !=
--	    pgprot_val(vm_pgprot_modify(vm_page_prot, vma->vm_flags)))
-+	    pgprot_val(vma_pgprot_modify(vm_page_prot, vma->flags)))
- 		return false;
- 
- 	/*
---- a/mm/vma.h~mm-vma-convert-vm_pgprot_modify-to-use-vma_flags_t-and-rename
-+++ a/mm/vma.h
-@@ -541,9 +541,11 @@ static inline bool vma_wants_manual_pte_
- }
- 
+--- a/include/linux/mm.h~mm-vma-rename-vma_get_page_prot-to-vma_flags_to_page_prot
++++ a/include/linux/mm.h
+@@ -4603,7 +4603,7 @@ static inline bool range_in_vma_desc(con
  #ifdef CONFIG_MMU
--static inline pgprot_t vm_pgprot_modify(pgprot_t oldprot, vm_flags_t vm_flags)
-+static inline pgprot_t vma_pgprot_modify(pgprot_t oldprot, vma_flags_t vma_flags)
+ pgprot_t vm_get_page_prot(vm_flags_t vm_flags);
+ 
+-static inline pgprot_t vma_get_page_prot(vma_flags_t vma_flags)
++static inline pgprot_t vma_flags_to_page_prot(vma_flags_t vma_flags)
  {
--	return pgprot_modify(oldprot, vm_get_page_prot(vm_flags));
-+	const pgprot_t prot = vma_get_page_prot(vma_flags);
-+
-+	return pgprot_modify(oldprot, prot);
+ 	const vm_flags_t vm_flags = vma_flags_to_legacy(vma_flags);
+ 
+@@ -4616,7 +4616,7 @@ static inline pgprot_t vm_get_page_prot(
+ {
+ 	return __pgprot(0);
  }
+-static inline pgprot_t vma_get_page_prot(vma_flags_t vma_flags)
++static inline pgprot_t vma_flags_to_page_prot(vma_flags_t vma_flags)
+ {
+ 	return __pgprot(0);
+ }
+--- a/mm/vma.c~mm-vma-rename-vma_get_page_prot-to-vma_flags_to_page_prot
++++ a/mm/vma.c
+@@ -56,7 +56,7 @@ struct mmap_state {
+ 		.pglen = PHYS_PFN(len_),				\
+ 		.vma_flags = vma_flags_,				\
+ 		.file = file_,						\
+-		.page_prot = vma_get_page_prot(vma_flags_),		\
++		.page_prot = vma_flags_to_page_prot(vma_flags_),	\
+ 	}
+ 
+ #define VMG_MMAP_STATE(name, map_, vma_)				\
+--- a/mm/vma.h~mm-vma-rename-vma_get_page_prot-to-vma_flags_to_page_prot
++++ a/mm/vma.h
+@@ -543,7 +543,7 @@ static inline bool vma_wants_manual_pte_
+ #ifdef CONFIG_MMU
+ static inline pgprot_t vma_pgprot_modify(pgprot_t oldprot, vma_flags_t vma_flags)
+ {
+-	const pgprot_t prot = vma_get_page_prot(vma_flags);
++	const pgprot_t prot = vma_flags_to_page_prot(vma_flags);
+ 
+ 	return pgprot_modify(oldprot, prot);
+ }
+--- a/tools/testing/vma/include/dup.h~mm-vma-rename-vma_get_page_prot-to-vma_flags_to_page_prot
++++ a/tools/testing/vma/include/dup.h
+@@ -1545,7 +1545,7 @@ static inline int get_sysctl_max_map_cou
+ #define pgtable_supports_soft_dirty()	IS_ENABLED(CONFIG_MEM_SOFT_DIRTY)
  #endif
  
---- a/tools/testing/vma/include/dup.h~mm-vma-convert-vm_pgprot_modify-to-use-vma_flags_t-and-rename
-+++ a/tools/testing/vma/include/dup.h
-@@ -1424,20 +1424,18 @@ struct vm_area_struct *vma_iter_next_ran
- }
- 
- bool vma_wants_writenotify(struct vm_area_struct *vma, pgprot_t vm_page_prot);
-+static inline pgprot_t vma_pgprot_modify(pgprot_t oldprot, vma_flags_t vma_flags);
- 
- /* Update vma->vm_page_prot to reflect vma->vm_flags. */
- static inline void vma_set_page_prot(struct vm_area_struct *vma)
+-static inline pgprot_t vma_get_page_prot(vma_flags_t vma_flags)
++static inline pgprot_t vma_flags_to_page_prot(vma_flags_t vma_flags)
  {
--	vm_flags_t vm_flags = vma->vm_flags;
-+	vma_flags_t vma_flags = vma->flags;
- 	pgprot_t vm_page_prot;
+ 	const vm_flags_t vm_flags = vma_flags_to_legacy(vma_flags);
  
--	/* testing: we inline vm_pgprot_modify() to avoid clash with vma.h. */
--	vm_page_prot = pgprot_modify(vma->vm_page_prot, vm_get_page_prot(vm_flags));
--
-+	vm_page_prot = vma_pgprot_modify(vma->vm_page_prot, vma_flags);
- 	if (vma_wants_writenotify(vma, vm_page_prot)) {
--		vm_flags &= ~VM_SHARED;
--		/* testing: we inline vm_pgprot_modify() to avoid clash with vma.h. */
--		vm_page_prot = pgprot_modify(vm_page_prot, vm_get_page_prot(vm_flags));
-+		vma_flags_clear(&vma_flags, VMA_SHARED_BIT);
-+		vm_page_prot = vma_pgprot_modify(vm_page_prot, vma_flags);
- 	}
- 	/* remove_protection_ptes reads vma->vm_page_prot without mmap_lock */
- 	WRITE_ONCE(vma->vm_page_prot, vm_page_prot);
-diff --git /dev/null /dev/null
-new file mode 100664
-diff --git /dev/null /dev/null
-new file mode 100664
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
