@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 30A1813A3F7
-	for <mm-commits@vger.kernel.org>; Tue, 14 Jul 2026 01:39:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 513C313A3F7
+	for <mm-commits@vger.kernel.org>; Tue, 14 Jul 2026 01:39:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783993159; cv=none; b=S/1MTG4zYlEXADv9KUKKRMEBl8NPeD/IXH9jrs9z5pA/7u2WBFBuULXayGxvlaizmNWBq/c46bhOAvGA6YkQdkO21sDICRLPbLtY89448Easf/KemDfReAzfVV2JPwik56Q3G6ENnhuYqkyz5IzQ7P2I5Tm6FV3iUt0fQjChnvU=
+	t=1783993161; cv=none; b=rmTO/pk0b8aJTZG3PMc7VetnVk7yHpy27cAz426QbrwExg2Z3FfyibVScfewgVMZUs0PJ+kjSkH4OEK8OmjnR7+vj9torvl6njdB2hTgLQ96sqNlOxocwK+o4rSNEfFYmMpomMZzxPpPZlmHYtslo+T9pO0tD6ZywygsiQMx8S0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783993159; c=relaxed/simple;
-	bh=QhCupRuIQkLj+CUD2HnuysaKi+zHmL8c0YIanVRjgJg=;
-	h=Date:To:From:Subject:Message-Id; b=MX4RzAGf/fJG0inUMcBnrkZ3GWqJx/d87+XcMMU+ww2xQf9wCma7sd71l16KWFrhujXivHRuxQwCdzVarMqWPnmdQuUcCyfN8dDYMSqz/M2Thsu8BkVd7cfrF0fQgZ+dV5ixe10aCenS9+Joopmw0vOf+Y8mcl+7mrDlQ52GMRE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UxLbVBFr; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783993161; c=relaxed/simple;
+	bh=121jPf09yr48TwhDTBGm+x6y7Adu6FVSU7sJtqXtnFw=;
+	h=Date:To:From:Subject:Message-Id; b=BBo/XKJMrBhUEubrdDehsH+vfspBJgKstYmZT0EzZIw0TjmK9uOVhSeilDgSy8L5VnnaclYNGySqn8D4hGBV8RNJhlBwD0UoUI2/iQQ5BH1+mSdXYbAwbvT36ee3nHxfcbvTF5q0puPeo6l9EUfSItqtKMWc/GLAQtGjWbc1DHM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1RupIcH3; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UxLbVBFr"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B59601F000E9;
-	Tue, 14 Jul 2026 01:39:17 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1RupIcH3"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D4EAE1F000E9;
+	Tue, 14 Jul 2026 01:39:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783993157;
-	bh=ytfsSZR0M8Ab8x+prZBhSsdoxZ8/uvVtZrEnn5Tltmw=;
+	d=linux-foundation.org; s=korg; t=1783993159;
+	bh=Mb8N3HHkUcvoav1ahnNJ2PVTy/fAPSpev3TREKllxZw=;
 	h=Date:To:From:Subject;
-	b=UxLbVBFri9zzu5vvB+ug6Mj00EoseK6IdGE0D/sC2fNRhGXMwkTqCD8Iij+KIepDR
-	 KJnToYtmJPyTrF9LNteub0r63yg5/Qft5zNbKY337bbXj1mn+CpjHXwg/tu3SMKMxk
-	 +C6FUMmF2m6lNfhegWUd73+4jkEKRkcR9uN/dC7k=
-Date: Mon, 13 Jul 2026 18:39:17 -0700
+	b=1RupIcH3+ND5DrL6JRIZJ+SAmknGA19LXNnKoTgFaFEqQqfRCekeOOYXZsRN5R1TA
+	 uiQ8oiEE84AJ4Mq6EzpANgfQftYDNqupBMWWXJyAGQ/35Uu5vljY34kaQQ5WOyRjUA
+	 JYwvfEhEvVTS6WS6HV0XHM3zRtkiTELgZCQQ/Gek=
+Date: Mon, 13 Jul 2026 18:39:19 -0700
 To: mm-commits@vger.kernel.org,vishal.l.verma@intel.com,vbabka@kernel.org,surenb@google.com,shuah@kernel.org,rppt@kernel.org,rafael@kernel.org,pankaj.gupta@amd.com,osalvador@suse.de,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,hare@suse.de,gregkh@linuxfoundation.org,djbw@kernel.org,david@kernel.org,dave.jiang@intel.com,dakr@kernel.org,alison.schofield@intel.com,gourry@gourry.net,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memory_hotplug-pass-online_type-to-online_memory_block-via-arg.patch added to mm-new branch
-Message-Id: <20260714013917.B59601F000E9@smtp.kernel.org>
+Subject: + mm-memory_hotplug-export-mhp_get_default_online_type.patch added to mm-new branch
+Message-Id: <20260714013919.D4EAE1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/memory_hotplug: pass online_type to online_memory_block() via arg
+     Subject: mm/memory_hotplug: export mhp_get_default_online_type
 has been added to the -mm mm-new branch.  Its filename is
-     mm-memory_hotplug-pass-online_type-to-online_memory_block-via-arg.patch
+     mm-memory_hotplug-export-mhp_get_default_online_type.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory_hotplug-pass-online_type-to-online_memory_block-via-arg.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory_hotplug-export-mhp_get_default_online_type.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,25 +70,29 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Gregory Price <gourry@gourry.net>
-Subject: mm/memory_hotplug: pass online_type to online_memory_block() via arg
-Date: Sun, 12 Jul 2026 11:44:57 -0400
+Subject: mm/memory_hotplug: export mhp_get_default_online_type
+Date: Sun, 12 Jul 2026 11:44:58 -0400
 
-Modify online_memory_block() to accept the online type through its arg
-parameter rather than calling mhp_get_default_online_type() internally.
+Drivers which may pass hotplug policy down to DAX need MMOP_ symbols and
+the mhp_get_default_online_type function for hotplug use cases.
 
-This prepares for allowing callers to specify explicit online types.
+Some drivers (cxl) co-mingle their hotplug and devdax use-cases into the
+same driver code, and chose the dax_kmem path as the default driver path -
+making it difficult to require hotplug as a predicate to building the
+overall driver (it may break other non-hotplug use-cases).
 
-Update the caller in add_memory_resource() to pass the default online
-type via a local variable.
+Export mhp_get_default_online_type function to allow these drivers to
+build when hotplug is disabled and still use the DAX use case.
 
-No functional change.
+In the built-out case we simply return MMOP_OFFLINE as it's
+non-destructive.  The internal function can never return -1 either, so we
+choose this to allow for defining the function with 'enum mmop'.
 
-Link: https://lore.kernel.org/20260712154505.3564379-4-gourry@gourry.net
+Link: https://lore.kernel.org/20260712154505.3564379-5-gourry@gourry.net
 Signed-off-by: Gregory Price <gourry@gourry.net>
-Acked-by: David Hildenbrand (Red Hat) <david@kernel.org>
-Reviewed-by: Pankaj Gupta <pankaj.gupta@amd.com>
 Reviewed-by: Dave Jiang <dave.jiang@intel.com>
 Reviewed-by: Dan Williams <djbw@kernel.org>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
 Cc: Alison Schofield <alison.schofield@intel.com>
 Cc: Danilo Krummrich <dakr@kernel.org>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
@@ -98,6 +102,7 @@ Cc: Lorenzo Stoakes <ljs@kernel.org>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Pankaj Gupta <pankaj.gupta@amd.com>
 Cc: "Rafael J. Wysocki" <rafael@kernel.org>
 Cc: Shuah Khan <shuah@kernel.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
@@ -106,40 +111,31 @@ Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ include/linux/memory_hotplug.h |    2 ++
+ mm/memory_hotplug.c            |    1 +
+ 2 files changed, 3 insertions(+)
 
---- a/mm/memory_hotplug.c~mm-memory_hotplug-pass-online_type-to-online_memory_block-via-arg
+--- a/include/linux/memory_hotplug.h~mm-memory_hotplug-export-mhp_get_default_online_type
++++ a/include/linux/memory_hotplug.h
+@@ -317,6 +317,8 @@ extern struct zone *zone_for_pfn_range(e
+ extern int arch_create_linear_mapping(int nid, u64 start, u64 size,
+ 				      struct mhp_params *params);
+ void arch_remove_linear_mapping(u64 start, u64 size);
++#else
++static inline enum mmop mhp_get_default_online_type(void) { return MMOP_OFFLINE; }
+ #endif /* CONFIG_MEMORY_HOTPLUG */
+ 
+ #endif /* __LINUX_MEMORY_HOTPLUG_H */
+--- a/mm/memory_hotplug.c~mm-memory_hotplug-export-mhp_get_default_online_type
 +++ a/mm/memory_hotplug.c
-@@ -1340,7 +1340,9 @@ static int check_hotplug_memory_range(u6
+@@ -241,6 +241,7 @@ enum mmop mhp_get_default_online_type(vo
  
- static int online_memory_block(struct memory_block *mem, void *arg)
- {
--	mem->online_type = mhp_get_default_online_type();
-+	enum mmop *online_type = arg;
-+
-+	mem->online_type = *online_type;
- 	return device_online(&mem->dev);
+ 	return mhp_default_online_type;
  }
++EXPORT_SYMBOL_GPL(mhp_get_default_online_type);
  
-@@ -1497,6 +1499,7 @@ out:
- int add_memory_resource(int nid, struct resource *res, mhp_t mhp_flags)
+ void mhp_set_default_online_type(enum mmop online_type)
  {
- 	struct mhp_params params = { .pgprot = pgprot_mhp(PAGE_KERNEL) };
-+	enum mmop online_type = mhp_get_default_online_type();
- 	enum memblock_flags memblock_flags = MEMBLOCK_NONE;
- 	struct memory_group *group = NULL;
- 	u64 start, size;
-@@ -1585,7 +1588,8 @@ int add_memory_resource(int nid, struct
- 
- 	/* online pages if requested */
- 	if (mhp_get_default_online_type() != MMOP_OFFLINE)
--		walk_memory_blocks(start, size, NULL, online_memory_block);
-+		walk_memory_blocks(start, size, &online_type,
-+				   online_memory_block);
- 
- 	return ret;
- error:
 _
 
 Patches currently in -mm which might be from gourry@gourry.net are
