@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6BCEA44C67A
-	for <mm-commits@vger.kernel.org>; Tue, 14 Jul 2026 19:28:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4E26144C642;
+	Tue, 14 Jul 2026 19:38:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784057310; cv=none; b=H3HI/oE64YyvceSk2UTWxIuhzN9+0gYF/avxcSaPjthsl6cKckMXe83zc97ijdETPYmkw1UOys5gYku5vGuYfFMplhirjKGE/oJ+vwCqEK1pge/pjbSjs/bMAZHO2LmsRdcQd2cxMo4L1mDUnTyMeKuGx3wiG8ySbmEMJTNjzxw=
+	t=1784057930; cv=none; b=WuFyc1c+d7SPTwHSmGzr4+eN4VOl224TQdOh18pkU2Q58varNnvbAn+jhjBQs6Rjc4heeYccUNWojfqh914LWdn4eh4+CubSx2iVTJx90POwdwCvz8fw/sUKTxGmsliGT1rMwQ/cQWFs5stMLXcmK4Pk2hmdv+5eb7ECveepVvo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784057310; c=relaxed/simple;
-	bh=kcgpQsKHqiRaL1Z4AJkcVcZL/bu50xjpG8OQAQjsvcI=;
-	h=Date:To:From:Subject:Message-Id; b=Eh3t+cEBOae8m/EBP+f6SzIG8DiHXsxGqP4UFco5mqCt6DFYIc8wWTcOON5FZ35oss+gCbDwzmMJXRQz0fqsRiuutXDOEmnRHAV42k4YHewXF3CY7RMsCh+ON5J3ocECMQfD8bqP1WY9gTx33PB+lYin5IxBNfVKEd+lQ55g904=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Ee/R5bo+; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1784057930; c=relaxed/simple;
+	bh=mkzmVwBkSgkC5RKoGeRG6ecRwJxm0QqRXQdUefts/Vw=;
+	h=Date:To:From:Subject:Message-Id; b=sJyILSvx/cDfIMRMocckiZztTclm4gFav3DMPOwaefLye+/zrRvnNszsljXPxJB02Q0gWpV7ynRebORKrW2NfGKzmXz5pyPeoo9KzHkMf4sw4WO1kVK5A50f4uTUKQsbR5xtImvCLOHonrf6CB8nmqmQIOF3Xy1+RAJgIJ6D84I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KD58VbTM; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Ee/R5bo+"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id ECA511F000E9;
-	Tue, 14 Jul 2026 19:28:28 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KD58VbTM"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E89431F000E9;
+	Tue, 14 Jul 2026 19:38:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1784057309;
-	bh=moehg0ZQanvK7PNdKdZactm3W6pz8rN8r3m6mmcd6po=;
+	d=linux-foundation.org; s=korg; t=1784057929;
+	bh=1Dxprz+I0kwUrds5EguUr7qrklLmPCc4v0d18vTHlpQ=;
 	h=Date:To:From:Subject;
-	b=Ee/R5bo+0JE6S6Aq+CX57BH8Q0knLmPoPRg70WTF7M2drqQLBOT7v8A7yo3mTkf5r
-	 xUZaPNoCpoF/aietFupW+nF4/2VQw7MxKnZB/0XNCFg1SOVGchFRkJds6FTtAcErw8
-	 nUNIf6MOYbEMoqWtObyCRmJYm7btyft97I38gT7k=
-Date: Tue, 14 Jul 2026 12:28:28 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,surenb@google.com,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,jackmanb@google.com,hannes@cmpxchg.org,david@kernel.org,ptesarik@suse.com,akpm@linux-foundation.org
+	b=KD58VbTMPkVwVv2oHBzoWisSW3IsTcsavIjC9W4uz16aviX83028EPpm4kECwG0i8
+	 g7WrEePqOt28tKhwTMhtPttNuasVvTWVZdQUklMk+LWT8N6xIOw6C4kFxYEFfjt0re
+	 99Cut6KzK5ACKUosSBC1D6D+UFwY3Pu/XgUdW3ww=
+Date: Tue, 14 Jul 2026 12:38:48 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,zhanghao1@kylinos.cn,stable@vger.kernel.org,ryan.roberts@arm.com,npache@redhat.com,ljs@kernel.org,liam@infradead.org,lance.yang@linux.dev,dev.jain@arm.com,david@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,kirill@shutemov.name,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-let-node_reclaim-return-the-number-of-pages-reclaimed.patch added to mm-new branch
-Message-Id: <20260714192828.ECA511F000E9@smtp.kernel.org>
+Subject: [to-be-updated] mm-thp-pin-the-inode-across-a-file-folio-split.patch removed from -mm tree
+Message-Id: <20260714193848.E89431F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,208 +34,120 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: mm: let node_reclaim() return the number of pages reclaimed
-has been added to the -mm mm-new branch.  Its filename is
-     mm-let-node_reclaim-return-the-number-of-pages-reclaimed.patch
+The quilt patch titled
+     Subject: mm: thp: pin the inode across a file folio split
+has been removed from the -mm tree.  Its filename was
+     mm-thp-pin-the-inode-across-a-file-folio-split.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-let-node_reclaim-return-the-number-of-pages-reclaimed.patch
-
-This patch will later appear in the mm-new branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Petr Tesarik <ptesarik@suse.com>
-Subject: mm: let node_reclaim() return the number of pages reclaimed
-Date: Tue, 14 Jul 2026 15:23:00 +0200
+From: "Kiryl Shutsemau (Meta)" <kirill@shutemov.name>
+Subject: mm: thp: pin the inode across a file folio split
+Date: Mon, 13 Jul 2026 18:09:15 +0100
 
-There is only one caller, get_page_from_freelist(), and it does not make
-any use of the reason for skipping the reclaim, nor does it make any
-distinction between a full and partially successful reclaim.
+__folio_split() looks up mapping = folio->mapping for a file-backed folio
+and keeps dereferencing it after the split completes:
+shmem_uncharge(mapping->host) for folios dropped beyond EOF and
+i_mmap_unlock_read(mapping) on the way out.
 
-Therefore, node_reclaim() can simply return the number of pages that have
-been reclaimed, same as __node_reclaim(), and the NODE_RECLAIM_xxx macros
-can be removed.
+Nothing holds an inode reference for that duration.  The split relies on
+the folio the caller keeps locked (@lock_at) to pin the inode through the
+page cache: while it is locked and present, truncate_inode_pages_final()
+in evict() cannot make progress.  But the split drops @lock_at from the
+page cache when it falls beyond EOF (the @end handling in
+__folio_freeze_and_split_unmapped()), while keeping it locked for the
+caller.  That removes the last pin, and a concurrent final iput() can then
+evict and RCU-free the inode before __folio_split() is done touching
+mapping.
 
-There is one small change of behavior when __node_reclaim() was attempted
-but returned zero.  The allocation now skips the zone immediately; before
-this patch, the zone watermarks were checked first.  I believe it was an
-oversight rather than intention, because the chances that zone watermark
-is OK after __node_reclaim() did not reclaim any pages are very close to
-zero.
+This is reachable from memory_failure(): poisoning a tail page of a shmem
+THP that straddles EOF makes try_to_split_thp_page() split at that page,
+so the dropped @lock_at is the folio returned locked.  The result is a
+use-after-free, e.g.:
 
-Originally, I was looking for occurences of NODE_RECLAIM_SOME and
-NODE_RECLAIM_SUCCESS, but I couldn't find any.  That's because they are
-typecast from the result of a relational operator.  This seemed a bit
-fragile, so I dug a bit deeper and came up with this proposed cleanup.
+  BUG: KASAN: slab-use-after-free in __up_read+0x634/0x790
+   i_mmap_unlock_read include/linux/fs.h:537 [inline]
+   __folio_split+0x732/0x1640 mm/huge_memory.c:4100
+   try_to_split_thp_page+0xab/0x390 mm/memory-failure.c:1675
+   memory_failure+0x1394/0x26e0 mm/memory-failure.c:2470
 
-Link: https://lore.kernel.org/20260714132300.2136018-1-ptesarik@suse.com
-Signed-off-by: Petr Tesarik <ptesarik@suse.com>
-Reviewed-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Brendan Jackman <jackmanb@google.com>
+  Freed by task 4601:
+   shmem_free_in_core_inode+0x54/0xb0 mm/shmem.c:5177
+   i_callback+0x4c/0xa0 fs/inode.c:326
+   destroy_inode+0x144/0x1e0 fs/inode.c:402
+   evict+0x57f/0xac0 fs/inode.c:870
+
+Pin the inode with igrab() before the split and drop the reference with
+iput() after the last mapping dereference.  igrab() returns NULL only if
+the inode is already being evicted (i_count 0 and I_FREEING set), which a
+split racing eviction can observe; there is nothing safe to split then, so
+return -EBUSY, which callers already handle.
+
+Link: https://lore.kernel.org/20260713170915.239819-1-kirill@shutemov.name
+Fixes: baa355fd3314 ("thp: file pages support for split_huge_page()")
+Signed-off-by: Kiryl Shutsemau (Meta) <kirill@shutemov.name>
+Reported-by: Hao Zhang <zhanghao1@kylinos.cn>
+Closes: https://lore.kernel.org/linux-mm/20260710071344.GA106129@zh-pc
+Acked-by: Zi Yan <ziy@nvidia.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Barry Song <baohua@kernel.org>
 Cc: David Hildenbrand <david@kernel.org>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Lance Yang <lance.yang@linux.dev>
 Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Zi Yan <ziy@nvidia.com>
+Cc: Nico Pache <npache@redhat.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/internal.h   |   14 +++++---------
- mm/page_alloc.c |   19 ++++---------------
- mm/vmscan.c     |   16 ++++++++--------
- 3 files changed, 17 insertions(+), 32 deletions(-)
+ mm/huge_memory.c |   17 +++++++++++++++++
+ 1 file changed, 17 insertions(+)
 
---- a/mm/internal.h~mm-let-node_reclaim-return-the-number-of-pages-reclaimed
-+++ a/mm/internal.h
-@@ -1098,23 +1098,19 @@ static inline void mlock_drain_local(voi
- static inline void mlock_drain_remote(int cpu) { }
- #endif /* !CONFIG_MMU */
- 
--#define NODE_RECLAIM_NOSCAN	-2
--#define NODE_RECLAIM_FULL	-1
--#define NODE_RECLAIM_SOME	0
--#define NODE_RECLAIM_SUCCESS	1
--
- #ifdef CONFIG_NUMA
- extern int node_reclaim_mode;
- 
--extern int node_reclaim(struct pglist_data *, gfp_t, unsigned int);
-+extern unsigned long node_reclaim(struct pglist_data *pgdat,
-+				  gfp_t gfp_mask, unsigned int order);
- extern int find_next_best_node(int node, nodemask_t *used_node_mask);
- #else
- #define node_reclaim_mode 0
- 
--static inline int node_reclaim(struct pglist_data *pgdat, gfp_t mask,
--				unsigned int order)
-+static inline unsigned long node_reclaim(struct pglist_data *pgdat,
-+					 gfp_t mask, unsigned int order)
- {
--	return NODE_RECLAIM_NOSCAN;
-+	return 0;
- }
- static inline int find_next_best_node(int node, nodemask_t *used_node_mask)
- {
---- a/mm/page_alloc.c~mm-let-node_reclaim-return-the-number-of-pages-reclaimed
-+++ a/mm/page_alloc.c
-@@ -3908,8 +3908,6 @@ check_alloc_wmark:
- 		if (!zone_watermark_fast(zone, order, mark,
- 				       ac->highest_zoneidx, alloc_flags,
- 				       gfp_mask)) {
--			int ret;
--
- 			if (cond_accept_memory(zone, order, alloc_flags))
- 				goto try_this_zone;
- 
-@@ -3930,22 +3928,13 @@ check_alloc_wmark:
- 			    !zone_allows_reclaim(zonelist_zone(ac->preferred_zoneref), zone))
- 				continue;
- 
--			ret = node_reclaim(zone->zone_pgdat, gfp_mask, order);
--			switch (ret) {
--			case NODE_RECLAIM_NOSCAN:
--				/* did not scan */
--				continue;
--			case NODE_RECLAIM_FULL:
--				/* scanned but unreclaimable */
-+			if (!node_reclaim(zone->zone_pgdat, gfp_mask, order))
- 				continue;
--			default:
--				/* did we reclaim enough */
--				if (zone_watermark_ok(zone, order, mark,
--					ac->highest_zoneidx, alloc_flags))
--					goto try_this_zone;
- 
-+			/* did we reclaim enough */
-+			if (!zone_watermark_ok(zone, order, mark,
-+					       ac->highest_zoneidx, alloc_flags))
- 				continue;
--			}
+--- a/mm/huge_memory.c~mm-thp-pin-the-inode-across-a-file-folio-split
++++ a/mm/huge_memory.c
+@@ -3986,6 +3986,7 @@ static int __folio_split(struct folio *f
+ 	bool is_anon = folio_test_anon(folio);
+ 	struct address_space *mapping = NULL;
+ 	struct anon_vma *anon_vma = NULL;
++	struct inode *inode = NULL;
+ 	int old_order = folio_order(folio);
+ 	struct folio *new_folio, *next;
+ 	int nr_shmem_dropped = 0;
+@@ -4057,6 +4058,20 @@ static int __folio_split(struct folio *f
  		}
  
- try_this_zone:
---- a/mm/vmscan.c~mm-let-node_reclaim-return-the-number-of-pages-reclaimed
-+++ a/mm/vmscan.c
-@@ -7768,9 +7768,9 @@ static unsigned long __node_reclaim(stru
- 	return sc->nr_reclaimed;
- }
+ 		anon_vma = NULL;
++
++		/*
++		 * The locked @lock_at folio keeps the inode alive: eviction
++		 * cannot remove it from the page cache while it is locked. But
++		 * the split drops it if it lies beyond EOF, after which we
++		 * still touch @mapping (shmem_uncharge(), i_mmap_unlock_read()).
++		 * Hold an inode reference across the split to be safe.
++		 */
++		inode = igrab(mapping->host);
++		if (!inode) {
++			/* Inode is being evicted; nothing to split. */
++			ret = -EBUSY;
++			goto out;
++		}
+ 		i_mmap_lock_read(mapping);
  
--int node_reclaim(struct pglist_data *pgdat, gfp_t gfp_mask, unsigned int order)
-+unsigned long node_reclaim(struct pglist_data *pgdat, gfp_t gfp_mask, unsigned int order)
- {
--	int ret;
-+	unsigned long ret;
- 	/* Minimum pages needed in order to stay on node */
- 	const unsigned long nr_pages = 1 << order;
- 	struct scan_control sc = {
-@@ -7797,13 +7797,13 @@ int node_reclaim(struct pglist_data *pgd
- 	if (node_pagecache_reclaimable(pgdat) <= pgdat->min_unmapped_pages &&
- 	    node_page_state_pages(pgdat, NR_SLAB_RECLAIMABLE_B) <=
- 	    pgdat->min_slab_pages)
--		return NODE_RECLAIM_FULL;
-+		return 0;
- 
- 	/*
- 	 * Do not scan if the allocation should not be delayed.
- 	 */
- 	if (!gfpflags_allow_blocking(gfp_mask) || (current->flags & PF_MEMALLOC))
--		return NODE_RECLAIM_NOSCAN;
-+		return 0;
- 
- 	/*
- 	 * Only run node reclaim on the local node or on nodes that do not
-@@ -7812,15 +7812,15 @@ int node_reclaim(struct pglist_data *pgd
- 	 * as wide as possible.
- 	 */
- 	if (node_state(pgdat->node_id, N_CPU) && pgdat->node_id != numa_node_id())
--		return NODE_RECLAIM_NOSCAN;
-+		return 0;
- 
- 	if (test_and_set_bit_lock(PGDAT_RECLAIM_LOCKED, &pgdat->flags))
--		return NODE_RECLAIM_NOSCAN;
-+		return 0;
- 
--	ret = __node_reclaim(pgdat, gfp_mask, nr_pages, &sc) >= nr_pages;
-+	ret = __node_reclaim(pgdat, gfp_mask, nr_pages, &sc);
- 	clear_bit_unlock(PGDAT_RECLAIM_LOCKED, &pgdat->flags);
- 
--	if (ret)
-+	if (ret >= nr_pages)
- 		count_vm_event(PGSCAN_ZONE_RECLAIM_SUCCESS);
- 	else
- 		count_vm_event(PGSCAN_ZONE_RECLAIM_FAILED);
+ 		/*
+@@ -4139,6 +4154,8 @@ out_unlock:
+ 	}
+ 	if (mapping)
+ 		i_mmap_unlock_read(mapping);
++	if (inode)
++		iput(inode);
+ out:
+ 	xas_destroy(&xas);
+ 	if (is_pmd_order(old_order))
 _
 
-Patches currently in -mm which might be from ptesarik@suse.com are
+Patches currently in -mm which might be from kirill@shutemov.name are
 
-mm-let-node_reclaim-return-the-number-of-pages-reclaimed.patch
 
