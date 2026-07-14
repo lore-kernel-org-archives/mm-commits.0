@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3AA9936A34D
-	for <mm-commits@vger.kernel.org>; Tue, 14 Jul 2026 03:09:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 53597382380
+	for <mm-commits@vger.kernel.org>; Tue, 14 Jul 2026 03:10:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783998541; cv=none; b=uPwyZMp3vhzytecZINegiqcql8feFcLofvGOpZAGV9xcY5BtMe8CuMuyEnVFaFxuzc/iR+leoJGDcuJS3zqD+UiK6OnxKWLnXtw1clKgHIE+pMfUAHcWwoDmdWI6Z87oFVziPyypM0gDN+DMH/QyfsLhMtmcBiyLTWj8AIdDqC4=
+	t=1783998650; cv=none; b=mohwEZtPWz6HJkDa71TuNOkXI79Bhu38NUnmb3JD+Z1+EB8DpjCwnixQvJFxhkOstWi4x6BZ42RA1jeB/ueMVSZTdEY1ef9Q68VOaDcnTOaH+3fEi65ejOXWYy/7a7P3iNLvjMd3uSTILnFEvRs3H5eAvaGeGVUmeWEjMlJFMX0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783998541; c=relaxed/simple;
-	bh=iOLfZxJ0oA9OtJYdnG4AfjxPzJnvQ/ewOKKWD1SQ0v0=;
-	h=Date:To:From:Subject:Message-Id; b=dnRA32ORhkeumYr0+lHNSdu/ApqcvOqLZHm3W3DShtdSjbWaKfVJL13gIrjK5tYaf7oSL8SRhEFF0dz8O/CPsE8OTN2RECPoQjDjrbkaP/tU4QAwBtaT42ehT7lEwfLmmRYRte3M6VbExsD8NAKn8dHNxLV4XsRKn4B1V+Cs490=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=No7I0atE; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783998650; c=relaxed/simple;
+	bh=Luccw8jd6Nam6MpGIVPB2479B8A29pXLUCrcku3VAKk=;
+	h=Date:To:From:Subject:Message-Id; b=FFzVo6BFiEyNLehpRI4TeQ6P15BCjK2jXszAF+ssh5Hu4mRaMIHDzvznGXk/p6hiZQFaHAfPvwSefo2RwdIE9i3RzVxuSDb35ICnyI4qgBhU2y67o8Efrw/YeGMR6NV018VOpG6/p2abXUnhlqtohyS1F6PoKqfnqNIsaZ/HrWs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WrwOLHiq; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="No7I0atE"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EE77E1F000E9;
-	Tue, 14 Jul 2026 03:08:59 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WrwOLHiq"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id ECECE1F000E9;
+	Tue, 14 Jul 2026 03:10:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783998540;
-	bh=omVcOyblmISJHudHnffW04ifsfBXxRHFhY2+6FvtAN0=;
+	d=linux-foundation.org; s=korg; t=1783998649;
+	bh=39bQLswn8KzlMzrjbAkAgGIyQ8fsujl14w2aekko6Js=;
 	h=Date:To:From:Subject;
-	b=No7I0atE4Ck2iGmSfecc+ZqVlE+ieoUC0gkmp8un+ymuc3qs6bkwOgDN/Hg+rqcpx
-	 jZNeHrx9Dmblov798QAEAYtlHLHpZwtuh2oCARFMf0ImAqY0L0gtTzALtyCrq70OGN
-	 aOjHYj86gERgWVgFZHTY2vni86JmP5V/Ix7+QgoE=
-Date: Mon, 13 Jul 2026 20:08:59 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,wang.yaxin@zte.com.cn,sj@kernel.org,ryan.roberts@arm.com,npache@redhat.com,ljs@kernel.org,lance.yang@linux.dev,dev.jain@arm.com,david@kernel.org,chengming.zhou@linux.dev,baolin.wang@linux.alibaba.com,baohua@kernel.org,xu.xin16@zte.com.cn,akpm@linux-foundation.org
+	b=WrwOLHiqrA0ccpEiw1/ig1jMuloLM530Nnp2H6/dZ7aS35MXq39pmzLO+rESXpRdZ
+	 IZfxrDUuJMKW8Mnb07DAq4AM3wlQRcdm2jyI+I9EO2cOZzVK9I2aBr70VOMIWAxk1q
+	 r9yZyh/dINMQrMFpIV3QQEMY7+MA5x9P48eBCK8s=
+Date: Mon, 13 Jul 2026 20:10:48 -0700
+To: mm-commits@vger.kernel.org,ye.liu@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mm_sloth-add-comments-for-mm_slot_lookup-insert.patch added to mm-new branch
-Message-Id: <20260714030859.EE77E1F000E9@smtp.kernel.org>
+Subject: [to-be-updated] mm-page_owner-extract-skip_buddy_pages-helper-to-unify-buddy-page-skipping.patch removed from -mm tree
+Message-Id: <20260714031048.ECECE1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,96 +34,203 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: mm/mm_slot.h: add comments for mm_slot_lookup/insert
-has been added to the -mm mm-new branch.  Its filename is
-     mm-mm_sloth-add-comments-for-mm_slot_lookup-insert.patch
+The quilt patch titled
+     Subject: mm/page_owner: extract skip_buddy_pages() helper to unify buddy page skipping
+has been removed from the -mm tree.  Its filename was
+     mm-page_owner-extract-skip_buddy_pages-helper-to-unify-buddy-page-skipping.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mm_sloth-add-comments-for-mm_slot_lookup-insert.patch
-
-This patch will later appear in the mm-new branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: xu xin <xu.xin16@zte.com.cn>
-Subject: mm/mm_slot.h: add comments for mm_slot_lookup/insert
-Date: Tue, 14 Jul 2026 09:28:15 +0800 (CST)
+From: Ye Liu <ye.liu@linux.dev>
+Subject: mm/page_owner: extract skip_buddy_pages() helper to unify buddy page skipping
+Date: Wed, 1 Jul 2026 14:10:44 +0800
 
-mm_slot_lookup() and mm_slot_insert() are the only helpers in this header
-that are implemented as macros rather than static inline functions.  This
-may look inconsistent without explanation.
+Patch series "mm/page_owner: misc cleanups", v5.
 
-Explain they must be macros because hash_for_each_possible() needs the
-table as an array (for sizeof), not a pointer.
+This series collects a few cleanups for mm/page_owner.c that have been
+accumulated while reading through the file.  There is no functional change
+-- the goal is to make the code easier to read and maintain.
 
-Link: https://lore.kernel.org/20260714092815120Wv-CFDlLKtsTmda--97Qw@zte.com.cn
-Signed-off-by: xu xin <xu.xin16@zte.com.cn>
-Reviewed-by: Barry Song <baohua@kernel.org>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Chengming Zhou <chengming.zhou@linux.dev>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Lance Yang <lance.yang@linux.dev>
+Patch 1 consolidates three identical PageBuddy skip blocks into a single
+skip_buddy_pages() helper, eliminating the duplication and keeping the
+lockless-read comment in one place.
+
+Patch 2 replaces the -1 magic number used for "never migrated" with a
+proper MR_NEVER member in enum migrate_reason, adds the corresponding
+"never_migrated" string in the MIGRATE_REASON trace macro, and updates the
+GDB page_owner script to use MR_NEVER so that lx-dump-page-owner correctly
+detects unmigrated pages.
+
+Patch 3 follows up by converting the remaining 'int reason' parameters
+throughout the migration and hugetlb callchains to 'enum migrate_reason',
+making the type explicit and gaining compiler checking.  The 'short
+last_migrate_reason' struct field in page_owner is intentionally left as
+'short' since it is per-page metadata where size matters.
+
+Patch 4 hoists the CONFIG_MEMCG guard out of print_page_owner_memcg()'s
+body so that the real implementation and the empty stub are two clearly
+separate definitions, the common kernel idiom.
+
+Patch 5 adds a missing \n to the count_threshold debugfs attribute format
+string so that cat(1) output is properly terminated.
+
+Patch 6 moves free_ts_nsec from the allocation summary line to the free
+section in __dump_page_owner(), grouping it with free_pid and free_tgid
+where it logically belongs.  This also makes the dump output consistent
+with print_page_owner().
+
+Patch 7 drops the redundant page_owner_ prefix from file-scoped static
+symbols (stack_fops, threshold_fops, etc.).  Since they cannot collide
+across translation units, the prefix carries no information.
+
+Patch 8 clamps the PFN advance in skip_buddy_pages() at the next
+MAX_ORDER_NR_PAGES boundary.  The lockless buddy_order_unsafe() read can
+return a garbage order value if the page is concurrently allocated between
+the PageBuddy check and the private read, potentially causing the PFN to
+advance past the next bounadry whose pfn_valid() check would have caught
+an offline memory section.  In read_page_owner(), which relies solely on
+boundary-aligned pfn_valid() to guard pfn_to_page(), this could lead to an
+unmapped mem_section access.
+
+Patch 9 avoids a TOCTOU VM_BUG_ON in print_page_owner_memcg() by reusing
+the page->memcg_data snapshot already taken via READ_ONCE at the top of
+the function, instead of calling PageMemcgKmem() which re-reads
+folio->memcg_data and page->compound_head locklessly with VM_BUG_ON
+assertions.  If the page is concurrently freed and reallocated as a THP
+tail or slab page between the initial guards and this final call, those
+assertions can fire on CONFIG_DEBUG_VM=y builds.
+
+
+This patch (of 9)
+
+Three places in page_owner.c duplicate the same pattern: check if a page
+is PageBuddy, read its order via buddy_order_unsafe(), advance the pfn
+past the buddy block if the order is valid, and continue.
+
+Consolidate them into a single inline helper skip_buddy_pages().  The
+function returns true (skip) for any buddy page and advances @pfn past the
+block when the order is valid; returns false if the page is not a buddy
+page and should be processed normally.
+
+The old init_pages_in_zone() variant used "order > 0" as an extra guard
+before advancing pfn, but the continue was unconditional and (1UL << 0) -
+1 == 0, so the behaviour is identical.  The comment about zone->lock is
+preserved in the helper's kernel-doc.
+
+No functional change.
+
+Link: https://lore.kernel.org/20260701061101.344679-1-ye.liu@linux.dev
+Link: https://lore.kernel.org/20260701061101.344679-2-ye.liu@linux.dev
+Signed-off-by: Ye Liu <ye.liu@linux.dev>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Reviewed-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
+Cc: Brendan Jackman <jackmanb@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Nico Pache <npache@redhat.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Wang Yaxin <wang.yaxin@zte.com.cn>
-Cc: Zi Yan <ziy@nvidia.com>
-Cc: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mm_slot.h |    6 ++++++
- 1 file changed, 6 insertions(+)
+ mm/page_owner.c |   52 +++++++++++++++++++++++-----------------------
+ 1 file changed, 26 insertions(+), 26 deletions(-)
 
---- a/mm/mm_slot.h~mm-mm_sloth-add-comments-for-mm_slot_lookup-insert
-+++ a/mm/mm_slot.h
-@@ -33,6 +33,12 @@ static inline void mm_slot_free(struct k
- 	kmem_cache_free(cache, objp);
+--- a/mm/page_owner.c~mm-page_owner-extract-skip_buddy_pages-helper-to-unify-buddy-page-skipping
++++ a/mm/page_owner.c
+@@ -422,6 +422,29 @@ void __folio_copy_owner(struct folio *ne
+ 	rcu_read_unlock();
  }
  
 +/*
-+ * Note: mm_slot_lookup and mm_slot_insert cannot be converted to static inline
-+ * functions because the hash helpers (hash_for_each_possible and hash_add) rely
-+ * on the actual array argument 'hashtable' for sizeof() instead of pointers.
++ * Check if a page is a buddy page and advance @pfn past the entire buddy block.
++ * This safely reads the buddy order without the zone lock, which may cause us
++ * to skip less than the full buddy block, but that is acceptable for page owner
++ * iteration purposes.
++ *
++ * Return: true if the page was skipped (caller should continue its loop),
++ *         false if the page is not a buddy page and should be processed normally.
 + */
++static inline bool skip_buddy_pages(unsigned long *pfn, struct page *page)
++{
++	unsigned long order;
 +
- #define mm_slot_lookup(_hashtable, _mm) 				       \
- ({									       \
- 	struct mm_slot *tmp_slot, *mm_slot = NULL;			       \
++	if (!PageBuddy(page))
++		return false;
++
++	order = buddy_order_unsafe(page);
++	if (order <= MAX_PAGE_ORDER)
++		*pfn += (1UL << order) - 1;
++
++	return true;
++}
++
+ void pagetypeinfo_showmixedcount_print(struct seq_file *m,
+ 				       pg_data_t *pgdat, struct zone *zone)
+ {
+@@ -461,14 +484,8 @@ void pagetypeinfo_showmixedcount_print(s
+ 			if (page_zone(page) != zone)
+ 				continue;
+ 
+-			if (PageBuddy(page)) {
+-				unsigned long freepage_order;
+-
+-				freepage_order = buddy_order_unsafe(page);
+-				if (freepage_order <= MAX_PAGE_ORDER)
+-					pfn += (1UL << freepage_order) - 1;
++			if (skip_buddy_pages(&pfn, page))
+ 				continue;
+-			}
+ 
+ 			if (PageReserved(page))
+ 				continue;
+@@ -697,13 +714,8 @@ read_page_owner(struct file *file, char
+ 		}
+ 
+ 		page = pfn_to_page(pfn);
+-		if (PageBuddy(page)) {
+-			unsigned long freepage_order = buddy_order_unsafe(page);
+-
+-			if (freepage_order <= MAX_PAGE_ORDER)
+-				pfn += (1UL << freepage_order) - 1;
++		if (skip_buddy_pages(&pfn, page))
+ 			continue;
+-		}
+ 
+ 		page_ext = page_ext_get(page);
+ 		if (unlikely(!page_ext))
+@@ -798,20 +810,8 @@ static void init_pages_in_zone(struct zo
+ 			if (page_zone(page) != zone)
+ 				continue;
+ 
+-			/*
+-			 * To avoid having to grab zone->lock, be a little
+-			 * careful when reading buddy page order. The only
+-			 * danger is that we skip too much and potentially miss
+-			 * some early allocated pages, which is better than
+-			 * heavy lock contention.
+-			 */
+-			if (PageBuddy(page)) {
+-				unsigned long order = buddy_order_unsafe(page);
+-
+-				if (order > 0 && order <= MAX_PAGE_ORDER)
+-					pfn += (1UL << order) - 1;
++			if (skip_buddy_pages(&pfn, page))
+ 				continue;
+-			}
+ 
+ 			if (PageReserved(page))
+ 				continue;
 _
 
-Patches currently in -mm which might be from xu.xin16@zte.com.cn are
+Patches currently in -mm which might be from ye.liu@linux.dev are
 
-ksm-add-linear_page_index-into-ksm_rmap_item.patch
-ksm-optimize-rmap_walk_ksm-by-passing-a-suitablepage-index.patch
-ksm-add-mremap-selftests-for-ksm_rmap_walk.patch
-mm-ksm-initialize-the-addr-only-once-in-collect_procs_ksm.patch
-ksm-use-precise-linear_page_index-instead-of-the-whole-address-space.patch
-mm-mm_sloth-add-a-helper-function-mm_slot_remove.patch
-mm-mm_sloth-add-comments-for-mm_slot_lookup-insert.patch
+mm-page_owner-add-mr_never-to-enum-migrate_reason-and-use-it-for-last_migrate_reason.patch
+mm-use-enum-migrate_reason-instead-of-int-for-migration-reason-parameters.patch
+mm-page_owner-hoist-config_memcg-to-function-level-for-print_page_owner_memcg.patch
+mm-page_owner-add-missing-newline-to-count_threshold-format-string.patch
+mm-page_owner-move-free_ts_nsec-output-to-free-section-in-__dump_page_owner.patch
+mm-page_owner-drop-redundant-page_owner-prefix-from-static-symbols.patch
+mm-page_owner-clamp-skip_buddy_pages-pfn-advance-at-max_order_nr_pages-boundary.patch
+mm-page_owner-use-memcg_data-snapshot-instead-of-pagememcgkmem-to-avoid-toctou-vm_bug_on.patch
 
