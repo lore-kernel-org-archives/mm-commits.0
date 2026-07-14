@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 81ECA2931F5
-	for <mm-commits@vger.kernel.org>; Tue, 14 Jul 2026 19:21:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6479D2931F5
+	for <mm-commits@vger.kernel.org>; Tue, 14 Jul 2026 19:22:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784056920; cv=none; b=r48aGAEVfRcuZhCrIthOtj/gov7VPViWRae7vFHMkIqQ/3yFcdpRsiQftDZUhP488riwxpi3oA8CJDWP/NaYWZxkS6cHZ2QrAio/UmOuR29mP5Vrzufnocyjw9ktV61u0yWkdpNPWDNkoEeVJO6zM0WJl8gjm27S53bAttOxrO8=
+	t=1784056922; cv=none; b=nc7OEHBDTljuPlZvhn1Pz1A6JP1wdUyb1hPVActVE4ULLbmJLed4AEgHbUm0iLyHaJHCOhQXY8oHmOJkShMXAJdEl2vOn5qsHzLqF3J73pK9EKIJ3z42hu/wTsFRXrQVLKavCOw+rBPhZ0hXgIXmQKcAQ22tc9r1D9T3dTxSQKY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784056920; c=relaxed/simple;
-	bh=4+6XKUJ66ASI7seA+6vixmPvYUOyXialm9lHWBH+KyA=;
-	h=Date:To:From:Subject:Message-Id; b=S6e7tcwss9KSG8SdjS9P7tWSVjInlu7NPjx9CcjmnUWOmXe8T+R0miA8TQ5piJtLx4N5sSrDgy2UaGv4fg3wLMiRtsV/XK8Idxqp8xw47nwKLKywh/KnFJ52PvKZVokG32Vb1m+mY8Z6zgUcVmzgq3rDrldUULzLwFV37yHixjI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ExlbAImY; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1784056922; c=relaxed/simple;
+	bh=XSCkjUfPugiWMk0SCg4bvohRyRHfRM9N2JPjBGjI2Zg=;
+	h=Date:To:From:Subject:Message-Id; b=RtoDGwUcsLwxvZLiLQ2wXpGAg3NEqKVCVmjnSbpzRPjsRAxoHuKIi0W11fc3MfJRwYzdxgRi6qX/RfdjCBBSy3FUIi3Ns/thNaEUdPivF114uArgz5Fhc9veMPCfibv7PD30H8Gmojs798zQhtnkhoNmgzyoi/4vB9TAHMMrmwQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Tx2L3S6l; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ExlbAImY"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2555A1F00A3A;
-	Tue, 14 Jul 2026 19:21:59 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Tx2L3S6l"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 079B91F000E9;
+	Tue, 14 Jul 2026 19:22:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1784056919;
-	bh=5wM37kM+t0jezr3ep6r2XA59B9+ETxJ80uvAydT/z1A=;
+	d=linux-foundation.org; s=korg; t=1784056921;
+	bh=RbtC8Fo22NlJTv4HcAfcJqtIiF5+VBgrUruCiNxYYCI=;
 	h=Date:To:From:Subject;
-	b=ExlbAImYVkrNRFyZXpOofYrq8/oUhkoT+0TVLSsLkTQEi8klcnq0Ln2f659pMXE3q
-	 DgyM72YJwOPdipra6DRcAXAyejaWDVVWiuXY4y4dk5y71o6vKt3AJgVqksVq85/MyW
-	 tqOANm9Xds3XXsHDNmoBRMHocUHM4yKm/wqiof9I=
-Date: Tue, 14 Jul 2026 12:21:58 -0700
+	b=Tx2L3S6l6eymMFj3WEhQ5NyPCjAvxm4ca6thiZ2ZiP/Orfx3+nmqgrH7wCrlcbP6c
+	 KYsI4Nx9wbFR3cCgSfgz+971iK4AvrW/TJcFjOG+ldSlnCWE+XaGT4Ud3I/BUS0OZu
+	 nPaN/e4qdAJvirueQ4KqeGtQSH+2jVU4Tja9kygM=
+Date: Tue, 14 Jul 2026 12:22:00 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-core-hide-private-damon_probe-fields.patch added to mm-new branch
-Message-Id: <20260714192159.2555A1F00A3A@smtp.kernel.org>
+Subject: + mm-damon-sysfs-do-not-directly-access-damon_ctx-ops.patch added to mm-new branch
+Message-Id: <20260714192201.079B91F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/core: hide private damon_probe fields
+     Subject: mm/damon/sysfs: do not directly access damon_ctx->ops
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-core-hide-private-damon_probe-fields.patch
+     mm-damon-sysfs-do-not-directly-access-damon_ctx-ops.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-hide-private-damon_probe-fields.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-do-not-directly-access-damon_ctx-ops.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,39 +70,33 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/core: hide private damon_probe fields
-Date: Tue, 14 Jul 2026 07:35:41 -0700
+Subject: mm/damon/sysfs: do not directly access damon_ctx->ops
+Date: Tue, 14 Jul 2026 07:35:42 -0700
 
-'filters' and 'list' fields of damon_probe are intended to be used by only
-the DAMON core layer.  However, those are mistakenly not marked as
-private.  Mark as private.
+damon_ctx->ops field is intended to be used by only the DAMON core layer. 
+DAMON_SYSFS is directly reading the field to find if it is for physical
+address monitoring, though.  Use the API function for the purpose,
+damon_target_has_pid(), instead.
 
-Link: https://lore.kernel.org/20260714143544.101305-9-sj@kernel.org
+Link: https://lore.kernel.org/20260714143544.101305-10-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/damon.h |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ mm/damon/sysfs.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/damon.h~mm-damon-core-hide-private-damon_probe-fields
-+++ a/include/linux/damon.h
-@@ -775,12 +775,13 @@ struct damon_filter {
-  * struct damon_probe - Data region attribute probe.
-  *
-  * @weight:	Relative priority of the attribute for this probe.
-- * @filters:	Filters for assessing if a given region is for this probe.
-- * @list:	Siblings list.
-  */
- struct damon_probe {
- 	unsigned int weight;
-+/* private: */
-+	/* Filters for assessing if a given region is for this probe. */
- 	struct list_head filters;
-+	/* Siblings list. */
- 	struct list_head list;
- };
+--- a/mm/damon/sysfs.c~mm-damon-sysfs-do-not-directly-access-damon_ctx-ops
++++ a/mm/damon/sysfs.c
+@@ -2051,7 +2051,7 @@ static int damon_sysfs_add_targets(struc
+ 	int i, err;
  
+ 	/* Multiple physical address space monitoring targets makes no sense */
+-	if (ctx->ops.id == DAMON_OPS_PADDR && sysfs_targets->nr > 1)
++	if (!damon_target_has_pid(ctx) && sysfs_targets->nr > 1)
+ 		return -EINVAL;
+ 
+ 	for (i = 0; i < sysfs_targets->nr; i++) {
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
