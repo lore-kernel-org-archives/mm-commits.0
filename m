@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6BF79418A23
-	for <mm-commits@vger.kernel.org>; Tue, 14 Jul 2026 19:12:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 516C72931C7
+	for <mm-commits@vger.kernel.org>; Tue, 14 Jul 2026 19:21:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784056340; cv=none; b=Gxqi8BXvr91h/EsvTDRlkLPl4yzREoKAoW2PZktuS8G+ovP0EUpr/v2JzzmjtBN8KP53MtZIc2Ikfu3aqtten5Yo0j5L5BJZTN5stRqglfhDMMDfGBgGid+U6ktKA1dilHIf6Oqls76SHkAFMrxS7I59r7pr822FWdOvm28FLZU=
+	t=1784056907; cv=none; b=N7J5Rlpn2lQcm3gDKCFOb3uUM6JvEIgTddYcXm4vPZtSOtTcd61bWgrUxcljW0zK00i+c1nr3uUsEYe0DZeuoirXF3Tes4c4sukF9P+WfYRUahkUPIoQa/GoLeClB4UMjvg2tk5AKP00mAUJwUc+pMFtmX74x0ievwgVuN/DCWU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784056340; c=relaxed/simple;
-	bh=xV0yM0TlULct/CdBszQi5SsEUmrCGNOYpRaqj10qxv4=;
-	h=Date:To:From:Subject:Message-Id; b=VlXvDjovNCKeOlRNTrWcvGgPwGGbYYt+e2C4il948eEQWEm/sdWLxFNwVG8yGcps6R411440ZEpqenQdBr8eNrH2VtjZqYFQuKlh/1SgxhORMdvG49W6CGdaS7HkyxFGecQkQMlO+CsrWuOYr4R12F0y+t5CY0lgi+LW9rKMCfk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FHmSSXWW; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1784056907; c=relaxed/simple;
+	bh=YtSE8Ikokzu+2TeBnVUiVfSMUsSt46WsaX4NX60Zjyc=;
+	h=Date:To:From:Subject:Message-Id; b=bmN6S4yFRh8Yk8JF0saYJGWmHb0P/nkBNL+06i74d/SfhLmDh05Hqvc9mCNnysRfvOdn7AvzefPKdsYrWv/DRE392i/yyGGzedMLJ42Py5LpR7o2H4BteztwBk+6MMz/JVrz2HfRK4PMoFatpVtGmGnd7dXVTtDHYDSiFpv/5gA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fijq5GjO; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FHmSSXWW"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3EF7A1F000E9;
-	Tue, 14 Jul 2026 19:12:19 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fijq5GjO"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C34911F000E9;
+	Tue, 14 Jul 2026 19:21:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1784056339;
-	bh=0CGDYM+8CCBm0KN5Df2aHr35WNutSq0rBO5kuqhVPuo=;
+	d=linux-foundation.org; s=korg; t=1784056905;
+	bh=pkoKQpgWGgP8pFJGMeFq9X7Ikounhpw+g3Ir0ajeVFI=;
 	h=Date:To:From:Subject;
-	b=FHmSSXWW4sHJwVWjwPouNty9IupGdlmt5lTjVloauozRkFWlqLm+6wSvnGb9WZ8Ry
-	 ASUyHbjFkFMhFN2YQ1XsiR8It3pIzeqs5JkTy7byFSwX9gSWrg2eigLNvBdw3cYxIl
-	 zRmVeF71yKP7ell74RETIf8DE5aKhHyvcXfO2Yb8=
-Date: Tue, 14 Jul 2026 12:12:18 -0700
-To: mm-commits@vger.kernel.org,ljs@kernel.org,akpm@linux-foundation.org
+	b=fijq5GjOBbgCGCENW2yqhdUrOgQblfvK/9Sa1BadsWVbKZnHAHCtzQdqIUQGMuM8A
+	 rzKIVVEUMGdHUel/sMwy8Cgi8Udji0zNdQfGEhvXqqA5dxY1adVCvB9PDD/371oQvr
+	 8bwzPwSfDnV3EcPKMIqV0BKaGIOffSIMZ5v+EFhE=
+Date: Tue, 14 Jul 2026 12:21:45 -0700
+To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + arm64-remove-redundant-concurrent-ptdump-uaf-mitigation.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260714191219.3EF7A1F000E9@smtp.kernel.org>
+Subject: + mm-damon-core-hide-private-damon_region-fields.patch added to mm-new branch
+Message-Id: <20260714192145.C34911F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,26 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: arm64: remove redundant concurrent ptdump UAF mitigation
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     arm64-remove-redundant-concurrent-ptdump-uaf-mitigation.patch
+     Subject: mm/damon/core: hide private damon_region fields
+has been added to the -mm mm-new branch.  Its filename is
+     mm-damon-core-hide-private-damon_region-fields.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arm64-remove-redundant-concurrent-ptdump-uaf-mitigation.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-hide-private-damon_region-fields.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,277 +69,176 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Lorenzo Stoakes <ljs@kernel.org>
-Subject: arm64: remove redundant concurrent ptdump UAF mitigation
-Date: Tue, 14 Jul 2026 18:24:26 +0100
+From: SJ Park <sj@kernel.org>
+Subject: mm/damon/core: hide private damon_region fields
+Date: Tue, 14 Jul 2026 07:35:34 -0700
 
-This partially reverts commit fa93b45fd397 ("arm64: Enable vmalloc-huge
-with ptdump"), retaining vmalloc-huge support but eliminating the now
-redundant mitigation against a race between huge vmap page table freeing
-and ptdump, as this issue has now been fixed at core.
+Patch series "mm/damon/core: hide core-private struct fields".
 
-We also simultaneously remove the arm64 if-deffery when acquiring the mmap
-read lock upon vmap huge page table promotion as it is no longer required.
+DAMON core structs hide core-private fields using 'private:' comment tags.
+It is incomplete and inconsistent.  The linked list heads in a few
+structs, for example, are intended to be hidden, and always be used using
+the wrapper macros like damon_for_each_region().  But those were
+mistakenly marked as non-private.  A few core layer-only fields were also
+mistakenly added as non-private.
 
-Note that this patch relies on the preceding vmalloc patch, and should not
-be backported alone.
+This only encourages callers to directly use the private fields.  It is
+easy to make mistakes, and difficult to control.  Mark all such DAMON core
+struct fields as private.
 
-Link: https://lore.kernel.org/20260714-series-vmap-race-fix-v3-4-b812eccfa0f9@kernel.org
-Fixes: fa93b45fd397 ("arm64: Enable vmalloc-huge with ptdump")
-Signed-off-by: Lorenzo Stoakes <ljs@kernel.org>
-Reviewed-by: Dev Jain <dev.jain@arm.com>
-Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Acked-by: Kiryl Shutsemau (Meta) <kas@kernel.org>
-Acked-by: Will Deacon <will@kernel.org>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: "Borislav Petkov (AMD)" <bp@alien8.de>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Toshi Kani <toshi.kani@hpe.com>
-Cc: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: <stable@vger.kernel.org>
+Patches 1-8 mark the private fields for damon_region, damon_target,
+damos_quota_goal, damos_quota, damos_filter, damos, damon_filter and
+damon_probe, respectively.  Patch 9 removes DAMON_SYSFS's direct access to
+core-private field, damon_ctx->ops.  Finally patch 10 mark the private
+fields for damon_ctx.
+
+
+This patch (of 10):
+
+damon_region->list is intended to be used by only the DAMON core layer. 
+But it is mistakenly not marked as private.  Hide it from the callers by
+marking it private.
+
+Link: https://lore.kernel.org/20260714143544.101305-1-sj@kernel.org
+Link: https://lore.kernel.org/20260714143544.101305-2-sj@kernel.org
+Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/include/asm/ptdump.h |    2 -
- arch/arm64/mm/mmu.c             |   43 ++----------------------------
- arch/arm64/mm/ptdump.c          |   11 +------
- mm/vmalloc.c                    |   15 ++--------
- 4 files changed, 9 insertions(+), 62 deletions(-)
+ include/linux/damon.h |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
---- a/arch/arm64/include/asm/ptdump.h~arm64-remove-redundant-concurrent-ptdump-uaf-mitigation
-+++ a/arch/arm64/include/asm/ptdump.h
-@@ -7,8 +7,6 @@
- 
- #include <linux/ptdump.h>
- 
--DECLARE_STATIC_KEY_FALSE(arm64_ptdump_lock_key);
--
- #ifdef CONFIG_PTDUMP
- 
- #include <linux/mm_types.h>
---- a/arch/arm64/mm/mmu.c~arm64-remove-redundant-concurrent-ptdump-uaf-mitigation
-+++ a/arch/arm64/mm/mmu.c
-@@ -49,8 +49,6 @@
- #define NO_CONT_MAPPINGS	BIT(1)
- #define NO_EXEC_MAPPINGS	BIT(2)	/* assumes FEAT_HPDS is not used */
- 
--DEFINE_STATIC_KEY_FALSE(arm64_ptdump_lock_key);
--
- u64 kimage_voffset __ro_after_init;
- EXPORT_SYMBOL(kimage_voffset);
- 
-@@ -1857,8 +1855,7 @@ int pmd_clear_huge(pmd_t *pmdp)
- 	return 1;
- }
- 
--static int __pmd_free_pte_page(pmd_t *pmdp, unsigned long addr,
--			       bool acquire_mmap_lock)
-+int pmd_free_pte_page(pmd_t *pmdp, unsigned long addr)
- {
- 	pte_t *table;
- 	pmd_t pmd;
-@@ -1870,25 +1867,13 @@ static int __pmd_free_pte_page(pmd_t *pm
- 		return 1;
- 	}
- 
--	/* See comment in pud_free_pmd_page for static key logic */
- 	table = pte_offset_kernel(pmdp, addr);
- 	pmd_clear(pmdp);
- 	__flush_tlb_kernel_pgtable(addr);
--	if (static_branch_unlikely(&arm64_ptdump_lock_key) && acquire_mmap_lock) {
--		mmap_read_lock(&init_mm);
--		mmap_read_unlock(&init_mm);
--	}
--
- 	pte_free_kernel(NULL, table);
- 	return 1;
- }
- 
--int pmd_free_pte_page(pmd_t *pmdp, unsigned long addr)
--{
--	/* If ptdump is walking the pagetables, acquire init_mm.mmap_lock */
--	return __pmd_free_pte_page(pmdp, addr, /* acquire_mmap_lock = */ true);
--}
--
- int pud_free_pmd_page(pud_t *pudp, unsigned long addr)
- {
- 	pmd_t *table;
-@@ -1904,36 +1889,16 @@ int pud_free_pmd_page(pud_t *pudp, unsig
- 	}
- 
- 	table = pmd_offset(pudp, addr);
--
--	/*
--	 * Our objective is to prevent ptdump from reading a PMD table which has
--	 * been freed. In this race, if pud_free_pmd_page observes the key on
--	 * (which got flipped by ptdump) then the mmap lock sequence here will,
--	 * as a result of the mmap write lock/unlock sequence in ptdump, give
--	 * us the correct synchronization. If not, this means that ptdump has
--	 * yet not started walking the pagetables - the sequence of barriers
--	 * issued by __flush_tlb_kernel_pgtable() guarantees that ptdump will
--	 * observe an empty PUD.
--	 */
--	pud_clear(pudp);
--	__flush_tlb_kernel_pgtable(addr);
--	if (static_branch_unlikely(&arm64_ptdump_lock_key)) {
--		mmap_read_lock(&init_mm);
--		mmap_read_unlock(&init_mm);
--	}
--
- 	pmdp = table;
- 	next = addr;
- 	end = addr + PUD_SIZE;
- 	do {
- 		if (pmd_present(pmdp_get(pmdp)))
--			/*
--			 * PMD has been isolated, so ptdump won't see it. No
--			 * need to acquire init_mm.mmap_lock.
--			 */
--			__pmd_free_pte_page(pmdp, next, /* acquire_mmap_lock = */ false);
-+			pmd_free_pte_page(pmdp, next);
- 	} while (pmdp++, next += PMD_SIZE, next != end);
- 
-+	pud_clear(pudp);
-+	__flush_tlb_kernel_pgtable(addr);
- 	pmd_free(NULL, table);
- 	return 1;
- }
---- a/arch/arm64/mm/ptdump.c~arm64-remove-redundant-concurrent-ptdump-uaf-mitigation
-+++ a/arch/arm64/mm/ptdump.c
-@@ -283,13 +283,6 @@ void note_page_flush(struct ptdump_state
- 	note_page(pt_st, 0, -1, pte_val(pte_zero));
- }
- 
--static void arm64_ptdump_walk_pgd(struct ptdump_state *st, struct mm_struct *mm)
--{
--	static_branch_inc(&arm64_ptdump_lock_key);
--	ptdump_walk_pgd(st, mm, NULL);
--	static_branch_dec(&arm64_ptdump_lock_key);
--}
--
- void ptdump_walk(struct seq_file *s, struct ptdump_info *info)
- {
- 	unsigned long end = ~0UL;
-@@ -318,7 +311,7 @@ void ptdump_walk(struct seq_file *s, str
- 		}
- 	};
- 
--	arm64_ptdump_walk_pgd(&st.ptdump, info->mm);
-+	ptdump_walk_pgd(&st.ptdump, info->mm, NULL);
- }
- 
- static void __init ptdump_initialize(void)
-@@ -360,7 +353,7 @@ bool ptdump_check_wx(void)
- 		}
- 	};
- 
--	arm64_ptdump_walk_pgd(&st.ptdump, &init_mm);
-+	ptdump_walk_pgd(&st.ptdump, &init_mm, NULL);
- 
- 	if (st.wx_pages || st.uxn_pages) {
- 		pr_warn("Checked W+X mappings: FAILED, %lu W+X pages found, %lu non-UXN pages found\n",
---- a/mm/vmalloc.c~arm64-remove-redundant-concurrent-ptdump-uaf-mitigation
-+++ a/mm/vmalloc.c
-@@ -170,10 +170,7 @@ static int vmap_try_huge_pmd(pmd_t *pmd,
- 	 * Therefore, acquire the mmap read lock to prevent use-after-free when
- 	 * freeing page tables.
- 	 */
--#ifndef CONFIG_ARM64
--	scoped_cond_guard(mmap_read_lock_try, return 0, &init_mm)
--#endif
--	{
-+	scoped_cond_guard(mmap_read_lock_try, return 0, &init_mm) {
- 		if (!pmd_free_pte_page(pmd, addr))
- 			return 0;
- 		return pmd_set_huge(pmd, phys_addr, prot);
-@@ -230,10 +227,7 @@ static int vmap_try_huge_pud(pud_t *pud,
- 		return pud_set_huge(pud, phys_addr, prot);
- 
- 	/* See comment in vmap_try_huge_pmd(). */
--#ifndef CONFIG_ARM64
--	scoped_cond_guard(mmap_read_lock_try, return 0, &init_mm)
--#endif
--	{
-+	scoped_cond_guard(mmap_read_lock_try, return 0, &init_mm) {
- 		if (!pud_free_pmd_page(pud, addr))
- 			return 0;
- 		return pud_set_huge(pud, phys_addr, prot);
-@@ -290,10 +284,7 @@ static int vmap_try_huge_p4d(p4d_t *p4d,
- 		return p4d_set_huge(p4d, phys_addr, prot);
- 
- 	/* See comment in vmap_try_huge_pmd(). */
--#ifndef CONFIG_ARM64
--	scoped_cond_guard(mmap_read_lock_try, return 0, &init_mm)
--#endif
--	{
-+	scoped_cond_guard(mmap_read_lock_try, return 0, &init_mm) {
- 		if (!p4d_free_pud_page(p4d, addr))
- 			return 0;
- 		return p4d_set_huge(p4d, phys_addr, prot);
+--- a/include/linux/damon.h~mm-damon-core-hide-private-damon_region-fields
++++ a/include/linux/damon.h
+@@ -46,7 +46,6 @@ struct damon_size_range {
+  * @sampling_addr:	Address of the sample for the next access check.
+  * @nr_accesses:	Access frequency of this region.
+  * @probe_hits:		Number of probe-positive region samples.
+- * @list:		List head for siblings.
+  * @age:		Age of this region.
+  *
+  * For any use case, @ar should be non-zero positive size.  damon_set_regions()
+@@ -68,9 +67,11 @@ struct damon_region {
+ 	unsigned long sampling_addr;
+ 	unsigned int nr_accesses;
+ 	unsigned char probe_hits[DAMON_MAX_PROBES];
+-	struct list_head list;
+ 	unsigned int age;
+-/* private: Internal value for age calculation. */
++/* private: internal use only. */
++	/* List head for siblings. */
++	struct list_head list;
++	/* for age calculation. */
+ 	unsigned int last_nr_accesses;
+ 	unsigned char last_probe_hits[DAMON_MAX_PROBES];
+ };
 _
 
-Patches currently in -mm which might be from ljs@kernel.org are
+Patches currently in -mm which might be from sj@kernel.org are
 
-mm-vmalloc-acquire-init_mm-lock-on-huge-vmap-to-avoid-ptdump-uaf.patch
-x86-mm-pat-acquire-mmap-lock-on-page-table-free-to-avoid-ptdump-uaf.patch
-mm-ptdump-always-stabilise-against-page-table-freeing-using-init_mm.patch
-arm64-remove-redundant-concurrent-ptdump-uaf-mitigation.patch
-mm-move-alloc-tag-to-mm.patch
-mm-move-vma_start_pgoff-into-mmh-and-clean-up.patch
-mm-add-kdoc-comments-for-vma_start-last_pgoff.patch
-tools-testing-vma-use-vma_start_pgoff-in-merge-tests.patch
-mm-introduce-and-use-vma_end_pgoff.patch
-mm-rmap-update-mm-interval_treec-comments.patch
-mm-rmap-parameterise-vma_interval_tree_-by-address_space.patch
-mm-rmap-elide-unnecessary-static-inlines-in-interval_treec.patch
-mm-rmap-rename-vma_interval_tree_-to-mapping_rmap_tree_.patch
-mm-rmap-parameterise-anon_vma_interval_tree_-by-anon_vma.patch
-mm-rmap-rename-anon_vma_interval_tree_-params-and-use-pgoff_t.patch
-mm-rmap-rename-anon_vma_interval_tree_-to-anon_rmap_tree_.patch
-maintainers-move-mm-interval_treec-to-rmap-section.patch
-mm-vma-introduce-and-use-vmg_pages-vmg__pgoff.patch
-mm-vma-clean-up-anon_vma_compatible.patch
-mm-vma-refactor-vmg_adjust_set_range-for-clarity.patch
-mm-vma-minor-cleanup-of-expand_.patch
-mm-introduce-and-use-linear_page_delta.patch
-mm-vma-use-vma_start_pgoff-linear_page_index-in-mm-code.patch
-mm-prefer-vma__pgoff-to-vma-vm_pgoff-in-kernel.patch
-mm-vma-remove-duplicative-vma_pgoff_offset-helper.patch
-mm-use-linear_page_-consistently.patch
-mm-vma-introduce-vma_assert_can_modify.patch
-mm-vma-add-and-use-vma__pgoff.patch
-mm-vma-move-__install_special_mapping-to-vmac.patch
-mm-vma-make-vma_set_range-static-drop-insert_vm_struct-decl.patch
-mm-vma-update-vma_shrink-to-not-pass-start-pgoff-parameters.patch
-mm-vma-update-vmg_adjust_set_range-to-offset-pgoff-instead.patch
-mm-vma-slightly-rework-the-anonymous-check-in-__mmap_new_vma.patch
-mm-vma-introduce-and-use-vma_set_pgoff.patch
-mm-vma-correct-incorrect-vmah-inclusion.patch
-mm-vma-use-guard-clauses-in-can_vma_merge_.patch
-tools-testing-vma-default-vma-mm-flag-bits-to-64-bit.patch
-tools-testing-vma-output-compared-expression-on-assert_.patch
-mm-introduce-vma_flags_can_grow-and-vma_can_grow.patch
-mm-vma-update-do_mmap-to-use-vma_flags_t.patch
-mm-convert-__get_unmapped_area-to-use-vma_flags_t.patch
-mm-update-generic_get_unmapped_area-to-use-vma_flags_t.patch
-mm-prefer-mm-def_vma_flags-in-mm-logic.patch
-mm-vma-convert-vm_pgprot_modify-to-use-vma_flags_t-and-rename.patch
-mm-vma-rename-vma_get_page_prot-to-vma_flags_to_page_prot.patch
-mm-introduce-vma_get_page_prot-and-use-it.patch
-mm-vma-update-create_init_stack_vma-to-use-vma_flags_t.patch
-mm-vma-convert-miscellaneous-uses-of-vma-flags-in-core-mm.patch
-mm-mlock-convert-mlock-code-to-use-vma_flags_t.patch
-mm-mprotect-convert-mprotect-code-to-use-vma_flags_t.patch
-mm-mremap-convert-mremap-code-to-use-vma_flags_t.patch
+samples-damon-wsse-handle-damon_start-failure.patch
+samples-damon-prcl-handle-damon_start-failure.patch
+samples-damon-mtier-handle-damon_start-failure.patch
+samples-damon-mtier-handle-damon_stop-failure.patch
+samples-damon-wsse-stop-and-free-damon-ctx-when-damon_call-fails.patch
+samples-damon-prcl-stop-and-free-damon-ctx-when-damon_call-fails.patch
+mm-damon-sysfs-kobject_del-target-normal-context-and-kdamond-dirs.patch
+mm-damon-sysfs-kobject_del-region-and-target-error-dirs.patch
+mm-damon-sysfs-schemes-kobject_del-scheme-dirs.patch
+mm-damon-sysfs-schemes-kobject_del-scheme-region-dirs.patch
+mm-damon-sysfs-schemes-kobject_del-scheme-filter-dirs.patch
+mm-damon-sysfs-schemes-kobject_del-scheme-quota-goal-dirs.patch
+mm-damon-sysfs-schemes-kobject_del-scheme-action-destination-dirs.patch
+mm-damon-sysfs-kobject_del-probe-dirs.patch
+mm-damon-sysfs-kobject_del-probe-filter-dirs.patch
+mm-damon-sysfs-kobject_del-probe-dirs-in-probes_addd_dir-error-path.patch
+mm-damon-sysfs-schemes-kobject_del-region-for-populate_region-error.patch
+docs-mm-damon-design-update-for-damos_quota_node_eligible_mem_bp.patch
+docs-abi-damon-document-probe-files.patch
+mm-damon-tests-core-kunit-test-damon_rand.patch
+selftests-damon-sysfssh-test-multiple-probe-dirs-creation.patch
+selftests-damon-sysfssh-test-coreops_filters-directories.patch
+selftests-damon-sysfssh-test-dests-dir.patch
+selftests-damon-sysfssh-test-all-files-in-quota-goal-dir.patch
+mm-damon-core-reduce-range-setup-in-damon_commit_target_regions.patch
+mm-damon-sysfs-split-probe-setup-function-out.patch
+mm-damon-sysfs-split-out-filters-setup-function.patch
+mm-damon-sysfs-fix-typos-in-probe_addrm_dirs-s-attr-probe.patch
+mm-damon-core-introduce-damon_nr_accesses_mvsum.patch
+mm-damon-tests-core-kunit-test-damon_mvsum.patch
+mm-damon-core-always-update-last_nr_accesses-for-intervals-change.patch
+mm-damon-core-handle-unreset-nr_accesses-in-damon_nr_accesses_mvsum.patch
+mm-damon-core-use-damon_nr_accesses_mvsum-in-__damos_valid_target.patch
+mm-damon-core-use-damon_nr_accesses_mvsum-for-damos-region-tracing.patch
+mm-damon-sysfs-schemes-use-damon_nr_accesses_mvsum-for-damo-regions.patch
+mm-damon-core-remove-damon_warn_fix_nr_accesses_corruption.patch
+mm-damon-core-remove-damon_verify_reset_aggregated.patch
+mm-damon-core-remove-damon_verify_merge_regions_of.patch
+mm-damon-tests-core-kunit-remove-nr_accesses_bp-setup-and-tests.patch
+selftests-damon-drgn_dump_damon_status-do-not-dump-nr_accesses_bp.patch
+mm-damon-core-remove-nr_accesses_bp-setups-and-updates.patch
+mm-damon-core-remove-attrs-param-from-damon_update_region_access_rate.patch
+mm-damon-paddr-remove-attrs-param-from-__damon_pa_check_access.patch
+mm-damon-vaddr-remove-attrs-param-from-__damon_va_check_access.patch
+mm-damon-core-remove-damon_moving_sum-and-its-unit-test.patch
+mm-damon-core-remove-damon_region-nr_accesses_bp.patch
+mm-damon-add-damon_region-last_probe_hits.patch
+mm-damon-core-introduce-damon_probe_hits_mvsum.patch
+mm-damon-sysfs-schemes-set-probe-hits-as-pseudo-moving-sums.patch
+mm-damon-core-safely-validate-src-on-damon_commit_ctx.patch
+mm-damon-core-do-parameter-testing-commit-on-damon_start.patch
+mm-damon-sysfs-remove-duplicated-commit-input-validity-check.patch
+mm-damon-reclaim-remove-duplicated-min_region_sz-power-of-2-check.patch
+mm-damon-lru_sort-remove-duplicated-min_region_sz-power_of_2-check.patch
+mm-damon-document-region-size-validation-in-damon_set_regions.patch
+mm-damon-core-remove-start-end-check-in-damon_set_region_system_rams.patch
+mm-damon-sysfs-remove-region-size-validation.patch
+mm-damon-core-stop-ctxs-in-damon_start-before-returning-an-error.patch
+samples-damon-mtier-do-not-stop-first-context-for-damon_start-failure.patch
+mm-damon-core-make-damon_stop-never-fails.patch
+mm-damon-sysfs-ignore-damon_stop-return-value.patch
+mm-damon-reclaaim-ignore-damon_stop-return-value.patch
+mm-damon-lru_sort-ignore-damon_stop-return-value.patch
+mm-damon-core-change-damon_stop-return-type-to-void.patch
+samples-damon-mtier-stop-all-contexts-with-single-damon_stop-call.patch
+mm-damon-core-wait-ctx-stop-in-damon_call-before-reruning-an-error.patch
+samples-damon-wsse-do-not-stop-ctx-for-damon_call-failure.patch
+samples-damon-prcl-do-not-stop-damon-for-damon_call-failure.patch
+mm-damon-core-remove-comment-and-test-for-nr_to_bp-divide-by-zero.patch
+mm-damon-core-s-damon_max_nr_accesses-damon_nr_samples_per_aggr.patch
+mm-damon-core-s-accesses_bp_to_nr_accesses-sample_bp_to_count.patch
+mm-damon-core-s-nr_accesses_to_accesses_bp-sample_count_to_bp.patch
+mm-damon-core-s-nr_accesses_for_new_attrs-nr_samples_for_new_attrs.patch
+mm-damon-core-update-probe-hits-for-new-parameter-commit.patch
+mm-damon-core-handle-unreset-probe_hits-in-probe_hits_mvsum.patch
+mm-damon-core-introduce-damon_probe-weight.patch
+mm-damon-core-ask-apply_probes-ops-callback-to-set-sampling-address.patch
+mm-damon-paddr-set-samples-in-apply_probes-if-requested.patch
+mm-damon-core-ask-apply_probe-to-return-max-probe-hits-weighted-sum.patch
+mm-damon-core-implement-damon_probe_hits_wsum.patch
+mm-damon-paddr-respect-return_max_wsum.patch
+mm-damon-core-use-abs_diff-instead-of-abs.patch
+mm-damon-core-extend-merge-function-to-work-with-probe-hits.patch
+mm-damon-core-disallow-probe_hits-overflow-on-attrs-only-monitoring.patch
+mm-damon-core-validate-params-for-probe-hits-weighted-sum-overflow.patch
+mm-damon-core-disable-access-monitoring-when-probe-weights-are-set.patch
+mm-damon-core-set-samples-in-apply_probes-if-probe-weights-are-set.patch
+mm-damon-core-s-max_nr_accesses-max_merge_score-in-kdamond_fn.patch
+mm-damon-core-get-merge-threshold-from-probe-hits-when-weights-are-set.patch
+mm-damon-core-implement-damon_has_probe_weight.patch
+mm-damon-sysfs-implement-probe-weight-file.patch
+docs-mm-damon-design-document-attrs-only-monitoring.patch
+docs-admin-guide-mm-damon-usage-document-weight-sysfs-file.patch
+docs-abi-damon-document-probe-weight-file.patch
+mm-damon-core-skip-aging-from-repeated-aggressive-merging.patch
+mm-damon-core-hide-private-damon_region-fields.patch
+mm-damon-core-hide-private-damon_target-fields.patch
+mm-damon-core-hide-private-damos_quota_goal-fields.patch
+mm-damon-core-hide-private-damos_quota-fields.patch
+mm-damon-core-hide-private-damos_filter-fields.patch
+mm-damon-core-hide-private-damos-fields.patch
+mm-damon-core-hide-private-damon_filter-fields.patch
+mm-damon-core-hide-private-damon_probe-fields.patch
+mm-damon-sysfs-do-not-directly-access-damon_ctx-ops.patch
+mm-damon-core-hide-core-private-damon_ctx-fields.patch
 
