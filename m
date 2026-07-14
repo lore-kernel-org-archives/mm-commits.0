@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C56212931FA
-	for <mm-commits@vger.kernel.org>; Tue, 14 Jul 2026 19:21:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 81ECA2931F5
+	for <mm-commits@vger.kernel.org>; Tue, 14 Jul 2026 19:21:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784056919; cv=none; b=lfV1FbtaOJ5VsZe9RNR7otIr+huyxz7vnejKUOvJCk8I/1C6jJg0JRvI9CwgFYr9J5eo5B0LQ9Rl4U73Awdbyv7rMiQK2uH/9vUJZ3RhWY+s3qdS0LYqykBo8IoMzcg0iS0UY1dTq8ggKdbVfc7S8SqgGzzuRj3l87td0li2UNM=
+	t=1784056920; cv=none; b=r48aGAEVfRcuZhCrIthOtj/gov7VPViWRae7vFHMkIqQ/3yFcdpRsiQftDZUhP488riwxpi3oA8CJDWP/NaYWZxkS6cHZ2QrAio/UmOuR29mP5Vrzufnocyjw9ktV61u0yWkdpNPWDNkoEeVJO6zM0WJl8gjm27S53bAttOxrO8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784056919; c=relaxed/simple;
-	bh=bl6eEEqYA+z4jg5fr5762+jXLVuuL5kerQPlTjV5+RU=;
-	h=Date:To:From:Subject:Message-Id; b=o2xYX8Z7TqgubuPUaSZMdxFpi/FIuK2DTPsAq1njBhFZUV3AulBzfPS+OhX7ADpLOAjv2420XXWzrCNLNTfhBCMUZNDfQpQjGqvLcskuZmn3FEpTozPqX8i1tiTg0lKjAg9nY+AMja7ThhFzDead8NbNxq7Bau13k/9tPqAEDL4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tJYWg7Xy; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1784056920; c=relaxed/simple;
+	bh=4+6XKUJ66ASI7seA+6vixmPvYUOyXialm9lHWBH+KyA=;
+	h=Date:To:From:Subject:Message-Id; b=S6e7tcwss9KSG8SdjS9P7tWSVjInlu7NPjx9CcjmnUWOmXe8T+R0miA8TQ5piJtLx4N5sSrDgy2UaGv4fg3wLMiRtsV/XK8Idxqp8xw47nwKLKywh/KnFJ52PvKZVokG32Vb1m+mY8Z6zgUcVmzgq3rDrldUULzLwFV37yHixjI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ExlbAImY; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tJYWg7Xy"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 440A41F000E9;
-	Tue, 14 Jul 2026 19:21:57 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ExlbAImY"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2555A1F00A3A;
+	Tue, 14 Jul 2026 19:21:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1784056917;
-	bh=qvy5zmpS053SR/zVRZqQ36vQc/F0WRobEsb7H1f8q+g=;
+	d=linux-foundation.org; s=korg; t=1784056919;
+	bh=5wM37kM+t0jezr3ep6r2XA59B9+ETxJ80uvAydT/z1A=;
 	h=Date:To:From:Subject;
-	b=tJYWg7XyB19GMNXSj2Ns7Ur3UfMn+rztsVvUEB+IpZePuWmCpvFVXFXPMHX4Iawrj
-	 gIkBS3AbazKJ+dQ/a2X43z/J+O4Cufx4t0Y657WizIlUEx3dY9O2OjLeXgkAQc+biv
-	 J0JfTKzZljkFv8+3VzoBm6IE+76HcscOVEsNzvk4=
-Date: Tue, 14 Jul 2026 12:21:56 -0700
+	b=ExlbAImYVkrNRFyZXpOofYrq8/oUhkoT+0TVLSsLkTQEi8klcnq0Ln2f659pMXE3q
+	 DgyM72YJwOPdipra6DRcAXAyejaWDVVWiuXY4y4dk5y71o6vKt3AJgVqksVq85/MyW
+	 tqOANm9Xds3XXsHDNmoBRMHocUHM4yKm/wqiof9I=
+Date: Tue, 14 Jul 2026 12:21:58 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-core-hide-private-damon_filter-fields.patch added to mm-new branch
-Message-Id: <20260714192157.440A41F000E9@smtp.kernel.org>
+Subject: + mm-damon-core-hide-private-damon_probe-fields.patch added to mm-new branch
+Message-Id: <20260714192159.2555A1F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/core: hide private damon_filter fields
+     Subject: mm/damon/core: hide private damon_probe fields
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-core-hide-private-damon_filter-fields.patch
+     mm-damon-core-hide-private-damon_probe-fields.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-hide-private-damon_filter-fields.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-hide-private-damon_probe-fields.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,35 +70,35 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/core: hide private damon_filter fields
-Date: Tue, 14 Jul 2026 07:35:40 -0700
+Subject: mm/damon/core: hide private damon_probe fields
+Date: Tue, 14 Jul 2026 07:35:41 -0700
 
-damon_filter->list is intended to be used by only the DAMON core layer. 
-However, it is mistakenly not marked as private.  Mark as private.
+'filters' and 'list' fields of damon_probe are intended to be used by only
+the DAMON core layer.  However, those are mistakenly not marked as
+private.  Mark as private.
 
-Link: https://lore.kernel.org/20260714143544.101305-8-sj@kernel.org
+Link: https://lore.kernel.org/20260714143544.101305-9-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/damon.h |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ include/linux/damon.h |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
---- a/include/linux/damon.h~mm-damon-core-hide-private-damon_filter-fields
+--- a/include/linux/damon.h~mm-damon-core-hide-private-damon_probe-fields
 +++ a/include/linux/damon.h
-@@ -758,7 +758,6 @@ enum damon_filter_type {
-  * @matching:	Whether this filter is for the type-matching ones.
-  * @allow:	Whether the @type-@matching ones should pass this filter.
-  * @memcg_id:	Memcg id of the question if @type is DAMON_FILTER_MEMCG.
+@@ -775,12 +775,13 @@ struct damon_filter {
+  * struct damon_probe - Data region attribute probe.
+  *
+  * @weight:	Relative priority of the attribute for this probe.
+- * @filters:	Filters for assessing if a given region is for this probe.
 - * @list:	Siblings list.
   */
- struct damon_filter {
- 	enum damon_filter_type type;
-@@ -767,6 +766,8 @@ struct damon_filter {
- 	union {
- 		u64 memcg_id;
- 	};
+ struct damon_probe {
+ 	unsigned int weight;
 +/* private: */
++	/* Filters for assessing if a given region is for this probe. */
+ 	struct list_head filters;
 +	/* Siblings list. */
  	struct list_head list;
  };
