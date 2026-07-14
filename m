@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ADC062931FC
-	for <mm-commits@vger.kernel.org>; Tue, 14 Jul 2026 19:21:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C56212931FA
+	for <mm-commits@vger.kernel.org>; Tue, 14 Jul 2026 19:21:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784056917; cv=none; b=Ing4FpCWKfeufhoqxvzpEO2BXCkROhmj9fU9ZqbdEAMLiluvJM1Y2Bgw8T4Zaq5uSbsMP9zU0hsNnaK/9xh+TSnw9DPmXZOVWhdIfRXTXDWsfUTX2qNMC61gIA3LsavU9SjBUoTSIqXdOU1GPHCCmOeOmsxmMcSBOZ6zvgcAiLE=
+	t=1784056919; cv=none; b=lfV1FbtaOJ5VsZe9RNR7otIr+huyxz7vnejKUOvJCk8I/1C6jJg0JRvI9CwgFYr9J5eo5B0LQ9Rl4U73Awdbyv7rMiQK2uH/9vUJZ3RhWY+s3qdS0LYqykBo8IoMzcg0iS0UY1dTq8ggKdbVfc7S8SqgGzzuRj3l87td0li2UNM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784056917; c=relaxed/simple;
-	bh=Gkhnv7bu3kKOlMyrY6QjWq3ngKia71T7B5LjMUqhJ6g=;
-	h=Date:To:From:Subject:Message-Id; b=JdVmQyNoc9gRNWWMmNS0/ym2iuvtaOZxN0YC43HkRMngcIFzfu2TPVml7walUnt1UNE/VF5s0mBJGCUD0zEKZ7d2vl9Q2KlgBl2pq5tvAv2LurFKmr9rH1mQwZCscCrUxbCf3J2n1wXSGwiOBGPvfLoxkNZoDT8GYXzA0v+SxUc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XBrJiOiL; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1784056919; c=relaxed/simple;
+	bh=bl6eEEqYA+z4jg5fr5762+jXLVuuL5kerQPlTjV5+RU=;
+	h=Date:To:From:Subject:Message-Id; b=o2xYX8Z7TqgubuPUaSZMdxFpi/FIuK2DTPsAq1njBhFZUV3AulBzfPS+OhX7ADpLOAjv2420XXWzrCNLNTfhBCMUZNDfQpQjGqvLcskuZmn3FEpTozPqX8i1tiTg0lKjAg9nY+AMja7ThhFzDead8NbNxq7Bau13k/9tPqAEDL4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tJYWg7Xy; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XBrJiOiL"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5586D1F000E9;
-	Tue, 14 Jul 2026 19:21:55 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tJYWg7Xy"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 440A41F000E9;
+	Tue, 14 Jul 2026 19:21:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1784056915;
-	bh=IgvKSRU5Pvc6a0ysZWVnd8uaLtyvTU33oLlTMoIYE7g=;
+	d=linux-foundation.org; s=korg; t=1784056917;
+	bh=qvy5zmpS053SR/zVRZqQ36vQc/F0WRobEsb7H1f8q+g=;
 	h=Date:To:From:Subject;
-	b=XBrJiOiLoe2TTSNIOabvZYfPePhpr7ftaTBlqzIXQnyQ9RNCj9snDXnTw0mLwLYMU
-	 DJuq8phSW5lPqEhITySYVdxuMcqKLHdwESQN7jsI3aOQG4RjK3aHtbwl2z3W9PYb8u
-	 ROel6EdZU64wGawTuzw1OWdOC/ZgUcwCXkAo+EgM=
-Date: Tue, 14 Jul 2026 12:21:54 -0700
+	b=tJYWg7XyB19GMNXSj2Ns7Ur3UfMn+rztsVvUEB+IpZePuWmCpvFVXFXPMHX4Iawrj
+	 gIkBS3AbazKJ+dQ/a2X43z/J+O4Cufx4t0Y657WizIlUEx3dY9O2OjLeXgkAQc+biv
+	 J0JfTKzZljkFv8+3VzoBm6IE+76HcscOVEsNzvk4=
+Date: Tue, 14 Jul 2026 12:21:56 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-core-hide-private-damos-fields.patch added to mm-new branch
-Message-Id: <20260714192155.5586D1F000E9@smtp.kernel.org>
+Subject: + mm-damon-core-hide-private-damon_filter-fields.patch added to mm-new branch
+Message-Id: <20260714192157.440A41F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/core: hide private damos fields
+     Subject: mm/damon/core: hide private damon_filter fields
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-core-hide-private-damos-fields.patch
+     mm-damon-core-hide-private-damon_filter-fields.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-hide-private-damos-fields.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-hide-private-damon_filter-fields.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,105 +70,36 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/core: hide private damos fields
-Date: Tue, 14 Jul 2026 07:35:39 -0700
+Subject: mm/damon/core: hide private damon_filter fields
+Date: Tue, 14 Jul 2026 07:35:40 -0700
 
-'core_filters', 'ops_filters', 'last_applied' and 'list' fields of damos
-are intended to be used by only the DAMON core layer.  However, those are
-mistakenly not marked as private.  Mark as private.
+damon_filter->list is intended to be used by only the DAMON core layer. 
+However, it is mistakenly not marked as private.  Mark as private.
 
-Link: https://lore.kernel.org/20260714143544.101305-7-sj@kernel.org
+Link: https://lore.kernel.org/20260714143544.101305-8-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/damon.h |   52 ++++++++++++++++++++--------------------
- 1 file changed, 27 insertions(+), 25 deletions(-)
+ include/linux/damon.h |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/include/linux/damon.h~mm-damon-core-hide-private-damos-fields
+--- a/include/linux/damon.h~mm-damon-core-hide-private-damon_filter-fields
 +++ a/include/linux/damon.h
-@@ -522,12 +522,8 @@ struct damos_migrate_dests {
-  * @wmarks:		Watermarks for automated (in)activation of this scheme.
-  * @migrate_dests:	Destination nodes if @action is "migrate_{hot,cold}".
-  * @target_nid:		Destination node if @action is "migrate_{hot,cold}".
-- * @core_filters:	Additional set of &struct damos_filter for &action.
-- * @ops_filters:	ops layer handling &struct damos_filter objects list.
-- * @last_applied:	Last @action applied ops-managing entity.
-  * @stat:		Statistics of this scheme.
-  * @max_nr_snapshots:	Upper limit of nr_snapshots stat.
-- * @list:		List head for siblings.
-  *
-  * For each @apply_interval_us, DAMON finds regions which fit in the
-  * &pattern and applies &action to those. To avoid consuming too much
-@@ -549,16 +545,7 @@ struct damos_migrate_dests {
-  *
-  * Before applying the &action to a memory region, &struct damon_operations
-  * implementation could check pages of the region and skip &action to respect
-- * &core_filters
-- *
-- * The minimum entity that @action can be applied depends on the underlying
-- * &struct damon_operations.  Since it may not be aligned with the core layer
-- * abstract, namely &struct damon_region, &struct damon_operations could apply
-- * @action to same entity multiple times.  Large folios that underlying on
-- * multiple &struct damon region objects could be such examples.  The &struct
-- * damon_operations can use @last_applied to avoid that.  DAMOS core logic
-- * unsets @last_applied when each regions walking for applying the scheme is
-- * finished.
-+ * &struct damos_filter.
-  *
-  * After applying the &action to each region, &stat is updated.
-  *
-@@ -569,6 +556,16 @@ struct damos {
- 	struct damos_access_pattern pattern;
- 	enum damos_action action;
- 	unsigned long apply_interval_us;
-+	struct damos_quota quota;
-+	struct damos_watermarks wmarks;
-+	union {
-+		struct {
-+			int target_nid;
-+			struct damos_migrate_dests migrate_dests;
-+		};
-+	};
-+	struct damos_stat stat;
-+	unsigned long max_nr_snapshots;
- /* private: internal use only */
- 	/*
- 	 * number of sample intervals that should be passed before applying
-@@ -585,20 +582,25 @@ struct damos {
- 	/* whether to reject core/ops filters umatched regions */
- 	bool core_filters_default_reject;
- 	bool ops_filters_default_reject;
--/* public: */
--	struct damos_quota quota;
--	struct damos_watermarks wmarks;
--	union {
--		struct {
--			int target_nid;
--			struct damos_migrate_dests migrate_dests;
--		};
--	};
-+	/* Additional set of &struct damos_filter for &action. */
- 	struct list_head core_filters;
-+	/* ops layer handling &struct damos_filter objects list. */
- 	struct list_head ops_filters;
-+	/*
-+	 * Last @action applied ops-managing entity.
-+	 *
-+	 * The minimum entity that @action can be applied depends on the
-+	 * underlying &struct damon_operations.  Since it may not be aligned
-+	 * with the core layer abstract, namely &struct damon_region, &struct
-+	 * damon_operations could apply @action to same entity multiple times.
-+	 * Large folios that underlying on multiple &struct damon region
-+	 * objects could be such examples.  The &struct damon_operations can
-+	 * use @last_applied to avoid that.  DAMOS core logic unsets
-+	 * @last_applied when each regions walking for applying the scheme is
-+	 * finished.
-+	 */
- 	void *last_applied;
--	struct damos_stat stat;
--	unsigned long max_nr_snapshots;
-+	/* List head for siblings. */
+@@ -758,7 +758,6 @@ enum damon_filter_type {
+  * @matching:	Whether this filter is for the type-matching ones.
+  * @allow:	Whether the @type-@matching ones should pass this filter.
+  * @memcg_id:	Memcg id of the question if @type is DAMON_FILTER_MEMCG.
+- * @list:	Siblings list.
+  */
+ struct damon_filter {
+ 	enum damon_filter_type type;
+@@ -767,6 +766,8 @@ struct damon_filter {
+ 	union {
+ 		u64 memcg_id;
+ 	};
++/* private: */
++	/* Siblings list. */
  	struct list_head list;
  };
  
