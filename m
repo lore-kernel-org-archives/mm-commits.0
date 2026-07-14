@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2AC953803C2
-	for <mm-commits@vger.kernel.org>; Tue, 14 Jul 2026 02:26:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 658483806B8
+	for <mm-commits@vger.kernel.org>; Tue, 14 Jul 2026 02:26:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783995999; cv=none; b=LcizBvNBiKP1yi+QfQGSYABWJgf1Grcu7YccEU6XhicVtc/9Ux060fXQIOVxER+FC/6FXH2QOyvBdD3evdhfqypjdx/9WSJqoKw3BjfPzwbxmfE2WABvmg46D1J0JfNPGl3ufGj5aQ+fturllJOcg7CKqW9KRPiyrxIyVaPzcbU=
+	t=1783996001; cv=none; b=uTeCmflL6AEsipYxnwZEsB4nknd2o+hsSUSjeml7SHS085A6I45l0hQPiX8pyySZ3D3CkCfT5peoxmw/gLvA0U5XCcvLdl0YUGvvUE1arhygvYRmj118fSSuCjLJvb/sEuSDsm01pfGn92UwugubEgdMhuGh9SYarM8CRjyjupc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783995999; c=relaxed/simple;
-	bh=paL+y0a6/YNQj+F3/F3HM3xHyd+emhaLOxclxsryVXY=;
-	h=Date:To:From:Subject:Message-Id; b=r+d34wzwRTiuG6UPtcxKZixQ4zXh4dlX4uufjDxF5tbk3Lwdck6o8JwrVVDJxMGpJGcYQ6FK3mwBd5bQDFSvD7Dk4AXfrSBrSggKNxxBdj8WVSp/LaWlHXgsXmo2J18R7gYv9C7U15mp44R14ABVDSNfxtrxG6N5n/IhM/2G/0o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kqWjjRer; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783996001; c=relaxed/simple;
+	bh=l5Rrz8i9lEwxDM5E5aZ53hFniuqbPlG8NU+WkL2BUz0=;
+	h=Date:To:From:Subject:Message-Id; b=EZx8c1cWp9fcMY+IZQ5M0Z3MsrLriqBKHrIMwH/7+Dc83yGKJFA5R5h6uR8jLe/g/zGYT5QgNKTVd5h3Co5zV/YamE5+ujnF+ccblpM4VnmCcGwz2UUIHdVsUh84KheZ5BhG1UMYH50IFLohOFxe8pZr3Q8ICS0GCS+g6RtV/5s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TyOvQv9b; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kqWjjRer"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C22001F000E9;
-	Tue, 14 Jul 2026 02:26:37 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TyOvQv9b"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E0EED1F000E9;
+	Tue, 14 Jul 2026 02:26:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783995997;
-	bh=1ugZ2r7gwI0RB0mKOQqjLzo5qYVmmEGKXxErvAG4loc=;
+	d=linux-foundation.org; s=korg; t=1783996000;
+	bh=RLzAQEKkurGFBy4I2OdGS1UfTGamzRmE+9zKsaGXrC4=;
 	h=Date:To:From:Subject;
-	b=kqWjjRerBE1foEkIXP8sg2gkFYNbqQZKwXhAo821ZajZAIhq0Ag5cVro9g468jsUM
-	 ffbYRzQ5cWKb2sM4NqBGYAbjd+VStRXirj7mqdbKSH88R4GiNvbTtV7TxHmUlXViS5
-	 Pu1dxQqohjLTDIFIzcKqDlkjpuMahr+bxeTTW1TA=
-Date: Mon, 13 Jul 2026 19:26:37 -0700
+	b=TyOvQv9bfEexjBJXcOZA0OkLjbPd012sL2bHqmrKc0ok7H3KoeUWDUguvf2hlufTP
+	 /jcEltXwY7GpWm6yTTLld27Xxc9A4eiWsujT4WFk/rZZPOLxCtIajy3GfYKQXCeztu
+	 96iScuCYcvf+hi2Lix0BzZgGl5pKiyReYpJuQlto=
+Date: Mon, 13 Jul 2026 19:26:39 -0700
 To: mm-commits@vger.kernel.org,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mprotect-convert-mprotect-code-to-use-vma_flags_t.patch added to mm-new branch
-Message-Id: <20260714022637.C22001F000E9@smtp.kernel.org>
+Subject: + mm-mremap-convert-mremap-code-to-use-vma_flags_t.patch added to mm-new branch
+Message-Id: <20260714022639.E0EED1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/mprotect: convert mprotect code to use vma_flags_t
+     Subject: mm/mremap: convert mremap code to use vma_flags_t
 has been added to the -mm mm-new branch.  Its filename is
-     mm-mprotect-convert-mprotect-code-to-use-vma_flags_t.patch
+     mm-mremap-convert-mremap-code-to-use-vma_flags_t.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mprotect-convert-mprotect-code-to-use-vma_flags_t.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mremap-convert-mremap-code-to-use-vma_flags_t.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,22 +70,31 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <ljs@kernel.org>
-Subject: mm/mprotect: convert mprotect code to use vma_flags_t
-Date: Sat, 11 Jul 2026 19:45:09 +0100
+Subject: mm/mremap: convert mremap code to use vma_flags_t
+Date: Sat, 11 Jul 2026 19:45:10 +0100
 
 Replace use of the legacy vm_flags_t flags with vma_flags_t values
-throughout the mprotect logic.
+throughout the mremap logic.
 
-Note that we retain the legacy vm_flags_t bit shifting code in
-do_mprotect_pkey(), deferring a vma_flags_t approach to this for the time
-being.
+Note that, in replacing vm_flags_clear() (which takes the VMA write lock)
+with vma_clear_flags() and vma_clear_flags_mask() (which do not)
+respectively in unmap_source_vma() and dontunmap_complete(), we do not add
+a VMA write lock to account for htis.
+
+This is because, in both cases, move_vma() is their calling function and
+this has already acquired the VMA write lock on vrm->vma whose VMA flags
+are being cleared.
+
+In the case of vma_set_flags() in unmap_source_vma() we do need to do this
+- as prev and next were not necessarily write locked at this point.
 
 Additionally update comments to reflect the changes to be consistent.
 
 No functional change intended.
 
-Link: https://lore.kernel.org/20260711-b4-vma-flags-mm-v2-12-0fa2357d5431@kernel.org
+Link: https://lore.kernel.org/20260711-b4-vma-flags-mm-v2-13-0fa2357d5431@kernel.org
 Signed-off-by: Lorenzo Stoakes <ljs@kernel.org>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Barry Song <baohua@kernel.org>
 Cc: Christian Brauner <brauner@kernel.org>
@@ -104,80 +113,156 @@ Cc: Pedro Falcato <pfalcato@suse.de>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Thomas Zimmermann <tzimmermann@suse.de>
 Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mprotect.c |   16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ mm/mremap.c |   38 ++++++++++++++++++++------------------
+ 1 file changed, 20 insertions(+), 18 deletions(-)
 
---- a/mm/mprotect.c~mm-mprotect-convert-mprotect-code-to-use-vma_flags_t
-+++ a/mm/mprotect.c
-@@ -40,7 +40,7 @@
+--- a/mm/mremap.c~mm-mremap-convert-mremap-code-to-use-vma_flags_t
++++ a/mm/mremap.c
+@@ -68,7 +68,7 @@ struct vma_remap_struct {
+ 	bool populate_expand;		/* mlock()'d expanded, must populate. */
+ 	enum mremap_type remap_type;	/* expand, shrink, etc. */
+ 	bool mmap_locked;		/* Is mm currently write-locked? */
+-	unsigned long charged;		/* If VM_ACCOUNT, # pages to account. */
++	unsigned long charged;		/* If VMA_ACCOUNT_BIT, # pgs to account */
+ 	bool vmi_needs_invalidate;	/* Is the VMA iterator invalidated? */
+ };
  
- static bool maybe_change_pte_writable(struct vm_area_struct *vma, pte_t pte)
+@@ -963,7 +963,7 @@ static unsigned long vrm_set_new_addr(st
+ 
+ 	if (vrm->flags & MREMAP_FIXED)
+ 		map_flags |= MAP_FIXED;
+-	if (vma->vm_flags & VM_MAYSHARE)
++	if (vma_test(vma, VMA_MAYSHARE_BIT))
+ 		map_flags |= MAP_SHARED;
+ 
+ 	res = get_unmapped_area(vma->vm_file, new_addr, vrm->new_len, pgoff,
+@@ -985,7 +985,7 @@ static bool vrm_calc_charge(struct vma_r
  {
--	if (WARN_ON_ONCE(!(vma->vm_flags & VM_WRITE)))
-+	if (WARN_ON_ONCE(!vma_test(vma, VMA_WRITE_BIT)))
- 		return false;
+ 	unsigned long charged;
  
- 	/* Don't touch entries that are not even readable. */
-@@ -97,7 +97,7 @@ static bool can_change_shared_pte_writab
- bool can_change_pte_writable(struct vm_area_struct *vma, unsigned long addr,
- 			     pte_t pte)
- {
--	if (!(vma->vm_flags & VM_SHARED))
-+	if (!vma_test(vma, VMA_SHARED_BIT))
- 		return can_change_private_pte_writable(vma, addr, pte);
- 
- 	return can_change_shared_pte_writable(vma, pte);
-@@ -194,7 +194,7 @@ static __always_inline void set_write_pr
- {
- 	bool set_write;
- 
--	if (vma->vm_flags & VM_SHARED) {
-+	if (vma_test(vma, VMA_SHARED_BIT)) {
- 		set_write = can_change_shared_pte_writable(vma, ptent);
- 		prot_commit_flush_ptes(vma, addr, ptep, oldpte, ptent, nr_ptes,
- 				       /* idx = */ 0, set_write, tlb);
-@@ -846,8 +846,8 @@ mprotect_fixup(struct vma_iterator *vmi,
- 		vm_unacct_memory(nrpages);
+-	if (!(vrm->vma->vm_flags & VM_ACCOUNT))
++	if (!vma_test(vrm->vma, VMA_ACCOUNT_BIT))
+ 		return true;
  
  	/*
--	 * Private VM_LOCKED VMA becoming writable: trigger COW to avoid major
--	 * fault on access.
-+	 * Private VMA_LOCKED_BIT VMA becoming writable: trigger COW to avoid
-+	 * major fault on access.
+@@ -1012,7 +1012,7 @@ static bool vrm_calc_charge(struct vma_r
+  */
+ static void vrm_uncharge(struct vma_remap_struct *vrm)
+ {
+-	if (!(vrm->vma->vm_flags & VM_ACCOUNT))
++	if (!vma_test(vrm->vma, VMA_ACCOUNT_BIT))
+ 		return;
+ 
+ 	vm_unacct_memory(vrm->charged);
+@@ -1032,7 +1032,7 @@ static void vrm_stat_account(struct vma_
+ 	struct vm_area_struct *vma = vrm->vma;
+ 
+ 	vm_stat_account(mm, vma->vm_flags, pages);
+-	if (vma->vm_flags & VM_LOCKED)
++	if (vma_test(vma, VMA_LOCKED_BIT))
+ 		mm->locked_vm += pages;
+ }
+ 
+@@ -1176,7 +1176,7 @@ static void unmap_source_vma(struct vma_
+ 	 * arose, in which case we _do_ wish to unmap the _new_ VMA, which means
+ 	 * we actually _do_ want it be unaccounted.
  	 */
- 	if (vma_flags_test(&new_vma_flags, VMA_WRITE_BIT) &&
- 	    vma_flags_test(&old_vma_flags, VMA_LOCKED_BIT) &&
-@@ -921,7 +921,7 @@ static int do_mprotect_pkey(unsigned lon
- 			goto out;
- 		start = vma->vm_start;
- 		error = -EINVAL;
--		if (!(vma->vm_flags & VM_GROWSDOWN))
-+		if (!vma_test(vma, VMA_GROWSDOWN_BIT))
- 			goto out;
- 	} else {
- 		if (vma->vm_start > start)
-@@ -929,7 +929,7 @@ static int do_mprotect_pkey(unsigned lon
- 		if (unlikely(grows & PROT_GROWSUP)) {
- 			end = vma->vm_end;
- 			error = -EINVAL;
--			if (!(vma->vm_flags & VM_GROWSUP))
-+			if (!vma_test_single_mask(vma, VMA_GROWSUP))
- 				goto out;
+-	bool accountable_move = (vma->vm_flags & VM_ACCOUNT) &&
++	bool accountable_move = vma_test(vma, VMA_ACCOUNT_BIT) &&
+ 		!(vrm->flags & MREMAP_DONTUNMAP);
+ 
+ 	/*
+@@ -1195,7 +1195,7 @@ static void unmap_source_vma(struct vma_
+ 	 * portions of the original VMA that remain.
+ 	 */
+ 	if (accountable_move) {
+-		vm_flags_clear(vma, VM_ACCOUNT);
++		vma_clear_flags(vma, VMA_ACCOUNT_BIT);
+ 		/* We are about to split vma, so store the start/end. */
+ 		vm_start = vma->vm_start;
+ 		vm_end = vma->vm_end;
+@@ -1220,8 +1220,8 @@ static void unmap_source_vma(struct vma_
+ 	 * |             |
+ 	 * |-------------|
+ 	 *
+-	 * Having cleared VM_ACCOUNT from the whole VMA, after we unmap above
+-	 * we'll end up with:
++	 * Having cleared VMA_ACCOUNT_BIT from the whole VMA, after we unmap
++	 * above we'll end up with:
+ 	 *
+ 	 *    addr  end
+ 	 *     |     |
+@@ -1241,13 +1241,15 @@ static void unmap_source_vma(struct vma_
+ 		if (vm_start < addr) {
+ 			struct vm_area_struct *prev = vma_prev(&vmi);
+ 
+-			vm_flags_set(prev, VM_ACCOUNT); /* Acquires VMA lock. */
++			vma_start_write(prev);
++			vma_set_flags(prev, VMA_ACCOUNT_BIT);
+ 		}
+ 
+ 		if (vm_end > end) {
+ 			struct vm_area_struct *next = vma_next(&vmi);
+ 
+-			vm_flags_set(next, VM_ACCOUNT); /* Acquires VMA lock. */
++			vma_start_write(next);
++			vma_set_flags(next, VMA_ACCOUNT_BIT);
  		}
  	}
-@@ -953,7 +953,7 @@ static int do_mprotect_pkey(unsigned lon
- 		}
+ }
+@@ -1330,8 +1332,8 @@ static void dontunmap_complete(struct vm
+ 	unsigned long old_start = vrm->vma->vm_start;
+ 	unsigned long old_end = vrm->vma->vm_end;
  
- 		/* Does the application expect PROT_READ to imply PROT_EXEC */
--		if (rier && (vma->vm_flags & VM_MAYEXEC))
-+		if (rier && vma_test(vma, VMA_MAYEXEC_BIT))
- 			prot |= PROT_EXEC;
+-	/* We always clear VM_LOCKED[ONFAULT] on the old VMA. */
+-	vm_flags_clear(vrm->vma, VM_LOCKED_MASK);
++	/* We always clear VMA_LOCKED[ONFAULT]_BIT on the old VMA. */
++	vma_clear_flags_mask(vrm->vma, VMA_LOCKED_MASK);
  
- 		/*
+ 	/*
+ 	 * anon_vma links of the old vma is no longer needed after its page
+@@ -1767,14 +1769,14 @@ static int check_prep_vma(struct vma_rem
+ 	 * based on the original.  There are no known use cases for this
+ 	 * behavior.  As a result, fail such attempts.
+ 	 */
+-	if (!old_len && !(vma->vm_flags & (VM_SHARED | VM_MAYSHARE))) {
++	if (!old_len && !vma_test_any(vma, VMA_SHARED_BIT, VMA_MAYSHARE_BIT)) {
+ 		pr_warn_once("%s (%d): attempted to duplicate a private mapping with mremap.  This is not supported.\n",
+ 			     current->comm, current->pid);
+ 		return -EINVAL;
+ 	}
+ 
+ 	if ((vrm->flags & MREMAP_DONTUNMAP) &&
+-			(vma->vm_flags & (VM_DONTEXPAND | VM_PFNMAP)))
++	    vma_test_any(vma, VMA_DONTEXPAND_BIT, VMA_PFNMAP_BIT))
+ 		return -EINVAL;
+ 
+ 	/*
+@@ -1804,7 +1806,7 @@ static int check_prep_vma(struct vma_rem
+ 		return 0;
+ 
+ 	/* We are expanding and the VMA is mlock()'d so we need to populate. */
+-	if (vma->vm_flags & VM_LOCKED)
++	if (vma_test(vma, VMA_LOCKED_BIT))
+ 		vrm->populate_expand = true;
+ 
+ 	/* Need to be careful about a growing mapping */
+@@ -1812,10 +1814,10 @@ static int check_prep_vma(struct vma_rem
+ 	if (pgoff + (new_len >> PAGE_SHIFT) < pgoff)
+ 		return -EINVAL;
+ 
+-	if (vma->vm_flags & (VM_DONTEXPAND | VM_PFNMAP))
++	if (vma_test_any(vma, VMA_DONTEXPAND_BIT, VMA_PFNMAP_BIT))
+ 		return -EFAULT;
+ 
+-	if (!mlock_future_ok(mm, vma->vm_flags & VM_LOCKED, vrm->delta))
++	if (!mlock_future_ok(mm, vma_test(vma, VMA_LOCKED_BIT), vrm->delta))
+ 		return -EAGAIN;
+ 
+ 	if (!may_expand_vm(mm, &vma->flags, vrm->delta >> PAGE_SHIFT))
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
