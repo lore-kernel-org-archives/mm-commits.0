@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 09CA93A381D
-	for <mm-commits@vger.kernel.org>; Tue, 14 Jul 2026 03:20:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1C2B83A257F
+	for <mm-commits@vger.kernel.org>; Tue, 14 Jul 2026 03:21:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783999260; cv=none; b=NoWLXueKiDPR+XjOYj5vDw2vEb7VKaApv1HdcAwENyrHNy83UtmVNSBUGkduwsXmbJgQWxERuAQEp1XALkEOMgGopGkVDVkPwwYWOmfr1lVipirzspW6vB291Z7XKp/hM/DA/FQUxyt0JQWUbC54aQvnjLrfHcZhCwj+3zBvnME=
+	t=1783999262; cv=none; b=F5cMzb+zoxoR2DwpnoqvSU8nXCuTo0a5h9aSoSRnUDaunuxCa1het2gbnQKtLFrFSrskVb4k3HfGEB3Ve3JH1c25+zHzcZ10I8LybJoFxZlmsL80EsdeWczslAVEtra1vdSuOYscrVtVdTEcwYnDIVzNw06wZ4Bjgad6pKpgmHw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783999260; c=relaxed/simple;
-	bh=yyhxUnAM6PgrayikA5MinhBYc2FWZ3oHdmoP+bV1c0Q=;
-	h=Date:To:From:Subject:Message-Id; b=NuTFelRuimfZHB1Q+/OT3hs31Wq05sn22JyemZT+qbUloJQ+G8n0VHAytE0NAx8ee1Cml7boeaDLp842ba2QdjbC9EmiXwre74vs6F+ROJZfv5aNWxFctZaA7FfP3yNQgyVjTnDaRUSdqHU3I2jacJM65QGGAWu+ndgqtbml54o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=aY4tyQlV; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783999262; c=relaxed/simple;
+	bh=8OJTy6dx5bqUgk8rJ9r0KupmYG/QDUP4tr+FRdyeNNw=;
+	h=Date:To:From:Subject:Message-Id; b=Oihwiy/KGudTtncbtRcgcZ8P+q9tV4SinnTkRr/mEHI3mtL1CCkQcMCwuaADGmegVBhPzF8bbu/d0tJf/AkVHtsGCAiOy22GvqM88DXDfo786HnkFhl80leLnKfBKxATmDvNA1LQEFWAHlNalFX/Isf1EkC3N4E9wLntgPv9kyQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wiHTDitN; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="aY4tyQlV"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 965891F000E9;
-	Tue, 14 Jul 2026 03:20:58 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wiHTDitN"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 99D2B1F000E9;
+	Tue, 14 Jul 2026 03:21:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783999258;
-	bh=XS64L6ZFUEhfeM7XcwMQu8vpYFF7gz8isRzz1mHjHr8=;
+	d=linux-foundation.org; s=korg; t=1783999260;
+	bh=FQmDSsbLKbCZgcnHbcRvXdxYRIJZcfp20wMAAMAdHqE=;
 	h=Date:To:From:Subject;
-	b=aY4tyQlVjZT1Of+iZrnLxIxgpaZSqAQBh0IGvoIJQ11deUL6l+IhcITFJCxJVvQFW
-	 YGY8xTdGqf07uvFpWJgo7JdGGJkUR72WbXAFszsn3vGKifwCN5cG9jpeuo8QdUJ9PT
-	 CWnqdmWop4+pmQoaZg+BsZrkSX7NkCdMJrB8Gq4g=
-Date: Mon, 13 Jul 2026 20:20:58 -0700
+	b=wiHTDitNcRiJFyqNXh+kybc2h3m5wCCtEizq76Rhy+yzLGuKWUugVgedFjxeqVT1i
+	 C5hkRybmziI0f+adlcd9ncyUv8dBNok363x8cg006UetGYVa1IhBgnGwW8mLexnxmx
+	 h5zOIJWNN1Ti3UwdM1wAp9dkWilUr3F8asi1VFAI=
+Date: Mon, 13 Jul 2026 20:21:00 -0700
 To: mm-commits@vger.kernel.org,ye.liu@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_owner-drop-redundant-page_owner-prefix-from-static-symbols.patch added to mm-unstable branch
-Message-Id: <20260714032058.965891F000E9@smtp.kernel.org>
+Subject: + mm-page_owner-clamp-skip_buddy_pages-pfn-advance-at-max_order_nr_pages-boundary.patch added to mm-unstable branch
+Message-Id: <20260714032100.99D2B1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/page_owner: drop redundant page_owner prefix from static symbols
+     Subject: mm/page_owner: clamp skip_buddy_pages() PFN advance at MAX_ORDER_NR_PAGES boundary
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-page_owner-drop-redundant-page_owner-prefix-from-static-symbols.patch
+     mm-page_owner-clamp-skip_buddy_pages-pfn-advance-at-max_order_nr_pages-boundary.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_owner-drop-redundant-page_owner-prefix-from-static-symbols.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_owner-clamp-skip_buddy_pages-pfn-advance-at-max_order_nr_pages-boundary.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,26 +59,29 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Ye Liu <ye.liu@linux.dev>
-Subject: mm/page_owner: drop redundant page_owner prefix from static symbols
-Date: Tue, 14 Jul 2026 09:51:06 +0800
+Subject: mm/page_owner: clamp skip_buddy_pages() PFN advance at MAX_ORDER_NR_PAGES boundary
+Date: Tue, 14 Jul 2026 09:51:07 +0800
 
-All of these symbols are file-scoped (static) in page_owner.c, so the
-page_owner_ prefix is pure noise.  Rename them to shorter, still-clear
-names:
+The lockless buddy_order_unsafe() read can return a garbage order value if
+the page is concurrently allocated between the PageBuddy check and the
+private read.  If this bogus order is <= MAX_PAGE_ORDER,
+skip_buddy_pages() would arbitrarily advance the PFN, potentially jumping
+past a MAX_ORDER_NR_PAGES boundary whose pfn_valid() check would have
+caught an offline memory section.
 
-  page_owner_stack_op      -> stack_op
-  page_owner_stack_open    -> stack_open
-  page_owner_stack_fops    -> stack_fops
-  page_owner_pages_threshold -> pages_threshold
-  page_owner_threshold_get -> threshold_get
-  page_owner_threshold_set -> threshold_set
-  page_owner_threshold_fops -> threshold_fops
+In read_page_owner(), which relies solely on boundary-aligned pfn_valid()
+to guard pfn_to_page(), skipping the boundary could cause pfn_to_page() to
+access an unmapped mem_section.
 
-No functional change.
+Clamp the advance so it never crosses the next MAX_ORDER_NR_PAGES
+boundary.  This is safe for all three callers: the pageblock-iterating
+ones already handle boundary transitions in their outer loops, and for
+read_page_owner() the worst case is one extra PageBuddy check per 1024
+pages when a bogus order would otherwise push past the boundary.
 
-Link: https://lore.kernel.org/20260714015117.78351-8-ye.liu@linux.dev
+Link: https://lore.kernel.org/20260714015117.78351-9-ye.liu@linux.dev
 Signed-off-by: Ye Liu <ye.liu@linux.dev>
-Acked-by: Zi Yan <ziy@nvidia.com>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
 Reviewed-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
 Cc: Brendan Jackman <jackmanb@google.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
@@ -88,107 +91,39 @@ Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_owner.c |   34 ++++++++++++++++------------------
- 1 file changed, 16 insertions(+), 18 deletions(-)
+ mm/page_owner.c |   14 ++++++++++++--
+ 1 file changed, 12 insertions(+), 2 deletions(-)
 
---- a/mm/page_owner.c~mm-page_owner-drop-redundant-page_owner-prefix-from-static-symbols
+--- a/mm/page_owner.c~mm-page_owner-clamp-skip_buddy_pages-pfn-advance-at-max_order_nr_pages-boundary
 +++ a/mm/page_owner.c
-@@ -894,7 +894,7 @@ static void *stack_next(struct seq_file
- 	return stack;
+@@ -428,6 +428,12 @@ void __folio_copy_owner(struct folio *ne
+  * to skip less than the full buddy block, but that is acceptable for page owner
+  * iteration purposes.
+  *
++ * The lockless read of buddy_order_unsafe() can also return a garbage order if
++ * the page is concurrently allocated and PageBuddy is cleared between the check
++ * and the read. Clamp the advance at the next MAX_ORDER_NR_PAGES boundary so
++ * that a bogus order cannot carry @pfn into an unvalidated memory section,
++ * which would break callers that rely on boundary-aligned pfn_valid() checks.
++ *
+  * Return: true if the page was skipped (caller should continue its loop),
+  *         false if the page is not a buddy page and should be processed normally.
+  */
+@@ -439,8 +445,12 @@ static inline bool skip_buddy_pages(unsi
+ 		return false;
+ 
+ 	order = buddy_order_unsafe(page);
+-	if (order <= MAX_PAGE_ORDER)
+-		*pfn += (1UL << order) - 1;
++	if (order <= MAX_PAGE_ORDER) {
++		unsigned long new_pfn = *pfn + (1UL << order);
++		unsigned long boundary = ALIGN(*pfn + 1, MAX_ORDER_NR_PAGES);
++
++		*pfn = min(new_pfn, boundary) - 1;
++	}
+ 
+ 	return true;
  }
- 
--static unsigned long page_owner_pages_threshold;
-+static unsigned long pages_threshold;
- 
- static int stack_print(struct seq_file *m, void *v)
- {
-@@ -911,7 +911,7 @@ static int stack_print(struct seq_file *
- 	nr_base_pages = refcount_read(&stack_record->count) - 1;
- 
- 	if (ctx->flags & STACK_PRINT_FLAG_PAGES &&
--	    (nr_base_pages < 1 || nr_base_pages < page_owner_pages_threshold))
-+	    (nr_base_pages < 1 || nr_base_pages < pages_threshold))
- 		return 0;
- 
- 	if (ctx->flags & STACK_PRINT_FLAG_STACK) {
-@@ -933,16 +933,16 @@ static void stack_stop(struct seq_file *
- {
- }
- 
--static const struct seq_operations page_owner_stack_op = {
-+static const struct seq_operations stack_op = {
- 	.start	= stack_start,
- 	.next	= stack_next,
- 	.stop	= stack_stop,
- 	.show	= stack_print
- };
- 
--static int page_owner_stack_open(struct inode *inode, struct file *file)
-+static int stack_open(struct inode *inode, struct file *file)
- {
--	int ret = seq_open_private(file, &page_owner_stack_op,
-+	int ret = seq_open_private(file, &stack_op,
- 				   sizeof(struct stack_print_ctx));
- 
- 	if (!ret) {
-@@ -955,28 +955,26 @@ static int page_owner_stack_open(struct
- 	return ret;
- }
- 
--static const struct file_operations page_owner_stack_fops = {
--	.open		= page_owner_stack_open,
-+static const struct file_operations stack_fops = {
-+	.open		= stack_open,
- 	.read		= seq_read,
- 	.llseek		= seq_lseek,
- 	.release	= seq_release_private,
- };
- 
--static int page_owner_threshold_get(void *data, u64 *val)
-+static int threshold_get(void *data, u64 *val)
- {
--	*val = READ_ONCE(page_owner_pages_threshold);
-+	*val = READ_ONCE(pages_threshold);
- 	return 0;
- }
- 
--static int page_owner_threshold_set(void *data, u64 val)
-+static int threshold_set(void *data, u64 val)
- {
--	WRITE_ONCE(page_owner_pages_threshold, val);
-+	WRITE_ONCE(pages_threshold, val);
- 	return 0;
- }
- 
--DEFINE_SIMPLE_ATTRIBUTE(page_owner_threshold_fops, &page_owner_threshold_get,
--			&page_owner_threshold_set, "%llu\n");
--
-+DEFINE_SIMPLE_ATTRIBUTE(threshold_fops, &threshold_get, &threshold_set, "%llu\n");
- 
- static int __init pageowner_init(void)
- {
-@@ -992,17 +990,17 @@ static int __init pageowner_init(void)
- 	debugfs_create_file("show_stacks", 0400, dir,
- 			    (void *)(STACK_PRINT_FLAG_STACK |
- 				     STACK_PRINT_FLAG_PAGES),
--			     &page_owner_stack_fops);
-+			     &stack_fops);
- 	debugfs_create_file("show_handles", 0400, dir,
- 			    (void *)(STACK_PRINT_FLAG_HANDLE |
- 				     STACK_PRINT_FLAG_PAGES),
--			    &page_owner_stack_fops);
-+			    &stack_fops);
- 	debugfs_create_file("show_stacks_handles", 0400, dir,
- 			    (void *)(STACK_PRINT_FLAG_STACK |
- 				     STACK_PRINT_FLAG_HANDLE),
--			    &page_owner_stack_fops);
-+			    &stack_fops);
- 	debugfs_create_file("count_threshold", 0600, dir, NULL,
--			    &page_owner_threshold_fops);
-+			    &threshold_fops);
- 	return 0;
- }
- late_initcall(pageowner_init)
 _
 
 Patches currently in -mm which might be from ye.liu@linux.dev are
