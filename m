@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D6CF925783C
-	for <mm-commits@vger.kernel.org>; Tue, 14 Jul 2026 03:17:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E09CD25783C
+	for <mm-commits@vger.kernel.org>; Tue, 14 Jul 2026 03:17:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783999031; cv=none; b=g2mZnTz3cVXmIRmX6uui1J9u2/zGLI2deofH/EQE2t6u0ukP52Qbh4QGPLgqgnF0NuSZwHbrH39eG+iX74IdIa9FG81x+/Ax9AO0jyiW7SyuqBQFc9bbKdf9c0GFdOo16lJPyHyOlhWKeA2EOK3DroxAoGkYlk97+rCeoJWK3r8=
+	t=1783999033; cv=none; b=XvP1A+O+JDP8pgs0k0RJtecc6Zko/43sgrzspexlDwReqti61gvoFcFhFPDWNKepdLrjsT1VggFlRdvqGM6Axb4+DBSDp0/UB3yJ9ngYhtnxH53BWrMBTS9oMzLDbLFVtbJS130cSnYFrPbH0xO98rhgqBuwisSyu9XDZuFoP50=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783999031; c=relaxed/simple;
-	bh=NOz+bUHgQCKzgDagK6Sns8DrBwHSepKZCH6Ble0Y5Hs=;
-	h=Date:To:From:Subject:Message-Id; b=A5Zay1gkkhI9glQa/ny9dU037s2PmOfy1CiKssTG24b7NaUCS16KU0UJfx/p6Ojq7J1vU02Fxt1KTf8q8UeaOIqhY5hOba50wMR2XhWumWcg9FV6n+mJddjjKb9oDezweI1JInj5h37wi8IbukG57WrNeNCBXvXUtVNWP7GReP4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2dbuVTG0; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783999033; c=relaxed/simple;
+	bh=qj+Pau539YIk5kyge0hcI+tEUFO0Zzh2D9kGvNxc5Ao=;
+	h=Date:To:From:Subject:Message-Id; b=TbGSOJZJPSiFtenkixY4OqSDA0DcCrwYZjpMhqlXcExQIAcls12RdEab8FhG0Rf5M9Px1TDLgaxPF/GjBJa2fHzsLXoOp5sTMj8XJyv8u1HUX18cEjpDV4brvn/xPVNL3groJNUWaRp6R0sDvDWoMQnc3hPWgjAMHEW37msHMH8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rLBXlbne; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2dbuVTG0"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AC2811F000E9;
-	Tue, 14 Jul 2026 03:17:09 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rLBXlbne"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9C4051F000E9;
+	Tue, 14 Jul 2026 03:17:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783999029;
-	bh=si/f3+dd2WQ7PanXe3rKCGnmVx+M0S+2DYJRJMs7YaU=;
+	d=linux-foundation.org; s=korg; t=1783999031;
+	bh=UfzIBSkA96TQBjAxjsA7TPW0arbLW0YO1EHvxizRb/A=;
 	h=Date:To:From:Subject;
-	b=2dbuVTG0r2O77QZzc3KcacuaTpqqnamx1U52rphFP3UyXOUiGqvX1E3JVofZsfjSK
-	 xNwQ7dsHe7tw0LRcF/X16sQoLfff/MwE2haA75Df1YahJgESxhsQVkLkKMfWxcu1fD
-	 HsOSTIY5YSZJDzu/tdtE2VlASm6VJAjHR+bQLxZI=
-Date: Mon, 13 Jul 2026 20:17:09 -0700
+	b=rLBXlbneXYCauNrbom+Yu/dCSTsPgGxCxwSsxmdXOZpOPIvVD4NBm8Lxoz3wWWCCI
+	 fZf/pKjLlZszYC+UFrRYhFJF6/b8+u5KO+ExPwwd9PNvi9154z8IPioP9kC4cLU3dB
+	 OKEzh+bToJnli3mGozNtDQJfqa9w7ocm7O3sFSqI=
+Date: Mon, 13 Jul 2026 20:17:11 -0700
 To: mm-commits@vger.kernel.org,ye.liu@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_owner-hoist-config_memcg-to-function-level-for-print_page_owner_memcg.patch added to mm-unstable branch
-Message-Id: <20260714031709.AC2811F000E9@smtp.kernel.org>
+Subject: + mm-page_owner-add-missing-newline-to-count_threshold-format-string.patch added to mm-unstable branch
+Message-Id: <20260714031711.9C4051F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/page_owner: hoist CONFIG_MEMCG to function level for print_page_owner_memcg()
+     Subject: mm/page_owner: add missing newline to count_threshold format string
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-page_owner-hoist-config_memcg-to-function-level-for-print_page_owner_memcg.patch
+     mm-page_owner-add-missing-newline-to-count_threshold-format-string.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_owner-hoist-config_memcg-to-function-level-for-print_page_owner_memcg.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_owner-add-missing-newline-to-count_threshold-format-string.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,18 +59,17 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Ye Liu <ye.liu@linux.dev>
-Subject: mm/page_owner: hoist CONFIG_MEMCG to function level for print_page_owner_memcg()
-Date: Tue, 14 Jul 2026 09:51:03 +0800
+Subject: mm/page_owner: add missing newline to count_threshold format string
+Date: Tue, 14 Jul 2026 09:51:04 +0800
 
-The print_page_owner_memcg() function has CONFIG_MEMCG guarding its entire
-body via #ifdef inside the function, which leaves a no-op { return ret; }
-when the config is disabled.  Hoist the #ifdef to the top level so the
-real implementation and the empty stub are two clearly separated
-definitions.
+The DEFINE_SIMPLE_ATTRIBUTE format string for page_owner_threshold_fops is
+missing a trailing \n.  simple_attr_read() uses scnprintf() with the
+format string, which does not append a newline, so reading
+/sys/kernel/debug/page_owner_stacks/count_threshold produces output
+without a terminating newline.  Add the missing \n to match the standard
+debugfs attribute convention.
 
-No functional change.
-
-Link: https://lore.kernel.org/20260714015117.78351-5-ye.liu@linux.dev
+Link: https://lore.kernel.org/20260714015117.78351-6-ye.liu@linux.dev
 Signed-off-by: Ye Liu <ye.liu@linux.dev>
 Reviewed-by: Zi Yan <ziy@nvidia.com>
 Reviewed-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
@@ -82,44 +81,20 @@ Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_owner.c |   10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+ mm/page_owner.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/page_owner.c~mm-page_owner-hoist-config_memcg-to-function-level-for-print_page_owner_memcg
+--- a/mm/page_owner.c~mm-page_owner-add-missing-newline-to-count_threshold-format-string
 +++ a/mm/page_owner.c
-@@ -522,13 +522,13 @@ ext_put_continue:
- 	seq_putc(m, '\n');
+@@ -974,7 +974,7 @@ static int page_owner_threshold_set(void
  }
  
-+#ifdef CONFIG_MEMCG
- /*
-  * Looking for memcg information and print it out
-  */
- static inline int print_page_owner_memcg(char *kbuf, size_t count, int ret,
- 					 struct page *page)
- {
--#ifdef CONFIG_MEMCG
- 	unsigned long memcg_data;
- 	struct mem_cgroup *memcg;
- 	bool online;
-@@ -556,10 +556,16 @@ static inline int print_page_owner_memcg
- 			name);
- out_unlock:
- 	rcu_read_unlock();
--#endif /* CONFIG_MEMCG */
+ DEFINE_SIMPLE_ATTRIBUTE(page_owner_threshold_fops, &page_owner_threshold_get,
+-			&page_owner_threshold_set, "%llu");
++			&page_owner_threshold_set, "%llu\n");
  
- 	return ret;
- }
-+#else
-+static inline int print_page_owner_memcg(char *kbuf, size_t count, int ret,
-+					 struct page *page)
-+{
-+	return ret;
-+}
-+#endif
  
- static ssize_t
- print_page_owner(char __user *buf, size_t count, unsigned long pfn,
+ static int __init pageowner_init(void)
 _
 
 Patches currently in -mm which might be from ye.liu@linux.dev are
