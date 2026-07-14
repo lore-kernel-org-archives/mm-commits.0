@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 279FB1A3160
-	for <mm-commits@vger.kernel.org>; Tue, 14 Jul 2026 00:37:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 94D4678C9C
+	for <mm-commits@vger.kernel.org>; Tue, 14 Jul 2026 00:37:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783989459; cv=none; b=oa7Dmhx5Crks624/jFjkCHTrqJMvCAfUbl58Ns/vwDG4nPGn4j/qF5mXP55d0pYYQ12BgawxK5DwgtFq6aTpEoyudCWk1jDecTcheSuKB3UQIgNiYIG41UAtNEv/8sf5dj3tfMibSgQbKklknSxCnattGo7F5tbNNAocDb1NIaY=
+	t=1783989461; cv=none; b=NlBtQeLGfCXQTS3qZWhFdc5KkatDx+dAqTY0Gq4Z2CrcQDNDYCB1FzArLWD7RFXHx5BoGgE/CJIoT5WUhPqtpymNjZNOAJ02kVsoC3V7TVCFJYK4/JqdF8MpPbYw45iTWrZE2pYtAgANmgmTyPMBQXCQKByXwxs+lDKCbn6a1Hw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783989459; c=relaxed/simple;
-	bh=LfYCJgKYtS3/wAr9FKAVrV7mNp1ZadDv4YCn7fIppj4=;
-	h=Date:To:From:Subject:Message-Id; b=vBKX1OztWLtMNeZK5fzD2ATwZ6ephpcFj+uDQnFbwyXZFhjUle0UmlTUU7hFqkqt/1q0OyB3+Gem4pem9Z3y4JllbaYYF8ArKVie9j0FuBySI3vF3m8us+acYOB3NGHBf+ogd1mRIwW7lo+82LVxNurgIT4+71bg25botyXfiEg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TbuQBmYp; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783989461; c=relaxed/simple;
+	bh=/KbgxuNlXr4UnZ4CQ/eAQEMH7NxVI4UlzpWWLHvXm0c=;
+	h=Date:To:From:Subject:Message-Id; b=qaK1iQ8TvQR7jvoOs88tz301acSEwKzfeeJP7qbBYyUvwmIaw1tJEoth3ieo8W3vcoX8j+b3zmKon3xFujZCbvwRTOLSbCI2070bYha9YFrsksGmTLUNpNzrXM6yxl2yCJE/vDrk4CZYEOEppGifskm0gMqbYbqnYRc4rGDaycQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=iWSOHA83; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TbuQBmYp"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id ADCC51F000E9;
-	Tue, 14 Jul 2026 00:37:37 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="iWSOHA83"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 398621F000E9;
+	Tue, 14 Jul 2026 00:37:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783989457;
-	bh=9Lo8GNe9cPQvfMTaxU5IRDqV9E++aL40/eK2GukA+fM=;
+	d=linux-foundation.org; s=korg; t=1783989460;
+	bh=TVIHkuXJmpOPVZ9xi1KdOSegoRkWfiyg+aPqVi+dc90=;
 	h=Date:To:From:Subject;
-	b=TbuQBmYpE93g9UgAPHrx/3HB5DPoggORfV+e9gQi3nB/ZiicZmGJDYEJ2qrXzvmKo
-	 Nqd7T4XlLCIPpujjbZeWhRDNkQ9mB23aA+91HgjO1G6mATqyx0gDmAYq9RO59SSoib
-	 BvPdliTjUXHI0kskJejpNusFDHQ3s92/LsAQymcg=
-Date: Mon, 13 Jul 2026 17:37:37 -0700
+	b=iWSOHA83tuphOOlt44NkBRvoCh5m3jmMEP6y9/CamFjNUPS2EE4c72NbhIYZvDkH1
+	 lTDDW5UTQD89hmNRLH7cOSn/UuNhRs0Kl/LHfT3zzTF/C3yGDMVbwuVls9jPT4HU5U
+	 +IU+mIGCA2qPXsc//dNZa0b2v93p+YsqqYRRO0j8=
+Date: Mon, 13 Jul 2026 17:37:39 -0700
 To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,shuah@kernel.org,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,geert@linux-m68k.org,david@kernel.org,corbet@lwn.net,catalin.marinas@arm.com,leitao@debian.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-kmemleak-report-leaks-only-after-n-consecutive-unreferenced-scans.patch added to mm-new branch
-Message-Id: <20260714003737.ADCC51F000E9@smtp.kernel.org>
+Subject: + mm-kmemleak-factor-leak-confirmation-into-a-helper.patch added to mm-new branch
+Message-Id: <20260714003740.398621F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: kmemleak: report leaks only after N consecutive unreferenced scans
+     Subject: mm: kmemleak: factor leak confirmation into a helper
 has been added to the -mm mm-new branch.  Its filename is
-     mm-kmemleak-report-leaks-only-after-n-consecutive-unreferenced-scans.patch
+     mm-kmemleak-factor-leak-confirmation-into-a-helper.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-kmemleak-report-leaks-only-after-n-consecutive-unreferenced-scans.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-kmemleak-factor-leak-confirmation-into-a-helper.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,30 +70,22 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Breno Leitao <leitao@debian.org>
-Subject: mm: kmemleak: report leaks only after N consecutive unreferenced scans
-Date: Mon, 13 Jul 2026 04:48:05 -0700
+Subject: mm: kmemleak: factor leak confirmation into a helper
+Date: Mon, 13 Jul 2026 04:48:06 -0700
 
-kmemleak reports an object the first scan it is found unreferenced.  Its
-mark phase runs without stopping the rest of the kernel and without a
-write barrier, so a live object whose only reference is briefly invisible
-during a concurrent RCU update -- e.g.  a VMA moved between maple tree
-nodes, or a page-cache xa_node -- can be seen as unreferenced for that one
-scan.  Because an object is flagged as reported only once, such a
-transient race turns into a permanent false positive.
+The reporting loop in kmemleak_scan() decided whether to tag an object as
+a reported leak with a four-term compound condition whose last operand
+also had a side effect (++object->unref_scans).  Mixing the candidate
+tests with the counter update made the check hard to read.
 
-Track how many consecutive scans each object has been seen unreferenced
-and only report it once that reaches min_unref_scans, a new module
-parameter.  It defaults to 1, leaving the behaviour unchanged; setting it
-higher (e.g.  2) still reports a genuine leak, one scan later, while an
-object referenced again before the threshold restarts its run and is never
-reported.
+Move the state transition into confirm_leak(): it returns true when a
+still-unreferenced suspect crosses min_unref_scans consecutive scans and
+is newly flagged OBJECT_REPORTED, leaving only the reporting bookkeeping
+in the caller.  No functional change.
 
-min_unref_scans can be set at boot with kmemleak.min_unref_scans=<n> or at
-run-time via /sys/module/kmemleak/parameters/min_unref_scans.
-
-Link: https://lore.kernel.org/20260713-catalin_pto-v1-2-5b93b1131089@debian.org
+Link: https://lore.kernel.org/20260713-catalin_pto-v1-3-5b93b1131089@debian.org
 Signed-off-by: Breno Leitao <leitao@debian.org>
-Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
@@ -107,79 +99,51 @@ Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/dev-tools/kmemleak.rst |    8 ++++++++
- mm/kmemleak.c                        |   13 ++++++++++++-
- 2 files changed, 20 insertions(+), 1 deletion(-)
+ mm/kmemleak.c |   26 +++++++++++++++++++++-----
+ 1 file changed, 21 insertions(+), 5 deletions(-)
 
---- a/Documentation/dev-tools/kmemleak.rst~mm-kmemleak-report-leaks-only-after-n-consecutive-unreferenced-scans
-+++ a/Documentation/dev-tools/kmemleak.rst
-@@ -198,6 +198,14 @@ systems, because of pointers temporarily
- stacks. Kmemleak defines MSECS_MIN_AGE (defaulting to 1000) representing
- the minimum age of an object to be reported as a memory leak.
- 
-+The ``min_unref_scans`` module parameter (default 1) requires an object to
-+be seen unreferenced in that many consecutive scans before it is reported.
-+Keeping it at 1 preserves the historical behaviour; higher values filter
-+the transient false positives described above, at the cost of delaying
-+genuine reports by up to that many scans. It can be set at boot with
-+``kmemleak.min_unref_scans=<n>`` or at run-time via
-+``/sys/module/kmemleak/parameters/min_unref_scans``.
-+
- Limitations and Drawbacks
- -------------------------
- 
---- a/mm/kmemleak.c~mm-kmemleak-report-leaks-only-after-n-consecutive-unreferenced-scans
+--- a/mm/kmemleak.c~mm-kmemleak-factor-leak-confirmation-into-a-helper
 +++ a/mm/kmemleak.c
-@@ -151,6 +151,8 @@ struct kmemleak_object {
- 	int min_count;
- 	/* the total number of pointers found pointing to this object */
- 	int count;
-+	/* consecutive scans the object has been seen unreferenced */
-+	unsigned int unref_scans;
- 	/* checksum for detecting modified objects */
- 	u32 checksum;
- 	depot_stack_handle_t trace_handle;
-@@ -234,6 +236,9 @@ static unsigned long max_percpu_addr;
- static struct task_struct *scan_thread;
- /* used to avoid reporting of recently allocated objects */
- static unsigned long jiffies_min_age;
-+/* consecutive scans an object must stay unreferenced before reporting */
-+static unsigned int min_unref_scans = 1;
-+module_param(min_unref_scans, uint, 0644);
- static unsigned long jiffies_last_scan;
- /* delay between automatic memory scannings */
- static unsigned long jiffies_scan_wait;
-@@ -692,6 +697,7 @@ static struct kmemleak_object *__alloc_o
- 	object->excess_ref = 0;
- 	object->count = 0;			/* white color initially */
- 	object->checksum = ~0;
-+	object->unref_scans = 0;
- 	object->del_state = 0;
+@@ -2015,6 +2015,26 @@ scan_gray:
+ }
  
- 	/* task information */
-@@ -1890,6 +1896,9 @@ static int __kmemleak_scan(bool full)
- 				__paint_it(object, KMEMLEAK_BLACK);
- 		}
- 
-+		/* referenced last scan: restart the unreferenced run */
-+		if (!color_white(object))
-+			object->unref_scans = 0;
- 		/* reset the reference count (whiten the object) */
- 		object->count = 0;
- 		if (full)
-@@ -2064,9 +2073,11 @@ static void kmemleak_scan(void)
- 		raw_spin_lock_irq(&object->lock);
+ /*
++ * Promote a suspected object to a reported leak once it has stayed
++ * unreferenced for min_unref_scans consecutive scans. Called with
++ * object->lock held; returns true when the object is newly reported.
++ */
++static bool confirm_leak(struct kmemleak_object *object)
++{
++	if (!unreferenced_object(object) ||
++	    !(object->flags & OBJECT_SUSPECT) ||
++	    (object->flags & OBJECT_REPORTED))
++		return false;
++
++	object->unref_scans += 1;
++	if (object->unref_scans < min_unref_scans)
++		return false;
++
++	object->flags |= OBJECT_REPORTED;
++	return true;
++}
++
++/*
+  * Scan the memory and report the unreferenced objects as leaks. Must be
+  * called with the scan_mutex held.
+  */
+@@ -2074,11 +2094,7 @@ static void kmemleak_scan(void)
  		trace_handle = 0;
  		dedup_print = false;
-+
- 		if (unreferenced_object(object) &&
- 		    (object->flags & OBJECT_SUSPECT) &&
--		    !(object->flags & OBJECT_REPORTED)) {
-+		    !(object->flags & OBJECT_REPORTED) &&
-+		    ++object->unref_scans >= min_unref_scans) {
- 			object->flags |= OBJECT_REPORTED;
+ 
+-		if (unreferenced_object(object) &&
+-		    (object->flags & OBJECT_SUSPECT) &&
+-		    !(object->flags & OBJECT_REPORTED) &&
+-		    ++object->unref_scans >= min_unref_scans) {
+-			object->flags |= OBJECT_REPORTED;
++		if (confirm_leak(object)) {
  			if (kmemleak_verbose) {
  				trace_handle = object->trace_handle;
+ 				dedup_print = true;
 _
 
 Patches currently in -mm which might be from leitao@debian.org are
