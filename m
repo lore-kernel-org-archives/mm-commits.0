@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 672332F7F18
-	for <mm-commits@vger.kernel.org>; Tue, 14 Jul 2026 00:54:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5434526B973;
+	Tue, 14 Jul 2026 00:56:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783990450; cv=none; b=FGimtN2p3bS51/kaee55jHDmPqZXELTdW99wia8iIfCDpztSUqE4RXLlmsm9koZteihPmYJK6q0D/+vKmymYvqcBV8lBiR8U2Qvgs58gD+ZYNBWjlF5JbYxCxnE1LEO3fZH/9lGk7InT1WVd+qtymqmT/s8Fy6UVnFyoSlQiTic=
+	t=1783990596; cv=none; b=fAOg0KPUvgOV7l0FdnKuYzcFq92zwhHmklpXXwVQ9nSePK6C890duUsFoFj3BEqDvUMLKyehZtIqo3eWQlBwiPosmspIFtXep9Eds9pQ4hKl9dcZX7CPUEV8qLSLndyS8n0NwQNJxZwSv7nnEm8ERazm/eX9vym/DdFOJrs9PP4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783990450; c=relaxed/simple;
-	bh=JzMyrx8mHxhRSXz+kUUyXMuYWQ09iuc4Mkm7JTBepBw=;
-	h=Date:To:From:Subject:Message-Id; b=cX20GOuObdYfRQw0IxxqOBY+OiN44acQQmQRVnN2igw6n/HRn1Zlr+BNQN435kuTAsAPcmlaHXZvfzXx7gFsGkgl3LvsuwC/Ih4HmTODyX5flD35Qc2tBI5xd9B6Fj11PBgAR/9xxmF18VjetT0OrnKx36w9NnrgKZxvBgA4jTk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zb979SPA; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783990596; c=relaxed/simple;
+	bh=PF20xbni8f0VWjHbNXhxaVnHLT+ddkLnv9GvKeLkODk=;
+	h=Date:To:From:Subject:Message-Id; b=AOKjJ+CZCnc2NlK7sXIWPMNa5ET8lIj8ROGd/2KdkMrqytwGdRbseApD4sdEE8VNst948US8srUnxL3SGUx4mUXQNiD8m3QwHfy81ok0sbBCYdwVuyaS5k212c5mM5cYMtkkaHWtBLFmB/vGOMHTiZHihjVc39as6BDXZNo74rU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Ak4bkaw2; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zb979SPA"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 22F821F00A3D;
-	Tue, 14 Jul 2026 00:54:01 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Ak4bkaw2"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8C69D1F000E9;
+	Tue, 14 Jul 2026 00:56:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783990441;
-	bh=fFTcDm8wiX1UPae5fkTKNvUt8nbY/reQVbnXoarlXb4=;
+	d=linux-foundation.org; s=korg; t=1783990587;
+	bh=FTx6djY941twNw2l1n+fBHuoJOdeR+nolps2nTi/6mY=;
 	h=Date:To:From:Subject;
-	b=zb979SPAwff7SI+/qh/xJZAKCrWuzr4+IxnzcRy5NxwHZSuFD424zs0g/UIvOCKOH
-	 nsE/QzOSYAc24oVV9W6dgZxtz2BLjkCe+B1+QT1UrMIrCYiB2EOU2OjYYgdrjD+IIn
-	 xHkLFzJyXLaSsEfprwFmJ6z0+eOm3yjxofORx6Ic=
-Date: Mon, 13 Jul 2026 17:54:00 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,shuah@kernel.org,muchun.song@linux.dev,jack@suse.cz,wangyijia.yeah@bytedance.com,akpm@linux-foundation.org
+	b=Ak4bkaw2s3Xulkf+KsnG/oGWTqVfzdj0IHcVWZds31UAiG5eBFkl1gUzzI/OBcofR
+	 Hhc7y/sLggGXO5EWJ1q5nQikLmGx82P9VlXuCC8gj6uco4leVntGx6HUIOAFETpm7A
+	 ExA0tYE6QIf5qWRusziwRImjHQZG1lA2AlIBPdPk=
+Date: Mon, 13 Jul 2026 17:56:27 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,ljs@kernel.org,jackmanb@google.com,david@kernel.org,injaeryou@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mincore-count-file-mmap-readahead-on-both-sides.patch added to mm-new branch
-Message-Id: <20260714005401.22F821F00A3D@smtp.kernel.org>
+Subject: + selftests-mm-fix-on-fault-limit-false-failure-under-sudo-rs.patch added to mm-new branch
+Message-Id: <20260714005627.8C69D1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests: mincore: count file-mmap readahead on both sides
+     Subject: selftests/mm: fix on-fault-limit false failure under sudo-rs
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-mincore-count-file-mmap-readahead-on-both-sides.patch
+     selftests-mm-fix-on-fault-limit-false-failure-under-sudo-rs.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mincore-count-file-mmap-readahead-on-both-sides.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-fix-on-fault-limit-false-failure-under-sudo-rs.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,69 +69,67 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Yijia Wang <wangyijia.yeah@bytedance.com>
-Subject: selftests: mincore: count file-mmap readahead on both sides
-Date: Mon, 13 Jul 2026 17:43:19 +0800
+From: Injae Ryou <injaeryou@gmail.com>
+Subject: selftests/mm: fix on-fault-limit false failure under sudo-rs
+Date: Mon, 13 Jul 2026 18:27:00 +0900
 
-check_file_mmap() faults a page in the middle of a file mapping and
-expects the mmap read-around path to make neighbouring pages resident. 
-The test currently counts only pages after the faulted page.
+run_vmtests.sh runs on-fault-limit as the nobody user via "sudo -u nobody
+./on-fault-limit", guarded by a check that nobody can access the binary
+("sudo -u nobody ls ./on-fault-limit").
 
-That misses valid read-around on systems with large base page sizes.  On
-arm64 with 64K pages and the default 128K readahead setting, the
-read-around window is two pages wide and centred on the faulting page. 
-Faulting page 32 makes pages 31 and 32 resident, so the forward-only scan
-from page 33 reports ra_pages == 0 even though a neighbouring page was
-brought in.
+The guard resolves the relative path from the inherited working directory,
+which only requires search permission on the test directory itself. 
+Classic sudo passes the relative path through to execve() the same way, so
+the two agree.  However, sudo-rs (the default sudo implementation since
+Ubuntu 25.10) canonicalizes the command to an absolute path before
+executing it, which requires search permission on every ancestor
+directory.  When the kernel tree lives under a private home directory
+(mode 0750, the Ubuntu default for new users since 21.04), the guard
+passes but the execution fails with "command not found", and the test is
+reported as a false FAIL:
 
-Keep the existing readahead assertion, but count resident neighbouring
-pages on both sides of the faulted page.  This fixes the 64K-page false
-failure without teaching the selftest to compute the expected readahead
-window from sysfs or other implementation details.
+  # running sudo -u nobody ./on-fault-limit
+  sudo: './on-fault-limit': command not found
+  # [FAIL]
 
-Link: https://lore.kernel.org/20260713094319.771550-1-wangyijia.yeah@bytedance.com
-Signed-off-by: Yijia Wang <wangyijia.yeah@bytedance.com>
-Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Shuah Khan <shuah@kernel.org>
+Wrap the command in "sh -c" so that sudo only resolves the shell binary,
+and the relative path is resolved by nobody's shell from the inherited
+working directory, matching what the guard checks.  This is the only "sudo
+-u nobody" invocation in the script; uid, cwd, rlimits (including
+RLIMIT_MEMLOCK, which this test exercises) and the exit status are
+unchanged through sh.
+
+Verified on Ubuntu 26.04 (sudo-rs 0.2.13): the test now runs and passes
+instead of failing.  Verified on Ubuntu 24.04 (sudo 1.9.15p5): behavior is
+unchanged.
+
+Link: https://lore.kernel.org/20260713092700.464376-1-injaeryou@gmail.com
+Fixes: 5d2146a3354f ("selftests/mm: skip mlock tests if nobody user can't read it")
+Signed-off-by: Injae Ryou <injaeryou@gmail.com>
+Cc: Brendan Jackman <jackmanb@google.com>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mincore/mincore_selftest.c |   12 +++++++++--
- 1 file changed, 10 insertions(+), 2 deletions(-)
+ tools/testing/selftests/mm/run_vmtests.sh |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/tools/testing/selftests/mincore/mincore_selftest.c~selftests-mincore-count-file-mmap-readahead-on-both-sides
-+++ a/tools/testing/selftests/mincore/mincore_selftest.c
-@@ -242,8 +242,10 @@ TEST(check_file_mmap)
- 	}
+--- a/tools/testing/selftests/mm/run_vmtests.sh~selftests-mm-fix-on-fault-limit-false-failure-under-sudo-rs
++++ a/tools/testing/selftests/mm/run_vmtests.sh
+@@ -303,7 +303,7 @@ CATEGORY="compaction" run_test ./compact
  
- 	/*
--	 * Touch a page in the middle of the mapping. We expect the next
--	 * few pages (the readahead window) to be populated too.
-+	 * Touch a page in the middle of the mapping. We expect some
-+	 * surrounding pages (the readahead window) to be populated too.
-+	 * Depending on the page size and readahead setting, the pages may
-+	 * land before the faulted page rather than after it.
- 	 */
- 	addr[FILE_SIZE / 2] = 1;
- 	retval = mincore(addr, FILE_SIZE, vec);
-@@ -252,6 +254,12 @@ TEST(check_file_mmap)
- 		TH_LOG("Page not found in memory after use");
- 	}
- 
-+	i = FILE_SIZE / 2 / page_size - 1;
-+	while (i >= 0 && vec[i]) {
-+		ra_pages++;
-+		i--;
-+	}
-+
- 	i = FILE_SIZE / 2 / page_size + 1;
- 	while (i < vec_size && vec[i]) {
- 		ra_pages++;
+ if command -v sudo &> /dev/null && sudo -u nobody ls ./on-fault-limit >/dev/null;
+ then
+-	CATEGORY="mlock" run_test sudo -u nobody ./on-fault-limit
++	CATEGORY="mlock" run_test sudo -u nobody sh -c ./on-fault-limit
+ else
+ 	echo "# SKIP ./on-fault-limit"
+ fi
 _
 
-Patches currently in -mm which might be from wangyijia.yeah@bytedance.com are
+Patches currently in -mm which might be from injaeryou@gmail.com are
 
-selftests-mincore-count-file-mmap-readahead-on-both-sides.patch
+selftests-mm-fix-on-fault-limit-false-failure-under-sudo-rs.patch
 
