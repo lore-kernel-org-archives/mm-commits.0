@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 47C4D2931C7
-	for <mm-commits@vger.kernel.org>; Tue, 14 Jul 2026 19:21:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3F2882931C7
+	for <mm-commits@vger.kernel.org>; Tue, 14 Jul 2026 19:21:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784056909; cv=none; b=Fli9RukTsoOl11O846iBw02PfU4oGdmryKHc/zCTOVifQTkfatROyPvM6LiahOpJftPeLWeCZA9kRiMb5vOUNcflLenzI5UoyI7Ls31xvoZsGo5MLAb/96AIaxtdCJRviAf/JJV/3s52MTBBJtWO9ygwEd+N7jDflokZO3b0rVs=
+	t=1784056911; cv=none; b=jwvo7mr64eQs8YbmLUl1Aan5W0m6+uKbjiCEV4OC8jMHoDQqsSKtPycDqTLMaPB4iwbg7B1rY4xQ0O6Yw07TWTWbbveIlZnsdGluoGOFGRtmLbIet/CE7PMFYpYFPVBGELI/vuiYT4N3HiANIPb/PJpaUymvV9TooN/lNtiSY2w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784056909; c=relaxed/simple;
-	bh=2XrV8e9V+iEElpYYd9ib854clqb1ynx3DMyy4kSNcd4=;
-	h=Date:To:From:Subject:Message-Id; b=dhagl6s8UV8snJc6LNicZ1h3ZzudPCj6uh3TTOOyWPtuTT3JIy4a0KwWU5ireUz+5f1oSOlQoS4xii5Q5531+WwgWLK5vLWCZu+QNyr3+3xHbtRb7YfbeG/AF85Hqp+1gvu74aRQYMK/X1Nr0wAVAChtk+gvAjm4XY6DIg6vm0Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vkWYP+yd; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1784056911; c=relaxed/simple;
+	bh=0wxMKn/QggtH/hD8SR77SyYYD4m7Uy5/rli3a/MyUGM=;
+	h=Date:To:From:Subject:Message-Id; b=GLaSwUgyxDbbWq2mmJWf5TroKBSycGpDRSJdXN1phYEOaQAYa76f+MX8QKhyB6boapjj7kdoFl03xyrulCUmTlrTthmLhWqhcVSEXOpQN12BuRtpLoCxQww6LyBDcIYppXEcwYKXrTMNGnGHbTVCht05956mCrwlULhRrdDRTSU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1YsdjKKa; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vkWYP+yd"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B5B6E1F00A3A;
-	Tue, 14 Jul 2026 19:21:47 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1YsdjKKa"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A483B1F000E9;
+	Tue, 14 Jul 2026 19:21:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1784056907;
-	bh=SB14Q2Pi+ogA7PSzYIpE0pk9N1JPW7m+14r5KL6CIx4=;
+	d=linux-foundation.org; s=korg; t=1784056909;
+	bh=GPNf8JGPWxglliSEfcelM/spi/0ymeeG5BVmFjGCI60=;
 	h=Date:To:From:Subject;
-	b=vkWYP+ydsweAtGjRUuIha6VKxoGFhIhqX+BQySHJ56SdJHtMOvE2zVqIORiDmNOxg
-	 ydUf1uTTOuTphpSSHN2EKbegyZreTMSXyRkw02FqSqeB1b7WsqeBx4IkGUeYzKfTgl
-	 hP6ud5wCpICWQq1qPqQAIX/3ik9YJhOoCUAnANxw=
-Date: Tue, 14 Jul 2026 12:21:47 -0700
+	b=1YsdjKKaeTKCc3C+nWm6coxqhSU1dHh7pLg2s93SQWGymalhkel0+PxHQcQ3Mipal
+	 diFwgPWhaWEtWSOs4yyRXee7HLE/L+m7I2hJvab8PtUZOkR89KWFFHjhHuSHPnufmK
+	 w+9RR7CuX0rveSe5OJ7RZHu7S9Jqg8mv0HbbhKRs=
+Date: Tue, 14 Jul 2026 12:21:49 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-core-hide-private-damon_target-fields.patch added to mm-new branch
-Message-Id: <20260714192147.B5B6E1F00A3A@smtp.kernel.org>
+Subject: + mm-damon-core-hide-private-damos_quota_goal-fields.patch added to mm-new branch
+Message-Id: <20260714192149.A483B1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/core: hide private damon_target fields
+     Subject: mm/damon/core: hide private damos_quota_goal fields
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-core-hide-private-damon_target-fields.patch
+     mm-damon-core-hide-private-damos_quota_goal-fields.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-hide-private-damon_target-fields.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-hide-private-damos_quota_goal-fields.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,49 +70,53 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/core: hide private damon_target fields
-Date: Tue, 14 Jul 2026 07:35:35 -0700
+Subject: mm/damon/core: hide private damos_quota_goal fields
+Date: Tue, 14 Jul 2026 07:35:36 -0700
 
-'nr_regions', 'regions_list' and 'list' fields of damon_target are
-intended to be used by only the DAMON core layer.  Those are mistakenly
-not marked as private.  Mark as private.
+'last_psi_total' and 'list' of damos_quota_goal are intended to be used by
+only the DAMON core layer.  Those are mistakenly not marked as private,
+though.  Mark as private.
 
-Link: https://lore.kernel.org/20260714143544.101305-3-sj@kernel.org
+Link: https://lore.kernel.org/20260714143544.101305-4-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/damon.h |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ include/linux/damon.h |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
---- a/include/linux/damon.h~mm-damon-core-hide-private-damon_target-fields
+--- a/include/linux/damon.h~mm-damon-core-hide-private-damos_quota_goal-fields
 +++ a/include/linux/damon.h
-@@ -79,9 +79,6 @@ struct damon_region {
- /**
-  * struct damon_target - Represents a monitoring target.
-  * @pid:		The PID of the virtual address space to monitor.
-- * @nr_regions:		Number of monitoring target regions of this target.
-- * @regions_list:	Head of the monitoring target regions of this target.
+@@ -175,10 +175,8 @@ enum damos_quota_goal_metric {
+  * @metric:		Metric to be used for representing the goal.
+  * @target_value:	Target value of @metric to achieve with the tuning.
+  * @current_value:	Current value of @metric.
+- * @last_psi_total:	Last measured total PSI
+  * @nid:		Node id.
+  * @memcg_id:		Memcg id.
 - * @list:		List head for siblings.
-  * @obsolete:		Whether the commit destination target is obsolete.
   *
-  * Each monitoring context could have multiple targets.  For example, a context
-@@ -95,10 +92,14 @@ struct damon_region {
-  */
- struct damon_target {
- 	struct pid *pid;
-+	bool obsolete;
+  * Data structure for getting the current score of the quota tuning goal.  The
+  * score is calculated by how close @current_value and @target_value are.  Then
+@@ -201,12 +199,17 @@ struct damos_quota_goal {
+ 	unsigned long current_value;
+ 	/* metric-dependent fields */
+ 	union {
+-		u64 last_psi_total;
+ 		struct {
+ 			int nid;
+ 			u64 memcg_id;
+ 		};
 +/* private: */
-+	/* Number of monitoring target regions of this target. */
- 	unsigned int nr_regions;
-+	/* Head of the monitoring target regions of this target. */
- 	struct list_head regions_list;
++		/* Last measured total PSI */
++		u64 last_psi_total;
++
+ 	};
++/* private: */
 +	/* List head for siblings. */
  	struct list_head list;
--	bool obsolete;
  };
  
- /**
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
