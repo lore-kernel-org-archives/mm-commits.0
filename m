@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 22A063A7F48
-	for <mm-commits@vger.kernel.org>; Tue, 14 Jul 2026 03:21:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A49B139CCE0
+	for <mm-commits@vger.kernel.org>; Tue, 14 Jul 2026 17:14:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783999264; cv=none; b=oRnyiwkcJxw8iUl26ahA6VxLmFUAuiQweOz3EO+iVxSsFy2BYnepXtv7B/o7qlM9WK3hZtXaWRdLwoBjXkVW6MzEIhjJgfLiiMdZIZjqf01jiDOJfNxfzl3hW9bHQtFKoZqSeqFu+I5IPPln4qnvkvYUP5RvDp8ZF20hV191B8E=
+	t=1784049248; cv=none; b=q/K05TEZL4H2fJzZX7swtWT1oSiITvV122hIOtWcHyb1uqzYq8FLP78djDJjd+jWHTBWfyE9Tdj8GEVJKgxmv240GTQVV5WEgutx4Cn0AQvyt/VKIuxpZMhnb29oi+XIfDPK1rgwVaRfgK0fARPKRgKccinx8OZ5wYTw6PWyxAY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783999264; c=relaxed/simple;
-	bh=qpvExZqCyQ2DYRnf5U7TPeWAUPgouqoQSsDkTRUPgAs=;
-	h=Date:To:From:Subject:Message-Id; b=FR5+TroHhct94ypkf3uI7YkrPsGWyAbDOM54gvpS75e2g2PSDxe5QOAEFwuFsbldzvNL5xERum7SReMFP6wpxoCAB/6pVK96FZ6QmEXDFuCsAWucp3/D5Ih9WHvrhq8DMIAfZ6KrfdN3Ydfza+J37rLSwH8Q/aJ57NYoMtWkQqE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=neLFO9+7; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1784049248; c=relaxed/simple;
+	bh=m81o1pJ1ACHYKvlZO/Oq7nB0DhnpHvtaihANNrGcI3Q=;
+	h=Date:To:From:Subject:Message-Id; b=pPKyh0bdgaw6HdHYVOgWpxkkIjELtv+40D7xQV1HOypM/u9Jn7SlqZcPnfaXXiywx77xL6mz5GWYCYnyZ+FRr2XzDbm7CyaVgtP6BibkrzXig8OrzKRprMhVUvkNLlAMigibx2bdW5cXY7HYOYWvFAxhb/nXmHUCpWUVTlWN7XQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PA+3Y9EG; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="neLFO9+7"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 99CF91F000E9;
-	Tue, 14 Jul 2026 03:21:02 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PA+3Y9EG"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 31FD21F00A3A;
+	Tue, 14 Jul 2026 17:14:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1783999262;
-	bh=iJww7fmMiI9eSXEkuzxroBsM/mX6uligA21JsgC3P4g=;
+	d=linux-foundation.org; s=korg; t=1784049246;
+	bh=xDUklH5CZOOmXti3vJKUVFMIL89NwZ+3moHzzIgk/Xs=;
 	h=Date:To:From:Subject;
-	b=neLFO9+7BK3SSnBFBzVpfF3/fu+zFB7WHxwvuAX6DICmldZBdsISiuQj5AA7K5kNj
-	 7ENLgNHz1/3ckv8suta2YUQkMOpNPxbsaQyKxxvuJ5MSE5w/SFHhdzfrnZ3iQYz3zz
-	 mnJx2KeqnDynPRVd7FgEr56ml80StF7bP2qlxA+g=
-Date: Mon, 13 Jul 2026 20:21:02 -0700
-To: mm-commits@vger.kernel.org,ye.liu@linux.dev,akpm@linux-foundation.org
+	b=PA+3Y9EGm2G+w/Kq8JWLbNb9y9wBzwLa2ZtgQNiYoE1XFwjZ46/Al+7yIG2v0eWMB
+	 8YNZ7D5eMvN5clMprPv/KOvzOKSVAW9s2qEHoRw3wSoFsk4eO5Ldx96H6T5e/H2PvS
+	 34QoExraQnWHkkoT7IqklLcNhJK3rFVYe6ICOCjE=
+Date: Tue, 14 Jul 2026 10:14:05 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,rppt@kernel.org,palmer@dabbelt.com,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,alex@ghiti.fr,wangruikang@iscas.ac.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_owner-use-memcg_data-snapshot-to-avoid-toctou-in-print_page_owner_memcg.patch added to mm-unstable branch
-Message-Id: <20260714032102.99CF91F000E9@smtp.kernel.org>
+Subject: [alternative-merged] riscv-mm-avoid-spurious-fault-after-hotplugging-vmemmap.patch removed from -mm tree
+Message-Id: <20260714171406.31FD21F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,127 +34,106 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: mm/page_owner: use memcg_data snapshot to avoid TOCTOU in print_page_owner_memcg()
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-page_owner-use-memcg_data-snapshot-to-avoid-toctou-in-print_page_owner_memcg.patch
+The quilt patch titled
+     Subject: riscv: mm: avoid spurious fault after hotplugging vmemmap
+has been removed from the -mm tree.  Its filename was
+     riscv-mm-avoid-spurious-fault-after-hotplugging-vmemmap.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_owner-use-memcg_data-snapshot-to-avoid-toctou-in-print_page_owner_memcg.patch
-
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because an alternative patch was or shall be merged
 
 ------------------------------------------------------
-From: Ye Liu <ye.liu@linux.dev>
-Subject: mm/page_owner: use memcg_data snapshot to avoid TOCTOU in print_page_owner_memcg()
-Date: Tue, 14 Jul 2026 09:51:08 +0800
+From: Vivian Wang <wangruikang@iscas.ac.cn>
+Subject: riscv: mm: avoid spurious fault after hotplugging vmemmap
+Date: Tue, 30 Jun 2026 15:51:59 +0800
 
-print_page_owner_memcg() takes a snapshot of page->memcg_data via
-READ_ONCE at the top of the function and guards against tail pages and
-NULL memcg_data.  However, it later calls two functions that re-read
-page->memcg_data locklessly:
+section_activate() does not flush TLB after populating new vmemmap pages. 
+On most architectures, this is okay.  However it is a problem on RISC-V
+since there the TLB caching non-present entries is permitted, which causes
+spurious faults on some hardwares.
 
-  1) page_memcg_check(page) — re-reads page->memcg_data;
-  2) PageMemcgKmem(page) — calls folio_memcg_kmem(), which re-reads
-     folio->memcg_data and folio->page->compound_head, wrapping both
-     in VM_BUG_ON assertions:
+This seems to be most easily reproduced with DEBUG_VM=y and
+PAGE_POISONING=y, which causes these newly mapped struct pages to be
+poisoned i.e.  written to immediately after mapping.
 
-        VM_BUG_ON_PGFLAGS(PageTail(&folio->page), &folio->page);
-        VM_BUG_ON_FOLIO(folio->memcg_data & MEMCG_DATA_OBJEXTS, folio);
+Add a hook vmemmap_populate_finalize() in __populate_section_memmap()
+after population, to allow architectures to handle such situations as
+needed.  Then implement it on RISC-V to arrange for the existing exception
+handler code to deal with these faults if they happen.
 
-If the page is concurrently freed and reallocated as a THP tail page or a
-slab page between the initial guards and these later calls, the VM_BUG_ON
-assertions can fire on debug builds (CONFIG_DEBUG_VM=y), causing a kernel
-panic.
-
-Fix both TOCTOU issues by using the memcg_data snapshot throughout:
-  - Extract objcg from the snapshot via objcg = (void *)(memcg_data &
-    ~OBJEXTS_FLAGS_MASK) instead of calling page_memcg_check(page);
-  - Test (memcg_data & MEMCG_DATA_KMEM) instead of calling
-    PageMemcgKmem(page), which is semantically equivalent:
-    PageMemcgKmem()->folio_memcg_kmem()->folio->memcg_data &
-    MEMCG_DATA_KMEM.
-  - When memcg_data has MEMCG_DATA_OBJEXTS set, early-return after
-    printing "Slab cache page\n" since objcg != memcg for slab pages
-    and there is no meaningful cgroup to look up.
-
-This avoids both TOCTOU windows and the assertions entirely.
-
-Link: https://lore.kernel.org/20260714015117.78351-10-ye.liu@linux.dev
-Signed-off-by: Ye Liu <ye.liu@linux.dev>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
-Cc: Brendan Jackman <jackmanb@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Link: https://lore.kernel.org/20260630-mark-after-vmemmap-populate-v4-1-febbc15da028@iscas.ac.cn
+Signed-off-by: Vivian Wang <wangruikang@iscas.ac.cn>
+Cc: Alexandre Ghiti <alex@ghiti.fr>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
 Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Palmer Dabbelt <palmer@dabbelt.com>
 Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka (SUSE) <vbabka@kernel.org>
+Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_owner.c |   10 +++++++---
- 1 file changed, 7 insertions(+), 3 deletions(-)
+ arch/riscv/include/asm/pgtable.h |    4 ++++
+ arch/riscv/mm/init.c             |    6 ++++++
+ mm/sparse-vmemmap.c              |    8 ++++++++
+ 3 files changed, 18 insertions(+)
 
---- a/mm/page_owner.c~mm-page_owner-use-memcg_data-snapshot-to-avoid-toctou-in-print_page_owner_memcg
-+++ a/mm/page_owner.c
-@@ -540,6 +540,7 @@ static inline int print_page_owner_memcg
- 					 struct page *page)
- {
- 	unsigned long memcg_data;
-+	struct obj_cgroup *objcg;
- 	struct mem_cgroup *memcg;
- 	bool online;
- 	char name[80];
-@@ -549,11 +550,14 @@ static inline int print_page_owner_memcg
- 	if (!memcg_data || PageTail(page))
- 		goto out_unlock;
+--- a/arch/riscv/include/asm/pgtable.h~riscv-mm-avoid-spurious-fault-after-hotplugging-vmemmap
++++ a/arch/riscv/include/asm/pgtable.h
+@@ -1260,6 +1260,10 @@ static inline pte_t pte_swp_clear_exclus
+ #define TASK_SIZE	FIXADDR_START
+ #endif
  
--	if (memcg_data & MEMCG_DATA_OBJEXTS)
-+	if (memcg_data & MEMCG_DATA_OBJEXTS) {
- 		ret += scnprintf(kbuf + ret, count - ret,
- 				"Slab cache page\n");
-+		goto out_unlock;
-+	}
++/* Needed on SPARSEMEM_VMEMMAP */
++#define vmemmap_populate_finalize vmemmap_populate_finalize
++void __meminit vmemmap_populate_finalize(void);
++
+ #else /* CONFIG_MMU */
  
--	memcg = page_memcg_check(page);
-+	objcg = (void *)(memcg_data & ~OBJEXTS_FLAGS_MASK);
-+	memcg = objcg ? obj_cgroup_memcg(objcg) : NULL;
- 	if (!memcg)
- 		goto out_unlock;
+ #define PAGE_SHARED		__pgprot(0)
+--- a/arch/riscv/mm/init.c~riscv-mm-avoid-spurious-fault-after-hotplugging-vmemmap
++++ a/arch/riscv/mm/init.c
+@@ -1372,6 +1372,12 @@ int __meminit vmemmap_populate(unsigned
+ 	 */
+ 	return vmemmap_populate_hugepages(start, end, node, altmap);
+ }
++
++void __meminit vmemmap_populate_finalize(void)
++{
++	/* Avoid faults on cached non-present TLB entries. */
++	mark_new_valid_map();
++}
+ #endif
  
-@@ -561,7 +565,7 @@ static inline int print_page_owner_memcg
- 	cgroup_name(memcg->css.cgroup, name, sizeof(name));
- 	ret += scnprintf(kbuf + ret, count - ret,
- 			"Charged %sto %smemcg %s\n",
--			PageMemcgKmem(page) ? "(via objcg) " : "",
-+			(memcg_data & MEMCG_DATA_KMEM) ? "(via objcg) " : "",
- 			online ? "" : "offline ",
- 			name);
- out_unlock:
+ #if defined(CONFIG_MMU) && defined(CONFIG_64BIT)
+--- a/mm/sparse-vmemmap.c~riscv-mm-avoid-spurious-fault-after-hotplugging-vmemmap
++++ a/mm/sparse-vmemmap.c
+@@ -544,6 +544,12 @@ static int __meminit vmemmap_populate_co
+ 
+ #endif
+ 
++#ifndef vmemmap_populate_finalize
++static void __meminit vmemmap_populate_finalize(void)
++{
++}
++#endif
++
+ struct page * __meminit __populate_section_memmap(unsigned long pfn,
+ 		unsigned long nr_pages, int nid, struct vmem_altmap *altmap,
+ 		struct dev_pagemap *pgmap)
+@@ -564,6 +570,8 @@ struct page * __meminit __populate_secti
+ 	if (r < 0)
+ 		return NULL;
+ 
++	vmemmap_populate_finalize();
++
+ 	return pfn_to_page(pfn);
+ }
+ 
 _
 
-Patches currently in -mm which might be from ye.liu@linux.dev are
+Patches currently in -mm which might be from wangruikang@iscas.ac.cn are
 
-mm-page_owner-extract-skip_buddy_pages-helper-to-unify-buddy-page-skipping.patch
-mm-page_owner-add-mr_never-to-enum-migrate_reason-and-use-it-for-last_migrate_reason.patch
-mm-use-enum-migrate_reason-instead-of-int-for-migration-reason-parameters.patch
-mm-page_owner-hoist-config_memcg-to-function-level-for-print_page_owner_memcg.patch
-mm-page_owner-add-missing-newline-to-count_threshold-format-string.patch
-mm-page_owner-move-free_ts_nsec-output-to-free-section-in-__dump_page_owner.patch
-mm-page_owner-drop-redundant-page_owner-prefix-from-static-symbols.patch
-mm-page_owner-clamp-skip_buddy_pages-pfn-advance-at-max_order_nr_pages-boundary.patch
-mm-page_owner-use-memcg_data-snapshot-to-avoid-toctou-in-print_page_owner_memcg.patch
+riscv-mm-fix-concurrency-in-mark_new_valid_map.patch
 
