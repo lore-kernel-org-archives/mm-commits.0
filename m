@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A06E43CF69D
-	for <mm-commits@vger.kernel.org>; Wed, 15 Jul 2026 21:10:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 96ABA43F0BC
+	for <mm-commits@vger.kernel.org>; Wed, 15 Jul 2026 21:10:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784149815; cv=none; b=Rkyjw3pvG+CDr7bw2dSgaTdyfk9N2ynkdjYT3jCIQPRECoxzGWelhnKIGJ4MfsSI9azst/lJ1ZRDEHJCiLLX65LavMLz19NNBImOn6FNhRagVdq2r10orRvNw6qaCEp2ogBGr5BlKFcub+6jM9iP6ds1+iYduxKODQU/eyzfaXU=
+	t=1784149817; cv=none; b=ai9/HcSatA+KYvYS1VgBI96HqcjFm0L6TlT0owWJsAXjnQau1fx/ZhF+IKnSZCgcZhMx2dGwdR3ky47nHKtL8koVOOOAY08Mlg6R478e+ZDZiw/eMebUyf9FFE1eC1XRGzrwL43XpqmoY6roJBRuxHo4fWzg/9Ac9q72wgbm+VM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784149815; c=relaxed/simple;
-	bh=aWOupUc429aX350rFRbK+/kIb9Lqd6OMQjFuL3PNqso=;
-	h=Date:To:From:Subject:Message-Id; b=cqxl8S3cCUg8GKQhIvqd7E/ZOk4+DEhqeDkfuf7UGuaFKOs+q909AM8yEae89XPxOta3Sg7kXah1M3WJZ67wLyO5Rp85HrWA9FEqHzy9wl+bV+CTEgZk0V5YWK1jTICDrttLojRX4Yrdjsxu93zt7ZJxzsKcA+4drML3a01eRos=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=spoWvJqu; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1784149817; c=relaxed/simple;
+	bh=MGnFZ3mpwJ/xv9uKl/65cTyMBDZaRiQlsXSXYfKE6VY=;
+	h=Date:To:From:Subject:Message-Id; b=TK4YNEs2xGldD02G3qEsyajuQZDBee9QawzgVPVMtndtUMwconpZqe4q9sKhht6CdYWzSaNw/UBJAnm5lswf4azg4pi/5CqIFVShICnCElbSeGOaD5KgWxPgUb2Z0hNvvdM7PdvtPd7nA5g64/6U0biE7hMiHHgJGrzuh1r3SI4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uJqCPI7v; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="spoWvJqu"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 754EA1F00A3A;
-	Wed, 15 Jul 2026 21:10:14 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uJqCPI7v"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DE1B41F000E9;
+	Wed, 15 Jul 2026 21:10:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1784149814;
-	bh=0aVnHK4mTsS/+qD+Oz4Pmya1luBQhETktC/UufJveBQ=;
+	d=linux-foundation.org; s=korg; t=1784149816;
+	bh=Cj6rMto1TnmvncOzQa598X5qMJ97EMCkAz/loSB0Z24=;
 	h=Date:To:From:Subject;
-	b=spoWvJquQ8ZXgSCTc7s/ikOpaIid0qm7ABHI/6p7JPVVnjr1x8QCbB+O5FcYnLv82
-	 f3xrAHMyNv1yGQeWkPhGV1ZYkIO89NjiIXRKJAqQ7XzxWRfgvbJAcW96bTWBg7Xyl0
-	 cQAMr4C1fm/PRZJZ4A+mUVGNmNQt5ASD3szUBWfs=
-Date: Wed, 15 Jul 2026 14:10:14 -0700
+	b=uJqCPI7vclnyEMuDPF86n4DWpttOhWjmE6LoH8AW19lrGk2KZKkPXNkqqnNBqOKwF
+	 Qy5rAknHH04Pk5Ag6tSuTBwd/etUMi3gok9VEYkIoBx70LKmg6CITT4yzUfEc/dIwv
+	 2pW42NR+bnZqdKGYvuopUmVf0/8h+IvqJkpiUtbI=
+Date: Wed, 15 Jul 2026 14:10:15 -0700
 To: mm-commits@vger.kernel.org,skinsburskii@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] accel-amdxdna-use-hmm_range_fault_unlocked_timeout-for-range-population.patch removed from -mm tree
-Message-Id: <20260715211014.754EA1F00A3A@smtp.kernel.org>
+Subject: [to-be-updated] accel-amdxdna-use-hmm_range_fault_unlocked_timeout-for-range-population-fix.patch removed from -mm tree
+Message-Id: <20260715211015.DE1B41F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,38 +35,39 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: accel/amdxdna: use hmm_range_fault_unlocked_timeout() for range population
+     Subject: accel-amdxdna-use-hmm_range_fault_unlocked_timeout-for-range-population-fix
 has been removed from the -mm tree.  Its filename was
-     accel-amdxdna-use-hmm_range_fault_unlocked_timeout-for-range-population.patch
+     accel-amdxdna-use-hmm_range_fault_unlocked_timeout-for-range-population-fix.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
 From: Stanislav Kinsburskii <skinsburskii@gmail.com>
-Subject: accel/amdxdna: use hmm_range_fault_unlocked_timeout() for range population
-Date: Fri, 10 Jul 2026 14:27:12 -0700
+Subject: accel-amdxdna-use-hmm_range_fault_unlocked_timeout-for-range-population-fix
+Date: Tue, 14 Jul 2026 15:21:42 -0700
 
-aie2_populate_range() takes mmap_read_lock() only around
-hmm_range_fault().  It keeps a single HMM_RANGE_DEFAULT_TIMEOUT deadline
-for the populate pass and retries -EBUSY until that deadline expires.
+aie2_populate_range() now uses hmm_range_fault_unlocked_timeout() to let
+HMM own mmap_lock acquisition and retry handling while populating an
+invalid user mapping.  The timeout passed to that helper is a relative HMM
+retry budget, not an absolute deadline.
 
-Use hmm_range_fault_unlocked_timeout() instead.  The HMM helper now owns
-the mmap lock and refreshes mapp->range.notifier_seq for its internal
-retries.  Pass the remaining jiffies from the existing deadline to HMM,
-while preserving the driver's existing outer loop for interval
-invalidation retries and for selecting the next invalid mapping.
+Pass HMM_RANGE_DEFAULT_TIMEOUT directly to the HMM helper instead of
+computing the remaining time from a local absolute deadline.  The broader
+command submission path still keeps its existing timeout around repeated
+range population attempts, while each HMM fault attempt receives a fresh
+retry budget for HMM's internal mmu-notifier retries.
 
-Keep returning -ETIME when the retry budget expires, matching the driver's
-existing timeout error convention.
+Keep the existing driver-visible timeout errno by translating -EBUSY from
+hmm_range_fault_unlocked_timeout() to -ETIME on return.
 
-Link: https://lore.kernel.org/178371883276.900500.12789147320642521200.stgit@skinsburskii
+Link: https://lore.kernel.org/178406770278.1106335.17232929459598625570.stgit@skinsburskii
 Signed-off-by: Stanislav Kinsburskii <skinsburskii@gmail.com>
-Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
 Cc: Danilo Krummrich <dakr@kernel.org>
 Cc: Dave Airlie <airlied@gmail.com>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Dexuan Cui <decui@microsoft.com>
 Cc: Haiyang Zhang <haiyangz@microsoft.com>
+Cc: Jason Gunthorpe <jgg@nvidia.com>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Kees Cook <kees@kernel.org>
 Cc: K. Y. Srinivasan <kys@microsoft.com>
@@ -90,43 +91,50 @@ Cc: Wei Liu <wei.liu@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/accel/amdxdna/aie2_ctx.c |   17 +++--------------
- 1 file changed, 3 insertions(+), 14 deletions(-)
+ drivers/accel/amdxdna/aie2_ctx.c |   12 ++++--------
+ 1 file changed, 4 insertions(+), 8 deletions(-)
 
---- a/drivers/accel/amdxdna/aie2_ctx.c~accel-amdxdna-use-hmm_range_fault_unlocked_timeout-for-range-population
+--- a/drivers/accel/amdxdna/aie2_ctx.c~accel-amdxdna-use-hmm_range_fault_unlocked_timeout-for-range-population-fix
 +++ a/drivers/accel/amdxdna/aie2_ctx.c
-@@ -1061,22 +1061,11 @@ again:
+@@ -1034,7 +1034,7 @@ static int aie2_populate_range(struct am
+ 	bool found;
+ 	int ret;
+ 
+-	timeout = jiffies + msecs_to_jiffies(HMM_RANGE_DEFAULT_TIMEOUT);
++	timeout = msecs_to_jiffies(HMM_RANGE_DEFAULT_TIMEOUT);
+ again:
+ 	found = false;
+ 	down_write(&xdna->notifier_lock);
+@@ -1061,13 +1061,9 @@ again:
  		return -EFAULT;
  	}
  
--	mapp->range.notifier_seq = mmu_interval_read_begin(&mapp->notifier);
--	mmap_read_lock(mm);
--	ret = hmm_range_fault(&mapp->range);
--	mmap_read_unlock(mm);
-+	ret = hmm_range_fault_unlocked_timeout(&mapp->range,
-+			max_t(long, timeout - jiffies, 1));
- 	if (ret) {
--		if (time_after(jiffies, timeout)) {
-+		if (ret == -EBUSY)
- 			ret = -ETIME;
--			goto put_mm;
--		}
--
--		if (ret == -EBUSY) {
--			amdxdna_umap_put(mapp);
--			mmput(mm);
--			goto again;
--		}
--
+-	ret = hmm_range_fault_unlocked_timeout(&mapp->range,
+-			max_t(long, timeout - jiffies, 1));
+-	if (ret) {
+-		if (ret == -EBUSY)
+-			ret = -ETIME;
++	ret = hmm_range_fault_unlocked_timeout(&mapp->range, timeout);
++	if (ret)
  		goto put_mm;
- 	}
+-	}
  
+ 	down_write(&xdna->notifier_lock);
+ 	if (mmu_interval_read_retry(&mapp->notifier, mapp->range.notifier_seq)) {
+@@ -1085,7 +1081,7 @@ again:
+ put_mm:
+ 	amdxdna_umap_put(mapp);
+ 	mmput(mm);
+-	return ret;
++	return ret == -EBUSY ? -ETIME : ret;
+ }
+ 
+ int aie2_cmd_submit(struct amdxdna_hwctx *hwctx, struct amdxdna_sched_job *job, u64 *seq)
 _
 
 Patches currently in -mm which might be from skinsburskii@gmail.com are
 
 lib-test_hmm-use-device-devt-for-coherent-device-range-selection.patch
-accel-amdxdna-use-hmm_range_fault_unlocked_timeout-for-range-population-fix.patch
 drm-gpusvm-use-hmm_range_fault_unlocked_timeout-for-range-faults.patch
 drm-gpusvm-use-hmm_range_fault_unlocked_timeout-for-range-faults-fix.patch
 
