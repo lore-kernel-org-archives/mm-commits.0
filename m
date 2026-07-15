@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 941E8188596;
-	Wed, 15 Jul 2026 04:45:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9729F188596;
+	Wed, 15 Jul 2026 04:45:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784090731; cv=none; b=OwBO/wy+MoCjBGak9qB2xpRFjV8sfljH1JLoS7LIByDP1A8hNWfEiLALPFfB9PJ9nXqe24DCfjZBU7Kkw5n9yWOQO9JXbd1gl/bZciE7v5N9GGpG3Ce47WdWo+zBB8/udxMrKqLdLkLLiO5MCc4AQOchRncMz8kMEpdD7oD0UvM=
+	t=1784090733; cv=none; b=D5skIixvVn5esoQA2gsiCb3O7gnfxKOELxciBZWJIXZIPcXFqK11N99ixRBVtPILCjJ9P3wgJC4pPegO7dV2fPslABiGkiUU80o9bNA3lQDBYGmKjWz8w/EImij7EDcL+pr12XBitpFMm2oBYtFcxkmLcIGp49EG8vUomjRQUeQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784090731; c=relaxed/simple;
-	bh=6pT405S0kFVHAAzNxpYhkZto4+obelr1o8S4ug1OXCM=;
-	h=Date:To:From:Subject:Message-Id; b=Y/e5argbn6x+tWuRrMP1NMiDzklXuVUuBkNfXttWGYh39NY7flReBijd+3Vrw9DkdUSnDGRwmHwaTx7tdPzsexyYwLgNZdbgGkFOGtok7MO682dfdStQBseSehuiB1ksgbeYtVu+j6fwhMlXV3Pqm61qL17kMg4YO56Rg3YZWk8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gQrZfkaN; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1784090733; c=relaxed/simple;
+	bh=r3S4QHQd3VaTSbQncAc0/PibyxIV6anaRIOMCk9Cb30=;
+	h=Date:To:From:Subject:Message-Id; b=Ai4ytxRJWHY24B4azKtj93lHVdDKCWFPUxtMhPMqshq5CPY+RcfJFFxljlQGG/ptInNo9z+WVca1O3ubiWF37562i/SIUkJx+j165EjX/cUT8TK/UCsoX/zRrZAU+j1YUY4+JEF4wr2l3pu62m0Rl0Z/O3m/rACDbPXOC1DnQds=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=B81GDhyr; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gQrZfkaN"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2C7EB1F000E9;
-	Wed, 15 Jul 2026 04:45:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="B81GDhyr"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 28ADB1F000E9;
+	Wed, 15 Jul 2026 04:45:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1784090729;
-	bh=3ugZjF1Soag0k1r0OmXaw/9Kdehz8c7I5pFAalEWjqM=;
+	d=linux-foundation.org; s=korg; t=1784090731;
+	bh=ude42ZCbR20/X7z5bIUrcIH0rUqjEMzlc5zkc7ZUOYQ=;
 	h=Date:To:From:Subject;
-	b=gQrZfkaN1vkT6GI5kNTyMjlpDqKEDPTG26LfCMy1Hrtye6KA0odRsW88bYXwxc82k
-	 JbrbQRewZ2dZwpsU9SXUDW7gabTiiPeknb9B+jCuUC0kuHRabyLBUpx4rx1argZOrY
-	 3PAqoPlJN+m/H5+3zBg2FTv9+aqy7qx3/3jHJxi0=
-Date: Tue, 14 Jul 2026 21:45:28 -0700
+	b=B81GDhyrwyqTUo49kT09rjttjuK/ea7nvhyNLeerU2ufGxYEv9VbLgWRnutih2w9v
+	 gH6ffWklHbSt31gDQ8vO1uUVVXihMQlmssY1zoKQo3ZANdzg5d1fqo0YhCRDpMvUfN
+	 UnTauKkJeK4DYEX4kgb5RPvPZ2pXf+sNOuJRbcSE=
+Date: Tue, 14 Jul 2026 21:45:30 -0700
 To: mm-commits@vger.kernel.org,stable@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-sysfs-read-addr_unit-only-once-in-damon_sysfs_apply_inputs.patch added to mm-new branch
-Message-Id: <20260715044529.2C7EB1F000E9@smtp.kernel.org>
+Subject: + mm-damon-sysfs-read-ops_id-only-once-in-damon_sysfs_apply_inputs.patch added to mm-new branch
+Message-Id: <20260715044531.28ADB1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/sysfs: read addr_unit only once in damon_sysfs_apply_inputs()
+     Subject: mm/damon/sysfs: read ops_id only once in damon_sysfs_apply_inputs()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-sysfs-read-addr_unit-only-once-in-damon_sysfs_apply_inputs.patch
+     mm-damon-sysfs-read-ops_id-only-once-in-damon_sysfs_apply_inputs.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-read-addr_unit-only-once-in-damon_sysfs_apply_inputs.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-read-ops_id-only-once-in-damon_sysfs_apply_inputs.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,49 +70,54 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/sysfs: read addr_unit only once in damon_sysfs_apply_inputs()
-Date: Tue, 14 Jul 2026 20:10:00 -0700
+Subject: mm/damon/sysfs: read ops_id only once in damon_sysfs_apply_inputs()
+Date: Tue, 14 Jul 2026 20:10:01 -0700
 
-damon_sysfs_apply_inputs() reads addr_unit twice.  It could race with
-addr_unit_store().  As a result, the min_region_sz could wrongly be set
-up.  Read it once.
+damon_sysfs_apply_inputs() reads ops_id twice.  It could race with
+ops_id_store().  As a result, the min_region_sz could wrongly be set up. 
+Read it once.
 
 The user impact is trivial.  Sane users ain't update the parameter in
 parallel.  Even if it happens, the DAMON core layer handles the wrong
 min_region_sz (!is_power_of_2()).  Even if somehow the race ended up
 making a min_region_sz that is different from the user's intention but
 still valid, only monitoring itself runs differently than expected.  No
-critical consequences like kernel panic or memory corruption happen.
+critical consequences like kernel panic or memory corruption happen
 
 The issue was discovered [1] by Sashiko.
 
-Link: https://lore.kernel.org/20260715031002.108504-6-sj@kernel.org
-Link: https://lore.kernel.org/20260714142950.100711-1-sj@kernel.org [1]
-Fixes: 540a2aebc657 ("mm/damon/sysfs: implement addr_unit file under context dir")
+Link: https://lore.kernel.org/20260715031002.108504-7-sj@kernel.org
+Link: https://lore.kernel.org/20260703172417.95426-1-sj@kernel.org [1]
+Fixes: 8d009da32f13 ("mm/damon/sysfs: set damon_ctx->min_sz_region only for paddr use case")
 Signed-off-by: SJ Park <sj@kernel.org>
 Cc: <stable@vger.kernel.org> # 6.18.x
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/sysfs.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/damon/sysfs.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
---- a/mm/damon/sysfs.c~mm-damon-sysfs-read-addr_unit-only-once-in-damon_sysfs_apply_inputs
+--- a/mm/damon/sysfs.c~mm-damon-sysfs-read-ops_id-only-once-in-damon_sysfs_apply_inputs
 +++ a/mm/damon/sysfs.c
-@@ -2099,11 +2099,11 @@ static int damon_sysfs_apply_inputs(stru
- 	err = damon_select_ops(ctx, sys_ctx->ops_id);
+@@ -2094,14 +2094,16 @@ static inline bool damon_sysfs_kdamond_r
+ static int damon_sysfs_apply_inputs(struct damon_ctx *ctx,
+ 		struct damon_sysfs_context *sys_ctx)
+ {
++	enum damon_ops_id ops_id;
+ 	int err;
+ 
+-	err = damon_select_ops(ctx, sys_ctx->ops_id);
++	ops_id = READ_ONCE(sys_ctx->ops_id);
++	err = damon_select_ops(ctx, ops_id);
  	if (err)
  		return err;
--	ctx->addr_unit = sys_ctx->addr_unit;
-+	ctx->addr_unit = READ_ONCE(sys_ctx->addr_unit);
+ 	ctx->addr_unit = READ_ONCE(sys_ctx->addr_unit);
  	/* addr_unit is respected by only DAMON_OPS_PADDR */
- 	if (sys_ctx->ops_id == DAMON_OPS_PADDR)
+-	if (sys_ctx->ops_id == DAMON_OPS_PADDR)
++	if (ops_id == DAMON_OPS_PADDR)
  		ctx->min_region_sz = max(
--				DAMON_MIN_REGION_SZ / sys_ctx->addr_unit, 1);
-+				DAMON_MIN_REGION_SZ / ctx->addr_unit, 1);
+ 				DAMON_MIN_REGION_SZ / ctx->addr_unit, 1);
  	ctx->pause = sys_ctx->pause;
- 	err = damon_sysfs_set_attrs(ctx, sys_ctx->attrs);
- 	if (err)
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
