@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E486F446058
-	for <mm-commits@vger.kernel.org>; Wed, 15 Jul 2026 18:38:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 09E1041A56E
+	for <mm-commits@vger.kernel.org>; Wed, 15 Jul 2026 18:38:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784140722; cv=none; b=tOIb3tNohOrjXkA5ooaolw2FBgstVg/Oal94J+DlAlVzxQjBm15HiM4o9PqTt+aIpeLi3trlDV7BkvUnocllrE7WNuvCHT4g3YTUDSTUU/Li1c/2yk38e6UsxWjemwP++6TYF+LmC5WtMSZvlEKN27ZNkou94T8Gf1zECeiiI6w=
+	t=1784140724; cv=none; b=NbMHvj0s3Lm/Jjmx9lZGLXrvPeVLeBAqDd6p0QkCbwVx1oAWNHBEl5RPo8+d/kvW1mOxok+0ksXhk/7Bbkv6vM3UJ7pPie+j8qLEZ7VcenVhsPOAlOS8fDkrGjq1/7EZDa/ZXtVuvJ4jwB347PqfxVVw8Rc+Nd8muqz3nplT/YI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784140722; c=relaxed/simple;
-	bh=8rlEnM+fAMT74Apxe4xSAi6wyaQI0y6LJFRrGz8AQIw=;
-	h=Date:To:From:Subject:Message-Id; b=Aur3jlGQvvCmkRCp+BR1FiET5GECnjxo/1ZsKxOMFWqlnwrZ68VXSmP2dW5vrVIH8M5bwSyB9lt4G9FGuVVrxVIr9zfmvCmbWKfDIA0YkjQ8Dx4BzMeMGPgt5p5hIXYJD57tIfRiUDfP2wo9PmvK/FgTfC+HRzVJdyZaNi/UAEI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0eubRHeN; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1784140724; c=relaxed/simple;
+	bh=5caumuIlWlDZeWPcyOdT3RnpIuTIxmnF9p1ehrC0tYo=;
+	h=Date:To:From:Subject:Message-Id; b=XMwZ3PmJcT3M1rXCsQLk64lzcPRvXJzy/0Mu5h4s9VaO9K2KXTMUY6lgrEWvwPLr8YzJ30cOaPNrRSuEfDHoclJ5ArihzjPWQaa6uNc0TYW4msavgBB8OJc++4D8vEdRQLhv5/Ps4RIGyTBP/MFZ01YYoLOtzVBuvfUKqsS7ds4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=G+oAjvVQ; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0eubRHeN"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 700E71F00AC4;
-	Wed, 15 Jul 2026 18:38:23 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="G+oAjvVQ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A8AAA1F00ACA;
+	Wed, 15 Jul 2026 18:38:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1784140703;
-	bh=H5QYsARaqYB5uzSSwYg+9yTSMziGCYr9wiKbT59aYEQ=;
+	d=linux-foundation.org; s=korg; t=1784140705;
+	bh=vps8h0whAxuc8VPgrTQgsbY/79YxWy5Ji5evf2dINL0=;
 	h=Date:To:From:Subject;
-	b=0eubRHeNlbG1ima+wqNU2ynKUubvWZRL2dAshBdGsf9Rm/URyxz43tJnSiMvOU8bb
-	 fCQ0c/XhN+OA+E+bM2Qt31Kd7RVrhkXySsZ5Fq30lHi7M1rCFWBbS0IDuRo1nSObo3
-	 XIyD0fwslxh9K6ef5ZiqVYt0zhNNlo0rRP49O/og=
-Date: Wed, 15 Jul 2026 11:38:23 -0700
+	b=G+oAjvVQLkDhJZVtO8X0hMhHpRdfWwR7v+CK/vK94OrLoUTqrVAO2J3ki5jyLtaUo
+	 t/Y65vZfg5OrIrDSVz3KQJZRKJ0YeGCIFv+6hLP14HhproQlQ/MC5YfhIGgNH28tMj
+	 z1+kCsUxEdehbGM8iLRb596mcyg7CRV3KNgzyKeo=
+Date: Wed, 15 Jul 2026 11:38:25 -0700
 To: mm-commits@vger.kernel.org,baohua@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmalloc-map-contiguous-pages-in-batches-for-vmap-if-possible.patch added to mm-unstable branch
-Message-Id: <20260715183823.700E71F00AC4@smtp.kernel.org>
+Subject: + mm-vmalloc-align-vm_area-so-vmap-can-batch-mappings.patch added to mm-unstable branch
+Message-Id: <20260715183825.A8AAA1F00ACA@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/vmalloc: map contiguous pages in batches for vmap() if possible
+     Subject: mm/vmalloc: align vm_area so vmap() can batch mappings
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-vmalloc-map-contiguous-pages-in-batches-for-vmap-if-possible.patch
+     mm-vmalloc-align-vm_area-so-vmap-can-batch-mappings.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmalloc-map-contiguous-pages-in-batches-for-vmap-if-possible.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmalloc-align-vm_area-so-vmap-can-batch-mappings.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,36 +59,23 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Barry Song (Xiaomi)" <baohua@kernel.org>
-Subject: mm/vmalloc: map contiguous pages in batches for vmap() if possible
-Date: Wed, 15 Jul 2026 20:08:12 +0800
+Subject: mm/vmalloc: align vm_area so vmap() can batch mappings
+Date: Wed, 15 Jul 2026 20:08:13 +0800
 
-In many cases, the pages passed to vmap() may include high-order pages. 
-For example, the systemheap often allocates pages in descending order:
-order 8, then 4, then 0.  Currently, vmap() iterates over every page
-individually—even pages inside a high-order block are handled one by
-one.
+Try to align the vmap virtual address to PMD_SHIFT or a larger PTE mapping
+size hinted by the architecture, so contiguous pages can be batch-mapped
+when setting PMD or PTE entries.  We do not expect any significant
+overhead for this.
 
-This patch detects physically contiguous pages (regardless of whether they
-are compound or non-compound) by scanning with num_pages_contiguous(), and
-maps them as a single contiguous block whenever possible.  The mapping
-order is determined by taking the minimum of the contiguous page count and
-the pfn alignment, allowing graceful degradation when pfn alignment is
-less than the contiguous range.
+Add __get_vm_area_node_aligned_caller() as a wrapper over
+__get_vm_area_node() to simplify repeated calls with fixed arguments.
 
-Pages with the same page_shift are coalesced and mapped via
-vmap_pages_range_noflush_walk() to avoid page table rewalk.
-
-As users typically allocate memory in descending orders (e.g.  8 → 4 →
-0), once an order-0 page is encountered, we stop scanning for contiguous
-pages since subsequent pages are likely order-0 as well.
-
-Link: https://lore.kernel.org/20260715120813.3609949-7-jiangwen6@xiaomi.com
+Link: https://lore.kernel.org/20260715120813.3609949-8-jiangwen6@xiaomi.com
 Signed-off-by: Barry Song (Xiaomi) <baohua@kernel.org>
-Co-developed-by: Dev Jain <dev.jain@arm.com>
-Signed-off-by: Dev Jain <dev.jain@arm.com>
 Signed-off-by: Wen Jiang <jiangwen6@xiaomi.com>
 Tested-by: Xueyuan Chen <xueyuan.chen21@gmail.com>
 Tested-by: Leo Yan <leo.yan@arm.com>
+Reviewed-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
 Reviewed-by: Dev Jain <dev.jain@arm.com>
 Cc: Andrew Donnellan <ajd@linux.ibm.com>
 Cc: Anshuman Khandual <anshuman.khandual@arm.com>
@@ -96,113 +83,72 @@ Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
 Cc: Wen Jiang <jiangwenxiaomi@gmail.com>
 Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |   82 +++++++++++++++++++++++++++++++++++++++++++++++--
- 1 file changed, 80 insertions(+), 2 deletions(-)
+ mm/vmalloc.c |   35 ++++++++++++++++++++++++++++++++++-
+ 1 file changed, 34 insertions(+), 1 deletion(-)
 
---- a/mm/vmalloc.c~mm-vmalloc-map-contiguous-pages-in-batches-for-vmap-if-possible
+--- a/mm/vmalloc.c~mm-vmalloc-align-vm_area-so-vmap-can-batch-mappings
 +++ a/mm/vmalloc.c
-@@ -3586,6 +3586,84 @@ static inline unsigned int vm_shift(pgpr
- 	return arch_vmap_pte_supported_shift(size);
+@@ -3338,6 +3338,14 @@ struct vm_struct *get_vm_area_caller(uns
+ 				  NUMA_NO_NODE, GFP_KERNEL, caller);
  }
  
-+static inline int get_vmap_batch_order(struct page **pages,
-+		pgprot_t prot, unsigned int max_steps, unsigned int idx)
++static struct vm_struct *__get_vm_area_node_aligned_caller(unsigned long size,
++		unsigned long align, unsigned long flags, const void *caller)
 +{
-+	unsigned long pfn;
-+	unsigned int nr_contig;
-+	int order;
-+
-+	if (!IS_ENABLED(CONFIG_HAVE_ARCH_HUGE_VMAP))
-+		return 0;
-+
-+	nr_contig = num_pages_contiguous(&pages[idx], max_steps);
-+	if (nr_contig < 2)
-+		return 0;
-+
-+	order = ilog2(nr_contig);
-+	pfn = page_to_pfn(pages[idx]);
-+
-+	/* Limit order by pfn alignment */
-+	if (pfn > 0)
-+		order = min_t(int, order, __ffs(pfn));
-+
-+	if (vm_shift(prot, PAGE_SIZE << order) == PAGE_SHIFT)
-+		return 0;
-+
-+	return order;
++	return __get_vm_area_node(size, align, PAGE_SHIFT, flags,
++				  VMALLOC_START, VMALLOC_END,
++				  NUMA_NO_NODE, GFP_KERNEL, caller);
 +}
 +
-+static int vmap_pages_range_batched(unsigned long addr, unsigned long end,
-+		pgprot_t prot, struct page **pages)
+ /**
+  * find_vm_area - find a continuous kernel virtual area
+  * @addr:	  base address
+@@ -3664,6 +3672,30 @@ out:
+ 	return err;
+ }
+ 
++static struct vm_struct *vmap_get_aligned_vm_area(unsigned long size,
++		unsigned long flags, pgprot_t prot, const void *caller)
 +{
-+	unsigned int count = (end - addr) >> PAGE_SHIFT;
-+	unsigned int prev_shift = 0, idx = 0;
-+	unsigned long map_addr = addr, batch_end = addr;
-+	int err;
++	struct vm_struct *vm_area;
++	unsigned int shift;
 +
-+	err = kmsan_vmap_pages_range_noflush(addr, end, prot, pages,
-+					     PAGE_SHIFT, GFP_KERNEL);
-+	if (err)
-+		goto out;
-+
-+	for (unsigned int i = 0; i < count; ) {
-+		unsigned int shift = PAGE_SHIFT +
-+			get_vmap_batch_order(pages, prot, count - i, i);
-+
-+		if (!i)
-+			prev_shift = shift;
-+
-+		if (shift != prev_shift) {
-+			err = vmap_pages_range_noflush_walk(map_addr, batch_end,
-+					prot, pages + idx, prev_shift);
-+			if (err)
-+				goto out;
-+			prev_shift = shift;
-+			map_addr = batch_end;
-+			idx = i;
-+		}
-+
-+		/*
-+		 * Once small pages are encountered, the remaining pages
-+		 * are likely small as well.
-+		 */
-+		if (shift == PAGE_SHIFT)
-+			break;
-+
-+		batch_end += 1UL << shift;
-+		i += 1U << (shift - PAGE_SHIFT);
++	if (arch_vmap_pmd_supported(prot) && size >= PMD_SIZE) {
++		vm_area = __get_vm_area_node_aligned_caller(size, PMD_SIZE,
++				flags, caller);
++		if (vm_area)
++			return vm_area;
 +	}
 +
-+	/* Remaining */
-+	if (map_addr < end)
-+		err = vmap_pages_range_noflush_walk(map_addr, end,
-+				prot, pages + idx, prev_shift);
++	shift = arch_vmap_pte_supported_shift(size);
++	if (shift > PAGE_SHIFT) {
++		vm_area = __get_vm_area_node_aligned_caller(size, 1UL << shift,
++				flags, caller);
++		if (vm_area)
++			return vm_area;
++	}
 +
-+out:
-+	flush_cache_vmap(addr, end);
-+	return err;
++	return __get_vm_area_node_aligned_caller(size, PAGE_SIZE, flags, caller);
 +}
 +
  /**
   * vmap - map an array of pages into virtually contiguous space
   * @pages: array of page pointers
-@@ -3629,8 +3707,8 @@ void *vmap(struct page **pages, unsigned
+@@ -3702,7 +3734,8 @@ void *vmap(struct page **pages, unsigned
  		return NULL;
  
- 	addr = (unsigned long)area->addr;
--	if (vmap_pages_range(addr, addr + size, pgprot_nx(prot),
--				pages, PAGE_SHIFT) < 0) {
-+	if (vmap_pages_range_batched(addr, addr + size, pgprot_nx(prot),
-+				pages) < 0) {
- 		vunmap(area->addr);
+ 	size = (unsigned long)count << PAGE_SHIFT;
+-	area = get_vm_area_caller(size, flags, __builtin_return_address(0));
++	area = vmap_get_aligned_vm_area(size, flags, prot,
++				__builtin_return_address(0));
+ 	if (!area)
  		return NULL;
- 	}
+ 
 _
 
 Patches currently in -mm which might be from baohua@kernel.org are
