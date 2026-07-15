@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9D4B5371873;
-	Wed, 15 Jul 2026 04:45:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9D48EE56A;
+	Wed, 15 Jul 2026 04:45:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784090725; cv=none; b=jaTyi4rgv0MhjIIB9auwZfPSoaaB8C6lvVHEIbiIkBnb33MRR9ywRMIfQCqWdFYMVXkSTHidbT54cqIDypAB3f+aHtgxFJ5ikPLc0GRV9JcP1PU7VJcUpyezTMR+0QqpMsLv75ucmT+UuCPkJPBvGgwyxtZNZ3hc/PmxBTxn1Ss=
+	t=1784090727; cv=none; b=OWdK3vycctopjXjzwFf3mlKCnKCBHnj8EVILPw7olr2vzeZFOKKpz+hEVh0vvIF7BLlS7MGm/tp+TVWOAoN/Ud8ovmPKnF6q7EoyHhUjerf55PvO/rk5Tu7LySSQJ7m0NhvuBhJ+MQ2QNrGepxP9IUL+m9iJUw6L4eBxBUuwSbc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784090725; c=relaxed/simple;
-	bh=o6epnJ0a00d7Cq6gcnPX+EI7RHhZcHQgVTgKKYRP/eA=;
-	h=Date:To:From:Subject:Message-Id; b=eUhqiuoErikrUQE3EWi7u6r2UkX5WsgcDa0feaPGjX3B4dvHviMvrIC5utOR6aC8ixUnpRHmq3DeTj9W+ny8G3kUH/qb6yI/9301wac2utjxQIdT1EqOJBALaY06P1Hi2V4ZI0UqwdN79b1+ff8KkLASazDVPnSVy+kcIP6d8Io=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ikSloAtI; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1784090727; c=relaxed/simple;
+	bh=OH1+0eHjuiB3yX5B7S+mkdLETjrxQuuO9xbyYlQfezc=;
+	h=Date:To:From:Subject:Message-Id; b=Szqg5VrZXHBi5AqbVLfEzQIQseLHPKwFDDABvUx25/1mAYyE1R2CX0yIq92NLcgOWWBfJEyerAzkxz8MxLD7cB9qAsdDHNyAkmTgj1YYHUaKC1zsJK1NN+LFaDnC4FrJ3Sy1MNtmTX7MxoX/l8UmDohOlVMce7PxHiJNiiXQyxc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qLjgL1uK; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ikSloAtI"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 29B901F000E9;
-	Wed, 15 Jul 2026 04:45:23 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qLjgL1uK"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2ED2F1F00A3A;
+	Wed, 15 Jul 2026 04:45:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1784090723;
-	bh=KXrEOsXI6YcivEOdS/8gbYImejDrbUhcjP3yofUGjSE=;
+	d=linux-foundation.org; s=korg; t=1784090725;
+	bh=xRnHFavFxNiLXAt6CIpCdyVkqL6x1wN96KB/4sWIEEw=;
 	h=Date:To:From:Subject;
-	b=ikSloAtIVZMClL/Y3ufZ7BXWNbzWqzL2lvTdY9gP82axSu0G3pXBVUebai/NH8qIM
-	 LsUKdDkH1rGyP0JEAZCGwaIhDxuqcGOfWnpuSJeFd9T3mE0kM2DbQWP+WXOLUWpsZR
-	 3tUeKNVjlIaBRKOQWxUSqHueQGPEG7cW/GlUiVUg=
-Date: Tue, 14 Jul 2026 21:45:22 -0700
+	b=qLjgL1uKULLDxBL1eKAcy0igOpk3Ug9T9/sd0YWcXM1EfVyP/6DZ+vFCKAJexY+Ox
+	 SLpoO8slTRY3nlR5G1qf5zQXhjOZ/S/qsfuEjcX4So9e2nMGKkUaOMXUpo66QF2FZV
+	 gwKuWLGBV49oqm02cXDAdyJYpxCCUySJZBDl5xZU=
+Date: Tue, 14 Jul 2026 21:45:24 -0700
 To: mm-commits@vger.kernel.org,stable@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-tests-core-kunit-catch-test-failure-in-test_merge_regions_of.patch added to mm-new branch
-Message-Id: <20260715044523.29B901F000E9@smtp.kernel.org>
+Subject: + mm-damon-vaddr-drop-last-same-folio-access-check-optimization.patch added to mm-new branch
+Message-Id: <20260715044525.2ED2F1F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/tests/core-kunit: catch test failure in test_merge_regions_of()
+     Subject: mm/damon/vaddr: drop last same folio access check optimization
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-tests-core-kunit-catch-test-failure-in-test_merge_regions_of.patch
+     mm-damon-vaddr-drop-last-same-folio-access-check-optimization.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-tests-core-kunit-catch-test-failure-in-test_merge_regions_of.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-vaddr-drop-last-same-folio-access-check-optimization.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,50 +70,129 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/tests/core-kunit: catch test failure in test_merge_regions_of()
-Date: Tue, 14 Jul 2026 20:09:57 -0700
+Subject: mm/damon/vaddr: drop last same folio access check optimization
+Date: Tue, 14 Jul 2026 20:09:58 -0700
 
-KUNIT_EXPECT_EQ() does not abort the execution of test code when the
-expectation is not met.  But damon_test_merge_regions_of() code after its
-initial KUNIT_EXPECT_EQ() call assumes the expectation is met.  It does a
-per-region test with a hard-coded number of regions that is correct only
-if the expectation was met.  As a result, __nth_region_of() could return
-NULL, and the test code can dereference NULL pointers.  Fix the issue by
-catching the expectation failure and skip the per-region tests.
+The optimization can race when multiple kdamonds are running.  Meanwhile,
+the impact of the optimization is quite doubtful.  Just remove it.
 
-The user impact on realistic setups should be negligible, as it is a unit
-test.
+The user impact of the issue should be quite trivial.  After all, the race
+can happen only when the user intentionally setup DAMON in the way.  Even
+if it happens, it would be rare and only degrade the best-effort
+monitoring results.  No critical consequences like kernel panic or memory
+corruption happen.
 
-The issue was discovered [1] by Sashiko.
+The race possibility was discovered [1] by Sashiko.
 
-Link: https://lore.kernel.org/20260715031002.108504-3-sj@kernel.org
-Link: https://lore.kernel.org/20260710144937.26981-1-sj@kernel.org [1]
-Fixes: 17ccae8bb5c9 ("mm/damon: add kunit tests")
+Link: https://lore.kernel.org/20260715031002.108504-4-sj@kernel.org
+Link: https://lore.kernel.org/20260621204050.10993-1-sj@kernel.org [1]
+Fixes: 3f49584b262c ("mm/damon: implement primitives for the virtual memory address spaces")
 Signed-off-by: SJ Park <sj@kernel.org>
 Cc: <stable@vger.kernel.org> # 5.15.x
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/tests/core-kunit.h |    3 +++
- 1 file changed, 3 insertions(+)
+ mm/damon/vaddr.c |   33 ++++++---------------------------
+ 1 file changed, 6 insertions(+), 27 deletions(-)
 
---- a/mm/damon/tests/core-kunit.h~mm-damon-tests-core-kunit-catch-test-failure-in-test_merge_regions_of
-+++ a/mm/damon/tests/core-kunit.h
-@@ -260,11 +260,14 @@ static void damon_test_merge_regions_of(
- 	damon_merge_regions_of(t, 9, 9999, ctx, true);
- 	/* 0-112, 114-130, 130-156, 156-170, 170-230, 230-10170 */
- 	KUNIT_EXPECT_EQ(test, damon_nr_regions(t), 6u);
-+	if (damon_nr_regions(t) != 6)
-+		goto out;
- 	for (i = 0; i < 6; i++) {
- 		r = __nth_region_of(t, i);
- 		KUNIT_EXPECT_EQ(test, r->ar.start, saddrs[i]);
- 		KUNIT_EXPECT_EQ(test, r->ar.end, eaddrs[i]);
- 	}
-+out:
- 	damon_free_target(t);
- 	damon_destroy_ctx(ctx);
+--- a/mm/damon/vaddr.c~mm-damon-vaddr-drop-last-same-folio-access-check-optimization
++++ a/mm/damon/vaddr.c
+@@ -383,8 +383,6 @@ static void damon_va_prepare_access_chec
  }
+ 
+ struct damon_young_walk_private {
+-	/* size of the folio for the access checked virtual memory address */
+-	unsigned long *folio_sz;
+ 	bool young;
+ };
+ 
+@@ -411,7 +409,6 @@ static int damon_young_pmd_entry(pmd_t *
+ 					mmu_notifier_test_young(walk->mm,
+ 						addr))
+ 			priv->young = true;
+-		*priv->folio_sz = HPAGE_PMD_SIZE;
+ huge_out:
+ 		spin_unlock(ptl);
+ 		return 0;
+@@ -430,7 +427,6 @@ huge_out:
+ 	if (pte_young(ptent) || !folio_test_idle(folio) ||
+ 			mmu_notifier_test_young(walk->mm, addr))
+ 		priv->young = true;
+-	*priv->folio_sz = folio_size(folio);
+ out:
+ 	pte_unmap_unlock(pte, ptl);
+ 	return 0;
+@@ -458,7 +454,6 @@ static int damon_young_hugetlb_entry(pte
+ 	if (pte_young(entry) || !folio_test_idle(folio) ||
+ 	    mmu_notifier_test_young(walk->mm, addr))
+ 		priv->young = true;
+-	*priv->folio_sz = huge_page_size(h);
+ 
+ 	folio_put(folio);
+ 
+@@ -470,11 +465,9 @@ out:
+ #define damon_young_hugetlb_entry NULL
+ #endif /* CONFIG_HUGETLB_PAGE */
+ 
+-static bool damon_va_young(struct mm_struct *mm, unsigned long addr,
+-		unsigned long *folio_sz)
++static bool damon_va_young(struct mm_struct *mm, unsigned long addr)
+ {
+ 	struct damon_young_walk_private arg = {
+-		.folio_sz = folio_sz,
+ 		.young = false,
+ 	};
+ 
+@@ -494,28 +487,17 @@ static bool damon_va_young(struct mm_str
+  * r	the region to be checked
+  */
+ static void __damon_va_check_access(struct mm_struct *mm,
+-				struct damon_region *r, bool same_target)
++				struct damon_region *r)
+ {
+-	static unsigned long last_addr;
+-	static unsigned long last_folio_sz = PAGE_SIZE;
+-	static bool last_accessed;
++	bool accessed;
+ 
+ 	if (!mm) {
+ 		damon_update_region_access_rate(r, false);
+ 		return;
+ 	}
+ 
+-	/* If the region is in the last checked page, reuse the result */
+-	if (same_target && (ALIGN_DOWN(last_addr, last_folio_sz) ==
+-				ALIGN_DOWN(r->sampling_addr, last_folio_sz))) {
+-		damon_update_region_access_rate(r, last_accessed);
+-		return;
+-	}
+-
+-	last_accessed = damon_va_young(mm, r->sampling_addr, &last_folio_sz);
+-	damon_update_region_access_rate(r, last_accessed);
+-
+-	last_addr = r->sampling_addr;
++	accessed = damon_va_young(mm, r->sampling_addr);
++	damon_update_region_access_rate(r, accessed);
+ }
+ 
+ static unsigned int damon_va_check_accesses(struct damon_ctx *ctx)
+@@ -524,15 +506,12 @@ static unsigned int damon_va_check_acces
+ 	struct mm_struct *mm;
+ 	struct damon_region *r;
+ 	unsigned int max_nr_accesses = 0;
+-	bool same_target;
+ 
+ 	damon_for_each_target(t, ctx) {
+ 		mm = damon_get_mm(t);
+-		same_target = false;
+ 		damon_for_each_region(r, t) {
+-			__damon_va_check_access(mm, r, same_target);
++			__damon_va_check_access(mm, r);
+ 			max_nr_accesses = max(r->nr_accesses, max_nr_accesses);
+-			same_target = true;
+ 		}
+ 		if (mm)
+ 			mmput(mm);
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
