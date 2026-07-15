@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 69303443E5C
-	for <mm-commits@vger.kernel.org>; Wed, 15 Jul 2026 18:20:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 62AE94C042F
+	for <mm-commits@vger.kernel.org>; Wed, 15 Jul 2026 18:21:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784139663; cv=none; b=H71jScOuBFxOfehVFmh+SQ/pXthjxct8w0pS/gDATtV2umphSF7tU2nR1mvXDxICH8nSNmoZY/NFP4x4tScrNz7vfAt/XhAi8ssolEh14V+5HfUl241ETbJcidbYU6YBfbOFsZwIRtpyaLaNyEw1rEaE8wN1g8l9+1fHFmM1WIw=
+	t=1784139668; cv=none; b=UhAu/BCESRjRawmUD0S/sJOwdYxi8sCenZHNp9iafvOVSJzwDR/EIdfLTeTH3A1KFGDdawYSWZTxkCj9ctGDx9x5mlasQYwg4ffDppt198aSnyVK1Zwy7wsbiwgVJS6oj14fRmjVGl6BycbmCf2EUq0xZDgNd87XwbjF0vdMlgg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784139663; c=relaxed/simple;
-	bh=6jj2FZsSKRTsCPN1hNDAgDLYbZGjP7oYrJYqgSpdgIU=;
-	h=Date:To:From:Subject:Message-Id; b=V6Pf3crPp2CGaujqUJX4rYVD0fmK0HcbH7CB4pPMr0zKVXSafJDaDPiiUrSiBRk5eRQhHm3FqqSOb5phww09Lm52xk1N0cEahwmRNO9K8zK05L9B5sjF+NY6d9ONZMHWheoQp679Yv1n9NWPnYMxS6so9PRY9nXff4tK6FYjmPE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=i0H2GXrD; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1784139668; c=relaxed/simple;
+	bh=01XokSCZW1WnBpetkX971GX1FMhSJ6iFn2zEPRiS4ag=;
+	h=Date:To:From:Subject:Message-Id; b=B0sixp64S/E2B8x4+fWBERrYYiR3hdCXbIoZf7cQFKTCjYKZK2PDXMJ0Dye01NJDgC8weFb7aFkAsFdTsjRaddeZbt017ifkZbIuWjMHqfaK8hfeexr2qQdHhi7BAD698+IDQ4KuVoJsKFq7uz9mWBgy0Jv0jh8RQuJ+yUibx/A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=moRHn9JB; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="i0H2GXrD"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B7B551F00A3E;
-	Wed, 15 Jul 2026 18:20:51 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="moRHn9JB"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 071311F00A3A;
+	Wed, 15 Jul 2026 18:20:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1784139651;
-	bh=wOsbcVuIMsM2IpNGfKK2uTBOj+Ks/BJ2sF5SL7lHEqE=;
+	d=linux-foundation.org; s=korg; t=1784139656;
+	bh=rAgsNDq8PRa0dc95PeEJNTkdMp6JXwMB8c7eAY6Ze2Y=;
 	h=Date:To:From:Subject;
-	b=i0H2GXrDqh8wuukrJ0eaW3i4SAiG6tVOkiRL6ezCEcG2UHjtQ/rlKlxsD1m6+jzbs
-	 Ui6vVLSa3iA8joYuLQUqOvlUmdEj3QKEMF/AcYk/wRdAqbDY8uD7eCjr1PTsqEvF3w
-	 Qo5nQFpYR6YryZE204yZ3X263w6NV4fmW1RWSXr8=
-Date: Wed, 15 Jul 2026 11:20:51 -0700
+	b=moRHn9JBAoIQxP8B1qlnxdMzODPjZFQH2CU1qXBVgUWjeKx4EKFq5mCponsp/q2Rz
+	 FlxfHyR6NLORzCQavzNL18P+vAkUdHef6RwOY68MInVzyTRFIeWRdke1om4PW5t51S
+	 44YMAFAuEKWugFgGVPwCM+H9w8nZ+jwMGa7YZCwA=
+Date: Wed, 15 Jul 2026 11:20:55 -0700
 To: mm-commits@vger.kernel.org,ebiggers@kernel.org,hch@lst.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + xor-kunit-add-a-benchmark.patch added to mm-nonmm-unstable branch
-Message-Id: <20260715182051.B7B551F00A3E@smtp.kernel.org>
+Subject: + raid6-defer-implementation-selection-when-built-in.patch added to mm-nonmm-unstable branch
+Message-Id: <20260715182056.071311F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: xor/kunit: add a benchmark
+     Subject: raid6: defer implementation selection when built-in
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     xor-kunit-add-a-benchmark.patch
+     raid6-defer-implementation-selection-when-built-in.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/xor-kunit-add-a-benchmark.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/raid6-defer-implementation-selection-when-built-in.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,116 +59,72 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Christoph Hellwig <hch@lst.de>
-Subject: xor/kunit: add a benchmark
-Date: Wed, 15 Jul 2026 16:47:35 +0200
+Subject: raid6: defer implementation selection when built-in
+Date: Wed, 15 Jul 2026 16:47:37 +0200
 
-Add a benchmark to test the XOR functions for more representative block
-sizes and numbers of disks.  Including 64k would be useful here, but
-increasing the test buffer size increases the runtime of the functional
-kunit test too much unfortunately.
+Don't hold up early boot and defer the selection just like we've been
+doing for the RAID5 XOR code since commit 524ccdbdfb52 ("crypto: xor -
+defer load time benchmark to a later time").
 
-The runtime numbers are reported in GB/s as the numbers of modern
-implementations are basically unreadable as MB/s.  This means
-retro-architectures could report 0, but that is an easy tradeoff.
+This will also allow full use of the timing subsystem for benchmarking.
 
-Link: https://lore.kernel.org/20260715144825.95432-5-hch@lst.de
+Link: https://lore.kernel.org/20260715144825.95432-7-hch@lst.de
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 Cc: Eric Biggers <ebiggers@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/raid/Kconfig               |    6 +++
- lib/raid/xor/tests/xor_kunit.c |   62 +++++++++++++++++++++++++++++++
- 2 files changed, 68 insertions(+)
+ lib/raid/raid6/algos.c |   25 +++++++++++++++++++++----
+ 1 file changed, 21 insertions(+), 4 deletions(-)
 
---- a/lib/raid/Kconfig~xor-kunit-add-a-benchmark
-+++ a/lib/raid/Kconfig
-@@ -29,6 +29,12 @@ config XOR_KUNIT_TEST
- 	  This is intended to help people writing architecture-specific
- 	  optimized versions.  If unsure, say N.
- 
-+config XOR_BENCHMARK
-+	bool "Benchmark for xor_gen"
-+	depends on XOR_KUNIT_TEST
-+	help
-+	  Include benchmarks in the KUnit test suite for xor_gen.
-+
- config RAID6_PQ
- 	tristate
- 
---- a/lib/raid/xor/tests/xor_kunit.c~xor-kunit-add-a-benchmark
-+++ a/lib/raid/xor/tests/xor_kunit.c
-@@ -125,8 +125,70 @@ static void xor_test(struct kunit *test)
+--- a/lib/raid/raid6/algos.c~raid6-defer-implementation-selection-when-built-in
++++ a/lib/raid/raid6/algos.c
+@@ -239,10 +239,6 @@ static int __init raid6_select_algo(void
+ 	if (!IS_ENABLED(CONFIG_RAID6_PQ_BENCHMARK) || raid6_nr_algos == 1) {
+ 		pr_info("raid6: skipped pq benchmark and selected %s\n",
+ 			raid6_algos[raid6_nr_algos - 1]->name);
+-		static_call_update(raid6_gen_syndrome_impl,
+-				raid6_algos[raid6_nr_algos - 1]->gen_syndrome);
+-		static_call_update(raid6_xor_syndrome_impl,
+-				raid6_algos[raid6_nr_algos - 1]->xor_syndrome);
+ 		return 0;
  	}
+ 
+@@ -329,13 +325,34 @@ static int __init raid6_init(void)
+ 	static_call_update(raid6_recov_datap_impl, raid6_recov_algo->datap);
+ 	pr_info("raid6: using %s recovery algorithm\n", raid6_recov_algo->name);
+ 
++	/*
++	 * Pick the last registered implementation as the temporary default until
++	 * calibration happens.
++	 */
++	static_call_update(raid6_gen_syndrome_impl,
++			raid6_algos[raid6_nr_algos - 1]->gen_syndrome);
++	static_call_update(raid6_xor_syndrome_impl,
++			raid6_algos[raid6_nr_algos - 1]->xor_syndrome);
++
++#ifdef MODULE
+ 	return raid6_select_algo();
++#else
++	return 0;
++#endif
  }
  
-+static void xor_benchmark(struct kunit *test)
-+{
-+	static const unsigned int nr_to_test[] = {
-+		4, 5, 6, 7, 8, 10, 12, 15, 16, 32,
-+	};
-+	static const unsigned int len_to_test[] = {
-+		SZ_4K, SZ_16K,
-+	};
-+	unsigned int i, j, l;
-+	u64 t;
-+
-+	if (!IS_ENABLED(CONFIG_XOR_BENCHMARK))
-+		kunit_skip(test, "not enabled");
-+
-+	/* warm-up */
-+	for (i = 0; i < ARRAY_SIZE(nr_to_test); i++) {
-+		for (j = 0; j < ARRAY_SIZE(len_to_test); j++) {
-+			for (l = 0; l < 10; l++) {
-+				xor_gen(test_dest, test_buffers, nr_to_test[i],
-+						len_to_test[j]);
-+			}
-+		}
-+	}
-+
-+	/*
-+	 * Preferably this would be a loop over len_to_test, but the kunit
-+	 * logging always adds a newline to each logged format string.
-+	 */
-+	static_assert(ARRAY_SIZE(len_to_test) == 2);
-+	kunit_info(test, "          \t%5u bytes\t%5u bytes\n",
-+			len_to_test[0], len_to_test[1]);
-+
-+	for (i = 0; i < ARRAY_SIZE(nr_to_test); i++) {
-+		unsigned int nr = nr_to_test[i];
-+		u64 speed[ARRAY_SIZE(len_to_test)];
-+
-+		KUNIT_ASSERT_LE(test, nr, XOR_KUNIT_MAX_BUFFERS);
-+
-+		for (j = 0; j < ARRAY_SIZE(len_to_test); j++) {
-+			unsigned int len = len_to_test[j];
-+			const unsigned long num_iters = 1000;
-+
-+			KUNIT_ASSERT_GT(test, len, 0);
-+			KUNIT_ASSERT_LE(test, len, XOR_KUNIT_MAX_BYTES);
-+
-+			preempt_disable();
-+			t = ktime_get_ns();
-+			for (l = 0; l < num_iters; l++)
-+				xor_gen(test_dest, test_buffers, nr, len);
-+			t = max(ktime_get_ns() - t, 1);
-+			preempt_enable();
-+
-+			speed[j] = div64_u64((u64)len * num_iters * nr, t);
-+		}
-+
-+		static_assert(ARRAY_SIZE(len_to_test) == 2);
-+		kunit_info(test, "%3u disks:\t%5llu  GB/s\t%5llu  GB/s\n",
-+				nr, speed[0], speed[1]);
-+	}
-+}
-+
- static struct kunit_case xor_test_cases[] = {
- 	KUNIT_CASE(xor_test),
-+	KUNIT_CASE(xor_benchmark),
- 	{},
- };
+ static void __exit raid6_exit(void)
+ {
+ }
  
++/*
++ * When built-in we must register the default implementation before md
++ * initializes, but we don't want calibration to run that early as that
++ * would delay the boot process.
++ */
++#ifndef MODULE
++device_initcall(raid6_select_algo);
++#endif
+ subsys_initcall(raid6_init);
+ module_exit(raid6_exit);
+ MODULE_LICENSE("GPL");
 _
 
 Patches currently in -mm which might be from hch@lst.de are
