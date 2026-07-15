@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 86156431A49;
-	Wed, 15 Jul 2026 18:23:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 331D941BA98
+	for <mm-commits@vger.kernel.org>; Wed, 15 Jul 2026 18:25:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784139831; cv=none; b=LygEDYbHXOrNrGOwEyhFyLzQKeIMBeW0PGI0UDaeHnzAe4ZdMre8EcHwyNFb/VxztdnE65eWFxzgsBc88phTo67FH6Crf1qwkqYDdpgbDvsaELLrWWSyg63znDOkCIsGmFZx4RcxmZ8nonsCoPgICpsqEuEdHZAbhNs7+CeCZt0=
+	t=1784139946; cv=none; b=CnkWdGhQFBfY2mzeFo0JS+rCzxy3bn6dKtn2Id4cdL9eq8OuOSKeN5L59lxAjHB7RWDwcwGwIxG+3tJO1U+ULeapSdEyCRvr77LRpngkTn8Bq3suIG+sbDsdTDRBaTwIC+J8rTk7ztQMl9dTTJev4/CGLnWEGYyc0pglT+mVozo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784139831; c=relaxed/simple;
-	bh=Xs9H4DVAMBmAWKv0Ma4YA8jy3I9MMh+4fRAnLdfl394=;
-	h=Date:To:From:Subject:Message-Id; b=uIEMsMHx6c22v1kmU2Z0xgVfO1uP/R6HIRHGy6mMVHoi00HhLkWUKeTKGS1N5iFQm90uaJGAU/2+okzprAIwhQi7bOBoKGiSWoSI27Q2VqzMWv0c0A4dXEHEfNy6C7nEAsOotNRbXpe/UwxX9B5x+HUayFcSTJU6xT38k7Yo7ts=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FPh3QMb+; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1784139946; c=relaxed/simple;
+	bh=9XNEnfXIPOBZVFgRIiCBbOnBAzp8hslY8epYmhlrB5k=;
+	h=Date:To:From:Subject:Message-Id; b=tN8fFEmkH6m4rWPJRy0bMK2qQohvsYtH8WYtpY0a3gZm0ZSFQ+WqPWoALX8cDtIbob2ximVTkulK4xNmrJTeqInYtchBvJAEdlfr0M4hl5GokJXxTURv5Seu67xUfTkfsKj8s6ghNrNa7+OVyQNXHir0hR8fyWh3xFvYpKbGsTk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DL5o8EYg; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FPh3QMb+"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EA4841F00A3A;
-	Wed, 15 Jul 2026 18:23:46 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DL5o8EYg"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9972E1F000E9;
+	Wed, 15 Jul 2026 18:25:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1784139827;
-	bh=Qo+FqmMAhcgr6RzlH1jZHYlT/AbqpN1nuEIbxlbmxZM=;
+	d=linux-foundation.org; s=korg; t=1784139933;
+	bh=bOzUWmkOT4hP3m+wTdCll78PG7fK03RaxK1KlbvbouU=;
 	h=Date:To:From:Subject;
-	b=FPh3QMb+HICXDAMB5ojsLKjUntm+6P0itfx6hIGFwZo//LLL1AjqidvLZHC2kVA39
-	 ZHgDeYDAZ/jAGoTg/5e7WJIBKug9lNwquk6gribcC9utgFCcp7N1ShyVR3/A0/h91U
-	 cSZ/ni5Eks1ikvfRtwLNPvUvYHUF2Hk67Zh9jahs=
-Date: Wed, 15 Jul 2026 11:23:46 -0700
-To: mm-commits@vger.kernel.org,zenghui.yu@linux.dev,vbabka@kernel.org,usama.anjum@arm.com,surenb@google.com,stable@vger.kernel.org,shuah@kernel.org,sashiko-bot@kernel.org,rppt@kernel.org,pfalcato@suse.de,peterx@redhat.com,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,jannh@google.com,david@kernel.org,kas@kernel.org,akpm@linux-foundation.org
+	b=DL5o8EYgaPXx0F+mcbxf6YCm/kCe5mgxbcACpHo3/OESDlJkQagsZmAiVQUmUqJYC
+	 VgHzEmk50baLNWkLujz5ZoXU4VSBwEqwxi8HlU0Ps6fl4tryCCKuqaNGQL71nZIQLf
+	 6lPlsa36HbQeBnb6ZAhAZhnNesjdQi5DEDZ1Rm9Q=
+Date: Wed, 15 Jul 2026 11:25:33 -0700
+To: mm-commits@vger.kernel.org,zenghui.yu@linux.dev,vbabka@kernel.org,usama.anjum@arm.com,surenb@google.com,shuah@kernel.org,rppt@kernel.org,pfalcato@suse.de,peterx@redhat.com,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,jannh@google.com,david@kernel.org,kas@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + fs-proc-task_mmu-fix-pagemap_scan-written-state-for-pmd-holes.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260715182346.EA4841F00A3A@smtp.kernel.org>
+Subject: + selftests-mm-add-pagemap_scan-test-for-thp-pmd-holes.patch added to mm-new branch
+Message-Id: <20260715182533.9972E1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,26 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: fs/proc/task_mmu: fix PAGEMAP_SCAN written state for PMD holes
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     fs-proc-task_mmu-fix-pagemap_scan-written-state-for-pmd-holes.patch
+     Subject: selftests/mm: add PAGEMAP_SCAN test for THP PMD holes
+has been added to the -mm mm-new branch.  Its filename is
+     selftests-mm-add-pagemap_scan-test-for-thp-pmd-holes.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-proc-task_mmu-fix-pagemap_scan-written-state-for-pmd-holes.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-add-pagemap_scan-test-for-thp-pmd-holes.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -59,47 +70,25 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Kiryl Shutsemau (Meta)" <kas@kernel.org>
-Subject: fs/proc/task_mmu: fix PAGEMAP_SCAN written state for PMD holes
-Date: Wed, 15 Jul 2026 15:42:33 +0100
+Subject: selftests/mm: add PAGEMAP_SCAN test for THP PMD holes
+Date: Wed, 15 Jul 2026 15:42:34 +0100
 
-PAGEMAP_SCAN reports an unpopulated PTE in a uffd-wp VMA as written, but a
-range with no page table at all -- a PMD hole -- is skipped:
-pagemap_scan_pte_hole() tests p->cur_vma_category, which never carries
-PAGE_IS_WRITTEN, so the hole is neither reported nor (under
-PM_SCAN_WP_MATCHING) armed.
+Add coverage for the PMD-hole case fixed by "fs/proc/task_mmu: fix
+PAGEMAP_SCAN written state for PMD holes": a MAP_PRIVATE|MAP_ANON THP that
+is uffd-wp'd and then dropped with MADV_DONTNEED leaves a pmd_none hole
+with no page table, which PAGEMAP_SCAN must still report as written --
+checked via both the fast and generic query paths, mirroring
+unpopulated_scan_test().
 
-In a uffd-wp VMA, WP_UNPOPULATED installs uffd-wp markers when protecting
-a range, allocating page tables as needed, so an unpopulated slot is
-treated as written -- see the pte_none() handling in
-pagemap_page_category().  A missing marker therefore means the range was
-zapped, e.g.  via MADV_DONTNEED.  This applies to anon and shmem VMAs.
+Include <linux/mman.h> for MADV_COLLAPSE; <sys/mman.h> lacks it on older
+glibc (e.g.  2.34).  Same approach as commit fd5295afae91 ("selftests/mm:
+hmm-tests: include linux/mman.h to access MADV_COLLAPSE").
 
-An anonymous THP is write-protected in place as a huge PMD, so a full-PMD
-MADV_DONTNEED clears it to pmd_none -- a hole with no page table -- and
-pagemap_scan_pte_hole() misses it.  For a MAP_PRIVATE|MAP_ANON mapping
-MADV_DONTNEED has fill-with-zeros semantics, so a write-tracking
-checkpoint/migration tool (e.g.  CRIU) treats the range as unchanged and
-keeps its previous contents; after restore or live migration the process
-reads stale data instead of zeroes -- data corruption.
-
-Report a hole in a non-hugetlb uffd-wp VMA as written, matching the
-pte_none handling in pagemap_page_category(); the existing
-PM_SCAN_WP_MATCHING path then arms it via uffd_wp_range().
-
-hugetlb is excluded: pagemap_hugetlb_category() reports an empty hugetlb
-entry (huge_pte_none) as not-written, unlike pagemap_page_category(),
-which reports pte_none as written.  pagemap_scan_pte_hole() fires for a
-hugetlb slot only when it has no page table; keeping that not-written
-matches how an allocated-but-empty hugetlb entry reads, so the hole and
-the empty-entry cases agree within the VMA.
-
-Link: https://lore.kernel.org/20260715144234.442721-2-kirill@shutemov.name
-Fixes: 2bad466cc9d9 ("mm/uffd: UFFD_FEATURE_WP_UNPOPULATED")
+Link: https://lore.kernel.org/20260715144234.442721-3-kirill@shutemov.name
 Signed-off-by: Kiryl Shutsemau <kas@kernel.org>
-Reported-by: Sashiko AI review <sashiko-bot@kernel.org>
-Closes: https://sashiko.dev/#/patchset/20260707151349.92143-1-kirill@shutemov.name
 Cc: Muhammad Usama Anjum <usama.anjum@arm.com>
 Cc: Peter Xu <peterx@redhat.com>
+Cc: Zenghui Yu <zenghui.yu@linux.dev>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Jann Horn <jannh@google.com>
 Cc: Liam R. Howlett <liam@infradead.org>
@@ -110,48 +99,109 @@ Cc: Pedro Falcato <pfalcato@suse.de>
 Cc: Shuah Khan <shuah@kernel.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Zenghui Yu <zenghui.yu@linux.dev>
 Assisted-by: Claude:claude-fable-5
-Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |   20 ++++++++++++++++++--
- 1 file changed, 18 insertions(+), 2 deletions(-)
+ tools/testing/selftests/mm/pagemap_ioctl.c |   66 ++++++++++++++++++-
+ 1 file changed, 65 insertions(+), 1 deletion(-)
 
---- a/fs/proc/task_mmu.c~fs-proc-task_mmu-fix-pagemap_scan-written-state-for-pmd-holes
-+++ a/fs/proc/task_mmu.c
-@@ -3049,12 +3049,28 @@ static int pagemap_scan_pte_hole(unsigne
+--- a/tools/testing/selftests/mm/pagemap_ioctl.c~selftests-mm-add-pagemap_scan-test-for-thp-pmd-holes
++++ a/tools/testing/selftests/mm/pagemap_ioctl.c
+@@ -8,6 +8,7 @@
+ #include <errno.h>
+ #include <malloc.h>
+ #include <linux/types.h>
++#include <linux/mman.h>
+ #include <linux/memfd.h>
+ #include <linux/userfaultfd.h>
+ #include <linux/fs.h>
+@@ -1102,6 +1103,68 @@ static void unpopulated_scan_test(void)
+ 	munmap(mem, mem_size);
+ }
+ 
++/*
++ * Like unpopulated_scan_test(), but the range is a MAP_PRIVATE|MAP_ANON THP
++ * that is uffd-wp'd and then dropped with MADV_DONTNEED. That leaves a
++ * pmd_none hole with no page table, which pagemap_page_category() never sees;
++ * PAGEMAP_SCAN must still report it written via pagemap_scan_pte_hole().
++ */
++static void unpopulated_thp_scan_test(void)
++{
++	struct page_region regions[16];
++	long fast = 0, slow = 0, ret;
++	int npages, i;
++	char *area, *mem;
++
++	if (!hpage_size) {
++		ksft_test_result_skip("%s THP not supported\n", __func__);
++		return;
++	}
++	npages = hpage_size / page_size;
++
++	/* Over-allocate so a PMD-aligned, THP-sized range fits inside. */
++	area = mmap(NULL, 2 * hpage_size, PROT_READ | PROT_WRITE,
++		    MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
++	if (area == MAP_FAILED) {
++		ksft_test_result_skip("%s mmap failed\n", __func__);
++		return;
++	}
++	mem = (char *)(((unsigned long)area + hpage_size - 1) & ~(hpage_size - 1));
++
++	wp_init(mem, hpage_size);
++
++	/* Populate, collapse to a THP, then drop: a pmd_none hole, no marker. */
++	memset(mem, 1, hpage_size);
++	if (madvise(mem, hpage_size, MADV_COLLAPSE) ||
++	    !check_huge_anon(mem, 1, hpage_size)) {
++		ksft_test_result_skip("%s could not form a THP\n", __func__);
++		goto out;
++	}
++	if (madvise(mem, hpage_size, MADV_DONTNEED)) {
++		ksft_test_result_skip("%s MADV_DONTNEED failed\n", __func__);
++		goto out;
++	}
++
++	/* Fast path: category_mask == return_mask == PAGE_IS_WRITTEN. */
++	ret = pagemap_ioctl(mem, hpage_size, regions, ARRAY_SIZE(regions), 0, 0,
++			    PAGE_IS_WRITTEN, 0, 0, PAGE_IS_WRITTEN);
++	for (i = 0; ret > 0 && i < ret; i++)
++		fast += LEN(regions[i]);
++
++	/* Generic path: same query expressed via category_anyof_mask. */
++	ret = pagemap_ioctl(mem, hpage_size, regions, ARRAY_SIZE(regions), 0, 0,
++			    0, PAGE_IS_WRITTEN, 0, PAGE_IS_WRITTEN);
++	for (i = 0; ret > 0 && i < ret; i++)
++		slow += LEN(regions[i]);
++
++	ksft_test_result(fast == npages && slow == npages,
++			 "%s pmd-hole reported written by both paths (%ld, %ld of %d)\n",
++			 __func__, fast, slow, npages);
++out:
++	wp_free(mem, hpage_size);
++	munmap(area, 2 * hpage_size);
++}
++
+ int sanity_tests(void)
  {
- 	struct pagemap_scan_private *p = walk->private;
- 	struct vm_area_struct *vma = walk->vma;
-+	unsigned long categories;
- 	int ret, err;
+ 	unsigned long long mem_size, vec_size;
+@@ -1610,7 +1673,7 @@ int main(int __attribute__((unused)) arg
+ 	if (!hugetlb_setup_default(4))
+ 		ksft_print_msg("HugeTLB test will be skipped\n");
  
--	if (!vma || !pagemap_scan_is_interesting_page(p->cur_vma_category, p))
-+	if (!vma)
- 		return 0;
+-	ksft_set_plan(118);
++	ksft_set_plan(119);
  
--	ret = pagemap_scan_output(p->cur_vma_category, p, addr, &end);
-+	/*
-+	 * In a uffd-wp VMA an unpopulated range is treated as written:
-+	 * uffd-wp registration populates page tables and installs markers
-+	 * with WP_UNPOPULATED, so a missing marker means the range was
-+	 * zapped. See the pte_none() handling in pagemap_page_category().
-+	 *
-+	 * hugetlb differs, see pagemap_hugetlb_category().
-+	 */
-+	categories = p->cur_vma_category;
-+	if (userfaultfd_wp(vma) && !is_vm_hugetlb_page(vma))
-+		categories |= PAGE_IS_WRITTEN;
-+
-+	if (!pagemap_scan_is_interesting_page(categories, p))
-+		return 0;
-+
-+	ret = pagemap_scan_output(categories, p, addr, &end);
- 	if (addr == end)
- 		return ret;
+ 	page_size = getpagesize();
+ 	hpage_size = read_pmd_pagesize();
+@@ -1790,6 +1853,7 @@ int main(int __attribute__((unused)) arg
  
+ 	/* 18. Unpopulated pte scan-path consistency */
+ 	unpopulated_scan_test();
++	unpopulated_thp_scan_test();
+ 
+ 	close(pagemap_fd);
+ 	ksft_finished();
 _
 
 Patches currently in -mm which might be from kas@kernel.org are
