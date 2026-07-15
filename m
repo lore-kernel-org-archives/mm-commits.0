@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 331D941BA98
-	for <mm-commits@vger.kernel.org>; Wed, 15 Jul 2026 18:25:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6BBC1443E24
+	for <mm-commits@vger.kernel.org>; Wed, 15 Jul 2026 18:29:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784139946; cv=none; b=CnkWdGhQFBfY2mzeFo0JS+rCzxy3bn6dKtn2Id4cdL9eq8OuOSKeN5L59lxAjHB7RWDwcwGwIxG+3tJO1U+ULeapSdEyCRvr77LRpngkTn8Bq3suIG+sbDsdTDRBaTwIC+J8rTk7ztQMl9dTTJev4/CGLnWEGYyc0pglT+mVozo=
+	t=1784140185; cv=none; b=TE1CcEraOoZ49ORtUfgVZs970Dlb6X8HHXe68nZxF+Td4i0kNScak9fNDQHsbGsQhv7VP05wB2CAEM7FZ/UJuKNRGKCV5AvsolgHjf/3soEeh5cYtwI79PFVF2B6MnnX8AiNRZnY4EkRq7liLL5upQ4q7HraBi5uVYsJOl1pE4k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784139946; c=relaxed/simple;
-	bh=9XNEnfXIPOBZVFgRIiCBbOnBAzp8hslY8epYmhlrB5k=;
-	h=Date:To:From:Subject:Message-Id; b=tN8fFEmkH6m4rWPJRy0bMK2qQohvsYtH8WYtpY0a3gZm0ZSFQ+WqPWoALX8cDtIbob2ximVTkulK4xNmrJTeqInYtchBvJAEdlfr0M4hl5GokJXxTURv5Seu67xUfTkfsKj8s6ghNrNa7+OVyQNXHir0hR8fyWh3xFvYpKbGsTk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DL5o8EYg; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1784140185; c=relaxed/simple;
+	bh=ZasH/q8pawVVfi3V1P6C2+EpBqSDUS/xEC/fBnMszCg=;
+	h=Date:To:From:Subject:Message-Id; b=d/9WTw2nJrSbJgLKJ7yhx+hpXojL3mU/HpQosAulC4bOKjutWxQms4fBXfED/q5INOFs2R8H1u8M3+oocyr8WXB5edsSM5EYXckK7ASSEmiWOfIazYhazXgH7EXMyCBv2kvwETDtNW27gTZ4Fm4ogfDvvK05g0Zq+dxW8zRE03Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oqzA56JY; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DL5o8EYg"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9972E1F000E9;
-	Wed, 15 Jul 2026 18:25:33 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oqzA56JY"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7CBF71F000E9;
+	Wed, 15 Jul 2026 18:29:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1784139933;
-	bh=bOzUWmkOT4hP3m+wTdCll78PG7fK03RaxK1KlbvbouU=;
+	d=linux-foundation.org; s=korg; t=1784140169;
+	bh=GNKAaPYPLrf1tV+piJMAuffGkr4Qi3FsxBbWZOkfvXg=;
 	h=Date:To:From:Subject;
-	b=DL5o8EYgaPXx0F+mcbxf6YCm/kCe5mgxbcACpHo3/OESDlJkQagsZmAiVQUmUqJYC
-	 VgHzEmk50baLNWkLujz5ZoXU4VSBwEqwxi8HlU0Ps6fl4tryCCKuqaNGQL71nZIQLf
-	 6lPlsa36HbQeBnb6ZAhAZhnNesjdQi5DEDZ1Rm9Q=
-Date: Wed, 15 Jul 2026 11:25:33 -0700
-To: mm-commits@vger.kernel.org,zenghui.yu@linux.dev,vbabka@kernel.org,usama.anjum@arm.com,surenb@google.com,shuah@kernel.org,rppt@kernel.org,pfalcato@suse.de,peterx@redhat.com,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,jannh@google.com,david@kernel.org,kas@kernel.org,akpm@linux-foundation.org
+	b=oqzA56JYpzQUBkpU2WczIUFsRSUSG4eacCtxaxsnXX8XJBrdOv32zNaCJB2c2guQg
+	 73edyZhxMHoXl8qf3uODasQsSpHhU+H02ZfSw9gT7JKSiZO0l31ea3YGoyu5Q0DGjm
+	 TiohIxQANpPBNxVdQXGdO/3qx1zb+68WVGwJ5o4Q=
+Date: Wed, 15 Jul 2026 11:29:28 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,thomas.weissschuh@linutronix.de,rdunlap@infradead.org,pfalcato@suse.de,peterz@infradead.org,ojeda@kernel.org,nathan@kernel.org,ljs@kernel.org,linux.amoon@gmail.com,liam@infradead.org,lance.yang@linux.dev,jannh@google.com,gary@garyguo.net,dianders@chromium.org,corbet@lwn.net,aliceryhl@google.com,leon.hwang@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-add-pagemap_scan-test-for-thp-pmd-holes.patch added to mm-new branch
-Message-Id: <20260715182533.9972E1F000E9@smtp.kernel.org>
+Subject: + mm-mseal-fix-mseal-documentation-for-32-bit-kernels.patch added to mm-new branch
+Message-Id: <20260715182929.7CBF71F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: add PAGEMAP_SCAN test for THP PMD holes
+     Subject: mm/mseal: fix mseal documentation for 32-bit kernels
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-mm-add-pagemap_scan-test-for-thp-pmd-holes.patch
+     mm-mseal-fix-mseal-documentation-for-32-bit-kernels.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-add-pagemap_scan-test-for-thp-pmd-holes.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mseal-fix-mseal-documentation-for-32-bit-kernels.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,160 +69,170 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: "Kiryl Shutsemau (Meta)" <kas@kernel.org>
-Subject: selftests/mm: add PAGEMAP_SCAN test for THP PMD holes
-Date: Wed, 15 Jul 2026 15:42:34 +0100
+From: Leon Hwang <leon.hwang@linux.dev>
+Subject: mm/mseal: fix mseal documentation for 32-bit kernels
+Date: Wed, 15 Jul 2026 21:12:58 +0800
 
-Add coverage for the PMD-hole case fixed by "fs/proc/task_mmu: fix
-PAGEMAP_SCAN written state for PMD holes": a MAP_PRIVATE|MAP_ANON THP that
-is uffd-wp'd and then dropped with MADV_DONTNEED leaves a pmd_none hole
-with no page table, which PAGEMAP_SCAN must still report as written --
-checked via both the fast and generic query paths, mirroring
-unpopulated_scan_test().
+mseal.o is built only for 64-bit kernels, so 32-bit kernels fall back to
+sys_ni_syscall() and return -ENOSYS rather than -EPERM.
 
-Include <linux/mman.h> for MADV_COLLAPSE; <sys/mman.h> lacks it on older
-glibc (e.g.  2.34).  Same approach as commit fd5295afae91 ("selftests/mm:
-hmm-tests: include linux/mman.h to access MADV_COLLAPSE").
+Drop architecture description in mseal.rst, since the arch feature doc has
+the latest state of mseal for each architecture.
 
-Link: https://lore.kernel.org/20260715144234.442721-3-kirill@shutemov.name
-Signed-off-by: Kiryl Shutsemau <kas@kernel.org>
-Cc: Muhammad Usama Anjum <usama.anjum@arm.com>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Zenghui Yu <zenghui.yu@linux.dev>
-Cc: David Hildenbrand <david@kernel.org>
+Fix the CONFIG_MSEAL_SYSTEM_MAPPINGS typo in init/Kconfig.
+
+Drop the whole comment of do_mseal() to avoid stale info in the
+comment, as we have the doc in mseal.rst.
+
+Link: https://lore.kernel.org/20260715131258.55499-1-leon.hwang@linux.dev
+Signed-off-by: Leon Hwang <leon.hwang@linux.dev>
+Acked-by: Lance Yang <lance.yang@linux.dev>
+Cc: Alice Ryhl <aliceryhl@google.com>
+Cc: Anand Moon <linux.amoon@gmail.com>
+Cc: Doug Anderson <dianders@chromium.org>
+Cc: Gary Guo <gary@garyguo.net>
 Cc: Jann Horn <jannh@google.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Leon Hwang <leon.hwang@linux.dev>
 Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Miguel Ojeda <ojeda@kernel.org>
+Cc: Nathan Chancellor <nathan@kernel.org>
 Cc: Pedro Falcato <pfalcato@suse.de>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Thomas Weißschuh <thomas.weissschuh@linutronix.de>
 Cc: Vlastimil Babka <vbabka@kernel.org>
-Assisted-by: Claude:claude-fable-5
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/pagemap_ioctl.c |   66 ++++++++++++++++++-
- 1 file changed, 65 insertions(+), 1 deletion(-)
+ Documentation/userspace-api/mseal.rst |   14 ++----
+ init/Kconfig                          |    2 
+ mm/mseal.c                            |   52 ------------------------
+ 3 files changed, 7 insertions(+), 61 deletions(-)
 
---- a/tools/testing/selftests/mm/pagemap_ioctl.c~selftests-mm-add-pagemap_scan-test-for-thp-pmd-holes
-+++ a/tools/testing/selftests/mm/pagemap_ioctl.c
-@@ -8,6 +8,7 @@
- #include <errno.h>
- #include <malloc.h>
- #include <linux/types.h>
-+#include <linux/mman.h>
- #include <linux/memfd.h>
- #include <linux/userfaultfd.h>
- #include <linux/fs.h>
-@@ -1102,6 +1103,68 @@ static void unpopulated_scan_test(void)
- 	munmap(mem, mem_size);
+--- a/Documentation/userspace-api/mseal.rst~mm-mseal-fix-mseal-documentation-for-32-bit-kernels
++++ a/Documentation/userspace-api/mseal.rst
+@@ -50,8 +50,8 @@ mseal syscall signature
+          * The start address (``addr``) is not allocated.
+          * The end address (``addr`` + ``len``) is not allocated.
+          * A gap (unallocated memory) between start and end address.
+-      - **-EPERM**:
+-         * sealing is supported only on 64-bit CPUs, 32-bit is not supported.
++      - **-ENOSYS**:
++         * The kernel does not implement ``mseal()``.
+ 
+    **Note about error return**:
+       - For above error cases, users can expect the given memory range is
+@@ -62,7 +62,8 @@ mseal syscall signature
+         memory range could happen. However, those cases should be rare.
+ 
+    **Architecture support**:
+-      mseal only works on 64-bit CPUs, not 32-bit CPUs.
++      mseal is built only for 64-bit kernels. 32-bit kernels return
++      ``-ENOSYS``.
+ 
+    **Idempotent**:
+       users can call mseal multiple times. mseal on an already sealed memory
+@@ -131,11 +132,11 @@ Use cases
+ - Chrome browser: protect some security sensitive data structures.
+ 
+ - System mappings:
+-  The system mappings are created by the kernel and includes vdso, vvar,
++  The system mappings are created by the kernel and include vdso, vvar,
+   vvar_vclock, vectors (arm compat-mode), sigpage (arm compat-mode), uprobes.
+ 
+   Those system mappings are readonly only or execute only, memory sealing can
+-  protect them from ever changing to writable or unmmap/remapped as different
++  protect them from ever changing to writable or unmapped/remapped as different
+   attributes. This is useful to mitigate memory corruption issues where a
+   corrupted pointer is passed to a memory management system.
+ 
+@@ -143,9 +144,6 @@ Use cases
+   the CONFIG_MSEAL_SYSTEM_MAPPINGS seals all system mappings of this
+   architecture.
+ 
+-  The following architectures currently support this feature: x86-64, arm64,
+-  loongarch and s390.
+-
+   WARNING: This feature breaks programs which rely on relocating
+   or unmapping system mappings. Known broken software at the time
+   of writing includes CHECKPOINT_RESTORE, UML, gVisor, rr. Therefore
+--- a/init/Kconfig~mm-mseal-fix-mseal-documentation-for-32-bit-kernels
++++ a/init/Kconfig
+@@ -2120,7 +2120,7 @@ config ARCH_SUPPORTS_MSEAL_SYSTEM_MAPPIN
+ 	  from a kernel perspective.
+ 
+ 	  After the architecture enables this, a distribution can set
+-	  CONFIG_MSEAL_SYSTEM_MAPPING to manage access to the feature.
++	  CONFIG_MSEAL_SYSTEM_MAPPINGS to manage access to the feature.
+ 
+ 	  For complete descriptions of memory sealing, please see
+ 	  Documentation/userspace-api/mseal.rst
+--- a/mm/mseal.c~mm-mseal-fix-mseal-documentation-for-32-bit-kernels
++++ a/mm/mseal.c
+@@ -88,58 +88,6 @@ static int mseal_apply(struct mm_struct
+ 	return 0;
  }
  
-+/*
-+ * Like unpopulated_scan_test(), but the range is a MAP_PRIVATE|MAP_ANON THP
-+ * that is uffd-wp'd and then dropped with MADV_DONTNEED. That leaves a
-+ * pmd_none hole with no page table, which pagemap_page_category() never sees;
-+ * PAGEMAP_SCAN must still report it written via pagemap_scan_pte_hole().
-+ */
-+static void unpopulated_thp_scan_test(void)
-+{
-+	struct page_region regions[16];
-+	long fast = 0, slow = 0, ret;
-+	int npages, i;
-+	char *area, *mem;
-+
-+	if (!hpage_size) {
-+		ksft_test_result_skip("%s THP not supported\n", __func__);
-+		return;
-+	}
-+	npages = hpage_size / page_size;
-+
-+	/* Over-allocate so a PMD-aligned, THP-sized range fits inside. */
-+	area = mmap(NULL, 2 * hpage_size, PROT_READ | PROT_WRITE,
-+		    MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-+	if (area == MAP_FAILED) {
-+		ksft_test_result_skip("%s mmap failed\n", __func__);
-+		return;
-+	}
-+	mem = (char *)(((unsigned long)area + hpage_size - 1) & ~(hpage_size - 1));
-+
-+	wp_init(mem, hpage_size);
-+
-+	/* Populate, collapse to a THP, then drop: a pmd_none hole, no marker. */
-+	memset(mem, 1, hpage_size);
-+	if (madvise(mem, hpage_size, MADV_COLLAPSE) ||
-+	    !check_huge_anon(mem, 1, hpage_size)) {
-+		ksft_test_result_skip("%s could not form a THP\n", __func__);
-+		goto out;
-+	}
-+	if (madvise(mem, hpage_size, MADV_DONTNEED)) {
-+		ksft_test_result_skip("%s MADV_DONTNEED failed\n", __func__);
-+		goto out;
-+	}
-+
-+	/* Fast path: category_mask == return_mask == PAGE_IS_WRITTEN. */
-+	ret = pagemap_ioctl(mem, hpage_size, regions, ARRAY_SIZE(regions), 0, 0,
-+			    PAGE_IS_WRITTEN, 0, 0, PAGE_IS_WRITTEN);
-+	for (i = 0; ret > 0 && i < ret; i++)
-+		fast += LEN(regions[i]);
-+
-+	/* Generic path: same query expressed via category_anyof_mask. */
-+	ret = pagemap_ioctl(mem, hpage_size, regions, ARRAY_SIZE(regions), 0, 0,
-+			    0, PAGE_IS_WRITTEN, 0, PAGE_IS_WRITTEN);
-+	for (i = 0; ret > 0 && i < ret; i++)
-+		slow += LEN(regions[i]);
-+
-+	ksft_test_result(fast == npages && slow == npages,
-+			 "%s pmd-hole reported written by both paths (%ld, %ld of %d)\n",
-+			 __func__, fast, slow, npages);
-+out:
-+	wp_free(mem, hpage_size);
-+	munmap(area, 2 * hpage_size);
-+}
-+
- int sanity_tests(void)
+-/*
+- * mseal(2) seals the VM's meta data from
+- * selected syscalls.
+- *
+- * addr/len: VM address range.
+- *
+- *  The address range by addr/len must meet:
+- *   start (addr) must be in a valid VMA.
+- *   end (addr + len) must be in a valid VMA.
+- *   no gap (unallocated memory) between start and end.
+- *   start (addr) must be page aligned.
+- *
+- *  len: len will be page aligned implicitly.
+- *
+- *   Below VMA operations are blocked after sealing.
+- *   1> Unmapping, moving to another location, and shrinking
+- *	the size, via munmap() and mremap(), can leave an empty
+- *	space, therefore can be replaced with a VMA with a new
+- *	set of attributes.
+- *   2> Moving or expanding a different vma into the current location,
+- *	via mremap().
+- *   3> Modifying a VMA via mmap(MAP_FIXED).
+- *   4> Size expansion, via mremap(), does not appear to pose any
+- *	specific risks to sealed VMAs. It is included anyway because
+- *	the use case is unclear. In any case, users can rely on
+- *	merging to expand a sealed VMA.
+- *   5> mprotect and pkey_mprotect.
+- *   6> Some destructive madvice() behavior (e.g. MADV_DONTNEED)
+- *      for anonymous memory, when users don't have write permission to the
+- *	memory. Those behaviors can alter region contents by discarding pages,
+- *	effectively a memset(0) for anonymous memory.
+- *
+- *  flags: reserved.
+- *
+- * return values:
+- *  zero: success.
+- *  -EINVAL:
+- *   invalid input flags.
+- *   start address is not page aligned.
+- *   Address range (start + len) overflow.
+- *  -ENOMEM:
+- *   addr is not a valid address (not allocated).
+- *   end (start + len) is not a valid address.
+- *   a gap (unallocated memory) between start and end.
+- *  -EPERM:
+- *  - In 32 bit architecture, sealing is not supported.
+- * Note:
+- *  user can call mseal(2) multiple times, adding a seal on an
+- *  already sealed memory is a no-action (no error).
+- *
+- *  unseal() is not supported.
+- */
+ int do_mseal(unsigned long start, size_t len_in, unsigned long flags)
  {
- 	unsigned long long mem_size, vec_size;
-@@ -1610,7 +1673,7 @@ int main(int __attribute__((unused)) arg
- 	if (!hugetlb_setup_default(4))
- 		ksft_print_msg("HugeTLB test will be skipped\n");
- 
--	ksft_set_plan(118);
-+	ksft_set_plan(119);
- 
- 	page_size = getpagesize();
- 	hpage_size = read_pmd_pagesize();
-@@ -1790,6 +1853,7 @@ int main(int __attribute__((unused)) arg
- 
- 	/* 18. Unpopulated pte scan-path consistency */
- 	unpopulated_scan_test();
-+	unpopulated_thp_scan_test();
- 
- 	close(pagemap_fd);
- 	ksft_finished();
+ 	size_t len;
 _
 
-Patches currently in -mm which might be from kas@kernel.org are
+Patches currently in -mm which might be from leon.hwang@linux.dev are
 
-fs-proc-task_mmu-fix-pagemap_scan-written-state-for-unpopulated-ptes.patch
-mm-hugetlb-fix-swap-entry-corruption-when-clearing-uffd-wp-at-fork.patch
-fs-proc-task_mmu-fix-pagemap_scan-written-state-for-pmd-holes.patch
-mm-decouple-protnone-helpers-from-config_numa_balancing.patch
-mm-rename-uffd-wp-pte-bit-macros-to-uffd.patch
-mm-rename-uffd-wp-pte-accessors-to-uffd.patch
-userfaultfd-test-uffd-vma-flags-through-the-vma_flags_t-api.patch
-mm-add-vm_uffd_rwp-vma-flag.patch
-mm-add-mm_cp_uffd_rwp-change_protection-flag.patch
-mm-preserve-rwp-marker-across-pte-rewrites.patch
-mm-handle-vm_uffd_rwp-in-khugepaged-rmap-and-gup.patch
-userfaultfd-add-uffdio_register_mode_rwp-and-uffdio_rwprotect-plumbing.patch
-mm-userfaultfd-add-rwp-fault-delivery-and-expose-uffdio_register_mode_rwp.patch
-mm-pagemap-add-page_is_accessed-for-rwp-tracking.patch
-userfaultfd-add-uffd_feature_rwp_async-for-async-fault-resolution.patch
-userfaultfd-add-uffdio_set_mode-for-runtime-sync-async-toggle.patch
-selftests-mm-add-userfaultfd-rwp-tests.patch
-documentation-userfaultfd-document-rwp-working-set-tracking.patch
-selftests-mm-add-pagemap_scan-test-for-thp-pmd-holes.patch
+mm-mseal-fix-mseal-documentation-for-32-bit-kernels.patch
 
