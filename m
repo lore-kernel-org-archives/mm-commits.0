@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AA17D43990C;
-	Wed, 15 Jul 2026 19:33:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B89C648C40C;
+	Wed, 15 Jul 2026 19:33:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784144010; cv=none; b=cwigR1VirVy+azVQR8OvkQ2C7UjeL+uNwBK1jUz7wwVKc8kl9Ipk5/pfyGE9ayUvbuSiDQpUd49Pq15F4SqWEpd+COwcG5LEBgW1r6uqronhwSgs6n7O2kkK4TBRBsCdKlctmIlHFMok1Irs8bLaZYf+tyBbE+WaLbna8yfJzJU=
+	t=1784144013; cv=none; b=XM16PPqnvYF+acwy3KyGgNMEKPH37DYHa3PyuytgS5+G7fpanSuoFHXj8aOivsPl6RBYFLk1chf8fciifBPj75yVdj4u9R5X1v/FcGU/V4Uxo42HTIulh1YY4U2l4szdBZKnk/2O2fuR6t4QcktGHH0dAjC6Gv6qjthbKAf8Ai8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784144010; c=relaxed/simple;
-	bh=n1dQe55G/3Dbl9c+b5LGC9PXQ0fqFdtOk7vIgZMLHYc=;
-	h=Date:To:From:Subject:Message-Id; b=qG1ep3dcAZlChmNkC6wUkUU/TekQLBUl43LbV/HAugSClGC+vaSdHa6KsL9tCAcBgVGxFk/3s8YnnL3rTnIEYqt8n+FY4x1o16Xpxq5xpz9QPvMaajTen/Tv8oI4/fGGpc0iSclOtVoQsdWYj9cSD64VnAdHqmwcEHQSOafD7Ek=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gsSHOWkZ; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1784144013; c=relaxed/simple;
+	bh=FoWioUo1v853u6zI9bLQiiEhuXjxmciD3VUsELirQcQ=;
+	h=Date:To:From:Subject:Message-Id; b=fWF6ivrz9k0DV/p5s6f5i+dQsyTMhAMkRACikxhBrExrY7uLgzL3+pIDnbFRw6JquiwnMgPZK1D0AsylGH/PB9FGq34VNX6c5K2E0joXNO5ebYcgcQKhI/KiDxWDhoEsBuelzzYMvEGRiCJEbl6qRX33Fcv7jGbf6l7us+O2dI8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ACi283r9; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gsSHOWkZ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 33B6E1F000E9;
-	Wed, 15 Jul 2026 19:33:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ACi283r9"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 506A81F00A3A;
+	Wed, 15 Jul 2026 19:33:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1784144009;
-	bh=5Lj09kNCBg/4OucEXRTMsA2EDWlxrUjzZOuHAgLEGqY=;
+	d=linux-foundation.org; s=korg; t=1784144011;
+	bh=NlzbNQ+OrEXLlZC6q06Q4LzXoOinxmPmYIFe+NroSHI=;
 	h=Date:To:From:Subject;
-	b=gsSHOWkZ4Qi0156xrJZSxFtitBMmOilsigx0BfAZSetfItVgt8oIYDwaad68UpoLN
-	 jNmL2nGMjrJkKYTLhfADswbFsjuTnVGxDsSSwWy/tY6p4zXsp6frYKYmghdW5wMVcK
-	 mDc7j76XSkS6nNhV2ieQs+mWQh3Sir5khUvDNsD4=
-Date: Wed, 15 Jul 2026 12:33:28 -0700
+	b=ACi283r9BiWkNJBXRR5SPD04WwSALOP7q01Sqcpf1YM7PRurGBEv1pXmhLYrYK8HT
+	 4U0ypierHOelaGmS6y/aoZ1gGCU7rocmvUYcR760JYT4yTvEMFqD9dAy2tUVMiupVL
+	 Q9Ijndqi6NSNrkfddm9mlop0z0Dw93sK2HGsWz0Q=
+Date: Wed, 15 Jul 2026 12:33:30 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,surenb@google.com,stable@vger.kernel.org,shakeel.butt@linux.dev,rostedt@goodmis.org,mhocko@suse.com,harry@kernel.org,hannes@cmpxchg.org,bigeasy@linutronix.de,ast@kernel.org,jackmanb@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_alloc-dont-spin_trylock-in-nmi-on-up.patch added to mm-new branch
-Message-Id: <20260715193329.33B6E1F000E9@smtp.kernel.org>
+Subject: + mm-page_alloc-dont-spin_trylock-when-disallowed-in-free_one_page.patch added to mm-new branch
+Message-Id: <20260715193331.506A81F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/page_alloc: don't spin_trylock() in NMI on UP
+     Subject: mm/page_alloc: don't spin_trylock() when disallowed in free_one_page()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-page_alloc-dont-spin_trylock-in-nmi-on-up.patch
+     mm-page_alloc-dont-spin_trylock-when-disallowed-in-free_one_page.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-dont-spin_trylock-in-nmi-on-up.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-dont-spin_trylock-when-disallowed-in-free_one_page.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,35 +70,24 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Brendan Jackman <jackmanb@google.com>
-Subject: mm/page_alloc: don't spin_trylock() in NMI on UP
-Date: Wed, 15 Jul 2026 09:03:58 +0000
+Subject: mm/page_alloc: don't spin_trylock() when disallowed in free_one_page()
+Date: Wed, 15 Jul 2026 09:03:59 +0000
 
-Patch series "mm/page_alloc: fixes for free_pages_nolock() on RT/UP".
+__free_frozen_pages() checks can_spin_trylock() before entering into the
+main free_frozen_page_commit()/free_one_page() path, but before this it
+can get to free_one_page() via the !pcp_allowed_order() and
+MIGRATE_ISOLATE paths.
 
-Pre-existing bugs found by Sashiko during review of this other series:
-https://lore.kernel.org/all/20260703-alloc-trylock-v5-0-c87b714e19d3@google.com/
+The !pcp_allowed_order() path depends on usage by callers so might not be
+possible in practice.  The MIGRATE_ISOLATE path probably means kernel
+crashes and privilege escalation if anyone ever did memory hotplug and BPF
+tracing on a PREEMPT_RT or !SMP build.
 
-I have not reproduced these bugs, and I suspect there is no real-world
-user that is affected by them.
-
-
-This patch (of 2):
-
-As noted in can_spin_trylock(), using this is unsafe in this context. 
-commit 620b46ed6ae17 ("mm/page_alloc: return NULL early from
-alloc_frozen_pages_nolock() in NMI on UP") fixed this on the alloc side
-but missed the free side.
-
-Impact: If BPF programs using these features in NMI (probably tracing) are
-present on non-SMP builds this might crash the kernel and is probably
-exploitable by local attackers for privilege escalation.
-
-Link: https://lore.kernel.org/20260715-alloc-nolock-fixes-v1-0-fadc49952dda@google.com
-Link: https://lore.kernel.org/20260715-alloc-nolock-fixes-v1-1-fadc49952dda@google.com
-Fixes: 8c57b687e8331 ("mm, bpf: Introduce free_pages_nolock()")
+Link: https://lore.kernel.org/20260715-alloc-nolock-fixes-v1-2-fadc49952dda@google.com
 Signed-off-by: Brendan Jackman <jackmanb@google.com>
+Fixes: 8c57b687e8331 ("mm, bpf: Introduce free_pages_nolock()")
 Reported-by: sashiko-bot@kernel.org
-Closes: https://sashiko.dev/#/patchset/20260703-alloc-trylock-v5-0-c87b714e19d3%40google.com?part=18
+Closes: https://sashiko.dev/#/patchset/20260710-spin-trylock-followup-v1-0-affb5fe5ed00%40google.com?part=2
 Reviewed-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
 Cc: Alexei Starovoitov <ast@kernel.org>
 Cc: Harry Yoo <harry@kernel.org>
@@ -113,21 +102,20 @@ Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ mm/page_alloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-dont-spin_trylock-in-nmi-on-up
+--- a/mm/page_alloc.c~mm-page_alloc-dont-spin_trylock-when-disallowed-in-free_one_page
 +++ a/mm/page_alloc.c
-@@ -2979,8 +2979,7 @@ static void __free_frozen_pages(struct p
- 		migratetype = MIGRATE_MOVABLE;
- 	}
+@@ -1559,7 +1559,7 @@ static void free_one_page(struct zone *z
+ 	unsigned long flags;
  
--	if (unlikely((fpi_flags & FPI_TRYLOCK) && IS_ENABLED(CONFIG_PREEMPT_RT)
--		     && (in_nmi() || in_hardirq()))) {
-+	if (unlikely((fpi_flags & FPI_TRYLOCK) && !can_spin_trylock())) {
- 		add_page_to_zone_llist(zone, page, order);
- 		return;
- 	}
+ 	if (unlikely(fpi_flags & FPI_TRYLOCK)) {
+-		if (!spin_trylock_irqsave(&zone->lock, flags)) {
++		if (!can_spin_trylock() || !spin_trylock_irqsave(&zone->lock, flags)) {
+ 			add_page_to_zone_llist(zone, page, order);
+ 			return;
+ 		}
 _
 
 Patches currently in -mm which might be from jackmanb@google.com are
