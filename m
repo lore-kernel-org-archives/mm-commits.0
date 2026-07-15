@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 09E1041A56E
-	for <mm-commits@vger.kernel.org>; Wed, 15 Jul 2026 18:38:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 21B0E49550A
+	for <mm-commits@vger.kernel.org>; Wed, 15 Jul 2026 19:08:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784140724; cv=none; b=NbMHvj0s3Lm/Jjmx9lZGLXrvPeVLeBAqDd6p0QkCbwVx1oAWNHBEl5RPo8+d/kvW1mOxok+0ksXhk/7Bbkv6vM3UJ7pPie+j8qLEZ7VcenVhsPOAlOS8fDkrGjq1/7EZDa/ZXtVuvJ4jwB347PqfxVVw8Rc+Nd8muqz3nplT/YI=
+	t=1784142523; cv=none; b=XtzpD+13YeafHB4wQR+cOv3ObfPeUb8p6FZLeg2w5TtQSAFx/AWOp9YG26jLxQcuRn4HHFe0xqySrQppGXenqVc1q8osr2qnlG7tWTF4hwv+CJpJh1JgFYRE+zP6lcTSqQMl5PRRRFfjX2d1QZ0ibR+A8ii+dyqdXXZlKbQkAJ4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784140724; c=relaxed/simple;
-	bh=5caumuIlWlDZeWPcyOdT3RnpIuTIxmnF9p1ehrC0tYo=;
-	h=Date:To:From:Subject:Message-Id; b=XMwZ3PmJcT3M1rXCsQLk64lzcPRvXJzy/0Mu5h4s9VaO9K2KXTMUY6lgrEWvwPLr8YzJ30cOaPNrRSuEfDHoclJ5ArihzjPWQaa6uNc0TYW4msavgBB8OJc++4D8vEdRQLhv5/Ps4RIGyTBP/MFZ01YYoLOtzVBuvfUKqsS7ds4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=G+oAjvVQ; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1784142523; c=relaxed/simple;
+	bh=9r8kJqQy+72m/rRtzysALP8vj9/tqSavjQ6gvvpPY8g=;
+	h=Date:To:From:Subject:Message-Id; b=FvF86ENBi0tOxXnrL1RIONzXhEnVypzSxevWcXwNA3y5hxHgeFu13Q6JlrcT5kSKWtSVwipF1q8YeobdArL4MSbZ6UT1s0y2DQn0A60OmxOa593EH2hB1vJs07HZJ6MpCQpl3kSR2P9BbI5cs0ltnZ6MNRJmmIZaNUCcV9u5V9I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GMAFsZKn; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="G+oAjvVQ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A8AAA1F00ACA;
-	Wed, 15 Jul 2026 18:38:25 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GMAFsZKn"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D71241F000E9;
+	Wed, 15 Jul 2026 19:08:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1784140705;
-	bh=vps8h0whAxuc8VPgrTQgsbY/79YxWy5Ji5evf2dINL0=;
+	d=linux-foundation.org; s=korg; t=1784142514;
+	bh=ykzFiN9j318iuOTtqhA9KL0RBfvRIxmwKy7geQbSDKY=;
 	h=Date:To:From:Subject;
-	b=G+oAjvVQLkDhJZVtO8X0hMhHpRdfWwR7v+CK/vK94OrLoUTqrVAO2J3ki5jyLtaUo
-	 t/Y65vZfg5OrIrDSVz3KQJZRKJ0YeGCIFv+6hLP14HhproQlQ/MC5YfhIGgNH28tMj
-	 z1+kCsUxEdehbGM8iLRb596mcyg7CRV3KNgzyKeo=
-Date: Wed, 15 Jul 2026 11:38:25 -0700
-To: mm-commits@vger.kernel.org,baohua@kernel.org,akpm@linux-foundation.org
+	b=GMAFsZKna2AMOn0YWPbd8bbXZ/EVtcze7PXhZT2hOiZHLJv4KjX6Q8/n/5swADqOe
+	 Yng6nsI168bemJ9tXwL6DR2a2ILtpRz8bM7KEbgteE5j9xsBLS4Qk00k2TSqp9aktv
+	 TqEK5LTXcWMgHs6CXXf1G6eGKHTGVCOnVLO0wLUY=
+Date: Wed, 15 Jul 2026 12:08:34 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,tj@kernel.org,surenb@google.com,rppt@kernel.org,rostedt@goodmis.org,mkoutny@suse.com,mhocko@suse.com,longman@redhat.com,ljs@kernel.org,liam@infradead.org,hannes@cmpxchg.org,david@kernel.org,bigeasy@linutronix.de,jackmanb@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmalloc-align-vm_area-so-vmap-can-batch-mappings.patch added to mm-unstable branch
-Message-Id: <20260715183825.A8AAA1F00ACA@smtp.kernel.org>
+Subject: + cgroup-cpuset-update-some-comments-about-the-page-allocator.patch added to mm-new branch
+Message-Id: <20260715190834.D71241F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,26 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/vmalloc: align vm_area so vmap() can batch mappings
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-vmalloc-align-vm_area-so-vmap-can-batch-mappings.patch
+     Subject: cgroup/cpuset: update some comments about the page allocator
+has been added to the -mm mm-new branch.  Its filename is
+     cgroup-cpuset-update-some-comments-about-the-page-allocator.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmalloc-align-vm_area-so-vmap-can-batch-mappings.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/cgroup-cpuset-update-some-comments-about-the-page-allocator.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,109 +69,113 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: "Barry Song (Xiaomi)" <baohua@kernel.org>
-Subject: mm/vmalloc: align vm_area so vmap() can batch mappings
-Date: Wed, 15 Jul 2026 20:08:13 +0800
+From: Brendan Jackman <jackmanb@google.com>
+Subject: cgroup/cpuset: update some comments about the page allocator
+Date: Wed, 15 Jul 2026 11:03:19 +0000
 
-Try to align the vmap virtual address to PMD_SHIFT or a larger PTE mapping
-size hinted by the architecture, so contiguous pages can be batch-mapped
-when setting PMD or PTE entries.  We do not expect any significant
-overhead for this.
+These comments describing the page allocator are out of date:
 
-Add __get_vm_area_node_aligned_caller() as a wrapper over
-__get_vm_area_node() to simplify repeated calls with fixed arguments.
+- __alloc_pages() is no longer a public API and has no business being
+  described outside of mm/.
 
-Link: https://lore.kernel.org/20260715120813.3609949-8-jiangwen6@xiaomi.com
-Signed-off-by: Barry Song (Xiaomi) <baohua@kernel.org>
-Signed-off-by: Wen Jiang <jiangwen6@xiaomi.com>
-Tested-by: Xueyuan Chen <xueyuan.chen21@gmail.com>
-Tested-by: Leo Yan <leo.yan@arm.com>
-Reviewed-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
-Reviewed-by: Dev Jain <dev.jain@arm.com>
-Cc: Andrew Donnellan <ajd@linux.ibm.com>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
+- The `wait` variable is gone.
+
+It may be out of date for other reasons too but this patch is just
+fixing the issues that stood out.
+
+To fix it:
+
+- Instead of referring to a specific function, instead to "the page
+  allocator"
+
+- Completely drop out-of-date details of that function's internal
+  behaviour, since they were irrelevant anyway.
+
+Link: https://lore.kernel.org/20260715-spin-trylock-followup-v3-2-fc4d246f705d@google.com
+Signed-off-by: Brendan Jackman <jackmanb@google.com>
+Suggested-by: Zi Yan <ziy@nvidia.com>
+Link: https://lore.kernel.org/all/DJP11T5V7BDW.2FZZZ8R6LOY4I@nvidia.com/
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Reviewed-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
 Cc: David Hildenbrand <david@kernel.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Michal Koutný <mkoutny@suse.com>
 Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Wen Jiang <jiangwenxiaomi@gmail.com>
-Cc: Will Deacon <will@kernel.org>
+Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Waiman Long <longman@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |   35 ++++++++++++++++++++++++++++++++++-
- 1 file changed, 34 insertions(+), 1 deletion(-)
+ kernel/cgroup/cpuset.c |   13 +++++--------
+ 1 file changed, 5 insertions(+), 8 deletions(-)
 
---- a/mm/vmalloc.c~mm-vmalloc-align-vm_area-so-vmap-can-batch-mappings
-+++ a/mm/vmalloc.c
-@@ -3338,6 +3338,14 @@ struct vm_struct *get_vm_area_caller(uns
- 				  NUMA_NO_NODE, GFP_KERNEL, caller);
- }
- 
-+static struct vm_struct *__get_vm_area_node_aligned_caller(unsigned long size,
-+		unsigned long align, unsigned long flags, const void *caller)
-+{
-+	return __get_vm_area_node(size, align, PAGE_SHIFT, flags,
-+				  VMALLOC_START, VMALLOC_END,
-+				  NUMA_NO_NODE, GFP_KERNEL, caller);
-+}
-+
- /**
-  * find_vm_area - find a continuous kernel virtual area
-  * @addr:	  base address
-@@ -3664,6 +3672,30 @@ out:
- 	return err;
- }
- 
-+static struct vm_struct *vmap_get_aligned_vm_area(unsigned long size,
-+		unsigned long flags, pgprot_t prot, const void *caller)
-+{
-+	struct vm_struct *vm_area;
-+	unsigned int shift;
-+
-+	if (arch_vmap_pmd_supported(prot) && size >= PMD_SIZE) {
-+		vm_area = __get_vm_area_node_aligned_caller(size, PMD_SIZE,
-+				flags, caller);
-+		if (vm_area)
-+			return vm_area;
-+	}
-+
-+	shift = arch_vmap_pte_supported_shift(size);
-+	if (shift > PAGE_SHIFT) {
-+		vm_area = __get_vm_area_node_aligned_caller(size, 1UL << shift,
-+				flags, caller);
-+		if (vm_area)
-+			return vm_area;
-+	}
-+
-+	return __get_vm_area_node_aligned_caller(size, PAGE_SIZE, flags, caller);
-+}
-+
- /**
-  * vmap - map an array of pages into virtually contiguous space
-  * @pages: array of page pointers
-@@ -3702,7 +3734,8 @@ void *vmap(struct page **pages, unsigned
- 		return NULL;
- 
- 	size = (unsigned long)count << PAGE_SHIFT;
--	area = get_vm_area_caller(size, flags, __builtin_return_address(0));
-+	area = vmap_get_aligned_vm_area(size, flags, prot,
-+				__builtin_return_address(0));
- 	if (!area)
- 		return NULL;
- 
+--- a/kernel/cgroup/cpuset.c~cgroup-cpuset-update-some-comments-about-the-page-allocator
++++ a/kernel/cgroup/cpuset.c
+@@ -4193,7 +4193,7 @@ static struct cpuset *nearest_hardwall_a
+  * nearest enclosing hardwalled ancestor cpuset.
+  *
+  * Scanning up parent cpusets requires callback_lock.  The
+- * __alloc_pages() routine only calls here with __GFP_HARDWALL bit
++ * page allocator only calls here with __GFP_HARDWALL bit
+  * _not_ set if it's a GFP_KERNEL allocation, and all nodes in the
+  * current tasks mems_allowed came up empty on the first pass over
+  * the zonelist.  So only GFP_KERNEL allocations, if all nodes in the
+@@ -4206,11 +4206,8 @@ static struct cpuset *nearest_hardwall_a
+  * come before the __GFP_HARDWALL check, otherwise a dying task
+  * would be blocked on the fast path.
+  *
+- * The second pass through get_page_from_freelist() doesn't even call
+- * here for GFP_ATOMIC calls.  For those calls, the __alloc_pages()
+- * variable 'wait' is not set, and the bit ALLOC_CPUSET is not set
+- * in alloc_flags.  That logic and the checks below have the combined
+- * affect that:
++ * The second pass through get_page_from_freelist() doesn't even call here for
++ * GFP_ATOMIC calls.  That, and the checks below have the combined affect that:
+  *	in_interrupt - any node ok (current task context irrelevant)
+  *	GFP_ATOMIC   - any node ok
+  *	tsk_is_oom_victim   - any node ok
+@@ -4327,8 +4324,8 @@ void cpuset_nodes_allowed(struct cgroup
+  * should not be possible for the following code to return an
+  * offline node.  But if it did, that would be ok, as this routine
+  * is not returning the node where the allocation must be, only
+- * the node where the search should start.  The zonelist passed to
+- * __alloc_pages() will include all nodes.  If the slab allocator
++ * the node where the search should start.  The zonelist used by
++ * the allocator will include all nodes.  If the slab allocator
+  * is passed an offline node, it will fall back to the local node.
+  * See kmem_cache_alloc_node().
+  */
 _
 
-Patches currently in -mm which might be from baohua@kernel.org are
+Patches currently in -mm which might be from jackmanb@google.com are
 
-mm-avoid-unnecessary-lru-drain-for-wp_can_reuse_anon_folio.patch
-mm-avoid-unnecessary-lru-drain-for-wp_can_reuse_anon_folio-fix.patch
-mm-drop-stale-folio_ref_count==1-check-in-do_swap_page-reuse-logic.patch
-mm-entirely-remove-lru_add_drain-in-do_swap_page.patch
-mm-clarify-the-folio_free_swap-for-do_swap_page.patch
-arm64-hugetlb-extend-batching-of-multiple-cont_pte-in-a-single-pte-setup.patch
-arm64-vmalloc-allow-arch_vmap_pte_range_map_size-to-batch-multiple-cont_pte.patch
-mm-vmalloc-extend-page-table-walk-to-support-larger-page_shift-sizes-and-eliminate-page-table-rewalk.patch
-mm-vmalloc-map-contiguous-pages-in-batches-for-vmap-if-possible.patch
-mm-vmalloc-align-vm_area-so-vmap-can-batch-mappings.patch
+mm-page_alloc-drop-flag-conversion-optimisation.patch
+mm-secretmem-disable-under-highmem.patch
+mm-page_alloc-rename-alloc_trylock-alloc_nolock.patch
+mm-page_alloc-some-renames-to-clarify-alloc_flags-scopes.patch
+mm-name-some-args-in-a-function-declaration.patch
+mm-split-out-internal-page_alloch.patch
+mm-page_alloc-unify-__alloc_frozen_pages_noprof.patch
+mm-page_alloc-relax-gfp-warn-in-nolock-allocs.patch
+mm-move-some-stuff-to-mm-page_alloch.patch
+perf-x86-intel-use-higher-level-allocator-api.patch
+kvm-vmx-use-higher-level-allocator-api.patch
+x86-virt-use-higher-level-allocator-api.patch
+sgi-xp-use-higher-level-allocator-api.patch
+net-funeth-switch-to-higher-level-allocator-api.patch
+mm-remove-__alloc_pages_node.patch
+mm-move-__alloc_pages-to-mm-page_alloch.patch
+mm-replace-__gfp_no_codetag-with-alloc_no_codetag.patch
+mm-page_alloc-drop-alloc_flags-arg-from-alloc_flags_cma.patch
+mm-factor-out-can_spin_trylock.patch
+mm-page_alloc-rename-fpi_trylock-fpi_nolock.patch
+cgroup-cpuset-update-some-comments-about-the-page-allocator.patch
+mm-page_alloc-fixup-alloc_pages_nolock_noprof-comment.patch
+mm-page_alloc-remove-a-couple-of-vm_bug_onst.patch
 
