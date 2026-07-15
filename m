@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D38FC442FD0
-	for <mm-commits@vger.kernel.org>; Wed, 15 Jul 2026 19:15:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AA17D43990C;
+	Wed, 15 Jul 2026 19:33:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784142959; cv=none; b=BTd84R7HVdo0emzfWook41YvgrzvcFlxzz+uMhjULBD2Cld4cGz2NgDBt/qSCiojC+G7xFP0zuV9vxnqi3kcc+9ArypJd/kmF7Qfi0iQ8uAaM2Sb5c7TCgFEE/9cmFuh6e7w8pORWZtDWL5wZyUCz1gdnTblig8eynqBqZle120=
+	t=1784144010; cv=none; b=cwigR1VirVy+azVQR8OvkQ2C7UjeL+uNwBK1jUz7wwVKc8kl9Ipk5/pfyGE9ayUvbuSiDQpUd49Pq15F4SqWEpd+COwcG5LEBgW1r6uqronhwSgs6n7O2kkK4TBRBsCdKlctmIlHFMok1Irs8bLaZYf+tyBbE+WaLbna8yfJzJU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784142959; c=relaxed/simple;
-	bh=NZzJOtxVhsH2aX0Qu0WnIKgMkOJ25I5qTVlUQvopFdk=;
-	h=Date:To:From:Subject:Message-Id; b=oc5FLYWWHTDWloVqgGKVdFx4aDxgA27TYju6UnTEcVmGhq0L2OKFXu9nQM0Skcj+p1YUAAZswjRxH/iFPWMcOThKgb4o110re4/KwPVQVAAcnF7+8fDjij/JAo3MXzQ0hCDMOizBbfSEt1vuv5ycZAy4njNUH1yAc7NCtumyAvQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XlSrlt6I; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1784144010; c=relaxed/simple;
+	bh=n1dQe55G/3Dbl9c+b5LGC9PXQ0fqFdtOk7vIgZMLHYc=;
+	h=Date:To:From:Subject:Message-Id; b=qG1ep3dcAZlChmNkC6wUkUU/TekQLBUl43LbV/HAugSClGC+vaSdHa6KsL9tCAcBgVGxFk/3s8YnnL3rTnIEYqt8n+FY4x1o16Xpxq5xpz9QPvMaajTen/Tv8oI4/fGGpc0iSclOtVoQsdWYj9cSD64VnAdHqmwcEHQSOafD7Ek=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gsSHOWkZ; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XlSrlt6I"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C39B91F000E9;
-	Wed, 15 Jul 2026 19:15:52 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gsSHOWkZ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 33B6E1F000E9;
+	Wed, 15 Jul 2026 19:33:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1784142952;
-	bh=LQgM0qHij1UGdkTtw8YzutQ0s9ovsEYaHAlpguqv5QA=;
+	d=linux-foundation.org; s=korg; t=1784144009;
+	bh=5Lj09kNCBg/4OucEXRTMsA2EDWlxrUjzZOuHAgLEGqY=;
 	h=Date:To:From:Subject;
-	b=XlSrlt6IPSRXhplG2sFHE/FHnMAmhI+BaO5/aSFuXry2JnbHfyOsLKRwikmkSYf8i
-	 BO1uzw2dPxQatxLV9qKYFO9NVoqU69JXVNE3nWzQR7rXRT18TB4szEVsqiDU7VKpFM
-	 MyUgJesrrXnI7yemdF0ncX8OdNI0cO+wdrcZzblc=
-Date: Wed, 15 Jul 2026 12:15:52 -0700
-To: mm-commits@vger.kernel.org,will@kernel.org,vbabka@kernel.org,urezki@gmail.com,toshi.kani@hpe.com,surenb@google.com,shakeel.butt@linux.dev,ryan.roberts@arm.com,rppt@kernel.org,peterz@infradead.org,mingo@redhat.com,mhocko@suse.com,luto@kernel.org,ljs@kernel.org,liam@infradead.org,kas@kernel.org,hpa@zytor.com,dev.jain@arm.com,david@kernel.org,dave.hansen@linux.intel.com,catalin.marinas@arm.com,bp@alien8.de,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=gsSHOWkZ4Qi0156xrJZSxFtitBMmOilsigx0BfAZSetfItVgt8oIYDwaad68UpoLN
+	 jNmL2nGMjrJkKYTLhfADswbFsjuTnVGxDsSSwWy/tY6p4zXsp6frYKYmghdW5wMVcK
+	 mDc7j76XSkS6nNhV2ieQs+mWQh3Sir5khUvDNsD4=
+Date: Wed, 15 Jul 2026 12:33:28 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,surenb@google.com,stable@vger.kernel.org,shakeel.butt@linux.dev,rostedt@goodmis.org,mhocko@suse.com,harry@kernel.org,hannes@cmpxchg.org,bigeasy@linutronix.de,ast@kernel.org,jackmanb@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmalloc-acquire-init_mm-lock-on-huge-vmap-to-avoid-ptdump-uaf-fix.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260715191552.C39B91F000E9@smtp.kernel.org>
+Subject: + mm-page_alloc-dont-spin_trylock-in-nmi-on-up.patch added to mm-new branch
+Message-Id: <20260715193329.33B6E1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,26 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm-vmalloc-acquire-init_mm-lock-on-huge-vmap-to-avoid-ptdump-uaf-fix
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-vmalloc-acquire-init_mm-lock-on-huge-vmap-to-avoid-ptdump-uaf-fix.patch
+     Subject: mm/page_alloc: don't spin_trylock() in NMI on UP
+has been added to the -mm mm-new branch.  Its filename is
+     mm-page_alloc-dont-spin_trylock-in-nmi-on-up.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmalloc-acquire-init_mm-lock-on-huge-vmap-to-avoid-ptdump-uaf-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-dont-spin_trylock-in-nmi-on-up.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,72 +69,92 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-vmalloc-acquire-init_mm-lock-on-huge-vmap-to-avoid-ptdump-uaf-fix
-Date: Wed Jul 15 12:12:32 PM PDT 2026
+From: Brendan Jackman <jackmanb@google.com>
+Subject: mm/page_alloc: don't spin_trylock() in NMI on UP
+Date: Wed, 15 Jul 2026 09:03:58 +0000
 
-update comment, per Kiryl
+Patch series "mm/page_alloc: fixes for free_pages_nolock() on RT/UP".
 
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: "Borislav Petkov (AMD)" <bp@alien8.de>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Kiryl Shutsemau <kas@kernel.org>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
+Pre-existing bugs found by Sashiko during review of this other series:
+https://lore.kernel.org/all/20260703-alloc-trylock-v5-0-c87b714e19d3@google.com/
+
+I have not reproduced these bugs, and I suspect there is no real-world
+user that is affected by them.
+
+
+This patch (of 2):
+
+As noted in can_spin_trylock(), using this is unsafe in this context. 
+commit 620b46ed6ae17 ("mm/page_alloc: return NULL early from
+alloc_frozen_pages_nolock() in NMI on UP") fixed this on the alloc side
+but missed the free side.
+
+Impact: If BPF programs using these features in NMI (probably tracing) are
+present on non-SMP builds this might crash the kernel and is probably
+exploitable by local attackers for privilege escalation.
+
+Link: https://lore.kernel.org/20260715-alloc-nolock-fixes-v1-0-fadc49952dda@google.com
+Link: https://lore.kernel.org/20260715-alloc-nolock-fixes-v1-1-fadc49952dda@google.com
+Fixes: 8c57b687e8331 ("mm, bpf: Introduce free_pages_nolock()")
+Signed-off-by: Brendan Jackman <jackmanb@google.com>
+Reported-by: sashiko-bot@kernel.org
+Closes: https://sashiko.dev/#/patchset/20260703-alloc-trylock-v5-0-c87b714e19d3%40google.com?part=18
+Reviewed-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
+Cc: Alexei Starovoitov <ast@kernel.org>
+Cc: Harry Yoo <harry@kernel.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Steven Rostedt <rostedt@goodmis.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Toshi Kani <toshi.kani@hpe.com>
-Cc: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Will Deacon <will@kernel.org>
+Cc: Zi Yan <ziy@nvidia.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ mm/page_alloc.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/mm/vmalloc.c~mm-vmalloc-acquire-init_mm-lock-on-huge-vmap-to-avoid-ptdump-uaf-fix
-+++ a/mm/vmalloc.c
-@@ -163,12 +163,11 @@ static int vmap_try_huge_pmd(pmd_t *pmd,
- 		return pmd_set_huge(pmd, phys_addr, prot);
+--- a/mm/page_alloc.c~mm-page_alloc-dont-spin_trylock-in-nmi-on-up
++++ a/mm/page_alloc.c
+@@ -2979,8 +2979,7 @@ static void __free_frozen_pages(struct p
+ 		migratetype = MIGRATE_MOVABLE;
+ 	}
  
- 	/*
--	 * Kernel page table walkers either walk ranges they own exclusively or
--	 * hold the mmap write lock on init_mm (ptdump being the motivating
--	 * case).
-+	 * Acquire the mmap read lock to exclude ptdump, which walks kernel
-+	 * page tables it does not own under the mmap write lock.
- 	 *
--	 * Therefore, acquire the mmap read lock to prevent use-after-free when
--	 * freeing page tables.
-+	 * Concurrent read lock holders are safe: each exclusively owns the
-+	 * range it operates on and cannot reach this page table.
- 	 */
- #ifndef CONFIG_ARM64
- 	scoped_cond_guard(mmap_read_lock_try, return 0, &init_mm)
+-	if (unlikely((fpi_flags & FPI_TRYLOCK) && IS_ENABLED(CONFIG_PREEMPT_RT)
+-		     && (in_nmi() || in_hardirq()))) {
++	if (unlikely((fpi_flags & FPI_TRYLOCK) && !can_spin_trylock())) {
+ 		add_page_to_zone_llist(zone, page, order);
+ 		return;
+ 	}
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from jackmanb@google.com are
 
-mm-vmalloc-acquire-init_mm-lock-on-huge-vmap-to-avoid-ptdump-uaf-fix.patch
-mm-mincore-use-walk_page_range_vma-in-do_mincore-fix.patch
-csky-implement-flush_cache_vmap-in-c.patch
-mm-annotate-data-race-in-cpu_needs_drain-fix.patch
-mm-zsmalloc-encode-class-index-in-obj-value-for-lockless-class-lookup-fix.patch
-mm-zsmalloc-drop-pool-lock-from-zs_free-on-64-bit-systems-fix.patch
-mm-zsmalloc-drop-pool-lock-from-zs_free-on-64-bit-systems-fix-fix.patch
-mm-rmap-use-huge_ptep_get-in-try_to_migrate_one-checkpatch-fixes.patch
-mm-mprotect-use-huge_ptep_get-for-hugetlb-fix.patch
-mm-drop-stale-folio_ref_count==1-check-in-do_swap_page-reuse-logic-fix.patch
-alloc_tag-add-ioctl-to-proc-allocinfo-fix.patch
-drivers-media-v4l2-core-v4l2-vp9c-reduce-inlining.patch
+mm-page_alloc-drop-flag-conversion-optimisation.patch
+mm-secretmem-disable-under-highmem.patch
+mm-page_alloc-rename-alloc_trylock-alloc_nolock.patch
+mm-page_alloc-some-renames-to-clarify-alloc_flags-scopes.patch
+mm-name-some-args-in-a-function-declaration.patch
+mm-split-out-internal-page_alloch.patch
+mm-page_alloc-unify-__alloc_frozen_pages_noprof.patch
+mm-page_alloc-relax-gfp-warn-in-nolock-allocs.patch
+mm-move-some-stuff-to-mm-page_alloch.patch
+perf-x86-intel-use-higher-level-allocator-api.patch
+kvm-vmx-use-higher-level-allocator-api.patch
+x86-virt-use-higher-level-allocator-api.patch
+sgi-xp-use-higher-level-allocator-api.patch
+net-funeth-switch-to-higher-level-allocator-api.patch
+mm-remove-__alloc_pages_node.patch
+mm-move-__alloc_pages-to-mm-page_alloch.patch
+mm-replace-__gfp_no_codetag-with-alloc_no_codetag.patch
+mm-page_alloc-drop-alloc_flags-arg-from-alloc_flags_cma.patch
+mm-factor-out-can_spin_trylock.patch
+mm-page_alloc-dont-spin_trylock-in-nmi-on-up.patch
+mm-page_alloc-dont-spin_trylock-when-disallowed-in-free_one_page.patch
+mm-page_alloc-rename-fpi_trylock-fpi_nolock.patch
+cgroup-cpuset-update-some-comments-about-the-page-allocator.patch
+mm-page_alloc-fixup-alloc_pages_nolock_noprof-comment.patch
+mm-page_alloc-remove-a-couple-of-vm_bug_onst.patch
 
