@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6E6AA34DCC7
-	for <mm-commits@vger.kernel.org>; Wed, 15 Jul 2026 21:18:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BA12B34DCC7
+	for <mm-commits@vger.kernel.org>; Wed, 15 Jul 2026 21:18:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784150304; cv=none; b=hH7Xft3RUwgYEkXTlckLhZ7yDNFYoyousMqFCmD7ontjM/qDUiIavM9f7LOj5MNibs8lB22M6hUQGlN1gVgBsFmS2pASec56nbsGmyUu7ZRQfQokCX4OXKK5g6Zvg0XG6YghZc9ABumAUtzlqkvqvvn2rwOZnFxuNigvWl4JGfI=
+	t=1784150307; cv=none; b=G2oqfvv5KLOrsV+EXM57R2ieuYUODW8BKRlc0IWJ6NBRibZicR00yFaxSmtb9Q9TWSQncSG0RgsuxwNhRLoxmsBg0+gAt3iZLINw0wXRyEVO/ea7OWTx/068qoJRmM70ycrKQ7RbzBIZHbwEPMw+MtXKm87CWRqkB6N4IArIaxc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784150304; c=relaxed/simple;
-	bh=RI4xNhzOkVNogmVOhkLo1zoIaHQF4QIh77h/xeN7hJE=;
-	h=Date:To:From:Subject:Message-Id; b=E4jo++ECi2ycRCuucSbQONKkM6newXurIv/dv/RSZwP1jotp4ztvGSBQiPZeiqLOdiJq4LWbxtzIeulbpP6hOODvnJ+ZuKoe/COLMK1aBFqCtK27znSUqlQ0mXNrF8mJO7xzWbjBXRfipQbkHcg3lEuRR5f8ziHu/LZLpQgFTHo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IN8dKibL; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1784150307; c=relaxed/simple;
+	bh=mHtFK4XXMzbTNWOaD3/cV/dRI1XhpPP+iy+NAuGROnM=;
+	h=Date:To:From:Subject:Message-Id; b=qVdJINcLPscQWWnpdj9YrQipl0DtCrDloTsZd5KYd2edIryWZ1CumsWYp9L9RilUNpzobxUj6aUGsVeVXYZGfDAsoHXhpPm1iPyT7lIMaKmcZj9t4JD3v/Dd5DgKwxFzXdTB0DG+CGJLS9YXGjdYE/+yZeFMSxev0rKTdLIj5jY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=l4rtutzr; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IN8dKibL"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 42B001F000E9;
-	Wed, 15 Jul 2026 21:18:23 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="l4rtutzr"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 84CC81F000E9;
+	Wed, 15 Jul 2026 21:18:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1784150303;
-	bh=jKiUIaUuMQ5vn0RcKGIiyPmkhYy4Nzubz0d8ss1tnD0=;
+	d=linux-foundation.org; s=korg; t=1784150305;
+	bh=MpOnp77/UKbn5D7hvnhGqHgas6wccGOEsl+dR72N9/E=;
 	h=Date:To:From:Subject;
-	b=IN8dKibL8/gLyMGnIE8P6imC9f/ds9TtIWCcJ9i1HNL2P1vRaUs7gQaK9R0wWAAxX
-	 qqvm41DPP1/rHnExu/B8z4EgMUp1Inj3+Hp9XNZeecL+B/eGf5A4cTopMbBcvrHEeq
-	 M1eNKJ5ZFgMCX7CimhFFYJu4ALj2tXfOqx7zhvyU=
-Date: Wed, 15 Jul 2026 14:18:22 -0700
+	b=l4rtutzrUcF3CqEjfltJjfIyKowL3dROqM8AX8cJW8/me3owg60pQlfTpTO1pp9WP
+	 TOqHjZhBrQrraGUxaC5XcYJdjmJ1Y0BedUGnqDwiFjXFIpBPseKEA85rofvljjDqhD
+	 iku8NysGJrNzHHsIFLYRCWv0tzruoZr3WrPVxduY=
+Date: Wed, 15 Jul 2026 14:18:25 -0700
 To: mm-commits@vger.kernel.org,skinsburskii@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mshv-use-hmm_range_fault_unlocked_timeout-for-region-faults.patch added to mm-unstable branch
-Message-Id: <20260715211823.42B001F000E9@smtp.kernel.org>
+Subject: + drm-nouveau-use-hmm_range_fault_unlocked_timeout-for-svm-faults.patch added to mm-unstable branch
+Message-Id: <20260715211825.84CC81F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mshv: use hmm_range_fault_unlocked_timeout() for region faults
+     Subject: drm/nouveau: use hmm_range_fault_unlocked_timeout() for SVM faults
 has been added to the -mm mm-unstable branch.  Its filename is
-     mshv-use-hmm_range_fault_unlocked_timeout-for-region-faults.patch
+     drm-nouveau-use-hmm_range_fault_unlocked_timeout-for-svm-faults.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mshv-use-hmm_range_fault_unlocked_timeout-for-region-faults.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/drm-nouveau-use-hmm_range_fault_unlocked_timeout-for-svm-faults.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,27 +59,24 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Stanislav Kinsburskii <skinsburskii@gmail.com>
-Subject: mshv: use hmm_range_fault_unlocked_timeout() for region faults
-Date: Wed, 15 Jul 2026 11:16:22 -0700
+Subject: drm/nouveau: use hmm_range_fault_unlocked_timeout() for SVM faults
+Date: Wed, 15 Jul 2026 11:16:30 -0700
 
-MSHV currently faults movable memory regions by taking mmap_read_lock()
-around hmm_range_fault().  That prevents the fault path from handling VMAs
-whose fault handlers need to drop mmap_lock, such as userfaultfd-backed
-mappings.
+nouveau_range_fault() takes mmap_read_lock() only to call
+hmm_range_fault().  It also keeps a single HMM_RANGE_DEFAULT_TIMEOUT
+deadline across both HMM -EBUSY retries and post-fault
+mmu_interval_read_retry() retries.
 
-Use hmm_range_fault_unlocked_timeout() instead.  Passing a timeout of 0
-preserves MSHV's existing unbounded retry behavior while letting the HMM
-helper own mmap_lock acquisition and refresh range->notifier_seq
-internally before walking the range.  After the fault succeeds, MSHV still
-takes mreg_mutex and checks mmu_interval_read_retry() before installing
-the pages into the region, so the existing invalidation synchronization is
-preserved.
+Use hmm_range_fault_unlocked_timeout() instead.  The HMM helper now owns
+the mmap lock and refreshes range->notifier_seq for its internal retries. 
+Nouveau keeps its existing absolute deadline in the outer loop and passes
+the remaining jiffies to the helper for each fault attempt, so retries
+caused by mmu_interval_read_retry() do not reset the overall retry budget.
 
-Fold the small fault-and-lock helper into mshv_region_range_fault(), since
-the remaining retry path is just the standard "fault, take the driver
-lock, check the interval notifier sequence" pattern.
+Nouveau still validates the interval notifier sequence while holding
+svmm->mutex before programming the GPU mapping.
 
-Link: https://lore.kernel.org/178413938249.1155966.292562154596800687.stgit@skinsburskii
+Link: https://lore.kernel.org/178413939024.1155966.6246787744253724390.stgit@skinsburskii
 Signed-off-by: Stanislav Kinsburskii <skinsburskii@gmail.com>
 Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
 Cc: Danilo Krummrich <dakr@kernel.org>
@@ -110,82 +107,43 @@ Cc: Wei Liu <wei.liu@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hv/mshv_regions.c |   54 ++++++------------------------------
- 1 file changed, 10 insertions(+), 44 deletions(-)
+ drivers/gpu/drm/nouveau/nouveau_svm.c |   20 +++++++++++---------
+ 1 file changed, 11 insertions(+), 9 deletions(-)
 
---- a/drivers/hv/mshv_regions.c~mshv-use-hmm_range_fault_unlocked_timeout-for-region-faults
-+++ a/drivers/hv/mshv_regions.c
-@@ -382,46 +382,6 @@ int mshv_region_get(struct mshv_mem_regi
- }
+--- a/drivers/gpu/drm/nouveau/nouveau_svm.c~drm-nouveau-use-hmm_range_fault_unlocked_timeout-for-svm-faults
++++ a/drivers/gpu/drm/nouveau/nouveau_svm.c
+@@ -678,20 +678,22 @@ static int nouveau_range_fault(struct no
+ 	range.end = notifier->notifier.interval_tree.last + 1;
  
- /**
-- * mshv_region_hmm_fault_and_lock - Handle HMM faults and lock the memory region
-- * @region: Pointer to the memory region structure
-- * @range: Pointer to the HMM range structure
-- *
-- * This function performs the following steps:
-- * 1. Reads the notifier sequence for the HMM range.
-- * 2. Acquires a read lock on the memory map.
-- * 3. Handles HMM faults for the specified range.
-- * 4. Releases the read lock on the memory map.
-- * 5. If successful, locks the memory region mutex.
-- * 6. Verifies if the notifier sequence has changed during the operation.
-- *    If it has, releases the mutex and returns -EBUSY to match with
-- *    hmm_range_fault() return code for repeating.
-- *
-- * Return: 0 on success, a negative error code otherwise.
-- */
--static int mshv_region_hmm_fault_and_lock(struct mshv_mem_region *region,
--					  struct hmm_range *range)
--{
--	int ret;
--
--	range->notifier_seq = mmu_interval_read_begin(range->notifier);
--	mmap_read_lock(region->mreg_mni.mm);
--	ret = hmm_range_fault(range);
--	mmap_read_unlock(region->mreg_mni.mm);
--	if (ret)
--		return ret;
--
--	mutex_lock(&region->mreg_mutex);
--
--	if (mmu_interval_read_retry(range->notifier, range->notifier_seq)) {
--		mutex_unlock(&region->mreg_mutex);
--		cond_resched();
--		return -EBUSY;
--	}
--
--	return 0;
--}
--
--/**
-  * mshv_region_range_fault - Handle memory range faults for a given region.
-  * @region: Pointer to the memory region structure.
-  * @page_offset: Offset of the page within the region.
-@@ -452,13 +412,19 @@ static int mshv_region_range_fault(struc
- 	range.start = region->start_uaddr + page_offset * HV_HYP_PAGE_SIZE;
- 	range.end = range.start + page_count * HV_HYP_PAGE_SIZE;
- 
--	do {
--		ret = mshv_region_hmm_fault_and_lock(region, &range);
--	} while (ret == -EBUSY);
--
-+again:
-+	ret = hmm_range_fault_unlocked_timeout(&range, 0);
- 	if (ret)
- 		goto out;
- 
-+	mutex_lock(&region->mreg_mutex);
+ 	while (true) {
+-		if (time_after(jiffies, timeout)) {
++		long remaining = timeout - jiffies;
 +
-+	if (mmu_interval_read_retry(range.notifier, range.notifier_seq)) {
-+		mutex_unlock(&region->mreg_mutex);
-+		cond_resched();
-+		goto again;
-+	}
-+
- 	for (i = 0; i < page_count; i++)
- 		region->mreg_pages[page_offset + i] = hmm_pfn_to_page(pfns[i]);
++		/*
++		 * The HMM timeout only bounds retries while HMM is walking and
++		 * faulting the range. This fault is handled by a kernel worker,
++		 * so fatal signals from the faulting process cannot stop an
++		 * endless stream of invalidations here.
++		 */
++		if (time_after_eq(jiffies, timeout)) {
+ 			ret = -EBUSY;
+ 			goto out;
+ 		}
  
+-		range.notifier_seq = mmu_interval_read_begin(range.notifier);
+-		mmap_read_lock(mm);
+-		ret = hmm_range_fault(&range);
+-		mmap_read_unlock(mm);
+-		if (ret) {
+-			if (ret == -EBUSY)
+-				continue;
++		ret = hmm_range_fault_unlocked_timeout(&range, remaining);
++		if (ret)
+ 			goto out;
+-		}
+ 
+ 		mutex_lock(&svmm->mutex);
+ 		if (mmu_interval_read_retry(range.notifier,
 _
 
 Patches currently in -mm which might be from skinsburskii@gmail.com are
