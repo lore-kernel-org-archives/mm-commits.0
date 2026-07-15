@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 96232388390;
-	Wed, 15 Jul 2026 04:45:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 941E8188596;
+	Wed, 15 Jul 2026 04:45:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784090729; cv=none; b=WOq2gQ+H3PPS1Oe69u2VQtbofJUTb24VPZHW1Xz1CEKFQCIxXbaZtoEcqnu+PLTqDNXq2TXc+7LxhsyKO3dZCvuEoJZm3SXMq5eSveT8aDYl95pSNPYzI9tOSaL6d++jDd/NEymvTPJ0mc5tStsuWo0t/V9EyY2mXoDNAcSUbHU=
+	t=1784090731; cv=none; b=OwBO/wy+MoCjBGak9qB2xpRFjV8sfljH1JLoS7LIByDP1A8hNWfEiLALPFfB9PJ9nXqe24DCfjZBU7Kkw5n9yWOQO9JXbd1gl/bZciE7v5N9GGpG3Ce47WdWo+zBB8/udxMrKqLdLkLLiO5MCc4AQOchRncMz8kMEpdD7oD0UvM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784090729; c=relaxed/simple;
-	bh=fT67t3aqE72RmQaGuwjncmLGymfSoW0FPpF4bhlYSPA=;
-	h=Date:To:From:Subject:Message-Id; b=I1FCOjoGZtr5xmw6TVsEdfGqDR5w383dgZ1ssXquKLs00df4LZ8XMCUVYVQb/ODuWvsbNaqgMKeButBHrQxPEyAsCq7BGe7dvgMEUCE7lpUEB8bdeYPXpGA4akEdAG+usvPJzdtPjQBa0DxBldzYq7pe1+Ae3t/aQFfswn0Iywc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UufvBu3H; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1784090731; c=relaxed/simple;
+	bh=6pT405S0kFVHAAzNxpYhkZto4+obelr1o8S4ug1OXCM=;
+	h=Date:To:From:Subject:Message-Id; b=Y/e5argbn6x+tWuRrMP1NMiDzklXuVUuBkNfXttWGYh39NY7flReBijd+3Vrw9DkdUSnDGRwmHwaTx7tdPzsexyYwLgNZdbgGkFOGtok7MO682dfdStQBseSehuiB1ksgbeYtVu+j6fwhMlXV3Pqm61qL17kMg4YO56Rg3YZWk8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gQrZfkaN; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UufvBu3H"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 32C501F00A3A;
-	Wed, 15 Jul 2026 04:45:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gQrZfkaN"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2C7EB1F000E9;
+	Wed, 15 Jul 2026 04:45:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1784090727;
-	bh=Om2If5e8VbTCJ0qHtQGBRxZ5wgFv6ruKV5Y/oaHdKFc=;
+	d=linux-foundation.org; s=korg; t=1784090729;
+	bh=3ugZjF1Soag0k1r0OmXaw/9Kdehz8c7I5pFAalEWjqM=;
 	h=Date:To:From:Subject;
-	b=UufvBu3HuMiNH9EVj3jCTEk9nuW5JUD6yM3bWiTS9wsdVNUwfsIXNJqbKoaEB1qZ8
-	 QtuMx+1r6fBEwW/tErMlBQj0DiQSWchdRxeDH17mm3z/JO7V1NGCA307t8W0yxqLPP
-	 SzhxU3uA3KbRwqI+axaJO6a0POgg38UA2PYmY6C4=
-Date: Tue, 14 Jul 2026 21:45:26 -0700
+	b=gQrZfkaN1vkT6GI5kNTyMjlpDqKEDPTG26LfCMy1Hrtye6KA0odRsW88bYXwxc82k
+	 JbrbQRewZ2dZwpsU9SXUDW7gabTiiPeknb9B+jCuUC0kuHRabyLBUpx4rx1argZOrY
+	 3PAqoPlJN+m/H5+3zBg2FTv9+aqy7qx3/3jHJxi0=
+Date: Tue, 14 Jul 2026 21:45:28 -0700
 To: mm-commits@vger.kernel.org,stable@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-paddr-drop-last-same-folio-access-check-reuse-optimization.patch added to mm-new branch
-Message-Id: <20260715044527.32C501F00A3A@smtp.kernel.org>
+Subject: + mm-damon-sysfs-read-addr_unit-only-once-in-damon_sysfs_apply_inputs.patch added to mm-new branch
+Message-Id: <20260715044529.2C7EB1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/paddr: drop last same folio access check reuse optimization
+     Subject: mm/damon/sysfs: read addr_unit only once in damon_sysfs_apply_inputs()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-paddr-drop-last-same-folio-access-check-reuse-optimization.patch
+     mm-damon-sysfs-read-addr_unit-only-once-in-damon_sysfs_apply_inputs.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-paddr-drop-last-same-folio-access-check-reuse-optimization.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-read-addr_unit-only-once-in-damon_sysfs_apply_inputs.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,78 +70,49 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/paddr: drop last same folio access check reuse optimization
-Date: Tue, 14 Jul 2026 20:09:59 -0700
+Subject: mm/damon/sysfs: read addr_unit only once in damon_sysfs_apply_inputs()
+Date: Tue, 14 Jul 2026 20:10:00 -0700
 
-It can race when multiple kdamonds are being used.  The problem from the
-race is doubtful, but the gain from the optimization is also doubtful. 
-Simply drop the optimization in favor of code simplicity.
+damon_sysfs_apply_inputs() reads addr_unit twice.  It could race with
+addr_unit_store().  As a result, the min_region_sz could wrongly be set
+up.  Read it once.
 
-The user impact is doubtfully trivial.  After all, this kind of
-interference can happen only by intentional user setup.  Even if it
-happens, it will be rare, and the consequence is degradation of the
-best-effort monitoring results.  No critical consequences like kernel
-panic or memory corruption happen.
+The user impact is trivial.  Sane users ain't update the parameter in
+parallel.  Even if it happens, the DAMON core layer handles the wrong
+min_region_sz (!is_power_of_2()).  Even if somehow the race ended up
+making a min_region_sz that is different from the user's intention but
+still valid, only monitoring itself runs differently than expected.  No
+critical consequences like kernel panic or memory corruption happen.
 
-The race was discovered [1] by Sashiko.
+The issue was discovered [1] by Sashiko.
 
-Link: https://lore.kernel.org/20260715031002.108504-5-sj@kernel.org
-Link: https://lore.kernel.org/20260621204050.10993-1-sj@kernel.org [1]
-Fixes: a28397beb55b ("mm/damon: implement primitives for physical address space monitoring")
+Link: https://lore.kernel.org/20260715031002.108504-6-sj@kernel.org
+Link: https://lore.kernel.org/20260714142950.100711-1-sj@kernel.org [1]
+Fixes: 540a2aebc657 ("mm/damon/sysfs: implement addr_unit file under context dir")
 Signed-off-by: SJ Park <sj@kernel.org>
-Cc: <stable@vger.kernel.org> # 5.16.x
+Cc: <stable@vger.kernel.org> # 6.18.x
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/paddr.c |   20 ++++----------------
- 1 file changed, 4 insertions(+), 16 deletions(-)
+ mm/damon/sysfs.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/damon/paddr.c~mm-damon-paddr-drop-last-same-folio-access-check-reuse-optimization
-+++ a/mm/damon/paddr.c
-@@ -65,7 +65,7 @@ static void damon_pa_prepare_access_chec
- 	}
- }
- 
--static bool damon_pa_young(phys_addr_t paddr, unsigned long *folio_sz)
-+static bool damon_pa_young(phys_addr_t paddr)
- {
- 	struct folio *folio = damon_get_folio(PHYS_PFN(paddr));
- 	bool accessed;
-@@ -74,7 +74,6 @@ static bool damon_pa_young(phys_addr_t p
- 		return false;
- 
- 	accessed = damon_folio_young(folio);
--	*folio_sz = folio_size(folio);
- 	folio_put(folio);
- 	return accessed;
- }
-@@ -82,23 +81,12 @@ static bool damon_pa_young(phys_addr_t p
- static void __damon_pa_check_access(struct damon_region *r,
- 		unsigned long addr_unit)
- {
--	static phys_addr_t last_addr;
--	static unsigned long last_folio_sz = PAGE_SIZE;
--	static bool last_accessed;
-+	bool accessed;
- 	phys_addr_t sampling_addr = damon_pa_phys_addr(
- 			r->sampling_addr, addr_unit);
- 
--	/* If the region is in the last checked page, reuse the result */
--	if (ALIGN_DOWN(last_addr, last_folio_sz) ==
--				ALIGN_DOWN(sampling_addr, last_folio_sz)) {
--		damon_update_region_access_rate(r, last_accessed);
--		return;
--	}
--
--	last_accessed = damon_pa_young(sampling_addr, &last_folio_sz);
--	damon_update_region_access_rate(r, last_accessed);
--
--	last_addr = sampling_addr;
-+	accessed = damon_pa_young(sampling_addr);
-+	damon_update_region_access_rate(r, accessed);
- }
- 
- static unsigned int damon_pa_check_accesses(struct damon_ctx *ctx)
+--- a/mm/damon/sysfs.c~mm-damon-sysfs-read-addr_unit-only-once-in-damon_sysfs_apply_inputs
++++ a/mm/damon/sysfs.c
+@@ -2099,11 +2099,11 @@ static int damon_sysfs_apply_inputs(stru
+ 	err = damon_select_ops(ctx, sys_ctx->ops_id);
+ 	if (err)
+ 		return err;
+-	ctx->addr_unit = sys_ctx->addr_unit;
++	ctx->addr_unit = READ_ONCE(sys_ctx->addr_unit);
+ 	/* addr_unit is respected by only DAMON_OPS_PADDR */
+ 	if (sys_ctx->ops_id == DAMON_OPS_PADDR)
+ 		ctx->min_region_sz = max(
+-				DAMON_MIN_REGION_SZ / sys_ctx->addr_unit, 1);
++				DAMON_MIN_REGION_SZ / ctx->addr_unit, 1);
+ 	ctx->pause = sys_ctx->pause;
+ 	err = damon_sysfs_set_attrs(ctx, sys_ctx->attrs);
+ 	if (err)
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
