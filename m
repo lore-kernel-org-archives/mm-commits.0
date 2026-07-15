@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 909963CF69C
-	for <mm-commits@vger.kernel.org>; Wed, 15 Jul 2026 21:10:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 78CC53CF69C
+	for <mm-commits@vger.kernel.org>; Wed, 15 Jul 2026 21:10:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784149811; cv=none; b=Z122a+XmBM+/QXk6AJWqzCCOO3RCAruK7/wcMx1OfX/ytM41WBL4YsYe/aoYnArjOeBNxjPr+N/tumhJLRsKLEq/GRHJCj9R2YLg2DaUvTcJuX8eCt6cDBXG1F9Bt9x6FJ9wzItpdgJ8mUhTZDQQmjbegX1bghDseEbe6zrvCls=
+	t=1784149813; cv=none; b=hmrQwApfu3fguq9FnD2GsX1rNplDPge1OzYSq5p9Xjo5zAQfpOrVggnLqd9/yTHkN1yRGZrgWLhf5ardkWNFQC8e2wAvqbJxxrc8gA9g5aHQza7o3FGUHpXyWah4rayqeoo8fLsM68nVwSC+9BlgiJuw18ltRdtQWQyR8e0iBbo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784149811; c=relaxed/simple;
-	bh=WhC4uJx2sXTibB7oXXwfTpNMd97MKK2Zlfj4zdxrjHc=;
-	h=Date:To:From:Subject:Message-Id; b=aGcVWDXM2gm6IUMnJsEQ5eYEy+npDMbf3+hvencRXpYecLx80mRPCges48I8TQeefhgGaVC+h7e3Xh6u6oEasRqwEkMV2Mu1hrL3ntUj6Aduwm2L8MMta3AIrama5zyeEjHs6ZKdLjESWFOnGMt7AUy+HqCNiCPR7UW5Mq+EQYQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=N1cpwBzQ; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1784149813; c=relaxed/simple;
+	bh=jPAsH0QzCPVyPm9JAHCjujgzSLbQX8Nq3Ys7F4Qp6RQ=;
+	h=Date:To:From:Subject:Message-Id; b=q2FfphATrF2zTsrLTIKiX4qTClk2zPdQmMVkI9aWT5/3TmjIjwmxUObVBst/Xj8Oi8j6Ru9VRgA0ecyXnqhCfVlFvf9ovN2cw0dWOt1W7fbmiCVJJU5KGmEgbekJd2EO972f2ozTvp+u7PnymOqY/oYz72iqsFjGkJgZ790K+74=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DVPxosat; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="N1cpwBzQ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2246D1F000E9;
-	Wed, 15 Jul 2026 21:10:10 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DVPxosat"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8E8D41F00A3A;
+	Wed, 15 Jul 2026 21:10:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1784149810;
-	bh=QRlN2rB2RMS8EaNNZWrw4Ex8xCtW+ABvttcP7HsPg4w=;
+	d=linux-foundation.org; s=korg; t=1784149811;
+	bh=0pPLnjzbIbwvUmyWI/DpmkzEXqisn3sg21DKFlH7vvE=;
 	h=Date:To:From:Subject;
-	b=N1cpwBzQvrkJWx3EZejNDhLGzreClAiPeyvejW5zdwwzwHapsuM2+U+V5LR9K1y7h
-	 8yn2fVQdFCjSlCEo2WXMmjjhKrsG0Qr2Gj+igbs4w4wZBebRpkSg64ewGPgx+I/7m0
-	 iFgFCQxRUTo/zI7yVOQbF5OjbYBVSj+GLQ2m+QKU=
-Date: Wed, 15 Jul 2026 14:10:09 -0700
+	b=DVPxosatBaMtTyucO3YyS+PqRA8LXEjUs+0mIqI3ffkEVOhbRJJM88rdZ15nZ5Uqb
+	 GgZQX/wG8S1c8Jo9rVuWD7VYAll1m2kqJSbKVT4tYTjcIHt4gzE8yKRdmNPedZ5hjh
+	 2Y6AyP3uhcWapvFmFDo2pXOvrEYBPWzCFzWZa2u8=
+Date: Wed, 15 Jul 2026 14:10:11 -0700
 To: mm-commits@vger.kernel.org,skinsburskii@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] drm-nouveau-use-hmm_range_fault_unlocked_timeout-for-svm-faults.patch removed from -mm tree
-Message-Id: <20260715211010.2246D1F000E9@smtp.kernel.org>
+Subject: [to-be-updated] drm-nouveau-use-hmm_range_fault_unlocked_timeout-for-svm-faults-fix.patch removed from -mm tree
+Message-Id: <20260715211011.8E8D41F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,39 +35,43 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: drm/nouveau: use hmm_range_fault_unlocked_timeout() for SVM faults
+     Subject: drm-nouveau-use-hmm_range_fault_unlocked_timeout-for-svm-faults-fix
 has been removed from the -mm tree.  Its filename was
-     drm-nouveau-use-hmm_range_fault_unlocked_timeout-for-svm-faults.patch
+     drm-nouveau-use-hmm_range_fault_unlocked_timeout-for-svm-faults-fix.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
 From: Stanislav Kinsburskii <skinsburskii@gmail.com>
-Subject: drm/nouveau: use hmm_range_fault_unlocked_timeout() for SVM faults
-Date: Fri, 10 Jul 2026 14:26:58 -0700
+Subject: drm-nouveau-use-hmm_range_fault_unlocked_timeout-for-svm-faults-fix
+Date: Tue, 14 Jul 2026 15:21:35 -0700
 
-nouveau_range_fault() takes mmap_read_lock() only to call
-hmm_range_fault().  It also keeps a single HMM_RANGE_DEFAULT_TIMEOUT
-deadline across both HMM -EBUSY retries and post-fault
-mmu_interval_read_retry() retries.
+nouveau_range_fault() now uses hmm_range_fault_unlocked_timeout() for the
+HMM fault path.  Pass the remaining SVM fault timeout into HMM as a
+positive relative timeout instead of open-coding the HMM retry loop in
+nouveau.
 
-Use hmm_range_fault_unlocked_timeout() instead.  The HMM helper now owns
-the mmap lock and refreshes range->notifier_seq for its internal retries. 
-Nouveau keeps its existing absolute deadline in the outer loop and passes
-the remaining jiffies to the helper for each fault attempt, so retries
-caused by mmu_interval_read_retry() do not reset the overall retry budget.
+Keep the outer absolute timeout around nouveau's mmu_interval_read_retry()
+loop.  HMM's timeout only bounds retries while HMM is walking and faulting
+the range.  Once HMM returns successfully, a continuous stream of
+mmu-notifier invalidations can still make mmu_interval_read_retry()
+restart the operation.  This path runs from the GPU fault worker, so fatal
+signals for the faulting userspace task cannot be relied on to break that
+outer loop.
 
-Nouveau still validates the interval notifier sequence while holding
-svmm->mutex before programming the GPU mapping.
+Use time_after_eq() before the HMM call so the remaining timeout passed to
+HMM is always positive.  This preserves the old timeout behavior at the
+expiry boundary and avoids passing 0, which means retry indefinitely, to
+hmm_range_fault_unlocked_timeout().
 
-Link: https://lore.kernel.org/178371881847.900500.8789369230260725500.stgit@skinsburskii
+Link: https://lore.kernel.org/178406769581.1106335.2090301352195900623.stgit@skinsburskii
 Signed-off-by: Stanislav Kinsburskii <skinsburskii@gmail.com>
-Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
 Cc: Danilo Krummrich <dakr@kernel.org>
 Cc: Dave Airlie <airlied@gmail.com>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Dexuan Cui <decui@microsoft.com>
 Cc: Haiyang Zhang <haiyangz@microsoft.com>
+Cc: Jason Gunthorpe <jgg@nvidia.com>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Kees Cook <kees@kernel.org>
 Cc: K. Y. Srinivasan <kys@microsoft.com>
@@ -91,37 +95,41 @@ Cc: Wei Liu <wei.liu@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/nouveau/nouveau_svm.c |   12 ++++--------
- 1 file changed, 4 insertions(+), 8 deletions(-)
+ drivers/gpu/drm/nouveau/nouveau_svm.c |   14 ++++++++++----
+ 1 file changed, 10 insertions(+), 4 deletions(-)
 
---- a/drivers/gpu/drm/nouveau/nouveau_svm.c~drm-nouveau-use-hmm_range_fault_unlocked_timeout-for-svm-faults
+--- a/drivers/gpu/drm/nouveau/nouveau_svm.c~drm-nouveau-use-hmm_range_fault_unlocked_timeout-for-svm-faults-fix
 +++ a/drivers/gpu/drm/nouveau/nouveau_svm.c
-@@ -683,15 +683,11 @@ static int nouveau_range_fault(struct no
+@@ -678,14 +678,20 @@ static int nouveau_range_fault(struct no
+ 	range.end = notifier->notifier.interval_tree.last + 1;
+ 
+ 	while (true) {
+-		if (time_after(jiffies, timeout)) {
++		long remaining = timeout - jiffies;
++
++		/*
++		 * The HMM timeout only bounds retries while HMM is walking and
++		 * faulting the range. This fault is handled by a kernel worker,
++		 * so fatal signals from the faulting process cannot stop an
++		 * endless stream of invalidations here.
++		 */
++		if (time_after_eq(jiffies, timeout)) {
+ 			ret = -EBUSY;
  			goto out;
  		}
  
--		range.notifier_seq = mmu_interval_read_begin(range.notifier);
--		mmap_read_lock(mm);
--		ret = hmm_range_fault(&range);
--		mmap_read_unlock(mm);
--		if (ret) {
--			if (ret == -EBUSY)
--				continue;
-+		ret = hmm_range_fault_unlocked_timeout(&range,
-+						       max(timeout - jiffies,
-+							   1L));
-+		if (ret)
+-		ret = hmm_range_fault_unlocked_timeout(&range,
+-						       max(timeout - jiffies,
+-							   1L));
++		ret = hmm_range_fault_unlocked_timeout(&range, remaining);
+ 		if (ret)
  			goto out;
--		}
  
- 		mutex_lock(&svmm->mutex);
- 		if (mmu_interval_read_retry(range.notifier,
 _
 
 Patches currently in -mm which might be from skinsburskii@gmail.com are
 
 lib-test_hmm-use-device-devt-for-coherent-device-range-selection.patch
-drm-nouveau-use-hmm_range_fault_unlocked_timeout-for-svm-faults-fix.patch
 rdma-umem-use-hmm_range_fault_unlocked_timeout-for-odp-faults.patch
 accel-amdxdna-use-hmm_range_fault_unlocked_timeout-for-range-population.patch
 accel-amdxdna-use-hmm_range_fault_unlocked_timeout-for-range-population-fix.patch
