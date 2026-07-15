@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 62AE94C042F
-	for <mm-commits@vger.kernel.org>; Wed, 15 Jul 2026 18:21:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BA60A4C77BD
+	for <mm-commits@vger.kernel.org>; Wed, 15 Jul 2026 18:20:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784139668; cv=none; b=UhAu/BCESRjRawmUD0S/sJOwdYxi8sCenZHNp9iafvOVSJzwDR/EIdfLTeTH3A1KFGDdawYSWZTxkCj9ctGDx9x5mlasQYwg4ffDppt198aSnyVK1Zwy7wsbiwgVJS6oj14fRmjVGl6BycbmCf2EUq0xZDgNd87XwbjF0vdMlgg=
+	t=1784139665; cv=none; b=Qa92M9E5PAARRfCB7vWkvQwKXTJ5lWdbysSwMM8gUZfg0XDMntJF/w2FrwkC34nqK6+bliGlcJB2UyeJu0c3Q0WlDsnSzQmkh4r61yawS1CrO6TL7FeUTC23mLIgXrlaks8yeUXEWqtVlm9ooSChFNMSzacTIyyweD3+bLdwYgY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784139668; c=relaxed/simple;
-	bh=01XokSCZW1WnBpetkX971GX1FMhSJ6iFn2zEPRiS4ag=;
-	h=Date:To:From:Subject:Message-Id; b=B0sixp64S/E2B8x4+fWBERrYYiR3hdCXbIoZf7cQFKTCjYKZK2PDXMJ0Dye01NJDgC8weFb7aFkAsFdTsjRaddeZbt017ifkZbIuWjMHqfaK8hfeexr2qQdHhi7BAD698+IDQ4KuVoJsKFq7uz9mWBgy0Jv0jh8RQuJ+yUibx/A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=moRHn9JB; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1784139665; c=relaxed/simple;
+	bh=nEuSZji+d2bBcu4Umxlt39p+lZ8LffJqaKmQHaG7ub8=;
+	h=Date:To:From:Subject:Message-Id; b=lVuiVlyA2FovfKbjlk7RSDij+ZxjYSK1KLjcFlu90ku7dYVncni6fcJy7Qs+se8eJcFJQkLHzlay66yZkxmUV1xip0llVBSnOyK8AN4IlJAtrhYL6oVR6fLB1GF7FSSzOGVU5l8dwt18V7rOxmDL2ER8jkwH9dcYEqeo7EefBzo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YxKNvuFG; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="moRHn9JB"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 071311F00A3A;
-	Wed, 15 Jul 2026 18:20:56 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YxKNvuFG"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2E6101F00A3F;
+	Wed, 15 Jul 2026 18:20:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1784139656;
-	bh=rAgsNDq8PRa0dc95PeEJNTkdMp6JXwMB8c7eAY6Ze2Y=;
+	d=linux-foundation.org; s=korg; t=1784139654;
+	bh=1xZMlS+hSaWBLRTWpwMQKr39sLfpjVPRUHciVC6x4Ug=;
 	h=Date:To:From:Subject;
-	b=moRHn9JBAoIQxP8B1qlnxdMzODPjZFQH2CU1qXBVgUWjeKx4EKFq5mCponsp/q2Rz
-	 FlxfHyR6NLORzCQavzNL18P+vAkUdHef6RwOY68MInVzyTRFIeWRdke1om4PW5t51S
-	 44YMAFAuEKWugFgGVPwCM+H9w8nZ+jwMGa7YZCwA=
-Date: Wed, 15 Jul 2026 11:20:55 -0700
+	b=YxKNvuFGyRHj7BuEm6eJPFaGonQDwnU5zfXPIHqb/78OcG06VIqZEeIwhdqb4HB4I
+	 XJ37JvqEMgntR5SHKub2jWPAaq6CWQlnzJpL/dnRsyE2Qc/nW/l1K67GI5r/1FrqfE
+	 tuvGZLB5Ye0FDQig7WsQnqcmvw2gux9FsoVH2DFg=
+Date: Wed, 15 Jul 2026 11:20:53 -0700
 To: mm-commits@vger.kernel.org,ebiggers@kernel.org,hch@lst.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + raid6-defer-implementation-selection-when-built-in.patch added to mm-nonmm-unstable branch
-Message-Id: <20260715182056.071311F00A3A@smtp.kernel.org>
+Subject: + raid6-enable-lock-context-analysis.patch added to mm-nonmm-unstable branch
+Message-Id: <20260715182054.2E6101F00A3F@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: raid6: defer implementation selection when built-in
+     Subject: raid6: enable lock context analysis
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     raid6-defer-implementation-selection-when-built-in.patch
+     raid6-enable-lock-context-analysis.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/raid6-defer-implementation-selection-when-built-in.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/raid6-enable-lock-context-analysis.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,72 +59,30 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Christoph Hellwig <hch@lst.de>
-Subject: raid6: defer implementation selection when built-in
-Date: Wed, 15 Jul 2026 16:47:37 +0200
+Subject: raid6: enable lock context analysis
+Date: Wed, 15 Jul 2026 16:47:36 +0200
 
-Don't hold up early boot and defer the selection just like we've been
-doing for the RAID5 XOR code since commit 524ccdbdfb52 ("crypto: xor -
-defer load time benchmark to a later time").
+The code doesn't have any locking, so this is trivial.
 
-This will also allow full use of the timing subsystem for benchmarking.
-
-Link: https://lore.kernel.org/20260715144825.95432-7-hch@lst.de
+Link: https://lore.kernel.org/20260715144825.95432-6-hch@lst.de
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 Cc: Eric Biggers <ebiggers@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/raid/raid6/algos.c |   25 +++++++++++++++++++++----
- 1 file changed, 21 insertions(+), 4 deletions(-)
+ lib/raid/raid6/Makefile |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/lib/raid/raid6/algos.c~raid6-defer-implementation-selection-when-built-in
-+++ a/lib/raid/raid6/algos.c
-@@ -239,10 +239,6 @@ static int __init raid6_select_algo(void
- 	if (!IS_ENABLED(CONFIG_RAID6_PQ_BENCHMARK) || raid6_nr_algos == 1) {
- 		pr_info("raid6: skipped pq benchmark and selected %s\n",
- 			raid6_algos[raid6_nr_algos - 1]->name);
--		static_call_update(raid6_gen_syndrome_impl,
--				raid6_algos[raid6_nr_algos - 1]->gen_syndrome);
--		static_call_update(raid6_xor_syndrome_impl,
--				raid6_algos[raid6_nr_algos - 1]->xor_syndrome);
- 		return 0;
- 	}
+--- a/lib/raid/raid6/Makefile~raid6-enable-lock-context-analysis
++++ a/lib/raid/raid6/Makefile
+@@ -1,5 +1,7 @@
+ # SPDX-License-Identifier: GPL-2.0
  
-@@ -329,13 +325,34 @@ static int __init raid6_init(void)
- 	static_call_update(raid6_recov_datap_impl, raid6_recov_algo->datap);
- 	pr_info("raid6: using %s recovery algorithm\n", raid6_recov_algo->name);
- 
-+	/*
-+	 * Pick the last registered implementation as the temporary default until
-+	 * calibration happens.
-+	 */
-+	static_call_update(raid6_gen_syndrome_impl,
-+			raid6_algos[raid6_nr_algos - 1]->gen_syndrome);
-+	static_call_update(raid6_xor_syndrome_impl,
-+			raid6_algos[raid6_nr_algos - 1]->xor_syndrome);
++CONTEXT_ANALYSIS := y
 +
-+#ifdef MODULE
- 	return raid6_select_algo();
-+#else
-+	return 0;
-+#endif
- }
+ ccflags-y			+= -I $(src)
  
- static void __exit raid6_exit(void)
- {
- }
- 
-+/*
-+ * When built-in we must register the default implementation before md
-+ * initializes, but we don't want calibration to run that early as that
-+ * would delay the boot process.
-+ */
-+#ifndef MODULE
-+device_initcall(raid6_select_algo);
-+#endif
- subsys_initcall(raid6_init);
- module_exit(raid6_exit);
- MODULE_LICENSE("GPL");
+ ifeq ($(CONFIG_RAID6_PQ_ARCH),y)
 _
 
 Patches currently in -mm which might be from hch@lst.de are
