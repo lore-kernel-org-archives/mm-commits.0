@@ -1,236 +1,390 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.15])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9729F188596;
-	Wed, 15 Jul 2026 04:45:31 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 19BD71FECCD
+	for <mm-commits@vger.kernel.org>; Wed, 15 Jul 2026 04:59:44 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.15
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784090733; cv=none; b=D5skIixvVn5esoQA2gsiCb3O7gnfxKOELxciBZWJIXZIPcXFqK11N99ixRBVtPILCjJ9P3wgJC4pPegO7dV2fPslABiGkiUU80o9bNA3lQDBYGmKjWz8w/EImij7EDcL+pr12XBitpFMm2oBYtFcxkmLcIGp49EG8vUomjRQUeQ=
+	t=1784091587; cv=none; b=V4yTSpw56Xp7E0x055bbEZC+jixqqhZknvRtHzfwk8ZMwfiagKt6LXOU0jdPjy3fWS4Wg58A7vjOx2z6KTvzNtkYo+cNioIoN76An6DJj78f14Y1+5DuGtZFNvaldJkNrr0wLWn/PrRXImhbaSGRx1Ia9IfRVSeMJO58T3otDkY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784090733; c=relaxed/simple;
-	bh=r3S4QHQd3VaTSbQncAc0/PibyxIV6anaRIOMCk9Cb30=;
-	h=Date:To:From:Subject:Message-Id; b=Ai4ytxRJWHY24B4azKtj93lHVdDKCWFPUxtMhPMqshq5CPY+RcfJFFxljlQGG/ptInNo9z+WVca1O3ubiWF37562i/SIUkJx+j165EjX/cUT8TK/UCsoX/zRrZAU+j1YUY4+JEF4wr2l3pu62m0Rl0Z/O3m/rACDbPXOC1DnQds=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=B81GDhyr; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1784091587; c=relaxed/simple;
+	bh=pHjAtwDVaR4xFZ5vSz6vmAvqXtYB5lZv4MIthoOc0xo=;
+	h=Date:From:To:Cc:Subject:Message-ID; b=Kett/V0eMKakAHzdRWjsLG+Sqpv3vAfDWhZFt5yEhG+Y4c2RyaIh+GYsgv9OAvJFIbV5TMFmVKab3RMufffEytcPSgsSc83u1fHDxszMIVtMmKRi8lsIZy339Vf6toirNuR2gbLZKsqyh/vtW2BLVsrsAOER9YIVKoetAKEW84k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=LAW9xjUd; arc=none smtp.client-ip=198.175.65.15
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="B81GDhyr"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 28ADB1F000E9;
-	Wed, 15 Jul 2026 04:45:31 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1784090731;
-	bh=ude42ZCbR20/X7z5bIUrcIH0rUqjEMzlc5zkc7ZUOYQ=;
-	h=Date:To:From:Subject;
-	b=B81GDhyrwyqTUo49kT09rjttjuK/ea7nvhyNLeerU2ufGxYEv9VbLgWRnutih2w9v
-	 gH6ffWklHbSt31gDQ8vO1uUVVXihMQlmssY1zoKQo3ZANdzg5d1fqo0YhCRDpMvUfN
-	 UnTauKkJeK4DYEX4kgb5RPvPZ2pXf+sNOuJRbcSE=
-Date: Tue, 14 Jul 2026 21:45:30 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-sysfs-read-ops_id-only-once-in-damon_sysfs_apply_inputs.patch added to mm-new branch
-Message-Id: <20260715044531.28ADB1F000E9@smtp.kernel.org>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="LAW9xjUd"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1784091585; x=1815627585;
+  h=date:from:to:cc:subject:message-id;
+  bh=pHjAtwDVaR4xFZ5vSz6vmAvqXtYB5lZv4MIthoOc0xo=;
+  b=LAW9xjUdr6r0PgzScJZqPPdN2rastrLOK3nPN+30eE/GtKZDwGyn6Y0v
+   NyUsunbVWoZRRxxV1GAXWd5N0Y7oElxyCu+N3/iDiDkNkatME6f/ZnYS1
+   VvWrELx9VjzFHzfrc8Bi5NfU2G4hMkvhGXwBO17hQhr4ZLXcPsCYNgD/0
+   44topz93DuDcT3LaRR0UVL3tc5UJFTdhFPC2upMbr6yr5G3KEGpswJ35w
+   xc6x3DWKVERHy0JjebgdmW91uRW3oNYIoTdHyidQsAeXdmJQ1hKC39YYF
+   MMlsvTzFh7vpRGSogjNMs8J+ViTaEI8UhSj2oNcoDyBQLv97hhKSqyzyu
+   w==;
+X-CSE-ConnectionGUID: LNlhA2BdRVuRageCc906tA==
+X-CSE-MsgGUID: qiL2YGb4Rna8+LZsyi4AGA==
+X-IronPort-AV: E=McAfee;i="6800,10657,11847"; a="88398074"
+X-IronPort-AV: E=Sophos;i="6.25,164,1779174000"; 
+   d="scan'208";a="88398074"
+Received: from fmviesa003.fm.intel.com ([10.60.135.143])
+  by orvoesa107.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Jul 2026 21:59:45 -0700
+X-CSE-ConnectionGUID: wq+V4eYERjSJVIkZjgtYaA==
+X-CSE-MsgGUID: wjjKwBU+QA2/QG4vGOQ8Pg==
+X-ExtLoop1: 1
+Received: from lkp-server02.sh.intel.com (HELO ea128546eb3d) ([10.239.97.151])
+  by fmviesa003.fm.intel.com with ESMTP; 14 Jul 2026 21:59:42 -0700
+Received: from kbuild by ea128546eb3d with local (Exim 4.98.2)
+	(envelope-from <lkp@intel.com>)
+	id 1wjriQ-00000000NIl-2wj2;
+	Wed, 15 Jul 2026 04:59:30 +0000
+Date: Wed, 15 Jul 2026 12:59:14 +0800
+From: kernel test robot <lkp@intel.com>
+To: David Hildenbrand <david@kernel.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>,
+ Linux Memory Management List <linux-mm@kvack.org>,
+ mm-commits@vger.kernel.org
+Subject: [akpm-mm:mm-new] BUILD SUCCESS WITH UNVERIFIED WARNING
+ 2fc4daf5c4774d70254201aaa5a9d50cae52af5e
+Message-ID: <202607151200.G5oomtPt-lkp@intel.com>
+User-Agent: s-nail v14.9.25
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
+tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm.git mm-new
+branch HEAD: 2fc4daf5c4774d70254201aaa5a9d50cae52af5e  mm/swap, PM: hibernate: atomically replace hibernation pin
 
-The patch titled
-     Subject: mm/damon/sysfs: read ops_id only once in damon_sysfs_apply_inputs()
-has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-sysfs-read-ops_id-only-once-in-damon_sysfs_apply_inputs.patch
+Unverified Warning (likely false positive, kindly check if interested):
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-read-ops_id-only-once-in-damon_sysfs_apply_inputs.patch
+    https://lore.kernel.org/oe-kbuild/202607021433.DYT5fDqE-lkp@intel.com
+    https://lore.kernel.org/oe-kbuild/202607120402.clBrrZQA-lkp@intel.com
 
-This patch will later appear in the mm-new branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+    mm/hmm.c:672 hmm_do_fault() error: we previously assumed 'hmm_vma_walk->locked' could be null (see line 653)
+    mm/vmpressure.c:123 vmpressure() warn: check likely/unlikely parentheses
 
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
+Warning ids grouped by kconfigs:
 
-The mm-new branch of mm.git is not included in linux-next
+recent_errors
+|-- alpha-randconfig-r071-20260714
+|   `-- mm-hmm.c-hmm_do_fault()-error:we-previously-assumed-hmm_vma_walk-locked-could-be-null-(see-line-)
+|-- sparc-randconfig-r072-20260715
+|   `-- mm-vmpressure.c-vmpressure()-warn:check-likely-unlikely-parentheses
+`-- x86_64-randconfig-161-20260714
+    `-- mm-hmm.c-hmm_do_fault()-error:we-previously-assumed-hmm_vma_walk-locked-could-be-null-(see-line-)
 
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
+elapsed time: 853m
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+configs tested: 298
+configs skipped: 26
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+tested configs:
+alpha                             allnoconfig    gcc-16.1.0
+alpha                            allyesconfig    gcc-16.1.0
+alpha                               defconfig    gcc-16.1.0
+arc                              allmodconfig    clang-23
+arc                              allmodconfig    gcc-16.1.0
+arc                               allnoconfig    gcc-16.1.0
+arc                              allyesconfig    clang-23
+arc                              allyesconfig    gcc-16.1.0
+arc                                 defconfig    gcc-16.1.0
+arc                   randconfig-001-20260715    gcc-10.5.0
+arc                   randconfig-001-20260715    gcc-9.5.0
+arc                   randconfig-002-20260715    gcc-10.5.0
+arc                   randconfig-002-20260715    gcc-15.2.0
+arm                               allnoconfig    clang-17
+arm                               allnoconfig    gcc-16.1.0
+arm                              allyesconfig    clang-23
+arm                              allyesconfig    gcc-16.1.0
+arm                                 defconfig    clang-23
+arm                                 defconfig    gcc-16.1.0
+arm                   randconfig-001-20260715    clang-23
+arm                   randconfig-001-20260715    gcc-10.5.0
+arm                   randconfig-002-20260715    gcc-10.5.0
+arm                   randconfig-003-20260715    gcc-10.5.0
+arm                   randconfig-003-20260715    gcc-15.2.0
+arm                   randconfig-004-20260715    gcc-10.5.0
+arm                         socfpga_defconfig    gcc-16.1.0
+arm64                            allmodconfig    clang-23
+arm64                             allnoconfig    gcc-16.1.0
+arm64                               defconfig    gcc-16.1.0
+arm64                 randconfig-001-20260714    clang-17
+arm64                 randconfig-001-20260715    gcc-16.1.0
+arm64                 randconfig-002-20260715    gcc-16.1.0
+arm64                 randconfig-003-20260714    clang-17
+arm64                 randconfig-003-20260715    gcc-16.1.0
+arm64                 randconfig-004-20260714    clang-23
+arm64                 randconfig-004-20260715    gcc-16.1.0
+csky                             allmodconfig    gcc-16.1.0
+csky                              allnoconfig    gcc-16.1.0
+csky                                defconfig    gcc-16.1.0
+csky                  randconfig-001-20260714    gcc-16.1.0
+csky                  randconfig-001-20260715    gcc-16.1.0
+csky                  randconfig-002-20260714    gcc-16.1.0
+csky                  randconfig-002-20260715    gcc-16.1.0
+hexagon                          allmodconfig    clang-23
+hexagon                          allmodconfig    gcc-16.1.0
+hexagon                           allnoconfig    clang-23
+hexagon                           allnoconfig    gcc-16.1.0
+hexagon                             defconfig    clang-23
+hexagon                             defconfig    gcc-16.1.0
+hexagon                        randconfig-001    clang-17
+hexagon               randconfig-001-20260714    clang-20
+hexagon                        randconfig-002    clang-23
+hexagon               randconfig-002-20260714    clang-23
+i386                             allmodconfig    clang-22
+i386                              allnoconfig    gcc-14
+i386                              allnoconfig    gcc-16.1.0
+i386                             allyesconfig    clang-22
+i386                             allyesconfig    gcc-14
+i386        buildonly-randconfig-001-20260715    clang-22
+i386        buildonly-randconfig-002-20260715    clang-22
+i386        buildonly-randconfig-002-20260715    gcc-14
+i386        buildonly-randconfig-003-20260715    clang-22
+i386        buildonly-randconfig-003-20260715    gcc-14
+i386        buildonly-randconfig-004-20260715    clang-22
+i386        buildonly-randconfig-004-20260715    gcc-14
+i386        buildonly-randconfig-005-20260715    clang-22
+i386        buildonly-randconfig-006-20260715    clang-22
+i386        buildonly-randconfig-006-20260715    gcc-14
+i386                                defconfig    clang-22
+i386                                defconfig    gcc-16.1.0
+i386                           randconfig-001    clang-22
+i386                  randconfig-001-20260714    gcc-14
+i386                  randconfig-001-20260715    clang-22
+i386                           randconfig-002    gcc-14
+i386                  randconfig-002-20260714    gcc-13
+i386                  randconfig-002-20260715    clang-22
+i386                           randconfig-003    gcc-14
+i386                  randconfig-003-20260714    clang-22
+i386                  randconfig-003-20260715    clang-22
+i386                           randconfig-004    clang-22
+i386                  randconfig-004-20260714    gcc-14
+i386                  randconfig-004-20260715    clang-22
+i386                           randconfig-005    gcc-14
+i386                  randconfig-005-20260714    gcc-13
+i386                  randconfig-005-20260715    clang-22
+i386                           randconfig-006    gcc-14
+i386                  randconfig-006-20260714    gcc-14
+i386                  randconfig-006-20260715    clang-22
+i386                           randconfig-007    gcc-14
+i386                  randconfig-007-20260714    clang-22
+i386                  randconfig-007-20260715    clang-22
+i386                  randconfig-011-20260714    gcc-14
+i386                  randconfig-011-20260715    gcc-14
+i386                  randconfig-012-20260714    clang-22
+i386                  randconfig-012-20260715    gcc-14
+i386                  randconfig-013-20260714    clang-22
+i386                  randconfig-013-20260715    gcc-14
+i386                  randconfig-014-20260714    gcc-14
+i386                  randconfig-014-20260715    gcc-14
+i386                  randconfig-015-20260714    gcc-14
+i386                  randconfig-015-20260715    gcc-14
+i386                  randconfig-016-20260714    clang-22
+i386                  randconfig-016-20260715    gcc-14
+i386                  randconfig-017-20260714    gcc-12
+i386                  randconfig-017-20260715    gcc-14
+loongarch                        allmodconfig    clang-23
+loongarch                         allnoconfig    clang-20
+loongarch                         allnoconfig    gcc-16.1.0
+loongarch                           defconfig    clang-23
+loongarch                      randconfig-001    clang-23
+loongarch             randconfig-001-20260714    gcc-16.1.0
+loongarch             randconfig-001-20260715    gcc-16.1.0
+loongarch                      randconfig-002    gcc-16.1.0
+loongarch             randconfig-002-20260714    gcc-14.3.0
+loongarch             randconfig-002-20260715    gcc-16.1.0
+m68k                             allmodconfig    gcc-16.1.0
+m68k                              allnoconfig    gcc-16.1.0
+m68k                             allyesconfig    clang-23
+m68k                             allyesconfig    gcc-16.1.0
+m68k                                defconfig    clang-23
+m68k                                defconfig    gcc-16.1.0
+m68k                           virt_defconfig    gcc-16.1.0
+microblaze                        allnoconfig    gcc-16.1.0
+microblaze                       allyesconfig    gcc-16.1.0
+microblaze                          defconfig    clang-23
+microblaze                          defconfig    gcc-16.1.0
+mips                             allmodconfig    gcc-16.1.0
+mips                              allnoconfig    gcc-16.1.0
+mips                             allyesconfig    gcc-16.1.0
+mips                        bcm63xx_defconfig    clang-23
+mips                      maltaaprp_defconfig    clang-17
+nios2                            allmodconfig    clang-20
+nios2                             allnoconfig    clang-23
+nios2                             allnoconfig    gcc-11.5.0
+nios2                               defconfig    clang-23
+nios2                               defconfig    gcc-11.5.0
+nios2                          randconfig-001    gcc-11.5.0
+nios2                 randconfig-001-20260714    gcc-11.5.0
+nios2                 randconfig-001-20260715    gcc-16.1.0
+nios2                          randconfig-002    gcc-8.5.0
+nios2                 randconfig-002-20260714    gcc-11.5.0
+nios2                 randconfig-002-20260715    gcc-16.1.0
+openrisc                         allmodconfig    clang-20
+openrisc                         allmodconfig    gcc-16.1.0
+openrisc                          allnoconfig    clang-23
+openrisc                          allnoconfig    gcc-16.1.0
+openrisc                            defconfig    gcc-16.1.0
+parisc                           allmodconfig    gcc-16.1.0
+parisc                            allnoconfig    clang-23
+parisc                            allnoconfig    gcc-16.1.0
+parisc                           allyesconfig    clang-17
+parisc                           allyesconfig    gcc-16.1.0
+parisc                              defconfig    gcc-16.1.0
+parisc                         randconfig-001    gcc-8.5.0
+parisc                randconfig-001-20260714    gcc-13.4.0
+parisc                randconfig-001-20260715    clang-23
+parisc                         randconfig-002    gcc-12.5.0
+parisc                randconfig-002-20260714    gcc-11.5.0
+parisc                randconfig-002-20260715    clang-23
+parisc64                            defconfig    clang-23
+parisc64                            defconfig    gcc-16.1.0
+powerpc                          allmodconfig    gcc-16.1.0
+powerpc                           allnoconfig    clang-23
+powerpc                           allnoconfig    gcc-16.1.0
+powerpc                        randconfig-001    gcc-10.5.0
+powerpc               randconfig-001-20260715    clang-23
+powerpc                        randconfig-002    gcc-8.5.0
+powerpc               randconfig-002-20260715    clang-23
+powerpc64             randconfig-001-20260715    clang-23
+powerpc64             randconfig-002-20260715    clang-23
+riscv                            allmodconfig    clang-23
+riscv                             allnoconfig    clang-23
+riscv                             allnoconfig    gcc-16.1.0
+riscv                            allyesconfig    clang-23
+riscv                               defconfig    clang-23
+riscv                               defconfig    gcc-16.1.0
+riscv                 randconfig-001-20260714    clang-17
+riscv                 randconfig-001-20260715    gcc-15.2.0
+riscv                 randconfig-002-20260714    gcc-10.5.0
+riscv                 randconfig-002-20260715    gcc-15.2.0
+s390                             allmodconfig    clang-17
+s390                             allmodconfig    clang-23
+s390                              allnoconfig    clang-23
+s390                             allyesconfig    gcc-16.1.0
+s390                                defconfig    clang-18
+s390                                defconfig    gcc-16.1.0
+s390                  randconfig-001-20260714    gcc-8.5.0
+s390                  randconfig-001-20260715    gcc-15.2.0
+s390                  randconfig-002-20260714    clang-23
+s390                  randconfig-002-20260715    gcc-15.2.0
+sh                               allmodconfig    gcc-16.1.0
+sh                                allnoconfig    clang-23
+sh                                allnoconfig    gcc-16.1.0
+sh                               allyesconfig    clang-17
+sh                               allyesconfig    gcc-16.1.0
+sh                                  defconfig    gcc-14
+sh                                  defconfig    gcc-16.1.0
+sh                    randconfig-001-20260714    gcc-10.5.0
+sh                    randconfig-001-20260715    gcc-15.2.0
+sh                    randconfig-002-20260714    gcc-12.5.0
+sh                    randconfig-002-20260715    gcc-15.2.0
+sparc                             allnoconfig    clang-23
+sparc                             allnoconfig    gcc-16.1.0
+sparc                               defconfig    gcc-16.1.0
+sparc                 randconfig-001-20260714    gcc-8.5.0
+sparc                 randconfig-001-20260715    gcc-16.1.0
+sparc                 randconfig-002-20260714    gcc-8.5.0
+sparc                 randconfig-002-20260715    gcc-16.1.0
+sparc64                          allmodconfig    clang-20
+sparc64                             defconfig    clang-23
+sparc64                             defconfig    gcc-14
+sparc64               randconfig-001-20260714    gcc-11.5.0
+sparc64               randconfig-001-20260715    gcc-16.1.0
+sparc64               randconfig-002-20260714    gcc-9.5.0
+sparc64               randconfig-002-20260715    gcc-16.1.0
+um                               allmodconfig    clang-17
+um                                allnoconfig    clang-17
+um                                allnoconfig    clang-23
+um                               allyesconfig    gcc-14
+um                               allyesconfig    gcc-16.1.0
+um                                  defconfig    clang-23
+um                                  defconfig    gcc-14
+um                             i386_defconfig    gcc-14
+um                    randconfig-001-20260714    gcc-14
+um                    randconfig-001-20260715    gcc-16.1.0
+um                    randconfig-002-20260714    gcc-14
+um                    randconfig-002-20260715    gcc-16.1.0
+um                           x86_64_defconfig    gcc-14
+x86_64                           allmodconfig    clang-22
+x86_64                            allnoconfig    clang-22
+x86_64                            allnoconfig    clang-23
+x86_64                           allyesconfig    clang-22
+x86_64      buildonly-randconfig-001-20260714    clang-22
+x86_64      buildonly-randconfig-001-20260715    gcc-14
+x86_64      buildonly-randconfig-002-20260714    clang-22
+x86_64      buildonly-randconfig-002-20260715    gcc-14
+x86_64      buildonly-randconfig-003-20260714    clang-22
+x86_64      buildonly-randconfig-003-20260715    gcc-14
+x86_64      buildonly-randconfig-004-20260714    gcc-14
+x86_64      buildonly-randconfig-004-20260715    gcc-14
+x86_64      buildonly-randconfig-005-20260714    clang-22
+x86_64      buildonly-randconfig-005-20260715    gcc-14
+x86_64      buildonly-randconfig-006-20260714    gcc-14
+x86_64      buildonly-randconfig-006-20260715    gcc-14
+x86_64                              defconfig    gcc-14
+x86_64                                  kexec    clang-22
+x86_64                randconfig-001-20260714    gcc-14
+x86_64                randconfig-001-20260715    clang-22
+x86_64                randconfig-002-20260714    gcc-12
+x86_64                randconfig-002-20260715    clang-22
+x86_64                randconfig-003-20260714    gcc-14
+x86_64                randconfig-003-20260715    clang-22
+x86_64                randconfig-004-20260714    gcc-14
+x86_64                randconfig-004-20260715    clang-22
+x86_64                randconfig-005-20260714    clang-22
+x86_64                randconfig-005-20260715    clang-22
+x86_64                randconfig-006-20260714    clang-22
+x86_64                randconfig-006-20260715    clang-22
+x86_64                randconfig-011-20260715    clang-22
+x86_64                randconfig-012-20260715    clang-22
+x86_64                randconfig-012-20260715    gcc-14
+x86_64                randconfig-013-20260715    clang-22
+x86_64                randconfig-014-20260715    clang-22
+x86_64                randconfig-015-20260715    clang-22
+x86_64                randconfig-016-20260715    clang-22
+x86_64                         randconfig-071    gcc-14
+x86_64                randconfig-071-20260714    gcc-14
+x86_64                randconfig-071-20260715    gcc-14
+x86_64                         randconfig-072    gcc-14
+x86_64                randconfig-072-20260714    clang-22
+x86_64                randconfig-072-20260715    gcc-14
+x86_64                         randconfig-073    clang-22
+x86_64                randconfig-073-20260714    clang-22
+x86_64                randconfig-073-20260715    gcc-14
+x86_64                         randconfig-074    gcc-14
+x86_64                randconfig-074-20260714    gcc-13
+x86_64                randconfig-074-20260715    gcc-14
+x86_64                         randconfig-075    gcc-13
+x86_64                randconfig-075-20260714    clang-22
+x86_64                randconfig-075-20260715    gcc-14
+x86_64                         randconfig-076    clang-22
+x86_64                randconfig-076-20260714    gcc-14
+x86_64                randconfig-076-20260715    gcc-14
+x86_64                               rhel-9.4    clang-22
+x86_64                           rhel-9.4-bpf    gcc-14
+x86_64                          rhel-9.4-func    clang-22
+x86_64                    rhel-9.4-kselftests    clang-22
+x86_64                         rhel-9.4-kunit    gcc-14
+x86_64                           rhel-9.4-ltp    gcc-14
+x86_64                          rhel-9.4-rust    clang-22
+xtensa                            allnoconfig    clang-23
+xtensa                            allnoconfig    gcc-16.1.0
+xtensa                           allyesconfig    clang-20
+xtensa                           allyesconfig    gcc-16.1.0
+xtensa                randconfig-001-20260714    gcc-11.5.0
+xtensa                randconfig-001-20260715    gcc-16.1.0
+xtensa                randconfig-002-20260714    gcc-9.5.0
+xtensa                randconfig-002-20260715    gcc-16.1.0
 
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
-
-------------------------------------------------------
-From: SJ Park <sj@kernel.org>
-Subject: mm/damon/sysfs: read ops_id only once in damon_sysfs_apply_inputs()
-Date: Tue, 14 Jul 2026 20:10:01 -0700
-
-damon_sysfs_apply_inputs() reads ops_id twice.  It could race with
-ops_id_store().  As a result, the min_region_sz could wrongly be set up. 
-Read it once.
-
-The user impact is trivial.  Sane users ain't update the parameter in
-parallel.  Even if it happens, the DAMON core layer handles the wrong
-min_region_sz (!is_power_of_2()).  Even if somehow the race ended up
-making a min_region_sz that is different from the user's intention but
-still valid, only monitoring itself runs differently than expected.  No
-critical consequences like kernel panic or memory corruption happen
-
-The issue was discovered [1] by Sashiko.
-
-Link: https://lore.kernel.org/20260715031002.108504-7-sj@kernel.org
-Link: https://lore.kernel.org/20260703172417.95426-1-sj@kernel.org [1]
-Fixes: 8d009da32f13 ("mm/damon/sysfs: set damon_ctx->min_sz_region only for paddr use case")
-Signed-off-by: SJ Park <sj@kernel.org>
-Cc: <stable@vger.kernel.org> # 6.18.x
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- mm/damon/sysfs.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
-
---- a/mm/damon/sysfs.c~mm-damon-sysfs-read-ops_id-only-once-in-damon_sysfs_apply_inputs
-+++ a/mm/damon/sysfs.c
-@@ -2094,14 +2094,16 @@ static inline bool damon_sysfs_kdamond_r
- static int damon_sysfs_apply_inputs(struct damon_ctx *ctx,
- 		struct damon_sysfs_context *sys_ctx)
- {
-+	enum damon_ops_id ops_id;
- 	int err;
- 
--	err = damon_select_ops(ctx, sys_ctx->ops_id);
-+	ops_id = READ_ONCE(sys_ctx->ops_id);
-+	err = damon_select_ops(ctx, ops_id);
- 	if (err)
- 		return err;
- 	ctx->addr_unit = READ_ONCE(sys_ctx->addr_unit);
- 	/* addr_unit is respected by only DAMON_OPS_PADDR */
--	if (sys_ctx->ops_id == DAMON_OPS_PADDR)
-+	if (ops_id == DAMON_OPS_PADDR)
- 		ctx->min_region_sz = max(
- 				DAMON_MIN_REGION_SZ / ctx->addr_unit, 1);
- 	ctx->pause = sys_ctx->pause;
-_
-
-Patches currently in -mm which might be from sj@kernel.org are
-
-samples-damon-wsse-handle-damon_start-failure.patch
-samples-damon-prcl-handle-damon_start-failure.patch
-samples-damon-mtier-handle-damon_start-failure.patch
-samples-damon-mtier-handle-damon_stop-failure.patch
-samples-damon-wsse-stop-and-free-damon-ctx-when-damon_call-fails.patch
-samples-damon-prcl-stop-and-free-damon-ctx-when-damon_call-fails.patch
-mm-damon-sysfs-kobject_del-target-normal-context-and-kdamond-dirs.patch
-mm-damon-sysfs-kobject_del-region-and-target-error-dirs.patch
-mm-damon-sysfs-schemes-kobject_del-scheme-dirs.patch
-mm-damon-sysfs-schemes-kobject_del-scheme-region-dirs.patch
-mm-damon-sysfs-schemes-kobject_del-scheme-filter-dirs.patch
-mm-damon-sysfs-schemes-kobject_del-scheme-quota-goal-dirs.patch
-mm-damon-sysfs-schemes-kobject_del-scheme-action-destination-dirs.patch
-mm-damon-sysfs-kobject_del-probe-dirs.patch
-mm-damon-sysfs-kobject_del-probe-filter-dirs.patch
-mm-damon-sysfs-kobject_del-probe-dirs-in-probes_addd_dir-error-path.patch
-mm-damon-sysfs-schemes-kobject_del-region-for-populate_region-error.patch
-docs-mm-damon-design-update-for-damos_quota_node_eligible_mem_bp.patch
-docs-abi-damon-document-probe-files.patch
-mm-damon-tests-core-kunit-test-damon_rand.patch
-selftests-damon-sysfssh-test-multiple-probe-dirs-creation.patch
-selftests-damon-sysfssh-test-coreops_filters-directories.patch
-selftests-damon-sysfssh-test-dests-dir.patch
-selftests-damon-sysfssh-test-all-files-in-quota-goal-dir.patch
-mm-damon-core-reduce-range-setup-in-damon_commit_target_regions.patch
-mm-damon-sysfs-split-probe-setup-function-out.patch
-mm-damon-sysfs-split-out-filters-setup-function.patch
-mm-damon-sysfs-fix-typos-in-probe_addrm_dirs-s-attr-probe.patch
-mm-damon-core-introduce-damon_nr_accesses_mvsum.patch
-mm-damon-tests-core-kunit-test-damon_mvsum.patch
-mm-damon-core-always-update-last_nr_accesses-for-intervals-change.patch
-mm-damon-core-handle-unreset-nr_accesses-in-damon_nr_accesses_mvsum.patch
-mm-damon-core-use-damon_nr_accesses_mvsum-in-__damos_valid_target.patch
-mm-damon-core-use-damon_nr_accesses_mvsum-for-damos-region-tracing.patch
-mm-damon-sysfs-schemes-use-damon_nr_accesses_mvsum-for-damo-regions.patch
-mm-damon-core-remove-damon_warn_fix_nr_accesses_corruption.patch
-mm-damon-core-remove-damon_verify_reset_aggregated.patch
-mm-damon-core-remove-damon_verify_merge_regions_of.patch
-mm-damon-tests-core-kunit-remove-nr_accesses_bp-setup-and-tests.patch
-selftests-damon-drgn_dump_damon_status-do-not-dump-nr_accesses_bp.patch
-mm-damon-core-remove-nr_accesses_bp-setups-and-updates.patch
-mm-damon-core-remove-attrs-param-from-damon_update_region_access_rate.patch
-mm-damon-paddr-remove-attrs-param-from-__damon_pa_check_access.patch
-mm-damon-vaddr-remove-attrs-param-from-__damon_va_check_access.patch
-mm-damon-core-remove-damon_moving_sum-and-its-unit-test.patch
-mm-damon-core-remove-damon_region-nr_accesses_bp.patch
-mm-damon-add-damon_region-last_probe_hits.patch
-mm-damon-core-introduce-damon_probe_hits_mvsum.patch
-mm-damon-sysfs-schemes-set-probe-hits-as-pseudo-moving-sums.patch
-mm-damon-core-safely-validate-src-on-damon_commit_ctx.patch
-mm-damon-core-do-parameter-testing-commit-on-damon_start.patch
-mm-damon-sysfs-remove-duplicated-commit-input-validity-check.patch
-mm-damon-reclaim-remove-duplicated-min_region_sz-power-of-2-check.patch
-mm-damon-lru_sort-remove-duplicated-min_region_sz-power_of_2-check.patch
-mm-damon-document-region-size-validation-in-damon_set_regions.patch
-mm-damon-core-remove-start-end-check-in-damon_set_region_system_rams.patch
-mm-damon-sysfs-remove-region-size-validation.patch
-mm-damon-core-stop-ctxs-in-damon_start-before-returning-an-error.patch
-samples-damon-mtier-do-not-stop-first-context-for-damon_start-failure.patch
-mm-damon-core-make-damon_stop-never-fails.patch
-mm-damon-sysfs-ignore-damon_stop-return-value.patch
-mm-damon-reclaaim-ignore-damon_stop-return-value.patch
-mm-damon-lru_sort-ignore-damon_stop-return-value.patch
-mm-damon-core-change-damon_stop-return-type-to-void.patch
-samples-damon-mtier-stop-all-contexts-with-single-damon_stop-call.patch
-mm-damon-core-wait-ctx-stop-in-damon_call-before-reruning-an-error.patch
-samples-damon-wsse-do-not-stop-ctx-for-damon_call-failure.patch
-samples-damon-prcl-do-not-stop-damon-for-damon_call-failure.patch
-mm-damon-core-remove-comment-and-test-for-nr_to_bp-divide-by-zero.patch
-mm-damon-core-s-damon_max_nr_accesses-damon_nr_samples_per_aggr.patch
-mm-damon-core-s-accesses_bp_to_nr_accesses-sample_bp_to_count.patch
-mm-damon-core-s-nr_accesses_to_accesses_bp-sample_count_to_bp.patch
-mm-damon-core-s-nr_accesses_for_new_attrs-nr_samples_for_new_attrs.patch
-mm-damon-core-update-probe-hits-for-new-parameter-commit.patch
-mm-damon-core-handle-unreset-probe_hits-in-probe_hits_mvsum.patch
-mm-damon-core-introduce-damon_probe-weight.patch
-mm-damon-core-ask-apply_probes-ops-callback-to-set-sampling-address.patch
-mm-damon-paddr-set-samples-in-apply_probes-if-requested.patch
-mm-damon-core-ask-apply_probe-to-return-max-probe-hits-weighted-sum.patch
-mm-damon-core-implement-damon_probe_hits_wsum.patch
-mm-damon-paddr-respect-return_max_wsum.patch
-mm-damon-core-use-abs_diff-instead-of-abs.patch
-mm-damon-core-extend-merge-function-to-work-with-probe-hits.patch
-mm-damon-core-disallow-probe_hits-overflow-on-attrs-only-monitoring.patch
-mm-damon-core-validate-params-for-probe-hits-weighted-sum-overflow.patch
-mm-damon-core-disable-access-monitoring-when-probe-weights-are-set.patch
-mm-damon-core-set-samples-in-apply_probes-if-probe-weights-are-set.patch
-mm-damon-core-s-max_nr_accesses-max_merge_score-in-kdamond_fn.patch
-mm-damon-core-get-merge-threshold-from-probe-hits-when-weights-are-set.patch
-mm-damon-core-implement-damon_has_probe_weight.patch
-mm-damon-sysfs-implement-probe-weight-file.patch
-docs-mm-damon-design-document-attrs-only-monitoring.patch
-docs-admin-guide-mm-damon-usage-document-weight-sysfs-file.patch
-docs-abi-damon-document-probe-weight-file.patch
-mm-damon-core-skip-aging-from-repeated-aggressive-merging.patch
-mm-damon-core-hide-private-damon_region-fields.patch
-mm-damon-core-hide-private-damon_target-fields.patch
-mm-damon-core-hide-private-damos_quota_goal-fields.patch
-mm-damon-core-hide-private-damos_quota-fields.patch
-mm-damon-core-hide-private-damos_filter-fields.patch
-mm-damon-core-hide-private-damos-fields.patch
-mm-damon-core-hide-private-damon_filter-fields.patch
-mm-damon-core-hide-private-damon_probe-fields.patch
-mm-damon-sysfs-do-not-directly-access-damon_ctx-ops.patch
-mm-damon-core-hide-core-private-damon_ctx-fields.patch
-mm-damon-core-avoid-infinite-kdamond_merge_regions-internal-loop.patch
-mm-damon-tests-core-kunit-catch-test-failure-in-test_merge_regions_of.patch
-mm-damon-vaddr-drop-last-same-folio-access-check-optimization.patch
-mm-damon-paddr-drop-last-same-folio-access-check-reuse-optimization.patch
-mm-damon-sysfs-read-addr_unit-only-once-in-damon_sysfs_apply_inputs.patch
-mm-damon-sysfs-read-ops_id-only-once-in-damon_sysfs_apply_inputs.patch
-
+--
+0-DAY CI Kernel Test Service
+https://github.com/intel/lkp-tests/wiki
