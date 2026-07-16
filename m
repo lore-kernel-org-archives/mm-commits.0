@@ -1,279 +1,429 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.18])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8DCF03AEB35
-	for <mm-commits@vger.kernel.org>; Thu, 16 Jul 2026 21:35:50 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2F45331194C
+	for <mm-commits@vger.kernel.org>; Thu, 16 Jul 2026 23:32:53 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784237752; cv=none; b=sLscV5knM5DIMSla6PD+eOGq4gpGojLiEBGCqiUz3HAuEz4Pa58HaNUU0RLsJTtMqLGKIEr2or01dGRyRVjzb4T1VQJHwuEQEXjlMLEOyzd9fm/Fxt10wQjrGX6RaUpvpREQ7u9bNJM4M7N6jGCDCiyEdGu28mKo0u0i4N9OJYc=
+	t=1784244775; cv=none; b=Q/entnn6aqUcD6bj3mXmR2qnK4H4ph6gsmBq6eAeZcGzCFPixLUlBJYTfrqvVhzI25FXLRoj9ANEJVb21omGDT68+ie6s+BBsggesZ6cSamNAOWqhv+bOG8YhKGu9C7lxDHT57FZN+N+WFoYoGE2ZxltlujmwM1d5xvuVrgKrmU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784237752; c=relaxed/simple;
-	bh=a6yFI7aDgAffL/bIbOD7svnq1zNIaV7l335CCnMyWZE=;
-	h=Date:From:To:Cc:Subject:Message-ID; b=hzX37LYqlVGCCFV3r+kUOMymyNRC6sdx7/l2jX+0sm0oBBwFKGVeK2E9KIHRC4DJwuktpkBz+VOM6cDmgAc2/kBRP6c0VbjLnfOD5DvxAMdrfKXShV0aGnD1ZuWww3X4F6sxdME0piu5v9nE1PROzDrmhxxHz5xG6f9LjCGjrYE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=brGSyxkl; arc=none smtp.client-ip=198.175.65.18
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	s=arc-20240116; t=1784244775; c=relaxed/simple;
+	bh=T2lrkyo538FFxQu5AEknnWbvSt/8m+I6PKVYlkV+uIQ=;
+	h=Date:To:From:Subject:Message-Id; b=VG1KWn0r+OSSRi4hVT5RvpaqhykwhJ2MzsLOhA7rp3BDyrlfMFaTKHSk7zxFGba24FpPJ1k4Z5DKPuJQI2Yj0WlMQ3BbkRsMh+8At6Q09TJHBDaC7hfTYsWrxU+Eyw996wyn/95ukwQPGNmDcrNf7cAz8VsaDhMBokWsRqNlB48=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=O4bq4ADa; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="brGSyxkl"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1784237751; x=1815773751;
-  h=date:from:to:cc:subject:message-id;
-  bh=a6yFI7aDgAffL/bIbOD7svnq1zNIaV7l335CCnMyWZE=;
-  b=brGSyxklg8FDyjNgcFkLF9IB9PQEJb98IcxihImt+K/MTkRkTN00ABdS
-   mhYlQUL3PT8COVCvzAyq31bo7LrLMB2paKvgz72/ltqfBjC+udtWFTTbg
-   wed3apYXubDbV/kUoou8GcaBTDhvTS7DoJcPXzl/sdNSR2/gwbeO8/H9f
-   EgxTmY/egI6c9vX7tfzTND8ZaovzXp4nW+IKfJMWTuq07BMGyQuNbrS/n
-   qAvugbe8EDuNHf+u1MBdTS8SprUizjYL6QiDHzAroLhhDz09zIQwYFiFC
-   dpxKFIc1ic8OkChSeHUomCCzVB1OOF5agFSp78tSPcsT31+K4BiKNrtBb
-   g==;
-X-CSE-ConnectionGUID: BwFxZ7WiTYCYkb94reyD6Q==
-X-CSE-MsgGUID: K0Q68bF4T5eb21m73yFM6w==
-X-IronPort-AV: E=McAfee;i="6800,10657,11848"; a="85002919"
-X-IronPort-AV: E=Sophos;i="6.25,168,1779174000"; 
-   d="scan'208";a="85002919"
-Received: from fmviesa010.fm.intel.com ([10.60.135.150])
-  by orvoesa110.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Jul 2026 14:35:50 -0700
-X-CSE-ConnectionGUID: OWAnvAM3RXiUbF3VLwutpA==
-X-CSE-MsgGUID: aZrc3psrRtC+vxqqMbw+Yg==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.25,168,1779174000"; 
-   d="scan'208";a="252614856"
-Received: from lkp-server02.sh.intel.com (HELO ea128546eb3d) ([10.239.97.151])
-  by fmviesa010.fm.intel.com with ESMTP; 16 Jul 2026 14:35:48 -0700
-Received: from kbuild by ea128546eb3d with local (Exim 4.98.2)
-	(envelope-from <lkp@intel.com>)
-	id 1wkTk1-00000000QGS-2fzV;
-	Thu, 16 Jul 2026 21:35:41 +0000
-Date: Fri, 17 Jul 2026 05:19:51 +0800
-From: kernel test robot <lkp@intel.com>
-To: David Hildenbrand <david@kernel.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>,
- Linux Memory Management List <linux-mm@kvack.org>,
- mm-commits@vger.kernel.org
-Subject: [akpm-mm:mm-new] BUILD SUCCESS WITH UNVERIFIED WARNING
- 4f032f512d9fc5a9ae438e6efd9d8e94fbaaa36c
-Message-ID: <202607170529.cevcUTLV-lkp@intel.com>
-User-Agent: s-nail v14.9.25
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="O4bq4ADa"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8DB051F000E9;
+	Thu, 16 Jul 2026 23:32:53 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=linux-foundation.org; s=korg; t=1784244773;
+	bh=NWonFlg8PBXY+35TC+eQ8NLuteQUgn4xcrABe7nuKzI=;
+	h=Date:To:From:Subject;
+	b=O4bq4ADaL7Je/W84a1ehpZRDVdGfIvcZY/uD8XuIOqeBLq2aWZFGiMHZllsH9tRGr
+	 RKWhEEDENCHWBMb1nFXvARIjgzZJ86PNZurzWcX9RHNW1SowtlgVoKxpkbxTHpXF2C
+	 UoVb9WCdtBDty9XwBxyccsgsso7F4/IThcm/PtNM=
+Date: Thu, 16 Jul 2026 16:32:53 -0700
+To: mm-commits@vger.kernel.org,ljs@kernel.org,akpm@linux-foundation.org
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: [to-be-updated] mm-vmalloc-acquire-init_mm-lock-on-huge-vmap-to-avoid-ptdump-uaf.patch removed from -mm tree
+Message-Id: <20260716233253.8DB051F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
-tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm.git mm-new
-branch HEAD: 4f032f512d9fc5a9ae438e6efd9d8e94fbaaa36c  mm/swap, PM: hibernate: atomically replace hibernation pin
 
-Unverified Warning (likely false positive, kindly check if interested):
+The quilt patch titled
+     Subject: mm/vmalloc: acquire init_mm lock on huge vmap to avoid ptdump UAF
+has been removed from the -mm tree.  Its filename was
+     mm-vmalloc-acquire-init_mm-lock-on-huge-vmap-to-avoid-ptdump-uaf.patch
 
-    https://lore.kernel.org/oe-kbuild/202607120402.clBrrZQA-lkp@intel.com
+This patch was dropped because an updated version will be issued
 
-    mm/hmm.c:672 hmm_do_fault() error: we previously assumed 'hmm_vma_walk->locked' could be null (see line 653)
+------------------------------------------------------
+From: Lorenzo Stoakes <ljs@kernel.org>
+Subject: mm/vmalloc: acquire init_mm lock on huge vmap to avoid ptdump UAF
+Date: Tue, 14 Jul 2026 18:24:23 +0100
 
-Warning ids grouped by kconfigs:
+Patch series "mm: fix UAF caused by race between ptdump and vmap pgtable
+freeing", v3.
 
-recent_errors
-`-- i386-randconfig-141-20260716
-    `-- mm-hmm.c-hmm_do_fault()-error:we-previously-assumed-hmm_vma_walk-locked-could-be-null-(see-line-)
+Kernel page table walkers fall into two broad categories - those ranges
+where no exclusion is required via walk_kernel_page_table_range_lockless()
+and those where exclusion is required via walk_kernel_page_table_range()
+or walk_page_range_debug().
 
-elapsed time: 1292m
+The former category is used only by arm64 arch code operating on ranges it
+both wholly owns and does not concurrently write.
 
-configs tested: 191
-configs skipped: 3
+The latter category consists of kernel page table walkers operating on
+ranges that are wholly owned (but which need exclusion against concurrent
+writers).
 
-tested configs:
-alpha                             allnoconfig    gcc-16.1.0
-alpha                            allyesconfig    gcc-16.1.0
-alpha                               defconfig    gcc-16.1.0
-arc                              allmodconfig    gcc-16.1.0
-arc                               allnoconfig    gcc-16.1.0
-arc                              allyesconfig    gcc-16.1.0
-arc                                 defconfig    gcc-16.1.0
-arc                   randconfig-001-20260716    gcc-14.3.0
-arc                   randconfig-002-20260716    gcc-16.1.0
-arm                               allnoconfig    clang-17
-arm                              allyesconfig    gcc-16.1.0
-arm                                 defconfig    clang-24
-arm                   randconfig-001-20260716    gcc-8.5.0
-arm                   randconfig-002-20260716    clang-17
-arm                   randconfig-003-20260716    gcc-12.5.0
-arm                   randconfig-004-20260716    clang-24
-arm64                            allmodconfig    clang-24
-arm64                             allnoconfig    gcc-16.1.0
-arm64                               defconfig    gcc-16.1.0
-arm64                 randconfig-001-20260716    clang-24
-arm64                 randconfig-002-20260716    clang-22
-arm64                 randconfig-003-20260716    clang-24
-arm64                 randconfig-004-20260716    gcc-12.5.0
-csky                             allmodconfig    gcc-16.1.0
-csky                              allnoconfig    gcc-16.1.0
-csky                                defconfig    gcc-16.1.0
-csky                  randconfig-001-20260716    gcc-12.5.0
-csky                  randconfig-002-20260716    gcc-14.3.0
-hexagon                           allnoconfig    clang-24
-hexagon                             defconfig    clang-24
-hexagon               randconfig-001-20260716    clang-24
-hexagon               randconfig-002-20260716    clang-24
-i386                             allmodconfig    gcc-14
-i386                              allnoconfig    gcc-14
-i386                             allyesconfig    gcc-14
-i386                 buildonly-randconfig-001    gcc-14
-i386        buildonly-randconfig-001-20260716    clang-22
-i386                 buildonly-randconfig-002    clang-22
-i386        buildonly-randconfig-002-20260716    clang-22
-i386                 buildonly-randconfig-003    clang-22
-i386        buildonly-randconfig-003-20260716    clang-22
-i386                 buildonly-randconfig-004    gcc-14
-i386        buildonly-randconfig-004-20260716    clang-22
-i386                 buildonly-randconfig-005    gcc-14
-i386        buildonly-randconfig-005-20260716    clang-22
-i386                 buildonly-randconfig-006    gcc-14
-i386        buildonly-randconfig-006-20260716    clang-22
-i386                                defconfig    clang-22
-i386                  randconfig-001-20260716    clang-22
-i386                  randconfig-002-20260716    clang-22
-i386                  randconfig-003-20260716    gcc-14
-i386                  randconfig-004-20260716    gcc-14
-i386                  randconfig-005-20260716    clang-22
-i386                  randconfig-006-20260716    clang-22
-i386                  randconfig-007-20260716    clang-22
-i386                           randconfig-011    clang-22
-i386                  randconfig-011-20260716    clang-22
-i386                           randconfig-012    clang-22
-i386                  randconfig-012-20260716    gcc-12
-i386                           randconfig-013    gcc-14
-i386                  randconfig-013-20260716    clang-22
-i386                           randconfig-014    clang-22
-i386                  randconfig-014-20260716    gcc-12
-i386                           randconfig-015    gcc-14
-i386                  randconfig-015-20260716    clang-22
-i386                           randconfig-016    gcc-14
-i386                  randconfig-016-20260716    gcc-14
-i386                           randconfig-017    gcc-14
-i386                  randconfig-017-20260716    clang-22
-loongarch                        allmodconfig    clang-19
-loongarch                         allnoconfig    clang-20
-loongarch                           defconfig    clang-24
-loongarch             randconfig-001-20260716    clang-20
-loongarch             randconfig-002-20260716    clang-24
-m68k                             allmodconfig    gcc-16.1.0
-m68k                              allnoconfig    gcc-16.1.0
-m68k                             allyesconfig    gcc-16.1.0
-m68k                                defconfig    gcc-16.1.0
-microblaze                        allnoconfig    gcc-16.1.0
-microblaze                       allyesconfig    gcc-16.1.0
-microblaze                          defconfig    gcc-16.1.0
-mips                             allmodconfig    gcc-16.1.0
-mips                              allnoconfig    gcc-16.1.0
-mips                             allyesconfig    gcc-16.1.0
-nios2                            allmodconfig    gcc-11.5.0
-nios2                             allnoconfig    gcc-11.5.0
-nios2                               defconfig    gcc-11.5.0
-nios2                 randconfig-001-20260716    gcc-8.5.0
-nios2                 randconfig-002-20260716    gcc-8.5.0
-openrisc                         allmodconfig    gcc-16.1.0
-openrisc                          allnoconfig    gcc-16.1.0
-openrisc                            defconfig    gcc-16.1.0
-parisc                           allmodconfig    gcc-16.1.0
-parisc                            allnoconfig    gcc-16.1.0
-parisc                           allyesconfig    gcc-16.1.0
-parisc                              defconfig    gcc-16.1.0
-parisc                randconfig-001-20260716    gcc-15.2.0
-parisc                randconfig-002-20260716    gcc-8.5.0
-parisc64                            defconfig    gcc-16.1.0
-powerpc                           allnoconfig    gcc-16.1.0
-powerpc                    mvme5100_defconfig    gcc-16.1.0
-powerpc               randconfig-001-20260716    clang-21
-powerpc               randconfig-002-20260716    clang-19
-powerpc64             randconfig-001-20260716    clang-22
-powerpc64             randconfig-002-20260716    clang-24
-riscv                             allnoconfig    gcc-16.1.0
-riscv                            allyesconfig    clang-24
-riscv                               defconfig    clang-24
-riscv                 randconfig-001-20260716    gcc-14.3.0
-riscv                 randconfig-002-20260716    clang-17
-s390                             allmodconfig    clang-24
-s390                              allnoconfig    clang-24
-s390                             allyesconfig    gcc-16.1.0
-s390                                defconfig    clang-18
-s390                  randconfig-001-20260716    clang-24
-s390                  randconfig-002-20260716    gcc-9.5.0
-sh                               allmodconfig    gcc-16.1.0
-sh                                allnoconfig    gcc-16.1.0
-sh                               allyesconfig    gcc-16.1.0
-sh                                  defconfig    gcc-16.1.0
-sh                    randconfig-001-20260716    gcc-16.1.0
-sh                    randconfig-002-20260716    gcc-16.1.0
-sparc                             allnoconfig    gcc-16.1.0
-sparc                               defconfig    gcc-16.1.0
-sparc                          randconfig-001    gcc-16.1.0
-sparc                 randconfig-001-20260716    gcc-13.4.0
-sparc                          randconfig-002    gcc-11.5.0
-sparc                 randconfig-002-20260716    gcc-11.5.0
-sparc64                          allmodconfig    clang-20
-sparc64                             defconfig    clang-24
-sparc64                        randconfig-001    gcc-12.5.0
-sparc64               randconfig-001-20260716    clang-24
-sparc64                        randconfig-002    clang-20
-sparc64               randconfig-002-20260716    clang-24
-um                               allmodconfig    clang-17
-um                                allnoconfig    clang-17
-um                               allyesconfig    gcc-14
-um                                  defconfig    clang-24
-um                             i386_defconfig    gcc-14
-um                             randconfig-001    clang-24
-um                    randconfig-001-20260716    clang-24
-um                             randconfig-002    clang-24
-um                    randconfig-002-20260716    gcc-14
-um                           x86_64_defconfig    clang-24
-x86_64                           allmodconfig    clang-22
-x86_64                            allnoconfig    clang-22
-x86_64                           allyesconfig    clang-22
-x86_64               buildonly-randconfig-001    gcc-12
-x86_64      buildonly-randconfig-001-20260716    clang-22
-x86_64               buildonly-randconfig-002    clang-22
-x86_64      buildonly-randconfig-002-20260716    gcc-14
-x86_64               buildonly-randconfig-003    gcc-14
-x86_64      buildonly-randconfig-003-20260716    gcc-14
-x86_64               buildonly-randconfig-004    gcc-14
-x86_64      buildonly-randconfig-004-20260716    gcc-14
-x86_64               buildonly-randconfig-005    gcc-14
-x86_64      buildonly-randconfig-005-20260716    gcc-14
-x86_64               buildonly-randconfig-006    clang-22
-x86_64      buildonly-randconfig-006-20260716    gcc-14
-x86_64                              defconfig    gcc-14
-x86_64                randconfig-001-20260716    gcc-12
-x86_64                randconfig-002-20260716    gcc-14
-x86_64                randconfig-003-20260716    clang-22
-x86_64                randconfig-004-20260716    clang-22
-x86_64                randconfig-005-20260716    clang-22
-x86_64                randconfig-006-20260716    gcc-14
-x86_64                         randconfig-011    gcc-14
-x86_64                randconfig-011-20260716    clang-22
-x86_64                         randconfig-012    gcc-14
-x86_64                randconfig-012-20260716    clang-22
-x86_64                         randconfig-013    clang-22
-x86_64                randconfig-013-20260716    gcc-14
-x86_64                         randconfig-014    gcc-14
-x86_64                randconfig-014-20260716    clang-22
-x86_64                         randconfig-015    gcc-14
-x86_64                randconfig-015-20260716    clang-22
-x86_64                         randconfig-016    clang-22
-x86_64                randconfig-016-20260716    gcc-14
-x86_64                randconfig-071-20260716    clang-22
-x86_64                randconfig-072-20260716    clang-22
-x86_64                randconfig-073-20260716    clang-22
-x86_64                randconfig-074-20260716    gcc-14
-x86_64                randconfig-075-20260716    clang-22
-x86_64                randconfig-076-20260716    gcc-14
-x86_64                          rhel-9.4-rust    clang-22
-xtensa                            allnoconfig    gcc-16.1.0
-xtensa                           allyesconfig    gcc-16.1.0
-xtensa                         randconfig-001    gcc-8.5.0
-xtensa                randconfig-001-20260716    gcc-9.5.0
-xtensa                         randconfig-002    gcc-13.4.0
-xtensa                randconfig-002-20260716    gcc-8.5.0
+The lock used for exclusion is the mmap lock, and for kernel ranges this
+the mmap lock on init_mm.
 
---
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests/wiki
+ptdump is a special case being both the only user of
+walk_page_range_debug(), and the only case in which it walks ranges it
+does not own.
+
+This presents a problem, as page tables may be freed under ptdump.  And
+indeed there is a use-after-free bug in the kernel as a result, which this
+series addresses.
+
+vmap promotes page tables to huge leaf entries where possible, freeing the
+lower page table when it does.  It does this with no meaningful locks held
+against concurrent ptdump walks.
+
+As a result, use-after-free can currently occur.  This series addresses
+the issue by having the vmap huge promotion logic acquire the mmap read
+lock while both setting the huge page table entry and freeing the prior
+leaf page table.
+
+The ptdump code already acquires the mmap write lock, so by doing so we
+ensure that the ptdump walker only ever observes either the huge page
+table entry or the existing page table entry, and nothing is freed
+underneath it.
+
+A mitigation for this issue was already applied for arm64 in commit
+fa93b45fd397 ("arm64: Enable vmalloc-huge with ptdump"), which this series
+has to deal with carefully.
+
+This mitigation resolves the issue by acquiring the mmap read lock on
+init_mm on vmap page table free if a ptdump is in progress.
+
+However the fix in this series would cause a deadlock if we were to simply
+apply it for arm64 without also reverting the change.
+
+This is because vmap may acquire the read lock before ptdump attempts to
+acquire the write lock, which then gets queued, and rwsem starvation rules
+mean that the (unacknowledged) nested mmap read lock in the arm64 code
+would also block, meaning the original read lock is never released and
+thus deadlock.
+
+This series works around this by #ifndef CONFIG_ARM64'ing the mmap read
+lock in vmap logic, then partially reverting commit fa93b45fd397 ("arm64:
+Enable vmalloc-huge with ptdump"), keeping the enablement of huge vmap
+support, and removing the ifdeffery with the partial revert patch.
+
+There are two related issues that we also address in this series:
+
+* x86 page attribute logic, specifically Change Page Attributes (CPA),
+  implements a feature whereby huge ranges can be collapsed into huge leaf
+  entries. This can similarly cause a UAF when done in parallel with a
+  ptdump walk, so similarly acquire the init_mm mmap lock to avoid this.
+
+* x86 and arm64 permit walks of non-kernel mm's (both allowing efi mm
+  walks, and in intel's case arbitrary mm's), so we ensure kernel mappings
+  remain stable by locking the init_mm as well as the mm being walked.
+
+The ordering of patches is established for both strict dependencies (the
+arm64 partial revert in particular has to be done after the vmap changes)
+and logical ones (the non-kernel mm fix only makes sense once the vmap/CPA
+fixes are in place).
+
+
+This patch (of 4):
+
+Currently there is a nasty race between ptdump and vmap when attempting to
+map a huge P4D, PMD or PUD entry:
+
+* ptdump walks kernel page table ranges it doesn't own.
+
+* When vmap maps ranges it tries to promotes existing ones to huge page
+  tables in vmap_try_huge_[p4d,pud,pmd]() at P4D, PUD and PMD level,
+  freeing the lower page table in [p4d,pud,pmd]_free_[pud,pmd,pte]_page()
+  when it succeeds.
+
+Both of these things can happen at the same time and as a result ptdump
+can access a freed page table, resulting in a use-after-free and memory
+corruption.
+
+This is possible because while ptdump_walk_pgd() holds both the mem
+hotplug lock and the mmap write lock before invoking
+walk_page_range_debug(), vmap takes no relevant locks at all.
+
+Fix this by holding the mmap read lock in vmap_try_huge_*() when freeing
+page tables.
+
+The read lock is sufficient: ptdump is the only walker that must be
+excluded and it holds the mmap write lock.  Other holders of the read lock
+may run concurrently, but each exclusively owns the range it operates on
+and cannot reach the page tables freed here.
+
+We also hold the lock while assigning the huge page table entry, which
+means page table walkers observe only the huge or non-huge page table
+entry.
+
+We use a trylock to prevent ptdump from blocking vmap making forward
+progress.  This is fine because it's an optimisation in any case, and thus
+the vmap can safely proceed regardless.
+
+All other kernel page table walkers that touch vmalloc ranges either
+exclusively own the memory walked or acquire the mmap lock, so this
+correctly excludes those walkers.
+
+One wrinkle here is commit fa93b45fd397 ("arm64: Enable vmalloc-huge with
+ptdump"), which addresses the issue for arm64 only by explicitly acquiring
+the mmap read lock on kernel page table freeing should a concurrent ptdump
+be in progress.
+
+This is problematic as vmap may acquire the mmap read lock prior to ptdump
+attempting to acquire an mmap write lock, leading to a deadlock when the
+mmap read lock is slept upon on page table freeing due to rwsem
+anti-starvation.
+
+We work around this by predicating the mmap lock being taken on
+!CONFIG_ARM64 for the time being.
+
+With this patch applied, a follow up will partially revert commit
+fa93b45fd397 ("arm64: Enable vmalloc-huge with ptdump") and at that stage
+remove the arm64 ifdeffery.
+
+We also update walk_page_range_debug() to assert the mmap write lock
+unconditionally and update the comment here to reflect this change.
+
+The issue has existed as long as ptdump was available and vmap freed page
+tables when promoting to a huge leaf entry, that is, since commit
+b6bdb7517c3d ("mm/vmalloc: add interfaces to free unmapped page table")
+for huge ioremap, and commit 121e6f3258fe ("mm/vmalloc: hugepage vmalloc
+mappings") for huge vmalloc.
+
+Since the former is the earlier of the two we choose that for our Fixes
+tag.
+
+We also define a guard class for mmap_read_trylock() so we can use
+cleanup.h to make the scope handling cleaner in the implementation.
+
+This patch is based on work by David Carlier (linked), with gratitude!
+
+Link: https://lore.kernel.org/20260714-series-vmap-race-fix-v3-0-b812eccfa0f9@kernel.org
+Link: https://lore.kernel.org/20260714-series-vmap-race-fix-v3-1-b812eccfa0f9@kernel.org
+Fixes: b6bdb7517c3d ("mm/vmalloc: add interfaces to free unmapped page table")
+Signed-off-by: Lorenzo Stoakes <ljs@kernel.org>
+Reported-by: syzbot+fd95a72470f5a44e464c@syzkaller.appspotmail.com
+Closes: https://lore.kernel.org/all/6a287988.39669fcc.33b062.00a0.GAE@google.com/T/
+Link: https://lore.kernel.org/linux-mm/20260706203128.162335-1-devnexen@gmail.com/
+Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Reviewed-by: Dev Jain <dev.jain@arm.com>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: "Borislav Petkov (AMD)" <bp@alien8.de>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Kiryl Shutsemau <kas@kernel.org>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Toshi Kani <toshi.kani@hpe.com>
+Cc: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Will Deacon <will@kernel.org>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: <stable@vger.kernel.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ include/linux/mmap_lock.h |    1 
+ mm/pagewalk.c             |   22 ++++++++-------
+ mm/vmalloc.c              |   50 +++++++++++++++++++++++++++++-------
+ 3 files changed, 54 insertions(+), 19 deletions(-)
+
+--- a/include/linux/mmap_lock.h~mm-vmalloc-acquire-init_mm-lock-on-huge-vmap-to-avoid-ptdump-uaf
++++ a/include/linux/mmap_lock.h
+@@ -621,6 +621,7 @@ static inline void mmap_read_unlock(stru
+ 
+ DEFINE_GUARD(mmap_read_lock, struct mm_struct *,
+ 	     mmap_read_lock(_T), mmap_read_unlock(_T))
++DEFINE_GUARD_COND(mmap_read_lock, _try, mmap_read_trylock(_T))
+ 
+ static inline void mmap_read_unlock_non_owner(struct mm_struct *mm)
+ {
+--- a/mm/pagewalk.c~mm-vmalloc-acquire-init_mm-lock-on-huge-vmap-to-avoid-ptdump-uaf
++++ a/mm/pagewalk.c
+@@ -678,6 +678,8 @@ int walk_kernel_page_table_range_lockles
+  * will also not lock the PTEs for the pte_entry() callback.
+  *
+  * This is for debugging purposes ONLY.
++ *
++ * The mmap write lock must be held.
+  */
+ int walk_page_range_debug(struct mm_struct *mm, unsigned long start,
+ 			  unsigned long end, const struct mm_walk_ops *ops,
+@@ -691,6 +693,16 @@ int walk_page_range_debug(struct mm_stru
+ 		.no_vma		= true
+ 	};
+ 
++	/*
++	 * When walking userland page tables, an mmap write lock must be held to
++	 * account for munmap() downgrading to an mmap read lock when tearing
++	 * down page tables.
++	 *
++	 * When walking kernel page tables, an mmap write lock must also be held
++	 * to account for page table freeing on vmap huge page mapping.
++	 */
++	mmap_assert_write_locked(mm);
++
+ 	/* For convenience, we allow traversal of kernel mappings. */
+ 	if (mm == &init_mm)
+ 		return walk_kernel_page_table_range(start, end, ops,
+@@ -700,16 +712,6 @@ int walk_page_range_debug(struct mm_stru
+ 	if (!check_ops_safe(ops))
+ 		return -EINVAL;
+ 
+-	/*
+-	 * The mmap lock protects the page walker from changes to the page
+-	 * tables during the walk.  However a read lock is insufficient to
+-	 * protect those areas which don't have a VMA as munmap() detaches
+-	 * the VMAs before downgrading to a read lock and actually tearing
+-	 * down PTEs/page tables. In which case, the mmap write lock should
+-	 * be held.
+-	 */
+-	mmap_assert_write_locked(mm);
+-
+ 	return walk_pgd_range(start, end, &walk);
+ }
+ 
+--- a/mm/vmalloc.c~mm-vmalloc-acquire-init_mm-lock-on-huge-vmap-to-avoid-ptdump-uaf
++++ a/mm/vmalloc.c
+@@ -43,6 +43,7 @@
+ #include <asm/tlbflush.h>
+ #include <asm/shmparam.h>
+ #include <linux/page_owner.h>
++#include <linux/cleanup.h>
+ 
+ #define CREATE_TRACE_POINTS
+ #include <trace/events/vmalloc.h>
+@@ -158,10 +159,25 @@ static int vmap_try_huge_pmd(pmd_t *pmd,
+ 	if (!IS_ALIGNED(phys_addr, PMD_SIZE))
+ 		return 0;
+ 
+-	if (pmd_present(*pmd) && !pmd_free_pte_page(pmd, addr))
+-		return 0;
++	if (!pmd_present(*pmd))
++		return pmd_set_huge(pmd, phys_addr, prot);
+ 
+-	return pmd_set_huge(pmd, phys_addr, prot);
++	/*
++	 * Kernel page table walkers either walk ranges they own exclusively or
++	 * hold the mmap write lock on init_mm (ptdump being the motivating
++	 * case).
++	 *
++	 * Therefore, acquire the mmap read lock to prevent use-after-free when
++	 * freeing page tables.
++	 */
++#ifndef CONFIG_ARM64
++	scoped_cond_guard(mmap_read_lock_try, return 0, &init_mm)
++#endif
++	{
++		if (!pmd_free_pte_page(pmd, addr))
++			return 0;
++		return pmd_set_huge(pmd, phys_addr, prot);
++	}
+ }
+ 
+ static int vmap_pmd_range(pud_t *pud, unsigned long addr, unsigned long end,
+@@ -210,10 +226,18 @@ static int vmap_try_huge_pud(pud_t *pud,
+ 	if (!IS_ALIGNED(phys_addr, PUD_SIZE))
+ 		return 0;
+ 
+-	if (pud_present(*pud) && !pud_free_pmd_page(pud, addr))
+-		return 0;
++	if (!pud_present(*pud))
++		return pud_set_huge(pud, phys_addr, prot);
+ 
+-	return pud_set_huge(pud, phys_addr, prot);
++	/* See comment in vmap_try_huge_pmd(). */
++#ifndef CONFIG_ARM64
++	scoped_cond_guard(mmap_read_lock_try, return 0, &init_mm)
++#endif
++	{
++		if (!pud_free_pmd_page(pud, addr))
++			return 0;
++		return pud_set_huge(pud, phys_addr, prot);
++	}
+ }
+ 
+ static int vmap_pud_range(p4d_t *p4d, unsigned long addr, unsigned long end,
+@@ -262,10 +286,18 @@ static int vmap_try_huge_p4d(p4d_t *p4d,
+ 	if (!IS_ALIGNED(phys_addr, P4D_SIZE))
+ 		return 0;
+ 
+-	if (p4d_present(*p4d) && !p4d_free_pud_page(p4d, addr))
+-		return 0;
++	if (!p4d_present(*p4d))
++		return p4d_set_huge(p4d, phys_addr, prot);
+ 
+-	return p4d_set_huge(p4d, phys_addr, prot);
++	/* See comment in vmap_try_huge_pmd(). */
++#ifndef CONFIG_ARM64
++	scoped_cond_guard(mmap_read_lock_try, return 0, &init_mm)
++#endif
++	{
++		if (!p4d_free_pud_page(p4d, addr))
++			return 0;
++		return p4d_set_huge(p4d, phys_addr, prot);
++	}
+ }
+ 
+ static int vmap_p4d_range(pgd_t *pgd, unsigned long addr, unsigned long end,
+_
+
+Patches currently in -mm which might be from ljs@kernel.org are
+
+x86-mm-pat-acquire-mmap-lock-on-page-table-free-to-avoid-ptdump-uaf.patch
+mm-ptdump-always-stabilise-against-page-table-freeing-using-init_mm.patch
+arm64-remove-redundant-concurrent-ptdump-uaf-mitigation.patch
+mm-move-alloc-tag-to-mm.patch
+mm-move-vma_start_pgoff-into-mmh-and-clean-up.patch
+mm-add-kdoc-comments-for-vma_start-last_pgoff.patch
+tools-testing-vma-use-vma_start_pgoff-in-merge-tests.patch
+mm-introduce-and-use-vma_end_pgoff.patch
+mm-rmap-update-mm-interval_treec-comments.patch
+mm-rmap-parameterise-vma_interval_tree_-by-address_space.patch
+mm-rmap-elide-unnecessary-static-inlines-in-interval_treec.patch
+mm-rmap-rename-vma_interval_tree_-to-mapping_rmap_tree_.patch
+mm-rmap-parameterise-anon_vma_interval_tree_-by-anon_vma.patch
+mm-rmap-rename-anon_vma_interval_tree_-params-and-use-pgoff_t.patch
+mm-rmap-rename-anon_vma_interval_tree_-to-anon_rmap_tree_.patch
+maintainers-move-mm-interval_treec-to-rmap-section.patch
+mm-vma-introduce-and-use-vmg_pages-vmg__pgoff.patch
+mm-vma-clean-up-anon_vma_compatible.patch
+mm-vma-refactor-vmg_adjust_set_range-for-clarity.patch
+mm-vma-minor-cleanup-of-expand_.patch
+mm-introduce-and-use-linear_page_delta.patch
+mm-vma-use-vma_start_pgoff-linear_page_index-in-mm-code.patch
+mm-prefer-vma__pgoff-to-vma-vm_pgoff-in-kernel.patch
+mm-vma-remove-duplicative-vma_pgoff_offset-helper.patch
+mm-use-linear_page_-consistently.patch
+mm-vma-introduce-vma_assert_can_modify.patch
+mm-vma-add-and-use-vma__pgoff.patch
+mm-vma-move-__install_special_mapping-to-vmac.patch
+mm-vma-make-vma_set_range-static-drop-insert_vm_struct-decl.patch
+mm-vma-update-vma_shrink-to-not-pass-start-pgoff-parameters.patch
+mm-vma-update-vmg_adjust_set_range-to-offset-pgoff-instead.patch
+mm-vma-slightly-rework-the-anonymous-check-in-__mmap_new_vma.patch
+mm-vma-introduce-and-use-vma_set_pgoff.patch
+mm-vma-correct-incorrect-vmah-inclusion.patch
+mm-vma-use-guard-clauses-in-can_vma_merge_.patch
+tools-testing-vma-default-vma-mm-flag-bits-to-64-bit.patch
+tools-testing-vma-output-compared-expression-on-assert_.patch
+mm-introduce-vma_flags_can_grow-and-vma_can_grow.patch
+mm-vma-update-do_mmap-to-use-vma_flags_t.patch
+mm-convert-__get_unmapped_area-to-use-vma_flags_t.patch
+mm-update-generic_get_unmapped_area-to-use-vma_flags_t.patch
+mm-prefer-mm-def_vma_flags-in-mm-logic.patch
+mm-vma-convert-vm_pgprot_modify-to-use-vma_flags_t-and-rename.patch
+mm-vma-rename-vma_get_page_prot-to-vma_flags_to_page_prot.patch
+mm-introduce-vma_get_page_prot-and-use-it.patch
+mm-vma-update-create_init_stack_vma-to-use-vma_flags_t.patch
+mm-vma-convert-miscellaneous-uses-of-vma-flags-in-core-mm.patch
+mm-mlock-convert-mlock-code-to-use-vma_flags_t.patch
+mm-mprotect-convert-mprotect-code-to-use-vma_flags_t.patch
+mm-mremap-convert-mremap-code-to-use-vma_flags_t.patch
+
