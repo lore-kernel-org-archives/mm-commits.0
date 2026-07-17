@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 73BF7380FFB
-	for <mm-commits@vger.kernel.org>; Fri, 17 Jul 2026 19:35:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C16B637DE83
+	for <mm-commits@vger.kernel.org>; Fri, 17 Jul 2026 19:40:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784316914; cv=none; b=UnvppUEpSPRRzvrOAbM27cgOFOYguzbf1I0X/FWdqW34MoUUR+uhrZxINpicvIeEXZ0BsBacyLKSS4arYIUI8oD5sjk6ygERCEyIGm/e0zHs7qJ6zkHQKGHb81S3QqrtZp0WCq6GEoyzdesJIG6zzXW1wjg/+sQONMifqunspu8=
+	t=1784317215; cv=none; b=lA5OtdwJKWENcgvMoca5uNBslqGnN5Iqlua3Lm1W8gQBCJ3f38qqH/l2bPbsZKYvG79P+FYPv9kvigk7RuUXhdJNXykkaZX/XxJQeXTBG8OrmcPAXCQprcPSRyebGGq6UMDIMHkadY2bfQZFWTXqjbhOY2+vj2MLc0r8hGZfoLI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784316914; c=relaxed/simple;
-	bh=ngVVCrwPgXSeXMVMFB+8R9UvJZ1zq9oDxCoAXnfKYDU=;
-	h=Date:To:From:Subject:Message-Id; b=L5u2gexQlrVFC6ADE8yKNWpzB3Bgw47kwh1OtffOvC4SMNkZQj7r+GO8wxOvNxH2vXR9oDPpdHvmEXpbz9UJNwDxs8m7U5aP6oFpLEima7yWJMDrSiptY71ABrRflpiot6fQ/YcU9i9HxsqsQDxekmX9v+iz0ExEbVKuWVOjcGs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mUFlJLcG; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1784317215; c=relaxed/simple;
+	bh=qDPoePIe8qzXJOwM4Q/Xwj8swNBGQ/cT0KWEK6RSBCY=;
+	h=Date:To:From:Subject:Message-Id; b=kW7fh89IZXpeqxCVxd2VavG/K5RjG1w/bo/EqBGietpUWZfZErpV0CxaM5NQkmqRj+QNwhhhc5TfFm7Ic38nKWjQU2HCZ6hLyQ6jjA6Jt8Y7NwI2XdFQgEJ1py+1pNuXt9mr6XXeGNgogcAaR7VYTNa+tsGU7RIlImzgloiwkHE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=liFcnKBF; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mUFlJLcG"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DF27D1F000E9;
-	Fri, 17 Jul 2026 19:35:12 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="liFcnKBF"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 31F5B1F000E9;
+	Fri, 17 Jul 2026 19:40:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1784316913;
-	bh=PbkGwzX5C3D6TKqRSIhCDiAawzCtnMLTyzkIxSlSFQw=;
+	d=linux-foundation.org; s=korg; t=1784317213;
+	bh=ikHAusxln6sajgarg0rO42LzSOZcl7IAKYcE6DbItHo=;
 	h=Date:To:From:Subject;
-	b=mUFlJLcGZhVfBgw+Yo9qyWe6RyVUwNOhZwvByPLwvt4Scz8Il5v5D0bFXK158hnGl
-	 pmcTUYNrlK9YIGUL+abYrSBPlGCuv3HGxAl2aTJEQ9FjSugsw6ulrv69tfZnZmXFAg
-	 sOI4z7t+CfVAE4lAShYyWU2Nq/JNOJU7OWzRelp4=
-Date: Fri, 17 Jul 2026 12:35:12 -0700
+	b=liFcnKBFHmECOVeC4Mkjyd/gaMcyc8T+n9Mjxms3CpUTPFcQ6xuZore0UOUb9xXLs
+	 2WPf+X60q6BN6/Nf6EYGVQAAN7Td6t9R6+TpCcKuXJXg2DUWs5PcKBUjBzRaB40Xqk
+	 1qp7NtRO7P3OOI1SAAZU7Q43YO8Q5tQu3hgsvpZE=
+Date: Fri, 17 Jul 2026 12:40:12 -0700
 To: mm-commits@vger.kernel.org,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-mseal-remove-further-superfluous-comments-do_mseal.patch removed from -mm tree
-Message-Id: <20260717193512.DF27D1F000E9@smtp.kernel.org>
+Subject: + mm-mseal-remove-superfluous-comments-fix-confusion-around-mm.patch added to mm-new branch
+Message-Id: <20260717194013.31F5B1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,31 +34,80 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: mm/mseal: remove further superfluous comments, do_mseal()
-has been removed from the -mm tree.  Its filename was
-     mm-mseal-remove-further-superfluous-comments-do_mseal.patch
+The patch titled
+     Subject: mm/mseal: remove superfluous comments, fix confusion around mm
+has been added to the -mm mm-new branch.  Its filename is
+     mm-mseal-remove-superfluous-comments-fix-confusion-around-mm.patch
 
-This patch was dropped because an updated version will be issued
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mseal-remove-superfluous-comments-fix-confusion-around-mm.patch
+
+This patch will later appear in the mm-new branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: mm/mseal: remove further superfluous comments, do_mseal()
-Date: Thu, 16 Jul 2026 14:43:11 +0100
+Subject: mm/mseal: remove superfluous comments, fix confusion around mm
+Date: Fri, 17 Jul 2026 18:27:09 +0100
 
-There's no need to abstract do_mseal() any longer so put the system call
-implementation in the system call declaration.
+Patch series "mm/mseal: further cleanups", v2.
 
-The comment around do_mseal() is strangely formatted, overly long and adds
-a lot of superfluous information that the code already provides, so boil
-it down to the essentials.
+The mseal implementation is still rather confusing, so tighten things up a
+little.
 
-Link: https://lore.kernel.org/20260716-mseal-fixups-v1-3-3a9609bf041b@kernel.org
+The only user of do_mseal() outside of the system call is the
+MMAP_PAGE_ZERO process personality - retain better control over how mseal
+is utilised by providing mseal_mmap_page_zero() for this instead.
+
+The comments are overly long and confusion, so cut them down so they're a
+lot clearer.
+
+Remove confusing mm_struct params (mseal can not be used on remote mm's)
+and wrap the actual system call logic into the system call declaration.
+
+
+This patch (of 3):
+
+Remove comment blocks that don't add value and eliminate any confusion
+about whether or not we permit mseal()'ing of remote mm's by not passing
+through an mm parameter but rather referencing current->mm in each
+function.
+
+Also while we're here, avoid an ugly goto by using an else branch, and
+move local parameters declarations into reverse xmas tree order.
+
+No functional change intended.
+
+Link: https://lore.kernel.org/20260717-mseal-fixups-v2-0-0daa0014b813@kernel.org
+Link: https://lore.kernel.org/20260717-mseal-fixups-v2-1-0daa0014b813@kernel.org
 Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
 Reviewed-by: Pedro Falcato <pfalcato@suse.de>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Christian Brauner <brauner@kernel.org>
-Cc: David Hildenbrand <david@kernel.org>
 Cc: Jan Kara <jack@suse.cz>
 Cc: Jann Horn <jannh@google.com>
 Cc: Kees Cook <kees@kernel.org>
@@ -70,111 +119,99 @@ Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mseal.c |   74 +++++++++++----------------------------------------
- 1 file changed, 16 insertions(+), 58 deletions(-)
+ mm/mseal.c |   53 ++++++++++-----------------------------------------
+ 1 file changed, 11 insertions(+), 42 deletions(-)
 
---- a/mm/mseal.c~mm-mseal-remove-further-superfluous-comments-do_mseal
+--- a/mm/mseal.c~mm-mseal-remove-superfluous-comments-fix-confusion-around-mm
 +++ a/mm/mseal.c
-@@ -99,60 +99,24 @@ void mseal_mmap_page_zero(void)
+@@ -16,32 +16,11 @@
+ #include <linux/sched.h>
+ #include "internal.h"
+ 
+-/*
+- * mseal() disallows an input range which contain unmapped ranges (VMA holes).
+- *
+- * It disallows unmapped regions from start to end whether they exist at the
+- * start, in the middle, or at the end of the range, or any combination thereof.
+- *
+- * This is because after sealing a range, there's nothing to stop memory mapping
+- * of ranges in the remaining gaps later, meaning that the user might then
+- * wrongly consider the entirety of the mseal()'d range to be sealed when it
+- * in fact isn't.
+- */
+-
+-/*
+- * Does the [start, end) range contain any unmapped memory?
+- *
+- * We ensure that:
+- * - start is part of a valid VMA.
+- * - end is part of a valid VMA.
+- * - no gap (unallocated memory) exists between start and end.
+- */
+-static bool range_contains_unmapped(struct mm_struct *mm,
+-		unsigned long start, unsigned long end)
++static bool range_contains_unmapped(unsigned long start, unsigned long end)
+ {
+-	struct vm_area_struct *vma;
+-	unsigned long prev_end = start;
+ 	VMA_ITERATOR(vmi, current->mm, start);
++	unsigned long prev_end = start;
++	struct vm_area_struct *vma;
+ 
+ 	for_each_vma_range(vmi, vma, end) {
+ 		if (vma->vm_start > prev_end)
+@@ -53,11 +32,10 @@ static bool range_contains_unmapped(stru
+ 	return prev_end < end;
  }
  
- /*
-- * mseal(2) seals the VM's meta data from
-- * selected syscalls.
-+ * Seal VMAs in the specified input range to prevent an attacker replacing what
-+ * is mapped in the range with something else.
-  *
-- * addr/len: VM address range.
-+ * Disallows:
-+ * - VMA unmapping, remapping or shrinking.
-+ * - Overwriting the VMA with another one via mmap(), mremap() or similar.
-+ * - Alteration of properties via mprotect()/pkey_mprotect().
-+ * - Destructive madvise() behaviours (like MADV_DONTNEED) on anonymous read-only
-+ *   ranges.
-  *
-- *  The address range by addr/len must meet:
-- *   start (addr) must be in a valid VMA.
-- *   end (addr + len) must be in a valid VMA.
-- *   no gap (unallocated memory) between start and end.
-- *   start (addr) must be page aligned.
-+ * Since unmapped ranges can be mapped at any time, the input range must span
-+ * mapped ranges only.
-  *
-- *  len: len will be page aligned implicitly.
-- *
-- *   Below VMA operations are blocked after sealing.
-- *   1> Unmapping, moving to another location, and shrinking
-- *	the size, via munmap() and mremap(), can leave an empty
-- *	space, therefore can be replaced with a VMA with a new
-- *	set of attributes.
-- *   2> Moving or expanding a different vma into the current location,
-- *	via mremap().
-- *   3> Modifying a VMA via mmap(MAP_FIXED).
-- *   4> Size expansion, via mremap(), does not appear to pose any
-- *	specific risks to sealed VMAs. It is included anyway because
-- *	the use case is unclear. In any case, users can rely on
-- *	merging to expand a sealed VMA.
-- *   5> mprotect and pkey_mprotect.
-- *   6> Some destructive madvice() behavior (e.g. MADV_DONTNEED)
-- *      for anonymous memory, when users don't have write permission to the
-- *	memory. Those behaviors can alter region contents by discarding pages,
-- *	effectively a memset(0) for anonymous memory.
-- *
-- *  flags: reserved.
-- *
-- * return values:
-- *  zero: success.
-- *  -EINVAL:
-- *   invalid input flags.
-- *   start address is not page aligned.
-- *   Address range (start + len) overflow.
-- *  -ENOMEM:
-- *   addr is not a valid address (not allocated).
-- *   end (start + len) is not a valid address.
-- *   a gap (unallocated memory) between start and end.
-- *  -EPERM:
-- *  - In 32 bit architecture, sealing is not supported.
-- * Note:
-- *  user can call mseal(2) multiple times, adding a seal on an
-- *  already sealed memory is a no-action (no error).
-- *
-- *  unseal() is not supported.
-+ * The flags parameter is currently reserved.
+-static int mseal_apply(struct mm_struct *mm,
+-		unsigned long start, unsigned long end)
++static int mseal_apply(unsigned long start, unsigned long end)
+ {
++	VMA_ITERATOR(vmi, current->mm, start);
+ 	struct vm_area_struct *vma, *prev;
+-	VMA_ITERATOR(vmi, mm, start);
+ 
+ 	/* We know there are no gaps so this will be non-NULL. */
+ 	vma = vma_iter_load(&vmi);
+@@ -142,10 +120,10 @@ static int mseal_apply(struct mm_struct
   */
--static int do_mseal(unsigned long start, size_t len_in, unsigned long flags)
-+SYSCALL_DEFINE3(mseal, unsigned long, start, size_t, len, unsigned long, flags)
+ int do_mseal(unsigned long start, size_t len_in, unsigned long flags)
  {
 -	size_t len;
-+	size_t len_aligned;
- 	unsigned long end;
+-	int ret = 0;
+-	unsigned long end;
+ 	struct mm_struct *mm = current->mm;
++	unsigned long end;
++	int ret = 0;
++	size_t len;
  
  	/* Verify flags not set. */
-@@ -163,12 +127,12 @@ static int do_mseal(unsigned long start,
- 	if (!PAGE_ALIGNED(start))
- 		return -EINVAL;
+ 	if (flags)
+@@ -170,20 +148,11 @@ int do_mseal(unsigned long start, size_t
+ 	if (mmap_write_lock_killable(mm))
+ 		return -EINTR;
  
--	len = PAGE_ALIGN(len_in);
-+	len_aligned = PAGE_ALIGN(len);
- 	/* Check to see whether len was rounded up from small -ve to zero. */
--	if (len_in && !len)
-+	if (len && !len_aligned)
- 		return -EINVAL;
- 
--	end = start + len;
-+	end = start + len_aligned;
- 	if (end < start)
- 		return -EINVAL;
- 
-@@ -177,9 +141,3 @@ static int do_mseal(unsigned long start,
- 
- 	return mseal(start, end);
- }
+-	if (range_contains_unmapped(mm, start, end)) {
++	if (range_contains_unmapped(start, end))
+ 		ret = -ENOMEM;
+-		goto out;
+-	}
 -
--SYSCALL_DEFINE3(mseal, unsigned long, start, size_t, len, unsigned long,
--		flags)
--{
--	return do_mseal(start, len, flags);
--}
+-	/*
+-	 * Second pass, this should success, unless there are errors
+-	 * from vma_modify_flags, e.g. merge/split error, or process
+-	 * reaching the max supported VMAs, however, those cases shall
+-	 * be rare.
+-	 */
+-	ret = mseal_apply(mm, start, end);
++	else
++		ret = mseal_apply(start, end);
+ 
+-out:
+ 	mmap_write_unlock(mm);
+ 	return ret;
+ }
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
@@ -231,4 +268,7 @@ mm-vma-convert-miscellaneous-uses-of-vma-flags-in-core-mm.patch
 mm-mlock-convert-mlock-code-to-use-vma_flags_t.patch
 mm-mprotect-convert-mprotect-code-to-use-vma_flags_t.patch
 mm-mremap-convert-mremap-code-to-use-vma_flags_t.patch
+mm-mseal-remove-superfluous-comments-fix-confusion-around-mm.patch
+mm-mseal-limit-scope-of-mseal-address-zero-to-address-zero.patch
+mm-mseal-remove-further-superfluous-comments-do_mseal.patch
 
