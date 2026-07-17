@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4BC17F507
-	for <mm-commits@vger.kernel.org>; Fri, 17 Jul 2026 00:03:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7FA652771B
+	for <mm-commits@vger.kernel.org>; Fri, 17 Jul 2026 00:03:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784246581; cv=none; b=XiVob8Ux6PjOwGeniDGTuOxJbnsFjtCIvPmEtOMvxCYBphagZI2uPrtbHesONiSIkgv0HDxcB4zmP/cwiUQx+UXNMfHv+PECH8+tI+c7lmmDaJ1tqxWi3Nd3w4GVybt8ja52XWq1TFGt7B3d7x6VuZlL6Y9CPIy2DQbkNpHi95Y=
+	t=1784246583; cv=none; b=c/q6JWtQsrttfxYK5Tlh3SasBNUSKtxRaQQ3KWhrLX/DWVWeCdigJ3amjagMgPzNqRsAYekMw7ExJURyNDWXJHK+7yTo2lqjdUcMRGsyQSE4hwO9+btTJHo/hum67omkMaCssT0CycpDXRwu0VAnvn/9uNfh+aWOtkXXGjDrph0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784246581; c=relaxed/simple;
-	bh=Ao01bNadSzJnCz1bmWv42KqsL/qCMDSTGr7Z0vMBc+U=;
-	h=Date:To:From:Subject:Message-Id; b=bQAmDTK1fA0si8IdCk+aKf83t1NthJajmf3cVWAuaraD6YltDri/1WM2PWR/lqKcuc0mu7XVyov+eW8zv2rjyc1FfqNialFwCcBMC+0virtoug52ycEZHSmReOoU6Ef0bNaUq5UJECxsTshR0XviLQYFLGWGEdyW5RnJDyeH2QY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TTYsprP7; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1784246583; c=relaxed/simple;
+	bh=oQNTqVbfLxAj231F2fDmBJ9A9WcuuhlHckv7awrGP9g=;
+	h=Date:To:From:Subject:Message-Id; b=bHlkhOu4FB6UWds6u5QdITp5XqCsR6/KNWWZA6Y+VVPc6pq4IFNZUU4KeowjXHVhU2DLzK2HEKyU30s/j5qRep3t+nCfhu7dkQlDU7IhfadMgGv/U7AbxGcWFmTjIO3D5h5y46zhIAjLs3HGKjd7aLOAiikR3R22qf+/L5QZrfI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=R6MbWvVw; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TTYsprP7"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D90F01F000E9;
-	Fri, 17 Jul 2026 00:02:59 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="R6MbWvVw"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 108141F000E9;
+	Fri, 17 Jul 2026 00:03:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1784246580;
-	bh=AdZH8IieERWroURtX30A7gGBSvLBWhrMA9gW66/Pz0E=;
+	d=linux-foundation.org; s=korg; t=1784246582;
+	bh=OL+rgeqLqIIwuk1843CecQH5ZVjejStPyFUgva+2h4w=;
 	h=Date:To:From:Subject;
-	b=TTYsprP71gTsqQuI7nCS+SpjGgvSGto6YzIDe+2Vt7FYXWMiGzatlaFu1vxqqU6+J
-	 svgbUBDABlEBvx42KHJd0dW94fm80qoieFvjlULJAdYyMb5elaJ1dLOZq35GWpguum
-	 Nhdlu8MLpjT0UYz2I5DESpQjncmla5PmMCtBnpnU=
-Date: Thu, 16 Jul 2026 17:02:59 -0700
+	b=R6MbWvVwHxCFLdodHkP0GyhsuOGTCEiztNfWwzvl5lCVJkJIYChhSesi/wHM4iWxI
+	 oaLIg34olkeZXgh+4geQqvbwLxkBoQsYUPtY2A/Q6sO7fFtdX51YOn7NLuBqykQeFQ
+	 ApZG95LNJoydbdIYTLs5fM+vUnsJUvzcxyxjLKQI=
+Date: Thu, 16 Jul 2026 17:03:01 -0700
 To: mm-commits@vger.kernel.org,david@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + s390-mm-use-free_reserved_pages-in-vmem_free_pages.patch added to mm-unstable branch
-Message-Id: <20260717000259.D90F01F000E9@smtp.kernel.org>
+Subject: + mm-bootmem_info-allow-calling-free_bootmem_page-on-pages-without-a-bootmem_type.patch added to mm-unstable branch
+Message-Id: <20260717000302.108141F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: s390/mm: use free_reserved_pages() in vmem_free_pages()
+     Subject: mm/bootmem_info: allow calling free_bootmem_page() on pages without a bootmem_type
 has been added to the -mm mm-unstable branch.  Its filename is
-     s390-mm-use-free_reserved_pages-in-vmem_free_pages.patch
+     mm-bootmem_info-allow-calling-free_bootmem_page-on-pages-without-a-bootmem_type.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/s390-mm-use-free_reserved_pages-in-vmem_free_pages.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-bootmem_info-allow-calling-free_bootmem_page-on-pages-without-a-bootmem_type.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,17 +59,21 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "David Hildenbrand (Arm)" <david@kernel.org>
-Subject: s390/mm: use free_reserved_pages() in vmem_free_pages()
-Date: Thu, 16 Jul 2026 16:51:02 +0200
+Subject: mm/bootmem_info: allow calling free_bootmem_page() on pages without a bootmem_type
+Date: Thu, 16 Jul 2026 16:51:03 +0200
 
-Let's use our new generic helper.
+As preparation for further changes, let's temporarily allow freeing pages
+that were not previously registered.
 
-Link: https://lore.kernel.org/20260716-bootmem_info_part2-v2-3-4afc76c73d61@kernel.org
+This will allow freeing unregistered vmemmap pages allocated during boot
+through free_bootmem_page() from hugetlb code, until we fully rip all of
+that out.
+
+Link: https://lore.kernel.org/20260716-bootmem_info_part2-v2-4-4afc76c73d61@kernel.org
 Signed-off-by: David Hildenbrand (Arm) <david@kernel.org>
-Acked-by: Heiko Carstens <hca@linux.ibm.com>
-Reviewed-by: Muchun Song <muchun.song@linux.dev>
 Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
+Reviewed-by: Muchun Song <muchun.song@linux.dev>
+Acked-by: Zi Yan <ziy@nvidia.com>
 Reviewed-by: Dave Hansen <dave.hansen@linux.intel.com>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Andy Lutomirski <luto@kernel.org>
@@ -77,6 +81,7 @@ Cc: "Borislav Petkov (AMD)" <bp@alien8.de>
 Cc: Brendan Jackman <jackmanb@google.com>
 Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
 Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
+Cc: Heiko Carstens <hca@linux.ibm.com>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
 Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
@@ -92,29 +97,29 @@ Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/mm/vmem.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ include/linux/bootmem_info.h |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
---- a/arch/s390/mm/vmem.c~s390-mm-use-free_reserved_pages-in-vmem_free_pages
-+++ a/arch/s390/mm/vmem.c
-@@ -39,7 +39,6 @@ static void __ref *vmem_alloc_pages(unsi
- 
- static void vmem_free_pages(unsigned long addr, int order, struct vmem_altmap *altmap)
+--- a/include/linux/bootmem_info.h~mm-bootmem_info-allow-calling-free_bootmem_page-on-pages-without-a-bootmem_type
++++ a/include/linux/bootmem_info.h
+@@ -44,12 +44,12 @@ static inline void free_bootmem_page(str
  {
--	unsigned int nr_pages = 1 << order;
- 	struct page *page;
+ 	enum bootmem_type type = bootmem_type(page);
  
- 	if (altmap) {
-@@ -49,8 +48,7 @@ static void vmem_free_pages(unsigned lon
- 	page = virt_to_page((void *)addr);
- 	if (PageReserved(page)) {
- 		/* allocated from memblock */
--		while (nr_pages--)
--			free_reserved_page(page++);
-+		free_reserved_pages(page, order);
- 	} else {
- 		free_pages(addr, order);
- 	}
+-	VM_BUG_ON_PAGE(page_ref_count(page) != 2, page);
+-
+-	if (type == SECTION_INFO || type == MIX_SECTION_INFO)
++	if (type == SECTION_INFO || type == MIX_SECTION_INFO) {
++		VM_WARN_ON_PAGE(page_ref_count(page) != 2, page);
+ 		put_page_bootmem(page);
+-	else
+-		VM_BUG_ON_PAGE(1, page);
++	} else {
++		free_reserved_page(page);
++	}
+ }
+ #else
+ static inline void register_page_bootmem_info_node(struct pglist_data *pgdat)
 _
 
 Patches currently in -mm which might be from david@kernel.org are
