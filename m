@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2529ECA4E
-	for <mm-commits@vger.kernel.org>; Fri, 17 Jul 2026 00:11:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 565E9146D5A
+	for <mm-commits@vger.kernel.org>; Fri, 17 Jul 2026 00:26:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784247114; cv=none; b=pLzIR9q6CF7M5ra3B3Ai5hjZYqsUXbb/c6tp6eX98b63i2nxD1rLBUYzKrnXzt+XfuRX2sfkILQdLtjfzs/GPhXxK3APlE0/G3Tdzst4VAP3ntr2dmR+MJQ6q1H1k5G4JJkMU++vT7vBybBHRCqZgt3cyRNyquE3mNbEdw2p13Y=
+	t=1784248008; cv=none; b=iLohisGIjO36tqL/edXdIGdpZg0nVsgDcUvAkkO1FaLFskGd53eN0Dg9hn0VCqBYHJ8chtQpn3k7h4osrGYd7cjbr0bbud0qdxAB/n0v+uK44+EWlGzBEqCBjYaAEdDuYWp9tpFLB/w6z+/TizZ/v3fz01tvWkF3ObL5m6o1F4Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784247114; c=relaxed/simple;
-	bh=S1gw0wgE19mGP/t+yvFM5Mqk91RybH8/3b35EVjImZU=;
-	h=Date:To:From:Subject:Message-Id; b=sRNwBx+rR6cpT/9khtlmIup5H4JklLuGZTAvo8VHFrHBtacnjbUt/fo3NJeFVVahTUZ3bj+mpOVxy758VRcT2ffGfBCc9Mrl3KEzlmu8z7RRuK+O9FXbutalA2FLAYmYSmzk0grx4PPsUtjqtqT2ZreqFtCssVAtsgVri9wblbU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ao3bEfYm; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1784248008; c=relaxed/simple;
+	bh=CqUIE95q3ZbXhPmVNGpNGKeYiJft/HtI2k7xXDsvgwQ=;
+	h=Date:To:From:Subject:Message-Id; b=GDYzIKhy/7VjkzCNtVeDTt4qTkexPZ1Z8nkMXf83HHcAGXl0VCWP4+vz/LN3BcSqVBCRkCnLy4ckEdbjbN5ks1Rtnzo5i0Q+pK/104YhYSkpO2LaO9kPnevCgJQziRtGGtEKjDuEYonImXIwy/gK2yiT0ZXJk8CU6/nA2Fe7zNI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=svFSJNaD; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ao3bEfYm"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9AFF61F000E9;
-	Fri, 17 Jul 2026 00:11:52 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="svFSJNaD"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9E3111F000E9;
+	Fri, 17 Jul 2026 00:26:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1784247112;
-	bh=czFNhfzeVVHGYFpPEZQ6tdeeVb5brMlpZrNfN92SJMA=;
+	d=linux-foundation.org; s=korg; t=1784248006;
+	bh=6UybL29o8Gxd1fUGU3UIalcEUBpUe9HYgKgt4Ce4yyY=;
 	h=Date:To:From:Subject;
-	b=ao3bEfYmb+TSI0VygUaVDdepP2iHM7HRm7Q6gEYpVQmZOMEFnt+Wza3nUx2LkGDU8
-	 a3bp8uCnY+CQ8ng1YffuUriFOrz6hML2IITgBgwQVe7V5PSFRU5cNsMTLcYkkbcjO6
-	 uViSGDYEwDvA8yh/YlCtOOrQqreHuS5dzHP1bNBk=
-Date: Thu, 16 Jul 2026 17:11:52 -0700
-To: mm-commits@vger.kernel.org,wang.yaxin@zte.com.cn,fan.yu9@zte.com.cn,shivanksharma2376543@gmail.com,akpm@linux-foundation.org
+	b=svFSJNaDKUPRYlTj8UveJ2/S8VY6F/bIcsEEbIfVnEtjfSW+WhjRKruPaM0TuNuxG
+	 6DqDYLyUjftVJtSWi8fiwzTW94QbxTvj9aWPphTjfI2MKNFPI5tvkVNd5OiQ+5kN7A
+	 skVopjRF3h3U4xO8G6K+G60OJGB1kCA09AzCduaU=
+Date: Thu, 16 Jul 2026 17:26:46 -0700
+To: mm-commits@vger.kernel.org,viro@zeniv.linux.org.uk,vbabka@kernel.org,surenb@google.com,rppt@kernel.org,pfalcato@suse.de,mhocko@suse.com,liam@infradead.org,kees@kernel.org,jannh@google.com,jack@suse.cz,david@kernel.org,brauner@kernel.org,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + tools-accounting-fix-macro-typos-in-getdelays.patch added to mm-nonmm-unstable branch
-Message-Id: <20260717001152.9AFF61F000E9@smtp.kernel.org>
+Subject: + mm-mseal-remove-superfluous-comments-fix-confusion-around-mm.patch added to mm-new branch
+Message-Id: <20260717002646.9E3111F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,26 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: tools/accounting: fix macro typos in getdelays
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     tools-accounting-fix-macro-typos-in-getdelays.patch
+     Subject: mm/mseal: remove superfluous comments, fix confusion around mm
+has been added to the -mm mm-new branch.  Its filename is
+     mm-mseal-remove-superfluous-comments-fix-confusion-around-mm.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/tools-accounting-fix-macro-typos-in-getdelays.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mseal-remove-superfluous-comments-fix-confusion-around-mm.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,135 +69,197 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Shivank Sharma <shivanksharma2376543@gmail.com>
-Subject: tools/accounting: fix macro typos in getdelays
-Date: Thu, 16 Jul 2026 19:45:45 +0530
+From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
+Subject: mm/mseal: remove superfluous comments, fix confusion around mm
+Date: Thu, 16 Jul 2026 14:43:09 +0100
 
-Correct the spelling of PRINT_FILED_DELAY and PRINT_FILED_DELAY_WITH_TS to
-PRINT_FIELD_DELAY and PRINT_FIELD_DELAY_WITH_TS respectively.
+Patch series "mm/mseal: further cleanups", v3.
 
-This resolves typo naming errors across the macro definitions and their
-matching inside print_delayacct().
+The mseal implementation is still rather confusing, so tighten things up a
+little.
 
-Link: https://lore.kernel.org/20260716141545.1292951-1-shivanksharma2376543@gmail.com
-Signed-off-by: Shivank Sharma <shivanksharma2376543@gmail.com>
-Cc: Fan Yu <fan.yu9@zte.com.cn>
-Cc: Wang Yaxin <wang.yaxin@zte.com.cn>
+The only user of do_mseal() outside of the system call is the
+MMAP_PAGE_ZERO process personality - retain better control over how mseal
+is utilised by providing mseal_mmap_page_zero() for this instead.
+
+The comments are overly long and confusing, so cut them down so they're a
+lot clearer.
+
+Remove confusing mm_struct params (mseal can not be used on remote mm's)
+and wrap the actual system call logic into the system call declaration.
+
+
+This patch (of 3):
+
+Remove comment blocks that don't add value and eliminate any confusion
+about whether or not we permit mseal()'ing of remote mm's by explicitly
+referencing current->mm consistently.
+
+Also avoid ugly goto by using an else branch.
+
+No functional change intended.
+
+Link: https://lore.kernel.org/20260716-mseal-fixups-v1-0-3a9609bf041b@kernel.org
+Link: https://lore.kernel.org/20260716-mseal-fixups-v1-1-3a9609bf041b@kernel.org
+Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+Reviewed-by: Pedro Falcato <pfalcato@suse.de> 
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Jann Horn <jannh@google.com>
+Cc: Kees Cook <kees@kernel.org>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/accounting/getdelays.c |   32 ++++++++++++++++----------------
- 1 file changed, 16 insertions(+), 16 deletions(-)
+ mm/mseal.c |   48 ++++++++----------------------------------------
+ 1 file changed, 8 insertions(+), 40 deletions(-)
 
---- a/tools/accounting/getdelays.c~tools-accounting-fix-macro-typos-in-getdelays
-+++ a/tools/accounting/getdelays.c
-@@ -307,7 +307,7 @@ static const char *format_timespec(struc
- 				average_ms((double)(t)->cpu_delay_total, (t)->cpu_count)); \
- 		} \
- 	} while (0)
--#define PRINT_FILED_DELAY(name, version, t, count, total, max, min) \
-+#define PRINT_FIELD_DELAY(name, version, t, count, total, max, min) \
- 	do { \
- 		if (version >= 16) { \
- 			printf("%-10s%15s%15s%15s%15s%15s\n", \
-@@ -329,7 +329,7 @@ static const char *format_timespec(struc
- 		} \
- 	} while (0)
+--- a/mm/mseal.c~mm-mseal-remove-superfluous-comments-fix-confusion-around-mm
++++ a/mm/mseal.c
+@@ -16,28 +16,7 @@
+ #include <linux/sched.h>
+ #include "internal.h"
  
--#define PRINT_FILED_DELAY_WITH_TS(name, version, t, count, total, max, min, max_ts) \
-+#define PRINT_FIELD_DELAY_WITH_TS(name, version, t, count, total, max, min, max_ts) \
- 	do { \
- 		if (version >= 17) { \
- 			printf("%-10s%15s%15s%15s%15s%15s%25s\n", \
-@@ -370,71 +370,71 @@ static void print_delayacct(struct tasks
+-/*
+- * mseal() disallows an input range which contain unmapped ranges (VMA holes).
+- *
+- * It disallows unmapped regions from start to end whether they exist at the
+- * start, in the middle, or at the end of the range, or any combination thereof.
+- *
+- * This is because after sealing a range, there's nothing to stop memory mapping
+- * of ranges in the remaining gaps later, meaning that the user might then
+- * wrongly consider the entirety of the mseal()'d range to be sealed when it
+- * in fact isn't.
+- */
+-
+-/*
+- * Does the [start, end) range contain any unmapped memory?
+- *
+- * We ensure that:
+- * - start is part of a valid VMA.
+- * - end is part of a valid VMA.
+- * - no gap (unallocated memory) exists between start and end.
+- */
+-static bool range_contains_unmapped(struct mm_struct *mm,
+-		unsigned long start, unsigned long end)
++static bool range_contains_unmapped(unsigned long start, unsigned long end)
+ {
+ 	struct vm_area_struct *vma;
+ 	unsigned long prev_end = start;
+@@ -53,11 +32,10 @@ static bool range_contains_unmapped(stru
+ 	return prev_end < end;
+ }
  
- 	/* Use new macro with timestamp support for version >= 17 */
- 	if (t->version >= 17) {
--		PRINT_FILED_DELAY_WITH_TS("IO", t->version, t,
-+		PRINT_FIELD_DELAY_WITH_TS("IO", t->version, t,
- 			blkio_count, blkio_delay_total,
- 			blkio_delay_max, blkio_delay_min, blkio_delay_max_ts);
+-static int mseal_apply(struct mm_struct *mm,
+-		unsigned long start, unsigned long end)
++static int mseal_apply(unsigned long start, unsigned long end)
+ {
+ 	struct vm_area_struct *vma, *prev;
+-	VMA_ITERATOR(vmi, mm, start);
++	VMA_ITERATOR(vmi, current->mm, start);
  
--		PRINT_FILED_DELAY_WITH_TS("SWAP", t->version, t,
-+		PRINT_FIELD_DELAY_WITH_TS("SWAP", t->version, t,
- 			swapin_count, swapin_delay_total,
- 			swapin_delay_max, swapin_delay_min, swapin_delay_max_ts);
+ 	/* We know there are no gaps so this will be non-NULL. */
+ 	vma = vma_iter_load(&vmi);
+@@ -145,7 +123,6 @@ int do_mseal(unsigned long start, size_t
+ 	size_t len;
+ 	int ret = 0;
+ 	unsigned long end;
+-	struct mm_struct *mm = current->mm;
  
--		PRINT_FILED_DELAY_WITH_TS("RECLAIM", t->version, t,
-+		PRINT_FIELD_DELAY_WITH_TS("RECLAIM", t->version, t,
- 			freepages_count, freepages_delay_total,
- 			freepages_delay_max, freepages_delay_min, freepages_delay_max_ts);
+ 	/* Verify flags not set. */
+ 	if (flags)
+@@ -167,24 +144,15 @@ int do_mseal(unsigned long start, size_t
+ 	if (end == start)
+ 		return 0;
  
--		PRINT_FILED_DELAY_WITH_TS("THRASHING", t->version, t,
-+		PRINT_FIELD_DELAY_WITH_TS("THRASHING", t->version, t,
- 			thrashing_count, thrashing_delay_total,
- 			thrashing_delay_max, thrashing_delay_min, thrashing_delay_max_ts);
+-	if (mmap_write_lock_killable(mm))
++	if (mmap_write_lock_killable(current->mm))
+ 		return -EINTR;
  
- 		if (t->version >= 11) {
--			PRINT_FILED_DELAY_WITH_TS("COMPACT", t->version, t,
-+			PRINT_FIELD_DELAY_WITH_TS("COMPACT", t->version, t,
- 				compact_count, compact_delay_total,
- 				compact_delay_max, compact_delay_min, compact_delay_max_ts);
- 		}
+-	if (range_contains_unmapped(mm, start, end)) {
++	if (range_contains_unmapped(start, end))
+ 		ret = -ENOMEM;
+-		goto out;
+-	}
+-
+-	/*
+-	 * Second pass, this should success, unless there are errors
+-	 * from vma_modify_flags, e.g. merge/split error, or process
+-	 * reaching the max supported VMAs, however, those cases shall
+-	 * be rare.
+-	 */
+-	ret = mseal_apply(mm, start, end);
++	else
++		ret = mseal_apply(start, end);
  
- 		if (t->version >= 13) {
--			PRINT_FILED_DELAY_WITH_TS("WPCOPY", t->version, t,
-+			PRINT_FIELD_DELAY_WITH_TS("WPCOPY", t->version, t,
- 				wpcopy_count, wpcopy_delay_total,
- 				wpcopy_delay_max, wpcopy_delay_min, wpcopy_delay_max_ts);
- 		}
+-out:
+-	mmap_write_unlock(mm);
++	mmap_write_unlock(current->mm);
+ 	return ret;
+ }
  
- 		if (t->version >= 14) {
--			PRINT_FILED_DELAY_WITH_TS("IRQ", t->version, t,
-+			PRINT_FIELD_DELAY_WITH_TS("IRQ", t->version, t,
- 				irq_count, irq_delay_total,
- 				irq_delay_max, irq_delay_min, irq_delay_max_ts);
- 		}
- 	} else {
- 		/* Use original macro for older versions */
--		PRINT_FILED_DELAY("IO", t->version, t,
-+		PRINT_FIELD_DELAY("IO", t->version, t,
- 			blkio_count, blkio_delay_total,
- 			blkio_delay_max, blkio_delay_min);
- 
--		PRINT_FILED_DELAY("SWAP", t->version, t,
-+		PRINT_FIELD_DELAY("SWAP", t->version, t,
- 			swapin_count, swapin_delay_total,
- 			swapin_delay_max, swapin_delay_min);
- 
--		PRINT_FILED_DELAY("RECLAIM", t->version, t,
-+		PRINT_FIELD_DELAY("RECLAIM", t->version, t,
- 			freepages_count, freepages_delay_total,
- 			freepages_delay_max, freepages_delay_min);
- 
--		PRINT_FILED_DELAY("THRASHING", t->version, t,
-+		PRINT_FIELD_DELAY("THRASHING", t->version, t,
- 			thrashing_count, thrashing_delay_total,
- 			thrashing_delay_max, thrashing_delay_min);
- 
- 		if (t->version >= 11) {
--			PRINT_FILED_DELAY("COMPACT", t->version, t,
-+			PRINT_FIELD_DELAY("COMPACT", t->version, t,
- 				compact_count, compact_delay_total,
- 				compact_delay_max, compact_delay_min);
- 		}
- 
- 		if (t->version >= 13) {
--			PRINT_FILED_DELAY("WPCOPY", t->version, t,
-+			PRINT_FIELD_DELAY("WPCOPY", t->version, t,
- 				wpcopy_count, wpcopy_delay_total,
- 				wpcopy_delay_max, wpcopy_delay_min);
- 		}
- 
- 		if (t->version >= 14) {
--			PRINT_FILED_DELAY("IRQ", t->version, t,
-+			PRINT_FIELD_DELAY("IRQ", t->version, t,
- 				irq_count, irq_delay_total,
- 				irq_delay_max, irq_delay_min);
- 		}
 _
 
-Patches currently in -mm which might be from shivanksharma2376543@gmail.com are
+Patches currently in -mm which might be from ljs@kernel.org are
 
-tools-accounting-fix-macro-typos-in-getdelays.patch
+mm-vmalloc-acquire-init_mm-lock-on-huge-vmap-to-avoid-ptdump-uaf.patch
+x86-mm-pat-acquire-init_mm-write-lock-to-avoid-uaf.patch
+mm-ptdump-always-stabilise-against-page-table-freeing-using-init_mm.patch
+arm64-remove-redundant-concurrent-ptdump-uaf-mitigation.patch
+mm-move-alloc-tag-to-mm.patch
+mm-move-vma_start_pgoff-into-mmh-and-clean-up.patch
+mm-add-kdoc-comments-for-vma_start-last_pgoff.patch
+tools-testing-vma-use-vma_start_pgoff-in-merge-tests.patch
+mm-introduce-and-use-vma_end_pgoff.patch
+mm-rmap-update-mm-interval_treec-comments.patch
+mm-rmap-parameterise-vma_interval_tree_-by-address_space.patch
+mm-rmap-elide-unnecessary-static-inlines-in-interval_treec.patch
+mm-rmap-rename-vma_interval_tree_-to-mapping_rmap_tree_.patch
+mm-rmap-parameterise-anon_vma_interval_tree_-by-anon_vma.patch
+mm-rmap-rename-anon_vma_interval_tree_-params-and-use-pgoff_t.patch
+mm-rmap-rename-anon_vma_interval_tree_-to-anon_rmap_tree_.patch
+maintainers-move-mm-interval_treec-to-rmap-section.patch
+mm-vma-introduce-and-use-vmg_pages-vmg__pgoff.patch
+mm-vma-clean-up-anon_vma_compatible.patch
+mm-vma-refactor-vmg_adjust_set_range-for-clarity.patch
+mm-vma-minor-cleanup-of-expand_.patch
+mm-introduce-and-use-linear_page_delta.patch
+mm-vma-use-vma_start_pgoff-linear_page_index-in-mm-code.patch
+mm-prefer-vma__pgoff-to-vma-vm_pgoff-in-kernel.patch
+mm-vma-remove-duplicative-vma_pgoff_offset-helper.patch
+mm-use-linear_page_-consistently.patch
+mm-vma-introduce-vma_assert_can_modify.patch
+mm-vma-add-and-use-vma__pgoff.patch
+mm-vma-move-__install_special_mapping-to-vmac.patch
+mm-vma-make-vma_set_range-static-drop-insert_vm_struct-decl.patch
+mm-vma-update-vma_shrink-to-not-pass-start-pgoff-parameters.patch
+mm-vma-update-vmg_adjust_set_range-to-offset-pgoff-instead.patch
+mm-vma-slightly-rework-the-anonymous-check-in-__mmap_new_vma.patch
+mm-vma-introduce-and-use-vma_set_pgoff.patch
+mm-vma-correct-incorrect-vmah-inclusion.patch
+mm-vma-use-guard-clauses-in-can_vma_merge_.patch
+tools-testing-vma-default-vma-mm-flag-bits-to-64-bit.patch
+tools-testing-vma-output-compared-expression-on-assert_.patch
+mm-introduce-vma_flags_can_grow-and-vma_can_grow.patch
+mm-vma-update-do_mmap-to-use-vma_flags_t.patch
+mm-convert-__get_unmapped_area-to-use-vma_flags_t.patch
+mm-update-generic_get_unmapped_area-to-use-vma_flags_t.patch
+mm-prefer-mm-def_vma_flags-in-mm-logic.patch
+mm-vma-convert-vm_pgprot_modify-to-use-vma_flags_t-and-rename.patch
+mm-vma-rename-vma_get_page_prot-to-vma_flags_to_page_prot.patch
+mm-introduce-vma_get_page_prot-and-use-it.patch
+mm-vma-update-create_init_stack_vma-to-use-vma_flags_t.patch
+mm-vma-convert-miscellaneous-uses-of-vma-flags-in-core-mm.patch
+mm-mlock-convert-mlock-code-to-use-vma_flags_t.patch
+mm-mprotect-convert-mprotect-code-to-use-vma_flags_t.patch
+mm-mremap-convert-mremap-code-to-use-vma_flags_t.patch
+mm-mseal-remove-superfluous-comments-fix-confusion-around-mm.patch
+mm-mseal-limit-scope-of-mseal-address-zero-to-address-zero.patch
+mm-mseal-remove-further-superfluous-comments-do_mseal.patch
 
