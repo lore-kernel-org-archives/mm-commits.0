@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B3CBF38B7D8
-	for <mm-commits@vger.kernel.org>; Fri, 17 Jul 2026 19:35:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 73BF7380FFB
+	for <mm-commits@vger.kernel.org>; Fri, 17 Jul 2026 19:35:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784316913; cv=none; b=aSjYD+cb6pJN0VQl8udSx8hSN/vfRksB/P0RdnacASfoUZatTLgRnnx1wN66bgmlAlQjO/ZEtrwOnIZpQ/64fTGi7SQzNQW4urHailO8x7O21xrSmFJdWt5ilPU0PHTnNVsnlxX5SBWHcYzH1LKTUNXAiH4LUrPDTep9bRns/Tg=
+	t=1784316914; cv=none; b=UnvppUEpSPRRzvrOAbM27cgOFOYguzbf1I0X/FWdqW34MoUUR+uhrZxINpicvIeEXZ0BsBacyLKSS4arYIUI8oD5sjk6ygERCEyIGm/e0zHs7qJ6zkHQKGHb81S3QqrtZp0WCq6GEoyzdesJIG6zzXW1wjg/+sQONMifqunspu8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784316913; c=relaxed/simple;
-	bh=K5nd/C3rcv9xvTqueoALh2EWTzeyLs/WdloOMzYaG84=;
-	h=Date:To:From:Subject:Message-Id; b=i9+cYNeAnj3HKyNBAZI/RnBIHdPRm9WvCrqTKtVztzb36vkeg3ZDFAmAVOfHmZgbOcd0ZiHa+ozkr3TzM0/IWK4rLTNsrjgHZNdI1Y+/0XIU5aBdC19I/pd4BLEowjBUyChxk07d04YFcHlD2fGZHrhDtPXzkab0FVTcLzHr4/k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zw8OgcON; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1784316914; c=relaxed/simple;
+	bh=ngVVCrwPgXSeXMVMFB+8R9UvJZ1zq9oDxCoAXnfKYDU=;
+	h=Date:To:From:Subject:Message-Id; b=L5u2gexQlrVFC6ADE8yKNWpzB3Bgw47kwh1OtffOvC4SMNkZQj7r+GO8wxOvNxH2vXR9oDPpdHvmEXpbz9UJNwDxs8m7U5aP6oFpLEima7yWJMDrSiptY71ABrRflpiot6fQ/YcU9i9HxsqsQDxekmX9v+iz0ExEbVKuWVOjcGs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mUFlJLcG; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zw8OgcON"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1A2CB1F00A3A;
-	Fri, 17 Jul 2026 19:35:11 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mUFlJLcG"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DF27D1F000E9;
+	Fri, 17 Jul 2026 19:35:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1784316911;
-	bh=ZUsbAO5/FCv3XdcQoj7pJ7tgh3Pt7+hoWaV8USS8gjc=;
+	d=linux-foundation.org; s=korg; t=1784316913;
+	bh=PbkGwzX5C3D6TKqRSIhCDiAawzCtnMLTyzkIxSlSFQw=;
 	h=Date:To:From:Subject;
-	b=zw8OgcONa+opwi4ED9xdCurkyoBv8FVI7bb7iLGib5nVlYv3hNYeybsjtdXwao3Yf
-	 0F5q9lrDYXH5D+63O7CSTrD6iD4NKBKHGcOS+oQEif/TVBEj7HGAHAHpjtxRMwKUKz
-	 63XuZ/WG7ZNJWTTIJqLZLDo8c2EhMy/wT3nSQGCM=
-Date: Fri, 17 Jul 2026 12:35:10 -0700
+	b=mUFlJLcGZhVfBgw+Yo9qyWe6RyVUwNOhZwvByPLwvt4Scz8Il5v5D0bFXK158hnGl
+	 pmcTUYNrlK9YIGUL+abYrSBPlGCuv3HGxAl2aTJEQ9FjSugsw6ulrv69tfZnZmXFAg
+	 sOI4z7t+CfVAE4lAShYyWU2Nq/JNOJU7OWzRelp4=
+Date: Fri, 17 Jul 2026 12:35:12 -0700
 To: mm-commits@vger.kernel.org,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-mseal-limit-scope-of-mseal-address-zero-to-address-zero.patch removed from -mm tree
-Message-Id: <20260717193511.1A2CB1F00A3A@smtp.kernel.org>
+Subject: [to-be-updated] mm-mseal-remove-further-superfluous-comments-do_mseal.patch removed from -mm tree
+Message-Id: <20260717193512.DF27D1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,34 +35,27 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/mseal: limit scope of mseal address zero to address zero
+     Subject: mm/mseal: remove further superfluous comments, do_mseal()
 has been removed from the -mm tree.  Its filename was
-     mm-mseal-limit-scope-of-mseal-address-zero-to-address-zero.patch
+     mm-mseal-remove-further-superfluous-comments-do_mseal.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: mm/mseal: limit scope of mseal address zero to address zero
-Date: Thu, 16 Jul 2026 14:43:10 +0100
+Subject: mm/mseal: remove further superfluous comments, do_mseal()
+Date: Thu, 16 Jul 2026 14:43:11 +0100
 
-Commit 44f65d900698 ("binfmt_elf: mseal address zero") unconditionally
-provided do_mseal() to any internal kernel caller in order to address a
-corner case slated for possible removal.
+There's no need to abstract do_mseal() any longer so put the system call
+implementation in the system call declaration.
 
-It also incorrectly attempts to mseal() without checking to see whether
-the mapping even succeeded.
+The comment around do_mseal() is strangely formatted, overly long and adds
+a lot of superfluous information that the code already provides, so boil
+it down to the essentials.
 
-Restrict the scope to the corner case by providing mseal_mmap_page_zero()
-which asserts the MMAP_PAGE_ZERO personality.
-
-Avoid unnecessary checks in the start, end range by abstracting the actual
-mseal()'ing to mseal() and have mseal_mmap_page_zero() call that instead.
-
-Only try to seal the VMA if we mapped the VMA.
-
-Link: https://lore.kernel.org/20260716-mseal-fixups-v1-2-3a9609bf041b@kernel.org
+Link: https://lore.kernel.org/20260716-mseal-fixups-v1-3-3a9609bf041b@kernel.org
 Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+Reviewed-by: Pedro Falcato <pfalcato@suse.de>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Christian Brauner <brauner@kernel.org>
 Cc: David Hildenbrand <david@kernel.org>
@@ -72,131 +65,116 @@ Cc: Kees Cook <kees@kernel.org>
 Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Pedro Falcato <pfalcato@suse.de>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_elf.c    |    7 +-----
- include/linux/mm.h |    8 +------
- mm/mseal.c         |   48 +++++++++++++++++++++++++++++++------------
- 3 files changed, 39 insertions(+), 24 deletions(-)
+ mm/mseal.c |   74 +++++++++++----------------------------------------
+ 1 file changed, 16 insertions(+), 58 deletions(-)
 
---- a/fs/binfmt_elf.c~mm-mseal-limit-scope-of-mseal-address-zero-to-address-zero
-+++ a/fs/binfmt_elf.c
-@@ -1353,11 +1353,8 @@ out_free_interp:
- 		   emulate the SVr4 behavior. Sigh. */
- 		error = vm_mmap(NULL, 0, PAGE_SIZE, PROT_READ | PROT_EXEC,
- 				MAP_FIXED | MAP_PRIVATE, 0);
--
--		retval = do_mseal(0, PAGE_SIZE, 0);
--		if (retval)
--			pr_warn_ratelimited("pid=%d, couldn't seal address 0, ret=%d.\n",
--					    task_pid_nr(current), retval);
-+		if (!error)
-+			mseal_mmap_page_zero();
- 	}
- 
- 	regs = current_pt_regs();
---- a/include/linux/mm.h~mm-mseal-limit-scope-of-mseal-address-zero-to-address-zero
-+++ a/include/linux/mm.h
-@@ -5291,13 +5291,9 @@ int reserve_mem_find_by_name(const char
- int reserve_mem_release_by_name(const char *name);
- 
- #ifdef CONFIG_64BIT
--int do_mseal(unsigned long start, size_t len_in, unsigned long flags);
-+void mseal_mmap_page_zero(void);
- #else
--static inline int do_mseal(unsigned long start, size_t len_in, unsigned long flags)
--{
--	/* noop on 32 bit */
--	return 0;
--}
-+static inline void mseal_mmap_page_zero(void) {}
- #endif
- 
- /*
---- a/mm/mseal.c~mm-mseal-limit-scope-of-mseal-address-zero-to-address-zero
+--- a/mm/mseal.c~mm-mseal-remove-further-superfluous-comments-do_mseal
 +++ a/mm/mseal.c
-@@ -32,7 +32,7 @@ static bool range_contains_unmapped(unsi
- 	return prev_end < end;
+@@ -99,60 +99,24 @@ void mseal_mmap_page_zero(void)
  }
  
--static int mseal_apply(unsigned long start, unsigned long end)
-+static int __mseal(unsigned long start, unsigned long end)
- {
- 	struct vm_area_struct *vma, *prev;
- 	VMA_ITERATOR(vmi, current->mm, start);
-@@ -66,6 +66,38 @@ static int mseal_apply(unsigned long sta
- 	return 0;
- }
- 
-+static int mseal(unsigned long start, unsigned long end)
-+{
-+	int err;
-+
-+	err = mmap_write_lock_killable(current->mm);
-+	if (err)
-+		return err;
-+	if (range_contains_unmapped(start, end))
-+		err = -ENOMEM;
-+	else
-+		err = __mseal(start, end);
-+	mmap_write_unlock(current->mm);
-+	return err;
-+}
-+
-+/**
-+ * mseal_mmap_page_zero() - If the MMAP_PAGE_ZERO personality is set, mseal()
-+ * the page mapped at address zero.
-+ */
-+void mseal_mmap_page_zero(void)
-+{
-+	int err;
-+
-+	if (WARN_ON_ONCE(!(current->personality & MMAP_PAGE_ZERO)))
-+		return;
-+
-+	err = mseal(0, PAGE_SIZE);
-+	if (err)
-+		pr_warn_ratelimited("pid=%d, couldn't seal address 0, ret=%d.\n",
-+				    task_pid_nr(current), err);
-+}
-+
  /*
-  * mseal(2) seals the VM's meta data from
-  * selected syscalls.
-@@ -118,10 +150,9 @@ static int mseal_apply(unsigned long sta
+- * mseal(2) seals the VM's meta data from
+- * selected syscalls.
++ * Seal VMAs in the specified input range to prevent an attacker replacing what
++ * is mapped in the range with something else.
   *
-  *  unseal() is not supported.
+- * addr/len: VM address range.
++ * Disallows:
++ * - VMA unmapping, remapping or shrinking.
++ * - Overwriting the VMA with another one via mmap(), mremap() or similar.
++ * - Alteration of properties via mprotect()/pkey_mprotect().
++ * - Destructive madvise() behaviours (like MADV_DONTNEED) on anonymous read-only
++ *   ranges.
+  *
+- *  The address range by addr/len must meet:
+- *   start (addr) must be in a valid VMA.
+- *   end (addr + len) must be in a valid VMA.
+- *   no gap (unallocated memory) between start and end.
+- *   start (addr) must be page aligned.
++ * Since unmapped ranges can be mapped at any time, the input range must span
++ * mapped ranges only.
+  *
+- *  len: len will be page aligned implicitly.
+- *
+- *   Below VMA operations are blocked after sealing.
+- *   1> Unmapping, moving to another location, and shrinking
+- *	the size, via munmap() and mremap(), can leave an empty
+- *	space, therefore can be replaced with a VMA with a new
+- *	set of attributes.
+- *   2> Moving or expanding a different vma into the current location,
+- *	via mremap().
+- *   3> Modifying a VMA via mmap(MAP_FIXED).
+- *   4> Size expansion, via mremap(), does not appear to pose any
+- *	specific risks to sealed VMAs. It is included anyway because
+- *	the use case is unclear. In any case, users can rely on
+- *	merging to expand a sealed VMA.
+- *   5> mprotect and pkey_mprotect.
+- *   6> Some destructive madvice() behavior (e.g. MADV_DONTNEED)
+- *      for anonymous memory, when users don't have write permission to the
+- *	memory. Those behaviors can alter region contents by discarding pages,
+- *	effectively a memset(0) for anonymous memory.
+- *
+- *  flags: reserved.
+- *
+- * return values:
+- *  zero: success.
+- *  -EINVAL:
+- *   invalid input flags.
+- *   start address is not page aligned.
+- *   Address range (start + len) overflow.
+- *  -ENOMEM:
+- *   addr is not a valid address (not allocated).
+- *   end (start + len) is not a valid address.
+- *   a gap (unallocated memory) between start and end.
+- *  -EPERM:
+- *  - In 32 bit architecture, sealing is not supported.
+- * Note:
+- *  user can call mseal(2) multiple times, adding a seal on an
+- *  already sealed memory is a no-action (no error).
+- *
+- *  unseal() is not supported.
++ * The flags parameter is currently reserved.
   */
--int do_mseal(unsigned long start, size_t len_in, unsigned long flags)
-+static int do_mseal(unsigned long start, size_t len_in, unsigned long flags)
+-static int do_mseal(unsigned long start, size_t len_in, unsigned long flags)
++SYSCALL_DEFINE3(mseal, unsigned long, start, size_t, len, unsigned long, flags)
  {
- 	size_t len;
--	int ret = 0;
+-	size_t len;
++	size_t len_aligned;
  	unsigned long end;
  
  	/* Verify flags not set. */
-@@ -144,16 +175,7 @@ int do_mseal(unsigned long start, size_t
- 	if (end == start)
- 		return 0;
+@@ -163,12 +127,12 @@ static int do_mseal(unsigned long start,
+ 	if (!PAGE_ALIGNED(start))
+ 		return -EINVAL;
  
--	if (mmap_write_lock_killable(current->mm))
--		return -EINTR;
--
--	if (range_contains_unmapped(start, end))
--		ret = -ENOMEM;
--	else
--		ret = mseal_apply(start, end);
--
--	mmap_write_unlock(current->mm);
--	return ret;
-+	return mseal(start, end);
+-	len = PAGE_ALIGN(len_in);
++	len_aligned = PAGE_ALIGN(len);
+ 	/* Check to see whether len was rounded up from small -ve to zero. */
+-	if (len_in && !len)
++	if (len && !len_aligned)
+ 		return -EINVAL;
+ 
+-	end = start + len;
++	end = start + len_aligned;
+ 	if (end < start)
+ 		return -EINVAL;
+ 
+@@ -177,9 +141,3 @@ static int do_mseal(unsigned long start,
+ 
+ 	return mseal(start, end);
  }
- 
- SYSCALL_DEFINE3(mseal, unsigned long, start, size_t, len, unsigned long,
+-
+-SYSCALL_DEFINE3(mseal, unsigned long, start, size_t, len, unsigned long,
+-		flags)
+-{
+-	return do_mseal(start, len, flags);
+-}
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
@@ -253,5 +231,4 @@ mm-vma-convert-miscellaneous-uses-of-vma-flags-in-core-mm.patch
 mm-mlock-convert-mlock-code-to-use-vma_flags_t.patch
 mm-mprotect-convert-mprotect-code-to-use-vma_flags_t.patch
 mm-mremap-convert-mremap-code-to-use-vma_flags_t.patch
-mm-mseal-remove-further-superfluous-comments-do_mseal.patch
 
