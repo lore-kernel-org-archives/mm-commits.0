@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 19B4B3264F1
-	for <mm-commits@vger.kernel.org>; Fri, 17 Jul 2026 19:29:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3832E3264F1
+	for <mm-commits@vger.kernel.org>; Fri, 17 Jul 2026 19:29:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784316573; cv=none; b=Fs1YiyR/gInXBtw6fpBjzIZsdx+t2LOa3cSKWEHbtHtvFVc5DkNVYrV1u14dJklcYJHNgpgvvFrqoA8w1CYtMJwvy1s3cJ0oy2LIAiJ1U5av+4kJb/4vM7zqnaN91K7YO5dC6SbwORSnqK/TM2YncLpVauSrKpuu9pgo+elIjTA=
+	t=1784316575; cv=none; b=krQm8DP8GKwxZQzIwUHdIi8vfiMaC3MM1gpZSezB92ApQfasu7OedLJ8uyjewZzZa47ZhLStMYySfgvPKLci6NQiKHzskleUyacRDeVGuJ1h7UIIlbjnyHF7IaIQATqonQh/SrlW26GAt3tRDXfOHLH6LSa4nr92lXiiS2Rorjk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784316573; c=relaxed/simple;
-	bh=9QnN9tWQx+JSNwmgJPIUm10U19cR7qThCEjWPwUAlnA=;
-	h=Date:To:From:Subject:Message-Id; b=QekV56MiUaYXiXS0ByPxe2CjwYGgB1J0P3gnEE0+MztRlQ6lXYSvM86EsuKs74VCA3lQxKHThZfhMD2ICnSTc92eDfVB9X96XvvuJs8J9w7TrSVmFdqlquSv6s6OQ9TyCqX/GJm2MGxM7ODYM9hBiWTtmLlvQKiMfB5MCCjrcNw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MsUPyl+S; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1784316575; c=relaxed/simple;
+	bh=bnG5781KQIFCe3bpW64I5WzUyXVk4NCHvyvuULOK8+M=;
+	h=Date:To:From:Subject:Message-Id; b=gb5YuRjWRLIg32pgLPY13DV9Gu5cgFERrFd36wv4UcD3SL1XGtMWltolfEL74CB0oaaPWj6TjmJNSJA2AUQg2mYy50HykFLShG6rvMW4Hz3qbhUi/+y8Qo9o1fGDlSqVfQtItL4S/rfLr1rNzmTl1XYRYaS+3q8RxfF/UAxcGpU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=R0e9jib8; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MsUPyl+S"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B1E671F000E9;
-	Fri, 17 Jul 2026 19:29:31 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="R0e9jib8"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0B1C11F000E9;
+	Fri, 17 Jul 2026 19:29:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1784316571;
-	bh=c0zJ0r2f2aYa6cmoAxoGaEn3RxqeaI3FqMFpEVADIxY=;
+	d=linux-foundation.org; s=korg; t=1784316574;
+	bh=HG5kuMa+qmiKEE7nIE2zNNGqJe4MPVygsyPAMjBlO6s=;
 	h=Date:To:From:Subject;
-	b=MsUPyl+SzLQQoySl0ZyXGLOTi+X5Y5xHLp9e38pMzJA+BaQjw2y9mPvhKaQuSy96W
-	 lrz/ciAOMrNmjei8FMGsZ0vN8yzKQhyBSoQ75oHMLXOi/HHT0ac46z/jEQSfXmU5oM
-	 f7qwkr3t6iwjlR77q9nxGae7HR2HqPP9LtYVwL5s=
-Date: Fri, 17 Jul 2026 12:29:31 -0700
+	b=R0e9jib8jXSHHvt+rcEOgrL8hQpH00EZoaDSkZv1VlUYe1RbmA+7Idl8iTrpLGWPQ
+	 5uFqT8iQrd3DXu60YWbhCTvlCaSuGQRkj6gTeeyCwCxuheBxfYT8L5V00elfvh9diV
+	 p0lmwMtbE1f7VLjjcM9hd9S8Xa0DvW+wk8oqyebM=
+Date: Fri, 17 Jul 2026 12:29:33 -0700
 To: mm-commits@vger.kernel.org,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + x86-mm-pat-acquire-init_mm-read-lock-on-attribute-change-to-avoid-uaf.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260717192931.B1E671F000E9@smtp.kernel.org>
+Subject: + mm-ptdump-always-stabilise-against-page-table-freeing-using-init_mm.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260717192934.0B1C11F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: x86/mm/pat: acquire init_mm read lock on attribute change to avoid UAF
+     Subject: mm/ptdump: always stabilise against page table freeing using init_mm
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     x86-mm-pat-acquire-init_mm-read-lock-on-attribute-change-to-avoid-uaf.patch
+     mm-ptdump-always-stabilise-against-page-table-freeing-using-init_mm.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-mm-pat-acquire-init_mm-read-lock-on-attribute-change-to-avoid-uaf.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-ptdump-always-stabilise-against-page-table-freeing-using-init_mm.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,74 +59,53 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: x86/mm/pat: acquire init_mm read lock on attribute change to avoid UAF
-Date: Fri, 17 Jul 2026 18:30:09 +0100
+Subject: mm/ptdump: always stabilise against page table freeing using init_mm
+Date: Fri, 17 Jul 2026 18:30:10 +0100
 
-A previous commit protected us against races between ptdump and CPA
-collapse, however one still exists between attribute changes and collapse
-as reported by Denis V.  Lunev (linked).
+Previous commits have established the invariant that kernel page table
+freeing is performed while an mmap read lock on init_mm is held, which
+fixes races between ptdump and kernel page table freeing over init_mm.
 
-When an attribute change arises, a lockless page table walker obtains a
-PTE entry, which is later written to via set_pte_atomic():
+However, x86 and arm64 can perform a ptdump over an mm other than init_mm
+via ptdump_walk_pgd() and since kernel memory ranges are shared across
+non-kernel mm's, this means that the race still exists for these cases.
 
-...
--> change_page_attr_set_clr()
--> __change_page_attr_set_clr()
--> __change_page_attr()
-	-> _lookup_address_cpa()
-	-> lookup_address_in_pgd_attr()
-	-> [ lockless page table walker ]
--> set_pte_atomic()
+Fix this by acquiring a nested mmap write lock for init_mm in
+ptdump_walk_pgd().
 
-There is nothing preventing a concurrent CPA collapse which can free the
-PTE that was retrieved here, resulting in a use-after-free.
+This is safe as we take this after mmap write locking the mm, and nothing
+acquires the init_mm lock first before locking an arbitrary mm, so no
+deadlock is possible.
 
-With the mmap write lock taken on init_mm over CPA collapse, we can now
-resolve this race by acquiring an mmap read lock on init_mm over
-__change_page_attr_set_clr().
+Also update walk_page_range_debug() to assert that init_mm is write
+locked, add a comment explaining why and remove some redundant code, and
+eliminate the unnecessary and confusing invocation of
+walk_kernel_page_table_range().
 
-This locks across the whole operation over which the walk and the PTE
-entry write occurs, solving the race.
+We can safely remove the non-NULL check for walk.mm, as the mmap lock
+asserts would NULL pointer deref if it was (and of course no callers do
+this).
 
-It is safe to do this here, as no spinlocks are held upon entry to
-__change_page_attr_set_clr().
+The first point at which ptdump can race kernel page table freeing is
+commit b6bdb7517c3d ("mm/vmalloc: add interfaces to free unmapped page
+table"), so we target this in the Fixes tag.
 
-The CPA_COLLAPSE flag is only set by set_memory_rox(), which exclusively
-operates upon vmalloc ranges, and on x86 only within the module mapping
-space.
-
-This is important, because some callers directly invoke
-__change_page_attr_set_clr(), bypassing this lock.  However, none of these
-operate within the module mapping space.
-
-* cpa_process_alias() - a recursive helper called by
-  __change_page_attr_set_clr().
-* __set_memory_enc_pgtable() - operates on the direct mapping and (via
-  __vmbus_establish_gpadl()) the vmalloc mapping space.
-* __set_pages_[n]p() - called by set_direct_map_[invalid, default,
-  valid]_noflush(), __kernel_map_pages() - operates on the direct map.
-* kernel_[un]map_pages_in_pgd() - operates on EFI ranges.
-
-This work is based upon Denis V.  Lunev's excellent analysis of the bug
-with gratitude.
-
-Link: https://lore.kernel.org/all/20260626163213.2284080-1-den@openvz.org/
-Link: https://lore.kernel.org/20260717-series-vmap-race-fix-v5-3-606a0ac6d3e5@kernel.org
-Fixes: 41d88484c71c ("x86/mm/pat: restore large ROX pages after fragmentation")
+Link: https://lore.kernel.org/20260717-series-vmap-race-fix-v5-4-606a0ac6d3e5@kernel.org
+Fixes: b6bdb7517c3d ("mm/vmalloc: add interfaces to free unmapped page table")
 Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Reviewed-by: Kiryl Shutsemau <kas@kernel.org>
 Cc: Andy Lutomirski <luto@kernel.org>
 Cc: "Borislav Petkov (AMD)" <bp@alien8.de>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
 Cc: David Carlier <devnexen@gmail.com>
-Cc: David Hildenbrand (Arm) <david@kernel.org>
 Cc: Dev Jain <dev.jain@arm.com>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
 Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Kiryl Shutsemau <kas@kernel.org>
 Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Cc: Peter Zijlstra <peterz@infradead.org>
 Cc: Ryan Roberts <ryan.roberts@arm.com>
 Cc: Shakeel Butt <shakeel.butt@linux.dev>
@@ -139,22 +118,55 @@ Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/pat/set_memory.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ mm/pagewalk.c |   14 +++++++++-----
+ mm/ptdump.c   |    7 +++++++
+ 2 files changed, 16 insertions(+), 5 deletions(-)
 
---- a/arch/x86/mm/pat/set_memory.c~x86-mm-pat-acquire-init_mm-read-lock-on-attribute-change-to-avoid-uaf
-+++ a/arch/x86/mm/pat/set_memory.c
-@@ -2122,7 +2122,9 @@ static int change_page_attr_set_clr(unsi
- 	cpa.curpage = 0;
- 	cpa.force_split = force_split;
+--- a/mm/pagewalk.c~mm-ptdump-always-stabilise-against-page-table-freeing-using-init_mm
++++ a/mm/pagewalk.c
+@@ -702,12 +702,16 @@ int walk_page_range_debug(struct mm_stru
+ 	 * to account for page table freeing on vmap huge page mapping.
+ 	 */
+ 	mmap_assert_write_locked(mm);
++	/*
++	 * x86, arm64 ptdump allow walks of efi mm's and x86 ptdump allows walks
++	 * of arbitrary mm's.
++	 *
++	 * However, they both must also hold the init_mm lock to account for
++	 * concurrent kernel page table freeing.
++	 */
++	mmap_assert_write_locked(&init_mm);
  
--	ret = __change_page_attr_set_clr(&cpa, 1);
-+	/* Avoid race with concurrent CPA collapse. */
-+	scoped_guard(mmap_read_lock, &init_mm)
-+		ret = __change_page_attr_set_clr(&cpa, 1);
+-	/* For convenience, we allow traversal of kernel mappings. */
+-	if (mm == &init_mm)
+-		return walk_kernel_page_table_range(start, end, ops,
+-						    pgd, private);
+-	if (start >= end || !walk.mm)
++	if (start >= end)
+ 		return -EINVAL;
+ 	if (!check_ops_safe(ops))
+ 		return -EINVAL;
+--- a/mm/ptdump.c~mm-ptdump-always-stabilise-against-page-table-freeing-using-init_mm
++++ a/mm/ptdump.c
+@@ -178,11 +178,18 @@ void ptdump_walk_pgd(struct ptdump_state
  
- 	/*
- 	 * Check whether we really changed something:
+ 	get_online_mems();
+ 	mmap_write_lock(mm);
++	/* To stabilise kernel page tables we must hold the init_mm lock too. */
++	if (mm != &init_mm)
++		mmap_write_lock_nested(&init_mm, SINGLE_DEPTH_NESTING);
++
+ 	while (range->start != range->end) {
+ 		walk_page_range_debug(mm, range->start, range->end,
+ 				      &ptdump_ops, pgd, st);
+ 		range++;
+ 	}
++
++	if (mm != &init_mm)
++		mmap_write_unlock(&init_mm);
+ 	mmap_write_unlock(mm);
+ 	put_online_mems();
+ 
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
