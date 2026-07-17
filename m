@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C838338D6BD
-	for <mm-commits@vger.kernel.org>; Fri, 17 Jul 2026 19:40:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BE4AF43F08B
+	for <mm-commits@vger.kernel.org>; Fri, 17 Jul 2026 19:53:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784317220; cv=none; b=stVZ0bGnv3z8HvrahYqrXYgcCnHlxBS9oavt8DAKo8unvZK/KJ4WyyJMkJMipvsSYKZbyYFsH3znFAWGk4/qZ7MIgYO3HYdhKxUMMCUXrntjkEm1/1u9z9IdG4FC4ZR0J1rSM6w/V2pHBQXbio8Q3cd0cnwmHMdC+zil9k1O668=
+	t=1784318021; cv=none; b=Ru2/frTbQeG3tMAIYYy3trG1I19x+tWOh+UwuYs3mv6jLjES+ZwiunAkI5BdhJC1w7q7mwhOAhS+78k+GYobejdr6niwD/g4k0W0skGfdbzo/9HdNDXWCMocMavTq7dsBWAxdupCg+B1Ha5OPsuIKGevyWCJsJfKnClOg0l0/D0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784317220; c=relaxed/simple;
-	bh=2TiF3yp0kb/IvjPleu6/azlywzFIKCB0hGRG+A9/Pi0=;
-	h=Date:To:From:Subject:Message-Id; b=rQf9enSnppftM7eFLSg3jYIQ1j46dk82+EtX9saNb3rQgbP7PLtcFp4gXlHzm9WOluKKxlAVPGtG43LoI0hRijt6ufIKjnRNjyVhXKB0yEvsUWFCkl8Kls4vXtyUZnQ1WAx09ycB4Z189RFLMPG7K8+aYWeKzpIyS34Xi6KbLKo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ne3NHXkX; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1784318021; c=relaxed/simple;
+	bh=TmDtZyfSDeM+qadEu5FkC0q5/MPhQSnGIYm7o9LE0ik=;
+	h=Date:To:From:Subject:Message-Id; b=kW39qlmoWRJjJX87CI0iTdeu4a7qKgZw2233xPB2lqFGEqLbOsTCVQNEDSZ8I9mibZLJD3Ed3rz+7AQvkIkGlO3EbUuRrWHY9NaBC2ffTCP4JSPczYohrtNbINA/bWB3zwJDQ3htIyDBeCW3nJlf4XHpS9OMGE2ffz35ecgmcJc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kaP2KF72; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ne3NHXkX"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 63C231F000E9;
-	Fri, 17 Jul 2026 19:40:18 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kaP2KF72"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 44E521F000E9;
+	Fri, 17 Jul 2026 19:53:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1784317218;
-	bh=7iK4H1QpgFfk5lk+ZDFbQL3Xlf9WnbXUJK1Rhx2Gl4A=;
+	d=linux-foundation.org; s=korg; t=1784318019;
+	bh=vuGO7THKAZWW/CwT/a3Llnrs7A83+0sH6xEvdH6fVT8=;
 	h=Date:To:From:Subject;
-	b=ne3NHXkXQElVPKhyJTWZdmrvxzgCr4wQ4PiLYsHYNSFYScMB12CtVWM2KNgVl7f71
-	 Xw2P559qFL7Uv/e9W2cR8azYrgpRvsmx94QFy2ZfL0RV+3MF8jelTQT6tFCD50bNV6
-	 knY7T7LwYBKOJFULn9p7rqxoLe3pbItQECRgwzwY=
-Date: Fri, 17 Jul 2026 12:40:18 -0700
-To: mm-commits@vger.kernel.org,ljs@kernel.org,akpm@linux-foundation.org
+	b=kaP2KF72v9NM6oB4IcRqxf/diECk6G/FH1EQ3Q5KP29G/rpj/TEcTGJVjKLVnSYbg
+	 MFkD43QMtTwdMR2GTkysltcvr1KM2/2IGmN5XCyeE88xEeMUEcLhkQQaOUDvaZfAFv
+	 mHalx11REMMAz0c+WuX0quLfKGDglCOcPMN6Hyd4=
+Date: Fri, 17 Jul 2026 12:53:38 -0700
+To: mm-commits@vger.kernel.org,yuanchu@google.com,weixugc@google.com,shakeel.butt@linux.dev,roman.gushchin@linux.dev,qi.zheng@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,ljs@kernel.org,kasong@tencent.com,hezhongkun.hzk@bytedance.com,hannes@cmpxchg.org,david@kernel.org,dave@stgolabs.net,baohua@kernel.org,axelrasmussen@google.com,chenridong@xiaomi.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mseal-remove-further-superfluous-comments-do_mseal.patch added to mm-new branch
-Message-Id: <20260717194018.63C231F000E9@smtp.kernel.org>
+Subject: + mm-vmscan-fix-anon-only-reclaim-evicting-file-pages-when-swappiness=max.patch added to mm-new branch
+Message-Id: <20260717195339.44E521F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/mseal: remove further superfluous comments, do_mseal()
+     Subject: mm/vmscan: fix anon-only reclaim evicting file pages when swappiness=max
 has been added to the -mm mm-new branch.  Its filename is
-     mm-mseal-remove-further-superfluous-comments-do_mseal.patch
+     mm-vmscan-fix-anon-only-reclaim-evicting-file-pages-when-swappiness=max.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mseal-remove-further-superfluous-comments-do_mseal.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmscan-fix-anon-only-reclaim-evicting-file-pages-when-swappiness=max.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,197 +69,130 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: mm/mseal: remove further superfluous comments, do_mseal()
-Date: Fri, 17 Jul 2026 18:27:11 +0100
+From: Ridong Chen <chenridong@xiaomi.com>
+Subject: mm/vmscan: fix anon-only reclaim evicting file pages when swappiness=max
+Date: Fri, 17 Jul 2026 19:32:58 +0800
 
-There's no need to abstract do_mseal() any longer so put the system call
-implementation in the system call declaration.
+Patch series "mm/vmscan: fix swappiness=max and clean up per-node
+proactive reclaim".
 
-The comment around do_mseal() is strangely formatted, overly long and adds
-a lot of superfluous information that the code already provides, so boil
-it down to the essentials.
+Two fixes and one cleanup.
 
-Link: https://lore.kernel.org/20260717-mseal-fixups-v2-3-0daa0014b813@kernel.org
-Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Reviewed-by: Pedro Falcato <pfalcato@suse.de>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Jann Horn <jannh@google.com>
-Cc: Kees Cook <kees@kernel.org>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
+Patch 1 fixes "swappiness=max": the anon-only test in get_scan_count()
+sat after the "cannot reclaim anon" check, so when no anon was
+reclaimable the request fell back to SCAN_FILE and evicted page cache
+instead.
+
+Patch 2 fixes reclaim_store() collapsing every error into -EAGAIN, so
+callers can no longer tell an invalid argument from a busy interface;
+propagate the real error code, matching the memcg path.
+
+Patch 3 drops the now-unused gfp_mask parameter from __node_reclaim().
+
+
+This patch (of 3):
+
+As Qi mentioned [1], when swappiness=max (SWAPPINESS_ANON_ONLY) is set,
+the reclaim logic is expected to reclaim anonymous pages exclusively. 
+However, due to the current ordering of checks in get_scan_count(), file
+pages may still be evicted if can_reclaim_anon_pages() returns false,
+which contradicts the semantics of SWAPPINESS_ANON_ONLY.
+
+Reproducer in a cgroup holding 64M of file cache, with no swap configured:
+
+  Before (file cache is wrongly evicted):
+    # cat memory.stat
+    anon 196608
+    file 67178496
+    pgscan_proactive 0
+    # echo "64M swappiness=max" > memory.reclaim
+    # cat memory.stat
+    anon 208896
+    file 4096                 <- page cache evicted
+    pgsteal_proactive 16400
+    pgscan_proactive 16400
+
+  After (file cache is left intact):
+    # cat memory.stat
+    anon 200704
+    file 67178496
+    pgscan_proactive 0
+    # echo "64M swappiness=max" > memory.reclaim
+    -bash: echo: write error: Resource temporarily unavailable
+    # cat memory.stat
+    anon 208896
+    file 67178496             <- page cache untouched
+    pgsteal_proactive 0
+    pgscan_proactive 0
+
+Fix this by bailing out early when SWAPPINESS_ANON_ONLY is set and no
+anonymous pages are reclaimable, before falling back to file reclaim.
+
+Link: https://lore.kernel.org/20260717113300.214717-1-ridong.chen@linux.dev
+Link: https://lore.kernel.org/20260717113300.214717-2-ridong.chen@linux.dev
+Link: https://lore.kernel.org/cgroups/7ddf3eee-5fe2-45f7-8614-c8936a039e04@linux.dev/ [1]
+Fixes: 68a1436bde00 ("mm: add swappiness=max arg to memory.reclaim for only anon reclaim")
+Signed-off-by: Ridong Chen <chenridong@xiaomi.com>
+Suggested-by: Qi Zheng <qi.zheng@linux.dev>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Reviewed-by: Muchun Song <muchun.song@linux.dev>
+Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
+Cc: Kairui Song <kasong@tencent.com>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Wei Xu <weixugc@google.com>
+Cc: Yuanchu Xie <yuanchu@google.com>
+Cc: Zhongkun He <hezhongkun.hzk@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mseal.c |   74 +++++++++++----------------------------------------
- 1 file changed, 16 insertions(+), 58 deletions(-)
+ mm/vmscan.c |   18 +++++++++++-------
+ 1 file changed, 11 insertions(+), 7 deletions(-)
 
---- a/mm/mseal.c~mm-mseal-remove-further-superfluous-comments-do_mseal
-+++ a/mm/mseal.c
-@@ -99,61 +99,25 @@ void mseal_mmap_page_zero(void)
- }
+--- a/mm/vmscan.c~mm-vmscan-fix-anon-only-reclaim-evicting-file-pages-when-swappiness=max
++++ a/mm/vmscan.c
+@@ -2492,6 +2492,17 @@ static void get_scan_count(struct lruvec
+ 	enum scan_balance scan_balance;
+ 	enum lru_list lru;
  
- /*
-- * mseal(2) seals the VM's meta data from
-- * selected syscalls.
-+ * Seal VMAs in the specified input range to prevent an attacker replacing what
-+ * is mapped in the range with something else.
-  *
-- * addr/len: VM address range.
-+ * Disallows:
-+ * - VMA unmapping, remapping or shrinking.
-+ * - Overwriting the VMA with another one via mmap(), mremap() or similar.
-+ * - Alteration of properties via mprotect()/pkey_mprotect().
-+ * - Destructive madvise() behaviours (like MADV_DONTNEED) on anonymous read-only
-+ *   ranges.
-  *
-- *  The address range by addr/len must meet:
-- *   start (addr) must be in a valid VMA.
-- *   end (addr + len) must be in a valid VMA.
-- *   no gap (unallocated memory) between start and end.
-- *   start (addr) must be page aligned.
-+ * Since unmapped ranges can be mapped at any time, the input range must span
-+ * mapped ranges only.
-  *
-- *  len: len will be page aligned implicitly.
-- *
-- *   Below VMA operations are blocked after sealing.
-- *   1> Unmapping, moving to another location, and shrinking
-- *	the size, via munmap() and mremap(), can leave an empty
-- *	space, therefore can be replaced with a VMA with a new
-- *	set of attributes.
-- *   2> Moving or expanding a different vma into the current location,
-- *	via mremap().
-- *   3> Modifying a VMA via mmap(MAP_FIXED).
-- *   4> Size expansion, via mremap(), does not appear to pose any
-- *	specific risks to sealed VMAs. It is included anyway because
-- *	the use case is unclear. In any case, users can rely on
-- *	merging to expand a sealed VMA.
-- *   5> mprotect and pkey_mprotect.
-- *   6> Some destructive madvice() behavior (e.g. MADV_DONTNEED)
-- *      for anonymous memory, when users don't have write permission to the
-- *	memory. Those behaviors can alter region contents by discarding pages,
-- *	effectively a memset(0) for anonymous memory.
-- *
-- *  flags: reserved.
-- *
-- * return values:
-- *  zero: success.
-- *  -EINVAL:
-- *   invalid input flags.
-- *   start address is not page aligned.
-- *   Address range (start + len) overflow.
-- *  -ENOMEM:
-- *   addr is not a valid address (not allocated).
-- *   end (start + len) is not a valid address.
-- *   a gap (unallocated memory) between start and end.
-- *  -EPERM:
-- *  - In 32 bit architecture, sealing is not supported.
-- * Note:
-- *  user can call mseal(2) multiple times, adding a seal on an
-- *  already sealed memory is a no-action (no error).
-- *
-- *  unseal() is not supported.
-+ * The flags parameter is currently reserved.
-  */
--static int do_mseal(unsigned long start, size_t len_in, unsigned long flags)
-+SYSCALL_DEFINE3(mseal, unsigned long, start, size_t, len, unsigned long, flags)
- {
-+	size_t len_aligned;
- 	unsigned long end;
--	size_t len;
++	/* Proactive reclaim initiated by userspace for anonymous memory only */
++	if (swappiness == SWAPPINESS_ANON_ONLY) {
++		WARN_ON_ONCE(!sc->proactive);
++		if (!can_reclaim_anon_pages(memcg, pgdat->node_id, sc)) {
++			memset(nr, 0, sizeof(*nr) * NR_LRU_LISTS);
++			return;
++		}
++		scan_balance = SCAN_ANON;
++		goto out;
++	}
++
+ 	/* If we have no swap space, do not bother scanning anon folios. */
+ 	if (!sc->may_swap || !can_reclaim_anon_pages(memcg, pgdat->node_id, sc)) {
+ 		scan_balance = SCAN_FILE;
+@@ -2510,13 +2521,6 @@ static void get_scan_count(struct lruvec
+ 		goto out;
+ 	}
  
- 	/* Verify flags not set. */
- 	if (flags)
-@@ -163,12 +127,12 @@ static int do_mseal(unsigned long start,
- 	if (!PAGE_ALIGNED(start))
- 		return -EINVAL;
- 
--	len = PAGE_ALIGN(len_in);
-+	len_aligned = PAGE_ALIGN(len);
- 	/* Check to see whether len was rounded up from small -ve to zero. */
--	if (len_in && !len)
-+	if (len && !len_aligned)
- 		return -EINVAL;
- 
--	end = start + len;
-+	end = start + len_aligned;
- 	if (end < start)
- 		return -EINVAL;
- 
-@@ -177,9 +141,3 @@ static int do_mseal(unsigned long start,
- 
- 	return mseal_range(start, end);
- }
+-	/* Proactive reclaim initiated by userspace for anonymous memory only */
+-	if (swappiness == SWAPPINESS_ANON_ONLY) {
+-		WARN_ON_ONCE(!sc->proactive);
+-		scan_balance = SCAN_ANON;
+-		goto out;
+-	}
 -
--SYSCALL_DEFINE3(mseal, unsigned long, start, size_t, len, unsigned long,
--		flags)
--{
--	return do_mseal(start, len, flags);
--}
+ 	/*
+ 	 * Do not apply any pressure balancing cleverness when the
+ 	 * system is close to OOM, scan both anon and file equally
 _
 
-Patches currently in -mm which might be from ljs@kernel.org are
+Patches currently in -mm which might be from chenridong@xiaomi.com are
 
-mm-vmalloc-acquire-init_mm-lock-on-huge-vmap-to-avoid-ptdump-uaf.patch
-x86-mm-pat-acquire-init_mm-write-lock-on-collapse-to-avoid-uaf.patch
-x86-mm-pat-acquire-init_mm-read-lock-on-attribute-change-to-avoid-uaf.patch
-mm-ptdump-always-stabilise-against-page-table-freeing-using-init_mm.patch
-arm64-remove-redundant-concurrent-ptdump-uaf-mitigation.patch
-mm-move-alloc-tag-to-mm.patch
-mm-move-vma_start_pgoff-into-mmh-and-clean-up.patch
-mm-add-kdoc-comments-for-vma_start-last_pgoff.patch
-tools-testing-vma-use-vma_start_pgoff-in-merge-tests.patch
-mm-introduce-and-use-vma_end_pgoff.patch
-mm-rmap-update-mm-interval_treec-comments.patch
-mm-rmap-parameterise-vma_interval_tree_-by-address_space.patch
-mm-rmap-elide-unnecessary-static-inlines-in-interval_treec.patch
-mm-rmap-rename-vma_interval_tree_-to-mapping_rmap_tree_.patch
-mm-rmap-parameterise-anon_vma_interval_tree_-by-anon_vma.patch
-mm-rmap-rename-anon_vma_interval_tree_-params-and-use-pgoff_t.patch
-mm-rmap-rename-anon_vma_interval_tree_-to-anon_rmap_tree_.patch
-maintainers-move-mm-interval_treec-to-rmap-section.patch
-mm-vma-introduce-and-use-vmg_pages-vmg__pgoff.patch
-mm-vma-clean-up-anon_vma_compatible.patch
-mm-vma-refactor-vmg_adjust_set_range-for-clarity.patch
-mm-vma-minor-cleanup-of-expand_.patch
-mm-introduce-and-use-linear_page_delta.patch
-mm-vma-use-vma_start_pgoff-linear_page_index-in-mm-code.patch
-mm-prefer-vma__pgoff-to-vma-vm_pgoff-in-kernel.patch
-mm-vma-remove-duplicative-vma_pgoff_offset-helper.patch
-mm-use-linear_page_-consistently.patch
-mm-vma-introduce-vma_assert_can_modify.patch
-mm-vma-add-and-use-vma__pgoff.patch
-mm-vma-move-__install_special_mapping-to-vmac.patch
-mm-vma-make-vma_set_range-static-drop-insert_vm_struct-decl.patch
-mm-vma-update-vma_shrink-to-not-pass-start-pgoff-parameters.patch
-mm-vma-update-vmg_adjust_set_range-to-offset-pgoff-instead.patch
-mm-vma-slightly-rework-the-anonymous-check-in-__mmap_new_vma.patch
-mm-vma-introduce-and-use-vma_set_pgoff.patch
-mm-vma-correct-incorrect-vmah-inclusion.patch
-mm-vma-use-guard-clauses-in-can_vma_merge_.patch
-tools-testing-vma-default-vma-mm-flag-bits-to-64-bit.patch
-tools-testing-vma-output-compared-expression-on-assert_.patch
-mm-introduce-vma_flags_can_grow-and-vma_can_grow.patch
-mm-vma-update-do_mmap-to-use-vma_flags_t.patch
-mm-convert-__get_unmapped_area-to-use-vma_flags_t.patch
-mm-update-generic_get_unmapped_area-to-use-vma_flags_t.patch
-mm-prefer-mm-def_vma_flags-in-mm-logic.patch
-mm-vma-convert-vm_pgprot_modify-to-use-vma_flags_t-and-rename.patch
-mm-vma-rename-vma_get_page_prot-to-vma_flags_to_page_prot.patch
-mm-introduce-vma_get_page_prot-and-use-it.patch
-mm-vma-update-create_init_stack_vma-to-use-vma_flags_t.patch
-mm-vma-convert-miscellaneous-uses-of-vma-flags-in-core-mm.patch
-mm-mlock-convert-mlock-code-to-use-vma_flags_t.patch
-mm-mprotect-convert-mprotect-code-to-use-vma_flags_t.patch
-mm-mremap-convert-mremap-code-to-use-vma_flags_t.patch
-mm-mseal-remove-superfluous-comments-fix-confusion-around-mm.patch
-mm-mseal-limit-scope-of-mseal-address-zero-to-address-zero.patch
-mm-mseal-remove-further-superfluous-comments-do_mseal.patch
+mm-vmscan-fix-anon-only-reclaim-evicting-file-pages-when-swappiness=max.patch
+mm-vmscan-propagate-real-error-code-from-per-node-proactive-reclaim.patch
+mm-vmscan-drop-unused-gfp_mask-parameter-from-__node_reclaim.patch
 
