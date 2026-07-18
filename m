@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 172F822FDE6;
-	Sat, 18 Jul 2026 04:34:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 11FC62E7399;
+	Sat, 18 Jul 2026 04:34:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784349293; cv=none; b=H8+JkuXH5ITf2Ffblyw8CRP67ldhkV0mL6gYmRp6vXxrmlkjYPIyVRLhB1qlx2oVCqEDrKxZye6Zt5MoPkxs9P2uncnrmumyxa849m957iZaxNv+RfkV+aHw3ZraYtWd57Pv3Qir0mCjZkzxYoOqIcycc4qOxoddE5LmgHrWrRs=
+	t=1784349295; cv=none; b=SG/+345O2SmjmsWclqGADn9OiNEvSdgnKJti3ghwvzYEzmce3uLJnvW8Vje9LKzftVoMObjd5LHl2rstXDutrLDmKTC7UCrR0ZteOEAsxXTWXEBHmSuLOD/K+h7GFs3wRN2G6ooXl5y1ib2x4Sof/PIxpDPYXwGmw6EhwKWnj4Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784349293; c=relaxed/simple;
-	bh=q9dMmvoVgcyiz/EzfroOYTMo47rcaWmoptgcmj9DQjs=;
-	h=Date:To:From:Subject:Message-Id; b=IvyxDbh98MiaLLdrVHXMcgOxB1XKeCtxXosOIlXTHzz94PjfFT9ekQEIv36Pg3PE7v5ErW13Nu1G2O7JvWpK8sLcx7kiF55jXUbGTvNBNVlqIH3JSP75rM1RJk3947yZJExEnB1dJAgfDPTiMXE9bNqtLLtPvbWsXcMw0KyL+7A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=f16zuQqd; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1784349295; c=relaxed/simple;
+	bh=n0yEwDHhCaZUYIqHdHIcBRsL6Nt7VV99mKwLLgwVf8Q=;
+	h=Date:To:From:Subject:Message-Id; b=LLic1E5mNAAvJetI5uIucy8XJsUbYtDOQgJGl0Wmxg1kbE1ascH3amAO+1OQ5QmjNSDt8a0mxYDXYwL/4TbZ1VMd6jRY+wjFDDRu+IQ49oNSRQOJ2cvEZ6twn9B/G82DrHWBt1U3/PHlfqPtEoTXV+x/SqZXxN5CJPEfQLPz/ts=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QZZPMN6H; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="f16zuQqd"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A6A471F00A3A;
-	Sat, 18 Jul 2026 04:34:51 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QZZPMN6H"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A8B831F000E9;
+	Sat, 18 Jul 2026 04:34:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1784349291;
-	bh=h+q9loRZkyaYYpZ524jtgDCDMxBmaiLMa5yopdUp8+Y=;
+	d=linux-foundation.org; s=korg; t=1784349293;
+	bh=ny+HsY4F17HNzmve8WmjPCVZ6tNzfEbEFigZauWBPx0=;
 	h=Date:To:From:Subject;
-	b=f16zuQqdSvmC6QaxuJMiDazTz0TjBpHMY2YYe/dFlkRBGewaDkwkrGulyVPuSESL6
-	 M5d2hgSuDebvMEOgTftfSHGtlySk30a0mL8+x4zmzS/uxSRZ+TIY7a++7zkpEJF7pf
-	 DNSYuIjzQZRo77v85Nqj/sRBUz7Th6qDKKb2sgsA=
-Date: Fri, 17 Jul 2026 21:34:51 -0700
+	b=QZZPMN6HT0EgJ/WWLrKHWztN+ntkASWDCdpsrj6TJjBd/Azhztc2sL4/QxnHEjVv4
+	 iDhZ7p6RGjAwk+a/36VeqxBtWByi9aHHnY44g2smwmQJ/tBLKNwIPOikjqcgDai+ZT
+	 y5cV24t8nLpH7AngoCjPSdnbDLC+F/bITAEWS+N4=
+Date: Fri, 17 Jul 2026 21:34:53 -0700
 To: mm-commits@vger.kernel.org,stable@vger.kernel.org,brendan.higgins@linux.dev,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-core-kunit-check-region-count-before-testing-in-split_at.patch added to mm-new branch
-Message-Id: <20260718043451.A6A471F00A3A@smtp.kernel.org>
+Subject: + mm-damon-vaddr-kunit-check-region-count-in-three_regions-test.patch added to mm-new branch
+Message-Id: <20260718043453.A8B831F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/core-kunit: check region count before testing in split_at()
+     Subject: mm/damon/vaddr-kunit: check region count in three_regions test
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-core-kunit-check-region-count-before-testing-in-split_at.patch
+     mm-damon-vaddr-kunit-check-region-count-in-three_regions-test.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-kunit-check-region-count-before-testing-in-split_at.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-vaddr-kunit-check-region-count-in-three_regions-test.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,28 +70,26 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/core-kunit: check region count before testing in split_at()
-Date: Fri, 17 Jul 2026 17:14:36 -0700
+Subject: mm/damon/vaddr-kunit: check region count in three_regions test
+Date: Fri, 17 Jul 2026 17:14:37 -0700
 
-damon_test_split_at() test next region that is assumed to be created by
-damon_split_region_at() invocation.  But the split might fail.  In this
-case, the succeeding test may dereference invalid pointers returned by
-damon_next_region().
+damon_do_test_apply_three_regions() iterates regions after
+damon_set_regions() call assuming the function would succeed at setting
+the number of regions the same to the expected one.  It might have failed.
+In this case, __nth_region_of() in the iteration could return NULL and
+NULL dereference can happen in the test.
 
-The invalid pointer may not cause a really bad user impact, because of the
-implementation detail.  It would only read wrong contents in the belonging
-damon_target struct.  Depending on the future change of the offset from
-the link header to the accessing field, this could also be really
-dangerous, though.  Still, the realistic user impact would be limited.  It
-would affect only test run setups.
+The consequent user impact (NULL dereference) is quite bad.  The realistic
+user impact would be limited, though.  It would affect only test run
+setups.
 
 Fix it by testing if the number of regions was also changed as expected
 and exit early for the failure.
 
 The issue was discovered [1] by Sashiko.
 
-Link: https://lore.kernel.org/20260718001442.87129-3-sj@kernel.org
-Link: https://lore.kernel.org/20260714142352.100478-1-sj@kernel.org [1]
+Link: https://lore.kernel.org/20260718001442.87129-4-sj@kernel.org
+Link: https://lore.kernel.org/20260713144757.39740-1-sj@kernel.org [1]
 Fixes: 17ccae8bb5c9 ("mm/damon: add kunit tests")
 Signed-off-by: SJ Park <sj@kernel.org>
 Cc: Brendan Higgins <brendan.higgins@linux.dev>
@@ -99,28 +97,27 @@ Cc: <stable@vger.kernel.org> # 5.15.x
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/tests/core-kunit.h |    5 +++++
+ mm/damon/tests/vaddr-kunit.h |    5 +++++
  1 file changed, 5 insertions(+)
 
---- a/mm/damon/tests/core-kunit.h~mm-damon-core-kunit-check-region-count-before-testing-in-split_at
-+++ a/mm/damon/tests/core-kunit.h
-@@ -155,6 +155,10 @@ static void damon_test_split_at(struct k
- 	r->age = 10;
- 	damon_add_region(r, t);
- 	damon_split_region_at(t, r, 25);
-+	KUNIT_EXPECT_EQ(test, damon_nr_regions(t), 2);
-+	if (damon_nr_regions(t) != 2)
+--- a/mm/damon/tests/vaddr-kunit.h~mm-damon-vaddr-kunit-check-region-count-in-three_regions-test
++++ a/mm/damon/tests/vaddr-kunit.h
+@@ -158,12 +158,17 @@ static void damon_do_test_apply_three_re
+ 		kunit_skip(test, "second damon_set_regions() fail");
+ 	}
+ 
++	KUNIT_EXPECT_EQ(test, damon_nr_regions(t), nr_expected / 2);
++	if (damon_nr_regions(t) != nr_expected / 2)
 +		goto out;
 +
- 	KUNIT_EXPECT_EQ(test, r->ar.start, 0ul);
- 	KUNIT_EXPECT_EQ(test, r->ar.end, 25ul);
- 
-@@ -166,6 +170,7 @@ static void damon_test_split_at(struct k
- 	KUNIT_EXPECT_EQ(test, r->last_nr_accesses, r_new->last_nr_accesses);
- 	KUNIT_EXPECT_EQ(test, r->age, r_new->age);
+ 	for (i = 0; i < nr_expected / 2; i++) {
+ 		r = __nth_region_of(t, i);
+ 		KUNIT_EXPECT_EQ(test, r->ar.start, expected[i * 2]);
+ 		KUNIT_EXPECT_EQ(test, r->ar.end, expected[i * 2 + 1]);
+ 	}
  
 +out:
- 	damon_free_target(t);
+ 	damon_destroy_target(t, NULL);
  }
  
 _
