@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0CB9B1862
-	for <mm-commits@vger.kernel.org>; Sat, 18 Jul 2026 01:10:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2F8C61DDC37
+	for <mm-commits@vger.kernel.org>; Sat, 18 Jul 2026 01:21:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784337054; cv=none; b=hcdZJJl3iWtYgKy7bywfo06eAKNDCpWhNtEljSDkAlBv+1o5v7PorezjBRETGWBTk5qCoiRxsmh7EZnsNI1OagJXl/4vi+SxEh9R54+f6GLBBJvtVXaqMoJs3MLAGNJ6oIUECaCskZWGlipvanuxufU8ZPUNFTjvMjq6PdDYeMc=
+	t=1784337721; cv=none; b=owGokyyOK8Ap2kAmGA5+WU3HlISAT4qt88mA6S87m7LZ095f++MfKaQJfWPDkvgKj31KTgHSt270iu26SyOphGy2HBdwmucz2J/rahAC2fcVuYMNVBqHWm4v+xjMcwEDjaow0nXzJ72clz7NhjCCOp+gCxkfkMgJvjA0sxm9TTI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784337054; c=relaxed/simple;
-	bh=mk0Epf5gVFxoYHEqu4zUmrS4ziJ4UYXPUwF/jdEFDI0=;
-	h=Date:To:From:Subject:Message-Id; b=mwqTVboPcLiowTOum0+YSl8v65ljoakaoemE8ggUFt/Z6TJXiRzNelnkgA+ouas0Kkw3MsIFxK5P3Z4zuAliaEQBAypFINj7SBG9ffusF5UyAhTbxz9OI/UWhWbUgP2VTfpAvu/MRXsT13H93+dESAgGBYUNs8t0BVt6yiktlDw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wieJZDpI; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1784337721; c=relaxed/simple;
+	bh=1YOHAeNg+CoGtxlw/NPmnRl3W5aj31yjil2wbSSoBxg=;
+	h=Date:To:From:Subject:Message-Id; b=MlpZAi6LR0k2Qe/Hnam4oDOVDm81wDAgVCmmpmOBUWOR7MKxYbEgD25XHA25cIoV675vxPwbayj9QPfVLIc+6gsoaccXqy4uBMZFQbWsrPBw+wYCFu1vFsZWCXKVANmCRtfleHQhw9SUoxeUhl+22InGZB74NJNBDm1QDkZ5vtc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DjSqywf+; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wieJZDpI"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8DB201F000E9;
-	Sat, 18 Jul 2026 01:10:52 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DjSqywf+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id ADF581F000E9;
+	Sat, 18 Jul 2026 01:21:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1784337052;
-	bh=NW1f58/69thIIz+zdISgvFr12N3bHd8HPqEhER+VPIU=;
+	d=linux-foundation.org; s=korg; t=1784337719;
+	bh=rypAYgRVYQp2yODtHkYf0iCovxzDq3ROBsGSragGPV0=;
 	h=Date:To:From:Subject;
-	b=wieJZDpIsZw6G9zQl7/L8sS8Xqgle9bm5In4C+ta8214IdRUFcxjQ1RJMEl2NBqW/
-	 36DqRGuLxQANMbKMblsTgcbYO/AGRHwIH0Nht53laVJJ8e09u9zGKPvrYncAOImhT8
-	 YjSTKkZNFOhCqI87MiGyNb8uNPolEbp2Ey+q3Auo=
-Date: Fri, 17 Jul 2026 18:10:52 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,pfalcato@suse.de,ljs@kernel.org,liam@infradead.org,jannh@google.com,david@kernel.org,wangkefeng.wang@huawei.com,akpm@linux-foundation.org
+	b=DjSqywf++ntl1H/brSl8ujDNWSwF+DCdPEyQXr8MYBTXNdKfiHhOBxNYcJD0W9c3n
+	 DruPUYBY4enWnnLKr2V/dHXipVYbl8VW6N052SRhTsMJPvBFNKj1q55uMtElNqCQ85
+	 f4e7XxyzfG/CckQ+14Q482+HYIAGex6FZWEGKPGQ=
+Date: Fri, 17 Jul 2026 18:21:59 -0700
+To: mm-commits@vger.kernel.org,shikemeng@huaweicloud.com,nphamcs@gmail.com,kasong@tencent.com,chrisl@kernel.org,baoquan.he@linux.dev,baohua@kernel.org,lihongfu@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mincore-refactor-mincore_page.patch added to mm-new branch
-Message-Id: <20260718011052.8DB201F000E9@smtp.kernel.org>
+Subject: + mm-swap-fix-swap_cluster_lock-config_swap-stub-signature-mismatch.patch added to mm-new branch
+Message-Id: <20260718012159.ADF581F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: mincore: refactor mincore_page()
+     Subject: mm/swap: fix swap_cluster_lock() !CONFIG_SWAP stub signature mismatch
 has been added to the -mm mm-new branch.  Its filename is
-     mm-mincore-refactor-mincore_page.patch
+     mm-swap-fix-swap_cluster_lock-config_swap-stub-signature-mismatch.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mincore-refactor-mincore_page.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-fix-swap_cluster_lock-config_swap-stub-signature-mismatch.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,79 +69,58 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm: mincore: refactor mincore_page()
-Date: Fri, 17 Jul 2026 17:13:47 +0800
+From: Hongfu Li <lihongfu@kylinos.cn>
+Subject: mm/swap: fix swap_cluster_lock() !CONFIG_SWAP stub signature mismatch
+Date: Fri, 17 Jul 2026 15:11:04 +0800
 
-Use early returns to reduce indentation and improve readability.
+The !CONFIG_SWAP stub for swap_cluster_lock() has mismatched prototype: it
+has an extra unused irq argument and uses pgoff_t instead of unsigned long
+for offset.  All callers are under CONFIG_SWAP so the extra parameter is
+dead.
 
-Link: https://lore.kernel.org/20260717091347.1144789-7-wangkefeng.wang@huawei.com
-Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Cc: Jann Horn <jannh@google.com>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Pedro Falcato <pfalcato@suse.de>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Zi Yan <ziy@nvidia.com>
+Delete the unused stub function entirely.
+
+Link: https://lore.kernel.org/20260717071104.73467-1-hongfu.li@linux.dev
+Signed-off-by: Hongfu Li <lihongfu@kylinos.cn>
+Reviewed-by: Baoquan He <baoquan.he@linux.dev>
+Acked-by: Kairui Song <kasong@tencent.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Chris Li <chrisl@kernel.org>
+Cc: Hongfu Li <lihongfu@kylinos.cn>
+Cc: Kemeng Shi <shikemeng@huaweicloud.com>
+Cc: Nhat Pham <nphamcs@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mincore.c |   21 ++++++++++-----------
- 1 file changed, 10 insertions(+), 11 deletions(-)
+ mm/swap.h |    5 -----
+ 1 file changed, 5 deletions(-)
 
---- a/mm/mincore.c~mm-mincore-refactor-mincore_page
-+++ a/mm/mincore.c
-@@ -94,7 +94,7 @@ static unsigned char mincore_swap(swp_en
-  */
- static unsigned char mincore_page(struct address_space *mapping, pgoff_t index)
- {
--	unsigned char present = 0;
-+	unsigned char present;
- 	struct folio *folio;
+--- a/mm/swap.h~mm-swap-fix-swap_cluster_lock-config_swap-stub-signature-mismatch
++++ a/mm/swap.h
+@@ -344,11 +344,6 @@ void swap_update_readahead(struct folio
+ 			   unsigned long addr);
  
- 	/*
-@@ -104,17 +104,16 @@ static unsigned char mincore_page(struct
- 	 * tmpfs's .fault). So swapped out tmpfs mappings are tested here.
- 	 */
- 	folio = filemap_get_entry(mapping, index);
--	if (folio) {
--		if (xa_is_value(folio)) {
--			if (shmem_mapping(mapping))
--				return mincore_swap(radix_to_swp_entry(folio),
--						    true);
--			else
--				return 0;
--		}
--		present = folio_test_uptodate(folio);
--		folio_put(folio);
-+	if (!folio)
-+		return 0;
-+
-+	if (xa_is_value(folio)) {
-+		if (!shmem_mapping(mapping))
-+			return 0;
-+		return mincore_swap(radix_to_swp_entry(folio), true);
- 	}
-+	present = folio_test_uptodate(folio);
-+	folio_put(folio);
+ #else /* CONFIG_SWAP */
+-static inline struct swap_cluster_info *swap_cluster_lock(
+-	struct swap_info_struct *si, pgoff_t offset, bool irq)
+-{
+-	return NULL;
+-}
  
- 	return present;
- }
+ static inline struct swap_cluster_info *swap_cluster_get_and_lock(
+ 		struct folio *folio)
 _
 
-Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
+Patches currently in -mm which might be from lihongfu@kylinos.cn are
 
-mm-migrate_device-fix-pte_pfn-pte_dirty-called-on-non-present-pte.patch
-mm-remove-pagetranscompound.patch
-mm-mincore-use-walk_page_range_vma-in-do_mincore.patch
-mm-mprotect-use-walk_page_range_vma-in-mprotect_fixup.patch
-mm-mlock-use-walk_page_range_vma-in-mlock_vma_pages_range.patch
-mm-migrate_device-use-walk_page_range_vma-in-migrate_vma_collect.patch
-mm-introduce-pud_is_huge-helper.patch
-mm-mincore-remove-special-handling-for-vm_pfnmap.patch
-mm-mincore-replace-__get_free_page-with-kmalloc.patch
-mm-mincore-remove-xa_is_value-in-mincore_swap.patch
-mm-mincore-improve-mincore_hugetlb.patch
-mm-mincore-refactor-mincore_page.patch
+selftests-mm-move-pkey-selftest-helpers-to-pkey_utilc.patch
+selftests-mm-unify-pkey-sighandler-selftest-assertions-and-tracing.patch
+selftests-mm-use-pkey_assert-on-clone_raw-failure-in-pkey-test.patch
+selftests-mm-add-missing-mmap-return-checks-in-pkey-tests.patch
+selftests-mm-add-missing-pthread_create-return-checks-in-pkey-tests.patch
+selftests-mm-fix-clone-cleartid-race-in-pkey-sighandler-tests.patch
+selftests-mm-fix-memleak-in-migration-benchmark.patch
+selftests-mm-factor-out-hmm_buffer_alloc-to-consolidate-buffer-setup.patch
+selftests-mm-fix-bug_on-checking-wrong-variable-in-mremap_dontunmap.patch
+mm-swap-fix-swap_cluster_lock-config_swap-stub-signature-mismatch.patch
 
