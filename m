@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9B30E43F0BE
-	for <mm-commits@vger.kernel.org>; Sat, 18 Jul 2026 00:31:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 451761A6836;
+	Sat, 18 Jul 2026 00:39:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784334711; cv=none; b=aWuofzxfjll7A9tE2ys5eW2C4R9xYzhfnB3vv/1j9KHYeH1DhJo5pCBQrfviqC7eaieoQamoN4AGjj+8cfB6VHnjOV4wo2JSgEaencGhStKOKueAJA4GiLtHsCUNshomsNXIKuyV4kT3mL4lLxGrxp+BaV0wD2YxA+ofPir9a0E=
+	t=1784335142; cv=none; b=leE+f3Ibqkdrh86OsaRCBQK7YmLNGjY7Hy+HuItTasBGVExk6X0uv3bQ9U+Qe4keOCkBgnxhHlmJR6+PKjeamCIcQxmviqQ4SAuWBFx8Nu5cu2CnF9cp40aY06qq7TGrDtxqIhCgYi1O01WtyoPauX01c1zvl9CgsEU9WjnEMSg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784334711; c=relaxed/simple;
-	bh=JsTE7VDDHFzJhUMnJzFvGwuVoKp32n1hNgUg/XnBGL0=;
-	h=Date:To:From:Subject:Message-Id; b=AeHv+O49d4XWcF6O/MzVoAaU8HP4+S8YY1g07X6G264lZQkzT3flhlyg4u7A0akj9wwB73euHGcwmB2nRI12kKLN5Lf2XEFcTwa/jgwRmzrJ8KpaaMv/GC+NooGYVr8BZYYZYx5UeAd5LyZIUyBoFsFiiFxyOQLYJlryYaKpb+o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zqDbH9o7; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1784335142; c=relaxed/simple;
+	bh=vMUVqKrtQaxjgxyLSzGNFv2QLAlGkh0RByaEYG5T2Ho=;
+	h=Date:To:From:Subject:Message-Id; b=GldZBh2LYc46O/fnNl9firPneeR/J49U6pfVUKWsNW/9npbp55LDJ3JfiCXUWx09cauI9Nz4zQVgKnLCmT9CPU1IPoF9Xe8tWzGwq/XE7tqlPK4m7wtwH6/IXSaDNM6PP7UY1DRx4V+v4T1paY0Wi5m8BJgrnng8K5ArnqNHWkc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XcQosxQx; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zqDbH9o7"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5E4A11F000E9;
-	Sat, 18 Jul 2026 00:31:48 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XcQosxQx"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9BECB1F000E9;
+	Sat, 18 Jul 2026 00:39:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1784334708;
-	bh=nZzQVUwC81kEnXQ+vYBBvJYGQDnpFDMcsol3Qlndz8E=;
+	d=linux-foundation.org; s=korg; t=1784335140;
+	bh=Hj9EWKPqdgK3X+nZt7McjhWI8bDBdNWC5u5TqHcgMYo=;
 	h=Date:To:From:Subject;
-	b=zqDbH9o741UndXMF+GBJCrKPZw9CjmvCsyX+zq0hhUav2dSylqHAW/Y3d0QyUQMGk
-	 TWLGB83L5tOg8CofO4CnEee4N2zH0v3CLAIwyZ7TfGAPrGlcy1FHhHbjLeScrEWs7S
-	 BzSv9+HMOTrPNFWzMNdpvzHp+P54AM4a+pzlS4j8=
-Date: Fri, 17 Jul 2026 17:31:47 -0700
-To: mm-commits@vger.kernel.org,yuanchu@google.com,weixugc@google.com,vbabka@kernel.org,shakeel.butt@linux.dev,riel@surriel.com,mhocko@kernel.org,ljs@kernel.org,liam@infradead.org,lance.yang@linux.dev,kasong@tencent.com,jannh@google.com,harry@kernel.org,hannes@cmpxchg.org,david@kernel.org,baohua@kernel.org,axelrasmussen@google.com,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
+	b=XcQosxQxvT96YWVpFsw+KReYD4D7iTRYvsv5Xjf0ozasjaiLQv4lUp+E0A1j4PCJp
+	 PokbBCZQXWLqH8xRPX8BXuVpiJGg0iKwFrGTDLt0Rij3DGa02mOUeIoFpAEWfsjvnR
+	 ukj/aFP4DE++CmMSlKq4Ps3qSgpDGytm4YjV+adU=
+Date: Fri, 17 Jul 2026 17:39:00 -0700
+To: mm-commits@vger.kernel.org,xuanzhuo@linux.alibaba.com,vbabka@kernel.org,stable@vger.kernel.org,rientjes@google.com,mst@redhat.com,jthoughton@google.com,jiaqiyan@google.com,jasowang@redhat.com,gthelen@google.com,david@redhat.com,david@kernel.org,alexander.duyck@gmail.com,linkl@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mglru-promote-mapped-executable-folios-after-first-usage.patch added to mm-new branch
-Message-Id: <20260718003148.5E4A11F000E9@smtp.kernel.org>
+Subject: + mm-page_reporting-use-system_freezable_wq-to-fix-uaf-during-suspend.patch added to mm-new branch
+Message-Id: <20260718003900.9BECB1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: mglru: promote mapped executable folios after first usage
+     Subject: mm/page_reporting: use system_freezable_wq to fix UAF during suspend
 has been added to the -mm mm-new branch.  Its filename is
-     mm-mglru-promote-mapped-executable-folios-after-first-usage.patch
+     mm-page_reporting-use-system_freezable_wq-to-fix-uaf-during-suspend.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mglru-promote-mapped-executable-folios-after-first-usage.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_reporting-use-system_freezable_wq-to-fix-uaf-during-suspend.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,239 +69,85 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Baolin Wang <baolin.wang@linux.alibaba.com>
-Subject: mm: mglru: promote mapped executable folios after first usage
-Date: Fri, 17 Jul 2026 18:05:34 +0800
+From: Link Lin <linkl@google.com>
+Subject: mm/page_reporting: use system_freezable_wq to fix UAF during suspend
+Date: Fri, 17 Jul 2026 00:22:20 +0000
 
-Classical LRU protects mapped executable file folios through commit
-8cab4754d24a0 ("vmscan: make mapped executable pages the first class
-citizen") and commit c909e99364c8 ("vmscan: activate executable pages
-after first usage"), giving executable code a better chance to stay in
-memory, avoiding IO thrashing and improving workload performance.
+During PM freeze (e.g.  S3 suspend or S4 hibernation), device drivers like
+virtio_balloon reset their underlying virtio devices and delete their
+virtqueues via vdev->config->del_vqs().
 
-However, MGLRU's protection of mapped executable file folios is less
-reliable.  Although shrink_folio_list() checks references, the access flag
-of mapped executable file folios may have already been checked and cleared
-by lru_gen_look_around() or walk_mm().  Additionally, folio_update_gen()
-or lru_gen_set_refs() only sets the 'PG_referenced' flag for mapped
-executable file folios, which causes shrink_folio_list() to ignore the
-first usage of these mapped executable file folios and reclaim them
-easily.
+However, page reporting work (page_reporting_process) was scheduled on the
+global system_wq.  Because system_wq lacks the WQ_FREEZABLE flag, the PM
+freezer skips it, leaving page_reporting_process active during suspend. 
+If pages are freed into the buddy allocator while suspending, page
+reporting invokes virtballoon_free_page_report() on deleted virtqueues:
 
-Follow the classical LRU's logic, promoting mapped executable file folios
-after their first usage in folio_update_gen() and lru_gen_set_refs(),
-giving executable code a better chance to stay in memory.
+    [  196.795226] general protection fault, probably for non-canonical address 0xaa1436fe70dae6df: 0000 [#1] SMP NOPTI
+    [  196.825967] Workqueue: events page_reporting_process
+    [  196.831038] RIP: 0010:virtqueue_add_split+0x233/0x4c0 [virtio_ring]
+    [  196.927073] virtballoon_free_page_report+0x3a/0xe0 [virtio_balloon]
+    [  196.946943] page_reporting_process+0x370/0x4f0
 
-On my 32-core Arm machine, with the memcg limit set to 2G, running 'make
--j32' to build kernel showed some improvement in sys time.
+Fix this by switching page reporting work to system_freezable_wq.  This
+ensures that the PM freezer pauses page_reporting_process before device
+drivers destroy their reporting virtqueues.
 
-base			patched
-9248.543s		7861.579s
+This aligns with the driver's existing design. The comment in
+virtballoon_freeze() states:
+    /*
+     * The workqueue is already frozen by the PM core before this
+     * function is called.
+     */
 
-While we are at it, introduce a new helper to check mapped executable file
-folios.
-
-Link: https://lore.kernel.org/7db4d1975cf04e3e48157f98bdf398565ee189a4.1784268206.git.baolin.wang@linux.alibaba.com
-Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Barry Song <baohua@kernel.org>
+Link: https://lore.kernel.org/20260717002311.681748-2-linkl@google.com
+Fixes: 924a663f75e2 ("virtio-balloon: Reporting free page reservations")
+Signed-off-by: Link Lin <linkl@google.com>
+Suggested-by: David Hildenbrand <david@redhat.com>
+Suggested-by: Michael S. Tsirkin <mst@redhat.com>
+Acked-by: Michael S. Tsirkin <mst@redhat.com>
+Acked-by: David Rientjes <rientjes@google.com>
+Cc: Alexander Duyck <alexander.duyck@gmail.com>
 Cc: David Hildenbrand <david@kernel.org>
-Cc: Harry Yoo <harry@kernel.org>
-Cc: Jann Horn <jannh@google.com>
-Cc: Kairui Song <kasong@tencent.com>
-Cc: Lance Yang <lance.yang@linux.dev>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Greg Thelen <gthelen@google.com>
+Cc: James Houghton <jthoughton@google.com>
+Cc: Jason Wang <jasowang@redhat.com>
+Cc: Jiaqi Yan <jiaqiyan@google.com>
 Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Wei Xu <weixugc@google.com>
-Cc: Yuanchu Xie <yuanchu@google.com>
-
+Cc: Xuan Zhuo <xuanzhuo@linux.alibaba.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   47 +++++++++++++++++++++++++++++++----------------
- 1 file changed, 31 insertions(+), 16 deletions(-)
+ mm/page_reporting.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
---- a/mm/vmscan.c~mm-mglru-promote-mapped-executable-folios-after-first-usage
-+++ a/mm/vmscan.c
-@@ -268,6 +268,12 @@ static int sc_swappiness(struct scan_con
- }
- #endif
- 
-+static inline bool is_exec_file_folio(const struct folio *folio,
-+		const vma_flags_t *vma_flags)
-+{
-+	return vma_flags_test(vma_flags, VMA_EXEC_BIT) && folio_is_file_lru(folio);
-+}
-+
- static void set_task_reclaim_state(struct task_struct *task,
- 				   struct reclaim_state *rs)
- {
-@@ -835,11 +841,15 @@ enum folio_references {
-  * with PG_active set. In contrast, the aging (page table walk) path uses
-  * folio_update_gen().
-  */
--static bool lru_gen_set_refs(struct folio *folio)
-+static bool lru_gen_set_refs(struct folio *folio, const vma_flags_t *vma_flags)
- {
- 	/* see the comment on LRU_REFS_FLAGS */
- 	if (!folio_test_referenced(folio) && !folio_test_workingset(folio)) {
- 		set_mask_bits(&folio->flags.f, LRU_REFS_MASK, BIT(PG_referenced));
-+		/* Activate file-backed executable folios after first usage. */
-+		if (is_exec_file_folio(folio, vma_flags))
-+			return true;
-+
- 		return false;
- 	}
- 
-@@ -851,7 +861,7 @@ static bool lru_gen_set_refs(struct foli
- 	return true;
- }
- #else
--static bool lru_gen_set_refs(struct folio *folio)
-+static bool lru_gen_set_refs(struct folio *folio, const vma_flags_t *vma_flags)
- {
- 	return false;
- }
-@@ -886,7 +896,7 @@ static enum folio_references folio_check
- 		if (!referenced_ptes)
- 			return FOLIOREF_RECLAIM;
- 
--		return lru_gen_set_refs(folio) ? FOLIOREF_ACTIVATE : FOLIOREF_KEEP;
-+		return lru_gen_set_refs(folio, &vma_flags) ? FOLIOREF_ACTIVATE : FOLIOREF_KEEP;
- 	}
- 
- 	referenced_folio = folio_test_clear_referenced(folio);
-@@ -914,7 +924,7 @@ static enum folio_references folio_check
- 		/*
- 		 * Activate file-backed executable folios after first usage.
- 		 */
--		if (vma_flags_test(&vma_flags, VMA_EXEC_BIT) && folio_is_file_lru(folio))
-+		if (is_exec_file_folio(folio, &vma_flags))
- 			return FOLIOREF_ACTIVATE;
- 
- 		return FOLIOREF_KEEP;
-@@ -2117,7 +2127,7 @@ static void shrink_active_list(unsigned
- 			 * IO, plus JVM can create lots of anon VM_EXEC folios,
- 			 * so we ignore them here.
- 			 */
--			if (vma_flags_test(&vma_flags, VMA_EXEC_BIT) && folio_is_file_lru(folio)) {
-+			if (is_exec_file_folio(folio, &vma_flags)) {
- 				nr_rotated += folio_nr_pages(folio);
- 				list_add(&folio->lru, &l_active);
- 				continue;
-@@ -3190,7 +3200,7 @@ static bool positive_ctrl_err(struct ctr
-  ******************************************************************************/
- 
- /* promote pages accessed through page tables */
--static int folio_update_gen(struct folio *folio, int gen)
-+static int folio_update_gen(struct folio *folio, int gen, const vma_flags_t *vma_flags)
- {
- 	unsigned long new_flags, old_flags = READ_ONCE(folio->flags.f);
- 
-@@ -3198,10 +3208,15 @@ static int folio_update_gen(struct folio
- 
- 	/* see the comment on LRU_REFS_FLAGS */
- 	if (!folio_test_referenced(folio) && !folio_test_workingset(folio)) {
-+		/* Activate file-backed executable folios after first usage. */
-+		if (is_exec_file_folio(folio, vma_flags))
-+			goto promote;
-+
- 		set_mask_bits(&folio->flags.f, LRU_REFS_MASK, BIT(PG_referenced));
- 		return -1;
- 	}
- 
-+promote:
- 	do {
- 		/* lru_gen_del_folio() has isolated this page? */
- 		if (!(old_flags & LRU_GEN_MASK))
-@@ -3430,8 +3445,8 @@ static bool suitable_to_scan(int total,
- 	return young * n >= total;
+--- a/mm/page_reporting.c~mm-page_reporting-use-system_freezable_wq-to-fix-uaf-during-suspend
++++ a/mm/page_reporting.c
+@@ -81,7 +81,8 @@ __page_reporting_request(struct page_rep
+ 	 * now we are limiting this to running no more than once every
+ 	 * couple of seconds.
+ 	 */
+-	schedule_delayed_work(&prdev->work, PAGE_REPORTING_DELAY);
++	queue_delayed_work(system_freezable_wq, &prdev->work,
++			   PAGE_REPORTING_DELAY);
  }
  
--static void walk_update_folio(struct lru_gen_mm_walk *walk, struct folio *folio,
--			      int new_gen, bool dirty)
-+static void walk_update_folio(struct lru_gen_mm_walk *walk, struct vm_area_struct *vma,
-+		struct folio *folio, int new_gen, bool dirty)
- {
- 	int old_gen;
+ /* notify prdev of free page reporting request */
+@@ -341,7 +342,8 @@ err_out:
+ 	 */
+ 	state = atomic_cmpxchg(&prdev->state, state, PAGE_REPORTING_IDLE);
+ 	if (state == PAGE_REPORTING_REQUESTED)
+-		schedule_delayed_work(&prdev->work, PAGE_REPORTING_DELAY);
++		queue_delayed_work(system_freezable_wq, &prdev->work,
++				   PAGE_REPORTING_DELAY);
+ }
  
-@@ -3444,10 +3459,10 @@ static void walk_update_folio(struct lru
- 		folio_mark_dirty(folio);
- 
- 	if (walk) {
--		old_gen = folio_update_gen(folio, new_gen);
-+		old_gen = folio_update_gen(folio, new_gen, &vma->flags);
- 		if (old_gen >= 0 && old_gen != new_gen)
- 			update_batch_size(walk, folio, old_gen, new_gen);
--	} else if (lru_gen_set_refs(folio)) {
-+	} else if (lru_gen_set_refs(folio, &vma->flags)) {
- 		old_gen = folio_lru_gen(folio);
- 		if (old_gen >= 0 && old_gen != new_gen)
- 			folio_activate(folio);
-@@ -3520,7 +3535,7 @@ restart:
- 			continue;
- 
- 		if (last != folio) {
--			walk_update_folio(walk, last, gen, dirty);
-+			walk_update_folio(walk, args->vma, last, gen, dirty);
- 
- 			last = folio;
- 			dirty = false;
-@@ -3533,7 +3548,7 @@ restart:
- 		walk->mm_stats[MM_LEAF_YOUNG] += nr;
- 	}
- 
--	walk_update_folio(walk, last, gen, dirty);
-+	walk_update_folio(walk, args->vma, last, gen, dirty);
- 	last = NULL;
- 
- 	if (i < PTRS_PER_PTE && get_next_vma(PMD_MASK, PAGE_SIZE, args, &start, &end))
-@@ -3611,7 +3626,7 @@ static void walk_pmd_range_locked(pud_t
- 			goto next;
- 
- 		if (last != folio) {
--			walk_update_folio(walk, last, gen, dirty);
-+			walk_update_folio(walk, vma, last, gen, dirty);
- 
- 			last = folio;
- 			dirty = false;
-@@ -3625,7 +3640,7 @@ next:
- 		i = i > MIN_LRU_BATCH ? 0 : find_next_bit(bitmap, MIN_LRU_BATCH, i) + 1;
- 	} while (i <= MIN_LRU_BATCH);
- 
--	walk_update_folio(walk, last, gen, dirty);
-+	walk_update_folio(walk, vma, last, gen, dirty);
- 
- 	lazy_mmu_mode_disable();
- 	spin_unlock(ptl);
-@@ -4260,7 +4275,7 @@ bool lru_gen_look_around(struct page_vma
- 			continue;
- 
- 		if (last != folio) {
--			walk_update_folio(walk, last, gen, dirty);
-+			walk_update_folio(walk, vma, last, gen, dirty);
- 
- 			last = folio;
- 			dirty = false;
-@@ -4272,7 +4287,7 @@ bool lru_gen_look_around(struct page_vma
- 		young += nr;
- 	}
- 
--	walk_update_folio(walk, last, gen, dirty);
-+	walk_update_folio(walk, vma, last, gen, dirty);
- 
- 	lazy_mmu_mode_disable();
- 
+ static DEFINE_MUTEX(page_reporting_mutex);
 _
 
-Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
+Patches currently in -mm which might be from linkl@google.com are
 
-mm-vmscan-remove-the-redundant-folioref_reclaim_clean-logic.patch
-mm-vmscan-convert-folio_referenced-to-use-vma_flags_t.patch
-mm-mglru-promote-mapped-executable-folios-after-first-usage.patch
+mm-page_reporting-use-system_freezable_wq-to-fix-uaf-during-suspend.patch
+virtio_balloon-avoid-shrinker-execution-during-pm-suspend.patch
 
