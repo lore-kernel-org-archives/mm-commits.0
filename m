@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C6F72155C97
-	for <mm-commits@vger.kernel.org>; Sat, 18 Jul 2026 02:48:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E8E4E280331
+	for <mm-commits@vger.kernel.org>; Sat, 18 Jul 2026 02:48:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784342888; cv=none; b=nS8IwdjR2I/hAivMahPfuHt9RrpJnghTmLgM00+75XXYVRSjFcM0YOGpJSdbkSrbQYyN0sLDSN6oSCIaHzruXvZMBXbzICIHOip83yvS0eIjHZtJYpasQCayiOFjdmbMhGL8HhjrT5zwLJNkE/UJja3uxlH9ahH7kIuCdZJOHWQ=
+	t=1784342890; cv=none; b=PakQQ3h9zupk7s/hLLLqJ3DLbTzA8m08vBzSigkty88jPDGFIe3RBig+C9dG3E832+UaAwwfcRIpBrOB/OXzPYcRLGBHkprtCtY7PgwT+QjeObQwCh0AgyCPbtaXdiYfS0RRt8ezn958c9+hStgV8Jf0Mt5NSEgfNpbRNsn5htk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784342888; c=relaxed/simple;
-	bh=HDMErfW5tbaEPqKlE4LUkuGm5y7sWkzko0uZEtSb5fc=;
-	h=Date:To:From:Subject:Message-Id; b=ehHFLoXh7BQPX8IN38W3b1XpKxxlkejq5vS6Bpu9hsRlHnX1ZGxtPOcM84I4o+Cj8RRpdyhZgxHuA26pE4xFRyneNKWf/gstPpOrotdLdSkqIpf3unS7+HpOnbVeVsn112GSm7oDl4oerlQKe7tcR4/PUlBoHgYdn3DRBenYWL8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uBo7v7Hx; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1784342890; c=relaxed/simple;
+	bh=3qsxUlSpYICQZZSsE/2hmJS2CKbjCtUx6QjUIiEvVv4=;
+	h=Date:To:From:Subject:Message-Id; b=lFLHHF0SGMqm/+TyAukaKjRo7+zh/M3DAL0HgtMVs+a2IDjuhe+eoBv0Pp7IRVw4S0fBKL827JnFXBelgWasmqqbktXMpNyM3UCgk8UBr/hIuBMwqOrHHQQi+V2WdStsoPf4miP2AowdSTxY/tJFj/H43X+5xyQ20BI20fDL2So=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Ut2536R/; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uBo7v7Hx"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2AACA1F000E9;
-	Sat, 18 Jul 2026 02:48:06 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Ut2536R/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 24C831F000E9;
+	Sat, 18 Jul 2026 02:48:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1784342886;
-	bh=vkr1VUsLxSqX8sIZGr4QC9F1J/VCHwYEPBFKyigbsmg=;
+	d=linux-foundation.org; s=korg; t=1784342888;
+	bh=J4xAmHD5aHNjfiPST8UvAlDNXptqYW9dE0NYTOid4xY=;
 	h=Date:To:From:Subject;
-	b=uBo7v7HxWR4E1ZOe+LyWEARMdC82iEi9fSVZHx8jMg+aXczxMT/AECDr1rsFTpLXU
-	 /ZVNOdUN2ulpZ8KbghPNfYUqemBnsew4akrGl47nh/TsolUsB8tZafFr8Yo5NXxIkv
-	 WHZ+Jg962gun7wTttKJ0L1KcUC3ubUho59iHr+k8=
-Date: Fri, 17 Jul 2026 19:48:05 -0700
+	b=Ut2536R/fjT/8u1iW9H5JooIjbohATY3Ba44PBVNtGPgutm2u4Mk1Cr5zAU8Wr9tc
+	 mlZpgYTu5zvMhRDtDyimP5jTC94ecp20/gn+qxrFxO8ejTViTiULOkKsSsH+wJ6Jbr
+	 FZdf0N+pEkpiOofVK4x0QEHJiZB8srNfkB6HZ+DI=
+Date: Fri, 17 Jul 2026 19:48:07 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,usama.arif@linux.dev,ryan.roberts@arm.com,npache@redhat.com,ljs@kernel.org,liam@infradead.org,lance.yang@linux.dev,dev.jain@arm.com,david@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,kas@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-huge_memory-remove-unused-can_split_folio.patch added to mm-new branch
-Message-Id: <20260718024806.2AACA1F000E9@smtp.kernel.org>
+Subject: + mm-huge_memory-fold-split_folio_to_list_to_order-into-split_folio_to_order.patch added to mm-new branch
+Message-Id: <20260718024808.24C831F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/huge_memory: remove unused can_split_folio()
+     Subject: mm/huge_memory: fold split_folio_to_list_to_order() into split_folio_to_order()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-huge_memory-remove-unused-can_split_folio.patch
+     mm-huge_memory-fold-split_folio_to_list_to_order-into-split_folio_to_order.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-remove-unused-can_split_folio.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-fold-split_folio_to_list_to_order-into-split_folio_to_order.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,36 +70,17 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Kiryl Shutsemau (Meta)" <kas@kernel.org>
-Subject: mm/huge_memory: remove unused can_split_folio()
-Date: Thu, 16 Jul 2026 11:03:44 +0100
+Subject: mm/huge_memory: fold split_folio_to_list_to_order() into split_folio_to_order()
+Date: Thu, 16 Jul 2026 11:03:45 +0100
 
-Patch series "mm/huge_memory: drop dead split helper variants".
-
-Two trivial cleanups in the folio split API, found while auditing the
-split helpers for the inode UAF fix [1]:
-
- - can_split_folio() is dead: only the !THP stub remains, no definition
-   under CONFIG_TRANSPARENT_HUGEPAGE and no callers. Leftover from an
-   earlier cleanup.
-
- - split_folio_to_list_to_order() has no direct callers; its only user
-   is split_folio_to_order(), which always passes a NULL list. Fold it.
+split_folio_to_list_to_order() had no direct callers; its only user was
+split_folio_to_order(), which always passed a NULL list.  Fold it into
+split_folio_to_order() and call split_huge_page_to_list_to_order()
+directly.
 
 No functional change.
 
-
-This patch (of 2):
-
-can_split_folio() has no callers and no definition under
-CONFIG_TRANSPARENT_HUGEPAGE; only the !THP stub remains, left behind by an
-earlier cleanup.  Remove it.
-
-No functional change.
-
-Link: https://lore.kernel.org/20260716100345.473473-1-kirill@shutemov.name
-Link: https://lore.kernel.org/20260716100345.473473-2-kirill@shutemov.name
-Link: https://lore.kernel.org/linux-mm/aldjhtfVByHDQXe6@thinkstation [1]
-Link: https://lore.kernel.org/linux-mm/20260714122344.351895-1-kirill@shutemov.name [2]
+Link: https://lore.kernel.org/20260716100345.473473-3-kirill@shutemov.name
 Signed-off-by: Kiryl Shutsemau (Meta) <kas@kernel.org>
 Acked-by: Usama Arif <usama.arif@linux.dev>
 Reviewed-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
@@ -115,23 +96,28 @@ Cc: Ryan Roberts <ryan.roberts@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/huge_mm.h |    5 -----
- 1 file changed, 5 deletions(-)
+ include/linux/huge_mm.h |    8 +-------
+ 1 file changed, 1 insertion(+), 7 deletions(-)
 
---- a/include/linux/huge_mm.h~mm-huge_memory-remove-unused-can_split_folio
+--- a/include/linux/huge_mm.h~mm-huge_memory-fold-split_folio_to_list_to_order-into-split_folio_to_order
 +++ a/include/linux/huge_mm.h
-@@ -642,11 +642,6 @@ thp_get_unmapped_area_vmaflags(struct fi
- 	return 0;
+@@ -823,15 +823,9 @@ static inline bool is_pmd_order(unsigned
+ 	return order == HPAGE_PMD_ORDER;
  }
  
--static inline bool
--can_split_folio(struct folio *folio, int caller_pins, int *pextra_pins)
+-static inline int split_folio_to_list_to_order(struct folio *folio,
+-		struct list_head *list, int new_order)
 -{
--	return false;
+-	return split_huge_page_to_list_to_order(&folio->page, list, new_order);
 -}
- static inline int
- split_huge_page_to_list_to_order(struct page *page, struct list_head *list,
- 		unsigned int new_order)
+-
+ static inline int split_folio_to_order(struct folio *folio, int new_order)
+ {
+-	return split_folio_to_list_to_order(folio, NULL, new_order);
++	return split_huge_page_to_list_to_order(&folio->page, NULL, new_order);
+ }
+ 
+ /**
 _
 
 Patches currently in -mm which might be from kas@kernel.org are
