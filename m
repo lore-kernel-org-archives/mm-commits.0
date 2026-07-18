@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1C5AF2EA481;
-	Sat, 18 Jul 2026 04:34:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DC1152E7399;
+	Sat, 18 Jul 2026 04:34:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784349297; cv=none; b=QEEm0Zj3Tuyhx3azo+vlrz6RXJif9hZxpWC2OCChOLn2B30N69nZdAnQxaMB9s0wUjds3fiwzX5Pvw2Mo/wUJ58h/VdY4LQ6tnF95El73foKE2HvgwMypKRV61EWltf9m4xgRQOCRiwCmQIgqtS0gHHNK7NXgPB022iJYSyuXtc=
+	t=1784349299; cv=none; b=k9+n3ySNxPXOs+385OQGrSs7VoS0+MwHAw2scOkNY4a++O/idltpLb4Ru3dHQMp4a+lgI+O2pX9hATWXLewSb20HV8LdtJtyMP3A2KzmDn7zZTZ8K5qZqzLWNKW8SpGf1Y8ypbnO4Q82sKRjzbxuwSZhO0Ww/2kIHNXsu8yS86A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784349297; c=relaxed/simple;
-	bh=m72hNiwUmUSp2q31BVEU+yfUOAIcv6ewuyjUQjvo9/s=;
-	h=Date:To:From:Subject:Message-Id; b=N02RZpJsbLi8WzSmv0HnXi5SaHOx613fX3mEE6cuWDTxIJb42HurAMsNNZMNSRbXBl2smVI4bMpfyZqal5YGpy44W6NwA9AO0+Jb/GIKRzBmIYDNm8ztDUkfIJ+HsOEIRzQP3JLw66rcS7S3gKQmG7UFCiFMbfuHNHJvLvmw+Xc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=U3n2llP3; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1784349299; c=relaxed/simple;
+	bh=aLm2bOrecyAmUfijsh7/VzL9mLf0UdWFznof3Fm9wZM=;
+	h=Date:To:From:Subject:Message-Id; b=Sw5JTvNRD8urKrR1dI0WmMsq3EotrV04rK88PfXtVRn9juSCsAIFrXCtXZzsm2MCuZN+JjGKomeHxlWQjDIn4mGCjUxVrDPgHuEWLOaf8EGnLwyccOlDMpfSyePPIJbcchyWJRbbUevDcr6Hm0VJQSNwzYo6EtPM+6BZbtOJSww=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PRiYihOb; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="U3n2llP3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9DBF31F000E9;
-	Sat, 18 Jul 2026 04:34:55 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PRiYihOb"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8D1701F00A3A;
+	Sat, 18 Jul 2026 04:34:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1784349295;
-	bh=DUgiVpHZ88ho5K0gJztH2QXANay4kAKUZBDSWC1ljUg=;
+	d=linux-foundation.org; s=korg; t=1784349297;
+	bh=NM7dk2H6sGtG2b3ih06KhSGyAwYYgQwCwS0aVKAwdPM=;
 	h=Date:To:From:Subject;
-	b=U3n2llP3chupufOP0kS4ox2gN06NI5OmouGXTaO7D5gknlrCxlFRYdvIhyCajoAxq
-	 gF5SSazjwnH3h8TjntE3yeBnDLdHHHWC6yAq1+eYBSrtgYykMhmEq44695dAJixS6a
-	 mzjorh1HtrRNGh+6NIjXTSjrQYDog3l6f7FsP30k=
-Date: Fri, 17 Jul 2026 21:34:55 -0700
+	b=PRiYihOb+tiQp3E8ctzs8rbDGSVEdijL4Uv7OGnWBdZhOio2qrk8YfH77HTjtRmjq
+	 rSXQ4gGx+8T15yqlXm4DvWTGt8+buwhN7GVtmCoMxTV8FPfPtTgzwV7fmFbHLUx8he
+	 +Dh890MqCgXDihJy1PhEcp+502C8wAmxchbZ8Adc=
+Date: Fri, 17 Jul 2026 21:34:57 -0700
 To: mm-commits@vger.kernel.org,stable@vger.kernel.org,brendan.higgins@linux.dev,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-core-kunit-handle-region-split-failure-in-filter_out.patch added to mm-new branch
-Message-Id: <20260718043455.9DBF31F000E9@smtp.kernel.org>
+Subject: + mm-damon-core-kunit-skip-wrong-dest-walk-in-commit_dests_for.patch added to mm-new branch
+Message-Id: <20260718043457.8D1701F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/core-kunit: handle region split failure in filter_out()
+     Subject: mm/damon/core-kunit: skip wrong dest walk in commit_dests_for()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-core-kunit-handle-region-split-failure-in-filter_out.patch
+     mm-damon-core-kunit-skip-wrong-dest-walk-in-commit_dests_for.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-kunit-handle-region-split-failure-in-filter_out.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-kunit-skip-wrong-dest-walk-in-commit_dests_for.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,17 +70,16 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/core-kunit: handle region split failure in filter_out()
-Date: Fri, 17 Jul 2026 17:14:38 -0700
+Subject: mm/damon/core-kunit: skip wrong dest walk in commit_dests_for()
+Date: Fri, 17 Jul 2026 17:14:39 -0700
 
-damos_test_filter_out() test checks if damos_filter_match() of an address
-filter splits the region as expected under a given condition.  But, the
-test continued regardless of the split successes.  As a result, the later
-part of the test could dereference invalid pointers that returned from
-damon_next_region().  Further, it could corrupt memory from
-damon_destroy_region().
+damos_test_commit_dests_for() traverse damos action destinations after
+damos_commit_dests().  It assumes damos_commit_dests() made expected
+numbers of destinations for source and destination structures.  It might
+not.  Because the traversal is made based on destination struct length, it
+could do out of bounds access for source value expectation.
 
-The consequent user impact (memory corruption) is quite bad.  The
+The consequent user impact (out-of-bound access ) is quite bad.  The
 realistic user impact would be limited, though.  It would affect only test
 run setups.
 
@@ -88,44 +87,29 @@ Fix it by exiting early for the number of regions test failure.
 
 The issue was discovered [1] by Sashiko.
 
-Link: https://lore.kernel.org/20260718001442.87129-5-sj@kernel.org
-Link: https://lore.kernel.org/20260714142352.100478-1-sj@kernel.org [1]
-Fixes: 26713c890875 ("mm/damon/core-test: add a unit test for __damos_filter_out()")
+Link: https://lore.kernel.org/20260718001442.87129-6-sj@kernel.org
+Link: https://lore.kernel.org/20260713144757.39740-1-sj@kernel.org [1]
+Fixes: eec573b8dd65 ("mm/damon/tests/core-kunit: add damos_commit_dests() test")
 Signed-off-by: SJ Park <sj@kernel.org>
 Cc: Brendan Higgins <brendan.higgins@linux.dev>
-Cc: <stable@vger.kernel.org> # 6.6.x
+Cc: <stable@vger.kernel.org> # 6.19.x
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/tests/core-kunit.h |    5 +++++
- 1 file changed, 5 insertions(+)
+ mm/damon/tests/core-kunit.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/mm/damon/tests/core-kunit.h~mm-damon-core-kunit-handle-region-split-failure-in-filter_out
+--- a/mm/damon/tests/core-kunit.h~mm-damon-core-kunit-skip-wrong-dest-walk-in-commit_dests_for
 +++ a/mm/damon/tests/core-kunit.h
-@@ -1365,6 +1365,8 @@ static void damos_test_filter_out(struct
- 	KUNIT_EXPECT_EQ(test, r->ar.start, 1);
- 	KUNIT_EXPECT_EQ(test, r->ar.end, 2);
- 	KUNIT_EXPECT_EQ(test, damon_nr_regions(t), 2);
-+	if (damon_nr_regions(t) != 2)
-+		goto out;
- 	r2 = damon_next_region(r);
- 	KUNIT_EXPECT_EQ(test, r2->ar.start, 2);
- 	KUNIT_EXPECT_EQ(test, r2->ar.end, 4);
-@@ -1379,11 +1381,14 @@ static void damos_test_filter_out(struct
- 	KUNIT_EXPECT_EQ(test, r->ar.start, 2);
- 	KUNIT_EXPECT_EQ(test, r->ar.end, 6);
- 	KUNIT_EXPECT_EQ(test, damon_nr_regions(t), 2);
-+	if (damon_nr_regions(t) != 2)
-+		goto out;
- 	r2 = damon_next_region(r);
- 	KUNIT_EXPECT_EQ(test, r2->ar.start, 6);
- 	KUNIT_EXPECT_EQ(test, r2->ar.end, 8);
- 	damon_destroy_region(r2, t);
+@@ -1008,6 +1008,8 @@ static void damos_test_commit_dests_for(
+ 	skip = false;
  
-+out:
- 	damon_free_target(t);
- 	damos_free_filter(f);
- }
+ 	KUNIT_EXPECT_EQ(test, dst.nr_dests, src_nr_dests);
++	if (dst.nr_dests != src_nr_dests)
++		goto out;
+ 	for (i = 0; i < dst.nr_dests; i++) {
+ 		KUNIT_EXPECT_EQ(test, dst.node_id_arr[i], src_node_id_arr[i]);
+ 		KUNIT_EXPECT_EQ(test, dst.weight_arr[i], src_weight_arr[i]);
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
