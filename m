@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E5CCD2E7399;
-	Sat, 18 Jul 2026 04:34:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E94692E7631;
+	Sat, 18 Jul 2026 04:35:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784349301; cv=none; b=kAsvPUUqKOgWayGjs3N1sb5yvLr/eybjZD7GBwyfnl//hbMSYtZPToGs8lVa4eAXDOb6NHNQT3kSeNSkLcX6g9ZAbsZCQXUhP6Qag1wcpNubHPPnlKHF+QYsTawtYxoumEAqaquzlsqL15aGaIxNOTwvIChTqwj/AlwUc5nuORM=
+	t=1784349303; cv=none; b=kd1HXigOS3pQcvU9pvMcCfRo4ZbvaI86tHztBDTcf+JfdXZN9TnpSHRuC9c4NHcMWZIPmlmAnI5629052bIhh0RL2msxDxW0e1t18Unx84PHDyKPi7kmNPjIztWlJZ7ucrRP+8jCgfXs3gn9lrZG0Mex2HfbnBi0DHRv+DICzOo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784349301; c=relaxed/simple;
-	bh=xDRgjDyQcIntrtsz1Qj1WYgmcmAK1FCmDMqaPCvJFEk=;
-	h=Date:To:From:Subject:Message-Id; b=k85XlcycM6foAJ9d/98QPIpJgLLwZY4uN7NI9vcckxLUVd+GzPkkm0YIPF6rTiXb0xNpK+gQFp5bbwMYIgC1ZDFu3MNFBXzeu+fAiLIIWpwSS1z7ocYut1vP1I2rrhxjJXHQKRhvYWRAWn3rjjOO9BhFrRE9GBnTNQ9ql62Yrko=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VwpE6MAt; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1784349303; c=relaxed/simple;
+	bh=Fo/FGAKjfX/QLYTFhKKzih2jgeP24kO0kvchGRnOAXY=;
+	h=Date:To:From:Subject:Message-Id; b=WkEyRdFruGGingBcsGOz7p5R9DV8gQ5eV0Bts07UpZzNEq5UhVbGTXx0SCRVUXMO+dYFmEvpEnKsZBywrRV2HDkzGcRCqbhQuerfsqImk1U+2B0QYe/uQOuMyuJrNB9Hr2FWt2+ekLW2dshH+QM9uo0AUohXoRtmIbsIltyFsxU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=e0mNfBj7; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VwpE6MAt"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 86B981F000E9;
-	Sat, 18 Jul 2026 04:34:59 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="e0mNfBj7"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 86D571F000E9;
+	Sat, 18 Jul 2026 04:35:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1784349299;
-	bh=1bnCVBGeob6J49CHybOd+M1P/IWobcIm4eEobOdaSWo=;
+	d=linux-foundation.org; s=korg; t=1784349301;
+	bh=5SPUc0Lfre9s+yzwFkLVrQX/017zI5rq/g00A+LOdQc=;
 	h=Date:To:From:Subject;
-	b=VwpE6MAt0iShtIeK63I1er7pVqIq+BErgBZLzrVoYo+PyL0kxmwAt5QvQyScr1IRN
-	 3/eOhis6ld1xCHTmk1P7/k6WEbTEL1oAfWbKNiwQOc3Dv6WT8RiaItRVi0hvtpLTEK
-	 iKgXdDZyq0IUDz8oF/WpUpDEaRkIb4BqvvwzxPEY=
-Date: Fri, 17 Jul 2026 21:34:59 -0700
+	b=e0mNfBj7bUPEo7nx7P6EHgEKk41r2ZP/KGxDDiYIK9u5X2zEbgUS/BF508+lniupG
+	 REcB/DoOJR4Qs0x7CWs5tv++s8dxNKDt5HLvnnuM2J4GhpxrQcJa7wLbutdHERpuKD
+	 xknk1ceqaWCovR4haan4JVslIZ2uwdGF8NWvumu4=
+Date: Fri, 17 Jul 2026 21:35:01 -0700
 To: mm-commits@vger.kernel.org,stable@vger.kernel.org,brendan.higgins@linux.dev,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-core-kunit-skip-wrong-quota-goal-walk-in-commit_quota_goals.patch added to mm-new branch
-Message-Id: <20260718043459.86B981F000E9@smtp.kernel.org>
+Subject: + mm-damon-core-kunit-skip-wrong-region-walk-in-commit_target_regions.patch added to mm-new branch
+Message-Id: <20260718043501.86D571F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/core-kunit: skip wrong quota goal walk in commit_quota_goals()
+     Subject: mm/damon/core-kunit: skip wrong region walk in commit_target_regions()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-core-kunit-skip-wrong-quota-goal-walk-in-commit_quota_goals.patch
+     mm-damon-core-kunit-skip-wrong-region-walk-in-commit_target_regions.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-kunit-skip-wrong-quota-goal-walk-in-commit_quota_goals.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-kunit-skip-wrong-region-walk-in-commit_target_regions.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,61 +70,60 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/core-kunit: skip wrong quota goal walk in commit_quota_goals()
-Date: Fri, 17 Jul 2026 17:14:40 -0700
+Subject: mm/damon/core-kunit: skip wrong region walk in commit_target_regions()
+Date: Fri, 17 Jul 2026 17:14:41 -0700
 
-damos_test_commit_quota_goals_for() traverses damos quota goals after
-damos_commit_quota_goals() call.  It assumes damos_commit_quota_goals()
-made expected numbers of goals.  It might not.  Because the traversal is
-made based on destination struct length, it could do out of bounds access
-for source expectation value array.
+damon_test_commit_target_regions_for() traverses expected values array
+after damon_commit_target_regions() call.  It assumes
+damon_commit_target_regions() made expected number of regions.  It might
+not.  Because the traversal is made based on the region count, it could do
+out of bounds access to the expectation value array.
 
-The consequent user impact (out-of-bound access ) is quite bad.  The
-realistic user impact would be limited though.  It would affect only test
+The consequent user impact (out-of-bound access) is quite bad.  The
+realistic user impact would be limited, though.  It would affect only test
 run setups.
 
-Fix it by testing if the number of goals was also changed as expected and
-exit early for the failure.
+Fix it by testing if the number of regions was also changed as expected
+and exit early for the failure.
 
 The issue was discovered [1] by Sashiko.
 
-Link: https://lore.kernel.org/20260718001442.87129-7-sj@kernel.org
+Link: https://lore.kernel.org/20260718001442.87129-8-sj@kernel.org
 Link: https://lore.kernel.org/20260713144757.39740-1-sj@kernel.org [1]
-Fixes: d9adfb8a28e7 ("mm/damon/tests/core-kunit: add damos_commit_quota_goals() test")
+Fixes: 603f67eb91e0 ("mm/damon/tests/core-kunit: add damon_commit_target_regions() test")
 Signed-off-by: SJ Park <sj@kernel.org>
 Cc: Brendan Higgins <brendan.higgins@linux.dev>
 Cc: <stable@vger.kernel.org> # 6.19.x
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/tests/core-kunit.h |    9 +++++++++
- 1 file changed, 9 insertions(+)
+ mm/damon/tests/core-kunit.h |    9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
---- a/mm/damon/tests/core-kunit.h~mm-damon-core-kunit-skip-wrong-quota-goal-walk-in-commit_quota_goals
+--- a/mm/damon/tests/core-kunit.h~mm-damon-core-kunit-skip-wrong-region-walk-in-commit_target_regions
 +++ a/mm/damon/tests/core-kunit.h
-@@ -839,6 +839,7 @@ static void damos_test_commit_quota_goal
- 	struct damos_quota_goal *goal, *next;
- 	bool skip = true;
- 	int i;
-+	int nr_dst = 0, nr_src = 0;
- 
- 	INIT_LIST_HEAD(&dst.goals);
- 	INIT_LIST_HEAD(&src.goals);
-@@ -861,6 +862,14 @@ static void damos_test_commit_quota_goal
- 
- 	damos_commit_quota_goals(&dst, &src);
- 
-+	damos_for_each_quota_goal(goal, &dst)
-+		nr_dst++;
-+	damos_for_each_quota_goal(goal, &src)
-+		nr_src++;
-+	KUNIT_EXPECT_EQ(test, nr_dst, nr_src);
-+	if (nr_dst != nr_src)
+@@ -1277,14 +1277,19 @@ static void damon_test_commit_target_reg
+ 		kunit_skip(test, "src target setup fail");
+ 	}
+ 	damon_commit_target_regions(dst_target, src_target, 1);
++
++	KUNIT_EXPECT_EQ(test, damon_nr_regions(dst_target), nr_expect_regions);
++	if (damon_nr_regions(dst_target) != nr_expect_regions)
 +		goto out;
 +
  	i = 0;
- 	damos_for_each_quota_goal(goal, (&dst)) {
- 		KUNIT_EXPECT_EQ(test, goal->metric, src_goals[i].metric);
+ 	damon_for_each_region(r, dst_target) {
+ 		KUNIT_EXPECT_EQ(test, r->ar.start, expect_start_end[i][0]);
+ 		KUNIT_EXPECT_EQ(test, r->ar.end, expect_start_end[i][1]);
+ 		i++;
+ 	}
+-	KUNIT_EXPECT_EQ(test, damon_nr_regions(dst_target), nr_expect_regions);
+-	KUNIT_EXPECT_EQ(test, i, nr_expect_regions);
++
++out:
+ 	damon_free_target(dst_target);
+ 	damon_free_target(src_target);
+ }
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
