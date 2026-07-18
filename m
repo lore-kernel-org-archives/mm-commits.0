@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0344723394C;
-	Sat, 18 Jul 2026 02:24:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ECA6023ABBE
+	for <mm-commits@vger.kernel.org>; Sat, 18 Jul 2026 02:31:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784341457; cv=none; b=D+5BlQtSMywemFBw1gfVZ/7Cmuz/60KyI5uTkicRDW+f3eGlUVuoHlrn99KPldYLNvJkvQvtf195OUIqKAKGXk9YYlOGNV90x6ABaCdXzP/84+9HxpFlHrCG1NxOdkrBJae4SMEC0h9Y1ID6wOYOtHg2zRyWtfV1S+hSlimxMNM=
+	t=1784341874; cv=none; b=n5OExg1vXembynyR5BHnDgHGkOmbt6Xo1kRIgSHXS67MPJxisP1UptdJWiwKkJo46brTg0q9BbgtzMTmmSujJkygBzRmlN2B0oLhhEbNCaPOfLWqSCihqtT+D5c2JNC2ljIt97gnCABQNfh7HRYhAaH6QNMj3xqPbnMgq1AamwA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784341457; c=relaxed/simple;
-	bh=x/Y8EzPL7b4EDoZjFZQHBRi45esriY/zeM9DlLQXxFE=;
-	h=Date:To:From:Subject:Message-Id; b=VzJw8vcpV4la93UOZ9l8WwA2SJgvLrYzb7vTvq4ToRYsJKWqk9uKWksPPnRKbZ8488xm8nc9RbXu7Ni++dgoZ2SOTo/6mMiOhYCyQG0QX+kyM0iVoWJsORTQzhXRhsX+oXKOdw43Ap3wSE90/SbZJgcM+sGHM3i1WBV3QqH2/kM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=g3BJJMib; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1784341874; c=relaxed/simple;
+	bh=/Qnw8/ip5jza4l+fPDfuvZ3q2AcFBIWoXHyJIl8hoKE=;
+	h=Date:To:From:Subject:Message-Id; b=YsOi4NA35OFHCYCrvh70uYcE9jjvgE/MVIhCa1pNcdZC8SdkdstU2Fnq4gfZulbLKUuAwGBe5SAeOanT6QhXwjnjAefhXctt7LfpXlN0+LkQqFDIyZAeLqc/kyPd1ggqxQUkGkpDhZDfsrmiTijbkQlqQzOwDThkhvQzHxHcn20=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GaStenia; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="g3BJJMib"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6BCC11F000E9;
-	Sat, 18 Jul 2026 02:24:15 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GaStenia"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 113E81F00A3A;
+	Sat, 18 Jul 2026 02:31:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1784341455;
-	bh=GssBdU1a0R7dTCH4n67hKKQ/CKDMb+o05baTzK+ljqY=;
+	d=linux-foundation.org; s=korg; t=1784341872;
+	bh=nsfHEuIjtShdLH9haP6C6stbzoc0oqbz3kF/1bs+Sfc=;
 	h=Date:To:From:Subject;
-	b=g3BJJMib+Amp3o49s/burDhKPPlXpPFYk7mqb5q0RPW3xdyC0IxEt3lLEVwXNF0iu
-	 PP+ReVfa+80Vli4fxlVxDT9u2q232oLU9dAo4HaqgozByCAyQIg1+mWWCPvjiAUw0b
-	 QCKIEu2jkUf0UT2y1ue3Cg5MFqoJfmu7rdt4MGtg=
-Date: Fri, 17 Jul 2026 19:24:15 -0700
-To: mm-commits@vger.kernel.org,vishal.moola@gmail.com,stable@vger.kernel.org,rppt@kernel.org,palmer@dabbelt.com,namcao@linutronix.de,muchun.song@linux.dev,kas@kernel.org,guoren@kernel.org,david@kernel.org,aou@eecs.berkeley.edu,alex@ghiti.fr,xujiakai2025@iscas.ac.cn,akpm@linux-foundation.org
+	b=GaStenia51PbqH4dCACjU8CLE8i8Z3XWaz1P+nq9xoV7SI9nfmlLzx0z9+qpIKKXI
+	 pJ256fNyqVD4WPs4Mu8p6On5TAmM7JVZlj3AKwpkU7cb+tF9oxavQtHD9Quo1nFmvp
+	 CjjE6FHu1swR5Rezh7XBca9Z4ODi7rN29Rcwsr3s=
+Date: Fri, 17 Jul 2026 19:31:11 -0700
+To: mm-commits@vger.kernel.org,zenghui.yu@linux.dev,vbabka@kernel.org,usama.anjum@arm.com,surenb@google.com,shuah@kernel.org,rppt@kernel.org,pfalcato@suse.de,peterx@redhat.com,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,jannh@google.com,david@kernel.org,kas@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + riscv-mm-use-physical-alignment-for-vmemmap_start_pfn.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260718022415.6BCC11F000E9@smtp.kernel.org>
+Subject: + selftests-mm-add-pagemap_scan-test-for-thp-pmd-holes.patch added to mm-new branch
+Message-Id: <20260718023112.113E81F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,26 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: riscv/mm: use physical alignment for vmemmap_start_pfn
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     riscv-mm-use-physical-alignment-for-vmemmap_start_pfn.patch
+     Subject: selftests/mm: add PAGEMAP_SCAN test for THP PMD holes
+has been added to the -mm mm-new branch.  Its filename is
+     selftests-mm-add-pagemap_scan-test-for-thp-pmd-holes.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/riscv-mm-use-physical-alignment-for-vmemmap_start_pfn.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-add-pagemap_scan-test-for-thp-pmd-holes.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,92 +69,217 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Jiakai Xu <xujiakai2025@iscas.ac.cn>
-Subject: riscv/mm: use physical alignment for vmemmap_start_pfn
-Date: Thu, 16 Jul 2026 11:53:25 +0000
+From: "Kiryl Shutsemau (Meta)" <kas@kernel.org>
+Subject: selftests/mm: add PAGEMAP_SCAN test for THP PMD holes
+Date: Wed, 15 Jul 2026 15:42:34 +0100
 
-RISC-V computes vmemmap_start_pfn by rounding phys_ram_base down to
-VMEMMAP_ADDR_ALIGN.  That alignment must therefore be expressed in the
-physical-address domain.
+Add coverage for the PMD-hole case fixed by "fs/proc/task_mmu: fix
+PAGEMAP_SCAN written state for PMD holes": a MAP_PRIVATE|MAP_ANON THP that
+is uffd-wp'd and then dropped with MADV_DONTNEED leaves a pmd_none hole
+with no page table, which PAGEMAP_SCAN must still report as written.
 
-Commit 476849b0fba4 ("riscv/mm: align vmemmap to maximal folio size")
-attempted to account for the maximal folio alignment by feeding
-MAX_FOLIO_VMEMMAP_ALIGN directly into VMEMMAP_ADDR_ALIGN.  However,
-MAX_FOLIO_VMEMMAP_ALIGN is measured in bytes of struct page storage,
-whereas VMEMMAP_ADDR_ALIGN is used to align a physical address.
+Factor the populate/drop/scan-both-paths sequence out of
+unpopulated_scan_test() into a helper, and add unpopulated_thp_scan_test()
+that reuses it with a THP.
 
-The mask-based compound_info encoding requires pfn_to_page(0) to be
-naturally aligned to MAX_FOLIO_VMEMMAP_ALIGN.  Commit 9f94db4c7eaa
-("mm/sparse: check memmap alignment for compound_info_has_mask()") added a
-check for that requirement and exposed the unit mismatch on systems such
-as QEMU virt, where the DRAM base is not aligned to MAX_FOLIO_NR_PAGES *
-PAGE_SIZE.
+Include <linux/mman.h> for MADV_COLLAPSE; <sys/mman.h> lacks it on older
+glibc (e.g. 2.34). Same approach as commit fd5295afae91 ("selftests/mm:
+hmm-tests: include linux/mman.h to access MADV_COLLAPSE").
 
-Here is the log:
-[    0.000000][    C0] ------------[ cut here ]------------
-[    0.000000][    C0] WARNING: mm/sparse.c:365 at sparse_init+0x58a/0x6fe, CPU#0: swapper/0
-[    0.000000][    C0] Modules linked in:
-[    0.000000][    C0] CPU: 0 UID: 0 PID: 0 Comm: swapper Not tainted 7.2.0-rc3-g1d8304bdd65f #2 PREEMPT 
-[    0.000000][    C0] Hardware name: riscv-virtio,qemu (DT)
-[    0.000000][    C0] epc : sparse_init+0x58a/0x6fe
-[    0.000000][    C0]  ra : sparse_init+0x58a/0x6fe
-[    0.000000][    C0] epc : ffffffff86851c88 ra : ffffffff86851c88 sp : ffffffff88807a30
-[    0.000000][    C0]  gp : ffffffff8a3bf240 tp : ffffffff88842080 t0 : ff600000ffab6000
-[    0.000000][    C0]  t1 : 000000017fab6000 t2 : 65203a6573726363 s0 : ffffffff88807bc0
-[    0.000000][    C0]  s1 : 000000000e000000 a0 : 0000000000000007 a1 : 0000000000000000
-[    0.000000][    C0]  a2 : 0000000000000002 a3 : ffffffff86851c88 a4 : 0000000000000000
-[    0.000000][    C0]  a5 : ffffffff88843080 a6 : 0000000000000003 a7 : 0000000000000000
-[    0.000000][    C0]  s2 : ff60000000000000 s3 : 0040000000000000 s4 : 0004000000000000
-[    0.000000][    C0]  s5 : ffffffff8a4d92e0 s6 : ff600000ffab55e0 s7 : ffffffff88384d00
-[    0.000000][    C0]  s8 : 0000000000000003 s9 : ffffffff88384cc1 s10: ffffffff88384cc0
-[    0.000000][    C0]  s11: ffffffff8a4daae0 t3 : ffffffff915e8b20 t4 : ffffffff915e8b20
-[    0.000000][    C0]  t5 : ffffffff915e8b20 t6 : ffffffff915e8bc8 ssp : 0000000000000000
-[    0.000000][    C0] status: 0000000200000100 badaddr: ffffffff86851c88 cause: 0000000000000003
-[    0.000000][    C0] [<ffffffff86851c88>] sparse_init+0x58a/0x6fe
-[    0.000000][    C0] [<ffffffff8683d396>] mm_core_init_early+0x116/0x1e30
-[    0.000000][    C0] [<ffffffff86801edc>] start_kernel+0xd2/0x848
-
-Convert MAX_FOLIO_VMEMMAP_ALIGN to the equivalent physical alignment
-before using it in VMEMMAP_ADDR_ALIGN.  This keeps the existing
-round_down() logic while making the resulting vmemmap base satisfy the
-mask-alignment requirement.
-
-Link: https://lore.kernel.org/20260716115326.3466926-1-xujiakai2025@iscas.ac.cn
-Fixes: 476849b0fba4 ("riscv/mm: align vmemmap to maximal folio size")
-Signed-off-by: Jiakai Xu <xujiakai2025@iscas.ac.cn>
-Cc: Albert Ou <aou@eecs.berkeley.edu>
-Cc: Alexandre Ghiti <alex@ghiti.fr>
+Link: https://lore.kernel.org/aljWYfPRCVc6IB2b@thinkstation
+Link: https://lore.kernel.org/20260715144234.442721-3-kirill@shutemov.name
+Signed-off-by: Kiryl Shutsemau <kas@kernel.org>
+Cc: Muhammad Usama Anjum <usama.anjum@arm.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Zenghui Yu <zenghui.yu@linux.dev>
 Cc: David Hildenbrand <david@kernel.org>
-Cc: Guo Ren <guoren@kernel.org>
-Cc: Kiryl Shutsemau <kas@kernel.org>
+Cc: Jann Horn <jannh@google.com>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Nam Cao <namcao@linutronix.de>
-Cc: Palmer Dabbelt <palmer@dabbelt.com>
-Cc: Vishal Moola (Oracle) <vishal.moola@gmail.com>
-Assisted-by: YuanSheng:DeepSeek-V4-Flash
-Cc: <stable@vger.kernel.org>
+Cc: Pedro Falcato <pfalcato@suse.de>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Assisted-by: Claude:claude-fable-5
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/riscv/mm/init.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ tools/testing/selftests/mm/pagemap_ioctl.c |  102 +++++++++++++------
+ 1 file changed, 75 insertions(+), 27 deletions(-)
 
---- a/arch/riscv/mm/init.c~riscv-mm-use-physical-alignment-for-vmemmap_start_pfn
-+++ a/arch/riscv/mm/init.c
-@@ -61,7 +61,8 @@ EXPORT_SYMBOL(phys_ram_base);
+--- a/tools/testing/selftests/mm/pagemap_ioctl.c~selftests-mm-add-pagemap_scan-test-for-thp-pmd-holes
++++ a/tools/testing/selftests/mm/pagemap_ioctl.c
+@@ -8,6 +8,7 @@
+ #include <errno.h>
+ #include <malloc.h>
+ #include <linux/types.h>
++#include <linux/mman.h>
+ #include <linux/memfd.h>
+ #include <linux/userfaultfd.h>
+ #include <linux/fs.h>
+@@ -1058,50 +1059,96 @@ static void test_simple(void)
+  * the generic path (reached e.g. via category_anyof_mask) must report every
+  * page written.
+  */
+-static void unpopulated_scan_test(void)
++/*
++ * Populate @mem (optionally collapsing it into a THP first), drop it with
++ * MADV_DONTNEED, then check PAGEMAP_SCAN reports the whole range written via
++ * both the fast and generic query paths. A dropped THP leaves a pmd_none hole
++ * with no page table, exercising pagemap_scan_pte_hole(); a base-page range
++ * leaves pte_none entries.
++ */
++static void unpopulated_written_test(const char *name, char *mem, long size,
++				     bool use_thp)
+ {
+-	int npages = 16, i;
+-	long mem_size = npages * page_size;
++	long npages = size / page_size, fast = 0, slow = 0, ret;
+ 	struct page_region regions[16];
+-	long fast = 0, slow = 0, ret;
+-	char *mem;
+-
+-	mem = mmap(NULL, mem_size, PROT_READ | PROT_WRITE,
+-		   MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+-	if (mem == MAP_FAILED)
+-		ksft_exit_fail_msg("%s mmap failed\n", __func__);
++	int i;
  
- #ifdef CONFIG_SPARSEMEM_VMEMMAP
- #define VMEMMAP_ADDR_ALIGN	max(1ULL << SECTION_SIZE_BITS, \
--				    MAX_FOLIO_VMEMMAP_ALIGN)
-+				    PFN_PHYS(MAX_FOLIO_VMEMMAP_ALIGN / \
-+					     sizeof(struct page)))
+-	wp_init(mem, mem_size);
++	wp_init(mem, size);
  
- unsigned long vmemmap_start_pfn __ro_after_init;
- EXPORT_SYMBOL(vmemmap_start_pfn);
+-	/* Populate, then drop: the ptes become pte_none without a marker. */
+-	memset(mem, 1, mem_size);
+-	if (madvise(mem, mem_size, MADV_DONTNEED))
+-		ksft_exit_fail_msg("%s MADV_DONTNEED failed\n", __func__);
++	/* Populate, optionally collapse to a THP, then drop it. */
++	memset(mem, 1, size);
++	if (use_thp &&
++	    (madvise(mem, size, MADV_COLLAPSE) ||
++	     !check_huge_anon(mem, size / hpage_size, hpage_size))) {
++		ksft_test_result_skip("%s could not form a THP\n", name);
++		goto out;
++	}
++	if (madvise(mem, size, MADV_DONTNEED)) {
++		ksft_test_result_fail("%s MADV_DONTNEED failed\n", name);
++		goto out;
++	}
+ 
+ 	/* Fast path: category_mask == return_mask == PAGE_IS_WRITTEN. */
+-	ret = pagemap_ioctl(mem, mem_size, regions, npages, 0, 0,
++	ret = pagemap_ioctl(mem, size, regions, ARRAY_SIZE(regions), 0, 0,
+ 			    PAGE_IS_WRITTEN, 0, 0, PAGE_IS_WRITTEN);
+-	if (ret < 0)
+-		ksft_exit_fail_msg("%s fast scan failed\n", __func__);
+-	for (i = 0; i < ret; i++)
++	for (i = 0; ret > 0 && i < ret; i++)
+ 		fast += LEN(regions[i]);
+ 
+ 	/* Generic path: same query expressed via category_anyof_mask. */
+-	ret = pagemap_ioctl(mem, mem_size, regions, npages, 0, 0,
++	ret = pagemap_ioctl(mem, size, regions, ARRAY_SIZE(regions), 0, 0,
+ 			    0, PAGE_IS_WRITTEN, 0, PAGE_IS_WRITTEN);
+-	if (ret < 0)
+-		ksft_exit_fail_msg("%s generic scan failed\n", __func__);
+-	for (i = 0; i < ret; i++)
++	for (i = 0; ret > 0 && i < ret; i++)
+ 		slow += LEN(regions[i]);
+ 
+ 	ksft_test_result(fast == npages && slow == npages,
+-			 "%s unpopulated ptes reported written by both paths (%ld, %ld of %d)\n",
+-			 __func__, fast, slow, npages);
++			 "%s unpopulated range reported written by both paths (%ld, %ld of %ld)\n",
++			 name, fast, slow, npages);
++out:
++	wp_free(mem, size);
++}
+ 
+-	wp_free(mem, mem_size);
++static void unpopulated_scan_test(void)
++{
++	long mem_size = 16 * page_size;
++	char *mem;
++
++	mem = mmap(NULL, mem_size, PROT_READ | PROT_WRITE,
++		   MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
++	if (mem == MAP_FAILED) {
++		ksft_test_result_skip("%s mmap failed\n", __func__);
++		return;
++	}
++
++	unpopulated_written_test(__func__, mem, mem_size, false);
+ 	munmap(mem, mem_size);
+ }
+ 
++/*
++ * Same as unpopulated_scan_test(), but the range is a THP: a full-PMD
++ * MADV_DONTNEED leaves a pmd_none hole with no page table.
++ */
++static void unpopulated_thp_scan_test(void)
++{
++	char *area, *mem;
++
++	if (!hpage_size) {
++		ksft_test_result_skip("%s THP not supported\n", __func__);
++		return;
++	}
++
++	/* Over-allocate so a PMD-aligned, THP-sized range fits inside. */
++	area = mmap(NULL, 2 * hpage_size, PROT_READ | PROT_WRITE,
++		    MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
++	if (area == MAP_FAILED) {
++		ksft_test_result_skip("%s mmap failed\n", __func__);
++		return;
++	}
++	mem = (char *)(((unsigned long)area + hpage_size - 1) & ~(hpage_size - 1));
++
++	unpopulated_written_test(__func__, mem, hpage_size, true);
++	munmap(area, 2 * hpage_size);
++}
++
+ int sanity_tests(void)
+ {
+ 	unsigned long long mem_size, vec_size;
+@@ -1610,7 +1657,7 @@ int main(int __attribute__((unused)) arg
+ 	if (!hugetlb_setup_default(4))
+ 		ksft_print_msg("HugeTLB test will be skipped\n");
+ 
+-	ksft_set_plan(118);
++	ksft_set_plan(119);
+ 
+ 	page_size = getpagesize();
+ 	hpage_size = read_pmd_pagesize();
+@@ -1790,6 +1837,7 @@ int main(int __attribute__((unused)) arg
+ 
+ 	/* 18. Unpopulated pte scan-path consistency */
+ 	unpopulated_scan_test();
++	unpopulated_thp_scan_test();
+ 
+ 	close(pagemap_fd);
+ 	ksft_finished();
 _
 
-Patches currently in -mm which might be from xujiakai2025@iscas.ac.cn are
+Patches currently in -mm which might be from kas@kernel.org are
 
-riscv-mm-use-physical-alignment-for-vmemmap_start_pfn.patch
+fs-proc-task_mmu-fix-pagemap_scan-written-state-for-unpopulated-ptes.patch
+mm-hugetlb-fix-swap-entry-corruption-when-clearing-uffd-wp-at-fork.patch
+fs-proc-task_mmu-fix-pagemap_scan-written-state-for-pmd-holes.patch
+mm-decouple-protnone-helpers-from-config_numa_balancing.patch
+mm-rename-uffd-wp-pte-bit-macros-to-uffd.patch
+mm-rename-uffd-wp-pte-accessors-to-uffd.patch
+userfaultfd-test-uffd-vma-flags-through-the-vma_flags_t-api.patch
+mm-add-vm_uffd_rwp-vma-flag.patch
+mm-add-mm_cp_uffd_rwp-change_protection-flag.patch
+mm-preserve-rwp-marker-across-pte-rewrites.patch
+mm-handle-vm_uffd_rwp-in-khugepaged-rmap-and-gup.patch
+userfaultfd-add-uffdio_register_mode_rwp-and-uffdio_rwprotect-plumbing.patch
+mm-userfaultfd-add-rwp-fault-delivery-and-expose-uffdio_register_mode_rwp.patch
+mm-pagemap-add-page_is_accessed-for-rwp-tracking.patch
+userfaultfd-add-uffd_feature_rwp_async-for-async-fault-resolution.patch
+userfaultfd-add-uffdio_set_mode-for-runtime-sync-async-toggle.patch
+selftests-mm-add-userfaultfd-rwp-tests.patch
+documentation-userfaultfd-document-rwp-working-set-tracking.patch
+selftests-mm-add-pagemap_scan-test-for-thp-pmd-holes.patch
 
