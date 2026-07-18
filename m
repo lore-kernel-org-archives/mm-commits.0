@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E94692E7631;
-	Sat, 18 Jul 2026 04:35:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A96D52E7376
+	for <mm-commits@vger.kernel.org>; Sat, 18 Jul 2026 04:35:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784349303; cv=none; b=kd1HXigOS3pQcvU9pvMcCfRo4ZbvaI86tHztBDTcf+JfdXZN9TnpSHRuC9c4NHcMWZIPmlmAnI5629052bIhh0RL2msxDxW0e1t18Unx84PHDyKPi7kmNPjIztWlJZ7ucrRP+8jCgfXs3gn9lrZG0Mex2HfbnBi0DHRv+DICzOo=
+	t=1784349331; cv=none; b=thcODOt8Y90rqbP0aJOepmbEKcRV/iLB+XSeNDnLwWcDvsddMiC1Mb3+5idtlBpeumBeJ/gcylnE2SNpNeQNfGsTLLrxLH4SF9pakZGacOnUxV94NQNvbQY/V3Nlds3GhndtDNOrbRSmRPN9nKskg55mU76JA4AWd0zGbUApVR0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784349303; c=relaxed/simple;
-	bh=Fo/FGAKjfX/QLYTFhKKzih2jgeP24kO0kvchGRnOAXY=;
-	h=Date:To:From:Subject:Message-Id; b=WkEyRdFruGGingBcsGOz7p5R9DV8gQ5eV0Bts07UpZzNEq5UhVbGTXx0SCRVUXMO+dYFmEvpEnKsZBywrRV2HDkzGcRCqbhQuerfsqImk1U+2B0QYe/uQOuMyuJrNB9Hr2FWt2+ekLW2dshH+QM9uo0AUohXoRtmIbsIltyFsxU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=e0mNfBj7; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1784349331; c=relaxed/simple;
+	bh=/B/fbwXukQ8Ifvt6HTGJqRaR4po0WuVnNYx/eEuRKT4=;
+	h=Date:To:From:Subject:Message-Id; b=hZirHQKBt+E1N7a4LKGR6Xw+Hc5TGQGMPH0CVlAZAEZTKutheVT6eUlzPblSa9MnpMIeWwZHoHFQNFYdkiI9CNcG5yAIrejcN2MGl44F/jU5KArLQEl7er+QWhJ9kQ2lp+PoUnBDbzLOOSoXv1aoxkt9F/2xU6P98k5tvSbxMYI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tlKwIlck; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="e0mNfBj7"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 86D571F000E9;
-	Sat, 18 Jul 2026 04:35:01 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tlKwIlck"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3EFEC1F000E9;
+	Sat, 18 Jul 2026 04:35:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1784349301;
-	bh=5SPUc0Lfre9s+yzwFkLVrQX/017zI5rq/g00A+LOdQc=;
+	d=linux-foundation.org; s=korg; t=1784349330;
+	bh=SdWjtc7YlDH2N3xxLjEY6trUuGtFdQYt5c+Dgn3ykUw=;
 	h=Date:To:From:Subject;
-	b=e0mNfBj7bUPEo7nx7P6EHgEKk41r2ZP/KGxDDiYIK9u5X2zEbgUS/BF508+lniupG
-	 REcB/DoOJR4Qs0x7CWs5tv++s8dxNKDt5HLvnnuM2J4GhpxrQcJa7wLbutdHERpuKD
-	 xknk1ceqaWCovR4haan4JVslIZ2uwdGF8NWvumu4=
-Date: Fri, 17 Jul 2026 21:35:01 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,brendan.higgins@linux.dev,sj@kernel.org,akpm@linux-foundation.org
+	b=tlKwIlckp0Ob/hyVmko5EjaV99pWTnkn2EWnOR7FYGueQNE8joi+fePNxCGX722nf
+	 9a9wHoHiisDba+WNpVR2mQ6PlbSHsq64Qjh+No/ZAftVmA/Ko02qXgjQhD/S8B6k5k
+	 jx35FYu1Gw8/aIHpW7kGQJhzoUV+AFDW0lHbUkU4=
+Date: Fri, 17 Jul 2026 21:35:29 -0700
+To: mm-commits@vger.kernel.org,sj@kernel.org,lienze@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-core-kunit-skip-wrong-region-walk-in-commit_target_regions.patch added to mm-new branch
-Message-Id: <20260718043501.86D571F000E9@smtp.kernel.org>
+Subject: + mm-damon-ops-common-remove-redundant-local-variable-in-damon_migrate_folio_list.patch added to mm-new branch
+Message-Id: <20260718043530.3EFEC1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/core-kunit: skip wrong region walk in commit_target_regions()
+     Subject: mm/damon/ops-common: remove redundant local variable in damon_migrate_folio_list()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-core-kunit-skip-wrong-region-walk-in-commit_target_regions.patch
+     mm-damon-ops-common-remove-redundant-local-variable-in-damon_migrate_folio_list.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-kunit-skip-wrong-region-walk-in-commit_target_regions.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-ops-common-remove-redundant-local-variable-in-damon_migrate_folio_list.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,181 +69,40 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: SJ Park <sj@kernel.org>
-Subject: mm/damon/core-kunit: skip wrong region walk in commit_target_regions()
-Date: Fri, 17 Jul 2026 17:14:41 -0700
+From: Enze Li <lienze@kylinos.cn>
+Subject: mm/damon/ops-common: remove redundant local variable in damon_migrate_folio_list()
+Date: Sat, 18 Jul 2026 08:21:25 +0800
 
-damon_test_commit_target_regions_for() traverses expected values array
-after damon_commit_target_regions() call.  It assumes
-damon_commit_target_regions() made expected number of regions.  It might
-not.  Because the traversal is made based on the region count, it could do
-out of bounds access to the expectation value array.
+In damon_migrate_folio_list(), we're redeclaring folio inside the first
+while loop, but it just shadows the outer one.  Since the second loop uses
+the outer folio anyway, the inner declaration is pointless.
 
-The consequent user impact (out-of-bound access) is quite bad.  The
-realistic user impact would be limited, though.  It would affect only test
-run setups.
+Remove it to consistently reuse the same variable throughout the
+function and improve readability.
 
-Fix it by testing if the number of regions was also changed as expected
-and exit early for the failure.
-
-The issue was discovered [1] by Sashiko.
-
-Link: https://lore.kernel.org/20260718001442.87129-8-sj@kernel.org
-Link: https://lore.kernel.org/20260713144757.39740-1-sj@kernel.org [1]
-Fixes: 603f67eb91e0 ("mm/damon/tests/core-kunit: add damon_commit_target_regions() test")
-Signed-off-by: SJ Park <sj@kernel.org>
-Cc: Brendan Higgins <brendan.higgins@linux.dev>
-Cc: <stable@vger.kernel.org> # 6.19.x
+Link: https://lore.kernel.org/20260718002125.637104-1-lienze@kylinos.cn
+Signed-off-by: Enze Li <lienze@kylinos.cn>
+Reviewed-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/tests/core-kunit.h |    9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+ mm/damon/ops-common.c |    2 --
+ 1 file changed, 2 deletions(-)
 
---- a/mm/damon/tests/core-kunit.h~mm-damon-core-kunit-skip-wrong-region-walk-in-commit_target_regions
-+++ a/mm/damon/tests/core-kunit.h
-@@ -1277,14 +1277,19 @@ static void damon_test_commit_target_reg
- 		kunit_skip(test, "src target setup fail");
- 	}
- 	damon_commit_target_regions(dst_target, src_target, 1);
-+
-+	KUNIT_EXPECT_EQ(test, damon_nr_regions(dst_target), nr_expect_regions);
-+	if (damon_nr_regions(dst_target) != nr_expect_regions)
-+		goto out;
-+
- 	i = 0;
- 	damon_for_each_region(r, dst_target) {
- 		KUNIT_EXPECT_EQ(test, r->ar.start, expect_start_end[i][0]);
- 		KUNIT_EXPECT_EQ(test, r->ar.end, expect_start_end[i][1]);
- 		i++;
- 	}
--	KUNIT_EXPECT_EQ(test, damon_nr_regions(dst_target), nr_expect_regions);
--	KUNIT_EXPECT_EQ(test, i, nr_expect_regions);
-+
-+out:
- 	damon_free_target(dst_target);
- 	damon_free_target(src_target);
- }
+--- a/mm/damon/ops-common.c~mm-damon-ops-common-remove-redundant-local-variable-in-damon_migrate_folio_list
++++ a/mm/damon/ops-common.c
+@@ -339,8 +339,6 @@ static unsigned int damon_migrate_folio_
+ 	LIST_HEAD(migrate_folios);
+ 
+ 	while (!list_empty(folio_list)) {
+-		struct folio *folio;
+-
+ 		cond_resched();
+ 
+ 		folio = lru_to_folio(folio_list);
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from lienze@kylinos.cn are
 
-samples-damon-wsse-handle-damon_start-failure.patch
-samples-damon-prcl-handle-damon_start-failure.patch
-samples-damon-mtier-handle-damon_start-failure.patch
-samples-damon-mtier-handle-damon_stop-failure.patch
-samples-damon-wsse-stop-and-free-damon-ctx-when-damon_call-fails.patch
-samples-damon-prcl-stop-and-free-damon-ctx-when-damon_call-fails.patch
-mm-damon-sysfs-kobject_del-target-normal-context-and-kdamond-dirs.patch
-mm-damon-sysfs-kobject_del-region-and-target-error-dirs.patch
-mm-damon-sysfs-schemes-kobject_del-scheme-dirs.patch
-mm-damon-sysfs-schemes-kobject_del-scheme-region-dirs.patch
-mm-damon-sysfs-schemes-kobject_del-scheme-filter-dirs.patch
-mm-damon-sysfs-schemes-kobject_del-scheme-quota-goal-dirs.patch
-mm-damon-sysfs-schemes-kobject_del-scheme-action-destination-dirs.patch
-mm-damon-sysfs-kobject_del-probe-dirs.patch
-mm-damon-sysfs-kobject_del-probe-filter-dirs.patch
-mm-damon-sysfs-kobject_del-probe-dirs-in-probes_addd_dir-error-path.patch
-mm-damon-sysfs-schemes-kobject_del-region-for-populate_region-error.patch
-docs-mm-damon-design-update-for-damos_quota_node_eligible_mem_bp.patch
-docs-abi-damon-document-probe-files.patch
-mm-damon-tests-core-kunit-test-damon_rand.patch
-selftests-damon-sysfssh-test-multiple-probe-dirs-creation.patch
-selftests-damon-sysfssh-test-coreops_filters-directories.patch
-selftests-damon-sysfssh-test-dests-dir.patch
-selftests-damon-sysfssh-test-all-files-in-quota-goal-dir.patch
-mm-damon-core-reduce-range-setup-in-damon_commit_target_regions.patch
-mm-damon-sysfs-split-probe-setup-function-out.patch
-mm-damon-sysfs-split-out-filters-setup-function.patch
-mm-damon-sysfs-fix-typos-in-probe_addrm_dirs-s-attr-probe.patch
-mm-damon-core-introduce-damon_nr_accesses_mvsum.patch
-mm-damon-tests-core-kunit-test-damon_mvsum.patch
-mm-damon-core-always-update-last_nr_accesses-for-intervals-change.patch
-mm-damon-core-handle-unreset-nr_accesses-in-damon_nr_accesses_mvsum.patch
-mm-damon-core-use-damon_nr_accesses_mvsum-in-__damos_valid_target.patch
-mm-damon-core-use-damon_nr_accesses_mvsum-for-damos-region-tracing.patch
-mm-damon-sysfs-schemes-use-damon_nr_accesses_mvsum-for-damo-regions.patch
-mm-damon-core-remove-damon_warn_fix_nr_accesses_corruption.patch
-mm-damon-core-remove-damon_verify_reset_aggregated.patch
-mm-damon-core-remove-damon_verify_merge_regions_of.patch
-mm-damon-tests-core-kunit-remove-nr_accesses_bp-setup-and-tests.patch
-selftests-damon-drgn_dump_damon_status-do-not-dump-nr_accesses_bp.patch
-mm-damon-core-remove-nr_accesses_bp-setups-and-updates.patch
-mm-damon-core-remove-attrs-param-from-damon_update_region_access_rate.patch
-mm-damon-paddr-remove-attrs-param-from-__damon_pa_check_access.patch
-mm-damon-vaddr-remove-attrs-param-from-__damon_va_check_access.patch
-mm-damon-core-remove-damon_moving_sum-and-its-unit-test.patch
-mm-damon-core-remove-damon_region-nr_accesses_bp.patch
-mm-damon-add-damon_region-last_probe_hits.patch
-mm-damon-core-introduce-damon_probe_hits_mvsum.patch
-mm-damon-sysfs-schemes-set-probe-hits-as-pseudo-moving-sums.patch
-mm-damon-core-safely-validate-src-on-damon_commit_ctx.patch
-mm-damon-core-do-parameter-testing-commit-on-damon_start.patch
-mm-damon-sysfs-remove-duplicated-commit-input-validity-check.patch
-mm-damon-reclaim-remove-duplicated-min_region_sz-power-of-2-check.patch
-mm-damon-lru_sort-remove-duplicated-min_region_sz-power_of_2-check.patch
-mm-damon-document-region-size-validation-in-damon_set_regions.patch
-mm-damon-core-remove-start-end-check-in-damon_set_region_system_rams.patch
-mm-damon-sysfs-remove-region-size-validation.patch
-mm-damon-core-stop-ctxs-in-damon_start-before-returning-an-error.patch
-samples-damon-mtier-do-not-stop-first-context-for-damon_start-failure.patch
-mm-damon-core-make-damon_stop-never-fails.patch
-mm-damon-sysfs-ignore-damon_stop-return-value.patch
-mm-damon-reclaaim-ignore-damon_stop-return-value.patch
-mm-damon-lru_sort-ignore-damon_stop-return-value.patch
-mm-damon-core-change-damon_stop-return-type-to-void.patch
-samples-damon-mtier-stop-all-contexts-with-single-damon_stop-call.patch
-mm-damon-core-wait-ctx-stop-in-damon_call-before-reruning-an-error.patch
-samples-damon-wsse-do-not-stop-ctx-for-damon_call-failure.patch
-samples-damon-prcl-do-not-stop-damon-for-damon_call-failure.patch
-mm-damon-core-remove-comment-and-test-for-nr_to_bp-divide-by-zero.patch
-mm-damon-core-s-damon_max_nr_accesses-damon_nr_samples_per_aggr.patch
-mm-damon-core-s-accesses_bp_to_nr_accesses-sample_bp_to_count.patch
-mm-damon-core-s-nr_accesses_to_accesses_bp-sample_count_to_bp.patch
-mm-damon-core-s-nr_accesses_for_new_attrs-nr_samples_for_new_attrs.patch
-mm-damon-core-update-probe-hits-for-new-parameter-commit.patch
-mm-damon-core-handle-unreset-probe_hits-in-probe_hits_mvsum.patch
-mm-damon-core-introduce-damon_probe-weight.patch
-mm-damon-core-ask-apply_probes-ops-callback-to-set-sampling-address.patch
-mm-damon-paddr-set-samples-in-apply_probes-if-requested.patch
-mm-damon-core-ask-apply_probe-to-return-max-probe-hits-weighted-sum.patch
-mm-damon-core-implement-damon_probe_hits_wsum.patch
-mm-damon-paddr-respect-return_max_wsum.patch
-mm-damon-core-use-abs_diff-instead-of-abs.patch
-mm-damon-core-extend-merge-function-to-work-with-probe-hits.patch
-mm-damon-core-disallow-probe_hits-overflow-on-attrs-only-monitoring.patch
-mm-damon-core-validate-params-for-probe-hits-weighted-sum-overflow.patch
-mm-damon-core-disable-access-monitoring-when-probe-weights-are-set.patch
-mm-damon-core-set-samples-in-apply_probes-if-probe-weights-are-set.patch
-mm-damon-core-s-max_nr_accesses-max_merge_score-in-kdamond_fn.patch
-mm-damon-core-get-merge-threshold-from-probe-hits-when-weights-are-set.patch
-mm-damon-core-implement-damon_has_probe_weight.patch
-mm-damon-sysfs-implement-probe-weight-file.patch
-docs-mm-damon-design-document-attrs-only-monitoring.patch
-docs-admin-guide-mm-damon-usage-document-weight-sysfs-file.patch
-docs-abi-damon-document-probe-weight-file.patch
-mm-damon-core-skip-aging-from-repeated-aggressive-merging.patch
-mm-damon-core-hide-private-damon_region-fields.patch
-mm-damon-core-hide-private-damon_target-fields.patch
-mm-damon-core-hide-private-damos_quota_goal-fields.patch
-mm-damon-core-hide-private-damos_quota-fields.patch
-mm-damon-core-hide-private-damos_filter-fields.patch
-mm-damon-core-hide-private-damos-fields.patch
-mm-damon-core-hide-private-damon_filter-fields.patch
-mm-damon-core-hide-private-damon_probe-fields.patch
-mm-damon-sysfs-do-not-directly-access-damon_ctx-ops.patch
-mm-damon-core-hide-core-private-damon_ctx-fields.patch
-mm-damon-core-avoid-infinite-kdamond_merge_regions-internal-loop.patch
-mm-damon-tests-core-kunit-catch-test-failure-in-test_merge_regions_of.patch
-mm-damon-vaddr-drop-last-same-folio-access-check-optimization.patch
-mm-damon-paddr-drop-last-same-folio-access-check-reuse-optimization.patch
-mm-damon-sysfs-read-addr_unit-only-once-in-damon_sysfs_apply_inputs.patch
-mm-damon-sysfs-read-ops_id-only-once-in-damon_sysfs_apply_inputs.patch
-mm-damon-core-initialize-damos-last_applied.patch
-mm-damon-core-kunit-check-region-count-before-testing-in-split_at.patch
-mm-damon-vaddr-kunit-check-region-count-in-three_regions-test.patch
-mm-damon-core-kunit-handle-region-split-failure-in-filter_out.patch
-mm-damon-core-kunit-skip-wrong-dest-walk-in-commit_dests_for.patch
-mm-damon-core-kunit-skip-wrong-quota-goal-walk-in-commit_quota_goals.patch
-mm-damon-core-kunit-skip-wrong-region-walk-in-commit_target_regions.patch
+mm-damon-ops-common-remove-redundant-local-variable-in-damon_migrate_folio_list.patch
 
