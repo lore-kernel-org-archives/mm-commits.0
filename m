@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 70E791862
-	for <mm-commits@vger.kernel.org>; Sat, 18 Jul 2026 01:10:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 36E061862
+	for <mm-commits@vger.kernel.org>; Sat, 18 Jul 2026 01:10:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784337044; cv=none; b=PKhTuMSYTSOHHYZm0dTVFobIxByLJUNzOzQRYAtKT6unE5GQ/A7ZxqTfcKuyvG48ALi09zSPSgJP4Y4YpQC4qGmRUdZqqV23OYKk1V/OZFlzkH0V8gBE1NFdMNgXVe4+REOgn+e9pDWuHhgkBaaqE6iRHs03KKC3oiQXv1wVpCI=
+	t=1784337046; cv=none; b=qTknrJYN7zA/8BEAgwdJ7vz9B/gZP18FbryIaBvuvAuDV+9kb0PYo8pjIfWLW7c6NPch46kNlnoIslyLVG3UtxrkV1g4FnDfxiiL2gNtIjX1CQ5GOTpGmk/Ks3HnxvCCC+wsSWa9Gi2auPa0npZrFlDAcyRPC5UWIC0mVXCpdmY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784337044; c=relaxed/simple;
-	bh=UNeLEbDdjNHNzTQOH/VniK1F+3rawLSF3kx0433ZCTQ=;
-	h=Date:To:From:Subject:Message-Id; b=kLni8lTSYLBpgAVev7xIohYdKMZlv90Pl0/E5XcG2bNN2OlJO5vfwqC4fj3IOjSJVYeNhYOmPbwg8zJzXUZB1HfjVmLaaHXkAQshmVCYOFXfjFCazyjF3hs+TBC7zjaV8h7gmdntczt85c8uwbvDa5XhJWD8PLoyoio+3U+ZrQQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VuG0eRYq; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1784337046; c=relaxed/simple;
+	bh=CHAaReYp+Wz7BCYT7OECQbuyR/7wGJx4TSv6xM7nyyA=;
+	h=Date:To:From:Subject:Message-Id; b=rsSv5X48vgk4G1rW/oOxwAA4fJ4dJCfrBp4xDT8n1k0+Oq8eQtlD1uFRYEcWAQze8664797WgmFNR+F4a8A5Dz2Wwrg9c8R/xwYBMdhBVGyL22jxHXHz7WUkhTKtgC9Nz3fgzigcbfA32eqjfJeQ+hbl1rmKpJKPAoPoU1vD5Sk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hfVvejGU; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VuG0eRYq"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B40851F000E9;
-	Sat, 18 Jul 2026 01:10:42 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hfVvejGU"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B07B01F00A3A;
+	Sat, 18 Jul 2026 01:10:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1784337042;
-	bh=GSyy3ktYQ+InGABKRl/SktW3Qc3T39s+MHrVjmfKc2s=;
+	d=linux-foundation.org; s=korg; t=1784337044;
+	bh=Re3BK1LQ+NCJB3jY4ae0MiWhIA5RGpwXQfaBMf1aJCs=;
 	h=Date:To:From:Subject;
-	b=VuG0eRYqK1kD0HIsuuR9iwN48DXQRcH0cgNue//cjnYzhTpPWk9w68oLQXphSJT1e
-	 1XU8AZBlhr9MFablbrY/Pxkqu0N4w7QVmTXbegsv2IUXaFOOLpOfsOvXhqVfq1JVfX
-	 43T7WQzHikOZZuW0xLyHPeCK4bEKobDabo/FSTFY=
-Date: Fri, 17 Jul 2026 18:10:42 -0700
+	b=hfVvejGUgHxsqZlO98ZWI4c0dm2iQ+cfgmsg2go8FaFZLJ8yQ1tgBm/HIHDXBbUWw
+	 /iKD9JC/FQKSvMcPQ2Ho8JDgmrcSLKCivWX/C66rqai3wK7Z2wLINXfi5Xiiyu0HFT
+	 I8nr6dfjOnv4IdPUv0J4Vydvg8Fqk5CAr3PKluUc=
+Date: Fri, 17 Jul 2026 18:10:44 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,pfalcato@suse.de,ljs@kernel.org,liam@infradead.org,jannh@google.com,david@kernel.org,wangkefeng.wang@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-introduce-pud_is_huge-helper.patch added to mm-new branch
-Message-Id: <20260718011042.B40851F000E9@smtp.kernel.org>
+Subject: + mm-mincore-remove-special-handling-for-vm_pfnmap.patch added to mm-new branch
+Message-Id: <20260718011044.B07B01F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: introduce pud_is_huge() helper
+     Subject: mm: mincore: remove special handling for VM_PFNMAP
 has been added to the -mm mm-new branch.  Its filename is
-     mm-introduce-pud_is_huge-helper.patch
+     mm-mincore-remove-special-handling-for-vm_pfnmap.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-introduce-pud_is_huge-helper.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mincore-remove-special-handling-for-vm_pfnmap.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,28 +70,21 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm: introduce pud_is_huge() helper
-Date: Fri, 17 Jul 2026 17:13:42 +0800
+Subject: mm: mincore: remove special handling for VM_PFNMAP
+Date: Fri, 17 Jul 2026 17:13:43 +0800
 
-Patch series "mm: mincore: misc cleanups", v3.
+As David pointed out, "it's hard to believe that someone depends on pages
+in VM_PFNMAP to *not* be present", so remove the historical behavior that
+always reports VM_PFNMAP pages as non-resident.
 
-This series cleans up and simplifies the mincore.  Most importantly, it
-removes the historical special behavior that always reports VM_PFNMAP
-pages as non-resident.
+Adding mincore_pud_range() allows the page table walker to traverse the
+full page table hierarchy without splitting a huge PUD, enabling much more
+precise identification of resident pages in PFNMAP VMAs.
 
-
-This patch (of 6):
-
-Introduce the pud_is_huge() helper function to check whether a PUD is a
-huge PUD or a software leaf entry.  Note that, unlike PMD, PUD currently
-does not support transparent migration entries or device private entries. 
-However, the function still includes `!pud_none()` branches to accommodate
-potential future implementations.
-
-Link: https://lore.kernel.org/20260717091347.1144789-1-wangkefeng.wang@huawei.com
-Link: https://lore.kernel.org/20260717091347.1144789-2-wangkefeng.wang@huawei.com
+Link: https://lore.kernel.org/linux-mm/0e619d71-1c3d-4534-8376-2982c7348c31@kernel.org/
+Link: https://lore.kernel.org/20260717091347.1144789-3-wangkefeng.wang@huawei.com
 Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: David Hildenbrand <david@kernel.org>
+Suggested-by: David Hildenbrand (Arm) <david@kernel.org>
 Cc: Jann Horn <jannh@google.com>
 Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
@@ -101,48 +94,56 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/huge_mm.h |   23 +++++++++++++++++++++++
- 1 file changed, 23 insertions(+)
+ mm/mincore.c |   24 ++++++++++++++++--------
+ 1 file changed, 16 insertions(+), 8 deletions(-)
 
---- a/include/linux/huge_mm.h~mm-introduce-pud_is_huge-helper
-+++ a/include/linux/huge_mm.h
-@@ -472,6 +472,24 @@ void split_huge_pmd_address(struct vm_ar
- void __split_huge_pud(struct vm_area_struct *vma, pud_t *pud,
- 		unsigned long address);
- 
-+/**
-+ * pud_is_huge() - Is this PUD either a huge PUD entry or a software leaf entry?
-+ * @pud: The PUD to check.
-+ *
-+ * This is similar to pmd_is_huge(), but it checks at the PUD level.
-+ *
-+ * Returns: true if this PUD is huge, false otherwise.
-+ */
-+static inline bool pud_is_huge(pud_t pud)
-+{
-+	if (pud_present(pud))
-+		return pud_trans_huge(pud);
-+	else if (!pud_none(pud))
-+		return true;
-+
-+	return false;
-+}
-+
- #ifdef CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD
- int change_huge_pud(struct mmu_gather *tlb, struct vm_area_struct *vma,
- 		    pud_t *pudp, unsigned long addr, pgprot_t newprot,
-@@ -798,6 +816,11 @@ static inline bool pmd_is_huge(pmd_t pmd
- {
- 	return false;
+--- a/mm/mincore.c~mm-mincore-remove-special-handling-for-vm_pfnmap
++++ a/mm/mincore.c
+@@ -160,6 +160,21 @@ static int mincore_unmapped_range(unsign
+ 	return 0;
  }
-+
-+static inline bool pud_is_huge(pud_t pud)
-+{
-+	return false;
-+}
- #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
  
- static inline bool is_pmd_order(unsigned int order)
++static int mincore_pud_range(pud_t *pudp, unsigned long addr, unsigned long end,
++		struct mm_walk *walk)
++{
++	if (pud_is_huge(pudp_get(pudp))) {
++		int nr = (end - addr) >> PAGE_SHIFT;
++		unsigned char *vec = walk->private;
++
++		memset(vec, 1, nr);
++		walk->action = ACTION_CONTINUE;
++		walk->private += nr;
++	}
++
++	return 0;
++}
++
+ static int mincore_pte_range(pmd_t *pmd, unsigned long addr, unsigned long end,
+ 			struct mm_walk *walk)
+ {
+@@ -232,6 +247,7 @@ static inline bool can_do_mincore(struct
+ }
+ 
+ static const struct mm_walk_ops mincore_walk_ops = {
++	.pud_entry		= mincore_pud_range,
+ 	.pmd_entry		= mincore_pte_range,
+ 	.pte_hole		= mincore_unmapped_range,
+ 	.hugetlb_entry		= mincore_hugetlb,
+@@ -259,14 +275,6 @@ static long do_mincore(unsigned long add
+ 		return pages;
+ 	}
+ 
+-	/*
+-	 * mincore historically reports PFNMAP mappings as non-resident.
+-	 */
+-	if (vma->vm_flags & VM_PFNMAP) {
+-		__mincore_unmapped_range(addr, end, vma, vec);
+-		return (end - addr) >> PAGE_SHIFT;
+-	}
+-
+ 	err = walk_page_range_vma(vma, addr, end, &mincore_walk_ops, vec);
+ 	if (err < 0)
+ 		return err;
 _
 
 Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
