@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 36E061862
-	for <mm-commits@vger.kernel.org>; Sat, 18 Jul 2026 01:10:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2EF781862
+	for <mm-commits@vger.kernel.org>; Sat, 18 Jul 2026 01:10:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784337046; cv=none; b=qTknrJYN7zA/8BEAgwdJ7vz9B/gZP18FbryIaBvuvAuDV+9kb0PYo8pjIfWLW7c6NPch46kNlnoIslyLVG3UtxrkV1g4FnDfxiiL2gNtIjX1CQ5GOTpGmk/Ks3HnxvCCC+wsSWa9Gi2auPa0npZrFlDAcyRPC5UWIC0mVXCpdmY=
+	t=1784337048; cv=none; b=rDWMzPaI2qkb06j+lGu4JxOKFPY+z7iCdYDm4HdcB+wugk0LyToAaD1Eymejqw4XzhCrJwKs47JDMfScQrDA+Xe6BAkK6t57QFSP/mxeuvYI/SSbzMSP6Rq8fuS9PDDikOdUXAk+SQhcB53rxyuBI7Wrwlgt9RX4nnep1Rgug1A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784337046; c=relaxed/simple;
-	bh=CHAaReYp+Wz7BCYT7OECQbuyR/7wGJx4TSv6xM7nyyA=;
-	h=Date:To:From:Subject:Message-Id; b=rsSv5X48vgk4G1rW/oOxwAA4fJ4dJCfrBp4xDT8n1k0+Oq8eQtlD1uFRYEcWAQze8664797WgmFNR+F4a8A5Dz2Wwrg9c8R/xwYBMdhBVGyL22jxHXHz7WUkhTKtgC9Nz3fgzigcbfA32eqjfJeQ+hbl1rmKpJKPAoPoU1vD5Sk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hfVvejGU; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1784337048; c=relaxed/simple;
+	bh=nMhe7ft0S8Rd9TId1KfNQyZmOrLEZNJiKIWGpnoWGWo=;
+	h=Date:To:From:Subject:Message-Id; b=NJZgXxhpX45tot3JDYVMkDCQxodlBBeEn2e+uESB3ubbJ0NETVbSH+ShuupivXpbUzcnlic/rj5s/7QGdW7DbV92TmTwp/Y98Crk7MuCXI033reyvur7bKuG18v3vhUDZg4c9L1DTesoNhiFCE1Mgt4ow6mPLT6UkF2ERB0JDNQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nQDQUMoY; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hfVvejGU"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B07B01F00A3A;
-	Sat, 18 Jul 2026 01:10:44 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nQDQUMoY"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B2C441F000E9;
+	Sat, 18 Jul 2026 01:10:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1784337044;
-	bh=Re3BK1LQ+NCJB3jY4ae0MiWhIA5RGpwXQfaBMf1aJCs=;
+	d=linux-foundation.org; s=korg; t=1784337046;
+	bh=HbV8CVcHt8+l7E7wsajOtlaDhCVVUvXIHiUpVtFaPFY=;
 	h=Date:To:From:Subject;
-	b=hfVvejGUgHxsqZlO98ZWI4c0dm2iQ+cfgmsg2go8FaFZLJ8yQ1tgBm/HIHDXBbUWw
-	 /iKD9JC/FQKSvMcPQ2Ho8JDgmrcSLKCivWX/C66rqai3wK7Z2wLINXfi5Xiiyu0HFT
-	 I8nr6dfjOnv4IdPUv0J4Vydvg8Fqk5CAr3PKluUc=
-Date: Fri, 17 Jul 2026 18:10:44 -0700
+	b=nQDQUMoYFvzJ5X/UAObrO0+6zfQ0MXqtv1f+i8seckd5PNrHn9kW9/AOgx0Ct54RF
+	 TC8gx/jM5IzNvjhxDfzK9FXfnn+kYiMjL56k1kNj9a/5GYaQNqFMCZY0k3M1an4YIO
+	 sCGmucIH5V6Cz0pBZ04KU8zpFH5p+PvxEwy5TrrE=
+Date: Fri, 17 Jul 2026 18:10:46 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,pfalcato@suse.de,ljs@kernel.org,liam@infradead.org,jannh@google.com,david@kernel.org,wangkefeng.wang@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mincore-remove-special-handling-for-vm_pfnmap.patch added to mm-new branch
-Message-Id: <20260718011044.B07B01F00A3A@smtp.kernel.org>
+Subject: + mm-mincore-replace-__get_free_page-with-kmalloc.patch added to mm-new branch
+Message-Id: <20260718011046.B2C441F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: mincore: remove special handling for VM_PFNMAP
+     Subject: mm: mincore: replace __get_free_page() with kmalloc()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-mincore-remove-special-handling-for-vm_pfnmap.patch
+     mm-mincore-replace-__get_free_page-with-kmalloc.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mincore-remove-special-handling-for-vm_pfnmap.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mincore-replace-__get_free_page-with-kmalloc.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,80 +70,54 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm: mincore: remove special handling for VM_PFNMAP
-Date: Fri, 17 Jul 2026 17:13:43 +0800
+Subject: mm: mincore: replace __get_free_page() with kmalloc()
+Date: Fri, 17 Jul 2026 17:13:44 +0800
 
-As David pointed out, "it's hard to believe that someone depends on pages
-in VM_PFNMAP to *not* be present", so remove the historical behavior that
-always reports VM_PFNMAP pages as non-resident.
+Remove ugly casts by using the more natural kmalloc/kfree allocation, also
+replace GFP_USER(pointless here) with GFP_KERNEL.
 
-Adding mincore_pud_range() allows the page table walker to traverse the
-full page table hierarchy without splitting a huge PUD, enabling much more
-precise identification of resident pages in PFNMAP VMAs.
-
-Link: https://lore.kernel.org/linux-mm/0e619d71-1c3d-4534-8376-2982c7348c31@kernel.org/
-Link: https://lore.kernel.org/20260717091347.1144789-3-wangkefeng.wang@huawei.com
+Link: https://lore.kernel.org/20260717091347.1144789-4-wangkefeng.wang@huawei.com
 Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Suggested-by: David Hildenbrand (Arm) <david@kernel.org>
+Reviewed-by: Pedro Falcato <pfalcato@suse.de>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
 Cc: Jann Horn <jannh@google.com>
 Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Pedro Falcato <pfalcato@suse.de>
 Cc: Vlastimil Babka <vbabka@kernel.org>
 Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mincore.c |   24 ++++++++++++++++--------
- 1 file changed, 16 insertions(+), 8 deletions(-)
+ mm/mincore.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
---- a/mm/mincore.c~mm-mincore-remove-special-handling-for-vm_pfnmap
+--- a/mm/mincore.c~mm-mincore-replace-__get_free_page-with-kmalloc
 +++ a/mm/mincore.c
-@@ -160,6 +160,21 @@ static int mincore_unmapped_range(unsign
- 	return 0;
- }
+@@ -12,6 +12,7 @@
+ #include <linux/gfp.h>
+ #include <linux/pagewalk.h>
+ #include <linux/mman.h>
++#include <linux/slab.h>
+ #include <linux/syscalls.h>
+ #include <linux/swap.h>
+ #include <linux/leafops.h>
+@@ -329,7 +330,7 @@ SYSCALL_DEFINE3(mincore, unsigned long,
+ 	if (!access_ok(vec, pages))
+ 		return -EFAULT;
  
-+static int mincore_pud_range(pud_t *pudp, unsigned long addr, unsigned long end,
-+		struct mm_walk *walk)
-+{
-+	if (pud_is_huge(pudp_get(pudp))) {
-+		int nr = (end - addr) >> PAGE_SHIFT;
-+		unsigned char *vec = walk->private;
-+
-+		memset(vec, 1, nr);
-+		walk->action = ACTION_CONTINUE;
-+		walk->private += nr;
-+	}
-+
-+	return 0;
-+}
-+
- static int mincore_pte_range(pmd_t *pmd, unsigned long addr, unsigned long end,
- 			struct mm_walk *walk)
- {
-@@ -232,6 +247,7 @@ static inline bool can_do_mincore(struct
- }
+-	tmp = (void *) __get_free_page(GFP_USER);
++	tmp = kmalloc(PAGE_SIZE, GFP_KERNEL);
+ 	if (!tmp)
+ 		return -EAGAIN;
  
- static const struct mm_walk_ops mincore_walk_ops = {
-+	.pud_entry		= mincore_pud_range,
- 	.pmd_entry		= mincore_pte_range,
- 	.pte_hole		= mincore_unmapped_range,
- 	.hugetlb_entry		= mincore_hugetlb,
-@@ -259,14 +275,6 @@ static long do_mincore(unsigned long add
- 		return pages;
+@@ -354,6 +355,6 @@ SYSCALL_DEFINE3(mincore, unsigned long,
+ 		start += retval << PAGE_SHIFT;
+ 		retval = 0;
  	}
- 
--	/*
--	 * mincore historically reports PFNMAP mappings as non-resident.
--	 */
--	if (vma->vm_flags & VM_PFNMAP) {
--		__mincore_unmapped_range(addr, end, vma, vec);
--		return (end - addr) >> PAGE_SHIFT;
--	}
--
- 	err = walk_page_range_vma(vma, addr, end, &mincore_walk_ops, vec);
- 	if (err < 0)
- 		return err;
+-	free_page((unsigned long) tmp);
++	kfree(tmp);
+ 	return retval;
+ }
 _
 
 Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
