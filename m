@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 65AFB7083C
-	for <mm-commits@vger.kernel.org>; Sat, 18 Jul 2026 01:23:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6F9753D3B3
+	for <mm-commits@vger.kernel.org>; Sat, 18 Jul 2026 01:30:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784337817; cv=none; b=gM2DtbU3MhHHCS8bP8HDQfi0269TOzz7zrbTiiUe7LaGEc3A7JCDWOSDGdZ4lxEwS4a86Clg+zOWbdaYWMevH/xdA+XW7qwie+jipFBD68hzbXXNMj7fDw8fRwZyfcoseeUwagDpROFzaSYqG4mOAxc/7eHWYqM9O5VL1n9EsO8=
+	t=1784338243; cv=none; b=XtT+1hr8Yb4Z8DWTm2AxyN/LiLRhGdX9B3dUHQxGAuuReEe9WxqfRqID/uAcQG71Jrl7SlMmftnjBk1gWS/V5KxCtM13kln95/a8Yd7RLooNWd3OIFQmlqFoWpwF0sEEsGjMAJw8aVFhyRByHnnGLJiNlLrpefZF/y5PAe/mBcw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784337817; c=relaxed/simple;
-	bh=WzJqok56mfkPoh9jn8qorDoIW69OXi5SEKri/fS4o7U=;
-	h=Date:To:From:Subject:Message-Id; b=ZO1XvqsFJChr89NZOI8XH0ge00omMINqPKGRv68G3nAYbTjSVRxA4w2EmsPA1FDQPdvPawQCVXk2TyxJ4J54n/MDRSnTxLSM+7VeMPPLUeWYucunhKge87WGZakMsuXpxcHpdVJTzhRzO3FAX1cDiIm4IC/kiOFrzoZBYlhpxpk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xxxzMIsc; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1784338243; c=relaxed/simple;
+	bh=+GgTEfuPdD0vodAJIVCurJhExea0F9hd2WXePcS+w7A=;
+	h=Date:To:From:Subject:Message-Id; b=N7Mt/gXgRMs6lubrgSUsdjCkiOrjqjsz+aHeT2Wer06s9FaA9RzHjI9DVCGkf3ioVKQ7Cj9rygZyGBuTbuu49toicXv0P/5Xk0Kj5D0CyRjt3PVFmbJ2WneKrww74w8Z44zJxJhI9ZxyFerci45W/v5QP4nuODZ7X+SNNveWpjo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nAga+/eU; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xxxzMIsc"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EDDF11F00A3A;
-	Sat, 18 Jul 2026 01:23:35 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nAga+/eU"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EABB41F000E9;
+	Sat, 18 Jul 2026 01:30:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1784337816;
-	bh=Pw8Lz7aPVzKgYsKFeYOcUNe0S3UZQ2fskYI4hQMKWVA=;
+	d=linux-foundation.org; s=korg; t=1784338242;
+	bh=O4D+cRds7RkiWKskmnSQdRaNlyjMgmITgE/tSDVmWcs=;
 	h=Date:To:From:Subject;
-	b=xxxzMIscoQYAOH2aqQ7ZBdZrT0NY+S/S79iDi7AfRFMvOuYmg4B889JgcYopB15Nl
-	 r1G/C1p+YrLWIv9jMTa3LM5eVJMqdglFSQBILjGR6Hin5NZUltajGnEaOSTJQFYhKk
-	 GmtBAoafm+uLxWI+iZihO9I6+6lYC2t2sOiEPwfk=
-Date: Fri, 17 Jul 2026 18:23:35 -0700
-To: mm-commits@vger.kernel.org,npache@redhat.com,akpm@linux-foundation.org
+	b=nAga+/eUZhlC9HUAO3g6GHwJcid1M0y+tz+ueL/AC+e31E/YpM7lagVaK05Nzfd05
+	 trMYcRI+G8jfeE4YEoq28Xo3k0QfNxBeG1jxahQmuPuaCPxi7wlDm5vS3RcnjB1k93
+	 XaNawMJw1Hilo84qmpqKAnoZywk8qOVz47MVFr0Y=
+Date: Fri, 17 Jul 2026 18:30:41 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,willy@infradead.org,rakie.kim@sk.com,osalvador@suse.de,matthew.brost@intel.com,ljs@kernel.org,joshua.hahnjy@gmail.com,gourry@gourry.net,david@kernel.org,byungchul@sk.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,apopple@nvidia.com,npache@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-migrate-exclude-hugetlb-folios-from-mthp_stat_nr_anon-accounting.patch removed from -mm tree
-Message-Id: <20260718012335.EDDF11F00A3A@smtp.kernel.org>
+Subject: + mm-decrement-mthp_stat_nr_anon-in-free_zone_device_folio.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260718013041.EABB41F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,33 +34,69 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: mm/migrate: exclude hugetlb folios from MTHP_STAT_NR_ANON accounting
-has been removed from the -mm tree.  Its filename was
-     mm-migrate-exclude-hugetlb-folios-from-mthp_stat_nr_anon-accounting.patch
+The patch titled
+     Subject: mm: decrement MTHP_STAT_NR_ANON in free_zone_device_folio()
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-decrement-mthp_stat_nr_anon-in-free_zone_device_folio.patch
 
-This patch was dropped because an updated version will be issued
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-decrement-mthp_stat_nr_anon-in-free_zone_device_folio.patch
+
+This patch will later appear in the mm-hotfixes-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
 ------------------------------------------------------
 From: Nico Pache <npache@redhat.com>
-Subject: mm/migrate: exclude hugetlb folios from MTHP_STAT_NR_ANON accounting
-Date: Thu, 2 Jul 2026 11:25:47 -0600
+Subject: mm: decrement MTHP_STAT_NR_ANON in free_zone_device_folio()
+Date: Fri, 17 Jul 2026 00:44:59 -0600
 
-__folio_migrate_mapping() increments MTHP_STAT_NR_ANON for the destination
-folio when `folio_test_anon(folio) && folio_test_large(folio)` is true. 
-However, hugetlb folios satisfy both conditions despite having a
-completely separate accounting system; they use hugetlb_add_anon_rmap()
-which does not touch mTHP stats, and their free path also bypasses the
-mTHP decrement in __free_pages_prepare().
+Patch series "mm: fix PMD level mTHP accounting bugs", v2.
 
-This causes MTHP_STAT_NR_ANON to be incremented on each hugetlb migration
-without a corresponding decrement, permanently inflating the nr_anon
-counter.
+While running selftests I noticed the PMD level per-mTHP stats (nr_anon)
+remained elevated after each run.  After further investigation I noticed
+this accounting error occurs for both the migration.private_anon_htlb_test
+and the HMM tests.
 
-Add a !folio_test_hugetlb() check to both places in
-__folio_migrate_mapping() so that only actual mTHP folios are counted.
+In the HMM case this is due to folio_add_new_anon_rmap() incrementing the
+mTHP stats, but never containing a corresponding decrement in
+free_zone_device_folio().  We solve this by making sure to decrement the
+counter when freeing device memory.
 
-Link: https://lore.kernel.org/20260702172548.37075-3-npache@redhat.com
+In the migration case, we are incrementing this counter without first
+checking whether this folio is a hugetlb folio, which relies on a separate
+accounting system.  We solve this by adding the proper hugetlb check
+before incrementing this counter.
+
+With these changes in place, the two tests no longer cause elevated PMD
+level accounting issues.
+
+
+This patch (of 2):
+
+When a zone device folio is mapped as anonymous, folio_add_new_anon_rmap()
+increments MTHP_STAT_NR_ANON.  The corresponding decrement lives in
+__free_pages_prepare() in page_alloc.c, but zone device folios are freed
+via free_zone_device_folio() which never calls __free_pages_prepare(). 
+This causes nr_anon to remain permanently elevated after zone device
+folios are freed.
+
+Add the missing mod_mthp_stat() decrement to free_zone_device_folio() so
+that the counter is properly balanced.
+
+Link: https://lore.kernel.org/20260717064502.1980173-1-npache@redhat.com
+Link: https://lore.kernel.org/20260717064502.1980173-2-npache@redhat.com
 Fixes: 5d65c8d758f2 ("mm: count the number of anonymous THPs per size")
 Co-developed-by: David Hildenbrand <david@kernel.org>
 Signed-off-by: David Hildenbrand <david@kernel.org>
@@ -77,37 +113,27 @@ Cc: Matthew Brost <matthew.brost@intel.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Oscar Salvador <osalvador@suse.de>
 Cc: Rakie Kim <rakie.kim@sk.com>
-Cc: <stable@vger.kernel.org>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ mm/memremap.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/migrate.c~mm-migrate-exclude-hugetlb-folios-from-mthp_stat_nr_anon-accounting
-+++ a/mm/migrate.c
-@@ -590,7 +590,8 @@ static int __folio_migrate_mapping(struc
- 		/* No turning back from here */
- 		newfolio->index = folio->index;
- 		newfolio->mapping = folio->mapping;
--		if (folio_test_anon(folio) && folio_test_large(folio))
-+		if (folio_test_anon(folio) && folio_test_large(folio) &&
-+		    !folio_test_hugetlb(folio))
- 			mod_mthp_stat(folio_order(folio), MTHP_STAT_NR_ANON, 1);
- 		if (folio_test_swapbacked(folio))
- 			__folio_set_swapbacked(newfolio);
-@@ -623,7 +624,8 @@ static int __folio_migrate_mapping(struc
- 	 */
- 	newfolio->index = folio->index;
- 	newfolio->mapping = folio->mapping;
--	if (folio_test_anon(folio) && folio_test_large(folio))
-+	if (folio_test_anon(folio) && folio_test_large(folio) &&
-+	    !folio_test_hugetlb(folio))
- 		mod_mthp_stat(folio_order(folio), MTHP_STAT_NR_ANON, 1);
- 	folio_ref_add(newfolio, nr); /* add cache reference */
- 	if (folio_test_swapbacked(folio))
+--- a/mm/memremap.c~mm-decrement-mthp_stat_nr_anon-in-free_zone_device_folio
++++ a/mm/memremap.c
+@@ -425,6 +425,7 @@ void free_zone_device_folio(struct folio
+ 	mem_cgroup_uncharge(folio);
+ 
+ 	if (folio_test_anon(folio)) {
++		mod_mthp_stat(folio_order(folio), MTHP_STAT_NR_ANON, -1);
+ 		for (i = 0; i < nr; i++)
+ 			__ClearPageAnonExclusive(folio_page(folio, i));
+ 	}
 _
 
 Patches currently in -mm which might be from npache@redhat.com are
 
+mm-decrement-mthp_stat_nr_anon-in-free_zone_device_folio.patch
+mm-migrate-exclude-hugetlb-folios-from-mthp_stat_nr_anon-accounting.patch
 
