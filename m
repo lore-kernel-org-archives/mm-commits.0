@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2F8C61DDC37
-	for <mm-commits@vger.kernel.org>; Sat, 18 Jul 2026 01:21:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2ABA92AD03
+	for <mm-commits@vger.kernel.org>; Sat, 18 Jul 2026 01:23:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784337721; cv=none; b=owGokyyOK8Ap2kAmGA5+WU3HlISAT4qt88mA6S87m7LZ095f++MfKaQJfWPDkvgKj31KTgHSt270iu26SyOphGy2HBdwmucz2J/rahAC2fcVuYMNVBqHWm4v+xjMcwEDjaow0nXzJ72clz7NhjCCOp+gCxkfkMgJvjA0sxm9TTI=
+	t=1784337816; cv=none; b=hrzvllJcdO4ZVkQ9JU7Thb7To8LfNg0HtRlCmVhtMrICoxFiutv8qyP/y4/Seg8PfoIfGv8z0HJlfAbEQ7RyXHOeehDBk7vlGI1DI9/Ekb4e8qbtF/lO3NNZ1B95pDyXLmagptjfJBd1DxZkGz57qjvwpdoBdi2FNp2rfwgJPsU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784337721; c=relaxed/simple;
-	bh=1YOHAeNg+CoGtxlw/NPmnRl3W5aj31yjil2wbSSoBxg=;
-	h=Date:To:From:Subject:Message-Id; b=MlpZAi6LR0k2Qe/Hnam4oDOVDm81wDAgVCmmpmOBUWOR7MKxYbEgD25XHA25cIoV675vxPwbayj9QPfVLIc+6gsoaccXqy4uBMZFQbWsrPBw+wYCFu1vFsZWCXKVANmCRtfleHQhw9SUoxeUhl+22InGZB74NJNBDm1QDkZ5vtc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DjSqywf+; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1784337816; c=relaxed/simple;
+	bh=3MLmAoK/oqmoQ79XiXHxINty2tsnuIlWNz0MW8iJDCo=;
+	h=Date:To:From:Subject:Message-Id; b=k2mHdqDidbuPbxW3o489ujPS2+r1VM1S2VvI00b5leuX0vSk7XQRIiZnMrL2zE7NzcFjA4uOYjv11fAeO1jdkEdSnMDXnh0wtrpXfJ6GtEqV36ICZeW1d1ySv43YwfwssSa7eMNbJdCtGnMCaJMORVroikL7PYPxSH044edSRVk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=M7a33w+e; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DjSqywf+"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id ADF581F000E9;
-	Sat, 18 Jul 2026 01:21:59 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="M7a33w+e"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AA4E61F000E9;
+	Sat, 18 Jul 2026 01:23:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1784337719;
-	bh=rypAYgRVYQp2yODtHkYf0iCovxzDq3ROBsGSragGPV0=;
+	d=linux-foundation.org; s=korg; t=1784337814;
+	bh=njodvPB208Oy4asCxy+W3ixdoTqA1yK6XCpsXDsxlTk=;
 	h=Date:To:From:Subject;
-	b=DjSqywf++ntl1H/brSl8ujDNWSwF+DCdPEyQXr8MYBTXNdKfiHhOBxNYcJD0W9c3n
-	 DruPUYBY4enWnnLKr2V/dHXipVYbl8VW6N052SRhTsMJPvBFNKj1q55uMtElNqCQ85
-	 f4e7XxyzfG/CckQ+14Q482+HYIAGex6FZWEGKPGQ=
-Date: Fri, 17 Jul 2026 18:21:59 -0700
-To: mm-commits@vger.kernel.org,shikemeng@huaweicloud.com,nphamcs@gmail.com,kasong@tencent.com,chrisl@kernel.org,baoquan.he@linux.dev,baohua@kernel.org,lihongfu@kylinos.cn,akpm@linux-foundation.org
+	b=M7a33w+e98K73YV8TyFdxpDwI/Qv0AQ14mmrgI1Vs6gVdXGZkqmFk4jjC8l95NFcj
+	 vnq+lXv2bYONz3qPjbRsh0bnAqajlnS8gfa/DEhs4AEEpRE7GQLh/oVXiktVOT3xwn
+	 gZnm9bZyb14yKiZpaTmVQXTZvn7YkAqOqaCrMjBE=
+Date: Fri, 17 Jul 2026 18:23:34 -0700
+To: mm-commits@vger.kernel.org,npache@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-swap-fix-swap_cluster_lock-config_swap-stub-signature-mismatch.patch added to mm-new branch
-Message-Id: <20260718012159.ADF581F000E9@smtp.kernel.org>
+Subject: [to-be-updated] mm-decrement-mthp_stat_nr_anon-in-free_zone_device_folio.patch removed from -mm tree
+Message-Id: <20260718012334.AA4E61F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,93 +34,89 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: mm/swap: fix swap_cluster_lock() !CONFIG_SWAP stub signature mismatch
-has been added to the -mm mm-new branch.  Its filename is
-     mm-swap-fix-swap_cluster_lock-config_swap-stub-signature-mismatch.patch
+The quilt patch titled
+     Subject: mm: decrement MTHP_STAT_NR_ANON in free_zone_device_folio()
+has been removed from the -mm tree.  Its filename was
+     mm-decrement-mthp_stat_nr_anon-in-free_zone_device_folio.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-fix-swap_cluster_lock-config_swap-stub-signature-mismatch.patch
-
-This patch will later appear in the mm-new branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Hongfu Li <lihongfu@kylinos.cn>
-Subject: mm/swap: fix swap_cluster_lock() !CONFIG_SWAP stub signature mismatch
-Date: Fri, 17 Jul 2026 15:11:04 +0800
+From: Nico Pache <npache@redhat.com>
+Subject: mm: decrement MTHP_STAT_NR_ANON in free_zone_device_folio()
+Date: Thu, 2 Jul 2026 11:25:46 -0600
 
-The !CONFIG_SWAP stub for swap_cluster_lock() has mismatched prototype: it
-has an extra unused irq argument and uses pgoff_t instead of unsigned long
-for offset.  All callers are under CONFIG_SWAP so the extra parameter is
-dead.
+Patch series "mm: fix PMD level mTHP accounting bugs".
 
-Delete the unused stub function entirely.
+While running selftests I noticed the PMD level per-mTHP stats (nr_anon)
+remained elevated after each run.  After further investigation I noticed
+this accounting error occurs for both the migration.private_anon_htlb_test
+and the HMM tests.
 
-Link: https://lore.kernel.org/20260717071104.73467-1-hongfu.li@linux.dev
-Signed-off-by: Hongfu Li <lihongfu@kylinos.cn>
-Reviewed-by: Baoquan He <baoquan.he@linux.dev>
-Acked-by: Kairui Song <kasong@tencent.com>
+In the HMM case this is due to folio_add_new_anon_rmap() incrementing the
+mTHP stats, but never containing a corresponding decrement in
+free_zone_device_folio().  We solve this by making sure to decrement the
+counter when freeing device memory.
+
+In the migration case, we are incrementing this counter without first
+checking whether this folio is a hugetlb folio, which relies on a separate
+accounting system.  We solve this by adding the proper hugetlb check
+before incrementing this counter.
+
+With these changes in place, the two tests no longer cause elevated PMD
+level accounting issues.
+
+
+This patch (of 2):
+
+When a zone device folio is mapped as anonymous, folio_add_new_anon_rmap()
+increments MTHP_STAT_NR_ANON.  The corresponding decrement lives in
+__free_pages_prepare() in page_alloc.c, but zone device folios are freed
+via free_zone_device_folio() which never calls __free_pages_prepare(). 
+This causes nr_anon to remain permanently elevated after zone device
+folios are freed.
+
+Add the missing mod_mthp_stat() decrement to free_zone_device_folio() so
+that the counter is properly balanced.
+
+Link: https://lore.kernel.org/20260702172548.37075-1-npache@redhat.com
+Link: https://lore.kernel.org/20260702172548.37075-2-npache@redhat.com
+Fixes: 5d65c8d758f2 ("mm: count the number of anonymous THPs per size")
+Co-developed-by: David Hildenbrand <david@kernel.org>
+Signed-off-by: David Hildenbrand <david@kernel.org>
+Signed-off-by: Nico Pache <npache@redhat.com>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Barry Song <baohua@kernel.org>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: Hongfu Li <lihongfu@kylinos.cn>
-Cc: Kemeng Shi <shikemeng@huaweicloud.com>
-Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: Byungchul Park <byungchul@sk.com>
+Cc: Gregory Price <gourry@gourry.net>
+Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
+Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Matthew Brost <matthew.brost@intel.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Rakie Kim <rakie.kim@sk.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap.h |    5 -----
- 1 file changed, 5 deletions(-)
+ mm/memremap.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/swap.h~mm-swap-fix-swap_cluster_lock-config_swap-stub-signature-mismatch
-+++ a/mm/swap.h
-@@ -344,11 +344,6 @@ void swap_update_readahead(struct folio
- 			   unsigned long addr);
+--- a/mm/memremap.c~mm-decrement-mthp_stat_nr_anon-in-free_zone_device_folio
++++ a/mm/memremap.c
+@@ -425,6 +425,7 @@ void free_zone_device_folio(struct folio
+ 	mem_cgroup_uncharge(folio);
  
- #else /* CONFIG_SWAP */
--static inline struct swap_cluster_info *swap_cluster_lock(
--	struct swap_info_struct *si, pgoff_t offset, bool irq)
--{
--	return NULL;
--}
- 
- static inline struct swap_cluster_info *swap_cluster_get_and_lock(
- 		struct folio *folio)
+ 	if (folio_test_anon(folio)) {
++		mod_mthp_stat(folio_order(folio), MTHP_STAT_NR_ANON, -1);
+ 		for (i = 0; i < nr; i++)
+ 			__ClearPageAnonExclusive(folio_page(folio, i));
+ 	}
 _
 
-Patches currently in -mm which might be from lihongfu@kylinos.cn are
+Patches currently in -mm which might be from npache@redhat.com are
 
-selftests-mm-move-pkey-selftest-helpers-to-pkey_utilc.patch
-selftests-mm-unify-pkey-sighandler-selftest-assertions-and-tracing.patch
-selftests-mm-use-pkey_assert-on-clone_raw-failure-in-pkey-test.patch
-selftests-mm-add-missing-mmap-return-checks-in-pkey-tests.patch
-selftests-mm-add-missing-pthread_create-return-checks-in-pkey-tests.patch
-selftests-mm-fix-clone-cleartid-race-in-pkey-sighandler-tests.patch
-selftests-mm-fix-memleak-in-migration-benchmark.patch
-selftests-mm-factor-out-hmm_buffer_alloc-to-consolidate-buffer-setup.patch
-selftests-mm-fix-bug_on-checking-wrong-variable-in-mremap_dontunmap.patch
-mm-swap-fix-swap_cluster_lock-config_swap-stub-signature-mismatch.patch
+mm-migrate-exclude-hugetlb-folios-from-mthp_stat_nr_anon-accounting.patch
 
