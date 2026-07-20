@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 33DB0449B3C
-	for <mm-commits@vger.kernel.org>; Mon, 20 Jul 2026 23:47:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 10056199931
+	for <mm-commits@vger.kernel.org>; Mon, 20 Jul 2026 23:48:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784591270; cv=none; b=MoiXtAqz2+w4Ts7CCWSZRYcNPt1ScwQ7S2EJ4yIH9c63c8Ps7J5lFhptUkMLh/7xQj44e891HxjqsRhnEV5mxlNjz4eDYmNPUjCKij0G7SUh+AXQx7g5cQ/0ANwIv+qkAS/m6k9L+DgQbegGReGcLk+Fn7ibLdse7AD0UmOYfq4=
+	t=1784591296; cv=none; b=TVjFMRbOVOZTzxzDz0v4FIwDrnPEAiIcp5AVq9lKHaV8MvR1gk3AjPpfHNisPMNeDZ5IrndSH+Kb7u7KIo9HSUe/JkmV4Yp/Wx7auXnUiY4YSgl1rbBY5vAqOMbUQ95ex7ukOmCbovbcnuPoSL+lEMXmEdBc6E7BY5Fw1lYlS9g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784591270; c=relaxed/simple;
-	bh=Byd5k30cpRfchHKPkwl4kNG6kQNBY7IAKVKzPQFCCK8=;
-	h=Date:To:From:Subject:Message-Id; b=c8FLmRidrpzDvpcGDwi/cJij9fjclxtI8AuMqJ5AqE0sZZyCg+iicjxLAqzbUgCXFrR8CYYhuAhNa0Zvui4lk8WuIPe9UNjenDwDi0gWY/txYLBeJ7it4G40TAo4FfZk+KdwhIyIjKRjFyxE0QUZqdtnDGYqlJ1MfzqplsSl79U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XpTrcreG; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1784591296; c=relaxed/simple;
+	bh=qExlTddBTLBmbw54EQjhANBIBRhAQRjaYQfPE9Q5r7E=;
+	h=Date:To:From:Subject:Message-Id; b=esDK6NLTN7AZO3FLpfmE57eQxCR0LZRBcHBCBYvDAAEYHx7f81mJzI1QWRBCckrh5719katL8OeaNdqvIJ5JVwQM3iO00H1l7qiVGU1eioCPNpUmKb6gBAFDliRAsRx8g6UDyYSg+SS0uCLpgM9Zj7inHr8mb70O8YeJmUCeWac=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qheOS783; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XpTrcreG"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C50F61F000E9;
-	Mon, 20 Jul 2026 23:47:48 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qheOS783"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AACF01F000E9;
+	Mon, 20 Jul 2026 23:48:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1784591268;
-	bh=IOcn5RZ1h+5GdJr6ibF0S3tJy5rIx09fKhUDvTejByI=;
+	d=linux-foundation.org; s=korg; t=1784591294;
+	bh=DzHIZHoClVgb+2XSw/lux3/hYmUi8WvUU8A/yXgS3gQ=;
 	h=Date:To:From:Subject;
-	b=XpTrcreGLw6pPvdMmw30sNlfSU/lqsWpFxdcYtbGLQe6WTxh2bYNjvqQVsL1vzR1x
-	 B1Dsrg5tN/IMI2QaQ/Ft62cY6Xgve0YE6g9/W0TykNhOaP+35NRCRxIY4ywLxwKz8b
-	 vDNy2rqgz0zTlHJlJ7svNoDyPbbNEs388335K1uw=
-Date: Mon, 20 Jul 2026 16:47:48 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,shuah@kernel.org,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,yanlonglong@kylinos.cn,akpm@linux-foundation.org
+	b=qheOS783BBXbVl1mnihx/o8U3zvHZnJOKvnR4BfM3ihdgaRQOwu80W90OkX5gbI5u
+	 bdLqoNYAsoMXb7+7JVlUCoAwwiXJG/0F+b1g/nkUQPhbYlw97j8DJnXsOQuHGB2Pfp
+	 ljhWDdNCs24zoeU9vWrPpeO5cLjnJAzl9TyEME7w=
+Date: Mon, 20 Jul 2026 16:48:14 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,yuanchu@google.com,willy@infradead.org,weixugc@google.com,vbabka@suse.cz,surenb@google.com,sj@kernel.org,rppt@kernel.org,pabeni@redhat.com,mhocko@suse.com,liam.howlett@oracle.com,lance.yang@linux.dev,kuba@kernel.org,jackmanb@google.com,horms@kernel.org,hannes@cmpxchg.org,edumazet@google.com,david@kernel.org,davem@davemloft.net,axelrasmussen@google.com,realwujing@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-use-map_failed-for-mmap-error-check.patch added to mm-new branch
-Message-Id: <20260720234748.C50F61F000E9@smtp.kernel.org>
+Subject: + mm-page_alloc-boost-watermarks-on-atomic-allocation-failure.patch added to mm-new branch
+Message-Id: <20260720234814.AACF01F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: use MAP_FAILED for mmap error check
+     Subject: mm/page_alloc: boost watermarks on atomic allocation failure
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-mm-use-map_failed-for-mmap-error-check.patch
+     mm-page_alloc-boost-watermarks-on-atomic-allocation-failure.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-use-map_failed-for-mmap-error-check.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-boost-watermarks-on-atomic-allocation-failure.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,487 +69,224 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: longlong yan <yanlonglong@kylinos.cn>
-Subject: selftests/mm: use MAP_FAILED for mmap error check
-Date: Mon, 20 Jul 2026 14:34:39 +0800
+From: Qiliang Yuan <realwujing@gmail.com>
+Subject: mm/page_alloc: boost watermarks on atomic allocation failure
+Date: Mon, 20 Jul 2026 16:15:48 +0800
 
-Replace the direct comparison with (void *)-1 with the standard MAP_FAILED
-macro when checking mmap()
+Atomic allocations (GFP_ATOMIC) are prone to failure under heavy memory
+pressure as they cannot enter direct reclaim.
 
-Link: https://lore.kernel.org/20260720063439.522-1-yanlonglong@kylinos.cn
-Signed-off-by: longlong yan <yanlonglong@kylinos.cn>
-Reviewed-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Cc: Liam R. Howlett <liam@infradead.org>
+Handle these failures by introducing a watermark boost mechanism for
+atomic requests. Refactor boost_watermark() using an internal helper to
+support both fragmentation and atomic paths. Apply zone-proportional
+boosts (~0.1% of managed pages) for atomic allocations, while
+decoupling it from watermark_boost_factor.
+
+Implement boost_zones_for_atomic() to iterate through and boost all
+eligible zones in the zonelist, respecting nodemasks. Use a per-zone
+1-second debounce timer via last_boost_jiffies to prevent excessive
+boosting. Check and update the debounce timestamp under zone->lock,
+alongside the watermark modification, so concurrent callers on other
+CPUs cannot all observe a stale timestamp and pile onto the same zone
+within the same window. Verify with lockdep. Integrate the mechanism
+into the page allocation slowpath specifically for order-0 GFP_ATOMIC
+requests.
+
+This approach reuses existing infrastructure and ensures emergency
+reserves even if fragmentation boosting is disabled.
+
+The mechanism is bounded by construction. Each zone accepts at most
+one boost per second (the debounce timer), and zone->watermark_boost
+is clamped to zone->_watermark[WMARK_HIGH] / 10 regardless of how
+long the atomic pressure lasts or how many zones are boosted in a
+single slowpath call. Worst case, sustained atomic pressure across
+all zones in a zonelist adds at most one extra kswapd wakeup per zone
+per second, and the boost on any single zone cannot exceed 10% of
+that zone's high watermark. It cannot run away or starve unrelated
+allocations beyond that ceiling.
+
+This failure signature keeps recurring in production: a host running
+a downstream 4.19 kernel logged 144 order-0 GFP_ATOMIC failures over a
+4h15m window, all through the same NIC driver receive softirq path,
+across several unrelated network-facing services on the box. This
+confirms the underlying problem is real and ongoing. It does not by
+itself measure this patch's effect, since the fix has not been
+deployed on that fleet yet.
+
+Allocation failure logs:
+[38535644.718700] node 0: slabs: 1031, objs: 43328, free: 0
+[38535644.725059] node 1: slabs: 339, objs: 17616, free: 317
+[38535645.428345] SLUB: Unable to allocate memory on node -1, gfp=0x480020(GFP_ATOMIC)
+[38535645.436888] cache: skbuff_head_cache, object size: 232, buffer size: 256, default order: 2, min order: 0
+[38535645.447664] node 0: slabs: 940, objs: 40864, free: 144
+[38535645.454026] node 1: slabs: 322, objs: 19168, free: 383
+[38535645.556122] SLUB: Unable to allocate memory on node -1, gfp=0x480020(GFP_ATOMIC)
+[38535645.564576] cache: skbuff_head_cache, object size: 232, buffer size: 256, default order: 2, min order: 0
+[38535649.655523] warn_alloc: 59 callbacks suppressed
+[38535649.655527] swapper/100: page allocation failure: order:0, mode:0x480020(GFP_ATOMIC), nodemask=(null)
+[38535649.671692] swapper/100 cpuset=/ mems_allowed=0-1
+
+Link: https://lore.kernel.org/20260720-feat-mm-page_alloc-v11-v11-1-7376b02c27b3@gmail.com
+Signed-off-by: Qiliang Yuan <realwujing@gmail.com>
+Signed-off-by: Jing Wu <realwujing@gmail.com>
+Acked-by: SeongJae Park <sj@kernel.org>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Brendan Jackman <jackmanb@google.com>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Lance Yang <lance.yang@linux.dev>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Shuah Khan <shuah@kernel.org>
+Cc: SeongJae Park <sj@kernel.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Wei Xu <weixugc@google.com>
+Cc: Yuanchu Xie <yuanchu@google.com>
+Cc: Zi Yan <ziy@nvidia.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Eric Dumazet <edumazet@google.com>
+Cc: Jakub Kicinski <kuba@kernel.org>
+Cc: Paolo Abeni <pabeni@redhat.com>
+Cc: Simon Horman <horms@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/mseal_test.c |  106 +++++++++++-----------
- 1 file changed, 53 insertions(+), 53 deletions(-)
+ include/linux/mmzone.h |    1 
+ mm/page_alloc.c        |   80 ++++++++++++++++++++++++++++++++++-----
+ 2 files changed, 72 insertions(+), 9 deletions(-)
 
---- a/tools/testing/selftests/mm/mseal_test.c~selftests-mm-use-map_failed-for-mmap-error-check
-+++ a/tools/testing/selftests/mm/mseal_test.c
-@@ -234,7 +234,7 @@ static void test_seal_addseal(void)
- 	unsigned long size = 4 * page_size;
- 
- 	setup_single_address(size, &ptr);
--	FAIL_TEST_IF_FALSE(ptr != (void *)-1);
-+	FAIL_TEST_IF_FALSE(ptr != MAP_FAILED);
- 
- 	ret = sys_mseal(ptr, size);
- 	FAIL_TEST_IF_FALSE(!ret);
-@@ -250,7 +250,7 @@ static void test_seal_unmapped_start(voi
- 	unsigned long size = 4 * page_size;
- 
- 	setup_single_address(size, &ptr);
--	FAIL_TEST_IF_FALSE(ptr != (void *)-1);
-+	FAIL_TEST_IF_FALSE(ptr != MAP_FAILED);
- 
- 	/* munmap 2 pages from ptr. */
- 	ret = sys_munmap(ptr, 2 * page_size);
-@@ -278,7 +278,7 @@ static void test_seal_unmapped_middle(vo
- 	unsigned long size = 4 * page_size;
- 
- 	setup_single_address(size, &ptr);
--	FAIL_TEST_IF_FALSE(ptr != (void *)-1);
-+	FAIL_TEST_IF_FALSE(ptr != MAP_FAILED);
- 
- 	/* munmap 2 pages from ptr + page. */
- 	ret = sys_munmap(ptr + page_size, 2 * page_size);
-@@ -310,7 +310,7 @@ static void test_seal_unmapped_end(void)
- 	unsigned long size = 4 * page_size;
- 
- 	setup_single_address(size, &ptr);
--	FAIL_TEST_IF_FALSE(ptr != (void *)-1);
-+	FAIL_TEST_IF_FALSE(ptr != MAP_FAILED);
- 
- 	/* unmap last 2 pages. */
- 	ret = sys_munmap(ptr + 2 * page_size, 2 * page_size);
-@@ -339,7 +339,7 @@ static void test_seal_multiple_vmas(void
- 	unsigned long size = 4 * page_size;
- 
- 	setup_single_address(size, &ptr);
--	FAIL_TEST_IF_FALSE(ptr != (void *)-1);
-+	FAIL_TEST_IF_FALSE(ptr != MAP_FAILED);
- 
- 	/* use mprotect to split the vma into 3. */
- 	ret = sys_mprotect(ptr + page_size, 2 * page_size,
-@@ -370,7 +370,7 @@ static void test_seal_split_start(void)
- 	unsigned long size = 4 * page_size;
- 
- 	setup_single_address(size, &ptr);
--	FAIL_TEST_IF_FALSE(ptr != (void *)-1);
-+	FAIL_TEST_IF_FALSE(ptr != MAP_FAILED);
- 
- 	/* use mprotect to split at middle */
- 	ret = sys_mprotect(ptr, 2 * page_size, PROT_READ | PROT_WRITE);
-@@ -395,7 +395,7 @@ static void test_seal_split_end(void)
- 	unsigned long size = 4 * page_size;
- 
- 	setup_single_address(size, &ptr);
--	FAIL_TEST_IF_FALSE(ptr != (void *)-1);
-+	FAIL_TEST_IF_FALSE(ptr != MAP_FAILED);
- 
- 	/* use mprotect to split at middle */
- 	ret = sys_mprotect(ptr, 2 * page_size, PROT_READ | PROT_WRITE);
-@@ -420,7 +420,7 @@ static void test_seal_invalid_input(void
- 	int ret;
- 
- 	setup_single_address(8 * page_size, &ptr);
--	FAIL_TEST_IF_FALSE(ptr != (void *)-1);
-+	FAIL_TEST_IF_FALSE(ptr != MAP_FAILED);
- 	ret = clean_single_address(ptr + 4 * page_size, 4 * page_size);
- 	FAIL_TEST_IF_FALSE(!ret);
- 
-@@ -455,7 +455,7 @@ static void test_seal_zero_length(void)
- 	int ret;
- 
- 	setup_single_address(size, &ptr);
--	FAIL_TEST_IF_FALSE(ptr != (void *)-1);
-+	FAIL_TEST_IF_FALSE(ptr != MAP_FAILED);
- 
- 	ret = sys_mprotect(ptr, 0, PROT_READ | PROT_WRITE);
- 	FAIL_TEST_IF_FALSE(!ret);
-@@ -505,7 +505,7 @@ static void test_seal_twice(void)
- 	unsigned long size = 4 * page_size;
- 
- 	setup_single_address(size, &ptr);
--	FAIL_TEST_IF_FALSE(ptr != (void *)-1);
-+	FAIL_TEST_IF_FALSE(ptr != MAP_FAILED);
- 
- 	ret = sys_mseal(ptr, size);
- 	FAIL_TEST_IF_FALSE(!ret);
-@@ -525,7 +525,7 @@ static void test_seal_mprotect(bool seal
- 	int ret;
- 
- 	setup_single_address(size, &ptr);
--	FAIL_TEST_IF_FALSE(ptr != (void *)-1);
-+	FAIL_TEST_IF_FALSE(ptr != MAP_FAILED);
- 
- 	if (seal) {
- 		ret = seal_single_address(ptr, size);
-@@ -549,7 +549,7 @@ static void test_seal_start_mprotect(boo
- 	int ret;
- 
- 	setup_single_address(size, &ptr);
--	FAIL_TEST_IF_FALSE(ptr != (void *)-1);
-+	FAIL_TEST_IF_FALSE(ptr != MAP_FAILED);
- 
- 	if (seal) {
- 		ret = seal_single_address(ptr, page_size);
-@@ -579,7 +579,7 @@ static void test_seal_end_mprotect(bool
- 	int ret;
- 
- 	setup_single_address(size, &ptr);
--	FAIL_TEST_IF_FALSE(ptr != (void *)-1);
-+	FAIL_TEST_IF_FALSE(ptr != MAP_FAILED);
- 
- 	if (seal) {
- 		ret = seal_single_address(ptr + page_size, 3 * page_size);
-@@ -609,7 +609,7 @@ static void test_seal_mprotect_unalign_l
- 	int ret;
- 
- 	setup_single_address(size, &ptr);
--	FAIL_TEST_IF_FALSE(ptr != (void *)-1);
-+	FAIL_TEST_IF_FALSE(ptr != MAP_FAILED);
- 
- 	if (seal) {
- 		ret = seal_single_address(ptr, page_size * 2 - 1);
-@@ -638,7 +638,7 @@ static void test_seal_mprotect_unalign_l
- 	int ret;
- 
- 	setup_single_address(size, &ptr);
--	FAIL_TEST_IF_FALSE(ptr != (void *)-1);
-+	FAIL_TEST_IF_FALSE(ptr != MAP_FAILED);
- 	if (seal) {
- 		ret =  seal_single_address(ptr, page_size * 2 + 1);
- 		FAIL_TEST_IF_FALSE(!ret);
-@@ -666,7 +666,7 @@ static void test_seal_mprotect_two_vma(b
- 	int ret;
- 
- 	setup_single_address(size, &ptr);
--	FAIL_TEST_IF_FALSE(ptr != (void *)-1);
-+	FAIL_TEST_IF_FALSE(ptr != MAP_FAILED);
- 
- 	/* use mprotect to split */
- 	ret = sys_mprotect(ptr, page_size * 2, PROT_READ | PROT_WRITE);
-@@ -701,7 +701,7 @@ static void test_seal_mprotect_two_vma_w
- 	int ret;
- 
- 	setup_single_address(size, &ptr);
--	FAIL_TEST_IF_FALSE(ptr != (void *)-1);
-+	FAIL_TEST_IF_FALSE(ptr != MAP_FAILED);
- 
- 	/* use mprotect to split as two vma. */
- 	ret = sys_mprotect(ptr, page_size * 2, PROT_READ | PROT_WRITE);
-@@ -748,7 +748,7 @@ static void test_seal_mprotect_partial_m
- 	int ret;
- 
- 	setup_single_address(size, &ptr);
--	FAIL_TEST_IF_FALSE(ptr != (void *)-1);
-+	FAIL_TEST_IF_FALSE(ptr != MAP_FAILED);
- 
- 	/* seal one page. */
- 	if (seal) {
-@@ -780,7 +780,7 @@ static void test_seal_mprotect_partial_m
- 	 */
- 
- 	setup_single_address(size, &ptr);
--	FAIL_TEST_IF_FALSE(ptr != (void *)-1);
-+	FAIL_TEST_IF_FALSE(ptr != MAP_FAILED);
- 
- 	if (seal) {
- 		ret = sys_mseal(ptr + page_size, page_size);
-@@ -810,7 +810,7 @@ static void test_seal_mprotect_two_vma_w
- 	int ret;
- 
- 	setup_single_address(size, &ptr);
--	FAIL_TEST_IF_FALSE(ptr != (void *)-1);
-+	FAIL_TEST_IF_FALSE(ptr != MAP_FAILED);
- 
- 	/* use mprotect to split. */
- 	ret = sys_mprotect(ptr, page_size, PROT_READ | PROT_WRITE);
-@@ -853,7 +853,7 @@ static void test_seal_mprotect_split(boo
- 	int ret;
- 
- 	setup_single_address(size, &ptr);
--	FAIL_TEST_IF_FALSE(ptr != (void *)-1);
-+	FAIL_TEST_IF_FALSE(ptr != MAP_FAILED);
- 
- 	/* use mprotect to split. */
- 	ret = sys_mprotect(ptr, page_size, PROT_READ | PROT_WRITE);
-@@ -890,7 +890,7 @@ static void test_seal_mprotect_merge(boo
- 	int ret;
- 
- 	setup_single_address(size, &ptr);
--	FAIL_TEST_IF_FALSE(ptr != (void *)-1);
-+	FAIL_TEST_IF_FALSE(ptr != MAP_FAILED);
- 
- 	/* use mprotect to split one page. */
- 	ret = sys_mprotect(ptr, page_size, PROT_READ | PROT_WRITE);
-@@ -924,7 +924,7 @@ static void test_seal_munmap(bool seal)
- 	int ret;
- 
- 	setup_single_address(size, &ptr);
--	FAIL_TEST_IF_FALSE(ptr != (void *)-1);
-+	FAIL_TEST_IF_FALSE(ptr != MAP_FAILED);
- 
- 	if (seal) {
- 		ret = sys_mseal(ptr, size);
-@@ -955,7 +955,7 @@ static void test_seal_munmap_two_vma(boo
- 	int ret;
- 
- 	setup_single_address(size, &ptr);
--	FAIL_TEST_IF_FALSE(ptr != (void *)-1);
-+	FAIL_TEST_IF_FALSE(ptr != MAP_FAILED);
- 
- 	/* use mprotect to split */
- 	ret = sys_mprotect(ptr, page_size * 2, PROT_READ | PROT_WRITE);
-@@ -996,7 +996,7 @@ static void test_seal_munmap_vma_with_ga
- 	int ret;
- 
- 	setup_single_address(size, &ptr);
--	FAIL_TEST_IF_FALSE(ptr != (void *)-1);
-+	FAIL_TEST_IF_FALSE(ptr != MAP_FAILED);
- 
- 	ret = sys_munmap(ptr + page_size, page_size * 2);
- 	FAIL_TEST_IF_FALSE(!ret);
-@@ -1028,7 +1028,7 @@ static void test_seal_munmap_partial_acr
- 	int prot;
- 
- 	setup_single_address(size, &ptr);
--	FAIL_TEST_IF_FALSE(ptr != (void *)-1);
-+	FAIL_TEST_IF_FALSE(ptr != MAP_FAILED);
- 
- 	if (seal) {
- 		ret = sys_mseal(ptr + page_size, page_size);
-@@ -1058,7 +1058,7 @@ static void test_munmap_start_freed(bool
- 	int prot;
- 
- 	setup_single_address(size, &ptr);
--	FAIL_TEST_IF_FALSE(ptr != (void *)-1);
-+	FAIL_TEST_IF_FALSE(ptr != MAP_FAILED);
- 
- 	/* unmap the first page. */
- 	ret = sys_munmap(ptr, page_size);
-@@ -1097,7 +1097,7 @@ static void test_munmap_end_freed(bool s
- 	int ret;
- 
- 	setup_single_address(size, &ptr);
--	FAIL_TEST_IF_FALSE(ptr != (void *)-1);
-+	FAIL_TEST_IF_FALSE(ptr != MAP_FAILED);
- 
- 	/* unmap last page. */
- 	ret = sys_munmap(ptr + page_size * 3, page_size);
-@@ -1128,7 +1128,7 @@ static void test_munmap_middle_freed(boo
- 	int prot;
- 
- 	setup_single_address(size, &ptr);
--	FAIL_TEST_IF_FALSE(ptr != (void *)-1);
-+	FAIL_TEST_IF_FALSE(ptr != MAP_FAILED);
- 
- 	/* unmap 2 pages in the middle. */
- 	ret = sys_munmap(ptr + page_size, page_size * 2);
-@@ -1172,7 +1172,7 @@ static void test_seal_mremap_shrink(bool
- 	void *ret2;
- 
- 	setup_single_address(size, &ptr);
--	FAIL_TEST_IF_FALSE(ptr != (void *)-1);
-+	FAIL_TEST_IF_FALSE(ptr != MAP_FAILED);
- 
- 	if (seal) {
- 		ret = sys_mseal(ptr, size);
-@@ -1201,7 +1201,7 @@ static void test_seal_mremap_expand(bool
- 	void *ret2;
- 
- 	setup_single_address(size, &ptr);
--	FAIL_TEST_IF_FALSE(ptr != (void *)-1);
-+	FAIL_TEST_IF_FALSE(ptr != MAP_FAILED);
- 	/* ummap last 2 pages. */
- 	ret = sys_munmap(ptr + 2 * page_size, 2 * page_size);
- 	FAIL_TEST_IF_FALSE(!ret);
-@@ -1233,9 +1233,9 @@ static void test_seal_mremap_move(bool s
- 	void *ret2;
- 
- 	setup_single_address(size, &ptr);
--	FAIL_TEST_IF_FALSE(ptr != (void *)-1);
-+	FAIL_TEST_IF_FALSE(ptr != MAP_FAILED);
- 	setup_single_address(size, &newPtr);
--	FAIL_TEST_IF_FALSE(newPtr != (void *)-1);
-+	FAIL_TEST_IF_FALSE(newPtr != MAP_FAILED);
- 	ret = clean_single_address(newPtr, size);
- 	FAIL_TEST_IF_FALSE(!ret);
- 
-@@ -1266,7 +1266,7 @@ static void test_seal_mmap_overwrite_pro
- 	void *ret2;
- 
- 	setup_single_address(size, &ptr);
--	FAIL_TEST_IF_FALSE(ptr != (void *)-1);
-+	FAIL_TEST_IF_FALSE(ptr != MAP_FAILED);
- 
- 	if (seal) {
- 		ret = sys_mseal(ptr, size);
-@@ -1294,7 +1294,7 @@ static void test_seal_mmap_expand(bool s
- 	void *ret2;
- 
- 	setup_single_address(size, &ptr);
--	FAIL_TEST_IF_FALSE(ptr != (void *)-1);
-+	FAIL_TEST_IF_FALSE(ptr != MAP_FAILED);
- 	/* ummap last 4 pages. */
- 	ret = sys_munmap(ptr + 8 * page_size, 4 * page_size);
- 	FAIL_TEST_IF_FALSE(!ret);
-@@ -1325,7 +1325,7 @@ static void test_seal_mmap_shrink(bool s
- 	void *ret2;
- 
- 	setup_single_address(size, &ptr);
--	FAIL_TEST_IF_FALSE(ptr != (void *)-1);
-+	FAIL_TEST_IF_FALSE(ptr != MAP_FAILED);
- 
- 	if (seal) {
- 		ret = sys_mseal(ptr, size);
-@@ -1354,9 +1354,9 @@ static void test_seal_mremap_shrink_fixe
- 	void *ret2;
- 
- 	setup_single_address(size, &ptr);
--	FAIL_TEST_IF_FALSE(ptr != (void *)-1);
-+	FAIL_TEST_IF_FALSE(ptr != MAP_FAILED);
- 	setup_single_address(size, &newAddr);
--	FAIL_TEST_IF_FALSE(newAddr != (void *)-1);
-+	FAIL_TEST_IF_FALSE(newAddr != MAP_FAILED);
- 
- 	if (seal) {
- 		ret = sys_mseal(ptr, size);
-@@ -1385,9 +1385,9 @@ static void test_seal_mremap_expand_fixe
- 	void *ret2;
- 
- 	setup_single_address(page_size, &ptr);
--	FAIL_TEST_IF_FALSE(ptr != (void *)-1);
-+	FAIL_TEST_IF_FALSE(ptr != MAP_FAILED);
- 	setup_single_address(size, &newAddr);
--	FAIL_TEST_IF_FALSE(newAddr != (void *)-1);
-+	FAIL_TEST_IF_FALSE(newAddr != MAP_FAILED);
- 
- 	if (seal) {
- 		ret = sys_mseal(newAddr, size);
-@@ -1416,9 +1416,9 @@ static void test_seal_mremap_move_fixed(
- 	void *ret2;
- 
- 	setup_single_address(size, &ptr);
--	FAIL_TEST_IF_FALSE(ptr != (void *)-1);
-+	FAIL_TEST_IF_FALSE(ptr != MAP_FAILED);
- 	setup_single_address(size, &newAddr);
--	FAIL_TEST_IF_FALSE(newAddr != (void *)-1);
-+	FAIL_TEST_IF_FALSE(newAddr != MAP_FAILED);
- 
- 	if (seal) {
- 		ret = sys_mseal(newAddr, size);
-@@ -1445,7 +1445,7 @@ static void test_seal_mremap_move_fixed_
- 	void *ret2;
- 
- 	setup_single_address(size, &ptr);
--	FAIL_TEST_IF_FALSE(ptr != (void *)-1);
-+	FAIL_TEST_IF_FALSE(ptr != MAP_FAILED);
- 
- 	if (seal) {
- 		ret = sys_mseal(ptr, size);
-@@ -1476,7 +1476,7 @@ static void test_seal_mremap_move_dontun
- 	void *ret2;
- 
- 	setup_single_address(size, &ptr);
--	FAIL_TEST_IF_FALSE(ptr != (void *)-1);
-+	FAIL_TEST_IF_FALSE(ptr != MAP_FAILED);
- 
- 	if (seal) {
- 		ret = sys_mseal(ptr, size);
-@@ -1505,7 +1505,7 @@ static void test_seal_mremap_move_dontun
- 	void *ret2;
- 
- 	setup_single_address(size, &ptr);
--	FAIL_TEST_IF_FALSE(ptr != (void *)-1);
-+	FAIL_TEST_IF_FALSE(ptr != MAP_FAILED);
- 
- 	if (seal) {
- 		ret = sys_mseal(ptr, size);
-@@ -1517,7 +1517,7 @@ static void test_seal_mremap_move_dontun
- 	 * use allocate/free to similate that.
- 	 */
- 	setup_single_address(size, &ptr2);
--	FAIL_TEST_IF_FALSE(ptr2 != (void *)-1);
-+	FAIL_TEST_IF_FALSE(ptr2 != MAP_FAILED);
- 	ret = sys_munmap(ptr2, size);
- 	FAIL_TEST_IF_FALSE(!ret);
- 
-@@ -1547,7 +1547,7 @@ static void test_seal_merge_and_split(vo
- 
- 	/* (24 RO) */
- 	setup_single_address(24 * page_size, &ptr);
--	FAIL_TEST_IF_FALSE(ptr != (void *)-1);
-+	FAIL_TEST_IF_FALSE(ptr != MAP_FAILED);
- 
- 	/* use mprotect(NONE) to set out boundary */
- 	/* (1 NONE) (22 RO) (1 NONE) */
-@@ -1637,7 +1637,7 @@ static void test_seal_discard_ro_anon_on
- 	int ret;
- 
- 	setup_single_address_rw(size, &ptr);
--	FAIL_TEST_IF_FALSE(ptr != (void *)-1);
-+	FAIL_TEST_IF_FALSE(ptr != MAP_FAILED);
- 
- 	if (seal) {
- 		ret = sys_mseal(ptr, size);
-@@ -1669,7 +1669,7 @@ static void test_seal_discard_ro_anon_on
- 	SKIP_TEST_IF_FALSE(pkey_supported());
- 
- 	setup_single_address_rw(size, &ptr);
--	FAIL_TEST_IF_FALSE(ptr != (void *)-1);
-+	FAIL_TEST_IF_FALSE(ptr != MAP_FAILED);
- 
- 	pkey = sys_pkey_alloc(0, PKEY_UNRESTRICTED);
- 	FAIL_TEST_IF_FALSE(pkey > 0);
-@@ -1751,7 +1751,7 @@ static void test_seal_discard_ro_anon_on
- 	unsigned long mapflags = MAP_ANONYMOUS | MAP_SHARED;
- 
- 	ptr = mmap(NULL, size, PROT_READ, mapflags, -1, 0);
--	FAIL_TEST_IF_FALSE(ptr != (void *)-1);
-+	FAIL_TEST_IF_FALSE(ptr != MAP_FAILED);
- 
- 	if (seal) {
- 		ret = sys_mseal(ptr, size);
-@@ -1779,7 +1779,7 @@ static void test_seal_discard_ro_anon(bo
- 	int ret;
- 
- 	setup_single_address(size, &ptr);
--	FAIL_TEST_IF_FALSE(ptr != (void *)-1);
-+	FAIL_TEST_IF_FALSE(ptr != MAP_FAILED);
- 
- 	if (seal) {
- 		ret = seal_single_address(ptr, size);
-@@ -1809,7 +1809,7 @@ static void test_seal_discard_across_vma
- 	int ret;
- 
- 	setup_single_address(size, &ptr);
--	FAIL_TEST_IF_FALSE(ptr != (void *)-1);
-+	FAIL_TEST_IF_FALSE(ptr != MAP_FAILED);
- 
- 	if (seal) {
- 		ret = seal_single_address(ptr + page_size, page_size);
-@@ -1840,7 +1840,7 @@ static void test_seal_madvise_nodiscard(
- 	int ret;
- 
- 	setup_single_address(size, &ptr);
--	FAIL_TEST_IF_FALSE(ptr != (void *)-1);
-+	FAIL_TEST_IF_FALSE(ptr != MAP_FAILED);
- 
- 	if (seal) {
- 		ret = seal_single_address(ptr, size);
+--- a/include/linux/mmzone.h~mm-page_alloc-boost-watermarks-on-atomic-allocation-failure
++++ a/include/linux/mmzone.h
+@@ -971,6 +971,7 @@ struct zone {
+ 	/* zone watermarks, access with *_wmark_pages(zone) macros */
+ 	unsigned long _watermark[NR_WMARK];
+ 	unsigned long watermark_boost;
++	unsigned long last_boost_jiffies;
+ 
+ 	unsigned long nr_reserved_highatomic;
+ 	unsigned long nr_free_highatomic;
+--- a/mm/page_alloc.c~mm-page_alloc-boost-watermarks-on-atomic-allocation-failure
++++ a/mm/page_alloc.c
+@@ -2172,12 +2172,15 @@ bool pageblock_unisolate_and_move_free_p
+ 
+ #endif /* CONFIG_MEMORY_ISOLATION */
+ 
+-static inline bool boost_watermark(struct zone *zone)
++/*
++ * Helper for boosting watermarks. Called with zone->lock held.
++ * Use max_boost to limit the boost to a percentage of the high watermark.
++ */
++static inline bool __boost_watermark(struct zone *zone, unsigned long amount,
++				     unsigned long max_boost)
+ {
+-	unsigned long max_boost;
++	lockdep_assert_held(&zone->lock);
+ 
+-	if (!watermark_boost_factor)
+-		return false;
+ 	/*
+ 	 * Don't bother in zones that are unlikely to produce results.
+ 	 * On small machines, including kdump capture kernels running
+@@ -2187,9 +2190,6 @@ static inline bool boost_watermark(struc
+ 	if ((pageblock_nr_pages * 4) > zone_managed_pages(zone))
+ 		return false;
+ 
+-	max_boost = mult_frac(zone->_watermark[WMARK_HIGH],
+-			watermark_boost_factor, 10000);
+-
+ 	/*
+ 	 * high watermark may be uninitialised if fragmentation occurs
+ 	 * very early in boot so do not boost. We do not fall
+@@ -2203,13 +2203,71 @@ static inline bool boost_watermark(struc
+ 
+ 	max_boost = max(pageblock_nr_pages, max_boost);
+ 
+-	zone->watermark_boost = min(zone->watermark_boost + pageblock_nr_pages,
+-		max_boost);
++	zone->watermark_boost = min(zone->watermark_boost + amount,
++				    max_boost);
+ 
+ 	return true;
+ }
+ 
+ /*
++ * Boost watermarks to increase reclaim pressure when fragmentation occurs
++ * and we fall back to other migratetypes.
++ */
++static inline bool boost_watermark(struct zone *zone)
++{
++	if (!watermark_boost_factor)
++		return false;
++
++	return __boost_watermark(zone, pageblock_nr_pages,
++			mult_frac(zone->_watermark[WMARK_HIGH],
++				  watermark_boost_factor, 10000));
++}
++
++/*
++ * Boost watermarks by ~0.1% of zone size on atomic allocation pressure.
++ * This provides zone-proportional safety buffers: ~1MB per 1GB of zone
++ * size. Max boost ceiling is fixed at ~10% of high watermark.
++ *
++ * This emergency reserve is independent of watermark_boost_factor.
++ */
++static inline bool boost_watermark_atomic(struct zone *zone)
++{
++	return __boost_watermark(zone,
++			max(pageblock_nr_pages, zone_managed_pages(zone) / 1000),
++			zone->_watermark[WMARK_HIGH] / 10);
++}
++
++static void boost_zones_for_atomic(struct alloc_context *ac, gfp_t gfp_mask)
++{
++	struct zoneref *z;
++	struct zone *zone;
++	unsigned long now = jiffies;
++
++	for_each_zone_zonelist_nodemask(zone, z, ac->zonelist,
++					ac->highest_zoneidx, ac->nodemask) {
++		unsigned long flags;
++		bool should_wake = false;
++
++		/*
++		 * Check and update the per-zone debounce timestamp under
++		 * zone->lock so concurrent callers on other CPUs (e.g. a
++		 * multi-queue NIC spreading GFP_ATOMIC allocations across
++		 * several softirqs) cannot all observe a stale timestamp
++		 * and pile onto the same zone within the same window.
++		 */
++		spin_lock_irqsave(&zone->lock, flags);
++		if (time_after(now, zone->last_boost_jiffies + HZ)) {
++			zone->last_boost_jiffies = now;
++			should_wake = boost_watermark_atomic(zone);
++		}
++		spin_unlock_irqrestore(&zone->lock, flags);
++
++		if (should_wake)
++			wakeup_kswapd(zone, gfp_mask, 0, ac->highest_zoneidx);
++	}
++}
++
++/*
+  * When we are falling back to another migratetype during allocation, should we
+  * try to claim an entire block to satisfy further allocations, instead of
+  * polluting multiple pageblocks?
+@@ -4770,6 +4828,10 @@ restart:
+ 	cpuset_mems_cookie = read_mems_allowed_begin();
+ 	zonelist_iter_cookie = zonelist_iter_begin();
+ 
++	/* Boost watermarks for atomic requests entering slowpath */
++	if (((gfp_mask & GFP_ATOMIC) == GFP_ATOMIC) && order == 0 && !can_direct_reclaim)
++		boost_zones_for_atomic(ac, gfp_mask);
++
+ 	/*
+ 	 * For costly allocations, try direct compaction first, as it's likely
+ 	 * that we have enough base pages and don't need to reclaim. For non-
 _
 
-Patches currently in -mm which might be from yanlonglong@kylinos.cn are
+Patches currently in -mm which might be from realwujing@gmail.com are
 
-selftests-mm-use-map_failed-for-mmap-error-check.patch
+mm-page_alloc-boost-watermarks-on-atomic-allocation-failure.patch
 
