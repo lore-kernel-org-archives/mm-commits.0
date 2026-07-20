@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BDB1A390986;
-	Mon, 20 Jul 2026 06:09:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 62D193ABD91;
+	Mon, 20 Jul 2026 06:18:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784527751; cv=none; b=jWi9f9hSpZz4edxw/Jzdwd0ZdA0ucPiJwomZnEQOaFrY/SvxqGEPwdLq1qIb9EI6OYuLWaZjejGUjXKrMYnCqRFUjP4nz7DQ1l+BH6CCgYOHdO54WZgU3w5zGCrYWQ/wZBCi+JZXaaasxUNUtdZiM6M3Mu5T9v1QYa+ryd9fv9E=
+	t=1784528298; cv=none; b=TFkfa0tEqbhwEN3LSOxwDK/057t9GmvxNITlrOgFlh9ewaSY3H16pZQtgehtCgqo2qqCUtAEKqbibF2EZEMZ4tQUmYjoRjRF1CaOObT8qJ0y+8uX9kh+Ced19V0oNK8pmHA5RiqTEI6uoTAruXhefa6+TD6iUu+nEiaTZXl8aQs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784527751; c=relaxed/simple;
-	bh=xlRZXYo+gI9Iqt3i1PyD44CPK395Ynsfk2045Be+ydE=;
-	h=Date:To:From:Subject:Message-Id; b=BMOTb1sFeQUXNNp5z4mQRUqNYPj/T8rG4H2k0jxH35ZLVJUVBianCm6Zd1aTRxhSpNaK6gzkgfujpuXCW41LnCggL5qHqfA2uzQ/wIz0OLtCCYIchsG+WgK1cupNMLWgUN1elfSj/liaAaX7G48SFTvcWXmg5P2OH/hwk+Ti0Bs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IQXlBd7h; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1784528298; c=relaxed/simple;
+	bh=ypep1gMxO3yLcCSYTMM4LB3+QrmGCex0pmdPpHNznI4=;
+	h=Date:To:From:Subject:Message-Id; b=GuxzFdntEu2CUqBGQQQEURbahFQit7OSYdfbV9zqWpG2do7GzRJD0IsmWZYluYZ5sLTsbJXyqfQhabDUay5ohp1yhtSd8a+CfUua6eD0AHMqic4iIaoDhuvtjM2DoAEPa4kup/SFYeMnovg1VjANYeezLQ3nNutqpvgGFGxaqJo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vTic8isB; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IQXlBd7h"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6DCC61F000E9;
-	Mon, 20 Jul 2026 06:09:02 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vTic8isB"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 805D41F000E9;
+	Mon, 20 Jul 2026 06:18:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1784527742;
-	bh=wqA++d67hOG4dNKoh7Eq+tePc85W37shNzcVrnrU6Eg=;
+	d=linux-foundation.org; s=korg; t=1784528289;
+	bh=eRVTsUUZS3XJvtRw5KkW0GT/9y+ZZjbpn4eRQUMg1e8=;
 	h=Date:To:From:Subject;
-	b=IQXlBd7hqP3jdMMCpdTyyoAl3vek/LQOyAECEVK48rOHoEyniMHfG6exIT7ROxPFV
-	 jYB9MRkVTbS0Bvguc4PrQTTpAplQpbBUgbR/cRdbiwvEsmj+8RSxlW/ideYI4goM5g
-	 J+zWnNg5vfJmP0uBCOkqGo2yEiKm3J0nCthZdnU4=
-Date: Sun, 19 Jul 2026 23:09:02 -0700
+	b=vTic8isBxVOLSJNXdDY+DuolMzlEd9pgbJzqy1GWg9O1yrvN1T8uWqS2lAkiGVTzd
+	 vIdS/M9EHfEvYbyfQumfznsXbltW6ZQ/FnTMiQ6fnZ8hfEGjYRso7/1fsjeMylhNAi
+	 +2g385QJzT4IotofJz9k/GUfDBoF3FNLem9VZo8w=
+Date: Sun, 19 Jul 2026 23:18:09 -0700
 To: mm-commits@vger.kernel.org,stable@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-ops-common-use-nr_accesses-moving-sum-for-quota-score.patch added to mm-new branch
-Message-Id: <20260720060902.6DCC61F000E9@smtp.kernel.org>
+Subject: + mm-damon-core-handle-region-split-failure-in-apply_min_nr_regions.patch added to mm-new branch
+Message-Id: <20260720061809.805D41F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/ops-common: use nr_accesses moving sum for quota score
+     Subject: mm/damon/core: handle region split failure in apply_min_nr_regions()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-ops-common-use-nr_accesses-moving-sum-for-quota-score.patch
+     mm-damon-core-handle-region-split-failure-in-apply_min_nr_regions.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-ops-common-use-nr_accesses-moving-sum-for-quota-score.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-handle-region-split-failure-in-apply_min_nr_regions.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,48 +70,99 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/ops-common: use nr_accesses moving sum for quota score
-Date: Sun, 19 Jul 2026 09:11:33 -0700
+Subject: mm/damon/core: handle region split failure in apply_min_nr_regions()
+Date: Sun, 19 Jul 2026 08:54:40 -0700
 
-Since commit 42f994b71404 ("mm/damon/core: implement scheme-specific apply
-interval"), DAMOS scheme can be applied at any time.  At that time,
-nr_accesses may not be fully aggregated.  But the quota prioritization
-score is calculated using the not fully aggregated count.  As a result,
-the performance of DAMOS could be degraded.  Fix by using
-damon_nr_accesses_mvsum() instead.
+damon_apply_min_nr_regions() repeatedly split each region until its size
+becomes small enough to meet the user-defined low limit of the number of
+regions.  The loop assumes the split operation (damon_split_region_at())
+will always succeed and create the new region.  But the operation could
+silently fail for memory allocation failures, for example.
 
-The user impact of the issue is suboptimum DAMOS performance under certain
-setups.  Nonetheless, the bug was there from the beginning of the setup
-availability.  In other words, the suboptimum performance is the baseline
-of the setup and hence it didn't cause regression.  Also the extent of the
-suboptimality was not big enough to be found from users and testers. 
-Still, this is a clear bug that is better to be fixed, and can be easily
-fixed.
+If such failure happens and the region was the last region, the linked
+list-based next region fetching returns invalid pointer.  As a result,
+invalid memory dereference and corruption could happen.  Even if the
+corner case is handled, it imposes stress to the allocator by trying split
+regions for other targets.  Fix the issue by breaking all the loops for
+any region split failure.
 
-Link: https://lore.kernel.org/20260719161136.90191-1-sj@kernel.org
-Fixes: 42f994b71404 ("mm/damon/core: implement scheme-specific apply interval")
+This means there could be a min_nr_regions violation.  It will only rarely
+happen since the allocation is arguably too small to fail.  Even if it
+happens, it is only temporal.  damon_apply_min_nr_regions() will be called
+again after the aggregation interval.
+
+The user impact of the issue should be minor, since the allocation is
+arguably too small to fail.  But, it could still theoretically happen, and
+the consequence is very bad.
+
+This issue was discovered [1] by Sashiko.
+
+Link: https://lore.kernel.org/20260719155442.88794-1-sj@kernel.org
+Link: https://lore.kernel.org/20260717011834.120715-1-sj@kernel.org [1]
+Fixes: b1029f29eb1d ("mm/damon/core: split regions for min_nr_regions")
 Signed-off-by: SJ Park <sj@kernel.org>
-Cc: <stable@vger.kernel.org> # 6.7.x
+Cc: <stable@vger.kernel.org> # 7.1.x
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/ops-common.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ mm/damon/core.c |   13 +++++++++----
+ 1 file changed, 9 insertions(+), 4 deletions(-)
 
---- a/mm/damon/ops-common.c~mm-damon-ops-common-use-nr_accesses-moving-sum-for-quota-score
-+++ a/mm/damon/ops-common.c
-@@ -111,8 +111,9 @@ int damon_hot_score(struct damon_ctx *c,
- 	unsigned int age_weight = s->quota.weight_age;
- 	int hotness;
+--- a/mm/damon/core.c~mm-damon-core-handle-region-split-failure-in-apply_min_nr_regions
++++ a/mm/damon/core.c
+@@ -1886,7 +1886,7 @@ static unsigned long damon_region_sz_lim
+ 	return sz;
+ }
  
--	freq_subscore = r->nr_accesses * DAMON_MAX_SUBSCORE /
--		damon_nr_samples_per_aggr(&c->attrs);
-+	freq_subscore = mult_frac(damon_nr_accesses_mvsum(r, c),
-+			DAMON_MAX_SUBSCORE,
-+			damon_nr_samples_per_aggr(&c->attrs));
+-static void damon_split_region_at(struct damon_target *t,
++static int damon_split_region_at(struct damon_target *t,
+ 				  struct damon_region *r, unsigned long sz_r);
  
- 	age_in_sec = (unsigned long)r->age * c->attrs.aggr_interval / 1000000;
- 	if (age_in_sec)
+ /*
+@@ -1912,11 +1912,13 @@ static unsigned long damon_apply_min_nr_
+ 	damon_for_each_target(t, ctx) {
+ 		damon_for_each_region_safe(r, next, t) {
+ 			while (damon_sz_region(r) > max_region_sz) {
+-				damon_split_region_at(t, r, max_region_sz);
++				if (damon_split_region_at(t, r, max_region_sz))
++					goto out;
+ 				r = damon_next_region(r);
+ 			}
+ 		}
+ 	}
++out:
+ 	return max_region_sz;
+ }
+ 
+@@ -3411,8 +3413,10 @@ static void damon_verify_split_region_at
+  *
+  * r		the region to be split
+  * sz_r		size of the first sub-region that will be made
++ *
++ * Return: 0 on success, negative error code otherwise.
+  */
+-static void damon_split_region_at(struct damon_target *t,
++static int damon_split_region_at(struct damon_target *t,
+ 				  struct damon_region *r, unsigned long sz_r)
+ {
+ 	struct damon_region *new;
+@@ -3420,7 +3424,7 @@ static void damon_split_region_at(struct
+ 	damon_verify_split_region_at(r, sz_r);
+ 	new = damon_new_region(r->ar.start + sz_r, r->ar.end);
+ 	if (!new)
+-		return;
++		return -ENOMEM;
+ 
+ 	r->ar.end = new->ar.start;
+ 
+@@ -3433,6 +3437,7 @@ static void damon_split_region_at(struct
+ 			sizeof(r->last_probe_hits));
+ 
+ 	damon_insert_region(new, r, damon_next_region(r), t);
++	return 0;
+ }
+ 
+ /* Split every region in the given target into 'nr_subs' regions */
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
@@ -235,4 +286,5 @@ mm-damon-core-kunit-skip-wrong-dest-walk-in-commit_dests_for.patch
 mm-damon-core-kunit-skip-wrong-quota-goal-walk-in-commit_quota_goals.patch
 mm-damon-core-kunit-skip-wrong-region-walk-in-commit_target_regions.patch
 mm-damon-ops-common-use-nr_accesses-moving-sum-for-quota-score.patch
+mm-damon-core-handle-region-split-failure-in-apply_min_nr_regions.patch
 
