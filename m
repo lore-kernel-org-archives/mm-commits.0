@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C83B438C426
-	for <mm-commits@vger.kernel.org>; Mon, 20 Jul 2026 23:07:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 797F13B3BF7
+	for <mm-commits@vger.kernel.org>; Mon, 20 Jul 2026 23:10:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784588839; cv=none; b=n+Ca3Ym+JZNi6NXR5HkTjd8f1bCRTeGAiy7kApdHv6588xe4J0R2IY/drEPR2+/rwOykG20yfHSb1+2d/TW1AzXACLxTBTf8WAzOMsXxuWWtAvabAjfFP3a4+8pyUwKHobhM+HzoMrkilurji83cM9EDV2Zo0U7xRibdsgoX7QM=
+	t=1784589019; cv=none; b=PJsr7j7DBQs4iHKdQO5DgJkPjNEGqDQPVvcfpFj7/soCKvce6ioiiMSZCbNh9rkdCOJvvmlqERDXy4BnoLWN5qv2H3BhLPn/rnZlHivYRKdqY14byRLkhH6fFSo90CCz2PaP9gIsSlhDaLMzX4wEIU9xu/JFKBkJXn066t/Of6w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784588839; c=relaxed/simple;
-	bh=P7yOpfd0UBD/qg/C6TGzm5pO9zP1CP0Wv+KwTIzvhz0=;
-	h=Date:To:From:Subject:Message-Id; b=SbR4rrkx0uFBKjc8z84O327mA7b2iDWrPvNZVwXF7aRfF0dNSOS5AjvqcUcvKObmgLhMdkz9o03IzzD2nQpEw31u/GEpFguB21+jgHsFUt8j/9dBDx4N+JsBdXhIfQsFIZ08lKzgK+sm1XxCjfEjkeDZC8lq6aXcW3KBIyqiYPU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DcTuYXW9; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1784589019; c=relaxed/simple;
+	bh=8p22VUZtT8iQyOFIuNWNdxCmh8U5u+RieGQxQjul42s=;
+	h=Date:To:From:Subject:Message-Id; b=Wz8mHHRbiZK/9ZhIvXDkgblDIocr6OZNdaGpi+FQhFHgU+o7C4nCv36v8wrXTMGF0RgjgJQZOuFARhSWqlmOORvXvK52623IE/C7AcuAndat0qeb5Ly1XMqrqhT3lsaWYj8tU/+dO/MAgTROx7jr/yZ+unSTYUSDYXe44/1qxKk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nOvTvCv3; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DcTuYXW9"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5AAAF1F000E9;
-	Mon, 20 Jul 2026 23:07:17 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nOvTvCv3"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0F67F1F000E9;
+	Mon, 20 Jul 2026 23:10:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1784588837;
-	bh=EaG9Hb1axEJWFaoHahaVHDpJOB4iumo+yEcoKuUbWsI=;
+	d=linux-foundation.org; s=korg; t=1784589018;
+	bh=Q9FynBAgmQPY0uznxqfAB1K/37l2V74pTwlKQf7Tysw=;
 	h=Date:To:From:Subject;
-	b=DcTuYXW9guFdUjdVCDtA5JtPiGbDM0icay+G1L0FsW0PXjjf6d4nKk0EQS/OeL7yi
-	 YJ8S/iVWXE8uuclzi5eAQKmJwaPSfq+S5UaIoKkXSn3s7XXezsXB1YdhHuZUEwM7kW
-	 U1uHaQ2nwUdHxaD7oyMUaioBEXu9DUtufVkMtEtI=
-Date: Mon, 20 Jul 2026 16:07:16 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,surenb@google.com,shuah@kernel.org,ryan.roberts@arm.com,rppt@kernel.org,npache@redhat.com,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,lance.yang@linux.dev,dev.jain@arm.com,david@kernel.org,broonie@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,aishwarya.tcv@arm.com,sarthak.sharma@arm.com,akpm@linux-foundation.org
+	b=nOvTvCv3FA6SNBJR0S7fc+TC7PodOlFCs66WvMiXmVp+G7tcI4hgzUZ3o7jAh3+E2
+	 IGLgj5wf+o3JYZ7lmdAHJf2Mkzr/mLU4SgZLQm138TS5g2goSnvxDIE0Imvs/+nCWC
+	 7oHoLaNvLjzZ+D+EsNcbEUBlZ5y4mW2Zs7JSolIo=
+Date: Mon, 20 Jul 2026 16:10:17 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,xu.xin16@zte.com.cn,willy@infradead.org,wangkefeng.wang@huawei.com,svetly.todorov@memverge.com,sunnanyong@huawei.com,luizcap@redhat.com,linmiaohe@huawei.com,david@kernel.org,chengming.zhou@linux.dev,tujinjiang@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-transhuge-stress-check-duration-inside-page-loop.patch added to mm-new branch
-Message-Id: <20260720230717.5AAAF1F000E9@smtp.kernel.org>
+Subject: + fs-stable_page_flags-use-bit_ull-for-kpf-flags.patch added to mm-new branch
+Message-Id: <20260720231018.0F67F1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: transhuge-stress: check duration inside page loop
+     Subject: fs: stable_page_flags(): use BIT_ULL() for KPF flags
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-mm-transhuge-stress-check-duration-inside-page-loop.patch
+     fs-stable_page_flags-use-bit_ull-for-kpf-flags.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-transhuge-stress-check-duration-inside-page-loop.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-stable_page_flags-use-bit_ull-for-kpf-flags.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,121 +69,144 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Sarthak Sharma <sarthak.sharma@arm.com>
-Subject: selftests/mm: transhuge-stress: check duration inside page loop
-Date: Mon, 20 Jul 2026 16:01:05 +0530
+From: Jinjiang Tu <tujinjiang@huawei.com>
+Subject: fs: stable_page_flags(): use BIT_ULL() for KPF flags
+Date: Mon, 20 Jul 2026 11:30:19 +0800
 
-transhuge-stress.c currently scans memory equal to RAM by default, in
-jumps of hugepage size, trying to allocate and split a THP at each step. 
-After the entire range is covered, it checks whether elapsed time is
-greater than the duration.  But it is possible that the THP work it does
-takes time more than the duration itself, causing the test to exceed the
-CI timeout.
+Patch series "cleanup for stable_page_flags()", v2.
 
-Check the elapsed time after each THP operation.  If the duration has
-elapsed, break and end the test.  Adjust the statistics calculations to
-accommodate partially completed passes.  Also, reject sizes which are
-smaller than a huge page.
+This series cleans up stable_page_flags(), see the details in the commit
+messages.
 
-Link: https://lore.kernel.org/20260720103105.169955-1-sarthak.sharma@arm.com
-Signed-off-by: Sarthak Sharma <sarthak.sharma@arm.com>
-Reported-by: Aishwarya TCV <aishwarya.tcv@arm.com>
-Suggested-by: Dev Jain <dev.jain@arm.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Lance Yang <lance.yang@linux.dev>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Mark Brown <broonie@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Nico Pache <npache@redhat.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Zi Yan <ziy@nvidia.com>
+
+This patch (of 3):
+
+The stable_page_flags() function currently sets page flag bits using "1 <<
+KPF_xxx" for various KPF_* definitions.  KPF_* may be larger than 32,
+which will trigger -Wshift-count-overflow warning.  All KPF_* values
+currently used in "1 << KPF_xxx" are smaller than 33, so no warning is
+triggered with current code.
+
+Replace all occurrences of "1 << KPF_*" with the BIT_ULL() macro to ensure
+all shifts are performed on a 64-bit unsigned type.  This makes the code
+robust, and safe for future extension.
+
+No functional change is intended.
+
+Link: https://lore.kernel.org/20260720033021.4091944-1-tujinjiang@huawei.com
+Link: https://lore.kernel.org/20260720033021.4091944-2-tujinjiang@huawei.com
+Signed-off-by: Jinjiang Tu <tujinjiang@huawei.com>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Acked-by: Zi Yan <ziy@nvidia.com>
+Cc: Chengming Zhou <chengming.zhou@linux.dev>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Luiz Capitulino <luizcap@redhat.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Nanyong Sun <sunnanyong@huawei.com>
+Cc: Svetly Todorov <svetly.todorov@memverge.com>
+Cc: xu xin <xu.xin16@zte.com.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/transhuge-stress.c |   28 ++++++++++++----
- 1 file changed, 22 insertions(+), 6 deletions(-)
+ fs/proc/page.c |   34 +++++++++++++++++-----------------
+ 1 file changed, 17 insertions(+), 17 deletions(-)
 
---- a/tools/testing/selftests/mm/transhuge-stress.c~selftests-mm-transhuge-stress-check-duration-inside-page-loop
-+++ a/tools/testing/selftests/mm/transhuge-stress.c
-@@ -35,6 +35,7 @@ int main(int argc, char **argv)
- 	size_t map_len;
- 	int pagemap_fd;
- 	int duration = 0;
-+	double elapsed = 0;
+--- a/fs/proc/page.c~fs-stable_page_flags-use-bit_ull-for-kpf-flags
++++ a/fs/proc/page.c
+@@ -157,7 +157,7 @@ u64 stable_page_flags(const struct page
+ 	 * it differentiates a memory hole from a page with no flags
+ 	 */
+ 	if (!page)
+-		return 1 << KPF_NOPAGE;
++		return BIT_ULL(KPF_NOPAGE);
  
- 	ksft_print_header();
- 
-@@ -60,8 +61,6 @@ int main(int argc, char **argv)
- 			len = atoll(argv[i]) << 20;
+ 	snapshot_page(&ps, page);
+ 	folio = &ps.folio_snapshot;
+@@ -170,11 +170,11 @@ u64 stable_page_flags(const struct page
+ 	 * pseudo flags for the well known (anonymous) memory mapped pages
+ 	 */
+ 	if (folio_mapped(folio))
+-		u |= 1 << KPF_MMAP;
++		u |= BIT_ULL(KPF_MMAP);
+ 	if (is_anon) {
+-		u |= 1 << KPF_ANON;
++		u |= BIT_ULL(KPF_ANON);
+ 		if ((mapping & FOLIO_MAPPING_FLAGS) == FOLIO_MAPPING_KSM)
+-			u |= 1 << KPF_KSM;
++			u |= BIT_ULL(KPF_KSM);
  	}
  
--	ksft_set_plan(1);
--
- 	if (name) {
- 		backing_fd = open(name, O_RDWR);
- 		if (backing_fd == -1)
-@@ -78,6 +77,10 @@ int main(int argc, char **argv)
- 		ksft_exit_fail_msg("open pagemap\n");
+ 	/*
+@@ -184,35 +184,35 @@ u64 stable_page_flags(const struct page
+ 	if (ps.idx == 0)
+ 		u |= kpf_copy_bit(k, KPF_COMPOUND_HEAD, PG_head);
+ 	else
+-		u |= 1 << KPF_COMPOUND_TAIL;
++		u |= BIT_ULL(KPF_COMPOUND_TAIL);
+ 	if (folio_test_hugetlb(folio))
+-		u |= 1 << KPF_HUGE;
++		u |= BIT_ULL(KPF_HUGE);
+ 	else if (folio_test_large(folio) &&
+ 	         folio_test_large_rmappable(folio)) {
+ 		/* Note: we indicate any THPs here, not just PMD-sized ones */
+-		u |= 1 << KPF_THP;
++		u |= BIT_ULL(KPF_THP);
+ 	} else if (is_huge_zero_pfn(ps.pfn)) {
+-		u |= 1 << KPF_ZERO_PAGE;
+-		u |= 1 << KPF_THP;
++		u |= BIT_ULL(KPF_ZERO_PAGE);
++		u |= BIT_ULL(KPF_THP);
+ 	} else if (is_zero_pfn(ps.pfn)) {
+-		u |= 1 << KPF_ZERO_PAGE;
++		u |= BIT_ULL(KPF_ZERO_PAGE);
+ 	}
  
- 	len -= len % HPAGE_SIZE;
-+	if (len == 0)
-+		ksft_exit_fail_msg("len must be at least %d MiB\n",
-+			HPAGE_SIZE >> 20);
-+
- 	ptr = mmap(NULL, len + HPAGE_SIZE, PROT_RW, mmap_flags, backing_fd, 0);
- 	if (ptr == MAP_FAILED)
- 		ksft_exit_fail_msg("initial mmap");
-@@ -91,6 +94,7 @@ int main(int argc, char **argv)
- 	if (!map)
- 		ksft_exit_fail_msg("map malloc\n");
+ 	if (ps.flags & PAGE_SNAPSHOT_PG_BUDDY)
+-		u |= 1 << KPF_BUDDY;
++		u |= BIT_ULL(KPF_BUDDY);
  
-+	ksft_set_plan(1);
- 	clock_gettime(CLOCK_MONOTONIC, &start);
+ 	if (folio_test_offline(folio))
+-		u |= 1 << KPF_OFFLINE;
++		u |= BIT_ULL(KPF_OFFLINE);
+ 	if (folio_test_pgtable(folio))
+-		u |= 1 << KPF_PGTABLE;
++		u |= BIT_ULL(KPF_PGTABLE);
+ 	if (folio_test_slab(folio))
+-		u |= 1 << KPF_SLAB;
++		u |= BIT_ULL(KPF_SLAB);
  
- 	while (1) {
-@@ -125,16 +129,28 @@ int main(int argc, char **argv)
- 			/* split transhuge page, keep last page */
- 			if (madvise(p, HPAGE_SIZE - psize(), MADV_DONTNEED))
- 				ksft_exit_fail_msg("MADV_DONTNEED");
-+
-+			if (duration > 0) {
-+				clock_gettime(CLOCK_MONOTONIC, &b);
-+				elapsed = b.tv_sec - start.tv_sec +
-+					(b.tv_nsec - start.tv_nsec) / 1000000000.;
-+				if (elapsed >= duration)
-+					break;
-+			}
- 		}
- 		clock_gettime(CLOCK_MONOTONIC, &b);
- 		s = b.tv_sec - a.tv_sec + (b.tv_nsec - a.tv_nsec) / 1000000000.;
+ #if defined(CONFIG_PAGE_IDLE_FLAG) && defined(CONFIG_64BIT)
+ 	u |= kpf_copy_bit(k, KPF_IDLE,          PG_idle);
+ #else
+ 	if (ps.flags & PAGE_SNAPSHOT_PG_IDLE)
+-		u |= 1 << KPF_IDLE;
++		u |= BIT_ULL(KPF_IDLE);
+ #endif
  
- 		ksft_print_msg("%.3f s/loop, %.3f ms/page, %10.3f MiB/s\t"
--			       "%4d succeed, %4d failed, %4d different pages\n",
--			       s, s * 1000 / (len >> HPAGE_SHIFT), len / s / (1 << 20),
--			       nr_succeed, nr_failed, nr_pages);
-+				"%4d succeed, %4d failed, %4d different pages\n",
-+				s, s * 1000 / (nr_failed + nr_succeed),
-+				s > 0 ?
-+					(double)(nr_failed + nr_succeed) *
-+					(HPAGE_SIZE >> 20) / s :
-+					0.0,
-+				nr_succeed, nr_failed, nr_pages);
+ 	u |= kpf_copy_bit(k, KPF_LOCKED,	PG_locked);
+@@ -227,14 +227,14 @@ u64 stable_page_flags(const struct page
  
--		if (duration > 0 && b.tv_sec - start.tv_sec >= duration) {
-+		if (duration > 0 && elapsed >= duration) {
- 			ksft_test_result_pass("Completed\n");
- 			ksft_finished();
- 		}
+ #define SWAPCACHE ((1 << PG_swapbacked) | (1 << PG_swapcache))
+ 	if ((k & SWAPCACHE) == SWAPCACHE)
+-		u |= 1 << KPF_SWAPCACHE;
++		u |= BIT_ULL(KPF_SWAPCACHE);
+ 	u |= kpf_copy_bit(k, KPF_SWAPBACKED,	PG_swapbacked);
+ 
+ 	u |= kpf_copy_bit(k, KPF_UNEVICTABLE,	PG_unevictable);
+ 	u |= kpf_copy_bit(k, KPF_MLOCKED,	PG_mlocked);
+ 
+ #ifdef CONFIG_MEMORY_FAILURE
+-	if (u & (1 << KPF_HUGE))
++	if (u & BIT_ULL(KPF_HUGE))
+ 		u |= kpf_copy_bit(k, KPF_HWPOISON,	PG_hwpoison);
+ 	else
+ 		u |= kpf_copy_bit(ps.page_snapshot.flags.f, KPF_HWPOISON, PG_hwpoison);
 _
 
-Patches currently in -mm which might be from sarthak.sharma@arm.com are
+Patches currently in -mm which might be from tujinjiang@huawei.com are
 
-selftests-mm-transhuge-stress-check-duration-inside-page-loop.patch
+fs-stable_page_flags-use-bit_ull-for-kpf-flags.patch
+fs-stable_page_flags-use-folio_test_-helpers.patch
+fs-stable_page_flags-simplify-kpf_idle-handling.patch
 
