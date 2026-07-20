@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3E1C83DB31F
-	for <mm-commits@vger.kernel.org>; Mon, 20 Jul 2026 23:05:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C83B438C426
+	for <mm-commits@vger.kernel.org>; Mon, 20 Jul 2026 23:07:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784588758; cv=none; b=nesSIZmB0JfL/0OssV18QGCgM3i5+TlUGq1QWZA3H69MNHoYXjvjwHEDdvQfgUTG2YP3jV1maK6zOuRZRNnQ+tw8n86YiJHMC5nAQLii12nfyuvw9Puidg4O1VKSLJoS0/0q6h+AnUOfhAYTNCLsIv8x0258abXAGjrSSEBfMzE=
+	t=1784588839; cv=none; b=n+Ca3Ym+JZNi6NXR5HkTjd8f1bCRTeGAiy7kApdHv6588xe4J0R2IY/drEPR2+/rwOykG20yfHSb1+2d/TW1AzXACLxTBTf8WAzOMsXxuWWtAvabAjfFP3a4+8pyUwKHobhM+HzoMrkilurji83cM9EDV2Zo0U7xRibdsgoX7QM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784588758; c=relaxed/simple;
-	bh=KvVcPVKpbkGoi+ZwQ4Uh4aQ3b/VveypQmZdR6lIhmeg=;
-	h=Date:To:From:Subject:Message-Id; b=l5i6HDKdEqJisfJaBj/BH4qIBNQMXLS6Ilq8k6YDBKSDogVvYQtGmlRkIDH1KE5F9xDp0IWvckcYo4G5HX58zxtuFcs/qovuW0Z2BuVTUbk/oGd6PjaARkjtMfA2Z3VqzGq4LMMF157COSEbULODXm2wQtpECx7L7f4Fe/5Xi6A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yzEGYVau; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1784588839; c=relaxed/simple;
+	bh=P7yOpfd0UBD/qg/C6TGzm5pO9zP1CP0Wv+KwTIzvhz0=;
+	h=Date:To:From:Subject:Message-Id; b=SbR4rrkx0uFBKjc8z84O327mA7b2iDWrPvNZVwXF7aRfF0dNSOS5AjvqcUcvKObmgLhMdkz9o03IzzD2nQpEw31u/GEpFguB21+jgHsFUt8j/9dBDx4N+JsBdXhIfQsFIZ08lKzgK+sm1XxCjfEjkeDZC8lq6aXcW3KBIyqiYPU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DcTuYXW9; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yzEGYVau"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D7C9B1F000E9;
-	Mon, 20 Jul 2026 23:05:56 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DcTuYXW9"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5AAAF1F000E9;
+	Mon, 20 Jul 2026 23:07:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1784588756;
-	bh=PtuGO/xTNX1zlLHM1sYsEgjNHB4QWIjFHVvInJ3QDnI=;
+	d=linux-foundation.org; s=korg; t=1784588837;
+	bh=EaG9Hb1axEJWFaoHahaVHDpJOB4iumo+yEcoKuUbWsI=;
 	h=Date:To:From:Subject;
-	b=yzEGYVauvwYXEoartwJNar2OLOpF2pbDV8FTJkQKcPftV4FWGGa7n5Liw39wIM7Nd
-	 EJDq/vOOYX9rRDgMRnnWJ7pmwOPoGt5h2O0ttmr87JUMnUlo/35rCKi0QhpLSg1idI
-	 2b1ScVMLwavIvQlj+GzV7wG17BS/xCr70BC4/uco=
-Date: Mon, 20 Jul 2026 16:05:56 -0700
-To: mm-commits@vger.kernel.org,yuanchu@google.com,weixugc@google.com,vbabka@kernel.org,shakeel.butt@linux.dev,riel@surriel.com,mhocko@kernel.org,ljs@kernel.org,liam@infradead.org,lance.yang@linux.dev,kasong@tencent.com,jannh@google.com,harry@kernel.org,hannes@cmpxchg.org,david@kernel.org,baohua@kernel.org,axelrasmussen@google.com,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
+	b=DcTuYXW9guFdUjdVCDtA5JtPiGbDM0icay+G1L0FsW0PXjjf6d4nKk0EQS/OeL7yi
+	 YJ8S/iVWXE8uuclzi5eAQKmJwaPSfq+S5UaIoKkXSn3s7XXezsXB1YdhHuZUEwM7kW
+	 U1uHaQ2nwUdHxaD7oyMUaioBEXu9DUtufVkMtEtI=
+Date: Mon, 20 Jul 2026 16:07:16 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,surenb@google.com,shuah@kernel.org,ryan.roberts@arm.com,rppt@kernel.org,npache@redhat.com,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,lance.yang@linux.dev,dev.jain@arm.com,david@kernel.org,broonie@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,aishwarya.tcv@arm.com,sarthak.sharma@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mglru-promote-mapped-executable-folios-after-first-usage.patch added to mm-new branch
-Message-Id: <20260720230556.D7C9B1F000E9@smtp.kernel.org>
+Subject: + selftests-mm-transhuge-stress-check-duration-inside-page-loop.patch added to mm-new branch
+Message-Id: <20260720230717.5AAAF1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: mglru: promote mapped executable folios after first usage
+     Subject: selftests/mm: transhuge-stress: check duration inside page loop
 has been added to the -mm mm-new branch.  Its filename is
-     mm-mglru-promote-mapped-executable-folios-after-first-usage.patch
+     selftests-mm-transhuge-stress-check-duration-inside-page-loop.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mglru-promote-mapped-executable-folios-after-first-usage.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-transhuge-stress-check-duration-inside-page-loop.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,204 +69,121 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Baolin Wang <baolin.wang@linux.alibaba.com>
-Subject: mm: mglru: promote mapped executable folios after first usage
-Date: Mon, 20 Jul 2026 19:12:02 +0800
+From: Sarthak Sharma <sarthak.sharma@arm.com>
+Subject: selftests/mm: transhuge-stress: check duration inside page loop
+Date: Mon, 20 Jul 2026 16:01:05 +0530
 
-Classical LRU protects mapped executable file folios through commit
-8cab4754d24a0 ("vmscan: make mapped executable pages the first class
-citizen") and commit c909e99364c8 ("vmscan: activate executable pages
-after first usage"), giving executable code a better chance to stay in
-memory, avoiding IO thrashing and improving workload performance.
+transhuge-stress.c currently scans memory equal to RAM by default, in
+jumps of hugepage size, trying to allocate and split a THP at each step. 
+After the entire range is covered, it checks whether elapsed time is
+greater than the duration.  But it is possible that the THP work it does
+takes time more than the duration itself, causing the test to exceed the
+CI timeout.
 
-However, MGLRU's protection of mapped executable file folios is less
-reliable.  Although shrink_folio_list() checks references, the access flag
-of mapped executable file folios may have already been checked and cleared
-by lru_gen_look_around() or walk_mm().  Additionally, folio_update_gen()
-or lru_gen_set_refs() only sets the 'PG_referenced' flag for mapped
-executable file folios, which causes shrink_folio_list() to ignore the
-first usage of these mapped executable file folios and reclaim them
-easily.
+Check the elapsed time after each THP operation.  If the duration has
+elapsed, break and end the test.  Adjust the statistics calculations to
+accommodate partially completed passes.  Also, reject sizes which are
+smaller than a huge page.
 
-Follow the classical LRU's logic, promoting mapped executable file folios
-after their first usage in folio_update_gen() and lru_gen_set_refs(),
-giving executable code a better chance to stay in memory.
-
-On my 32-core Arm machine, with the memcg limit set to 2G, running 'make
--j32' to build kernel showed some improvement in sys time.
-
-base			patched
-9248.543s		7861.579s
-
-Link: https://lore.kernel.org/f57d94b1d85bb3d620d89bb739128f0d929bf9c6.1784509721.git.baolin.wang@linux.alibaba.com
-Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Reviewed-by: Axel Rasmussen <axelrasmussen@google.com>
+Link: https://lore.kernel.org/20260720103105.169955-1-sarthak.sharma@arm.com
+Signed-off-by: Sarthak Sharma <sarthak.sharma@arm.com>
+Reported-by: Aishwarya TCV <aishwarya.tcv@arm.com>
+Suggested-by: Dev Jain <dev.jain@arm.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Barry Song <baohua@kernel.org>
 Cc: David Hildenbrand <david@kernel.org>
-Cc: Harry Yoo <harry@kernel.org>
-Cc: Jann Horn <jannh@google.com>
-Cc: Kairui Song <kasong@tencent.com>
 Cc: Lance Yang <lance.yang@linux.dev>
 Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Mark Brown <broonie@kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Nico Pache <npache@redhat.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Wei Xu <weixugc@google.com>
-Cc: Yuanchu Xie <yuanchu@google.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   43 +++++++++++++++++++++++++++----------------
- 1 file changed, 27 insertions(+), 16 deletions(-)
+ tools/testing/selftests/mm/transhuge-stress.c |   28 ++++++++++++----
+ 1 file changed, 22 insertions(+), 6 deletions(-)
 
---- a/mm/vmscan.c~mm-mglru-promote-mapped-executable-folios-after-first-usage
-+++ a/mm/vmscan.c
-@@ -841,10 +841,16 @@ enum folio_references {
-  * with PG_active set. In contrast, the aging (page table walk) path uses
-  * folio_update_gen().
-  */
--static bool lru_gen_set_refs(struct folio *folio)
-+static bool lru_gen_set_refs(struct folio *folio, const vma_flags_t *vma_flags)
- {
- 	/* see the comment on LRU_REFS_FLAGS */
- 	if (!folio_test_referenced(folio) && !folio_test_workingset(folio)) {
-+		/* Activate file-backed executable folios after first usage. */
-+		if (is_exec_file_folio(folio, vma_flags)) {
-+			set_mask_bits(&folio->flags.f, LRU_REFS_FLAGS, BIT(PG_workingset));
-+			return true;
-+		}
+--- a/tools/testing/selftests/mm/transhuge-stress.c~selftests-mm-transhuge-stress-check-duration-inside-page-loop
++++ a/tools/testing/selftests/mm/transhuge-stress.c
+@@ -35,6 +35,7 @@ int main(int argc, char **argv)
+ 	size_t map_len;
+ 	int pagemap_fd;
+ 	int duration = 0;
++	double elapsed = 0;
+ 
+ 	ksft_print_header();
+ 
+@@ -60,8 +61,6 @@ int main(int argc, char **argv)
+ 			len = atoll(argv[i]) << 20;
+ 	}
+ 
+-	ksft_set_plan(1);
+-
+ 	if (name) {
+ 		backing_fd = open(name, O_RDWR);
+ 		if (backing_fd == -1)
+@@ -78,6 +77,10 @@ int main(int argc, char **argv)
+ 		ksft_exit_fail_msg("open pagemap\n");
+ 
+ 	len -= len % HPAGE_SIZE;
++	if (len == 0)
++		ksft_exit_fail_msg("len must be at least %d MiB\n",
++			HPAGE_SIZE >> 20);
 +
- 		set_mask_bits(&folio->flags.f, LRU_REFS_MASK, BIT(PG_referenced));
- 		return false;
- 	}
-@@ -857,7 +863,7 @@ static bool lru_gen_set_refs(struct foli
- 	return true;
- }
- #else
--static bool lru_gen_set_refs(struct folio *folio)
-+static bool lru_gen_set_refs(struct folio *folio, const vma_flags_t *vma_flags)
- {
- 	return false;
- }
-@@ -892,7 +898,7 @@ static enum folio_references folio_check
- 		if (!referenced_ptes)
- 			return FOLIOREF_RECLAIM;
+ 	ptr = mmap(NULL, len + HPAGE_SIZE, PROT_RW, mmap_flags, backing_fd, 0);
+ 	if (ptr == MAP_FAILED)
+ 		ksft_exit_fail_msg("initial mmap");
+@@ -91,6 +94,7 @@ int main(int argc, char **argv)
+ 	if (!map)
+ 		ksft_exit_fail_msg("map malloc\n");
  
--		return lru_gen_set_refs(folio) ? FOLIOREF_ACTIVATE : FOLIOREF_KEEP;
-+		return lru_gen_set_refs(folio, &vma_flags) ? FOLIOREF_ACTIVATE : FOLIOREF_KEEP;
- 	}
++	ksft_set_plan(1);
+ 	clock_gettime(CLOCK_MONOTONIC, &start);
  
- 	referenced_folio = folio_test_clear_referenced(folio);
-@@ -3196,14 +3202,19 @@ static bool positive_ctrl_err(struct ctr
-  ******************************************************************************/
+ 	while (1) {
+@@ -125,16 +129,28 @@ int main(int argc, char **argv)
+ 			/* split transhuge page, keep last page */
+ 			if (madvise(p, HPAGE_SIZE - psize(), MADV_DONTNEED))
+ 				ksft_exit_fail_msg("MADV_DONTNEED");
++
++			if (duration > 0) {
++				clock_gettime(CLOCK_MONOTONIC, &b);
++				elapsed = b.tv_sec - start.tv_sec +
++					(b.tv_nsec - start.tv_nsec) / 1000000000.;
++				if (elapsed >= duration)
++					break;
++			}
+ 		}
+ 		clock_gettime(CLOCK_MONOTONIC, &b);
+ 		s = b.tv_sec - a.tv_sec + (b.tv_nsec - a.tv_nsec) / 1000000000.;
  
- /* promote pages accessed through page tables */
--static int folio_update_gen(struct folio *folio, int gen)
-+static int folio_update_gen(struct folio *folio, int gen, const vma_flags_t *vma_flags)
- {
- 	unsigned long new_flags, old_flags = READ_ONCE(folio->flags.f);
+ 		ksft_print_msg("%.3f s/loop, %.3f ms/page, %10.3f MiB/s\t"
+-			       "%4d succeed, %4d failed, %4d different pages\n",
+-			       s, s * 1000 / (len >> HPAGE_SHIFT), len / s / (1 << 20),
+-			       nr_succeed, nr_failed, nr_pages);
++				"%4d succeed, %4d failed, %4d different pages\n",
++				s, s * 1000 / (nr_failed + nr_succeed),
++				s > 0 ?
++					(double)(nr_failed + nr_succeed) *
++					(HPAGE_SIZE >> 20) / s :
++					0.0,
++				nr_succeed, nr_failed, nr_pages);
  
- 	VM_WARN_ON_ONCE(gen >= MAX_NR_GENS);
- 
--	/* see the comment on LRU_REFS_FLAGS */
--	if (!folio_test_referenced(folio) && !folio_test_workingset(folio)) {
-+	/*
-+	 * See the comment on LRU_REFS_FLAGS, and activate file-backed
-+	 * executable folios after first usage to avoid typical IO
-+	 * thrashing from reclaiming.
-+	 */
-+	if (!folio_test_referenced(folio) && !folio_test_workingset(folio) &&
-+	    !is_exec_file_folio(folio, vma_flags)) {
- 		set_mask_bits(&folio->flags.f, LRU_REFS_MASK, BIT(PG_referenced));
- 		return -1;
- 	}
-@@ -3436,8 +3447,8 @@ static bool suitable_to_scan(int total,
- 	return young * n >= total;
- }
- 
--static void walk_update_folio(struct lru_gen_mm_walk *walk, struct folio *folio,
--			      int new_gen, bool dirty)
-+static void walk_update_folio(struct lru_gen_mm_walk *walk, struct vm_area_struct *vma,
-+		struct folio *folio, int new_gen, bool dirty)
- {
- 	int old_gen;
- 
-@@ -3450,10 +3461,10 @@ static void walk_update_folio(struct lru
- 		folio_mark_dirty(folio);
- 
- 	if (walk) {
--		old_gen = folio_update_gen(folio, new_gen);
-+		old_gen = folio_update_gen(folio, new_gen, &vma->flags);
- 		if (old_gen >= 0 && old_gen != new_gen)
- 			update_batch_size(walk, folio, old_gen, new_gen);
--	} else if (lru_gen_set_refs(folio)) {
-+	} else if (lru_gen_set_refs(folio, &vma->flags)) {
- 		old_gen = folio_lru_gen(folio);
- 		if (old_gen >= 0 && old_gen != new_gen)
- 			folio_activate(folio);
-@@ -3526,7 +3537,7 @@ restart:
- 			continue;
- 
- 		if (last != folio) {
--			walk_update_folio(walk, last, gen, dirty);
-+			walk_update_folio(walk, args->vma, last, gen, dirty);
- 
- 			last = folio;
- 			dirty = false;
-@@ -3539,7 +3550,7 @@ restart:
- 		walk->mm_stats[MM_LEAF_YOUNG] += nr;
- 	}
- 
--	walk_update_folio(walk, last, gen, dirty);
-+	walk_update_folio(walk, args->vma, last, gen, dirty);
- 	last = NULL;
- 
- 	if (i < PTRS_PER_PTE && get_next_vma(PMD_MASK, PAGE_SIZE, args, &start, &end))
-@@ -3617,7 +3628,7 @@ static void walk_pmd_range_locked(pud_t
- 			goto next;
- 
- 		if (last != folio) {
--			walk_update_folio(walk, last, gen, dirty);
-+			walk_update_folio(walk, vma, last, gen, dirty);
- 
- 			last = folio;
- 			dirty = false;
-@@ -3631,7 +3642,7 @@ next:
- 		i = i > MIN_LRU_BATCH ? 0 : find_next_bit(bitmap, MIN_LRU_BATCH, i) + 1;
- 	} while (i <= MIN_LRU_BATCH);
- 
--	walk_update_folio(walk, last, gen, dirty);
-+	walk_update_folio(walk, vma, last, gen, dirty);
- 
- 	lazy_mmu_mode_disable();
- 	spin_unlock(ptl);
-@@ -4266,7 +4277,7 @@ bool lru_gen_look_around(struct page_vma
- 			continue;
- 
- 		if (last != folio) {
--			walk_update_folio(walk, last, gen, dirty);
-+			walk_update_folio(walk, vma, last, gen, dirty);
- 
- 			last = folio;
- 			dirty = false;
-@@ -4278,7 +4289,7 @@ bool lru_gen_look_around(struct page_vma
- 		young += nr;
- 	}
- 
--	walk_update_folio(walk, last, gen, dirty);
-+	walk_update_folio(walk, vma, last, gen, dirty);
- 
- 	lazy_mmu_mode_disable();
- 
+-		if (duration > 0 && b.tv_sec - start.tv_sec >= duration) {
++		if (duration > 0 && elapsed >= duration) {
+ 			ksft_test_result_pass("Completed\n");
+ 			ksft_finished();
+ 		}
 _
 
-Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
+Patches currently in -mm which might be from sarthak.sharma@arm.com are
 
-mm-vmscan-remove-the-redundant-folioref_reclaim_clean-logic.patch
-mm-vmscan-convert-folio_referenced-to-use-vma_flags_t.patch
-mm-vmscan-add-a-helper-to-identify-file-backed-executable-folios.patch
-mm-mglru-promote-mapped-executable-folios-after-first-usage.patch
+selftests-mm-transhuge-stress-check-duration-inside-page-loop.patch
 
