@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 74FAC3CB2E0
-	for <mm-commits@vger.kernel.org>; Tue, 21 Jul 2026 23:24:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A1915439336
+	for <mm-commits@vger.kernel.org>; Tue, 21 Jul 2026 23:25:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784676264; cv=none; b=aREvZruQC84kz+Pltvc1dA5SZwAMih5FuUsixKtEfPBAFy7iEBUuaWmTJsequ4UfyM+TxZ11lX71J/qqL5jogm7mL8uYWoArUi85797V6DzTuNxL2hPUb8933BYMcrBHDvZwkXkVKtcRAWFuYM7QO2Y3v3PCLeGwiMkJ/xaC9bI=
+	t=1784676330; cv=none; b=bbLK7tM6pknupb2TLZ8GQdHsWu5tcAIfczJWVXTTPTcpEkU7B3mh2brw33WLGsIEagnXyehlL5nGJRF8JpMIN94S6SpXhF833hTf+ye8iP5X/wTibCgc5NDNt1M80HXmp/RT8j9bek5xNrp66/OfRuiX1CcxrzGHoTrA5EiB8I8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784676264; c=relaxed/simple;
-	bh=X00ikraCWXXMaaZSW/7N5sPlGv0BGl5Rp3h01P728t4=;
-	h=Date:To:From:Subject:Message-Id; b=i4l5A+6Egkg6hyNM0AGOOyXNY4cwxEXSwNiKuEVEp+OHbqVTDwUtD9imiFKRueZSHIqbdhOWjSQzaT4sQDmSLv8W/xNeDQYzC9YG1k6weO4k+AEZHifSuYIL8HLmtVBPSQFhmL9nbfIob7p8zlFuHDdqjvMmnrRXL3WfKlNRwm8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KECHKmT7; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1784676330; c=relaxed/simple;
+	bh=9uoShhMD1DjeOIOF2dGoSCuvSabW2xGiyRnP8lfjEXA=;
+	h=Date:To:From:Subject:Message-Id; b=GXqJh/zRmgUtYUKe11LE7Qp7KQdeKPGus3GOliAlr91P4gaCpdO8jC/IGo7xHJzWbzyE1yDJlvbFPQU2Rkltp3g95dAkGd6NBjEQmb6h6lyQjGvmppI9Q5CDqbykTU2XxPrfUDv8T8wLSZYh0V/GJHpyVRDbQEPYv3DDF4c88S8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=b08HtQek; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KECHKmT7"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F38AA1F000E9;
-	Tue, 21 Jul 2026 23:24:22 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="b08HtQek"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2A8B01F000E9;
+	Tue, 21 Jul 2026 23:25:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1784676263;
-	bh=y0iP36j6aoQVUAjGjfnsQJnfDqtc7elAJqbgs1lp8ls=;
+	d=linux-foundation.org; s=korg; t=1784676329;
+	bh=TEPJgVLi0Z+lj3iul9n4Bl0oDbLZ3ElqHDej9PZXzcA=;
 	h=Date:To:From:Subject;
-	b=KECHKmT7CeDtGlxWArYp9Zb47EDruwPoQX/Ces7FfODNO9ToDQYGPXCJJF+JDzRlK
-	 ou5Xs4vF6IJY+MXhHEjMeOcOzJGKQ4Srs8KYg/C9YXrW9k4MgbSBvb+q9icAKNEzJX
-	 q8moLI9ZMWYa6FHyIpAUPhG0j9FCZWa0q7Rvje8I=
-Date: Tue, 21 Jul 2026 16:24:22 -0700
-To: mm-commits@vger.kernel.org,sj@kernel.org,honggyu.kim@sk.com,jiahuitry@outlook.com,akpm@linux-foundation.org
+	b=b08HtQek3fKEN2rcmzQrLtMdellGCepK5eM2AV/b2uiznh7RPw2y1DP9MJJNNAWtx
+	 EO+119Eqq/QJ7GQUVDhkRFIIw1GrDz5XLbRYX7FuO1YWn9eW44YPDcnVvaNDatUbHt
+	 4jCL0ellXVbrPkbEf56HyMCQc5yWBY5NU3ZDb72c=
+Date: Tue, 21 Jul 2026 16:25:28 -0700
+To: mm-commits@vger.kernel.org,sj@kernel.org,wangxuewen@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-ops-common-prevent-migration-fallback-to-non-target-nodes.patch added to mm-new branch
-Message-Id: <20260721232422.F38AA1F000E9@smtp.kernel.org>
+Subject: + mm-damon-remove-trailing-semicolons-after-function-definitions.patch added to mm-new branch
+Message-Id: <20260721232529.2A8B01F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/ops-common: prevent migration fallback to non-target nodes
+     Subject: mm/damon: remove trailing semicolons after function definitions
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-ops-common-prevent-migration-fallback-to-non-target-nodes.patch
+     mm-damon-remove-trailing-semicolons-after-function-definitions.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-ops-common-prevent-migration-fallback-to-non-target-nodes.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-remove-trailing-semicolons-after-function-definitions.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,72 +69,67 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Jiahui Zhang <jiahuitry@outlook.com>
-Subject: mm/damon/ops-common: prevent migration fallback to non-target nodes
-Date: Tue, 21 Jul 2026 06:56:05 -0700
+From: Xuewen Wang <wangxuewen@kylinos.cn>
+Subject: mm/damon: remove trailing semicolons after function definitions
+Date: Tue, 21 Jul 2026 06:53:31 -0700
 
-DAMOS_MIGRATE_{HOT,COLD} passes a target NUMA node to migrate_pages(). 
-But alloc_migration_target() only treats mtc->nid as a preferred node
-unless __GFP_THISNODE is set.  Hence target allocation can fall back to
-another node, and migrate_pages() can report success without placing the
-folio on the requested target node.
+Three function definitions terminate with '};' instead of '}', which is
+unnecessary and inconsistent with kernel coding style:
 
-Consider a two-node tiered system where node 0 is a fast tier and node 1
-is a CPU-less slow tier such as CXL memory, and the user wants to promote
-hot regions from node 1 to node 0 with a command like:
+- damon_pa_initcall() in paddr.c
+- damon_va_initcall() in vaddr.c
+- damos_get_some_mem_psi_total() in core.c
 
-  sudo damo start --ops vaddr --target_pid ${workload_pid} \
-      --damos_action migrate_hot 0 \
-      --damos_access_rate 70% max
+No functional change intended.
 
-Without the __GFP_THISNODE flag, when the memory allocator finds that node
-0 is nearly full, it can fall back to node 1 without waking up kswapd. 
-Then the pages allocated for migrate_pages() are still on node 1, and the
-regions that are expected to be promoted to node 0 are only moved to
-different physical pages on node 1.
-
-Meanwhile, both the mm_migrate_pages tracepoint and DAMOS's own sz_applied
-statistics (reported via the damos_stat_after_apply_interval tracepoint)
-show the migrations as successful, which makes the failure practically
-invisible and hard to investigate.
-
-Running a demotion-purpose DAMOS scheme alongside the promotion scheme
-does not fully avoid this either.  If demotion cannot keep up with the
-promotion rate, allocation can still fall back to node 1 during promotion,
-and the same misleading statistics show up.
-
-Make DAMON's migration target allocation strict by setting __GFP_THISNODE,
-so that a failed allocation on the target node is reported as a failure
-instead of silently landing on a different node.  This is consistent with
-alloc_misplaced_dst_folio(), alloc_demote_folio(), and with
-do_move_pages_to_node(), which all use __GFP_THISNODE for migrations to an
-explicit destination node.
-
-Link: https://lore.kernel.org/20260721135607.251869-1-sj@kernel.org
-Signed-off-by: Jiahui Zhang <jiahuitry@outlook.com>
+Link: https://lore.kernel.org/20260721135333.241106-1-sj@kernel.org
+Signed-off-by: Xuewen Wang <wangxuewen@kylinos.cn>
 Reviewed-by: SJ Park <sj@kernel.org>
 Signed-off-by: SJ Park <sj@kernel.org>
-Cc: Honggyu Kim <honggyu.kim@sk.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/ops-common.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/damon/core.c  |    2 +-
+ mm/damon/paddr.c |    2 +-
+ mm/damon/vaddr.c |    2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
 
---- a/mm/damon/ops-common.c~mm-damon-ops-common-prevent-migration-fallback-to-non-target-nodes
-+++ a/mm/damon/ops-common.c
-@@ -312,7 +312,7 @@ static unsigned int __damon_migrate_foli
- 		 * instead of migrated.
- 		 */
- 		.gfp_mask = (GFP_HIGHUSER_MOVABLE & ~__GFP_RECLAIM) |
--			__GFP_NOMEMALLOC | GFP_NOWAIT,
-+			__GFP_NOMEMALLOC | GFP_NOWAIT | __GFP_THISNODE,
- 		.nid = target_nid,
+--- a/mm/damon/core.c~mm-damon-remove-trailing-semicolons-after-function-definitions
++++ a/mm/damon/core.c
+@@ -2791,7 +2791,7 @@ static u64 damos_get_some_mem_psi_total(
+ static inline u64 damos_get_some_mem_psi_total(void)
+ {
+ 	return 0;
+-};
++}
+ 
+ #endif	/* CONFIG_PSI */
+ 
+--- a/mm/damon/paddr.c~mm-damon-remove-trailing-semicolons-after-function-definitions
++++ a/mm/damon/paddr.c
+@@ -447,6 +447,6 @@ static int __init damon_pa_initcall(void
  	};
+ 
+ 	return damon_register_ops(&ops);
+-};
++}
+ 
+ subsys_initcall(damon_pa_initcall);
+--- a/mm/damon/vaddr.c~mm-damon-remove-trailing-semicolons-after-function-definitions
++++ a/mm/damon/vaddr.c
+@@ -959,7 +959,7 @@ static int __init damon_va_initcall(void
+ 	if (err)
+ 		return err;
+ 	return damon_register_ops(&ops_fvaddr);
+-};
++}
+ 
+ subsys_initcall(damon_va_initcall);
  
 _
 
-Patches currently in -mm which might be from jiahuitry@outlook.com are
+Patches currently in -mm which might be from wangxuewen@kylinos.cn are
 
-mm-damon-ops-common-prevent-migration-fallback-to-non-target-nodes.patch
+mm-annotate-data-race-in-cpu_needs_drain.patch
+mm-damon-remove-trailing-semicolons-after-function-definitions.patch
 
