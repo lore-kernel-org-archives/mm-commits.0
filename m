@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 29DD93EDE63;
-	Tue, 21 Jul 2026 00:43:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 48E4C449B12;
+	Tue, 21 Jul 2026 00:43:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784594620; cv=none; b=eERbqkPlc/6p4GPDUKJDtK5rXhI2h6X4GzLzMgSHA9u1Bht38TM0jopTgaiR//Q/9nN/VQqA7T90nkeSuZFpB1ZHDi+i7yUYFYa+nE3kCqJBtij5/p7Yf50XLlSWXSKAzwYJ/nDHCmPIz3Qb6Lqdxhyy2HKYVCoLYOEVywqU0ss=
+	t=1784594621; cv=none; b=NfaUrooylisCFUIG/6rqNn6Tbb14m2Oep1c4a8xVMJI7RJ0bjNAXZTbV1u5k0VKNMhFa0TVK0BfMicHPcMHTzZz6kWZcvNoOP1SuMN9biCghKCMEmuUW1Ug9+qjMESV4h+IATvOQcj/YF+fTKZIO+qgRXT+b4+UbuU+MRcubpc0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784594620; c=relaxed/simple;
-	bh=lp9zYcv7UmilwVsv0YRgUU2ZWIEHOwk0J+tVtw3CjUE=;
-	h=Date:To:From:Subject:Message-Id; b=bHXvylvh5lfiEHKZjn/cpDJamiBygoBgG+YYnyUE/CsvZrpP1gEZCdvPdpC+2wsqjM7DSpu5BxWtbcvx+q45ClGdDMFhi5uIvmmfFAX02PYH36qNVcl47QSFXY6jvKP69Kb97G2YBaYl1Gxu0fYOKz3YeuVvfUfSQFkgiOdUA3E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nkjAYht2; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1784594621; c=relaxed/simple;
+	bh=deIaGZuQxUY6tuU6BKnUBK0pAjc3lU/VHCI00oO7hRw=;
+	h=Date:To:From:Subject:Message-Id; b=sVazYV72Ush/JsllAMsGFyad2Y/oHlcmW7KWwwHHiuodcoumrTnmvSMmpSjkNlVairGFg41l5T4D/vlhCXFo1ttmzEl8mH26vCt3PIhzrOVR35oZJTv5OxJaQJOWTGIMJRGfl0iPZ0zq0neW86VxKbf3RXk1Ts1g8wxkgYYnG0o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=eptamkXk; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nkjAYht2"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B70D51F00A3A;
-	Tue, 21 Jul 2026 00:43:38 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="eptamkXk"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F1A781F000E9;
+	Tue, 21 Jul 2026 00:43:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1784594618;
-	bh=0WA1uKHUtGYOvw6AG7WjUactfBNlQFWL89JV3czgDrg=;
+	d=linux-foundation.org; s=korg; t=1784594620;
+	bh=rHPqUt2mNfYl8rMR/abTVlfg46W7DJuR29p+H+S2mLg=;
 	h=Date:To:From:Subject;
-	b=nkjAYht2BJVTlxqMUwL2w7fEIlvJvPZ9zIl5kBOe3SaA/89zHlcXH67Q8e3c26//v
-	 LK0wDnv1fNf65l9D4SToZcuTUNwB9DUQE6wq6JGX7b/HhGjD+3M3045Z2eDJXX/vfC
-	 b9xuWR82LdzwLL7+7++faF2291IQjWz82QQlargI=
-Date: Mon, 20 Jul 2026 17:43:38 -0700
-To: mm-commits@vger.kernel.org,tj@kernel.org,stable@vger.kernel.org,sashiko-bot@kernel.org,dennis@kernel.org,cl@linux.com,ziy@nvidia.com,akpm@linux-foundation.org
+	b=eptamkXko0j3+dkqKp+eqy5ERl9JG36tkXAnm4++gsyG9J1aPUbZgzbjn/s/mV8xC
+	 9jj6ibw3LWjUkshKRuYNTSofl0pF2zaQ6M+QjkkTRkTXVcYGUNF8o60QhQot4DbQDc
+	 CWhJz+H2hEdPJxOegPqQo7gMyOrCg7XTL1fK1Zec=
+Date: Mon, 20 Jul 2026 17:43:39 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,jlbec@evilplan.org,heming.zhao@suse.com,gechangwei@live.cn,dmantipov@yandex.ru,joseph.qi@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-percpu-km-fix-bitmap-overflow-and-accounting-in-pcpu_create_chunk.patch removed from -mm tree
-Message-Id: <20260721004338.B70D51F00A3A@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] ocfs2-fix-boundary-check-in-ocfs2_check_dir_entry-to-use-buffer-offset.patch removed from -mm tree
+Message-Id: <20260721004339.F1A781F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,70 +35,100 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/percpu-km: fix bitmap overflow and accounting in pcpu_create_chunk()
+     Subject: ocfs2: fix boundary check in ocfs2_check_dir_entry() to use buffer offset
 has been removed from the -mm tree.  Its filename was
-     mm-percpu-km-fix-bitmap-overflow-and-accounting-in-pcpu_create_chunk.patch
+     ocfs2-fix-boundary-check-in-ocfs2_check_dir_entry-to-use-buffer-offset.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Zi Yan <ziy@nvidia.com>
-Subject: mm/percpu-km: fix bitmap overflow and accounting in pcpu_create_chunk()
-Date: Thu, 09 Jul 2026 15:12:01 -0400
+From: Joseph Qi <joseph.qi@linux.alibaba.com>
+Subject: ocfs2: fix boundary check in ocfs2_check_dir_entry() to use buffer offset
+Date: Fri, 10 Jul 2026 12:05:12 +0800
 
-In pcpu_create_chunk(), nr_pages is the total contiguous backing
-allocation, i.e., nr_units * pcpu_unit_pages, but pcpu_chunk_populated()
-uses it to set chunk->populated, whose size is pcpu_unit_pages, bitmap. 
-Since bit N in chunk->populated means page offset N inside every unit is
-backed.  When nr_units > 1, the function writes beyond chunk->populated. 
-Fix it by using chunk->nr_pages.
+Commit 390ac56cf0f6 ("ocfs2: add boundary check to
+ocfs2_check_dir_entry()") added an out-of-bounds guard using the
+caller-supplied 'offset' argument:
 
-It also fixes the global pcpu_nr_empty_pop_pages accounting, since
-pcpu_balance_free() only iterates up to chunk->nr_pages.
+	if (offset > size - OCFS2_DIR_REC_LEN(1))
+		return 0;
 
-Commit a63d4ac4ab609 ("percpu: make percpu-km set chunk->populated bitmap
-properly") introduced the bitmap overflow issue.  Later, commit
-b539b87fed37f ("percpu: implmeent pcpu_nr_empty_pop_pages and
-chunk->nr_populated") added pcpu_nr_empty_pop_pages and caused the
-accounting issue.
+However, 'offset' and 'size' are not measured against the same base for
+all callers.  In the block-based lookup path, ocfs2_find_entry_el() passes
+'offset' as an absolute offset into the whole directory:
 
-Link: https://lore.kernel.org/20260709-fix-pcpu_create_chunk-in-percpu-km-v1-1-1f64745a84cc@nvidia.com
-Fixes: a63d4ac4ab609 ("percpu: make percpu-km set chunk->populated bitmap properly")
-Reported-by: Sashiko <sashiko-bot@kernel.org>
-Closes: https://sashiko.dev/#/patchset/20260703-keep-subpage-private-zero-at-free-v2-0-2970fe777dd6%40nvidia.com?part=1
-Assisted-by: Codex:GPT-5
-Signed-off-by: Zi Yan <ziy@nvidia.com>
-Acked-by: Dennis Zhou <dennis@kernel.org>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Zi Yan <ziy@nvidia.com>
+	i = ocfs2_search_dirblock(bh, dir, name, namelen,
+				  block << sb->s_blocksize_bits,
+				  bh->b_data, sb->s_blocksize, res_dir);
+
+while 'size' is a single block size (sb->s_blocksize).  For any directory
+entry located in the second or later block, 'offset' is >=
+sb->s_blocksize, so the guard rejects every such entry even though it is
+perfectly valid and lies entirely within its block buffer.
+
+This makes mounting fail for filesystems whose system directory spans more
+than one block, e.g.  a volume formatted with a small block size:
+
+  mkfs.ocfs2 -b 512 -C 4096 -N 2 -T datafiles --fs-features=usrquota,grpquota
+
+  ocfs2_check_dir_entry:314 ERROR: directory entry (#18: offset=512) too close to end or out-of-bounds
+  ocfs2_init_local_system_inodes:496 ERROR: status=-22, sysfile=12, slot=0
+  ocfs2_mount_volume:1757 ERROR: status = -22
+
+The dirent's position within the buffer being validated is ((char *)de -
+buf), which is what the rest of the function already uses (via
+next_offset) and what must be bounds-checked against 'size'.  Compute that
+buffer-relative offset and use it for the guard.  The subtraction is
+reordered to size - buf_offset < OCFS2_DIR_REC_LEN(1) to avoid an unsigned
+underflow when size is smaller than the minimal record length.
+
+Link: https://lore.kernel.org/20260710040512.3310736-1-joseph.qi@linux.alibaba.com
+Fixes: 390ac56cf0f6 ("ocfs2: add boundary check to ocfs2_check_dir_entry()")
+Signed-off-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Reviewed-by: Dmitry Antipov <dmantipov@yandex.ru>
+Tested-by: Dmitry Antipov <dmantipov@yandex.ru>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Jun Piao <piaojun@huawei.com>
+Cc: Heming Zhao <heming.zhao@suse.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/percpu-km.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/ocfs2/dir.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
---- a/mm/percpu-km.c~mm-percpu-km-fix-bitmap-overflow-and-accounting-in-pcpu_create_chunk
-+++ a/mm/percpu-km.c
-@@ -75,7 +75,7 @@ static struct pcpu_chunk *pcpu_create_ch
- 	chunk->base_addr = page_address(pages);
+--- a/fs/ocfs2/dir.c~ocfs2-fix-boundary-check-in-ocfs2_check_dir_entry-to-use-buffer-offset
++++ a/fs/ocfs2/dir.c
+@@ -302,10 +302,11 @@ static int ocfs2_check_dir_entry(struct
+ 				 unsigned long offset)
+ {
+ 	const char *error_msg = NULL;
++	unsigned long buf_offset = (char *)de - buf;
+ 	unsigned long next_offset;
+ 	int rlen;
  
- 	spin_lock_irqsave(&pcpu_lock, flags);
--	pcpu_chunk_populated(chunk, 0, nr_pages);
-+	pcpu_chunk_populated(chunk, 0, chunk->nr_pages);
- 	spin_unlock_irqrestore(&pcpu_lock, flags);
+-	if (offset > size - OCFS2_DIR_REC_LEN(1)) {
++	if (buf_offset > size || size - buf_offset < OCFS2_DIR_REC_LEN(1)) {
+ 		/* Dirent is (maybe partially) beyond the buffer
+ 		 * boundaries so touching 'de' members is unsafe.
+ 		 */
+@@ -316,7 +317,7 @@ static int ocfs2_check_dir_entry(struct
+ 	}
  
- 	pcpu_stats_chunk_alloc();
+ 	rlen = le16_to_cpu(de->rec_len);
+-	next_offset = ((char *) de - buf) + rlen;
++	next_offset = buf_offset + rlen;
+ 
+ 	if (unlikely(rlen < OCFS2_DIR_REC_LEN(1)))
+ 		error_msg = "rec_len is smaller than minimal";
 _
 
-Patches currently in -mm which might be from ziy@nvidia.com are
+Patches currently in -mm which might be from joseph.qi@linux.alibaba.com are
 
-mm-page_owner-add-numa-node-filter-fix.patch
-mm-percpu-km-clear-page-private-before-free-them.patch
-mm-compaction-stop-recording-free-page-order-in-page-private.patch
-mm-huge_memory-add-page-private-check-back-in-__split_folio_to_order.patch
-mm-page_alloc-make-sure-tail_page-private-is-zero-at-page-free-time.patch
-mm-page_alloc-remove-set_page_private-in-prep_compound_tail.patch
+ocfs2-cluster-use-gfp_nofs-for-heartbeat-bio-allocation.patch
+ocfs2-cluster-use-an-on-stack-bio-for-the-heartbeat-write.patch
 
