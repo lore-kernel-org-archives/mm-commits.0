@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 48E4C449B12;
-	Tue, 21 Jul 2026 00:43:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 908F23ED13B;
+	Tue, 21 Jul 2026 00:43:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784594621; cv=none; b=NfaUrooylisCFUIG/6rqNn6Tbb14m2Oep1c4a8xVMJI7RJ0bjNAXZTbV1u5k0VKNMhFa0TVK0BfMicHPcMHTzZz6kWZcvNoOP1SuMN9biCghKCMEmuUW1Ug9+qjMESV4h+IATvOQcj/YF+fTKZIO+qgRXT+b4+UbuU+MRcubpc0=
+	t=1784594623; cv=none; b=ItqR4Q4CzglGGjpFlRXlhZi5kcfWm0mDQTb8OMlQnc80/ecluCGCfYoV+5+6UjWXvevlNbeNiwSB2PKLTVQA9CT5WnaMJSiz3eBDQhFzQDbjn/pMYRWho2d/2IsLOrSgxZO0DfJycrPsOVIvvUYB11JtofAmcwZ9uZYX4QYulOU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784594621; c=relaxed/simple;
-	bh=deIaGZuQxUY6tuU6BKnUBK0pAjc3lU/VHCI00oO7hRw=;
-	h=Date:To:From:Subject:Message-Id; b=sVazYV72Ush/JsllAMsGFyad2Y/oHlcmW7KWwwHHiuodcoumrTnmvSMmpSjkNlVairGFg41l5T4D/vlhCXFo1ttmzEl8mH26vCt3PIhzrOVR35oZJTv5OxJaQJOWTGIMJRGfl0iPZ0zq0neW86VxKbf3RXk1Ts1g8wxkgYYnG0o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=eptamkXk; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1784594623; c=relaxed/simple;
+	bh=BVQ/bGYBhcs0VL5BQKZXoTA2GBPZ2zm6drsmjGOZVTY=;
+	h=Date:To:From:Subject:Message-Id; b=adoLSVbgbIr4SCAZ9CDYlk4hnvIw3WdwNYeVRobioDDJVdhDeLNEV7h0bhnKj7o5kbEPWekmXK+HP30yWUjqkx3riWxlkjR7LzCAca6zEF0ylh3YSxhsolcF0hnAMfJq1ftEwKUpwGspbaJiz4hEMh/T3VCVZk/9ODu2VhhxBDA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VRrhiPCo; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="eptamkXk"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F1A781F000E9;
-	Tue, 21 Jul 2026 00:43:39 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VRrhiPCo"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 19A741F00A3A;
+	Tue, 21 Jul 2026 00:43:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1784594620;
-	bh=rHPqUt2mNfYl8rMR/abTVlfg46W7DJuR29p+H+S2mLg=;
+	d=linux-foundation.org; s=korg; t=1784594621;
+	bh=V5ZqffmS6BWdNOzYYTc5GHfoSg2fUXO5dv3lP/YZ+Wg=;
 	h=Date:To:From:Subject;
-	b=eptamkXko0j3+dkqKp+eqy5ERl9JG36tkXAnm4++gsyG9J1aPUbZgzbjn/s/mV8xC
-	 9jj6ibw3LWjUkshKRuYNTSofl0pF2zaQ6M+QjkkTRkTXVcYGUNF8o60QhQot4DbQDc
-	 CWhJz+H2hEdPJxOegPqQo7gMyOrCg7XTL1fK1Zec=
-Date: Mon, 20 Jul 2026 17:43:39 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,jlbec@evilplan.org,heming.zhao@suse.com,gechangwei@live.cn,dmantipov@yandex.ru,joseph.qi@linux.alibaba.com,akpm@linux-foundation.org
+	b=VRrhiPCo1niPaL8Fbm9PJ5rP1avNuvDmIbKD0DAbiTkXJgwEWIWtwEGyWGpsVesbf
+	 wjkOB+AzrJ7TOmPBnKy874oxc5V7FmbeWWWVjmJdqDI0Q5ByV1iad0XMDyE5Hnlivp
+	 WZUdMf8d12Qu7H0g6mLPHMWubRpSKR2CpVrgRnYI=
+Date: Mon, 20 Jul 2026 17:43:40 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,shuah@kernel.org,richard.weiyang@gmail.com,cyphar@cyphar.com,brauner@kernel.org,jkoolstra@xs4all.nl,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] ocfs2-fix-boundary-check-in-ocfs2_check_dir_entry-to-use-buffer-offset.patch removed from -mm tree
-Message-Id: <20260721004339.F1A781F000E9@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] selftest-fix-headers-in-fclogc.patch removed from -mm tree
+Message-Id: <20260721004341.19A741F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,100 +35,53 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: ocfs2: fix boundary check in ocfs2_check_dir_entry() to use buffer offset
+     Subject: selftest: fix headers in fclog.c
 has been removed from the -mm tree.  Its filename was
-     ocfs2-fix-boundary-check-in-ocfs2_check_dir_entry-to-use-buffer-offset.patch
+     selftest-fix-headers-in-fclogc.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Joseph Qi <joseph.qi@linux.alibaba.com>
-Subject: ocfs2: fix boundary check in ocfs2_check_dir_entry() to use buffer offset
-Date: Fri, 10 Jul 2026 12:05:12 +0800
+From: Jori Koolstra <jkoolstra@xs4all.nl>
+Subject: selftest: fix headers in fclog.c
+Date: Fri, 10 Jul 2026 19:17:35 +0200
 
-Commit 390ac56cf0f6 ("ocfs2: add boundary check to
-ocfs2_check_dir_entry()") added an out-of-bounds guard using the
-caller-supplied 'offset' argument:
+fclog.c does not compile because it is missing fcntl.h, needed for
+O_RDONLY etc.
 
-	if (offset > size - OCFS2_DIR_REC_LEN(1))
-		return 0;
+There are also some redundant includes that are also in
+kselftest_harness.h.
 
-However, 'offset' and 'size' are not measured against the same base for
-all callers.  In the block-based lookup path, ocfs2_find_entry_el() passes
-'offset' as an absolute offset into the whole directory:
-
-	i = ocfs2_search_dirblock(bh, dir, name, namelen,
-				  block << sb->s_blocksize_bits,
-				  bh->b_data, sb->s_blocksize, res_dir);
-
-while 'size' is a single block size (sb->s_blocksize).  For any directory
-entry located in the second or later block, 'offset' is >=
-sb->s_blocksize, so the guard rejects every such entry even though it is
-perfectly valid and lies entirely within its block buffer.
-
-This makes mounting fail for filesystems whose system directory spans more
-than one block, e.g.  a volume formatted with a small block size:
-
-  mkfs.ocfs2 -b 512 -C 4096 -N 2 -T datafiles --fs-features=usrquota,grpquota
-
-  ocfs2_check_dir_entry:314 ERROR: directory entry (#18: offset=512) too close to end or out-of-bounds
-  ocfs2_init_local_system_inodes:496 ERROR: status=-22, sysfile=12, slot=0
-  ocfs2_mount_volume:1757 ERROR: status = -22
-
-The dirent's position within the buffer being validated is ((char *)de -
-buf), which is what the rest of the function already uses (via
-next_offset) and what must be bounds-checked against 'size'.  Compute that
-buffer-relative offset and use it for the guard.  The subtraction is
-reordered to size - buf_offset < OCFS2_DIR_REC_LEN(1) to avoid an unsigned
-underflow when size is smaller than the minimal record length.
-
-Link: https://lore.kernel.org/20260710040512.3310736-1-joseph.qi@linux.alibaba.com
-Fixes: 390ac56cf0f6 ("ocfs2: add boundary check to ocfs2_check_dir_entry()")
-Signed-off-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Reviewed-by: Dmitry Antipov <dmantipov@yandex.ru>
-Tested-by: Dmitry Antipov <dmantipov@yandex.ru>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Jun Piao <piaojun@huawei.com>
-Cc: Heming Zhao <heming.zhao@suse.com>
+Link: https://lore.kernel.org/20260710171741.837308-1-jkoolstra@xs4all.nl
+Signed-off-by: Jori Koolstra <jkoolstra@xs4all.nl>
+Cc: Aleksa Sarai <cyphar@cyphar.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Wei Yang <richard.weiyang@gmail.com>
+Cc: Christian Brauner <brauner@kernel.org>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/dir.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ tools/testing/selftests/filesystems/fclog.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
---- a/fs/ocfs2/dir.c~ocfs2-fix-boundary-check-in-ocfs2_check_dir_entry-to-use-buffer-offset
-+++ a/fs/ocfs2/dir.c
-@@ -302,10 +302,11 @@ static int ocfs2_check_dir_entry(struct
- 				 unsigned long offset)
- {
- 	const char *error_msg = NULL;
-+	unsigned long buf_offset = (char *)de - buf;
- 	unsigned long next_offset;
- 	int rlen;
+--- a/tools/testing/selftests/filesystems/fclog.c~selftest-fix-headers-in-fclogc
++++ a/tools/testing/selftests/filesystems/fclog.c
+@@ -6,10 +6,8 @@
  
--	if (offset > size - OCFS2_DIR_REC_LEN(1)) {
-+	if (buf_offset > size || size - buf_offset < OCFS2_DIR_REC_LEN(1)) {
- 		/* Dirent is (maybe partially) beyond the buffer
- 		 * boundaries so touching 'de' members is unsafe.
- 		 */
-@@ -316,7 +317,7 @@ static int ocfs2_check_dir_entry(struct
- 	}
+ #include <assert.h>
+ #include <errno.h>
++#include <fcntl.h>
+ #include <sched.h>
+-#include <stdio.h>
+-#include <stdlib.h>
+-#include <string.h>
+ #include <unistd.h>
+ #include <sys/mount.h>
  
- 	rlen = le16_to_cpu(de->rec_len);
--	next_offset = ((char *) de - buf) + rlen;
-+	next_offset = buf_offset + rlen;
- 
- 	if (unlikely(rlen < OCFS2_DIR_REC_LEN(1)))
- 		error_msg = "rec_len is smaller than minimal";
 _
 
-Patches currently in -mm which might be from joseph.qi@linux.alibaba.com are
+Patches currently in -mm which might be from jkoolstra@xs4all.nl are
 
-ocfs2-cluster-use-gfp_nofs-for-heartbeat-bio-allocation.patch
-ocfs2-cluster-use-an-on-stack-bio-for-the-heartbeat-write.patch
 
