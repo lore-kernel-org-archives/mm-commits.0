@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 30FE44746BB
-	for <mm-commits@vger.kernel.org>; Tue, 21 Jul 2026 21:03:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9A7753E121A
+	for <mm-commits@vger.kernel.org>; Tue, 21 Jul 2026 23:22:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784667837; cv=none; b=ENb3I54SHcgzuv+c+LiHVkS6kwnRhJQOa1CB+qLLT1G7X9VnMeTpCD4/FZ8F3avkNttMNc74qO9BjDfYgEVSjei5mWZFjwJ0UPh9Az9D0FoX6DCEnqqMLjCTzRO3tCqo9Vp+wU125WvjOKfuRwYYWi2sa/rizRo1mn4GSvTYxRo=
+	t=1784676143; cv=none; b=qy8BrqtbvsLmb+IMi9bvs+4AbvIGGlRg/IYp9pA7pbb9eW25nq49P+OZGgpdWH4COhgeljm1HYmkLQ4/nB8aQZgwhECZS0sjgBP+W1UnKluVTZxyG6FzDAEuUnJutfbkeWT0R1frsEKSTVaYYXN5sJfrvPoOywunCtcqKiH1wn8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784667837; c=relaxed/simple;
-	bh=VbRLnJtojewE32wQPC5kplYpnBQltLWmJ8tPQWuovKQ=;
-	h=Date:To:From:Subject:Message-Id; b=Ep2l262jbhgPB49aSXdxiYoIJnd43TOtqYXZl5aCmFLtORP3neze6fE7cHSFYvwsIKea5ApKwshF0G0bwkYhAOXQJeTM3s4KhfwqobO9aZiytUSWC9DCpTQCTLeNmMVtQp6N45/nnFvYP7/GxjcOPhA5HFAMwwnT921WyQaXN8A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LzyXpx78; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1784676143; c=relaxed/simple;
+	bh=QkpREHT388Z/m8ZTc5aRS/LxWdoUR8c1XrxI2aN8B+w=;
+	h=Date:To:From:Subject:Message-Id; b=gw3pmBBFrW6sIFDMIxpwJJrW63VQ+Etv5KqxM2Q2BiWbMi9N4Oc51af0eZN2UJUML9r0wPaKcnRRu/jN50gkLZXz2zjhYDBAAI4tXbPKXBWWNPG9X6stf+giN+A4Z3THiQTZHJb3zHReyaANmapShqk1n4owhKjqZVguSXItEaA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0nMVL04l; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LzyXpx78"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D307D1F00AC4;
-	Tue, 21 Jul 2026 21:03:52 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0nMVL04l"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1644F1F000E9;
+	Tue, 21 Jul 2026 23:22:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1784667832;
-	bh=cyDWXk+gtrmrdh5Rh08Lvk8k0g3wi7mVGWEAUvf+MHQ=;
+	d=linux-foundation.org; s=korg; t=1784676141;
+	bh=41TTXyqgMXBEqmCnvqKx0YM25xe/MtydgJ+CeMQ+7vE=;
 	h=Date:To:From:Subject;
-	b=LzyXpx78OJ8dSAsanlpkYmTk8MvVqJ9GY/+YCVPLNM9CxJ8C+RFBrtdFsP41jsC47
-	 At5LyN6z5WUF1XAVxIO8iQQxSyHPV3oKxM1WElbNQ2qEFLGwGLoyRZ1WIYqSVxN2nB
-	 GzmOWmmNdhyIExpsgkiTfvA5XZBVyHnqZsFMzYEI=
-Date: Tue, 21 Jul 2026 14:03:52 -0700
-To: mm-commits@vger.kernel.org,will@kernel.org,vbabka@kernel.org,surenb@google.com,rppt@kernel.org,palmer@dabbelt.com,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,catalin.marinas@arm.com,aou@eecs.berkeley.edu,alex@ghiti.fr,ekffu200098@gmail.com,akpm@linux-foundation.org
+	b=0nMVL04lnRIBDPnLalzFJabSqNG1mYZ1PE9BYyfyFMg3aUrGIRtI4yrdz1rLwH7qd
+	 +56lG654GZavFtkhyIpZ52gd2knyl6+pd9xec1sUoxPyNT5huK6GAah/U4ImfPe1Ay
+	 2jNwTgauAbKHEzaZ2AW5fTPg+0xdEGdA7GJ4xhTU=
+Date: Tue, 21 Jul 2026 16:22:20 -0700
+To: mm-commits@vger.kernel.org,sj@kernel.org,husong@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + arm64-remove-early_ioremap_reset-call-and-__late_-macros.patch added to mm-new branch
-Message-Id: <20260721210352.D307D1F00AC4@smtp.kernel.org>
+Subject: + mm-damon-update-outdated-comment-about-damos-filter-handling.patch added to mm-new branch
+Message-Id: <20260721232221.1644F1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: arm64: remove early_ioremap_reset() call and __late_* macros
+     Subject: mm/damon: update outdated comment about DAMOS filter handling
 has been added to the -mm mm-new branch.  Its filename is
-     arm64-remove-early_ioremap_reset-call-and-__late_-macros.patch
+     mm-damon-update-outdated-comment-about-damos-filter-handling.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arm64-remove-early_ioremap_reset-call-and-__late_-macros.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-update-outdated-comment-about-damos-filter-handling.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,66 +69,66 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Sang-Heon Jeon <ekffu200098@gmail.com>
-Subject: arm64: remove early_ioremap_reset() call and __late_* macros
-Date: Thu, 9 Jul 2026 02:06:47 +0900
+From: Song Hu <husong@kylinos.cn>
+Subject: mm/damon: update outdated comment about DAMOS filter handling
+Date: Tue, 21 Jul 2026 07:00:08 -0700
 
-On arm64, __early_set_fixmap(), __late_set_fixmap() and
-__late_clear_fixmap() are all __set_fixmap().  Calling
-early_ioremap_reset() changes nothing.  So remove the call and the macros.
+The kernel-doc comment above enum damos_filter_type states that only the
+anon and memcg type filters are handled by damon_operations (and therefore
+accounted as 'tried'), and that DAMON_OPS_VADDR and DAMON_OPS_FVADDR do
+not support those two filter types.
 
-No functional change.
+Neither is accurate anymore.  damos_filter_for_ops() routes every filter
+type except ADDR and TARGET to the operations layer, and the VADDR and
+FVADDR operations (the latter being a copy of the former) handle all of
+those types through damos_folio_filter_match() / damos_va_filter_out(). 
+Update the comment to match the code.
 
-Link: https://lore.kernel.org/20260708170647.362562-4-ekffu200098@gmail.com
-Signed-off-by: Sang-Heon Jeon <ekffu200098@gmail.com>
-Acked-by: Will Deacon <will@kernel.org>
-Cc: Albert Ou <aou@eecs.berkeley.edu>
-Cc: Alexandre Ghiti <alex@ghiti.fr>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Palmer Dabbelt <palmer@dabbelt.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
+Link: https://lore.kernel.org/20260721140011.269802-1-sj@kernel.org
+Signed-off-by: Song Hu <husong@kylinos.cn>
+Reviewed-by: SJ Park <sj@kernel.org>
+Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/include/asm/fixmap.h |    3 ---
- arch/arm64/kernel/setup.c       |    2 --
- 2 files changed, 5 deletions(-)
+ include/linux/damon.h |   17 ++++++++---------
+ 1 file changed, 8 insertions(+), 9 deletions(-)
 
---- a/arch/arm64/include/asm/fixmap.h~arm64-remove-early_ioremap_reset-call-and-__late_-macros
-+++ a/arch/arm64/include/asm/fixmap.h
-@@ -110,9 +110,6 @@ void __init early_fixmap_init(void);
- 
- #define __early_set_fixmap __set_fixmap
- 
--#define __late_set_fixmap __set_fixmap
--#define __late_clear_fixmap(idx) __set_fixmap((idx), 0, FIXMAP_PAGE_CLEAR)
--
- extern void __set_fixmap(enum fixed_addresses idx, phys_addr_t phys, pgprot_t prot);
- 
- #include <asm-generic/fixmap.h>
---- a/arch/arm64/kernel/setup.c~arm64-remove-early_ioremap_reset-call-and-__late_-macros
-+++ a/arch/arm64/kernel/setup.c
-@@ -347,8 +347,6 @@ void __init __no_sanitize_address setup_
- 
- 	request_standard_resources();
- 
--	early_ioremap_reset();
--
- 	if (acpi_disabled)
- 		psci_dt_init();
- 	else
+--- a/include/linux/damon.h~mm-damon-update-outdated-comment-about-damos-filter-handling
++++ a/include/linux/damon.h
+@@ -398,16 +398,15 @@ struct damos_stat {
+  * @DAMOS_FILTER_TYPE_TARGET:	Data Access Monitoring target.
+  * @NR_DAMOS_FILTER_TYPES:	Number of filter types.
+  *
+- * The anon pages type and memcg type filters are handled by underlying
+- * &struct damon_operations as a part of scheme action trying, and therefore
+- * accounted as 'tried'.  In contrast, other types are handled by core layer
+- * before trying of the action and therefore not accounted as 'tried'.
++ * All types except &DAMOS_FILTER_TYPE_ADDR and &DAMOS_FILTER_TYPE_TARGET
++ * are handled by the underlying &struct damon_operations as a part of scheme
++ * action trying, and therefore accounted as 'tried'.  In contrast,
++ * &DAMOS_FILTER_TYPE_ADDR and &DAMOS_FILTER_TYPE_TARGET filters are handled
++ * by the core layer before trying of the action, and therefore not accounted
++ * as 'tried'.
+  *
+- * The support of the filters that handled by &struct damon_operations depend
+- * on the running &struct damon_operations.
+- * &enum DAMON_OPS_PADDR supports both anon pages type and memcg type filters,
+- * while &enum DAMON_OPS_VADDR and &enum DAMON_OPS_FVADDR don't support any of
+- * the two types.
++ * Support for the operations-handled filters depends on the running
++ * &struct damon_operations.
+  */
+ enum damos_filter_type {
+ 	DAMOS_FILTER_TYPE_ANON,
 _
 
-Patches currently in -mm which might be from ekffu200098@gmail.com are
+Patches currently in -mm which might be from husong@kylinos.cn are
 
-arch_numa-remove-redundant-nodemask-clears-in-numa_init.patch
-mm-early_ioremap-clarify-early_ioremap_reset-semantics.patch
-riscv-remove-unused-__late_set_fixmap-and-__late_clear_fixmap.patch
-arm64-remove-early_ioremap_reset-call-and-__late_-macros.patch
+mm-damon-tests-core-kunit-test-damon_nr_accesses_mvsum.patch
+docs-abi-damon-fix-typo-in-intervals_goal-sysfs-path.patch
+docs-abi-damon-fix-typos.patch
+docs-abi-damon-document-update_tuned_intervals-state-command.patch
+docs-abi-damon-document-tried_regions-probe-hits.patch
+mm-damon-update-outdated-comment-about-damos-filter-handling.patch
 
