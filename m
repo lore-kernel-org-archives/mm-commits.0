@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4C9AC17C203;
-	Wed, 22 Jul 2026 00:02:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DF7BB246781;
+	Wed, 22 Jul 2026 00:11:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784678565; cv=none; b=kdZIkAof0btLXWO/Zsu1etqWE/tcB6fb5S+Su36dARqQE/+3vF9aEh11CTx4LxDpCdX9y/VboCjw3LsKUtx7naea4KWl30O0708tehaPxngB5rYjJQ501/JalPXwm48r0Ffki07t25IvR5zzI2Ol9ci0/JOmSB3qwWqmhfnweqI=
+	t=1784679107; cv=none; b=n+Cu0u66eS9h2g3s9I+EH/wfDLNeUJntJbtNDLI5R45LxwDBrJGboM/DViD1x/9XOYrk93YxfprYg1TbKgWHy+loHe/02m7ajvWuVQd28dXgG7acMPPAp5PvlqS0tBG7k6DXVQhgdEDgHTE3vUDmv094yvvRx4TqZicLrprq6sg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784678565; c=relaxed/simple;
-	bh=ehgcE+eO/peXgNJbcZKul6FIoEMma9gy0mjfbh52duA=;
-	h=Date:To:From:Subject:Message-Id; b=g/9ZduB2FYy9p6F2D8EA6Dt8zeTfIDyqyBjQQnAv2fUSogB670uEKAhkUtFDj4z1M1ojsGmmXPSCjOVch404unO8MwCLqIWOXrBVV0m3/tinCwnK5g9do95dmCHpk5OOnNPszZ23zH30KKvYQRdYDTk9asBXNePDdOpr8OkYBX0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DBwsxafX; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1784679107; c=relaxed/simple;
+	bh=kmbdmW+A3sDlmF2FCFi3vasbjjFsB9FKD3lfyIwEQb4=;
+	h=Date:To:From:Subject:Message-Id; b=e8uTEl2y1l4wE73lega/1LjF60Rh4QSX6G/XpeKgAyEKAycWDiHdAPMG86Z9YFeFYdCcJ7xKNBAPTbLgAex6WvUwgiA46tLnPJI1Fb6Y4x1oXrfi93gdIkheAbonzW/6o6TfV/ZpyTukLwoCWzq0LUaJX683vTPEytDiaDfKei0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=honkZpyE; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DBwsxafX"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C8DCE1F000E9;
-	Wed, 22 Jul 2026 00:02:43 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="honkZpyE"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 494F21F000E9;
+	Wed, 22 Jul 2026 00:11:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1784678563;
-	bh=QU5YJM28eQZeWn51Ggd6g97lmDbVHYE6Aw87akEGuYI=;
+	d=linux-foundation.org; s=korg; t=1784679104;
+	bh=iHZVrZmHrArnaNVCQfgsdtP5R0u/v/D9XAj+T3rSmJw=;
 	h=Date:To:From:Subject;
-	b=DBwsxafXCicflw5rz6GwUVC6WdWQypW9TrC+Trwtvohtcgctg7t+7xKTpxCwr5tPw
-	 LdaOkySUnD5NKNDl2uhq1OwoixgBV0//tUDyfryuCiYtq3sZUtZ/XAjrKa1OkGkc6s
-	 xX8dII1t8nqnIJLXBMCQ5bavKg41sJycoIX+EmQA=
-Date: Tue, 21 Jul 2026 17:02:43 -0700
-To: mm-commits@vger.kernel.org,vishal.moola@gmail.com,stable@vger.kernel.org,rppt@kernel.org,peterz@infradead.org,mingo@redhat.com,luto@kernel.org,kevin.tian@intel.com,kas@kernel.org,jgg@ziepe.ca,hpa@zytor.com,david@kernel.org,dave.hansen@linux.intel.com,bp@alien8.de,baolu.lu@linux.intel.com,ljs@kernel.org,akpm@linux-foundation.org
+	b=honkZpyEwBjEvqYJIP9VVi9CybQdwRkDeLR+YyamWm0UqvpypEGyNO6dZeB7+vleD
+	 FcRmOdJ7VQDdr6LcRMA7fbTiXIe/cqEBoRp3jb+tRJtPHDgJJLLnHVZXfJ6IVF1+G0
+	 PzGQ0QSDWRw+Ai9NnrVaYi2lDlM0fYSHhhb//uHo=
+Date: Tue, 21 Jul 2026 17:11:43 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,heming.zhao@suse.com,gechangwei@live.cn,dmantipov@yandex.ru,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + x86-mm-pat-allocate-split-page-tables-as-kernel-page-tables.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260722000243.C8DCE1F000E9@smtp.kernel.org>
+Subject: + ocfs2-always-run-deallocs-on-copy-on-write-completion.patch added to mm-nonmm-unstable branch
+Message-Id: <20260722001144.494F21F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: x86/mm/pat: allocate split page tables as kernel page tables
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     x86-mm-pat-allocate-split-page-tables-as-kernel-page-tables.patch
+     Subject: ocfs2: always run deallocs on copy-on-write completion
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     ocfs2-always-run-deallocs-on-copy-on-write-completion.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-mm-pat-allocate-split-page-tables-as-kernel-page-tables.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-always-run-deallocs-on-copy-on-write-completion.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,209 +58,191 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: x86/mm/pat: allocate split page tables as kernel page tables
-Date: Tue, 21 Jul 2026 13:14:52 +0100
+From: Dmitry Antipov <dmantipov@yandex.ru>
+Subject: ocfs2: always run deallocs on copy-on-write completion
+Date: Tue, 21 Jul 2026 13:28:40 +0300
 
-When splitting a large page in CPA in __split_large_page() we allocate a
-PTE directly without going through the standard page table allocation
-routines such as pte_alloc_one_kernel().
+Local fuzzing of 6.12.94 has found the following memory leak
+caused by doing 'copy_file_range()' within the same filesystem:
 
-This means the page table constructor is never called nor is the page
-table marked as a kernel page table.
+unreferenced object 0xffff88812192c980 (size 32):
+  comm "syz.0.49", pid 12095, jiffies 4294964143
+  hex dump (first 32 bytes):
+    00 00 00 00 00 00 00 00 08 00 00 00 00 00 00 00  ................
+    c0 c5 92 21 81 88 ff ff 00 02 00 00 00 06 00 00  ...!............
+  backtrace (crc 7068d63f):
+    kmemleak_alloc_recursive include/linux/kmemleak.h:42 [inline]
+    slab_post_alloc_hook mm/slub.c:4152 [inline]
+    slab_alloc_node mm/slub.c:4197 [inline]
+    __kmalloc_cache_noprof+0x168/0x2c0 mm/slub.c:4358
+    kmalloc_noprof include/linux/slab.h:878 [inline]
+    ocfs2_find_per_slot_free_list fs/ocfs2/alloc.c:6618 [inline]
+    ocfs2_cache_block_dealloc+0x155/0x4b0 fs/ocfs2/alloc.c:6786
+    ocfs2_cache_extent_block_free fs/ocfs2/alloc.c:6819 [inline]
+    ocfs2_unlink_path+0x286/0x450 fs/ocfs2/alloc.c:2613
+    ocfs2_rotate_subtree_left fs/ocfs2/alloc.c:2779 [inline]
+    __ocfs2_rotate_tree_left+0x1f6f/0x2da0 fs/ocfs2/alloc.c:2985
+    ocfs2_rotate_tree_left+0x283/0xe00 fs/ocfs2/alloc.c:3237
+    ocfs2_try_to_merge_extent+0xf56/0x1a20 fs/ocfs2/alloc.c:3825
+    ocfs2_split_extent+0x15f4/0x2940 fs/ocfs2/alloc.c:5138
+    ocfs2_clear_ext_refcount+0x2f6/0x550 fs/ocfs2/refcounttree.c:3098
+    ocfs2_replace_clusters fs/ocfs2/refcounttree.c:3131 [inline]
+    ocfs2_make_clusters_writable fs/ocfs2/refcounttree.c:3255 [inline]
+    ocfs2_replace_cow+0x991/0x1660 fs/ocfs2/refcounttree.c:3349
+    ocfs2_refcount_cow_hunk fs/ocfs2/refcounttree.c:3427 [inline]
+    ocfs2_refcount_cow+0x5e1/0x9f0 fs/ocfs2/refcounttree.c:3470
+    ocfs2_prepare_inode_for_write fs/ocfs2/file.c:2340 [inline]
+    ocfs2_file_write_iter+0xbda/0x1880 fs/ocfs2/file.c:2451
+    iter_file_splice_write+0x890/0xf60 fs/splice.c:743
+    do_splice_from fs/splice.c:944 [inline]
+    direct_splice_actor+0x232/0x480 fs/splice.c:1167
+    splice_direct_to_actor+0x4b4/0xb60 fs/splice.c:1111
+    do_splice_direct_actor fs/splice.c:1210 [inline]
+    do_splice_direct+0x10f/0x1c0 fs/splice.c:1236
+    do_sendfile+0x430/0xbf0 fs/read_write.c:1388
 
-The former results in the folio associated with the page table not being
-marked as a page table (__pagetable_ctor() is never called thus neither is
-__folio_set_pgtable()) nor are statistics updated to reflect it
-(lruvec_stat_add_folio() is never called).
+unreferenced object 0xffff88812192c5c0 (size 32):
+  comm "syz.0.49", pid 12095, jiffies 4294964143
+  hex dump (first 32 bytes):
+    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+    29 70 00 00 00 00 00 00 19 00 00 00 00 00 00 00  )p..............
+  backtrace (crc afec850f):
+    kmemleak_alloc_recursive include/linux/kmemleak.h:42 [inline]
+    slab_post_alloc_hook mm/slub.c:4152 [inline]
+    slab_alloc_node mm/slub.c:4197 [inline]
+    __kmalloc_cache_noprof+0x168/0x2c0 mm/slub.c:4358
+    kmalloc_noprof include/linux/slab.h:878 [inline]
+    kzalloc_noprof include/linux/slab.h:1014 [inline]
+    ocfs2_cache_block_dealloc+0x25c/0x4b0 fs/ocfs2/alloc.c:6793
+    ocfs2_cache_extent_block_free fs/ocfs2/alloc.c:6819 [inline]
+    ocfs2_unlink_path+0x286/0x450 fs/ocfs2/alloc.c:2613
+    ocfs2_rotate_subtree_left fs/ocfs2/alloc.c:2779 [inline]
+    __ocfs2_rotate_tree_left+0x1f6f/0x2da0 fs/ocfs2/alloc.c:2985
+    ocfs2_rotate_tree_left+0x283/0xe00 fs/ocfs2/alloc.c:3237
+    ocfs2_try_to_merge_extent+0xf56/0x1a20 fs/ocfs2/alloc.c:3825
+    ocfs2_split_extent+0x15f4/0x2940 fs/ocfs2/alloc.c:5138
+    ocfs2_clear_ext_refcount+0x2f6/0x550 fs/ocfs2/refcounttree.c:3098
+    ocfs2_replace_clusters fs/ocfs2/refcounttree.c:3131 [inline]
+    ocfs2_make_clusters_writable fs/ocfs2/refcounttree.c:3255 [inline]
+    ocfs2_replace_cow+0x991/0x1660 fs/ocfs2/refcounttree.c:3349
+    ocfs2_refcount_cow_hunk fs/ocfs2/refcounttree.c:3427 [inline]
+    ocfs2_refcount_cow+0x5e1/0x9f0 fs/ocfs2/refcounttree.c:3470
+    ocfs2_prepare_inode_for_write fs/ocfs2/file.c:2340 [inline]
+    ocfs2_file_write_iter+0xbda/0x1880 fs/ocfs2/file.c:2451
+    iter_file_splice_write+0x890/0xf60 fs/splice.c:743
+    do_splice_from fs/splice.c:944 [inline]
+    direct_splice_actor+0x232/0x480 fs/splice.c:1167
+    splice_direct_to_actor+0x4b4/0xb60 fs/splice.c:1111
+    do_splice_direct_actor fs/splice.c:1210 [inline]
+    do_splice_direct+0x10f/0x1c0 fs/splice.c:1236
+    do_sendfile+0x430/0xbf0 fs/read_write.c:1388
 
-The latter issue of failing to mark the page table as a kernel page table
-(ptdesc_set_kernel() is never called) is far more problematic.
+This happens when 'ocfs2_cache_block_dealloc()' called from
+'ocfs2_cache_extent_block_free()' uses the suballocator to
+schedule extent removal, so 'ocfs2_run_deallocs()' should
+be run unconditionally to complete the removal with
+'ocfs2_free_cached_blocks()'. An extra semi-automated static
+analysis [1] suspects that the same scenario looks possible in
+'ocfs2_attach_refcount_tree()' and 'ocfs2_reflink_remap_blocks()'
+as well, but, since 'ocfs2_run_deallocs()' is a safe no-op for
+an empty dealloc context, 'ocfs2_create_reflink_node()' and
+'ocfs2_reflink_xattrs()' may be adjusted in the same way too,
+thus keeping the code pattern consistent.
 
-Since commit 5ba2f0a15564 ("mm: introduce deferred freeing for kernel page
-tables") kernel page table freeing has been batched and since the
-subsequent commit e37d5a2d60a3 ("iommu/sva: invalidate stale IOTLB entries
-for kernel address space") IOTLB cache entries for kernel page tables have
-been invalidated upon being freed.
+[1] https://lore.kernel.org/ocfs2-devel/f1d7e266-4b44-41b9-98c0-5b3868a8d9c3@yandex.ru
 
-Since split page tables are freed without this invalidation, the IOTLB can
-contain stale entries for them.
-
-Resolve the issue by using the ordinary PTE allocation API at split time.
-
-This results in these kernel page tables invoking a page table
-constructor, and thus requires a page table destructor.
-
-Since we cannot assume one is always present (early allocated direct map
-page tables are not marked as such), we conditionally call
-pagetable_dtor_free() if the PG_table folio flag for the ptdesc is set,
-otherwise we free the page table via pagetable_free().
-
-Regardless of which path is taken page tables marked as kernel page
-tables, which now includes split page tables, take the correct route
-through pagetable_free_kernel().
-
-There is a user-visible side effect in that split page tables will appear
-in nr_page_table_pages in /proc/vmstat (as do other kernel page tables
-allocated after early boot), however this is a positive change.
-
-This issue started being markedly problematic after commit 5ba2f0a15564
-("mm: introduce deferred freeing for kernel page tables") so choose this
-as the Fixes target.
-
-Link: https://lore.kernel.org/20260721-fix-cpa-kernel-pagetables-v2-1-2b255deed710@kernel.org
-Fixes: 5ba2f0a15564 ("mm: introduce deferred freeing for kernel page tables")
-Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
-Acked-by: Vishal Moola <vishal.moola@gmail.com>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Baolu Lu <baolu.lu@linux.intel.com>
-Cc: "Borislav Petkov (AMD)" <bp@alien8.de>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Kevin Tian <kevin.tian@intel.com>
-Cc: Kiryl Shutsemau <kas@kernel.org>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
+Link: https://lore.kernel.org/20260721102840.387663-1-dmantipov@yandex.ru
+Fixes: 6f70fa519976 ("ocfs2: Add CoW support.")
+Signed-off-by: Dmitry Antipov <dmantipov@yandex.ru>
+Suggested-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Jun Piao <piaojun@huawei.com>
+Cc: Heming Zhao <heming.zhao@suse.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/pat/set_memory.c |   25 ++++++++++++++++---------
- 1 file changed, 16 insertions(+), 9 deletions(-)
+ fs/ocfs2/refcounttree.c |   20 ++++++++------------
+ fs/ocfs2/xattr.c        |    5 ++---
+ 2 files changed, 10 insertions(+), 15 deletions(-)
 
---- a/arch/x86/mm/pat/set_memory.c~x86-mm-pat-allocate-split-page-tables-as-kernel-page-tables
-+++ a/arch/x86/mm/pat/set_memory.c
-@@ -439,7 +439,15 @@ static void __cpa_collapse_large_pages(s
- 
- 	list_for_each_entry_safe(ptdesc, tmp, &pgtables, pt_list) {
- 		list_del(&ptdesc->pt_list);
--		pagetable_free(ptdesc);
-+		/*
-+		 * Only early alloc'd direct map should not be flagged PG_table
-+		 * here and those shouldn't be collapsed. However be abundantly
-+		 * cautious and handle the !PG_table case too.
-+		 */
-+		if (PageTable((ptdesc_page(ptdesc))))
-+			pagetable_dtor_free(ptdesc);
-+		else
-+			pagetable_free(ptdesc);
+--- a/fs/ocfs2/refcounttree.c~ocfs2-always-run-deallocs-on-copy-on-write-completion
++++ a/fs/ocfs2/refcounttree.c
+@@ -3387,10 +3387,9 @@ static int ocfs2_replace_cow(struct ocfs
+ 		cow_start += num_clusters;
  	}
+ 
+-	if (ocfs2_dealloc_has_cluster(&context->dealloc)) {
++	if (ocfs2_dealloc_has_cluster(&context->dealloc))
+ 		ocfs2_schedule_truncate_log_flush(osb, 1);
+-		ocfs2_run_deallocs(osb, &context->dealloc);
+-	}
++	ocfs2_run_deallocs(osb, &context->dealloc);
+ 
+ 	return ret;
  }
+@@ -3873,10 +3872,9 @@ unlock:
+ 	ocfs2_unlock_refcount_tree(osb, ref_tree, 1);
+ 	brelse(ref_root_bh);
  
-@@ -1138,11 +1146,10 @@ set:
+-	if (!ret && ocfs2_dealloc_has_cluster(&dealloc)) {
++	if (!ret && ocfs2_dealloc_has_cluster(&dealloc))
+ 		ocfs2_schedule_truncate_log_flush(osb, 1);
+-		ocfs2_run_deallocs(osb, &dealloc);
+-	}
++	ocfs2_run_deallocs(osb, &dealloc);
+ out:
+ 	/*
+ 	 * Empty the extent map so that we may get the right extent
+@@ -4162,10 +4160,9 @@ out_unlock_refcount:
+ 	ocfs2_unlock_refcount_tree(osb, ref_tree, 1);
+ 	brelse(ref_root_bh);
+ out:
+-	if (ocfs2_dealloc_has_cluster(&dealloc)) {
++	if (ocfs2_dealloc_has_cluster(&dealloc))
+ 		ocfs2_schedule_truncate_log_flush(osb, 1);
+-		ocfs2_run_deallocs(osb, &dealloc);
+-	}
++	ocfs2_run_deallocs(osb, &dealloc);
  
- static int
- __split_large_page(struct cpa_data *cpa, pte_t *kpte, unsigned long address,
--		   struct ptdesc *ptdesc)
-+		   pte_t *pbase)
- {
- 	unsigned long lpaddr, lpinc, ref_pfn, pfn, pfninc = 1;
--	struct page *base = ptdesc_page(ptdesc);
--	pte_t *pbase = (pte_t *)page_address(base);
-+	struct page *base = virt_to_page(pbase);
- 	unsigned int i, level;
- 	pgprot_t ref_prot;
- 	bool nx, rw;
-@@ -1246,18 +1253,18 @@ __split_large_page(struct cpa_data *cpa,
- static int split_large_page(struct cpa_data *cpa, pte_t *kpte,
- 			    unsigned long address)
- {
--	struct ptdesc *ptdesc;
-+	pte_t *pte;
- 
- 	if (!debug_pagealloc_enabled())
- 		spin_unlock(&cpa_lock);
--	ptdesc = pagetable_alloc(GFP_KERNEL, 0);
-+	pte = pte_alloc_one_kernel(&init_mm);
- 	if (!debug_pagealloc_enabled())
- 		spin_lock(&cpa_lock);
--	if (!ptdesc)
-+	if (!pte)
- 		return -ENOMEM;
- 
--	if (__split_large_page(cpa, kpte, address, ptdesc))
--		pagetable_free(ptdesc);
-+	if (__split_large_page(cpa, kpte, address, pte))
-+		pte_free_kernel(&init_mm, pte);
- 
- 	return 0;
+ 	return ret;
  }
+@@ -4718,10 +4715,9 @@ loff_t ocfs2_reflink_remap_blocks(struct
+ 	}
+ 
+ out:
+-	if (ocfs2_dealloc_has_cluster(&dealloc)) {
++	if (ocfs2_dealloc_has_cluster(&dealloc))
+ 		ocfs2_schedule_truncate_log_flush(osb, 1);
+-		ocfs2_run_deallocs(osb, &dealloc);
+-	}
++	ocfs2_run_deallocs(osb, &dealloc);
+ 
+ 	return ret;
+ }
+--- a/fs/ocfs2/xattr.c~ocfs2-always-run-deallocs-on-copy-on-write-completion
++++ a/fs/ocfs2/xattr.c
+@@ -7424,10 +7424,9 @@ out_unlock:
+ 				   ref_tree, 1);
+ 	brelse(ref_root_bh);
+ 
+-	if (ocfs2_dealloc_has_cluster(&dealloc)) {
++	if (ocfs2_dealloc_has_cluster(&dealloc))
+ 		ocfs2_schedule_truncate_log_flush(OCFS2_SB(old_inode->i_sb), 1);
+-		ocfs2_run_deallocs(OCFS2_SB(old_inode->i_sb), &dealloc);
+-	}
++	ocfs2_run_deallocs(OCFS2_SB(old_inode->i_sb), &dealloc);
+ 
+ out:
+ 	return ret;
 _
 
-Patches currently in -mm which might be from ljs@kernel.org are
+Patches currently in -mm which might be from dmantipov@yandex.ru are
 
-mm-vmalloc-acquire-init_mm-lock-on-huge-vmap-to-avoid-ptdump-uaf.patch
-x86-mm-pat-acquire-init_mm-write-lock-on-collapse-to-avoid-uaf.patch
-x86-mm-pat-acquire-init_mm-read-lock-on-attribute-change-to-avoid-uaf.patch
-mm-ptdump-always-stabilise-against-page-table-freeing-using-init_mm.patch
-arm64-remove-redundant-concurrent-ptdump-uaf-mitigation.patch
-x86-mm-pat-allocate-split-page-tables-as-kernel-page-tables.patch
-mm-move-alloc-tag-to-mm.patch
-mm-move-vma_start_pgoff-into-mmh-and-clean-up.patch
-mm-add-kdoc-comments-for-vma_start-last_pgoff.patch
-tools-testing-vma-use-vma_start_pgoff-in-merge-tests.patch
-mm-introduce-and-use-vma_end_pgoff.patch
-mm-rmap-update-mm-interval_treec-comments.patch
-mm-rmap-parameterise-vma_interval_tree_-by-address_space.patch
-mm-rmap-elide-unnecessary-static-inlines-in-interval_treec.patch
-mm-rmap-rename-vma_interval_tree_-to-mapping_rmap_tree_.patch
-mm-rmap-parameterise-anon_vma_interval_tree_-by-anon_vma.patch
-mm-rmap-rename-anon_vma_interval_tree_-params-and-use-pgoff_t.patch
-mm-rmap-rename-anon_vma_interval_tree_-to-anon_rmap_tree_.patch
-maintainers-move-mm-interval_treec-to-rmap-section.patch
-mm-vma-introduce-and-use-vmg_pages-vmg__pgoff.patch
-mm-vma-clean-up-anon_vma_compatible.patch
-mm-vma-refactor-vmg_adjust_set_range-for-clarity.patch
-mm-vma-minor-cleanup-of-expand_.patch
-mm-introduce-and-use-linear_page_delta.patch
-mm-vma-use-vma_start_pgoff-linear_page_index-in-mm-code.patch
-mm-prefer-vma__pgoff-to-vma-vm_pgoff-in-kernel.patch
-mm-vma-remove-duplicative-vma_pgoff_offset-helper.patch
-mm-use-linear_page_-consistently.patch
-mm-vma-introduce-vma_assert_can_modify.patch
-mm-vma-add-and-use-vma__pgoff.patch
-mm-vma-move-__install_special_mapping-to-vmac.patch
-mm-vma-make-vma_set_range-static-drop-insert_vm_struct-decl.patch
-mm-vma-update-vma_shrink-to-not-pass-start-pgoff-parameters.patch
-mm-vma-update-vmg_adjust_set_range-to-offset-pgoff-instead.patch
-mm-vma-slightly-rework-the-anonymous-check-in-__mmap_new_vma.patch
-mm-vma-introduce-and-use-vma_set_pgoff.patch
-mm-vma-correct-incorrect-vmah-inclusion.patch
-mm-vma-use-guard-clauses-in-can_vma_merge_.patch
-tools-testing-vma-default-vma-mm-flag-bits-to-64-bit.patch
-tools-testing-vma-output-compared-expression-on-assert_.patch
-mm-introduce-vma_flags_can_grow-and-vma_can_grow.patch
-mm-vma-update-do_mmap-to-use-vma_flags_t.patch
-mm-convert-__get_unmapped_area-to-use-vma_flags_t.patch
-mm-update-generic_get_unmapped_area-to-use-vma_flags_t.patch
-mm-prefer-mm-def_vma_flags-in-mm-logic.patch
-mm-vma-convert-vm_pgprot_modify-to-use-vma_flags_t-and-rename.patch
-mm-vma-rename-vma_get_page_prot-to-vma_flags_to_page_prot.patch
-mm-introduce-vma_get_page_prot-and-use-it.patch
-mm-vma-update-create_init_stack_vma-to-use-vma_flags_t.patch
-mm-vma-convert-miscellaneous-uses-of-vma-flags-in-core-mm.patch
-mm-mlock-convert-mlock-code-to-use-vma_flags_t.patch
-mm-mprotect-convert-mprotect-code-to-use-vma_flags_t.patch
-mm-mremap-convert-mremap-code-to-use-vma_flags_t.patch
-mm-mseal-remove-superfluous-comments-fix-confusion-around-mm.patch
-mm-mseal-limit-scope-of-mseal-address-zero-to-address-zero.patch
-mm-mseal-remove-further-superfluous-comments-do_mseal.patch
-mm-vma-introduce-vma-virtual-page-offset-field-and-add-helpers.patch
-mm-introduce-linear_virt_page_index.patch
-mm-abstract-vma_address-and-introduce-vma_anon_address.patch
-mm-update-print_bad_page_map-to-show-virtual-page-index.patch
-mm-introduce-and-use-vma_filebacked_address.patch
-mm-propagate-vma-virtual-page-offset-on-map-remap-split-merge.patch
-mm-rmap-track-whether-the-page-vma-mapped-walk-is-anonymous.patch
-mm-introduce-and-use-linear_folio_page_index.patch
-mm-rmap-use-virt-pgoff-for-map_private-file-backed-anon-folios.patch
-tools-testing-vma-expand-vma-merge-tests-to-assert-virt-pgoff.patch
-tools-testing-selftests-mm-test-virtual-page-offset-merge-behaviour.patch
-mm-vma-only-permit-map_private-dev-zero-to-be-mapped-anonymous.patch
-mm-vma-make-map_private-mapped-dev-zero-mappings-truly-anonymous.patch
-tools-testing-vma-add-test-to-assert-map_private-dev-zero-is-anon.patch
-tools-testing-selftests-mm-add-map_private-dev-zero-merge-tests.patch
+ocfs2-do-not-use-make_bad_inode-in-ocfs2_read_inode_block_full.patch
+ocfs2-always-run-deallocs-on-copy-on-write-completion.patch
 
