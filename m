@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6C785233D9E
-	for <mm-commits@vger.kernel.org>; Wed, 22 Jul 2026 23:52:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 79FE643F4B9
+	for <mm-commits@vger.kernel.org>; Wed, 22 Jul 2026 23:55:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784764341; cv=none; b=AgJM3r7tlC+Hba5r3JZd/rSajeDJ/pUu1dmS/5xknToke3lOprzMylNmT6n41cW5xbXlxiT0DJfwsDs3bvct2jYPl4ZdUi+2naxLwMrT5ENYEMlMzrBTrBRASi2EGbJHJFx4JB5xCUNM/zDEMtE8nelKDTKYwCeL0CveZGhw38s=
+	t=1784764525; cv=none; b=oqzu5fAoUlFSwM+89SX7aoPNB0aFOkUTTLIEiZdmZHnXi3DOTnQkzFsCj6M+FJuT3bcUaqBOKW5R4dSGxVbpeB5xOOH8GHLfMbZovTTaZtO93HJKCH+W4WW1CvWHUhHIu3YYsqP3h/MXmVCp0JbVSQ/8pM8UzfZQdW1wQTe+My4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784764341; c=relaxed/simple;
-	bh=2Tx5krmSTBtSdARTiX4tqAgs+dd3le8OwXUrR0ALxuI=;
-	h=Date:To:From:Subject:Message-Id; b=ZDZY0aI7DOt5hfRb7j5cKd9EmWBt7vz+uwzVTnzyhcPfrUKRx9TG76sQwqAyn1G0UoCpvf+9GfyCxaOJwkdBsg4vFxwHOJmpNw0U/+lf+a6QhzNdgX4Hqce2dI3ffD946EpEEdN+mwgrZtCIm/TgHG+1uJtMaTFdEag0vp6Ax3Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hOEStNDA; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1784764525; c=relaxed/simple;
+	bh=oXSIe+g4+vjQui0gYjusd+7V7cyzm4Q+1i3Z9WShfR0=;
+	h=Date:To:From:Subject:Message-Id; b=hAoEHa1tzf/EvAIW+i5HAgm6uGTZoKpzoGlLSld6EXd1FEXwN0jnfPDZfM5WvTJfMfS2bEW1IdGEh9t5XddPzX2HTEobMLg7vO1dGjX5V9ezGpO6QvJmfAGIeE9uCGJL4VM/BIogK1OKKqnG2P72u8Qxj+ZomEws+qB6xSA1HEw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QsiZxHLb; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hOEStNDA"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0E4A21F000E9;
-	Wed, 22 Jul 2026 23:52:20 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QsiZxHLb"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 055DC1F000E9;
+	Wed, 22 Jul 2026 23:55:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1784764340;
-	bh=1JJ9OQIiPkOc1lbi0r/BbAQJndhaEBDg25K+A3evhGw=;
+	d=linux-foundation.org; s=korg; t=1784764524;
+	bh=VPX53fzvOwRI0t9r0SuImS+V39SY/f3Wv20ZJqXKonQ=;
 	h=Date:To:From:Subject;
-	b=hOEStNDAheHuUPa7Hijr7ESVMZZg5yI+4GSFlXGNwfqxbk8988h8rfhzfGTDrvhx+
-	 Dff46R8Hkw6DxmDih0cL6IDlWvR3fcg5wY90v3S+1TGZK7fddJwpXjkeN7lhRAte/y
-	 qbyXGyq/EhGwEwd/Su+318oSblvz55Np6AFObGKI=
-Date: Wed, 22 Jul 2026 16:52:19 -0700
-To: mm-commits@vger.kernel.org,xueyuan.chen21@gmail.com,will@kernel.org,urezki@gmail.com,ryan.roberts@arm.com,rppt@kernel.org,leo.yan@arm.com,jiangwen6@xiaomi.com,dev.jain@arm.com,david@kernel.org,catalin.marinas@arm.com,baohua@kernel.org,anshuman.khandual@arm.com,ajd@linux.ibm.com,jiangwenxiaomi@gmail.com,akpm@linux-foundation.org
+	b=QsiZxHLbD2pKz81u9Epbo6aEHSJPEX4yI/MTuXi3YmFAxmWQDtKK04wbOMq9Bxebv
+	 oM9RMaDIl4//8rIsFnJ7nR7DEtdgyCQlC585djZdOrahk5Zi50O79S5A56fpp8R71i
+	 7bkQPWjgerrfemYbiqfDPv4OkbBziNCruni6cszY=
+Date: Wed, 22 Jul 2026 16:55:23 -0700
+To: mm-commits@vger.kernel.org,tglx@kernel.org,peterz@infradead.org,rdunlap@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmalloc-map-contiguous-pages-in-batches-for-vmap-if-possible-fix.patch added to mm-unstable branch
-Message-Id: <20260722235220.0E4A21F000E9@smtp.kernel.org>
+Subject: + rbtree-fixup-kernel-doc-names.patch added to mm-nonmm-unstable branch
+Message-Id: <20260722235524.055DC1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/vmalloc: simplify vmap batching helper and limit scan by PFN alignment
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-vmalloc-map-contiguous-pages-in-batches-for-vmap-if-possible-fix.patch
+     Subject: rbtree: fixup kernel-doc names
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     rbtree-fixup-kernel-doc-names.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmalloc-map-contiguous-pages-in-batches-for-vmap-if-possible-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/rbtree-fixup-kernel-doc-names.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,129 +58,62 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Wen Jiang <jiangwenxiaomi@gmail.com>
-Subject: mm/vmalloc: simplify vmap batching helper and limit scan by PFN alignment
-Date: Wed, 22 Jul 2026 16:58:41 +0800
+From: Randy Dunlap <rdunlap@infradead.org>
+Subject: rbtree: fixup kernel-doc names
+Date: Tue, 21 Jul 2026 22:07:59 -0700
 
-Pass the current page pointer directly to the batching helper, and limit
-the contiguous scan by PFN alignment before checking for a batch size. 
-This keeps the helper interface simpler and avoids scanning more pages
-than can actually be mapped together.
+Use the correct function parameter name in rb_next_match().  Use the
+struct keyword when describing struct latch_tree_ops.
 
-Link: https://lore.kernel.org/20260722085841.3047673-1-jiangwen6@xiaomi.com
-Signed-off-by: Wen Jiang <jiangwen6@xiaomi.com>
-Suggested-by: David Hildenbrand (Arm) <david@kernel.org>
-Cc: Andrew Donnellan <ajd@linux.ibm.com>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: "Barry Song (Xiaomi)" <baohua@kernel.org>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Leo Yan <leo.yan@arm.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
-Cc: Will Deacon <will@kernel.org>
-Cc: Xueyuan Chen <xueyuan.chen21@gmail.com>
+Prevents the following kernel-doc warnings:
+
+Warning: ./include/linux/rbtree.h:510 function parameter 'node' not
+ described in 'rb_next_match'
+Warning: ./include/linux/rbtree.h:510 Excess function parameter 'tree'
+ description in 'rb_next_match'
+Warning: ./include/linux/rbtree_latch.h:63 cannot understand function
+ prototype: 'struct latch_tree_ops'
+
+Link: https://lore.kernel.org/20260722050759.3892887-1-rdunlap@infradead.org
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Cc: "Peter Zijlstra (Intel)" <peterz@infradead.org>
+Cc: Thomas Gleixner <tglx@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |   34 +++++++++++++++++-----------------
- 1 file changed, 17 insertions(+), 17 deletions(-)
+ include/linux/rbtree.h       |    2 +-
+ include/linux/rbtree_latch.h |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/vmalloc.c~mm-vmalloc-map-contiguous-pages-in-batches-for-vmap-if-possible-fix
-+++ a/mm/vmalloc.c
-@@ -3586,7 +3586,7 @@ static inline unsigned int vm_shift(pgpr
- }
+--- a/include/linux/rbtree.h~rbtree-fixup-kernel-doc-names
++++ a/include/linux/rbtree.h
+@@ -500,7 +500,7 @@ rb_find_first(const void *key, const str
+ /**
+  * rb_next_match() - find the next @key in @tree
+  * @key: key to match
+- * @tree: tree to search
++ * @node: tree to search
+  * @cmp: operator defining node order
+  *
+  * Returns the next node matching @key, or NULL.
+--- a/include/linux/rbtree_latch.h~rbtree-fixup-kernel-doc-names
++++ a/include/linux/rbtree_latch.h
+@@ -47,7 +47,7 @@ struct latch_tree_root {
+ };
  
- static inline int get_vmap_batch_order(struct page **pages,
--		pgprot_t prot, unsigned int max_steps, unsigned int idx)
-+		pgprot_t prot, unsigned int nr_pages)
- {
- 	unsigned long pfn;
- 	unsigned int nr_contig;
-@@ -3595,16 +3595,16 @@ static inline int get_vmap_batch_order(s
- 	if (!IS_ENABLED(CONFIG_HAVE_ARCH_HUGE_VMAP))
- 		return 0;
- 
--	nr_contig = num_pages_contiguous(&pages[idx], max_steps);
-+	/* Limit nr_pages by pfn alignment */
-+	pfn = page_to_pfn(*pages);
-+	if (pfn > 0)
-+		nr_pages = min_t(unsigned int, nr_pages, 1UL << __ffs(pfn));
-+
-+	nr_contig = num_pages_contiguous(pages, nr_pages);
- 	if (nr_contig < 2)
- 		return 0;
- 
- 	order = ilog2(nr_contig);
--	pfn = page_to_pfn(pages[idx]);
--
--	/* Limit order by pfn alignment */
--	if (pfn > 0)
--		order = min_t(int, order, __ffs(pfn));
- 
- 	if (vm_shift(prot, PAGE_SIZE << order) == PAGE_SHIFT)
- 		return 0;
-@@ -3615,8 +3615,8 @@ static inline int get_vmap_batch_order(s
- static int vmap_pages_range_batched(unsigned long addr, unsigned long end,
- 		pgprot_t prot, struct page **pages)
- {
--	unsigned int count = (end - addr) >> PAGE_SHIFT;
--	unsigned int prev_shift = 0, idx = 0;
-+	const unsigned int nr_pages = (end - addr) >> PAGE_SHIFT;
-+	unsigned int prev_shift = 0, batch_start = 0;
- 	unsigned long map_addr = addr, batch_end = addr;
- 	int err;
- 
-@@ -3625,26 +3625,26 @@ static int vmap_pages_range_batched(unsi
- 	if (err)
- 		goto out;
- 
--	for (unsigned int i = 0; i < count; ) {
-+	for (unsigned int i = 0; i < nr_pages; ) {
- 		unsigned int shift = PAGE_SHIFT +
--			get_vmap_batch_order(pages, prot, count - i, i);
-+			get_vmap_batch_order(pages + i, prot, nr_pages - i);
- 
- 		if (!i)
- 			prev_shift = shift;
- 
- 		if (shift != prev_shift) {
- 			err = vmap_pages_range_noflush_walk(map_addr, batch_end,
--					prot, pages + idx, prev_shift);
-+					prot, pages + batch_start, prev_shift);
- 			if (err)
- 				goto out;
- 			prev_shift = shift;
- 			map_addr = batch_end;
--			idx = i;
-+			batch_start = i;
- 		}
- 
- 		/*
--		 * Once small pages are encountered, the remaining pages
--		 * are likely small as well.
-+		 * Once we fail to batch pages, we expect to fail batching
-+		 * for all remaining pages, so just give up.
- 		 */
- 		if (shift == PAGE_SHIFT)
- 			break;
-@@ -3655,8 +3655,8 @@ static int vmap_pages_range_batched(unsi
- 
- 	/* Remaining */
- 	if (map_addr < end)
--		err = vmap_pages_range_noflush_walk(map_addr, end,
--				prot, pages + idx, prev_shift);
-+		err = vmap_pages_range_noflush_walk(map_addr, end, prot,
-+				pages + batch_start, prev_shift);
- 
- out:
- 	flush_cache_vmap(addr, end);
+ /**
+- * latch_tree_ops - operators to define the tree order
++ * struct latch_tree_ops - operators to define the tree order
+  * @less: used for insertion; provides the (partial) order between two elements.
+  * @comp: used for lookups; provides the order between the search key and an element.
+  *
 _
 
-Patches currently in -mm which might be from jiangwenxiaomi@gmail.com are
+Patches currently in -mm which might be from rdunlap@infradead.org are
 
-mm-vmalloc-extract-vmap_set_ptes-to-consolidate-pte-mapping-logic.patch
-mm-vmalloc-extract-vm_shift-to-consolidate-mapping-shift-selection.patch
-mm-vmalloc-map-contiguous-pages-in-batches-for-vmap-if-possible-fix.patch
+mm-migrate-use-migrate_info-field-instead-of-private-fix.patch
+mm-page_owner-document-page_owner-filter-fix.patch
+radix-tree-add-correct-some-kernel-doc.patch
+delaytop-sort-by-max-delay-to-highlight-top-latency-processes-fix.patch
+rbtree-fixup-kernel-doc-names.patch
 
