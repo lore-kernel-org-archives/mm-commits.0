@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CA09040681A;
-	Wed, 22 Jul 2026 23:37:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D249043C7BE;
+	Wed, 22 Jul 2026 23:39:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784763479; cv=none; b=NNPPtkUjijpxXOX87+a02FsvBUg0vSF+m2S1qSfkq8kMjuOiwHnEueKBlyghg2pkjSesJUGF4KlkQGC82dkFJY2rW+sGeGas/bLfwS2SRsXGFWT3SB6yLJwuMnZJDygEmqEXA5+f6+3zY0J1LSWBtUf9D/hzeMZFjrv2Fbn1RtA=
+	t=1784763546; cv=none; b=fph9Obn4MeeaA5wA0aSHRxMeUoaFGOF8neP4tZVWBoopN3h2Nk0kUtijlEwAIkMcTExgFTkTmNPg91erF6cZbYLPDt6FEjjU5HJ7dlH3tl9qSJsBDeMKElhIOduZMRIxidlwisGM+VRojkUdHpQ9NqBKeJiy5LecJ8qCpq5Se+4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784763479; c=relaxed/simple;
-	bh=vF/8hAICx4bFDDjWgYb6UFhBAUwsY3z9ONkute/i9TI=;
-	h=Date:To:From:Subject:Message-Id; b=WsfuT/5RxU4zF+ZloHMycFdZLiJKrCbgehlo1MnTI3lS8Ppne3nO8dz0ex9TauBWC3RN/+C+MWRNZhCTbXN1BpgMczod9jvxdKH847tb8oZdOFRgAqyrSx/pE/TlG5BX1eJmlkP07m7+3xo0Nk3ieVrWP8xN/FXm17eG5kvN57U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bly2iOi8; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1784763546; c=relaxed/simple;
+	bh=qVHARy+6ra279kN2QfXTPZhgT1U3CV+K7tqN1uRMxdI=;
+	h=Date:To:From:Subject:Message-Id; b=NAqWg0T586Jk3hyikimA3MkpMigZ/jYbYUxOLPR0WGZIg0We9WdUbFWkJwJMbLtHgns7nlD3d8b/368loNATgZyxtoIaRz2oU9JrtvUo/j432Cp0xepauHK4yl3D0zYEvuacz0kfwXl/+C5Hi9lfKPcU6yfRNToKK3m59re2qfk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rixnH85W; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bly2iOi8"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EE85A1F000E9;
-	Wed, 22 Jul 2026 23:37:51 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rixnH85W"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3E9EF1F000E9;
+	Wed, 22 Jul 2026 23:39:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1784763472;
-	bh=//5nbV14hJdemR/PxJbBZyvB+Uul/2syz/AhZEtsyIs=;
+	d=linux-foundation.org; s=korg; t=1784763544;
+	bh=nIrcEuwvicV2J/jEAjcrLL6W7RMVqA07R1pXms2OU6o=;
 	h=Date:To:From:Subject;
-	b=bly2iOi8Bv5b0RCqE0KOjaaUljVkkn8TEkwkNqr0JZwmn7El1FrdQPGIhgLMNA2qE
-	 T9Mq3JaCew4NgaWYrYAltonc1lVD0oFpRLYYjH61niiyWhub0gHxPyKb/ANDoSDaas
-	 Ah3mQPQxHOgOiUMLxSHjw5BC6kuE/1RJg/tSU4mY=
-Date: Wed, 22 Jul 2026 16:37:51 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,stable@vger.kernel.org,shuah@kernel.org,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,brauner@kernel.org,christian.gellermann@codasip.com,akpm@linux-foundation.org
+	b=rixnH85WWan5MEw2zOXOg3gSR1ugeba344OYTT81V6w26aD9iL7K4y6LF6i7LvI+x
+	 IqS+5JhnWVBQoWLKo2mKa5howga+Z+LtjSnh++0O+OFRvz33AE1BNl76draegbIlB3
+	 pj6MXSvGdNhGX9WJ9oHjDTMeFiNqx1TzhtFRCQnE=
+Date: Wed, 22 Jul 2026 16:39:03 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,jlbec@evilplan.org,heming.zhao@suse.com,gechangwei@live.cn,joseph.qi@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-clone3-fix-wild-pointer-access-of-getline-due-to-missing-init.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260722233751.EE85A1F000E9@smtp.kernel.org>
+Subject: [to-be-updated] ocfs2-cluster-dont-sleep-while-holding-o2hb_live_lock-in-o2hb_region_pin.patch removed from -mm tree
+Message-Id: <20260722233904.3E9EF1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,124 +34,267 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: selftests/clone3: fix wild pointer access of getline due to missing init
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     selftests-clone3-fix-wild-pointer-access-of-getline-due-to-missing-init.patch
+The quilt patch titled
+     Subject: ocfs2: cluster: don't sleep while holding o2hb_live_lock in o2hb_region_pin()
+has been removed from the -mm tree.  Its filename was
+     ocfs2-cluster-dont-sleep-while-holding-o2hb_live_lock-in-o2hb_region_pin.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-clone3-fix-wild-pointer-access-of-getline-due-to-missing-init.patch
-
-This patch will later appear in the mm-hotfixes-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Chris Gellermann <christian.gellermann@codasip.com>
-Subject: selftests/clone3: fix wild pointer access of getline due to missing init
-Date: Wed, 22 Jul 2026 15:02:45 +0200
+From: Joseph Qi <joseph.qi@linux.alibaba.com>
+Subject: ocfs2: cluster: don't sleep while holding o2hb_live_lock in o2hb_region_pin()
+Date: Tue, 21 Jul 2026 19:49:16 +0800
 
-Patch series "selftests: Add missing initalization of pointer passed to
-getline", v2.
+o2hb_region_pin() is always called with the o2hb_live_lock spinlock held
+(from o2hb_region_inc_user() and o2hb_heartbeat_group_drop_item()), but it
+calls o2nm_depend_item() -> configfs_depend_item(), which sleeps: it pins
+the configfs filesystem and takes the configfs root inode rwsem.  Under
+CONFIG_DEBUG_ATOMIC_SLEEP this triggers:
 
+  BUG: sleeping function called from invalid context at kernel/locking/rwsem.c
+  in_atomic(): 1, ... name: mount.ocfs2
+    down_write
+    configfs_depend_item
+    o2hb_region_pin
+    o2hb_region_inc_user
+    o2hb_register_callback
+    dlm_register_domain_handlers
+    ...
+    ocfs2_dlm_init
+    ocfs2_mount_volume
+    ocfs2_fill_super
 
-This patch (of 2):
+Rework o2hb_region_pin() to pin one region at a time with the lock dropped
+across the sleeping call: under o2hb_live_lock find the next eligible
+region and take a config_item reference to keep it alive, drop the lock,
+call o2nm_depend_item(), then retake the lock and record the pin.  The
+config_item_put() is done with the lock released as well, since
+o2hb_region_release() also acquires o2hb_live_lock and can sleep.  The
+region list may change while unlocked, so the scan restarts from the top
+after each pin.  Local heartbeat still pins only the matching region;
+global heartbeat pins all eligible regions.
 
-Clone3_set_tid uses getline(&line, ...) in a loop to read the child's
-process status.  The code expects that getline allocates the buffer for
-the line on the first loop iteration.  According to the Open Group
-Spec[1], char *line has to be null pointer for this:
+The unpin path is unaffected: configfs_undepend_item() only takes a
+spinlock and does not sleep.
 
-> ssize_t getline(char **restrict lineptr, ...);
-> If *lineptr is a null pointer or if the object pointed to by *lineptr
-> is of insufficient size, an object shall be allocated as if by
-malloc()
-> or the object shall be reallocated as if by realloc()[...].
-
-However, char *line is only declared, leading to an undefined value that
-is potentially non-null.  In an example run with Musl v1.2.6, the realloc
-call[2] of getdelim, which implements getline, triggers a segfault:
-
-./run_kselftest.sh --test clone3:clone3_set_tid
-[ 1366.165898] kselftest: Running tests in clone3
-...
-[ 1367.799244] clone3_set_tid[811]: unhandled signal 11 code 0x1 at
-0x0000000000000000 in libc.so[68184,3fbf69f000+4c000]
-[ 1367.802808] CPU: 0 UID: 0 PID: 811 Comm: clone3_set_tid Not tainted
-..
-[ 1367.804188]  epc: 0x0000003fbf6b0184
-[ 1367.804188]  ra : 0x0000003fbf6d4664
-[ 1367.804188]  sp : 0x0000003fce5f2e40
-[ 1367.805314]  gp : 0x0000002aaab0dfb8
-[ 1367.805314]  tp : 0x0000003fbf6f14a8
-[ 1367.805314]  t0 : 0x0000003fbf63d000
-...
-
-Looking at the realloc implementation, Musl mallocs for a null pointer
-memory.  But for a non-null pointer, it assumes it's passed a valid
-pointer to the heap and tries to access its meta-data.  This leads to the
-segfault we see:
-
-void *realloc(void *p, size_t n)
-{
-        if (!p) return malloc(n);
-        if (size_overflows(n)) return 0;
-
-        struct meta *g = get_meta(p);
-        ...
-}
-
-Fix this by properly initializing the line pointer to NULL.
-
-Link: https://lore.kernel.org/20260722130246.2135563-1-christian.gellermann@codasip.com
-Link: https://lore.kernel.org/20260722130246.2135563-2-christian.gellermann@codasip.com
-Link: https://pubs.opengroup.org/onlinepubs/9799919799/functions/getline.html [1]
-Link: https://git.musl-libc.org/cgit/musl/tree/src/stdio/getdelim.c#n38 [2]
-Fixes: 41585bbeeef9 ("selftests: add tests for clone3() with *set_tid")
-Signed-off-by: Chris Gellermann <christian.gellermann@codasip.com>
-Acked-by: David Hildenbrand (arm) <david@kernel.org>
-Reviewed-by: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
+Link: https://lore.kernel.org/20260721114916.2098617-1-joseph.qi@linux.alibaba.com
+Fixes: 58a3158a5d17 ("ocfs2/cluster: Pin/unpin o2hb regions")
+Signed-off-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Jun Piao <piaojun@huawei.com>
+Cc: Heming Zhao <heming.zhao@suse.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/clone3/clone3_set_tid.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/ocfs2/cluster/heartbeat.c |  126 ++++++++++++++++++++++++++-------
+ 1 file changed, 101 insertions(+), 25 deletions(-)
 
---- a/tools/testing/selftests/clone3/clone3_set_tid.c~selftests-clone3-fix-wild-pointer-access-of-getline-due-to-missing-init
-+++ a/tools/testing/selftests/clone3/clone3_set_tid.c
-@@ -141,7 +141,7 @@ int main(int argc, char *argv[])
+--- a/fs/ocfs2/cluster/heartbeat.c~ocfs2-cluster-dont-sleep-while-holding-o2hb_live_lock-in-o2hb_region_pin
++++ a/fs/ocfs2/cluster/heartbeat.c
+@@ -43,6 +43,14 @@ static DECLARE_RWSEM(o2hb_callback_sem);
+  * whenever any of the threads sees activity from the node in its region.
+  */
+ static DEFINE_SPINLOCK(o2hb_live_lock);
++/*
++ * Serializes region pin/unpin dependency management (o2hb_dependent_users
++ * and the o2nm_depend_item()/o2nm_undepend_item() calls). o2hb_region_pin()
++ * has to drop o2hb_live_lock across the sleeping o2nm_depend_item(), so the
++ * spinlock alone can no longer keep pin and unpin mutually exclusive; this
++ * mutex, taken outside o2hb_live_lock, does.
++ */
++static DEFINE_MUTEX(o2hb_dependency_mutex);
+ static struct list_head o2hb_live_slots[O2NM_MAX_NODES];
+ static unsigned long o2hb_live_node_bitmap[BITS_TO_LONGS(O2NM_MAX_NODES)];
+ static LIST_HEAD(o2hb_node_events);
+@@ -2172,6 +2180,7 @@ static void o2hb_heartbeat_group_drop_it
+ 	 * If global heartbeat active and there are dependent users,
+ 	 * pin all regions if quorum region count <= CUT_OFF
+ 	 */
++	mutex_lock(&o2hb_dependency_mutex);
+ 	spin_lock(&o2hb_live_lock);
+ 
+ 	if (!o2hb_dependent_users)
+@@ -2183,6 +2192,7 @@ static void o2hb_heartbeat_group_drop_it
+ 
+ unlock:
+ 	spin_unlock(&o2hb_live_lock);
++	mutex_unlock(&o2hb_dependency_mutex);
+ }
+ 
+ static ssize_t o2hb_heartbeat_group_dead_threshold_show(struct config_item *item,
+@@ -2322,46 +2332,108 @@ EXPORT_SYMBOL_GPL(o2hb_setup_callback);
+  */
+ static int o2hb_region_pin(const char *region_uuid)
  {
- 	FILE *f;
- 	char buf;
--	char *line;
-+	char *line = NULL;
- 	int status;
- 	int ret = -1;
- 	size_t len = 0;
+-	int ret = 0, found = 0;
+-	struct o2hb_region *reg;
++	int ret = 0, found;
++	struct o2hb_region *reg, *pinned;
+ 	char *uuid;
+ 
+ 	assert_spin_locked(&o2hb_live_lock);
+ 
+-	list_for_each_entry(reg, &o2hb_all_regions, hr_all_item) {
+-		if (reg->hr_item_dropped)
+-			continue;
++	do {
++		found = 0;
++		pinned = NULL;
+ 
+-		uuid = config_item_name(&reg->hr_item);
++		list_for_each_entry(reg, &o2hb_all_regions, hr_all_item) {
++			if (reg->hr_item_dropped)
++				continue;
+ 
+-		/* local heartbeat */
+-		if (region_uuid) {
+-			if (strcmp(region_uuid, uuid))
++			uuid = config_item_name(&reg->hr_item);
++
++			/* local heartbeat */
++			if (region_uuid) {
++				if (strcmp(region_uuid, uuid))
++					continue;
++				found = 1;
++			}
++
++			if (reg->hr_item_pinned || reg->hr_item_dropped) {
++				if (found)
++					break;
+ 				continue;
+-			found = 1;
++			}
++
++			/*
++			 * Found a region that needs pinning. Take a reference
++			 * so it stays alive while we drop the lock below.
++			 */
++			pinned = reg;
++			config_item_get(&reg->hr_item);
++			break;
+ 		}
+ 
+-		if (reg->hr_item_pinned || reg->hr_item_dropped)
+-			goto skip_pin;
++		if (!pinned)
++			break;
++
++		uuid = config_item_name(&pinned->hr_item);
++
++		/*
++		 * o2nm_depend_item() -> configfs_depend_item() can sleep (it
++		 * takes the configfs root inode rwsem), so it must not run
++		 * under o2hb_live_lock. Drop the lock across it; @pinned is
++		 * kept alive by the reference taken above. The region list may
++		 * change while unlocked, so we rescan from the top afterwards.
++		 */
++		spin_unlock(&o2hb_live_lock);
+ 
+ 		/* Ignore ENOENT only for local hb (userdlm domain) */
+-		ret = o2nm_depend_item(&reg->hr_item);
++		ret = o2nm_depend_item(&pinned->hr_item);
++
++		spin_lock(&o2hb_live_lock);
+ 		if (!ret) {
+-			mlog(ML_CLUSTER, "Pin region %s\n", uuid);
+-			reg->hr_item_pinned = 1;
+-		} else {
+-			if (ret == -ENOENT && found)
+-				ret = 0;
+-			else {
+-				mlog(ML_ERROR, "Pin region %s fails with %d\n",
+-				     uuid, ret);
++			/*
++			 * o2hb_live_lock was dropped across o2nm_depend_item().
++			 * o2hb_set_quorum_device() runs in the heartbeat thread
++			 * without o2hb_dependency_mutex, so for global heartbeat
++			 * it may have crossed O2HB_PIN_CUT_OFF and unpinned the
++			 * regions while we slept. If that happened this pin is
++			 * no longer wanted; undo it and stop rather than
++			 * resurrecting it on the rescan below.
++			 */
++			if (!region_uuid &&
++			    bitmap_weight(o2hb_quorum_region_bitmap,
++					  O2NM_MAX_REGIONS) > O2HB_PIN_CUT_OFF) {
++				o2nm_undepend_item(&pinned->hr_item);
++				spin_unlock(&o2hb_live_lock);
++				config_item_put(&pinned->hr_item);
++				spin_lock(&o2hb_live_lock);
+ 				break;
+ 			}
++			mlog(ML_CLUSTER, "Pin region %s\n", uuid);
++			pinned->hr_item_pinned = 1;
++		} else if (ret == -ENOENT && (found || !region_uuid)) {
++			/*
++			 * For local hb (found): ignore ENOENT from userdlm
++			 * domains as before.  For global hb (!region_uuid):
++			 * the region may have been detached from configfs
++			 * while the lock was dropped — skip it and continue
++			 * pinning the remaining regions.
++			 */
++			ret = 0;
++		} else {
++			mlog(ML_ERROR, "Pin region %s fails with %d\n",
++			     uuid, ret);
+ 		}
+-skip_pin:
+-		if (found)
+-			break;
+-	}
++
++		/*
++		 * config_item_put() may drop the last reference and run
++		 * o2hb_region_release(), which also grabs o2hb_live_lock and
++		 * can sleep, so it must happen with the lock released.
++		 */
++		spin_unlock(&o2hb_live_lock);
++		config_item_put(&pinned->hr_item);
++		spin_lock(&o2hb_live_lock);
++
++		/* local hb pins a single matching region */
++	} while (!ret && !region_uuid);
+ 
+ 	return ret;
+ }
+@@ -2406,6 +2478,7 @@ static int o2hb_region_inc_user(const ch
+ {
+ 	int ret = 0;
+ 
++	mutex_lock(&o2hb_dependency_mutex);
+ 	spin_lock(&o2hb_live_lock);
+ 
+ 	/* local heartbeat */
+@@ -2428,11 +2501,13 @@ static int o2hb_region_inc_user(const ch
+ 
+ unlock:
+ 	spin_unlock(&o2hb_live_lock);
++	mutex_unlock(&o2hb_dependency_mutex);
+ 	return ret;
+ }
+ 
+ static void o2hb_region_dec_user(const char *region_uuid)
+ {
++	mutex_lock(&o2hb_dependency_mutex);
+ 	spin_lock(&o2hb_live_lock);
+ 
+ 	/* local heartbeat */
+@@ -2451,6 +2526,7 @@ static void o2hb_region_dec_user(const c
+ 
+ unlock:
+ 	spin_unlock(&o2hb_live_lock);
++	mutex_unlock(&o2hb_dependency_mutex);
+ }
+ 
+ int o2hb_register_callback(const char *region_uuid,
 _
 
-Patches currently in -mm which might be from christian.gellermann@codasip.com are
+Patches currently in -mm which might be from joseph.qi@linux.alibaba.com are
 
-selftests-clone3-fix-wild-pointer-access-of-getline-due-to-missing-init.patch
-selftests-mm-fix-potential-wild-pointer-access-of-getline-due-to-missing-init.patch
+ocfs2-cluster-use-gfp_nofs-for-heartbeat-bio-allocation.patch
+ocfs2-cluster-use-an-on-stack-bio-for-the-heartbeat-write.patch
 
