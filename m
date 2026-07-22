@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D2FB2440A35
-	for <mm-commits@vger.kernel.org>; Wed, 22 Jul 2026 22:49:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 69C85154425;
+	Wed, 22 Jul 2026 23:09:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784760570; cv=none; b=fcZC3DLImTjkqhEdaeccOVUfZ6MO8dmMaLUO+H5GDOTFA+UUyON5XlaQHVo6r/KwAPbwbxGPvP89agmH98llvwS79QZWlAfxKUg+c0/cgP7w9ESBH4xfzM0lTJObPs0vSMFGR6ysmRyAa/jISj+0PZyyF++JcWZ+hbJGuT55Ky0=
+	t=1784761788; cv=none; b=XUZs1KCYYrQD2Hmrg79CPwhn+/XzG8QahTlwt48exCVtGYaYv10JumgWOhR5NddaarPb8zlaBEwRurxJRQXss7CizAOybqT+LCey9axiqAiQluA7NdnX8IipUGNMvodyjySDkh3g1hmWqOEFdHXGHb4kuiVq0CYtgtYtljDSdPo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784760570; c=relaxed/simple;
-	bh=aqLBfKWXl1puEv+I56yGJopaf5oBWHFpR0+N/F9Qd4o=;
-	h=Date:To:From:Subject:Message-Id; b=Uj+5MDq/piaf0ZwxrxSjw76rGhmRNPd4A2gKqZhE8gyS1cV3XwupKgFVOmv31ER5v/QqpjIK6AF+RTTX9fj1UOx3yvXFOUyHem8jEkg3KoKVI7XpqDG4R+iC3AQN4KudrIbLfjehf3x3vXwI7HPa1wtbROmS43Ac5cbiN3JHvDM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rMIIrn4s; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1784761788; c=relaxed/simple;
+	bh=ndPFJ7/7heiyeAON/rY0WqsU91YJyM+Ho5ZQJSJfTGw=;
+	h=Date:To:From:Subject:Message-Id; b=WYvuuJUOxaaJRBfQ5TIIha1ERlXp5OGBDljedyIX3NOIQmqaROIn9euHpR7qCCHD+/d/SXSnS4g7aI+HuG1FM2Dgbo/iwRyWg7+rtiG09bBl9BsE6UcU0wF9fDZQ8V+5OzsUTa2f6CLxJrM1L0DwKT9fzJpuQsCE+TwCkIRNq7I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gWIsQl59; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rMIIrn4s"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4F7CE1F00A3A;
-	Wed, 22 Jul 2026 22:49:28 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gWIsQl59"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F3F751F000E9;
+	Wed, 22 Jul 2026 23:09:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1784760568;
-	bh=rJ9BWahVxLYTowpYh6oN60JaWB2vCWEmlEdiXPr5lP4=;
+	d=linux-foundation.org; s=korg; t=1784761787;
+	bh=9biYUlbQNrpqH5KAKkO4VmjdcWIP6SPcxWZtdZyTIeM=;
 	h=Date:To:From:Subject;
-	b=rMIIrn4ssAa2zZFj3fFZ5Gpm+FwTX0qYMM+zGj/I4heT3lEBXzJXiuKgHac+nxZ5q
-	 HiS9RJRHCDd3Lw0GnlSUzHidQq4ZYQwXiEWHhpee8kbmzDKtHSyXTipf1NISEiliDm
-	 zLsbH6EvDiLNKQZRIX1ta5DizNR71L4/DhWGXrqA=
-Date: Wed, 22 Jul 2026 15:49:27 -0700
-To: mm-commits@vger.kernel.org,skinsburskii@gmail.com,akpm@linux-foundation.org
+	b=gWIsQl59PtYGrbw6k1g6EA9OxRg4cOL5rekP3X8yXAma3zkQFK4HsewCu8iCCa/jG
+	 Y4J34UGobbJ2yvEWVl7HolaBSzdJmzGhKx5bv3vqclmsiCWcl4xcRm5cKr/kK761Ci
+	 LS1/MlO89twlnnfsYhGMsaJqaWCd8j5eHx6nBmrs=
+Date: Wed, 22 Jul 2026 16:09:46 -0700
+To: mm-commits@vger.kernel.org,vega@nebusec.ai,stable@vger.kernel.org,pasha.tatashin@soleen.com,enjou1224z@gmail.com,zhilinz@nebusec.ai,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + drm-gpusvm-use-hmm_range_fault_unlocked_timeout-for-range-faults.patch added to mm-unstable branch
-Message-Id: <20260722224928.4F7CE1F00A3A@smtp.kernel.org>
+Subject: + mm-page_table_check-skip-special-zero-mappings.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260722230946.F3F751F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: drm/gpusvm: use hmm_range_fault_unlocked_timeout() for range faults
-has been added to the -mm mm-unstable branch.  Its filename is
-     drm-gpusvm-use-hmm_range_fault_unlocked_timeout-for-range-faults.patch
+     Subject: mm/page_table_check: skip special zero mappings
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-page_table_check-skip-special-zero-mappings.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/drm-gpusvm-use-hmm_range_fault_unlocked_timeout-for-range-faults.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_table_check-skip-special-zero-mappings.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,189 +58,97 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Stanislav Kinsburskii <skinsburskii@gmail.com>
-Subject: drm/gpusvm: use hmm_range_fault_unlocked_timeout() for range faults
-Date: Wed, 22 Jul 2026 14:44:30 -0700
+From: Zhiling Zou <zhilinz@nebusec.ai>
+Subject: mm/page_table_check: skip special zero mappings
+Date: Thu, 23 Jul 2026 00:48:13 +0800
 
-Several GPU SVM paths take mmap_read_lock() only to call hmm_range_fault()
-and open-code mmu interval sequence setup before each HMM walk.  They also
-retry -EBUSY until HMM_RANGE_DEFAULT_TIMEOUT expires.
+page_table_check_set() and page_table_check_clear() account mappings based
+on PageAnon().  Shared zero-page PTEs and huge zero PMDs are special
+mappings, but page_table_check can still account them as file-backed
+pages.
 
-Use hmm_range_fault_unlocked_timeout() for those faults.  The HMM helper
-now owns mmap_lock acquisition and refreshes range->notifier_seq for its
-internal retries, while GPU SVM keeps its existing driver-lock validation
-with mmu_interval_read_retry() after a successful fault.
+An unprivileged process can populate enough zero mappings to overflow
+file_map_count and hit the existing BUG_ON().  The PTE path can do this
+with the shared zero page, and the PMD path can do the same with huge zero
+mappings.
 
-drm_gpusvm_scan_mm() and drm_gpusvm_range_evict() pass
-HMM_RANGE_DEFAULT_TIMEOUT as the helper retry budget for each HMM fault
-attempt.  drm_gpusvm_get_pages() keeps its existing absolute outer
-deadline because it can be reached from GPU page-fault workers, where
-fatal signals from the faulting process cannot stop an endless
-invalidation retry loop.  It passes the remaining time from that deadline
-to HMM for each fault attempt.
+Skip special zero mappings in the user page-table accounting paths.  Keep
+the PTE-side pte_special() check, and identify huge zero PMDs from the
+mapped folio instead of pmd_special().  That covers architectures where
+pmd_special() is a no-op without adding huge_zero_pfn checks to the
+generic counter helpers.
 
-Leave drm_gpusvm_check_pages() on hmm_range_fault() because that path is
-called with the mmap lock already held by its caller.
-
-Link: https://lore.kernel.org/20260722-hmm-v10-v1-8-606464dd601a@gmail.com
-Signed-off-by: Stanislav Kinsburskii <skinsburskii@gmail.com>
-Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
-Cc: Danilo Krummrich <dakr@kernel.org>
-Cc: Dave Airlie <airlied@gmail.com>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Dexuan Cui <decui@microsoft.com>
-Cc: Haiyang Zhang <haiyangz@microsoft.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: K. Y. Srinivasan <kys@microsoft.com>
-Cc: Leon Romanovsky <leon@kernel.org>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Lizhi Hou <lizhi.hou@amd.com>
-Cc: Long Li <longli@microsoft.com>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Lyude <lyude@redhat.com>
-Cc: Maarten Lankhorst <maarten.lankhorst@linux.intel.com>
-Cc: Maxime Ripard <mripard@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Oded Gabbay <ogabbay@kernel.org>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Thomas Zimemrmann <tzimmermann@suse.de>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Wei Liu <wei.liu@kernel.org>
+Link: https://lore.kernel.org/cover.1784717203.git.zhilinz@nebusec.ai
+Link: https://lore.kernel.org/e94478e4fb7912fb7e8ebebed5ce85d00dc9a69d.1784717203.git.zhilinz@nebusec.ai
+Fixes: df4e817b7108 ("mm: page table check")
+Signed-off-by: Zhiling Zou <zhilinz@nebusec.ai>
+Signed-off-by: Ren Wei <enjou1224z@gmail.com>
+Reported-by: Vega <vega@nebusec.ai>
+Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
+Assisted-by: Codex:gpt-5.4
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/drm_gpusvm.c |   60 +++++----------------------------
- 1 file changed, 10 insertions(+), 50 deletions(-)
+ mm/page_table_check.c |   20 ++++++++++++++++----
+ 1 file changed, 16 insertions(+), 4 deletions(-)
 
---- a/drivers/gpu/drm/drm_gpusvm.c~drm-gpusvm-use-hmm_range_fault_unlocked_timeout-for-range-faults
-+++ a/drivers/gpu/drm/drm_gpusvm.c
-@@ -773,8 +773,7 @@ enum drm_gpusvm_scan_result drm_gpusvm_s
- 		.end = end,
- 		.dev_private_owner = dev_private_owner,
- 	};
--	unsigned long timeout =
--		jiffies + msecs_to_jiffies(HMM_RANGE_DEFAULT_TIMEOUT);
-+	unsigned long timeout = msecs_to_jiffies(HMM_RANGE_DEFAULT_TIMEOUT);
- 	enum drm_gpusvm_scan_result state = DRM_GPUSVM_SCAN_UNPOPULATED, new_state;
- 	unsigned long *pfns;
- 	unsigned long npages = npages_in_range(start, end);
-@@ -788,22 +787,7 @@ enum drm_gpusvm_scan_result drm_gpusvm_s
- 	hmm_range.hmm_pfns = pfns;
+--- a/mm/page_table_check.c~mm-page_table_check-skip-special-zero-mappings
++++ a/mm/page_table_check.c
+@@ -151,18 +151,29 @@ void __page_table_check_pte_clear(struct
+ 	if (&init_mm == mm)
+ 		return;
  
- retry:
--	hmm_range.notifier_seq = mmu_interval_read_begin(notifier);
--	mmap_read_lock(range->gpusvm->mm);
--
--	while (true) {
--		err = hmm_range_fault(&hmm_range);
--		if (err == -EBUSY) {
--			if (time_after(jiffies, timeout))
--				break;
--
--			hmm_range.notifier_seq =
--				mmu_interval_read_begin(notifier);
--			continue;
--		}
--		break;
--	}
--	mmap_read_unlock(range->gpusvm->mm);
-+	err = hmm_range_fault_unlocked_timeout(&hmm_range, timeout);
- 	if (err)
- 		goto err_free;
- 
-@@ -1423,6 +1407,7 @@ int drm_gpusvm_get_pages(struct drm_gpus
- 	void *zdd;
- 	unsigned long timeout =
- 		jiffies + msecs_to_jiffies(HMM_RANGE_DEFAULT_TIMEOUT);
-+	unsigned long remaining;
- 	unsigned long i, j;
- 	unsigned long npages = npages_in_range(pages_start, pages_end);
- 	unsigned long num_dma_mapped;
-@@ -1437,9 +1422,11 @@ int drm_gpusvm_get_pages(struct drm_gpus
- 	struct dma_iova_state *state = &svm_pages->state;
- 
- retry:
--	if (time_after(jiffies, timeout))
-+	if (time_after_eq(jiffies, timeout))
- 		return -EBUSY;
- 
-+	remaining = timeout - jiffies;
-+
- 	hmm_range.notifier_seq = mmu_interval_read_begin(notifier);
- 	if (drm_gpusvm_pages_valid_unlocked(gpusvm, svm_pages))
- 		goto set_seqno;
-@@ -1454,21 +1441,7 @@ retry:
- 	}
- 
- 	hmm_range.hmm_pfns = pfns;
--	while (true) {
--		mmap_read_lock(mm);
--		err = hmm_range_fault(&hmm_range);
--		mmap_read_unlock(mm);
--
--		if (err == -EBUSY) {
--			if (time_after(jiffies, timeout))
--				break;
--
--			hmm_range.notifier_seq =
--				mmu_interval_read_begin(notifier);
--			continue;
--		}
--		break;
--	}
-+	err = hmm_range_fault_unlocked_timeout(&hmm_range, remaining);
- 	mmput(mm);
- 	if (err)
- 		goto err_free;
-@@ -1741,8 +1714,7 @@ int drm_gpusvm_range_evict(struct drm_gp
- 		.end = drm_gpusvm_range_end(range),
- 		.dev_private_owner = NULL,
- 	};
--	unsigned long timeout =
--		jiffies + msecs_to_jiffies(HMM_RANGE_DEFAULT_TIMEOUT);
-+	unsigned long timeout = msecs_to_jiffies(HMM_RANGE_DEFAULT_TIMEOUT);
- 	unsigned long *pfns;
- 	unsigned long npages = npages_in_range(drm_gpusvm_range_start(range),
- 					       drm_gpusvm_range_end(range));
-@@ -1757,24 +1729,12 @@ int drm_gpusvm_range_evict(struct drm_gp
- 		return -ENOMEM;
- 
- 	hmm_range.hmm_pfns = pfns;
--	while (!time_after(jiffies, timeout)) {
--		hmm_range.notifier_seq = mmu_interval_read_begin(notifier);
--		if (time_after(jiffies, timeout)) {
--			err = -ETIME;
--			break;
--		}
--
--		mmap_read_lock(mm);
--		err = hmm_range_fault(&hmm_range);
--		mmap_read_unlock(mm);
--		if (err != -EBUSY)
--			break;
--	}
-+	err = hmm_range_fault_unlocked_timeout(&hmm_range, timeout);
- 
- 	kvfree(pfns);
- 	mmput(mm);
- 
--	return err;
-+	return err == -EBUSY ? -ETIME : err;
+-	if (pte_user_accessible_page(mm, addr, pte))
++	if (pte_user_accessible_page(mm, addr, pte) && !pte_special(pte))
+ 		page_table_check_clear(pte_pfn(pte), PAGE_SIZE >> PAGE_SHIFT);
  }
- EXPORT_SYMBOL_GPL(drm_gpusvm_range_evict);
+ EXPORT_SYMBOL(__page_table_check_pte_clear);
  
++static inline bool page_table_check_huge_zero_pmd(pmd_t pmd)
++{
++	unsigned long pfn = pmd_pfn(pmd);
++
++	if (!pfn_valid(pfn))
++		return false;
++
++	return is_huge_zero_folio(page_folio(pfn_to_page(pfn)));
++}
++
+ void __page_table_check_pmd_clear(struct mm_struct *mm, unsigned long addr,
+ 				  pmd_t pmd)
+ {
+ 	if (&init_mm == mm)
+ 		return;
+ 
+-	if (pmd_user_accessible_page(mm, addr, pmd))
++	if (pmd_user_accessible_page(mm, addr, pmd) &&
++	    !page_table_check_huge_zero_pmd(pmd))
+ 		page_table_check_clear(pmd_pfn(pmd), PMD_SIZE >> PAGE_SHIFT);
+ }
+ EXPORT_SYMBOL(__page_table_check_pmd_clear);
+@@ -208,7 +219,7 @@ void __page_table_check_ptes_set(struct
+ 
+ 	for (i = 0; i < nr; i++)
+ 		__page_table_check_pte_clear(mm, addr + PAGE_SIZE * i, ptep_get(ptep + i));
+-	if (pte_user_accessible_page(mm, addr, pte))
++	if (pte_user_accessible_page(mm, addr, pte) && !pte_special(pte))
+ 		page_table_check_set(pte_pfn(pte), nr, pte_write(pte));
+ }
+ EXPORT_SYMBOL(__page_table_check_ptes_set);
+@@ -238,7 +249,8 @@ void __page_table_check_pmds_set(struct
+ 
+ 	for (i = 0; i < nr; i++)
+ 		__page_table_check_pmd_clear(mm, addr + PMD_SIZE * i, *(pmdp + i));
+-	if (pmd_user_accessible_page(mm, addr, pmd))
++	if (pmd_user_accessible_page(mm, addr, pmd) &&
++	    !page_table_check_huge_zero_pmd(pmd))
+ 		page_table_check_set(pmd_pfn(pmd), stride * nr, pmd_write(pmd));
+ }
+ EXPORT_SYMBOL(__page_table_check_pmds_set);
 _
 
-Patches currently in -mm which might be from skinsburskii@gmail.com are
+Patches currently in -mm which might be from zhilinz@nebusec.ai are
 
-mm-hmm-move-page-fault-handling-out-of-walk-callbacks.patch
-mm-hmm-add-hmm_range_fault_unlocked_timeout-for-mmap-lock-drop-support.patch
-selftests-mm-add-hmm-test-for-mmap-lock-dropping-faults.patch
-mshv-use-hmm_range_fault_unlocked_timeout-for-region-faults.patch
-drm-nouveau-use-hmm_range_fault_unlocked_timeout-for-svm-faults.patch
-rdma-umem-use-hmm_range_fault_unlocked_timeout-for-odp-faults.patch
-accel-amdxdna-use-hmm_range_fault_unlocked_timeout-for-range-population.patch
-drm-gpusvm-use-hmm_range_fault_unlocked_timeout-for-range-faults.patch
+mm-page_table_check-skip-special-zero-mappings.patch
 
