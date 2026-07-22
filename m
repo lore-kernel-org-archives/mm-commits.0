@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D249043C7BE;
-	Wed, 22 Jul 2026 23:39:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EFC51466B08;
+	Wed, 22 Jul 2026 23:43:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784763546; cv=none; b=fph9Obn4MeeaA5wA0aSHRxMeUoaFGOF8neP4tZVWBoopN3h2Nk0kUtijlEwAIkMcTExgFTkTmNPg91erF6cZbYLPDt6FEjjU5HJ7dlH3tl9qSJsBDeMKElhIOduZMRIxidlwisGM+VRojkUdHpQ9NqBKeJiy5LecJ8qCpq5Se+4=
+	t=1784763841; cv=none; b=LWz0KlOsYAcck6FdA++MUjT7moN/4XYIdM6nevCXs7ftJNiXY1fN5+5u9emydi8/XQkfK5Yc4Dc4mF8zf/tbA4I6R+COHJS5hoDbefnH2rhLWS8Rcmj3EVgudoxQND8Hpsu193SO6mJQg4+ITObQofVeaCKk/F7DK7kJRMxufaA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784763546; c=relaxed/simple;
-	bh=qVHARy+6ra279kN2QfXTPZhgT1U3CV+K7tqN1uRMxdI=;
-	h=Date:To:From:Subject:Message-Id; b=NAqWg0T586Jk3hyikimA3MkpMigZ/jYbYUxOLPR0WGZIg0We9WdUbFWkJwJMbLtHgns7nlD3d8b/368loNATgZyxtoIaRz2oU9JrtvUo/j432Cp0xepauHK4yl3D0zYEvuacz0kfwXl/+C5Hi9lfKPcU6yfRNToKK3m59re2qfk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rixnH85W; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1784763841; c=relaxed/simple;
+	bh=SJG2fbfzN7UV9u0QfuDxEVZCJqJEb/qFtlJmin3Geyw=;
+	h=Date:To:From:Subject:Message-Id; b=M6rtFtWs2X/V/OKVc3P5vXNSt6Isjvyd3IdG5OyCYt3Y070B/T3d94ygRB0YR+om18qIB5f7CJtcz+6gXMoEvxu41iCoQAS+gx0nJhi/qqbr3OpRkXNOdxQj+w/9S2ZS36DsusfBZt18p698ZJQn63/8m+HH1wPm2/xSE3FA1Nc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fSd1FFmy; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rixnH85W"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3E9EF1F000E9;
-	Wed, 22 Jul 2026 23:39:04 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fSd1FFmy"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AD12E1F00A3A;
+	Wed, 22 Jul 2026 23:43:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1784763544;
-	bh=nIrcEuwvicV2J/jEAjcrLL6W7RMVqA07R1pXms2OU6o=;
+	d=linux-foundation.org; s=korg; t=1784763839;
+	bh=drn7poro0ZFzWBX89MvLp996DLcd5y9a80Oxad1X5S8=;
 	h=Date:To:From:Subject;
-	b=rixnH85WWan5MEw2zOXOg3gSR1ugeba344OYTT81V6w26aD9iL7K4y6LF6i7LvI+x
-	 IqS+5JhnWVBQoWLKo2mKa5howga+Z+LtjSnh++0O+OFRvz33AE1BNl76draegbIlB3
-	 pj6MXSvGdNhGX9WJ9oHjDTMeFiNqx1TzhtFRCQnE=
-Date: Wed, 22 Jul 2026 16:39:03 -0700
+	b=fSd1FFmy+KXBJgzoScFqy3Rwk8UDk1mHRXKu99q8fOGDPO94Au2XAqFd3Os8Jsc0r
+	 ctIu+477m37ug+85lLe6TDT+JzCv81zrICRTXcy8KoDQIxNpwc7oETgnsJtifjeXTv
+	 coScEYlG9gdHWayPo39cgGvTU5JpQpicSTi7L+HI=
+Date: Wed, 22 Jul 2026 16:43:59 -0700
 To: mm-commits@vger.kernel.org,stable@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,jlbec@evilplan.org,heming.zhao@suse.com,gechangwei@live.cn,joseph.qi@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] ocfs2-cluster-dont-sleep-while-holding-o2hb_live_lock-in-o2hb_region_pin.patch removed from -mm tree
-Message-Id: <20260722233904.3E9EF1F000E9@smtp.kernel.org>
+Subject: + ocfs2-cluster-dont-sleep-while-holding-o2hb_live_lock-in-o2hb_region_pin.patch added to mm-nonmm-unstable branch
+Message-Id: <20260722234359.AD12E1F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,17 +34,68 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
+The patch titled
      Subject: ocfs2: cluster: don't sleep while holding o2hb_live_lock in o2hb_region_pin()
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
      ocfs2-cluster-dont-sleep-while-holding-o2hb_live_lock-in-o2hb_region_pin.patch
 
-This patch was dropped because an updated version will be issued
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-cluster-dont-sleep-while-holding-o2hb_live_lock-in-o2hb_region_pin.patch
+
+This patch will later appear in the mm-nonmm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
 ------------------------------------------------------
 From: Joseph Qi <joseph.qi@linux.alibaba.com>
 Subject: ocfs2: cluster: don't sleep while holding o2hb_live_lock in o2hb_region_pin()
-Date: Tue, 21 Jul 2026 19:49:16 +0800
+Date: Wed, 22 Jul 2026 20:49:31 +0800
+
+Patch series "ocfs2: cluster: o2hb_region_pin() fixes", v2.
+
+This series fixes three related issues in o2hb_region_pin(), all are from
+the original implementation in commit: 58a3158a5d17 ("ocfs2/cluster:
+Pin/unpin o2hb regions"):
+
+1) It is called with o2hb_live_lock (a spinlock) held, but the
+   underlying configfs_depend_item() sleeps (takes inode rwsem and
+   pins the filesystem).  This triggers BUG under
+   CONFIG_DEBUG_ATOMIC_SLEEP.
+
+2) When called from the configfs drop_item callback, it creates a
+   lock order inversion: parent inode_lock -> configfs root
+   inode_lock, which can deadlock against subsystem unregistration
+   paths taking root -> parent.
+
+3) If pinning fails partway through o2hb_region_inc_user(), the
+   o2hb_dependent_users counter is leaked and partially-pinned
+   regions are never released, leaving heartbeat regions
+   unprotected on subsequent mounts.
+
+Patch 1 reworks o2hb_region_pin() to drop o2hb_live_lock across each
+sleeping configfs_depend_item() call, using a config_item reference to
+keep the region alive while unlocked.
+
+Patch 2 adds a from_callback parameter to select
+configfs_depend_item_unlocked() when called from configfs context,
+avoiding the inode_lock nesting.
+
+Patch 3 fixes the error path in o2hb_region_inc_user() to unpin and
+decrement the counter on failure.
+
+
+This patch (of 3):
 
 o2hb_region_pin() is always called with the o2hb_live_lock spinlock held
 (from o2hb_region_inc_user() and o2hb_heartbeat_group_drop_item()), but it
@@ -78,15 +129,16 @@ global heartbeat pins all eligible regions.
 The unpin path is unaffected: configfs_undepend_item() only takes a
 spinlock and does not sleep.
 
-Link: https://lore.kernel.org/20260721114916.2098617-1-joseph.qi@linux.alibaba.com
+Link: https://lore.kernel.org/20260722124933.430554-1-joseph.qi@linux.alibaba.com
+Link: https://lore.kernel.org/20260722124933.430554-2-joseph.qi@linux.alibaba.com
 Fixes: 58a3158a5d17 ("ocfs2/cluster: Pin/unpin o2hb regions")
 Signed-off-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
 Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Jun Piao <piaojun@huawei.com>
 Cc: Heming Zhao <heming.zhao@suse.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Jun Piao <piaojun@huawei.com>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Mark Fasheh <mark@fasheh.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
@@ -297,4 +349,7 @@ Patches currently in -mm which might be from joseph.qi@linux.alibaba.com are
 
 ocfs2-cluster-use-gfp_nofs-for-heartbeat-bio-allocation.patch
 ocfs2-cluster-use-an-on-stack-bio-for-the-heartbeat-write.patch
+ocfs2-cluster-dont-sleep-while-holding-o2hb_live_lock-in-o2hb_region_pin.patch
+ocfs2-cluster-avoid-lock-order-inversion-in-o2hb_region_pin-from-drop_item.patch
+ocfs2-cluster-fix-o2hb_dependent_users-leak-on-pin-failure.patch
 
