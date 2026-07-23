@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B646D3F3267;
-	Thu, 23 Jul 2026 21:11:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 37C2D3F328F
+	for <mm-commits@vger.kernel.org>; Thu, 23 Jul 2026 21:11:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784841110; cv=none; b=FeeiRjDWZymQm03Wu+EXJDedE08Evi/fQn066SsdqHTVQ6P0AvBA9qVTj6dQAbiTqY72I+Qdk2+2X6GbmYwa5R9vTPY4gs7J+VbCmVNDerfGjd2TZasIoHXRoCwbJ0G4NGl1JZ/foDWq0HgLoiypynAcJsQvyXU3W5lyE9OhIIU=
+	t=1784841113; cv=none; b=FgsJJVIqj1krLIIX+xl9BFdodWwahiCqol2EmsWLJnljPJznTiRwJz4IMr0KbwT9alQPtmWf+cP3RrALu602M0100Lic1yvf31vipO4I9I8qKzHcGbix/FV7zklmaHuZph9yl/wWlVor/KZnihdkzbm7IxK1qY+2KyJjJtHwi38=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784841110; c=relaxed/simple;
-	bh=pXRUQb0/G/790E2j+0MB/p7raT39ryAUpn4Bkmsad+U=;
-	h=Date:To:From:Subject:Message-Id; b=dNrh06hYc3iuhw5nb+rjb7Yeyb5ZjFxWEZnCEYA0ws24ml69te96NqGj5SRUqIfQcR4FpxI6hCLKPlP9wO9JxBGmW700kW4izFmnwZtBq5g5CzcXunk7OR1y8I/uNNT/7F76U6pHDjQMx3Lq1Uf2dKQTNl58e5XpBiNP54THxKE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AKxzQZ1H; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1784841113; c=relaxed/simple;
+	bh=BP32tIYP6BZQoT/1ucmATIcGJiKPFOQDJhFXFjghNfA=;
+	h=Date:To:From:Subject:Message-Id; b=P03UU4xsvwSg0l6sgZq/NwseJX9qr2UcCr4RhxEtFNo5ZtkvBk0prhfVi6/4W0RhfiFcyRg9sqnftcAvMPOUnSD4Ml6jQms20mgrTpp7IWiA0m+HKUHTx2tuead33A/6TlRSfsBZ5OjxiFfW2kQIBC3+isj4HMildGnmWK7bdvE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oIl7CELf; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AKxzQZ1H"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 54BF71F000E9;
-	Thu, 23 Jul 2026 21:11:45 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oIl7CELf"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4D5571F00A3D;
+	Thu, 23 Jul 2026 21:11:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1784841105;
-	bh=HxCS1V2Iv0Z3gwqQcJIx0vL9k45FIhoP+lf4PkSyjQM=;
+	d=linux-foundation.org; s=korg; t=1784841107;
+	bh=4SXYC9tkc3G69PSyyd+GcW7JC+FZpDRs2avS1iq0oLo=;
 	h=Date:To:From:Subject;
-	b=AKxzQZ1HWl3YTSauLDmmA4qpCD4DwOdgGdpSGaJ4sweaaPnXFT7RM0cM83va8EAoi
-	 ht8sQHOvaeljBRJ6Y0CRUzw7/LFGB7XySKgj5Gt8cmU2xmBRXF/8X+ZKV8Re+NVdoU
-	 5SLZ/AFmNLN1jb8MHVe145SkJJzubuoLKkcG7Ymg=
-Date: Thu, 23 Jul 2026 14:11:44 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,kees@kernel.org,mailhol@kernel.org,akpm@linux-foundation.org
+	b=oIl7CELfx8thm2L0J0Ydk6YADsGXPxIGOXoj6TdKqSq156yN8HpzWqgNYCFmd2j+8
+	 1F7fePcC7UwihAq+MF3igIeJ6vX78xAdEYBLlFdWrI7+4Ek7zh295/3aWYBqEPfUEp
+	 Wb88jrEZo/waBCHGbFjWUuDgXYtw5xuxGsm1Ii04=
+Date: Thu, 23 Jul 2026 14:11:46 -0700
+To: mm-commits@vger.kernel.org,kees@kernel.org,mailhol@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-ucs2_stringc-fix-out-of-bounds-read-in-ucs2_strnlen.patch added to mm-nonmm-unstable branch
-Message-Id: <20260723211145.54BF71F000E9@smtp.kernel.org>
+Subject: + lib-ucs2_stringc-fix-indentation.patch added to mm-nonmm-unstable branch
+Message-Id: <20260723211147.4D5571F00A3D@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: lib/ucs2_string.c: fix out-of-bounds read in ucs2_strnlen()
+     Subject: lib/ucs2_string.c: fix indentation
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     lib-ucs2_stringc-fix-out-of-bounds-read-in-ucs2_strnlen.patch
+     lib-ucs2_stringc-fix-indentation.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-ucs2_stringc-fix-out-of-bounds-read-in-ucs2_strnlen.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-ucs2_stringc-fix-indentation.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,51 +59,94 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Vincent Mailhol <mailhol@kernel.org>
-Subject: lib/ucs2_string.c: fix out-of-bounds read in ucs2_strnlen()
-Date: Thu, 23 Jul 2026 21:40:31 +0200
+Subject: lib/ucs2_string.c: fix indentation
+Date: Thu, 23 Jul 2026 21:40:32 +0200
 
-Patch series "lib/ucs2_string.c: fix out-of-bounds read in
-ucs2_strnlen()", v2.
+checkpatch.pl reports a total of 18 incorrect use of spaces instead of
+tabulations in lib/ucs2_string.c.
 
-This series fixes an off-by-one out-of-bounds read in ucs2_strnlen().
+Apply
 
-The first patch is the real fix, the second patch comes as a bonus and
-fixes the code indentation.
+  ./scripts/checkpatch.pl --fix-inplace lib/ucs2_string.c
 
+to fix them all.
 
-This patch (of 2):
-
-ucs2_strnlen() checks the current character before checking whether the
-caller-provided maximum length has been reached.  If the input is not
-NUL-terminated within that bound, the loop can read one ucs2_char_t past
-the limit.
-
-Test the length before dereferencing to prevent an off-by-one
-out-of-bounds read.
-
-Link: https://lore.kernel.org/20260723-fix-ucs2_strnlen-v2-0-9ea94e32a358@kernel.org
-Link: https://lore.kernel.org/20260723-fix-ucs2_strnlen-v2-1-9ea94e32a358@kernel.org
-Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
+Link: https://lore.kernel.org/20260723-fix-ucs2_strnlen-v2-2-9ea94e32a358@kernel.org
 Signed-off-by: Vincent Mailhol <mailhol@kernel.org>
 Cc: Kees Cook <kees@kernel.org>
-Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/ucs2_string.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/ucs2_string.c |   36 ++++++++++++++++++------------------
+ 1 file changed, 18 insertions(+), 18 deletions(-)
 
---- a/lib/ucs2_string.c~lib-ucs2_stringc-fix-out-of-bounds-read-in-ucs2_strnlen
+--- a/lib/ucs2_string.c~lib-ucs2_stringc-fix-indentation
 +++ a/lib/ucs2_string.c
-@@ -8,7 +8,7 @@ ucs2_strnlen(const ucs2_char_t *s, size_
+@@ -6,18 +6,18 @@
+ unsigned long
+ ucs2_strnlen(const ucs2_char_t *s, size_t maxlength)
  {
-         unsigned long length = 0;
+-        unsigned long length = 0;
++	unsigned long length = 0;
  
--        while (*s++ != 0 && length < maxlength)
-+	while (length < maxlength && *s++ != 0)
-                 length++;
-         return length;
+ 	while (length < maxlength && *s++ != 0)
+-                length++;
+-        return length;
++		length++;
++	return length;
  }
+ EXPORT_SYMBOL(ucs2_strnlen);
+ 
+ unsigned long
+ ucs2_strlen(const ucs2_char_t *s)
+ {
+-        return ucs2_strnlen(s, ~0UL);
++	return ucs2_strnlen(s, ~0UL);
+ }
+ EXPORT_SYMBOL(ucs2_strlen);
+ 
+@@ -28,7 +28,7 @@ EXPORT_SYMBOL(ucs2_strlen);
+ unsigned long
+ ucs2_strsize(const ucs2_char_t *data, unsigned long maxlength)
+ {
+-        return ucs2_strnlen(data, maxlength/sizeof(ucs2_char_t)) * sizeof(ucs2_char_t);
++	return ucs2_strnlen(data, maxlength/sizeof(ucs2_char_t)) * sizeof(ucs2_char_t);
+ }
+ EXPORT_SYMBOL(ucs2_strsize);
+ 
+@@ -87,19 +87,19 @@ EXPORT_SYMBOL(ucs2_strscpy);
+ int
+ ucs2_strncmp(const ucs2_char_t *a, const ucs2_char_t *b, size_t len)
+ {
+-        while (1) {
+-                if (len == 0)
+-                        return 0;
+-                if (*a < *b)
+-                        return -1;
+-                if (*a > *b)
+-                        return 1;
+-                if (*a == 0) /* implies *b == 0 */
+-                        return 0;
+-                a++;
+-                b++;
+-                len--;
+-        }
++	while (1) {
++		if (len == 0)
++			return 0;
++		if (*a < *b)
++			return -1;
++		if (*a > *b)
++			return 1;
++		if (*a == 0) /* implies *b == 0 */
++			return 0;
++		a++;
++		b++;
++		len--;
++	}
+ }
+ EXPORT_SYMBOL(ucs2_strncmp);
+ 
 _
 
 Patches currently in -mm which might be from mailhol@kernel.org are
