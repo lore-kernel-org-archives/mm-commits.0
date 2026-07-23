@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DA3DA212550;
-	Thu, 23 Jul 2026 00:21:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5EF8021883E;
+	Thu, 23 Jul 2026 00:36:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784766100; cv=none; b=RLvw9QVW/y6EU4qLP0ZU9PMeeIKq/d0XLiZKKDSnfmClJ7bWBPLVIZW0dhfOLxDScUzWYJmC1L6Rc+ES3HPsDVHmpjS6jTpu+CKfsVZBIPanhin82JT+sg//1VpUTpBc8sZM7sZkJN7HxABNFSBviH8d6DVapRLevvfxYVZWH6c=
+	t=1784767012; cv=none; b=qen4I3gkVtrIWZ6c8kRzmMcHL+MzPSE0NLK5t1TjaoKXNQcGCvAfuYbLV8iLqwRedTcY1giO9XXD/u0S+RcvdAN4mXU6Gs7+Zz6Cup5397NXLIcyTu8/xb6TyXtu/MpUhCO3G5vuB93K645zOuglqwdB2jS4dGYWVH1ihSsx/bo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784766100; c=relaxed/simple;
-	bh=GJcgIRGP4yxGcDXlHfGwlIYlseX94HASdKFKfb70qaU=;
-	h=Date:To:From:Subject:Message-Id; b=vD3KCc0/ZetdRJpzHDW4+012XWHr8fB3HqSIBRPCj4hBoay9oOB9zZfHELSo7/Nm2iU4yZt3OOw84sRLKv0QGey6tATO+iXJlPpDjYaUD0MrpjGSyPTaEXCKeL0E2CN61hreo0GBjkilpxVRyrHrUlVnEM1sWPFZjqAzcsIEnQE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HrlSUhI5; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1784767012; c=relaxed/simple;
+	bh=NxGEVJ0NCZ5+vonqmz7xjJhfAOCPAEgbmocu1jfWM+w=;
+	h=Date:To:From:Subject:Message-Id; b=sufD+YMaHXB/SAxSS4KoFJ4FAloNDO8CU60gDmEDARu+t+OV5nYX7+5IZPC78Bp+PIcmNnvo+lN7HlYnORdDECD+NOWwu8GYWN4vL26lWSJWlaX0rQXFmZoNBPifTTGgHwIJ9GmGQlBXktgZhAdhMhl5bTS1OlnTeSjROttXmCM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GNlZFilL; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HrlSUhI5"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6CE6E1F000E9;
-	Thu, 23 Jul 2026 00:21:38 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GNlZFilL"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CAAF01F000E9;
+	Thu, 23 Jul 2026 00:36:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1784766098;
-	bh=YgKMx1CPQIR3ipgUjtLb6j62NqA9HPw9zDd0K+Cpsio=;
+	d=linux-foundation.org; s=korg; t=1784767010;
+	bh=a9ECb29CnjSMhP5w1GLVIgpuQrZBCZs6k8kdHYM/ySg=;
 	h=Date:To:From:Subject;
-	b=HrlSUhI5HVmEY/1oZzIXEjW33NNMsNRqjpAawm5LRUxZViB0X8tcNxvh3iVE4CADo
-	 mcwGnNadU0QLUDhCyGigrwCEFO2qyjJ2EqciENTjz9azSqvKmV4R4RrisA6LXYmzEW
-	 cqezy0XoYY8n1so6S8H5wJNmEt8SedvcGxN0vc1I=
-Date: Wed, 22 Jul 2026 17:21:38 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,mporter@kernel.crashing.org,gregkh@linuxfoundation.org,dan.carpenter@linaro.org,alex.bou9@gmail.com,james010kim@gmail.com,akpm@linux-foundation.org
+	b=GNlZFilLfLBUyGNehshKO2MJf7705P2sGQ2xukmIHNICYAJ4hLa4fCf7t1Jf7vRJO
+	 HjAqzCMeO/ToT2fi3GFVNPOjljWKWqfIsu3jEt6iTXNFUie8z/6NbgEx7+SUok3LDv
+	 2yGjLdZEmIOuCU9G7W1k6rpgbsBKAHKkAWVsTBZM=
+Date: Wed, 22 Jul 2026 17:36:50 -0700
+To: mm-commits@vger.kernel.org,xuanzhuo@linux.alibaba.com,vbabka@kernel.org,stable@vger.kernel.org,rientjes@google.com,mst@redhat.com,jthoughton@google.com,jiaqiyan@google.com,jasowang@redhat.com,gthelen@google.com,david@kernel.org,alexander.duyck@gmail.com,linkl@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + rapidio-mport_cdev-fix-use-after-free-in-dma_req_free.patch added to mm-nonmm-unstable branch
-Message-Id: <20260723002138.6CE6E1F000E9@smtp.kernel.org>
+Subject: + mm-page_reporting-use-system_freezable_wq-to-fix-uaf-during-suspend.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260723003650.CAAF01F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: rapidio: mport_cdev: fix use-after-free in dma_req_free()
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     rapidio-mport_cdev-fix-use-after-free-in-dma_req_free.patch
+     Subject: mm/page_reporting: use system_freezable_wq to fix UAF during suspend
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-page_reporting-use-system_freezable_wq-to-fix-uaf-during-suspend.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/rapidio-mport_cdev-fix-use-after-free-in-dma_req_free.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_reporting-use-system_freezable_wq-to-fix-uaf-during-suspend.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,57 +58,101 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: James Kim <james010kim@gmail.com>
-Subject: rapidio: mport_cdev: fix use-after-free in dma_req_free()
-Date: Mon, 15 Jun 2026 16:05:30 +0900
+From: Link Lin <linkl@google.com>
+Subject: mm/page_reporting: use system_freezable_wq to fix UAF during suspend
+Date: Tue, 21 Jul 2026 00:55:33 +0000
 
-dma_req_free() drops the mapping reference under buf_mutex and then
-dereferences req->map again to unlock the mutex.
+During PM freeze (e.g. S3 suspend or S4 hibernation), device drivers like
+virtio_balloon reset their underlying virtio devices and delete their
+virtqueues via vdev->config->del_vqs().
 
-If kref_put() drops the last reference, mport_release_mapping() frees the
-mapping, and the subsequent mutex_unlock() dereferences a freed object. 
-This is a use-after-free.
+However, page reporting work (page_reporting_process) was scheduled on
+the global system_wq. Because system_wq lacks the WQ_FREEZABLE flag, the
+PM freezer skips it, leaving page_reporting_process active during suspend.
 
-Fix this by caching map and md before kref_put() and using the cached md
-for mutex unlocking.
+If pages are freed into the buddy allocator while suspending (for example,
+when core MM invokes the balloon shrinker during S4 hibernation image
+saving), page reporting triggers virtballoon_free_page_report() on deleted
+virtqueues, resulting in a Use-After-Free / General Protection Fault:
 
-Link: https://lore.kernel.org/20260615070530.371640-1-james010kim@gmail.com
-Fixes: e8de370188d0 ("rapidio: add mport char device driver")
-Signed-off-by: James Kim <james010kim@gmail.com>
-Cc: Alexandre Bounine <alex.bou9@gmail.com>
-Cc: Dan Carpenter <dan.carpenter@linaro.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Matt Porter <mporter@kernel.crashing.org>
+    [  196.795226] general protection fault, probably for non-canonical add=
+ress 0xaa1436fe70dae6df: 0000 [#1] SMP NOPTI
+    [  196.825967] Workqueue: events page_reporting_process
+    [  196.831038] RIP: 0010:virtqueue_add_split+0x233/0x4c0 [virtio_ring]
+    [  196.927073] virtballoon_free_page_report+0x3a/0xe0 [virtio_balloon]
+    [  196.946943] page_reporting_process+0x370/0x4f0
+
+Fix this by switching page reporting work to system_freezable_wq. This
+ensures that the PM freezer pauses page_reporting_process before device
+drivers destroy their reporting virtqueues. Because the reporting worker
+is frozen, memory reclamation/freeing (e.g. via shrinker execution) can
+safely return pages to MM during freeze without triggering unfrozen
+reporting work on deleted virtqueues.
+
+This aligns with the driver's existing design. The comment in
+virtballoon_freeze() states:
+    /*
+     * The workqueue is already frozen by the PM core before this
+     * function is called.
+     */
+
+Testing:
+I have verified these fixes using Google=E2=80=99s virtualization infrastru=
+cture by
+running continuous suspend/resume iterations (40+ cycles) while churning
+memory using stress-ng (`stress-ng --vm 4 --vm-bytes 60% --timeout 1`) to
+constantly create free pages for the buddy allocator. We also set the
+`page_reporting_order` parameter to 0 to make the page reporting worker
+highly sensitive, forcing it to pick up any 4K free pages. This confirmed
+that the UAF crashes are no longer reproducible.
+
+Link: https://lore.kernel.org/20260721005603.1710551-1-linkl@google.com
+Fixes: 36e66c554b5c ("mm: introduce Reported pages")
+Signed-off-by: Link Lin <linkl@google.com>
+Suggested-by: David Hildenbrand (Arm) <david@kernel.org>
+Suggested-by: Michael S. Tsirkin <mst@redhat.com>
+Acked-by: David Rientjes <rientjes@google.com>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Acked-by: Michael S. Tsirkin <mst@redhat.com>
+Cc: Alexander Duyck <alexander.duyck@gmail.com>
+Cc: Greg Thelen <gthelen@google.com>
+Cc: James Houghton <jthoughton@google.com>
+Cc: Jason Wang <jasowang@redhat.com>
+Cc: Jiaqi Yan <jiaqiyan@google.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Xuan Zhuo <xuanzhuo@linux.alibaba.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rapidio/devices/rio_mport_cdev.c |   11 ++++++++---
- 1 file changed, 8 insertions(+), 3 deletions(-)
+ mm/page_reporting.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
---- a/drivers/rapidio/devices/rio_mport_cdev.c~rapidio-mport_cdev-fix-use-after-free-in-dma_req_free
-+++ a/drivers/rapidio/devices/rio_mport_cdev.c
-@@ -564,9 +564,14 @@ static void dma_req_free(struct kref *re
- 	}
+--- a/mm/page_reporting.c~mm-page_reporting-use-system_freezable_wq-to-fix-uaf-during-suspend
++++ a/mm/page_reporting.c
+@@ -80,7 +80,8 @@ __page_reporting_request(struct page_rep
+ 	 * now we are limiting this to running no more than once every
+ 	 * couple of seconds.
+ 	 */
+-	schedule_delayed_work(&prdev->work, PAGE_REPORTING_DELAY);
++	queue_delayed_work(system_freezable_wq, &prdev->work,
++			   PAGE_REPORTING_DELAY);
+ }
  
- 	if (req->map) {
--		mutex_lock(&req->map->md->buf_mutex);
--		kref_put(&req->map->ref, mport_release_mapping);
--		mutex_unlock(&req->map->md->buf_mutex);
-+		struct rio_mport_mapping *map = req->map;
-+		struct mport_dev *md = map->md;
-+
-+		mutex_lock(&md->buf_mutex);
-+		kref_put(&map->ref, mport_release_mapping);
-+		mutex_unlock(&md->buf_mutex);
-+
-+		req->map = NULL;
- 	}
+ /* notify prdev of free page reporting request */
+@@ -340,7 +341,8 @@ err_out:
+ 	 */
+ 	state = atomic_cmpxchg(&prdev->state, state, PAGE_REPORTING_IDLE);
+ 	if (state == PAGE_REPORTING_REQUESTED)
+-		schedule_delayed_work(&prdev->work, PAGE_REPORTING_DELAY);
++		queue_delayed_work(system_freezable_wq, &prdev->work,
++				   PAGE_REPORTING_DELAY);
+ }
  
- 	kref_put(&priv->dma_ref, mport_release_dma);
+ static DEFINE_MUTEX(page_reporting_mutex);
 _
 
-Patches currently in -mm which might be from james010kim@gmail.com are
+Patches currently in -mm which might be from linkl@google.com are
 
-rapidio-mport_cdev-fix-use-after-free-in-dma_req_free.patch
+mm-page_reporting-use-system_freezable_wq-to-fix-uaf-during-suspend.patch
 
