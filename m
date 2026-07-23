@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F20FE3F20F4
-	for <mm-commits@vger.kernel.org>; Thu, 23 Jul 2026 21:13:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5AC0E3F482F
+	for <mm-commits@vger.kernel.org>; Thu, 23 Jul 2026 21:23:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784841205; cv=none; b=SBePOCNw4Cyn4E48GuWKX3WeCRkXP2O68Y33kKdivJcQU/qqtGoYG5hVpdOK248/J4PqXv/jde5/M1Gx8mPj5g1M4+Cm5Z/qIF8Z8IfDdMA5QXDNpqm1TcIe+8+/RH8xvk6STpFFE5FbQQdgPDmoXLi0dSflOHik7IdRKCQi5Ts=
+	t=1784841791; cv=none; b=SiWqtL1JAjNmpmao/1dWvJnQX0bsiPqpV293NqygYJvHWX1uWT6UYs5GAlgK7f1OraPWl8LjeKf7K920xtg+6RYIGA6QouDHirBoi5eyI8t5eVfb48fAVZWiF4kribDxWim98xhcJ8dVByG4kpMJC1Sx4xPj1wU19DDbjUpitKs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784841205; c=relaxed/simple;
-	bh=M15TP4jyIcFRee2hSGzNdZ3UqniORvOnDSb3Ti3/ryQ=;
-	h=Date:To:From:Subject:Message-Id; b=V20xMcddiVFpfTiyYZVZck6uxO64AzJWi/+WHNt30G5Q+cJ6b/eiEiq4B66cfwbcFkofWCw2EbPWIoBDhqvgpbX82YjEUZWJZnxtT9TWiFEyln9yd+9HxCr/w0Obs40VbYEpYmzFz4iF0uhqeAySJ4a9NbnL9WJ3L7pAy8hIKJ0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fYEugQZD; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1784841791; c=relaxed/simple;
+	bh=TgueUsrsw6mU/R03GDAtftIhDV92CTCfBZIuRTsS9KE=;
+	h=Date:To:From:Subject:Message-Id; b=XqKTlSiJF5mu9w7hDctoFf3/2IG1L87hq/Ej7DzhsKm1pu9UIWKNIY4p5nXjZFlN+/pAyIHXO/cNZea0aHcoI69gHTev0EVMexTEGrTX1+j7ACA7w3h0tqhz8ef1B+nMZNCJbt1jleuVU8lhZPPq3MsryhWDWmsH+jvWXDz221U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KP1ZnY5f; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fYEugQZD"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8DAF41F000E9;
-	Thu, 23 Jul 2026 21:13:23 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KP1ZnY5f"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CC21A1F00A3A;
+	Thu, 23 Jul 2026 21:23:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1784841203;
-	bh=d1IdFRP2njSeVFd2oZnvRduPA5Daa7VMjVurC61X66c=;
+	d=linux-foundation.org; s=korg; t=1784841788;
+	bh=HQNHBd6LZde9JfEb7yyPg5WWKTuFp8nPqIQAxsmg6K0=;
 	h=Date:To:From:Subject;
-	b=fYEugQZDrvQl7Q9/YpGTo1ps/djw6frluWU+43AtpCLGRFd2pocyzBlr0z9qh6jSW
-	 gXZEZlLYu7vO5a9Cb/xO2I/sCD3VNJJMlOpMoTUriwUd7XzXAvbvun2V8MrWwSeLKd
-	 Sq/uZg1/8WjhAtaBAbwWygWgzLDd78YWMNMzZKn4=
-Date: Thu, 23 Jul 2026 14:13:23 -0700
+	b=KP1ZnY5foofgkX2fU41ZRlKPWfPF9ARiH8N/1LeqWqOBKu9+oshSj7DFQ1A1hXSyM
+	 8pLzT3ajL1+BJbk1M6kx2T8qZG5tZyKYTenkILZ7qIisLyYI6fKsWD9qwEjpkM8akP
+	 bVE03uM5LuMXwY8hn4Hp3vP39ln8BeBnKUnAXirw=
+Date: Thu, 23 Jul 2026 14:23:08 -0700
 To: mm-commits@vger.kernel.org,skinsburskii@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] drm-gpusvm-use-hmm_range_fault_unlocked_timeout-for-range-faults.patch removed from -mm tree
-Message-Id: <20260723211323.8DAF41F000E9@smtp.kernel.org>
+Subject: + mm-hmm-move-page-fault-handling-out-of-walk-callbacks.patch added to mm-unstable branch
+Message-Id: <20260723212308.CC21A1F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,39 +34,91 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: drm/gpusvm: use hmm_range_fault_unlocked_timeout() for range faults
-has been removed from the -mm tree.  Its filename was
-     drm-gpusvm-use-hmm_range_fault_unlocked_timeout-for-range-faults.patch
+The patch titled
+     Subject: mm/hmm: move page fault handling out of walk callbacks
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-hmm-move-page-fault-handling-out-of-walk-callbacks.patch
 
-This patch was dropped because an updated version will be issued
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hmm-move-page-fault-handling-out-of-walk-callbacks.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
 ------------------------------------------------------
 From: Stanislav Kinsburskii <skinsburskii@gmail.com>
-Subject: drm/gpusvm: use hmm_range_fault_unlocked_timeout() for range faults
-Date: Wed, 22 Jul 2026 14:44:30 -0700
+Subject: mm/hmm: move page fault handling out of walk callbacks
+Date: Thu, 23 Jul 2026 10:36:33 -0700
 
-Several GPU SVM paths take mmap_read_lock() only to call hmm_range_fault()
-and open-code mmu interval sequence setup before each HMM walk.  They also
-retry -EBUSY until HMM_RANGE_DEFAULT_TIMEOUT expires.
+Patch series "mm/hmm: Add mmap lock-drop support for userfaultfd-backed
+mappings", v11.
 
-Use hmm_range_fault_unlocked_timeout() for those faults.  The HMM helper
-now owns mmap_lock acquisition and refreshes range->notifier_seq for its
-internal retries, while GPU SVM keeps its existing driver-lock validation
-with mmu_interval_read_retry() after a successful fault.
+This series extends the HMM framework to support userfaultfd-backed memory
+by allowing the mmap read lock to be dropped during hmm_range_fault().
 
-drm_gpusvm_scan_mm() and drm_gpusvm_range_evict() pass
-HMM_RANGE_DEFAULT_TIMEOUT as the helper retry budget for each HMM fault
-attempt.  drm_gpusvm_get_pages() keeps its existing absolute outer
-deadline because it can be reached from GPU page-fault workers, where
-fatal signals from the faulting process cannot stop an endless
-invalidation retry loop.  It passes the remaining time from that deadline
-to HMM for each fault attempt.
+Some page fault handlers most notably userfaultfd require the mmap lock to
+be released so that userspace can resolve the fault.  The current HMM
+interface never sets FAULT_FLAG_ALLOW_RETRY, making it impossible to fault
+in pages from userfaultfd-registered regions.
 
-Leave drm_gpusvm_check_pages() on hmm_range_fault() because that path is
-called with the mmap lock already held by its caller.
+This series follows the established int *locked pattern from
+get_user_pages_remote() in mm/gup.c.  A new helper function,
+hmm_range_fault_locked(), accepts an int *locked parameter.  When the mmap
+lock is dropped during fault resolution (VM_FAULT_RETRY or
+VM_FAULT_COMPLETED), the function returns 0 with *locked = 0, signalling
+the caller to restart its walk.  The existing hmm_range_fault() is
+refactored into a thin wrapper that passes NULL, preserving current
+behavior for all existing callers.
 
-Link: https://lore.kernel.org/20260722-hmm-v10-v1-8-606464dd601a@gmail.com
+Possible approaches to lift this limitation are documented in
+Documentation/mm/hmm.rst.
+
+
+This patch (of 8):
+
+hmm_range_fault() currently triggers page faults from inside the
+page-table walk callbacks: hmm_vma_walk_pmd(), hmm_vma_walk_pud(),
+hmm_vma_walk_hugetlb_entry() and the pte-level helper all call
+hmm_vma_fault(), which in turn calls handle_mm_fault() while the walker
+still holds nested locks.  The pte spinlock is dropped explicitly by each
+caller, and the hugetlb path manually drops and retakes
+hugetlb_vma_lock_read around the fault to dodge a deadlock against the
+walk framework's unconditional unlock.
+
+This layering does not extend cleanly to fault handlers that may release
+mmap_lock (VM_FAULT_RETRY, VM_FAULT_COMPLETED).  If the lock is dropped
+while walk_page_range() is mid-traversal, the VMA can be freed before the
+walk framework's matching hugetlb_vma_unlock_read(), turning that unlock
+into a use-after-free.
+
+Split the responsibilities the way get_user_pages() does.  Walk callbacks
+become inspect-only: when they detect a range that needs to be faulted in,
+they record it in struct hmm_vma_walk and return a private sentinel
+(HMM_FAULT_PENDING).  The outer loop in hmm_range_fault() then drops out
+of walk_page_range(), invokes a new helper hmm_do_fault() that calls
+handle_mm_fault() with only mmap_lock held, and restarts the walk so the
+now-present entries are collected into hmm_pfns.
+
+No functional change for existing callers.  As a side effect the hugetlb
+callback no longer needs the hugetlb_vma_{un}lock_read dance, and every
+fault-path exit from the callbacks now releases the pte spinlock on a
+single, common path.  This refactor is also a precursor for adding an
+unlockable variant of hmm_range_fault() in a follow-up patch.
+
+Link: https://lore.kernel.org/20260723-hmm-v10-v11-0-c55b003a4b61@gmail.com
+Link: https://lore.kernel.org/20260723-hmm-v10-v11-1-c55b003a4b61@gmail.com
 Signed-off-by: Stanislav Kinsburskii <skinsburskii@gmail.com>
 Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
 Cc: Danilo Krummrich <dakr@kernel.org>
@@ -95,128 +147,219 @@ Cc: Wei Liu <wei.liu@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/drm_gpusvm.c |   60 +++++----------------------------
- 1 file changed, 10 insertions(+), 50 deletions(-)
+ mm/hmm.c |  118 +++++++++++++++++++++++++++++++++--------------------
+ 1 file changed, 75 insertions(+), 43 deletions(-)
 
---- a/drivers/gpu/drm/drm_gpusvm.c~drm-gpusvm-use-hmm_range_fault_unlocked_timeout-for-range-faults
-+++ a/drivers/gpu/drm/drm_gpusvm.c
-@@ -773,8 +773,7 @@ enum drm_gpusvm_scan_result drm_gpusvm_s
- 		.end = end,
- 		.dev_private_owner = dev_private_owner,
- 	};
--	unsigned long timeout =
--		jiffies + msecs_to_jiffies(HMM_RANGE_DEFAULT_TIMEOUT);
-+	unsigned long timeout = msecs_to_jiffies(HMM_RANGE_DEFAULT_TIMEOUT);
- 	enum drm_gpusvm_scan_result state = DRM_GPUSVM_SCAN_UNPOPULATED, new_state;
- 	unsigned long *pfns;
- 	unsigned long npages = npages_in_range(start, end);
-@@ -788,22 +787,7 @@ enum drm_gpusvm_scan_result drm_gpusvm_s
- 	hmm_range.hmm_pfns = pfns;
+--- a/mm/hmm.c~mm-hmm-move-page-fault-handling-out-of-walk-callbacks
++++ a/mm/hmm.c
+@@ -33,8 +33,17 @@
+ struct hmm_vma_walk {
+ 	struct hmm_range	*range;
+ 	unsigned long		last;
++	unsigned long		end;
++	unsigned int		required_fault;
+ };
  
- retry:
--	hmm_range.notifier_seq = mmu_interval_read_begin(notifier);
--	mmap_read_lock(range->gpusvm->mm);
--
--	while (true) {
--		err = hmm_range_fault(&hmm_range);
--		if (err == -EBUSY) {
--			if (time_after(jiffies, timeout))
--				break;
--
--			hmm_range.notifier_seq =
--				mmu_interval_read_begin(notifier);
--			continue;
--		}
--		break;
--	}
--	mmap_read_unlock(range->gpusvm->mm);
-+	err = hmm_range_fault_unlocked_timeout(&hmm_range, timeout);
- 	if (err)
- 		goto err_free;
- 
-@@ -1423,6 +1407,7 @@ int drm_gpusvm_get_pages(struct drm_gpus
- 	void *zdd;
- 	unsigned long timeout =
- 		jiffies + msecs_to_jiffies(HMM_RANGE_DEFAULT_TIMEOUT);
-+	unsigned long remaining;
- 	unsigned long i, j;
- 	unsigned long npages = npages_in_range(pages_start, pages_end);
- 	unsigned long num_dma_mapped;
-@@ -1437,9 +1422,11 @@ int drm_gpusvm_get_pages(struct drm_gpus
- 	struct dma_iova_state *state = &svm_pages->state;
- 
- retry:
--	if (time_after(jiffies, timeout))
-+	if (time_after_eq(jiffies, timeout))
- 		return -EBUSY;
- 
-+	remaining = timeout - jiffies;
++/*
++ * Internal sentinel returned by walk callbacks when they need a page fault.
++ * The callback stores end/required_fault in hmm_vma_walk; the outer loop
++ * consumes the sentinel and never propagates it to the caller.
++ */
++#define HMM_FAULT_PENDING	-EAGAIN
 +
- 	hmm_range.notifier_seq = mmu_interval_read_begin(notifier);
- 	if (drm_gpusvm_pages_valid_unlocked(gpusvm, svm_pages))
- 		goto set_seqno;
-@@ -1454,21 +1441,7 @@ retry:
+ enum {
+ 	HMM_NEED_FAULT = 1 << 0,
+ 	HMM_NEED_WRITE_FAULT = 1 << 1,
+@@ -60,37 +69,25 @@ static int hmm_pfns_fill(unsigned long a
+ }
+ 
+ /*
+- * hmm_vma_fault() - fault in a range lacking valid pmd or pte(s)
+- * @addr: range virtual start address (inclusive)
+- * @end: range virtual end address (exclusive)
+- * @required_fault: HMM_NEED_* flags
+- * @walk: mm_walk structure
+- * Return: -EBUSY after page fault, or page fault error
++ * hmm_record_fault() - record a range that needs to be faulted in
+  *
+- * This function will be called whenever pmd_none() or pte_none() returns true,
+- * or whenever there is no page directory covering the virtual address range.
++ * Called by the walk callbacks when they discover that part of the range
++ * needs a page fault.  The callback records what to fault and returns
++ * HMM_FAULT_PENDING; the outer loop in hmm_range_fault() drops back out of
++ * walk_page_range() and invokes handle_mm_fault() from a context where no
++ * page-table or hugetlb_vma_lock is held.
+  */
+-static int hmm_vma_fault(unsigned long addr, unsigned long end,
+-			 unsigned int required_fault, struct mm_walk *walk)
++static int hmm_record_fault(unsigned long addr, unsigned long end,
++			    unsigned int required_fault,
++			    struct mm_walk *walk)
+ {
+ 	struct hmm_vma_walk *hmm_vma_walk = walk->private;
+-	struct vm_area_struct *vma = walk->vma;
+-	unsigned int fault_flags = FAULT_FLAG_REMOTE;
+ 
+ 	WARN_ON_ONCE(!required_fault);
+ 	hmm_vma_walk->last = addr;
+-
+-	if (required_fault & HMM_NEED_WRITE_FAULT) {
+-		if (!(vma->vm_flags & VM_WRITE))
+-			return -EPERM;
+-		fault_flags |= FAULT_FLAG_WRITE;
+-	}
+-
+-	for (; addr < end; addr += PAGE_SIZE)
+-		if (handle_mm_fault(vma, addr, fault_flags, NULL) &
+-		    VM_FAULT_ERROR)
+-			return -EFAULT;
+-	return -EBUSY;
++	hmm_vma_walk->end = end;
++	hmm_vma_walk->required_fault = required_fault;
++	return HMM_FAULT_PENDING;
+ }
+ 
+ static unsigned int hmm_pte_need_fault(const struct hmm_vma_walk *hmm_vma_walk,
+@@ -174,7 +171,7 @@ static int hmm_vma_walk_hole(unsigned lo
+ 		return hmm_pfns_fill(addr, end, range, HMM_PFN_ERROR);
+ 	}
+ 	if (required_fault)
+-		return hmm_vma_fault(addr, end, required_fault, walk);
++		return hmm_record_fault(addr, end, required_fault, walk);
+ 	return hmm_pfns_fill(addr, end, range, 0);
+ }
+ 
+@@ -209,7 +206,7 @@ static int hmm_vma_handle_pmd(struct mm_
+ 	required_fault =
+ 		hmm_range_need_fault(hmm_vma_walk, hmm_pfns, npages, cpu_flags);
+ 	if (required_fault)
+-		return hmm_vma_fault(addr, end, required_fault, walk);
++		return hmm_record_fault(addr, end, required_fault, walk);
+ 
+ 	pfn = pmd_pfn(pmd) + ((addr & ~PMD_MASK) >> PAGE_SHIFT);
+ 	for (i = 0; addr < end; addr += PAGE_SIZE, i++, pfn++) {
+@@ -328,7 +325,7 @@ out:
+ fault:
+ 	pte_unmap(ptep);
+ 	/* Fault any virtual address we were asked to fault */
+-	return hmm_vma_fault(addr, end, required_fault, walk);
++	return hmm_record_fault(addr, end, required_fault, walk);
+ }
+ 
+ #ifdef CONFIG_ARCH_HAS_PMD_SOFTLEAVES
+@@ -371,7 +368,7 @@ static int hmm_vma_handle_absent_pmd(str
+ 					      npages, 0);
+ 	if (required_fault) {
+ 		if (softleaf_is_device_private(entry))
+-			return hmm_vma_fault(addr, end, required_fault, walk);
++			return hmm_record_fault(addr, end, required_fault, walk);
+ 		else
+ 			return -EFAULT;
+ 	}
+@@ -517,7 +514,7 @@ static int hmm_vma_walk_pud(pud_t *pudp,
+ 						      npages, cpu_flags);
+ 		if (required_fault) {
+ 			spin_unlock(ptl);
+-			return hmm_vma_fault(addr, end, required_fault, walk);
++			return hmm_record_fault(addr, end, required_fault, walk);
+ 		}
+ 
+ 		pfn = pud_pfn(pud) + ((addr & ~PUD_MASK) >> PAGE_SHIFT);
+@@ -564,21 +561,8 @@ static int hmm_vma_walk_hugetlb_entry(pt
+ 	required_fault =
+ 		hmm_pte_need_fault(hmm_vma_walk, pfn_req_flags, cpu_flags);
+ 	if (required_fault) {
+-		int ret;
+-
+ 		spin_unlock(ptl);
+-		hugetlb_vma_unlock_read(vma);
+-		/*
+-		 * Avoid deadlock: drop the vma lock before calling
+-		 * hmm_vma_fault(), which will itself potentially take and
+-		 * drop the vma lock. This is also correct from a
+-		 * protection point of view, because there is no further
+-		 * use here of either pte or ptl after dropping the vma
+-		 * lock.
+-		 */
+-		ret = hmm_vma_fault(addr, end, required_fault, walk);
+-		hugetlb_vma_lock_read(vma);
+-		return ret;
++		return hmm_record_fault(addr, end, required_fault, walk);
  	}
  
- 	hmm_range.hmm_pfns = pfns;
--	while (true) {
--		mmap_read_lock(mm);
--		err = hmm_range_fault(&hmm_range);
--		mmap_read_unlock(mm);
--
--		if (err == -EBUSY) {
--			if (time_after(jiffies, timeout))
--				break;
--
--			hmm_range.notifier_seq =
--				mmu_interval_read_begin(notifier);
--			continue;
--		}
--		break;
--	}
-+	err = hmm_range_fault_unlocked_timeout(&hmm_range, remaining);
- 	mmput(mm);
- 	if (err)
- 		goto err_free;
-@@ -1741,8 +1714,7 @@ int drm_gpusvm_range_evict(struct drm_gp
- 		.end = drm_gpusvm_range_end(range),
- 		.dev_private_owner = NULL,
- 	};
--	unsigned long timeout =
--		jiffies + msecs_to_jiffies(HMM_RANGE_DEFAULT_TIMEOUT);
-+	unsigned long timeout = msecs_to_jiffies(HMM_RANGE_DEFAULT_TIMEOUT);
- 	unsigned long *pfns;
- 	unsigned long npages = npages_in_range(drm_gpusvm_range_start(range),
- 					       drm_gpusvm_range_end(range));
-@@ -1757,24 +1729,12 @@ int drm_gpusvm_range_evict(struct drm_gp
- 		return -ENOMEM;
+ 	pfn = pte_pfn(entry) + ((start & ~hmask) >> PAGE_SHIFT);
+@@ -637,6 +621,44 @@ static const struct mm_walk_ops hmm_walk
+ 	.walk_lock	= PGWALK_RDLOCK,
+ };
  
- 	hmm_range.hmm_pfns = pfns;
--	while (!time_after(jiffies, timeout)) {
--		hmm_range.notifier_seq = mmu_interval_read_begin(notifier);
--		if (time_after(jiffies, timeout)) {
--			err = -ETIME;
--			break;
--		}
--
--		mmap_read_lock(mm);
--		err = hmm_range_fault(&hmm_range);
--		mmap_read_unlock(mm);
--		if (err != -EBUSY)
--			break;
--	}
-+	err = hmm_range_fault_unlocked_timeout(&hmm_range, timeout);
- 
- 	kvfree(pfns);
- 	mmput(mm);
- 
--	return err;
-+	return err == -EBUSY ? -ETIME : err;
- }
- EXPORT_SYMBOL_GPL(drm_gpusvm_range_evict);
- 
++/*
++ * hmm_do_fault - fault in a range recorded by a walk callback
++ *
++ * Called from the outer loop in hmm_range_fault() after a callback
++ * returned HMM_FAULT_PENDING.  At this point we hold only mmap_lock;
++ * the page-table spinlock and any hugetlb_vma_lock acquired by the walk
++ * framework have already been released by the unwind.
++ *
++ * Returns -EBUSY on success (all pages faulted, caller should re-walk).
++ * Returns a negative errno on failure.
++ */
++static int hmm_do_fault(struct mm_struct *mm,
++			struct hmm_vma_walk *hmm_vma_walk)
++{
++	unsigned long addr = hmm_vma_walk->last;
++	unsigned long end = hmm_vma_walk->end;
++	unsigned int required_fault = hmm_vma_walk->required_fault;
++	unsigned int fault_flags = FAULT_FLAG_REMOTE;
++	struct vm_area_struct *vma;
++
++	vma = vma_lookup(mm, addr);
++	if (!vma)
++		return -EFAULT;
++
++	if (required_fault & HMM_NEED_WRITE_FAULT) {
++		if (!(vma->vm_flags & VM_WRITE))
++			return -EPERM;
++		fault_flags |= FAULT_FLAG_WRITE;
++	}
++
++	for (; addr < end; addr += PAGE_SIZE)
++		if (handle_mm_fault(vma, addr, fault_flags, NULL) &
++		    VM_FAULT_ERROR)
++			return -EFAULT;
++
++	return -EBUSY;
++}
++
+ /**
+  * hmm_range_fault - try to fault some address in a virtual address range
+  * @range:	argument structure
+@@ -675,6 +697,16 @@ int hmm_range_fault(struct hmm_range *ra
+ 		ret = walk_page_range(mm, hmm_vma_walk.last, range->end,
+ 				      &hmm_walk_ops, &hmm_vma_walk);
+ 		/*
++		 * When HMM_FAULT_PENDING is returned a walk callback
++		 * recorded a range that needs handle_mm_fault();
++		 * hmm_do_fault() runs the fault outside walk_page_range()
++		 * (so no page-table or hugetlb_vma_lock is held) and
++		 * returns -EBUSY so the loop re-walks and picks up the
++		 * now-present entries.
++		 */
++		if (ret == HMM_FAULT_PENDING)
++			ret = hmm_do_fault(mm, &hmm_vma_walk);
++		/*
+ 		 * When -EBUSY is returned the loop restarts with
+ 		 * hmm_vma_walk.last set to an address that has not been stored
+ 		 * in pfns. All entries < last in the pfn array are set to their
 _
 
 Patches currently in -mm which might be from skinsburskii@gmail.com are
 
+mm-hmm-move-page-fault-handling-out-of-walk-callbacks.patch
+mm-hmm-add-hmm_range_fault_unlocked_timeout-for-mmap-lock-drop-support.patch
+selftests-mm-add-hmm-test-for-mmap-lock-dropping-faults.patch
+mshv-use-hmm_range_fault_unlocked_timeout-for-region-faults.patch
+drm-nouveau-use-hmm_range_fault_unlocked_timeout-for-svm-faults.patch
+rdma-umem-use-hmm_range_fault_unlocked_timeout-for-odp-faults.patch
+accel-amdxdna-use-hmm_range_fault_unlocked_timeout-for-range-population.patch
+drm-gpusvm-use-hmm_range_fault_unlocked_timeout-for-range-faults.patch
 
