@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 481033B8934
-	for <mm-commits@vger.kernel.org>; Thu, 23 Jul 2026 20:38:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5321C278161
+	for <mm-commits@vger.kernel.org>; Thu, 23 Jul 2026 20:38:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784839098; cv=none; b=sKP6KXJQunIOMcXDg6ioSqATJd8JR/BBdoQuxtK2dFF2uLD8WqDr9dOJpS5DdTWQJWmQNVruw4E7B4JrGYWINsFKUNH1ee7ij9Xg1B/U8mXOGv5484Q3166ITZMTyMhAqhjpElZ5KHKvtpU7+ZOeXhFyGQfiIPVUhrd/120LhZQ=
+	t=1784839102; cv=none; b=obDrRpXEsVSX+3k0ItqiQU4imGTH6hfm2anEaDlaYGcEdpK7CSzS2wNgXRnAf0mLrNMXflS4fX7KHdaSNaAT85vqTJ0ffuFyvGW87jbDmwjCFpin075UCW4ytcIYft2SOTsR3tzgCH51R90m3OxPJLdnfKoSAh5AqjefaNhagJ0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784839098; c=relaxed/simple;
-	bh=mYvsBbew+2hoIPNZTqws2h2cS+DFCLntpBGmEvDmg8U=;
-	h=Date:To:From:Subject:Message-Id; b=cexobCPPfyGVSkznDkCBy34FdDWNjKab6d/lyteibkLAWEfHsrFzCyTS0v2zj5bF4gR9R0s3qLVgZfxDgeEfWNTYIWqvyqF7pSxyKsGC9OY06eqfJCqc2gYEI2Yz8u68sAq9vlcN4JHKUILRfCcdpdHUF6nKbDvT8Fii2xqMiSQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=De1G0Y5K; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1784839102; c=relaxed/simple;
+	bh=fCHka9HqK7RXfO3uRt49tWt63iTjieLx7SBoH2hJhyQ=;
+	h=Date:To:From:Subject:Message-Id; b=HK912Tck1uxk4UTblfqIznjNEtWxH1eNt8vg2s1kjUFYejq7IK8AniKr9Bl0DyZU3kta6+YLvffOWnsptARIStm9q2NZsRdWC1LY9gOxG1vawgKDklfctrBAHxFfUmxXQ3YyuHdNl2cOg6n4ghbVsG/cYQEciE6xPKXLO4wJROY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=H93Cb7A6; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="De1G0Y5K"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A6C2C1F00A3A;
-	Thu, 23 Jul 2026 20:38:11 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="H93Cb7A6"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 95B1A1F000E9;
+	Thu, 23 Jul 2026 20:38:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1784839091;
-	bh=hufjqy+bArLduaSjrBPIQDBt0K1TY+CCz/chKBeQLZk=;
+	d=linux-foundation.org; s=korg; t=1784839095;
+	bh=6VQGtE6scjqoNBmyS5uevGtd1pp+A7iOGzd+8nSWiw8=;
 	h=Date:To:From:Subject;
-	b=De1G0Y5KRWWZL+R4VRJQbqnrmdFFtftkchaCJUO11LpPqHTYkvY3pNbRrrkSyC39F
-	 L969D8Ot0cXjIyWth4/v9rk3jTxWLdamv5uVU3sdzUO2PJAG/zxoRzfj0IzQWRbJU9
-	 bc/QRyg5/yyOIbmp5401SOg2/sCObxs/GwYHYQf4=
-Date: Thu, 23 Jul 2026 13:38:11 -0700
+	b=H93Cb7A6mCqXy0JjQfg9XCDilIXL49SVLUjDCVwHq7szhWukSgkTPO8ENn5Inwn/D
+	 JvhfZTZOKAJCLMAzwF62pBIxN1fl2Jo3ybqiBFopbXvTRB/CI2kqocC+aE5N6D126s
+	 3gVIFOmqv4F7bN76x52P44uuqGbFRAW1fR44UccA=
+Date: Thu, 23 Jul 2026 13:38:15 -0700
 To: mm-commits@vger.kernel.org,yuanchu@google.com,weixugc@google.com,vbabka@kernel.org,surenb@google.com,shakeel.butt@linux.dev,rppt@kernel.org,roman.gushchin@linux.dev,rientjes@google.com,nphamcs@gmail.com,muchun.song@linux.dev,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,kasong@tencent.com,hannes@cmpxchg.org,david@kernel.org,chrisl@kernel.org,baoquan.he@linux.dev,axelrasmussen@google.com,usama.arif@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmstat-mm-memcontrol-add-_monotonic-vmstat-readers.patch added to mm-new branch
-Message-Id: <20260723203811.A6C2C1F00A3A@smtp.kernel.org>
+Subject: + mm-vmscan-reduce-lru_lock-contention-via-vmstat-derived-scan-balance-cost.patch added to mm-new branch
+Message-Id: <20260723203815.95B1A1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/vmstat, mm/memcontrol: add _monotonic vmstat readers
+     Subject: mm/vmscan: reduce lru_lock contention via vmstat-derived scan-balance cost
 has been added to the -mm mm-new branch.  Its filename is
-     mm-vmstat-mm-memcontrol-add-_monotonic-vmstat-readers.patch
+     mm-vmscan-reduce-lru_lock-contention-via-vmstat-derived-scan-balance-cost.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmstat-mm-memcontrol-add-_monotonic-vmstat-readers.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmscan-reduce-lru_lock-contention-via-vmstat-derived-scan-balance-cost.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,52 +70,65 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Usama Arif <usama.arif@linux.dev>
-Subject: mm/vmstat, mm/memcontrol: add _monotonic vmstat readers
-Date: Mon, 20 Jul 2026 09:41:22 -0700
+Subject: mm/vmscan: reduce lru_lock contention via vmstat-derived scan-balance cost
+Date: Mon, 20 Jul 2026 09:41:23 -0700
 
-Patch series "mm/vmscan: reduce lru_lock contention via vmstat-derived
-scan-balance cost", v4.
+The anon/file scan balance in get_scan_count() is driven by two scalars in
+struct lruvec, anon_cost and file_cost, accumulated by every reclaim
+producer under lruvec->lru_lock.  The acquisition sites for cost work
+specifically are:
 
-The anon/file scan balance heuristic in get_scan_count() is fed by two
-scalars in struct lruvec (anon_cost, file_cost) that every reclaim
-producer updates under lruvec->lru_lock.  The cost-recording work itself
-is trivial, but it both contends for and contributes to contention on
-lru_lock - which is often a contention point on memory-pressured
-workloads.  Specifically:
+  - shrink_inactive_list() re-takes lru_lock at function exit purely
+    to call lru_note_cost_unlock_irq() with (nr_pageout, nr_scanned -
+    nr_reclaimed). One acquisition per inactive shrink.
+  - shrink_active_list() does the same with (0, nr_rotated). One
+    acquisition per active shrink.
+  - workingset_refault() takes the lock via folio_lruvec_lock_irq()
+    purely to record the refault cost. One acquisition per refault.
+  - prepare_scan_control() takes lru_lock just to snapshot the two
+    scalars into sc->{anon,file}_cost.
+  - lru_note_cost_unlock_irq() itself walks parent_lruvec and
+    re-acquires lru_lock on each ancestor to propagate the update,
+    adding O(memcg-depth) acquisitions per producer call.
 
-- shrink_inactive_list() re-acquires lru_lock at function exit just
-  to call lru_note_cost_unlock_irq().
-- shrink_active_list() does the same after rotation accounting.
-- workingset_refault() takes folio_lruvec_lock_irq() purely to
-  record the refault cost.
-- prepare_scan_control() snapshots anon_cost/file_cost under
-  lru_lock.
-- lru_note_cost_unlock_irq() itself walks parent_lruvec() and
-  re-acquires lru_lock on every ancestor, multiplying the cost
-  of every update by memcg-hierarchy depth.
+This hurts because lru_lock is already a heavy contention point on
+memory-heavy workloads: every isolate_lru_folios(), move_folios_to_lru()
+and folio_add_lru() takes it.  The cost work itself is trivial (two scalar
+bumps and one comparison), but it contends with and causes contention for
+actual LRU manipulation.  The parent_lruvec() walk also multiplies
+cost-update overhead by memcg hierarchy depth.
 
-This series removes those producer-side acquisitions entirely.  The
-rotation inputs become per-LRU PGROTATE_{ANON,FILE} vmstat counters. 
-NR_VMSCAN_WRITE already captures reclaim-driven pageout at writeout();
-charge it through lruvec_stat_mod_folio() so it is available per lruvec
-and aggregated through the memcg hierarchy.  Reclaim does not submit
-filesystem folios for writeback from this path, so pageout contributes
-only to anon cost.  WORKINGSET_RESTORE_* already captures the refault
-input.
+Replace the producer-side accumulators with a read-side accumulator fed
+from per-LRU vmstat counters.  The old producer formula was:
 
-prepare_scan_control() reads the raw cost signals without lru_lock:
+  cost = nr_io * SWAP_CLUSTER_MAX + nr_rotated
 
-  anon = PGROTATE_ANON +
-         (NR_VMSCAN_WRITE + WORKINGSET_RESTORE_ANON) * SWAP_CLUSTER_MAX
-  file = PGROTATE_FILE +
-         WORKINGSET_RESTORE_FILE * SWAP_CLUSTER_MAX
+Reuse NR_VMSCAN_WRITE for reclaim-driven anon pageout submissions.  It is
+already bumped by writeout() for the same successful outcome that fed
+reclaim_stat.nr_pageout.  Reclaim does not submit filesystem folios from
+this path, so there is no file pageout term.  Charge NR_VMSCAN_WRITE via
+lruvec_stat_mod_folio() and include it in memcg_node_stat_items so it can
+be sampled per lruvec and aggregated through the memcg hierarchy.
 
-It folds the deltas into a per-lruvec accumulator.  A dedicated per-lruvec
-cost_lock, not touched by isolate_lru_folios(), move_folios_to_lru(), or
-folio_add_lru(), serialises the accumulator RMW and the lrusize/4 halving
-check.  Hierarchy aggregation is implicit in rstat propagation, so the
-parent_lruvec() walk and the lru_reparent_memcg() cost-splice both
-disappear.
+Add explicit PGROTATE_{ANON,FILE} node_stat counters for the remaining
+producer-local input.  They are bumped from shrink_inactive_list() by
+nr_scanned - nr_reclaimed and from shrink_active_list() by nr_rotated. 
+WORKINGSET_RESTORE_{ANON,FILE} already captures the refault IO that
+lru_note_cost_refault() used to bill.
+
+Add a per-side struct lru_cost { count, last_rotated, last_io } to struct
+lruvec.  In prepare_scan_control() the two monotonic inputs are sampled
+separately - rotated from PGROTATE_ANON/FILE, io from
+WORKINGSET_RESTORE_BASE + f plus (for anon) NR_VMSCAN_WRITE - and the raw
+per-side deltas are computed against cost->last_rotated and cost->last_io
+before the SWAP_CLUSTER_MAX IO weighting is applied.  Extracting the
+deltas from the individual counters (rather than from a pre-weighted sum)
+keeps the unsigned modular subtraction bounded by the true per-counter
+growth, so a signed-long wraparound of any underlying vmstat still yields
+the correct delta on 32-bit.  The weighted delta is folded into
+cost->count.  Since one vmstat delta can cover many producer events
+between reclaim passes, halve cost->count on both sides until their sum is
+back within the lrusize/4 bound instead of halving only once.
 
 Moving accumulation and decay to the reclaim side also improves the cost
 model across reclaim gaps.  With producer-side decay, events that happen
@@ -127,183 +140,43 @@ between-reclaim delta and decays anon and file proportionally, so the
 scan-balance history better represents what happened since the last
 reclaim pass.
 
-Trade-offs:
-  - Cost reads see rstat-aggregated values that can lag until periodic /
-    reader-triggered flushing.
-  - Per-lruvec footprint grows by 4 unsigned longs + a spinlock (a
-    struct lru_cost { count, last_rotated, last_io } per side), which
-    is a small cost.
-  - NR_VMSCAN_WRITE now also updates the folio's lruvec/memcg stat,
-    adding memcg stat accounting to the reclaim writeout path while
-    preserving the existing node-level total.
+A dedicated per-lruvec spinlock, cost_lock, serialises the delta
+extraction, the cost->count update and the halving loop against concurrent
+reclaimers in the same memcg+node.
 
-== Numbers ==
+Hierarchy aggregation is now implicit in the vmstat accounting.  The
+producer-side parent_lruvec() walk and lru_reparent_memcg() cost splice
+existed only because anon_cost/file_cost were private lruvec fields.  With
+the cost expressed as lruvec vmstats, rstat propagates the underlying
+counters through the memcg hierarchy and prepare_scan_control() consumes
+the same ratelimited rstat view as the surrounding reclaim heuristics.
 
-Tested on a 176-core, 256 GB host.  The benchmark drives sustained
-swap-out/refault inside a tight memcg using vm-scalability/usemem:
+NR_VMSCAN_WRITE is accounted at writeout(), so reclaim_stat.nr_pageout is
+no longer needed and is removed.
 
-  usemem -n 16 --prealloc --prefault --random $((256*1024*1024))
+memcg-v1's memory.stat anon_cost/file_cost is now sourced from
+cost[].count instead of the removed lruvec anon_cost/file_cost fields. 
+The reported values only refresh when prepare_scan_control() runs and are
+bounded at ~lrusize/4 by the halving loop; the scan-balance signal they
+express is unchanged.
 
-run inside a two-level memcg with memory.max=512M on the leaf (4 GB anon
-working set has to fit in 512 MB -> continuous shrink_inactive_list +
-workingset_refault).  A 16 GB swap file is used.  Measurement is a 30 s
-`perf lock record -a` window over otherwise-idle hardware.
+Under pure MGLRU the scan-balance signal itself is not consumed (both
+prepare_scan_control() and get_scan_count() are short-circuited on the
+MGLRU paths, and MGLRU's own type/tier selection comes from
+read_ctrl_pos() on lrugen->{avg_refaulted,avg_total,refaulted,evicted},
+not from anon_cost/file_cost).  NR_VMSCAN_WRITE naturally covers writeout
+from either reclaim implementation, and PGROTATE_{ANON,FILE} are bumped
+from evict_folios() so per-memcg observability of rotation-driven reclaim
+work stays consistent across both implementations.
 
-Workload rates are identical on both kernels (the bench drives the same
-memory pressure):
-
-                          baseline    patched      delta
-  pgscan_direct  / s      172,662     171,817      ~0%
-  pgsteal_direct / s       67,162      66,306      ~0%
-  workingset_refault_anon / s
-                           40,696      39,830      ~0%
-
-perf lock contention (total wait per 30 s window):
-
-  Lock Name                Before      After     % change
-  shrink_lruvec+0x770     722.84 ms    0         -100% (eliminated)
-        (= lru_note_cost_unlock_irq)
-  workingset_refault+0x167 385.26 ms   0         -100% (eliminated)
-        (= lru_note_cost_refault)
-  shrink_node+0x4ad       689.43 ms    26.95 ms  -96%
-  shrink_active_list      208.34 ms    15.97 ms  -92%
-  lru_add_drain_cpu+0x34    1.96 s    917.71 ms  -53%
-
-  Total LRU lock wait      ~4.23 s     ~1.66 s   -61%
-
-The two specific contention sites the patch removes (shrink_lruvec+0x770 =
-lru_note_cost_unlock_irq; workingset_refault+0x167 =
-lru_note_cost_refault) are completely absent from the patched
-perf-lock-contention output.  Secondary reductions in shrink_node,
-shrink_active_list, lru_add_drain_cpu and pgrefill/pgactivate look like
-knock-on effects from removing the cost-recording overhead and the
-parent_lruvec walk.
-
-The remaining ~1.66 s of LRU lock wait on the patched kernel is dominated
-by the per-CPU pagevec drain (lru_add_drain_cpu) and the main reclaim path
-in shrink_lruvec.
-
-The numbers above can be reproduced using the script in [1].
-
-== Series structure ==
-
-  1. mm/vmstat, mm/memcontrol: add _monotonic vmstat readers
-     Non-clamping siblings of lruvec_page_state() / node_page_state() /
-     global_node_page_state() for callers that snapshot a
-     monotonically-incremented counter and subtract two samples.
-     Unsigned modular subtraction on the raw wrapping value stays
-     correct across a signed-long overflow that the existing clamp
-     would otherwise turn into a huge spurious delta (a real hazard
-     on 32-bit).
-
-  2. mm/vmscan: reduce lru_lock contention via vmstat-derived
-     scan-balance cost
-     The optimization described above; samples PGROTATE_*,
-     NR_VMSCAN_WRITE (for anon) and WORKINGSET_RESTORE_* via
-     lruvec_page_state_monotonic() from patch 1. MGLRU also updates
-     PGROTATE_* so the counters remain meaningful with either reclaim
-     implementation, although MGLRU does not consume this cost signal.
-
-== Alternatives considered ==
-
-1. cost_lock for both producer and consumer (no vmstat indirection):
-   Keep the producer loop, just swap lru_lock for a new per-lruvec
-   cost_lock. Decouples cost from LRU manipulation, but producers
-   still synchronously contend on cost_lock, the parent_lruvec()
-   walk is still required (O(memcg-depth) acquisitions per recording,
-   now on cost_lock), and lru_reparent_memcg() still needs explicit
-   cost-splice. We can do much better and this series removes the
-   producer lock entirely and gets hierarchy propagation for "free"
-   via rstat.
-
-2. Attempt to switch to using MGLRU's scan model:
-   MGLRU has no anon_cost/file_cost at all. It replaces the cost
-   heuristic with generation-based aging: per-LRU sequence numbers
-   (min_seq/max_seq) age folios into generations, and the
-   older-generation type is the one to scan. So
-   lru_note_cost_unlock_irq() / lru_note_cost_refault() are simply
-   not called when lru_gen_enabled() — by design it sidesteps every
-   concern this patch addresses.
-   But MGLRU is not a substitute for fixing classic LRU:
-     - It relies on a lot of things including per-lruvec generation
-       lists, bloom filters, mm_struct walk infrastructure, working-set
-       protection tiers and a whole sysfs interface. Replacing
-       classic LRU's cost recording with the MGLRU model would
-       mean dragging in all of that.
-     - It changes scan-balance semantics, not just the locking, so
-       it's a heuristic change we would need to evaluate separately.
-       There are known regressions (database/anon-heavy workloads
-       sensitive to swappiness, or file-cache-dominated workloads
-       where MGLRU's bloom-filter protection differs from classic
-       refault tracking).
-   This series keeps classic LRU's scan-balance model and fixes where
-   its cost history is sampled and aged.
-
-3. Atomic cost counter:
-   lrusize/4 halving has no clean atomic form, and the parent
-   walk still has to run explicitly. Reusing vmstats gives per-CPU
-   aggregation AND rstat hierarchy propagation for free.
-
-4. Drop cost_lock from the existing patch and reuse lru_lock in the
-   consumer (prepare_scan_control()):
-   Saves 1 lock space per lruvec but re-couples the cost path to LRU
-   manipulation, though just from the consumer side this time.
-   prepare_scan_control() runs at the start of every shrink_lruvec()
-   cycle, so under sustained memory pressure it would take lru_lock
-   on the hot path and block isolate_lru_folios() /
-   move_folios_to_lru() / folio_add_lru() i.e. when reclaim is
-   in flight. A dedicated cost_lock is never taken by anyone except
-   the consumer cost calculation.
-
-
-This patch (of 2):
-
-lruvec_page_state(), node_page_state(), and global_node_page_state() all
-clamp negative reads to zero on CONFIG_SMP so that a transient per-CPU
-delta skew presents as zero pages rather than as a garbage unsigned value.
-This is the right behaviour for non-monotonic page-count readers.
-
-It is however incorrect for callers that snapshot a monotonically-
-incremented event counter and compute a delta from two samples.  Once the
-underlying signed long wraps past LONG_MAX, the clamped read drops to zero
-while the previously-recorded snapshot still holds the pre-wrap value; the
-unsigned subtraction then underflows into a ~2^31 spurious delta for
-32-bit architecture and corrupts the caller's accumulator.
-
-Add non-clamping siblings that return the underlying state value cast to
-unsigned long:
-
-  global_node_page_state_monotonic()
-  node_page_state_monotonic()
-  lruvec_page_state_monotonic()
-
-With both samples read via the _monotonic variant, unsigned modular
-subtraction stays correct across a signed-long wraparound as long as the
-true growth between two samples fits in unsigned long (< 2^32 on 32-bit, <
-2^64 on 64-bit); the 32-bit bound is the practically-reachable one that
-motivates this helper.
-
-The variants are only safe for monotonically-incremented counters. 
-Non-monotonic page-count readers must keep using the existing clamped
-helpers so transient negative reads still present as zero.
-
-This is a prerequisite for the following patch which replaces the
-producer-side anon_cost/file_cost accumulators with a read-side
-accumulator in prepare_scan_control() that samples monotonic per-LRU
-vmstat counters (PGROTATE_*, PGRECLAIM_PAGEOUT_*, WORKINGSET_RESTORE_*)
-via lruvec_page_state_monotonic() and folds the unsigned modular delta
-into a per-lruvec cost_accum[].
-
-Link: https://lore.kernel.org/20260720164207.450685-2-usama.arif@linux.dev
-Link: https://gist.github.com/uarif1/a4eb33a86c5b2d7bbc55b42f0956e884 [1]
+Link: https://lore.kernel.org/20260720164207.450685-3-usama.arif@linux.dev
 Signed-off-by: Usama Arif <usama.arif@linux.dev>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
 Cc: Axel Rasmussen <axelrasmussen@google.com>
 Cc: Baoquan He <baoquan.he@linux.dev>
 Cc: Chris Li <chrisl@kernel.org>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: David Rientjes <rientjes@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Kairui Song <kasong@tencent.com>
 Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
@@ -312,6 +185,7 @@ Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Muchun Song <muchun.song@linux.dev>
 Cc: Nhat Pham <nphamcs@gmail.com>
 Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@kernel.org>
 Cc: Wei Xu <weixugc@google.com>
@@ -319,138 +193,409 @@ Cc: Yuanchu Xie <yuanchu@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    8 +++++++
- include/linux/vmstat.h     |   16 +++++++++++++++
- mm/memcontrol.c            |   36 +++++++++++++++++++++++++++++++++++
- mm/vmstat.c                |   11 ++++++++++
- 4 files changed, 71 insertions(+)
+ include/linux/mmzone.h |   15 +++++-
+ include/linux/vmstat.h |    1 
+ mm/folio.c             |   69 ----------------------------
+ mm/internal.h          |    3 -
+ mm/memcontrol-v1.c     |    4 -
+ mm/memcontrol.c        |    5 +-
+ mm/mmzone.c            |    1 
+ mm/vmscan.c            |   93 +++++++++++++++++++++++++++++++++------
+ mm/vmstat.c            |    2 
+ mm/workingset.c        |    5 --
+ 10 files changed, 101 insertions(+), 97 deletions(-)
 
---- a/include/linux/memcontrol.h~mm-vmstat-mm-memcontrol-add-_monotonic-vmstat-readers
-+++ a/include/linux/memcontrol.h
-@@ -931,6 +931,8 @@ unsigned long memcg_page_state_output(st
- bool memcg_stat_item_valid(int idx);
- bool memcg_vm_event_item_valid(enum vm_event_item idx);
- unsigned long lruvec_page_state(struct lruvec *lruvec, enum node_stat_item idx);
-+unsigned long lruvec_page_state_monotonic(struct lruvec *lruvec,
-+					  enum node_stat_item idx);
- unsigned long lruvec_page_state_local(struct lruvec *lruvec,
- 				      enum node_stat_item idx);
+--- a/include/linux/mmzone.h~mm-vmscan-reduce-lru_lock-contention-via-vmstat-derived-scan-balance-cost
++++ a/include/linux/mmzone.h
+@@ -323,6 +323,8 @@ enum node_stat_item {
+ 	PGSCAN_PROACTIVE,
+ 	PGSCAN_ANON,
+ 	PGSCAN_FILE,
++	PGROTATE_ANON,
++	PGROTATE_FILE,
+ 	PGREFILL,
+ #ifdef CONFIG_HUGETLB_PAGE
+ 	NR_HUGETLB,
+@@ -755,6 +757,12 @@ void lru_gen_reparent_memcg(struct mem_c
  
-@@ -1378,6 +1380,12 @@ static inline unsigned long lruvec_page_
- 	return node_page_state(lruvec_pgdat(lruvec), idx);
- }
+ #endif /* CONFIG_LRU_GEN */
  
-+static inline unsigned long lruvec_page_state_monotonic(struct lruvec *lruvec,
-+							enum node_stat_item idx)
-+{
-+	return node_page_state_monotonic(lruvec_pgdat(lruvec), idx);
-+}
++struct lru_cost {
++	unsigned long		count;
++	unsigned long		last_rotated;
++	unsigned long		last_io;
++};
 +
- static inline unsigned long lruvec_page_state_local(struct lruvec *lruvec,
- 						    enum node_stat_item idx)
- {
---- a/include/linux/vmstat.h~mm-vmstat-mm-memcontrol-add-_monotonic-vmstat-readers
+ struct lruvec {
+ 	struct list_head		lists[NR_LRU_LISTS];
+ 	/* per lruvec lru_lock for memcg */
+@@ -763,9 +771,12 @@ struct lruvec {
+ 	 * These track the cost of reclaiming one LRU - file or anon -
+ 	 * over the other. As the observed cost of reclaiming one LRU
+ 	 * increases, the reclaim scan balance tips toward the other.
++	 * Updated and decayed at prepare_scan_control() time; cost_lock
++	 * serialises that update.
+ 	 */
+-	unsigned long			anon_cost;
+-	unsigned long			file_cost;
++	struct lru_cost			cost[ANON_AND_FILE];
++	/* Protects cost[]. */
++	spinlock_t			cost_lock;
+ 	/* Non-resident age, driven by LRU movement */
+ 	atomic_long_t			nonresident_age;
+ 	/* Refaults at the time of last reclaim cycle */
+--- a/include/linux/vmstat.h~mm-vmscan-reduce-lru_lock-contention-via-vmstat-derived-scan-balance-cost
 +++ a/include/linux/vmstat.h
-@@ -194,6 +194,19 @@ unsigned long global_node_page_state_pag
- 	return x;
+@@ -20,7 +20,6 @@ struct reclaim_stat {
+ 	unsigned nr_congested;
+ 	unsigned nr_writeback;
+ 	unsigned nr_immediate;
+-	unsigned nr_pageout;
+ 	unsigned nr_activate[ANON_AND_FILE];
+ 	unsigned nr_ref_keep;
+ 	unsigned nr_unmap_fail;
+--- a/mm/folio.c~mm-vmscan-reduce-lru_lock-contention-via-vmstat-derived-scan-balance-cost
++++ a/mm/folio.c
+@@ -265,73 +265,6 @@ void folio_rotate_reclaimable(struct fol
+ 	folio_batch_add_and_move(folio, lru_move_tail);
  }
  
-+/*
-+ * Non-clamping variant of global_node_page_state() intended for callers that
-+ * snapshot a monotonically-incremented counter and subtract two samples.
-+ * Returns the raw wrapping value so that unsigned modular subtraction stays
-+ * correct across a signed-long overflow (a real hazard on 32-bit) that the
-+ * clamp in global_node_page_state() would otherwise turn into a huge spurious
-+ * delta. Do NOT use for non-monotonic page-count reads.
-+ */
-+static inline unsigned long global_node_page_state_monotonic(enum node_stat_item item)
-+{
-+	return (unsigned long)atomic_long_read(&vm_node_stat[item]);
-+}
-+
- static inline unsigned long global_node_page_state(enum node_stat_item item)
+-void lru_note_cost_unlock_irq(struct lruvec *lruvec, bool file,
+-		unsigned int nr_io, unsigned int nr_rotated)
+-		__releases(lruvec->lru_lock)
+-		__releases(rcu)
+-{
+-	unsigned long cost;
+-
+-	/*
+-	 * Reflect the relative cost of incurring IO and spending CPU
+-	 * time on rotations. This doesn't attempt to make a precise
+-	 * comparison, it just says: if reloads are about comparable
+-	 * between the LRU lists, or rotations are overwhelmingly
+-	 * different between them, adjust scan balance for CPU work.
+-	 */
+-	cost = nr_io * SWAP_CLUSTER_MAX + nr_rotated;
+-	if (!cost) {
+-		spin_unlock_irq(&lruvec->lru_lock);
+-		rcu_read_unlock();
+-		return;
+-	}
+-
+-	for (;;) {
+-		unsigned long lrusize;
+-
+-		/* Record cost event */
+-		if (file)
+-			lruvec->file_cost += cost;
+-		else
+-			lruvec->anon_cost += cost;
+-
+-		/*
+-		 * Decay previous events
+-		 *
+-		 * Because workloads change over time (and to avoid
+-		 * overflow) we keep these statistics as a floating
+-		 * average, which ends up weighing recent refaults
+-		 * more than old ones.
+-		 */
+-		lrusize = lruvec_page_state(lruvec, NR_INACTIVE_ANON) +
+-			  lruvec_page_state(lruvec, NR_ACTIVE_ANON) +
+-			  lruvec_page_state(lruvec, NR_INACTIVE_FILE) +
+-			  lruvec_page_state(lruvec, NR_ACTIVE_FILE);
+-
+-		if (lruvec->file_cost + lruvec->anon_cost > lrusize / 4) {
+-			lruvec->file_cost /= 2;
+-			lruvec->anon_cost /= 2;
+-		}
+-
+-		spin_unlock_irq(&lruvec->lru_lock);
+-		lruvec = parent_lruvec(lruvec);
+-		if (!lruvec) {
+-			rcu_read_unlock();
+-			break;
+-		}
+-		spin_lock_irq(&lruvec->lru_lock);
+-	}
+-}
+-
+-void lru_note_cost_refault(struct folio *folio)
+-{
+-	struct lruvec *lruvec;
+-
+-	lruvec = folio_lruvec_lock_irq(folio);
+-	lru_note_cost_unlock_irq(lruvec, folio_is_file_lru(folio),
+-				folio_nr_pages(folio), 0);
+-}
+-
+ static void lru_activate(struct lruvec *lruvec, struct folio *folio)
  {
- 	VM_WARN_ON_ONCE(vmstat_item_in_bytes(item));
-@@ -259,11 +272,14 @@ extern unsigned long node_page_state(str
- 						enum node_stat_item item);
- extern unsigned long node_page_state_pages(struct pglist_data *pgdat,
- 					   enum node_stat_item item);
-+extern unsigned long node_page_state_monotonic(struct pglist_data *pgdat,
-+					       enum node_stat_item item);
- extern void fold_vm_numa_events(void);
- #else
- #define sum_zone_node_page_state(node, item) global_zone_page_state(item)
- #define node_page_state(node, item) global_node_page_state(item)
- #define node_page_state_pages(node, item) global_node_page_state_pages(item)
-+#define node_page_state_monotonic(node, item) global_node_page_state_monotonic(item)
- static inline void fold_vm_numa_events(void)
- {
- }
---- a/mm/memcontrol.c~mm-vmstat-mm-memcontrol-add-_monotonic-vmstat-readers
+ 	long nr_pages = folio_nr_pages(folio);
+@@ -1162,8 +1095,6 @@ void lru_reparent_memcg(struct mem_cgrou
+ 
+ 	child_lruvec = mem_cgroup_lruvec(memcg, NODE_DATA(nid));
+ 	parent_lruvec = mem_cgroup_lruvec(parent, NODE_DATA(nid));
+-	parent_lruvec->anon_cost += child_lruvec->anon_cost;
+-	parent_lruvec->file_cost += child_lruvec->file_cost;
+ 
+ 	for_each_lru(lru)
+ 		lruvec_reparent_lru(child_lruvec, parent_lruvec, lru, nid);
+--- a/mm/internal.h~mm-vmscan-reduce-lru_lock-contention-via-vmstat-derived-scan-balance-cost
++++ a/mm/internal.h
+@@ -41,9 +41,6 @@ void workingset_refault(struct folio *fo
+ void workingset_activation(struct folio *folio);
+ 
+ /* mm/folio.c */
+-void lru_note_cost_unlock_irq(struct lruvec *lruvec, bool file,
+-		unsigned int nr_io, unsigned int nr_rotated);
+-void lru_note_cost_refault(struct folio *folio);
+ void folio_add_lru_vma(struct folio *folio, struct vm_area_struct *vma);
+ 
+ static inline bool folio_may_be_lru_cached(struct folio *folio)
+--- a/mm/memcontrol.c~mm-vmscan-reduce-lru_lock-contention-via-vmstat-derived-scan-balance-cost
 +++ a/mm/memcontrol.c
-@@ -508,6 +508,42 @@ unsigned long lruvec_page_state(struct l
- 	return x;
+@@ -399,6 +399,7 @@ static const unsigned int memcg_node_sta
+ 	NR_SHMEM_THPS,
+ 	NR_FILE_THPS,
+ 	NR_ANON_THPS,
++	NR_VMSCAN_WRITE,
+ 	NR_VMALLOC,
+ 	NR_KERNEL_STACK_KB,
+ 	NR_PAGETABLE,
+@@ -425,6 +426,8 @@ static const unsigned int memcg_node_sta
+ 	PGSCAN_PROACTIVE,
+ 	PGSCAN_ANON,
+ 	PGSCAN_FILE,
++	PGROTATE_ANON,
++	PGROTATE_FILE,
+ 	PGREFILL,
+ #ifdef CONFIG_HUGETLB_PAGE
+ 	NR_HUGETLB,
+@@ -524,7 +527,7 @@ unsigned long lruvec_page_state(struct l
+  * reading from per-CPU delta skew must present as zero.
+  *
+  * XXX: This helper (and its node/global peers) exists because we place
+- * monotonically-incremented event counters (PGROTATE_*, PGRECLAIM_PAGEOUT_*)
++ * monotonically-incremented event counters (NR_VMSCAN_WRITE and PGROTATE_*)
+  * into enum node_stat_item.
+  */
+ unsigned long lruvec_page_state_monotonic(struct lruvec *lruvec,
+--- a/mm/memcontrol-v1.c~mm-vmscan-reduce-lru_lock-contention-via-vmstat-derived-scan-balance-cost
++++ a/mm/memcontrol-v1.c
+@@ -2287,8 +2287,8 @@ void memcg1_stat_format(struct mem_cgrou
+ 		for_each_online_pgdat(pgdat) {
+ 			mz = memcg->nodeinfo[pgdat->node_id];
+ 
+-			anon_cost += mz->lruvec.anon_cost;
+-			file_cost += mz->lruvec.file_cost;
++			anon_cost += mz->lruvec.cost[WORKINGSET_ANON].count;
++			file_cost += mz->lruvec.cost[WORKINGSET_FILE].count;
+ 		}
+ 		seq_buf_printf(s, "anon_cost %lu\n", anon_cost);
+ 		seq_buf_printf(s, "file_cost %lu\n", file_cost);
+--- a/mm/mmzone.c~mm-vmscan-reduce-lru_lock-contention-via-vmstat-derived-scan-balance-cost
++++ a/mm/mmzone.c
+@@ -79,6 +79,7 @@ void lruvec_init(struct lruvec *lruvec)
+ 
+ 	memset(lruvec, 0, sizeof(struct lruvec));
+ 	spin_lock_init(&lruvec->lru_lock);
++	spin_lock_init(&lruvec->cost_lock);
+ 	zswap_lruvec_state_init(lruvec);
+ 
+ 	for_each_lru(lru)
+--- a/mm/vmscan.c~mm-vmscan-reduce-lru_lock-contention-via-vmstat-derived-scan-balance-cost
++++ a/mm/vmscan.c
+@@ -670,7 +670,7 @@ static pageout_t pageout(struct swap_io_
+ 		folio_clear_reclaim(folio);
+ 
+ 	trace_mm_vmscan_write_folio(folio);
+-	node_stat_add_folio(folio, NR_VMSCAN_WRITE);
++	lruvec_stat_mod_folio(folio, NR_VMSCAN_WRITE, folio_nr_pages(folio));
+ 	return PAGE_SUCCESS;
  }
  
-+/**
-+ * lruvec_page_state_monotonic - non-clamping lruvec stat read for delta sampling
-+ * @lruvec: the LRU vector to read from
-+ * @idx: the node_stat_item to read
-+ *
-+ * Returns the raw state[idx] value cast to unsigned long, skipping the
-+ * clamp-negative-to-zero step in lruvec_page_state(). Intended for callers
-+ * that snapshot a monotonically-incremented counter and subtract two
-+ * samples: unsigned modular arithmetic then yields the correct delta across
-+ * a signed-long wraparound (a real hazard on 32-bit) that the clamp would
-+ * otherwise turn into a huge spurious delta.
-+ *
-+ * Do NOT use for non-monotonic page-count reads where a transient negative
-+ * reading from per-CPU delta skew must present as zero.
-+ *
-+ * XXX: This helper (and its node/global peers) exists because we place
-+ * monotonically-incremented event counters (PGROTATE_*, PGRECLAIM_PAGEOUT_*)
-+ * into enum node_stat_item.
-+ */
-+unsigned long lruvec_page_state_monotonic(struct lruvec *lruvec,
-+					  enum node_stat_item idx)
-+{
-+	struct mem_cgroup_per_node *pn;
-+	int i;
-+
-+	if (mem_cgroup_disabled())
-+		return node_page_state_monotonic(lruvec_pgdat(lruvec), idx);
-+
-+	i = memcg_stats_index(idx);
-+	if (WARN_ONCE(BAD_STAT_IDX(i), "%s: missing stat item %d\n", __func__, idx))
-+		return 0;
-+
-+	pn = container_of(lruvec, struct mem_cgroup_per_node, lruvec);
-+	return (unsigned long)READ_ONCE(pn->lruvec_stats->state[i]);
-+}
-+
- unsigned long lruvec_page_state_local(struct lruvec *lruvec,
- 				      enum node_stat_item idx)
+@@ -1412,8 +1412,6 @@ retry:
+ 					sc->nr_scanned -= (nr_pages - 1);
+ 					nr_pages = 1;
+ 				}
+-				stat->nr_pageout += nr_pages;
+-
+ 				if (folio_test_writeback(folio))
+ 					goto keep;
+ 				if (folio_test_dirty(folio))
+@@ -2036,10 +2034,10 @@ static unsigned long shrink_inactive_lis
+ 	item = PGSTEAL_KSWAPD + reclaimer_offset(sc);
+ 	mod_lruvec_state(lruvec, item, nr_reclaimed);
+ 	mod_lruvec_state(lruvec, PGSTEAL_ANON + file, nr_reclaimed);
++	if (nr_scanned > nr_reclaimed)
++		mod_lruvec_state(lruvec, PGROTATE_ANON + file,
++				 nr_scanned - nr_reclaimed);
+ 
+-	lruvec_lock_irq(lruvec);
+-	lru_note_cost_unlock_irq(lruvec, file, stat.nr_pageout,
+-					nr_scanned - nr_reclaimed);
+ 	handle_reclaim_writeback(nr_taken, pgdat, sc, &stat);
+ 	trace_mm_vmscan_lru_shrink_inactive(pgdat->node_id,
+ 			nr_scanned, nr_reclaimed, &stat, sc->priority, file);
+@@ -2145,9 +2143,9 @@ static void shrink_active_list(unsigned
+ 	count_vm_events(PGDEACTIVATE, nr_deactivate);
+ 	count_memcg_events(lruvec_memcg(lruvec), PGDEACTIVATE, nr_deactivate);
+ 	mod_node_page_state(pgdat, NR_ISOLATED_ANON + file, -nr_taken);
++	if (nr_rotated)
++		mod_lruvec_state(lruvec, PGROTATE_ANON + file, nr_rotated);
+ 
+-	lruvec_lock_irq(lruvec);
+-	lru_note_cost_unlock_irq(lruvec, file, 0, nr_rotated);
+ 	trace_mm_vmscan_lru_shrink_active(pgdat->node_id, nr_taken, nr_activate,
+ 			nr_deactivate, nr_rotated, sc->priority, file);
+ }
+@@ -2280,8 +2278,10 @@ enum scan_balance {
+ 
+ static void prepare_scan_control(pg_data_t *pgdat, struct scan_control *sc)
  {
---- a/mm/vmstat.c~mm-vmstat-mm-memcontrol-add-_monotonic-vmstat-readers
-+++ a/mm/vmstat.c
-@@ -1025,6 +1025,17 @@ unsigned long node_page_state(struct pgl
+-	unsigned long file;
++	struct lru_cost *anon_cost, *file_cost;
+ 	struct lruvec *target_lruvec;
++	unsigned long lrusize;
++	unsigned long file;
  
- 	return node_page_state_pages(pgdat, item);
- }
+ 	if (lru_gen_enabled() && !lru_gen_switching())
+ 		return;
+@@ -2297,11 +2297,69 @@ static void prepare_scan_control(pg_data
+ 
+ 	/*
+ 	 * Determine the scan balance between anon and file LRUs.
++	 *
++	 * The cost model is based on rotations, refaults and
++	 * reclaim-driven writes (anon only) on each side.
++	 *
++	 * These event counters are monotonic, so each reclaim cycle
++	 * the delta since the last scan is extracted and incorporated
++	 * into a decaying average. This ensures currency, as workloads
++	 * change over time, and avoids overflow in the calculations.
++	 *
++	 * Use lruvec_page_state_monotonic() so unsigned subtraction
++	 * yields the correct delta across a signed-long wraparound of
++	 * the underlying counter (a real hazard on 32-bit that the
++	 * clamp in lruvec_page_state() would otherwise turn into a huge
++	 * spurious delta).
+ 	 */
+-	spin_lock_irq(&target_lruvec->lru_lock);
+-	sc->anon_cost = target_lruvec->anon_cost;
+-	sc->file_cost = target_lruvec->file_cost;
+-	spin_unlock_irq(&target_lruvec->lru_lock);
++	spin_lock(&target_lruvec->cost_lock);
 +
-+/*
-+ * Non-clamping variant of node_page_state() intended for callers that
-+ * snapshot a monotonically-incremented counter and subtract two samples.
-+ * See global_node_page_state_monotonic() for the rationale.
-+ */
-+unsigned long node_page_state_monotonic(struct pglist_data *pgdat,
-+					enum node_stat_item item)
-+{
-+	return (unsigned long)atomic_long_read(&pgdat->vm_stat[item]);
-+}
- #endif
++	for (int f = 0; f <= 1; f++) {
++		struct lru_cost *cost = &target_lruvec->cost[f];
++		unsigned long rotated, io, nr_rotated, nr_io;
++
++		rotated = lruvec_page_state_monotonic(target_lruvec,
++						      PGROTATE_ANON + f);
++		io = lruvec_page_state_monotonic(target_lruvec,
++						 WORKINGSET_RESTORE_BASE + f);
++		if (f == WORKINGSET_ANON)
++			io += lruvec_page_state_monotonic(target_lruvec,
++							  NR_VMSCAN_WRITE);
++
++		nr_rotated = rotated - cost->last_rotated;
++		nr_io = io - cost->last_io;
++
++		/*
++		 * Reflect the relative cost of incurring IO and spending
++		 * CPU time on rotations. This doesn't attempt to make a
++		 * precise comparison, it just says: if reloads are about
++		 * comparable between the LRU lists, or rotations are
++		 * overwhelmingly different between them, adjust scan
++		 * balance for CPU work.
++		 */
++		cost->count += nr_io * SWAP_CLUSTER_MAX + nr_rotated;
++
++		cost->last_rotated = rotated;
++		cost->last_io = io;
++	}
++
++	anon_cost = &target_lruvec->cost[WORKINGSET_ANON];
++	file_cost = &target_lruvec->cost[WORKINGSET_FILE];
++
++	lrusize = lruvec_page_state(target_lruvec, NR_INACTIVE_ANON) +
++		  lruvec_page_state(target_lruvec, NR_ACTIVE_ANON) +
++		  lruvec_page_state(target_lruvec, NR_INACTIVE_FILE) +
++		  lruvec_page_state(target_lruvec, NR_ACTIVE_FILE);
++
++	while (anon_cost->count + file_cost->count > lrusize / 4) {
++		anon_cost->count /= 2;
++		file_cost->count /= 2;
++	}
++
++	sc->anon_cost = anon_cost->count;
++	sc->file_cost = file_cost->count;
++
++	spin_unlock(&target_lruvec->cost_lock);
  
- /*
+ 	/*
+ 	 * Target desirable inactive:active list ratios for the anon
+@@ -4816,7 +4874,8 @@ static int evict_folios(unsigned long nr
+ 	struct reclaim_stat stat;
+ 	struct lru_gen_mm_walk *walk;
+ 	int scanned, reclaimed;
+-	int isolated = 0, type, type_scanned;
++	int isolated = 0, nr_isolated = 0, type, type_scanned;
++	unsigned long total_reclaimed = 0;
+ 	bool skip_retry = false;
+ 	struct mem_cgroup *memcg = lruvec_memcg(lruvec);
+ 	struct pglist_data *pgdat = lruvec_pgdat(lruvec);
+@@ -4828,6 +4887,7 @@ static int evict_folios(unsigned long nr
+ 
+ 	scanned = isolate_folios(nr_to_scan, lruvec, sc, swappiness,
+ 				 &list, &isolated, &type, &type_scanned);
++	nr_isolated = isolated;
+ 
+ 	/* Scanning may have emptied the oldest gen, flush it */
+ 	if (scanned)
+@@ -4840,6 +4900,7 @@ static int evict_folios(unsigned long nr
+ retry:
+ 	reclaimed = shrink_folio_list(&list, pgdat, sc, &stat, false, memcg);
+ 	sc->nr_reclaimed += reclaimed;
++	total_reclaimed += reclaimed;
+ 	/* Retry pass is only meant for clean folios without new isolation */
+ 	if (isolated)
+ 		handle_reclaim_writeback(isolated, pgdat, sc, &stat);
+@@ -4891,6 +4952,10 @@ retry:
+ 		goto retry;
+ 	}
+ 
++	if (nr_isolated > total_reclaimed)
++		mod_lruvec_state(lruvec, PGROTATE_ANON + type,
++				 nr_isolated - total_reclaimed);
++
+ 	return scanned;
+ }
+ 
+--- a/mm/vmstat.c~mm-vmscan-reduce-lru_lock-contention-via-vmstat-derived-scan-balance-cost
++++ a/mm/vmstat.c
+@@ -1301,6 +1301,8 @@ const char * const vmstat_text[] = {
+ 	[I(PGSCAN_PROACTIVE)]			= "pgscan_proactive",
+ 	[I(PGSCAN_ANON)]			= "pgscan_anon",
+ 	[I(PGSCAN_FILE)]			= "pgscan_file",
++	[I(PGROTATE_ANON)]			= "pgrotate_anon",
++	[I(PGROTATE_FILE)]			= "pgrotate_file",
+ 	[I(PGREFILL)]				= "pgrefill",
+ #ifdef CONFIG_HUGETLB_PAGE
+ 	[I(NR_HUGETLB)]				= "nr_hugetlb",
+--- a/mm/workingset.c~mm-vmscan-reduce-lru_lock-contention-via-vmstat-derived-scan-balance-cost
++++ a/mm/workingset.c
+@@ -584,11 +584,6 @@ void workingset_refault(struct folio *fo
+ 	/* Folio was active prior to eviction */
+ 	if (workingset) {
+ 		folio_set_workingset(folio);
+-		/*
+-		 * XXX: Move to folio_add_lru() when it supports new vs
+-		 * putback
+-		 */
+-		lru_note_cost_refault(folio);
+ 		mod_lruvec_state(lruvec, WORKINGSET_RESTORE_BASE + file, nr);
+ 	}
+ out:
 _
 
 Patches currently in -mm which might be from usama.arif@linux.dev are
