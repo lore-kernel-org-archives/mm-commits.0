@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BE89F3D1A8E
-	for <mm-commits@vger.kernel.org>; Thu, 23 Jul 2026 21:23:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A80B61F5834;
+	Thu, 23 Jul 2026 23:17:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784841809; cv=none; b=t/Wr+u1pLMiXQSTAqOGa6n9wn/ubOHaZJ5rvS1+x068kLYBZBakdhlzkThkabKW452hmer3z8HO3MHVcTYzR0CPsxzujKiVJggKjsHl5iGDFr2n+aSrz10L04GuTN13bMSOe2ts5hMSUykS/22KDUHwtvC/FlUB/Z+DcG0CpnGI=
+	t=1784848636; cv=none; b=QiLQlUsZ5Tc8pSjrJU6tWOQzgH+KFooy26DKs8SEstw4wMNhkFycI9Q9nuqzDtvEs0vBktR2Fqu0Ae6prTEICGlonQpQcR+JpGJmVMdthcC1uQy7i8ZbOSSy49vKPnxkXFtdVYqGFVKI2ghpCa7O+8GEXTIzqMRQEttJxNopu4Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784841809; c=relaxed/simple;
-	bh=u4/d1D7Y7JcpmF1LMfGpiZyhxn+k+BKYjmDgQHl9Z5M=;
-	h=Date:To:From:Subject:Message-Id; b=uv9tz9w/O5Nglt9P4re++lroNfdYZGLwgrNqN7PxXobgzTcLpZojaDtATYmKfSdPGlumJHzgIGtz+BAjOlBWer/ovthFFvNahQRdcodwGnzJ7MqM25OhrVlV5/oO5kWQEZ+KTQ+5f3hLlMCzoXfJBJyTSBGOtyQAUgJrrL+sUCg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yV6N0OcN; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1784848636; c=relaxed/simple;
+	bh=YZW43UP0EiUwh6oPs5xCaho2zRoZFQ/uBWG7eK7GUIA=;
+	h=Date:To:From:Subject:Message-Id; b=Yr+zioyOVLDD2vSGncq+IjU2Z5PwmmGwLwy6vGZdGRmni3vyU8JVx+B20ueh4dFDdpOA7uIUF8ev5jIWTvcT7mkIlZyXSi9hxekf6yG4Gq3Ev0HNVvtX/y8f83GVLV2CJU8rSKNtCrEdzzJYpuVuDfCoOTrSET3xwqV5LzTvMgI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RaIbKb+Y; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yV6N0OcN"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 453F61F000E9;
-	Thu, 23 Jul 2026 21:23:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RaIbKb+Y"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3B5E61F000E9;
+	Thu, 23 Jul 2026 23:17:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1784841807;
-	bh=Z0ET/1nQEx4iCdEIundi5r+FJb1/d/HUaAsiecS5V/s=;
+	d=linux-foundation.org; s=korg; t=1784848635;
+	bh=eG6Oqf0YZcczL6VoG1QnJcwYCNZawvddgyURdelaJE0=;
 	h=Date:To:From:Subject;
-	b=yV6N0OcNYkP9fpjmw8gqnPwQz7sm0jTdAjGNYh7XLhqOIFz/ThgtPdlYjPmdvpWym
-	 frDWr1KIcQ1yNt8RacwPfxkwfHdITUB/ZZRFPF0oqg32H2mFHpQGbPja2XQMB5UXHi
-	 PDEPfhHjBWs6bMxsWhtKT9hm48wKSfoqENyEUSg0=
-Date: Thu, 23 Jul 2026 14:23:26 -0700
-To: mm-commits@vger.kernel.org,skinsburskii@gmail.com,akpm@linux-foundation.org
+	b=RaIbKb+YUZ/KJyxBWm77uo5D4X+GGXt7hYFbRWasrypFtxp5gvoOdrVe7Q1x2X0Jm
+	 u50uJCxGfttqHxrKGA3zxoYHbXYyuXMPJBhefK/RKXW+F//KYmmWTCgQVjVa1Yy4L+
+	 Z54E2qaNnqWRo5M4EeEDyEW1O9crtjAQMrpKMuH4=
+Date: Thu, 23 Jul 2026 16:17:14 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,oleg.deomi@gmail.com,bsingharora@gmail.com,akpm@linux-foundation.org,include@grrlz.net,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + drm-gpusvm-use-hmm_range_fault_unlocked_timeout-for-range-faults.patch added to mm-unstable branch
-Message-Id: <20260723212327.453F61F000E9@smtp.kernel.org>
+Subject: + taskstats-fix-cpumask-parsing-cutting-off-the-last-character.patch added to mm-nonmm-unstable branch
+Message-Id: <20260723231715.3B5E61F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: drm/gpusvm: use hmm_range_fault_unlocked_timeout() for range faults
-has been added to the -mm mm-unstable branch.  Its filename is
-     drm-gpusvm-use-hmm_range_fault_unlocked_timeout-for-range-faults.patch
+     Subject: taskstats: fix cpumask parsing cutting off the last character
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     taskstats-fix-cpumask-parsing-cutting-off-the-last-character.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/drm-gpusvm-use-hmm_range_fault_unlocked_timeout-for-range-faults.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/taskstats-fix-cpumask-parsing-cutting-off-the-last-character.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,187 +58,59 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Stanislav Kinsburskii <skinsburskii@gmail.com>
-Subject: drm/gpusvm: use hmm_range_fault_unlocked_timeout() for range faults
-Date: Thu, 23 Jul 2026 10:36:40 -0700
+From: Bradley Morgan <include@grrlz.net>
+Subject: taskstats: fix cpumask parsing cutting off the last character
+Date: Thu, 23 Jul 2026 21:09:22 +0000
 
-Several GPU SVM paths take mmap_read_lock() only to call hmm_range_fault()
-and open-code mmu interval sequence setup before each HMM walk.  They also
-retry -EBUSY until HMM_RANGE_DEFAULT_TIMEOUT expires.
+parse() hands nla_strscpy() len as dstsize, and nla_strscpy() copies at
+most dstsize - 1 bytes.  When the attr payload comes in without a trailing
+NUL, srclen == len >= dstsize and the last character of the cpumask string
+gets cut off.  Register "0-15" and you are silently listening on "0-1",
+exit data for the rest never shows up.
 
-Use hmm_range_fault_unlocked_timeout() for those faults.  The HMM helper
-now owns mmap_lock acquisition and refreshes range->notifier_seq for its
-internal retries, while GPU SVM keeps its existing driver-lock validation
-with mmu_interval_read_retry() after a successful fault.
+The bug only bites when the sender doesnt NUL terminate the payload;
+senders that include the NUL were always fine (srclen gets decremented for
+the trailing NUL, so srclen < dstsize).  Thats probably why this survived
+20 years.  And the policy is NLA_STRING, not NLA_NUL_STRING, so a payload
+without the trailing NUL is legit input here.
 
-drm_gpusvm_scan_mm() and drm_gpusvm_range_evict() pass
-HMM_RANGE_DEFAULT_TIMEOUT as the helper retry budget for each HMM fault
-attempt.  drm_gpusvm_get_pages() keeps its existing absolute outer
-deadline because it can be reached from GPU page-fault workers, where
-fatal signals from the faulting process cannot stop an endless
-invalidation retry loop.  It passes the remaining time from that deadline
-to HMM for each fault attempt.
+Skip the kmalloc/nla_strscpy dance entirely and use nla_strdup(), which
+already allocates srclen + 1 and terminates.  The nla_len() bounds checks
+stay as they were.
 
-Leave drm_gpusvm_check_pages() on hmm_range_fault() because that path is
-called with the mmap lock already held by its caller.
-
-Link: https://lore.kernel.org/20260723-hmm-v10-v11-8-c55b003a4b61@gmail.com
-Signed-off-by: Stanislav Kinsburskii <skinsburskii@gmail.com>
-Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
-Cc: Danilo Krummrich <dakr@kernel.org>
-Cc: Dave Airlie <airlied@gmail.com>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Dexuan Cui <decui@microsoft.com>
-Cc: Haiyang Zhang <haiyangz@microsoft.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: K. Y. Srinivasan <kys@microsoft.com>
-Cc: Leon Romanovsky <leon@kernel.org>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Lizhi Hou <lizhi.hou@amd.com>
-Cc: Long Li <longli@microsoft.com>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Lyude <lyude@redhat.com>
-Cc: Maarten Lankhorst <maarten.lankhorst@linux.intel.com>
-Cc: Maxime Ripard <mripard@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Oded Gabbay <ogabbay@kernel.org>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Thomas Zimemrmann <tzimmermann@suse.de>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Wei Liu <wei.liu@kernel.org>
+Link: https://lore.kernel.org/EC49FE41-7F5F-41E0-A07A-ABEB8ECA514D@grrlz.net
+Fixes: f9fd8914c1ac ("[PATCH] per-task delay accounting taskstats interface: control exit data through cpumasks")
+Signed-off-by: Bradley Morgan <include@grrlz.net>
+Reported-by: Oleg Deomi <oleg.deomi@gmail.com>
+Closes: https://lore.kernel.org/CAByWkfZ6b1=3H9pwkz-dDQOs9cZaF-HYQ6b9Yb0=Hq2r1Vv_Pw@mail.gmail.com
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Balbir Singh <bsingharora@gmail.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/drm_gpusvm.c |   60 +++++----------------------------
- 1 file changed, 10 insertions(+), 50 deletions(-)
+ kernel/taskstats.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/drivers/gpu/drm/drm_gpusvm.c~drm-gpusvm-use-hmm_range_fault_unlocked_timeout-for-range-faults
-+++ a/drivers/gpu/drm/drm_gpusvm.c
-@@ -773,8 +773,7 @@ enum drm_gpusvm_scan_result drm_gpusvm_s
- 		.end = end,
- 		.dev_private_owner = dev_private_owner,
- 	};
--	unsigned long timeout =
--		jiffies + msecs_to_jiffies(HMM_RANGE_DEFAULT_TIMEOUT);
-+	unsigned long timeout = msecs_to_jiffies(HMM_RANGE_DEFAULT_TIMEOUT);
- 	enum drm_gpusvm_scan_result state = DRM_GPUSVM_SCAN_UNPOPULATED, new_state;
- 	unsigned long *pfns;
- 	unsigned long npages = npages_in_range(start, end);
-@@ -788,22 +787,7 @@ enum drm_gpusvm_scan_result drm_gpusvm_s
- 	hmm_range.hmm_pfns = pfns;
- 
- retry:
--	hmm_range.notifier_seq = mmu_interval_read_begin(notifier);
--	mmap_read_lock(range->gpusvm->mm);
--
--	while (true) {
--		err = hmm_range_fault(&hmm_range);
--		if (err == -EBUSY) {
--			if (time_after(jiffies, timeout))
--				break;
--
--			hmm_range.notifier_seq =
--				mmu_interval_read_begin(notifier);
--			continue;
--		}
--		break;
--	}
--	mmap_read_unlock(range->gpusvm->mm);
-+	err = hmm_range_fault_unlocked_timeout(&hmm_range, timeout);
- 	if (err)
- 		goto err_free;
- 
-@@ -1423,6 +1407,7 @@ int drm_gpusvm_get_pages(struct drm_gpus
- 	void *zdd;
- 	unsigned long timeout =
- 		jiffies + msecs_to_jiffies(HMM_RANGE_DEFAULT_TIMEOUT);
-+	unsigned long remaining;
- 	unsigned long i, j;
- 	unsigned long npages = npages_in_range(pages_start, pages_end);
- 	unsigned long num_dma_mapped;
-@@ -1437,7 +1422,9 @@ int drm_gpusvm_get_pages(struct drm_gpus
- 	struct dma_iova_state *state = &svm_pages->state;
- 
- retry:
--	if (time_after(jiffies, timeout))
-+	remaining = timeout - jiffies;
-+
-+	if (time_after_eq(jiffies, timeout))
- 		return -EBUSY;
- 
- 	hmm_range.notifier_seq = mmu_interval_read_begin(notifier);
-@@ -1454,21 +1441,7 @@ retry:
- 	}
- 
- 	hmm_range.hmm_pfns = pfns;
--	while (true) {
--		mmap_read_lock(mm);
--		err = hmm_range_fault(&hmm_range);
--		mmap_read_unlock(mm);
--
--		if (err == -EBUSY) {
--			if (time_after(jiffies, timeout))
--				break;
--
--			hmm_range.notifier_seq =
--				mmu_interval_read_begin(notifier);
--			continue;
--		}
--		break;
--	}
-+	err = hmm_range_fault_unlocked_timeout(&hmm_range, remaining);
- 	mmput(mm);
- 	if (err)
- 		goto err_free;
-@@ -1741,8 +1714,7 @@ int drm_gpusvm_range_evict(struct drm_gp
- 		.end = drm_gpusvm_range_end(range),
- 		.dev_private_owner = NULL,
- 	};
--	unsigned long timeout =
--		jiffies + msecs_to_jiffies(HMM_RANGE_DEFAULT_TIMEOUT);
-+	unsigned long timeout = msecs_to_jiffies(HMM_RANGE_DEFAULT_TIMEOUT);
- 	unsigned long *pfns;
- 	unsigned long npages = npages_in_range(drm_gpusvm_range_start(range),
- 					       drm_gpusvm_range_end(range));
-@@ -1757,24 +1729,12 @@ int drm_gpusvm_range_evict(struct drm_gp
+--- a/kernel/taskstats.c~taskstats-fix-cpumask-parsing-cutting-off-the-last-character
++++ a/kernel/taskstats.c
+@@ -368,10 +368,9 @@ static int parse(struct nlattr *na, stru
+ 		return -E2BIG;
+ 	if (len < 1)
+ 		return -EINVAL;
+-	data = kmalloc(len, GFP_KERNEL);
++	data = nla_strdup(na, GFP_KERNEL);
+ 	if (!data)
  		return -ENOMEM;
- 
- 	hmm_range.hmm_pfns = pfns;
--	while (!time_after(jiffies, timeout)) {
--		hmm_range.notifier_seq = mmu_interval_read_begin(notifier);
--		if (time_after(jiffies, timeout)) {
--			err = -ETIME;
--			break;
--		}
--
--		mmap_read_lock(mm);
--		err = hmm_range_fault(&hmm_range);
--		mmap_read_unlock(mm);
--		if (err != -EBUSY)
--			break;
--	}
-+	err = hmm_range_fault_unlocked_timeout(&hmm_range, timeout);
- 
- 	kvfree(pfns);
- 	mmput(mm);
- 
--	return err;
-+	return err == -EBUSY ? -ETIME : err;
- }
- EXPORT_SYMBOL_GPL(drm_gpusvm_range_evict);
- 
+-	nla_strscpy(data, na, len);
+ 	ret = cpulist_parse(data, mask);
+ 	kfree(data);
+ 	return ret;
 _
 
-Patches currently in -mm which might be from skinsburskii@gmail.com are
+Patches currently in -mm which might be from include@grrlz.net are
 
-mm-hmm-move-page-fault-handling-out-of-walk-callbacks.patch
-mm-hmm-add-hmm_range_fault_unlocked_timeout-for-mmap-lock-drop-support.patch
-selftests-mm-add-hmm-test-for-mmap-lock-dropping-faults.patch
-mshv-use-hmm_range_fault_unlocked_timeout-for-region-faults.patch
-drm-nouveau-use-hmm_range_fault_unlocked_timeout-for-svm-faults.patch
-rdma-umem-use-hmm_range_fault_unlocked_timeout-for-odp-faults.patch
-accel-amdxdna-use-hmm_range_fault_unlocked_timeout-for-range-population.patch
-drm-gpusvm-use-hmm_range_fault_unlocked_timeout-for-range-faults.patch
+lib-string-fix-memchr_inv-for-large-ranges.patch
+signal-avoid-shared-siginfo-namespace-rewrites.patch
+taskstats-fix-cpumask-parsing-cutting-off-the-last-character.patch
 
