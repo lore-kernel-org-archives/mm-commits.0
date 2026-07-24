@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C233218DB1A
-	for <mm-commits@vger.kernel.org>; Fri, 24 Jul 2026 00:37:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 61292376BE4
+	for <mm-commits@vger.kernel.org>; Fri, 24 Jul 2026 05:27:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784853457; cv=none; b=m91AosuRRragfRguN1cjrVkslETpK6s1OZMMwHwy8YW21dtje46e5lgiWD/WI8QCGjtCM47ijS1yxafTxRCuYZ/qFwgO8HWSGOhYyXoo01dtmZ8xY2hqCmv6ON1kHJJ846bXOddNORA9+CGJ4Cg+aNCC62cvc7Ep6K9lBTBXOCA=
+	t=1784870880; cv=none; b=oOlslD3xII+e7xphOzAp65qupgi3Szn+j6ioXW4E6kgjS7PAEMmmoNT4NF5HstZKVxHhUCkmsNCFt3CtIE3zkSY8sNwh0aSmQ5WRguKvqv//lwqHUgvVH1LNWanlHdvFPClc7VJv6sUTIfnnQf2wqK/CsfiJx5f6ThogclkY6RY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784853457; c=relaxed/simple;
-	bh=acNuyel4sG6hNtZbBmZUpMA+2nFtKZlJlXaxIa39ieU=;
-	h=Date:To:From:Subject:Message-Id; b=YKr86a03i1MiWSjpugoCibLwaAnMR9cY0h6YbWa1ujKMdl8faf92ew2qsdQBuVMW3fo496TFS7uL1yKCo4UavwRuyhXaUA4wuSxTwA7gLTOtZvSrZI6YNCAR9wBSJpmUl+2aCd2hXxdnMBxsNXKwrF3YUVP9st75CPUXyZ35ZIw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=i0caKbLk; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1784870880; c=relaxed/simple;
+	bh=KybTLIqfGfN/7D+mjCwEVoO73q556defxwmafF6W9BQ=;
+	h=Date:To:From:Subject:Message-Id; b=tqaNvxCvLEySBszP3s4c6XiNPn6IRr5yes2Jz7Dno/7nQhB9klpzmSdkgWSG5UgfxI7+uXcfi1Mgh17vKX9cx0P6cwoIotCNbIk76k5yvy9k2+AMVU4APhT8p+G1M78EwnnbLt3Zn5HrZUHqGK9hqqtaNQaAzFw9yuMSVsEo2YY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yP+sDJW7; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="i0caKbLk"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4CC621F000E9;
-	Fri, 24 Jul 2026 00:37:35 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yP+sDJW7"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C33931F000E9;
+	Fri, 24 Jul 2026 05:27:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1784853455;
-	bh=kWxC9CTFyY8JAEl+hhPTh4UGyKWMIACp5IijqSkZIxQ=;
+	d=linux-foundation.org; s=korg; t=1784870878;
+	bh=M1l4w3oH5FjmkttN3HtHIxuHIwG8pvwGAdJWRMraiLM=;
 	h=Date:To:From:Subject;
-	b=i0caKbLkOtngxx/9OypIhooHhisD2HpeuF81Ng2YZvGuhTOvahKF4+vdVxaTOdII1
-	 LK8h00A15ObfbaTu7xShwqwF5BRLnGfBksoLP4PHvDSoFLhWfCPeLqGUBo175PTS72
-	 PzISB45Vksu+1rqkFimWX84T5tPg1H/gz45xfV5Q=
-Date: Thu, 23 Jul 2026 17:37:34 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,lihongfu@kylinos.cn,akpm@linux-foundation.org
+	b=yP+sDJW7qGO6qD9mtn+XXTAs/5QuLSn92HXVa6xRhY/rqO/iK4Wwnci/w4H/rQPYX
+	 oPcEyI6Amv4NfRRMRpTDX4R+ZZX25HRtdt/PfA3pAeWdihZKO0a9RPgzIyCXzgXYkL
+	 XwhGAAMtXvQrZ4DFHrTlB4uwbqSojK8k1Q1SusyQ=
+Date: Thu, 23 Jul 2026 22:27:58 -0700
+To: mm-commits@vger.kernel.org,chenridong@xiaomi.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-extract-non-swap-page-handling-to-do_non_swap_page.patch added to mm-new branch
-Message-Id: <20260724003735.4CC621F000E9@smtp.kernel.org>
+Subject: [to-be-updated] mm-vmscan-fix-anon-only-reclaim-evicting-file-pages-when-swappiness=max.patch removed from -mm tree
+Message-Id: <20260724052758.C33931F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,216 +34,140 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: mm: extract non-swap page handling to do_non_swap_page()
-has been added to the -mm mm-new branch.  Its filename is
-     mm-extract-non-swap-page-handling-to-do_non_swap_page.patch
+The quilt patch titled
+     Subject: mm/vmscan: fix anon-only reclaim evicting file pages when swappiness=max
+has been removed from the -mm tree.  Its filename was
+     mm-vmscan-fix-anon-only-reclaim-evicting-file-pages-when-swappiness=max.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-extract-non-swap-page-handling-to-do_non_swap_page.patch
-
-This patch will later appear in the mm-new branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Hongfu Li <lihongfu@kylinos.cn>
-Subject: mm: extract non-swap page handling to do_non_swap_page()
-Date: Thu, 23 Jul 2026 11:07:52 +0800
+From: Ridong Chen <chenridong@xiaomi.com>
+Subject: mm/vmscan: fix anon-only reclaim evicting file pages when swappiness=max
+Date: Fri, 17 Jul 2026 19:32:58 +0800
 
-Factor non-swap entry logic out of bloated do_swap_page() to simplify the
-main swap fault flow and improve readability.
+Patch series "mm/vmscan: fix swappiness=max and clean up per-node
+proactive reclaim".
 
-The new do_non_swap_page() handles migration, device private/exclusive,
-hwpoison, marker and bad PTE entries.
+Two fixes and one cleanup.
 
-Link: https://lore.kernel.org/20260723030752.16979-3-hongfu.li@linux.dev
-Signed-off-by: Hongfu Li <lihongfu@kylinos.cn>
-Cc: David Hildenbrand (Arm) <david@kernel.org>
-Cc: Liam R. Howlett <liam@infradead.org>
+Patch 1 fixes "swappiness=max": the anon-only test in get_scan_count()
+sat after the "cannot reclaim anon" check, so when no anon was
+reclaimable the request fell back to SCAN_FILE and evicted page cache
+instead.
+
+Patch 2 fixes reclaim_store() collapsing every error into -EAGAIN, so
+callers can no longer tell an invalid argument from a busy interface;
+propagate the real error code, matching the memcg path.
+
+Patch 3 drops the now-unused gfp_mask parameter from __node_reclaim().
+
+
+This patch (of 3):
+
+As Qi mentioned [1], when swappiness=max (SWAPPINESS_ANON_ONLY) is set,
+the reclaim logic is expected to reclaim anonymous pages exclusively. 
+However, due to the current ordering of checks in get_scan_count(), file
+pages may still be evicted if can_reclaim_anon_pages() returns false,
+which contradicts the semantics of SWAPPINESS_ANON_ONLY.
+
+Reproducer in a cgroup holding 64M of file cache, with no swap configured:
+
+  Before (file cache is wrongly evicted):
+    # cat memory.stat
+    anon 196608
+    file 67178496
+    pgscan_proactive 0
+    # echo "64M swappiness=max" > memory.reclaim
+    # cat memory.stat
+    anon 208896
+    file 4096                 <- page cache evicted
+    pgsteal_proactive 16400
+    pgscan_proactive 16400
+
+  After (file cache is left intact):
+    # cat memory.stat
+    anon 200704
+    file 67178496
+    pgscan_proactive 0
+    # echo "64M swappiness=max" > memory.reclaim
+    -bash: echo: write error: Resource temporarily unavailable
+    # cat memory.stat
+    anon 208896
+    file 67178496             <- page cache untouched
+    pgsteal_proactive 0
+    pgscan_proactive 0
+
+Fix this by bailing out early when SWAPPINESS_ANON_ONLY is set and no
+anonymous pages are reclaimable, before falling back to file reclaim.
+
+Link: https://lore.kernel.org/20260717113300.214717-1-ridong.chen@linux.dev
+Link: https://lore.kernel.org/20260717113300.214717-2-ridong.chen@linux.dev
+Link: https://lore.kernel.org/cgroups/7ddf3eee-5fe2-45f7-8614-c8936a039e04@linux.dev/ [1]
+Fixes: 68a1436bde00 ("mm: add swappiness=max arg to memory.reclaim for only anon reclaim")
+Signed-off-by: Ridong Chen <chenridong@xiaomi.com>
+Suggested-by: Qi Zheng <qi.zheng@linux.dev>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Reviewed-by: Muchun Song <muchun.song@linux.dev>
+Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
+Reviewed-by: Qi Zheng <qi.zheng@linux.dev>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
+Cc: Kairui Song <kasong@tencent.com>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Wei Xu <weixugc@google.com>
+Cc: Yuanchu Xie <yuanchu@google.com>
+Cc: Zhongkun He <hezhongkun.hzk@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |  120 ++++++++++++++++++++++++++++----------------------
- 1 file changed, 69 insertions(+), 51 deletions(-)
+ mm/vmscan.c |   18 +++++++++++-------
+ 1 file changed, 11 insertions(+), 7 deletions(-)
 
---- a/mm/memory.c~mm-extract-non-swap-page-handling-to-do_non_swap_page
-+++ a/mm/memory.c
-@@ -4866,6 +4866,74 @@ static void check_swap_exclusive(struct
- 	} while (--nr_pages);
- }
+--- a/mm/vmscan.c~mm-vmscan-fix-anon-only-reclaim-evicting-file-pages-when-swappiness=max
++++ a/mm/vmscan.c
+@@ -2492,6 +2492,17 @@ static void get_scan_count(struct lruvec
+ 	enum scan_balance scan_balance;
+ 	enum lru_list lru;
  
-+static vm_fault_t do_non_swap_page(struct vm_fault *vmf)
-+{
-+	struct vm_area_struct *vma = vmf->vma;
-+	struct folio *folio;
-+	softleaf_t entry;
-+	vm_fault_t ret = 0;
-+
-+	entry = softleaf_from_pte(vmf->orig_pte);
-+	if (softleaf_is_migration(entry)) {
-+		migration_entry_wait(vma->vm_mm, vmf->pmd,
-+				     vmf->address);
-+	} else if (softleaf_is_device_exclusive(entry)) {
-+		vmf->page = softleaf_to_page(entry);
-+		ret = remove_device_exclusive_entry(vmf);
-+	} else if (softleaf_is_device_private(entry)) {
-+
-+		if (vmf->flags & FAULT_FLAG_VMA_LOCK) {
-+			/*
-+			 * migrate_to_ram is not yet ready to operate
-+			 * under VMA lock.
-+			 */
-+			vma_end_read(vma);
-+			return VM_FAULT_RETRY;
++	/* Proactive reclaim initiated by userspace for anonymous memory only */
++	if (swappiness == SWAPPINESS_ANON_ONLY) {
++		WARN_ON_ONCE(!sc->proactive);
++		if (!can_reclaim_anon_pages(memcg, pgdat->node_id, sc)) {
++			memset(nr, 0, sizeof(*nr) * NR_LRU_LISTS);
++			return;
 +		}
-+
-+		vmf->page = softleaf_to_page(entry);
-+		vmf->pte = pte_offset_map_lock(vma->vm_mm, vmf->pmd,
-+						vmf->address, &vmf->ptl);
-+		if (unlikely(!vmf->pte ||
-+			     !pte_same(ptep_get(vmf->pte),
-+					vmf->orig_pte)))
-+			goto unlock;
-+
-+		/*
-+		 * Get a folio reference while we know the folio can't be
-+		 * freed.
-+		 */
-+		folio = page_folio(vmf->page);
-+		if (folio_trylock(folio)) {
-+			struct dev_pagemap *pgmap;
-+
-+			folio_get(folio);
-+			pte_unmap_unlock(vmf->pte, vmf->ptl);
-+			pgmap = page_pgmap(vmf->page);
-+			ret = pgmap->ops->migrate_to_ram(vmf);
-+			folio_unlock(folio);
-+			folio_put(folio);
-+		} else {
-+			pte_unmap(vmf->pte);
-+			softleaf_entry_wait_on_locked(entry, vmf->ptl);
-+		}
-+	} else if (softleaf_is_hwpoison(entry)) {
-+		ret = VM_FAULT_HWPOISON;
-+	} else if (softleaf_is_marker(entry)) {
-+		ret = handle_pte_marker(vmf);
-+	} else {
-+		print_bad_pte(vma, vmf->address, vmf->orig_pte, NULL);
-+		ret = VM_FAULT_SIGBUS;
++		scan_balance = SCAN_ANON;
++		goto out;
 +	}
 +
-+	return ret;
-+
-+unlock:
-+	if (vmf->pte)
-+		pte_unmap_unlock(vmf->pte, vmf->ptl);
-+	return ret;
-+}
-+
- /*
-  * We enter with either the VMA lock or the mmap_lock held (see
-  * FAULT_FLAG_VMA_LOCK), and pte mapped but not yet locked.
-@@ -4896,57 +4964,7 @@ vm_fault_t do_swap_page(struct vm_fault
- 
- 	entry = softleaf_from_pte(vmf->orig_pte);
- 	if (unlikely(!softleaf_is_swap(entry))) {
--		if (softleaf_is_migration(entry)) {
--			migration_entry_wait(vma->vm_mm, vmf->pmd,
--					     vmf->address);
--		} else if (softleaf_is_device_exclusive(entry)) {
--			vmf->page = softleaf_to_page(entry);
--			ret = remove_device_exclusive_entry(vmf);
--		} else if (softleaf_is_device_private(entry)) {
--			if (vmf->flags & FAULT_FLAG_VMA_LOCK) {
--				/*
--				 * migrate_to_ram is not yet ready to operate
--				 * under VMA lock.
--				 */
--				vma_end_read(vma);
--				ret = VM_FAULT_RETRY;
--				goto out;
--			}
--
--			vmf->page = softleaf_to_page(entry);
--			vmf->pte = pte_offset_map_lock(vma->vm_mm, vmf->pmd,
--					vmf->address, &vmf->ptl);
--			if (unlikely(!vmf->pte ||
--				     !pte_same(ptep_get(vmf->pte),
--							vmf->orig_pte)))
--				goto unlock;
--
--			/*
--			 * Get a folio reference while we know the folio can't be
--			 * freed.
--			 */
--			folio = page_folio(vmf->page);
--			if (folio_trylock(folio)) {
--				struct dev_pagemap *pgmap;
--
--				folio_get(folio);
--				pte_unmap_unlock(vmf->pte, vmf->ptl);
--				pgmap = page_pgmap(vmf->page);
--				ret = pgmap->ops->migrate_to_ram(vmf);
--				folio_unlock(folio);
--				folio_put(folio);
--			} else {
--				pte_unmap(vmf->pte);
--				softleaf_entry_wait_on_locked(entry, vmf->ptl);
--			}
--		} else if (softleaf_is_hwpoison(entry)) {
--			ret = VM_FAULT_HWPOISON;
--		} else if (softleaf_is_marker(entry)) {
--			ret = handle_pte_marker(vmf);
--		} else {
--			print_bad_pte(vma, vmf->address, vmf->orig_pte, NULL);
--			ret = VM_FAULT_SIGBUS;
--		}
-+		ret = do_non_swap_page(vmf);
+ 	/* If we have no swap space, do not bother scanning anon folios. */
+ 	if (!sc->may_swap || !can_reclaim_anon_pages(memcg, pgdat->node_id, sc)) {
+ 		scan_balance = SCAN_FILE;
+@@ -2510,13 +2521,6 @@ static void get_scan_count(struct lruvec
  		goto out;
  	}
  
+-	/* Proactive reclaim initiated by userspace for anonymous memory only */
+-	if (swappiness == SWAPPINESS_ANON_ONLY) {
+-		WARN_ON_ONCE(!sc->proactive);
+-		scan_balance = SCAN_ANON;
+-		goto out;
+-	}
+-
+ 	/*
+ 	 * Do not apply any pressure balancing cleverness when the
+ 	 * system is close to OOM, scan both anon and file equally
 _
 
-Patches currently in -mm which might be from lihongfu@kylinos.cn are
+Patches currently in -mm which might be from chenridong@xiaomi.com are
 
-selftests-mm-move-pkey-selftest-helpers-to-pkey_utilc.patch
-selftests-mm-unify-pkey-sighandler-selftest-assertions-and-tracing.patch
-selftests-mm-use-pkey_assert-on-clone_raw-failure-in-pkey-test.patch
-selftests-mm-add-missing-mmap-return-checks-in-pkey-tests.patch
-selftests-mm-add-missing-pthread_create-return-checks-in-pkey-tests.patch
-selftests-mm-fix-clone-cleartid-race-in-pkey-sighandler-tests.patch
-selftests-mm-fix-memleak-in-migration-benchmark.patch
-selftests-mm-factor-out-hmm_buffer_alloc-to-consolidate-buffer-setup.patch
-selftests-mm-fix-bug_on-checking-wrong-variable-in-mremap_dontunmap.patch
-mm-swap-fix-swap_cluster_lock-config_swap-stub-signature-mismatch.patch
-mm-use-a-folio-in-the-softleaf_is_device_private-path.patch
-mm-extract-non-swap-page-handling-to-do_non_swap_page.patch
+mm-vmscan-propagate-real-error-code-from-per-node-proactive-reclaim.patch
+mm-vmscan-drop-unused-gfp_mask-parameter-from-__node_reclaim.patch
+memcg-move-mem_cgroup_swappiness-and-vm_swappiness-to-mm-swaph.patch
+mm-vmscan-fix-node-reclaim-ignoring-swappiness-parameter.patch
 
