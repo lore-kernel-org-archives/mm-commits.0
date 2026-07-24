@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E17163793D2
-	for <mm-commits@vger.kernel.org>; Fri, 24 Jul 2026 05:28:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2808037A488
+	for <mm-commits@vger.kernel.org>; Fri, 24 Jul 2026 05:28:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784870882; cv=none; b=n69Qix4wF66H/AwTV+MkM3OoT31Q2lrkAJ2xr7VTozUrm8sqvEgweezaFhD5SaHcIYrcjdz/j7/lCIP/haB7NydUrbslo/gLxlU7lSFQlUuuVhQMCAYzPzCkoIZ3u+VkleTJQ222KIPgsTQM82jTQB6lg79LOAPktFmPDrOkjZ4=
+	t=1784870883; cv=none; b=YAsqnaXPNT+SGH6OETb0aRBb3UPaEz6g75jPc8l9T6/+uHFMxpQdT/3V3m43vd9pbIGnIUz7X9V4StfSjrrisi8USx8hMB0lNeLktRYt8vdPIVuqm3x0GPHF68w29D6wBsSz8GSm5OWHQ2oRYKPvKqOAHe2RUb44zIYeo966owc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784870882; c=relaxed/simple;
-	bh=/j8GJRHnyqms3MPXygR7ld+82JJ/jRRyIdqSloS/yLA=;
-	h=Date:To:From:Subject:Message-Id; b=svyqBUCsz0kSFQLddfybTJ9i012FUi81ZafPBQaY0BlJ49IrmOnMudgJMDoCDklK5UD/0KgBZy3M1Sva6rHR63JXJ7XXKiRk5k+/GhY+3JlvBdMzs/rSTrpApfr5H0RWqeGGprvUqYt1yANFPzXbN8PcA8nFGaLsDZk0TWidZws=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AYW8fpy2; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1784870883; c=relaxed/simple;
+	bh=2oHwmO1MwcNcnj/79SHJoKyqHP//K8H4ieb5hQE5XvU=;
+	h=Date:To:From:Subject:Message-Id; b=qgpohUv9f4kpJHrLrTTP1L26Jws7EkfPogsrVnGa05JoX0RtoZJOihPSVSGlgGNktUxTfnNT44EUIPQFfUE0zAwVKQEjLstoXAVtIsYabEVnL+3epxFhE4Y1UecFieL37KIzgsUF+8oInpfFT0mzRlaYWqg0Tt0ICtDCfGwiOfE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pxm/vObe; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AYW8fpy2"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6035B1F00A3D;
-	Fri, 24 Jul 2026 05:28:00 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pxm/vObe"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F0DCF1F00A3A;
+	Fri, 24 Jul 2026 05:28:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1784870880;
-	bh=yCrVF9xoK2XETR9rgf2xSj9mPqamRWHJcDZnmJObcyw=;
+	d=linux-foundation.org; s=korg; t=1784870882;
+	bh=7EYCQyc8ZS5lCz9r8QfLUK/B5OJeRxtQARbpc2cQ1iY=;
 	h=Date:To:From:Subject;
-	b=AYW8fpy2bSzKPmkzjBLQkx2gSMS/dA1ao413yyH2dvKl2rSFLJvTerepW7OHEL43l
-	 T3uhYfFPEufZ/RPp4KK4L+t0/9slAV51yQu5s3ptmprMW6G/JEeXnQbZDTjcKRo1CM
-	 tr7kCu7D+cG+UltdGW3h0gltQBm7SAm87C46jhEw=
-Date: Thu, 23 Jul 2026 22:27:59 -0700
+	b=pxm/vObeucn2XgSJ4St1Z3gElMhdSQI+zjyjKdnNF6YdIg/Z5Zo+kjpRnqWsiGNvu
+	 7XoGNv9XaGHr4Dz5hyOOqJTwnN0lgeYSo2OhQ0Nd5FETnpfzTfAD4NVjirbILNIRdd
+	 90igDzhiMmkuqfimoq+Ya9sgGTNN7zlRcmuLWZZY=
+Date: Thu, 23 Jul 2026 22:28:01 -0700
 To: mm-commits@vger.kernel.org,chenridong@xiaomi.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-vmscan-propagate-real-error-code-from-per-node-proactive-reclaim.patch removed from -mm tree
-Message-Id: <20260724052800.6035B1F00A3D@smtp.kernel.org>
+Subject: [to-be-updated] mm-vmscan-drop-unused-gfp_mask-parameter-from-__node_reclaim.patch removed from -mm tree
+Message-Id: <20260724052801.F0DCF1F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,34 +35,32 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: vmscan: propagate real error code from per-node proactive reclaim
+     Subject: mm: vmscan: drop unused gfp_mask parameter from __node_reclaim()
 has been removed from the -mm tree.  Its filename was
-     mm-vmscan-propagate-real-error-code-from-per-node-proactive-reclaim.patch
+     mm-vmscan-drop-unused-gfp_mask-parameter-from-__node_reclaim.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
 From: Ridong Chen <chenridong@xiaomi.com>
-Subject: mm: vmscan: propagate real error code from per-node proactive reclaim
-Date: Fri, 17 Jul 2026 19:32:59 +0800
+Subject: mm: vmscan: drop unused gfp_mask parameter from __node_reclaim()
+Date: Fri, 17 Jul 2026 19:33:00 +0800
 
-It has been observed that per-node proactive reclaim always returns
--EAGAIN when any error occurs.  As discussed in the mailing list [1], the
-interface should distinguish between cases where no reclaimable memory is
-left and where another entity is concurrently using the same interface. 
-Propagate the real error code, consistent with how memcg proactive reclaim
-handles errors.
+Commit 57972c78e678 ("mm/vmscan: make __node_reclaim() more generic")
+moved the scan_control construction out to the callers and passed the
+struct in by pointer.  After that change every use of the gfp mask inside
+__node_reclaim() goes through sc->gfp_mask, leaving the gfp_mask parameter
+unused.  Just remove the dead parameter and update the callers
+accordingly.  No functional change.
 
-Link: https://lore.kernel.org/20260717113300.214717-3-ridong.chen@linux.dev
-Link: https://lore.kernel.org/all/20250717235604.2atyx2aobwowpge3@offworld/T/#m3514718be82a31b05726a49da9b61fbfc69a589e [1]
-Fixes: b980077899ea ("mm: introduce per-node proactive reclaim interface")
+Link: https://lore.kernel.org/20260717113300.214717-4-ridong.chen@linux.dev
 Signed-off-by: Ridong Chen <chenridong@xiaomi.com>
 Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Reviewed-by: Muchun Song <muchun.song@linux.dev>
 Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
 Reviewed-by: Qi Zheng <qi.zheng@linux.dev>
-Reviewed-by: Barry Song <baohua@kernel.org>
 Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Barry Song <baohua@kernel.org>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Davidlohr Bueso <dave@stgolabs.net>
 Cc: Kairui Song <kasong@tencent.com>
@@ -75,25 +73,52 @@ Cc: Zhongkun He <hezhongkun.hzk@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/vmscan.c |    9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
---- a/mm/vmscan.c~mm-vmscan-propagate-real-error-code-from-per-node-proactive-reclaim
+--- a/mm/vmscan.c~mm-vmscan-drop-unused-gfp_mask-parameter-from-__node_reclaim
 +++ a/mm/vmscan.c
-@@ -8018,7 +8018,7 @@ static ssize_t reclaim_store(struct devi
- 	int ret, nid = dev->id;
+@@ -7732,7 +7732,7 @@ static unsigned long node_pagecache_recl
+ /*
+  * Try to free up some pages from this node through reclaim.
+  */
+-static unsigned long __node_reclaim(struct pglist_data *pgdat, gfp_t gfp_mask,
++static unsigned long __node_reclaim(struct pglist_data *pgdat,
+ 				    unsigned long nr_pages,
+ 				    struct scan_control *sc)
+ {
+@@ -7824,7 +7824,7 @@ unsigned long node_reclaim(struct pglist
+ 	if (test_and_set_bit_lock(PGDAT_RECLAIM_LOCKED, &pgdat->flags))
+ 		return 0;
  
- 	ret = user_proactive_reclaim((char *)buf, NULL, NODE_DATA(nid));
--	return ret ? -EAGAIN : count;
-+	return ret ? ret : count;
- }
+-	ret = __node_reclaim(pgdat, gfp_mask, nr_pages, &sc);
++	ret = __node_reclaim(pgdat, nr_pages, &sc);
+ 	clear_bit_unlock(PGDAT_RECLAIM_LOCKED, &pgdat->flags);
  
- static DEVICE_ATTR_WO(reclaim);
+ 	if (ret >= nr_pages)
+@@ -7837,7 +7837,7 @@ unsigned long node_reclaim(struct pglist
+ 
+ #else
+ 
+-static unsigned long __node_reclaim(struct pglist_data *pgdat, gfp_t gfp_mask,
++static unsigned long __node_reclaim(struct pglist_data *pgdat,
+ 				    unsigned long nr_pages,
+ 				    struct scan_control *sc)
+ {
+@@ -7950,8 +7950,7 @@ int user_proactive_reclaim(char *buf,
+ 						  &pgdat->flags))
+ 				return -EBUSY;
+ 
+-			reclaimed = __node_reclaim(pgdat, gfp_mask,
+-						   batch_size, &sc);
++			reclaimed = __node_reclaim(pgdat, batch_size, &sc);
+ 			clear_bit_unlock(PGDAT_RECLAIM_LOCKED, &pgdat->flags);
+ 		}
+ 
 _
 
 Patches currently in -mm which might be from chenridong@xiaomi.com are
 
-mm-vmscan-drop-unused-gfp_mask-parameter-from-__node_reclaim.patch
 memcg-move-mem_cgroup_swappiness-and-vm_swappiness-to-mm-swaph.patch
 mm-vmscan-fix-node-reclaim-ignoring-swappiness-parameter.patch
 
