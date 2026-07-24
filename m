@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 61292376BE4
-	for <mm-commits@vger.kernel.org>; Fri, 24 Jul 2026 05:27:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E17163793D2
+	for <mm-commits@vger.kernel.org>; Fri, 24 Jul 2026 05:28:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784870880; cv=none; b=oOlslD3xII+e7xphOzAp65qupgi3Szn+j6ioXW4E6kgjS7PAEMmmoNT4NF5HstZKVxHhUCkmsNCFt3CtIE3zkSY8sNwh0aSmQ5WRguKvqv//lwqHUgvVH1LNWanlHdvFPClc7VJv6sUTIfnnQf2wqK/CsfiJx5f6ThogclkY6RY=
+	t=1784870882; cv=none; b=n69Qix4wF66H/AwTV+MkM3OoT31Q2lrkAJ2xr7VTozUrm8sqvEgweezaFhD5SaHcIYrcjdz/j7/lCIP/haB7NydUrbslo/gLxlU7lSFQlUuuVhQMCAYzPzCkoIZ3u+VkleTJQ222KIPgsTQM82jTQB6lg79LOAPktFmPDrOkjZ4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784870880; c=relaxed/simple;
-	bh=KybTLIqfGfN/7D+mjCwEVoO73q556defxwmafF6W9BQ=;
-	h=Date:To:From:Subject:Message-Id; b=tqaNvxCvLEySBszP3s4c6XiNPn6IRr5yes2Jz7Dno/7nQhB9klpzmSdkgWSG5UgfxI7+uXcfi1Mgh17vKX9cx0P6cwoIotCNbIk76k5yvy9k2+AMVU4APhT8p+G1M78EwnnbLt3Zn5HrZUHqGK9hqqtaNQaAzFw9yuMSVsEo2YY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yP+sDJW7; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1784870882; c=relaxed/simple;
+	bh=/j8GJRHnyqms3MPXygR7ld+82JJ/jRRyIdqSloS/yLA=;
+	h=Date:To:From:Subject:Message-Id; b=svyqBUCsz0kSFQLddfybTJ9i012FUi81ZafPBQaY0BlJ49IrmOnMudgJMDoCDklK5UD/0KgBZy3M1Sva6rHR63JXJ7XXKiRk5k+/GhY+3JlvBdMzs/rSTrpApfr5H0RWqeGGprvUqYt1yANFPzXbN8PcA8nFGaLsDZk0TWidZws=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AYW8fpy2; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yP+sDJW7"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C33931F000E9;
-	Fri, 24 Jul 2026 05:27:58 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AYW8fpy2"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6035B1F00A3D;
+	Fri, 24 Jul 2026 05:28:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1784870878;
-	bh=M1l4w3oH5FjmkttN3HtHIxuHIwG8pvwGAdJWRMraiLM=;
+	d=linux-foundation.org; s=korg; t=1784870880;
+	bh=yCrVF9xoK2XETR9rgf2xSj9mPqamRWHJcDZnmJObcyw=;
 	h=Date:To:From:Subject;
-	b=yP+sDJW7qGO6qD9mtn+XXTAs/5QuLSn92HXVa6xRhY/rqO/iK4Wwnci/w4H/rQPYX
-	 oPcEyI6Amv4NfRRMRpTDX4R+ZZX25HRtdt/PfA3pAeWdihZKO0a9RPgzIyCXzgXYkL
-	 XwhGAAMtXvQrZ4DFHrTlB4uwbqSojK8k1Q1SusyQ=
-Date: Thu, 23 Jul 2026 22:27:58 -0700
+	b=AYW8fpy2bSzKPmkzjBLQkx2gSMS/dA1ao413yyH2dvKl2rSFLJvTerepW7OHEL43l
+	 T3uhYfFPEufZ/RPp4KK4L+t0/9slAV51yQu5s3ptmprMW6G/JEeXnQbZDTjcKRo1CM
+	 tr7kCu7D+cG+UltdGW3h0gltQBm7SAm87C46jhEw=
+Date: Thu, 23 Jul 2026 22:27:59 -0700
 To: mm-commits@vger.kernel.org,chenridong@xiaomi.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-vmscan-fix-anon-only-reclaim-evicting-file-pages-when-swappiness=max.patch removed from -mm tree
-Message-Id: <20260724052758.C33931F000E9@smtp.kernel.org>
+Subject: [to-be-updated] mm-vmscan-propagate-real-error-code-from-per-node-proactive-reclaim.patch removed from -mm tree
+Message-Id: <20260724052800.6035B1F00A3D@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,84 +35,34 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/vmscan: fix anon-only reclaim evicting file pages when swappiness=max
+     Subject: mm: vmscan: propagate real error code from per-node proactive reclaim
 has been removed from the -mm tree.  Its filename was
-     mm-vmscan-fix-anon-only-reclaim-evicting-file-pages-when-swappiness=max.patch
+     mm-vmscan-propagate-real-error-code-from-per-node-proactive-reclaim.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
 From: Ridong Chen <chenridong@xiaomi.com>
-Subject: mm/vmscan: fix anon-only reclaim evicting file pages when swappiness=max
-Date: Fri, 17 Jul 2026 19:32:58 +0800
+Subject: mm: vmscan: propagate real error code from per-node proactive reclaim
+Date: Fri, 17 Jul 2026 19:32:59 +0800
 
-Patch series "mm/vmscan: fix swappiness=max and clean up per-node
-proactive reclaim".
+It has been observed that per-node proactive reclaim always returns
+-EAGAIN when any error occurs.  As discussed in the mailing list [1], the
+interface should distinguish between cases where no reclaimable memory is
+left and where another entity is concurrently using the same interface. 
+Propagate the real error code, consistent with how memcg proactive reclaim
+handles errors.
 
-Two fixes and one cleanup.
-
-Patch 1 fixes "swappiness=max": the anon-only test in get_scan_count()
-sat after the "cannot reclaim anon" check, so when no anon was
-reclaimable the request fell back to SCAN_FILE and evicted page cache
-instead.
-
-Patch 2 fixes reclaim_store() collapsing every error into -EAGAIN, so
-callers can no longer tell an invalid argument from a busy interface;
-propagate the real error code, matching the memcg path.
-
-Patch 3 drops the now-unused gfp_mask parameter from __node_reclaim().
-
-
-This patch (of 3):
-
-As Qi mentioned [1], when swappiness=max (SWAPPINESS_ANON_ONLY) is set,
-the reclaim logic is expected to reclaim anonymous pages exclusively. 
-However, due to the current ordering of checks in get_scan_count(), file
-pages may still be evicted if can_reclaim_anon_pages() returns false,
-which contradicts the semantics of SWAPPINESS_ANON_ONLY.
-
-Reproducer in a cgroup holding 64M of file cache, with no swap configured:
-
-  Before (file cache is wrongly evicted):
-    # cat memory.stat
-    anon 196608
-    file 67178496
-    pgscan_proactive 0
-    # echo "64M swappiness=max" > memory.reclaim
-    # cat memory.stat
-    anon 208896
-    file 4096                 <- page cache evicted
-    pgsteal_proactive 16400
-    pgscan_proactive 16400
-
-  After (file cache is left intact):
-    # cat memory.stat
-    anon 200704
-    file 67178496
-    pgscan_proactive 0
-    # echo "64M swappiness=max" > memory.reclaim
-    -bash: echo: write error: Resource temporarily unavailable
-    # cat memory.stat
-    anon 208896
-    file 67178496             <- page cache untouched
-    pgsteal_proactive 0
-    pgscan_proactive 0
-
-Fix this by bailing out early when SWAPPINESS_ANON_ONLY is set and no
-anonymous pages are reclaimable, before falling back to file reclaim.
-
-Link: https://lore.kernel.org/20260717113300.214717-1-ridong.chen@linux.dev
-Link: https://lore.kernel.org/20260717113300.214717-2-ridong.chen@linux.dev
-Link: https://lore.kernel.org/cgroups/7ddf3eee-5fe2-45f7-8614-c8936a039e04@linux.dev/ [1]
-Fixes: 68a1436bde00 ("mm: add swappiness=max arg to memory.reclaim for only anon reclaim")
+Link: https://lore.kernel.org/20260717113300.214717-3-ridong.chen@linux.dev
+Link: https://lore.kernel.org/all/20250717235604.2atyx2aobwowpge3@offworld/T/#m3514718be82a31b05726a49da9b61fbfc69a589e [1]
+Fixes: b980077899ea ("mm: introduce per-node proactive reclaim interface")
 Signed-off-by: Ridong Chen <chenridong@xiaomi.com>
-Suggested-by: Qi Zheng <qi.zheng@linux.dev>
 Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Reviewed-by: Muchun Song <muchun.song@linux.dev>
 Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
 Reviewed-by: Qi Zheng <qi.zheng@linux.dev>
+Reviewed-by: Barry Song <baohua@kernel.org>
 Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Barry Song <baohua@kernel.org>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Davidlohr Bueso <dave@stgolabs.net>
 Cc: Kairui Song <kasong@tencent.com>
@@ -125,48 +75,24 @@ Cc: Zhongkun He <hezhongkun.hzk@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   18 +++++++++++-------
- 1 file changed, 11 insertions(+), 7 deletions(-)
+ mm/vmscan.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/vmscan.c~mm-vmscan-fix-anon-only-reclaim-evicting-file-pages-when-swappiness=max
+--- a/mm/vmscan.c~mm-vmscan-propagate-real-error-code-from-per-node-proactive-reclaim
 +++ a/mm/vmscan.c
-@@ -2492,6 +2492,17 @@ static void get_scan_count(struct lruvec
- 	enum scan_balance scan_balance;
- 	enum lru_list lru;
+@@ -8018,7 +8018,7 @@ static ssize_t reclaim_store(struct devi
+ 	int ret, nid = dev->id;
  
-+	/* Proactive reclaim initiated by userspace for anonymous memory only */
-+	if (swappiness == SWAPPINESS_ANON_ONLY) {
-+		WARN_ON_ONCE(!sc->proactive);
-+		if (!can_reclaim_anon_pages(memcg, pgdat->node_id, sc)) {
-+			memset(nr, 0, sizeof(*nr) * NR_LRU_LISTS);
-+			return;
-+		}
-+		scan_balance = SCAN_ANON;
-+		goto out;
-+	}
-+
- 	/* If we have no swap space, do not bother scanning anon folios. */
- 	if (!sc->may_swap || !can_reclaim_anon_pages(memcg, pgdat->node_id, sc)) {
- 		scan_balance = SCAN_FILE;
-@@ -2510,13 +2521,6 @@ static void get_scan_count(struct lruvec
- 		goto out;
- 	}
+ 	ret = user_proactive_reclaim((char *)buf, NULL, NODE_DATA(nid));
+-	return ret ? -EAGAIN : count;
++	return ret ? ret : count;
+ }
  
--	/* Proactive reclaim initiated by userspace for anonymous memory only */
--	if (swappiness == SWAPPINESS_ANON_ONLY) {
--		WARN_ON_ONCE(!sc->proactive);
--		scan_balance = SCAN_ANON;
--		goto out;
--	}
--
- 	/*
- 	 * Do not apply any pressure balancing cleverness when the
- 	 * system is close to OOM, scan both anon and file equally
+ static DEVICE_ATTR_WO(reclaim);
 _
 
 Patches currently in -mm which might be from chenridong@xiaomi.com are
 
-mm-vmscan-propagate-real-error-code-from-per-node-proactive-reclaim.patch
 mm-vmscan-drop-unused-gfp_mask-parameter-from-__node_reclaim.patch
 memcg-move-mem_cgroup_swappiness-and-vm_swappiness-to-mm-swaph.patch
 mm-vmscan-fix-node-reclaim-ignoring-swappiness-parameter.patch
