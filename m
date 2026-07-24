@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4D12C34D4E2
-	for <mm-commits@vger.kernel.org>; Thu, 23 Jul 2026 23:28:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CA01529CE9
+	for <mm-commits@vger.kernel.org>; Fri, 24 Jul 2026 00:20:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784849284; cv=none; b=oR7xGR5o9CZhaqkt2oEBkw2jt5EWNy5GTLBMVrcs6jdqg6RMBwvbIat11CwrzgRBrxzOMz5msIhEGLR42Dw7lqJyxoWTkoI8LFAAfS5dp624GkVcfOVtchjThU8UEDbkHnwDF27pwQgMxEInV6MMkOT4hZMvfRRV9JQ2bNUZFi8=
+	t=1784852442; cv=none; b=mpc5Uvhjtbf1Vp+C1g55T+qKOQeT2mKP5g7lG8SY+3bfR4EO7QS0mTUbEubKj7fn/rmm/04HOKvqrfOhYfYxwZTMXFas4TorRsy3oot3w3xpjsr4Bpa1T5PsrQOuWksCwM9miw4cCYFWuCV7pVVUK+0ZZsnQJY6Bgb8V4bSI2G4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784849284; c=relaxed/simple;
-	bh=AX4bpX9jfxsSXUoSDvQUpZ5uMqw+EvtgAg2sBLwzR9A=;
-	h=Date:To:From:Subject:Message-Id; b=qLDBzxshygiQRVDFxrp2j5HMxy+YvyHuaNOScCbOS6FQzOw62Y2OAY0L49NSa8+8UNgRkrGUHM2ybwIe1ML6VUVBnsjbxWBg0MvlxoMUMMyGOl+cdogXs3/q0Ycek9KMmpgp7LzHhTvVIf4+JHKT7L87pk8GLjWbrWxGysJncpE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GZpLT4S2; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1784852442; c=relaxed/simple;
+	bh=nI9lXFVuHln5beNjU9H56s4GNvjUua08z4DvJX7fK0c=;
+	h=Date:To:From:Subject:Message-Id; b=q2yTMCx0BSPYaQGpPKJYNCSkFD58gPETC3hlvEogdE8TjR1o37WBnc92Fcu8itUhkDkL00xdITYldumyeVTYcz9Auad6omnPjDXglHecEqNEAqauFnWWAaugf7t8G/BjtntJVyqiDyDOKvDXep7GDbtTLLnQ0IBo+ocgpLiJ0B0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oa/SG4ww; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GZpLT4S2"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 217191F000E9;
-	Thu, 23 Jul 2026 23:28:03 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oa/SG4ww"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4BCAF1F000E9;
+	Fri, 24 Jul 2026 00:20:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1784849283;
-	bh=rYG9Noo27SkrYlJWQM9d8wyM49azQohvyTKQtZS4f3Y=;
+	d=linux-foundation.org; s=korg; t=1784852440;
+	bh=x1qqAWe+T+ckuVuGKaffNITtNNkoLfCSEi9EKKPCDwc=;
 	h=Date:To:From:Subject;
-	b=GZpLT4S2AfvvP+GZ5G0H4CZAObD+2ftusqJrrdtTE13K4j9JMoa8yvww81/4IrdRG
-	 eDD6lLGLZVFFPu5+Lb436EjbGg7g941z811qlnDDXmc0NNwV6IlBBd3B0I69fc939u
-	 nntvpdSz9INmEPgmivM3LdTdXOXV5Z9w0uYt3GhM=
-Date: Thu, 23 Jul 2026 16:28:02 -0700
-To: mm-commits@vger.kernel.org,ljs@kernel.org,akpm@linux-foundation.org
+	b=oa/SG4wwotF8UVybVSoolAql4gUqk9flxr+b/B2kLubhFQDQMPkV87jLUZEXbg1Oe
+	 xxO8C/VgQxdUM2lQT841m3B+BheAg5Vvnh3qztx8MKeHh3MQ7QDNsLpKrvCFFCF15f
+	 RpgJUmDhC+hui2ZYPYyAPGFoxDSe9rSTGluFcJt4=
+Date: Thu, 23 Jul 2026 17:20:39 -0700
+To: mm-commits@vger.kernel.org,usama.arif@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + arm64-remove-redundant-concurrent-ptdump-uaf-mitigation.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260723232803.217191F000E9@smtp.kernel.org>
+Subject: [to-be-updated] mm-vmstat-mm-memcontrol-add-_monotonic-vmstat-readers.patch removed from -mm tree
+Message-Id: <20260724002040.4BCAF1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,323 +34,414 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: arm64: remove redundant concurrent ptdump UAF mitigation
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     arm64-remove-redundant-concurrent-ptdump-uaf-mitigation.patch
+The quilt patch titled
+     Subject: mm/vmstat, mm/memcontrol: add _monotonic vmstat readers
+has been removed from the -mm tree.  Its filename was
+     mm-vmstat-mm-memcontrol-add-_monotonic-vmstat-readers.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arm64-remove-redundant-concurrent-ptdump-uaf-mitigation.patch
-
-This patch will later appear in the mm-hotfixes-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: arm64: remove redundant concurrent ptdump UAF mitigation
-Date: Thu, 23 Jul 2026 16:16:35 +0100
+From: Usama Arif <usama.arif@linux.dev>
+Subject: mm/vmstat, mm/memcontrol: add _monotonic vmstat readers
+Date: Mon, 20 Jul 2026 09:41:22 -0700
 
-This partially reverts commit fa93b45fd397 ("arm64: Enable vmalloc-huge
-with ptdump"), retaining vmalloc-huge support but eliminating the now
-redundant mitigation against a race between huge vmap page table freeing
-and ptdump, as this issue has now been fixed at core.
+Patch series "mm/vmscan: reduce lru_lock contention via vmstat-derived
+scan-balance cost", v4.
 
-We also simultaneously remove the arm64 if-deffery when acquiring the mmap
-read lock upon vmap huge page table promotion as it is no longer required.
+The anon/file scan balance heuristic in get_scan_count() is fed by two
+scalars in struct lruvec (anon_cost, file_cost) that every reclaim
+producer updates under lruvec->lru_lock.  The cost-recording work itself
+is trivial, but it both contends for and contributes to contention on
+lru_lock - which is often a contention point on memory-pressured
+workloads.  Specifically:
 
-Note that this patch relies on the preceding vmalloc patch, and should not
-be backported alone.
+- shrink_inactive_list() re-acquires lru_lock at function exit just
+  to call lru_note_cost_unlock_irq().
+- shrink_active_list() does the same after rotation accounting.
+- workingset_refault() takes folio_lruvec_lock_irq() purely to
+  record the refault cost.
+- prepare_scan_control() snapshots anon_cost/file_cost under
+  lru_lock.
+- lru_note_cost_unlock_irq() itself walks parent_lruvec() and
+  re-acquires lru_lock on every ancestor, multiplying the cost
+  of every update by memcg-hierarchy depth.
 
-Link: https://lore.kernel.org/20260723-series-vmap-race-fix-v6-5-8cc77dcc0018@kernel.org
-Fixes: fa93b45fd397 ("arm64: Enable vmalloc-huge with ptdump")
-Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
-Reviewed-by: Dev Jain <dev.jain@arm.com>
-Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Acked-by: Kiryl Shutsemau (Meta) <kas@kernel.org>
-Acked-by: Will Deacon <will@kernel.org>
-Reviewed-by: David Hildenbrand (Arm) <david@kernel.org>
-Cc: <stable@vger.kernel.org>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: "Borah, Chaitanya Kumar" <chaitanya.kumar.borah@intel.com>
-Cc: "Borislav Petkov (AMD)" <bp@alien8.de>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: David Carlier <devnexen@gmail.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@redhat.com>
+This series removes those producer-side acquisitions entirely.  The
+rotation inputs become per-LRU PGROTATE_{ANON,FILE} vmstat counters. 
+NR_VMSCAN_WRITE already captures reclaim-driven pageout at writeout();
+charge it through lruvec_stat_mod_folio() so it is available per lruvec
+and aggregated through the memcg hierarchy.  Reclaim does not submit
+filesystem folios for writeback from this path, so pageout contributes
+only to anon cost.  WORKINGSET_RESTORE_* already captures the refault
+input.
+
+prepare_scan_control() reads the raw cost signals without lru_lock:
+
+  anon = PGROTATE_ANON +
+         (NR_VMSCAN_WRITE + WORKINGSET_RESTORE_ANON) * SWAP_CLUSTER_MAX
+  file = PGROTATE_FILE +
+         WORKINGSET_RESTORE_FILE * SWAP_CLUSTER_MAX
+
+It folds the deltas into a per-lruvec accumulator.  A dedicated per-lruvec
+cost_lock, not touched by isolate_lru_folios(), move_folios_to_lru(), or
+folio_add_lru(), serialises the accumulator RMW and the lrusize/4 halving
+check.  Hierarchy aggregation is implicit in rstat propagation, so the
+parent_lruvec() walk and the lru_reparent_memcg() cost-splice both
+disappear.
+
+Moving accumulation and decay to the reclaim side also improves the cost
+model across reclaim gaps.  With producer-side decay, events that happen
+while reclaim is idle still age each other before reclaim ever samples the
+costs.  If a workload refaults a large anon set and then a smaller file
+set before reclaim runs again, the later file activity can age the earlier
+anon activity out of the cost model.  The new scheme observes the whole
+between-reclaim delta and decays anon and file proportionally, so the
+scan-balance history better represents what happened since the last
+reclaim pass.
+
+Trade-offs:
+  - Cost reads see rstat-aggregated values that can lag until periodic /
+    reader-triggered flushing.
+  - Per-lruvec footprint grows by 4 unsigned longs + a spinlock (a
+    struct lru_cost { count, last_rotated, last_io } per side), which
+    is a small cost.
+  - NR_VMSCAN_WRITE now also updates the folio's lruvec/memcg stat,
+    adding memcg stat accounting to the reclaim writeout path while
+    preserving the existing node-level total.
+
+== Numbers ==
+
+Tested on a 176-core, 256 GB host.  The benchmark drives sustained
+swap-out/refault inside a tight memcg using vm-scalability/usemem:
+
+  usemem -n 16 --prealloc --prefault --random $((256*1024*1024))
+
+run inside a two-level memcg with memory.max=512M on the leaf (4 GB anon
+working set has to fit in 512 MB -> continuous shrink_inactive_list +
+workingset_refault).  A 16 GB swap file is used.  Measurement is a 30 s
+`perf lock record -a` window over otherwise-idle hardware.
+
+Workload rates are identical on both kernels (the bench drives the same
+memory pressure):
+
+                          baseline    patched      delta
+  pgscan_direct  / s      172,662     171,817      ~0%
+  pgsteal_direct / s       67,162      66,306      ~0%
+  workingset_refault_anon / s
+                           40,696      39,830      ~0%
+
+perf lock contention (total wait per 30 s window):
+
+  Lock Name                Before      After     % change
+  shrink_lruvec+0x770     722.84 ms    0         -100% (eliminated)
+        (= lru_note_cost_unlock_irq)
+  workingset_refault+0x167 385.26 ms   0         -100% (eliminated)
+        (= lru_note_cost_refault)
+  shrink_node+0x4ad       689.43 ms    26.95 ms  -96%
+  shrink_active_list      208.34 ms    15.97 ms  -92%
+  lru_add_drain_cpu+0x34    1.96 s    917.71 ms  -53%
+
+  Total LRU lock wait      ~4.23 s     ~1.66 s   -61%
+
+The two specific contention sites the patch removes (shrink_lruvec+0x770 =
+lru_note_cost_unlock_irq; workingset_refault+0x167 =
+lru_note_cost_refault) are completely absent from the patched
+perf-lock-contention output.  Secondary reductions in shrink_node,
+shrink_active_list, lru_add_drain_cpu and pgrefill/pgactivate look like
+knock-on effects from removing the cost-recording overhead and the
+parent_lruvec walk.
+
+The remaining ~1.66 s of LRU lock wait on the patched kernel is dominated
+by the per-CPU pagevec drain (lru_add_drain_cpu) and the main reclaim path
+in shrink_lruvec.
+
+The numbers above can be reproduced using the script in [1].
+
+== Series structure ==
+
+  1. mm/vmstat, mm/memcontrol: add _monotonic vmstat readers
+     Non-clamping siblings of lruvec_page_state() / node_page_state() /
+     global_node_page_state() for callers that snapshot a
+     monotonically-incremented counter and subtract two samples.
+     Unsigned modular subtraction on the raw wrapping value stays
+     correct across a signed-long overflow that the existing clamp
+     would otherwise turn into a huge spurious delta (a real hazard
+     on 32-bit).
+
+  2. mm/vmscan: reduce lru_lock contention via vmstat-derived
+     scan-balance cost
+     The optimization described above; samples PGROTATE_*,
+     NR_VMSCAN_WRITE (for anon) and WORKINGSET_RESTORE_* via
+     lruvec_page_state_monotonic() from patch 1. MGLRU also updates
+     PGROTATE_* so the counters remain meaningful with either reclaim
+     implementation, although MGLRU does not consume this cost signal.
+
+== Alternatives considered ==
+
+1. cost_lock for both producer and consumer (no vmstat indirection):
+   Keep the producer loop, just swap lru_lock for a new per-lruvec
+   cost_lock. Decouples cost from LRU manipulation, but producers
+   still synchronously contend on cost_lock, the parent_lruvec()
+   walk is still required (O(memcg-depth) acquisitions per recording,
+   now on cost_lock), and lru_reparent_memcg() still needs explicit
+   cost-splice. We can do much better and this series removes the
+   producer lock entirely and gets hierarchy propagation for "free"
+   via rstat.
+
+2. Attempt to switch to using MGLRU's scan model:
+   MGLRU has no anon_cost/file_cost at all. It replaces the cost
+   heuristic with generation-based aging: per-LRU sequence numbers
+   (min_seq/max_seq) age folios into generations, and the
+   older-generation type is the one to scan. So
+   lru_note_cost_unlock_irq() / lru_note_cost_refault() are simply
+   not called when lru_gen_enabled() — by design it sidesteps every
+   concern this patch addresses.
+   But MGLRU is not a substitute for fixing classic LRU:
+     - It relies on a lot of things including per-lruvec generation
+       lists, bloom filters, mm_struct walk infrastructure, working-set
+       protection tiers and a whole sysfs interface. Replacing
+       classic LRU's cost recording with the MGLRU model would
+       mean dragging in all of that.
+     - It changes scan-balance semantics, not just the locking, so
+       it's a heuristic change we would need to evaluate separately.
+       There are known regressions (database/anon-heavy workloads
+       sensitive to swappiness, or file-cache-dominated workloads
+       where MGLRU's bloom-filter protection differs from classic
+       refault tracking).
+   This series keeps classic LRU's scan-balance model and fixes where
+   its cost history is sampled and aged.
+
+3. Atomic cost counter:
+   lrusize/4 halving has no clean atomic form, and the parent
+   walk still has to run explicitly. Reusing vmstats gives per-CPU
+   aggregation AND rstat hierarchy propagation for free.
+
+4. Drop cost_lock from the existing patch and reuse lru_lock in the
+   consumer (prepare_scan_control()):
+   Saves 1 lock space per lruvec but re-couples the cost path to LRU
+   manipulation, though just from the consumer side this time.
+   prepare_scan_control() runs at the start of every shrink_lruvec()
+   cycle, so under sustained memory pressure it would take lru_lock
+   on the hot path and block isolate_lru_folios() /
+   move_folios_to_lru() / folio_add_lru() i.e. when reclaim is
+   in flight. A dedicated cost_lock is never taken by anyone except
+   the consumer cost calculation.
+
+
+This patch (of 2):
+
+lruvec_page_state(), node_page_state(), and global_node_page_state() all
+clamp negative reads to zero on CONFIG_SMP so that a transient per-CPU
+delta skew presents as zero pages rather than as a garbage unsigned value.
+This is the right behaviour for non-monotonic page-count readers.
+
+It is however incorrect for callers that snapshot a monotonically-
+incremented event counter and compute a delta from two samples.  Once the
+underlying signed long wraps past LONG_MAX, the clamped read drops to zero
+while the previously-recorded snapshot still holds the pre-wrap value; the
+unsigned subtraction then underflows into a ~2^31 spurious delta for
+32-bit architecture and corrupts the caller's accumulator.
+
+Add non-clamping siblings that return the underlying state value cast to
+unsigned long:
+
+  global_node_page_state_monotonic()
+  node_page_state_monotonic()
+  lruvec_page_state_monotonic()
+
+With both samples read via the _monotonic variant, unsigned modular
+subtraction stays correct across a signed-long wraparound as long as the
+true growth between two samples fits in unsigned long (< 2^32 on 32-bit, <
+2^64 on 64-bit); the 32-bit bound is the practically-reachable one that
+motivates this helper.
+
+The variants are only safe for monotonically-incremented counters. 
+Non-monotonic page-count readers must keep using the existing clamped
+helpers so transient negative reads still present as zero.
+
+This is a prerequisite for the following patch which replaces the
+producer-side anon_cost/file_cost accumulators with a read-side
+accumulator in prepare_scan_control() that samples monotonic per-LRU
+vmstat counters (PGROTATE_*, PGRECLAIM_PAGEOUT_*, WORKINGSET_RESTORE_*)
+via lruvec_page_state_monotonic() and folds the unsigned modular delta
+into a per-lruvec cost_accum[].
+
+Link: https://lore.kernel.org/20260720164207.450685-2-usama.arif@linux.dev
+Link: https://gist.github.com/uarif1/a4eb33a86c5b2d7bbc55b42f0956e884 [1]
+Signed-off-by: Usama Arif <usama.arif@linux.dev>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Baoquan He <baoquan.he@linux.dev>
+Cc: Chris Li <chrisl@kernel.org>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Kairui Song <kasong@tencent.com>
 Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
 Cc: Michal Hocko <mhocko@suse.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Toshi Kani <toshi.kani@hpe.com>
-Cc: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
 Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Wei Xu <weixugc@google.com>
+Cc: Yuanchu Xie <yuanchu@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/include/asm/ptdump.h |    2 -
- arch/arm64/mm/mmu.c             |   43 ++----------------------------
- arch/arm64/mm/ptdump.c          |   11 +------
- mm/vmalloc.c                    |   15 ++--------
- 4 files changed, 9 insertions(+), 62 deletions(-)
+ include/linux/memcontrol.h |    8 +++++++
+ include/linux/vmstat.h     |   16 +++++++++++++++
+ mm/memcontrol.c            |   36 +++++++++++++++++++++++++++++++++++
+ mm/vmstat.c                |   11 ++++++++++
+ 4 files changed, 71 insertions(+)
 
---- a/arch/arm64/include/asm/ptdump.h~arm64-remove-redundant-concurrent-ptdump-uaf-mitigation
-+++ a/arch/arm64/include/asm/ptdump.h
-@@ -7,8 +7,6 @@
+--- a/include/linux/memcontrol.h~mm-vmstat-mm-memcontrol-add-_monotonic-vmstat-readers
++++ a/include/linux/memcontrol.h
+@@ -931,6 +931,8 @@ unsigned long memcg_page_state_output(st
+ bool memcg_stat_item_valid(int idx);
+ bool memcg_vm_event_item_valid(enum vm_event_item idx);
+ unsigned long lruvec_page_state(struct lruvec *lruvec, enum node_stat_item idx);
++unsigned long lruvec_page_state_monotonic(struct lruvec *lruvec,
++					  enum node_stat_item idx);
+ unsigned long lruvec_page_state_local(struct lruvec *lruvec,
+ 				      enum node_stat_item idx);
  
- #include <linux/ptdump.h>
- 
--DECLARE_STATIC_KEY_FALSE(arm64_ptdump_lock_key);
--
- #ifdef CONFIG_PTDUMP
- 
- #include <linux/mm_types.h>
---- a/arch/arm64/mm/mmu.c~arm64-remove-redundant-concurrent-ptdump-uaf-mitigation
-+++ a/arch/arm64/mm/mmu.c
-@@ -49,8 +49,6 @@
- #define NO_CONT_MAPPINGS	BIT(1)
- #define NO_EXEC_MAPPINGS	BIT(2)	/* assumes FEAT_HPDS is not used */
- 
--DEFINE_STATIC_KEY_FALSE(arm64_ptdump_lock_key);
--
- u64 kimage_voffset __ro_after_init;
- EXPORT_SYMBOL(kimage_voffset);
- 
-@@ -1864,8 +1862,7 @@ int pmd_clear_huge(pmd_t *pmdp)
- 	return 1;
+@@ -1378,6 +1380,12 @@ static inline unsigned long lruvec_page_
+ 	return node_page_state(lruvec_pgdat(lruvec), idx);
  }
  
--static int __pmd_free_pte_page(pmd_t *pmdp, unsigned long addr,
--			       bool acquire_mmap_lock)
-+int pmd_free_pte_page(pmd_t *pmdp, unsigned long addr)
++static inline unsigned long lruvec_page_state_monotonic(struct lruvec *lruvec,
++							enum node_stat_item idx)
++{
++	return node_page_state_monotonic(lruvec_pgdat(lruvec), idx);
++}
++
+ static inline unsigned long lruvec_page_state_local(struct lruvec *lruvec,
+ 						    enum node_stat_item idx)
  {
- 	pte_t *table;
- 	pmd_t pmd;
-@@ -1877,25 +1874,13 @@ static int __pmd_free_pte_page(pmd_t *pm
- 		return 1;
- 	}
- 
--	/* See comment in pud_free_pmd_page for static key logic */
- 	table = pte_offset_kernel(pmdp, addr);
- 	pmd_clear(pmdp);
- 	__flush_tlb_kernel_pgtable(addr);
--	if (static_branch_unlikely(&arm64_ptdump_lock_key) && acquire_mmap_lock) {
--		mmap_read_lock(&init_mm);
--		mmap_read_unlock(&init_mm);
--	}
--
- 	pte_free_kernel(NULL, table);
- 	return 1;
+--- a/include/linux/vmstat.h~mm-vmstat-mm-memcontrol-add-_monotonic-vmstat-readers
++++ a/include/linux/vmstat.h
+@@ -194,6 +194,19 @@ unsigned long global_node_page_state_pag
+ 	return x;
  }
  
--int pmd_free_pte_page(pmd_t *pmdp, unsigned long addr)
--{
--	/* If ptdump is walking the pagetables, acquire init_mm.mmap_lock */
--	return __pmd_free_pte_page(pmdp, addr, /* acquire_mmap_lock = */ true);
--}
--
- int pud_free_pmd_page(pud_t *pudp, unsigned long addr)
++/*
++ * Non-clamping variant of global_node_page_state() intended for callers that
++ * snapshot a monotonically-incremented counter and subtract two samples.
++ * Returns the raw wrapping value so that unsigned modular subtraction stays
++ * correct across a signed-long overflow (a real hazard on 32-bit) that the
++ * clamp in global_node_page_state() would otherwise turn into a huge spurious
++ * delta. Do NOT use for non-monotonic page-count reads.
++ */
++static inline unsigned long global_node_page_state_monotonic(enum node_stat_item item)
++{
++	return (unsigned long)atomic_long_read(&vm_node_stat[item]);
++}
++
+ static inline unsigned long global_node_page_state(enum node_stat_item item)
  {
- 	pmd_t *table;
-@@ -1911,36 +1896,16 @@ int pud_free_pmd_page(pud_t *pudp, unsig
- 	}
- 
- 	table = pmd_offset(pudp, addr);
--
--	/*
--	 * Our objective is to prevent ptdump from reading a PMD table which has
--	 * been freed. In this race, if pud_free_pmd_page observes the key on
--	 * (which got flipped by ptdump) then the mmap lock sequence here will,
--	 * as a result of the mmap write lock/unlock sequence in ptdump, give
--	 * us the correct synchronization. If not, this means that ptdump has
--	 * yet not started walking the pagetables - the sequence of barriers
--	 * issued by __flush_tlb_kernel_pgtable() guarantees that ptdump will
--	 * observe an empty PUD.
--	 */
--	pud_clear(pudp);
--	__flush_tlb_kernel_pgtable(addr);
--	if (static_branch_unlikely(&arm64_ptdump_lock_key)) {
--		mmap_read_lock(&init_mm);
--		mmap_read_unlock(&init_mm);
--	}
--
- 	pmdp = table;
- 	next = addr;
- 	end = addr + PUD_SIZE;
- 	do {
- 		if (pmd_present(pmdp_get(pmdp)))
--			/*
--			 * PMD has been isolated, so ptdump won't see it. No
--			 * need to acquire init_mm.mmap_lock.
--			 */
--			__pmd_free_pte_page(pmdp, next, /* acquire_mmap_lock = */ false);
-+			pmd_free_pte_page(pmdp, next);
- 	} while (pmdp++, next += PMD_SIZE, next != end);
- 
-+	pud_clear(pudp);
-+	__flush_tlb_kernel_pgtable(addr);
- 	pmd_free(NULL, table);
- 	return 1;
- }
---- a/arch/arm64/mm/ptdump.c~arm64-remove-redundant-concurrent-ptdump-uaf-mitigation
-+++ a/arch/arm64/mm/ptdump.c
-@@ -283,13 +283,6 @@ void note_page_flush(struct ptdump_state
- 	note_page(pt_st, 0, -1, pte_val(pte_zero));
- }
- 
--static void arm64_ptdump_walk_pgd(struct ptdump_state *st, struct mm_struct *mm)
--{
--	static_branch_inc(&arm64_ptdump_lock_key);
--	ptdump_walk_pgd(st, mm, NULL);
--	static_branch_dec(&arm64_ptdump_lock_key);
--}
--
- void ptdump_walk(struct seq_file *s, struct ptdump_info *info)
+ 	VM_WARN_ON_ONCE(vmstat_item_in_bytes(item));
+@@ -259,11 +272,14 @@ extern unsigned long node_page_state(str
+ 						enum node_stat_item item);
+ extern unsigned long node_page_state_pages(struct pglist_data *pgdat,
+ 					   enum node_stat_item item);
++extern unsigned long node_page_state_monotonic(struct pglist_data *pgdat,
++					       enum node_stat_item item);
+ extern void fold_vm_numa_events(void);
+ #else
+ #define sum_zone_node_page_state(node, item) global_zone_page_state(item)
+ #define node_page_state(node, item) global_node_page_state(item)
+ #define node_page_state_pages(node, item) global_node_page_state_pages(item)
++#define node_page_state_monotonic(node, item) global_node_page_state_monotonic(item)
+ static inline void fold_vm_numa_events(void)
  {
- 	unsigned long end = ~0UL;
-@@ -318,7 +311,7 @@ void ptdump_walk(struct seq_file *s, str
- 		}
- 	};
- 
--	arm64_ptdump_walk_pgd(&st.ptdump, info->mm);
-+	ptdump_walk_pgd(&st.ptdump, info->mm, NULL);
+ }
+--- a/mm/memcontrol.c~mm-vmstat-mm-memcontrol-add-_monotonic-vmstat-readers
++++ a/mm/memcontrol.c
+@@ -508,6 +508,42 @@ unsigned long lruvec_page_state(struct l
+ 	return x;
  }
  
- static void __init ptdump_initialize(void)
-@@ -360,7 +353,7 @@ bool ptdump_check_wx(void)
- 		}
- 	};
++/**
++ * lruvec_page_state_monotonic - non-clamping lruvec stat read for delta sampling
++ * @lruvec: the LRU vector to read from
++ * @idx: the node_stat_item to read
++ *
++ * Returns the raw state[idx] value cast to unsigned long, skipping the
++ * clamp-negative-to-zero step in lruvec_page_state(). Intended for callers
++ * that snapshot a monotonically-incremented counter and subtract two
++ * samples: unsigned modular arithmetic then yields the correct delta across
++ * a signed-long wraparound (a real hazard on 32-bit) that the clamp would
++ * otherwise turn into a huge spurious delta.
++ *
++ * Do NOT use for non-monotonic page-count reads where a transient negative
++ * reading from per-CPU delta skew must present as zero.
++ *
++ * XXX: This helper (and its node/global peers) exists because we place
++ * monotonically-incremented event counters (PGROTATE_*, PGRECLAIM_PAGEOUT_*)
++ * into enum node_stat_item.
++ */
++unsigned long lruvec_page_state_monotonic(struct lruvec *lruvec,
++					  enum node_stat_item idx)
++{
++	struct mem_cgroup_per_node *pn;
++	int i;
++
++	if (mem_cgroup_disabled())
++		return node_page_state_monotonic(lruvec_pgdat(lruvec), idx);
++
++	i = memcg_stats_index(idx);
++	if (WARN_ONCE(BAD_STAT_IDX(i), "%s: missing stat item %d\n", __func__, idx))
++		return 0;
++
++	pn = container_of(lruvec, struct mem_cgroup_per_node, lruvec);
++	return (unsigned long)READ_ONCE(pn->lruvec_stats->state[i]);
++}
++
+ unsigned long lruvec_page_state_local(struct lruvec *lruvec,
+ 				      enum node_stat_item idx)
+ {
+--- a/mm/vmstat.c~mm-vmstat-mm-memcontrol-add-_monotonic-vmstat-readers
++++ a/mm/vmstat.c
+@@ -1025,6 +1025,17 @@ unsigned long node_page_state(struct pgl
  
--	arm64_ptdump_walk_pgd(&st.ptdump, &init_mm);
-+	ptdump_walk_pgd(&st.ptdump, &init_mm, NULL);
+ 	return node_page_state_pages(pgdat, item);
+ }
++
++/*
++ * Non-clamping variant of node_page_state() intended for callers that
++ * snapshot a monotonically-incremented counter and subtract two samples.
++ * See global_node_page_state_monotonic() for the rationale.
++ */
++unsigned long node_page_state_monotonic(struct pglist_data *pgdat,
++					enum node_stat_item item)
++{
++	return (unsigned long)atomic_long_read(&pgdat->vm_stat[item]);
++}
+ #endif
  
- 	if (st.wx_pages || st.uxn_pages) {
- 		pr_warn("Checked W+X mappings: FAILED, %lu W+X pages found, %lu non-UXN pages found\n",
---- a/mm/vmalloc.c~arm64-remove-redundant-concurrent-ptdump-uaf-mitigation
-+++ a/mm/vmalloc.c
-@@ -169,10 +169,7 @@ static int vmap_try_huge_pmd(pmd_t *pmd,
- 	 * Concurrent read lock holders are safe: each exclusively owns
- 	 * the range it operates on and cannot reach this page table.
- 	 */
--#ifndef CONFIG_ARM64
--	scoped_cond_guard(mmap_read_lock_try, return 0, &init_mm)
--#endif
--	{
-+	scoped_cond_guard(mmap_read_lock_try, return 0, &init_mm) {
- 		if (!pmd_free_pte_page(pmd, addr))
- 			return 0;
- 		return pmd_set_huge(pmd, phys_addr, prot);
-@@ -229,10 +226,7 @@ static int vmap_try_huge_pud(pud_t *pud,
- 		return pud_set_huge(pud, phys_addr, prot);
- 
- 	/* See comment in vmap_try_huge_pmd(). */
--#ifndef CONFIG_ARM64
--	scoped_cond_guard(mmap_read_lock_try, return 0, &init_mm)
--#endif
--	{
-+	scoped_cond_guard(mmap_read_lock_try, return 0, &init_mm) {
- 		if (!pud_free_pmd_page(pud, addr))
- 			return 0;
- 		return pud_set_huge(pud, phys_addr, prot);
-@@ -289,10 +283,7 @@ static int vmap_try_huge_p4d(p4d_t *p4d,
- 		return p4d_set_huge(p4d, phys_addr, prot);
- 
- 	/* See comment in vmap_try_huge_pmd(). */
--#ifndef CONFIG_ARM64
--	scoped_cond_guard(mmap_read_lock_try, return 0, &init_mm)
--#endif
--	{
-+	scoped_cond_guard(mmap_read_lock_try, return 0, &init_mm) {
- 		if (!p4d_free_pud_page(p4d, addr))
- 			return 0;
- 		return p4d_set_huge(p4d, phys_addr, prot);
+ /*
 _
 
-Patches currently in -mm which might be from ljs@kernel.org are
+Patches currently in -mm which might be from usama.arif@linux.dev are
 
-mm-vmalloc-acquire-init_mm-lock-on-huge-vmap-to-avoid-ptdump-uaf.patch
-x86-mm-pat-acquire-init_mm-write-lock-on-collapse-to-avoid-uaf.patch
-x86-mm-pat-acquire-init_mm-read-lock-on-attribute-change-to-avoid-uaf.patch
-mm-ptdump-always-stabilise-against-page-table-freeing-using-init_mm.patch
-arm64-remove-redundant-concurrent-ptdump-uaf-mitigation.patch
-x86-mm-pat-allocate-split-page-tables-as-kernel-page-tables.patch
-mm-move-alloc-tag-to-mm.patch
-mm-move-vma_start_pgoff-into-mmh-and-clean-up.patch
-mm-add-kdoc-comments-for-vma_start-last_pgoff.patch
-tools-testing-vma-use-vma_start_pgoff-in-merge-tests.patch
-mm-introduce-and-use-vma_end_pgoff.patch
-mm-rmap-update-mm-interval_treec-comments.patch
-mm-rmap-parameterise-vma_interval_tree_-by-address_space.patch
-mm-rmap-elide-unnecessary-static-inlines-in-interval_treec.patch
-mm-rmap-rename-vma_interval_tree_-to-mapping_rmap_tree_.patch
-mm-rmap-parameterise-anon_vma_interval_tree_-by-anon_vma.patch
-mm-rmap-rename-anon_vma_interval_tree_-params-and-use-pgoff_t.patch
-mm-rmap-rename-anon_vma_interval_tree_-to-anon_rmap_tree_.patch
-maintainers-move-mm-interval_treec-to-rmap-section.patch
-mm-vma-introduce-and-use-vmg_pages-vmg__pgoff.patch
-mm-vma-clean-up-anon_vma_compatible.patch
-mm-vma-refactor-vmg_adjust_set_range-for-clarity.patch
-mm-vma-minor-cleanup-of-expand_.patch
-mm-introduce-and-use-linear_page_delta.patch
-mm-vma-use-vma_start_pgoff-linear_page_index-in-mm-code.patch
-mm-prefer-vma__pgoff-to-vma-vm_pgoff-in-kernel.patch
-mm-vma-remove-duplicative-vma_pgoff_offset-helper.patch
-mm-use-linear_page_-consistently.patch
-mm-vma-introduce-vma_assert_can_modify.patch
-mm-vma-add-and-use-vma__pgoff.patch
-mm-vma-move-__install_special_mapping-to-vmac.patch
-mm-vma-make-vma_set_range-static-drop-insert_vm_struct-decl.patch
-mm-vma-update-vma_shrink-to-not-pass-start-pgoff-parameters.patch
-mm-vma-update-vmg_adjust_set_range-to-offset-pgoff-instead.patch
-mm-vma-slightly-rework-the-anonymous-check-in-__mmap_new_vma.patch
-mm-vma-introduce-and-use-vma_set_pgoff.patch
-mm-vma-correct-incorrect-vmah-inclusion.patch
-mm-vma-use-guard-clauses-in-can_vma_merge_.patch
-tools-testing-vma-default-vma-mm-flag-bits-to-64-bit.patch
-tools-testing-vma-output-compared-expression-on-assert_.patch
-mm-introduce-vma_flags_can_grow-and-vma_can_grow.patch
-mm-vma-update-do_mmap-to-use-vma_flags_t.patch
-mm-convert-__get_unmapped_area-to-use-vma_flags_t.patch
-mm-update-generic_get_unmapped_area-to-use-vma_flags_t.patch
-mm-prefer-mm-def_vma_flags-in-mm-logic.patch
-mm-vma-convert-vm_pgprot_modify-to-use-vma_flags_t-and-rename.patch
-mm-vma-rename-vma_get_page_prot-to-vma_flags_to_page_prot.patch
-mm-introduce-vma_get_page_prot-and-use-it.patch
-mm-vma-update-create_init_stack_vma-to-use-vma_flags_t.patch
-mm-vma-convert-miscellaneous-uses-of-vma-flags-in-core-mm.patch
-mm-mlock-convert-mlock-code-to-use-vma_flags_t.patch
-mm-mprotect-convert-mprotect-code-to-use-vma_flags_t.patch
-mm-mremap-convert-mremap-code-to-use-vma_flags_t.patch
-mm-mseal-remove-superfluous-comments-fix-confusion-around-mm.patch
-mm-mseal-limit-scope-of-mseal-address-zero-to-address-zero.patch
-mm-mseal-remove-further-superfluous-comments-do_mseal.patch
-mm-vma-introduce-vma-virtual-page-offset-field-and-add-helpers.patch
-mm-introduce-linear_virt_page_index.patch
-mm-abstract-vma_address-and-introduce-vma_anon_address.patch
-mm-update-print_bad_page_map-to-show-virtual-page-index.patch
-mm-introduce-and-use-vma_filebacked_address.patch
-mm-propagate-vma-virtual-page-offset-on-map-remap-split-merge.patch
-mm-rmap-track-whether-the-page-vma-mapped-walk-is-anonymous.patch
-mm-introduce-and-use-linear_folio_page_index.patch
-mm-rmap-use-virt-pgoff-for-map_private-file-backed-anon-folios.patch
-tools-testing-vma-expand-vma-merge-tests-to-assert-virt-pgoff.patch
-tools-testing-selftests-mm-test-virtual-page-offset-merge-behaviour.patch
-mm-vma-only-permit-map_private-dev-zero-to-be-mapped-anonymous.patch
-mm-vma-make-map_private-mapped-dev-zero-mappings-truly-anonymous.patch
-tools-testing-vma-add-test-to-assert-map_private-dev-zero-is-anon.patch
-tools-testing-selftests-mm-add-map_private-dev-zero-merge-tests.patch
+mm-swap_state-remove-unnecessary-lru_add_drain-from-readahead.patch
+mm-add-softleaf_to_pmd-and-convert-existing-callers.patch
+mm-extract-mm_prepare_for_swap_entries-helper.patch
+fs-proc-use-softleaf_has_pfn-in-pagemap-pmd-walker.patch
+mm-huge_memory-move-softleaf_to_folio-inside-migration-branch.patch
+mm-migrate_device-move-softleaf_to_folio-inside-device-private-branch.patch
+mm-rename-arch_enable_thp_migration-to-arch_has_pmd_softleaves.patch
+mm-vmpressure-skip-tree=true-accounting-on-cgroup-v2.patch
+mm-vmpressure-skip-tree=true-accounting-on-cgroup-v2-fix.patch
+mm-vmpressure-move-v1-userspace-eventfd-code-into-memcontrol-v1c.patch
+mm-migrate_device-pin-large-folios-before-splitting.patch
+mm-migrate_device-pin-large-folios-before-splitting-fix.patch
+mm-mempolicy-skip-non-present-pmds-when-queueing-folios.patch
+mm-madvise-skip-device-private-pmds-in-cold-and-pageout-walks.patch
+mm-huge_memory-skip-device-private-pmds-in-madvise_free_huge_pmd.patch
+mm-vmscan-reduce-lru_lock-contention-via-vmstat-derived-scan-balance-cost.patch
 
