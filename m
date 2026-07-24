@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 110431C5799;
-	Fri, 24 Jul 2026 00:34:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ACBF618DB1A
+	for <mm-commits@vger.kernel.org>; Fri, 24 Jul 2026 00:37:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784853291; cv=none; b=Z7gje7fEkQ1xQXFtWqUxoYQuzuThN6G9lHIQ5BcYUEJIrBEpoI02gA1LvAwEYnzY6atqmlcN0K/QICpQFwER6pTo6Oy4oRIBT3Qr8xm+9KSCbdxP1SDNwPDlLEja2vIuzM/i8BZ1YEyy4pmcB3DX7TW+FEmDI42C2YqsB9upoh0=
+	t=1784853454; cv=none; b=MnsInbHClk+bRqj6J6vYH/EkE9VWXciwFMHLCF4HKJn+KxCoEAR94WBNbR/qbd78h8yIAFJYh7GHIva2qYOKh7wpjQG/622L3z1zTfFe00JkcbboCRIxyi0KwG7w9qsxKTPyd7olIGbyRVbDIzuxQTxKARDLI+yAoiYrJxN8A+g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784853291; c=relaxed/simple;
-	bh=1GupVAdgnh0lmxgtsjqTB23AkfNFdoNx+w0EIZ6NTz8=;
-	h=Date:To:From:Subject:Message-Id; b=Go6DO/fehyGUpMWqL4OIRtcM/UxHAmWM7aRGJIN7lmrVU7vX8+uflet2LpLrPxKSZhmA2rQVVWNfb4M/sC/TPVsUXGP7rrldD4DcUYHgBNIfqRUROlsNY4EodmVe7kNF8oI9ZvtM3hEVOqOT9gbGtntiLLQdnGzTE8v2VyejmuM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TzdgeIPr; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1784853454; c=relaxed/simple;
+	bh=CMWuewrP+TQCjxEBYxBzeWUDMtr1N6bS2wa9d1QWdn4=;
+	h=Date:To:From:Subject:Message-Id; b=TzNLd4Er5Tz2qsuXe9Xd5Il6tEPQr7I+KGeqlypxyELxgI7Y8BGgkT+9qfSeK9uqiDvQZSht3fWZVvowp449fjdAw0mfsDZPGJbAErE/b1zFjew8tBO5YJ+MIYcAKLhAcZsKLBPIZBWpClkxdGQ3t6T9lfL6bd+pZ3FHiHQjGjI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LzdkGOlp; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TzdgeIPr"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 98ACE1F000E9;
-	Fri, 24 Jul 2026 00:34:49 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LzdkGOlp"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4E90F1F000E9;
+	Fri, 24 Jul 2026 00:37:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1784853289;
-	bh=OwSEswP+0sWy9CAHXh9BNNaCZVj9Bpimr3yevuXjqcQ=;
+	d=linux-foundation.org; s=korg; t=1784853453;
+	bh=mte7IK9RPJCOamNchoyTeFaoZBfIk0W0BNAb7RHyEGo=;
 	h=Date:To:From:Subject;
-	b=TzdgeIPrrpQrKraKXg1gLf0mBhb+QtLgwf2GiEush0ShtvXS0U3tthVSpUApBG/K4
-	 1dDHAPkAiXI7gIPwpW/OB+dm59Hk5SB9AnteNWoo6o7LfOLs4OOxpsBoIJRHg6N4YW
-	 piF0WeyepYYguN4RffQwHvWzU2AlvQlhswpKavuM=
-Date: Thu, 23 Jul 2026 17:34:49 -0700
-To: mm-commits@vger.kernel.org,yuanchu@google.com,weixugc@google.com,stable@vger.kernel.org,shikemeng@huaweicloud.com,shakeel.butt@linux.dev,roman.gushchin@linux.dev,qi.zheng@linux.dev,nphamcs@gmail.com,muchun.song@linux.dev,mhocko@kernel.org,ljs@kernel.org,kasong@tencent.com,husong@kylinos.cn,hannes@cmpxchg.org,david@kernel.org,dave@stgolabs.net,chrisl@kernel.org,baoquan.he@linux.dev,baohua@kernel.org,axelrasmussen@google.com,chenridong@xiaomi.com,akpm@linux-foundation.org
+	b=LzdkGOlpV+e/DRqiUgC4RASg/jKHqqlF2y43dfdzN0BF3Rhm0vZ6/u72FvHdBXYIB
+	 jkeSZCKqZ7nzYPzDso10RSq+xTvGkWX1Vf5IjxLCSAOzGAIVEeS9y2d42mIw++IvNN
+	 12nUfBjR0tZGFWuAR6st2W+Nazcj1wVSZ30Q+jSY=
+Date: Thu, 23 Jul 2026 17:37:32 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,lihongfu@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmscan-fix-node-reclaim-ignoring-swappiness-parameter.patch added to mm-new branch
-Message-Id: <20260724003449.98ACE1F000E9@smtp.kernel.org>
+Subject: + mm-use-a-folio-in-the-softleaf_is_device_private-path.patch added to mm-new branch
+Message-Id: <20260724003733.4E90F1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: vmscan: fix node reclaim ignoring swappiness parameter
+     Subject: mm: use a folio in the softleaf_is_device_private path
 has been added to the -mm mm-new branch.  Its filename is
-     mm-vmscan-fix-node-reclaim-ignoring-swappiness-parameter.patch
+     mm-use-a-folio-in-the-softleaf_is_device_private-path.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmscan-fix-node-reclaim-ignoring-swappiness-parameter.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-use-a-folio-in-the-softleaf_is_device_private-path.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,138 +69,81 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Ridong Chen <chenridong@xiaomi.com>
-Subject: mm: vmscan: fix node reclaim ignoring swappiness parameter
-Date: Thu, 23 Jul 2026 11:24:34 +0800
+From: Hongfu Li <lihongfu@kylinos.cn>
+Subject: mm: use a folio in the softleaf_is_device_private path
+Date: Thu, 23 Jul 2026 11:07:51 +0800
 
-sc_swappiness() had two separate definitions depending on CONFIG_MEMCG. 
-The !CONFIG_MEMCG variant simply returned vm_swappiness, ignoring the
-proactive_swappiness value passed through scan_control.  This caused the
-swappiness parameter written to /sys/devices/system/node/nodeX/reclaim to
-have no effect when CONFIG_MEMCG is disabled.
+Patch series "mm: folio conversion and refactoring in do_swap_page()", v2.
 
-Fix this by consolidating sc_swappiness() into a single definition that
-checks sc->proactive_swappiness first, then falls back to
-mem_cgroup_swappiness() which already handles both CONFIG_MEMCG and
-!CONFIG_MEMCG.
+Convert the device-private migration path in do_swap_page() to use folio
+APIs, then extract all non-swap entry handling into a new
+do_non_swap_page() helper to improve readability and reduce the size of
+the main swap fault function.
 
-Before fix (swappiness=max ignored, mostly file pages reclaimed):
 
-    # cat /proc/sys/vm/swappiness
-    60
-    # cat /proc/vmstat | grep pgsteal
-    pgsteal_kswapd 0
-    pgsteal_direct 0
-    pgsteal_khugepaged 0
-    pgsteal_proactive 1840
-    pgsteal_anon 25
-    pgsteal_file 1815
-    # echo "64M swappiness=max" > /sys/devices/system/node/node0/reclaim
-    # cat /proc/vmstat | grep pgsteal
-    pgsteal_kswapd 0
-    pgsteal_direct 0
-    pgsteal_khugepaged 0
-    pgsteal_proactive 18013
-    pgsteal_anon 337
-    pgsteal_file 17676
+This patch (of 2):
 
-After fix (swappiness=max honored, anon pages reclaimed as expected):
+Use the folio APIs in the device_private migration path of do_swap_page(),
+replacing four calls to compound_head() with one.
 
-    # cat /proc/vmstat | grep pgsteal
-    pgsteal_kswapd 0
-    pgsteal_direct 0
-    pgsteal_khugepaged 0
-    pgsteal_proactive 0
-    pgsteal_anon 0
-    pgsteal_file 0
-    # echo "64M swappiness=max" > /sys/devices/system/node/node0/reclaim
-    # cat /proc/vmstat | grep pgsteal
-    pgsteal_kswapd 0
-    pgsteal_direct 0
-    pgsteal_khugepaged 0
-    pgsteal_proactive 16283
-    pgsteal_anon 16283
-    pgsteal_file 0
-
-Link: https://lore.kernel.org/20260723032434.2016749-3-ridong.chen@linux.dev
-Fixes: b980077899ea ("mm: introduce per-node proactive reclaim interface")
-Signed-off-by: Ridong Chen <chenridong@xiaomi.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Reviewed-by: Barry Song <baohua@kernel.org>
-Acked-by: Qi Zheng <qi.zheng@linux.dev>
-Tested-by: Song Hu <husong@kylinos.cn>
-Reviewed-by: Song Hu <husong@kylinos.cn>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Baoquan He <baoquan.he@linux.dev>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Davidlohr Bueso <dave@stgolabs.net>
-Cc: Kairui Song <kasong@tencent.com>
-Cc: Kemeng Shi <shikemeng@huaweicloud.com>
+Link: https://lore.kernel.org/20260723030752.16979-1-hongfu.li@linux.dev
+Link: https://lore.kernel.org/20260723030752.16979-2-hongfu.li@linux.dev
+Signed-off-by: Hongfu Li <lihongfu@kylinos.cn>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Cc: Hongfu Li <lihongfu@kylinos.cn>
+Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Wei Xu <weixugc@google.com>
-Cc: Yuanchu Xie <yuanchu@google.com>
-Cc: <stable@vger.kernel.org>	[6.17+]
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   19 +++++++------------
- 1 file changed, 7 insertions(+), 12 deletions(-)
+ mm/memory.c |   11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
---- a/mm/vmscan.c~mm-vmscan-fix-node-reclaim-ignoring-swappiness-parameter
-+++ a/mm/vmscan.c
-@@ -199,6 +199,13 @@ struct scan_control {
-  */
- int vm_swappiness = 60;
+--- a/mm/memory.c~mm-use-a-folio-in-the-softleaf_is_device_private-path
++++ a/mm/memory.c
+@@ -4922,18 +4922,19 @@ vm_fault_t do_swap_page(struct vm_fault
+ 				goto unlock;
  
-+static int sc_swappiness(struct scan_control *sc, struct mem_cgroup *memcg)
-+{
-+	if (sc->proactive && sc->proactive_swappiness)
-+		return *sc->proactive_swappiness;
-+	return mem_cgroup_swappiness(memcg);
-+}
-+
- #ifdef CONFIG_MEMCG
+ 			/*
+-			 * Get a page reference while we know the page can't be
++			 * Get a folio reference while we know the folio can't be
+ 			 * freed.
+ 			 */
+-			if (trylock_page(vmf->page)) {
++			folio = page_folio(vmf->page);
++			if (folio_trylock(folio)) {
+ 				struct dev_pagemap *pgmap;
  
- /* Returns true for reclaim through cgroup limits or cgroup interfaces. */
-@@ -239,13 +246,6 @@ static bool writeback_throttling_sane(st
- #endif
- 	return false;
- }
--
--static int sc_swappiness(struct scan_control *sc, struct mem_cgroup *memcg)
--{
--	if (sc->proactive && sc->proactive_swappiness)
--		return *sc->proactive_swappiness;
--	return mem_cgroup_swappiness(memcg);
--}
- #else
- static bool cgroup_reclaim(struct scan_control *sc)
- {
-@@ -261,11 +261,6 @@ static bool writeback_throttling_sane(st
- {
- 	return true;
- }
--
--static int sc_swappiness(struct scan_control *sc, struct mem_cgroup *memcg)
--{
--	return READ_ONCE(vm_swappiness);
--}
- #endif
- 
- static inline bool is_exec_file_folio(const struct folio *folio,
+-				get_page(vmf->page);
++				folio_get(folio);
+ 				pte_unmap_unlock(vmf->pte, vmf->ptl);
+ 				pgmap = page_pgmap(vmf->page);
+ 				ret = pgmap->ops->migrate_to_ram(vmf);
+-				unlock_page(vmf->page);
+-				put_page(vmf->page);
++				folio_unlock(folio);
++				folio_put(folio);
+ 			} else {
+ 				pte_unmap(vmf->pte);
+ 				softleaf_entry_wait_on_locked(entry, vmf->ptl);
 _
 
-Patches currently in -mm which might be from chenridong@xiaomi.com are
+Patches currently in -mm which might be from lihongfu@kylinos.cn are
 
-mm-vmscan-fix-anon-only-reclaim-evicting-file-pages-when-swappiness=max.patch
-mm-vmscan-propagate-real-error-code-from-per-node-proactive-reclaim.patch
-mm-vmscan-drop-unused-gfp_mask-parameter-from-__node_reclaim.patch
-memcg-move-mem_cgroup_swappiness-and-vm_swappiness-to-mm-swaph.patch
-mm-vmscan-fix-node-reclaim-ignoring-swappiness-parameter.patch
+selftests-mm-move-pkey-selftest-helpers-to-pkey_utilc.patch
+selftests-mm-unify-pkey-sighandler-selftest-assertions-and-tracing.patch
+selftests-mm-use-pkey_assert-on-clone_raw-failure-in-pkey-test.patch
+selftests-mm-add-missing-mmap-return-checks-in-pkey-tests.patch
+selftests-mm-add-missing-pthread_create-return-checks-in-pkey-tests.patch
+selftests-mm-fix-clone-cleartid-race-in-pkey-sighandler-tests.patch
+selftests-mm-fix-memleak-in-migration-benchmark.patch
+selftests-mm-factor-out-hmm_buffer_alloc-to-consolidate-buffer-setup.patch
+selftests-mm-fix-bug_on-checking-wrong-variable-in-mremap_dontunmap.patch
+mm-swap-fix-swap_cluster_lock-config_swap-stub-signature-mismatch.patch
+mm-use-a-folio-in-the-softleaf_is_device_private-path.patch
+mm-extract-non-swap-page-handling-to-do_non_swap_page.patch
 
