@@ -1,185 +1,353 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.16])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 115521EF39E
-	for <mm-commits@vger.kernel.org>; Sat, 25 Jul 2026 07:13:06 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.16
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 727E53451B0
+	for <mm-commits@vger.kernel.org>; Sat, 25 Jul 2026 21:59:51 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784963588; cv=none; b=eeKARk40KcT6HkOVAagXR+7k18dWXx71I4uKON+AEPzQxxiZxr31nEMvaUUR1kXmseP66XTzbYUp2PlzF9LXo2rJi/4RsLm2i4DNj7zqsbn+wv3Y9eC6hwMOEKwfJC58TxY53Lo8AK5FoxlLMR8UUOySoaQjo2OKW3upCzgP2zQ=
+	t=1785016793; cv=none; b=hUz9YP6lSZYYzwzjOuOMmytfZDgSJYOYHPVB1u9+KygyI418Ej0bMxWm4G1V0McsJYnaK/UUAxBmUcdnlQJdc7DkiwwO5ov/NEEnScN6ivLmDjvBRgtycYfPP6WrDxFLZDnJaplTR+lgh5dbJU7ZJnrUUhbxhAmoGLW32RxP5XE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784963588; c=relaxed/simple;
-	bh=MpetJc+dqyBth0NSHhYUJzOujxWmY7Dbkr/tCp/KxjA=;
-	h=Date:From:To:Cc:Subject:Message-ID; b=KkiazY8++W6hT10N3/y9eErEBUI8xLDG/k9sTi+rQG6OzrxDBRC3kG4TATKYTIycKPs9Zs3j/dSFe1dBHgliECMx9jl786fM4F/3g01Grx2KM9TKocEwDB2xp+7BFc8hjFqThFGfCZZJH6fxdRxmikMWpzWfD4knrdloI0tPqQc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=QROhDAIA; arc=none smtp.client-ip=192.198.163.16
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	s=arc-20240116; t=1785016793; c=relaxed/simple;
+	bh=3ERB/unLdzMLWOVK8U0xBR8IZx4c/p7i2X9cNr9yomA=;
+	h=Date:To:From:Subject:Message-Id; b=Zij5pMrnXG1RPx/u0Qep1QAl9s0Dn/NViaV7EhzBLZnI+0Inm/mcdmYiBc2aXApAg+ML5YHrmnauUboxMk+VjlkiwGTHrTlCZhcpslrbAuLmRGzJQkq7rzfwksaYVtplnyaaixfdmqYnFQE+J5F9WGmG8GOaxQDYR7HOXe7vZhw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=e3NK+ZuA; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="QROhDAIA"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1784963587; x=1816499587;
-  h=date:from:to:cc:subject:message-id;
-  bh=MpetJc+dqyBth0NSHhYUJzOujxWmY7Dbkr/tCp/KxjA=;
-  b=QROhDAIABA5K7iS4+vyvoqpFSh0DX36qNTAoZbJ1P5qSmlkWc5Mz4Wgq
-   PspHB7VJW+2BTT0Z5jIaHHadDfKPi9/u3wE3a8WR7nhKdtit8zYKWpAx0
-   W9/TEgyUBazzkQSKd6NGny2nbSBzZizO3olrX8r+FFXLrnbeX+XXjSY4m
-   fdS+K7nzym4BTZHB/qtLDsNJczSyVnVKTFZKbwWKt6KNJ9/MP1uB+ipRe
-   hIXH0SoQT4dyVgf4R6HTm1GFLKiTx1fjp12ocajXcV14JQ69xJzrHlY8i
-   tRNGTDjS7AQZLvsPM7qKCmP1O+uRmee6SA9ICqWw0YV21o/WgkKmmBiOI
-   g==;
-X-CSE-ConnectionGUID: z1iOLZ9aTPSyxXPi/RAFYA==
-X-CSE-MsgGUID: IEUyY46QR+2ZJsSZ0tbJOQ==
-X-IronPort-AV: E=McAfee;i="6800,10657,11855"; a="73160271"
-X-IronPort-AV: E=Sophos;i="6.25,184,1779174000"; 
-   d="scan'208";a="73160271"
-Received: from orviesa009.jf.intel.com ([10.64.159.149])
-  by fmvoesa110.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 Jul 2026 00:13:06 -0700
-X-CSE-ConnectionGUID: MVE1/rlCQHmLB5Ops7gaAA==
-X-CSE-MsgGUID: GR3LEALYSeSyKPcCYqUYOw==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.25,184,1779174000"; 
-   d="scan'208";a="259560280"
-Received: from lkp-server02.sh.intel.com (HELO ea128546eb3d) ([10.239.97.151])
-  by orviesa009.jf.intel.com with ESMTP; 25 Jul 2026 00:13:05 -0700
-Received: from kbuild by ea128546eb3d with local (Exim 4.98.2)
-	(envelope-from <lkp@intel.com>)
-	id 1wnWYl-00000000bXi-0kmc;
-	Sat, 25 Jul 2026 07:12:43 +0000
-Date: Sat, 25 Jul 2026 15:11:38 +0800
-From: kernel test robot <lkp@intel.com>
-To: David Hildenbrand <david@kernel.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>,
- Linux Memory Management List <linux-mm@kvack.org>,
- mm-commits@vger.kernel.org
-Subject: [akpm-mm:mm-new] BUILD SUCCESS WITH UNVERIFIED WARNING
- 34cacd0ac7c10dc9e34e1b9f28a2b78d335cb487
-Message-ID: <202607251512.KMStVfrY-lkp@intel.com>
-User-Agent: s-nail v14.9.25
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="e3NK+ZuA"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D7CC31F000E9;
+	Sat, 25 Jul 2026 21:59:50 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=linux-foundation.org; s=korg; t=1785016791;
+	bh=07quo1M/C33eTIT+LKLKZ3uJ6Vi2eHcVtfvxYQdIGiY=;
+	h=Date:To:From:Subject;
+	b=e3NK+ZuAtAPuubiNJODnmSR9p+2h3IDNLRLLJ3wXVjzqwi8VLCN9WPmi0W9CXekuL
+	 97rXHxnlo/aVAB4DdSs95B+BvePaicVjp0I1PmBi08MOiG+V5Mayaa836wSQl0Tvz8
+	 QjXnqnn8SMSBFEUV3IwElHSjSEzhgyg8I4NFlZKw=
+Date: Sat, 25 Jul 2026 14:59:50 -0700
+To: mm-commits@vger.kernel.org,williams@redhat.com,stern@rowland.harvard.edu,roman.gushchin@linux.dev,hch@infradead.org,gregkh@linuxfoundation.org,glider@google.com,elver@google.com,dvyukov@google.com,broonie@kernel.org,bigeasy@linutronix.de,andreyknvl@gmail.com,penguin-kernel@I-love.SAKURA.ne.jp,akpm@linux-foundation.org
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: + kcov-fix-data-corruption-and-race-conditions-on-preempt_rt.patch added to mm-nonmm-unstable branch
+Message-Id: <20260725215950.D7CC31F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
-tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm.git mm-new
-branch HEAD: 34cacd0ac7c10dc9e34e1b9f28a2b78d335cb487  mm/swap, PM: hibernate: atomically replace hibernation pin
 
-Unverified Warning (likely false positive, kindly check if interested):
+The patch titled
+     Subject: kcov: fix data corruption and race conditions on PREEMPT_RT
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     kcov-fix-data-corruption-and-race-conditions-on-preempt_rt.patch
 
-    https://lore.kernel.org/oe-kbuild/202607021433.DYT5fDqE-lkp@intel.com
-    https://lore.kernel.org/oe-kbuild/202607120402.clBrrZQA-lkp@intel.com
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kcov-fix-data-corruption-and-race-conditions-on-preempt_rt.patch
 
-    mm/hmm.c:673 hmm_do_fault() error: we previously assumed 'hmm_vma_walk->locked' could be null (see line 654)
-    mm/vmpressure.c:123 vmpressure() warn: check likely/unlikely parentheses
+This patch will later appear in the mm-nonmm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
-Warning ids grouped by kconfigs:
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-recent_errors
-|-- microblaze-randconfig-r072-20260725
-|   `-- mm-hmm.c-hmm_do_fault()-error:we-previously-assumed-hmm_vma_walk-locked-could-be-null-(see-line-)
-`-- um-randconfig-r073-20260725
-    |-- mm-hmm.c-hmm_do_fault()-error:we-previously-assumed-hmm_vma_walk-locked-could-be-null-(see-line-)
-    `-- mm-vmpressure.c-vmpressure()-warn:check-likely-unlikely-parentheses
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
 
-elapsed time: 998m
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
-configs tested: 92
-configs skipped: 8
+------------------------------------------------------
+From: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Subject: kcov: fix data corruption and race conditions on PREEMPT_RT
+Date: Thu, 16 Jul 2026 08:01:29 +0900
 
-tested configs:
-alpha                            allnoconfig    gcc-16.1.0
-alpha                           allyesconfig    gcc-16.1.0
-alpha                              defconfig    gcc-16.1.0
-arc                             allmodconfig    gcc-16.1.0
-arc                             allyesconfig    gcc-16.1.0
-arc                  randconfig-001-20260725    gcc-11.5.0
-arc                  randconfig-002-20260725    gcc-8.5.0
-arm                  randconfig-001-20260725    gcc-8.5.0
-arm                  randconfig-002-20260725    clang-21
-arm                  randconfig-003-20260725    gcc-10.5.0
-arm                  randconfig-004-20260725    gcc-15.2.0
-arm64                randconfig-001-20260725    clang-24
-arm64                randconfig-002-20260725    gcc-13.4.0
-arm64                randconfig-003-20260725    clang-24
-arm64                randconfig-004-20260725    clang-24
-csky                            allmodconfig    gcc-16.1.0
-csky                 randconfig-001-20260725    gcc-9.5.0
-csky                 randconfig-002-20260725    gcc-16.1.0
-hexagon                       randconfig-001    clang-17
-hexagon              randconfig-001-20260725    clang-17
-hexagon              randconfig-002-20260725    clang-24
-i386                            allmodconfig    gcc-14
-i386       buildonly-randconfig-001-20260725    clang-22
-i386       buildonly-randconfig-002-20260725    gcc-14
-i386       buildonly-randconfig-003-20260725    clang-22
-i386       buildonly-randconfig-004-20260725    clang-22
-i386       buildonly-randconfig-005-20260725    gcc-14
-i386       buildonly-randconfig-006-20260725    gcc-14
-i386                 randconfig-001-20260725    clang-22
-i386                 randconfig-002-20260725    gcc-14
-i386                 randconfig-003-20260725    gcc-14
-i386                 randconfig-004-20260725    gcc-12
-i386                 randconfig-005-20260725    clang-22
-i386                 randconfig-006-20260725    gcc-14
-i386                 randconfig-007-20260725    gcc-14
-i386                 randconfig-011-20260725    gcc-14
-i386                 randconfig-012-20260725    gcc-14
-i386                 randconfig-013-20260725    gcc-14
-i386                 randconfig-014-20260725    clang-22
-i386                 randconfig-015-20260725    clang-22
-i386                 randconfig-016-20260725    clang-22
-i386                 randconfig-017-20260725    clang-22
-loongarch                          defconfig    clang-24
-loongarch            randconfig-001-20260725    gcc-16.1.0
-loongarch            randconfig-002-20260725    gcc-13.4.0
-m68k                      m5249evb_defconfig    gcc-16.1.0
-nios2                           allmodconfig    gcc-11.5.0
-nios2                            allnoconfig    gcc-11.5.0
-nios2                randconfig-001-20260725    gcc-11.5.0
-nios2                randconfig-002-20260725    gcc-9.5.0
-parisc                          allmodconfig    gcc-16.1.0
-parisc                          allyesconfig    gcc-16.1.0
-parisc                             defconfig    gcc-16.1.0
-parisc               randconfig-001-20260725    gcc-10.5.0
-parisc               randconfig-002-20260725    gcc-12.5.0
-powerpc              randconfig-001-20260725    gcc-9.5.0
-powerpc              randconfig-002-20260725    gcc-15.2.0
-powerpc64            randconfig-001-20260725    clang-17
-powerpc64            randconfig-002-20260725    clang-24
-riscv                randconfig-001-20260725    gcc-8.5.0
-riscv                randconfig-002-20260725    gcc-8.5.0
-s390                 randconfig-001-20260725    gcc-10.5.0
-s390                 randconfig-002-20260725    gcc-16.1.0
-sh                                 defconfig    gcc-16.1.0
-sh                   randconfig-001-20260725    gcc-16.1.0
-sh                   randconfig-002-20260725    gcc-11.5.0
-sparc                randconfig-001-20260725    gcc-16.1.0
-sparc                randconfig-002-20260725    gcc-8.5.0
-sparc64              randconfig-001-20260725    gcc-8.5.0
-sparc64              randconfig-002-20260725    gcc-10.5.0
-um                   randconfig-001-20260725    gcc-14
-um                   randconfig-002-20260725    clang-24
-x86_64               randconfig-001-20260725    gcc-14
-x86_64               randconfig-002-20260725    clang-22
-x86_64               randconfig-003-20260725    clang-22
-x86_64               randconfig-004-20260725    clang-22
-x86_64               randconfig-005-20260725    clang-22
-x86_64               randconfig-006-20260725    clang-22
-x86_64               randconfig-011-20260725    gcc-14
-x86_64               randconfig-012-20260725    gcc-14
-x86_64               randconfig-013-20260725    gcc-14
-x86_64               randconfig-014-20260725    gcc-14
-x86_64               randconfig-015-20260725    gcc-14
-x86_64               randconfig-016-20260725    gcc-14
-x86_64               randconfig-071-20260725    gcc-14
-x86_64               randconfig-072-20260725    gcc-14
-x86_64               randconfig-073-20260725    gcc-14
-x86_64               randconfig-074-20260725    gcc-14
-x86_64               randconfig-075-20260725    gcc-14
-x86_64               randconfig-076-20260725    clang-22
-xtensa               randconfig-001-20260725    gcc-16.1.0
-xtensa               randconfig-002-20260725    gcc-8.5.0
+syzbot is reporting KCOV state corruption on PREEMPT_RT kernels, for the
+temporary storage used for saving/restoring remote KCOV state is currently
+allocated as the per-CPU area.
 
---
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests/wiki
+On PREEMPT_RT kernels, softirq handlers run as preemptible task threads
+(e.g., ksoftirqd). If a softirq context preempts a task running a remote
+KCOV session, it safely saves the task's state into the per-CPU area.
+However, if that softirq thread is subsequently preempted by a higher-
+priority softirq thread on the same CPU, the second softirq will overwrite
+the same per-CPU area, permanently destroying the original task's KCOV
+state.
+
+Fix this data corruption by moving the temporary storage from the per-CPU
+area to the per-thread area. Since each softirq thread now owns its own
+task context, nested softirq preemption no longer causes data overwrites.
+
+Note that while the temporary storage is now on a per-thread basis, the
+per-CPU kcov_percpu_data.lock must be retained, for we need to ensure that
+kcov_remote_start() and kcov_remote_stop() operate atomically without
+racing against asynchronous interrupts that manipulate the current task's
+KCOV state.
+
+It is likely that GFP_KERNEL allocation by vmalloc_node() in kcov_init()
+has already called panic() before returning NULL, for there will be no
+OOM-killable userspace processes when __init function of built-in module
+runs. But this patch also fixes crashing the kernel when vmalloc_node()
+in kcov_init() returned NULL, for kcov_init() left per-CPU irq_area == NULL
+but kcov_remote_start() depends on per-CPU irq_area != NULL, resulting in
+
+  (1) doing vmalloc() in kcov_remote_start() despite !in_task() context
+
+  (2) out-of-array-bounds access if (1) succeeded but
+      kcov->remote_size < CONFIG_KCOV_IRQ_AREA_SIZE
+
+  (3) always leak memory allocated by (1), eventually killing all
+      OOM-killable userspace processes
+
+problems.
+
+Link: https://lore.kernel.org/43552d09-2ce2-4b19-b0d3-a2d1ab952145@I-love.SAKURA.ne.jp
+Reported-by: syzbot+3f51ad7ac3ae57a6fdcc@syzkaller.appspotmail.com
+Closes: https://syzkaller.appspot.com/bug?extid=3f51ad7ac3ae57a6fdcc
+Reported-by: syzbot+47cf95ca1f9dcca872c8@syzkaller.appspotmail.com
+Closes: https://syzkaller.appspot.com/bug?extid=47cf95ca1f9dcca872c8
+Reported-by: syzbot+8a173e13208949931dc7@syzkaller.appspotmail.com
+Closes: https://syzkaller.appspot.com/bug?extid=8a173e13208949931dc7
+Reported-by: syzbot+90984d3713722683112e@syzkaller.appspotmail.com
+Closes: https://syzkaller.appspot.com/bug?extid=90984d3713722683112e
+Analyzed-by: AI Mode in Google Search (no mail address)
+Fixes: 5ff3b30ab57d ("kcov: collect coverage from interrupts")
+Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Reviewed-by: Alexander Potapenko <glider@google.com>
+Cc: Alan Stern <stern@rowland.harvard.edu>
+Cc: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Clark Williams <williams@redhat.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Marco Elver <elver@google.com>
+Cc: Mark Brown <broonie@kernel.org>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ include/linux/sched.h |    8 +++
+ kernel/kcov.c         |   90 ++++++++++++++++++++--------------------
+ lib/Kconfig.debug     |    5 +-
+ 3 files changed, 58 insertions(+), 45 deletions(-)
+
+--- a/include/linux/sched.h~kcov-fix-data-corruption-and-race-conditions-on-preempt_rt
++++ a/include/linux/sched.h
+@@ -1544,6 +1544,14 @@ struct task_struct {
+ 
+ 	/* Collect coverage from softirq context: */
+ 	unsigned int			kcov_softirq;
++
++	/* Temporary storage for preempting remote coverage collection: */
++	unsigned int			kcov_saved_mode;
++	unsigned int			kcov_saved_size;
++	void				*kcov_saved_area;
++	struct kcov			*kcov_saved_kcov;
++	int				kcov_saved_sequence;
++
+ #endif
+ 
+ #ifdef CONFIG_MEMCG_V1
+--- a/kernel/kcov.c~kcov-fix-data-corruption-and-race-conditions-on-preempt_rt
++++ a/kernel/kcov.c
+@@ -86,17 +86,12 @@ struct kcov_remote {
+ 
+ static DEFINE_SPINLOCK(kcov_remote_lock);
+ static DEFINE_HASHTABLE(kcov_remote_map, 4);
+-static struct list_head kcov_remote_areas = LIST_HEAD_INIT(kcov_remote_areas);
++static struct list_head kcov_remote_areas[2] = {
++	LIST_HEAD_INIT(kcov_remote_areas[0]), LIST_HEAD_INIT(kcov_remote_areas[1])
++};
+ 
+ struct kcov_percpu_data {
+-	void			*irq_area;
+ 	local_lock_t		lock;
+-
+-	unsigned int		saved_mode;
+-	unsigned int		saved_size;
+-	void			*saved_area;
+-	struct kcov		*saved_kcov;
+-	int			saved_sequence;
+ };
+ 
+ static DEFINE_PER_CPU(struct kcov_percpu_data, kcov_percpu_data) = {
+@@ -132,12 +127,13 @@ static struct kcov_remote *kcov_remote_a
+ }
+ 
+ /* Must be called with kcov_remote_lock locked. */
+-static struct kcov_remote_area *kcov_remote_area_get(unsigned int size)
++static struct kcov_remote_area *kcov_remote_area_get(unsigned int size, bool irq)
+ {
+ 	struct kcov_remote_area *area;
+ 	struct list_head *pos;
++	struct list_head *list = &kcov_remote_areas[irq];
+ 
+-	list_for_each(pos, &kcov_remote_areas) {
++	list_for_each(pos, list) {
+ 		area = list_entry(pos, struct kcov_remote_area, list);
+ 		if (area->size == size) {
+ 			list_del(&area->list);
+@@ -149,11 +145,11 @@ static struct kcov_remote_area *kcov_rem
+ 
+ /* Must be called with kcov_remote_lock locked. */
+ static void kcov_remote_area_put(struct kcov_remote_area *area,
+-					unsigned int size)
++				 unsigned int size, bool irq)
+ {
+ 	INIT_LIST_HEAD(&area->list);
+ 	area->size = size;
+-	list_add(&area->list, &kcov_remote_areas);
++	list_add(&area->list, &kcov_remote_areas[irq]);
+ 	/*
+ 	 * KMSAN doesn't instrument this file, so it may not know area->list
+ 	 * is initialized. Unpoison it explicitly to avoid reports in
+@@ -390,6 +386,12 @@ void kcov_task_init(struct task_struct *
+ 	kcov_task_reset(t);
+ 	t->kcov_remote = NULL;
+ 	t->kcov_handle = current->kcov_handle;
++	t->kcov_softirq = 0;
++	t->kcov_saved_mode = 0;
++	t->kcov_saved_size = 0;
++	t->kcov_saved_area = NULL;
++	t->kcov_saved_kcov = NULL;
++	t->kcov_saved_sequence = 0;
+ }
+ 
+ static void kcov_reset(struct kcov *kcov)
+@@ -836,17 +838,16 @@ static inline bool kcov_mode_enabled(uns
+ static void kcov_remote_softirq_start(struct task_struct *t)
+ 	__must_hold(&kcov_percpu_data.lock)
+ {
+-	struct kcov_percpu_data *data = this_cpu_ptr(&kcov_percpu_data);
+ 	unsigned int mode;
+ 
+ 	mode = READ_ONCE(t->kcov_mode);
+ 	barrier();
+ 	if (kcov_mode_enabled(mode)) {
+-		data->saved_mode = mode;
+-		data->saved_size = t->kcov_size;
+-		data->saved_area = t->kcov_area;
+-		data->saved_sequence = t->kcov_sequence;
+-		data->saved_kcov = t->kcov;
++		t->kcov_saved_mode = mode;
++		t->kcov_saved_size = t->kcov_size;
++		t->kcov_saved_area = t->kcov_area;
++		t->kcov_saved_sequence = t->kcov_sequence;
++		t->kcov_saved_kcov = t->kcov;
+ 		kcov_stop(t);
+ 	}
+ }
+@@ -854,17 +855,15 @@ static void kcov_remote_softirq_start(st
+ static void kcov_remote_softirq_stop(struct task_struct *t)
+ 	__must_hold(&kcov_percpu_data.lock)
+ {
+-	struct kcov_percpu_data *data = this_cpu_ptr(&kcov_percpu_data);
+-
+-	if (data->saved_kcov) {
+-		kcov_start(t, data->saved_kcov, data->saved_size,
+-				data->saved_area, data->saved_mode,
+-				data->saved_sequence);
+-		data->saved_mode = 0;
+-		data->saved_size = 0;
+-		data->saved_area = NULL;
+-		data->saved_sequence = 0;
+-		data->saved_kcov = NULL;
++	if (t->kcov_saved_kcov) {
++		kcov_start(t, t->kcov_saved_kcov, t->kcov_saved_size,
++			   t->kcov_saved_area, t->kcov_saved_mode,
++			   t->kcov_saved_sequence);
++		t->kcov_saved_mode = 0;
++		t->kcov_saved_size = 0;
++		t->kcov_saved_area = NULL;
++		t->kcov_saved_sequence = 0;
++		t->kcov_saved_kcov = NULL;
+ 	}
+ }
+ 
+@@ -927,17 +926,17 @@ void kcov_remote_start(u64 handle)
+ 	sequence = kcov->sequence;
+ 	if (in_task()) {
+ 		size = kcov->remote_size;
+-		area = kcov_remote_area_get(size);
++		area = kcov_remote_area_get(size, false);
+ 	} else {
+ 		size = CONFIG_KCOV_IRQ_AREA_SIZE;
+-		area = this_cpu_ptr(&kcov_percpu_data)->irq_area;
++		area = kcov_remote_area_get(size, true);
+ 	}
+ 	spin_unlock(&kcov_remote_lock);
+ 
+-	/* Can only happen when in_task(). */
++	/* Allocate new buffer if we can sleep. */
+ 	if (!area) {
+ 		local_unlock_irqrestore(&kcov_percpu_data.lock, flags);
+-		area = vmalloc(size * sizeof(unsigned long));
++		area = in_task() ? vmalloc(size * sizeof(unsigned long)) : NULL;
+ 		if (!area) {
+ 			kcov_put(kcov);
+ 			return;
+@@ -1079,11 +1078,9 @@ void kcov_remote_stop(void)
+ 		kcov_move_area(kcov->mode, kcov->area, kcov->size, area);
+ 	spin_unlock(&kcov->lock);
+ 
+-	if (in_task()) {
+-		spin_lock(&kcov_remote_lock);
+-		kcov_remote_area_put(area, size);
+-		spin_unlock(&kcov_remote_lock);
+-	}
++	spin_lock(&kcov_remote_lock);
++	kcov_remote_area_put(area, size, !in_task());
++	spin_unlock(&kcov_remote_lock);
+ 
+ 	local_unlock_irqrestore(&kcov_percpu_data.lock, flags);
+ 
+@@ -1129,14 +1126,21 @@ static void __init selftest(void)
+ 
+ static int __init kcov_init(void)
+ {
+-	int cpu;
++	int cpu = num_possible_cpus();
++
++#ifdef CONFIG_PREEMPT_RT
++	/* Allocate some extra buffers in order to prepare for softirq preemption. */
++	cpu = cpu >= 4 ? cpu * 2 : cpu + 4;
++#endif
++	while (cpu--) {
++		void *area = vmalloc(CONFIG_KCOV_IRQ_AREA_SIZE * sizeof(unsigned long));
++		unsigned long flags;
+ 
+-	for_each_possible_cpu(cpu) {
+-		void *area = vmalloc_node(CONFIG_KCOV_IRQ_AREA_SIZE *
+-				sizeof(unsigned long), cpu_to_node(cpu));
+ 		if (!area)
+ 			return -ENOMEM;
+-		per_cpu_ptr(&kcov_percpu_data, cpu)->irq_area = area;
++		spin_lock_irqsave(&kcov_remote_lock, flags);
++		kcov_remote_area_put(area, CONFIG_KCOV_IRQ_AREA_SIZE, true);
++		spin_unlock_irqrestore(&kcov_remote_lock, flags);
+ 	}
+ 
+ 	/*
+--- a/lib/Kconfig.debug~kcov-fix-data-corruption-and-race-conditions-on-preempt_rt
++++ a/lib/Kconfig.debug
+@@ -2219,10 +2219,11 @@ config KCOV_INSTRUMENT_ALL
+ config KCOV_IRQ_AREA_SIZE
+ 	hex "Size of interrupt coverage collection area in words"
+ 	depends on KCOV
++	range 0x80 0x1000000
+ 	default 0x40000
+ 	help
+-	  KCOV uses preallocated per-cpu areas to collect coverage from
+-	  soft interrupts. This specifies the size of those areas in the
++	  KCOV uses preallocated areas to collect coverage from soft
++	  interrupts. This specifies the size of those areas in the
+ 	  number of unsigned long words.
+ 
+ config KCOV_SELFTEST
+_
+
+Patches currently in -mm which might be from penguin-kernel@I-love.SAKURA.ne.jp are
+
+kcov-fix-data-corruption-and-race-conditions-on-preempt_rt.patch
+
