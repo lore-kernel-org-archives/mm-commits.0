@@ -1,195 +1,133 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C5431233926
-	for <mm-commits@vger.kernel.org>; Fri, 24 Jul 2026 05:38:04 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 408B72367DF
+	for <mm-commits@vger.kernel.org>; Sat, 25 Jul 2026 00:58:01 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.10
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784871486; cv=none; b=Z2I6papdBP6PmSOcWI2+cylsVF+pXCYFExzLgEXmmVCo9VL6a1uU8u3OutKhGDS8GYoMENrbURzQLoWEwSWBIoWR6u9hV0Ll2X0njS/sPE+X38nShNZ1NTIgT/BjgijMGz+r37MyWb02mNZNSWt9LgUPHgOtJnLjWqIeMePZ8wY=
+	t=1784941083; cv=none; b=OA4m4C9b4yVxsM6FkUNyyZBngkjx8ueL757chEreYmwIxoI3MC7pCfPmc6ZX7SbkEaEpshqruwdaYocBsWawVtJyShGqsQQL+4wfe6yZQYVZvs1g6jlmPLGQysDUjaZwC2JcGklcdp2TjvACzXyZCSpI9uNqRGzsDj5knlKBPGM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784871486; c=relaxed/simple;
-	bh=wzTfhSDY0gNge6UjRYlFZcntyLuM3x6gkBYq17fGxbM=;
-	h=Date:To:From:Subject:Message-Id; b=NkNSbLa0vLnh2dKUqT/9brMNNOrcXgk///V9VhOsQImGFTYiToTIRSu/kZAIwRjVhcqGqNuX9pdBe1VyIK60xxRSyP2XGYs2Ilg2UU0u9HrSnRz4jVUeYeN00Ctx6iN9vN4ZTB5YmYrKwfVPeTh94XKh5/JkYGZdCmu6ZFEoDTg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xSQ6kxzV; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1784941083; c=relaxed/simple;
+	bh=OAC6lBYbl8VKrUKfiQCex2CU2yUl/JiNEBgpQiMRODM=;
+	h=Date:From:To:Cc:Subject:Message-ID; b=knk8kjnRx9HY/PBkUm6uGDGzdZNA3kitO8GuUU6xTwBUQuErHghaTifrrW3m4lyzkv9wIUV9xAPZJ9R8YWq64m1MmiJm5PDJPJ63mrpwk9/LDNuWTFSeYrTbwLIBd3qzqTJhHgb1mg6gwmSJ0tsXBls8e8fwGxmz8il68H+O0DA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=mSwVacUg; arc=none smtp.client-ip=192.198.163.10
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xSQ6kxzV"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 21D881F000E9;
-	Fri, 24 Jul 2026 05:38:04 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1784871484;
-	bh=/IdIjUPm3+/b+6JHAlApi169ob2Hn118WeViKYJCUZk=;
-	h=Date:To:From:Subject;
-	b=xSQ6kxzVJUgk+0xX/Dl6adptvZL8K7EI0EIacR1b1KMRqaomOevxpxeDIM0qQXNIV
-	 vprvsWsD/gwW3HDO7B2UFfAsAA8AmRGowh6gJvXX0E4tdyIx/3DljEpXkgdKnKVLLB
-	 Fu33ybZKhPsJI/KlrLS74oV7fbV4C24I5J5sQLd0=
-Date: Thu, 23 Jul 2026 22:38:03 -0700
-To: mm-commits@vger.kernel.org,chenridong@xiaomi.com,akpm@linux-foundation.org
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mglru-fix-anon-only-reclaim-evicting-file-pages-when-swappiness=max.patch added to mm-unstable branch
-Message-Id: <20260724053804.21D881F000E9@smtp.kernel.org>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="mSwVacUg"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1784941081; x=1816477081;
+  h=date:from:to:cc:subject:message-id;
+  bh=OAC6lBYbl8VKrUKfiQCex2CU2yUl/JiNEBgpQiMRODM=;
+  b=mSwVacUgqVGE3K3lQyNith4rOM99IRWhwfqjHtgoEyxIqQJlrryBeOCS
+   XHHH0zvKyCYO/PdrCVZU+YQWktgmt6NRiUZcnpfmGAstwT2FT0/to2CEY
+   /P7H+T0SSORthGwCOWQPH5BR488zPVLGt6rxdsoLCr0U40M7Cr57aQ4BX
+   0kCq+SVr7ai3iqLhPzz/77RmlaIjrmQNP0N7YXmH3HSclhPR2uGTEXLSf
+   10aZ3VhgkJziO9PhNOmOXr7AJIJcCq71r/EqZHqngXoWilzcWrZfm3FoN
+   PDyyVEVMIXTMEEKJKCf8nQcYL0YTGbHYNeTNRiQt/DVLMNn47jqQ+eFXp
+   g==;
+X-CSE-ConnectionGUID: kxiDR9GrQsSiQi4VCJGSMw==
+X-CSE-MsgGUID: ioU9JU/LTEKcaSJt1N5KfQ==
+X-IronPort-AV: E=McAfee;i="6800,10657,11855"; a="96984155"
+X-IronPort-AV: E=Sophos;i="6.25,183,1779174000"; 
+   d="scan'208";a="96984155"
+Received: from fmviesa005.fm.intel.com ([10.60.135.145])
+  by fmvoesa104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Jul 2026 17:58:00 -0700
+X-CSE-ConnectionGUID: WWJvxTpxS3yqv0N+7GfukQ==
+X-CSE-MsgGUID: HVpGNqwLR3q7V+kGTWL2/w==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.25,183,1779174000"; 
+   d="scan'208";a="263850546"
+Received: from lkp-server02.sh.intel.com (HELO ea128546eb3d) ([10.239.97.151])
+  by fmviesa005.fm.intel.com with ESMTP; 24 Jul 2026 17:57:58 -0700
+Received: from kbuild by ea128546eb3d with local (Exim 4.98.2)
+	(envelope-from <lkp@intel.com>)
+	id 1wnQiB-00000000bNy-2WA9;
+	Sat, 25 Jul 2026 00:57:55 +0000
+Date: Sat, 25 Jul 2026 08:56:41 +0800
+From: kernel test robot <lkp@intel.com>
+To: "Kiryl Shutsemau (Meta)" <kas@kernel.org>
+Cc: oe-kbuild-all@lists.linux.dev, David Hildenbrand <david@kernel.org>,
+ Andrew Morton <akpm@linux-foundation.org>,
+ Linux Memory Management List <linux-mm@kvack.org>,
+ mm-commits@vger.kernel.org
+Subject: [akpm-mm:mm-unstable 340/601]
+ include/linux/compiler_types.h:702:38: error: call to
+ '__compiletime_assert_501' declared with attribute error: BUILD_BUG failed
+Message-ID: <202607250853.VaJWGLeA-lkp@intel.com>
+User-Agent: s-nail v14.9.25
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
+tree:   https://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm.git mm-unstable
+head:   c04df384b55dd9dcf72c36b661becb5aaba371a9
+commit: d2aed7c02fafacb9d055a2f683ac12e977ef16e0 [340/601] mm: preserve RWP marker across PTE rewrites
+config: sparc64-randconfig-r134-20260725 (https://download.01.org/0day-ci/archive/20260725/202607250853.VaJWGLeA-lkp@intel.com/config)
+compiler: sparc64-linux-gcc (GCC) 8.5.0
+sparse: v0.6.5-rc1
+reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20260725/202607250853.VaJWGLeA-lkp@intel.com/reproduce)
 
-The patch titled
-     Subject: mm/mglru: fix anon-only reclaim evicting file pages when swappiness=max
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-mglru-fix-anon-only-reclaim-evicting-file-pages-when-swappiness=max.patch
+If you fix the issue in a separate patch/commit (i.e. not just a new version of
+the same patch/commit), kindly add following tags
+| Reported-by: kernel test robot <lkp@intel.com>
+| Closes: https://lore.kernel.org/oe-kbuild-all/202607250853.VaJWGLeA-lkp@intel.com/
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mglru-fix-anon-only-reclaim-evicting-file-pages-when-swappiness=max.patch
+All errors (new ones prefixed by >>):
 
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+   In file included from <command-line>:
+   mm/huge_memory.c: In function 'move_pages_huge_pmd':
+>> include/linux/compiler_types.h:702:38: error: call to '__compiletime_assert_501' declared with attribute error: BUILD_BUG failed
+     _compiletime_assert(condition, msg, __compiletime_assert_, __COUNTER__)
+                                         ^
+   include/linux/compiler_types.h:683:4: note: in definition of macro '__compiletime_assert'
+       prefix ## suffix();    \
+       ^~~~~~
+   include/linux/compiler_types.h:702:2: note: in expansion of macro '_compiletime_assert'
+     _compiletime_assert(condition, msg, __compiletime_assert_, __COUNTER__)
+     ^~~~~~~~~~~~~~~~~~~
+   include/linux/build_bug.h:40:37: note: in expansion of macro 'compiletime_assert'
+    #define BUILD_BUG_ON_MSG(cond, msg) compiletime_assert(!(cond), msg)
+                                        ^~~~~~~~~~~~~~~~~~
+   include/linux/build_bug.h:60:21: note: in expansion of macro 'BUILD_BUG_ON_MSG'
+    #define BUILD_BUG() BUILD_BUG_ON_MSG(1, "BUILD_BUG failed")
+                        ^~~~~~~~~~~~~~~~
+   include/linux/pgtable.h:2145:22: note: in expansion of macro 'BUILD_BUG'
+    #define PAGE_NONE ({ BUILD_BUG(); (pgprot_t){0}; })
+                         ^~~~~~~~~
+   mm/huge_memory.c:2874:35: note: in expansion of macro 'PAGE_NONE'
+      _dst_pmd = pmd_modify(_dst_pmd, PAGE_NONE);
+                                      ^~~~~~~~~
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+vim +/__compiletime_assert_501 +702 include/linux/compiler_types.h
 
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+eb5c2d4b45e3d2 Will Deacon 2020-07-21  688  
+eb5c2d4b45e3d2 Will Deacon 2020-07-21  689  #define _compiletime_assert(condition, msg, prefix, suffix) \
+eb5c2d4b45e3d2 Will Deacon 2020-07-21  690  	__compiletime_assert(condition, msg, prefix, suffix)
+eb5c2d4b45e3d2 Will Deacon 2020-07-21  691  
+eb5c2d4b45e3d2 Will Deacon 2020-07-21  692  /**
+eb5c2d4b45e3d2 Will Deacon 2020-07-21  693   * compiletime_assert - break build and emit msg if condition is false
+eb5c2d4b45e3d2 Will Deacon 2020-07-21  694   * @condition: a compile-time constant condition to check
+eb5c2d4b45e3d2 Will Deacon 2020-07-21  695   * @msg:       a message to emit if condition is false
+eb5c2d4b45e3d2 Will Deacon 2020-07-21  696   *
+eb5c2d4b45e3d2 Will Deacon 2020-07-21  697   * In tradition of POSIX assert, this macro will break the build if the
+eb5c2d4b45e3d2 Will Deacon 2020-07-21  698   * supplied condition is *false*, emitting the supplied error message if the
+eb5c2d4b45e3d2 Will Deacon 2020-07-21  699   * compiler has support to do so.
+eb5c2d4b45e3d2 Will Deacon 2020-07-21  700   */
+eb5c2d4b45e3d2 Will Deacon 2020-07-21  701  #define compiletime_assert(condition, msg) \
+eb5c2d4b45e3d2 Will Deacon 2020-07-21 @702  	_compiletime_assert(condition, msg, __compiletime_assert_, __COUNTER__)
+eb5c2d4b45e3d2 Will Deacon 2020-07-21  703  
 
-------------------------------------------------------
-From: Ridong Chen <chenridong@xiaomi.com>
-Subject: mm/mglru: fix anon-only reclaim evicting file pages when swappiness=max
-Date: Fri, 24 Jul 2026 11:34:35 +0800
+:::::: The code at line 702 was first introduced by commit
+:::::: eb5c2d4b45e3d2d5d052ea6b8f1463976b1020d5 compiler.h: Move compiletime_assert() macros into compiler_types.h
 
-The previous patch fixed this issue for the traditional LRU.  The same
-problem exists in MGLRU [1]: when swappiness=max (SWAPPINESS_ANON_ONLY) is
-set, reclaim is expected to evict anonymous pages exclusively, but file
-pages can still be reclaimed when anonymous pages cannot be reclaimed
-(e.g.  no swap and no demotion target).
+:::::: TO: Will Deacon <will@kernel.org>
+:::::: CC: Will Deacon <will@kernel.org>
 
-Fix it the same way as the traditional LRU: keep returning
-SWAPPINESS_ANON_ONLY in get_swappiness(), and return 0 from
-get_nr_to_scan() when SWAPPINESS_ANON_ONLY is set but anon pages cannot be
-reclaimed.  Since get_nr_to_scan() decides how much MGLRU scans, returning
-0 skips the scan entirely and avoids the useless scan work when there is
-nothing eligible to reclaim.
-
-The test result:
-Before fix:
-
-  # cat /sys/kernel/mm/lru_gen/enabled
-  0x0007
-  # cat memory.stat
-  anon 204800
-  file 67108864
-  ...
-  pgsteal_proactive 0
-  pgscan_proactive 0
-
-  # echo "64M swappiness=max" > memory.reclaim
-  # cat memory.stat
-  anon 208896
-  file 0
-  ...
-  pgsteal_proactive 16384
-  pgscan_proactive 16384
-
-After fix:
-
-  # cat memory.stat
-  anon 188416
-  file 67215360
-  kernel 1970176
-  ...
-  pgsteal_proactive 0
-  pgscan_proactive 0
-
-  # echo "64M swappiness=max" > memory.reclaim
-  -bash: echo: write error: Resource temporarily unavailable
-  # cat memory.stat
-  anon 204800
-  file 67215360
-  ...
-  pgsteal_proactive 0
-  pgscan_proactive 0
-
-Link: https://lore.kernel.org/20260724033435.2573323-5-ridong.chen@linux.dev
-Link: https://sashiko.dev/#/patchset/20260717113300.214717-1-ridong.chen@linux.dev [1]
-Fixes: 68a1436bde00 ("mm: add swappiness=max arg to memory.reclaim for only anon reclaim")
-Signed-off-by: Ridong Chen <chenridong@xiaomi.com>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Davidlohr Bueso <dave@stgolabs.net>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Kairui Song <kasong@tencent.com>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Qi Zheng <qi.zheng@linux.dev>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Wei Xu <weixugc@google.com>
-Cc: Yuanchu Xie <yuanchu@google.com>
-Cc: Zhongkun He <hezhongkun.hzk@bytedance.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- mm/vmscan.c |   20 +++++++++++++++++++-
- 1 file changed, 19 insertions(+), 1 deletion(-)
-
---- a/mm/vmscan.c~mm-mglru-fix-anon-only-reclaim-evicting-file-pages-when-swappiness=max
-+++ a/mm/vmscan.c
-@@ -2699,6 +2699,10 @@ static int get_swappiness(struct lruvec
- {
- 	struct mem_cgroup *memcg = lruvec_memcg(lruvec);
- 	struct pglist_data *pgdat = lruvec_pgdat(lruvec);
-+	int swappiness = sc_swappiness(sc, memcg);
-+
-+	if (swappiness == SWAPPINESS_ANON_ONLY)
-+		return swappiness;
- 
- 	if (!sc->may_swap)
- 		return 0;
-@@ -2707,7 +2711,7 @@ static int get_swappiness(struct lruvec
- 	    mem_cgroup_get_nr_swap_pages(memcg) < MIN_LRU_BATCH)
- 		return 0;
- 
--	return sc_swappiness(sc, memcg);
-+	return swappiness;
- }
- 
- static int get_nr_gens(struct lruvec *lruvec, int type)
-@@ -4909,6 +4913,20 @@ static long get_nr_to_scan(struct lruvec
- 			   struct mem_cgroup *memcg, int swappiness)
- {
- 	unsigned long nr_to_scan, evictable;
-+	struct pglist_data *pgdat = lruvec_pgdat(lruvec);
-+
-+	/*
-+	 * Proactive reclaim initiated by userspace for anonymous memory only.
-+	 * SWAPPINESS_ANON_ONLY is set only on the proactive reclaim path, so
-+	 * warn if it shows up elsewhere. When anon cannot be reclaimed (e.g.
-+	 * no swap), return 0 to skip the scan entirely, avoiding useless scan
-+	 * work when there is nothing eligible to reclaim.
-+	 */
-+	if (swappiness == SWAPPINESS_ANON_ONLY) {
-+		WARN_ON_ONCE(!sc->proactive);
-+		if (!can_reclaim_anon_pages(memcg, pgdat->node_id, sc))
-+			return 0;
-+	}
- 
- 	evictable = lruvec_evictable_size(lruvec, swappiness);
- 
-_
-
-Patches currently in -mm which might be from chenridong@xiaomi.com are
-
-mm-vmscan-fix-anon-only-reclaim-evicting-file-pages-when-swappiness=max.patch
-mm-vmscan-propagate-real-error-code-from-per-node-proactive-reclaim.patch
-mm-vmscan-drop-unused-gfp_mask-parameter-from-__node_reclaim.patch
-mm-mglru-fix-anon-only-reclaim-evicting-file-pages-when-swappiness=max.patch
-memcg-move-mem_cgroup_swappiness-and-vm_swappiness-to-mm-swaph.patch
-mm-vmscan-fix-node-reclaim-ignoring-swappiness-parameter.patch
-
+--
+0-DAY CI Kernel Test Service
+https://github.com/intel/lkp-tests/wiki
