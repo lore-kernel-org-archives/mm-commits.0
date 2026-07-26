@@ -1,124 +1,86 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5A129330656
-	for <mm-commits@vger.kernel.org>; Sun, 26 Jul 2026 02:39:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9EDA741C6A;
+	Sun, 26 Jul 2026 02:51:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785033564; cv=none; b=KtYQRKT67ftl1TeGYPeaBSwNTAB+kOgjPR/WOyYiC0nepEvaNv1/Lwx38HX2tyawjRKCDTfRfNFZrwhCb0qJXASmpZ9D47zVBMkkmKAaD7J0TdgvTHyob3W0yiID3sO75N4rg5p560NmJG6X0dOPDuG6IJWDqrOHLGN2aUlxmHg=
+	t=1785034270; cv=none; b=onBf7zc/QtCswWFoPzQ43s3M7Dz7fgqq1LCcnhMoDTlt6NtCxAtX9JjikToYGGWT/+YUK6CGV4iT0HYcqO/e28Gyjds9+pg1ujJK1sYQWFEE2JzWdhHxHDgEzzgKCBo8FoN30X8UjK2jPiAOZAx0CwvmoHg19tZTK/ub8UfNCI0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785033564; c=relaxed/simple;
-	bh=RpGWWgMACC1Dvx0xLjJKf/pM8+VurRfnWlcj8YbQZu8=;
-	h=Date:To:From:Subject:Message-Id; b=m8L0PblmxVWlBbLhtmTdk60AmB0OXv32Ev3GOlv7h4X2EA4OcmEcSZv0cV0sh5tb/PHvM2GQOmFPcIt6y1iaK0RXj/6praTJu5hkwiur8GuZNXb/gfvwvj1YSkfkJy7bS2dNu+x3iXEhSVZ5U6O5uIoBQNvrcS6v4MIM9XxzBwM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=E7wfJh/L; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785034270; c=relaxed/simple;
+	bh=ftX+jeoEnC7fTuImJuKIGJgezCpEbcnVZbW3AmOZbHQ=;
+	h=Date:From:To:Cc:Subject:Message-Id:In-Reply-To:References:
+	 Mime-Version:Content-Type; b=g3mjdorBV33AjLWtaYZqaEtmBxABNRvp0A7O96G4ODY/+6yDWLVYjhfLkQDd8ShRO22M7k+405URUGcCu9b1m4NPUlEUTtiFOoIqcetj9hAccQn5+mg/O6AJKCtbqlobRrUA+Ms9DoL9lRsL619wrLYOujSKCxGYNT8rKD7NeQA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vs/G0SX2; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="E7wfJh/L"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BFF8D1F000E9;
-	Sun, 26 Jul 2026 02:39:22 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vs/G0SX2"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E03D11F000E9;
+	Sun, 26 Jul 2026 02:51:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785033562;
-	bh=j7loOMRQ3TsVsLjShe73zqH20jKMCv6oYPbMF1WHHto=;
-	h=Date:To:From:Subject;
-	b=E7wfJh/LKDDm1ZEAXxuAxaQweZwIEa1Rj9FSjHCf21lEbLPfuq3WkNvwlf8/Jc9O/
-	 UOcrC75WB8YvJ4ZQpLBX4DdM0127F1olW8BP1NVv5z9Nksl/MXnO/ZKJpCaRb9+lxU
-	 WWl535SlT4zlaJ7pIYEYQFZttDPcH4Tmaxafft4M=
-Date: Sat, 25 Jul 2026 19:39:22 -0700
-To: mm-commits@vger.kernel.org,xueyuan.chen21@gmail.com,senozhatsky@chromium.org,nphamcs@gmail.com,minchan@kernel.org,joshua.hahnjy@gmail.com,haowenchao@xiaomi.com,baohua@kernel.org,akpm@linux-foundation.org
+	d=linux-foundation.org; s=korg; t=1785034269;
+	bh=uJqo0KAzdrTFteiLyXiwHItJklOekXH2ZJCIKZBTq1w=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References;
+	b=vs/G0SX2LvUBaB5f47wVVZ4IU34Pbvqdf2ByrOMvD2TbNVqAs45qqix+KYHqZGLW+
+	 LElKKXECKoOKC20W7/PLESsPwuTNRdowUZjjpWacQZMbh8I3GpvI4bVkXiUN3VIW8A
+	 4DxKo27pmPJR/9Xed4JBG3G5TBPVxXME0+tOoRDc=
+Date: Sat, 25 Jul 2026 19:51:08 -0700
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-zsmalloc-drop-pool-lock-from-zs_free-on-64-bit-systems-fix-2.patch added to mm-unstable branch
-Message-Id: <20260726023922.BFF8D1F000E9@smtp.kernel.org>
+To: kernel test robot <lkp@intel.com>
+Cc: "Kiryl Shutsemau (Meta)" <kas@kernel.org>,
+ oe-kbuild-all@lists.linux.dev, David Hildenbrand <david@kernel.org>, Linux
+ Memory Management List <linux-mm@kvack.org>, mm-commits@vger.kernel.org
+Subject: Re: [akpm-mm:mm-unstable 340/601]
+ include/linux/compiler_types.h:702:38: error: call to
+ '__compiletime_assert_501' declared with attribute error: BUILD_BUG failed
+Message-Id: <20260725195108.3f31c2641b0689d344e55400@linux-foundation.org>
+In-Reply-To: <202607250853.VaJWGLeA-lkp@intel.com>
+References: <202607250853.VaJWGLeA-lkp@intel.com>
+X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
+On Sat, 25 Jul 2026 08:56:41 +0800 kernel test robot <lkp@intel.com> wrote:
 
-The patch titled
-     Subject: mm-zsmalloc-drop-pool-lock-from-zs_free-on-64-bit-systems-fix-2
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-zsmalloc-drop-pool-lock-from-zs_free-on-64-bit-systems-fix-2.patch
+> tree:   https://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm.git mm-unstable
+> head:   c04df384b55dd9dcf72c36b661becb5aaba371a9
+> commit: d2aed7c02fafacb9d055a2f683ac12e977ef16e0 [340/601] mm: preserve RWP marker across PTE rewrites
+> config: sparc64-randconfig-r134-20260725 (https://download.01.org/0day-ci/archive/20260725/202607250853.VaJWGLeA-lkp@intel.com/config)
+> compiler: sparc64-linux-gcc (GCC) 8.5.0
+> sparse: v0.6.5-rc1
+> reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20260725/202607250853.VaJWGLeA-lkp@intel.com/reproduce)
+> 
+> If you fix the issue in a separate patch/commit (i.e. not just a new version of
+> the same patch/commit), kindly add following tags
+> | Reported-by: kernel test robot <lkp@intel.com>
+> | Closes: https://lore.kernel.org/oe-kbuild-all/202607250853.VaJWGLeA-lkp@intel.com/
+> 
+> All errors (new ones prefixed by >>):
+> 
+>    In file included from <command-line>:
+>    mm/huge_memory.c: In function 'move_pages_huge_pmd':
+> >> include/linux/compiler_types.h:702:38: error: call to '__compiletime_assert_501' declared with attribute error: BUILD_BUG failed
+>      _compiletime_assert(condition, msg, __compiletime_assert_, __COUNTER__)
+>                                          ^
+>    include/linux/compiler_types.h:683:4: note: in definition of macro '__compiletime_assert'
+>        prefix ## suffix();    \
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zsmalloc-drop-pool-lock-from-zs_free-on-64-bit-systems-fix-2.patch
+Well dang.
 
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+I can't reproduce with sparc64 gcc-15.2.0. 
+Documentation/process/changes.rst says we support 8,1, released in
+2018.  Your 8.5 was released in 2021 so perhaps three other people are
+still using it :(
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+https://www.kernel.org/pub/tools/crosstool/ doesn't appear to have
+sparc64 gcc-8.5 so I gave up.
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
-
-------------------------------------------------------
-From: "Barry Song (Xiaomi)" <baohua@kernel.org>
-Subject: mm-zsmalloc-drop-pool-lock-from-zs_free-on-64-bit-systems-fix-2
-Date: Sat, 25 Jul 2026 11:45:09 +0800
-
-mm: zsmalloc: update the comment about pool lock
-
-Update the comment to reflect that `zs_free()` can be lockless when
-`ZS_OBJ_CLASS_BITS` applies.
-
-Link: https://lore.kernel.org/20260725035733.53241-1-baohua@kernel.org
-Signed-off-by: Barry Song (Xiaomi) <baohua@kernel.org>
-Suggested-by: Sergey Senozhatsky <senozhatsky@chromium.org>
-Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: Wenchao Hao <haowenchao@xiaomi.com>
-Cc: Xueyuan Chen <xueyuan.chen21@gmail.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- mm/zsmalloc.c |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
-
---- a/mm/zsmalloc.c~mm-zsmalloc-drop-pool-lock-from-zs_free-on-64-bit-systems-fix-2
-+++ a/mm/zsmalloc.c
-@@ -1832,8 +1832,8 @@ static int zs_page_migrate(struct page *
- 	pool = zspage->pool;
- 
- 	/*
--	 * The pool migrate_lock protects the race between zpage migration
--	 * and zs_free.
-+	 * The pool migrate_lock protects against races between zpage migration
-+	 * and zs_free(), but only when ZS_OBJ_CLASS_BITS does not apply.
- 	 */
- 	write_lock(&pool->lock);
- 	class = zspage_class(pool, zspage);
-@@ -2012,8 +2012,9 @@ static unsigned long __zs_compact(struct
- 	unsigned long pages_freed = 0;
- 
- 	/*
--	 * protect the race between zpage migration and zs_free
--	 * as well as zpage allocation/free
-+	 * Protect against races between zpage migration and zs_free()
-+	 * (only when ZS_OBJ_CLASS_BITS does not apply), as well as
-+	 * zpage allocation and free.
- 	 */
- 	write_lock(&pool->lock);
- 	spin_lock(&class->lock);
-_
-
-Patches currently in -mm which might be from baohua@kernel.org are
-
-mm-zsmalloc-drop-pool-lock-from-zs_free-on-64-bit-systems-fix-2.patch
-mm-avoid-unnecessary-lru-drain-for-wp_can_reuse_anon_folio.patch
-mm-avoid-unnecessary-lru-drain-for-wp_can_reuse_anon_folio-fix.patch
-mm-drop-stale-folio_ref_count==1-check-in-do_swap_page-reuse-logic.patch
-mm-entirely-remove-lru_add_drain-in-do_swap_page.patch
-mm-clarify-the-folio_free_swap-for-do_swap_page.patch
-arm64-hugetlb-extend-batching-of-multiple-cont_pte-in-a-single-pte-setup.patch
-arm64-vmalloc-allow-arch_vmap_pte_range_map_size-to-batch-multiple-cont_pte.patch
-mm-vmalloc-extend-page-table-walk-to-support-larger-page_shift-sizes-and-eliminate-page-table-rewalk.patch
-mm-vmalloc-map-contiguous-pages-in-batches-for-vmap-if-possible.patch
-mm-vmalloc-align-vm_area-so-vmap-can-batch-mappings.patch
+So I dunno.  I'm inclined to ignore and assume that if someone else hits
+this one day, they'll either fix it or provide us with enough details
+to figure it out.
 
