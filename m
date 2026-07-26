@@ -1,495 +1,184 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pj1-f43.google.com (mail-pj1-f43.google.com [209.85.216.43])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1DCEB14A4CC
-	for <mm-commits@vger.kernel.org>; Sun, 26 Jul 2026 03:53:15 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 66A3613B584
+	for <mm-commits@vger.kernel.org>; Sun, 26 Jul 2026 18:41:31 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.43
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785037997; cv=none; b=MZ+wCD2yvaVD8mbXGQVVq5SuOW5uBq8JGBSTRCV8ASA1JP97tGll0SVi3OfnzbpJpUIiQNsmeA13GejSYmsv8l7tD+exK3FS61rdE9ih6bIc7VoD6tZ3ksCHR006NOpyrT5CYP0q4yaraJV4ngOY/Czgy8vi16ViC/sgJNIyg48=
+	t=1785091292; cv=none; b=GoG7L9PBFfeI5pWAq6vjToH3EaXPSf0mDxKtEQfVamo0wKO7JLV60j7CjvEqNmMy3N4rLaXbhQ4briaLTLK00HBfzw6qI0AQCTPNYGrHfYCPeb59X1ug8ZV6mwIzyCo3rqFqbuEQM+pLvgqXXqVFDOzz7SvdFaE8kFlfGT53rVM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785037997; c=relaxed/simple;
-	bh=HsTKqLYnJ6GQ6IMKktwEZaybY8hVhil79iKPYFVmeyo=;
-	h=Date:To:From:Subject:Message-Id; b=D9jXSavBpcvre6oz32xYYyNPtEZFALrelUbgAo/3xPq5X0aF0rgqtqF7P22S6yEn9i6N0a1AQRsC4T0tysZn7OdoM8v+nWerslEFNhw7A/7pMmENGLHM+kOXcIglrIBr5pPxpUwbTcyIEjrcqGBXJxeCxBs2TTsjoEtI5G703nI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=huW/NcYF; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785091292; c=relaxed/simple;
+	bh=n/0rf9Q/3JcIvKGkLjHFa6VgtoB7lG0B6iGS/mg4Dj4=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=VnJ+MknmzT32qKqP8MVpwzsbPNyO9IAhhIIYduzlnCjAC5v8hxCGpLQqohnpGAqFNB6xRBV0BzWDMRc1C3rSWgiPXM3rHLzAeeUPWwAwoOF8bihMLN8HT1mtyW9IwqzNHwKolrnzP0z8s8pMxxrWqLFDmuHT28T3kfzTA9IE9og=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=NIdH8gpF; arc=none smtp.client-ip=209.85.216.43
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="huW/NcYF"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A669B1F000E9;
-	Sun, 26 Jul 2026 03:53:15 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="NIdH8gpF"
+Received: by mail-pj1-f43.google.com with SMTP id 98e67ed59e1d1-38101f85591so2686236a91.1
+        for <mm-commits@vger.kernel.org>; Sun, 26 Jul 2026 11:41:31 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785037995;
-	bh=j+7FUrm2aKWTz1f/2ioc7CzbCwyh5cRp8C7ixklQijk=;
-	h=Date:To:From:Subject;
-	b=huW/NcYFRdVN+yjzpmPthkFV3gCLbPHfBUNMgbhjKfAnxF+dYPS2MXw2ufG1QOcF4
-	 ZWlo68V1rGnrATx6Z573Ehuei34zhxLc8nXNREk7C8fkdxJxUag0q9YTdQILfFWekg
-	 WUY2oew6oUhBslKMuT9U4dz01qVmmhYOZgXjg3fU=
-Date: Sat, 25 Jul 2026 20:53:15 -0700
-To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,heming.zhao@suse.com,gechangwei@live.cn,zzzccc427@gmail.com,akpm@linux-foundation.org
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + ocfs2-o2hb-quiesce-negotiate-handlers-and-timeout-work.patch added to mm-nonmm-unstable branch
-Message-Id: <20260726035315.A669B1F000E9@smtp.kernel.org>
+        d=gmail.com; s=20251104; t=1785091291; x=1785696091; darn=vger.kernel.org;
+        h=in-reply-to:content-disposition:content-type:mime-version
+         :references:message-id:subject:cc:to:from:date:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=rnsX5Nycy+Nw1GF/hyAVIF+SSLqhhOcEVPTSmKPICUw=;
+        b=NIdH8gpF7DQBqnL04ZSa1fSjpXUMqxsdKHNMnIUe6k8DnnRdKqiQUg5u+d0w8GcmM9
+         u5RBn6nyU+6w2OFBUXdAO+ubPAhho1Qli/7Mtt0vL1CTQLBdTuziTugXdzTgIDcRB0Wy
+         fZEW2Q0GFk/OagbTIAhtohdVdQyq4C6OMYDa9iCHKG215OgTlv/1JbGnegwWh0KsR82r
+         c7brnfQGHx2T6VLrw1uudBWkiW5lCGphBAVj7NmNj1yvjDVHqfhvOUQ6aOHzNqyw0tMJ
+         0UtAmI2SNaqHazRn5Q40+qYcALGN4je5q6A3jm2ANAfxjCcO0sgkXGR9fsy2SqhH/y57
+         /jUQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1785091291; x=1785696091;
+        h=in-reply-to:content-disposition:content-type:mime-version
+         :references:message-id:subject:cc:to:from:date:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=rnsX5Nycy+Nw1GF/hyAVIF+SSLqhhOcEVPTSmKPICUw=;
+        b=B86wxlMUqbZOa3rOLc8Cpq3zqPPLnc5X+vtmCQj6e8CSIJR7sz5lfDZG6w4LJCjFA9
+         ZlVyjkyMp2IQfOQBMna9C7UM54jebKRdUwwgRaApEmnoZahn5+Mb/aZwmQ4GGQUobC4C
+         0Tj15+CB6xT6/++mx/+g+315oyDM+i+Pg7MUGcqwvLYt/McWUc5T3V+ogrHovTC9LtuJ
+         mnhgRJIs07iMLNA72BevHFiIlwWAfN6pTK65UgoF0oRUQ3P6OKVX+CN+X0PniX0QEYD4
+         41nJA3XZTLiCM1hYwKkqzBS4creYhIgTnPBXlmWfje/VnCSs4duFAHNwtFE+B/V2jgM/
+         vQ8Q==
+X-Forwarded-Encrypted: i=1; AHgh+RrDANR9VTloyVYC6BhpoaQT4cGySGwXAmEa5PnMy1zk0oS+oLH5L6WBvLo+jekmnTWg4Rssu9lc4ii8@vger.kernel.org
+X-Gm-Message-State: AOJu0YyQjQ8vsgSfCwvIPraaSb/A0mnfDWNzMf3y1HpggINlR8bfSa4A
+	RmPZGxW6eQfE68u3axZT9XMLAJXwB82aSmeeBNP+vpE8u55vZ2C3cIMa
+X-Gm-Gg: AR+sD12WZ61UtbDu+2FVL/AqfGDdG6dZsd2GBUwQgWmZ1hAjH8aRGPIAfzcpX021+zt
+	61a4TUmMlVQDODmvhKb0iGvlMhryPaTqOS+IB4wOOoDANfxAUvUHdGbub0izm5bR6/igB67HftJ
+	QxCIa+pibE3B+Rlah0O2tSVatwpMsa7vT1pnBQD1T6vkkn9/gUogMpXr3PDfTC3NKnIpSt+aVss
+	TthN8+EcgoxOZc+2qDobcsymrBcinsFQA5RqljvmtthZsBiVo18oshT9NE9zea/xg7ZEFN8ETg/
+	WZNnbhVc/pE12f/QQb82r5JJkCAgGg+fzKefwRPFWZWS+LSyKnT9amKb57I7lqC3dr9MptpFwBR
+	sa1baFpM4b1xGGvPiCvk1DNeeGGnhhjOlQ30XTQ+ED84P5hi5O4fPRpx8Z7biJEVZstGGdiTKvI
+	l//NEhPNM6fKu1FTETHK5OZW7RHdjeeK64Ye1uIFkpKGxp
+X-Received: by 2002:a17:90b:4d90:b0:38e:4e61:c9e with SMTP id 98e67ed59e1d1-38f2aad0dbfmr4574273a91.21.1785091290598;
+        Sun, 26 Jul 2026 11:41:30 -0700 (PDT)
+Received: from skinsburskii (c-98-225-44-182.hsd1.wa.comcast.net. [98.225.44.182])
+        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-38f0583bcd0sm3144769a91.1.2026.07.26.11.41.27
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sun, 26 Jul 2026 11:41:29 -0700 (PDT)
+Date: Sun, 26 Jul 2026 11:41:26 -0700
+From: Stanislav Kinsburskii <skinsburskii@gmail.com>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: kernel test robot <lkp@intel.com>, David Hildenbrand <david@kernel.org>,
+	Linux Memory Management List <linux-mm@kvack.org>,
+	mm-commits@vger.kernel.org, Jason Gunthorpe <jgg@ziepe.ca>,
+	Leon Romanovsky <leon@kernel.org>
+Subject: Re: [akpm-mm:mm-new] BUILD SUCCESS WITH UNVERIFIED WARNING
+ 34cacd0ac7c10dc9e34e1b9f28a2b78d335cb487
+Message-ID: <amZU1hH_9IOeO4G8@skinsburskii>
+References: <202607251512.KMStVfrY-lkp@intel.com>
+ <20260725193155.0e03a382d76a99485ca05cdd@linux-foundation.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260725193155.0e03a382d76a99485ca05cdd@linux-foundation.org>
 
+On Sat, Jul 25, 2026 at 07:31:55PM -0700, Andrew Morton wrote:
+> 
+> Thanks.  A few head-scratchers for hmm people, please:
+> 
+> On Sat, 25 Jul 2026 15:11:38 +0800 kernel test robot <lkp@intel.com> wrote:
+> 
+> > tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm.git mm-new
+> > branch HEAD: 34cacd0ac7c10dc9e34e1b9f28a2b78d335cb487  mm/swap, PM: hibernate: atomically replace hibernation pin
+> > 
+> > Unverified Warning (likely false positive, kindly check if interested):
+> > 
+> >     https://lore.kernel.org/oe-kbuild/202607021433.DYT5fDqE-lkp@intel.com
+> >     https://lore.kernel.org/oe-kbuild/202607120402.clBrrZQA-lkp@intel.com
+> > 
+> >     mm/hmm.c:673 hmm_do_fault() error: we previously assumed 'hmm_vma_walk->locked' could be null (see line 654)
+> >     mm/vmpressure.c:123 vmpressure() warn: check likely/unlikely parentheses
+> > 
+> > Warning ids grouped by kconfigs:
+> > 
+> > recent_errors
+> > |-- microblaze-randconfig-r072-20260725
+> > |   `-- mm-hmm.c-hmm_do_fault()-error:we-previously-assumed-hmm_vma_walk-locked-could-be-null-(see-line-)
+> 
+> With this microblaze config on current mainline I hit
+> 
+> mm/hmm.c:804:25: error: implicit declaration of function 'mmu_interval_read_begin'; did you mean 'mmu_interval_check_retry'? [-Wimplicit-function-declaration]
+>   804 |                         mmu_interval_read_begin(range->notifier);
+> 
+> And after adding the hmm changes from mm-unstable I also hit
+> 
+> mm/hmm.c:805:25: error: implicit declaration of function 'mmu_interval_read_begin'; did you mean 'mmu_interval_check_retry'? [-Wimplicit-function-declaration]
+>   805 |                         mmu_interval_read_begin(range->notifier);
+>       |                         ^~~~~~~~~~~~~~~~~~~~~~~
+>       |                         mmu_interval_check_retry
+> 
+> Both of which can be fixed with
+> 
+> --- a/include/linux/mmu_notifier.h~a
+> +++ a/include/linux/mmu_notifier.h
+> @@ -576,6 +576,19 @@ static inline void _mmu_notifier_range_i
+>  	_mmu_notifier_range_init(range, start, end)
+>  
+>  static inline bool
+> +mmu_interval_check_retry(struct mmu_interval_notifier *interval_sub,
+> +			 unsigned long seq)
+> +{
+> +	return true;
+> +}
+> +
+> +static inline unsigned long
+> +mmu_interval_read_begin(struct mmu_interval_notifier *interval_sub)
+> +{
+> +	return 0;
+> +}
+> +
+> +static inline bool
+>  mmu_notifier_range_blockable(const struct mmu_notifier_range *range)
+>  {
+>  	return true;
+> 
+> But I do wonder whether we should be compiling hmm at all if
+> CONFIG_MMU_NOTIFIER=n?
+> 
 
-The patch titled
-     Subject: ocfs2: o2hb: quiesce negotiate handlers and timeout work
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     ocfs2-o2hb-quiesce-negotiate-handlers-and-timeout-work.patch
+Documentation/mm/hmm.rst explicitly states:
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-o2hb-quiesce-negotiate-handlers-and-timeout-work.patch
+"Address space mirroring's main objective is to allow duplication of a range of
+CPU page table into a device page table; HMM helps keep both synchronized. A
+device driver that wants to mirror a process address space must start with the
+registration of a mmu_interval_notifier"
 
-This patch will later appear in the mm-nonmm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+I think making CONFIG_HMM_MIRROR dependent on the CONFIG_MMU_NOTIFIER is the right thing to do.
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+> 
+> And your hmm_do_fault() warning seems legit:
+> 
+> 	if (hmm_vma_walk->locked)
+> 		fault_flags |= FAULT_FLAG_ALLOW_RETRY | FAULT_FLAG_KILLABLE;
+> 
+> ...
+> 			*hmm_vma_walk->locked = false;
+> 
+> and the blame seems to lie with Stanislav's "mm/hmm: add
+> hmm_range_fault_unlocked_timeout() for mmap lock-drop support".
+> 
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+Well, this is the same behavior as in fixup_user_fault().
 
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+The fault handler is not supposed to return either VM_FAULT_COMPLETED or
+VM_FAULT_RETRY unless FAULT_FLAG_ALLOW_RETRY is set, and that flag is
+set only if hmm_vma_walk->locked is not NULL.
 
-------------------------------------------------------
-From: Cen Zhang <zzzccc427@gmail.com>
-Subject: ocfs2: o2hb: quiesce negotiate handlers and timeout work
-Date: Wed, 24 Jun 2026 17:53:10 +0800
+In other words, only buggy fault handlers can trigger this NULL pointer
+dereference, and I thought we had agreed that we do not try to support
+those.
 
-Heartbeat regions publish struct o2hb_region as the private data for the
-NEGO_TIMEOUT and NEGO_APPROVE o2net handlers as soon as make_item()
-creates the configfs region.  The approve handler can call
-o2hb_arm_timeout(), so a peer can touch the region timeout work before
-dev_store() has finished building the heartbeat runtime, or after teardown
-has started to shut that runtime back down.
+Let me know if you think otherwise and I'll send an update.
 
-The final configfs put also has to keep reg alive until the last in-flight
-o2net callback drops its handler reference. 
-o2net_unregister_handler_list() blocks future handler lookups, but it does
-not wait for sc_rx_work that already passed o2net_handler_get().  That
-drain needs to cover local listener teardown as well, where the o2net
-ordered workqueue may already be inside destroy_workqueue().
+Thanks, Stanislav
 
-Fix the lifetime rule in both directions.  Initialize the region delayed
-works before publishing reg through the o2net handler table, keep new or
-stopping regions non-armable with hr_stopping, and quiesce both delayed
-works on failed-start and teardown paths even when no heartbeat thread is
-left to call o2hb_disarm_timeout().  Then unregister handlers before
-tearing down handler-visible region state and make the drain wait for the
-active or destroying o2net ordered workqueue before release frees reg.
-
-The buggy scenario involves two paths, with each column showing the order
-within that path:
-
-region lifecycle:                late negotiate callback:
-1. make_item() registers the     1. o2net_process_message() gets a
-   region handlers before           heartbeat handler for reg.
-   dev_store() has built a       2. The callback runs after the lookup
-   runnable heartbeat context.      lock is dropped and dereferences reg.
-2. A failed start or rmdir       3. An approve or timeout path tries to
-   stops the heartbeat thread,      queue reg's delayed work, or release
-   quiesces existing work, and      races the callback body after handler
-   drops the final configfs ref.    unregister.
-3. region_release() must drain   4. The callback or delayed work can
-   handler-visible o2net rx work    outlive reg unless lifecycle code
-   before freeing reg.              keeps the region non-armable and
-                                    drains the active-or-destroying
-                                    o2net workqueue.
-
-Validation reproduced this kernel report:
-KASAN slab-use-after-free in __run_timers+0x22c/0x5b0
-Write of size 8
-Call trace:
-  dump_stack_lvl+0x66/0xa0
-  print_report+0xce/0x630
-  __run_timers+0x22c/0x5b0
-  kasan_report+0xe0/0x110
-  _raw_spin_unlock_irqrestore+0x27/0x60
-  try_to_wake_up+0x191/0xf70
-  timer_expire_remote+0xae/0xf0
-  run_timer_softirq+0x19b/0x1a0
-  handle_softirqs+0x156/0x660
-  __irq_exit_rcu+0xc4/0x160
-  irq_exit_rcu+0xe/0x20
-  sysvec_apic_timer_interrupt+0x6c/0x80
-  asm_sysvec_apic_timer_interrupt+0x1a/0x20
-
-Allocated by task stack:
-  kasan_save_stack+0x33/0x60
-  kasan_save_track+0x14/0x30
-  __kasan_kmalloc+0xaa/0xb0
-  o2hb_heartbeat_group_make_item+0x3c/0x600
-
-Link: https://lore.kernel.org/20260624095310.763763-3-zzzccc427@gmail.com
-Fixes: 34069b886f95 ("ocfs2: o2hb: add NEGO_TIMEOUT message")
-Fixes: e76f8237a2f7 ("ocfs2: o2hb: add NEGOTIATE_APPROVE message")
-Signed-off-by: Cen Zhang <zzzccc427@gmail.com>
-Assisted-by: Codex:gpt-5.5
-Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Jun Piao <piaojun@huawei.com>
-Cc: Heming Zhao <heming.zhao@suse.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- fs/ocfs2/cluster/heartbeat.c |   56 +++++++++++++++--
- fs/ocfs2/cluster/tcp.c       |  103 ++++++++++++++++++++++++++++-----
- fs/ocfs2/cluster/tcp.h       |    1 
- 3 files changed, 138 insertions(+), 22 deletions(-)
-
---- a/fs/ocfs2/cluster/heartbeat.c~ocfs2-o2hb-quiesce-negotiate-handlers-and-timeout-work
-+++ a/fs/ocfs2/cluster/heartbeat.c
-@@ -15,6 +15,7 @@
- #include <linux/file.h>
- #include <linux/kthread.h>
- #include <linux/configfs.h>
-+#include <linux/mutex.h>
- #include <linux/random.h>
- #include <linux/crc32.h>
- #include <linux/time.h>
-@@ -266,6 +267,9 @@ struct o2hb_region {
- 	/* Message key for negotiate timeout message. */
- 	unsigned int		hr_key;
- 	struct list_head	hr_handler_list;
-+	/* Serializes timeout arming against failed-start and teardown. */
-+	struct mutex		hr_arming_mutex;
-+	bool			hr_stopping;
- 
- 	/* last hb status, 0 for success, other value for error. */
- 	int			hr_last_hb_status;
-@@ -333,9 +337,14 @@ static void o2hb_write_timeout(struct wo
- 
- static void o2hb_arm_timeout(struct o2hb_region *reg)
- {
-+	mutex_lock(&reg->hr_arming_mutex);
-+
-+	if (reg->hr_stopping)
-+		goto out_unlock;
-+
- 	/* Arm writeout only after thread reaches steady state */
- 	if (atomic_read(&reg->hr_steady_iterations) != 0)
--		return;
-+		goto out_unlock;
- 
- 	mlog(ML_HEARTBEAT, "Queue write timeout for %u ms\n",
- 	     O2HB_MAX_WRITE_TIMEOUT_MS);
-@@ -354,6 +363,18 @@ static void o2hb_arm_timeout(struct o2hb
- 	schedule_delayed_work(&reg->hr_nego_timeout_work,
- 			      msecs_to_jiffies(O2HB_NEGO_TIMEOUT_MS));
- 	bitmap_zero(reg->hr_nego_node_bitmap, O2NM_MAX_NODES);
-+
-+out_unlock:
-+	mutex_unlock(&reg->hr_arming_mutex);
-+}
-+
-+static void o2hb_queue_nego_timeout(struct o2hb_region *reg,
-+				    unsigned long delay)
-+{
-+	mutex_lock(&reg->hr_arming_mutex);
-+	if (!reg->hr_stopping)
-+		schedule_delayed_work(&reg->hr_nego_timeout_work, delay);
-+	mutex_unlock(&reg->hr_arming_mutex);
- }
- 
- static void o2hb_disarm_timeout(struct o2hb_region *reg)
-@@ -362,6 +383,19 @@ static void o2hb_disarm_timeout(struct o
- 	cancel_delayed_work_sync(&reg->hr_nego_timeout_work);
- }
- 
-+static void o2hb_set_region_stopping(struct o2hb_region *reg, bool stopping)
-+{
-+	mutex_lock(&reg->hr_arming_mutex);
-+	reg->hr_stopping = stopping;
-+	mutex_unlock(&reg->hr_arming_mutex);
-+}
-+
-+static void o2hb_quiesce_timeout(struct o2hb_region *reg)
-+{
-+	o2hb_set_region_stopping(reg, true);
-+	o2hb_disarm_timeout(reg);
-+}
-+
- static int o2hb_send_nego_msg(int key, int type, u8 target, u8 node_num)
- {
- 	struct o2hb_nego_msg msg;
-@@ -411,8 +445,7 @@ static void o2hb_nego_timeout(struct wor
- 			/* check negotiate bitmap every second to do timeout
- 			 * approve decision.
- 			 */
--			schedule_delayed_work(&reg->hr_nego_timeout_work,
--				msecs_to_jiffies(1000));
-+			o2hb_queue_nego_timeout(reg, msecs_to_jiffies(1000));
- 
- 			return;
- 		}
-@@ -1581,6 +1614,8 @@ static void o2hb_region_release(struct c
- 
- 	mlog(ML_HEARTBEAT, "hb region release (%pg)\n", reg_bdev(reg));
- 
-+	o2hb_quiesce_timeout(reg);
-+	o2net_unregister_and_flush_handler_list(&reg->hr_handler_list);
- 	o2hb_unmap_slot_data(reg);
- 
- 	if (reg->hr_bdev_file)
-@@ -1596,7 +1631,6 @@ static void o2hb_region_release(struct c
- 	list_del(&reg->hr_all_item);
- 	spin_unlock(&o2hb_live_lock);
- 
--	o2net_unregister_handler_list(&reg->hr_handler_list);
- 	kfree(reg);
- }
- 
-@@ -1911,9 +1945,6 @@ static ssize_t o2hb_region_dev_store(str
- 		goto out;
- 	}
- 
--	INIT_DELAYED_WORK(&reg->hr_write_timeout_work, o2hb_write_timeout);
--	INIT_DELAYED_WORK(&reg->hr_nego_timeout_work, o2hb_nego_timeout);
--
- 	/*
- 	 * A node is considered live after it has beat LIVE_THRESHOLD
- 	 * times.  We're not steady until we've given them a chance
-@@ -1933,6 +1964,7 @@ static ssize_t o2hb_region_dev_store(str
- 	atomic_set(&reg->hr_steady_iterations, live_threshold);
- 	/* unsteady_iterations is triple the steady_iterations */
- 	atomic_set(&reg->hr_unsteady_iterations, (live_threshold * 3));
-+	o2hb_set_region_stopping(reg, false);
- 
- 	hb_task = kthread_run(o2hb_thread, reg, "o2hb-%s",
- 			      reg->hr_item.ci_name);
-@@ -1982,6 +2014,8 @@ static ssize_t o2hb_region_dev_store(str
- 
- out:
- 	if (ret < 0) {
-+		o2hb_quiesce_timeout(reg);
-+
- 		spin_lock(&o2hb_live_lock);
- 		hb_task = reg->hr_task;
- 		reg->hr_task = NULL;
-@@ -2121,6 +2155,10 @@ static struct config_item *o2hb_heartbea
- 	 */
- 	reg->hr_key = crc32_le(reg->hr_region_num + O2NM_MAX_REGIONS,
- 		name, strlen(name));
-+	mutex_init(&reg->hr_arming_mutex);
-+	reg->hr_stopping = true;
-+	INIT_DELAYED_WORK(&reg->hr_write_timeout_work, o2hb_write_timeout);
-+	INIT_DELAYED_WORK(&reg->hr_nego_timeout_work, o2hb_nego_timeout);
- 	INIT_LIST_HEAD(&reg->hr_handler_list);
- 	ret = o2net_register_handler(O2HB_NEGO_TIMEOUT_MSG, reg->hr_key,
- 			sizeof(struct o2hb_nego_msg),
-@@ -2141,7 +2179,7 @@ static struct config_item *o2hb_heartbea
- 	return &reg->hr_item;
- 
- unregister_handler:
--	o2net_unregister_handler_list(&reg->hr_handler_list);
-+	o2net_unregister_and_flush_handler_list(&reg->hr_handler_list);
- remove_item:
- 	spin_lock(&o2hb_live_lock);
- 	list_del(&reg->hr_all_item);
-@@ -2160,6 +2198,8 @@ static void o2hb_heartbeat_group_drop_it
- 	struct o2hb_region *reg = to_o2hb_region(item);
- 	int quorum_region = 0;
- 
-+	o2hb_quiesce_timeout(reg);
-+
- 	/* stop the thread when the user removes the region dir */
- 	spin_lock(&o2hb_live_lock);
- 	hb_task = reg->hr_task;
---- a/fs/ocfs2/cluster/tcp.c~ocfs2-o2hb-quiesce-negotiate-handlers-and-timeout-work
-+++ a/fs/ocfs2/cluster/tcp.c
-@@ -38,6 +38,8 @@
-  */
- 
- #include <linux/kernel.h>
-+#include <linux/completion.h>
-+#include <linux/mutex.h>
- #include <linux/sched/mm.h>
- #include <linux/jiffies.h>
- #include <linux/slab.h>
-@@ -102,9 +104,14 @@ static struct socket *o2net_listen_sock;
-  * quorum work is queued as sock containers are shutdown.. stop_listening
-  * tears down all the node's sock containers, preventing future shutdowns
-  * and queued quorum work, before canceling delayed quorum work and
-- * destroying the work queue.
-+ * destroying the work queue.  Handler teardown can also race local listener
-+ * shutdown, so keep a waitable destroying pointer until the old ordered
-+ * queue has finished draining.
-  */
- static struct workqueue_struct *o2net_wq;
-+static struct workqueue_struct *o2net_wq_destroying;
-+static DEFINE_MUTEX(o2net_wq_mutex);
-+static DECLARE_COMPLETION(o2net_wq_destroyed);
- /* Heartbeat callbacks stay registered across local-node off/on. */
- static bool o2net_listening;
- static struct work_struct o2net_listen_work;
-@@ -886,6 +893,27 @@ void o2net_unregister_handler_list(struc
- }
- EXPORT_SYMBOL_GPL(o2net_unregister_handler_list);
- 
-+static void o2net_flush_wq(void)
-+{
-+	mutex_lock(&o2net_wq_mutex);
-+	if (o2net_wq_destroying) {
-+		mutex_unlock(&o2net_wq_mutex);
-+		wait_for_completion(&o2net_wq_destroyed);
-+		return;
-+	}
-+
-+	if (o2net_wq)
-+		flush_workqueue(o2net_wq);
-+	mutex_unlock(&o2net_wq_mutex);
-+}
-+
-+void o2net_unregister_and_flush_handler_list(struct list_head *list)
-+{
-+	o2net_unregister_handler_list(list);
-+	o2net_flush_wq();
-+}
-+EXPORT_SYMBOL_GPL(o2net_unregister_and_flush_handler_list);
-+
- static struct o2net_msg_handler *o2net_handler_get(u32 msg_type, u32 key)
- {
- 	struct o2net_msg_handler *nmh;
-@@ -1717,12 +1745,10 @@ void o2net_disconnect_node(struct o2nm_n
- 	o2net_set_nn_state(nn, NULL, 0, -ENOTCONN);
- 	spin_unlock(&nn->nn_lock);
- 
--	if (o2net_wq) {
--		cancel_delayed_work(&nn->nn_connect_expired);
--		cancel_delayed_work(&nn->nn_connect_work);
--		cancel_delayed_work(&nn->nn_still_up);
--		flush_workqueue(o2net_wq);
--	}
-+	cancel_delayed_work(&nn->nn_connect_expired);
-+	cancel_delayed_work(&nn->nn_connect_work);
-+	cancel_delayed_work(&nn->nn_still_up);
-+	o2net_flush_wq();
- }
- 
- static void o2net_hb_node_down_cb(struct o2nm_node *node, int node_num,
-@@ -2067,6 +2093,36 @@ out:
- 	return ret;
- }
- 
-+static void o2net_destroy_wq(void)
-+{
-+	struct workqueue_struct *wq;
-+
-+	mutex_lock(&o2net_wq_mutex);
-+	if (o2net_wq_destroying) {
-+		mutex_unlock(&o2net_wq_mutex);
-+		wait_for_completion(&o2net_wq_destroyed);
-+		return;
-+	}
-+
-+	wq = o2net_wq;
-+	if (!wq) {
-+		mutex_unlock(&o2net_wq_mutex);
-+		return;
-+	}
-+
-+	reinit_completion(&o2net_wq_destroyed);
-+	o2net_wq_destroying = wq;
-+	mutex_unlock(&o2net_wq_mutex);
-+
-+	destroy_workqueue(wq);
-+
-+	mutex_lock(&o2net_wq_mutex);
-+	o2net_wq = NULL;
-+	o2net_wq_destroying = NULL;
-+	complete_all(&o2net_wq_destroyed);
-+	mutex_unlock(&o2net_wq_mutex);
-+}
-+
- /*
-  * called from node manager when we should bring up our network listening
-  * socket.  node manager handles all the serialization to only call this
-@@ -2077,24 +2133,44 @@ out:
- int o2net_start_listening(struct o2nm_node *node)
- {
- 	int ret = 0;
-+	struct workqueue_struct *wq;
- 
- 	if (WARN_ON_ONCE(READ_ONCE(o2net_listening)))
- 		return -EBUSY;
--	BUG_ON(o2net_wq != NULL);
-+
-+	mutex_lock(&o2net_wq_mutex);
-+	if (o2net_wq_destroying) {
-+		mutex_unlock(&o2net_wq_mutex);
-+		return -EBUSY;
-+	}
-+	if (WARN_ON_ONCE(o2net_wq)) {
-+		mutex_unlock(&o2net_wq_mutex);
-+		return -EBUSY;
-+	}
-+	mutex_unlock(&o2net_wq_mutex);
-+
- 	BUG_ON(o2net_listen_sock != NULL);
- 
- 	mlog(ML_KTHREAD, "starting o2net thread...\n");
--	o2net_wq = alloc_ordered_workqueue("o2net", WQ_MEM_RECLAIM);
--	if (o2net_wq == NULL) {
-+	wq = alloc_ordered_workqueue("o2net", WQ_MEM_RECLAIM);
-+	if (!wq) {
- 		mlog(ML_ERROR, "unable to launch o2net thread\n");
- 		return -ENOMEM; /* ? */
- 	}
- 
-+	mutex_lock(&o2net_wq_mutex);
-+	if (unlikely(o2net_wq_destroying || o2net_wq)) {
-+		mutex_unlock(&o2net_wq_mutex);
-+		destroy_workqueue(wq);
-+		return -EBUSY;
-+	}
-+	o2net_wq = wq;
-+	mutex_unlock(&o2net_wq_mutex);
-+
- 	ret = o2net_open_listening_sock(node->nd_ipv4_address,
- 					node->nd_ipv4_port);
- 	if (ret) {
--		destroy_workqueue(o2net_wq);
--		o2net_wq = NULL;
-+		o2net_destroy_wq();
- 	} else
- 		o2quo_conn_up(node->nd_num);
- 
-@@ -2130,8 +2206,7 @@ void o2net_stop_listening(struct o2nm_no
- 
- 	/* finish all work and tear down the work queue */
- 	mlog(ML_KTHREAD, "waiting for o2net thread to exit....\n");
--	destroy_workqueue(o2net_wq);
--	o2net_wq = NULL;
-+	o2net_destroy_wq();
- 
- 	sock_release(o2net_listen_sock);
- 	o2net_listen_sock = NULL;
---- a/fs/ocfs2/cluster/tcp.h~ocfs2-o2hb-quiesce-negotiate-handlers-and-timeout-work
-+++ a/fs/ocfs2/cluster/tcp.h
-@@ -89,6 +89,7 @@ int o2net_register_handler(u32 msg_type,
- 			   o2net_post_msg_handler_func *post_func,
- 			   struct list_head *unreg_list);
- void o2net_unregister_handler_list(struct list_head *list);
-+void o2net_unregister_and_flush_handler_list(struct list_head *list);
- 
- void o2net_fill_node_map(unsigned long *map, unsigned bytes);
- 
-_
-
-Patches currently in -mm which might be from zzzccc427@gmail.com are
-
-ocfs2-cluster-keep-heartbeat-local-node-stable.patch
-ocfs2-validate-inline-xattrs-during-inode-block-validation.patch
-ocfs2-validate-external-xattr-entries-when-reading-metadata.patch
-ocfs2-synchronize-heartbeat-callbacks-with-o2net-teardown.patch
-ocfs2-o2hb-quiesce-negotiate-handlers-and-timeout-work.patch
-
+> 
