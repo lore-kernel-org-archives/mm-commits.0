@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6618C19E839
-	for <mm-commits@vger.kernel.org>; Sun, 26 Jul 2026 03:10:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8979026ED41
+	for <mm-commits@vger.kernel.org>; Sun, 26 Jul 2026 03:30:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785035414; cv=none; b=FfBMCdvYyabo6rRNC0znkFwU6zJkY0MgmtaiUKcPa62i+H+AKmptxs2X2ojB62XO6fWW+KWGBmpNgHrPa3j8DMHkeM2d5NpJKXsJQs1guI7QYV5BXz4rE+N8Ve3GfV+7jY1Wm/IWDNwk99Yjj9Uq6oYstrWxErXV/p3YRLEaFfI=
+	t=1785036638; cv=none; b=XExkM4p9eeposoXjqCk5O4dYd5djbfUkPxNMUvT0yNiEaU6WuRnmGM9mfK7Kc+jVfpN4cuUfkHMKzPXtArIHF7gwEChC3ZemN+8J0+MNbK66uoYPhsmKOyIbO1guSovQqNnoFaV6/BrhvAegDKwuMfExLdReD+6KosQihdxh5V4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785035414; c=relaxed/simple;
-	bh=ThX6g1hjcPi5nKWMwZoTefOFHFSvpduvPLsuDHUpSvk=;
-	h=Date:To:From:Subject:Message-Id; b=LLlxaBDM/3v4kIy5hjDbJqqYVl4Vi40o33VJMaiLY2KNd/Q0ziFrWX/FLwaY7sgxZNQ8UAIvk9oX6kqxVyf7MiLhmRKPb7/NAw6vHJQ7qyq3VGNVqQWf14ZcQPynLKyoTz3A8HNOMZiPJfKkkQNaega1tqQSEbsj/J5B/CeSoos=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CmTuzR5B; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785036638; c=relaxed/simple;
+	bh=2CijCwAgHdizKJhnWatdMxwITJFDhakWGc5jQkS9LyA=;
+	h=Date:To:From:Subject:Message-Id; b=Ey/juVKiuZg7Fa9ev9wQhIAhblaw/QxdgMWFEUlf6Nq4x9i8Op9Ml6bK3hT6q5owC+SqkaG8qPhMJPQLOcLngSdAi8qnvPHeIcUguUgED/cmMEcVxUqG7FLGHHYZdzdKzXTfItTMGZhjwRMNm4Iy/KHOmRL69bhdylR/3t2Ukbk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=S24MGOmo; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CmTuzR5B"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 05FF21F00A3A;
-	Sun, 26 Jul 2026 03:10:12 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="S24MGOmo"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E4BC41F000E9;
+	Sun, 26 Jul 2026 03:30:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785035413;
-	bh=C9zTQ3/CqtY70/OiCSCB5H8vrudWcYUcHrclHaD90j0=;
+	d=linux-foundation.org; s=korg; t=1785036636;
+	bh=iDmdHD1gokJgh9Xhe6/9Q3sZAz2fTzxhzUZH2dhRMQc=;
 	h=Date:To:From:Subject;
-	b=CmTuzR5BAYeZniTIg8h1TimyAjtgBcfo/OG/vuT9ok94wkD+8OwPDkRs1+quqTHZv
-	 LDOm49rk4muLq1zzBJFKkSD/a2gmH6fJHxx5XlWKymXPVNJb/jXgbe7Yj893QbdNSZ
-	 xvHbqg5E9XGN7ermRhQ0Wkwql8pophh5F8vP5uhA=
-Date: Sat, 25 Jul 2026 20:10:12 -0700
-To: mm-commits@vger.kernel.org,senozhatsky@chromium.org,minchan@kernel.org,axboe@kernel.dk,bigeasy@linutronix.de,akpm@linux-foundation.org
+	b=S24MGOmobqRtynEWgiL66Kklwd7HfBn8LVXGWaHhhtWSPaNlK7KFoxBlPvlkbfDGY
+	 Qe/UDkCWDjKIoVJ4oY5YJbE6aGFbJstd7IsxKUt0T2mdlmEumtOclus2PEZXmz0UTD
+	 vGWGCe6XH5mU0fozylPvMk+YIwfZLl6ppcTZVRJw=
+Date: Sat, 25 Jul 2026 20:30:35 -0700
+To: mm-commits@vger.kernel.org,tzimmermann@suse.de,sshegde@linux.ibm.com,npiggin@gmail.com,nilay@linux.ibm.com,namcao@linutronix.de,mripard@kernel.org,mpe@ellerman.id.au,maddy@linux.ibm.com,maarten.lankhorst@linux.intel.com,leon@kernel.org,jiazhenyuan@uniontech.com,jgg@ziepe.ca,guanwentao@uniontech.com,clg@kaod.org,bharat@chelsio.com,airlied@gmail.com,gouhao@uniontech.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + zram-use-a-custom-key-for-each-zram-object.patch added to mm-new branch
-Message-Id: <20260726031013.05FF21F00A3A@smtp.kernel.org>
+Subject: + powerpc-xive-remove-dead-null-check-after-gfp_nofail-allocation.patch added to mm-nonmm-unstable branch
+Message-Id: <20260726033035.E4BC41F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,26 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: zram: use a custom key for each zram object
-has been added to the -mm mm-new branch.  Its filename is
-     zram-use-a-custom-key-for-each-zram-object.patch
+     Subject: powerpc/xive: remove dead NULL check after GFP_NOFAIL allocation
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     powerpc-xive-remove-dead-null-check-after-gfp_nofail-allocation.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-use-a-custom-key-for-each-zram-object.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/powerpc-xive-remove-dead-null-check-after-gfp_nofail-allocation.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,81 +58,77 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: zram: use a custom key for each zram object
-Date: Tue, 14 Jul 2026 16:13:00 +0200
+From: Gou Hao <gouhao@uniontech.com>
+Subject: powerpc/xive: remove dead NULL check after GFP_NOFAIL allocation
+Date: Fri, 24 Jul 2026 10:28:46 +0800
 
-Each struct zram uses the same key for its struct lockdep_map which is
-used for locking analysis.
+Patch series "remove dead NULL checks after GFP_NOFAIL allocations and fix
+xive use-after-free", v2.
 
-According to Sergey the lock chains might be different if zram1 is used
-for and zram2 is for ext4.  This might lead to false dead lock reports if
-it mixes a zram1 chain with a zram2.  This can be avoided if each lockmap
-gets its own unique key.c
+This is a code cleanup series that removes unreachable NULL checks (and
+associated error handling) that follow allocations using __GFP_NOFAIL,
+which guarantees non-NULL return.
 
-Use a dynamic lock_class_key for the table_lock_map.
 
-Link: https://lore.kernel.org/20260714141300.3945672-3-bigeasy@linutronix.de
-Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Reviewed-by: Sergey Senozhatsky <senozhatsky@chromium.org>
-Tested-by: Sergey Senozhatsky <senozhatsky@chromium.org>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Minchan Kim <minchan@kernel.org>
+This patch (of 6):
+
+kzalloc_objs with the __GFP_NOFAIL flag will never return NULL, so the
+subsequent NULL check is unreachable dead code.  Remove it.
+
+Link: https://lore.kernel.org/20260724022851.466017-1-gouhao@uniontech.com
+Link: https://lore.kernel.org/20260724022851.466017-2-gouhao@uniontech.com
+Signed-off-by: Gou Hao <gouhao@uniontech.com>
+Reviewed-by: Wentao Guan <guanwentao@uniontech.com>
+Reviewed-by: jiazhenyuan <jiazhenyuan@uniontech.com>
+Reviewed-by: Cédric Le Goater <clg@kaod.org>
+Cc: Bharat Potnuri <bharat@chelsio.com>
+Cc: Dave Airlie <airlied@gmail.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Leon Romanovsky <leon@kernel.org>
+Cc: Maarten Lankhorst <maarten.lankhorst@linux.intel.com>
+Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
+Cc: Maxime Ripard <mripard@kernel.org>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Nam Cao <namcao@linutronix.de>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Nilay Shroff <nilay@linux.ibm.com>
+Cc: Shrikanth Hegde <sshegde@linux.ibm.com>
+Cc: Thomas Zimemrmann <tzimmermann@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |   11 +++--------
- drivers/block/zram/zram_drv.h |    1 +
- 2 files changed, 4 insertions(+), 8 deletions(-)
+ arch/powerpc/sysdev/xive/common.c |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
---- a/drivers/block/zram/zram_drv.c~zram-use-a-custom-key-for-each-zram-object
-+++ a/drivers/block/zram/zram_drv.c
-@@ -58,13 +58,6 @@ static const struct block_device_operati
+--- a/arch/powerpc/sysdev/xive/common.c~powerpc-xive-remove-dead-null-check-after-gfp_nofail-allocation
++++ a/arch/powerpc/sysdev/xive/common.c
+@@ -1134,9 +1134,6 @@ static int __init xive_init_ipis(void)
  
- static void slot_free(struct zram *zram, u32 index);
- 
--static void slot_lock_init(struct zram *zram)
--{
--	static struct lock_class_key __key;
+ 	xive_ipis = kzalloc_objs(*xive_ipis, nr_node_ids,
+ 				 GFP_KERNEL | __GFP_NOFAIL);
+-	if (!xive_ipis)
+-		goto out_free_domain;
 -
--	lockdep_init_map(&zram->table_lock_map, "zram->table[index].lock", &__key, 0);
--}
--
- /*
-  * entry locking rules:
-  *
-@@ -1978,6 +1971,7 @@ static void zram_meta_free(struct zram *
- 	zs_destroy_pool(zram->mem_pool);
- 	vfree(zram->table);
- 	zram->table = NULL;
-+	lockdep_unregister_key(&zram->table_lock_key);
- }
+ 	for_each_node(node) {
+ 		struct xive_ipi_desc *xid = &xive_ipis[node];
+ 		struct xive_ipi_alloc_info info = { node };
+@@ -1158,7 +1155,7 @@ static int __init xive_init_ipis(void)
  
- static bool zram_meta_alloc(struct zram *zram, u64 disksize)
-@@ -1999,7 +1993,8 @@ static bool zram_meta_alloc(struct zram
- 	if (!huge_class_size)
- 		huge_class_size = zs_huge_class_size(zram->mem_pool);
- 
--	slot_lock_init(zram);
-+	lockdep_register_key(&zram->table_lock_key);
-+	lockdep_init_map(&zram->table_lock_map, "zram->table[index].lock", &zram->table_lock_key, 0);
- 
- 	return true;
- }
---- a/drivers/block/zram/zram_drv.h~zram-use-a-custom-key-for-each-zram-object
-+++ a/drivers/block/zram/zram_drv.h
-@@ -107,6 +107,7 @@ struct zram_stats {
- struct zram {
- 	struct zram_table_entry *table;
- 	struct lockdep_map table_lock_map;
-+	struct lock_class_key table_lock_key;
- 	struct zs_pool *mem_pool;
- 	struct zcomp *comps[ZRAM_MAX_COMPS];
- 	struct zcomp_params params[ZRAM_MAX_COMPS];
+ out_free_xive_ipis:
+ 	kfree(xive_ipis);
+-out_free_domain:
++	xive_ipis = NULL;
+ 	irq_domain_remove(ipi_domain);
+ out_free_fwnode:
+ 	irq_domain_free_fwnode(fwnode);
 _
 
-Patches currently in -mm which might be from bigeasy@linutronix.de are
+Patches currently in -mm which might be from gouhao@uniontech.com are
 
-zram-move-lockmap-to-be-per-zram-instead-per-table.patch
-zram-use-a-custom-key-for-each-zram-object.patch
+powerpc-xive-remove-dead-null-check-after-gfp_nofail-allocation.patch
+powerpc-xive-add-error-return-value-to-xive_smp_probe.patch
+powerpc-xive-fix-use-after-free-of-xive_ipis.patch
+drm-remove-dead-warn_on-null-check-after-gfp_nofail-allocation.patch
+lib-test_hmm-remove-dead-null-checks-after-gfp_nofail-allocations.patch
+rdma-cxgb4-remove-dead-null-checks-after-gfp_nofail-allocations.patch
 
