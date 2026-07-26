@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B66C02931F2
-	for <mm-commits@vger.kernel.org>; Sun, 26 Jul 2026 02:33:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5A129330656
+	for <mm-commits@vger.kernel.org>; Sun, 26 Jul 2026 02:39:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785033218; cv=none; b=L2pJBJMV4H83wyRVThBWoStURhxhjlO3DdiRlka885JiM/EEE7r92Sxlf5NSgBbgi+FwdGUldtr/JVrsTYVBYoaH7hN6f469VF4gFAcCobePRaLDRoGgjg97aF9hoCGWPhXSKknGyILrkZ89Rc5ytjWGl0h3KSzo6TwcDplU22k=
+	t=1785033564; cv=none; b=KtYQRKT67ftl1TeGYPeaBSwNTAB+kOgjPR/WOyYiC0nepEvaNv1/Lwx38HX2tyawjRKCDTfRfNFZrwhCb0qJXASmpZ9D47zVBMkkmKAaD7J0TdgvTHyob3W0yiID3sO75N4rg5p560NmJG6X0dOPDuG6IJWDqrOHLGN2aUlxmHg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785033218; c=relaxed/simple;
-	bh=FmIDQffuoBrzeZCSQuubINamzl3hivJg7DAW0rfexCw=;
-	h=Date:To:From:Subject:Message-Id; b=TQU5Jcp4Zw649CZHYzJXw9nXgX9HFf1YsxvjoHDmJ9Mlkt+GAlwcVJUGg9glS/fgiRg+zBEzXGRuyW3S4YizzZiEkDDv7JxZE5jnCt4uDWbhbJF78c+SQyf1aHV7n6ZJ0cVgdTQucnwTqSIeREwZ6OrTV1q/z5ixvFiT3o/x6Xk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IMKtuVA7; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785033564; c=relaxed/simple;
+	bh=RpGWWgMACC1Dvx0xLjJKf/pM8+VurRfnWlcj8YbQZu8=;
+	h=Date:To:From:Subject:Message-Id; b=m8L0PblmxVWlBbLhtmTdk60AmB0OXv32Ev3GOlv7h4X2EA4OcmEcSZv0cV0sh5tb/PHvM2GQOmFPcIt6y1iaK0RXj/6praTJu5hkwiur8GuZNXb/gfvwvj1YSkfkJy7bS2dNu+x3iXEhSVZ5U6O5uIoBQNvrcS6v4MIM9XxzBwM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=E7wfJh/L; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IMKtuVA7"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 492591F000E9;
-	Sun, 26 Jul 2026 02:33:37 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="E7wfJh/L"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BFF8D1F000E9;
+	Sun, 26 Jul 2026 02:39:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785033217;
-	bh=q6v//l8b5GKrEAoq+OpZBnRfjXeK4qdKemISpEjn4wU=;
+	d=linux-foundation.org; s=korg; t=1785033562;
+	bh=j7loOMRQ3TsVsLjShe73zqH20jKMCv6oYPbMF1WHHto=;
 	h=Date:To:From:Subject;
-	b=IMKtuVA7S97AVj02Xrj5yLpdV//PRuZM2EzTaaW/r5Qo/kwkZrFBlxNHsm+SV0BTJ
-	 P7nnkz8y9CSzKa0VvEcpeNxNkwa9Y+fPCTXyqVpKDQXhG8+ax+n9tfl2PAPCxHiQzt
-	 2kKk50LIpxkK/S3+ekH183cBvGALFlb9nz5pF8s4=
-Date: Sat, 25 Jul 2026 19:33:36 -0700
-To: mm-commits@vger.kernel.org,skinsburskii@gmail.com,leon@kernel.org,jgg@nvidia.com,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=E7wfJh/LKDDm1ZEAXxuAxaQweZwIEa1Rj9FSjHCf21lEbLPfuq3WkNvwlf8/Jc9O/
+	 UOcrC75WB8YvJ4ZQpLBX4DdM0127F1olW8BP1NVv5z9Nksl/MXnO/ZKJpCaRb9+lxU
+	 WWl535SlT4zlaJ7pIYEYQFZttDPcH4Tmaxafft4M=
+Date: Sat, 25 Jul 2026 19:39:22 -0700
+To: mm-commits@vger.kernel.org,xueyuan.chen21@gmail.com,senozhatsky@chromium.org,nphamcs@gmail.com,minchan@kernel.org,joshua.hahnjy@gmail.com,haowenchao@xiaomi.com,baohua@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hmmc-fix-build-with-config_mmu_notifier=n.patch added to mm-unstable branch
-Message-Id: <20260726023337.492591F000E9@smtp.kernel.org>
+Subject: + mm-zsmalloc-drop-pool-lock-from-zs_free-on-64-bit-systems-fix-2.patch added to mm-unstable branch
+Message-Id: <20260726023922.BFF8D1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/hmm.c: fix build with CONFIG_MMU_NOTIFIER=n
+     Subject: mm-zsmalloc-drop-pool-lock-from-zs_free-on-64-bit-systems-fix-2
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-hmmc-fix-build-with-config_mmu_notifier=n.patch
+     mm-zsmalloc-drop-pool-lock-from-zs_free-on-64-bit-systems-fix-2.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hmmc-fix-build-with-config_mmu_notifier=n.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zsmalloc-drop-pool-lock-from-zs_free-on-64-bit-systems-fix-2.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,67 +58,67 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm/hmm.c: fix build with CONFIG_MMU_NOTIFIER=n
-Date: Sat Jul 25 07:12:21 PM PDT 2026
+From: "Barry Song (Xiaomi)" <baohua@kernel.org>
+Subject: mm-zsmalloc-drop-pool-lock-from-zs_free-on-64-bit-systems-fix-2
+Date: Sat, 25 Jul 2026 11:45:09 +0800
 
-With microblaze
-https://download.01.org/0day-ci/archive/20260702/202607021433.DYT5fDqE-lkp@intel.com/config
-(CONFIG_MMU_NOTIFIER=n):
+mm: zsmalloc: update the comment about pool lock
 
-mm/hmm.c: In function 'hmm_range_fault_unlocked_timeout':
-mm/hmm.c:804:25: error: implicit declaration of function 'mmu_interval_read_begin'; did you mean 'mmu_interval_check_retry'? [-Wimplicit-function-declaration]
-  804 |                         mmu_interval_read_begin(range->notifier);
-      |                         ^~~~~~~~~~~~~~~~~~~~~~~
-      |                         mmu_interval_check_retry
+Update the comment to reflect that `zs_free()` can be lockless when
+`ZS_OBJ_CLASS_BITS` applies.
 
-
-Cc: Stanislav Kinsburskii <skinsburskii@gmail.com>
-Cc: Jason Gunthorpe <jgg@nvidia.com>
-Cc: Leon Romanovsky <leon@kernel.org>
+Link: https://lore.kernel.org/20260725035733.53241-1-baohua@kernel.org
+Signed-off-by: Barry Song (Xiaomi) <baohua@kernel.org>
+Suggested-by: Sergey Senozhatsky <senozhatsky@chromium.org>
+Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: Wenchao Hao <haowenchao@xiaomi.com>
+Cc: Xueyuan Chen <xueyuan.chen21@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmu_notifier.h |   13 +++++++++++++
- 1 file changed, 13 insertions(+)
+ mm/zsmalloc.c |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
---- a/include/linux/mmu_notifier.h~mm-hmmc-fix-build-with-config_mmu_notifier=n
-+++ a/include/linux/mmu_notifier.h
-@@ -576,6 +576,19 @@ static inline void _mmu_notifier_range_i
- 	_mmu_notifier_range_init(range, start, end)
+--- a/mm/zsmalloc.c~mm-zsmalloc-drop-pool-lock-from-zs_free-on-64-bit-systems-fix-2
++++ a/mm/zsmalloc.c
+@@ -1832,8 +1832,8 @@ static int zs_page_migrate(struct page *
+ 	pool = zspage->pool;
  
- static inline bool
-+mmu_interval_check_retry(struct mmu_interval_notifier *interval_sub,
-+			 unsigned long seq)
-+{
-+	return true;
-+}
-+
-+static inline unsigned long
-+mmu_interval_read_begin(struct mmu_interval_notifier *interval_sub)
-+{
-+	return 0;
-+}
-+
-+static inline bool
- mmu_notifier_range_blockable(const struct mmu_notifier_range *range)
- {
- 	return true;
+ 	/*
+-	 * The pool migrate_lock protects the race between zpage migration
+-	 * and zs_free.
++	 * The pool migrate_lock protects against races between zpage migration
++	 * and zs_free(), but only when ZS_OBJ_CLASS_BITS does not apply.
+ 	 */
+ 	write_lock(&pool->lock);
+ 	class = zspage_class(pool, zspage);
+@@ -2012,8 +2012,9 @@ static unsigned long __zs_compact(struct
+ 	unsigned long pages_freed = 0;
+ 
+ 	/*
+-	 * protect the race between zpage migration and zs_free
+-	 * as well as zpage allocation/free
++	 * Protect against races between zpage migration and zs_free()
++	 * (only when ZS_OBJ_CLASS_BITS does not apply), as well as
++	 * zpage allocation and free.
+ 	 */
+ 	write_lock(&pool->lock);
+ 	spin_lock(&class->lock);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from baohua@kernel.org are
 
-mm-mincore-use-walk_page_range_vma-in-do_mincore-fix.patch
-csky-implement-flush_cache_vmap-in-c.patch
-mm-annotate-data-race-in-cpu_needs_drain-fix.patch
-mm-zsmalloc-encode-class-index-in-obj-value-for-lockless-class-lookup-fix.patch
-mm-zsmalloc-drop-pool-lock-from-zs_free-on-64-bit-systems-fix.patch
-mm-zsmalloc-drop-pool-lock-from-zs_free-on-64-bit-systems-fix-fix.patch
-mm-rmap-use-huge_ptep_get-in-try_to_migrate_one-checkpatch-fixes.patch
-mm-mprotect-use-huge_ptep_get-for-hugetlb-fix.patch
-mm-drop-stale-folio_ref_count==1-check-in-do_swap_page-reuse-logic-fix.patch
-alloc_tag-add-ioctl-to-proc-allocinfo-fix.patch
-mm-hmmc-fix-build-with-config_mmu_notifier=n.patch
-mm-vma-add-and-use-vma__pgoff-fix.patch
-drivers-media-v4l2-core-v4l2-vp9c-reduce-inlining.patch
+mm-zsmalloc-drop-pool-lock-from-zs_free-on-64-bit-systems-fix-2.patch
+mm-avoid-unnecessary-lru-drain-for-wp_can_reuse_anon_folio.patch
+mm-avoid-unnecessary-lru-drain-for-wp_can_reuse_anon_folio-fix.patch
+mm-drop-stale-folio_ref_count==1-check-in-do_swap_page-reuse-logic.patch
+mm-entirely-remove-lru_add_drain-in-do_swap_page.patch
+mm-clarify-the-folio_free_swap-for-do_swap_page.patch
+arm64-hugetlb-extend-batching-of-multiple-cont_pte-in-a-single-pte-setup.patch
+arm64-vmalloc-allow-arch_vmap_pte_range_map_size-to-batch-multiple-cont_pte.patch
+mm-vmalloc-extend-page-table-walk-to-support-larger-page_shift-sizes-and-eliminate-page-table-rewalk.patch
+mm-vmalloc-map-contiguous-pages-in-batches-for-vmap-if-possible.patch
+mm-vmalloc-align-vm_area-so-vmap-can-batch-mappings.patch
 
