@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 748DA3CF1F4
-	for <mm-commits@vger.kernel.org>; Mon, 27 Jul 2026 19:18:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1782D379ECD;
+	Mon, 27 Jul 2026 20:52:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785179919; cv=none; b=AzMnIRmGNUARqG52z4+gF3xbAqsFENKJupAF7nfUz+L3piTjmBb8cQgga2cYNRz8uDavr7MjWAWKKpCNN7JfvO0Bjux0hHCtrub2xVhbkRdBiqG6AUkd9DbADrx25ejRf18t4NHr9QjIefpOy8BtEdMgDDRGzjjNu2COAhedpBo=
+	t=1785185528; cv=none; b=uoIbRYFz2kaVB2sRYPJ8swdl0TaPbAVHYt7Yu8rvu15yCBIRJki1UzFU23poVZyf0LJAl0JQRyFxUEzfXIONj92lZwOz68v6QnTCwIa0rkiBQBc9tFWTMl9ECQhz1zE10D2oKJyMR3BCR8Kdvh5uGqDRlpzk5Jo0fIbVeLyLfhQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785179919; c=relaxed/simple;
-	bh=PJtqTE7YlGNQlBj0CZxb3OdP4eAj0GpDRJaaGuDQvC8=;
-	h=Date:To:From:Subject:Message-Id; b=YU2KSDO0RLFjI7ssKmfWjogvTEgI5BgO7Qi0po9lMqsmPOOJ2L8UpgVxWQlpt+TSt8oHXZWQZV9ZntZ6q1FXgyEnDQZe7hqr57WtPr3z1AQfnwMUlfD9EdbwUdCrqpjWL6MrL40dS/A6rPFz1X4+7l07rGT5yR7PjWAtwSO1iVU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MINaAxeh; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785185528; c=relaxed/simple;
+	bh=cinIOUSsR9IMNXTYyNOKyKYcSGrot7ql+pja1i4SHYQ=;
+	h=Date:To:From:Subject:Message-Id; b=OXeAfOcSbStEajuntSNluqoihFh3iWzerZkkegT+54JnPDc8mXL0bupNlsZoUmgp5BH6SPVJBjtr0JFu0KwiuiX2xH7Gc1HUeugGkac1dF9Accm0skJg5JbXY6KZUvqvHdtk1XjR83bi6ilc34hnIdVlw86lZlQqwYaX+6jS8G0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pkoPl/Wm; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MINaAxeh"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C22DA1F000E9;
-	Mon, 27 Jul 2026 19:18:32 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pkoPl/Wm"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C13841F000E9;
+	Mon, 27 Jul 2026 20:52:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785179912;
-	bh=mnzuVNRngCfo17/44ZcdGFWLYKvF22FGjzIl4JIhuBI=;
+	d=linux-foundation.org; s=korg; t=1785185526;
+	bh=dBg1+/NmdaJloYzDMMHB+IxGfUlM0LW2ZR54y9qQSVc=;
 	h=Date:To:From:Subject;
-	b=MINaAxehS9HYFaUCL5lypTqhWTBr1YGb7FNbXtBc6gc5yTrjR4+u0a6a4YFBCzXr1
-	 IOU49taOtGpONB9KmaZuv+i4Zm5Uu/RPhgjPnwbk6TZYN3MmmX8TSB9YF2YIc7N8y/
-	 NQh9Nmj7ZG9duBw85JoGUBYSi0xXA6A0c3omjt6k=
-Date: Mon, 27 Jul 2026 12:18:32 -0700
-To: mm-commits@vger.kernel.org,yang.yang29@zte.com.cn,vincent.guittot@linaro.org,shuah@kernel.org,peterz@infradead.org,pabeni@redhat.com,nathan@kernel.org,mingo@redhat.com,mcoquelin.stm32@gmail.com,legion@kernel.org,kuba@kernel.org,kees@kernel.org,juri.lelli@redhat.com,joel.granados@kernel.org,jason@zx2c4.com,hca@linux.ibm.com,gor@linux.ibm.com,geert@linux-m68k.org,edumazet@google.com,ebiederm@xmission.com,davem@davemloft.net,dave.hansen@linux.intel.com,bsingharora@gmail.com,bp@alien8.de,alexandre.torgue@foss.st.com,agordeev@linux.ibm.com,oleg@redhat.com,akpm@linux-foundation.org
+	b=pkoPl/WmFWoImmWJwikjWKQJA3t2REicl9lrkIRlXpXXMyOF73zAt3t/NI2+KCsOi
+	 R+mFfnd02lZwri7Z3P/vLMS7wy68IW5RuZoMH/CRgDm6GRZN9zyNF/eJrpUzMBY0io
+	 wu4/pNqE03VmOuFnO7xdrX2X0lV1alMT8QdjKE4I=
+Date: Mon, 27 Jul 2026 13:52:06 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,stable@vger.kernel.org,rakie.kim@sk.com,paulmck@kernel.org,matthew.brost@intel.com,joshua.hahnjy@gmail.com,gourry@gourry.net,david@kernel.org,byungchul@sk.com,apopple@nvidia.com,leitao@debian.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + sysctl-remove-config_proc_sysctl-it-just-mirrors-config_sysctl.patch added to mm-nonmm-unstable branch
-Message-Id: <20260727191832.C22DA1F000E9@smtp.kernel.org>
+Subject: + mm-migrate-report-rcu-tasks-quiescent-states-in-migrate_pages_batch.patch added to mm-new branch
+Message-Id: <20260727205206.C13841F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,26 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: sysctl: remove CONFIG_PROC_SYSCTL, it just mirrors CONFIG_SYSCTL
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     sysctl-remove-config_proc_sysctl-it-just-mirrors-config_sysctl.patch
+     Subject: mm/migrate: report RCU-tasks quiescent states in migrate_pages_batch()
+has been added to the -mm mm-new branch.  Its filename is
+     mm-migrate-report-rcu-tasks-quiescent-states-in-migrate_pages_batch.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/sysctl-remove-config_proc_sysctl-it-just-mirrors-config_sysctl.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-migrate-report-rcu-tasks-quiescent-states-in-migrate_pages_batch.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,419 +69,95 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Oleg Nesterov <oleg@redhat.com>
-Subject: sysctl: remove CONFIG_PROC_SYSCTL, it just mirrors CONFIG_SYSCTL
-Date: Mon, 27 Jul 2026 16:47:22 +0200
+From: Breno Leitao <leitao@debian.org>
+Subject: mm/migrate: report RCU-tasks quiescent states in migrate_pages_batch()
+Date: Mon, 27 Jul 2026 06:50:19 -0700
 
-CONFIG_SYSCTL used to make sense as a separate hidden bool before commit
-61a47c1ad3a4 ("sysctl: Remove the sysctl system call"); it was selected by
-both CONFIG_SYSCTL_SYSCALL and CONFIG_PROC_SYSCTL.
+migrate_pages_batch() unmaps each folio before moving it, and every
+unmap runs the mmu_notifier invalidate callbacks.  On KVM hosts
+try_to_migrate() ends up in kvm_mmu_notifier_invalidate_range_start() ->
+tdp_mmu_zap_leafs(), which is expensive, so unmapping a large batch keeps
+the CPU busy for a long time.
 
-Today CONFIG_PROC_SYSCTL is the only selector, so the two are always
-equal.  Kill the hidden bool, rename the PROC_SYSCTL prompt to SYSCTL, and
-s/CONFIG_PROC_SYSCTL/CONFIG_SYSCTL/ tree-wide.
+The loop already calls cond_resched(), but on PREEMPTION kernels that is
+a no-op, and involuntary preemption is not a Tasks-RCU quiescent state.
 
-Link: https://lore.kernel.org/amdveg1m4E4uQlGv@redhat.com
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Cc: Alexander Gordeev <agordeev@linux.ibm.com>
-Cc: Alexandre Torgue <alexandre.torgue@foss.st.com>
-Cc: Alexey Gladkov (Intel) <legion@kernel.org>
-Cc: Balbir Singh <bsingharora@gmail.com>
-Cc: "Borislav Petkov (AMD)" <bp@alien8.de>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Eric Biederman <ebiederm@xmission.com>
-Cc: Eric Dumazet <edumazet@google.com>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Heiko Carstens <hca@linux.ibm.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Jakub Kacinski <kuba@kernel.org>
-Cc: Jason A. Donenfeld <jason@zx2c4.com>
-Cc: Joel Granados <joel.granados@kernel.org>
-Cc: Juri Lelli <juri.lelli@redhat.com>
-Cc: Kees Cook <kees@kernel.org>
-Cc: Maxime Coquelin <mcoquelin.stm32@gmail.com>
-Cc: Nathan Chancellor <nathan@kernel.org>
-Cc: Paolo Abeni <pabeni@redhat.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
-Cc: Vincent Guittot <vincent.guittot@linaro.org>
-Cc: Yang Yang <yang.yang29@zte.com.cn>
+A long batch therefore never reports a quiescent state, and the
+migrating task (e.g. kcompactd) becomes a Tasks-RCU holdout, stalling the
+Tasks-RCU grace period for minutes, which is common at Meta fleet:
+
+  INFO: rcu_tasks detected stalls on tasks:
+  0000000055349ecc: .. nvcsw: 1157401/1157401 holdout: 1 idle_cpu: -1/56 task:kcompactd0      state:R  running task
+  Call Trace:
+   tdp_mmu_zap_leafs
+   tdp_mmu_next_root
+   gfn_to_pfn_cache_invalidate_start
+   kvm_mmu_notifier_invalidate_range_start
+   __mmu_notifier_invalidate_range_start
+   try_to_migrate_one
+   try_to_migrate
+   migrate_pages_batch
+   migrate_pages
+   compact_zone
+   compact_node
+   kcompactd
+   kthread
+
+Use cond_resched_tasks_rcu_qs() so a quiescent state is reported even
+when cond_resched() does nothing.
+
+This has also been discussed at [1]
+
+Link: https://lore.kernel.org/20260727-kcompact-v1-1-bdfefddd6874@debian.org
+Link: https://lore.kernel.org/all/amdWVTs0WKOxguxP@gmail.com/ [1]
+Signed-off-by: Breno Leitao <leitao@debian.org>
+Acked-by: Zi Yan <ziy@nvidia.com>
+Reviewed-by: Gregory Price <gourry@gourry.net>
+Reviewed-by: Paul E. McKenney <paulmck@kernel.org>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Byungchul Park <byungchul@sk.com>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
+Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
+Cc: Matthew Brost <matthew.brost@intel.com>
+Cc: Rakie Kim <rakie.kim@sk.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m68k/configs/amcore_defconfig                   |    2 -
- arch/m68k/configs/stmark2_defconfig                  |    2 -
- arch/s390/Kconfig                                    |    4 +--
- arch/x86/kernel/cpu/bus_lock.c                       |    2 -
- fs/proc/Kconfig                                      |    3 --
- fs/proc/Makefile                                     |    2 -
- fs/proc/internal.h                                   |    2 -
- include/linux/utsname.h                              |    2 -
- init/Kconfig                                         |    3 --
- kernel/delayacct.c                                   |    2 -
- kernel/sched/core.c                                  |    8 +++---
- kernel/sched/topology.c                              |    4 +--
- kernel/sysctl.c                                      |   12 +++++-----
- kernel/time/jiffies.c                                |    4 +--
- kernel/utsname_sysctl.c                              |    4 +--
- lib/Kconfig.debug                                    |    2 -
- lib/test_sysctl.c                                    |    2 -
- net/mpls/Kconfig                                     |    2 -
- tools/testing/selftests/net/config                   |    2 -
- tools/testing/selftests/net/packetdrill/config       |    2 -
- tools/testing/selftests/wireguard/qemu/kernel.config |    2 -
- 21 files changed, 32 insertions(+), 36 deletions(-)
+ mm/migrate.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/arch/m68k/configs/amcore_defconfig~sysctl-remove-config_proc_sysctl-it-just-mirrors-config_sysctl
-+++ a/arch/m68k/configs/amcore_defconfig
-@@ -74,7 +74,7 @@ CONFIG_RTC_DRV_DS1307=y
- # CONFIG_DNOTIFY is not set
- # CONFIG_INOTIFY_USER is not set
- CONFIG_FSCACHE=y
--# CONFIG_PROC_SYSCTL is not set
-+# CONFIG_SYSCTL is not set
- CONFIG_JFFS2_FS=y
- CONFIG_ROMFS_FS=y
- CONFIG_ROMFS_BACKED_BY_BOTH=y
---- a/arch/m68k/configs/stmark2_defconfig~sysctl-remove-config_proc_sysctl-it-just-mirrors-config_sysctl
-+++ a/arch/m68k/configs/stmark2_defconfig
-@@ -87,7 +87,7 @@ CONFIG_EXT4_FS_SECURITY=y
- # CONFIG_DNOTIFY is not set
- # CONFIG_INOTIFY_USER is not set
- CONFIG_OVERLAY_FS=y
--# CONFIG_PROC_SYSCTL is not set
-+# CONFIG_SYSCTL is not set
- CONFIG_SQUASHFS=y
- CONFIG_XZ_DEC=y
- CONFIG_PRINTK_TIME=y
---- a/arch/s390/Kconfig~sysctl-remove-config_proc_sysctl-it-just-mirrors-config_sysctl
-+++ a/arch/s390/Kconfig
-@@ -576,7 +576,7 @@ config HIPERDISPATCH_ON
- 	def_bool y
- 	bool "Use hiperdispatch on vertical polarization by default"
- 	depends on SCHED_TOPOLOGY
--	depends on PROC_SYSCTL
-+	depends on SYSCTL
- 	help
- 	  Hiperdispatch aims to improve the CPU scheduler's decision
- 	  making when using vertical polarization by adjusting CPU
-@@ -894,7 +894,7 @@ config CMM_IUCV
- config APPLDATA_BASE
- 	def_bool n
- 	prompt "Linux - VM Monitor Stream, base infrastructure"
--	depends on PROC_SYSCTL
-+	depends on SYSCTL
- 	help
- 	  This provides a kernel interface for creating and updating z/VM APPLDATA
- 	  monitor records. The monitor records are updated at certain time
---- a/arch/x86/kernel/cpu/bus_lock.c~sysctl-remove-config_proc_sysctl-it-just-mirrors-config_sysctl
-+++ a/arch/x86/kernel/cpu/bus_lock.c
-@@ -50,7 +50,7 @@ static struct ratelimit_state bld_rateli
- static unsigned int sysctl_sld_mitigate = 1;
- static DEFINE_SEMAPHORE(buslock_sem, 1);
+--- a/mm/migrate.c~mm-migrate-report-rcu-tasks-quiescent-states-in-migrate_pages_batch
++++ a/mm/migrate.c
+@@ -1843,7 +1843,7 @@ static int migrate_pages_batch(struct li
+ 			is_thp = folio_test_pmd_mappable(folio);
+ 			nr_pages = folio_nr_pages(folio);
  
--#ifdef CONFIG_PROC_SYSCTL
-+#ifdef CONFIG_SYSCTL
- static const struct ctl_table sld_sysctls[] = {
- 	{
- 		.procname       = "split_lock_mitigate",
---- a/fs/proc/internal.h~sysctl-remove-config_proc_sysctl-it-just-mirrors-config_sysctl
-+++ a/fs/proc/internal.h
-@@ -351,7 +351,7 @@ extern void proc_thread_self_init(void);
- /*
-  * proc_sysctl.c
-  */
--#ifdef CONFIG_PROC_SYSCTL
-+#ifdef CONFIG_SYSCTL
- extern int proc_sys_init(void);
- extern void proc_sys_evict_inode(struct inode *inode,
- 				 struct ctl_table_header *head);
---- a/fs/proc/Kconfig~sysctl-remove-config_proc_sysctl-it-just-mirrors-config_sysctl
-+++ a/fs/proc/Kconfig
-@@ -80,10 +80,9 @@ config PROC_VMCORE_DEVICE_RAM
+-			cond_resched();
++			cond_resched_tasks_rcu_qs();
  
- 	  Relevant architectures should select NEED_PROC_VMCORE_DEVICE_RAM.
- 
--config PROC_SYSCTL
-+config SYSCTL
- 	bool "Sysctl support (/proc/sys)" if EXPERT
- 	depends on PROC_FS
--	select SYSCTL
- 	default y
- 	help
- 	  The sysctl interface provides a means of dynamically changing
---- a/fs/proc/Makefile~sysctl-remove-config_proc_sysctl-it-just-mirrors-config_sysctl
-+++ a/fs/proc/Makefile
-@@ -29,7 +29,7 @@ proc-y	+= softirqs.o
- proc-y	+= namespaces.o
- proc-y	+= self.o
- proc-y	+= thread_self.o
--proc-$(CONFIG_PROC_SYSCTL)	+= proc_sysctl.o
-+proc-$(CONFIG_SYSCTL)		+= proc_sysctl.o
- proc-$(CONFIG_NET)		+= proc_net.o
- proc-$(CONFIG_PROC_KCORE)	+= kcore.o
- proc-$(CONFIG_PROC_VMCORE)	+= vmcore.o
---- a/include/linux/utsname.h~sysctl-remove-config_proc_sysctl-it-just-mirrors-config_sysctl
-+++ a/include/linux/utsname.h
-@@ -18,7 +18,7 @@ enum uts_proc {
- 	UTS_PROC_DOMAINNAME,
- };
- 
--#ifdef CONFIG_PROC_SYSCTL
-+#ifdef CONFIG_SYSCTL
- extern void uts_proc_notify(enum uts_proc proc);
- #else
- static inline void uts_proc_notify(enum uts_proc proc)
---- a/init/Kconfig~sysctl-remove-config_proc_sysctl-it-just-mirrors-config_sysctl
-+++ a/init/Kconfig
-@@ -1669,9 +1669,6 @@ config LD_ORPHAN_WARN_LEVEL
- 	default "error" if WERROR
- 	default "warn"
- 
--config SYSCTL
--	bool
--
- config HAVE_UID16
- 	bool
- 
---- a/kernel/delayacct.c~sysctl-remove-config_proc_sysctl-it-just-mirrors-config_sysctl
-+++ a/kernel/delayacct.c
-@@ -54,7 +54,7 @@ void delayacct_init(void)
- 	set_delayacct(delayacct_on);
- }
- 
--#ifdef CONFIG_PROC_SYSCTL
-+#ifdef CONFIG_SYSCTL
- static int sysctl_delayacct(const struct ctl_table *table, int write, void *buffer,
- 		     size_t *lenp, loff_t *ppos)
- {
---- a/kernel/sched/core.c~sysctl-remove-config_proc_sysctl-it-just-mirrors-config_sysctl
-+++ a/kernel/sched/core.c
-@@ -4638,7 +4638,7 @@ void set_numabalancing_state(bool enable
- 	__set_numabalancing_state(enabled);
- }
- 
--#ifdef CONFIG_PROC_SYSCTL
-+#ifdef CONFIG_SYSCTL
- static void reset_memory_tiering(void)
- {
- 	struct pglist_data *pgdat;
-@@ -4674,7 +4674,7 @@ static int sysctl_numa_balancing(const s
- 	}
- 	return err;
- }
--#endif /* CONFIG_PROC_SYSCTL */
-+#endif /* CONFIG_SYSCTL */
- #endif /* CONFIG_NUMA_BALANCING */
- 
- #ifdef CONFIG_SCHEDSTATS
-@@ -4718,7 +4718,7 @@ out:
- }
- __setup("schedstats=", setup_schedstats);
- 
--#ifdef CONFIG_PROC_SYSCTL
-+#ifdef CONFIG_SYSCTL
- static int sysctl_schedstats(const struct ctl_table *table, int write, void *buffer,
- 		size_t *lenp, loff_t *ppos)
- {
-@@ -4738,7 +4738,7 @@ static int sysctl_schedstats(const struc
- 		set_schedstats(state);
- 	return err;
- }
--#endif /* CONFIG_PROC_SYSCTL */
-+#endif /* CONFIG_SYSCTL */
- #endif /* CONFIG_SCHEDSTATS */
- 
- #ifdef CONFIG_SYSCTL
---- a/kernel/sched/topology.c~sysctl-remove-config_proc_sysctl-it-just-mirrors-config_sysctl
-+++ a/kernel/sched/topology.c
-@@ -271,7 +271,7 @@ void rebuild_sched_domains_energy(void)
- 	mutex_unlock(&sched_energy_mutex);
- }
- 
--#ifdef CONFIG_PROC_SYSCTL
-+#ifdef CONFIG_SYSCTL
- static int sched_energy_aware_handler(const struct ctl_table *table, int write,
- 		void *buffer, size_t *lenp, loff_t *ppos)
- {
-@@ -317,7 +317,7 @@ static int __init sched_energy_aware_sys
- }
- 
- late_initcall(sched_energy_aware_sysctl_init);
--#endif /* CONFIG_PROC_SYSCTL */
-+#endif /* CONFIG_SYSCTL */
- 
- static void free_pd(struct perf_domain *pd)
- {
---- a/kernel/sysctl.c~sysctl-remove-config_proc_sysctl-it-just-mirrors-config_sysctl
-+++ a/kernel/sysctl.c
-@@ -35,7 +35,7 @@ EXPORT_SYMBOL_GPL(sysctl_long_vals);
- static const int ngroups_max = NGROUPS_MAX;
- static const int cap_last_cap = CAP_LAST_CAP;
- 
--#ifdef CONFIG_PROC_SYSCTL
-+#ifdef CONFIG_SYSCTL
- 
- /**
-  * enum sysctl_writes_mode - supported sysctl write modes
-@@ -64,14 +64,14 @@ enum sysctl_writes_mode {
- };
- 
- static enum sysctl_writes_mode sysctl_writes_strict = SYSCTL_WRITES_STRICT;
--#endif /* CONFIG_PROC_SYSCTL */
-+#endif /* CONFIG_SYSCTL */
- #endif /* CONFIG_SYSCTL */
- 
- /*
-  * /proc/sys support
-  */
- 
--#ifdef CONFIG_PROC_SYSCTL
-+#ifdef CONFIG_SYSCTL
- 
- static int _proc_do_string(char *data, int maxlen, int dir,
- 		char *buffer, size_t *lenp, loff_t *ppos)
-@@ -1240,7 +1240,7 @@ int proc_do_large_bitmap(const struct ct
- 	return err;
- }
- 
--#else /* CONFIG_PROC_SYSCTL */
-+#else /* CONFIG_SYSCTL */
- 
- int proc_dostring(const struct ctl_table *table, int dir,
- 		  void *buffer, size_t *lenp, loff_t *ppos)
-@@ -1338,7 +1338,7 @@ int proc_do_large_bitmap(const struct ct
- 	return -ENOSYS;
- }
- 
--#endif /* CONFIG_PROC_SYSCTL */
-+#endif /* CONFIG_SYSCTL */
- 
- #if defined(CONFIG_SYSCTL)
- int proc_do_static_key(const struct ctl_table *table, int dir,
-@@ -1372,7 +1372,7 @@ int proc_do_static_key(const struct ctl_
- }
- 
- static const struct ctl_table sysctl_subsys_table[] = {
--#ifdef CONFIG_PROC_SYSCTL
-+#ifdef CONFIG_SYSCTL
- 	{
- 		.procname	= "sysctl_writes_strict",
- 		.data		= &sysctl_writes_strict,
---- a/kernel/time/jiffies.c~sysctl-remove-config_proc_sysctl-it-just-mirrors-config_sysctl
-+++ a/kernel/time/jiffies.c
-@@ -98,7 +98,7 @@ void __init register_refined_jiffies(lon
- 	__clocksource_register(&refined_jiffies);
- }
- 
--#ifdef CONFIG_PROC_SYSCTL
-+#ifdef CONFIG_SYSCTL
- static ulong mult_hz(const ulong val)
- {
- 	return val * HZ;
-@@ -185,7 +185,7 @@ static int do_proc_int_conv_ms_jiffies_m
- 			     sysctl_u2k_int_conv_ms, sysctl_k2u_int_conv_ms);
- }
- 
--#else // CONFIG_PROC_SYSCTL
-+#else // CONFIG_SYSCTL
- static int do_proc_int_conv_jiffies(bool *negp, ulong *u_ptr, int *k_ptr,
- 				    int dir, const struct ctl_table *tbl)
- {
---- a/kernel/utsname_sysctl.c~sysctl-remove-config_proc_sysctl-it-just-mirrors-config_sysctl
-+++ a/kernel/utsname_sysctl.c
-@@ -13,7 +13,7 @@
- #include <linux/wait.h>
- #include <linux/rwsem.h>
- 
--#ifdef CONFIG_PROC_SYSCTL
-+#ifdef CONFIG_SYSCTL
- 
- static void *get_uts(const struct ctl_table *table)
- {
-@@ -122,7 +122,7 @@ static const struct ctl_table uts_kern_t
- 	},
- };
- 
--#ifdef CONFIG_PROC_SYSCTL
-+#ifdef CONFIG_SYSCTL
- /*
-  * Notify userspace about a change in a certain entry of uts_kern_table,
-  * identified by the parameter proc.
---- a/lib/Kconfig.debug~sysctl-remove-config_proc_sysctl-it-just-mirrors-config_sysctl
-+++ a/lib/Kconfig.debug
-@@ -2682,7 +2682,7 @@ config TEST_FIRMWARE
- 
- config TEST_SYSCTL
- 	tristate "sysctl test driver"
--	depends on PROC_SYSCTL
-+	depends on SYSCTL
- 	help
- 	  This builds the "test_sysctl" module. This driver enables to test the
- 	  proc sysctl interfaces available to drivers safely without affecting
---- a/lib/test_sysctl.c~sysctl-remove-config_proc_sysctl-it-just-mirrors-config_sysctl
-+++ a/lib/test_sysctl.c
-@@ -7,7 +7,7 @@
- 
- /*
-  * This module provides an interface to the proc sysctl interfaces.  This
-- * driver requires CONFIG_PROC_SYSCTL. It will not normally be loaded by the
-+ * driver requires CONFIG_SYSCTL. It will not normally be loaded by the
-  * system unless explicitly requested by name. You can also build this driver
-  * into your kernel.
-  */
---- a/net/mpls/Kconfig~sysctl-remove-config_proc_sysctl-it-just-mirrors-config_sysctl
-+++ a/net/mpls/Kconfig
-@@ -26,7 +26,7 @@ config NET_MPLS_GSO
- config MPLS_ROUTING
- 	tristate "MPLS: routing support"
- 	depends on NET_IP_TUNNEL || NET_IP_TUNNEL=n
--	depends on PROC_SYSCTL
-+	depends on SYSCTL
- 	help
- 	 Add support for forwarding of mpls packets.
- 
---- a/tools/testing/selftests/net/config~sysctl-remove-config_proc_sysctl-it-just-mirrors-config_sysctl
-+++ a/tools/testing/selftests/net/config
-@@ -118,7 +118,7 @@ CONFIG_OPENVSWITCH_GENEVE=m
- CONFIG_OPENVSWITCH_GRE=m
- CONFIG_OPENVSWITCH_VXLAN=m
- CONFIG_PAGE_POOL_STATS=y
--CONFIG_PROC_SYSCTL=y
-+CONFIG_SYSCTL=y
- CONFIG_PSAMPLE=m
- CONFIG_RPS=y
- CONFIG_SYN_COOKIES=y
---- a/tools/testing/selftests/net/packetdrill/config~sysctl-remove-config_proc_sysctl-it-just-mirrors-config_sysctl
-+++ a/tools/testing/selftests/net/packetdrill/config
-@@ -4,7 +4,7 @@ CONFIG_IPV6=y
- CONFIG_NET_NS=y
- CONFIG_NET_SCH_FIFO=y
- CONFIG_NET_SCH_FQ=y
--CONFIG_PROC_SYSCTL=y
-+CONFIG_SYSCTL=y
- CONFIG_SYN_COOKIES=y
- CONFIG_TCP_CONG_CUBIC=y
- CONFIG_TCP_MD5SIG=y
---- a/tools/testing/selftests/wireguard/qemu/kernel.config~sysctl-remove-config_proc_sysctl-it-just-mirrors-config_sysctl
-+++ a/tools/testing/selftests/wireguard/qemu/kernel.config
-@@ -63,7 +63,7 @@ CONFIG_FILE_LOCKING=y
- CONFIG_POSIX_TIMERS=y
- CONFIG_DEVTMPFS=y
- CONFIG_PROC_FS=y
--CONFIG_PROC_SYSCTL=y
-+CONFIG_SYSCTL=y
- CONFIG_SYSFS=y
- CONFIG_TMPFS=y
- CONFIG_CONSOLE_LOGLEVEL_DEFAULT=15
+ 			/*
+ 			 * The rare folio on the deferred split list should
 _
 
-Patches currently in -mm which might be from oleg@redhat.com are
+Patches currently in -mm which might be from leitao@debian.org are
 
-signal-change-sys_kill-to-use-send_sig_noinfo.patch
-signal-avoid-unconditional-siginfo-copy-in-send_signal_locked.patch
-sysctl-move-the-cad_pid-entry-from-pid_table-to-kern_reboot_table.patch
-sysctl-remove-config_proc_sysctl-it-just-mirrors-config_sysctl.patch
+mm-memcg-initialize-locked-in-memcg1_oom_prepare-stub.patch
+mm-kmemleak-avoid-soft-lockup-when-scanning-task-stacks.patch
+mm-kmemleak-stop-the-task-stack-scan-early-when-interrupted.patch
+mm-kmemleak-stop-the-per-cpu-and-struct-page-scans-early-too.patch
+mm-memory-failure-drop-dead-error_states-entry-for-reserved-pages.patch
+mm-memory-failure-surface-unhandlable-kernel-pages-as-enotrecoverable.patch
+mm-memory-failure-report-mf_msg_kernel-for-unrecoverable-kernel-pages.patch
+mm-memory-failure-add-panic-option-for-unrecoverable-pages.patch
+documentation-document-panic_on_unrecoverable_memory_failure-sysctl.patch
+selftests-mm-add-hwpoison-panic-destructive-test.patch
+mm-kmemleak-skip-the-remaining-scan-phases-when-interrupted.patch
+radix-tree-fix-kmemleak-false-positives-on-tree-head-reassignment.patch
+mm-kmemleak-report-leaks-only-after-n-consecutive-unreferenced-scans.patch
+mm-kmemleak-factor-leak-confirmation-into-a-helper.patch
+selftests-mm-test-kmemleaks-n-consecutive-scan-leak-confirmation.patch
+mm-kmemleak-report-rcu-tasks-quiescent-states-during-the-scan.patch
+mm-migrate-report-rcu-tasks-quiescent-states-in-migrate_pages_batch.patch
 
