@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1979C44C51A
-	for <mm-commits@vger.kernel.org>; Tue, 28 Jul 2026 19:57:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 158514746CE;
+	Tue, 28 Jul 2026 20:24:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785268663; cv=none; b=RFEq1uZogXH1i0FxFQlij7fO1UQ3+nLG4EadI8y2VtqHUVFY57wUBhtMNe07kR7NxXm57+oMj3LTM8Q+1zjmNs20qLgh7dz3FIKXttyCpv5s6nbsDWCzGcbMiF8zKcyBthM52R/dKekaXczNtKYreO5jumZEsQAwBAE+6Y2gZa0=
+	t=1785270265; cv=none; b=t5gz+FzBFxiAxizOVIW47GAjaihoVDA2jrn7hsWy7y3uAc7lcfst0QJO9mlZz7XzVcIv3zFndn3QYugX9PCxhc/GeDRIRlzEb8Qsvo/zPWCUcnXZMa9onqmdEE8BiWi62+exzvAz28U+pGtIFdSKyB9QF5nyZ3ixwA0VBlag9DQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785268663; c=relaxed/simple;
-	bh=/PcS0AvQY7/IK8QBgV9lcne0skdCv1p4QUNomRZtS6g=;
-	h=Date:To:From:Subject:Message-Id; b=dE+v40vdUZuIXZSo5EuWO62DX6UYRiiuKa9U28k085QjoymjmPy0yeeHH06lS06kaWBeYjdqMG0AB+28X1FeehFtm7eCn+yMMIvAG4LSFkc02UOxYXk19Lmn7g5ovxSHjlCXr2WqqiwziGmcnSffqWJLsvA86ekTqF/+KMc4tCs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PfUVg4+2; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785270265; c=relaxed/simple;
+	bh=JK4IXGLe3QiTV5cgleHo1e1HZLUxBcNciSmVduYjfRM=;
+	h=Date:To:From:Subject:Message-Id; b=ZcFTA5ewUyWy6uShwT0vbz9gzHP34KduKTNg0UIPcPINmnZ3XTSLfR+QXzUiBHNnb1hM8vfmNujEbVgbSpav4AvXlr52iZYeYYxF3Kyav3U3JUTBm9GWyxVpL9fUSSPwx5q/3iCxi2q7zNCHLDXtfCL0ryht+QT5wPluIPKvo5I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NbUGRj6Q; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PfUVg4+2"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 993B61F000E9;
-	Tue, 28 Jul 2026 19:57:41 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NbUGRj6Q"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 037F11F000E9;
+	Tue, 28 Jul 2026 20:24:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785268661;
-	bh=2BEVWcGC8c+DF44k6x0WXo/RH/YuiKSXRuylx1rgexk=;
+	d=linux-foundation.org; s=korg; t=1785270262;
+	bh=p5VB8BEs8108sB37SAgvqYcTc5onMCIiGEYtnZ1q5gA=;
 	h=Date:To:From:Subject;
-	b=PfUVg4+2sZSczLwLld1Pjv2nSbeQKl9MzjvLlHAlQstflzTXUMgpge72kYm89Ad1b
-	 ecVF99eB5J5PY9Ps/9eE4r5OrO1PSwjnKvl07/kCtKS2tRWiUAg1rbe9qLfHfuRnhG
-	 fXwnYGnT48zwdJSIERFme7K5pAT+03WR+IQ/XaRo=
-Date: Tue, 28 Jul 2026 12:57:41 -0700
-To: mm-commits@vger.kernel.org,will@kernel.org,riel@surriel.com,peterz@infradead.org,mingo@redhat.com,longman@redhat.com,leitao@debian.org,joe@perches.com,jgg@ziepe.ca,clm@meta.com,cel@kernel.org,boqun.feng@gmail.com,liam@infradead.org,akpm@linux-foundation.org
+	b=NbUGRj6QxQmEJrsp9IxiT6ZTYi0oWUq+8XXjPXJpUOFf4QLuaxIGGOXFokAmCtg4j
+	 JSAGNHfcQHKl0Q43pkfofRA9h3i+KYmpH6iA4j9hiNwsN4L/QZ/RshbOpR3Ob5H6+L
+	 S28OFRJ+VR5ulodhFZ588rpYsm5uXDG7IHkonqUU=
+Date: Tue, 28 Jul 2026 13:24:21 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,hyeongtak.ji@sk.com,honggyu.kim@sk.com,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + maple_tree-stop-flooding-logs-when-debug_locks-is-set-to-zero-fix.patch added to mm-unstable branch
-Message-Id: <20260728195741.993B61F000E9@smtp.kernel.org>
+Subject: + mm-damon-adjust-isolated-pages-stat-for-damos_migrate_hotcold.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260728202422.037F11F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: maple_tree-stop-flooding-logs-when-debug_locks-is-set-to-zero-fix
-has been added to the -mm mm-unstable branch.  Its filename is
-     maple_tree-stop-flooding-logs-when-debug_locks-is-set-to-zero-fix.patch
+     Subject: mm/damon: adjust isolated pages stat for DAMOS_MIGRATE_{HOT,COLD}
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-damon-adjust-isolated-pages-stat-for-damos_migrate_hotcold.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-stop-flooding-logs-when-debug_locks-is-set-to-zero-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-adjust-isolated-pages-stat-for-damos_migrate_hotcold.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,104 +58,216 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: "Liam R. Howlett (Oracle)" <liam@infradead.org>
-Subject: maple_tree-stop-flooding-logs-when-debug_locks-is-set-to-zero-fix
-Date: Mon, 20 Jul 2026 17:30:38 -0400
+From: SJ Park <sj@kernel.org>
+Subject: mm/damon: adjust isolated pages stat for DAMOS_MIGRATE_{HOT,COLD}
+Date: Tue, 28 Jul 2026 07:04:03 -0700
 
-stop flooding logs when debug_locks is set to zero
+Callers of migrate_pages() should adjust NR_MIGRATED_{ANON,FILE} for
+isolations and putback of the folios.  That for migration succeeded folios
+is done by migrate_pages(), in migrate_folio_done().  That for MR_DEMOTION
+reason is an exception though.
 
-When lockdep detects an issue, it sets debug_locks to 0 disabling further
-reports.  The newly added maple tree sequence counting on locks to detect
-errors is not taking this nor the fact that lock_is_held() can return -1
-(unknown state) into account.  The resulting action is a flood of logging
-of not matching sequence numbers being reported on failure.
+DAMOS_MIGRATE_{HOT,COLD} call migrate_pages() but mistakenly not doing the
+stat adjustment.  As a result, use of DAMOS_MIGRATE_{HOT,COLD} could
+corrupt the stat.  It could confuse too_many_isolated(), make compaction
+and reclaim to behave in unexpected ways.  The stat corruption can be
+reproduced and confirmed using DAMON user-space tool [1] on NUMA systems,
+like below.
 
-__lock_sequnece() will return u32 ~0 when debug_locks is zero, and the
-real sequnece count cannot return such a high value as it is less than
-32bits.
+    $ numactl --hardware
+    available: 2 nodes (0-1)
+    [...]
+    $ sudo ./damo start --damos_action migrate_hot 1
+    $ sudo cat /proc/sys/vm/stat_refresh
+    $ sudo dmesg
+    [...]
+    [   80.215554] vmstat_refresh: nr_isolated_anon -5578
+    [   80.216842] vmstat_refresh: nr_isolated_file -34400
 
-By always updating the sequence number, regardless of lock state and by
-ignoring ~0 value in the sequence number will avoid ever printing a
-WARN_ON when this condition is hit.
+This issue was discovered [2] by Sashiko.
 
-Link: https://lore.kernel.org/fo5r2xl3fql6gyvjasfvfu4ftugjti2vxg7zskdw7hjeo3xvqm@kk66qmsf762s
-Signed-off-by: Liam R. Howlett (Oracle) <liam@infradead.org>
-Tested-by: Breno Leitao <leitao@debian.org>
-Cc: Boqun Feng <boqun.feng@gmail.com>
-Cc: Chris Mason <clm@meta.com>
-Cc: Chuck Lever <cel@kernel.org>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Joe Perches <joe@perches.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Waiman Long <longman@redhat.com>
-Cc: Will Deacon <will@kernel.org>
+Link: https://lore.kernel.org/20260728140404.94476-1-sj@kernel.org
+Link: https://github.com/damonitor/damo [1]
+Link: https://lore.kernel.org/20260726164356.87940-1-sj@kernel.org [2]
+Fixes: b51820ebea65 ("mm/damon/paddr: introduce DAMOS_MIGRATE_COLD action for demotion")
+Signed-off-by: SJ Park <sj@kernel.org>
+Cc: Honggyu Kim <honggyu.kim@sk.com>
+Cc: Hyeongtak Ji <hyeongtak.ji@sk.com>
+Cc: <stable@vger.kernel.org> # 6.11.x
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/maple_tree.c |   14 ++++++++++----
- 1 file changed, 10 insertions(+), 4 deletions(-)
+ mm/damon/ops-common.c |    4 ++++
+ mm/damon/paddr.c      |    2 ++
+ mm/damon/vaddr.c      |    3 ++-
+ 3 files changed, 8 insertions(+), 1 deletion(-)
 
---- a/lib/maple_tree.c~maple_tree-stop-flooding-logs-when-debug_locks-is-set-to-zero-fix
-+++ a/lib/maple_tree.c
-@@ -1171,6 +1171,8 @@ static void mas_lock_check(struct ma_sta
- {
- #ifdef CONFIG_LOCKDEP
- 	struct lockdep_map *map;
-+	u32 seq;
-+
- 	if (!mas_is_active(mas))
+--- a/mm/damon/ops-common.c~mm-damon-adjust-isolated-pages-stat-for-damos_migrate_hotcold
++++ a/mm/damon/ops-common.c
+@@ -375,6 +375,8 @@ keep:
+ 	while (!list_empty(folio_list)) {
+ 		folio = lru_to_folio(folio_list);
+ 		list_del(&folio->lru);
++		node_stat_sub_folio(folio, NR_ISOLATED_ANON +
++				folio_is_file_lru(folio));
+ 		folio_putback_lru(folio);
+ 	}
+ 
+@@ -397,6 +399,8 @@ unsigned long damon_migrate_pages(struct
+ 			struct folio *folio = lru_to_folio(folio_list);
+ 
+ 			list_del(&folio->lru);
++			node_stat_sub_folio(folio, NR_ISOLATED_ANON +
++					folio_is_file_lru(folio));
+ 			folio_putback_lru(folio);
+ 		}
+ 		return nr_migrated;
+--- a/mm/damon/paddr.c~mm-damon-adjust-isolated-pages-stat-for-damos_migrate_hotcold
++++ a/mm/damon/paddr.c
+@@ -350,6 +350,8 @@ static unsigned long damon_pa_migrate(st
+ 
+ 		if (!folio_isolate_lru(folio))
+ 			goto put_folio;
++		node_stat_add_folio(folio, NR_ISOLATED_ANON +
++				folio_is_file_lru(folio));
+ 		list_add(&folio->lru, &folio_list);
+ put_folio:
+ 		addr += folio_size(folio);
+--- a/mm/damon/vaddr.c~mm-damon-adjust-isolated-pages-stat-for-damos_migrate_hotcold
++++ a/mm/damon/vaddr.c
+@@ -649,7 +649,8 @@ static void damos_va_migrate_dests_add(s
+ isolate:
+ 	if (!folio_isolate_lru(folio))
  		return;
- 
-@@ -1182,8 +1184,12 @@ static void mas_lock_check(struct ma_sta
- #endif /* CONFIG_RCU_STRICT_GRACE_PERIOD */
- 
- 	map = mas_lockdep_map(mas);
--	if (map && lock_is_held(map))
--		WARN_ON_ONCE(mas->ld_seq != lock_sequence(map));
-+	if (!map)
-+		return;
-+
-+	seq = lock_sequence(map);
-+	if (seq != UINT_MAX && mas->ld_seq != UINT_MAX)
-+		WARN_ON_ONCE(mas->ld_seq != seq);
- #endif /* CONFIG_LOCKDEP */
- 
+-
++	node_stat_add_folio(folio, NR_ISOLATED_ANON +
++			folio_is_file_lru(folio));
+ 	list_add(&folio->lru, &migration_lists[i]);
  }
-@@ -1201,8 +1207,8 @@ static void mas_init_lock_check(struct m
- #endif /* CONFIG_RCU_STRICT_GRACE_PERIOD */
  
- 	map = mas_lockdep_map(mas);
--	if (map && lock_is_held(map))
--		mas->ld_seq = lock_sequence(mas_lockdep_map(mas));
-+	if (map) /* Update regardless of lock state */
-+		mas->ld_seq = lock_sequence(map);
- #endif /* CONFIG_LOCKDEP */
- 
- }
 _
 
-Patches currently in -mm which might be from liam@infradead.org are
+Patches currently in -mm which might be from sj@kernel.org are
 
-maple_tree-add-rcu-locking-check-when-lockdep-is-enabled.patch
-locking-lockdep-add-sequence-counter-to-held_lock.patch
-maple_tree-add-write-lock-checking-with-lockdep-sequence-numbers.patch
-maple_tree-stop-flooding-logs-when-debug_locks-is-set-to-zero-fix.patch
-maple_tree-documentation-fix.patch
-maple_tree-drop-dead-code-from-mas_extend_spanning_null.patch
-maple_tree-drop-maple_alloc_slots.patch
-maple_tree-clarify-comments-on-mas_nomem.patch
-maple_tree-use-prefetched-value-in-mas_wr_store_type.patch
-maple_tree-optimise-mas_wr_node_store-when-not-in-rcu-mode.patch
-maple_tree-micro-optimisation-of-mas_wr_store_type.patch
-maple_tree-add-bulk-parent-set-helper.patch
-maple_tree-catch-race-in-mas_alloc_cyclic.patch
-maple_tree-document-that-erase-may-use-gfp_kernel-for-allocations.patch
-maple_tree-warn_on_once-when-allocations-fail.patch
-maple_tree-document-erase-and-allocations-better.patch
-maple_tree-change-two-gfp-flags-in-tests.patch
-maple_tree-fix-argument-name-in-header.patch
-maple_tree-avoid-extra-gap-calculation.patch
-maple_tree-add-helper-mas_make_walkable.patch
+mm-damon-adjust-isolated-pages-stat-for-damos_migrate_hotcold.patch
+samples-damon-wsse-handle-damon_start-failure.patch
+samples-damon-prcl-handle-damon_start-failure.patch
+samples-damon-mtier-handle-damon_start-failure.patch
+samples-damon-mtier-handle-damon_stop-failure.patch
+samples-damon-wsse-stop-and-free-damon-ctx-when-damon_call-fails.patch
+samples-damon-prcl-stop-and-free-damon-ctx-when-damon_call-fails.patch
+mm-damon-sysfs-kobject_del-target-normal-context-and-kdamond-dirs.patch
+mm-damon-sysfs-kobject_del-region-and-target-error-dirs.patch
+mm-damon-sysfs-schemes-kobject_del-scheme-dirs.patch
+mm-damon-sysfs-schemes-kobject_del-scheme-region-dirs.patch
+mm-damon-sysfs-schemes-kobject_del-scheme-filter-dirs.patch
+mm-damon-sysfs-schemes-kobject_del-scheme-quota-goal-dirs.patch
+mm-damon-sysfs-schemes-kobject_del-scheme-action-destination-dirs.patch
+mm-damon-sysfs-kobject_del-probe-dirs.patch
+mm-damon-sysfs-kobject_del-probe-filter-dirs.patch
+mm-damon-sysfs-kobject_del-probe-dirs-in-probes_addd_dir-error-path.patch
+mm-damon-sysfs-schemes-kobject_del-region-for-populate_region-error.patch
+docs-mm-damon-design-update-for-damos_quota_node_eligible_mem_bp.patch
+docs-abi-damon-document-probe-files.patch
+mm-damon-tests-core-kunit-test-damon_rand.patch
+selftests-damon-sysfssh-test-multiple-probe-dirs-creation.patch
+selftests-damon-sysfssh-test-coreops_filters-directories.patch
+selftests-damon-sysfssh-test-dests-dir.patch
+selftests-damon-sysfssh-test-all-files-in-quota-goal-dir.patch
+mm-damon-core-reduce-range-setup-in-damon_commit_target_regions.patch
+mm-damon-sysfs-split-probe-setup-function-out.patch
+mm-damon-sysfs-split-out-filters-setup-function.patch
+mm-damon-sysfs-fix-typos-in-probe_addrm_dirs-s-attr-probe.patch
+mm-damon-core-introduce-damon_nr_accesses_mvsum.patch
+mm-damon-tests-core-kunit-test-damon_mvsum.patch
+mm-damon-core-always-update-last_nr_accesses-for-intervals-change.patch
+mm-damon-core-handle-unreset-nr_accesses-in-damon_nr_accesses_mvsum.patch
+mm-damon-core-use-damon_nr_accesses_mvsum-in-__damos_valid_target.patch
+mm-damon-core-use-damon_nr_accesses_mvsum-for-damos-region-tracing.patch
+mm-damon-sysfs-schemes-use-damon_nr_accesses_mvsum-for-damo-regions.patch
+mm-damon-core-remove-damon_warn_fix_nr_accesses_corruption.patch
+mm-damon-core-remove-damon_verify_reset_aggregated.patch
+mm-damon-core-remove-damon_verify_merge_regions_of.patch
+mm-damon-tests-core-kunit-remove-nr_accesses_bp-setup-and-tests.patch
+selftests-damon-drgn_dump_damon_status-do-not-dump-nr_accesses_bp.patch
+mm-damon-core-remove-nr_accesses_bp-setups-and-updates.patch
+mm-damon-core-remove-attrs-param-from-damon_update_region_access_rate.patch
+mm-damon-paddr-remove-attrs-param-from-__damon_pa_check_access.patch
+mm-damon-vaddr-remove-attrs-param-from-__damon_va_check_access.patch
+mm-damon-core-remove-damon_moving_sum-and-its-unit-test.patch
+mm-damon-core-remove-damon_region-nr_accesses_bp.patch
+mm-damon-add-damon_region-last_probe_hits.patch
+mm-damon-core-introduce-damon_probe_hits_mvsum.patch
+mm-damon-sysfs-schemes-set-probe-hits-as-pseudo-moving-sums.patch
+mm-damon-core-safely-validate-src-on-damon_commit_ctx.patch
+mm-damon-core-do-parameter-testing-commit-on-damon_start.patch
+mm-damon-sysfs-remove-duplicated-commit-input-validity-check.patch
+mm-damon-reclaim-remove-duplicated-min_region_sz-power-of-2-check.patch
+mm-damon-lru_sort-remove-duplicated-min_region_sz-power_of_2-check.patch
+mm-damon-document-region-size-validation-in-damon_set_regions.patch
+mm-damon-core-remove-start-end-check-in-damon_set_region_system_rams.patch
+mm-damon-sysfs-remove-region-size-validation.patch
+mm-damon-core-stop-ctxs-in-damon_start-before-returning-an-error.patch
+samples-damon-mtier-do-not-stop-first-context-for-damon_start-failure.patch
+mm-damon-core-make-damon_stop-never-fails.patch
+mm-damon-sysfs-ignore-damon_stop-return-value.patch
+mm-damon-reclaaim-ignore-damon_stop-return-value.patch
+mm-damon-lru_sort-ignore-damon_stop-return-value.patch
+mm-damon-core-change-damon_stop-return-type-to-void.patch
+samples-damon-mtier-stop-all-contexts-with-single-damon_stop-call.patch
+mm-damon-core-wait-ctx-stop-in-damon_call-before-reruning-an-error.patch
+samples-damon-wsse-do-not-stop-ctx-for-damon_call-failure.patch
+samples-damon-prcl-do-not-stop-damon-for-damon_call-failure.patch
+mm-damon-core-remove-comment-and-test-for-nr_to_bp-divide-by-zero.patch
+mm-damon-core-s-damon_max_nr_accesses-damon_nr_samples_per_aggr.patch
+mm-damon-core-s-accesses_bp_to_nr_accesses-sample_bp_to_count.patch
+mm-damon-core-s-nr_accesses_to_accesses_bp-sample_count_to_bp.patch
+mm-damon-core-s-nr_accesses_for_new_attrs-nr_samples_for_new_attrs.patch
+mm-damon-core-update-probe-hits-for-new-parameter-commit.patch
+mm-damon-core-handle-unreset-probe_hits-in-probe_hits_mvsum.patch
+mm-damon-core-introduce-damon_probe-weight.patch
+mm-damon-core-ask-apply_probes-ops-callback-to-set-sampling-address.patch
+mm-damon-paddr-set-samples-in-apply_probes-if-requested.patch
+mm-damon-core-ask-apply_probe-to-return-max-probe-hits-weighted-sum.patch
+mm-damon-core-implement-damon_probe_hits_wsum.patch
+mm-damon-paddr-respect-return_max_wsum.patch
+mm-damon-core-use-abs_diff-instead-of-abs.patch
+mm-damon-core-extend-merge-function-to-work-with-probe-hits.patch
+mm-damon-core-disallow-probe_hits-overflow-on-attrs-only-monitoring.patch
+mm-damon-core-validate-params-for-probe-hits-weighted-sum-overflow.patch
+mm-damon-core-disable-access-monitoring-when-probe-weights-are-set.patch
+mm-damon-core-set-samples-in-apply_probes-if-probe-weights-are-set.patch
+mm-damon-core-s-max_nr_accesses-max_merge_score-in-kdamond_fn.patch
+mm-damon-core-get-merge-threshold-from-probe-hits-when-weights-are-set.patch
+mm-damon-core-implement-damon_has_probe_weight.patch
+mm-damon-sysfs-implement-probe-weight-file.patch
+docs-mm-damon-design-document-attrs-only-monitoring.patch
+docs-admin-guide-mm-damon-usage-document-weight-sysfs-file.patch
+docs-abi-damon-document-probe-weight-file.patch
+mm-damon-core-skip-aging-from-repeated-aggressive-merging.patch
+mm-damon-core-hide-private-damon_region-fields.patch
+mm-damon-core-hide-private-damon_target-fields.patch
+mm-damon-core-hide-private-damos_quota_goal-fields.patch
+mm-damon-core-hide-private-damos_quota-fields.patch
+mm-damon-core-hide-private-damos_filter-fields.patch
+mm-damon-core-hide-private-damos-fields.patch
+mm-damon-core-hide-private-damon_filter-fields.patch
+mm-damon-core-hide-private-damon_probe-fields.patch
+mm-damon-sysfs-do-not-directly-access-damon_ctx-ops.patch
+mm-damon-core-hide-core-private-damon_ctx-fields.patch
+mm-damon-core-avoid-infinite-kdamond_merge_regions-internal-loop.patch
+mm-damon-tests-core-kunit-catch-test-failure-in-test_merge_regions_of.patch
+mm-damon-vaddr-drop-last-same-folio-access-check-optimization.patch
+mm-damon-paddr-drop-last-same-folio-access-check-reuse-optimization.patch
+mm-damon-sysfs-read-addr_unit-only-once-in-damon_sysfs_apply_inputs.patch
+mm-damon-sysfs-read-ops_id-only-once-in-damon_sysfs_apply_inputs.patch
+mm-damon-core-initialize-damos-last_applied.patch
+mm-damon-core-kunit-check-region-count-before-testing-in-split_at.patch
+mm-damon-vaddr-kunit-check-region-count-in-three_regions-test.patch
+mm-damon-core-kunit-handle-region-split-failure-in-filter_out.patch
+mm-damon-core-kunit-skip-wrong-dest-walk-in-commit_dests_for.patch
+mm-damon-core-kunit-skip-wrong-quota-goal-walk-in-commit_quota_goals.patch
+mm-damon-core-kunit-skip-wrong-region-walk-in-commit_target_regions.patch
+mm-damon-ops-common-use-nr_accesses-moving-sum-for-quota-score.patch
+mm-damon-core-handle-region-split-failure-in-apply_min_nr_regions.patch
 
