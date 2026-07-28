@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 650CE3C417E;
-	Tue, 28 Jul 2026 18:09:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CD9B73B38B6
+	for <mm-commits@vger.kernel.org>; Tue, 28 Jul 2026 18:16:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785262201; cv=none; b=LJCIVo+hJvQkwTp2hZuZlUJ8PMpJkhVPwN8hjR7Phx6hBX2NGBEK1PAHotMnGpFgCoAzbcfMofXm5Fe1y7yyMjKgerr9y1gU952HSjrgAkznfr9DqUAS67jq8GgKfrYkWJJRhGsqaJOeyqj4K+3vjgR/t5ha9HufVOVabvG4P1Q=
+	t=1785262606; cv=none; b=GZmgbwjVLAMpiT87FsPchpTCuQYQZVlX6ieo/iGF4JoZGhzkR0ol0J+UhNFR336/a0zl7LEQbPooxaZ3qtvg9YQf5bjolSM/dWBhXIYKja35n3Y1mHkslMfTKc0v6G8xfYdTm1Dq9Z/WcxXRmpIHAcgqoXKcPq3vhSI7OxO0Q5E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785262201; c=relaxed/simple;
-	bh=JKVZOOAjxlELEq6KIbgZRBVkknbt0k3dsKUsnMB3aRE=;
-	h=Date:To:From:Subject:Message-Id; b=oRt1PcSKoYgFFW3TOgUzAjVwlacpD9WEJ84Oh/Am+vie8NNkORPe8nguu+s84hnWs2tenWvEwwD1YR3IAryzbgeZ0z3YQauS32EhKflYE82ii7vClfbpgxhb7AbuJEfx8NenAq/FW3yOeqv/Qk0+y9H4jFf9F2FqLSmKcBvUY8w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qbRAnBWn; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785262606; c=relaxed/simple;
+	bh=YRh8QgFuBmZF1MJoFrYUhhsVh+QumEtWLZGT2m4tQf4=;
+	h=Date:To:From:Subject:Message-Id; b=I4gI3mNbe2kVli1AlTv7foisYGO8iEV5Tffd89lekTLcub3HgPSo4yYPyGqFJg7zyurUqxYpgrNjJ3dymGA/wKCxSlWdQJOs9DoV7LQCGtr9y8JSKWDLi1DxfhnZ+gZWLry6OnjV8wKCVYG+QoAqZgRcn2dcnDcMGBaUd1uAlMI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zlVk1wzH; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qbRAnBWn"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C60361F00A3A;
-	Tue, 28 Jul 2026 18:09:59 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zlVk1wzH"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A2CFC1F000E9;
+	Tue, 28 Jul 2026 18:16:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785262199;
-	bh=eoNC0ImOYeMaPOadbm1raBtLQYxe7rEcSlUlNdHC+D0=;
+	d=linux-foundation.org; s=korg; t=1785262604;
+	bh=mlBSpzTQD017f/AKjZPqjs72Nd/eYjVoQElXSNIIJfs=;
 	h=Date:To:From:Subject;
-	b=qbRAnBWnKKoECUzOycXdhN7rzoOY8MFxAUB0akWwYkCPXjH4tNqyKJ81Kp8NdKMGx
-	 akuvI9NwfqvLkJepIV5Z7xM48qygcgiP/UnAvc9PagX6VSmULxHX2mJgxRCUDCU8cM
-	 V70NfCz4GYbbKBt6jnhAzAGMgZejsYVhuZDukqQ8=
-Date: Tue, 28 Jul 2026 11:09:59 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,stable@vger.kernel.org,ryncsn@gmail.com,kas@kernel.org,jack@suse.cz,david@kernel.org,carges@cloudflare.com,hughd@google.com,akpm@linux-foundation.org
+	b=zlVk1wzHdDCn9SQQAIb2HZRqKuycElxo6AQqnmzeba4Xl3/wwtKFPTyobFAMMnNTQ
+	 N6J010QtJ4kiTyPvKi3EHXPlvIBzTWOZST9XgKRKDS2YFJiZQJlJlHmaRxbrqzQdV6
+	 DdBUOlyTgK7nmwtkqYzENKEEvllYvm3dY14nYmaw=
+Date: Tue, 28 Jul 2026 11:16:44 -0700
+To: mm-commits@vger.kernel.org,senozhatsky@chromium.org,minchan@kernel.org,liumartin@google.com,richardycc@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-filemap-__filemap_add_folio-restore-index-before-retrying.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260728180959.C60361F00A3A@smtp.kernel.org>
+Subject: + mm-zsmalloc-fix-release-order-of-locks-in-zs_page_migrate.patch added to mm-new branch
+Message-Id: <20260728181644.A2CFC1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,26 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/filemap: __filemap_add_folio() restore index before retrying
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-filemap-__filemap_add_folio-restore-index-before-retrying.patch
+     Subject: mm/zsmalloc: fix release order of locks in zs_page_migrate()
+has been added to the -mm mm-new branch.  Its filename is
+     mm-zsmalloc-fix-release-order-of-locks-in-zs_page_migrate.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-filemap-__filemap_add_folio-restore-index-before-retrying.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zsmalloc-fix-release-order-of-locks-in-zs_page_migrate.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,69 +69,61 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: mm/filemap: __filemap_add_folio() restore index before retrying
-Date: Mon, 27 Jul 2026 22:24:14 -0700 (PDT)
+From: Richard Chang <richardycc@google.com>
+Subject: mm/zsmalloc: fix release order of locks in zs_page_migrate()
+Date: Tue, 28 Jul 2026 05:53:33 +0000
 
-In __filemap_add_folio()'s split-a-conflict loop, xas_set_order() is
-applied repeatedly: each application modifies xas.xa_index, rounding it
-down according to the split_order attempted at that stage: and if all goes
-as intended, it eventually (or immediately) converges on an
-xas_try_split() to the required folio_order, with xas.xa_index now the
-same as index: then xas_store() puts the new folio into the xarray there.
+In zs_page_migrate(), locks are acquired in the following order:
+  1. write_lock(&pool->lock)
+  2. spin_lock(&class->lock)
+  3. zspage_write_trylock(zspage)
 
-But if a new node was needed, and GFP_NOWAIT allocation did not get one,
-the lock is dropped, xas_nomem() used to allocate, and sequence retried. 
-If (that part of) the xarray is unchanged when the lock is reacquired, no
-problem.  But what if the conflict was meanwhile resolved by another
-thread (perhaps even doing the same thing, inserting a folio at that same
-index)?  Isn't there a danger of now putting our folio into the xarray at
-an intermediate rounded-down index?  With !folio_contains() bug to follow,
-when CONFIG_DEBUG_VM=y is checking for that.
+However, upon successful page migration, they were being released in
+forward acquisition (FIFO) order:
+  1. write_unlock(&pool->lock)
+  2. spin_unlock(&class->lock)
+  3. zspage_write_unlock(zspage)
 
-Fix this with an xas_set_order() to restore the original xas.xa_index at
-the bottom of the loop, so the retry does a full re-evaluation after
-reacquiring the lock, and cannot reach xas_store() with the wrong index.
+Fix the unlocking order to release locks in strict reverse (LIFO)
+order of acquisition:
+  3. zspage_write_unlock(zspage)
+  2. spin_unlock(&class->lock)
+  1. write_unlock(&pool->lock)
 
-Production was suffering from rare SIGILLs and SIGSEGVs, executable text
-found a page away from where it belonged, !folio_contains() bug hit when
-debug enabled: symptoms not seen since this patch went in.
+Releasing locks in reverse order of acquisition adheres to standard
+kernel locking hygiene, prevents potential lock ordering and lockdep
+inconsistencies.
 
-Link: https://lore.kernel.org/562fbfa6-dd6d-0b6a-2461-ed2ff1173bc8@google.com
-Fixes: 200a89c159a7 ("mm/filemap: use xas_try_split() in __filemap_add_folio()")
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Acked-by: Kiryl Shutsemau (Meta) <kas@kernel.org>
-Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
-Cc: Chris J Arges <carges@cloudflare.com>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Kairui Song <ryncsn@gmail.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lore.kernel.org/20260728055333.421080-1-richardycc@google.com
+Signed-off-by: Richard Chang <richardycc@google.com>
+Reviewed-by: Sergey Senozhatsky <senozhatsky@chromium.org>
+Tested-by: Sergey Senozhatsky <senozhatsky@chromium.org>
+Cc: Martin Liu <liumartin@google.com>
+Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ mm/zsmalloc.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/filemap.c~mm-filemap-__filemap_add_folio-restore-index-before-retrying
-+++ a/mm/filemap.c
-@@ -931,6 +931,12 @@ unlock:
+--- a/mm/zsmalloc.c~mm-zsmalloc-fix-release-order-of-locks-in-zs_page_migrate
++++ a/mm/zsmalloc.c
+@@ -1926,9 +1926,9 @@ static int zs_page_migrate(struct page *
+ 	 * Since we complete the data copy and set up new zspage structure,
+ 	 * it's okay to release migration_lock.
+ 	 */
+-	write_unlock(&pool->lock);
+-	spin_unlock(&class->lock);
+ 	zspage_write_unlock(zspage);
++	spin_unlock(&class->lock);
++	write_unlock(&pool->lock);
  
- 		if (!xas_nomem(&xas, gfp))
- 			break;
-+
-+		/*
-+		 * Lock has been dropped: start again with the original index
-+		 * and order (but now with the memory reserved by xas_nomem()).
-+		 */
-+		xas_set_order(&xas, index, forder);
- 	}
- 
- 	if (xas_error(&xas))
+ 	zpdesc_get(newzpdesc);
+ 	if (zpdesc_zone(newzpdesc) != zpdesc_zone(zpdesc)) {
 _
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from richardycc@google.com are
 
-mm-filemap-__filemap_add_folio-restore-index-before-retrying.patch
+mm-vmscan-abort-proactive-reclaim-early-when-freezing-for-suspend.patch
+mm-zsmalloc-fix-release-order-of-locks-in-zs_page_migrate.patch
 
