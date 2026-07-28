@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 158514746CE;
-	Tue, 28 Jul 2026 20:24:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B49483D9DDE
+	for <mm-commits@vger.kernel.org>; Tue, 28 Jul 2026 20:51:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785270265; cv=none; b=t5gz+FzBFxiAxizOVIW47GAjaihoVDA2jrn7hsWy7y3uAc7lcfst0QJO9mlZz7XzVcIv3zFndn3QYugX9PCxhc/GeDRIRlzEb8Qsvo/zPWCUcnXZMa9onqmdEE8BiWi62+exzvAz28U+pGtIFdSKyB9QF5nyZ3ixwA0VBlag9DQ=
+	t=1785271887; cv=none; b=CMkZ+UeeRblw+UCP2ps/NpNlIDH7ycxjNPXmLMSxnVSFfJ9dQ+uBUg3xQXpjUnebnMzct2Ed9jRK3KcyvNIq9k8yDG2hynKmp3kkOri+9+wHPTKY6c9nvw/dkbcaKdYrfXLUzr6sKeapMnS9Ys2D0zFCfgeNRIiIxnxsXafeZtA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785270265; c=relaxed/simple;
-	bh=JK4IXGLe3QiTV5cgleHo1e1HZLUxBcNciSmVduYjfRM=;
-	h=Date:To:From:Subject:Message-Id; b=ZcFTA5ewUyWy6uShwT0vbz9gzHP34KduKTNg0UIPcPINmnZ3XTSLfR+QXzUiBHNnb1hM8vfmNujEbVgbSpav4AvXlr52iZYeYYxF3Kyav3U3JUTBm9GWyxVpL9fUSSPwx5q/3iCxi2q7zNCHLDXtfCL0ryht+QT5wPluIPKvo5I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NbUGRj6Q; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785271887; c=relaxed/simple;
+	bh=OCgGz/r8klsGswDpdJnotBa2LxUpHK3NvM0KfQt0YgQ=;
+	h=Date:To:From:Subject:Message-Id; b=o8knwjCKqx5fur+fh6ZFqH1aX49TeDJs2B181E2x1k7H5k9djwbjLqZ5YDMxxBy5YkGE7sl26u7+hQ9u2wSVNM0EmJoZoO+jBmn6Mss94MQ4sVG8BhIjzF/wr3TYd49Rxw8kqZz37EPJx8YGNg+QdFi9VUHGyJI0sZDDdux8p0k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fvHXrJyV; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NbUGRj6Q"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 037F11F000E9;
-	Tue, 28 Jul 2026 20:24:21 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fvHXrJyV"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AD15F1F000E9;
+	Tue, 28 Jul 2026 20:51:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785270262;
-	bh=p5VB8BEs8108sB37SAgvqYcTc5onMCIiGEYtnZ1q5gA=;
+	d=linux-foundation.org; s=korg; t=1785271881;
+	bh=D+YEGX809O1DK0w5N/FRctVPEmKKNx+N3eWNdsGAcas=;
 	h=Date:To:From:Subject;
-	b=NbUGRj6QxQmEJrsp9IxiT6ZTYi0oWUq+8XXjPXJpUOFf4QLuaxIGGOXFokAmCtg4j
-	 JSAGNHfcQHKl0Q43pkfofRA9h3i+KYmpH6iA4j9hiNwsN4L/QZ/RshbOpR3Ob5H6+L
-	 S28OFRJ+VR5ulodhFZ588rpYsm5uXDG7IHkonqUU=
-Date: Tue, 28 Jul 2026 13:24:21 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,hyeongtak.ji@sk.com,honggyu.kim@sk.com,sj@kernel.org,akpm@linux-foundation.org
+	b=fvHXrJyVN83wEwLMSErvDumnCE3bNNwtaKo9CEGTra39KHOpYUVYeD+K8q/+qQgjv
+	 3URYRLIgFP62PEQQ8GKCtXYzoF/A7Xz2w56WLXBSHZpRJfBFVRt1Cv5d5f9UQw0pj7
+	 6BNofqDibaBcba+5yE6pcMeu7Xor4xTKimHXFB+k=
+Date: Tue, 28 Jul 2026 13:51:21 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,shuah@kernel.org,rppt@kernel.org,rostedt@goodmis.org,nao.horiguchi@gmail.com,mhocko@suse.com,mhiramat@kernel.org,mathieu.desnoyers@efficios.com,ljs@kernel.org,linmiaohe@huawei.com,liam@infradead.org,lance.yang@linux.dev,david@kernel.org,corbet@lwn.net,leitao@debian.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-adjust-isolated-pages-stat-for-damos_migrate_hotcold.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260728202422.037F11F000E9@smtp.kernel.org>
+Subject: [to-be-updated] selftests-mm-add-hwpoison-panic-destructive-test.patch removed from -mm tree
+Message-Id: <20260728205121.AD15F1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,240 +34,391 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: mm/damon: adjust isolated pages stat for DAMOS_MIGRATE_{HOT,COLD}
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-damon-adjust-isolated-pages-stat-for-damos_migrate_hotcold.patch
+The quilt patch titled
+     Subject: selftests/mm: add hwpoison-panic destructive test
+has been removed from the -mm tree.  Its filename was
+     selftests-mm-add-hwpoison-panic-destructive-test.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-adjust-isolated-pages-stat-for-damos_migrate_hotcold.patch
-
-This patch will later appear in the mm-hotfixes-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: SJ Park <sj@kernel.org>
-Subject: mm/damon: adjust isolated pages stat for DAMOS_MIGRATE_{HOT,COLD}
-Date: Tue, 28 Jul 2026 07:04:03 -0700
+From: Breno Leitao <leitao@debian.org>
+Subject: selftests/mm: add hwpoison-panic destructive test
+Date: Tue, 30 Jun 2026 05:46:09 -0700
 
-Callers of migrate_pages() should adjust NR_MIGRATED_{ANON,FILE} for
-isolations and putback of the folios.  That for migration succeeded folios
-is done by migrate_pages(), in migrate_folio_done().  That for MR_DEMOTION
-reason is an exception though.
+Add a destructive selftest that verifies
+vm.panic_on_unrecoverable_memory_failure actually panics when a hwpoison
+error hits a kernel-owned page.
 
-DAMOS_MIGRATE_{HOT,COLD} call migrate_pages() but mistakenly not doing the
-stat adjustment.  As a result, use of DAMOS_MIGRATE_{HOT,COLD} could
-corrupt the stat.  It could confuse too_many_isolated(), make compaction
-and reclaim to behave in unexpected ways.  The stat corruption can be
-reproduced and confirmed using DAMON user-space tool [1] on NUMA systems,
-like below.
+Three "kinds" of kernel-owned page can be targeted, selectable via
+the script's first positional argument (default: rodata):
 
-    $ numactl --hardware
-    available: 2 nodes (0-1)
-    [...]
-    $ sudo ./damo start --damos_action migrate_hot 1
-    $ sudo cat /proc/sys/vm/stat_refresh
-    $ sudo dmesg
-    [...]
-    [   80.215554] vmstat_refresh: nr_isolated_anon -5578
-    [   80.216842] vmstat_refresh: nr_isolated_file -34400
+  rodata  - a PG_reserved page in the kernel rodata range, sourced
+            from the "Kernel rodata" sub-resource of "System RAM" in
+            /proc/iomem.  That entry is reported on every major
+            architecture and guarantees the chosen PFN is backed by
+            struct page (an online System RAM range, not a firmware
+            hole), is PG_reserved, and is read-only -- so even if
+            the panic fails to fire for some reason, the resulting
+            PG_hwpoison marker on rodata does not corrupt writable
+            kernel state.
 
-This issue was discovered [2] by Sashiko.
+  slab    - a slab page found by walking /proc/kpageflags for the
+            first PFN with KPF_SLAB set (and KPF_HWPOISON / KPF_NOPAGE
+            / KPF_COMPOUND_TAIL clear).  Exercises the get_any_page()
+            path on a non PG_reserved kernel-owned page and so
+            catches regressions where get_any_page() collapses
+            kernel-owned pages into a transient -EIO instead of
+            -ENOTRECOVERABLE.
 
-Link: https://lore.kernel.org/20260728140404.94476-1-sj@kernel.org
-Link: https://github.com/damonitor/damo [1]
-Link: https://lore.kernel.org/20260726164356.87940-1-sj@kernel.org [2]
-Fixes: b51820ebea65 ("mm/damon/paddr: introduce DAMOS_MIGRATE_COLD action for demotion")
-Signed-off-by: SJ Park <sj@kernel.org>
-Cc: Honggyu Kim <honggyu.kim@sk.com>
-Cc: Hyeongtak Ji <hyeongtak.ji@sk.com>
-Cc: <stable@vger.kernel.org> # 6.11.x
+  pgtable - same as slab, but the PFN is selected via KPF_PGTABLE.
+
+PageLargeKmalloc, the fourth page type matched by is_kernel_owned_page(),
+is intentionally not covered: it is a PAGE_TYPE_OPS flag with no
+/proc/kpageflags bit, so selecting such a PFN from userspace is not
+feasible.  The slab and pgtable variants already exercise the same
+get_any_page() positive-check branch.
+
+The script enables the sysctl and writes the selected physical address to
+/sys/devices/system/memory/hard_offline_page.  A successful run crashes
+the kernel with
+
+  Memory failure: <pfn>: unrecoverable page
+
+A return from the inject means no panic fired.  Before reporting, the
+script restores the sysctl and best-effort unpoisons the target PFN
+through the hwpoison debugfs interface (hard_offline_page() injects with
+MF_SW_SIMULATED, so the page stays unpoisonable), then re-reads
+/proc/kpageflags: a PFN that is still the kernel-owned type it selected is
+a genuine failure, while one that raced to a different type before the
+inject is skipped as inconclusive.  Test outcome is therefore observed
+externally (serial console, kdump) rather than from the script's own exit
+code.
+
+The script is intentionally NOT wired into run_vmtests.sh: every
+successful run panics the kernel, which is incompatible with the
+sequential "run each category in the same VM" model that run_vmtests.sh
+assumes.  It is also not registered as a TEST_PROGS / ksft_* wrapper so a
+default kselftest run does not opt itself into a panic.  The script is
+meant to be executed manually inside a disposable VM (e.g.  virtme-ng),
+one variant per VM boot, and requires RUN_DESTRUCTIVE=1 in the environment
+as a safety net.
+
+Link: https://lore.kernel.org/20260630-ecc_panic-v10-6-c6ed5b62eea2@debian.org
+Signed-off-by: Breno Leitao <leitao@debian.org>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: David Hildenbrand (Arm) <david@kernel.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Lance Yang <lance.yang@linux.dev>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: "Masami Hiramatsu (Google)" <mhiramat@kernel.org>
+Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/ops-common.c |    4 ++++
- mm/damon/paddr.c      |    2 ++
- mm/damon/vaddr.c      |    3 ++-
- 3 files changed, 8 insertions(+), 1 deletion(-)
+ tools/testing/selftests/mm/Makefile          |    4 
+ tools/testing/selftests/mm/hwpoison-panic.sh |  255 +++++++++++++++++
+ 2 files changed, 259 insertions(+)
 
---- a/mm/damon/ops-common.c~mm-damon-adjust-isolated-pages-stat-for-damos_migrate_hotcold
-+++ a/mm/damon/ops-common.c
-@@ -375,6 +375,8 @@ keep:
- 	while (!list_empty(folio_list)) {
- 		folio = lru_to_folio(folio_list);
- 		list_del(&folio->lru);
-+		node_stat_sub_folio(folio, NR_ISOLATED_ANON +
-+				folio_is_file_lru(folio));
- 		folio_putback_lru(folio);
- 	}
+diff --git a/tools/testing/selftests/mm/hwpoison-panic.sh a/tools/testing/selftests/mm/hwpoison-panic.sh
+new file mode 100755
+--- /dev/null
++++ a/tools/testing/selftests/mm/hwpoison-panic.sh
+@@ -0,0 +1,255 @@
++#!/bin/bash
++# SPDX-License-Identifier: GPL-2.0
++#
++# Verify vm.panic_on_unrecoverable_memory_failure by injecting a hwpoison
++# error on a kernel-owned page and confirming the kernel panics.
++#
++# Three "kinds" of kernel-owned page can be targeted, selectable via the
++# first positional argument (default: rodata):
++#
++#   rodata  - a PG_reserved page in the kernel rodata range
++#             (sourced from /proc/iomem "Kernel rodata").  Exercises
++#             memory_failure() -> get_any_page() on a PageReserved page.
++#
++#   slab    - a slab page found via /proc/kpageflags (KPF_SLAB).
++#             Exercises memory_failure() -> get_any_page() on a non
++#             PG_reserved kernel-owned page.  This path is what catches
++#             regressions where get_any_page() collapses kernel-owned
++#             pages into a transient -EIO instead of -ENOTRECOVERABLE.
++#
++#   pgtable - a page-table page found via /proc/kpageflags (KPF_PGTABLE).
++#             Same path as slab, different page type.
++#
++# This test is DESTRUCTIVE: a successful run crashes the kernel.  It is
++# meant to be executed inside a disposable VM (e.g. virtme-ng) with a
++# serial console captured by the harness.  It is skipped unless the
++# caller opts in via RUN_DESTRUCTIVE=1.
++#
++# Test passes externally: the kernel must panic with
++#   "Memory failure: <pfn>: unrecoverable page"
++# A return from the inject means no panic fired: that is a failure,
++# unless the target PFN raced to a different page type before injection,
++# in which case the run is inconclusive and is skipped.
++#
++# Author: Breno Leitao <leitao@debian.org>
++
++set -u
++
++# KTAP output helpers (ktap_print_msg, ktap_skip_all, ktap_exit_fail_msg, ...).
++DIR="$(dirname "$(readlink -f "$0")")"
++# shellcheck source=../kselftest/ktap_helpers.sh
++source "${DIR}"/../kselftest/ktap_helpers.sh
++
++sysctl_path=/proc/sys/vm/panic_on_unrecoverable_memory_failure
++inject_path=/sys/devices/system/memory/hard_offline_page
++kpageflags_path=/proc/kpageflags
++unpoison_path=/sys/kernel/debug/hwpoison/unpoison-pfn
++
++# /proc/kpageflags bit positions (see include/uapi/linux/kernel-page-flags.h)
++KPF_SLAB=7
++KPF_COMPOUND_TAIL=16
++KPF_HWPOISON=19
++KPF_NOPAGE=20
++KPF_PGTABLE=26
++KPF_RESERVED=32
++
++pagesize=$(getconf PAGE_SIZE)
++
++kind=${1:-rodata}
++
++if [ "$(id -u)" -ne 0 ]; then
++	ktap_skip_all "must run as root"
++	exit "$KSFT_SKIP"
++fi
++
++if [ ! -w "$sysctl_path" ]; then
++	ktap_skip_all "$sysctl_path not present (kernel without the sysctl?)"
++	exit "$KSFT_SKIP"
++fi
++
++if [ ! -w "$inject_path" ]; then
++	ktap_skip_all "$inject_path not present (no MEMORY_HOTPLUG?)"
++	exit "$KSFT_SKIP"
++fi
++
++if [ "${RUN_DESTRUCTIVE:-0}" != "1" ]; then
++	ktap_skip_all "destructive test; re-run with RUN_DESTRUCTIVE=1 inside a disposable VM"
++	exit "$KSFT_SKIP"
++fi
++
++# Pick a PFN inside the kernel image rodata region of /proc/iomem.
++# This is preferred over a top-level "Reserved" entry because top-level
++# Reserved ranges are often firmware holes that have no backing struct
++# page; pfn_to_online_page() returns NULL on those and memory_failure()
++# bails out with -ENXIO before reaching the panic path.
++#
++# "Kernel rodata" is reported as a sub-resource of "System RAM" on every
++# major architecture, which guarantees:
++#   - the PFN is backed by struct page (within an online memory range);
++#   - PG_reserved is set on the page (kernel image area);
++#   - the memory is read-only, so setting PG_hwpoison on it does not
++#     corrupt writable kernel state if the panic somehow does not fire.
++#
++# /proc/iomem entries look like (indented for sub-resources):
++#     "  02500000-02ffffff : Kernel rodata"
++pick_rodata_phys_addr() {
++	awk -v pagesize="$(getconf PAGE_SIZE)" '
++	# Convert a hex string to a number without relying on the gawk-only
++	# strtonum().  mawk lacks it and would otherwise spuriously skip
++	# this test on distros that ship mawk as /usr/bin/awk.
++	function hex2num(s,   n, i, c, v) {
++		n = 0
++		for (i = 1; i <= length(s); i++) {
++			c = tolower(substr(s, i, 1))
++			v = index("0123456789abcdef", c) - 1
++			if (v < 0)
++				return -1
++			n = n * 16 + v
++		}
++		return n
++	}
++	/: Kernel rodata[[:space:]]*$/ {
++		sub(/^[[:space:]]+/, "")
++		n = split($0, a, /[- ]/)
++		start = hex2num(a[1])
++		end   = hex2num(a[2])
++		if (end <= start)
++			next
++		# Page-align upward and emit the first byte of that page.
++		pfn = int((start + pagesize - 1) / pagesize)
++		printf "0x%x\n", pfn * pagesize
++		exit 0
++	}
++	' /proc/iomem
++}
++
++# Walk /proc/kpageflags and return the phys addr of the first PFN that
++# has bit $1 set, with KPF_HWPOISON, KPF_NOPAGE and KPF_COMPOUND_TAIL
++# all clear (so we attack a real, non-tail, not-already-poisoned page).
++#
++# We skip the first 16 MiB of PFNs to step past low-memory special
++# ranges (BIOS/EFI/ACPI/etc.) that often are PG_reserved and would not
++# exhibit the slab/pgtable type we are looking for.
++pick_kpageflags_phys_addr() {
++	local want_bit=$1
++	local pagesize skip_pfn
++
++	[ -r "$kpageflags_path" ] || return
++
++	pagesize=$(getconf PAGE_SIZE)
++	skip_pfn=$(((16 * 1024 * 1024) / pagesize))
++
++	od -An -tx8 -v -w8 -j "$((skip_pfn * 8))" "$kpageflags_path" 2>/dev/null | \
++	awk -v want_bit="$want_bit" \
++	    -v hwp_bit="$KPF_HWPOISON" \
++	    -v nopage_bit="$KPF_NOPAGE" \
++	    -v tail_bit="$KPF_COMPOUND_TAIL" \
++	    -v base_pfn="$skip_pfn" \
++	    -v pagesize="$pagesize" '
++	# Test whether bit "b" is set in the 16-hex-digit value "hex".
++	# Done with substring + per-digit lookup so we never rely on awk
++	# bitwise operators (mawk lacks them), 64-bit FP precision or the
++	# gawk-only strtonum().
++	function bit_set(hex, b,    di, bi, c, v) {
++		di = int(b / 4)
++		bi = b - di * 4
++		c = substr(hex, length(hex) - di, 1)
++		v = index("0123456789abcdef", tolower(c)) - 1
++		if (bi == 0) return (v % 2) == 1
++		if (bi == 1) return int(v / 2) % 2 == 1
++		if (bi == 2) return int(v / 4) % 2 == 1
++		return int(v / 8) % 2 == 1
++	}
++	{
++		gsub(/^[[:space:]]+/, "")
++		h = $1
++		if (bit_set(h, want_bit) &&
++		    !bit_set(h, hwp_bit) &&
++		    !bit_set(h, nopage_bit) &&
++		    !bit_set(h, tail_bit)) {
++			pfn = base_pfn + NR - 1
++			printf "0x%x\n", pfn * pagesize
++			exit 0
++		}
++	}
++	'
++}
++
++# Return 0 if /proc/kpageflags bit $2 is set for PFN $1, 1 if it is
++# clear, or 2 if the word cannot be read.  Used to re-confirm the target
++# page type after a non-panicking inject.
++kpageflags_bit_set() {
++	local word
++
++	word=$(od -An -tx8 -v -j "$(($1 * 8))" -N 8 "$kpageflags_path" 2>/dev/null | tr -d '[:space:]')
++	[ -n "$word" ] || return 2
++	(( (16#$word >> $2) & 1 ))
++}
++
++# Best-effort: drop the PG_hwpoison marker set by the inject so a failed
++# run does not leave a poisoned page behind.  hard_offline_page() injects
++# with MF_SW_SIMULATED, so the page stays unpoisonable through the
++# hwpoison debugfs interface (needs CONFIG_HWPOISON_INJECT + debugfs).
++try_unpoison() {
++	[ -w "$unpoison_path" ] || return 0
++	echo "$1" > "$unpoison_path" 2>/dev/null || true
++}
++
++case "$kind" in
++rodata)
++	phys_addr=$(pick_rodata_phys_addr)
++	recheck_bit=$KPF_RESERVED
++	missing_msg='no "Kernel rodata" entry in /proc/iomem'
++	;;
++slab)
++	phys_addr=$(pick_kpageflags_phys_addr "$KPF_SLAB")
++	recheck_bit=$KPF_SLAB
++	missing_msg="no usable slab PFN found in $kpageflags_path"
++	;;
++pgtable)
++	phys_addr=$(pick_kpageflags_phys_addr "$KPF_PGTABLE")
++	recheck_bit=$KPF_PGTABLE
++	missing_msg="no usable page-table PFN found in $kpageflags_path"
++	;;
++*)
++	ktap_exit_fail_msg "unknown kind '$kind' (expected: rodata|slab|pgtable)"
++	;;
++esac
++
++if [ -z "$phys_addr" ]; then
++	ktap_skip_all "$missing_msg"
++	exit "$KSFT_SKIP"
++fi
++
++ktap_print_msg "enabling $sysctl_path"
++prior=$(cat "$sysctl_path")
++echo 1 > "$sysctl_path" || ktap_exit_fail_msg "failed to enable sysctl"
++
++pfn=$((phys_addr / pagesize))
++ktap_print_msg "injecting hwpoison at phys 0x$(printf '%x' "$phys_addr") (pfn 0x$(printf '%x' "$pfn"), kind=$kind)"
++ktap_print_msg "expecting kernel panic: 'Memory failure: <pfn>: unrecoverable page'"
++
++# A successful run never returns from the inject -- it panics the kernel.
++# Reaching the code below therefore means no panic fired.  Note whether
++# the write itself succeeded, then put the machine back: restore the
++# sysctl and best-effort unpoison the page we just marked.
++if echo "$phys_addr" > "$inject_path"; then
++	verdict="inject returned without panic; sysctl ineffective"
++else
++	verdict="inject failed before reaching the panic path"
++fi
++
++echo "$prior" > "$sysctl_path"
++try_unpoison "$pfn"
++
++# The page type can change between selection and injection (e.g. a slab
++# or page-table page is freed and reused).  Only treat a missing panic as
++# a failure if the target PFN is still the kernel-owned type we aimed at;
++# if it raced to another type the run is inconclusive, so skip instead.
++kpageflags_bit_set "$pfn" "$recheck_bit"
++case $? in
++0)	ktap_exit_fail_msg "$verdict (page still $kind)" ;;
++1)	ktap_skip_all "target PFN no longer $kind; raced before inject, inconclusive"
++	exit "$KSFT_SKIP" ;;
++*)	ktap_exit_fail_msg "$verdict (could not reconfirm page type via $kpageflags_path)" ;;
++esac
+--- a/tools/testing/selftests/mm/Makefile~selftests-mm-add-hwpoison-panic-destructive-test
++++ a/tools/testing/selftests/mm/Makefile
+@@ -174,6 +174,10 @@ TEST_PROGS += ksft_userfaultfd.sh
+ TEST_PROGS += ksft_vma_merge.sh
+ TEST_PROGS += ksft_vmalloc.sh
  
-@@ -397,6 +399,8 @@ unsigned long damon_migrate_pages(struct
- 			struct folio *folio = lru_to_folio(folio_list);
- 
- 			list_del(&folio->lru);
-+			node_stat_sub_folio(folio, NR_ISOLATED_ANON +
-+					folio_is_file_lru(folio));
- 			folio_putback_lru(folio);
- 		}
- 		return nr_migrated;
---- a/mm/damon/paddr.c~mm-damon-adjust-isolated-pages-stat-for-damos_migrate_hotcold
-+++ a/mm/damon/paddr.c
-@@ -350,6 +350,8 @@ static unsigned long damon_pa_migrate(st
- 
- 		if (!folio_isolate_lru(folio))
- 			goto put_folio;
-+		node_stat_add_folio(folio, NR_ISOLATED_ANON +
-+				folio_is_file_lru(folio));
- 		list_add(&folio->lru, &folio_list);
- put_folio:
- 		addr += folio_size(folio);
---- a/mm/damon/vaddr.c~mm-damon-adjust-isolated-pages-stat-for-damos_migrate_hotcold
-+++ a/mm/damon/vaddr.c
-@@ -649,7 +649,8 @@ static void damos_va_migrate_dests_add(s
- isolate:
- 	if (!folio_isolate_lru(folio))
- 		return;
--
-+	node_stat_add_folio(folio, NR_ISOLATED_ANON +
-+			folio_is_file_lru(folio));
- 	list_add(&folio->lru, &migration_lists[i]);
- }
- 
++# Destructive: every successful run panics the kernel.  Installed and
++# kept executable, but not run from a default kselftest invocation.
++TEST_PROGS_EXTENDED += hwpoison-panic.sh
++
+ TEST_FILES := test_vmalloc.sh
+ TEST_FILES += test_hmm.sh
+ TEST_FILES += va_high_addr_switch.sh
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from leitao@debian.org are
 
-mm-damon-adjust-isolated-pages-stat-for-damos_migrate_hotcold.patch
-samples-damon-wsse-handle-damon_start-failure.patch
-samples-damon-prcl-handle-damon_start-failure.patch
-samples-damon-mtier-handle-damon_start-failure.patch
-samples-damon-mtier-handle-damon_stop-failure.patch
-samples-damon-wsse-stop-and-free-damon-ctx-when-damon_call-fails.patch
-samples-damon-prcl-stop-and-free-damon-ctx-when-damon_call-fails.patch
-mm-damon-sysfs-kobject_del-target-normal-context-and-kdamond-dirs.patch
-mm-damon-sysfs-kobject_del-region-and-target-error-dirs.patch
-mm-damon-sysfs-schemes-kobject_del-scheme-dirs.patch
-mm-damon-sysfs-schemes-kobject_del-scheme-region-dirs.patch
-mm-damon-sysfs-schemes-kobject_del-scheme-filter-dirs.patch
-mm-damon-sysfs-schemes-kobject_del-scheme-quota-goal-dirs.patch
-mm-damon-sysfs-schemes-kobject_del-scheme-action-destination-dirs.patch
-mm-damon-sysfs-kobject_del-probe-dirs.patch
-mm-damon-sysfs-kobject_del-probe-filter-dirs.patch
-mm-damon-sysfs-kobject_del-probe-dirs-in-probes_addd_dir-error-path.patch
-mm-damon-sysfs-schemes-kobject_del-region-for-populate_region-error.patch
-docs-mm-damon-design-update-for-damos_quota_node_eligible_mem_bp.patch
-docs-abi-damon-document-probe-files.patch
-mm-damon-tests-core-kunit-test-damon_rand.patch
-selftests-damon-sysfssh-test-multiple-probe-dirs-creation.patch
-selftests-damon-sysfssh-test-coreops_filters-directories.patch
-selftests-damon-sysfssh-test-dests-dir.patch
-selftests-damon-sysfssh-test-all-files-in-quota-goal-dir.patch
-mm-damon-core-reduce-range-setup-in-damon_commit_target_regions.patch
-mm-damon-sysfs-split-probe-setup-function-out.patch
-mm-damon-sysfs-split-out-filters-setup-function.patch
-mm-damon-sysfs-fix-typos-in-probe_addrm_dirs-s-attr-probe.patch
-mm-damon-core-introduce-damon_nr_accesses_mvsum.patch
-mm-damon-tests-core-kunit-test-damon_mvsum.patch
-mm-damon-core-always-update-last_nr_accesses-for-intervals-change.patch
-mm-damon-core-handle-unreset-nr_accesses-in-damon_nr_accesses_mvsum.patch
-mm-damon-core-use-damon_nr_accesses_mvsum-in-__damos_valid_target.patch
-mm-damon-core-use-damon_nr_accesses_mvsum-for-damos-region-tracing.patch
-mm-damon-sysfs-schemes-use-damon_nr_accesses_mvsum-for-damo-regions.patch
-mm-damon-core-remove-damon_warn_fix_nr_accesses_corruption.patch
-mm-damon-core-remove-damon_verify_reset_aggregated.patch
-mm-damon-core-remove-damon_verify_merge_regions_of.patch
-mm-damon-tests-core-kunit-remove-nr_accesses_bp-setup-and-tests.patch
-selftests-damon-drgn_dump_damon_status-do-not-dump-nr_accesses_bp.patch
-mm-damon-core-remove-nr_accesses_bp-setups-and-updates.patch
-mm-damon-core-remove-attrs-param-from-damon_update_region_access_rate.patch
-mm-damon-paddr-remove-attrs-param-from-__damon_pa_check_access.patch
-mm-damon-vaddr-remove-attrs-param-from-__damon_va_check_access.patch
-mm-damon-core-remove-damon_moving_sum-and-its-unit-test.patch
-mm-damon-core-remove-damon_region-nr_accesses_bp.patch
-mm-damon-add-damon_region-last_probe_hits.patch
-mm-damon-core-introduce-damon_probe_hits_mvsum.patch
-mm-damon-sysfs-schemes-set-probe-hits-as-pseudo-moving-sums.patch
-mm-damon-core-safely-validate-src-on-damon_commit_ctx.patch
-mm-damon-core-do-parameter-testing-commit-on-damon_start.patch
-mm-damon-sysfs-remove-duplicated-commit-input-validity-check.patch
-mm-damon-reclaim-remove-duplicated-min_region_sz-power-of-2-check.patch
-mm-damon-lru_sort-remove-duplicated-min_region_sz-power_of_2-check.patch
-mm-damon-document-region-size-validation-in-damon_set_regions.patch
-mm-damon-core-remove-start-end-check-in-damon_set_region_system_rams.patch
-mm-damon-sysfs-remove-region-size-validation.patch
-mm-damon-core-stop-ctxs-in-damon_start-before-returning-an-error.patch
-samples-damon-mtier-do-not-stop-first-context-for-damon_start-failure.patch
-mm-damon-core-make-damon_stop-never-fails.patch
-mm-damon-sysfs-ignore-damon_stop-return-value.patch
-mm-damon-reclaaim-ignore-damon_stop-return-value.patch
-mm-damon-lru_sort-ignore-damon_stop-return-value.patch
-mm-damon-core-change-damon_stop-return-type-to-void.patch
-samples-damon-mtier-stop-all-contexts-with-single-damon_stop-call.patch
-mm-damon-core-wait-ctx-stop-in-damon_call-before-reruning-an-error.patch
-samples-damon-wsse-do-not-stop-ctx-for-damon_call-failure.patch
-samples-damon-prcl-do-not-stop-damon-for-damon_call-failure.patch
-mm-damon-core-remove-comment-and-test-for-nr_to_bp-divide-by-zero.patch
-mm-damon-core-s-damon_max_nr_accesses-damon_nr_samples_per_aggr.patch
-mm-damon-core-s-accesses_bp_to_nr_accesses-sample_bp_to_count.patch
-mm-damon-core-s-nr_accesses_to_accesses_bp-sample_count_to_bp.patch
-mm-damon-core-s-nr_accesses_for_new_attrs-nr_samples_for_new_attrs.patch
-mm-damon-core-update-probe-hits-for-new-parameter-commit.patch
-mm-damon-core-handle-unreset-probe_hits-in-probe_hits_mvsum.patch
-mm-damon-core-introduce-damon_probe-weight.patch
-mm-damon-core-ask-apply_probes-ops-callback-to-set-sampling-address.patch
-mm-damon-paddr-set-samples-in-apply_probes-if-requested.patch
-mm-damon-core-ask-apply_probe-to-return-max-probe-hits-weighted-sum.patch
-mm-damon-core-implement-damon_probe_hits_wsum.patch
-mm-damon-paddr-respect-return_max_wsum.patch
-mm-damon-core-use-abs_diff-instead-of-abs.patch
-mm-damon-core-extend-merge-function-to-work-with-probe-hits.patch
-mm-damon-core-disallow-probe_hits-overflow-on-attrs-only-monitoring.patch
-mm-damon-core-validate-params-for-probe-hits-weighted-sum-overflow.patch
-mm-damon-core-disable-access-monitoring-when-probe-weights-are-set.patch
-mm-damon-core-set-samples-in-apply_probes-if-probe-weights-are-set.patch
-mm-damon-core-s-max_nr_accesses-max_merge_score-in-kdamond_fn.patch
-mm-damon-core-get-merge-threshold-from-probe-hits-when-weights-are-set.patch
-mm-damon-core-implement-damon_has_probe_weight.patch
-mm-damon-sysfs-implement-probe-weight-file.patch
-docs-mm-damon-design-document-attrs-only-monitoring.patch
-docs-admin-guide-mm-damon-usage-document-weight-sysfs-file.patch
-docs-abi-damon-document-probe-weight-file.patch
-mm-damon-core-skip-aging-from-repeated-aggressive-merging.patch
-mm-damon-core-hide-private-damon_region-fields.patch
-mm-damon-core-hide-private-damon_target-fields.patch
-mm-damon-core-hide-private-damos_quota_goal-fields.patch
-mm-damon-core-hide-private-damos_quota-fields.patch
-mm-damon-core-hide-private-damos_filter-fields.patch
-mm-damon-core-hide-private-damos-fields.patch
-mm-damon-core-hide-private-damon_filter-fields.patch
-mm-damon-core-hide-private-damon_probe-fields.patch
-mm-damon-sysfs-do-not-directly-access-damon_ctx-ops.patch
-mm-damon-core-hide-core-private-damon_ctx-fields.patch
-mm-damon-core-avoid-infinite-kdamond_merge_regions-internal-loop.patch
-mm-damon-tests-core-kunit-catch-test-failure-in-test_merge_regions_of.patch
-mm-damon-vaddr-drop-last-same-folio-access-check-optimization.patch
-mm-damon-paddr-drop-last-same-folio-access-check-reuse-optimization.patch
-mm-damon-sysfs-read-addr_unit-only-once-in-damon_sysfs_apply_inputs.patch
-mm-damon-sysfs-read-ops_id-only-once-in-damon_sysfs_apply_inputs.patch
-mm-damon-core-initialize-damos-last_applied.patch
-mm-damon-core-kunit-check-region-count-before-testing-in-split_at.patch
-mm-damon-vaddr-kunit-check-region-count-in-three_regions-test.patch
-mm-damon-core-kunit-handle-region-split-failure-in-filter_out.patch
-mm-damon-core-kunit-skip-wrong-dest-walk-in-commit_dests_for.patch
-mm-damon-core-kunit-skip-wrong-quota-goal-walk-in-commit_quota_goals.patch
-mm-damon-core-kunit-skip-wrong-region-walk-in-commit_target_regions.patch
-mm-damon-ops-common-use-nr_accesses-moving-sum-for-quota-score.patch
-mm-damon-core-handle-region-split-failure-in-apply_min_nr_regions.patch
+mm-memcg-initialize-locked-in-memcg1_oom_prepare-stub.patch
+mm-kmemleak-avoid-soft-lockup-when-scanning-task-stacks.patch
+mm-kmemleak-stop-the-task-stack-scan-early-when-interrupted.patch
+mm-kmemleak-stop-the-per-cpu-and-struct-page-scans-early-too.patch
+mm-kmemleak-skip-the-remaining-scan-phases-when-interrupted.patch
+mm-memory-failure-drop-dead-error_states-entry-for-reserved-pages.patch
+mm-memory-failure-surface-unhandlable-kernel-pages-as-enotrecoverable.patch
+mm-memory-failure-report-mf_msg_kernel-for-unrecoverable-kernel-pages.patch
+mm-memory-failure-add-panic-option-for-unrecoverable-pages.patch
+documentation-document-panic_on_unrecoverable_memory_failure-sysctl.patch
+radix-tree-fix-kmemleak-false-positives-on-tree-head-reassignment.patch
+mm-kmemleak-report-leaks-only-after-n-consecutive-unreferenced-scans.patch
+mm-kmemleak-factor-leak-confirmation-into-a-helper.patch
+selftests-mm-test-kmemleaks-n-consecutive-scan-leak-confirmation.patch
+mm-kmemleak-report-rcu-tasks-quiescent-states-during-the-scan.patch
+mm-migrate-report-rcu-tasks-quiescent-states-in-migrate_pages_batch.patch
 
