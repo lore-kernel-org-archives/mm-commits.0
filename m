@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9C16A8248B;
-	Tue, 28 Jul 2026 01:28:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1BEAD3806C2
+	for <mm-commits@vger.kernel.org>; Tue, 28 Jul 2026 04:06:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785202134; cv=none; b=muKKjIkX3tB1L+0lNXpebzgwYxQzDZDQaT5273alfNqEtiJpFIU4B/SBjC+z+yoI6V6+m+TOoQJXTCPMqW6KE5HDm9c3hNWtZnjUITOjBr1epsVniL6JWJRzefdJh1VBsTn9mHBdowazb39zsxP6vQpfgWqsaq9BtJYY+T2WoAs=
+	t=1785211597; cv=none; b=i1fn6wMmA1VH8UaiC3HsAouPkiv5yy21lyF8sLYV+Wj4NUdupdUt/bT3op38+Zj4OpbnhfOEFyn295YFdnOoGbNshGEHHZmN7rIu0k9LiZvk9Xsj6vQfHKYbUfFTnz4mzAUfYIQT2SGPy6+uaHDVOJrjVLXRThAKDLIG1w/cP1Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785202134; c=relaxed/simple;
-	bh=E4JrU95BDQOc0u16SkbvpkHLELR+qJpqdXKNRfRaYqo=;
-	h=Date:To:From:Subject:Message-Id; b=DVlIjXdOlVZwHpJDTxQfJQzvj6ew8qtrESMIye7S7E4UbF1GlHWq7MoTwxEeuDXuwECB38DLjNIhxbmd37zpU5YDnIw/E9TVT+j7ZUQmYiczFQ2XlVqZltdJz/nJL5EPKKxjozGbfQT6MMq1F2PmVdLYtri6ksY6Xo8TKy7zuoc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=d5qakGDh; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785211597; c=relaxed/simple;
+	bh=5mqeztEzrHPlJ4L9JDfEsG5wHoiRIMKsiS1+Mm/RxLI=;
+	h=Date:To:From:Subject:Message-Id; b=ULZTrUfzGEI9Bu8cqbxFAfWMBcX/pYAzVmSNJ6zstAxDjuJ/lviEOhmrEQ1o8mfSfTcxYiMDNkPzXxnvbLmuP69bEKOtLm8bB7WPGHWB59LrdYpvrGkA18M2NtcQeH+9hTXmquPkfgdOWFUdmGdBt0eewHVnVsfptJonS4d4bKU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=doqoAA5R; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="d5qakGDh"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2A53A1F000E9;
-	Tue, 28 Jul 2026 01:28:51 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="doqoAA5R"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 904731F000E9;
+	Tue, 28 Jul 2026 04:06:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785202131;
-	bh=h+K0VOo1V0eUC/PbK5Hnia6XBnC2F/6+RzeXykArerE=;
+	d=linux-foundation.org; s=korg; t=1785211595;
+	bh=GBawX+ig1Vw9DGz/ItuObBcyIDLIrq/uyiZ6YuajREg=;
 	h=Date:To:From:Subject;
-	b=d5qakGDhvCMRTDiQEjV1Rva9Dde09+juhqxhySe3+F++OcABoY9SjQti3YE6FxNgX
-	 e7+Bp7gL93gyApEF/yG4jTknnpfXLB3LNVXqX4cHq7r7x9vnKqYRee3gUgFng0I0cd
-	 hMKaYnGqD0QT0EK9xFaOf5ad5PDZN48M73HUIikI=
-Date: Mon, 27 Jul 2026 18:28:50 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,will@kernel.org,vbabka@kernel.org,stable@vger.kernel.org,ryan.roberts@arm.com,riel@surriel.com,rcampbell@nvidia.com,rakie.kim@sk.com,pfalcato@suse.de,osalvador@suse.de,nao.horiguchi@gmail.com,muchun.song@linux.dev,mel@csn.ul.ie,matthew.brost@intel.com,ljs@kernel.org,liam@infradead.org,lance.yang@linux.dev,kas@kernel.org,jpoimboe@kernel.org,joshua.hahnjy@gmail.com,j-nomura@ce.jp.nec.com,jannh@google.com,harry@kernel.org,gourry@gourry.net,david@kernel.org,dave.hansen@intel.com,catalin.marinas@arm.com,byungchul@sk.com,apopple@nvidia.com,anshuman.khandual@arm.com,ak@linux.intel.com,dev.jain@arm.com,akpm@linux-foundation.org
+	b=doqoAA5RDE3naV1jkHJpdCQLUMBXb243Zc5nhr1F+wb/N8yKT2DinPiGTyI9QaeRU
+	 psRBrEUD8+qe1SO9wUxxPG+R7uaUqZCVUZ+lTjiYYUXdyAogNusyleZSVHBMG6NFl5
+	 BEogmsFxO6hEWaRu8Im3NHh+Lt+XDvUNMUFHI1TM=
+Date: Mon, 27 Jul 2026 21:06:34 -0700
+To: mm-commits@vger.kernel.org,minchan@kernel.org,corbet@lwn.net,bigeasy@linutronix.de,senozhatsky@chromium.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged] arm64-make-huge_ptep_get-handled-unaligned-addresses.patch removed from -mm tree
-Message-Id: <20260728012851.2A53A1F000E9@smtp.kernel.org>
+Subject: + documentation-zram-remove-sections-numbering.patch added to mm-new branch
+Message-Id: <20260728040635.904731F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,122 +34,173 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: arm64: make huge_ptep_get handled unaligned addresses
-has been removed from the -mm tree.  Its filename was
-     arm64-make-huge_ptep_get-handled-unaligned-addresses.patch
+The patch titled
+     Subject: Documentation: zram: remove sections numbering
+has been added to the -mm mm-new branch.  Its filename is
+     documentation-zram-remove-sections-numbering.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/documentation-zram-remove-sections-numbering.patch
+
+This patch will later appear in the mm-new branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
 ------------------------------------------------------
-From: Dev Jain <dev.jain@arm.com>
-Subject: arm64: make huge_ptep_get handled unaligned addresses
-Date: Fri, 3 Jul 2026 11:41:54 +0000
+From: Sergey Senozhatsky <senozhatsky@chromium.org>
+Subject: Documentation: zram: remove sections numbering
+Date: Tue, 28 Jul 2026 11:12:11 +0900
 
-Patch series "Fix incorrect access of hugetlb pte entries", v3.
+Those numbers are difficult to maintain and in fact
+we can refer to sections by their names (in html).
 
-There are various places which use ptep_get() to get the pte entry
-corresponding to a hugetlb folio.  Some arches (like s390) have special
-handling to compute the pteval, so they provide huge_ptep_get().  Use this
-helper consistently.
-
-Additionally, some code paths may provide huge_ptep_get with an unaligned
-address.  This is a problem on arm64 (I checked other arches and it looks
-fine for them), which is fixed in patch 1.  The fix is made to be
-backport-friendly: the cleaner fix would be to perhaps pass the hstate to
-huge_ptep_get() - that is wider churn and we can do that later.
-
-
-This patch (of 6):
-
-huge_ptep_get() can be handed a virtual address pointing to the middle of
-a contpmd/contpte mapped hugetlb folio (examples of callers are
-pagemap_hugetlb_range, page_mapped_in_vma).
-
-The arm64 helper rewalks the pgtables in find_num_contig to answer whether
-the huge pte we have maps a contpmd or a contpte hugetlb folio, and
-returns CONT_PMDS or CONT_PTES, so that it can collect a/d bits over the
-contiguous ptes.  We can falsely return CONT_PTES instead of CONT_PMDS if
-the addr is not aligned.
-
-THis mean that on systems where CONT_PTES != CONT_PMDS (meaning page
-size is 16K) we could collect excess a/d bit state, meaning extra work
-for the kernel.
-
-Fix this by aligning the pmdp pointer down to a contpmd base before
-checking equality with the passed huge pte pointer, to correctly answer
-whether the huge pte is the base of a contpmd block.
-
-Link: https://lore.kernel.org/20260703114202.365553-1-dev.jain@arm.com
-Link: https://lore.kernel.org/20260703114202.365553-2-dev.jain@arm.com
-Fixes: 29cb80519689 ("arm64: hugetlb: Cleanup huge_pte size discovery mechanisms")
-Signed-off-by: Dev Jain <dev.jain@arm.com>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Acked-by: Muchun Song <muchun.song@linux.dev>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Andi Kleen <ak@linux.intel.com>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Byungchul Park <byungchul@sk.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: Gregory Price <gourry@gourry.net>
-Cc: Harry Yoo <harry@kernel.org>
-Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
-Cc: Jann Horn <jannh@google.com>
-Cc: Josh Poimboeuf <jpoimboe@kernel.org>
-Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
-Cc: Jun'ichi "Nick" Nomura <j-nomura@ce.jp.nec.com>
-Cc: Kiryl Shutsemau <kas@kernel.org>
-Cc: Lance Yang <lance.yang@linux.dev>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Matthew Brost <matthew.brost@intel.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Pedro Falcato <pfalcato@suse.de>
-Cc: Rakie Kim <rakie.kim@sk.com>
-Cc: Ralph Campbell <rcampbell@nvidia.com>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Will Deacon <will@kernel.org>
-Cc: Zi Yan <ziy@nvidia.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lore.kernel.org/20260728021229.181627-1-senozhatsky@chromium.org
+Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
+Suggested-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/mm/hugetlbpage.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/admin-guide/blockdev/zram.rst |   40 +++++++++---------
+ 1 file changed, 20 insertions(+), 20 deletions(-)
 
---- a/arch/arm64/mm/hugetlbpage.c~arm64-make-huge_ptep_get-handled-unaligned-addresses
-+++ a/arch/arm64/mm/hugetlbpage.c
-@@ -87,7 +87,7 @@ static int find_num_contig(struct mm_str
- 	p4dp = p4d_offset(pgdp, addr);
- 	pudp = pud_offset(p4dp, addr);
- 	pmdp = pmd_offset(pudp, addr);
--	if ((pte_t *)pmdp == ptep) {
-+	if ((pte_t *)PTR_ALIGN_DOWN(pmdp, sizeof(*pmdp) * CONT_PMDS) == ptep) {
- 		*pgsize = PMD_SIZE;
- 		return CONT_PMDS;
- 	}
+--- a/Documentation/admin-guide/blockdev/zram.rst~documentation-zram-remove-sections-numbering
++++ a/Documentation/admin-guide/blockdev/zram.rst
+@@ -61,8 +61,8 @@ and, in general case, something like::
+ 
+ should suffice.
+ 
+-1) Load Module
+-==============
++Load Module
++===========
+ 
+ ::
+ 
+@@ -73,8 +73,8 @@ This creates 4 devices: /dev/zram{0,1,2,
+ num_devices parameter is optional and tells zram how many devices should be
+ pre-created. Default: 1.
+ 
+-2) Select compression algorithm
+-===============================
++Select compression algorithm
++============================
+ 
+ Using comp_algorithm device attribute one can see available and
+ currently selected (shown in square brackets) compression algorithms,
+@@ -93,8 +93,8 @@ Examples::
+ For the time being, the `comp_algorithm` content shows only compression
+ algorithms that are supported by zram.
+ 
+-3) Set compression algorithm parameters: Optional
+-=================================================
++Set compression algorithm parameters: Optional
++==============================================
+ 
+ Compression algorithms may support specific parameters which can be
+ tweaked for particular dataset. ZRAM has an `algorithm_params` device
+@@ -124,8 +124,8 @@ better the compression ratio, it even ca
+ algorithms), for other algorithms `level` is acceleration level (the higher
+ the value the lower the compression ratio).
+ 
+-4) Set Disksize
+-===============
++Set Disksize
++============
+ 
+ Set disk size by writing the value to sysfs node 'disksize'.
+ The value can be either in bytes or you can use mem suffixes.
+@@ -144,8 +144,8 @@ There is little point creating a zram of
+ since we expect a 2:1 compression ratio. Note that zram uses about 0.1% of the
+ size of the disk when not in use so a huge zram is wasteful.
+ 
+-5) Set memory limit: Optional
+-=============================
++Set memory limit: Optional
++==========================
+ 
+ Set memory limit by writing the value to sysfs node 'mem_limit'.
+ The value can be either in bytes or you can use mem suffixes.
+@@ -163,8 +163,8 @@ Examples::
+ 	# To disable memory limit
+ 	echo 0 > /sys/block/zram0/mem_limit
+ 
+-6) Activate
+-===========
++Activate
++========
+ 
+ ::
+ 
+@@ -174,8 +174,8 @@ Examples::
+ 	mkfs.ext4 /dev/zram1
+ 	mount /dev/zram1 /tmp
+ 
+-7) Add/remove zram devices
+-==========================
++Add/remove zram devices
++=======================
+ 
+ zram provides a control interface, which enables dynamic (on-demand) device
+ addition and removal.
+@@ -194,8 +194,8 @@ execute::
+ 
+ 	echo X > /sys/class/zram-control/hot_remove
+ 
+-8) Stats
+-========
++Stats
++=====
+ 
+ Per-device statistics are exported as various nodes under /sys/block/zram<id>/
+ 
+@@ -296,16 +296,16 @@ a single line of text and contains the f
+ 		Unit: 4K bytes
+  ============== =============================================================
+ 
+-9) Deactivate
+-==============
++Deactivate
++==========
+ 
+ ::
+ 
+ 	swapoff /dev/zram0
+ 	umount /dev/zram1
+ 
+-10) Reset
+-=========
++Reset
++=====
+ 
+ 	Write any positive value to 'reset' sysfs node::
+ 
 _
 
-Patches currently in -mm which might be from dev.jain@arm.com are
+Patches currently in -mm which might be from senozhatsky@chromium.org are
 
-mm-swap-rename-subpage-page-in-folio_dup_swap-folio_put_swap.patch
-mm-mprotect-drop-sub-from-batching-context.patch
-mm-rmap-use-huge_ptep_get-in-try_to_unmap_one.patch
-mm-rmap-use-huge_ptep_get-in-try_to_migrate_one.patch
-mm-migrate-use-huge_ptep_get-in-remove_migration_pte.patch
-mm-page_vma_mapped-use-huge_ptep_get-for-hugetlb.patch
-mm-mprotect-use-huge_ptep_get-for-hugetlb.patch
-mm-rmap-convert-page-folio-for-hwpoison-checks.patch
-mm-rmap-add-try_to_unmap_hugetlb_one.patch
-mm-rmap-refactor-some-code-around-lazyfree-folio-unmapping.patch
-mm-rmap-refactor-anon-folio-unmap-in-try_to_unmap_one.patch
-mm-rmap-add-anon-folio-unmap-dispatcher.patch
-mm-memory-move-pte_install_uffd_wp_if_needed-into-memoryc.patch
-mm-memory-batch-set-uffd-wp-markers-during-zapping.patch
-mm-rmap-batch-unmap-file-folios-belonging-to-uffd-wp-vmas.patch
+documentation-zram-remove-sections-numbering.patch
 
