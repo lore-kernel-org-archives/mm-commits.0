@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D521E17C211;
-	Tue, 28 Jul 2026 00:58:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 42975261B71;
+	Tue, 28 Jul 2026 01:00:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785200336; cv=none; b=WcRSHjengPVwPj79Ddfbn2lvPSacvRIHbWSSXJ6NXyaskios/F2lQy40sG2meTUI81DARrtlh5O4FRpfqgsCzObfHFuEq7JmLGad1+G74cLMy+5AahpZzNNspFqLA7Y0OjTniOB3uA/Gb4z0tp0m2lpGdM4aASrvqmLkyXriN+A=
+	t=1785200412; cv=none; b=ECbCqRmSwhG4ZE09FHUSykibMXnlaffR0NYwFfEDDjeSRrsExVxdWANe2/Vqq6Ahrbfc6nUcsy9Vd+W04zfSD7zv3NXVXkOD2TZxevHs4HTV2MhsikQy1JIC/+qEHtCGEFT5h/FBgy0ho+wNyETb4WlUp7uVjeF3foycisRv+gQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785200336; c=relaxed/simple;
-	bh=bOepoL0IvnfGrKO76D0Ujh8P7H6S/ZWFYiSL6T9Dxog=;
-	h=Date:To:From:Subject:Message-Id; b=RJsvEaq5aTy06r2+5DFw50Euqp/4GNNOrikqDAlgSwgLgficPEad28BUVG+mTa6nQdBCWRAe3l3dF7YNoJpIs1inVsBOR5wLzj4svkD3MeRYElgYVAxpylzHds49BEgifhPrDZ/wAMTA1f/yhB3cpjBNQKWrGxY61Q8cwkDpv6Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yhCWx7N9; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785200412; c=relaxed/simple;
+	bh=GUtkgyKZMUl6G82wFhtKPCd2IRFRABAkNgX+wlmUKOU=;
+	h=Date:To:From:Subject:Message-Id; b=P85Q6Q06IRJn23AdpZ52BFih+puTQS/mV4H7e1PXpKbPFYbG/uOweLS5wY1aameCIZg6awp/pbJ4LOL63QLo8AYx1VVwhphgurx5hp/SoPrGmqmuoEcMxvUOhcE7xA03+p5IJR6j110Dy2Hm8C1pSDVaOE9xsPQM3ERGSAJAZ78=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1LCNS/4m; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yhCWx7N9"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 87E1C1F000E9;
-	Tue, 28 Jul 2026 00:58:54 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1LCNS/4m"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0F5411F000E9;
+	Tue, 28 Jul 2026 01:00:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785200334;
-	bh=4B4bjR37Eh7Rn5EPN3/WtW37PgvpD3qHrWgpV2Fmz/c=;
+	d=linux-foundation.org; s=korg; t=1785200409;
+	bh=+ekvYRaDcrAeZfAF0V4F4da5Dnh+gWmswDQ7EKDu5TA=;
 	h=Date:To:From:Subject;
-	b=yhCWx7N9UE9ZSCLzDPQjFAv93VpZAI0Gtb5J2nykk666M+lEggIem7hX4wP/GXOhw
-	 gnm39DHGQjBmOPL8s+i2ADP+ZCRZJfNBcHZzoatEC+r2lTGHYo6x26IUyNvxBdC6a8
-	 72UYdsPDjaT5y4riLMqLPHaJ6hm+CR3LOrYVUdWk=
-Date: Mon, 27 Jul 2026 17:58:54 -0700
+	b=1LCNS/4m1edEh4NeChLcbxLUx0qUtqqPml2KX4ku15YDj6yDsNCKAh5NAga/A5aTn
+	 1PRTWUhaeZrV2VaaQDNdmNvHrWA6Xh6iB+8fyRaGTiueCaroMnHCADcDmkZrZpb/Wt
+	 Zl4yJXJV5AteoSNTKFvrJJcbDaT07AzOn6GDBVH8=
+Date: Mon, 27 Jul 2026 18:00:08 -0700
 To: mm-commits@vger.kernel.org,stable@vger.kernel.org,mporter@kernel.crashing.org,gregkh@linuxfoundation.org,error27@gmail.com,alex.bou9@gmail.com,james010kim@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] rapidio-mport_cdev-fix-use-after-free-in-dma_req_free.patch removed from -mm tree
-Message-Id: <20260728005854.87E1C1F000E9@smtp.kernel.org>
+Subject: + rapidio-mport_cdev-fix-use-after-free-in-dma_req_free.patch added to mm-nonmm-unstable branch
+Message-Id: <20260728010009.0F5411F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,29 +34,49 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
+The patch titled
      Subject: rapidio: mport_cdev: fix use-after-free in dma_req_free()
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
      rapidio-mport_cdev-fix-use-after-free-in-dma_req_free.patch
 
-This patch was dropped because an updated version will be issued
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/rapidio-mport_cdev-fix-use-after-free-in-dma_req_free.patch
+
+This patch will later appear in the mm-nonmm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
 ------------------------------------------------------
 From: James Kim <james010kim@gmail.com>
 Subject: rapidio: mport_cdev: fix use-after-free in dma_req_free()
-Date: Mon, 15 Jun 2026 16:05:30 +0900
+Date: Fri, 24 Jul 2026 08:52:20 +0900
 
-dma_req_free() drops the mapping reference under buf_mutex and then
-dereferences req->map again to unlock the mutex.
+dma_req_free() acquires buf_mutex through req->map, drops the mapping
+reference with kref_put(), and then dereferences req->map again to unlock
+the mutex.
 
 If kref_put() drops the last reference, mport_release_mapping() frees the
 mapping, and the subsequent mutex_unlock() dereferences a freed object. 
 This is a use-after-free.
 
-Fix this by caching map and md before kref_put() and using the cached md
-for mutex unlocking.
+Fix this by caching map and md before kref_put(), clearing req->map while
+holding buf_mutex, and using the cached md for mutex unlocking.
 
-Link: https://lore.kernel.org/20260615070530.371640-1-james010kim@gmail.com
+The bug is reachable from userspace via the RapidIO mport character device
+interface.
+
+Link: https://lore.kernel.org/20260723235220.588424-1-james010kim@gmail.com
 Fixes: e8de370188d0 ("rapidio: add mport char device driver")
 Signed-off-by: James Kim <james010kim@gmail.com>
 Reviewed-by: Dan Carpenter <error27@gmail.com>
@@ -67,12 +87,12 @@ Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rapidio/devices/rio_mport_cdev.c |   11 ++++++++---
- 1 file changed, 8 insertions(+), 3 deletions(-)
+ drivers/rapidio/devices/rio_mport_cdev.c |   10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
 
 --- a/drivers/rapidio/devices/rio_mport_cdev.c~rapidio-mport_cdev-fix-use-after-free-in-dma_req_free
 +++ a/drivers/rapidio/devices/rio_mport_cdev.c
-@@ -564,9 +564,14 @@ static void dma_req_free(struct kref *re
+@@ -564,9 +564,13 @@ static void dma_req_free(struct kref *re
  	}
  
  	if (req->map) {
@@ -83,10 +103,9 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 +		struct mport_dev *md = map->md;
 +
 +		mutex_lock(&md->buf_mutex);
++		req->map = NULL;
 +		kref_put(&map->ref, mport_release_mapping);
 +		mutex_unlock(&md->buf_mutex);
-+
-+		req->map = NULL;
  	}
  
  	kref_put(&priv->dma_ref, mport_release_dma);
@@ -94,4 +113,5 @@ _
 
 Patches currently in -mm which might be from james010kim@gmail.com are
 
+rapidio-mport_cdev-fix-use-after-free-in-dma_req_free.patch
 
