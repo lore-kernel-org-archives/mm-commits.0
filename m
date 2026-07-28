@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ACA38288D0;
-	Tue, 28 Jul 2026 01:06:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 81FDF26A1C4
+	for <mm-commits@vger.kernel.org>; Tue, 28 Jul 2026 01:14:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785200810; cv=none; b=i6WN195sl7DAc50H8QUU6AidGOFGfJAhBtiM4rc0UIw6la0cZ8Szz8JrKtdwrlyEZykRF6Jc43CJY635dNeMYzS49xqQ7139S8tK6kpw8kLSpx7EE/N1QaukAzNA8COlAiEsWNILhF0JGB2SAUzcxJk5rmuIdba18SGGPuxONRc=
+	t=1785201286; cv=none; b=ETjx6qnOM3rLOmN6Jhl5llvsXlJakiw/xUUFLU91+l1YaEjK3C2P0xJgxN1EceyQbdU69nNyo4c2nynba7p21j4AXA6rH5eFRJ0Woi20pze+ht5sQqMW3N2EU3iBCFxLmsttNF1WZsTI6Pe0mYL0GSUw5UwQxOE1SF/3kI/QP5Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785200810; c=relaxed/simple;
-	bh=ttRv57eGRGz47Yhw29jnyw8VQn/g+pdoE423HcknotE=;
-	h=Date:To:From:Subject:Message-Id; b=LEgQEXkyyJsbZphZhjqRoZ7EGEKxI8VI12hr9npXzmt+3B5LC2vYrZdxnyqd/Zm9mZnh/ZGu5bFdQKVU8roKY3o8z4NR/KQnzwJxfspl/WLP07maDzaFV81tEDx2/mnQny8QCzd+dxU9EG5YKxUAkX1tHwZ3qqEXaH1Z7qrR5wE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=x+xAtS6a; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785201286; c=relaxed/simple;
+	bh=8FzWt5cQDvFl0boAjLXtEynzyyzMGvDbfYk8xEqTn78=;
+	h=Date:To:From:Subject:Message-Id; b=s7KwRiSkgMg3m1uLwGB2Ro5oa9H1aM7XBdG9Mkz5lvXK57QkLHRdkwVdYP9cFDEhCes7m7MIKSaQKWDIeQrpashtaah7OVO24Owh7hnDcwad7LP8vrjnUdq+ypCt55Uwex5mQZKxnSMlcFzpg/yWuWjGGZ2dDwUNUABVWiKVqxA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=h9KxVEmh; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="x+xAtS6a"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 783711F000E9;
-	Tue, 28 Jul 2026 01:06:44 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="h9KxVEmh"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0D1EA1F000E9;
+	Tue, 28 Jul 2026 01:14:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785200804;
-	bh=pVWWuZDXjf2IKePGdaVPQpq7g6fvA+aO7Ijm9BrELRo=;
+	d=linux-foundation.org; s=korg; t=1785201285;
+	bh=3T+nlmvMykk95VhSx0S7GlVdbc+qwAEs8oU07l8AKm4=;
 	h=Date:To:From:Subject;
-	b=x+xAtS6afS4M0s1uk/DwDtPi3OvxtB4QE9W/At9hoNEEVmiMlpYkbMn/Soihaoa3/
-	 F+rhfSjnkGlrnnBCTEnHWbQy8RwxKFY8tWZeuXM5hr32VHtCcCorOPxE63NwBu/Lmm
-	 CVx0MRy75j1Cl4/D3T/b624qBwm1HTf5y4VxYTPU=
-Date: Mon, 27 Jul 2026 18:06:44 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,rppt@kernel.org,monstr@monstr.eu,ramin.moussavi@yacoub.de,akpm@linux-foundation.org
+	b=h9KxVEmhNfDdXMi3hJ68vBqkjEA96sdjnBXwHKMJobRVZZnYSJz2ykY6E1/psI0CN
+	 /kD1QmSUKXXFOxweO+vA6Owmk7uVx5KsQUwKewTAOGQWnlT5BgiTFnKnAugtBNsuAW
+	 lr0drcLtCi5mX/yKBjOWW8zCGjMQKXu+/71++NWw=
+Date: Mon, 27 Jul 2026 18:14:44 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,surenb@google.com,sj@kernel.org,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,linkl@google.com,liam@infradead.org,jackmanb@google.com,hannes@cmpxchg.org,gthelen@google.com,david@kernel.org,corbet@lwn.net,anshuman.khandual@arm.com,pratmal@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + microblaze-restore-the-page-alignment-of-swapper_pg_dir.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260728010644.783711F000E9@smtp.kernel.org>
+Subject: + mm-page_reporting-add-page_reporting_delay_ms-module-parameter.patch added to mm-new branch
+Message-Id: <20260728011445.0D1EA1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,26 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: microblaze: restore the page alignment of swapper_pg_dir
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     microblaze-restore-the-page-alignment-of-swapper_pg_dir.patch
+     Subject: mm/page_reporting: Add page_reporting_delay_ms module parameter
+has been added to the -mm mm-new branch.  Its filename is
+     mm-page_reporting-add-page_reporting_delay_ms-module-parameter.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/microblaze-restore-the-page-alignment-of-swapper_pg_dir.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_reporting-add-page_reporting_delay_ms-module-parameter.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,94 +69,117 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Ramin Moussavi <ramin.moussavi@yacoub.de>
-Subject: microblaze: restore the page alignment of swapper_pg_dir
-Date: Mon, 27 Jul 2026 23:58:23 +0200
+From: Pratyush Mallick <pratmal@google.com>
+Subject: mm/page_reporting: Add page_reporting_delay_ms module parameter
+Date: Mon, 27 Jul 2026 23:05:45 +0000
 
-microblaze handles TLB misses in software, and the handler builds the
-address of the L1 entry by ORing the index into the page directory base
-instead of adding it (hw_exception_handler.S):
+Currently, the free page reporting uses a hardcoded delay of (2 HZ)
+between reporting intervals.  While this is a reasonable default, it lacks
+the flexibility to adapt to varying guest workloads.
 
-		bsrli	r5, r3, PGDIR_SHIFT - 2
-		andi	r5, r5, PAGE_SIZE - 4
-	/* Assume pgdir aligned on 4K boundary, no need for
-	   "andi r4,r4,0xfffff003" */
-		or	r4, r4, r5
-		lwi	r4, r4, 0		/* Get L1 entry */
+A low delay allows aggressive memory reclamation, returning unused pages
+to the host as quickly as possible.  However, during spiky allocation/free
+churn, this immediate reporting can lead to a severe performance penalty
+(nested page faults) as the guest re-allocates memory that the host has
+just unmapped.  In these scenarios, there is benefit from increasing the
+delay to batch free pages over a longer window, absorbing the churn
+without hypercall and re-fault overhead.
 
-The index is masked to the low 12 bits, so the OR only works if those bits
-of the base are zero -- which is exactly the assumption the comment states
-and the reason the masking of the base can be skipped.
+This patch exposes the delay as a module parameter:
+/sys/module/page_reporting/parameters/page_reporting_delay_ms, measured in
+milliseconds and defaults to 2000ms.
 
-swapper_pg_dir had no alignment directive of its own.  It was aligned
-because it followed empty_zero_page in head.S, and that one carried the
-.align 12:
-
-	.section .data
-	.global empty_zero_page
-	.align 12
-	empty_zero_page:
-		.space	PAGE_SIZE
-	.global swapper_pg_dir
-	swapper_pg_dir:
-		.space	PAGE_SIZE
-
-Commit 6215d9f4470f ("arch, mm: consolidate empty_zero_page") removed
-empty_zero_page from head.S, and with it the .align 12 that -- despite
-sitting next to empty_zero_page -- was what page aligned swapper_pg_dir. 
-Since then swapper_pg_dir lands wherever .data happens to put it, its low
-bits are no longer zero, and every kernel TLB miss ORs the index into a
-base with a nonzero offset.  The resulting L1 lookups read the wrong
-words, no valid translation is ever installed, and the kernel spins in
-exceptions long before it can print anything.  On qemu-system-microblazeel
-(petalogix-s3adsp1800) the console stays completely silent at 100% CPU;
-there is no oops and no guest error reported by qemu, which makes this
-awkward to diagnose.
-
-Give swapper_pg_dir the alignment it requires, rather than relying on a
-neighbour to provide it.
-
-microblaze has no noMMU variant left in mainline -- CONFIG_MMU is def_bool
-y and mmu_defconfig is the only defconfig -- so this is not a corner case:
-every mainline microblaze kernel since v7.1-rc1 fails to boot, including
-the v7.1 release.
-
-	v7.0:                    swapper_pg_dir = 0xc05fd000  (aligned)
-	v7.1-rc1:                swapper_pg_dir = 0xc0603140  (offset 320)
-	v7.1-rc1 + this fix:     swapper_pg_dir = 0xc0604000  (aligned)
-	next-20260726:           swapper_pg_dir = 0xc0615140  (offset 320)
-	next-20260726 + this fix: swapper_pg_dir = 0xc0616000  (aligned)
-
-Verified on qemu-system-microblazeel (petalogix-s3adsp1800) with
-mmu_defconfig and microblazeel gcc 12.5.0: v7.1-rc1 and next-20260726 both
-print nothing at all without the fix, and both boot to userspace with it.
-
-Link: https://lore.kernel.org/20260727215823.1422701-1-ramin.moussavi@yacoub.de
-Fixes: 6215d9f4470f ("arch, mm: consolidate empty_zero_page")
-Signed-off-by: Ramin Moussavi <ramin.moussavi@yacoub.de>
-Cc: Michal Simek <monstr@monstr.eu>
+Link: https://lore.kernel.org/20260727230545.262579-1-pratmal@google.com
+Signed-off-by: Pratyush Mallick <pratmal@google.com>
+Reviewed-by: SJ Park <sj@kernel.org>
+Cc: Link Lin <linkl@google.com>
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Brendan Jackman <jackmanb@google.com>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Greg Thelen <gthelen@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Rapoport <rppt@kernel.org>
-Cc: <stable@vger.kernel.org>
+Cc: SeongJae Park <sj@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/microblaze/kernel/head.S |    2 ++
- 1 file changed, 2 insertions(+)
+ Documentation/admin-guide/kernel-parameters.txt |    6 ++++
+ mm/page_reporting.c                             |   19 ++++++++------
+ 2 files changed, 17 insertions(+), 8 deletions(-)
 
---- a/arch/microblaze/kernel/head.S~microblaze-restore-the-page-alignment-of-swapper_pg_dir
-+++ a/arch/microblaze/kernel/head.S
-@@ -39,6 +39,8 @@
- #include <asm/processor.h>
+--- a/Documentation/admin-guide/kernel-parameters.txt~mm-page_reporting-add-page_reporting_delay_ms-module-parameter
++++ a/Documentation/admin-guide/kernel-parameters.txt
+@@ -4813,6 +4813,12 @@ Kernel parameters
+ 			Adjust the minimal page reporting order. The page
+ 			reporting is disabled when it exceeds MAX_PAGE_ORDER.
  
- .section .data
-+/* The MMU requires a page aligned page directory. */
-+.align 12
- .global swapper_pg_dir
- swapper_pg_dir:
- 	.space	PAGE_SIZE
++	page_reporting.page_reporting_delay_ms=
++			[KNL] Free page reporting delay in milliseconds
++			Format: <unsigned integer>
++			Adjust the delay in milliseconds between free page
++			reporting intervals. Default is 2000 (2 seconds).
++
+ 	panic=		[KNL] Kernel behaviour on panic: delay <timeout>
+ 			timeout > 0: seconds before rebooting
+ 			timeout = 0: wait forever
+--- a/mm/page_reporting.c~mm-page_reporting-add-page_reporting_delay_ms-module-parameter
++++ a/mm/page_reporting.c
+@@ -48,7 +48,11 @@ MODULE_PARM_DESC(page_reporting_order, "
+  */
+ EXPORT_SYMBOL_GPL(page_reporting_order);
+ 
+-#define PAGE_REPORTING_DELAY	(2 * HZ)
++static unsigned int page_reporting_delay_ms = 2 * MSEC_PER_SEC;
++module_param(page_reporting_delay_ms, uint, 0644);
++MODULE_PARM_DESC(page_reporting_delay_ms,
++		 "Set page reporting delay in milliseconds");
++
+ static struct page_reporting_dev_info __rcu *pr_dev_info __read_mostly;
+ 
+ enum {
+@@ -77,12 +81,11 @@ __page_reporting_request(struct page_rep
+ 		return;
+ 
+ 	/*
+-	 * Delay the start of work to allow a sizable queue to build. For
+-	 * now we are limiting this to running no more than once every
+-	 * couple of seconds.
++	 * Delay the start of work to allow a sizable queue to build.
++	 * We limit this based on page_reporting_delay_ms.
+ 	 */
+ 	queue_delayed_work(system_freezable_wq, &prdev->work,
+-			   PAGE_REPORTING_DELAY);
++			   msecs_to_jiffies(page_reporting_delay_ms));
+ }
+ 
+ /* notify prdev of free page reporting request */
+@@ -337,13 +340,13 @@ static void page_reporting_process(struc
+ err_out:
+ 	/*
+ 	 * If the state has reverted back to requested then there may be
+-	 * additional pages to be processed. We will defer for 2s to allow
+-	 * more pages to accumulate.
++	 * additional pages to be processed. We will defer by
++	 * page_reporting_delay_ms to allow more pages to accumulate.
+ 	 */
+ 	state = atomic_cmpxchg(&prdev->state, state, PAGE_REPORTING_IDLE);
+ 	if (state == PAGE_REPORTING_REQUESTED)
+ 		queue_delayed_work(system_freezable_wq, &prdev->work,
+-				   PAGE_REPORTING_DELAY);
++				   msecs_to_jiffies(page_reporting_delay_ms));
+ }
+ 
+ static DEFINE_MUTEX(page_reporting_mutex);
 _
 
-Patches currently in -mm which might be from ramin.moussavi@yacoub.de are
+Patches currently in -mm which might be from pratmal@google.com are
 
-microblaze-restore-the-page-alignment-of-swapper_pg_dir.patch
+mm-page_reporting-add-page_reporting_delay_ms-module-parameter.patch
 
