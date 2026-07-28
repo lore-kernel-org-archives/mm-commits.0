@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E3D243CF694
-	for <mm-commits@vger.kernel.org>; Tue, 28 Jul 2026 19:49:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1979C44C51A
+	for <mm-commits@vger.kernel.org>; Tue, 28 Jul 2026 19:57:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785268173; cv=none; b=hNoGUTJfWN6rHRKR811GV3dGdsuj8cIfWJIFlCedcmKvRQHuPIZLvyFRprFSY2QLnXlz8T0V1Vw9ZPmUY6aSUqz+2zHDPqNfCpdIWROnDBYc/87uyTQJXa2GWD+K98Yt1psoBDxXNxJqzCRkhO9vYtKyRZI6GdpnT1lehMB6x+Y=
+	t=1785268663; cv=none; b=RFEq1uZogXH1i0FxFQlij7fO1UQ3+nLG4EadI8y2VtqHUVFY57wUBhtMNe07kR7NxXm57+oMj3LTM8Q+1zjmNs20qLgh7dz3FIKXttyCpv5s6nbsDWCzGcbMiF8zKcyBthM52R/dKekaXczNtKYreO5jumZEsQAwBAE+6Y2gZa0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785268173; c=relaxed/simple;
-	bh=g5IR8OEj+X+sqkvuneMkd/FjNTzWOUTDXvOH0AJwNS4=;
-	h=Date:To:From:Subject:Message-Id; b=BGHeHr1bzOr47+LD4FhSWR/pVpNQOsFRAL4qGvVGkY6cHC1sg24JPhtoUBV3jJ2t//xiGO+BXSFfDLiYpIUOH0bxoZCe3PfUEy8X+kuT6VCFPe0zLPlj9R2/EU2XP6DWGJwt+fUphKHE+Q0IfTt192yKEUtUaQh/xQkwcYCsVFg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PhdWZwm7; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785268663; c=relaxed/simple;
+	bh=/PcS0AvQY7/IK8QBgV9lcne0skdCv1p4QUNomRZtS6g=;
+	h=Date:To:From:Subject:Message-Id; b=dE+v40vdUZuIXZSo5EuWO62DX6UYRiiuKa9U28k085QjoymjmPy0yeeHH06lS06kaWBeYjdqMG0AB+28X1FeehFtm7eCn+yMMIvAG4LSFkc02UOxYXk19Lmn7g5ovxSHjlCXr2WqqiwziGmcnSffqWJLsvA86ekTqF/+KMc4tCs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PfUVg4+2; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PhdWZwm7"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5B5061F000E9;
-	Tue, 28 Jul 2026 19:49:31 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PfUVg4+2"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 993B61F000E9;
+	Tue, 28 Jul 2026 19:57:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785268171;
-	bh=s229ahK6JAfXVK+0XcQd3VmF9QmxNth2rOxIOWBpEMM=;
+	d=linux-foundation.org; s=korg; t=1785268661;
+	bh=2BEVWcGC8c+DF44k6x0WXo/RH/YuiKSXRuylx1rgexk=;
 	h=Date:To:From:Subject;
-	b=PhdWZwm7LpRazNR4zngKHEUkqPaFu1bPhbejO1Y/i2bT7nobm9I/445TZhXUCchEB
-	 28PzqHw4Brh03o/QvPOFOlZH7Lkzqw4FzZ7A2JtdA4QO3cdo/m1dQMIFaX61DS6XAB
-	 ERO7rr/4k0Izcb1bN0lxbsxsaKWb+6yUEAXQxBJc=
-Date: Tue, 28 Jul 2026 12:49:30 -0700
-To: mm-commits@vger.kernel.org,liuyongqiang13@huawei.com,hughd@google.com,brauner@kernel.org,baolin.wang@linux.alibaba.com,yujiacheng3@huawei.com,akpm@linux-foundation.org
+	b=PfUVg4+2sZSczLwLld1Pjv2nSbeQKl9MzjvLlHAlQstflzTXUMgpge72kYm89Ad1b
+	 ecVF99eB5J5PY9Ps/9eE4r5OrO1PSwjnKvl07/kCtKS2tRWiUAg1rbe9qLfHfuRnhG
+	 fXwnYGnT48zwdJSIERFme7K5pAT+03WR+IQ/XaRo=
+Date: Tue, 28 Jul 2026 12:57:41 -0700
+To: mm-commits@vger.kernel.org,will@kernel.org,riel@surriel.com,peterz@infradead.org,mingo@redhat.com,longman@redhat.com,leitao@debian.org,joe@perches.com,jgg@ziepe.ca,clm@meta.com,cel@kernel.org,boqun.feng@gmail.com,liam@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-shmem-downgrade-final-i_blocks-check-in-shmem_evict_inode-to-pr_warn.patch added to mm-new branch
-Message-Id: <20260728194931.5B5061F000E9@smtp.kernel.org>
+Subject: + maple_tree-stop-flooding-logs-when-debug_locks-is-set-to-zero-fix.patch added to mm-unstable branch
+Message-Id: <20260728195741.993B61F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,26 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/shmem: downgrade final i_blocks check in shmem_evict_inode() to pr_warn()
-has been added to the -mm mm-new branch.  Its filename is
-     mm-shmem-downgrade-final-i_blocks-check-in-shmem_evict_inode-to-pr_warn.patch
+     Subject: maple_tree-stop-flooding-logs-when-debug_locks-is-set-to-zero-fix
+has been added to the -mm mm-unstable branch.  Its filename is
+     maple_tree-stop-flooding-logs-when-debug_locks-is-set-to-zero-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-shmem-downgrade-final-i_blocks-check-in-shmem_evict_inode-to-pr_warn.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-stop-flooding-logs-when-debug_locks-is-set-to-zero-fix.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,72 +58,104 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Jiacheng Yu <yujiacheng3@huawei.com>
-Subject: mm/shmem: downgrade final i_blocks check in shmem_evict_inode() to pr_warn()
-Date: Tue, 28 Jul 2026 09:10:14 +0000
+From: "Liam R. Howlett (Oracle)" <liam@infradead.org>
+Subject: maple_tree-stop-flooding-logs-when-debug_locks-is-set-to-zero-fix
+Date: Mon, 20 Jul 2026 17:30:38 -0400
 
-shmem_evict_inode() ends with WARN_ON(inode->i_blocks) as a final
-consistency check of shmem's block accounting.  When it fires, the
-inode-local counters die with the inode; what may linger is a small
-residue in accounting kept outside the inode, such as per-mount or
-per-user charges.  No data is lost, and no corruption follows.
+stop flooding logs when debug_locks is set to zero
 
-On kernels running with panic_on_warn=1, this accounting inconsistency
-escalates to a full machine panic, which is disproportionate to the
-impact.
+When lockdep detects an issue, it sets debug_locks to 0 disabling further
+reports.  The newly added maple tree sequence counting on locks to detect
+errors is not taking this nor the fact that lock_is_held() can return -1
+(unknown state) into account.  The resulting action is a flood of logging
+of not matching sequence numbers being reported on failure.
 
-Downgrade the WARN_ON() to a pr_warn() that reports the inode together
-with its accounting counters (i_blocks, alloced, swapped, nrpages),
-keeping the inconsistency visible in the logs.
+__lock_sequnece() will return u32 ~0 when debug_locks is zero, and the
+real sequnece count cannot return such a high value as it is less than
+32bits.
 
-The accounting bugs this check has caught over the years -- the swapout
-race described in commit 0f3c42f522dc ("tmpfs: change final i_blocks BUG
-to WARNING") and the error recovery race fixed in commit 267a4c76bbdb
-("tmpfs: fix shmem_evict_inode() warnings on i_blocks") -- are real and
-should still be fixed; this change only removes the disproportionate
-escalation.
+By always updating the sequence number, regardless of lock state and by
+ignoring ~0 value in the sequence number will avoid ever printing a
+WARN_ON when this condition is hit.
 
-One way to hit this race: soft_offline_in_use_page()'s fast path drops a
-clean, unmapped shmem folio via mapping_evict_folio(), where the
-xas_store() and the nrpages decrement are not atomic against a concurrent
-shmem_evict_inode(); the final shmem_recalc_inode() can then read the
-pre-decrement nrpages, compute freed = 0, and leave one page charged. 
-Same class as the races in 0f3c42f522dc and 267a4c76bbdb, this time in the
-under-count direction; reproduced on 7.2-rc4 with
-madvise(MADV_SOFT_OFFLINE) racing MAP_FIXED replacement of a
-shared-anonymous VMA.
-
-Link: https://lore.kernel.org/20260728091014.3876715-1-yujiacheng3@huawei.com
-Fixes: 0f3c42f522dc ("tmpfs: change final i_blocks BUG to WARNING")
-Signed-off-by: Jiacheng Yu <yujiacheng3@huawei.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Yongqiang Liu <liuyongqiang13@huawei.com>
-Cc: Christian Brauner <brauner@kernel.org>
+Link: https://lore.kernel.org/fo5r2xl3fql6gyvjasfvfu4ftugjti2vxg7zskdw7hjeo3xvqm@kk66qmsf762s
+Signed-off-by: Liam R. Howlett (Oracle) <liam@infradead.org>
+Tested-by: Breno Leitao <leitao@debian.org>
+Cc: Boqun Feng <boqun.feng@gmail.com>
+Cc: Chris Mason <clm@meta.com>
+Cc: Chuck Lever <cel@kernel.org>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Joe Perches <joe@perches.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: Waiman Long <longman@redhat.com>
+Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ lib/maple_tree.c |   14 ++++++++++----
+ 1 file changed, 10 insertions(+), 4 deletions(-)
 
---- a/mm/shmem.c~mm-shmem-downgrade-final-i_blocks-check-in-shmem_evict_inode-to-pr_warn
-+++ a/mm/shmem.c
-@@ -1440,7 +1440,11 @@ static void shmem_evict_inode(struct ino
- 	simple_xattrs_free(&sbinfo->xa_cache, &info->xattrs, sbinfo->max_inodes ? &freed : NULL);
+--- a/lib/maple_tree.c~maple_tree-stop-flooding-logs-when-debug_locks-is-set-to-zero-fix
++++ a/lib/maple_tree.c
+@@ -1171,6 +1171,8 @@ static void mas_lock_check(struct ma_sta
+ {
+ #ifdef CONFIG_LOCKDEP
+ 	struct lockdep_map *map;
++	u32 seq;
++
+ 	if (!mas_is_active(mas))
+ 		return;
  
- 	shmem_free_inode(inode->i_sb, freed);
--	WARN_ON(inode->i_blocks);
-+	if (inode->i_blocks)
-+		pr_warn("%s: ino=%llu i_blocks=%llu alloced=%lu swapped=%lu nrpages=%lu\n",
-+			__func__, (unsigned long long)inode->i_ino,
-+			(unsigned long long)inode->i_blocks,
-+			info->alloced, info->swapped, inode->i_mapping->nrpages);
- 	clear_inode(inode);
- #ifdef CONFIG_TMPFS_QUOTA
- 	dquot_free_inode(inode);
+@@ -1182,8 +1184,12 @@ static void mas_lock_check(struct ma_sta
+ #endif /* CONFIG_RCU_STRICT_GRACE_PERIOD */
+ 
+ 	map = mas_lockdep_map(mas);
+-	if (map && lock_is_held(map))
+-		WARN_ON_ONCE(mas->ld_seq != lock_sequence(map));
++	if (!map)
++		return;
++
++	seq = lock_sequence(map);
++	if (seq != UINT_MAX && mas->ld_seq != UINT_MAX)
++		WARN_ON_ONCE(mas->ld_seq != seq);
+ #endif /* CONFIG_LOCKDEP */
+ 
+ }
+@@ -1201,8 +1207,8 @@ static void mas_init_lock_check(struct m
+ #endif /* CONFIG_RCU_STRICT_GRACE_PERIOD */
+ 
+ 	map = mas_lockdep_map(mas);
+-	if (map && lock_is_held(map))
+-		mas->ld_seq = lock_sequence(mas_lockdep_map(mas));
++	if (map) /* Update regardless of lock state */
++		mas->ld_seq = lock_sequence(map);
+ #endif /* CONFIG_LOCKDEP */
+ 
+ }
 _
 
-Patches currently in -mm which might be from yujiacheng3@huawei.com are
+Patches currently in -mm which might be from liam@infradead.org are
 
-mm-shmem-downgrade-final-i_blocks-check-in-shmem_evict_inode-to-pr_warn.patch
+maple_tree-add-rcu-locking-check-when-lockdep-is-enabled.patch
+locking-lockdep-add-sequence-counter-to-held_lock.patch
+maple_tree-add-write-lock-checking-with-lockdep-sequence-numbers.patch
+maple_tree-stop-flooding-logs-when-debug_locks-is-set-to-zero-fix.patch
+maple_tree-documentation-fix.patch
+maple_tree-drop-dead-code-from-mas_extend_spanning_null.patch
+maple_tree-drop-maple_alloc_slots.patch
+maple_tree-clarify-comments-on-mas_nomem.patch
+maple_tree-use-prefetched-value-in-mas_wr_store_type.patch
+maple_tree-optimise-mas_wr_node_store-when-not-in-rcu-mode.patch
+maple_tree-micro-optimisation-of-mas_wr_store_type.patch
+maple_tree-add-bulk-parent-set-helper.patch
+maple_tree-catch-race-in-mas_alloc_cyclic.patch
+maple_tree-document-that-erase-may-use-gfp_kernel-for-allocations.patch
+maple_tree-warn_on_once-when-allocations-fail.patch
+maple_tree-document-erase-and-allocations-better.patch
+maple_tree-change-two-gfp-flags-in-tests.patch
+maple_tree-fix-argument-name-in-header.patch
+maple_tree-avoid-extra-gap-calculation.patch
+maple_tree-add-helper-mas_make_walkable.patch
 
