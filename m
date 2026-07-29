@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 01C813921FB;
-	Wed, 29 Jul 2026 04:14:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4840A3911C3;
+	Wed, 29 Jul 2026 04:14:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785298455; cv=none; b=hHcR48KQR9VqeB8s8PxKU4pRRg4sGAPuVvmgJ3pZCX7AEFgMU1o0Hsn/m+n6vyk+vYkoGeK2GKF393NEtEhlWuVtcvBifkhGhYtPrebrcCnN1Ski/+S/e+LvNQQPAAy48Bh0aCLCnNhxhQyEJuBj9BmJqN7xFE+SwhzDHCBIqlI=
+	t=1785298456; cv=none; b=WaKmyetm4j8Uh7UH54+sI6mErn2YQYvC/naEcbnOaxwSU5oFzoQ4/L09bOxeURNllU7qwavu4FRF/qeoRS2O8fbGt91EHM2W8dUTJ0xWuTQaTInoKHMaw8K3r6iMRbVaniS+AtNpr6N5X60AldGNyqqShcqtNc2SBwZ9+ljq9Q4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785298455; c=relaxed/simple;
-	bh=uAqWwSx1krd09YW9OEywXNUh2OLYaOBuiyAUiQJvrGk=;
-	h=Date:To:From:Subject:Message-Id; b=nyXH5000tXeKvlry8LeRR4vfJmQgCJWt16p5lCxZm0GbiLf2zysQIxbHfMgN89NOi8+FL6tcrwB/UGGHFIvmMriws0JM2YSZA09u6hTmtAM6xnGPVRPspgYrYHWKWGwzb+iSqPz15Ub1ktmQ/7hGxkklo3BKagIVxaVMXKgeFFI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=F2DgNgW1; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785298456; c=relaxed/simple;
+	bh=K/bx864sppo5mwFTa33mat5T/BCtRYu/9qxF/9N7fjA=;
+	h=Date:To:From:Subject:Message-Id; b=W74plfuo0g28rqX9uApXlOjeuqKr3jNKWiwJdJef1y7OKsjdGFBW4lbglzGxTrNhh+zERa2e0u3hUiBLwHmMQwCELMK7kl8Y8VUYbfDfbQu9Ne3HcugLlcWYbJZRsQPIEYkwOEFW4kLXQypUxBlSzEjrqD2t5bRkptlJtE3FI/k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LklS/uyF; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="F2DgNgW1"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D2CF21F000E9;
-	Wed, 29 Jul 2026 04:14:13 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LklS/uyF"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1F2F81F00A3A;
+	Wed, 29 Jul 2026 04:14:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785298453;
-	bh=89m40eLBioELf2OBipEcGjmcu1T409SGH9GwmoX+ioQ=;
+	d=linux-foundation.org; s=korg; t=1785298455;
+	bh=Smp6hNCS30/clkzritDkINq5S2hfZmtC2OMwYo5U9wo=;
 	h=Date:To:From:Subject;
-	b=F2DgNgW1tTdQ21a8Eb0jar8gaFsueALWxgVy28nJNH3U1+SiGNHmOpgA392TQXphU
-	 HcyW7UcVE/dMiOc5C741jphYaXJZ6CwvEt9LdIdjOZZ87k5397ZpD2r6VTnYeQVxVw
-	 tgHnnISIE++jWJSmgpVsRZ7eO3wD5di/w6BjWSjM=
-Date: Tue, 28 Jul 2026 21:14:13 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,usama.arif@linux.dev,stable@vger.kernel.org,rppt@kernel.org,ritesh.list@gmail.com,osalvador@suse.de,osalvador@kernel.org,npiggin@gmail.com,mpe@ellerman.id.au,mclapinski@google.com,maddy@linux.ibm.com,ljs@kernel.org,liam@infradead.org,fvdl@google.com,david@kernel.org,aneesh.kumar@linux.ibm.com,songmuchun@bytedance.com,akpm@linux-foundation.org
+	b=LklS/uyFu2na8d6sQX6DEcdy5uJDYVRTCiR2z3QkQt4nbyx55EVjfb5xMTegJ0Ht4
+	 vnY7QwQkiKwWB54OJkJ1tZAz3wZlowf8qv7ITyWlwcOKRP3EhlF2NIiUmYRvApd5Go
+	 Vit0sB/SJkkEwOlSBYB1vvkzxJg2XOYRkuColJ6s=
+Date: Tue, 28 Jul 2026 21:14:14 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,usama.arif@linux.dev,stable@vger.kernel.org,rppt@kernel.org,ritesh.list@gmail.com,osalvador@suse.de,osalvador@kernel.org,npiggin@gmail.com,mpe@ellerman.id.au,maddy@linux.ibm.com,ljs@kernel.org,liam@infradead.org,fvdl@google.com,david@kernel.org,aneesh.kumar@linux.ibm.com,songmuchun@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-hugetlb-fix-boot-panic-with-config_debug_vm-and-hvo-bootmem-pages.patch removed from -mm tree
-Message-Id: <20260729041413.D2CF21F000E9@smtp.kernel.org>
+Subject: [merged mm-stable] mm-hugetlb_vmemmap-fix-__hugetlb_vmemmap_optimize_folios.patch removed from -mm tree
+Message-Id: <20260729041415.1F2F81F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,167 +35,75 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/hugetlb: fix boot panic with CONFIG_DEBUG_VM and HVO bootmem pages
+     Subject: mm/hugetlb_vmemmap: fix __hugetlb_vmemmap_optimize_folios()
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-fix-boot-panic-with-config_debug_vm-and-hvo-bootmem-pages.patch
+     mm-hugetlb_vmemmap-fix-__hugetlb_vmemmap_optimize_folios.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm/hugetlb: fix boot panic with CONFIG_DEBUG_VM and HVO bootmem pages
-Date: Fri, 12 Jun 2026 11:58:45 +0800
+Subject: mm/hugetlb_vmemmap: fix __hugetlb_vmemmap_optimize_folios()
+Date: Fri, 12 Jun 2026 11:58:46 +0800
 
-Patch series "mm: Refactor bootmem gigantic hugepage allocation", v4.
+__hugetlb_vmemmap_optimize_folios() uses incorrect arguments when handling
+bootmem HugeTLB folios.
 
-This series is split out from the earlier larger series "mm: Generalize
-HVO for HugeTLB and device DAX" [1].  It collects the first 19 patches of
-that series as a standalone set of fixes and preparatory cleanups around
-bootmem HugeTLB handling, sparse initialization ordering, and related
-vmemmap setup.
+The section number passed to register_page_bootmem_memmap() is derived
+from the vmemmap virtual address of folio->page instead of the folio PFN,
+so the bootmem memmap metadata can be registered against the wrong
+section.  The helper is also given HUGETLB_VMEMMAP_RESERVE_SIZE even
+though it expects a page count, not a size in bytes.  In addition, the
+write-protect range is based on pages_per_huge_page(h), which does not
+cover the full HugeTLB vmemmap area and can leave part of the shared tail
+vmemmap mapping writable.
 
-The first patches fix a few bugs found while reviewing the existing code,
-including incorrect bootmem HVO handling, wrong vmemmap registration
-arguments, a powerpc compound-vmemmap tracking bug, and too-late
-initialization of gigantic bootmem HugeTLB struct pages.
+Fix the section lookup to use folio_pfn(folio), use
+HUGETLB_VMEMMAP_RESERVE_PAGES when registering the reserved memmap pages,
+and use hugetlb_vmemmap_size(h) for the write-protect range.
 
-The rest of the series reorders early memory initialization so the
-relevant zone state is available before sparse and HugeTLB boot-time setup
-runs, then simplifies the remaining bootmem gigantic hugepage allocation
-path and removes code made obsolete by that rework.
-
-At a high level:
-  - patches [1-4] fix boot-time and arch-specific bugs
-  - patches [5-12] reorder and simplify sparse/mm/hugetlb early init
-  - patches [13-19] refactor bootmem gigantic hugepage allocation and
-    remove obsolete helpers and state
-
-
-This patch (of 19):
-
-Commit 622026e87c40 ("mm/hugetlb: remove fake head pages") switched
-HVO to reuse per-zone shared tail pages from zone->vmemmap_tails[].
-
-Those shared tail pages were initialized in hugetlb_vmemmap_init(), but
-bootmem HugeTLB folios are prepared earlier from
-gather_bootmem_prealloc().  With hugetlb_free_vmemmap=on,
-prep_and_add_bootmem_folios() can access pageblock flags on bootmem
-HugeTLB pages whose mirrored tail struct pages already point to the shared
-tail page.  On CONFIG_DEBUG_VM kernels, get_pfnblock_bitmap_bitidx() then
-dereferences the still-uninitialized shared tail page and can panic during
-boot.
-
-Initialize zone->vmemmap_tails[] from gather_bootmem_prealloc(), before
-bootmem HugeTLB folios are processed, and drop the later initialization
-from hugetlb_vmemmap_init().
-
-This bug only affects CONFIG_DEBUG_VM kernels, where the relevant
-assertion is evaluated.
-
-Link: https://lore.kernel.org/20260612035903.2468601-1-songmuchun@bytedance.com
-Link: https://lore.kernel.org/20260612035903.2468601-2-songmuchun@bytedance.com
-Fixes: 622026e87c40 ("mm/hugetlb: remove fake head pages")
+Link: https://lore.kernel.org/20260612035903.2468601-3-songmuchun@bytedance.com
+Fixes: 752fe17af693 ("mm/hugetlb: add pre-HVO framework")
 Signed-off-by: Muchun Song <songmuchun@bytedance.com>
 Acked-by: Oscar Salvador <osalvador@suse.de>
-Tested-by: Michal Clapinski <mclapinski@google.com>
-Reviewed-by: Michal Clapinski <mclapinski@google.com>
+Reviewed-by: Frank van der Linden <fvdl@google.com>
 Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
 Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: "Ritesh Harjani (IBM)" <ritesh.list@gmail.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Frank van der Linden <fvdl@google.com>
 Cc: Oscar Salvador (SUSE) <osalvador@kernel.org>
+Cc: "Ritesh Harjani (IBM)" <ritesh.list@gmail.com>
 Cc: Usama Arif <usama.arif@linux.dev>
+Cc: Vlastimil Babka <vbabka@kernel.org>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c         |   25 +++++++++++++++++++++++++
- mm/hugetlb_vmemmap.c |   17 -----------------
- mm/sparse-vmemmap.c  |    2 +-
- 3 files changed, 26 insertions(+), 18 deletions(-)
+ mm/hugetlb_vmemmap.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-fix-boot-panic-with-config_debug_vm-and-hvo-bootmem-pages
-+++ a/mm/hugetlb.c
-@@ -3365,6 +3365,31 @@ static void __init gather_bootmem_preall
- 		.max_threads	= num_node_state(N_MEMORY),
- 		.numa_aware	= true,
- 	};
-+#ifdef CONFIG_HUGETLB_PAGE_OPTIMIZE_VMEMMAP
-+	struct zone *zone;
-+
-+	for_each_zone(zone) {
-+		for (int i = 0; i < NR_VMEMMAP_TAILS; i++) {
-+			struct page *tail, *p;
-+			unsigned int order;
-+
-+			tail = zone->vmemmap_tails[i];
-+			if (!tail)
-+				continue;
-+
-+			order = i + VMEMMAP_TAIL_MIN_ORDER;
-+			p = page_to_virt(tail);
-+			/*
-+			 * prep_and_add_bootmem_folios() can access pageblock
-+			 * flags on bootmem HugeTLB pages, so initialize the
-+			 * shared tail struct pages here before bootmem folios
-+			 * start using them.
-+			 */
-+			for (int j = 0; j < PAGE_SIZE / sizeof(struct page); j++)
-+				init_compound_tail(p + j, NULL, order, zone);
-+		}
-+	}
-+#endif
- 
- 	padata_do_multithreaded(&job);
- }
---- a/mm/hugetlb_vmemmap.c~mm-hugetlb-fix-boot-panic-with-config_debug_vm-and-hvo-bootmem-pages
+--- a/mm/hugetlb_vmemmap.c~mm-hugetlb_vmemmap-fix-__hugetlb_vmemmap_optimize_folios
 +++ a/mm/hugetlb_vmemmap.c
-@@ -870,27 +870,10 @@ static const struct ctl_table hugetlb_vm
- static int __init hugetlb_vmemmap_init(void)
- {
- 	const struct hstate *h;
--	struct zone *zone;
- 
- 	/* HUGETLB_VMEMMAP_RESERVE_SIZE should cover all used struct pages */
- 	BUILD_BUG_ON(__NR_USED_SUBPAGE > HUGETLB_VMEMMAP_RESERVE_PAGES);
- 
--	for_each_zone(zone) {
--		for (int i = 0; i < NR_VMEMMAP_TAILS; i++) {
--			struct page *tail, *p;
--			unsigned int order;
--
--			tail = zone->vmemmap_tails[i];
--			if (!tail)
--				continue;
--
--			order = i + VMEMMAP_TAIL_MIN_ORDER;
--			p = page_to_virt(tail);
--			for (int j = 0; j < PAGE_SIZE / sizeof(struct page); j++)
--				init_compound_tail(p + j, NULL, order, zone);
--		}
--	}
--
- 	for_each_hstate(h) {
- 		if (hugetlb_vmemmap_optimizable(h)) {
- 			register_sysctl_init("vm", hugetlb_vmemmap_sysctls);
---- a/mm/sparse-vmemmap.c~mm-hugetlb-fix-boot-panic-with-config_debug_vm-and-hvo-bootmem-pages
-+++ a/mm/sparse-vmemmap.c
-@@ -342,7 +342,7 @@ static __meminit struct page *vmemmap_ge
- 	 *
- 	 * Any initialization done here will be overwritten by memmap_init().
- 	 *
--	 * hugetlb_vmemmap_init() will take care of initialization after
-+	 * gather_bootmem_prealloc() will take care of initialization after
- 	 * memmap_init().
- 	 */
+@@ -635,12 +635,12 @@ static void __hugetlb_vmemmap_optimize_f
+ 			 * mirrored tail page structs RO.
+ 			 */
+ 			spfn = (unsigned long)&folio->page;
+-			epfn = spfn + pages_per_huge_page(h);
++			epfn = spfn + hugetlb_vmemmap_size(h);
+ 			vmemmap_wrprotect_hvo(spfn, epfn, folio_nid(folio),
+ 					HUGETLB_VMEMMAP_RESERVE_SIZE);
+-			register_page_bootmem_memmap(pfn_to_section_nr(spfn),
++			register_page_bootmem_memmap(pfn_to_section_nr(folio_pfn(folio)),
+ 					&folio->page,
+-					HUGETLB_VMEMMAP_RESERVE_SIZE);
++					HUGETLB_VMEMMAP_RESERVE_PAGES);
+ 			continue;
+ 		}
  
 _
 
