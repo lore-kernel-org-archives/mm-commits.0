@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F2560390C90
-	for <mm-commits@vger.kernel.org>; Wed, 29 Jul 2026 04:13:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F0661390C94
+	for <mm-commits@vger.kernel.org>; Wed, 29 Jul 2026 04:13:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785298431; cv=none; b=g3MbDzv2DEO4VH8JAsaqtL+8TNFomme4X5MmtFpwlCcRGGEGuFhzKWNgl89ygZhTmk5nNg3A7zzmr+CIG226k62PG2tt7VsIJCsPmC9AEWXVS66oYu1EwdxzneiXJAL9UMrLC8KFghRuLD2Wrbn7wWlSajBa1umuAnKCs922eQ8=
+	t=1785298432; cv=none; b=UdskAOZx591RKAfIqsIzXmjuqGBgRw5sAtRk0JsLX3Zeq3SLWyA/cCx57PQrhJMWdUlD9GqgaApQJRxVnutSMGoOQGkHnIhlQmrQLdrsi5Y5ZrdDt/T26XXza4525fjKP6SdA6E3jtkSnjqAGuvGTEyKHJYyAaUzgOu39yU2jy4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785298431; c=relaxed/simple;
-	bh=SgNFvcTSAvKeLMyt/Id7n/uyN3epic0EGUL3DU2g9Zs=;
-	h=Date:To:From:Subject:Message-Id; b=iyqooRL33akYpy7IjwH7UFJqZJ81/9qS/ZPHa+epMP/Vl5CEbkAa0W4N1QMi/0r0qfFyLcL2iEFlQp6bOCVRP8PTGYbnBx2RFRQKfm0K9IJZlzNPW4WewNK2r/VgFNOEQ8LppP1L+4KcEQcTnrEd9/eVt9N18oSQrun+uqg6A0A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JbwPVO91; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785298432; c=relaxed/simple;
+	bh=2aYOgtfZzkXGJ343auvPOCgy5HtUwUbWp4oA6GALWpM=;
+	h=Date:To:From:Subject:Message-Id; b=b12Wdcgmkvqgqqtxja/6jpf/MxMV7g+R49LmkpUaUuFCqKiXzftyYBkYisDqgyaN9eL7kgt6gtPfWjAHeoO9BLcFUpn7zr96cCgl63rzVfFsin19Nz/qOeAmL7UUHM/2Gy2ruo1Jsi9FhguG90WIi6JuO7BsUU4lmoKVuWJunk0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Eebc8UAJ; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JbwPVO91"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 725E81F000E9;
-	Wed, 29 Jul 2026 04:13:49 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Eebc8UAJ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C19931F00A3A;
+	Wed, 29 Jul 2026 04:13:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785298429;
-	bh=jo7dvzb8Jyv8DcArKZrP7nPi72l8jvyRj5F3wTdqXbw=;
+	d=linux-foundation.org; s=korg; t=1785298430;
+	bh=gM8QXxUlhv0QqD5q7MvsF5Jq6+ohdEvQwy/ai7qbXSc=;
 	h=Date:To:From:Subject;
-	b=JbwPVO91sC67vQ1zJk+t/LDyZ4dxGb2ndHwWQhAYHi4RsgjPndY6ETkJpH/FHxYJw
-	 pmBHJLWfpGmKrDD4ZcSCLATe9ClOwO8RuokvOlETMyyCWnP67Hy2RLbeeuABi1BJ3q
-	 8ZWzPWJNsneVTy2N+bo2Ajq54Ywm1VrNucZTVgCQ=
-Date: Tue, 28 Jul 2026 21:13:49 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,vbabka@kernel.org,surenb@google.com,rakie.kim@sk.com,pfalcato@suse.de,matthew.brost@intel.com,ljs@kernel.org,liam@infradead.org,joshua.hahnjy@gmail.com,gourry@gourry.net,david@kernel.org,byungchul@sk.com,apopple@nvidia.com,wangkefeng.wang@huawei.com,akpm@linux-foundation.org
+	b=Eebc8UAJFL//swq4ON0mQm47KBCQeCjF6zg230DsWUUTOUkhOaRuxN0/bhIgKOYAj
+	 QVYFPo8+RxajkGkw9SYUe/Y95xbOIqLp6AkqKRBLtzvVWnmXr1YNoifeT0q11DoUgO
+	 at99y4lvI02mcQYlClzqpRFdXiaDAoSgBa0sQswg=
+Date: Tue, 28 Jul 2026 21:13:50 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,vbabka@kernel.org,surenb@google.com,sj@kernel.org,rppt@kernel.org,rakie.kim@sk.com,mhocko@suse.com,matthew.brost@intel.com,ljs@kernel.org,liam@infradead.org,joshua.hahnjy@gmail.com,jic23@kernel.org,gourry@gourry.net,dev.jain@arm.com,david@kernel.org,byungchul@sk.com,apopple@nvidia.com,shivankg@amd.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-migrate_device-use-walk_page_range_vma-in-migrate_vma_collect.patch removed from -mm tree
-Message-Id: <20260729041349.725E81F000E9@smtp.kernel.org>
+Subject: [merged mm-stable] mm-migrate-rename-page-to-folio-leftovers.patch removed from -mm tree
+Message-Id: <20260729041350.C19931F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,69 +35,171 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: migrate_device: use walk_page_range_vma() in migrate_vma_collect()
+     Subject: mm/migrate: rename page to folio leftovers
 has been removed from the -mm tree.  Its filename was
-     mm-migrate_device-use-walk_page_range_vma-in-migrate_vma_collect.patch
+     mm-migrate-rename-page-to-folio-leftovers.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm: migrate_device: use walk_page_range_vma() in migrate_vma_collect()
-Date: Thu, 18 Jun 2026 17:28:45 +0800
+From: Shivank Garg <shivankg@amd.com>
+Subject: mm/migrate: rename page to folio leftovers
+Date: Wed, 1 Jul 2026 05:17:20 +0000
 
-migrate_vma_collect() uses walk_page_range() to walk the page table. 
-Fortunately, migrate_vma_setup() already validates that the entire range
-falls within a single VMA.
+Patch series "mm/migrate: preparatory cleanups for batch copy and
+offload", v2.
 
-Since there is no .test_walk in migrate_vma_walk_ops and VM_PFNMAP was
-filtered by migrate_vma_setup(), it's safe to replace walk_page_range()
-with walk_page_range_vma() to eliminate an unnecessary find_vma() lookup.
+This is a small set of mm/migrate cleanups split out of the batch-copy and
+offload RFC [1], so they can be reviewed and merged independently ahead of
+that larger series.
 
-Link: https://lore.kernel.org/20260618092845.3905740-5-wangkefeng.wang@huawei.com
-Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+No functional change intended.
+
+
+This patch (of 3):
+
+Rename migrate_folio_undo_src()'s page_was_mapped parameter to was_mapped,
+unmap_and_move_huge_page() to unmap_and_move_hugetlb_folio(), its
+page_was_mapped variable to was_mapped and fix stale "page" wording in its
+comments.
+
+Also fix migrate_folio() kerneldoc to say "folio" instead of "page".
+
+Link: https://lore.kernel.org/20260701-migrate-cleanups-prep-v2-0-d9e8f17130b1@amd.com
+Link: https://lore.kernel.org/20260701-migrate-cleanups-prep-v2-1-d9e8f17130b1@amd.com
+Link: https://lore.kernel.org/all/20260428155043.39251-2-shivankg@amd.com [1]
+Signed-off-by: Shivank Garg <shivankg@amd.com>
+Suggested-by: Dev Jain <dev.jain@arm.com>
+Suggested-by: David Hildenbrand (Arm) <david@kernel.org>
 Reviewed-by: Zi Yan <ziy@nvidia.com>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Acked-by: Pedro Falcato <pfalcato@suse.de>
+Reviewed-by: SJ Park <sj@kernel.org>
 Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Byungchul Park <byungchul@sk.com>
 Cc: Gregory Price <gourry@gourry.net>
+Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
 Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
 Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
 Cc: Matthew Brost <matthew.brost@intel.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Rakie Kim <rakie.kim@sk.com>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Ying Huang <ying.huang@linux.alibaba.com>
+Cc: Jonathan Cameron <jic23@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate_device.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/migrate.c |   36 +++++++++++++++++-------------------
+ 1 file changed, 17 insertions(+), 19 deletions(-)
 
---- a/mm/migrate_device.c~mm-migrate_device-use-walk_page_range_vma-in-migrate_vma_collect
-+++ a/mm/migrate_device.c
-@@ -514,7 +514,7 @@ static void migrate_vma_collect(struct m
- 		migrate->pgmap_owner);
- 	mmu_notifier_invalidate_range_start(&range);
+--- a/mm/migrate.c~mm-migrate-rename-page-to-folio-leftovers
++++ a/mm/migrate.c
+@@ -884,7 +884,7 @@ static int __migrate_folio(struct addres
+  * @mapping: The address_space containing the folio.
+  * @dst: The folio to migrate the data to.
+  * @src: The folio containing the current data.
+- * @mode: How to migrate the page.
++ * @mode: How to migrate the folio.
+  *
+  * Common logic to directly migrate a single LRU folio suitable for
+  * folios that do not have private data.
+@@ -1157,13 +1157,10 @@ static void __migrate_folio_extract(stru
+ }
  
--	walk_page_range(migrate->vma->vm_mm, migrate->start, migrate->end,
-+	walk_page_range_vma(migrate->vma, migrate->start, migrate->end,
- 			&migrate_vma_walk_ops, migrate);
+ /* Restore the source folio to the original state upon failure */
+-static void migrate_folio_undo_src(struct folio *src,
+-				   int page_was_mapped,
+-				   struct anon_vma *anon_vma,
+-				   bool locked,
+-				   struct list_head *ret)
++static void migrate_folio_undo_src(struct folio *src, int was_mapped,
++		struct anon_vma *anon_vma, bool locked, struct list_head *ret)
+ {
+-	if (page_was_mapped)
++	if (was_mapped)
+ 		remove_migration_ptes(src, src, 0);
+ 	/* Drop an anon_vma reference if we took one */
+ 	if (anon_vma)
+@@ -1449,7 +1446,8 @@ out:
+ }
  
- 	mmu_notifier_invalidate_range_end(&range);
+ /*
+- * Counterpart of unmap_and_move_page() for hugepage migration.
++ * Counterpart of migrate_folio_unmap() and migrate_folio_move() for hugetlb
++ * folio migration.
+  *
+  * This function doesn't wait the completion of hugepage I/O
+  * because there is no race between I/O and migration for hugepage.
+@@ -1466,20 +1464,20 @@ out:
+  * because then pte is replaced with migration swap entry and direct I/O code
+  * will wait in the page fault for migration to complete.
+  */
+-static int unmap_and_move_huge_page(new_folio_t get_new_folio,
++static int unmap_and_move_hugetlb_folio(new_folio_t get_new_folio,
+ 		free_folio_t put_new_folio, unsigned long private,
+ 		struct folio *src, int force, enum migrate_mode mode,
+ 		enum migrate_reason reason, struct list_head *ret)
+ {
+ 	struct folio *dst;
+ 	int rc = -EAGAIN;
+-	int page_was_mapped = 0;
++	int was_mapped = 0;
+ 	struct anon_vma *anon_vma = NULL;
+ 	struct address_space *mapping = NULL;
+ 	enum ttu_flags ttu = 0;
+ 
+ 	if (folio_ref_count(src) == 1) {
+-		/* page was freed from under us. So we are done. */
++		/* folio was freed from under us. So we are done. */
+ 		folio_putback_hugetlb(src);
+ 		return 0;
+ 	}
+@@ -1501,8 +1499,8 @@ static int unmap_and_move_huge_page(new_
+ 	}
+ 
+ 	/*
+-	 * Check for pages which are in the process of being freed.  Without
+-	 * folio_mapping() set, hugetlbfs specific move page routine will not
++	 * Check for folios which are in the process of being freed.  Without
++	 * folio_mapping() set, hugetlbfs specific move folio routine will not
+ 	 * be called and we could leak usage counts for subpools.
+ 	 */
+ 	if (hugetlb_folio_subpool(src) && !folio_mapping(src)) {
+@@ -1532,13 +1530,13 @@ static int unmap_and_move_huge_page(new_
+ 		}
+ 
+ 		try_to_migrate(src, ttu);
+-		page_was_mapped = 1;
++		was_mapped = 1;
+ 	}
+ 
+ 	if (!folio_mapped(src))
+ 		rc = move_to_new_folio(dst, src, mode);
+ 
+-	if (page_was_mapped)
++	if (was_mapped)
+ 		remove_migration_ptes(src, !rc ? dst : src, ttu);
+ 
+ 	if (ttu & TTU_RMAP_LOCKED)
+@@ -1663,10 +1661,10 @@ static int migrate_hugetlbs(struct list_
+ 				continue;
+ 			}
+ 
+-			rc = unmap_and_move_huge_page(get_new_folio,
+-						      put_new_folio, private,
+-						      folio, pass > 2, mode,
+-						      reason, ret_folios);
++			rc = unmap_and_move_hugetlb_folio(get_new_folio,
++							  put_new_folio, private,
++							  folio, pass > 2, mode,
++							  reason, ret_folios);
+ 			/*
+ 			 * The rules are:
+ 			 *	0: hugetlb folio will be put back
 _
 
-Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
+Patches currently in -mm which might be from shivankg@amd.com are
 
-mm-introduce-pud_is_huge-helper.patch
-mm-mincore-remove-special-handling-for-vm_pfnmap.patch
-mm-mincore-remove-special-handling-for-vm_pfnmap-fix.patch
-mm-mincore-replace-__get_free_page-with-kmalloc.patch
-mm-mincore-remove-xa_is_value-in-mincore_swap.patch
-mm-mincore-improve-mincore_hugetlb.patch
-mm-mincore-improve-mincore_hugetlb-fix.patch
-mm-mincore-refactor-mincore_page.patch
 
