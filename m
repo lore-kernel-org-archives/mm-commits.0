@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8E29C38D40D
-	for <mm-commits@vger.kernel.org>; Wed, 29 Jul 2026 03:58:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AAED514ABE
+	for <mm-commits@vger.kernel.org>; Wed, 29 Jul 2026 04:05:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785297506; cv=none; b=tsaWuDQhiF9H3BSRuwh8GYbz/DyKfqcDnuSgY5groKfMiUdv7g0J6moInaUte5ZIJFn12KeuHQUnngswkdYKbL9cxwY7PPcQxdKaGOqR40S6L3/8aKcIpdC9O38dTKleJU6mkop9kNY9xuN3xUmzqm9bWR1lbujw08xnc1h2uHQ=
+	t=1785297931; cv=none; b=g20y6Bp3oLpyV6KWq84AufZmu0pYJONF+Urn35WGnaH76q3ElBInk3wGmRBsy2cYBT5iWhyp5FtfxjikRMJLy7wd3MUzzG/FOdtuK4L7kN9LjpNSMK9jip8zhW2zMlkOotqi9BbBa48J26y3ji6pcJMTtj3NAGWXSXb1SqPO3aQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785297506; c=relaxed/simple;
-	bh=7/896Mn/KF50QMsmirNiacNad+VVEkueoQH1hbxOE3M=;
-	h=Date:To:From:Subject:Message-Id; b=ieNoT6CRmvoM9aIlCWgRsnw5NnhNWpW6sQtJ/bxKIAnLrLHmcK7DDWx2gC0QsbpwnDzAbcsfoMpIRYcQxDQARRagjnYVkhQNou7m0iVulbFzQt1s3HLtUWgPLpfEHNEXP/LwETObsaJQeMQO0jV49BkbDZqQDqFx2CFgal2C1wA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=v22fvpdm; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785297931; c=relaxed/simple;
+	bh=qLry2r5KO7ZnPIvPNUsue6slxbAtgLLwKMcVIUMBnSc=;
+	h=Date:To:From:Subject:Message-Id; b=GYQMqlV/CPdQBBjMAy0MgQPIXVYLWRromlhE/hLg+chzRG5rMDC2qV2prgZw/o2LZ9zqu6aPnwoIBbYLQ4/3gng6llITlCMDJBC+iCT4+ikxfCvzlZrU8M0JF3B9dat1nnscd0QfKVCldFS0DUlXxzdhX9deaLPqa4PRGur3aPc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AQ9pI/Ql; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="v22fvpdm"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 097ED1F000E9;
-	Wed, 29 Jul 2026 03:58:23 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AQ9pI/Ql"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5D76D1F000E9;
+	Wed, 29 Jul 2026 04:05:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785297503;
-	bh=YUcoh01Mgp33ujrvbvGqD7EtONqnE1bZKuIZN/nN2mQ=;
+	d=linux-foundation.org; s=korg; t=1785297930;
+	bh=Ed2r1MrLFBspX1nKiqjti/XSAngt9pDQKBaKKK9pcNc=;
 	h=Date:To:From:Subject;
-	b=v22fvpdmP6oP9IMPUUBjDNRKmjvAvDQTIrmLA/PgsSOof8/Af0WOGzKbYot3pAExo
-	 UbhAghr9fwIlybqD26o0pVuh0y+8xPyy9Ag2PVPYI147QMc8ieLedU2H3y5H9EeeQ8
-	 XN2h7tcPFGoHFXNgcS9wpskppDnF2ZidUHDtGOSE=
-Date: Tue, 28 Jul 2026 20:58:22 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,will@kernel.org,vbabka@kernel.org,ryan.roberts@arm.com,riel@surriel.com,rcampbell@nvidia.com,rakie.kim@sk.com,pfalcato@suse.de,osalvador@suse.de,nao.horiguchi@gmail.com,muchun.song@linux.dev,mel@csn.ul.ie,matthew.brost@intel.com,ljs@kernel.org,liam@infradead.org,lance.yang@linux.dev,kas@kernel.org,jpoimboe@kernel.org,joshua.hahnjy@gmail.com,j-nomura@ce.jp.nec.com,jannh@google.com,harry@kernel.org,gourry@gourry.net,dev.jain@arm.com,david@kernel.org,dave.hansen@intel.com,catalin.marinas@arm.com,byungchul@sk.com,apopple@nvidia.com,anshuman.khandual@arm.com,ak@linux.intel.com,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=AQ9pI/QlSN0g3aC+w4Ci5I9cD/SD3t8d+zjPE8P28e8KV0eWbYU3jYak+dX+0pOrt
+	 IGgpilwdZrDD/Q6F5TKNjrrApxVSZJOtuNSYqUzklo+ZsRgv2Fzf+GPl819g2EukW1
+	 e4g3fii3z+tNYAJB7gq9H95UTeiFCKAuFWmCuoYQ=
+Date: Tue, 28 Jul 2026 21:05:29 -0700
+To: mm-commits@vger.kernel.org,dev.jain@arm.com,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-mprotect-use-huge_ptep_get-for-hugetlb-fix.patch removed from -mm tree
-Message-Id: <20260729035823.097ED1F000E9@smtp.kernel.org>
+Subject: [folded-merged] mm-rmap-use-huge_ptep_get-in-try_to_migrate_one-checkpatch-fixes.patch removed from -mm tree
+Message-Id: <20260729040530.5D76D1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,75 +35,69 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm-mprotect-use-huge_ptep_get-for-hugetlb-fix
+     Subject: mm-rmap-use-huge_ptep_get-in-try_to_migrate_one-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     mm-mprotect-use-huge_ptep_get-for-hugetlb-fix.patch
+     mm-rmap-use-huge_ptep_get-in-try_to_migrate_one-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into mm-mprotect-use-huge_ptep_get-for-hugetlb.patch
+This patch was dropped because it was folded into mm-rmap-use-huge_ptep_get-in-try_to_migrate_one.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-mprotect-use-huge_ptep_get-for-hugetlb-fix
-Date: Sun Jul  5 01:31:08 AM PDT 2026
+Subject: mm-rmap-use-huge_ptep_get-in-try_to_migrate_one-checkpatch-fixes
+Date: Sun Jul  5 12:46:13 AM PDT 2026
 
-s/EACCESS/EACCES/
+ERROR: Please use git commit description style 'commit <12+ chars of sha1> ("<title line>")' - ie: 'Commit a98a2f0c8ce1 ("mm/rmap: split migration into its own function")'
+#18: 
+Commit a98a2f0c8ce1 copied the bug from try_to_unmap_one into
 
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Andi Kleen <ak@linux.intel.com>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Byungchul Park <byungchul@sk.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: David Hildenbrand (Arm) <david@kernel.org>
+WARNING: braces {} are not necessary for any arm of this statement
+#74: FILE: mm/rmap.c:2504:
++		if (folio_test_hugetlb(folio)) {
+[...]
++		} else {
+[...]
+
+total: 1 errors, 1 warnings, 31 lines checked
+
+NOTE: For some of the reported defects, checkpatch may be able to
+      mechanically convert to the typical style using --fix or --fix-inplace.
+
+./patches/mm-rmap-use-huge_ptep_get-in-try_to_migrate_one.patch has style problems, please review.
+
+NOTE: If any of the errors are false positives, please report
+      them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
 Cc: Dev Jain <dev.jain@arm.com>
-Cc: Gregory Price <gourry@gourry.net>
-Cc: Harry Yoo <harry@kernel.org>
-Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
-Cc: Jann Horn <jannh@google.com>
-Cc: Josh Poimboeuf <jpoimboe@kernel.org>
-Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
-Cc: Jun'ichi "Nick" Nomura <j-nomura@ce.jp.nec.com>
-Cc: Kiryl Shutsemau <kas@kernel.org>
-Cc: Lance Yang <lance.yang@linux.dev>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Matthew Brost <matthew.brost@intel.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Pedro Falcato <pfalcato@suse.de>
-Cc: Rakie Kim <rakie.kim@sk.com>
-Cc: Ralph Campbell <rcampbell@nvidia.com>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Will Deacon <will@kernel.org>
-Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mprotect.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/rmap.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
---- a/mm/mprotect.c~mm-mprotect-use-huge_ptep_get-for-hugetlb-fix
-+++ a/mm/mprotect.c
-@@ -708,7 +708,7 @@ static int prot_none_hugetlb_entry(pte_t
+--- a/mm/rmap.c~mm-rmap-use-huge_ptep_get-in-try_to_migrate_one-checkpatch-fixes
++++ a/mm/rmap.c
+@@ -2501,11 +2501,10 @@ static bool try_to_migrate_one(struct fo
+ 		VM_BUG_ON_FOLIO(!pvmw.pte, folio);
  
- 	if (pfn_modify_allowed(pte_pfn(entry), *(pgprot_t *)(walk->private)))
- 		return 0;
--	return -EACCESS;
-+	return -EACCES;
- }
- #else
- #define prot_none_hugetlb_entry	NULL
+ 		address = pvmw.address;
+-		if (folio_test_hugetlb(folio)) {
++		if (folio_test_hugetlb(folio))
+ 			pteval = huge_ptep_get(mm, address, pvmw.pte);
+-		} else {
++		else
+ 			pteval = ptep_get(pvmw.pte);
+-		}
+ 		if (likely(pte_present(pteval))) {
+ 			pfn = pte_pfn(pteval);
+ 		} else {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 csky-implement-flush_cache_vmap-in-c.patch
-mm-rmap-use-huge_ptep_get-in-try_to_migrate_one-checkpatch-fixes.patch
-mm-mprotect-use-huge_ptep_get-for-hugetlb.patch
+mm-rmap-use-huge_ptep_get-in-try_to_migrate_one.patch
 mm-drop-stale-folio_ref_count==1-check-in-do_swap_page-reuse-logic-fix.patch
 alloc_tag-add-ioctl-to-proc-allocinfo-fix.patch
 mm-hmm-make-config_hmm_mirror-select-config_mmu_notifier.patch
