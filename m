@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 50AF32DCF74
-	for <mm-commits@vger.kernel.org>; Wed, 29 Jul 2026 04:15:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A9D5B331A78
+	for <mm-commits@vger.kernel.org>; Wed, 29 Jul 2026 19:31:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785298541; cv=none; b=M4Hy1/0j9Wi1X9zmFNraycUUiBobOzfqZG1edMpS7KS6tK79z+hS2n9HEeHUHCUmwKYnbmyDoWgnKp1bSooX30+Hl1t4UTEn52hZhM7D/H/mXttgn/aP2NwE/H9YfGu+6jWC3EG9d2eFJa82bto0cbxpfbZ90ZJjYxMZF82X85A=
+	t=1785353485; cv=none; b=ZODLeiKeyEiNet9vfehS4qrYw5c7RFxCtu/81/w/UjX1OEn215HmvCtdx8r2vLVE36DyZT/jdR20OS97x9s4ZKWDLdnYO6g2QmuBkBnsog58oxZbKTHvSrqQCvXG7M4yMvZ0Ma0dQe6Q7kS3RKxotKF9hNi5s+LtBsPhTA8um3A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785298541; c=relaxed/simple;
-	bh=eoUCzPdsp2I/b85q3i0GZ0wL8TdfbqzgwwHzyM+93Tw=;
-	h=Date:To:From:Subject:Message-Id; b=agi86s4ZXb2o1MYHR04Silh4COhwSXSrKtiXhfmhSKiHVaDU4mu1U59Ok7UWo5xptgegWT4vJjhWDTUjBR5D9LIcmNWJHAGsuLr23+fhgKbNDpnyeDXE3MaEG0ycY2GvEOiGOCxoyZYqq+z14uDVcBg9zR+v9cuM+kDjhT16QDU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dGVZbxtB; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785353485; c=relaxed/simple;
+	bh=r06YnNQoTc6om61chQHcra/Xc/+KWnOeq9dI+vvy25A=;
+	h=Date:To:From:Subject:Message-Id; b=RwxXVHNR47xlwFb9vr/qAmYKew+YQR1zQpmfOg0+78w6319+ma/y8Q2eRjqIKqoOXtqFwp4kIYHa33/SrhbegWJ7QNgOJsUJpTHTkgYgi8AowvuhD9If+bh7Ydxsu7UR/Opptjo83Zj1uoqEsI8rbV6TrlFsyI9bE7HsRSpIu3A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CNUxEdG3; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dGVZbxtB"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 27C701F00A3A;
-	Wed, 29 Jul 2026 04:15:39 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CNUxEdG3"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5A7771F000E9;
+	Wed, 29 Jul 2026 19:31:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785298539;
-	bh=MYvGWRz5sotiHVz6HlI38D36ULVgoEJ5cnrtb/1EDFk=;
+	d=linux-foundation.org; s=korg; t=1785353480;
+	bh=ieRj8wwuymbeogIsZllcpX2WIe8CDq0BJve1lY2Xf+4=;
 	h=Date:To:From:Subject;
-	b=dGVZbxtBMpbQoGCltGKkQYl8qP/doatonTjgUDFZkEbAYHbV4yyS4/802OqAhWjh1
-	 hCvxip+WCoJljezlm9IB4Nmx443SJafsvw7+Em6EeB7PouIm82emI5CeO+S+eSib81
-	 KLQAZoFy2xjnEdS1MZ1HySsO/ys3sfu3lJqst1Sk=
-Date: Tue, 28 Jul 2026 21:15:38 -0700
-To: mm-commits@vger.kernel.org,sj@kernel.org,shuah@kernel.org,linuxoid@gmail.com,akpm@linux-foundation.org
+	b=CNUxEdG3qiD3ZQkfE2yC4NuRiV6A+0LSJ/FElfInmra7TZqqUEZMuDWeQE4xna/9c
+	 iogx1i79AiUWeZMci4P2eCoRrOVUPQgEiSlgcCFDktEhqsAV+BdfAaB3/mvHxkwamv
+	 xbgC9bmXNzt4oZPpzPP3KMmMVvZWAF7VBO//rd6c=
+Date: Wed, 29 Jul 2026 12:31:19 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,shuah@kernel.org,rppt@kernel.org,nao.horiguchi@gmail.com,mhocko@suse.com,ljs@kernel.org,linmiaohe@huawei.com,liam@infradead.org,david@kernel.org,usama.anjum@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-damon-sysfs_refresh-test-kdamond-refresh_ms.patch removed from -mm tree
-Message-Id: <20260729041539.27C701F00A3A@smtp.kernel.org>
+Subject: + selftests-mm-unpoison-pages-in-memory-failure-teardown.patch added to mm-new branch
+Message-Id: <20260729193120.5A7771F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,136 +34,194 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: selftests/damon/sysfs_refresh: test kdamond refresh_ms
-has been removed from the -mm tree.  Its filename was
-     selftests-damon-sysfs_refresh-test-kdamond-refresh_ms.patch
+The patch titled
+     Subject: selftests/mm: unpoison pages in memory-failure teardown
+has been added to the -mm mm-new branch.  Its filename is
+     selftests-mm-unpoison-pages-in-memory-failure-teardown.patch
 
-This patch was dropped because it was merged into the mm-stable branch
-of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-unpoison-pages-in-memory-failure-teardown.patch
+
+This patch will later appear in the mm-new branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
 ------------------------------------------------------
-From: Ruslan Valiyev <linuxoid@gmail.com>
-Subject: selftests/damon/sysfs_refresh: test kdamond refresh_ms
-Date: Mon, 29 Jun 2026 07:49:26 -0700
+From: Muhammad Usama Anjum <usama.anjum@arm.com>
+Subject: selftests/mm: unpoison pages in memory-failure teardown
+Date: Wed, 29 Jul 2026 10:11:26 +0100
 
-Writing a non-zero value to a kdamond's 'refresh_ms' sysfs file should
-make DAMON periodically update the read-only sysfs files on its own,
-without the user writing update keywords such as 'update_schemes_stats' to
-the 'state' file.  This behavior has no test coverage.
+The memory-failure tests call cleanup() only after all result checks.  A
+failed ASSERT_* invokes fixture teardown and aborts the test, so it skips
+cleanup() and leaves the injected page hardware-poisoned.
 
-Add a test that starts a kdamond with refresh_ms set and a 'stat' scheme
-whose default access pattern matches every monitored region, then polls
-the scheme's 'nr_tried' stats file directly, without requesting an update.
-The value can become non-zero only via the periodic refresh, so the test
-confirms refresh_ms works; with refresh_ms disabled the stat stays zero
-and the test fails.
+Invoke cleanup() from FIXTURE_TEARDOWN() instead.  Guard it with
+self->injection_attempted so tests that exit before injection do not try
+to unpoison a page when no injection was attempted.  Injection can poison
+a page before returning an error or delivering SIGBUS, so teardown must
+clean up after every injection attempt.  This runs the existing HWPoison
+and HardwareCorrupted checks on both normal and assertion-failure paths.
 
-Link: https://lore.kernel.org/20260602131217.2210912-3-linuxoid@gmail.com
-Link: https://lore.kernel.org/20260629144927.134237-3-sj@kernel.org
-Signed-off-by: Ruslan Valiyev <linuxoid@gmail.com>
-Reviewed-by: SJ Park <sj@kernel.org>
-Signed-off-by: SJ Park <sj@kernel.org>
+Link: https://lore.kernel.org/20260729091127.1001179-1-usama.anjum@arm.com
+Fixes: ff4ef2fbd101 ("selftests/mm: add memory failure anonymous page test")
+Signed-off-by: Muhammad Usama Anjum <usama.anjum@arm.com>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
 Cc: Shuah Khan <shuah@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/damon/Makefile         |    1 
- tools/testing/selftests/damon/sysfs_refresh.py |   75 +++++++++++++++
- 2 files changed, 76 insertions(+)
+ tools/testing/selftests/mm/memory-failure.c |   44 +++++++++---------
+ 1 file changed, 22 insertions(+), 22 deletions(-)
 
---- a/tools/testing/selftests/damon/Makefile~selftests-damon-sysfs_refresh-test-kdamond-refresh_ms
-+++ a/tools/testing/selftests/damon/Makefile
-@@ -13,6 +13,7 @@ TEST_PROGS += sysfs.py
- TEST_PROGS += sysfs_update_schemes_tried_regions_wss_estimation.py
- TEST_PROGS += damos_quota.py damos_quota_goal.py damos_apply_interval.py
- TEST_PROGS += damos_tried_regions.py damon_nr_regions.py
-+TEST_PROGS += sysfs_refresh.py
- TEST_PROGS += reclaim.sh lru_sort.sh
+--- a/tools/testing/selftests/mm/memory-failure.c~selftests-mm-unpoison-pages-in-memory-failure-teardown
++++ a/tools/testing/selftests/mm/memory-failure.c
+@@ -46,7 +46,7 @@ FIXTURE(memory_failure)
+ 	unsigned long pfn;
+ 	int pagemap_fd;
+ 	int kpageflags_fd;
+-	bool triggered;
++	bool injection_attempted;
+ };
  
- # regression tests (reproducers of previously found bugs)
-diff --git a/tools/testing/selftests/damon/sysfs_refresh.py a/tools/testing/selftests/damon/sysfs_refresh.py
-new file mode 100755
---- /dev/null
-+++ a/tools/testing/selftests/damon/sysfs_refresh.py
-@@ -0,0 +1,75 @@
-+#!/usr/bin/env python3
-+# SPDX-License-Identifier: GPL-2.0
+ FIXTURE_VARIANT(memory_failure)
+@@ -122,13 +122,6 @@ static void teardown_sighandler(void)
+ 	sigaction(SIGBUS, &sa, NULL);
+ }
+ 
+-FIXTURE_TEARDOWN(memory_failure)
+-{
+-	close(self->kpageflags_fd);
+-	close(self->pagemap_fd);
+-	teardown_sighandler();
+-}
+-
+ static void prepare(struct __test_metadata *_metadata, FIXTURE_DATA(memory_failure) * self,
+ 		    void *vaddr)
+ {
+@@ -200,8 +193,7 @@ static void check(struct __test_metadata
+ 	ASSERT_EQ(pfn_flags & KPF_HWPOISON, KPF_HWPOISON);
+ }
+ 
+-static void cleanup(struct __test_metadata *_metadata, FIXTURE_DATA(memory_failure) * self,
+-		    void *vaddr)
++static void cleanup(struct __test_metadata *_metadata, FIXTURE_DATA(memory_failure) * self)
+ {
+ 	unsigned long size;
+ 	uint64_t pfn_flags;
+@@ -217,6 +209,20 @@ static void cleanup(struct __test_metada
+ 	ASSERT_EQ(size, self->corrupted_size);
+ }
+ 
++FIXTURE_TEARDOWN(memory_failure)
++{
++	/*
++	 * Injection may poison the page before failing or delivering SIGBUS, so
++	 * clean up after every injection attempt.
++	 */
++	if (self->injection_attempted)
++		cleanup(_metadata, self);
 +
-+import os
-+import subprocess
-+import time
++	close(self->kpageflags_fd);
++	close(self->pagemap_fd);
++	teardown_sighandler();
++}
 +
-+import _damon_sysfs
-+
-+def main():
-+    # Continuously access a memory region for far longer than the test needs,
-+    # so the kdamond always has a live target to monitor while we poll.
-+    sz_region = 10 * 1024 * 1024
-+    proc = subprocess.Popen(
-+            ['./access_memory', '1', '%d' % sz_region, '60000', 'repeat'])
-+
-+    # A 'stat' scheme with the default (maximally wide) access pattern matches
-+    # every monitored region, so its 'nr_tried' stat increases as the kdamond
-+    # runs.  refresh_ms should make DAMON update the schemes' stats files under
-+    # sysfs on its own, without a manual 'update_schemes_stats' request.
-+    kdamond = _damon_sysfs.Kdamond(
-+            refresh_ms=100,
-+            contexts=[_damon_sysfs.DamonCtx(
-+                ops='vaddr',
-+                targets=[_damon_sysfs.DamonTarget(pid=proc.pid)],
-+                schemes=[_damon_sysfs.Damos(action='stat')],
-+                )])
-+    kdamonds = _damon_sysfs.Kdamonds([kdamond])
-+
-+    err = kdamonds.start()
-+    if err is not None:
-+        # Kernels older than the refresh_ms feature have no such file; treat
-+        # that as unsupported rather than a failure.
-+        if not os.path.exists(os.path.join(kdamond.sysfs_dir(), 'refresh_ms')):
-+            proc.terminate()
-+            proc.wait()
-+            print('kdamond has no refresh_ms file; skipping')
-+            exit(_damon_sysfs.ksft_skip)
-+        proc.terminate()
-+        proc.wait()
-+        print('kdamond start failed: %s' % err)
-+        exit(1)
-+
-+    scheme = kdamond.contexts[0].schemes[0]
-+    nr_tried_path = os.path.join(scheme.sysfs_dir(), 'stats', 'nr_tried')
-+
-+    try:
-+        # Poll the stat file directly.  We never request an update (e.g.
-+        # 'update_schemes_stats'), so 'nr_tried' can become non-zero only
-+        # through the periodic refresh that refresh_ms enables.
-+        nr_tried = 0
-+        deadline = time.monotonic() + 10
-+        while time.monotonic() < deadline:
-+            if proc.poll() is not None:
-+                print('the access_memory target exited unexpectedly')
-+                exit(1)
-+            content, err = _damon_sysfs.read_file(nr_tried_path)
-+            if err is not None:
-+                print('reading %s failed: %s' % (nr_tried_path, err))
-+                exit(1)
-+            nr_tried = int(content)
-+            if nr_tried > 0:
-+                break
-+            time.sleep(0.1)
-+    finally:
-+        kdamonds.stop()
-+        proc.terminate()
-+        proc.wait()
-+
-+    if nr_tried == 0:
-+        print('refresh_ms did not auto-update the schemes stats')
-+        exit(1)
-+
-+if __name__ == '__main__':
-+    main()
+ TEST_F(memory_failure, anon)
+ {
+ 	char *addr;
+@@ -231,8 +237,8 @@ TEST_F(memory_failure, anon)
+ 	prepare(_metadata, self, addr);
+ 
+ 	ret = sigsetjmp(signal_jmp_buf, 1);
+-	if (!self->triggered) {
+-		self->triggered = true;
++	if (!self->injection_attempted) {
++		self->injection_attempted = true;
+ 		ASSERT_EQ(variant->inject(self, addr), 0);
+ 		FORCE_READ(*addr);
+ 	}
+@@ -242,8 +248,6 @@ TEST_F(memory_failure, anon)
+ 	else
+ 		check(_metadata, self, addr, MADV_SOFT_ANON, ret);
+ 
+-	cleanup(_metadata, self, addr);
+-
+ 	ASSERT_EQ(munmap(addr, self->page_size), 0);
+ }
+ 
+@@ -296,8 +300,8 @@ TEST_F(memory_failure, clean_pagecache)
+ 	prepare(_metadata, self, addr);
+ 
+ 	ret = sigsetjmp(signal_jmp_buf, 1);
+-	if (!self->triggered) {
+-		self->triggered = true;
++	if (!self->injection_attempted) {
++		self->injection_attempted = true;
+ 		ASSERT_EQ(variant->inject(self, addr), 0);
+ 		FORCE_READ(*addr);
+ 	}
+@@ -307,8 +311,6 @@ TEST_F(memory_failure, clean_pagecache)
+ 	else
+ 		check(_metadata, self, addr, MADV_SOFT_CLEAN_PAGECACHE, ret);
+ 
+-	cleanup(_metadata, self, addr);
+-
+ 	ASSERT_EQ(munmap(addr, self->page_size), 0);
+ 
+ 	ASSERT_EQ(close(fd), 0);
+@@ -337,8 +339,8 @@ TEST_F(memory_failure, dirty_pagecache)
+ 	prepare(_metadata, self, addr);
+ 
+ 	ret = sigsetjmp(signal_jmp_buf, 1);
+-	if (!self->triggered) {
+-		self->triggered = true;
++	if (!self->injection_attempted) {
++		self->injection_attempted = true;
+ 		ASSERT_EQ(variant->inject(self, addr), 0);
+ 		FORCE_READ(*addr);
+ 	}
+@@ -348,8 +350,6 @@ TEST_F(memory_failure, dirty_pagecache)
+ 	else
+ 		check(_metadata, self, addr, MADV_SOFT_DIRTY_PAGECACHE, ret);
+ 
+-	cleanup(_metadata, self, addr);
+-
+ 	ASSERT_EQ(munmap(addr, self->page_size), 0);
+ 
+ 	ASSERT_EQ(close(fd), 0);
 _
 
-Patches currently in -mm which might be from linuxoid@gmail.com are
+Patches currently in -mm which might be from usama.anjum@arm.com are
 
+selftests-mm-unpoison-pages-in-memory-failure-teardown.patch
 
