@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 576A624DCF9
-	for <mm-commits@vger.kernel.org>; Wed, 29 Jul 2026 00:38:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5814A26158B
+	for <mm-commits@vger.kernel.org>; Wed, 29 Jul 2026 00:38:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785285489; cv=none; b=vBISft5yaUA1YAeiCAtDfxN3w8MwkW7/r4OQyM91qE1rNMEkunQ5rpNegY+oji4/qhBLJbidm1jx7bT4PIcB2A/YDZAtPedHYMyVX+dC8GYX1GP21jt7KTRe46BxjX8eLzfibOF59OPpvsQoZx+5cJnp9YW54JIXpqDVYT3jgo4=
+	t=1785285490; cv=none; b=eh/VRUxIL0M9QZNVngdz5VcnEKUvRxMnTAXttriPueOXchCJ4J3wcDbDmBafxxCOjubMIL4C2YfXKOD5VTIsZn6CjVo0Nf4EI1g2H3ugaqShKBAdBloBbtKKnEIiK5mrDdHLODuZzs9893hmQHUVuZkd1ahGuSDTeD8KuqhIrQs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785285489; c=relaxed/simple;
-	bh=qHBM+M+bt+fDVztJwwyyUKGvj1smF4ZG4RD8AVQJ2k4=;
-	h=Date:To:From:Subject:Message-Id; b=ZW8xWCs++dlssTW8AEfxMmEjg5sqsE+DqBa02XgooN+KaB9L5KQ8Gv5MdW2aLAXtGuR45M2sQayndfgKE3SL+Mpfd8JbYKTnuaE6tqzCuIJSXX0DCLG6b7ehqZI7xmzHQnPlD/WNIbe+xXkDOcEy9bHRagjEmXTtaAKPxUycMO4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QC8v3AL/; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785285490; c=relaxed/simple;
+	bh=gm5QRn36GW/JcQGbXngVqh3kFEPvTyi5bet7e9za16A=;
+	h=Date:To:From:Subject:Message-Id; b=AyloV7yOUBJGHH/OEStxXuI6muCxYLfrMccC2eo+Hd0Vg4TC0JkG/CWxiGsktcvOQcjlSlFujrhF5vYu9lAGOS7k0vlWsx5WO1z4z1YsbN1hhoqHyDj9qZVEUUHdJqepFuuzcBSHdO0tXl2dLlO/Y8PnBqHYM4G8ax7O0AWJkqI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=u5xR7U1P; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QC8v3AL/"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E8DFF1F000E9;
-	Wed, 29 Jul 2026 00:38:07 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="u5xR7U1P"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3001B1F00A3A;
+	Wed, 29 Jul 2026 00:38:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785285488;
-	bh=s+8ATVzxNoCC1VtLI064G/1L/PrFcLsASNjEEDop+9o=;
+	d=linux-foundation.org; s=korg; t=1785285489;
+	bh=VIzMSfGDhYtiDe1elP13jzkWLOxlpImNFh/fxJ5PhBo=;
 	h=Date:To:From:Subject;
-	b=QC8v3AL/7MiYQrdQkXQEOLU6KAFGXJMv5ja0LUtXf7R2zoSx0cqb4KMSly+1hQE5x
-	 Q+3GBrYqSMZKj7dw+8TDJJA6n+/0mSluqH84pUOR6zlDM7ljdnoEQFO/ZSH5nXB7y2
-	 VuBnFwdM8AMaOsnIKSmK4usoqcheeY5682YDPvqE=
-Date: Tue, 28 Jul 2026 17:38:07 -0700
-To: mm-commits@vger.kernel.org,yury.norov@gmail.com,martink@posteo.de,kuba@kernel.org,aliceryhl@google.com,burak.emir@gmail.com,akpm@linux-foundation.org
+	b=u5xR7U1PAM9vsMSCXfKc2QijtoTH/8SJ4eEsOGey1bpia2Hh3l6ka3bM88Qb7JXYr
+	 87u+VwpiluuaKirLGWaNumWIQ1Uo2VSV1s+claHjDoubkcRI3eiICXJc4iuUaqRHdi
+	 ZWmYT6P1ULIgVCYx0z/XHNFrV3vPR1PwLhKgyiJE=
+Date: Tue, 28 Jul 2026 17:38:08 -0700
+To: mm-commits@vger.kernel.org,will@kernel.org,ndesaulniers@google.com,martink@posteo.de,kuba@kernel.org,irogers@google.com,catalin.marinas@arm.com,peter@pcc.me.uk,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] maintainers-update-address-for-burak-emir.patch removed from -mm tree
-Message-Id: <20260729003807.E8DFF1F000E9@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] arm64-mailmap-update-email-address-for-peter-collingbourne.patch removed from -mm tree
+Message-Id: <20260729003809.3001B1F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,57 +35,58 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: MAINTAINERS: update address for Burak Emir
+     Subject: arm64, mailmap: update email address for Peter Collingbourne
 has been removed from the -mm tree.  Its filename was
-     maintainers-update-address-for-burak-emir.patch
+     arm64-mailmap-update-email-address-for-peter-collingbourne.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Burak Emir <burak.emir@gmail.com>
-Subject: MAINTAINERS: update address for Burak Emir
-Date: Sat, 18 Jul 2026 17:13:03 +0200
+From: Peter Collingbourne <peter@pcc.me.uk>
+Subject: arm64, mailmap: update email address for Peter Collingbourne
+Date: Sat, 18 Jul 2026 10:29:23 -0700
 
-Update MAINTAINERS and .mailmap to point to my gmail.com address:
-burak.emir@gmail.com.
+I am no longer at Google.
 
-Link: https://lore.kernel.org/20260718151303.2649-1-burak.emir@gmail.com
-Signed-off-by: Burak Emir <burak.emir@gmail.com>
-Cc: Alice Ryhl <aliceryhl@google.com>
+Link: https://lore.kernel.org/20260718172923.8297-1-peter@pcc.me.uk
+Signed-off-by: Peter Collingbourne <peter@pcc.me.uk>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Ian Rogers <irogers@google.com>
 Cc: Jakub Kacinski <kuba@kernel.org>
 Cc: Martin Kepplinger <martink@posteo.de>
-Cc: Yury Norov (NVIDIA) <yury.norov@gmail.com>
+Cc: Nick Desaulniers <ndesaulniers@google.com>
+Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- .mailmap    |    1 +
- MAINTAINERS |    2 +-
+ .mailmap                        |    1 +
+ arch/arm64/kernel/pi/relocate.c |    2 +-
  2 files changed, 2 insertions(+), 1 deletion(-)
 
---- a/.mailmap~maintainers-update-address-for-burak-emir
-+++ a/.mailmap
-@@ -176,6 +176,7 @@ Brian Cain <bcain@kernel.org> <bcain@qui
- Brian King <brking@us.ibm.com>
- Brian Silverman <bsilver16384@gmail.com> <brian.silverman@bluerivertech.com>
- Bryan Tan <bryan-bt.tan@broadcom.com> <bryantan@vmware.com>
-+Burak Emir <burak.emir@gmail.com> <bqe@google.com>
- Cai Huoqing <cai.huoqing@linux.dev> <caihuoqing@baidu.com>
- Casey Connolly <casey.connolly@linaro.org> <caleb.connolly@linaro.org>
- Casey Connolly <casey.connolly@linaro.org> <caleb@connolly.tech>
---- a/MAINTAINERS~maintainers-update-address-for-burak-emir
-+++ a/MAINTAINERS
-@@ -4634,7 +4634,7 @@ F:	rust/helpers/cpumask.c
+--- a/arch/arm64/kernel/pi/relocate.c~arm64-mailmap-update-email-address-for-peter-collingbourne
++++ a/arch/arm64/kernel/pi/relocate.c
+@@ -1,7 +1,7 @@
+ // SPDX-License-Identifier: GPL-2.0-only
+ // Copyright 2023 Google LLC
+ // Authors: Ard Biesheuvel <ardb@google.com>
+-//          Peter Collingbourne <pcc@google.com>
++//          Peter Collingbourne <peter@pcc.me.uk>
  
- BITMAP API [RUST]
- M:	Alice Ryhl <aliceryhl@google.com>
--M:	Burak Emir <bqe@google.com>
-+M:	Burak Emir <burak.emir@gmail.com>
- R:	Yury Norov <yury.norov@gmail.com>
- S:	Maintained
- F:	lib/find_bit_benchmark_rust.rs
+ #include <linux/elf.h>
+ #include <linux/init.h>
+--- a/.mailmap~arm64-mailmap-update-email-address-for-peter-collingbourne
++++ a/.mailmap
+@@ -696,6 +696,7 @@ Paulo Alcantara <pc@manguebit.org> <palc
+ Paulo Alcantara <pc@manguebit.org> <pc@manguebit.com>
+ Pavankumar Kondeti <quic_pkondeti@quicinc.com> <pkondeti@codeaurora.org>
+ Peter A Jonsson <pj@ludd.ltu.se>
++Peter Collingbourne <peter@pcc.me.uk> <pcc@google.com>
+ Peter Hilber <peter.hilber@oss.qualcomm.com> <quic_philber@quicinc.com>
+ Peter Oruba <peter.oruba@amd.com>
+ Peter Oruba <peter@oruba.de>
 _
 
-Patches currently in -mm which might be from burak.emir@gmail.com are
+Patches currently in -mm which might be from peter@pcc.me.uk are
 
 
