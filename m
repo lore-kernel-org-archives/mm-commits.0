@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A9D5B331A78
-	for <mm-commits@vger.kernel.org>; Wed, 29 Jul 2026 19:31:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1B8244229D9
+	for <mm-commits@vger.kernel.org>; Wed, 29 Jul 2026 21:48:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785353485; cv=none; b=ZODLeiKeyEiNet9vfehS4qrYw5c7RFxCtu/81/w/UjX1OEn215HmvCtdx8r2vLVE36DyZT/jdR20OS97x9s4ZKWDLdnYO6g2QmuBkBnsog58oxZbKTHvSrqQCvXG7M4yMvZ0Ma0dQe6Q7kS3RKxotKF9hNi5s+LtBsPhTA8um3A=
+	t=1785361696; cv=none; b=nKD5QPultJW5y1fTrp1VIDtcAmJEkN+u790sP7hPdfLQr73gPV/vgkP3AlVmBWzGGli7zN1EjbR9hbfO6WcSdrvziTXtXwN5qxFm45KABmYbVo871aABsKJdTP5pJNZHkIBGHnLp2IkzDnPBebRpohocBb9thI1mpfGI9btzEWs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785353485; c=relaxed/simple;
-	bh=r06YnNQoTc6om61chQHcra/Xc/+KWnOeq9dI+vvy25A=;
-	h=Date:To:From:Subject:Message-Id; b=RwxXVHNR47xlwFb9vr/qAmYKew+YQR1zQpmfOg0+78w6319+ma/y8Q2eRjqIKqoOXtqFwp4kIYHa33/SrhbegWJ7QNgOJsUJpTHTkgYgi8AowvuhD9If+bh7Ydxsu7UR/Opptjo83Zj1uoqEsI8rbV6TrlFsyI9bE7HsRSpIu3A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CNUxEdG3; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785361696; c=relaxed/simple;
+	bh=ZnuY7gKjTqLSLWPldE5+WHuab4xRBLHYnY+JQFGi6Ys=;
+	h=Date:To:From:Subject:Message-Id; b=ZCHpXeqj60PdFIuR+eFxQuQAwr1uUsi3cXn5n7326eh1lTm+3eT9aq/uhlnUnCfG32qtLxp91fZnRVCOZRojXcEuEufpoY2MzTUT+vyT+BVF29KtmAHhGDt9Xb6uOz8Dkxu0IVllFSSn+J+EKULqDJcsGUexRMxINdLreNKAdN8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SZVuu+wc; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CNUxEdG3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5A7771F000E9;
-	Wed, 29 Jul 2026 19:31:20 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SZVuu+wc"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3BAE51F000E9;
+	Wed, 29 Jul 2026 21:48:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785353480;
-	bh=ieRj8wwuymbeogIsZllcpX2WIe8CDq0BJve1lY2Xf+4=;
+	d=linux-foundation.org; s=korg; t=1785361686;
+	bh=JJyRa7GN2eBFtfIoIucTLQkxyHPKRgfEhe183AyqBfc=;
 	h=Date:To:From:Subject;
-	b=CNUxEdG3qiD3ZQkfE2yC4NuRiV6A+0LSJ/FElfInmra7TZqqUEZMuDWeQE4xna/9c
-	 iogx1i79AiUWeZMci4P2eCoRrOVUPQgEiSlgcCFDktEhqsAV+BdfAaB3/mvHxkwamv
-	 xbgC9bmXNzt4oZPpzPP3KMmMVvZWAF7VBO//rd6c=
-Date: Wed, 29 Jul 2026 12:31:19 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,shuah@kernel.org,rppt@kernel.org,nao.horiguchi@gmail.com,mhocko@suse.com,ljs@kernel.org,linmiaohe@huawei.com,liam@infradead.org,david@kernel.org,usama.anjum@arm.com,akpm@linux-foundation.org
+	b=SZVuu+wc/6ftNA0+pkHJsnTnGmOpIH6F82zRsfRWdRtHsMOFoIMqU5wRkWCVDg8qT
+	 i/SyGcsG2QhYfjzYGxGnBP1M/NGYvhGTymJOB8OSBue5MiP1uu00emkzJSFVmiP6m3
+	 HZ8UWwB4+cPeNcwsFoLHLdV/6OfH7fBSNT1Ti44o=
+Date: Wed, 29 Jul 2026 14:48:05 -0700
+To: mm-commits@vger.kernel.org,surenb@google.com,rientjes@google.com,osalvador@suse.de,muchun.song@linux.dev,lkp@intel.com,gthelen@google.com,fvdl@google.com,david@kernel.org,souravpanda@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-unpoison-pages-in-memory-failure-teardown.patch added to mm-new branch
-Message-Id: <20260729193120.5A7771F000E9@smtp.kernel.org>
+Subject: [to-be-updated] mm-hugetlb_cma-support-percentage-based-hugetlb_cma-reservation.patch removed from -mm tree
+Message-Id: <20260729214806.3BAE51F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,194 +34,207 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: selftests/mm: unpoison pages in memory-failure teardown
-has been added to the -mm mm-new branch.  Its filename is
-     selftests-mm-unpoison-pages-in-memory-failure-teardown.patch
+The quilt patch titled
+     Subject: mm/hugetlb_cma: support percentage-based hugetlb_cma reservation
+has been removed from the -mm tree.  Its filename was
+     mm-hugetlb_cma-support-percentage-based-hugetlb_cma-reservation.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-unpoison-pages-in-memory-failure-teardown.patch
-
-This patch will later appear in the mm-new branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Muhammad Usama Anjum <usama.anjum@arm.com>
-Subject: selftests/mm: unpoison pages in memory-failure teardown
-Date: Wed, 29 Jul 2026 10:11:26 +0100
+From: Sourav Panda <souravpanda@google.com>
+Subject: mm/hugetlb_cma: support percentage-based hugetlb_cma reservation
+Date: Sun, 28 Jun 2026 19:01:55 +0000
 
-The memory-failure tests call cleanup() only after all result checks.  A
-failed ASSERT_* invokes fixture teardown and aborts the test, so it skips
-cleanup() and leaves the injected page hardware-poisoned.
+Currently, hugetlb_cma reservation only supports absolute sizes (e.g.,
+hugetlb_cma=2G or hugetlb_cma=0:1G,1:1G). This can be restrictive in
+heterogeneous environments or when deploying common kernel command lines
+across machines with different memory capacities.
 
-Invoke cleanup() from FIXTURE_TEARDOWN() instead.  Guard it with
-self->injection_attempted so tests that exit before injection do not try
-to unpoison a page when no injection was attempted.  Injection can poison
-a page before returning an error or delivering SIGBUS, so teardown must
-clean up after every injection attempt.  This runs the existing HWPoison
-and HardwareCorrupted checks on both normal and assertion-failure paths.
+Add support for percentage-based hugetlb_cma reservation (e.g.,
+hugetlb_cma=20% or hugetlb_cma=0:20%,1:10%).
 
-Link: https://lore.kernel.org/20260729091127.1001179-1-usama.anjum@arm.com
-Fixes: ff4ef2fbd101 ("selftests/mm: add memory failure anonymous page test")
-Signed-off-by: Muhammad Usama Anjum <usama.anjum@arm.com>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
-Cc: Shuah Khan <shuah@kernel.org>
+The percentage is calculated against the total memory (for global
+settings) or against the node-specific memory (for node-specific
+settings) using memblock APIs during early boot.
+
+Link: https://lore.kernel.org/20260628190155.3655895-1-souravpanda@google.com
+Signed-off-by: Sourav Panda <souravpanda@google.com>
+Reported-by: kernel test robot <lkp@intel.com>
+Closes: https://lore.kernel.org/oe-kbuild-all/202606262023.IKUrn01I-lkp@intel.com/
+Cc: David Hildenbrand <david@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Frank van der Linden <fvdl@google.com>
+Cc: Greg Thelen <gthelen@google.com>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Oscar Salvador <osalvador@suse.de>
 Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/memory-failure.c |   44 +++++++++---------
- 1 file changed, 22 insertions(+), 22 deletions(-)
+ Documentation/admin-guide/kernel-parameters.txt |    7 -
+ mm/hugetlb_cma.c                                |   96 +++++++++++++-
+ 2 files changed, 97 insertions(+), 6 deletions(-)
 
---- a/tools/testing/selftests/mm/memory-failure.c~selftests-mm-unpoison-pages-in-memory-failure-teardown
-+++ a/tools/testing/selftests/mm/memory-failure.c
-@@ -46,7 +46,7 @@ FIXTURE(memory_failure)
- 	unsigned long pfn;
- 	int pagemap_fd;
- 	int kpageflags_fd;
--	bool triggered;
-+	bool injection_attempted;
- };
+--- a/Documentation/admin-guide/kernel-parameters.txt~mm-hugetlb_cma-support-percentage-based-hugetlb_cma-reservation
++++ a/Documentation/admin-guide/kernel-parameters.txt
+@@ -2064,8 +2064,11 @@ Kernel parameters
+ 	hugetlb_cma=	[HW,CMA,EARLY] The size of a CMA area used for allocation
+ 			of gigantic hugepages. Or using node format, the size
+ 			of a CMA area per node can be specified.
+-			Format: nn[KMGTPE] or (node format)
+-				<node>:nn[KMGTPE][,<node>:nn[KMGTPE]]
++			The size can be an absolute value (e.g., 2G) or a
++			percentage of the total memory or node memory (e.g., 20%).
++			Format: nn[KMGTPE] or nn% or (node format)
++				<node>:nn[KMGTPE][,<node>:nn[KMGTPE]] or
++				<node>:nn%[,<node>:nn%]
  
- FIXTURE_VARIANT(memory_failure)
-@@ -122,13 +122,6 @@ static void teardown_sighandler(void)
- 	sigaction(SIGBUS, &sa, NULL);
- }
+ 			The size must be a multiple of the gigantic page size.
+ 			When using node format, this applies to each per-node size.
+--- a/mm/hugetlb_cma.c~mm-hugetlb_cma-support-percentage-based-hugetlb_cma-reservation
++++ a/mm/hugetlb_cma.c
+@@ -9,6 +9,9 @@
+ #include <asm/setup.h>
  
--FIXTURE_TEARDOWN(memory_failure)
--{
--	close(self->kpageflags_fd);
--	close(self->pagemap_fd);
--	teardown_sighandler();
--}
--
- static void prepare(struct __test_metadata *_metadata, FIXTURE_DATA(memory_failure) * self,
- 		    void *vaddr)
- {
-@@ -200,8 +193,7 @@ static void check(struct __test_metadata
- 	ASSERT_EQ(pfn_flags & KPF_HWPOISON, KPF_HWPOISON);
- }
+ #include <linux/hugetlb.h>
++#include <linux/memblock.h>
++#include <linux/math.h>
++#include <linux/math64.h>
+ #include "internal.h"
+ #include "hugetlb_cma.h"
  
--static void cleanup(struct __test_metadata *_metadata, FIXTURE_DATA(memory_failure) * self,
--		    void *vaddr)
-+static void cleanup(struct __test_metadata *_metadata, FIXTURE_DATA(memory_failure) * self)
- {
- 	unsigned long size;
- 	uint64_t pfn_flags;
-@@ -217,6 +209,20 @@ static void cleanup(struct __test_metada
- 	ASSERT_EQ(size, self->corrupted_size);
- }
+@@ -18,6 +21,28 @@ static unsigned long hugetlb_cma_size_in
+ static bool hugetlb_cma_only __ro_after_init;
+ static unsigned long hugetlb_cma_size __ro_after_init;
  
-+FIXTURE_TEARDOWN(memory_failure)
++static unsigned int hugetlb_cma_percent __initdata;
++static unsigned int hugetlb_cma_percent_in_node[MAX_NUMNODES] __initdata;
++
++#ifdef CONFIG_NUMA
++static phys_addr_t __init memblock_node_memory_size(int nid)
 +{
-+	/*
-+	 * Injection may poison the page before failing or delivering SIGBUS, so
-+	 * clean up after every injection attempt.
-+	 */
-+	if (self->injection_attempted)
-+		cleanup(_metadata, self);
++	struct memblock_region *reg;
++	phys_addr_t size = 0;
 +
-+	close(self->kpageflags_fd);
-+	close(self->pagemap_fd);
-+	teardown_sighandler();
++	for_each_mem_region(reg) {
++		if (reg->nid == nid)
++			size += reg->size;
++	}
++	return size;
 +}
++#else
++static phys_addr_t __init memblock_node_memory_size(int nid)
++{
++	return memblock_phys_mem_size();
++}
++#endif
 +
- TEST_F(memory_failure, anon)
+ void hugetlb_cma_free_frozen_folio(struct folio *folio)
  {
- 	char *addr;
-@@ -231,8 +237,8 @@ TEST_F(memory_failure, anon)
- 	prepare(_metadata, self, addr);
+ 	WARN_ON_ONCE(!cma_release_frozen(hugetlb_cma[folio_nid(folio)],
+@@ -93,14 +118,28 @@ static int __init cmdline_parse_hugetlb_
+ 			break;
  
- 	ret = sigsetjmp(signal_jmp_buf, 1);
--	if (!self->triggered) {
--		self->triggered = true;
-+	if (!self->injection_attempted) {
-+		self->injection_attempted = true;
- 		ASSERT_EQ(variant->inject(self, addr), 0);
- 		FORCE_READ(*addr);
+ 		if (s[count] == ':') {
++			char *next;
++
+ 			if (tmp >= MAX_NUMNODES)
+ 				break;
+ 			nid = array_index_nospec(tmp, MAX_NUMNODES);
+ 
+ 			s += count + 1;
+-			tmp = memparse(s, &s);
+-			hugetlb_cma_size_in_node[nid] = tmp;
+-			hugetlb_cma_size += tmp;
++			tmp = memparse(s, &next);
++			if (*next == '%') {
++				if (tmp > 100) {
++					pr_warn("hugetlb_cma: invalid percentage %lu for node %d\n",
++						tmp, nid);
++					break;
++				}
++				hugetlb_cma_percent_in_node[nid] = tmp;
++				hugetlb_cma_size_in_node[nid] = 0;
++				s = next + 1;
++			} else {
++				hugetlb_cma_size_in_node[nid] = tmp;
++				hugetlb_cma_percent_in_node[nid] = 0;
++				s = next;
++			}
+ 
+ 			/*
+ 			 * Skip the separator if have one, otherwise
+@@ -111,7 +150,28 @@ static int __init cmdline_parse_hugetlb_
+ 			else
+ 				break;
+ 		} else {
+-			hugetlb_cma_size = memparse(p, &p);
++			char *next;
++
++			tmp = memparse(p, &next);
++			if (*next == '%') {
++				if (tmp > 100) {
++					pr_warn("hugetlb_cma: invalid percentage %lu\n", tmp);
++				} else {
++					hugetlb_cma_percent = tmp;
++					hugetlb_cma_size = 0;
++					for (nid = 0; nid < MAX_NUMNODES; nid++) {
++						hugetlb_cma_size_in_node[nid] = 0;
++						hugetlb_cma_percent_in_node[nid] = 0;
++					}
++				}
++			} else {
++				hugetlb_cma_size = tmp;
++				hugetlb_cma_percent = 0;
++				for (nid = 0; nid < MAX_NUMNODES; nid++) {
++					hugetlb_cma_size_in_node[nid] = 0;
++					hugetlb_cma_percent_in_node[nid] = 0;
++				}
++			}
+ 			break;
+ 		}
  	}
-@@ -242,8 +248,6 @@ TEST_F(memory_failure, anon)
- 	else
- 		check(_metadata, self, addr, MADV_SOFT_ANON, ret);
+@@ -137,8 +197,36 @@ void __init hugetlb_cma_reserve(void)
+ {
+ 	unsigned long size, reserved, per_node, order, gigantic_page_size;
+ 	bool node_specific_cma_alloc = false;
++	bool has_node_specific_param = false;
+ 	int nid;
  
--	cleanup(_metadata, self, addr);
--
- 	ASSERT_EQ(munmap(addr, self->page_size), 0);
- }
++	for (nid = 0; nid < MAX_NUMNODES; nid++) {
++		if (hugetlb_cma_size_in_node[nid] || hugetlb_cma_percent_in_node[nid]) {
++			has_node_specific_param = true;
++			break;
++		}
++	}
++
++	if (has_node_specific_param) {
++		hugetlb_cma_size = 0;
++		for (nid = 0; nid < MAX_NUMNODES; nid++) {
++			if (hugetlb_cma_percent_in_node[nid]) {
++				phys_addr_t node_gfp_mem = memblock_node_memory_size(nid);
++				u64 s;
++
++				s = mul_u64_u32_div((u64)node_gfp_mem,
++						    hugetlb_cma_percent_in_node[nid],
++						    100);
++
++				hugetlb_cma_size_in_node[nid] = s;
++			}
++			hugetlb_cma_size += hugetlb_cma_size_in_node[nid];
++		}
++	} else if (hugetlb_cma_percent) {
++		hugetlb_cma_size = mul_u64_u32_div((u64)memblock_phys_mem_size(),
++						   hugetlb_cma_percent, 100);
++	}
++
+ 	if (!hugetlb_cma_size)
+ 		return;
  
-@@ -296,8 +300,8 @@ TEST_F(memory_failure, clean_pagecache)
- 	prepare(_metadata, self, addr);
- 
- 	ret = sigsetjmp(signal_jmp_buf, 1);
--	if (!self->triggered) {
--		self->triggered = true;
-+	if (!self->injection_attempted) {
-+		self->injection_attempted = true;
- 		ASSERT_EQ(variant->inject(self, addr), 0);
- 		FORCE_READ(*addr);
- 	}
-@@ -307,8 +311,6 @@ TEST_F(memory_failure, clean_pagecache)
- 	else
- 		check(_metadata, self, addr, MADV_SOFT_CLEAN_PAGECACHE, ret);
- 
--	cleanup(_metadata, self, addr);
--
- 	ASSERT_EQ(munmap(addr, self->page_size), 0);
- 
- 	ASSERT_EQ(close(fd), 0);
-@@ -337,8 +339,8 @@ TEST_F(memory_failure, dirty_pagecache)
- 	prepare(_metadata, self, addr);
- 
- 	ret = sigsetjmp(signal_jmp_buf, 1);
--	if (!self->triggered) {
--		self->triggered = true;
-+	if (!self->injection_attempted) {
-+		self->injection_attempted = true;
- 		ASSERT_EQ(variant->inject(self, addr), 0);
- 		FORCE_READ(*addr);
- 	}
-@@ -348,8 +350,6 @@ TEST_F(memory_failure, dirty_pagecache)
- 	else
- 		check(_metadata, self, addr, MADV_SOFT_DIRTY_PAGECACHE, ret);
- 
--	cleanup(_metadata, self, addr);
--
- 	ASSERT_EQ(munmap(addr, self->page_size), 0);
- 
- 	ASSERT_EQ(close(fd), 0);
 _
 
-Patches currently in -mm which might be from usama.anjum@arm.com are
+Patches currently in -mm which might be from souravpanda@google.com are
 
-selftests-mm-unpoison-pages-in-memory-failure-teardown.patch
+mm-hugetlb_cma-fix-null-nodemask-dereference-in-hugetlb_cma_alloc_frozen_folio.patch
 
