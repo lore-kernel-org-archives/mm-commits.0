@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 091C127466A;
-	Wed, 29 Jul 2026 04:15:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 058AD1D95A3;
+	Wed, 29 Jul 2026 04:15:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785298513; cv=none; b=BCLIxJfHbY+TSRlBzcM5PfE7xuyl2g9kt3fZfFb2F/uzyb2LP2gRZwQ9C/EgS0KcSlGdQqKd5vJshfX2wo460OTb8g7/lGwrsdSvP1BhZLCLDqhMBNdsYZHPZ132SnT+R8hSks3lBr0Rem7J18FMkBdCLCgwZeW122EJ8mSyDww=
+	t=1785298517; cv=none; b=SD+h46HzXsIuYERPOT+ZoMC778303Pq7oGXgVraPY22oDP1lN26e392qPdJI6uBzjMnMFOLKt3boIoP05+JV4vmSwykuF0uZrEXEGPmY7vTqZaduhwUdqBDxEDfr4WjJcGwRvMpw8XrjeJ7AhE1hedlZ9OM/U1bA5vcH3AiVX00=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785298513; c=relaxed/simple;
-	bh=HAB7NrnB4uJUwIi4HbaM2JNFwxdQOfyazrdRy/UCRoo=;
-	h=Date:To:From:Subject:Message-Id; b=b6TN4Uv7wj9Ue/BtnVW5Jj1E0JxGLaGjHbV/ssQiEiGamicnBb6i35gegBVVJuQbEB5CNIU03RcvYQp+xgKaNMZa7hVF3HFvtiR1hqoS+PouoIu4x7NNSS2nlI47PPKrnecB4StMrgO31j698TUVDwm0MCJUfFsP2VkLxtxlHKo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=E8rUfHBG; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785298517; c=relaxed/simple;
+	bh=rKM/FL2z/NZhzb5btd1oBo0htLlgl6obJ+Jp+RdSJt8=;
+	h=Date:To:From:Subject:Message-Id; b=A/3KzjWPwHHx8r1sIDuuNYVHkj0OpY/Po/0Cq+400Hn/SfQR2mJen8jM4u8bqhECczAivNqH+ctzc483icOILQ4vr1m55AvSaPEmt78LtH7q9R0ZumaJPpIpZSIBF7Fou6P9j1+XPJhEEqkvJbmiefiuOdsGhCJiVrCOBkPfiKA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qYkzASFt; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="E8rUfHBG"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 772611F000E9;
-	Wed, 29 Jul 2026 04:15:09 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qYkzASFt"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C2C241F00A3A;
+	Wed, 29 Jul 2026 04:15:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785298509;
-	bh=uwd4Z8K9FeQD9cgaZ5Hof3sU60a0tqUYvOe0zv72a5Y=;
+	d=linux-foundation.org; s=korg; t=1785298511;
+	bh=LTposx6UsXzxiHFk8Ms+kfSUz9hqqYWuscA1hA1K4TY=;
 	h=Date:To:From:Subject;
-	b=E8rUfHBG0/4oCN9RpfaBtFWfTUJ5TOnJg3mjvE0LW3W+Zgwv/l5prPh3AQ14rvaa7
-	 I2290XFlMNUrGfTVQ0Dr+V4wMV2h7h9Am/GIZJ/pnhgXH/SvN8bMbw1N7LYX4mZcFC
-	 jQHz3c+sOi03EIqoUEMsjDe90xIIpTKiv1Fdck1k=
-Date: Tue, 28 Jul 2026 21:15:09 -0700
+	b=qYkzASFt7wCHn5IIk1UW/NDGhxwzUoFkas0VreMPqoXkkW/NrG9Ynj0e7e3My8X/U
+	 9VQuoRFtZtIMViSPO0hIXuEsaOllwt7WXHlRbrFpwZ5Vl0ZJifW80CrAvFMqSUP5Bx
+	 rIfep02It7n+N1EYMZD9NAFQM0wqFymZrZq8CAQM=
+Date: Tue, 28 Jul 2026 21:15:11 -0700
 To: mm-commits@vger.kernel.org,zenghui.yu@linux.dev,stable@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] samples-damon-wsse-handle-damon_start-failure.patch removed from -mm tree
-Message-Id: <20260729041509.772611F000E9@smtp.kernel.org>
+Subject: [merged mm-stable] samples-damon-mtier-handle-damon_start-failure.patch removed from -mm tree
+Message-Id: <20260729041511.C2C241F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,81 +35,83 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: samples/damon/wsse: handle damon_start() failure
+     Subject: samples/damon/mtier: handle damon_start() failure
 has been removed from the -mm tree.  Its filename was
-     samples-damon-wsse-handle-damon_start-failure.patch
+     samples-damon-mtier-handle-damon_start-failure.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: samples/damon/wsse: handle damon_start() failure
-Date: Sun, 28 Jun 2026 14:54:40 -0700
+Subject: samples/damon/mtier: handle damon_start() failure
+Date: Sun, 28 Jun 2026 14:54:42 -0700
 
-Patch series "samples/damon: handle damon_{start,stop}() failures".
-
-All DAMON sample modules are not correctly handling failures from
-damon_start().  Among those, mtier also has an additional problem for
-handling of damon_stop() failures.  wsse and prcl also have a problem in
-their damon_call() failure handling.  As a result, memory leaks, next
-DAMON operation disruptions, and use-after-free can happen.  Fix those.
-
-Note that only the damon_start() failure caused issues can reliably be
-reproduced.  Reproducing those issues require the admin permission,
-though.
-
-
-This patch (of 6):
-
-damon_sample_wsse_start() callers assume it will clean up resources when
+damon_sample_mtier_start() callers assume it will clean up resources when
 it fails.  And the function does the cleanup for context buildup failures.
-However, it is not doing the cleanup for damon_start() failure.  As a
-result, when damon_start() fails, it leaks the memory for DAMON context. 
-Free the context in case of the failure to fix the issues.
+However, it is not doing the cleanup for damon_start() failure.
+
+As a result, when damon_start() fails, it could leak the memory for DAMON
+context.  Also, if damon_start() fails for only the second context, the
+first context will indefinitely run, and avoid starting other DAMON
+contexts since it is running in the exclusive mode.  Stop possibly started
+DAMON context and free the contexts in case of the failure to fix the
+issues.
 
 Note that the issue can reliably be reproduced because the module calls
 damon_start() in the exclusive mode.  For example,
 
     $ sudo damo start
-    $ echo $$ | sudo tee /sys/module/damon_sample_wsse/parameters/target_pid
-    $ echo Y | sudo tee /sys/module/damon_sample_wsse/parameters/enabled
+    $ echo Y | sudo tee /sys/module/damon_sample_mtier/parameters/enabled
     $ sudo cat /proc/allocinfo | grep damon_new_ctx
 
-Because the first command is running another DAMON instance, the third
+Because the first command is running another DAMON instance, the second
 command fails the damon_start() call because the new DAMON instance cannot
-exclusively run.  And without this fix, by repeating the third and the
-fourth commands above, we can show the memory consumption is only
+exclusively run.  And without this fix, by repeating the second and the
+third commands above, we can show the memory consumption is only
 increasing due to the leaks.  It requires the sudo permission though.
 
 The issue was discovered [1] by Sashiko.
 
-Link: https://lore.kernel.org/20260628215447.96166-2-sj@kernel.org
-Link: https://lore.kernel.org/20260609145814.70163-1-sj@kernel.org [1]
-Fixes: b757c6cfc696 ("samples/damon/wsse: start and stop DAMON as the user requests")
+Link: https://lore.kernel.org/20260628215447.96166-4-sj@kernel.org
+Link: https://lore.kernel.org/20260608112455.274231F00893@smtp.kernel.org [1]
+Fixes: 82a08bde3cf7 ("samples/damon: implement a DAMON module for memory tiering")
 Signed-off-by: SJ Park <sj@kernel.org>
 Reviewed-by: Zenghui Yu <zenghui.yu@linux.dev>
-Cc: <stable@vger.kernel.org> # 6.14.x
+Cc: <stable@vger.kernel.org> # 6.16.x
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- samples/damon/wsse.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ samples/damon/mtier.c |   11 ++++++++++-
+ 1 file changed, 10 insertions(+), 1 deletion(-)
 
---- a/samples/damon/wsse.c~samples-damon-wsse-handle-damon_start-failure
-+++ a/samples/damon/wsse.c
-@@ -87,8 +87,10 @@ static int damon_sample_wsse_start(void)
- 	target->pid = target_pidp;
+--- a/samples/damon/mtier.c~samples-damon-mtier-handle-damon_start-failure
++++ a/samples/damon/mtier.c
+@@ -177,6 +177,7 @@ free_out:
+ static int damon_sample_mtier_start(void)
+ {
+ 	struct damon_ctx *ctx;
++	int err;
  
- 	err = damon_start(&ctx, 1, true);
--	if (err)
-+	if (err) {
-+		damon_destroy_ctx(ctx);
- 		return err;
-+	}
- 	repeat_call_control.data = ctx;
- 	return damon_call(ctx, &repeat_call_control);
+ 	ctx = damon_sample_mtier_build_ctx(true);
+ 	if (!ctx)
+@@ -188,7 +189,15 @@ static int damon_sample_mtier_start(void
+ 		return -ENOMEM;
+ 	}
+ 	ctxs[1] = ctx;
+-	return damon_start(ctxs, 2, true);
++	err = damon_start(ctxs, 2, true);
++	if (!err)
++		return 0;
++
++	if (damon_is_running(ctxs[0]))
++		damon_stop(ctxs, 1);
++	damon_destroy_ctx(ctxs[0]);
++	damon_destroy_ctx(ctxs[1]);
++	return err;
  }
+ 
+ static void damon_sample_mtier_stop(void)
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
