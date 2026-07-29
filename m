@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 10C583939A2
-	for <mm-commits@vger.kernel.org>; Wed, 29 Jul 2026 04:14:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 498A1393DE0
+	for <mm-commits@vger.kernel.org>; Wed, 29 Jul 2026 04:14:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785298499; cv=none; b=brSLXW8xrbojeMw/tQ5nZ1RW5nkvQ/SvxZyGH/3J1FGJ988hm8zjCGxpulvbztXSX5fcYlMpxKflyRlJAIhpNCJ24Pq06cv+a1uqCoF0IYcqXt+0st1EhgXgWiIIgtN+hgO7Pqzmg5O3TYlD6ZW3oElUkdZl3ohlN7AzsX5e57s=
+	t=1785298500; cv=none; b=Ym6IeAatMBIRNfCC8YAudo0kjWUs9kPz670Ruwq12qPeQhz7CpemJVUkLYVt+dKgRPYZf6FBvroOr/6hmVTWi8vgXSIMey6TXYRQHoj8n3lk+vi9pzIQj+DpanxYji0+2Znz1CPfClikOEzNSd4D2nxFbnTlESMdi34DtxGZ1ak=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785298499; c=relaxed/simple;
-	bh=1IAMdn6nNA1XBrcP28XAqK9knG01ngknvWprc2tzel4=;
-	h=Date:To:From:Subject:Message-Id; b=D40CWvkREffVfi342QQaYCOMhrABrHc5QJFdKtRlBmOOVLc1QH/wzopajMfPIBFjADzIzEzozlDzBmcoN9pmyc7Dzloz/x+pOK0ISArRdCyNNek+QsatY9qNA6kHNz43v1aCGEu89b9yO452tpNP9dncWvzlca04u7DnLPXUUXc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=g2ZjuFjS; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785298500; c=relaxed/simple;
+	bh=382xggTN1+pR5rU+Et7G69yDHpTfeKRElJ47Q/AFoQA=;
+	h=Date:To:From:Subject:Message-Id; b=epjl5fWZwwMMSL93PgJ3MtttsuwOYTM2Jpe3ggrc4k16ssMulq56hmxGKt05A2LWypE7NTifyOBAZ6cNuUYM6qVmbUUNpHVtYvmGrXuxpctJXOdZpRndXg1Fu2QbOrM3/m2t0yTbgYcA090hiNY6xWJKhH1t/uX7mguLUdZ5Jws=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NiSmPZxK; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="g2ZjuFjS"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D986C1F00A3A;
-	Wed, 29 Jul 2026 04:14:57 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NiSmPZxK"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1C0771F000E9;
+	Wed, 29 Jul 2026 04:14:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785298498;
-	bh=7Xh1z+6VXtKkpKNwFg9hcAgnNuO8XCwMYXh0pqcGd3U=;
+	d=linux-foundation.org; s=korg; t=1785298499;
+	bh=ymhK0dMFuO+EaPDmUOvo06undSYHyGajmJhm9V9KkEk=;
 	h=Date:To:From:Subject;
-	b=g2ZjuFjSCQrrx+TjWheqlvn/Vp+OSjxqR7rAwoLOaJ76LTef4+dGseGqCFnR+EOtl
-	 HQge3+AHd+6T5CaK5sVp4FioQK+ftcG7/QyYbSvclOPwDgb8nTaFir6pFZVFW15KBj
-	 ud5DgYx8A4gA/+UjC7smlliqN/uImKrLuDvcvWmA=
-Date: Tue, 28 Jul 2026 21:14:57 -0700
-To: mm-commits@vger.kernel.org,xueyuan.chen21@gmail.com,senozhatsky@chromium.org,nphamcs@gmail.com,minchan@kernel.org,joshua.hahnjy@gmail.com,baohua@kernel.org,haowenchao@xiaomi.com,akpm@linux-foundation.org
+	b=NiSmPZxK/Wp+SGCfN224wZ6klyvyd96/OQsPdHExmC5u8ZpIjgoTUvcBiLyZrqeIY
+	 Ur72/UQLaX/U9L/VTvHCz7a/NbGi6YW42DuvSDL82PJ7zW2iW/G8o6E4gBeTP4i38l
+	 0d4mlhMFhR+ofNU6Os/ei6CfWYsk6XaRG74BlWtA=
+Date: Tue, 28 Jul 2026 21:14:58 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,sj@kernel.org,rppt@kernel.org,ljs@kernel.org,liam@infradead.org,kent.overstreet@linux.dev,jackmanb@google.com,harry@kernel.org,hao.ge@linux.dev,david@kernel.org,surenb@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-zsmalloc-document-free_zspage-helper-variants.patch removed from -mm tree
-Message-Id: <20260729041457.D986C1F00A3A@smtp.kernel.org>
+Subject: [merged mm-stable] maintainers-move-inactive-maintainer-to-credits.patch removed from -mm tree
+Message-Id: <20260729041459.1C0771F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,69 +35,78 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/zsmalloc: document free_zspage helper variants
+     Subject: MAINTAINERS: move inactive maintainer to CREDITS
 has been removed from the -mm tree.  Its filename was
-     mm-zsmalloc-document-free_zspage-helper-variants.patch
+     maintainers-move-inactive-maintainer-to-credits.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Wenchao Hao <haowenchao@xiaomi.com>
-Subject: mm/zsmalloc: document free_zspage helper variants
-Date: Fri, 26 Jun 2026 09:50:03 +0800
+From: Suren Baghdasaryan <surenb@google.com>
+Subject: MAINTAINERS: move inactive maintainer to CREDITS
+Date: Thu, 25 Jun 2026 11:48:56 -0700
 
-After splitting __free_zspage() into a lockless core and a wrapper that
-does the class-stat bookkeeping, three similarly-named helpers coexist:
-free_zspage / __free_zspage / __free_zspage_lockless.
+Patch series "move alloc_tag.c file under mm/".
 
-Add a comment block above them describing what each does and where it is
-used, so the names are not easy to confuse.
+Memory allocation profiling is ultimately an mm feature and now that we
+need to use some internal mm definitions in it [1], the time is right to
+move its implementation under mm/. The move is straight-forward, involving
+just alloc_tag.c file. Update config, makefiles and maintainers as well.
 
-No functional change.
 
-Link: https://lore.kernel.org/20260626015003.2965881-5-haowenchao22@gmail.com
-Signed-off-by: Wenchao Hao <haowenchao@xiaomi.com>
-Suggested-by: Nhat Pham <nphamcs@gmail.com>
-Reviewed-by: Nhat Pham <nphamcs@gmail.com>
-Reviewed-by: Barry Song <baohua@kernel.org>
-Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
-Cc: Xueyuan Chen <xueyuan.chen21@gmail.com>
+This patch (of 2):
+
+Move Kent Overstreet from maintainers for Memory Allocation Profiling to
+CREDITS in recognition of his co-authorship and contributions to this
+feature.
+
+Link: https://lore.kernel.org/20260625184857.2193482-2-surenb@google.com
+Link: https://lore.kernel.org/all/20260622-alloc-trylock-v2-13-31f31367d420@google.com/ [1]
+Signed-off-by: Suren Baghdasaryan <surenb@google.com>
+Acked-by: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Kent Overstreet <kent.overstreet@linux.dev>
+Cc: Brendan Jackman <jackmanb@google.com>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Hao Ge <hao.ge@linux.dev>
+Cc: Harry Yoo (Oracle) <harry@kernel.org>
+Cc: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zsmalloc.c |   16 ++++++++++++++++
- 1 file changed, 16 insertions(+)
+ CREDITS     |    4 ++++
+ MAINTAINERS |    1 -
+ 2 files changed, 4 insertions(+), 1 deletion(-)
 
---- a/mm/zsmalloc.c~mm-zsmalloc-document-free_zspage-helper-variants
-+++ a/mm/zsmalloc.c
-@@ -877,6 +877,22 @@ unlock:
- 	return 0;
- }
+--- a/CREDITS~maintainers-move-inactive-maintainer-to-credits
++++ a/CREDITS
+@@ -3096,6 +3096,10 @@ N: Jens Osterkamp
+ E: jens@de.ibm.com
+ D: Maintainer of Spidernet network driver for Cell
  
-+/*
-+ * Three free helpers, kept apart here:
-+ *
-+ * __free_zspage_lockless(): bare core; walks zpdescs and returns pages
-+ *   to the buddy allocator.  Caller owns all zpdesc locks and has
-+ *   removed the zspage from its class list.  Used by zs_free() outside
-+ *   class->lock so the buddy-side work does not stall the class.
-+ *
-+ * __free_zspage(): __free_zspage_lockless() + per-class accounting,
-+ *   under class->lock.  Used by async_free_zspage(), the worker for
-+ *   zspages whose trylock_zspage() failed.
-+ *
-+ * free_zspage(): full wrapper - trylock zpdescs, remove from class
-+ *   list, call __free_zspage(); kicks deferred free on contention.
-+ *   Used by compaction.
-+ */
- static inline void __free_zspage_lockless(struct zspage *zspage)
- {
- 	struct zpdesc *zpdesc, *next;
++N: Kent Overstreet
++E: kent.overstreet@linux.dev
++D: Co-authored and contributed to Memory Allocation Profiling
++
+ N: Gadi Oxman
+ E: gadio@netvision.net.il
+ D: Original author and maintainer of IDE/ATAPI floppy/tape drivers
+--- a/MAINTAINERS~maintainers-move-inactive-maintainer-to-credits
++++ a/MAINTAINERS
+@@ -16889,7 +16889,6 @@ F:	tools/testing/memblock/
+ 
+ MEMORY ALLOCATION PROFILING
+ M:	Suren Baghdasaryan <surenb@google.com>
+-M:	Kent Overstreet <kent.overstreet@linux.dev>
+ R:	Hao Ge <hao.ge@linux.dev>
+ L:	linux-mm@kvack.org
+ S:	Maintained
 _
 
-Patches currently in -mm which might be from haowenchao@xiaomi.com are
+Patches currently in -mm which might be from surenb@google.com are
 
+alloc_tag-add-ioctl-to-proc-allocinfo.patch
 
