@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EFA751E1A3D;
-	Wed, 29 Jul 2026 00:38:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 24B021F2380
+	for <mm-commits@vger.kernel.org>; Wed, 29 Jul 2026 00:38:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785285482; cv=none; b=Z+6MCNs0ki6OzgFdlWuTGvHMK0PQ3SD/NrnOuhpAo4nARtoKC3O+zZ4rpRk+Z8uRyWy1OHFkD0Em0VvOE47vbyXn2bUPEgtJ4Az3lB/lWSj7avuB/0ocbFd/3q+YKehAHndmbZxbswCYRK5/KlNgsjHXRPLR2ffSV5f96/0P92k=
+	t=1785285483; cv=none; b=jcCBB/C84UKdmRvKVQs76yEm2OG4g+RGCftaM3ID11Tmdb/gsxvGDUkQfRYPmweRuhDJsr1QnEvdhKpu1CLCO+sdgP8ir/hMDziwVESxE23H4AM9jy5OYUElNcm7iY98LROMHBCaPJKZLWOq+K/fAqwcqjnKA4u77ZcPxUMUOTg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785285482; c=relaxed/simple;
-	bh=psmy0dqWujLLDpvJN1fs+j6+HtvJaXlIqCiDGw3sy0I=;
-	h=Date:To:From:Subject:Message-Id; b=Mfnk1hbPl+jO4ni/gCqcF3zIkTToDqT7QKzWYqrK4+Dg8WEdCkVbHO2+VlLTdT9MF+3TF04Exl7ewzewSMiTJ8FcZ4sCGn29ExahOC8Jme2IyU0VFzkuF6FvXW9H1jOlnarKP6np/xQwNJC2YQPqFES+Bw2AlMHhKrqB25hIyVk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=njL81rTY; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785285483; c=relaxed/simple;
+	bh=X0jeJOIluikfdUcdXv9P/PYX2telQ/UiShYBrhX25W4=;
+	h=Date:To:From:Subject:Message-Id; b=LEzbtuEhutHZ2PlBeFmilrHHnLwFtaNwRksSSoCNYslFtFtDvdBl/+0OSO6HnCIr+v5RD0YFMBn1e+/T5Fn/aUMyyUZg3TTSyuOizQB02kNd0/r6qoxENczFYjbnwTlLxFWXDbhWqk5Ae16SLUMJKoSZPcaALTUSAgSA/nerl4g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zIBphTq3; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="njL81rTY"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6FAAC1F000E9;
-	Wed, 29 Jul 2026 00:38:00 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zIBphTq3"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B9BB41F00A3A;
+	Wed, 29 Jul 2026 00:38:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785285480;
-	bh=IzYnwY1+d+xXZS4xaefSVNnkcQ3h2RUilPMxXHK2bQY=;
+	d=linux-foundation.org; s=korg; t=1785285481;
+	bh=Nml+ixUA7LLFRrgRaN24MNZlp1Yr5mRmjvNasgSLEnk=;
 	h=Date:To:From:Subject;
-	b=njL81rTYQAqPvpSbMoRS/rGkLKxaaZdF4kXbvgylU0TtZNv26COXkKERj3ox2sTSY
-	 ueHLyTLPAcjnCwfcXRgNFdogGKDaiWFzs1VKFx2Fyk+FTA92+uLgBRHtvYTLgKUjwO
-	 ah9MkKov3qK9InpguhBcbgWDkH3mKH0xtgkv7orI=
-Date: Tue, 28 Jul 2026 17:37:59 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,sj@kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,joshua.hahnjy@gmail.com,hannes@cmpxchg.org,leitao@debian.org,akpm@linux-foundation.org
+	b=zIBphTq313w8kObhGQCXgVucVcC32n4Kie+F3yCxoTq5p0JGPk/OGI/QXPPT4lxCU
+	 ORIqDFi4vIdyCo7A49PyjgSgAa+Ay8Ex/jL8XteQxcjBIUwLJxe0qICg8jx1xPGhFZ
+	 uU1hTCsJc8GEiuh0TblXJe7iiI5ZimR5Whdh2gcI=
+Date: Tue, 28 Jul 2026 17:38:01 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,willy@infradead.org,rakie.kim@sk.com,osalvador@suse.de,matthew.brost@intel.com,ljs@kernel.org,joshua.hahnjy@gmail.com,gourry@gourry.net,david@kernel.org,byungchul@sk.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,apopple@nvidia.com,npache@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-memcg-initialize-locked-in-memcg1_oom_prepare-stub.patch removed from -mm tree
-Message-Id: <20260729003800.6FAAC1F000E9@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-decrement-mthp_stat_nr_anon-in-free_zone_device_folio.patch removed from -mm tree
+Message-Id: <20260729003801.B9BB41F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,90 +35,88 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: memcg: initialize *locked in memcg1_oom_prepare() stub
+     Subject: mm: decrement MTHP_STAT_NR_ANON in free_zone_device_folio()
 has been removed from the -mm tree.  Its filename was
-     mm-memcg-initialize-locked-in-memcg1_oom_prepare-stub.patch
+     mm-decrement-mthp_stat_nr_anon-in-free_zone_device_folio.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Breno Leitao <leitao@debian.org>
-Subject: mm: memcg: initialize *locked in memcg1_oom_prepare() stub
-Date: Thu, 16 Jul 2026 06:42:18 -0700
+From: Nico Pache <npache@redhat.com>
+Subject: mm: decrement MTHP_STAT_NR_ANON in free_zone_device_folio()
+Date: Fri, 17 Jul 2026 00:44:59 -0600
 
-mem_cgroup_oom() passes an uninitialized "locked" to memcg1_oom_prepare()
-and reads it back in memcg1_oom_finish():
+Patch series "mm: fix PMD level mTHP accounting bugs", v2.
 
-	bool locked, ret;
-	...
-	if (!memcg1_oom_prepare(memcg, &locked))
-		return false;
-	ret = mem_cgroup_out_of_memory(memcg, mask, order);
-	memcg1_oom_finish(memcg, locked);
+While running selftests I noticed the PMD level per-mTHP stats (nr_anon)
+remained elevated after each run.  After further investigation I noticed
+this accounting error occurs for both the migration.private_anon_htlb_test
+and the HMM tests.
 
-This relies on memcg1_oom_prepare() setting *locked whenever it returns
-true.  The CONFIG_MEMCG_V1=y version does, but the stub used when
-CONFIG_MEMCG_V1=n returns true without touching *locked, so
-memcg1_oom_finish() consumes an uninitialized value.  On a memcg OOM this
-is reported by UBSAN:
+In the HMM case this is due to folio_add_new_anon_rmap() incrementing the
+mTHP stats, but never containing a corresponding decrement in
+free_zone_device_folio().  We solve this by making sure to decrement the
+counter when freeing device memory.
 
-  UBSAN: invalid-load in mm/memcontrol.c:1932:27
-  load of value 0 is not a valid value for type 'bool' (aka '_Bool')
+In the migration case, we are incrementing this counter without first
+checking whether this folio is a hugetlb folio, which relies on a separate
+accounting system.  We solve this by adding the proper hugetlb check
+before incrementing this counter.
 
-Initialize *locked to false in the stub; with cgroup v1 compiled out there
-is no OOM lock to take.
+With these changes in place, the two tests no longer cause elevated PMD
+level accounting issues.
 
-Link: https://lore.kernel.org/20260716-memcg-oom-uninit-locked-v2-1-63631d878eb4@debian.org
-Fixes: e93d4166b40a ("mm: memcg: put cgroup v1-specific code under a config option")
-Signed-off-by: Breno Leitao <leitao@debian.org>
-Reviewed-by: Joshua Hahn <joshua.hahnjy@gmail.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Reviewed-by: SeongJae Park <sj@kernel.org>
-Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: <stable@vger.kernel.org>
+
+This patch (of 2):
+
+When a zone device folio is mapped as anonymous, folio_add_new_anon_rmap()
+increments MTHP_STAT_NR_ANON.  The corresponding decrement lives in
+__free_pages_prepare() in page_alloc.c, but zone device folios are freed
+via free_zone_device_folio() which never calls __free_pages_prepare(). 
+This causes nr_anon to remain permanently elevated after zone device
+folios are freed.
+
+Add the missing mod_mthp_stat() decrement to free_zone_device_folio() so
+that the counter is properly balanced.
+
+Link: https://lore.kernel.org/20260717064502.1980173-1-npache@redhat.com
+Link: https://lore.kernel.org/20260717064502.1980173-2-npache@redhat.com
+Fixes: 5d65c8d758f2 ("mm: count the number of anonymous THPs per size")
+Co-developed-by: David Hildenbrand <david@kernel.org>
+Signed-off-by: David Hildenbrand <david@kernel.org>
+Signed-off-by: Nico Pache <npache@redhat.com>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Byungchul Park <byungchul@sk.com>
+Cc: Gregory Price <gourry@gourry.net>
+Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
+Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Matthew Brost <matthew.brost@intel.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Rakie Kim <rakie.kim@sk.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol-v1.h |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ mm/memremap.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/memcontrol-v1.h~mm-memcg-initialize-locked-in-memcg1_oom_prepare-stub
-+++ a/mm/memcontrol-v1.h
-@@ -107,7 +107,11 @@ static inline void memcg1_remove_from_tr
- static inline void memcg1_soft_limit_reset(struct mem_cgroup *memcg) {}
- static inline void memcg1_css_offline(struct mem_cgroup *memcg) {}
+--- a/mm/memremap.c~mm-decrement-mthp_stat_nr_anon-in-free_zone_device_folio
++++ a/mm/memremap.c
+@@ -425,6 +425,7 @@ void free_zone_device_folio(struct folio
+ 	mem_cgroup_uncharge(folio);
  
--static inline bool memcg1_oom_prepare(struct mem_cgroup *memcg, bool *locked) { return true; }
-+static inline bool memcg1_oom_prepare(struct mem_cgroup *memcg, bool *locked)
-+{
-+	*locked = false;
-+	return true;
-+}
- static inline void memcg1_oom_finish(struct mem_cgroup *memcg, bool locked) {}
- static inline void memcg1_oom_recover(struct mem_cgroup *memcg) {}
- 
+ 	if (folio_test_anon(folio)) {
++		mod_mthp_stat(folio_order(folio), MTHP_STAT_NR_ANON, -1);
+ 		for (i = 0; i < nr; i++)
+ 			__ClearPageAnonExclusive(folio_page(folio, i));
+ 	}
 _
 
-Patches currently in -mm which might be from leitao@debian.org are
+Patches currently in -mm which might be from npache@redhat.com are
 
-mm-kmemleak-avoid-soft-lockup-when-scanning-task-stacks.patch
-mm-kmemleak-stop-the-task-stack-scan-early-when-interrupted.patch
-mm-kmemleak-stop-the-per-cpu-and-struct-page-scans-early-too.patch
-mm-kmemleak-skip-the-remaining-scan-phases-when-interrupted.patch
-mm-memory-failure-drop-dead-error_states-entry-for-reserved-pages.patch
-mm-memory-failure-surface-unhandlable-kernel-pages-as-enotrecoverable.patch
-mm-memory-failure-report-mf_msg_kernel-for-unrecoverable-kernel-pages.patch
-mm-memory-failure-add-panic-option-for-unrecoverable-pages.patch
-documentation-document-panic_on_unrecoverable_memory_failure-sysctl.patch
-radix-tree-fix-kmemleak-false-positives-on-tree-head-reassignment.patch
-mm-kmemleak-report-leaks-only-after-n-consecutive-unreferenced-scans.patch
-mm-kmemleak-factor-leak-confirmation-into-a-helper.patch
-selftests-mm-test-kmemleaks-n-consecutive-scan-leak-confirmation.patch
-mm-kmemleak-report-rcu-tasks-quiescent-states-during-the-scan.patch
-mm-migrate-report-rcu-tasks-quiescent-states-in-migrate_pages_batch.patch
 
