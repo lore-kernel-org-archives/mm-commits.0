@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A6EA32E7F39;
-	Wed, 29 Jul 2026 04:15:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 421DF30D41D;
+	Wed, 29 Jul 2026 04:15:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785298517; cv=none; b=Ub6seOeHG+MrQfMVommnBHLwEI0DbMzwDIqyA+mAeBsK+POI3s7PjDHnH/AMumPHQJvUumvso1kFjEflqQcSWRx9w8m1MBBlBHEQcSdV3+wr6wutGMPY2ahtAFfPvwGbciXaZZjb9nUVMKeMy88RKh+F2YZ4ZWXA9ZB6k/GEZdM=
+	t=1785298518; cv=none; b=bdokIoZL3erPCMCFNY1RG9k/dq6qJVO9FpoT6cZf3w0ul9kEiHSdCbdjkYWsHTgDdlO+eyxFC5eEZ+7ufMkcacuvSm015bXddmb0ICmmZBKIpeQtVkkwllMEr6/qQaMPfMIznXjgMblK25Xp86DsDGyJRKyQ893rLvPxxLFNPLg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785298517; c=relaxed/simple;
-	bh=OE60x0AEBOGB2eDUGLHva+zYqHq2xuCJZwOK3uz4VSs=;
-	h=Date:To:From:Subject:Message-Id; b=lyVLKTSR5GpIWRJgPiAmu4baaBYijTa95XEnYjlE8lIaQ07+7gnI6YpuJQqTJr8nxHpmSl1sZv0MHGVKR+odjq0nCJDA9K30V84/IHsiTuTC+Pt0TEnXfFuMYuz+xF9y203yjBT91kU8Z8cXQ6UzDdna/W3fnqJhvAketNNKeFY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=z6hPFQkj; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785298518; c=relaxed/simple;
+	bh=cXaMpqb/PpsdDXrfKIaPIg2zZ+nYgWDoDeECDgx2BqQ=;
+	h=Date:To:From:Subject:Message-Id; b=imtvUPgrB5t7Dt/KNkHmAZ0SgeCn0dYcfaC5v/bms74ymzpX2xWpnQdHatdepoqQwvyLciPkiphyYLeRLVPFlTWZXQSJWY3TkjPDEVb98K9lJJ/n2VTv78+xH063Dg96AdZHt2gVxpeL551JiELBn7F8HVZVnFfVIvkHXfuqZfo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=t+itcU+q; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="z6hPFQkj"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E56271F00A3E;
-	Wed, 29 Jul 2026 04:15:12 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="t+itcU+q"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 154E21F000E9;
+	Wed, 29 Jul 2026 04:15:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785298513;
-	bh=JgkviBcRo8UBgjLrRZY1Q3A2tw+A3khnFMjFGjZUF2c=;
+	d=linux-foundation.org; s=korg; t=1785298514;
+	bh=t6wxgisNNHAskks76xOX7Los/ry5afU4xQb+ksR9Cig=;
 	h=Date:To:From:Subject;
-	b=z6hPFQkjilW94WgYus8tgxFbKIYym9zVEsw/DKfmnM+2VtCCAt5una+3miFXS3r6C
-	 yczgFdrqXD+axa9a5bZo0knzJ5FezoXRzojqf/zAQKiJQNHwC2bI8IUpyWfYlDRPb8
-	 ovr0baJFrTbxl1HMRDesbhOutSNXZq9tbjC+UsUQ=
-Date: Tue, 28 Jul 2026 21:15:12 -0700
+	b=t+itcU+qnB5P+mdVX+wnftY1KK0ZV4YStkSVkPDfp7sRSB4kGVexB6hQURPutAZej
+	 Qw7qGZuiOZfPJ7PqpZy66L51eG45WCgca6Q0P051e9d1CSzh7mUf7IOXi0Dc57FKWm
+	 NQbxmnyeUFiyk56vUoGTQbQywEZqmnb6uUtddEaI=
+Date: Tue, 28 Jul 2026 21:15:13 -0700
 To: mm-commits@vger.kernel.org,zenghui.yu@linux.dev,stable@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] samples-damon-mtier-handle-damon_stop-failure.patch removed from -mm tree
-Message-Id: <20260729041512.E56271F00A3E@smtp.kernel.org>
+Subject: [merged mm-stable] samples-damon-wsse-stop-and-free-damon-ctx-when-damon_call-fails.patch removed from -mm tree
+Message-Id: <20260729041514.154E21F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,65 +35,69 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: samples/damon/mtier: handle damon_stop() failure
+     Subject: samples/damon/wsse: stop and free damon ctx when damon_call() fails
 has been removed from the -mm tree.  Its filename was
-     samples-damon-mtier-handle-damon_stop-failure.patch
+     samples-damon-wsse-stop-and-free-damon-ctx-when-damon_call-fails.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: samples/damon/mtier: handle damon_stop() failure
-Date: Sun, 28 Jun 2026 14:54:43 -0700
+Subject: samples/damon/wsse: stop and free damon ctx when damon_call() fails
+Date: Sun, 28 Jun 2026 14:54:44 -0700
 
-damon_sample_mtier_stop() assumes its damon_stop() call will always
-successfully stops the two DAMON contexts.  Hence it deallocates the two
-DAMON contexts after the damon_stop() call.  However, if a given context
-is already stopped, damon_stop() fails and returns an error while letting
-the DAMON contexts that have not yet stopped keep running.  This kind of
-unexpected early DAMON context stops could happen due to memory allocation
-failures in kdamond_fn().  Because damon_sample_mtier_stop() just
-deallocates all DAMON contexts with damon_target and damon_region objects
-that are linked to the contexts, the execution of the unstopped DAMON
-context (kdamond) ends up using the memory that freed (use-after-free). 
-Fix the issue by separating the damon_stop() to be invoked per context.
+damon_sample_wsse_start() calls damon_call() right after damon_start() is
+succeeded.  The kdamond that has started by the damon_start() could be
+terminated by itself before or in the middle of the damon_call()
+execution.  There could be multiple reasons for such a stop including
+monitoring target process termination and kdamond_fn() internal memory
+allocation failures.  In the case, damon_call() will fail and return an
+error without cleaning up the DAMON context object.  The
+damon_sample_wsse_start() caller assumes it would clean up the object,
+though.  When the user requests to start DAMON again,
+damon_sample_wsse_start() is called again, allocates a new DAMON context
+object and overwrites the pointer for the previous object.  As a result,
+the previous context object is leaked.
 
-Note that DAMON_SYSFS also allows multiple DAMON contexts execution.  But,
-it calls damon_stop() for each context one by one.  Hence this issue is
-only in mtier.
+Safely stop the kdamond and deallocate the context object when the failure
+is returned.  Note that the kdamond should be stopped first, because
+damon_call() failure means not complete termination of the kdamond but
+only the fact that the termination process has started.
 
-For the long term, it would be better to refactor damon_stop() to always
-ensure stopping all contexts regardless of the failures in the middle. 
-Make this fix in the current way, though, to keep it simple and easy to
-backport.  I will do the refactoring later.
+The user impact shouldn't be that significant because the race is not easy
+to happen, and only up to one DAMON context object can be leaked per race.
 
 The issue was discovered [1] by Sashiko.
 
-Link: https://lore.kernel.org/20260628215447.96166-5-sj@kernel.org
-Link: https://lore.kernel.org/20260609014219.3013-1-sj@kernel.org [1]
-Fixes: 82a08bde3cf7 ("samples/damon: implement a DAMON module for memory tiering")
+Link: https://lore.kernel.org/20260628215447.96166-6-sj@kernel.org
+Link: https://lore.kernel.org/20260610034828.4632-1-sj@kernel.org [1]
+Fixes: cc9c1b8c205b ("samples/damon/wsse: use damon_call() repeat mode instead of damon_callback")
 Signed-off-by: SJ Park <sj@kernel.org>
 Reviewed-by: Zenghui Yu <zenghui.yu@linux.dev>
-Cc: <stable@vger.kernel.org> # 6.16.x
+Cc: <stable@vger.kernel.org> # 6.17.x
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- samples/damon/mtier.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ samples/damon/wsse.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
---- a/samples/damon/mtier.c~samples-damon-mtier-handle-damon_stop-failure
-+++ a/samples/damon/mtier.c
-@@ -202,7 +202,8 @@ static int damon_sample_mtier_start(void
- 
- static void damon_sample_mtier_stop(void)
- {
--	damon_stop(ctxs, 2);
-+	damon_stop(ctxs, 1);
-+	damon_stop(&ctxs[1], 1);
- 	damon_destroy_ctx(ctxs[0]);
- 	damon_destroy_ctx(ctxs[1]);
+--- a/samples/damon/wsse.c~samples-damon-wsse-stop-and-free-damon-ctx-when-damon_call-fails
++++ a/samples/damon/wsse.c
+@@ -92,7 +92,12 @@ static int damon_sample_wsse_start(void)
+ 		return err;
+ 	}
+ 	repeat_call_control.data = ctx;
+-	return damon_call(ctx, &repeat_call_control);
++	err = damon_call(ctx, &repeat_call_control);
++	if (err) {
++		damon_stop(&ctx, 1);
++		damon_destroy_ctx(ctx);
++	}
++	return err;
  }
+ 
+ static void damon_sample_wsse_stop(void)
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
