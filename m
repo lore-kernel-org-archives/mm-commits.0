@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1D61838E8CA
-	for <mm-commits@vger.kernel.org>; Wed, 29 Jul 2026 04:13:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1C31B38AC96
+	for <mm-commits@vger.kernel.org>; Wed, 29 Jul 2026 04:13:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785298396; cv=none; b=PY2iyDDjLcam3cyORISemTkuKrR+n9Nx0YxQ8XuadFULX4CmjFmo5Ws9Bic0B1tokiddoR0p3eS0/aOdtr7hKFFG1u61GDkFfG5lewmd3EZhiBK808IEZulONgrBQT8v/WK0NNZ3KaHvwKU/0iu1vl7Y0FRmpsTt/ipI6ab1VOg=
+	t=1785298397; cv=none; b=ZouU4fQGGYO5cN0uryF/6vY1rXsutodG7RpsJyupLOH0r+gb3Rcu323byLGlGh/YTEBv30tAOa6u03S1DKoOfIPaJroq+dEQOjmvj9bdabjhv0xnvtTGPLLRATv/qSnQppZAO6S4wasljGmScKf65KNnmpd36oPinHpAC0DXfGQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785298396; c=relaxed/simple;
-	bh=lPNJrBGr+Xf7UMuGgw7kbDtCv+85sbdeeAkkBQ5wU/U=;
-	h=Date:To:From:Subject:Message-Id; b=B0ORu0XKcpuYDSS+NxexVTQigYjKuOQXq2MoQgiRfPpdYHLlyWdaZwQwiw6HTwICKUWd3EPhzG/ZvAZJMJ0TG1E5FKRIKITLuWKzLUFomwN0jBx4wK6qa1fTZKNhHj2XSr1951C2Oy3k3XZkh2/fPydydI6vVDW8OuD1ddq6kXE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ovwuBUUF; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785298397; c=relaxed/simple;
+	bh=Ll8UeNiMxRAFpq4o905E6LyQBZR1P/1dvx+wQ0pINoI=;
+	h=Date:To:From:Subject:Message-Id; b=FBvLTNPRw8nBr9waIQHvq6t44JkX0FpYyvWIXvitIBRHV6JJxIKCEJR96aEcT7n+PQtBPqLCuCASY89UXEdhr+ehd7OWgKQ0fKJjDpws3NGNnyYrxxFs7lpH/jEzvMP+7e+QEaBjuTNBinDXOO5mst6JkbKxms3R5R3O4Q3W3pE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OPQ6pHHK; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ovwuBUUF"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C65601F000E9;
-	Wed, 29 Jul 2026 04:13:14 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OPQ6pHHK"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E543F1F00A3A;
+	Wed, 29 Jul 2026 04:13:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785298394;
-	bh=vdkwVEv78b+E0CcsdpGnTyYk/T863rPjGkdK4vQ/v3A=;
+	d=linux-foundation.org; s=korg; t=1785298396;
+	bh=P+OUd2tAVm6qjEOFygkNniLxd+FvW58wyp7m9yfWe2Y=;
 	h=Date:To:From:Subject;
-	b=ovwuBUUFWaeTTL9y3ciSDsSPF/Ky4VkBpU4mlSkHLAMWiNyNVa5ETHhB1k67/+ozs
-	 OsDpcAFltUeqkGp4jQPLBWfWj2l5ZZCZXW28USWAfF9OlneRkXru4llnH2J3HXw2/h
-	 xEzJgEuLtFCCEoxqG4ZAj8LEZqumTsZ0ldgDe3c4=
-Date: Tue, 28 Jul 2026 21:13:14 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,urezki@gmail.com,tj@kernel.org,shivamkalra98@zohomail.in,pfalcato@suse.de,mhocko@suse.com,dennis@kernel.org,cl@gentwo.org,chengkaitao@kylinos.cn,akpm@linux-foundation.org
+	b=OPQ6pHHKGW+xj1X3fDvO62Faz0dOJzuJ/FLpOk4kf4J9emaLAKsDnhUtxPkOJDJtT
+	 AgYPQ0GWP3mU3wflEM3wLWKtv8t+mMMD/24SJo7kNoF9bYVy48IH9RDtxpV/asbUsF
+	 3L4BNdNN8vW7Azwo7STi7Zn57ZoUQGTWtVbBRkws=
+Date: Tue, 28 Jul 2026 21:13:15 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,xu.xin16@zte.com.cn,sj@kernel.org,david@kernel.org,chengming.zhou@linux.dev,wangkefeng.wang@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-percpu-avoid-io-fs-reclaim-in-backing-allocations.patch removed from -mm tree
-Message-Id: <20260729041314.C65601F000E9@smtp.kernel.org>
+Subject: [merged mm-stable] mm-remove-pagetranscompound.patch removed from -mm tree
+Message-Id: <20260729041315.E543F1F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,95 +35,104 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/percpu: avoid IO/FS reclaim in backing allocations
+     Subject: mm: remove PageTransCompound()
 has been removed from the -mm tree.  Its filename was
-     mm-percpu-avoid-io-fs-reclaim-in-backing-allocations.patch
+     mm-remove-pagetranscompound.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Kaitao Cheng <chengkaitao@kylinos.cn>
-Subject: mm/percpu: avoid IO/FS reclaim in backing allocations
-Date: Thu, 18 Jun 2026 21:04:14 +0800
+From: Kefeng Wang <wangkefeng.wang@huawei.com>
+Subject: mm: remove PageTransCompound()
+Date: Thu, 18 Jun 2026 19:35:23 +0800
 
-Commit 9a5b183941b5 ("mm, percpu: do not consider sleepable allocations
-atomic") allows sleepable GFP_NOIO and GFP_NOFS percpu allocations to take
-pcpu_alloc_mutex.  This avoids premature allocation failures, but it also
-makes the mutex visible to callers from constrained IO/FS contexts.
+Remove the last user of PageTransCompound() in ksm and get rid of
+PageTransCompound().
 
-Thread A calls pcpu_alloc_noprof() with GFP_KERNEL and takes
-pcpu_alloc_mutex.  Since the internal allocation is not constrained by
-NOFS, it may enter FS reclaim while still holding pcpu_alloc_mutex,
-creating a dependency like: pcpu_alloc_mutex -> fs_reclaim -> FS lock
-
-At the same time, Thread B may already hold an FS lock and then call
-pcpu_alloc_noprof() with GFP_NOFS.  It will try to acquire
-pcpu_alloc_mutex and block, creating the reverse dependency: FS lock ->
-pcpu_alloc_mutex
-
-This can still form a potential deadlock cycle.
-
-Avoid the dependency by restricting percpu backing allocations to
-GFP_NOIO.  The public allocation still uses the caller's GFP context to
-decide whether it may block, but the internal memory allocations performed
-while pcpu_alloc_mutex is held cannot recurse into IO or FS reclaim.
-
-Link: https://lore.kernel.org/20260618130414.96383-5-kaitao.cheng@linux.dev
-Fixes: 9a5b183941b5 ("mm, percpu: do not consider sleepable allocations atomic")
-Signed-off-by: Kaitao Cheng <chengkaitao@kylinos.cn>
-Cc: Christoph Lameter <cl@gentwo.org>
-Cc: Dennis Zhou <dennis@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Pedro Falcato <pfalcato@suse.de>
-Cc: Shivam Kalra <shivamkalra98@zohomail.in>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Uladzislau Rezki (Sony) <urezki@gmail.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
+Link: https://lore.kernel.org/20260618113523.3913307-1-wangkefeng.wang@huawei.com
+Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Reviewed-by: Xu Xin <xu.xin16@zte.com.cn>
+Tested-by: Xu Xin <xu.xin16@zte.com.cn>
+Acked-by: Zi Yan <ziy@nvidia.com>
+Reviewed-by: SeongJae Park <sj@kernel.org>
+Cc: Chengming Zhou <chengming.zhou@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/percpu.c |   18 +++++++++++++-----
- 1 file changed, 13 insertions(+), 5 deletions(-)
+ include/linux/page-flags.h |   14 --------------
+ mm/ksm.c                   |   17 +++++++++--------
+ 2 files changed, 9 insertions(+), 22 deletions(-)
 
---- a/mm/percpu.c~mm-percpu-avoid-io-fs-reclaim-in-backing-allocations
-+++ a/mm/percpu.c
-@@ -1726,9 +1726,8 @@ static void pcpu_alloc_tag_free_hook(str
-  * @gfp: allocation flags
-  *
-  * Allocate percpu area of @size bytes aligned at @align.  If @gfp doesn't
-- * contain %GFP_KERNEL, the allocation is atomic. If @gfp has __GFP_NOWARN
-- * then no warning will be triggered on invalid or failed allocation
-- * requests.
-+ * allow blocking, the allocation is atomic. If @gfp has __GFP_NOWARN then no
-+ * warning will be triggered on invalid or failed allocation requests.
-  *
-  * RETURNS:
-  * Percpu pointer to the allocated area on success, NULL on failure.
-@@ -1749,8 +1748,17 @@ void __percpu *pcpu_alloc_noprof(size_t
- 	size_t bits, bit_align;
+--- a/include/linux/page-flags.h~mm-remove-pagetranscompound
++++ a/include/linux/page-flags.h
+@@ -879,20 +879,6 @@ FOLIO_FLAG_FALSE(partially_mapped)
  
- 	gfp = current_gfp_context(gfp);
--	/* whitelisted flags that can be passed to the backing allocators */
--	pcpu_gfp = gfp & (GFP_KERNEL | __GFP_NORETRY | __GFP_NOWARN);
-+	/*
-+	 * Allowlisted flags that can be passed to the backing allocators.
-+	 * Backing allocations under pcpu_alloc_mutex must not recurse into
-+	 * IO/FS reclaim.  Otherwise a GFP_KERNEL caller holding the mutex can
-+	 * block on reclaim while a GFP_NOIO/NOFS caller holding an IO/FS lock
-+	 * waits for the same mutex.
-+	 *
-+	 * Do not pass __GFP_NOFAIL.  A small percpu allocation may need many
-+	 * backing pages, making nofail reclaim too costly under NOIO/NOFS.
-+	 */
-+	pcpu_gfp = gfp & (GFP_NOIO | __GFP_NORETRY | __GFP_NOWARN);
- 	is_atomic = !gfpflags_allow_blocking(gfp);
- 	do_warn = !(gfp & __GFP_NOWARN);
+ #define PG_head_mask ((1UL << PG_head))
  
+-#ifdef CONFIG_TRANSPARENT_HUGEPAGE
+-/*
+- * PageTransCompound returns true for both transparent huge pages
+- * and hugetlbfs pages, so it should only be called when it's known
+- * that hugetlbfs pages aren't involved.
+- */
+-static inline int PageTransCompound(const struct page *page)
+-{
+-	return PageCompound(page);
+-}
+-#else
+-TESTPAGEFLAG_FALSE(TransCompound, transcompound)
+-#endif
+-
+ #if defined(CONFIG_MEMORY_FAILURE) && defined(CONFIG_TRANSPARENT_HUGEPAGE)
+ /*
+  * PageHasHWPoisoned indicates that at least one subpage is hwpoisoned in the
+--- a/mm/ksm.c~mm-remove-pagetranscompound
++++ a/mm/ksm.c
+@@ -2327,23 +2327,24 @@ static void cmp_and_merge_page(struct pa
+ 	tree_rmap_item =
+ 		unstable_tree_search_insert(rmap_item, page, &tree_page);
+ 	if (tree_rmap_item) {
++		struct folio *tree_folio;
+ 		bool split;
+ 
+ 		kfolio = try_to_merge_two_pages(rmap_item, page,
+ 						tree_rmap_item, tree_page);
++		tree_folio = page_folio(tree_page);
+ 		/*
+-		 * If both pages we tried to merge belong to the same compound
+-		 * page, then we actually ended up increasing the reference
+-		 * count of the same compound page twice, and split_huge_page
+-		 * failed.
++		 * If both pages we tried to merge belong to the same (large)
++		 * folio, then we actually ended up increasing the reference
++		 * count of the same folio twice, and split_huge_page failed.
++		 *
+ 		 * Here we set a flag if that happened, and we use it later to
+-		 * try split_huge_page again. Since we call put_page right
++		 * try split_huge_page again. Since we call folio_put() right
+ 		 * afterwards, the reference count will be correct and
+ 		 * split_huge_page should succeed.
+ 		 */
+-		split = PageTransCompound(page)
+-			&& compound_head(page) == compound_head(tree_page);
+-		put_page(tree_page);
++		split = folio == tree_folio;
++		folio_put(tree_folio);
+ 		if (kfolio) {
+ 			/*
+ 			 * The pages were successfully merged: insert new
 _
 
-Patches currently in -mm which might be from chengkaitao@kylinos.cn are
+Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
 
-mm-kconfig-drop-redundant-memory-hotplug-dependencies.patch
-mm-kconfig-drop-redundant-dependency-wrappers.patch
+mm-introduce-pud_is_huge-helper.patch
+mm-mincore-remove-special-handling-for-vm_pfnmap.patch
+mm-mincore-remove-special-handling-for-vm_pfnmap-fix.patch
+mm-mincore-replace-__get_free_page-with-kmalloc.patch
+mm-mincore-remove-xa_is_value-in-mincore_swap.patch
+mm-mincore-improve-mincore_hugetlb.patch
+mm-mincore-improve-mincore_hugetlb-fix.patch
+mm-mincore-refactor-mincore_page.patch
 
