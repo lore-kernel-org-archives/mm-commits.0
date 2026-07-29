@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 334EF3909B5
-	for <mm-commits@vger.kernel.org>; Wed, 29 Jul 2026 04:13:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6232C390CA9
+	for <mm-commits@vger.kernel.org>; Wed, 29 Jul 2026 04:13:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785298428; cv=none; b=PTRn9HLUXYOpz2lEzQyugrL2t85JeEZ42qlNcn4XcRzinBY/87purULeQmw+SnhCvx1Q26qdccUQ+A8kGnjvzsCFCduCADhMbZNczFHhntpegxSRP5xT2TNVO1+GmQbBJb23tBTn/QBAuWeznTlUfzGq/oxeVyycJ0yv0fV8p8g=
+	t=1785298429; cv=none; b=F07epslXBTjGcn1klsWUJl/NNEmr7PzcBsG7Hx3+c8CDIYA+jFA66e9tMJNlOuKYT54stFHb1Ia5lQXwbS+TlYKakPjslLgJkel7cmZW5SARMibPD8W2rtsAPKWdXALYs3/PU+e3C9jGdgVoj+InwEKSc/lu+A88ap3mnZEOR7Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785298428; c=relaxed/simple;
-	bh=U8z3a4XI72M48Urve8+s8IwcS6SxamikLVeKPbcmrV8=;
-	h=Date:To:From:Subject:Message-Id; b=QmeOtQGHX+l0RZnY6L5Ak4Hb6+t3gtNIP/xbGV4s9dBejlCzBCdANoO5CNJUrhOxwJIuBPy3spYya33PZLKURBKwAJ+lhiYzJM0t8P3oXX3kW9pIqodUrC2H56Zp2o3RYQ2syOic/09tWQwL4rWCx3JA8tmPpVw31kJwphEGfk8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=o5Y9cgtv; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785298429; c=relaxed/simple;
+	bh=3HuRm51ozRMpTeHyUUCOUnrD3uF60ZaFUhooBC7tk28=;
+	h=Date:To:From:Subject:Message-Id; b=B5hdQZqb3A6bJfkQaMdOeD2874OAtYW9RLe5g8bNVN6CoXjYmykSCXtarUz+CKZxE0uzOvRqn6YQxaeBEpSRONh+Ky+Pg0GAJdYWjrBmKtSq3Kr4NuH/7OzOYakwIs6oG4bqLjSsLieDqKpTcfaxjvtz5BuPgnYRiy8RPALFsxU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XKZk3+iZ; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="o5Y9cgtv"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E4C961F000E9;
-	Wed, 29 Jul 2026 04:13:46 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XKZk3+iZ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 32A1A1F00A3A;
+	Wed, 29 Jul 2026 04:13:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785298427;
-	bh=GigZ60KoiF8cnh9tZtGi7fokqc00xGpeipbuuWV8btM=;
+	d=linux-foundation.org; s=korg; t=1785298428;
+	bh=v2+1XjMyRkNl7vTq7EfWNWqu/Nnm/xefCpVn+XUS7sI=;
 	h=Date:To:From:Subject;
-	b=o5Y9cgtvVXGqAjxXIQycEMELDyhqZB9af/KQxc7Fu6e/YG0vBSHcZSvZwV+e7Lbeq
-	 ZLV9nx7UDENLN3frn6NFWLdJOLAkJwKSV8pxKP8+fAw/Rx/8J8hPnPkfmGqllWhO4T
-	 KS7KEQav6PAiVxMcj5h6QpHjbiDjtfzXamwHp72E=
-Date: Tue, 28 Jul 2026 21:13:46 -0700
+	b=XKZk3+iZ/8+ysx5SnlDc+THXgDr0N3zO7RjDLUEku/3yQIeGO6rTC+M3f/YCEoKWR
+	 lVLIqQCKk3euAS7NhDkBHJCd2cQip4en/C9ERS8cP84dn0C5ioZ7R1h5Ojaaj+ESp/
+	 Q4IpSI6g23zqGtwFAV65HFm+NgLicg8A2pUuqrTI=
+Date: Tue, 28 Jul 2026 21:13:47 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,vbabka@kernel.org,surenb@google.com,rakie.kim@sk.com,pfalcato@suse.de,matthew.brost@intel.com,ljs@kernel.org,liam@infradead.org,joshua.hahnjy@gmail.com,gourry@gourry.net,david@kernel.org,byungchul@sk.com,apopple@nvidia.com,wangkefeng.wang@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-mprotect-use-walk_page_range_vma-in-mprotect_fixup.patch removed from -mm tree
-Message-Id: <20260729041346.E4C961F000E9@smtp.kernel.org>
+Subject: [merged mm-stable] mm-mlock-use-walk_page_range_vma-in-mlock_vma_pages_range.patch removed from -mm tree
+Message-Id: <20260729041348.32A1A1F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,36 +35,34 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: mprotect: use walk_page_range_vma() in mprotect_fixup()
+     Subject: mm: mlock: use walk_page_range_vma() in mlock_vma_pages_range()
 has been removed from the -mm tree.  Its filename was
-     mm-mprotect-use-walk_page_range_vma-in-mprotect_fixup.patch
+     mm-mlock-use-walk_page_range_vma-in-mlock_vma_pages_range.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm: mprotect: use walk_page_range_vma() in mprotect_fixup()
-Date: Thu, 18 Jun 2026 17:28:43 +0800
+Subject: mm: mlock: use walk_page_range_vma() in mlock_vma_pages_range()
+Date: Thu, 18 Jun 2026 17:28:44 +0800
 
-In mprotect_fixup(), the PROT_NONE PFN permission check uses
-walk_page_range() to walk the page table.  Fortunately, the caller always
-passes start/end that falls within a single VMA, the do_mprotect_pkey()
-iterates per-VMA via for_each_vma_range(), and setup_arg_pages() passes
-the whole VMA.
+The mlock_vma_pages_range() uses walk_page_range() to walk the page table.
+Fortunately, the caller always passes start/end that falls within a
+single VMA, apply_vma_lock_flags() iterates per-VMA, and
+apply_mlockall_flags() passes the whole VMA.
 
-Note, walk_page_test() isn't called in walk_page_range_vma(), however,
-prot_none_test() in prot_none_walk_ops always return 0, so it's safe to
-replace walk_page_range() with walk_page_range_vma() to eliminate an
-unnecessary find_vma() lookup, also remove unneeded prot_none_test() too.
+Since there is no .test_walk in mlock_walk_ops and VM_PFNMAP was filtered
+by vma_supports_mlock(), it's safe to replace walk_page_range() with
+walk_page_range_vma() to eliminate an unnecessary find_vma() lookup.
 
-Link: https://lore.kernel.org/20260618092845.3905740-3-wangkefeng.wang@huawei.com
+Link: https://lore.kernel.org/20260618092845.3905740-4-wangkefeng.wang@huawei.com
 Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
 Reviewed-by: Zi Yan <ziy@nvidia.com>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
 Reviewed-by: Pedro Falcato <pfalcato@suse.de>
 Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Byungchul Park <byungchul@sk.com>
-Cc: David Hildenbrand (Arm) <david@kernel.org>
 Cc: Gregory Price <gourry@gourry.net>
 Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
 Cc: Liam R. Howlett <liam@infradead.org>
@@ -77,37 +75,20 @@ Cc: Ying Huang <ying.huang@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mprotect.c |    9 +--------
- 1 file changed, 1 insertion(+), 8 deletions(-)
+ mm/mlock.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/mprotect.c~mm-mprotect-use-walk_page_range_vma-in-mprotect_fixup
-+++ a/mm/mprotect.c
-@@ -708,16 +708,9 @@ static int prot_none_hugetlb_entry(pte_t
- 		0 : -EACCES;
- }
+--- a/mm/mlock.c~mm-mlock-use-walk_page_range_vma-in-mlock_vma_pages_range
++++ a/mm/mlock.c
+@@ -446,7 +446,7 @@ static void mlock_vma_pages_range(struct
+ 	vma_flags_reset_once(vma, new_vma_flags);
  
--static int prot_none_test(unsigned long addr, unsigned long next,
--			  struct mm_walk *walk)
--{
--	return 0;
--}
--
- static const struct mm_walk_ops prot_none_walk_ops = {
- 	.pte_entry		= prot_none_pte_entry,
- 	.hugetlb_entry		= prot_none_hugetlb_entry,
--	.test_walk		= prot_none_test,
- 	.walk_lock		= PGWALK_WRLOCK,
- };
+ 	lru_add_drain();
+-	walk_page_range(vma->vm_mm, start, end, &mlock_walk_ops, NULL);
++	walk_page_range_vma(vma, start, end, &mlock_walk_ops, NULL);
+ 	lru_add_drain();
  
-@@ -753,7 +746,7 @@ mprotect_fixup(struct vma_iterator *vmi,
- 	    !vma_flags_test_any_mask(&new_vma_flags, VMA_ACCESS_FLAGS)) {
- 		pgprot_t new_pgprot = vm_get_page_prot(newflags);
- 
--		error = walk_page_range(current->mm, start, end,
-+		error = walk_page_range_vma(vma, start, end,
- 				&prot_none_walk_ops, &new_pgprot);
- 		if (error)
- 			return error;
+ 	if (vma_flags_test(new_vma_flags, VMA_IO_BIT)) {
 _
 
 Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
