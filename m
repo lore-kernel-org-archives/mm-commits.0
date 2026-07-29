@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0A1CF3921E7
-	for <mm-commits@vger.kernel.org>; Wed, 29 Jul 2026 04:14:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3A2A23911BC
+	for <mm-commits@vger.kernel.org>; Wed, 29 Jul 2026 04:14:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785298484; cv=none; b=EUMCRs9dGbGnOLwr0sHinNLDs9pHnp8Ck9IEs0YIdjZ6wjwvl/u/cB4UYD72o71oA6qC01jYP7rxF8XzgemTIBHwQTZciQlog5M77KAfbkr88BwaVRhffo+1TN5f+CtT4bubaJIULjGBSBwcH0NNi52nHdpsyiNkhWghaLAvKAs=
+	t=1785298485; cv=none; b=j8KZnWWmv0KJJcCQBiGVZWzePYtLv3jM/w/+qWWTa7OSZvkox918EwJTNHR+x4UgzcE0xTSIj35OVY8sS/9R/D2nXoK17QyUw0kpsRxXnaAclidBrXwaB27Zi6MdaW6JWdxZoDoOQYLzei37EiaxxfUrLUwKSqN8vl8is8srpNo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785298484; c=relaxed/simple;
-	bh=CpVX9W4fqNhksLWnCWZ7H56itQP44IvGXY4v7lo4Nx8=;
-	h=Date:To:From:Subject:Message-Id; b=PV8+4WLldYVlmL1jDtKAz+a8nZzAue9bPoxJOSyvRF6qoToGRGxA8Tc6BDuA0iwLhzw79Tk22tGu8dDdRaPQerfBiRIuSvazTUICM8//+hk4RZjCtvEWM8SR1w35nu3q0SyF6W+rLYNEaAshngxh0RJYSPf2GYht3KeU77xFD74=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HW1GoySD; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785298485; c=relaxed/simple;
+	bh=upfGec+n50aN74Q4E5WEQ9DhAzUDB3XghHuAzryzw1g=;
+	h=Date:To:From:Subject:Message-Id; b=nmyoCYwK0P2qBLuSEeVVHAQHZYZ8KWxjTdHGt1/iIURtKvs7iK7/5RbQK7naTEICySEBWEtGxjBgwHokaL7+n++5NAqxGMwgF0R0c5nwkQK2OiuVywdXdTpKZrd7TFO6GfD85iLimA1XYjUbWBTM8V+8om3ZgwnGlbrzrXu3Euc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TOiqw4EI; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HW1GoySD"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D307C1F000E9;
-	Wed, 29 Jul 2026 04:14:42 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TOiqw4EI"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0CC9C1F00A3A;
+	Wed, 29 Jul 2026 04:14:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785298482;
-	bh=XHzr2ZgI1BVlqNkbs3LbaWj2XtdqKZ7r0Ss5zT9p2pI=;
+	d=linux-foundation.org; s=korg; t=1785298484;
+	bh=XBNSiSWPsS3Gw+6TCctN1Fb9JsS24Q4PVcyZcMzvNOc=;
 	h=Date:To:From:Subject;
-	b=HW1GoySDJRyZeiNL0SyKsaNyHIHU7wPzPqYSb4s5tjo6prahF3GuClz/8vNh+XYbI
-	 1iNC7ISa5jCJAdIpwydkC/nA8YTCSc2/wjOKTrW5sHvnqh9BqlkZufamFrWSbbpwN4
-	 mJKBwlYVaGnR/aKrDiZCNNpKpYFJxexNLcACr8dg=
-Date: Tue, 28 Jul 2026 21:14:42 -0700
-To: mm-commits@vger.kernel.org,baolin.wang@linux.alibaba.com,alhouseenyousef@gmail.com,akpm@linux-foundation.org
+	b=TOiqw4EIDFGLbfxc6fJA8t7pcSoWs/T5lhJ/VfYgcDabL6Zem1qfVjmCO4bdyMTv5
+	 xe3Z1P5tt4PC1ksmXYgMIsJnerZf/UL3/dOXXiXTrWQw+mXdbrSdSq2PK8rBfhAHZ9
+	 ITw7Ogd5u49pkXk7XPg2nxXSANeL6zextpRDzJOA=
+Date: Tue, 28 Jul 2026 21:14:43 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,rdunlap@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] tmpfs-zero-unused-folio-tail-for-long-symlinks.patch removed from -mm tree
-Message-Id: <20260729041442.D307C1F000E9@smtp.kernel.org>
+Subject: [merged mm-stable] radix-tree-add-correct-some-kernel-doc.patch removed from -mm tree
+Message-Id: <20260729041444.0CC9C1F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,53 +35,78 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: tmpfs: zero unused folio tail for long symlinks
+     Subject: radix-tree: add/correct some kernel-doc
 has been removed from the -mm tree.  Its filename was
-     tmpfs-zero-unused-folio-tail-for-long-symlinks.patch
+     radix-tree-add-correct-some-kernel-doc.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Yousef Alhouseen <alhouseenyousef@gmail.com>
-Subject: tmpfs: zero unused folio tail for long symlinks
-Date: Sun, 28 Jun 2026 02:43:14 +0200
+From: Randy Dunlap <rdunlap@infradead.org>
+Subject: radix-tree: add/correct some kernel-doc
+Date: Sat, 27 Jun 2026 11:58:58 -0700
 
-shmem_symlink() marks the entire folio uptodate after copying only the
-NUL-terminated link target.  The remainder of the freshly allocated folio
-is left uninitialized.
+Correct some kernel-doc issues in radix-tree.h:
+- use "DOC:" so that a kernel-doc comment is parsed correctly
+  (or we could just use "/*" for that comment)
+- add one function parameter description
+- add one function parameter name inside the prototype
 
-Reclaim may pass the whole folio to a swap compressor.  KMSAN observed
-sw842_compress() computing a checksum over the uninitialized tail.  If the
-folio is written to a swap device, those bytes can also leave the kernel.
+to fix these warnings:
 
-Zero the remainder of the folio before marking it uptodate and dirty.
+Warning: include/linux/radix-tree.h:164 Incorrect use of kernel-doc format:
+ * radix_tree_deref_slot - dereference a slot
+Warning: include/linux/radix-tree.h:177 cannot understand function
+ prototype: '* @slot: slot pointer, returned by radix_tree_lookup_slot
+Warning: include/linux/radix-tree.h:192 function parameter 'treelock'
+ not described in 'radix_tree_deref_slot_protected'
+Warning: include/linux/radix-tree.h:309 function parameter '' not
+ described in 'radix_tree_next_chunk'
 
-Link: https://lore.kernel.org/20260628004314.27370-1-alhouseenyousef@gmail.com
-Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
-Reported-by: syzbot+bf5586280a66e9ccdfa9@syzkaller.appspotmail.com
-Closes: https://syzkaller.appspot.com/bug?extid=bf5586280a66e9ccdfa9
-Signed-off-by: Yousef Alhouseen <alhouseenyousef@gmail.com>
-Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Link: https://lore.kernel.org/20260627185859.1632928-1-rdunlap@infradead.org
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |    1 +
- 1 file changed, 1 insertion(+)
+ include/linux/radix-tree.h |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
---- a/mm/shmem.c~tmpfs-zero-unused-folio-tail-for-long-symlinks
-+++ a/mm/shmem.c
-@@ -4067,6 +4067,7 @@ static int shmem_symlink(struct mnt_idma
- 			goto out_remove_offset;
- 		inode->i_op = &shmem_symlink_inode_operations;
- 		memcpy(folio_address(folio), symname, len);
-+		folio_zero_range(folio, len, folio_size(folio) - len);
- 		folio_mark_uptodate(folio);
- 		folio_mark_dirty(folio);
- 		folio_unlock(folio);
+--- a/include/linux/radix-tree.h~radix-tree-add-correct-some-kernel-doc
++++ a/include/linux/radix-tree.h
+@@ -111,7 +111,7 @@ struct radix_tree_iter {
+ };
+ 
+ /**
+- * Radix-tree synchronization
++ * DOC: Radix-tree synchronization
+  *
+  * The radix-tree API requires that users provide all synchronisation (with
+  * specific exceptions, noted below).
+@@ -182,6 +182,7 @@ static inline void *radix_tree_deref_slo
+ /**
+  * radix_tree_deref_slot_protected - dereference a slot with tree lock held
+  * @slot: slot pointer, returned by radix_tree_lookup_slot
++ * @treelock: caller must hold this spinlock
+  *
+  * Similar to radix_tree_deref_slot.  The caller does not hold the RCU read
+  * lock but it must hold the tree lock to prevent parallel updates.
+@@ -306,7 +307,7 @@ radix_tree_iter_init(struct radix_tree_i
+  * Also it fills @iter with data about chunk: position in the tree (index),
+  * its end (next_index), and constructs a bit mask for tagged iterating (tags).
+  */
+-void __rcu **radix_tree_next_chunk(const struct radix_tree_root *,
++void __rcu **radix_tree_next_chunk(const struct radix_tree_root *root,
+ 			     struct radix_tree_iter *iter, unsigned flags);
+ 
+ /**
 _
 
-Patches currently in -mm which might be from alhouseenyousef@gmail.com are
+Patches currently in -mm which might be from rdunlap@infradead.org are
 
+delaytop-sort-by-max-delay-to-highlight-top-latency-processes-fix.patch
+rbtree-fixup-kernel-doc-names.patch
+llist-use-correct-function-parameter-name.patch
+stacktrace-header-repair-kernel-doc-comments.patch
 
