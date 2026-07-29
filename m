@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1C31B38AC96
-	for <mm-commits@vger.kernel.org>; Wed, 29 Jul 2026 04:13:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3E84DC2EA
+	for <mm-commits@vger.kernel.org>; Wed, 29 Jul 2026 04:13:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785298397; cv=none; b=ZouU4fQGGYO5cN0uryF/6vY1rXsutodG7RpsJyupLOH0r+gb3Rcu323byLGlGh/YTEBv30tAOa6u03S1DKoOfIPaJroq+dEQOjmvj9bdabjhv0xnvtTGPLLRATv/qSnQppZAO6S4wasljGmScKf65KNnmpd36oPinHpAC0DXfGQ=
+	t=1785298398; cv=none; b=fygjHmAobT27qzP4a4JSIIMU1XihqDoX/itF75Jt9/4DZKuXp8uSCF+Zd0nSz1/pSKhAt8GP02glQQpGJrfamiZ+ayiz8wyWWlkCLFPOwhZWtmpIKYbgRDMIB5iNY5ArULkciy4dGyYAZcv6iOZTby/wI71uR/XCpU/1/2jUVdc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785298397; c=relaxed/simple;
-	bh=Ll8UeNiMxRAFpq4o905E6LyQBZR1P/1dvx+wQ0pINoI=;
-	h=Date:To:From:Subject:Message-Id; b=FBvLTNPRw8nBr9waIQHvq6t44JkX0FpYyvWIXvitIBRHV6JJxIKCEJR96aEcT7n+PQtBPqLCuCASY89UXEdhr+ehd7OWgKQ0fKJjDpws3NGNnyYrxxFs7lpH/jEzvMP+7e+QEaBjuTNBinDXOO5mst6JkbKxms3R5R3O4Q3W3pE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OPQ6pHHK; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785298398; c=relaxed/simple;
+	bh=RjtyEYxvF6Qmi27m2EBhSpX/E+qjccX3lku9IO/423M=;
+	h=Date:To:From:Subject:Message-Id; b=tqetI6tRKwTuNbVZQxmLGRX0dZG1sK2Ey2vZ44ddH6Pk6/Kq+ISmRvtiBc0JIzCQMUC3SFBoas+Pd5nnZgg8r6HbFcuu25uBqL8Z3B0c/CnQQvY8/uPMunCe3NZsMHzcqNR0di8fqslITsCz17e3ugSiaSC5nsoFlUpMt22t/BQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=H/UTuUN6; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OPQ6pHHK"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E543F1F00A3A;
-	Wed, 29 Jul 2026 04:13:15 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="H/UTuUN6"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 157201F000E9;
+	Wed, 29 Jul 2026 04:13:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785298396;
-	bh=P+OUd2tAVm6qjEOFygkNniLxd+FvW58wyp7m9yfWe2Y=;
+	d=linux-foundation.org; s=korg; t=1785298397;
+	bh=2CLvm+6G+QCD+LhsS9cTo9XQ7IbA3I0rfJsLkt4nN7w=;
 	h=Date:To:From:Subject;
-	b=OPQ6pHHKGW+xj1X3fDvO62Faz0dOJzuJ/FLpOk4kf4J9emaLAKsDnhUtxPkOJDJtT
-	 AgYPQ0GWP3mU3wflEM3wLWKtv8t+mMMD/24SJo7kNoF9bYVy48IH9RDtxpV/asbUsF
-	 3L4BNdNN8vW7Azwo7STi7Zn57ZoUQGTWtVbBRkws=
-Date: Tue, 28 Jul 2026 21:13:15 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,xu.xin16@zte.com.cn,sj@kernel.org,david@kernel.org,chengming.zhou@linux.dev,wangkefeng.wang@huawei.com,akpm@linux-foundation.org
+	b=H/UTuUN60NO7jxs+hl9lIVwKNGYe/O3o9I8wSN2ZH03A19jxCxhBsqsgHJpWId4XE
+	 Y7DV6nQ2KWr188nj5C6Dv+4qY9Mc7ISufWV9SeK4Y7lLQAXSDdrI+ZQUE6mC6p9Sid
+	 SniU3uc1esDJX/hPwwXM5bJB5jtXFaPbNs7/IEqk=
+Date: Tue, 28 Jul 2026 21:13:16 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,surenb@google.com,sj@kernel.org,mhocko@suse.com,jackmanb@google.com,hannes@cmpxchg.org,ben.dooks@codethink.co.uk,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-remove-pagetranscompound.patch removed from -mm tree
-Message-Id: <20260729041315.E543F1F00A3A@smtp.kernel.org>
+Subject: [merged mm-stable] mm-page_alloc-dont-build-vm_numa_stat_key-if-config_numa=n.patch removed from -mm tree
+Message-Id: <20260729041317.157201F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,104 +35,52 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: remove PageTransCompound()
+     Subject: mm/page_alloc: don't build vm_numa_stat_key if CONFIG_NUMA=n
 has been removed from the -mm tree.  Its filename was
-     mm-remove-pagetranscompound.patch
+     mm-page_alloc-dont-build-vm_numa_stat_key-if-config_numa=n.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm: remove PageTransCompound()
-Date: Thu, 18 Jun 2026 19:35:23 +0800
+From: Ben Dooks <ben.dooks@codethink.co.uk>
+Subject: mm/page_alloc: don't build vm_numa_stat_key if CONFIG_NUMA=n
+Date: Thu, 18 Jun 2026 11:06:14 +0100
 
-Remove the last user of PageTransCompound() in ksm and get rid of
-PageTransCompound().
+vm_numa_stat_key is only exported if CONFIG_NUMA is set, so avoid the
+following warning by guarding it in an #ifdef on CONFIG_NUMA:
 
-Link: https://lore.kernel.org/20260618113523.3913307-1-wangkefeng.wang@huawei.com
-Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Reviewed-by: Xu Xin <xu.xin16@zte.com.cn>
-Tested-by: Xu Xin <xu.xin16@zte.com.cn>
-Acked-by: Zi Yan <ziy@nvidia.com>
+mm/page_alloc.c:165:1: warning: symbol 'vm_numa_stat_key' was not declared. Should it be static?
+
+Link: https://lore.kernel.org/20260618100614.1321950-1-ben.dooks@codethink.co.uk
+Signed-off-by: Ben Dooks <ben.dooks@codethink.co.uk>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
 Reviewed-by: SeongJae Park <sj@kernel.org>
-Cc: Chengming Zhou <chengming.zhou@linux.dev>
+Cc: Brendan Jackman <jackmanb@google.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page-flags.h |   14 --------------
- mm/ksm.c                   |   17 +++++++++--------
- 2 files changed, 9 insertions(+), 22 deletions(-)
+ mm/page_alloc.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/include/linux/page-flags.h~mm-remove-pagetranscompound
-+++ a/include/linux/page-flags.h
-@@ -879,20 +879,6 @@ FOLIO_FLAG_FALSE(partially_mapped)
+--- a/mm/page_alloc.c~mm-page_alloc-dont-build-vm_numa_stat_key-if-config_numa=n
++++ a/mm/page_alloc.c
+@@ -165,7 +165,9 @@ DEFINE_PER_CPU(int, numa_node);
+ EXPORT_PER_CPU_SYMBOL(numa_node);
+ #endif
  
- #define PG_head_mask ((1UL << PG_head))
++#ifdef CONFIG_NUMA
+ DEFINE_STATIC_KEY_TRUE(vm_numa_stat_key);
++#endif
  
--#ifdef CONFIG_TRANSPARENT_HUGEPAGE
--/*
-- * PageTransCompound returns true for both transparent huge pages
-- * and hugetlbfs pages, so it should only be called when it's known
-- * that hugetlbfs pages aren't involved.
-- */
--static inline int PageTransCompound(const struct page *page)
--{
--	return PageCompound(page);
--}
--#else
--TESTPAGEFLAG_FALSE(TransCompound, transcompound)
--#endif
--
- #if defined(CONFIG_MEMORY_FAILURE) && defined(CONFIG_TRANSPARENT_HUGEPAGE)
+ #ifdef CONFIG_HAVE_MEMORYLESS_NODES
  /*
-  * PageHasHWPoisoned indicates that at least one subpage is hwpoisoned in the
---- a/mm/ksm.c~mm-remove-pagetranscompound
-+++ a/mm/ksm.c
-@@ -2327,23 +2327,24 @@ static void cmp_and_merge_page(struct pa
- 	tree_rmap_item =
- 		unstable_tree_search_insert(rmap_item, page, &tree_page);
- 	if (tree_rmap_item) {
-+		struct folio *tree_folio;
- 		bool split;
- 
- 		kfolio = try_to_merge_two_pages(rmap_item, page,
- 						tree_rmap_item, tree_page);
-+		tree_folio = page_folio(tree_page);
- 		/*
--		 * If both pages we tried to merge belong to the same compound
--		 * page, then we actually ended up increasing the reference
--		 * count of the same compound page twice, and split_huge_page
--		 * failed.
-+		 * If both pages we tried to merge belong to the same (large)
-+		 * folio, then we actually ended up increasing the reference
-+		 * count of the same folio twice, and split_huge_page failed.
-+		 *
- 		 * Here we set a flag if that happened, and we use it later to
--		 * try split_huge_page again. Since we call put_page right
-+		 * try split_huge_page again. Since we call folio_put() right
- 		 * afterwards, the reference count will be correct and
- 		 * split_huge_page should succeed.
- 		 */
--		split = PageTransCompound(page)
--			&& compound_head(page) == compound_head(tree_page);
--		put_page(tree_page);
-+		split = folio == tree_folio;
-+		folio_put(tree_folio);
- 		if (kfolio) {
- 			/*
- 			 * The pages were successfully merged: insert new
 _
 
-Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
+Patches currently in -mm which might be from ben.dooks@codethink.co.uk are
 
-mm-introduce-pud_is_huge-helper.patch
-mm-mincore-remove-special-handling-for-vm_pfnmap.patch
-mm-mincore-remove-special-handling-for-vm_pfnmap-fix.patch
-mm-mincore-replace-__get_free_page-with-kmalloc.patch
-mm-mincore-remove-xa_is_value-in-mincore_swap.patch
-mm-mincore-improve-mincore_hugetlb.patch
-mm-mincore-improve-mincore_hugetlb-fix.patch
-mm-mincore-refactor-mincore_page.patch
 
