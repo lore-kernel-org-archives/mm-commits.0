@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 81633391E4C
-	for <mm-commits@vger.kernel.org>; Wed, 29 Jul 2026 04:14:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 72DB23911BC
+	for <mm-commits@vger.kernel.org>; Wed, 29 Jul 2026 04:14:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785298450; cv=none; b=t2RMBFwvZTQWkbBKbug517TIN2SnpeWs+vDZeUpaj/g4F9yt2Jk3geo8qu62wivG8xXulyVDFm0xiLDyJ9s1S7cuUYzR6PjW2vVAOwprBuSORI34bAoGVIcR6P3P0v7fmipUVPjfQDHQ8i/KaYGYGanV6AfTx2k6gap0TJyK2Qc=
+	t=1785298451; cv=none; b=CmZAs3c2QgaHcaUekL32pGZjZT3cNPOV5tc4yx4IMJ4hIxrpz5tqui3EDI/IGrQbCDBbFYBSgdoBvcbEkW10jJK3sNN3l+S69yknpeFI6j3VNX2q0b3NxjAZLyV2GN0qshQqDZsC3kr6OUZMWlV2SIgS2i5z6zxXxlP34pEkudI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785298450; c=relaxed/simple;
-	bh=8gcuEbIm9qaGT/tu28XA84hp1kGHWJlKoYwMOszQ5+A=;
-	h=Date:To:From:Subject:Message-Id; b=E4jIhaL27TtCX98mFvuRCRx44hNkOUxRrqhBhNsEsRUkoa20T6dUUmrV8TiCAOtQjQtDXI/Ve1S803gygK0Aps8LXcW1m52ab21N2J8EGS3/RWLMqPbRL/I223iq+5iErHWvozUcDkIeNMDwM1o9ER1YDAfq7g9NoIc9wWQfaJ0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mzU9EILJ; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785298451; c=relaxed/simple;
+	bh=EleT6OPIltgUxmvlqO6+r1vPfjGcHolXo1oD/50XH+4=;
+	h=Date:To:From:Subject:Message-Id; b=mEYC1zysAYTPj5ftLTtcNBJ+3/FlwGaWJlFmJKiknmNBairc8DbcsRdwEhBV5lKMHeC3e3R8l3mZkMNj0xNmluNdfHZB+jd/dSiaqtdTLavGtq4USkAke9OBbCgj4qjqjxS8Agj1br/dWSqjeNvJElPV8q12r+wD7IJcs0emI10=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=X45fkcqM; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mzU9EILJ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 10A9F1F000E9;
-	Wed, 29 Jul 2026 04:14:09 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="X45fkcqM"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 240A71F00A3A;
+	Wed, 29 Jul 2026 04:14:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785298449;
-	bh=zz7BlCcxAg00BwPhq4cOuswJg69wWeF87Wl6tmZKmYo=;
+	d=linux-foundation.org; s=korg; t=1785298450;
+	bh=6Ry0YlctMK8fG/rLjV2B6mFCODRUgt2TJhXZlUTU8FI=;
 	h=Date:To:From:Subject;
-	b=mzU9EILJwNmqFV3fj3bXoIRLkCV4+6/r8BHgA6OoriTdroWTTbfJK9FI0hhN4lAi1
-	 EdvkbhgHwaznv6/PMhz9wxGjMDKgHwPzkNXu7gkQcmFmWUe3LIVb6YjvvvBrRLgWt7
-	 d6pWBbqMQ8FKW4iGtYLLWj0EvBvKkAQOQz0f1iss=
-Date: Tue, 28 Jul 2026 21:14:08 -0700
-To: mm-commits@vger.kernel.org,agruenba@redhat.com,willy@infradead.org,akpm@linux-foundation.org
+	b=X45fkcqMpbQbWKy8F8CYXL80XTGuExHFZLmvFLIidPO8L8fayEU0UxTvhzRyEutCu
+	 iVBFKbqrX8Z8sojRkyMZ+20ZmglE0w0wi2YcOchlY/RN2IPhbCe6YSt6WH/Y8ozNxj
+	 rPmW2p30QxktkdrJnMndfZcB84ydcYeEwZ0K9GNY=
+Date: Tue, 28 Jul 2026 21:14:09 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,agruenba@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-add-writebackh-to-docs-build.patch removed from -mm tree
-Message-Id: <20260729041409.10A9F1F000E9@smtp.kernel.org>
+Subject: [merged mm-stable] fix-a-typo-in-the-wbc_init_bio-description.patch removed from -mm tree
+Message-Id: <20260729041410.240A71F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,42 +35,42 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: add writeback.h to docs build
+     Subject: writeback.h: fix a typo in the wbc_init_bio() description
 has been removed from the -mm tree.  Its filename was
-     mm-add-writebackh-to-docs-build.patch
+     fix-a-typo-in-the-wbc_init_bio-description.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: add writeback.h to docs build
-Date: Mon, 15 Jun 2026 17:22:41 +0100
+From: Andreas Gruenbacher <agruenba@redhat.com>
+Subject: writeback.h: fix a typo in the wbc_init_bio() description
+Date: Mon, 15 Jun 2026 17:22:42 +0100
 
-There's four functions in this header file with kernel-doc; add them to
-the htmldocs.
+initializtion -> initialization (missing "a")
 
-Link: https://lore.kernel.org/20260615162244.2170866-1-willy@infradead.org
+Link: https://lore.kernel.org/20260615162244.2170866-2-willy@infradead.org
+Signed-off-by: Andreas Gruenbacher <agruenba@redhat.com>
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Andreas Gruenbacher <agruenba@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/core-api/mm-api.rst |    1 +
- 1 file changed, 1 insertion(+)
+ include/linux/writeback.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/Documentation/core-api/mm-api.rst~mm-add-writebackh-to-docs-build
-+++ a/Documentation/core-api/mm-api.rst
-@@ -73,6 +73,7 @@ Readahead
- Writeback
- ---------
+--- a/include/linux/writeback.h~fix-a-typo-in-the-wbc_init_bio-description
++++ a/include/linux/writeback.h
+@@ -244,7 +244,7 @@ void wbc_attach_fdatawrite_inode(struct
+ 		struct inode *inode);
  
-+.. kernel-doc:: include/linux/writeback.h
- .. kernel-doc:: mm/page-writeback.c
-    :export:
- 
+ /**
+- * wbc_init_bio - writeback specific initializtion of bio
++ * wbc_init_bio - writeback specific initialization of bio
+  * @wbc: writeback_control for the writeback in progress
+  * @bio: bio to be initialized
+  *
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from agruenba@redhat.com are
 
 
