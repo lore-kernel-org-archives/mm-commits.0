@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 252E7393DFB
-	for <mm-commits@vger.kernel.org>; Wed, 29 Jul 2026 04:15:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E80043939A2
+	for <mm-commits@vger.kernel.org>; Wed, 29 Jul 2026 04:15:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785298503; cv=none; b=PIJThuqWTLcJ0kaZRoVsB0dUFAuXUxZ3id2wnIzUlkKxEeweDbpfSfqDE5zLsZHEJzUPQGc/oatk5yCFUwpexnuVsa2rIcGNA82rcspAQs/UwaS7dmWniCu20+o/cRY41fE61UIFtPksRfY1e3YkKgvoeIMLVkJcgckh6QhaB9Q=
+	t=1785298503; cv=none; b=AtbmVbv4ERRSOgm0E+s9xzXHVdyZNF6Sjl0xnTGjzGwdRUbq09SycKPa7GziOI8DHG4YprAjfWDrW8tyN3v5nSGdnWSBzgc12skdyizw+i5nu2EFzFNkGiNhM2tNmqrM+m/JWKLWmQ0wHw6BCDWIcjqAzvs1+dJnZVMRP5gq9ng=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1785298503; c=relaxed/simple;
-	bh=9l1E3GObY4cwh0QNvH3drb2t16VHBVmoJ/PAt5aFknY=;
-	h=Date:To:From:Subject:Message-Id; b=N5GlB6KUrH1YDj0wlCd9BSeLrmluKjxKaRv0fwyI5UDp+Ixi0J2p1/w6+12hfdrItwUQptFDqkKkjF98TDcj1irERGSyTPXb65BdxVZpeHy8JdOxVD81ZqTbDWJ+Juz7WBVgvUke7KnImU9smnsE12IrZ8t1ngeC4hVIUzqEqno=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OEPMMt4r; arc=none smtp.client-ip=100.103.45.18
+	bh=pAyoc22+9nEfx8cpNFah8XOXi5J+I7eOFciExf/Se8s=;
+	h=Date:To:From:Subject:Message-Id; b=VFeYCZW6lSQSJOqD35CcRu1V6fH1t1uKByRgEd9m2RX7Q2m27w3D6cZL2GYav5sgXCGnbYAZHE1oLJlJQnkzQytf787qO227X8ZSbqPQp8atUc2cBHBWqX0uhI/3iQL8cKaMp6wPrzGtOjWol5rtLIUDQkSE495u/Tv184lFgXA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mfSadiWw; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OEPMMt4r"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F1DEB1F00A3A;
-	Wed, 29 Jul 2026 04:15:01 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mfSadiWw"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A03CE1F000E9;
+	Wed, 29 Jul 2026 04:15:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785298502;
-	bh=SnmHCjH2wkqK0t31+Zp6zvxkLBUG4rkWxg1YONWCX3Q=;
+	d=linux-foundation.org; s=korg; t=1785298500;
+	bh=15wTO26uETQZ7XVM3HbVZlR7ojBKXpaScV+AHTzOKB4=;
 	h=Date:To:From:Subject;
-	b=OEPMMt4r/qgoWQjLQYjPPa7i+1/RuAbVaDMiuJ7SKu81ksebTITA8FgiKz0AxgbYc
-	 /n4zzjXl53ZIhYPQelRVuWW4rNqZy9wDjlOseeque3J+ArUqTdRN7+PeP1ltSKxeVI
-	 Q6oGrEBQqaBs1ZJxnBTnWcAbmvs7mChpB+FnNa6w=
-Date: Tue, 28 Jul 2026 21:15:01 -0700
-To: mm-commits@vger.kernel.org,yanquanmin1@huawei.com,sj@kernel.org,nathan@kernel.org,morbo@google.com,justinstitt@google.com,arnd@arndb.de,akpm@linux-foundation.org
+	b=mfSadiWwyKvfcczRFGNjl5BgcCMHKW/QASgtS9Tg/9moDJZqn5tXuJ2G1xuAIzn/M
+	 nyygpqj2bwfZUGnrW6jvKt0Exs5sDe4gS0e0OzS6tk6PLdx9Qo+ZKNP+LieqQOspFl
+	 +JETMQpKgDEAndrABNjzlaLWPcmYDrLxVWAQdc8g=
+Date: Tue, 28 Jul 2026 21:14:59 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,sj@kernel.org,rppt@kernel.org,liam@infradead.org,kent.overstreet@linux.dev,jackmanb@google.com,harry@kernel.org,hao.ge@linux.dev,david@kernel.org,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-core-reduce-kernel-stack-usage.patch removed from -mm tree
-Message-Id: <20260729041501.F1DEB1F00A3A@smtp.kernel.org>
+Subject: [merged mm-stable] mm-move-alloc-tag-to-mm.patch removed from -mm tree
+Message-Id: <20260729041500.A03CE1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,56 +35,1277 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/damon/core: reduce kernel stack usage
+     Subject: mm: move alloc tag to mm
 has been removed from the -mm tree.  Its filename was
-     mm-damon-core-reduce-kernel-stack-usage.patch
+     mm-move-alloc-tag-to-mm.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: mm/damon/core: reduce kernel stack usage
-Date: Thu, 11 Jun 2026 14:56:57 +0200
+From: Lorenzo Stoakes <ljs@kernel.org>
+Subject: mm: move alloc tag to mm
+Date: Thu, 25 Jun 2026 11:48:57 -0700
 
-The main thread function has recently grown to the point of exceeding
-stack frame size warning limits in some configurations.  This is what I
-hit on s390 with clang and CONFIG_KASAN:
+The alloc tagging work is really mm-specific, so move alloc_tag.c to mm/
+and additionally update the MAINTAINERS entry to place it within memory
+management and port over the Kconfig and Makefile code to mm.
 
-mm/damon/core.c:3440:31: error: stack frame size (1352) exceeds limit (1280) in 'kdamond_fn' [-Werror,-Wframe-larger-than]
- 3440 | static int kdamond_fn(struct damon_ctx *ctx)
-
-The largest stack usage here is inside of the kdamond_tune_intervals(), so
-by marking that one as noinline_for_stack, the functions individually stay
-below the warning limit, though kdamond_fn() itself still uses hundreds of
-kilobytes for some reason.
-
-Link: https://lore.kernel.org/20260611125704.3386176-1-arnd@kernel.org
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Link: https://lore.kernel.org/20260625184857.2193482-3-surenb@google.com
+Signed-off-by: Lorenzo Stoakes <ljs@kernel.org>
+Signed-off-by: Suren Baghdasaryan <surenb@google.com>
 Reviewed-by: SeongJae Park <sj@kernel.org>
-Cc: Bill Wendling <morbo@google.com>
-Cc: Justin Stitt <justinstitt@google.com>
-Cc: Nathan Chancellor <nathan@kernel.org>
-Cc: Quanmin Yan <yanquanmin1@huawei.com>
+Tested-by: Hao Ge <hao.ge@linux.dev>
+Acked-by: Hao Ge <hao.ge@linux.dev>
+Acked-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Acked-by: Harry Yoo (Oracle) <harry@kernel.org>
+Reviewed-by: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Brendan Jackman <jackmanb@google.com>
+Cc: Kent Overstreet <kent.overstreet@linux.dev>
+Cc: Liam R. Howlett <liam@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/core.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ MAINTAINERS       |   20 
+ lib/Kconfig.debug |   28 -
+ lib/Makefile      |    1 
+ mm/Kconfig.debug  |   28 +
+ mm/Makefile       |    1 
+ mm/alloc_tag.c    | 1029 ++++++++++++++++++++++++++++++++++++++++++++
+ 6 files changed, 1068 insertions(+), 39 deletions(-)
 
---- a/mm/damon/core.c~mm-damon-core-reduce-kernel-stack-usage
-+++ a/mm/damon/core.c
-@@ -2052,7 +2052,7 @@ static unsigned long damon_get_intervals
- 	return adaptation_bp;
- }
+--- a/lib/Kconfig.debug~mm-move-alloc-tag-to-mm
++++ a/lib/Kconfig.debug
+@@ -1048,34 +1048,6 @@ config CODE_TAGGING
+ 	bool
+ 	select KALLSYMS
  
--static void kdamond_tune_intervals(struct damon_ctx *c)
-+static noinline_for_stack void kdamond_tune_intervals(struct damon_ctx *c)
- {
- 	unsigned long adaptation_bp;
- 	struct damon_attrs new_attrs;
+-config MEM_ALLOC_PROFILING
+-	bool "Enable memory allocation profiling"
+-	default n
+-	depends on MMU
+-	depends on PROC_FS
+-	depends on !DEBUG_FORCE_WEAK_PER_CPU
+-	select CODE_TAGGING
+-	select PAGE_EXTENSION
+-	select SLAB_OBJ_EXT
+-	help
+-	  Track allocation source code and record total allocation size
+-	  initiated at that code location. The mechanism can be used to track
+-	  memory leaks with a low performance and memory impact.
+-
+-config MEM_ALLOC_PROFILING_ENABLED_BY_DEFAULT
+-	bool "Enable memory allocation profiling by default"
+-	default y
+-	depends on MEM_ALLOC_PROFILING
+-
+-config MEM_ALLOC_PROFILING_DEBUG
+-	bool "Memory allocation profiler debugging"
+-	default n
+-	depends on MEM_ALLOC_PROFILING
+-	select MEM_ALLOC_PROFILING_ENABLED_BY_DEFAULT
+-	help
+-	  Adds warnings with helpful error messages for memory allocation
+-	  profiling.
+-
+ source "lib/Kconfig.kasan"
+ source "lib/Kconfig.kfence"
+ source "lib/Kconfig.kmsan"
+--- a/lib/Makefile~mm-move-alloc-tag-to-mm
++++ a/lib/Makefile
+@@ -196,7 +196,6 @@ obj-$(CONFIG_OF_RECONFIG_NOTIFIER_ERROR_
+ obj-$(CONFIG_FUNCTION_ERROR_INJECTION) += error-inject.o
+ 
+ obj-$(CONFIG_CODE_TAGGING) += codetag.o
+-obj-$(CONFIG_MEM_ALLOC_PROFILING) += alloc_tag.o
+ 
+ lib-$(CONFIG_GENERIC_BUG) += bug.o
+ 
+--- a/MAINTAINERS~mm-move-alloc-tag-to-mm
++++ a/MAINTAINERS
+@@ -16887,16 +16887,6 @@ F:	mm/mm_init.c
+ F:	mm/rodata_test.c
+ F:	tools/testing/memblock/
+ 
+-MEMORY ALLOCATION PROFILING
+-M:	Suren Baghdasaryan <surenb@google.com>
+-R:	Hao Ge <hao.ge@linux.dev>
+-L:	linux-mm@kvack.org
+-S:	Maintained
+-F:	Documentation/mm/allocation-profiling.rst
+-F:	include/linux/alloc_tag.h
+-F:	include/linux/pgalloc_tag.h
+-F:	lib/alloc_tag.c
+-
+ MEMORY CONTROLLER DRIVERS
+ M:	Krzysztof Kozlowski <krzk@kernel.org>
+ L:	linux-kernel@vger.kernel.org
+@@ -16941,6 +16931,16 @@ T:	quilt git://git.kernel.org/pub/scm/li
+ F:	mm/
+ F:	tools/mm/
+ 
++MEMORY MANAGEMENT - ALLOCATION PROFILING (ALLOC TAG)
++M:	Suren Baghdasaryan <surenb@google.com>
++R:	Hao Ge <hao.ge@linux.dev>
++L:	linux-mm@kvack.org
++S:	Maintained
++F:	Documentation/mm/allocation-profiling.rst
++F:	include/linux/alloc_tag.h
++F:	include/linux/pgalloc_tag.h
++F:	mm/alloc_tag.c
++
+ MEMORY MANAGEMENT - BALLOON
+ M:	Andrew Morton <akpm@linux-foundation.org>
+ M:	David Hildenbrand <david@kernel.org>
+diff --git a/mm/alloc_tag.c a/mm/alloc_tag.c
+new file mode 100644
+--- /dev/null
++++ a/mm/alloc_tag.c
+@@ -0,0 +1,1029 @@
++// SPDX-License-Identifier: GPL-2.0-only
++#include <linux/alloc_tag.h>
++#include <linux/execmem.h>
++#include <linux/fs.h>
++#include <linux/gfp.h>
++#include <linux/kallsyms.h>
++#include <linux/module.h>
++#include <linux/page_ext.h>
++#include <linux/pgalloc_tag.h>
++#include <linux/proc_fs.h>
++#include <linux/rcupdate.h>
++#include <linux/seq_buf.h>
++#include <linux/seq_file.h>
++#include <linux/string_choices.h>
++#include <linux/vmalloc.h>
++#include <linux/kmemleak.h>
++
++#define ALLOCINFO_FILE_NAME		"allocinfo"
++#define MODULE_ALLOC_TAG_VMAP_SIZE	(100000UL * sizeof(struct alloc_tag))
++#define SECTION_START(NAME)		(CODETAG_SECTION_START_PREFIX NAME)
++#define SECTION_STOP(NAME)		(CODETAG_SECTION_STOP_PREFIX NAME)
++
++#ifdef CONFIG_MEM_ALLOC_PROFILING_ENABLED_BY_DEFAULT
++static bool mem_profiling_support = true;
++#else
++static bool mem_profiling_support;
++#endif
++
++/*
++ * Memory allocation profiling is permanently disabled and cannot be enabled.
++ * Must be called after setup_early_mem_profiling().
++ */
++bool mem_alloc_profiling_permanently_disabled(void)
++{
++	return !mem_profiling_support;
++}
++
++static struct codetag_type *alloc_tag_cttype;
++
++#ifdef CONFIG_ARCH_MODULE_NEEDS_WEAK_PER_CPU
++DEFINE_PER_CPU(struct alloc_tag_counters, _shared_alloc_tag);
++EXPORT_SYMBOL(_shared_alloc_tag);
++#endif
++
++DEFINE_STATIC_KEY_MAYBE(CONFIG_MEM_ALLOC_PROFILING_ENABLED_BY_DEFAULT,
++			mem_alloc_profiling_key);
++EXPORT_SYMBOL(mem_alloc_profiling_key);
++
++DEFINE_STATIC_KEY_FALSE(mem_profiling_compressed);
++
++struct alloc_tag_kernel_section kernel_tags = { NULL, 0 };
++unsigned long alloc_tag_ref_mask;
++int alloc_tag_ref_offs;
++
++struct allocinfo_private {
++	struct codetag_iterator iter;
++	struct codetag_iterator reported_iter;
++	bool print_header;
++};
++
++static void *allocinfo_start(struct seq_file *m, loff_t *pos)
++{
++	struct allocinfo_private *priv;
++	loff_t node = *pos;
++
++	priv = (struct allocinfo_private *)m->private;
++	codetag_lock_module_list(alloc_tag_cttype);
++	if (node == 0) {
++		priv->print_header = true;
++		priv->iter = codetag_get_ct_iter(alloc_tag_cttype);
++	} else {
++		priv->iter = priv->reported_iter;
++	}
++	codetag_next_ct(&priv->iter);
++	return priv->iter.ct ? priv : NULL;
++}
++
++static void *allocinfo_next(struct seq_file *m, void *arg, loff_t *pos)
++{
++	struct allocinfo_private *priv = (struct allocinfo_private *)arg;
++	struct codetag *ct;
++
++	priv->reported_iter = priv->iter;
++	ct = codetag_next_ct(&priv->iter);
++	(*pos)++;
++	if (!ct)
++		return NULL;
++
++	return priv;
++}
++
++static void allocinfo_stop(struct seq_file *m, void *arg)
++{
++	codetag_unlock_module_list(alloc_tag_cttype);
++}
++
++static void print_allocinfo_header(struct seq_buf *buf)
++{
++	/* Output format version, so we can change it. */
++	seq_buf_printf(buf, "allocinfo - version: 2.0\n");
++	seq_buf_printf(buf, "#     <size>  <calls> <tag info>\n");
++}
++
++static void alloc_tag_to_text(struct seq_buf *out, struct codetag *ct)
++{
++	struct alloc_tag *tag = ct_to_alloc_tag(ct);
++	struct alloc_tag_counters counter = alloc_tag_read(tag);
++	s64 bytes = counter.bytes;
++
++	seq_buf_printf(out, "%12lli %8llu ", bytes, counter.calls);
++	codetag_to_text(out, ct);
++	if (unlikely(alloc_tag_is_inaccurate(tag)))
++		seq_buf_printf(out, " accurate:no");
++	seq_buf_putc(out, ' ');
++	seq_buf_putc(out, '\n');
++}
++
++static int allocinfo_show(struct seq_file *m, void *arg)
++{
++	struct allocinfo_private *priv = (struct allocinfo_private *)arg;
++	char *bufp;
++	size_t n = seq_get_buf(m, &bufp);
++	struct seq_buf buf;
++
++	seq_buf_init(&buf, bufp, n);
++	if (priv->print_header) {
++		print_allocinfo_header(&buf);
++		priv->print_header = false;
++	}
++	alloc_tag_to_text(&buf, priv->iter.ct);
++	seq_commit(m, seq_buf_used(&buf));
++	return 0;
++}
++
++static const struct seq_operations allocinfo_seq_op = {
++	.start	= allocinfo_start,
++	.next	= allocinfo_next,
++	.stop	= allocinfo_stop,
++	.show	= allocinfo_show,
++};
++
++size_t alloc_tag_top_users(struct codetag_bytes *tags, size_t count, bool can_sleep)
++{
++	struct codetag_iterator iter;
++	struct codetag *ct;
++	struct codetag_bytes n;
++	unsigned int i, nr = 0;
++
++	if (IS_ERR_OR_NULL(alloc_tag_cttype))
++		return 0;
++
++	if (can_sleep)
++		codetag_lock_module_list(alloc_tag_cttype);
++	else if (!codetag_trylock_module_list(alloc_tag_cttype))
++		return 0;
++
++	iter = codetag_get_ct_iter(alloc_tag_cttype);
++	while ((ct = codetag_next_ct(&iter))) {
++		struct alloc_tag_counters counter = alloc_tag_read(ct_to_alloc_tag(ct));
++
++		n.ct	= ct;
++		n.bytes = counter.bytes;
++
++		for (i = 0; i < nr; i++)
++			if (n.bytes > tags[i].bytes)
++				break;
++
++		if (i < count) {
++			nr -= nr == count;
++			memmove(&tags[i + 1],
++				&tags[i],
++				sizeof(tags[0]) * (nr - i));
++			nr++;
++			tags[i] = n;
++		}
++	}
++
++	codetag_unlock_module_list(alloc_tag_cttype);
++
++	return nr;
++}
++
++void pgalloc_tag_split(struct folio *folio, int old_order, int new_order)
++{
++	int i;
++	struct alloc_tag *tag;
++	unsigned int nr_pages = 1 << new_order;
++
++	if (!mem_alloc_profiling_enabled())
++		return;
++
++	tag = __pgalloc_tag_get(&folio->page);
++	if (!tag)
++		return;
++
++	for (i = nr_pages; i < (1 << old_order); i += nr_pages) {
++		union pgtag_ref_handle handle;
++		union codetag_ref ref;
++
++		if (get_page_tag_ref(folio_page(folio, i), &ref, &handle)) {
++			/* Set new reference to point to the original tag */
++			alloc_tag_ref_set(&ref, tag);
++			update_page_tag_ref(handle, &ref);
++			put_page_tag_ref(handle);
++		}
++	}
++}
++
++void pgalloc_tag_swap(struct folio *new, struct folio *old)
++{
++	union pgtag_ref_handle handle_old, handle_new;
++	union codetag_ref ref_old, ref_new;
++	struct alloc_tag *tag_old, *tag_new;
++
++	if (!mem_alloc_profiling_enabled())
++		return;
++
++	tag_old = __pgalloc_tag_get(&old->page);
++	if (!tag_old)
++		return;
++	tag_new = __pgalloc_tag_get(&new->page);
++	if (!tag_new)
++		return;
++
++	if (!get_page_tag_ref(&old->page, &ref_old, &handle_old))
++		return;
++	if (!get_page_tag_ref(&new->page, &ref_new, &handle_new)) {
++		put_page_tag_ref(handle_old);
++		return;
++	}
++
++	/*
++	 * Clear tag references to avoid debug warning when using
++	 * __alloc_tag_ref_set() with non-empty reference.
++	 */
++	set_codetag_empty(&ref_old);
++	set_codetag_empty(&ref_new);
++
++	/* swap tags */
++	__alloc_tag_ref_set(&ref_old, tag_new);
++	update_page_tag_ref(handle_old, &ref_old);
++	__alloc_tag_ref_set(&ref_new, tag_old);
++	update_page_tag_ref(handle_new, &ref_new);
++
++	put_page_tag_ref(handle_old);
++	put_page_tag_ref(handle_new);
++}
++
++static void shutdown_mem_profiling(bool remove_file)
++{
++	if (mem_alloc_profiling_enabled())
++		static_branch_disable(&mem_alloc_profiling_key);
++
++	if (!mem_profiling_support)
++		return;
++
++	if (remove_file)
++		remove_proc_entry(ALLOCINFO_FILE_NAME, NULL);
++	mem_profiling_support = false;
++}
++
++void __init alloc_tag_sec_init(void)
++{
++	struct alloc_tag *last_codetag;
++
++	if (!mem_profiling_support)
++		return;
++
++	if (!static_key_enabled(&mem_profiling_compressed))
++		return;
++
++	kernel_tags.first_tag = (struct alloc_tag *)kallsyms_lookup_name(
++					SECTION_START(ALLOC_TAG_SECTION_NAME));
++	last_codetag = (struct alloc_tag *)kallsyms_lookup_name(
++					SECTION_STOP(ALLOC_TAG_SECTION_NAME));
++	kernel_tags.count = last_codetag - kernel_tags.first_tag;
++
++	/* Check if kernel tags fit into page flags */
++	if (kernel_tags.count > (1UL << NR_UNUSED_PAGEFLAG_BITS)) {
++		shutdown_mem_profiling(false); /* allocinfo file does not exist yet */
++		pr_err("%lu allocation tags cannot be references using %d available page flag bits. Memory allocation profiling is disabled!\n",
++			kernel_tags.count, NR_UNUSED_PAGEFLAG_BITS);
++		return;
++	}
++
++	alloc_tag_ref_offs = (LRU_REFS_PGOFF - NR_UNUSED_PAGEFLAG_BITS);
++	alloc_tag_ref_mask = ((1UL << NR_UNUSED_PAGEFLAG_BITS) - 1);
++	pr_debug("Memory allocation profiling compression is using %d page flag bits!\n",
++		 NR_UNUSED_PAGEFLAG_BITS);
++}
++
++#ifdef CONFIG_MODULES
++
++static struct maple_tree mod_area_mt = MTREE_INIT(mod_area_mt, MT_FLAGS_ALLOC_RANGE);
++static struct vm_struct *vm_module_tags;
++/* A dummy object used to indicate an unloaded module */
++static struct module unloaded_mod;
++/* A dummy object used to indicate a module prepended area */
++static struct module prepend_mod;
++
++struct alloc_tag_module_section module_tags;
++
++static inline unsigned long alloc_tag_align(unsigned long val)
++{
++	if (!static_key_enabled(&mem_profiling_compressed)) {
++		/* No alignment requirements when we are not indexing the tags */
++		return val;
++	}
++
++	if (val % sizeof(struct alloc_tag) == 0)
++		return val;
++	return ((val / sizeof(struct alloc_tag)) + 1) * sizeof(struct alloc_tag);
++}
++
++static bool ensure_alignment(unsigned long align, unsigned int *prepend)
++{
++	if (!static_key_enabled(&mem_profiling_compressed)) {
++		/* No alignment requirements when we are not indexing the tags */
++		return true;
++	}
++
++	/*
++	 * If alloc_tag size is not a multiple of required alignment, tag
++	 * indexing does not work.
++	 */
++	if (!IS_ALIGNED(sizeof(struct alloc_tag), align))
++		return false;
++
++	/* Ensure prepend consumes multiple of alloc_tag-sized blocks */
++	if (*prepend)
++		*prepend = alloc_tag_align(*prepend);
++
++	return true;
++}
++
++static inline bool tags_addressable(void)
++{
++	unsigned long tag_idx_count;
++
++	if (!static_key_enabled(&mem_profiling_compressed))
++		return true; /* with page_ext tags are always addressable */
++
++	tag_idx_count = CODETAG_ID_FIRST + kernel_tags.count +
++			module_tags.size / sizeof(struct alloc_tag);
++
++	return tag_idx_count < (1UL << NR_UNUSED_PAGEFLAG_BITS);
++}
++
++static bool needs_section_mem(struct module *mod, unsigned long size)
++{
++	if (!mem_profiling_support)
++		return false;
++
++	return size >= sizeof(struct alloc_tag);
++}
++
++static bool clean_unused_counters(struct alloc_tag *start_tag,
++				  struct alloc_tag *end_tag)
++{
++	struct alloc_tag *tag;
++	bool ret = true;
++
++	for (tag = start_tag; tag <= end_tag; tag++) {
++		struct alloc_tag_counters counter;
++
++		if (!tag->counters)
++			continue;
++
++		counter = alloc_tag_read(tag);
++		if (!counter.bytes) {
++			free_percpu(tag->counters);
++			tag->counters = NULL;
++		} else {
++			ret = false;
++		}
++	}
++
++	return ret;
++}
++
++/* Called with mod_area_mt locked */
++static void clean_unused_module_areas_locked(void)
++{
++	MA_STATE(mas, &mod_area_mt, 0, module_tags.size);
++	struct module *val;
++
++	mas_for_each(&mas, val, module_tags.size) {
++		struct alloc_tag *start_tag;
++		struct alloc_tag *end_tag;
++
++		if (val != &unloaded_mod)
++			continue;
++
++		/* Release area if all tags are unused */
++		start_tag = (struct alloc_tag *)(module_tags.start_addr + mas.index);
++		end_tag = (struct alloc_tag *)(module_tags.start_addr + mas.last);
++		if (clean_unused_counters(start_tag, end_tag))
++			mas_erase(&mas);
++	}
++}
++
++/* Called with mod_area_mt locked */
++static bool find_aligned_area(struct ma_state *mas, unsigned long section_size,
++			      unsigned long size, unsigned int prepend, unsigned long align)
++{
++	bool cleanup_done = false;
++
++repeat:
++	/* Try finding exact size and hope the start is aligned */
++	if (!mas_empty_area(mas, 0, section_size - 1, prepend + size)) {
++		if (IS_ALIGNED(mas->index + prepend, align))
++			return true;
++
++		/* Try finding larger area to align later */
++		mas_reset(mas);
++		if (!mas_empty_area(mas, 0, section_size - 1,
++				    size + prepend + align - 1))
++			return true;
++	}
++
++	/* No free area, try cleanup stale data and repeat the search once */
++	if (!cleanup_done) {
++		clean_unused_module_areas_locked();
++		cleanup_done = true;
++		mas_reset(mas);
++		goto repeat;
++	}
++
++	return false;
++}
++
++static int vm_module_tags_populate(void)
++{
++	unsigned long phys_end = ALIGN_DOWN(module_tags.start_addr, PAGE_SIZE) +
++				 (vm_module_tags->nr_pages << PAGE_SHIFT);
++	unsigned long new_end = module_tags.start_addr + module_tags.size;
++
++	if (phys_end < new_end) {
++		struct page **next_page = vm_module_tags->pages + vm_module_tags->nr_pages;
++		unsigned long old_shadow_end = ALIGN(phys_end, MODULE_ALIGN);
++		unsigned long new_shadow_end = ALIGN(new_end, MODULE_ALIGN);
++		unsigned long more_pages;
++		unsigned long nr = 0;
++
++		more_pages = ALIGN(new_end - phys_end, PAGE_SIZE) >> PAGE_SHIFT;
++		while (nr < more_pages) {
++			unsigned long allocated;
++
++			allocated = alloc_pages_bulk_node(GFP_KERNEL | __GFP_NOWARN,
++				NUMA_NO_NODE, more_pages - nr, next_page + nr);
++
++			if (!allocated)
++				break;
++			nr += allocated;
++		}
++
++		if (nr < more_pages ||
++		    vmap_pages_range(phys_end, phys_end + (nr << PAGE_SHIFT), PAGE_KERNEL,
++				     next_page, PAGE_SHIFT) < 0) {
++			release_pages_arg arg = { .pages = next_page };
++
++			/* Clean up and error out */
++			release_pages(arg, nr);
++			return -ENOMEM;
++		}
++
++		vm_module_tags->nr_pages += nr;
++
++		/*
++		 * Kasan allocates 1 byte of shadow for every 8 bytes of data.
++		 * When kasan_alloc_module_shadow allocates shadow memory,
++		 * its unit of allocation is a page.
++		 * Therefore, here we need to align to MODULE_ALIGN.
++		 */
++		if (old_shadow_end < new_shadow_end)
++			kasan_alloc_module_shadow((void *)old_shadow_end,
++						  new_shadow_end - old_shadow_end,
++						  GFP_KERNEL);
++	}
++
++	/*
++	 * Mark the pages as accessible, now that they are mapped.
++	 * With hardware tag-based KASAN, marking is skipped for
++	 * non-VM_ALLOC mappings, see __kasan_unpoison_vmalloc().
++	 */
++	kasan_unpoison_vmalloc((void *)module_tags.start_addr,
++				new_end - module_tags.start_addr,
++				KASAN_VMALLOC_PROT_NORMAL);
++
++	return 0;
++}
++
++static void *reserve_module_tags(struct module *mod, unsigned long size,
++				 unsigned int prepend, unsigned long align)
++{
++	unsigned long section_size = module_tags.end_addr - module_tags.start_addr;
++	MA_STATE(mas, &mod_area_mt, 0, section_size - 1);
++	unsigned long offset;
++	void *ret = NULL;
++
++	/* If no tags return error */
++	if (size < sizeof(struct alloc_tag))
++		return ERR_PTR(-EINVAL);
++
++	/*
++	 * align is always power of 2, so we can use IS_ALIGNED and ALIGN.
++	 * align 0 or 1 means no alignment, to simplify set to 1.
++	 */
++	if (!align)
++		align = 1;
++
++	if (!ensure_alignment(align, &prepend)) {
++		shutdown_mem_profiling(true);
++		pr_err("%s: alignment %lu is incompatible with allocation tag indexing. Memory allocation profiling is disabled!\n",
++			mod->name, align);
++		return ERR_PTR(-EINVAL);
++	}
++
++	mas_lock(&mas);
++	if (!find_aligned_area(&mas, section_size, size, prepend, align)) {
++		ret = ERR_PTR(-ENOMEM);
++		goto unlock;
++	}
++
++	/* Mark found area as reserved */
++	offset = mas.index;
++	offset += prepend;
++	offset = ALIGN(offset, align);
++	if (offset != mas.index) {
++		unsigned long pad_start = mas.index;
++
++		mas.last = offset - 1;
++		mas_store(&mas, &prepend_mod);
++		if (mas_is_err(&mas)) {
++			ret = ERR_PTR(xa_err(mas.node));
++			goto unlock;
++		}
++		mas.index = offset;
++		mas.last = offset + size - 1;
++		mas_store(&mas, mod);
++		if (mas_is_err(&mas)) {
++			mas.index = pad_start;
++			mas_erase(&mas);
++			ret = ERR_PTR(xa_err(mas.node));
++		}
++	} else {
++		mas.last = offset + size - 1;
++		mas_store(&mas, mod);
++		if (mas_is_err(&mas))
++			ret = ERR_PTR(xa_err(mas.node));
++	}
++unlock:
++	mas_unlock(&mas);
++
++	if (IS_ERR(ret))
++		return ret;
++
++	if (module_tags.size < offset + size) {
++		int grow_res;
++
++		module_tags.size = offset + size;
++		if (mem_alloc_profiling_enabled() && !tags_addressable()) {
++			shutdown_mem_profiling(true);
++			pr_warn("With module %s there are too many tags to fit in %d page flag bits. Memory allocation profiling is disabled!\n",
++				mod->name, NR_UNUSED_PAGEFLAG_BITS);
++		}
++
++		grow_res = vm_module_tags_populate();
++		if (grow_res) {
++			shutdown_mem_profiling(true);
++			pr_err("Failed to allocate memory for allocation tags in the module %s. Memory allocation profiling is disabled!\n",
++			       mod->name);
++			return ERR_PTR(grow_res);
++		}
++	}
++
++	return (struct alloc_tag *)(module_tags.start_addr + offset);
++}
++
++static void release_module_tags(struct module *mod, bool used)
++{
++	MA_STATE(mas, &mod_area_mt, module_tags.size, module_tags.size);
++	struct alloc_tag *start_tag;
++	struct alloc_tag *end_tag;
++	struct module *val;
++
++	mas_lock(&mas);
++	mas_for_each_rev(&mas, val, 0)
++		if (val == mod)
++			break;
++
++	if (!val) /* module not found */
++		goto out;
++
++	if (!used)
++		goto release_area;
++
++	start_tag = (struct alloc_tag *)(module_tags.start_addr + mas.index);
++	end_tag = (struct alloc_tag *)(module_tags.start_addr + mas.last);
++	if (!clean_unused_counters(start_tag, end_tag)) {
++		struct alloc_tag *tag;
++
++		for (tag = start_tag; tag <= end_tag; tag++) {
++			struct alloc_tag_counters counter;
++
++			if (!tag->counters)
++				continue;
++
++			counter = alloc_tag_read(tag);
++			pr_info("%s:%u module %s func:%s has %llu allocated at module unload\n",
++				tag->ct.filename, tag->ct.lineno, tag->ct.modname,
++				tag->ct.function, counter.bytes);
++		}
++	} else {
++		used = false;
++	}
++release_area:
++	mas_store(&mas, used ? &unloaded_mod : NULL);
++	val = mas_prev_range(&mas, 0);
++	if (val == &prepend_mod)
++		mas_store(&mas, NULL);
++out:
++	mas_unlock(&mas);
++}
++
++static int load_module(struct module *mod, struct codetag *start, struct codetag *stop)
++{
++	/* Allocate module alloc_tag percpu counters */
++	struct alloc_tag *start_tag;
++	struct alloc_tag *stop_tag;
++	struct alloc_tag *tag;
++
++	/* percpu counters for core allocations are already statically allocated */
++	if (!mod)
++		return 0;
++
++	start_tag = ct_to_alloc_tag(start);
++	stop_tag = ct_to_alloc_tag(stop);
++	for (tag = start_tag; tag < stop_tag; tag++) {
++		WARN_ON(tag->counters);
++		tag->counters = alloc_percpu(struct alloc_tag_counters);
++		if (!tag->counters) {
++			while (--tag >= start_tag) {
++				free_percpu(tag->counters);
++				tag->counters = NULL;
++			}
++			pr_err("Failed to allocate memory for allocation tag percpu counters in the module %s\n",
++			       mod->name);
++			return -ENOMEM;
++		}
++
++		/*
++		 * Avoid a kmemleak false positive. The pointer to the counters is stored
++		 * in the alloc_tag section of the module and cannot be directly accessed.
++		 */
++		kmemleak_ignore_percpu(tag->counters);
++	}
++	return 0;
++}
++
++static void replace_module(struct module *mod, struct module *new_mod)
++{
++	MA_STATE(mas, &mod_area_mt, 0, module_tags.size);
++	struct module *val;
++
++	mas_lock(&mas);
++	mas_for_each(&mas, val, module_tags.size) {
++		if (val != mod)
++			continue;
++
++		mas_store_gfp(&mas, new_mod, GFP_KERNEL);
++		break;
++	}
++	mas_unlock(&mas);
++}
++
++static int __init alloc_mod_tags_mem(void)
++{
++	/* Map space to copy allocation tags */
++	vm_module_tags = execmem_vmap(MODULE_ALLOC_TAG_VMAP_SIZE);
++	if (!vm_module_tags) {
++		pr_err("Failed to map %lu bytes for module allocation tags\n",
++			MODULE_ALLOC_TAG_VMAP_SIZE);
++		module_tags.start_addr = 0;
++		return -ENOMEM;
++	}
++
++	vm_module_tags->pages = kmalloc_objs(struct page *,
++					     get_vm_area_size(vm_module_tags) >> PAGE_SHIFT,
++					     GFP_KERNEL | __GFP_ZERO);
++	if (!vm_module_tags->pages) {
++		free_vm_area(vm_module_tags);
++		return -ENOMEM;
++	}
++
++	module_tags.start_addr = (unsigned long)vm_module_tags->addr;
++	module_tags.end_addr = module_tags.start_addr + MODULE_ALLOC_TAG_VMAP_SIZE;
++	/* Ensure the base is alloc_tag aligned when required for indexing */
++	module_tags.start_addr = alloc_tag_align(module_tags.start_addr);
++
++	return 0;
++}
++
++static void __init free_mod_tags_mem(void)
++{
++	release_pages_arg arg = { .pages = vm_module_tags->pages };
++
++	module_tags.start_addr = 0;
++	release_pages(arg, vm_module_tags->nr_pages);
++	kfree(vm_module_tags->pages);
++	free_vm_area(vm_module_tags);
++}
++
++#else /* CONFIG_MODULES */
++
++static inline int alloc_mod_tags_mem(void) { return 0; }
++static inline void free_mod_tags_mem(void) {}
++
++#endif /* CONFIG_MODULES */
++
++/* See: Documentation/mm/allocation-profiling.rst */
++static int __init setup_early_mem_profiling(char *str)
++{
++	bool compressed = false;
++	bool enable;
++
++	if (!str || !str[0])
++		return -EINVAL;
++
++	if (!strncmp(str, "never", 5)) {
++		enable = false;
++		mem_profiling_support = false;
++		pr_info("Memory allocation profiling is disabled!\n");
++	} else {
++		char *token = strsep(&str, ",");
++
++		if (kstrtobool(token, &enable))
++			return -EINVAL;
++
++		if (str) {
++
++			if (strcmp(str, "compressed"))
++				return -EINVAL;
++
++			compressed = true;
++		}
++		mem_profiling_support = true;
++		pr_info("Memory allocation profiling is enabled %s compression and is turned %s!\n",
++			compressed ? "with" : "without", str_on_off(enable));
++	}
++
++	if (enable != mem_alloc_profiling_enabled()) {
++		if (enable)
++			static_branch_enable(&mem_alloc_profiling_key);
++		else
++			static_branch_disable(&mem_alloc_profiling_key);
++	}
++	if (compressed != static_key_enabled(&mem_profiling_compressed)) {
++		if (compressed)
++			static_branch_enable(&mem_profiling_compressed);
++		else
++			static_branch_disable(&mem_profiling_compressed);
++	}
++
++	return 0;
++}
++early_param("sysctl.vm.mem_profiling", setup_early_mem_profiling);
++
++static __init bool need_page_alloc_tagging(void)
++{
++	if (static_key_enabled(&mem_profiling_compressed))
++		return false;
++
++	return mem_profiling_support;
++}
++
++#ifdef CONFIG_MEM_ALLOC_PROFILING_DEBUG
++/*
++ * Track page allocations before page_ext is initialized.
++ * Some pages are allocated before page_ext becomes available, leaving
++ * their codetag uninitialized. Track these early PFNs so we can clear
++ * their codetag refs later to avoid warnings when they are freed.
++ *
++ * Each page is cast to a pfn_pool: the first few bytes hold metadata
++ * (next pointer and slot count), the remainder stores PFNs.
++ */
++struct pfn_pool {
++	struct pfn_pool *next;
++	atomic_t count;
++	unsigned long pfns[];
++};
++
++#define PFN_POOL_SIZE			((PAGE_SIZE - offsetof(struct pfn_pool, pfns)) / \
++					 sizeof(unsigned long))
++
++/*
++ * Skip early PFN recording for a page allocation.  Reuses the
++ * %__GFP_NO_OBJ_EXT bit.  Used by __alloc_tag_add_early_pfn() to avoid
++ * recursion when allocating pages for the early PFN tracking list
++ * itself.
++ *
++ * Codetags of the pages allocated with __GFP_NO_CODETAG should be
++ * cleared (via clear_page_tag_ref()) before freeing the pages to prevent
++ * alloc_tag_sub_check() from triggering a warning.
++ */
++#define __GFP_NO_CODETAG		__GFP_NO_OBJ_EXT
++
++static struct pfn_pool *current_pfn_pool __initdata;
++
++static void __init __alloc_tag_add_early_pfn(unsigned long pfn)
++{
++	struct pfn_pool *pool;
++	int idx;
++
++	do {
++		pool = READ_ONCE(current_pfn_pool);
++		if (!pool || atomic_read(&pool->count) >= PFN_POOL_SIZE) {
++			struct page *new_page = alloc_page(__GFP_HIGH | __GFP_NO_CODETAG);
++			struct pfn_pool *new;
++
++			if (!new_page) {
++				pr_warn_once("early PFN tracking page allocation failed\n");
++				return;
++			}
++			new = page_address(new_page);
++			new->next = pool;
++			atomic_set(&new->count, 0);
++			if (cmpxchg(&current_pfn_pool, pool, new) != pool) {
++				clear_page_tag_ref(new_page);
++				__free_page(new_page);
++				continue;
++			}
++			pool = new;
++		}
++		idx = atomic_read(&pool->count);
++		if (idx >= PFN_POOL_SIZE)
++			continue;
++		if (atomic_cmpxchg(&pool->count, idx, idx + 1) == idx)
++			break;
++	} while (1);
++
++	pool->pfns[idx] = pfn;
++}
++
++typedef void alloc_tag_add_func(unsigned long pfn);
++static alloc_tag_add_func __rcu *alloc_tag_add_early_pfn_ptr __refdata =
++	RCU_INITIALIZER(__alloc_tag_add_early_pfn);
++
++void alloc_tag_add_early_pfn(unsigned long pfn, gfp_t gfp_flags)
++{
++	alloc_tag_add_func *alloc_tag_add;
++
++	if (static_key_enabled(&mem_profiling_compressed))
++		return;
++
++	/* Skip allocations for the tracking list itself to avoid recursion. */
++	if (gfp_flags & __GFP_NO_CODETAG)
++		return;
++
++	rcu_read_lock();
++	alloc_tag_add = rcu_dereference(alloc_tag_add_early_pfn_ptr);
++	if (alloc_tag_add)
++		alloc_tag_add(pfn);
++	rcu_read_unlock();
++}
++
++static void __init clear_early_alloc_pfn_tag_refs(void)
++{
++	struct pfn_pool *pool, *next;
++	struct page *page;
++	int i;
++
++	if (static_key_enabled(&mem_profiling_compressed))
++		return;
++
++	rcu_assign_pointer(alloc_tag_add_early_pfn_ptr, NULL);
++	/* Make sure we are not racing with __alloc_tag_add_early_pfn() */
++	synchronize_rcu();
++
++	for (pool = current_pfn_pool; pool; pool = next) {
++		int nr_pfns = atomic_read(&pool->count);
++
++		for (i = 0; i < nr_pfns; i++) {
++			unsigned long pfn = pool->pfns[i];
++
++			if (pfn_valid(pfn)) {
++				union pgtag_ref_handle handle;
++				union codetag_ref ref;
++
++				if (get_page_tag_ref(pfn_to_page(pfn), &ref, &handle)) {
++					/*
++					 * An early-allocated page could be freed and reallocated
++					 * after its page_ext is initialized but before we clear it.
++					 * In that case, it already has a valid tag set.
++					 * We should not overwrite that valid tag
++					 * with CODETAG_EMPTY.
++					 *
++					 * Note: there is still a small race window between checking
++					 * ref.ct and calling set_codetag_empty(). We accept this
++					 * race as it's unlikely and the extra complexity of atomic
++					 * cmpxchg is not worth it for this debug-only code path.
++					 */
++					if (ref.ct) {
++						put_page_tag_ref(handle);
++						continue;
++					}
++
++					set_codetag_empty(&ref);
++					update_page_tag_ref(handle, &ref);
++					put_page_tag_ref(handle);
++				}
++			}
++		}
++
++		next = pool->next;
++		page = virt_to_page(pool);
++		clear_page_tag_ref(page);
++		__free_page(page);
++	}
++}
++#else /* !CONFIG_MEM_ALLOC_PROFILING_DEBUG */
++static inline void __init clear_early_alloc_pfn_tag_refs(void) {}
++#endif /* CONFIG_MEM_ALLOC_PROFILING_DEBUG */
++
++static __init void init_page_alloc_tagging(void)
++{
++	clear_early_alloc_pfn_tag_refs();
++}
++
++struct page_ext_operations page_alloc_tagging_ops = {
++	.size = sizeof(union codetag_ref),
++	.need = need_page_alloc_tagging,
++	.init = init_page_alloc_tagging,
++};
++EXPORT_SYMBOL(page_alloc_tagging_ops);
++
++#ifdef CONFIG_SYSCTL
++/*
++ * Not using proc_do_static_key() directly to prevent enabling profiling
++ * after it was shut down.
++ */
++static int proc_mem_profiling_handler(const struct ctl_table *table, int write,
++				      void *buffer, size_t *lenp, loff_t *ppos)
++{
++	if (write) {
++		/*
++		 * Call from do_sysctl_args() which is a no-op since the same
++		 * value was already set by setup_early_mem_profiling.
++		 * Return success to avoid warnings from do_sysctl_args().
++		 */
++		if (!current->mm)
++			return 0;
++
++#ifdef CONFIG_MEM_ALLOC_PROFILING_DEBUG
++		/* User can't toggle profiling while debugging */
++		return -EACCES;
++#endif
++		if (!mem_profiling_support)
++			return -EINVAL;
++	}
++
++	return proc_do_static_key(table, write, buffer, lenp, ppos);
++}
++
++
++static const struct ctl_table memory_allocation_profiling_sysctls[] = {
++	{
++		.procname	= "mem_profiling",
++		.data		= &mem_alloc_profiling_key,
++		.mode		= 0644,
++		.proc_handler	= proc_mem_profiling_handler,
++	},
++};
++
++static void __init sysctl_init(void)
++{
++	register_sysctl_init("vm", memory_allocation_profiling_sysctls);
++}
++#else /* CONFIG_SYSCTL */
++static inline void sysctl_init(void) {}
++#endif /* CONFIG_SYSCTL */
++
++static int __init alloc_tag_init(void)
++{
++	const struct codetag_type_desc desc = {
++		.section		= ALLOC_TAG_SECTION_NAME,
++		.tag_size		= sizeof(struct alloc_tag),
++#ifdef CONFIG_MODULES
++		.needs_section_mem	= needs_section_mem,
++		.alloc_section_mem	= reserve_module_tags,
++		.free_section_mem	= release_module_tags,
++		.module_load		= load_module,
++		.module_replaced	= replace_module,
++#endif
++	};
++	int res;
++
++	sysctl_init();
++
++	if (!mem_profiling_support) {
++		pr_info("Memory allocation profiling is not supported!\n");
++		return 0;
++	}
++
++	if (!proc_create_seq_private(ALLOCINFO_FILE_NAME, 0400, NULL, &allocinfo_seq_op,
++				     sizeof(struct allocinfo_private), NULL)) {
++		pr_err("Failed to create %s file\n", ALLOCINFO_FILE_NAME);
++		shutdown_mem_profiling(false);
++		return -ENOMEM;
++	}
++
++	res = alloc_mod_tags_mem();
++	if (res) {
++		pr_err("Failed to reserve address space for module tags, errno = %d\n", res);
++		shutdown_mem_profiling(true);
++		return res;
++	}
++
++	alloc_tag_cttype = codetag_register_type(&desc);
++	if (IS_ERR(alloc_tag_cttype)) {
++		pr_err("Allocation tags registration failed, errno = %pe\n", alloc_tag_cttype);
++		free_mod_tags_mem();
++		shutdown_mem_profiling(true);
++		return PTR_ERR(alloc_tag_cttype);
++	}
++
++	return 0;
++}
++module_init(alloc_tag_init);
+--- a/mm/Kconfig.debug~mm-move-alloc-tag-to-mm
++++ a/mm/Kconfig.debug
+@@ -320,3 +320,31 @@ config PER_VMA_LOCK_STATS
+ 	  overhead in the page fault path.
+ 
+ 	  If in doubt, say N.
++
++config MEM_ALLOC_PROFILING
++	bool "Enable memory allocation profiling"
++	default n
++	depends on MMU
++	depends on PROC_FS
++	depends on !DEBUG_FORCE_WEAK_PER_CPU
++	select CODE_TAGGING
++	select PAGE_EXTENSION
++	select SLAB_OBJ_EXT
++	help
++	  Track allocation source code and record total allocation size
++	  initiated at that code location. The mechanism can be used to track
++	  memory leaks with a low performance and memory impact.
++
++config MEM_ALLOC_PROFILING_ENABLED_BY_DEFAULT
++	bool "Enable memory allocation profiling by default"
++	default y
++	depends on MEM_ALLOC_PROFILING
++
++config MEM_ALLOC_PROFILING_DEBUG
++	bool "Memory allocation profiler debugging"
++	default n
++	depends on MEM_ALLOC_PROFILING
++	select MEM_ALLOC_PROFILING_ENABLED_BY_DEFAULT
++	help
++	  Adds warnings with helpful error messages for memory allocation
++	  profiling.
+--- a/mm/Makefile~mm-move-alloc-tag-to-mm
++++ a/mm/Makefile
+@@ -147,3 +147,4 @@ obj-$(CONFIG_SHRINKER_DEBUG) += shrinker
+ obj-$(CONFIG_EXECMEM) += execmem.o
+ obj-$(CONFIG_TMPFS_QUOTA) += shmem_quota.o
+ obj-$(CONFIG_LAZY_MMU_MODE_KUNIT_TEST) += tests/lazy_mmu_mode_kunit.o
++obj-$(CONFIG_MEM_ALLOC_PROFILING) += alloc_tag.o
 _
 
-Patches currently in -mm which might be from arnd@arndb.de are
+Patches currently in -mm which might be from ljs@kernel.org are
 
+mm-vmalloc-acquire-init_mm-lock-on-huge-vmap-to-avoid-ptdump-uaf.patch
+mm-ptdump-always-stabilise-against-page-table-freeing-using-init_mm.patch
+arm64-remove-redundant-concurrent-ptdump-uaf-mitigation.patch
+x86-mm-pat-acquire-init_mm-write-lock-on-collapse-to-avoid-uaf.patch
+x86-mm-pat-acquire-init_mm-read-lock-on-attribute-change-to-avoid-uaf.patch
+x86-mm-pat-allocate-split-page-tables-as-kernel-page-tables.patch
+mm-move-vma_start_pgoff-into-mmh-and-clean-up.patch
+mm-add-kdoc-comments-for-vma_start-last_pgoff.patch
+tools-testing-vma-use-vma_start_pgoff-in-merge-tests.patch
+mm-introduce-and-use-vma_end_pgoff.patch
+mm-rmap-update-mm-interval_treec-comments.patch
+mm-rmap-parameterise-vma_interval_tree_-by-address_space.patch
+mm-rmap-elide-unnecessary-static-inlines-in-interval_treec.patch
+mm-rmap-rename-vma_interval_tree_-to-mapping_rmap_tree_.patch
+mm-rmap-parameterise-anon_vma_interval_tree_-by-anon_vma.patch
+mm-rmap-rename-anon_vma_interval_tree_-params-and-use-pgoff_t.patch
+mm-rmap-rename-anon_vma_interval_tree_-to-anon_rmap_tree_.patch
+maintainers-move-mm-interval_treec-to-rmap-section.patch
+mm-vma-introduce-and-use-vmg_pages-vmg__pgoff.patch
+mm-vma-clean-up-anon_vma_compatible.patch
+mm-vma-refactor-vmg_adjust_set_range-for-clarity.patch
+mm-vma-minor-cleanup-of-expand_.patch
+mm-introduce-and-use-linear_page_delta.patch
+mm-vma-use-vma_start_pgoff-linear_page_index-in-mm-code.patch
+mm-prefer-vma__pgoff-to-vma-vm_pgoff-in-kernel.patch
+mm-vma-remove-duplicative-vma_pgoff_offset-helper.patch
+mm-use-linear_page_-consistently.patch
+mm-vma-introduce-vma_assert_can_modify.patch
+mm-vma-add-and-use-vma__pgoff.patch
+mm-vma-move-__install_special_mapping-to-vmac.patch
+mm-vma-make-vma_set_range-static-drop-insert_vm_struct-decl.patch
+mm-vma-update-vma_shrink-to-not-pass-start-pgoff-parameters.patch
+mm-vma-update-vmg_adjust_set_range-to-offset-pgoff-instead.patch
+mm-vma-slightly-rework-the-anonymous-check-in-__mmap_new_vma.patch
+mm-vma-introduce-and-use-vma_set_pgoff.patch
+mm-vma-correct-incorrect-vmah-inclusion.patch
+mm-vma-use-guard-clauses-in-can_vma_merge_.patch
+tools-testing-vma-default-vma-mm-flag-bits-to-64-bit.patch
+tools-testing-vma-output-compared-expression-on-assert_.patch
+mm-introduce-vma_flags_can_grow-and-vma_can_grow.patch
+mm-vma-update-do_mmap-to-use-vma_flags_t.patch
+mm-convert-__get_unmapped_area-to-use-vma_flags_t.patch
+mm-update-generic_get_unmapped_area-to-use-vma_flags_t.patch
+mm-prefer-mm-def_vma_flags-in-mm-logic.patch
+mm-vma-convert-vm_pgprot_modify-to-use-vma_flags_t-and-rename.patch
+mm-vma-rename-vma_get_page_prot-to-vma_flags_to_page_prot.patch
+mm-introduce-vma_get_page_prot-and-use-it.patch
+mm-vma-update-create_init_stack_vma-to-use-vma_flags_t.patch
+mm-vma-convert-miscellaneous-uses-of-vma-flags-in-core-mm.patch
+mm-mlock-convert-mlock-code-to-use-vma_flags_t.patch
+mm-mprotect-convert-mprotect-code-to-use-vma_flags_t.patch
+mm-mremap-convert-mremap-code-to-use-vma_flags_t.patch
+mm-mseal-remove-superfluous-comments-fix-confusion-around-mm.patch
+mm-mseal-limit-scope-of-mseal-address-zero-to-address-zero.patch
+mm-mseal-remove-further-superfluous-comments-do_mseal.patch
+mm-vma-introduce-vma-virtual-page-offset-field-and-add-helpers.patch
+mm-introduce-linear_virt_page_index.patch
+mm-abstract-vma_address-and-introduce-vma_anon_address.patch
+mm-update-print_bad_page_map-to-show-virtual-page-index.patch
+mm-introduce-and-use-vma_filebacked_address.patch
+mm-propagate-vma-virtual-page-offset-on-map-remap-split-merge.patch
+mm-rmap-track-whether-the-page-vma-mapped-walk-is-anonymous.patch
+mm-introduce-and-use-linear_folio_page_index.patch
+mm-rmap-use-virt-pgoff-for-map_private-file-backed-anon-folios.patch
+tools-testing-vma-expand-vma-merge-tests-to-assert-virt-pgoff.patch
+tools-testing-selftests-mm-test-virtual-page-offset-merge-behaviour.patch
+mm-vma-only-permit-map_private-dev-zero-to-be-mapped-anonymous.patch
+mm-vma-make-map_private-mapped-dev-zero-mappings-truly-anonymous.patch
+tools-testing-vma-add-test-to-assert-map_private-dev-zero-is-anon.patch
+tools-testing-selftests-mm-add-map_private-dev-zero-merge-tests.patch
 
