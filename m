@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3BFB524DCF9
-	for <mm-commits@vger.kernel.org>; Wed, 29 Jul 2026 00:38:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9F34030C143;
+	Wed, 29 Jul 2026 00:38:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785285493; cv=none; b=SaWQ66lfnyzpFJYRT9UbQ2/jrKZKjbtQk9ocaBtiu1b/Z6fgIBAJ53hUq04bx3MM716g9h7dBpWLw64YMiZtth6Rc1gH2kg3Lt/pbMQaOhcDzINA71h1n1H5X9MzscC4RhnErgp9DxlH2lh0mdfDgoK3qqLD5ZBhHfQBguHV7/g=
+	t=1785285494; cv=none; b=hWpVbxMqOoc5qlQZjA6akk9ZTq565WehJEFsi1xvDzCzQ6QLrQZrO7Ode/sI/LQpHZcPqx8qp8QGHhBW7rDc9apJfnvdGJFwBwY+vueNE5OPggiznitqPjPdpVjiRmfd87gXHn7twtTjrUR+fjy6phwEUdbnA3CGvV0dfOpAUjE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785285493; c=relaxed/simple;
-	bh=R/0loJ1+aC5tV86pSIV+tyzwdiuRHDywsWV09xfxoIQ=;
-	h=Date:To:From:Subject:Message-Id; b=LSaxip6h4yIoi90zMNfDHLBUa/DGGyqLMOQ8LI2Geug028Qu9u603mjiaQp0eceiHwhDQ9Y/L7Suq4S0v0Ym8OfUDBCZTs34LUEp5vbUyaPYwha2WNWxT8zJzFdqzqBEhR/X6FVMsiKL7HbBy5ojKOCgybyYLmXRRPhJd1RCsgM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RdI0jbR/; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785285494; c=relaxed/simple;
+	bh=tHecC5Vt/llpB5zKEy+mTKx2yP+64Gu7iMBsVCDsv0w=;
+	h=Date:To:From:Subject:Message-Id; b=Ve56y8gHuGdd34UCfJ6wfajZmSzNFNaSPgeMbyULXRcTVpwDaNlm6ulhaIRBW97IWEIXVC1dAc0xn9OkuwpnTrjiXho3AO7Xf8hrrSaZfx+BDVCimERQMXqIknQYh7X0Pqli5ehkc6g0OesNgGDw0SfKB6+pJiq7aCbQeiToh1c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=whr9/x72; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RdI0jbR/"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DFF5F1F000E9;
-	Wed, 29 Jul 2026 00:38:11 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="whr9/x72"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 49EBA1F00A3A;
+	Wed, 29 Jul 2026 00:38:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785285492;
-	bh=OQxae+1DIamrDZwpvMzTwEF4eoDJvShvatKn1YQJ4Po=;
+	d=linux-foundation.org; s=korg; t=1785285493;
+	bh=H7E4rLZsyGAOntcgGexZsb4hK7nTt1C+1lbejLnMWmA=;
 	h=Date:To:From:Subject;
-	b=RdI0jbR/eimtLDrKJd/4GZC3SwtaNuUgghnur3bDPuVeLPowsqS0YXZV5cmtUe6Mw
-	 0XhCIFRtMF7h/E1uyclCT3ogdfhRgTvBiTfpjKiuMBkJQIs7bcWHK+mDy+kcIhFlGH
-	 MPidgbwER2m8mAzaguL51OaEioPDEmj5UK6Wat90=
-Date: Tue, 28 Jul 2026 17:38:11 -0700
-To: mm-commits@vger.kernel.org,yuanchu@google.com,weixugc@google.com,tjmercier@google.com,surenb@google.com,shakeel.butt@linux.dev,oleg@redhat.com,minchan@kernel.org,mhocko@suse.com,ljs@kernel.org,liumartin@google.com,kasong@tencent.com,hannes@cmpxchg.org,david@kernel.org,baohua@kernel.org,axelrasmussen@google.com,richardycc@google.com,akpm@linux-foundation.org
+	b=whr9/x72lJ+pP80wShPwtP+CpdSkNeFt99GlkjKLAMJCFIln05k0vSfHVvP4v/0fu
+	 zthZt6kALAQeBgVdW7hhN9BKYK/sV9LCOhIvhOHY3/pfxO0RN6Yl4QMFb7+jtTw2Bq
+	 HhON2erxFbbMpHSZRM1ca0wpFT2oVOePfflHDHqg=
+Date: Tue, 28 Jul 2026 17:38:12 -0700
+To: mm-commits@vger.kernel.org,xuanzhuo@linux.alibaba.com,vbabka@kernel.org,stable@vger.kernel.org,rientjes@google.com,mst@redhat.com,jthoughton@google.com,jiaqiyan@google.com,jasowang@redhat.com,gthelen@google.com,david@kernel.org,alexander.duyck@gmail.com,linkl@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-vmscan-abort-proactive-reclaim-early-when-freezing-for-suspend.patch removed from -mm tree
-Message-Id: <20260729003811.DFF5F1F000E9@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-page_reporting-use-system_freezable_wq-to-fix-uaf-during-suspend.patch removed from -mm tree
+Message-Id: <20260729003813.49EBA1F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,119 +35,106 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: vmscan: abort proactive reclaim early when freezing for suspend
+     Subject: mm/page_reporting: use system_freezable_wq to fix UAF during suspend
 has been removed from the -mm tree.  Its filename was
-     mm-vmscan-abort-proactive-reclaim-early-when-freezing-for-suspend.patch
+     mm-page_reporting-use-system_freezable_wq-to-fix-uaf-during-suspend.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Richard Chang <richardycc@google.com>
-Subject: mm: vmscan: abort proactive reclaim early when freezing for suspend
-Date: Mon, 20 Jul 2026 04:41:03 +0000
+From: Link Lin <linkl@google.com>
+Subject: mm/page_reporting: use system_freezable_wq to fix UAF during suspend
+Date: Tue, 21 Jul 2026 00:55:33 +0000
 
-Proactive reclaim (triggered via memory.reclaim or node sysfs) checks for
-pending signals in its outer loop in user_proactive_reclaim().  However,
-the inner reclaim loops—specifically scanning cgroups in shrink_many()
-and evicting/aging folios in try_to_shrink_lruvec()—can run for a long
-time before returning to the outer loop, especially on systems with many
-cgroups or large memory sizes.
+During PM freeze (e.g.  S3 suspend or S4 hibernation), device drivers like
+virtio_balloon reset their underlying virtio devices and delete their
+virtqueues via vdev->config->del_vqs().
 
-During system suspend, the PM freezer attempts to freeze all tasks by
-sending fake signals (setting TIF_SIGPENDING).  Because the inner loops do
-not check for pending signals, the proactive reclaim task can remain stuck
-in kernel space for seconds, failing to enter the refrigerator in a timely
-manner.  This leads to suspend failures due to freeze timeouts, a behavior
-observed on Android devices.
+However, page reporting work (page_reporting_process) was scheduled on the
+global system_wq.  Because system_wq lacks the WQ_FREEZABLE flag, the PM
+freezer skips it, leaving page_reporting_process active during suspend.
 
-This latency issue is specific to proactive reclaim because of its large,
-user-defined reclaim targets (could be gigabytes).  Since commit
-287d5fedb377 ("mm: memcg: use larger batches for proactive reclaim"),
-proactive reclaim uses larger decaying batch sizes (starting at 1/4 of the
-remaining target) to maintain throughput.  This keeps the task in the
-inner reclaim loop for extended periods.  In contrast, reactive reclaim
-(global/memcg) uses small targets (SWAP_CLUSTER_MAX, typically 32 pages),
-allowing it to return to the outer loop and check signals frequently.
+If pages are freed into the buddy allocator while suspending (for example,
+when core MM invokes the balloon shrinker during S4 hibernation image
+saving), page reporting triggers virtballoon_free_page_report() on deleted
+virtqueues, resulting in a Use-After-Free / General Protection Fault:
 
-To fix this, add a signal_pending() check to should_abort_scan() for
-proactive reclaim paths.  Since should_abort_scan() is called within the
-inner scanning and eviction loops, this allows proactive reclaim to abort
-early and return to the outer loop in user_proactive_reclaim().
+    [  196.795226] general protection fault, probably for non-canonical address 0xaa1436fe70dae6df: 0000 [#1] SMP NOPTI
+    [  196.825967] Workqueue: events page_reporting_process
+    [  196.831038] RIP: 0010:virtqueue_add_split+0x233/0x4c0 [virtio_ring]
+    [  196.927073] virtballoon_free_page_report+0x3a/0xe0 [virtio_balloon]
+    [  196.946943] page_reporting_process+0x370/0x4f0
 
-Additionally, return -ERESTARTSYS instead of -EINTR in
-user_proactive_reclaim().  When interrupted by system suspend, returning
--ERESTARTSYS allows the task to enter the refrigerator and automatically
-restart the syscall upon resume, making the freezer transparent to
-userspace.  For real signals, the signal layer will either restart the
-syscall (if SA_RESTART is set) or return -EINTR to userspace.
+Fix this by switching page reporting work to system_freezable_wq.  This
+ensures that the PM freezer pauses page_reporting_process before device
+drivers destroy their reporting virtqueues.  Because the reporting worker
+is frozen, memory reclamation/freeing (e.g.  via shrinker execution) can
+safely return pages to MM during freeze without triggering unfrozen
+reporting work on deleted virtqueues.
 
-This fix specifically targets Multi-Gen LRU (MGLRU).  Classic LRU's scan
-targets per iteration are strictly bounded by get_scan_count(), which
-ensures it returns to the outer loop more frequently.
+This aligns with the driver's existing design. The comment in
+virtballoon_freeze() states:
+    /*
+     * The workqueue is already frozen by the PM core before this
+     * function is called.
+     */
 
-The check in should_abort_scan() is limited to proactive reclaim
-(sc->proactive) to avoid inadvertently affecting reactive reclaim paths,
-and is wrapped in unlikely() as it is a slow path.
+Testing:
+I have verified these fixes using Google’s virtualization infrastructure
+by running continuous suspend/resume iterations (40+ cycles) while
+churning memory using stress-ng (`stress-ng --vm 4 --vm-bytes 60%
+--timeout 1`) to constantly create free pages for the buddy allocator.  We
+also set the `page_reporting_order` parameter to 0 to make the page
+reporting worker highly sensitive, forcing it to pick up any 4K free
+pages.  This confirmed that the UAF crashes are no longer reproducible.
 
-Link: https://lore.kernel.org/20260720044103.905191-1-richardycc@google.com
-Fixes: 287d5fedb377 ("mm: memcg: use larger batches for proactive reclaim")
-Fixes: 94968384dde1 ("memcg: introduce per-memcg reclaim interface")
-Suggested-by: Michal Hocko <mhocko@suse.com>
-Suggested-by: Oleg Nesterov <oleg@redhat.com>
-Signed-off-by: Richard Chang <richardycc@google.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Kairui Song <kasong@tencent.com>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Martin Liu <liumartin@google.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: T.J. Mercier <tjmercier@google.com>
-Cc: Wei Xu <weixugc@google.com>
-Cc: Yuanchu Xie <yuanchu@google.com>
+Link: https://lore.kernel.org/20260721005603.1710551-1-linkl@google.com
+Fixes: 36e66c554b5c ("mm: introduce Reported pages")
+Signed-off-by: Link Lin <linkl@google.com>
+Suggested-by: David Hildenbrand (Arm) <david@kernel.org>
+Suggested-by: Michael S. Tsirkin <mst@redhat.com>
+Acked-by: David Rientjes <rientjes@google.com>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Acked-by: Michael S. Tsirkin <mst@redhat.com>
+Cc: Alexander Duyck <alexander.duyck@gmail.com>
+Cc: Greg Thelen <gthelen@google.com>
+Cc: James Houghton <jthoughton@google.com>
+Cc: Jason Wang <jasowang@redhat.com>
+Cc: Jiaqi Yan <jiaqiyan@google.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Xuan Zhuo <xuanzhuo@linux.alibaba.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   12 +++++++++++-
- 1 file changed, 11 insertions(+), 1 deletion(-)
+ mm/page_reporting.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
---- a/mm/vmscan.c~mm-vmscan-abort-proactive-reclaim-early-when-freezing-for-suspend
-+++ a/mm/vmscan.c
-@@ -4926,6 +4926,9 @@ static bool should_abort_scan(struct lru
- 	int i;
- 	enum zone_watermarks mark;
+--- a/mm/page_reporting.c~mm-page_reporting-use-system_freezable_wq-to-fix-uaf-during-suspend
++++ a/mm/page_reporting.c
+@@ -80,7 +80,8 @@ __page_reporting_request(struct page_rep
+ 	 * now we are limiting this to running no more than once every
+ 	 * couple of seconds.
+ 	 */
+-	schedule_delayed_work(&prdev->work, PAGE_REPORTING_DELAY);
++	queue_delayed_work(system_freezable_wq, &prdev->work,
++			   PAGE_REPORTING_DELAY);
+ }
  
-+	if (unlikely(sc->proactive && signal_pending(current)))
-+		return true;
-+
- 	if (sc->nr_reclaimed >= max(sc->nr_to_reclaim, compact_gap(sc->order)))
- 		return true;
+ /* notify prdev of free page reporting request */
+@@ -340,7 +341,8 @@ err_out:
+ 	 */
+ 	state = atomic_cmpxchg(&prdev->state, state, PAGE_REPORTING_IDLE);
+ 	if (state == PAGE_REPORTING_REQUESTED)
+-		schedule_delayed_work(&prdev->work, PAGE_REPORTING_DELAY);
++		queue_delayed_work(system_freezable_wq, &prdev->work,
++				   PAGE_REPORTING_DELAY);
+ }
  
-@@ -7906,8 +7909,15 @@ int user_proactive_reclaim(char *buf,
- 		unsigned long batch_size = (nr_to_reclaim - nr_reclaimed) / 4;
- 		unsigned long reclaimed;
- 
-+		/*
-+		 * Return -ERESTARTSYS to allow the freezer to interrupt the
-+		 * task. The syscall will be transparently restarted upon
-+		 * resume. For real signals, it either restarts the syscall
-+		 * (if SA_RESTART is set) or is converted to -EINTR by the
-+		 * signal layer.
-+		 */
- 		if (signal_pending(current))
--			return -EINTR;
-+			return -ERESTARTSYS;
- 
- 		/*
- 		 * This is the final attempt, drain percpu lru caches in the
+ static DEFINE_MUTEX(page_reporting_mutex);
 _
 
-Patches currently in -mm which might be from richardycc@google.com are
+Patches currently in -mm which might be from linkl@google.com are
 
-mm-zsmalloc-fix-release-order-of-locks-in-zs_page_migrate.patch
 
