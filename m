@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3A2A23911BC
-	for <mm-commits@vger.kernel.org>; Wed, 29 Jul 2026 04:14:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 77BBD3932C2
+	for <mm-commits@vger.kernel.org>; Wed, 29 Jul 2026 04:14:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785298485; cv=none; b=j8KZnWWmv0KJJcCQBiGVZWzePYtLv3jM/w/+qWWTa7OSZvkox918EwJTNHR+x4UgzcE0xTSIj35OVY8sS/9R/D2nXoK17QyUw0kpsRxXnaAclidBrXwaB27Zi6MdaW6JWdxZoDoOQYLzei37EiaxxfUrLUwKSqN8vl8is8srpNo=
+	t=1785298486; cv=none; b=VqxTXqSo0rKqW9YFNh5pSDKr7j0ZZao33NPSROLwtFwog3JTQygq3o0mHwKehXKOX7FuDXXw9CTfWo5QEDaqtaYVHL+WcmZpQ7dzenwTlQKEjrV1VFRNymUOpX1kjgNgIa/EMRYOJuQKnqCl3ENxmJW72isxZb+M8gTggFpmTNA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785298485; c=relaxed/simple;
-	bh=upfGec+n50aN74Q4E5WEQ9DhAzUDB3XghHuAzryzw1g=;
-	h=Date:To:From:Subject:Message-Id; b=nmyoCYwK0P2qBLuSEeVVHAQHZYZ8KWxjTdHGt1/iIURtKvs7iK7/5RbQK7naTEICySEBWEtGxjBgwHokaL7+n++5NAqxGMwgF0R0c5nwkQK2OiuVywdXdTpKZrd7TFO6GfD85iLimA1XYjUbWBTM8V+8om3ZgwnGlbrzrXu3Euc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TOiqw4EI; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785298486; c=relaxed/simple;
+	bh=vVgAQJkTqG1Pn9fLRbdvcBXkDQGvJfG7caLPuHsi/Gw=;
+	h=Date:To:From:Subject:Message-Id; b=Pt+4J1k+tqXrtOmXohLbJDTTg6tMbCGKhPDdhFt8Odm2l4m9SOQ0mZBJR6Z4YsFLGC3jknsl8pfV8Hbr2E3ndRFDx805yN30mfkTr0F8ztm8PDNfmOQLbQyxjJZqiLrKWbDxYPUQ9E0KiPFgypJcJSg1NULHMJSD+8yloGycFdY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JuhNHYVC; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TOiqw4EI"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0CC9C1F00A3A;
-	Wed, 29 Jul 2026 04:14:44 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JuhNHYVC"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5047F1F000E9;
+	Wed, 29 Jul 2026 04:14:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785298484;
-	bh=XBNSiSWPsS3Gw+6TCctN1Fb9JsS24Q4PVcyZcMzvNOc=;
+	d=linux-foundation.org; s=korg; t=1785298485;
+	bh=3wduisD3k4kZRTCUK/3m89T4Ay4XNN1QqOWEknVljTQ=;
 	h=Date:To:From:Subject;
-	b=TOiqw4EIDFGLbfxc6fJA8t7pcSoWs/T5lhJ/VfYgcDabL6Zem1qfVjmCO4bdyMTv5
-	 xe3Z1P5tt4PC1ksmXYgMIsJnerZf/UL3/dOXXiXTrWQw+mXdbrSdSq2PK8rBfhAHZ9
-	 ITw7Ogd5u49pkXk7XPg2nxXSANeL6zextpRDzJOA=
-Date: Tue, 28 Jul 2026 21:14:43 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,rdunlap@infradead.org,akpm@linux-foundation.org
+	b=JuhNHYVCRH+bAYUUeEFq0yR2Az47ohJuzcGV73XvwtY04cnP/35Yx0Ps5aj2ChnLY
+	 57W1f0/dKz/9BdPPzZPP/6RHczHSuJVjWTCB29M0mD23Bpshs3g0iHtrx14Htd++oZ
+	 A4PIpfIXsLYL6sF14obT4g/vbX+TZfTNReCavVYQ=
+Date: Tue, 28 Jul 2026 21:14:44 -0700
+To: mm-commits@vger.kernel.org,yuanchu@google.com,weixugc@google.com,vbabka@kernel.org,shikemeng@huaweicloud.com,shakeel.butt@linux.dev,pfalcato@suse.de,nphamcs@gmail.com,ljs@kernel.org,liam@infradead.org,kasong@tencent.com,jannh@google.com,david@kernel.org,chrisl@kernel.org,baoquan.he@linux.dev,baohua@kernel.org,axelrasmussen@google.com,wangxuewen@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] radix-tree-add-correct-some-kernel-doc.patch removed from -mm tree
-Message-Id: <20260729041444.0CC9C1F00A3A@smtp.kernel.org>
+Subject: [merged mm-stable] mm-annotate-data-race-in-cpu_needs_drain.patch removed from -mm tree
+Message-Id: <20260729041445.5047F1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,78 +35,78 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: radix-tree: add/correct some kernel-doc
+     Subject: mm: annotate data-race in cpu_needs_drain()
 has been removed from the -mm tree.  Its filename was
-     radix-tree-add-correct-some-kernel-doc.patch
+     mm-annotate-data-race-in-cpu_needs_drain.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: radix-tree: add/correct some kernel-doc
-Date: Sat, 27 Jun 2026 11:58:58 -0700
+From: Xuewen Wang <wangxuewen@kylinos.cn>
+Subject: mm: annotate data-race in cpu_needs_drain()
+Date: Fri, 26 Jun 2026 13:37:00 +0800
 
-Correct some kernel-doc issues in radix-tree.h:
-- use "DOC:" so that a kernel-doc comment is parsed correctly
-  (or we could just use "/*" for that comment)
-- add one function parameter description
-- add one function parameter name inside the prototype
+KCSAN reports a data-race when cpu_needs_drain() reads another CPU's
+per-cpu folio_batch->nr without locking, while the owning CPU writes to it
+via folio_batch_add().
 
-to fix these warnings:
+Reading a slightly stale value is harmless -- cpu_needs_drain() only
+decides whether to schedule a drain, and the next iteration of
+__lru_add_drain_all() will re-check.  Use data_race() to annotate the
+intentional race.
 
-Warning: include/linux/radix-tree.h:164 Incorrect use of kernel-doc format:
- * radix_tree_deref_slot - dereference a slot
-Warning: include/linux/radix-tree.h:177 cannot understand function
- prototype: '* @slot: slot pointer, returned by radix_tree_lookup_slot
-Warning: include/linux/radix-tree.h:192 function parameter 'treelock'
- not described in 'radix_tree_deref_slot_protected'
-Warning: include/linux/radix-tree.h:309 function parameter '' not
- described in 'radix_tree_next_chunk'
-
-Link: https://lore.kernel.org/20260627185859.1632928-1-rdunlap@infradead.org
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+[akpm@linux-foundation.org: reindent cpu_needs_drain, per David & Lorenzo]
+Link: https://lore.kernel.org/20260626053700.2036899-1-wangxuewen@kylinos.cn
+Signed-off-by: Xuewen Wang <wangxuewen@kylinos.cn>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Reviewed-by: Pedro Falcato <pfalcato@suse.de>
+Reviewed-by: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Baoquan He <baoquan.he@linux.dev>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Chris Li <chrisl@kernel.org>
+Cc: Jann Horn <jannh@google.com>
+Cc: Kairui Song <kasong@tencent.com>
+Cc: Kemeng Shi <shikemeng@huaweicloud.com>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Wei Xu <weixugc@google.com>
+Cc: Yuanchu Xie <yuanchu@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/radix-tree.h |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ mm/swap.c |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
---- a/include/linux/radix-tree.h~radix-tree-add-correct-some-kernel-doc
-+++ a/include/linux/radix-tree.h
-@@ -111,7 +111,7 @@ struct radix_tree_iter {
- };
+--- a/mm/swap.c~mm-annotate-data-race-in-cpu_needs_drain
++++ a/mm/swap.c
+@@ -831,13 +831,13 @@ static bool cpu_needs_drain(unsigned int
+ 	struct cpu_fbatches *fbatches = &per_cpu(cpu_fbatches, cpu);
  
- /**
-- * Radix-tree synchronization
-+ * DOC: Radix-tree synchronization
-  *
-  * The radix-tree API requires that users provide all synchronisation (with
-  * specific exceptions, noted below).
-@@ -182,6 +182,7 @@ static inline void *radix_tree_deref_slo
- /**
-  * radix_tree_deref_slot_protected - dereference a slot with tree lock held
-  * @slot: slot pointer, returned by radix_tree_lookup_slot
-+ * @treelock: caller must hold this spinlock
-  *
-  * Similar to radix_tree_deref_slot.  The caller does not hold the RCU read
-  * lock but it must hold the tree lock to prevent parallel updates.
-@@ -306,7 +307,7 @@ radix_tree_iter_init(struct radix_tree_i
-  * Also it fills @iter with data about chunk: position in the tree (index),
-  * its end (next_index), and constructs a bit mask for tagged iterating (tags).
-  */
--void __rcu **radix_tree_next_chunk(const struct radix_tree_root *,
-+void __rcu **radix_tree_next_chunk(const struct radix_tree_root *root,
- 			     struct radix_tree_iter *iter, unsigned flags);
+ 	/* Check these in order of likelihood that they're not zero */
+-	return folio_batch_count(&fbatches->lru_add) ||
+-		folio_batch_count(&fbatches->lru_move_tail) ||
+-		folio_batch_count(&fbatches->lru_deactivate_file) ||
+-		folio_batch_count(&fbatches->lru_deactivate) ||
+-		folio_batch_count(&fbatches->lru_lazyfree) ||
+-		folio_batch_count(&fbatches->lru_activate) ||
+-		need_mlock_drain(cpu) ||
++	return data_race(folio_batch_count(&fbatches->lru_add) ||
++			 folio_batch_count(&fbatches->lru_move_tail) ||
++			 folio_batch_count(&fbatches->lru_deactivate_file) ||
++			 folio_batch_count(&fbatches->lru_deactivate) ||
++			 folio_batch_count(&fbatches->lru_lazyfree) ||
++			 folio_batch_count(&fbatches->lru_activate) ||
++			 need_mlock_drain(cpu)) ||
+ 		has_bh_in_lru(cpu, NULL);
+ }
  
- /**
 _
 
-Patches currently in -mm which might be from rdunlap@infradead.org are
+Patches currently in -mm which might be from wangxuewen@kylinos.cn are
 
-delaytop-sort-by-max-delay-to-highlight-top-latency-processes-fix.patch
-rbtree-fixup-kernel-doc-names.patch
-llist-use-correct-function-parameter-name.patch
-stacktrace-header-repair-kernel-doc-comments.patch
+mm-damon-remove-trailing-semicolons-after-function-definitions.patch
 
