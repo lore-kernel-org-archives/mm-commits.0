@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 259913911BC
-	for <mm-commits@vger.kernel.org>; Wed, 29 Jul 2026 04:14:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 66BD8392806
+	for <mm-commits@vger.kernel.org>; Wed, 29 Jul 2026 04:14:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785298460; cv=none; b=XIDxP3tROJtC1SvjhAXHkThhJSrxTcBCx/PkXQ9bS0oS+IPdyaZTPLseNlLVRvYVP/gogJpXGXTAQYho7Uz81YsSawJDRaDwCFxcgLs9oAVeXZrO2s0POYu8EfNu8EVM/CcZA8ua/nc058H4Ckys8Ea3340g4HIrDjTje/gyOnw=
+	t=1785298461; cv=none; b=sOvHyUFLPEqATGi6doxz8vUriTgebsXZeiPoQVEoCvVNzYJCPFhWcsnQE9vyjLKtfJSYaRL9FwsxZ4Zi7FSp/+mp7WW9kMcv3LaCkegi3PWCVUHL3giP9jhVDJ9dSQzVhfoNnkJqZYvgX52vKhLoqDYY5zw4sc1YEOI3E+XUpv0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785298460; c=relaxed/simple;
-	bh=a2JtukYASj5ooLyP028heyrTb+L3DQM9LnYZhvLGzvg=;
-	h=Date:To:From:Subject:Message-Id; b=YeJRlIoPhJG/xpEuG9zXg5V+GRz0ruf6HRmBpnHQy4dDETg+PJF1k7C9YsfWFv3pPsXTxVtnJ8h82qZZPRO8kWqfy83ZVtH3CVyPVvUjmmguEvEVKCEpnu2NMv5B0Xevykl4n9DyG5VAAWruvFiiCMsmbJH4CYwq6QxWzypvMf8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hvUpos4S; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785298461; c=relaxed/simple;
+	bh=vl9ZlJ0/bxKW4wigfLMaot27qcGBSzLH1+o+ST0y2eY=;
+	h=Date:To:From:Subject:Message-Id; b=I7Z2i1hGNCKbYCzkJv5P7nrPky9D17ARods+CSbnUjCj3QR1dAHylsjW7dYZQIgMvA7+Jhz9G6qyWcof4XdUWwgGqdCxhhqVTyJBdbpLkgzHnOdt70ECXudMfcS/1JKn5xcZUry38ucbfLFMvUuG/BiDk8xF3aXexycoiJ7MgV4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jTTq/EeC; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hvUpos4S"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id ECB281F000E9;
-	Wed, 29 Jul 2026 04:14:18 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jTTq/EeC"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3DC1B1F00A3A;
+	Wed, 29 Jul 2026 04:14:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785298459;
-	bh=KZh9+1ZelximpuDc7q1I/AZ6VEWzKFMnvus48xPxzTg=;
+	d=linux-foundation.org; s=korg; t=1785298460;
+	bh=vOdp/QlmyWEWrAT26AIJWUCYD7jhzQ6BDQqtfHDwf/U=;
 	h=Date:To:From:Subject;
-	b=hvUpos4STXAoCfkntUj8skoJ/mJYK8UF+IapeDdZm3NJusatUKIYJmJqzfswwQ9Ne
-	 WBh2MXKAeMj1P+B2/M5iuMvqaLuuUENur+BBjELXeCWRAaf+hMXL3y3vRGa3U5UDr1
-	 Siio/wqWBIy21Oec4vJg03dTG5tjYlJEtxArPJiE=
-Date: Tue, 28 Jul 2026 21:14:18 -0700
+	b=jTTq/EeC5HhprNyzTJoaIUJuljC+xYJxy4cus9RwIQ0MQkIznkLKNRF8zJLqJNXrm
+	 OoaBIh8lXdqfPx0uWs96WWHHzOMcILHNLfOf+JXy7yF91tgI252FNLGP3STm8uBHrf
+	 H3B9lGHG6o/SVkZqKsUiNOEoUEHUjJAYJRpRK99c=
+Date: Tue, 28 Jul 2026 21:14:19 -0700
 To: mm-commits@vger.kernel.org,vbabka@kernel.org,usama.arif@linux.dev,rppt@kernel.org,ritesh.list@gmail.com,osalvador@suse.de,osalvador@kernel.org,npiggin@gmail.com,mpe@ellerman.id.au,maddy@linux.ibm.com,ljs@kernel.org,liam@infradead.org,fvdl@google.com,david@kernel.org,aneesh.kumar@linux.ibm.com,songmuchun@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-mm_init-simplify-deferred_free_pages-migratetype-init.patch removed from -mm tree
-Message-Id: <20260729041418.ECB281F000E9@smtp.kernel.org>
+Subject: [merged mm-stable] mm-sparse-panic-on-memmap-and-usemap-allocation-failure.patch removed from -mm tree
+Message-Id: <20260729041420.3DC1B1F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,26 +35,34 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/mm_init: simplify deferred_free_pages() migratetype init
+     Subject: mm/sparse: panic on memmap and usemap allocation failure
 has been removed from the -mm tree.  Its filename was
-     mm-mm_init-simplify-deferred_free_pages-migratetype-init.patch
+     mm-sparse-panic-on-memmap-and-usemap-allocation-failure.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm/mm_init: simplify deferred_free_pages() migratetype init
-Date: Fri, 12 Jun 2026 11:58:49 +0800
+Subject: mm/sparse: panic on memmap and usemap allocation failure
+Date: Fri, 12 Jun 2026 11:58:50 +0800
 
-deferred_free_pages() open-codes two loops to initialize the pageblock
-migratetype for a range of pages.
+When vmemmap or usemap allocation fails, sparse_init_nid() currently marks
+the section non-present and continues.  Later boot-time code can still
+walk PFNs in that section without checking for this partial setup, which
+leads to invalid accesses.  subsection_map_init() can also touch an
+unallocated usemap.
 
-Replace them with pageblock_migratetype_init_range() to remove the
-duplication and make the code clearer (Note that deferred_free_pages() may
-be called from atomic context).
+Auditing and fixing all early PFN walkers for this case is not worth the
+complexity.  These allocation failures are expected to be fatal anyway,
+and other memory models already treat them that way.
 
-Link: https://lore.kernel.org/20260612035903.2468601-6-songmuchun@bytedance.com
+Make memmap and usemap allocation failures panic immediately instead of
+trying to recover and crashing later in less obvious ways.  This is also
+consistent with how other memory model configurations handle memmap
+allocation failures.
+
+Link: https://lore.kernel.org/20260612035903.2468601-7-songmuchun@bytedance.com
 Signed-off-by: Muchun Song <songmuchun@bytedance.com>
 Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Acked-by: Oscar Salvador <osalvador@suse.de>
@@ -73,68 +81,89 @@ Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mm_init.c |   19 ++++++++-----------
- 1 file changed, 8 insertions(+), 11 deletions(-)
+ mm/sparse.c |   44 +++++++++-----------------------------------
+ 1 file changed, 9 insertions(+), 35 deletions(-)
 
---- a/mm/mm_init.c~mm-mm_init-simplify-deferred_free_pages-migratetype-init
-+++ a/mm/mm_init.c
-@@ -674,15 +674,15 @@ static inline void fixup_hashdist(void)
- static inline void fixup_hashdist(void) {}
- #endif /* CONFIG_NUMA */
- 
--#ifdef CONFIG_ZONE_DEVICE
-+#if defined(CONFIG_ZONE_DEVICE) || defined(CONFIG_DEFERRED_STRUCT_PAGE_INIT)
- static __meminit void pageblock_migratetype_init_range(unsigned long pfn,
--		unsigned long nr_pages, int migratetype)
-+		unsigned long nr_pages, int migratetype, bool atomic)
+--- a/mm/sparse.c~mm-sparse-panic-on-memmap-and-usemap-allocation-failure
++++ a/mm/sparse.c
+@@ -239,15 +239,8 @@ struct page __init *__populate_section_m
+ 		struct dev_pagemap *pgmap)
  {
- 	const unsigned long end = pfn + nr_pages;
+ 	unsigned long size = section_map_size();
+-	struct page *map;
+-	phys_addr_t addr = __pa(MAX_DMA_ADDRESS);
  
- 	for (pfn = pageblock_align(pfn); pfn < end; pfn += pageblock_nr_pages) {
- 		init_pageblock_migratetype(pfn_to_page(pfn), migratetype, false);
--		if (IS_ALIGNED(pfn, PAGES_PER_SECTION))
-+		if (!atomic && IS_ALIGNED(pfn, PAGES_PER_SECTION))
- 			cond_resched();
- 	}
+-	map = memmap_alloc(size, size, addr, nid, false);
+-	if (!map)
+-		panic("%s: Failed to allocate %lu bytes align=0x%lx nid=%d from=%pa\n",
+-		      __func__, size, PAGE_SIZE, nid, &addr);
+-
+-	return map;
++	return memmap_alloc(size, size, __pa(MAX_DMA_ADDRESS), nid, false);
  }
-@@ -1142,7 +1142,7 @@ void __ref memmap_init_zone_device(struc
- 				     compound_nr_pages(pfn, altmap, pgmap));
- 	}
+ #endif /* !CONFIG_SPARSEMEM_VMEMMAP */
  
--	pageblock_migratetype_init_range(start_pfn, nr_pages, MIGRATE_MOVABLE);
-+	pageblock_migratetype_init_range(start_pfn, nr_pages, MIGRATE_MOVABLE, false);
+@@ -300,17 +293,14 @@ static void __init sparse_init_nid(int n
+ 				   unsigned long map_count)
+ {
+ 	unsigned long pnum;
+-	struct page *map;
+-	struct mem_section *ms;
  
- 	pr_debug("%s initialised %lu pages in %ums\n", __func__,
- 		nr_pages, jiffies_to_msecs(jiffies - start));
-@@ -1988,12 +1988,12 @@ static void __init deferred_free_pages(u
- 	if (!nr_pages)
- 		return;
- 
-+	pageblock_migratetype_init_range(pfn, nr_pages, mt, true);
-+
- 	page = pfn_to_page(pfn);
- 
- 	/* Free a large naturally-aligned chunk if possible */
- 	if (nr_pages == MAX_ORDER_NR_PAGES && IS_MAX_ORDER_ALIGNED(pfn)) {
--		for (i = 0; i < nr_pages; i += pageblock_nr_pages)
--			init_pageblock_migratetype(page + i, mt, false);
- 		__free_pages_core(page, MAX_PAGE_ORDER, MEMINIT_EARLY);
- 		return;
- 	}
-@@ -2001,11 +2001,8 @@ static void __init deferred_free_pages(u
- 	/* Accept chunks smaller than MAX_PAGE_ORDER upfront */
- 	accept_memory(PFN_PHYS(pfn), nr_pages * PAGE_SIZE);
- 
--	for (i = 0; i < nr_pages; i++, page++, pfn++) {
--		if (pageblock_aligned(pfn))
--			init_pageblock_migratetype(page, mt, false);
--		__free_pages_core(page, 0, MEMINIT_EARLY);
+-	if (sparse_usage_init(nid, map_count)) {
+-		pr_err("%s: node[%d] usemap allocation failed", __func__, nid);
+-		goto failed;
 -	}
-+	for (i = 0; i < nr_pages; i++)
-+		__free_pages_core(page + i, 0, MEMINIT_EARLY);
++	if (sparse_usage_init(nid, map_count))
++		panic("Failed to allocate usemap for node %d\n", nid);
+ 
+ 	sparse_vmemmap_init_nid_early(nid);
+ 
+ 	for_each_present_section_nr(pnum_begin, pnum) {
++		struct mem_section *ms;
+ 		unsigned long pfn = section_nr_to_pfn(pnum);
+ 
+ 		if (pnum >= pnum_end)
+@@ -318,34 +308,18 @@ static void __init sparse_init_nid(int n
+ 
+ 		ms = __nr_to_section(pnum);
+ 		if (!preinited_vmemmap_section(ms)) {
++			struct page *map;
++
+ 			map = __populate_section_memmap(pfn, PAGES_PER_SECTION,
+-					nid, NULL, NULL);
+-			if (!map) {
+-				pr_err("%s: node[%d] memory map backing failed. Some memory will not be available.",
+-				       __func__, nid);
+-				pnum_begin = pnum;
+-				sparse_usage_fini();
+-				goto failed;
+-			}
++							nid, NULL, NULL);
++			if (!map)
++				panic("Failed to allocate memmap for section %lu\n", pnum);
+ 			memmap_boot_pages_add(DIV_ROUND_UP(PAGES_PER_SECTION * sizeof(struct page),
+ 							   PAGE_SIZE));
+ 			sparse_init_early_section(nid, map, pnum, 0);
+ 		}
+ 	}
+ 	sparse_usage_fini();
+-	return;
+-failed:
+-	/*
+-	 * We failed to allocate, mark all the following pnums as not present,
+-	 * except the ones already initialized earlier.
+-	 */
+-	for_each_present_section_nr(pnum_begin, pnum) {
+-		if (pnum >= pnum_end)
+-			break;
+-		ms = __nr_to_section(pnum);
+-		if (!preinited_vmemmap_section(ms))
+-			ms->section_mem_map = 0;
+-	}
  }
  
- /* Completion tracking for deferred_init_memmap() threads */
+ /*
 _
 
 Patches currently in -mm which might be from songmuchun@bytedance.com are
