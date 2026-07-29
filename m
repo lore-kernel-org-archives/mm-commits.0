@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9392D1C28E
-	for <mm-commits@vger.kernel.org>; Wed, 29 Jul 2026 04:15:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D6C2F1F7916
+	for <mm-commits@vger.kernel.org>; Wed, 29 Jul 2026 04:15:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785298529; cv=none; b=bRR7n+AiixLzotvXA0lusVHYn6njIEGzzUYXQBI1vW2bRQHk60M7bwuqP4TAIk8GlQziUPROpHRx9CYS4LbGKQY7vRs3/rDmcc6ljMvo40jzSOl0/OXxm+swz2lOnkv+gIknKpXjEG6hXHcQYwh7VrTne21hNHIWRxoL4VXImG0=
+	t=1785298530; cv=none; b=uN/SMNHPDty1xkO7FJI6QAHbYG7rrx8B7jQcVUFFhS2ArW+6ltYln6/ywBidKWDHyd+Ui1o9HtrWR0ADkVE2VLYHhYG3kPny3EhCRLj/OWUPQkzFJ38SQ4+MH8IpkxSMlP5MP96OKmhDDd8B+ZqvUSHSL0cXXamFbl1lpHKdTrs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785298529; c=relaxed/simple;
-	bh=tfXgWg9JhoaowOjqHtiOIBJIk2kiIXpyvuj/nNgS1Hc=;
-	h=Date:To:From:Subject:Message-Id; b=LHZ9crRC/JsK/0Kg6rUiWtJrvBzGslPPAuvv74P2YRJKvnxsUiLsDLiS9EJCi3Y6G2jnEfeGCZxZHKxjnyR0efu3O74NNCGA+gPlR/5C8yUKQaaP1PAc//mkvZiywaaSJ6/fY+DK3JySv116wMaDjPnZfPtY1gYI+3yXMe6JFa0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=P1nPeZsC; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785298530; c=relaxed/simple;
+	bh=jgo6OUZFfRZeghLXxEG+TxW7v9JdxVGILquqknCGy5U=;
+	h=Date:To:From:Subject:Message-Id; b=o0yF7bPz5rxy0bjUp1LfZ8/c0h2/9N5LseUDv60zVVlPV41Orhm+iBNaXpPIXAW5hTB/HvwN4GHMcuPiJp6WrcwhLAdCNp2r7mGaHAyfM7sPyzCmYbyYTwVkdHljPIY69MZi5vRAsOGkhiZ3sDAXztgtZKNXkUlNdkxcUFx9LQY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=W6kJdfrF; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="P1nPeZsC"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 68D021F00A3D;
-	Wed, 29 Jul 2026 04:15:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="W6kJdfrF"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AD1C61F000E9;
+	Wed, 29 Jul 2026 04:15:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785298527;
-	bh=JlVD9uRbKgyNUc7hzK3bXAyucz9DviUjefW56E8SA4o=;
+	d=linux-foundation.org; s=korg; t=1785298528;
+	bh=0QdGfsb/QUzTLgGjGNrbbUZQb6Tf2roVD+btQflsi6M=;
 	h=Date:To:From:Subject;
-	b=P1nPeZsCIWNP2CabRL4FxzpEJXYXK+czQ2p0IBXDM1VfMLEFiiLDjppOy0bH8MM0R
-	 vjegUNX+kJTOL+UJEayWAAVtNpamjSFL3Iz4lV2TygDBfjViHRDx5htuL/UadBxteU
-	 79aJgs/24cxBKXJ101N6vc4Nt3MQq1+uMj9r8I7k=
-Date: Tue, 28 Jul 2026 21:15:27 -0700
-To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
+	b=W6kJdfrF2WQaxCaZMd412kd0ZLiIH+qkQMpuKp++MuywZ4qAUuMXx2tu02E3RXqLU
+	 LhIq4hVYztQZj4oU4si80ZtqPe4czmlGQDAArPK2G5MQWsEdwibMpPEwpzNxGHDX1W
+	 1gOgM3qfTRH4mk2ugRjxMJcV4heWBeyeXmDkK+rA=
+Date: Tue, 28 Jul 2026 21:15:28 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,rppt@kernel.org,peterz@infradead.org,osalvador@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,lance.yang@linux.dev,jannh@google.com,davem@davemloft.net,andreas@gaisler.com,david@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-sysfs-schemes-kobject_del-region-for-populate_region-error.patch removed from -mm tree
-Message-Id: <20260729041527.68D021F00A3D@smtp.kernel.org>
+Subject: [merged mm-stable] sparc-mm-drop-custom-pte_clear_not_present_full.patch removed from -mm tree
+Message-Id: <20260729041528.AD1C61F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,156 +35,94 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/damon/sysfs-schemes: kobject_del() region for populate_region error
+     Subject: sparc/mm: drop custom pte_clear_not_present_full()
 has been removed from the -mm tree.  Its filename was
-     mm-damon-sysfs-schemes-kobject_del-region-for-populate_region-error.patch
+     sparc-mm-drop-custom-pte_clear_not_present_full.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: SJ Park <sj@kernel.org>
-Subject: mm/damon/sysfs-schemes: kobject_del() region for populate_region error
-Date: Sun, 28 Jun 2026 15:01:20 -0700
+From: "David Hildenbrand (Arm)" <david@kernel.org>
+Subject: sparc/mm: drop custom pte_clear_not_present_full()
+Date: Mon, 29 Jun 2026 15:49:47 +0200
 
-On CONFIG_DEBUG_KOBJECT_RELEASE enabled kernel, lack of kobject_del()
-could cause directories creation failures due to the name conflicts.  Fix
-the issue for tried region directories in the error handling path of
-damon_sysfs_populate_region_dir() by adding a kobject_del() call.
+Patch series "mm: cleanup clear_not_present_full_ptes()", v2.
 
-Link: https://lore.kernel.org/20260628220121.97360-12-sj@kernel.org
-Fixes: b574a82d10de ("mm/damon/sysfs-schemes: implement tried_regions/<r>/probes/")
-Signed-off-by: SJ Park <sj@kernel.org>
+While doing some review, I stumbled over clear_not_present_full_ptes() and
+concluded that it needs some love.
+
+Let's remove pte_clear_not_present_full() and cleanup
+clear_not_present_full_ptes(), renaming it to clear_non_present_ptes().
+
+
+This patch (of 3):
+
+On sparc64, pte_clear_not_present_full() nowadays does a simple
+__set_pte_at().  In __set_pte_at() -> maybe_tlb_batch_add(), we check
+pte_accessible() to see whether to call tlb_batch_add().
+
+However, non-present PTEs are surely not accessible, so tlb_batch_add() is
+never called and the "full" parameter is irrelevant.
+
+Let's drop the helper and just let common code do a pte_clear().
+
+pte_clear() on sparc64 maps to set_pte_at()->set_ptes()->__set_pte_at()
+... so it ends up calling the same function, just with "full=0".
+
+Given that "full" is irrelevant, there is no change.
+
+We added pte_clear_not_present_full() for sparc64 in commit 90f08e399d05
+("sparc: mmu_gather rework"), and I suspect that it was already not
+required back then.
+
+Link: https://lore.kernel.org/20260629-clear_not_present_full_ptes-v2-0-96089871a1e7@kernel.org
+Link: https://lore.kernel.org/20260629-clear_not_present_full_ptes-v2-1-96089871a1e7@kernel.org
+Signed-off-by: David Hildenbrand (Arm) <david@kernel.org>
+Reviewed-by: Lance Yang <lance.yang@linux.dev>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Andreas Larsson <andreas@gaisler.com>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: Jann Horn <jannh@google.com>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Oscar Salvador (SUSE) <osalvador@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/sysfs-schemes.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ arch/sparc/include/asm/pgtable_64.h |    4 ----
+ 1 file changed, 4 deletions(-)
 
---- a/mm/damon/sysfs-schemes.c~mm-damon-sysfs-schemes-kobject_del-region-for-populate_region-error
-+++ a/mm/damon/sysfs-schemes.c
-@@ -3132,12 +3132,14 @@ void damos_sysfs_populate_region_dir(str
- 				sysfs_regions->nr_regions))
- 		goto out;
- 	if (damos_sysfs_region_add_dirs(region, ctx, r))
--		goto out;
-+		goto del_out;
+--- a/arch/sparc/include/asm/pgtable_64.h~sparc-mm-drop-custom-pte_clear_not_present_full
++++ a/arch/sparc/include/asm/pgtable_64.h
+@@ -945,10 +945,6 @@ static inline void set_ptes(struct mm_st
+ #define pte_clear(mm,addr,ptep)		\
+ 	set_pte_at((mm), (addr), (ptep), __pte(0UL))
  
- 	list_add_tail(&region->list, &sysfs_regions->regions_list);
- 	sysfs_regions->nr_regions++;
- 	return;
- 
-+del_out:
-+	kobject_del(&region->kobj);
- out:
- 	kobject_put(&region->kobj);
- }
+-#define __HAVE_ARCH_PTE_CLEAR_NOT_PRESENT_FULL
+-#define pte_clear_not_present_full(mm,addr,ptep,fullmm)	\
+-	__set_pte_at((mm), (addr), (ptep), __pte(0UL), (fullmm))
+-
+ #ifdef DCACHE_ALIASING_POSSIBLE
+ #define __HAVE_ARCH_MOVE_PTE
+ #define move_pte(pte, old_addr, new_addr)				\
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from david@kernel.org are
 
-mm-damon-adjust-isolated-pages-stat-for-damos_migrate_hotcold.patch
-docs-mm-damon-design-update-for-damos_quota_node_eligible_mem_bp.patch
-docs-abi-damon-document-probe-files.patch
-mm-damon-tests-core-kunit-test-damon_rand.patch
-selftests-damon-sysfssh-test-multiple-probe-dirs-creation.patch
-selftests-damon-sysfssh-test-coreops_filters-directories.patch
-selftests-damon-sysfssh-test-dests-dir.patch
-selftests-damon-sysfssh-test-all-files-in-quota-goal-dir.patch
-mm-damon-core-reduce-range-setup-in-damon_commit_target_regions.patch
-mm-damon-sysfs-split-probe-setup-function-out.patch
-mm-damon-sysfs-split-out-filters-setup-function.patch
-mm-damon-sysfs-fix-typos-in-probe_addrm_dirs-s-attr-probe.patch
-mm-damon-core-introduce-damon_nr_accesses_mvsum.patch
-mm-damon-tests-core-kunit-test-damon_mvsum.patch
-mm-damon-core-always-update-last_nr_accesses-for-intervals-change.patch
-mm-damon-core-handle-unreset-nr_accesses-in-damon_nr_accesses_mvsum.patch
-mm-damon-core-use-damon_nr_accesses_mvsum-in-__damos_valid_target.patch
-mm-damon-core-use-damon_nr_accesses_mvsum-for-damos-region-tracing.patch
-mm-damon-sysfs-schemes-use-damon_nr_accesses_mvsum-for-damo-regions.patch
-mm-damon-core-remove-damon_warn_fix_nr_accesses_corruption.patch
-mm-damon-core-remove-damon_verify_reset_aggregated.patch
-mm-damon-core-remove-damon_verify_merge_regions_of.patch
-mm-damon-tests-core-kunit-remove-nr_accesses_bp-setup-and-tests.patch
-selftests-damon-drgn_dump_damon_status-do-not-dump-nr_accesses_bp.patch
-mm-damon-core-remove-nr_accesses_bp-setups-and-updates.patch
-mm-damon-core-remove-attrs-param-from-damon_update_region_access_rate.patch
-mm-damon-paddr-remove-attrs-param-from-__damon_pa_check_access.patch
-mm-damon-vaddr-remove-attrs-param-from-__damon_va_check_access.patch
-mm-damon-core-remove-damon_moving_sum-and-its-unit-test.patch
-mm-damon-core-remove-damon_region-nr_accesses_bp.patch
-mm-damon-add-damon_region-last_probe_hits.patch
-mm-damon-core-introduce-damon_probe_hits_mvsum.patch
-mm-damon-sysfs-schemes-set-probe-hits-as-pseudo-moving-sums.patch
-mm-damon-core-safely-validate-src-on-damon_commit_ctx.patch
-mm-damon-core-do-parameter-testing-commit-on-damon_start.patch
-mm-damon-sysfs-remove-duplicated-commit-input-validity-check.patch
-mm-damon-reclaim-remove-duplicated-min_region_sz-power-of-2-check.patch
-mm-damon-lru_sort-remove-duplicated-min_region_sz-power_of_2-check.patch
-mm-damon-document-region-size-validation-in-damon_set_regions.patch
-mm-damon-core-remove-start-end-check-in-damon_set_region_system_rams.patch
-mm-damon-sysfs-remove-region-size-validation.patch
-mm-damon-core-stop-ctxs-in-damon_start-before-returning-an-error.patch
-samples-damon-mtier-do-not-stop-first-context-for-damon_start-failure.patch
-mm-damon-core-make-damon_stop-never-fails.patch
-mm-damon-sysfs-ignore-damon_stop-return-value.patch
-mm-damon-reclaaim-ignore-damon_stop-return-value.patch
-mm-damon-lru_sort-ignore-damon_stop-return-value.patch
-mm-damon-core-change-damon_stop-return-type-to-void.patch
-samples-damon-mtier-stop-all-contexts-with-single-damon_stop-call.patch
-mm-damon-core-wait-ctx-stop-in-damon_call-before-reruning-an-error.patch
-samples-damon-wsse-do-not-stop-ctx-for-damon_call-failure.patch
-samples-damon-prcl-do-not-stop-damon-for-damon_call-failure.patch
-mm-damon-core-remove-comment-and-test-for-nr_to_bp-divide-by-zero.patch
-mm-damon-core-s-damon_max_nr_accesses-damon_nr_samples_per_aggr.patch
-mm-damon-core-s-accesses_bp_to_nr_accesses-sample_bp_to_count.patch
-mm-damon-core-s-nr_accesses_to_accesses_bp-sample_count_to_bp.patch
-mm-damon-core-s-nr_accesses_for_new_attrs-nr_samples_for_new_attrs.patch
-mm-damon-core-update-probe-hits-for-new-parameter-commit.patch
-mm-damon-core-handle-unreset-probe_hits-in-probe_hits_mvsum.patch
-mm-damon-core-introduce-damon_probe-weight.patch
-mm-damon-core-ask-apply_probes-ops-callback-to-set-sampling-address.patch
-mm-damon-paddr-set-samples-in-apply_probes-if-requested.patch
-mm-damon-core-ask-apply_probe-to-return-max-probe-hits-weighted-sum.patch
-mm-damon-core-implement-damon_probe_hits_wsum.patch
-mm-damon-paddr-respect-return_max_wsum.patch
-mm-damon-core-use-abs_diff-instead-of-abs.patch
-mm-damon-core-extend-merge-function-to-work-with-probe-hits.patch
-mm-damon-core-disallow-probe_hits-overflow-on-attrs-only-monitoring.patch
-mm-damon-core-validate-params-for-probe-hits-weighted-sum-overflow.patch
-mm-damon-core-disable-access-monitoring-when-probe-weights-are-set.patch
-mm-damon-core-set-samples-in-apply_probes-if-probe-weights-are-set.patch
-mm-damon-core-s-max_nr_accesses-max_merge_score-in-kdamond_fn.patch
-mm-damon-core-get-merge-threshold-from-probe-hits-when-weights-are-set.patch
-mm-damon-core-implement-damon_has_probe_weight.patch
-mm-damon-sysfs-implement-probe-weight-file.patch
-docs-mm-damon-design-document-attrs-only-monitoring.patch
-docs-admin-guide-mm-damon-usage-document-weight-sysfs-file.patch
-docs-abi-damon-document-probe-weight-file.patch
-mm-damon-core-skip-aging-from-repeated-aggressive-merging.patch
-mm-damon-core-hide-private-damon_region-fields.patch
-mm-damon-core-hide-private-damon_target-fields.patch
-mm-damon-core-hide-private-damos_quota_goal-fields.patch
-mm-damon-core-hide-private-damos_quota-fields.patch
-mm-damon-core-hide-private-damos_filter-fields.patch
-mm-damon-core-hide-private-damos-fields.patch
-mm-damon-core-hide-private-damon_filter-fields.patch
-mm-damon-core-hide-private-damon_probe-fields.patch
-mm-damon-sysfs-do-not-directly-access-damon_ctx-ops.patch
-mm-damon-core-hide-core-private-damon_ctx-fields.patch
-mm-damon-core-avoid-infinite-kdamond_merge_regions-internal-loop.patch
-mm-damon-tests-core-kunit-catch-test-failure-in-test_merge_regions_of.patch
-mm-damon-vaddr-drop-last-same-folio-access-check-optimization.patch
-mm-damon-paddr-drop-last-same-folio-access-check-reuse-optimization.patch
-mm-damon-sysfs-read-addr_unit-only-once-in-damon_sysfs_apply_inputs.patch
-mm-damon-sysfs-read-ops_id-only-once-in-damon_sysfs_apply_inputs.patch
-mm-damon-core-initialize-damos-last_applied.patch
-mm-damon-core-kunit-check-region-count-before-testing-in-split_at.patch
-mm-damon-vaddr-kunit-check-region-count-in-three_regions-test.patch
-mm-damon-core-kunit-handle-region-split-failure-in-filter_out.patch
-mm-damon-core-kunit-skip-wrong-dest-walk-in-commit_dests_for.patch
-mm-damon-core-kunit-skip-wrong-quota-goal-walk-in-commit_quota_goals.patch
-mm-damon-core-kunit-skip-wrong-region-walk-in-commit_target_regions.patch
-mm-damon-ops-common-use-nr_accesses-moving-sum-for-quota-score.patch
-mm-damon-core-handle-region-split-failure-in-apply_min_nr_regions.patch
+x86-mm-drop-order-parameter-from-free_pagetable.patch
+mm-provide-free_reserved_pages-removing-x86-variant.patch
+s390-mm-use-free_reserved_pages-in-vmem_free_pages.patch
+mm-bootmem_info-allow-calling-free_bootmem_page-on-pages-without-a-bootmem_type.patch
+x86-mm-stop-marking-vmemmap-as-section_info.patch
+x86-mm-stop-marking-page-tables-as-mix_section_info.patch
+x86-mm-remove-config_have_bootmem_info_node.patch
+mm-hugetlb_vmemmap-remove-bootmem_info-leftovers.patch
+mm-sparse-remove-bootmem_infoh-include.patch
+mm-bootmem_info-remove-config_have_bootmem_info_node.patch
+mm-standardize-printing-for-pgtable-entries.patch
 
