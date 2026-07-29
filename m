@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E3E5038C2C0
-	for <mm-commits@vger.kernel.org>; Wed, 29 Jul 2026 04:13:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 40CAC390CA9
+	for <mm-commits@vger.kernel.org>; Wed, 29 Jul 2026 04:13:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785298417; cv=none; b=UPHNHAfxw+giuXzxlkPp4ZyBOXXFY8w069K/K+1tdoytPzp42hEKW+yvYgK1R3KgYsTa6jeVWllqrxhpUGesdDajj0GZL3PiQ9kNXjqEgAOzDPN+x9JJTnZd4G9du7/iDHgsNu+dTvmRaOuHe6plqRuzgqZhJAWNRAWkhs9Hc9I=
+	t=1785298418; cv=none; b=KdZBXsBKZJbBrMCgPO8ZL3A9kFRBkbKsmZhsn6ok/JWYd4B5TZZEAFKtAtY/3nKFBX88z9BRVLtyhu18pmV8uij0+8IByPnEnVQ9BPSrWD8rGMnsMvUiP4bz3qOCMJp8/kpEVB9eSSiD+Zkr40MmxaopSDX4CrF5/kTgWDyjDLU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785298417; c=relaxed/simple;
-	bh=ctgiYH1Ugse+kmIYYZZkOKJClgpSsUn/YeA9F7+oUSw=;
-	h=Date:To:From:Subject:Message-Id; b=MqsG3i1tFi2tXZI4x7oz2wxG1rolbs+oBaZ5itXI9yPHba5HukVu1+WvRkYXkNhjL3d4i8ZnJjtodxOD7Zg0EDDpDH7INV4qYIanDlZMCKo8QjM2mBAF0orXKrvN29wbctCaz6SPFxVHCm1dIcNDn5DKvTsLiB8r3f9vJqaF43I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=j9Jpp4H9; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785298418; c=relaxed/simple;
+	bh=VUU+WbDCC2N0g2LPUomYD/YvOLNTcogOaJbSoBnnCLQ=;
+	h=Date:To:From:Subject:Message-Id; b=Br3VMLEbQgRtXGU3VKkdqlYeNLmEIWi2j2R017FwlNEN/WiHksVY/lnDcOgKHyKMn0k37Vbn3GSu6K/ieIQffMyFh7KAZapLBzXm9WA+bYTxGnwVVKzgF+ZCaFKbvKb7ctE/x2jC1Rg9QrsjScW5G1Qze0v3pbHYUydBAW3JSLA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hpV7eraR; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="j9Jpp4H9"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7F23D1F000E9;
-	Wed, 29 Jul 2026 04:13:35 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hpV7eraR"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 12F031F00A3A;
+	Wed, 29 Jul 2026 04:13:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785298415;
-	bh=CJGufMdWQQiFqvajJJV8d3QRKdaeyVqYehFDCjvxcPk=;
+	d=linux-foundation.org; s=korg; t=1785298417;
+	bh=u8WynCws5qXbPjk4vbQR9NZOL/bnKRTUXIJNkcjKdkY=;
 	h=Date:To:From:Subject;
-	b=j9Jpp4H9HThMlTQ5ASoyaALZ5NxfqQ0Euw1PoIT9e5NyNnq59grT3wEV9xyGHBH96
-	 kQZdeemgoMmLhbccnFaFdS14/heHdvutCC8FOOdjamGE/xRMQMV8yzAyyCa66womqj
-	 nIJwfViO7LcPPN5LIBxnlT7aowbw2y18ooJrZa+k=
-Date: Tue, 28 Jul 2026 21:13:35 -0700
+	b=hpV7eraRIPHFQNX8vFNtXZD+mTM1lfFl17SXsclL0S6wsmHvAZiZkgT1qkvjbxj0P
+	 vuMn/GrHSxhic5GQbnB81AjO9FAtVw8GRp+MC1+SrmFq/SVQFTwB84sOX4A0sTIw4/
+	 SBCuP6LHmIp1AuHo4TJL8byeeEi0o6kFYZUaVbvs=
+Date: Tue, 28 Jul 2026 21:13:36 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,surenb@google.com,mhocko@suse.com,ljs@kernel.org,jackmanb@google.com,hannes@cmpxchg.org,david@kernel.org,ye.liu@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-page_owner-add-missing-newline-to-count_threshold-format-string.patch removed from -mm tree
-Message-Id: <20260729041335.7F23D1F000E9@smtp.kernel.org>
+Subject: [merged mm-stable] mm-page_owner-move-free_ts_nsec-output-to-free-section-in-__dump_page_owner.patch removed from -mm tree
+Message-Id: <20260729041337.12F031F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,28 +35,32 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/page_owner: add missing newline to count_threshold format string
+     Subject: mm/page_owner: move free_ts_nsec output to free section in __dump_page_owner()
 has been removed from the -mm tree.  Its filename was
-     mm-page_owner-add-missing-newline-to-count_threshold-format-string.patch
+     mm-page_owner-move-free_ts_nsec-output-to-free-section-in-__dump_page_owner.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Ye Liu <ye.liu@linux.dev>
-Subject: mm/page_owner: add missing newline to count_threshold format string
-Date: Tue, 14 Jul 2026 09:51:04 +0800
+Subject: mm/page_owner: move free_ts_nsec output to free section in __dump_page_owner()
+Date: Tue, 14 Jul 2026 09:51:05 +0800
 
-The DEFINE_SIMPLE_ATTRIBUTE format string for page_owner_threshold_fops is
-missing a trailing \n.  simple_attr_read() uses scnprintf() with the
-format string, which does not append a newline, so reading
-/sys/kernel/debug/page_owner_stacks/count_threshold produces output
-without a terminating newline.  Add the missing \n to match the standard
-debugfs attribute convention.
+The free_ts_nsec field is a free-event timestamp, but it was printed in
+the allocation summary line alongside ts_nsec (allocation time).  Move it
+to the free section where it logically belongs, together with free_pid and
+free_tgid.  This also makes __dump_page_owner() consistent with
+print_page_owner(), which only prints ts_nsec in the allocation summary.
 
-Link: https://lore.kernel.org/20260714015117.78351-6-ye.liu@linux.dev
+The output now groups all free-related information (pid, tgid, timestamp,
+stack trace) in one place.
+
+No functional change except output formatting.
+
+Link: https://lore.kernel.org/20260714015117.78351-7-ye.liu@linux.dev
 Signed-off-by: Ye Liu <ye.liu@linux.dev>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
+Acked-by: Zi Yan <ziy@nvidia.com>
 Reviewed-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
 Cc: Brendan Jackman <jackmanb@google.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
@@ -67,20 +71,36 @@ Cc: David Hildenbrand (Arm) <david@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_owner.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/page_owner.c |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
---- a/mm/page_owner.c~mm-page_owner-add-missing-newline-to-count_threshold-format-string
+--- a/mm/page_owner.c~mm-page_owner-move-free_ts_nsec-output-to-free-section-in-__dump_page_owner
 +++ a/mm/page_owner.c
-@@ -974,7 +974,7 @@ static int page_owner_threshold_set(void
- }
+@@ -653,10 +653,10 @@ void __dump_page_owner(const struct page
+ 	else
+ 		pr_alert("page_owner tracks the page as freed\n");
  
- DEFINE_SIMPLE_ATTRIBUTE(page_owner_threshold_fops, &page_owner_threshold_get,
--			&page_owner_threshold_set, "%llu");
-+			&page_owner_threshold_set, "%llu\n");
+-	pr_alert("page last allocated via order %u, migratetype %s, gfp_mask %#x(%pGg), pid %d, tgid %d (%s), ts %llu, free_ts %llu\n",
++	pr_alert("page last allocated via order %u, migratetype %s, gfp_mask %#x(%pGg), pid %d, tgid %d (%s), ts %llu\n",
+ 		 page_owner->order, migratetype_names[mt], gfp_mask, &gfp_mask,
+ 		 page_owner->pid, page_owner->tgid, page_owner->comm,
+-		 page_owner->ts_nsec, page_owner->free_ts_nsec);
++		 page_owner->ts_nsec);
  
+ 	handle = READ_ONCE(page_owner->handle);
+ 	if (!handle)
+@@ -668,8 +668,9 @@ void __dump_page_owner(const struct page
+ 	if (!handle) {
+ 		pr_alert("page_owner free stack trace missing\n");
+ 	} else {
+-		pr_alert("page last free pid %d tgid %d stack trace:\n",
+-			  page_owner->free_pid, page_owner->free_tgid);
++		pr_alert("page last free pid %d tgid %d ts %llu stack trace:\n",
++			  page_owner->free_pid, page_owner->free_tgid,
++			  page_owner->free_ts_nsec);
+ 		stack_depot_print(handle);
+ 	}
  
- static int __init pageowner_init(void)
 _
 
 Patches currently in -mm which might be from ye.liu@linux.dev are
