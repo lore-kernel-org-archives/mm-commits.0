@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 421DF30D41D;
-	Wed, 29 Jul 2026 04:15:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 463853164A9;
+	Wed, 29 Jul 2026 04:15:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785298518; cv=none; b=bdokIoZL3erPCMCFNY1RG9k/dq6qJVO9FpoT6cZf3w0ul9kEiHSdCbdjkYWsHTgDdlO+eyxFC5eEZ+7ufMkcacuvSm015bXddmb0ICmmZBKIpeQtVkkwllMEr6/qQaMPfMIznXjgMblK25Xp86DsDGyJRKyQ893rLvPxxLFNPLg=
+	t=1785298520; cv=none; b=Hp6hNUEhjR9rwfRliswnftL63KjQPW4BmS9v505qFWejTC2eoLGzFbiVNUDc6NNdxJoGnKb4AkuPcltNSvmC1JFS6TtjN0+n+qrqaP5Wi+mjefY3kluGUC6UR0whkmhkiL+2ScxxORRijorE1oi3/ZXuFgffgFNdL7M++UUY4mc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785298518; c=relaxed/simple;
-	bh=cXaMpqb/PpsdDXrfKIaPIg2zZ+nYgWDoDeECDgx2BqQ=;
-	h=Date:To:From:Subject:Message-Id; b=imtvUPgrB5t7Dt/KNkHmAZ0SgeCn0dYcfaC5v/bms74ymzpX2xWpnQdHatdepoqQwvyLciPkiphyYLeRLVPFlTWZXQSJWY3TkjPDEVb98K9lJJ/n2VTv78+xH063Dg96AdZHt2gVxpeL551JiELBn7F8HVZVnFfVIvkHXfuqZfo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=t+itcU+q; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785298520; c=relaxed/simple;
+	bh=K4p0KAZS932GQpCFs7qdJSboGNpP1Ca4nIG/R1BoJyE=;
+	h=Date:To:From:Subject:Message-Id; b=Kf+aUwXrnVIU/zQFHsvPT6wk1JRxhGZs3tSTsfNLq9lTcuqcLtWJALIkGex37mr2awyDupz6iOl21CsSWjiscJ3GBJYX+76CEcQFjjCNpkT20OPokFZgYnDUH4vEMGp8xzUK1SwKu91riCdwoiqUauJU/FAiMNW8dxAcuGISofk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qSXs+1/b; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="t+itcU+q"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 154E21F000E9;
-	Wed, 29 Jul 2026 04:15:14 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qSXs+1/b"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 391261F00A3F;
+	Wed, 29 Jul 2026 04:15:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785298514;
-	bh=t6wxgisNNHAskks76xOX7Los/ry5afU4xQb+ksR9Cig=;
+	d=linux-foundation.org; s=korg; t=1785298515;
+	bh=+Oh6HN5+zmft4esZGqsrHSJIw2vH0wj77ppIJWYtzkw=;
 	h=Date:To:From:Subject;
-	b=t+itcU+qnB5P+mdVX+wnftY1KK0ZV4YStkSVkPDfp7sRSB4kGVexB6hQURPutAZej
-	 Qw7qGZuiOZfPJ7PqpZy66L51eG45WCgca6Q0P051e9d1CSzh7mUf7IOXi0Dc57FKWm
-	 NQbxmnyeUFiyk56vUoGTQbQywEZqmnb6uUtddEaI=
-Date: Tue, 28 Jul 2026 21:15:13 -0700
+	b=qSXs+1/bzbqAdV8JNdoXfvvG8ahBPuMtsYgxbIxEA+M7FLf8Ny6SZ3ogwaJzwd/Az
+	 z0knkHbHL4Vnk1IN5NP3scA/dxMNON9jViMAR9oigUaYuRPnii9s+9dBhzFCLoGrkG
+	 Hlb5poOv34if6LhPVfB6kcioLl1U13KXTwpy1CuE=
+Date: Tue, 28 Jul 2026 21:15:14 -0700
 To: mm-commits@vger.kernel.org,zenghui.yu@linux.dev,stable@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] samples-damon-wsse-stop-and-free-damon-ctx-when-damon_call-fails.patch removed from -mm tree
-Message-Id: <20260729041514.154E21F000E9@smtp.kernel.org>
+Subject: [merged mm-stable] samples-damon-prcl-stop-and-free-damon-ctx-when-damon_call-fails.patch removed from -mm tree
+Message-Id: <20260729041515.391261F00A3F@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,28 +35,28 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: samples/damon/wsse: stop and free damon ctx when damon_call() fails
+     Subject: samples/damon/prcl: stop and free damon ctx when damon_call() fails
 has been removed from the -mm tree.  Its filename was
-     samples-damon-wsse-stop-and-free-damon-ctx-when-damon_call-fails.patch
+     samples-damon-prcl-stop-and-free-damon-ctx-when-damon_call-fails.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: samples/damon/wsse: stop and free damon ctx when damon_call() fails
-Date: Sun, 28 Jun 2026 14:54:44 -0700
+Subject: samples/damon/prcl: stop and free damon ctx when damon_call() fails
+Date: Sun, 28 Jun 2026 14:54:45 -0700
 
-damon_sample_wsse_start() calls damon_call() right after damon_start() is
+damon_sample_prcl_start() calls damon_call() right after damon_start() is
 succeeded.  The kdamond that has started by the damon_start() could be
 terminated by itself before or in the middle of the damon_call()
 execution.  There could be multiple reasons for such a stop including
 monitoring target process termination and kdamond_fn() internal memory
 allocation failures.  In the case, damon_call() will fail and return an
 error without cleaning up the DAMON context object.  The
-damon_sample_wsse_start() caller assumes it would clean up the object,
+damon_sample_prcl_start() caller assumes it would clean up the object,
 though.  When the user requests to start DAMON again,
-damon_sample_wsse_start() is called again, allocates a new DAMON context
+damon_sample_prcl_start() is called again, allocates a new DAMON context
 object and overwrites the pointer for the previous object.  As a result,
 the previous context object is leaked.
 
@@ -70,23 +70,23 @@ to happen, and only up to one DAMON context object can be leaked per race.
 
 The issue was discovered [1] by Sashiko.
 
-Link: https://lore.kernel.org/20260628215447.96166-6-sj@kernel.org
-Link: https://lore.kernel.org/20260610034828.4632-1-sj@kernel.org [1]
-Fixes: cc9c1b8c205b ("samples/damon/wsse: use damon_call() repeat mode instead of damon_callback")
+Link: https://lore.kernel.org/20260628215447.96166-7-sj@kernel.org
+Link: https://lore.kernel.org/20260610035214.4850-1-sj@kernel.org [1]
+Fixes: a6c33f1054e3 ("samples/damon/prcl: use damon_call() repeat mode instead of damon_callback")
 Signed-off-by: SJ Park <sj@kernel.org>
 Reviewed-by: Zenghui Yu <zenghui.yu@linux.dev>
 Cc: <stable@vger.kernel.org> # 6.17.x
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- samples/damon/wsse.c |    7 ++++++-
+ samples/damon/prcl.c |    7 ++++++-
  1 file changed, 6 insertions(+), 1 deletion(-)
 
---- a/samples/damon/wsse.c~samples-damon-wsse-stop-and-free-damon-ctx-when-damon_call-fails
-+++ a/samples/damon/wsse.c
-@@ -92,7 +92,12 @@ static int damon_sample_wsse_start(void)
- 		return err;
+--- a/samples/damon/prcl.c~samples-damon-prcl-stop-and-free-damon-ctx-when-damon_call-fails
++++ a/samples/damon/prcl.c
+@@ -112,7 +112,12 @@ static int damon_sample_prcl_start(void)
  	}
+ 
  	repeat_call_control.data = ctx;
 -	return damon_call(ctx, &repeat_call_control);
 +	err = damon_call(ctx, &repeat_call_control);
@@ -97,7 +97,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 +	return err;
  }
  
- static void damon_sample_wsse_stop(void)
+ static void damon_sample_prcl_stop(void)
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
