@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AAED514ABE
-	for <mm-commits@vger.kernel.org>; Wed, 29 Jul 2026 04:05:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 25BFB324B06
+	for <mm-commits@vger.kernel.org>; Wed, 29 Jul 2026 04:12:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785297931; cv=none; b=g20y6Bp3oLpyV6KWq84AufZmu0pYJONF+Urn35WGnaH76q3ElBInk3wGmRBsy2cYBT5iWhyp5FtfxjikRMJLy7wd3MUzzG/FOdtuK4L7kN9LjpNSMK9jip8zhW2zMlkOotqi9BbBa48J26y3ji6pcJMTtj3NAGWXSXb1SqPO3aQ=
+	t=1785298376; cv=none; b=ljTylRu+hgE3f5XB8aqmwZJ1VTQ28BgR7FEf97wMab++1iofrNaYXs54SbnjYFJiTa9yZPrNmzftASQH/lUY6XuSHtCaStwoMQKSIXtiiZrGVy5xFbSZ8QnFJMOAh/vONdx/8qZNGO5UjldRiLB2E2o+IHnu/OH8ewO5Newa6/A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785297931; c=relaxed/simple;
-	bh=qLry2r5KO7ZnPIvPNUsue6slxbAtgLLwKMcVIUMBnSc=;
-	h=Date:To:From:Subject:Message-Id; b=GYQMqlV/CPdQBBjMAy0MgQPIXVYLWRromlhE/hLg+chzRG5rMDC2qV2prgZw/o2LZ9zqu6aPnwoIBbYLQ4/3gng6llITlCMDJBC+iCT4+ikxfCvzlZrU8M0JF3B9dat1nnscd0QfKVCldFS0DUlXxzdhX9deaLPqa4PRGur3aPc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AQ9pI/Ql; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785298376; c=relaxed/simple;
+	bh=orC2lb3u52G6uFH5RuwmYFQ0mb67vy98BVX/6vxpOQk=;
+	h=Date:To:From:Subject:Message-Id; b=WUzLF6+ACrfEmD/mSsBoQUUk3+vkqYCcvE28xFr+/HAQlhuq2dyjDZeNn1djXpCYgxjYEkKeBf1CiYMPuM6lk/QOM/N0aqVw009R4I/TOqpzBWxsLFV3urRQbUa/uk2qDsW15P2Io0x61aB1kE6u4fBFXMI0yQEG14uSurFN1iE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RzyKCXIM; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AQ9pI/Ql"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5D76D1F000E9;
-	Wed, 29 Jul 2026 04:05:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RzyKCXIM"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 873CD1F000E9;
+	Wed, 29 Jul 2026 04:12:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785297930;
-	bh=Ed2r1MrLFBspX1nKiqjti/XSAngt9pDQKBaKKK9pcNc=;
+	d=linux-foundation.org; s=korg; t=1785298374;
+	bh=erpDbpurpnD6YpqUqjxYAPH37ftVwtv4sI+cC5ApYR8=;
 	h=Date:To:From:Subject;
-	b=AQ9pI/QlSN0g3aC+w4Ci5I9cD/SD3t8d+zjPE8P28e8KV0eWbYU3jYak+dX+0pOrt
-	 IGgpilwdZrDD/Q6F5TKNjrrApxVSZJOtuNSYqUzklo+ZsRgv2Fzf+GPl819g2EukW1
-	 e4g3fii3z+tNYAJB7gq9H95UTeiFCKAuFWmCuoYQ=
-Date: Tue, 28 Jul 2026 21:05:29 -0700
-To: mm-commits@vger.kernel.org,dev.jain@arm.com,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=RzyKCXIMgmM6VffVSSt5d9mz9enTD6ecrPaD8FhLOE/eFab3m6+mvhh0WUaqvNT3s
+	 4O31Hwh7qtQEmgidBE9pWmx3WsSXquDaF8EvAy2Ph9L4xqpfLJv0+zMRSEcnCX3cSz
+	 UHG0Den8nbnZd/L3/ukr7VgfHWtQBpxjtGwXmA7g=
+Date: Tue, 28 Jul 2026 21:12:54 -0700
+To: mm-commits@vger.kernel.org,sj@kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,joshua.hahnjy@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-rmap-use-huge_ptep_get-in-try_to_migrate_one-checkpatch-fixes.patch removed from -mm tree
-Message-Id: <20260729040530.5D76D1F000E9@smtp.kernel.org>
+Subject: [merged mm-stable] mm-memcontrol-remove-unused-for_each_mem_cgroup-macro-and-cleanup.patch removed from -mm tree
+Message-Id: <20260729041254.873CD1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,72 +35,78 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm-rmap-use-huge_ptep_get-in-try_to_migrate_one-checkpatch-fixes
+     Subject: mm/memcontrol: remove unused for_each_mem_cgroup macro and cleanup
 has been removed from the -mm tree.  Its filename was
-     mm-rmap-use-huge_ptep_get-in-try_to_migrate_one-checkpatch-fixes.patch
+     mm-memcontrol-remove-unused-for_each_mem_cgroup-macro-and-cleanup.patch
 
-This patch was dropped because it was folded into mm-rmap-use-huge_ptep_get-in-try_to_migrate_one.patch
+This patch was dropped because it was merged into the mm-stable branch
+of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-rmap-use-huge_ptep_get-in-try_to_migrate_one-checkpatch-fixes
-Date: Sun Jul  5 12:46:13 AM PDT 2026
+From: Joshua Hahn <joshua.hahnjy@gmail.com>
+Subject: mm/memcontrol: remove unused for_each_mem_cgroup macro and cleanup
+Date: Wed, 24 Jun 2026 11:36:59 -0700
 
-ERROR: Please use git commit description style 'commit <12+ chars of sha1> ("<title line>")' - ie: 'Commit a98a2f0c8ce1 ("mm/rmap: split migration into its own function")'
-#18: 
-Commit a98a2f0c8ce1 copied the bug from try_to_unmap_one into
+Commit 7e1c0d6f58207 ("memcg: switch lruvec stats to rstat") removed the
+last caller of for_each_mem_cgroup back in 2021, and there have not been
+any new callers since.  Remove the macro.
 
-WARNING: braces {} are not necessary for any arm of this statement
-#74: FILE: mm/rmap.c:2504:
-+		if (folio_test_hugetlb(folio)) {
-[...]
-+		} else {
-[...]
+A comment in mem_cgroup_css_online has also been out of date since 2021,
+when 2bfd36374edd9 ("mm: vmscan: consolidate shrinker_maps handling code")
+open-coded the for_each_mem_cgroup iterator.  Update the comment.
 
-total: 1 errors, 1 warnings, 31 lines checked
+Finally, 99430ab8b804c ("mm: introduce BPF kfuncs to access memcg
+statistics and events") added a second declaration for memcg_events to
+include/linux/memcontrol.h, duplicating the one in mm/memcontrol-v1.h. 
+Let's clean that up too.
 
-NOTE: For some of the reported defects, checkpatch may be able to
-      mechanically convert to the typical style using --fix or --fix-inplace.
+No functional changes intended.
 
-./patches/mm-rmap-use-huge_ptep_get-in-try_to_migrate_one.patch has style problems, please review.
-
-NOTE: If any of the errors are false positives, please report
-      them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Dev Jain <dev.jain@arm.com>
+Link: https://lore.kernel.org/20260624183700.1152742-1-joshua.hahnjy@gmail.com
+Signed-off-by: Joshua Hahn <joshua.hahnjy@gmail.com>
+Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
+Reviewed-by: SeongJae Park <sj@kernel.org>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/rmap.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ mm/memcontrol-v1.h |    6 ------
+ mm/memcontrol.c    |    2 +-
+ 2 files changed, 1 insertion(+), 7 deletions(-)
 
---- a/mm/rmap.c~mm-rmap-use-huge_ptep_get-in-try_to_migrate_one-checkpatch-fixes
-+++ a/mm/rmap.c
-@@ -2501,11 +2501,10 @@ static bool try_to_migrate_one(struct fo
- 		VM_BUG_ON_FOLIO(!pvmw.pte, folio);
+--- a/mm/memcontrol.c~mm-memcontrol-remove-unused-for_each_mem_cgroup-macro-and-cleanup
++++ a/mm/memcontrol.c
+@@ -4217,7 +4217,7 @@ static int mem_cgroup_css_online(struct
+ 	/*
+ 	 * A memcg must be visible for expand_shrinker_info()
+ 	 * by the time the maps are allocated. So, we allocate maps
+-	 * here, when for_each_mem_cgroup() can't skip it.
++	 * here, when mem_cgroup_iter() can't skip it.
+ 	 */
+ 	if (alloc_shrinker_info(memcg))
+ 		goto offline_kmem;
+--- a/mm/memcontrol-v1.h~mm-memcontrol-remove-unused-for_each_mem_cgroup-macro-and-cleanup
++++ a/mm/memcontrol-v1.h
+@@ -17,14 +17,8 @@
+ 	     iter != NULL;				\
+ 	     iter = mem_cgroup_iter(root, iter, NULL))
  
- 		address = pvmw.address;
--		if (folio_test_hugetlb(folio)) {
-+		if (folio_test_hugetlb(folio))
- 			pteval = huge_ptep_get(mm, address, pvmw.pte);
--		} else {
-+		else
- 			pteval = ptep_get(pvmw.pte);
--		}
- 		if (likely(pte_present(pteval))) {
- 			pfn = pte_pfn(pteval);
- 		} else {
+-#define for_each_mem_cgroup(iter)			\
+-	for (iter = mem_cgroup_iter(NULL, NULL, NULL);	\
+-	     iter != NULL;				\
+-	     iter = mem_cgroup_iter(NULL, iter, NULL))
+-
+ void drain_all_stock(struct mem_cgroup *root_memcg);
+ 
+-unsigned long memcg_events(struct mem_cgroup *memcg, int event);
+ int memory_stat_show(struct seq_file *m, void *v);
+ 
+ struct mem_cgroup *mem_cgroup_private_id_get_online(struct mem_cgroup *memcg,
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from joshua.hahnjy@gmail.com are
 
-csky-implement-flush_cache_vmap-in-c.patch
-mm-rmap-use-huge_ptep_get-in-try_to_migrate_one.patch
-mm-drop-stale-folio_ref_count==1-check-in-do_swap_page-reuse-logic-fix.patch
-alloc_tag-add-ioctl-to-proc-allocinfo-fix.patch
-mm-hmm-make-config_hmm_mirror-select-config_mmu_notifier.patch
-mm-vma-add-and-use-vma__pgoff-fix.patch
-drivers-media-v4l2-core-v4l2-vp9c-reduce-inlining.patch
 
