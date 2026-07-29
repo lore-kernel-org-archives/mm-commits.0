@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D765438D3ED;
-	Wed, 29 Jul 2026 04:14:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 259913911BC
+	for <mm-commits@vger.kernel.org>; Wed, 29 Jul 2026 04:14:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785298459; cv=none; b=ERg2QZOeX1oXo/y58bnP5Z+6KaZgLB8uDjg7NVQ9pz7vheO05JdNy4vLWZJbOfL445Wf1v+j9yzPqngTUpyJELKygbjkMRLtnL9UMiPR9iWHDwK9Ul9kx448H7491nqc1gcI+ckWk3FEFz2PQZoYe5zTBcn3lylrynijLigc91M=
+	t=1785298460; cv=none; b=XIDxP3tROJtC1SvjhAXHkThhJSrxTcBCx/PkXQ9bS0oS+IPdyaZTPLseNlLVRvYVP/gogJpXGXTAQYho7Uz81YsSawJDRaDwCFxcgLs9oAVeXZrO2s0POYu8EfNu8EVM/CcZA8ua/nc058H4Ckys8Ea3340g4HIrDjTje/gyOnw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785298459; c=relaxed/simple;
-	bh=rKKu3/nk1ap6kDBhmLGm7x1zXyLR5QhG+16VWbljE+A=;
-	h=Date:To:From:Subject:Message-Id; b=Y5Lau8NpkZwdQ6+04DXAj+6GheMtm+5qNaqfWGv7P+WJ6JSeY8ec0qwX1UeIcaad87IWLQ97TCuypq7BN9LnayfjQd7WX1LQiRbEsNwpUAQ4RoY1/N40WCRKXVuU5vGS3K/nd0DPsT7RvGekz+bquTfFIl0pp5mtX6b2uaVlH4k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=w2n/r958; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785298460; c=relaxed/simple;
+	bh=a2JtukYASj5ooLyP028heyrTb+L3DQM9LnYZhvLGzvg=;
+	h=Date:To:From:Subject:Message-Id; b=YeJRlIoPhJG/xpEuG9zXg5V+GRz0ruf6HRmBpnHQy4dDETg+PJF1k7C9YsfWFv3pPsXTxVtnJ8h82qZZPRO8kWqfy83ZVtH3CVyPVvUjmmguEvEVKCEpnu2NMv5B0Xevykl4n9DyG5VAAWruvFiiCMsmbJH4CYwq6QxWzypvMf8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hvUpos4S; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="w2n/r958"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B2C931F00A3A;
-	Wed, 29 Jul 2026 04:14:17 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hvUpos4S"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id ECB281F000E9;
+	Wed, 29 Jul 2026 04:14:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785298457;
-	bh=vTTfsxevEgtOCXMrjdTUYIYRR0TrlPGelSTbF81X2BI=;
+	d=linux-foundation.org; s=korg; t=1785298459;
+	bh=KZh9+1ZelximpuDc7q1I/AZ6VEWzKFMnvus48xPxzTg=;
 	h=Date:To:From:Subject;
-	b=w2n/r9580qOfO9GSC/nrw3McF6frn29kcwwMg3TcumNaccBBRwfgN5kQ1xXmae/uG
-	 fc1ncUdKnOmmPmxVxHwSoRik0f+rKV3ezDnHxqR+finKb2uMnFUwtsJPNQKfMnyEvT
-	 Rjpu85Z/CkUPSMdRz65bIZxKHudHSVJQutC4Zb0M=
-Date: Tue, 28 Jul 2026 21:14:17 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,usama.arif@linux.dev,stable@vger.kernel.org,rppt@kernel.org,ritesh.list@gmail.com,osalvador@suse.de,osalvador@kernel.org,npiggin@gmail.com,mpe@ellerman.id.au,maddy@linux.ibm.com,ljs@kernel.org,liam@infradead.org,fvdl@google.com,david@kernel.org,aneesh.kumar@linux.ibm.com,songmuchun@bytedance.com,akpm@linux-foundation.org
+	b=hvUpos4STXAoCfkntUj8skoJ/mJYK8UF+IapeDdZm3NJusatUKIYJmJqzfswwQ9Ne
+	 WBh2MXKAeMj1P+B2/M5iuMvqaLuuUENur+BBjELXeCWRAaf+hMXL3y3vRGa3U5UDr1
+	 Siio/wqWBIy21Oec4vJg03dTG5tjYlJEtxArPJiE=
+Date: Tue, 28 Jul 2026 21:14:18 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,usama.arif@linux.dev,rppt@kernel.org,ritesh.list@gmail.com,osalvador@suse.de,osalvador@kernel.org,npiggin@gmail.com,mpe@ellerman.id.au,maddy@linux.ibm.com,ljs@kernel.org,liam@infradead.org,fvdl@google.com,david@kernel.org,aneesh.kumar@linux.ibm.com,songmuchun@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-hugetlb-initialize-gigantic-bootmem-hugepage-struct-pages-earlier.patch removed from -mm tree
-Message-Id: <20260729041417.B2C931F00A3A@smtp.kernel.org>
+Subject: [merged mm-stable] mm-mm_init-simplify-deferred_free_pages-migratetype-init.patch removed from -mm tree
+Message-Id: <20260729041418.ECB281F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,38 +35,26 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/hugetlb: initialize gigantic bootmem hugepage struct pages earlier
+     Subject: mm/mm_init: simplify deferred_free_pages() migratetype init
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-initialize-gigantic-bootmem-hugepage-struct-pages-earlier.patch
+     mm-mm_init-simplify-deferred_free_pages-migratetype-init.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm/hugetlb: initialize gigantic bootmem hugepage struct pages earlier
-Date: Fri, 12 Jun 2026 11:58:48 +0800
+Subject: mm/mm_init: simplify deferred_free_pages() migratetype init
+Date: Fri, 12 Jun 2026 11:58:49 +0800
 
-Gigantic bootmem HugeTLB pages are currently initialized from
-hugetlb_init(), but page_alloc_init_late() runs earlier and walks
-pageblocks to determine zone contiguity.
+deferred_free_pages() open-codes two loops to initialize the pageblock
+migratetype for a range of pages.
 
-If a bootmem HugeTLB region is marked noinit, set_zone_contiguous() can
-observe still-uninitialized struct pages through
-__pageblock_pfn_to_page().  This may not trigger an immediate failure, but
-it can make set_zone_contiguous() compute the wrong zone contiguity state.
-If extra poisoned-page checks are added in this path, such as
-PF_POISONED_CHECK() in page_zone_id(), it can also trigger an early boot
-panic.
+Replace them with pageblock_migratetype_init_range() to remove the
+duplication and make the code clearer (Note that deferred_free_pages() may
+be called from atomic context).
 
-Initialize gigantic bootmem HugeTLB struct pages from
-page_alloc_init_late(), before zone contiguity is evaluated, so later page
-allocator setup only sees valid struct page state.  This also makes the
-initialization order more natural, as struct pages should be initialized
-before later code inspects them.
-
-Link: https://lore.kernel.org/20260612035903.2468601-5-songmuchun@bytedance.com
-Fixes: fde1c4ecf916 ("mm: hugetlb: skip initialization of gigantic tail struct pages if freed by HVO")
+Link: https://lore.kernel.org/20260612035903.2468601-6-songmuchun@bytedance.com
 Signed-off-by: Muchun Song <songmuchun@bytedance.com>
 Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Acked-by: Oscar Salvador <osalvador@suse.de>
@@ -82,88 +70,71 @@ Cc: Oscar Salvador (SUSE) <osalvador@kernel.org>
 Cc: "Ritesh Harjani (IBM)" <ritesh.list@gmail.com>
 Cc: Usama Arif <usama.arif@linux.dev>
 Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |    5 +++++
- mm/hugetlb.c            |    5 ++---
- mm/mm_init.c            |    1 +
- mm/sparse-vmemmap.c     |    4 ++--
- 4 files changed, 10 insertions(+), 5 deletions(-)
+ mm/mm_init.c |   19 ++++++++-----------
+ 1 file changed, 8 insertions(+), 11 deletions(-)
 
---- a/include/linux/hugetlb.h~mm-hugetlb-initialize-gigantic-bootmem-hugepage-struct-pages-earlier
-+++ a/include/linux/hugetlb.h
-@@ -172,6 +172,7 @@ extern int movable_gigantic_pages __read
- extern int sysctl_hugetlb_shm_group __read_mostly;
- extern struct list_head huge_boot_pages[MAX_NUMNODES];
+--- a/mm/mm_init.c~mm-mm_init-simplify-deferred_free_pages-migratetype-init
++++ a/mm/mm_init.c
+@@ -674,15 +674,15 @@ static inline void fixup_hashdist(void)
+ static inline void fixup_hashdist(void) {}
+ #endif /* CONFIG_NUMA */
  
-+void hugetlb_bootmem_struct_page_init(void);
- void hugetlb_bootmem_alloc(void);
- extern nodemask_t hugetlb_bootmem_nodes;
- void hugetlb_bootmem_set_nodes(void);
-@@ -1294,6 +1295,10 @@ static inline bool hugetlbfs_pagecache_p
- static inline void hugetlb_bootmem_alloc(void)
+-#ifdef CONFIG_ZONE_DEVICE
++#if defined(CONFIG_ZONE_DEVICE) || defined(CONFIG_DEFERRED_STRUCT_PAGE_INIT)
+ static __meminit void pageblock_migratetype_init_range(unsigned long pfn,
+-		unsigned long nr_pages, int migratetype)
++		unsigned long nr_pages, int migratetype, bool atomic)
  {
- }
-+
-+static inline void hugetlb_bootmem_struct_page_init(void)
-+{
-+}
- #endif	/* CONFIG_HUGETLB_PAGE */
+ 	const unsigned long end = pfn + nr_pages;
  
- static inline spinlock_t *huge_pte_lock(struct hstate *h,
---- a/mm/hugetlb.c~mm-hugetlb-initialize-gigantic-bootmem-hugepage-struct-pages-earlier
-+++ a/mm/hugetlb.c
-@@ -3353,7 +3353,7 @@ static void __init gather_bootmem_preall
- 		gather_bootmem_prealloc_node(nid);
+ 	for (pfn = pageblock_align(pfn); pfn < end; pfn += pageblock_nr_pages) {
+ 		init_pageblock_migratetype(pfn_to_page(pfn), migratetype, false);
+-		if (IS_ALIGNED(pfn, PAGES_PER_SECTION))
++		if (!atomic && IS_ALIGNED(pfn, PAGES_PER_SECTION))
+ 			cond_resched();
+ 	}
  }
- 
--static void __init gather_bootmem_prealloc(void)
-+void __init hugetlb_bootmem_struct_page_init(void)
- {
- 	struct padata_mt_job job = {
- 		.thread_fn	= gather_bootmem_prealloc_parallel,
-@@ -3582,7 +3582,7 @@ static unsigned long __init hugetlb_page
-  * - For gigantic pages, this is called early in the boot process and
-  *   pages are allocated from memblock allocated or something similar.
-  *   Gigantic pages are actually added to pools later with the routine
-- *   gather_bootmem_prealloc.
-+ *   hugetlb_bootmem_struct_page_init.
-  * - For non-gigantic pages, this is called later in the boot process after
-  *   all of mm is up and functional.  Pages are allocated from buddy and
-  *   then added to hugetlb pools.
-@@ -4152,7 +4152,6 @@ static int __init hugetlb_init(void)
+@@ -1142,7 +1142,7 @@ void __ref memmap_init_zone_device(struc
+ 				     compound_nr_pages(pfn, altmap, pgmap));
  	}
  
- 	hugetlb_init_hstates();
--	gather_bootmem_prealloc();
- 	report_hugepages();
+-	pageblock_migratetype_init_range(start_pfn, nr_pages, MIGRATE_MOVABLE);
++	pageblock_migratetype_init_range(start_pfn, nr_pages, MIGRATE_MOVABLE, false);
  
- 	hugetlb_sysfs_init();
---- a/mm/mm_init.c~mm-hugetlb-initialize-gigantic-bootmem-hugepage-struct-pages-earlier
-+++ a/mm/mm_init.c
-@@ -2330,6 +2330,7 @@ void __init page_alloc_init_late(void)
- 	/* Reinit limits that are based on free pages after the kernel is up */
- 	files_maxfiles_init();
- #endif
-+	hugetlb_bootmem_struct_page_init();
+ 	pr_debug("%s initialised %lu pages in %ums\n", __func__,
+ 		nr_pages, jiffies_to_msecs(jiffies - start));
+@@ -1988,12 +1988,12 @@ static void __init deferred_free_pages(u
+ 	if (!nr_pages)
+ 		return;
  
- 	/* Accounting of total+free memory is stable at this point. */
- 	mem_init_print_info();
---- a/mm/sparse-vmemmap.c~mm-hugetlb-initialize-gigantic-bootmem-hugepage-struct-pages-earlier
-+++ a/mm/sparse-vmemmap.c
-@@ -342,8 +342,8 @@ static __meminit struct page *vmemmap_ge
- 	 *
- 	 * Any initialization done here will be overwritten by memmap_init().
- 	 *
--	 * gather_bootmem_prealloc() will take care of initialization after
--	 * memmap_init().
-+	 * hugetlb_bootmem_struct_page_init() will take care of initialization
-+	 * after memmap_init().
- 	 */
++	pageblock_migratetype_init_range(pfn, nr_pages, mt, true);
++
+ 	page = pfn_to_page(pfn);
  
- 	p = vmemmap_alloc_block_zero(PAGE_SIZE, node);
+ 	/* Free a large naturally-aligned chunk if possible */
+ 	if (nr_pages == MAX_ORDER_NR_PAGES && IS_MAX_ORDER_ALIGNED(pfn)) {
+-		for (i = 0; i < nr_pages; i += pageblock_nr_pages)
+-			init_pageblock_migratetype(page + i, mt, false);
+ 		__free_pages_core(page, MAX_PAGE_ORDER, MEMINIT_EARLY);
+ 		return;
+ 	}
+@@ -2001,11 +2001,8 @@ static void __init deferred_free_pages(u
+ 	/* Accept chunks smaller than MAX_PAGE_ORDER upfront */
+ 	accept_memory(PFN_PHYS(pfn), nr_pages * PAGE_SIZE);
+ 
+-	for (i = 0; i < nr_pages; i++, page++, pfn++) {
+-		if (pageblock_aligned(pfn))
+-			init_pageblock_migratetype(page, mt, false);
+-		__free_pages_core(page, 0, MEMINIT_EARLY);
+-	}
++	for (i = 0; i < nr_pages; i++)
++		__free_pages_core(page + i, 0, MEMINIT_EARLY);
+ }
+ 
+ /* Completion tracking for deferred_init_memmap() threads */
 _
 
 Patches currently in -mm which might be from songmuchun@bytedance.com are
