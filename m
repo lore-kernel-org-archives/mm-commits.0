@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CD281392C34
-	for <mm-commits@vger.kernel.org>; Wed, 29 Jul 2026 04:14:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E1426C2EA
+	for <mm-commits@vger.kernel.org>; Wed, 29 Jul 2026 04:14:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785298482; cv=none; b=MT9afFwdWXlkieKIbZjAzGBYZu2ZGgJy2SuaEiHiMWMvB0i3qrPY+9aAlb9U5EXVyW4h42/mWGaIa7zmFVlcjzO/dSncx31LMe2Scd23P1lsqrBGltFH2wkXnzr7q6XltIBeKn5GTSyIRyJj+du32QKB8l2jSGKw/IfHaiO6kEQ=
+	t=1785298483; cv=none; b=crMAnBJh4GdWVn8gYYqEbZVZejv7ReGc+dA4OhrVZBEFWD5Go+/SQznPixUGqAkjklLY3/TL81LkcnpyuQ0wj6qTeLPu2PPAR7qElkMn+cw2sAPD51RUUQB3Uj357m/icMmjznmGzn9NOiLRGiOiyjjY8fY0RZrJPVZDnN5nJQk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785298482; c=relaxed/simple;
-	bh=upSwjptCKRdiuLYc9Q6NFlJPuNeVcLaqyVgmMK/cAkQ=;
-	h=Date:To:From:Subject:Message-Id; b=iVjEozy0j6YgM1VA1lMaBsPWslzMmc89dirvvpNIgZ1dQL/9cDzx9ipZ4YNjCn/dtBnT8s2XVHNl/lbMluq7pvP3Sh/or/UlhFOdu19NZElj/WaSkFWLapa421N4ebhS+AqYkXtbkWp6riOWMU2z/pUEi9eVQLCoEw10Ka5+0Jw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0C2AFEH2; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785298483; c=relaxed/simple;
+	bh=PRceGwr6OCY5UebUwTPt7Xgl1aVJFkTj+8QUrYVU1mY=;
+	h=Date:To:From:Subject:Message-Id; b=KvuqcKphJ9eikvWTyGM+6aN6xPZz9vJKjy2o8OSrQOvTrNBtF3AGBJDMx6Q2cVnU2vVknSOhElWfsL/Xw4HahqGFecefjJJ7a09PZ5Vz3g1T0BVQURvZBsdBMv2fs1HIpCEn5B2q62vFEgLujB1U7lc4hjTeO3dj20aTam38Ys4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cQF40Ncs; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0C2AFEH2"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9EA851F000E9;
-	Wed, 29 Jul 2026 04:14:40 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cQF40Ncs"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B62121F00A3A;
+	Wed, 29 Jul 2026 04:14:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785298480;
-	bh=hNjGmQMAnB8PxjF7491Cw+L8mWyHdtKWNdMoEm5zMtg=;
+	d=linux-foundation.org; s=korg; t=1785298481;
+	bh=NcSxB24eOvn5/eXWLnDIb/Dy960lscYXHJsl0KycymA=;
 	h=Date:To:From:Subject;
-	b=0C2AFEH2EhO/xJU1NvYgAZrjs1PRDMydxGLShhoBsoqNaXmDLRc5fzfnYQtM7KRaD
-	 XgOreXfAiIKDJfhNV9sTqb3q0p7PXwYA2fivruDkSMoGXlzHeo9171CFC8HT0FewNT
-	 I+Pv/qTWN/DQ2nPboaDiRUU8FU2dQMxL+nSQu4zk=
-Date: Tue, 28 Jul 2026 21:14:40 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,usama.arif@linux.dev,rppt@kernel.org,ritesh.list@gmail.com,osalvador@suse.de,osalvador@kernel.org,npiggin@gmail.com,mpe@ellerman.id.au,maddy@linux.ibm.com,ljs@kernel.org,liam@infradead.org,fvdl@google.com,david@kernel.org,aneesh.kumar@linux.ibm.com,songmuchun@bytedance.com,akpm@linux-foundation.org
+	b=cQF40Ncs8+Ou2YuMoCpvmdLFoGmYs9rvK8fwQV2P4qVCUBGOwa4Y2AnMqiNRsvC3g
+	 XpfZqa/v+kSJ+turDB2KR+xWl5Nvm97lYMnUNoBySxrSIQThZyLoiVS3+rocMRf2sl
+	 ZwiBBpKzqCZUFgZUbkRl7kp9YufGTdtpefi6lu6s=
+Date: Tue, 28 Jul 2026 21:14:41 -0700
+To: mm-commits@vger.kernel.org,oleg@redhat.com,catalin.marinas@arm.com,leitao@debian.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-mm_init-fold-__init_page_from_nid-into-__init_deferred_page.patch removed from -mm tree
-Message-Id: <20260729041440.9EA851F000E9@smtp.kernel.org>
+Subject: [merged mm-stable] mm-kmemleak-skip-the-remaining-scan-phases-when-interrupted.patch removed from -mm tree
+Message-Id: <20260729041441.B62121F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,121 +35,94 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/mm_init: fold __init_page_from_nid() into __init_deferred_page()
+     Subject: mm/kmemleak: skip the remaining scan phases when interrupted
 has been removed from the -mm tree.  Its filename was
-     mm-mm_init-fold-__init_page_from_nid-into-__init_deferred_page.patch
+     mm-kmemleak-skip-the-remaining-scan-phases-when-interrupted.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm/mm_init: fold __init_page_from_nid() into __init_deferred_page()
-Date: Fri, 12 Jun 2026 11:59:03 +0800
+From: Breno Leitao <leitao@debian.org>
+Subject: mm/kmemleak: skip the remaining scan phases when interrupted
+Date: Fri, 26 Jun 2026 10:56:23 -0700
 
-__init_page_from_nid() no longer has external users and is only used
-locally in mm/mm_init.c under CONFIG_DEFERRED_STRUCT_PAGE_INIT.
+kmemleak_scan() scans the per-cpu sections, the struct page ranges and the
+task stacks in sequence.  Each loop now bails out once scan_block()
+reports the scan was interrupted, but the later phases are still entered
+and only bail on their first scan_block() call.
 
-Fold it into its sole caller __init_deferred_page() and remove the
-separate helper declaration.
+Jump straight to the gray list scan once a phase reports an interrupted
+scan, so the remaining scan phases are not entered at all.  This does not
+change the scan results, it only avoids the pointless re-entry.
 
-Link: https://lore.kernel.org/20260612035903.2468601-20-songmuchun@bytedance.com
-Signed-off-by: Muchun Song <songmuchun@bytedance.com>
-Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Frank van der Linden <fvdl@google.com>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Oscar Salvador (SUSE) <osalvador@kernel.org>
-Cc: "Ritesh Harjani (IBM)" <ritesh.list@gmail.com>
-Cc: Usama Arif <usama.arif@linux.dev>
-Cc: Vlastimil Babka <vbabka@kernel.org>
+Link: https://lore.kernel.org/20260626-kmemleak_improve-v1-1-d40c7616f64f@debian.org
+Signed-off-by: Breno Leitao <leitao@debian.org>
+Suggested-by: Oleg Nesterov <oleg@redhat.com>
+Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/internal.h |    1 -
- mm/mm_init.c  |   42 ++++++++++++++++--------------------------
- 2 files changed, 16 insertions(+), 27 deletions(-)
+ mm/kmemleak.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
---- a/mm/internal.h~mm-mm_init-fold-__init_page_from_nid-into-__init_deferred_page
-+++ a/mm/internal.h
-@@ -1760,7 +1760,6 @@ static inline bool pte_needs_soft_dirty_
+--- a/mm/kmemleak.c~mm-kmemleak-skip-the-remaining-scan-phases-when-interrupted
++++ a/mm/kmemleak.c
+@@ -1851,6 +1851,7 @@ static void kmemleak_scan(void)
+ 	int __maybe_unused i;
+ 	struct xarray dedup;
+ 	int new_leaks = 0;
++	int stop = 0;
  
- void __meminit __init_single_page(struct page *page, unsigned long pfn,
- 				unsigned long zone, int nid);
--void __meminit __init_page_from_nid(unsigned long pfn, int nid);
+ 	jiffies_last_scan = jiffies;
  
- /* shrinker related functions */
- unsigned long shrink_slab(gfp_t gfp_mask, int nid, struct mem_cgroup *memcg,
---- a/mm/mm_init.c~mm-mm_init-fold-__init_page_from_nid-into-__init_deferred_page
-+++ a/mm/mm_init.c
-@@ -688,31 +688,6 @@ static __meminit void pageblock_migratet
- }
+@@ -1897,7 +1898,7 @@ static void kmemleak_scan(void)
+ 	for_each_possible_cpu(i) {
+ 		if (scan_large_block(__per_cpu_start + per_cpu_offset(i),
+ 				     __per_cpu_end + per_cpu_offset(i)))
+-			break;
++			goto scan_gray;
+ 	}
  #endif
  
--/*
-- * Initialize a reserved page unconditionally, finding its zone first.
-- */
--void __meminit __init_page_from_nid(unsigned long pfn, int nid)
--{
--	pg_data_t *pgdat;
--	int zid;
--
--	pgdat = NODE_DATA(nid);
--
--	for (zid = 0; zid < MAX_NR_ZONES; zid++) {
--		struct zone *zone = &pgdat->node_zones[zid];
--
--		if (zone_spans_pfn(zone, pfn))
--			break;
--	}
--	__init_single_page(pfn_to_page(pfn), pfn, zid, nid);
--
--	if (pageblock_aligned(pfn)) {
--		enum migratetype mt =
--			kho_scratch_migratetype(pfn, MIGRATE_MOVABLE);
--		init_pageblock_migratetype(pfn_to_page(pfn), mt, false);
--	}
--}
--
- #ifdef CONFIG_DEFERRED_STRUCT_PAGE_INIT
- static inline void pgdat_set_deferred_range(pg_data_t *pgdat)
- {
-@@ -771,10 +746,25 @@ defer_init(int nid, unsigned long pfn, u
+@@ -1909,7 +1910,6 @@ static void kmemleak_scan(void)
+ 		unsigned long start_pfn = zone->zone_start_pfn;
+ 		unsigned long end_pfn = zone_end_pfn(zone);
+ 		unsigned long pfn;
+-		int stop = 0;
  
- static void __meminit __init_deferred_page(unsigned long pfn, int nid)
- {
-+	pg_data_t *pgdat = NODE_DATA(nid);
-+	int zid;
-+
- 	if (early_page_initialised(pfn, nid))
- 		return;
+ 		for (pfn = start_pfn; pfn < end_pfn; pfn++) {
+ 			struct page *page = pfn_to_online_page(pfn);
+@@ -1934,6 +1934,8 @@ static void kmemleak_scan(void)
+ 			break;
+ 	}
+ 	put_online_mems();
++	if (stop)
++		goto scan_gray;
  
--	__init_page_from_nid(pfn, nid);
-+	for (zid = 0; zid < MAX_NR_ZONES; zid++) {
-+		struct zone *zone = &pgdat->node_zones[zid];
-+
-+		if (zone_spans_pfn(zone, pfn))
-+			break;
-+	}
-+	__init_single_page(pfn_to_page(pfn), pfn, zid, nid);
-+
-+	if (pageblock_aligned(pfn)) {
-+		enum migratetype mt =
-+			kho_scratch_migratetype(pfn, MIGRATE_MOVABLE);
-+		init_pageblock_migratetype(pfn_to_page(pfn), mt, false);
-+	}
- }
- #else
- static inline void pgdat_set_deferred_range(pg_data_t *pgdat) {}
+ 	/*
+ 	 * Scanning the task stacks (may introduce false negatives).
+@@ -1945,6 +1947,7 @@ static void kmemleak_scan(void)
+ 	 * Scan the objects already referenced from the sections scanned
+ 	 * above.
+ 	 */
++scan_gray:
+ 	scan_gray_list();
+ 
+ 	/*
 _
 
-Patches currently in -mm which might be from songmuchun@bytedance.com are
+Patches currently in -mm which might be from leitao@debian.org are
 
-selftests-mm-remove-obsolete-hugetlb-vmemmap-test.patch
+mm-memory-failure-drop-dead-error_states-entry-for-reserved-pages.patch
+mm-memory-failure-surface-unhandlable-kernel-pages-as-enotrecoverable.patch
+mm-memory-failure-report-mf_msg_kernel-for-unrecoverable-kernel-pages.patch
+mm-memory-failure-add-panic-option-for-unrecoverable-pages.patch
+documentation-document-panic_on_unrecoverable_memory_failure-sysctl.patch
+radix-tree-fix-kmemleak-false-positives-on-tree-head-reassignment.patch
+mm-kmemleak-report-leaks-only-after-n-consecutive-unreferenced-scans.patch
+mm-kmemleak-factor-leak-confirmation-into-a-helper.patch
+selftests-mm-test-kmemleaks-n-consecutive-scan-leak-confirmation.patch
+mm-kmemleak-report-rcu-tasks-quiescent-states-during-the-scan.patch
+mm-migrate-report-rcu-tasks-quiescent-states-in-migrate_pages_batch.patch
 
