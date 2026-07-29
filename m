@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 77BBD3932C2
-	for <mm-commits@vger.kernel.org>; Wed, 29 Jul 2026 04:14:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 61A1EC2EA
+	for <mm-commits@vger.kernel.org>; Wed, 29 Jul 2026 04:14:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785298486; cv=none; b=VqxTXqSo0rKqW9YFNh5pSDKr7j0ZZao33NPSROLwtFwog3JTQygq3o0mHwKehXKOX7FuDXXw9CTfWo5QEDaqtaYVHL+WcmZpQ7dzenwTlQKEjrV1VFRNymUOpX1kjgNgIa/EMRYOJuQKnqCl3ENxmJW72isxZb+M8gTggFpmTNA=
+	t=1785298490; cv=none; b=c50prJYH/+clus2hehU14yXguzFwZGKUwnGSitF7RKb/cjDhz+AJ5gmQKppIWGquqrjdoOqxUBUSDwgC0fNU7Bdm1f7erluORmFuX421ID7IwwWMhyx20WI9j5xsqJx9S2VADsGwZDQceEGf9d5NHwKucxpbeurG1ekiSVOh5lo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785298486; c=relaxed/simple;
-	bh=vVgAQJkTqG1Pn9fLRbdvcBXkDQGvJfG7caLPuHsi/Gw=;
-	h=Date:To:From:Subject:Message-Id; b=Pt+4J1k+tqXrtOmXohLbJDTTg6tMbCGKhPDdhFt8Odm2l4m9SOQ0mZBJR6Z4YsFLGC3jknsl8pfV8Hbr2E3ndRFDx805yN30mfkTr0F8ztm8PDNfmOQLbQyxjJZqiLrKWbDxYPUQ9E0KiPFgypJcJSg1NULHMJSD+8yloGycFdY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JuhNHYVC; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785298490; c=relaxed/simple;
+	bh=9kGQtk7s7sNa+Bhy7zapbpt0gs3rAsQCaD8B6pOpe5c=;
+	h=Date:To:From:Subject:Message-Id; b=idju48clKcYdA18wnbXBPozqGOBtmZ34hkXsq7X3UFrcIA0gbCDkj1E8wg5j1lcIzITjoX1WcIeixICRu/Tb1wME6qAK/YAm9o5vsOy44FLMf9pZ1pW5Xz6ecdi523CaYL8Vbyx08FrDSmUky5FPE6t3b1sMlcFEaQQuYpA/2JI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=b6qDNzlY; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JuhNHYVC"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5047F1F000E9;
-	Wed, 29 Jul 2026 04:14:45 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="b6qDNzlY"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 368081F000E9;
+	Wed, 29 Jul 2026 04:14:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785298485;
-	bh=3wduisD3k4kZRTCUK/3m89T4Ay4XNN1QqOWEknVljTQ=;
+	d=linux-foundation.org; s=korg; t=1785298489;
+	bh=JyG7g2l7adLALcGDKYcUyGbj6BRn/1oYRJ0OQHlJ8C8=;
 	h=Date:To:From:Subject;
-	b=JuhNHYVCRH+bAYUUeEFq0yR2Az47ohJuzcGV73XvwtY04cnP/35Yx0Ps5aj2ChnLY
-	 57W1f0/dKz/9BdPPzZPP/6RHczHSuJVjWTCB29M0mD23Bpshs3g0iHtrx14Htd++oZ
-	 A4PIpfIXsLYL6sF14obT4g/vbX+TZfTNReCavVYQ=
-Date: Tue, 28 Jul 2026 21:14:44 -0700
-To: mm-commits@vger.kernel.org,yuanchu@google.com,weixugc@google.com,vbabka@kernel.org,shikemeng@huaweicloud.com,shakeel.butt@linux.dev,pfalcato@suse.de,nphamcs@gmail.com,ljs@kernel.org,liam@infradead.org,kasong@tencent.com,jannh@google.com,david@kernel.org,chrisl@kernel.org,baoquan.he@linux.dev,baohua@kernel.org,axelrasmussen@google.com,wangxuewen@kylinos.cn,akpm@linux-foundation.org
+	b=b6qDNzlY/ide9MKyMqM0W1p5AUrSPtsqb0n1pUsdXowWtbw7o0N0VP5BQa0OuhpI5
+	 L7uqbhlbhc3/ndnWRCw969l6iQfwy7Q825pCKOZCieXhvI6d3BJ14Bwqr8Vk3kADNu
+	 STZ6XYqDmwZZqgV+6deNKTdgdN1JqV67hrPONUis=
+Date: Tue, 28 Jul 2026 21:14:48 -0700
+To: mm-commits@vger.kernel.org,xueyuan.chen21@gmail.com,senozhatsky@chromium.org,nphamcs@gmail.com,minchan@kernel.org,joshua.hahnjy@gmail.com,baohua@kernel.org,haowenchao@xiaomi.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-annotate-data-race-in-cpu_needs_drain.patch removed from -mm tree
-Message-Id: <20260729041445.5047F1F000E9@smtp.kernel.org>
+Subject: [merged mm-stable] mm-zsmalloc-encode-class-index-in-obj-value-for-lockless-class-lookup.patch removed from -mm tree
+Message-Id: <20260729041449.368081F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,78 +35,288 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: annotate data-race in cpu_needs_drain()
+     Subject: mm/zsmalloc: encode class index in obj value for lockless class lookup
 has been removed from the -mm tree.  Its filename was
-     mm-annotate-data-race-in-cpu_needs_drain.patch
+     mm-zsmalloc-encode-class-index-in-obj-value-for-lockless-class-lookup.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Xuewen Wang <wangxuewen@kylinos.cn>
-Subject: mm: annotate data-race in cpu_needs_drain()
-Date: Fri, 26 Jun 2026 13:37:00 +0800
+From: Wenchao Hao <haowenchao@xiaomi.com>
+Subject: mm/zsmalloc: encode class index in obj value for lockless class lookup
+Date: Fri, 26 Jun 2026 09:50:00 +0800
 
-KCSAN reports a data-race when cpu_needs_drain() reads another CPU's
-per-cpu folio_batch->nr without locking, while the owning CPU writes to it
-via folio_batch_add().
+Patch series "mm/zsmalloc: reduce lock contention in zs_free()", v6.
 
-Reading a slightly stale value is harmless -- cpu_needs_drain() only
-decides whether to schedule a drain, and the next iteration of
-__lru_add_drain_all() will re-check.  Use data_race() to annotate the
-intentional race.
+This series reduces lock contention in zs_free(), which dominates the
+unmap path under memory pressure on Android (LMK kills) and on x86 servers
+running zswap-heavy workloads.
 
-[akpm@linux-foundation.org: reindent cpu_needs_drain, per David & Lorenzo]
-Link: https://lore.kernel.org/20260626053700.2036899-1-wangxuewen@kylinos.cn
-Signed-off-by: Xuewen Wang <wangxuewen@kylinos.cn>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Reviewed-by: Pedro Falcato <pfalcato@suse.de>
-Reviewed-by: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Baoquan He <baoquan.he@linux.dev>
+The current zs_free() takes pool->lock (rwlock, read side) just to look up
+the size_class for a handle, then takes class->lock and holds it across
+__free_zspage() which can call into the buddy allocator and acquire
+zone->lock.  Two costs follow:
+
+  * pool->lock reader-counter cacheline bouncing among concurrent
+    zs_free() callers.
+  * class->lock held across folio_put(), so any zone->lock wait
+    fans out to every other zs_free() on the same class.
+
+The series tackles both:
+
+  Patch 1: encode size_class index into obj alongside PFN and obj_idx,
+           so zs_free() can locate the class without pool->lock.
+  Patch 2: drop pool->lock from zs_free() on 64-bit; 32-bit unchanged.
+  Patch 3: move zspage page-freeing out of class->lock.
+  Patch 4: document the three free_zspage helper variants that result
+           from the split in patch 3.
+
+Performance results:
+
+Test: each process independently mmap 256MB, write data, madvise
+MADV_PAGEOUT to swap out via zram (lzo-rle), then concurrent munmap.
+
+Raspberry Pi 4B (4-core ARM64 Cortex-A72):
+
+  mode        Base       Patched     Speedup
+  single      59.0ms     56.0ms      1.05x
+  multi 2p    94.6ms     66.7ms      1.42x
+  multi 4p    202.9ms    110.6ms     1.83x
+
+x86 (20-core Intel i7-12700, 16 concurrent processes):
+
+  mode        Base       Patched     Speedup
+  single      11.7ms     9.8ms       1.19x
+  multi 2p    24.1ms     17.2ms      1.40x
+  multi 4p    63.0ms     45.3ms      1.39x
+
+
+This patch (of 4):
+
+Encode the size_class index (class_idx) into the obj value so that
+zs_free() can determine the correct size_class without dereferencing the
+handle->obj->PFN->zpdesc->zspage->class chain under pool->lock.  class_idx
+is invariant across page migration (only PFN is rewritten), so a lockless
+read of obj always yields a valid class_idx.
+
+Where obj has more bits below the PFN field than obj_idx alone needs,
+split that space into class_idx and obj_idx subfields:
+
+ |<-- _PFN_BITS -->|<-- ZS_OBJ_CLASS_BITS -->|<-- ZS_OBJ_IDX_BITS -->|
+ +-----------------+-------------------------+-----------------------+
+ |       PFN       |        class_idx        |        obj_idx        |
+ +-----------------+-------------------------+-----------------------+
+MSB                ^                                                LSB
+                   |
+                   +-- ZS_OBJ_PFN_SHIFT
+
+The macro layout changes as follows:
+
+    Before            After               Meaning
+    ----------------  ------------------  ----------------------------
+    OBJ_INDEX_BITS    ZS_OBJ_IDX_BITS     width of obj_idx subfield
+    OBJ_INDEX_MASK    ZS_OBJ_IDX_MASK     mask  of obj_idx subfield
+    (n/a)             ZS_OBJ_CLASS_BITS   width of class_idx subfield
+    (n/a)             ZS_OBJ_CLASS_MASK   mask  of class_idx subfield
+    (n/a)             ZS_OBJ_PFN_SHIFT    bit offset of PFN in obj
+
+ZS_OBJ_CLASS_BITS folds to 0 (and the layout collapses to [PFN | obj_idx])
+when obj has no spare bits, i.e.  on 32-bit or on 64-bit fallback paths
+where MAX_POSSIBLE_PHYSMEM_BITS == BITS_PER_LONG (e.g.  UML); zs_free()
+then falls back to pool->lock.
+
+[akpm@linux-foundation.org: fix obj_to_class_idx() defined but not used, remove duplicated #ifdef]
+Link: https://lore.kernel.org/20260626015003.2965881-1-haowenchao22@gmail.com
+Link: https://lore.kernel.org/20260626015003.2965881-2-haowenchao22@gmail.com
+Signed-off-by: Wenchao Hao <haowenchao@xiaomi.com>
+Reviewed-by: Nhat Pham <nphamcs@gmail.com>
 Cc: Barry Song <baohua@kernel.org>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: Jann Horn <jannh@google.com>
-Cc: Kairui Song <kasong@tencent.com>
-Cc: Kemeng Shi <shikemeng@huaweicloud.com>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Wei Xu <weixugc@google.com>
-Cc: Yuanchu Xie <yuanchu@google.com>
+Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
+Cc: Xueyuan Chen <xueyuan.chen21@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap.c |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ mm/zsmalloc.c |  106 ++++++++++++++++++++++++++++++++++++++++--------
+ 1 file changed, 90 insertions(+), 16 deletions(-)
 
---- a/mm/swap.c~mm-annotate-data-race-in-cpu_needs_drain
-+++ a/mm/swap.c
-@@ -831,13 +831,13 @@ static bool cpu_needs_drain(unsigned int
- 	struct cpu_fbatches *fbatches = &per_cpu(cpu_fbatches, cpu);
+--- a/mm/zsmalloc.c~mm-zsmalloc-encode-class-index-in-obj-value-for-lockless-class-lookup
++++ a/mm/zsmalloc.c
+@@ -67,8 +67,8 @@
+ #define MAX_POSSIBLE_PHYSMEM_BITS MAX_PHYSMEM_BITS
+ #else
+ /*
+- * If this definition of MAX_PHYSMEM_BITS is used, OBJ_INDEX_BITS will just
+- * be PAGE_SHIFT
++ * If this definition of MAX_PHYSMEM_BITS is used, ZS_OBJ_PFN_SHIFT will
++ * just be PAGE_SHIFT
+  */
+ #define MAX_POSSIBLE_PHYSMEM_BITS BITS_PER_LONG
+ #endif
+@@ -88,8 +88,23 @@
+ #define OBJ_TAG_BITS	1
+ #define OBJ_TAG_MASK	OBJ_ALLOCATED_TAG
  
- 	/* Check these in order of likelihood that they're not zero */
--	return folio_batch_count(&fbatches->lru_add) ||
--		folio_batch_count(&fbatches->lru_move_tail) ||
--		folio_batch_count(&fbatches->lru_deactivate_file) ||
--		folio_batch_count(&fbatches->lru_deactivate) ||
--		folio_batch_count(&fbatches->lru_lazyfree) ||
--		folio_batch_count(&fbatches->lru_activate) ||
--		need_mlock_drain(cpu) ||
-+	return data_race(folio_batch_count(&fbatches->lru_add) ||
-+			 folio_batch_count(&fbatches->lru_move_tail) ||
-+			 folio_batch_count(&fbatches->lru_deactivate_file) ||
-+			 folio_batch_count(&fbatches->lru_deactivate) ||
-+			 folio_batch_count(&fbatches->lru_lazyfree) ||
-+			 folio_batch_count(&fbatches->lru_activate) ||
-+			 need_mlock_drain(cpu)) ||
- 		has_bh_in_lru(cpu, NULL);
+-#define OBJ_INDEX_BITS	(BITS_PER_LONG - _PFN_BITS)
+-#define OBJ_INDEX_MASK	((_AC(1, UL) << OBJ_INDEX_BITS) - 1)
++/*
++ * obj is encoded as [PFN | class_idx | obj_idx] within an unsigned long:
++ *
++ *   |<-- _PFN_BITS -->|<-- ZS_OBJ_CLASS_BITS -->|<-- ZS_OBJ_IDX_BITS -->|
++ *   +-----------------+-------------------------+-----------------------+
++ *   |       PFN       |        class_idx        |        obj_idx        |
++ *   +-----------------+-------------------------+-----------------------+
++ *  MSB                ^                                                LSB
++ *                     |
++ *                     +-- ZS_OBJ_PFN_SHIFT
++ *
++ * Encoding class_idx into obj lets zs_free() locate the size_class
++ * without holding pool->lock; class_idx is invariant across page
++ * migration (only PFN changes), so a lockless read of the obj value
++ * always yields a valid class_idx.
++ */
++#define ZS_OBJ_PFN_SHIFT	(BITS_PER_LONG - _PFN_BITS)
+ 
+ #define HUGE_BITS	1
+ #define FULLNESS_BITS	4
+@@ -98,9 +113,61 @@
+ 
+ #define ZS_MAX_PAGES_PER_ZSPAGE	(_AC(CONFIG_ZSMALLOC_CHAIN_SIZE, UL))
+ 
++/*
++ * Bits to index a page within a zspage = ceil(log2(ZS_MAX_PAGES_PER_ZSPAGE)).
++ * Computed at preprocessor time, for use in #if below.  Kconfig
++ * restricts ZSMALLOC_CHAIN_SIZE to [4, 16].
++ */
++#if ZS_MAX_PAGES_PER_ZSPAGE <= 4
++#define ZS_PAGES_PER_ZSPAGE_BITS	2
++#elif ZS_MAX_PAGES_PER_ZSPAGE <= 8
++#define ZS_PAGES_PER_ZSPAGE_BITS	3
++#elif ZS_MAX_PAGES_PER_ZSPAGE <= 16
++#define ZS_PAGES_PER_ZSPAGE_BITS	4
++#else
++#error "ZSMALLOC_CHAIN_SIZE out of expected range [4,16]"
++#endif
++
++/*
++ * Bits to index an object within a single PAGE_SIZE at the smallest
++ * possible object size: log2(PAGE_SIZE / 32) = PAGE_SHIFT - 5.
++ * 32 is the hard floor of ZS_MIN_ALLOC_SIZE.
++ */
++#define ZS_OBJS_PER_PAGE_BITS	(PAGE_SHIFT - 5)
++
++/*
++ * Bits to index any object in the densest possible zspage.  Below this,
++ * ZS_MIN_ALLOC_SIZE is auto-raised by the MAX(32, ...) formula -- still
++ * correct, but objects are coarser.
++ */
++#define ZS_OBJS_PER_ZSPAGE_BITS \
++	(ZS_PAGES_PER_ZSPAGE_BITS + ZS_OBJS_PER_PAGE_BITS)
++
++/*
++ * Encode class_idx only when obj has spare bits; otherwise
++ * ZS_OBJ_CLASS_BITS folds to 0 (32-bit, or 64-bit UML/fallback).
++ */
++#if BITS_PER_LONG >= 64 && \
++	ZS_OBJ_PFN_SHIFT >= (CLASS_BITS + 1) + ZS_OBJS_PER_ZSPAGE_BITS
++#define ZS_OBJ_CLASS_BITS	(CLASS_BITS + 1)
++#else
++#define ZS_OBJ_CLASS_BITS	0
++#endif
++#define ZS_OBJ_CLASS_MASK	((_AC(1, UL) << ZS_OBJ_CLASS_BITS) - 1)
++
++#define ZS_OBJ_IDX_BITS		(ZS_OBJ_PFN_SHIFT - ZS_OBJ_CLASS_BITS)
++#define ZS_OBJ_IDX_MASK		((_AC(1, UL) << ZS_OBJ_IDX_BITS) - 1)
++
++/*
++ * Belt-and-suspenders: the #if above already guarantees this when
++ * class_idx is enabled.  Catches future tweaks that bypass it.
++ */
++static_assert(ZS_OBJ_IDX_BITS >= ZS_PAGES_PER_ZSPAGE_BITS,
++	      "zsmalloc: ZS_MIN_ALLOC_SIZE would exceed ZS_MAX_ALLOC_SIZE");
++
+ /* ZS_MIN_ALLOC_SIZE must be multiple of ZS_ALIGN */
+ #define ZS_MIN_ALLOC_SIZE \
+-	MAX(32, (ZS_MAX_PAGES_PER_ZSPAGE << PAGE_SHIFT >> OBJ_INDEX_BITS))
++	MAX(32, (ZS_MAX_PAGES_PER_ZSPAGE << PAGE_SHIFT >> ZS_OBJ_IDX_BITS))
+ /* each chunk includes extra space to keep handle */
+ #define ZS_MAX_ALLOC_SIZE	PAGE_SIZE
+ 
+@@ -720,26 +787,29 @@ static struct zpdesc *get_next_zpdesc(st
+ static void obj_to_location(unsigned long obj, struct zpdesc **zpdesc,
+ 				unsigned int *obj_idx)
+ {
+-	*zpdesc = pfn_zpdesc(obj >> OBJ_INDEX_BITS);
+-	*obj_idx = (obj & OBJ_INDEX_MASK);
++	*zpdesc = pfn_zpdesc(obj >> ZS_OBJ_PFN_SHIFT);
++	*obj_idx = (obj & ZS_OBJ_IDX_MASK);
  }
  
+ static void obj_to_zpdesc(unsigned long obj, struct zpdesc **zpdesc)
+ {
+-	*zpdesc = pfn_zpdesc(obj >> OBJ_INDEX_BITS);
++	*zpdesc = pfn_zpdesc(obj >> ZS_OBJ_PFN_SHIFT);
+ }
+ 
+ /**
+- * location_to_obj - get obj value encoded from (<zpdesc>, <obj_idx>)
++ * location_to_obj - encode (<zpdesc>, <obj_idx>, <class_idx>) into obj value
+  * @zpdesc: zpdesc object resides in zspage
+  * @obj_idx: object index
++ * @class_idx: size class index; ignored when ZS_OBJ_CLASS_BITS == 0
+  */
+-static unsigned long location_to_obj(struct zpdesc *zpdesc, unsigned int obj_idx)
++static unsigned long location_to_obj(struct zpdesc *zpdesc, unsigned int obj_idx,
++				     unsigned int class_idx)
+ {
+ 	unsigned long obj;
+ 
+-	obj = zpdesc_pfn(zpdesc) << OBJ_INDEX_BITS;
+-	obj |= obj_idx & OBJ_INDEX_MASK;
++	obj  = zpdesc_pfn(zpdesc) << ZS_OBJ_PFN_SHIFT;
++	obj |= (unsigned long)(class_idx & ZS_OBJ_CLASS_MASK) << ZS_OBJ_IDX_BITS;
++	obj |= obj_idx & ZS_OBJ_IDX_MASK;
+ 
+ 	return obj;
+ }
+@@ -1275,7 +1345,7 @@ static unsigned long obj_malloc(struct z
+ 	kunmap_local(vaddr);
+ 	mod_zspage_inuse(zspage, 1);
+ 
+-	obj = location_to_obj(m_zpdesc, obj);
++	obj = location_to_obj(m_zpdesc, obj, zspage->class);
+ 	record_obj(handle, obj);
+ 
+ 	return obj;
+@@ -1643,9 +1713,12 @@ static void lock_zspage(struct zspage *z
+ 	}
+ 	zspage_read_unlock(zspage);
+ }
+-#endif /* CONFIG_COMPACTION */
+ 
+-#ifdef CONFIG_COMPACTION
++/* Folds to 0 when ZS_OBJ_CLASS_BITS == 0; no ifdef needed at callers. */
++static unsigned int obj_to_class_idx(unsigned long obj)
++{
++	return (obj >> ZS_OBJ_IDX_BITS) & ZS_OBJ_CLASS_MASK;
++}
+ 
+ static void replace_sub_page(struct size_class *class, struct zspage *zspage,
+ 				struct zpdesc *newzpdesc, struct zpdesc *oldzpdesc)
+@@ -1761,7 +1834,8 @@ static int zs_page_migrate(struct page *
+ 
+ 			old_obj = handle_to_obj(handle);
+ 			obj_to_location(old_obj, &dummy, &obj_idx);
+-			new_obj = (unsigned long)location_to_obj(newzpdesc, obj_idx);
++			new_obj = location_to_obj(newzpdesc, obj_idx,
++						  obj_to_class_idx(old_obj));
+ 			record_obj(handle, new_obj);
+ 		}
+ 	}
 _
 
-Patches currently in -mm which might be from wangxuewen@kylinos.cn are
+Patches currently in -mm which might be from haowenchao@xiaomi.com are
 
-mm-damon-remove-trailing-semicolons-after-function-definitions.patch
 
