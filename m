@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 61B7125D1E9
-	for <mm-commits@vger.kernel.org>; Wed, 29 Jul 2026 04:15:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C41A91F7916
+	for <mm-commits@vger.kernel.org>; Wed, 29 Jul 2026 04:15:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785298528; cv=none; b=cP7xD/DPZ+KQBPZDwtVJ4p5e+HRXh4iCV9sZHAHVaJ4Zsrm3WJKSUb57H+BsSVzbB1W0XVvzwp4QL4wYVARxEyzV5FLZ4HpB65DkzMpHmpULruXsyBFRH/ubSWPeJza/1LsA3h2Js1n1FWOpoV6ey0J/0TLp4ixENv7IHKXMg9w=
+	t=1785298528; cv=none; b=VloM2ALOcBzJa2qKo2UhRkHGM0u7n6J7sc6o7LJ3gCQYpCQlS2ypC/WneWq4/zTPzMX6ZzcFGmYvIm5D8ZqFp4e9WFnk8W7KmC3hJdrj6hXQ/v9bzMc6ox3vpcjuabUbw4X+sBpQ1gzBeWC0iveuRQ7M2ToQsDpn7yRCn7ijGZQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1785298528; c=relaxed/simple;
-	bh=/7Vwj9NyiwAJAlyYqhMA4Qy+Ueiq5nHQ6jpTP9RqBxA=;
-	h=Date:To:From:Subject:Message-Id; b=msoq1P5uM9JVTdInhQRVt9KZVDpe6vsImafBeGiT61G168Ptoo1yS6wm54gT0TsE2vTURBmgnoEeAyWDhVCq/sfUPlSBqS3SBQxuPuJnkEG4HkYegoJIj+Hs9t5tYWNLElqQfMVXSnewkAxnQQkNpTY+SAofnJu1BMU5qY5aPDc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZfgLolCn; arc=none smtp.client-ip=100.103.45.18
+	bh=a+Jy6lPWysy5/gFd/ZbUe0AlOGN+jG/+45yoflqZF2M=;
+	h=Date:To:From:Subject:Message-Id; b=jqQd7Yur8o1/RrnEfDA5DRR5NHKzWF/82dvgRTUjpznbAn3dR8KsC0R42vUbstjOaa8MPrTfoA1Sa0Ah3ReeMjeiR0qSsP29dvju25wzLDwkf1nyiEAABRMt1baC+lDcCpjhmEjc+SAQXP9zVkyIuEBTi4GatHr/w8gCn83CzwI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lrDAEtqd; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZfgLolCn"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3DB7C1F00A3A;
-	Wed, 29 Jul 2026 04:15:25 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lrDAEtqd"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4FAAC1F00A3F;
+	Wed, 29 Jul 2026 04:15:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785298525;
-	bh=0P9KkW/anuF07JZdpcH2kZ3XjxWrOEYAiMDh8lR9V1Y=;
+	d=linux-foundation.org; s=korg; t=1785298526;
+	bh=0bsuyoeI52UGmqSRVi+gDWYuisrUVo5/+T1ADn/kkzI=;
 	h=Date:To:From:Subject;
-	b=ZfgLolCnew8UhAHm6WoM6Gt9wEuRNnrCi2ok3T/PkBu+ikx39ET1HmaFKVom0w+TI
-	 45zK9z5YCVt4jfn1ST7aRCwi4REVBjDYcmJJNiGeCi5rLCcNPd65rv3//t+uHLhv3/
-	 y0pyJhxXmBHW77ojT5A8ZOwbwOmDM3ADUOg4+YH4=
-Date: Tue, 28 Jul 2026 21:15:24 -0700
+	b=lrDAEtqdR1yUHJuctOsJONv5jFaXRW3jwVH4KT8S9YAaUG7KODmMwLCv8D9M8BUMY
+	 S+bHLGkC0KVth0OZbfKKmzeqypKk7nOWTUao/Y575QxWjyDeHJQEBP+vxs/nu3yo/N
+	 4Li4O8TYg+0gpLETmaYWVL9j1QDdfRU1e7gnnqgg=
+Date: Tue, 28 Jul 2026 21:15:25 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-sysfs-kobject_del-probe-filter-dirs.patch removed from -mm tree
-Message-Id: <20260729041525.3DB7C1F00A3A@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-sysfs-kobject_del-probe-dirs-in-probes_addd_dir-error-path.patch removed from -mm tree
+Message-Id: <20260729041526.4FAAC1F00A3F@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,46 +35,43 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/damon/sysfs: kobject_del() probe filter dirs
+     Subject: mm/damon/sysfs: kobject_del() probe dirs in probes_addd_dir error path
 has been removed from the -mm tree.  Its filename was
-     mm-damon-sysfs-kobject_del-probe-filter-dirs.patch
+     mm-damon-sysfs-kobject_del-probe-dirs-in-probes_addd_dir-error-path.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/sysfs: kobject_del() probe filter dirs
-Date: Sun, 28 Jun 2026 15:01:18 -0700
+Subject: mm/damon/sysfs: kobject_del() probe dirs in probes_addd_dir error path
+Date: Sun, 28 Jun 2026 15:01:19 -0700
 
 On CONFIG_DEBUG_KOBJECT_RELEASE enabled kernel, lack of kobject_del()
 could cause directories creation failures due to the name conflicts.  Fix
-those issues for data attribute probe filter directories by adding
-kobject_del() calls.
+the issue for data attribute probe filter directories in the error
+handling path of damon_sysfs_probes_add_dirs() by adding a kobject_del()
+call.
 
-Link: https://lore.kernel.org/20260628220121.97360-10-sj@kernel.org
-Fixes: 82e66aef7714 ("mm/damon/sysfs: implement filter dir")
+Link: https://lore.kernel.org/20260628220121.97360-11-sj@kernel.org
+Fixes: af7cb41af9a9 ("mm/damon/sysfs: implement filters directory")
 Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/sysfs.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ mm/damon/sysfs.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/damon/sysfs.c~mm-damon-sysfs-kobject_del-probe-filter-dirs
+--- a/mm/damon/sysfs.c~mm-damon-sysfs-kobject_del-probe-dirs-in-probes_addd_dir-error-path
 +++ a/mm/damon/sysfs.c
-@@ -960,8 +960,10 @@ static void damon_sysfs_filters_rm_dirs(
- 	struct damon_sysfs_filter **filters_arr = filters->filters_arr;
- 	int i;
+@@ -1181,6 +1181,7 @@ static int damon_sysfs_probes_add_dirs(
  
--	for (i = 0; i < filters->nr; i++)
-+	for (i = 0; i < filters->nr; i++) {
-+		kobject_del(&filters_arr[i]->kobj);
- 		kobject_put(&filters_arr[i]->kobj);
-+	}
- 	filters->nr = 0;
- 	kfree(filters_arr);
- 	filters->filters_arr = NULL;
+ 		err = damon_sysfs_probe_add_dirs(probe);
+ 		if (err) {
++			kobject_del(&probe->kobj);
+ 			kobject_put(&probe->kobj);
+ 			damon_sysfs_probes_rm_dirs(probes);
+ 			return err;
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
