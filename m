@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C41A91F7916
-	for <mm-commits@vger.kernel.org>; Wed, 29 Jul 2026 04:15:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9392D1C28E
+	for <mm-commits@vger.kernel.org>; Wed, 29 Jul 2026 04:15:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785298528; cv=none; b=VloM2ALOcBzJa2qKo2UhRkHGM0u7n6J7sc6o7LJ3gCQYpCQlS2ypC/WneWq4/zTPzMX6ZzcFGmYvIm5D8ZqFp4e9WFnk8W7KmC3hJdrj6hXQ/v9bzMc6ox3vpcjuabUbw4X+sBpQ1gzBeWC0iveuRQ7M2ToQsDpn7yRCn7ijGZQ=
+	t=1785298529; cv=none; b=bRR7n+AiixLzotvXA0lusVHYn6njIEGzzUYXQBI1vW2bRQHk60M7bwuqP4TAIk8GlQziUPROpHRx9CYS4LbGKQY7vRs3/rDmcc6ljMvo40jzSOl0/OXxm+swz2lOnkv+gIknKpXjEG6hXHcQYwh7VrTne21hNHIWRxoL4VXImG0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785298528; c=relaxed/simple;
-	bh=a+Jy6lPWysy5/gFd/ZbUe0AlOGN+jG/+45yoflqZF2M=;
-	h=Date:To:From:Subject:Message-Id; b=jqQd7Yur8o1/RrnEfDA5DRR5NHKzWF/82dvgRTUjpznbAn3dR8KsC0R42vUbstjOaa8MPrTfoA1Sa0Ah3ReeMjeiR0qSsP29dvju25wzLDwkf1nyiEAABRMt1baC+lDcCpjhmEjc+SAQXP9zVkyIuEBTi4GatHr/w8gCn83CzwI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lrDAEtqd; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785298529; c=relaxed/simple;
+	bh=tfXgWg9JhoaowOjqHtiOIBJIk2kiIXpyvuj/nNgS1Hc=;
+	h=Date:To:From:Subject:Message-Id; b=LHZ9crRC/JsK/0Kg6rUiWtJrvBzGslPPAuvv74P2YRJKvnxsUiLsDLiS9EJCi3Y6G2jnEfeGCZxZHKxjnyR0efu3O74NNCGA+gPlR/5C8yUKQaaP1PAc//mkvZiywaaSJ6/fY+DK3JySv116wMaDjPnZfPtY1gYI+3yXMe6JFa0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=P1nPeZsC; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lrDAEtqd"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4FAAC1F00A3F;
-	Wed, 29 Jul 2026 04:15:26 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="P1nPeZsC"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 68D021F00A3D;
+	Wed, 29 Jul 2026 04:15:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785298526;
-	bh=0bsuyoeI52UGmqSRVi+gDWYuisrUVo5/+T1ADn/kkzI=;
+	d=linux-foundation.org; s=korg; t=1785298527;
+	bh=JlVD9uRbKgyNUc7hzK3bXAyucz9DviUjefW56E8SA4o=;
 	h=Date:To:From:Subject;
-	b=lrDAEtqdR1yUHJuctOsJONv5jFaXRW3jwVH4KT8S9YAaUG7KODmMwLCv8D9M8BUMY
-	 S+bHLGkC0KVth0OZbfKKmzeqypKk7nOWTUao/Y575QxWjyDeHJQEBP+vxs/nu3yo/N
-	 4Li4O8TYg+0gpLETmaYWVL9j1QDdfRU1e7gnnqgg=
-Date: Tue, 28 Jul 2026 21:15:25 -0700
+	b=P1nPeZsCIWNP2CabRL4FxzpEJXYXK+czQ2p0IBXDM1VfMLEFiiLDjppOy0bH8MM0R
+	 vjegUNX+kJTOL+UJEayWAAVtNpamjSFL3Iz4lV2TygDBfjViHRDx5htuL/UadBxteU
+	 79aJgs/24cxBKXJ101N6vc4Nt3MQq1+uMj9r8I7k=
+Date: Tue, 28 Jul 2026 21:15:27 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-sysfs-kobject_del-probe-dirs-in-probes_addd_dir-error-path.patch removed from -mm tree
-Message-Id: <20260729041526.4FAAC1F00A3F@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-sysfs-schemes-kobject_del-region-for-populate_region-error.patch removed from -mm tree
+Message-Id: <20260729041527.68D021F00A3D@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,43 +35,50 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/damon/sysfs: kobject_del() probe dirs in probes_addd_dir error path
+     Subject: mm/damon/sysfs-schemes: kobject_del() region for populate_region error
 has been removed from the -mm tree.  Its filename was
-     mm-damon-sysfs-kobject_del-probe-dirs-in-probes_addd_dir-error-path.patch
+     mm-damon-sysfs-schemes-kobject_del-region-for-populate_region-error.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/sysfs: kobject_del() probe dirs in probes_addd_dir error path
-Date: Sun, 28 Jun 2026 15:01:19 -0700
+Subject: mm/damon/sysfs-schemes: kobject_del() region for populate_region error
+Date: Sun, 28 Jun 2026 15:01:20 -0700
 
 On CONFIG_DEBUG_KOBJECT_RELEASE enabled kernel, lack of kobject_del()
 could cause directories creation failures due to the name conflicts.  Fix
-the issue for data attribute probe filter directories in the error
-handling path of damon_sysfs_probes_add_dirs() by adding a kobject_del()
-call.
+the issue for tried region directories in the error handling path of
+damon_sysfs_populate_region_dir() by adding a kobject_del() call.
 
-Link: https://lore.kernel.org/20260628220121.97360-11-sj@kernel.org
-Fixes: af7cb41af9a9 ("mm/damon/sysfs: implement filters directory")
+Link: https://lore.kernel.org/20260628220121.97360-12-sj@kernel.org
+Fixes: b574a82d10de ("mm/damon/sysfs-schemes: implement tried_regions/<r>/probes/")
 Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/sysfs.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/damon/sysfs-schemes.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
---- a/mm/damon/sysfs.c~mm-damon-sysfs-kobject_del-probe-dirs-in-probes_addd_dir-error-path
-+++ a/mm/damon/sysfs.c
-@@ -1181,6 +1181,7 @@ static int damon_sysfs_probes_add_dirs(
+--- a/mm/damon/sysfs-schemes.c~mm-damon-sysfs-schemes-kobject_del-region-for-populate_region-error
++++ a/mm/damon/sysfs-schemes.c
+@@ -3132,12 +3132,14 @@ void damos_sysfs_populate_region_dir(str
+ 				sysfs_regions->nr_regions))
+ 		goto out;
+ 	if (damos_sysfs_region_add_dirs(region, ctx, r))
+-		goto out;
++		goto del_out;
  
- 		err = damon_sysfs_probe_add_dirs(probe);
- 		if (err) {
-+			kobject_del(&probe->kobj);
- 			kobject_put(&probe->kobj);
- 			damon_sysfs_probes_rm_dirs(probes);
- 			return err;
+ 	list_add_tail(&region->list, &sysfs_regions->regions_list);
+ 	sysfs_regions->nr_regions++;
+ 	return;
+ 
++del_out:
++	kobject_del(&region->kobj);
+ out:
+ 	kobject_put(&region->kobj);
+ }
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
