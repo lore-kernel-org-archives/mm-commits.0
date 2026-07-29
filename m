@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 63E6E3314AC
-	for <mm-commits@vger.kernel.org>; Wed, 29 Jul 2026 03:53:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 08875209F43
+	for <mm-commits@vger.kernel.org>; Wed, 29 Jul 2026 03:54:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785297208; cv=none; b=gRgWUMe0Huf6RkiqX/3VGviJVzig38dfIqqmaZC8NUe5A838o4vz1YW/YkSzawSwPobXwkOQ+THDUw+CPc2EG0kZH/JNWUo8EsVWmhZbWrkN+gWcMIVW1bUC2h1rJi2bBnB4sEmcCQysFv3wYcZ2Lc2LoernB26wIY4C5bMo2+A=
+	t=1785297263; cv=none; b=a0sGk92WuQZZQgzpreJgnoJguWYqgalc1Ux6cFuhKP/X9iVxXAKu7nhrfSf9d0Ocxk0VRQwhLSbFUl9ZKV/tPBHI/NSWJKPuRnKF+/Bahq1vu3hHLZUei79fCbNaStB1DVR3lMQ6S+uEVwBibBqbLcsOzZHUfvMftzxqhxmvapc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785297208; c=relaxed/simple;
-	bh=Y5FluUXs7wajswoVfBfVC+3plD6IfHLVrVvqfibEv/A=;
-	h=Date:To:From:Subject:Message-Id; b=PMFkgpC8v5gZ/2bXhprA5OYnb8Y0WtyCAitKq/+KS6/HuBFm302LXol7q9hmhhUhfegADaqS3vUlWxHfuDz0M7aHXvW3rynw/uOpWq8AURQGz1AYBYOn0V0GttDi6k5V7Xm8waQUadTbryG8gmdSSb6rjmMlrcKQy+wSVi/ijHI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GjP693sM; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785297263; c=relaxed/simple;
+	bh=e1FPx+Qxcbwb1CFSOtLyE/yqUOwsfmwbCbh5efC16Qg=;
+	h=Date:To:From:Subject:Message-Id; b=ZShYqjuBJTPs2ofGtckhHIZPbbC8r3BJdNrv7aquQWAMrK3DCR8O+7ElQevv675zyjl6MXawVPUihkm1OyEyhLZtbbt0UoLcj9C3C7ZNrncEtYnk3ogeCTZfVAGK8Ew306faMBEXyl2siGGNFBMiKvj5F64juvy3qAhGdwlrGeM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=G+ADqys5; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GjP693sM"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 09B261F00A3A;
-	Wed, 29 Jul 2026 03:53:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="G+ADqys5"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BFFDE1F000E9;
+	Wed, 29 Jul 2026 03:54:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785297207;
-	bh=vZ092WgC1+XIMVNmbnmaPIKztq6K9SkLMOjX08ZYfeU=;
+	d=linux-foundation.org; s=korg; t=1785297261;
+	bh=jLZdyhLqiHsXLBI9I/lPYEU+VijVq54vQCUkDEPrCIA=;
 	h=Date:To:From:Subject;
-	b=GjP693sMKMh9uajbmzGYKxlhVzvjii2QQt6c5P8aUG/xjEgeQWm4GzjcDzSsjI5uD
-	 CXwdXqHDjKq0CI1KkJUgQg61d4YsNUEmg34u3yJ2HbgjIAKA21MNLfn91Z7RpjfmNg
-	 E/b3f2G3C28nT0uiSAEzBQuig/kerTceZqAsMH0U=
-Date: Tue, 28 Jul 2026 20:53:26 -0700
+	b=G+ADqys5MoYBUnFF7bW/QsGNuXKgrH4VnRBpqMCtH3q9lz2/BbayyT7Qc4YrI0H2x
+	 K4/R6wFPawFZB+DuuRomyInnpCqhaXGI7FZaWfSwdCZ20d9VhJbOzmMYlj1PT0kmgd
+	 CdEmp0Tb9FIehY5Om6CPtAAnGZrGFQOaT1/AdcBY=
+Date: Tue, 28 Jul 2026 20:54:21 -0700
 To: mm-commits@vger.kernel.org,xueyuan.chen21@gmail.com,senozhatsky@chromium.org,nphamcs@gmail.com,minchan@kernel.org,lkp@intel.com,joshua.hahnjy@gmail.com,haowenchao@xiaomi.com,baohua@kernel.org,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-zsmalloc-encode-class-index-in-obj-value-for-lockless-class-lookup-fix.patch removed from -mm tree
-Message-Id: <20260729035327.09B261F00A3A@smtp.kernel.org>
+Subject: [folded-merged] mm-zsmalloc-drop-pool-lock-from-zs_free-on-64-bit-systems-fix.patch removed from -mm tree
+Message-Id: <20260729035421.BFFDE1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,22 +35,24 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm-zsmalloc-encode-class-index-in-obj-value-for-lockless-class-lookup-fix
+     Subject: mm-zsmalloc-drop-pool-lock-from-zs_free-on-64-bit-systems-fix
 has been removed from the -mm tree.  Its filename was
-     mm-zsmalloc-encode-class-index-in-obj-value-for-lockless-class-lookup-fix.patch
+     mm-zsmalloc-drop-pool-lock-from-zs_free-on-64-bit-systems-fix.patch
 
-This patch was dropped because it was folded into mm-zsmalloc-encode-class-index-in-obj-value-for-lockless-class-lookup.patch
+This patch was dropped because it was folded into mm-zsmalloc-drop-pool-lock-from-zs_free-on-64-bit-systems.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-zsmalloc-encode-class-index-in-obj-value-for-lockless-class-lookup-fix
-Date: Mon Jun 29 09:44:25 AM PDT 2026
+Subject: mm-zsmalloc-drop-pool-lock-from-zs_free-on-64-bit-systems-fix
+Date: Mon Jun 29 07:48:04 PM PDT 2026
 
-- fix obj_to_class_idx() defined but not used
-- remove duplicated #ifdef CONFIG_COMPACTION
+build fix
 
-Reported-by: kernel test robot <lkp@intel.com>
-Closes: https://lore.kernel.org/oe-kbuild-all/202606291933.Cw5TBs54-lkp@intel.com/
+mm/zsmalloc.c: In function 'obj_class_get_and_lock':
+mm/zsmalloc.c:1481:36: error: implicit declaration of function 'obj_to_class_idx' [-Wimplicit-function-declaration]
+ 1481 |         *classp = pool->size_class[obj_to_class_idx(obj)];
+      |                                    ^~~~~~~~~~~~~~~~
+
 Cc: Barry Song <baohua@kernel.org>
 Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
 Cc: Minchan Kim <minchan@kernel.org>
@@ -58,16 +60,30 @@ Cc: Nhat Pham <nphamcs@gmail.com>
 Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
 Cc: Wenchao Hao <haowenchao@xiaomi.com>
 Cc: Xueyuan Chen <xueyuan.chen21@gmail.com>
+Cc: kernel test robot <lkp@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zsmalloc.c |   13 +++++--------
- 1 file changed, 5 insertions(+), 8 deletions(-)
+ mm/zsmalloc.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
---- a/mm/zsmalloc.c~mm-zsmalloc-encode-class-index-in-obj-value-for-lockless-class-lookup-fix
+--- a/mm/zsmalloc.c~mm-zsmalloc-drop-pool-lock-from-zs_free-on-64-bit-systems-fix
 +++ a/mm/zsmalloc.c
-@@ -796,12 +796,6 @@ static void obj_to_zpdesc(unsigned long
- 	*zpdesc = pfn_zpdesc(obj >> ZS_OBJ_PFN_SHIFT);
+@@ -1457,6 +1457,12 @@ static void obj_free(int class_size, uns
+ 	mod_zspage_inuse(zspage, -1);
+ }
+ 
++/* Folds to 0 when ZS_OBJ_CLASS_BITS == 0; no ifdef needed at callers. */
++static unsigned int obj_to_class_idx(unsigned long obj)
++{
++	return (obj >> ZS_OBJ_IDX_BITS) & ZS_OBJ_CLASS_MASK;
++}
++
+ /*
+  * Resolve @handle to its zspage / size_class and acquire class->lock.
+  *
+@@ -1759,12 +1765,6 @@ static void lock_zspage(struct zspage *z
+ 	zspage_read_unlock(zspage);
  }
  
 -/* Folds to 0 when ZS_OBJ_CLASS_BITS == 0; no ifdef needed at callers. */
@@ -76,31 +92,15 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 -	return (obj >> ZS_OBJ_IDX_BITS) & ZS_OBJ_CLASS_MASK;
 -}
 -
- /**
-  * location_to_obj - encode (<zpdesc>, <obj_idx>, <class_idx>) into obj value
-  * @zpdesc: zpdesc object resides in zspage
-@@ -1719,9 +1713,12 @@ static void lock_zspage(struct zspage *z
- 	}
- 	zspage_read_unlock(zspage);
- }
--#endif /* CONFIG_COMPACTION */
- 
--#ifdef CONFIG_COMPACTION
-+/* Folds to 0 when ZS_OBJ_CLASS_BITS == 0; no ifdef needed at callers. */
-+static unsigned int obj_to_class_idx(unsigned long obj)
-+{
-+	return (obj >> ZS_OBJ_IDX_BITS) & ZS_OBJ_CLASS_MASK;
-+}
- 
  static void replace_sub_page(struct size_class *class, struct zspage *zspage,
  				struct zpdesc *newzpdesc, struct zpdesc *oldzpdesc)
+ {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 csky-implement-flush_cache_vmap-in-c.patch
-mm-zsmalloc-encode-class-index-in-obj-value-for-lockless-class-lookup.patch
-mm-zsmalloc-drop-pool-lock-from-zs_free-on-64-bit-systems-fix.patch
+mm-zsmalloc-drop-pool-lock-from-zs_free-on-64-bit-systems.patch
 mm-zsmalloc-drop-pool-lock-from-zs_free-on-64-bit-systems-fix-fix.patch
 mm-rmap-use-huge_ptep_get-in-try_to_migrate_one-checkpatch-fixes.patch
 mm-mprotect-use-huge_ptep_get-for-hugetlb-fix.patch
