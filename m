@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E2F6C384242
-	for <mm-commits@vger.kernel.org>; Thu, 30 Jul 2026 20:32:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8FFB93191D3
+	for <mm-commits@vger.kernel.org>; Thu, 30 Jul 2026 20:45:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785443538; cv=none; b=tjlpPZnRiOMMlLCH7fbROwLyNpK/XYMsMdbOWJiPhUDJpeLa8K+tyFaIg9XFgWBRgoewsFDl+mhH0nXkUdwmgyS9yhs/bmmMAIMZdCGK5QAdzknaArhWybegmMSjHuIEgmxn4BY/j5nXcB0ZPVwo0Lan3A3/iP/rxtQL76VcCg0=
+	t=1785444352; cv=none; b=Y29IfHy/Z7lWNdzCOnli0YAc6OnJjC4vvriVZFHnQvlZf6qL85Nu3+6Y7EvyOC3h5Glzol8j5AraQjGtPtXAO7TjSKmXvpzDDt5ObKGh2IfpcGgRwOwnK6Gjz/EdSfnoU7YOkQOfSHf3CGp5P3zwOIne2hr+rHXY0L/WHOQsG34=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785443538; c=relaxed/simple;
-	bh=jnGSj29w9lWFc3OQDO9VAmPnjGRSTbwF02faCxXWB88=;
-	h=Date:To:From:Subject:Message-Id; b=cpaGtLQNG7n3US8YJzziCvVTCI1yE3nkjFy77EjUp+IWcYhqanjP8fUv9y8tnHH7G0IClqAMHzXWTcOPy3kgm2cUyomHhn9MBZL4HiGP/F1rertlYqhVwPl0aie5eln+VX2emgKdEQcgWR34pLF1RQwMZE1x8/YBHLDY0QJZczU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=um8vzGBI; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785444352; c=relaxed/simple;
+	bh=tz1/dZuFuPvsTxXyg8o75SWHAS11lHI9FTMYKqCGI2M=;
+	h=Date:To:From:Subject:Message-Id; b=Z7eOxJl1iMGu9cuCMLEAf7A2HkRGoQu2/7WS5Up+cK6VshjSI7K27kHC9GUMradQMKGyzKfF1g14onO3b2D/aX0b3r8JSchG22ZUYMNYG2vmH2RRo8Oty2vdTmRuD2jD+XGeaGEOgwG9jyXdI22kjR7ZK5h+oVUREyQIAQRTetw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yByPe2lG; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="um8vzGBI"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3C20F1F000E9;
-	Thu, 30 Jul 2026 20:32:09 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yByPe2lG"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 39AB91F000E9;
+	Thu, 30 Jul 2026 20:45:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785443529;
-	bh=/1T48aBKHcyN536SDS3qLy9RzvVkABLz2oMlTt2sksE=;
+	d=linux-foundation.org; s=korg; t=1785444346;
+	bh=xS5bWE1h7Ba2msVVWwhRCcCSleUgc/zn6VUhvEmnKxs=;
 	h=Date:To:From:Subject;
-	b=um8vzGBImkQ+tKWWrovMUlIN7QwpCyPQhB4zHSX9u260vmf2RkJnDA24pCFJyEDDy
-	 IdT1GXTBTrAimaU0MGbIWecVqX+YDjH4n8CEelB7VoY3P3BnMiUBIfjeGvug8MKW8X
-	 vs4+pnxDGOKhXHASj434WW1up7AHWh1KxAt0NK98=
-Date: Thu, 30 Jul 2026 13:32:08 -0700
-To: mm-commits@vger.kernel.org,pmladek@suse.com,mhiramat@kernel.org,lance.yang@linux.dev,wangxb12@chinatelecom.cn,akpm@linux-foundation.org
+	b=yByPe2lGRHPHNuyonxmU4Y2diaWrNzGZWzfdQd6Eo7E9Q3/eFInNYbC0eGwkNAtG6
+	 kLLx5+/dDLkl/wdnD5yNuKEWjzdEjJwqQ4p5ZatvwdSm3pBwhXxwncidxpE+t5a+ai
+	 J/cUY0WGdWd81rv/+8jDAlAo1/uSEtm7diMEoGAQ=
+Date: Thu, 30 Jul 2026 13:45:45 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,zhen.ni@easystack.cn,ye.liu@linux.dev,vishal.moola@gmail.com,akpm@linux-foundation.org,warren.xiong@ugreen.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + hung_task-update-detect_hung_task_blocker-kconfig-help.patch added to mm-nonmm-unstable branch
-Message-Id: <20260730203209.3C20F1F000E9@smtp.kernel.org>
+Subject: + tools-mm-prevent-page_owner_sort-from-truncating-input.patch added to mm-nonmm-unstable branch
+Message-Id: <20260730204546.39AB91F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: hung_task: update DETECT_HUNG_TASK_BLOCKER Kconfig help
+     Subject: tools/mm: prevent page_owner_sort from truncating input
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     hung_task-update-detect_hung_task_blocker-kconfig-help.patch
+     tools-mm-prevent-page_owner_sort-from-truncating-input.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hung_task-update-detect_hung_task_blocker-kconfig-help.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/tools-mm-prevent-page_owner_sort-from-truncating-input.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,47 +58,60 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Xibo Wang <wangxb12@chinatelecom.cn>
-Subject: hung_task: update DETECT_HUNG_TASK_BLOCKER Kconfig help
-Date: Thu, 30 Jul 2026 14:18:54 +0800
+From: Warren Xiong <warren.xiong@ugreen.com>
+Subject: tools/mm: prevent page_owner_sort from truncating input
+Date: Thu, 30 Jul 2026 09:58:09 +0800
 
-The help text still says the feature only covers mutexes, but blocker
-tracking has since been extended to semaphores and rwsems. Update the
-description to match the supported lock types.
+page_owner_sort opens the output file with "w" before reading the input. 
+If both paths refer to the same file, this truncates the input and the
+tool silently processes zero records before returning success.
 
-Link: https://lore.kernel.org/20260730061854.176547-1-wangxb12@chinatelecom.cn
-Cc: Petr Mladek <pmladek@suse.com>
-Signed-off-by: Xibo Wang <wangxb12@chinatelecom.cn>
-Suggested-by: Lance Yang <lance.yang@linux.dev>
-Reviewed-by: Lance Yang <lance.yang@linux.dev>
-Cc: "Masami Hiramatsu (Google)" <mhiramat@kernel.org>
-Cc: Petr Mladek <pmladek@suse.com>
+Delay opening the output file until all input records have been loaded
+into memory.  This allows the tool to sort a file in place without
+truncating data before it has been consumed.
+
+Link: https://lore.kernel.org/20260730015809.3819606-1-warren.xiong@ugreen.com
+Signed-off-by: Warren Xiong <warren.xiong@ugreen.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Vishal Moola <vishal.moola@gmail.com>
+Cc: Ye Liu <ye.liu@linux.dev>
+Cc: Zhen Ni <zhen.ni@easystack.cn>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.debug |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ tools/mm/page_owner_sort.c |   10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
 
---- a/lib/Kconfig.debug~hung_task-update-detect_hung_task_blocker-kconfig-help
-+++ a/lib/Kconfig.debug
-@@ -1292,10 +1292,10 @@ config DETECT_HUNG_TASK_BLOCKER
- 	depends on !PREEMPT_RT
- 	default y
- 	help
--	  Say Y here to show the blocker task's stacktrace who acquires
--	  the mutex lock which "hung tasks" are waiting.
--	  This will add overhead a bit but shows suspicious tasks and
--	  call trace if it comes from waiting a mutex.
-+	  Say Y here to show a possible blocker task's stacktrace when
-+	  a hung task is waiting on a mutex, semaphore, or rwsem.
-+	  This will add a bit of overhead but shows suspicious tasks and
-+	  call traces for waits on one of these locks.
+--- a/tools/mm/page_owner_sort.c~tools-mm-prevent-page_owner_sort-from-truncating-input
++++ a/tools/mm/page_owner_sort.c
+@@ -836,8 +836,7 @@ int main(int argc, char **argv)
+ 	}
  
- config WQ_WATCHDOG
- 	bool "Detect Workqueue Stalls"
+ 	fin = fopen(argv[optind], "r");
+-	fout = fopen(argv[optind + 1], "w");
+-	if (!fin || !fout) {
++	if (!fin) {
+ 		usage();
+ 		perror("open: ");
+ 		exit(1);
+@@ -874,6 +873,13 @@ int main(int argc, char **argv)
+ 			goto out_free;
+ 	}
+ 
++	fout = fopen(argv[optind + 1], "w");
++	if (!fout) {
++		usage();
++		perror("open: ");
++		exit(1);
++	}
++
+ 	printf("loaded %d\n", list_size);
+ 
+ 	printf("sorting ....\n");
 _
 
-Patches currently in -mm which might be from wangxb12@chinatelecom.cn are
+Patches currently in -mm which might be from warren.xiong@ugreen.com are
 
-hung_task-update-detect_hung_task_blocker-kconfig-help.patch
+tools-mm-prevent-page_owner_sort-from-truncating-input.patch
 
