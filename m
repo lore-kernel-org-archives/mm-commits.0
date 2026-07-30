@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 734291DFDE
-	for <mm-commits@vger.kernel.org>; Thu, 30 Jul 2026 01:14:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C8CAE3921E6;
+	Thu, 30 Jul 2026 17:35:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785374049; cv=none; b=hpKbIdMq9YqEZbkP4aFhGqCb/dgxpKuHJPKiFcAY0DKQMGZWmRZOU6X0MUhq8MOi+0VRdknY0BIlwTmXIztNlExtQRPMKpV4nfgnDe1Zd9l9SSWiDL99LW2WzCAGESe+wV6tzhlslWq5udVx2Td0FjUae7FYlj1EYHGNgPCztsw=
+	t=1785432927; cv=none; b=EWZt8BIVQcaTS7WnL+nFcJjBttHp+LNDJ6q5Bd+lT0uMdkC2W1pgQvJw/A/grlLWaVXv1h7oEHXBaiCBXSoNy409AsXvaU3a4a9smdofNJ72NM4X+2c+u1c08CCxkK6w9CREb+AOn5VuYjy59lVmT9U77hCiWUp7409y0MPbyuU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785374049; c=relaxed/simple;
-	bh=gjIjZ6nh4x6ZpRQpCB23/RqoSfl5awHUq9VS3PGXXYo=;
-	h=Date:To:From:Subject:Message-Id; b=oznNSagd+Stt48AftOS5P2pm5OfUImkeQrmH67GLNs5YXyGo4frMI7RzkxnuiqQn57TGkPOikYTSra5HhbyIG/EW9ym9cHhDoGXfNOKxwj1EunNHsTLzIBY8KYgMoEq28jxlw6fX5Ir6SWpi1IlSJQ8K8rO2yMCtACb6HPB7wK4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=faFDL66j; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785432927; c=relaxed/simple;
+	bh=HQOwbx8X2P8IdCLGqL545ONojzkVrJ1lwDNVfYBF2c0=;
+	h=Date:To:From:Subject:Message-Id; b=RaMFAfLfAaPAUUCfMvOxmwCvY2thRlDl6JsDX4obqdNvTaJOAuNhTquBm1owFlZBSkTWe4LFbmztXxIHohFX/FcqPnCpW0Ny5UVb+Y1F2KTd0+6T+qARNE2IVCtHYJT2VDSYHYJ5oARdwpi8G2xEm3CP+O8Rk0hBWbuo3+0swi4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1jou75/y; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="faFDL66j"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1F6A51F00A3A;
-	Thu, 30 Jul 2026 01:14:08 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1jou75/y"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4FC411F000E9;
+	Thu, 30 Jul 2026 17:35:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785374048;
-	bh=LAiAhgu+eXWHFtXme80sf52RhX0IWHfH+ZgZl0sJkcc=;
+	d=linux-foundation.org; s=korg; t=1785432925;
+	bh=soMirDxIR8kORKHWOWj9c6KgyI3daJQMD44e9QWhMyY=;
 	h=Date:To:From:Subject;
-	b=faFDL66jsC0BP3cYGun/kSH2cXr2Ma+sEk9oaJ+eHWHFT2Lo1CvW3OOC1MJzwuzjK
-	 9gNzGN1uFsFNUREklu9miEgpWplE464hfK0bmqOFpMEy7A2nkreRw2yVcYcjFeqSpu
-	 gPqFIoFFteCC5IR5emw1VKXZeKKgE2rfP5mNbj0o=
-Date: Wed, 29 Jul 2026 18:14:07 -0700
-To: mm-commits@vger.kernel.org,surenb@google.com,roman.gushchin@linux.dev,rientjes@google.com,riel@surriel.com,nphamcs@gmail.com,muchun.song@linux.dev,mhocko@suse.com,hannes@cmpxchg.org,shakeel.butt@linux.dev,akpm@linux-foundation.org
+	b=1jou75/yBNSlw76VrKTADdStNyQ72cIuerKLiTzxXkjpvqbyoo3Bl6s2xeSz3b9cn
+	 BZfoBlAL6pT8MWxkoGbP0c+G10utHdnJECdtc5fdQevNFkA/umMWcd02H6Ml/bYQ6M
+	 0RONOloEHEcGETsc6+qL+n8wVkgFUpGNUiTuMtmM=
+Date: Thu, 30 Jul 2026 10:35:24 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,cuitao@kylinos.cn,zhangguopeng@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + memcg-bypass-the-reclaim-and-oom-killer-for-dying-tasks-once-oom_reaper-is-done.patch added to mm-new branch
-Message-Id: <20260730011408.1F6A51F00A3A@smtp.kernel.org>
+Subject: + mm-memcg-stop-reclaim-when-a-limit-update-is-superseded.patch added to mm-unstable branch
+Message-Id: <20260730173525.4FC411F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,26 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: memcg: bypass the reclaim and oom killer for dying tasks once oom_reaper is done
-has been added to the -mm mm-new branch.  Its filename is
-     memcg-bypass-the-reclaim-and-oom-killer-for-dying-tasks-once-oom_reaper-is-done.patch
+     Subject: mm: memcg: stop reclaim when a limit update is superseded
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-memcg-stop-reclaim-when-a-limit-update-is-superseded.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memcg-bypass-the-reclaim-and-oom-killer-for-dying-tasks-once-oom_reaper-is-done.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcg-stop-reclaim-when-a-limit-update-is-superseded.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,129 +58,86 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Shakeel Butt <shakeel.butt@linux.dev>
-Subject: memcg: bypass the reclaim and oom killer for dying tasks once oom_reaper is done
-Date: Tue, 28 Jul 2026 19:46:12 -0700
+From: Guopeng Zhang <zhangguopeng@kylinos.cn>
+Subject: mm: memcg: stop reclaim when a limit update is superseded
+Date: Fri, 24 Jul 2026 10:18:05 +0800
 
-At Meta, we are seeing instances where an OOM killed job is stuck in the
-exit path for several hours.  In one particular case, the job was stuck
-for more than 8 hours and I had to manually remove the memory.max limits
-to allow the process to exit.
+kernfs serializes file operations only per open file, so separate open
+files can update the same memory.high or memory.max file concurrently. 
+Both handlers store the new limit before synchronous reclaim, but continue
+to use the writer's local target in the reclaim loop.  If another writer
+raises or removes the limit, the first writer can continue reclaiming
+toward a stale target.
 
-The job was a single process job and had ~55 GiB memory.max and zswap
-enabled.  It had almost 0 anon in memory and ~111 GiB in zswap compressed
-to ~51 GiB zswap pool (i.e.  almost all of memory.current was zswap). 
-Nothing was left on the LRUs to reclaim.
+For memory.max, this can leave the writer looping indefinitely once
+reclaim retries are exhausted.  The OOM path sees sufficient margin under
+the current limit and returns true without killing, while the writer still
+compares usage against its stale target and records another OOM event.
 
-On further inspection, I observed ~20k threads of that process stuck with
-the following stack:
+Check the current limit at the start of each reclaim iteration and stop if
+it no longer matches the writer's target.
 
-[<0>] mem_cgroup_out_of_memory+0x4e/0xa0
-[<0>] charge_memcg+0x8bf/0x990
-[<0>] mem_cgroup_swapin_charge_folio+0x4e/0x80
-[<0>] __read_swap_cache_async+0x10c/0x260
-[<0>] swapin_readahead+0x116/0x3f0
-[<0>] do_swap_page+0x13c/0x1ce0
-[<0>] handle_mm_fault+0x61d/0x11f0
-[<0>] do_user_addr_fault+0x3e7/0x6d0
-[<0>] exc_page_fault+0x8f/0x110
-[<0>] asm_exc_page_fault+0x22/0x30
-[<0>] __get_user_8+0x14/0x20
-[<0>] futex_cleanup+0x27/0x1c0
-[<0>] futex_exit_release+0x47/0x60
-[<0>] do_exit+0x107/0x940
-[<0>] do_group_exit+0x81/0xa0
-[<0>] get_signal+0x2b1/0x6e0
-[<0>] arch_do_signal_or_restart+0x1a/0x1c0
-[<0>] exit_to_user_mode_loop+0xa8/0x1c0
-[<0>] do_syscall_64+0x152/0x250
-[<0>] entry_SYSCALL_64_after_hwframe+0x4b/0x53
+Reproducer:
 
-In addition the dmesg was filled with "Out of memory and no killable
-processes..." messages.
+Populate a cgroup with anonymous memory and disable swapping.  Lower
+memory.max from one open file, then restore it to "max" through another
+open file after the new limit becomes visible.
 
-I have no idea why oom reaper was not able to reap/unmap the process.  My
-guess is that since oom reaper tries to acquire mmap_lock in read mode
-limited number of times and then gives up, there might be a thread of that
-process which had mmap_lock in write mode at that time.
+Without the patch, the first writer remains blocked and repeatedly
+increments the OOM event counter.  With the patch, it returns normally.
 
-My initial suspicion was the futex_cleanup and kernel page fault causing
-infinite fault and charge retries but that was put to rest in previous
-discussions happened on similar problem [1].
+This was not motivated by a reported production workload.  We found it
+through automated randomized testing for our cgroup observability work
+and reduced it to the reproducer above.
 
-My current theory is that it is just a simple slow serialization behind
-the oom_lock.  Unlike page allocator, memcg charge code takes the oom_lock
-without the "try".  Though memcg oom code uses mutex_lock_killable(), note
-that in the call stack get_signal() consumes SIGKILL (or
-sigdelset(SIGKILL)) before calling do_group_exit().  So this
-mutex_lock_killable() is just a mutex_lock() here.  Therefore 10s of
-thousands of threads are waiting on oom_lock and one by one they get
--EFAULT from get_user() in the futex cleanup code and bails out.
-
-Discussion from [1] led to commit a75ffa26122b ("memcg, oom: do not bypass
-oom killer for dying tasks") which routes dying tasks into the OOM path
-precisely so the oom_reaper can reap their mm and free the memory
-asynchronously.  But the reaper is best-effort and one-shot: if it cannot
-take mmap_lock for read (e.g.  a sibling thread holds it for write) it
-sets MMF_OOM_SKIP and never retries, leaving only the glacial
-oom_lock-serialized synchronous drain.
-
-Once MMF_OOM_SKIP is set there is no more asynchronous reclaim coming for
-the mm, so a dying task charging against it has nothing left to wait for:
-it frees its memory only once it finishes exiting.  Running reclaim and
-the (no-victim) OOM killer for it is then pointless, and doing it for 10s
-of thousands of exiting threads is what serializes them behind oom_lock. 
-So before reclaim, if current is an OOM victim whose reaper is done, fail
-the charge.
-
-Reproduced with 20k threads, each parking a robust futex head on its own
-zswapped page, OOM-group-killed while a sibling holds mmap_lock for write
-so the reaper gives up and sets MMF_OOM_SKIP.  Tested on next-20260728 and
-baseline show ~90 seconds exit time while with the patch the exit time
-reduced to ~3 seconds.
-
-Link: https://lore.kernel.org/20260729024612.3369005-1-shakeel.butt@linux.dev
-Link: https://lore.kernel.org/7a4e5591f45df455e6a485fc5400989569d3d22d.camel@surriel.com/ [1]
-Signed-off-by: Shakeel Butt <shakeel.butt@linux.dev>
+Link: https://lore.kernel.org/20260724021805.1234583-1-guopeng.zhang@linux.dev
+Fixes: 8c8c383c04f6 ("mm: memcontrol: try harder to set a new memory.high")
+Fixes: b6e6edcfa405 ("mm: memcontrol: reclaim and OOM kill when shrinking memory.max below usage")
+Signed-off-by: Guopeng Zhang <zhangguopeng@kylinos.cn>
+Acked-by: Tao Cui <cuitao@kylinos.cn>
 Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Michal Hocko <mhocko@suse.com>
+Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: Rik van Riel <riel@surriel.com>
 Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   13 +++++++++++++
- 1 file changed, 13 insertions(+)
+ mm/memcontrol.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
---- a/mm/memcontrol.c~memcg-bypass-the-reclaim-and-oom-killer-for-dying-tasks-once-oom_reaper-is-done
+--- a/mm/memcontrol.c~mm-memcg-stop-reclaim-when-a-limit-update-is-superseded
 +++ a/mm/memcontrol.c
-@@ -2693,6 +2693,19 @@ retry:
- 	if (!gfpflags_allow_blocking(gfp_mask))
- 		goto nomem;
+@@ -4837,6 +4837,9 @@ static ssize_t memory_high_write(struct
+ 		unsigned long nr_pages = page_counter_read(&memcg->memory);
+ 		unsigned long reclaimed;
  
-+	/*
-+	 * OOM victim still needs to charge memory to exit. OOM reaper should
-+	 * help but it might fail on mmap_lock contention. If the victim is a
-+	 * large thread group then all exiting threads might compete on oom_lock
-+	 * just to learn that there is nothing really killable anymore. Bail
-+	 * out early and fail the charge to expedite their exit. They are
-+	 * considered fully reclaimed by the oom reaper and they shouldn't
-+	 * contribute further charges.
-+	 */
-+	if (tsk_is_oom_victim(current) &&
-+	    mm_flags_test(MMF_OOM_SKIP, current->signal->oom_mm))
-+		goto nomem;
++		if (high != READ_ONCE(memcg->memory.high))
++			break;
 +
- 	__memcg_memory_event(mem_over_limit, MEMCG_MAX, allow_spinning);
- 	raised_max_event = true;
+ 		if (nr_pages <= high)
+ 			break;
+ 
+@@ -4892,6 +4895,9 @@ static ssize_t memory_max_write(struct k
+ 	for (;;) {
+ 		unsigned long nr_pages = page_counter_read(&memcg->memory);
+ 
++		if (max != READ_ONCE(memcg->memory.max))
++			break;
++
+ 		if (nr_pages <= max)
+ 			break;
  
 _
 
-Patches currently in -mm which might be from shakeel.butt@linux.dev are
+Patches currently in -mm which might be from zhangguopeng@kylinos.cn are
 
-memcg-bypass-the-reclaim-and-oom-killer-for-dying-tasks-once-oom_reaper-is-done.patch
+mm-memcontrol-update-state_local-when-flushing-nmi-stats.patch
+mm-memcg-v1-account-vmpressure-event-allocations.patch
+mm-memcg-v1-fix-wrong-linux-mm-list-address-in-deprecation-warnings.patch
+mm-memcontrol-drop-unused-cpu-argument-from-flush_nmi_stats.patch
+mm-memcontrol-factor-out-memcg-kmem-uncharge-sequence.patch
+mm-memcg-v1-make-mem_cgroup_oom_notify_cb-return-void.patch
+mm-memcg-stop-reclaim-when-a-limit-update-is-superseded.patch
 
