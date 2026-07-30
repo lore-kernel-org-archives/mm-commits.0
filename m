@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9DD3F36C5AE
-	for <mm-commits@vger.kernel.org>; Thu, 30 Jul 2026 19:26:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 57E89342509
+	for <mm-commits@vger.kernel.org>; Thu, 30 Jul 2026 20:18:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785439604; cv=none; b=FZCVRBbZeAi0saL0JUq2f8CKX623zhmza8LTtvZonTN5VcoPkYRthQqr4TeeMmYrF0TRzcf3jCLb/hw/aFR2zkfkFhwNJEv1eVQ7KZ0S6q6e7xlQ4FpE3S7kl/1D0VQhJdEduQyPXf1LgnBovAiUw/U5sqQW2SLA/iY+NF1yqVA=
+	t=1785442735; cv=none; b=DrZt1ByCj2Eg9jF7LpAMeQfS/0gLdGkED/tW5BDavpMc7pj7EBpnz/Wo5Fxr63BCNq3/8aULrTZwq53oys9nuEtIIxH7c4lvh8IdLBSz0TIPSq+T6n81wDE6RX5BVivYags04M52btssQggqe0CMKfyDAXfY0XSZxXGVnyeNhxI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785439604; c=relaxed/simple;
-	bh=nyWjKMjtmWFLITJbsZNaWcZe6pflmXdW4eJl2qPIOQU=;
-	h=Date:To:From:Subject:Message-Id; b=lbbsW3yF3SMaPfMTNCFJGBDDaRNryKDlkWFB/KbWZv1AbrjJ6DWXGnurfLv8mGa6WMECmNJ2SjJJQVbwnbr5xZIPh21Brk9xfoa3x6S1ecQJ/j8AVz6cLuOicsYb8qljDTv6p9/9y2WbkjH0aq3iX548ngH8nkUXSJdck/240TY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=x9JKN0sZ; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785442735; c=relaxed/simple;
+	bh=roWMw+O8Upzw69lKn4zUpDETT6AXPH3FryeXp7JLwhI=;
+	h=Date:To:From:Subject:Message-Id; b=MbCU7muih0R5NPfgyp46lpTMSUalob7Q26gMaS+dVjUTqqebjQZzWl+4TVCVz1zFVqmC7R1cdhUJSlEi1KE9d7oYnkVtDfIp7kCcgsKxfAiYfW1sMJtsdeBtmNMGRfjOjCOHWKVl2ytQuiiuTdWfRdUD7LjpvHcRKYBo1H570bE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vvFxdBbx; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="x9JKN0sZ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E7E411F00A3A;
-	Thu, 30 Jul 2026 19:26:36 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vvFxdBbx"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D23101F000E9;
+	Thu, 30 Jul 2026 20:18:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785439597;
-	bh=rvazwo5R7bFtxZx0Zx5FT3sTCIoxHtqJ6Offm8ZE9fU=;
+	d=linux-foundation.org; s=korg; t=1785442733;
+	bh=/BJH3a2Q6nOn2V3FozE4i1fnS8W1i0vwst3F1GoAiVw=;
 	h=Date:To:From:Subject;
-	b=x9JKN0sZuJ/ppqyjOSuwFQcKlLWIm1gSY3KFPRXZCJhwXeKPzT5bnpFSx1hYB52Iu
-	 qWHHv+KHJKrjCqpiQswT/ChFlA74fq9QpkVQY62MU+3L3sYhL+V1NGitqPyDhKzNy2
-	 appOVjugKYe8rodo6Sd+Ilxw+5zV5AjC6csaI9wM=
-Date: Thu, 30 Jul 2026 12:26:36 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,ryan.roberts@arm.com,riel@surriel.com,osalvador@suse.de,muchun.song@linux.dev,ljs@kernel.org,liam@infradead.org,lance.yang@linux.dev,jannh@google.com,harry@kernel.org,david@kernel.org,anshuman.khandual@arm.com,dev.jain@arm.com,akpm@linux-foundation.org
+	b=vvFxdBbxFLexYXwzyGpM9f/bewJ9dH6NEOE65XHfyNWwjqoSc3+jBbMzK5RWw3UiE
+	 q/nKTAYprAgWAjzhuMKvbkoRrDkrFTkn9W7IQHqdMW++vXWg1FyG2C9msgkRBX0wYE
+	 xs9M2Jin2TuNPB4NLDZ9hJjZgmMsLaBTBl/3FxNQ=
+Date: Thu, 30 Jul 2026 13:18:53 -0700
+To: mm-commits@vger.kernel.org,minchan@kernel.org,corbet@lwn.net,senozhatsky@chromium.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-rmap-add-anon-folio-unmap-dispatcher.patch added to mm-unstable branch
-Message-Id: <20260730192636.E7E411F00A3A@smtp.kernel.org>
+Subject: + documentation-zram-correct-algo-parameters-configuration-documentation.patch added to mm-unstable branch
+Message-Id: <20260730201853.D23101F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/rmap: add anon folio unmap dispatcher
+     Subject: Documentation: zram: correct algo parameters configuration documentation
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-rmap-add-anon-folio-unmap-dispatcher.patch
+     documentation-zram-correct-algo-parameters-configuration-documentation.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-rmap-add-anon-folio-unmap-dispatcher.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/documentation-zram-correct-algo-parameters-configuration-documentation.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,118 +58,88 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Dev Jain <dev.jain@arm.com>
-Subject: mm/rmap: add anon folio unmap dispatcher
-Date: Thu, 30 Jul 2026 09:45:56 +0000
+From: Sergey Senozhatsky <senozhatsky@chromium.org>
+Subject: Documentation: zram: correct algo parameters configuration documentation
+Date: Thu, 30 Jul 2026 16:51:46 +0900
 
-Add ttu_anon_folio() as the common entry point for anonymous folio
-unmapping.  It dispatches to the lazyfree or swapbacked helper as
-appropriate.
+zram has always reset all previously set parameters for the given
+algorithm in comp_params_store().  Make documentation more clear and
+explicitly state that all relevant/necessary parameters should be set in
+one configuration write.
 
-Keep restoration of cleared PTEs in the caller, where the PTEs were
-removed.
-
-No functional change intended.
-
-Link: https://lore.kernel.org/20260730094559.418003-6-dev.jain@arm.com
-Signed-off-by: Dev Jain <dev.jain@arm.com>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Harry Yoo <harry@kernel.org>
-Cc: Jann Horn <jannh@google.com>
-Cc: Lance Yang <lance.yang@linux.dev>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Lorenzo Stoakes (ARM) <ljs@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
+Link: https://lore.kernel.org/20260730075158.1339787-1-senozhatsky@chromium.org
+Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/rmap.c |   45 +++++++++++++++++++++++----------------------
- 1 file changed, 23 insertions(+), 22 deletions(-)
+ Documentation/admin-guide/blockdev/zram.rst |   34 +++++++++++++++++-
+ 1 file changed, 33 insertions(+), 1 deletion(-)
 
---- a/mm/rmap.c~mm-rmap-add-anon-folio-unmap-dispatcher
-+++ a/mm/rmap.c
-@@ -2172,6 +2172,26 @@ static bool ttu_anon_swapbacked_folio(st
- 	return true;
- }
+--- a/Documentation/admin-guide/blockdev/zram.rst~documentation-zram-correct-algo-parameters-configuration-documentation
++++ a/Documentation/admin-guide/blockdev/zram.rst
+@@ -109,14 +109,41 @@ path to the `dict` along with other para
+ 	#pass path to pre-trained zstd dictionary
+ 	echo "algo=zstd dict=/etc/dictionary" > /sys/block/zram0/algorithm_params
  
-+static bool ttu_anon_folio(struct vm_area_struct *vma, struct folio *folio,
-+		struct page *page, unsigned long address, pte_t *ptep,
-+		pte_t pteval, unsigned long nr_pages)
-+{
-+	/*
-+	 * Store the swap location in the pte.
-+	 * See handle_pte_fault() ...
-+	 */
-+	if (WARN_ON_ONCE(folio_test_swapbacked(folio) !=
-+			 folio_test_swapcache(folio)))
-+		return false;
++	#pass path to pre-trained zstd dictionary and compression level
++	echo "algo=zstd level=8 dict=/etc/dictionary" > \
++		/sys/block/zram0/algorithm_params
 +
-+	if (!folio_test_swapbacked(folio))
-+		return ttu_anon_lazyfree_folio(vma, folio, nr_pages);
-+
-+	/* nr_pages > 1 not supported yet */
-+	return ttu_anon_swapbacked_folio(vma, folio, page, address, ptep,
-+					 pteval);
-+}
-+
- /*
-  * @arg: enum ttu_flags will be passed to this argument
-  */
-@@ -2349,31 +2369,12 @@ static bool try_to_unmap_one(struct foli
- 			 */
- 			dec_mm_counter(mm, mm_counter(folio));
- 		} else if (folio_test_anon(folio)) {
--			/*
--			 * Store the swap location in the pte.
--			 * See handle_pte_fault() ...
--			 */
--			if (unlikely(folio_test_swapbacked(folio) !=
--					folio_test_swapcache(folio))) {
--				WARN_ON_ONCE(1);
-+			if (!ttu_anon_folio(vma, folio, page, address,
-+					    pvmw.pte, pteval, nr_pages)) {
-+				set_ptes(mm, address, pvmw.pte, pteval, nr_pages);
- 				goto walk_abort;
- 			}
+ 	#same, but using algorithm priority
++	echo "algo=zstd priority=1" > /sys/block/zram0/recomp_algorithm
+ 	echo "priority=1 dict=/etc/dictionary" > \
+ 		/sys/block/zram0/algorithm_params
  
--			/* MADV_FREE page check */
--			if (!folio_test_swapbacked(folio)) {
--				if (!ttu_anon_lazyfree_folio(vma, folio,
--							     nr_pages)) {
--					set_ptes(mm, address, pvmw.pte, pteval, nr_pages);
--					goto walk_abort;
--				}
--				goto finish_unmap;
--			}
--
--			if (!ttu_anon_swapbacked_folio(vma, folio, page, address,
--						pvmw.pte, pteval)) {
--				set_pte_at(mm, address, pvmw.pte, pteval);
--				goto walk_abort;
--			}
- 			goto finish_unmap;
- 		} else {
- 			/*
+-	#pass path to pre-trained zstd dictionary and compression level
++Each write to `algorithm_params` replaces the entire set of parameters of
++the corresponding algorithm, parameters that are not listed in the write
++are reset to their default values.  Configure all of the parameters of an
++algorithm in one write::
++
++	#WRONG: the second write resets level back to its default value
++	echo "algo=zstd level=8" > /sys/block/zram0/algorithm_params
++	echo "algo=zstd dict=/etc/dictionary" > /sys/block/zram0/algorithm_params
++
++	#RIGHT
+ 	echo "algo=zstd level=8 dict=/etc/dictionary" > \
+ 		/sys/block/zram0/algorithm_params
+ 
++Select the compression algorithm before configuring its parameters.  The
++parameters of one algorithm are not necessarily valid for another one, so
++changing the algorithm of a particular priority resets that priority's
++parameters::
++
++	#WRONG: comp_algorithm write resets the previously configured level
++	echo "level=8" > /sys/block/zram0/algorithm_params
++	echo zstd > /sys/block/zram0/comp_algorithm
++
++	#RIGHT
++	echo zstd > /sys/block/zram0/comp_algorithm
++	echo "algo=zstd level=8" > /sys/block/zram0/algorithm_params
++
+ Parameters are algorithm specific: not all algorithms support pre-trained
+ dictionaries, not all algorithms support `level`. Furthermore, for certain
+ algorithms `level` controls the compression level (the higher the value the
+@@ -124,6 +151,11 @@ better the compression ratio, it even ca
+ algorithms), for other algorithms `level` is acceleration level (the higher
+ the value the lower the compression ratio).
+ 
++Parameters are handed over to the compression algorithm when the device is
++initialised, hence invalid parameters (or parameters that the selected
++algorithm does not support) are reported by the `disksize` write, and not
++by the `algorithm_params` write that has configured them.
++
+ Set Disksize
+ ============
+ 
 _
 
-Patches currently in -mm which might be from dev.jain@arm.com are
+Patches currently in -mm which might be from senozhatsky@chromium.org are
 
-mm-rmap-use-huge_ptep_get-in-try_to_unmap_one.patch
-mm-rmap-use-huge_ptep_get-in-try_to_migrate_one.patch
-mm-migrate-use-huge_ptep_get-in-remove_migration_pte.patch
-mm-page_vma_mapped-use-huge_ptep_get-for-hugetlb.patch
-mm-mprotect-use-huge_ptep_get-for-hugetlb.patch
-mm-rmap-convert-page-folio-for-hwpoison-checks.patch
-mm-rmap-add-try_to_unmap_poisoned_hugetlb_one.patch
-mm-rmap-refactor-some-code-around-lazyfree-folio-unmapping.patch
-mm-rmap-refactor-anon-folio-unmap-in-try_to_unmap_one.patch
-mm-rmap-add-anon-folio-unmap-dispatcher.patch
-mm-memory-move-pte_install_uffd_wp_if_needed-into-memoryc.patch
-mm-memory-batch-set-uffd-wp-markers-during-zapping.patch
-mm-rmap-batch-unmap-file-folios-belonging-to-uffd-wp-vmas.patch
+documentation-zram-remove-sections-numbering.patch
+zram-set-default-primary-compressor-in-zram_destroy_comps.patch
+zram-validate-deflate-params.patch
+documentation-zram-correct-algo-parameters-configuration-documentation.patch
 
