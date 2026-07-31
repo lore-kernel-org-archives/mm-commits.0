@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 056AE34CFCA
-	for <mm-commits@vger.kernel.org>; Fri, 31 Jul 2026 21:25:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5A8CF24DCF9
+	for <mm-commits@vger.kernel.org>; Fri, 31 Jul 2026 21:34:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785533136; cv=none; b=h3VKsbqrMxmv7FYO/AOrv4J9HOr2EbEF6extEu6YSi/PMGD+4h/hREmD4f2fVILK9jpuOs4DVMWmiha/rAdxlv46guqj0J0fBFHI5tsEN1D2DIFOMnuMpB4tnWa60CKbDT+O39wc2H1/w3t8O5iVdXGVoOiTnBXulkm48bhGANo=
+	t=1785533681; cv=none; b=QtlPlSfxqnARS4BDvMyoKal+X5t/8Z6XvjaTIk4GCWOryzBM0bwvvTuUNqcRL0FyEYT0lZFltDRVoizG1qM0ilsGEn8Pf98vpLU5HAA++mVzgxlPD8x0HRKbPsKfCuQZsbQvZx9Y7LCpgM60Ud9fyqctSzYKptiIU7G9kZBEsRY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785533136; c=relaxed/simple;
-	bh=g24poikrSdYUPZEjB65SGoMJy/guHZXtayBPntbRfEM=;
-	h=Date:To:From:Subject:Message-Id; b=re4ycwcsbOPOZMeJadLBj/MhebHGouyClhMdPQAtN0rED4h+F4bNakPhmRFv+f+0z0bAflBKHHWaKaUMnv9g0S8UrHIIFMypR89/VWVkVrUomrbqMYGGAAJWQy/MMm00GydswY40HBdHrnXjHmChzPfisYGL6lrAqWqIrUSgpiw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=W7rv1/h0; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785533681; c=relaxed/simple;
+	bh=C3rli8M0gOrPOvseJeoJwrB6iPbTII5mIrr4Zs3mraw=;
+	h=Date:To:From:Subject:Message-Id; b=aQXWv2Jy26iS3ir45yZnvFrCgqSS6vWrspCwuYXcwR1Kqg1zNSxzChVW2Ksb2pIWDVUOGDfVlBalytVRQ8CVzHHtpA88YrO5TpGZ3aAg2hsIo+GYx0PwtXOrssAQ2HMwqkij9YF3oRoF4+bXdC1fIqBtxxsUq0NQnlYlg2gXw1g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ttaGesll; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="W7rv1/h0"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7D3EE1F00AC4;
-	Fri, 31 Jul 2026 21:25:34 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ttaGesll"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DD4121F00AC4;
+	Fri, 31 Jul 2026 21:34:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785533134;
-	bh=gNbdU2u86x8xf/IZQA4BrnWOF3Kn2qPVWfY75g5jBvo=;
+	d=linux-foundation.org; s=korg; t=1785533680;
+	bh=UBo49ER3QKShKiV21svwXnKQm4H4+b2iyaQ8LqXgOsg=;
 	h=Date:To:From:Subject;
-	b=W7rv1/h0XIUVcjQcSanspolZtU2O6QUjL5g1e1miJaOwiEtVZy45ohQB0ZwTpnprZ
-	 1r7k7dsGgIEFC8q7O2a9PAZevPrkaWGW7k/qz1kaZnEa7AdEKuSNo1XQN+Ty5xHbUg
-	 r8bpuF9xxxKZE90yEmIhUSmEBjwL/ZKngK4K404A=
-Date: Fri, 31 Jul 2026 14:25:34 -0700
-To: mm-commits@vger.kernel.org,pratmal@google.com,akpm@linux-foundation.org
+	b=ttaGesllrsirgkBSR9env1m/nr/TBH8m1xvRLwfIUHGsNu7V+Hf6Kgy4yr7eJ2hz2
+	 yzJuiQ6dtSoZhdfeYpAFaXXQsi5WnD0/JdYUSKvhIg7AFjtNP8IPUSp9BOEPx1EXJv
+	 uB/Cod2R2T0PqeHBPgmDSrxeaaCp9wqDMVVx2/yY=
+Date: Fri, 31 Jul 2026 14:34:39 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,surenb@google.com,sj@kernel.org,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,jackmanb@google.com,hannes@cmpxchg.org,gthelen@google.com,david@kernel.org,corbet@lwn.net,anshuman.khandual@arm.com,pratmal@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-page_reporting-add-page_reporting_delay_ms-module-parameter.patch removed from -mm tree
-Message-Id: <20260731212534.7D3EE1F00AC4@smtp.kernel.org>
+Subject: + mm-page_reporting-add-page_reporting_delay_ms-module-parameter.patch added to mm-unstable branch
+Message-Id: <20260731213439.DD4121F00AC4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,38 +34,51 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: mm/page_reporting: add page_reporting_delay_ms module parameter
-has been removed from the -mm tree.  Its filename was
+The patch titled
+     Subject: mm/page_reporting: Add page_reporting_delay_ms module parameter
+has been added to the -mm mm-unstable branch.  Its filename is
      mm-page_reporting-add-page_reporting_delay_ms-module-parameter.patch
 
-This patch was dropped because an updated version will be issued
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_reporting-add-page_reporting_delay_ms-module-parameter.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
 ------------------------------------------------------
 From: Pratyush Mallick <pratmal@google.com>
-Subject: mm/page_reporting: add page_reporting_delay_ms module parameter
-Date: Mon, 27 Jul 2026 23:05:45 +0000
+Subject: mm/page_reporting: Add page_reporting_delay_ms module parameter
+Date: Fri, 31 Jul 2026 19:37:05 +0000
 
-Currently, the free page reporting uses a hardcoded delay of (2 HZ)
-between reporting intervals.  While this is a reasonable default, it lacks
-the flexibility to adapt to varying guest workloads.
+Free page reporting currently hardcodes a 2-second interval between
+reports.  This rigid delay cannot accommodate diverse guest workloads.
 
-A low delay allows aggressive memory reclamation, returning unused pages
-to the host as quickly as possible.  However, during spiky allocation/free
-churn, this immediate reporting can lead to a severe performance penalty
-(nested page faults) as the guest re-allocates memory that the host has
-just unmapped.  In these scenarios, there is benefit from increasing the
-delay to batch free pages over a longer window, absorbing the churn
-without hypercall and re-fault overhead.
+This patch introduces a module parameter, page_reporting_delay_ms
+(default: 2000), allowing users to tune the reporting rate:
+ - Lower values enable aggressive memory reclamation by returning unused
+   pages to the host immediately.
+ - Higher values help batch pages during spiky allocation/free churn,
+   reducing hypercalls and nested page fault overheads.
 
-This patch exposes the delay as a module parameter:
-/sys/module/page_reporting/parameters/page_reporting_delay_ms, measured in
-milliseconds and defaults to 2000ms.
+Setting the delay to 0 is safe and execution is strictly gated by:
+ - reporting is only triggered by high-order page frees.
+ - expensive hypercalls are bounded by a slot capacity watermark check
+   before proceeding.
 
-Link: https://lore.kernel.org/20260727230545.262579-1-pratmal@google.com
+Link: https://lore.kernel.org/20260731193705.2902728-1-pratmal@google.com
 Signed-off-by: Pratyush Mallick <pratmal@google.com>
-Reviewed-by: SJ Park <sj@kernel.org>
-Cc: Link Lin <linkl@google.com>
 Cc: Anshuman Khandual <anshuman.khandual@arm.com>
 Cc: Brendan Jackman <jackmanb@google.com>
 Cc: David Hildenbrand <david@kernel.org>
@@ -83,13 +96,13 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/kernel-parameters.txt |    6 ++++
- mm/page_reporting.c                             |   19 ++++++++------
- 2 files changed, 17 insertions(+), 8 deletions(-)
+ Documentation/admin-guide/kernel-parameters.txt |    6 +++
+ mm/page_reporting.c                             |   28 +++++++++-----
+ 2 files changed, 24 insertions(+), 10 deletions(-)
 
 --- a/Documentation/admin-guide/kernel-parameters.txt~mm-page_reporting-add-page_reporting_delay_ms-module-parameter
 +++ a/Documentation/admin-guide/kernel-parameters.txt
-@@ -4810,6 +4810,12 @@ Kernel parameters
+@@ -4813,6 +4813,12 @@ Kernel parameters
  			Adjust the minimal page reporting order. The page
  			reporting is disabled when it exceeds MAX_PAGE_ORDER.
  
@@ -117,7 +130,21 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  static struct page_reporting_dev_info __rcu *pr_dev_info __read_mostly;
  
  enum {
-@@ -77,12 +81,11 @@ __page_reporting_request(struct page_rep
+@@ -57,6 +61,13 @@ enum {
+ 	PAGE_REPORTING_ACTIVE
+ };
+ 
++/* schedule work for page reporting */
++static void page_reporting_schedule_work(struct page_reporting_dev_info *prdev)
++{
++	queue_delayed_work(system_freezable_wq, &prdev->work,
++			      msecs_to_jiffies(page_reporting_delay_ms));
++}
++
+ /* request page reporting */
+ static void
+ __page_reporting_request(struct page_reporting_dev_info *prdev)
+@@ -77,12 +88,10 @@ __page_reporting_request(struct page_rep
  		return;
  
  	/*
@@ -127,13 +154,13 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 +	 * Delay the start of work to allow a sizable queue to build.
 +	 * We limit this based on page_reporting_delay_ms.
  	 */
- 	queue_delayed_work(system_freezable_wq, &prdev->work,
+-	queue_delayed_work(system_freezable_wq, &prdev->work,
 -			   PAGE_REPORTING_DELAY);
-+			   msecs_to_jiffies(page_reporting_delay_ms));
++	page_reporting_schedule_work(prdev);
  }
  
  /* notify prdev of free page reporting request */
-@@ -337,13 +340,13 @@ static void page_reporting_process(struc
+@@ -337,13 +346,12 @@ static void page_reporting_process(struc
  err_out:
  	/*
  	 * If the state has reverted back to requested then there may be
@@ -144,9 +171,9 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  	 */
  	state = atomic_cmpxchg(&prdev->state, state, PAGE_REPORTING_IDLE);
  	if (state == PAGE_REPORTING_REQUESTED)
- 		queue_delayed_work(system_freezable_wq, &prdev->work,
+-		queue_delayed_work(system_freezable_wq, &prdev->work,
 -				   PAGE_REPORTING_DELAY);
-+				   msecs_to_jiffies(page_reporting_delay_ms));
++		page_reporting_schedule_work(prdev);
  }
  
  static DEFINE_MUTEX(page_reporting_mutex);
@@ -154,4 +181,5 @@ _
 
 Patches currently in -mm which might be from pratmal@google.com are
 
+mm-page_reporting-add-page_reporting_delay_ms-module-parameter.patch
 
