@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1F85D335BB4
-	for <mm-commits@vger.kernel.org>; Fri, 31 Jul 2026 02:42:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4173B285CAE
+	for <mm-commits@vger.kernel.org>; Fri, 31 Jul 2026 02:42:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785465767; cv=none; b=ceYQdfCD8Y2coiOJOGXSJms7oidTfjsWwtt7r0gkS4FXwzO88ns47Jlky/Lfs0HZvMx1x5+MQJk6dqv+yV1iV3nxMRzj4cK3TMtJk8wPj9uJHwrVWgWgvFEnohmR5JyfTqzPSXcGA7A9xoBI9kdtEkKm9xmMCO2RF3Xpb+gBqG8=
+	t=1785465768; cv=none; b=qnA946ScauMhcLHq/UJhiwa8eJlrvcjxcD+3Dsua8Nk8eKGkzN4FCOY/5Gd6Zdv44VZ5JbdNTEl4JA0vgvaSgDPBVPk030ERL8iAbPf2jjipYCnYGhSNbaY7P9hTbiziTrlfcSXXrpR/0x9ABqv5gJhFEM2nd01iAZmv+CcMj+w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785465767; c=relaxed/simple;
-	bh=sby988opIo3Gd5sE7E6o7UEnZts18WYHjX53TrSDo2k=;
-	h=Date:To:From:Subject:Message-Id; b=kcX1C+lLCw9MY3d0tkifA2soP5UKptTqD1thiIC/hSIU7qHQc2HgLfMaN7772Pnk89s86uodzQZFBSejECHXx6C9HVP/4QVNTAoUUyOocKUWMNLvzasqGVumFl2GpzJz7EBKv60jM4RN1plldBU4Kcyd0/cT9wx0AJeEawTLmaU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0eK/LdkJ; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785465768; c=relaxed/simple;
+	bh=qfNPSOtnJ35YtBvZ9IsTweq8z+fkR0y4QE8wQ1FlaEk=;
+	h=Date:To:From:Subject:Message-Id; b=DvLHHseq1g2x0zqVzDiTs7yaK8eolgzOWfJM/luyS7Rl0BXmXbbC75hZubkGXnOyHidJ+kMBmTXEsvy/e61l/gIdYM6bHswE91VG9q30NtkI+AwcJ9dC2D8vjEKy9v9UlxmJ8kOmBxRRE2fNCLN04eUcXqffoAKG3cHOPBqMfAo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Dzq7uqaG; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0eK/LdkJ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EB46A1F00A3A;
-	Fri, 31 Jul 2026 02:42:45 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Dzq7uqaG"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 171F81F000E9;
+	Fri, 31 Jul 2026 02:42:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785465766;
-	bh=qhyWET8Mikkmi2fa3XAE3KhAhwYihPMWUPmqGEx1LPQ=;
+	d=linux-foundation.org; s=korg; t=1785465767;
+	bh=RPDhgsBBDb/SGeuRcbW+li5YqIMWEZTCSuDGO1LB2Lo=;
 	h=Date:To:From:Subject;
-	b=0eK/LdkJswp0IYXQ6Wc2sr/jrCpDz/SUzDFIIosHfU4uyVG/zt8Vo+9NoM1ALI0/7
-	 R6FCQSBeTXrZIcgA82V//Plan73aIyyd0hq7BUk8ntYhrytGdUvx0mO/Ek/yz+HItB
-	 hsL4bk69DGrasNXTqWrnxUkZwY/6SbJBxTrD+cP8=
-Date: Thu, 30 Jul 2026 19:42:45 -0700
+	b=Dzq7uqaGXiqKBgj//ms+71+c/07T8BQN+LeYT9GagQaIfIOKyiHh4Z6piBfAxe4XU
+	 Lx3JsvqHGvCOIooaCBuhsb254wBfhshFziuQU8pO2kCGRxVpwlpgo3BN6TVGyqX4Rw
+	 xkAN6++x/YmhKnvOIv9T62tseo2oOC4gS1DJY7NM=
+Date: Thu, 30 Jul 2026 19:42:46 -0700
 To: mm-commits@vger.kernel.org,shuah@kernel.org,rostedt@goodmis.org,mhiramat@kernel.org,mathieu.desnoyers@efficios.com,brendan.higgins@linux.dev,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-core-remove-damon_warn_fix_nr_accesses_corruption.patch removed from -mm tree
-Message-Id: <20260731024245.EB46A1F00A3A@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-core-remove-damon_verify_reset_aggregated.patch removed from -mm tree
+Message-Id: <20260731024247.171F81F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,28 +35,22 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/damon/core: remove damon_warn_fix_nr_accesses_corruption()
+     Subject: mm/damon/core: remove damon_verify_reset_aggregated()
 has been removed from the -mm tree.  Its filename was
-     mm-damon-core-remove-damon_warn_fix_nr_accesses_corruption.patch
+     mm-damon-core-remove-damon_verify_reset_aggregated.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/core: remove damon_warn_fix_nr_accesses_corruption()
-Date: Mon, 29 Jun 2026 21:08:01 -0700
+Subject: mm/damon/core: remove damon_verify_reset_aggregated()
+Date: Mon, 29 Jun 2026 21:08:02 -0700
 
-nr_accesses_bp is delicate.  Once it is corrupted, the consequence is the
-bad madness of DAMON monitoring results.  From developments of features of
-size, we historically found nr_accesses_bp can be corrupted by complicated
-bugs that are not easy to debug.  Hence we added a function for finding
-the corruption and fixing it right away.
+nr_accesses_bp is no longer being used in real use cases.  Remove its
+validation function.
 
-There are no more uses of nr_accesses_bp.  Hence the function for
-corruption detection and fix is no more needed.  Rip it out.
-
-Link: https://lore.kernel.org/20260630040812.149729-9-sj@kernel.org
+Link: https://lore.kernel.org/20260630040812.149729-10-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Cc: Brendan Higgins <brendan.higgins@linux.dev>
 Cc: "Masami Hiramatsu (Google)" <mhiramat@kernel.org>
@@ -66,39 +60,43 @@ Cc: Steven Rostedt <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/core.c |   14 --------------
- 1 file changed, 14 deletions(-)
+ mm/damon/core.c |   18 ------------------
+ 1 file changed, 18 deletions(-)
 
---- a/mm/damon/core.c~mm-damon-core-remove-damon_warn_fix_nr_accesses_corruption
+--- a/mm/damon/core.c~mm-damon-core-remove-damon_verify_reset_aggregated
 +++ a/mm/damon/core.c
-@@ -2025,19 +2025,6 @@ int damos_walk(struct damon_ctx *ctx, st
+@@ -2025,23 +2025,6 @@ int damos_walk(struct damon_ctx *ctx, st
  	return 0;
  }
  
--/*
-- * Warn and fix corrupted ->nr_accesses[_bp] for investigations and preventing
-- * the problem being propagated.
-- */
--static void damon_warn_fix_nr_accesses_corruption(struct damon_region *r)
+-#ifdef CONFIG_DAMON_DEBUG_SANITY
+-static void damon_verify_reset_aggregated(struct damon_region *r,
+-		struct damon_ctx *c)
 -{
--	if (r->nr_accesses_bp == r->nr_accesses * 10000)
--		return;
--	WARN_ONCE(true, "invalid nr_accesses_bp at reset: %u %u\n",
--			r->nr_accesses_bp, r->nr_accesses);
--	r->nr_accesses_bp = r->nr_accesses * 10000;
+-	WARN_ONCE(r->nr_accesses_bp != r->last_nr_accesses * 10000,
+-			"nr_accesses_bp %u last_nr_accesses %u sis %lu %lu\n",
+-			r->nr_accesses_bp, r->last_nr_accesses,
+-			c->passed_sample_intervals, c->next_aggregation_sis);
 -}
+-#else
+-static void damon_verify_reset_aggregated(struct damon_region *r,
+-		struct damon_ctx *c)
+-{
+-}
+-#endif
 -
- #ifdef CONFIG_DAMON_DEBUG_SANITY
- static void damon_verify_reset_aggregated(struct damon_region *r,
- 		struct damon_ctx *c)
-@@ -2079,7 +2066,6 @@ static void kdamond_reset_aggregated(str
- 			trace_damon_aggregated(ti, r, damon_nr_regions(t));
- 			trace_damon_region_aggregated(ti, r,
- 					damon_nr_regions(t), nr_probes);
--			damon_warn_fix_nr_accesses_corruption(r);
- 			r->last_nr_accesses = r->nr_accesses;
+-
+ /*
+  * Reset the aggregated monitoring results ('nr_accesses' of each region).
+  */
+@@ -2070,7 +2053,6 @@ static void kdamond_reset_aggregated(str
  			r->nr_accesses = 0;
  			for (i = 0; i < DAMON_MAX_PROBES; i++)
+ 				r->probe_hits[i] = 0;
+-			damon_verify_reset_aggregated(r, c);
+ 		}
+ 		ti++;
+ 	}
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
