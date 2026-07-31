@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 31609331209
-	for <mm-commits@vger.kernel.org>; Fri, 31 Jul 2026 02:42:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 79B46331ED7
+	for <mm-commits@vger.kernel.org>; Fri, 31 Jul 2026 02:42:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785465735; cv=none; b=GcISdpwdUcnkNuaqPY/d3C/C9CrpMnxJaPHlTh1tyPIXdg5mfck88VGxPRHe6nIr9HnZhegi5IDjOLYHci+S/eyALEwfjuRfUPBBOAX8U2xeq2M3xMc362TvpkjYbv4N/okOpxDfPhxSiCI6mY5IylWwrSXTdxaAu4Wr5hNKBRc=
+	t=1785465736; cv=none; b=ej/7ThuGvHRmazTnkrDZW6Aa3plWQuKMI6kmzQkibqOmY2w1GTVPhirGtmo1ZEPHnGtZIvCALHTWjzggBDyHGKrdBCX/ib+X7wx38ENuvw1taP7rsLxGnIAh11WFu7lAx0ReqIDkSmIp3M3hwwVr2lH4/WD4lI412ka56VVKRAs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785465735; c=relaxed/simple;
-	bh=i6A4kR0kzNQIEX0GtET2M6x7nhTLjeUCNJUpQotBM7w=;
-	h=Date:To:From:Subject:Message-Id; b=E/2HGR/n/jFZqUWD6Q32V2QAtKMWD9tzJzUv8J6rOHMSpFSnFSBj+M/FoBwmgUEI9jN4JEqnDklSyL8bZi+5+1gqH51xUKHv5wT/rqtSPxvqg7MUmfTgh5cu0RLUzNJMYzoK4nyas0R9C7PR/6aSXeCDTT4DOEvi4eXTb21UAck=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pyjeyxTA; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785465736; c=relaxed/simple;
+	bh=lUE8pCB1nzjVwVA6rK3NBabG1J6XrJElrbwe9/72iTo=;
+	h=Date:To:From:Subject:Message-Id; b=EZSLVE4gP8Ol3gIuaGYuBXezaJyAOfIviuUQYstFkMlp6SEDozboWVVG16y7J3xkNugQavxQuMC1pst0/AoHEW4S9EWCiiP9W7ZhGLMoSl0ar8PWdgmmq07oHFbPjbgzEHSFIUiefTnRfnvbKfdHFYlyIBqPKFjpu8omqpl/lkM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=p7HHVYYd; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pyjeyxTA"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 08F161F000E9;
-	Fri, 31 Jul 2026 02:42:14 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="p7HHVYYd"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 375681F00A3A;
+	Fri, 31 Jul 2026 02:42:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785465734;
-	bh=7Y1eUKnJI4vWDftExxRLrujqNYXJulnmpbywtAMngac=;
+	d=linux-foundation.org; s=korg; t=1785465735;
+	bh=X9ZeF6RiJw99R6dq+f8/BBr5YsmYAvJn63/f6Zt60is=;
 	h=Date:To:From:Subject;
-	b=pyjeyxTAmhsbOuncv6NKSUIoayNgcW1fonXBNumtt8VpofXDF1E6rTPg/MCK7u1jG
-	 TdOQvZ2J2c+iYzV6Yqti5IyATyqVlm4VfogwxfUEABK8UxTb0VIx95iFa/cuqXT+bW
-	 pjxINEqeOHfVi5Ujlrro1oU9A6Yu7xYyahi7kX8I=
-Date: Thu, 30 Jul 2026 19:42:13 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,surenb@google.com,shakeel.butt@linux.dev,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,jackmanb@google.com,hannes@cmpxchg.org,fvdl@google.com,david@kernel.org,jp.kobryn@linux.dev,akpm@linux-foundation.org
+	b=p7HHVYYd11QnawTAidbdKCaVZswgfPDl241ato689KIDRKmy/lx3UaMIAR3wl9aGw
+	 LnQZE47Bk55McDl+9gVZgkxcH8tAc+124zChEf3ksQ/SBrgR1JDm3xrhKo0MWaQPTt
+	 7PGEv2bqhs1V23CUwxrAONTte3Sov9oc/Qs0PUfA=
+Date: Thu, 30 Jul 2026 19:42:14 -0700
+To: mm-commits@vger.kernel.org,osalvador@suse.de,muchun.song@linux.dev,david@kernel.org,guanwentao@uniontech.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-page_alloc-use-existing-highatomic-reserves-on-the-buddy-fastpath.patch removed from -mm tree
-Message-Id: <20260731024214.08F161F000E9@smtp.kernel.org>
+Subject: [merged mm-stable] mm-hugetlb-avoid-unnecessary-tlb-flush-for-empty-folio-list-in-vmemmap-optimize.patch removed from -mm tree
+Message-Id: <20260731024215.375681F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,140 +35,65 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/page_alloc: use existing highatomic reserves on the buddy fastpath
+     Subject: mm/hugetlb: avoid unnecessary TLB flush for empty folio list in vmemmap optimize
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-use-existing-highatomic-reserves-on-the-buddy-fastpath.patch
+     mm-hugetlb-avoid-unnecessary-tlb-flush-for-empty-folio-list-in-vmemmap-optimize.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: JP Kobryn <jp.kobryn@linux.dev>
-Subject: mm/page_alloc: use existing highatomic reserves on the buddy fastpath
-Date: Mon, 22 Jun 2026 17:46:00 -0700
+From: Wentao Guan <guanwentao@uniontech.com>
+Subject: mm/hugetlb: avoid unnecessary TLB flush for empty folio list in vmemmap optimize
+Date: Tue, 30 Jun 2026 19:38:57 +0800
 
-ALLOC_HIGHATOMIC currently provides both access to MIGRATE_HIGHATOMIC free
-pages and permission to create new highatomic pageblock reserves.  This
-makes it unsuitable for the fastpath.
+Since 79359d6d24df ("hugetlb: perform vmemmap optimization on a list of
+pages") __hugetlb_vmemmap_optimize_folios() unconditionally issues a final
+flush_tlb_all() in its out path.  However, a TLB flush must be paired with
+an actual page table modification.
 
-However, the fastpath can reach rmqueue_buddy() while MIGRATE_HIGHATOMIC
-reserves have free pages available.  In this situation, the allocation can
-fall back to other migratetypes without trying those reserves first.
+When the input folio list is empty, neither PMD splitting nor PTE
+remapping takes place, so no page tables are modified and the flush is
+pure overhead.  An empty list is reached in common paths such as
+gather_bootmem_prealloc_node() on nodes without bootmem gigantic pages,
+hugetlb_pages_alloc_boot_node() when no pages were allocated, and runtime
+allocation failure paths in set_max_huge_pages().
 
-Allow high-priority non-blocking allocations to use existing
-MIGRATE_HIGHATOMIC reserves on the buddy fastpath without growing them. 
-First tighten the criteria for reserving pageblocks so that growth may
-only occur in the slowpath.  Then allow fastpath usage by enabling
-ALLOC_HIGHATOMIC when the GFP mask describes a non-blocking high-priority
-allocation.  This logic has been factored out from gfp_to_alloc_flags() to
-a new function gfp_to_alloc_flags_nonblocking().
+Add an early return for empty lists.  This restores the basic invariant
+that TLB flushes are only issued when page tables have been modified, and
+it also makes the NULL hstate passed by gather_bootmem_prealloc_node() on
+an empty list harmless.
 
-A UDP receive workload was run with free MIGRATE_HIGHATOMIC pageblocks
-available in the target zone.  Before this patch, the workload did not
-consume these blocks.  With this patch, eligible order-1 allocations
-reaching the buddy path consumed existing MIGRATE_HIGHATOMIC pageblocks,
-with no highatomic misses observed.  The workload did not grow highatomic
-reserves and NAPI page-frag allocations remained healthy with no failures
-or order-0 fallbacks.
-
-Link: https://lore.kernel.org/20260623004600.113347-1-jp.kobryn@linux.dev
-Signed-off-by: JP Kobryn <jp.kobryn@linux.dev>
-Reviewed-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Reviewed-by: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Brendan Jackman <jackmanb@google.com>
+Assisted-by: kimi-cli:kimi-k2.7 code
+Assisted-by: Github Copilot:gpt-5.2 #Reported-by
+Link: https://lore.kernel.org/20260701053422.3664813-1-guanwentao@uniontech.com
+Link: https://lore.kernel.org/20260630113857.3319612-1-guanwentao@uniontech.com
+Fixes: 79359d6d24df ("hugetlb: perform vmemmap optimization on a list of pages")
+Signed-off-by: Wentao Guan <guanwentao@uniontech.com>
+Reviewed-by: Muchun Song <muchun.song@linux.dev>
 Cc: David Hildenbrand <david@kernel.org>
-Cc: Frank van der Linden <fvdl@google.com>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Zi Yan <ziy@nvidia.com>
+Cc: Guan Wentao <guanwentao@uniontech.com>
+Cc: Oscar Salvador <osalvador@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   44 ++++++++++++++++++++++++++++++--------------
- 1 file changed, 30 insertions(+), 14 deletions(-)
+ mm/hugetlb_vmemmap.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/mm/page_alloc.c~mm-page_alloc-use-existing-highatomic-reserves-on-the-buddy-fastpath
-+++ a/mm/page_alloc.c
-@@ -3249,10 +3249,11 @@ struct page *rmqueue_buddy(struct zone *
- 	} while (check_new_pages(page, order));
+--- a/mm/hugetlb_vmemmap.c~mm-hugetlb-avoid-unnecessary-tlb-flush-for-empty-folio-list-in-vmemmap-optimize
++++ a/mm/hugetlb_vmemmap.c
+@@ -624,6 +624,9 @@ static void __hugetlb_vmemmap_optimize_f
+ 	LIST_HEAD(vmemmap_pages);
+ 	unsigned long flags = VMEMMAP_REMAP_NO_TLB_FLUSH;
  
- 	/*
--	 * If this is a high-order atomic allocation then check
--	 * if the pageblock should be reserved for the future
-+	 * Slowpath (precarious) high-atomic allocations may reserve
-+	 * a pageblock for future use.
- 	 */
--	if (unlikely(alloc_flags & ALLOC_HIGHATOMIC))
-+	if (unlikely((alloc_flags & ALLOC_HIGHATOMIC) &&
-+			((alloc_flags & ALLOC_WMARK_MASK) == ALLOC_WMARK_MIN)))
- 		reserve_highatomic_pageblock(page, order, zone);
- 
- 	__count_zid_vm_events(PGALLOC, page_zonenum(page), 1 << order);
-@@ -4473,6 +4474,29 @@ static void wake_all_kswapds(unsigned in
- }
- 
- static inline unsigned int
-+gfp_to_alloc_flags_nonblocking(gfp_t gfp_mask, unsigned int order)
-+{
-+	unsigned int alloc_flags = 0;
++	if (list_empty(folio_list))
++		return;
 +
-+	if (gfp_mask & __GFP_DIRECT_RECLAIM)
-+		return 0;
-+
-+	/*
-+	 * Not worth trying to allocate harder for __GFP_NOMEMALLOC even
-+	 * if it can't schedule.
-+	 */
-+	if (gfp_mask & __GFP_NOMEMALLOC)
-+		return 0;
-+
-+	alloc_flags |= ALLOC_NON_BLOCK;
-+
-+	if (order > 0 && (gfp_mask & __GFP_HIGH))
-+		alloc_flags |= ALLOC_HIGHATOMIC;
-+
-+	return alloc_flags;
-+}
-+
-+static inline unsigned int
- gfp_to_alloc_flags(gfp_t gfp_mask, unsigned int order)
- {
- 	unsigned int alloc_flags = ALLOC_WMARK_MIN | ALLOC_CPUSET;
-@@ -4488,18 +4512,9 @@ gfp_to_alloc_flags(gfp_t gfp_mask, unsig
- 	if (gfp_mask & __GFP_KSWAPD_RECLAIM)
- 		alloc_flags |= ALLOC_KSWAPD;
- 
--	if (!(gfp_mask & __GFP_DIRECT_RECLAIM)) {
--		/*
--		 * Not worth trying to allocate harder for __GFP_NOMEMALLOC even
--		 * if it can't schedule.
--		 */
--		if (!(gfp_mask & __GFP_NOMEMALLOC)) {
--			alloc_flags |= ALLOC_NON_BLOCK;
--
--			if (order > 0 && (alloc_flags & ALLOC_MIN_RESERVE))
--				alloc_flags |= ALLOC_HIGHATOMIC;
--		}
-+	alloc_flags |= gfp_to_alloc_flags_nonblocking(gfp_mask, order);
- 
-+	if (!(gfp_mask & __GFP_DIRECT_RECLAIM)) {
- 		/*
- 		 * Ignore cpuset mems for non-blocking __GFP_HIGH (probably
- 		 * GFP_ATOMIC) rather than fail, see the comment for
-@@ -5292,6 +5307,7 @@ struct page *__alloc_frozen_pages_noprof
- 	 * memory until all local zones are considered.
- 	 */
- 	alloc_flags |= alloc_flags_nofragment(zonelist_zone(ac.preferred_zoneref), gfp);
-+	alloc_flags |= gfp_to_alloc_flags_nonblocking(gfp, order) & ALLOC_HIGHATOMIC;
- 
- 	/* First allocation attempt */
- 	page = get_page_from_freelist(alloc_gfp, order, alloc_flags, &ac);
+ 	nr_to_optimize = 0;
+ 	list_for_each_entry(folio, folio_list, lru) {
+ 		int ret;
 _
 
-Patches currently in -mm which might be from jp.kobryn@linux.dev are
+Patches currently in -mm which might be from guanwentao@uniontech.com are
 
 
