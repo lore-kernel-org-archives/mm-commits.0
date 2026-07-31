@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 91C4A331ECE
-	for <mm-commits@vger.kernel.org>; Fri, 31 Jul 2026 02:42:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C109C331209
+	for <mm-commits@vger.kernel.org>; Fri, 31 Jul 2026 02:42:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785465731; cv=none; b=M+5ThSG0If1Txke8wlqg/ngy8Hkw4JFtXKn9dVfd/vC5EBeeBUl6ph9xn6+aLz9NPqPxbT655XcSn+sgKypsTVxMquwt/6rZu0Ng8eMCsDltcsaUSXmJBQBCFe3tYB13fHy7j3Lh9P1EhszlGY54GiQS2IeOwjCcqvyBqjEaHT0=
+	t=1785465733; cv=none; b=NB8mb5kwrUn6C4hu+WJ1IAF0tLrc13BQRQEMiJICNR6IVWagEGohbKIcHVE4D3ZaCIwKGYvCfANbn20N++qORWO5XizoqEPkjDTqJjiyzPUDlN1PK0Zw7Q+egw5RYKb0mo08m39piYROndsEyNZ51d+BVuU8h1yUFdWLDKAg/7c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785465731; c=relaxed/simple;
-	bh=eY5C1puLS1cXEKuROCwb9yTs+GH/BWuuFXWXNX6mH2Q=;
-	h=Date:To:From:Subject:Message-Id; b=Jw/A36yqCv45V74wcdbVK5KLs8N0clzBGrfiE4bMv8ztTanPvN5odbrVlwNME+a58wkbBqmb8EavJnD70wp10t3UTiy8IhGSGc8160pSB6dCmS9gt9pyx+pqK9t9IRlwwnJk3MFFTdedoeDripw2CooUo19HaVpZBU69hfrrE7g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YiSOGUAF; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785465733; c=relaxed/simple;
+	bh=aiC22bLLVZdD4YYGkk3M1aaAzVkkI7c3nLRg+7ijbCg=;
+	h=Date:To:From:Subject:Message-Id; b=U1B5ZGqIJpBh1AjgxlqPpJ6SdpGF9QsoBZpDm5QYaNF0Eb7SCt95Macu3FPMvEK33z/nGZ1iZmsJS94j3soV+FrNoSKIZwjsEl1xqvbB6yU14r0SMDGfOV9JfR++FwYtbYnnIlNQ6uT+PsQ5cBxCJLkilMpuq8tX3cnRUzLMji0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tIeFqhGb; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YiSOGUAF"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6CD091F00A3A;
-	Fri, 31 Jul 2026 02:42:10 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tIeFqhGb"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 973481F000E9;
+	Fri, 31 Jul 2026 02:42:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785465730;
-	bh=u4ELcF7oV8Ce2umY0hJHFuNsDxiM45gK86ZDgV01c0I=;
+	d=linux-foundation.org; s=korg; t=1785465731;
+	bh=l7ySOAwyruSmXpgPey3zX/umRmAU0b1qdkThKNuCKgo=;
 	h=Date:To:From:Subject;
-	b=YiSOGUAFnuJORFIj1KZzL+qtp965mG8GotP4bY9mG0bE/EoIzZWSxFf2TKfayYHua
-	 Vn72yzAcR9Np/C/lgtmscK1X8MAktPEatyye2KlDpu8ny5R3xQNlknDO58x8I8A92H
-	 /FEh7u0v1qEnidVKdpHDcgr2T8das3J6h0cf27tI=
-Date: Thu, 30 Jul 2026 19:42:10 -0700
+	b=tIeFqhGb7Aiu5XcMGqWe2OqnqRbaIqyq8g+LalCfcSPcdu1dUv6l2i+3X2zkfifub
+	 W+ayV1eyWuhPwV9RHSwSouZnTUrw8lCSc+7UVBYViDRWo7HgGk/wW9Zsh69uqwkjkj
+	 8b/Hu/dmTSXPO5YNsVW5PoFlJEeYPv0jbXlW3PNY=
+Date: Thu, 30 Jul 2026 19:42:11 -0700
 To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,shuah@kernel.org,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,corbet@lwn.net,brendan.higgins@linux.dev,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-sysfs-split-probe-setup-function-out.patch removed from -mm tree
-Message-Id: <20260731024210.6CD091F00A3A@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-sysfs-split-out-filters-setup-function.patch removed from -mm tree
+Message-Id: <20260731024211.973481F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,23 +35,22 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/damon/sysfs: split probe setup function out
+     Subject: mm/damon/sysfs: split out filters setup function
 has been removed from the -mm tree.  Its filename was
-     mm-damon-sysfs-split-probe-setup-function-out.patch
+     mm-damon-sysfs-split-out-filters-setup-function.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/sysfs: split probe setup function out
-Date: Tue, 30 Jun 2026 07:17:23 -0700
+Subject: mm/damon/sysfs: split out filters setup function
+Date: Tue, 30 Jun 2026 07:17:24 -0700
 
-damon_sysfs_set_probes() function is relatively long.  It has two nested
-loop for setting two nested entities, namely probe and filter.  Split out
-the probe level setup for readability.
+damon_sysfs_set_probe() is doing not only probe setup but also filters
+setup.  Split out filters setup for readability.
 
-Link: https://lore.kernel.org/20260630141726.92246-10-sj@kernel.org
+Link: https://lore.kernel.org/20260630141726.92246-11-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Cc: Brendan Higgins <brendan.higgins@linux.dev>
 Cc: David Hildenbrand <david@kernel.org>
@@ -66,105 +65,48 @@ Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/sysfs.c |   80 +++++++++++++++++++++++++--------------------
- 1 file changed, 46 insertions(+), 34 deletions(-)
+ mm/damon/sysfs.c |   20 +++++++++++++-------
+ 1 file changed, 13 insertions(+), 7 deletions(-)
 
---- a/mm/damon/sysfs.c~mm-damon-sysfs-split-probe-setup-function-out
+--- a/mm/damon/sysfs.c~mm-damon-sysfs-split-out-filters-setup-function
 +++ a/mm/damon/sysfs.c
-@@ -1909,47 +1909,59 @@ static int damon_sysfs_set_attrs(struct
+@@ -1909,16 +1909,11 @@ static int damon_sysfs_set_attrs(struct
  	return damon_set_attrs(ctx, &attrs);
  }
  
--static int damon_sysfs_set_probes(struct damon_ctx *ctx,
--		struct damon_sysfs_probes *sys_probes)
-+static int damon_sysfs_set_probe(struct damon_probe *probe,
-+		struct damon_sysfs_probe *sys_probe)
+-static int damon_sysfs_set_probe(struct damon_probe *probe,
+-		struct damon_sysfs_probe *sys_probe)
++static int damon_sysfs_set_filters(struct damon_probe *probe,
++		struct damon_sysfs_filters *sys_filters)
  {
-+	struct damon_sysfs_filters *sys_filters;
+-	struct damon_sysfs_filters *sys_filters;
  	int i;
  
--	for (i = 0; i < sys_probes->nr; i++) {
--		struct damon_sysfs_filters *sys_filters =
--			sys_probes->probes_arr[i]->filters;
--		struct damon_probe *c;
--		int j;
+-	sys_filters = sys_probe->filters;
+-	if (!sys_filters)
+-		return 0;
 -
--		if (!sys_filters)
--			continue;
--		c = damon_new_probe();
--		if (!c)
+ 	for (i = 0; i < sys_filters->nr; i++) {
+ 		struct damon_sysfs_filter *sys_filter =
+ 			sys_filters->filters_arr[i];
+@@ -1945,6 +1940,17 @@ static int damon_sysfs_set_probe(struct
+ 	return 0;
+ }
+ 
++static int damon_sysfs_set_probe(struct damon_probe *probe,
++		struct damon_sysfs_probe *sys_probe)
++{
++	struct damon_sysfs_filters *sys_filters;
++
 +	sys_filters = sys_probe->filters;
 +	if (!sys_filters)
 +		return 0;
-+
-+	for (i = 0; i < sys_filters->nr; i++) {
-+		struct damon_sysfs_filter *sys_filter =
-+			sys_filters->filters_arr[i];
-+		struct damon_filter *filter;
-+
-+		filter = damon_new_filter(sys_filter->type,
-+				sys_filter->matching,
-+				sys_filter->allow);
-+		if (!filter)
- 			return -ENOMEM;
--		damon_add_probe(ctx, c);
-+		if (filter->type == DAMON_FILTER_TYPE_MEMCG) {
-+			int err;
- 
--		for (j = 0; j < sys_filters->nr; j++) {
--			struct damon_sysfs_filter *sys_filter =
--				sys_filters->filters_arr[j];
--			struct damon_filter *filter;
--
--			filter = damon_new_filter(sys_filter->type,
--					sys_filter->matching,
--					sys_filter->allow);
--			if (!filter)
--				return -ENOMEM;
--			if (filter->type == DAMON_FILTER_TYPE_MEMCG) {
--				int err;
--
--				err = damon_sysfs_memcg_path_to_id(
--						sys_filter->path,
--						&filter->memcg_id);
--				if (err) {
--					damon_destroy_filter(filter);
--					return err;
--				}
-+			err = damon_sysfs_memcg_path_to_id(
-+					sys_filter->path,
-+					&filter->memcg_id);
-+			if (err) {
-+				damon_destroy_filter(filter);
-+				return err;
- 			}
--			damon_add_filter(c, filter);
- 		}
-+		damon_add_filter(probe, filter);
-+	}
-+	return 0;
++	return damon_sysfs_set_filters(probe, sys_filters);
 +}
 +
-+static int damon_sysfs_set_probes(struct damon_ctx *ctx,
-+		struct damon_sysfs_probes *sys_probes)
-+{
-+	int i, err;
-+
-+	for (i = 0; i < sys_probes->nr; i++) {
-+		struct damon_sysfs_probe *sys_probe;
-+		struct damon_probe *p;
-+
-+		p = damon_new_probe();
-+		if (!p)
-+			return -ENOMEM;
-+		damon_add_probe(ctx, p);
-+		sys_probe = sys_probes->probes_arr[i];
-+		err = damon_sysfs_set_probe(p, sys_probe);
-+		if (err)
-+			return err;
- 	}
- 	return 0;
- }
+ static int damon_sysfs_set_probes(struct damon_ctx *ctx,
+ 		struct damon_sysfs_probes *sys_probes)
+ {
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
