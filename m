@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 32A0D33938D
-	for <mm-commits@vger.kernel.org>; Fri, 31 Jul 2026 02:43:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 45082339381
+	for <mm-commits@vger.kernel.org>; Fri, 31 Jul 2026 02:43:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785465812; cv=none; b=FDT5SFHfLVTDniBISn74O9xPDbfhXwG4NB173g9Nrue0fyfMbFJmPLs4vREME4A3Upovo+brbh9fTEsaABnISqAYbblLv5T4nyx2agfUpoEQMSd1R853hF8GuBN6tYBVI+KKaAjyIy8IYjX6vLJN6xkS/EaX7wVHZq0gOnUUMOk=
+	t=1785465813; cv=none; b=GkqUK4c9dM/8uciWgt5WnWu1B4Mi5/tigOdHmw86wfRn8xIsEoKeYMclM+KN5L6bPV62YucUL0BqIO9c175YJuQ3HceyOQ87eSiGz2SGUVp1kslmv4KiTruwNCu5JTx4ty4xHR0nPQILZdSysAGVsK5VQ2PkOGWdX6Nwc31pNw4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785465812; c=relaxed/simple;
-	bh=Sm6L6Npy0Ws6AVNDkzrxiqZ8rsHQDYFpASSi/KD+GqY=;
-	h=Date:To:From:Subject:Message-Id; b=UQvE1NlcO6QGOtz/dXpL8FS6v2zuQ6E7MqdJHXyM/SEAAgd7voSQbfi3as4tm/YLgQElRtmlb4kjRdC5EvbQW0v0Zh0FeNvK4tOvAInV4FGWwsBNz7MQjTcW+jpB1i+gKP9AEIRLBt53W3JgumU7tu4cCfgIXYrizkVwNyJnPUo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yuEMfmB2; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785465813; c=relaxed/simple;
+	bh=qDM6+XqlRqDetic+EeA9FaL50F2dRO88dtlFTYJCYaw=;
+	h=Date:To:From:Subject:Message-Id; b=KMUpM1lHMMwdb2TTTEp65NKZZKtCw7ZM+aI7KcuGnqbp6faieiRfSmiZhTcwi/bJpDV9T+Z5bJ75U0s7oyqysKQP88n9+62V2GPcF3ertUc46DTyq8pohiGsmz421UpQK7FDG+y5jKpR6ghbmf4bOSOhXdPqUUzTxFj0nwTeXqE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VmFJc0f+; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yuEMfmB2"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0A0A11F00A3A;
-	Fri, 31 Jul 2026 02:43:31 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VmFJc0f+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1B86F1F000E9;
+	Fri, 31 Jul 2026 02:43:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785465811;
-	bh=17G4QQj7xuLpakTwcljNZ+JVQS2TXahcy5v+TC6mb+o=;
+	d=linux-foundation.org; s=korg; t=1785465812;
+	bh=THqoc5Cu3R2EJWyfSyDTp7oy/fLyT3QCOrCiFsCxI44=;
 	h=Date:To:From:Subject;
-	b=yuEMfmB26krosPDiwz/OnDaa7/TcYbLEm+tIk9nkMEQIjWeRuQzFLwAQ25Eal5GYM
-	 NLWaYrsPX8jQ6SnWQ5wmuu8w0ad/6AnwDlC7yzQhxYQnzuX/nHGfd5mZos77KAn6YA
-	 ePAgi6bZq92ANNIigXgc6/KqY+MmUBQBft2aSrMc=
-Date: Thu, 30 Jul 2026 19:43:30 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,jackmanb@google.com,akpm@linux-foundation.org
+	b=VmFJc0f+hJRxid7biBJP2fngySmXcOL4tfv2UTz0iZfE0lNMT7lAEjksDSQHubvY1
+	 BnacK+ZcGwfi24H0hUzwRSa8o/jzwzvlu84cXEgLIB5xWotLD+zmFeO+EHSBKGXa4a
+	 9wmfbNhNweoX8HCLwVVP5C8U6Q/SXHYUzJRIGW+g=
+Date: Thu, 30 Jul 2026 19:43:31 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,hao.ge@linux.dev,jackmanb@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-move-__alloc_pages-to-mm-page_alloch.patch removed from -mm tree
-Message-Id: <20260731024331.0A0A11F00A3A@smtp.kernel.org>
+Subject: [merged mm-stable] mm-replace-__gfp_no_codetag-with-alloc_no_codetag.patch removed from -mm tree
+Message-Id: <20260731024332.1B86F1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,131 +35,405 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: move __alloc_pages() to mm/page_alloc.h
+     Subject: mm: replace __GFP_NO_CODETAG with ALLOC_NO_CODETAG
 has been removed from the -mm tree.  Its filename was
-     mm-move-__alloc_pages-to-mm-page_alloch.patch
+     mm-replace-__gfp_no_codetag-with-alloc_no_codetag.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Brendan Jackman <jackmanb@google.com>
-Subject: mm: move __alloc_pages() to mm/page_alloc.h
-Date: Fri, 03 Jul 2026 12:31:54 +0000
+Subject: mm: replace __GFP_NO_CODETAG with ALLOC_NO_CODETAG
+Date: Fri, 03 Jul 2026 12:31:55 +0000
 
-It's no longer used outside of mm/.
+Now that alloc_pages has an entrypoint that allows passing alloc_flags, we
+can take advantage of this to start removing GFP flags that are only used
+for mm-internal stuff.
 
-Since this means __alloc_pages_noprof() is no longer visible from gfp.h,
-this also means moving the definition of alloc_pages_node_noprof into
-the .c file.
+This requires also plumbing the alloc_flags into some more of the
+allocator code, in particular __alloc_pages[_noprof]() gets an alloc_flags
+arg to go along with its callees, and we now need to pass those flags
+deeper into the allocator so they can reach the alloc_tag code.
 
-Also remove references to this API from the documentation tree -
-referring to the specific function name was already questionable but
-now the function is not even public it definitely seems wrong.
+While moving the flag definition into page_alloc.h, also update the
+comment per Hao's suggestion.
 
-Link: https://lore.kernel.org/20260703-alloc-trylock-v5-14-c87b714e19d3@google.com
+No functional change intended.
+
+Link: https://lore.kernel.org/all/b4916118-3537-4e19-8bc8-1d103dd0d225@linux.dev/
+Link: https://lore.kernel.org/20260703-alloc-trylock-v5-15-c87b714e19d3@google.com
 Signed-off-by: Brendan Jackman <jackmanb@google.com>
 Reviewed-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
+Tested-by: Hao Ge <hao.ge@linux.dev>
+Acked-by: Hao Ge <hao.ge@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/cgroup-v1/cpusets.rst |    2 -
- Documentation/admin-guide/mm/transhuge.rst      |    2 -
- include/linux/gfp.h                             |   16 --------------
- mm/page_alloc.c                                 |   13 ++++++++++-
- mm/page_alloc.h                                 |    4 +++
- 5 files changed, 19 insertions(+), 18 deletions(-)
+ include/linux/alloc_tag.h |    4 +-
+ mm/alloc_tag.c            |   23 ++++-----------
+ mm/compaction.c           |    4 +-
+ mm/page_alloc.c           |   52 ++++++++++++++++++++----------------
+ mm/page_alloc.h           |   14 ++++++++-
+ mm/page_frag_cache.c      |    4 +-
+ 6 files changed, 55 insertions(+), 46 deletions(-)
 
---- a/Documentation/admin-guide/cgroup-v1/cpusets.rst~mm-move-__alloc_pages-to-mm-page_alloch
-+++ a/Documentation/admin-guide/cgroup-v1/cpusets.rst
-@@ -284,7 +284,7 @@ take action.
- ==>
-     Unless this feature is enabled by writing "1" to the special file
-     /dev/cpuset/memory_pressure_enabled, the hook in the rebalance
--    code of __alloc_pages() for this metric reduces to simply noticing
-+    code of the page allocator for this metric reduces to simply noticing
-     that the cpuset_memory_pressure_enabled flag is zero.  So only
-     systems that enable this feature will compute the metric.
- 
---- a/Documentation/admin-guide/mm/transhuge.rst~mm-move-__alloc_pages-to-mm-page_alloch
-+++ a/Documentation/admin-guide/mm/transhuge.rst
-@@ -761,7 +761,7 @@ compact_fail
- 	but failed.
- 
- It is possible to establish how long the stalls were using the function
--tracer to record how long was spent in __alloc_pages() and
-+tracer to record how long was spent in the page allocator and
- using the mm_page_alloc tracepoint to identify which allocations were
- for huge pages.
- 
---- a/include/linux/gfp.h~mm-move-__alloc_pages-to-mm-page_alloch
-+++ a/include/linux/gfp.h
-@@ -204,10 +204,6 @@ static inline void arch_free_page(struct
- static inline void arch_alloc_page(struct page *page, int order) { }
+--- a/include/linux/alloc_tag.h~mm-replace-__gfp_no_codetag-with-alloc_no_codetag
++++ a/include/linux/alloc_tag.h
+@@ -165,11 +165,11 @@ static inline void alloc_tag_sub_check(u
+ {
+ 	WARN_ONCE(ref && !ref->ct, "alloc_tag was not set\n");
+ }
+-void alloc_tag_add_early_pfn(unsigned long pfn, gfp_t gfp_flags);
++void alloc_tag_add_early_pfn(unsigned long pfn, unsigned int alloc_flags);
+ #else
+ static inline void alloc_tag_add_check(union codetag_ref *ref, struct alloc_tag *tag) {}
+ static inline void alloc_tag_sub_check(union codetag_ref *ref) {}
+-static inline void alloc_tag_add_early_pfn(unsigned long pfn, gfp_t gfp_flags) {}
++static inline void alloc_tag_add_early_pfn(unsigned long pfn, unsigned int alloc_flags) {}
  #endif
  
--struct page *__alloc_pages_noprof(gfp_t gfp, unsigned int order, int preferred_nid,
--		nodemask_t *nodemask);
--#define __alloc_pages(...)			alloc_hooks(__alloc_pages_noprof(__VA_ARGS__))
--
- struct folio *__folio_alloc_noprof(gfp_t gfp, unsigned int order, int preferred_nid,
- 		nodemask_t *nodemask);
- #define __folio_alloc(...)			alloc_hooks(__folio_alloc_noprof(__VA_ARGS__))
-@@ -272,17 +268,7 @@ struct folio *__folio_alloc_node_noprof(
-  * prefer the current CPU's closest node. Otherwise node must be valid and
-  * online.
-  */
--static inline struct page *alloc_pages_node_noprof(int nid, gfp_t gfp_mask,
--						   unsigned int order)
--{
--	if (nid == NUMA_NO_NODE)
--		nid = numa_mem_id();
--
--	VM_BUG_ON(nid < 0 || nid >= MAX_NUMNODES);
--	warn_if_node_offline(nid, gfp_mask);
--
--	return __alloc_pages_noprof(gfp_mask, order, nid, NULL);
--}
-+struct page *alloc_pages_node_noprof(int nid, gfp_t gfp_mask, unsigned int order);
+ /* Caller should verify both ref and tag to be valid */
+--- a/mm/alloc_tag.c~mm-replace-__gfp_no_codetag-with-alloc_no_codetag
++++ a/mm/alloc_tag.c
+@@ -15,6 +15,9 @@
+ #include <linux/vmalloc.h>
+ #include <linux/kmemleak.h>
  
- #define  alloc_pages_node(...)			alloc_hooks(alloc_pages_node_noprof(__VA_ARGS__))
++#include "internal.h"
++#include "page_alloc.h"
++
+ #define ALLOCINFO_FILE_NAME		"allocinfo"
+ #define MODULE_ALLOC_TAG_VMAP_SIZE	(100000UL * sizeof(struct alloc_tag))
+ #define SECTION_START(NAME)		(CODETAG_SECTION_START_PREFIX NAME)
+@@ -792,19 +795,6 @@ struct pfn_pool {
  
---- a/mm/page_alloc.c~mm-move-__alloc_pages-to-mm-page_alloch
-+++ a/mm/page_alloc.c
-@@ -5431,7 +5431,18 @@ struct page *__alloc_pages_noprof(gfp_t
- 		set_page_refcounted(page);
+ #define PFN_POOL_SIZE			((PAGE_SIZE - offsetof(struct pfn_pool, pfns)) / \
+ 					 sizeof(unsigned long))
+-
+-/*
+- * Skip early PFN recording for a page allocation.  Reuses the
+- * %__GFP_NO_OBJ_EXT bit.  Used by __alloc_tag_add_early_pfn() to avoid
+- * recursion when allocating pages for the early PFN tracking list
+- * itself.
+- *
+- * Codetags of the pages allocated with __GFP_NO_CODETAG should be
+- * cleared (via clear_page_tag_ref()) before freeing the pages to prevent
+- * alloc_tag_sub_check() from triggering a warning.
+- */
+-#define __GFP_NO_CODETAG		__GFP_NO_OBJ_EXT
+-
+ static struct pfn_pool *current_pfn_pool __initdata;
+ 
+ static void __init __alloc_tag_add_early_pfn(unsigned long pfn)
+@@ -815,7 +805,8 @@ static void __init __alloc_tag_add_early
+ 	do {
+ 		pool = READ_ONCE(current_pfn_pool);
+ 		if (!pool || atomic_read(&pool->count) >= PFN_POOL_SIZE) {
+-			struct page *new_page = alloc_page(__GFP_HIGH | __GFP_NO_CODETAG);
++			struct page *new_page = __alloc_pages(__GFP_HIGH, 0, numa_mem_id(),
++							      NULL, ALLOC_NO_CODETAG);
+ 			struct pfn_pool *new;
+ 
+ 			if (!new_page) {
+@@ -846,7 +837,7 @@ typedef void alloc_tag_add_func(unsigned
+ static alloc_tag_add_func __rcu *alloc_tag_add_early_pfn_ptr __refdata =
+ 	RCU_INITIALIZER(__alloc_tag_add_early_pfn);
+ 
+-void alloc_tag_add_early_pfn(unsigned long pfn, gfp_t gfp_flags)
++void alloc_tag_add_early_pfn(unsigned long pfn, unsigned int alloc_flags)
+ {
+ 	alloc_tag_add_func *alloc_tag_add;
+ 
+@@ -854,7 +845,7 @@ void alloc_tag_add_early_pfn(unsigned lo
+ 		return;
+ 
+ 	/* Skip allocations for the tracking list itself to avoid recursion. */
+-	if (gfp_flags & __GFP_NO_CODETAG)
++	if (alloc_flags & ALLOC_NO_CODETAG)
+ 		return;
+ 
+ 	rcu_read_lock();
+--- a/mm/compaction.c~mm-replace-__gfp_no_codetag-with-alloc_no_codetag
++++ a/mm/compaction.c
+@@ -83,7 +83,7 @@ static inline bool is_via_compact_memory
+ 
+ static struct page *mark_allocated_noprof(struct page *page, unsigned int order, gfp_t gfp_flags)
+ {
+-	post_alloc_hook(page, order, __GFP_MOVABLE);
++	post_alloc_hook(page, order, __GFP_MOVABLE, ALLOC_DEFAULT);
+ 	set_page_refcounted(page);
  	return page;
  }
--EXPORT_SYMBOL(__alloc_pages_noprof);
-+
-+struct page *alloc_pages_node_noprof(int nid, gfp_t gfp_mask, unsigned int order)
-+{
-+	if (nid == NUMA_NO_NODE)
-+		nid = numa_mem_id();
-+
-+	VM_BUG_ON(nid < 0 || nid >= MAX_NUMNODES);
-+	warn_if_node_offline(nid, gfp_mask);
-+
-+	return __alloc_pages_noprof(gfp_mask, order, nid, NULL);
-+}
-+EXPORT_SYMBOL(alloc_pages_node_noprof);
+@@ -1851,7 +1851,7 @@ again:
+ 	}
+ 	dst = (struct folio *)freepage;
  
- struct folio *__folio_alloc_noprof(gfp_t gfp, unsigned int order, int preferred_nid,
+-	post_alloc_hook(&dst->page, order, __GFP_MOVABLE);
++	post_alloc_hook(&dst->page, order, __GFP_MOVABLE, ALLOC_DEFAULT);
+ 	set_page_refcounted(&dst->page);
+ 	if (order)
+ 		prep_compound_page(&dst->page, order);
+--- a/mm/page_alloc.c~mm-replace-__gfp_no_codetag-with-alloc_no_codetag
++++ a/mm/page_alloc.c
+@@ -1249,7 +1249,7 @@ void __clear_page_tag_ref(struct page *p
+ /* Should be called only if mem_alloc_profiling_enabled() */
+ static noinline
+ void __pgalloc_tag_add(struct page *page, struct task_struct *task,
+-		       unsigned int nr, gfp_t gfp_flags)
++		       unsigned int nr, unsigned int alloc_flags)
+ {
+ 	union pgtag_ref_handle handle;
+ 	union codetag_ref ref;
+@@ -1263,17 +1263,17 @@ void __pgalloc_tag_add(struct page *page
+ 		 * page_ext is not available yet, record the pfn so we can
+ 		 * clear the tag ref later when page_ext is initialized.
+ 		 */
+-		alloc_tag_add_early_pfn(page_to_pfn(page), gfp_flags);
++		alloc_tag_add_early_pfn(page_to_pfn(page), alloc_flags);
+ 		if (task->alloc_tag)
+ 			alloc_tag_set_inaccurate(task->alloc_tag);
+ 	}
+ }
+ 
+ static inline void pgalloc_tag_add(struct page *page, struct task_struct *task,
+-				   unsigned int nr, gfp_t gfp_flags)
++				   unsigned int nr, unsigned int alloc_flags)
+ {
+ 	if (mem_alloc_profiling_enabled())
+-		__pgalloc_tag_add(page, task, nr, gfp_flags);
++		__pgalloc_tag_add(page, task, nr, alloc_flags);
+ }
+ 
+ /* Should be called only if mem_alloc_profiling_enabled() */
+@@ -1306,7 +1306,7 @@ static inline void pgalloc_tag_sub_pages
+ #else /* CONFIG_MEM_ALLOC_PROFILING */
+ 
+ static inline void pgalloc_tag_add(struct page *page, struct task_struct *task,
+-				   unsigned int nr, gfp_t gfp_flags) {}
++				   unsigned int nr, unsigned int alloc_flags) {}
+ static inline void pgalloc_tag_sub(struct page *page, unsigned int nr) {}
+ static inline void pgalloc_tag_sub_pages(struct alloc_tag *tag, unsigned int nr) {}
+ 
+@@ -1810,7 +1810,7 @@ static inline bool should_skip_init(gfp_
+ }
+ 
+ inline void post_alloc_hook(struct page *page, unsigned int order,
+-				gfp_t gfp_flags)
++				gfp_t gfp_flags, unsigned int alloc_flags)
+ {
+ 	const bool zero_tags = gfp_flags & __GFP_ZEROTAGS;
+ 	bool init = !want_init_on_free() && want_init_on_alloc(gfp_flags) &&
+@@ -1861,13 +1861,13 @@ inline void post_alloc_hook(struct page
+ 
+ 	set_page_owner(page, order, gfp_flags);
+ 	page_table_check_alloc(page, order);
+-	pgalloc_tag_add(page, current, 1 << order, gfp_flags);
++	pgalloc_tag_add(page, current, 1 << order, alloc_flags);
+ }
+ 
+ static void prep_new_page(struct page *page, unsigned int order, gfp_t gfp_flags,
+ 							unsigned int alloc_flags)
+ {
+-	post_alloc_hook(page, order, gfp_flags);
++	post_alloc_hook(page, order, gfp_flags, alloc_flags);
+ 
+ 	if (order && (gfp_flags & __GFP_COMP))
+ 		prep_compound_page(page, order);
+@@ -4078,7 +4078,7 @@ __alloc_pages_may_oom(gfp_t gfp_mask, un
+ 	 */
+ 	page = get_page_from_freelist((gfp_mask | __GFP_HARDWALL) &
+ 				      ~__GFP_DIRECT_RECLAIM, order,
+-				      ALLOC_WMARK_HIGH|ALLOC_CPUSET, ac);
++				      ac->alloc_flags|ALLOC_WMARK_HIGH|ALLOC_CPUSET, ac);
+ 	if (page)
+ 		goto out;
+ 
+@@ -4124,7 +4124,7 @@ __alloc_pages_may_oom(gfp_t gfp_mask, un
+ 		 */
+ 		if (gfp_mask & __GFP_NOFAIL)
+ 			page = __alloc_pages_cpuset_fallback(gfp_mask, order,
+-					ALLOC_NO_WATERMARKS, ac);
++					ac->alloc_flags|ALLOC_NO_WATERMARKS, ac);
+ 	}
+ out:
+ 	mutex_unlock(&oom_lock);
+@@ -4791,8 +4791,12 @@ restart:
+ 	 * The fast path uses conservative alloc_flags to succeed only until
+ 	 * kswapd needs to be woken up, and to avoid the cost of setting up
+ 	 * alloc_flags precisely. So we do that now.
++	 *
++	 * Can't just or alloc_flags if it contains WMARK bits, but those flags
++	 * shouldn't be set in ac->alloc_flags.
+ 	 */
+-	alloc_flags = alloc_flags_slowpath(gfp_mask, order);
++	VM_WARN_ON(ac->alloc_flags & ALLOC_WMARK_MASK);
++	alloc_flags = ac->alloc_flags | alloc_flags_slowpath(gfp_mask, order);
+ 
+ 	/*
+ 	 * We need to recalculate the starting point for the zonelist iterator
+@@ -4834,7 +4838,7 @@ retry:
+ 	reserve_flags = __gfp_pfmemalloc_flags(gfp_mask);
+ 	if (reserve_flags)
+ 		alloc_flags = alloc_flags_cma(gfp_mask, reserve_flags) |
+-					  (alloc_flags & ALLOC_KSWAPD);
++				ac->alloc_flags | (alloc_flags & ALLOC_KSWAPD);
+ 
+ 	/*
+ 	 * Reset the nodemask and zonelist iterators if memory policies can be
+@@ -5003,6 +5007,8 @@ nopage:
+ 	 * we always retry
+ 	 */
+ 	if (unlikely(nofail)) {
++		unsigned int alloc_flags = ac->alloc_flags | ALLOC_MIN_RESERVE;
++
+ 		/*
+ 		 * Lacking direct_reclaim we can't do anything to reclaim memory,
+ 		 * we disregard these unreasonable nofail requests and still
+@@ -5018,7 +5024,7 @@ nopage:
+ 		 * could deplete whole memory reserves which would just make
+ 		 * the situation worse.
+ 		 */
+-		page = __alloc_pages_cpuset_fallback(gfp_mask, order, ALLOC_MIN_RESERVE, ac);
++		page = __alloc_pages_cpuset_fallback(gfp_mask, order, alloc_flags, ac);
+ 		if (page)
+ 			goto got_pg;
+ 
+@@ -5236,7 +5242,7 @@ out:
+ 	return nr_populated;
+ 
+ failed:
+-	page = __alloc_pages_noprof(gfp, 0, preferred_nid, nodemask);
++	page = __alloc_pages_noprof(gfp, 0, preferred_nid, nodemask, ALLOC_DEFAULT);
+ 	if (page)
+ 		page_array[nr_populated++] = page;
+ 	goto out;
+@@ -5344,11 +5350,13 @@ struct page *__alloc_frozen_pages_noprof
+ {
+ 	struct page *page;
+ 	gfp_t alloc_gfp; /* The gfp_t that was actually used for allocation */
+-	struct alloc_context ac = { };
++	struct alloc_context ac = {
++		.alloc_flags = alloc_flags,
++	};
+ 	unsigned int fastpath_alloc_flags = alloc_flags;
+ 
+ 	/* Other flags could be supported later if needed. */
+-	if (WARN_ON(alloc_flags & ~ALLOC_NOLOCK))
++	if (WARN_ON(alloc_flags & ~(ALLOC_NOLOCK | ALLOC_NO_CODETAG)))
+ 		return NULL;
+ 
+ 	if (!alloc_order_allowed(gfp, order, alloc_flags))
+@@ -5421,12 +5429,12 @@ out:
+ EXPORT_SYMBOL(__alloc_frozen_pages_noprof);
+ 
+ struct page *__alloc_pages_noprof(gfp_t gfp, unsigned int order,
+-		int preferred_nid, nodemask_t *nodemask)
++		int preferred_nid, nodemask_t *nodemask, unsigned int alloc_flags)
+ {
+ 	struct page *page;
+ 
+ 	page = __alloc_frozen_pages_noprof(gfp, order, preferred_nid, nodemask,
+-					   ALLOC_DEFAULT);
++					   alloc_flags);
+ 	if (page)
+ 		set_page_refcounted(page);
+ 	return page;
+@@ -5440,7 +5448,7 @@ struct page *alloc_pages_node_noprof(int
+ 	VM_BUG_ON(nid < 0 || nid >= MAX_NUMNODES);
+ 	warn_if_node_offline(nid, gfp_mask);
+ 
+-	return __alloc_pages_noprof(gfp_mask, order, nid, NULL);
++	return __alloc_pages_noprof(gfp_mask, order, nid, NULL, ALLOC_DEFAULT);
+ }
+ EXPORT_SYMBOL(alloc_pages_node_noprof);
+ 
+@@ -5448,7 +5456,7 @@ struct folio *__folio_alloc_noprof(gfp_t
  		nodemask_t *nodemask)
---- a/mm/page_alloc.h~mm-move-__alloc_pages-to-mm-page_alloch
+ {
+ 	struct page *page = __alloc_pages_noprof(gfp | __GFP_COMP, order,
+-					preferred_nid, nodemask);
++					preferred_nid, nodemask, ALLOC_DEFAULT);
+ 	return page_rmappable_folio(page);
+ }
+ EXPORT_SYMBOL(__folio_alloc_noprof);
+@@ -7130,7 +7138,7 @@ static void split_free_frozen_pages(stru
+ 		list_for_each_entry_safe(page, next, &list[order], lru) {
+ 			int i;
+ 
+-			post_alloc_hook(page, order, gfp_mask);
++			post_alloc_hook(page, order, gfp_mask, ALLOC_DEFAULT);
+ 			if (!order)
+ 				continue;
+ 
+@@ -7335,7 +7343,7 @@ int alloc_contig_frozen_range_noprof(uns
+ 		struct page *head = pfn_to_page(start);
+ 
+ 		check_new_pages(head, order);
+-		prep_new_page(head, order, gfp_mask, 0);
++		prep_new_page(head, order, gfp_mask, ALLOC_DEFAULT);
+ 	} else {
+ 		ret = -EINVAL;
+ 		WARN(true, "PFN range: requested [%lu, %lu), allocated [%lu, %lu)\n",
+--- a/mm/page_alloc.h~mm-replace-__gfp_no_codetag-with-alloc_no_codetag
 +++ a/mm/page_alloc.h
-@@ -244,6 +244,10 @@ struct page *alloc_frozen_pages_nolock_n
- 	alloc_hooks(alloc_frozen_pages_nolock_noprof(__VA_ARGS__))
+@@ -49,6 +49,13 @@
+ #define ALLOC_HIGHATOMIC	0x200 /* Allows access to MIGRATE_HIGHATOMIC */
+ #define ALLOC_NOLOCK		0x400 /* Only use spin_trylock in allocation path */
+ #define ALLOC_KSWAPD		0x800 /* allow waking of kswapd, __GFP_KSWAPD_RECLAIM set */
++/*
++ * Avoid alloc_tag recursion for internal allocations.
++ *
++ * Callers must clear_page_tag_ref() before freeing to avoid warnings from
++ * alloc_tag_sub_check().
++ */
++#define ALLOC_NO_CODETAG       0x1000
+ 
+ /* Flags that allow allocations below the min watermark. */
+ #define ALLOC_RESERVES (ALLOC_NON_BLOCK|ALLOC_MIN_RESERVE|ALLOC_HIGHATOMIC|ALLOC_OOM)
+@@ -84,6 +91,8 @@ struct alloc_context {
+ 	 */
+ 	enum zone_type highest_zoneidx;
+ 	bool spread_dirty_pages;
++	/* Only flags that are global to the whole allocation go here. */
++	unsigned int alloc_flags;
+ };
+ 
+ /*
+@@ -214,7 +223,8 @@ static inline struct page *pageblock_pfn
+ extern void __free_pages_core(struct page *page, unsigned int order,
+ 		enum meminit_context context);
+ 
+-void post_alloc_hook(struct page *page, unsigned int order, gfp_t gfp_flags);
++void post_alloc_hook(struct page *page, unsigned int order, gfp_t gfp_flags,
++		     unsigned int alloc_flags);
+ extern bool free_pages_prepare(struct page *page, unsigned int order);
+ 
+ extern int user_min_free_kbytes;
+@@ -245,7 +255,7 @@ struct page *alloc_frozen_pages_nolock_n
  void free_frozen_pages_nolock(struct page *page, unsigned int order);
  
-+struct page *__alloc_pages_noprof(gfp_t gfp, unsigned int order, int preferred_nid,
-+		nodemask_t *nodemask);
-+#define __alloc_pages(...)			alloc_hooks(__alloc_pages_noprof(__VA_ARGS__))
-+
+ struct page *__alloc_pages_noprof(gfp_t gfp, unsigned int order, int preferred_nid,
+-		nodemask_t *nodemask);
++		nodemask_t *nodemask, unsigned int alloc_flags);
+ #define __alloc_pages(...)			alloc_hooks(__alloc_pages_noprof(__VA_ARGS__))
+ 
  extern void zone_pcp_reset(struct zone *zone);
- extern void zone_pcp_disable(struct zone *zone);
- extern void zone_pcp_enable(struct zone *zone);
+--- a/mm/page_frag_cache.c~mm-replace-__gfp_no_codetag-with-alloc_no_codetag
++++ a/mm/page_frag_cache.c
+@@ -57,10 +57,10 @@ static struct page *__page_frag_cache_re
+ 	gfp_mask = (gfp_mask & ~__GFP_DIRECT_RECLAIM) |  __GFP_COMP |
+ 		   __GFP_NOWARN | __GFP_NORETRY | __GFP_NOMEMALLOC;
+ 	page = __alloc_pages(gfp_mask, PAGE_FRAG_CACHE_MAX_ORDER,
+-			     numa_mem_id(), NULL);
++			     numa_mem_id(), NULL, ALLOC_DEFAULT);
+ #endif
+ 	if (unlikely(!page)) {
+-		page = __alloc_pages(gfp, 0, numa_mem_id(), NULL);
++		page = __alloc_pages(gfp, 0, numa_mem_id(), NULL, ALLOC_DEFAULT);
+ 		order = 0;
+ 	}
+ 
 _
 
 Patches currently in -mm which might be from jackmanb@google.com are
