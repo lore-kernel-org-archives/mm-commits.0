@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C117633AD8A
-	for <mm-commits@vger.kernel.org>; Fri, 31 Jul 2026 02:43:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AA85933939D
+	for <mm-commits@vger.kernel.org>; Fri, 31 Jul 2026 02:43:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785465829; cv=none; b=cyIn2Hd/BfynUSgAH9ZKLeDwrMl64JYS+HAkX/D3xYiHANFIz+7cuZQWxmHqa2ca090khekn33W0IyWH7L5eh0ANJRmdLh32aZPxBTtXu4EUmH1+U3YpfeeLJqy+dBynQef3bTR+P9eU5S/nVfiABpZCOAiGSN3nXCMEN9nHgXI=
+	t=1785465829; cv=none; b=tXeSPpk8+4xZQDYl0VJrfw1bjK5jJHeec2rfmlpiuDIHK+pJVoi2JevqKDBk16xx/K1KuG7owbvs0sXoNM3fXpiIwguuYMG3oj8dYw3U6YLpL49uBzTKrqGYe1LVbEq0+UHaIl3ozjrRN+5AjJelks4wmSlSd0buNTqmequoyvg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1785465829; c=relaxed/simple;
-	bh=msdYVotVgLStUUgxnJoxdQBf9f18u/Dnk7BdwrDjMf0=;
-	h=Date:To:From:Subject:Message-Id; b=kmTyenjummjKr6QHj0ZnCYnN7GjHZibr6Pfxw0VsB4ETxhM0g5YVb0KsJ2qBoiRqR4krXw9zXCzurp9VFm/93Tr0RV0VDrkmiOpQCy7VXDM+dK03ionSnCzEWqyz7y4jxrkgrpT6ABl01QhIB348xauk/gBRUEthb1ZqO3JmHTc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YYLFBxBC; arc=none smtp.client-ip=100.103.45.18
+	bh=/O1N4PhEmk3ELvHjcu4poc6h2XSm9QygvL7zo8B8Cgo=;
+	h=Date:To:From:Subject:Message-Id; b=AcZDgovlIw+iFGaNvG+SNMUy2Wow7CT3iHYkhITnszsHzfQai1wZ7qCp7n8Q6A1GM3MxGObu6ImmHaP+kix/9JCgAmbNmm7aROVSf54ajrOuCFyCYYZwBVE3pKybv7inc0Plozfq6AroQockuefEs7xLsQwfWg4TY9+OLRsVZoE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tkMnQnRz; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YYLFBxBC"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 96FB71F00A3A;
-	Fri, 31 Jul 2026 02:43:47 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tkMnQnRz"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 80A871F000E9;
+	Fri, 31 Jul 2026 02:43:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785465827;
-	bh=/dDqb60DuBwMo9xiQRRFGJveEumaC7+v/8pigZ9eMD4=;
+	d=linux-foundation.org; s=korg; t=1785465826;
+	bh=Hv2iONIrbsHMeY/8iHJDWn5JAeMJXA2BTDp+Dtyqyus=;
 	h=Date:To:From:Subject;
-	b=YYLFBxBCpJUxiJH9fsh3RUMv5jTcL4aQTzmQ2T5YSjkuRxepDRIgn1zY1b3q9PZAq
-	 8R1TmNkYr0c+nO3GE6Cro1UGfegiBMf0W0hbXrAH5O42tx+1y0M1SsybBVRxpPzIhK
-	 RvjPCgn+sypBro6yQxGH/eYe0sEzCPr3Ten5KAMk=
-Date: Thu, 30 Jul 2026 19:43:47 -0700
+	b=tkMnQnRz/P7NsfdkSXec49DFNGPSTINk7a0VjtHuGRjkoyhNanOLP1Ei1sBBNDQFL
+	 lD8fM7LxVikX5XLG7hCulgNDRAbAugsmXTFhOS7hqjjvMs5SAyepCp54QSBRb9HnZn
+	 dVDAuT5RoUeGUUoEf5NCeM53ujiC7BZrWnaoRCrM=
+Date: Thu, 30 Jul 2026 19:43:46 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-sysfs-remove-duplicated-commit-input-validity-check.patch removed from -mm tree
-Message-Id: <20260731024347.96FB71F00A3A@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-core-do-parameter-testing-commit-on-damon_start.patch removed from -mm tree
+Message-Id: <20260731024346.80A871F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,87 +35,63 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/damon/sysfs: remove duplicated commit input validity check
+     Subject: mm/damon/core: do parameter testing commit on damon_start()
 has been removed from the -mm tree.  Its filename was
-     mm-damon-sysfs-remove-duplicated-commit-input-validity-check.patch
+     mm-damon-core-do-parameter-testing-commit-on-damon_start.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/sysfs: remove duplicated commit input validity check
-Date: Sun, 5 Jul 2026 08:55:54 -0700
+Subject: mm/damon/core: do parameter testing commit on damon_start()
+Date: Sun, 5 Jul 2026 08:55:53 -0700
 
-DAMON sysfs interface does parameters validation-purpose
-damon_commit_ctx() calls for parameters update.  Now the same logic is
-embedded inside damon_commit_ctx() itself.  Hence, the validation in DAMON
-sysfs interface is just an unnecessary duplicate.  Remove it.
+damon_start() and damon_commit_ctx() are two main DAMON core API functions
+for setting whole DAMON parameters.  While damon_commit_ctx() does
+holistic parameters testing, damon_start() just believes the caller
+validated the whole thing.  Embed the holistic parameter check that is
+already in damon_commit_ctx() into damon_start().  After this change, the
+callers can safely call damon_start() without validating the parameters.
 
-Link: https://lore.kernel.org/20260705155600.96555-4-sj@kernel.org
+Link: https://lore.kernel.org/20260705155600.96555-3-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/sysfs.c |   32 +-------------------------------
- 1 file changed, 1 insertion(+), 31 deletions(-)
+ mm/damon/core.c |   14 ++++++++++++--
+ 1 file changed, 12 insertions(+), 2 deletions(-)
 
---- a/mm/damon/sysfs.c~mm-damon-sysfs-remove-duplicated-commit-input-validity-check
-+++ a/mm/damon/sysfs.c
-@@ -2099,26 +2099,6 @@ static struct damon_ctx *damon_sysfs_bui
- 		struct damon_sysfs_context *sys_ctx);
- 
- /*
-- * Return a new damon_ctx for testing new parameters to commit.
-- */
--static struct damon_ctx *damon_sysfs_new_test_ctx(
--		struct damon_ctx *running_ctx)
--{
--	struct damon_ctx *test_ctx;
--	int err;
--
--	test_ctx = damon_new_ctx();
--	if (!test_ctx)
--		return NULL;
--	err = damon_commit_ctx(test_ctx, running_ctx);
--	if (err) {
--		damon_destroy_ctx(test_ctx);
--		return NULL;
--	}
--	return test_ctx;
--}
--
--/*
-  * damon_sysfs_commit_input() - Commit user inputs to a running kdamond.
-  * @kdamond:	The kobject wrapper for the associated kdamond.
-  *
-@@ -2127,7 +2107,7 @@ static struct damon_ctx *damon_sysfs_new
- static int damon_sysfs_commit_input(void *data)
- {
- 	struct damon_sysfs_kdamond *kdamond = data;
--	struct damon_ctx *param_ctx, *test_ctx;
-+	struct damon_ctx *param_ctx;
- 	int err;
- 
- 	if (!damon_sysfs_kdamond_running(kdamond))
-@@ -2139,17 +2119,7 @@ static int damon_sysfs_commit_input(void
- 	param_ctx = damon_sysfs_build_ctx(kdamond->contexts->contexts_arr[0]);
- 	if (IS_ERR(param_ctx))
- 		return PTR_ERR(param_ctx);
--	test_ctx = damon_sysfs_new_test_ctx(kdamond->damon_ctx);
--	if (!test_ctx) {
--		damon_destroy_ctx(param_ctx);
--		return -ENOMEM;
--	}
--	err = damon_commit_ctx(test_ctx, param_ctx);
--	if (err)
--		goto out;
- 	err = damon_commit_ctx(kdamond->damon_ctx, param_ctx);
--out:
--	damon_destroy_ctx(test_ctx);
- 	damon_destroy_ctx(param_ctx);
+--- a/mm/damon/core.c~mm-damon-core-do-parameter-testing-commit-on-damon_start
++++ a/mm/damon/core.c
+@@ -1865,6 +1865,8 @@ static int __damon_start(struct damon_ct
  	return err;
  }
+ 
++static int __damon_commit_ctx(struct damon_ctx *dst, struct damon_ctx *src);
++
+ /**
+  * damon_start() - Starts the monitorings for a given group of contexts.
+  * @ctxs:	an array of the pointers for contexts to start monitoring
+@@ -1886,8 +1888,16 @@ int damon_start(struct damon_ctx **ctxs,
+ 	int err = 0;
+ 
+ 	for (i = 0; i < nr_ctxs; i++) {
+-		if (!is_power_of_2(ctxs[i]->min_region_sz))
+-			return -EINVAL;
++		struct damon_ctx *test_ctx;
++
++		test_ctx = damon_new_ctx();
++		if (!test_ctx)
++			return -ENOMEM;
++
++		err = __damon_commit_ctx(test_ctx, ctxs[i]);
++		damon_destroy_ctx(test_ctx);
++		if (err)
++			return err;
+ 	}
+ 
+ 	mutex_lock(&damon_lock);
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
