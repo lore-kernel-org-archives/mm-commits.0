@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AA85933939D
-	for <mm-commits@vger.kernel.org>; Fri, 31 Jul 2026 02:43:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D36D3339705
+	for <mm-commits@vger.kernel.org>; Fri, 31 Jul 2026 02:43:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785465829; cv=none; b=tXeSPpk8+4xZQDYl0VJrfw1bjK5jJHeec2rfmlpiuDIHK+pJVoi2JevqKDBk16xx/K1KuG7owbvs0sXoNM3fXpiIwguuYMG3oj8dYw3U6YLpL49uBzTKrqGYe1LVbEq0+UHaIl3ozjrRN+5AjJelks4wmSlSd0buNTqmequoyvg=
+	t=1785465830; cv=none; b=NTtOS+gKBkI+OVO3GKdwn0icU5u9Oor8lfTFWd6RbCEbPcXod/VU82rvYlkDsGJRWzpqAMMOuWIP06F4O4agfgX2DijunqvY+l3rMCVSnIJ8HDvj00C1n767AOBrfEbjn+GD3FX1AVg6HT9SZKMdRtKOFqVWVKZNn/97QXbcsz4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785465829; c=relaxed/simple;
-	bh=/O1N4PhEmk3ELvHjcu4poc6h2XSm9QygvL7zo8B8Cgo=;
-	h=Date:To:From:Subject:Message-Id; b=AcZDgovlIw+iFGaNvG+SNMUy2Wow7CT3iHYkhITnszsHzfQai1wZ7qCp7n8Q6A1GM3MxGObu6ImmHaP+kix/9JCgAmbNmm7aROVSf54ajrOuCFyCYYZwBVE3pKybv7inc0Plozfq6AroQockuefEs7xLsQwfWg4TY9+OLRsVZoE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tkMnQnRz; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785465830; c=relaxed/simple;
+	bh=hhq+B9z/xQR2zPNE0fQhhzAf1hSpLW1acxotyodaiPE=;
+	h=Date:To:From:Subject:Message-Id; b=WxuKeeAOKRafHPmMS1mbwR4gRF4FBTt0/3EAhAHQDpM4rg96oHvsGvzfz9VVdEoQ/R+lmPXVrywZVjaFSyq4Cl9rLZvEUN83VR5k81ySv281if3m7kZcl+e4kgpog5sYTmDW8Dr4XbkWb6k5WEH7o5dGF+SEngl3VVMZjB9iCLM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PWrgde+p; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tkMnQnRz"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 80A871F000E9;
-	Fri, 31 Jul 2026 02:43:46 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PWrgde+p"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A995F1F00A3D;
+	Fri, 31 Jul 2026 02:43:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785465826;
-	bh=Hv2iONIrbsHMeY/8iHJDWn5JAeMJXA2BTDp+Dtyqyus=;
+	d=linux-foundation.org; s=korg; t=1785465828;
+	bh=DV/myQCruNSqMdl/mpf3gyYYpFq1X4h4Z/wtpzOhfYs=;
 	h=Date:To:From:Subject;
-	b=tkMnQnRz/P7NsfdkSXec49DFNGPSTINk7a0VjtHuGRjkoyhNanOLP1Ei1sBBNDQFL
-	 lD8fM7LxVikX5XLG7hCulgNDRAbAugsmXTFhOS7hqjjvMs5SAyepCp54QSBRb9HnZn
-	 dVDAuT5RoUeGUUoEf5NCeM53ujiC7BZrWnaoRCrM=
-Date: Thu, 30 Jul 2026 19:43:46 -0700
+	b=PWrgde+piH21dgFxnbxKH/CnYRd4uPYit885L7VLLi5CTRbmA8eNfOBZbfKrcRpbB
+	 7EQtwxH9CL8OG1K1MxpgS/zNun1yea/f+5KxxllTc5a2jCCXQOE3JY8Pcbn083OddA
+	 HNt6hFfAUwUMT9qPwhPJStL5hkyZuG8uq4ClIj5o=
+Date: Thu, 30 Jul 2026 19:43:48 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-core-do-parameter-testing-commit-on-damon_start.patch removed from -mm tree
-Message-Id: <20260731024346.80A871F000E9@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-reclaim-remove-duplicated-min_region_sz-power-of-2-check.patch removed from -mm tree
+Message-Id: <20260731024348.A995F1F00A3D@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,63 +35,44 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/damon/core: do parameter testing commit on damon_start()
+     Subject: mm/damon/reclaim: remove duplicated min_region_sz power of 2 check
 has been removed from the -mm tree.  Its filename was
-     mm-damon-core-do-parameter-testing-commit-on-damon_start.patch
+     mm-damon-reclaim-remove-duplicated-min_region_sz-power-of-2-check.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/core: do parameter testing commit on damon_start()
-Date: Sun, 5 Jul 2026 08:55:53 -0700
+Subject: mm/damon/reclaim: remove duplicated min_region_sz power of 2 check
+Date: Sun, 5 Jul 2026 08:55:55 -0700
 
-damon_start() and damon_commit_ctx() are two main DAMON core API functions
-for setting whole DAMON parameters.  While damon_commit_ctx() does
-holistic parameters testing, damon_start() just believes the caller
-validated the whole thing.  Embed the holistic parameter check that is
-already in damon_commit_ctx() into damon_start().  After this change, the
-callers can safely call damon_start() without validating the parameters.
+DAMON_RECLAIM validates the user input for min_region_sz.  The same
+validation is done inside damon_start() and damon_commit_ctx().  Remove
+the duplicate.
 
-Link: https://lore.kernel.org/20260705155600.96555-3-sj@kernel.org
+Link: https://lore.kernel.org/20260705155600.96555-5-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/core.c |   14 ++++++++++++--
- 1 file changed, 12 insertions(+), 2 deletions(-)
+ mm/damon/reclaim.c |    5 -----
+ 1 file changed, 5 deletions(-)
 
---- a/mm/damon/core.c~mm-damon-core-do-parameter-testing-commit-on-damon_start
-+++ a/mm/damon/core.c
-@@ -1865,6 +1865,8 @@ static int __damon_start(struct damon_ct
- 	return err;
- }
+--- a/mm/damon/reclaim.c~mm-damon-reclaim-remove-duplicated-min_region_sz-power-of-2-check
++++ a/mm/damon/reclaim.c
+@@ -208,11 +208,6 @@ static int damon_reclaim_apply_parameter
+ 	param_ctx->addr_unit = addr_unit;
+ 	param_ctx->min_region_sz = max(DAMON_MIN_REGION_SZ / addr_unit, 1);
  
-+static int __damon_commit_ctx(struct damon_ctx *dst, struct damon_ctx *src);
-+
- /**
-  * damon_start() - Starts the monitorings for a given group of contexts.
-  * @ctxs:	an array of the pointers for contexts to start monitoring
-@@ -1886,8 +1888,16 @@ int damon_start(struct damon_ctx **ctxs,
- 	int err = 0;
- 
- 	for (i = 0; i < nr_ctxs; i++) {
--		if (!is_power_of_2(ctxs[i]->min_region_sz))
--			return -EINVAL;
-+		struct damon_ctx *test_ctx;
-+
-+		test_ctx = damon_new_ctx();
-+		if (!test_ctx)
-+			return -ENOMEM;
-+
-+		err = __damon_commit_ctx(test_ctx, ctxs[i]);
-+		damon_destroy_ctx(test_ctx);
-+		if (err)
-+			return err;
- 	}
- 
- 	mutex_lock(&damon_lock);
+-	if (!is_power_of_2(param_ctx->min_region_sz)) {
+-		err = -EINVAL;
+-		goto out;
+-	}
+-
+ 	if (!damon_reclaim_mon_attrs.aggr_interval) {
+ 		err = -EINVAL;
+ 		goto out;
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
