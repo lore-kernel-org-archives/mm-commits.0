@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9EC5D33936D
-	for <mm-commits@vger.kernel.org>; Fri, 31 Jul 2026 02:42:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9D764332EC5
+	for <mm-commits@vger.kernel.org>; Fri, 31 Jul 2026 02:42:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785465771; cv=none; b=R06mBrSVu0I4IiILK1faOpM/mypxqihT0ISUeL40oWZOw+amkwxGncqhlPMBThPTP/32ALFhfqewtFpF3ASlr7OFn7Z0lHCjhopyjdZDG1uaR3WrdNwPaZIyIn3b0v/eIFhW6DwgYqJ2ekbm/D3Vxg3FZ8NfkxOBuolly0S1BxI=
+	t=1785465772; cv=none; b=Tl+p8SYpB9tJlhfvojQrGdGr14O6L0Jg0Dcy/mLTL9ZzcXS0wvmlxIGhktrVHT28aYT3vCU0HfNWvmPmQrC+VVuLAXfYDuVD3gaV3igLsXQorTjgPfB+m1dBUCFRwZkc+2YP4LLEL1jQWtNL2Mb0A6XGTHQWnmhIADxITLT4SdE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785465771; c=relaxed/simple;
-	bh=bc0GLfPWC+ktprnEP9+xLCVb4EMBcxWKetoyRQ/oPNs=;
-	h=Date:To:From:Subject:Message-Id; b=B6OItWlxQ2Mn3O4mNwz5aGWemle0UoDzPp6Ut7Cbdd7Q8y9Ag5ydAPI0imTF5JG3T2ldpzI2tyKZPwOoevKOrnhFbq228UFvSr1dH/fi9e8QmdxsfchZe+a86RSfQfXGLIg8vOxYV69yDxVTXxqAWzBKiH8B8j9XgQ4yQFQKpHE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Hp/p+i8g; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785465772; c=relaxed/simple;
+	bh=oC7mF7lTTAbHL3NejvRzOhdQi10Zl4l7kahb2AkM+Tw=;
+	h=Date:To:From:Subject:Message-Id; b=IkjRYWqlldso72U7AXcGhs7/uGl/Rxe4FZCwtOpy0a9v5nyC3KZ0Ant3GBGJiGuRsrR5EeFoAhyzwb+332ZfK+tzbEmzIy4FJ0eNT5UNzHraArwpmJNXVvDzScz3B2AXKRV0RJAsDeCWERMNcb5ehk2caC/plS7cVKcZkkJAhr8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dRCVs35s; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Hp/p+i8g"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 53B831F00A3D;
-	Fri, 31 Jul 2026 02:42:49 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dRCVs35s"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 742591F000E9;
+	Fri, 31 Jul 2026 02:42:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785465769;
-	bh=HaoqBdli4Fz7LXoBo72e1aSJ+mG8PtH84uqvb3U/W5E=;
+	d=linux-foundation.org; s=korg; t=1785465770;
+	bh=CaKSVkQo+9z2bp8179njsvYvR7N0BFMSzmXG+E6DzRc=;
 	h=Date:To:From:Subject;
-	b=Hp/p+i8gEgLV1qr/uSReY/58uzpr2mXC19Tj8Ttx8Alt3D0tx/sWkVeOsPU3sn6LP
-	 V6hWJTkHqeuKWSgeUeSKp6IaxXvsT7uWHCGJF8tjvWr62XnvONBFpg4BrwAJviEQw8
-	 WhkLeWKCKRc7CEAaVUYXT5TQ/HjNVwk1pEKTnbXY=
-Date: Thu, 30 Jul 2026 19:42:48 -0700
+	b=dRCVs35sm3xToOaw/n3I+RHDRhsxKFt1lzupR9iPe8lbF8S1naJ35i7wur4YGRT2/
+	 4h/ag7iRVcQA/gqMK3l+V6fGHCWnrk6sOZqZrCtgVWbvnRmQF83hghWrtRy9EfnF5i
+	 Bv7nN9OaIPC8JppSZ0U/B4cQHPUXp8d2bD/aHeH0=
+Date: Thu, 30 Jul 2026 19:42:50 -0700
 To: mm-commits@vger.kernel.org,shuah@kernel.org,rostedt@goodmis.org,mhiramat@kernel.org,mathieu.desnoyers@efficios.com,brendan.higgins@linux.dev,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-tests-core-kunit-remove-nr_accesses_bp-setup-and-tests.patch removed from -mm tree
-Message-Id: <20260731024249.53B831F00A3D@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-damon-drgn_dump_damon_status-do-not-dump-nr_accesses_bp.patch removed from -mm tree
+Message-Id: <20260731024250.742591F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,23 +35,23 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/damon/tests/core-kunit: remove nr_accesses_bp setup and tests
+     Subject: selftests/damon/drgn_dump_damon_status: do not dump nr_accesses_bp
 has been removed from the -mm tree.  Its filename was
-     mm-damon-tests-core-kunit-remove-nr_accesses_bp-setup-and-tests.patch
+     selftests-damon-drgn_dump_damon_status-do-not-dump-nr_accesses_bp.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/tests/core-kunit: remove nr_accesses_bp setup and tests
-Date: Mon, 29 Jun 2026 21:08:04 -0700
+Subject: selftests/damon/drgn_dump_damon_status: do not dump nr_accesses_bp
+Date: Mon, 29 Jun 2026 21:08:05 -0700
 
-DAMON core unit tests set up nr_accesses_bp for representing realistic
-damon_region, and also test the field.  nr_acceses_bp is no longer being
-used for a real use case.  Remove the setup and tests.
+drgn_dump_damon_status is dumping nr_accesses_bp field for future use
+case.  nr_accesses_bp is not being used for a real purpose, though.  Hence
+there will be no future test for it.  Do not dump it.
 
-Link: https://lore.kernel.org/20260630040812.149729-12-sj@kernel.org
+Link: https://lore.kernel.org/20260630040812.149729-13-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Cc: Brendan Higgins <brendan.higgins@linux.dev>
 Cc: "Masami Hiramatsu (Google)" <mhiramat@kernel.org>
@@ -61,75 +61,19 @@ Cc: Steven Rostedt <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/tests/core-kunit.h |    8 --------
- 1 file changed, 8 deletions(-)
+ tools/testing/selftests/damon/drgn_dump_damon_status.py |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/mm/damon/tests/core-kunit.h~mm-damon-tests-core-kunit-remove-nr_accesses_bp-setup-and-tests
-+++ a/mm/damon/tests/core-kunit.h
-@@ -114,7 +114,6 @@ static void damon_test_aggregate(struct
- 				kunit_skip(test, "region alloc fail");
- 			}
- 			r->nr_accesses = accesses[it][ir];
--			r->nr_accesses_bp = accesses[it][ir] * 10000;
- 			damon_add_region(r, t);
- 		}
- 		it++;
-@@ -151,7 +150,6 @@ static void damon_test_split_at(struct k
- 		damon_free_target(t);
- 		kunit_skip(test, "region alloc fail");
- 	}
--	r->nr_accesses_bp = 420000;
- 	r->nr_accesses = 42;
- 	r->last_nr_accesses = 15;
- 	r->age = 10;
-@@ -164,7 +162,6 @@ static void damon_test_split_at(struct k
- 	KUNIT_EXPECT_EQ(test, r_new->ar.start, 25ul);
- 	KUNIT_EXPECT_EQ(test, r_new->ar.end, 100ul);
+--- a/tools/testing/selftests/damon/drgn_dump_damon_status.py~selftests-damon-drgn_dump_damon_status-do-not-dump-nr_accesses_bp
++++ a/tools/testing/selftests/damon/drgn_dump_damon_status.py
+@@ -59,7 +59,6 @@ def region_to_dict(region):
+         ['ar', addr_range_to_dict],
+         ['sampling_addr', int],
+         ['nr_accesses', int],
+-        ['nr_accesses_bp', int],
+         ['age', int],
+         ])
  
--	KUNIT_EXPECT_EQ(test, r->nr_accesses_bp, r_new->nr_accesses_bp);
- 	KUNIT_EXPECT_EQ(test, r->nr_accesses, r_new->nr_accesses);
- 	KUNIT_EXPECT_EQ(test, r->last_nr_accesses, r_new->last_nr_accesses);
- 	KUNIT_EXPECT_EQ(test, r->age, r_new->age);
-@@ -187,7 +184,6 @@ static void damon_test_merge_two(struct
- 		kunit_skip(test, "region alloc fail");
- 	}
- 	r->nr_accesses = 10;
--	r->nr_accesses_bp = 100000;
- 	r->age = 9;
- 	damon_add_region(r, t);
- 	r2 = damon_new_region(100, 300);
-@@ -196,7 +192,6 @@ static void damon_test_merge_two(struct
- 		kunit_skip(test, "second region alloc fail");
- 	}
- 	r2->nr_accesses = 20;
--	r2->nr_accesses_bp = 200000;
- 	r2->age = 21;
- 	damon_add_region(r2, t);
- 
-@@ -204,7 +199,6 @@ static void damon_test_merge_two(struct
- 	KUNIT_EXPECT_EQ(test, r->ar.start, 0ul);
- 	KUNIT_EXPECT_EQ(test, r->ar.end, 300ul);
- 	KUNIT_EXPECT_EQ(test, r->nr_accesses, 16u);
--	KUNIT_EXPECT_EQ(test, r->nr_accesses_bp, 160000u);
- 	KUNIT_EXPECT_EQ(test, r->age, 17u);
- 
- 	i = 0;
-@@ -252,7 +246,6 @@ static void damon_test_merge_regions_of(
- 			kunit_skip(test, "region alloc fail");
- 		}
- 		r->nr_accesses = nrs[i];
--		r->nr_accesses_bp = nrs[i] * 10000;
- 		damon_add_region(r, t);
- 	}
- 
-@@ -615,7 +608,6 @@ static void damon_test_update_monitoring
- 		kunit_skip(test, "region alloc fail");
- 
- 	r->nr_accesses = 15;
--	r->nr_accesses_bp = 150000;
- 	r->age = 20;
- 
- 	new_attrs = (struct damon_attrs){
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
