@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9D764332EC5
-	for <mm-commits@vger.kernel.org>; Fri, 31 Jul 2026 02:42:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BA924339365
+	for <mm-commits@vger.kernel.org>; Fri, 31 Jul 2026 02:42:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785465772; cv=none; b=Tl+p8SYpB9tJlhfvojQrGdGr14O6L0Jg0Dcy/mLTL9ZzcXS0wvmlxIGhktrVHT28aYT3vCU0HfNWvmPmQrC+VVuLAXfYDuVD3gaV3igLsXQorTjgPfB+m1dBUCFRwZkc+2YP4LLEL1jQWtNL2Mb0A6XGTHQWnmhIADxITLT4SdE=
+	t=1785465773; cv=none; b=uN8YNJjOpBHH2u56wHPp11dmmWJ7MfhyEcWEf7Zy7Frp5e2/mu2bEuH3tTKd5VaD/BhkDZ0oRPyiPQ19iXCjlXZ4YcpQc5rB8nDSrhdW4Qyyg3Ky5whszoH6pt+e3xyuJEr8bWkgVrvG21ENNxY3hthM2ZFu04D9bVu6BlaGupc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785465772; c=relaxed/simple;
-	bh=oC7mF7lTTAbHL3NejvRzOhdQi10Zl4l7kahb2AkM+Tw=;
-	h=Date:To:From:Subject:Message-Id; b=IkjRYWqlldso72U7AXcGhs7/uGl/Rxe4FZCwtOpy0a9v5nyC3KZ0Ant3GBGJiGuRsrR5EeFoAhyzwb+332ZfK+tzbEmzIy4FJ0eNT5UNzHraArwpmJNXVvDzScz3B2AXKRV0RJAsDeCWERMNcb5ehk2caC/plS7cVKcZkkJAhr8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dRCVs35s; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785465773; c=relaxed/simple;
+	bh=58ydSBEH7ynHK6XCfQErgVGRuTgx1ng0y4E0EWIRISc=;
+	h=Date:To:From:Subject:Message-Id; b=cXBxys2AR/Ck8F+UUXl5dobzPSmYZisu3oGOB/TzYX0/Et0Zqs7a12JRxz5JgLgSROv9W+YKOK8oP6UbhYOuOCrBZIRESd1Y108JeedgAyNhib4EESlBTaGGhiILbvZtQHXmOAUyWlE73hoSGa1Xxg3YZRPI0mIOvIn3rmQvaAM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OnaCcBRN; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dRCVs35s"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 742591F000E9;
-	Fri, 31 Jul 2026 02:42:50 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OnaCcBRN"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 924EA1F00A3A;
+	Fri, 31 Jul 2026 02:42:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785465770;
-	bh=CaKSVkQo+9z2bp8179njsvYvR7N0BFMSzmXG+E6DzRc=;
+	d=linux-foundation.org; s=korg; t=1785465771;
+	bh=/2YzBWEfSLZ1VzlIL4DHc4Us5LI3kmfhPFvwF6eFdfQ=;
 	h=Date:To:From:Subject;
-	b=dRCVs35sm3xToOaw/n3I+RHDRhsxKFt1lzupR9iPe8lbF8S1naJ35i7wur4YGRT2/
-	 4h/ag7iRVcQA/gqMK3l+V6fGHCWnrk6sOZqZrCtgVWbvnRmQF83hghWrtRy9EfnF5i
-	 Bv7nN9OaIPC8JppSZ0U/B4cQHPUXp8d2bD/aHeH0=
-Date: Thu, 30 Jul 2026 19:42:50 -0700
+	b=OnaCcBRN4T3aaH+06IgZCvqKejJkXUCjb4bEIONfAHRHOWlONFnzDiL5Z9qBcvepZ
+	 UxLW7Gcfwz4y01w8dS9FjipM84oadXpscm3hpkTEgeVtQqkyiv9iMChjGd0Mb/B3RC
+	 w2V6IjfMj37R3sfTZR3jRQXCbtEsADpqk0acvPcs=
+Date: Thu, 30 Jul 2026 19:42:51 -0700
 To: mm-commits@vger.kernel.org,shuah@kernel.org,rostedt@goodmis.org,mhiramat@kernel.org,mathieu.desnoyers@efficios.com,brendan.higgins@linux.dev,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-damon-drgn_dump_damon_status-do-not-dump-nr_accesses_bp.patch removed from -mm tree
-Message-Id: <20260731024250.742591F000E9@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-core-remove-nr_accesses_bp-setups-and-updates.patch removed from -mm tree
+Message-Id: <20260731024251.924EA1F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,23 +35,24 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests/damon/drgn_dump_damon_status: do not dump nr_accesses_bp
+     Subject: mm/damon/core: remove nr_accesses_bp setups and updates
 has been removed from the -mm tree.  Its filename was
-     selftests-damon-drgn_dump_damon_status-do-not-dump-nr_accesses_bp.patch
+     mm-damon-core-remove-nr_accesses_bp-setups-and-updates.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: selftests/damon/drgn_dump_damon_status: do not dump nr_accesses_bp
-Date: Mon, 29 Jun 2026 21:08:05 -0700
+Subject: mm/damon/core: remove nr_accesses_bp setups and updates
+Date: Mon, 29 Jun 2026 21:08:06 -0700
 
-drgn_dump_damon_status is dumping nr_accesses_bp field for future use
-case.  nr_accesses_bp is not being used for a real purpose, though.  Hence
-there will be no future test for it.  Do not dump it.
+DAMON core sets and updates nr_accesses_bp in multiple places.  It
+explains how delicate it is.  The field is no more being used for any real
+purpose, and replaced by a simpler function.  Remove the setups and
+updates.
 
-Link: https://lore.kernel.org/20260630040812.149729-13-sj@kernel.org
+Link: https://lore.kernel.org/20260630040812.149729-14-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Cc: Brendan Higgins <brendan.higgins@linux.dev>
 Cc: "Masami Hiramatsu (Google)" <mhiramat@kernel.org>
@@ -61,19 +62,77 @@ Cc: Steven Rostedt <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/damon/drgn_dump_damon_status.py |    1 -
- 1 file changed, 1 deletion(-)
+ mm/damon/core.c |   22 ++--------------------
+ 1 file changed, 2 insertions(+), 20 deletions(-)
 
---- a/tools/testing/selftests/damon/drgn_dump_damon_status.py~selftests-damon-drgn_dump_damon_status-do-not-dump-nr_accesses_bp
-+++ a/tools/testing/selftests/damon/drgn_dump_damon_status.py
-@@ -59,7 +59,6 @@ def region_to_dict(region):
-         ['ar', addr_range_to_dict],
-         ['sampling_addr', int],
-         ['nr_accesses', int],
--        ['nr_accesses_bp', int],
-         ['age', int],
-         ])
+--- a/mm/damon/core.c~mm-damon-core-remove-nr_accesses_bp-setups-and-updates
++++ a/mm/damon/core.c
+@@ -302,7 +302,6 @@ struct damon_region *damon_new_region(un
+ 	region->ar.start = start;
+ 	region->ar.end = end;
+ 	region->nr_accesses = 0;
+-	region->nr_accesses_bp = 0;
+ 	for (i = 0; i < DAMON_MAX_PROBES; i++)
+ 		region->probe_hits[i] = 0;
+ 	INIT_LIST_HEAD(&region->list);
+@@ -889,20 +888,17 @@ static void damon_update_monitoring_resu
+ {
+ 	r->last_nr_accesses = damon_nr_accesses_for_new_attrs(
+ 			r->last_nr_accesses, old_attrs, new_attrs);
+-	if (!aggregating) {
++	if (!aggregating)
+ 		r->nr_accesses = damon_nr_accesses_for_new_attrs(
+ 				r->nr_accesses, old_attrs, new_attrs);
+-		r->nr_accesses_bp = r->nr_accesses * 10000;
+-	} else {
++	else
+ 		/*
+ 		 * if this is called in the middle of the aggregation, reset
+ 		 * the aggregations we made so far for this aggregation
+ 		 * interval.  In other words, make the status like
+ 		 * kdamond_reset_aggregated() is called.
+ 		 */
+-		r->nr_accesses_bp = r->last_nr_accesses * 10000;
+ 		r->nr_accesses = 0;
+-	}
+ 	r->age = damon_age_for_new_attrs(r->age, old_attrs, new_attrs);
+ }
  
+@@ -3129,7 +3125,6 @@ static void damon_merge_two_regions(stru
+ 
+ 	l->nr_accesses = (l->nr_accesses * sz_l + r->nr_accesses * sz_r) /
+ 			(sz_l + sz_r);
+-	l->nr_accesses_bp = l->nr_accesses * 10000;
+ 	l->age = (l->age * sz_l + r->age * sz_r) / (sz_l + sz_r);
+ 	l->ar.end = r->ar.end;
+ 	/* todo: do this for only installed probes */
+@@ -3241,7 +3236,6 @@ static void damon_split_region_at(struct
+ 
+ 	new->age = r->age;
+ 	new->last_nr_accesses = r->last_nr_accesses;
+-	new->nr_accesses_bp = r->nr_accesses_bp;
+ 	new->nr_accesses = r->nr_accesses;
+ 	/* todo: do this for only installed probes */
+ 	memcpy(new->probe_hits, r->probe_hits, sizeof(r->probe_hits));
+@@ -3849,18 +3843,6 @@ static unsigned int damon_moving_sum(uns
+ void damon_update_region_access_rate(struct damon_region *r, bool accessed,
+ 		struct damon_attrs *attrs)
+ {
+-	unsigned int len_window = 1;
+-
+-	/*
+-	 * sample_interval can be zero, but cannot be larger than
+-	 * aggr_interval, owing to validation of damon_set_attrs().
+-	 */
+-	if (attrs->sample_interval)
+-		len_window = damon_max_nr_accesses(attrs);
+-	r->nr_accesses_bp = damon_moving_sum(r->nr_accesses_bp,
+-			r->last_nr_accesses * 10000, len_window,
+-			accessed ? 10000 : 0);
+-
+ 	if (accessed)
+ 		r->nr_accesses++;
+ }
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
