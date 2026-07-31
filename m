@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 70249336892;
-	Fri, 31 Jul 2026 02:43:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0089B33939E;
+	Fri, 31 Jul 2026 02:43:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785465822; cv=none; b=Kau4djMlAkf1XIelojQCnCPREiYHUGPSFCQ78KyrvopjV6jL+bhLfdUmouZsoWX/jHi0ozrr7Q9BjGElvji6248Q6P+W8YBRFwcs3zRCNcHLx5dHP1BXbX55ZhuXtiKcdAXm7PFNMt4TA53V34x/EjaPZGtWkh+ck5C8+TK9kaM=
+	t=1785465824; cv=none; b=qPp9XXUlUaxYbzglf6WyMX3BiFo/Oy5tQnu6sCk57RS1mWCG7fG83M9vZbrKwqfII7DOGfU7n3QhPrFxj1OKw09AsGwDleVqLKwsSJqBRif/hwBl5YvrmxcdsJE3ztc9edLKr30d/QaN/rLb2Y9s2BysGBr60xzWM/vd4HQxiK0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785465822; c=relaxed/simple;
-	bh=zjoGXEkwseiMl62hNKoDUd26Vxn23yI/oLGbdSJd9WM=;
-	h=Date:To:From:Subject:Message-Id; b=Vtqoi4BFmL4gyqY2rQfBoHOM8mEOsQbKUoHpP1WPl6Fxirb2wVdqq0e1xnYiADcAsMW/aJ6nmglWaoFSJFAm+hTUxvsJv59QA313kOhgdBMOCda16PzUm/00OwRWbtWamzbsPnvsqhnjOUPPSrIQg0FAYOGjDFIvTQ5PkC2UuaY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Zp9hQ3lN; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785465824; c=relaxed/simple;
+	bh=k5GymmrU8tQaUsmFiNSuIguOUZIyXism0C4klZCvs4E=;
+	h=Date:To:From:Subject:Message-Id; b=O9LVprUAqwwkypWniZIYakVqJxkoQTlXVNEt1fO4tgOLTkGo5Yfe10HwvCNFoYG8hoAAbSacxay8EzDBUqXkxeqHtjlk+M1Ar5eGpFusbH9a+HvF1p4csF7SVKTf3fbdc3BLv+9WhZk+KIaNHjODr3VcifAZV+M1IPOH2VUcSOM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cKAUnzqS; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Zp9hQ3lN"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 45F2D1F00A3D;
-	Fri, 31 Jul 2026 02:43:40 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cKAUnzqS"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CB7731F00A3A;
+	Fri, 31 Jul 2026 02:43:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785465820;
-	bh=wgKYcIGjrSs+AHRJ6fqxZkxRVSpBZynBxW0JZa8tme8=;
+	d=linux-foundation.org; s=korg; t=1785465818;
+	bh=9wMisjUAXdASPAORnkFLbfIHlqFUBD6T92rjkbpLNmY=;
 	h=Date:To:From:Subject;
-	b=Zp9hQ3lNKdbgMPw0ueLi7bKwkpC9Ial74iQ+dMVr53IcpjhgTqoDC212bKuGZOF09
-	 EXJFh71rYvmwfDmUdrgcWV8yscNlHm7jExlyOuUUWemRyR6ynhwnZqt9CM/z9oRWgW
-	 Le8MxEl0bJiKAJK52eaxClf80JzxAdMbbg1Hv/7M=
-Date: Thu, 30 Jul 2026 19:43:39 -0700
+	b=cKAUnzqS6/bTHGOCvhBqcHp+jyMifPzKfjwESSQz5f4Nvw80wmw09QeAHHsYmQ7SQ
+	 YYu07DXZLRwrA+DQ/niu6IJG2LsiCtEjU5XFpmd8be4PeN6FCKs/qQEMkcsVCn3GK9
+	 eztQPiX6WNMnq4oob2TJBqXwhRRYXLMSc8IXAe90=
+Date: Thu, 30 Jul 2026 19:43:38 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,will@kernel.org,vbabka@kernel.org,stable@vger.kernel.org,ryan.roberts@arm.com,riel@surriel.com,rcampbell@nvidia.com,rakie.kim@sk.com,pfalcato@suse.de,osalvador@suse.de,nao.horiguchi@gmail.com,muchun.song@linux.dev,mel@csn.ul.ie,matthew.brost@intel.com,ljs@kernel.org,liam@infradead.org,lance.yang@linux.dev,kas@kernel.org,jpoimboe@kernel.org,joshua.hahnjy@gmail.com,j-nomura@ce.jp.nec.com,jannh@google.com,harry@kernel.org,gourry@gourry.net,david@kernel.org,dave.hansen@intel.com,catalin.marinas@arm.com,byungchul@sk.com,apopple@nvidia.com,anshuman.khandual@arm.com,ak@linux.intel.com,dev.jain@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-migrate-use-huge_ptep_get-in-remove_migration_pte.patch removed from -mm tree
-Message-Id: <20260731024340.45F2D1F00A3D@smtp.kernel.org>
+Subject: [merged mm-stable] mm-rmap-use-huge_ptep_get-in-try_to_migrate_one.patch removed from -mm tree
+Message-Id: <20260731024338.CB7731F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,33 +35,37 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/migrate: use huge_ptep_get() in remove_migration_pte()
+     Subject: mm/rmap: use huge_ptep_get() in try_to_migrate_one()
 has been removed from the -mm tree.  Its filename was
-     mm-migrate-use-huge_ptep_get-in-remove_migration_pte.patch
+     mm-rmap-use-huge_ptep_get-in-try_to_migrate_one.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Dev Jain <dev.jain@arm.com>
-Subject: mm/migrate: use huge_ptep_get() in remove_migration_pte()
-Date: Fri, 3 Jul 2026 11:41:57 +0000
+Subject: mm/rmap: use huge_ptep_get() in try_to_migrate_one()
+Date: Fri, 3 Jul 2026 11:41:56 +0000
 
-remove_migration_pte() converts migration entries back to present PTEs
-after folio migration completes.  For hugetlb folios,
-page_vma_mapped_walk() returns the pte pointer to the hugetlb folio in
-pvmw.pte, but the code reads it with ptep_get().
+try_to_migrate_one() is used by folio migration to replace a present
+mapping with a migration entry. For hugetlb folios, page_vma_mapped_walk()
+returns the pte pointer to the hugetlb folio in pvmw.pte, but the code
+reads the huge pte entry with ptep_get().
 
 On arches which provide their own huge_ptep_get() to dereference a huge
-pte pointer, accessing via ptep_get() would cause pte_pfn(),
-pte_present() etc to misbehave.
+pte pointer, accessing via ptep_get() would cause pte_pfn(), pte_present()
+etc to misbehave.
 
 It is not clear whether this has a trivially visible effect to userspace.
 
 Use huge_ptep_get() to dereference a huge pte pointer.
 
-Link: https://lore.kernel.org/20260703114202.365553-5-dev.jain@arm.com
-Fixes: 290408d4a250 ("hugetlb: hugepage migration core")
+Commit a98a2f0c8ce1 copied the bug from try_to_unmap_one into
+try_to_migrate_one.
+
+[akpm@linux-foundation.org: coding-style cleanups]
+Link: https://lore.kernel.org/20260703114202.365553-4-dev.jain@arm.com
+Fixes: a98a2f0c8ce1 ("mm/rmap: split migration into its own function")
 Signed-off-by: Dev Jain <dev.jain@arm.com>
 Acked-by: Muchun Song <muchun.song@linux.dev>
 Acked-by: David Hildenbrand (Arm) <david@kernel.org>
@@ -98,24 +102,43 @@ Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ mm/rmap.c |   15 +++++++++------
+ 1 file changed, 9 insertions(+), 6 deletions(-)
 
---- a/mm/migrate.c~mm-migrate-use-huge_ptep_get-in-remove_migration_pte
-+++ a/mm/migrate.c
-@@ -372,7 +372,11 @@ static bool remove_migration_pte(struct
- 			continue;
- 		}
- #endif
--		old_pte = ptep_get(pvmw.pte);
+--- a/mm/rmap.c~mm-rmap-use-huge_ptep_get-in-try_to_migrate_one
++++ a/mm/rmap.c
+@@ -2500,14 +2500,18 @@ static bool try_to_migrate_one(struct fo
+ 		/* Unexpected PMD-mapped THP? */
+ 		VM_BUG_ON_FOLIO(!pvmw.pte, folio);
+ 
+-		/*
+-		 * Handle PFN swap PTEs, such as device-exclusive ones, that
+-		 * actually map pages.
+-		 */
+-		pteval = ptep_get(pvmw.pte);
++		address = pvmw.address;
 +		if (folio_test_hugetlb(folio))
-+			old_pte = huge_ptep_get(vma->vm_mm, pvmw.address,
-+						pvmw.pte);
++			pteval = huge_ptep_get(mm, address, pvmw.pte);
 +		else
-+			old_pte = ptep_get(pvmw.pte);
- 		if (rmap_walk_arg->map_unused_to_zeropage &&
- 		    try_to_map_unused_to_zeropage(&pvmw, folio, old_pte, idx))
- 			continue;
++			pteval = ptep_get(pvmw.pte);
+ 		if (likely(pte_present(pteval))) {
+ 			pfn = pte_pfn(pteval);
+ 		} else {
++			/*
++			 * Handle PFN swap PTEs, such as device-exclusive ones,
++			 * that actually map pages.
++			 */
+ 			const softleaf_t entry = softleaf_from_pte(pteval);
+ 
+ 			pfn = softleaf_to_pfn(entry);
+@@ -2515,7 +2519,6 @@ static bool try_to_migrate_one(struct fo
+ 		}
+ 
+ 		subpage = folio_page(folio, pfn - folio_pfn(folio));
+-		address = pvmw.address;
+ 		anon_exclusive = folio_test_anon(folio) &&
+ 				 PageAnonExclusive(subpage);
+ 
 _
 
 Patches currently in -mm which might be from dev.jain@arm.com are
