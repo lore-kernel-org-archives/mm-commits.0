@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C180C33120C
-	for <mm-commits@vger.kernel.org>; Fri, 31 Jul 2026 02:42:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AC7A030FC0F
+	for <mm-commits@vger.kernel.org>; Fri, 31 Jul 2026 02:42:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785465725; cv=none; b=s8BCJ2Gok5j8Wih5oHxZpn0AE9fe3LRMP2nBoOvqAgHeSFHraMabEt2+2BJZioEkuV5qpaaWN8NrXVNJ7iJjyO4f0ubgA8XppqycUWJvwCo11P3XJUxVNVkQfdOh4r61lQTSxFuL+L0a+43k3fiWWD37thcBoALfpG04TyGxHuE=
+	t=1785465726; cv=none; b=Su6SLTJMjNde9tcj4GeAYFwoVGbzdrvymquohkHdakQHE0ou1TRu7XNQoq6jy4QB8Gdq7kNb4y7JAHhycvr7hKNeo8L6vqoS4jRbVRmW23f9Qj9lXfIaYvQE7nm8heEuPKDokZcaZH2kdVakg4q0rNl5Gu94ziIR9+Zns18RHGw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785465725; c=relaxed/simple;
-	bh=AajPSRoguTL418Gir/Q99BZkdY+URlh5HLtux90xk/E=;
-	h=Date:To:From:Subject:Message-Id; b=UK6L6HF9c9dhu7mqENqxb3YRvTO/HzBH7rYv9q1T9tvlngUqzsqsxI1o9cqreLotimU3/J2P2w+memRkClNLlkqFzIJjoc8W7lEpaW8dWErFh5TvI+v/OQC3dHt2fXe9hWLXRnH6RrzjK14Q5z7ChrWcippeTL9Uj0ubeD9Zlo4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=09Pku4/P; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785465726; c=relaxed/simple;
+	bh=g7gZEC31tXBERrKYBV5TKq3pnQCrNUKYu0a5oW+jU8I=;
+	h=Date:To:From:Subject:Message-Id; b=TQh2C545N3wO6OM8+ifv4OreNmhwNOl43471fhqNVJ9am0MkWOC3ZBOcqm8O8ZGtdNzQjN3aFk9udUxyhTDTauuOk/ePCaocPQz/XHxwD/osV9Dfb1YFqe5t5jEC4fZ7jMd6or4O4XzEcmtvT6tAlUmeb73qwBYesj8so5jlUA4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=G/D4ySzk; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="09Pku4/P"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3962C1F000E9;
-	Fri, 31 Jul 2026 02:42:03 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="G/D4ySzk"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 703321F00A3A;
+	Fri, 31 Jul 2026 02:42:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785465723;
-	bh=SkaXRd+x1KyXqd8xyvnmy+hv88W3lRxIZLP4OQ40Hhk=;
+	d=linux-foundation.org; s=korg; t=1785465724;
+	bh=GY7b0NeWpLa1kl12m0G0ijvM5cm9fas8qnXsOWmnSig=;
 	h=Date:To:From:Subject;
-	b=09Pku4/PVRZehUFQIK5yLo0Lmiu7ASwRB9bkrTU84dzBPkWonNXnrIeCS2ZwCEQCa
-	 UALXwthiCWy9UO5YKP+UOjwfaUy2v4JlpNc4wSyi+6qatNjyyM33SjJCG/8IkBcIhh
-	 H3A1PW76bsfV3E9c01HvuWdMKK9tTh0keugoRWUE=
-Date: Thu, 30 Jul 2026 19:42:02 -0700
+	b=G/D4ySzkLPgf3IremgIJcfmY0Ze5O77kdMSiH+YZKgCuDvtthPsQsRvai+2rCI34o
+	 3fTK5L6o+VJ02wCUrgYHx0kJm9r9LPHncHPqWOoswEtctoLg1ZszL+XzTMuXW0iuI2
+	 aPG+Gj1xPflN5Fs8mjiWevYm2fX9BhhTv2pA5QCA=
+Date: Thu, 30 Jul 2026 19:42:04 -0700
 To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,shuah@kernel.org,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,corbet@lwn.net,brendan.higgins@linux.dev,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-tests-core-kunit-test-damon_rand.patch removed from -mm tree
-Message-Id: <20260731024203.3962C1F000E9@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-damon-sysfssh-test-multiple-probe-dirs-creation.patch removed from -mm tree
+Message-Id: <20260731024204.703321F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,23 +35,25 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/damon/tests/core-kunit: test damon_rand()
+     Subject: selftests/damon/sysfs.sh: test multiple probe dirs creation
 has been removed from the -mm tree.  Its filename was
-     mm-damon-tests-core-kunit-test-damon_rand.patch
+     selftests-damon-sysfssh-test-multiple-probe-dirs-creation.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/tests/core-kunit: test damon_rand()
-Date: Tue, 30 Jun 2026 07:17:17 -0700
+Subject: selftests/damon/sysfs.sh: test multiple probe dirs creation
+Date: Tue, 30 Jun 2026 07:17:18 -0700
 
-Commit 9012c4e647df ("mm/damon: replace damon_rand() with a per-ctx
-lockless PRNG") optimized DAMON for better performance.  Add a kunit test
-for ensuring the bounds of the output.
+DAMON sysfs essential file operations test (sysfs.sh) was extended to test
+DAMON probes sysfs directory, by commit 14885da09b0f
+("selftests/damon/sysfs.sh: test probes dir").  Unlike other DAMON sysfs
+files, it is testing only a single directory case.  Extend it for multiple
+directories.
 
-Link: https://lore.kernel.org/20260630141726.92246-4-sj@kernel.org
+Link: https://lore.kernel.org/20260630141726.92246-5-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Cc: Brendan Higgins <brendan.higgins@linux.dev>
 Cc: David Hildenbrand <david@kernel.org>
@@ -66,40 +68,25 @@ Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/tests/core-kunit.h |   15 +++++++++++++++
- 1 file changed, 15 insertions(+)
+ tools/testing/selftests/damon/sysfs.sh |    5 +++++
+ 1 file changed, 5 insertions(+)
 
---- a/mm/damon/tests/core-kunit.h~mm-damon-tests-core-kunit-test-damon_rand
-+++ a/mm/damon/tests/core-kunit.h
-@@ -1546,6 +1546,20 @@ static void damon_test_walk_control_obso
- 	damon_destroy_ctx(ctx);
+--- a/tools/testing/selftests/damon/sysfs.sh~selftests-damon-sysfssh-test-multiple-probe-dirs-creation
++++ a/tools/testing/selftests/damon/sysfs.sh
+@@ -346,8 +346,13 @@ test_probes()
+ 	ensure_write_succ "$probes_dir/nr_probes" "1" "valid input"
+ 	test_probe "$probes_dir/0"
+ 
++	ensure_write_succ "$probes_dir/nr_probes" "2" "valid input"
++	test_probe "$probes_dir/0"
++	test_probe "$probes_dir/1"
++
+ 	ensure_write_succ "$probes_dir/nr_probes" "0" "valid input"
+ 	ensure_dir "$probes_dir/0" "not_exist"
++	ensure_dir "$probes_dir/1" "not_exist"
  }
  
-+static void damon_test_rand(struct kunit *test)
-+{
-+	struct damon_ctx ctx;
-+	int i;
-+
-+	prandom_seed_state(&ctx.rnd_state, get_random_u64());
-+	for (i = 0; i < 10000; i++) {
-+		unsigned long rnd = damon_rand(&ctx, 0, 10);
-+
-+		KUNIT_EXPECT_GE(test, rnd, 0);
-+		KUNIT_EXPECT_LE(test, rnd, 9);
-+	}
-+}
-+
- static struct kunit_case damon_test_cases[] = {
- 	KUNIT_CASE(damon_test_target),
- 	KUNIT_CASE(damon_test_regions),
-@@ -1577,6 +1591,7 @@ static struct kunit_case damon_test_case
- 	KUNIT_CASE(damon_test_apply_min_nr_regions),
- 	KUNIT_CASE(damon_test_is_last_region),
- 	KUNIT_CASE(damon_test_walk_control_obsolete),
-+	KUNIT_CASE(damon_test_rand),
- 	{},
- };
- 
+ test_monitoring_attrs()
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
