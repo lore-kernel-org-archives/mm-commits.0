@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D9001331ECE
-	for <mm-commits@vger.kernel.org>; Fri, 31 Jul 2026 02:42:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ADF92331209
+	for <mm-commits@vger.kernel.org>; Fri, 31 Jul 2026 02:42:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785465742; cv=none; b=Z9kyDzkdIbt51jBc2TzTR9E27KoolY7f96nGbkUUsUx7gs8mV/Qsy9yqV/3TKdia77hZ7gWqqNcvNH3Rqpcso0fWjLFada+OzzYftGvDbNVt4PEXBNjoP1vVTPfXS4jH5HudvYCQHCycEes6x3aR5QFuztsWQ3b4kGNu2VpRk+w=
+	t=1785465744; cv=none; b=GT/Z+CwFK11JINptlBZzZeLin5aNrd3YX8kYghxLje3bPcEi3XXG2Jk1RT3nqUxjTaIxBI2K/jFCWwxmvf/I3XeTnxSaKk2WzNvkgN3p8L4LgOavl+F9j+9de5g5RnAU4RZstbMxTP7V8vNKagL0Yu9TrN9vPjrd1RpQIJrJOG8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785465742; c=relaxed/simple;
-	bh=lHILyJj9iDNfW/Z7n4kKD+526GQeF+/UMtnJVzk3tU4=;
-	h=Date:To:From:Subject:Message-Id; b=V1l56/hbA1lAFyVioHO8ogK6ZV1thXDhvnEODLtwatR/6mPlzdOYY3GurunQuAKym8jx72n1kIXkdFnACryF+U/bF6WMLvKziBbDDgD5LO4GYNyWeDO0Xzjmlt0S670f8aL/ehiYJ93E1hRQF5/CUNEUK2AZFOps6Q5x3zIbScM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=h+qKl6e6; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785465744; c=relaxed/simple;
+	bh=dHwydy1CvTKgEIWBlFTc1ZPfQ+sPMXbtOtN/n2FJhoU=;
+	h=Date:To:From:Subject:Message-Id; b=Q4YIZHFpTjT22sHP93iKJgD9ziNyM/DPsL1AdsE1dRbd5Haa4gwk9e/kahAvaPdGy4fqlvqifSBq2JwKDYmSt6lg4UnBJJIqY8bF4Yh2tcB8q2CR+UE9pxp0pYuntf1XOLcB7Qm5aTmIrOw+mBiSr3fcXKPaPqsVk9RUeQDZrYg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hhAzICmJ; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="h+qKl6e6"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B1F1B1F00A3D;
-	Fri, 31 Jul 2026 02:42:20 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hhAzICmJ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4FAE61F000E9;
+	Fri, 31 Jul 2026 02:42:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785465740;
-	bh=wqDkkHHAL2+MbOPB/XkbvArZ5wjsZHJ6DGjZkCECXTI=;
+	d=linux-foundation.org; s=korg; t=1785465742;
+	bh=WbqkxVUEes0DrkpDA2oSVYWyIawTUc3aKoZKqpkhV4c=;
 	h=Date:To:From:Subject;
-	b=h+qKl6e6HpWV1w7Ke1Hw+tzH9U28KUJjmISPBkLZSj6CUfK9MdY898vFEnbskoung
-	 aEvyw+DX6LNcsi+oYQ3QAoDvp4IVNV0zxiWarptCWe5M2dzZ/8lb5NnDgD6msV9IYq
-	 5MZFQthwxT6rzuJw7yzmPAB6srC2ScJSXSYnV3ZQ=
-Date: Thu, 30 Jul 2026 19:42:20 -0700
+	b=hhAzICmJDFundfTfJO7ACxHTpMfFhtvl8qCsDimGnFkT9JPWaEWBwhVNW/EXmg23q
+	 UypR+6QoUZsVMDuq7780YZG7qPB2dK4tPWloFGtuidftSA5rAMDEA75gtvJeC1LE6k
+	 u3SP0pClW915lBk3YN7l2R++FzE90ogZKBsZ3QC8=
+Date: Thu, 30 Jul 2026 19:42:21 -0700
 To: mm-commits@vger.kernel.org,zwisler@google.com,yury.khrustalev@arm.com,vbabka@kernel.org,usama.anjum@collabora.com,surenb@google.com,shuah@kernel.org,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,kevin.brodsky@arm.com,keith.lucas@oracle.com,joey.gouly@arm.com,jhubbard@nvidia.com,david@kernel.org,lihongfu@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-mm-move-pkey-selftest-helpers-to-pkey_utilc.patch removed from -mm tree
-Message-Id: <20260731024220.B1F1B1F00A3D@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-mm-unify-pkey-sighandler-selftest-assertions-and-tracing.patch removed from -mm tree
+Message-Id: <20260731024222.4FAE61F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,36 +35,24 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests/mm: move pkey selftest helpers to pkey_util.c
+     Subject: selftests/mm: unify pkey sighandler selftest assertions and tracing
 has been removed from the -mm tree.  Its filename was
-     selftests-mm-move-pkey-selftest-helpers-to-pkey_utilc.patch
+     selftests-mm-unify-pkey-sighandler-selftest-assertions-and-tracing.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Hongfu Li <lihongfu@kylinos.cn>
-Subject: selftests/mm: move pkey selftest helpers to pkey_util.c
-Date: Mon, 6 Jul 2026 16:15:55 +0800
+Subject: selftests/mm: unify pkey sighandler selftest assertions and tracing
+Date: Mon, 6 Jul 2026 16:15:56 +0800
 
-Patch series "selftests/mm: refactor pkey helpers and fix mmap error
-handling", v10.
+Add per-test tracing to the pkey signal-handler selftest and use
+pkey_assert() for error handling.  Each test enables tracing at start and
+disables it at end; on failure, pkey_assert() calls abort_hooks() to turn
+tracing off so ftrace is not left enabled.
 
-The main changes in this series are to refactor shared tracing and
-assertion helpers into a common file, unify both pkey selftests on
-pkey_assert() and per-test tracing for consistent diagnostics, and add
-missing mmap() return checks with MAP_FAILED used throughout for
-readability and consistency.
-
-
-This patch (of 10):
-
-Move pkey selftest debugging helpers into shared code so both pkey
-selftests can use the same tracing and abort-hook logic.  Also fix
-cat_into_file() to print file, not str, in the open() failure message.
-
-Link: https://lore.kernel.org/20260706081600.3570203-1-lihongfu@kylinos.cn
-Link: https://lore.kernel.org/20260706081600.3570203-2-lihongfu@kylinos.cn
+Link: https://lore.kernel.org/20260706081600.3570203-3-lihongfu@kylinos.cn
 Signed-off-by: Hongfu Li <lihongfu@kylinos.cn>
 Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Acked-by: Liam R. Howlett (Oracle) <liam@infradead.org>
@@ -85,230 +73,212 @@ Cc: Yury Khrustalev <yury.khrustalev@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/pkey-helpers.h    |    4 
- tools/testing/selftests/mm/pkey_util.c       |   90 +++++++++++++++++
- tools/testing/selftests/mm/protection_keys.c |   87 ----------------
- 3 files changed, 93 insertions(+), 88 deletions(-)
+ tools/testing/selftests/mm/pkey_sighandler_tests.c |   89 +++++------
+ 1 file changed, 44 insertions(+), 45 deletions(-)
 
---- a/tools/testing/selftests/mm/pkey-helpers.h~selftests-mm-move-pkey-selftest-helpers-to-pkey_utilc
-+++ a/tools/testing/selftests/mm/pkey-helpers.h
-@@ -68,7 +68,9 @@ static inline void sigsafe_printf(const
- #define dprintf3(args...) dprintf_level(3, args)
- #define dprintf4(args...) dprintf_level(4, args)
- 
--extern void abort_hooks(void);
-+void tracing_on(void);
-+void tracing_off(void);
-+void abort_hooks(void);
- #define pkey_assert(condition) do {		\
- 	if (!(condition)) {			\
- 		dprintf0("# assert() at %s::%d test_nr: %d iteration: %d\n", \
---- a/tools/testing/selftests/mm/pkey_util.c~selftests-mm-move-pkey-selftest-helpers-to-pkey_utilc
-+++ a/tools/testing/selftests/mm/pkey_util.c
-@@ -2,9 +2,99 @@
- #define __SANE_USERSPACE_TYPES__
- #include <sys/syscall.h>
- #include <unistd.h>
-+#include <fcntl.h>
-+#include <stdio.h>
-+#include <string.h>
- 
- #include "pkey-helpers.h"
- 
-+int iteration_nr = 1;
-+int test_nr;
-+int dprint_in_signal;
-+
-+#if CONTROL_TRACING > 0
-+static void cat_into_file(char *str, char *file)
-+{
-+	int fd = open(file, O_RDWR);
+--- a/tools/testing/selftests/mm/pkey_sighandler_tests.c~selftests-mm-unify-pkey-sighandler-selftest-assertions-and-tracing
++++ a/tools/testing/selftests/mm/pkey_sighandler_tests.c
+@@ -19,7 +19,6 @@
+ #include <stdint.h>
+ #include <stdbool.h>
+ #include <signal.h>
+-#include <assert.h>
+ #include <stdlib.h>
+ #include <sys/mman.h>
+ #include <sys/types.h>
+@@ -207,15 +206,14 @@ static void test_sigsegv_handler_with_pk
+ 	struct sigaction sa;
+ 	pthread_attr_t attr;
+ 	pthread_t thr;
 +	int ret;
+ 
+ 	sa.sa_flags = SA_SIGINFO;
+ 
+ 	sa.sa_sigaction = sigsegv_handler;
+ 	sigemptyset(&sa.sa_mask);
+-	if (sigaction(SIGSEGV, &sa, NULL) == -1) {
+-		perror("sigaction");
+-		exit(EXIT_FAILURE);
+-	}
++	ret = sigaction(SIGSEGV, &sa, NULL);
++	pkey_assert(ret == 0);
+ 
+ 	memset(&siginfo, 0, sizeof(siginfo));
+ 
+@@ -247,15 +245,14 @@ static void test_sigsegv_handler_cannot_
+ 	struct sigaction sa;
+ 	pthread_attr_t attr;
+ 	pthread_t thr;
++	int ret;
+ 
+ 	sa.sa_flags = SA_SIGINFO;
+ 
+ 	sa.sa_sigaction = sigsegv_handler;
+ 	sigemptyset(&sa.sa_mask);
+-	if (sigaction(SIGSEGV, &sa, NULL) == -1) {
+-		perror("sigaction");
+-		exit(EXIT_FAILURE);
+-	}
++	ret = sigaction(SIGSEGV, &sa, NULL);
++	pkey_assert(ret == 0);
+ 
+ 	memset(&siginfo, 0, sizeof(siginfo));
+ 
+@@ -288,21 +285,20 @@ static void test_sigsegv_handler_with_di
+ 	int parent_pid = 0;
+ 	int child_pid = 0;
+ 	u64 pkey_reg;
++	long ret;
+ 
+ 	sa.sa_flags = SA_SIGINFO | SA_ONSTACK;
+ 
+ 	sa.sa_sigaction = sigsegv_handler;
+ 
+ 	sigemptyset(&sa.sa_mask);
+-	if (sigaction(SIGSEGV, &sa, NULL) == -1) {
+-		perror("sigaction");
+-		exit(EXIT_FAILURE);
+-	}
++	ret = sigaction(SIGSEGV, &sa, NULL);
++	pkey_assert(ret == 0);
+ 
+ 	stack = mmap(0, STACK_SIZE, PROT_READ | PROT_WRITE,
+ 		     MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+ 
+-	assert(stack != MAP_FAILED);
++	pkey_assert(stack != MAP_FAILED);
+ 
+ 	/* Allow access to MPK 0 and MPK 1 */
+ 	pkey_reg = pkey_reg_restrictive_default();
+@@ -323,13 +319,13 @@ static void test_sigsegv_handler_with_di
+ 	memset(&siginfo, 0, sizeof(siginfo));
+ 
+ 	/* Use clone to avoid newer glibcs using rseq on new threads */
+-	long ret = clone_raw(CLONE_VM | CLONE_FS | CLONE_FILES |
+-			     CLONE_SIGHAND | CLONE_THREAD | CLONE_SYSVSEM |
+-			     CLONE_PARENT_SETTID | CLONE_CHILD_CLEARTID |
+-			     CLONE_DETACHED,
+-			     stack + STACK_SIZE,
+-			     &parent_pid,
+-			     &child_pid);
++	ret = clone_raw(CLONE_VM | CLONE_FS | CLONE_FILES |
++			CLONE_SIGHAND | CLONE_THREAD | CLONE_SYSVSEM |
++			CLONE_PARENT_SETTID | CLONE_CHILD_CLEARTID |
++			CLONE_DETACHED,
++			stack + STACK_SIZE,
++			&parent_pid,
++			&child_pid);
+ 
+ 	if (ret < 0) {
+ 		errno = -ret;
+@@ -358,6 +354,7 @@ static void test_pkru_preserved_after_si
+ {
+ 	struct sigaction sa;
+ 	u64 pkey_reg;
++	int ret;
+ 
+ 	/* Allow access to MPK 0 and an arbitrary set of keys */
+ 	pkey_reg = pkey_reg_restrictive_default();
+@@ -369,10 +366,8 @@ static void test_pkru_preserved_after_si
+ 
+ 	sa.sa_sigaction = sigusr1_handler;
+ 	sigemptyset(&sa.sa_mask);
+-	if (sigaction(SIGUSR1, &sa, NULL) == -1) {
+-		perror("sigaction");
+-		exit(EXIT_FAILURE);
+-	}
++	ret = sigaction(SIGUSR1, &sa, NULL);
++	pkey_assert(ret == 0);
+ 
+ 	memset(&siginfo, 0, sizeof(siginfo));
+ 
+@@ -444,6 +439,13 @@ static void test_pkru_sigreturn(void)
+ 	int parent_pid = 0;
+ 	int child_pid = 0;
+ 	u64 pkey_reg;
++	long ret;
 +
-+	dprintf2("%s(): writing '%s' to '%s'\n", __func__, str, file);
 +	/*
-+	 * these need to be raw because they are called under
-+	 * pkey_assert()
++	 * SIGSEGV handler is reset to SIG_DFL below; turn tracing off first
++	 * so a crash does not leave ftrace enabled.
 +	 */
-+	if (fd < 0) {
-+		fprintf(stderr, "error opening '%s'\n", file);
-+		perror("error: ");
-+		exit(__LINE__);
-+	}
-+
-+	ret = write(fd, str, strlen(str));
-+	if (ret != strlen(str)) {
-+		perror("write to file failed");
-+		fprintf(stderr, "filename: '%s' str: '%s'\n", file, str);
-+		exit(__LINE__);
-+	}
-+	close(fd);
-+}
-+
-+static int warned_tracing;
-+static int tracing_root_ok(void)
-+{
-+	if (geteuid() != 0) {
-+		if (!warned_tracing)
-+			fprintf(stderr, "WARNING: not run as root, "
-+					"can not do tracing control\n");
-+		warned_tracing = 1;
-+		return 0;
-+	}
-+	return 1;
-+}
-+#endif
-+
-+void tracing_on(void)
-+{
-+#if CONTROL_TRACING > 0
-+#define TRACEDIR "/sys/kernel/tracing"
-+	char pidstr[32];
-+
-+	if (!tracing_root_ok())
-+		return;
-+
-+	sprintf(pidstr, "%d", getpid());
-+	cat_into_file("0", TRACEDIR "/tracing_on");
-+	cat_into_file("\n", TRACEDIR "/trace");
-+	if (1) {
-+		cat_into_file("function_graph", TRACEDIR "/current_tracer");
-+		cat_into_file("1", TRACEDIR "/options/funcgraph-proc");
-+	} else {
-+		cat_into_file("nop", TRACEDIR "/current_tracer");
-+	}
-+	cat_into_file(pidstr, TRACEDIR "/set_ftrace_pid");
-+	cat_into_file("1", TRACEDIR "/tracing_on");
-+	dprintf1("enabled tracing\n");
-+#endif
-+}
-+
-+void tracing_off(void)
-+{
-+#if CONTROL_TRACING > 0
-+	if (!tracing_root_ok())
-+		return;
-+	cat_into_file("0", "/sys/kernel/tracing/tracing_on");
-+#endif
-+}
-+
-+void abort_hooks(void)
-+{
-+	fflush(stdout);
-+	fprintf(stderr, "running %s()...\n", __func__);
 +	tracing_off();
-+#ifdef SLEEP_ON_ABORT
-+	sleep(SLEEP_ON_ABORT);
-+#endif
-+}
-+
- int sys_pkey_alloc(unsigned long flags, unsigned long init_val)
+ 
+ 	sa.sa_handler = SIG_DFL;
+ 	sa.sa_flags = 0;
+@@ -453,24 +455,20 @@ static void test_pkru_sigreturn(void)
+ 	 * For this testcase, we do not want to handle SIGSEGV. Reset handler
+ 	 * to default so that the application can crash if it receives SIGSEGV.
+ 	 */
+-	if (sigaction(SIGSEGV, &sa, NULL) == -1) {
+-		perror("sigaction");
+-		exit(EXIT_FAILURE);
+-	}
++	ret = sigaction(SIGSEGV, &sa, NULL);
++	pkey_assert(ret == 0);
+ 
+ 	sa.sa_flags = SA_SIGINFO | SA_ONSTACK;
+ 	sa.sa_sigaction = sigusr2_handler;
+ 	sigemptyset(&sa.sa_mask);
+ 
+-	if (sigaction(SIGUSR2, &sa, NULL) == -1) {
+-		perror("sigaction");
+-		exit(EXIT_FAILURE);
+-	}
++	ret = sigaction(SIGUSR2, &sa, NULL);
++	pkey_assert(ret == 0);
+ 
+ 	stack = mmap(0, STACK_SIZE, PROT_READ | PROT_WRITE,
+ 		     MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+ 
+-	assert(stack != MAP_FAILED);
++	pkey_assert(stack != MAP_FAILED);
+ 
+ 	/*
+ 	 * Allow access to MPK 0 and MPK 2. The child thread (to be created
+@@ -494,13 +492,13 @@ static void test_pkru_sigreturn(void)
+ 	sigstack.ss_size = STACK_SIZE;
+ 
+ 	/* Use clone to avoid newer glibcs using rseq on new threads */
+-	long ret = clone_raw(CLONE_VM | CLONE_FS | CLONE_FILES |
+-			     CLONE_SIGHAND | CLONE_THREAD | CLONE_SYSVSEM |
+-			     CLONE_PARENT_SETTID | CLONE_CHILD_CLEARTID |
+-			     CLONE_DETACHED,
+-			     stack + STACK_SIZE,
+-			     &parent_pid,
+-			     &child_pid);
++	ret = clone_raw(CLONE_VM | CLONE_FS | CLONE_FILES |
++			CLONE_SIGHAND | CLONE_THREAD | CLONE_SYSVSEM |
++			CLONE_PARENT_SETTID | CLONE_CHILD_CLEARTID |
++			CLONE_DETACHED,
++			stack + STACK_SIZE,
++			&parent_pid,
++			&child_pid);
+ 
+ 	if (ret < 0) {
+ 		errno = -ret;
+@@ -530,16 +528,17 @@ static void (*pkey_tests[])(void) = {
+ 
+ int main(int argc, char *argv[])
  {
- 	int ret = syscall(SYS_pkey_alloc, flags, init_val);
---- a/tools/testing/selftests/mm/protection_keys.c~selftests-mm-move-pkey-selftest-helpers-to-pkey_utilc
-+++ a/tools/testing/selftests/mm/protection_keys.c
-@@ -49,11 +49,7 @@
- #include "hugepage_settings.h"
- #include "pkey-helpers.h"
+-	int i;
+-
+ 	ksft_print_header();
+ 	ksft_set_plan(ARRAY_SIZE(pkey_tests));
  
--int iteration_nr = 1;
--int test_nr;
--
- u64 shadow_pkey_reg;
--int dprint_in_signal;
+ 	if (!is_pkeys_supported())
+ 		ksft_exit_skip("pkeys not supported\n");
  
- noinline int read_ptr(int *ptr)
- {
-@@ -62,89 +58,6 @@ noinline int read_ptr(int *ptr)
- 	return *ptr;
- }
+-	for (i = 0; i < ARRAY_SIZE(pkey_tests); i++)
+-		(*pkey_tests[i])();
++	for (test_nr = 0; test_nr < ARRAY_SIZE(pkey_tests); test_nr++) {
++		tracing_on();
++		(*pkey_tests[test_nr])();
++		tracing_off();
++	}
  
--#if CONTROL_TRACING > 0
--static void cat_into_file(char *str, char *file)
--{
--	int fd = open(file, O_RDWR);
--	int ret;
--
--	dprintf2("%s(): writing '%s' to '%s'\n", __func__, str, file);
--	/*
--	 * these need to be raw because they are called under
--	 * pkey_assert()
--	 */
--	if (fd < 0) {
--		fprintf(stderr, "error opening '%s'\n", str);
--		perror("error: ");
--		exit(__LINE__);
--	}
--
--	ret = write(fd, str, strlen(str));
--	if (ret != strlen(str)) {
--		perror("write to file failed");
--		fprintf(stderr, "filename: '%s' str: '%s'\n", file, str);
--		exit(__LINE__);
--	}
--	close(fd);
--}
--
--static int warned_tracing;
--static int tracing_root_ok(void)
--{
--	if (geteuid() != 0) {
--		if (!warned_tracing)
--			fprintf(stderr, "WARNING: not run as root, "
--					"can not do tracing control\n");
--		warned_tracing = 1;
--		return 0;
--	}
--	return 1;
--}
--#endif
--
--static void tracing_on(void)
--{
--#if CONTROL_TRACING > 0
--#define TRACEDIR "/sys/kernel/tracing"
--	char pidstr[32];
--
--	if (!tracing_root_ok())
--		return;
--
--	sprintf(pidstr, "%d", getpid());
--	cat_into_file("0", TRACEDIR "/tracing_on");
--	cat_into_file("\n", TRACEDIR "/trace");
--	if (1) {
--		cat_into_file("function_graph", TRACEDIR "/current_tracer");
--		cat_into_file("1", TRACEDIR "/options/funcgraph-proc");
--	} else {
--		cat_into_file("nop", TRACEDIR "/current_tracer");
--	}
--	cat_into_file(pidstr, TRACEDIR "/set_ftrace_pid");
--	cat_into_file("1", TRACEDIR "/tracing_on");
--	dprintf1("enabled tracing\n");
--#endif
--}
--
--static void tracing_off(void)
--{
--#if CONTROL_TRACING > 0
--	if (!tracing_root_ok())
--		return;
--	cat_into_file("0", "/sys/kernel/tracing/tracing_on");
--#endif
--}
--
--void abort_hooks(void)
--{
--	fflush(stdout);
--	fprintf(stderr, "running %s()...\n", __func__);
--	tracing_off();
--#ifdef SLEEP_ON_ABORT
--	sleep(SLEEP_ON_ABORT);
--#endif
--}
--
- /*
-  * This attempts to have roughly a page of instructions followed by a few
-  * instructions that do a write, and another page of instructions.  That
+ 	ksft_finished();
+ 	return 0;
 _
 
 Patches currently in -mm which might be from lihongfu@kylinos.cn are
