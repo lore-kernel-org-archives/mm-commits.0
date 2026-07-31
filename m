@@ -1,157 +1,113 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 242233A6F11
-	for <mm-commits@vger.kernel.org>; Thu, 30 Jul 2026 22:43:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F33C325B0A3;
+	Fri, 31 Jul 2026 02:33:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785451388; cv=none; b=kW8DkmbccT9JPFGmsJB2iZO/vD/gSsLXE3odJuc6HO09MkMFCv+vnqiIL8e/l3ZOg+mpgRaSVxYKqm13V8kacQFEjmbM/gu33sWQ8/cjJZZrCQz+AM2NVvD4NJpBg8avSjHCKcU7W4LfcYenRNGWe21HmmeXhqXsFyNPhIAxjVI=
+	t=1785465230; cv=none; b=n18i5yviuTyIgcllWz6KfEm66ATZJNHeI1kDsHNPhGrK/LQDX4CEcZ/zqt1v9LfJmJ2vGwoP7BMSHFOrk2ofnDq4FSopza5HhKaMQkkyCXZI+xsq+ZUdAZRrSdhaIs31wxqBQdubIK0+Kd4hFE4Sh72yAtPV9k5kvcvqilJr+J4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785451388; c=relaxed/simple;
-	bh=w4bwvRtJrxZLsbd20IzzHrI32b0zCCIYGQZKNPbd9gk=;
-	h=Date:To:From:Subject:Message-Id; b=NMYGo2v/jynaARgo5JGnZaRFDOMZonUaYXnjglS4H6VQM0hZRmvucilA71hiHoeQTQt75fazICMub3ZGFu+oFWmk9njbfCixHQq6fyq8NwML8UEPHtpsjD1MeNOUFLblukP3lBle6YkfTW+G52CUZDgI+ZkbQd1tM+XLpeQaSLc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hUAJLbRO; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785465230; c=relaxed/simple;
+	bh=S9DocUI3THX11qb8xnCMsdNe0RHBhTCoRNVDRC6O1/k=;
+	h=Date:From:To:Cc:Subject:Message-Id:Mime-Version:Content-Type; b=kI3hY5It/1w//stO39i3pc9QH/8HS51p/Y8SdxvLwrejP0PTRq7D2vQp1B+OvTE5ULTvR1Ci00slhOGbVAHQq7R0wI32hvJkf8CAFbhFhMpI0lFM0WqESlmyQ2V/JJr1jo/cupmmbsrusrpgHlpVOOOlsYqHUVJfp0vs9sNW5zU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vXn2Q/hq; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hUAJLbRO"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A2D511F00A3A;
-	Thu, 30 Jul 2026 22:43:06 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vXn2Q/hq"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 445BB1F000E9;
+	Fri, 31 Jul 2026 02:33:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785451386;
-	bh=2r6a1tQlwr22Rm8llWPhpFtNI0zfdVDuzvvRUoxrNGk=;
-	h=Date:To:From:Subject;
-	b=hUAJLbROe/tDuNwrHLGVhsi3dmv8FlbxSTI+L/gOVyse2nftYyOnlLyTNv87IHDOm
-	 RIIHIRphjtnjj9IYG5IWJlCsaK+DOpFNvzEeUxuIaIikW6eZ7EDWeabGonQkpIhF7/
-	 jjjU7uQSDK3k2ZH73Gle0lJ1o7aAnvxaRiZJchCg=
-Date: Thu, 30 Jul 2026 15:43:06 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,ryan.roberts@arm.com,npache@redhat.com,ljs@kernel.org,liam@infradead.org,lance.yang@linux.dev,dev.jain@arm.com,david@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,akpm@linux-foundation.org,jakovnovak30@gmail.com,akpm@linux-foundation.org
+	d=linux-foundation.org; s=korg; t=1785465228;
+	bh=MXTkaWVkLpWzsxbU5LuJ4tJlgacPdbaDXNtji94Vx64=;
+	h=Date:From:To:Cc:Subject;
+	b=vXn2Q/hqbJUiXIklsRKCJC0R5I6i2JOcoD/WyH1vSqUrH7JRjbOgSypPyH9BosFlx
+	 O/0KEDGcR/22hthqV3zXMLVS40+NUamWMYRibVJgfoLZYD2IPjTsAqHI08wwEV0qrQ
+	 bIDbx0crfdBkDNX+OaYBLcsJZj9jmKvj0lUnBcBc=
+Date: Thu, 30 Jul 2026 19:33:47 -0700
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-khugepaged-replace-mutex_lock-mutex_unlock-usage-with-guard-macro.patch added to mm-unstable branch
-Message-Id: <20260730224306.A2D511F00A3A@smtp.kernel.org>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: linux-mm@kvack.org, mm-commits@vger.kernel.org,
+ linux-kernel@vger.kernel.org
+Subject: [GIT PULL] additional hotfixes for 7.2-rc6
+Message-Id: <20260730193347.67069b3a7254649fb89c0956@linux-foundation.org>
+X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
 
-The patch titled
-     Subject: mm/khugepaged: replace mutex_lock/mutex_unlock usage with guard macro
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-khugepaged-replace-mutex_lock-mutex_unlock-usage-with-guard-macro.patch
+Linus, please merge this second batch of hotfixes for the upcoming
+-rc release, thanks.
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-replace-mutex_lock-mutex_unlock-usage-with-guard-macro.patch
 
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+The following changes since commit 62cc90241548d5570ee68e01aaba6506964e9811:
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+  Merge tag 'mm-hotfixes-stable-2026-07-27-14-18' of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm (2026-07-27 14:36:26 -0700)
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+are available in the Git repository at:
 
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+  git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2026-07-30-19-30
 
-------------------------------------------------------
-From: Jakov Novak <jakovnovak30@gmail.com>
-Subject: mm/khugepaged: replace mutex_lock/mutex_unlock usage with guard macro
-Date: Thu, 30 Jul 2026 22:47:24 +0200
+for you to fetch changes up to 9f1d75a4ce04095afdb63d8e540092ff8151dacf:
 
-Currently, khugepaged locks the khugepaged_mutex in two functions:
-start_stop_khugepaged and khugepaged_min_free_kbytes_update.  Remove
-mutex_lock/mutex_unlock usage in these functions and replace it with the
-guard macro.  This makes the code more readable (removing a goto
-statement) and makes it harder to introduce bugs in the future.  No
-functional changes introduced.
+  selftests/mm: fix potential wild pointer access of getline due to missing init (2026-07-28 17:37:34 -0700)
 
-Link: https://lore.kernel.org/20260730204724.16912-1-jakovnovak30@gmail.com
-Signed-off-by: Jakov Novak <jakovnovak30@gmail.com>
-Reviewed-by: Dev Jain <dev.jain@arm.com>
-Reviewed-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Lance Yang <lance.yang@linux.dev>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Nico Pache <npache@redhat.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+----------------------------------------------------------------
+12 hotfixes.  6 are cc:stable.  9 are for MM.
 
- mm/khugepaged.c |   31 +++++++++++++++----------------
- 1 file changed, 15 insertions(+), 16 deletions(-)
+There's a two-patch series from Nico which fixes a couple of PMD level
+mTHP accounting bugs and a two-patch series from Chris Gellermann which
+addresses mishandling of getline() in selftests.  All the remainder are
+singletons - please see the changelogs for details.
 
---- a/mm/khugepaged.c~mm-khugepaged-replace-mutex_lock-mutex_unlock-usage-with-guard-macro
-+++ a/mm/khugepaged.c
-@@ -23,6 +23,7 @@
- #include <linux/ksm.h>
- #include <linux/pgalloc.h>
- #include <linux/backing-dev.h>
-+#include <linux/cleanup.h>
- 
- #include <asm/tlb.h>
- #include "internal.h"
-@@ -3115,18 +3116,19 @@ update_wmarks:
- 
- int start_stop_khugepaged(void)
- {
--	int err = 0;
--
--	mutex_lock(&khugepaged_mutex);
-+	guard(mutex)(&khugepaged_mutex);
- 	if (hugepage_enabled()) {
--		if (!khugepaged_thread)
--			khugepaged_thread = kthread_run(khugepaged, NULL,
--							"khugepaged");
--		if (IS_ERR(khugepaged_thread)) {
--			pr_err("khugepaged: kthread_run(khugepaged) failed\n");
--			err = PTR_ERR(khugepaged_thread);
--			khugepaged_thread = NULL;
--			goto fail;
-+		if (!khugepaged_thread) {
-+			struct task_struct *new_thread = kthread_run(khugepaged,
-+								     NULL,
-+								     "khugepaged");
-+
-+			if (IS_ERR(new_thread)) {
-+				pr_err("khugepaged: kthread_run(khugepaged) failed\n");
-+				return PTR_ERR(new_thread);
-+			}
-+
-+			khugepaged_thread = new_thread;
- 		}
- 
- 		if (!list_empty(&khugepaged_scan.mm_head))
-@@ -3136,17 +3138,14 @@ int start_stop_khugepaged(void)
- 		khugepaged_thread = NULL;
- 	}
- 	set_recommended_min_free_kbytes();
--fail:
--	mutex_unlock(&khugepaged_mutex);
--	return err;
-+	return 0;
- }
- 
- void khugepaged_min_free_kbytes_update(void)
- {
--	mutex_lock(&khugepaged_mutex);
-+	guard(mutex)(&khugepaged_mutex);
- 	if (hugepage_enabled() && khugepaged_thread)
- 		set_recommended_min_free_kbytes();
--	mutex_unlock(&khugepaged_mutex);
- }
- 
- bool current_is_khugepaged(void)
-_
+----------------------------------------------------------------
+Breno Leitao (1):
+      mm: memcg: initialize *locked in memcg1_oom_prepare() stub
 
-Patches currently in -mm which might be from jakovnovak30@gmail.com are
+Burak Emir (1):
+      MAINTAINERS: update address for Burak Emir
 
-mm-khugepaged-replace-mutex_lock-mutex_unlock-usage-with-guard-macro.patch
+Chris Gellermann (2):
+      selftests/clone3: fix wild pointer access of getline due to missing init
+      selftests/mm: fix potential wild pointer access of getline due to missing init
+
+Jiakai Xu (1):
+      riscv/mm: use physical alignment for vmemmap_start_pfn
+
+Kiryl Shutsemau (Meta) (1):
+      mm/huge_memory: unlock i_mmap_rwsem before releasing after-split folios
+
+Link Lin (1):
+      mm/page_reporting: use system_freezable_wq to fix UAF during suspend
+
+Nico Pache (2):
+      mm: decrement MTHP_STAT_NR_ANON in free_zone_device_folio()
+      mm/migrate: exclude hugetlb folios from MTHP_STAT_NR_ANON accounting
+
+Nico Pache (Red Hat) (1):
+      MAINTAINERS: update Nico Pache's email address
+
+Peter Collingbourne (1):
+      arm64, mailmap: update email address for Peter Collingbourne
+
+Richard Chang (1):
+      mm: vmscan: abort proactive reclaim early when freezing for suspend
+
+ .mailmap                                        |  3 +++
+ MAINTAINERS                                     |  4 ++--
+ arch/arm64/kernel/pi/relocate.c                 |  2 +-
+ arch/riscv/mm/init.c                            |  3 ++-
+ mm/huge_memory.c                                | 12 ++++++++++++
+ mm/memcontrol-v1.h                              |  6 +++++-
+ mm/memremap.c                                   |  1 +
+ mm/migrate.c                                    |  3 ++-
+ mm/page_reporting.c                             |  6 ++++--
+ mm/vmscan.c                                     | 12 +++++++++++-
+ tools/testing/selftests/clone3/clone3_set_tid.c |  2 +-
+ tools/testing/selftests/mm/mlock-random-test.c  |  2 +-
+ 12 files changed, 45 insertions(+), 11 deletions(-)
 
