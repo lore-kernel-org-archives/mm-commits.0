@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B8C58331EC9
-	for <mm-commits@vger.kernel.org>; Fri, 31 Jul 2026 02:42:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B77C823D7FF
+	for <mm-commits@vger.kernel.org>; Fri, 31 Jul 2026 02:42:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785465738; cv=none; b=u0zfCwly33AwVwjhLQc78MLvUiRVyEd2Nr09vTaePrkLyWvd8PpxbO0w333m0PfAu3BRuDNG85QrkM5sXdQhDDdn1kQUpMm7lmY33j35XcQiYFSdDQCNkQqrARSlm33t+jT6Oqs95V6R1RyzsMadRAI/sR1VH/K6WM5EFP45/x4=
+	t=1785465740; cv=none; b=DKCiiFX9OPLYZA/NVVyvx6oS4PSfIW6AOTFk/WXI4haFvNNsOwGke5c52gYu7rMaoah7jgC24j2WMrCUXmXDwQFagg9Q+mWrY59S22XGQ/Tjxx9JDVVa7iCCZBzX0jOB0TObR/Vpzc9MuuyPQ0y/bxm2phTfQ4v/m03OW0A4aFw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785465738; c=relaxed/simple;
-	bh=xEPp3sRiUFFoHJm76c9naCdlwcm0oZxxiQHDoVx0N8Q=;
-	h=Date:To:From:Subject:Message-Id; b=nbMYF8jOWSuZ2dFOCd8N/Q2uJqFOKWLQJWxSuBKrX0o2EoqZIf5xmqMFY8ddXzvfxd+6fTIeXVcYj6lz53rCHfx+cGoQXKwpZSY3xGvySSEf5/EQtHmpSyGPz5pWCGnR/76O0YY7cYRpgujFPDxQHuET801ddryimEQHxbGOyX4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OZSMpJPy; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785465740; c=relaxed/simple;
+	bh=gJE7/OTmflB93c8Jq2nFRl5H0WqwjX9u8fj6hba8ARQ=;
+	h=Date:To:From:Subject:Message-Id; b=ADyDG3DhLkU4Np0YzrgMyrFRhy5OhOgmTkBFY0VL93NLcelynWW2o+ya7yaJjEld98nqKCqQrb1ILqiIcxCjy4eIFhKhvu5gPa7wqpSe+wKRyiy692+neOn9JTI3yA5X96DVMw5rCw19LIIiDbuBfBfOHKna3p12X6I0p/NViCs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HbkpLgyP; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OZSMpJPy"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8E27A1F000E9;
-	Fri, 31 Jul 2026 02:42:16 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HbkpLgyP"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 69C4A1F000E9;
+	Fri, 31 Jul 2026 02:42:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785465736;
-	bh=pot3ahI6b08Y0tlO3OYMgXhFCh+bW7HWev/MPbBGPE4=;
+	d=linux-foundation.org; s=korg; t=1785465739;
+	bh=OGcMjzbpFu9yaaNO6s1DYDSb/rNQc3+bzbIdWvnEDyU=;
 	h=Date:To:From:Subject;
-	b=OZSMpJPy3o4RKvd4rFbnrbaVJ8kXhR3I7fZriZy36VGHVJLplAMPVdkiYNkJKYmQ4
-	 h7WIdZ6xZukq0kmtOU0v6x3KVWvBRfONYRmbSBt0HzVQA+IT6opMkckeJgrO4THjY+
-	 L4DdeKTaV8OU/II6cKWOz273Z35qhyFfKcFQo+vQ=
-Date: Thu, 30 Jul 2026 19:42:16 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,tj@kernel.org,surenb@google.com,shakeel.butt@linux.dev,rppt@kernel.org,roman.gushchin@linux.dev,mkoutny@suse.com,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,hannes@cmpxchg.org,david@kernel.org,usama.arif@linux.dev,akpm@linux-foundation.org
+	b=HbkpLgyPRCfqMuW6Modzm1+Jm3seeQZtLVLt0lxvQvcsM+0hAlcKPYJPg3GyEh2lr
+	 p2ozGLjIkv14Wbx6e/fiyQalMtAmPi5CJK8O9zn5TWBf/4WOjoeg1rFfX+PfeRdo3u
+	 bPquWkBJuaN/dWJfUYLtEoPbRFBcLbsauamkjXRA=
+Date: Thu, 30 Jul 2026 19:42:19 -0700
+To: mm-commits@vger.kernel.org,hughd@google.com,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org,yahia.a.abdrabou@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-vmpressure-skip-tree=true-accounting-on-cgroup-v2.patch removed from -mm tree
-Message-Id: <20260731024216.8E27A1F000E9@smtp.kernel.org>
+Subject: [merged mm-stable] mm-shmem-fix-data-race-in-shmem_fault.patch removed from -mm tree
+Message-Id: <20260731024219.69C4A1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,147 +35,99 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/vmpressure: skip tree=true accounting on cgroup v2
+     Subject: mm/shmem: fix data-race in shmem_fault
 has been removed from the -mm tree.  Its filename was
-     mm-vmpressure-skip-tree=true-accounting-on-cgroup-v2.patch
+     mm-shmem-fix-data-race-in-shmem_fault.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Usama Arif <usama.arif@linux.dev>
-Subject: mm/vmpressure: skip tree=true accounting on cgroup v2
-Date: Tue, 30 Jun 2026 04:23:32 -0700
+From: yahia ahmed <yahia.a.abdrabou@gmail.com>
+Subject: mm/shmem: fix data-race in shmem_fault
+Date: Tue, 30 Jun 2026 15:02:22 +0300
 
-Patch series "mm/vmpressure: reduce CPU, memory and code overhead on
-cgroup v2", v3.
+shmem_fault and shmem_writeout access inode->i_private without holding a
+lock, while shmem_fallocate is modifying it while holding a lock, thus a
+data-race is created.
 
-The vmpressure subsystem has two distinct consumers, gated by the @tree
-argument:
+Fix this by using READ_ONCE and WRITE_ONCE, which provides an atomic,
+lockless read and write of inode->i_private which prevents compiler
+optimizations such as caching in registers and add writing to
+inode->i_private with WRITE_ONCE to prevent the compiler from writing in
+registers.
 
-  tree=false : in-kernel socket pressure, consumed by TCP/SCTP. This
-               is cgroup v2 only; v1 sockets read memcg->tcpmem_pressure
-               instead.
-  tree=true  : cgroup v1 userspace eventfd notifications via the
-               memory.pressure_level / cgroup.event_control interface.
-               v2 has no equivalent (userspace gets reclaim signals
-               through memory.pressure / PSI, which doesn't touch
-               vmpressure).
-
-So of the four (hierarchy, tree) combinations, only two carry data that
-anyone reads.  The existing early return in vmpressure() covered v1 +
-tree=false; the symmetric v2 + tree=true case was falling through and
-doing the full lock / accumulate / schedule_work / parent-walk dance, even
-though the events list it eventually iterates is empty on cgroup v2
-(vmpressure_register_event() is wired up only through the v1 cftype
-"memory.pressure_level" and can't be reached from a v2 memcg).
-
-Patch 1 extends the existing early return to also skip v2 + tree=true.  On
-a v2-only host this eliminates a contended path where reclaimers can
-serialize on a single global sr_lock.  bpftrace on a 176-core production
-host (cgroup v2, 285 memcgs, sustained reclaim) showed ~16,200 such calls
-per minute with tree = true.
-
-Patch 2 follows up with a cleanup: it splits the v1 userspace eventfd
-interface (struct vmpressure_event, the events list and its mutex, the
-work_struct and its handler, the parent walk, vmpressure_register_event /
-unregister_event, and vmpressure_prio) into a new mm/memcontrol-v1.c built
-only when CONFIG_MEMCG_V1=y, behind small no-op stubs in the header. 
-mm/vmpressure.c keeps the shared bits and the tree=false socket-pressure
-path.  The size of vmpressure.c goes down to half and the code is much
-more simpler.  The only #ifdef CONFIG_MEMCG_V1 remaining in source is
-around the v1-only fields inside struct vmpressure itself.  Memory savings
-on CONFIG_MEMCG_V1=n:
-struct vmpressure : 112B -> 24B
-struct mem_cgroup : 1664B -> 1536B
-
-This split is the first step toward eventually making vmpressure
-CONFIG_MEMCG_V1 only.  The v2 in-kernel socket pressure path (tree=false)
-cannot be removed today immediately: PSI is not an exact replacement for
-vmpressure, and switching networking socket-buffer back-off to PSI may
-regress networking performance or increase memory pressure in workloads
-that today rely on vmpressure's hysteresis.  The medium-term plan is to
-introduce a PSI-based socket-pressure path, keep vmpressure available for
-v2 behind a defconfig as an opt-out for several releases, and only then
-drop the tree=false path entirely, at which point everything that remains
-in mm/memcontrol-v1.c is the whole subsystem.
-
-
-This patch (of 2):
-
-vmpressure() has two outputs gated by the @tree argument:
-
-  @tree=false drives in-kernel socket pressure (mem_cgroup_set_
-              socket_pressure), consumed by TCP/SCTP. This only
-              applies on cgroup v2; on v1 socket memory is charged
-              separately via tcpmem and the consumer reads
-              memcg->tcpmem_pressure instead.
-
-  @tree=true  drives userspace eventfd notifications via the v1
-              memory.pressure_level / cgroup.event_control interface.
-              v2 has no equivalent: userspace gets reclaim signals
-              through memory.pressure (PSI), which does not touch
-              vmpressure.
-
-The existing early return covered v1 + @tree=false.  The symmetric v2 +
-@tree=true case was falling through and doing the full lock / accumulate /
-schedule_work / parent-walk dance for an events list that can never be
-populated.  bpftrace on a 176-core production host (cgroup v2,
-CONFIG_MEMCG_V1=n, 285 memcgs, sustained reclaim) showed ~16,200
-@tree=true vmpressure() calls per minute.  Add an early return that skips
-cgroup v2 + tree = true which avoids us doing all this work.  On a v2-only
-host this also eliminates a lock contention path that can serialise
-reclaimers on a single global sr_lock.
-
-[usama.arif@linux.dev: simplify the guard]
-  Link: https://lore.kernel.org/e8e1a409-48d8-4fa7-ae98-49485a1607f6@linux.dev
-Link: https://lore.kernel.org/20260630112617.1198623-1-usama.arif@linux.dev
-Link: https://lore.kernel.org/20260630112617.1198623-2-usama.arif@linux.dev
-Signed-off-by: Usama Arif <usama.arif@linux.dev>
-Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Michal Koutný <mkoutny@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Vlastimil Babka <vbabka@kernel.org>
+Link: https://lore.kernel.org/20260630120222.11562-1-yahia.a.abdrabou@gmail.com
+Signed-off-by: yahia ahmed <yahia.a.abdrabou@gmail.com>
+Reported-by: syzbot+76cc716982cf0254f302@syzkaller.appspotmail.com
+Closes: https://syzkaller.appspot.com/bug?extid=76cc716982cf0254f302
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmpressure.c |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ mm/shmem.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
---- a/mm/vmpressure.c~mm-vmpressure-skip-tree=true-accounting-on-cgroup-v2
-+++ a/mm/vmpressure.c
-@@ -246,11 +246,12 @@ void vmpressure(gfp_t gfp, int order, st
- 		return;
+--- a/mm/shmem.c~mm-shmem-fix-data-race-in-shmem_fault
++++ a/mm/shmem.c
+@@ -1667,7 +1667,7 @@ try_split:
+ 	 * reactivate the folio, and let shmem_fallocate() quit when too many.
+ 	 */
+ 	if (!folio_test_uptodate(folio)) {
+-		if (inode->i_private) {
++		if (READ_ONCE(inode->i_private)) {
+ 			struct shmem_falloc *shmem_falloc;
+ 			spin_lock(&inode->i_lock);
+ 			shmem_falloc = inode->i_private;
+@@ -2703,7 +2703,7 @@ static vm_fault_t shmem_fault(struct vm_
+ 	 * Trinity finds that probing a hole which tmpfs is punching can
+ 	 * prevent the hole-punch from ever completing: noted in i_private.
+ 	 */
+-	if (unlikely(inode->i_private)) {
++	if (unlikely(READ_ONCE(inode->i_private))) {
+ 		ret = shmem_falloc_wait(vmf, inode);
+ 		if (ret)
+ 			return ret;
+@@ -3640,7 +3640,7 @@ static long shmem_fallocate(struct file
+ 		shmem_falloc.start = (u64)unmap_start >> PAGE_SHIFT;
+ 		shmem_falloc.next = (unmap_end + 1) >> PAGE_SHIFT;
+ 		spin_lock(&inode->i_lock);
+-		inode->i_private = &shmem_falloc;
++		WRITE_ONCE(inode->i_private, &shmem_falloc);
+ 		spin_unlock(&inode->i_lock);
+ 
+ 		if ((u64)unmap_end > (u64)unmap_start)
+@@ -3650,7 +3650,7 @@ static long shmem_fallocate(struct file
+ 		/* No need to unmap again: hole-punching leaves COWed pages */
+ 
+ 		spin_lock(&inode->i_lock);
+-		inode->i_private = NULL;
++		WRITE_ONCE(inode->i_private, NULL);
+ 		wake_up_all(&shmem_falloc_waitq);
+ 		WARN_ON_ONCE(!list_empty(&shmem_falloc_waitq.head));
+ 		spin_unlock(&inode->i_lock);
+@@ -3682,7 +3682,7 @@ static long shmem_fallocate(struct file
+ 	shmem_falloc.nr_falloced = 0;
+ 	shmem_falloc.nr_unswapped = 0;
+ 	spin_lock(&inode->i_lock);
+-	inode->i_private = &shmem_falloc;
++	WRITE_ONCE(inode->i_private, &shmem_falloc);
+ 	spin_unlock(&inode->i_lock);
  
  	/*
--	 * The in-kernel users only care about the reclaim efficiency
--	 * for this @memcg rather than the whole subtree, and there
--	 * isn't and won't be any in-kernel user in a legacy cgroup.
-+	 * Only two combinations have a consumer:
-+	 *   cgroup v2 + tree=false -> in-kernel socket pressure
-+	 *   cgroup v1 + tree=true  -> userspace eventfds (memory.pressure_level)
-+	 * Skip the other two: nothing consumes the result.
- 	 */
--	if (!cgroup_subsys_on_dfl(memory_cgrp_subsys) && !tree)
-+	if (cgroup_subsys_on_dfl(memory_cgrp_subsys) == tree)
- 		return;
- 
- 	vmpr = memcg_to_vmpressure(memcg);
+@@ -3757,7 +3757,7 @@ static long shmem_fallocate(struct file
+ 		i_size_write(inode, offset + len);
+ undone:
+ 	spin_lock(&inode->i_lock);
+-	inode->i_private = NULL;
++	WRITE_ONCE(inode->i_private, NULL);
+ 	spin_unlock(&inode->i_lock);
+ out:
+ 	if (!error)
 _
 
-Patches currently in -mm which might be from usama.arif@linux.dev are
+Patches currently in -mm which might be from yahia.a.abdrabou@gmail.com are
 
-mm-mempolicy-skip-non-present-pmds-when-queueing-folios.patch
-mm-madvise-skip-device-private-pmds-in-cold-and-pageout-walks.patch
-mm-huge_memory-skip-device-private-pmds-in-madvise_free_huge_pmd.patch
-mm-vmstat-mm-memcontrol-add-_monotonic-vmstat-readers.patch
-mm-vmscan-reduce-lru_lock-contention-via-vmstat-derived-scan-balance-cost.patch
 
