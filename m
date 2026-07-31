@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0101C337BA4
-	for <mm-commits@vger.kernel.org>; Fri, 31 Jul 2026 02:42:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1F85D335BB4
+	for <mm-commits@vger.kernel.org>; Fri, 31 Jul 2026 02:42:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785465766; cv=none; b=urlFLsDOJysA8aVKD4yqk1/ZSaf0b05oTPxdihyS6URCvB0BkqiAEcHk6ic1tLmI79kyEKKmWSEaNE1npWYaZ4FzOZxcafAdIhu575vv0NjMX8j/nvEyG59wjs6jxMT3mCYR5VBGNzsZ1f7+k0vYaKtUxVMwvsI/km6k1P+gImI=
+	t=1785465767; cv=none; b=ceYQdfCD8Y2coiOJOGXSJms7oidTfjsWwtt7r0gkS4FXwzO88ns47Jlky/Lfs0HZvMx1x5+MQJk6dqv+yV1iV3nxMRzj4cK3TMtJk8wPj9uJHwrVWgWgvFEnohmR5JyfTqzPSXcGA7A9xoBI9kdtEkKm9xmMCO2RF3Xpb+gBqG8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785465766; c=relaxed/simple;
-	bh=zPznZ6EWS8xHXihKtHCUNDFkTThGN0V0WjhMSq/h0aM=;
-	h=Date:To:From:Subject:Message-Id; b=tVM9kP0+BAjLfbgIfyCgGK7rlS0S21A0bV6iMhSOINcB4iRoYLE2snLwphIy2uxZR9+z6EaB5VrjIoXAl0i2b+9tErSJvkT0GMyG9v4P+46E4eUZisjagzZd1ZzsFIPriIvmyIDO0TOfJc3vIjN+XAaEEcInhr8La1Zn3osyYJM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1pNZ35rG; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785465767; c=relaxed/simple;
+	bh=sby988opIo3Gd5sE7E6o7UEnZts18WYHjX53TrSDo2k=;
+	h=Date:To:From:Subject:Message-Id; b=kcX1C+lLCw9MY3d0tkifA2soP5UKptTqD1thiIC/hSIU7qHQc2HgLfMaN7772Pnk89s86uodzQZFBSejECHXx6C9HVP/4QVNTAoUUyOocKUWMNLvzasqGVumFl2GpzJz7EBKv60jM4RN1plldBU4Kcyd0/cT9wx0AJeEawTLmaU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0eK/LdkJ; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1pNZ35rG"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CC3981F000E9;
-	Fri, 31 Jul 2026 02:42:44 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0eK/LdkJ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EB46A1F00A3A;
+	Fri, 31 Jul 2026 02:42:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785465764;
-	bh=2Z6PY5vi1AXa1PsO4u+LK/+nPzQyESHpUwkBGmZdubc=;
+	d=linux-foundation.org; s=korg; t=1785465766;
+	bh=qhyWET8Mikkmi2fa3XAE3KhAhwYihPMWUPmqGEx1LPQ=;
 	h=Date:To:From:Subject;
-	b=1pNZ35rGmQXROilqJkCNNWaIdjf9+3uGeza/xHUQ4ryi7WtyF5O5Y9JFO+4HmwR+F
-	 7q0x5L84xBw8X2UnR58pNTkBGEp923WcY8ZZngcJCwUMpzR89+DwEQz/y6P1XGjbp1
-	 7FzrL0v9Jqw1284RUbKzdTt9vqxEJonn+a7yAggc=
-Date: Thu, 30 Jul 2026 19:42:44 -0700
+	b=0eK/LdkJswp0IYXQ6Wc2sr/jrCpDz/SUzDFIIosHfU4uyVG/zt8Vo+9NoM1ALI0/7
+	 R6FCQSBeTXrZIcgA82V//Plan73aIyyd0hq7BUk8ntYhrytGdUvx0mO/Ek/yz+HItB
+	 hsL4bk69DGrasNXTqWrnxUkZwY/6SbJBxTrD+cP8=
+Date: Thu, 30 Jul 2026 19:42:45 -0700
 To: mm-commits@vger.kernel.org,shuah@kernel.org,rostedt@goodmis.org,mhiramat@kernel.org,mathieu.desnoyers@efficios.com,brendan.higgins@linux.dev,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-sysfs-schemes-use-damon_nr_accesses_mvsum-for-damo-regions.patch removed from -mm tree
-Message-Id: <20260731024244.CC3981F000E9@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-core-remove-damon_warn_fix_nr_accesses_corruption.patch removed from -mm tree
+Message-Id: <20260731024245.EB46A1F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,26 +35,28 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/damon/sysfs-schemes: use damon_nr_accesses_mvsum() for damo regions
+     Subject: mm/damon/core: remove damon_warn_fix_nr_accesses_corruption()
 has been removed from the -mm tree.  Its filename was
-     mm-damon-sysfs-schemes-use-damon_nr_accesses_mvsum-for-damo-regions.patch
+     mm-damon-core-remove-damon_warn_fix_nr_accesses_corruption.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/sysfs-schemes: use damon_nr_accesses_mvsum() for damo regions
-Date: Mon, 29 Jun 2026 21:08:00 -0700
+Subject: mm/damon/core: remove damon_warn_fix_nr_accesses_corruption()
+Date: Mon, 29 Jun 2026 21:08:01 -0700
 
-damon_nr_accesses_mvsum() returns a value same to nr_accesses_bp.  Also
-the function is more simple and therefore more tolerant to errors. 
-Execution of the function would be more expensive than the simple read of
-the field, but because the function is quite simple, the overhead should
-be negligible.  Use it in the DAMON sysfs interface for scheme-tried
-regions, instead of the nr_accesses_bp.
+nr_accesses_bp is delicate.  Once it is corrupted, the consequence is the
+bad madness of DAMON monitoring results.  From developments of features of
+size, we historically found nr_accesses_bp can be corrupted by complicated
+bugs that are not easy to debug.  Hence we added a function for finding
+the corruption and fixing it right away.
 
-Link: https://lore.kernel.org/20260630040812.149729-8-sj@kernel.org
+There are no more uses of nr_accesses_bp.  Hence the function for
+corruption detection and fix is no more needed.  Rip it out.
+
+Link: https://lore.kernel.org/20260630040812.149729-9-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Cc: Brendan Higgins <brendan.higgins@linux.dev>
 Cc: "Masami Hiramatsu (Google)" <mhiramat@kernel.org>
@@ -64,38 +66,39 @@ Cc: Steven Rostedt <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/sysfs-schemes.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/damon/core.c |   14 --------------
+ 1 file changed, 14 deletions(-)
 
---- a/mm/damon/sysfs-schemes.c~mm-damon-sysfs-schemes-use-damon_nr_accesses_mvsum-for-damo-regions
-+++ a/mm/damon/sysfs-schemes.c
-@@ -157,7 +157,7 @@ struct damon_sysfs_scheme_region {
- };
+--- a/mm/damon/core.c~mm-damon-core-remove-damon_warn_fix_nr_accesses_corruption
++++ a/mm/damon/core.c
+@@ -2025,19 +2025,6 @@ int damos_walk(struct damon_ctx *ctx, st
+ 	return 0;
+ }
  
- static struct damon_sysfs_scheme_region *damon_sysfs_scheme_region_alloc(
--		struct damon_region *region)
-+		struct damon_region *region, struct damon_ctx *ctx)
- {
- 	struct damon_sysfs_scheme_region *sysfs_region = kmalloc_obj(*sysfs_region);
- 
-@@ -165,7 +165,7 @@ static struct damon_sysfs_scheme_region
- 		return NULL;
- 	sysfs_region->kobj = (struct kobject){};
- 	sysfs_region->ar = region->ar;
--	sysfs_region->nr_accesses = region->nr_accesses_bp / 10000;
-+	sysfs_region->nr_accesses = damon_nr_accesses_mvsum(region, ctx);
- 	sysfs_region->age = region->age;
- 	sysfs_region->probes = NULL;
- 	INIT_LIST_HEAD(&sysfs_region->list);
-@@ -3122,7 +3122,7 @@ void damos_sysfs_populate_region_dir(str
- 	if (total_bytes_only)
- 		return;
- 
--	region = damon_sysfs_scheme_region_alloc(r);
-+	region = damon_sysfs_scheme_region_alloc(r, ctx);
- 	if (!region)
- 		return;
- 	region->sz_filter_passed = sz_filter_passed;
+-/*
+- * Warn and fix corrupted ->nr_accesses[_bp] for investigations and preventing
+- * the problem being propagated.
+- */
+-static void damon_warn_fix_nr_accesses_corruption(struct damon_region *r)
+-{
+-	if (r->nr_accesses_bp == r->nr_accesses * 10000)
+-		return;
+-	WARN_ONCE(true, "invalid nr_accesses_bp at reset: %u %u\n",
+-			r->nr_accesses_bp, r->nr_accesses);
+-	r->nr_accesses_bp = r->nr_accesses * 10000;
+-}
+-
+ #ifdef CONFIG_DAMON_DEBUG_SANITY
+ static void damon_verify_reset_aggregated(struct damon_region *r,
+ 		struct damon_ctx *c)
+@@ -2079,7 +2066,6 @@ static void kdamond_reset_aggregated(str
+ 			trace_damon_aggregated(ti, r, damon_nr_regions(t));
+ 			trace_damon_region_aggregated(ti, r,
+ 					damon_nr_regions(t), nr_probes);
+-			damon_warn_fix_nr_accesses_corruption(r);
+ 			r->last_nr_accesses = r->nr_accesses;
+ 			r->nr_accesses = 0;
+ 			for (i = 0; i < DAMON_MAX_PROBES; i++)
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
