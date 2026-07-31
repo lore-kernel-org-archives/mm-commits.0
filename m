@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3663F33E35B
-	for <mm-commits@vger.kernel.org>; Fri, 31 Jul 2026 19:42:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5D7F137883C
+	for <mm-commits@vger.kernel.org>; Fri, 31 Jul 2026 20:23:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785526975; cv=none; b=bw3CxDFcQis/AZEMbCmuHtEYv+KQ/2JSW9bT2TYG80CljhTxxOPoITHMyXMLgk6lsgI6l+mjYagT7fEPmXsmX8lDFVwYoJUu4hgKIHUL0jZkNvYLmvapu9aWS2yOh6K264w04DlyQqTJBFMLW6ClxI2E5fezeJ9eb86xjN+enBU=
+	t=1785529410; cv=none; b=rmebWOYsTNLz45yngcTIbGJ8fZTKOxAEJpLkaIbGPIcHOnhm2w4zAy2XFJgN1fWmK/ZFvkflm/dIJpGLYmUPe4y6lJOVRqF2kOwH0+Nq6iQuvTPmlDWZGZjD51HhBeWIvy39jeBJQlfzhgic9zuM1Pg1obgrURyjnq40QPBMM7U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785526975; c=relaxed/simple;
-	bh=6CnQbMLP5YoZLtxWvNsuHxREo5punDRH5SPqz9JA0fw=;
-	h=Date:To:From:Subject:Message-Id; b=ILY8RSaFU8Y0W8BZRPS+dNXbE4fJJ2XbpN+gC6kct49qmXVR8GsqxBWjW0myXtE5PWM0j5HUgLwmt8BYDpTMa2EgDiROImQbs3JKvuzG14GYwqQDx4sp6m3wRdxkYgPNPWL7znAajtrZDlsJsqcWOhRe5xjLF6OM5BjN94gDWIU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QrJ+fgDK; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785529410; c=relaxed/simple;
+	bh=2rBa1udHW6rbAMbeTd6lgCl3ne7NCDghPRYWxGn8b20=;
+	h=Date:To:From:Subject:Message-Id; b=JaSEOLNpS3yH0TtCMuuav1Co2ygT0EBmRn1ffs70SlxmAWlPl1zyyALHMbVNSgDZEF9q3tMJk0pviIP7bUZOZIvIpWsvvm682w6s8ic1VbMXpYkdQtbNFEM7qf0I8tR40k2uvBVjTYrI5XAeEGw4rOdm8HqjpRfXElgS4FhWHGM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KOBg8spJ; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QrJ+fgDK"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B45481F00ACA;
-	Fri, 31 Jul 2026 19:42:53 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KOBg8spJ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9AFE51F00AC4;
+	Fri, 31 Jul 2026 20:23:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785526973;
-	bh=t/qNbCzPCONPbWaoVdhaMk6vt2d3kQIaEpLb94regfo=;
+	d=linux-foundation.org; s=korg; t=1785529408;
+	bh=RKscd1W43ez4YDyvyTXB6Bxf7UoSshWGaX/XRNWFoAU=;
 	h=Date:To:From:Subject;
-	b=QrJ+fgDKzpivUxJR5EYHrUgLpdQpseqe7f5e3AGeYOaIlJp5PgxpCMxEUWM87rdCc
-	 rJdSBXx+IRUA19MlB6z0rAblyeAzoQFHU3UjpREH/PQK3FBaosHdzeVQg2VpQCC6yn
-	 MQX1AxWz9aa7Peq0haJZYDnZhkJcaZQ7hprD+Jus=
-Date: Fri, 31 Jul 2026 12:42:53 -0700
-To: mm-commits@vger.kernel.org,yosry@kernel.org,tj@kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,nphamcs@gmail.com,muchun.song@linux.dev,mkoutny@suse.com,mhocko@kernel.org,hannes@cmpxchg.org,chengming.zhou@linux.dev,jiahao1@lixiang.com,akpm@linux-foundation.org
+	b=KOBg8spJoTTv06oaCRKeoEbCfRaqW3EXtWMfmmv6kCpwbwt67mZHHsi+UZJXlAIV/
+	 jYWqBsis47bpEjtUCEJS4XSozT0nTnNEfZ1m0RYzBuTVTSPeFxV0t/uX3KEtuzvyRa
+	 6daJLTniN+Z7Y+OeUtx3GNfEGGgxu6HSmUGMyzQo=
+Date: Fri, 31 Jul 2026 13:23:28 -0700
+To: mm-commits@vger.kernel.org,nphamcs@gmail.com,hannes@cmpxchg.org,chengming.zhou@linux.dev,wfelipe@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-zswap-support-batch-writeback-in-shrink_memcg.patch removed from -mm tree
-Message-Id: <20260731194253.B45481F00ACA@smtp.kernel.org>
+Subject: + mm-zswap-drop-list_lru-param-from-zswap_lru_add-and-_del.patch added to mm-new branch
+Message-Id: <20260731202328.9AFE51F00AC4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,205 +34,115 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: mm/zswap: support batch writeback in shrink_memcg()
-has been removed from the -mm tree.  Its filename was
-     mm-zswap-support-batch-writeback-in-shrink_memcg.patch
+The patch titled
+     Subject: mm: zswap: drop list_lru param from zswap_lru_add() and _del()
+has been added to the -mm mm-new branch.  Its filename is
+     mm-zswap-drop-list_lru-param-from-zswap_lru_add-and-_del.patch
 
-This patch was dropped because an updated version will be issued
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zswap-drop-list_lru-param-from-zswap_lru_add-and-_del.patch
+
+This patch will later appear in the mm-new branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
 ------------------------------------------------------
-From: Hao Jia <jiahao1@lixiang.com>
-Subject: mm/zswap: support batch writeback in shrink_memcg()
-Date: Wed, 29 Jul 2026 16:42:06 +0800
+From: Wilson Felipe Pereira <wfelipe@google.com>
+Subject: mm: zswap: drop list_lru param from zswap_lru_add() and _del()
+Date: Fri, 31 Jul 2026 05:37:06 +0000
 
-Currently, shrink_memcg() writes back at most one entry per-node during
-its traversal.  This makes shrink_worker() inefficient, as it must
-repeatedly re-enter shrink_memcg() to make any substantial progress. 
-Under high memory pressure, this can cause the writeback speed to be too
-slow to keep up with refaults, leading to zswap store failures and forcing
-pages to skip zswap and go directly to disk, which results in an LRU
-inversion.
+Since zswap_lru_add() and zswap_lru_del() are only called with the global
+zswap_list_lru, remove the redundant list_lru argument and use
+zswap_list_lru directly.
 
-To address this, extend shrink_memcg() and rewrite its LRU iteration logic
-to support batch writeback.  Introduce the nr_to_scan parameter to bound
-how many pages are scanned per call.  This enables setting the writeback
-batch size to SWAP_CLUSTER_MAX for both the shrink_worker() and
-zswap_store() paths.
-
-Test Setup:
-- Total memory: 32 GB.
-- zswap settings: accept_threshold_percent=50, shrinker_enabled=N.
-
-Test Case 1:
-Set max_pool_percent=1, allocate 512MB of anonymous pages, and fill them
-with random data (to avoid compression). Then, use cgroup memory.reclaim
-to force a large amount of anonymous pages into zswap. At an interval of
-2ms, allocate a 4K anonymous page where the first 4 bytes are random numbers
-and the rest are zeros, and then trigger reclamation of this 4K page through
-cgroup memory.reclaim. When the pool threshold is reached, shrink_memcg()
-will be triggered.
-The test data after running for 120s is as follows:
-                                Baseline      Patched
-shrink_worker wakeups              5,363          169
-shrink_memcg calls            11,373,201      350,703
-written_back pages                40,212       40,241
-zswap_store calls                161,190      163,753
-   store succeeded (ret=1)       102,743      117,183
-   store rejected (ret=0)         58,447       46,570
-   store reject rate                ~36%        ~28%
-pool_limit_hit delta              55,826       33,760
-pswpout                           98,659       86,811
-pswpin                                 2            0
-
-Test Case 2:
-We evaluated the following two sub-configurations using stress-ng inside
-a cgroup capped at memory.max=1G for 120 seconds:
-  Test Case 2a (max_pool_percent=1): Continuously triggers the global
-  zswap pool limit, thereby waking up shrink_worker() to perform asynchronous
-  shrinking.
-  Test Case 2b (zswap.max=320M, max_pool_percent=50): Continuously triggers
-  the cgroup's zswap.max limit, thereby invoking synchronous shrinking.
-Command executed for both setups:
-   bash -c 'echo $$ > /sys/fs/cgroup/zswaptest/cgroup.procs ; \
-   exec stress-ng --vm 4 --vm-bytes 4G --vm-keep --vm-method rand-set -t \
-120s -q'
-
-Test Case 2a (max_pool_percent=1):
-                                Baseline       Patched
-shrink_worker wakeups              5,640         1,308
-shrink_memcg calls             8,481,500     3,140,972
-written_back pages                   260       468,216
-zswap_store calls              2,742,756     2,011,269
-   store succeeded (ret=1)       934,640       947,988
-   store rejected (ret=0)      1,808,116     1,063,281
-   store reject rate                ~66%          ~52%
-pool_limit_hit delta           1,181,310       196,882
-pswpout                        1,808,376     1,531,497
-pswpin                         4,288,497     3,635,365
-Test Case 2b (zswap.max=320M, max_pool_percent=50):
-                                Baseline       Patched
-shrink_worker wakeups                 0              0
-shrink_memcg calls              687,608         54,002
-written_back pages              639,176        846,663
-zswap_store calls             1,224,222      1,228,548
-   store succeeded (ret=1)      992,816      1,208,123
-   store rejected (ret=0)       231,431         20,425
-   store reject rate               ~19%            ~2%
-pool_limit_hit delta                  0              0
-pswpout                         870,745        867,360
-pswpin                        1,707,823      1,216,814
-
-Under identical workloads and runtimes, batched zswap shrinking exhibits a
-significant reduction in both shrink_worker() wakeups and shrink_memcg()
-calls.  Furthermore, the sharp drop in both pswpin and zswap_store()
-rejections demonstrates that batching zswap shrink operations effectively
-mitigates zswap_store() failures caused by hitting the pool limit.  This
-significantly prevents pages from bypassing zswap and falling back
-directly to disk, thereby reducing LRU inversion.
-
-Link: https://lore.kernel.org/20260729084206.77793-3-jiahao.kernel@gmail.com
-Signed-off-by: Hao Jia <jiahao1@lixiang.com>
-Suggested-by: Yosry Ahmed <yosry@kernel.org>
-Acked-by: Yosry Ahmed <yosry@kernel.org>
-Acked-by: Nhat Pham <nphamcs@gmail.com>
+Link: https://lore.kernel.org/20260731053721.1412304-1-wfelipe@google.com
+Signed-off-by: Wilson Felipe Pereira <wfelipe@google.com>
 Cc: Chengming Zhou <chengming.zhou@linux.dev>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Michal Koutný <mkoutny@suse.com>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Tejun Heo <tj@kernel.org>
+Cc: Nhat Pham <nphamcs@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zswap.c |   45 ++++++++++++++++++++++++++++++++++++++-------
- 1 file changed, 38 insertions(+), 7 deletions(-)
+ mm/zswap.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
---- a/mm/zswap.c~mm-zswap-support-batch-writeback-in-shrink_memcg
+--- a/mm/zswap.c~mm-zswap-drop-list_lru-param-from-zswap_lru_add-and-_del
 +++ a/mm/zswap.c
-@@ -1277,9 +1277,25 @@ static struct shrinker *zswap_alloc_shri
- 	return shrinker;
+@@ -665,7 +665,7 @@ static inline int entry_to_nid(struct zs
+ 	return page_to_nid(virt_to_page(entry));
  }
  
--static int shrink_memcg(struct mem_cgroup *memcg)
-+/*
-+ * Scan up to @nr_to_scan pages across the per-node zswap LRUs of @memcg
-+ * and write back the reclaimable ones.
-+ *
-+ * Since the second-chance algorithm rotates referenced entries to the
-+ * LRU tail, the per-node scan is capped at the current LRU length so
-+ * each entry is scanned at most once per call. It is up to the caller
-+ * to handle retries, deciding whether to scan another memcg to complete
-+ * the full iteration, or to rescan the current memcg to drain its zswap
-+ * entries.
-+ *
-+ * Return: 0 if at least one entry was written back, -EAGAIN if entries
-+ * were scanned but none could be written back, or -ENOENT if @memcg has
-+ * writeback disabled, is a zombie cgroup, or has empty zswap LRUs.
-+ */
-+static int shrink_memcg(struct mem_cgroup *memcg, unsigned long nr_to_scan)
+-static void zswap_lru_add(struct list_lru *list_lru, struct zswap_entry *entry)
++static void zswap_lru_add(struct zswap_entry *entry)
  {
--	int nid, shrunk = 0, scanned = 0;
-+	unsigned long nr_remaining = nr_to_scan;
-+	int nid, shrunk = 0;
+ 	int nid = entry_to_nid(entry);
+ 	struct mem_cgroup *memcg;
+@@ -684,11 +684,11 @@ static void zswap_lru_add(struct list_lr
+ 	rcu_read_lock();
+ 	memcg = mem_cgroup_from_entry(entry);
+ 	/* will always succeed */
+-	list_lru_add(list_lru, &entry->lru, nid, memcg);
++	list_lru_add(&zswap_list_lru, &entry->lru, nid, memcg);
+ 	rcu_read_unlock();
+ }
  
- 	if (!mem_cgroup_zswap_writeback_enabled(memcg))
- 		return -ENOENT;
-@@ -1292,14 +1308,29 @@ static int shrink_memcg(struct mem_cgrou
- 		return -ENOENT;
+-static void zswap_lru_del(struct list_lru *list_lru, struct zswap_entry *entry)
++static void zswap_lru_del(struct zswap_entry *entry)
+ {
+ 	int nid = entry_to_nid(entry);
+ 	struct mem_cgroup *memcg;
+@@ -696,7 +696,7 @@ static void zswap_lru_del(struct list_lr
+ 	rcu_read_lock();
+ 	memcg = mem_cgroup_from_entry(entry);
+ 	/* will always succeed */
+-	list_lru_del(list_lru, &entry->lru, nid, memcg);
++	list_lru_del(&zswap_list_lru, &entry->lru, nid, memcg);
+ 	rcu_read_unlock();
+ }
  
- 	for_each_node_state(nid, N_NORMAL_MEMORY) {
--		unsigned long nr_to_walk = 1;
-+		unsigned long nr_to_walk;
- 
-+		/*
-+		 * Cap the scan at per-node LRU length so each entry is scanned
-+		 * at most once per call.
-+		 */
-+		nr_to_walk = min(nr_remaining,
-+				 list_lru_count_one(&zswap_list_lru, nid, memcg));
-+		if (!nr_to_walk)
-+			continue;
-+
-+		nr_remaining -= nr_to_walk;
- 		shrunk += list_lru_walk_one(&zswap_list_lru, nid, memcg,
- 					    &shrink_memcg_cb, NULL, &nr_to_walk);
--		scanned += 1 - nr_to_walk;
-+		/* Return the unused share of the budget to the pool. */
-+		nr_remaining += nr_to_walk;
-+
-+		if (!nr_remaining)
-+			break;
+@@ -764,7 +764,7 @@ static void zswap_entry_cache_free(struc
+  */
+ static void zswap_entry_free(struct zswap_entry *entry)
+ {
+-	zswap_lru_del(&zswap_list_lru, entry);
++	zswap_lru_del(entry);
+ 	zs_free(entry->pool->zs_pool, entry->handle);
+ 	zswap_pool_put(entry->pool);
+ 	if (entry->objcg) {
+@@ -1463,7 +1463,7 @@ static bool zswap_store_page(struct page
+ 	entry->referenced = true;
+ 	if (entry->length) {
+ 		INIT_LIST_HEAD(&entry->lru);
+-		zswap_lru_add(&zswap_list_lru, entry);
++		zswap_lru_add(entry);
  	}
  
--	if (!scanned)
-+	/* Nothing was scanned: every LRU under @memcg was empty. */
-+	if (nr_remaining == nr_to_scan)
- 		return -ENOENT;
- 
- 	return shrunk ? 0 : -EAGAIN;
-@@ -1371,7 +1402,7 @@ static void shrink_worker(struct work_st
- 			goto resched;
- 		}
- 
--		ret = shrink_memcg(memcg);
-+		ret = shrink_memcg(memcg, SWAP_CLUSTER_MAX);
- 		/* drop the extra reference */
- 		mem_cgroup_put(memcg);
- 
-@@ -1495,7 +1526,7 @@ bool zswap_store(struct folio *folio)
- 	objcg = get_obj_cgroup_from_folio(folio);
- 	if (objcg && !obj_cgroup_may_zswap(objcg)) {
- 		memcg = get_mem_cgroup_from_objcg(objcg);
--		if (shrink_memcg(memcg)) {
-+		if (shrink_memcg(memcg, SWAP_CLUSTER_MAX)) {
- 			mem_cgroup_put(memcg);
- 			goto put_objcg;
- 		}
+ 	return true;
 _
 
-Patches currently in -mm which might be from jiahao1@lixiang.com are
+Patches currently in -mm which might be from wfelipe@google.com are
 
+mm-zswap-drop-list_lru-param-from-zswap_lru_add-and-_del.patch
 
