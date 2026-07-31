@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 74201339394
-	for <mm-commits@vger.kernel.org>; Fri, 31 Jul 2026 02:43:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A016233938B
+	for <mm-commits@vger.kernel.org>; Fri, 31 Jul 2026 02:43:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785465815; cv=none; b=JV+g35pUQiH0sSWWnlu+DEy0oeFWJoTYzvWQd+7CRcSlNDSqTLgUxm1DspMceiXwfcgFD1zIEcmVTXdBME/DXAEWzS/8am6ZYTLPVEwt/CcyA9V2Tu0EcPxL4opX3kLQSFNZaY8z1sNulwsUd+xXYh43jXJltEizAe993T0hknM=
+	t=1785465816; cv=none; b=N45QOHSqAVrzHXhi23lFKDEmRr/l1sxhaWcpN4IwYL14DvJY8kzisbl29R6Olr2w1s6tIbj0uzq6mj3HQRRKv41tvrTiR89FH3gty3nQdEtO/KLGw3/OtLwJFTeuZwIzrdV7wWj4UmeX6H94M1miCuLIRBS5D4nVm2Gh48InwR8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785465815; c=relaxed/simple;
-	bh=adFstNEOTzptcte96JY4J8aGpe4dG6uIb+a9+mIRSx8=;
-	h=Date:To:From:Subject:Message-Id; b=kRm0umC8EQc5Uh/Gv4o+1E5/8agGwsx4F1LHgI1IwsvnCsFEnys6s/sjl+1gfv+6itn1VJG7JJ66DANJZvBE2S6Rq1UpK8dko0OsUJe7IzleH/niacc8sQOpp/KqI/qs1Cqyk42bvrj4UZwfJ9N7TXBvtFvu+Z1BFLmR01b9RZw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vZbYfzT4; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785465816; c=relaxed/simple;
+	bh=sA7TL1sfh/LfRjoZYilu3P7XGUBW1m+tC4/o5xyw8gQ=;
+	h=Date:To:From:Subject:Message-Id; b=ouS3Tasu/tYmGRsryazQm8fz1upGvcB0s4pSpBV+m26NmEi4+rHfSkMahR0rr2qhLpVuMq54he3M3X7qjAaTmFcvjP/XnQxvXaUfc01gv/wV4nkc/G8EvySwFec/mh4Y57Vm+JDYXmuyR5f62F3M+wfoszHBUDHZZMPJHKqZptQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Oims7mSi; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vZbYfzT4"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4B1831F000E9;
-	Fri, 31 Jul 2026 02:43:34 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Oims7mSi"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7670A1F00A3A;
+	Fri, 31 Jul 2026 02:43:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785465814;
-	bh=rjZmz7aCGQAWqvrQna0OXqe609m53qvipXG04Y8wQ6Y=;
+	d=linux-foundation.org; s=korg; t=1785465815;
+	bh=+NMbvMZ0w3xi5dM4eoYS/ZWcDUpFQxYHDFJj82EAWSg=;
 	h=Date:To:From:Subject;
-	b=vZbYfzT4zZZESWAzbbdIKxITSnCdU0S708U8CA6MrmGErDE3zD1ePIDmDVAIcKiGq
-	 r/swzq/zTOTyKVYOyhuRc4AXhlutFSlUgqbNatmZRjND+AHgLSeEzpJyJusUf5yVVs
-	 Lg6Gy16Bcp0Acqp6cwJzb1FlOTZ2U5Uhssv+i7dA=
-Date: Thu, 30 Jul 2026 19:43:33 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,jackmanb@google.com,akpm@linux-foundation.org
+	b=Oims7mSit/MQ+RjnSY26RT9yKqxHlGUe0vXYhh465Dhl+H6qsrbd4u81baZeybbON
+	 E/gyr3paZm0NPgbMvw+b0uKLGOZkKEbPmWi4725TON/XMZG4akwLszF6y/WO8s0Ocx
+	 rGW260qgDSVx4540zVmPSdxYTTeGUrHOIR0KbZgY=
+Date: Thu, 30 Jul 2026 19:43:35 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,harry@kernel.org,jackmanb@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-page_alloc-drop-alloc_flags-arg-from-alloc_flags_cma.patch removed from -mm tree
-Message-Id: <20260731024334.4B1831F000E9@smtp.kernel.org>
+Subject: [merged mm-stable] mm-factor-out-can_spin_trylock.patch removed from -mm tree
+Message-Id: <20260731024335.7670A1F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,85 +35,119 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/page_alloc: drop alloc_flags arg from alloc_flags_cma()
+     Subject: mm: factor out can_spin_trylock()
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-drop-alloc_flags-arg-from-alloc_flags_cma.patch
+     mm-factor-out-can_spin_trylock.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Brendan Jackman <jackmanb@google.com>
-Subject: mm/page_alloc: drop alloc_flags arg from alloc_flags_cma()
-Date: Fri, 03 Jul 2026 12:31:57 +0000
+Subject: mm: factor out can_spin_trylock()
+Date: Fri, 03 Jul 2026 12:31:58 +0000
 
-To align the style with other alloc_flags_*() functions, drop this
-additive argument and just have the callers do that themselves.
+Deduplicate checks for whether the current context is safe for
+spin_trylock().
 
-Note you can't always freely or alloc_flags like these callers do (because
-of the WMARK bits that encode an enum) but this is fine for ALLOC_CMA,
-just like it's fine for e.g.  ALLOC_NON_BLOCK returned by
-alloc_flags_nonblocking() and or'd by its caller.
+Does this function really belong in mm/internal.h or is it generic?  Not
+sure.  If someone ends up duplicating this logic elsewhere in the kernel,
+that would be a shame.  But if it goes in some generic header, someone
+treats it as documentation about where it's guaranteed safe to
+spin_trylock(), and then it emerges that there are other subtle
+preconditions that didn't affect the mm usecase, that would be worse.  So,
+just be conservative and keep it local.
 
-Link: https://lore.kernel.org/20260703-alloc-trylock-v5-17-c87b714e19d3@google.com
+Link: https://lore.kernel.org/20260703-alloc-trylock-v5-18-c87b714e19d3@google.com
 Signed-off-by: Brendan Jackman <jackmanb@google.com>
-Suggested-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
-Link: https://lore.kernel.org/all/5dcdd1ef-21ad-4ed0-9e8a-0e5cf96b4392@kernel.org/
+Suggested-by: Harry Yoo <harry@kernel.org>
+Link: https://lore.kernel.org/all/397859cb-b127-4cc6-9c71-044afc99bf0c@kernel.org/
 Reviewed-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
+Reviewed-by: Harry Yoo (Oracle) <harry@kernel.org>
 Reviewed-by: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   13 ++++++-------
- 1 file changed, 6 insertions(+), 7 deletions(-)
+ mm/internal.h   |   23 +++++++++++++++++++++++
+ mm/page_alloc.c |   17 +----------------
+ mm/slub.c       |   10 +---------
+ 3 files changed, 25 insertions(+), 25 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-drop-alloc_flags-arg-from-alloc_flags_cma
+--- a/mm/internal.h~mm-factor-out-can_spin_trylock
++++ a/mm/internal.h
+@@ -1713,4 +1713,27 @@ static inline void mm_prepare_for_swap_e
+ 	}
+ }
+ 
++static inline bool can_spin_trylock(void)
++{
++	/*
++	 * In PREEMPT_RT spin_trylock() will call raw_spin_lock() which is
++	 * unsafe in NMI. If spin_trylock() is called from hard IRQ the current
++	 * task may be waiting for one rt_spin_lock, but rt_spin_trylock() will
++	 * mark the task as the owner of another rt_spin_lock which will
++	 * confuse PI logic, so return immediately if called from hard IRQ or
++	 * NMI.
++	 *
++	 * Note, irqs_disabled() case is ok. spin_trylock() can be called
++	 * from raw_spin_lock_irqsave region.
++	 */
++	if (IS_ENABLED(CONFIG_PREEMPT_RT) && (in_nmi() || in_hardirq()))
++		return false;
++
++	/* On UP, spin_trylock() always succeeds even when it is locked */
++	if (!IS_ENABLED(CONFIG_SMP) && in_nmi())
++		return false;
++
++	return true;
++}
++
+ #endif	/* __MM_INTERNAL_H */
+--- a/mm/page_alloc.c~mm-factor-out-can_spin_trylock
 +++ a/mm/page_alloc.c
-@@ -3775,14 +3775,13 @@ alloc_flags_nofragment(struct zone *zone
- }
+@@ -5291,22 +5291,7 @@ static inline bool alloc_order_allowed(g
  
- /* Must be called after current_gfp_context() which can change gfp_mask */
--static inline unsigned int alloc_flags_cma(gfp_t gfp_mask,
--					   unsigned int alloc_flags)
-+static inline unsigned int alloc_flags_cma(gfp_t gfp_mask)
+ static inline bool alloc_nolock_allowed(void)
  {
- #ifdef CONFIG_CMA
- 	if (gfp_migratetype(gfp_mask) == MIGRATE_MOVABLE)
--		alloc_flags |= ALLOC_CMA;
-+		return ALLOC_CMA;
- #endif
--	return alloc_flags;
-+	return ALLOC_DEFAULT;
- }
- 
- /*
-@@ -4526,7 +4525,7 @@ alloc_flags_slowpath(gfp_t gfp_mask, uns
- 	} else if (unlikely(rt_or_dl_task(current)) && in_task())
- 		alloc_flags |= ALLOC_MIN_RESERVE;
- 
--	alloc_flags = alloc_flags_cma(gfp_mask, alloc_flags);
-+	alloc_flags |= alloc_flags_cma(gfp_mask);
- 
- 	if (defrag_mode)
- 		alloc_flags |= ALLOC_NOFRAGMENT;
-@@ -4837,7 +4836,7 @@ retry:
- 
- 	reserve_flags = __gfp_pfmemalloc_flags(gfp_mask);
- 	if (reserve_flags)
--		alloc_flags = alloc_flags_cma(gfp_mask, reserve_flags) |
-+		alloc_flags = alloc_flags_cma(gfp_mask) | reserve_flags |
- 				ac->alloc_flags | (alloc_flags & ALLOC_KSWAPD);
- 
- 	/*
-@@ -5070,7 +5069,7 @@ static inline bool prepare_alloc_pages(g
- 	    should_fail_alloc_page(gfp_mask, order))
+-	/*
+-	 * In PREEMPT_RT spin_trylock() will call raw_spin_lock() which is
+-	 * unsafe in NMI. If spin_trylock() is called from hard IRQ the current
+-	 * task may be waiting for one rt_spin_lock, but rt_spin_trylock() will
+-	 * mark the task as the owner of another rt_spin_lock which will
+-	 * confuse PI logic, so return immediately if called from hard IRQ or
+-	 * NMI.
+-	 *
+-	 * Note, irqs_disabled() case is ok. This function can be called
+-	 * from raw_spin_lock_irqsave region.
+-	 */
+-	if (IS_ENABLED(CONFIG_PREEMPT_RT) && (in_nmi() || in_hardirq()))
+-		return false;
+-
+-	/* On UP, spin_trylock() always succeeds even when it is locked */
+-	if (!IS_ENABLED(CONFIG_SMP) && in_nmi())
++	if (!can_spin_trylock())
  		return false;
  
--	*alloc_flags = alloc_flags_cma(gfp_mask, *alloc_flags);
-+	*alloc_flags |= alloc_flags_cma(gfp_mask);
+ 	/* Bailout, since _deferred_grow_zone() needs to take a lock */
+--- a/mm/slub.c~mm-factor-out-can_spin_trylock
++++ a/mm/slub.c
+@@ -5380,15 +5380,7 @@ static void *__kmalloc_nolock_noprof(DEC
+ 	if (unlikely(!size))
+ 		return ZERO_SIZE_PTR;
  
- 	/* Dirty zone balancing only done in the fast path */
- 	ac->spread_dirty_pages = (gfp_mask & __GFP_WRITE);
+-	/*
+-	 * See the comment for the same check in
+-	 * alloc_frozen_pages_nolock_noprof()
+-	 */
+-	if (IS_ENABLED(CONFIG_PREEMPT_RT) && (in_nmi() || in_hardirq()))
+-		return NULL;
+-
+-	/* On UP, spin_trylock() always succeeds even when it is locked */
+-	if (!IS_ENABLED(CONFIG_SMP) && in_nmi())
++	if (!can_spin_trylock())
+ 		return NULL;
+ 
+ retry:
 _
 
 Patches currently in -mm which might be from jackmanb@google.com are
