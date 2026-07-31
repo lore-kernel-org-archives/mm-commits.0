@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8156834D384
-	for <mm-commits@vger.kernel.org>; Fri, 31 Jul 2026 18:06:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D0EF440F729
+	for <mm-commits@vger.kernel.org>; Fri, 31 Jul 2026 18:06:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785521203; cv=none; b=Zo9z4v51CBOrWsUKNj92PW9l3BOsKFoyPbozWc/vlMzhAQMg098TRTuJp+Nem+2QpKTM5Fsk3kTOeRidOtcEddVUcNBX27kmafRSMqWcaJrizaGa7MrS9+hXR8ZFhj+yxByeTzV3JrSbAGdFRSIyA9SQDYn1r0ooDNBGHfr0Bss=
+	t=1785521206; cv=none; b=UcZGCio8Hji/zKyV1qGfpMc0L1suL4tY8PBBmvejg0jmjcyWc4SXPUfhIx+yxsBd7qgROlzMIr2IvVWNcR71Q+Puo7RngUNqVSBZPSKtiU9O1kF3qOeGm6aLm95Qq2SYwW7LAcVWN/pxeGKu+9qc8NOOKIGEAsUQ87w6rfVAqig=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785521203; c=relaxed/simple;
-	bh=uu3G3kV5djcwBmRnvyG7P5iy/BBQEwrIDI4G2mdSuSM=;
-	h=Date:To:From:Subject:Message-Id; b=f62TmzCIvTDrGIg7cBgMTWIO9q5GViuaYEEOAmMbWHMCtW76OWjonJAkrvut6K3sKfvnxxSacOiNoINvSPuMkXmmyGwIvbwlZYfff30erP9qM/29IQKJo39EYanKntjpyiXSUnhsICzpVBoKOUyHQWM7W6DxXS1nXrC6VXZ2kI4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NFwlpPGf; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785521206; c=relaxed/simple;
+	bh=L0K2ZiKg/a9il73aZHy0NpYRkkOnAhlIBSR/ezSOwU0=;
+	h=Date:To:From:Subject:Message-Id; b=r7NMk71xB1dwF4BJfU/KJPvUpT0cjAHxFgoLW09oE6MUp5/uuL+zilOAuKovfb1iAa+PQwFmFtvK2Y/0jcQNC4W8iUeKEIBwuyasmOfUpjTHGFtDFEpaXwdjKDT9v1Z49+8UP58U8Cc8cbgwOlo+FpcW9NwJsLmL3KIMkWwC9zE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cp3rEy89; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NFwlpPGf"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 036C81F00AC4;
-	Fri, 31 Jul 2026 18:06:41 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cp3rEy89"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 59F401F00AC4;
+	Fri, 31 Jul 2026 18:06:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785521202;
-	bh=DWZndKAHCrf6KqdCLqMB1fhWTNO8MV/bTa7ryBWC1sc=;
+	d=linux-foundation.org; s=korg; t=1785521204;
+	bh=fWbrW5C/jiagMAf1ITg03Tn2DIgOaZBgAUHY2Xu2inU=;
 	h=Date:To:From:Subject;
-	b=NFwlpPGf7c7gMEzeOdOgktedXsr7bFs5CF10rjSAMnV3RU3pijy6+E6qAoJyAiUcK
-	 I5JrVLunYuvFx+Z4J2ZzyiZUphrHr8HdEH8EF5YRMrOFRQ/M+l+Koo0KVJtQwo1/WV
-	 KzPdD8hbXbGZv+/arbbSoJ9RWmuqdEPnyNeOowkE=
-Date: Fri, 31 Jul 2026 11:06:41 -0700
+	b=cp3rEy89ZZijbDgGfM/5Oa3JpHbB2+yjBZuIusURiRfNI430R2nMb/G2KOk5Ns2VP
+	 B6v0IDcdmJz//405priOcmmUMDCrHhYXyXFdRFMahwyaGWRpuyIMaPXD2q37U8K1VZ
+	 qvtCgiMOhbQ+5Z/iHTEQBbs1dI5dviJ5SwO6mwpQ=
+Date: Fri, 31 Jul 2026 11:06:43 -0700
 To: mm-commits@vger.kernel.org,ysato@users.sourceforge.jp,glaubitz@physik.fu-berlin.de,dalias@libc.org,arnd@arndb.de,rppt@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + sh-remove-sparsemem-related-entries-from-kconfig.patch added to mm-new branch
-Message-Id: <20260731180642.036C81F00AC4@smtp.kernel.org>
+Subject: + sh-drop-include-asm-sparsememh.patch added to mm-new branch
+Message-Id: <20260731180644.59F401F00AC4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: sh: remove SPARSEMEM related entries from Kconfig
+     Subject: sh: drop include/asm/sparsemem.h
 has been added to the -mm mm-new branch.  Its filename is
-     sh-remove-sparsemem-related-entries-from-kconfig.patch
+     sh-drop-include-asm-sparsememh.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/sh-remove-sparsemem-related-entries-from-kconfig.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/sh-drop-include-asm-sparsememh.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,15 +70,13 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
-Subject: sh: remove SPARSEMEM related entries from Kconfig
-Date: Sun, 10 May 2026 16:55:45 +0300
+Subject: sh: drop include/asm/sparsemem.h
+Date: Sun, 10 May 2026 16:55:46 +0300
 
-Without NUMA support, SPARSEMEM related configuration options only create
-unnecessary overhead.
+Move MAX_PHYSMEM_BITS declaration to include/asm/mmu.h and drop now
+unneeded include/asm/sparsemem.h
 
-Remove them.
-
-Link: https://lore.kernel.org/20260510135546.13554-10-rppt@kernel.org
+Link: https://lore.kernel.org/20260510135546.13554-11-rppt@kernel.org
 Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Reviewed-by: Arnd Bergmann <arnd@arndb.de>
 Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
@@ -87,72 +85,49 @@ Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sh/Kconfig    |    6 ------
- arch/sh/mm/Kconfig |   10 ----------
- 2 files changed, 16 deletions(-)
+ arch/sh/include/asm/mmu.h       |    2 ++
+ arch/sh/include/asm/sparsemem.h |   12 ------------
+ arch/sh/kernel/setup.c          |    1 -
+ 3 files changed, 2 insertions(+), 13 deletions(-)
 
---- a/arch/sh/Kconfig~sh-remove-sparsemem-related-entries-from-kconfig
-+++ a/arch/sh/Kconfig
-@@ -386,7 +386,6 @@ config CPU_SUBTYPE_SH7723
- 	select CPU_SH4A
- 	select CPU_SHX2
- 	select ARCH_SHMOBILE
--	select ARCH_SPARSEMEM_ENABLE
- 	select SYS_SUPPORTS_SH_CMT
- 	select PINCTRL
- 	help
-@@ -397,7 +396,6 @@ config CPU_SUBTYPE_SH7724
- 	select CPU_SH4A
- 	select CPU_SHX2
- 	select ARCH_SHMOBILE
--	select ARCH_SPARSEMEM_ENABLE
- 	select SYS_SUPPORTS_SH_CMT
- 	select PINCTRL
- 	help
-@@ -438,7 +436,6 @@ config CPU_SUBTYPE_SH7785
- 	bool "Support SH7785 processor"
- 	select CPU_SH4A
- 	select CPU_SHX2
--	select ARCH_SPARSEMEM_ENABLE
- 	select PINCTRL
+--- a/arch/sh/include/asm/mmu.h~sh-drop-include-asm-sparsememh
++++ a/arch/sh/include/asm/mmu.h
+@@ -2,6 +2,8 @@
+ #ifndef __MMU_H
+ #define __MMU_H
  
- config CPU_SUBTYPE_SH7786
-@@ -472,7 +469,6 @@ config CPU_SUBTYPE_SH7722
- 	select CPU_SH4AL_DSP
- 	select CPU_SHX2
- 	select ARCH_SHMOBILE
--	select ARCH_SPARSEMEM_ENABLE
- 	select SYS_SUPPORTS_SH_CMT
- 	select PINCTRL
- 
-@@ -481,8 +477,6 @@ config CPU_SUBTYPE_SH7366
- 	select CPU_SH4AL_DSP
- 	select CPU_SHX2
- 	select ARCH_SHMOBILE
--	select ARCH_SPARSEMEM_ENABLE
--	select SYS_SUPPORTS_NUMA
- 	select SYS_SUPPORTS_SH_CMT
- 
- endchoice
---- a/arch/sh/mm/Kconfig~sh-remove-sparsemem-related-entries-from-kconfig
-+++ a/arch/sh/mm/Kconfig
-@@ -115,16 +115,6 @@ config VSYSCALL
- config ARCH_FLATMEM_ENABLE
- 	def_bool y
- 
--config ARCH_SPARSEMEM_ENABLE
--	def_bool y
--	select SPARSEMEM_STATIC
++#define MAX_PHYSMEM_BITS	32
++
+ /*
+  * Privileged Space Mapping Buffer (PMB) definitions
+  */
+diff --git a/arch/sh/include/asm/sparsemem.h a/arch/sh/include/asm/sparsemem.h
+deleted file mode 100644
+--- a/arch/sh/include/asm/sparsemem.h
++++ /dev/null
+@@ -1,12 +0,0 @@
+-/* SPDX-License-Identifier: GPL-2.0 */
+-#ifndef __ASM_SH_SPARSEMEM_H
+-#define __ASM_SH_SPARSEMEM_H
 -
--config ARCH_SPARSEMEM_DEFAULT
--	def_bool y
+-/*
+- * SECTION_SIZE_BITS		2^N: how big each section will be
+- * MAX_PHYSMEM_BITS		2^N: how much physical address space we have
+- */
+-#define SECTION_SIZE_BITS	26
+-#define MAX_PHYSMEM_BITS	32
 -
--config ARCH_SELECT_MEMORY_MODEL
--	def_bool y
--
- config IOREMAP_FIXED
-        def_bool y
-        depends on X2TLB
+-#endif /* __ASM_SH_SPARSEMEM_H */
+--- a/arch/sh/kernel/setup.c~sh-drop-include-asm-sparsememh
++++ a/arch/sh/kernel/setup.c
+@@ -41,7 +41,6 @@
+ #include <asm/smp.h>
+ #include <asm/mmu_context.h>
+ #include <asm/processor.h>
+-#include <asm/sparsemem.h>
+ #include <asm/platform_early.h>
+ 
+ /*
 _
 
 Patches currently in -mm which might be from rppt@kernel.org are
