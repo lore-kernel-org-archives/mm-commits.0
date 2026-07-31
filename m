@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A016233938B
-	for <mm-commits@vger.kernel.org>; Fri, 31 Jul 2026 02:43:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2FC7733939D;
+	Fri, 31 Jul 2026 02:43:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785465816; cv=none; b=N45QOHSqAVrzHXhi23lFKDEmRr/l1sxhaWcpN4IwYL14DvJY8kzisbl29R6Olr2w1s6tIbj0uzq6mj3HQRRKv41tvrTiR89FH3gty3nQdEtO/KLGw3/OtLwJFTeuZwIzrdV7wWj4UmeX6H94M1miCuLIRBS5D4nVm2Gh48InwR8=
+	t=1785465821; cv=none; b=aTX7//nvha2SqpqaZZYxb2Gj3/h0/YAdyASc/bl6+nyQM6GrV7yk5E3Y8ice6lmoRu7PwGNtNUafTRaWRVez9Bx8DYnRqjQ4xjYiMUYXs1++9kbIchsZIv5wgeJtHuR+ZHErK1vnWXrk/btARbUKvh8sqqJFMn8gpGzOLriq5+U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785465816; c=relaxed/simple;
-	bh=sA7TL1sfh/LfRjoZYilu3P7XGUBW1m+tC4/o5xyw8gQ=;
-	h=Date:To:From:Subject:Message-Id; b=ouS3Tasu/tYmGRsryazQm8fz1upGvcB0s4pSpBV+m26NmEi4+rHfSkMahR0rr2qhLpVuMq54he3M3X7qjAaTmFcvjP/XnQxvXaUfc01gv/wV4nkc/G8EvySwFec/mh4Y57Vm+JDYXmuyR5f62F3M+wfoszHBUDHZZMPJHKqZptQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Oims7mSi; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785465821; c=relaxed/simple;
+	bh=OizBgQgk5q36x+8aHyWsYl29aseTrM6Vdb95u+pW/zU=;
+	h=Date:To:From:Subject:Message-Id; b=X/xpya81nZX5+0t1bDLHnkHCLPoQJPRxUNFUgsmjdoeiM15nTedfvK36poEst+VLjOJaUccH5gwD9x6hPa/mp4BoYfnudq9cV8Ym0uM7zGXUkExsmeynMyoSc9WBeg/XB/uXNOcwglvpTnONnBxRzYUhyj+vWdaMWILpvkwGAgU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kPZGSOIk; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Oims7mSi"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7670A1F00A3A;
-	Fri, 31 Jul 2026 02:43:35 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kPZGSOIk"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 06B251F000E9;
+	Fri, 31 Jul 2026 02:43:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785465815;
-	bh=+NMbvMZ0w3xi5dM4eoYS/ZWcDUpFQxYHDFJj82EAWSg=;
+	d=linux-foundation.org; s=korg; t=1785465817;
+	bh=G9+/ytHgr5ogs6keKTvsf7uYQkckAce1uCsCVNyOkjo=;
 	h=Date:To:From:Subject;
-	b=Oims7mSit/MQ+RjnSY26RT9yKqxHlGUe0vXYhh465Dhl+H6qsrbd4u81baZeybbON
-	 E/gyr3paZm0NPgbMvw+b0uKLGOZkKEbPmWi4725TON/XMZG4akwLszF6y/WO8s0Ocx
-	 rGW260qgDSVx4540zVmPSdxYTTeGUrHOIR0KbZgY=
-Date: Thu, 30 Jul 2026 19:43:35 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,harry@kernel.org,jackmanb@google.com,akpm@linux-foundation.org
+	b=kPZGSOIkBXhu06GR4uiOnLcR8EFv5p+v7bAyoXLh/rW+XWHSzts4M4ruuypAc7cQt
+	 LF97/qi3YW2JuOtlPnjs58MyYWSqPeewTHeIExbuL+Ar9Miwk+ULmIE9e7rydZh+QX
+	 oiRzzZD9V5yy8e5eaZPSQnxKLffONOwZ1JasBT60=
+Date: Thu, 30 Jul 2026 19:43:36 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,will@kernel.org,vbabka@kernel.org,stable@vger.kernel.org,ryan.roberts@arm.com,riel@surriel.com,rcampbell@nvidia.com,rakie.kim@sk.com,pfalcato@suse.de,osalvador@suse.de,nao.horiguchi@gmail.com,muchun.song@linux.dev,mel@csn.ul.ie,matthew.brost@intel.com,ljs@kernel.org,liam@infradead.org,lance.yang@linux.dev,kas@kernel.org,jpoimboe@kernel.org,joshua.hahnjy@gmail.com,j-nomura@ce.jp.nec.com,jannh@google.com,harry@kernel.org,gourry@gourry.net,david@kernel.org,dave.hansen@intel.com,catalin.marinas@arm.com,byungchul@sk.com,apopple@nvidia.com,anshuman.khandual@arm.com,ak@linux.intel.com,dev.jain@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-factor-out-can_spin_trylock.patch removed from -mm tree
-Message-Id: <20260731024335.7670A1F00A3A@smtp.kernel.org>
+Subject: [merged mm-stable] mm-rmap-use-huge_ptep_get-in-try_to_unmap_one.patch removed from -mm tree
+Message-Id: <20260731024337.06B251F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,128 +35,147 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: factor out can_spin_trylock()
+     Subject: mm/rmap: use huge_ptep_get() in try_to_unmap_one()
 has been removed from the -mm tree.  Its filename was
-     mm-factor-out-can_spin_trylock.patch
+     mm-rmap-use-huge_ptep_get-in-try_to_unmap_one.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Brendan Jackman <jackmanb@google.com>
-Subject: mm: factor out can_spin_trylock()
-Date: Fri, 03 Jul 2026 12:31:58 +0000
+From: Dev Jain <dev.jain@arm.com>
+Subject: mm/rmap: use huge_ptep_get() in try_to_unmap_one()
+Date: Fri, 3 Jul 2026 11:41:55 +0000
 
-Deduplicate checks for whether the current context is safe for
-spin_trylock().
+Patch series "Fix incorrect access of hugetlb pte entries", v3.
 
-Does this function really belong in mm/internal.h or is it generic?  Not
-sure.  If someone ends up duplicating this logic elsewhere in the kernel,
-that would be a shame.  But if it goes in some generic header, someone
-treats it as documentation about where it's guaranteed safe to
-spin_trylock(), and then it emerges that there are other subtle
-preconditions that didn't affect the mm usecase, that would be worse.  So,
-just be conservative and keep it local.
+There are various places which use ptep_get() to get the pte entry
+corresponding to a hugetlb folio.  Some arches (like s390) have special
+handling to compute the pteval, so they provide huge_ptep_get().  Use this
+helper consistently.
 
-Link: https://lore.kernel.org/20260703-alloc-trylock-v5-18-c87b714e19d3@google.com
-Signed-off-by: Brendan Jackman <jackmanb@google.com>
-Suggested-by: Harry Yoo <harry@kernel.org>
-Link: https://lore.kernel.org/all/397859cb-b127-4cc6-9c71-044afc99bf0c@kernel.org/
-Reviewed-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
-Reviewed-by: Harry Yoo (Oracle) <harry@kernel.org>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
+Additionally, some code paths may provide huge_ptep_get with an unaligned
+address.  This is a problem on arm64 (I checked other arches and it looks
+fine for them), which is fixed in patch 1.  The fix is made to be
+backport-friendly: the cleaner fix would be to perhaps pass the hstate to
+huge_ptep_get() - that is wider churn and we can do that later.
+
+
+This patch (of 5):
+
+try_to_unmap_one() handles hugetlb folios when memory failure needs to
+replace a poisoned hugetlb mapping with a hwpoison entry.  In that case
+page_vma_mapped_walk() returns the pte pointer to the hugetlb folio in
+pvmw.pte, but the code reads it with ptep_get().
+
+On arches which provide their own huge_ptep_get() to dereference a huge
+pte pointer, accessing via ptep_get() would cause pte_pfn(), pte_present()
+etc to misbehave.
+
+It is not clear whether this has a trivially visible effect to userspace.
+
+Just use huge_ptep_get() for dereferencing a huge pte pointer.
+
+Link: https://lore.kernel.org/20260703114202.365553-1-dev.jain@arm.com
+Link: https://lore.kernel.org/20260703114202.365553-3-dev.jain@arm.com
+Fixes: c7ab0d2fdc84 ("mm: convert try_to_unmap_one() to use page_vma_mapped_walk()")
+Signed-off-by: Dev Jain <dev.jain@arm.com>
+Reported-by: David Hildenbrand <david@kernel.org>
+Reviewed-by: Muchun Song <muchun.song@linux.dev>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Andi Kleen <ak@linux.intel.com>
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Byungchul Park <byungchul@sk.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Gregory Price <gourry@gourry.net>
+Cc: Harry Yoo <harry@kernel.org>
+Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
+Cc: Jann Horn <jannh@google.com>
+Cc: Josh Poimboeuf <jpoimboe@kernel.org>
+Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
+Cc: Jun'ichi "Nick" Nomura <j-nomura@ce.jp.nec.com>
+Cc: Kiryl Shutsemau <kas@kernel.org>
+Cc: Lance Yang <lance.yang@linux.dev>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Matthew Brost <matthew.brost@intel.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Pedro Falcato <pfalcato@suse.de>
+Cc: Rakie Kim <rakie.kim@sk.com>
+Cc: Ralph Campbell <rcampbell@nvidia.com>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Will Deacon <will@kernel.org>
+Cc: Zi Yan <ziy@nvidia.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/internal.h   |   23 +++++++++++++++++++++++
- mm/page_alloc.c |   17 +----------------
- mm/slub.c       |   10 +---------
- 3 files changed, 25 insertions(+), 25 deletions(-)
+ include/linux/hugetlb.h |    2 ++
+ mm/rmap.c               |   16 ++++++++++------
+ 2 files changed, 12 insertions(+), 6 deletions(-)
 
---- a/mm/internal.h~mm-factor-out-can_spin_trylock
-+++ a/mm/internal.h
-@@ -1713,4 +1713,27 @@ static inline void mm_prepare_for_swap_e
- 	}
+--- a/include/linux/hugetlb.h~mm-rmap-use-huge_ptep_get-in-try_to_unmap_one
++++ a/include/linux/hugetlb.h
+@@ -1270,6 +1270,8 @@ static inline void hugetlb_count_sub(lon
+ {
  }
  
-+static inline bool can_spin_trylock(void)
-+{
-+	/*
-+	 * In PREEMPT_RT spin_trylock() will call raw_spin_lock() which is
-+	 * unsafe in NMI. If spin_trylock() is called from hard IRQ the current
-+	 * task may be waiting for one rt_spin_lock, but rt_spin_trylock() will
-+	 * mark the task as the owner of another rt_spin_lock which will
-+	 * confuse PI logic, so return immediately if called from hard IRQ or
-+	 * NMI.
-+	 *
-+	 * Note, irqs_disabled() case is ok. spin_trylock() can be called
-+	 * from raw_spin_lock_irqsave region.
-+	 */
-+	if (IS_ENABLED(CONFIG_PREEMPT_RT) && (in_nmi() || in_hardirq()))
-+		return false;
++pte_t huge_ptep_get(struct mm_struct *mm, unsigned long addr, pte_t *ptep);
 +
-+	/* On UP, spin_trylock() always succeeds even when it is locked */
-+	if (!IS_ENABLED(CONFIG_SMP) && in_nmi())
-+		return false;
-+
-+	return true;
-+}
-+
- #endif	/* __MM_INTERNAL_H */
---- a/mm/page_alloc.c~mm-factor-out-can_spin_trylock
-+++ a/mm/page_alloc.c
-@@ -5291,22 +5291,7 @@ static inline bool alloc_order_allowed(g
- 
- static inline bool alloc_nolock_allowed(void)
+ static inline pte_t huge_ptep_clear_flush(struct vm_area_struct *vma,
+ 					  unsigned long addr, pte_t *ptep)
  {
--	/*
--	 * In PREEMPT_RT spin_trylock() will call raw_spin_lock() which is
--	 * unsafe in NMI. If spin_trylock() is called from hard IRQ the current
--	 * task may be waiting for one rt_spin_lock, but rt_spin_trylock() will
--	 * mark the task as the owner of another rt_spin_lock which will
--	 * confuse PI logic, so return immediately if called from hard IRQ or
--	 * NMI.
--	 *
--	 * Note, irqs_disabled() case is ok. This function can be called
--	 * from raw_spin_lock_irqsave region.
--	 */
--	if (IS_ENABLED(CONFIG_PREEMPT_RT) && (in_nmi() || in_hardirq()))
--		return false;
--
--	/* On UP, spin_trylock() always succeeds even when it is locked */
--	if (!IS_ENABLED(CONFIG_SMP) && in_nmi())
-+	if (!can_spin_trylock())
- 		return false;
+--- a/mm/rmap.c~mm-rmap-use-huge_ptep_get-in-try_to_unmap_one
++++ a/mm/rmap.c
+@@ -2095,14 +2095,19 @@ static bool try_to_unmap_one(struct foli
+ 		/* Unexpected PMD-mapped THP? */
+ 		VM_BUG_ON_FOLIO(!pvmw.pte, folio);
  
- 	/* Bailout, since _deferred_grow_zone() needs to take a lock */
---- a/mm/slub.c~mm-factor-out-can_spin_trylock
-+++ a/mm/slub.c
-@@ -5380,15 +5380,7 @@ static void *__kmalloc_nolock_noprof(DEC
- 	if (unlikely(!size))
- 		return ZERO_SIZE_PTR;
+-		/*
+-		 * Handle PFN swap PTEs, such as device-exclusive ones, that
+-		 * actually map pages.
+-		 */
+-		pteval = ptep_get(pvmw.pte);
++		address = pvmw.address;
++		if (folio_test_hugetlb(folio)) {
++			pteval = huge_ptep_get(mm, address, pvmw.pte);
++		} else {
++			pteval = ptep_get(pvmw.pte);
++		}
+ 		if (likely(pte_present(pteval))) {
+ 			pfn = pte_pfn(pteval);
+ 		} else {
++			/*
++			 * Handle PFN swap PTEs, such as device-exclusive ones,
++			 * that actually map pages.
++			 */
+ 			const softleaf_t entry = softleaf_from_pte(pteval);
  
--	/*
--	 * See the comment for the same check in
--	 * alloc_frozen_pages_nolock_noprof()
--	 */
--	if (IS_ENABLED(CONFIG_PREEMPT_RT) && (in_nmi() || in_hardirq()))
--		return NULL;
--
--	/* On UP, spin_trylock() always succeeds even when it is locked */
--	if (!IS_ENABLED(CONFIG_SMP) && in_nmi())
-+	if (!can_spin_trylock())
- 		return NULL;
+ 			pfn = softleaf_to_pfn(entry);
+@@ -2110,7 +2115,6 @@ static bool try_to_unmap_one(struct foli
+ 		}
  
- retry:
+ 		subpage = folio_page(folio, pfn - folio_pfn(folio));
+-		address = pvmw.address;
+ 		anon_exclusive = folio_test_anon(folio) &&
+ 				 PageAnonExclusive(subpage);
+ 
 _
 
-Patches currently in -mm which might be from jackmanb@google.com are
+Patches currently in -mm which might be from dev.jain@arm.com are
 
-mm-secretmem-dont-allow-highmem-folios.patch
-mm-page_alloc-dont-spin_trylock-in-nmi-on-up.patch
-mm-page_alloc-dont-spin_trylock-when-disallowed-in-free_one_page.patch
-mm-page_alloc-rename-fpi_trylock-fpi_nolock.patch
-cgroup-cpuset-update-some-comments-about-the-page-allocator.patch
-mm-page_alloc-fixup-alloc_pages_nolock_noprof-comment.patch
-mm-page_alloc-remove-a-couple-of-vm_bug_onst.patch
+mm-rmap-convert-page-folio-for-hwpoison-checks.patch
+mm-rmap-add-try_to_unmap_poisoned_hugetlb_one.patch
+mm-rmap-refactor-some-code-around-lazyfree-folio-unmapping.patch
+mm-rmap-refactor-anon-folio-unmap-in-try_to_unmap_one.patch
+mm-rmap-add-anon-folio-unmap-dispatcher.patch
+mm-memory-move-pte_install_uffd_wp_if_needed-into-memoryc.patch
+mm-memory-batch-set-uffd-wp-markers-during-zapping.patch
+mm-rmap-batch-unmap-file-folios-belonging-to-uffd-wp-vmas.patch
 
