@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AE03D339369
-	for <mm-commits@vger.kernel.org>; Fri, 31 Jul 2026 02:43:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 49CDB33936C
+	for <mm-commits@vger.kernel.org>; Fri, 31 Jul 2026 02:43:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785465783; cv=none; b=KXSRG7pKeSNUL+LgVAMbWPSNpB72qoPaSoiLsMGaNIJmHagqfjTny8elQ8R94iaBfOq03DeNAgElQsVG2tKvrQsCyoyAatSaTEK4cIYilem3HihSekk6BLhEwAW0MecV3rXVywlyp1ViDSdrBk4H8hSBKdv8P5PRfYPIGOIDWrs=
+	t=1785465784; cv=none; b=SCdnloRSDUXMhnvYlC7ClITy9jgJVAw7O50Wd0buH9eIKKZSAcPpqB9ny/aLzIvFta7f+2oQGBgdmnQUmyRGe14jGdVy1NTIXODpXphqoM64RctxkU3neh0b2DGgDzQPka4MU2C7ePo0TrtPdbxwF/LSJ6phiFYlWANAGT/9gPY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785465783; c=relaxed/simple;
-	bh=xyONpW8CVzhn3dL/krU2dU7U2S6JQF/ORKFaDT5PBOI=;
-	h=Date:To:From:Subject:Message-Id; b=RNa2C7T1qYlfUYAND4sl3IQOftlXCs6hnB0f9u9VO65lMavxWyZZyLiChK2d04bVeeIyNOraa2w7BVxTS2X+VCwebLcTCc7eLFhLA5gBWMcnLWvusUQVG6HD+oKQUanZn8pUGTyu/b+R67u0aJfwUpFo5716olqBfoPIfo6cKpg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ny1LAveA; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785465784; c=relaxed/simple;
+	bh=HkagI8oMxe+BoaQBrCRBmYSO7AdlZBQfelg9iFBX9IU=;
+	h=Date:To:From:Subject:Message-Id; b=n+lCcZuDZ5GAwXPhIn+8lZtgVsEeQoKImrtWhDD53OiNJKMn0Ic8DUa6bcQgqnoCOUI69B0xksnQqkZXL/8GYStVqWdqSiqcMmoiiSvzVoFVDwLtRycieWXtVSRpyJFW3H4bAhPfAtaAHmiLQtFmE7un6EX81HMfvkcWK8qcCJs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=V45Q7Pyv; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ny1LAveA"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 30D471F000E9;
-	Fri, 31 Jul 2026 02:43:01 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="V45Q7Pyv"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A0AC31F00A3A;
+	Fri, 31 Jul 2026 02:43:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785465781;
-	bh=khV+O32N/dHHjYZITMqVwoYlVVPljWvRP9p1nw++AJM=;
+	d=linux-foundation.org; s=korg; t=1785465782;
+	bh=MODWoOMETKzAjy6tJD8SQJCyIx6V4jvTYTbc6e0xcgI=;
 	h=Date:To:From:Subject;
-	b=ny1LAveAqbmRFsd4D0R8fvL4AQj8OBtU4HRF8BT0NmMmFYSi/xx3kneEW3HJJlAJC
-	 BgOXQliZN1dRxw4VVePYoeZjny7x+1U+B77PXzeE2pKPH3bqutmlM8ynwCHwntHRK5
-	 67fSJAtLjF7TUPantfKlfD2zNDlLicVToy5V/bkY=
-Date: Thu, 30 Jul 2026 19:43:00 -0700
+	b=V45Q7Pyv9D93vdNlAjKxvdCWsjXEeO4M4b3MGiLfpCC/JAtnvn1RgE+TsGpULeWmC
+	 kX8am1NFfzUst6PRGmhhmaefRHmpu9HotlC89rpyk0IlBWTYBIt0s2EhPnj2gVoNSV
+	 QP88xUzKNP4cs0yn6zQO+PmwDSf+uxpwWsjeklYU=
+Date: Thu, 30 Jul 2026 19:43:02 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,yan.y.zhao@intel.com,vannapurve@google.com,shivankg@amd.com,shakeel.butt@linux.dev,seanjc@google.com,roman.gushchin@linux.dev,rientjes@google.com,rick.p.edgecombe@intel.com,rakie.kim@sk.com,qi.zheng@linux.dev,pratyush@kernel.org,peterx@redhat.com,pbonzini@redhat.com,pasha.tatashin@soleen.com,osalvador@suse.de,muchun.song@linux.dev,michael.roth@amd.com,mhocko@kernel.org,matthew.brost@intel.com,jthoughton@google.com,joshua.hahnjy@gmail.com,jiaqiyan@google.com,jgg@ziepe.ca,gourry@gourry.net,fvdl@google.com,david@kernel.org,byungchul@sk.com,apopple@nvidia.com,ackerleytng@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-hugetlb-consolidate-interpretation-of-gbl_chg-within-alloc_hugetlb_folio.patch removed from -mm tree
-Message-Id: <20260731024301.30D471F000E9@smtp.kernel.org>
+Subject: [merged mm-stable] mm-hugetlb-move-mpol-interpretation-out-of-alloc_buddy_hugetlb_folio_with_mpol.patch removed from -mm tree
+Message-Id: <20260731024302.A0AC31F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,78 +35,42 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: hugetlb: consolidate interpretation of gbl_chg within alloc_hugetlb_folio()
+     Subject: mm: hugetlb: move mpol interpretation out of alloc_buddy_hugetlb_folio_with_mpol()
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-consolidate-interpretation-of-gbl_chg-within-alloc_hugetlb_folio.patch
+     mm-hugetlb-move-mpol-interpretation-out-of-alloc_buddy_hugetlb_folio_with_mpol.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Ackerley Tng <ackerleytng@google.com>
-Subject: mm: hugetlb: consolidate interpretation of gbl_chg within alloc_hugetlb_folio()
-Date: Thu, 02 Jul 2026 09:21:45 -0700
+Subject: mm: hugetlb: move mpol interpretation out of alloc_buddy_hugetlb_folio_with_mpol()
+Date: Thu, 02 Jul 2026 09:21:46 -0700
 
-Patch series "Open HugeTLB allocation routine for more generic use", v4.
+Move memory policy interpretation out of
+alloc_buddy_hugetlb_folio_with_mpol() and into alloc_hugetlb_folio() to
+separate reading and interpretation of memory policy from actual
+allocation.
 
-The motivation for this patch series is guest_memfd, which would like to
-use HugeTLB as a generic source of huge pages but not adopt HugeTLB's
-reservation at mmap() time.
+This will later allow memory policy to be interpreted outside of the
+process of allocating a hugetlb folio entirely.  This opens doors for
+other callers of the HugeTLB folio allocation function, such as
+guest_memfd, where memory may not always be mapped and hence may not have
+an associated vma.
 
-By refactoring alloc_hugetlb_folio() and some dependent functions, there
-is now an option to allocate HugeTLB folios without providing a VMA. 
-Specifically, HugeTLB allocation used to be dependent on the VMA to
+Introduce struct mempolicy_interpreted to hold all the components of an
+interpreted memory policy.
 
-1. Look up reservations in the resv_map
-2. Get mpol, stored at vma->vm_policy
-
-This refactoring provides hugetlb_alloc_folio(), which focuses on just the
-allocation itself, and associated memory and HugeTLB charging (cgroups). 
-alloc_hugetlb_folio() still handles reservations in the resv_map and
-subpools.
-
-Regarding naming, I'm definitely open to alternative names :) I chose
-hugetlb_alloc_folio() because I'm seeing this function as a general
-allocation function that is provided by the HugeTLB subsystem (hence the
-hugetlb_ prefix).  I'm intending for alloc_hugetlb_folio() to be later
-refactored as a static function for use just by HugeTLB, and HugeTLBfs
-should probably use hugetlb_alloc_folio() directly.
-
-To see how hugetlb_alloc_folio() is used by guest_memfd, the most recent
-patch series that uses this more generic HugeTLB allocation routine is at
-[1], and a newer revision of that patch series is at [2].
-
-Independently of guest_memfd, I believe this change is useful in
-simplifying alloc_hugetlb_folio().  alloc_hugetlb_folio() was so coupled
-to a VMA that even HugeTLBfs allocates HugeTLB folios using a pseudo-VMA.
-
-
-This patch (of 6):
-
-The dequeue_hugetlb_folio_vma() function currently handles the gbl_chg
-parameter to determine if a folio can be dequeued based on global page
-availability.  This leaks reservation-specific logic into the dequeueing
-path.
-
-Relocate this logic to alloc_hugetlb_folio() so that
-dequeue_hugetlb_folio_vma() focuses solely on selecting and dequeuing a
-folio.  In alloc_hugetlb_folio(), only attempt to dequeue a folio if a
-reservation exists (gbl_chg == 0) or if there are available huge pages in
-the global pool.
+Rename alloc_buddy_hugetlb_folio_with_mpol() to
+alloc_buddy_hugetlb_folio() since the function no longer interprets memory
+policy.
 
 No functional change intended.
 
-Link: https://lore.kernel.org/20260702-hugetlb-open-up-v4-0-d53cefcccf34@google.com
-Link: https://lore.kernel.org/20260702-hugetlb-open-up-v4-1-d53cefcccf34@google.com
-Link: https://lore.kernel.org/all/cover.1747264138.git.ackerleytng@google.com/T/ [1]
-Link: https://github.com/googleprodkernel/linux-cc/tree/wip-gmem-conversions-hugetlb-restructuring-12-08-25 [2]
-Link: https://lore.kernel.org/all/agqaUcVp_hwH-VXr@localhost.localdomain/ [3]
-Link: https://sashiko.dev/#/patchset/20260518-hugetlb-open-up-v3-0-e14b302477f8@google.com [4]
+Link: https://lore.kernel.org/20260702-hugetlb-open-up-v4-2-d53cefcccf34@google.com
 Signed-off-by: Ackerley Tng <ackerleytng@google.com>
 Reviewed-by: James Houghton <jthoughton@google.com>
 Acked-by: Oscar Salvador <osalvador@suse.de>
-Reviewed-by: Joshua Hahn <joshua.hahnjy@gmail.com>
-Cc: Qi Zheng <qi.zheng@linux.dev>
 Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Byungchul Park <byungchul@sk.com>
 Cc: David Hildenbrand <david@kernel.org>
@@ -117,6 +81,7 @@ Cc: Gregory Price <gourry@gourry.net>
 Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
 Cc: Jason Gunthorpe <jgg@ziepe.ca>
 Cc: Jiaqi Yan <jiaqiyan@google.com>
+Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
 Cc: Matthew Brost <matthew.brost@intel.com>
 Cc: Michael Roth <michael.roth@amd.com>
 Cc: Michal Hocko <mhocko@kernel.org>
@@ -125,6 +90,7 @@ Cc: Paolo Bonzini <pbonzini@redhat.com>
 Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
 Cc: Peter Xu <peterx@redhat.com>
 Cc: Pratyush Yadav <pratyush@kernel.org>
+Cc: Qi Zheng <qi.zheng@linux.dev>
 Cc: Rakie Kim <rakie.kim@sk.com>
 Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Cc: Sean Christopherson <seanjc@google.com>
@@ -136,67 +102,124 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   27 +++++++++++----------------
- 1 file changed, 11 insertions(+), 16 deletions(-)
+ include/uapi/linux/mempolicy.h |    2 -
+ mm/hugetlb.c                   |   54 ++++++++++++++++++++-----------
+ 2 files changed, 37 insertions(+), 19 deletions(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-consolidate-interpretation-of-gbl_chg-within-alloc_hugetlb_folio
+--- a/include/uapi/linux/mempolicy.h~mm-hugetlb-move-mpol-interpretation-out-of-alloc_buddy_hugetlb_folio_with_mpol
++++ a/include/uapi/linux/mempolicy.h
+@@ -16,7 +16,7 @@
+  */
+ 
+ /* Policies */
+-enum {
++enum mempolicy_mode {
+ 	MPOL_DEFAULT,
+ 	MPOL_PREFERRED,
+ 	MPOL_BIND,
+--- a/mm/hugetlb.c~mm-hugetlb-move-mpol-interpretation-out-of-alloc_buddy_hugetlb_folio_with_mpol
 +++ a/mm/hugetlb.c
-@@ -1318,7 +1318,7 @@ static unsigned long available_huge_page
- 
- static struct folio *dequeue_hugetlb_folio_vma(struct hstate *h,
- 				struct vm_area_struct *vma,
--				unsigned long address, long gbl_chg)
-+				unsigned long address)
- {
- 	struct folio *folio = NULL;
- 	struct mempolicy *mpol;
-@@ -1326,13 +1326,6 @@ static struct folio *dequeue_hugetlb_fol
- 	nodemask_t *nodemask;
- 	int nid;
- 
--	/*
--	 * gbl_chg==1 means the allocation requires a new page that was not
--	 * reserved before.  Making sure there's at least one free page.
--	 */
--	if (gbl_chg && !available_huge_pages(h))
--		goto err;
--
- 	gfp_mask = htlb_alloc_mask(h);
- 	nid = huge_node(vma, address, gfp_mask, &mpol, &nodemask);
- 
-@@ -1350,9 +1343,6 @@ static struct folio *dequeue_hugetlb_fol
- 
- 	mpol_cond_put(mpol);
- 	return folio;
--
--err:
--	return NULL;
+@@ -1316,6 +1316,12 @@ static unsigned long available_huge_page
+ 	return h->free_huge_pages - h->resv_huge_pages;
  }
  
- #if defined(CONFIG_ARCH_HAS_GIGANTIC_PAGE) && defined(CONFIG_CONTIG_ALLOC)
-@@ -2922,12 +2912,17 @@ struct folio *alloc_hugetlb_folio(struct
- 		goto out_uncharge_cgroup_reservation;
++struct mempolicy_interpreted {
++	int nid;
++	nodemask_t *nodemask;
++	enum mempolicy_mode mode;
++};
++
+ static struct folio *dequeue_hugetlb_folio_vma(struct hstate *h,
+ 				struct vm_area_struct *vma,
+ 				unsigned long address)
+@@ -2137,32 +2143,28 @@ static struct folio *alloc_migrate_huget
+ 	return folio;
+ }
  
- 	spin_lock_irq(&hugetlb_lock);
+-/*
+- * Use the VMA's mpolicy to allocate a huge page from the buddy.
+- */
+ static
+-struct folio *alloc_buddy_hugetlb_folio_with_mpol(struct hstate *h,
+-		struct vm_area_struct *vma, unsigned long addr)
++struct folio *alloc_buddy_hugetlb_folio(struct hstate *h,
++		gfp_t gfp_mask, struct mempolicy_interpreted *mpoli)
+ {
+ 	struct folio *folio = NULL;
+-	struct mempolicy *mpol;
+-	gfp_t gfp_mask = htlb_alloc_mask(h);
+-	int nid;
+-	nodemask_t *nodemask;
++	nodemask_t *nodemask = mpoli->nodemask;
+ 
+-	nid = huge_node(vma, addr, gfp_mask, &mpol, &nodemask);
+-	if (mpol_is_preferred_many(mpol)) {
++	if (mpoli->mode == MPOL_PREFERRED_MANY) {
+ 		gfp_t gfp = gfp_mask & ~(__GFP_DIRECT_RECLAIM | __GFP_NOFAIL);
+ 
+-		folio = alloc_surplus_hugetlb_folio(h, gfp, nid, nodemask);
++		folio = alloc_surplus_hugetlb_folio(h, gfp, mpoli->nid,
++						    nodemask);
+ 
+ 		/* Fallback to all nodes if page==NULL */
+ 		nodemask = NULL;
+ 	}
+ 
+-	if (!folio)
+-		folio = alloc_surplus_hugetlb_folio(h, gfp_mask, nid, nodemask);
+-	mpol_cond_put(mpol);
++	if (!folio) {
++		folio = alloc_surplus_hugetlb_folio(h, gfp_mask, mpoli->nid,
++						    nodemask);
++	}
 +
- 	/*
--	 * glb_chg is passed to indicate whether or not a page must be taken
--	 * from the global free pool (global change).  gbl_chg == 0 indicates
--	 * a reservation exists for the allocation.
--	 */
--	folio = dequeue_hugetlb_folio_vma(h, vma, addr, gbl_chg);
-+	 * gbl_chg == 0 indicates a reservation exists for the
-+	 * allocation, so try dequeuing a page. In case there was no
-+	 * reservation, try dequeuing a page if there are available
-+	 * pages in the global pool.
-+	 */
-+	folio = NULL;
-+	if (!gbl_chg || available_huge_pages(h))
-+		folio = dequeue_hugetlb_folio_vma(h, vma, addr);
-+
+ 	return folio;
+ }
+ 
+@@ -2852,7 +2854,7 @@ struct folio *alloc_hugetlb_folio(struct
+ 	int ret, idx;
+ 	struct hugetlb_cgroup *h_cg = NULL;
+ 	struct hugetlb_cgroup *h_cg_rsvd = NULL;
+-	gfp_t gfp = htlb_alloc_mask(h) | __GFP_RETRY_MAYFAIL;
++	gfp_t gfp = htlb_alloc_mask(h);
+ 
+ 	idx = hstate_index(h);
+ 
+@@ -2924,8 +2926,24 @@ struct folio *alloc_hugetlb_folio(struct
+ 		folio = dequeue_hugetlb_folio_vma(h, vma, addr);
+ 
  	if (!folio) {
++		struct mempolicy_interpreted mpoli;
++		struct mempolicy *mpol;
++		nodemask_t *nodemask;
++		int nid;
++
  		spin_unlock_irq(&hugetlb_lock);
- 		folio = alloc_buddy_hugetlb_folio_with_mpol(h, vma, addr);
+-		folio = alloc_buddy_hugetlb_folio_with_mpol(h, vma, addr);
++		nid = huge_node(vma, addr, gfp, &mpol, &nodemask);
++		mpoli = (struct mempolicy_interpreted){
++			.nid = nid,
++#ifdef CONFIG_NUMA
++			.mode = mpol ? mpol->mode : MPOL_DEFAULT,
++#else
++			.mode = MPOL_DEFAULT,
++#endif
++			.nodemask = nodemask,
++		};
++		folio = alloc_buddy_hugetlb_folio(h, gfp, &mpoli);
++		mpol_cond_put(mpol);
+ 		if (!folio)
+ 			goto out_uncharge_cgroup;
+ 		spin_lock_irq(&hugetlb_lock);
+@@ -2981,7 +2999,7 @@ struct folio *alloc_hugetlb_folio(struct
+ 		}
+ 	}
+ 
+-	ret = mem_cgroup_charge_hugetlb(folio, gfp);
++	ret = mem_cgroup_charge_hugetlb(folio, gfp | __GFP_RETRY_MAYFAIL);
+ 	/*
+ 	 * Unconditionally increment NR_HUGETLB here. If it turns out that
+ 	 * mem_cgroup_charge_hugetlb failed, then immediately free the page and
 _
 
 Patches currently in -mm which might be from ackerleytng@google.com are
