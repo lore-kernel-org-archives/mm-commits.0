@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E52D133A014
-	for <mm-commits@vger.kernel.org>; Fri, 31 Jul 2026 02:43:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 67FAC33AD9C
+	for <mm-commits@vger.kernel.org>; Fri, 31 Jul 2026 02:44:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785465841; cv=none; b=kIkNczSGohdhD6BVR5tYTFuIVoBWTqdx6EY9KLjWfCyC7Fp9eNHZgi75x5O6nlOWe9g8QdllMVyRblIzUi/SqSfJ3BWgnaxs4xi9w8RuEtkEPf/5AprfyHIZUFKSp4kTUzRykc1pm3QrecUx8HlLquNWLbczszDv8RAme/gvhoU=
+	t=1785465842; cv=none; b=OiMSFhL/090HjBCiqo9zAaMUjGIaXX4amBZg9Id4f0IN43kqX46sy61U9JI+GuTocc00JdWJjAqrGBkqdeHQEjHIPB+XqMOsN4d4NlDbICBgCnlbMDFClDV5wMdpFfEOm6kZHww5p7hKXoTAX4rQ4OyWCKUEG9J5Hxv+IPoy06U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785465841; c=relaxed/simple;
-	bh=HOBxMhhTnqLwpwIPfzDRBIfjq5DLmz/llylxYRlzg6Q=;
-	h=Date:To:From:Subject:Message-Id; b=DhHRHnrpAVBksdfkqBWLdz4gq5BE6pdO91WbTIsT4d2nN+jHfCFE+EpJzCm7ISPEMh8QoP125+PyzL1eY9XB5M0i+we3EXio5byl5gdEWNQ9n9hfCH+I44PHaZ/rikFYvrHcltKyJUIS80qlGNInxbh2eww6QWh5+9mqFEuQ1rE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=y0BWxY95; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785465842; c=relaxed/simple;
+	bh=nbuxI6kxZh/aAmFruP7LWJgnBlRbLXrfQW+XkY3XUZw=;
+	h=Date:To:From:Subject:Message-Id; b=BUQntkzXIX3ushAhx/fqaVWtK8wGFFMrlua2T3F+w1qkB5nEBEVLjtJr/cx8arE8i+WIpYfhg85wxFKJF6/0D4Rt4lnUAGp0AB64ATZGZUUghnqsG8FhyOeTE2K04WjiqfgEJw+73i6YmBGEPAJZrKomC86CiyVOljiHcv74YDg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fU4I9P5p; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="y0BWxY95"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BB4CD1F000E9;
-	Fri, 31 Jul 2026 02:43:59 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fU4I9P5p"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3D1CD1F000E9;
+	Fri, 31 Jul 2026 02:44:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785465839;
-	bh=CtnptkMyc1k5SJ2vAGs1Lcx4u0x0TQPK6M0GJPZd93E=;
+	d=linux-foundation.org; s=korg; t=1785465841;
+	bh=aZvQNm5EGMCJXaeoFL7ZsDITET0fuQo3shm2hD53CCw=;
 	h=Date:To:From:Subject;
-	b=y0BWxY95WmL+Q1cLVM08NlJ4Jcb2Ch//YHBOOyMCrYpHCXkwB+TsHr2Mtsv2cq23k
-	 RFYadslcwP8crfZSSbMp+4LcgyiixH+hfmptofgLuf7zGYY6d5YLVilnAsrJxmmvHu
-	 wRe2jiS59itqt2EJ2Gi4M2l4gCJxdKgCedeKrGVg=
-Date: Thu, 30 Jul 2026 19:43:59 -0700
+	b=fU4I9P5paqU0UirdNe+xFwNhdwz33zuPMNrsX3TbXCfCRo/ZA2peqQbMq5fyfHer5
+	 aV/pEPd9AWlVpQ5lub25gVUPZlrkUrJJceIv2kpXWd9BeDMhAOkDl9/+2/kb0E7/9+
+	 jLgQqOYtzSxl/AqhuWaLa+qJJq7ID5T+uoP05LWo=
+Date: Thu, 30 Jul 2026 19:44:00 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,zhen.ni@easystack.cn,ye.liu@linux.dev,vishal.moola@gmail.com,chenyichong@uniontech.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] tools-mm-page_owner_sort-free-per-record-allocations.patch removed from -mm tree
-Message-Id: <20260731024359.BB4CD1F000E9@smtp.kernel.org>
+Subject: [merged mm-stable] tools-mm-page_owner_sort-bound-pattern-output-copies.patch removed from -mm tree
+Message-Id: <20260731024401.3D1CD1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,92 +35,118 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: tools/mm/page_owner_sort: free per-record allocations
+     Subject: tools/mm/page_owner_sort: bound pattern output copies
 has been removed from the -mm tree.  Its filename was
-     tools-mm-page_owner_sort-free-per-record-allocations.patch
+     tools-mm-page_owner_sort-bound-pattern-output-copies.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Yichong Chen <chenyichong@uniontech.com>
-Subject: tools/mm/page_owner_sort: free per-record allocations
-Date: Mon, 29 Jun 2026 09:43:15 +0800
+Subject: tools/mm/page_owner_sort: bound pattern output copies
+Date: Mon, 29 Jun 2026 09:43:16 +0800
 
-add_list() allocates comm and txt for each page owner record, but the
-cleanup path only frees the outer list array.  This leaks both buffers for
-every retained record.
+search_pattern() copies a regex capture into caller-provided buffers
+without knowing their sizes.  Several callers pass fixed-size buffers,
+including FIELD_BUFF and TASK_COMM_LEN.
 
-Free partial allocations in add_list(), discarded records during culling,
-and retained records on exit.
+Pass the destination size to search_pattern(), reject captures that do not
+fit before copying them, and terminate the output string inside
+search_pattern().
 
-Link: https://lore.kernel.org/20260629014316.130307-3-chenyichong@uniontech.com
+Link: https://lore.kernel.org/20260629014316.130307-4-chenyichong@uniontech.com
 Signed-off-by: Yichong Chen <chenyichong@uniontech.com>
-Reviewed-by: Vishal Moola <vishal.moola@gmail.com>
+Cc: Vishal Moola <vishal.moola@gmail.com>
 Cc: Ye Liu <ye.liu@linux.dev>
 Cc: Zhen Ni <zhen.ni@easystack.cn>
 Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/mm/page_owner_sort.c |   20 ++++++++++++++++++--
- 1 file changed, 18 insertions(+), 2 deletions(-)
+ tools/mm/page_owner_sort.c |   27 +++++++++++++++++++++------
+ 1 file changed, 21 insertions(+), 6 deletions(-)
 
---- a/tools/mm/page_owner_sort.c~tools-mm-page_owner_sort-free-per-record-allocations
+--- a/tools/mm/page_owner_sort.c~tools-mm-page_owner_sort-bound-pattern-output-copies
 +++ a/tools/mm/page_owner_sort.c
-@@ -396,6 +396,12 @@ static char *get_comm(char *buf)
- 	return comm_str;
+@@ -237,7 +237,8 @@ static int remove_pattern(regex_t *patte
+ 	return len - (pmatch[1].rm_eo - pmatch[1].rm_so);
  }
  
-+static void free_block_list(struct block_list *block)
-+{
-+	free(block->comm);
-+	free(block->txt);
-+}
-+
- static int get_arg_type(const char *arg)
+-static int search_pattern(regex_t *pattern, char *pattern_str, char *buf)
++static int search_pattern(regex_t *pattern, char *pattern_str,
++			  size_t pattern_str_size, char *buf)
  {
- 	if (!strcmp(arg, "pid") || !strcmp(arg, "p"))
-@@ -502,9 +508,14 @@ static bool add_list(char *buf, int len,
- 	list[list_size].pid = get_pid(buf);
- 	list[list_size].tgid = get_tgid(buf);
- 	list[list_size].comm = get_comm(buf);
--	list[list_size].txt = malloc(len+1);
-+	if (!list[list_size].comm) {
-+		fprintf(stderr, "Out of memory\n");
-+		return false;
-+	}
-+	list[list_size].txt = malloc(len + 1);
- 	if (!list[list_size].txt) {
- 		fprintf(stderr, "Out of memory\n");
-+		free(list[list_size].comm);
- 		return false;
+ 	int err, val_len;
+ 	regmatch_t pmatch[2];
+@@ -249,8 +250,14 @@ static int search_pattern(regex_t *patte
+ 		return -1;
  	}
- 	memcpy(list[list_size].txt, buf, len);
-@@ -863,8 +874,10 @@ int main(int argc, char **argv)
- 		} else {
- 			list[count-1].num += list[i].num;
- 			list[count-1].page_num += list[i].page_num;
-+			free_block_list(&list[i]);
- 		}
- 	}
-+	list_size = count;
- 
- 	qsort(list, count, sizeof(list[0]), compare_sort_condition);
- 
-@@ -898,8 +911,11 @@ out_free:
- 		free(ext_buf);
- 	if (buf)
- 		free(buf);
--	if (list)
-+	if (list) {
-+		for (i = 0; i < list_size; i++)
-+			free_block_list(&list[i]);
- 		free(list);
+ 	val_len = pmatch[1].rm_eo - pmatch[1].rm_so;
++	if ((size_t)val_len >= pattern_str_size) {
++		if (debug_on)
++			fprintf(stderr, "pattern too long in %s\n", buf);
++		return -1;
 +	}
- out_ts:
- 	regfree(&ts_nsec_pattern);
- out_comm:
+ 
+ 	memcpy(pattern_str, buf + pmatch[1].rm_so, val_len);
++	pattern_str[val_len] = '\0';
+ 
+ 	return 0;
+ }
+@@ -307,7 +314,8 @@ static int get_page_num(char *buf)
+ 	char order_str[FIELD_BUFF] = {0};
+ 	char *endptr;
+ 
+-	search_pattern(&order_pattern, order_str, buf);
++	if (search_pattern(&order_pattern, order_str, sizeof(order_str), buf) < 0)
++		return 0;
+ 	errno = 0;
+ 	order_val = strtol(order_str, &endptr, 10);
+ 	if (order_val > 64 || errno != 0 || endptr == order_str || *endptr != '\0') {
+@@ -325,7 +333,8 @@ static pid_t get_pid(char *buf)
+ 	char pid_str[FIELD_BUFF] = {0};
+ 	char *endptr;
+ 
+-	search_pattern(&pid_pattern, pid_str, buf);
++	if (search_pattern(&pid_pattern, pid_str, sizeof(pid_str), buf) < 0)
++		return -1;
+ 	errno = 0;
+ 	pid = strtol(pid_str, &endptr, 10);
+ 	if (errno != 0 || endptr == pid_str || *endptr != '\0') {
+@@ -344,7 +353,8 @@ static pid_t get_tgid(char *buf)
+ 	char tgid_str[FIELD_BUFF] = {0};
+ 	char *endptr;
+ 
+-	search_pattern(&tgid_pattern, tgid_str, buf);
++	if (search_pattern(&tgid_pattern, tgid_str, sizeof(tgid_str), buf) < 0)
++		return -1;
+ 	errno = 0;
+ 	tgid = strtol(tgid_str, &endptr, 10);
+ 	if (errno != 0 || endptr == tgid_str || *endptr != '\0') {
+@@ -363,7 +373,9 @@ static __u64 get_ts_nsec(char *buf)
+ 	char ts_nsec_str[FIELD_BUFF] = {0};
+ 	char *endptr;
+ 
+-	search_pattern(&ts_nsec_pattern, ts_nsec_str, buf);
++	if (search_pattern(&ts_nsec_pattern, ts_nsec_str,
++			   sizeof(ts_nsec_str), buf) < 0)
++		return -1;
+ 	errno = 0;
+ 	ts_nsec = strtoull(ts_nsec_str, &endptr, 10);
+ 	if (errno != 0 || endptr == ts_nsec_str || *endptr != '\0') {
+@@ -384,7 +396,10 @@ static char *get_comm(char *buf)
+ 
+ 	memset(comm_str, 0, TASK_COMM_LEN);
+ 
+-	search_pattern(&comm_pattern, comm_str, buf);
++	if (search_pattern(&comm_pattern, comm_str, TASK_COMM_LEN, buf) < 0) {
++		free(comm_str);
++		return NULL;
++	}
+ 	errno = 0;
+ 	if (errno != 0) {
+ 		if (debug_on)
 _
 
 Patches currently in -mm which might be from chenyichong@uniontech.com are
