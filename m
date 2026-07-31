@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4C0FE489880;
-	Fri, 31 Jul 2026 21:22:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5C1F235C68A;
+	Fri, 31 Jul 2026 21:24:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785532922; cv=none; b=hinv/WHFVpamBK63DLvt2PlQWWjuf75cw9lTXulljQIPBvYfF8H46mc2uJrKlyeSRuSnnAF2oAwWCZdXVmuBwlGIu/rOwxTwKzILvxFYHhAQ3dH2HNQFrcti0pgwUlDMw5i33H7iIgw40uxwiH2jawmORV1jJl7V37zGcMWkicU=
+	t=1785533057; cv=none; b=oAI8AjBG5cnwyg/tk/MPaAe6wobSqY5wBEe9CozJ0wRdu9okFDT3sKzOnQjJPK3K535PSs287pNTpMjNpkoeFpYyy3TTpybKaqTxx6TY+b/uVppLLJLAbL5JOUWZeiGAnqkGG/8Y8qOaiBF3fPhCnDG6M+o0tim9dQiu9iNNtq4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785532922; c=relaxed/simple;
-	bh=fKmR/dKG+JJMOO480BFdLJODYIKZ7bF+5Qad4bprTP8=;
-	h=Date:To:From:Subject:Message-Id; b=Ac3SdesnuyrLgynjYjpRexMq6PcIQWu1mv1X6PWwAyW6RCH2MqN5GdCYVUtIMRAWVuM+4hXBLQm4sYGaTnX9V0rX9O4GnJI/ibIPsX10apVDGG4+OGZQT+zwp0EZp06JFKdTTRtObVgSPZFwY4NIu22CUdNFOXS/HqHovr7M+Tg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EV80WCl6; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785533057; c=relaxed/simple;
+	bh=LAVa+Jqi8e3kc30wzZjsT8ITerc7MFm/myygBSSE2r4=;
+	h=Date:To:From:Subject:Message-Id; b=mOSUPaNsxZyWRmOs5fwvB4XYR7pYiBrM8oX3UO9RJvBiC3SJv+aM6Xzs1WQAlt6KjsakjO6obxQ+QRoYNzQQt1hPRH4zwCEuUrIjeuscrrYxRRhPSk7Y8bJSWjYceRmld4Hbryg1QmGdB7hfWgeUbyuW4ktWefvJYYx/sfncjaI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YHfuv9Ew; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EV80WCl6"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E679B1F00AC4;
-	Fri, 31 Jul 2026 21:22:00 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YHfuv9Ew"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C879F1F00AC4;
+	Fri, 31 Jul 2026 21:24:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785532921;
-	bh=KFzDFZrOdmnwh07FCHhUa/y9NUgQtw8SQCpVVE71XkE=;
+	d=linux-foundation.org; s=korg; t=1785533054;
+	bh=yhTzcwMmo5+L4EEu+yeTY12a3tqiovbn/exVl/NGpII=;
 	h=Date:To:From:Subject;
-	b=EV80WCl6i9ILv8/1Gzq2ZXSNDJYi1JC9XwjlQusiv4lMIP5VJP4lwFe1aT31tbeu9
-	 FpyQzJvxLnA9bDJBRgqjjCudgQ2HUePGeJFhataDhQE7amIynk29zbc4iss3ak/VlD
-	 QFfixuJIjgBHrFWNdx9ys7R/ZqRjYJ7C3+tJpEBg=
-Date: Fri, 31 Jul 2026 14:22:00 -0700
-To: mm-commits@vger.kernel.org,yabinc@google.com,stable@vger.kernel.org,ndesaulniers@google.com,nathan@kernel.org,morbo@google.com,justinstitt@google.com,gprocida@google.com,edumazet@google.com,ajordanr@google.com,akpm@linux-foundation.org
+	b=YHfuv9Ewv/h/0FDtvym9ulmE0JXTb6nKkVm4lJoGi4hcjzlsZN7BQ44HH3OGD77dl
+	 +L31hfP2hSTZL3SlDTDKLHN3awvJrXwTdkzPzuzTJWSUrQcCLPz00ynPo/daLNjPaz
+	 tSqz22MYrwKHwp1A/21xQjDpQ2JGxQABESsUda10=
+Date: Fri, 31 Jul 2026 14:24:14 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,peterx@redhat.com,kas@kernel.org,jhubbard@nvidia.com,jgg@ziepe.ca,hughd@google.com,ackerleytng@google.com,david@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mark-list_add-and-__list_add-as-__always_inline.patch added to mm-nonmm-unstable branch
-Message-Id: <20260731212200.E679B1F00AC4@smtp.kernel.org>
+Subject: + mm-gup-fix-always-draining-lru-caches-in-collect_longterm_unpinnable_folios.patch added to mm-new branch
+Message-Id: <20260731212414.C879F1F00AC4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,26 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: include/linux/list.h: mark list_add and __list_add as __always_inline
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     mark-list_add-and-__list_add-as-__always_inline.patch
+     Subject: mm/gup: fix always draining LRU caches in collect_longterm_unpinnable_folios()
+has been added to the -mm mm-new branch.  Its filename is
+     mm-gup-fix-always-draining-lru-caches-in-collect_longterm_unpinnable_folios.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mark-list_add-and-__list_add-as-__always_inline.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-gup-fix-always-draining-lru-caches-in-collect_longterm_unpinnable_folios.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,96 +69,98 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Jordan R Abrahams-Whitehead <ajordanr@google.com>
-Subject: include/linux/list.h: mark list_add and __list_add as __always_inline
-Date: Fri, 31 Jul 2026 20:15:19 +0000
+From: "David Hildenbrand (Arm)" <david@kernel.org>
+Subject: mm/gup: fix always draining LRU caches in collect_longterm_unpinnable_folios()
+Date: Fri, 31 Jul 2026 22:27:53 +0200
 
-This commit resolves an issue where modpost section verification fails due
-to section mismatches between list_add and its callers.
+folio_may_be_lru_cached() is currently only true for small folios, and
+for small folios FOLL_PIN adds GUP_PIN_COUNTING_BIAS references instead
+of 1 in try_grab_folio()/try_grab_folio_fast().
 
-At present, list_add (and its internal __list_add) are called from both
-.text and .init code sections.  Since inlining can vary per call site,
-list_add can be 4 different states:
+Consequently, our
 
-  list_add in text with arguments to non-.init.data values
-  list_add in init with arguments to static .init.data values
-  list_add in init with arguments to non-.init.data values
-  list_add in text with arguments to static .init.data values
+	folio_ref_count(folio) != folio_expected_ref_count(folio) + 1
 
-It is last instance that ends up causing the section mismatch caused by
-constant propagation of the address of static libs inside the `dir_add` as
-seen below (with the dir_list being defined statically in initramfs.c,
-resting in .init.data).
+check in collect_longterm_unpinnable_folios() will currently always
+identify "reference mismatch" and first drain the local LRU cache to then
+drain the LRU cache on all CPUs, as collect_longterm_unpinnable_folios()
+is really called after pinning the folios with FOLL_PIN.
 
-  WARNING: modpost: vmlinux.o: section mismatch in reference: __list_add
-  (section: .text.unlikely.) -> dir_list (section: .init.data)
+Add a comment because the current code is not quite intuitive: we used to
+drain only to make sure the folio_isolate_lru() would succeed. But then we
+also started draining to make later migration more reliable.
 
-Because of these section matching requirements, semantically, __list_add
-and list_add MUST be inlined.  This will then ensure callers inside .init
-will receive a list_add that exists and refers to only .init data, and
-list_add code in .text sections will only refer to non-init data.
+We'll refactor that code soon a bit, to also make it usable in other
+context where we really want to remove any references from LRU caches.
 
-This issue manifests predominently in AutoFDO with clang, which is very
-hesitant to inline cold functions such as list_add even when marked
-`inline`.  Marking them as `__always_inline` therefore matches the
-existing semantic constraints imposed by modpost's section mismatch
-checks.
+Let's add CC stable, because having an easy way for excessive LRU cache
+draining on all CPUs does not sound right. In common scenarios we
+don't expect to every have to drain.
 
-Link: https://lore.kernel.org/20260731-always-inline-list-add-v1-1-d29f54ce5477@google.com
-Link: https://lore.kernel.org/all/CANn89iJVQe=wedLheJmjZjOTJsWHijT0jZs=iRxKssJZbjAxHw@mail.gmail.com/
-Signed-off-by: Jordan R Abrahams-Whitehead <ajordanr@google.com>
-Suggested-by: Nathan Chancellor <nathan@kernel.org>
-Suggested-by: Eric Dumazet <edumazet@google.com>
-Reviewed-by: Nick Desaulniers <ndesaulniers@google.com>
-Tested-by: Nick Desaulniers <ndesaulniers@google.com>
-Reported-by: Giuliano Procida <gprocida@google.com>
-Reported-by: Yabin Cui <yabinc@google.com>
-Closes: https://github.com/ClangBuiltLinux/linux/issues/2173
-Cc: Bill Wendling <morbo@google.com>
-Cc: Justin Stitt <justinstitt@google.com>
+Link: https://lore.kernel.org/20260731-check_and_migrate_movable_folios-v1-1-e0002d7b791e@kernel.org
+Fixes: 98c6d259319e ("mm/gup: check ref_count instead of lru before migration")
+Fixes: a09a8a1fbb37 ("mm/gup: local lru_add_drain() to avoid lru_add_drain_all()")
+Signed-off-by: David Hildenbrand (Arm) <david@kernel.org>
+Cc: Ackerley Tng <ackerleytng@google.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Kiryl Shutsemau <kas@kernel.org>
+Cc: Peter Xu <peterx@redhat.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/list.h |   15 +++++++++++----
- 1 file changed, 11 insertions(+), 4 deletions(-)
+ mm/gup.c |   10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
 
---- a/include/linux/list.h~mark-list_add-and-__list_add-as-__always_inline
-+++ a/include/linux/list.h
-@@ -150,10 +150,13 @@ static inline bool __list_del_entry_vali
-  *
-  * This is only for internal list manipulation where we know
-  * the prev/next entries already!
-+ *
-+ * Must be inlined to ensure it can be safely called
-+ * with initdata arguments.
-  */
--static inline void __list_add(struct list_head *new,
--			      struct list_head *prev,
--			      struct list_head *next)
-+static __always_inline void __list_add(struct list_head *new,
-+				       struct list_head *prev,
-+				       struct list_head *next)
- {
- 	if (!__list_add_valid(new, prev, next))
- 		return;
-@@ -171,8 +174,12 @@ static inline void __list_add(struct lis
-  *
-  * Insert a new entry after the specified head.
-  * This is good for implementing stacks.
-+ *
-+ * Must be inlined to ensure it can be safely called
-+ * with initdata arguments.
-  */
--static inline void list_add(struct list_head *new, struct list_head *head)
-+static __always_inline void list_add(struct list_head *new,
-+				     struct list_head *head)
- {
- 	__list_add(new, head, head->next);
- }
+--- a/mm/gup.c~mm-gup-fix-always-draining-lru-caches-in-collect_longterm_unpinnable_folios
++++ a/mm/gup.c
+@@ -2273,6 +2273,7 @@ static unsigned long collect_longterm_un
+ 
+ 	for (folio = pofs_get_folio(pofs, i); folio;
+ 	     folio = pofs_next_folio(folio, pofs, &i)) {
++		const int pin_refs = folio_has_pincount(folio) ? 1 : GUP_PIN_COUNTING_BIAS;
+ 
+ 		if (folio_is_longterm_pinnable(folio))
+ 			continue;
+@@ -2287,15 +2288,20 @@ static unsigned long collect_longterm_un
+ 			continue;
+ 		}
+ 
++		/*
++		 * We drain not only to make the folio_isolate_lru() succeed,
++		 * but also to remove any other folio references from LRU
++		 * caches.
++		 */
+ 		if (drained == 0 && folio_may_be_lru_cached(folio) &&
+ 				folio_ref_count(folio) !=
+-				folio_expected_ref_count(folio) + 1) {
++				folio_expected_ref_count(folio) + pin_refs) {
+ 			lru_add_drain();
+ 			drained = 1;
+ 		}
+ 		if (drained == 1 && folio_may_be_lru_cached(folio) &&
+ 				folio_ref_count(folio) !=
+-				folio_expected_ref_count(folio) + 1) {
++				folio_expected_ref_count(folio) + pin_refs) {
+ 			lru_add_drain_all();
+ 			drained = 2;
+ 		}
 _
 
-Patches currently in -mm which might be from ajordanr@google.com are
+Patches currently in -mm which might be from david@kernel.org are
 
-mark-list_add-and-__list_add-as-__always_inline.patch
+x86-mm-drop-order-parameter-from-free_pagetable.patch
+mm-provide-free_reserved_pages-removing-x86-variant.patch
+s390-mm-use-free_reserved_pages-in-vmem_free_pages.patch
+mm-bootmem_info-allow-calling-free_bootmem_page-on-pages-without-a-bootmem_type.patch
+x86-mm-stop-marking-vmemmap-as-section_info.patch
+x86-mm-stop-marking-page-tables-as-mix_section_info.patch
+x86-mm-remove-config_have_bootmem_info_node.patch
+mm-hugetlb_vmemmap-remove-bootmem_info-leftovers.patch
+mm-sparse-remove-bootmem_infoh-include.patch
+mm-bootmem_info-remove-config_have_bootmem_info_node.patch
+mm-standardize-printing-for-pgtable-entries.patch
+mm-gup-fix-always-draining-lru-caches-in-collect_longterm_unpinnable_folios.patch
 
