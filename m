@@ -1,158 +1,238 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.19])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 67FAC33AD9C
-	for <mm-commits@vger.kernel.org>; Fri, 31 Jul 2026 02:44:01 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5E02942FCCB
+	for <mm-commits@vger.kernel.org>; Fri, 31 Jul 2026 14:32:32 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.19
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785465842; cv=none; b=OiMSFhL/090HjBCiqo9zAaMUjGIaXX4amBZg9Id4f0IN43kqX46sy61U9JI+GuTocc00JdWJjAqrGBkqdeHQEjHIPB+XqMOsN4d4NlDbICBgCnlbMDFClDV5wMdpFfEOm6kZHww5p7hKXoTAX4rQ4OyWCKUEG9J5Hxv+IPoy06U=
+	t=1785508356; cv=none; b=FiYoj+KW74QalIfdLgv4Hys0aS5SaKLLd6B8X6bUCCXwKUNMohmwiBlK+a5H9CNNNPRkE29KEI3PS97/bLPAmg9p67/Z3v+BkSZnEI5jiDD84R6mM0kIRBg0XINTuD2Trr97Yj+hgi8Dr/BbN+7QwcdCiVtkvZK4mMLb1dHIInw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785465842; c=relaxed/simple;
-	bh=nbuxI6kxZh/aAmFruP7LWJgnBlRbLXrfQW+XkY3XUZw=;
-	h=Date:To:From:Subject:Message-Id; b=BUQntkzXIX3ushAhx/fqaVWtK8wGFFMrlua2T3F+w1qkB5nEBEVLjtJr/cx8arE8i+WIpYfhg85wxFKJF6/0D4Rt4lnUAGp0AB64ATZGZUUghnqsG8FhyOeTE2K04WjiqfgEJw+73i6YmBGEPAJZrKomC86CiyVOljiHcv74YDg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fU4I9P5p; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785508356; c=relaxed/simple;
+	bh=eA+qpUMzk+socKsCRX4kGfvQe3dPY8NF1KuT4zh55Ws=;
+	h=Date:From:To:Cc:Subject:Message-ID; b=MuDOCdJQRXiG48Ebsx2USG9KAydnUznCjj0JDaxKXHSaXTw9HAMAocB23VLetNsglRQR4Xr2xzkB2zzIOPjl9V69md/lpCYwa6oT7OL20aac9fbEGX7ueq6/ZN1Hv4Uz8cqv4kAc9WTlgG4TneEecDEGlgUIeU0Vw/HTzWZRZIo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=VDNACTZl; arc=none smtp.client-ip=198.175.65.19
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fU4I9P5p"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3D1CD1F000E9;
-	Fri, 31 Jul 2026 02:44:01 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785465841;
-	bh=aZvQNm5EGMCJXaeoFL7ZsDITET0fuQo3shm2hD53CCw=;
-	h=Date:To:From:Subject;
-	b=fU4I9P5paqU0UirdNe+xFwNhdwz33zuPMNrsX3TbXCfCRo/ZA2peqQbMq5fyfHer5
-	 aV/pEPd9AWlVpQ5lub25gVUPZlrkUrJJceIv2kpXWd9BeDMhAOkDl9/+2/kb0E7/9+
-	 jLgQqOYtzSxl/AqhuWaLa+qJJq7ID5T+uoP05LWo=
-Date: Thu, 30 Jul 2026 19:44:00 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,zhen.ni@easystack.cn,ye.liu@linux.dev,vishal.moola@gmail.com,chenyichong@uniontech.com,akpm@linux-foundation.org
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] tools-mm-page_owner_sort-bound-pattern-output-copies.patch removed from -mm tree
-Message-Id: <20260731024401.3D1CD1F000E9@smtp.kernel.org>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="VDNACTZl"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1785508353; x=1817044353;
+  h=date:from:to:cc:subject:message-id;
+  bh=eA+qpUMzk+socKsCRX4kGfvQe3dPY8NF1KuT4zh55Ws=;
+  b=VDNACTZlWQyOwLFU6odPsiu2Bd+mY6rajE+Nphug6UANA8MKnsiTpuKL
+   1vONXnxPh+zQzyYHPdXfg056gG3yADMh58TXr8sXTld9RNYs2wKOzePFT
+   HnzmYs8x6evs9dRKqsP3G37tNFUWo9HD0a6sypnT29XyIqz6WdDtgW2GQ
+   tJoqY+zcxj5IdgqANRJQpqqqqF9Fhtbs0ldOtqwftZMdZFJs562xAk2Px
+   BlIxmcCsJAm4UKc/TwfNSOtoTEq57rxBu1gywMVvqkUROJom6+n00Zv1E
+   V/2FJiD1D1hO50cCZU2GJEAtOPLckGoZClQMBkqYI69Em892Wy1UVPuFv
+   g==;
+X-CSE-ConnectionGUID: gxOLK/eMQHWjl4KuyGiSzw==
+X-CSE-MsgGUID: F8hXYcPhRBCLyDC2Y+UYTQ==
+X-IronPort-AV: E=McAfee;i="6800,10657,11861"; a="86085326"
+X-IronPort-AV: E=Sophos;i="6.25,196,1779174000"; 
+   d="scan'208";a="86085326"
+Received: from fmviesa004.fm.intel.com ([10.60.135.144])
+  by orvoesa111.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 31 Jul 2026 07:32:32 -0700
+X-CSE-ConnectionGUID: U8aBB/S2R56Gx5S09zrCIw==
+X-CSE-MsgGUID: Y1Y/0fbcSvSYdTUtqhFt1A==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.25,196,1779174000"; 
+   d="scan'208";a="262551831"
+Received: from lkp-server01.sh.intel.com (HELO 6eda058d650d) ([10.239.97.150])
+  by fmviesa004.fm.intel.com with ESMTP; 31 Jul 2026 07:32:30 -0700
+Received: from kbuild by 6eda058d650d with local (Exim 4.98.2)
+	(envelope-from <lkp@intel.com>)
+	id 1wpoHj-000000001GH-3KRS;
+	Fri, 31 Jul 2026 14:32:27 +0000
+Date: Fri, 31 Jul 2026 22:31:38 +0800
+From: kernel test robot <lkp@intel.com>
+To: David Hildenbrand <david@kernel.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>,
+ Linux Memory Management List <linux-mm@kvack.org>,
+ mm-commits@vger.kernel.org
+Subject: [akpm-mm:mm-new] BUILD SUCCESS WITH UNVERIFIED WARNING
+ 0c39e2f552f5e16be695cec3a1c77d6a6bf086bb
+Message-ID: <202607312212.u1pPx1f6-lkp@intel.com>
+User-Agent: s-nail v14.9.25
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
+tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm.git mm-new
+branch HEAD: 0c39e2f552f5e16be695cec3a1c77d6a6bf086bb  mm/swap, PM: hibernate: atomically replace hibernation pin
 
-The quilt patch titled
-     Subject: tools/mm/page_owner_sort: bound pattern output copies
-has been removed from the -mm tree.  Its filename was
-     tools-mm-page_owner_sort-bound-pattern-output-copies.patch
+Unverified Warning (likely false positive, kindly check if interested):
 
-This patch was dropped because it was merged into the mm-stable branch
-of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+    https://lore.kernel.org/oe-kbuild/202607120402.clBrrZQA-lkp@intel.com
 
-------------------------------------------------------
-From: Yichong Chen <chenyichong@uniontech.com>
-Subject: tools/mm/page_owner_sort: bound pattern output copies
-Date: Mon, 29 Jun 2026 09:43:16 +0800
+    mm/hmm.c:673 hmm_do_fault() error: we previously assumed 'hmm_vma_walk->locked' could be null (see line 654)
 
-search_pattern() copies a regex capture into caller-provided buffers
-without knowing their sizes.  Several callers pass fixed-size buffers,
-including FIELD_BUFF and TASK_COMM_LEN.
+Warning ids grouped by kconfigs:
 
-Pass the destination size to search_pattern(), reject captures that do not
-fit before copying them, and terminate the output string inside
-search_pattern().
+recent_errors
+`-- powerpc64-randconfig-r072-20260731
+    `-- mm-hmm.c-hmm_do_fault()-error:we-previously-assumed-hmm_vma_walk-locked-could-be-null-(see-line-)
 
-Link: https://lore.kernel.org/20260629014316.130307-4-chenyichong@uniontech.com
-Signed-off-by: Yichong Chen <chenyichong@uniontech.com>
-Cc: Vishal Moola <vishal.moola@gmail.com>
-Cc: Ye Liu <ye.liu@linux.dev>
-Cc: Zhen Ni <zhen.ni@easystack.cn>
-Cc: Zi Yan <ziy@nvidia.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+elapsed time: 795m
 
- tools/mm/page_owner_sort.c |   27 +++++++++++++++++++++------
- 1 file changed, 21 insertions(+), 6 deletions(-)
+configs tested: 150
+configs skipped: 1
 
---- a/tools/mm/page_owner_sort.c~tools-mm-page_owner_sort-bound-pattern-output-copies
-+++ a/tools/mm/page_owner_sort.c
-@@ -237,7 +237,8 @@ static int remove_pattern(regex_t *patte
- 	return len - (pmatch[1].rm_eo - pmatch[1].rm_so);
- }
- 
--static int search_pattern(regex_t *pattern, char *pattern_str, char *buf)
-+static int search_pattern(regex_t *pattern, char *pattern_str,
-+			  size_t pattern_str_size, char *buf)
- {
- 	int err, val_len;
- 	regmatch_t pmatch[2];
-@@ -249,8 +250,14 @@ static int search_pattern(regex_t *patte
- 		return -1;
- 	}
- 	val_len = pmatch[1].rm_eo - pmatch[1].rm_so;
-+	if ((size_t)val_len >= pattern_str_size) {
-+		if (debug_on)
-+			fprintf(stderr, "pattern too long in %s\n", buf);
-+		return -1;
-+	}
- 
- 	memcpy(pattern_str, buf + pmatch[1].rm_so, val_len);
-+	pattern_str[val_len] = '\0';
- 
- 	return 0;
- }
-@@ -307,7 +314,8 @@ static int get_page_num(char *buf)
- 	char order_str[FIELD_BUFF] = {0};
- 	char *endptr;
- 
--	search_pattern(&order_pattern, order_str, buf);
-+	if (search_pattern(&order_pattern, order_str, sizeof(order_str), buf) < 0)
-+		return 0;
- 	errno = 0;
- 	order_val = strtol(order_str, &endptr, 10);
- 	if (order_val > 64 || errno != 0 || endptr == order_str || *endptr != '\0') {
-@@ -325,7 +333,8 @@ static pid_t get_pid(char *buf)
- 	char pid_str[FIELD_BUFF] = {0};
- 	char *endptr;
- 
--	search_pattern(&pid_pattern, pid_str, buf);
-+	if (search_pattern(&pid_pattern, pid_str, sizeof(pid_str), buf) < 0)
-+		return -1;
- 	errno = 0;
- 	pid = strtol(pid_str, &endptr, 10);
- 	if (errno != 0 || endptr == pid_str || *endptr != '\0') {
-@@ -344,7 +353,8 @@ static pid_t get_tgid(char *buf)
- 	char tgid_str[FIELD_BUFF] = {0};
- 	char *endptr;
- 
--	search_pattern(&tgid_pattern, tgid_str, buf);
-+	if (search_pattern(&tgid_pattern, tgid_str, sizeof(tgid_str), buf) < 0)
-+		return -1;
- 	errno = 0;
- 	tgid = strtol(tgid_str, &endptr, 10);
- 	if (errno != 0 || endptr == tgid_str || *endptr != '\0') {
-@@ -363,7 +373,9 @@ static __u64 get_ts_nsec(char *buf)
- 	char ts_nsec_str[FIELD_BUFF] = {0};
- 	char *endptr;
- 
--	search_pattern(&ts_nsec_pattern, ts_nsec_str, buf);
-+	if (search_pattern(&ts_nsec_pattern, ts_nsec_str,
-+			   sizeof(ts_nsec_str), buf) < 0)
-+		return -1;
- 	errno = 0;
- 	ts_nsec = strtoull(ts_nsec_str, &endptr, 10);
- 	if (errno != 0 || endptr == ts_nsec_str || *endptr != '\0') {
-@@ -384,7 +396,10 @@ static char *get_comm(char *buf)
- 
- 	memset(comm_str, 0, TASK_COMM_LEN);
- 
--	search_pattern(&comm_pattern, comm_str, buf);
-+	if (search_pattern(&comm_pattern, comm_str, TASK_COMM_LEN, buf) < 0) {
-+		free(comm_str);
-+		return NULL;
-+	}
- 	errno = 0;
- 	if (errno != 0) {
- 		if (debug_on)
-_
+tested configs:
+alpha                            allnoconfig    gcc-16.1.0
+alpha                           allyesconfig    gcc-16.1.0
+alpha                              defconfig    gcc-16.1.0
+arc                             allmodconfig    gcc-16.1.0
+arc                             allyesconfig    gcc-16.1.0
+arc                  randconfig-001-20260731    clang-17
+arc                  randconfig-001-20260731    gcc-8.5.0
+arc                  randconfig-002-20260731    clang-17
+arc                  randconfig-002-20260731    gcc-16.1.0
+arm                  randconfig-001-20260731    clang-17
+arm                  randconfig-002-20260731    clang-17
+arm                  randconfig-002-20260731    clang-19
+arm                  randconfig-003-20260731    clang-17
+arm                  randconfig-003-20260731    clang-24
+arm                  randconfig-004-20260731    clang-17
+arm                  randconfig-004-20260731    clang-24
+arm64                randconfig-001-20260731    gcc-8.5.0
+arm64                randconfig-002-20260731    clang-24
+arm64                randconfig-002-20260731    gcc-8.5.0
+arm64                randconfig-003-20260731    gcc-10.5.0
+arm64                randconfig-003-20260731    gcc-8.5.0
+arm64                randconfig-004-20260731    gcc-12.5.0
+arm64                randconfig-004-20260731    gcc-8.5.0
+csky                            allmodconfig    gcc-16.1.0
+csky                 randconfig-001-20260731    gcc-16.1.0
+csky                 randconfig-001-20260731    gcc-8.5.0
+csky                 randconfig-002-20260731    gcc-10.5.0
+csky                 randconfig-002-20260731    gcc-8.5.0
+hexagon              randconfig-001-20260731    clang-24
+hexagon              randconfig-002-20260731    clang-24
+i386                            allmodconfig    gcc-14
+i386       buildonly-randconfig-001-20260731    clang-22
+i386       buildonly-randconfig-001-20260731    gcc-14
+i386       buildonly-randconfig-002-20260731    clang-22
+i386       buildonly-randconfig-003-20260731    clang-22
+i386       buildonly-randconfig-004-20260731    clang-22
+i386       buildonly-randconfig-004-20260731    gcc-13
+i386       buildonly-randconfig-005-20260731    clang-22
+i386       buildonly-randconfig-006-20260731    clang-22
+i386       buildonly-randconfig-006-20260731    gcc-14
+i386                 randconfig-001-20260731    gcc-14
+i386                 randconfig-002-20260731    clang-22
+i386                 randconfig-002-20260731    gcc-14
+i386                 randconfig-003-20260731    clang-22
+i386                 randconfig-003-20260731    gcc-14
+i386                 randconfig-004-20260731    gcc-14
+i386                 randconfig-005-20260731    gcc-14
+i386                 randconfig-006-20260731    gcc-13
+i386                 randconfig-006-20260731    gcc-14
+i386                 randconfig-007-20260731    gcc-14
+i386                 randconfig-011-20260731    clang-22
+i386                 randconfig-012-20260731    clang-22
+i386                 randconfig-013-20260731    clang-22
+i386                 randconfig-013-20260731    gcc-14
+i386                 randconfig-014-20260731    clang-22
+i386                 randconfig-014-20260731    gcc-14
+i386                 randconfig-015-20260731    clang-22
+i386                 randconfig-015-20260731    gcc-14
+i386                 randconfig-016-20260731    clang-22
+i386                 randconfig-016-20260731    gcc-14
+i386                 randconfig-017-20260731    clang-22
+i386                 randconfig-017-20260731    gcc-14
+loongarch                          defconfig    clang-24
+loongarch            randconfig-001-20260731    clang-24
+loongarch            randconfig-001-20260731    gcc-16.1.0
+loongarch            randconfig-002-20260731    clang-24
+mips                decstation_r4k_defconfig    gcc-16.1.0
+nios2                           allmodconfig    gcc-11.5.0
+nios2                            allnoconfig    gcc-11.5.0
+nios2                randconfig-001-20260731    clang-24
+nios2                randconfig-001-20260731    gcc-8.5.0
+nios2                randconfig-002-20260731    clang-24
+nios2                randconfig-002-20260731    gcc-8.5.0
+parisc                          allmodconfig    gcc-16.1.0
+parisc                          allyesconfig    gcc-16.1.0
+parisc                             defconfig    gcc-16.1.0
+parisc                        randconfig-001    gcc-8.5.0
+parisc               randconfig-001-20260731    gcc-8.5.0
+parisc               randconfig-002-20260731    gcc-13.4.0
+parisc               randconfig-002-20260731    gcc-8.5.0
+powerpc              randconfig-001-20260731    clang-17
+powerpc              randconfig-001-20260731    gcc-8.5.0
+powerpc              randconfig-002-20260731    clang-24
+powerpc              randconfig-002-20260731    gcc-8.5.0
+powerpc64            randconfig-001-20260731    gcc-8.5.0
+powerpc64            randconfig-002-20260731    gcc-8.5.0
+riscv                randconfig-001-20260731    clang-19
+riscv                randconfig-002-20260731    clang-19
+riscv                randconfig-002-20260731    gcc-12.5.0
+s390                 randconfig-001-20260731    clang-19
+s390                 randconfig-001-20260731    clang-24
+s390                 randconfig-002-20260731    clang-19
+s390                 randconfig-002-20260731    clang-21
+sh                                 defconfig    gcc-16.1.0
+sh                   randconfig-001-20260731    clang-19
+sh                   randconfig-001-20260731    gcc-16.1.0
+sh                   randconfig-002-20260731    clang-19
+sh                   randconfig-002-20260731    gcc-16.1.0
+sparc                         randconfig-001    gcc-14
+sparc                randconfig-001-20260731    gcc-13.4.0
+sparc                randconfig-001-20260731    gcc-14
+sparc                randconfig-002-20260731    gcc-14
+sparc                randconfig-002-20260731    gcc-8.5.0
+sparc64              randconfig-001-20260731    clang-20
+sparc64              randconfig-001-20260731    gcc-14
+sparc64              randconfig-002-20260731    gcc-14
+sparc64              randconfig-002-20260731    gcc-8.5.0
+um                   randconfig-001-20260731    gcc-14
+um                   randconfig-002-20260731    gcc-14
+x86_64     buildonly-randconfig-001-20260731    clang-22
+x86_64     buildonly-randconfig-001-20260731    gcc-14
+x86_64     buildonly-randconfig-002-20260731    clang-22
+x86_64     buildonly-randconfig-002-20260731    gcc-14
+x86_64     buildonly-randconfig-003-20260731    clang-22
+x86_64     buildonly-randconfig-003-20260731    gcc-14
+x86_64     buildonly-randconfig-004-20260731    clang-22
+x86_64     buildonly-randconfig-004-20260731    gcc-14
+x86_64     buildonly-randconfig-005-20260731    clang-22
+x86_64     buildonly-randconfig-005-20260731    gcc-14
+x86_64     buildonly-randconfig-006-20260731    gcc-14
+x86_64                                 kexec    clang-22
+x86_64               randconfig-001-20260731    clang-22
+x86_64               randconfig-001-20260731    gcc-14
+x86_64               randconfig-002-20260731    gcc-14
+x86_64               randconfig-003-20260731    gcc-14
+x86_64               randconfig-004-20260731    gcc-14
+x86_64               randconfig-005-20260731    clang-22
+x86_64               randconfig-005-20260731    gcc-14
+x86_64               randconfig-006-20260731    clang-22
+x86_64               randconfig-006-20260731    gcc-14
+x86_64               randconfig-011-20260731    clang-22
+x86_64               randconfig-012-20260731    gcc-14
+x86_64               randconfig-013-20260731    clang-22
+x86_64               randconfig-014-20260731    clang-22
+x86_64               randconfig-015-20260731    gcc-14
+x86_64               randconfig-016-20260731    gcc-14
+x86_64               randconfig-071-20260731    clang-22
+x86_64               randconfig-071-20260731    gcc-14
+x86_64               randconfig-072-20260731    clang-22
+x86_64               randconfig-073-20260731    clang-22
+x86_64               randconfig-074-20260731    clang-22
+x86_64               randconfig-074-20260731    gcc-14
+x86_64               randconfig-075-20260731    clang-22
+x86_64               randconfig-075-20260731    gcc-14
+x86_64               randconfig-076-20260731    clang-22
+x86_64                          rhel-9.4-bpf    gcc-14
+xtensa               randconfig-001-20260731    gcc-14
+xtensa               randconfig-001-20260731    gcc-9.5.0
+xtensa               randconfig-002-20260731    gcc-11.5.0
+xtensa               randconfig-002-20260731    gcc-14
 
-Patches currently in -mm which might be from chenyichong@uniontech.com are
-
-hugetlbfs-release-subpool-on-fill_super-failure.patch
-hugetlb-make-hugepage_put_subpool-tolerate-null.patch
-hugetlb-evaluate-subpool-free-state-while-locked.patch
-fat-release-buffer-head-after-rebuilding-parent.patch
-
+--
+0-DAY CI Kernel Test Service
+https://github.com/intel/lkp-tests/wiki
