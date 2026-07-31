@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4C2EF3DC4DE
-	for <mm-commits@vger.kernel.org>; Fri, 31 Jul 2026 18:06:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 516CD34D384
+	for <mm-commits@vger.kernel.org>; Fri, 31 Jul 2026 18:06:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785521189; cv=none; b=ifoIJBErOZOLoJSWTvYY0rQkK1odxEve6AvepuWISSKElB75n6qbY9pYfQjMuMDIaynorqxuWj8sng174v97uKNCwM8PxeHBrBIlryC6o3Bsp9NJXv8kRnhix2mxwsAaAvkmE+H/MpOXkKy/dz1mAyGw7dGdrI2LuadxnRH460c=
+	t=1785521193; cv=none; b=bI5hr78vLlreZvouerqRsWpKx8arqksJgOV9zV0opgKL3sdHjAz7FCGfUJjy6tYJizdGHc+2zWTZPehJWYb9BeusQOslSH2traMfmot4kv4lqAZy4iOpdFmFxQ/TkfcidL5Cs5oG81E3vWlEOQoG9o+nriGPWLdM2wtcEM7PvsA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785521189; c=relaxed/simple;
-	bh=WazvZQaVkZvctCNzaAXgkuVtfn0MBNV/w9VSzPkAF1E=;
-	h=Date:To:From:Subject:Message-Id; b=fDj9RrCm+a12DXj9wwjEXxmBgrko0/bdf0ytSomq91lNhP0PpMPsmc8yx0YIt0dDH6kZYcP7dR9TlbMSmKERer0AmxNXkllbaiRSczPyYStfFu1d1MXi0n6lSi8vpdoUvMuAYzAxS+JBus9AJi2RIA0sjJCkWsj77XRzMlcqngQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=a393tqy5; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785521193; c=relaxed/simple;
+	bh=va9+9PKXOnr+lDroSoNkxV/4iohKWnV58/t7oJfgtyQ=;
+	h=Date:To:From:Subject:Message-Id; b=JaHASTZLEyeYhJEbkP4GNq/YDS2wJFeDAZD7rhURrDcEPABpEeJ5my52DPg6Vg+7aPYlg6cw6ch3e5pT8Eg89gKuq2qH+j0vIUX+xdoWocYZKqf54ZEkEHafGnzZAR1KfgwdWDZiRZ2JZ5wmobN3DDDigwC0GC4Wh0n1hMEWt1A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QCpIGf8H; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="a393tqy5"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E3DCF1F00AC4;
-	Fri, 31 Jul 2026 18:06:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QCpIGf8H"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B22B61F00AC4;
+	Fri, 31 Jul 2026 18:06:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785521188;
-	bh=Nm33LicLDrwVmpiq10IFK5HT7iZ2U/jQIUB2Lkg6Fqo=;
+	d=linux-foundation.org; s=korg; t=1785521191;
+	bh=qGNl+15HnDjD4dKmP5zd2+zzffhb+zkhhgRrVOsbkro=;
 	h=Date:To:From:Subject;
-	b=a393tqy56zEqc9DpjXve+gV78W8B6fc5WBH4g2UTnIiDvqsafhU/SxjtkY5Xaqsd0
-	 jy/qVbOmoYehSSOdyW5/fmx3mmmFrQBnPLrk7v9hxADmd7UYWneKQ9Trub4IuCltd6
-	 RiBULC44+/dorgWOmtBIzjz6QM/1myZoBDCnqAMs=
-Date: Fri, 31 Jul 2026 11:06:27 -0700
+	b=QCpIGf8HNjFehCaHK4ixKpEz6+UipwujTLeYnU4PwIFxEZPezezENVJp6fUv7lwy3
+	 yJfsXdHNS09phE9VlzZtMG/n0pBE11a52GRyaf/UV88B8UQ1DkzLjYHRWhKvGPKNH+
+	 snNGa2EYvhpGLVI0KDS9VdboPSnWNA3l9yN6QZSA=
+Date: Fri, 31 Jul 2026 11:06:31 -0700
 To: mm-commits@vger.kernel.org,ysato@users.sourceforge.jp,glaubitz@physik.fu-berlin.de,dalias@libc.org,arnd@arndb.de,rppt@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + sh-drop-dead-code-guarded-by-ifdef-config_numa.patch added to mm-new branch
-Message-Id: <20260731180627.E3DCF1F00AC4@smtp.kernel.org>
+Subject: + sh-drop-include-asm-mmzoneh.patch added to mm-new branch
+Message-Id: <20260731180631.B22B61F00AC4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: sh: drop dead code guarded by #ifdef CONFIG_NUMA
+     Subject: sh: drop include/asm/mmzone.h
 has been added to the -mm mm-new branch.  Its filename is
-     sh-drop-dead-code-guarded-by-ifdef-config_numa.patch
+     sh-drop-include-asm-mmzoneh.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/sh-drop-dead-code-guarded-by-ifdef-config_numa.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/sh-drop-include-asm-mmzoneh.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,12 +70,19 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
-Subject: sh: drop dead code guarded by #ifdef CONFIG_NUMA
-Date: Sun, 10 May 2026 16:55:41 +0300
+Subject: sh: drop include/asm/mmzone.h
+Date: Sun, 10 May 2026 16:55:42 +0300
 
-and NUMA-related comments.
+include/asm/mmzone.h was required for declarations of NUMA related
+functionality.
 
-Link: https://lore.kernel.org/20260510135546.13554-6-rppt@kernel.org
+The only function declared there that's not related to NUMA is
+__add_active_range().
+
+Move __add_active_range() declaration to include/asm/setup.h and drop
+include/asm/mmzone.h
+
+Link: https://lore.kernel.org/20260510135546.13554-7-rppt@kernel.org
 Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Reviewed-by: Arnd Bergmann <arnd@arndb.de>
 Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
@@ -84,91 +91,174 @@ Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sh/include/asm/topology.h |   13 -------------
- arch/sh/kernel/setup.c         |    1 -
- arch/sh/kernel/topology.c      |   12 ------------
- arch/sh/kernel/vmcore_info.c   |    4 ----
- arch/sh/mm/sram.c              |    3 +--
- 5 files changed, 1 insertion(+), 32 deletions(-)
+ arch/sh/include/asm/mmzone.h           |   42 -----------------------
+ arch/sh/include/asm/setup.h            |    3 +
+ arch/sh/kernel/cpu/sh4a/setup-sh7722.c |    1 
+ arch/sh/kernel/cpu/sh4a/setup-sh7723.c |    1 
+ arch/sh/kernel/cpu/sh4a/setup-sh7724.c |    1 
+ arch/sh/kernel/cpu/sh4a/setup-sh7757.c |    1 
+ arch/sh/kernel/cpu/sh4a/setup-sh7785.c |    1 
+ arch/sh/kernel/cpu/sh4a/setup-sh7786.c |    1 
+ arch/sh/kernel/cpu/sh4a/setup-shx3.c   |    1 
+ arch/sh/kernel/setup.c                 |    2 -
+ arch/sh/mm/init.c                      |    1 
+ 11 files changed, 3 insertions(+), 52 deletions(-)
 
---- a/arch/sh/include/asm/topology.h~sh-drop-dead-code-guarded-by-ifdef-config_numa
-+++ a/arch/sh/include/asm/topology.h
-@@ -2,19 +2,6 @@
- #ifndef _ASM_SH_TOPOLOGY_H
- #define _ASM_SH_TOPOLOGY_H
- 
+diff --git a/arch/sh/include/asm/mmzone.h a/arch/sh/include/asm/mmzone.h
+deleted file mode 100644
+--- a/arch/sh/include/asm/mmzone.h
++++ /dev/null
+@@ -1,42 +0,0 @@
+-/* SPDX-License-Identifier: GPL-2.0 */
+-#ifndef __ASM_SH_MMZONE_H
+-#define __ASM_SH_MMZONE_H
+-
 -#ifdef CONFIG_NUMA
+-#include <linux/numa.h>
 -
--#define cpu_to_node(cpu)	((void)(cpu),0)
+-static inline int pfn_to_nid(unsigned long pfn)
+-{
+-	int nid;
 -
--#define cpumask_of_node(node)	((void)node, cpu_online_mask)
+-	for (nid = 0; nid < MAX_NUMNODES; nid++)
+-		if (pfn >= node_start_pfn(nid) && pfn <= node_end_pfn(nid))
+-			break;
 -
--#define pcibus_to_node(bus)	((void)(bus), -1)
--#define cpumask_of_pcibus(bus)	(pcibus_to_node(bus) == -1 ? \
--					cpu_all_mask : \
--					cpumask_of_node(pcibus_to_node(bus)))
+-	return nid;
+-}
 -
--#endif
+-static inline struct pglist_data *pfn_to_pgdat(unsigned long pfn)
+-{
+-	return NODE_DATA(pfn_to_nid(pfn));
+-}
 -
- #define mc_capable()    (1)
+-/* arch/sh/mm/numa.c */
+-void __init setup_bootmem_node(int nid, unsigned long start, unsigned long end);
+-#else
+-static inline void
+-setup_bootmem_node(int nid, unsigned long start, unsigned long end)
+-{
+-}
+-#endif /* CONFIG_NUMA */
+-
+-/* Platform specific mem init */
+-void __init plat_mem_setup(void);
+-
+-/* arch/sh/kernel/setup.c */
+-void __init __add_active_range(unsigned int nid, unsigned long start_pfn,
+-			       unsigned long end_pfn);
+-/* arch/sh/mm/init.c */
+-void __init allocate_pgdat(unsigned int nid);
+-
+-#endif /* __ASM_SH_MMZONE_H */
+--- a/arch/sh/include/asm/setup.h~sh-drop-include-asm-mmzoneh
++++ a/arch/sh/include/asm/setup.h
+@@ -24,4 +24,7 @@ void check_for_initrd(void);
+ void per_cpu_trap_init(void);
+ void sh_fdt_init(phys_addr_t dt_phys);
  
- const struct cpumask *cpu_coregroup_mask(int cpu);
---- a/arch/sh/kernel/setup.c~sh-drop-dead-code-guarded-by-ifdef-config_numa
++void __add_active_range(unsigned int nid, unsigned long start_pfn,
++			unsigned long end_pfn);
++
+ #endif /* _SH_SETUP_H */
+--- a/arch/sh/kernel/cpu/sh4a/setup-sh7722.c~sh-drop-include-asm-mmzoneh
++++ a/arch/sh/kernel/cpu/sh4a/setup-sh7722.c
+@@ -16,7 +16,6 @@
+ #include <linux/usb/m66592.h>
+ 
+ #include <asm/clock.h>
+-#include <asm/mmzone.h>
+ #include <asm/siu.h>
+ #include <asm/platform_early.h>
+ 
+--- a/arch/sh/kernel/cpu/sh4a/setup-sh7723.c~sh-drop-include-asm-mmzoneh
++++ a/arch/sh/kernel/cpu/sh4a/setup-sh7723.c
+@@ -17,7 +17,6 @@
+ 
+ #include <asm/cacheflush.h>
+ #include <asm/clock.h>
+-#include <asm/mmzone.h>
+ #include <asm/platform_early.h>
+ 
+ #include <cpu/sh7723.h>
+--- a/arch/sh/kernel/cpu/sh4a/setup-sh7724.c~sh-drop-include-asm-mmzoneh
++++ a/arch/sh/kernel/cpu/sh4a/setup-sh7724.c
+@@ -24,7 +24,6 @@
+ #include <asm/cacheflush.h>
+ #include <asm/suspend.h>
+ #include <asm/clock.h>
+-#include <asm/mmzone.h>
+ #include <asm/platform_early.h>
+ 
+ #include <cpu/dma-register.h>
+--- a/arch/sh/kernel/cpu/sh4a/setup-sh7757.c~sh-drop-include-asm-mmzoneh
++++ a/arch/sh/kernel/cpu/sh4a/setup-sh7757.c
+@@ -21,7 +21,6 @@
+ #include <cpu/dma-register.h>
+ #include <cpu/sh7757.h>
+ 
+-#include <asm/mmzone.h>
+ #include <asm/platform_early.h>
+ 
+ static struct plat_sci_port scif2_platform_data = {
+--- a/arch/sh/kernel/cpu/sh4a/setup-sh7785.c~sh-drop-include-asm-mmzoneh
++++ a/arch/sh/kernel/cpu/sh4a/setup-sh7785.c
+@@ -13,7 +13,6 @@
+ #include <linux/sh_dma.h>
+ #include <linux/sh_timer.h>
+ #include <linux/sh_intc.h>
+-#include <asm/mmzone.h>
+ #include <asm/platform_early.h>
+ #include <cpu/dma-register.h>
+ 
+--- a/arch/sh/kernel/cpu/sh4a/setup-sh7786.c~sh-drop-include-asm-mmzoneh
++++ a/arch/sh/kernel/cpu/sh4a/setup-sh7786.c
+@@ -22,7 +22,6 @@
+ #include <linux/sh_intc.h>
+ #include <linux/usb/ohci_pdriver.h>
+ #include <cpu/dma-register.h>
+-#include <asm/mmzone.h>
+ #include <asm/platform_early.h>
+ 
+ static struct plat_sci_port scif0_platform_data = {
+--- a/arch/sh/kernel/cpu/sh4a/setup-shx3.c~sh-drop-include-asm-mmzoneh
++++ a/arch/sh/kernel/cpu/sh4a/setup-shx3.c
+@@ -13,7 +13,6 @@
+ #include <linux/sh_timer.h>
+ #include <linux/sh_intc.h>
+ #include <cpu/shx3.h>
+-#include <asm/mmzone.h>
+ #include <asm/platform_early.h>
+ 
+ /*
+--- a/arch/sh/kernel/setup.c~sh-drop-include-asm-mmzoneh
 +++ a/arch/sh/kernel/setup.c
-@@ -227,7 +227,6 @@ void __init __add_active_range(unsigned
- 	/*
- 	 * Also make sure that there is a PMB mapping that covers this
- 	 * range before we attempt to activate it, to avoid reset by MMU.
--	 * We can hit this path with NUMA or memory hot-add.
- 	 */
- 	pmb_bolt_mapping((unsigned long)__va(start), start, end - start,
- 			 PAGE_KERNEL);
---- a/arch/sh/kernel/topology.c~sh-drop-dead-code-guarded-by-ifdef-config_numa
-+++ a/arch/sh/kernel/topology.c
-@@ -57,18 +57,6 @@ static int __init topology_init(void)
- 			       __func__, i, ret);
- 	}
- 
--#if defined(CONFIG_NUMA) && !defined(CONFIG_SMP)
--	/*
--	 * In the UP case, make sure the CPU association is still
--	 * registered under each node. Without this, sysfs fails
--	 * to make the connection between nodes other than node0
--	 * and cpu0.
--	 */
--	for_each_online_node(i)
--		if (i != numa_node_id())
--			register_cpu_under_node(raw_smp_processor_id(), i);
--#endif
--
- 	return 0;
- }
- subsys_initcall(topology_init);
---- a/arch/sh/kernel/vmcore_info.c~sh-drop-dead-code-guarded-by-ifdef-config_numa
-+++ a/arch/sh/kernel/vmcore_info.c
-@@ -5,10 +5,6 @@
- 
- void arch_crash_save_vmcoreinfo(void)
- {
--#ifdef CONFIG_NUMA
--	VMCOREINFO_SYMBOL(node_data);
--	VMCOREINFO_LENGTH(node_data, MAX_NUMNODES);
--#endif
- #ifdef CONFIG_X2TLB
- 	VMCOREINFO_CONFIG(X2TLB);
- #endif
---- a/arch/sh/mm/sram.c~sh-drop-dead-code-guarded-by-ifdef-config_numa
-+++ a/arch/sh/mm/sram.c
-@@ -16,8 +16,7 @@
-  * This provides a standard SRAM pool for tiny memories that can be
-  * added either by the CPU or the platform code. Typical SRAM sizes
-  * to be inserted in to the pool will generally be less than the page
-- * size, with anything more reasonably sized handled as a NUMA memory
-- * node.
-+ * size.
-  */
- struct gen_pool *sram_pool;
- 
+@@ -23,7 +23,6 @@
+ #include <linux/smp.h>
+ #include <linux/err.h>
+ #include <linux/crash_dump.h>
+-#include <linux/mmzone.h>
+ #include <linux/clk.h>
+ #include <linux/delay.h>
+ #include <linux/platform_device.h>
+@@ -41,7 +40,6 @@
+ #include <asm/clock.h>
+ #include <asm/smp.h>
+ #include <asm/mmu_context.h>
+-#include <asm/mmzone.h>
+ #include <asm/processor.h>
+ #include <asm/sparsemem.h>
+ #include <asm/platform_early.h>
+--- a/arch/sh/mm/init.c~sh-drop-include-asm-mmzoneh
++++ a/arch/sh/mm/init.c
+@@ -20,7 +20,6 @@
+ #include <linux/dma-mapping.h>
+ #include <linux/export.h>
+ #include <asm/mmu_context.h>
+-#include <asm/mmzone.h>
+ #include <asm/kexec.h>
+ #include <asm/tlb.h>
+ #include <asm/cacheflush.h>
 _
 
 Patches currently in -mm which might be from rppt@kernel.org are
