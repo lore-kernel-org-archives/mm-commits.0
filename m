@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 08674339365
-	for <mm-commits@vger.kernel.org>; Fri, 31 Jul 2026 02:42:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 241B03368AE
+	for <mm-commits@vger.kernel.org>; Fri, 31 Jul 2026 02:42:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785465775; cv=none; b=B+cRD7aVtd8gUqWxyHojupqE31hTbt5vdpx9dlGPqycUtiLtX90SIJ3rjLqQCRtCPmopnUJi6FJAQQrP+TZ4ENx15G5pzQZHBwds5dahiGBcCiWFeV+Fa7HEXIj5eAKz6DP+BTew4gMxKjUKt003ZywyXob4+lYSm7T1SMNFcQY=
+	t=1785465776; cv=none; b=ItDfaOTpWMXvBISP/PqmKIdSAC8bwJU96fRuv5zQDjeIocJiDk8WijwOxcKt/PFQmrecPeBhyaGMbbYkLCsqkxmmF5hxUZcVMaWsXVqhXi5IMAgejxETf6pfml8Qs/qxOgxEot4il0cU7px86ApVpHrR11VbMd5BCcxT4IlQiks=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785465775; c=relaxed/simple;
-	bh=sSMSew6fR+oX1OQqZIxz4uqRWf4hvb0miOAzs2XniDg=;
-	h=Date:To:From:Subject:Message-Id; b=VK5A/d9QL3in247ua9Fm0SKKUXGpNrNjPc6T80LlWF1ojQampIHI1SWcAFcKDdYtQysMzW3jCwfM2DcxzPkjkKrkZTx5z8f35te4gL5vRlw4B2gavYxgUbh/P5iJi+WrrDtN5PMybdhXuPdx5l/y59/cLOIRyZLJDcIEf42Lxl0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jRFWS77f; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785465776; c=relaxed/simple;
+	bh=oHc2nS7IYrN/h6VbLmriPeaYQ7BzlTkRsGcoKTry+iM=;
+	h=Date:To:From:Subject:Message-Id; b=jMlwNT1QOgUnHq7oVFxKQRGwGCq9Z9bpjtxALj1YfLxQSjxYIVO8AW/QS2NDilqVvnklio1uwMM9FNJaviFdXDEEXV08LDloQW6ZOpnKxZqQzHqbP2sMPNZ+4ZKYVeYNL8BwJv6h07yWq7AlbzuaIT5rlZ1ImM8WW9CgoUyJ8eU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Nl8tNa1U; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jRFWS77f"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D12081F00A3E;
-	Fri, 31 Jul 2026 02:42:53 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Nl8tNa1U"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EEF5E1F000E9;
+	Fri, 31 Jul 2026 02:42:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785465773;
-	bh=s10v9Ga65IISmsw1sLk+a6M1B11VpwykgOCgJdS4AIY=;
+	d=linux-foundation.org; s=korg; t=1785465775;
+	bh=+Ai67a6fCjjg6jYr3vXsgbfELgMHmBj0eoihjfZ/+pI=;
 	h=Date:To:From:Subject;
-	b=jRFWS77f/dkGYtn83sjcPeMOtwcX7c3QcjrIH7M/iUebET1afN9fvDvmkbtHPS2Qf
-	 X3KoBSZC+4NCwGBGW/sYWcNiiV/52poDNedMt1MK12VvMHbuyGPxDBGB78RFETml1T
-	 btoxNoC1pKTB64OgJjpSDEZmmG5VUcvIfFL2Z2D0=
-Date: Thu, 30 Jul 2026 19:42:53 -0700
+	b=Nl8tNa1UIcpo150DpgIzWK88hucaz+jE5otkUFas/OCvW9XFrJOpcdl718V0DNxgm
+	 InOStR3FFtWmTMoptpFuWz+Ad/4+QUkhS/7lAHos80OkwZBqeTGM/UZcDmrX0T+GaH
+	 SWq6Vx/O9tXvObJiwqiQm5taN37dN0fSQbpym2U4=
+Date: Thu, 30 Jul 2026 19:42:54 -0700
 To: mm-commits@vger.kernel.org,shuah@kernel.org,rostedt@goodmis.org,mhiramat@kernel.org,mathieu.desnoyers@efficios.com,brendan.higgins@linux.dev,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-paddr-remove-attrs-param-from-__damon_pa_check_access.patch removed from -mm tree
-Message-Id: <20260731024253.D12081F00A3E@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-vaddr-remove-attrs-param-from-__damon_va_check_access.patch removed from -mm tree
+Message-Id: <20260731024254.EEF5E1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,21 +35,21 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/damon/paddr: remove attrs param from __damon_pa_check_access()
+     Subject: mm/damon/vaddr: remove attrs param from __damon_va_check_access()
 has been removed from the -mm tree.  Its filename was
-     mm-damon-paddr-remove-attrs-param-from-__damon_pa_check_access.patch
+     mm-damon-vaddr-remove-attrs-param-from-__damon_va_check_access.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/paddr: remove attrs param from __damon_pa_check_access()
-Date: Mon, 29 Jun 2026 21:08:08 -0700
+Subject: mm/damon/vaddr: remove attrs param from __damon_va_check_access()
+Date: Mon, 29 Jun 2026 21:08:09 -0700
 
-The function is not using the parameter.  Remove it.
+The function is not using attrs parameter.  Remove it.
 
-Link: https://lore.kernel.org/20260630040812.149729-16-sj@kernel.org
+Link: https://lore.kernel.org/20260630040812.149729-17-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Cc: Brendan Higgins <brendan.higgins@linux.dev>
 Cc: "Masami Hiramatsu (Google)" <mhiramat@kernel.org>
@@ -59,30 +59,31 @@ Cc: Steven Rostedt <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/paddr.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ mm/damon/vaddr.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
---- a/mm/damon/paddr.c~mm-damon-paddr-remove-attrs-param-from-__damon_pa_check_access
-+++ a/mm/damon/paddr.c
-@@ -80,7 +80,7 @@ static bool damon_pa_young(phys_addr_t p
- }
- 
- static void __damon_pa_check_access(struct damon_region *r,
--		struct damon_attrs *attrs, unsigned long addr_unit)
-+		unsigned long addr_unit)
+--- a/mm/damon/vaddr.c~mm-damon-vaddr-remove-attrs-param-from-__damon_va_check_access
++++ a/mm/damon/vaddr.c
+@@ -493,8 +493,7 @@ static bool damon_va_young(struct mm_str
+  * r	the region to be checked
+  */
+ static void __damon_va_check_access(struct mm_struct *mm,
+-				struct damon_region *r, bool same_target,
+-				struct damon_attrs *attrs)
++				struct damon_region *r, bool same_target)
  {
- 	static phys_addr_t last_addr;
+ 	static unsigned long last_addr;
  	static unsigned long last_folio_sz = PAGE_SIZE;
-@@ -109,8 +109,7 @@ static unsigned int damon_pa_check_acces
- 
- 	damon_for_each_target(t, ctx) {
+@@ -530,8 +529,7 @@ static unsigned int damon_va_check_acces
+ 		mm = damon_get_mm(t);
+ 		same_target = false;
  		damon_for_each_region(r, t) {
--			__damon_pa_check_access(
--					r, &ctx->attrs, ctx->addr_unit);
-+			__damon_pa_check_access(r, ctx->addr_unit);
+-			__damon_va_check_access(mm, r, same_target,
+-					&ctx->attrs);
++			__damon_va_check_access(mm, r, same_target);
  			max_nr_accesses = max(r->nr_accesses, max_nr_accesses);
+ 			same_target = true;
  		}
- 	}
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
