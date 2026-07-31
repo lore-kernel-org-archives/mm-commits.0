@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 87D64335BB4
-	for <mm-commits@vger.kernel.org>; Fri, 31 Jul 2026 02:42:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AE03D339369
+	for <mm-commits@vger.kernel.org>; Fri, 31 Jul 2026 02:43:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785465779; cv=none; b=oNUr/nlqKwJgeVC0kxBhy2FrvACgtXHKoApO21y7VBXJRmE30EdqB8yH+ho+ZmwRMOuQppf4rOxDbqudjPWon3y6a6OePvYpos+k7lQU8wc/NJTUkKlFXBFqiizXmgKvj/v9I8j+cEBt5KTW9tItRmQd1Uh+B6sOrqk56gNumjY=
+	t=1785465783; cv=none; b=KXSRG7pKeSNUL+LgVAMbWPSNpB72qoPaSoiLsMGaNIJmHagqfjTny8elQ8R94iaBfOq03DeNAgElQsVG2tKvrQsCyoyAatSaTEK4cIYilem3HihSekk6BLhEwAW0MecV3rXVywlyp1ViDSdrBk4H8hSBKdv8P5PRfYPIGOIDWrs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785465779; c=relaxed/simple;
-	bh=L00wIasMTr741x7YKEHmrd9HLjP7UE15PG6pb1H809U=;
-	h=Date:To:From:Subject:Message-Id; b=Wn3N/95oh09P4MpEYocQoCORkjwHVNBqezzJMBITQxwzCgzOZlmQ9juxmoGfB6YDL09b7ukJ5PSsP999CCiUkuMocHkMlUVts+amh5IEwmUFL9Hq1X367TICSA967Ku9tJqnbMgQrrnUWcW3z+E+3r02QWniyRlVA5+Bcz7cUiI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tu5Y7lxm; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785465783; c=relaxed/simple;
+	bh=xyONpW8CVzhn3dL/krU2dU7U2S6JQF/ORKFaDT5PBOI=;
+	h=Date:To:From:Subject:Message-Id; b=RNa2C7T1qYlfUYAND4sl3IQOftlXCs6hnB0f9u9VO65lMavxWyZZyLiChK2d04bVeeIyNOraa2w7BVxTS2X+VCwebLcTCc7eLFhLA5gBWMcnLWvusUQVG6HD+oKQUanZn8pUGTyu/b+R67u0aJfwUpFo5716olqBfoPIfo6cKpg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ny1LAveA; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tu5Y7lxm"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5DDD41F00A3A;
-	Fri, 31 Jul 2026 02:42:58 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ny1LAveA"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 30D471F000E9;
+	Fri, 31 Jul 2026 02:43:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785465778;
-	bh=yom8Prf7pZbjPHjvPwLqNV2r9BQupe+9GCvG6SfRemo=;
+	d=linux-foundation.org; s=korg; t=1785465781;
+	bh=khV+O32N/dHHjYZITMqVwoYlVVPljWvRP9p1nw++AJM=;
 	h=Date:To:From:Subject;
-	b=tu5Y7lxmx0sD6uOCGlR9u/wBYqAgKpohvsN56pZrolErfWM9DRsZKgLayvhs+t/ZY
-	 k02wFq6ggTUMq6tpZTnKCTN2vvI/aArd3qkOkbsSzXH6lX+vgCnksxshN8FJajzSOv
-	 mqgXlLwvFPF9FhLJ/zVkAB0yc0KRfgNzKw+D8nik=
-Date: Thu, 30 Jul 2026 19:42:57 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,jack@suse.cz,hughd@google.com,brauner@kernel.org,yanzhen20011121@163.com,akpm@linux-foundation.org
+	b=ny1LAveAqbmRFsd4D0R8fvL4AQj8OBtU4HRF8BT0NmMmFYSi/xx3kneEW3HJJlAJC
+	 BgOXQliZN1dRxw4VVePYoeZjny7x+1U+B77PXzeE2pKPH3bqutmlM8ynwCHwntHRK5
+	 67fSJAtLjF7TUPantfKlfD2zNDlLicVToy5V/bkY=
+Date: Thu, 30 Jul 2026 19:43:00 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,yan.y.zhao@intel.com,vannapurve@google.com,shivankg@amd.com,shakeel.butt@linux.dev,seanjc@google.com,roman.gushchin@linux.dev,rientjes@google.com,rick.p.edgecombe@intel.com,rakie.kim@sk.com,qi.zheng@linux.dev,pratyush@kernel.org,peterx@redhat.com,pbonzini@redhat.com,pasha.tatashin@soleen.com,osalvador@suse.de,muchun.song@linux.dev,michael.roth@amd.com,mhocko@kernel.org,matthew.brost@intel.com,jthoughton@google.com,joshua.hahnjy@gmail.com,jiaqiyan@google.com,jgg@ziepe.ca,gourry@gourry.net,fvdl@google.com,david@kernel.org,byungchul@sk.com,apopple@nvidia.com,ackerleytng@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-fix-mapping_seek_hole_data-overflow-on-last-page.patch removed from -mm tree
-Message-Id: <20260731024258.5DDD41F00A3A@smtp.kernel.org>
+Subject: [merged mm-stable] mm-hugetlb-consolidate-interpretation-of-gbl_chg-within-alloc_hugetlb_folio.patch removed from -mm tree
+Message-Id: <20260731024301.30D471F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,78 +35,170 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: fix mapping_seek_hole_data() overflow on last page
+     Subject: mm: hugetlb: consolidate interpretation of gbl_chg within alloc_hugetlb_folio()
 has been removed from the -mm tree.  Its filename was
-     mm-fix-mapping_seek_hole_data-overflow-on-last-page.patch
+     mm-hugetlb-consolidate-interpretation-of-gbl_chg-within-alloc_hugetlb_folio.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Zhen Yan <yanzhen20011121@163.com>
-Subject: mm: fix mapping_seek_hole_data() overflow on last page
-Date: Tue, 30 Jun 2026 20:50:47 +0800
+From: Ackerley Tng <ackerleytng@google.com>
+Subject: mm: hugetlb: consolidate interpretation of gbl_chg within alloc_hugetlb_folio()
+Date: Thu, 02 Jul 2026 09:21:45 -0700
 
-A local unprivileged process can create a shmem/tmpfs file with i_size ==
-LLONG_MAX using memfd_create() and fallocate().  If the last page is
-present in the page cache, lseek(SEEK_HOLE) on that page returns
-0x8000000000000000 as a successful offset, which is LLONG_MIN when stored
-in loff_t.
+Patch series "Open HugeTLB allocation routine for more generic use", v4.
 
-The same file has readable data at the last byte, but SEEK_DATA from that
-offset returns ENXIO.
+The motivation for this patch series is guest_memfd, which would like to
+use HugeTLB as a generic source of huge pages but not adopt HugeTLB's
+reservation at mmap() time.
 
-The overflow is in mapping_seek_hole_data():
+By refactoring alloc_hugetlb_folio() and some dependent functions, there
+is now an option to allocate HugeTLB folios without providing a VMA. 
+Specifically, HugeTLB allocation used to be dependent on the VMA to
 
-  pos = round_up((u64)pos + 1, seek_size);
+1. Look up reservations in the resv_map
+2. Get mpol, stored at vma->vm_policy
 
-For the final page below LLONG_MAX, the next page boundary is
-0x8000000000000000, which is then used as a signed file offset.  When
-assigned to the loff_t pos, this overflows to LLONG_MIN, so a subsequent
-"pos > end" comparison does not catch it.
+This refactoring provides hugetlb_alloc_folio(), which focuses on just the
+allocation itself, and associated memory and HugeTLB charging (cgroups). 
+alloc_hugetlb_folio() still handles reservations in the resv_map and
+subpools.
 
-Keep mapping_seek_hole_data() inside its documented [start, end) search
-range: compute round_up() into a u64 variable and compare against (u64)end
-so the overflow is detected, then clamp pos to end when the rounded-up
-value goes past the search limit.
+Regarding naming, I'm definitely open to alternative names :) I chose
+hugetlb_alloc_folio() because I'm seeing this function as a general
+allocation function that is provided by the HugeTLB subsystem (hence the
+hugetlb_ prefix).  I'm intending for alloc_hugetlb_folio() to be later
+refactored as a static function for use just by HugeTLB, and HugeTLBfs
+should probably use hugetlb_alloc_folio() directly.
 
-Link: https://lore.kernel.org/20260630125047.703170-1-yanzhen20011121@163.com
-Signed-off-by: Zhen Yan <yanzhen20011121@163.com>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+To see how hugetlb_alloc_folio() is used by guest_memfd, the most recent
+patch series that uses this more generic HugeTLB allocation routine is at
+[1], and a newer revision of that patch series is at [2].
+
+Independently of guest_memfd, I believe this change is useful in
+simplifying alloc_hugetlb_folio().  alloc_hugetlb_folio() was so coupled
+to a VMA that even HugeTLBfs allocates HugeTLB folios using a pseudo-VMA.
+
+
+This patch (of 6):
+
+The dequeue_hugetlb_folio_vma() function currently handles the gbl_chg
+parameter to determine if a folio can be dequeued based on global page
+availability.  This leaks reservation-specific logic into the dequeueing
+path.
+
+Relocate this logic to alloc_hugetlb_folio() so that
+dequeue_hugetlb_folio_vma() focuses solely on selecting and dequeuing a
+folio.  In alloc_hugetlb_folio(), only attempt to dequeue a folio if a
+reservation exists (gbl_chg == 0) or if there are available huge pages in
+the global pool.
+
+No functional change intended.
+
+Link: https://lore.kernel.org/20260702-hugetlb-open-up-v4-0-d53cefcccf34@google.com
+Link: https://lore.kernel.org/20260702-hugetlb-open-up-v4-1-d53cefcccf34@google.com
+Link: https://lore.kernel.org/all/cover.1747264138.git.ackerleytng@google.com/T/ [1]
+Link: https://github.com/googleprodkernel/linux-cc/tree/wip-gmem-conversions-hugetlb-restructuring-12-08-25 [2]
+Link: https://lore.kernel.org/all/agqaUcVp_hwH-VXr@localhost.localdomain/ [3]
+Link: https://sashiko.dev/#/patchset/20260518-hugetlb-open-up-v3-0-e14b302477f8@google.com [4]
+Signed-off-by: Ackerley Tng <ackerleytng@google.com>
+Reviewed-by: James Houghton <jthoughton@google.com>
+Acked-by: Oscar Salvador <osalvador@suse.de>
+Reviewed-by: Joshua Hahn <joshua.hahnjy@gmail.com>
+Cc: Qi Zheng <qi.zheng@linux.dev>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Byungchul Park <byungchul@sk.com>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: "Edgecombe, Rick P" <rick.p.edgecombe@intel.com>
+Cc: Frank van der Linden <fvdl@google.com>
+Cc: Gregory Price <gourry@gourry.net>
+Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Jiaqi Yan <jiaqiyan@google.com>
+Cc: Matthew Brost <matthew.brost@intel.com>
+Cc: Michael Roth <michael.roth@amd.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Paolo Bonzini <pbonzini@redhat.com>
+Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Pratyush Yadav <pratyush@kernel.org>
+Cc: Rakie Kim <rakie.kim@sk.com>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Sean Christopherson <seanjc@google.com>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Shivank Garg <shivankg@amd.com>
+Cc: Vishal Annapurve <vannapurve@google.com>
+Cc: Yan Zhao <yan.y.zhao@intel.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ mm/hugetlb.c |   27 +++++++++++----------------
+ 1 file changed, 11 insertions(+), 16 deletions(-)
 
---- a/mm/filemap.c~mm-fix-mapping_seek_hole_data-overflow-on-last-page
-+++ a/mm/filemap.c
-@@ -3229,6 +3229,7 @@ loff_t mapping_seek_hole_data(struct add
- 	while ((folio = find_get_entry(&xas, max, XA_PRESENT))) {
- 		loff_t pos = (u64)xas.xa_index << PAGE_SHIFT;
- 		size_t seek_size;
-+		u64 next;
+--- a/mm/hugetlb.c~mm-hugetlb-consolidate-interpretation-of-gbl_chg-within-alloc_hugetlb_folio
++++ a/mm/hugetlb.c
+@@ -1318,7 +1318,7 @@ static unsigned long available_huge_page
  
- 		if (start < pos) {
- 			if (!seek_data)
-@@ -3237,7 +3238,11 @@ loff_t mapping_seek_hole_data(struct add
- 		}
+ static struct folio *dequeue_hugetlb_folio_vma(struct hstate *h,
+ 				struct vm_area_struct *vma,
+-				unsigned long address, long gbl_chg)
++				unsigned long address)
+ {
+ 	struct folio *folio = NULL;
+ 	struct mempolicy *mpol;
+@@ -1326,13 +1326,6 @@ static struct folio *dequeue_hugetlb_fol
+ 	nodemask_t *nodemask;
+ 	int nid;
  
- 		seek_size = seek_folio_size(&xas, folio);
--		pos = round_up((u64)pos + 1, seek_size);
-+		next = round_up((u64)pos + 1, seek_size);
-+		if (next > (u64)end)
-+			pos = end;
-+		else
-+			pos = next;
- 		start = folio_seek_hole_data(&xas, mapping, folio, start, pos,
- 				seek_data);
- 		if (start < pos)
+-	/*
+-	 * gbl_chg==1 means the allocation requires a new page that was not
+-	 * reserved before.  Making sure there's at least one free page.
+-	 */
+-	if (gbl_chg && !available_huge_pages(h))
+-		goto err;
+-
+ 	gfp_mask = htlb_alloc_mask(h);
+ 	nid = huge_node(vma, address, gfp_mask, &mpol, &nodemask);
+ 
+@@ -1350,9 +1343,6 @@ static struct folio *dequeue_hugetlb_fol
+ 
+ 	mpol_cond_put(mpol);
+ 	return folio;
+-
+-err:
+-	return NULL;
+ }
+ 
+ #if defined(CONFIG_ARCH_HAS_GIGANTIC_PAGE) && defined(CONFIG_CONTIG_ALLOC)
+@@ -2922,12 +2912,17 @@ struct folio *alloc_hugetlb_folio(struct
+ 		goto out_uncharge_cgroup_reservation;
+ 
+ 	spin_lock_irq(&hugetlb_lock);
++
+ 	/*
+-	 * glb_chg is passed to indicate whether or not a page must be taken
+-	 * from the global free pool (global change).  gbl_chg == 0 indicates
+-	 * a reservation exists for the allocation.
+-	 */
+-	folio = dequeue_hugetlb_folio_vma(h, vma, addr, gbl_chg);
++	 * gbl_chg == 0 indicates a reservation exists for the
++	 * allocation, so try dequeuing a page. In case there was no
++	 * reservation, try dequeuing a page if there are available
++	 * pages in the global pool.
++	 */
++	folio = NULL;
++	if (!gbl_chg || available_huge_pages(h))
++		folio = dequeue_hugetlb_folio_vma(h, vma, addr);
++
+ 	if (!folio) {
+ 		spin_unlock_irq(&hugetlb_lock);
+ 		folio = alloc_buddy_hugetlb_folio_with_mpol(h, vma, addr);
 _
 
-Patches currently in -mm which might be from yanzhen20011121@163.com are
+Patches currently in -mm which might be from ackerleytng@google.com are
 
 
