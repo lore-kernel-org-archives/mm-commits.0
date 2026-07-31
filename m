@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5C1F235C68A;
-	Fri, 31 Jul 2026 21:24:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 056AE34CFCA
+	for <mm-commits@vger.kernel.org>; Fri, 31 Jul 2026 21:25:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785533057; cv=none; b=oAI8AjBG5cnwyg/tk/MPaAe6wobSqY5wBEe9CozJ0wRdu9okFDT3sKzOnQjJPK3K535PSs287pNTpMjNpkoeFpYyy3TTpybKaqTxx6TY+b/uVppLLJLAbL5JOUWZeiGAnqkGG/8Y8qOaiBF3fPhCnDG6M+o0tim9dQiu9iNNtq4=
+	t=1785533136; cv=none; b=h3VKsbqrMxmv7FYO/AOrv4J9HOr2EbEF6extEu6YSi/PMGD+4h/hREmD4f2fVILK9jpuOs4DVMWmiha/rAdxlv46guqj0J0fBFHI5tsEN1D2DIFOMnuMpB4tnWa60CKbDT+O39wc2H1/w3t8O5iVdXGVoOiTnBXulkm48bhGANo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785533057; c=relaxed/simple;
-	bh=LAVa+Jqi8e3kc30wzZjsT8ITerc7MFm/myygBSSE2r4=;
-	h=Date:To:From:Subject:Message-Id; b=mOSUPaNsxZyWRmOs5fwvB4XYR7pYiBrM8oX3UO9RJvBiC3SJv+aM6Xzs1WQAlt6KjsakjO6obxQ+QRoYNzQQt1hPRH4zwCEuUrIjeuscrrYxRRhPSk7Y8bJSWjYceRmld4Hbryg1QmGdB7hfWgeUbyuW4ktWefvJYYx/sfncjaI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YHfuv9Ew; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785533136; c=relaxed/simple;
+	bh=g24poikrSdYUPZEjB65SGoMJy/guHZXtayBPntbRfEM=;
+	h=Date:To:From:Subject:Message-Id; b=re4ycwcsbOPOZMeJadLBj/MhebHGouyClhMdPQAtN0rED4h+F4bNakPhmRFv+f+0z0bAflBKHHWaKaUMnv9g0S8UrHIIFMypR89/VWVkVrUomrbqMYGGAAJWQy/MMm00GydswY40HBdHrnXjHmChzPfisYGL6lrAqWqIrUSgpiw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=W7rv1/h0; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YHfuv9Ew"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C879F1F00AC4;
-	Fri, 31 Jul 2026 21:24:14 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="W7rv1/h0"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7D3EE1F00AC4;
+	Fri, 31 Jul 2026 21:25:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785533054;
-	bh=yhTzcwMmo5+L4EEu+yeTY12a3tqiovbn/exVl/NGpII=;
+	d=linux-foundation.org; s=korg; t=1785533134;
+	bh=gNbdU2u86x8xf/IZQA4BrnWOF3Kn2qPVWfY75g5jBvo=;
 	h=Date:To:From:Subject;
-	b=YHfuv9Ewv/h/0FDtvym9ulmE0JXTb6nKkVm4lJoGi4hcjzlsZN7BQ44HH3OGD77dl
-	 +L31hfP2hSTZL3SlDTDKLHN3awvJrXwTdkzPzuzTJWSUrQcCLPz00ynPo/daLNjPaz
-	 tSqz22MYrwKHwp1A/21xQjDpQ2JGxQABESsUda10=
-Date: Fri, 31 Jul 2026 14:24:14 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,peterx@redhat.com,kas@kernel.org,jhubbard@nvidia.com,jgg@ziepe.ca,hughd@google.com,ackerleytng@google.com,david@kernel.org,akpm@linux-foundation.org
+	b=W7rv1/h0XIUVcjQcSanspolZtU2O6QUjL5g1e1miJaOwiEtVZy45ohQB0ZwTpnprZ
+	 1r7k7dsGgIEFC8q7O2a9PAZevPrkaWGW7k/qz1kaZnEa7AdEKuSNo1XQN+Ty5xHbUg
+	 r8bpuF9xxxKZE90yEmIhUSmEBjwL/ZKngK4K404A=
+Date: Fri, 31 Jul 2026 14:25:34 -0700
+To: mm-commits@vger.kernel.org,pratmal@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-gup-fix-always-draining-lru-caches-in-collect_longterm_unpinnable_folios.patch added to mm-new branch
-Message-Id: <20260731212414.C879F1F00AC4@smtp.kernel.org>
+Subject: [to-be-updated] mm-page_reporting-add-page_reporting_delay_ms-module-parameter.patch removed from -mm tree
+Message-Id: <20260731212534.7D3EE1F00AC4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,133 +34,124 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: mm/gup: fix always draining LRU caches in collect_longterm_unpinnable_folios()
-has been added to the -mm mm-new branch.  Its filename is
-     mm-gup-fix-always-draining-lru-caches-in-collect_longterm_unpinnable_folios.patch
+The quilt patch titled
+     Subject: mm/page_reporting: add page_reporting_delay_ms module parameter
+has been removed from the -mm tree.  Its filename was
+     mm-page_reporting-add-page_reporting_delay_ms-module-parameter.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-gup-fix-always-draining-lru-caches-in-collect_longterm_unpinnable_folios.patch
-
-This patch will later appear in the mm-new branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: "David Hildenbrand (Arm)" <david@kernel.org>
-Subject: mm/gup: fix always draining LRU caches in collect_longterm_unpinnable_folios()
-Date: Fri, 31 Jul 2026 22:27:53 +0200
+From: Pratyush Mallick <pratmal@google.com>
+Subject: mm/page_reporting: add page_reporting_delay_ms module parameter
+Date: Mon, 27 Jul 2026 23:05:45 +0000
 
-folio_may_be_lru_cached() is currently only true for small folios, and
-for small folios FOLL_PIN adds GUP_PIN_COUNTING_BIAS references instead
-of 1 in try_grab_folio()/try_grab_folio_fast().
+Currently, the free page reporting uses a hardcoded delay of (2 HZ)
+between reporting intervals.  While this is a reasonable default, it lacks
+the flexibility to adapt to varying guest workloads.
 
-Consequently, our
+A low delay allows aggressive memory reclamation, returning unused pages
+to the host as quickly as possible.  However, during spiky allocation/free
+churn, this immediate reporting can lead to a severe performance penalty
+(nested page faults) as the guest re-allocates memory that the host has
+just unmapped.  In these scenarios, there is benefit from increasing the
+delay to batch free pages over a longer window, absorbing the churn
+without hypercall and re-fault overhead.
 
-	folio_ref_count(folio) != folio_expected_ref_count(folio) + 1
+This patch exposes the delay as a module parameter:
+/sys/module/page_reporting/parameters/page_reporting_delay_ms, measured in
+milliseconds and defaults to 2000ms.
 
-check in collect_longterm_unpinnable_folios() will currently always
-identify "reference mismatch" and first drain the local LRU cache to then
-drain the LRU cache on all CPUs, as collect_longterm_unpinnable_folios()
-is really called after pinning the folios with FOLL_PIN.
-
-Add a comment because the current code is not quite intuitive: we used to
-drain only to make sure the folio_isolate_lru() would succeed. But then we
-also started draining to make later migration more reliable.
-
-We'll refactor that code soon a bit, to also make it usable in other
-context where we really want to remove any references from LRU caches.
-
-Let's add CC stable, because having an easy way for excessive LRU cache
-draining on all CPUs does not sound right. In common scenarios we
-don't expect to every have to drain.
-
-Link: https://lore.kernel.org/20260731-check_and_migrate_movable_folios-v1-1-e0002d7b791e@kernel.org
-Fixes: 98c6d259319e ("mm/gup: check ref_count instead of lru before migration")
-Fixes: a09a8a1fbb37 ("mm/gup: local lru_add_drain() to avoid lru_add_drain_all()")
-Signed-off-by: David Hildenbrand (Arm) <david@kernel.org>
-Cc: Ackerley Tng <ackerleytng@google.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Kiryl Shutsemau <kas@kernel.org>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lore.kernel.org/20260727230545.262579-1-pratmal@google.com
+Signed-off-by: Pratyush Mallick <pratmal@google.com>
+Reviewed-by: SJ Park <sj@kernel.org>
+Cc: Link Lin <linkl@google.com>
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Brendan Jackman <jackmanb@google.com>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Greg Thelen <gthelen@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: SeongJae Park <sj@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |   10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+ Documentation/admin-guide/kernel-parameters.txt |    6 ++++
+ mm/page_reporting.c                             |   19 ++++++++------
+ 2 files changed, 17 insertions(+), 8 deletions(-)
 
---- a/mm/gup.c~mm-gup-fix-always-draining-lru-caches-in-collect_longterm_unpinnable_folios
-+++ a/mm/gup.c
-@@ -2273,6 +2273,7 @@ static unsigned long collect_longterm_un
+--- a/Documentation/admin-guide/kernel-parameters.txt~mm-page_reporting-add-page_reporting_delay_ms-module-parameter
++++ a/Documentation/admin-guide/kernel-parameters.txt
+@@ -4810,6 +4810,12 @@ Kernel parameters
+ 			Adjust the minimal page reporting order. The page
+ 			reporting is disabled when it exceeds MAX_PAGE_ORDER.
  
- 	for (folio = pofs_get_folio(pofs, i); folio;
- 	     folio = pofs_next_folio(folio, pofs, &i)) {
-+		const int pin_refs = folio_has_pincount(folio) ? 1 : GUP_PIN_COUNTING_BIAS;
++	page_reporting.page_reporting_delay_ms=
++			[KNL] Free page reporting delay in milliseconds
++			Format: <unsigned integer>
++			Adjust the delay in milliseconds between free page
++			reporting intervals. Default is 2000 (2 seconds).
++
+ 	panic=		[KNL] Kernel behaviour on panic: delay <timeout>
+ 			timeout > 0: seconds before rebooting
+ 			timeout = 0: wait forever
+--- a/mm/page_reporting.c~mm-page_reporting-add-page_reporting_delay_ms-module-parameter
++++ a/mm/page_reporting.c
+@@ -48,7 +48,11 @@ MODULE_PARM_DESC(page_reporting_order, "
+  */
+ EXPORT_SYMBOL_GPL(page_reporting_order);
  
- 		if (folio_is_longterm_pinnable(folio))
- 			continue;
-@@ -2287,15 +2288,20 @@ static unsigned long collect_longterm_un
- 			continue;
- 		}
+-#define PAGE_REPORTING_DELAY	(2 * HZ)
++static unsigned int page_reporting_delay_ms = 2 * MSEC_PER_SEC;
++module_param(page_reporting_delay_ms, uint, 0644);
++MODULE_PARM_DESC(page_reporting_delay_ms,
++		 "Set page reporting delay in milliseconds");
++
+ static struct page_reporting_dev_info __rcu *pr_dev_info __read_mostly;
  
-+		/*
-+		 * We drain not only to make the folio_isolate_lru() succeed,
-+		 * but also to remove any other folio references from LRU
-+		 * caches.
-+		 */
- 		if (drained == 0 && folio_may_be_lru_cached(folio) &&
- 				folio_ref_count(folio) !=
--				folio_expected_ref_count(folio) + 1) {
-+				folio_expected_ref_count(folio) + pin_refs) {
- 			lru_add_drain();
- 			drained = 1;
- 		}
- 		if (drained == 1 && folio_may_be_lru_cached(folio) &&
- 				folio_ref_count(folio) !=
--				folio_expected_ref_count(folio) + 1) {
-+				folio_expected_ref_count(folio) + pin_refs) {
- 			lru_add_drain_all();
- 			drained = 2;
- 		}
+ enum {
+@@ -77,12 +81,11 @@ __page_reporting_request(struct page_rep
+ 		return;
+ 
+ 	/*
+-	 * Delay the start of work to allow a sizable queue to build. For
+-	 * now we are limiting this to running no more than once every
+-	 * couple of seconds.
++	 * Delay the start of work to allow a sizable queue to build.
++	 * We limit this based on page_reporting_delay_ms.
+ 	 */
+ 	queue_delayed_work(system_freezable_wq, &prdev->work,
+-			   PAGE_REPORTING_DELAY);
++			   msecs_to_jiffies(page_reporting_delay_ms));
+ }
+ 
+ /* notify prdev of free page reporting request */
+@@ -337,13 +340,13 @@ static void page_reporting_process(struc
+ err_out:
+ 	/*
+ 	 * If the state has reverted back to requested then there may be
+-	 * additional pages to be processed. We will defer for 2s to allow
+-	 * more pages to accumulate.
++	 * additional pages to be processed. We will defer by
++	 * page_reporting_delay_ms to allow more pages to accumulate.
+ 	 */
+ 	state = atomic_cmpxchg(&prdev->state, state, PAGE_REPORTING_IDLE);
+ 	if (state == PAGE_REPORTING_REQUESTED)
+ 		queue_delayed_work(system_freezable_wq, &prdev->work,
+-				   PAGE_REPORTING_DELAY);
++				   msecs_to_jiffies(page_reporting_delay_ms));
+ }
+ 
+ static DEFINE_MUTEX(page_reporting_mutex);
 _
 
-Patches currently in -mm which might be from david@kernel.org are
+Patches currently in -mm which might be from pratmal@google.com are
 
-x86-mm-drop-order-parameter-from-free_pagetable.patch
-mm-provide-free_reserved_pages-removing-x86-variant.patch
-s390-mm-use-free_reserved_pages-in-vmem_free_pages.patch
-mm-bootmem_info-allow-calling-free_bootmem_page-on-pages-without-a-bootmem_type.patch
-x86-mm-stop-marking-vmemmap-as-section_info.patch
-x86-mm-stop-marking-page-tables-as-mix_section_info.patch
-x86-mm-remove-config_have_bootmem_info_node.patch
-mm-hugetlb_vmemmap-remove-bootmem_info-leftovers.patch
-mm-sparse-remove-bootmem_infoh-include.patch
-mm-bootmem_info-remove-config_have_bootmem_info_node.patch
-mm-standardize-printing-for-pgtable-entries.patch
-mm-gup-fix-always-draining-lru-caches-in-collect_longterm_unpinnable_folios.patch
 
