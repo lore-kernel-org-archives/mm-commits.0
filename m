@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D78A63368AE
-	for <mm-commits@vger.kernel.org>; Fri, 31 Jul 2026 02:42:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 08674339365
+	for <mm-commits@vger.kernel.org>; Fri, 31 Jul 2026 02:42:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785465774; cv=none; b=eoWd+eIUL+zvWnAQxmeI0c867ZeQEvd5z6ZzIzzQuMNqR8tUBIDnLd6nNSuXBsDHJ/eKXLeSCCzDFFx50q6DqaB8xl6Hu1GB+L7+EyFZzMVenLGl8aDEs0xolvIYuJEd0hD0t4smd5gvT9YxbrAcz0umRFSGp5PS/lsWd2SJiUY=
+	t=1785465775; cv=none; b=B+cRD7aVtd8gUqWxyHojupqE31hTbt5vdpx9dlGPqycUtiLtX90SIJ3rjLqQCRtCPmopnUJi6FJAQQrP+TZ4ENx15G5pzQZHBwds5dahiGBcCiWFeV+Fa7HEXIj5eAKz6DP+BTew4gMxKjUKt003ZywyXob4+lYSm7T1SMNFcQY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785465774; c=relaxed/simple;
-	bh=IidFoWfSC+U1WX8kj+0g3zOSwSzGI++rpyrhJ57bpK0=;
-	h=Date:To:From:Subject:Message-Id; b=p8V+/vfkhuLWiB1NRqRqRNFoWUbKVzGmNFryaL0w5eoiRaB6o4XRMXbPA788p6TmP51pWTnFTZ7zcF8hOJcZQHx8EM0JTFlzefeVv0TlfS9GVNozqytKns4rBo2Z3yNLsXKBjPlfrnIFK5Z6cfxJKpO2Zh0KFg9tlNubSUsIIlA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pc2vcUzm; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785465775; c=relaxed/simple;
+	bh=sSMSew6fR+oX1OQqZIxz4uqRWf4hvb0miOAzs2XniDg=;
+	h=Date:To:From:Subject:Message-Id; b=VK5A/d9QL3in247ua9Fm0SKKUXGpNrNjPc6T80LlWF1ojQampIHI1SWcAFcKDdYtQysMzW3jCwfM2DcxzPkjkKrkZTx5z8f35te4gL5vRlw4B2gavYxgUbh/P5iJi+WrrDtN5PMybdhXuPdx5l/y59/cLOIRyZLJDcIEf42Lxl0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jRFWS77f; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pc2vcUzm"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AE72F1F000E9;
-	Fri, 31 Jul 2026 02:42:52 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jRFWS77f"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D12081F00A3E;
+	Fri, 31 Jul 2026 02:42:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785465772;
-	bh=atSJ6gpNhL9yuaSuuEVsgIDKp78ZIWL+dU9K+1MoPws=;
+	d=linux-foundation.org; s=korg; t=1785465773;
+	bh=s10v9Ga65IISmsw1sLk+a6M1B11VpwykgOCgJdS4AIY=;
 	h=Date:To:From:Subject;
-	b=pc2vcUzmg/wiYe8ybsdByrj5rVgdsdka/lAXIBpRwFyjt9L69wjLUlMt3mRq4FHNj
-	 hUa2Walo0w3TgTphhjiT3ByEwT3q/kDFMhgg/QH1WMcBt9jarmJQnfNllU1vQaRhs5
-	 AP8iWDQoElTB2hR9PNmVe+w9nueTyihYSk8ledAA=
-Date: Thu, 30 Jul 2026 19:42:52 -0700
+	b=jRFWS77f/dkGYtn83sjcPeMOtwcX7c3QcjrIH7M/iUebET1afN9fvDvmkbtHPS2Qf
+	 X3KoBSZC+4NCwGBGW/sYWcNiiV/52poDNedMt1MK12VvMHbuyGPxDBGB78RFETml1T
+	 btoxNoC1pKTB64OgJjpSDEZmmG5VUcvIfFL2Z2D0=
+Date: Thu, 30 Jul 2026 19:42:53 -0700
 To: mm-commits@vger.kernel.org,shuah@kernel.org,rostedt@goodmis.org,mhiramat@kernel.org,mathieu.desnoyers@efficios.com,brendan.higgins@linux.dev,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-core-remove-attrs-param-from-damon_update_region_access_rate.patch removed from -mm tree
-Message-Id: <20260731024252.AE72F1F000E9@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-paddr-remove-attrs-param-from-__damon_pa_check_access.patch removed from -mm tree
+Message-Id: <20260731024253.D12081F00A3E@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,22 +35,21 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/damon/core: remove attrs param from damon_update_region_access_rate()
+     Subject: mm/damon/paddr: remove attrs param from __damon_pa_check_access()
 has been removed from the -mm tree.  Its filename was
-     mm-damon-core-remove-attrs-param-from-damon_update_region_access_rate.patch
+     mm-damon-paddr-remove-attrs-param-from-__damon_pa_check_access.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/core: remove attrs param from damon_update_region_access_rate()
-Date: Mon, 29 Jun 2026 21:08:07 -0700
+Subject: mm/damon/paddr: remove attrs param from __damon_pa_check_access()
+Date: Mon, 29 Jun 2026 21:08:08 -0700
 
-damon_update_region_access_rate() is not using attrs parameter.  Remove
-it.
+The function is not using the parameter.  Remove it.
 
-Link: https://lore.kernel.org/20260630040812.149729-15-sj@kernel.org
+Link: https://lore.kernel.org/20260630040812.149729-16-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Cc: Brendan Higgins <brendan.higgins@linux.dev>
 Cc: "Masami Hiramatsu (Google)" <mhiramat@kernel.org>
@@ -60,85 +59,30 @@ Cc: Steven Rostedt <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/damon.h |    3 +--
- mm/damon/core.c       |    4 +---
- mm/damon/paddr.c      |    4 ++--
- mm/damon/vaddr.c      |    6 +++---
- 4 files changed, 7 insertions(+), 10 deletions(-)
+ mm/damon/paddr.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
---- a/include/linux/damon.h~mm-damon-core-remove-attrs-param-from-damon_update_region_access_rate
-+++ a/include/linux/damon.h
-@@ -1016,8 +1016,7 @@ unsigned int damon_nr_accesses_mvsum(str
- 
- int damon_set_regions(struct damon_target *t, struct damon_addr_range *ranges,
- 		unsigned int nr_ranges, unsigned long min_region_sz);
--void damon_update_region_access_rate(struct damon_region *r, bool accessed,
--		struct damon_attrs *attrs);
-+void damon_update_region_access_rate(struct damon_region *r, bool accessed);
- 
- struct damos_filter *damos_new_filter(enum damos_filter_type type,
- 		bool matching, bool allow);
---- a/mm/damon/core.c~mm-damon-core-remove-attrs-param-from-damon_update_region_access_rate
-+++ a/mm/damon/core.c
-@@ -3833,15 +3833,13 @@ static unsigned int damon_moving_sum(uns
-  * damon_update_region_access_rate() - Update the access rate of a region.
-  * @r:		The DAMON region to update for its access check result.
-  * @accessed:	Whether the region has accessed during last sampling interval.
-- * @attrs:	The damon_attrs of the DAMON context.
-  *
-  * Update the access rate of a region with the region's last sampling interval
-  * access check result.
-  *
-  * Usually this will be called by &damon_operations->check_accesses callback.
-  */
--void damon_update_region_access_rate(struct damon_region *r, bool accessed,
--		struct damon_attrs *attrs)
-+void damon_update_region_access_rate(struct damon_region *r, bool accessed)
- {
- 	if (accessed)
- 		r->nr_accesses++;
---- a/mm/damon/paddr.c~mm-damon-core-remove-attrs-param-from-damon_update_region_access_rate
+--- a/mm/damon/paddr.c~mm-damon-paddr-remove-attrs-param-from-__damon_pa_check_access
 +++ a/mm/damon/paddr.c
-@@ -91,12 +91,12 @@ static void __damon_pa_check_access(stru
- 	/* If the region is in the last checked page, reuse the result */
- 	if (ALIGN_DOWN(last_addr, last_folio_sz) ==
- 				ALIGN_DOWN(sampling_addr, last_folio_sz)) {
--		damon_update_region_access_rate(r, last_accessed, attrs);
-+		damon_update_region_access_rate(r, last_accessed);
- 		return;
- 	}
- 
- 	last_accessed = damon_pa_young(sampling_addr, &last_folio_sz);
--	damon_update_region_access_rate(r, last_accessed, attrs);
-+	damon_update_region_access_rate(r, last_accessed);
- 
- 	last_addr = sampling_addr;
+@@ -80,7 +80,7 @@ static bool damon_pa_young(phys_addr_t p
  }
---- a/mm/damon/vaddr.c~mm-damon-core-remove-attrs-param-from-damon_update_region_access_rate
-+++ a/mm/damon/vaddr.c
-@@ -501,19 +501,19 @@ static void __damon_va_check_access(stru
- 	static bool last_accessed;
  
- 	if (!mm) {
--		damon_update_region_access_rate(r, false, attrs);
-+		damon_update_region_access_rate(r, false);
- 		return;
+ static void __damon_pa_check_access(struct damon_region *r,
+-		struct damon_attrs *attrs, unsigned long addr_unit)
++		unsigned long addr_unit)
+ {
+ 	static phys_addr_t last_addr;
+ 	static unsigned long last_folio_sz = PAGE_SIZE;
+@@ -109,8 +109,7 @@ static unsigned int damon_pa_check_acces
+ 
+ 	damon_for_each_target(t, ctx) {
+ 		damon_for_each_region(r, t) {
+-			__damon_pa_check_access(
+-					r, &ctx->attrs, ctx->addr_unit);
++			__damon_pa_check_access(r, ctx->addr_unit);
+ 			max_nr_accesses = max(r->nr_accesses, max_nr_accesses);
+ 		}
  	}
- 
- 	/* If the region is in the last checked page, reuse the result */
- 	if (same_target && (ALIGN_DOWN(last_addr, last_folio_sz) ==
- 				ALIGN_DOWN(r->sampling_addr, last_folio_sz))) {
--		damon_update_region_access_rate(r, last_accessed, attrs);
-+		damon_update_region_access_rate(r, last_accessed);
- 		return;
- 	}
- 
- 	last_accessed = damon_va_young(mm, r->sampling_addr, &last_folio_sz);
--	damon_update_region_access_rate(r, last_accessed, attrs);
-+	damon_update_region_access_rate(r, last_accessed);
- 
- 	last_addr = r->sampling_addr;
- }
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
