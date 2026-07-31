@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 076CE331EA7
-	for <mm-commits@vger.kernel.org>; Fri, 31 Jul 2026 02:42:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3986E332621
+	for <mm-commits@vger.kernel.org>; Fri, 31 Jul 2026 02:42:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785465728; cv=none; b=VHYo2blBopEmupLGm1OLBcXPzFGu3YAOaBB3TBGYovsNNOsZgZCNfvMaOT562yfD3GXYsnaYs7FSxxujdXce1Hsr6VQ0Vrf+b12U+OzWxUhdpMi3ZVhoTPIAVUVFSGR1UUPyf5H7PjnaRMTwKd1i5O2cyCSrtr6jKiq4BxuSKJ4=
+	t=1785465729; cv=none; b=qMrN+ALI39hc5u61hVKPIK3NL3q1LYRG6280ahTL/W5689mrxdOoOrLAh4+N6yL/y59A8yxtEBbz3Fpqh5AvODokKJ6ZjkoL8y3Q/rpgEe2oOjdnOEDcgHK80/5FLOgAftw9J/sxeBHqvqjMwPGkfdvU/0cZovEErvBnmKqSO/M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785465728; c=relaxed/simple;
-	bh=sRPuZqaRbcF0f8ArWfUD+R/UoId7rPPa2aO7/nc/nhc=;
-	h=Date:To:From:Subject:Message-Id; b=aHUswVVoJEnz6ghJJQSry6pqGp1qcJnyGe4eFX9ctmCJUSxjePd9qB/2fiojaty98+Elgvv1/uX3g4+FAArfbRiMSLiby/t87qn67GOmaNLGHeOixrdj3UYMGbTyn8gwa0NOOYHvHFoVUx7Rh9wFVn5Spf+H3PBzVaZaTws7oeg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hk7K2ZSp; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785465729; c=relaxed/simple;
+	bh=gktsa63Fw+EYJFrQzzgwPHBj5gajgiovbtWz15q9YbE=;
+	h=Date:To:From:Subject:Message-Id; b=p2oEA6DWmw6fcfCzL7nKuD6JglNpx5dVnspXWFTDDU1KuM2V/R0bt/ESU+JHbwYNYjAMVyXmS/uf2tLCHOwVmeUKI9HsdNyE4lT+16PEz07t9Ldivka8hXXBQo4CgnkF6/wUcGhTMRoBUt75EknP7CrYmPESjhdsF3bQWtX6vv4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BMgmsWCo; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hk7K2ZSp"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CD0D11F000E9;
-	Fri, 31 Jul 2026 02:42:06 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BMgmsWCo"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 09BB11F00A3A;
+	Fri, 31 Jul 2026 02:42:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785465726;
-	bh=HChDzIuY0PZXMxglONCmCqzVA/MKxZdyyBxLu8c389A=;
+	d=linux-foundation.org; s=korg; t=1785465728;
+	bh=bCksGxE8B1Z+MsdhTsQtKnuLiXpzxLT7IOE59dGxoww=;
 	h=Date:To:From:Subject;
-	b=hk7K2ZSpKJYRNA1DXz8H9NqbrFcYNRNb1vEUuRG372FvZimIerw53aP+6jYS0Jdjl
-	 aIUVTmc2tVw5OOfQvWUSHIyPTPafckNT6WhnsC8sSpgPu0cEGkaq3o0dHs/vdkLO2f
-	 paJL/f1IG1LA4OeIr2/OzTGBMXPiYjeyCSCj9mkI=
-Date: Thu, 30 Jul 2026 19:42:06 -0700
+	b=BMgmsWCoWTQZPsBqR11FjDWlmSHeC1Qe68tfn+xbzk4RFbSWx+PY+D+XFIV1Z9iWs
+	 qA7985qh6yqVYcA4sTwd3E5M2dJAiDVPbDK5byYnfWszj3mfuc4BY6UFEcHDbj4gKv
+	 lzyLDVind96Onfe1i53QNyY9YAyFvQi406kLkzlI=
+Date: Thu, 30 Jul 2026 19:42:07 -0700
 To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,shuah@kernel.org,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,corbet@lwn.net,brendan.higgins@linux.dev,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-damon-sysfssh-test-dests-dir.patch removed from -mm tree
-Message-Id: <20260731024206.CD0D11F000E9@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-damon-sysfssh-test-all-files-in-quota-goal-dir.patch removed from -mm tree
+Message-Id: <20260731024208.09BB11F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,22 +35,24 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests/damon/sysfs.sh: test dests dir
+     Subject: selftests/damon/sysfs.sh: test all files in quota goal dir
 has been removed from the -mm tree.  Its filename was
-     selftests-damon-sysfssh-test-dests-dir.patch
+     selftests-damon-sysfssh-test-all-files-in-quota-goal-dir.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: selftests/damon/sysfs.sh: test dests dir
-Date: Tue, 30 Jun 2026 07:17:20 -0700
+Subject: selftests/damon/sysfs.sh: test all files in quota goal dir
+Date: Tue, 30 Jun 2026 07:17:21 -0700
 
-DAMON selftest interface essential file operations test (sysfs.sh) is not
-testing DAMOS dests/ directory.  Add the test.
+DAMON sysfs interface for DAMOS quota has quite extended since its initial
+introduction.  The test case for that in DAMON sysfs interface essential
+file operations test (sysfs.sh) has not accordingly extended, though. 
+Extend the test case to test all existing files.
 
-Link: https://lore.kernel.org/20260630141726.92246-7-sj@kernel.org
+Link: https://lore.kernel.org/20260630141726.92246-8-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Cc: Brendan Higgins <brendan.higgins@linux.dev>
 Cc: David Hildenbrand <david@kernel.org>
@@ -65,49 +67,32 @@ Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/damon/sysfs.sh |   24 +++++++++++++++++++++++
- 1 file changed, 24 insertions(+)
+ tools/testing/selftests/damon/sysfs.sh |   14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
 
---- a/tools/testing/selftests/damon/sysfs.sh~selftests-damon-sysfssh-test-dests-dir
+--- a/tools/testing/selftests/damon/sysfs.sh~selftests-damon-sysfssh-test-all-files-in-quota-goal-dir
 +++ a/tools/testing/selftests/damon/sysfs.sh
-@@ -99,6 +99,29 @@ test_stats()
- 	done
+@@ -199,6 +199,20 @@ test_goal()
+ 	ensure_dir "$goal_dir" "exist"
+ 	ensure_file "$goal_dir/target_value" "exist" "600"
+ 	ensure_file "$goal_dir/current_value" "exist" "600"
++	ensure_file "$goal_dir/target_metric" "exist" "600"
++	local fpath="$goal_dir/target_metric"
++	ensure_write_succ "$fpath" "user_input" "valid input"
++	ensure_write_succ "$fpath" "some_mem_psi_us" "valid input"
++	ensure_write_succ "$fpath" "node_mem_used_bp" "valid input"
++	ensure_write_succ "$fpath" "node_mem_free_bp" "valid input"
++	ensure_write_succ "$fpath" "node_memcg_used_bp" "valid input"
++	ensure_write_succ "$fpath" "node_memcg_free_bp" "valid input"
++	ensure_write_succ "$fpath" "active_mem_bp" "valid input"
++	ensure_write_succ "$fpath" "inactive_mem_bp" "valid input"
++	ensure_write_succ "$fpath" "node_eligible_mem_bp" "valid input"
++	ensure_write_fail "$fpath" "foo" "invalid input"
++	ensure_file "$goal_dir/nid" "exist" "600"
++	ensure_file "$goal_dir/path" "exist" "600"
  }
  
-+test_dest()
-+{
-+	dest_dir=$1
-+	ensure_file "$dest_dir/id" "exist" "600"
-+	ensure_file "$dest_dir/weight" "exist" "600"
-+}
-+
-+test_dests()
-+{
-+	dests_dir=$1
-+	ensure_file "$dests_dir/nr_dests" "exist" "600"
-+	ensure_write_succ "$dests_dir/nr_dests" "1" "valid input"
-+	test_dest "$dests_dir/0"
-+
-+	ensure_write_succ "$dests_dir/nr_dests" "2" "valid input"
-+	test_dest "$dests_dir/0"
-+	test_dest "$dests_dir/1"
-+
-+	ensure_write_succ "$dests_dir/nr_dests" "0" "valid input"
-+	ensure_dir "$dests_dir/0" "not_exist"
-+	ensure_dir "$dests_dir/1" "not_exist"
-+}
-+
- test_filter()
- {
- 	filter_dir=$1
-@@ -225,6 +248,7 @@ test_scheme()
- 	ensure_file "$scheme_dir/apply_interval_us" "exist" "600"
- 	test_quotas "$scheme_dir/quotas"
- 	test_watermarks "$scheme_dir/watermarks"
-+	test_dests "$scheme_dir/dests"
- 	test_filters "$scheme_dir/filters"
- 	test_filters "$scheme_dir/core_filters"
- 	test_filters "$scheme_dir/ops_filters"
+ test_goals()
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
