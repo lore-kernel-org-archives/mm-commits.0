@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2A53644BCA5
-	for <mm-commits@vger.kernel.org>; Fri, 31 Jul 2026 18:15:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AE947361651
+	for <mm-commits@vger.kernel.org>; Fri, 31 Jul 2026 18:20:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785521752; cv=none; b=etF2ro3H5g8tVJ4ZR7/0E0HU17OszRVCu8Sb3ZnamY7OXJtTjOpHCTUsXTo0UJCID2uNBsJ97HPATJi2tTUoJHIrmRdc4neOMFRtCvqmdfLwbpCnbUZl4rpKnro546IoE7Flz7CDMeuLqHnlJlmm/t1YTAK9SV4q86ZhNfAhdGA=
+	t=1785522029; cv=none; b=GRfRGNt0w6/1sSxwq+Lj2r9MKP2/G3jtQT2G5/50iZYP3dXVra2VpEVkJFj5nPiu3srdUtUItlX/B1vFcozaY+7jIjF80NON+Iag9mipZfSXjVjwX3pfjDA/tCOuXdWztoTTCXOA/apYy+exnCfU4RADPPOcru3xCFKsfDgZKu8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785521752; c=relaxed/simple;
-	bh=9R3tplXF+W8gLJ10t5pMHdav3HIsXHm3gUehYZkynMA=;
-	h=Date:To:From:Subject:Message-Id; b=W5kUz8tLw6USyiviUDZKUSNrLaUVWsiPPxZMXMlKBf+W8u7GZXB/0kBw6yTzKv7s4j+cmmmp81M7C0T6AKDjO103prKtWB9LlLESvl416pfz43YUcC2Yphu1G2NS+QKG/bnInSsE8y6XbsfM3RPEtcvDW7hiOv3CIMtW7qhb8UM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=O02/pXMp; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785522029; c=relaxed/simple;
+	bh=TDQbT+n18WT337Lb49rW10rpv1uffV0H/2DbtQEwdRE=;
+	h=Date:To:From:Subject:Message-Id; b=aGDb7bpB6sLk4TQXN/BvjBAXpVvbh2x6jvag4uOZopieWjWMmr0HyXSwJK+wi9rl5D+FkOQgO+4C2tiJnoWD2807T3CdNSRpMI41Wb63Mj1ygIsK5XcPEg0Genb5m45Sfy8fyn8dmdf17u5NZ+iwO0z95oh00Pi6Rj+JyYstT+M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pcVmW7EY; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="O02/pXMp"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F0E431F00ACA;
-	Fri, 31 Jul 2026 18:15:40 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pcVmW7EY"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 27F941F00AC4;
+	Fri, 31 Jul 2026 18:20:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785521741;
-	bh=tbUR9248nPI3/ljrZyk6PhOlVwXU+n/jcZCWZsj7s3U=;
+	d=linux-foundation.org; s=korg; t=1785522028;
+	bh=WVcRA3F2y8pdlhmb++QFznZa0AdbaYEfNoPf/6kSS+s=;
 	h=Date:To:From:Subject;
-	b=O02/pXMpgUDgSjR/Do8ZvVors3K6GipHI9cg4516/aYHBI2gCemH1iqV5UFwvfI7W
-	 gaBKeBMDKN5EwRuLgD2a/8MOVLCKhQW51E3G5Tgw/iXAF3Z5xZWUsR0z/pmlZghBeM
-	 vnCQ1+ZTpSVqc2mpsWbMgNB5Ns77EzlJS7pJOtRg=
-Date: Fri, 31 Jul 2026 11:15:40 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,akpm@linux-foundation.org,ekffu200098@gmail.com,akpm@linux-foundation.org
+	b=pcVmW7EYXedL519rcpAWmlDuuSKAjTGuq0nvkfKi2tQfylaBGk0qMYa/YhPVspgpR
+	 qHk7UVNuV7mmRMnKAdBbtw8eB5VPHdoNhIBg3kgmx2eR9RPnr0ZpSmt0aG90t8VK4o
+	 vUyXwxUEquE7wW2E9Mbyfn9jkqw66xwB7SfWWkUM=
+Date: Fri, 31 Jul 2026 11:20:27 -0700
+To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,jlbec@evilplan.org,heming.zhao@suse.com,gechangwei@live.cn,joseph.qi@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-sparse-correct-init-section-annotations.patch added to mm-new branch
-Message-Id: <20260731181540.F0E431F00ACA@smtp.kernel.org>
+Subject: + ocfs2-fix-circular-locking-dependency-in-reflink.patch added to mm-nonmm-unstable branch
+Message-Id: <20260731182028.27F941F00AC4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,26 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/sparse: correct init section annotations
-has been added to the -mm mm-new branch.  Its filename is
-     mm-sparse-correct-init-section-annotations.patch
+     Subject: ocfs2: fix circular locking dependency in reflink
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     ocfs2-fix-circular-locking-dependency-in-reflink.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-sparse-correct-init-section-annotations.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-fix-circular-locking-dependency-in-reflink.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,74 +58,103 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Sang-Heon Jeon <ekffu200098@gmail.com>
-Subject: mm/sparse: correct init section annotations
-Date: Sat, 1 Aug 2026 01:47:55 +0900
+From: Joseph Qi <joseph.qi@linux.alibaba.com>
+Subject: ocfs2: fix circular locking dependency in reflink
+Date: Fri, 31 Jul 2026 19:34:25 +0800
 
-The !SPARSEMEM_EXTREME stub of sparse_index_init() has no annotation but
-the SPARSEMEM_EXTREME variant is __meminit.  So mark the stub __meminit
-too.
+Lockdep reports a possible deadlock involving ip_alloc_sem,
+j_trans_barrier, and ip_xattr_sem:
 
-mminit_validate_memmodel_limits() is only called by memory_present(),
-which is __init.  So mark it __init.
+  Chain exists of:
+    &oi->ip_alloc_sem --> &journal->j_trans_barrier --> &oi->ip_xattr_sem
 
-sparse_usagebuf and sparse_usagebuf_end are only used by
-sparse_init_early_section(), sparse_usage_init() and sparse_usage_fini(),
-which are all __init.  So mark them __initdata.
+  Possible unsafe locking scenario:
 
-Link: https://lore.kernel.org/20260731164758.1210668-1-ekffu200098@gmail.com
-Signed-off-by: Sang-Heon Jeon <ekffu200098@gmail.com>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
+        CPU0                    CPU1
+        ----                    ----
+   lock(&oi->ip_xattr_sem);
+                                lock(&journal->j_trans_barrier);
+                                lock(&oi->ip_xattr_sem);
+   lock(&oi->ip_alloc_sem);
+
+  *** DEADLOCK ***
+
+ocfs2_reflink() and ocfs2_try_remove_refcount_tree() acquire ip_xattr_sem
+before ip_alloc_sem.  This is the reverse of the established system-wide
+ordering where ip_alloc_sem is outer:
+
+  - Write paths (e.g. ocfs2_write_begin_nolock) hold ip_alloc_sem
+    and call ocfs2_start_trans(), which takes j_trans_barrier.
+
+  - ocfs2_mknod() calls ocfs2_start_trans() (j_trans_barrier) then
+    ocfs2_init_acl(), which takes ip_xattr_sem on the parent dir.
+
+Fix by swapping the lock order in both functions to acquire ip_alloc_sem
+before ip_xattr_sem, consistent with the rest of the codebase.
+
+Link: https://lore.kernel.org/20260731113425.4130293-1-joseph.qi@linux.alibaba.com
+Fixes: 09bf27a00020 ("ocfs2: Implement ocfs2_reflink.")
+Fixes: 8b2c0dba5159 ("ocfs2: Call refcount tree remove process properly.")
+Signed-off-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Reported-by: syzbot+e42eae29bba35810f43c@syzkaller.appspotmail.com
+Closes: https://syzkaller.appspot.com/bug?extid=e42eae29bba35810f43c
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Jun Piao <piaojun@huawei.com>
+Cc: Heming Zhao <heming.zhao@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/sparse.c |    8 ++++----
+ fs/ocfs2/refcounttree.c |    8 ++++----
  1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/mm/sparse.c~mm-sparse-correct-init-section-annotations
-+++ a/mm/sparse.c
-@@ -104,7 +104,7 @@ int __meminit sparse_index_init(unsigned
+--- a/fs/ocfs2/refcounttree.c~ocfs2-fix-circular-locking-dependency-in-reflink
++++ a/fs/ocfs2/refcounttree.c
+@@ -955,8 +955,8 @@ int ocfs2_try_remove_refcount_tree(struc
+ 	struct ocfs2_inode_info *oi = OCFS2_I(inode);
+ 	struct ocfs2_dinode *di = (struct ocfs2_dinode *)di_bh->b_data;
+ 
+-	down_write(&oi->ip_xattr_sem);
+ 	down_write(&oi->ip_alloc_sem);
++	down_write(&oi->ip_xattr_sem);
+ 
+ 	if (oi->ip_clusters)
+ 		goto out;
+@@ -972,8 +972,8 @@ int ocfs2_try_remove_refcount_tree(struc
+ 	if (ret)
+ 		mlog_errno(ret);
+ out:
+-	up_write(&oi->ip_alloc_sem);
+ 	up_write(&oi->ip_xattr_sem);
++	up_write(&oi->ip_alloc_sem);
  	return 0;
  }
- #else /* !SPARSEMEM_EXTREME */
--int sparse_index_init(unsigned long section_nr, int nid)
-+int __meminit sparse_index_init(unsigned long section_nr, int nid)
- {
- 	return 0;
- }
-@@ -127,7 +127,7 @@ static inline int sparse_early_nid(struc
- }
  
- /* Validate the physical addressing limitations of the model */
--static void __meminit mminit_validate_memmodel_limits(unsigned long *start_pfn,
-+static void __init mminit_validate_memmodel_limits(unsigned long *start_pfn,
- 						unsigned long *end_pfn)
- {
- 	unsigned long max_sparsemem_pfn = (DIRECT_MAP_PHYSMEM_END + 1) >> PAGE_SHIFT;
-@@ -249,8 +249,8 @@ void __weak __meminit vmemmap_populate_p
- {
- }
+@@ -4292,12 +4292,12 @@ static int ocfs2_reflink(struct dentry *
+ 		goto out;
+ 	}
  
--static void *sparse_usagebuf __meminitdata;
--static void *sparse_usagebuf_end __meminitdata;
-+static void *sparse_usagebuf __initdata;
-+static void *sparse_usagebuf_end __initdata;
+-	down_write(&OCFS2_I(inode)->ip_xattr_sem);
+ 	down_write(&OCFS2_I(inode)->ip_alloc_sem);
++	down_write(&OCFS2_I(inode)->ip_xattr_sem);
+ 	error = __ocfs2_reflink(old_dentry, old_bh,
+ 				new_orphan_inode, preserve);
+-	up_write(&OCFS2_I(inode)->ip_alloc_sem);
+ 	up_write(&OCFS2_I(inode)->ip_xattr_sem);
++	up_write(&OCFS2_I(inode)->ip_alloc_sem);
  
- /*
-  * Helper function that is used for generic section initialization, and
+ 	ocfs2_inode_unlock(inode, 1);
+ 	ocfs2_rw_unlock(inode, 1);
 _
 
-Patches currently in -mm which might be from ekffu200098@gmail.com are
+Patches currently in -mm which might be from joseph.qi@linux.alibaba.com are
 
-mm-early_ioremap-clarify-early_ioremap_reset-semantics.patch
-riscv-remove-unused-__late_set_fixmap-and-__late_clear_fixmap.patch
-arm64-remove-early_ioremap_reset-call-and-__late_-macros.patch
-mm-sparse-correct-init-section-annotations.patch
+ocfs2-cluster-use-gfp_nofs-for-heartbeat-bio-allocation.patch
+ocfs2-cluster-use-an-on-stack-bio-for-the-heartbeat-write.patch
+ocfs2-cluster-dont-sleep-while-holding-o2hb_live_lock-in-o2hb_region_pin.patch
+ocfs2-cluster-avoid-lock-order-inversion-in-o2hb_region_pin-from-drop_item.patch
+ocfs2-cluster-fix-o2hb_dependent_users-leak-on-pin-failure.patch
+ocfs2-fix-circular-locking-dependency-in-reflink.patch
 
