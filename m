@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3986E332621
-	for <mm-commits@vger.kernel.org>; Fri, 31 Jul 2026 02:42:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 63D5D331209
+	for <mm-commits@vger.kernel.org>; Fri, 31 Jul 2026 02:42:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785465729; cv=none; b=qMrN+ALI39hc5u61hVKPIK3NL3q1LYRG6280ahTL/W5689mrxdOoOrLAh4+N6yL/y59A8yxtEBbz3Fpqh5AvODokKJ6ZjkoL8y3Q/rpgEe2oOjdnOEDcgHK80/5FLOgAftw9J/sxeBHqvqjMwPGkfdvU/0cZovEErvBnmKqSO/M=
+	t=1785465730; cv=none; b=OCmu1z1Hi6ccw56eZkuyX9TP0o4K6SYswdLk8SchoHJqt1lvHy0LlGPx1HA1/56BuLwy4qP6nATHaxUCpcY3nNVNDrUqucDh6Wr4XYsmZ0Yu9BN0+C0ZDSuOdALow+GbbQIWSu38NOYCpV3DbVO6VeRW3B20+G942nqYYC3sPs4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785465729; c=relaxed/simple;
-	bh=gktsa63Fw+EYJFrQzzgwPHBj5gajgiovbtWz15q9YbE=;
-	h=Date:To:From:Subject:Message-Id; b=p2oEA6DWmw6fcfCzL7nKuD6JglNpx5dVnspXWFTDDU1KuM2V/R0bt/ESU+JHbwYNYjAMVyXmS/uf2tLCHOwVmeUKI9HsdNyE4lT+16PEz07t9Ldivka8hXXBQo4CgnkF6/wUcGhTMRoBUt75EknP7CrYmPESjhdsF3bQWtX6vv4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BMgmsWCo; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785465730; c=relaxed/simple;
+	bh=rGN7VmKjzbVrv6XWeqPJUX8IPxsyB8/6re/Q8tAa6fs=;
+	h=Date:To:From:Subject:Message-Id; b=l/Xlg26CY7mvXGJTg9KgMIrsXlbeV/2LC88pBiEegqPdkhXuSZIx8Jk9p2lwM9BwW3C7FF4UdtzzfhZz5DyuhwMohGdxpmk9Ke4F1n4kt5krL392+VcZc2kNoX0Y59alrKQNonIUfyxkgKhfFSEzNQggQiCZSLQ7D3+Vadclshw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=r1l+0Dle; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BMgmsWCo"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 09BB11F00A3A;
-	Fri, 31 Jul 2026 02:42:08 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="r1l+0Dle"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3B3E91F000E9;
+	Fri, 31 Jul 2026 02:42:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785465728;
-	bh=bCksGxE8B1Z+MsdhTsQtKnuLiXpzxLT7IOE59dGxoww=;
+	d=linux-foundation.org; s=korg; t=1785465729;
+	bh=k/abNN+f4jAozDHbYTMecGQkLqT5SeZHkFShNWpZsxE=;
 	h=Date:To:From:Subject;
-	b=BMgmsWCoWTQZPsBqR11FjDWlmSHeC1Qe68tfn+xbzk4RFbSWx+PY+D+XFIV1Z9iWs
-	 qA7985qh6yqVYcA4sTwd3E5M2dJAiDVPbDK5byYnfWszj3mfuc4BY6UFEcHDbj4gKv
-	 lzyLDVind96Onfe1i53QNyY9YAyFvQi406kLkzlI=
-Date: Thu, 30 Jul 2026 19:42:07 -0700
+	b=r1l+0DleU6EOV1c9dTn61SD5M8nlO/V9LeY0lI7Ll4yy2RU++g/5fKfUGz/J90cTT
+	 ZRxU4Vmf1Y+RNaCuxEmjGLyOcTx/NsGlzOVbD6qDAoCy+MP8puie7og0JQJFUPDqSc
+	 fUmimmdql/6Fq2yU51HT9K/PKblt+I6a7dCAwXFk=
+Date: Thu, 30 Jul 2026 19:42:08 -0700
 To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,shuah@kernel.org,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,corbet@lwn.net,brendan.higgins@linux.dev,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-damon-sysfssh-test-all-files-in-quota-goal-dir.patch removed from -mm tree
-Message-Id: <20260731024208.09BB11F00A3A@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-core-reduce-range-setup-in-damon_commit_target_regions.patch removed from -mm tree
+Message-Id: <20260731024209.3B3E91F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,24 +35,32 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests/damon/sysfs.sh: test all files in quota goal dir
+     Subject: mm/damon/core: reduce range setup in damon_commit_target_regions()
 has been removed from the -mm tree.  Its filename was
-     selftests-damon-sysfssh-test-all-files-in-quota-goal-dir.patch
+     mm-damon-core-reduce-range-setup-in-damon_commit_target_regions.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: selftests/damon/sysfs.sh: test all files in quota goal dir
-Date: Tue, 30 Jun 2026 07:17:21 -0700
+Subject: mm/damon/core: reduce range setup in damon_commit_target_regions()
+Date: Tue, 30 Jun 2026 07:17:22 -0700
 
-DAMON sysfs interface for DAMOS quota has quite extended since its initial
-introduction.  The test case for that in DAMON sysfs interface essential
-file operations test (sysfs.sh) has not accordingly extended, though. 
-Extend the test case to test all existing files.
+damon_commit_target_regions() calls damon_set_regions() for updating the
+destination target's monitoring target region boundaries.  It sets the
+boundaries same to source target's monitoring regions, even if they are
+adjacent.  Meanwhile, damon_set_region() sets the destination target
+regions exactly the same to the source, only when the target regions are
+empty.  When there are existing target regions, only a few regions are
+expanded or shrunk to fit on only the boundaries for disjoint regions in
+the source.  Hence the adjacent source ranges mean nothing in common
+cases.  When there are many regions, such adjacent range setup is only a
+waste of time and space.  We recently found [1] it is actually causing
+memory overhead.  Setup the ranges for only distinct ranges.
 
-Link: https://lore.kernel.org/20260630141726.92246-8-sj@kernel.org
+Link: https://lore.kernel.org/20260630141726.92246-9-sj@kernel.org
+Link: https://lore.kernel.org/20260603112306.58490-1-akinobu.mita@gmail.com [1]
 Signed-off-by: SJ Park <sj@kernel.org>
 Cc: Brendan Higgins <brendan.higgins@linux.dev>
 Cc: David Hildenbrand <david@kernel.org>
@@ -67,32 +75,50 @@ Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/damon/sysfs.sh |   14 ++++++++++++++
- 1 file changed, 14 insertions(+)
+ mm/damon/core.c |   22 +++++++++++++++++-----
+ 1 file changed, 17 insertions(+), 5 deletions(-)
 
---- a/tools/testing/selftests/damon/sysfs.sh~selftests-damon-sysfssh-test-all-files-in-quota-goal-dir
-+++ a/tools/testing/selftests/damon/sysfs.sh
-@@ -199,6 +199,20 @@ test_goal()
- 	ensure_dir "$goal_dir" "exist"
- 	ensure_file "$goal_dir/target_value" "exist" "600"
- 	ensure_file "$goal_dir/current_value" "exist" "600"
-+	ensure_file "$goal_dir/target_metric" "exist" "600"
-+	local fpath="$goal_dir/target_metric"
-+	ensure_write_succ "$fpath" "user_input" "valid input"
-+	ensure_write_succ "$fpath" "some_mem_psi_us" "valid input"
-+	ensure_write_succ "$fpath" "node_mem_used_bp" "valid input"
-+	ensure_write_succ "$fpath" "node_mem_free_bp" "valid input"
-+	ensure_write_succ "$fpath" "node_memcg_used_bp" "valid input"
-+	ensure_write_succ "$fpath" "node_memcg_free_bp" "valid input"
-+	ensure_write_succ "$fpath" "active_mem_bp" "valid input"
-+	ensure_write_succ "$fpath" "inactive_mem_bp" "valid input"
-+	ensure_write_succ "$fpath" "node_eligible_mem_bp" "valid input"
-+	ensure_write_fail "$fpath" "foo" "invalid input"
-+	ensure_file "$goal_dir/nid" "exist" "600"
-+	ensure_file "$goal_dir/path" "exist" "600"
- }
+--- a/mm/damon/core.c~mm-damon-core-reduce-range-setup-in-damon_commit_target_regions
++++ a/mm/damon/core.c
+@@ -1360,21 +1360,33 @@ static struct damon_target *damon_nth_ta
+ static int damon_commit_target_regions(struct damon_target *dst,
+ 		struct damon_target *src, unsigned long src_min_region_sz)
+ {
+-	struct damon_region *src_region;
++	struct damon_region *src_region, *prev = NULL;
+ 	struct damon_addr_range *ranges;
+ 	int i = 0, err;
  
- test_goals()
+-	damon_for_each_region(src_region, src)
+-		i++;
++	damon_for_each_region(src_region, src) {
++		if (!prev || prev->ar.end != src_region->ar.start)
++			i++;
++		prev = src_region;
++	}
+ 	if (!i)
+ 		return 0;
+ 
+ 	ranges = kvmalloc_objs(*ranges, i, GFP_KERNEL | __GFP_NOWARN);
+ 	if (!ranges)
+ 		return -ENOMEM;
++	prev = NULL;
+ 	i = 0;
+-	damon_for_each_region(src_region, src)
+-		ranges[i++] = src_region->ar;
++	damon_for_each_region(src_region, src) {
++		if (!prev) {
++			ranges[i].start = src_region->ar.start;
++		} else if (prev->ar.end != src_region->ar.start) {
++			ranges[i++].end = prev->ar.end;
++			ranges[i].start = src_region->ar.start;
++		}
++		prev = src_region;
++	}
++	ranges[i++].end = damon_last_region(src)->ar.end;
+ 	err = damon_set_regions(dst, ranges, i, src_min_region_sz);
+ 	kvfree(ranges);
+ 	return err;
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
