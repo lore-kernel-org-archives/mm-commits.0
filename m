@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BCFBA3B6BE5
-	for <mm-commits@vger.kernel.org>; Fri, 31 Jul 2026 18:06:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0594D412276
+	for <mm-commits@vger.kernel.org>; Fri, 31 Jul 2026 18:06:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785521184; cv=none; b=lfcGVg+6hwcqGqTuSkB4ka18Z1/xltYZdKG734T2xn4WR7O7GcilU4e5loT5YuBVyhDfbuOJAKsWVC4VVfvAjamgIIpl47NAQjeoxVu9oxWipE3LlfqLtGSDFNkH/243G9X2Pid2Tep5/r9aO2qybBzSgdXHPgtVyoBvl8ZkOX8=
+	t=1785521187; cv=none; b=DfijlvXn6pTHpi0vHs6hL2wt/HURBZqJHUDW6bQWDKzANDan/Ym0ueIxjzCRhV5Y1X6FJ3tR1YOeDP8nM70doZ073RFTFrSOo/4WvjQRcmsBAN3wOfKGMssKeHZ2DW41KJVKMpw802v8I6OD7gqibnT3aekZbDZWIjWw4E+vXLA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785521184; c=relaxed/simple;
-	bh=XCyyr7Pi9Dc6QO1Njg+ZBypzjEogsJg/mtd8pqJfgPs=;
-	h=Date:To:From:Subject:Message-Id; b=KhH2TnlayRkuATnipyxWIVyIIu1ZWzsa8GjwqzuyUxqFHQYnd4Dyra3B2ULdjdZ7LIt+hDN3ziQJmNlF4jwAKEwmdqbEPK+I/aCGB8kWDW3PXJorXZK3MWRbpz6XGsViTR3fGhFCVTVigtI4+h4iR2zODhlvSBcW2gDjcKv+dsg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yrl40mCF; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785521187; c=relaxed/simple;
+	bh=gEix4kgVRs9deLn4NkgE9ulqX/0zZwm4Ril4RTwyRHY=;
+	h=Date:To:From:Subject:Message-Id; b=EFYWTuB9HR699jfhyRZswH7achZ8W9BpIDEuMB/zN0ziAnQvNdLuLRAYy7qpRSHwDhRKfEj9XkkNbV9ABI0D+2oYI6hm/ZPWtOW/QiJOUHVQpRX1/zem6gT+QALe9VKUH2/sQxgvv0WP54uJALZFNpSh265Jx8rps0ZTMQxlbzA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CEilppZA; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yrl40mCF"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 558BE1F00ACA;
-	Fri, 31 Jul 2026 18:06:21 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CEilppZA"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4D9971F00ACF;
+	Fri, 31 Jul 2026 18:06:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785521181;
-	bh=DaOKSRE5kOjWZTchbdytSpnETIJBaQTJa03k2Et3BaY=;
+	d=linux-foundation.org; s=korg; t=1785521183;
+	bh=3DklWWuN4U7iaOsgzkzJv/GyuUkFG43f6d3pC5kF2f4=;
 	h=Date:To:From:Subject;
-	b=yrl40mCF/REnffTdzQ5RpJ1rZ7Lc/HRTZiQNQAKFPG3er+SRDTKbbBrFIey2VaBAm
-	 VHuR2+bMD8PZb9wt0nN8us42QOF81bT8pzj7y2oAfiz3Mblw3oCEx5HLIcU30gVXFX
-	 zmMmc/umOd3jdJDvhVChf8aFYh/kSSLgipPigHLU=
-Date: Fri, 31 Jul 2026 11:06:20 -0700
+	b=CEilppZAnMTbR3qp1PSx0o/H5YXhHBxtFWeFTOkt20M/Kf5yFwHBtwEE2pxXJDKzc
+	 i9IYh7QagTVY0o509V8EfiwR0e5N2kug7twVpnhON6joyNrtYMdv+OaSsLN85G2NME
+	 MXXmXY6CXwsqmhEcgvLqY4GYJDNGsHG8DjP7d450=
+Date: Fri, 31 Jul 2026 11:06:22 -0700
 To: mm-commits@vger.kernel.org,ysato@users.sourceforge.jp,glaubitz@physik.fu-berlin.de,dalias@libc.org,arnd@arndb.de,rppt@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + sh-mm-drop-allocate_pgdat.patch added to mm-new branch
-Message-Id: <20260731180621.558BE1F00ACA@smtp.kernel.org>
+Subject: + sh-remove-setup_bootmem_node-and-plat_mem_setup.patch added to mm-new branch
+Message-Id: <20260731180623.4D9971F00ACF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: sh: mm: drop allocate_pgdat()
+     Subject: sh: remove setup_bootmem_node() and plat_mem_setup()
 has been added to the -mm mm-new branch.  Its filename is
-     sh-mm-drop-allocate_pgdat.patch
+     sh-remove-setup_bootmem_node-and-plat_mem_setup.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/sh-mm-drop-allocate_pgdat.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/sh-remove-setup_bootmem_node-and-plat_mem_setup.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,19 +70,16 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
-Subject: sh: mm: drop allocate_pgdat()
-Date: Sun, 10 May 2026 16:55:39 +0300
+Subject: sh: remove setup_bootmem_node() and plat_mem_setup()
+Date: Sun, 10 May 2026 16:55:40 +0300
 
-allocate_pgdat() function used to allocate the node data structure and
-initialize its node_start_pfn and node_spanned_pages fields.
+setup_bootmem_node() and plat_mem_setup() were needed to setup NUMA
+"nodes" for URAM memory ranges.  Since there is no NUMA support anymore,
+these functions are not needed.
 
-Without CONFIG_NUMA there is no need to allocate the node data and setting
-node_start_pfn and node_spanned_pages are redundant because they are
-anyway overwritten later by core MM.
+Remove them.
 
-Remove allocate_pgdat() function.
-
-Link: https://lore.kernel.org/20260510135546.13554-4-rppt@kernel.org
+Link: https://lore.kernel.org/20260510135546.13554-5-rppt@kernel.org
 Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Reviewed-by: Arnd Bergmann <arnd@arndb.de>
 Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
@@ -91,41 +88,119 @@ Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sh/mm/init.c |   16 ----------------
- 1 file changed, 16 deletions(-)
+ arch/sh/kernel/cpu/sh4a/setup-sh7366.c |    5 -----
+ arch/sh/kernel/cpu/sh4a/setup-sh7722.c |    6 ------
+ arch/sh/kernel/cpu/sh4a/setup-sh7757.c |    4 ----
+ arch/sh/kernel/cpu/sh4a/setup-sh7785.c |    6 ------
+ arch/sh/kernel/cpu/sh4a/setup-sh7786.c |    4 ----
+ arch/sh/kernel/cpu/sh4a/setup-shx3.c   |   17 -----------------
+ arch/sh/mm/init.c                      |    7 -------
+ 7 files changed, 49 deletions(-)
 
---- a/arch/sh/mm/init.c~sh-mm-drop-allocate_pgdat
-+++ a/arch/sh/mm/init.c
-@@ -199,20 +199,6 @@ void __init page_table_range_init(unsign
+--- a/arch/sh/kernel/cpu/sh4a/setup-sh7366.c~sh-remove-setup_bootmem_node-and-plat_mem_setup
++++ a/arch/sh/kernel/cpu/sh4a/setup-sh7366.c
+@@ -381,8 +381,3 @@ void __init plat_irq_setup(void)
+ {
+ 	register_intc_controller(&intc_desc);
  }
- #endif	/* CONFIG_MMU */
- 
--void __init allocate_pgdat(unsigned int nid)
+-
+-void __init plat_mem_setup(void)
 -{
--	unsigned long start_pfn, end_pfn;
+-	/* TODO: Register Node 1 */
+-}
+--- a/arch/sh/kernel/cpu/sh4a/setup-sh7722.c~sh-remove-setup_bootmem_node-and-plat_mem_setup
++++ a/arch/sh/kernel/cpu/sh4a/setup-sh7722.c
+@@ -658,9 +658,3 @@ void __init plat_irq_setup(void)
+ {
+ 	register_intc_controller(&intc_desc);
+ }
 -
--	get_pfn_range_for_nid(nid, &start_pfn, &end_pfn);
+-void __init plat_mem_setup(void)
+-{
+-	/* Register the URAM space as Node 1 */
+-	setup_bootmem_node(1, 0x055f0000, 0x05610000);
+-}
+--- a/arch/sh/kernel/cpu/sh4a/setup-sh7757.c~sh-remove-setup_bootmem_node-and-plat_mem_setup
++++ a/arch/sh/kernel/cpu/sh4a/setup-sh7757.c
+@@ -1239,7 +1239,3 @@ void __init plat_irq_setup_pins(int mode
+ 		BUG();
+ 	}
+ }
 -
--#ifdef CONFIG_NUMA
--	alloc_node_data(nid);
--#endif
+-void __init plat_mem_setup(void)
+-{
+-}
+--- a/arch/sh/kernel/cpu/sh4a/setup-sh7785.c~sh-remove-setup_bootmem_node-and-plat_mem_setup
++++ a/arch/sh/kernel/cpu/sh4a/setup-sh7785.c
+@@ -600,9 +600,3 @@ void __init plat_irq_setup_pins(int mode
+ 		BUG();
+ 	}
+ }
 -
--	NODE_DATA(nid)->node_start_pfn = start_pfn;
--	NODE_DATA(nid)->node_spanned_pages = end_pfn - start_pfn;
+-void __init plat_mem_setup(void)
+-{
+-	/* Register the URAM space as Node 1 */
+-	setup_bootmem_node(1, 0xe55f0000, 0xe5610000);
+-}
+--- a/arch/sh/kernel/cpu/sh4a/setup-sh7786.c~sh-remove-setup_bootmem_node-and-plat_mem_setup
++++ a/arch/sh/kernel/cpu/sh4a/setup-sh7786.c
+@@ -783,10 +783,6 @@ void __init plat_irq_setup_pins(int mode
+ 	}
+ }
+ 
+-void __init plat_mem_setup(void)
+-{
 -}
 -
- static void __init do_init_bootmem(void)
+ static int __init sh7786_devices_setup(void)
  {
- 	unsigned long start_pfn, end_pfn;
-@@ -222,8 +208,6 @@ static void __init do_init_bootmem(void)
- 	for_each_mem_pfn_range(i, MAX_NUMNODES, &start_pfn, &end_pfn, NULL)
+ 	int ret, irq;
+--- a/arch/sh/kernel/cpu/sh4a/setup-shx3.c~sh-remove-setup_bootmem_node-and-plat_mem_setup
++++ a/arch/sh/kernel/cpu/sh4a/setup-shx3.c
+@@ -377,20 +377,3 @@ void __init plat_irq_setup(void)
+ {
+ 	register_intc_controller(&intc_desc);
+ }
+-
+-void __init plat_mem_setup(void)
+-{
+-	unsigned int nid = 1;
+-
+-	/* Register CPU#0 URAM space as Node 1 */
+-	setup_bootmem_node(nid++, 0x145f0000, 0x14610000);	/* CPU0 */
+-
+-#if 0
+-	/* XXX: Not yet.. */
+-	setup_bootmem_node(nid++, 0x14df0000, 0x14e10000);	/* CPU1 */
+-	setup_bootmem_node(nid++, 0x155f0000, 0x15610000);	/* CPU2 */
+-	setup_bootmem_node(nid++, 0x15df0000, 0x15e10000);	/* CPU3 */
+-#endif
+-
+-	setup_bootmem_node(nid++, 0x16000000, 0x16020000);	/* CSM */
+-}
+--- a/arch/sh/mm/init.c~sh-remove-setup_bootmem_node-and-plat_mem_setup
++++ a/arch/sh/mm/init.c
+@@ -38,11 +38,6 @@ void __init generic_mem_init(void)
+ 	memblock_add(__MEMORY_START, __MEMORY_SIZE);
+ }
+ 
+-void __init __weak plat_mem_setup(void)
+-{
+-	/* Nothing to see here, move along. */
+-}
+-
+ #ifdef CONFIG_MMU
+ static pte_t *__get_pte_phys(unsigned long addr)
+ {
+@@ -209,8 +204,6 @@ static void __init do_init_bootmem(void)
  		__add_active_range(0, start_pfn, end_pfn);
  
--	/* All of system RAM sits in node 0 for the non-NUMA case */
--	allocate_pgdat(0);
  	node_set_online(0);
+-
+-	plat_mem_setup();
+ }
  
- 	plat_mem_setup();
+ static void __init early_reserve_mem(void)
 _
 
 Patches currently in -mm which might be from rppt@kernel.org are
