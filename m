@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 994C03368AA
-	for <mm-commits@vger.kernel.org>; Fri, 31 Jul 2026 02:42:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B63DA285CAE
+	for <mm-commits@vger.kernel.org>; Fri, 31 Jul 2026 02:42:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785465762; cv=none; b=rhlKtJqU2XRtFmxdeiJGSbAB1f2bXufzbkDVNbe5fF27nb5hCxpiqBASZXPS0lDPVZYRtB/7R2iVIjkPyyRx9EqefModkg7u/iRmO0Pir1r5yFk9k9u3RMevaSoV7jmW2VNeKksnZbgfEcwep1JHmKDcH75IU7prXbsBsY3U3pI=
+	t=1785465764; cv=none; b=EQAND3OZcYsvS6kLHxSV0qTLHyxpGDXHLY9N0TOhEbBpN3hLgeIbZihnkVDu4ZhQk1Zdk3rF26YswsVzDVPc3PqkUHBYaKotG9I4xPm4dsCFtY2OqPLLs9irSwXx6tkeTx+0wNq33/yxE7x4IWsvXA6DVOaYWpnI2M6ezdjS2O4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785465762; c=relaxed/simple;
-	bh=QjDuTzke2lZDswjmYWC5uiI6OYhQq5NQjO3oXW88SwI=;
-	h=Date:To:From:Subject:Message-Id; b=KTXOF2Y7lElGbWV8+R08PpEm3kc4o5NU4UGc+ajWxNiEkWGMJGbwq2ZtNcnk3H4TBJ6dH1x/QNyL5O1zCLpKjTLFMVmvlcDGqa+lIrnXjd930K7VmZpJezpo+/Lrquj7tV1/UUzbiG9Lh37aWY/FBOVIBNghsx/i2nHe5i1PpYM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zoTYnEqL; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785465764; c=relaxed/simple;
+	bh=/8nCsb3Py/EbG3xqFt9rQXNAL2C3jn10fisn0BzpXwo=;
+	h=Date:To:From:Subject:Message-Id; b=S9Iis5CHMzxS2vWS5n/QjyrdTe61H9tT+UeyHUiYL5jovCEJ13W21YfqK7g23TxIim1QPoM1SDI7kI0HJeX3K1d5aYeOW7WXEGsTIkQJaMbR/Dx56Gk/y1GrO9CG1QM6BrvfOt/Qfi45Ig9xcCNTsIxWpbcZwiPiH+PWEg9hJig=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=aAnC41B5; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zoTYnEqL"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6CDEF1F00A3D;
-	Fri, 31 Jul 2026 02:42:41 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="aAnC41B5"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8DAA51F000E9;
+	Fri, 31 Jul 2026 02:42:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785465761;
-	bh=NRQYfUzTDil/8QuyiY9xvkP/OMK3hGlLzYL23pf9c0c=;
+	d=linux-foundation.org; s=korg; t=1785465762;
+	bh=HvFHjrcql2yRobaGv2/8mkkb2KZ/0NqfvFECxLdjUyU=;
 	h=Date:To:From:Subject;
-	b=zoTYnEqL9XSolxTM3nRE9ySbEpF/nxQjnkHwXnsM5hh3zGJDcP0HqYGqg18RZWyma
-	 s7eprkUNIqk7RM+jY+KOiFgaxPfzsWtu+hvUW6n3x6KR3pIBpvymSBIFDry+fSUBHY
-	 YiyVh3x7SIRRaVJyTN26bxzyt3sQcepgZROaXiNI=
-Date: Thu, 30 Jul 2026 19:42:41 -0700
+	b=aAnC41B5IcbVIoQb5eg7hAPQU6lDuc0od3RgP2/DWynakS3yb+VVuJ/Y53fSIzuSO
+	 cIEQPp0DoaihvlgsoU8ICvGcYa+EHQ+lGLetFZVUmtsFhKnsTcbERfEOgqgI7tbce2
+	 6MFqloNLQetEGrUpsyyq7kfJDE5hOMpB+apPh3Nc=
+Date: Thu, 30 Jul 2026 19:42:42 -0700
 To: mm-commits@vger.kernel.org,shuah@kernel.org,rostedt@goodmis.org,mhiramat@kernel.org,mathieu.desnoyers@efficios.com,brendan.higgins@linux.dev,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-core-handle-unreset-nr_accesses-in-damon_nr_accesses_mvsum.patch removed from -mm tree
-Message-Id: <20260731024241.6CDEF1F00A3D@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-core-use-damon_nr_accesses_mvsum-in-__damos_valid_target.patch removed from -mm tree
+Message-Id: <20260731024242.8DAA51F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,35 +35,26 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/damon/core: handle unreset nr_accesses in damon_nr_accesses_mvsum()
+     Subject: mm/damon/core: use damon_nr_accesses_mvsum() in __damos_valid_target()
 has been removed from the -mm tree.  Its filename was
-     mm-damon-core-handle-unreset-nr_accesses-in-damon_nr_accesses_mvsum.patch
+     mm-damon-core-use-damon_nr_accesses_mvsum-in-__damos_valid_target.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/core: handle unreset nr_accesses in damon_nr_accesses_mvsum()
-Date: Mon, 29 Jun 2026 21:07:57 -0700
+Subject: mm/damon/core: use damon_nr_accesses_mvsum() in __damos_valid_target()
+Date: Mon, 29 Jun 2026 21:07:58 -0700
 
-damon_set_attrs() works like reverting aggregations that were made so far
-for this aggregation window.  If this is the end of the aggregation,
-however, kdamond_fn() will do the operations at the end of the aggregation
-interval, using cached timestamps.  For such operations that rely on
-damon_region->nr_accesses, damon_update_monitoring_results() doesn't reset
-the nr_accesses if it is called at the end of the aggregation window.
+damon_nr_accesses_mvsum() returns a value same to nr_accesses_bp.  Also
+the function is more simple and therefore more tolerant to errors. 
+Execution of the function would be more expensive than the simple read of
+the field, but because the function is quite simple, the overhead should
+be negligible.  Use it in __damos_valid_target() instead of the
+nr_accesses_bp.
 
-damon_nr_accesses_mvsum() works with fresh timestamps, though.  The
-nr_accesses that are not reset in this case can make the logic to
-unnecessarily count nr_accesses, resulting in returning
-higher-than-expected pseudo moving sum nr_accesses.  No code is using
-damon_nr_accesses_mvsum() yet, so this is not causing a real problem. 
-Following commits will add usage of the function, though.  For safe
-usages, calculate the pseudo moving sum without nr_accesses if the
-remaining window is full.
-
-Link: https://lore.kernel.org/20260630040812.149729-5-sj@kernel.org
+Link: https://lore.kernel.org/20260630040812.149729-6-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Cc: Brendan Higgins <brendan.higgins@linux.dev>
 Cc: "Masami Hiramatsu (Google)" <mhiramat@kernel.org>
@@ -73,21 +64,52 @@ Cc: Steven Rostedt <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/core.c |    3 +++
- 1 file changed, 3 insertions(+)
+ mm/damon/core.c |   11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
---- a/mm/damon/core.c~mm-damon-core-handle-unreset-nr_accesses-in-damon_nr_accesses_mvsum
+--- a/mm/damon/core.c~mm-damon-core-use-damon_nr_accesses_mvsum-in-__damos_valid_target
 +++ a/mm/damon/core.c
-@@ -266,6 +266,9 @@ unsigned int damon_nr_accesses_mvsum(str
- 			ctx->passed_sample_intervals;
- 	left_window_bp = mult_frac(left_window, 10000, window_len);
- 
-+	if (left_window_bp == 10000)
-+		return r->last_nr_accesses;
-+
- 	return damon_mvsum(r->nr_accesses, r->last_nr_accesses,
- 			left_window_bp);
+@@ -2151,10 +2151,11 @@ static noinline_for_stack void kdamond_t
+ 	damon_set_attrs(c, &new_attrs);
  }
+ 
+-static bool __damos_valid_target(struct damon_region *r, struct damos *s)
++static bool __damos_valid_target(struct damon_region *r, struct damos *s,
++		struct damon_ctx *c)
+ {
+ 	unsigned long sz;
+-	unsigned int nr_accesses = r->nr_accesses_bp / 10000;
++	unsigned int nr_accesses = damon_nr_accesses_mvsum(r, c);
+ 
+ 	sz = damon_sz_region(r);
+ 	return s->pattern.min_sz_region <= sz &&
+@@ -2180,7 +2181,7 @@ static bool damos_quota_is_set(struct da
+ static bool damos_valid_target(struct damon_ctx *c, struct damon_region *r,
+ 		struct damos *s)
+ {
+-	bool ret = __damos_valid_target(r, s);
++	bool ret = __damos_valid_target(r, s, c);
+ 
+ 	if (!ret || !damos_quota_is_set(&s->quota) || !c->ops.get_scheme_score)
+ 		return ret;
+@@ -2766,7 +2767,7 @@ static phys_addr_t damos_calc_eligible_b
+ 		damon_for_each_region(r, t) {
+ 			phys_addr_t addr, end_addr;
+ 
+-			if (!__damos_valid_target(r, s))
++			if (!__damos_valid_target(r, s, c))
+ 				continue;
+ 
+ 			/* Convert from core address units to physical bytes */
+@@ -3055,7 +3056,7 @@ static void damos_adjust_quota(struct da
+ 			(DAMOS_MAX_SCORE + 1));
+ 	damon_for_each_target(t, c) {
+ 		damon_for_each_region(r, t) {
+-			if (!__damos_valid_target(r, s))
++			if (!__damos_valid_target(r, s, c))
+ 				continue;
+ 			if (damos_core_filter_out(c, t, r, s))
+ 				continue;
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
