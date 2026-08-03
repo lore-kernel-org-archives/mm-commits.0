@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1FB44432BD4;
-	Mon,  3 Aug 2026 18:43:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BD7852D23A6
+	for <mm-commits@vger.kernel.org>; Mon,  3 Aug 2026 18:49:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785782590; cv=none; b=YbwoYI7tkiz0aU8jffYRqfj0spZWXv/Bv3VILHaeAwShPjZyRzepfNh/NY2i3IsqfsTBK2x1tfoFH82geJxsyM4OqCSZ5Hxn0gUa23/PBAFqr+RBawGxHw5H+L9U3Ca/dqUbV4UMUlFutrBYRMeUHkmhBTZXaCrklHYm/awbK7M=
+	t=1785782984; cv=none; b=Bh19idpvEizGZCOirgz9kYlPuxmuWx7kr9YiPisziGYQqGZ04UktYPfOBymI7CK2/Kh5ADw15xzQ0CcpqiiC2Q5AQAtpZLTJaFBpAft+QY2j89Nsa0v6vkw0FcrIg/LO/uOjgsyixze4HK1aQPOubT/e08waL/Qc6eX1gbFIa50=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785782590; c=relaxed/simple;
-	bh=uNlO3tqbOuLT86ykyFyugJ4yF5zhoEDMBgQhfCfbmUk=;
-	h=Date:To:From:Subject:Message-Id; b=GTegRkvCJqSxDiUJnm+mvC7NFG89HIoZ328jy2cxF4hSG0JZIh9BqPcinWkbW45ngD/9Kp8e8CYxXwQrVQ4WyM3YCRq5X+cmL6sgsENzviDkjtG9t3Br2cF5vwwIjgp7yRlUpHWcz/Dzz+fAWi9sH2NEJlClGAnDl2yyrbZA+Wg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HGIsqmf5; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785782984; c=relaxed/simple;
+	bh=pgkspal4uPdmaFbDqEjYpI/n5Bdab3ahvG2rOt/CSmE=;
+	h=Date:To:From:Subject:Message-Id; b=sevZXGmeTwi5ZfhUg+m9Fet/2GoNZc7/Rri+9x4JsVu0aUwjHVL29P/WQsVx+iB3tqPIP2SDLRE65BFNnzXYnWRftEaBIGcnNkni7rR6x+saK+HM8hTd/mT2MsP3gZQSVMJXp85J2T+W5v+y5w4f+0uiWe7iHiEVY4OuSiRh1e0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=M6BAGGoa; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HGIsqmf5"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D69421F00A3A;
-	Mon,  3 Aug 2026 18:43:08 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="M6BAGGoa"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4190E1F000E9;
+	Mon,  3 Aug 2026 18:49:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785782589;
-	bh=NGapyajbcRN8BHUprmHcPKQay7l6o5A7MxZIrHdEnRY=;
+	d=linux-foundation.org; s=korg; t=1785782982;
+	bh=6Zg89kL8Y3J1h7dGQE6+8Uwn0bMRfCBwT8IIdj2t4ac=;
 	h=Date:To:From:Subject;
-	b=HGIsqmf5Qy7lK8T7LDolwj+qJaCUYBxG/m9SyuNHtbrMe/oZw3XWJz0oCLMFwPEAb
-	 1vfxOieK6pmU2L3SUResx/dThQO0CGoB+mfgRUFiZaRbmLL3dZ88GL/RZi75XHJSU6
-	 pmx3ccqZeiAYpRKrpvBECZ9ZH/kbMl0Jbs/tEUUc=
-Date: Mon, 03 Aug 2026 11:43:08 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
+	b=M6BAGGoaSVQ0/KzeJNaeFcX1S5NpioPqr0ymV89a4e1pWRxFVmFtOLs4HNQMOf04q
+	 Km5rpP1tSJ2FELs46KJsO8sdocstL3NLwVRJkmiEZbRrXxR0e8ca5SN5eDHfXWAhTC
+	 a+tIUx4rFTauH2N5nRtVkg/1yTD+0Qlb6IKR+260=
+Date: Mon, 03 Aug 2026 11:49:41 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,shuah@kernel.org,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,corbet@lwn.net,catalin.marinas@arm.com,leitao@debian.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-lru_sort-error-out-for-10000-active_mem_bp.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260803184308.D69421F00A3A@smtp.kernel.org>
+Subject: + mm-kmemleak-default-min_unref_scans-to-2-for-verbose-auto-scan.patch added to mm-new branch
+Message-Id: <20260803184942.4190E1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,26 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/lru_sort: error out for >10000 active_mem_bp
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-damon-lru_sort-error-out-for-10000-active_mem_bp.patch
+     Subject: mm: kmemleak: default min_unref_scans to 2 for verbose auto-scan
+has been added to the -mm mm-new branch.  Its filename is
+     mm-kmemleak-default-min_unref_scans-to-2-for-verbose-auto-scan.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-lru_sort-error-out-for-10000-active_mem_bp.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-kmemleak-default-min_unref_scans-to-2-for-verbose-auto-scan.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,129 +69,100 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: SJ Park <sj@kernel.org>
-Subject: mm/damon/lru_sort: error out for >10000 active_mem_bp
-Date: Mon, 3 Aug 2026 06:40:33 -0700
+From: Breno Leitao <leitao@debian.org>
+Subject: mm: kmemleak: default min_unref_scans to 2 for verbose auto-scan
+Date: Fri, 31 Jul 2026 03:13:04 -0700
 
-damos_quota_score() can trigger division by zero if the target value is
-zero.  DAMON_LRU_SORT lets users set the target value for the hot memory
-scheme via active_mem_bp parameter.  It avoids setting it as the target
-value if the parameter value is zero.  However, it also sets the cold
-memory scheme with a target value that is calculated as '10000 -
-active_mem_bp + 2'.  Hence, if a user sets active_mem_bp 10002, the cold
-memory scheme's quota goal target value can be zero.  As a result,
-division by zero can be triggered.  Fix by returning an error when the
-user tries to start DAMON with >10000 active_mem_bp parameter value.
+Patch series "mm: kmemleak: default min_unref_scans to 2 for verbose
+kernels", v2.
 
-It makes no sense to set active_mem_bp with 10002.  It also requires
-module parameters write permission to reproduce the issue.  That said, the
-consequence is quite bad.
+When CONFIG_DEBUG_KMEMLEAK_VERBOSE is set, which means the host is in
+auto scan mode, set min_unref_scans to 2, avoiding false positives.
 
-One reliable way to reproduce the issue is like below:
+CONFIG_DEBUG_KMEMLEAK_VERBOSE depends on CONFIG_DEBUG_KMEMLEAK_AUTO_SCAN,
+so a kernel built with it already runs the scan thread periodically and
+the user has asked for detailed leak reports.
 
-    # cd /sys/module/damon_lru_sort/parameters
-    # echo 1000 > wmarks_high
-    # echo 995 > wmarks_mid
-    # echo 0 > wmarks_low
-    # echo 10002 > active_mem_bp
-    # echo Y > enabled
-    # dmesg -w
-    [...]
-    [  597.421247] Oops: divide error: 0000 [#1] SMP NOPTI
-    [  597.428848] RIP: 0010:damos_quota_score+0x6f/0x480
+The confirming second scan comes for free there, so default
+min_unref_scans to 2 in that case and keep it at 1 everywhere else.
+CONFIG_DEBUG_KMEMLEAK_VERBOSE defaults to n, so nothing changes for
+kernels that do not opt in.
 
-This issue was discovered [1] by Sashiko.
+The other two patches bring the documentation and the selftest comments
+in line with the new conditional default.
 
-Link: https://lore.kernel.org/20260803134034.15217-3-sj@kernel.org
-Link: https://lore.kernel.org/20260801213028.5127-1-sj@kernel.org [1]
-Fixes: 40d98d31cd70 ("mm/damon/lru_sort: support active:inactive memory ratio based auto-tuning")
-Signed-off-by: SJ Park <sj@kernel.org>
-Cc: <stable@vger.kernel.org> # 7.0.x
+PS: A similar patch (v1 of this patchset) is applied to Meta's kernel,
+in real production hosts.
+
+
+This patch (of 3):
+
+min_unref_scans defers reporting an object as leaked until it has stayed
+unreferenced for that many consecutive scans, filtering out objects that
+are only transiently unreferenced during a scan.
+
+It defaults to 1, which reports on the first unreferenced scan.
+
+CONFIG_DEBUG_KMEMLEAK_VERBOSE depends on CONFIG_DEBUG_KMEMLEAK_AUTO_SCAN,
+so a kernel built with it runs the scan thread periodically and the user
+has opted into detailed leak reporting.  A second confirming scan then
+happens on its own.
+
+Default min_unref_scans to 2 there to suppress transient false positives,
+and keep it at 1 otherwise, where a manually triggered scan is expected to
+report immediately.  The value stays writable through the module
+parameter.
+
+CONFIG_DEBUG_KMEMLEAK_VERBOSE defaults to n, so this does not change the
+default for kernels that do not opt in.
+
+Link: https://lore.kernel.org/20260731-kmemleak_hardened-v2-0-7b9689ac77cb@debian.org
+Link: https://lore.kernel.org/20260731-kmemleak_hardened-v2-1-7b9689ac77cb@debian.org
+Signed-off-by: Breno Leitao <leitao@debian.org>
+Acked-by: Catalin Marinas <catalin.marinas@arm.com>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/lru_sort.c |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/kmemleak.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/mm/damon/lru_sort.c~mm-damon-lru_sort-error-out-for-10000-active_mem_bp
-+++ a/mm/damon/lru_sort.c
-@@ -233,6 +233,8 @@ static int damon_lru_sort_add_quota_goal
- 
- 	if (!active_mem_bp)
- 		return 0;
-+	if (10000 < active_mem_bp)
-+		return -EINVAL;
- 	goal = damos_new_quota_goal(DAMOS_QUOTA_ACTIVE_MEM_BP, active_mem_bp);
- 	if (!goal)
- 		return -ENOMEM;
+--- a/mm/kmemleak.c~mm-kmemleak-default-min_unref_scans-to-2-for-verbose-auto-scan
++++ a/mm/kmemleak.c
+@@ -237,7 +237,8 @@ static struct task_struct *scan_thread;
+ /* used to avoid reporting of recently allocated objects */
+ static unsigned long jiffies_min_age;
+ /* consecutive scans an object must stay unreferenced before reporting */
+-static unsigned int min_unref_scans = 1;
++static unsigned int min_unref_scans =
++	IS_ENABLED(CONFIG_DEBUG_KMEMLEAK_VERBOSE) ? 2 : 1;
+ module_param(min_unref_scans, uint, 0644);
+ static unsigned long jiffies_last_scan;
+ /* delay between automatic memory scannings */
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from leitao@debian.org are
 
-mm-damon-adjust-isolated-pages-stat-for-damos_migrate_hotcold.patch
-samples-damon-mtier-error-out-for-zero-quota-goal-target-values.patch
-mm-damon-lru_sort-error-out-for-10000-active_mem_bp.patch
-mm-damon-core-stop-ctxs-in-damon_start-before-returning-an-error.patch
-samples-damon-mtier-do-not-stop-first-context-for-damon_start-failure.patch
-mm-damon-core-make-damon_stop-never-fails.patch
-mm-damon-sysfs-ignore-damon_stop-return-value.patch
-mm-damon-reclaaim-ignore-damon_stop-return-value.patch
-mm-damon-lru_sort-ignore-damon_stop-return-value.patch
-mm-damon-core-change-damon_stop-return-type-to-void.patch
-samples-damon-mtier-stop-all-contexts-with-single-damon_stop-call.patch
-mm-damon-core-wait-ctx-stop-in-damon_call-before-reruning-an-error.patch
-samples-damon-wsse-do-not-stop-ctx-for-damon_call-failure.patch
-samples-damon-prcl-do-not-stop-damon-for-damon_call-failure.patch
-mm-damon-core-remove-comment-and-test-for-nr_to_bp-divide-by-zero.patch
-mm-damon-core-s-damon_max_nr_accesses-damon_nr_samples_per_aggr.patch
-mm-damon-core-s-accesses_bp_to_nr_accesses-sample_bp_to_count.patch
-mm-damon-core-s-nr_accesses_to_accesses_bp-sample_count_to_bp.patch
-mm-damon-core-s-nr_accesses_for_new_attrs-nr_samples_for_new_attrs.patch
-mm-damon-core-update-probe-hits-for-new-parameter-commit.patch
-mm-damon-core-handle-unreset-probe_hits-in-probe_hits_mvsum.patch
-mm-damon-core-introduce-damon_probe-weight.patch
-mm-damon-core-ask-apply_probes-ops-callback-to-set-sampling-address.patch
-mm-damon-paddr-set-samples-in-apply_probes-if-requested.patch
-mm-damon-core-ask-apply_probe-to-return-max-probe-hits-weighted-sum.patch
-mm-damon-core-implement-damon_probe_hits_wsum.patch
-mm-damon-paddr-respect-return_max_wsum.patch
-mm-damon-core-use-abs_diff-instead-of-abs.patch
-mm-damon-core-extend-merge-function-to-work-with-probe-hits.patch
-mm-damon-core-disallow-probe_hits-overflow-on-attrs-only-monitoring.patch
-mm-damon-core-validate-params-for-probe-hits-weighted-sum-overflow.patch
-mm-damon-core-disable-access-monitoring-when-probe-weights-are-set.patch
-mm-damon-core-set-samples-in-apply_probes-if-probe-weights-are-set.patch
-mm-damon-core-s-max_nr_accesses-max_merge_score-in-kdamond_fn.patch
-mm-damon-core-get-merge-threshold-from-probe-hits-when-weights-are-set.patch
-mm-damon-core-implement-damon_has_probe_weight.patch
-mm-damon-sysfs-implement-probe-weight-file.patch
-docs-mm-damon-design-document-attrs-only-monitoring.patch
-docs-admin-guide-mm-damon-usage-document-weight-sysfs-file.patch
-docs-abi-damon-document-probe-weight-file.patch
-mm-damon-core-skip-aging-from-repeated-aggressive-merging.patch
-mm-damon-core-hide-private-damon_region-fields.patch
-mm-damon-core-hide-private-damon_target-fields.patch
-mm-damon-core-hide-private-damos_quota_goal-fields.patch
-mm-damon-core-hide-private-damos_quota-fields.patch
-mm-damon-core-hide-private-damos_filter-fields.patch
-mm-damon-core-hide-private-damos-fields.patch
-mm-damon-core-hide-private-damon_filter-fields.patch
-mm-damon-core-hide-private-damon_probe-fields.patch
-mm-damon-sysfs-do-not-directly-access-damon_ctx-ops.patch
-mm-damon-core-hide-core-private-damon_ctx-fields.patch
-mm-damon-core-avoid-infinite-kdamond_merge_regions-internal-loop.patch
-mm-damon-tests-core-kunit-catch-test-failure-in-test_merge_regions_of.patch
-mm-damon-vaddr-drop-last-same-folio-access-check-optimization.patch
-mm-damon-paddr-drop-last-same-folio-access-check-reuse-optimization.patch
-mm-damon-sysfs-read-addr_unit-only-once-in-damon_sysfs_apply_inputs.patch
-mm-damon-sysfs-read-ops_id-only-once-in-damon_sysfs_apply_inputs.patch
-mm-damon-core-initialize-damos-last_applied.patch
-mm-damon-core-kunit-check-region-count-before-testing-in-split_at.patch
-mm-damon-vaddr-kunit-check-region-count-in-three_regions-test.patch
-mm-damon-core-kunit-handle-region-split-failure-in-filter_out.patch
-mm-damon-core-kunit-skip-wrong-dest-walk-in-commit_dests_for.patch
-mm-damon-core-kunit-skip-wrong-quota-goal-walk-in-commit_quota_goals.patch
-mm-damon-core-kunit-skip-wrong-region-walk-in-commit_target_regions.patch
-mm-damon-ops-common-use-nr_accesses-moving-sum-for-quota-score.patch
-mm-damon-core-handle-region-split-failure-in-apply_min_nr_regions.patch
+mm-memory-failure-drop-dead-error_states-entry-for-reserved-pages.patch
+mm-memory-failure-surface-unhandlable-kernel-pages-as-enotrecoverable.patch
+mm-memory-failure-report-mf_msg_kernel-for-unrecoverable-kernel-pages.patch
+mm-memory-failure-add-panic-option-for-unrecoverable-pages.patch
+documentation-document-panic_on_unrecoverable_memory_failure-sysctl.patch
+mm-kmemleak-report-leaks-only-after-n-consecutive-unreferenced-scans.patch
+mm-kmemleak-factor-leak-confirmation-into-a-helper.patch
+selftests-mm-test-kmemleaks-n-consecutive-scan-leak-confirmation.patch
+mm-migrate-report-rcu-tasks-quiescent-states-in-migrate_pages_batch.patch
+radix-tree-fix-kmemleak-false-positives-on-tree-head-reassignment.patch
+mm-kmemleak-report-rcu-tasks-quiescent-states-during-the-scan.patch
+mm-kmemleak-default-min_unref_scans-to-2-for-verbose-auto-scan.patch
+documentation-kmemleak-document-the-conditional-min_unref_scans-default.patch
+selftests-mm-kmemleak-drop-stale-min_unref_scans-default-from-comments.patch
 
