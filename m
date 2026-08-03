@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AA7C042AB7;
-	Mon,  3 Aug 2026 18:54:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 654C4413221;
+	Mon,  3 Aug 2026 18:54:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785783285; cv=none; b=av0x1eA5mTFKabtZLJzbrqjxD0nIpTy43fPSPUQ9wuaiWHUwx7KWIkPBMM3KVbTKqF75+xqdheLcCAIKR2Mgx7o9nIrWJduw1X04kvWwhFyXgLP5/V9KU7snaMQuuphohVcrVSmDm4eBDXU6IqPIqXuNfp7RqumurluHc0a2FZY=
+	t=1785783286; cv=none; b=BsaHZjW/5zb9htMYMXl4TtnwQkD5qColmYzTeggEoKuKdJQVFUJN7fK/fbvEV9TQe8wMkXrjCQqAbGrTvOcyCBVeJsmEkev4ILiL+u+YqulJaPYgnoGqITZSkMEpm0n1cZZHOQScu9WHC6XfT2O+CiNYVP44mHZVrFp+thknSTs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785783285; c=relaxed/simple;
-	bh=ajcC3EguYpWR3TmAfqjhRHcCgbpeBJ3ey24hx6DbDog=;
-	h=Date:To:From:Subject:Message-Id; b=h0jInauErynj57CXCTOwjg85iXeZNon4jQE9yk3GgtkMXBHV4pOrYjTvS8yfybMucxxz4Xzs1t8x5b1XpDi6K9Jl2rX9vxTCtLvmO4i7je7mKhodVbaEBkLxvzMuaWj5r9l8NTPGSEd1MDisyVnIBwx1EeRxXu61MlS6tcCQO/E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NAjQ/dNb; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785783286; c=relaxed/simple;
+	bh=sp4StduCyC8sQKys5TOKubIWlp4NS1wl74CoNJKd4xc=;
+	h=Date:To:From:Subject:Message-Id; b=mmY+2BCQnCz+tco90RYnX+oWarg4bkuoPgQFmfQ3ogJQqKjcuDWR9qdbnU/1XkKTXFHU1WC6Ohr2zAaGZCKtxvqM/zFBAHzH7nZcnyivl/uEdQGtXiInvFQHv6cjhaw0qwn3Lx0FNvWlbrhMHf3Sx43GK7saAyJxzfsE283Idnk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jobynUbc; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NAjQ/dNb"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2D3F01F000E9;
-	Mon,  3 Aug 2026 18:54:43 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jobynUbc"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2D7121F000E9;
+	Mon,  3 Aug 2026 18:54:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785783283;
-	bh=51bYj7AE4Sj3DswAIP6q+IvE/DHnM4Af0YH+mj9/avM=;
+	d=linux-foundation.org; s=korg; t=1785783285;
+	bh=38MtYX4pmH2Nj3f6kgHGJM01zytdL7ql0wSOe2Wq720=;
 	h=Date:To:From:Subject;
-	b=NAjQ/dNbtUwXifqL4/1JruJZFHAl6dp+Fsem8gPusSmU35wPHcmsU+ixC1FjtDHta
-	 DW5e+BXwEdCD9Lu8/ZqvfzCYaM39QQbWCqMa9vaf8wMcO4xQ2EATRx/K6yTxl1NVE/
-	 vFlSbMe+L7SVawEGNc8zGSdxY4QBoCixnDnFd6kE=
-Date: Mon, 03 Aug 2026 11:54:42 -0700
+	b=jobynUbcgXjsWBGRCTrpDBr8JXdQmPZC0AJI/yVqrJVyYg2AX34iWEWkDZmf1kX20
+	 UmnaU0jI5ikoxd2ZkaDwPvK4cUflTqdJ8rAip9QRCSBVNTy8LLLcXOY9bRLqb5E2gC
+	 xRLGAl7I7BXrNHaaTDXlZq8BRXCASXZqqs4IHSjo=
+Date: Mon, 03 Aug 2026 11:54:44 -0700
 To: mm-commits@vger.kernel.org,stable@vger.kernel.org,aethernet65535@gmail.com,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-reclaim-skip-damon_call-if-ctx-has-not-started.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260803185443.2D3F01F000E9@smtp.kernel.org>
+Subject: + mm-damon-lru_sort-skip-damon_call-if-ctx-has-not-started.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260803185445.2D7121F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/reclaim: skip damon_call() if ctx has not started
+     Subject: mm/damon/lru_sort: skip damon_call() if ctx has not started
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-damon-reclaim-skip-damon_call-if-ctx-has-not-started.patch
+     mm-damon-lru_sort-skip-damon_call-if-ctx-has-not-started.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-reclaim-skip-damon_call-if-ctx-has-not-started.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-lru_sort-skip-damon_call-if-ctx-has-not-started.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,34 +59,20 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/reclaim: skip damon_call() if ctx has not started
-Date: Mon, 3 Aug 2026 06:46:44 -0700
+Subject: mm/damon/lru_sort: skip damon_call() if ctx has not started
+Date: Mon, 3 Aug 2026 06:46:45 -0700
 
-Patch series "mm/damon/{reclaim,lru_sort}: fix commit_inputs infinite
-hang".
-
-Writing 'Y' to commit_inputs parameters of DAMON_RECLAIM and
-DAMON_LRU_SORT before the modules were ever turned on causes infinite
-hang.  Fix those.
-
-The issue was discovered [1] by Sashiko.
-
-
-This patch (of 2):
-
-DAMON_RECLAIM calls damon_call() for commit_inputs parameter user input if
-the DAMON context is initialized.  The context could be initialized, but
-not yet successfully started.  In the case, damon_call() could
+DAMON_LRU_SORT calls damon_call() for commit_inputs parameter user input
+if the DAMON context is initialized.  The context could be initialized,
+but not yet successfully started.  In the case, damon_call() could
 indefinitely hang.  Read the comment on damon_call() for more detail.  Fix
 the problem by memorizing if the DAMON context has ever successfully
 started, and skip damon_call() if it has not.
 
-This issue can easily be reproduced by writing Y to commit_inputs on a
-system that DAMON_RECLAIM was not turned on before.
+This issue can easily be reproduced by writing Y to the commit_inputs
+parameter file on a system that DAMON_LRU_SORT has not turned on before.
 
-Link: https://lore.kernel.org/20260803134646.16640-1-sj@kernel.org
-Link: https://lore.kernel.org/20260803134646.16640-2-sj@kernel.org
-Link: https://lore.kernel.org/20260802173021.762-1-sj@kernel.org [1]
+Link: https://lore.kernel.org/20260803134646.16640-3-sj@kernel.org
 Fixes: de3c60e1c831 ("mm/damon: add synchronous commit for commit_inputs")
 Signed-off-by: SJ Park <sj@kernel.org>
 Cc: Liew Rui Yan <aethernet65535@gmail.com>
@@ -94,21 +80,21 @@ Cc: <stable@vger.kernel.org> # 7.2.x
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/reclaim.c |   11 ++++++-----
+ mm/damon/lru_sort.c |   11 ++++++-----
  1 file changed, 6 insertions(+), 5 deletions(-)
 
---- a/mm/damon/reclaim.c~mm-damon-reclaim-skip-damon_call-if-ctx-has-not-started
-+++ a/mm/damon/reclaim.c
-@@ -276,6 +276,8 @@ static int damon_reclaim_commit_inputs_f
- 	return damon_reclaim_apply_parameters();
+--- a/mm/damon/lru_sort.c~mm-damon-lru_sort-skip-damon_call-if-ctx-has-not-started
++++ a/mm/damon/lru_sort.c
+@@ -351,6 +351,8 @@ static int damon_lru_sort_commit_inputs_
+ 	return damon_lru_sort_apply_parameters();
  }
  
-+static bool damon_reclaim_damon_has_started;
++static bool damon_lru_sort_damon_has_started;
 +
- static int damon_reclaim_commit_inputs_store(const char *val,
- 					     const struct kernel_param *kp)
+ static int damon_lru_sort_commit_inputs_store(const char *val,
+ 					      const struct kernel_param *kp)
  {
-@@ -296,11 +298,8 @@ static int damon_reclaim_commit_inputs_s
+@@ -371,11 +373,8 @@ static int damon_lru_sort_commit_inputs_
  	if (!commit_inputs_request)
  		return 0;
  
@@ -118,16 +104,16 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 -	 */
 -	if (!ctx)
 +	/* Skip damon_call() if ctx has not successfully started. */
-+	if (!damon_reclaim_damon_has_started)
++	if (!damon_lru_sort_damon_has_started)
  		return -EINVAL;
  
  	err = damon_call(ctx, &control);
-@@ -347,6 +346,8 @@ static int damon_reclaim_turn(bool on)
+@@ -426,6 +425,8 @@ static int damon_lru_sort_turn(bool on)
  	err = damon_start(&ctx, 1, true);
  	if (err)
  		return err;
-+	if (!damon_reclaim_damon_has_started)
-+		damon_reclaim_damon_has_started = true;
++	if (!damon_lru_sort_damon_has_started)
++		damon_lru_sort_damon_has_started = true;
  	return damon_call(ctx, &call_control);
  }
  
