@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 824DF3264EF
-	for <mm-commits@vger.kernel.org>; Mon,  3 Aug 2026 22:07:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6707E286A7
+	for <mm-commits@vger.kernel.org>; Mon,  3 Aug 2026 23:08:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785794873; cv=none; b=A2cG0f5eY5r8w2OCgJDgs6M2qYziGulzOrWl5rHR4hM9ZQDlXMQ6gdgXflAE5mC68BjDbd64MsPkrb18tAT8CuEIP2cFI2SOllawt/INoH4SKpRW0TabA0SMaSnEnDWRx5xAuTFt2Yq+IvQqg8LVsaa2svLBhetifuejgngD+4M=
+	t=1785798496; cv=none; b=FXdy1u92hiY7TLAfLb7SKA33IbWCvwPHPHkeLtNPzVsU4+HM7myNsOzYU4o/4oyY7bie6Ppvi9+io2EaLBN11B1IopBAyXXsgHs0V4B3PqTbSK5CMGQqF4iP4RcA2mHEmCKRNgZpS8QbH0VbsyCt6XNsLDQdIWTv3MAGVZ4tOIg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785794873; c=relaxed/simple;
-	bh=wDXpkh4KsDoJD5JLrIxpgExOltoR2e++1XCXY48HKNs=;
-	h=Date:To:From:Subject:Message-Id; b=Hx8An6+hZK+pZZCD4i0/cQOaQq1+rIYxw93JVjplGm9Ks8/oaxU6nx/HuLmph5zAyf/Be9nakocnJ6DV2AfzF1SV18DKqou28hbj8vA7od3hnwQcFtkfl/Xb1ZwO3h3akW9rLMguT2mWgvBEyuXaE8q7lKwOhycxqL966aa1dXA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zOkfkDXj; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785798496; c=relaxed/simple;
+	bh=IUiypru4ePVEPgZDH35czLxnNZ4Lg0nm6QkRDcl7Acg=;
+	h=Date:To:From:Subject:Message-Id; b=qMfj47QsrEpdYAwRZWOERav6/6tPJTjxmWHGPvF+cox1+LyxSY4NLe6D3PfjgYfhuOdvRWk5nDrzzbsPRZw3ubM8goimgB5XZjd1Qofv/gAzyr2NTiRRzVZoog77GGaFm+7JttoNGG0qWcOHCZlfvFJSC5gL6YDOZYOEALZGqoE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=axgToMVm; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zOkfkDXj"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D2CE21F000E9;
-	Mon,  3 Aug 2026 22:07:50 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="axgToMVm"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D537B1F000E9;
+	Mon,  3 Aug 2026 23:08:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785794870;
-	bh=tOSd9VSUUqRHFcBEshqY2BVF/KbIdqrfohnBFXe07c8=;
+	d=linux-foundation.org; s=korg; t=1785798494;
+	bh=/ceBerk85I08dfubKWUFZ583AkupAAESUYTD67+dyP4=;
 	h=Date:To:From:Subject;
-	b=zOkfkDXjBMOfbO5gon90DjQNX9tmxzHFJSniR7LapXRc9sAOlQNIogOl+d425WPZj
-	 XB9+ub2coeoAyvTiRoYUnbrLc4/LsJN7+PhGxwTolUv+ybomixxE8WWurLwGdtTFM7
-	 OGPDdRgceRtZXbOli75ga/hsTKOQJqc55R5QhJs8=
-Date: Mon, 03 Aug 2026 15:07:50 -0700
-To: mm-commits@vger.kernel.org,nao.horiguchi@gmail.com,linmiaohe@huawei.com,liyouhong@kylinos.cn,akpm@linux-foundation.org
+	b=axgToMVmoGABy3kaH5vq0hZIainoMSqiclq4Xbt5pXAlzwJfRcvzwMJ22E2n5K2JM
+	 o09+LV2PIQU6zYzNUphc59Rh517QmieKOpJVNabIqoAdRXQ6LyIXJuq962jzpXQ3fM
+	 JD4dAJcgTF68J+Uxo8b8QRo8mU78HalrPXL1IlJE=
+Date: Mon, 03 Aug 2026 16:08:14 -0700
+To: mm-commits@vger.kernel.org,yosry@kernel.org,vbabka@kernel.org,surenb@google.com,sj@kernel.org,shuah@kernel.org,rppt@kernel.org,peterx@redhat.com,mhocko@suse.com,ljs@kernel.org,liam.howlett@oracle.com,jhubbard@nvidia.com,jgg@ziepe.ca,david@kernel.org,pratmal@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memory-failure-fix-refcount-leak-on-soft-offline-lbs-folio.patch added to mm-new branch
-Message-Id: <20260803220750.D2CE21F000E9@smtp.kernel.org>
+Subject: + selftests-mm-rename-local_configh-to-local_configh_gen.patch added to mm-new branch
+Message-Id: <20260803230814.D537B1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/memory-failure: fix refcount leak on soft-offline LBS folio
+     Subject: selftests/mm: rename local_config.h to local_config.h_gen
 has been added to the -mm mm-new branch.  Its filename is
-     mm-memory-failure-fix-refcount-leak-on-soft-offline-lbs-folio.patch
+     selftests-mm-rename-local_configh-to-local_configh_gen.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-failure-fix-refcount-leak-on-soft-offline-lbs-folio.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-rename-local_configh-to-local_configh_gen.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,63 +69,122 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: liyouhong <liyouhong@kylinos.cn>
-Subject: mm/memory-failure: fix refcount leak on soft-offline LBS folio
-Date: Mon, 3 Aug 2026 14:00:01 +0800
+From: Pratyush Mallick <pratmal@google.com>
+Subject: selftests/mm: rename local_config.h to local_config.h_gen
+Date: Mon, 3 Aug 2026 22:17:31 +0000
 
-soft_offline_in_use_page() runs with a folio reference taken by
-get_hwpoison_page() (or by the caller when MF_COUNT_INCREASED is set, e.g.
-madvise(MADV_SOFT_OFFLINE)).
+Patch series "selftests/mm: use pattern matching in .gitignore", v4.
 
-made soft-offline skip splitting when min_order_for_split() is non-zero,
-so large-block-size folios stay intact.  That early return -EBUSY path
-never drops the reference.
+The current selftests/mm/.gitignore hardcodes each generated test binary
+by name, which requires manual updates every time a new test is added.
 
-The other failure path is fine: try_to_split_thp_page(..., release=true)
-puts the page when the split itself fails.  memory_failure() also puts
-explicitly on its analogous unsplit path.
+This series switches to a pattern-matching approach (similar to KVM
+selftests), ignoring everything by default and allowing specific source
+extensions.  To accommodate this without tracking generated headers,
+local_config.h is renamed to local_config.h_gen.
 
-Split the new_order != 0 case out and folio_put() before returning.
 
-Link: https://lore.kernel.org/20260803060001.800638-1-dayou5941@163.com
-Fixes: 689b8986776c ("mm/memory-failure: improve large block size folio handling")
-Signed-off-by: liyouhong <liyouhong@kylinos.cn>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
+This patch (of 2):
+
+Because local_config.h is a generated build artifact, un-ignoring all .h
+files in .gitignore causes it to incorrectly show up as an untracked file
+in git status.
+
+Rename it to local_config.h_gen so it no longer matches the !*.h inclusion
+rule, preparing for a subsequent patch that switches .gitignore to a
+pattern-matching approach.
+
+Update Makefile, check_config.sh, and affected test sources (cow.c,
+gup_longterm.c) accordingly.
+
+Link: https://lore.kernel.org/20260803221732.3651981-1-pratmal@google.com
+Link: https://lore.kernel.org/20260803221732.3651981-2-pratmal@google.com
+Signed-off-by: Pratyush Mallick <pratmal@google.com>
+Reviewed-by: Lorenzo Stoakes <ljs@kernel.org>
+Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Suggested-by: David Hildenbrand <david@kernel.org>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: SeongJae Park <sj@kernel.org>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Yosry Ahmed <yosry@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |   14 ++++++++++++--
- 1 file changed, 12 insertions(+), 2 deletions(-)
+ tools/testing/selftests/mm/Makefile        |    6 +++---
+ tools/testing/selftests/mm/check_config.sh |    2 +-
+ tools/testing/selftests/mm/cow.c           |    2 +-
+ tools/testing/selftests/mm/gup_longterm.c  |    2 +-
+ 4 files changed, 6 insertions(+), 6 deletions(-)
 
---- a/mm/memory-failure.c~mm-memory-failure-fix-refcount-leak-on-soft-offline-lbs-folio
-+++ a/mm/memory-failure.c
-@@ -2870,9 +2870,19 @@ static int soft_offline_in_use_page(stru
- 		 * NOTE: if minimizing the number of soft offline pages is
- 		 * preferred, split it to non-zero new_order like it is done in
- 		 * memory_failure().
-+		 *
-+		 * Drop the ref from get_hwpoison_page()/MF_COUNT_INCREASED;
-+		 * try_to_split_thp_page(..., release=true) does that itself
-+		 * when the split fails.
- 		 */
--		if (new_order || try_to_split_thp_page(page, /* new_order= */ 0,
--						       /* release= */ true)) {
-+		if (new_order) {
-+			pr_info("%#lx: order-%d folio cannot soft offline\n",
-+				pfn, new_order);
-+			folio_put(folio);
-+			return -EBUSY;
-+		}
-+		if (try_to_split_thp_page(page, /* new_order= */ 0,
-+					 /* release= */ true)) {
- 			pr_info("%#lx: thp split failed\n", pfn);
- 			return -EBUSY;
- 		}
+--- a/tools/testing/selftests/mm/check_config.sh~selftests-mm-rename-local_configh-to-local_configh_gen
++++ a/tools/testing/selftests/mm/check_config.sh
+@@ -4,7 +4,7 @@
+ # Probe for libraries and create header files to record the results. Both C
+ # header files and Makefile include fragments are created.
+ 
+-OUTPUT_H_FILE=local_config.h
++OUTPUT_H_FILE=local_config.h_gen
+ OUTPUT_MKFILE=local_config.mk
+ 
+ tmpname=$(mktemp)
+--- a/tools/testing/selftests/mm/cow.c~selftests-mm-rename-local_configh-to-local_configh_gen
++++ a/tools/testing/selftests/mm/cow.c
+@@ -21,7 +21,7 @@
+ #include <sys/wait.h>
+ #include <linux/memfd.h>
+ 
+-#include "local_config.h"
++#include "local_config.h_gen"
+ #ifdef LOCAL_CONFIG_HAVE_LIBURING
+ #include <liburing.h>
+ #endif /* LOCAL_CONFIG_HAVE_LIBURING */
+--- a/tools/testing/selftests/mm/gup_longterm.c~selftests-mm-rename-local_configh-to-local_configh_gen
++++ a/tools/testing/selftests/mm/gup_longterm.c
+@@ -21,7 +21,7 @@
+ #include <linux/magic.h>
+ #include <linux/memfd.h>
+ 
+-#include "local_config.h"
++#include "local_config.h_gen"
+ #ifdef LOCAL_CONFIG_HAVE_LIBURING
+ #include <liburing.h>
+ #endif /* LOCAL_CONFIG_HAVE_LIBURING */
+--- a/tools/testing/selftests/mm/Makefile~selftests-mm-rename-local_configh-to-local_configh_gen
++++ a/tools/testing/selftests/mm/Makefile
+@@ -5,7 +5,7 @@
+ # script so kunit knows to run it, and add it to the list below.
+ # If you do not YOUR TESTS WILL NOT RUN IN THE CI.
+ 
+-LOCAL_HDRS += $(selfdir)/mm/local_config.h $(top_srcdir)/mm/gup_test.h
++LOCAL_HDRS += $(selfdir)/mm/local_config.h_gen $(top_srcdir)/mm/gup_test.h
+ LOCAL_HDRS += $(selfdir)/mm/mseal_helpers.h
+ 
+ include local_config.mk
+@@ -262,11 +262,11 @@ $(OUTPUT)/migration: LDLIBS += -lnuma
+ 
+ $(OUTPUT)/rmap: LDLIBS += -lnuma
+ 
+-local_config.mk local_config.h: check_config.sh
++local_config.mk local_config.h_gen: check_config.sh
+ 	$(call msg,CHK,config,$@)
+ 	$(Q)CC="$(CC)" CFLAGS="$(CFLAGS)" ./check_config.sh
+ 
+-EXTRA_CLEAN += local_config.mk local_config.h
++EXTRA_CLEAN += local_config.mk local_config.h_gen
+ 
+ ifeq ($(IOURING_EXTRA_LIBS),)
+ all: warn_missing_liburing
 _
 
-Patches currently in -mm which might be from liyouhong@kylinos.cn are
+Patches currently in -mm which might be from pratmal@google.com are
 
-mm-damon-ops-common-putback-folios-on-invalid-migrate-nid.patch
-mm-memory-failure-fix-refcount-leak-on-soft-offline-lbs-folio.patch
+mm-page_reporting-add-page_reporting_delay_ms-module-parameter.patch
+selftests-mm-rename-local_configh-to-local_configh_gen.patch
+selftests-mm-use-pattern-matching-in-gitignore.patch
 
