@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 83CF8435EF3
-	for <mm-commits@vger.kernel.org>; Mon,  3 Aug 2026 18:49:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AA7C042AB7;
+	Mon,  3 Aug 2026 18:54:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785782987; cv=none; b=jI/GHBwK93qoxq01tsoY+jkGdVKmxRFGLNvvb0p8hjML4NqZhOvpnms/5l6No5ruNSlaWmtk2qvoJHaxCToru/ROCQwZoOiKvcLz9unvC8VRT53/Q8Uiq24/A4g2EKORoGni2uMF77Q6IFD4s8HFDUYSDUtBkXVO//fvnlNTruU=
+	t=1785783285; cv=none; b=av0x1eA5mTFKabtZLJzbrqjxD0nIpTy43fPSPUQ9wuaiWHUwx7KWIkPBMM3KVbTKqF75+xqdheLcCAIKR2Mgx7o9nIrWJduw1X04kvWwhFyXgLP5/V9KU7snaMQuuphohVcrVSmDm4eBDXU6IqPIqXuNfp7RqumurluHc0a2FZY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785782987; c=relaxed/simple;
-	bh=gPLskcgD6/nNq/aAdE8yX+zhZCP+Bv9dcW3yzwIzZjE=;
-	h=Date:To:From:Subject:Message-Id; b=Ulvn+R9E5Qz89q5yen9j4UpbdlBH/+pFUkQ/W2svLkF9YSmEeercilfYI3ercgJpaXIReuEP/Ij8rR/Bm51tJ9QE3H9AhIvZBfG4mFxGk4OQqe2fyHzLIDVUgWmdHEpd1h8a0hrfeJ+atC9aCPBBPvvnthPVbxEXoR0TUHFU/wo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ecS9uw60; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785783285; c=relaxed/simple;
+	bh=ajcC3EguYpWR3TmAfqjhRHcCgbpeBJ3ey24hx6DbDog=;
+	h=Date:To:From:Subject:Message-Id; b=h0jInauErynj57CXCTOwjg85iXeZNon4jQE9yk3GgtkMXBHV4pOrYjTvS8yfybMucxxz4Xzs1t8x5b1XpDi6K9Jl2rX9vxTCtLvmO4i7je7mKhodVbaEBkLxvzMuaWj5r9l8NTPGSEd1MDisyVnIBwx1EeRxXu61MlS6tcCQO/E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NAjQ/dNb; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ecS9uw60"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4445A1F000E9;
-	Mon,  3 Aug 2026 18:49:46 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NAjQ/dNb"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2D3F01F000E9;
+	Mon,  3 Aug 2026 18:54:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785782986;
-	bh=SNp/snw5tommcJ2fNScNDMMypcUu4XHLqGBiNti33Zg=;
+	d=linux-foundation.org; s=korg; t=1785783283;
+	bh=51bYj7AE4Sj3DswAIP6q+IvE/DHnM4Af0YH+mj9/avM=;
 	h=Date:To:From:Subject;
-	b=ecS9uw606CpdTHAutrSCZkJFfd7+sqZNYaJgOqkQy8F/LfuSM+ZHbsx8XHQBOSj/k
-	 gafuJ0/DMGn7kIo41wlnk4abXU7EPplG2d8VngkIHoYEBQtTyMHM7nBVZE9CXNpwzX
-	 lGKLtpF4AgOZklu8/Oi2k8HudagLPYJkbvhNmfl0=
-Date: Mon, 03 Aug 2026 11:49:45 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,shuah@kernel.org,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,corbet@lwn.net,catalin.marinas@arm.com,leitao@debian.org,akpm@linux-foundation.org
+	b=NAjQ/dNbtUwXifqL4/1JruJZFHAl6dp+Fsem8gPusSmU35wPHcmsU+ixC1FjtDHta
+	 DW5e+BXwEdCD9Lu8/ZqvfzCYaM39QQbWCqMa9vaf8wMcO4xQ2EATRx/K6yTxl1NVE/
+	 vFlSbMe+L7SVawEGNc8zGSdxY4QBoCixnDnFd6kE=
+Date: Mon, 03 Aug 2026 11:54:42 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,aethernet65535@gmail.com,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-kmemleak-drop-stale-min_unref_scans-default-from-comments.patch added to mm-new branch
-Message-Id: <20260803184946.4445A1F000E9@smtp.kernel.org>
+Subject: + mm-damon-reclaim-skip-damon_call-if-ctx-has-not-started.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260803185443.2D3F01F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,26 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: kmemleak: drop stale min_unref_scans default from comments
-has been added to the -mm mm-new branch.  Its filename is
-     selftests-mm-kmemleak-drop-stale-min_unref_scans-default-from-comments.patch
+     Subject: mm/damon/reclaim: skip damon_call() if ctx has not started
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-damon-reclaim-skip-damon_call-if-ctx-has-not-started.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-kmemleak-drop-stale-min_unref_scans-default-from-comments.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-reclaim-skip-damon_call-if-ctx-has-not-started.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,83 +58,149 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Breno Leitao <leitao@debian.org>
-Subject: selftests/mm: kmemleak: drop stale min_unref_scans default from comments
-Date: Fri, 31 Jul 2026 03:13:06 -0700
+From: SJ Park <sj@kernel.org>
+Subject: mm/damon/reclaim: skip damon_call() if ctx has not started
+Date: Mon, 3 Aug 2026 06:46:44 -0700
 
-The test writes min_unref_scans explicitly for every case, so its comments
-describing 1 as the default are both unnecessary and, since the default is
-now conditional, wrong.  Refer to the threshold values directly.
+Patch series "mm/damon/{reclaim,lru_sort}: fix commit_inputs infinite
+hang".
 
-No functional change.
+Writing 'Y' to commit_inputs parameters of DAMON_RECLAIM and
+DAMON_LRU_SORT before the modules were ever turned on causes infinite
+hang.  Fix those.
 
-Link: https://lore.kernel.org/20260731-kmemleak_hardened-v2-3-7b9689ac77cb@debian.org
-Signed-off-by: Breno Leitao <leitao@debian.org>
-Acked-by: Catalin Marinas <catalin.marinas@arm.com>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
+The issue was discovered [1] by Sashiko.
+
+
+This patch (of 2):
+
+DAMON_RECLAIM calls damon_call() for commit_inputs parameter user input if
+the DAMON context is initialized.  The context could be initialized, but
+not yet successfully started.  In the case, damon_call() could
+indefinitely hang.  Read the comment on damon_call() for more detail.  Fix
+the problem by memorizing if the DAMON context has ever successfully
+started, and skip damon_call() if it has not.
+
+This issue can easily be reproduced by writing Y to commit_inputs on a
+system that DAMON_RECLAIM was not turned on before.
+
+Link: https://lore.kernel.org/20260803134646.16640-1-sj@kernel.org
+Link: https://lore.kernel.org/20260803134646.16640-2-sj@kernel.org
+Link: https://lore.kernel.org/20260802173021.762-1-sj@kernel.org [1]
+Fixes: de3c60e1c831 ("mm/damon: add synchronous commit for commit_inputs")
+Signed-off-by: SJ Park <sj@kernel.org>
+Cc: Liew Rui Yan <aethernet65535@gmail.com>
+Cc: <stable@vger.kernel.org> # 7.2.x
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/ksft_kmemleak_confirm.sh |   10 ++++------
- 1 file changed, 4 insertions(+), 6 deletions(-)
+ mm/damon/reclaim.c |   11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
---- a/tools/testing/selftests/mm/ksft_kmemleak_confirm.sh~selftests-mm-kmemleak-drop-stale-min_unref_scans-default-from-comments
-+++ a/tools/testing/selftests/mm/ksft_kmemleak_confirm.sh
-@@ -5,7 +5,7 @@
- # (the min_unref_scans module parameter).
- #
- # kmemleak only reports an object once it has stayed unreferenced for
--# min_unref_scans consecutive scans. The default of 1 reports on the first
-+# min_unref_scans consecutive scans. A threshold of 1 reports on the first
- # scan (historical behaviour); higher values filter transient false
- # positives where a live object's only reference is briefly invisible to a
- # single scan (e.g. an RCU tree update in flight while the scan runs). The
-@@ -16,8 +16,7 @@
- #   - a freshly allocated object is greyed on its first scan (its checksum
- #     settles then), so nothing can be reported before that priming scan;
- #     each case below primes once first,
--#   - with the default threshold (min_unref_scans=1) one scan after priming
--#     reports the orphans,
-+#   - at min_unref_scans=1 one scan after priming reports the orphans,
- #   - raising the threshold to 2 needs two scans after priming: one is not
- #     enough, the second reports,
- #   - the parameter reads back what was written.
-@@ -105,9 +104,8 @@ echo 3 > "$PARAM"
- # scan. Every case below runs this priming scan before counting.
- prime() { scan; }
+--- a/mm/damon/reclaim.c~mm-damon-reclaim-skip-damon_call-if-ctx-has-not-started
++++ a/mm/damon/reclaim.c
+@@ -276,6 +276,8 @@ static int damon_reclaim_commit_inputs_f
+ 	return damon_reclaim_apply_parameters();
+ }
  
--# 1) min_unref_scans=1 (default): one scan after priming reports the
--#    orphans. This also establishes that the helper produces detectable
--#    orphans here.
-+# 1) min_unref_scans=1: one scan after priming reports the orphans. This
-+#    also establishes that the helper produces detectable orphans here.
- echo 1 > "$PARAM"
- gen_orphans
- prime
++static bool damon_reclaim_damon_has_started;
++
+ static int damon_reclaim_commit_inputs_store(const char *val,
+ 					     const struct kernel_param *kp)
+ {
+@@ -296,11 +298,8 @@ static int damon_reclaim_commit_inputs_s
+ 	if (!commit_inputs_request)
+ 		return 0;
+ 
+-	/*
+-	 * Skip damon_call() if ctx is not initialized to avoid
+-	 * NULL pointer dereference.
+-	 */
+-	if (!ctx)
++	/* Skip damon_call() if ctx has not successfully started. */
++	if (!damon_reclaim_damon_has_started)
+ 		return -EINVAL;
+ 
+ 	err = damon_call(ctx, &control);
+@@ -347,6 +346,8 @@ static int damon_reclaim_turn(bool on)
+ 	err = damon_start(&ctx, 1, true);
+ 	if (err)
+ 		return err;
++	if (!damon_reclaim_damon_has_started)
++		damon_reclaim_damon_has_started = true;
+ 	return damon_call(ctx, &call_control);
+ }
+ 
 _
 
-Patches currently in -mm which might be from leitao@debian.org are
+Patches currently in -mm which might be from sj@kernel.org are
 
-mm-memory-failure-drop-dead-error_states-entry-for-reserved-pages.patch
-mm-memory-failure-surface-unhandlable-kernel-pages-as-enotrecoverable.patch
-mm-memory-failure-report-mf_msg_kernel-for-unrecoverable-kernel-pages.patch
-mm-memory-failure-add-panic-option-for-unrecoverable-pages.patch
-documentation-document-panic_on_unrecoverable_memory_failure-sysctl.patch
-mm-kmemleak-report-leaks-only-after-n-consecutive-unreferenced-scans.patch
-mm-kmemleak-factor-leak-confirmation-into-a-helper.patch
-selftests-mm-test-kmemleaks-n-consecutive-scan-leak-confirmation.patch
-mm-migrate-report-rcu-tasks-quiescent-states-in-migrate_pages_batch.patch
-radix-tree-fix-kmemleak-false-positives-on-tree-head-reassignment.patch
-mm-kmemleak-report-rcu-tasks-quiescent-states-during-the-scan.patch
-mm-kmemleak-default-min_unref_scans-to-2-for-verbose-auto-scan.patch
-documentation-kmemleak-document-the-conditional-min_unref_scans-default.patch
-selftests-mm-kmemleak-drop-stale-min_unref_scans-default-from-comments.patch
+mm-damon-adjust-isolated-pages-stat-for-damos_migrate_hotcold.patch
+samples-damon-mtier-error-out-for-zero-quota-goal-target-values.patch
+mm-damon-lru_sort-error-out-for-10000-active_mem_bp.patch
+mm-damon-reclaim-skip-damon_call-if-ctx-has-not-started.patch
+mm-damon-lru_sort-skip-damon_call-if-ctx-has-not-started.patch
+mm-damon-core-stop-ctxs-in-damon_start-before-returning-an-error.patch
+samples-damon-mtier-do-not-stop-first-context-for-damon_start-failure.patch
+mm-damon-core-make-damon_stop-never-fails.patch
+mm-damon-sysfs-ignore-damon_stop-return-value.patch
+mm-damon-reclaaim-ignore-damon_stop-return-value.patch
+mm-damon-lru_sort-ignore-damon_stop-return-value.patch
+mm-damon-core-change-damon_stop-return-type-to-void.patch
+samples-damon-mtier-stop-all-contexts-with-single-damon_stop-call.patch
+mm-damon-core-wait-ctx-stop-in-damon_call-before-reruning-an-error.patch
+samples-damon-wsse-do-not-stop-ctx-for-damon_call-failure.patch
+samples-damon-prcl-do-not-stop-damon-for-damon_call-failure.patch
+mm-damon-core-remove-comment-and-test-for-nr_to_bp-divide-by-zero.patch
+mm-damon-core-s-damon_max_nr_accesses-damon_nr_samples_per_aggr.patch
+mm-damon-core-s-accesses_bp_to_nr_accesses-sample_bp_to_count.patch
+mm-damon-core-s-nr_accesses_to_accesses_bp-sample_count_to_bp.patch
+mm-damon-core-s-nr_accesses_for_new_attrs-nr_samples_for_new_attrs.patch
+mm-damon-core-update-probe-hits-for-new-parameter-commit.patch
+mm-damon-core-handle-unreset-probe_hits-in-probe_hits_mvsum.patch
+mm-damon-core-introduce-damon_probe-weight.patch
+mm-damon-core-ask-apply_probes-ops-callback-to-set-sampling-address.patch
+mm-damon-paddr-set-samples-in-apply_probes-if-requested.patch
+mm-damon-core-ask-apply_probe-to-return-max-probe-hits-weighted-sum.patch
+mm-damon-core-implement-damon_probe_hits_wsum.patch
+mm-damon-paddr-respect-return_max_wsum.patch
+mm-damon-core-use-abs_diff-instead-of-abs.patch
+mm-damon-core-extend-merge-function-to-work-with-probe-hits.patch
+mm-damon-core-disallow-probe_hits-overflow-on-attrs-only-monitoring.patch
+mm-damon-core-validate-params-for-probe-hits-weighted-sum-overflow.patch
+mm-damon-core-disable-access-monitoring-when-probe-weights-are-set.patch
+mm-damon-core-set-samples-in-apply_probes-if-probe-weights-are-set.patch
+mm-damon-core-s-max_nr_accesses-max_merge_score-in-kdamond_fn.patch
+mm-damon-core-get-merge-threshold-from-probe-hits-when-weights-are-set.patch
+mm-damon-core-implement-damon_has_probe_weight.patch
+mm-damon-sysfs-implement-probe-weight-file.patch
+docs-mm-damon-design-document-attrs-only-monitoring.patch
+docs-admin-guide-mm-damon-usage-document-weight-sysfs-file.patch
+docs-abi-damon-document-probe-weight-file.patch
+mm-damon-core-skip-aging-from-repeated-aggressive-merging.patch
+mm-damon-core-hide-private-damon_region-fields.patch
+mm-damon-core-hide-private-damon_target-fields.patch
+mm-damon-core-hide-private-damos_quota_goal-fields.patch
+mm-damon-core-hide-private-damos_quota-fields.patch
+mm-damon-core-hide-private-damos_filter-fields.patch
+mm-damon-core-hide-private-damos-fields.patch
+mm-damon-core-hide-private-damon_filter-fields.patch
+mm-damon-core-hide-private-damon_probe-fields.patch
+mm-damon-sysfs-do-not-directly-access-damon_ctx-ops.patch
+mm-damon-core-hide-core-private-damon_ctx-fields.patch
+mm-damon-core-avoid-infinite-kdamond_merge_regions-internal-loop.patch
+mm-damon-tests-core-kunit-catch-test-failure-in-test_merge_regions_of.patch
+mm-damon-vaddr-drop-last-same-folio-access-check-optimization.patch
+mm-damon-paddr-drop-last-same-folio-access-check-reuse-optimization.patch
+mm-damon-sysfs-read-addr_unit-only-once-in-damon_sysfs_apply_inputs.patch
+mm-damon-sysfs-read-ops_id-only-once-in-damon_sysfs_apply_inputs.patch
+mm-damon-core-initialize-damos-last_applied.patch
+mm-damon-core-kunit-check-region-count-before-testing-in-split_at.patch
+mm-damon-vaddr-kunit-check-region-count-in-three_regions-test.patch
+mm-damon-core-kunit-handle-region-split-failure-in-filter_out.patch
+mm-damon-core-kunit-skip-wrong-dest-walk-in-commit_dests_for.patch
+mm-damon-core-kunit-skip-wrong-quota-goal-walk-in-commit_quota_goals.patch
+mm-damon-core-kunit-skip-wrong-region-walk-in-commit_target_regions.patch
+mm-damon-ops-common-use-nr_accesses-moving-sum-for-quota-score.patch
+mm-damon-core-handle-region-split-failure-in-apply_min_nr_regions.patch
 
