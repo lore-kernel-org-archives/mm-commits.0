@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F3E2E48CD70
-	for <mm-commits@vger.kernel.org>; Tue,  4 Aug 2026 17:35:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 27927469849
+	for <mm-commits@vger.kernel.org>; Tue,  4 Aug 2026 17:35:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785864905; cv=none; b=rMJPacZBngpch8rtKS28XfevciYUyE/6K/R4TAATEoVt815Oyw5aRlMsO0AhZMfLHQVKHt0c5S+d46XbMG2lDv/GxshvOJsbOzEDxgVWiegdGOtG4L7zpoAs73LVKPsxdBibMlgpsU4VUVLqs7taxqnIAzzCig9/rQ8WENMIdg0=
+	t=1785864953; cv=none; b=LFgydlUX6PiWnqRXu/6ZOiw++F20Qmp5egnSQjDJBPThmLhRljS2+btPTXt7GI6Dgd5a8++Dwr2HBM8Rb0sjFKuvigN9yHfgKb2ecRq4pXkJVkqh3T+o5ASQxuPsLL3+fYtjDRHW9sN9LVzyeH4TVXyul8K6GNTQDwNUwWhtzHg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785864905; c=relaxed/simple;
-	bh=YWRoGFFGCq8snU5k1bQc1cAoRVEj+rzzgFJ4NQ3OA2c=;
-	h=Date:To:From:Subject:Message-Id; b=ah/l88leDbNwRxjk8DcMvRrDWXcZclSjs5Ra8DlczZ3q3PecJ3nOusKV6tWlh8RJcxIGlaPR4/PGfnizAoIG6P7IQZwB390BbOTkt4MJOZUX9U7neNVw/b+h5kR5nJNELzmBhGci5KQfk/otYCmZYwoJqJrOPg6tajQsfpf8IAw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=isA0l4wG; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785864953; c=relaxed/simple;
+	bh=uMzwHd/79KnfXb1CvQ5QbhnBnqHsMVZMK60wQWtnkpY=;
+	h=Date:To:From:Subject:Message-Id; b=HpFwMxuAYUL2od5NBPxxQ3Ko8hvTfp/vjNpgzPGLpe62sBf4vTU+sI6LIOm4OCDr7dK25N3JzsWpWXwqSaXPhtoNEFo19VLAl7xso8FBLAYINnDZO4Zwf2pU3JKIzpAaTPeZTAriCX73QX0XdEnLFTUASI6XYg29BoVTFgZoB14=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cDzKqO36; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="isA0l4wG"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9D2EA1F000E9;
-	Tue,  4 Aug 2026 17:35:03 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cDzKqO36"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A719A1F000E9;
+	Tue,  4 Aug 2026 17:35:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785864903;
-	bh=QV/yJgncuFzmSrBeBBfLxSv2aTOoHYNwKfwlSdGTKyw=;
+	d=linux-foundation.org; s=korg; t=1785864951;
+	bh=CvFV8JMq7oci5X7U1XjwP0Ov4hSKDJg7dhrZuumo0Rw=;
 	h=Date:To:From:Subject;
-	b=isA0l4wGsL5pDkAYk9UN8qOoMIXjwuMLIn73eTZlAIZYCOokzDb/OlJNE5cQXApy/
-	 0eG7B2hPQ4DMaLSL9/N9LkakeAtOfONXRo0EBCC/2mfzG900i/kakMVehPcy0D4P0s
-	 pZMs6ZvrUo5zwDnYsJkS3U5/W6kfWwPHKtPYTxmI=
-Date: Tue, 04 Aug 2026 10:35:03 -0700
-To: mm-commits@vger.kernel.org,warren.xiong@ugreen.com,akpm@linux-foundation.org
+	b=cDzKqO36xH3hxR+fI6sSpcFlc1G7/Jp8XTXqr/IjxqPdHONmqQJ33FvQ9fnMzoaOV
+	 rtgFORFpMiggydFirm8BXkgW8Lo5z1QrZl+3q4NfPotNhxcu9ovAgw73eSOPZ85CRL
+	 5+a0wZZTv90eigI5N4xpEfd71QSI7EEQyJJEkhJg=
+Date: Tue, 04 Aug 2026 10:35:51 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,shuah@kernel.org,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,warren.xiong@ugreen.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] selftests-mm-read-memory-information-without-popen.patch removed from -mm tree
-Message-Id: <20260804173503.9D2EA1F000E9@smtp.kernel.org>
+Subject: + selftests-mm-read-memory-information-without-popen.patch added to mm-new branch
+Message-Id: <20260804173551.A719A1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,17 +34,44 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
+The patch titled
      Subject: selftests/mm: read memory information without popen
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm mm-new branch.  Its filename is
      selftests-mm-read-memory-information-without-popen.patch
 
-This patch was dropped because an updated version will be issued
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-read-memory-information-without-popen.patch
+
+This patch will later appear in the mm-new branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
 ------------------------------------------------------
 From: Warren Xiong <warren.xiong@ugreen.com>
 Subject: selftests/mm: read memory information without popen
-Date: Mon, 3 Aug 2026 09:30:15 +0800
+Date: Tue, 4 Aug 2026 20:16:58 +0800
 
 read_memory_info() invokes two shell pipelines to obtain MemFree and
 Hugepagesize from /proc/meminfo.  It does not check whether popen()
@@ -57,10 +84,9 @@ dependencies on external commands.
 
 The compaction test continues to pass after this change.
 
-Link: https://lore.kernel.org/1785720615-5826-1-git-send-email-warren.xiong@ugreen.com
+Link: https://lore.kernel.org/1785845818-3131-1-git-send-email-warren.xiong@ugreen.com
 Signed-off-by: Warren Xiong <warren.xiong@ugreen.com>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: David Hildenbrand <david@kernel.org>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
 Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
 Cc: Michal Hocko <mhocko@suse.com>
@@ -68,23 +94,16 @@ Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Shuah Khan <shuah@kernel.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@kernel.org>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/compaction_test.c |   47 ++++++++++-------
- 1 file changed, 29 insertions(+), 18 deletions(-)
+ tools/testing/selftests/mm/compaction_test.c |   40 +++++++++--------
+ 1 file changed, 22 insertions(+), 18 deletions(-)
 
 --- a/tools/testing/selftests/mm/compaction_test.c~selftests-mm-read-memory-information-without-popen
 +++ a/tools/testing/selftests/mm/compaction_test.c
-@@ -7,6 +7,7 @@
-  * allocated.
-  */
- 
-+#include <stdbool.h>
- #include <stdio.h>
- #include <stdlib.h>
- #include <sys/mman.h>
-@@ -29,30 +30,40 @@ struct map_list {
+@@ -29,30 +29,34 @@ struct map_list {
  
  int read_memory_info(unsigned long *memfree, unsigned long *hugepagesize)
  {
@@ -95,8 +114,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 -	if (!(fgets(buffer, sizeof(buffer), cmdfile))) {
 -		ksft_print_msg("Failed to read meminfo: %s\n", strerror(errno));
 +	char buffer[256];
-+	bool memfree_found = false;
-+	bool hugepagesize_found = false;
++	int found = 0;
 +	FILE *file;
 +	int ret = -1;
 +
@@ -116,17 +134,10 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 -	if (!(fgets(buffer, sizeof(buffer), cmdfile))) {
 -		ksft_print_msg("Failed to read meminfo: %s\n", strerror(errno));
 -		return -1;
-+	while (fgets(buffer, sizeof(buffer), file)) {
-+		if (sscanf(buffer, "MemFree: %lu kB", memfree) == 1)
-+			memfree_found = true;
-+		else if (sscanf(buffer, "Hugepagesize: %lu kB",
-+				hugepagesize) == 1)
-+			hugepagesize_found = true;
-+
-+		if (memfree_found && hugepagesize_found) {
-+			ret = 0;
-+			break;
-+		}
++	while (fgets(buffer, sizeof(buffer), file) && found != 2) {
++		if (sscanf(buffer, "MemFree: %lu kB", memfree) == 1 ||
++		    sscanf(buffer, "Hugepagesize: %lu kB", hugepagesize) == 1)
++			found++;
  	}
  
 -	pclose(cmdfile);
@@ -134,8 +145,10 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 +	if (ferror(file))
 +		ksft_print_msg("Failed to read /proc/meminfo: %s\n",
 +			       strerror(errno));
-+	else if (ret)
++	else if (found != 2)
 +		ksft_print_msg("Failed to parse /proc/meminfo\n");
++	else
++		ret = 0;
  
 -	return 0;
 +	fclose(file);
@@ -147,5 +160,6 @@ _
 
 Patches currently in -mm which might be from warren.xiong@ugreen.com are
 
+selftests-mm-read-memory-information-without-popen.patch
 tools-mm-prevent-page_owner_sort-from-truncating-input.patch
 
