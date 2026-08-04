@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AE9632F5324;
-	Tue,  4 Aug 2026 04:05:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 171A9415F28
+	for <mm-commits@vger.kernel.org>; Tue,  4 Aug 2026 04:05:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785816345; cv=none; b=bUkQLqX6PW2l+tJRAErDSZ+rm2swityYGdjHa6ESbG5DHE2droXfvXTsBASWYGJjuzIj138yxUGyeCjBMhfamsTaGXzc1IiY9nB7JEfsso3Ks5/A4RETgj91QWVwiuCzu1+DJlsNm6FtN7IPgGzVU+IcHvENcMK9N2RnQMzw/3Q=
+	t=1785816347; cv=none; b=D7iL95dZNwG87efLi3P9Th9+YMRU2spsPqL2PyKvU+yRszTt9+R8H+9LE4lppKJ4PxitbDCDRED2LgyrDlu1WfYfQ+zoQ5EfaRx0DRwUbxqs4RkEYJxe6l6GeVzgYl5Q7Qiwzgr/aqNmbTDqlVW7J1lueOUaOOsGvL2lugUvD+o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785816345; c=relaxed/simple;
-	bh=4GuRHplfAvixBJyIHR7sR1MAO4AMfiH/LVJhYQ9He00=;
-	h=Date:To:From:Subject:Message-Id; b=dsjTcKbEb3MLdwMQo7LkXGnpfbz8AI9ZsqqsWyMADDifw4aE0E3VFroRp75x2BwcpTrZIdb602j20d3WEDJwVF1KTK8GGAMltk5jlV1mznJGmOD/Suw/3mXXqqZbiuS6HWpI+GCpwVADMC3mnLNF/r4Kgup6HP7K/R8VUzAR1cw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=k1MFStJW; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785816347; c=relaxed/simple;
+	bh=GBz/atLNVNORwybcGkZ4KqLZlwCns3xI7QBumqSKnos=;
+	h=Date:To:From:Subject:Message-Id; b=WXgYF32H2QoT3KhcfjoUqFg9dJucGmVbpPfljSjzUSpeuXDGxz91ztQT6dOoSKqF6DQU65UVrIFt2KXZX3DUAq1xBuQ07lEU5tLCPhHpCnfOfOC3pdq8IUKMHhgiuHmu/tBEHdRP6ytNHnMmUiCKFfP3V6W8NJ4uq9oiqx+1ksw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UAkJZKoC; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="k1MFStJW"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 84D2A1F000E9;
-	Tue,  4 Aug 2026 04:05:44 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UAkJZKoC"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D8F3E1F00A3A;
+	Tue,  4 Aug 2026 04:05:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785816344;
-	bh=1iOX0glbqbzopHAvNheEG8zAHBHUl7L2lbCwwhcOc5M=;
+	d=linux-foundation.org; s=korg; t=1785816346;
+	bh=Q/HGQsMHaakW41nvd4cg8u+ecO1BBr8K4OhTHrdG2fI=;
 	h=Date:To:From:Subject;
-	b=k1MFStJWVu2QVXINulIjRFY5nj2uU3WFrsWY/gZgxTkyu48I85RTseb9Mvw5vmkNG
-	 KZ3jzZS7x2W9q0wQy9A6yg9QIYHUlP0Tm8uHw3qeS+VKgX1oPs5QqQOunm71jDl9+k
-	 eMCsU15vVjC+8cgHAOnudDkg1wQX9raPRdAtXliw=
-Date: Mon, 03 Aug 2026 21:05:44 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,ptikhomirov@virtuozzo.com,mjguzik@gmail.com,legion@kernel.org,include@grrlz.net,ebiederm@xmission.com,brauner@kernel.org,blbllhy@gmail.com,oleg@redhat.com,akpm@linux-foundation.org
+	b=UAkJZKoC9Ac6+yhzlnHHZJdTKNhOUwcApkawKBDAfktyY6RpmNXXsPbdoq1qT6DPM
+	 8b8ZM0FiCIq1IYmyHcwqVjYGO6vI9I66cYgqIP2A/M8LtiTPRCTPw6fJ6uv3LdiLVv
+	 FAB06Ttj/AX9zJIi7kvoma7c5swqLGR8kJv0/iJk=
+Date: Mon, 03 Aug 2026 21:05:45 -0700
+To: mm-commits@vger.kernel.org,yang.yang29@zte.com.cn,vincent.guittot@linaro.org,shuah@kernel.org,peterz@infradead.org,pabeni@redhat.com,nathan@kernel.org,mingo@redhat.com,mcoquelin.stm32@gmail.com,legion@kernel.org,kuba@kernel.org,kees@kernel.org,juri.lelli@redhat.com,joel.granados@kernel.org,jason@zx2c4.com,hca@linux.ibm.com,gor@linux.ibm.com,geert@linux-m68k.org,edumazet@google.com,ebiederm@xmission.com,davem@davemloft.net,dave.hansen@linux.intel.com,bsingharora@gmail.com,bp@alien8.de,alexandre.torgue@foss.st.com,agordeev@linux.ibm.com,oleg@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] sysctl-move-the-cad_pid-entry-from-pid_table-to-kern_reboot_table.patch removed from -mm tree
-Message-Id: <20260804040544.84D2A1F000E9@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] sysctl-remove-config_proc_sysctl-it-just-mirrors-config_sysctl.patch removed from -mm tree
+Message-Id: <20260804040545.D8F3E1F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,141 +35,421 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: sysctl: move the "cad_pid" entry from pid_table[] to kern_reboot_table[]
+     Subject: sysctl: remove CONFIG_PROC_SYSCTL, it just mirrors CONFIG_SYSCTL
 has been removed from the -mm tree.  Its filename was
-     sysctl-move-the-cad_pid-entry-from-pid_table-to-kern_reboot_table.patch
+     sysctl-remove-config_proc_sysctl-it-just-mirrors-config_sysctl.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Oleg Nesterov <oleg@redhat.com>
-Subject: sysctl: move the "cad_pid" entry from pid_table[] to kern_reboot_table[]
-Date: Mon, 20 Jul 2026 13:13:43 +0200
+Subject: sysctl: remove CONFIG_PROC_SYSCTL, it just mirrors CONFIG_SYSCTL
+Date: Mon, 27 Jul 2026 16:47:22 +0200
 
-cad_pid is global, and kill_cad_pid() is only used in the root namespace.
+CONFIG_SYSCTL used to make sense as a separate hidden bool before commit
+61a47c1ad3a4 ("sysctl: Remove the sysctl system call"); it was selected by
+both CONFIG_SYSCTL_SYSCALL and CONFIG_PROC_SYSCTL.
 
-However, due to pid_table_root_permissions(), a non-root user can unshare
-pid/user namespaces and modify it from the child namespace.  This makes no
-sense and is simply wrong.
+Today CONFIG_PROC_SYSCTL is the only selector, so the two are always
+equal.  Kill the hidden bool, rename the PROC_SYSCTL prompt to SYSCTL, and
+s/CONFIG_PROC_SYSCTL/CONFIG_SYSCTL/ tree-wide.
 
-Move it to kern_reboot_table[] where it logically belongs; this ensures
-that only GLOBAL_ROOT_UID can read/modify this sysctl.
-
-Note that this patch doesn't preserve "#ifdef CONFIG_PROC_SYSCTL" around
-the "cad_pid"; CONFIG_PROC_SYSCTL selects CONFIG_SYSCTL, so it is always
-set when kern_reboot_table[] is compiled.
-
-Link: https://lore.kernel.org/al4C572uhLdBvyzH@redhat.com
-Fixes: e054bcbe7e7a ("sysctl: move cad_pid into kernel/pid.c")
+Link: https://lore.kernel.org/amdveg1m4E4uQlGv@redhat.com
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Acked-by: Alexey Gladkov <legion@kernel.org>
-Reviewed-by: Bradley Morgan <include@grrlz.net>
-Reviewed-by: Pavel Tikhomirov <ptikhomirov@virtuozzo.com>
-Cc: Christian Brauner <brauner@kernel.org>
+Cc: Alexander Gordeev <agordeev@linux.ibm.com>
+Cc: Alexandre Torgue <alexandre.torgue@foss.st.com>
+Cc: Alexey Gladkov (Intel) <legion@kernel.org>
+Cc: Balbir Singh <bsingharora@gmail.com>
+Cc: "Borislav Petkov (AMD)" <bp@alien8.de>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: David S. Miller <davem@davemloft.net>
 Cc: Eric Biederman <ebiederm@xmission.com>
-Cc: Mateusz Guzik <mjguzik@gmail.com>
-Cc: "Cen Zhang (Microsoft)" <blbllhy@gmail.com>
-Cc: <stable@vger.kernel.org>
+Cc: Eric Dumazet <edumazet@google.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Jakub Kacinski <kuba@kernel.org>
+Cc: Jason A. Donenfeld <jason@zx2c4.com>
+Cc: Joel Granados <joel.granados@kernel.org>
+Cc: Juri Lelli <juri.lelli@redhat.com>
+Cc: Kees Cook <kees@kernel.org>
+Cc: Maxime Coquelin <mcoquelin.stm32@gmail.com>
+Cc: Nathan Chancellor <nathan@kernel.org>
+Cc: Paolo Abeni <pabeni@redhat.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Vasily Gorbik <gor@linux.ibm.com>
+Cc: Vincent Guittot <vincent.guittot@linaro.org>
+Cc: Yang Yang <yang.yang29@zte.com.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/pid.c    |   31 -------------------------------
- kernel/reboot.c |   29 +++++++++++++++++++++++++++++
- 2 files changed, 29 insertions(+), 31 deletions(-)
+ arch/m68k/configs/amcore_defconfig                   |    2 -
+ arch/m68k/configs/stmark2_defconfig                  |    2 -
+ arch/s390/Kconfig                                    |    4 +--
+ arch/x86/kernel/cpu/bus_lock.c                       |    2 -
+ fs/proc/Kconfig                                      |    3 --
+ fs/proc/Makefile                                     |    2 -
+ fs/proc/internal.h                                   |    2 -
+ include/linux/utsname.h                              |    2 -
+ init/Kconfig                                         |    3 --
+ kernel/delayacct.c                                   |    2 -
+ kernel/sched/core.c                                  |    8 +++---
+ kernel/sched/topology.c                              |    4 +--
+ kernel/sysctl.c                                      |   12 +++++-----
+ kernel/time/jiffies.c                                |    4 +--
+ kernel/utsname_sysctl.c                              |    4 +--
+ lib/Kconfig.debug                                    |    2 -
+ lib/test_sysctl.c                                    |    2 -
+ net/mpls/Kconfig                                     |    2 -
+ tools/testing/selftests/net/config                   |    2 -
+ tools/testing/selftests/net/packetdrill/config       |    2 -
+ tools/testing/selftests/wireguard/qemu/kernel.config |    2 -
+ 21 files changed, 32 insertions(+), 36 deletions(-)
 
---- a/kernel/pid.c~sysctl-move-the-cad_pid-entry-from-pid_table-to-kern_reboot_table
-+++ a/kernel/pid.c
-@@ -764,29 +764,6 @@ static struct ctl_table_root pid_table_r
- 	.set_ownership	= pid_table_root_set_ownership,
- };
+--- a/arch/m68k/configs/amcore_defconfig~sysctl-remove-config_proc_sysctl-it-just-mirrors-config_sysctl
++++ a/arch/m68k/configs/amcore_defconfig
+@@ -74,7 +74,7 @@ CONFIG_RTC_DRV_DS1307=y
+ # CONFIG_DNOTIFY is not set
+ # CONFIG_INOTIFY_USER is not set
+ CONFIG_FSCACHE=y
+-# CONFIG_PROC_SYSCTL is not set
++# CONFIG_SYSCTL is not set
+ CONFIG_JFFS2_FS=y
+ CONFIG_ROMFS_FS=y
+ CONFIG_ROMFS_BACKED_BY_BOTH=y
+--- a/arch/m68k/configs/stmark2_defconfig~sysctl-remove-config_proc_sysctl-it-just-mirrors-config_sysctl
++++ a/arch/m68k/configs/stmark2_defconfig
+@@ -87,7 +87,7 @@ CONFIG_EXT4_FS_SECURITY=y
+ # CONFIG_DNOTIFY is not set
+ # CONFIG_INOTIFY_USER is not set
+ CONFIG_OVERLAY_FS=y
+-# CONFIG_PROC_SYSCTL is not set
++# CONFIG_SYSCTL is not set
+ CONFIG_SQUASHFS=y
+ CONFIG_XZ_DEC=y
+ CONFIG_PRINTK_TIME=y
+--- a/arch/s390/Kconfig~sysctl-remove-config_proc_sysctl-it-just-mirrors-config_sysctl
++++ a/arch/s390/Kconfig
+@@ -576,7 +576,7 @@ config HIPERDISPATCH_ON
+ 	def_bool y
+ 	bool "Use hiperdispatch on vertical polarization by default"
+ 	depends on SCHED_TOPOLOGY
+-	depends on PROC_SYSCTL
++	depends on SYSCTL
+ 	help
+ 	  Hiperdispatch aims to improve the CPU scheduler's decision
+ 	  making when using vertical polarization by adjusting CPU
+@@ -894,7 +894,7 @@ config CMM_IUCV
+ config APPLDATA_BASE
+ 	def_bool n
+ 	prompt "Linux - VM Monitor Stream, base infrastructure"
+-	depends on PROC_SYSCTL
++	depends on SYSCTL
+ 	help
+ 	  This provides a kernel interface for creating and updating z/VM APPLDATA
+ 	  monitor records. The monitor records are updated at certain time
+--- a/arch/x86/kernel/cpu/bus_lock.c~sysctl-remove-config_proc_sysctl-it-just-mirrors-config_sysctl
++++ a/arch/x86/kernel/cpu/bus_lock.c
+@@ -50,7 +50,7 @@ static struct ratelimit_state bld_rateli
+ static unsigned int sysctl_sld_mitigate = 1;
+ static DEFINE_SEMAPHORE(buslock_sem, 1);
  
--static int proc_do_cad_pid(const struct ctl_table *table, int write, void *buffer,
--		size_t *lenp, loff_t *ppos)
--{
--	struct pid *new_pid;
--	pid_t tmp_pid;
--	int r;
--	struct ctl_table tmp_table = *table;
--
--	tmp_pid = pid_vnr(cad_pid);
--	tmp_table.data = &tmp_pid;
--
--	r = proc_dointvec(&tmp_table, write, buffer, lenp, ppos);
--	if (r || !write)
--		return r;
--
--	new_pid = find_get_pid(tmp_pid);
--	if (!new_pid)
--		return -ESRCH;
--
--	put_pid(xchg(&cad_pid, new_pid));
--	return 0;
--}
--
- static const struct ctl_table pid_table[] = {
- 	{
- 		.procname	= "pid_max",
-@@ -797,14 +774,6 @@ static const struct ctl_table pid_table[
- 		.extra1		= &pid_max_min,
- 		.extra2		= &pid_max_max,
- 	},
 -#ifdef CONFIG_PROC_SYSCTL
--	{
--		.procname	= "cad_pid",
--		.maxlen		= sizeof(int),
--		.mode		= 0600,
--		.proc_handler	= proc_do_cad_pid,
--	},
--#endif
- };
- #endif
++#ifdef CONFIG_SYSCTL
+ static const struct ctl_table sld_sysctls[] = {
+ 	{
+ 		.procname       = "split_lock_mitigate",
+--- a/fs/proc/internal.h~sysctl-remove-config_proc_sysctl-it-just-mirrors-config_sysctl
++++ a/fs/proc/internal.h
+@@ -351,7 +351,7 @@ extern void proc_thread_self_init(void);
+ /*
+  * proc_sysctl.c
+  */
+-#ifdef CONFIG_PROC_SYSCTL
++#ifdef CONFIG_SYSCTL
+ extern int proc_sys_init(void);
+ extern void proc_sys_evict_inode(struct inode *inode,
+ 				 struct ctl_table_header *head);
+--- a/fs/proc/Kconfig~sysctl-remove-config_proc_sysctl-it-just-mirrors-config_sysctl
++++ a/fs/proc/Kconfig
+@@ -80,10 +80,9 @@ config PROC_VMCORE_DEVICE_RAM
  
---- a/kernel/reboot.c~sysctl-move-the-cad_pid-entry-from-pid_table-to-kern_reboot_table
-+++ a/kernel/reboot.c
-@@ -1366,6 +1366,29 @@ static struct attribute *reboot_attrs[]
+ 	  Relevant architectures should select NEED_PROC_VMCORE_DEVICE_RAM.
+ 
+-config PROC_SYSCTL
++config SYSCTL
+ 	bool "Sysctl support (/proc/sys)" if EXPERT
+ 	depends on PROC_FS
+-	select SYSCTL
+ 	default y
+ 	help
+ 	  The sysctl interface provides a means of dynamically changing
+--- a/fs/proc/Makefile~sysctl-remove-config_proc_sysctl-it-just-mirrors-config_sysctl
++++ a/fs/proc/Makefile
+@@ -29,7 +29,7 @@ proc-y	+= softirqs.o
+ proc-y	+= namespaces.o
+ proc-y	+= self.o
+ proc-y	+= thread_self.o
+-proc-$(CONFIG_PROC_SYSCTL)	+= proc_sysctl.o
++proc-$(CONFIG_SYSCTL)		+= proc_sysctl.o
+ proc-$(CONFIG_NET)		+= proc_net.o
+ proc-$(CONFIG_PROC_KCORE)	+= kcore.o
+ proc-$(CONFIG_PROC_VMCORE)	+= vmcore.o
+--- a/include/linux/utsname.h~sysctl-remove-config_proc_sysctl-it-just-mirrors-config_sysctl
++++ a/include/linux/utsname.h
+@@ -18,7 +18,7 @@ enum uts_proc {
+ 	UTS_PROC_DOMAINNAME,
  };
+ 
+-#ifdef CONFIG_PROC_SYSCTL
++#ifdef CONFIG_SYSCTL
+ extern void uts_proc_notify(enum uts_proc proc);
+ #else
+ static inline void uts_proc_notify(enum uts_proc proc)
+--- a/init/Kconfig~sysctl-remove-config_proc_sysctl-it-just-mirrors-config_sysctl
++++ a/init/Kconfig
+@@ -1665,9 +1665,6 @@ config LD_ORPHAN_WARN_LEVEL
+ 	default "error" if WERROR
+ 	default "warn"
+ 
+-config SYSCTL
+-	bool
+-
+ config HAVE_UID16
+ 	bool
+ 
+--- a/kernel/delayacct.c~sysctl-remove-config_proc_sysctl-it-just-mirrors-config_sysctl
++++ a/kernel/delayacct.c
+@@ -54,7 +54,7 @@ void delayacct_init(void)
+ 	set_delayacct(delayacct_on);
+ }
+ 
+-#ifdef CONFIG_PROC_SYSCTL
++#ifdef CONFIG_SYSCTL
+ static int sysctl_delayacct(const struct ctl_table *table, int write, void *buffer,
+ 		     size_t *lenp, loff_t *ppos)
+ {
+--- a/kernel/sched/core.c~sysctl-remove-config_proc_sysctl-it-just-mirrors-config_sysctl
++++ a/kernel/sched/core.c
+@@ -4638,7 +4638,7 @@ void set_numabalancing_state(bool enable
+ 	__set_numabalancing_state(enabled);
+ }
+ 
+-#ifdef CONFIG_PROC_SYSCTL
++#ifdef CONFIG_SYSCTL
+ static void reset_memory_tiering(void)
+ {
+ 	struct pglist_data *pgdat;
+@@ -4674,7 +4674,7 @@ static int sysctl_numa_balancing(const s
+ 	}
+ 	return err;
+ }
+-#endif /* CONFIG_PROC_SYSCTL */
++#endif /* CONFIG_SYSCTL */
+ #endif /* CONFIG_NUMA_BALANCING */
+ 
+ #ifdef CONFIG_SCHEDSTATS
+@@ -4718,7 +4718,7 @@ out:
+ }
+ __setup("schedstats=", setup_schedstats);
+ 
+-#ifdef CONFIG_PROC_SYSCTL
++#ifdef CONFIG_SYSCTL
+ static int sysctl_schedstats(const struct ctl_table *table, int write, void *buffer,
+ 		size_t *lenp, loff_t *ppos)
+ {
+@@ -4738,7 +4738,7 @@ static int sysctl_schedstats(const struc
+ 		set_schedstats(state);
+ 	return err;
+ }
+-#endif /* CONFIG_PROC_SYSCTL */
++#endif /* CONFIG_SYSCTL */
+ #endif /* CONFIG_SCHEDSTATS */
  
  #ifdef CONFIG_SYSCTL
-+static int proc_do_cad_pid(const struct ctl_table *table, int write, void *buffer,
-+			   size_t *lenp, loff_t *ppos)
-+{
-+	struct ctl_table tmp_table = *table;
-+	struct pid *new_pid;
-+	pid_t tmp_pid;
-+	int r;
-+
-+	tmp_pid = pid_vnr(cad_pid);
-+	tmp_table.data = &tmp_pid;
-+
-+	r = proc_dointvec(&tmp_table, write, buffer, lenp, ppos);
-+	if (r || !write)
-+		return r;
-+
-+	new_pid = find_get_pid(tmp_pid);
-+	if (!new_pid)
-+		return -ESRCH;
-+
-+	put_pid(xchg(&cad_pid, new_pid));
-+	return 0;
-+}
-+
- static const struct ctl_table kern_reboot_table[] = {
- 	{
- 		.procname       = "poweroff_cmd",
-@@ -1381,6 +1404,12 @@ static const struct ctl_table kern_reboo
- 		.mode           = 0644,
- 		.proc_handler   = proc_dointvec,
- 	},
-+	{
-+		.procname	= "cad_pid",
-+		.maxlen		= sizeof(int),
-+		.mode		= 0600,
-+		.proc_handler	= proc_do_cad_pid,
-+	},
+--- a/kernel/sched/topology.c~sysctl-remove-config_proc_sysctl-it-just-mirrors-config_sysctl
++++ a/kernel/sched/topology.c
+@@ -271,7 +271,7 @@ void rebuild_sched_domains_energy(void)
+ 	mutex_unlock(&sched_energy_mutex);
+ }
+ 
+-#ifdef CONFIG_PROC_SYSCTL
++#ifdef CONFIG_SYSCTL
+ static int sched_energy_aware_handler(const struct ctl_table *table, int write,
+ 		void *buffer, size_t *lenp, loff_t *ppos)
+ {
+@@ -317,7 +317,7 @@ static int __init sched_energy_aware_sys
+ }
+ 
+ late_initcall(sched_energy_aware_sysctl_init);
+-#endif /* CONFIG_PROC_SYSCTL */
++#endif /* CONFIG_SYSCTL */
+ 
+ static void free_pd(struct perf_domain *pd)
+ {
+--- a/kernel/sysctl.c~sysctl-remove-config_proc_sysctl-it-just-mirrors-config_sysctl
++++ a/kernel/sysctl.c
+@@ -35,7 +35,7 @@ EXPORT_SYMBOL_GPL(sysctl_long_vals);
+ static const int ngroups_max = NGROUPS_MAX;
+ static const int cap_last_cap = CAP_LAST_CAP;
+ 
+-#ifdef CONFIG_PROC_SYSCTL
++#ifdef CONFIG_SYSCTL
+ 
+ /**
+  * enum sysctl_writes_mode - supported sysctl write modes
+@@ -64,14 +64,14 @@ enum sysctl_writes_mode {
  };
  
- static void __init kernel_reboot_sysctls_init(void)
+ static enum sysctl_writes_mode sysctl_writes_strict = SYSCTL_WRITES_STRICT;
+-#endif /* CONFIG_PROC_SYSCTL */
++#endif /* CONFIG_SYSCTL */
+ #endif /* CONFIG_SYSCTL */
+ 
+ /*
+  * /proc/sys support
+  */
+ 
+-#ifdef CONFIG_PROC_SYSCTL
++#ifdef CONFIG_SYSCTL
+ 
+ static int _proc_do_string(char *data, int maxlen, int dir,
+ 		char *buffer, size_t *lenp, loff_t *ppos)
+@@ -1240,7 +1240,7 @@ int proc_do_large_bitmap(const struct ct
+ 	return err;
+ }
+ 
+-#else /* CONFIG_PROC_SYSCTL */
++#else /* CONFIG_SYSCTL */
+ 
+ int proc_dostring(const struct ctl_table *table, int dir,
+ 		  void *buffer, size_t *lenp, loff_t *ppos)
+@@ -1338,7 +1338,7 @@ int proc_do_large_bitmap(const struct ct
+ 	return -ENOSYS;
+ }
+ 
+-#endif /* CONFIG_PROC_SYSCTL */
++#endif /* CONFIG_SYSCTL */
+ 
+ #if defined(CONFIG_SYSCTL)
+ int proc_do_static_key(const struct ctl_table *table, int dir,
+@@ -1372,7 +1372,7 @@ int proc_do_static_key(const struct ctl_
+ }
+ 
+ static const struct ctl_table sysctl_subsys_table[] = {
+-#ifdef CONFIG_PROC_SYSCTL
++#ifdef CONFIG_SYSCTL
+ 	{
+ 		.procname	= "sysctl_writes_strict",
+ 		.data		= &sysctl_writes_strict,
+--- a/kernel/time/jiffies.c~sysctl-remove-config_proc_sysctl-it-just-mirrors-config_sysctl
++++ a/kernel/time/jiffies.c
+@@ -98,7 +98,7 @@ void __init register_refined_jiffies(lon
+ 	__clocksource_register(&refined_jiffies);
+ }
+ 
+-#ifdef CONFIG_PROC_SYSCTL
++#ifdef CONFIG_SYSCTL
+ static ulong mult_hz(const ulong val)
+ {
+ 	return val * HZ;
+@@ -185,7 +185,7 @@ static int do_proc_int_conv_ms_jiffies_m
+ 			     sysctl_u2k_int_conv_ms, sysctl_k2u_int_conv_ms);
+ }
+ 
+-#else // CONFIG_PROC_SYSCTL
++#else // CONFIG_SYSCTL
+ static int do_proc_int_conv_jiffies(bool *negp, ulong *u_ptr, int *k_ptr,
+ 				    int dir, const struct ctl_table *tbl)
+ {
+--- a/kernel/utsname_sysctl.c~sysctl-remove-config_proc_sysctl-it-just-mirrors-config_sysctl
++++ a/kernel/utsname_sysctl.c
+@@ -13,7 +13,7 @@
+ #include <linux/wait.h>
+ #include <linux/rwsem.h>
+ 
+-#ifdef CONFIG_PROC_SYSCTL
++#ifdef CONFIG_SYSCTL
+ 
+ static void *get_uts(const struct ctl_table *table)
+ {
+@@ -122,7 +122,7 @@ static const struct ctl_table uts_kern_t
+ 	},
+ };
+ 
+-#ifdef CONFIG_PROC_SYSCTL
++#ifdef CONFIG_SYSCTL
+ /*
+  * Notify userspace about a change in a certain entry of uts_kern_table,
+  * identified by the parameter proc.
+--- a/lib/Kconfig.debug~sysctl-remove-config_proc_sysctl-it-just-mirrors-config_sysctl
++++ a/lib/Kconfig.debug
+@@ -2682,7 +2682,7 @@ config TEST_FIRMWARE
+ 
+ config TEST_SYSCTL
+ 	tristate "sysctl test driver"
+-	depends on PROC_SYSCTL
++	depends on SYSCTL
+ 	help
+ 	  This builds the "test_sysctl" module. This driver enables to test the
+ 	  proc sysctl interfaces available to drivers safely without affecting
+--- a/lib/test_sysctl.c~sysctl-remove-config_proc_sysctl-it-just-mirrors-config_sysctl
++++ a/lib/test_sysctl.c
+@@ -7,7 +7,7 @@
+ 
+ /*
+  * This module provides an interface to the proc sysctl interfaces.  This
+- * driver requires CONFIG_PROC_SYSCTL. It will not normally be loaded by the
++ * driver requires CONFIG_SYSCTL. It will not normally be loaded by the
+  * system unless explicitly requested by name. You can also build this driver
+  * into your kernel.
+  */
+--- a/net/mpls/Kconfig~sysctl-remove-config_proc_sysctl-it-just-mirrors-config_sysctl
++++ a/net/mpls/Kconfig
+@@ -26,7 +26,7 @@ config NET_MPLS_GSO
+ config MPLS_ROUTING
+ 	tristate "MPLS: routing support"
+ 	depends on NET_IP_TUNNEL || NET_IP_TUNNEL=n
+-	depends on PROC_SYSCTL
++	depends on SYSCTL
+ 	help
+ 	 Add support for forwarding of mpls packets.
+ 
+--- a/tools/testing/selftests/net/config~sysctl-remove-config_proc_sysctl-it-just-mirrors-config_sysctl
++++ a/tools/testing/selftests/net/config
+@@ -118,7 +118,7 @@ CONFIG_OPENVSWITCH_GENEVE=m
+ CONFIG_OPENVSWITCH_GRE=m
+ CONFIG_OPENVSWITCH_VXLAN=m
+ CONFIG_PAGE_POOL_STATS=y
+-CONFIG_PROC_SYSCTL=y
++CONFIG_SYSCTL=y
+ CONFIG_PSAMPLE=m
+ CONFIG_RPS=y
+ CONFIG_SYN_COOKIES=y
+--- a/tools/testing/selftests/net/packetdrill/config~sysctl-remove-config_proc_sysctl-it-just-mirrors-config_sysctl
++++ a/tools/testing/selftests/net/packetdrill/config
+@@ -4,7 +4,7 @@ CONFIG_IPV6=y
+ CONFIG_NET_NS=y
+ CONFIG_NET_SCH_FIFO=y
+ CONFIG_NET_SCH_FQ=y
+-CONFIG_PROC_SYSCTL=y
++CONFIG_SYSCTL=y
+ CONFIG_SYN_COOKIES=y
+ CONFIG_TCP_CONG_CUBIC=y
+ CONFIG_TCP_MD5SIG=y
+--- a/tools/testing/selftests/wireguard/qemu/kernel.config~sysctl-remove-config_proc_sysctl-it-just-mirrors-config_sysctl
++++ a/tools/testing/selftests/wireguard/qemu/kernel.config
+@@ -63,7 +63,7 @@ CONFIG_FILE_LOCKING=y
+ CONFIG_POSIX_TIMERS=y
+ CONFIG_DEVTMPFS=y
+ CONFIG_PROC_FS=y
+-CONFIG_PROC_SYSCTL=y
++CONFIG_SYSCTL=y
+ CONFIG_SYSFS=y
+ CONFIG_TMPFS=y
+ CONFIG_CONSOLE_LOGLEVEL_DEFAULT=15
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
