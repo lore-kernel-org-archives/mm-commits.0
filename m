@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8E72C38E8A4
-	for <mm-commits@vger.kernel.org>; Mon,  3 Aug 2026 23:14:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 77FD237F30D
+	for <mm-commits@vger.kernel.org>; Tue,  4 Aug 2026 00:44:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785798887; cv=none; b=TQ2bOiEwm8I6eaCjpLGF51gYbig5m5aM6415MSEoMDgq38z6jxHxmlpr+X9ieBOYqtWMnojUCc1ocs1G5CI1zoYNzmoUAka52Lv3HQGgewGq0k24MvViuxElM4+xjHBFP6NH2MAdZO1Z4PVuyw7NGducSt/LGPWcj2od7Twati0=
+	t=1785804244; cv=none; b=Mnp94EOXVi23wGJ2sp2W22AIUZZgErBv8N05Pz4gucODZhDdFX5wCcaREvhuS8SrFz2dRitEBYp35mXeQd0VZdqW/zUwqG2qK3/QS43aQes3fNgolQxJgbUI8oFJVT3Kd7csPaqAlo+WaDfPZy+5u0dt95W1uRf9F2yWuYa5ew8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785798887; c=relaxed/simple;
-	bh=UUOmrRUr07vJpAf6eQ32513XOQtKWO5F9xs7Fjmpyvg=;
-	h=Date:To:From:Subject:Message-Id; b=dRiSw/0MFb96Oayz5sUmIFnK/9XemQDO62YvTyuY9uDtMRTyt7nPmHAp8QOize4YkKcsehmhdB2igfriRhUsLCLnkYtHOU8HOr0Qo3w8TKCgQMnH+QlTR6p4RfR1azaQWfJqZnoiSVfZ7P+678IexJyCbT4l4quGT94P4Q4+sjE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BYFj/iup; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785804244; c=relaxed/simple;
+	bh=3uxCfDnlK0q4m9NgXXJIK++SwM4UzyDq6o4wyPtmxf8=;
+	h=Date:To:From:Subject:Message-Id; b=t+IXzfEBb7Cl3TxY4hYmHr/HkNr6/0MVSrcrJU4fIwnzX9ePMJlwB3/L6F/pn39HM9XARZHwouKjANLiCD7YB0lGumGzxj3Nwd+INqX0C/P6ZC5DyfsWVayhFaTFKMKVX1FtEd/w4ae+RfNHh0QAVvJnBQul0NDdHKXKuxgKtc4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=X+Kd7JHm; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BYFj/iup"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2B5AE1F00A3A;
-	Mon,  3 Aug 2026 23:14:43 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="X+Kd7JHm"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C3A011F00A3A;
+	Tue,  4 Aug 2026 00:44:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785798883;
-	bh=untqt+UbNrRnWOqBYqUFhBEeyU8OOtKrLmW9mOVsV10=;
+	d=linux-foundation.org; s=korg; t=1785804242;
+	bh=QzwPw0jOqKVFUwr2SKt9M5jRgsyymWnn/mnsljsPrzQ=;
 	h=Date:To:From:Subject;
-	b=BYFj/iupoIWppZ10ORdlpWBMAXMy1k1gAij/LegCaz9l8KyalLMl23LQED/mLrvoA
-	 MWfGgo7NlFOjAkWdOmRc+XaLpZWOCB010SHThqJ4BvWuKQ/q5NI5eOWxyzbNCtDHKR
-	 rorzd//nbWDefs833Uu1y09SCv5lTMks0GZ4VSJA=
-Date: Mon, 03 Aug 2026 16:14:42 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,shuah@kernel.org,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,akpm@linux-foundation.org,warren.xiong@ugreen.com,akpm@linux-foundation.org
+	b=X+Kd7JHmxAb8yQGpZOoARMf8ko+/eM2TBqigvzyIgkdh+8KhF8/r7h6JH3gNo4Fzr
+	 TxKsIe6lyBTHyNtxxNFQMRLvfeaS/Dke/+7xXK2DIsTgF5IZ2NPyi1G4Ay2wBYJQSg
+	 lDyxdDdiE8y6I2ujFEHA7QfwdBZKUpIGQ3cwvlNs=
+Date: Mon, 03 Aug 2026 17:44:02 -0700
+To: mm-commits@vger.kernel.org,shijianlin11@foxmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-read-memory-information-without-popen.patch added to mm-new branch
-Message-Id: <20260803231443.2B5AE1F00A3A@smtp.kernel.org>
+Subject: [to-be-updated] mm-page_alloc-only-update-lowmem_reserve_ratio-on-sysctl-write.patch removed from -mm tree
+Message-Id: <20260804004402.C3A011F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,146 +34,91 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: selftests/mm: read memory information without popen
-has been added to the -mm mm-new branch.  Its filename is
-     selftests-mm-read-memory-information-without-popen.patch
+The quilt patch titled
+     Subject: mm/page_alloc: only update lowmem_reserve_ratio on sysctl write
+has been removed from the -mm tree.  Its filename was
+     mm-page_alloc-only-update-lowmem_reserve_ratio-on-sysctl-write.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-read-memory-information-without-popen.patch
-
-This patch will later appear in the mm-new branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Warren Xiong <warren.xiong@ugreen.com>
-Subject: selftests/mm: read memory information without popen
-Date: Mon, 3 Aug 2026 09:30:15 +0800
+From: Jianlin Shi <shijianlin11@foxmail.com>
+Subject: mm/page_alloc: only update lowmem_reserve_ratio on sysctl write
+Date: Sat, 1 Aug 2026 23:11:25 +0800
 
-read_memory_info() invokes two shell pipelines to obtain MemFree and
-Hugepagesize from /proc/meminfo.  It does not check whether popen()
-returns NULL before passing the result to fgets(), and it does not call
-pclose() when fgets() fails.
+lowmem_reserve_ratio_sysctl_handler() ignores the return value of
+proc_dointvec_minmax() and always calls setup_per_zone_lowmem_reserve(),
+even for read operations.
 
-Open /proc/meminfo directly and obtain both values in a single pass.  This
-removes the unchecked NULL path, closes the file on all paths, and avoids
-dependencies on external commands.
+Fix two issues:
 
-The compaction test continues to pass after this change.
+1. Propagate errors from proc_dointvec_minmax() instead of always
+   returning success.  For example, writing non-integer garbage to the
+   sysctl now returns an error instead of silently succeeding with
+   unchanged values.
 
-Link: https://lore.kernel.org/1785720615-5826-1-git-send-email-warren.xiong@ugreen.com
-Signed-off-by: Warren Xiong <warren.xiong@ugreen.com>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
+2. Only call setup_per_zone_lowmem_reserve() when the sysctl is
+   actually written.  Reading /proc/sys/vm/lowmem_reserve_ratio should
+   not recompute derived lowmem_reserve[] and totalreserve_pages when
+   the inputs did not change, matching min_free_kbytes and
+   watermark_scale_factor handlers.
+
+Drop the manual "< 1 -> 0" sanitization loop and set .extra1 = SYSCTL_ZERO
+on the ctl_table entry so proc_dointvec_minmax() enforces the minimum on
+write; negative values now return -EINVAL instead of being silently
+coerced to 0 (suggested by Vlastimil Babka).
+
+Link: https://lore.kernel.org/tencent_1BB7A5C4D5EEA67346634417753190E92A09@qq.com
+Link: https://lore.kernel.org/linux-mm/tencent_FFD4F4D728AAE8A8AE0AF277A59854A29A06@qq.com/
+Signed-off-by: Jianlin Shi <shijianlin11@foxmail.com>
+Reviewed-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Brendan Jackman <jackmanb@google.com>
 Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Shuah Khan <shuah@kernel.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/compaction_test.c |   47 ++++++++++-------
- 1 file changed, 29 insertions(+), 18 deletions(-)
+ mm/page_alloc.c |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
---- a/tools/testing/selftests/mm/compaction_test.c~selftests-mm-read-memory-information-without-popen
-+++ a/tools/testing/selftests/mm/compaction_test.c
-@@ -7,6 +7,7 @@
-  * allocated.
-  */
- 
-+#include <stdbool.h>
- #include <stdio.h>
- #include <stdlib.h>
- #include <sys/mman.h>
-@@ -29,30 +30,40 @@ struct map_list {
- 
- int read_memory_info(unsigned long *memfree, unsigned long *hugepagesize)
+--- a/mm/page_alloc.c~mm-page_alloc-only-update-lowmem_reserve_ratio-on-sysctl-write
++++ a/mm/page_alloc.c
+@@ -6925,16 +6925,15 @@ static int sysctl_min_slab_ratio_sysctl_
+ static int lowmem_reserve_ratio_sysctl_handler(const struct ctl_table *table,
+ 		int write, void *buffer, size_t *length, loff_t *ppos)
  {
--	char  buffer[256] = {0};
--	char *cmd = "cat /proc/meminfo | grep -i memfree | grep -o '[0-9]*'";
--	FILE *cmdfile = popen(cmd, "r");
--
--	if (!(fgets(buffer, sizeof(buffer), cmdfile))) {
--		ksft_print_msg("Failed to read meminfo: %s\n", strerror(errno));
-+	char buffer[256];
-+	bool memfree_found = false;
-+	bool hugepagesize_found = false;
-+	FILE *file;
-+	int ret = -1;
-+
-+	file = fopen("/proc/meminfo", "r");
-+	if (!file) {
-+		ksft_print_msg("Failed to open /proc/meminfo: %s\n",
-+			       strerror(errno));
- 		return -1;
- 	}
+-	int i;
++	int rc;
  
--	pclose(cmdfile);
--
--	*memfree = atoll(buffer);
--	cmd = "cat /proc/meminfo | grep -i hugepagesize | grep -o '[0-9]*'";
--	cmdfile = popen(cmd, "r");
--
--	if (!(fgets(buffer, sizeof(buffer), cmdfile))) {
--		ksft_print_msg("Failed to read meminfo: %s\n", strerror(errno));
--		return -1;
-+	while (fgets(buffer, sizeof(buffer), file)) {
-+		if (sscanf(buffer, "MemFree: %lu kB", memfree) == 1)
-+			memfree_found = true;
-+		else if (sscanf(buffer, "Hugepagesize: %lu kB",
-+				hugepagesize) == 1)
-+			hugepagesize_found = true;
-+
-+		if (memfree_found && hugepagesize_found) {
-+			ret = 0;
-+			break;
-+		}
- 	}
+-	proc_dointvec_minmax(table, write, buffer, length, ppos);
++	rc = proc_dointvec_minmax(table, write, buffer, length, ppos);
++	if (rc)
++		return rc;
  
--	pclose(cmdfile);
--	*hugepagesize = atoll(buffer);
-+	if (ferror(file))
-+		ksft_print_msg("Failed to read /proc/meminfo: %s\n",
-+			       strerror(errno));
-+	else if (ret)
-+		ksft_print_msg("Failed to parse /proc/meminfo\n");
+-	for (i = 0; i < MAX_NR_ZONES; i++) {
+-		if (sysctl_lowmem_reserve_ratio[i] < 1)
+-			sysctl_lowmem_reserve_ratio[i] = 0;
+-	}
++	if (write)
++		setup_per_zone_lowmem_reserve();
  
--	return 0;
-+	fclose(file);
-+	return ret;
+-	setup_per_zone_lowmem_reserve();
+ 	return 0;
  }
  
- int prereq(void)
+@@ -7033,6 +7032,7 @@ static const struct ctl_table page_alloc
+ 		.maxlen		= sizeof(sysctl_lowmem_reserve_ratio),
+ 		.mode		= 0644,
+ 		.proc_handler	= lowmem_reserve_ratio_sysctl_handler,
++		.extra1		= SYSCTL_ZERO,
+ 	},
+ #ifdef CONFIG_NUMA
+ 	{
 _
 
-Patches currently in -mm which might be from warren.xiong@ugreen.com are
+Patches currently in -mm which might be from shijianlin11@foxmail.com are
 
-selftests-mm-read-memory-information-without-popen.patch
-tools-mm-prevent-page_owner_sort-from-truncating-input.patch
+ipc-only-destroy-orphaned-shm-segments-on-sysctl-write.patch
 
