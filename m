@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C26AA40861D
-	for <mm-commits@vger.kernel.org>; Tue,  4 Aug 2026 04:05:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D23F1415F28
+	for <mm-commits@vger.kernel.org>; Tue,  4 Aug 2026 04:05:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785816338; cv=none; b=k4Rk9DKkzfPWl5jUnlWH/armJ7wHzYh1XOuaCe5NA+Tuu83mCR08gvpidAwHaWfoYJpkQXL64NBfzqRJLTtKspQ0a6EeXPnkyEuZ9xKZSHdHT8W7QHfuYnsVW3ws/JGXSfkBMWkd3IT27jScWdB/C71Litl2V5qWuW/kNwSUgNI=
+	t=1785816339; cv=none; b=mNARMdohcx1CiJYD01fp2ANqZIMdgcBWMsiP8e8iHwXVNrQEiol52FdL6R4Oi+LWcQ0ReGg5OhegYL3lCnPXBRFi2rYLGqyjJ9I+/dmSgzapTiSDcdQSkik5gRAaBk73hdax8U1GHUMZpyxcqDmfN52HO0osELPa0H0d41Vsh8E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785816338; c=relaxed/simple;
-	bh=dM9LZJW4lo64PPCWqF9AUrH4kA9CLYqyIQYwQ6y21Uk=;
-	h=Date:To:From:Subject:Message-Id; b=NHMgaR/zPQifeD4aHLyAbPL5mGy0KCfmAcbvY0h1cRhtQ1dRdFrPK011nqO2KAz7kDYSTleWpV+hogA48pmmX5F6Ishfc4OZwubEr4W4zkMyKe2tZTuAp424LSWxWs4WnIzcEPanT7Miy1W98d3/cplvqkukdKhF93y5hJP1mj8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0IjiK5Xo; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785816339; c=relaxed/simple;
+	bh=zOdi5u4QwKtaY1aWTcjkID73h+gyFGOOTbHXOkLCZ90=;
+	h=Date:To:From:Subject:Message-Id; b=pdMC7Q3sS7kEKsFS2Ah9L6ZXYOU5CHOgoKyD4w7F3N1LEo5P17SDKlGXDDf4mDIR45T0393Msw3DwxLzOlvW0Rqb/jH7XcBZ2inhrA/r1YSHCOfnK4D+qMLzjqirTg92dGeOMNx2nE49mehH75vQy15JzJmIMS6ufq28Nn/mwkk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hvhBBKd9; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0IjiK5Xo"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 98EEF1F00A3D;
-	Tue,  4 Aug 2026 04:05:36 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hvhBBKd9"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A900B1F000E9;
+	Tue,  4 Aug 2026 04:05:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785816336;
-	bh=ancyiRLi/cBnzG8fn+5O5KSstpGjFBRZA9xatUTe7vk=;
+	d=linux-foundation.org; s=korg; t=1785816337;
+	bh=Qmr5BREIhwg9d4MwOSoGN8ukhEjjukVp0IFnRG8Cp0M=;
 	h=Date:To:From:Subject;
-	b=0IjiK5Xo9Ujsrua/X3E2tOTznTWcT/lh0mgVxMpoljad6qk9Ezk95Sjl7jWZ63NkE
-	 Bq79GBuD9D+6MTb916S85bfo8iLH9JXXqnqqclYbXMQ9RkSaOqR9iESy/Io28tiTkH
-	 AYlvChAm/zQbSRVfh0sYkH+jpo7aHX2QN0c04XuE=
-Date: Mon, 03 Aug 2026 21:05:36 -0700
+	b=hvhBBKd9ygHPMnZcEWx4JntZi5VzRdBs3CaOv6dgSqgbOFG49dr150VEOd5y+AHuc
+	 qqKAtCzAR0rb8XDASg1GK0dI5L6ztdBtXf1vqVwFfIO1avGDbIrpTaXN+E2TLxpZdQ
+	 vZYU/0Y4hFAkXPdxr3xUHuy4jxXCJg9Eyw11s7Ok=
+Date: Mon, 03 Aug 2026 21:05:37 -0700
 To: mm-commits@vger.kernel.org,ebiggers@kernel.org,hch@lst.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] raid6-defer-implementation-selection-when-built-in.patch removed from -mm tree
-Message-Id: <20260804040536.98EEF1F00A3D@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] raid6-improve-the-runtime-selection-benchmark.patch removed from -mm tree
+Message-Id: <20260804040537.A900B1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,81 +35,176 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: raid6: defer implementation selection when built-in
+     Subject: raid6: improve the runtime selection benchmark
 has been removed from the -mm tree.  Its filename was
-     raid6-defer-implementation-selection-when-built-in.patch
+     raid6-improve-the-runtime-selection-benchmark.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Christoph Hellwig <hch@lst.de>
-Subject: raid6: defer implementation selection when built-in
-Date: Wed, 15 Jul 2026 16:47:37 +0200
+Subject: raid6: improve the runtime selection benchmark
+Date: Wed, 15 Jul 2026 16:47:38 +0200
 
-Don't hold up early boot and defer the selection just like we've been
-doing for the RAID5 XOR code since commit 524ccdbdfb52 ("crypto: xor -
-defer load time benchmark to a later time").
+Use plain ktime_get_ns for the timing, use 8 + 2 disks for a realistic
+load, and report the throughput on the data disks as that is what storage
+systems are measured on.
 
-This will also allow full use of the timing subsystem for benchmarking.
-
-Link: https://lore.kernel.org/20260715144825.95432-7-hch@lst.de
+Link: https://lore.kernel.org/20260715144825.95432-8-hch@lst.de
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 Cc: Eric Biggers <ebiggers@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/raid/raid6/algos.c |   25 +++++++++++++++++++++----
- 1 file changed, 21 insertions(+), 4 deletions(-)
+ lib/raid/raid6/algos.c |   77 +++++++++++++++++----------------------
+ 1 file changed, 35 insertions(+), 42 deletions(-)
 
---- a/lib/raid/raid6/algos.c~raid6-defer-implementation-selection-when-built-in
+--- a/lib/raid/raid6/algos.c~raid6-improve-the-runtime-selection-benchmark
 +++ a/lib/raid/raid6/algos.c
-@@ -239,10 +239,6 @@ static int __init raid6_select_algo(void
- 	if (!IS_ENABLED(CONFIG_RAID6_PQ_BENCHMARK) || raid6_nr_algos == 1) {
- 		pr_info("raid6: skipped pq benchmark and selected %s\n",
- 			raid6_algos[raid6_nr_algos - 1]->name);
--		static_call_update(raid6_gen_syndrome_impl,
--				raid6_algos[raid6_nr_algos - 1]->gen_syndrome);
--		static_call_update(raid6_xor_syndrome_impl,
--				raid6_algos[raid6_nr_algos - 1]->xor_syndrome);
- 		return 0;
+@@ -152,40 +152,37 @@ void raid6_recov_datap(int disks, size_t
+ }
+ EXPORT_SYMBOL_GPL(raid6_recov_datap);
+ 
+-#define RAID6_TIME_JIFFIES_LG2	4
+-#define RAID6_TEST_DISKS	8
++#define BENCH_SIZE	SZ_4K
++#define NR_SRCS		8
++#define NR_DISKS	(NR_SRCS + 2)
++#define REPS		800U
+ 
+-static int raid6_choose_gen(void *(*const dptrs)[RAID6_TEST_DISKS],
+-		const int disks)
++static int raid6_choose_gen(void *dptrs[NR_DISKS], const int disks)
+ {
+-	/* work on the second half of the disks */
+-	int start = (disks >> 1) - 1, stop = disks - 3;
+ 	const struct raid6_calls *best = NULL;
+ 	unsigned long bestgenperf = 0;
+ 	unsigned int i;
+ 
+ 	for (i = 0; i < raid6_nr_algos; i++) {
+ 		const struct raid6_calls *algo = raid6_algos[i];
+-		unsigned long perf = 0, j0, j1;
++		unsigned long perf = 0;
++		u64 t;
++		int i;
+ 
+ 		preempt_disable();
+-		j0 = jiffies;
+-		while ((j1 = jiffies) == j0)
+-			cpu_relax();
+-		while (time_before(jiffies,
+-				    j1 + (1<<RAID6_TIME_JIFFIES_LG2))) {
+-			algo->gen_syndrome(disks, PAGE_SIZE, *dptrs);
+-			perf++;
+-		}
++		t = ktime_get_ns();
++		for (i = 0; i < REPS; i++)
++			algo->gen_syndrome(disks, BENCH_SIZE, dptrs);
++		t = max(ktime_get_ns() - t, 1);
+ 		preempt_enable();
+ 
++		/* bytes/ns == GB/s, multiply by 1000 to get MB/s [not MiB/s] */
++		perf = div64_u64((u64)BENCH_SIZE * REPS * NR_SRCS * 1000, t);
+ 		if (perf > bestgenperf) {
+ 			bestgenperf = perf;
+ 			best = algo;
+ 		}
+-		pr_info("raid6: %-8s gen() %5ld MB/s\n", algo->name,
+-			(perf * HZ * (disks-2)) >>
+-			(20 - PAGE_SHIFT + RAID6_TIME_JIFFIES_LG2));
++		pr_info("raid6: %-8s gen() %5lu MB/s\n", algo->name, perf);
  	}
  
-@@ -329,13 +325,34 @@ static int __init raid6_init(void)
- 	static_call_update(raid6_recov_datap_impl, raid6_recov_algo->datap);
- 	pr_info("raid6: using %s recovery algorithm\n", raid6_recov_algo->name);
+ 	if (!best) {
+@@ -197,28 +194,24 @@ static int raid6_choose_gen(void *(*cons
+ 	static_call_update(raid6_xor_syndrome_impl, best->xor_syndrome);
  
-+	/*
-+	 * Pick the last registered implementation as the temporary default until
-+	 * calibration happens.
-+	 */
-+	static_call_update(raid6_gen_syndrome_impl,
-+			raid6_algos[raid6_nr_algos - 1]->gen_syndrome);
-+	static_call_update(raid6_xor_syndrome_impl,
-+			raid6_algos[raid6_nr_algos - 1]->xor_syndrome);
-+
-+#ifdef MODULE
- 	return raid6_select_algo();
-+#else
-+	return 0;
-+#endif
- }
+ 	pr_info("raid6: using algorithm %s gen() %ld MB/s\n",
+-		best->name,
+-		(bestgenperf * HZ * (disks - 2)) >>
+-		(20 - PAGE_SHIFT + RAID6_TIME_JIFFIES_LG2));
++		best->name, bestgenperf);
  
- static void __exit raid6_exit(void)
+ 	if (best->xor_syndrome) {
+-		unsigned long perf = 0, j0, j1;
++		/* work on the second half of the disks */
++		int start = (disks / 2) - 1, stop = disks - 3;
++		u64 t;
+ 
+ 		preempt_disable();
+-		j0 = jiffies;
+-		while ((j1 = jiffies) == j0)
+-			cpu_relax();
+-		while (time_before(jiffies,
+-				   j1 + (1 << RAID6_TIME_JIFFIES_LG2))) {
+-			best->xor_syndrome(disks, start, stop,
+-					   PAGE_SIZE, *dptrs);
+-			perf++;
+-		}
++		t = ktime_get_ns();
++		for (i = 0; i < REPS; i++)
++			best->xor_syndrome(disks, start, stop, BENCH_SIZE,
++				dptrs);
++		t = max(ktime_get_ns() - t, 1);
+ 		preempt_enable();
+ 
+-		pr_info("raid6: .... xor() %ld MB/s, rmw enabled\n",
+-			(perf * HZ * (disks - 2)) >>
+-			(20 - PAGE_SHIFT + RAID6_TIME_JIFFIES_LG2 + 1));
++		pr_info("raid6: .... xor() %llu MB/s, rmw enabled\n",
++			div64_u64((u64)BENCH_SIZE * REPS * NR_SRCS / 2 * 1000,
++				t));
+ 	}
+ 
+ 	return 0;
+@@ -230,9 +223,9 @@ static int raid6_choose_gen(void *(*cons
+ 
+ static int __init raid6_select_algo(void)
  {
- }
+-	const int disks = RAID6_TEST_DISKS;
++	const int disks = NR_DISKS;
++	void *dptrs[NR_DISKS];
+ 	char *disk_ptr, *p;
+-	void *dptrs[RAID6_TEST_DISKS];
+ 	int i, cycle;
+ 	int error;
  
-+/*
-+ * When built-in we must register the default implementation before md
-+ * initializes, but we don't want calibration to run that early as that
-+ * would delay the boot process.
-+ */
-+#ifndef MODULE
-+device_initcall(raid6_select_algo);
-+#endif
- subsys_initcall(raid6_init);
- module_exit(raid6_exit);
- MODULE_LICENSE("GPL");
+@@ -243,7 +236,7 @@ static int __init raid6_select_algo(void
+ 	}
+ 
+ 	/* prepare the buffer and fill it circularly with gfmul table */
+-	disk_ptr = kmalloc(PAGE_SIZE * RAID6_TEST_DISKS, GFP_KERNEL);
++	disk_ptr = kmalloc_array(NR_DISKS, BENCH_SIZE, GFP_KERNEL);
+ 	if (!disk_ptr) {
+ 		pr_err("raid6: Yikes!  No memory available.\n");
+ 		return -ENOMEM;
+@@ -251,19 +244,19 @@ static int __init raid6_select_algo(void
+ 
+ 	p = disk_ptr;
+ 	for (i = 0; i < disks; i++)
+-		dptrs[i] = p + PAGE_SIZE * i;
++		dptrs[i] = p + BENCH_SIZE * i;
+ 
+-	cycle = ((disks - 2) * PAGE_SIZE) / 65536;
++	cycle = ((disks - 2) * BENCH_SIZE) / 65536;
+ 	for (i = 0; i < cycle; i++) {
+ 		memcpy(p, raid6_gfmul, 65536);
+ 		p += 65536;
+ 	}
+ 
+-	if ((disks - 2) * PAGE_SIZE % 65536)
+-		memcpy(p, raid6_gfmul, (disks - 2) * PAGE_SIZE % 65536);
++	if ((disks - 2) * BENCH_SIZE % 65536)
++		memcpy(p, raid6_gfmul, (disks - 2) * BENCH_SIZE % 65536);
+ 
+ 	/* select raid gen_syndrome function */
+-	error = raid6_choose_gen(&dptrs, disks);
++	error = raid6_choose_gen(dptrs, disks);
+ 
+ 	kfree(disk_ptr);
+ 
 _
 
 Patches currently in -mm which might be from hch@lst.de are
