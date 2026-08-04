@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 20594438017
-	for <mm-commits@vger.kernel.org>; Tue,  4 Aug 2026 04:05:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3B41E3F44EF
+	for <mm-commits@vger.kernel.org>; Tue,  4 Aug 2026 04:05:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785816329; cv=none; b=P74s9uJynEzjtCEx6t8W4f1ylMzSQhuPJEg3BoDZ7baWmBZJIj/4Rsh1y767tFpHUAzpuCgEcnKwrR/eHKIwkIOTKMn9uFnU6v7W5QXdteaBaelzVjPHisru0QWfGE6YCO9DGKBVIP5p9h/VV2TnxCez5nmToSsRS8xar8XuxmI=
+	t=1785816330; cv=none; b=P/Aw7d1yqD/V1uOi5Hhkrgm2/3HXAhD+HEb+2Gf7l8Pexq5+y3wlVMKou5TCcMPAD+JP/AgATctgT7AKqQ9DIALeckxpZilsl1BBImj0Bxpo73sX3Oua3nXPWBYQr0yv4o8CkEFNwM4kQZwNqllGvC7XrrdT2YTrrCn0S4HvL+k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785816329; c=relaxed/simple;
-	bh=zCEXbv6ZkM8g5kIxrayiV4/xilE3BRE67div+CYYyt4=;
-	h=Date:To:From:Subject:Message-Id; b=SucMDT8yJUhFC+iyG6SdklstVwYislPVfzreZcV3TKDA/Gyexgz+qs6W/bZ4lblybjPuCtfNKnjtY8H7DzSZWf1s04qJAXz37hDEDcBJZENieokE4q5txEynlf1k7kRchDrRWpFDSer3hL4YzpwWPrBTICIp7YcaGBHFIJYzN6Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ouwd2jFs; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785816330; c=relaxed/simple;
+	bh=ykeWXpxvKXI+4CAelUGvh9GKbeXnSQ9Zv8iJBI1Qcg4=;
+	h=Date:To:From:Subject:Message-Id; b=cksGFLo7/fSS2fI0E3iQ+Pc6zfhB3BjlHiBFSGQuWI44hgUAQKA13jNKt9nwRi+oCxKFUjowW27SbcTsOLjp3teaHcrwl0Ph7iV1AHO4ewNlzaCqtg/7YN2//yR9I9fBzpymumY/vH8SrBeNqxTMT/cs8ZPXOvaPoWzZ2gR8Cng=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HLfZRhit; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ouwd2jFs"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EAC961F00A3A;
-	Tue,  4 Aug 2026 04:05:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HLfZRhit"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 10F501F000E9;
+	Tue,  4 Aug 2026 04:05:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785816328;
-	bh=53K3zUQiVOYWtEdraIRQtRvLcVrLZKW60mQmYuVzd7o=;
+	d=linux-foundation.org; s=korg; t=1785816329;
+	bh=cwm6O72XtiQsuZxAF3li9WhaJC5L+TK5WBY+wEryWng=;
 	h=Date:To:From:Subject;
-	b=ouwd2jFsReRT8PKiddHyIdgA6PhiiT20lSf0jU9P9BPkMnPpbvwzVY9SBPH6oqpbr
-	 hNFfd7FVdfZOpyxBE1BJkvQYlxkz1wP+jZO834zRPrNRAIza1U2ICuQ13nD99ZE+jR
-	 8Ejkn+PuD2WMS/eSlyN+R9M2puiJel4SvQdLtwYQ=
-Date: Mon, 03 Aug 2026 21:05:27 -0700
-To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,jlbec@evilplan.org,heming.zhao@suse.com,gechangwei@live.cn,joseph.qi@linux.alibaba.com,akpm@linux-foundation.org
+	b=HLfZRhit9IGS2Ey6Ws1GuH/bHUa8Ar6q1tixl8dzg5/SPRzc/GewSf2k5G50zMA3o
+	 LrAG965jCdhXeQBnrm9NJp6EYpk9DAh/O4ubkfWUIoSS11cEMEiH2jP+FaIkFIKTXr
+	 a+kpZ4ZINCmC5xP67KevGrp4mBu4ZMPVoB+bbpO0=
+Date: Mon, 03 Aug 2026 21:05:28 -0700
+To: mm-commits@vger.kernel.org,balbirs@nvidia.com,akpm@linux-foundation.org,cyyzero16@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] ocfs2-cluster-use-an-on-stack-bio-for-the-heartbeat-write.patch removed from -mm tree
-Message-Id: <20260804040527.EAC961F00A3A@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] selftests-acct-share-netlink-helpers.patch removed from -mm tree
+Message-Id: <20260804040529.10F501F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,148 +35,582 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: ocfs2: cluster: use an on-stack bio for the heartbeat write
+     Subject: selftests/acct: share netlink helpers
 has been removed from the -mm tree.  Its filename was
-     ocfs2-cluster-use-an-on-stack-bio-for-the-heartbeat-write.patch
+     selftests-acct-share-netlink-helpers.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Joseph Qi <joseph.qi@linux.alibaba.com>
-Subject: ocfs2: cluster: use an on-stack bio for the heartbeat write
-Date: Fri, 10 Jul 2026 15:17:56 +0800
+From: Yiyang Chen <cyyzero16@gmail.com>
+Subject: selftests/acct: share netlink helpers
+Date: Mon, 13 Jul 2026 01:13:31 +0800
 
-The disk heartbeat write always covers this node's own single slot, i.e. 
-one heartbeat block that lives within a single page.  It is submitted by
-o2hb_issue_node_write() and waited on by the caller before the ctxt goes
-out of scope, so its lifetime is well bounded.
+Extract the duplicated generic netlink boilerplate (netlink_open,
+send_request, get_family_id, and NLA walker macros) from cgroupstats.c and
+taskstats_fill_stats_tgid.c into a shared netlink_helper.{h,c}.
 
-Turn it into an on-stack bio embedded in struct o2hb_bio_wait_ctxt rather
-than allocating one from the mempool.  This removes any allocation from
-the fence-critical write path entirely: a delayed or blocked heartbeat
-write is what leads to the local node being fenced, so it should not
-depend on the state of a shared bio pool.
-
-Because the bio is embedded rather than allocated, add a dedicated
-o2hb_write_bio_end_io() that does not call bio_put(), and tear the bio
-down with bio_uninit() once the caller has waited on the I/O.
-
-The read path still allocates via o2hb_setup_one_bio() with GFP_NOFS,
-since it issues a variable number of bios in a loop.
-
-Link: https://lore.kernel.org/20260710071756.3586797-2-joseph.qi@linux.alibaba.com
-Signed-off-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Jun Piao <piaojun@huawei.com>
-Cc: Heming Zhao <heming.zhao@suse.com>
+Link: https://lore.kernel.org/a2adf27308b5cd90d50b59e8519b87da49486bee.1783876192.git.cyyzero16@gmail.com
+Signed-off-by: Yiyang Chen <cyyzero16@gmail.com>
+Suggested-by: Andrew Morton <akpm@linux-foundation.org>
+Acked-by: Balbir Singh <balbirs@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/cluster/heartbeat.c |   50 +++++++++++++++++++++++++++++----
- 1 file changed, 45 insertions(+), 5 deletions(-)
+ tools/testing/selftests/acct/.gitignore                  |    1 
+ tools/testing/selftests/acct/Makefile                    |   10 
+ tools/testing/selftests/acct/cgroupstats.c               |  133 ---------
+ tools/testing/selftests/acct/netlink_helper.c            |  116 ++++++++
+ tools/testing/selftests/acct/netlink_helper.h            |   44 +++
+ tools/testing/selftests/acct/taskstats_fill_stats_tgid.c |  134 ----------
+ 6 files changed, 184 insertions(+), 254 deletions(-)
 
---- a/fs/ocfs2/cluster/heartbeat.c~ocfs2-cluster-use-an-on-stack-bio-for-the-heartbeat-write
-+++ a/fs/ocfs2/cluster/heartbeat.c
-@@ -272,6 +272,9 @@ struct o2hb_bio_wait_ctxt {
- 	atomic_t          wc_num_reqs;
- 	struct completion wc_io_complete;
- 	int               wc_error;
-+	/* On-stack bio used by the synchronous write path only. */
-+	struct bio        wc_write_bio;
-+	struct bio_vec    wc_write_bvec;
- };
+--- a/tools/testing/selftests/acct/cgroupstats.c~selftests-acct-share-netlink-helpers
++++ a/tools/testing/selftests/acct/cgroupstats.c
+@@ -6,139 +6,19 @@
+ #include <linux/cgroupstats.h>
+ #include <linux/genetlink.h>
+ #include <linux/netlink.h>
++#include <stdbool.h>
+ #include <stdint.h>
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <string.h>
++#include <sys/mount.h>
+ #include <sys/socket.h>
+ #include <sys/types.h>
+-#include <sys/mount.h>
+-#include <time.h>
+ #include <unistd.h>
  
- #define O2HB_NEGO_TIMEOUT_MS (O2HB_MAX_WRITE_TIMEOUT_MS/2)
-@@ -507,6 +510,23 @@ static void o2hb_bio_end_io(struct bio *
- 	bio_put(bio);
- }
++#include "netlink_helper.h"
+ #include "kselftest.h"
  
-+/*
-+ * End I/O for the synchronous write path. The write bio is embedded in
-+ * the wait ctxt rather than allocated, so it must not be freed here; it
-+ * is torn down with bio_uninit() once the caller has waited on it.
-+ */
-+static void o2hb_write_bio_end_io(struct bio *bio)
-+{
-+	struct o2hb_bio_wait_ctxt *wc = bio->bi_private;
-+
-+	if (bio->bi_status) {
-+		mlog(ML_ERROR, "IO Error %d\n", bio->bi_status);
-+		wc->wc_error = blk_status_to_errno(bio->bi_status);
-+	}
-+
-+	o2hb_bio_wait_dec(wc, 1);
-+}
-+
- /* Setup a Bio to cover I/O against num_slots slots starting at
-  * start_slot. */
- static struct bio *o2hb_setup_one_bio(struct o2hb_region *reg,
-@@ -582,7 +602,11 @@ static int o2hb_issue_node_write(struct
- 				 struct o2hb_bio_wait_ctxt *write_wc)
+-#ifndef NLA_ALIGN
+-#define NLA_ALIGNTO 4
+-#define NLA_ALIGN(len) (((len) + NLA_ALIGNTO - 1) & ~(NLA_ALIGNTO - 1))
+-#define NLA_HDRLEN ((int)NLA_ALIGN(sizeof(struct nlattr)))
+-#endif
+-
+-#define RECV_TIMEOUT_SEC 2
+-
+-static void *nla_data(const struct nlattr *na)
+-{
+-	return (void *)((char *)na + NLA_HDRLEN);
+-}
+-
+-static int netlink_open(void)
+-{
+-	struct timeval tv = { .tv_sec = RECV_TIMEOUT_SEC };
+-	struct sockaddr_nl addr = {
+-		.nl_family = AF_NETLINK,
+-		.nl_pid = getpid(),
+-	};
+-	int fd;
+-
+-	fd = socket(AF_NETLINK, SOCK_RAW, NETLINK_GENERIC);
+-	if (fd < 0)
+-		return -errno;
+-
+-	/*
+-	 * Ensure that a missing kernel reply fails the individual test
+-	 * case instead of hanging the whole test binary.
+-	 */
+-	if (setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) < 0) {
+-		int err = -errno;
+-
+-		close(fd);
+-		return err;
+-	}
+-
+-	if (bind(fd, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
+-		int err = -errno;
+-
+-		close(fd);
+-		return err;
+-	}
+-
+-	return fd;
+-}
+-
+-static int send_request(int fd, void *buf, size_t len)
+-{
+-	struct sockaddr_nl addr = {
+-		.nl_family = AF_NETLINK,
+-	};
+-
+-	if (sendto(fd, buf, len, 0, (struct sockaddr *)&addr, sizeof(addr)) < 0)
+-		return -errno;
+-
+-	return 0;
+-}
+-
+-static int get_family_id(int fd, const char *name)
+-{
+-	struct {
+-		struct nlmsghdr nlh;
+-		struct genlmsghdr genl;
+-		char buf[256];
+-	} req = { 0 };
+-	char resp[8192];
+-	struct nlmsghdr *nlh;
+-	struct genlmsghdr *genl;
+-	struct nlattr *na;
+-	int len;
+-	int rem;
+-	int ret;
+-
+-	req.nlh.nlmsg_len = NLMSG_LENGTH(GENL_HDRLEN);
+-	req.nlh.nlmsg_type = GENL_ID_CTRL;
+-	req.nlh.nlmsg_flags = NLM_F_REQUEST;
+-	req.nlh.nlmsg_seq = 1;
+-	req.nlh.nlmsg_pid = getpid();
+-
+-	req.genl.cmd = CTRL_CMD_GETFAMILY;
+-	req.genl.version = 1;
+-
+-	na = (struct nlattr *)((char *)&req + NLMSG_ALIGN(req.nlh.nlmsg_len));
+-	na->nla_type = CTRL_ATTR_FAMILY_NAME;
+-	na->nla_len = NLA_HDRLEN + strlen(name) + 1;
+-	memcpy(nla_data(na), name, strlen(name) + 1);
+-	req.nlh.nlmsg_len = NLMSG_ALIGN(req.nlh.nlmsg_len) + NLA_ALIGN(na->nla_len);
+-
+-	ret = send_request(fd, &req, req.nlh.nlmsg_len);
+-	if (ret)
+-		return ret;
+-
+-	len = recv(fd, resp, sizeof(resp), 0);
+-	if (len < 0)
+-		return -errno;
+-
+-	for (nlh = (struct nlmsghdr *)resp; NLMSG_OK(nlh, len);
+-	     nlh = NLMSG_NEXT(nlh, len)) {
+-		if (nlh->nlmsg_type == NLMSG_ERROR) {
+-			struct nlmsgerr *err = NLMSG_DATA(nlh);
+-
+-			return err->error ? err->error : -ENOENT;
+-		}
+-
+-		genl = (struct genlmsghdr *)NLMSG_DATA(nlh);
+-		rem = nlh->nlmsg_len - NLMSG_HDRLEN - GENL_HDRLEN;
+-		na = (struct nlattr *)((char *)genl + GENL_HDRLEN);
+-		while (rem >= (int)sizeof(*na) &&
+-		       na->nla_len >= (int)sizeof(*na) &&
+-		       na->nla_len <= rem) {
+-			if (na->nla_type == CTRL_ATTR_FAMILY_ID)
+-				return *(uint16_t *)nla_data(na);
+-			rem -= NLA_ALIGN(na->nla_len);
+-			na = (struct nlattr *)((char *)na + NLA_ALIGN(na->nla_len));
+-		}
+-	}
+-
+-	return -ENOENT;
+-}
+-
+ static int send_cgroupstats_cmd(int fd, int family_id, uint32_t cgroup_fd,
+ 				int flags)
  {
- 	unsigned int slot;
--	struct bio *bio;
-+	unsigned int bits = reg->hr_block_bits;
-+	unsigned int spp = reg->hr_slots_per_page;
-+	unsigned int vec_start, vec_len;
-+	struct page *page;
-+	struct bio *bio = &write_wc->wc_write_bio;
+@@ -203,15 +83,12 @@ static int recv_cgroupstats_response(int
  
- 	o2hb_bio_wait_init(write_wc);
- 
-@@ -590,8 +614,21 @@ static int o2hb_issue_node_write(struct
- 	if (slot >= O2NM_MAX_NODES)
- 		return -EINVAL;
- 
--	bio = o2hb_setup_one_bio(reg, write_wc, &slot, slot+1,
--				 REQ_OP_WRITE | REQ_SYNC);
-+	/*
-+	 * The heartbeat write always covers our own single slot, i.e. one
-+	 * block that lives within a single page. Use an on-stack bio (embedded
-+	 * in write_wc) so this fence-critical path never has to allocate.
-+	 */
-+	bio_init(bio, reg_bdev(reg), &write_wc->wc_write_bvec, 1,
-+		 REQ_OP_WRITE | REQ_SYNC);
-+	bio->bi_iter.bi_sector = (reg->hr_start_block + slot) << (bits - 9);
-+	bio->bi_private = write_wc;
-+	bio->bi_end_io = o2hb_write_bio_end_io;
-+
-+	page = reg->hr_slot_data[slot / spp];
-+	vec_start = (slot << bits) % PAGE_SIZE;
-+	vec_len = PAGE_SIZE / spp;
-+	__bio_add_page(bio, page, vec_len, vec_start);
- 
- 	atomic_inc(&write_wc->wc_num_reqs);
- 	submit_bio(bio);
-@@ -1133,6 +1170,7 @@ static int o2hb_do_disk_heartbeat(struct
- 	 * people we find in our steady state have seen us.
- 	 */
- 	o2hb_wait_on_io(&write_wc);
-+	bio_uninit(&write_wc.wc_write_bio);
- 	if (write_wc.wc_error) {
- 		/* Do not re-arm the write timeout on I/O error - we
- 		 * can't be sure that the new block ever made it to
-@@ -1245,10 +1283,12 @@ static int o2hb_thread(void *data)
- 	if (!reg->hr_unclean_stop && !reg->hr_aborted_start) {
- 		o2hb_prepare_block(reg, 0);
- 		ret = o2hb_issue_node_write(reg, &write_wc);
--		if (ret == 0)
-+		if (ret == 0) {
- 			o2hb_wait_on_io(&write_wc);
--		else
-+			bio_uninit(&write_wc.wc_write_bio);
-+		} else {
- 			mlog_errno(ret);
-+		}
+ 		rem = nlh->nlmsg_len - NLMSG_HDRLEN - GENL_HDRLEN;
+ 		na = (struct nlattr *)((char *)genl + GENL_HDRLEN);
+-		while (rem >= (int)sizeof(*na) &&
+-		       na->nla_len >= (int)sizeof(*na) &&
+-		       na->nla_len <= rem) {
++		while (nla_ok(na, rem)) {
+ 			if (na->nla_type == CGROUPSTATS_TYPE_CGROUP_STATS) {
+ 				memcpy(stats, nla_data(na), sizeof(*stats));
+ 				return 0;
+ 			}
+-			rem -= NLA_ALIGN(na->nla_len);
+-			na = (struct nlattr *)((char *)na + NLA_ALIGN(na->nla_len));
++			na = nla_next(na, &rem);
+ 		}
  	}
  
- 	/* Unpin node */
+--- a/tools/testing/selftests/acct/.gitignore~selftests-acct-share-netlink-helpers
++++ a/tools/testing/selftests/acct/.gitignore
+@@ -1,4 +1,5 @@
+ acct_syscall
+ taskstats_fill_stats_tgid
++cgroupstats
+ config
+ process_log
+--- a/tools/testing/selftests/acct/Makefile~selftests-acct-share-netlink-helpers
++++ a/tools/testing/selftests/acct/Makefile
+@@ -3,7 +3,17 @@ TEST_GEN_PROGS := acct_syscall
+ TEST_GEN_PROGS += taskstats_fill_stats_tgid
+ TEST_GEN_PROGS += cgroupstats
+ 
++NETLINK_HELPER_PROGS := cgroupstats taskstats_fill_stats_tgid
++
+ CFLAGS += -Wall
+ LDLIBS += -lpthread
+ 
+ include ../lib.mk
++
++$(NETLINK_HELPER_PROGS): %: %.c netlink_helper.c netlink_helper.h
++	$(call msg,CC,,$@)
++	$(Q)$(LINK.c) $< netlink_helper.c $(LDLIBS) -o $@
++
++$(addprefix $(OUTPUT)/,$(NETLINK_HELPER_PROGS)): $(OUTPUT)/%: %.c netlink_helper.c netlink_helper.h
++	$(call msg,CC,,$@)
++	$(Q)$(LINK.c) $< netlink_helper.c $(LDLIBS) -o $@
+diff --git a/tools/testing/selftests/acct/netlink_helper.c a/tools/testing/selftests/acct/netlink_helper.c
+new file mode 100644
+--- /dev/null
++++ a/tools/testing/selftests/acct/netlink_helper.c
+@@ -0,0 +1,116 @@
++// SPDX-License-Identifier: GPL-2.0
++
++#include <errno.h>
++#include <stdint.h>
++#include <string.h>
++#include <sys/socket.h>
++#include <sys/time.h>
++#include <unistd.h>
++#include <linux/genetlink.h>
++
++#include "netlink_helper.h"
++
++int netlink_open(void)
++{
++	struct timeval tv = { .tv_sec = ACCT_RCV_TIMEOUT_SEC };
++	struct sockaddr_nl addr = {
++		.nl_family = AF_NETLINK,
++		.nl_pid = getpid(),
++	};
++	int fd;
++
++	fd = socket(AF_NETLINK, SOCK_RAW, NETLINK_GENERIC);
++	if (fd < 0)
++		return -errno;
++
++	if (setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) < 0) {
++		int err = -errno;
++
++		close(fd);
++		return err;
++	}
++
++	if (bind(fd, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
++		int err = -errno;
++
++		close(fd);
++		return err;
++	}
++
++	return fd;
++}
++
++int send_request(int fd, void *buf, size_t len)
++{
++	struct sockaddr_nl addr = {
++		.nl_family = AF_NETLINK,
++	};
++
++	if (sendto(fd, buf, len, 0, (struct sockaddr *)&addr, sizeof(addr)) < 0)
++		return -errno;
++
++	return 0;
++}
++
++/*
++ * Resolve the generic netlink family ID for @name.
++ * Returns the family ID (>= 0) on success, negative errno on failure.
++ */
++int get_family_id(int fd, const char *name)
++{
++	struct {
++		struct nlmsghdr nlh;
++		struct genlmsghdr genl;
++		char buf[256];
++	} req = { 0 };
++	char resp[8192];
++	struct nlmsghdr *nlh;
++	struct genlmsghdr *genl;
++	struct nlattr *na;
++	int len;
++	int rem;
++	int ret;
++
++	req.nlh.nlmsg_len = NLMSG_LENGTH(GENL_HDRLEN);
++	req.nlh.nlmsg_type = GENL_ID_CTRL;
++	req.nlh.nlmsg_flags = NLM_F_REQUEST;
++	req.nlh.nlmsg_seq = 1;
++	req.nlh.nlmsg_pid = getpid();
++
++	req.genl.cmd = CTRL_CMD_GETFAMILY;
++	req.genl.version = 1;
++
++	na = (struct nlattr *)((char *)&req + NLMSG_ALIGN(req.nlh.nlmsg_len));
++	na->nla_type = CTRL_ATTR_FAMILY_NAME;
++	na->nla_len = NLA_HDRLEN + strlen(name) + 1;
++	memcpy(nla_data(na), name, strlen(name) + 1);
++	req.nlh.nlmsg_len = NLMSG_ALIGN(req.nlh.nlmsg_len) + NLA_ALIGN(na->nla_len);
++
++	ret = send_request(fd, &req, req.nlh.nlmsg_len);
++	if (ret)
++		return ret;
++
++	len = recv(fd, resp, sizeof(resp), 0);
++	if (len < 0)
++		return -errno;
++
++	for (nlh = (struct nlmsghdr *)resp; NLMSG_OK(nlh, len);
++	     nlh = NLMSG_NEXT(nlh, len)) {
++		if (nlh->nlmsg_type == NLMSG_ERROR) {
++			struct nlmsgerr *err = NLMSG_DATA(nlh);
++
++			return err->error ? err->error : -ENOENT;
++		}
++
++		genl = (struct genlmsghdr *)NLMSG_DATA(nlh);
++		rem = nlh->nlmsg_len - NLMSG_HDRLEN - GENL_HDRLEN;
++		na = (struct nlattr *)((char *)genl + GENL_HDRLEN);
++		while (nla_ok(na, rem)) {
++			if (na->nla_type == CTRL_ATTR_FAMILY_ID)
++				return *(uint16_t *)nla_data(na);
++			na = nla_next(na, &rem);
++		}
++	}
++
++	return -ENOENT;
++}
+diff --git a/tools/testing/selftests/acct/netlink_helper.h a/tools/testing/selftests/acct/netlink_helper.h
+new file mode 100644
+--- /dev/null
++++ a/tools/testing/selftests/acct/netlink_helper.h
+@@ -0,0 +1,44 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++/*
++ * Shared generic netlink helpers for the acct selftests.
++ */
++#ifndef ACSELFTESTS_ACCT_NETLINK_HELPER_H
++#define ACSELFTESTS_ACCT_NETLINK_HELPER_H
++
++#include <stdbool.h>
++#include <linux/netlink.h>
++
++#ifndef NLA_ALIGNTO
++#define NLA_ALIGNTO 4
++#define NLA_ALIGN(len) (((len) + NLA_ALIGNTO - 1) & ~(NLA_ALIGNTO - 1))
++#define NLA_HDRLEN ((int)NLA_ALIGN(sizeof(struct nlattr)))
++#endif
++
++/* Fail an individual test case instead of hanging the whole binary. */
++#define ACCT_RCV_TIMEOUT_SEC 2
++
++static inline void *nla_data(const struct nlattr *na)
++{
++	return (void *)((char *)na + NLA_HDRLEN);
++}
++
++static inline bool nla_ok(const struct nlattr *na, int remaining)
++{
++	return remaining >= (int)sizeof(*na) &&
++	       na->nla_len >= sizeof(*na) &&
++	       na->nla_len <= remaining;
++}
++
++static inline struct nlattr *nla_next(const struct nlattr *na, int *remaining)
++{
++	int aligned_len = NLA_ALIGN(na->nla_len);
++
++	*remaining -= aligned_len;
++	return (struct nlattr *)((char *)na + aligned_len);
++}
++
++int netlink_open(void);
++int send_request(int fd, void *buf, size_t len);
++int get_family_id(int fd, const char *name);
++
++#endif /* ACSELFTESTS_ACCT_NETLINK_HELPER_H */
+--- a/tools/testing/selftests/acct/taskstats_fill_stats_tgid.c~selftests-acct-share-netlink-helpers
++++ a/tools/testing/selftests/acct/taskstats_fill_stats_tgid.c
+@@ -16,14 +16,9 @@
+ #include <time.h>
+ #include <unistd.h>
+ 
++#include "netlink_helper.h"
+ #include "kselftest.h"
+ 
+-#ifndef NLA_ALIGN
+-#define NLA_ALIGNTO 4
+-#define NLA_ALIGN(len) (((len) + NLA_ALIGNTO - 1) & ~(NLA_ALIGNTO - 1))
+-#define NLA_HDRLEN ((int)NLA_ALIGN(sizeof(struct nlattr)))
+-#endif
+-
+ #define BUSY_NS (200ULL * 1000 * 1000)
+ 
+ struct worker_ctx {
+@@ -35,26 +30,6 @@ struct worker_ctx {
+ 
+ static unsigned long busy_sink;
+ 
+-static void *taskstats_nla_data(const struct nlattr *na)
+-{
+-	return (void *)((char *)na + NLA_HDRLEN);
+-}
+-
+-static bool taskstats_nla_ok(const struct nlattr *na, int remaining)
+-{
+-	return remaining >= (int)sizeof(*na) &&
+-	       na->nla_len >= sizeof(*na) &&
+-	       na->nla_len <= remaining;
+-}
+-
+-static struct nlattr *taskstats_nla_next(const struct nlattr *na, int *remaining)
+-{
+-	int aligned_len = NLA_ALIGN(na->nla_len);
+-
+-	*remaining -= aligned_len;
+-	return (struct nlattr *)((char *)na + aligned_len);
+-}
+-
+ static uint64_t timespec_diff_ns(const struct timespec *start,
+ 				 const struct timespec *end)
+ {
+@@ -84,99 +59,6 @@ static void burn_cpu_for_ns(uint64_t run
+ 	busy_sink = acc;
+ }
+ 
+-static int netlink_open(void)
+-{
+-	struct sockaddr_nl addr = {
+-		.nl_family = AF_NETLINK,
+-		.nl_pid = getpid(),
+-	};
+-	int fd;
+-
+-	fd = socket(AF_NETLINK, SOCK_RAW, NETLINK_GENERIC);
+-	if (fd < 0)
+-		return -errno;
+-
+-	if (bind(fd, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
+-		int err = -errno;
+-
+-		close(fd);
+-		return err;
+-	}
+-
+-	return fd;
+-}
+-
+-static int send_request(int fd, void *buf, size_t len)
+-{
+-	struct sockaddr_nl addr = {
+-		.nl_family = AF_NETLINK,
+-	};
+-
+-	if (sendto(fd, buf, len, 0, (struct sockaddr *)&addr, sizeof(addr)) < 0)
+-		return -errno;
+-
+-	return 0;
+-}
+-
+-static int get_family_id(int fd, const char *name)
+-{
+-	struct {
+-		struct nlmsghdr nlh;
+-		struct genlmsghdr genl;
+-		char buf[256];
+-	} req = { 0 };
+-	char resp[8192];
+-	struct nlmsghdr *nlh;
+-	struct genlmsghdr *genl;
+-	struct nlattr *na;
+-	int len;
+-	int rem;
+-	int ret;
+-
+-	req.nlh.nlmsg_len = NLMSG_LENGTH(GENL_HDRLEN);
+-	req.nlh.nlmsg_type = GENL_ID_CTRL;
+-	req.nlh.nlmsg_flags = NLM_F_REQUEST;
+-	req.nlh.nlmsg_seq = 1;
+-	req.nlh.nlmsg_pid = getpid();
+-
+-	req.genl.cmd = CTRL_CMD_GETFAMILY;
+-	req.genl.version = 1;
+-
+-	na = (struct nlattr *)((char *)&req + NLMSG_ALIGN(req.nlh.nlmsg_len));
+-	na->nla_type = CTRL_ATTR_FAMILY_NAME;
+-	na->nla_len = NLA_HDRLEN + strlen(name) + 1;
+-	memcpy(taskstats_nla_data(na), name, strlen(name) + 1);
+-	req.nlh.nlmsg_len = NLMSG_ALIGN(req.nlh.nlmsg_len) + NLA_ALIGN(na->nla_len);
+-
+-	ret = send_request(fd, &req, req.nlh.nlmsg_len);
+-	if (ret)
+-		return ret;
+-
+-	len = recv(fd, resp, sizeof(resp), 0);
+-	if (len < 0)
+-		return -errno;
+-
+-	for (nlh = (struct nlmsghdr *)resp; NLMSG_OK(nlh, len);
+-	     nlh = NLMSG_NEXT(nlh, len)) {
+-		if (nlh->nlmsg_type == NLMSG_ERROR) {
+-			struct nlmsgerr *err = NLMSG_DATA(nlh);
+-
+-			return err->error ? err->error : -ENOENT;
+-		}
+-
+-		genl = (struct genlmsghdr *)NLMSG_DATA(nlh);
+-		rem = nlh->nlmsg_len - NLMSG_HDRLEN - GENL_HDRLEN;
+-		na = (struct nlattr *)((char *)genl + GENL_HDRLEN);
+-		while (taskstats_nla_ok(na, rem)) {
+-			if (na->nla_type == CTRL_ATTR_FAMILY_ID)
+-				return *(uint16_t *)taskstats_nla_data(na);
+-			na = taskstats_nla_next(na, &rem);
+-		}
+-	}
+-
+-	return -ENOENT;
+-}
+-
+ static int get_taskstats(int fd, int family_id, uint16_t attr_type, uint32_t id,
+ 			 struct taskstats *stats)
+ {
+@@ -209,7 +91,7 @@ static int get_taskstats(int fd, int fam
+ 	na = (struct nlattr *)((char *)&req + NLMSG_ALIGN(req.nlh.nlmsg_len));
+ 	na->nla_type = attr_type;
+ 	na->nla_len = NLA_HDRLEN + sizeof(id);
+-	memcpy(taskstats_nla_data(na), &id, sizeof(id));
++	memcpy(nla_data(na), &id, sizeof(id));
+ 	req.nlh.nlmsg_len = NLMSG_ALIGN(req.nlh.nlmsg_len) + NLA_ALIGN(na->nla_len);
+ 
+ 	ret = send_request(fd, &req, req.nlh.nlmsg_len);
+@@ -231,21 +113,21 @@ static int get_taskstats(int fd, int fam
+ 		genl = (struct genlmsghdr *)NLMSG_DATA(nlh);
+ 		rem = nlh->nlmsg_len - NLMSG_HDRLEN - GENL_HDRLEN;
+ 		na = (struct nlattr *)((char *)genl + GENL_HDRLEN);
+-		while (taskstats_nla_ok(na, rem)) {
++		while (nla_ok(na, rem)) {
+ 			if (na->nla_type == TASKSTATS_TYPE_AGGR_PID ||
+ 			    na->nla_type == TASKSTATS_TYPE_AGGR_TGID) {
+-				nested = (struct nlattr *)taskstats_nla_data(na);
++				nested = (struct nlattr *)nla_data(na);
+ 				nrem = na->nla_len - NLA_HDRLEN;
+-				while (taskstats_nla_ok(nested, nrem)) {
++				while (nla_ok(nested, nrem)) {
+ 					if (nested->nla_type == TASKSTATS_TYPE_STATS) {
+-						memcpy(stats, taskstats_nla_data(nested),
++						memcpy(stats, nla_data(nested),
+ 						       sizeof(*stats));
+ 						return 0;
+ 					}
+-					nested = taskstats_nla_next(nested, &nrem);
++					nested = nla_next(nested, &nrem);
+ 				}
+ 			}
+-			na = taskstats_nla_next(na, &rem);
++			na = nla_next(na, &rem);
+ 		}
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from joseph.qi@linux.alibaba.com are
+Patches currently in -mm which might be from cyyzero16@gmail.com are
 
 
