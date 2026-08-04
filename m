@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E6E4C433BD4
-	for <mm-commits@vger.kernel.org>; Tue,  4 Aug 2026 04:05:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 72C82415F22
+	for <mm-commits@vger.kernel.org>; Tue,  4 Aug 2026 04:05:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785816321; cv=none; b=Tg2/3NDUm5uMF+H//RyG6Z1V92ztFYIdzMZc5H6un/SG7qHyge9pp5TRhdBp7dLUl1Na0FvHMxgXgH7RP64tm6+MTXF3Cfkkk/6QcUysfLZtQhqOrWbN8sGS6S2xBgvD9RJxNF7MF9Gz8moZNthXGsb4RZ2mkHrLM4FgU4I+Sjg=
+	t=1785816322; cv=none; b=EnOjF4ohL5D+RwBQxMttJbmE4FYL73rfxMLFOKkveIUkrByIGCq11B7TrVJ06ms3CrEVYEarNskq5RxKkR2EHPuP9mkBrFWvZvFvsewYW5UnlXG2cF3IvxNw8TUWBjrz2WwjS/M/pbdyU2K6WrxghcuxRBmBIfoEOVdyVejd8ec=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785816321; c=relaxed/simple;
-	bh=dC/OXkIYRig5c10T1/WzdQC6r1kIO68quXHNtsxzKYA=;
-	h=Date:To:From:Subject:Message-Id; b=MX+qw1BHRRMWZpARR35TUZeag7FQqXFisP2ZLXaGaePPZ48q7XDXkx/ZGpcW1tEBMJ1klI49bZJ0uwAbIJxpx1A0M5NWAdJVV6SjuMtB8I81kqXtzJRYGfo81uO+CQtIR1StYWO2rEWb8cgwngwtTZ+BvKrDvcEyvdz2YiaJbxo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2kSmq4IH; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785816322; c=relaxed/simple;
+	bh=xkiTuN0IeQ6Kes23XnWuaOKhUJidmJHiMj2DpC2IUxQ=;
+	h=Date:To:From:Subject:Message-Id; b=GWIcfFMkseVe5UHXDNgQGJlZEUkjDaGTt5rmy8t8sMidxCJWQwJHBdq2OwOWG7fkmnwV6CFsfRx5x3G+kk1EgjJXBPveEOwvATFxwU6OSlMJRvgwPno6xOwEPfU9k6gi1UkC6yLcaq2426NnLm9ImC44ft24UrJcTzCXCDy/RZs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=m9tAnRFA; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2kSmq4IH"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BAA071F000E9;
-	Tue,  4 Aug 2026 04:05:19 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="m9tAnRFA"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EAAEC1F00A3F;
+	Tue,  4 Aug 2026 04:05:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785816319;
-	bh=KZRioft1q9dHUqau8MmmeZJf+uoR4cYZVUG4meEiBfQ=;
+	d=linux-foundation.org; s=korg; t=1785816321;
+	bh=dZOkh4NHPbFvlHGxS/ArhW/VF4wrn3BY5QLI/RBBIoE=;
 	h=Date:To:From:Subject;
-	b=2kSmq4IHmeqkjh73sD2RKV96q8RzF31+gqfRpcgp4L2zRNfpsmHqOT3OlrfbOQmz9
-	 Bh8YVbtccJUCQW188A2bZQOz66H7Ktp6myuSL/mlFKZHReY6bMHXJuIwyV3mu+8Ew6
-	 zuMgDb0RQCJs/TuuHvjb3cMyp7AOPyHhsMxXUS7c=
-Date: Mon, 03 Aug 2026 21:05:19 -0700
-To: mm-commits@vger.kernel.org,pjw@kernel.org,thecharlesjenkins@gmail.com,akpm@linux-foundation.org
+	b=m9tAnRFAOs9FAv/gpDzB9DPq0FDwWi9HbKD9dUMkAdXbCnsYezzcC+LONYo1ISdp0
+	 l08vRwHi89yu1mGyN4uVYzKY50bGvxCmyXTUUeA8hnX8hrb1sB7puMmB5gK/EB2S2s
+	 Oej7Cdt2zLT95UQcadn1XGa5XDYhX6VQdf/lYkIA=
+Date: Mon, 03 Aug 2026 21:05:20 -0700
+To: mm-commits@vger.kernel.org,viro@zeniv.linux.org.uk,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,heming.zhao@suse.com,gechangwei@live.cn,dmantipov@yandex.ru,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] mailmap-add-entry-for-charlie-jenkins.patch removed from -mm tree
-Message-Id: <20260804040519.BAA071F000E9@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] ocfs2-do-not-use-make_bad_inode-in-ocfs2_read_inode_block_full.patch removed from -mm tree
+Message-Id: <20260804040520.EAAEC1F00A3F@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,41 +35,57 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mailmap: add entry for Charlie Jenkins
+     Subject: ocfs2: do not use make_bad_inode() in ocfs2_read_inode_block_full()
 has been removed from the -mm tree.  Its filename was
-     mailmap-add-entry-for-charlie-jenkins.patch
+     ocfs2-do-not-use-make_bad_inode-in-ocfs2_read_inode_block_full.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Charlie Jenkins <thecharlesjenkins@gmail.com>
-Subject: mailmap: add entry for Charlie Jenkins
-Date: Thu, 09 Jul 2026 00:31:04 -0700
+From: Dmitry Antipov <dmantipov@yandex.ru>
+Subject: ocfs2: do not use make_bad_inode() in ocfs2_read_inode_block_full()
+Date: Thu, 9 Jul 2026 09:01:01 +0300
 
-My Rivos email started bouncing so redirect to my personal email.
+This reverts commit 58b6fcd2ab34 ("ocfs2: mark inode bad upon validation
+failure during read").
 
-Link: https://lore.kernel.org/20260709-mailmap-v1-1-74d98b8149d6@gmail.com
-Signed-off-by: Charlie Jenkins <thecharlesjenkins@gmail.com>
-Cc: Paul Walmsley <pjw@kernel.org>
+Since 'make_bad_inode()' resets inode type to S_IFREG, doing this for
+directory inode during active VFS lookup is likely to confuse the latter,
+including VFS_BUG_ON_INODE() triggered in this case.
+
+Link: https://lore.kernel.org/20260709060101.207262-1-dmantipov@yandex.ru
+Fixes: 58b6fcd2ab34 ("ocfs2: mark inode bad upon validation failure during read")
+Signed-off-by: Dmitry Antipov <dmantipov@yandex.ru>
+Suggested-by: Al Viro <viro@zeniv.linux.org.uk>
+Reported-by: syzbot+d222f4b7129379c3d5bc@syzkaller.appspotmail.com
+Closes: https://syzkaller.appspot.com/bug?extid=d222f4b7129379c3d5bc
+Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Jun Piao <piaojun@huawei.com>
+Cc: Heming Zhao <heming.zhao@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- .mailmap |    1 +
- 1 file changed, 1 insertion(+)
+ fs/ocfs2/inode.c |    2 --
+ 1 file changed, 2 deletions(-)
 
---- a/.mailmap~mailmap-add-entry-for-charlie-jenkins
-+++ a/.mailmap
-@@ -192,6 +192,7 @@ Carlos Bilbao <carlos.bilbao@kernel.org>
- Changbin Du <changbin.du@intel.com> <changbin.du@gmail.com>
- Chao Yu <chao@kernel.org> <chao2.yu@samsung.com>
- Chao Yu <chao@kernel.org> <yuchao0@huawei.com>
-+Charlie Jenkins <thecharlesjenkins@gmail.com> <charlie@rivosinc.com>
- Chen-Yu Tsai <wens@kernel.org> <wens@csie.org>
- Chester Lin <chester62515@gmail.com> <clin@suse.com>
- Chris Chiu <chris.chiu@canonical.com> <chiu@endlessm.com>
+--- a/fs/ocfs2/inode.c~ocfs2-do-not-use-make_bad_inode-in-ocfs2_read_inode_block_full
++++ a/fs/ocfs2/inode.c
+@@ -1952,8 +1952,6 @@ int ocfs2_read_inode_block_full(struct i
+ 	rc = ocfs2_read_blocks(INODE_CACHE(inode), OCFS2_I(inode)->ip_blkno,
+ 			       1, &tmp, flags, ocfs2_validate_inode_block);
+ 
+-	if (rc < 0)
+-		make_bad_inode(inode);
+ 	/* If ocfs2_read_blocks() got us a new bh, pass it up. */
+ 	if (!rc && !*bh)
+ 		*bh = tmp;
 _
 
-Patches currently in -mm which might be from thecharlesjenkins@gmail.com are
+Patches currently in -mm which might be from dmantipov@yandex.ru are
 
 
