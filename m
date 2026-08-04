@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 650D8421241
-	for <mm-commits@vger.kernel.org>; Tue,  4 Aug 2026 04:05:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 36640423E93
+	for <mm-commits@vger.kernel.org>; Tue,  4 Aug 2026 04:05:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785816314; cv=none; b=tMMoSUab0Q5nj9aAuBZFdrgQPi6poECw/C/blXT47jMQZ4DTuz0ItuZyM+GlSMtfBxq9FZGKLN2gB+wOybe8NB7XYPOh0eC7NxSkRpiOV1019ANpXU0IPuVpGD/LsUhNtK7WaEumpXa6DaO9N/kKmrTeXhheIfqFcorobRM87sA=
+	t=1785816315; cv=none; b=LOZG+etycKwQ4W957oefVAW/1S9QVlZhgnntJwlaMnuDKjS8CcvlqiAYIm0/ujmd0NvDBJDs1HKMDAKk4OWu+3wax7rYgAkPO1lR+8217TRrPk+4A3oCawaIMpMNFrUwrJVsA+dBOtChBqva0jwlY/NoCBdrg1llFd80GSNrMSs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785816314; c=relaxed/simple;
-	bh=yZMrMVE7KqCdtUh+tSRNr672VbxHFt4+0LY2YuURL3k=;
-	h=Date:To:From:Subject:Message-Id; b=sVPimsWT3e+Y8qMDx+urveb3/QpzczqjcW3WzGuXhgYD/Hcy1cbsGrDVwsSxls44KE0yMBTpffFdWnxFujr2memtO4jTeNDpjBacZLLw3m4OO/VMgrUjFFemwOoez4uCDIrgRmmO9lb4Id2r2U2nCSKBbVTGzPVfbQ2jgMHGGBE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=V0CzpeKe; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785816315; c=relaxed/simple;
+	bh=Dcnl2oWxzo5myOaNTPHimfBH6hzMpQc8VSV+bdHhR28=;
+	h=Date:To:From:Subject:Message-Id; b=CCj9X1mZIwDh8nolsg5zhrOtS4AAeDFIGFQfjNFczEsNCdaToB8b/fu65ihiw+/smf1gU0i5LUcHzimP4Bg5Em13dgCykqi5OxTcBaaq20jc8/oNyyRPrXhOq9eJpI54I/JT7iHExFDGD1aMeNqJhAE6cchpiCPhQgcwwKOrgs8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UOPvvuIJ; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="V0CzpeKe"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E8E2D1F000E9;
-	Tue,  4 Aug 2026 04:05:12 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UOPvvuIJ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 085671F00A3A;
+	Tue,  4 Aug 2026 04:05:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785816313;
-	bh=ohgg+h23sbMWpUBqvzOGqi2mLrnkkVyF58kPssZLoPY=;
+	d=linux-foundation.org; s=korg; t=1785816314;
+	bh=iON7JBrwjAAfqV5DR6bxK+9Vbb/s4OAeZZaasDLLbrM=;
 	h=Date:To:From:Subject;
-	b=V0CzpeKenO9ifijG0t8F0PIE90XvLPYT2BGciBICbZ3ru9XnYIgF1u3eWtALH4GgT
-	 e75d2LJl3m5L6G9SKCcfy3Q+YMFRWlK1ecPoXU+DFRoaTNX6yaAtkDusXapS7AOg2n
-	 AT/sCHfTYAlHCpdtVbEpOrlUDiNRv+r95ZmIambU=
-Date: Mon, 03 Aug 2026 21:05:12 -0700
-To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,heming.zhao@suse.com,gechangwei@live.cn,zzzccc427@gmail.com,akpm@linux-foundation.org
+	b=UOPvvuIJpGR7XC9N04YDYLw7PH4ta3n3jMft++w+pwy3tcZCTUO7ozONZTmXScj3T
+	 xSlT3P6MUUtKsIW9PF6xsaPVXTtkOnEYe1rgPHYHI5s3rRYoVCLW9gBD6bLWYYARRE
+	 B8SAvHqSY2/c0qN3hEEHhg5sS/ncO0KhQH1YMz5A=
+Date: Mon, 03 Aug 2026 21:05:13 -0700
+To: mm-commits@vger.kernel.org,balbirs@nvidia.com,cyyzero16@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] ocfs2-validate-external-xattr-entries-when-reading-metadata.patch removed from -mm tree
-Message-Id: <20260804040512.E8E2D1F000E9@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] taskstats-remove-dead-taskstats_exit_mutex-declaration.patch removed from -mm tree
+Message-Id: <20260804040514.085671F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,194 +35,42 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: ocfs2: validate external xattr entries when reading metadata
+     Subject: taskstats: remove dead taskstats_exit_mutex declaration
 has been removed from the -mm tree.  Its filename was
-     ocfs2-validate-external-xattr-entries-when-reading-metadata.patch
+     taskstats-remove-dead-taskstats_exit_mutex-declaration.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Cen Zhang <zzzccc427@gmail.com>
-Subject: ocfs2: validate external xattr entries when reading metadata
-Date: Sun, 5 Jul 2026 10:53:11 +0800
+From: Yiyang Chen <cyyzero16@gmail.com>
+Subject: taskstats: remove dead taskstats_exit_mutex declaration
+Date: Tue, 7 Jul 2026 22:52:05 +0800
 
-ocfs2_validate_xattr_block() checks the xattr block header before the
-block reaches higher-level xattr users, but it does not verify that a
-non-indexed block's xh_count and entry offsets fit inside the block. 
-Indexed buckets likewise reach list/get consumers after ECC without an
-entry-bounds check.
+The extern declaration of taskstats_exit_mutex has never been defined nor
+referenced anywhere now.  Just remove it.
 
-Use the flat xattr entry validator for non-indexed external xattr blocks,
-and use a bucket-specific validator for indexed buckets at metadata read
-time.  The bucket validator keeps the entry array bounded by the first
-bucket block while checking name/value offsets against the bucket block
-they target.
-
-Reject corrupted external xattr metadata before listxattr() or getxattr()
-can walk out-of-range entry arrays or name/value offsets.
-
-Validation reproduced this kernel report:
-BUG: KASAN: use-after-free in ocfs2_xattr_list_entries+0xd7/0x190
-Read of size 1 at addr ffff88810a654007 by task ocfs2_xattr_lis/630
-Call Trace:
-  dump_stack_lvl+0x66/0xa0
-  print_report+0xce/0x630
-  kasan_report+0xe0/0x110
-  ocfs2_xattr_list_entries+0xd7/0x190
-  ocfs2_listxattr+0x3f6/0x610
-  listxattr+0x90/0xe0
-  path_listxattrat+0xed/0x220
-  do_syscall_64+0x115/0x6a0
-  entry_SYSCALL_64_after_hwframe+0x77/0x7f
-
-Link: https://lore.kernel.org/20260705025311.3429854-3-zzzccc427@gmail.com
-Fixes: cf1d6c763fbc ("ocfs2: Add extended attribute support")
-Fixes: 0c044f0b24b9 ("ocfs2: Add xattr bucket iteration for large numbers of EAs")
-Signed-off-by: Cen Zhang <zzzccc427@gmail.com>
-Assisted-by: Codex:gpt-5.5
-Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Jun Piao <piaojun@huawei.com>
-Cc: Heming Zhao <heming.zhao@suse.com>
+Link: https://lore.kernel.org/98948e69094b73d6dfa63dcf0770067b57f3becf.1783435695.git.cyyzero16@gmail.com
+Signed-off-by: Yiyang Chen <cyyzero16@gmail.com>
+Cc: Balbir Singh <balbirs@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/xattr.c |   97 +++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 97 insertions(+)
+ include/linux/taskstats_kern.h |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/fs/ocfs2/xattr.c~ocfs2-validate-external-xattr-entries-when-reading-metadata
-+++ a/fs/ocfs2/xattr.c
-@@ -390,6 +390,12 @@ static int ocfs2_init_xattr_bucket(struc
- 	return rc;
- }
+--- a/include/linux/taskstats_kern.h~taskstats-remove-dead-taskstats_exit_mutex-declaration
++++ a/include/linux/taskstats_kern.h
+@@ -14,7 +14,6 @@
  
-+static int ocfs2_validate_xattr_entries_flat(struct super_block *sb, u64 blkno,
-+					     struct ocfs2_xattr_header *xh,
-+					     size_t region_size);
-+static int ocfs2_validate_xattr_bucket(struct ocfs2_xattr_bucket *bucket,
-+				       u64 blkno);
-+
- /* Read the xattr bucket at xb_blkno */
- static int ocfs2_read_xattr_bucket(struct ocfs2_xattr_bucket *bucket,
- 				   u64 xb_blkno)
-@@ -408,6 +414,8 @@ static int ocfs2_read_xattr_bucket(struc
- 		spin_unlock(&OCFS2_SB(bucket->bu_inode->i_sb)->osb_xattr_lock);
- 		if (rc)
- 			mlog_errno(rc);
-+		else
-+			rc = ocfs2_validate_xattr_bucket(bucket, xb_blkno);
- 	}
+ #ifdef CONFIG_TASKSTATS
+ extern struct kmem_cache *taskstats_cache;
+-extern struct mutex taskstats_exit_mutex;
  
- 	if (rc)
-@@ -509,6 +517,22 @@ static int ocfs2_validate_xattr_block(st
- 				   le32_to_cpu(xb->xb_fs_generation));
- 	}
- 
-+	if (!(le16_to_cpu(xb->xb_flags) & OCFS2_XATTR_INDEXED)) {
-+		size_t region_offset =
-+			offsetof(struct ocfs2_xattr_block, xb_attrs.xb_header);
-+
-+		if (bh->b_size < region_offset)
-+			return ocfs2_error(sb,
-+					   "Invalid xattr block %llu: block size %zu is too small\n",
-+					   (unsigned long long)bh->b_blocknr,
-+					   bh->b_size);
-+
-+		return ocfs2_validate_xattr_entries_flat(sb, bh->b_blocknr,
-+							 &xb->xb_attrs.xb_header,
-+							 bh->b_size -
-+							 region_offset);
-+	}
-+
- 	return 0;
- }
- 
-@@ -1068,6 +1092,79 @@ int ocfs2_validate_inode_xattr(struct su
- 	return ocfs2_validate_xattr_entries_flat(sb, blkno, xh, inline_size);
- }
- 
-+static int ocfs2_validate_xattr_bucket(struct ocfs2_xattr_bucket *bucket,
-+				       u64 blkno)
-+{
-+	struct super_block *sb = bucket->bu_inode->i_sb;
-+	struct ocfs2_xattr_header *xh = bucket_xh(bucket);
-+	u16 xattr_count = le16_to_cpu(xh->xh_count);
-+	size_t region_size = (size_t)sb->s_blocksize * bucket->bu_blocks;
-+	size_t entries_limit = sb->s_blocksize;
-+	size_t nv_limit = sb->s_blocksize;
-+	size_t max_entries;
-+	int i;
-+
-+	if (region_size < sizeof(*xh))
-+		return ocfs2_error(sb,
-+				   "Invalid xattr bucket %llu: region size %zu is too small\n",
-+				   (unsigned long long)blkno, region_size);
-+
-+	if (entries_limit < sizeof(*xh))
-+		return ocfs2_error(sb,
-+				   "Invalid xattr bucket %llu: entries limit %zu is too small\n",
-+				   (unsigned long long)blkno,
-+				   entries_limit);
-+
-+	max_entries = (entries_limit - sizeof(*xh)) /
-+		      sizeof(struct ocfs2_xattr_entry);
-+
-+	if (xattr_count > max_entries)
-+		return ocfs2_error(sb,
-+				   "Invalid xattr bucket %llu: entry count %u exceeds maximum %zu\n",
-+				   (unsigned long long)blkno,
-+				   xattr_count, max_entries);
-+
-+	for (i = 0; i < xattr_count; i++) {
-+		struct ocfs2_xattr_entry *xe = &xh->xh_entries[i];
-+		size_t name_offset = le16_to_cpu(xe->xe_name_offset);
-+		size_t block_off = name_offset >> sb->s_blocksize_bits;
-+		size_t block_offset = name_offset % nv_limit;
-+		size_t value_offset;
-+
-+		if (name_offset >= region_size || block_off >= bucket->bu_blocks)
-+			return ocfs2_error(sb,
-+					   "Invalid xattr bucket %llu: entry %d name is out of bounds\n",
-+					   (unsigned long long)blkno, i);
-+
-+		if (xe->xe_name_len > nv_limit - block_offset)
-+			return ocfs2_error(sb,
-+					   "Invalid xattr bucket %llu: entry %d name crosses block boundary\n",
-+					   (unsigned long long)blkno, i);
-+
-+		value_offset = block_offset + OCFS2_XATTR_SIZE(xe->xe_name_len);
-+		if (value_offset > nv_limit)
-+			return ocfs2_error(sb,
-+					   "Invalid xattr bucket %llu: entry %d value starts out of bounds\n",
-+					   (unsigned long long)blkno, i);
-+
-+		if (ocfs2_xattr_is_local(xe)) {
-+			if (le64_to_cpu(xe->xe_value_size) >
-+			    nv_limit - value_offset)
-+				return ocfs2_error(sb,
-+						   "Invalid xattr bucket %llu: entry %d value is out of bounds\n",
-+						   (unsigned long long)blkno,
-+						   i);
-+		} else if (sizeof(struct ocfs2_xattr_value_root) >
-+			   nv_limit - value_offset) {
-+			return ocfs2_error(sb,
-+					   "Invalid xattr bucket %llu: entry %d value root is out of bounds\n",
-+					   (unsigned long long)blkno, i);
-+		}
-+	}
-+
-+	return 0;
-+}
-+
- static int ocfs2_xattr_ibody_lookup_header(struct inode *inode,
- 					   struct ocfs2_dinode *di,
- 					   struct ocfs2_xattr_header **header)
+ static inline void taskstats_tgid_free(struct signal_struct *sig)
+ {
 _
 
-Patches currently in -mm which might be from zzzccc427@gmail.com are
+Patches currently in -mm which might be from cyyzero16@gmail.com are
 
 
