@@ -1,168 +1,170 @@
-Received: from confino.investici.org (confino.investici.org [93.190.126.19])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E865439DBCD
-	for <mm-commits@vger.kernel.org>; Tue,  4 Aug 2026 20:53:59 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=93.190.126.19
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 954B33D8104
+	for <mm-commits@vger.kernel.org>; Tue,  4 Aug 2026 22:58:17 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785876843; cv=none; b=FhQPzBKd5BnFYcD0e+1+8YQYon4u9vdkF6CKwGF3Ua2mb+shu01KE4fc0u7lqq4KV5skRntHRUqlpJVUmYzWuaKcFWGXgK4GJkQbX7NpTOezYDWGHBAr/aqy3xnPPX9LRkMwvCwAX7szrv23fRTfrHnxWEcGb8dsfOb+3tPgSQk=
+	t=1785884298; cv=none; b=c3HxkJLTDuyEZktShdE2AXEinciYLCpOFbTVQ+DQkmlTH+YCRRPi0FxaDD7AAwbSqRguaYKwpCtaVDU7Uw5LePylDuJeQ2FDAfXi7rLeTtXLHn3ogpGCA363hYbRlbw3A3aErfCvYC4e2AGL+L/Vf7DjK0JQ47qU6lA1IHpfYck=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785876843; c=relaxed/simple;
-	bh=nzYLNJ9by6byl81waKdSeRGc6ywBL63/5yjg+U2jkaU=;
-	h=Date:From:To:CC:Subject:In-Reply-To:References:Message-ID:
-	 MIME-Version:Content-Type; b=eriupbN8k/eRD9oO7Jv9TBfBHZAW6QZFJ6iN3r7S/+R8M9/MEvRI6RDIEgfGYLsW0RRq3so4ibEFwmUSTdcP2thkTYCRdN4tLY+Eqo28UT8cA0OKR5COEPbL3RsOfvmEE3bxld/vXORj5atprd/lZ/jvCQh8xVHyFFtRhrI1RGw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=grrlz.net; spf=pass smtp.mailfrom=grrlz.net; dkim=pass (1024-bit key) header.d=grrlz.net header.i=@grrlz.net header.b=aicQh66Y; arc=none smtp.client-ip=93.190.126.19
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=grrlz.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=grrlz.net
+	s=arc-20240116; t=1785884298; c=relaxed/simple;
+	bh=OXcxaPa1DHpuQMJ25Scv5ZYthe0gR6ceVgtJgnoJEiQ=;
+	h=Date:To:From:Subject:Message-Id; b=FQpCtZk8KMdKRrz8aoParv3CVgtFdVPcPcM8bFGiI5eXSrdsFVAqkbE4f6Br0IgPtUfQVFLgnAoTkPH+Hwful0nEoxbcwXR2wQa/A3mCy9+xX12eRa4fS8wCKDiSsMuL4/ZNMMjm/NIR1hId33MWhrUllmiitLAXpPqsGb2Nu+0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jAyszsUr; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=grrlz.net header.i=@grrlz.net header.b="aicQh66Y"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=grrlz.net;
-	s=stigmate; t=1785876837;
-	bh=jFyCzro9wPuL3RVgWSc2DOlV8DF4vBIgDMMnziU8aPU=;
-	h=Date:From:To:CC:Subject:In-Reply-To:References:From;
-	b=aicQh66Ysz/uIs5RDzlqlDkQ/G/Pj2GtzD6GLLsLumf1ZXTM7HnrGmmCKrQDeNiiN
-	 v1NNz4Mi4sfM2ZCPUZjbfJ7gS8jLw/Q8rjafH8EDz/B41gMdio2nk27bci60ZFV66z
-	 Enu5tv6NscQeEE1inf2DZIGPxF+7mnxXhpp9h+eM=
-Received: from mx1.investici.org (unknown [127.0.0.1])
-	by confino.investici.org (Postfix) with ESMTP id 4hF5PK19cyz12MZ;
-	Tue, 04 Aug 2026 20:53:57 +0000 (UTC)
-Received: by mx1.investici.org (Postfix) id 4hF5PJ5B3Pz12Lx;
-	Tue, 04 Aug 2026 20:53:56 +0000 (UTC)
-Date: Tue, 04 Aug 2026 21:53:56 +0100
-From: Bradley Morgan <include@grrlz.net>
-To: Oleg Nesterov <oleg@redhat.com>, Andrew Morton <akpm@linux-foundation.org>
-CC: mm-commits@vger.kernel.org, bsingharora@gmail.com
-Subject: =?US-ASCII?Q?Re=3A_+_taskstats-copy-signal-stats-under-siglock-in-t?=
- =?US-ASCII?Q?askstats=5Fexit=2Epatch_added_to_mm-nonmm-unstable_branch?=
-In-Reply-To: <anJN-w0et3CXG64B@redhat.com>
-References: <20260804200407.E858F1F000E9@smtp.kernel.org> <anJN-w0et3CXG64B@redhat.com>
-Message-ID: <5727577F-39B4-43AF-8E6B-003E9A980A12@grrlz.net>
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jAyszsUr"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 25F741F000E9;
+	Tue,  4 Aug 2026 22:58:17 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=linux-foundation.org; s=korg; t=1785884297;
+	bh=ar+24POmA6T460xWLyuIUn7IRHv846ecf3wWt5c7KIA=;
+	h=Date:To:From:Subject;
+	b=jAyszsUrlJYm/dsNsEWxwQ88NepGRSWB87qKpuOeTatmIVtreuZ/Are0AgE0OC5Tb
+	 +/g77Gqa4uIuka/yjnqLhd+yxEVOkJoz3a8mwcYeesPnZi9uhBCptbEFH9mH66lj2x
+	 +Lu240dUMdk/JZOT9rDaa2016i/1JqSwRdKOkXtc=
+Date: Tue, 04 Aug 2026 15:58:16 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,akpm@linux-foundation.org
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: [to-be-updated] mm-huge_memory-use-folios-memcg-inside-__folio_split.patch removed from -mm tree
+Message-Id: <20260804225817.25F741F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain;
- charset=utf-8
-Content-Transfer-Encoding: 8bit
-
-On 4 August 2026 21:39:23 BST, Oleg Nesterov <oleg@redhat.com> wrote:
->On 08/04, Andrew Morton wrote:
->>
->> From: Bradley Morgan <include@grrlz.net>
->> Subject: taskstats: copy signal->stats under siglock in taskstats_exit
->
->...
->
->> ---
->a/kernel/taskstats.c~taskstats-copy-signal-stats-under-siglock-in-taskstats_exit
->> +++ a/kernel/taskstats.c
->> @@ -590,6 +590,7 @@ void taskstats_exit(struct task_struct *
->>  	struct sk_buff *rep_skb;
->>  	size_t size;
->>  	int is_thread_group;
->> +	unsigned long flags;
->>  
->>  	if (!family_registered)
->>  		return;
->> @@ -635,7 +636,10 @@ void taskstats_exit(struct task_struct *
->>  	if (!stats)
->>  		goto err;
->>  
->> +	/* This was racy before, copy the stats under siglock. */
->> +	spin_lock_irqsave(&tsk->sighand->siglock, flags);
->
->Why _irqsave? The only caller is do_exit(), and it obviously runs with
->irqs enabled?
->
->Oleg.
->
->
 
 
-Thanks for the review, how's this?
+The quilt patch titled
+     Subject: mm/huge_memory: use folio's memcg inside __folio_split()
+has been removed from the -mm tree.  Its filename was
+     mm-huge_memory-use-folios-memcg-inside-__folio_split.patch
 
-From 137b873cce7721384c9d24f4c0864bb002c8d039 Mon Sep 17 00:00:00 2001
-From: Bradley Morgan <include@grrlz.net>
-Date: Tue, 4 Aug 2026 09:34:00 +0000
-Subject: [PATCH v2] taskstats: copy signal->stats under siglock in
- taskstats_exit
+This patch was dropped because an updated version will be issued
 
-taskstats_exit() copies tsk->signal->stats into the exit reply
-without taking any lock. Every other writer of this struct holds
-sighand->siglock before touching it, and this copy does not.
+------------------------------------------------------
+From: Zi Yan <ziy@nvidia.com>
+Subject: mm/huge_memory: use folio's memcg inside __folio_split()
+Date: Thu, 30 Jul 2026 22:18:00 -0400
 
-The copy happens on the last thread of a thread group that exits.
-group_dead being 1 only says that every thread has dropped
-signal->live, it does not say how far the other threads got in
-do_exit(). One of them can still be inside fill_tgid_exit() adding
-its counters to the struct while the last thread copies it out, so
-the copy can read the struct in the middle of an update.
+Patch series "Honor XA_FLAGS_ACCOUNT in xas_split_alloc() and charge to
+folio's memcg", v2.
 
-The commit that added the copy assumed no locking was needed because
-the group was dead:
+__GFP_ACCOUNT is needed for xarray node allocation accounting when
+XA_FLAGS_ACCOUNT is set. Commit 7b785645e8f13 ("mm: fix page cache
+convergence regression") fixed a workingset regression with it.
+xas_split_alloc() does not have it and needs to be fixed.
 
-	/* No locking needed for tsk->signal->stats since
-	   group is dead */
+In addition, based on Sashiko's review[1] and Johannes' confirmation[2], to
+charge the right memcg, folio's memcg needs to be active during folio
+split. Add that before adding __GFP_ACCOUNT.
 
-but at that point the other threads have not necessarily finished
-their exit path.
+There is no workingset convergence regression related to missing
+__GFP_ACCOUNT in xas_split_alloc() and the impact to userspace should be
+minor.
 
-cpu0 (thread A, not last)        cpu1 (thread B, last)
-===========================      ==============================
-atomic_dec(&signal->live)        atomic_dec(&signal->live) -> 0
-group_dead = 0                   group_dead = 1
-...                              taskstats_exit(tsk, 1)
-taskstats_exit(tsk, 0)           fill_tgid_exit(tsk) [siglock]
-fill_tgid_exit(tsk)              memcpy(stats, signal->stats)
-  spin_lock(siglock)               reads ac_utime (new)
-  stats->ac_utime += x             reads ac_stime (old)
-  stats->ac_stime += y             torn snapshot -> netlink
-  spin_unlock(siglock)
 
-The listeners receive a partially updated tgid snapshot, with some
-fields from before the concurrent update and some from after. There
-is no crash or splat, which is likely why this went unnoticed since
-2006. A userspace model of the same shape, writer under a lock and
-a lockless memcpy reader, produces millions of torn reads in a few
-seconds.
+This patch (of 2):
 
-Take siglock around the copy like every other access does. sighand
-is still alive here because taskstats_exit() runs before
-exit_notify(), and fill_tgid_exit() already takes this same lock
-earlier in this function.
+During a pagecache folio split, an xarray node allocation can happen and
+needs to charge at folio's memcg instead of folio split invoker's memcg,
+because for example folio split can happen during reclaim and reclaim's
+active memcg might not be folio's memcg.  Switch to folio's memcg at the
+beginning and switch back afterwards.
 
-Fixes: ad4ecbcba728 ("[PATCH] delay accounting taskstats interface send tgid once")
-Signed-off-by: Bradley Morgan <include@grrlz.net>
-
-The only caller is do_exit(), which runs with irqs enabled, and
-fill_tgid_exit() already takes the same lock with spin_lock_irq().
-Use that instead of spin_lock_irqsave(). (Oleg)
-
+Link: https://lore.kernel.org/20260730-add-gfp_account-to-xas_split_alloc-v2-0-5a56c2361d85@nvidia.com
+Link: https://lore.kernel.org/20260730-add-gfp_account-to-xas_split_alloc-v2-1-5a56c2361d85@nvidia.com
+Link: https://sashiko.dev/#/patchset/20260727-add-gfp_account-to-xas_split_alloc-v1-1-9fae6bf64838%40nvidia.com?part=1 [1]
+Link: https://lore.kernel.org/all/amtcBZ-_QVRgCd6b@cmpxchg.org/ [2]
+Fixes: 6b24ca4a1a8d ("mm: Use multi-index entries in the page cache")
+Signed-off-by: Zi Yan <ziy@nvidia.com>
+Suggested-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Lance Yang <lance.yang@linux.dev>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: William Kucharski <william.kucharski@oracle.com>
+Cc: <stable@vger.kernel.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
-Changes since V1:
-- spin_lock_irq() instead of spin_lock_irqsave() (Oleg)
----
- kernel/taskstats.c | 3 +++
- 1 file changed, 3 insertions(+)
 
-diff --git a/kernel/taskstats.c b/kernel/taskstats.c
-index f31df72f0e9d..300fa06ac84a 100644
---- a/kernel/taskstats.c
-+++ b/kernel/taskstats.c
-@@ -635,7 +635,10 @@ void taskstats_exit(struct task_struct *tsk, int group_dead)
- 	if (!stats)
- 		goto err;
- 
-+	/* This was racy before, copy the stats under siglock. */
-+	spin_lock_irq(&tsk->sighand->siglock);
- 	memcpy(stats, tsk->signal->stats, sizeof(*stats));
-+	spin_unlock_irq(&tsk->sighand->siglock);
- 	stats->version = TASKSTATS_VERSION;
- 
- send:
--- 
-2.47.3
+ mm/huge_memory.c |   20 ++++++++++++++++----
+ 1 file changed, 16 insertions(+), 4 deletions(-)
 
-Thanks!
+--- a/mm/huge_memory.c~mm-huge_memory-use-folios-memcg-inside-__folio_split
++++ a/mm/huge_memory.c
+@@ -4106,34 +4106,42 @@ static int __folio_split(struct folio *f
+ 	XA_STATE(xas, &folio->mapping->i_pages, folio->index);
+ 	struct folio *end_folio = folio_next(folio);
+ 	bool is_anon = folio_test_anon(folio);
++	struct mem_cgroup *memcg, *old_memcg;
+ 	struct address_space *mapping = NULL;
+ 	struct anon_vma *anon_vma = NULL;
+ 	int old_order = folio_order(folio);
+ 	struct folio *new_folio, *next;
+ 	int nr_shmem_dropped = 0;
+ 	enum ttu_flags ttu_flags = 0;
+-	int ret;
+ 	pgoff_t end = 0;
++	int ret;
+ 
+ 	VM_WARN_ON_ONCE_FOLIO(!folio_test_locked(folio), folio);
+ 	VM_WARN_ON_ONCE_FOLIO(!folio_test_large(folio), folio);
+ 
+ 	if (folio != page_folio(split_at) || folio != page_folio(lock_at)) {
+ 		ret = -EINVAL;
+-		goto out;
++		goto out_no_memcg;
+ 	}
+ 
+ 	if (new_order >= old_order) {
+ 		ret = -EINVAL;
+-		goto out;
++		goto out_no_memcg;
+ 	}
+ 
+ 	ret = folio_check_splittable(folio, new_order, split_type);
+ 	if (ret) {
+ 		VM_WARN_ONCE(ret == -EINVAL, "Tried to split an unsplittable folio");
+-		goto out;
++		goto out_no_memcg;
+ 	}
+ 
++	/*
++	 * switch to folio's memcg as xarray node allocation can happen and
++	 * needs to charge to it.
++	 */
++	memcg = get_mem_cgroup_from_folio(folio);
++	old_memcg = set_active_memcg(memcg);
++
+ 	if (is_anon) {
+ 		/*
+ 		 * The caller does not necessarily hold an mmap_lock that would
+@@ -4276,6 +4284,10 @@ out_unlock:
+ 	if (mapping)
+ 		i_mmap_unlock_read(mapping);
+ out:
++	/* restore to caller's old_memcg */
++	set_active_memcg(old_memcg);
++	mem_cgroup_put(memcg);
++out_no_memcg:
+ 	xas_destroy(&xas);
+ 	if (is_pmd_order(old_order))
+ 		count_vm_event(!ret ? THP_SPLIT_PAGE : THP_SPLIT_PAGE_FAILED);
+_
+
+Patches currently in -mm which might be from ziy@nvidia.com are
+
+mm-percpu-km-clear-page-private-before-free-them.patch
+mm-compaction-stop-recording-free-page-order-in-page-private.patch
+mm-huge_memory-add-page-private-check-back-in-__split_folio_to_order.patch
+mm-page_alloc-make-sure-tail_page-private-is-zero-at-page-free-time.patch
+mm-page_alloc-remove-set_page_private-in-prep_compound_tail.patch
+a.patch
+xarray-honor-xa_flags_account-in-xas_split_alloc.patch
+
