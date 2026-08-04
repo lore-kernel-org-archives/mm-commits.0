@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 56AE243CE55
-	for <mm-commits@vger.kernel.org>; Tue,  4 Aug 2026 23:52:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CB95E453A24
+	for <mm-commits@vger.kernel.org>; Tue,  4 Aug 2026 23:55:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785887550; cv=none; b=OSnM+04V+y+Ijg8M+67OrxQlKa4yODttjWXip5rdTsPeYOCKx5dlnb4PcG1Mt+Pu5xkllVF7KZd/L+cM4P09+FOIi8E8K3A3XQwA5pl2TmVZ8ornrvbxv7UrcktFoBW97iC/lTzcI5Os7Mq5qHvW0fyWjBIKJF6lRNlf4AsuY24=
+	t=1785887716; cv=none; b=QXSMRUutobPmo1GFFxp5fd3iN50NJ2C5oiHLzEy91DEedlqanj6H/pVtNohhuDLAv8DcCVrEyFXiVnym4YiTrXqYQrNUDId5uM/B1SFedDKPMJWeXsMdX9w5awA1UovimfACmFYBvHLSicpq5y1cH4efOJvYy/7jMBrKibnyY2Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785887550; c=relaxed/simple;
-	bh=/EUumg9uPPDzkj1bRRlLr7oBx9zd5sm3PMFGk/TCRpU=;
-	h=Date:To:From:Subject:Message-Id; b=Xcrhx/boN5bB5Pq+CEu7TKvWmJmzYE2VWqi7v+8rTTRWW6ICbjMR6FamXpVuV2dXSPgx90s7aohVO+ZmuPd/wSin4BnX6Ic+o5ZakqCq0/wihzdhD99XUn0EbhEcHQuvF2jidUcquh1nDcX/+ottodjh1nhxzBdEskNiG8Ckvic=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=i67TD8CP; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785887716; c=relaxed/simple;
+	bh=0Kf3IJ5NmAE6Lohcu9G6RkOi6WaGfoLZRlqJjFq+J7E=;
+	h=Date:To:From:Subject:Message-Id; b=Ldx3Ni4LiJ+VerTQBNBeGakfj/jDQB2b5kkEzmGKj4Q7kibj6qAdjAVpGiOXxk1nxSGP1kAJlYDKcMHyFk/Uz0m5c2Xvp/ZhHNCzbTdNFjsUsmXk8xi2Pmvo4hXxal9Q6FiiGCWPMw9jt112r9uFQWDiV52SOiKpv7I/5+2NstM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jZAFa3Le; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="i67TD8CP"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 138CC1F000E9;
-	Tue,  4 Aug 2026 23:52:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jZAFa3Le"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 886BB1F00A3A;
+	Tue,  4 Aug 2026 23:55:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785887549;
-	bh=RbZcmecxc3AgZOpf8r3IcXtdD9vXuuoV5ZxzxDTCU44=;
+	d=linux-foundation.org; s=korg; t=1785887714;
+	bh=8RDMjESjmWecmuo4j5ywAdnzprXTf5sjQJe4vsGnOyU=;
 	h=Date:To:From:Subject;
-	b=i67TD8CPEPmSEyr4dmw41yIMhFOfxEvF58v92xOAXezJ4AOCHzL2Ckv9hYIa6CHaE
-	 F5n7+Q/IZpHm9msibsN01SNSF/CDtVxLCFcbHvkqEb+rNm0XG+OZTU7mQH7gpArbS+
-	 /Z9rUrTMlJQ1WLzjPtyf1vLAMIaIVAvD4ttOu4ME=
-Date: Tue, 04 Aug 2026 16:52:28 -0700
+	b=jZAFa3LeA8MBM9SUIn7kJaPiGKr7Q0iD/GQ54DIzYMQOPXnfHBc9DOcb3m1jjsIRX
+	 fDk4YbYWpcwK5zsZDQWaAVy6b5I5oqOsdXvoI2wC5RCv0Z6dU6SgcJaleimKEpvpPc
+	 ZZ2gDt08AQM3TrAwbOa9RduTWxbT4Otog81M9fmE=
+Date: Tue, 04 Aug 2026 16:55:14 -0700
 To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,shuah@kernel.org,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,warren.xiong@ugreen.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] selftests-mm-read-memory-information-without-popen.patch removed from -mm tree
-Message-Id: <20260804235229.138CC1F000E9@smtp.kernel.org>
+Subject: + selftests-mm-read-memory-information-without-popen.patch added to mm-unstable branch
+Message-Id: <20260804235514.886BB1F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,12 +34,28 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
+The patch titled
      Subject: selftests/mm: read memory information without popen
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm mm-unstable branch.  Its filename is
      selftests-mm-read-memory-information-without-popen.patch
 
-This patch was dropped because an updated version will be issued
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-read-memory-information-without-popen.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
 ------------------------------------------------------
 From: Warren Xiong <warren.xiong@ugreen.com>
@@ -60,10 +76,10 @@ The compaction test continues to pass after this change.
 Link: https://lore.kernel.org/1785845818-3131-1-git-send-email-warren.xiong@ugreen.com
 Signed-off-by: Warren Xiong <warren.xiong@ugreen.com>
 Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
 Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Shuah Khan <shuah@kernel.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@kernel.org>
@@ -133,5 +149,6 @@ _
 
 Patches currently in -mm which might be from warren.xiong@ugreen.com are
 
+selftests-mm-read-memory-information-without-popen.patch
 tools-mm-prevent-page_owner_sort-from-truncating-input.patch
 
