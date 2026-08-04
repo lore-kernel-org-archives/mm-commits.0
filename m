@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 60B7343FD11
-	for <mm-commits@vger.kernel.org>; Tue,  4 Aug 2026 20:04:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C57793314C4;
+	Tue,  4 Aug 2026 20:10:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785873849; cv=none; b=R1Vd4rf+7OM8pb8Uwek/2irlLZ1h1NCY041Pp5pAGpOaxU0a2KZ3YlEIHVETGeRMJ4E4hVoWy7+f0ojeWLKAG+FTY9/bhpvrOJx5m0mm9/uX2fJan0GAh6V8MNucDuUV595gDK2oi/U+Bk+4qTpc5xXejUjXCKYoRjOz+Mij2VU=
+	t=1785874256; cv=none; b=s/ytNg+H12HSIBrqdw3Z1/fd6ZEJL4ya2E4OlTX98JLEM4PqXX83uB1na61/OevbxvY+A4asWiiHPYqHgJ+oPe5Cork6A7We2G7jjbUmQijzRecaV5RHhsn+h6TMUMae8JpT6qZkMw8BUS8YqzEgzdcgmhJzGq+Ii8aZ0vDWjP4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785873849; c=relaxed/simple;
-	bh=TnV1tEBX7ZUDi9lfWpHACZwbefGFbRe+a3JA0qneEb8=;
-	h=Date:To:From:Subject:Message-Id; b=HO8S5CvT27pZ2qvoNjVGvdmuYofkp9zJ2InLWwTcJfjU1G9OPN44E2UifRr5NDUi4e2tODzLOPswY0bO2u8X8gwstcDU1C92CEie02YQ899enH+WYpjYdx7JxGH9VaZItbbpw4lpinw4CxBq/cSPvHSe3kpM0CwCkHxMsTGEzw8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=s/UyjLYZ; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785874256; c=relaxed/simple;
+	bh=T7nmMAk59SNDivRK0G2GHNfk5LxBtLamPl7hg0gBg+I=;
+	h=Date:To:From:Subject:Message-Id; b=jOCMxb3cOpHDWMAf9xSMF5aPfEp1JmhSvVtbeZJXPE2P8zaeajvJCOT+0FCRdKGB4kCDFIK8QDNmABd5PUEhbjjj5VAMsVpGVnydvHbU3SXWGc/FcOfxyyjaWrtv+KwLJ4pgsSNQ5SpCsmja4aYflwMaEgWejKt9+Ejj4H/ibl0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uWRHAlBh; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="s/UyjLYZ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E858F1F000E9;
-	Tue,  4 Aug 2026 20:04:07 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uWRHAlBh"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 43AF21F000E9;
+	Tue,  4 Aug 2026 20:10:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785873848;
-	bh=yVvs5WRZ/IloNsw7iPHFqVHq8t1Wgu3AD3aixHknvfo=;
+	d=linux-foundation.org; s=korg; t=1785874254;
+	bh=vOgIvI/GUR47yVOT5RxRKwEaNJeYF7UKRzFIhAV8oE8=;
 	h=Date:To:From:Subject;
-	b=s/UyjLYZqibqfXM/I0UxSV+E3xGlJnrf3vqZqU0MJorKVDoqyL/zKfjNNXBB2RmQ9
-	 9/ovxBJSUh1as3LE6edcUA4rkUdAlezV/pvtfeAQsaJvDQCuoW3ffBpFVreeqLHCUa
-	 MpwNUOVkRyxyRlzVr2D8VAJw9Velf3BdIZQazWfk=
-Date: Tue, 04 Aug 2026 13:04:07 -0700
-To: mm-commits@vger.kernel.org,oleg@redhat.com,bsingharora@gmail.com,include@grrlz.net,akpm@linux-foundation.org
+	b=uWRHAlBhuiZUoxvGRCstexT+RqvHxnUUGoB5ffnmx2A2K5wSYWnebaELZMFVvVgpM
+	 UqYDBLQHEaBJSZAG8qygV4LCuLYvOSqg07cf4bO2yt3KPqqO5vAzJ7h2voFyz2eyT2
+	 HVLR8WxWtUAA5f8Te+DYKHoiPxXAa0TyWD/jJTbo=
+Date: Tue, 04 Aug 2026 13:10:53 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,senozhatsky@chromium.org,minchan@kernel.org,axboe@kernel.dk,xialonglong@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + taskstats-copy-signal-stats-under-siglock-in-taskstats_exit.patch added to mm-nonmm-unstable branch
-Message-Id: <20260804200407.E858F1F000E9@smtp.kernel.org>
+Subject: + zram-fix-out-of-bounds-access-in-writeback_store.patch added to mm-new branch
+Message-Id: <20260804201054.43AF21F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,26 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: taskstats: copy signal->stats under siglock in taskstats_exit
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     taskstats-copy-signal-stats-under-siglock-in-taskstats_exit.patch
+     Subject: zram: fix out-of-bounds access in writeback_store()
+has been added to the -mm mm-new branch.  Its filename is
+     zram-fix-out-of-bounds-access-in-writeback_store.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/taskstats-copy-signal-stats-under-siglock-in-taskstats_exit.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-fix-out-of-bounds-access-in-writeback_store.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,89 +69,78 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Bradley Morgan <include@grrlz.net>
-Subject: taskstats: copy signal->stats under siglock in taskstats_exit
-Date: Tue, 4 Aug 2026 09:34:00 +0000
+From: Longlong Xia <xialonglong@kylinos.cn>
+Subject: zram: fix out-of-bounds access in writeback_store()
+Date: Tue, 4 Aug 2026 14:59:18 +0800
 
-taskstats_exit() copies tsk->signal->stats into the exit reply without
-taking any lock.  Every other writer of this struct holds sighand->siglock
-before touching it, and this copy does not.
+Patch series "zram: fix stale scan bounds after reinitialization".
 
-The copy happens on the last thread of a thread group that exits. 
-group_dead being 1 only says that every thread has dropped signal->live,
-it does not say how far the other threads got in do_exit().  One of them
-can still be inside fill_tgid_exit() adding its counters to the struct
-while the last thread copies it out, so the copy can read the struct in
-the middle of an update.
+Both writeback_store() and read_block_state() derive their table scan
+bounds from zram->disksize before acquiring dev_lock.  If the device is
+reset and reinitialized with a smaller disksize between that read and lock
+acquisition, the bound can describe the old table while the scan operates
+on the new one.  This can lead to out-of-bounds slot accesses.
 
-The commit that added the copy assumed no locking was needed because the
-group was dead:
+Move both bound calculations under dev_lock so each bound remains
+consistent with the table throughout its scan.  Keep the fixes separate
+because the affected interfaces originate from different commits and can
+be backported independently.
 
-	/* No locking needed for tsk->signal->stats since
-	   group is dead */
 
-but at that point the other threads have not necessarily finished
-their exit path.
+This patch (of 2):
 
-cpu0 (thread A, not last)        cpu1 (thread B, last)
-===========================      ==============================
-atomic_dec(&signal->live)        atomic_dec(&signal->live) -> 0
-group_dead = 0                   group_dead = 1
-...                              taskstats_exit(tsk, 1)
-taskstats_exit(tsk, 0)           fill_tgid_exit(tsk) [siglock]
-fill_tgid_exit(tsk)              memcpy(stats, signal->stats)
-  spin_lock(siglock)               reads ac_utime (new)
-  stats->ac_utime += x             reads ac_stime (old)
-  stats->ac_stime += y             torn snapshot -> netlink
-  spin_unlock(siglock)
+writeback_store() calculates the table scan bounds before taking dev_lock.
+A reset followed by reconfiguration with a smaller disksize can therefore
+replace zram->table while writeback_store() is waiting for the lock.  Once
+it acquires the lock, it sees an initialized device but scans the new
+table using the old upper bound, resulting in an out-of-bounds access.
 
-The listeners receive a partially updated tgid snapshot, with some fields
-from before the concurrent update and some from after.  There is no crash
-or splat, which is likely why this went unnoticed since 2006.  A userspace
-model of the same shape, writer under a lock and a lockless memcpy reader,
-produces millions of torn reads in a few seconds.
+Calculate the number of pages while holding dev_lock so the scan bound
+matches the table protected by the lock.
 
-Take siglock around the copy like every other access does.  sighand is
-still alive here because taskstats_exit() runs before exit_notify(), and
-fill_tgid_exit() already takes this same lock earlier in this function.
-
-Link: https://lore.kernel.org/20260804093400.3922-1-include@grrlz.net
-Fixes: ad4ecbcba728 ("[PATCH] delay accounting taskstats interface send tgid once")
-Signed-off-by: Bradley Morgan <include@grrlz.net>
-Cc: Balbir Singh <bsingharora@gmail.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
+Link: https://lore.kernel.org/20260804065919.3970386-1-xialonglong2025@163.com
+Link: https://lore.kernel.org/20260804065919.3970386-2-xialonglong2025@163.com
+Fixes: a939888ec38b ("zram: support idle/huge page writeback")
+Assisted-by: Codex:gpt-5.6-sol
+Signed-off-by: Longlong Xia <xialonglong@kylinos.cn>
+Reviewed-by: Sergey Senozhatsky <senozhatsky@chromium.org>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/taskstats.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/block/zram/zram_drv.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
---- a/kernel/taskstats.c~taskstats-copy-signal-stats-under-siglock-in-taskstats_exit
-+++ a/kernel/taskstats.c
-@@ -590,6 +590,7 @@ void taskstats_exit(struct task_struct *
- 	struct sk_buff *rep_skb;
- 	size_t size;
- 	int is_thread_group;
-+	unsigned long flags;
+--- a/drivers/block/zram/zram_drv.c~zram-fix-out-of-bounds-access-in-writeback_store
++++ a/drivers/block/zram/zram_drv.c
+@@ -1235,8 +1235,8 @@ static ssize_t writeback_store(struct de
+ 			       const char *buf, size_t len)
+ {
+ 	struct zram *zram = dev_to_zram(dev);
+-	u64 nr_pages = zram->disksize >> PAGE_SHIFT;
+-	unsigned long lo = 0, hi = nr_pages;
++	u64 nr_pages;
++	unsigned long lo = 0, hi;
+ 	struct zram_pp_ctl *pp_ctl = NULL;
+ 	struct zram_wb_ctl *wb_ctl = NULL;
+ 	char *args, *param, *val;
+@@ -1250,6 +1250,9 @@ static ssize_t writeback_store(struct de
+ 	if (!zram->backing_dev)
+ 		return -ENODEV;
  
- 	if (!family_registered)
- 		return;
-@@ -635,7 +636,10 @@ void taskstats_exit(struct task_struct *
- 	if (!stats)
- 		goto err;
- 
-+	/* This was racy before, copy the stats under siglock. */
-+	spin_lock_irqsave(&tsk->sighand->siglock, flags);
- 	memcpy(stats, tsk->signal->stats, sizeof(*stats));
-+	spin_unlock_irqrestore(&tsk->sighand->siglock, flags);
- 	stats->version = TASKSTATS_VERSION;
- 
- send:
++	nr_pages = zram->disksize >> PAGE_SHIFT;
++	hi = nr_pages;
++
+ 	pp_ctl = init_pp_ctl();
+ 	if (!pp_ctl)
+ 		return -ENOMEM;
 _
 
-Patches currently in -mm which might be from include@grrlz.net are
+Patches currently in -mm which might be from xialonglong@kylinos.cn are
 
-taskstats-drop-the-dead-null-attribute-check-in-parse.patch
-taskstats-fold-the-two-cpumask-handlers-into-one.patch
-taskstats-copy-signal-stats-under-siglock-in-taskstats_exit.patch
+mm-ksm-avoid-missing-ksmd-wakeups-in-ksm_enter.patch
+zram-fix-out-of-bounds-access-in-writeback_store.patch
+zram-fix-out-of-bounds-access-in-read_block_state.patch
 
