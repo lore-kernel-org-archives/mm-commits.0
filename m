@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6726A421241
-	for <mm-commits@vger.kernel.org>; Tue,  4 Aug 2026 04:05:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 87F4342123B
+	for <mm-commits@vger.kernel.org>; Tue,  4 Aug 2026 04:05:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785816310; cv=none; b=MmXiauErDraqg272J+R3Hdh8DbQhHEbebC1IYJOZU9AqxfLs6O5Sd4+JA9EAM0qFWzs0+p2h9mXGQfeJFOiwk1XMM2BoFI2QweloV99Ekm0W4TejcAcBuLnO16/33k6r/yOxIOFTyeTdGiTidMxYoMMsIznL6SLlBDVHTU9uVUw=
+	t=1785816311; cv=none; b=WqnJdoy5ZJKf4WEuZ9YwAWmG6U/w6NNGjOZvTcy+Wu96ImVPyaQucJolH9kFclvlTp0VSc4Mmsj+0IwHM77fDxqPUVzV//J/Cgq80KwokqjUBQaUZwgEEs8cK0BwYOJY/xKJl4FPv0SmmWOmP59nR1C5BNk0vogj00Fn5SH0cWk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785816310; c=relaxed/simple;
-	bh=zMKWvpatIU3t5pIZYDikRKlEE6fdDk9mUfjWLnx37YA=;
-	h=Date:To:From:Subject:Message-Id; b=tY3Zj16X7BDcDKXhNcTDIC8mh5OrfgP/Bf/TLnYsbYFXvrCcdkPUAmrJVHr1vpmph7dZ9JCDXSv67HvnLGzacgxRpeGuZqHDnPZKxXTnR8LTlMCAsuQac5XXEOjEiiM6h3AGcghivRl5Q7qgGaelTCRt/JMr5Fp6ihBL5dUuYdk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ndLXsLGj; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785816311; c=relaxed/simple;
+	bh=4xIua15D0fopYdmzE3bFueCve6odpfjmv1tpsrN31Uc=;
+	h=Date:To:From:Subject:Message-Id; b=t6RkpqAWzAwhFoDzsTt5xBoQ68J7k1I/PXgu/WP1FfKAYX4aq3ld00lt0A78EyNL5ViYICUs0whuDlm9es4Epgc/E7veqpm+vuJ1bXiK6P7r1PDP6N/yayd6r9gyYhVTXFzH9MjYSWAh3+WolpJ26Z7vkNYmkBOQLVbVz5ci+nM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oGq9Y9Vl; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ndLXsLGj"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3A6131F00A3A;
-	Tue,  4 Aug 2026 04:05:09 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oGq9Y9Vl"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5B0701F000E9;
+	Tue,  4 Aug 2026 04:05:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785816309;
-	bh=/J+KaC2R8EWBxNJw5uZFftiksY59AFpgyFzGK+hs1WQ=;
+	d=linux-foundation.org; s=korg; t=1785816310;
+	bh=ME5+1SpVKfKL5lFZgphycqmtjTzmmpUzyUjjjUOKlSM=;
 	h=Date:To:From:Subject;
-	b=ndLXsLGjxOlpvwlL9FTykgfeaMKJdBo5FpXpNtXxB4xXFfg9WTujQMD7eOOw5eib1
-	 1J473JMs7yya7tSBsB/dt7u+TEOFT+Sq8SmPtb2MRClgvl22Le/Mrn07dSKHI6NQxe
-	 wUZuNrkUjEy07qR8ofApUnzfhAnfdAVQDOJHbWmo=
-Date: Mon, 03 Aug 2026 21:05:08 -0700
-To: mm-commits@vger.kernel.org,sashiko-bot@kernel.org,gregkh@linuxfoundation.org,giometti@enneenne.com,calvin@wbinvd.org,akpm@linux-foundation.org
+	b=oGq9Y9VlH3JKM+ax/XqLOyxNzDpkaMoYoyFm1RGKr9rA2C84KK/xp3ibySdW3Nzvd
+	 edG3S56Ww3jA+cehxBRD/IQueBhf2BXmdM10zb237cDUectfmZg9IF796uZPITLwqy
+	 A953Rx/Jb1hrwhQCdFSXyDWv0gwYdpbKqP02jEBs=
+Date: Mon, 03 Aug 2026 21:05:09 -0700
+To: mm-commits@vger.kernel.org,giometti@enneenne.com,calvin@wbinvd.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] pps-dont-allow-pps_kc_bind-on-removed-devices.patch removed from -mm tree
-Message-Id: <20260804040509.3A6131F00A3A@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] pps-gpio-remove-dead-capture_clear-code.patch removed from -mm tree
+Message-Id: <20260804040510.5B0701F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,137 +35,122 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: pps: don't allow PPS_KC_BIND on removed devices
+     Subject: pps-gpio: remove dead capture_clear code
 has been removed from the -mm tree.  Its filename was
-     pps-dont-allow-pps_kc_bind-on-removed-devices.patch
+     pps-gpio-remove-dead-capture_clear-code.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Calvin Owens <calvin@wbinvd.org>
-Subject: pps: don't allow PPS_KC_BIND on removed devices
-Date: Wed, 3 Jun 2026 10:25:44 -0700
+Subject: pps-gpio: remove dead capture_clear code
+Date: Mon, 6 Jul 2026 10:19:07 -0700
 
-If userspace holds its file descriptor open, it can call PPS_KC_BIND on a
-device which has been unplugged, leaving pps_kc_hardpps_dev as a dangling
-pointer after close().
+The capture_clear field is never set, and all code conditional on it being
+set has been unreachable since the platform data logic was removed from
+pps-gpio in ee89646619ba ("pps: clients: gpio: Get rid of legacy platform
+data").
 
-After that sequence, PPS_KC_BIND is broken until the system is rebooted,
-because the pointer comparison in pps_kc_bind() can never be true.
+I think the only logical thing to do here is to remove it all, since no
+in-tree code ever actually used it in the first place, and it has been
+completely dead code for over five years (since v5.13).
 
-    calling  pps_ktimer_init+0x0/0x1000 [pps_ktimer] @ 1081
-    initcall pps_ktimer_init+0x0/0x1000 [pps_ktimer] returned 0 after 811 usecs
-    pps pps0: bound kernel consumer: edge=0x1
-    pps pps0: unbound kernel consumer on device removal
-    pps pps0: bound kernel consumer: edge=0x1
-    calling  pps_ktimer_init+0x0/0x1000 [pps_ktimer] @ 1085
-    initcall pps_ktimer_init+0x0/0x1000 [pps_ktimer] returned 0 after 340 usecs
-    pps pps0: another kernel consumer is already bound
+Sashiko asked some questions about the gpiod_get_value() call which caused
+me to look deeper and figure this out, but it did not actually notice
+capture_clear is never set.
 
-Here is a short reproducer, which uses rmmod of the pps-ktimer testcase
-to simulate a device being unplugged:
-
-    #include <stdlib.h>
-    #include <stdio.h>
-    #include <unistd.h>
-    #include <fcntl.h>
-    #include <sys/ioctl.h>
-    #include <linux/pps.h>
-    #include <errno.h>
-    #include <err.h>
-
-    int main(void)
-    {
-        while (1) {
-            int fd;
-
-            if (system("insmod ./pps-ktimer.ko"))
-                err(1, "insmod failed");
-
-            fd = open("/dev/pps0", O_RDWR);
-            if (fd == -1)
-                err(1, "open failed");
-
-            struct pps_bind_args args = {
-                .tsformat = PPS_TSFMT_TSPEC,
-                .edge = PPS_CAPTUREASSERT,
-                .consumer = PPS_KC_HARDPPS,
-            };
-
-            if (ioctl(fd, PPS_KC_BIND, &args))
-                err(1, "first PPS_KC_BIND failed");
-
-            if (system("rmmod pps-ktimer"))
-                err(1, "rmmod failed");
-
-            if (ioctl(fd, PPS_KC_BIND, &args)) {
-                if (errno != ENODEV)
-                    err(1, "second PPS_KC_BIND failed");
-                else
-                    puts("Got ENODEV, kernel is patched");
-            }
-
-            close(fd);
-        }
-    }
-
-Fix this by setting a flag when the device is unplugged, returning -ENODEV
-from PPS_KC_BIND if the flag is set.
-
-For userspace to encounter this new behavior, it must do something which
-breaks the interface today, so this fix shouldn't cause any observable
-behavior change for working programs.
-
-Link: https://lore.kernel.org/672778c177ac9b6fdcb445e35c97ac4ca7d1149f.1780506611.git.calvin@wbinvd.org
+Link: https://lore.kernel.org/f70196bafcf75d9782dd36ed784e42345b6e8a1b.1783355507.git.calvin@wbinvd.org
+Fixes: ee89646619ba ("pps: clients: gpio: Get rid of legacy platform data")
 Signed-off-by: Calvin Owens <calvin@wbinvd.org>
-Reported-by: Sashiko <sashiko-bot@kernel.org>
 Closes: https://sashiko.dev/#/patchset/cover.1779733602.git.calvin%40wbinvd.org?part=1
 Acked-by: Rodolfo Giometti <giometti@enneenne.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pps/kc.c           |   10 ++++++++++
- include/linux/pps_kernel.h |    1 +
- 2 files changed, 11 insertions(+)
+ drivers/pps/clients/pps-gpio.c |   35 ++-----------------------------
+ 1 file changed, 3 insertions(+), 32 deletions(-)
 
---- a/drivers/pps/kc.c~pps-dont-allow-pps_kc_bind-on-removed-devices
-+++ a/drivers/pps/kc.c
-@@ -38,6 +38,14 @@ int pps_kc_bind(struct pps_device *pps,
- 	/* Check if another consumer is already bound */
- 	spin_lock_irq(&pps_kc_hardpps_lock);
- 
-+	/*
-+	 * Don't allow PPS_KC_BIND on a removed device.
-+	 */
-+	if (pps->kc_removed) {
-+		spin_unlock_irq(&pps_kc_hardpps_lock);
-+		return -ENODEV;
-+	}
-+
- 	if (bind_args->edge == 0)
- 		if (pps_kc_hardpps_dev == pps) {
- 			pps_kc_hardpps_mode = 0;
-@@ -79,6 +87,8 @@ int pps_kc_bind(struct pps_device *pps,
- void pps_kc_remove(struct pps_device *pps)
+--- a/drivers/pps/clients/pps-gpio.c~pps-gpio-remove-dead-capture_clear-code
++++ a/drivers/pps/clients/pps-gpio.c
+@@ -31,7 +31,6 @@ struct pps_gpio_device_data {
+ 	struct gpio_desc *echo_pin;
+ 	struct timer_list echo_timer;	/* timer to reset echo active state */
+ 	bool assert_falling_edge;
+-	bool capture_clear;
+ 	unsigned int echo_active_ms;	/* PPS echo active duration */
+ 	unsigned long echo_timeout;	/* timer timeout value in jiffies */
+ 	struct pps_event_time ts;	/* timestamp captured in hardirq */
+@@ -61,19 +60,8 @@ static irqreturn_t pps_gpio_irq_hardirq(
+ static irqreturn_t pps_gpio_irq_thread(int irq, void *data)
  {
- 	spin_lock_irq(&pps_kc_hardpps_lock);
-+
-+	pps->kc_removed = true;
- 	if (pps == pps_kc_hardpps_dev) {
- 		pps_kc_hardpps_mode = 0;
- 		pps_kc_hardpps_dev = NULL;
---- a/include/linux/pps_kernel.h~pps-dont-allow-pps_kc_bind-on-removed-devices
-+++ a/include/linux/pps_kernel.h
-@@ -60,6 +60,7 @@ struct pps_device {
- 	struct device dev;
- 	struct fasync_struct *async_queue;	/* fasync method */
- 	spinlock_t lock;
-+	bool kc_removed;
- };
+ 	struct pps_gpio_device_data *info = data;
+-	int rising_edge;
  
- /*
+-	rising_edge = info->capture_clear ?
+-		      gpiod_get_value(info->gpio_pin) : !info->assert_falling_edge;
+-	if ((rising_edge && !info->assert_falling_edge) ||
+-			(!rising_edge && info->assert_falling_edge))
+-		pps_event(info->pps, &info->ts, PPS_CAPTUREASSERT, data);
+-	else if (info->capture_clear &&
+-			((rising_edge && info->assert_falling_edge) ||
+-			(!rising_edge && !info->assert_falling_edge)))
+-		pps_event(info->pps, &info->ts, PPS_CAPTURECLEAR, data);
+-	else
+-		dev_warn_ratelimited(&info->pps->dev, "IRQ did not trigger any PPS event\n");
++	pps_event(info->pps, &info->ts, PPS_CAPTUREASSERT, data);
+ 
+ 	return IRQ_HANDLED;
+ }
+@@ -89,11 +77,6 @@ static void pps_gpio_echo(struct pps_dev
+ 		if (pps->params.mode & PPS_ECHOASSERT)
+ 			gpiod_set_value(info->echo_pin, 1);
+ 		break;
+-
+-	case PPS_CAPTURECLEAR:
+-		if (pps->params.mode & PPS_ECHOCLEAR)
+-			gpiod_set_value(info->echo_pin, 1);
+-		break;
+ 	}
+ 
+ 	/* fire the timer */
+@@ -155,15 +138,8 @@ static int pps_gpio_setup(struct device
+ static unsigned long
+ get_irqf_trigger_flags(const struct pps_gpio_device_data *data)
+ {
+-	unsigned long flags = data->assert_falling_edge ?
+-		IRQF_TRIGGER_FALLING : IRQF_TRIGGER_RISING;
+-
+-	if (data->capture_clear) {
+-		flags |= ((flags & IRQF_TRIGGER_RISING) ?
+-				IRQF_TRIGGER_FALLING : IRQF_TRIGGER_RISING);
+-	}
+-
+-	return flags;
++	return data->assert_falling_edge ? IRQF_TRIGGER_FALLING :
++					   IRQF_TRIGGER_RISING;
+ }
+ 
+ static int pps_gpio_probe(struct platform_device *pdev)
+@@ -196,9 +172,6 @@ static int pps_gpio_probe(struct platfor
+ 	/* initialize PPS specific parts of the bookkeeping data structure. */
+ 	data->info.mode = PPS_CAPTUREASSERT | PPS_OFFSETASSERT |
+ 		PPS_ECHOASSERT | PPS_CANWAIT | PPS_TSFMT_TSPEC;
+-	if (data->capture_clear)
+-		data->info.mode |= PPS_CAPTURECLEAR | PPS_OFFSETCLEAR |
+-			PPS_ECHOCLEAR;
+ 	data->info.owner = THIS_MODULE;
+ 	snprintf(data->info.name, PPS_MAX_NAME_LEN - 1, "%s.%d",
+ 		 pdev->name, pdev->id);
+@@ -210,8 +183,6 @@ static int pps_gpio_probe(struct platfor
+ 
+ 	/* register PPS source */
+ 	pps_default_params = PPS_CAPTUREASSERT | PPS_OFFSETASSERT;
+-	if (data->capture_clear)
+-		pps_default_params |= PPS_CAPTURECLEAR | PPS_OFFSETCLEAR;
+ 	data->pps = pps_register_source(&data->info, pps_default_params);
+ 	if (IS_ERR(data->pps)) {
+ 		dev_err(dev, "failed to register IRQ %d as PPS source\n",
 _
 
 Patches currently in -mm which might be from calvin@wbinvd.org are
