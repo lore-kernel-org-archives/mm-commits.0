@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C1BAE423EA9;
-	Tue,  4 Aug 2026 04:04:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E7F8532B106
+	for <mm-commits@vger.kernel.org>; Tue,  4 Aug 2026 04:04:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785816297; cv=none; b=Zajdd+QPFf2L2uHJD8Fpo6N86ycgvS4Vo3POMPsxed041lMehGEx0dLM5PSH/GsR7aBGVkwqOw7ZVUS2BvHO8Qi/aVM2T8sjjxcHJdM5L4OBYONV7mcQHkRMIsx2xJyN7M9fRseIpbS+nPvgtKKmk4OGJNQl+U+uIYtiqyZsZvA=
+	t=1785816298; cv=none; b=lgWVX+fLanMms2ZgKfTUnfMZWXWKnyAtbBcOa0bw8gF0YnTm178rtsFjFTBFLw2UwcFlhOi3ek9hIbug4SUb6bEf0iq+3jgkmT9GwaOeUm/pfj3jD8T67L4c3DTMRS3FI750kyDT7O28UulUurtla8MceCQxChSaNB5Dxv5MKkM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785816297; c=relaxed/simple;
-	bh=pwBpiNMuWQxI/eWemAKcpTcjkR80y1IMFdLTcI52SxM=;
-	h=Date:To:From:Subject:Message-Id; b=PX74tmNgXRkGymSH7ixTIcK90cxCUt80f6931O+/6kcS8tftqCRalLIpbXa/1MBb09O6Us8GC1HydvLpP1JdXjBECPt4eEy+9nyVWYCwuAGFehA2RRBTc6+htIbs4hxvH+MGwQRSbqIIW3ArdTLOXrddX13/4gTZlGB86GCQLzU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HydUs4Zg; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785816298; c=relaxed/simple;
+	bh=gqDWqMZqLGiytAuzzQXquLqGJatR26rfxt5+7lCewOA=;
+	h=Date:To:From:Subject:Message-Id; b=KQeHJRAtDVMWoGIOFfA0FAwdyorq2LtriOgC8z3fkY3ZMMPxBDCJc7Khomcjymeuq7/DoWW5nyGr8vohMEHhx1xHwRtWIW9ZzCABaKcnx67Ph9lMEXdSZUpN2DtgOVvbdVSsjRSroBgBw1xV0OAHF5RreFgOU9RXY4eInAae6cE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cmmnEcST; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HydUs4Zg"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 93E031F000E9;
-	Tue,  4 Aug 2026 04:04:55 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cmmnEcST"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BA5541F00A3A;
+	Tue,  4 Aug 2026 04:04:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785816295;
-	bh=vmn2a3cQG98FQltQELTIgZZpy9BuvwnPFlARKLK7+oE=;
+	d=linux-foundation.org; s=korg; t=1785816296;
+	bh=D8weIQJbVkFGOHcUZuKZ//+stATYUDri0aEItTrlYjY=;
 	h=Date:To:From:Subject;
-	b=HydUs4ZgYtNZpmfmvoJTBnIwLYb70Tw3mU3g9oWWEAFvaEQ5QD7P9JGYQaB8/V+HL
-	 Y+Riwdext/WXGXohqXHOxyVszZRr592aBzvY9NE/pf+0EKuv8Qjmw1vdwuitV8wypF
-	 keo7mjmLelIIt6CZuzRMhQ5MO0veb4CBy1ciyHxc=
-Date: Mon, 03 Aug 2026 21:04:55 -0700
-To: mm-commits@vger.kernel.org,yuantan098@gmail.com,yifanwucs@gmail.com,tomapufckgml@gmail.com,stable@vger.kernel.org,n05ec@lzu.edu.cn,hirofumi@mail.parknet.co.jp,brauner@kernel.org,bird@lzu.edu.cn,prcups@krgm.moe,akpm@linux-foundation.org
+	b=cmmnEcSTIqBTOohyAzaS2s8E87JYaAjO6pr0KUk2P98m/02RnpBYkJRRTR0hLwxaF
+	 9xr0Kw8QeJf7HOB4f4wV/ItFul1tRHN4lSEeFeRQZyr66cvT/KkeElC6zWv22Dpu0M
+	 287IL+xmvGnxIO746JiZ2M+jxj2hQZOiDrDJ8Tnk=
+Date: Mon, 03 Aug 2026 21:04:56 -0700
+To: mm-commits@vger.kernel.org,peterz@infradead.org,oleg@redhat.com,elver@google.com,brauner@kernel.org,adrianhuang0701@gmail.com,andrea.calabrese@amarulasolutions.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] fat-restore-original-value-when-fat_ent_write-failed.patch removed from -mm tree
-Message-Id: <20260804040455.93E031F000E9@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] kernel-refactor-shorten-has_pending_signals.patch removed from -mm tree
+Message-Id: <20260804040456.BA5541F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,56 +35,76 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: fat: restore original value when fat_ent_write failed
+     Subject: kernel: refactor: shorten has_pending_signals
 has been removed from the -mm tree.  Its filename was
-     fat-restore-original-value-when-fat_ent_write-failed.patch
+     kernel-refactor-shorten-has_pending_signals.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Yemu Lu <prcups@krgm.moe>
-Subject: fat: restore original value when fat_ent_write failed
-Date: Mon, 25 May 2026 16:56:49 +0800
+From: Andrea Calabrese <andrea.calabrese@amarulasolutions.com>
+Subject: kernel: refactor: shorten has_pending_signals
+Date: Wed, 20 May 2026 08:28:50 +0200
 
-fat_ent_write() may have committed the new link to the primary FAT but
-then failed on the mirror copy, leaving the chain pointing to new_dclus
-even though the caller will free it.  Restore the original value to keep
-the chain consistent.
+In has_pending_signals there was a switch/case used for optimizations. 
+However, today's compilers perform loop unrolling efficiently, thus it is
+not needed anymore.
 
-Link: https://lore.kernel.org/20260525085649.781643-1-n05ec@lzu.edu.cn
-Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
-Signed-off-by: Yemu Lu <prcups@krgm.moe>
-Signed-off-by: Ren Wei <n05ec@lzu.edu.cn>
-Reported-by: Yuan Tan <yuantan098@gmail.com>
-Reported-by: Yifan Wu <yifanwucs@gmail.com>
-Reported-by: Juefei Pu <tomapufckgml@gmail.com>
-Reported-by: Xin Liu <bird@lzu.edu.cn>
-Acked-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Put i inside the for declaration so we do not risk its escape from the
+scope.  Moreover, i starts now from 0 and counts up, as it is a more usual
+pattern.
+
+Link: https://lore.kernel.org/20260520062849.183621-2-andrea.calabrese@amarulasolutions.com
+Signed-off-by: Andrea Calabrese <andrea.calabrese@amarulasolutions.com>
+Acked-by: Oleg Nesterov <oleg@redhat.com>
+Cc: Adrian Huang <adrianhuang0701@gmail.com>
 Cc: Christian Brauner <brauner@kernel.org>
-Cc: <stable@vger.kernel.org>
+Cc: Marco Elver <elver@google.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fat/misc.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ kernel/signal.c |   26 ++++----------------------
+ 1 file changed, 4 insertions(+), 22 deletions(-)
 
---- a/fs/fat/misc.c~fat-restore-original-value-when-fat_ent_write-failed
-+++ a/fs/fat/misc.c
-@@ -133,7 +133,11 @@ int fat_chain_add(struct inode *inode, i
- 		ret = fat_ent_read(inode, &fatent, last);
- 		if (ret >= 0) {
- 			int wait = inode_needs_sync(inode);
-+			int old = ret;
-+
- 			ret = fat_ent_write(inode, &fatent, new_dclus, wait);
-+			if (ret < 0)
-+				fat_ent_write(inode, &fatent, old, wait);
- 			fatent_brelse(&fatent);
- 		}
- 		if (ret < 0)
+--- a/kernel/signal.c~kernel-refactor-shorten-has_pending_signals
++++ a/kernel/signal.c
+@@ -130,28 +130,10 @@ static bool sig_ignored(struct task_stru
+  */
+ static inline bool has_pending_signals(sigset_t *signal, sigset_t *blocked)
+ {
+-	unsigned long ready;
+-	long i;
+-
+-	switch (_NSIG_WORDS) {
+-	default:
+-		for (i = _NSIG_WORDS, ready = 0; --i >= 0 ;)
+-			ready |= signal->sig[i] &~ blocked->sig[i];
+-		break;
+-
+-	case 4: ready  = signal->sig[3] &~ blocked->sig[3];
+-		ready |= signal->sig[2] &~ blocked->sig[2];
+-		ready |= signal->sig[1] &~ blocked->sig[1];
+-		ready |= signal->sig[0] &~ blocked->sig[0];
+-		break;
+-
+-	case 2: ready  = signal->sig[1] &~ blocked->sig[1];
+-		ready |= signal->sig[0] &~ blocked->sig[0];
+-		break;
+-
+-	case 1: ready  = signal->sig[0] &~ blocked->sig[0];
+-	}
+-	return ready !=	0;
++	unsigned long ready = 0;
++	for (long i = 0; i < _NSIG_WORDS; i++)
++		ready |= signal->sig[i] & ~blocked->sig[i];
++	return ready != 0;
+ }
+ 
+ #define PENDING(p,b) has_pending_signals(&(p)->signal, (b))
 _
 
-Patches currently in -mm which might be from prcups@krgm.moe are
+Patches currently in -mm which might be from andrea.calabrese@amarulasolutions.com are
 
 
