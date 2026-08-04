@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D23F1415F28
-	for <mm-commits@vger.kernel.org>; Tue,  4 Aug 2026 04:05:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E06AE3AD51A
+	for <mm-commits@vger.kernel.org>; Tue,  4 Aug 2026 04:05:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785816339; cv=none; b=mNARMdohcx1CiJYD01fp2ANqZIMdgcBWMsiP8e8iHwXVNrQEiol52FdL6R4Oi+LWcQ0ReGg5OhegYL3lCnPXBRFi2rYLGqyjJ9I+/dmSgzapTiSDcdQSkik5gRAaBk73hdax8U1GHUMZpyxcqDmfN52HO0osELPa0H0d41Vsh8E=
+	t=1785816340; cv=none; b=quFAAK1r++AnwtpEMDAaA4/GzCb5Kz/iD4ChoMDrXJNZq8nxw2D02v+CBPnV9eL1Z3ii2Edp3PvbBVLE/dGeKNdYiXPtyUr/iNyEPHdmFpmyloyEimSgziTBp8VM1UvlQuGelOt3U9co1Cl/jN/+/zWL851zWxPFUlodEC7Om7k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785816339; c=relaxed/simple;
-	bh=zOdi5u4QwKtaY1aWTcjkID73h+gyFGOOTbHXOkLCZ90=;
-	h=Date:To:From:Subject:Message-Id; b=pdMC7Q3sS7kEKsFS2Ah9L6ZXYOU5CHOgoKyD4w7F3N1LEo5P17SDKlGXDDf4mDIR45T0393Msw3DwxLzOlvW0Rqb/jH7XcBZ2inhrA/r1YSHCOfnK4D+qMLzjqirTg92dGeOMNx2nE49mehH75vQy15JzJmIMS6ufq28Nn/mwkk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hvhBBKd9; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785816340; c=relaxed/simple;
+	bh=nfkrHEf43ixGEmUqNCBwlbElGom8Oi4HNU2OEmYZzng=;
+	h=Date:To:From:Subject:Message-Id; b=RgZp5fg93jfVjLG7guCSRQo4bfzZqZny8xxaTOzp653imSOaCA9/qAVdGAykgY9F78bFlcodPPxCWUzsUpsekFNjFrwZ0f5fo7N//OU+tIUeeJRQpnBMeKhoXXXOrXkCufW/PlKhFOlx5NS0opx901LMSbY+FsTe822hu5VrwRo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=j3VA+AS8; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hvhBBKd9"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A900B1F000E9;
-	Tue,  4 Aug 2026 04:05:37 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="j3VA+AS8"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B7CD41F00A3A;
+	Tue,  4 Aug 2026 04:05:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785816337;
-	bh=Qmr5BREIhwg9d4MwOSoGN8ukhEjjukVp0IFnRG8Cp0M=;
+	d=linux-foundation.org; s=korg; t=1785816338;
+	bh=CTUX1xcQyz0dqgWXpOYRanV4YbXP9Kxb8oWmkvtEvVg=;
 	h=Date:To:From:Subject;
-	b=hvhBBKd9ygHPMnZcEWx4JntZi5VzRdBs3CaOv6dgSqgbOFG49dr150VEOd5y+AHuc
-	 qqKAtCzAR0rb8XDASg1GK0dI5L6ztdBtXf1vqVwFfIO1avGDbIrpTaXN+E2TLxpZdQ
-	 vZYU/0Y4hFAkXPdxr3xUHuy4jxXCJg9Eyw11s7Ok=
-Date: Mon, 03 Aug 2026 21:05:37 -0700
+	b=j3VA+AS8ToV21agTDBwLiCYLIOpTC5lMpqpesMxillsbzNoG/1yLIqEGZ+RJ86gj3
+	 ezXjPEMIVOnXaAqZfwVNMvDuFgPTAiEP6aAjKHmyCIslQFE8NQJCSF7hxddR+2x8rJ
+	 w5X7Dxv7cYgVxoRL6y+0l6Ifp567yiMIL4wwkMOo=
+Date: Mon, 03 Aug 2026 21:05:38 -0700
 To: mm-commits@vger.kernel.org,ebiggers@kernel.org,hch@lst.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] raid6-improve-the-runtime-selection-benchmark.patch removed from -mm tree
-Message-Id: <20260804040537.A900B1F000E9@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] raid6-kunit-add-a-benchmark.patch removed from -mm tree
+Message-Id: <20260804040538.B7CD41F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,176 +35,149 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: raid6: improve the runtime selection benchmark
+     Subject: raid6/kunit: add a benchmark
 has been removed from the -mm tree.  Its filename was
-     raid6-improve-the-runtime-selection-benchmark.patch
+     raid6-kunit-add-a-benchmark.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Christoph Hellwig <hch@lst.de>
-Subject: raid6: improve the runtime selection benchmark
-Date: Wed, 15 Jul 2026 16:47:38 +0200
+Subject: raid6/kunit: add a benchmark
+Date: Wed, 15 Jul 2026 16:47:39 +0200
 
-Use plain ktime_get_ns for the timing, use 8 + 2 disks for a realistic
-load, and report the throughput on the data disks as that is what storage
-systems are measured on.
+Add a benchmark to test the RAID 6 P/Q functions for more representative
+block sizes and numbers of disks.  This splits the maximum alloc size used
+for the benchmark from the max size for the kunit test because recovery is
+currently limited to a single page at a time.  Hopefully this will be
+fixed soon.
 
-Link: https://lore.kernel.org/20260715144825.95432-8-hch@lst.de
+The runtime numbers are reported in GB/s as the numbers of modern
+implementations are basically unreadable as MB/s.  This means
+retro-architectures could report 0, but that is an easy tradeoff.
+
+Link: https://lore.kernel.org/20260715144825.95432-9-hch@lst.de
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 Cc: Eric Biggers <ebiggers@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/raid/raid6/algos.c |   77 +++++++++++++++++----------------------
- 1 file changed, 35 insertions(+), 42 deletions(-)
+ lib/raid/Kconfig                   |    6 ++
+ lib/raid/raid6/tests/raid6_kunit.c |   66 ++++++++++++++++++++++++++-
+ 2 files changed, 71 insertions(+), 1 deletion(-)
 
---- a/lib/raid/raid6/algos.c~raid6-improve-the-runtime-selection-benchmark
-+++ a/lib/raid/raid6/algos.c
-@@ -152,40 +152,37 @@ void raid6_recov_datap(int disks, size_t
+--- a/lib/raid/Kconfig~raid6-kunit-add-a-benchmark
++++ a/lib/raid/Kconfig
+@@ -60,6 +60,12 @@ config RAID6_PQ_KUNIT_TEST
+ 	  This is intended to help people writing architecture-specific
+ 	  optimized versions.  If unsure, say N.
+ 
++config RAID6_PQ_KUNIT_BENCHMARK
++	bool "Benchmark for RAID6 PQ"
++	depends on RAID6_PQ_KUNIT_TEST
++	help
++	  Include benchmarks in the KUnit test suite for raid P/Q generation.
++
+ config RAID6_PQ_BENCHMARK
+ 	bool "Automatically choose fastest RAID6 PQ functions"
+ 	depends on RAID6_PQ
+--- a/lib/raid/raid6/tests/raid6_kunit.c~raid6-kunit-add-a-benchmark
++++ a/lib/raid/raid6/tests/raid6_kunit.c
+@@ -18,6 +18,7 @@ MODULE_IMPORT_NS("EXPORTED_FOR_KUNIT_TES
+ #define RAID6_KUNIT_MAX_BUFFERS		64 /* Including P and Q */
+ #define RAID6_KUNIT_MAX_FAILURES	2
+ #define RAID6_KUNIT_MAX_BYTES		PAGE_SIZE
++#define RAID6_KUNIT_ALLOC_BYTES		SZ_16K
+ 
+ static struct rnd_state rng;
+ static void *test_buffers[RAID6_KUNIT_MAX_BUFFERS];
+@@ -229,6 +230,68 @@ static void raid6_test(struct kunit *tes
+ 		raid6_test_one(test);
  }
- EXPORT_SYMBOL_GPL(raid6_recov_datap);
  
--#define RAID6_TIME_JIFFIES_LG2	4
--#define RAID6_TEST_DISKS	8
-+#define BENCH_SIZE	SZ_4K
-+#define NR_SRCS		8
-+#define NR_DISKS	(NR_SRCS + 2)
-+#define REPS		800U
- 
--static int raid6_choose_gen(void *(*const dptrs)[RAID6_TEST_DISKS],
--		const int disks)
-+static int raid6_choose_gen(void *dptrs[NR_DISKS], const int disks)
++static void raid6_benchmark(struct kunit *test)
++{
++	static const unsigned int nr_to_test[] = {
++		4, 5, 6, 7, 8, 10, 12, 15, 16, 32,
++	};
++	static const unsigned int len_to_test[] = {
++		SZ_4K, SZ_16K,
++	};
++	unsigned int i, j, l;
++	u64 t;
++
++	if (!IS_ENABLED(CONFIG_RAID6_PQ_KUNIT_BENCHMARK))
++		kunit_skip(test, "not enabled");
++
++	/* warm-up */
++	for (i = 0; i < ARRAY_SIZE(nr_to_test); i++) {
++		for (j = 0; j < ARRAY_SIZE(len_to_test); j++) {
++			for (l = 0; l < 10; l++) {
++				raid6_gen_syndrome(nr_to_test[i],
++						len_to_test[j], test_buffers);
++			}
++		}
++	}
++
++	/*
++	 * Preferably this would be a loop over len_to_test, but the kunit
++	 * logging always adds a newline to each logged format string.
++	 */
++	static_assert(ARRAY_SIZE(len_to_test) == 2);
++	kunit_info(test, "          \t%5u bytes\t%5u bytes\n",
++			len_to_test[0], len_to_test[1]);
++
++	for (i = 0; i < ARRAY_SIZE(nr_to_test); i++) {
++		unsigned int nr = nr_to_test[i];
++		u64 speed[ARRAY_SIZE(len_to_test)];
++
++		KUNIT_ASSERT_LE(test, nr, RAID6_KUNIT_MAX_BUFFERS);
++
++		for (j = 0; j < ARRAY_SIZE(len_to_test); j++) {
++			unsigned int len = len_to_test[j];
++			const unsigned long num_iters = 1000;
++
++			KUNIT_ASSERT_GT(test, len, 0);
++			KUNIT_ASSERT_LE(test, len, RAID6_KUNIT_ALLOC_BYTES);
++
++			preempt_disable();
++			t = ktime_get_ns();
++			for (l = 0; l < num_iters; l++)
++				raid6_gen_syndrome(nr_to_test[i],
++						len_to_test[j], test_buffers);
++			t = max(ktime_get_ns() - t, 1);
++			preempt_enable();
++
++			speed[j] = div64_u64((u64)len * num_iters * nr, t);
++		}
++
++		static_assert(ARRAY_SIZE(len_to_test) == 2);
++		kunit_info(test, "%3u disks:\t%5llu  GB/s\t%5llu  GB/s\n",
++				nr, speed[0], speed[1]);
++	}
++}
++
+ static const void *raid6_gen_params(struct kunit *test, const void *prev,
+ 		char *desc)
  {
--	/* work on the second half of the disks */
--	int start = (disks >> 1) - 1, stop = disks - 3;
- 	const struct raid6_calls *best = NULL;
- 	unsigned long bestgenperf = 0;
- 	unsigned int i;
+@@ -256,6 +319,7 @@ next_algo:
  
- 	for (i = 0; i < raid6_nr_algos; i++) {
- 		const struct raid6_calls *algo = raid6_algos[i];
--		unsigned long perf = 0, j0, j1;
-+		unsigned long perf = 0;
-+		u64 t;
-+		int i;
+ static struct kunit_case raid6_test_cases[] = {
+ 	KUNIT_CASE_PARAM(raid6_test, raid6_gen_params),
++	KUNIT_CASE(raid6_benchmark),
+ 	{},
+ };
  
- 		preempt_disable();
--		j0 = jiffies;
--		while ((j1 = jiffies) == j0)
--			cpu_relax();
--		while (time_before(jiffies,
--				    j1 + (1<<RAID6_TIME_JIFFIES_LG2))) {
--			algo->gen_syndrome(disks, PAGE_SIZE, *dptrs);
--			perf++;
--		}
-+		t = ktime_get_ns();
-+		for (i = 0; i < REPS; i++)
-+			algo->gen_syndrome(disks, BENCH_SIZE, dptrs);
-+		t = max(ktime_get_ns() - t, 1);
- 		preempt_enable();
- 
-+		/* bytes/ns == GB/s, multiply by 1000 to get MB/s [not MiB/s] */
-+		perf = div64_u64((u64)BENCH_SIZE * REPS * NR_SRCS * 1000, t);
- 		if (perf > bestgenperf) {
- 			bestgenperf = perf;
- 			best = algo;
- 		}
--		pr_info("raid6: %-8s gen() %5ld MB/s\n", algo->name,
--			(perf * HZ * (disks-2)) >>
--			(20 - PAGE_SHIFT + RAID6_TIME_JIFFIES_LG2));
-+		pr_info("raid6: %-8s gen() %5lu MB/s\n", algo->name, perf);
- 	}
- 
- 	if (!best) {
-@@ -197,28 +194,24 @@ static int raid6_choose_gen(void *(*cons
- 	static_call_update(raid6_xor_syndrome_impl, best->xor_syndrome);
- 
- 	pr_info("raid6: using algorithm %s gen() %ld MB/s\n",
--		best->name,
--		(bestgenperf * HZ * (disks - 2)) >>
--		(20 - PAGE_SHIFT + RAID6_TIME_JIFFIES_LG2));
-+		best->name, bestgenperf);
- 
- 	if (best->xor_syndrome) {
--		unsigned long perf = 0, j0, j1;
-+		/* work on the second half of the disks */
-+		int start = (disks / 2) - 1, stop = disks - 3;
-+		u64 t;
- 
- 		preempt_disable();
--		j0 = jiffies;
--		while ((j1 = jiffies) == j0)
--			cpu_relax();
--		while (time_before(jiffies,
--				   j1 + (1 << RAID6_TIME_JIFFIES_LG2))) {
--			best->xor_syndrome(disks, start, stop,
--					   PAGE_SIZE, *dptrs);
--			perf++;
--		}
-+		t = ktime_get_ns();
-+		for (i = 0; i < REPS; i++)
-+			best->xor_syndrome(disks, start, stop, BENCH_SIZE,
-+				dptrs);
-+		t = max(ktime_get_ns() - t, 1);
- 		preempt_enable();
- 
--		pr_info("raid6: .... xor() %ld MB/s, rmw enabled\n",
--			(perf * HZ * (disks - 2)) >>
--			(20 - PAGE_SHIFT + RAID6_TIME_JIFFIES_LG2 + 1));
-+		pr_info("raid6: .... xor() %llu MB/s, rmw enabled\n",
-+			div64_u64((u64)BENCH_SIZE * REPS * NR_SRCS / 2 * 1000,
-+				t));
- 	}
- 
- 	return 0;
-@@ -230,9 +223,9 @@ static int raid6_choose_gen(void *(*cons
- 
- static int __init raid6_select_algo(void)
- {
--	const int disks = RAID6_TEST_DISKS;
-+	const int disks = NR_DISKS;
-+	void *dptrs[NR_DISKS];
- 	char *disk_ptr, *p;
--	void *dptrs[RAID6_TEST_DISKS];
- 	int i, cycle;
- 	int error;
- 
-@@ -243,7 +236,7 @@ static int __init raid6_select_algo(void
- 	}
- 
- 	/* prepare the buffer and fill it circularly with gfmul table */
--	disk_ptr = kmalloc(PAGE_SIZE * RAID6_TEST_DISKS, GFP_KERNEL);
-+	disk_ptr = kmalloc_array(NR_DISKS, BENCH_SIZE, GFP_KERNEL);
- 	if (!disk_ptr) {
- 		pr_err("raid6: Yikes!  No memory available.\n");
- 		return -ENOMEM;
-@@ -251,19 +244,19 @@ static int __init raid6_select_algo(void
- 
- 	p = disk_ptr;
- 	for (i = 0; i < disks; i++)
--		dptrs[i] = p + PAGE_SIZE * i;
-+		dptrs[i] = p + BENCH_SIZE * i;
- 
--	cycle = ((disks - 2) * PAGE_SIZE) / 65536;
-+	cycle = ((disks - 2) * BENCH_SIZE) / 65536;
- 	for (i = 0; i < cycle; i++) {
- 		memcpy(p, raid6_gfmul, 65536);
- 		p += 65536;
- 	}
- 
--	if ((disks - 2) * PAGE_SIZE % 65536)
--		memcpy(p, raid6_gfmul, (disks - 2) * PAGE_SIZE % 65536);
-+	if ((disks - 2) * BENCH_SIZE % 65536)
-+		memcpy(p, raid6_gfmul, (disks - 2) * BENCH_SIZE % 65536);
- 
- 	/* select raid gen_syndrome function */
--	error = raid6_choose_gen(&dptrs, disks);
-+	error = raid6_choose_gen(dptrs, disks);
- 
- 	kfree(disk_ptr);
- 
+@@ -270,7 +334,7 @@ static int raid6_suite_init(struct kunit
+ 	 * so that it is immediately followed by a guard page.  This allows
+ 	 * buffer overreads to be detected, even in assembly code.
+ 	 */
+-	test_buflen = round_up(RAID6_KUNIT_MAX_BYTES, PAGE_SIZE);
++	test_buflen = round_up(RAID6_KUNIT_ALLOC_BYTES, PAGE_SIZE);
+ 	for (i = 0; i < RAID6_KUNIT_MAX_FAILURES; i++) {
+ 		test_recov_buffers[i] = vmalloc(test_buflen);
+ 		if (!test_recov_buffers[i])
 _
 
 Patches currently in -mm which might be from hch@lst.de are
