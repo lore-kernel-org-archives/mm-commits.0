@@ -1,101 +1,140 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.14])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6EA6E4334DE;
-	Tue,  4 Aug 2026 04:06:13 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C6D7B4334D8
+	for <mm-commits@vger.kernel.org>; Tue,  4 Aug 2026 15:15:15 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.14
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785816374; cv=none; b=TdUc+FF12mEx+WTp+UrXe4oYft6BIZmlh/JqMRHUInfXipxiC/QwHc+vid3pWtGgAlOP+B4J0V8/RYN9QwpDqtxsUGgr6DcRjh9BnlCcgas0TrunHJ2TcNRs3Yi0YLZcjXSZerlfHk8xY9pwv8REfPKZmSsHGQUrCfBu4XrKJI4=
+	t=1785856519; cv=none; b=M23h4etKdPcvbcj/QHUFiHYKy0LOAmz1D4am8e2KkaY26s70QD4gLS50WWaTNhfHUbggV8TjDNNG32uPavV/bVKrhCEIGO9b46CILI1nqXQU3QuitUIRwKrQdPlMEuqDVwyvl1HdgrAG6sBL6KqOjSVd0gMPnuH6F9Fo5rTtOoI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785816374; c=relaxed/simple;
-	bh=Vn/2HKDO8dEFlTPcx0zq+KN4KSWHaYJYFftG+RUdymA=;
-	h=Date:To:From:Subject:Message-Id; b=tCVtRoQNS4PgHVWGNcK7uHew39Vo7cQzveJnw5iqa5NzINueq8ql8xSqFET4A6iTD3HooEho/RkB/y8k7a4M1N3OngEMqiZ/T24hpthDYOOMDZ18DTygJw72nEGEeBIxCRdpUBCA7DPHtUTmdZbF7n4ztEAn5C1AH5pcUTDZVtQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UQZI3x5Y; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785856519; c=relaxed/simple;
+	bh=9NJ32ltbcB82qemSEoG7hUOvGbjw59Kq90HTXiUebBA=;
+	h=Date:From:To:Cc:Subject:Message-ID; b=pCnKfJkZnDqFcUlSGKSb52vPZ4Oq6o/S98EDUm00d/NfxDKp8+i1KK67mqSrfzvpm2Gprw2KswNFj8ZQi2om1Ad4B+xTcDqfPJPnbo8AfEXhi07bZupo72Nxumgbh78HaixgwAurM35qEknkvuscjoopSB84shgqKHqwQY0po+Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=PGKkdbbl; arc=none smtp.client-ip=192.198.163.14
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UQZI3x5Y"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 429391F00A3A;
-	Tue,  4 Aug 2026 04:06:13 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785816373;
-	bh=gIGQOt6TX9xKLGXBdCOpUBfbDd7Q4g5BbzikC3VmCfQ=;
-	h=Date:To:From:Subject;
-	b=UQZI3x5Yr6LiaTp1mYyWZLRv/3obPwjyDgnVvUxsF0Pe+/IZmgl4Kf0R/1NBcqfsL
-	 J4M/O8qZElQ5towuITd5jo1+kCJFOsBficxUXsejrLiP+jhgoHTWnBucYQrODux/mb
-	 rXNT6wFk74gMhvxhS58LBi+44P2jBRfTBp9a+zTI=
-Date: Mon, 03 Aug 2026 21:06:12 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,mporter@kernel.crashing.org,gregkh@linuxfoundation.org,error27@gmail.com,alex.bou9@gmail.com,james010kim@gmail.com,akpm@linux-foundation.org
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] rapidio-mport_cdev-fix-use-after-free-in-dma_req_free.patch removed from -mm tree
-Message-Id: <20260804040613.429391F00A3A@smtp.kernel.org>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="PGKkdbbl"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1785856515; x=1817392515;
+  h=date:from:to:cc:subject:message-id;
+  bh=9NJ32ltbcB82qemSEoG7hUOvGbjw59Kq90HTXiUebBA=;
+  b=PGKkdbblqIQCyEer/0nkis68NJQ+y0cmRPPDMUJKjd59xRq1kgmfBZhz
+   84TnaTAyIFbgw0wjof2Q3ni53aUH1dGFOFSh5aQw3JanevVYyxQSCX4SS
+   eitoOkTo9LxwrAIiU0iiX3iZ+0nQZ7U6y6NQQ+7J2hwR1fNCdzUEukUZh
+   qipJZW5SB6OuIe0RCEpof0v1ok68fNu0pPmkBIhUWVZSXQc1P8dlq0xOK
+   8+qJXId9ITQXYtjsavEOLZ39ktpe599kY9CJhcjgfhjdTKoqMi6aFS1NR
+   8IruEPsvsTyW8A8bbIU53NhRHD/Rb8TI1zBnEUkcG6cyeVLHaaYdwR1xA
+   Q==;
+X-CSE-ConnectionGUID: Yrq4D6DNRzSPptEuqBGiqg==
+X-CSE-MsgGUID: mjKtjUVQQVK30LPPc2jOYA==
+X-IronPort-AV: E=McAfee;i="6800,10657,11864"; a="86441904"
+X-IronPort-AV: E=Sophos;i="6.25,204,1779174000"; 
+   d="scan'208";a="86441904"
+Received: from orviesa004.jf.intel.com ([10.64.159.144])
+  by fmvoesa108.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Aug 2026 08:15:12 -0700
+X-CSE-ConnectionGUID: SirvBuQpQ/6ErkRXpQ9eXg==
+X-CSE-MsgGUID: TWKi9LnJTDmscDnyOXkNzA==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.25,204,1779174000"; 
+   d="scan'208";a="265359660"
+Received: from lkp-server01.sh.intel.com (HELO 6eda058d650d) ([10.239.97.150])
+  by orviesa004.jf.intel.com with ESMTP; 04 Aug 2026 08:15:10 -0700
+Received: from kbuild by 6eda058d650d with local (Exim 4.98.2)
+	(envelope-from <lkp@intel.com>)
+	id 1wrGrE-00000000A5b-0Kia;
+	Tue, 04 Aug 2026 15:15:08 +0000
+Date: Tue, 04 Aug 2026 23:14:58 +0800
+From: kernel test robot <lkp@intel.com>
+To: Pratyush Mallick <pratmal@google.com>
+Cc: oe-kbuild-all@lists.linux.dev, David Hildenbrand <david@kernel.org>,
+ Andrew Morton <akpm@linux-foundation.org>,
+ Linux Memory Management List <linux-mm@kvack.org>,
+ mm-commits@vger.kernel.org, Lorenzo Stoakes <ljs@kernel.org>,
+ SJ Park <sj@kernel.org>
+Subject: [akpm-mm:mm-new 448/454]
+ tools/testing/selftests/mm/.gitignore: warning: ignored by one of the
+ .gitignore files
+Message-ID: <202608042227.XDO54bZk-lkp@intel.com>
+User-Agent: s-nail v14.9.25
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
+tree:   https://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm.git mm-new
+head:   e47602c51d20a93fa1711ed896dc9480de4374d9
+commit: e051bf0188c9ae10e822a532aac5821c2cc0632a [448/454] selftests/mm: use pattern matching in .gitignore
+config: nios2-allnoconfig (https://download.01.org/0day-ci/archive/20260804/202608042227.XDO54bZk-lkp@intel.com/config)
+compiler: nios2-linux-gcc (GCC) 11.5.0
+reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20260804/202608042227.XDO54bZk-lkp@intel.com/reproduce)
 
-The quilt patch titled
-     Subject: rapidio: mport_cdev: fix use-after-free in dma_req_free()
-has been removed from the -mm tree.  Its filename was
-     rapidio-mport_cdev-fix-use-after-free-in-dma_req_free.patch
+If you fix the issue in a separate patch/commit (i.e. not just a new version of
+the same patch/commit), kindly add following tags
+| Reported-by: kernel test robot <lkp@intel.com>
+| Closes: https://lore.kernel.org/oe-kbuild-all/202608042227.XDO54bZk-lkp@intel.com/
 
-This patch was dropped because it was merged into the mm-nonmm-stable branch
-of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+All warnings (new ones prefixed by >>):
 
-------------------------------------------------------
-From: James Kim <james010kim@gmail.com>
-Subject: rapidio: mport_cdev: fix use-after-free in dma_req_free()
-Date: Fri, 24 Jul 2026 08:52:20 +0900
+   Documentation/.renames.txt: warning: ignored by one of the .gitignore files
+>> tools/testing/selftests/mm/.gitignore: warning: ignored by one of the .gitignore files
+>> tools/testing/selftests/mm/Makefile: warning: ignored by one of the .gitignore files
+>> tools/testing/selftests/mm/charge_reserved_hugetlb.sh: warning: ignored by one of the .gitignore files
+>> tools/testing/selftests/mm/check_config.sh: warning: ignored by one of the .gitignore files
+>> tools/testing/selftests/mm/config: warning: ignored by one of the .gitignore files
+>> tools/testing/selftests/mm/hugepage_settings.h: warning: ignored by one of the .gitignore files
+>> tools/testing/selftests/mm/hugetlb_reparenting_test.sh: warning: ignored by one of the .gitignore files
+>> tools/testing/selftests/mm/ksft_compaction.sh: warning: ignored by one of the .gitignore files
+>> tools/testing/selftests/mm/ksft_cow.sh: warning: ignored by one of the .gitignore files
+>> tools/testing/selftests/mm/ksft_gup_test.sh: warning: ignored by one of the .gitignore files
+>> tools/testing/selftests/mm/ksft_hmm.sh: warning: ignored by one of the .gitignore files
+>> tools/testing/selftests/mm/ksft_hugetlb.sh: warning: ignored by one of the .gitignore files
+>> tools/testing/selftests/mm/ksft_hugevm.sh: warning: ignored by one of the .gitignore files
+>> tools/testing/selftests/mm/ksft_kmemleak_confirm.sh: warning: ignored by one of the .gitignore files
+>> tools/testing/selftests/mm/ksft_kmemleak_dedup.sh: warning: ignored by one of the .gitignore files
+>> tools/testing/selftests/mm/ksft_ksm.sh: warning: ignored by one of the .gitignore files
+>> tools/testing/selftests/mm/ksft_ksm_numa.sh: warning: ignored by one of the .gitignore files
+>> tools/testing/selftests/mm/ksft_madv_guard.sh: warning: ignored by one of the .gitignore files
+>> tools/testing/selftests/mm/ksft_madv_populate.sh: warning: ignored by one of the .gitignore files
+>> tools/testing/selftests/mm/ksft_mdwe.sh: warning: ignored by one of the .gitignore files
+   tools/testing/selftests/mm/ksft_memfd_secret.sh: warning: ignored by one of the .gitignore files
+   tools/testing/selftests/mm/ksft_memory_failure.sh: warning: ignored by one of the .gitignore files
+   tools/testing/selftests/mm/ksft_migration.sh: warning: ignored by one of the .gitignore files
+   tools/testing/selftests/mm/ksft_mkdirty.sh: warning: ignored by one of the .gitignore files
+   tools/testing/selftests/mm/ksft_mlock.sh: warning: ignored by one of the .gitignore files
+   tools/testing/selftests/mm/ksft_mmap.sh: warning: ignored by one of the .gitignore files
+   tools/testing/selftests/mm/ksft_mremap.sh: warning: ignored by one of the .gitignore files
+   tools/testing/selftests/mm/ksft_page_frag.sh: warning: ignored by one of the .gitignore files
+   tools/testing/selftests/mm/ksft_pagemap.sh: warning: ignored by one of the .gitignore files
+   tools/testing/selftests/mm/ksft_pfnmap.sh: warning: ignored by one of the .gitignore files
+   tools/testing/selftests/mm/ksft_pkey.sh: warning: ignored by one of the .gitignore files
+   tools/testing/selftests/mm/ksft_process_madv.sh: warning: ignored by one of the .gitignore files
+   tools/testing/selftests/mm/ksft_process_mrelease.sh: warning: ignored by one of the .gitignore files
+   tools/testing/selftests/mm/ksft_rmap.sh: warning: ignored by one of the .gitignore files
+   tools/testing/selftests/mm/ksft_soft_dirty.sh: warning: ignored by one of the .gitignore files
+   tools/testing/selftests/mm/ksft_thp.sh: warning: ignored by one of the .gitignore files
+   tools/testing/selftests/mm/ksft_userfaultfd.sh: warning: ignored by one of the .gitignore files
+   tools/testing/selftests/mm/ksft_vma_merge.sh: warning: ignored by one of the .gitignore files
+   tools/testing/selftests/mm/ksft_vmalloc.sh: warning: ignored by one of the .gitignore files
+   tools/testing/selftests/mm/mlock2.h: warning: ignored by one of the .gitignore files
+   tools/testing/selftests/mm/mseal_helpers.h: warning: ignored by one of the .gitignore files
+   tools/testing/selftests/mm/page_frag/Makefile: warning: ignored by one of the .gitignore files
+   tools/testing/selftests/mm/pkey-arm64.h: warning: ignored by one of the .gitignore files
+   tools/testing/selftests/mm/pkey-helpers.h: warning: ignored by one of the .gitignore files
+   tools/testing/selftests/mm/pkey-powerpc.h: warning: ignored by one of the .gitignore files
+   tools/testing/selftests/mm/pkey-x86.h: warning: ignored by one of the .gitignore files
+   tools/testing/selftests/mm/run_vmtests.sh: warning: ignored by one of the .gitignore files
+   tools/testing/selftests/mm/settings: warning: ignored by one of the .gitignore files
+   tools/testing/selftests/mm/test_hmm.sh: warning: ignored by one of the .gitignore files
+   tools/testing/selftests/mm/test_page_frag.sh: warning: ignored by one of the .gitignore files
+   tools/testing/selftests/mm/test_vmalloc.sh: warning: ignored by one of the .gitignore files
+   tools/testing/selftests/mm/uffd-common.h: warning: ignored by one of the .gitignore files
+   tools/testing/selftests/mm/va_high_addr_switch.sh: warning: ignored by one of the .gitignore files
+   tools/testing/selftests/mm/vm_util.h: warning: ignored by one of the .gitignore files
+   tools/testing/selftests/mm/write_hugetlb_memory.sh: warning: ignored by one of the .gitignore files
 
-dma_req_free() acquires buf_mutex through req->map, drops the mapping
-reference with kref_put(), and then dereferences req->map again to unlock
-the mutex.
-
-If kref_put() drops the last reference, mport_release_mapping() frees the
-mapping, and the subsequent mutex_unlock() dereferences a freed object. 
-This is a use-after-free.
-
-Fix this by caching map and md before kref_put(), clearing req->map while
-holding buf_mutex, and using the cached md for mutex unlocking.
-
-The bug is reachable from userspace via the RapidIO mport character device
-interface.
-
-Link: https://lore.kernel.org/20260723235220.588424-1-james010kim@gmail.com
-Fixes: e8de370188d0 ("rapidio: add mport char device driver")
-Signed-off-by: James Kim <james010kim@gmail.com>
-Reviewed-by: Dan Carpenter <error27@gmail.com>
-Cc: Alexandre Bounine <alex.bou9@gmail.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Matt Porter <mporter@kernel.crashing.org>
-Cc: <stable@vger.kernel.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- drivers/rapidio/devices/rio_mport_cdev.c |   10 +++++++---
- 1 file changed, 7 insertions(+), 3 deletions(-)
-
---- a/drivers/rapidio/devices/rio_mport_cdev.c~rapidio-mport_cdev-fix-use-after-free-in-dma_req_free
-+++ a/drivers/rapidio/devices/rio_mport_cdev.c
-@@ -564,9 +564,13 @@ static void dma_req_free(struct kref *re
- 	}
- 
- 	if (req->map) {
--		mutex_lock(&req->map->md->buf_mutex);
--		kref_put(&req->map->ref, mport_release_mapping);
--		mutex_unlock(&req->map->md->buf_mutex);
-+		struct rio_mport_mapping *map = req->map;
-+		struct mport_dev *md = map->md;
-+
-+		mutex_lock(&md->buf_mutex);
-+		req->map = NULL;
-+		kref_put(&map->ref, mport_release_mapping);
-+		mutex_unlock(&md->buf_mutex);
- 	}
- 
- 	kref_put(&priv->dma_ref, mport_release_dma);
-_
-
-Patches currently in -mm which might be from james010kim@gmail.com are
-
-
+--
+0-DAY CI Kernel Test Service
+https://github.com/intel/lkp-tests/wiki
