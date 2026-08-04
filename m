@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 324904229BA
-	for <mm-commits@vger.kernel.org>; Tue,  4 Aug 2026 04:05:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6726A421241
+	for <mm-commits@vger.kernel.org>; Tue,  4 Aug 2026 04:05:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785816309; cv=none; b=F5AHyiU4h6hVY64/1AZ1/yG3Xl8vC4QGcog/rA8Awtd+l+1PJdYAaehRMZ+/XmfPjVRVpV9TW6KJfX5R77p9vvc+mt2XDP8uOLyLSt5hIIo8eg1ONhUXPQsANPKUFXPeERlUgkiDTygXtRfBOjy4dg3W5onC+epAh4UddD3JNxY=
+	t=1785816310; cv=none; b=MmXiauErDraqg272J+R3Hdh8DbQhHEbebC1IYJOZU9AqxfLs6O5Sd4+JA9EAM0qFWzs0+p2h9mXGQfeJFOiwk1XMM2BoFI2QweloV99Ekm0W4TejcAcBuLnO16/33k6r/yOxIOFTyeTdGiTidMxYoMMsIznL6SLlBDVHTU9uVUw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785816309; c=relaxed/simple;
-	bh=2acyZufpTj3RO7jazuP874g41aH5Axx2Xuz23eG9JlQ=;
-	h=Date:To:From:Subject:Message-Id; b=ekfe5SCZsF/ioujedyT8oVNpGqgcc9X3ihf0dYb68R2RiZJw9/oCpfU00ouBiB16PCQ551pmDfbjxF85LNOYlFY9AZfzuh8hJJD2q3OYpbkgZwBZ8PeN7BjEj3qEca42+AZhYDsbk+pcnLhYCZdnt69FnZnzJIkc6irSimV9hIc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=v8jJSnAM; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785816310; c=relaxed/simple;
+	bh=zMKWvpatIU3t5pIZYDikRKlEE6fdDk9mUfjWLnx37YA=;
+	h=Date:To:From:Subject:Message-Id; b=tY3Zj16X7BDcDKXhNcTDIC8mh5OrfgP/Bf/TLnYsbYFXvrCcdkPUAmrJVHr1vpmph7dZ9JCDXSv67HvnLGzacgxRpeGuZqHDnPZKxXTnR8LTlMCAsuQac5XXEOjEiiM6h3AGcghivRl5Q7qgGaelTCRt/JMr5Fp6ihBL5dUuYdk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ndLXsLGj; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="v8jJSnAM"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 068501F000E9;
-	Tue,  4 Aug 2026 04:05:07 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ndLXsLGj"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3A6131F00A3A;
+	Tue,  4 Aug 2026 04:05:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785816308;
-	bh=KZdEWiiK22MIFInxbqH1lZYNIRyY/kZnd2uldbzn7AU=;
+	d=linux-foundation.org; s=korg; t=1785816309;
+	bh=/J+KaC2R8EWBxNJw5uZFftiksY59AFpgyFzGK+hs1WQ=;
 	h=Date:To:From:Subject;
-	b=v8jJSnAMcnVCHokExtGVnUvNabi8X/KOS63BnEEvYSQK2qXWhIrDHWA/Djy2K2jVE
-	 D3/gzOKOGmdER6o+fWqaWaU97GJkYB9IxkkSzBnQWjKnFZi6KFxnRF1l6pQZy2E8/k
-	 +luJWQ1QXrjzdqXn4d/u2d1RdN1zBD7YM9iR3xzw=
-Date: Mon, 03 Aug 2026 21:05:07 -0700
+	b=ndLXsLGjxOlpvwlL9FTykgfeaMKJdBo5FpXpNtXxB4xXFfg9WTujQMD7eOOw5eib1
+	 1J473JMs7yya7tSBsB/dt7u+TEOFT+Sq8SmPtb2MRClgvl22Le/Mrn07dSKHI6NQxe
+	 wUZuNrkUjEy07qR8ofApUnzfhAnfdAVQDOJHbWmo=
+Date: Mon, 03 Aug 2026 21:05:08 -0700
 To: mm-commits@vger.kernel.org,sashiko-bot@kernel.org,gregkh@linuxfoundation.org,giometti@enneenne.com,calvin@wbinvd.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] pps-dont-try-to-wait-for-negative-timeouts-in-pps_fetch.patch removed from -mm tree
-Message-Id: <20260804040508.068501F000E9@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] pps-dont-allow-pps_kc_bind-on-removed-devices.patch removed from -mm tree
+Message-Id: <20260804040509.3A6131F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,113 +35,137 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: pps: don't try to wait for negative timeouts in PPS_FETCH
+     Subject: pps: don't allow PPS_KC_BIND on removed devices
 has been removed from the -mm tree.  Its filename was
-     pps-dont-try-to-wait-for-negative-timeouts-in-pps_fetch.patch
+     pps-dont-allow-pps_kc_bind-on-removed-devices.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Calvin Owens <calvin@wbinvd.org>
-Subject: pps: don't try to wait for negative timeouts in PPS_FETCH
-Date: Fri, 12 Jun 2026 11:52:09 -0700
+Subject: pps: don't allow PPS_KC_BIND on removed devices
+Date: Wed, 3 Jun 2026 10:25:44 -0700
 
-If userspace passes a negative timeout to PPS_FETCH, it triggers a kernel
-splat from schedule_timeout():
+If userspace holds its file descriptor open, it can call PPS_KC_BIND on a
+device which has been unplugged, leaving pps_kc_hardpps_dev as a dangling
+pointer after close().
 
-    schedule_timeout: wrong timeout value fffffffffff0bfb4
-    CPU: 17 UID: 0 PID: 4720 Comm: a.out Not tainted 7.1.0-rc5-x86-kvm-00150-g331d97e36b37 #1 PREEMPT_RT
-    Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS 1.16.3-20240910_120124-localhost 04/01/2014
-    Call Trace:
-     <TASK>
-     dump_stack_lvl+0x4b/0x70
-     schedule_timeout+0xb7/0xe0
-     pps_cdev_pps_fetch.isra.0+0x93/0x150
-     pps_cdev_ioctl+0x70/0x310
-     __x64_sys_ioctl+0x7b/0xc0
-     do_syscall_64+0xb6/0xfc0
-     entry_SYSCALL_64_after_hwframe+0x4b/0x53
+After that sequence, PPS_KC_BIND is broken until the system is rebooted,
+because the pointer comparison in pps_kc_bind() can never be true.
 
-Here is a trivial reproducer that works with the PPS_CLIENT_KTIMER test
-device enabled in the kernel:
+    calling  pps_ktimer_init+0x0/0x1000 [pps_ktimer] @ 1081
+    initcall pps_ktimer_init+0x0/0x1000 [pps_ktimer] returned 0 after 811 usecs
+    pps pps0: bound kernel consumer: edge=0x1
+    pps pps0: unbound kernel consumer on device removal
+    pps pps0: bound kernel consumer: edge=0x1
+    calling  pps_ktimer_init+0x0/0x1000 [pps_ktimer] @ 1085
+    initcall pps_ktimer_init+0x0/0x1000 [pps_ktimer] returned 0 after 340 usecs
+    pps pps0: another kernel consumer is already bound
+
+Here is a short reproducer, which uses rmmod of the pps-ktimer testcase
+to simulate a device being unplugged:
 
     #include <stdlib.h>
-    #include <fcntl.h>
+    #include <stdio.h>
     #include <unistd.h>
+    #include <fcntl.h>
     #include <sys/ioctl.h>
     #include <linux/pps.h>
+    #include <errno.h>
     #include <err.h>
 
-    int main() {
-        struct pps_fdata fdata;
-        int fd;
+    int main(void)
+    {
+        while (1) {
+            int fd;
 
-        fd = open("/dev/pps0", O_RDWR);
-        if (fd == -1)
-            err(1, "Failed to open /dev/pps0");
+            if (system("insmod ./pps-ktimer.ko"))
+                err(1, "insmod failed");
 
-        fdata.timeout.sec = -1;
-        fdata.timeout.nsec = 0;
+            fd = open("/dev/pps0", O_RDWR);
+            if (fd == -1)
+                err(1, "open failed");
 
-        if (ioctl(fd, PPS_FETCH, &fdata))
-            err(2, "PPS_FETCH failed");
+            struct pps_bind_args args = {
+                .tsformat = PPS_TSFMT_TSPEC,
+                .edge = PPS_CAPTUREASSERT,
+                .consumer = PPS_KC_HARDPPS,
+            };
 
-        close(fd);
-        return 0;
+            if (ioctl(fd, PPS_KC_BIND, &args))
+                err(1, "first PPS_KC_BIND failed");
+
+            if (system("rmmod pps-ktimer"))
+                err(1, "rmmod failed");
+
+            if (ioctl(fd, PPS_KC_BIND, &args)) {
+                if (errno != ENODEV)
+                    err(1, "second PPS_KC_BIND failed");
+                else
+                    puts("Got ENODEV, kernel is patched");
+            }
+
+            close(fd);
+        }
     }
 
-Sashiko imagines this to be some sort of security problem, which is
-obviously really silly.  But I think it is still worth fixing, so buggy
-userspace code can't trigger the splat.
+Fix this by setting a flag when the device is unplugged, returning -ENODEV
+from PPS_KC_BIND if the flag is set.
 
-Silence the splat by using timespec64_to_jiffies(), which hard limits the
-timeout to LONG_MAX jiffies.  To be safe, explicitly preserve the
--ETIMEDOUT return value userspace sees today if it passes a negative
-timeout.
+For userspace to encounter this new behavior, it must do something which
+breaks the interface today, so this fix shouldn't cause any observable
+behavior change for working programs.
 
-If you really squint, this is still a slight behavior change in that there
-are "denormalized" combinations of tv_sec and tv_nsec which used to work
-but will now return -ETIMEDOUT.  I can't imagine anybody will care about
-that...
-
-Link: https://lore.kernel.org/c5c97c3b3c9d66010382094fd538e59a38f4aacf.1781289959.git.calvin@wbinvd.org
-Fixes: eae9d2ba0cfc ("LinuxPPS: core support")
+Link: https://lore.kernel.org/672778c177ac9b6fdcb445e35c97ac4ca7d1149f.1780506611.git.calvin@wbinvd.org
 Signed-off-by: Calvin Owens <calvin@wbinvd.org>
 Reported-by: Sashiko <sashiko-bot@kernel.org>
-Closes: https://sashiko.dev/#/patchset/cover.1779733602.git.calvin%40wbinvd.org?part=3
+Closes: https://sashiko.dev/#/patchset/cover.1779733602.git.calvin%40wbinvd.org?part=1
 Acked-by: Rodolfo Giometti <giometti@enneenne.com>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pps/pps.c |   10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+ drivers/pps/kc.c           |   10 ++++++++++
+ include/linux/pps_kernel.h |    1 +
+ 2 files changed, 11 insertions(+)
 
---- a/drivers/pps/pps.c~pps-dont-try-to-wait-for-negative-timeouts-in-pps_fetch
-+++ a/drivers/pps/pps.c
-@@ -66,13 +66,19 @@ static int pps_cdev_pps_fetch(struct pps
- 		err = wait_event_interruptible(pps->queue,
- 				ev != pps->last_ev);
- 	else {
-+		struct timespec64 ts;
- 		unsigned long ticks;
+--- a/drivers/pps/kc.c~pps-dont-allow-pps_kc_bind-on-removed-devices
++++ a/drivers/pps/kc.c
+@@ -38,6 +38,14 @@ int pps_kc_bind(struct pps_device *pps,
+ 	/* Check if another consumer is already bound */
+ 	spin_lock_irq(&pps_kc_hardpps_lock);
  
- 		dev_dbg(&pps->dev, "timeout %lld.%09d\n",
- 				(long long) fdata->timeout.sec,
- 				fdata->timeout.nsec);
--		ticks = fdata->timeout.sec * HZ;
--		ticks += fdata->timeout.nsec / (NSEC_PER_SEC / HZ);
++	/*
++	 * Don't allow PPS_KC_BIND on a removed device.
++	 */
++	if (pps->kc_removed) {
++		spin_unlock_irq(&pps_kc_hardpps_lock);
++		return -ENODEV;
++	}
 +
-+		if (fdata->timeout.sec < 0)
-+			return -ETIMEDOUT;
+ 	if (bind_args->edge == 0)
+ 		if (pps_kc_hardpps_dev == pps) {
+ 			pps_kc_hardpps_mode = 0;
+@@ -79,6 +87,8 @@ int pps_kc_bind(struct pps_device *pps,
+ void pps_kc_remove(struct pps_device *pps)
+ {
+ 	spin_lock_irq(&pps_kc_hardpps_lock);
 +
-+		ts.tv_sec = fdata->timeout.sec;
-+		ts.tv_nsec = fdata->timeout.nsec;
-+		ticks = timespec64_to_jiffies(&ts);
++	pps->kc_removed = true;
+ 	if (pps == pps_kc_hardpps_dev) {
+ 		pps_kc_hardpps_mode = 0;
+ 		pps_kc_hardpps_dev = NULL;
+--- a/include/linux/pps_kernel.h~pps-dont-allow-pps_kc_bind-on-removed-devices
++++ a/include/linux/pps_kernel.h
+@@ -60,6 +60,7 @@ struct pps_device {
+ 	struct device dev;
+ 	struct fasync_struct *async_queue;	/* fasync method */
+ 	spinlock_t lock;
++	bool kc_removed;
+ };
  
- 		if (ticks != 0) {
- 			err = wait_event_interruptible_timeout(
+ /*
 _
 
 Patches currently in -mm which might be from calvin@wbinvd.org are
