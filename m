@@ -1,140 +1,142 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.14])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C6D7B4334D8
-	for <mm-commits@vger.kernel.org>; Tue,  4 Aug 2026 15:15:15 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.14
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DBF503EBF23
+	for <mm-commits@vger.kernel.org>; Tue,  4 Aug 2026 16:45:25 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785856519; cv=none; b=M23h4etKdPcvbcj/QHUFiHYKy0LOAmz1D4am8e2KkaY26s70QD4gLS50WWaTNhfHUbggV8TjDNNG32uPavV/bVKrhCEIGO9b46CILI1nqXQU3QuitUIRwKrQdPlMEuqDVwyvl1HdgrAG6sBL6KqOjSVd0gMPnuH6F9Fo5rTtOoI=
+	t=1785861938; cv=none; b=NOeqmg4U3DCSlfyelwopuAlw/qZrtQag5+Gs4jh8sHNm1XDcvGQsq5BxWTxWxlKTF/UsFCI+MhvxRj2YojIaOlUanJj0ukONedscWdrQxjGplytvY7NTwyQXoP5YPQFXR0XJq27oX+j8R112dnmfxcEIXIgP/wdYr55Nc/xvLMs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785856519; c=relaxed/simple;
-	bh=9NJ32ltbcB82qemSEoG7hUOvGbjw59Kq90HTXiUebBA=;
-	h=Date:From:To:Cc:Subject:Message-ID; b=pCnKfJkZnDqFcUlSGKSb52vPZ4Oq6o/S98EDUm00d/NfxDKp8+i1KK67mqSrfzvpm2Gprw2KswNFj8ZQi2om1Ad4B+xTcDqfPJPnbo8AfEXhi07bZupo72Nxumgbh78HaixgwAurM35qEknkvuscjoopSB84shgqKHqwQY0po+Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=PGKkdbbl; arc=none smtp.client-ip=192.198.163.14
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	s=arc-20240116; t=1785861938; c=relaxed/simple;
+	bh=BhFRDK2raFw4QKCqP5KywAdWTpjyCWBjFJ8SD7xOokM=;
+	h=Date:To:From:Subject:Message-Id; b=Z4CWfKGtkxB4EuQy08Th3W0FYrnQk5efvoDmnyQyPojo9zx/+2w7c/Wkv9Yps861rkoRlEZ7O7DjGCOwl/2KjKEWV0j6kHr7JvHPElnQ7jkP6nDxxFR2UT8jtzrngY9hqAabFLUXXTurf2mAMxj64U+8D84z4jJNcKKP1cRBaZc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dVGxVLf6; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="PGKkdbbl"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1785856515; x=1817392515;
-  h=date:from:to:cc:subject:message-id;
-  bh=9NJ32ltbcB82qemSEoG7hUOvGbjw59Kq90HTXiUebBA=;
-  b=PGKkdbblqIQCyEer/0nkis68NJQ+y0cmRPPDMUJKjd59xRq1kgmfBZhz
-   84TnaTAyIFbgw0wjof2Q3ni53aUH1dGFOFSh5aQw3JanevVYyxQSCX4SS
-   eitoOkTo9LxwrAIiU0iiX3iZ+0nQZ7U6y6NQQ+7J2hwR1fNCdzUEukUZh
-   qipJZW5SB6OuIe0RCEpof0v1ok68fNu0pPmkBIhUWVZSXQc1P8dlq0xOK
-   8+qJXId9ITQXYtjsavEOLZ39ktpe599kY9CJhcjgfhjdTKoqMi6aFS1NR
-   8IruEPsvsTyW8A8bbIU53NhRHD/Rb8TI1zBnEUkcG6cyeVLHaaYdwR1xA
-   Q==;
-X-CSE-ConnectionGUID: Yrq4D6DNRzSPptEuqBGiqg==
-X-CSE-MsgGUID: mjKtjUVQQVK30LPPc2jOYA==
-X-IronPort-AV: E=McAfee;i="6800,10657,11864"; a="86441904"
-X-IronPort-AV: E=Sophos;i="6.25,204,1779174000"; 
-   d="scan'208";a="86441904"
-Received: from orviesa004.jf.intel.com ([10.64.159.144])
-  by fmvoesa108.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Aug 2026 08:15:12 -0700
-X-CSE-ConnectionGUID: SirvBuQpQ/6ErkRXpQ9eXg==
-X-CSE-MsgGUID: TWKi9LnJTDmscDnyOXkNzA==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.25,204,1779174000"; 
-   d="scan'208";a="265359660"
-Received: from lkp-server01.sh.intel.com (HELO 6eda058d650d) ([10.239.97.150])
-  by orviesa004.jf.intel.com with ESMTP; 04 Aug 2026 08:15:10 -0700
-Received: from kbuild by 6eda058d650d with local (Exim 4.98.2)
-	(envelope-from <lkp@intel.com>)
-	id 1wrGrE-00000000A5b-0Kia;
-	Tue, 04 Aug 2026 15:15:08 +0000
-Date: Tue, 04 Aug 2026 23:14:58 +0800
-From: kernel test robot <lkp@intel.com>
-To: Pratyush Mallick <pratmal@google.com>
-Cc: oe-kbuild-all@lists.linux.dev, David Hildenbrand <david@kernel.org>,
- Andrew Morton <akpm@linux-foundation.org>,
- Linux Memory Management List <linux-mm@kvack.org>,
- mm-commits@vger.kernel.org, Lorenzo Stoakes <ljs@kernel.org>,
- SJ Park <sj@kernel.org>
-Subject: [akpm-mm:mm-new 448/454]
- tools/testing/selftests/mm/.gitignore: warning: ignored by one of the
- .gitignore files
-Message-ID: <202608042227.XDO54bZk-lkp@intel.com>
-User-Agent: s-nail v14.9.25
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dVGxVLf6"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 05B551F00A3A;
+	Tue,  4 Aug 2026 16:45:20 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=linux-foundation.org; s=korg; t=1785861921;
+	bh=VfdkNuGYqE0rZHkRZtc/0+qJ1MIu8NSGdVIBmoZ9G6c=;
+	h=Date:To:From:Subject;
+	b=dVGxVLf6VEykrdNCvuHxZPV8I+JRFE0q8IK1Zl4KohbRicxXw4cJfJApsIv/VIDhK
+	 HfmuhdzonRQE5twhAwU4NKuLNA7EpNcKXFtfZ/bv6+dHEt2vFQ0feLfztJGHRTM6dB
+	 wHgKaIGZU5n83AMYMufBwoprUoyO97yWiVStwA/w=
+Date: Tue, 04 Aug 2026 09:45:20 -0700
+To: mm-commits@vger.kernel.org,lasse.collin@tukaani.org,thorsten.blum@linux.dev,akpm@linux-foundation.org
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: + lib-xz-replace-min_t-with-min.patch added to mm-nonmm-unstable branch
+Message-Id: <20260804164521.05B551F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
-tree:   https://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm.git mm-new
-head:   e47602c51d20a93fa1711ed896dc9480de4374d9
-commit: e051bf0188c9ae10e822a532aac5821c2cc0632a [448/454] selftests/mm: use pattern matching in .gitignore
-config: nios2-allnoconfig (https://download.01.org/0day-ci/archive/20260804/202608042227.XDO54bZk-lkp@intel.com/config)
-compiler: nios2-linux-gcc (GCC) 11.5.0
-reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20260804/202608042227.XDO54bZk-lkp@intel.com/reproduce)
 
-If you fix the issue in a separate patch/commit (i.e. not just a new version of
-the same patch/commit), kindly add following tags
-| Reported-by: kernel test robot <lkp@intel.com>
-| Closes: https://lore.kernel.org/oe-kbuild-all/202608042227.XDO54bZk-lkp@intel.com/
+The patch titled
+     Subject: lib/xz: replace min_t with min
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     lib-xz-replace-min_t-with-min.patch
 
-All warnings (new ones prefixed by >>):
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-xz-replace-min_t-with-min.patch
 
-   Documentation/.renames.txt: warning: ignored by one of the .gitignore files
->> tools/testing/selftests/mm/.gitignore: warning: ignored by one of the .gitignore files
->> tools/testing/selftests/mm/Makefile: warning: ignored by one of the .gitignore files
->> tools/testing/selftests/mm/charge_reserved_hugetlb.sh: warning: ignored by one of the .gitignore files
->> tools/testing/selftests/mm/check_config.sh: warning: ignored by one of the .gitignore files
->> tools/testing/selftests/mm/config: warning: ignored by one of the .gitignore files
->> tools/testing/selftests/mm/hugepage_settings.h: warning: ignored by one of the .gitignore files
->> tools/testing/selftests/mm/hugetlb_reparenting_test.sh: warning: ignored by one of the .gitignore files
->> tools/testing/selftests/mm/ksft_compaction.sh: warning: ignored by one of the .gitignore files
->> tools/testing/selftests/mm/ksft_cow.sh: warning: ignored by one of the .gitignore files
->> tools/testing/selftests/mm/ksft_gup_test.sh: warning: ignored by one of the .gitignore files
->> tools/testing/selftests/mm/ksft_hmm.sh: warning: ignored by one of the .gitignore files
->> tools/testing/selftests/mm/ksft_hugetlb.sh: warning: ignored by one of the .gitignore files
->> tools/testing/selftests/mm/ksft_hugevm.sh: warning: ignored by one of the .gitignore files
->> tools/testing/selftests/mm/ksft_kmemleak_confirm.sh: warning: ignored by one of the .gitignore files
->> tools/testing/selftests/mm/ksft_kmemleak_dedup.sh: warning: ignored by one of the .gitignore files
->> tools/testing/selftests/mm/ksft_ksm.sh: warning: ignored by one of the .gitignore files
->> tools/testing/selftests/mm/ksft_ksm_numa.sh: warning: ignored by one of the .gitignore files
->> tools/testing/selftests/mm/ksft_madv_guard.sh: warning: ignored by one of the .gitignore files
->> tools/testing/selftests/mm/ksft_madv_populate.sh: warning: ignored by one of the .gitignore files
->> tools/testing/selftests/mm/ksft_mdwe.sh: warning: ignored by one of the .gitignore files
-   tools/testing/selftests/mm/ksft_memfd_secret.sh: warning: ignored by one of the .gitignore files
-   tools/testing/selftests/mm/ksft_memory_failure.sh: warning: ignored by one of the .gitignore files
-   tools/testing/selftests/mm/ksft_migration.sh: warning: ignored by one of the .gitignore files
-   tools/testing/selftests/mm/ksft_mkdirty.sh: warning: ignored by one of the .gitignore files
-   tools/testing/selftests/mm/ksft_mlock.sh: warning: ignored by one of the .gitignore files
-   tools/testing/selftests/mm/ksft_mmap.sh: warning: ignored by one of the .gitignore files
-   tools/testing/selftests/mm/ksft_mremap.sh: warning: ignored by one of the .gitignore files
-   tools/testing/selftests/mm/ksft_page_frag.sh: warning: ignored by one of the .gitignore files
-   tools/testing/selftests/mm/ksft_pagemap.sh: warning: ignored by one of the .gitignore files
-   tools/testing/selftests/mm/ksft_pfnmap.sh: warning: ignored by one of the .gitignore files
-   tools/testing/selftests/mm/ksft_pkey.sh: warning: ignored by one of the .gitignore files
-   tools/testing/selftests/mm/ksft_process_madv.sh: warning: ignored by one of the .gitignore files
-   tools/testing/selftests/mm/ksft_process_mrelease.sh: warning: ignored by one of the .gitignore files
-   tools/testing/selftests/mm/ksft_rmap.sh: warning: ignored by one of the .gitignore files
-   tools/testing/selftests/mm/ksft_soft_dirty.sh: warning: ignored by one of the .gitignore files
-   tools/testing/selftests/mm/ksft_thp.sh: warning: ignored by one of the .gitignore files
-   tools/testing/selftests/mm/ksft_userfaultfd.sh: warning: ignored by one of the .gitignore files
-   tools/testing/selftests/mm/ksft_vma_merge.sh: warning: ignored by one of the .gitignore files
-   tools/testing/selftests/mm/ksft_vmalloc.sh: warning: ignored by one of the .gitignore files
-   tools/testing/selftests/mm/mlock2.h: warning: ignored by one of the .gitignore files
-   tools/testing/selftests/mm/mseal_helpers.h: warning: ignored by one of the .gitignore files
-   tools/testing/selftests/mm/page_frag/Makefile: warning: ignored by one of the .gitignore files
-   tools/testing/selftests/mm/pkey-arm64.h: warning: ignored by one of the .gitignore files
-   tools/testing/selftests/mm/pkey-helpers.h: warning: ignored by one of the .gitignore files
-   tools/testing/selftests/mm/pkey-powerpc.h: warning: ignored by one of the .gitignore files
-   tools/testing/selftests/mm/pkey-x86.h: warning: ignored by one of the .gitignore files
-   tools/testing/selftests/mm/run_vmtests.sh: warning: ignored by one of the .gitignore files
-   tools/testing/selftests/mm/settings: warning: ignored by one of the .gitignore files
-   tools/testing/selftests/mm/test_hmm.sh: warning: ignored by one of the .gitignore files
-   tools/testing/selftests/mm/test_page_frag.sh: warning: ignored by one of the .gitignore files
-   tools/testing/selftests/mm/test_vmalloc.sh: warning: ignored by one of the .gitignore files
-   tools/testing/selftests/mm/uffd-common.h: warning: ignored by one of the .gitignore files
-   tools/testing/selftests/mm/va_high_addr_switch.sh: warning: ignored by one of the .gitignore files
-   tools/testing/selftests/mm/vm_util.h: warning: ignored by one of the .gitignore files
-   tools/testing/selftests/mm/write_hugetlb_memory.sh: warning: ignored by one of the .gitignore files
+This patch will later appear in the mm-nonmm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
---
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests/wiki
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
+
+------------------------------------------------------
+From: Thorsten Blum <thorsten.blum@linux.dev>
+Subject: lib/xz: replace min_t with min
+Date: Tue, 9 Jun 2026 18:00:28 +0300
+
+Use the simpler min() macro since the values are unsigned and compatible.
+
+Link: https://lore.kernel.org/20260609150030.634570-1-lasse.collin@tukaani.org
+Signed-off-by: Thorsten Blum <thorsten.blum@linux.dev>
+Signed-off-by: Lasse Collin <lasse.collin@tukaani.org>
+Reviewed-by: Lasse Collin <lasse.collin@tukaani.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ lib/xz/xz_dec_bcj.c    |    2 +-
+ lib/xz/xz_dec_lzma2.c  |   11 +++++------
+ lib/xz/xz_dec_stream.c |    4 ++--
+ 3 files changed, 8 insertions(+), 9 deletions(-)
+
+--- a/lib/xz/xz_dec_bcj.c~lib-xz-replace-min_t-with-min
++++ a/lib/xz/xz_dec_bcj.c
+@@ -466,7 +466,7 @@ static void bcj_flush(struct xz_dec_bcj
+ {
+ 	size_t copy_size;
+ 
+-	copy_size = min_t(size_t, s->temp.filtered, b->out_size - b->out_pos);
++	copy_size = min(s->temp.filtered, b->out_size - b->out_pos);
+ 	memcpy(b->out + b->out_pos, s->temp.buf, copy_size);
+ 	b->out_pos += copy_size;
+ 
+--- a/lib/xz/xz_dec_lzma2.c~lib-xz-replace-min_t-with-min
++++ a/lib/xz/xz_dec_lzma2.c
+@@ -354,7 +354,7 @@ static bool dict_repeat(struct dictionar
+ 	if (dist >= dict->full || dist >= dict->size)
+ 		return false;
+ 
+-	left = min_t(size_t, dict->limit - dict->pos, *len);
++	left = min(dict->limit - dict->pos, *len);
+ 	*len -= left;
+ 
+ 	back = dict->pos - dist - 1;
+@@ -1098,9 +1098,8 @@ enum xz_ret xz_dec_lzma2_run(struct xz_d
+ 			 * the output buffer yet, we may run this loop
+ 			 * multiple times without changing s->lzma2.sequence.
+ 			 */
+-			dict_limit(&s->dict, min_t(size_t,
+-					b->out_size - b->out_pos,
+-					s->lzma2.uncompressed));
++			dict_limit(&s->dict, min(b->out_size - b->out_pos,
++						 s->lzma2.uncompressed));
+ 			if (!lzma2_lzma(s, b))
+ 				return XZ_DATA_ERROR;
+ 
+@@ -1260,8 +1259,8 @@ enum xz_ret xz_dec_microlzma_run(struct
+ 		s->dict.end = b->out_size - b->out_pos;
+ 
+ 	while (true) {
+-		dict_limit(&s->dict, min_t(size_t, b->out_size - b->out_pos,
+-					   s->lzma2.uncompressed));
++		dict_limit(&s->dict, min(b->out_size - b->out_pos,
++					 s->lzma2.uncompressed));
+ 
+ 		if (!lzma2_lzma(s, b))
+ 			return XZ_DATA_ERROR;
+--- a/lib/xz/xz_dec_stream.c~lib-xz-replace-min_t-with-min
++++ a/lib/xz/xz_dec_stream.c
+@@ -155,8 +155,8 @@ static const uint8_t check_sizes[16] = {
+  */
+ static bool fill_temp(struct xz_dec *s, struct xz_buf *b)
+ {
+-	size_t copy_size = min_t(size_t,
+-			b->in_size - b->in_pos, s->temp.size - s->temp.pos);
++	size_t copy_size = min(b->in_size - b->in_pos,
++			       s->temp.size - s->temp.pos);
+ 
+ 	memcpy(s->temp.buf + s->temp.pos, b->in + b->in_pos, copy_size);
+ 	b->in_pos += copy_size;
+_
+
+Patches currently in -mm which might be from thorsten.blum@linux.dev are
+
+lib-xz-replace-min_t-with-min.patch
+
