@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3B41E3F44EF
-	for <mm-commits@vger.kernel.org>; Tue,  4 Aug 2026 04:05:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5D3D2438483
+	for <mm-commits@vger.kernel.org>; Tue,  4 Aug 2026 04:05:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785816330; cv=none; b=P/Aw7d1yqD/V1uOi5Hhkrgm2/3HXAhD+HEb+2Gf7l8Pexq5+y3wlVMKou5TCcMPAD+JP/AgATctgT7AKqQ9DIALeckxpZilsl1BBImj0Bxpo73sX3Oua3nXPWBYQr0yv4o8CkEFNwM4kQZwNqllGvC7XrrdT2YTrrCn0S4HvL+k=
+	t=1785816331; cv=none; b=lo1lUxEJdlY+inmTDB9AztJQO1XPK9dt69vy64ZW/Q0b6C7USpDoshSMPQ0yOHceSJ3kpc5zev5uvxtMsdNCyzZwIFIv99SzGUpj4oDslBnPqctoKlpcoFfY4koZbFe0SuX2aQ+u+ezB0Ah7m86K6OUVzip39RAPluvEIIN4Rcw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785816330; c=relaxed/simple;
-	bh=ykeWXpxvKXI+4CAelUGvh9GKbeXnSQ9Zv8iJBI1Qcg4=;
-	h=Date:To:From:Subject:Message-Id; b=cksGFLo7/fSS2fI0E3iQ+Pc6zfhB3BjlHiBFSGQuWI44hgUAQKA13jNKt9nwRi+oCxKFUjowW27SbcTsOLjp3teaHcrwl0Ph7iV1AHO4ewNlzaCqtg/7YN2//yR9I9fBzpymumY/vH8SrBeNqxTMT/cs8ZPXOvaPoWzZ2gR8Cng=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HLfZRhit; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785816331; c=relaxed/simple;
+	bh=NDFUWPtZ6yUhqhBapg9MWs5Hg6wxMnzvn1Akq2SeZAg=;
+	h=Date:To:From:Subject:Message-Id; b=Z4rs6OOM4CfIsHecR2BeZUoB00f7Hy42HF+8dhl3qq31UHv5pw6NyxR2nI+6dd3mjoDUpkWsKjIaYhLbyew/ueyMdGukhvceWgHtG0G58ALrVkxHI7SUd9YpWhrZbIrrUnk38ogudayPNSetTq0X3gMWzWe7fiD3rfTDjD5hTJ4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AymKFUIg; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HLfZRhit"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 10F501F000E9;
-	Tue,  4 Aug 2026 04:05:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AymKFUIg"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3223D1F00A3A;
+	Tue,  4 Aug 2026 04:05:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785816329;
-	bh=cwm6O72XtiQsuZxAF3li9WhaJC5L+TK5WBY+wEryWng=;
+	d=linux-foundation.org; s=korg; t=1785816330;
+	bh=EalQXaSr262LwOZG7a4dMdbPwOD+wGrsqf3MarZZ3CM=;
 	h=Date:To:From:Subject;
-	b=HLfZRhit9IGS2Ey6Ws1GuH/bHUa8Ar6q1tixl8dzg5/SPRzc/GewSf2k5G50zMA3o
-	 LrAG965jCdhXeQBnrm9NJp6EYpk9DAh/O4ubkfWUIoSS11cEMEiH2jP+FaIkFIKTXr
-	 a+kpZ4ZINCmC5xP67KevGrp4mBu4ZMPVoB+bbpO0=
-Date: Mon, 03 Aug 2026 21:05:28 -0700
-To: mm-commits@vger.kernel.org,balbirs@nvidia.com,akpm@linux-foundation.org,cyyzero16@gmail.com,akpm@linux-foundation.org
+	b=AymKFUIgA1sMP0czk4f97gwHbY1dGjU0YxGIZAd+gJf53a9jwkVMLo+M7H8fknA8E
+	 jFfTptG5Simljj4hTzVqFZfWz+2TDktI/UWSFfDaqDrzwMQGhB28QR/ziasO5OUrZv
+	 QR5fDa/ze3hOWwB+FTuDyj/QQIH79kVITFcye880=
+Date: Mon, 03 Aug 2026 21:05:29 -0700
+To: mm-commits@vger.kernel.org,hirofumi@mail.parknet.co.jp,brauner@kernel.org,zhangcoder@yeah.net,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] selftests-acct-share-netlink-helpers.patch removed from -mm tree
-Message-Id: <20260804040529.10F501F000E9@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] fat-allow-0xe9-near-jump-in-fat_read_static_bpb.patch removed from -mm tree
+Message-Id: <20260804040530.3223D1F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,582 +35,55 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests/acct: share netlink helpers
+     Subject: FAT: allow 0xE9 near jump in fat_read_static_bpb()
 has been removed from the -mm tree.  Its filename was
-     selftests-acct-share-netlink-helpers.patch
+     fat-allow-0xe9-near-jump-in-fat_read_static_bpb.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Yiyang Chen <cyyzero16@gmail.com>
-Subject: selftests/acct: share netlink helpers
-Date: Mon, 13 Jul 2026 01:13:31 +0800
+From: Ziran Zhang <zhangcoder@yeah.net>
+Subject: FAT: allow 0xE9 near jump in fat_read_static_bpb()
+Date: Sun, 12 Apr 2026 14:59:41 +0800
 
-Extract the duplicated generic netlink boilerplate (netlink_open,
-send_request, get_family_id, and NLA walker macros) from cgroupstats.c and
-taskstats_fill_stats_tgid.c into a shared netlink_helper.{h,c}.
+fat_read_static_bpb() only accepts a short jump as a valid bootstrap code
+signature for DOS 1.x volumes when the dos1xfloppy mount option is used.
 
-Link: https://lore.kernel.org/a2adf27308b5cd90d50b59e8519b87da49486bee.1783876192.git.cyyzero16@gmail.com
-Signed-off-by: Yiyang Chen <cyyzero16@gmail.com>
-Suggested-by: Andrew Morton <akpm@linux-foundation.org>
-Acked-by: Balbir Singh <balbirs@nvidia.com>
+However, according to the Microsoft fatgen103.doc, the BS_jmpBoot field
+has two allowed forms: 0xEB 0x??  0x90 (short jump + NOP) and 0xE9 0x?? 
+0x??  (near jump).  The specification explicitly states that either form
+is acceptable.
+
+This patch relaxes the check to also accept 0xE9 as the first byte of the
+jump instruction.
+
+Link: https://lore.kernel.org/20260412070109.5197-1-zhangcoder@yeah.net
+Signed-off-by: Ziran Zhang <zhangcoder@yeah.net>
+Acked-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Cc: Christian Brauner <brauner@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/acct/.gitignore                  |    1 
- tools/testing/selftests/acct/Makefile                    |   10 
- tools/testing/selftests/acct/cgroupstats.c               |  133 ---------
- tools/testing/selftests/acct/netlink_helper.c            |  116 ++++++++
- tools/testing/selftests/acct/netlink_helper.h            |   44 +++
- tools/testing/selftests/acct/taskstats_fill_stats_tgid.c |  134 ----------
- 6 files changed, 184 insertions(+), 254 deletions(-)
+ fs/fat/inode.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
---- a/tools/testing/selftests/acct/cgroupstats.c~selftests-acct-share-netlink-helpers
-+++ a/tools/testing/selftests/acct/cgroupstats.c
-@@ -6,139 +6,19 @@
- #include <linux/cgroupstats.h>
- #include <linux/genetlink.h>
- #include <linux/netlink.h>
-+#include <stdbool.h>
- #include <stdint.h>
- #include <stdio.h>
- #include <stdlib.h>
- #include <string.h>
-+#include <sys/mount.h>
- #include <sys/socket.h>
- #include <sys/types.h>
--#include <sys/mount.h>
--#include <time.h>
- #include <unistd.h>
+--- a/fs/fat/inode.c~fat-allow-0xe9-near-jump-in-fat_read_static_bpb
++++ a/fs/fat/inode.c
+@@ -1479,8 +1479,9 @@ static int fat_read_static_bpb(struct su
+ 	int error = -EINVAL;
+ 	unsigned i;
  
-+#include "netlink_helper.h"
- #include "kselftest.h"
- 
--#ifndef NLA_ALIGN
--#define NLA_ALIGNTO 4
--#define NLA_ALIGN(len) (((len) + NLA_ALIGNTO - 1) & ~(NLA_ALIGNTO - 1))
--#define NLA_HDRLEN ((int)NLA_ALIGN(sizeof(struct nlattr)))
--#endif
--
--#define RECV_TIMEOUT_SEC 2
--
--static void *nla_data(const struct nlattr *na)
--{
--	return (void *)((char *)na + NLA_HDRLEN);
--}
--
--static int netlink_open(void)
--{
--	struct timeval tv = { .tv_sec = RECV_TIMEOUT_SEC };
--	struct sockaddr_nl addr = {
--		.nl_family = AF_NETLINK,
--		.nl_pid = getpid(),
--	};
--	int fd;
--
--	fd = socket(AF_NETLINK, SOCK_RAW, NETLINK_GENERIC);
--	if (fd < 0)
--		return -errno;
--
--	/*
--	 * Ensure that a missing kernel reply fails the individual test
--	 * case instead of hanging the whole test binary.
--	 */
--	if (setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) < 0) {
--		int err = -errno;
--
--		close(fd);
--		return err;
--	}
--
--	if (bind(fd, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
--		int err = -errno;
--
--		close(fd);
--		return err;
--	}
--
--	return fd;
--}
--
--static int send_request(int fd, void *buf, size_t len)
--{
--	struct sockaddr_nl addr = {
--		.nl_family = AF_NETLINK,
--	};
--
--	if (sendto(fd, buf, len, 0, (struct sockaddr *)&addr, sizeof(addr)) < 0)
--		return -errno;
--
--	return 0;
--}
--
--static int get_family_id(int fd, const char *name)
--{
--	struct {
--		struct nlmsghdr nlh;
--		struct genlmsghdr genl;
--		char buf[256];
--	} req = { 0 };
--	char resp[8192];
--	struct nlmsghdr *nlh;
--	struct genlmsghdr *genl;
--	struct nlattr *na;
--	int len;
--	int rem;
--	int ret;
--
--	req.nlh.nlmsg_len = NLMSG_LENGTH(GENL_HDRLEN);
--	req.nlh.nlmsg_type = GENL_ID_CTRL;
--	req.nlh.nlmsg_flags = NLM_F_REQUEST;
--	req.nlh.nlmsg_seq = 1;
--	req.nlh.nlmsg_pid = getpid();
--
--	req.genl.cmd = CTRL_CMD_GETFAMILY;
--	req.genl.version = 1;
--
--	na = (struct nlattr *)((char *)&req + NLMSG_ALIGN(req.nlh.nlmsg_len));
--	na->nla_type = CTRL_ATTR_FAMILY_NAME;
--	na->nla_len = NLA_HDRLEN + strlen(name) + 1;
--	memcpy(nla_data(na), name, strlen(name) + 1);
--	req.nlh.nlmsg_len = NLMSG_ALIGN(req.nlh.nlmsg_len) + NLA_ALIGN(na->nla_len);
--
--	ret = send_request(fd, &req, req.nlh.nlmsg_len);
--	if (ret)
--		return ret;
--
--	len = recv(fd, resp, sizeof(resp), 0);
--	if (len < 0)
--		return -errno;
--
--	for (nlh = (struct nlmsghdr *)resp; NLMSG_OK(nlh, len);
--	     nlh = NLMSG_NEXT(nlh, len)) {
--		if (nlh->nlmsg_type == NLMSG_ERROR) {
--			struct nlmsgerr *err = NLMSG_DATA(nlh);
--
--			return err->error ? err->error : -ENOENT;
--		}
--
--		genl = (struct genlmsghdr *)NLMSG_DATA(nlh);
--		rem = nlh->nlmsg_len - NLMSG_HDRLEN - GENL_HDRLEN;
--		na = (struct nlattr *)((char *)genl + GENL_HDRLEN);
--		while (rem >= (int)sizeof(*na) &&
--		       na->nla_len >= (int)sizeof(*na) &&
--		       na->nla_len <= rem) {
--			if (na->nla_type == CTRL_ATTR_FAMILY_ID)
--				return *(uint16_t *)nla_data(na);
--			rem -= NLA_ALIGN(na->nla_len);
--			na = (struct nlattr *)((char *)na + NLA_ALIGN(na->nla_len));
--		}
--	}
--
--	return -ENOENT;
--}
--
- static int send_cgroupstats_cmd(int fd, int family_id, uint32_t cgroup_fd,
- 				int flags)
- {
-@@ -203,15 +83,12 @@ static int recv_cgroupstats_response(int
- 
- 		rem = nlh->nlmsg_len - NLMSG_HDRLEN - GENL_HDRLEN;
- 		na = (struct nlattr *)((char *)genl + GENL_HDRLEN);
--		while (rem >= (int)sizeof(*na) &&
--		       na->nla_len >= (int)sizeof(*na) &&
--		       na->nla_len <= rem) {
-+		while (nla_ok(na, rem)) {
- 			if (na->nla_type == CGROUPSTATS_TYPE_CGROUP_STATS) {
- 				memcpy(stats, nla_data(na), sizeof(*stats));
- 				return 0;
- 			}
--			rem -= NLA_ALIGN(na->nla_len);
--			na = (struct nlattr *)((char *)na + NLA_ALIGN(na->nla_len));
-+			na = nla_next(na, &rem);
- 		}
- 	}
- 
---- a/tools/testing/selftests/acct/.gitignore~selftests-acct-share-netlink-helpers
-+++ a/tools/testing/selftests/acct/.gitignore
-@@ -1,4 +1,5 @@
- acct_syscall
- taskstats_fill_stats_tgid
-+cgroupstats
- config
- process_log
---- a/tools/testing/selftests/acct/Makefile~selftests-acct-share-netlink-helpers
-+++ a/tools/testing/selftests/acct/Makefile
-@@ -3,7 +3,17 @@ TEST_GEN_PROGS := acct_syscall
- TEST_GEN_PROGS += taskstats_fill_stats_tgid
- TEST_GEN_PROGS += cgroupstats
- 
-+NETLINK_HELPER_PROGS := cgroupstats taskstats_fill_stats_tgid
-+
- CFLAGS += -Wall
- LDLIBS += -lpthread
- 
- include ../lib.mk
-+
-+$(NETLINK_HELPER_PROGS): %: %.c netlink_helper.c netlink_helper.h
-+	$(call msg,CC,,$@)
-+	$(Q)$(LINK.c) $< netlink_helper.c $(LDLIBS) -o $@
-+
-+$(addprefix $(OUTPUT)/,$(NETLINK_HELPER_PROGS)): $(OUTPUT)/%: %.c netlink_helper.c netlink_helper.h
-+	$(call msg,CC,,$@)
-+	$(Q)$(LINK.c) $< netlink_helper.c $(LDLIBS) -o $@
-diff --git a/tools/testing/selftests/acct/netlink_helper.c a/tools/testing/selftests/acct/netlink_helper.c
-new file mode 100644
---- /dev/null
-+++ a/tools/testing/selftests/acct/netlink_helper.c
-@@ -0,0 +1,116 @@
-+// SPDX-License-Identifier: GPL-2.0
-+
-+#include <errno.h>
-+#include <stdint.h>
-+#include <string.h>
-+#include <sys/socket.h>
-+#include <sys/time.h>
-+#include <unistd.h>
-+#include <linux/genetlink.h>
-+
-+#include "netlink_helper.h"
-+
-+int netlink_open(void)
-+{
-+	struct timeval tv = { .tv_sec = ACCT_RCV_TIMEOUT_SEC };
-+	struct sockaddr_nl addr = {
-+		.nl_family = AF_NETLINK,
-+		.nl_pid = getpid(),
-+	};
-+	int fd;
-+
-+	fd = socket(AF_NETLINK, SOCK_RAW, NETLINK_GENERIC);
-+	if (fd < 0)
-+		return -errno;
-+
-+	if (setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) < 0) {
-+		int err = -errno;
-+
-+		close(fd);
-+		return err;
-+	}
-+
-+	if (bind(fd, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
-+		int err = -errno;
-+
-+		close(fd);
-+		return err;
-+	}
-+
-+	return fd;
-+}
-+
-+int send_request(int fd, void *buf, size_t len)
-+{
-+	struct sockaddr_nl addr = {
-+		.nl_family = AF_NETLINK,
-+	};
-+
-+	if (sendto(fd, buf, len, 0, (struct sockaddr *)&addr, sizeof(addr)) < 0)
-+		return -errno;
-+
-+	return 0;
-+}
-+
-+/*
-+ * Resolve the generic netlink family ID for @name.
-+ * Returns the family ID (>= 0) on success, negative errno on failure.
-+ */
-+int get_family_id(int fd, const char *name)
-+{
-+	struct {
-+		struct nlmsghdr nlh;
-+		struct genlmsghdr genl;
-+		char buf[256];
-+	} req = { 0 };
-+	char resp[8192];
-+	struct nlmsghdr *nlh;
-+	struct genlmsghdr *genl;
-+	struct nlattr *na;
-+	int len;
-+	int rem;
-+	int ret;
-+
-+	req.nlh.nlmsg_len = NLMSG_LENGTH(GENL_HDRLEN);
-+	req.nlh.nlmsg_type = GENL_ID_CTRL;
-+	req.nlh.nlmsg_flags = NLM_F_REQUEST;
-+	req.nlh.nlmsg_seq = 1;
-+	req.nlh.nlmsg_pid = getpid();
-+
-+	req.genl.cmd = CTRL_CMD_GETFAMILY;
-+	req.genl.version = 1;
-+
-+	na = (struct nlattr *)((char *)&req + NLMSG_ALIGN(req.nlh.nlmsg_len));
-+	na->nla_type = CTRL_ATTR_FAMILY_NAME;
-+	na->nla_len = NLA_HDRLEN + strlen(name) + 1;
-+	memcpy(nla_data(na), name, strlen(name) + 1);
-+	req.nlh.nlmsg_len = NLMSG_ALIGN(req.nlh.nlmsg_len) + NLA_ALIGN(na->nla_len);
-+
-+	ret = send_request(fd, &req, req.nlh.nlmsg_len);
-+	if (ret)
-+		return ret;
-+
-+	len = recv(fd, resp, sizeof(resp), 0);
-+	if (len < 0)
-+		return -errno;
-+
-+	for (nlh = (struct nlmsghdr *)resp; NLMSG_OK(nlh, len);
-+	     nlh = NLMSG_NEXT(nlh, len)) {
-+		if (nlh->nlmsg_type == NLMSG_ERROR) {
-+			struct nlmsgerr *err = NLMSG_DATA(nlh);
-+
-+			return err->error ? err->error : -ENOENT;
-+		}
-+
-+		genl = (struct genlmsghdr *)NLMSG_DATA(nlh);
-+		rem = nlh->nlmsg_len - NLMSG_HDRLEN - GENL_HDRLEN;
-+		na = (struct nlattr *)((char *)genl + GENL_HDRLEN);
-+		while (nla_ok(na, rem)) {
-+			if (na->nla_type == CTRL_ATTR_FAMILY_ID)
-+				return *(uint16_t *)nla_data(na);
-+			na = nla_next(na, &rem);
-+		}
-+	}
-+
-+	return -ENOENT;
-+}
-diff --git a/tools/testing/selftests/acct/netlink_helper.h a/tools/testing/selftests/acct/netlink_helper.h
-new file mode 100644
---- /dev/null
-+++ a/tools/testing/selftests/acct/netlink_helper.h
-@@ -0,0 +1,44 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+/*
-+ * Shared generic netlink helpers for the acct selftests.
-+ */
-+#ifndef ACSELFTESTS_ACCT_NETLINK_HELPER_H
-+#define ACSELFTESTS_ACCT_NETLINK_HELPER_H
-+
-+#include <stdbool.h>
-+#include <linux/netlink.h>
-+
-+#ifndef NLA_ALIGNTO
-+#define NLA_ALIGNTO 4
-+#define NLA_ALIGN(len) (((len) + NLA_ALIGNTO - 1) & ~(NLA_ALIGNTO - 1))
-+#define NLA_HDRLEN ((int)NLA_ALIGN(sizeof(struct nlattr)))
-+#endif
-+
-+/* Fail an individual test case instead of hanging the whole binary. */
-+#define ACCT_RCV_TIMEOUT_SEC 2
-+
-+static inline void *nla_data(const struct nlattr *na)
-+{
-+	return (void *)((char *)na + NLA_HDRLEN);
-+}
-+
-+static inline bool nla_ok(const struct nlattr *na, int remaining)
-+{
-+	return remaining >= (int)sizeof(*na) &&
-+	       na->nla_len >= sizeof(*na) &&
-+	       na->nla_len <= remaining;
-+}
-+
-+static inline struct nlattr *nla_next(const struct nlattr *na, int *remaining)
-+{
-+	int aligned_len = NLA_ALIGN(na->nla_len);
-+
-+	*remaining -= aligned_len;
-+	return (struct nlattr *)((char *)na + aligned_len);
-+}
-+
-+int netlink_open(void);
-+int send_request(int fd, void *buf, size_t len);
-+int get_family_id(int fd, const char *name);
-+
-+#endif /* ACSELFTESTS_ACCT_NETLINK_HELPER_H */
---- a/tools/testing/selftests/acct/taskstats_fill_stats_tgid.c~selftests-acct-share-netlink-helpers
-+++ a/tools/testing/selftests/acct/taskstats_fill_stats_tgid.c
-@@ -16,14 +16,9 @@
- #include <time.h>
- #include <unistd.h>
- 
-+#include "netlink_helper.h"
- #include "kselftest.h"
- 
--#ifndef NLA_ALIGN
--#define NLA_ALIGNTO 4
--#define NLA_ALIGN(len) (((len) + NLA_ALIGNTO - 1) & ~(NLA_ALIGNTO - 1))
--#define NLA_HDRLEN ((int)NLA_ALIGN(sizeof(struct nlattr)))
--#endif
--
- #define BUSY_NS (200ULL * 1000 * 1000)
- 
- struct worker_ctx {
-@@ -35,26 +30,6 @@ struct worker_ctx {
- 
- static unsigned long busy_sink;
- 
--static void *taskstats_nla_data(const struct nlattr *na)
--{
--	return (void *)((char *)na + NLA_HDRLEN);
--}
--
--static bool taskstats_nla_ok(const struct nlattr *na, int remaining)
--{
--	return remaining >= (int)sizeof(*na) &&
--	       na->nla_len >= sizeof(*na) &&
--	       na->nla_len <= remaining;
--}
--
--static struct nlattr *taskstats_nla_next(const struct nlattr *na, int *remaining)
--{
--	int aligned_len = NLA_ALIGN(na->nla_len);
--
--	*remaining -= aligned_len;
--	return (struct nlattr *)((char *)na + aligned_len);
--}
--
- static uint64_t timespec_diff_ns(const struct timespec *start,
- 				 const struct timespec *end)
- {
-@@ -84,99 +59,6 @@ static void burn_cpu_for_ns(uint64_t run
- 	busy_sink = acc;
- }
- 
--static int netlink_open(void)
--{
--	struct sockaddr_nl addr = {
--		.nl_family = AF_NETLINK,
--		.nl_pid = getpid(),
--	};
--	int fd;
--
--	fd = socket(AF_NETLINK, SOCK_RAW, NETLINK_GENERIC);
--	if (fd < 0)
--		return -errno;
--
--	if (bind(fd, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
--		int err = -errno;
--
--		close(fd);
--		return err;
--	}
--
--	return fd;
--}
--
--static int send_request(int fd, void *buf, size_t len)
--{
--	struct sockaddr_nl addr = {
--		.nl_family = AF_NETLINK,
--	};
--
--	if (sendto(fd, buf, len, 0, (struct sockaddr *)&addr, sizeof(addr)) < 0)
--		return -errno;
--
--	return 0;
--}
--
--static int get_family_id(int fd, const char *name)
--{
--	struct {
--		struct nlmsghdr nlh;
--		struct genlmsghdr genl;
--		char buf[256];
--	} req = { 0 };
--	char resp[8192];
--	struct nlmsghdr *nlh;
--	struct genlmsghdr *genl;
--	struct nlattr *na;
--	int len;
--	int rem;
--	int ret;
--
--	req.nlh.nlmsg_len = NLMSG_LENGTH(GENL_HDRLEN);
--	req.nlh.nlmsg_type = GENL_ID_CTRL;
--	req.nlh.nlmsg_flags = NLM_F_REQUEST;
--	req.nlh.nlmsg_seq = 1;
--	req.nlh.nlmsg_pid = getpid();
--
--	req.genl.cmd = CTRL_CMD_GETFAMILY;
--	req.genl.version = 1;
--
--	na = (struct nlattr *)((char *)&req + NLMSG_ALIGN(req.nlh.nlmsg_len));
--	na->nla_type = CTRL_ATTR_FAMILY_NAME;
--	na->nla_len = NLA_HDRLEN + strlen(name) + 1;
--	memcpy(taskstats_nla_data(na), name, strlen(name) + 1);
--	req.nlh.nlmsg_len = NLMSG_ALIGN(req.nlh.nlmsg_len) + NLA_ALIGN(na->nla_len);
--
--	ret = send_request(fd, &req, req.nlh.nlmsg_len);
--	if (ret)
--		return ret;
--
--	len = recv(fd, resp, sizeof(resp), 0);
--	if (len < 0)
--		return -errno;
--
--	for (nlh = (struct nlmsghdr *)resp; NLMSG_OK(nlh, len);
--	     nlh = NLMSG_NEXT(nlh, len)) {
--		if (nlh->nlmsg_type == NLMSG_ERROR) {
--			struct nlmsgerr *err = NLMSG_DATA(nlh);
--
--			return err->error ? err->error : -ENOENT;
--		}
--
--		genl = (struct genlmsghdr *)NLMSG_DATA(nlh);
--		rem = nlh->nlmsg_len - NLMSG_HDRLEN - GENL_HDRLEN;
--		na = (struct nlattr *)((char *)genl + GENL_HDRLEN);
--		while (taskstats_nla_ok(na, rem)) {
--			if (na->nla_type == CTRL_ATTR_FAMILY_ID)
--				return *(uint16_t *)taskstats_nla_data(na);
--			na = taskstats_nla_next(na, &rem);
--		}
--	}
--
--	return -ENOENT;
--}
--
- static int get_taskstats(int fd, int family_id, uint16_t attr_type, uint32_t id,
- 			 struct taskstats *stats)
- {
-@@ -209,7 +91,7 @@ static int get_taskstats(int fd, int fam
- 	na = (struct nlattr *)((char *)&req + NLMSG_ALIGN(req.nlh.nlmsg_len));
- 	na->nla_type = attr_type;
- 	na->nla_len = NLA_HDRLEN + sizeof(id);
--	memcpy(taskstats_nla_data(na), &id, sizeof(id));
-+	memcpy(nla_data(na), &id, sizeof(id));
- 	req.nlh.nlmsg_len = NLMSG_ALIGN(req.nlh.nlmsg_len) + NLA_ALIGN(na->nla_len);
- 
- 	ret = send_request(fd, &req, req.nlh.nlmsg_len);
-@@ -231,21 +113,21 @@ static int get_taskstats(int fd, int fam
- 		genl = (struct genlmsghdr *)NLMSG_DATA(nlh);
- 		rem = nlh->nlmsg_len - NLMSG_HDRLEN - GENL_HDRLEN;
- 		na = (struct nlattr *)((char *)genl + GENL_HDRLEN);
--		while (taskstats_nla_ok(na, rem)) {
-+		while (nla_ok(na, rem)) {
- 			if (na->nla_type == TASKSTATS_TYPE_AGGR_PID ||
- 			    na->nla_type == TASKSTATS_TYPE_AGGR_TGID) {
--				nested = (struct nlattr *)taskstats_nla_data(na);
-+				nested = (struct nlattr *)nla_data(na);
- 				nrem = na->nla_len - NLA_HDRLEN;
--				while (taskstats_nla_ok(nested, nrem)) {
-+				while (nla_ok(nested, nrem)) {
- 					if (nested->nla_type == TASKSTATS_TYPE_STATS) {
--						memcpy(stats, taskstats_nla_data(nested),
-+						memcpy(stats, nla_data(nested),
- 						       sizeof(*stats));
- 						return 0;
- 					}
--					nested = taskstats_nla_next(nested, &nrem);
-+					nested = nla_next(nested, &nrem);
- 				}
- 			}
--			na = taskstats_nla_next(na, &rem);
-+			na = nla_next(na, &rem);
- 		}
- 	}
- 
+-	/* 16-bit DOS 1.x reliably wrote bootstrap short-jmp code */
+-	if (b->ignored[0] != 0xeb || b->ignored[2] != 0x90) {
++	/* 16-bit DOS 1.x reliably wrote bootstrap short-jmp or near-jmp code */
++	if ((b->ignored[0] != 0xeb || b->ignored[2] != 0x90) &&
++	    (b->ignored[0] != 0xe9)) {
+ 		if (!silent)
+ 			fat_msg(sb, KERN_ERR,
+ 				"%s; no bootstrapping code", notdos1x);
 _
 
-Patches currently in -mm which might be from cyyzero16@gmail.com are
+Patches currently in -mm which might be from zhangcoder@yeah.net are
 
 
