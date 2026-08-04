@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0D1D2423EA9
-	for <mm-commits@vger.kernel.org>; Tue,  4 Aug 2026 04:04:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 69AA8423E9D;
+	Tue,  4 Aug 2026 04:04:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785816299; cv=none; b=WY9NXB62a+FyoGMZD+Yo+qKn2Wk6DT2pUcqZiDYkdGSRLJLMjmOiAHhyW/+k88ka1KYCCzQVnLoSGyHn/6GN4ymO6WBerJAYs+4NPpME+YMV5cnUugcT2uAuIeCvPxvl8cATA6FgdO31S8NQ4dbJonKGikm3U+d9ZEtteW5qxek=
+	t=1785816300; cv=none; b=m/sc6rizJEHtN/pRemfwebi9CJUDZWjXRn5aaWBpWyyQPdspNWhuCQf6ZWP1ckGGQgfQXY0UtpURS35cvRxTwfrcA6cCBrkBhJpSeoh88qjK0YhwE0aoDOijv3M3CjJ2O8WgbafM7mj3oNO6alVVcxOqDj3iDNPcJC9UATlPebs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785816299; c=relaxed/simple;
-	bh=eFsN/YAVT0hRFDVwcQDJ5JiymYQSaGFo9cscNuhKSNw=;
-	h=Date:To:From:Subject:Message-Id; b=LAQRHfnoPTsNY2RIkUlIWYMnOyxrnRTmncEZ6f48AiyR2LrCkpU8hzO9ZLnK0WGsIeh+bWnpFhlGN48yo+PCq899ibrbXMvaDzdXgQ+iiTdakXxgT788VyQvWtYs4f4EIx5+HoJOogTfUrIv+98S0FPiw6JhTcdaPdkG1DALEno=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Y8DyuZnK; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785816300; c=relaxed/simple;
+	bh=vXQh7tQvWrniMpFST5Xx/v0mI6LFZxnLh5KSnj48gM4=;
+	h=Date:To:From:Subject:Message-Id; b=ShAawpKUD3xKxdAt6aku/ae9JHm6/rCXEHL8UI/kv/DynaLdBCgfjFqJApP4dHHp4qEKPtQso28dYNSu56ya/fTYaBCq4YY8QbvpmnASmlfYZA0B9MbacRwZsHrJa1TK/zPSPPAMURs88aXcecSqyWqLJcUceO5lVLtMFZaniHE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=x0Kn2yxX; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Y8DyuZnK"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D3F1D1F000E9;
-	Tue,  4 Aug 2026 04:04:57 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="x0Kn2yxX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0059F1F00A3A;
+	Tue,  4 Aug 2026 04:04:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785816297;
-	bh=mLZ8SzL25sggLdqYxDTD7UhR0iuhFGjp/pMIcKIUr2k=;
+	d=linux-foundation.org; s=korg; t=1785816299;
+	bh=HM6MWdURkbdrg2OecRgOVPzZIw5eU9Cp58GgIT4mrV8=;
 	h=Date:To:From:Subject;
-	b=Y8DyuZnKEdDJoe+zVQXN1Uxa99m52YkbqrcGRYQRUATQAeBbfZWhZdLBzVUpRK1LQ
-	 ckUo3pw44YOkBVzNLW34LUwU1H/0bASCf/DmS66U3Jaefh49SMfAMuD+AqMSCJADi/
-	 KCJZrXJo+P4o0rKBHiPmDzsIQLe8LCX2g1XKJ/qc=
-Date: Mon, 03 Aug 2026 21:04:57 -0700
-To: mm-commits@vger.kernel.org,wang.yaxin@zte.com.cn,fan.yu9@zte.com.cn,sarasena.adr@gmail.com,akpm@linux-foundation.org
+	b=x0Kn2yxXLSRPR3VCYWydDq2n/Xavyb9qzTcZEpnTuP+OdsfatjyUwqkuwO02MyvYq
+	 6MDIORDeXNufB+OgaJayiv6IG5VBYVOiL1u0CHKrnJuRn3wv3US5AiA9iz0EXfdyid
+	 WyWdEpVdBA6Qq3avq/P1CzRkd6Dj+QmicJgAPjQ8=
+Date: Mon, 03 Aug 2026 21:04:58 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,nathan@kernel.org,david.laight.linux@gmail.com,rkr0k0r@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] tools-accounting-delaytopc-fix-typo-in-psi-header-string.patch removed from -mm tree
-Message-Id: <20260804040457.D3F1D1F000E9@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] tools-compiler-match-glibc-242-definition-of-__attribute_const__.patch removed from -mm tree
+Message-Id: <20260804040459.0059F1F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,41 +35,62 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: tools/accounting/delaytop.c: fix typo in PSI header string
+     Subject: tools/compiler: match glibc 2.42 definition of __attribute_const__
 has been removed from the -mm tree.  Its filename was
-     tools-accounting-delaytopc-fix-typo-in-psi-header-string.patch
+     tools-compiler-match-glibc-242-definition-of-__attribute_const__.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Sara Sena <sarasena.adr@gmail.com>
-Subject: tools/accounting/delaytop.c: fix typo in PSI header string
-Date: Tue, 30 Jun 2026 22:11:53 -0300
+From: "Joy H.J. Lee" <rkr0k0r@gmail.com>
+Subject: tools/compiler: match glibc 2.42 definition of __attribute_const__
+Date: Thu, 2 Jul 2026 05:06:35 +0900
 
-Link: https://lore.kernel.org/20260701011153.93426-1-sarasena.adr@gmail.com
-Signed-off-by: Sara Sena <sarasena.adr@gmail.com>
-Cc: Fan Yu <fan.yu9@zte.com.cn>
-Cc: Wang Yaxin <wang.yaxin@zte.com.cn>
+glibc 2.42 added __attribute_const__ to sys/cdefs.h:
+
+    # define __attribute_const__ __attribute__ ((__const__))
+
+GCC 15 warns when a macro is redefined to a different replacement list
+(-Wbuiltin-macro-redefined). Since host tool Makefiles (resolve_btfids,
+objtool) pass -Werror, this conflict becomes fatal.
+
+The warning is suppressed on standard native builds because GCC treats
+/usr/include as a system header path (-isystem), and macro-redefinition
+warnings from system headers are silently suppressed by GCC. It fires
+when glibc headers are on a regular include path (-I) instead, which
+is the case in cross-compilation setups such as NixOS, where the
+sysroot's glibc is passed explicitly via -I rather than -isystem.
+
+Per (C11 6.10.3), identical replacement lists are accepted silently.
+Match the glibc definition exactly, including the space before "((", so
+the redefinition is accepted without warning regardless of whether
+glibc headers are treated as system or non-system includes.
+
+Link: https://lore.kernel.org/20260701200635.3992767-1-rkr0k0r@gmail.com
+Signed-off-by: Joy H.J. Lee <rkr0k0r@gmail.com>
+Cc: Nathan Chancellor <nathan@kernel.org>
+Cc: David Laight <david.laight.linux@gmail.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/accounting/delaytop.c |    2 +-
+ tools/include/linux/compiler.h |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/tools/accounting/delaytop.c~tools-accounting-delaytopc-fix-typo-in-psi-header-string
-+++ a/tools/accounting/delaytop.c
-@@ -878,7 +878,7 @@ static void display_results(int psi_ret)
- 	suc &= BOOL_FPRINT(out, "\033[H\033[J");
+--- a/tools/include/linux/compiler.h~tools-compiler-match-glibc-242-definition-of-__attribute_const__
++++ a/tools/include/linux/compiler.h
+@@ -119,7 +119,7 @@
+ #define __read_mostly
  
- 	/* PSI output (one-line, no cat style) */
--	suc &= BOOL_FPRINT(out, "System Pressure Information: (avg10/avg60vg300/total)\n");
-+	suc &= BOOL_FPRINT(out, "System Pressure Information: (avg10/avg60/avg300/total)\n");
- 	if (psi_ret) {
- 		suc &= BOOL_FPRINT(out, "  PSI not found: check if psi=1 enabled in cmdline\n");
- 	} else {
+ #ifndef __attribute_const__
+-# define __attribute_const__
++# define __attribute_const__ __attribute__ ((__const__))
+ #endif
+ 
+ #ifndef __maybe_unused
 _
 
-Patches currently in -mm which might be from sarasena.adr@gmail.com are
+Patches currently in -mm which might be from rkr0k0r@gmail.com are
 
 
