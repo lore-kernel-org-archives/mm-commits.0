@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 12A68423E9D
-	for <mm-commits@vger.kernel.org>; Tue,  4 Aug 2026 04:05:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8F39742BC4F
+	for <mm-commits@vger.kernel.org>; Tue,  4 Aug 2026 04:05:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785816304; cv=none; b=ZkaPELbiv55FhR7AY0o8vJRwGGPNmJ0L679EVgNR7XV9vu1245b+Sg4i9cRsofb1kURtYhYQzCyKHkJMQCFtd8ubMa9re9dazKLhavPcezFRwk/29Vx0ADeuaO58YX0/TrX9GahxFEWtLSGp+K9Mh3UL2JPhd56mZ4hlHu20lok=
+	t=1785816305; cv=none; b=tgLQl7Nt+MWzD8f4rnB/S0uV5WmusRUcPNmNBs2KvDk+h4d6MMUaf+1jFOaAvmN7+6mPc5hst1MpcO23pyrVTsZJ/ZV/Mpog3ZjlAbZCVGKg9FshCp5VD9ynDpN6CwUlsrqUqDKv5Zoifl95dgnJZV9vCyJTLSzn1HBgAXq1Qnw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785816304; c=relaxed/simple;
-	bh=Ka/xBWgx65sOtBL3bnYvJ6e4PKkE3F0CtVXeChndKZI=;
-	h=Date:To:From:Subject:Message-Id; b=gG5dwQts682B6c/iPkr6VS4X86/3plAbigyPVUd96jCXcgZxezSacRCeUsjTFbMlj7zhBdVENP7huHVh5Zu4tfzUs8v1OlvkMORvokoajax+XTEXdVc1LFCQkzYwf4pqR57HWhM15qZsERllPcTgzb+H48pBiXOnmr4PKm1qQJA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=a53CRSAl; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785816305; c=relaxed/simple;
+	bh=oGU65ZVdH8IHA7dAmlzAAKPpzG5Jb6AQEvyfhMSB9q8=;
+	h=Date:To:From:Subject:Message-Id; b=BSag8Tk9wKP+yamuzSrEiu2aWLC2wP9bBKNoixKnLx9JS+Km4ePtJ7hG18MS9KFbeBCRjyyNSZR50T+T9drOsf4b01slsH9mu/gK0KbNh1pYFsQMcgmObxXZW5L0MQUAyjO+4dAFeH7V+5y1ZApqwgX5FQesTqqiGxTaw0fr340=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=itPbL9uc; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="a53CRSAl"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E18E01F000E9;
-	Tue,  4 Aug 2026 04:05:02 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="itPbL9uc"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0F2061F00A3A;
+	Tue,  4 Aug 2026 04:05:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785816303;
-	bh=X9qlNCEop+0COm4qdwGzgKShiDKIc6YYhTaUNHCqai4=;
+	d=linux-foundation.org; s=korg; t=1785816304;
+	bh=RIx3YVeGVU2d18YtNWknbu2KeCXtJsCdoQvR1Ap1rHU=;
 	h=Date:To:From:Subject;
-	b=a53CRSAleme24Q8xIg1b7NcQ3ZFYnsppTmiElMdDCcfOcrj0xHcDGB4tqpNHmQ/sX
-	 E0NL4puSpZHYi5yOgdy8BBk3wxEe+QOB5qcJfatYkXGNRshuWtk9qbR+FjZBYSPRVC
-	 l5ZDqW27PgbOQZLBH2MdQHJKrdh1RQPYEjLv5wyY=
-Date: Mon, 03 Aug 2026 21:05:02 -0700
-To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,heming.zhao@suse.com,gechangwei@live.cn,r772577952@gmail.com,akpm@linux-foundation.org
+	b=itPbL9uc7YiS4iFA+M7wMBP8oxDoT/9/8FBAh0RLxqeBflE+kci6GlC9sGtSTDZPl
+	 xN5pXBjqdLqvS0lAlzBowWfLwSpt5uarJ8fuMc/SNvgwsAPqMXbweRrs0EEoWy459z
+	 o/jqgwd3U5th4X0OiUfsSqnsv9ep/1M8/ssCcmzE=
+Date: Mon, 03 Aug 2026 21:05:03 -0700
+To: mm-commits@vger.kernel.org,giometti@enneenne.com,calvin@wbinvd.org,bigeasy@linutronix.de,by@by-online.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] ocfs2-fix-hung-task-in-orphan-recovery.patch removed from -mm tree
-Message-Id: <20260804040502.E18E01F000E9@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] pps-pps-gpio-split-irq-handler-into-hardirq-timestamper-threaded-handler.patch removed from -mm tree
+Message-Id: <20260804040504.0F2061F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,149 +35,118 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: ocfs2: fix hung task in orphan recovery
+     Subject: pps: pps-gpio: split IRQ handler into hardirq timestamper + threaded handler
 has been removed from the -mm tree.  Its filename was
-     ocfs2-fix-hung-task-in-orphan-recovery.patch
+     pps-pps-gpio-split-irq-handler-into-hardirq-timestamper-threaded-handler.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Jiaming Zhang <r772577952@gmail.com>
-Subject: ocfs2: fix hung task in orphan recovery
-Date: Thu, 2 Jul 2026 17:05:07 +0800
+From: Michael Byczkowski <by@by-online.de>
+Subject: pps: pps-gpio: split IRQ handler into hardirq timestamper + threaded handler
+Date: Mon, 1 Jun 2026 17:44:09 -0700
 
-A crafted OCFS2 image with corrupted orphan-directory extent metadata can
-make umount hang.
+Split the pps-gpio interrupt handler into a primary (hardirq) handler that
+captures the PPS timestamp at interrupt entry, and a threaded handler that
+processes the event.  This produces the same two-part handler structure on
+both PREEMPT_RT and non-RT kernels.
 
-During unmount, ocfs2_recovery_disable() waits for the
-ocfs2_complete_recovery work item to finish.  The worker scans the orphan
-directory through ocfs2_queue_orphans() and ocfs2_dir_foreach().  If
-ocfs2_read_dir_block() fails on a corrupted directory block,
-ocfs2_dir_foreach_blk_el() skips the block and continues walking.  On a
-badly corrupted directory this can keep orphan recovery busy for a long
-time, leaving umount blocked while flushing osb->ocfs2_wq.
+On non-RT kernels the threaded portion runs immediately after the primary,
+with no behavioral change compared to the previous single-handler
+implementation.
 
-Return the read error immediately for full directory scans and propagate
-the error from ocfs2_dir_foreach().  When ocfs2_empty_dir() receives such
-an error, report the directory as non-empty so unlink/rmdir does not
-proceed on an unreadable directory.
+On PREEMPT_RT, where interrupt handlers are force-threaded by default, the
+previous single-handler implementation captured the timestamp inside the
+threaded portion, after IRQ-thread scheduling delay.  With the split, the
+timestamp is captured in true hardirq context as it is on non-RT kernels,
+eliminating a significant source of PPS jitter on RT systems.
 
-Link: https://lore.kernel.org/20260702090507.446517-1-r772577952@gmail.com
-Closes: https://lore.kernel.org/lkml/CANypQFbWH76Y6LWHEwAvTP7aQL04uMJ=dDyL6YDmxa3fv3Tyjg@mail.gmail.com/
-Assisted-by: Codex:gpt-5.5-xhigh
-Signed-off-by: Jiaming Zhang <r772577952@gmail.com>
-Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Jun Piao <piaojun@huawei.com>
-Cc: Heming Zhao <heming.zhao@suse.com>
+Link: https://lore.kernel.org/2e32729029fbf6977ecf04665eb00f2efd3e2c17.1780359378.git.calvin@wbinvd.org
+Signed-off-by: Michael Byczkowski <by@by-online.de>
+Signed-off-by: Calvin Owens <calvin@wbinvd.org>
+Reviewed-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Tested-by: Michael Byczkowski <by@by-online.de>
+Tested-by: Calvin Owens <calvin@wbinvd.org>
+Acked-by: Rodolfo Giometti <giometti@enneenne.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/dir.c   |   20 ++++++++++++++------
- fs/ocfs2/namei.c |   11 ++++++++---
- 2 files changed, 22 insertions(+), 9 deletions(-)
+ drivers/pps/clients/pps-gpio.c |   37 ++++++++++++++++++++-----------
+ 1 file changed, 25 insertions(+), 12 deletions(-)
 
---- a/fs/ocfs2/dir.c~ocfs2-fix-hung-task-in-orphan-recovery
-+++ a/fs/ocfs2/dir.c
-@@ -1867,6 +1867,7 @@ static int ocfs2_dir_foreach_blk_el(stru
- 	struct super_block * sb = inode->i_sb;
- 	unsigned int ra_sectors = 16;
- 	int stored = 0;
-+	int ret;
- 
- 	bh = NULL;
- 
-@@ -1874,9 +1875,13 @@ static int ocfs2_dir_foreach_blk_el(stru
- 
- 	while (ctx->pos < i_size_read(inode)) {
- 		blk = ctx->pos >> sb->s_blocksize_bits;
--		if (ocfs2_read_dir_block(inode, blk, &bh, 0)) {
-+		ret = ocfs2_read_dir_block(inode, blk, &bh, 0);
-+		if (ret) {
-+			if (persist)
-+				return ret;
- 			/* Skip the corrupt dirblock and keep trying */
- 			ctx->pos += sb->s_blocksize - offset;
-+			offset = 0;
- 			continue;
- 		}
- 
-@@ -1970,8 +1975,7 @@ static int ocfs2_dir_foreach_blk(struct
- int ocfs2_dir_foreach(struct inode *inode, struct dir_context *ctx)
- {
- 	u64 version = inode_query_iversion(inode);
--	ocfs2_dir_foreach_blk(inode, &version, ctx, true);
--	return 0;
-+	return ocfs2_dir_foreach_blk(inode, &version, ctx, true);
- }
+--- a/drivers/pps/clients/pps-gpio.c~pps-pps-gpio-split-irq-handler-into-hardirq-timestamper-threaded-handler
++++ a/drivers/pps/clients/pps-gpio.c
+@@ -34,33 +34,44 @@ struct pps_gpio_device_data {
+ 	bool capture_clear;
+ 	unsigned int echo_active_ms;	/* PPS echo active duration */
+ 	unsigned long echo_timeout;	/* timer timeout value in jiffies */
++	struct pps_event_time ts;	/* timestamp captured in hardirq */
+ };
  
  /*
-@@ -2168,7 +2172,7 @@ out:
- /*
-  * routine to check that the specified directory is empty (for rmdir)
-  *
-- * Returns 1 if dir is empty, zero otherwise.
-+ * Returns 1 if dir is empty, zero if not, and a negative errno on error.
-  *
-  * XXX: This is a performance problem for unindexed directories.
+  * Report the PPS event
   */
-@@ -2181,8 +2185,10 @@ int ocfs2_empty_dir(struct inode *inode)
  
- 	if (ocfs2_dir_indexed(inode)) {
- 		ret = ocfs2_empty_dir_dx(inode, &priv);
--		if (ret)
-+		if (ret) {
- 			mlog_errno(ret);
-+			return ret;
-+		}
- 		/*
- 		 * We still run ocfs2_dir_foreach to get the checks
- 		 * for "." and "..".
-@@ -2190,8 +2196,10 @@ int ocfs2_empty_dir(struct inode *inode)
+-static irqreturn_t pps_gpio_irq_handler(int irq, void *data)
++/*
++ * Primary hardirq handler -- runs in hardirq context even on PREEMPT_RT.
++ * Only captures the timestamp; all other work is deferred to the thread.
++ */
++static irqreturn_t pps_gpio_irq_hardirq(int irq, void *data)
+ {
+-	const struct pps_gpio_device_data *info;
+-	struct pps_event_time ts;
+-	int rising_edge;
++	struct pps_gpio_device_data *info = data;
++
++	pps_get_ts(&info->ts);
+ 
+-	/* Get the time stamp first */
+-	pps_get_ts(&ts);
++	return IRQ_WAKE_THREAD;
++}
+ 
+-	info = data;
++/*
++ * Threaded handler -- processes the PPS event using the timestamp
++ * captured in hardirq context above.
++ */
++static irqreturn_t pps_gpio_irq_thread(int irq, void *data)
++{
++	struct pps_gpio_device_data *info = data;
++	int rising_edge;
+ 
+-	/* Small trick to bypass the check on edge's direction when capture_clear is unset */
+ 	rising_edge = info->capture_clear ?
+ 		      gpiod_get_value(info->gpio_pin) : !info->assert_falling_edge;
+ 	if ((rising_edge && !info->assert_falling_edge) ||
+ 			(!rising_edge && info->assert_falling_edge))
+-		pps_event(info->pps, &ts, PPS_CAPTUREASSERT, data);
++		pps_event(info->pps, &info->ts, PPS_CAPTUREASSERT, data);
+ 	else if (info->capture_clear &&
+ 			((rising_edge && info->assert_falling_edge) ||
+ 			(!rising_edge && !info->assert_falling_edge)))
+-		pps_event(info->pps, &ts, PPS_CAPTURECLEAR, data);
++		pps_event(info->pps, &info->ts, PPS_CAPTURECLEAR, data);
+ 	else
+ 		dev_warn_ratelimited(&info->pps->dev, "IRQ did not trigger any PPS event\n");
+ 
+@@ -209,8 +220,10 @@ static int pps_gpio_probe(struct platfor
  	}
  
- 	ret = ocfs2_dir_foreach(inode, &priv.ctx);
--	if (ret)
-+	if (ret) {
- 		mlog_errno(ret);
-+		return ret;
-+	}
- 
- 	if (!priv.seen_dot || !priv.seen_dot_dot) {
- 		mlog(ML_ERROR, "bad directory (dir #%llu) - no `.' or `..'\n",
---- a/fs/ocfs2/namei.c~ocfs2-fix-hung-task-in-orphan-recovery
-+++ a/fs/ocfs2/namei.c
-@@ -945,7 +945,10 @@ static int ocfs2_unlink(struct inode *di
- 	child_locked = 1;
- 
- 	if (S_ISDIR(inode->i_mode)) {
--		if (inode->i_nlink != 2 || !ocfs2_empty_dir(inode)) {
-+		status = ocfs2_empty_dir(inode);
-+		if (status < 0)
-+			goto leave;
-+		if (inode->i_nlink != 2 || !status) {
- 			status = -ENOTEMPTY;
- 			goto leave;
- 		}
-@@ -1499,8 +1502,10 @@ static int ocfs2_rename(struct mnt_idmap
- 
- 	if (target_exists) {
- 		if (S_ISDIR(new_inode->i_mode)) {
--			if (new_inode->i_nlink != 2 ||
--			    !ocfs2_empty_dir(new_inode)) {
-+			status = ocfs2_empty_dir(new_inode);
-+			if (status < 0)
-+				goto bail;
-+			if (new_inode->i_nlink != 2 || !status) {
- 				status = -ENOTEMPTY;
- 				goto bail;
- 			}
+ 	/* register IRQ interrupt handler */
+-	ret = request_irq(data->irq, pps_gpio_irq_handler,
+-			  get_irqf_trigger_flags(data), data->info.name, data);
++	ret = request_threaded_irq(data->irq,
++			  pps_gpio_irq_hardirq, pps_gpio_irq_thread,
++			  get_irqf_trigger_flags(data) | IRQF_ONESHOT,
++			  data->info.name, data);
+ 	if (ret) {
+ 		pps_unregister_source(data->pps);
+ 		dev_err(dev, "failed to acquire IRQ %d\n", data->irq);
 _
 
-Patches currently in -mm which might be from r772577952@gmail.com are
+Patches currently in -mm which might be from by@by-online.de are
 
 
