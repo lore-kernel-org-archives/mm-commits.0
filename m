@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E06AE3AD51A
-	for <mm-commits@vger.kernel.org>; Tue,  4 Aug 2026 04:05:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0FD273E8C74
+	for <mm-commits@vger.kernel.org>; Tue,  4 Aug 2026 04:05:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785816340; cv=none; b=quFAAK1r++AnwtpEMDAaA4/GzCb5Kz/iD4ChoMDrXJNZq8nxw2D02v+CBPnV9eL1Z3ii2Edp3PvbBVLE/dGeKNdYiXPtyUr/iNyEPHdmFpmyloyEimSgziTBp8VM1UvlQuGelOt3U9co1Cl/jN/+/zWL851zWxPFUlodEC7Om7k=
+	t=1785816341; cv=none; b=W2jYfpevYCsNAY/4mmlaSy8ucj8d0LXqHNX41RPGBuRG183iilWw9KJUsdqoC6KWr0kZE8s5qyFW/EZYpnlhaUZS9dYdoHc53oJDxMEDeJNqXED0OE5nd3oT8uGaJ33sMYeGz6+bZ2Y6V0ROVQbGQyzFurSHvr+k1zO81lsKMDo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785816340; c=relaxed/simple;
-	bh=nfkrHEf43ixGEmUqNCBwlbElGom8Oi4HNU2OEmYZzng=;
-	h=Date:To:From:Subject:Message-Id; b=RgZp5fg93jfVjLG7guCSRQo4bfzZqZny8xxaTOzp653imSOaCA9/qAVdGAykgY9F78bFlcodPPxCWUzsUpsekFNjFrwZ0f5fo7N//OU+tIUeeJRQpnBMeKhoXXXOrXkCufW/PlKhFOlx5NS0opx901LMSbY+FsTe822hu5VrwRo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=j3VA+AS8; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785816341; c=relaxed/simple;
+	bh=VTcrnw7Rmry5KQ0REvpdiGBhiZm59JXcXm89tFuDO8U=;
+	h=Date:To:From:Subject:Message-Id; b=AJzJJJKa9sDtCzVVae8VYjBAseWzbqrOxWoLDQLTqMs97g2iyGslVHTyw0d5DDmsqAeERlnZ8KmOfCJIYtjv8nFwzRkJhqYeToSjklIrsjaFGwlzBwZcjda0UUMrweBGfv4JkFNMeOxXgqVEZmR5RGr0Ac5IObox1IRcGIi7xSs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=khYe+uWn; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="j3VA+AS8"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B7CD41F00A3A;
-	Tue,  4 Aug 2026 04:05:38 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="khYe+uWn"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DB3611F000E9;
+	Tue,  4 Aug 2026 04:05:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785816338;
-	bh=CTUX1xcQyz0dqgWXpOYRanV4YbXP9Kxb8oWmkvtEvVg=;
+	d=linux-foundation.org; s=korg; t=1785816340;
+	bh=d5M0wvTA2grd05flM9oQaOnbKLgty/q7Qj0iFIwVl3c=;
 	h=Date:To:From:Subject;
-	b=j3VA+AS8ToV21agTDBwLiCYLIOpTC5lMpqpesMxillsbzNoG/1yLIqEGZ+RJ86gj3
-	 ezXjPEMIVOnXaAqZfwVNMvDuFgPTAiEP6aAjKHmyCIslQFE8NQJCSF7hxddR+2x8rJ
-	 w5X7Dxv7cYgVxoRL6y+0l6Ifp567yiMIL4wwkMOo=
-Date: Mon, 03 Aug 2026 21:05:38 -0700
-To: mm-commits@vger.kernel.org,ebiggers@kernel.org,hch@lst.de,akpm@linux-foundation.org
+	b=khYe+uWnDLmx+8YSFv8Hqi9IYmp0ZGIMiSMI2g2y2hjTwUPtRUvanbN2Yahco39Bh
+	 CjIjhnPRFNUbxi6t9BTO8aUa/4UlO8Pgc65ctfB/ATIQMyWp/bc6JX8KwuVEoSwLfy
+	 9gfXSCAZ7kHHN2HQedqW00C/Lsh2g+Y36Sgyx4+4=
+Date: Mon, 03 Aug 2026 21:05:39 -0700
+To: mm-commits@vger.kernel.org,ravi.n1@samsung.com,namjae.jeon@samsung.com,hirofumi@mail.parknet.co.jp,brauner@kernel.org,a.sahrawat@samsung.com,chenyichong@uniontech.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] raid6-kunit-add-a-benchmark.patch removed from -mm tree
-Message-Id: <20260804040538.B7CD41F00A3A@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] fat-release-buffer-head-after-rebuilding-parent.patch removed from -mm tree
+Message-Id: <20260804040539.DB3611F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,159 +35,60 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: raid6/kunit: add a benchmark
+     Subject: fat: release buffer head after rebuilding parent
 has been removed from the -mm tree.  Its filename was
-     raid6-kunit-add-a-benchmark.patch
+     fat-release-buffer-head-after-rebuilding-parent.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Christoph Hellwig <hch@lst.de>
-Subject: raid6/kunit: add a benchmark
-Date: Wed, 15 Jul 2026 16:47:39 +0200
+From: Yichong Chen <chenyichong@uniontech.com>
+Subject: fat: release buffer head after rebuilding parent
+Date: Wed, 15 Jul 2026 10:09:57 +0800
 
-Add a benchmark to test the RAID 6 P/Q functions for more representative
-block sizes and numbers of disks.  This splits the maximum alloc size used
-for the benchmark from the max size for the kunit test because recovery is
-currently limited to a single page at a time.  Hopefully this will be
-fixed soon.
+fat_scan_logstart() leaves the matching directory entry's buffer head in
+sinfo.bh for the caller to release, just like fat_scan().
 
-The runtime numbers are reported in GB/s as the numbers of modern
-implementations are basically unreadable as MB/s.  This means
-retro-architectures could report 0, but that is an easy tradeoff.
+fat_rebuild_parent() uses the directory entry to rebuild the parent inode
+for the nostale_ro NFS export path, but does not release sinfo.bh after a
+successful scan.  Release it once fat_build_inode() has consumed the
+directory entry data.
 
-Link: https://lore.kernel.org/20260715144825.95432-9-hch@lst.de
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Cc: Eric Biggers <ebiggers@kernel.org>
+Link: https://lore.kernel.org/20260715020957.1096309-1-chenyichong@uniontech.com
+Fixes: f1e6fb0ab451 ("fat (exportfs): rebuild directory-inode if fat_dget()")
+Signed-off-by: Yichong Chen <chenyichong@uniontech.com>
+Acked-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Amit Sahrawat <a.sahrawat@samsung.com>
+Cc: chenyichong <chenyichong@uniontech.com>
+Cc: Namjae Jeon <namjae.jeon@samsung.com>
+Cc: Ravishankar N <ravi.n1@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/raid/Kconfig                   |    6 ++
- lib/raid/raid6/tests/raid6_kunit.c |   66 ++++++++++++++++++++++++++-
- 2 files changed, 71 insertions(+), 1 deletion(-)
+ fs/fat/nfs.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
---- a/lib/raid/Kconfig~raid6-kunit-add-a-benchmark
-+++ a/lib/raid/Kconfig
-@@ -60,6 +60,12 @@ config RAID6_PQ_KUNIT_TEST
- 	  This is intended to help people writing architecture-specific
- 	  optimized versions.  If unsure, say N.
+--- a/fs/fat/nfs.c~fat-release-buffer-head-after-rebuilding-parent
++++ a/fs/fat/nfs.c
+@@ -250,8 +250,10 @@ struct inode *fat_rebuild_parent(struct
+ 		MSDOS_I(dummy_grand_parent)->i_pos = -1;
+ 	}
  
-+config RAID6_PQ_KUNIT_BENCHMARK
-+	bool "Benchmark for RAID6 PQ"
-+	depends on RAID6_PQ_KUNIT_TEST
-+	help
-+	  Include benchmarks in the KUnit test suite for raid P/Q generation.
-+
- config RAID6_PQ_BENCHMARK
- 	bool "Automatically choose fastest RAID6 PQ functions"
- 	depends on RAID6_PQ
---- a/lib/raid/raid6/tests/raid6_kunit.c~raid6-kunit-add-a-benchmark
-+++ a/lib/raid/raid6/tests/raid6_kunit.c
-@@ -18,6 +18,7 @@ MODULE_IMPORT_NS("EXPORTED_FOR_KUNIT_TES
- #define RAID6_KUNIT_MAX_BUFFERS		64 /* Including P and Q */
- #define RAID6_KUNIT_MAX_FAILURES	2
- #define RAID6_KUNIT_MAX_BYTES		PAGE_SIZE
-+#define RAID6_KUNIT_ALLOC_BYTES		SZ_16K
- 
- static struct rnd_state rng;
- static void *test_buffers[RAID6_KUNIT_MAX_BUFFERS];
-@@ -229,6 +230,68 @@ static void raid6_test(struct kunit *tes
- 		raid6_test_one(test);
- }
- 
-+static void raid6_benchmark(struct kunit *test)
-+{
-+	static const unsigned int nr_to_test[] = {
-+		4, 5, 6, 7, 8, 10, 12, 15, 16, 32,
-+	};
-+	static const unsigned int len_to_test[] = {
-+		SZ_4K, SZ_16K,
-+	};
-+	unsigned int i, j, l;
-+	u64 t;
-+
-+	if (!IS_ENABLED(CONFIG_RAID6_PQ_KUNIT_BENCHMARK))
-+		kunit_skip(test, "not enabled");
-+
-+	/* warm-up */
-+	for (i = 0; i < ARRAY_SIZE(nr_to_test); i++) {
-+		for (j = 0; j < ARRAY_SIZE(len_to_test); j++) {
-+			for (l = 0; l < 10; l++) {
-+				raid6_gen_syndrome(nr_to_test[i],
-+						len_to_test[j], test_buffers);
-+			}
-+		}
+-	if (!fat_scan_logstart(dummy_grand_parent, clus_to_match, &sinfo))
++	if (!fat_scan_logstart(dummy_grand_parent, clus_to_match, &sinfo)) {
+ 		parent = fat_build_inode(sb, sinfo.de, sinfo.i_pos);
++		brelse(sinfo.bh);
 +	}
-+
-+	/*
-+	 * Preferably this would be a loop over len_to_test, but the kunit
-+	 * logging always adds a newline to each logged format string.
-+	 */
-+	static_assert(ARRAY_SIZE(len_to_test) == 2);
-+	kunit_info(test, "          \t%5u bytes\t%5u bytes\n",
-+			len_to_test[0], len_to_test[1]);
-+
-+	for (i = 0; i < ARRAY_SIZE(nr_to_test); i++) {
-+		unsigned int nr = nr_to_test[i];
-+		u64 speed[ARRAY_SIZE(len_to_test)];
-+
-+		KUNIT_ASSERT_LE(test, nr, RAID6_KUNIT_MAX_BUFFERS);
-+
-+		for (j = 0; j < ARRAY_SIZE(len_to_test); j++) {
-+			unsigned int len = len_to_test[j];
-+			const unsigned long num_iters = 1000;
-+
-+			KUNIT_ASSERT_GT(test, len, 0);
-+			KUNIT_ASSERT_LE(test, len, RAID6_KUNIT_ALLOC_BYTES);
-+
-+			preempt_disable();
-+			t = ktime_get_ns();
-+			for (l = 0; l < num_iters; l++)
-+				raid6_gen_syndrome(nr_to_test[i],
-+						len_to_test[j], test_buffers);
-+			t = max(ktime_get_ns() - t, 1);
-+			preempt_enable();
-+
-+			speed[j] = div64_u64((u64)len * num_iters * nr, t);
-+		}
-+
-+		static_assert(ARRAY_SIZE(len_to_test) == 2);
-+		kunit_info(test, "%3u disks:\t%5llu  GB/s\t%5llu  GB/s\n",
-+				nr, speed[0], speed[1]);
-+	}
-+}
-+
- static const void *raid6_gen_params(struct kunit *test, const void *prev,
- 		char *desc)
- {
-@@ -256,6 +319,7 @@ next_algo:
  
- static struct kunit_case raid6_test_cases[] = {
- 	KUNIT_CASE_PARAM(raid6_test, raid6_gen_params),
-+	KUNIT_CASE(raid6_benchmark),
- 	{},
- };
- 
-@@ -270,7 +334,7 @@ static int raid6_suite_init(struct kunit
- 	 * so that it is immediately followed by a guard page.  This allows
- 	 * buffer overreads to be detected, even in assembly code.
- 	 */
--	test_buflen = round_up(RAID6_KUNIT_MAX_BYTES, PAGE_SIZE);
-+	test_buflen = round_up(RAID6_KUNIT_ALLOC_BYTES, PAGE_SIZE);
- 	for (i = 0; i < RAID6_KUNIT_MAX_FAILURES; i++) {
- 		test_recov_buffers[i] = vmalloc(test_buflen);
- 		if (!test_recov_buffers[i])
+ 	brelse(parent_bh);
+ 	iput(dummy_grand_parent);
 _
 
-Patches currently in -mm which might be from hch@lst.de are
+Patches currently in -mm which might be from chenyichong@uniontech.com are
 
-mm-remove-wb_writeout_inc.patch
-shmem-provide-a-shmem_write_folio-wrapper.patch
-mm-swap-introduce-struct-swap_io_ctx.patch
-mm-swap-also-use-struct-swap_iocb-for-block-i-o.patch
-mm-swap-remove-count_swpout_vm_event.patch
-mm-swap-use-swap_ops-to-register-swap-devices-methods.patch
-mm-swap-remove-swp_fs_ops.patch
-mm-vmstat-add-nrswpinout-counters.patch
+hugetlbfs-release-subpool-on-fill_super-failure.patch
+hugetlb-make-hugepage_put_subpool-tolerate-null.patch
+hugetlb-evaluate-subpool-free-state-while-locked.patch
 
