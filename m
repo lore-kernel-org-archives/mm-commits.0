@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 76F583F39F1
-	for <mm-commits@vger.kernel.org>; Tue,  4 Aug 2026 04:04:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 754D63D0932
+	for <mm-commits@vger.kernel.org>; Tue,  4 Aug 2026 04:04:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785816287; cv=none; b=UwcBzElj/3PXNcwhN05BgoyNXy9YxK0sL2YScFEa+z7iqADY9frryuvK7zvTNgJfXh7uqEoz4zQS/YlnAmeRhzoZ0cbgsz1fMXVc7C8J63t/JuUR3cXwdu4kK6AOt8Vj5Va65NaGwcDk90j2PWeFbiOBcJojBEi2pZa7tbpf1vA=
+	t=1785816288; cv=none; b=oV4Ot5jrqn2IpZML19fnc4AlPG1+9R9JCdQMu/l0di92mifDEqHmDj7gxIVjj/TYZav4o3ztAO2Zy0x2PGW3ybpb+VJf1QRghwCfrg7WlHyy3BYkRocB3+MVmPTGLdF8T+9e7Ef2v3eDcwWrS8EbQvegli3oMcVusw8xaaPkDx0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785816287; c=relaxed/simple;
-	bh=RZqHGpJ0UnGsq68x8LO91uz21Q9REsnPY9DeJExhqTM=;
-	h=Date:To:From:Subject:Message-Id; b=U/8E2UbfIuxR6t206b9NtFaYca4/N/LchqGArC2qoSQiOW1KS/ntJ0ve72vDTY+KK5rHqwsQLLkNlDACNZW5eRrXtcdmQBkYBkWw/CCAruhNrWb3Fy1JXP5MzpbM+FrXBKxOAG9xreGDzwE0aAIRTl74C8V5xGfZs0MKtVVQd2o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=irrVMnff; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785816288; c=relaxed/simple;
+	bh=kNqu2Q2/pV0Nv+/Uk/0T845CD4tBM9zYQyum++zJmrQ=;
+	h=Date:To:From:Subject:Message-Id; b=XUPB6N18WDeNz7k0f1+sLd5vyllaf/Dj5B4ePHu+3iy8gTqkF8nXQMN7ewlpQh7cazFZv81Y83HWxOXJzel972XUjlT969tBWclTeofRwTQMZbunPInr88ul6jGLUvS3D/dbbIx6v5uPWxrv7MecLBdvQfYfKfGJ6RwP0DOoHAk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DES6yCu/; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="irrVMnff"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F39B41F00A3A;
-	Tue,  4 Aug 2026 04:04:45 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DES6yCu/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 29ED61F000E9;
+	Tue,  4 Aug 2026 04:04:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785816286;
-	bh=AvK7N4c+h838mXme8uDm8BpXCs+ufVjVjPJlMaQofTA=;
+	d=linux-foundation.org; s=korg; t=1785816287;
+	bh=5FGfpqp5bqzza0ptL8EJcZual1ooWBy4moQj9hjUaQU=;
 	h=Date:To:From:Subject;
-	b=irrVMnffsxliYFWlzBs6BZ6ZsLVqJx10ybG0Zz5/S/BDb8CPNtAQ2VW037EUpKla+
-	 7tPImn7aKSlPqJ1kQyJ7RzTYCU82x4KvC+UrQfQRivwFfRoyY6/OArVgiMzccHAfYe
-	 FE/9+x6VgHrHxob9uE9KiZuLwlhPjGLpvViVlfPg=
-Date: Mon, 03 Aug 2026 21:04:45 -0700
-To: mm-commits@vger.kernel.org,penberg@kernel.org,kees@kernel.org,joern@logfs.org,cl@linux-foundation.org,andy@kernel.org,akinobu.mita@gmail.com,include@grrlz.net,akpm@linux-foundation.org
+	b=DES6yCu/L+Ze67oaKLP3iqyCaRMFvYC7g27EkPzEmn46hQyCeqkPHrDstfxvNGNSW
+	 x0GydNJHgKNFrDhTiI2GANN/+rXrZO0Rqka0YIqkvGcYH7DL9k518+CHPIMVG3Qxtd
+	 tMAj5+fJk9JZ6qcAb24oibW7+n6O9VBA6p8TZijE=
+Date: Mon, 03 Aug 2026 21:04:46 -0700
+To: mm-commits@vger.kernel.org,gregkh@linuxfoundation.org,jim.cromie@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] lib-string-fix-memchr_inv-for-large-ranges.patch removed from -mm tree
-Message-Id: <20260804040445.F39B41F00A3A@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] kernel-params-fix-a-pr_debug-%p-in-parse_one.patch removed from -mm tree
+Message-Id: <20260804040447.29ED61F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,55 +35,50 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: lib/string: fix memchr_inv() for large ranges
+     Subject: kernel/params: fix a pr_debug(" %p ") in parse_one()
 has been removed from the -mm tree.  Its filename was
-     lib-string-fix-memchr_inv-for-large-ranges.patch
+     kernel-params-fix-a-pr_debug-%p-in-parse_one.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Bradley Morgan <include@grrlz.net>
-Subject: lib/string: fix memchr_inv() for large ranges
-Date: Sun, 21 Jun 2026 12:11:33 +0000
+From: Jim Cromie <jim.cromie@gmail.com>
+Subject: kernel/params: fix a pr_debug(" %p ") in parse_one()
+Date: Thu, 18 Jun 2026 13:07:15 -0600
 
-memchr_inv() takes a size_t length but counts 8 byte words in an unsigned
-int.  At 32GiB that count wraps, so the scan can quietly miss most of the
-range.
+Inside parse_one(), the core parameter-parsing engine prints the address
+of the parameter-set callback function using %p: pr_debug("handling %s
+with %p\n", param, params[i].ops->set);
 
-Use size_t for the word count.
+Since the string value of the parameter being parsed (val) is already
+available, print the parameter name and its value instead, and avoid
+tainting the kernel by exposing a kernel-ptr.
 
-Link: https://lore.kernel.org/20260621121133.16460-1-include@grrlz.net
-Fixes: 798248206b59 ("lib/string.c: introduce memchr_inv()")
-Signed-off-by: Bradley Morgan <include@grrlz.net>
-Cc: Akinbou Mita <akinobu.mita@gmail.com>
-Cc: Andy Shevchenko <andy@kernel.org>
-Cc: Christoph Lameer <cl@linux-foundation.org>
-Cc: Joern Engel <joern@logfs.org>
-Cc: Kees Cook <kees@kernel.org>
-Cc: Pekka Enberg <penberg@kernel.org>
+Link: https://lore.kernel.org/20260618190715.3563047-1-jim.cromie@gmail.com
+Signed-off-by: Jim Cromie <jim.cromie@gmail.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/string.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ kernel/params.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/lib/string.c~lib-string-fix-memchr_inv-for-large-ranges
-+++ a/lib/string.c
-@@ -821,7 +821,8 @@ void *memchr_inv(const void *start, int
- {
- 	u8 value = c;
- 	u64 value64;
--	unsigned int words, prefix;
-+	size_t words;
-+	unsigned int prefix;
- 
- 	if (bytes <= 16)
- 		return check_bytes8(start, value, bytes);
+--- a/kernel/params.c~kernel-params-fix-a-pr_debug-%p-in-parse_one
++++ a/kernel/params.c
+@@ -136,8 +136,8 @@ static int parse_one(char *param,
+ 			if (!val &&
+ 			    !(params[i].ops->flags & KERNEL_PARAM_OPS_FL_NOARG))
+ 				return -EINVAL;
+-			pr_debug("handling %s with %p\n", param,
+-				params[i].ops->set);
++			pr_debug("handling %s with value '%s'\n", param,
++				val ? val : "no-arg");
+ 			kernel_param_lock(params[i].mod);
+ 			if (param_check_unsafe(&params[i]))
+ 				err = params[i].ops->set(val, &params[i]);
 _
 
-Patches currently in -mm which might be from include@grrlz.net are
+Patches currently in -mm which might be from jim.cromie@gmail.com are
 
-taskstats-drop-the-dead-null-attribute-check-in-parse.patch
-taskstats-fold-the-two-cpumask-handlers-into-one.patch
 
