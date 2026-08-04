@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B19973E8C74
-	for <mm-commits@vger.kernel.org>; Tue,  4 Aug 2026 04:05:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C26AA40861D
+	for <mm-commits@vger.kernel.org>; Tue,  4 Aug 2026 04:05:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785816336; cv=none; b=UaUxvWauhEaOm8Pb5N0fqd8RBgV+tZcqBQVfju787Ul4HrMkc4bVJ8jwMnvr8xk55Lje8TaGBz21TCcHNWFyumnHFjoq1QIeA4cua91rqbkkqZwZUW97N/LbKlsW0oXGXb6lqEZMWzcA5++2AXpYUEjMTSxMWHZu0lbyi1algXo=
+	t=1785816338; cv=none; b=k4Rk9DKkzfPWl5jUnlWH/armJ7wHzYh1XOuaCe5NA+Tuu83mCR08gvpidAwHaWfoYJpkQXL64NBfzqRJLTtKspQ0a6EeXPnkyEuZ9xKZSHdHT8W7QHfuYnsVW3ws/JGXSfkBMWkd3IT27jScWdB/C71Litl2V5qWuW/kNwSUgNI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785816336; c=relaxed/simple;
-	bh=yB2CAGIV3BiQ7z8a5tl/qCzSnt5KVrUtW7CWue+O3k4=;
-	h=Date:To:From:Subject:Message-Id; b=hCQ7gr6EJT/juDxVTMKYXkkdCf/YQCzHp6ceo3GKaU3cgCRCT7LvXRPxxK1tlPT2NeCn7Ds2LY8nY9GOs5R75PCE5bheTybgD/oFvuzQ4gCECiK+RmzzhUE1zAG+YO+nY8yUTwR4wsHQ9vWPh5JC296bqBHEejoPfhdMLBaqxw8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xGi6sZ1v; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785816338; c=relaxed/simple;
+	bh=dM9LZJW4lo64PPCWqF9AUrH4kA9CLYqyIQYwQ6y21Uk=;
+	h=Date:To:From:Subject:Message-Id; b=NHMgaR/zPQifeD4aHLyAbPL5mGy0KCfmAcbvY0h1cRhtQ1dRdFrPK011nqO2KAz7kDYSTleWpV+hogA48pmmX5F6Ishfc4OZwubEr4W4zkMyKe2tZTuAp424LSWxWs4WnIzcEPanT7Miy1W98d3/cplvqkukdKhF93y5hJP1mj8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0IjiK5Xo; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xGi6sZ1v"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 887261F000E9;
-	Tue,  4 Aug 2026 04:05:35 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0IjiK5Xo"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 98EEF1F00A3D;
+	Tue,  4 Aug 2026 04:05:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785816335;
-	bh=Wgk0txcmoaTVzVhV0eZcKSrLfn/F0s4z7ulqyIczSi4=;
+	d=linux-foundation.org; s=korg; t=1785816336;
+	bh=ancyiRLi/cBnzG8fn+5O5KSstpGjFBRZA9xatUTe7vk=;
 	h=Date:To:From:Subject;
-	b=xGi6sZ1vODBfEXbGOFLn3bTKaYV3C8zuFVIpI8dIfDC2GoEXJLqanS3M64bnmkRlq
-	 1Rf6oh5MvdgGCDJJEL9Tau0OvbX/ELYghMTkP3XDjnexGJXIzOyMQzIwumgsbsBOSG
-	 OVamZ4ZrDugBnSjeJJFwl1JNTbWxDtC2mY8G/10o=
-Date: Mon, 03 Aug 2026 21:05:35 -0700
+	b=0IjiK5Xo9Ujsrua/X3E2tOTznTWcT/lh0mgVxMpoljad6qk9Ezk95Sjl7jWZ63NkE
+	 Bq79GBuD9D+6MTb916S85bfo8iLH9JXXqnqqclYbXMQ9RkSaOqR9iESy/Io28tiTkH
+	 AYlvChAm/zQbSRVfh0sYkH+jpo7aHX2QN0c04XuE=
+Date: Mon, 03 Aug 2026 21:05:36 -0700
 To: mm-commits@vger.kernel.org,ebiggers@kernel.org,hch@lst.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] raid6-enable-lock-context-analysis.patch removed from -mm tree
-Message-Id: <20260804040535.887261F000E9@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] raid6-defer-implementation-selection-when-built-in.patch removed from -mm tree
+Message-Id: <20260804040536.98EEF1F00A3D@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,39 +35,81 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: raid6: enable lock context analysis
+     Subject: raid6: defer implementation selection when built-in
 has been removed from the -mm tree.  Its filename was
-     raid6-enable-lock-context-analysis.patch
+     raid6-defer-implementation-selection-when-built-in.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Christoph Hellwig <hch@lst.de>
-Subject: raid6: enable lock context analysis
-Date: Wed, 15 Jul 2026 16:47:36 +0200
+Subject: raid6: defer implementation selection when built-in
+Date: Wed, 15 Jul 2026 16:47:37 +0200
 
-The code doesn't have any locking, so this is trivial.
+Don't hold up early boot and defer the selection just like we've been
+doing for the RAID5 XOR code since commit 524ccdbdfb52 ("crypto: xor -
+defer load time benchmark to a later time").
 
-Link: https://lore.kernel.org/20260715144825.95432-6-hch@lst.de
+This will also allow full use of the timing subsystem for benchmarking.
+
+Link: https://lore.kernel.org/20260715144825.95432-7-hch@lst.de
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 Cc: Eric Biggers <ebiggers@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/raid/raid6/Makefile |    2 ++
- 1 file changed, 2 insertions(+)
+ lib/raid/raid6/algos.c |   25 +++++++++++++++++++++----
+ 1 file changed, 21 insertions(+), 4 deletions(-)
 
---- a/lib/raid/raid6/Makefile~raid6-enable-lock-context-analysis
-+++ a/lib/raid/raid6/Makefile
-@@ -1,5 +1,7 @@
- # SPDX-License-Identifier: GPL-2.0
+--- a/lib/raid/raid6/algos.c~raid6-defer-implementation-selection-when-built-in
++++ a/lib/raid/raid6/algos.c
+@@ -239,10 +239,6 @@ static int __init raid6_select_algo(void
+ 	if (!IS_ENABLED(CONFIG_RAID6_PQ_BENCHMARK) || raid6_nr_algos == 1) {
+ 		pr_info("raid6: skipped pq benchmark and selected %s\n",
+ 			raid6_algos[raid6_nr_algos - 1]->name);
+-		static_call_update(raid6_gen_syndrome_impl,
+-				raid6_algos[raid6_nr_algos - 1]->gen_syndrome);
+-		static_call_update(raid6_xor_syndrome_impl,
+-				raid6_algos[raid6_nr_algos - 1]->xor_syndrome);
+ 		return 0;
+ 	}
  
-+CONTEXT_ANALYSIS := y
+@@ -329,13 +325,34 @@ static int __init raid6_init(void)
+ 	static_call_update(raid6_recov_datap_impl, raid6_recov_algo->datap);
+ 	pr_info("raid6: using %s recovery algorithm\n", raid6_recov_algo->name);
+ 
++	/*
++	 * Pick the last registered implementation as the temporary default until
++	 * calibration happens.
++	 */
++	static_call_update(raid6_gen_syndrome_impl,
++			raid6_algos[raid6_nr_algos - 1]->gen_syndrome);
++	static_call_update(raid6_xor_syndrome_impl,
++			raid6_algos[raid6_nr_algos - 1]->xor_syndrome);
 +
- ccflags-y			+= -I $(src)
++#ifdef MODULE
+ 	return raid6_select_algo();
++#else
++	return 0;
++#endif
+ }
  
- ifeq ($(CONFIG_RAID6_PQ_ARCH),y)
+ static void __exit raid6_exit(void)
+ {
+ }
+ 
++/*
++ * When built-in we must register the default implementation before md
++ * initializes, but we don't want calibration to run that early as that
++ * would delay the boot process.
++ */
++#ifndef MODULE
++device_initcall(raid6_select_algo);
++#endif
+ subsys_initcall(raid6_init);
+ module_exit(raid6_exit);
+ MODULE_LICENSE("GPL");
 _
 
 Patches currently in -mm which might be from hch@lst.de are
