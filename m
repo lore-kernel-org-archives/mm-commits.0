@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5E7BF423768
-	for <mm-commits@vger.kernel.org>; Tue,  4 Aug 2026 04:04:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 75C9A42049D
+	for <mm-commits@vger.kernel.org>; Tue,  4 Aug 2026 04:04:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785816292; cv=none; b=H1sNZFb8CGs4Fnm2ETFPZY7tCJ8y975q8CRlHlhVM89oIjmH5B5eOzJds86UKoaaSjh8jBlCF7zq3FFNdITIGM9UnsHV6wrFwHG1URDAPShiyLagIvLKo8CUqaSGkQc6uOYZEM/IgX60p1rnYK6ZxMOhlfWSA/T3JEPc2eM0D6M=
+	t=1785816293; cv=none; b=Aonain7hLKCjDOxdAfgjuhtQBx+IDRfkRzXohsBxTcNPHVWVnZIv9A8EP0ORmYqr0ubygjAETwqLne0dlKBo83inuh2CD8xcRQB0GU1n2wJcHeTrWe9LsqufgC7KaOOVmZq+lthYIWKtQo6iI/+OWozUM+rp7NQagemxxHDTEck=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785816292; c=relaxed/simple;
-	bh=0ojwF8HacuF+8OlaulR4xdLFYaCbTfMXXcaTmpNYOX4=;
-	h=Date:To:From:Subject:Message-Id; b=hDMTdqTX52oP0tFoDZl5GG+nclavqRg9lHv4btyVZAWJhIH+bHbxHnQSZCr3ff59vJ+GPqNOnuM+4dT5/kRRxy75jmukOlWnoctPB6i05ZQ11jizwz2h2xy2oFd36q32gxiEokjJ01z4P5QCnEMfgnt1cLUMhCieBAcfMCOeNWc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ejEpARlb; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785816293; c=relaxed/simple;
+	bh=QAa1lirZatadfAC/ZPtBmIuc5AnRoXm/8mFwGMclyZ4=;
+	h=Date:To:From:Subject:Message-Id; b=ibGAhFrqUnrbO9qNguUQK0OUTYXMGTmdHJtX7UWOAmcDiNtQ0dWo/hqRrdMXJholSKv1Z8IywMObfLiUMzaQ4Q2xqw2Hd9p+Tj4PM8lc0QnPTVyTpApyt6GTYmDu1YiWrjPKkeNavbKovFYqDypNLFMHLKnHZBMlPbg8fVhadZM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nI/A/FTN; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ejEpARlb"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DC1E21F00A3A;
-	Tue,  4 Aug 2026 04:04:50 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nI/A/FTN"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 191981F000E9;
+	Tue,  4 Aug 2026 04:04:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785816291;
-	bh=KuRHMziykwUwUItGMvqniId5Jv7ipAxQKtSneXe8/XQ=;
+	d=linux-foundation.org; s=korg; t=1785816292;
+	bh=AF3Ninnb4hBrnAZsoAV52y2J7ju+wbwHxGu33dhPtaY=;
 	h=Date:To:From:Subject;
-	b=ejEpARlb6WVCo3aUDyNxckDzN/5mJExYBAKyjn+l8FjqTbysz5a6iDx8UId3QfPZz
-	 uU3rB2MTKlBAmzM13//EETtxJTKZ761OCi2Zq14ZHlKB2Sfi9bbx5EzddkXbfbZaKr
-	 ARsVXcVK0NFruh/prhzvrp4PcLZxy7F085mRf+pA=
-Date: Mon, 03 Aug 2026 21:04:50 -0700
-To: mm-commits@vger.kernel.org,include@grrlz.net,ebiederm@xmission.com,oleg@redhat.com,akpm@linux-foundation.org
+	b=nI/A/FTNZzXfNyFc5oK1BSDNhwvYt5/qkQUY7bGea3XcTxHw2XyEKNxSjCoquxxZF
+	 /wms0lwkloc7Ma0Rlu3zCdjsoxbvhWaMo7lJXSZJapOxoY7S+k6AZNQ4AJxiIA8pHr
+	 wAO/OFmVzi7bEY+1KX+PcGBhwdLny5ao1BZDpP2I=
+Date: Mon, 03 Aug 2026 21:04:51 -0700
+To: mm-commits@vger.kernel.org,include@grrlz.net,ebiederm@xmission.com,brauner@kernel.org,oleg@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] signal-change-sys_kill-to-use-send_sig_noinfo.patch removed from -mm tree
-Message-Id: <20260804040450.DC1E21F00A3A@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] signal-avoid-unconditional-siginfo-copy-in-send_signal_locked.patch removed from -mm tree
+Message-Id: <20260804040452.191981F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,74 +35,92 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: signal: change sys_kill() to use SEND_SIG_NOINFO
+     Subject: signal: avoid unconditional siginfo copy in send_signal_locked()
 has been removed from the -mm tree.  Its filename was
-     signal-change-sys_kill-to-use-send_sig_noinfo.patch
+     signal-avoid-unconditional-siginfo-copy-in-send_signal_locked.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Oleg Nesterov <oleg@redhat.com>
-Subject: signal: change sys_kill() to use SEND_SIG_NOINFO
-Date: Fri, 26 Jun 2026 17:33:08 +0200
+Subject: signal: avoid unconditional siginfo copy in send_signal_locked()
+Date: Sat, 4 Jul 2026 16:34:42 +0200
 
-prepare_kill_siginfo(PIDTYPE_TGID) fills si_code = SI_USER and sets
-si_pid/si_uid in the sender's namespace.  Then send_signal_locked()
-translates si_pid/si_uid to the target's namespace.
+send_signal_locked() unconditionally copies siginfo before the namespace
+translation to avoid corrupting a shared siginfo.
 
-SEND_SIG_NOINFO exists precisely for the case when si_code == SI_USER
-and si_pid/si_uid are the sender's ids; this is exactly what sys_kill()
-does via prepare_kill_siginfo(PIDTYPE_TGID).  Change sys_kill() to use
-it directly.
+Not that I think this can actually hurt performance-wise, just it doesn't
+look clean to me; the copy is only needed in the unlikely case when the
+translation will actually change something.
 
-SEND_SIG_NOINFO produces the same result: si_code = SI_USER, and
-__send_signal_locked() computes si_pid/si_uid directly in the target's
-namespace.  The force computation is also the same: both check if the
-sender is visible in the target's pid namespace.
+Defer it to the two cases where si_pid/si_uid are rewritten, and while at
+it add #ifdef's just for completeness.
 
-This is just a cleanup and microoptimization (especially with [1]),
-this skips the has_si_pid_and_uid() block in send_signal_locked() and
-offloads the namespace translation logic to
-__send_signal_locked(SEND_SIG_NOINFO) which uses the simpler
-computations.
-
-NOTE: As a "side effect" this also fixes the kill(pid < 0, sig) case
-where send_signal_locked() rewrites si_pid/si_uid in the shared
-siginfo, corrupting it for subsequent recipients.  But for other group
-senders like __kill_pgrp_info() we still need the fix from Bradley
-Morgan [1] who found this problem.
-
-TODO: kill prepare_kill_siginfo() and change other users to use
-SEND_SIG_NOINFO too.  This needs trivial changes in
-__send_signal_locked() and TP_STORE_SIGINFO().
-
-Link: https://lore.kernel.org/aj6btAZqYuv59a8w@redhat.com
-Link: https://lore.kernel.org/all/20260622164029.11474-1-include@grrlz.net/ [1]
+Link: https://lore.kernel.org/akkaAgNfUby5_3nM@redhat.com
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Reviewed-by: Bradley Morgan <include@grrlz.net>
+Cc: Christian Brauner <brauner@kernel.org>
 Cc: Eric Biederman <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/signal.c |    6 +-----
- 1 file changed, 1 insertion(+), 5 deletions(-)
+ kernel/signal.c |   23 +++++++++++++++--------
+ 1 file changed, 15 insertions(+), 8 deletions(-)
 
---- a/kernel/signal.c~signal-change-sys_kill-to-use-send_sig_noinfo
+--- a/kernel/signal.c~signal-avoid-unconditional-siginfo-copy-in-send_signal_locked
 +++ a/kernel/signal.c
-@@ -3962,11 +3962,7 @@ static void prepare_kill_siginfo(int sig
-  */
- SYSCALL_DEFINE2(kill, pid_t, pid, int, sig)
+@@ -1181,7 +1181,7 @@ static inline bool has_si_pid_and_uid(st
+ int send_signal_locked(int sig, struct kernel_siginfo *info,
+ 		       struct task_struct *t, enum pid_type type)
  {
--	struct kernel_siginfo info;
--
--	prepare_kill_siginfo(sig, &info, PIDTYPE_TGID);
--
--	return kill_something_info(sig, &info, pid);
-+	return kill_something_info(sig, SEND_SIG_NOINFO, pid);
- }
+-	struct kernel_siginfo rewritten;
++	struct kernel_siginfo __maybe_unused rewritten;
+ 	/* Should SIGKILL or SIGSTOP be received by a pid namespace init? */
+ 	bool force = false;
  
- /*
+@@ -1193,27 +1193,34 @@ int send_signal_locked(int sig, struct k
+ 		force = true;
+ 	} else if (has_si_pid_and_uid(info)) {
+ 		/* SIGKILL and SIGSTOP is special or has ids */
++#ifdef CONFIG_USER_NS
+ 		struct user_namespace *t_user_ns;
+-
+-		rewritten = *info;
+-		info = &rewritten;
++		kuid_t uid;
+ 
+ 		rcu_read_lock();
+ 		t_user_ns = task_cred_xxx(t, user_ns);
+ 		if (current_user_ns() != t_user_ns) {
+-			kuid_t uid = make_kuid(current_user_ns(), info->si_uid);
+-			info->si_uid = from_kuid_munged(t_user_ns, uid);
++			rewritten = *info;
++			info = &rewritten;
++			uid = make_kuid(current_user_ns(), info->si_uid);
++			rewritten.si_uid = from_kuid_munged(t_user_ns, uid);
+ 		}
+ 		rcu_read_unlock();
+-
++#endif
+ 		/* A kernel generated signal? */
+ 		force = (info->si_code == SI_KERNEL);
+ 
++#ifdef CONFIG_PID_NS
+ 		/* From an ancestor pid namespace? */
+ 		if (!task_pid_nr_ns(current, task_active_pid_ns(t))) {
+-			info->si_pid = 0;
++			if (info != &rewritten) {
++				rewritten = *info;
++				info = &rewritten;
++			}
++			rewritten.si_pid = 0;
+ 			force = true;
+ 		}
++#endif
+ 	}
+ 	return __send_signal_locked(sig, info, t, type, force);
+ }
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
