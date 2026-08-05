@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A2CAF3C2D
-	for <mm-commits@vger.kernel.org>; Wed,  5 Aug 2026 18:17:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 21AFB322A2E;
+	Wed,  5 Aug 2026 18:22:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785953857; cv=none; b=jLzLqCtb7nVBAOnsT2+7ylYnxGigx9HKD9PteVJgjIMZ/jsLTZD0inCEIljVfDQmIyl4zWUJtDy4jXLzFLl51Xx39NuMftyQRozXwH3b6dm6xzPqaWR7RWU7TLaHSKEWsiC6/df/yRp0QPRdOWEPpLK0qfwNlqsU2sDZFmiamnI=
+	t=1785954181; cv=none; b=CsoF3UnfGUGOl0xXsDxwA4gDu8PTWni5Nd4tvDT66saQDUzPgNTFxEJGX10dXnE5NeZvOnsILrNB5Tk9AXb5FR5I7S+UI881mQZrhn72y+mg9YHheXpwS9hIXcIwN3KbsWm3gFk5fsrqrukF+80GA1q7oRN24GMrn4t7KJoEI2E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785953857; c=relaxed/simple;
-	bh=++vhinFu9MC/z4o14cs9+iHypC8ZQ6uU7ICFu6SsFSc=;
-	h=Date:To:From:Subject:Message-Id; b=rn1NXTrohl+p+roO4qcFojqD6MuwsE8WX6afrQjU8v6GVBQ8kvYxox/vOLMA6+w9rqpswlBo1s1gNSnM2VXg6aV+M7z/9BsHwY3WnH8o0dHoOWKlGxYOnhaM0n+jBAZglgK6Dqi8m09M18BQ75XZBWHNPYDDoTmf7DTXbpHb8oI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=d5ksgMos; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785954181; c=relaxed/simple;
+	bh=+iaCP+P7Z+W8srAjFB2Vmrm/WfZ3qJY6RBi49Wxp71I=;
+	h=Date:To:From:Subject:Message-Id; b=oRRn/+y/ez9okvcb+XEvA6pU7y+2uG4xACypdsHhlRHGSklsL9vXJLPVAHiYszCA1IEmqd/hML/ZBFBbgLbBJSzfuMhSEqcH+WXa/+z5GtvxgxsFajS90PvU0tBgvDPZm88Mn447/jsA1wIWJzvp5jp+TuDY3MszBKyRwKFr3+A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JVFkAOxY; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="d5ksgMos"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 14D711F000E9;
-	Wed,  5 Aug 2026 18:17:36 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JVFkAOxY"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8E3E01F000E9;
+	Wed,  5 Aug 2026 18:22:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785953856;
-	bh=xt00W6kIWafOo78bbm9cepcEGVDHy/RuJMhRd1D0QzE=;
+	d=linux-foundation.org; s=korg; t=1785954179;
+	bh=ibBaLjYRdVbV+tgFr4FoZYP6A/h59z/2GbeLAzP7vlM=;
 	h=Date:To:From:Subject;
-	b=d5ksgMoslRamX9P2cKAwugHiQ9t8DimpPyCMgixwLfZJNVy2V59d5jFUQtd+2gwWb
-	 B40svyp21OgV6MPdGFcMF2ZDpXsa/5tYBi5UQ2qn0cOkj5BKTyKcDDLnEQEh/MEDKt
-	 1tQbQDsU9m4j2P3HywTYrdWSkGg+rafEtEeV0KN8=
-Date: Wed, 05 Aug 2026 11:17:35 -0700
-To: mm-commits@vger.kernel.org,surenb@google.com,hao.ge@linux.dev,abhishekbapat@google.com,akpm@linux-foundation.org
+	b=JVFkAOxYoARGvdypP34GYWaGSCjisS2viNt8moen27ZEueE7kV3Ep+fGULVM3ea4W
+	 +I76c9EiVXi4l+Sou1vSi4uUXf9bxIz66s1IMx5oVnV4bEZjsOVRyZ0I6mQY8UP1Fs
+	 yFG+VEzhFElrl7NWMa284Il5uGZogJjSXS8hwk0Q=
+Date: Wed, 05 Aug 2026 11:22:59 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,heming.zhao@suse.com,gechangwei@live.cn,matthias.goergens@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + alloc_tag-expose-boot-time-compression-configuration.patch added to mm-new branch
-Message-Id: <20260805181736.14D711F000E9@smtp.kernel.org>
+Subject: + ocfs2-fix-cached-cluster-count-after-suballocator-reclaim.patch added to mm-nonmm-unstable branch
+Message-Id: <20260805182259.8E3E01F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,26 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: alloc_tag: expose boot-time compression configuration
-has been added to the -mm mm-new branch.  Its filename is
-     alloc_tag-expose-boot-time-compression-configuration.patch
+     Subject: ocfs2: fix cached cluster count after suballocator reclaim
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     ocfs2-fix-cached-cluster-count-after-suballocator-reclaim.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/alloc_tag-expose-boot-time-compression-configuration.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-fix-cached-cluster-count-after-suballocator-reclaim.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,77 +58,66 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Abhishek Bapat <abhishekbapat@google.com>
-Subject: alloc_tag: expose boot-time compression configuration
-Date: Wed, 5 Aug 2026 17:29:52 +0000
+From: Matthias Goergens <matthias.goergens@gmail.com>
+Subject: ocfs2: fix cached cluster count after suballocator reclaim
+Date: Wed, 5 Aug 2026 19:39:20 +0800
 
-Currently, userspace has limited visibility into the exact active runtime
-state of memory allocation profiling and its page extension compression
-('sysctl.vm.mem_profiling={0|1|never}[,compressed]').
+When reclaiming a suballocator block group, first reduce the on-disk
+cluster count by cl_cpg.  The current code then subtracts that new count
+(fe->i_clusters) from the old cached count
+(OCFS2_I(alloc_inode)->ip_clusters).
 
-While reading the sysctl provides basic on/off status, it is currently
-impossible for userspace to natively determine whether page-tag
-compression was successfully enabled without scraping dmesg boot logs.
+For an allocator with N block groups, that leaves the cache at
 
-Add a new read-only sysctl representing how compression was configured
-at boot time.
+    N * cl_cpg - (N * cl_cpg - cl_cpg) = cl_cpg
 
-Link: https://lore.kernel.org/c795f8089f82841e8a6e00d7ca286da2b23aeb7b.1785950530.git.abhishekbapat@google.com
-Signed-off-by: Abhishek Bapat <abhishekbapat@google.com>
-Cc: Hao Ge <hao.ge@linux.dev>
-Cc: Suren Baghdasaryan <surenb@google.com>
+i.e.  ip_clusters -= (fe->i_clusters - cl_cpg) leaves ip_clusters equal to
+cl_cpg regardless of N.  This happens to be correct when reclaiming from
+two block groups, but undercounts the clusters from three block groups
+onwards.  The incorrect cache value is also used immediately to update
+i_blocks.
+
+Assign the updated on-disk count to the cache, matching the allocation and
+inode refresh paths.
+
+In a QEMU test using a clean 256 MiB OCFS2 image and a 10,000-file
+create/delete workload, the first buggy reclaim left the on-disk
+(fe->i_clusters) and cached (ip_clusters) counts at 2048 and 512 clusters
+respectively; later reclaims underflowed the cache.  With this change, the
+cache matched the on-disk count across all four reclaims: 2048, 1536,
+1024, and 512 clusters.
+
+Link: https://lore.kernel.org/20260805113920.385959-1-matthias.goergens@gmail.com
+Fixes: 4a54331616b3 ("ocfs2: give ocfs2 the ability to reclaim suballocator free bg")
+Signed-off-by: Matthias Goergens <matthias.goergens@gmail.com>
+Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Jun Piao <piaojun@huawei.com>
+Cc: Heming Zhao <heming.zhao@suse.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/mm/allocation-profiling.rst |   11 +++++++++++
- mm/alloc_tag.c                            |    6 ++++++
- 2 files changed, 17 insertions(+)
+ fs/ocfs2/suballoc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/Documentation/mm/allocation-profiling.rst~alloc_tag-expose-boot-time-compression-configuration
-+++ a/Documentation/mm/allocation-profiling.rst
-@@ -43,6 +43,17 @@ sysctl:
-   warnings produced by allocations made while profiling is disabled and freed
-   when it's enabled.
+--- a/fs/ocfs2/suballoc.c~ocfs2-fix-cached-cluster-count-after-suballocator-reclaim
++++ a/fs/ocfs2/suballoc.c
+@@ -2759,7 +2759,7 @@ static int _ocfs2_reclaim_suballoc_to_ma
+ 	fe->i_clusters = cpu_to_le32(tmp_used - le16_to_cpu(cl->cl_cpg));
  
-+  /proc/sys/vm/mem_profiling_compressed
-+
-+  1: Page alloc tag compression is enabled.
-+
-+  0: Page alloc tag compression is disabled.
-+
-+  This reflects a static boot-time configuration of how page allocation tags are
-+  stored (in page flags when compression is enabled and in page_ext when disabled).
-+  Toggling ``mem_profiling`` at runtime does not change the state of
-+  ``mem_profiling_compressed``.
-+
- Runtime info:
-   /proc/allocinfo
- 
---- a/mm/alloc_tag.c~alloc_tag-expose-boot-time-compression-configuration
-+++ a/mm/alloc_tag.c
-@@ -1304,6 +1304,12 @@ static const struct ctl_table memory_all
- 		.mode		= 0644,
- 		.proc_handler	= proc_mem_profiling_handler,
- 	},
-+	{
-+		.procname	= "mem_profiling_compressed",
-+		.data		= &mem_profiling_compressed,
-+		.mode		= 0444,
-+		.proc_handler	= proc_do_static_key,
-+	},
- };
- 
- static void __init sysctl_init(void)
+ 	spin_lock(&OCFS2_I(alloc_inode)->ip_lock);
+-	OCFS2_I(alloc_inode)->ip_clusters -= le32_to_cpu(fe->i_clusters);
++	OCFS2_I(alloc_inode)->ip_clusters = le32_to_cpu(fe->i_clusters);
+ 	fe->i_size = cpu_to_le64(ocfs2_clusters_to_bytes(alloc_inode->i_sb,
+ 					     le32_to_cpu(fe->i_clusters)));
+ 	spin_unlock(&OCFS2_I(alloc_inode)->ip_lock);
 _
 
-Patches currently in -mm which might be from abhishekbapat@google.com are
+Patches currently in -mm which might be from matthias.goergens@gmail.com are
 
-alloc_tag-add-ioctl-filters-to-proc-allocinfo.patch
-alloc_tag-add-size-based-filtering-to-ioctl.patch
-alloc_tag-add-accuracy-based-filtering-to-ioctl.patch
-alloc_tag-add-accuracy-based-filtering-to-ioctl-fix.patch
-kselftest-alloc_tag-add-kselftest-for-ioctl-interface.patch
-kselftest-alloc_tag-add-kselftest-for-ioctl-interface-fix.patch
-kselftest-alloc_tag-extend-the-allocinfo-ioctl-kselftest.patch
-alloc_tag-expose-boot-time-compression-configuration.patch
+ocfs2-fix-cached-cluster-count-after-suballocator-reclaim.patch
 
