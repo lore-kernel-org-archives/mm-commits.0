@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EF07D3C13FB;
-	Wed,  5 Aug 2026 02:26:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B27393C13E3
+	for <mm-commits@vger.kernel.org>; Wed,  5 Aug 2026 02:26:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785896804; cv=none; b=uTJITeYKAKTn83ZW6xb0cXt9b2RNmFL1IMwW7Z1GbU2LuNmmY0x56eUuRbiqy3McqTC5+QOBEl5q84oyDGgws9dFRLXo2bQ1vixJtTMLF8sxxCNVdCKq0+c8wYOA5mDgshev8Ihazc9vYlveVB0eY4ivzL3Xc0bpdvRmI4NrQ9o=
+	t=1785896807; cv=none; b=ccAa3Kfy/anF2aDGuKnNYrzcwia70kU7wnP//lOurEasWKtzAOf18MgeZCjgCI7TkqeuKFl53SWqZDotkgk+YlUIcvbm2ilJl4IJMF7ucWxKnkoecliILTlvcqQ8bRRO+Pr9dUDDu7zmUWSsoBu70J95MUrLWftwZl+Ij/ByYEk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785896804; c=relaxed/simple;
-	bh=w8bZh6zehs0SE43hUE5oZ2ixq4UoeM9h4jIqfGRV4nM=;
-	h=Date:To:From:Subject:Message-Id; b=BUN/pC0v0RB6tqO+izae4WmgjDhIb58Vnqx4bMfgJaYHA2AXL7zbrHGsR5Dem014nl7+Jfnjb3+HRgt3U1F9n4hVn2xG1xe3y8n6BeyzyForEwduv5uSfFRU7GxoD+dEOXvQ1zl3geziWKCfauBwuENGNNqFulWdKM8CbbByXyM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OyQm98fY; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785896807; c=relaxed/simple;
+	bh=4i1VRX98wpc6PDoz+Avy6rrr/G+5vrFTSGC9Nj8ZrHQ=;
+	h=Date:To:From:Subject:Message-Id; b=ej0NNekyFfoRCkjhvpfUUYQTGSRHt9HdtKsoAIzr1K8mB62pBVvLYubOIMxMAMKuYK107i41LgZElk0PqIO2peJkITuGZ4SzNYizK22lesAIN6073SOH85KgT48IWPgxKadUnZXXrTkNDMXlcgpwwJc0CPu+csJyyHdv9cFQ+wY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=u1ADjypP; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OyQm98fY"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B33DB1F000E9;
-	Wed,  5 Aug 2026 02:26:42 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="u1ADjypP"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7BEB61F000E9;
+	Wed,  5 Aug 2026 02:26:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785896802;
-	bh=UXXC++WGex/1sJbBPTL4/pUfd+OogxY4d4RMs1tMmFA=;
+	d=linux-foundation.org; s=korg; t=1785896805;
+	bh=Zg5y6FnG7BZn2oMRQM2Ruzr9eMzoNjczUSPgZq8fEcI=;
 	h=Date:To:From:Subject;
-	b=OyQm98fYnfI/QRn8FUx3+pr57Gq6caerEAb9adgzdAjY1VTG/IEJWUP/vdJvoq5iF
-	 YQfTYyZozKWa5ls3m0eiEGdKd9JYyoK/IiGtrbe8UNxzia7gEzwmA9SnxhbTL9tnJm
-	 pKsDRw7/DAkB5BemebHVVMIt0/pD1KUtd0sIoNgY=
-Date: Tue, 04 Aug 2026 19:26:42 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,vbabka@kernel.org,stable@vger.kernel.org,shakeel.butt@linux.dev,sashiko-bot@kernel.org,ryan.roberts@arm.com,rakie.kim@sk.com,npache@redhat.com,matthew.brost@intel.com,ljs@kernel.org,liam@infradead.org,lance.yang@linux.dev,joshua.hahnjy@gmail.com,jannh@google.com,hannes@cmpxchg.org,gourry@gourry.net,dev.jain@arm.com,david@kernel.org,byungchul@sk.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,balbirs@nvidia.com,apopple@nvidia.com,usama.arif@linux.dev,akpm@linux-foundation.org
+	b=u1ADjypPe7MLemTmzPLV6e14+wAWeHwPjTFq/9OsRK/oS0WdkldGHdd62OGqTfSXF
+	 5+1EVUYkJr3Gx3HtcDCJeUwCposi7nisz6eWqXgzktEQ8yj6+nRDTmnxBYsmaLj469
+	 OzVt+lsNkpkZRJM3weD14+Oau1Jo4si2EO/wDDmI=
+Date: Tue, 04 Aug 2026 19:26:44 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,sj@kernel.org,shuah@kernel.org,rppt@kernel.org,muchun.song@linux.dev,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,songmuchun@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-huge_memory-skip-device-private-pmds-in-madvise_free_huge_pmd.patch removed from -mm tree
-Message-Id: <20260805022642.B33DB1F000E9@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-mm-remove-obsolete-hugetlb-vmemmap-test.patch removed from -mm tree
+Message-Id: <20260805022645.7BEB61F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,87 +35,210 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/huge_memory: skip device-private PMDs in madvise_free_huge_pmd
+     Subject: selftests/mm: remove obsolete hugetlb vmemmap test
 has been removed from the -mm tree.  Its filename was
-     mm-huge_memory-skip-device-private-pmds-in-madvise_free_huge_pmd.patch
+     selftests-mm-remove-obsolete-hugetlb-vmemmap-test.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Usama Arif <usama.arif@linux.dev>
-Subject: mm/huge_memory: skip device-private PMDs in madvise_free_huge_pmd
-Date: Fri, 10 Jul 2026 03:55:23 -0700
+From: Muchun Song <songmuchun@bytedance.com>
+Subject: selftests/mm: remove obsolete hugetlb vmemmap test
+Date: Fri, 10 Jul 2026 17:24:27 +0800
 
-madvise_free_pte_range() checks pmd_trans_huge(*pmd) unlocked, then
-madvise_free_huge_pmd() takes pmd_trans_huge_lock().  pmd_is_huge()
-returns true for a device-private PMD, so orig_pmd can be device-private
-and enter the !pmd_present() branch.
+The hugetlb vmemmap selftest was added to check the old HVO layout where
+tail vmemmap pages reused the head page.  That assumption no longer
+matches the current HVO mapping layout.
 
-Skip device-private PMDs in that non-present branch and continue to out
-before calling pmd_folio().  Downgrade the check to VM_WARN_ON_ONCE() so
-an unexpected PMD softleaf logs a warning rather than panicking.  Drop the
-thp_migration_supported() guard: it expands to
-IS_ENABLED(CONFIG_ARCH_SUPPORTS_PMD_SOFTLEAF), and both
-pmd_is_migration_entry() and pmd_is_device_private_entry() already return
-false when that config is not selected, so the guard suppresses only the
-case where the warning would already be silent.
+HVO now keeps a private backing page for the head vmemmap page and remaps
+redundant tail vmemmap pages to a shared read-only backing page.  The old
+page flag check is therefore testing an obsolete implementation detail
+rather than the current ABI or behavior.
 
-Potential trigger: an HMM-based GPU driver races with madvise(MADV_FREE):
-migrate_vma_pages() flips the PMD to a device-private entry between the
-caller's pmd_trans_huge() check and the callee's pmd_trans_huge_lock().
+Remove the stale test and its build and run entries.
 
-Link: https://lore.kernel.org/20260710105557.1987433-4-usama.arif@linux.dev
-Fixes: 368076f52ebe ("mm/huge_memory: add device-private THP support to PMD operations")
-Signed-off-by: Usama Arif <usama.arif@linux.dev>
-Reviewed-by: Joshua Hahn <joshua.hahnjy@gmail.com>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
-Reviewed-by: Balbir Singh <balbirs@nvidia.com>
+[akpm@linux-foundation.org: don't clean old executables out of .gitignore]
+  Link: https://lore.kernel.org/CAHk-=wiHK5_oBUdUiNAaevmN9f-ORe+QBqbRefAZaw-RbgEn3w@mail.gmail.com
+Link: https://lore.kernel.org/20260710092427.3459121-1-songmuchun@bytedance.com
+Signed-off-by: Muchun Song <songmuchun@bytedance.com>
+Reviewed-by: Lorenzo Stoakes <ljs@kernel.org>
 Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Reviewed-by: Gregory Price <gourry@gourry.net>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Byungchul Park <byungchul@sk.com>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
-Cc: Jann Horn <jannh@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Lance Yang <lance.yang@linux.dev>
+Reviewed-by: SJ Park <sj@kernel.org>
 Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Matthew Brost <matthew.brost@intel.com>
-Cc: Nico Pache <npache@redhat.com>
-Cc: Rakie Kim <rakie.kim@sk.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: sashiko-bot <sashiko-bot@kernel.org>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ tools/testing/selftests/mm/Makefile          |    1 
+ tools/testing/selftests/mm/hugetlb-vmemmap.c |  132 -----------------
+ tools/testing/selftests/mm/run_vmtests.sh    |    1 
+ 3 files changed, 134 deletions(-)
 
---- a/mm/huge_memory.c~mm-huge_memory-skip-device-private-pmds-in-madvise_free_huge_pmd
-+++ a/mm/huge_memory.c
-@@ -2331,8 +2331,8 @@ bool madvise_free_huge_pmd(struct mmu_ga
- 		goto out;
- 
- 	if (unlikely(!pmd_present(orig_pmd))) {
--		VM_BUG_ON(thp_migration_supported() &&
--				  !pmd_is_migration_entry(orig_pmd));
-+		VM_WARN_ON_ONCE(!pmd_is_migration_entry(orig_pmd) &&
-+				!pmd_is_device_private_entry(orig_pmd));
- 		goto out;
- 	}
- 
+diff --git a/tools/testing/selftests/mm/hugetlb-vmemmap.c a/tools/testing/selftests/mm/hugetlb-vmemmap.c
+deleted file mode 100644
+--- a/tools/testing/selftests/mm/hugetlb-vmemmap.c
++++ /dev/null
+@@ -1,132 +0,0 @@
+-// SPDX-License-Identifier: GPL-2.0
+-/*
+- * A test case of using hugepage memory in a user application using the
+- * mmap system call with MAP_HUGETLB flag.  Before running this program
+- * make sure the administrator has allocated enough default sized huge
+- * pages to cover the 2 MB allocation.
+- */
+-#include <stdlib.h>
+-#include <stdio.h>
+-#include <unistd.h>
+-#include <sys/mman.h>
+-#include <fcntl.h>
+-#include "vm_util.h"
+-#include "hugepage_settings.h"
+-
+-#define PAGE_COMPOUND_HEAD	(1UL << 15)
+-#define PAGE_COMPOUND_TAIL	(1UL << 16)
+-#define PAGE_HUGE		(1UL << 17)
+-
+-#define HEAD_PAGE_FLAGS		(PAGE_COMPOUND_HEAD | PAGE_HUGE)
+-#define TAIL_PAGE_FLAGS		(PAGE_COMPOUND_TAIL | PAGE_HUGE)
+-
+-#define PM_PFRAME_BITS		55
+-#define PM_PFRAME_MASK		~((1UL << PM_PFRAME_BITS) - 1)
+-
+-static size_t pagesize;
+-static size_t maplength;
+-
+-static void write_bytes(char *addr, size_t length)
+-{
+-	unsigned long i;
+-
+-	for (i = 0; i < length; i++)
+-		*(addr + i) = (char)i;
+-}
+-
+-static unsigned long virt_to_pfn(void *addr)
+-{
+-	int fd;
+-	unsigned long pagemap;
+-
+-	fd = open("/proc/self/pagemap", O_RDONLY);
+-	if (fd < 0)
+-		return -1UL;
+-
+-	lseek(fd, (unsigned long)addr / pagesize * sizeof(pagemap), SEEK_SET);
+-	read(fd, &pagemap, sizeof(pagemap));
+-	close(fd);
+-
+-	return pagemap & ~PM_PFRAME_MASK;
+-}
+-
+-static int check_page_flags(unsigned long pfn)
+-{
+-	int fd, i;
+-	unsigned long pageflags;
+-
+-	fd = open("/proc/kpageflags", O_RDONLY);
+-	if (fd < 0)
+-		return -1;
+-
+-	lseek(fd, pfn * sizeof(pageflags), SEEK_SET);
+-
+-	read(fd, &pageflags, sizeof(pageflags));
+-	if ((pageflags & HEAD_PAGE_FLAGS) != HEAD_PAGE_FLAGS) {
+-		close(fd);
+-		ksft_print_msg("Head page flags (%lx) is invalid\n", pageflags);
+-		return -1;
+-	}
+-
+-	/*
+-	 * pages other than the first page must be tail and shouldn't be head;
+-	 * this also verifies kernel has correctly set the fake page_head to tail
+-	 * while hugetlb_free_vmemmap is enabled.
+-	 */
+-	for (i = 1; i < maplength / pagesize; i++) {
+-		read(fd, &pageflags, sizeof(pageflags));
+-		if ((pageflags & TAIL_PAGE_FLAGS) != TAIL_PAGE_FLAGS ||
+-		    (pageflags & HEAD_PAGE_FLAGS) == HEAD_PAGE_FLAGS) {
+-			close(fd);
+-			ksft_print_msg("Tail page flags (%lx) is invalid\n", pageflags);
+-			return -1;
+-		}
+-	}
+-
+-	close(fd);
+-
+-	return 0;
+-}
+-
+-int main(int argc, char **argv)
+-{
+-	void *addr;
+-	unsigned long pfn;
+-	int ret;
+-
+-	ksft_print_header();
+-	ksft_set_plan(1);
+-
+-	if (!hugetlb_setup_default(1))
+-		ksft_exit_skip("Not enough free huge pages\n");
+-
+-	pagesize  = psize();
+-	maplength = default_huge_page_size();
+-	if (!maplength)
+-		ksft_exit_skip("Unable to determine huge page size\n");
+-
+-	addr = mmap(NULL, maplength, PROT_READ | PROT_WRITE,
+-			MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB, -1, 0);
+-	if (addr == MAP_FAILED)
+-		ksft_exit_fail_perror("mmap");
+-
+-	/* Trigger allocation of HugeTLB page. */
+-	write_bytes(addr, maplength);
+-
+-	pfn = virt_to_pfn(addr);
+-	if (pfn == -1UL) {
+-		ksft_perror("virt_to_pfn");
+-		munmap(addr, maplength);
+-		ksft_exit_fail();
+-	}
+-
+-	ksft_print_msg("Returned address is %p whose pfn is %lx\n", addr, pfn);
+-
+-	ret = check_page_flags(pfn);
+-
+-	if (munmap(addr, maplength))
+-		ksft_exit_fail_perror("munmap");
+-
+-	ksft_test_result(!ret, "HugeTLB vmemmap page flags\n");
+-	ksft_finished();
+-}
+--- a/tools/testing/selftests/mm/Makefile~selftests-mm-remove-obsolete-hugetlb-vmemmap-test
++++ a/tools/testing/selftests/mm/Makefile
+@@ -66,7 +66,6 @@ TEST_GEN_FILES += hugetlb-mremap
+ TEST_GEN_FILES += hugetlb-read-hwpoison
+ TEST_GEN_FILES += hugetlb-shm
+ TEST_GEN_FILES += hugetlb-soft-offline
+-TEST_GEN_FILES += hugetlb-vmemmap
+ TEST_GEN_FILES += khugepaged
+ TEST_GEN_FILES += madv_populate
+ TEST_GEN_FILES += map_fixed_noreplace
+--- a/tools/testing/selftests/mm/run_vmtests.sh~selftests-mm-remove-obsolete-hugetlb-vmemmap-test
++++ a/tools/testing/selftests/mm/run_vmtests.sh
+@@ -262,7 +262,6 @@ echo "TAP version 13" | tap_output
+ CATEGORY="hugetlb" run_test ./hugetlb-mmap
+ CATEGORY="hugetlb" run_test ./hugetlb-shm
+ CATEGORY="hugetlb" run_test ./hugetlb-mremap
+-CATEGORY="hugetlb" run_test ./hugetlb-vmemmap
+ CATEGORY="hugetlb" run_test ./hugetlb-madvise
+ CATEGORY="hugetlb" run_test ./hugetlb_dio
+ CATEGORY="hugetlb" run_test ./hugetlb_fault_after_madv
 _
 
-Patches currently in -mm which might be from usama.arif@linux.dev are
+Patches currently in -mm which might be from songmuchun@bytedance.com are
 
-mm-vmstat-mm-memcontrol-add-_monotonic-vmstat-readers.patch
-mm-vmscan-add-pgrotate_anon-and-pgrotate_file-vmstat-counters.patch
-mm-vmscan-reduce-lru_lock-contention-via-vmstat-derived-scan-balance-cost.patch
 
