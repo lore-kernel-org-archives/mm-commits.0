@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3A65326AC5
-	for <mm-commits@vger.kernel.org>; Wed,  5 Aug 2026 01:11:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C8B9119D07A
+	for <mm-commits@vger.kernel.org>; Wed,  5 Aug 2026 01:12:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785892295; cv=none; b=bc0ui1o6JxsAcKVHURk4OydHth+sIkSJI8iY15YJ3pbTPb/WE9r6vkZNiQOd9+VPDERIx2Iy/YKR00xJI1X6flmQXDR14UEh/Mr2VehtevYJxVG0bRyjLv895UVfYn6bwWdpSRwT/hjuAgGJ05L1ntokO6hI65gJUwATmFEOp2U=
+	t=1785892329; cv=none; b=Rww17L9SkiOFJcKOaJIAN2WXikceFD2d44fJVn3UXXPNPbA1HjZjAYtNTEItiZ0GrWulQaqboFzShsLTfn34IfvGCwp0fyB2S/0REMvF5chgHoXjMWK5idwi/Z07gFmr2Ypd26Wv24cf16aHyTkwkb1GLhZ65At90OT4bRMLddM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785892295; c=relaxed/simple;
-	bh=zY4ugKyYhcMo0hHWARj3uRVqxdd2ztzmVkJI+2PTA3c=;
-	h=Date:To:From:Subject:Message-Id; b=RRSiMuMj/R0xc2cEdekCNDEvgqxxjFTfRsRHSeez5LV3GQNtsYTuP+snnKHqmgQtSBEq5zVTRSwq7meMv8r/mdMbsINBZ8l/imoi0VXGCJ4084UCSTGXiFNBwHLBOjk72EXux13mp1pRA/wlAUSNTyjYjmHNbth2I6H512efNrM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ciOoRD53; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785892329; c=relaxed/simple;
+	bh=HxPRBjCwF5xGmdffBZbY/NEvzC0A8ji+wzkcxMnr/58=;
+	h=Date:To:From:Subject:Message-Id; b=L1bEbJwNPFzlCZuOZgrDrL1OObojwSRIBtdp1eSTYjIOE/yvW+axhvJeqrktcVHUExX4jxjqsxY3/HTpD3XimXzNUowc4JVXz+WiFfMAf5rdiYwAPBybdO3iwpGTirFSRgSUyGWW9AEsWkyZEv6DSsOA6sWIJIqtqxZz0xHvXlI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wd7oSTcZ; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ciOoRD53"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C36451F000E9;
-	Wed,  5 Aug 2026 01:11:33 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wd7oSTcZ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4DF531F000E9;
+	Wed,  5 Aug 2026 01:12:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785892293;
-	bh=EdkSPtYtXtPCtY8wm4zlamDxnOmL3l1KwJOdWIZosgs=;
+	d=linux-foundation.org; s=korg; t=1785892328;
+	bh=t+V0hcRynoFIrivU+Ar8K7w7U1mb/ttLZWO5WZ37oiU=;
 	h=Date:To:From:Subject;
-	b=ciOoRD53Z8q5irJmutPEc8LMJwlAUAXHFjxBPAZf5yjeHlQqxQ6uuaKcECkz4Qr+V
-	 8V0wmAe44c4VynTsQziDEGo4LwE5k6+oe6ZUlmvIVofm0xDHBHk+PNwue13Cx3miIM
-	 ZY5mD0+b+WI8ZNKRbG6O4eKU9SykudpBOIz2CRvQ=
-Date: Tue, 04 Aug 2026 18:11:33 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,usama.arif@linux.dev,surenb@google.com,shikemeng@huaweicloud.com,shakeel.butt@linux.dev,rppt@kernel.org,nphamcs@gmail.com,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,kasong@tencent.com,david@kernel.org,chrisl@kernel.org,baoquan.he@linux.dev,baohua@kernel.org,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=wd7oSTcZvlNThQtdS9308GoHBVLpOSP6rCdqiDeR9dltZt2daA3gfbIdOWhyO98Li
+	 kLqukhtabZtiAZJjboC1Fq/Q7CJbXf8IuRawJopnHLZ9LXPMnajx+wjP/EgKLFmwcw
+	 D0r173DYf3qc/7Iatb8ksRBm3nwm4KnsO/rv1lms=
+Date: Tue, 04 Aug 2026 18:12:07 -0700
+To: mm-commits@vger.kernel.org,ljs@kernel.org,wujianyue000@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-drop-stale-folio_ref_count==1-check-in-do_swap_page-reuse-logic-fix.patch removed from -mm tree
-Message-Id: <20260805011133.C36451F000E9@smtp.kernel.org>
+Subject: [folded-merged] mm-rename-swapc-to-folioc-fix.patch removed from -mm tree
+Message-Id: <20260805011208.4DF531F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,62 +35,57 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm-drop-stale-folio_ref_count==1-check-in-do_swap_page-reuse-logic-fix
+     Subject: mm-rename-swapc-to-folioc-fix
 has been removed from the -mm tree.  Its filename was
-     mm-drop-stale-folio_ref_count==1-check-in-do_swap_page-reuse-logic-fix.patch
+     mm-rename-swapc-to-folioc-fix.patch
 
-This patch was dropped because it was folded into mm-drop-stale-folio_ref_count==1-check-in-do_swap_page-reuse-logic.patch
+This patch was dropped because it was folded into mm-rename-swapc-to-folioc.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-drop-stale-folio_ref_count==1-check-in-do_swap_page-reuse-logic-fix
-Date: Mon Jul  6 04:13:37 PM PDT 2026
+From: Jianyue Wu <wujianyue000@gmail.com>
+Subject: mm-rename-swapc-to-folioc-fix
+Date: Tue, 4 Aug 2026 19:11:09 +0800
 
-update comment, per David
+move mm/folio.c to MM CORE
 
-Link: https://lore.kernel.org/3a185a5d-2f2c-4e9d-9cd9-8bdb236dfc5c@kernel.org
-Cc: Baoquan He <baoquan.he@linux.dev>
-Cc: "Barry Song (Xiaomi)" <baohua@kernel.org>
-Cc: David Hildenbrand (Arm) <david@kernel.org>
-Cc: Kairui Song <kasong@tencent.com>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Usama Arif <usama.arif@linux.dev>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: Kemeng Shi <shikemeng@huaweicloud.com>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
+mm/folio.c holds generic folio LRU helpers, not MGLRU-specific
+code. Move it to MEMORY MANAGEMENT - CORE, next to
+folio-compat.c and folio_batch.h, so get_maintainer.pl routes
+reviews to the right people.
+
+Link: https://lore.kernel.org/20260804111109.393127-1-wujianyue000@gmail.com
+Fixes: 8ed6d702d442 ("mm: rename swap.c to folio.c")
+Signed-off-by: Jianyue Wu <wujianyue000@gmail.com>
+Suggested-by: Lorenzo Stoakes <ljs@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ MAINTAINERS |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/memory.c~mm-drop-stale-folio_ref_count==1-check-in-do_swap_page-reuse-logic-fix
-+++ a/mm/memory.c
-@@ -5039,8 +5039,8 @@ check_folio:
- 		pte = pte_mkuffd_wp(pte);
+--- a/MAINTAINERS~mm-rename-swapc-to-folioc-fix
++++ a/MAINTAINERS
+@@ -16988,6 +16988,7 @@ F:	kernel/fork.c
+ F:	mm/Kconfig
+ F:	mm/debug.c
+ F:	mm/folio-compat.c
++F:	mm/folio.c
+ F:	mm/highmem.c
+ F:	mm/init-mm.c
+ F:	mm/internal.h
+@@ -17088,7 +17089,6 @@ F:	Documentation/admin-guide/mm/multigen
+ F:	Documentation/mm/multigen_lru.rst
+ F:	include/linux/mm_inline.h
+ F:	include/linux/mmzone.h
+-F:	mm/folio.c
+ F:	mm/vmscan.c
+ F:	mm/workingset.c
  
- 	/*
--	 * Similar logic as in do_wp_page(); however, optimize for pages that are
--	 * certainly not because the swap entry indicates exclusivity.
-+	 * Similar logic as in do_wp_page(); however, optimize for pages that
-+	 * are certainly exclusive.
- 	 */
- 	if (exclusive) {
- 		if ((vma->vm_flags & VM_WRITE) && !userfaultfd_pte_wp(vma, pte) &&
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from wujianyue000@gmail.com are
 
-mm-drop-stale-folio_ref_count==1-check-in-do_swap_page-reuse-logic.patch
-mm-hmm-make-config_hmm_mirror-select-config_mmu_notifier.patch
-mm-vma-add-and-use-vma__pgoff-fix.patch
-alloc_tag-add-ioctl-to-proc-allocinfo-fix.patch
-mm-page_alloc-only-update-lowmem_reserve_ratio-on-sysctl-write-fix.patch
-drivers-media-v4l2-core-v4l2-vp9c-reduce-inlining.patch
+mm-swap-colocate-page-cluster-sysctl-with-swap-readahead.patch
+mm-rename-swapc-to-folioc.patch
+mm-move-reclaim-internal-declarations-out-of-swaph.patch
 
