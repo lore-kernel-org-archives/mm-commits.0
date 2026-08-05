@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 212CC3C108E
-	for <mm-commits@vger.kernel.org>; Wed,  5 Aug 2026 02:26:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BAB253C0A10;
+	Wed,  5 Aug 2026 02:26:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785896800; cv=none; b=VwC6NFzpzcAFK6RR0Hs42HlwEkdeAro5yzPTj09NR8i5WNlN5q0s0b4kpJAVS97oEvVB7mTmZ9MeNNK+IBtNl40mODocviATIZJpoy9Q9iahGrrKOaynv2PW5YeSy8OOkhuhqtcMNi3S2nbu69FjemSmqkL75Jm3Wb2E46mH8bw=
+	t=1785896801; cv=none; b=Eu0gcDRYW6g7ODny8aiz7JSmuHpPSwIWsgbiMTuiIy3aPmMEJr+Qi5qDf4OpUdB0SeObXqLGlgrhBnj3iomhqEqhu3s21BN2hfuCvSYUApvfnhIpzrqoiQsID0dYM7eJQok0gkzJZBIvacgvEeu7wxcQrkamLs6gf0wlsyCnfQA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785896800; c=relaxed/simple;
-	bh=xig10D3n0gH6yIDLxbuq61ZB3pONucSnO0vOL4ci2EQ=;
-	h=Date:To:From:Subject:Message-Id; b=U/QOrv4Eaa7IBJ6cjoAw/6HC8U5J2L0QqFEdHcjpPbmL463EVzQFr/tCmpOhy0614oi5lBdOD0DCLxuceZCHkSLS7HYVIdSvXlxEpTQ24Dl2oKCiXVvkxHRh5adVFn2n9YSBD++YCrSWo0czqnN6FpI0BS2PJL5NVd6zMR4ieqM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rQPobzIF; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785896801; c=relaxed/simple;
+	bh=QpxN8w7PyjmxWG8KpZgnziwK+1OAMS7VJKGow4z5sVc=;
+	h=Date:To:From:Subject:Message-Id; b=V927Y4IZ9u/3nJb7staFFUfM5mZJZW7hF7fAqQXRxfHxn91qUwQPOh2rcq78RB5CQrhLETQj4prYLyeHVn6nAZ/RDTZkjXaXTcxywzOCI4vgS6j/HIE4ZrNGawt7vRRaVE+vstHtJXO6maHjo3kDlstcqMKe7xVznLh51TXYXyY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xEI/M+WC; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rQPobzIF"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DDE401F00A3A;
-	Wed,  5 Aug 2026 02:26:37 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xEI/M+WC"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 827CD1F000E9;
+	Wed,  5 Aug 2026 02:26:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785896798;
-	bh=gKdPZNWLFJryXEGwf19cAuO2sb3L/9kGYJo8zi1NzqU=;
+	d=linux-foundation.org; s=korg; t=1785896799;
+	bh=/SMBAX6MCSZQ5hidmanD4kffUn8zFh4fSvbvKRtzWtk=;
 	h=Date:To:From:Subject;
-	b=rQPobzIFVuy6oJsgrp4/Jrk8g8Hk4p5LhYng8FBeb/7gInMTasrlSuA6NSJSItfpS
-	 AkPkaVGeGbz4NV5/WFc9BJt9SJ8F7+nCHp7F6jEQalWi5VqjwTymkALBJpJqm8Ftgm
-	 cCNG5jmFtGW9hyuhgO0ObXJymRXenE+CxmSOm5q8=
-Date: Tue, 04 Aug 2026 19:26:37 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,tzimmermann@suse.de,sj@kernel.org,pfalcato@suse.de,m.szyprowski@samsung.com,liam@infradead.org,kai.huang@intel.com,gourry@gourry.net,david@kernel.org,ackerleytng@google.com,ljs@kernel.org,akpm@linux-foundation.org
+	b=xEI/M+WCaHuCtfE15r/2O1gH2GzRV9Ck0FDRHXHhJWR6W0JY0AvbLvx+KMnuEhZNA
+	 37Fcqdk2ICefkSQj5jdNQJu83L3LdwnQ/uD8nTicfg/iFMMsWG/7Xa0HtSWE7IST8v
+	 vUVUzvT1M2E7LYWPnw0YRUJgm264giR6uviWlkpA=
+Date: Tue, 04 Aug 2026 19:26:39 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,vbabka@kernel.org,stable@vger.kernel.org,shakeel.butt@linux.dev,sashiko-bot@kernel.org,ryan.roberts@arm.com,rakie.kim@sk.com,npache@redhat.com,matthew.brost@intel.com,ljs@kernel.org,liam@infradead.org,lance.yang@linux.dev,joshua.hahnjy@gmail.com,jannh@google.com,hannes@cmpxchg.org,gourry@gourry.net,dev.jain@arm.com,david@kernel.org,byungchul@sk.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,balbirs@nvidia.com,apopple@nvidia.com,usama.arif@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] tools-testing-vma-output-compared-expression-on-assert_.patch removed from -mm tree
-Message-Id: <20260805022637.DDE401F00A3A@smtp.kernel.org>
+Subject: [merged mm-stable] mm-mempolicy-skip-non-present-pmds-when-queueing-folios.patch removed from -mm tree
+Message-Id: <20260805022639.827CD1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,145 +35,109 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: tools/testing/vma: output compared expression on ASSERT_[EQ, NE]()
+     Subject: mm/mempolicy: skip non-present PMDs when queueing folios
 has been removed from the -mm tree.  Its filename was
-     tools-testing-vma-output-compared-expression-on-assert_.patch
+     mm-mempolicy-skip-non-present-pmds-when-queueing-folios.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Lorenzo Stoakes <ljs@kernel.org>
-Subject: tools/testing/vma: output compared expression on ASSERT_[EQ, NE]()
-Date: Fri, 10 Jul 2026 21:17:14 +0100
+From: Usama Arif <usama.arif@linux.dev>
+Subject: mm/mempolicy: skip non-present PMDs when queueing folios
+Date: Fri, 10 Jul 2026 03:55:21 -0700
 
-Update the macros to output the compared values at hex for easier debugging
-when test asserts fail.
+Patch series "mm: handle device-private PMDs in walk callbacks", v3.
 
-We have to be careful not to re-evaluate expressions as they may have
-side-effects. So update the code to take local copies and use these for
-both the test and the debug output.
+Since commit 368076f52ebe ("mm/huge_memory: add device-private THP support
+to PMD operations") a PMD may hold a device-private swap entry whenever an
+HMM-based GPU driver migrates an anonymous THP folio to device memory via
+migrate_vma_pages().
 
-Also remove unused IS_SET() macro.
+pmd_trans_huge_lock() succeeds for such PMDs (pmd_is_huge() returns true
+for any non-present, non-none huge PMD), so several MM walk callbacks that
+used to assume present THP or migration entry are now reachable with a
+device-private PMD.  The results range from a VM_BUG_ON() firing on debug
+kernels, to an oops on a bogus vmemmap dereference, to silently isolating
+an unrelated live folio from LRU in the aliasing case.
 
-Link: https://lore.kernel.org/20260710-b4-pre-scalable-cow-v2-33-2a5aa403d977@kernel.org
-Signed-off-by: Lorenzo Stoakes <ljs@kernel.org>
+
+This patch (of 3):
+
+queue_folios_pmd() is called under pmd_trans_huge_lock(), whose
+pmd_is_huge() check returns true for any non-present, non-none PMD
+softleaf.  Passing such a PMD to pmd_folio() treats the softleaf encoding
+as a hardware PFN and can return a bogus folio pointer.
+
+Mirror queue_folios_pte_range(): handle non-present entries before looking
+up a folio.  Keep migration entries counted as failures, but skip other
+non-present PMDs such as device-private entries.
+
+Potential trigger: an HMM-based GPU driver migrates an anonymous THP folio
+to device memory via migrate_vma_pages(), leaving a device-private PMD. 
+Userspace then calls mbind(), migrate_pages() or set_mempolicy_home_node()
+on that range.
+
+Link: https://lore.kernel.org/20260710105557.1987433-1-usama.arif@linux.dev
+Link: https://lore.kernel.org/20260710105557.1987433-2-usama.arif@linux.dev
+Fixes: 368076f52ebe ("mm/huge_memory: add device-private THP support to PMD operations")
+Signed-off-by: Usama Arif <usama.arif@linux.dev>
+Reported-by: sashiko-bot <sashiko-bot@kernel.org>
+Link: https://sashiko.dev/#/patchset/20260703173903.3789516-1-usama.arif%40linux.dev?part=6
+Reviewed-by: Joshua Hahn <joshua.hahnjy@gmail.com>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Reviewed-by: Balbir Singh <balbirs@nvidia.com>
 Reviewed-by: Gregory Price <gourry@gourry.net>
-Cc: Ackerley Tng <ackerleytng@google.com>
-Cc: David Hildenbrand (Arm) <david@kernel.org>
-Cc: Kai Huang <kai.huang@intel.com>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: Pedro Falcato <pfalcato@suse.de>
-Cc: SJ Park <sj@kernel.org>
-Cc: Thomas Zimmermann <tzimmermann@suse.de>
-Cc: Vlastimil Babka (SUSE) <vbabka@kernel.org>
-Cc: Liam R. Howlett (Oracle) <liam@infradead.org>
-Cc: Zi Yan <ziy@nvidia.com>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Byungchul Park <byungchul@sk.com>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
+Cc: Jann Horn <jannh@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Lance Yang <lance.yang@linux.dev>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Matthew Brost <matthew.brost@intel.com>
+Cc: Nico Pache <npache@redhat.com>
+Cc: Rakie Kim <rakie.kim@sk.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/vma/shared.h |   38 +++++++++++++++++++++++------------
- 1 file changed, 26 insertions(+), 12 deletions(-)
+ mm/mempolicy.c |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
---- a/tools/testing/vma/shared.h~tools-testing-vma-output-compared-expression-on-assert_
-+++ a/tools/testing/vma/shared.h
-@@ -21,19 +21,35 @@
- 		}							\
- 	} while (0)
+--- a/mm/mempolicy.c~mm-mempolicy-skip-non-present-pmds-when-queueing-folios
++++ a/mm/mempolicy.c
+@@ -654,12 +654,14 @@ static void queue_folios_pmd(pmd_t *pmd,
+ {
+ 	struct folio *folio;
+ 	struct queue_pages *qp = walk->private;
++	pmd_t pmdval = pmdp_get(pmd);
  
--#define ASSERT_TRUE(_expr)						\
--	do {								\
--		if (!(_expr)) {						\
--			fprintf(stderr,					\
--				"Assert FAILED at %s:%d:%s(): %s is FALSE.\n", \
--				__FILE__, __LINE__, __FUNCTION__, #_expr); \
--			return false;					\
--		}							\
-+#define __ASSERT_TRUE(_expr, _fmt, ...)					   \
-+	do {								   \
-+		if (!(_expr)) {						   \
-+			fprintf(stderr,					   \
-+				"Assert FAILED at %s:%d:%s(): %s is FALSE" \
-+				_fmt ".\n",				   \
-+				__FILE__, __LINE__, __FUNCTION__, #_expr   \
-+				__VA_OPT__(,) __VA_ARGS__);		   \
-+			return false;					   \
-+		}							   \
- 	} while (0)
- 
-+#define __TO_SCALAR(x)	((unsigned long long)(uintptr_t)(x))
-+
-+#define ASSERT_TRUE(_expr) __ASSERT_TRUE(_expr, "")
- #define ASSERT_FALSE(_expr) ASSERT_TRUE(!(_expr))
--#define ASSERT_EQ(_val1, _val2) ASSERT_TRUE((_val1) == (_val2))
--#define ASSERT_NE(_val1, _val2) ASSERT_TRUE((_val1) != (_val2))
-+#define ASSERT_EQ(_val1, _val2) do {				 \
-+	__typeof__(_val1) __val1 = (_val1);			 \
-+	__typeof__(_val2) __val2 = (_val2);			 \
-+	__ASSERT_TRUE(__val1 == __val2, " (0x%llx != 0x%llx)",	 \
-+		      __TO_SCALAR(__val1), __TO_SCALAR(__val2)); \
-+	} while (0)
-+
-+#define ASSERT_NE(_val1, _val2) do {				 \
-+	__typeof__(_val1) __val1 = (_val1);			 \
-+	__typeof__(_val2) __val2 = (_val2);			 \
-+	__ASSERT_TRUE(__val1 != __val2, " (0x%llx == 0x%llx)",	 \
-+		      __TO_SCALAR(__val1), __TO_SCALAR(__val2)); \
-+	} while (0)
- 
- #define ASSERT_FLAGS_SAME_MASK(_flags, _flags_other) \
- 	ASSERT_TRUE(vma_flags_same_mask((_flags), (_flags_other)))
-@@ -53,8 +69,6 @@
- #define ASSERT_FLAGS_NONEMPTY(_flags) \
- 	ASSERT_FALSE(vma_flags_empty(_flags))
- 
--#define IS_SET(_val, _flags) ((_val & _flags) == _flags)
--
- extern bool fail_prealloc;
- 
- /* Override vma_iter_prealloc() so we can choose to fail it. */
+-	if (unlikely(pmd_is_migration_entry(*pmd))) {
+-		qp->nr_failed++;
++	if (unlikely(!pmd_present(pmdval))) {
++		if (pmd_is_migration_entry(pmdval))
++			qp->nr_failed++;
+ 		return;
+ 	}
+-	folio = pmd_folio(*pmd);
++	folio = pmd_folio(pmdval);
+ 	if (is_huge_zero_folio(folio)) {
+ 		walk->action = ACTION_CONTINUE;
+ 		return;
 _
 
-Patches currently in -mm which might be from ljs@kernel.org are
+Patches currently in -mm which might be from usama.arif@linux.dev are
 
-mm-vmalloc-acquire-init_mm-lock-on-huge-vmap-to-avoid-ptdump-uaf.patch
-mm-ptdump-always-stabilise-against-page-table-freeing-using-init_mm.patch
-arm64-remove-redundant-concurrent-ptdump-uaf-mitigation.patch
-mm-huge_memory-fix-huge_zero_pfn-race.patch
-mm-huge_memory-separate-out-config_persistent_huge_zero_folio-logic.patch
-x86-mm-pat-acquire-init_mm-write-lock-on-collapse-to-avoid-uaf.patch
-x86-mm-pat-acquire-init_mm-read-lock-on-attribute-change-to-avoid-uaf.patch
-x86-mm-pat-allocate-split-page-tables-as-kernel-page-tables.patch
-mm-introduce-vma_flags_can_grow-and-vma_can_grow.patch
-mm-vma-update-do_mmap-to-use-vma_flags_t.patch
-mm-convert-__get_unmapped_area-to-use-vma_flags_t.patch
-mm-update-generic_get_unmapped_area-to-use-vma_flags_t.patch
-mm-prefer-mm-def_vma_flags-in-mm-logic.patch
-mm-vma-convert-vm_pgprot_modify-to-use-vma_flags_t-and-rename.patch
-mm-vma-rename-vma_get_page_prot-to-vma_flags_to_page_prot.patch
-mm-introduce-vma_get_page_prot-and-use-it.patch
-mm-vma-update-create_init_stack_vma-to-use-vma_flags_t.patch
-mm-vma-convert-miscellaneous-uses-of-vma-flags-in-core-mm.patch
-mm-mlock-convert-mlock-code-to-use-vma_flags_t.patch
-mm-mprotect-convert-mprotect-code-to-use-vma_flags_t.patch
-mm-mremap-convert-mremap-code-to-use-vma_flags_t.patch
-mm-mseal-remove-superfluous-comments-fix-confusion-around-mm.patch
-mm-mseal-limit-scope-of-mseal-address-zero-to-address-zero.patch
-mm-mseal-remove-further-superfluous-comments-do_mseal.patch
-mm-vma-introduce-vma-virtual-page-offset-field-and-add-helpers.patch
-mm-introduce-linear_virt_page_index.patch
-mm-abstract-vma_address-and-introduce-vma_anon_address.patch
-mm-update-print_bad_page_map-to-show-virtual-page-index.patch
-mm-introduce-and-use-vma_filebacked_address.patch
-mm-propagate-vma-virtual-page-offset-on-map-remap-split-merge.patch
-mm-rmap-track-whether-the-page-vma-mapped-walk-is-anonymous.patch
-mm-introduce-and-use-linear_folio_page_index.patch
-mm-rmap-use-virt-pgoff-for-map_private-file-backed-anon-folios.patch
-tools-testing-vma-expand-vma-merge-tests-to-assert-virt-pgoff.patch
-tools-testing-selftests-mm-test-virtual-page-offset-merge-behaviour.patch
-mm-vma-only-permit-map_private-dev-zero-to-be-mapped-anonymous.patch
-mm-vma-make-map_private-mapped-dev-zero-mappings-truly-anonymous.patch
-tools-testing-vma-add-test-to-assert-map_private-dev-zero-is-anon.patch
-tools-testing-selftests-mm-add-map_private-dev-zero-merge-tests.patch
-mm-add-some-missing-includes-to-mm-local-headers.patch
+mm-vmstat-mm-memcontrol-add-_monotonic-vmstat-readers.patch
+mm-vmscan-add-pgrotate_anon-and-pgrotate_file-vmstat-counters.patch
+mm-vmscan-reduce-lru_lock-contention-via-vmstat-derived-scan-balance-cost.patch
 
