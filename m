@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 990053BED27
-	for <mm-commits@vger.kernel.org>; Wed,  5 Aug 2026 02:25:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EC5F73BFAC0
+	for <mm-commits@vger.kernel.org>; Wed,  5 Aug 2026 02:25:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785896704; cv=none; b=Txbq09YbhIlRbaiFQOSTF24FxFQbSOpS6H3JTtNWd4P1bwydpkKb3ntT5iiQPzzHtIBL2QAB4OS5byzQYRCZqtx0cy+edVJ3fWIHDf/EjuexVBw5Q4ODRYQDrpQmPc8i5WiUa7Tfm6uH+Tiv3/A3Yaq9xhBwxBVbiLh+1pRz1Ro=
+	t=1785896706; cv=none; b=l6556mBIS3xBFZLqA4/d93fzTHXD8KU4x6Lr0rbpowTWbJuvInG8VaWXy5X1w6FQEoctx7pkAEZkJGLLQhae98A69NqBmXa8zLbIFNrifjXHUQmirw+VZ+0SMsS498m5UUhIEffsvREbxo2dAYQpZMwTq+24dpEHy+6xm4zPweA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785896704; c=relaxed/simple;
-	bh=qqPAcFe8W8akzobFdKk5OCpf3JDkYDyFSBN9zT82Vc4=;
-	h=Date:To:From:Subject:Message-Id; b=O5BOgphwvCKczdgxSbkuLmuklAWT0oi8BiWfkxD3ebt63KLTT9aY0HCFtfa6Sm32DJCY+RsbHtdrRcEAo6rUF5vCWsIdgJSPWF4lHML9iGi4DQVp9UN3rYour3ep5Yv6rySBgrtz7pP9U2+ZNbESFyT8eq6y+KXMmXLhkWYO2mc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QXHzuX/M; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785896706; c=relaxed/simple;
+	bh=MukWIxTrFMxGl8vFSrvySuApqNqYZRpsBun5ffaDptU=;
+	h=Date:To:From:Subject:Message-Id; b=cc524/z+22o+zpufInjUFoDtyE+Ra3WLLmkuhUa6IwGoLyGgqWIJucKdxtPCbhBgDrNbP9TjuQNJQf8ux8OIl1MKmkAipM5hOckFZkeKcBux9nNUUro4TIszm0eJyApbjN4KRU29PMT6QiMAD6rKE/+oBYtSym5Bnez8gWJMrJM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hLxNz4mh; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QXHzuX/M"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 62CBB1F00A3A;
-	Wed,  5 Aug 2026 02:25:03 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hLxNz4mh"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B996D1F000E9;
+	Wed,  5 Aug 2026 02:25:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785896703;
-	bh=d2hZe1byxxIt8FJ4O9fOIrc58crmlfiPbiMgKI+lLeQ=;
+	d=linux-foundation.org; s=korg; t=1785896704;
+	bh=QfHrgzYPlv6hUn3hVteQ2KCzJyVHlT2vL+U2V9IdJ9k=;
 	h=Date:To:From:Subject;
-	b=QXHzuX/Mq91SZDs7XJJfavoSQ6lkOQLr1/Uhfib9wkfHgYJfXMaGWwmIwk68VeNzX
-	 c7N+z5YgX9BBqzRICP9pjo2wRSxW03krM+Dt6CtRSUeR37/fQPwdbPLnv/RLEaURbo
-	 cZKsyMp05CrmgFw02oY+NalO6kFVJ2PNEOuwLsXc=
-Date: Tue, 04 Aug 2026 19:25:02 -0700
+	b=hLxNz4mhL+ZlecyT+lTOfeFQUSnjS6+BKeL0YKDVjR4UbSfX0N1//vIdEsE4Bw7Wy
+	 n6V7Iso/Vb14TaNuSvYseKQfYIWjbrH5mNJrwbXl3GFRLJYQmI2Xc/bYv7oMftNp3r
+	 siaInSazfVvL82ld/Kvz7Vngig/lx+p3TNg3quyo=
+Date: Tue, 04 Aug 2026 19:25:04 -0700
 To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-core-ask-apply_probes-ops-callback-to-set-sampling-address.patch removed from -mm tree
-Message-Id: <20260805022503.62CBB1F00A3A@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-paddr-set-samples-in-apply_probes-if-requested.patch removed from -mm tree
+Message-Id: <20260805022504.B996D1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,25 +35,22 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/damon/core: ask apply_probes() ops callback to set sampling address
+     Subject: mm/damon/paddr: set samples in apply_probes() if requested
 has been removed from the -mm tree.  Its filename was
-     mm-damon-core-ask-apply_probes-ops-callback-to-set-sampling-address.patch
+     mm-damon-paddr-set-samples-in-apply_probes-if-requested.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/core: ask apply_probes() ops callback to set sampling address
-Date: Fri, 10 Jul 2026 06:46:31 -0700
+Subject: mm/damon/paddr: set samples in apply_probes() if requested
+Date: Fri, 10 Jul 2026 06:46:32 -0700
 
-prepare_access_checks() DAMON ops callback sets the monitoring sampling
-address per region.  In future, DAMON will be able to call only
-apply_probes().  In this case, applyy_probes() may need to do the sampling
-address setup, to minimize unnecessary regions iteration.  Update the
-protocol for the request.
+apply_probe() callback implementation in DAMON_PADDR is ignoring
+set_samples parameter.  Respect it.
 
-Link: https://lore.kernel.org/20260710134651.18084-3-sj@kernel.org
+Link: https://lore.kernel.org/20260710134651.18084-4-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
@@ -66,54 +63,22 @@ Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/damon.h |    5 +++--
- mm/damon/core.c       |    2 +-
- mm/damon/paddr.c      |    2 +-
- 3 files changed, 5 insertions(+), 4 deletions(-)
+ mm/damon/paddr.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
---- a/include/linux/damon.h~mm-damon-core-ask-apply_probes-ops-callback-to-set-sampling-address
-+++ a/include/linux/damon.h
-@@ -647,7 +647,8 @@ enum damon_ops_id {
-  * It should also return max number of observed accesses that made as a result
-  * of its update.  The value will be used for regions adjustment threshold.
-  * @apply_probes should apply the data attribute probes to each region and
-- * accordingly update the probe hits counter of the region.
-+ * accordingly update the probe hits counter of the region.  It should also
-+ * set &damon_region->sampling_addr of each region if ``set_samples`` is true.
-  * @get_scheme_score should return the priority score of a region for a scheme
-  * as an integer in [0, &DAMOS_MAX_SCORE].
-  * @apply_scheme is called from @kdamond when a region for user provided
-@@ -665,7 +666,7 @@ struct damon_operations {
- 	void (*update)(struct damon_ctx *context);
- 	void (*prepare_access_checks)(struct damon_ctx *context);
- 	unsigned int (*check_accesses)(struct damon_ctx *context);
--	void (*apply_probes)(struct damon_ctx *context);
-+	void (*apply_probes)(struct damon_ctx *context, bool set_samples);
- 	int (*get_scheme_score)(struct damon_ctx *context,
- 			struct damon_region *r, struct damos *scheme);
- 	unsigned long (*apply_scheme)(struct damon_ctx *context,
---- a/mm/damon/core.c~mm-damon-core-ask-apply_probes-ops-callback-to-set-sampling-address
-+++ a/mm/damon/core.c
-@@ -3692,7 +3692,7 @@ static int kdamond_fn(void *data)
- 		if (ctx->ops.check_accesses)
- 			max_nr_accesses = ctx->ops.check_accesses(ctx);
- 		if (ctx->ops.apply_probes)
--			ctx->ops.apply_probes(ctx);
-+			ctx->ops.apply_probes(ctx, false);
- 
- 		if (time_after_eq(ctx->passed_sample_intervals,
- 					next_aggregation_sis)) {
---- a/mm/damon/paddr.c~mm-damon-core-ask-apply_probes-ops-callback-to-set-sampling-address
+--- a/mm/damon/paddr.c~mm-damon-paddr-set-samples-in-apply_probes-if-requested
 +++ a/mm/damon/paddr.c
-@@ -166,7 +166,7 @@ static bool damon_pa_filter_pass(phys_ad
- 	return pass;
- }
+@@ -178,6 +178,10 @@ static void damon_pa_apply_probes(struct
+ 			phys_addr_t pa;
+ 			struct folio *folio;
  
--static void damon_pa_apply_probes(struct damon_ctx *ctx)
-+static void damon_pa_apply_probes(struct damon_ctx *ctx, bool set_samples)
- {
- 	struct damon_target *t;
- 	struct damon_region *r;
++			if (set_samples)
++				r->sampling_addr = damon_rand(ctx, r->ar.start,
++						r->ar.end);
++
+ 			pa = damon_pa_phys_addr(r->sampling_addr,
+ 					ctx->addr_unit);
+ 			folio = damon_get_folio(PHYS_PFN(pa));
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
