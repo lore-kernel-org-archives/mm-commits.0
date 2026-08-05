@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BAB253C0A10;
-	Wed,  5 Aug 2026 02:26:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5D95C3C10BE;
+	Wed,  5 Aug 2026 02:26:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785896801; cv=none; b=Eu0gcDRYW6g7ODny8aiz7JSmuHpPSwIWsgbiMTuiIy3aPmMEJr+Qi5qDf4OpUdB0SeObXqLGlgrhBnj3iomhqEqhu3s21BN2hfuCvSYUApvfnhIpzrqoiQsID0dYM7eJQok0gkzJZBIvacgvEeu7wxcQrkamLs6gf0wlsyCnfQA=
+	t=1785896802; cv=none; b=Tk5dP1m8o7ahANzGrpDFTfynQh4awlFNGPf5UKVy7SAj4XE/eVdTeYOtcHUVzAiaxL0UHCt9KLJzq2+avsUwurHQPRsN786EEbU2hZsbZhCEeiDhSPkdAqYA6vQhTLGrUXMZCspt2bwxsHBaVaxla1cqBS1QzDoiGiXBogUVG+A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785896801; c=relaxed/simple;
-	bh=QpxN8w7PyjmxWG8KpZgnziwK+1OAMS7VJKGow4z5sVc=;
-	h=Date:To:From:Subject:Message-Id; b=V927Y4IZ9u/3nJb7staFFUfM5mZJZW7hF7fAqQXRxfHxn91qUwQPOh2rcq78RB5CQrhLETQj4prYLyeHVn6nAZ/RDTZkjXaXTcxywzOCI4vgS6j/HIE4ZrNGawt7vRRaVE+vstHtJXO6maHjo3kDlstcqMKe7xVznLh51TXYXyY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xEI/M+WC; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785896802; c=relaxed/simple;
+	bh=TuYJTWU8bxNDplJ/7J3FcSi3vzU+b/rsFhCyQ5DTXXg=;
+	h=Date:To:From:Subject:Message-Id; b=LqPIZiMqf9Yg9GdZ/w5DFQFRH4RY0lrQR6Jc6FgGE4PKQOjbHkATkdAOYugm5mWjxhwR0j+8rTql1u+EB+gp0r60GXm1y+g91QpGT3kaohNFOdZgky9Z1wFyrtj3uLFCA8z1d4aXpA8HzBbBUFvP/R+61VDeez2AhY12y8dTCRE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SDchLVqb; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xEI/M+WC"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 827CD1F000E9;
-	Wed,  5 Aug 2026 02:26:39 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SDchLVqb"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2428A1F00A3A;
+	Wed,  5 Aug 2026 02:26:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785896799;
-	bh=/SMBAX6MCSZQ5hidmanD4kffUn8zFh4fSvbvKRtzWtk=;
+	d=linux-foundation.org; s=korg; t=1785896801;
+	bh=N/eTzHWkpgdxudyTf/J4zs8xjYEQADnZNgYH0gOEB1I=;
 	h=Date:To:From:Subject;
-	b=xEI/M+WCaHuCtfE15r/2O1gH2GzRV9Ck0FDRHXHhJWR6W0JY0AvbLvx+KMnuEhZNA
-	 37Fcqdk2ICefkSQj5jdNQJu83L3LdwnQ/uD8nTicfg/iFMMsWG/7Xa0HtSWE7IST8v
-	 vUVUzvT1M2E7LYWPnw0YRUJgm264giR6uviWlkpA=
-Date: Tue, 04 Aug 2026 19:26:39 -0700
+	b=SDchLVqbCjU3sRo8lzHqz/4NxJIySNLrqm5ScPQZZyxujBUrqyUMjZWfIluFE79Gw
+	 dIEgyl87jJsTV3P72RdrWtekEkuNqPcl/8D/xfAt8yekl5qaeJeF1DbODGwWEvF0Je
+	 eYEr321mW9uG8RNrB/vJoPFy9BjDcpG0IVj5WmVg=
+Date: Tue, 04 Aug 2026 19:26:40 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,vbabka@kernel.org,stable@vger.kernel.org,shakeel.butt@linux.dev,sashiko-bot@kernel.org,ryan.roberts@arm.com,rakie.kim@sk.com,npache@redhat.com,matthew.brost@intel.com,ljs@kernel.org,liam@infradead.org,lance.yang@linux.dev,joshua.hahnjy@gmail.com,jannh@google.com,hannes@cmpxchg.org,gourry@gourry.net,dev.jain@arm.com,david@kernel.org,byungchul@sk.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,balbirs@nvidia.com,apopple@nvidia.com,usama.arif@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-mempolicy-skip-non-present-pmds-when-queueing-folios.patch removed from -mm tree
-Message-Id: <20260805022639.827CD1F000E9@smtp.kernel.org>
+Subject: [merged mm-stable] mm-madvise-skip-device-private-pmds-in-cold-and-pageout-walks.patch removed from -mm tree
+Message-Id: <20260805022641.2428A1F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,64 +35,51 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/mempolicy: skip non-present PMDs when queueing folios
+     Subject: mm/madvise: skip device-private PMDs in cold and pageout walks
 has been removed from the -mm tree.  Its filename was
-     mm-mempolicy-skip-non-present-pmds-when-queueing-folios.patch
+     mm-madvise-skip-device-private-pmds-in-cold-and-pageout-walks.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Usama Arif <usama.arif@linux.dev>
-Subject: mm/mempolicy: skip non-present PMDs when queueing folios
-Date: Fri, 10 Jul 2026 03:55:21 -0700
+Subject: mm/madvise: skip device-private PMDs in cold and pageout walks
+Date: Fri, 10 Jul 2026 03:55:22 -0700
 
-Patch series "mm: handle device-private PMDs in walk callbacks", v3.
+madvise_cold_or_pageout_pte_range() takes pmd_trans_huge_lock(), whose
+pmd_is_huge() check returns true for a device-private PMD.  The subsequent
+!pmd_present() branch has a VM_BUG_ON() asserting migration is the only
+allowed non-present case; a device-private PMD trips it.
 
-Since commit 368076f52ebe ("mm/huge_memory: add device-private THP support
-to PMD operations") a PMD may hold a device-private swap entry whenever an
-HMM-based GPU driver migrates an anonymous THP folio to device memory via
-migrate_vma_pages().
+Skip device-private PMDs in that non-present branch and continue to
+huge_unlock before calling pmd_folio().  Downgrade the check to
+VM_WARN_ON_ONCE() so an unexpected PMD softleaf logs a warning rather than
+panicking.  Drop the thp_migration_supported() guard: it expands to
+IS_ENABLED(CONFIG_ARCH_SUPPORTS_PMD_SOFTLEAF), and both
+pmd_is_migration_entry() and pmd_is_device_private_entry() already return
+false when that config is not selected, so the guard suppresses only the
+case where the warning would already be silent.
 
-pmd_trans_huge_lock() succeeds for such PMDs (pmd_is_huge() returns true
-for any non-present, non-none huge PMD), so several MM walk callbacks that
-used to assume present THP or migration entry are now reachable with a
-device-private PMD.  The results range from a VM_BUG_ON() firing on debug
-kernels, to an oops on a bogus vmemmap dereference, to silently isolating
-an unrelated live folio from LRU in the aliasing case.
+Potential trigger: an HMM-based GPU driver races with
+madvise(MADV_COLD)/MADV_PAGEOUT: pmd_trans_huge(*pmd) reads true, then
+migrate_vma_pages() flips the PMD to a device-private entry before the PMD
+lock is acquired.
 
-
-This patch (of 3):
-
-queue_folios_pmd() is called under pmd_trans_huge_lock(), whose
-pmd_is_huge() check returns true for any non-present, non-none PMD
-softleaf.  Passing such a PMD to pmd_folio() treats the softleaf encoding
-as a hardware PFN and can return a bogus folio pointer.
-
-Mirror queue_folios_pte_range(): handle non-present entries before looking
-up a folio.  Keep migration entries counted as failures, but skip other
-non-present PMDs such as device-private entries.
-
-Potential trigger: an HMM-based GPU driver migrates an anonymous THP folio
-to device memory via migrate_vma_pages(), leaving a device-private PMD. 
-Userspace then calls mbind(), migrate_pages() or set_mempolicy_home_node()
-on that range.
-
-Link: https://lore.kernel.org/20260710105557.1987433-1-usama.arif@linux.dev
-Link: https://lore.kernel.org/20260710105557.1987433-2-usama.arif@linux.dev
+Link: https://lore.kernel.org/20260710105557.1987433-3-usama.arif@linux.dev
 Fixes: 368076f52ebe ("mm/huge_memory: add device-private THP support to PMD operations")
 Signed-off-by: Usama Arif <usama.arif@linux.dev>
 Reported-by: sashiko-bot <sashiko-bot@kernel.org>
 Link: https://sashiko.dev/#/patchset/20260703173903.3789516-1-usama.arif%40linux.dev?part=6
 Reviewed-by: Joshua Hahn <joshua.hahnjy@gmail.com>
 Reviewed-by: Zi Yan <ziy@nvidia.com>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
 Reviewed-by: Balbir Singh <balbirs@nvidia.com>
 Reviewed-by: Gregory Price <gourry@gourry.net>
 Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Barry Song <baohua@kernel.org>
 Cc: Byungchul Park <byungchul@sk.com>
+Cc: David Hildenbrand (Arm) <david@kernel.org>
 Cc: Dev Jain <dev.jain@arm.com>
 Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
 Cc: Jann Horn <jannh@google.com>
@@ -110,29 +97,22 @@ Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |    8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ mm/madvise.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/mempolicy.c~mm-mempolicy-skip-non-present-pmds-when-queueing-folios
-+++ a/mm/mempolicy.c
-@@ -654,12 +654,14 @@ static void queue_folios_pmd(pmd_t *pmd,
- {
- 	struct folio *folio;
- 	struct queue_pages *qp = walk->private;
-+	pmd_t pmdval = pmdp_get(pmd);
+--- a/mm/madvise.c~mm-madvise-skip-device-private-pmds-in-cold-and-pageout-walks
++++ a/mm/madvise.c
+@@ -388,8 +388,8 @@ static int madvise_cold_or_pageout_pte_r
+ 			goto huge_unlock;
  
--	if (unlikely(pmd_is_migration_entry(*pmd))) {
--		qp->nr_failed++;
-+	if (unlikely(!pmd_present(pmdval))) {
-+		if (pmd_is_migration_entry(pmdval))
-+			qp->nr_failed++;
- 		return;
- 	}
--	folio = pmd_folio(*pmd);
-+	folio = pmd_folio(pmdval);
- 	if (is_huge_zero_folio(folio)) {
- 		walk->action = ACTION_CONTINUE;
- 		return;
+ 		if (unlikely(!pmd_present(orig_pmd))) {
+-			VM_BUG_ON(thp_migration_supported() &&
+-					!pmd_is_migration_entry(orig_pmd));
++			VM_WARN_ON_ONCE(!pmd_is_migration_entry(orig_pmd) &&
++					!pmd_is_device_private_entry(orig_pmd));
+ 			goto huge_unlock;
+ 		}
+ 
 _
 
 Patches currently in -mm which might be from usama.arif@linux.dev are
