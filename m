@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A54963BFE2F
-	for <mm-commits@vger.kernel.org>; Wed,  5 Aug 2026 02:25:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4BDB73C0628
+	for <mm-commits@vger.kernel.org>; Wed,  5 Aug 2026 02:25:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785896726; cv=none; b=Wfaj+oLbiIHGqVOf7WNH/goW6WvaNDrX3Y/F761+KSjfvaoT08fnur4o3eHZo3psUsJkMFs7OLfUnSmLpyYpqh7aZ9WOZjPcrBENRwFqM+hcHsprNbTAbEbeUJxz2c7pcplZ0lKxkVGLBm0bTDIW5ezsufWBiBRTWVz2WPTBSks=
+	t=1785896728; cv=none; b=P2zgU8LIEZSYuFevsGtBXaYO2x2lkM51HsgUlguEht/dWFoxB13kWE7faNqU07Uo8sDHFaJpLM8muakefNbVyRhW8egKdAZz7hsrgdLNX7N/ry1oXfpaDBLBOkRXavsjKm4UOuc09q0Y3bT1OLh1nrPrvDBx9bXjvKHabCqMRZY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785896726; c=relaxed/simple;
-	bh=P/DxCSsXfiJdchRogTKsOJDbS4IFNDiaoMfW6iLG418=;
-	h=Date:To:From:Subject:Message-Id; b=VFqXygpe1Ixq9Cx5BRBxX1aY0JptV73r4RD8vG2vpGTc3Pv4StSZYnT/Mdx5luGMforP2bi+5AP4T4CqdbDsF/80rZxM4EBD3aWaFkn/j2pplQTHh3eMRfYe3xG8yQo3OlmHNY9YRXUXlU0HyruOiGumyAYslrxpLJHUXydMfNw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1jyG1htS; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785896728; c=relaxed/simple;
+	bh=E9B9EFF6VLbjJ1Kx/EBW+7w5O1v+cWHz+mBut70Pyfw=;
+	h=Date:To:From:Subject:Message-Id; b=nAmFnfcXEY+rggkjv9FdaoCac1R6aeMkadwTSdOYw00m1zRgMWzlMBQEOz5w7ZNDbZiE6v9qdM07Pesr4Lb86PRIP71nYpWHwPAeLc3kG8x2GSSFLjf/pZXCDI6JnJXQj/RwJZUxzs99AHM+fLidDiV0gBsRlZz7nxFgFbD2xW0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qxhuPlNo; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1jyG1htS"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6F4C11F00A3A;
-	Wed,  5 Aug 2026 02:25:25 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qxhuPlNo"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C8DC31F000E9;
+	Wed,  5 Aug 2026 02:25:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785896725;
-	bh=tAhRVJ8Q9ifXaopo76WL33mkUMCMBSX5NPUU7Khpo3c=;
+	d=linux-foundation.org; s=korg; t=1785896726;
+	bh=gTY1w9o12Ye1gftOZk3tFS3gBfTMoUNZXDOpoI7cSws=;
 	h=Date:To:From:Subject;
-	b=1jyG1htSEcEZPJQ8ZkwBKsNgSnBcC2Iu0BrsP0ciRjaa+bbqE7LQmxCI7i4Mf8BJH
-	 wO8W/JamTZnBvkfGtowM77gb16mSw9rZF0+y9HKqXiyj+lgloFcj1Jnz3CMzMERVuH
-	 gRqOYJQDPkNPfe78PqbYF+woUA2CTPDF2TrWjWxc=
-Date: Tue, 04 Aug 2026 19:25:24 -0700
+	b=qxhuPlNosE6gBPfOL0isyJEVxq8/ePPDOLnv4kL0rTJi5Lv6E4YPrV0baI92crzQA
+	 0FcLyEOp4LrlNJEI07RN6xu2kxXUODIx8HYhGmB2rkHzy+S/Zv0UFracK+5Tfyvb7i
+	 URBSVYcvKbXazBd6nq+K2MzLpQTmSkbQkIt1VcUY=
+Date: Tue, 04 Aug 2026 19:25:26 -0700
 To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] docs-admin-guide-mm-damon-usage-document-weight-sysfs-file.patch removed from -mm tree
-Message-Id: <20260805022525.6F4C11F00A3A@smtp.kernel.org>
+Subject: [merged mm-stable] docs-abi-damon-document-probe-weight-file.patch removed from -mm tree
+Message-Id: <20260805022526.C8DC31F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,21 +35,21 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: Docs/admin-guide/mm/damon/usage: document weight sysfs file
+     Subject: Docs/ABI/damon: document probe weight file
 has been removed from the -mm tree.  Its filename was
-     docs-admin-guide-mm-damon-usage-document-weight-sysfs-file.patch
+     docs-abi-damon-document-probe-weight-file.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: Docs/admin-guide/mm/damon/usage: document weight sysfs file
-Date: Fri, 10 Jul 2026 06:46:47 -0700
+Subject: Docs/ABI/damon: document probe weight file
+Date: Fri, 10 Jul 2026 06:46:48 -0700
 
-Update DAMON usage document for newly added probe weight file.
+Update DAMON ABI document for the newly added probe weight sysfs file.
 
-Link: https://lore.kernel.org/20260710134651.18084-19-sj@kernel.org
+Link: https://lore.kernel.org/20260710134651.18084-20-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
@@ -62,58 +62,24 @@ Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/mm/damon/usage.rst |   11 ++++++++---
- Documentation/mm/damon/design.rst            |    5 +++++
- 2 files changed, 13 insertions(+), 3 deletions(-)
+ Documentation/ABI/testing/sysfs-kernel-mm-damon |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
---- a/Documentation/admin-guide/mm/damon/usage.rst~docs-admin-guide-mm-damon-usage-document-weight-sysfs-file
-+++ a/Documentation/admin-guide/mm/damon/usage.rst
-@@ -73,9 +73,10 @@ comma (",").
-     │ │ │ │ │ │ │ intervals_goal/access_bp,aggrs,min_sample_us,max_sample_us
-     │ │ │ │ │ │ nr_regions/min,max
-     │ │ │ │ │ │ :ref:`probes <damon_usage_sysfs_probes>`/nr_probes
--    │ │ │ │ │ │ │ 0/filters/nr_filters
--    │ │ │ │ │ │ │ │ 0/type,matching,allow,path
--    │ │ │ │ │ │ │ │ ...
-+    │ │ │ │ │ │ │ 0/weight
-+    │ │ │ │ │ │ │ │ filters/nr_filters
-+    │ │ │ │ │ │ │ │ │ 0/type,matching,allow,path
-+    │ │ │ │ │ │ │ │ │ ...
-     │ │ │ │ │ │ │ ...
-     │ │ │ │ │ :ref:`targets <sysfs_targets>`/nr_targets
-     │ │ │ │ │ │ :ref:`0 <sysfs_target>`/pid_target,obsolete_target
-@@ -286,6 +287,10 @@ In each probe directory, one directory,
- contains files for installing filters for the probe, that is used to determine
- the data attribute for the probe.
+--- a/Documentation/ABI/testing/sysfs-kernel-mm-damon~docs-abi-damon-document-probe-weight-file
++++ a/Documentation/ABI/testing/sysfs-kernel-mm-damon
+@@ -164,6 +164,12 @@ Description:	Writing a number 'N' to thi
+ 		directories for each DAMON probe named '0' to 'N-1' under the
+ 		probes/ directory.
  
-+Each probe directory also contains ``weight`` file.  Reading from and writing
-+to the file gets and sets the :ref:`attributes-only monitoring
-+<damon_design_attrs_only_monitoring>` weight for the attribute of the probe.
++What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/monitoring_attrs/probes/<P>/weight
++Date:		Jul 2026
++Contact:	SJ Park <sj@kernel.org>
++Description:	Writing to and reading from this file sets and gets the
++		per-probe attribute weight.
 +
- In the beginning, ``filters`` directory has only one file, ``nr_filters``.
- Writing a number (``N``) to the file creates the number of child directories
- named ``0`` to ``N-1``.  Each directory represents each filter and works in a
---- a/Documentation/mm/damon/design.rst~docs-admin-guide-mm-damon-usage-document-weight-sysfs-file
-+++ a/Documentation/mm/damon/design.rst
-@@ -316,6 +316,8 @@ Another way to do this for higher accura
- information in page level.  But, because it is operated in page level, the
- overhead is proportional to the size of the memory.
- 
-+.. _damon_design_attrs_only_monitoring:
-+
- Data Attributes-only Monitoring
- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- 
-@@ -336,6 +338,9 @@ automatically turned off.  The access co
- zero and not updated.  Hence the mode is called Data Attributes "only"
- monitoring.
- 
-+Refer to the :ref:`admin guide <damon_usage_sysfs_probes>` to know how users
-+can use the mode.
-+
- Dynamic Target Space Updates Handling
- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- 
+ What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/monitoring_attrs/probes/<P>/filters/nr_filters
+ Date:		May 2026
+ Contact:	SJ Park <sj@kernel.org>
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
