@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1C80437F303
-	for <mm-commits@vger.kernel.org>; Wed,  5 Aug 2026 18:43:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B59493AE18A;
+	Wed,  5 Aug 2026 18:48:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785955405; cv=none; b=I7amdy5siGtZ5dAM80TwQUkTOsahlJbI6ECl1m78rDiI/9ib93kM41cWFi/UFrxervtPib6VY28DEC6CSiVzStyD5xb4aQuOh5EMNjmPuj2imVRaBzRuYu9UdLLS26vtQ3OHO6B2lPjhBw014CvVBm6ioIE5s5PMH0mexc+MhC4=
+	t=1785955684; cv=none; b=TKw3he0f8T5dIsPkXc6gf8cErvd1vAq2ky16WW1Qu5nZ6KuROSXEhv053alRHz2qST76+OtAWL5O9TPThRHl1TNukRzIYxP0eWv46EpHBrfOF6VZiowcCaDkwsRzRfmwmgoOPHg1CFLvvlA2RVYWZ3P1kNqZ2JYVItZH2TkpsZc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785955405; c=relaxed/simple;
-	bh=U5hB0A/RqM01o0CX6lROnyzkMSqTMWgFjM0bm+NqB4U=;
-	h=Date:To:From:Subject:Message-Id; b=P/5LyJU7DEwu0Aa53vEEEXUIwv+JwIWHnImujAEuUsr1lFeoao4XEpju6hVbyGJK3Ik4J4L4gv7pljRQm9HjEYtuGEzjesxMRpIDMhPSHCDRh7cub8uxGh2z5SbJE2F8F9W4EW38lhpbaPp9wis4a+lU72aQwY4ceVKznlELOmU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1mDgz0v/; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785955684; c=relaxed/simple;
+	bh=mM0lBjBojmqaUkHGF0MxkvHPSuIzasiW1rVh8jtPd7U=;
+	h=Date:To:From:Subject:Message-Id; b=fh3xeBalxfupazbdcdhwotIYTpRDaABAPDDBn9QzGnK/iHPrD72WvqV6FZnwbuHVFsFpowrLjgrhjK5SwZhzraz3sNLN6L6uhLFmcIXt8HfyAL1eircJiFgtyv/rvdFw/FLmfl3DhPM93vHuRVZotUHY7XNJT2N/g5nwlyQn+MY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mb+l3fV6; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1mDgz0v/"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B877C1F000E9;
-	Wed,  5 Aug 2026 18:43:23 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mb+l3fV6"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 00F171F00A3A;
+	Wed,  5 Aug 2026 18:48:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785955403;
-	bh=Fh11uoe+vsTYoWvzy4TwGPgha2ULUNoX/yth6SbE8Dc=;
+	d=linux-foundation.org; s=korg; t=1785955683;
+	bh=4Four82+DJFUfCyi+3r4OGFOxvNlL6ygwzwPgPt3wis=;
 	h=Date:To:From:Subject;
-	b=1mDgz0v/ilfKEiZAuJiOqMWCZM5nE5Ej+8/WE1zsuEju2LrX9XbpnngsczkA2vGFN
-	 feZi+5YraiGEbIeNBgF4Lc8M6kXi0tIBrLs1ENDrB83fhi96ri+x8lNW3msig2ajvv
-	 yv+YAOVliYrxm4p28UctH+4ezcdg/fExS8vLkUVQ=
-Date: Wed, 05 Aug 2026 11:43:23 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,surenb@google.com,mhocko@suse.com,hannes@cmpxchg.org,liuye@kylinos.cn,akpm@linux-foundation.org
+	b=mb+l3fV6G2QoHQUz08HjLOR/yjz2qfyw8NokJ3/0O5q9Qp6GY1+WIJQlkljdFwnTW
+	 A9n56bssSbIZvhOiVrqGkh98i6pCDXnPlxCkBAIZh4BxLGiAw2wQJl6RtCqD/llFXM
+	 y6kFsWBfbh603LoOYGNSzaTAYNjrF+AObBFmMnqA=
+Date: Wed, 05 Aug 2026 11:48:02 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,senozhatsky@chromium.org,xialonglong@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-show_mem-fix-format-string-inconsistencies-and-type-mismatches.patch added to mm-new branch
-Message-Id: <20260805184323.B877C1F000E9@smtp.kernel.org>
+Subject: + zram-reject-disksizes-that-exceed-slot-index-range.patch added to mm-new branch
+Message-Id: <20260805184803.00F171F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/show_mem: fix format string inconsistencies and type mismatches
+     Subject: zram: reject disksizes that exceed slot index range
 has been added to the -mm mm-new branch.  Its filename is
-     mm-show_mem-fix-format-string-inconsistencies-and-type-mismatches.patch
+     zram-reject-disksizes-that-exceed-slot-index-range.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-show_mem-fix-format-string-inconsistencies-and-type-mismatches.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-reject-disksizes-that-exceed-slot-index-range.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,97 +69,55 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Ye Liu <liuye@kylinos.cn>
-Subject: mm/show_mem: fix format string inconsistencies and type mismatches
-Date: Wed, 5 Aug 2026 10:15:55 +0800
+From: Longlong Xia <xialonglong@kylinos.cn>
+Subject: zram: reject disksizes that exceed slot index range
+Date: Tue, 4 Aug 2026 22:38:32 +0800
 
-Fix five format string issues in show_free_areas() and __show_mem():
+zram uses u32 slot indexes, while disksize_store() accepts a u64 size.  On
+32-bit systems, a disksize larger than U32_MAX pages is truncated when
+zram_meta_alloc() assigns the page count to size_t.  array_size() then
+sees only the truncated count, so a small table can be allocated while the
+original capacity is published.  Valid I/O within that capacity can
+subsequently access beyond zram->table.
 
-1-2. reserved_highatomic and free_highatomic: %luKB -> %lukB
-   The uppercase "KB" is inconsistent with all other fields in the
-   same output block and with /proc/meminfo convention.
+The same oversized capacity also lets full-device scanners compare a u32
+index with an upper bound larger than U32_MAX, so the index can wrap
+instead of terminating.
 
-3. local_pcp: %ukB -> %lukB with explicit (unsigned long) cast
-   per_cpu_pages.count is int, so K(count) yields int. Using %u
-   was a signed/unsigned mismatch. Cast to unsigned long and use
-   %lu for consistency with all other K() usages in the file.
+Reject disksizes larger than U32_MAX pages before aligning and allocating
+the table.  This keeps the table size, published capacity and slot index
+range consistent.
 
-4. total pagecache pages: %ld -> %lu
-   global_node_page_state() returns unsigned long. Using %ld is a
-   signedness mismatch caught by gcc -Wformat-signedness.
-
-5. hwpoisoned pages: %lu -> %ld
-   atomic_long_read() returns long (signed). Using %lu is a
-   signedness mismatch caught by gcc -Wformat-signedness.
-
-Verified with: make KCFLAGS="-Wformat -Wformat-signedness" mm/show_mem.o
-
-Link: https://lore.kernel.org/20260805021556.1908807-1-ye.liu@linux.dev
-Signed-off-by: Ye Liu <liuye@kylinos.cn>
-Acked-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Zi Yan <ziy@nvidia.com>
+Link: https://lore.kernel.org/20260804143832.146129-1-xialonglong2025@163.com
+Fixes: 33863c21e69e ("Staging: zram: Replace ioctls with sysfs interface")
+Assisted-by: Codex:gpt-5.6-sol
+Signed-off-by: Longlong Xia <xialonglong@kylinos.cn>
+Reviewed-by: Sergey Senozhatsky <senozhatsky@chromium.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/show_mem.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ drivers/block/zram/zram_drv.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/mm/show_mem.c~mm-show_mem-fix-format-string-inconsistencies-and-type-mismatches
-+++ a/mm/show_mem.c
-@@ -309,8 +309,8 @@ static void show_free_areas(unsigned int
- 			" min:%lukB"
- 			" low:%lukB"
- 			" high:%lukB"
--			" reserved_highatomic:%luKB"
--			" free_highatomic:%luKB"
-+			" reserved_highatomic:%lukB"
-+			" free_highatomic:%lukB"
- 			" active_anon:%lukB"
- 			" inactive_anon:%lukB"
- 			" active_file:%lukB"
-@@ -323,7 +323,7 @@ static void show_free_areas(unsigned int
- 			" mlocked:%lukB"
- 			" bounce:%lukB"
- 			" free_pcp:%lukB"
--			" local_pcp:%ukB"
-+			" local_pcp:%lukB"
- 			" free_cma:%lukB"
- 			"\n",
- 			zone->name,
-@@ -350,7 +350,7 @@ static void show_free_areas(unsigned int
- 			K(zone_page_state(zone, NR_MLOCK)),
- 			0UL,
- 			K(free_pcp),
--			K(this_cpu_read(zone->per_cpu_pageset->count)),
-+			K((unsigned long)this_cpu_read(zone->per_cpu_pageset->count)),
- 			K(zone_page_state(zone, NR_FREE_CMA_PAGES)));
- 		printk("lowmem_reserve[]:");
- 		for (i = 0; i < MAX_NR_ZONES; i++)
-@@ -400,7 +400,7 @@ static void show_free_areas(unsigned int
- 		hugetlb_show_meminfo_node(nid);
+--- a/drivers/block/zram/zram_drv.c~zram-reject-disksizes-that-exceed-slot-index-range
++++ a/drivers/block/zram/zram_drv.c
+@@ -2881,6 +2881,9 @@ static ssize_t disksize_store(struct dev
+ 		return -EBUSY;
  	}
  
--	printk("%ld total pagecache pages\n", global_node_page_state(NR_FILE_PAGES));
-+	printk("%lu total pagecache pages\n", global_node_page_state(NR_FILE_PAGES));
- 
- 	show_swap_cache_info();
- }
-@@ -430,7 +430,7 @@ void __show_mem(unsigned int filter, con
- 	printk("%lu pages cma reserved\n", totalcma_pages);
- #endif
- #ifdef CONFIG_MEMORY_FAILURE
--	printk("%lu pages hwpoisoned\n", atomic_long_read(&num_poisoned_pages));
-+	printk("%ld pages hwpoisoned\n", atomic_long_read(&num_poisoned_pages));
- #endif
- #ifdef CONFIG_MEM_ALLOC_PROFILING
- 	static DEFINE_SPINLOCK(mem_alloc_profiling_spinlock);
++	if (disksize > (u64)U32_MAX << PAGE_SHIFT)
++		return -EINVAL;
++
+ 	disksize = PAGE_ALIGN(disksize);
+ 	if (!zram_meta_alloc(zram, disksize))
+ 		return -ENOMEM;
 _
 
-Patches currently in -mm which might be from liuye@kylinos.cn are
+Patches currently in -mm which might be from xialonglong@kylinos.cn are
 
-mm-debug_page_alloc-fix-type-mismatch-for-debug_guardpage_minorder.patch
-mm-show_mem-fix-format-string-inconsistencies-and-type-mismatches.patch
+mm-ksm-avoid-missing-ksmd-wakeups-in-ksm_enter.patch
+zram-fix-out-of-bounds-access-in-writeback_store.patch
+zram-fix-out-of-bounds-access-in-read_block_state.patch
+zram-reject-disksizes-that-exceed-slot-index-range.patch
 
