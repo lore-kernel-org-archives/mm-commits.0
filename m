@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0D11244AB8D
-	for <mm-commits@vger.kernel.org>; Tue,  4 Aug 2026 23:56:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C21131D5CFE
+	for <mm-commits@vger.kernel.org>; Wed,  5 Aug 2026 01:10:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785887791; cv=none; b=C5YSYZ29uCv0bteNmSIw+IqIkPjTVygeIPBr+5bfjUuMPpKUAq8rA83TSbIgdePLdWXemS3AxABzOMD2KytWQBlYToI18c5f32ldZm8Tq6WNuzavnnfUAgv0597PrzE2EuU9aKenlmrzZCzShh0oNdM2yjOkOQg39anrMzvjWz8=
+	t=1785892256; cv=none; b=Z3LhKOqgy1HRAogoyjvtlHKtaS3wtoZlbRavTVPeHx1rBKBdH77+0/R9DLR9TjHo6/t5VMa6AVBBRef6XctYpwBasubYY6/4qh67Ie4Ze1e8ofsDdQmM0dYCSVTtiUVIbr0QyL4JWfk/SJUWcAlosUzAziEi7HtnPWoJFqLzkRI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785887791; c=relaxed/simple;
-	bh=BrDUGYBirStaL4zYvqS7Zf9WecPyvHsWsmHl7WDQCkQ=;
-	h=Date:To:From:Subject:Message-Id; b=HazZhbGCxZVhwj5vKXPfhAMYBpj2AcO25TSk+aDgHhBe43MpjOMc1tkbIjU8vR9lMtPjvPYKs3xvkWa6/CTc4a0fNHADy2q74Z4eRU8bwXDGkSLK7k3Xk5Sq0ZV71OjSe/DtrzwmAXWP9tvnMx5fvucOSzhxcz7zTMvQRucCmMk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=F7Kk4kUB; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785892256; c=relaxed/simple;
+	bh=vvenxa8fvtoFDWfzI3NFEOu4AMOo6qFyvOlIzgEKcGo=;
+	h=Date:To:From:Subject:Message-Id; b=KBD5ZLMvWwgYnr48aE0bShjFsSfqDk36eSVYqqCRNAietcPKFXELP308ls3sbpsOl+zTqxVrBVpzpAq/gxSelVcz7VFZzbsUe2CGRlYTjgh9jdKBzLK1AmnQlA0F4iw3ms36hYf+N2aeGubTSWx6DYtQhalvIqjsrMSnEWHw8Wc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HWmo51t9; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="F7Kk4kUB"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C5B9F1F00A3D;
-	Tue,  4 Aug 2026 23:56:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HWmo51t9"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 283E01F000E9;
+	Wed,  5 Aug 2026 01:10:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785887789;
-	bh=xGi4hfNiBtwwQgzuBPDDOB88Q+58ZAj5UBiKaLaT+/Q=;
+	d=linux-foundation.org; s=korg; t=1785892254;
+	bh=U/Mhfxxm4u3eucOfgHH3g54WVM6qvUualbRfxeRzmAE=;
 	h=Date:To:From:Subject;
-	b=F7Kk4kUB7WiGDctoXnJ6hIWbjpmGuIBp8fT2gp/ALU3xm8I/skVAqrI3K62Eoe1YQ
-	 io6/Ffcjxykg4KSNRs9VcCX4VzzQALZhi6lJx0HU9zxPNIrTXlRldrxBtV7iMWv+kI
-	 YpTVKmoO5Tx7aMulsqItKrUSi6FbguIAcy0vNtjU=
-Date: Tue, 04 Aug 2026 16:56:29 -0700
-To: mm-commits@vger.kernel.org,nao.horiguchi@gmail.com,linmiaohe@huawei.com,liyouhong@kylinos.cn,akpm@linux-foundation.org
+	b=HWmo51t9GZOnclu+9e7FlIIDL0SQgn+7QCGjx2o06VprQ435xSG/zH3v8seV+WCmv
+	 wy+9sNYQB9HlJ46clT04Fg9ixQ5JbbaUNWMpZ1r/mII3q/FnGVO3CTXNdHWcaoF68v
+	 4jTS+k+DYAuoRrm65RyJfBxxoiwhuc919ridDNcM=
+Date: Tue, 04 Aug 2026 18:10:53 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,usama.arif@linux.dev,surenb@google.com,shikemeng@huaweicloud.com,shakeel.butt@linux.dev,rppt@kernel.org,nphamcs@gmail.com,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,kasong@tencent.com,david@kernel.org,chrisl@kernel.org,baoquan.he@linux.dev,baohua@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memory-failure-fix-refcount-leak-on-soft-offline-lbs-folio.patch added to mm-new branch
-Message-Id: <20260804235629.C5B9F1F00A3D@smtp.kernel.org>
+Subject: [folded-merged] mm-avoid-unnecessary-lru-drain-for-wp_can_reuse_anon_folio-fix.patch removed from -mm tree
+Message-Id: <20260805011054.283E01F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,108 +34,77 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: mm/memory-failure: fix refcount leak on soft-offline LBS folio
-has been added to the -mm mm-new branch.  Its filename is
-     mm-memory-failure-fix-refcount-leak-on-soft-offline-lbs-folio.patch
+The quilt patch titled
+     Subject: mm: rename in_lru_cache to maybe_in_lru_cache
+has been removed from the -mm tree.  Its filename was
+     mm-avoid-unnecessary-lru-drain-for-wp_can_reuse_anon_folio-fix.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-failure-fix-refcount-leak-on-soft-offline-lbs-folio.patch
-
-This patch will later appear in the mm-new branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because it was folded into mm-avoid-unnecessary-lru-drain-for-wp_can_reuse_anon_folio.patch
 
 ------------------------------------------------------
-From: liyouhong <liyouhong@kylinos.cn>
-Subject: mm/memory-failure: fix refcount leak on soft-offline LBS folio
-Date: Tue, 4 Aug 2026 11:53:56 +0800
+From: "Barry Song (Xiaomi)" <baohua@kernel.org>
+Subject: mm: rename in_lru_cache to maybe_in_lru_cache
+Date: Wed, 8 Jul 2026 22:46:43 +0800
 
-soft_offline_in_use_page() runs with a folio reference taken by
-get_hwpoison_page().
+!folio_test_lru(folio) doesn't necessarily mean folio is in lru cache.  so
+let's put "maybe" prefix.
 
-Soft-offline skips splitting when min_order_for_split() is non-zero, so
-large folios stay intact.  That early return -EBUSY path never drops the
-reference.
-
-The other failure path is fine: try_to_split_thp_page(..., release=true)
-puts the page when the split itself fails.  memory_failure() also puts
-explicitly on its analogous unsplit path.
-
-Handle the new_order != 0 case separately and call folio_put() before
-returning.
-
-Link: https://lore.kernel.org/20260804035356.2615408-1-dayou5941@163.com
-Fixes: 689b8986776c ("mm/memory-failure: improve large block size folio handling")
-Signed-off-by: liyouhong <liyouhong@kylinos.cn>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
+Link: https://lore.kernel.org/20260708145718.82690-1-baohua@kernel.org
+Signed-off-by: Barry Song (Xiaomi) <baohua@kernel.org>
+Suggested-by: David Hildenbrand (Arm) <david@kernel.org>
+Cc: Baoquan He <baoquan.he@linux.dev>
+Cc: Chris Li <chrisl@kernel.org>
+Cc: Kairui Song <kasong@tencent.com>
+Cc: Kemeng Shi <shikemeng@huaweicloud.com>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Usama Arif <usama.arif@linux.dev>
+Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |   17 +++++++++++++++--
- 1 file changed, 15 insertions(+), 2 deletions(-)
+ mm/memory.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/mm/memory-failure.c~mm-memory-failure-fix-refcount-leak-on-soft-offline-lbs-folio
-+++ a/mm/memory-failure.c
-@@ -2845,6 +2845,9 @@ EXPORT_SYMBOL(unpoison_memory);
-  * soft_offline_in_use_page handles hugetlb-pages and non-hugetlb pages.
-  * If the page is a non-dirty unmapped page-cache page, it simply invalidates.
-  * If the page is mapped, it migrates the contents over.
-+ *
-+ * The folio refcount has been incremented before entering this function.
-+ * This folio reference must be released before the function returns on all paths.
-  */
- static int soft_offline_in_use_page(struct page *page)
+--- a/mm/memory.c~mm-avoid-unnecessary-lru-drain-for-wp_can_reuse_anon_folio-fix
++++ a/mm/memory.c
+@@ -4174,7 +4174,7 @@ static bool __wp_can_reuse_large_anon_fo
+ static bool wp_can_reuse_anon_folio(struct folio *folio,
+ 				    struct vm_area_struct *vma)
  {
-@@ -2870,9 +2873,19 @@ static int soft_offline_in_use_page(stru
- 		 * NOTE: if minimizing the number of soft offline pages is
- 		 * preferred, split it to non-zero new_order like it is done in
- 		 * memory_failure().
-+		 *
-+		 * Drop the reference obtained upon entry;
-+		 * try_to_split_thp_page(..., release=true) handles refcounting itself
-+		 * when the split fails.
- 		 */
--		if (new_order || try_to_split_thp_page(page, /* new_order= */ 0,
--						       /* release= */ true)) {
-+		if (new_order) {
-+			pr_info("%#lx: order-%d folio cannot soft offline\n",
-+				pfn, new_order);
-+			folio_put(folio);
-+			return -EBUSY;
-+		}
-+		if (try_to_split_thp_page(page, /* new_order= */ 0,
-+					 /* release= */ true)) {
- 			pr_info("%#lx: thp split failed\n", pfn);
- 			return -EBUSY;
- 		}
+-	const bool in_lru_cache = !folio_test_lru(folio);
++	const bool maybe_in_lru_cache = !folio_test_lru(folio);
+ 	const bool in_swapcache = folio_test_swapcache(folio);
+ 
+ 	if (IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE) && folio_test_large(folio))
+@@ -4188,9 +4188,9 @@ static bool wp_can_reuse_anon_folio(stru
+ 	 * KSM doesn't necessarily raise the folio refcount.
+ 	 */
+ 	if (folio_test_ksm(folio) ||
+-	    folio_ref_count(folio) > 1 + in_lru_cache + in_swapcache)
++	    folio_ref_count(folio) > 1 + maybe_in_lru_cache + in_swapcache)
+ 		return false;
+-	if (in_lru_cache)
++	if (maybe_in_lru_cache)
+ 		/*
+ 		 * We cannot easily detect+handle references from
+ 		 * remote LRU caches or references to LRU folios.
 _
 
-Patches currently in -mm which might be from liyouhong@kylinos.cn are
+Patches currently in -mm which might be from baohua@kernel.org are
 
-mm-damon-ops-common-putback-folios-on-invalid-migrate-nid.patch
-mm-memory-failure-fix-refcount-leak-on-soft-offline-lbs-folio.patch
+mm-avoid-unnecessary-lru-drain-for-wp_can_reuse_anon_folio.patch
+mm-drop-stale-folio_ref_count==1-check-in-do_swap_page-reuse-logic.patch
+mm-entirely-remove-lru_add_drain-in-do_swap_page.patch
+mm-clarify-the-folio_free_swap-for-do_swap_page.patch
+arm64-hugetlb-extend-batching-of-multiple-cont_pte-in-a-single-pte-setup.patch
+arm64-vmalloc-allow-arch_vmap_pte_range_map_size-to-batch-multiple-cont_pte.patch
+mm-vmalloc-extend-page-table-walk-to-support-larger-page_shift-sizes-and-eliminate-page-table-rewalk.patch
+mm-vmalloc-map-contiguous-pages-in-batches-for-vmap-if-possible.patch
+mm-vmalloc-align-vm_area-so-vmap-can-batch-mappings.patch
 
