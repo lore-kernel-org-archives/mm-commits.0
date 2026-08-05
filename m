@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B4DB33BD638
-	for <mm-commits@vger.kernel.org>; Wed,  5 Aug 2026 02:23:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D577E3BD638
+	for <mm-commits@vger.kernel.org>; Wed,  5 Aug 2026 02:23:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785896596; cv=none; b=rcthJMdllsIexSqsMJ5XyKcwaui+kTdvJEUako2q7NCWRwQooTH2ZLLJQ2o8KWX1az+X4XDApxwSjg7LAlnrXRW2Ar0jyoCpYx/mOKGWIf4/lTZPXdsvoMfAgqb5bbcReMphhVp1J4rScAKM4Y25ppCjZof5KqGJFKev2XsuSVY=
+	t=1785896599; cv=none; b=AdEP4PtRsArQwzEQm6NDEYzpryf8My3zGuxdBDxjGE2FlOFCZAWD7osLQ2dH5WUoLqPqqCWZIpFZGESHw6afoJu+sXv+8Ef5DfSfjlQrujIxZwHc25u1nxe1FPOb/d7FKlJKN2AfsNw+bWJQGSD0a3reCPMNmLHmzCbuIeyQP7I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785896596; c=relaxed/simple;
-	bh=l76U3WP5bElmZkL0GXZIwU3v8fbK9xvhXj2OCYlL05Q=;
-	h=Date:To:From:Subject:Message-Id; b=Bskqu08NpHo+jzvQ0FvBgGdV4x46gLSr6grL4UMrDY2j1uXXIg6Dm90aI4mW7kYBxEX8nHgx5YLNXYCFVrSVyRGwwXfABUyYG5CuJqGSREXr2yFp/ivKecwKX1g4K9mt7qhq5AhLyMXsXSRH1ilVfohQ/vUHa5Zc2K41ERrelnE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bpJNFGja; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785896599; c=relaxed/simple;
+	bh=lT0A8J2wNePfrmT3Om8KAdID0oyZkgDZfG0xhfimwo0=;
+	h=Date:To:From:Subject:Message-Id; b=nFv/LDearTFrzo1w4h55LxqIcEe09cPtBUAGCinUDmxESrtqkbcjjqpzAdxpXk4+96+NRnc0jV+QS8PVcy2HAVU/Dk97ojc1iuVqjuCAWijRIwkfiqsSIo5+b1PhLOmBCsi26S5EFnkHic1Pj4fTWdd6bEbF0TJRUe+IqM+LIGQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=as32KJYN; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bpJNFGja"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 81B241F000E9;
-	Wed,  5 Aug 2026 02:23:15 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="as32KJYN"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 62FE11F000E9;
+	Wed,  5 Aug 2026 02:23:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785896595;
-	bh=Q/WaAHjOINyituVXwoQ278tkd3TG2zThRWpP9XNnmRo=;
+	d=linux-foundation.org; s=korg; t=1785896597;
+	bh=d5HNzpJLtBKiOkMicq7d80MAOKp5AXtqcy27rpg/Sxw=;
 	h=Date:To:From:Subject;
-	b=bpJNFGjaxSZRIwRx/kx1Y1F5bMyMbGMZCE6a9ytZGrTFWF3TV5esR4Z7Mh334hsMF
-	 3zDy7ZNTJBjWJ9tYRmL/PiJ9iazVlLscB7WeW3wlaTgFCbRxwOinNoBX5gGGrWSdP4
-	 sIDmIfvVW3A8B9MYNEuw3CyjzPnpzZtb+J7vFi/8=
-Date: Tue, 04 Aug 2026 19:23:14 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,tj@kernel.org,surenb@google.com,ryan.roberts@arm.com,rppt@kernel.org,npache@redhat.com,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,lance.yang@linux.dev,jackmanb@google.com,hannes@cmpxchg.org,dev.jain@arm.com,dennis@kernel.org,david@kernel.org,brendan.jackman@linux.dev,baolin.wang@linux.alibaba.com,baohua@kernel.org,apopple@nvidia.com,ziy@nvidia.com,akpm@linux-foundation.org
+	b=as32KJYNQKyLtBOlsvQdjMAHXlsDRW8OedAXkGtuebbCc4TBCMJ0qdzeE7xvBPfas
+	 F3+HjeL5DZZi48MrFjikL8x18s0Fv3vLhtsotEvZ2MGn/6HpTeeY7QcLbua6kk1Gts
+	 Jr7h0VKct64+6eIqi+DoDFlppoAoKVi8jKiilZnE=
+Date: Tue, 04 Aug 2026 19:23:16 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,usama.arif@linux.dev,surenb@google.com,shikemeng@huaweicloud.com,shakeel.butt@linux.dev,rppt@kernel.org,nphamcs@gmail.com,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,kasong@tencent.com,david@kernel.org,chrisl@kernel.org,baoquan.he@linux.dev,baohua@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-page_alloc-remove-set_page_private-in-prep_compound_tail.patch removed from -mm tree
-Message-Id: <20260805022315.81B241F000E9@smtp.kernel.org>
+Subject: [merged mm-stable] mm-avoid-unnecessary-lru-drain-for-wp_can_reuse_anon_folio.patch removed from -mm tree
+Message-Id: <20260805022317.62FE11F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,65 +35,119 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/page_alloc: remove set_page_private() in prep_compound_tail()
+     Subject: mm: avoid unnecessary lru drain for wp_can_reuse_anon_folio()
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-remove-set_page_private-in-prep_compound_tail.patch
+     mm-avoid-unnecessary-lru-drain-for-wp_can_reuse_anon_folio.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Zi Yan <ziy@nvidia.com>
-Subject: mm/page_alloc: remove set_page_private() in prep_compound_tail()
-Date: Thu, 09 Jul 2026 14:06:05 -0400
+From: "Barry Song (Xiaomi)" <baohua@kernel.org>
+Subject: mm: avoid unnecessary lru drain for wp_can_reuse_anon_folio()
+Date: Thu, 2 Jul 2026 07:59:52 +0800
 
-Tail pages are expected to have (and optionally be checked) zeroed
-->private when they are freed.  It stays true during subsequent
-reallocation, so replace the tail_page->private initialization with a
-VM_WARN_ON_ONCE() in compound page preparation.
+Patch series "mm: drop redundant lru_add_drain in anon folio reuse paths",
+v3.
 
-Link: https://lore.kernel.org/20260709-keep-subpage-private-zero-at-free-v3-5-7e4fe155f5b9@nvidia.com
-Signed-off-by: Zi Yan <ziy@nvidia.com>
-Acked-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
+We are doing a large number of redundant lru_add_drain() calls in both
+wp_can_reuse_anon_folio() and do_swap_page(), leading to LRU lock
+contention and unnecessary overhead.
+
+In wp_can_reuse_anon_folio(), we can check the refcount against the
+lru_cache before deciding to drain.  In do_swap_page(), the drain is now
+entirely redundant after Kairui's work to route SYNC I/O through the
+swapcache in the same way as ASYNC I/O.
+
+Build the kernel within a 1 GB memcg using 20 threads with zRAM swap.  The
+number of lru_add_drain() calls is reduced from 276,278 to 226,318, a
+reduction of about 18%.
+
+Build the kernel within an 800 MB memcg using 20 threads with zRAM swap. 
+The number of lru_add_drain() calls is reduced from 778,950 to 541,149, a
+reduction of 30.5%.
+
+
+This patch (of 4):
+
+There is a case where `folio_ref_count(folio) == 3` and
+`!folio_test_swapcache(folio)`. In that case, both
+`folio_ref_count(folio) > 3` and
+`folio_ref_count(folio) > 1 + folio_test_swapcache(folio)` evaluate
+false, causing an unnecessary local LRU drain.
+
+During an Ubuntu boot, I observed over 5,000 redundant local LRU drains. 
+For a kernel build with a minimal configuration, I observed more than
+20,000 redundant drains.
+
+Fix this by checking against: `1 + in_swapcache + in_lrucache` instead of
+hardcoding `folio_ref_count(folio) > 3`.
+
+[baohua@kernel.org: rename in_lru_cache to maybe_in_lru_cache]
+  Link: https://lore.kernel.org/20260708145718.82690-1-baohua@kernel.org
+Link: https://lore.kernel.org/20260701235955.36126-1-baohua@kernel.org
+Link: https://lore.kernel.org/20260701235955.36126-2-baohua@kernel.org
+Signed-off-by: Barry Song (Xiaomi) <baohua@kernel.org>
+Suggested-by: David Hildenbrand (Arm) <david@kernel.org>
+Reviewed-by: Kairui Song <kasong@tencent.com>
+Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
 Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Reviewed-by: Lance Yang <lance.yang@linux.dev>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Brendan Jackman <jackmanb@google.com>
-Cc: Brendan Jackman <brendan.jackman@linux.dev>
-Cc: Dennis Zhou <dennis@kernel.org>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Reviewed-by: Baoquan He <baoquan.he@linux.dev>
+Cc: Chris Li <chrisl@kernel.org>
+Cc: Kemeng Shi <shikemeng@huaweicloud.com>
 Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Nico Pache <npache@redhat.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Nhat Pham <nphamcs@gmail.com>
 Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Tejun Heo <tj@kernel.org>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Usama Arif <usama.arif@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/internal.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/memory.c |   10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
 
---- a/mm/internal.h~mm-page_alloc-remove-set_page_private-in-prep_compound_tail
-+++ a/mm/internal.h
-@@ -741,7 +741,7 @@ static inline void prep_compound_tail(st
+--- a/mm/memory.c~mm-avoid-unnecessary-lru-drain-for-wp_can_reuse_anon_folio
++++ a/mm/memory.c
+@@ -4174,6 +4174,9 @@ static bool __wp_can_reuse_large_anon_fo
+ static bool wp_can_reuse_anon_folio(struct folio *folio,
+ 				    struct vm_area_struct *vma)
  {
- 	tail->mapping = TAIL_MAPPING;
- 	set_compound_head(tail, head, order);
--	set_page_private(tail, 0);
-+	VM_WARN_ON_ONCE(tail->private);
- }
++	const bool maybe_in_lru_cache = !folio_test_lru(folio);
++	const bool in_swapcache = folio_test_swapcache(folio);
++
+ 	if (IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE) && folio_test_large(folio))
+ 		return __wp_can_reuse_large_anon_folio(folio, vma);
  
- static inline void init_compound_tail(struct page *tail,
+@@ -4184,15 +4187,16 @@ static bool wp_can_reuse_anon_folio(stru
+ 	 *
+ 	 * KSM doesn't necessarily raise the folio refcount.
+ 	 */
+-	if (folio_test_ksm(folio) || folio_ref_count(folio) > 3)
++	if (folio_test_ksm(folio) ||
++	    folio_ref_count(folio) > 1 + maybe_in_lru_cache + in_swapcache)
+ 		return false;
+-	if (!folio_test_lru(folio))
++	if (maybe_in_lru_cache)
+ 		/*
+ 		 * We cannot easily detect+handle references from
+ 		 * remote LRU caches or references to LRU folios.
+ 		 */
+ 		lru_add_drain();
+-	if (folio_ref_count(folio) > 1 + folio_test_swapcache(folio))
++	if (folio_ref_count(folio) > 1 + in_swapcache)
+ 		return false;
+ 	if (!folio_trylock(folio))
+ 		return false;
 _
 
-Patches currently in -mm which might be from ziy@nvidia.com are
+Patches currently in -mm which might be from baohua@kernel.org are
 
-mm-huge_memory-use-folios-memcg-inside-__folio_split.patch
-xarray-honor-xa_flags_account-in-xas_split_alloc.patch
+arm64-hugetlb-extend-batching-of-multiple-cont_pte-in-a-single-pte-setup.patch
+arm64-vmalloc-allow-arch_vmap_pte_range_map_size-to-batch-multiple-cont_pte.patch
+mm-vmalloc-extend-page-table-walk-to-support-larger-page_shift-sizes-and-eliminate-page-table-rewalk.patch
+mm-vmalloc-map-contiguous-pages-in-batches-for-vmap-if-possible.patch
+mm-vmalloc-align-vm_area-so-vmap-can-batch-mappings.patch
 
