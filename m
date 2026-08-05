@@ -1,129 +1,77 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8917C472F89;
-	Wed,  5 Aug 2026 15:14:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0003B47CA96
+	for <mm-commits@vger.kernel.org>; Wed,  5 Aug 2026 15:40:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785942887; cv=none; b=Xf70UNNKyFKhap452qLnVtKYqP8vbmQr9gWaAvvbDFFfv7fK+f5YXsBjMlE/aP45lgit9TG3vlqcwjoovRqDOqPIHy4Bsb9g9E+JPrtHPL/de9dzkg3oaRpZLejbwmyLm3sRPN+DXcJavSfKo/U7tYmXceRB+5FbUxOd6EQsu6M=
+	t=1785944409; cv=none; b=N7rPzj0FUebGGsA4vnengOlykGMI5f8LyrYzI4b/KZwr3A787tQkossOn9jdd3Zlnd1Z3zOlmrxFc0SHW8K3n6Tuhq6nSq3EmMCfFTAM52XyOZ6dfnZQO7xLHNoEH1dV2x5HX5l7/eMjTXyHWKDGEJ5l6VGqsXxZ4YxCr4ytk/w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785942887; c=relaxed/simple;
-	bh=+84ychfuvcta7Qbkf72b+SkwYsqmfjhPFVaN7zK58oY=;
-	h=Date:To:From:Subject:Message-Id; b=Y2/8V18G0UtnQndcO/h74MnMBgKaqr9SmgWFLp/Z+7gSGzIEdKqJ/YDOyFI8bs+a6WaNDpfzRCi2TnAqr4nZXfMTSUQP10aQmKvQts4FBr9xwHgJqRetUGbIc4mB5NA0CACPHnTIPZllFWtsV+jou1XB7XmmgF/Tiir3I7cp9Y8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=U0j/SNXZ; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785944409; c=relaxed/simple;
+	bh=Kv8TEyj07KgAlCBdc+NZjfZORji21a8Z3p+M6qQtCdc=;
+	h=Date:From:To:Cc:Subject:Message-Id:In-Reply-To:References:
+	 Mime-Version:Content-Type; b=smH/gtlSB9aPWTx8st50cJkNx24+jZeH4zTzTqwPQ4JOieKrp0B571U2xkDMA/jlCpKuH1oULG30T6Syy4nsOyzrE7O4xlVtb3uvRmoAhOgQVTJ51rfZ+rm8oTsHT0Xp3LB19iL9MRpcIV33UBoAc/tB2VLEVZ5q90tMKYce88c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AYYMgLUB; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="U0j/SNXZ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7F0F41F000E9;
-	Wed,  5 Aug 2026 15:14:41 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AYYMgLUB"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D38131F000E9;
+	Wed,  5 Aug 2026 15:40:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785942881;
-	bh=CwegAJRzyr8dTfBFQU8Tg0WJmq+7Hu2P7aXOB82TzUY=;
-	h=Date:To:From:Subject;
-	b=U0j/SNXZiGQuPGtC6ZPrCNalgdh/wb2l/1oizFwx6/WscjaFjGVsfNadCyXHcqWUb
-	 eNQQASjCPRXC/wPI7MkSjWe89i+PrughX4ZQsvyvA3n5XkQZ1Ses193e56kfudRYTV
-	 aB0BPN/jYqq5FM9asu7uZXm3BJv9BeO8Sb7Rrig0=
-Date: Wed, 05 Aug 2026 08:14:40 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,stable@vger.kernel.org,rppt@kernel.org,qi.zheng@linux.dev,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam@infradead.org,david@kernel.org,luto@kernel.org,akpm@linux-foundation.org
+	d=linux-foundation.org; s=korg; t=1785944405;
+	bh=Yyp1Jx5TsTnjgSPHEVsBIOepBcBoQsHK8XWBCZVl2R0=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References;
+	b=AYYMgLUBM0HBs2ErJaGcEb66aVopXjcrNQWSryY0zMd9FSd7NOnZ4C6e3lfcPh2kR
+	 XCLgvmnP+9PsHbhHPlKJ2hJrHYK/TFkC6CA9V/EgJrqGDuJ+zRIzdVw2XX6j+Hcm1L
+	 Idzlw2CMtozwkJjP0EfhM2EdECZ5QZe+XLqDVXIw=
+Date: Wed, 5 Aug 2026 08:40:04 -0700
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] fix-incorrect-flush-address-in-direct-page-table-reclaim.patch removed from -mm tree
-Message-Id: <20260805151441.7F0F41F000E9@smtp.kernel.org>
+To: kernel test robot <lkp@intel.com>
+Cc: David Hildenbrand <david@kernel.org>, Linux Memory Management List
+ <linux-mm@kvack.org>, mm-commits@vger.kernel.org, Pratyush Mallick
+ <pratmal@google.com>
+Subject: Re: [akpm-mm:mm-new] BUILD SUCCESS WITH WARNING
+ e47602c51d20a93fa1711ed896dc9480de4374d9
+Message-Id: <20260805084004.afd47046925c62a5b19e242a@linux-foundation.org>
+In-Reply-To: <202608052027.LCDnsFT0-lkp@intel.com>
+References: <202608052027.LCDnsFT0-lkp@intel.com>
+X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
+On Wed, 05 Aug 2026 20:32:52 +0800 kernel test robot <lkp@intel.com> wrote:
 
-The quilt patch titled
-     Subject: mm: fix incorrect flush address in direct page table reclaim
-has been removed from the -mm tree.  Its filename was
-     fix-incorrect-flush-address-in-direct-page-table-reclaim.patch
+> tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm.git mm-new
+> branch HEAD: e47602c51d20a93fa1711ed896dc9480de4374d9  mm/swap, PM: hibernate: atomically replace hibernation pin
+> 
+> Warning (recently discovered and may have been fixed):
+> 
+>     https://lore.kernel.org/oe-kbuild-all/202608042227.XDO54bZk-lkp@intel.com
+> 
+>      .gitignore files
+>      ignored by one of the .gitignore files
+>      of the .gitignore files
+>     /mm/write_hugetlb_memory.sh: warning: ignored by one of the .gitignore files
+>     /selftests/mm/ksft_hugevm.sh: warning: ignored by one of the .gitignore files
+>     _hugetlb.sh: warning: ignored by one of the .gitignore files
+>     a.sh: warning: ignored by one of the .gitignore files
+>     arning: ignored by one of the .gitignore files
+>     fd.sh: warning: ignored by one of the .gitignore files
+>     files
+>     g/selftests/mm/ksft_memfd_secret.sh: warning: ignored by one of the .gitignore files
+>     les
+>     nore files
+>     s
+>     s/mm/ksft_ksm.sh: warning: ignored by one of the .gitignore files
+>     selftests/mm/ksft_pfnmap.sh: warning: ignored by one of the .gitignore files
 
-This patch was dropped because it was merged into the mm-hotfixes-stable branch
-of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+Thanks.
 
-------------------------------------------------------
-From: Andy Lutomirski <luto@kernel.org>
-Subject: mm: fix incorrect flush address in direct page table reclaim
-Date: Mon, 3 Aug 2026 17:37:08 -0700
-
-When zap_pte_range reclaims a page table, it does:
-
-    pte_free_tlb(tlb, pmd_pgtable(pmdval), addr);
-
-and this is unconditionally wrong: if this code executes, addr *always*
-points one past the end of the range covered by the table.  The addr
-parameter is used to flush the TLB (really the paging-structure-cache) to
-drop references to the to-be-freed table, and any architecture that cares
-about the parameter will flush the wrong address.  (But they'll still free
-the correct page).
-
-I think it's worth contemplating why the kernel works at all.
-
-If we hit the offending line of code, we will first clear the PMD entry
-(line 1954, zap_empty_pte_table), then we will issue pending flushes if
-force_flush is set (tlb_flush_mmu_tlbonly(tlb)), then we will skip the
-retry on line 1979 (phew!), and then we will do the offending pte_free_tlb
-call.  *Or* we will clear the PMD entry immediately before pte_free_tlb
-(line 1983, zap_pte_table_if_empty).
-
-If we have any pending flushes (i.e.  we actually zapped any last-level
-entries) at the time we clear the PMD entry, then the flush really ought
-to flush all references to the table (Linus certainly seems to think it
-will on all architectures [0]).
-
-The condition under which we have no accumulated flushes at the time of
-the clear is very complex (the whole zap_pte_range function has absurdly
-complex control flow).  If we do hit the bad case, then we will end up
-clearing the PMD entry after the last time the range is flushed, and any
-CPU is free to cache a reference to the (empty) page table.  If this
-happens due to an ordinary read or write, it would segfault, so it would
-be rare.  But the cache could be speculatively filled as well.  Then we'll
-flush the wrong address and then free and possibly reuse the table.
-
-On x86, even flushing the wrong address works on non-KPTI Intel systems
-because INVLPG flushes *all* paging-structure-caches, not just the ones
-for the target address.  But INVPCID does not, and flush_tlb_one_user will
-use INVPCID if it's available.  And then we're toast.  AMD systems are
-more susceptible: we set the EFER.TCE bit, which makes even INVLPG only
-flush the target address.
-
-I think this might fix an issue in ripgrep reported here [1]:
-
-Link: https://lore.kernel.org/20260804003708.49830-1-luto@kernel.org
-Link: https://lore.kernel.org/all/CA+55aFzBggoXtNXQeng5d_mRoDnaMBE5Y+URs+PHR67nUpMtaw@mail.gmail.com/T/#u [0]
-Link: https://github.com/BurntSushi/ripgrep/issues/3494 [1]
-Link: https://github.com/dfoxfranke/ripgrep-3494-analysis
-Fixes: 4c640eb4181c ("mm: move pte table reclaim code to memory.c")
-Signed-off-by: Andy Lutomirski <luto@kernel.org>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Acked-by: Qi Zheng <qi.zheng@linux.dev>
-Acked-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Liam Howlett <liam@infradead.org>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: <stable@vger.kernel.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- mm/memory.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
---- a/mm/memory.c~fix-incorrect-flush-address-in-direct-page-table-reclaim
-+++ a/mm/memory.c
-@@ -1981,7 +1981,7 @@ retry:
- 
- 	if (can_reclaim_pt) {
- 		if (direct_reclaim || zap_pte_table_if_empty(mm, pmd, start, &pmdval)) {
--			pte_free_tlb(tlb, pmd_pgtable(pmdval), addr);
-+			pte_free_tlb(tlb, pmd_pgtable(pmdval), start);
- 			mm_dec_nr_ptes(mm);
- 		}
- 	}
-_
-
-Patches currently in -mm which might be from luto@kernel.org are
-
+I'm guessing this is due to "selftests/mm: use pattern matching in
+.gitignore"?
 
