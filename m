@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EAB963BFAC0
-	for <mm-commits@vger.kernel.org>; Wed,  5 Aug 2026 02:25:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 117803BFAF5
+	for <mm-commits@vger.kernel.org>; Wed,  5 Aug 2026 02:25:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785896716; cv=none; b=I7Hcq105oBpp9ZI/FHOPCmByHYqvNTsaylTonzJr0A9FAz/GfPpBs5U3MiAGEDFZq695y2RUP9o4kX7yiouYavK30+RC6XrpjBuQiYKzsGuV5W1RJk6NXQ35QTd8/u8ENh+3t7T5mbWOKd0rhvQVNJLa5Fx0QtpBrEH5fnI+Emk=
+	t=1785896717; cv=none; b=NiRsFj+ZUz1hoJIvXMDd6emOGT0y+BJyXXW5SRhGR3/M8b/bC9e0X9D7ddoo5qypYNd7wrbVScm8sbAxdSbAb3A6IBRO9pcXi5OE6KDHid7/3jYpeyzKe0lTXfqw+tkvOsL+W5heqfOxfeJW12k0oa5cBgL/TOkHEJ/YMHkmO2k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785896716; c=relaxed/simple;
-	bh=Gd4VY9r4K+fQcyBrOt/NB0M3zBPC7bNSBP4mK9BFqLA=;
-	h=Date:To:From:Subject:Message-Id; b=lp+3IhW7Rmyf99xdnDC5RIkx96ltayWhS0YEEyAu6RUzNTRBrEUY80X6i1Z73idtKz3+d4bU9e2Wv5yiSn9wiWkAuFxDXix/wHdnMHqixcU+QgL2tStgaKqhS2vh7SJZZ82JSBjLsY1ugzT7bUzI+Lh+KzMSWONh9huCi6dsRo4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=z89+Znz3; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785896717; c=relaxed/simple;
+	bh=ABChkPP+YL5lx10HtYmBx0JBT7U0AgnKekGhVoHtY6I=;
+	h=Date:To:From:Subject:Message-Id; b=YJOE176tfxX8y+yD4Qeu6JDWtLUiztA0Bt9bbssb1Ze68v136Mh51uD1zqrWBvnKGm4E2KI6lsc1GYjxXK9Ai9jOD1tYkCbyaCrMdBvLesArangklOFcF0xW8qIdlEgTQIa65Zy2smzQs9KwTl1DdiLAg+dvvJxRi7HSjgeHqO0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rsH5Z4HK; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="z89+Znz3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 72E8B1F00A3A;
-	Wed,  5 Aug 2026 02:25:14 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rsH5Z4HK"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D02BE1F000E9;
+	Wed,  5 Aug 2026 02:25:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785896714;
-	bh=x+28/2cHyEH09uA2/q28wCIt69og2mlNtywIf2jnEuI=;
+	d=linux-foundation.org; s=korg; t=1785896716;
+	bh=mJ6Eg2I07FasbHImx7n36C142QomTSgshHkvwkSuiAE=;
 	h=Date:To:From:Subject;
-	b=z89+Znz3DQmjLE99xB3h6jbK1xKilUXdwwhkjgMfy8xcSX4ej2nftC+1Wk9Kp1XjX
-	 ZzVDvT+Q+hmRpDauy8XqheFM7HxcmeeV5r2qH0P0esBErkoxXuz2JCIj1W2B/CRhYp
-	 +G50gHcygUzr7LZ6GjQeAjEJqnuKG56Nn4AiTryA=
-Date: Tue, 04 Aug 2026 19:25:13 -0700
+	b=rsH5Z4HK6ApXFNVTaqLlK3fo0bNuMa0IRZtalJWPEQtzQl2K/zfe3RB5xGVL4ZLQC
+	 Uoaz8ZRXQuJ1hhrkAy1kRHL7AuGS8UpNuKwL4TbVAskfXo/1rTNGqGEOXYUFBoD1cC
+	 IcygmZvo0DavQbIRbJDgRjySVF5Sv/uMKKddQMeo=
+Date: Tue, 04 Aug 2026 19:25:15 -0700
 To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-core-validate-params-for-probe-hits-weighted-sum-overflow.patch removed from -mm tree
-Message-Id: <20260805022514.72E8B1F00A3A@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-core-disable-access-monitoring-when-probe-weights-are-set.patch removed from -mm tree
+Message-Id: <20260805022515.D02BE1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,32 +35,23 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/damon/core: validate params for probe hits weighted sum overflow
+     Subject: mm/damon/core: disable access monitoring when probe weights are set
 has been removed from the -mm tree.  Its filename was
-     mm-damon-core-validate-params-for-probe-hits-weighted-sum-overflow.patch
+     mm-damon-core-disable-access-monitoring-when-probe-weights-are-set.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/core: validate params for probe hits weighted sum overflow
-Date: Fri, 10 Jul 2026 06:46:39 -0700
+Subject: mm/damon/core: disable access monitoring when probe weights are set
+Date: Fri, 10 Jul 2026 06:46:40 -0700
 
-damon_probe_hits_wsum() could overflow in weird setups.  Users could set
-the weight unreasonably high.  They could also set the aggregation
-interval unreasonably high compared to the sampling interval.  Such user
-setup is unlikely.  Even if such setup is used, damon_has_probe_weights()
-always returns false, so the overflow cannot happen.  The function may be
-completed in future, though.  Even if the overflow happens, the
-consequence is degraded monitoring results for the unreasonable setup.  It
-is just a trivial user experience issue.
+When users set probe weights, they are interested in the data attributes. 
+Not necessarily they are interested in data access patterns.  Disable the
+data access monitoring in the case.
 
-It is still better to be prevented unless the cost is expensive.  Avoid
-the overflow by adding the parameter validation in the core layer
-parameters validation function.
-
-Link: https://lore.kernel.org/20260710134651.18084-11-sj@kernel.org
+Link: https://lore.kernel.org/20260710134651.18084-12-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
@@ -73,40 +64,32 @@ Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/core.c |   15 +++++++++++++++
- 1 file changed, 15 insertions(+)
+ mm/damon/core.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
---- a/mm/damon/core.c~mm-damon-core-validate-params-for-probe-hits-weighted-sum-overflow
+--- a/mm/damon/core.c~mm-damon-core-disable-access-monitoring-when-probe-weights-are-set
 +++ a/mm/damon/core.c
-@@ -1335,6 +1335,9 @@ static void damos_set_filters_default_re
- static bool damon_valid_probe_params(struct damon_ctx *ctx)
- {
- 	unsigned long sample_interval;
-+	unsigned char max_probe_hits;
-+	struct damon_probe *probe;
-+	unsigned int wsum, wsum_to_add;
+@@ -3763,17 +3763,18 @@ static int kdamond_fn(void *data)
+ 		unsigned long next_aggregation_sis = ctx->next_aggregation_sis;
+ 		unsigned long next_ops_update_sis = ctx->next_ops_update_sis;
+ 		unsigned long sample_interval = ctx->attrs.sample_interval;
++		bool access_check_disabled = damon_has_probe_weights(ctx);
  
- 	if (!damon_has_probe_weights(ctx))
- 		return true;
-@@ -1342,6 +1345,18 @@ static bool damon_valid_probe_params(str
- 	sample_interval = ctx->attrs.sample_interval ? : 1;
- 	if (ctx->attrs.aggr_interval / sample_interval > U8_MAX)
- 		return false;
-+
-+	/* invalid if probe hits weighted sum can overflow */
-+	max_probe_hits = damon_nr_samples_per_aggr(&ctx->attrs);
-+	wsum = 0;
-+	damon_for_each_probe(probe, ctx) {
-+		if (probe->weight > UINT_MAX / max_probe_hits)
-+			return false;
-+		wsum_to_add = probe->weight * max_probe_hits;
-+		if (UINT_MAX - wsum < wsum_to_add)
-+			return false;
-+		wsum += wsum_to_add;
-+	}
- 	return true;
- }
+ 		if (kdamond_wait_activation(ctx))
+ 			break;
  
+-		if (ctx->ops.prepare_access_checks)
++		if (!access_check_disabled && ctx->ops.prepare_access_checks)
+ 			ctx->ops.prepare_access_checks(ctx);
+ 
+ 		kdamond_usleep(sample_interval);
+ 		ctx->passed_sample_intervals++;
+ 
+-		if (ctx->ops.check_accesses)
++		if (!access_check_disabled && ctx->ops.check_accesses)
+ 			max_nr_accesses = ctx->ops.check_accesses(ctx);
+ 		if (ctx->ops.apply_probes)
+ 			ctx->ops.apply_probes(ctx, false, false);
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
