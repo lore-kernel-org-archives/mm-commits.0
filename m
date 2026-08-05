@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 21CD63BF68F
-	for <mm-commits@vger.kernel.org>; Wed,  5 Aug 2026 02:24:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 888103BFE3C
+	for <mm-commits@vger.kernel.org>; Wed,  5 Aug 2026 02:24:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785896669; cv=none; b=F2LEyYjcuJhCaucIe4zLHxkBF8XuBPqL3jWwsJ4fz2H4FIZiajneVHOpLrxxIJYesYHbwzHl1uM07Dv8ppASSoGMnt017Vry0ucHGyxLSReIRD34hCkQmbXLJvHZ0xe/BS6oURcS4evuOOZ25CIkhF2QJyLJ97Sv0DlXYLZBG2c=
+	t=1785896673; cv=none; b=L0QF5dqvh/eHaz4tHwGxY93kTaAJj/VH/EERO7572pv2Xg56cogLirb4IImQK69TKU39HTjA7ovy67hqUCc5S8lbaRcMqRF62mBmvnHJxgU6DWhspraZj0JgLkgjl9ki3XodmR5y6+QfuxqMBaO/yCpWQSYURRLhJYAbiLY0KbI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785896669; c=relaxed/simple;
-	bh=l6S/v+g9FdEq8A+JkdP+qWqPGKP8L2rq0oKHlwo3svY=;
-	h=Date:To:From:Subject:Message-Id; b=aZq8GYSbzcJwqWM9aJb+Avrb+p8GcgJVUUCOgBZgmnVgsPOPVLm/tTHxgMyEseEjAKueJKvy6qJr3gcaU5u4dH8+6+PCsAwnKMzZT4KKtNliGL4ipF0RcOaxGeqAnS7F3jp+S8WZWPspbhcy8EUPfrlyZvgBNsjNalK4dlE7uUU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WWydoMOu; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785896673; c=relaxed/simple;
+	bh=OSUWT/m0chEKDT0rBFJcKqjKNW9uQ7l0zM5+sOjCh6c=;
+	h=Date:To:From:Subject:Message-Id; b=M1MTSdKrphDswYY4s42Aay7uGInM6Uu51vACbgPLXC80xRFyXvtpJXjb7psFAvmvIk9mut8LPLY5oCmXqhh3V3BRRVVjQv4kOiZdnIxEpZ1VZa+S3p/8b57DRxVqrL6M8t2qvHo8vYPxiu+/qvd8Kbws/AvYX7hqxcyGNVk9mOU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LGQ97AEJ; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WWydoMOu"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 74C141F000E9;
-	Wed,  5 Aug 2026 02:24:26 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LGQ97AEJ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EF96D1F00A3A;
+	Wed,  5 Aug 2026 02:24:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785896666;
-	bh=6thfwH42c4uAhwD/kVj1qoHbmuqnx02MnbpO5RlRAm4=;
+	d=linux-foundation.org; s=korg; t=1785896669;
+	bh=OlD8iuN4i0huwnMMpFToBmh+ziZYrsqljskHi1BSYsQ=;
 	h=Date:To:From:Subject;
-	b=WWydoMOuK5gxJQ1Idut3cjj6pwN7PAn0gCzkwBQ9lJj4S6sB/xkUUZ6fDjmbaMDJH
-	 aJRwXABjtXnltefyiVoJkOUziBkC6MrAccvcxaGsH2+N5yMvTEhXn91KnT+H6g5fnp
-	 jmCKIVRPKYt5LvZiFoUTP8Dt+fhpmGN9aoVNl2lk=
-Date: Tue, 04 Aug 2026 19:24:25 -0700
+	b=LGQ97AEJ9aNw4UZ0Wvwwo1FK/XytsTN5b9ddSjYlpUrcdwt6oxb/I9bHcJdkpyj0B
+	 o49gTyzMra9peuHZPGtT1P0whJkORQBz2CvLyljcJ0nP8/H/p++DtfZZh8L5bey7uh
+	 2YPwIOJ4IfEvTxKCxeG4b4R/8lh+/m4vmlrDDX+U=
+Date: Tue, 04 Aug 2026 19:24:28 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-core-s-damon_max_nr_accesses-damon_nr_samples_per_aggr.patch removed from -mm tree
-Message-Id: <20260805022426.74C141F000E9@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-core-s-accesses_bp_to_nr_accesses-sample_bp_to_count.patch removed from -mm tree
+Message-Id: <20260805022428.EF96D1F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,98 +35,57 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/damon/core: s/damon_max_nr_accesses()/damon_nr_samples_per_aggr()/
+     Subject: mm/damon/core: s/accesses_bp_to_nr_accesses/sample_bp_to_count/
 has been removed from the -mm tree.  Its filename was
-     mm-damon-core-s-damon_max_nr_accesses-damon_nr_samples_per_aggr.patch
+     mm-damon-core-s-accesses_bp_to_nr_accesses-sample_bp_to_count.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/core: s/damon_max_nr_accesses()/damon_nr_samples_per_aggr()/
-Date: Wed, 8 Jul 2026 06:53:52 -0700
+Subject: mm/damon/core: s/accesses_bp_to_nr_accesses/sample_bp_to_count/
+Date: Wed, 8 Jul 2026 06:53:53 -0700
 
-damon_max_nr_accesses() actually returns the number of samples DAMON
-checks for each region per each aggregation interval.  Rename it to better
-describe what it really does and not confusing for more general uses.
+accesses_bp_to_nr_accesses() actually converts a positive samples ratio to
+the count.  Rename it to better describe what it really does and not
+confusing for more general uses.
 
-Link: https://lore.kernel.org/20260708135359.122587-3-sj@kernel.org
+Link: https://lore.kernel.org/20260708135359.122587-4-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/damon.h |   10 ++++++----
- mm/damon/core.c       |    4 ++--
- mm/damon/lru_sort.c   |    2 +-
- mm/damon/ops-common.c |    2 +-
- 4 files changed, 10 insertions(+), 8 deletions(-)
+ mm/damon/core.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
---- a/include/linux/damon.h~mm-damon-core-s-damon_max_nr_accesses-damon_nr_samples_per_aggr
-+++ a/include/linux/damon.h
-@@ -1056,15 +1056,17 @@ static inline bool damon_target_has_pid(
- 	return ctx->ops.id == DAMON_OPS_VADDR || ctx->ops.id == DAMON_OPS_FVADDR;
- }
- 
--static inline unsigned int damon_max_nr_accesses(const struct damon_attrs *attrs)
-+/* Returns number of samples per aggregation interval */
-+static inline unsigned int damon_nr_samples_per_aggr(
-+		const struct damon_attrs *attrs)
- {
- 	unsigned long sample_interval;
--	unsigned long max_nr_accesses;
-+	unsigned long nr_samples;
- 
- 	sample_interval = attrs->sample_interval ? : 1;
--	max_nr_accesses = min(attrs->aggr_interval / sample_interval,
-+	nr_samples = min(attrs->aggr_interval / sample_interval,
- 			(unsigned long)UINT_MAX);
--	return max_nr_accesses ? : 1;
-+	return nr_samples ? : 1;
- }
- 
- 
---- a/mm/damon/core.c~mm-damon-core-s-damon_max_nr_accesses-damon_nr_samples_per_aggr
+--- a/mm/damon/core.c~mm-damon-core-s-accesses_bp_to_nr_accesses-sample_bp_to_count
 +++ a/mm/damon/core.c
-@@ -880,14 +880,14 @@ static unsigned int damon_age_for_new_at
- static unsigned int damon_accesses_bp_to_nr_accesses(
- 		unsigned int accesses_bp, struct damon_attrs *attrs)
+@@ -876,11 +876,11 @@ static unsigned int damon_age_for_new_at
+ 	return age * old_attrs->aggr_interval / new_attrs->aggr_interval;
+ }
+ 
+-/* convert access ratio in bp (per 10,000) to nr_accesses */
+-static unsigned int damon_accesses_bp_to_nr_accesses(
+-		unsigned int accesses_bp, struct damon_attrs *attrs)
++/* convert sample ratio in bp (per 10,000) to count */
++static unsigned int damon_sample_bp_to_count(
++		unsigned int bp, struct damon_attrs *attrs)
  {
--	return accesses_bp * damon_max_nr_accesses(attrs) / 10000;
-+	return accesses_bp * damon_nr_samples_per_aggr(attrs) / 10000;
+-	return accesses_bp * damon_nr_samples_per_aggr(attrs) / 10000;
++	return bp * damon_nr_samples_per_aggr(attrs) / 10000;
  }
  
  /* Convert nr_accesses to access ratio in bp (per 10,000) */
- static unsigned int damon_nr_accesses_to_accesses_bp(
- 		unsigned int nr_accesses, struct damon_attrs *attrs)
- {
--	return mult_frac(nr_accesses, 10000, damon_max_nr_accesses(attrs));
-+	return mult_frac(nr_accesses, 10000, damon_nr_samples_per_aggr(attrs));
- }
- 
+@@ -893,7 +893,7 @@ static unsigned int damon_nr_accesses_to
  static unsigned int damon_nr_accesses_for_new_attrs(unsigned int nr_accesses,
---- a/mm/damon/lru_sort.c~mm-damon-core-s-damon_max_nr_accesses-damon_nr_samples_per_aggr
-+++ a/mm/damon/lru_sort.c
-@@ -303,7 +303,7 @@ static int damon_lru_sort_apply_paramete
- 		goto out;
- 
- 	err = -ENOMEM;
--	hot_thres = damon_max_nr_accesses(&attrs) *
-+	hot_thres = damon_nr_samples_per_aggr(&attrs) *
- 		hot_thres_access_freq / 1000;
- 	hot_scheme = damon_lru_sort_new_hot_scheme(hot_thres);
- 	if (!hot_scheme)
---- a/mm/damon/ops-common.c~mm-damon-core-s-damon_max_nr_accesses-damon_nr_samples_per_aggr
-+++ a/mm/damon/ops-common.c
-@@ -112,7 +112,7 @@ int damon_hot_score(struct damon_ctx *c,
- 	int hotness;
- 
- 	freq_subscore = r->nr_accesses * DAMON_MAX_SUBSCORE /
--		damon_max_nr_accesses(&c->attrs);
-+		damon_nr_samples_per_aggr(&c->attrs);
- 
- 	age_in_sec = (unsigned long)r->age * c->attrs.aggr_interval / 1000000;
- 	if (age_in_sec)
+ 		struct damon_attrs *old_attrs, struct damon_attrs *new_attrs)
+ {
+-	return damon_accesses_bp_to_nr_accesses(
++	return damon_sample_bp_to_count(
+ 			damon_nr_accesses_to_accesses_bp(
+ 				nr_accesses, old_attrs),
+ 			new_attrs);
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
