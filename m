@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5D2913BE15D
-	for <mm-commits@vger.kernel.org>; Wed,  5 Aug 2026 02:24:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D71F83BED23
+	for <mm-commits@vger.kernel.org>; Wed,  5 Aug 2026 02:24:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785896645; cv=none; b=CFIdrRa8qOEkBoaOJOH/KOWl8WvCrMI7J8Z9WrE0m+hrJnv2jonogxvoSsLAPjeOFdLLtXLrdBFqI1iiW3D4dUSBAwpj1Qm4AlaeFkRhOx9zXWd0ol92fff4uHJYGDry6K08ZBPZjSFJ7AmKpWJt+E4IPR5DXsybbJWtO6qIRMs=
+	t=1785896646; cv=none; b=q4xpN1PpjjY/YJrh22xHxmPA9jNwpFSWyIkMdCIjMMCWwdL8o7mq3sZyF84tJQQaQ7QgJ5JIQQjTTFeHMPFElsOPBfhjYPHULVIuPDtfKybgqgk5q8BoRF39T7ShBwmLXrriSPEra29Vx+Q7n3OGPlhLV5/UBCwmYNWUENkN4t8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785896645; c=relaxed/simple;
-	bh=pB5LRqHyU9ru/XAU35zm4lFSf25k6bpaPNuknrB/nkw=;
-	h=Date:To:From:Subject:Message-Id; b=A3rRjH8LLfsgygZ/NSX5VIeVt3BkxLTh/N6sG4ksF0CgwDhcmU3veopl4jP1ncxWWxRc4M3O1RUbgIZe2zj14rLZHGMvGHcMa16wpeKiv812e1rfQk3olKxnsV05JuB6JglCdFUQGnk/3Z02Az2j3uxxIqu6YMOK4k70pxeSPAk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JYBUjpAV; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785896646; c=relaxed/simple;
+	bh=Z8Oz54iMgyxlTS+WjnueZATlVyDAKawa7LHuOY7/3JY=;
+	h=Date:To:From:Subject:Message-Id; b=uSJAEmxS6eVf5qCQ7bR2UNgvUQXUvFzuf1Rd+ux7YDuzNHQ8qc353BmW/0drYkYP0aoETiRZgQZXbKHA43c2pgLUEJmYOuT08Li5pPCfplRKnBE3iqMSiiuKzETH7WB8njw/SsH0U01bT74CnvbTjszWK04GMpdxGZG5tybQJPM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hinGsXdU; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JYBUjpAV"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1BD181F000E9;
-	Wed,  5 Aug 2026 02:24:03 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hinGsXdU"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A0BE91F00A3A;
+	Wed,  5 Aug 2026 02:24:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785896643;
-	bh=UhhcBwKIbMy67jHZ3I9O4qhqQmA80ffhKtIfUFee010=;
+	d=linux-foundation.org; s=korg; t=1785896644;
+	bh=b8myD367R0fkzPiGfU5GhB+oW8FYMZO3TBBRznXIzv0=;
 	h=Date:To:From:Subject;
-	b=JYBUjpAVYbmJ/6tIwXNqmUUq5INA2hkJv8uAgrL7YkNxpvLFnFuyHZNbfZE5PSNAW
-	 WeSfB6AJrUoW4DSoqjUr5saNr82VsPjU4wqIoQJBI+nRISUVsSYDMQQus9yg3CPgBD
-	 AhtJBF8EyBkTq8IE+Ot32RJ8rHFBd3BBhVFITvTo=
-Date: Tue, 04 Aug 2026 19:24:02 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,surenb@google.com,sj@kernel.org,seanjc@google.com,rppt@kernel.org,peterx@redhat.com,pbonzini@redhat.com,lkp@intel.com,ljs@kernel.org,liam@infradead.org,jthoughton@google.com,david@kernel.org,corbet@lwn.net,aarcange@redhat.com,kas@kernel.org,akpm@linux-foundation.org
+	b=hinGsXdUU1C4kUmAnawdrq0xbFDU2avYMD3Z6EDjEeRQdM0+X2Gn1saOuvVo6kbgt
+	 xfGBu8Hs+8n4N+TBdXX6pXG+ZNXjBuNbJsbLbFkyQtK6Ibdd9z0UVuptssN/fyuH+1
+	 a5uNONyOY3WB9DzICkwbBnZLHHyvqf4Da8ZoKADA=
+Date: Tue, 04 Aug 2026 19:24:04 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,pfalcato@suse.de,ljs@kernel.org,liam@infradead.org,jannh@google.com,geert@linux-m68k.org,thehajime@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] documentation-userfaultfd-document-rwp-working-set-tracking.patch removed from -mm tree
-Message-Id: <20260805022403.1BD181F000E9@smtp.kernel.org>
+Subject: [merged mm-stable] mm-nommu-fix-the-error-path-when-vma_iter_prealloc-fails.patch removed from -mm tree
+Message-Id: <20260805022404.A0BE91F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,337 +35,171 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: Documentation/userfaultfd: document RWP working set tracking
+     Subject: mm: nommu: fix the error path when vma_iter_prealloc() fails
 has been removed from the -mm tree.  Its filename was
-     documentation-userfaultfd-document-rwp-working-set-tracking.patch
+     mm-nommu-fix-the-error-path-when-vma_iter_prealloc-fails.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Kiryl Shutsemau (Meta)" <kas@kernel.org>
-Subject: Documentation/userfaultfd: document RWP working set tracking
-Date: Wed, 8 Jul 2026 12:14:16 +0100
+From: Hajime Tazaki <thehajime@gmail.com>
+Subject: mm: nommu: fix the error path when vma_iter_prealloc() fails
+Date: Wed, 8 Jul 2026 17:38:29 +0900
 
-Add an admin-guide section covering UFFDIO_REGISTER_MODE_RWP:
+When vma_iter_prealloc() fails in do_mmap(), it jumps to error_just_free
+as a error path of this function, but there are several possible issues.
 
-  - sync and async fault models;
-  - UFFDIO_RWPROTECT semantics;
-  - UFFD_FEATURE_RWP_ASYNC;
-  - UFFDIO_SET_MODE runtime mode flips.
+1) It jumps to error_just_free without updating ret to -ENOMEM, meaning
+   do_mmap() will return 0 on failure.
 
-It also covers typical VMM working-set-tracking workflow from detection
-loop through sync-mode eviction and back to async.
+2) The error path unconditionally frees the region struct.  Since the
+   region was already added to the global nommu_region_tree via
+   add_nommu_region(), leaving it makes a potential dangling pointer in
+   the tree and may cause a use-after-free on the next tree walk.
 
-Link: https://lore.kernel.org/20260708111417.173443-16-kirill@shutemov.name
-Signed-off-by: Kiryl Shutsemau <kas@kernel.org>
-Assisted-by: Claude:claude-opus-4-6
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: James Houghton <jthoughton@google.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Liam Howlett <liam@infradead.org>
+3) If do_mmap() finds an existing overlapping shared region, it
+   increments its usage, sets region to this existing pregion, and jumps
+   to share:
+
+	region = pregion;
+	result = start;
+	goto share;
+
+   When vma_iter_prealloc() fails and jumps to error_just_free, the
+   error path unconditionally frees the region:
+
+error:
+	...
+	if (region->vm_file)
+		fput(region->vm_file);
+	kmem_cache_free(vm_region_jar, region);
+
+   This potentially leaves a dangling pointer in nommu_region_tree and
+   causes RB-tree corruption.
+
+4) When establishing a new private mapping, do_mmap_private() allocates
+   physical pages and assigns them to region->vm_start:
+
+	base = alloc_pages_exact(total << PAGE_SHIFT, GFP_KERNEL);
+	...
+	region->vm_start = (unsigned long) base;
+
+   If we later fail at vma_iter_prealloc() and jump to error_just_free,
+   the region struct is freed, but the backing physical memory isn't freed
+   via free_page_series().
+
+5) In the error label of do_mmap(), the vm_area_struct allocated is
+   freed by vm_area_free(vma) but not called after vma_close(), leaving
+   potential memory leak which should be handled by a custom .close
+   handler of vm_ops.
+
+This commit fixes those issues by introducing new jump label,
+error_vma_iter_prealloc, to correctly handle the error case of
+vma_iter_prealloc(), updating ret value (1), and move the region updates
+after the place that the allocation is finished (2).
+
+Additionally, the commit removes the existing goto label, error, and
+consolidates to error_just_free as existing `goto error;` code blocks
+always release nommu_region_sem.
+
+Moreover, it only frees region allocated in this request to avoid
+freeing the shared, existing region shared by other processes (3), and
+free physical memory when do_mmap_private() allocates (4). It also add
+vma_close() before vm_area_free() to fix the potential leak (5).
+
+Those issues are discovered by Sashiko, linked below.
+
+Link: https://lore.kernel.org/20260708083829.576036-1-thehajime@gmail.com
+Link: https://sashiko.dev/#/patchset/20260702012830.667205-1-thehajime%40gmail.com
+Link: https://sashiko.dev/#/patchset/c8513ee5aa8444ec9bf6c276043c9f833016a2fa.1783304131.git.thehajime%40gmail.com
+Link: https://sashiko.dev/#/patchset/20260707235137.498738-1-thehajime%40gmail.com
+Fixes: b5df09226450 ("mm: set up vma iterator for vma_iter_prealloc() calls")
+Signed-off-by: Hajime Tazaki <thehajime@gmail.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Jann Horn <jannh@google.com>
+Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Cc: Paolo Bonzini <pbonzini@redhat.com>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Sean Christopherson <seanjc@google.com>
-Cc: SeongJae Park <sj@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Pedro Falcato <pfalcato@suse.de>
 Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Zi Yan <ziy@nvidia.com>
-Cc: kernel test robot <lkp@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/mm/userfaultfd.rst |  259 ++++++++++++++++-
- 1 file changed, 253 insertions(+), 6 deletions(-)
+ mm/nommu.c |   36 ++++++++++++++++++++++++++++--------
+ 1 file changed, 28 insertions(+), 8 deletions(-)
 
---- a/Documentation/admin-guide/mm/userfaultfd.rst~documentation-userfaultfd-document-rwp-working-set-tracking
-+++ a/Documentation/admin-guide/mm/userfaultfd.rst
-@@ -275,16 +275,16 @@ tracking and it can be different in a fe
-   - Dirty information will not get lost if the pte was zapped due to
-     various reasons (e.g. during split of a shmem transparent huge page).
+--- a/mm/nommu.c~mm-nommu-fix-the-error-path-when-vma_iter_prealloc-fails
++++ a/mm/nommu.c
+@@ -1181,7 +1181,6 @@ unsigned long do_mmap(struct file *file,
+ 		ret = do_mmap_private(vma, region, len, capabilities);
+ 	if (ret < 0)
+ 		goto error_just_free;
+-	add_nommu_region(region);
  
--  - Due to a reverted meaning of soft-dirty (page clean when uffd-wp bit
--    set; dirty when uffd-wp bit cleared), it has different semantics on
--    some of the memory operations.  For example: ``MADV_DONTNEED`` on
-+  - Due to a reverted meaning of soft-dirty (page clean when the uffd bit
-+    is set; dirty when the uffd bit is cleared), it has different semantics
-+    on some of the memory operations.  For example: ``MADV_DONTNEED`` on
-     anonymous (or ``MADV_REMOVE`` on a file mapping) will be treated as
--    dirtying of memory by dropping uffd-wp bit during the procedure.
-+    dirtying of memory by dropping the uffd bit during the procedure.
+ 	/* clear anonymous mappings that don't ask for uninitialized data */
+ 	if (!vma->vm_file &&
+@@ -1199,7 +1198,9 @@ share:
+ 	BUG_ON(!vma->vm_region);
+ 	vma_iter_config(&vmi, vma->vm_start, vma->vm_end);
+ 	if (vma_iter_prealloc(&vmi, vma))
+-		goto error_just_free;
++		goto error_vma_iter_prealloc;
++
++	add_nommu_region(region);
  
- The user app can collect the "written/dirty" status by looking up the
--uffd-wp bit for the pages being interested in /proc/pagemap.
-+uffd bit for the pages being interested in /proc/pagemap.
+ 	setup_vma_to_mm(vma, current->mm);
+ 	current->mm->map_count++;
+@@ -1218,22 +1219,41 @@ share:
+ 	return result;
  
--The page will not be under track of uffd-wp async mode until the page is
-+The page will not be under track of userfaultfd-wp async mode until the page is
- explicitly write-protected by ``ioctl(UFFDIO_WRITEPROTECT)`` with the mode
- flag ``UFFDIO_WRITEPROTECT_MODE_WP`` set.  Trying to resolve a page fault
- that was tracked by async mode userfaultfd-wp is invalid.
-@@ -307,6 +307,253 @@ transparent to the guest, we want that s
- still poisoned, even though it's on a new physical host which ostensibly
- doesn't have a memory error in the exact same spot.
+ error_just_free:
++	vma_close(vma);
++	/* if the error was from shared mapping/existing region, don't free the region.
++	 * this has to be before releasing semaphore.
++	 */
++	if (region->vm_usage == 1) {
++		if (region->vm_file)
++			fput(region->vm_file);
++		kmem_cache_free(vm_region_jar, region);
++
++	} else
++		region->vm_usage--;
++
+ 	up_write(&nommu_region_sem);
+-error:
+ 	vma_iter_free(&vmi);
+-	if (region->vm_file)
+-		fput(region->vm_file);
+-	kmem_cache_free(vm_region_jar, region);
++
+ 	if (vma->vm_file)
+ 		fput(vma->vm_file);
+ 	vm_area_free(vma);
+ 	return ret;
  
-+Read-Write Protection
-+---------------------
+ sharing_violation:
+-	up_write(&nommu_region_sem);
+ 	pr_warn("Attempt to share mismatched mappings\n");
+ 	ret = -EINVAL;
+-	goto error;
++	goto error_just_free;
 +
-+``UFFDIO_REGISTER_MODE_RWP`` enables read-write protection tracking on a
-+memory range. It is similar to (but faster than) ``mprotect(PROT_NONE)``
-+combined with a signal handler; unlike ``mprotect(PROT_NONE)``, RWP only
-+traps accesses to *present* PTEs, so accesses to unpopulated addresses in a
-+protected range fall through to the normal missing-page path. It uses the
-+PROT_NONE hinting mechanism (same as NUMA balancing) to make pages
-+inaccessible while keeping them resident in memory. Works on anonymous,
-+shmem, and hugetlbfs memory.
++error_vma_iter_prealloc:
++	pr_warn("Allocation of vma iterator for process %d failed\n", current->pid);
++	show_mem();
++	ret = -ENOMEM;
 +
-+RWP is designed for VM memory managers that need to track the working set
-+of guest memory for cold page eviction to tiered or remote storage.
++	/* in case that the region is allocated via do_mmap_private() */
++	if ((region->vm_usage == 1) && (region->vm_flags & VM_MAPPED_COPY))
++		free_page_series(region->vm_start, region->vm_top);
 +
-+**Setup:**
-+
-+1. Open a userfaultfd and enable ``UFFD_FEATURE_RWP`` via ``UFFDIO_API``.
-+   Optionally request ``UFFD_FEATURE_RWP_ASYNC`` as well — it requires
-+   ``UFFD_FEATURE_RWP`` to be set in the same ``UFFDIO_API`` call.
-+
-+2. Register the guest memory range with ``UFFDIO_REGISTER_MODE_RWP``
-+   (and ``UFFDIO_REGISTER_MODE_MISSING`` if evicted pages will need to be
-+   fetched back from storage).
-+
-+**Feature availability:**
-+
-+RWP is built on top of two kernel primitives: a spare PTE bit owned by
-+userfaultfd (``CONFIG_HAVE_ARCH_USERFAULTFD_WP``) and architecture support
-+for present-but-inaccessible PTEs (``CONFIG_ARCH_HAS_PTE_PROTNONE``). When both
-+are available on a 64-bit kernel, the build selects
-+``CONFIG_USERFAULTFD_RWP=y`` and the ``VM_UFFD_RWP`` VMA flag becomes
-+available.
-+
-+``UFFD_FEATURE_RWP`` and ``UFFD_FEATURE_RWP_ASYNC`` are unavailable when
-+the running kernel or architecture does not support them — for example
-+32-bit kernels (where ``VM_UFFD_RWP`` is unavailable), kernels built
-+without ``CONFIG_USERFAULTFD_RWP``, and architectures whose ptes cannot
-+carry the uffd bit at runtime (e.g. riscv without the ``SVRSW60T59B``
-+extension). Requesting an unsupported feature in
-+``uffdio_api.features`` makes ``UFFDIO_API`` fail with ``EINVAL`` and
-+leaves the userfaultfd context uninitialized; the structure is returned
-+zeroed, so the error path cannot be used to discover what the kernel
-+supports. The recommended probe sequence is therefore to open a
-+throwaway userfaultfd, call ``UFFDIO_API`` once with ``features = 0``,
-+inspect the returned bitmask, close that fd, then open the real one
-+and call ``UFFDIO_API`` again with only the supported features set.
-+
-+**Protecting and Unprotecting:**
-+
-+Use ``UFFDIO_RWPROTECT`` to protect or unprotect a range, mirroring the
-+``UFFDIO_WRITEPROTECT`` interface::
-+
-+    struct uffdio_rwprotect rwp = {
-+        .range = { .start = addr, .len = len },
-+        .mode = UFFDIO_RWPROTECT_MODE_RWP,  /* protect */
-+    };
-+    ioctl(uffd, UFFDIO_RWPROTECT, &rwp);
-+
-+Setting ``UFFDIO_RWPROTECT_MODE_RWP`` sets PROT_NONE on present PTEs in the
-+range. Pages stay resident and their physical frames are preserved — only
-+access permissions are removed.
-+
-+Clearing ``UFFDIO_RWPROTECT_MODE_RWP`` restores normal VMA permissions and
-+wakes any faulting threads (unless ``UFFDIO_RWPROTECT_MODE_DONTWAKE`` is set).
-+
-+**Scope of protection:**
-+
-+RWP protection is a property of *present* PTEs. ``UFFDIO_RWPROTECT`` only
-+affects entries that are already populated. Unpopulated addresses within
-+the range remain unpopulated; when first accessed they fault through the
-+normal missing path (``do_anonymous_page()``, ``do_swap_page()``,
-+``finish_fault()``) and the resulting PTE is not RWP-protected. To observe
-+the population itself, co-register the range with
-+``UFFDIO_REGISTER_MODE_MISSING``.
-+
-+Protection is preserved across page reclaim: a page swapped out while
-+RWP-protected carries the marker on its swap entry, and swap-in restores
-+the PROT_NONE state so the first access after swap-in still faults. The
-+same applies to pages temporarily replaced by migration entries.
-+
-+Operations that drop the PTE entirely — ``MADV_DONTNEED`` on anonymous
-+memory, hole-punch on shmem, truncation of a file mapping — also drop the
-+RWP marker: the next access re-populates the range without protection.
-+Unlike WP (which persists via ``PTE_MARKER_UFFD_WP``), there is no
-+persistent RWP marker today. The user needs to re-arm the range with
-+``UFFDIO_RWPROTECT`` after any operation that explicitly frees PTEs.
-+
-+**Fault Handling:**
-+
-+When a protected page is accessed:
-+
-+- **Sync mode** (default): The faulting thread blocks and a
-+  ``UFFD_PAGEFAULT_FLAG_RWP`` message is delivered to the userfaultfd
-+  handler. The handler resolves the fault with ``UFFDIO_RWPROTECT``
-+  (clearing ``MODE_RWP``), which restores the PTE permissions and wakes
-+  the faulting thread.
-+
-+- **Async mode** (``UFFD_FEATURE_RWP_ASYNC``): The kernel automatically
-+  restores PTE permissions and the thread continues without blocking. No
-+  message is delivered to the handler.
-+
-+**Runtime Mode Switching:**
-+
-+``UFFDIO_SET_MODE`` toggles ``UFFD_FEATURE_RWP_ASYNC`` at runtime, allowing
-+the VMM to switch between lightweight async detection and safe sync
-+eviction without re-registering. The toggle takes ``mmap_write_lock()``
-+and calls ``vma_start_write()`` on each UFFD-armed VMA, draining
-+in-flight per-VMA-locked faults before the new mode takes effect.
-+
-+**Working-set detection with PAGEMAP_SCAN:**
-+
-+RWP-protected PTEs carry the uffd PTE bit; an access (and, in async mode, its
-+auto-resolution) clears it. ``PAGEMAP_SCAN`` reports ``PAGE_IS_ACCESSED`` once
-+the bit is clear on a ``VM_UFFD_RWP`` VMA, so a *non-inverted* scan reports the
-+pages that were touched during the interval -- the hot set::
-+
-+    struct pm_scan_arg arg = {
-+        .size = sizeof(arg),
-+        .start = guest_mem_start,
-+        .end = guest_mem_end,
-+        .vec = (uint64_t)regions,
-+        .vec_len = regions_len,
-+        .category_mask = PAGE_IS_ACCESSED,
-+        .return_mask = PAGE_IS_ACCESSED,
-+    };
-+    long n = ioctl(pagemap_fd, PAGEMAP_SCAN, &arg);
-+
-+The returned ``page_region`` array lists the hot ranges. ``PAGE_IS_ACCESSED``
-+is set on an accessed page whether it is still present or has since been
-+swapped out, so the hot scan needs no ``PAGE_IS_PRESENT`` filter -- unpopulated
-+holes carry neither bit and are excluded on their own.
-+
-+Track the hot set and reclaim everything else from the backing file (see the
-+workflow below). Do **not** invert the scan to enumerate "cold" pages
-+directly: an inverted scan reports only the ``VM_UFFD_RWP`` PTEs that are still
-+protected, i.e. the resident portion of *this* VMA. For a file mapping the
-+working set spans the whole file -- pages that live in the page cache but are
-+not mapped into this VMA (a pre-populated tmpfs file, or memory populated
-+through another mapping) are ``pte_none`` here, never appear in the scan, and
-+would never be considered for eviction even though they occupy memory. Driving
-+eviction from "file offsets minus the hot set" avoids that blind spot; a cold
-+PTE scan cannot. To additionally record the *first* access to a cached but
-+unmapped page (e.g. pre-populated content) as hot, co-register the range with
-+``UFFDIO_REGISTER_MODE_MINOR``: such accesses then fault as minor faults
-+instead of mapping the page silently.
-+
-+**Cleanup:**
-+
-+When the userfaultfd is closed or the range is unregistered, all PROT_NONE
-+PTEs are automatically restored to their normal VMA permissions. This
-+prevents pages from becoming permanently inaccessible.
-+
-+**VMM Working Set Tracking Workflow:**
-+
-+A typical VMM lifecycle for cold page eviction to tiered storage. Two
-+mappings of the same shmem (or hugetlbfs) file are used: ``guest_mem`` is
-+the RWP-registered mapping that vCPUs access through, and ``io_mem`` is a
-+private mapping for VMM-side I/O. Reading ``io_mem`` does not go through
-+the RWP-protected PTEs of ``guest_mem``, so the VMM's own ``pwrite()``
-+never traps on its own ::
-+
-+    /* One-time setup */
-+    fd = memfd_create("guest", MFD_CLOEXEC);
-+    ftruncate(fd, guest_size);
-+    guest_mem = mmap(NULL, guest_size, PROT_READ | PROT_WRITE,
-+                     MAP_SHARED, fd, 0);  /* vCPU view, RWP-registered */
-+    io_mem    = mmap(NULL, guest_size, PROT_READ | PROT_WRITE,
-+                     MAP_SHARED, fd, 0);  /* VMM I/O view, unprotected */
-+
-+    uffd = userfaultfd(O_CLOEXEC | O_NONBLOCK);
-+    struct uffdio_api api = {
-+        .api = UFFD_API,
-+        .features = UFFD_FEATURE_RWP | UFFD_FEATURE_RWP_ASYNC,
-+    };
-+    ioctl(uffd, UFFDIO_API, &api);
-+    if (!(api.features & UFFD_FEATURE_RWP))
-+        /* RWP unavailable on this kernel/arch -- fall back. */
-+    ioctl(uffd, UFFDIO_REGISTER, &(struct uffdio_register){
-+        .range = { guest_mem, guest_size },
-+        .mode = UFFDIO_REGISTER_MODE_RWP |
-+                UFFDIO_REGISTER_MODE_MISSING,
-+    });
-+
-+    /* Tracking loop */
-+    while (vm_running) {
-+        /* 1. Detection phase (async -- no vCPU stalls) */
-+        ioctl(uffd, UFFDIO_RWPROTECT, &(struct uffdio_rwprotect){
-+            .range = full_range,
-+            .mode = UFFDIO_RWPROTECT_MODE_RWP });
-+        sleep(tracking_interval);
-+
-+        /*
-+         * 2. Switch to sync BEFORE scanning. In async mode a vCPU
-+         * access races eviction: it would auto-resolve and mark the
-+         * page hot just as the VMM writes it out and punches it,
-+         * losing the update. Sync mode makes such accesses block and
-+         * be delivered, freezing the hot snapshot for the rest of the
-+         * iteration.
-+         */
-+        ioctl(uffd, UFFDIO_SET_MODE,
-+              &(struct uffdio_set_mode){
-+                  .disable = UFFD_FEATURE_RWP_ASYNC });
-+
-+        /* 3. Read the hot set: pages touched this interval. */
-+        ioctl(pagemap_fd, PAGEMAP_SCAN, &(struct pm_scan_arg){
-+            .category_mask = PAGE_IS_ACCESSED,
-+            .return_mask = PAGE_IS_ACCESSED,
-+            ...
-+        });
-+
-+        /*
-+         * 4. Reclaim the file offsets that are NOT in the hot set.
-+         * Driving this from the file's offset space (rather than from a
-+         * cold PTE scan) also reclaims pages that are cached but not
-+         * mapped into guest_mem, e.g. pre-populated content.
-+         */
-+        for each non-hot offset range:
-+            /* Read from io_mem -- bypasses RWP, no fault. */
-+            pwrite(storage_fd, (char *)io_mem + off, len, off);
-+            /* Drop the page from the shared file. */
-+            fallocate(fd, FALLOC_FL_PUNCH_HOLE | FALLOC_FL_KEEP_SIZE,
-+                      off, len);
-+            /*
-+             * Wake any vCPU blocked on the RWP fault for this range:
-+             * fallocate() does not iterate ctx->fault_pending_wqh.
-+             */
-+            ioctl(uffd, UFFDIO_WAKE, &(struct uffdio_range){
-+                .start = (uintptr_t)guest_mem + off, .len = len });
-+
-+        /* 5. Resume async tracking */
-+        ioctl(uffd, UFFDIO_SET_MODE,
-+              &(struct uffdio_set_mode){
-+                  .enable = UFFD_FEATURE_RWP_ASYNC });
-+    }
-+
-+During step 4, a vCPU that accesses a ``guest_mem`` offset being evicted
-+blocks with a ``UFFD_PAGEFAULT_FLAG_RWP`` fault while the eviction is in
-+progress. After ``fallocate()`` punches the page out and ``UFFDIO_WAKE``
-+fires, the vCPU retries the access, faults as ``MISSING``, and the
-+handler resolves it with ``UFFDIO_COPY`` from storage.
-+
-+This workflow targets shmem and hugetlbfs (both support a private
-+``io_mem`` mapping over the same fd). Anonymous-memory backings need a
-+different inner-loop strategy because the VMM has no way to read the
-+page without going through the RWP-protected mapping.
-+
- QEMU/KVM
- ========
++	goto error_just_free;
  
+ error_getting_vma:
+ 	kmem_cache_free(vm_region_jar, region);
 _
 
-Patches currently in -mm which might be from kas@kernel.org are
+Patches currently in -mm which might be from thehajime@gmail.com are
 
-selftests-mm-add-pagemap_scan-test-for-thp-pmd-holes.patch
-mm-huge_memory-remove-unused-can_split_folio.patch
-mm-huge_memory-fold-split_folio_to_list_to_order-into-split_folio_to_order.patch
-mm-fold-userfaultfd_rwp-to-false-without-config_arch_has_pte_protnone.patch
+mm-nommu-point-to-the-write-iterator-upon-split_vma.patch
 
