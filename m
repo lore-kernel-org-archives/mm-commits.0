@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 039551D5CC9
-	for <mm-commits@vger.kernel.org>; Wed,  5 Aug 2026 01:23:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D8A4E2868B5
+	for <mm-commits@vger.kernel.org>; Wed,  5 Aug 2026 01:24:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785893040; cv=none; b=SeKn082iJkwWtiq5BuqUiuUOXPmY7Vxkv2r1S5KsJsO4PdO+KjW/56h/N1TpCqvlcuC1+gb7e0fapidn7FWYLZgDAmkZiLfxFWSIK7HlEsmXFFartfsmWqMfxwbPQkWhjmCPTjTLF8RDpo0gQzalVDDPEYm2SB7ykdM3oGC/5wc=
+	t=1785893085; cv=none; b=XVF6nC9/NVscv9wCPqaGmSg7cB309vWkw2BVlCFt+TYifbcSXH3c+WNBMMuNkwcss0Ngvs1VM3N4mW8TRUlazyjfWRmNOpQsv5Gd+BTQxh0b6d/N3x2ro1BNOiUejZiAGGVIS98YsQEAZypJevvzsXaQ1Kuog3JcnT68nsOnt7o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785893040; c=relaxed/simple;
-	bh=LQmqv7cO6O5y5J43AFkxVVbHE/kr69aSoYHqTrYLhdc=;
-	h=Date:To:From:Subject:Message-Id; b=QedPsaHlt5BFsIc9P+g7lo9njqsaLnwSunN2ted5mI/xva0Tztx+S+huJfewqxzBweq8x8mSZV9OycjzDwA6dBaNuKr4PXKpgzgnjvlzYddYPFgpJhQZVc1O5sXVEnwNdLu+MV9w2+9ZhM68EgTHWkib9pu76AAxTroz86UWZp8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jghD5x2i; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785893085; c=relaxed/simple;
+	bh=PdLwCXhnom5xL/SeGEMhfFvYLuSnPZ6EhhuppIUggo8=;
+	h=Date:To:From:Subject:Message-Id; b=X1pYVLYsbxvqijYAxjqKmnwPi4Irrfo79brGuxkH+RFXG/l89kPrFpXHPKPhNRUz4b6HxKhK/QSCYyWGrkJXhSreNooQlC8Yz+kZxmjsGz/Vj2cEK9kJBioDPMqIYlVHgzVCdWtOrmxrp1tANutQ5mBuHhYFfTmcZIMhAo9gZb8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jaNt0+Sj; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jghD5x2i"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5E65B1F000E9;
-	Wed,  5 Aug 2026 01:23:58 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jaNt0+Sj"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 760651F000E9;
+	Wed,  5 Aug 2026 01:24:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785893038;
-	bh=jb37iedGwvVx/Ov/aTUq1UQO8hR/EmQSNPO5cQ5ZoD4=;
+	d=linux-foundation.org; s=korg; t=1785893083;
+	bh=aElch5rWk83wHMnGm0VJXpswkPVQAqd4kj8vDBYK+68=;
 	h=Date:To:From:Subject;
-	b=jghD5x2iYLyxYNWSNQxonjbg7xlscygzOUZojkn/+cmVfdFkmKQEO6yc7pDQ+lGg3
-	 Rkwx3u4kqUexeRPjImtfS+mhpwL8artcyMCaydRWevbYEt6sahrxwzG0tZ+w00b5rJ
-	 8hQ8Out80t3nOfG6tW8KIs0EMPkEd1Icg+R6OZmQ=
-Date: Tue, 04 Aug 2026 18:23:57 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,pfalcato@suse.de,ljs@kernel.org,liam@infradead.org,jannh@google.com,david@kernel.org,wangkefeng.wang@huawei.com,akpm@linux-foundation.org
+	b=jaNt0+SjiFH4eDAB7954iHwLW7rweOkcwcS4lvfm2PB8P6MfcRCOrNVFpFfZlK6F5
+	 REhgBJE890NxR2fGXQdKrhzkRHJrZhVpUaclIzNgXCsLjOsmBpSMHnUD30jGJP7hz3
+	 KNfLm1oauSflZEeLbLxojiaWO/ySkqGjK1tY0R9Y=
+Date: Tue, 04 Aug 2026 18:24:43 -0700
+To: mm-commits@vger.kernel.org,hannes@cmpxchg.org,brendan.jackman@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-mincore-improve-mincore_hugetlb-fix.patch removed from -mm tree
-Message-Id: <20260805012358.5E65B1F000E9@smtp.kernel.org>
+Subject: [folded-merged] mm-page_alloc-fix-non-movable-reclaim-storm-in-defrag_mode-fix.patch removed from -mm tree
+Message-Id: <20260805012443.760651F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,64 +35,43 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: mincore: fixup improve mincore_hugetlb()
+     Subject: mm-page_alloc-fix-non-movable-reclaim-storm-in-defrag_mode-fix
 has been removed from the -mm tree.  Its filename was
-     mm-mincore-improve-mincore_hugetlb-fix.patch
+     mm-page_alloc-fix-non-movable-reclaim-storm-in-defrag_mode-fix.patch
 
-This patch was dropped because it was folded into mm-mincore-improve-mincore_hugetlb.patch
+This patch was dropped because it was folded into mm-page_alloc-fix-non-movable-reclaim-storm-in-defrag_mode.patch
 
 ------------------------------------------------------
-From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm: mincore: fixup improve mincore_hugetlb()
-Date: Mon, 20 Jul 2026 20:42:52 +0800
+From: "Brendan Jackman" <brendan.jackman@linux.dev>
+Subject: mm-page_alloc-fix-non-movable-reclaim-storm-in-defrag_mode-fix
+Date: Sat, 25 Jul 2026 12:34:29 +0000
 
-- change unsigned long nr to const
-- remove a local vec variable
+fix try_to_compact_pages() kerneldoc
 
-Link: https://lore.kernel.org/20260720124252.1483984-1-wangkefeng.wang@huawei.com
-Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: David Hildenbrand (Arm) <david@kernel.org>
-Cc: Jann Horn <jannh@google.com>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Pedro Falcato <pfalcato@suse.de>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Zi Yan <ziy@nvidia.com>
+Link: https://lore.kernel.org/DK7NM9RPUJOD.11PNJJ5N2OBED@linux.dev
+Signed-off-by: "Brendan Jackman" <brendan.jackman@linux.dev>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mincore.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ mm/compaction.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/mincore.c~mm-mincore-improve-mincore_hugetlb-fix
-+++ a/mm/mincore.c
-@@ -28,8 +28,7 @@ static int mincore_hugetlb(pte_t *pte, u
- 			unsigned long end, struct mm_walk *walk)
- {
- #ifdef CONFIG_HUGETLB_PAGE
--	unsigned long nr = (end - addr) >> PAGE_SHIFT;
--	unsigned char *vec = walk->private;
-+	const unsigned long nr = (end - addr) >> PAGE_SHIFT;
- 	unsigned char resident;
- 	spinlock_t *ptl;
- 	pte_t ptep;
-@@ -37,7 +36,7 @@ static int mincore_hugetlb(pte_t *pte, u
- 	ptl = huge_pte_lock(hstate_vma(walk->vma), walk->mm, pte);
- 	ptep = huge_ptep_get(walk->mm, addr, pte);
- 	resident = !huge_pte_none(ptep) && !pte_is_marker(ptep);
--	memset(vec, resident, nr);
-+	memset(walk->private, resident, nr);
- 	walk->private += nr;
- 	spin_unlock(ptl);
- #else
+--- a/mm/compaction.c~mm-page_alloc-fix-non-movable-reclaim-storm-in-defrag_mode-fix
++++ a/mm/compaction.c
+@@ -2823,7 +2823,7 @@ static enum compact_result compact_zone_
+ /**
+  * try_to_compact_pages - Direct compact to satisfy a high-order allocation
+  * @gfp_mask: The GFP mask of the current allocation
+- * @order: The order of the current allocation
++ * @order: The order to try to make available
+  * @alloc_flags: The allocation flags of the current allocation
+  * @ac: The context of current allocation
+  * @prio: Determines how hard direct compaction should try to succeed
 _
 
-Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
+Patches currently in -mm which might be from brendan.jackman@linux.dev are
 
-mm-introduce-pud_is_huge-helper.patch
-mm-mincore-remove-special-handling-for-vm_pfnmap.patch
-mm-mincore-replace-__get_free_page-with-kmalloc.patch
-mm-mincore-remove-xa_is_value-in-mincore_swap.patch
-mm-mincore-improve-mincore_hugetlb.patch
-mm-mincore-refactor-mincore_page.patch
+maintainers-update-address-for-brendan-jackman.patch
+mm-page_alloc-fix-non-movable-reclaim-storm-in-defrag_mode.patch
 
