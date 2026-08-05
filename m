@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ED1F03C0A0E
-	for <mm-commits@vger.kernel.org>; Wed,  5 Aug 2026 02:26:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6EBD53C108E
+	for <mm-commits@vger.kernel.org>; Wed,  5 Aug 2026 02:26:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785896768; cv=none; b=efFNPOEO6uFa5M+nkrLtexYnZcztpH1BjlACYTcEdt/h8od2VE+8uMSMZpq9GGgqWXgfZSARbV/r+z2jFutj7AlTyXDzTG+mQuzhvtXD/U1IGnNf5WiGODQgOjgoEcmeBtV0yI7ZKSeY9MOSIvz2M1i8aN1ed7i6qTznOrxFt/4=
+	t=1785896769; cv=none; b=oDnUyKBds5m7Eid28CA9CaS231WV/Fym2Cpc9OHNuCwFBavZgCHitpq0vbchi6qGnlRMwNgMU/mTXaLUZHo3DQQvYheb0ZingZFJLs3j7ICK4Hh3PpvCTTmQDQpP9vWcRsunA7u2gNwapNmyKsaLR7rT/pgznVtREFL/OY1eFpg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785896768; c=relaxed/simple;
-	bh=5JTcK9pCIOBX5DhvjFmNyYm9yel7sPxoknhVcIdhwwQ=;
-	h=Date:To:From:Subject:Message-Id; b=b6tVI/QfEuM+3VagM/8q7ao5TktRDO7LIoUUbDTTJXqxduqZD2jL6aLvgn9+sYzsY0DJPuZU0RfSJZ4jXMjQKXn9XLTHrcVzS0ib787DAgZO3tz2hs1/EgM79JOWL013lZ0pxS18vxHqiaDQBOsTSadlTYFjJ2CSBsvh/2be70Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BgZjupR1; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785896769; c=relaxed/simple;
+	bh=JCbi8mwe1EpDj7Z/cmhtjOoz7XlHp+PUBltCGC/aDlc=;
+	h=Date:To:From:Subject:Message-Id; b=jxzSUTeeJSjv63GscUEzAZFCSjHFDz2naXWoDq+f2p9Gne5D2viXfh03pWN2/drZebfpDH8LLt9TcFqeb2vtgwU7CE4+Jb7Gz6H5D25yuWeH2mty+fogFcOqqg6eLWTLFKXgDkvwhoKmHunfKNkLdPr4G1rpan+yy5XwkLput+o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jFy/aii8; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BgZjupR1"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B3BE81F00A3A;
-	Wed,  5 Aug 2026 02:26:06 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jFy/aii8"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 271D61F000E9;
+	Wed,  5 Aug 2026 02:26:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785896766;
-	bh=qmQzRVHoKvKdeSR6t1wzqkcLJelbm4GwRiC3WvyxZoQ=;
+	d=linux-foundation.org; s=korg; t=1785896768;
+	bh=BWGnaLc2GQ8RUXQ19HTjA52ep+U/JFc3jkQrgFnp1Y0=;
 	h=Date:To:From:Subject;
-	b=BgZjupR1ZV8hkIiu9s2+YLRzeaX69xprxdkyvhnRHXjsxM+VbUpp+1NkzuEZm+HU/
-	 cNypNiSZGQflpBc1vwFQ1N7S/d4LvRqfEDDUPJizX/jpwBrREEBPno91tyMOUKPs9Y
-	 K1GnOjVPUnqyzEJSz1xHP78IV3JtufdpSY6UEn0Q=
-Date: Tue, 04 Aug 2026 19:26:06 -0700
+	b=jFy/aii8XxGUz2+76ON4QwakjavJ3sjcIxzdqy6FwtczK4j/xxDW3pZFtjG+exr8t
+	 XjchNLY9a+ng5pyuFzsRPDV0wy4zPSFGcZsKxZvnwjG3XxFniriEgzpr1Vj9L+trDl
+	 YTakutAXqKudUYGul0EHGBo/lAvTlswDM76ooeg8=
+Date: Tue, 04 Aug 2026 19:26:07 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,tzimmermann@suse.de,sj@kernel.org,pfalcato@suse.de,m.szyprowski@samsung.com,liam@infradead.org,kai.huang@intel.com,gourry@gourry.net,david@kernel.org,ackerleytng@google.com,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-vma-clean-up-anon_vma_compatible.patch removed from -mm tree
-Message-Id: <20260805022606.B3BE81F00A3A@smtp.kernel.org>
+Subject: [merged mm-stable] mm-vma-refactor-vmg_adjust_set_range-for-clarity.patch removed from -mm tree
+Message-Id: <20260805022608.271D61F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,29 +35,32 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/vma: clean up anon_vma_compatible()
+     Subject: mm/vma: refactor vmg_adjust_set_range() for clarity
 has been removed from the -mm tree.  Its filename was
-     mm-vma-clean-up-anon_vma_compatible.patch
+     mm-vma-refactor-vmg_adjust_set_range-for-clarity.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <ljs@kernel.org>
-Subject: mm/vma: clean up anon_vma_compatible()
-Date: Fri, 10 Jul 2026 21:16:55 +0100
+Subject: mm/vma: refactor vmg_adjust_set_range() for clarity
+Date: Fri, 10 Jul 2026 21:16:56 +0100
 
-Break up the existing very large conditional, add comments and use
-vma_[start/end]_pgoff() to make clearer what we're doing here.
+Add comments with ASCII diagrams to describe what we're doing, avoid
+dubious use of PHYS_PFN(), and use vma_start_pgoff().
+
+The most complicated scenario represented here is vmg->__adjust_next_start
+- when this is set, vmg->[start, end] actually indicate the range to be
+retained, so take special care to describe this accurately.
 
 No functional change intended.
 
-Link: https://lore.kernel.org/20260710-b4-pre-scalable-cow-v2-14-2a5aa403d977@kernel.org
+Link: https://lore.kernel.org/20260710-b4-pre-scalable-cow-v2-15-2a5aa403d977@kernel.org
 Signed-off-by: Lorenzo Stoakes <ljs@kernel.org>
-Reviewed-by: Gregory Price <gourry@gourry.net>
 Reviewed-by: Pedro Falcato <pfalcato@suse.de>
+Reviewed-by: Gregory Price <gourry@gourry.net>
 Reviewed-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
 Cc: Ackerley Tng <ackerleytng@google.com>
 Cc: David Hildenbrand (Arm) <david@kernel.org>
 Cc: Kai Huang <kai.huang@intel.com>
@@ -65,45 +68,74 @@ Cc: Marek Szyprowski <m.szyprowski@samsung.com>
 Cc: SJ Park <sj@kernel.org>
 Cc: Thomas Zimmermann <tzimmermann@suse.de>
 Cc: Liam R. Howlett (Oracle) <liam@infradead.org>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vma.c |   21 ++++++++++++++++-----
- 1 file changed, 16 insertions(+), 5 deletions(-)
+ mm/vma.c |   51 +++++++++++++++++++++++++++++++++++++++++++++++----
+ 1 file changed, 47 insertions(+), 4 deletions(-)
 
---- a/mm/vma.c~mm-vma-clean-up-anon_vma_compatible
+--- a/mm/vma.c~mm-vma-refactor-vmg_adjust_set_range-for-clarity
 +++ a/mm/vma.c
-@@ -1967,14 +1967,25 @@ static int anon_vma_compatible(struct vm
- {
- 	vma_flags_t diff = vma_flags_diff_pair(&a->flags, &b->flags);
+@@ -704,11 +704,54 @@ static void vmg_adjust_set_range(struct
+ 	pgoff_t pgoff;
  
-+	/* Ignore flags that mprotect() can change. */
- 	vma_flags_clear_mask(&diff, VMA_ACCESS_FLAGS);
-+	/* Ignore flags that do not impact merging. */
- 	vma_flags_clear_mask(&diff, VMA_IGNORE_MERGE_FLAGS);
- 
--	return a->vm_end == b->vm_start &&
--		mpol_equal(vma_policy(a), vma_policy(b)) &&
--		a->vm_file == b->vm_file &&
--		vma_flags_empty(&diff) &&
--		b->vm_pgoff == a->vm_pgoff + ((b->vm_start - a->vm_start) >> PAGE_SHIFT);
-+	/* Must be adjacent. */
-+	if (a->vm_end != b->vm_start)
-+		return false;
-+	/* Must have matching policy. */
-+	if (!mpol_equal(vma_policy(a), vma_policy(b)))
-+		return false;
-+	/* Must both be anon or map the same file (MAP_PRIVATE case). */
-+	if (a->vm_file != b->vm_file)
-+		return false;
-+	/* Flags must be equivalent modulo mprotect(). */
-+	if (!vma_flags_empty(&diff))
-+		return false;
-+	/* Page offset must align. */
-+	return vma_end_pgoff(a) == vma_start_pgoff(b);
- }
- 
- /*
+ 	if (vmg->__adjust_middle_start) {
+-		adjust = vmg->middle;
+-		pgoff = adjust->vm_pgoff + PHYS_PFN(vmg->end - adjust->vm_start);
++		/*
++		 * vmg->start    vmg->end
++		 * |             |
++		 * v    merge    v
++		 * <------------->
++		 *         delta
++		 *        <------>
++		 * |------|----------------|
++		 * | prev |    middle      |
++		 * |------|----------------|
++		 *        ^
++		 *        |
++		 *        middle->vm_start
++		 */
++		struct vm_area_struct *middle = vmg->middle;
++		const unsigned long delta = vmg->end - middle->vm_start;
++
++		pgoff = vma_start_pgoff(middle) + (delta >> PAGE_SHIFT);
++		adjust = middle;
+ 	} else if (vmg->__adjust_next_start) {
+-		adjust = vmg->next;
+-		pgoff = adjust->vm_pgoff - PHYS_PFN(adjust->vm_start - vmg->end);
++		/*
++		 *                Originally:
++		 *
++		 *            vmg->start   vmg->end
++		 *            |            |
++		 *            v    merge   v
++		 *            <------------>
++		 *            .            .
++		 * merge_existing_range() updates to:
++		 *            .            .
++		 * vmg->start vmg->end     .
++		 * |          |            .
++		 * v  retain  v            .
++		 * <---------->            .
++		 *             delta       .
++		 *            <----->      .
++		 * |----------------|------|
++		 * |    middle      | next |
++		 * |----------------|------|
++		 *                  ^
++		 *                  |
++		 *                  next->vm_start
++		 */
++		struct vm_area_struct *next = vmg->next;
++		const unsigned long delta = next->vm_start - vmg->end;
++
++		pgoff = vma_start_pgoff(next) - (delta >> PAGE_SHIFT);
++		adjust = next;
+ 	} else {
+ 		return;
+ 	}
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
