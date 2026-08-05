@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 37FB83C0611
-	for <mm-commits@vger.kernel.org>; Wed,  5 Aug 2026 02:26:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4256F3C09F4
+	for <mm-commits@vger.kernel.org>; Wed,  5 Aug 2026 02:26:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785896782; cv=none; b=GnjjTMe2ib3pF0xtgg1oDi6usZIzeKs5Sz8yJ9PE/GmmrUpgiEE6OdBhRKEffGGVMoH5vp1IoS7tdcpLnR+jDiqWJG04nYmsCgXeXr6t3vX70RRmOyHizQY009UQ4sADzdrovDahXXp60+HSDlDYWvjM5kw7IAXXJZB9bFceyog=
+	t=1785896786; cv=none; b=uh/jrEoHNMCGb67loIXvn13C+hxslRPIQbb/X86GUTfk2vZZKdRDd/2L7ie7UDpTW5XudtUZ9B3lblwdVzFH4o130xNiqL/Mx6FrHuava8xQ3h9TcxFqX1+s+0ORcmQspSskhqrDJxcYnY+iUmV4Zk8lrARAwXNulWFzptRseYY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785896782; c=relaxed/simple;
-	bh=mihqupz/BRDT1MkFhyLmNDCvPMqOaJAJqOSFRdqdc2g=;
-	h=Date:To:From:Subject:Message-Id; b=b/9QbiLy8vo3HNflCmQdfpTBonVQiilajxXefGlqGuXXkkiXE6XgZ9f5ouJ1LMiiocl3tE9jRTnxddHvCXT5wbV9htGyxIPD01/mqbmyEaehSJhJnRQwjK5gaS3gdOTlEYGbCV/qJQvmQdCQQ89e+mnq0smVyEMVzuOuydqfKhs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bXenRkoz; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785896786; c=relaxed/simple;
+	bh=NB9VctcGTEukMVRRvAfKWzKfrLa2ubEmwhAQP2bX3C8=;
+	h=Date:To:From:Subject:Message-Id; b=H8tFR3glOjFcei2ROKC7+HsQJHcThiQ6EBaoFXGftmX4bmuJ3uBFZCq9GnsZjO1ZLpuxA/h9Rjx1pdEC/6koYuocZ3kFmM/2a1xab1lG3IHj13rd4CoD6Eozw4mcGhLdBnyzlAfvQYoL9Ab1LUcWXIKyDv9zVsb8dkdFfA1FtC8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PY3ww3jy; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bXenRkoz"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 00D491F000E9;
-	Wed,  5 Aug 2026 02:26:20 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PY3ww3jy"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0CDB41F000E9;
+	Wed,  5 Aug 2026 02:26:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785896781;
-	bh=2bqB13KBTskM2tNt4UZMuAzQv3D7fa7JwBtH8fH7SYQ=;
+	d=linux-foundation.org; s=korg; t=1785896785;
+	bh=4iVby0nr9tM8jQj7zxGz32eIsGyoDRidyNaIcBF6GQM=;
 	h=Date:To:From:Subject;
-	b=bXenRkozHaDC7Tx7xqHWm+EEbgchmVEvxPdaFe2z25CMW5+TMaNYURtQdcy7GPImd
-	 wzGPPiSrYNfLNr3/GtMFRiVrFLQnGsmQrF4bQStDzSBhwuoDNCDQp928iRbHxbQKsb
-	 5KHD8MStOd5eWS33Mgp+gzxJMp3q1QLoYUVgNh/Y=
-Date: Tue, 04 Aug 2026 19:26:20 -0700
+	b=PY3ww3jyUmUq/Ot5+bCXA5wNuLTZTXnV19Nj5b1UfXbOPeFBVCeG4AiOB9bRGR5jw
+	 tRo4QjJUgI8UuID+/GJG5AVRZOOdciIbJC3tOOYvOEzGzoLaE+l3djw6ueYxJy1oBP
+	 HGPFhVjySWCqsjGXm9eGXqsnqSpuBXIJdznq8CrY=
+Date: Tue, 04 Aug 2026 19:26:24 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,tzimmermann@suse.de,sj@kernel.org,pfalcato@suse.de,m.szyprowski@samsung.com,liam@infradead.org,kai.huang@intel.com,gourry@gourry.net,david@kernel.org,ackerleytng@google.com,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-vma-add-and-use-vma__pgoff.patch removed from -mm tree
-Message-Id: <20260805022621.00D491F000E9@smtp.kernel.org>
+Subject: [merged mm-stable] mm-vma-move-__install_special_mapping-to-vmac.patch removed from -mm tree
+Message-Id: <20260805022625.0CDB41F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,31 +35,34 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/vma: add and use vma_[add/sub]_pgoff()
+     Subject: mm/vma: move __install_special_mapping() to vma.c
 has been removed from the -mm tree.  Its filename was
-     mm-vma-add-and-use-vma__pgoff.patch
+     mm-vma-move-__install_special_mapping-to-vmac.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <ljs@kernel.org>
-Subject: mm/vma: add and use vma_[add/sub]_pgoff()
-Date: Fri, 10 Jul 2026 21:17:04 +0100
+Subject: mm/vma: move __install_special_mapping() to vma.c
+Date: Fri, 10 Jul 2026 21:17:05 +0100
 
-Add helpers for adding or subtracting to a VMA's page offset, exposed
-internally for VMA users within mm in mm/vma.h.
+This function is operating on VMAs and rightly belongs in vma.c, where it
+can be subject to VMA userland testing and allows us to isolate it from the
+rest of mm.
 
-This is to lay the foundations for tracking anonymous page offset for
-MAP_PRIVATE file-backed mappings, where adding and subtracting from this
-value must be reflected in both the file and anonymous offsets.
+The _install_special_mapping() function will remain in mmap.c as a wrapper,
+since this is used by architecture-specific code.
 
-These are used on VMA split and downward stack expansion.
+Doing so allows us to isolate more functions in vma.c for the same reasons.
+
+This forms part of work to allow for tracking MAP_PRIVATE file-backed
+mappings by their anonymous virtual page offset, as doing so allows us to
+isolate and keep code that interacts with this together.
 
 No functional change intended.
 
-[akpm@linux-foundation.org: use linear_page_delta() in __split_vma(), per Vlastimal & Lorenzo]
-Link: https://lore.kernel.org/20260710-b4-pre-scalable-cow-v2-23-2a5aa403d977@kernel.org
+Link: https://lore.kernel.org/20260710-b4-pre-scalable-cow-v2-24-2a5aa403d977@kernel.org
 Signed-off-by: Lorenzo Stoakes <ljs@kernel.org>
 Reviewed-by: Pedro Falcato <pfalcato@suse.de>
 Reviewed-by: Gregory Price <gourry@gourry.net>
@@ -75,90 +78,114 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/nommu.c |    6 ++++--
- mm/vma.c   |    6 +++---
- mm/vma.h   |   12 ++++++++++++
- 3 files changed, 19 insertions(+), 5 deletions(-)
+ mm/mmap.c |   38 --------------------------------------
+ mm/vma.c  |   38 ++++++++++++++++++++++++++++++++++++++
+ mm/vma.h  |    5 +++++
+ 3 files changed, 43 insertions(+), 38 deletions(-)
 
---- a/mm/nommu.c~mm-vma-add-and-use-vma__pgoff
-+++ a/mm/nommu.c
-@@ -41,6 +41,7 @@
- #include <asm/tlbflush.h>
- #include <asm/mmu_context.h>
- #include "internal.h"
-+#include "vma.h"
- 
- unsigned long highest_memmap_pfn;
- int heap_stack_gap = 0;
-@@ -1361,7 +1362,8 @@ static int split_vma(struct vma_iterator
- 		region->vm_top = region->vm_end = new->vm_end = addr;
- 	} else {
- 		region->vm_start = new->vm_start = addr;
--		region->vm_pgoff = new->vm_pgoff += npages;
-+		vma_add_pgoff(new, npages);
-+		region->vm_pgoff = vma_start_pgoff(new);
- 	}
- 
- 	vma_iter_config(vmi, new->vm_start, new->vm_end);
-@@ -1378,7 +1380,7 @@ static int split_vma(struct vma_iterator
- 	delete_nommu_region(vma->vm_region);
- 	if (new_below) {
- 		vma->vm_region->vm_start = vma->vm_start = addr;
--		vma->vm_pgoff += npages;
-+		vma_add_pgoff(vma, npages);
- 		vma->vm_region->vm_pgoff = vma_start_pgoff(vma);
- 	} else {
- 		vma->vm_region->vm_end = vma->vm_end = addr;
---- a/mm/vma.c~mm-vma-add-and-use-vma__pgoff
-+++ a/mm/vma.c
-@@ -517,7 +517,7 @@ __split_vma(struct vma_iterator *vmi, st
- 		new->vm_end = addr;
- 	} else {
- 		new->vm_start = addr;
--		new->vm_pgoff += linear_page_delta(vma, addr);
-+		vma_add_pgoff(new, linear_page_delta(vma, addr));
- 	}
- 
- 	err = -ENOMEM;
-@@ -556,7 +556,7 @@ __split_vma(struct vma_iterator *vmi, st
- 
- 	if (new_below) {
- 		vma->vm_start = addr;
--		vma->vm_pgoff += (addr - new->vm_start) >> PAGE_SHIFT;
-+		vma_add_pgoff(vma, linear_page_delta(new, addr));
- 	} else {
- 		vma->vm_end = addr;
- 	}
-@@ -3305,7 +3305,7 @@ int expand_downwards(struct vm_area_stru
- 				vm_stat_account(mm, vma->vm_flags, grow);
- 				anon_rmap_tree_pre_update_vma(vma);
- 				vma->vm_start = address;
--				vma->vm_pgoff -= grow;
-+				vma_sub_pgoff(vma, grow);
- 				/* Overwrite old entry in mtree. */
- 				vma_iter_store_overwrite(&vmi, vma);
- 				anon_rmap_tree_post_update_vma(vma);
---- a/mm/vma.h~mm-vma-add-and-use-vma__pgoff
-+++ a/mm/vma.h
-@@ -247,6 +247,18 @@ static inline pgoff_t vmg_end_pgoff(cons
- 	return vmg_start_pgoff(vmg) + vmg_pages(vmg);
+--- a/mm/mmap.c~mm-vma-move-__install_special_mapping-to-vmac
++++ a/mm/mmap.c
+@@ -1447,44 +1447,6 @@ static vm_fault_t special_mapping_fault(
+ 	return VM_FAULT_SIGBUS;
  }
  
-+static inline void vma_add_pgoff(struct vm_area_struct *vma, pgoff_t delta)
-+{
-+	vma_assert_can_modify(vma);
-+	vma->vm_pgoff += delta;
-+}
+-static struct vm_area_struct *__install_special_mapping(
+-	struct mm_struct *mm,
+-	unsigned long addr, unsigned long len,
+-	vm_flags_t vm_flags, void *priv,
+-	const struct vm_operations_struct *ops)
+-{
+-	int ret;
+-	struct vm_area_struct *vma;
+-
+-	vma = vm_area_alloc(mm);
+-	if (unlikely(vma == NULL))
+-		return ERR_PTR(-ENOMEM);
+-
+-	vma_set_range(vma, addr, addr + len, 0);
+-	vm_flags |= mm->def_flags | VM_DONTEXPAND;
+-	if (pgtable_supports_soft_dirty())
+-		vm_flags |= VM_SOFTDIRTY;
+-	vm_flags_init(vma, vm_flags & ~VM_LOCKED_MASK);
+-	vma->vm_page_prot = vm_get_page_prot(vma->vm_flags);
+-
+-	vma->vm_ops = ops;
+-	vma->vm_private_data = priv;
+-
+-	ret = insert_vm_struct(mm, vma);
+-	if (ret)
+-		goto out;
+-
+-	vm_stat_account(mm, vma->vm_flags, len >> PAGE_SHIFT);
+-
+-	perf_event_mmap(vma);
+-
+-	return vma;
+-
+-out:
+-	vm_area_free(vma);
+-	return ERR_PTR(ret);
+-}
+-
+ bool vma_is_special_mapping(const struct vm_area_struct *vma,
+ 	const struct vm_special_mapping *sm)
+ {
+--- a/mm/vma.c~mm-vma-move-__install_special_mapping-to-vmac
++++ a/mm/vma.c
+@@ -3399,3 +3399,41 @@ __weak unsigned long vma_mmu_pagesize(st
+ {
+ 	return vma_kernel_pagesize(vma);
+ }
 +
-+static inline void vma_sub_pgoff(struct vm_area_struct *vma, pgoff_t delta)
++struct vm_area_struct *__install_special_mapping(
++	struct mm_struct *mm,
++	unsigned long addr, unsigned long len,
++	vm_flags_t vm_flags, void *priv,
++	const struct vm_operations_struct *ops)
 +{
-+	vma_assert_can_modify(vma);
-+	vma->vm_pgoff -= delta;
-+}
++	int ret;
++	struct vm_area_struct *vma;
 +
- #define VMG_STATE(name, mm_, vmi_, start_, end_, vma_flags_, pgoff_)	\
- 	struct vma_merge_struct name = {				\
- 		.mm = mm_,						\
++	vma = vm_area_alloc(mm);
++	if (unlikely(vma == NULL))
++		return ERR_PTR(-ENOMEM);
++
++	vma_set_range(vma, addr, addr + len, 0);
++	vm_flags |= mm->def_flags | VM_DONTEXPAND;
++	if (pgtable_supports_soft_dirty())
++		vm_flags |= VM_SOFTDIRTY;
++	vm_flags_init(vma, vm_flags & ~VM_LOCKED_MASK);
++	vma->vm_page_prot = vm_get_page_prot(vma->vm_flags);
++
++	vma->vm_ops = ops;
++	vma->vm_private_data = priv;
++
++	ret = insert_vm_struct(mm, vma);
++	if (ret)
++		goto out;
++
++	vm_stat_account(mm, vma->vm_flags, len >> PAGE_SHIFT);
++
++	perf_event_mmap(vma);
++
++	return vma;
++
++out:
++	vm_area_free(vma);
++	return ERR_PTR(ret);
++}
+--- a/mm/vma.h~mm-vma-move-__install_special_mapping-to-vmac
++++ a/mm/vma.h
+@@ -775,4 +775,9 @@ static inline bool map_deny_write_exec(c
+ }
+ #endif
+ 
++struct vm_area_struct *__install_special_mapping(struct mm_struct *mm,
++		unsigned long addr, unsigned long len,
++		vm_flags_t vm_flags, void *priv,
++		const struct vm_operations_struct *ops);
++
+ #endif	/* __MM_VMA_H */
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
