@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4BA163C108E
-	for <mm-commits@vger.kernel.org>; Wed,  5 Aug 2026 02:26:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AEF303C10A0
+	for <mm-commits@vger.kernel.org>; Wed,  5 Aug 2026 02:26:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785896796; cv=none; b=P5M6xa8ImxThR0YFKIs9+/ZJFU99MULgyy5k/mOp1Pe/KMfRa8Ytn+BgwQf0AdlXOfLyJzbSVktqpEdZsXCHK3ewbUBJf2HfOTFIrutk8e1STDbYZd8nFufBmaveKuBY7sICR03s6/7QPmVhI8H2+R/C1NJL8szMPuSxJVvNGFo=
+	t=1785896798; cv=none; b=cQ90XXPkqkRWlIUhMmds2hNzVDCP2IcNvfw/JLmmZMWpb/fQqw6lXK3Af+L2ZdwrvQHXLZ5KayhKRO5JlhECQZAa3KUpwWrOvreSd/4NH0RLeNJnPpNseId6yoeei3i6Tg0htFM0TQtlESBGP7FZglx6hDR9vdR4qciNdYYn8Mo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785896796; c=relaxed/simple;
-	bh=xqePtyG2hURp0vgNnoDacT02cBPBpT/tXIv32u8hrkw=;
-	h=Date:To:From:Subject:Message-Id; b=Fz6RIyDJGVzxXTOFgn+BWAbDzzTER8HussgJNkyZswmWY9iiLSGxbY6opIpw1edeNwJGEsn7kLJj4I10gNXebYG7wciqoAFKFFT4uoKzi6HEqe+dWCelb0rwJ59rt1Uzjq70CdVT94piGPHVFSye1nwg+LRx3b0y+MIfcW44udM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NQmREKMp; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785896798; c=relaxed/simple;
+	bh=cF4TEi2lbZ2zbA+nvpZDYm/SIiKl/s29f6hROMz9bj8=;
+	h=Date:To:From:Subject:Message-Id; b=c9Mg2zmXgUcMcLyjOsFPY+QmsRKdsZC49SJVDiWNsYOnapjKttkpZbLgdROxprduAH1nYdzo02BP1DgNfNSEq+Ycas4QgtaShBhDt3+MmeZgRjPZJoulVrBZ0JnZ3knOamKDs6kqyO1ZyEH/0mtklvqtiFlchAnhKFJQTW2B8Ec=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0hR67gHR; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NQmREKMp"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 13D061F00A3A;
-	Wed,  5 Aug 2026 02:26:35 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0hR67gHR"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 77B3B1F000E9;
+	Wed,  5 Aug 2026 02:26:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785896795;
-	bh=Xb0pLRvq8Kw9moR4sSG8X5QknHZ4cVHSc6q6XU9JkSc=;
+	d=linux-foundation.org; s=korg; t=1785896796;
+	bh=8/uXxiQ1IXK9SlE6w6Uoug0foNgf3iysdG9a7bJkJgg=;
 	h=Date:To:From:Subject;
-	b=NQmREKMpIKaF4uuykSdQZHXbFEFAyuMJ2eQuvXLMatkeSrPhRMFui5bwcfyPdSu7P
-	 WHPyV3HWLB1OzM5ukpRmod3dhFAGh5z4WLPZ1iwMvUGxRHT1jlJuzorDvmk2FAOq/8
-	 oBWHEQ7YwO4WPgMxms29H7hfKTdq6D7cFVQ02V7Y=
-Date: Tue, 04 Aug 2026 19:26:34 -0700
+	b=0hR67gHR/V8aqCTvji33IQc0oEV5nbBH0oaNyEFwalTvUrvwS4aVOy8JNso82o1C6
+	 aw3TWRjFcFCOCuPmQjgjhLSCeQg/sTGFj4cXLafkcY9llnVMESaQRJyWE35zVj8K6r
+	 d/XTBP5EMimCaTTdUyVl3bTCaMH0F/HUAmxprE44=
+Date: Tue, 04 Aug 2026 19:26:35 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,tzimmermann@suse.de,sj@kernel.org,pfalcato@suse.de,m.szyprowski@samsung.com,liam@infradead.org,kai.huang@intel.com,gourry@gourry.net,david@kernel.org,ackerleytng@google.com,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-vma-use-guard-clauses-in-can_vma_merge_.patch removed from -mm tree
-Message-Id: <20260805022635.13D061F00A3A@smtp.kernel.org>
+Subject: [merged mm-stable] tools-testing-vma-default-vma-mm-flag-bits-to-64-bit.patch removed from -mm tree
+Message-Id: <20260805022636.77B3B1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,89 +35,54 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/vma: use guard clauses in can_vma_merge_[before, after]()
+     Subject: tools/testing/vma: default VMA, mm flag bits to 64-bit
 has been removed from the -mm tree.  Its filename was
-     mm-vma-use-guard-clauses-in-can_vma_merge_.patch
+     tools-testing-vma-default-vma-mm-flag-bits-to-64-bit.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <ljs@kernel.org>
-Subject: mm/vma: use guard clauses in can_vma_merge_[before, after]()
-Date: Fri, 10 Jul 2026 21:17:12 +0100
+Subject: tools/testing/vma: default VMA, mm flag bits to 64-bit
+Date: Fri, 10 Jul 2026 21:17:13 +0100
 
-Rather than combining a bunch of conditionals in a single expression,
-simplify by inverting the mergeability requirements into guard clauses.
+With all of the sanitisers turned on, setting the VMA and mm flag bits
+depth to 128 by default results in overly long build times.
 
-that is - instead of checking what must be true for the conditions to be
-met, instead check the inverse of the requirements and return false if any
-are true, defaulting to true.
+Reduce this to 64 - we can always manipulate these later for testing of
+larger bitmaps as needed.
 
-No functional change intended.
-
-Link: https://lore.kernel.org/20260710-b4-pre-scalable-cow-v2-31-2a5aa403d977@kernel.org
+Link: https://lore.kernel.org/20260710-b4-pre-scalable-cow-v2-32-2a5aa403d977@kernel.org
 Signed-off-by: Lorenzo Stoakes <ljs@kernel.org>
-Reviewed-by: Pedro Falcato <pfalcato@suse.de>
 Reviewed-by: Gregory Price <gourry@gourry.net>
-Reviewed-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
 Cc: Ackerley Tng <ackerleytng@google.com>
 Cc: David Hildenbrand (Arm) <david@kernel.org>
 Cc: Kai Huang <kai.huang@intel.com>
 Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: Pedro Falcato <pfalcato@suse.de>
 Cc: SJ Park <sj@kernel.org>
 Cc: Thomas Zimmermann <tzimmermann@suse.de>
+Cc: Vlastimil Babka (SUSE) <vbabka@kernel.org>
 Cc: Liam R. Howlett (Oracle) <liam@infradead.org>
 Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vma.c |   27 ++++++++++++++-------------
- 1 file changed, 14 insertions(+), 13 deletions(-)
+ tools/testing/vma/Makefile |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/vma.c~mm-vma-use-guard-clauses-in-can_vma_merge_
-+++ a/mm/vma.c
-@@ -215,13 +215,13 @@ static void init_multi_vma_prep(struct v
-  */
- static bool can_vma_merge_before(struct vma_merge_struct *vmg)
- {
--	if (is_mergeable_vma(vmg, /* merge_next = */ true) &&
--	    is_mergeable_anon_vma(vmg, /* merge_next = */ true)) {
--		if (vmg_end_pgoff(vmg) == vma_start_pgoff(vmg->next))
--			return true;
--	}
--
--	return false;
-+	if (!is_mergeable_vma(vmg, /* merge_next = */ true))
-+		return false;
-+	if (!is_mergeable_anon_vma(vmg, /* merge_next = */ true))
-+		return false;
-+	if (vmg_end_pgoff(vmg) != vma_start_pgoff(vmg->next))
-+		return false;
-+	return true;
- }
+--- a/tools/testing/vma/Makefile~tools-testing-vma-default-vma-mm-flag-bits-to-64-bit
++++ a/tools/testing/vma/Makefile
+@@ -10,7 +10,7 @@ OFILES = $(SHARED_OFILES) main.o shared.
+ TARGETS = vma
  
- /*
-@@ -235,12 +235,13 @@ static bool can_vma_merge_before(struct
-  */
- static bool can_vma_merge_after(struct vma_merge_struct *vmg)
- {
--	if (is_mergeable_vma(vmg, /* merge_next = */ false) &&
--	    is_mergeable_anon_vma(vmg, /* merge_next = */ false)) {
--		if (vma_end_pgoff(vmg->prev) == vmg_start_pgoff(vmg))
--			return true;
--	}
--	return false;
-+	if (!is_mergeable_vma(vmg, /* merge_next = */ false))
-+		return false;
-+	if (!is_mergeable_anon_vma(vmg, /* merge_next = */ false))
-+		return false;
-+	if (vma_end_pgoff(vmg->prev) != vmg_start_pgoff(vmg))
-+		return false;
-+	return true;
- }
+ # These can be varied to test different sizes.
+-CFLAGS += -DNUM_VMA_FLAG_BITS=128 -DNUM_MM_FLAG_BITS=128
++CFLAGS += -DNUM_VMA_FLAG_BITS=64 -DNUM_MM_FLAG_BITS=64
  
- static void __vma_link_file(struct vm_area_struct *vma,
+ main.o: main.c shared.c shared.h vma_internal.h tests/merge.c tests/mmap.c tests/vma.c ../../../mm/vma.c ../../../mm/vma_init.c ../../../mm/vma_exec.c ../../../mm/vma.h include/custom.h include/dup.h include/stubs.h
+ 
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
