@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E0C211B4223
-	for <mm-commits@vger.kernel.org>; Wed,  5 Aug 2026 02:23:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1E9F83BCD2C
+	for <mm-commits@vger.kernel.org>; Wed,  5 Aug 2026 02:23:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785896583; cv=none; b=Lhwh9NGyfbMq3V9Qz9+ltuHOmJK11/uJ/ATPwR9hofd99u84uombLPcag9oXj0KA2TYzVvF1NlZ700EOq0wFDUW6FW0jxEcmldwvhju0lxNkzSl+x6Q9VZaXJOafo23hH9HfYLVcXlSy6DE8nZpMA+sX6et96AYdyLKq9oCmhoY=
+	t=1785896584; cv=none; b=lonmjg4wZ1BwFtmPDDcZNgHDec8zZlAiLF4oluOGZAhLK+AqyyVYrm1GAzd8XuKvbkDqC5ruFF0P9ZRDQFoVOttJkNm79CyvC7SPTlhcDSZEP50eLEq2KeDm0ermtX7C0TR6a+OV+HqEyZMagcAx9pa/WFWKI7Kv5SETdSZwxd0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785896583; c=relaxed/simple;
-	bh=ngi4bi/21wRZ3p3t+RPRqiuINLa/vsMYkm1Q3o72q2E=;
-	h=Date:To:From:Subject:Message-Id; b=UstpfBDXJ2HUChPAiM2fW08Ao+TZLyVCjArFPp8nXKv0VVQwh9do0AoMJxgp3bN9fjgbGbL0/f+VozJynnfA9QBHNbpZWhsbeaM2uRkpLYnatYBIyKd2GGyjACN5ujVnwVu8+iPvPwS1lioiy16ToBL7ISZo7Od/ZDHWoIheRZA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KlX2UDX7; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785896584; c=relaxed/simple;
+	bh=zub/NgmxoDlII7Eehmmm573RN6yCEan9Z+EZ+7DxOjw=;
+	h=Date:To:From:Subject:Message-Id; b=qmfhhnRw7EONMc24gOV1zQTlROQS3cR+RVV6EiA6YWKfNx4MfrkJRwRf+xar3iKiJvTm+nwpr05qp3Z/UywSmZOQz25WN6XXzwF52DDa8uY9ogsq8cGcUg8L/xfiIqKYX3u8EPFER4mNlhbxdinQMqpcBsPU1mM8k6ssZxA35wc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NmXPRmtp; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KlX2UDX7"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A41F21F00A3A;
-	Wed,  5 Aug 2026 02:23:00 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NmXPRmtp"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DD59D1F000E9;
+	Wed,  5 Aug 2026 02:23:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785896580;
-	bh=2vbot6A9bYcvGBSKFqrkSu/+6E7hw/O5YyOxhgvLC6A=;
+	d=linux-foundation.org; s=korg; t=1785896583;
+	bh=CDVKZWYbmcswaXW7hYX8+cl69RON8esPc3HifJAiCVg=;
 	h=Date:To:From:Subject;
-	b=KlX2UDX7YSgdSkX7hVNxK9dGVAawWpRbWugSAJE3OZ8bQo7I0d1Rgg9Qjb1Es6+2S
-	 3afzKgNt2kqju+MxV0Fuh06cqOWoZyWPR5Q6sllbKE09//B49W3VXkKIe/dvpIwh6z
-	 +Mihi9s6ILfFpvMRo5oPmUPOo1aG2RvfztoQyaaQ=
-Date: Tue, 04 Aug 2026 19:23:00 -0700
+	b=NmXPRmtprY4gS6xRq93ufvJqkEJ37LVRP/AecLYntFRVy2rObr95Y6XsxYEks2BEa
+	 zFmnfjATM/zv4JsClmYGocstS4vDpoN3Q8i4TuucbigPOuZi/Qiu0yqT7HopTSiMUE
+	 lTgAfr5IJHOCiVMKHwAfEh2MMutUuLH1aHNA0xms=
+Date: Tue, 04 Aug 2026 19:23:02 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] samples-damon-mtier-stop-all-contexts-with-single-damon_stop-call.patch removed from -mm tree
-Message-Id: <20260805022300.A41F21F00A3A@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-core-wait-ctx-stop-in-damon_call-before-reruning-an-error.patch removed from -mm tree
+Message-Id: <20260805022302.DD59D1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,44 +35,70 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: samples/damon/mtier: stop all contexts with single damon_stop() call
+     Subject: mm/damon/core: wait ctx stop in damon_call() before reruning an error
 has been removed from the -mm tree.  Its filename was
-     samples-damon-mtier-stop-all-contexts-with-single-damon_stop-call.patch
+     mm-damon-core-wait-ctx-stop-in-damon_call-before-reruning-an-error.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: samples/damon/mtier: stop all contexts with single damon_stop() call
-Date: Mon, 6 Jul 2026 07:06:23 -0700
+Subject: mm/damon/core: wait ctx stop in damon_call() before reruning an error
+Date: Mon, 6 Jul 2026 07:06:24 -0700
 
-damon_stop() was theoretically able to return failure while keeping the
-second context for mtier running.  mtier stops its contexts one by one
-with two damon_stop() call for the reason.  damon_stop() is refactored to
-always successfully stop all requested DAMON contexts.  The two calls are
-unnecessary.  Use only single damon_stop() call for all contexts.
+damon_call() failure means the DAMON context started its termination.  The
+termination is asynchronously done in kdamond thread.  The caller's error
+handling should handle the race, too.  It is complicated and easy to make
+mistakes.
 
-Link: https://lore.kernel.org/20260706140628.87414-9-sj@kernel.org
+Update damon_call() to ensure the context is stopped in the case, by
+waiting until the completion is confirmed.
+
+Link: https://lore.kernel.org/20260706140628.87414-10-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- samples/damon/mtier.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ mm/damon/core.c |   12 ++++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
 
---- a/samples/damon/mtier.c~samples-damon-mtier-stop-all-contexts-with-single-damon_stop-call
-+++ a/samples/damon/mtier.c
-@@ -200,8 +200,7 @@ static int damon_sample_mtier_start(void
- 
- static void damon_sample_mtier_stop(void)
- {
--	damon_stop(ctxs, 1);
--	damon_stop(&ctxs[1], 1);
-+	damon_stop(ctxs, 2);
- 	damon_destroy_ctx(ctxs[0]);
- 	damon_destroy_ctx(ctxs[1]);
+--- a/mm/damon/core.c~mm-damon-core-wait-ctx-stop-in-damon_call-before-reruning-an-error
++++ a/mm/damon/core.c
+@@ -2010,6 +2010,8 @@ int damon_kdamond_pid(struct damon_ctx *
+  * @ctx has succeeded.  Otherwise, this function could fall into an indefinite
+  * wait.
+  *
++ * When this function is failed, the @ctx is guaranteed to be stopped.
++ *
+  * Return: 0 on success, negative error code otherwise.
+  */
+ int damon_call(struct damon_ctx *ctx, struct damon_call_control *control)
+@@ -2022,7 +2024,7 @@ int damon_call(struct damon_ctx *ctx, st
+ 	mutex_lock(&ctx->call_controls_lock);
+ 	if (ctx->call_controls_obsolete) {
+ 		mutex_unlock(&ctx->call_controls_lock);
+-		return -ECANCELED;
++		goto canceled;
+ 	}
+ 	list_add_tail(&control->list, &ctx->call_controls);
+ 	mutex_unlock(&ctx->call_controls_lock);
+@@ -2030,8 +2032,14 @@ int damon_call(struct damon_ctx *ctx, st
+ 		return 0;
+ 	wait_for_completion(&control->completion);
+ 	if (control->canceled)
+-		return -ECANCELED;
++		goto canceled;
+ 	return 0;
++
++canceled:
++	while (damon_is_running(ctx))
++		schedule_timeout_idle(msecs_to_jiffies(100));
++	return -ECANCELED;
++
  }
+ 
+ /**
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
