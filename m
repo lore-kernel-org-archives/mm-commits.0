@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DDF931B4223
-	for <mm-commits@vger.kernel.org>; Wed,  5 Aug 2026 02:22:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 391293BBFBE
+	for <mm-commits@vger.kernel.org>; Wed,  5 Aug 2026 02:22:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785896570; cv=none; b=UPWrWPCGgp1cMIjaMQBY3Eio7uIYkXW1k+sX4d8XVNWzuxfofyrIOU730h41Ik9uryKKMzn0ZYqY2EdfV3qDaFIj/3DIpzyhOcmh8oSlwtjKrROPpdtfXHPg74oDgHyT5c0MGRFZumvE0cH/JfXv3JT55PToU0w5Lw7eTC2ku18=
+	t=1785896571; cv=none; b=oq3KMtPwmxfgs6u33t+WXUrdvCf49vQgi+fTPlTKOxeVzE1jbI+VlHmGpa4Coj48BKi3JnEwBoHTV2mzKu8ZrWtTJnNlxlKsllYY+JHV/DpPPnxa42CZLySg/SJdUV0UV7qPeeZxdGmYy3IJEtC4jpIriu9Gd4Cb1HLa5j/4hUE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785896570; c=relaxed/simple;
-	bh=bVWl+NPUJyjh/czIXq3two5yijeLaNsPFW1NDnSj210=;
-	h=Date:To:From:Subject:Message-Id; b=o5IQQ3Cdb7ThBSAXDabyiqmYnnsiKCNn/qeR6IwxqhxBCmUA+IkkB4I0t5+7hIJea0bHBkOKnvyG3X28phSU/FV1RXCThBG51KAAX8wlJY4fLK6UhbRyImOXT+Nl/vqSAA+yvsi+UjcLxkXmuoPD4OIWvTYCB9s+yqSG8xJz4yU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=C/eBDwAx; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785896571; c=relaxed/simple;
+	bh=43aBLAXQH/+733equSa1576O1nODcqiM62hSbTHKAT0=;
+	h=Date:To:From:Subject:Message-Id; b=YOdqDbi9uDvMKZkDtyM4Mo2OEko0fy8hk4wTl8vmeKGksXsg4skhv/0R3fhUej8CR2rnVD9jzrtakxRJoTKWFwNGhkP91lASWMSRvvyJT9IL9mAQmEoQgXIO3iXQB3bMhMxXLVRfEaSGGBzf8Zqa6P8JeDY3dfofLbj2wWN/7Do=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=exBgDaKj; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="C/eBDwAx"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A03011F000E9;
-	Wed,  5 Aug 2026 02:22:48 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="exBgDaKj"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 036B61F00A3D;
+	Wed,  5 Aug 2026 02:22:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785896568;
-	bh=ErzFICooca5VuGnz3ThC72uO27jU2GJcapVSun9NzvI=;
+	d=linux-foundation.org; s=korg; t=1785896570;
+	bh=GWea+D088xEqqL94YylslpRWNRpdXuK2RR1n8xomSSg=;
 	h=Date:To:From:Subject;
-	b=C/eBDwAxbcRosmMuCYxiqCpTnPnFd1UQUYdv8gpTXPcp+WD+cpOJcpEaCGL9P820y
-	 c4rkHbjrRtjJBMA1aDxwywOMfJPeG8TbkQZB+C6B+vcMu3QTllNPWKelFxQ6VXHn+Z
-	 EFavWtM26g6gCzyJfHnIBITahykpIuOb/IUh0fSk=
-Date: Tue, 04 Aug 2026 19:22:48 -0700
+	b=exBgDaKj0wUU5hH2wiyvdxChFkTq2AP1h/VZ07b7fBldbyIjm+j4iqDaz2uaeC9tb
+	 TVHGOpzpHYYnv4KIhKrouX0nTo0sKQ3EgWSMQqZOI8cEnUbrVY/Xj3/uX5+PSYHSGI
+	 YEfVuM1RaXhFIH/sAO5ZZIFTw3KROVHhdn5ROHbM=
+Date: Tue, 04 Aug 2026 19:22:49 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-core-stop-ctxs-in-damon_start-before-returning-an-error.patch removed from -mm tree
-Message-Id: <20260805022248.A03011F000E9@smtp.kernel.org>
+Subject: [merged mm-stable] samples-damon-mtier-do-not-stop-first-context-for-damon_start-failure.patch removed from -mm tree
+Message-Id: <20260805022250.036B61F00A3D@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,78 +35,42 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/damon/core: stop ctxs in damon_start() before returning an error
+     Subject: samples/damon/mtier: do not stop first context for damon_start() failure
 has been removed from the -mm tree.  Its filename was
-     mm-damon-core-stop-ctxs-in-damon_start-before-returning-an-error.patch
+     samples-damon-mtier-do-not-stop-first-context-for-damon_start-failure.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/core: stop ctxs in damon_start() before returning an error
-Date: Mon, 6 Jul 2026 07:06:16 -0700
+Subject: samples/damon/mtier: do not stop first context for damon_start() failure
+Date: Mon, 6 Jul 2026 07:06:17 -0700
 
-Patch series "mm/damon: refactor damon_{start,stop,commit}() for simple
-error handling".
+damon_start() was able to fail while keeping the first context running. 
+mtier hence stops the first context in the case.  damon_start() is
+refactored to avoid that.  The error handling is no longer necessary. 
+Remove it.
 
-damon_start() and damon_stop() could leave a few of requested DAMON
-contexts running when they return an error.  damon_commit() failure stops
-the DAMON context, but in an asynchronous way.  Callers should stop the
-left-over DAMON contexts.  It is easy to make mistakes, and indeed a few
-bugs from such mistakes were found and fixed.
-
-Refactor the core API functions to guarantee contexts are completely
-stopped under failures.  Remove the caller side error handlers that are no
-longer needed due to the refactoring.
-
-Patches Sequence
-================
-
-Patch 1 refactors damon_start() to ensure all contexts are stopped for
-failures.  Patch 2 updates unnecessary damon_start() error handling from
-mtier sample module.
-
-Patch 3 refactors damon_stop() to always success.  Patches 4-6 updates
-callers (damon_{sysfs,reclaim lru_sort}) to ignore the return value.
-Patch 7 update damon_stop() return value to void.  Patch 8 simplifies
-damon_stop() error handling in mtier sample module.
-
-Patch 9 refactors damon_call() to return errors only after the context
-is completely stopped.  Patches 10 and 11 remove unnecessary error
-handlings from callers (wsse and prcl sample modules).
-
-
-This patch (of 11):
-
-When multiple contexts are passed to damon_start(), the function starts
-the contexts one by one.  If any of the operations fails, it immediately
-returns an error.  Contexts that successfully started before the failure
-keep running.  The caller should catch this and stop the contexts.  It is
-complicated and easy to make mistakes.  Stop all contexts in damon_start()
-under the failures.
-
-Link: https://lore.kernel.org/20260706140628.87414-1-sj@kernel.org
-Link: https://lore.kernel.org/20260706140628.87414-2-sj@kernel.org
+Link: https://lore.kernel.org/20260706140628.87414-3-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/core.c |    3 +++
- 1 file changed, 3 insertions(+)
+ samples/damon/mtier.c |    2 --
+ 1 file changed, 2 deletions(-)
 
---- a/mm/damon/core.c~mm-damon-core-stop-ctxs-in-damon_start-before-returning-an-error
-+++ a/mm/damon/core.c
-@@ -1917,6 +1917,9 @@ int damon_start(struct damon_ctx **ctxs,
- 		running_exclusive_ctxs = true;
- 	mutex_unlock(&damon_lock);
+--- a/samples/damon/mtier.c~samples-damon-mtier-do-not-stop-first-context-for-damon_start-failure
++++ a/samples/damon/mtier.c
+@@ -193,8 +193,6 @@ static int damon_sample_mtier_start(void
+ 	if (!err)
+ 		return 0;
  
-+	if (i != nr_ctxs)
-+		damon_stop(ctxs, i);
-+
+-	if (damon_is_running(ctxs[0]))
+-		damon_stop(ctxs, 1);
+ 	damon_destroy_ctx(ctxs[0]);
+ 	damon_destroy_ctx(ctxs[1]);
  	return err;
- }
- 
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
