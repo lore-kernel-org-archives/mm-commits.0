@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C76FC3AC0F5
-	for <mm-commits@vger.kernel.org>; Wed,  5 Aug 2026 02:22:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 569833BCD3D
+	for <mm-commits@vger.kernel.org>; Wed,  5 Aug 2026 02:22:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785896575; cv=none; b=SlUDY5ky/lobn0w58B2+Jw4O0FJikDjC2W0/pXy/hn7oftUV53eDC50PSgbLHqtO+rxgqKE3VVj6Rlo592RF1jY18P4InC90SCtUKj1drwuA7Eru0B1S9Uw+ppXDCHTvkyZdl6VnsXajdJxoLiP4LHkN67PcIKEKnPZgZDIWua8=
+	t=1785896576; cv=none; b=ueLTF/WL6MoDDKdiX7VfwVN/362yF/otATTrVBvbR0t3vdnDsAPZ6vXm5I4vOPIuGOyoYrG6hQ/QcI6pPolaIElgiHOkarDDYUSM237c4oJjeEXhYpYsyQq52BJloScmI8HtqcQXDyuSTG0O885miH7B2ljmIqdNyR3WfzuWqVg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785896575; c=relaxed/simple;
-	bh=coYo2bBpUhj51yhxwhrmU/h65EUXCqg83HRgXgIRVls=;
-	h=Date:To:From:Subject:Message-Id; b=EAdZ/hP7bh+/jR8h3jiqOjjwubRMoz/LdFgugM646iwgRByhY0SEUozDqu9xA3jQ8arI0oiPTYkEgHct0LnQBeimlq9MTireMbG3uaRto3Gy4LaWdNik7q18e0X1gwWk4Uu7dfc7RM9AX4bQn4YTvjI9DJZg5kD/vSdZN0H82lU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zJqzsMJs; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785896576; c=relaxed/simple;
+	bh=t/kmQ+yzlimb4G7FDv3ZYYWGRtSxMM8kn2RdpcrNzxk=;
+	h=Date:To:From:Subject:Message-Id; b=Jpmnxt+XcIZHtkPcNlr/cWy4uR86k553Eua2lKqOw8RKelyavEnkxpF7LWPxcy1OMyZCkjr6MOdikBdGINE5yWnZJsQhAWNpFANK+iWoGdWI94A9yCr/F4L/eLZ1HdOZZ328erDg0e0jdK4GmJ9kwvEteDT+dPh9j7RGNJg3ldM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zfwrtN5I; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zJqzsMJs"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4EEE81F000E9;
-	Wed,  5 Aug 2026 02:22:52 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zfwrtN5I"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D1E431F00A3D;
+	Wed,  5 Aug 2026 02:22:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785896572;
-	bh=sKkaRvklCdza4FBKM5hMTO0beN0UNg2pTGNc7gPLbyA=;
+	d=linux-foundation.org; s=korg; t=1785896575;
+	bh=aV5Os77QkxftIzvJ71lL6lwh840Wq4D/5K8JvyoOEns=;
 	h=Date:To:From:Subject;
-	b=zJqzsMJsx2Dqn58h5ng/EJiRPm0K3CNCAKEPZBJvOXitKgmsB/LEb3mhKrwtxaQ2B
-	 3lliyzIMFGHyUOHsL2pJ0BhwHmcSpYkPmynK8CT++jWMJfZVU+6nxsVlJ0iqeO3A2D
-	 aqyOyl2dl9DEuZbqNdkyfrB8bTkvoiB868NKvnNE=
-Date: Tue, 04 Aug 2026 19:22:51 -0700
+	b=zfwrtN5IEzEPotCu4yrWpiHGzvvkztFNm1iSdEvKu4w30wsQmfk3WzuGZc9Ikao8j
+	 BcRcgmp9od5zLHWa1WJ8JFB7pWtssr263EBs3IJEcyz6LZyRVG6D46n4GvwcnIv8I/
+	 ctsntygO2uqRVUgBbTu+02HJDV2IuQUnJ86WYRwo=
+Date: Tue, 04 Aug 2026 19:22:54 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-core-make-damon_stop-never-fails.patch removed from -mm tree
-Message-Id: <20260805022252.4EEE81F000E9@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-reclaaim-ignore-damon_stop-return-value.patch removed from -mm tree
+Message-Id: <20260805022254.D1E431F00A3D@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,82 +35,43 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/damon/core: make damon_stop() never fail
+     Subject: mm/damon/reclaim: ignore damon_stop() return value
 has been removed from the -mm tree.  Its filename was
-     mm-damon-core-make-damon_stop-never-fails.patch
+     mm-damon-reclaaim-ignore-damon_stop-return-value.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/core: make damon_stop() never fail
-Date: Mon, 6 Jul 2026 07:06:18 -0700
+Subject: mm/damon/reclaim: ignore damon_stop() return value
+Date: Mon, 6 Jul 2026 07:06:20 -0700
 
-damon_stop() has no reason to fail.  It returns an error code only for
-possible future changes that can make it fail.  Such a change has not been
-made yet, and this only makes the error handling complicated and
-confusing.  Ensure it returns no error.
+damon_stop() return value is guaranteed to be 0.  Ignore it.
 
-Link: https://lore.kernel.org/20260706140628.87414-4-sj@kernel.org
+Link: https://lore.kernel.org/20260706140628.87414-6-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/core.c |   21 ++++++---------------
- 1 file changed, 6 insertions(+), 15 deletions(-)
+ mm/damon/reclaim.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
---- a/mm/damon/core.c~mm-damon-core-make-damon_stop-never-fails
-+++ a/mm/damon/core.c
-@@ -1926,10 +1926,8 @@ int damon_start(struct damon_ctx **ctxs,
- /*
-  * __damon_stop() - Stops monitoring of a given context.
-  * @ctx:	monitoring context
-- *
-- * Return: 0 on success, negative error code otherwise.
-  */
--static int __damon_stop(struct damon_ctx *ctx)
-+static void __damon_stop(struct damon_ctx *ctx)
+--- a/mm/damon/reclaim.c~mm-damon-reclaaim-ignore-damon_stop-return-value
++++ a/mm/damon/reclaim.c
+@@ -332,8 +332,10 @@ static int damon_reclaim_turn(bool on)
  {
- 	struct task_struct *tsk;
+ 	int err;
  
-@@ -1939,31 +1937,24 @@ static int __damon_stop(struct damon_ctx
- 		get_task_struct(tsk);
- 		mutex_unlock(&ctx->kdamond_lock);
- 		kthread_stop_put(tsk);
--		return 0;
-+		return;
- 	}
- 	mutex_unlock(&ctx->kdamond_lock);
--
--	return -EPERM;
- }
+-	if (!on)
+-		return damon_stop(&ctx, 1);
++	if (!on) {
++		damon_stop(&ctx, 1);
++		return 0;
++	}
  
- /**
-  * damon_stop() - Stops the monitorings for a given group of contexts.
-  * @ctxs:	an array of the pointers for contexts to stop monitoring
-  * @nr_ctxs:	size of @ctxs
-- *
-- * Return: 0 on success, negative error code otherwise.
-  */
- int damon_stop(struct damon_ctx **ctxs, int nr_ctxs)
- {
--	int i, err = 0;
-+	int i;
- 
--	for (i = 0; i < nr_ctxs; i++) {
-+	for (i = 0; i < nr_ctxs; i++)
- 		/* nr_running_ctxs is decremented in kdamond_fn */
--		err = __damon_stop(ctxs[i]);
--		if (err)
--			break;
--	}
--	return err;
-+		__damon_stop(ctxs[i]);
-+	return 0;
- }
- 
- /**
+ 	err = damon_reclaim_apply_parameters();
+ 	if (err)
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
