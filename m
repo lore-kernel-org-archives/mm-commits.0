@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 951953C0608
-	for <mm-commits@vger.kernel.org>; Wed,  5 Aug 2026 02:25:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E87BE3BFE3A
+	for <mm-commits@vger.kernel.org>; Wed,  5 Aug 2026 02:25:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785896722; cv=none; b=KHSFAAdHv/t/IZ7hVCYjgLBnfR0Vl7sCzbqQOwX5l5qjIsfwI5vKgHUwFHpZG5jyoRn/JfdJDG5J19WdJfWpHsYBbG+WnfgCrvVSo0PIURX1Xz7q9KlWU0/mo4c6irIwqJ3BQ4dJZWJ+gJ//Tu76Cd3LpNKFTu/BvFtmJvoWvzo=
+	t=1785896724; cv=none; b=MWX29mcv++KW48Hu7GijDFSLO6C8W/x+CEOEgsC0ED3dfjV9rfGhR1lYo5SdHANSVrSPJSlibhIaZb0xXhIE+ZkcUJkyafZAbddyHZi00c6Fy1azyG2gh0IOOjfRpKep55CD0vqbSdYXeHvgmejbSDg1xtCMFoQOz234uF6YWsw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785896722; c=relaxed/simple;
-	bh=zKvW19tDTA4VHBAM1vFxXrQEvoBeF33PfQPrPPwoYEk=;
-	h=Date:To:From:Subject:Message-Id; b=sljkxY3NSNhB/v3G2bUoeo/Xx/Rl0nUOxbqdaZcNoB+vS2lk1vnRBuhW6Y6wv6tv8UOE6Fyx0lEs1BIqMX0i+2TIemfOzfgke4My+kCEMXMNpoNpGyJ3TuS3q6cKHxEH7GZqcPt2itbzwKOItMNl35+KmDvluoy9Kh5yzTNNY+0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XwQ3n03t; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785896724; c=relaxed/simple;
+	bh=3DbfSlOEKA8hQXbsSvZ+MgSRnufBnYTveg565OBxS28=;
+	h=Date:To:From:Subject:Message-Id; b=SlXk94MtA7sZnons1/ivFkP21xBHAY8+bYhA1DzgqzkSp16n/N6V541vrYDF8vkR5eKPI8uerltssqVYE2uxZHqE0zpD8VhMphPjwGIIJ1juC6FBTQJVZjULPkdvDvUO/idhYuztUvtK6I/ILm78eWhJXY5P+XJJYbO4mySkvPY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FWpWM0/e; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XwQ3n03t"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 57E341F000E9;
-	Wed,  5 Aug 2026 02:25:21 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FWpWM0/e"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B22AC1F00A3A;
+	Wed,  5 Aug 2026 02:25:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785896721;
-	bh=XInxsWm232fHEFro+S0pNmIBPXln96nSNv+ogBYgjRQ=;
+	d=linux-foundation.org; s=korg; t=1785896722;
+	bh=C6eEMgD5Doj/bNBl7pkdqZ8a4ut5at/LXRnG8F3wcZE=;
 	h=Date:To:From:Subject;
-	b=XwQ3n03ta23UAB5zTdRKyyW/YJYSkH8/Q8b1XJYUOB3WKsPeyHZ0y2ePndQOz7gk0
-	 19FGDaOsq8TDiDLhoylx3Rvt8EegVjYOK0bKrhTxoETjbTC9vExjfBJ3ajXcHSdGHi
-	 LsbGf1mWSyGxWnVkoC8Y6EtyuUPFcgLsFrDq+CGo=
-Date: Tue, 04 Aug 2026 19:25:20 -0700
+	b=FWpWM0/eD8VFAMJtDEA1ExEQdKHZj2GKDXIHf9B4Yu8kZgKVdF20PcJWcKJEUuBzi
+	 90n4uah/HRSVk+Pbj83xtMKKIIdii0W3uYWl6j6xMMgsm3qvAp7zEFpch2e0UtabuP
+	 JOwM54I5PfsuUXXjlZbGKDfOi/8CDSMOnlNHELXE=
+Date: Tue, 04 Aug 2026 19:25:22 -0700
 To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-core-implement-damon_has_probe_weight.patch removed from -mm tree
-Message-Id: <20260805022521.57E341F000E9@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-sysfs-implement-probe-weight-file.patch removed from -mm tree
+Message-Id: <20260805022522.B22AC1F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,25 +35,23 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/damon/core: implement damon_has_probe_weight()
+     Subject: mm/damon/sysfs: implement probe/weight file
 has been removed from the -mm tree.  Its filename was
-     mm-damon-core-implement-damon_has_probe_weight.patch
+     mm-damon-sysfs-implement-probe-weight-file.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/core: implement damon_has_probe_weight()
-Date: Fri, 10 Jul 2026 06:46:44 -0700
+Subject: mm/damon/sysfs: implement probe/weight file
+Date: Fri, 10 Jul 2026 06:46:45 -0700
 
-DAMON monitors only data attributes when probe weights are set.  However,
-the function for detecting it is intentionally returning false always. 
-The intention was to make changes for complete support of the mode in a
-safe and incremental way.  Now all the building blocks are made.  Complete
-the mode detection function so that the mode can really start working.
+Implement a new sysfs file, 'weight', under probe directory.  Users will
+be able to set the probe weight and enable the attributes only monitoring
+using it.
 
-Link: https://lore.kernel.org/20260710134651.18084-16-sj@kernel.org
+Link: https://lore.kernel.org/20260710134651.18084-17-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
@@ -66,24 +64,63 @@ Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/core.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ mm/damon/sysfs.c |   25 +++++++++++++++++++++++++
+ 1 file changed, 25 insertions(+)
 
---- a/mm/damon/core.c~mm-damon-core-implement-damon_has_probe_weight
-+++ a/mm/damon/core.c
-@@ -211,6 +211,12 @@ static struct damon_probe *damon_nth_pro
+--- a/mm/damon/sysfs.c~mm-damon-sysfs-implement-probe-weight-file
++++ a/mm/damon/sysfs.c
+@@ -1065,6 +1065,7 @@ static const struct kobj_type damon_sysf
  
- static bool damon_has_probe_weights(struct damon_ctx *c)
- {
-+	struct damon_probe *p;
-+
-+	damon_for_each_probe(p, c) {
-+		if (p->weight)
-+			return true;
-+	}
- 	return false;
+ struct damon_sysfs_probe {
+ 	struct kobject kobj;
++	unsigned int weight;
+ 	struct damon_sysfs_filters *filters;
+ };
+ 
+@@ -1100,12 +1101,35 @@ static void damon_sysfs_probe_rm_dirs(st
+ 	}
  }
  
++static ssize_t weight_show(struct kobject *kobj, struct kobj_attribute *attr,
++		char *buf)
++{
++	struct damon_sysfs_probe *probe = container_of(kobj,
++			struct damon_sysfs_probe, kobj);
++
++	return sysfs_emit(buf, "%u\n", probe->weight);
++}
++
++static ssize_t weight_store(struct kobject *kobj,
++		struct kobj_attribute *attr, const char *buf, size_t count)
++{
++	struct damon_sysfs_probe *probe = container_of(kobj,
++			struct damon_sysfs_probe, kobj);
++	int err = kstrtouint(buf, 0, &probe->weight);
++
++	return err ? err : count;
++}
++
+ static void damon_sysfs_probe_release(struct kobject *kobj)
+ {
+ 	kfree(container_of(kobj, struct damon_sysfs_probe, kobj));
+ }
+ 
++static struct kobj_attribute damon_sysfs_probe_weight_attr =
++		__ATTR_RW_MODE(weight, 0600);
++
+ static struct attribute *damon_sysfs_probe_attrs[] = {
++	&damon_sysfs_probe_weight_attr.attr,
+ 	NULL,
+ };
+ ATTRIBUTE_GROUPS(damon_sysfs_probe);
+@@ -1965,6 +1989,7 @@ static int damon_sysfs_set_probes(struct
+ 			return -ENOMEM;
+ 		damon_add_probe(ctx, p);
+ 		sys_probe = sys_probes->probes_arr[i];
++		p->weight = sys_probe->weight;
+ 		err = damon_sysfs_set_probe(p, sys_probe);
+ 		if (err)
+ 			return err;
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
