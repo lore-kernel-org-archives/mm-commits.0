@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D427F3C10AA
-	for <mm-commits@vger.kernel.org>; Wed,  5 Aug 2026 02:26:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1F1603C10BA
+	for <mm-commits@vger.kernel.org>; Wed,  5 Aug 2026 02:26:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785896788; cv=none; b=g1kkP6AFZoRXFXJtETYFybylND+c0bi7k47Y4+I6NKaMFDtKMSZVwldr5yuCzwvcayQR4RcwRtRbQRDXYvT0wWtMA4MoIFeWi5S6siUBqMu5Ktxs/SoKqDz6l99l4eE1Qqi/c0r6W8OOee5wbVtLnARBQ5b9bVlTmBLqQWnCu/o=
+	t=1785896789; cv=none; b=MQfzg2uiMwLRlC+H3/kNXOIwI1cJH8aAGQxMhzS/gh8f+zdywPCfFmlsTCI+jSIm9rHi2TLgPtmjC+YIc5IXUdoWPrO6cCMRABhJLiuiVb6KGw3TmR20NQ+PWumPhgyQygkvtNVa9eYlWpbvPxjzZW6PRWc/uchMXd9M7KIKovs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785896788; c=relaxed/simple;
-	bh=Mb0aBNPDkMOwF9SkXSXmY7Ck2JLoxy3FWye+mDrRi8o=;
-	h=Date:To:From:Subject:Message-Id; b=IBYOyY3bCqekzbflGzfXV9x4Fsx0ELWz/pqjDppA/5XRFY8uN9ANkoyUi1V0ayYeQiupjXWuuUH7IXrZPiZh+EpW28rdIiGlmsJ0D8FM56PnK+E69Prh+HyuMiPZQXSIACRqcEcaf6L3HJTUo6d38F5yk3v91nX5HGpwtxbK7pA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yAcnNEZD; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785896789; c=relaxed/simple;
+	bh=OvWfBKbvnx5/pREJDbHbxatBFO6VKwojWwNtbr7yA10=;
+	h=Date:To:From:Subject:Message-Id; b=Kdd6qEfmJuWHjudYochlJhPZv7v/Jk8Gg6NaO6EVThv8uMaxFN8hpABVkm0Rd2Ba0ASHwbS1QelqsAcgQbcaYJw2nlg96XozxEWSiSpU/MBNssvXKP5RG1FLaPEl3r/G4KSXFjyOhssf40YEt2XvXPlD8JQwRZviKphvtsZsyaw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RjV3yvT9; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yAcnNEZD"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 73F631F00A3A;
-	Wed,  5 Aug 2026 02:26:26 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RjV3yvT9"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DCDE61F000E9;
+	Wed,  5 Aug 2026 02:26:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785896786;
-	bh=MfbLIVHKUpJXkQb4TVWFeD3d1yAnKIWVFW2YAw5svlY=;
+	d=linux-foundation.org; s=korg; t=1785896788;
+	bh=YEW/qTtRmzkulikBadHiuKGs49ZwSk1l8uRyt7T1PkQ=;
 	h=Date:To:From:Subject;
-	b=yAcnNEZDWyXXygp8W0jAE5YxsTSmFGYnvQTlwU7AFf6sXMgUMpp4qNNruaS5/Ko3L
-	 15Xf8/o73kWKzAwD3Ewfl6ansHnPO72cVKvFY3WFFiD7WZ5X6ofcp87pmaluskIpSJ
-	 TwQBCoeXvunCzjuvPRtxHfLJNkjerMZctedYLg4k=
-Date: Tue, 04 Aug 2026 19:26:25 -0700
+	b=RjV3yvT9oAQ8ukiKG0mw4a9gEXyRiMy0E4x4YujpX8F6cbA0kHt185k7f5RFVYG7M
+	 2OHLSfSPqWqMUs1Xd8yPiCD7aZw0cJNOek4ODWIniHrxRN6HQazGggSXovrd1ial+8
+	 mTZaQHSRO+WtzVz1qih2p4aXCaEP3qo2q/JZqacU=
+Date: Tue, 04 Aug 2026 19:26:27 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,tzimmermann@suse.de,sj@kernel.org,pfalcato@suse.de,m.szyprowski@samsung.com,liam@infradead.org,kai.huang@intel.com,gourry@gourry.net,david@kernel.org,ackerleytng@google.com,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-vma-make-vma_set_range-static-drop-insert_vm_struct-decl.patch removed from -mm tree
-Message-Id: <20260805022626.73F631F00A3A@smtp.kernel.org>
+Subject: [merged mm-stable] mm-vma-update-vma_shrink-to-not-pass-start-pgoff-parameters.patch removed from -mm tree
+Message-Id: <20260805022627.DCDE61F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,31 +35,31 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/vma: make vma_set_range() static, drop insert_vm_struct() decl
+     Subject: mm/vma: update vma_shrink() to not pass start, pgoff parameters
 has been removed from the -mm tree.  Its filename was
-     mm-vma-make-vma_set_range-static-drop-insert_vm_struct-decl.patch
+     mm-vma-update-vma_shrink-to-not-pass-start-pgoff-parameters.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <ljs@kernel.org>
-Subject: mm/vma: make vma_set_range() static, drop insert_vm_struct() decl
-Date: Fri, 10 Jul 2026 21:17:06 +0100
+Subject: mm/vma: update vma_shrink() to not pass start, pgoff parameters
+Date: Fri, 10 Jul 2026 21:17:07 +0100
 
-With __install_special_mapping() moved to vma.c, vma_set_range() can be
-made into a static function there and is now completely isolated from the
-rest of mm.
+vma_shrink() is only used by relocate_vma_down() to shrink the tail of a
+VMA. Therefore neither the start nor the pgoff parameters make any sense.
 
-While we're here, we can also remove the insert_vm_struct() declaration
-from mm.h - the function is implemented in vma.c and already declared in
-vma.h, and has no users outside of mm.
+It seemed we were passing the pgoff parameter solely to satisfy
+vma_set_range()'s requirement for pgoff being specified.
 
-Also update the VMA userland tests to reflect this change.
+Since vma_set_range() is now isolated to vma.c, we can simply introduce
+__vma_set_range() which sets only vma->vm_[start, end], and invoke this
+instead, removing start and pgoff from vma_shrink() altogether.
 
 No functional change intended.
 
-Link: https://lore.kernel.org/20260710-b4-pre-scalable-cow-v2-25-2a5aa403d977@kernel.org
+Link: https://lore.kernel.org/20260710-b4-pre-scalable-cow-v2-26-2a5aa403d977@kernel.org
 Signed-off-by: Lorenzo Stoakes <ljs@kernel.org>
 Reviewed-by: Pedro Falcato <pfalcato@suse.de>
 Reviewed-by: Gregory Price <gourry@gourry.net>
@@ -75,84 +75,116 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h         |    1 -
- mm/internal.h              |    9 ---------
- mm/vma.c                   |    8 ++++++++
- tools/testing/vma/shared.c |    9 ---------
- tools/testing/vma/shared.h |    5 -----
- 5 files changed, 8 insertions(+), 24 deletions(-)
+ mm/vma.c                        |   31 ++++++++++++++++--------------
+ mm/vma.h                        |    3 --
+ mm/vma_exec.c                   |    2 -
+ tools/testing/vma/tests/merge.c |    2 -
+ 4 files changed, 20 insertions(+), 18 deletions(-)
 
---- a/include/linux/mm.h~mm-vma-make-vma_set_range-static-drop-insert_vm_struct-decl
-+++ a/include/linux/mm.h
-@@ -4134,7 +4134,6 @@ void anon_rmap_tree_verify(struct anon_v
- 
- /* mmap.c */
- extern int __vm_enough_memory(const struct mm_struct *mm, long pages, int cap_sys_admin);
--extern int insert_vm_struct(struct mm_struct *, struct vm_area_struct *);
- extern void exit_mmap(struct mm_struct *);
- bool mmap_read_lock_maybe_expand(struct mm_struct *mm, struct vm_area_struct *vma,
- 				 unsigned long addr, bool write);
---- a/mm/internal.h~mm-vma-make-vma_set_range-static-drop-insert_vm_struct-decl
-+++ a/mm/internal.h
-@@ -1360,15 +1360,6 @@ static inline bool gup_must_unshare(stru
- }
- 
- 
--static __always_inline void vma_set_range(struct vm_area_struct *vma,
--					  unsigned long start, unsigned long end,
--					  pgoff_t pgoff)
--{
--	vma->vm_start = start;
--	vma->vm_end = end;
--	vma->vm_pgoff = pgoff;
--}
--
- static inline bool vma_soft_dirty_enabled(struct vm_area_struct *vma)
- {
- 	/*
---- a/mm/vma.c~mm-vma-make-vma_set_range-static-drop-insert_vm_struct-decl
+--- a/mm/vma.c~mm-vma-update-vma_shrink-to-not-pass-start-pgoff-parameters
 +++ a/mm/vma.c
-@@ -70,6 +70,14 @@ struct mmap_state {
+@@ -70,11 +70,17 @@ struct mmap_state {
  		.state = VMA_MERGE_START,				\
  	}
  
+-static void vma_set_range(struct vm_area_struct *vma, unsigned long start,
+-			  unsigned long end, pgoff_t pgoff)
++static void __vma_set_range(struct vm_area_struct *vma, unsigned long start,
++			    unsigned long end)
+ {
+ 	vma->vm_start = start;
+ 	vma->vm_end = end;
++}
++
 +static void vma_set_range(struct vm_area_struct *vma, unsigned long start,
 +			  unsigned long end, pgoff_t pgoff)
 +{
-+	vma->vm_start = start;
-+	vma->vm_end = end;
-+	vma->vm_pgoff = pgoff;
-+}
-+
- /* Was this VMA ever forked from a parent, i.e. maybe contains CoW mappings? */
- static bool vma_is_fork_child(struct vm_area_struct *vma)
- {
---- a/tools/testing/vma/shared.c~mm-vma-make-vma_set_range-static-drop-insert_vm_struct-decl
-+++ a/tools/testing/vma/shared.c
-@@ -120,12 +120,3 @@ unsigned long rlimit(unsigned int limit)
- {
- 	return (unsigned long)-1;
++	__vma_set_range(vma, start, end);
+ 	vma->vm_pgoff = pgoff;
  }
+ 
+@@ -1279,27 +1285,24 @@ nomem:
+ 	return -ENOMEM;
+ }
+ 
+-/*
+- * vma_shrink() - Reduce an existing VMAs memory area
++/**
++ * vma_shrink() - Shrink the end of a VMA
+  * @vmi: The vma iterator
+  * @vma: The VMA to modify
+- * @start: The new start
+  * @end: The new end
+  *
++ * Note that the caller may only shrink the end of the VMA.
++ *
+  * Returns: 0 on success, -ENOMEM otherwise
+  */
+ int vma_shrink(struct vma_iterator *vmi, struct vm_area_struct *vma,
+-	       unsigned long start, unsigned long end, pgoff_t pgoff)
++	       unsigned long end)
+ {
+ 	struct vma_prepare vp;
+ 
+-	WARN_ON((vma->vm_start != start) && (vma->vm_end != end));
 -
--void vma_set_range(struct vm_area_struct *vma,
--		   unsigned long start, unsigned long end,
--		   pgoff_t pgoff)
--{
--	vma->vm_start = start;
--	vma->vm_end = end;
--	vma->vm_pgoff = pgoff;
--}
---- a/tools/testing/vma/shared.h~mm-vma-make-vma_set_range-static-drop-insert_vm_struct-decl
-+++ a/tools/testing/vma/shared.h
-@@ -125,8 +125,3 @@ void __vma_set_dummy_anon_vma(struct vm_
- /* Provide a simple dummy VMA/anon_vma dummy setup for testing. */
- void vma_set_dummy_anon_vma(struct vm_area_struct *vma,
- 			    struct anon_vma_chain *avc);
--
--/* Helper function to specify a VMA's range. */
--void vma_set_range(struct vm_area_struct *vma,
--		   unsigned long start, unsigned long end,
--		   pgoff_t pgoff);
+-	if (vma->vm_start < start)
+-		vma_iter_config(vmi, vma->vm_start, start);
+-	else
+-		vma_iter_config(vmi, end, vma->vm_end);
++	VM_WARN_ON_ONCE(end > vma->vm_end);
+ 
++	vma_iter_config(vmi, end, vma->vm_end);
+ 	if (vma_iter_prealloc(vmi, NULL))
+ 		return -ENOMEM;
+ 
+@@ -1307,10 +1310,10 @@ int vma_shrink(struct vma_iterator *vmi,
+ 
+ 	init_vma_prep(&vp, vma);
+ 	vma_prepare(&vp);
+-	vma_adjust_trans_huge(vma, start, end, NULL);
++	vma_adjust_trans_huge(vma, vma->vm_start, end, NULL);
+ 
+ 	vma_iter_clear(vmi);
+-	vma_set_range(vma, start, end, pgoff);
++	__vma_set_range(vma, vma->vm_start, end);
+ 	vma_complete(&vp, vmi, vma->vm_mm);
+ 	validate_mm(vma->vm_mm);
+ 	return 0;
+--- a/mm/vma_exec.c~mm-vma-update-vma_shrink-to-not-pass-start-pgoff-parameters
++++ a/mm/vma_exec.c
+@@ -89,7 +89,7 @@ int relocate_vma_down(struct vm_area_str
+ 
+ 	vma_prev(&vmi);
+ 	/* Shrink the vma to just the new range */
+-	return vma_shrink(&vmi, vma, new_start, new_end, vma_start_pgoff(vma));
++	return vma_shrink(&vmi, vma, new_end);
+ }
+ 
+ /*
+--- a/mm/vma.h~mm-vma-update-vma_shrink-to-not-pass-start-pgoff-parameters
++++ a/mm/vma.h
+@@ -297,8 +297,7 @@ void validate_mm(struct mm_struct *mm);
+ 
+ __must_check int vma_expand(struct vma_merge_struct *vmg);
+ __must_check int vma_shrink(struct vma_iterator *vmi,
+-		struct vm_area_struct *vma,
+-		unsigned long start, unsigned long end, pgoff_t pgoff);
++		struct vm_area_struct *vma, unsigned long end);
+ 
+ static inline int vma_iter_store_gfp(struct vma_iterator *vmi,
+ 			struct vm_area_struct *vma, gfp_t gfp)
+--- a/tools/testing/vma/tests/merge.c~mm-vma-update-vma_shrink-to-not-pass-start-pgoff-parameters
++++ a/tools/testing/vma/tests/merge.c
+@@ -227,7 +227,7 @@ static bool test_simple_shrink(void)
+ 
+ 	ASSERT_FALSE(attach_vma(&mm, vma));
+ 
+-	ASSERT_FALSE(vma_shrink(&vmi, vma, 0, 0x1000, 0));
++	ASSERT_FALSE(vma_shrink(&vmi, vma, 0x1000));
+ 
+ 	ASSERT_EQ(vma->vm_start, 0);
+ 	ASSERT_EQ(vma->vm_end, 0x1000);
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
