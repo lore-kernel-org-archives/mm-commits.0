@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C2C503BB10C;
-	Wed,  5 Aug 2026 03:03:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 452863A9D94;
+	Wed,  5 Aug 2026 03:03:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785898988; cv=none; b=cb4AXP4yJAKbuHnpvO14rCIlSmQ5G+NaSOP1ZsV4HqZezAalL9ErhryFyBrIga5/CXl8rqMYTsfTNLPd1gyu0x9NKvQ0HSpg02xhkJ+7/w7Jlv3LjcjT5Y5Vj2BUfrNpNLdnRJY3UOUaxNClm+mM58uKifQemUQQOoEb05AKInA=
+	t=1785898989; cv=none; b=B0C2Gw+M0eDmbp/xY8FXlm7mKutq1UxoaywA1+dmbhv3fvzXdFDbH3J6reFcTxYYkOxmqYGXOYwojlUT1+LKsO0VAVdVQMk/qV1HR4x7hU1QX+b+Uubwn0LDap/pthZuvgCKOZb/3UlubzBwAMfQXxvvRSPl4t5xLpMM8dPdrVg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785898988; c=relaxed/simple;
-	bh=PfnG2/z22aJLzlaOEdMi7z7aV0T7RLd/KFyKXkh8xfw=;
-	h=Date:To:From:Subject:Message-Id; b=ljyQ4EE9BRSJFtWk+J1E/dr1Z1WnXMU3bTl1c7PjTU2S2RoG+itNh3KkReaOb2VV7+m4Bi+38zxEHgtmhDdbTTZtsL+XiSqF2NxwcHIShxeujcoJzeAghJ0v1He5qy9Vi7hZGGd/NJEEttCgL8IZSrnpuK/vYpcjYR76uSgs/+Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SIurrjaC; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785898989; c=relaxed/simple;
+	bh=hcDRKeOeumH9z+An/UDRDagHNFAACotWUzENIQHM8Bc=;
+	h=Date:To:From:Subject:Message-Id; b=OmN82GrRiV7s2E5wxmfVF55oRR+D2ZFM8gE9cFjrGRt2aP4U63UngDnX6z5gHphFidEu7dBURf7PUIDJ/+SwNqqUcRGhMLNV5RpZqh2EtFfI4VsnDArsrGglZYIPCLvq6RGg1tM3Nm9TrInW2jLQEoUzeMyyq5aBdDr+TG9oBX0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hm50WDCL; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SIurrjaC"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4CC111F00A3A;
-	Wed,  5 Aug 2026 03:03:06 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hm50WDCL"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CCE771F000E9;
+	Wed,  5 Aug 2026 03:03:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785898986;
-	bh=THuG4vH4dgz61zwIANzV9ttd1EqCOrffpATk4uDWwxs=;
+	d=linux-foundation.org; s=korg; t=1785898987;
+	bh=0JcaZqMF6Rpg23ceJxhGjonNU9YmHWNMG4B6oNK0tCE=;
 	h=Date:To:From:Subject;
-	b=SIurrjaCxtvDVcE8Hrkcd+8kVjIFwG+/EEy0qp/U8Vxkl17JE5QlQ9VYPMf+rMK19
-	 KCTfWbAuwSPtNSvKX6elOUs4IFq7ovUVCWPke/kzRTWwwcvkSTCWq2hIxPj5yFFNih
-	 9uOeXfa1u+e/HmlJVfN1uTd0SWitx3VxUL/0JDYo=
-Date: Tue, 04 Aug 2026 20:03:05 -0700
-To: mm-commits@vger.kernel.org,vega@nebusec.ai,stable@vger.kernel.org,pasha.tatashin@soleen.com,enjou1224z@gmail.com,zhilinz@nebusec.ai,akpm@linux-foundation.org
+	b=hm50WDCLRetOj1o5bsqfjnM5hvwC1yzdORT0MZqS66+GuaAPLbHHLScIN43l15SBJ
+	 fmakorAVB+E/9C4g90WJtkf3/8G5inF7SzCuIFYYwOjrChYFSrwlFievwlAKKN5qr6
+	 c2+Sw9eFa7PnWVzT1L14MUmyXKEonh8RNvLwPGw0=
+Date: Tue, 04 Aug 2026 20:03:07 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,stable@vger.kernel.org,shakeel.butt@linux.dev,ryncsn@gmail.com,ryan.roberts@arm.com,roman.gushchin@linux.dev,npache@redhat.com,muchun.song@linux.dev,ljs@kernel.org,liam@infradead.org,lance.yang@linux.dev,dev.jain@arm.com,david@kernel.org,david@fromorbit.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,mfleming@cloudflare.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-page_table_check-skip-special-zero-mappings.patch removed from -mm tree
-Message-Id: <20260805030306.4CC111F00A3A@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-huge_memory-initialise-workingset-state-before-folio-split.patch removed from -mm tree
+Message-Id: <20260805030307.CCE771F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,105 +35,77 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/page_table_check: skip special zero mappings
+     Subject: mm/huge_memory: initialise workingset state before folio split
 has been removed from the -mm tree.  Its filename was
-     mm-page_table_check-skip-special-zero-mappings.patch
+     mm-huge_memory-initialise-workingset-state-before-folio-split.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Zhiling Zou <zhilinz@nebusec.ai>
-Subject: mm/page_table_check: skip special zero mappings
-Date: Thu, 23 Jul 2026 00:48:13 +0800
+From: Matt Fleming <mfleming@cloudflare.com>
+Subject: mm/huge_memory: initialise workingset state before folio split
+Date: Sat, 25 Jul 2026 11:14:19 +0100
 
-page_table_check_set() and page_table_check_clear() account mappings based
-on PageAnon().  Shared zero-page PTEs and huge zero PMDs are special
-mappings, but page_table_check can still account them as file-backed
-pages.
+xas_try_split() adds __GFP_ACCOUNT for page-cache xa_nodes, but
+__folio_split() leaves the xa_state's xa_lru unset.  That lets a live,
+memcg-charged xa_node exist without being linked into the mapping's
+shadow_nodes list_lru; when reclaim later walks the list_lru it trips
+VM_WARN_ON(!css_is_dying()).
 
-An unprivileged process can populate enough zero mappings to overflow
-file_map_count and hit the existing BUG_ON().  The PTE path can do this
-with the shared zero page, and the PMD path can do the same with huge zero
-mappings.
+Use mapping_set_update() to install both the workingset update callback
+and the shadow_nodes list_lru on the xa_state.
 
-Skip special zero mappings in the user page-table accounting paths.  Keep
-the PTE-side pte_special() check, and identify huge zero PMDs from the
-mapped folio instead of pmd_special().  That covers architectures where
-pmd_special() is a no-op without adding huge_zero_pfn checks to the
-generic counter helpers.
-
-Link: https://lore.kernel.org/cover.1784717203.git.zhilinz@nebusec.ai
-Link: https://lore.kernel.org/e94478e4fb7912fb7e8ebebed5ce85d00dc9a69d.1784717203.git.zhilinz@nebusec.ai
-Fixes: df4e817b7108 ("mm: page table check")
-Signed-off-by: Zhiling Zou <zhilinz@nebusec.ai>
-Signed-off-by: Ren Wei <enjou1224z@gmail.com>
-Reported-by: Vega <vega@nebusec.ai>
-Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
-Assisted-by: Codex:gpt-5.4
+Link: https://lore.kernel.org/20260725101419.3938406-1-matt@readmodwrite.com
+Fixes: 58729c04cf10 ("mm/huge_memory: add buddy allocator like (non-uniform) folio_split()")
+Signed-off-by: Matt Fleming <mfleming@cloudflare.com>
+Reported-by: syzbot+c5b060ce82921a2fd500@syzkaller.appspotmail.com
+Closes: https://syzkaller.appspot.com/bug?extid=c5b060ce82921a2fd500
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Kairui Song <ryncsn@gmail.com>
+Cc: Lance Yang <lance.yang@linux.dev>
+Cc: Liam Howlett <liam@infradead.org>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Nico Pache <npache@redhat.com>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_table_check.c |   20 ++++++++++++++++----
- 1 file changed, 16 insertions(+), 4 deletions(-)
+ mm/huge_memory.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
---- a/mm/page_table_check.c~mm-page_table_check-skip-special-zero-mappings
-+++ a/mm/page_table_check.c
-@@ -151,18 +151,29 @@ void __page_table_check_pte_clear(struct
- 	if (&init_mm == mm)
- 		return;
+--- a/mm/huge_memory.c~mm-huge_memory-initialise-workingset-state-before-folio-split
++++ a/mm/huge_memory.c
+@@ -4076,7 +4076,7 @@ static int __folio_split(struct folio *f
+ 		gfp_t gfp;
  
--	if (pte_user_accessible_page(mm, addr, pte))
-+	if (pte_user_accessible_page(mm, addr, pte) && !pte_special(pte))
- 		page_table_check_clear(pte_pfn(pte), PAGE_SIZE >> PAGE_SHIFT);
- }
- EXPORT_SYMBOL(__page_table_check_pte_clear);
+ 		mapping = folio->mapping;
+-		min_order = mapping_min_folio_order(folio->mapping);
++		min_order = mapping_min_folio_order(mapping);
+ 		if (new_order < min_order) {
+ 			ret = -EINVAL;
+ 			goto out;
+@@ -4090,6 +4090,8 @@ static int __folio_split(struct folio *f
+ 			goto out;
+ 		}
  
-+static inline bool page_table_check_huge_zero_pmd(pmd_t pmd)
-+{
-+	unsigned long pfn = pmd_pfn(pmd);
++		mapping_set_update(&xas, mapping);
 +
-+	if (!pfn_valid(pfn))
-+		return false;
-+
-+	return is_huge_zero_folio(page_folio(pfn_to_page(pfn)));
-+}
-+
- void __page_table_check_pmd_clear(struct mm_struct *mm, unsigned long addr,
- 				  pmd_t pmd)
- {
- 	if (&init_mm == mm)
- 		return;
- 
--	if (pmd_user_accessible_page(mm, addr, pmd))
-+	if (pmd_user_accessible_page(mm, addr, pmd) &&
-+	    !page_table_check_huge_zero_pmd(pmd))
- 		page_table_check_clear(pmd_pfn(pmd), PMD_SIZE >> PAGE_SHIFT);
- }
- EXPORT_SYMBOL(__page_table_check_pmd_clear);
-@@ -208,7 +219,7 @@ void __page_table_check_ptes_set(struct
- 
- 	for (i = 0; i < nr; i++)
- 		__page_table_check_pte_clear(mm, addr + PAGE_SIZE * i, ptep_get(ptep + i));
--	if (pte_user_accessible_page(mm, addr, pte))
-+	if (pte_user_accessible_page(mm, addr, pte) && !pte_special(pte))
- 		page_table_check_set(pte_pfn(pte), nr, pte_write(pte));
- }
- EXPORT_SYMBOL(__page_table_check_ptes_set);
-@@ -238,7 +249,8 @@ void __page_table_check_pmds_set(struct
- 
- 	for (i = 0; i < nr; i++)
- 		__page_table_check_pmd_clear(mm, addr + PMD_SIZE * i, *(pmdp + i));
--	if (pmd_user_accessible_page(mm, addr, pmd))
-+	if (pmd_user_accessible_page(mm, addr, pmd) &&
-+	    !page_table_check_huge_zero_pmd(pmd))
- 		page_table_check_set(pmd_pfn(pmd), stride * nr, pmd_write(pmd));
- }
- EXPORT_SYMBOL(__page_table_check_pmds_set);
+ 		if (split_type == SPLIT_TYPE_UNIFORM) {
+ 			xas_set_order(&xas, folio->index, new_order);
+ 			xas_split_alloc(&xas, folio, old_order, gfp);
 _
 
-Patches currently in -mm which might be from zhilinz@nebusec.ai are
+Patches currently in -mm which might be from mfleming@cloudflare.com are
 
-mm-shmem-reject-page-aligned-fallocate-end-overflow.patch
 
