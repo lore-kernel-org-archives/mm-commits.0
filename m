@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A794B3BED75
-	for <mm-commits@vger.kernel.org>; Wed,  5 Aug 2026 02:24:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F3EF33BED18
+	for <mm-commits@vger.kernel.org>; Wed,  5 Aug 2026 02:24:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785896690; cv=none; b=W0u0GAX/+njQjhnYxuFF3wFAcGn6wDk9xrImFhYnKSnW3JLl0mfyxOX250CZ1rEA8jTdoMUxF04VyDKhS5xyeOjzxyTwzsn3O28CVtXbhvr799v8mw516h32Vmv1+G8Gpb5ALOPdOZLhhMM/qwwHSg1ob8QKaroPoMBmBI3N+mQ=
+	t=1785896692; cv=none; b=mAHNcfutOwKSZ6yLh7IAHJym06PUuRJGwv2DR/VoajSQoErWsyW87baoo0bFhGznGp2oiqtGAzT1idJ59pwskMKmB0PTL3tDMJxpSuhk+j3BGnaGLdsf78YxT5t/5MABVmbc82YT92DHuN6NcygOo+bnvouR9T4hwadtPxtHMPY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785896690; c=relaxed/simple;
-	bh=yjoP7WdcTTL0ES9qyqCXQjsqWug4XC30yOR+laWa5es=;
-	h=Date:To:From:Subject:Message-Id; b=cmrTMZxwn/qbU0Oc1NuOpEuVvl4WvX6wEJudh3In4hzxSidhdO5BGn4MkdBs3haw+WBCM6YmIL6y915cSf/f9n2w9pVbnaxm0QEstxfS53QnOGb4BIVI040j5u3Lc4heUijAlK8sgATduG+dUehWXQ8iLrinepSw6V8aPAoMURY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qw0FJXxC; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785896692; c=relaxed/simple;
+	bh=pAbE/gYV4f8nZwEFtKB16JmBVAdymQhd0n3vAAUmxtA=;
+	h=Date:To:From:Subject:Message-Id; b=WXiVVjphWVzuw41TQ7ZiTd50JuqwllFKlxg/XK0YumjmMCyEGvtDxRqSsTXQOfKITtJdxmX8wyRxls6nmI3t2tmOuTELufCLeI3Vj0UcqCCduFqYwdB5ITbiTxombRoBOHryvxzpmV2Al6xxCOKHrpgaMJ2N26FWmSPPt97zOTU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=woVTx1TS; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qw0FJXxC"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 70DDD1F000E9;
-	Wed,  5 Aug 2026 02:24:49 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="woVTx1TS"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BE0461F00A3A;
+	Wed,  5 Aug 2026 02:24:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785896689;
-	bh=rV6Q1ISfuTtGUVh1Ej4JUvUvu7618tY5UGooF9CA1ug=;
+	d=linux-foundation.org; s=korg; t=1785896690;
+	bh=dLsQjXOTpMZmwDDT9Jh5PZF4m0NJwaWRFg1bOVZBpZE=;
 	h=Date:To:From:Subject;
-	b=qw0FJXxC6JQtjI9KWjKC4RcJFJOwse+YnWnFrS3o4+4NRrbEy9kvc0lpCflTEkwnm
-	 9KsGZ+OjyyYamWsPIoWgwNOWGVO/Vau+jLLaPTuvEKPY365gSHgDNgq7aC7TunwWCE
-	 QGF7MhISUaCS9rDbQ4vuSazFGEuQ/iIm6ZwRzczU=
-Date: Tue, 04 Aug 2026 19:24:48 -0700
+	b=woVTx1TS5ZRoh7D5d9/NxeD5I5sOciqPbb6rkWgdNQoPqloniSP7IpN0hZxWgSFrn
+	 uwgkGk2gs69h/txeGemjJL2BhfvtVFLot0LQ9gLheZxPDlx49RShBcZVze9ux5pP12
+	 VrlGj4m0IEhXB5dgzk2S6Pr3y/GD14CfTrfD4wKg=
+Date: Tue, 04 Aug 2026 19:24:50 -0700
 To: mm-commits@vger.kernel.org,david@kernel.org,chengming.zhou@linux.dev,xu.xin16@zte.com.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-ksm-initialize-the-addr-only-once-in-collect_procs_ksm.patch removed from -mm tree
-Message-Id: <20260805022449.70DDD1F000E9@smtp.kernel.org>
+Subject: [merged mm-stable] ksm-use-precise-linear_page_index-instead-of-the-whole-address-space.patch removed from -mm tree
+Message-Id: <20260805022450.BE0461F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,70 +35,51 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/ksm: initialize the addr only once in collect_procs_ksm
+     Subject: ksm: use precise linear_page_index instead of the whole address space
 has been removed from the -mm tree.  Its filename was
-     mm-ksm-initialize-the-addr-only-once-in-collect_procs_ksm.patch
+     ksm-use-precise-linear_page_index-instead-of-the-whole-address-space.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: xu xin <xu.xin16@zte.com.cn>
-Subject: mm/ksm: initialize the addr only once in collect_procs_ksm
-Date: Thu, 9 Jul 2026 17:32:12 +0800 (CST)
+Subject: ksm: use precise linear_page_index instead of the whole address space
+Date: Thu, 9 Jul 2026 17:33:12 +0800 (CST)
 
-Patch series "KSM: use linear_page_index in collect_procs_ksm()", v2.
+Since we now have linear_page_index available that we can use here,
+allowing for optimizing the RMAP walk, we can also use it to locate more
+precisely all related-processes when error hits the KSM page, which will
+decrease a lot of invalid iterations.
 
-In collect_procs_ksm() which is used to collect processes when the error
-hit an ksm page, there is the same issue with rmap_walk_ksm (see the
-previous discussion at [1]).  So we apply the similar logic changes to the
-collect_procs_ksm().
-
-The patch [1/2] move the initializaion of addr from the position inside
-loop to the position before the loop, since the variable will not change
-in the loop.
-
-The patch [2/2] optimize collect_procs_ksm by passing a suitable page
-offset range to the anon_vma_interval_tree_foreach loop to reduce
-ineffective checks.
-
-
-This patch (of 2):
-
-Similar to 318d87b8fa7 ("ksm: initialize the addr only once in
-rmap_walk_ksm"), only initialize the addr once in rmap_walk_ksm because
-the addr variable doesn't change across iterations.
-
-Link: https://lore.kernel.org/20260709173212190rZdwynySRyLr9EtPuXBRU@zte.com.cn
-Link: https://lore.kernel.org/all/20260703162253688u8Str9eFLR8TGCmo7nIOF@zte.com.cn/ [1]
+Link: https://lore.kernel.org/20260709173312403qgj1Af6pRkFMDSsmc19sM@zte.com.cn
 Signed-off-by: xu xin <xu.xin16@zte.com.cn>
 Acked-by: David Hildenbrand (Arm) <david@kernel.org>
 Cc: Chengming Zhou <chengming.zhou@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/ksm.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ mm/ksm.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
---- a/mm/ksm.c~mm-ksm-initialize-the-addr-only-once-in-collect_procs_ksm
+--- a/mm/ksm.c~ksm-use-precise-linear_page_index-instead-of-the-whole-address-space
 +++ a/mm/ksm.c
-@@ -3289,7 +3289,7 @@ void collect_procs_ksm(const struct foli
- 		rcu_read_lock();
+@@ -3290,12 +3290,13 @@ void collect_procs_ksm(const struct foli
  		for_each_process(tsk) {
  			struct anon_vma_chain *vmac;
--			unsigned long addr;
-+			const unsigned long addr = rmap_item->address & PAGE_MASK;
+ 			const unsigned long addr = rmap_item->address & PAGE_MASK;
++			const unsigned long index = rmap_item->linear_page_index;
  			struct task_struct *t =
  				task_early_kill(tsk, force_early);
  			if (!t)
-@@ -3299,7 +3299,6 @@ void collect_procs_ksm(const struct foli
+ 				continue;
+-			anon_vma_interval_tree_foreach(vmac, &av->rb_root, 0,
+-						       ULONG_MAX)
++			anon_vma_interval_tree_foreach(vmac, &av->rb_root, index,
++						       index)
  			{
  				vma = vmac->vma;
  				if (vma->vm_mm == t->mm) {
--					addr = rmap_item->address & PAGE_MASK;
- 					add_to_kill_ksm(t, page, vma, to_kill,
- 							addr);
- 				}
 _
 
 Patches currently in -mm which might be from xu.xin16@zte.com.cn are
