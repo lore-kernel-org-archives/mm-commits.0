@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B0AA6266581
-	for <mm-commits@vger.kernel.org>; Wed,  5 Aug 2026 01:14:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8C14A4A35
+	for <mm-commits@vger.kernel.org>; Wed,  5 Aug 2026 01:23:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785892457; cv=none; b=I5THsBlSqIS3/idzeD9gUCt/GmBzbqv+1TwFn85oyu7mlm7c8TXhSL671l5Wc+aRJX/XOxU8aD+YYCTP8zssWblCMun4lZZ1Xmvsc0niIxgcCvSXmqP+0RNCXIx7fdeKRAxFqbQjgfOLz4NC1nPh6zSPl+19BFLuug41a7iipnk=
+	t=1785892998; cv=none; b=n4AA8+eD5gsuJ3ah3QFdCrs6+Fc0XIHlM8QeGPeUCf5kLj7b6szWuuc5/C5NFC69X7sJu/1s9nIYOOz+eLs+bM728+IXMAfSRmz2ul2aEOjxGJZ+cBL36brjUQxACWEeTXAQqmBiqxtIqUO6CMQ1158dIDK2U9jByT7VAnxDBUo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785892457; c=relaxed/simple;
-	bh=bxN82NwC2Jjm/eRJGpp11OHtoElDMUMxIgr3QXJucZA=;
-	h=Date:To:From:Subject:Message-Id; b=hrNq+owD8rXgIuUiefjebckrxm1IjowRYfQFMfQeu1jlo8Yy2w8lhO8RSFnIzdU0VvrRUnZwGP5dyF/xnWiVa0vhmFTNIIA4LZYlDN9m1pFyL5zPE6N+RfQeFqR19ugtQNuPYKSaV0giLR4AcLOYQHBFXumea1vms6W28fv55nk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=J6C6GqsF; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785892998; c=relaxed/simple;
+	bh=ruQOLyoUpcIgQTUjUdinpWDOGAsTpEzLDH7sasrBSzw=;
+	h=Date:To:From:Subject:Message-Id; b=WJbuJpfMM4NxiHkg3yv8/dQ6PGryubjw3moZOWGhuW37K9IkCLnmC8ELl82ducBVfKj8eQnwemKJ4IlzI897p1IQeCGJm7f0UIFUmodjNFNBiUoeAiTgmKXqM/QjpgwxjCPcVZ2BK5iogHovS8iG258bGVwZ+IUCeRU3IBcCtpo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dLMDBEml; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="J6C6GqsF"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4282D1F000E9;
-	Wed,  5 Aug 2026 01:14:15 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dLMDBEml"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 398D61F000E9;
+	Wed,  5 Aug 2026 01:23:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785892455;
-	bh=1PzOuy16bWUqJN4Y+KVRrLyvBEkj+3ZcYfEbUYx3948=;
+	d=linux-foundation.org; s=korg; t=1785892997;
+	bh=17gVdeshEFjeOUSTRMfptsytBndG1E5kXUCSM51ojRE=;
 	h=Date:To:From:Subject;
-	b=J6C6GqsFKFq68wVszjikYl1D1KOvKER1yO7+tpXwix30UPhKZBzYLn4lDzPKVkISc
-	 bq2WWZPGhFVPxXkOFaN+IbTiLaGidXMLMBlaK9IMz4OmasL9Ds0z1cBeJ8BZgJcQkK
-	 xcpt5ZRHT9JtmY8G1yKcc6yo8tTg28mcDu0eftI0=
-Date: Tue, 04 Aug 2026 18:14:14 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,tzimmermann@suse.de,sj@kernel.org,pfalcato@suse.de,m.szyprowski@samsung.com,ljs@kernel.org,liam@infradead.org,kai.huang@intel.com,gourry@gourry.net,david@kernel.org,ackerleytng@google.com,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=dLMDBEmlefyevRbEAtaE+aQSKu9Bf+PQozXiQo/6ze2bzC+qAkeab1Xa5Jx3J2lvM
+	 wINrh13fOCOvy7EquL/cumVEBnCmqwG2aGE2Gf8OJWwv9YMYF+xIBq/TmEL33wElAD
+	 MGLhNrZ7DFlketsYUNEyIujvCVTsu6yx5trwV0wg=
+Date: Tue, 04 Aug 2026 18:23:16 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,pfalcato@suse.de,ljs@kernel.org,liam@infradead.org,jannh@google.com,david@kernel.org,wangkefeng.wang@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-vma-add-and-use-vma__pgoff-fix.patch removed from -mm tree
-Message-Id: <20260805011415.4282D1F000E9@smtp.kernel.org>
+Subject: [folded-merged] mm-mincore-remove-special-handling-for-vm_pfnmap-fix.patch removed from -mm tree
+Message-Id: <20260805012317.398D61F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,55 +35,78 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm-vma-add-and-use-vma__pgoff-fix
+     Subject: mm: mincore: fixup for remove special handling for VM_PFNMAP
 has been removed from the -mm tree.  Its filename was
-     mm-vma-add-and-use-vma__pgoff-fix.patch
+     mm-mincore-remove-special-handling-for-vm_pfnmap-fix.patch
 
-This patch was dropped because it was folded into mm-vma-add-and-use-vma__pgoff.patch
+This patch was dropped because it was folded into mm-mincore-remove-special-handling-for-vm_pfnmap.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-vma-add-and-use-vma__pgoff-fix
-Date: Fri Jul 17 08:03:43 PM PDT 2026
+From: Kefeng Wang <wangkefeng.wang@huawei.com>
+Subject: mm: mincore: fixup for remove special handling for VM_PFNMAP
+Date: Mon, 20 Jul 2026 20:41:51 +0800
 
-use linear_page_delta() in __split_vma(), per Vlastimal & Lorenzo
+Address David's comments
+- rename mincore_pud_range to mincore_pud_entry
+- change int nr to const unsigned long
+- remove a local vec variable
 
-Cc: Ackerley Tng <ackerleytng@google.com>
+Link: https://lore.kernel.org/20260720124151.1483820-1-wangkefeng.wang@huawei.com
+Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
 Cc: David Hildenbrand (Arm) <david@kernel.org>
-Cc: Gregory Price <gourry@gourry.net>
-Cc: Kai Huang <kai.huang@intel.com>
-Cc: Liam R. Howlett (Oracle) <liam@infradead.org>
+Cc: Jann Horn <jannh@google.com>
+Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>
 Cc: Pedro Falcato <pfalcato@suse.de>
-Cc: SJ Park <sj@kernel.org>
-Cc: Thomas Zimmermann <tzimmermann@suse.de>
-Cc: Vlastimil Babka (SUSE) <vbabka@kernel.org>
+Cc: Vlastimil Babka <vbabka@kernel.org>
 Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vma.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/mincore.c |   11 +++++------
+ 1 file changed, 5 insertions(+), 6 deletions(-)
 
---- a/mm/vma.c~mm-vma-add-and-use-vma__pgoff-fix
-+++ a/mm/vma.c
-@@ -556,7 +556,7 @@ __split_vma(struct vma_iterator *vmi, st
+--- a/mm/mincore.c~mm-mincore-remove-special-handling-for-vm_pfnmap-fix
++++ a/mm/mincore.c
+@@ -160,16 +160,15 @@ static int mincore_unmapped_range(unsign
+ 	return 0;
+ }
  
- 	if (new_below) {
- 		vma->vm_start = addr;
--		vma_add_pgoff(vma, (addr - new->vm_start) >> PAGE_SHIFT);
-+		vma_add_pgoff(vma, linear_page_delta(new, addr));
- 	} else {
- 		vma->vm_end = addr;
+-static int mincore_pud_range(pud_t *pudp, unsigned long addr, unsigned long end,
++static int mincore_pud_entry(pud_t *pudp, unsigned long addr, unsigned long end,
+ 		struct mm_walk *walk)
+ {
+ 	if (pud_is_huge(pudp_get(pudp))) {
+-		int nr = (end - addr) >> PAGE_SHIFT;
+-		unsigned char *vec = walk->private;
++		const unsigned long nr = (end - addr) >> PAGE_SHIFT;
+ 
+-		memset(vec, 1, nr);
+-		walk->action = ACTION_CONTINUE;
++		memset(walk->private, 1, nr);
+ 		walk->private += nr;
++		walk->action = ACTION_CONTINUE;
  	}
+ 
+ 	return 0;
+@@ -247,7 +246,7 @@ static inline bool can_do_mincore(struct
+ }
+ 
+ static const struct mm_walk_ops mincore_walk_ops = {
+-	.pud_entry		= mincore_pud_range,
++	.pud_entry		= mincore_pud_entry,
+ 	.pmd_entry		= mincore_pte_range,
+ 	.pte_hole		= mincore_unmapped_range,
+ 	.hugetlb_entry		= mincore_hugetlb,
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
 
-mm-hmm-make-config_hmm_mirror-select-config_mmu_notifier.patch
-mm-vma-add-and-use-vma__pgoff.patch
-alloc_tag-add-ioctl-to-proc-allocinfo-fix.patch
-mm-page_alloc-only-update-lowmem_reserve_ratio-on-sysctl-write-fix.patch
-drivers-media-v4l2-core-v4l2-vp9c-reduce-inlining.patch
+mm-introduce-pud_is_huge-helper.patch
+mm-mincore-remove-special-handling-for-vm_pfnmap.patch
+mm-mincore-replace-__get_free_page-with-kmalloc.patch
+mm-mincore-remove-xa_is_value-in-mincore_swap.patch
+mm-mincore-improve-mincore_hugetlb.patch
+mm-mincore-improve-mincore_hugetlb-fix.patch
+mm-mincore-refactor-mincore_page.patch
 
