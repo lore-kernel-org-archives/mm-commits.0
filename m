@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EF8A43BFAFC
-	for <mm-commits@vger.kernel.org>; Wed,  5 Aug 2026 02:24:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2120B3BF682
+	for <mm-commits@vger.kernel.org>; Wed,  5 Aug 2026 02:24:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785896676; cv=none; b=t6iricWIN3kqhUWA9u7b2uKmpCA6DemiaCVwRnmZ2P0lFfSSpP4jLWO5Df6FCLJHaiZ/g9/XPx1nDa1db+qaK0F2ZZoduL96+MeDSze9KhS9j45plS/3VYUI4Gehu8xuwK68PBMCuAdeQR/ZSD74prUyGulSCJTec9fd7IpBPvQ=
+	t=1785896678; cv=none; b=GyTdxgk84AoSmkA+JylegwHRknIaXNHipD+JeMhTAMrXymNsxRSRoKUo5FbxhT83WjzUzUq5MCJmbQPTfpEiXrPeIcZnBiAqQucDDMZg4G2YrVuTH3RezVhrvIYby+lrHxLLorbSy8aw6l8RX+pzMOfirHvq+3T5yQ/D9wyDq8U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785896676; c=relaxed/simple;
-	bh=H2yJP+LW5o3vVemLvbYYai1y4txoxcsx9kFXRsVxeH4=;
-	h=Date:To:From:Subject:Message-Id; b=otLyotTuzIJODfUbs5PgN24pQagiBUUghEAR+x8jCWutSwPPVwbkHzpM8D03+mf2GH5Zk3pMXYqy1pQ5qN+YtUFa6vhz9oAzqhmvJ0RvJct4lEO3+1pIgwhaDklzsQ5B7uZKg2itFt3FuBH/hFLwE4rMNhPMrsA4o1Okz7sWRPA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=V+6Pn/l4; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785896678; c=relaxed/simple;
+	bh=4g2nDwaZSr2tyGIhl0bDA3jjvwpyqbCzMOId7hKiwfY=;
+	h=Date:To:From:Subject:Message-Id; b=I99jKWe6rbwPLmGOfNdUyblKtX84ZHlDvxD1OOJ4opak39yzEFju/TyW2Hg+OLrMrYjfA+9jrJwPkSYhicCC8+230dYr8ufFej3S3Fd3ZgTcM7ExgulhYCB2jNKFdpoI9lnSDw9McoQHleRZ4zFngNi5rAcqC+zRvQlzsWfyjS4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oiK2cmh4; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="V+6Pn/l4"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C1C761F00A3E;
-	Wed,  5 Aug 2026 02:24:32 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oiK2cmh4"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A3E9E1F000E9;
+	Wed,  5 Aug 2026 02:24:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785896672;
-	bh=MGsGM49ZWthItUggCIPalngNuBr6GVJUZzIxjnvN8hI=;
+	d=linux-foundation.org; s=korg; t=1785896675;
+	bh=59Q+d8CTjIONUC5K1UODLh1t+hE3HfoxD+03RURjuVo=;
 	h=Date:To:From:Subject;
-	b=V+6Pn/l4Xt1xG0m8GhhCVq6f56qaYCsX21P6gYB4XgfOkKTqF1qKDuRCohUqqMd/6
-	 7Me0/Aer9JrLlbJkDWcGYgO01NXJyXTmRyWm785DAQYbqVoCskiX6dJhiVNinSzMKK
-	 UAXuzYAwXn4s7MHnuKZGQHgYcdxZ4+HapSUR03yE=
-Date: Tue, 04 Aug 2026 19:24:32 -0700
-To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
+	b=oiK2cmh4eZP8i+rf4a/yMwg8783MIYq0oN/iqnesHWtf/VxwPGaC3OHnl7eTC/Otm
+	 339jBUleIZz9tI1y/WclAn+XXaSVy1vIZsw4EbTOzeqLGoo9Qm0tExEK48g3IAEEpZ
+	 Pwzh9OJ5YGG9LcFUvTG9s27cb6WiQ5mTXVvIh7b8=
+Date: Tue, 04 Aug 2026 19:24:35 -0700
+To: mm-commits@vger.kernel.org,wang.yaxin@zte.com.cn,vbabka@kernel.org,surenb@google.com,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,hughd@google.com,david@kernel.org,chengming.zhou@linux.dev,xu.xin16@zte.com.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-core-update-probe-hits-for-new-parameter-commit.patch removed from -mm tree
-Message-Id: <20260805022432.C1C761F00A3E@smtp.kernel.org>
+Subject: [merged mm-stable] ksm-add-linear_page_index-into-ksm_rmap_item.patch removed from -mm tree
+Message-Id: <20260805022435.A3E9E1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,158 +35,260 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/damon/core: update probe hits for new parameter commit
+     Subject: ksm: add linear_page_index into ksm_rmap_item
 has been removed from the -mm tree.  Its filename was
-     mm-damon-core-update-probe-hits-for-new-parameter-commit.patch
+     ksm-add-linear_page_index-into-ksm_rmap_item.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: SJ Park <sj@kernel.org>
-Subject: mm/damon/core: update probe hits for new parameter commit
-Date: Wed, 8 Jul 2026 06:53:56 -0700
+From: xu xin <xu.xin16@zte.com.cn>
+Subject: ksm: add linear_page_index into ksm_rmap_item
+Date: Fri, 3 Jul 2026 16:23:57 +0800 (CST)
 
-Users can update DAMON parameters at runtime.  If the samples and/or
-aggregation intervals are updated in this way, monitoring results
-depending on the intervals should also be updated for a more accurate
-snapshot.  The age and nr_accesses are properly updated, while probe_hits
-are not updated in the way.  Do the update.
+Patch series "KSM: performance optimizations for rmap_walk_ksm", v11.
 
-Link: https://lore.kernel.org/20260708135359.122587-7-sj@kernel.org
-Signed-off-by: SJ Park <sj@kernel.org>
+This series fixes a severe KSM reverse-mapping performance problem that
+can freeze applications for hundreds of milliseconds under memory pressure
+especially when a lot of unrelated VMAs sharing a single anon_vma.
+
+Two key highlights:
+
+1. Lock hold time drops from >500ms to <2ms
+   - In our benchmark (20,000 VMAs sharing an anon_vma), worst-case
+     anon_vma lock hold time during KSM rmap walk went from 705ms
+     down to 1.67ms (max) and 1.44ms (avg).
+
+2. Real user impact
+   - The anon_vma lock is also acquired by page faults, reclaim,
+     migration, compaction, mlock, exit_mmap, and cgroup accounting.
+
+   - A long hold due to inefficient rmap walks stalls application
+     threads, causing latency spikes, reduced throughput, or even
+     container timeouts.
+
+   - The problem occurs even without fork() – VMA splitting (e.g.,
+     via mprotect or madvise over time) can create tens of thousands
+     of VMAs all attached to the same anon_vma.
+
+Real-world examples:
+
+ - JVM / Go runtime: These use mmap for heap regions and later call
+   mprotect(PROT_NONE) for garbage collection barriers or guard pages,
+   splitting the original VMA into thousands of small pieces over time.
+
+ - Database engines (MySQL, PostgreSQL): Large shared memory buffers or
+   anonymous mappings are managed with madvise(MADV_DONTNEED) to release
+   specific pages, which also splits VMAs.
+
+Why the benchmark numbers are realistic: We observed ~20,000 VMAs sharing
+one anon_vma on a production system running a Java application with KSM
+enabled.  The lock hold time before the patch was measured at 228 ms
+(max) during rmap walks triggered by memory compaction and page migration.
+The benchmark reproduces that VMA count and lock‑hold behavior in a
+controlled environment.
+
+For systems that do not have thousands of VMAs per anon_vma, the patch
+adds negligible overhead (a single pgoff comparison).  For systems that do
+suffer from this issue, the improvement is dramatic: 1) Worst‑case
+anon_vma lock hold time drops from hundreds of milliseconds to under
+2 ms.2)This directly reduces blocking of parallel operations that need
+the same lock – page faults, reclaim, migration, compaction, mlock, and
+exit_mmap.
+
+End‑users will see lower tail latency (fewer application stalls), higher
+throughput under memory pressure, and no more spurious lockup warnings or
+container timeouts caused by excessive lock hold times.
+
+In short: workloads that do not hit this pathological pattern are
+unaffected; those that do will see a 100x to 500x reduction in lock hold
+times, which translates directly into a more responsive system.
+
+
+This patch (of 3):
+
+As preparation for KSM rmap optimizations, let's track the original
+linear_page_index() of a de-duplicated page in its ksm_rmap_item, so we
+can efficiently search for the page in an address space, avoiding scanning
+the entire address space.  This was previously discussed in [1, 2].
+
+To avoid growing ksm_rmap_item, let's squeeze it into the existing
+structure by overlying some members (oldchecksum, age, remaining_skips)
+that are only relevant while on the unstable tree.  The new entry will
+only be relevant for entries in the stable tree.
+
+However, as the age information is read by should_skip_rmap_item() with
+the smart-scanning approach even while we have an entry in the stable
+tree, but the page changes (no longer a KSM page, for example due to COW),
+we have to change the handling there a bit.
+
+We'll calculate the linear page index in try_to_merge_with_ksm_page(),
+when adding it to the stable tree, and reset the index (to reset overlayed
+data) when removing an item from the stable tree -- in
+remove_rmap_item_from_tree(), remove_node_from_stable_tree() and
+break_cow().
+
+To be specially clarified, the reason for resetting the stored index at
+break_cow() is:
+
+- When a page successfully becomes a KSM page (i.e., after
+  stable_tree_append() sets STABLE_FLAG), both anon_vma and the index are
+  stored and remain valid.
+
+- However, during the merging process, there are several failure paths
+  where we already prepared an rmap item to be added to the stable tree,
+  but must revert that as some part of the merge process failed. Examples
+  include:
+    1 The second call to try_to_merge_with_ksm_page() fails in
+      try_to_merge_two_pages().
+    2 stable_tree_insert() fails in cmp_and_merge_page().
+  In such cases, break_cow() is invoked to break the COW mapping and
+  discard the KSM state.
+
+Currently, break_cow() already contains a
+put_anon_vma(rmap_item->anon_vma) to release the reference taken during
+the aborted merge.  Because the index is logically paired with anon_vma
+(both are only meaningful when the rmap_item is in a stable state), it
+must also be cleared (or reset) in break_cow() to avoid leaving stale
+linear_page_index values that could confuse subsequent rmap walks or
+scanning logic.
+
+Link: https://lore.kernel.org/20260703162253688u8Str9eFLR8TGCmo7nIOF@zte.com.cn
+Link: https://lore.kernel.org/20260703162357853iIa-RP7if9hRlAIuTh5La@zte.com.cn
+Link: https://lore.kernel.org/all/adTPQSb-qSSHviJN@lucifer/ [1]
+Link: https://lore.kernel.org/all/202604091806051535BJWZ_FTtdIm3Snk24ei_@zte.com.cn/ [2]
+Signed-off-by: xu xin <xu.xin16@zte.com.cn>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Cc: Chengming Zhou <chengming.zhou@linux.dev>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: "Liam R. Howlett" <liam@infradead.org>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Wang Yaxin <wang.yaxin@zte.com.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/core.c             |   28 +++++++++++++++++++++++++---
- mm/damon/tests/core-kunit.h |   13 ++++++++++---
- 2 files changed, 35 insertions(+), 6 deletions(-)
+ mm/ksm.c |   48 +++++++++++++++++++++++++++++++++++++++++-------
+ 1 file changed, 41 insertions(+), 7 deletions(-)
 
---- a/mm/damon/core.c~mm-damon-core-update-probe-hits-for-new-parameter-commit
-+++ a/mm/damon/core.c
-@@ -897,10 +897,32 @@ static unsigned int damon_nr_samples_for
- 			damon_sample_count_to_bp(nr, old_attrs), new_attrs);
+--- a/mm/ksm.c~ksm-add-linear_page_index-into-ksm_rmap_item
++++ a/mm/ksm.c
+@@ -195,22 +195,28 @@ struct ksm_stable_node {
+  * @node: rb node of this rmap_item in the unstable tree
+  * @head: pointer to stable_node heading this list in the stable tree
+  * @hlist: link into hlist of rmap_items hanging off that stable_node
+- * @age: number of scan iterations since creation
+- * @remaining_skips: how many scans to skip
++ * @age: number of scan iterations since creation (unstable node)
++ * @remaining_skips: how many scans to skip (unstable node)
++ * @linear_page_index: the original page's index before merged by KSM (stable node)
+  */
+ struct ksm_rmap_item {
+ 	struct ksm_rmap_item *rmap_list;
+ 	union {
+-		struct anon_vma *anon_vma;	/* when stable */
++		struct anon_vma *anon_vma;	/* for reverse mapping, when stable */
+ #ifdef CONFIG_NUMA
+ 		int nid;		/* when node of unstable tree */
+ #endif
+ 	};
+ 	struct mm_struct *mm;
+ 	unsigned long address;		/* + low bits used for flags below */
+-	unsigned int oldchecksum;	/* when unstable */
+-	rmap_age_t age;
+-	rmap_age_t remaining_skips;
++	union {
++		struct {
++			unsigned int oldchecksum;
++			rmap_age_t age;
++			rmap_age_t remaining_skips;
++		};			/* when unstable */
++		unsigned long linear_page_index;    /* for reverse mapping, when stable */
++	};
+ 	union {
+ 		struct rb_node node;	/* when node of unstable tree */
+ 		struct {		/* when listed from stable tree */
+@@ -776,6 +782,11 @@ static struct vm_area_struct *find_merge
+ 	return vma;
  }
  
-+static void damon_update_probe_hits(struct damon_region *r,
-+		struct damon_attrs *old_attrs, struct damon_attrs *new_attrs,
-+		bool aggregating, struct damon_ctx *ctx)
-+{
-+	struct damon_probe *p;
-+	int i = 0;
-+
-+	damon_for_each_probe(p, ctx) {
-+		r->last_probe_hits[i] = damon_nr_samples_for_new_attrs(
-+				r->last_probe_hits[i], old_attrs, new_attrs);
-+		if (!aggregating)
-+			r->probe_hits[i] = damon_nr_samples_for_new_attrs(
-+					r->probe_hits[i], old_attrs,
-+					new_attrs);
-+		else
-+			r->probe_hits[i] = 0;
-+		i++;
-+	}
-+}
-+
- static void damon_update_monitoring_result(struct damon_region *r,
- 		struct damon_attrs *old_attrs, struct damon_attrs *new_attrs,
--		bool aggregating)
-+		bool aggregating, struct damon_ctx *ctx)
++/*
++ * break_cow: actively break COW, replacing the KSM page by a fresh anonymous
++ * page. This is called when rmap_item has not yet become stable, but page
++ * has been merged.
++ */
+ static void break_cow(struct ksm_rmap_item *rmap_item)
  {
-+	damon_update_probe_hits(r, old_attrs, new_attrs, aggregating, ctx);
+ 	struct mm_struct *mm = rmap_item->mm;
+@@ -787,6 +798,11 @@ static void break_cow(struct ksm_rmap_it
+ 	 * to undo, we also need to drop a reference to the anon_vma.
+ 	 */
+ 	put_anon_vma(rmap_item->anon_vma);
++	/*
++	 * Reset linear_page_index that might overlay age-related
++	 * information. (it's still unstable node)
++	 */
++	rmap_item->linear_page_index = 0;
+ 
+ 	mmap_read_lock(mm);
+ 	vma = find_mergeable_vma(mm, addr);
+@@ -899,6 +915,8 @@ static void remove_node_from_stable_tree
+ 		VM_BUG_ON(stable_node->rmap_hlist_len <= 0);
+ 		stable_node->rmap_hlist_len--;
+ 		put_anon_vma(rmap_item->anon_vma);
++		/* Reset linear_page_index that might overlay age-related information. */
++		rmap_item->linear_page_index = 0;
+ 		rmap_item->address &= PAGE_MASK;
+ 		cond_resched();
+ 	}
+@@ -1052,6 +1070,8 @@ static void remove_rmap_item_from_tree(s
+ 		stable_node->rmap_hlist_len--;
+ 
+ 		put_anon_vma(rmap_item->anon_vma);
++		/* Reset linear_page_index that might overlay age-related information. */
++		rmap_item->linear_page_index = 0;
+ 		rmap_item->head = NULL;
+ 		rmap_item->address &= PAGE_MASK;
+ 
+@@ -1598,8 +1618,15 @@ static int try_to_merge_with_ksm_page(st
+ 	/* Unstable nid is in union with stable anon_vma: remove first */
+ 	remove_rmap_item_from_tree(rmap_item);
+ 
+-	/* Must get reference to anon_vma while still holding mmap_lock */
++	/*
++	 * We can consider the VMA only while still holding the mmap lock,
++	 * so lock, so reference the anon_vma and calculate the linear
++	 * page index early, before stable_tree_append(). If anything goes
++	 * wrong that prevents the rmap_item from being added to the
++	 * stable_tree, break_cow() will clean it up.
++	 */
+ 	rmap_item->anon_vma = vma->anon_vma;
++	rmap_item->linear_page_index = linear_page_index(vma, rmap_item->address);
+ 	get_anon_vma(vma->anon_vma);
+ out:
+ 	mmap_read_unlock(mm);
+@@ -2459,6 +2486,13 @@ static bool should_skip_rmap_item(struct
+ 	if (folio_test_ksm(folio))
+ 		return false;
+ 
++	/*
++	 * There is no age information in stable-tree nodes. We might end up
++	 * here without a KSM page for example after COW.
++	 */
++	if (rmap_item->address & STABLE_FLAG)
++		return false;
 +
- 	r->last_nr_accesses = damon_nr_samples_for_new_attrs(
- 			r->last_nr_accesses, old_attrs, new_attrs);
- 	if (!aggregating)
-@@ -940,8 +962,8 @@ static void damon_update_monitoring_resu
- 
- 	damon_for_each_target(t, ctx)
- 		damon_for_each_region(r, t)
--			damon_update_monitoring_result(
--					r, old_attrs, new_attrs, aggregating);
-+			damon_update_monitoring_result(r, old_attrs, new_attrs,
-+					aggregating, ctx);
- }
- 
- /*
---- a/mm/damon/tests/core-kunit.h~mm-damon-core-update-probe-hits-for-new-parameter-commit
-+++ a/mm/damon/tests/core-kunit.h
-@@ -581,32 +581,39 @@ static void damon_test_update_monitoring
- 		.sample_interval = 10, .aggr_interval = 1000,};
- 	struct damon_attrs new_attrs;
- 	struct damon_region *r = damon_new_region(3, 7);
-+	struct damon_ctx *ctx;
- 
- 	if (!r)
- 		kunit_skip(test, "region alloc fail");
-+	ctx = damon_new_ctx();
-+	if (!ctx) {
-+		damon_free_region(r);
-+		kunit_skip(test, "ctx alloc fail");
-+	}
- 
- 	r->nr_accesses = 15;
- 	r->age = 20;
- 
- 	new_attrs = (struct damon_attrs){
- 		.sample_interval = 100, .aggr_interval = 10000,};
--	damon_update_monitoring_result(r, &old_attrs, &new_attrs, false);
-+	damon_update_monitoring_result(r, &old_attrs, &new_attrs, false, ctx);
- 	KUNIT_EXPECT_EQ(test, r->nr_accesses, 15);
- 	KUNIT_EXPECT_EQ(test, r->age, 2);
- 
- 	new_attrs = (struct damon_attrs){
- 		.sample_interval = 1, .aggr_interval = 1000};
--	damon_update_monitoring_result(r, &old_attrs, &new_attrs, false);
-+	damon_update_monitoring_result(r, &old_attrs, &new_attrs, false, ctx);
- 	KUNIT_EXPECT_EQ(test, r->nr_accesses, 150);
- 	KUNIT_EXPECT_EQ(test, r->age, 2);
- 
- 	new_attrs = (struct damon_attrs){
- 		.sample_interval = 1, .aggr_interval = 100};
--	damon_update_monitoring_result(r, &old_attrs, &new_attrs, false);
-+	damon_update_monitoring_result(r, &old_attrs, &new_attrs, false, ctx);
- 	KUNIT_EXPECT_EQ(test, r->nr_accesses, 150);
- 	KUNIT_EXPECT_EQ(test, r->age, 20);
- 
- 	damon_free_region(r);
-+	damon_destroy_ctx(ctx);
- }
- 
- static void damon_test_set_attrs(struct kunit *test)
+ 	age = rmap_item->age;
+ 	if (age != U8_MAX)
+ 		rmap_item->age++;
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from xu.xin16@zte.com.cn are
 
-mm-damon-adjust-isolated-pages-stat-for-damos_migrate_hotcold.patch
-samples-damon-mtier-error-out-for-zero-quota-goal-target-values.patch
-mm-damon-lru_sort-error-out-for-10000-active_mem_bp.patch
-mm-damon-reclaim-skip-damon_call-if-ctx-has-not-started.patch
-mm-damon-lru_sort-skip-damon_call-if-ctx-has-not-started.patch
-mm-damon-core-skip-aging-from-repeated-aggressive-merging.patch
-mm-damon-core-hide-private-damon_region-fields.patch
-mm-damon-core-hide-private-damon_target-fields.patch
-mm-damon-core-hide-private-damos_quota_goal-fields.patch
-mm-damon-core-hide-private-damos_quota-fields.patch
-mm-damon-core-hide-private-damos_filter-fields.patch
-mm-damon-core-hide-private-damos-fields.patch
-mm-damon-core-hide-private-damon_filter-fields.patch
-mm-damon-core-hide-private-damon_probe-fields.patch
-mm-damon-sysfs-do-not-directly-access-damon_ctx-ops.patch
-mm-damon-core-hide-core-private-damon_ctx-fields.patch
-mm-damon-core-avoid-infinite-kdamond_merge_regions-internal-loop.patch
-mm-damon-tests-core-kunit-catch-test-failure-in-test_merge_regions_of.patch
-mm-damon-vaddr-drop-last-same-folio-access-check-optimization.patch
-mm-damon-paddr-drop-last-same-folio-access-check-reuse-optimization.patch
-mm-damon-sysfs-read-addr_unit-only-once-in-damon_sysfs_apply_inputs.patch
-mm-damon-sysfs-read-ops_id-only-once-in-damon_sysfs_apply_inputs.patch
-mm-damon-core-initialize-damos-last_applied.patch
-mm-damon-core-kunit-check-region-count-before-testing-in-split_at.patch
-mm-damon-vaddr-kunit-check-region-count-in-three_regions-test.patch
-mm-damon-core-kunit-handle-region-split-failure-in-filter_out.patch
-mm-damon-core-kunit-skip-wrong-dest-walk-in-commit_dests_for.patch
-mm-damon-core-kunit-skip-wrong-quota-goal-walk-in-commit_quota_goals.patch
-mm-damon-core-kunit-skip-wrong-region-walk-in-commit_target_regions.patch
-mm-damon-ops-common-use-nr_accesses-moving-sum-for-quota-score.patch
-mm-damon-core-handle-region-split-failure-in-apply_min_nr_regions.patch
+mm-mm_sloth-add-a-helper-function-mm_slot_remove.patch
+mm-mm_sloth-add-comments-for-mm_slot_lookup-insert.patch
 
