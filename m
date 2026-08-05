@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1573128314C;
-	Wed,  5 Aug 2026 03:03:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6E18236196A;
+	Wed,  5 Aug 2026 03:03:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785898982; cv=none; b=MnyTZipDQKtgriyYeX1c/rVpdgTLjLG+0dmwcI6DCPkx8EeLsg9Ooq8eSgsgdkUfZDyswqYN+s9jeEf2PVmasCI4HFWfgoqOAZgxWBALWp7TadpwspBUQUoTQuAeAdWIrpdCw03alM8IWs+iC3oe7vVE1yTGbrLysg/0uEu0ml0=
+	t=1785898983; cv=none; b=pHKlFLLJNI5gNT3fJlpCKlqNSFcqTp/0Qyz/HVuM/+ku5I/LkkIvr941/W4nllj4dz91OzcNY6nZqcv9mGNffmInF289WjkEJRK2AFtNtMYBk2jsNvweR529LmFScWy3LSnW96uztiCRdGtGZJejR/uJTCc2eNpzcXolyTkkxu4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785898982; c=relaxed/simple;
-	bh=KbzlIFfWXlR6ZosiBANbD0AOY1PPO1JoIkwFvp+pgNA=;
-	h=Date:To:From:Subject:Message-Id; b=AAesjY4WmqjLKjfn0Ltpc/zStbbJuhNRgR4dPbNkBdBXEegsN7FokxAvXLvNpzWbf74AThj+vwcsrNvQ0OByunymlji9rERnj4ZbtAKrl7kDyQzPCzzmDvqAVmyB+3NUBNrCreSgyCAP8DdokXkQq/VElNdfVCnBBvglft6Z+OE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Zg+AmVla; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785898983; c=relaxed/simple;
+	bh=wUm0150Ej5vP7ogB9C2HTpeqy+B8f/eEAxkqK6LqPlQ=;
+	h=Date:To:From:Subject:Message-Id; b=h31Wz26LgGo71wqo3y41Fm9V3pcdmW6R8Ek2PypdJsAfUTxYl1ORMI7hrSmI9JwMfNwyRJpcratwVRZa9E9RDaM4XkK7ySsu7wTL8xiRCfvLY0WEBfdg+9Y+QG+CmjC654fAL1JNzcH2GwXCOAweZqVpisbAPnzfI2Jg0L6QXUw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XBjjTY5d; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Zg+AmVla"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D74391F00A3A;
-	Wed,  5 Aug 2026 03:03:00 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XBjjTY5d"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 44F5C1F000E9;
+	Wed,  5 Aug 2026 03:03:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785898981;
-	bh=b2e/WV+/Emq1Z52nOIVbUZgDWMalKz2r/jhAu5riC/U=;
+	d=linux-foundation.org; s=korg; t=1785898982;
+	bh=4EL4rOY6KnFbyQl+FBmJRW5spuQMWifrLFmPeDBm6gY=;
 	h=Date:To:From:Subject;
-	b=Zg+AmVlanjmcj4hxdE17uNTyEBT3ZqC7OIxOB4lraG6Mc1n8Dz7kCpeCl1/8v/JrQ
-	 QqX+Mz9b80e4ryh2e3qcFeu7gJdAsdqw4jqIxwArinYX6kaZ1XKKZoZD8WSZOddEAP
-	 cbmjVe8YKcMiHdsUk2SmrfEzfd4/4ZvoHNfzSHUY=
-Date: Tue, 04 Aug 2026 20:03:00 -0700
+	b=XBjjTY5dGxFV6dhe0NTS2wvSMh2PkX+uJzHq4F2croc8jFPBdZKMa4p9YFsoczjlQ
+	 ZOQcybqRaDcDURjMaSVYE2h24YKkaH+fREekWKcZ9d4/jYPimQCgKkhuz7gYFT532K
+	 P/OonI8v6P2/lpHIe8+QKyq+svN0Ywy2I1bt+E+o=
+Date: Tue, 04 Aug 2026 20:03:01 -0700
 To: mm-commits@vger.kernel.org,stable@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] samples-damon-mtier-error-out-for-zero-quota-goal-target-values.patch removed from -mm tree
-Message-Id: <20260805030300.D74391F00A3A@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-damon-lru_sort-error-out-for-10000-active_mem_bp.patch removed from -mm tree
+Message-Id: <20260805030302.44F5C1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,81 +35,69 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: samples/damon/mtier: error out for zero quota goal target values
+     Subject: mm/damon/lru_sort: error out for >10000 active_mem_bp
 has been removed from the -mm tree.  Its filename was
-     samples-damon-mtier-error-out-for-zero-quota-goal-target-values.patch
+     mm-damon-lru_sort-error-out-for-10000-active_mem_bp.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: samples/damon/mtier: error out for zero quota goal target values
-Date: Mon, 3 Aug 2026 06:40:32 -0700
+Subject: mm/damon/lru_sort: error out for >10000 active_mem_bp
+Date: Mon, 3 Aug 2026 06:40:33 -0700
 
-Patch series "mm/damon: avoid division by zero from damos_quota_score()".
+damos_quota_score() can trigger division by zero if the target value is
+zero.  DAMON_LRU_SORT lets users set the target value for the hot memory
+scheme via active_mem_bp parameter.  It avoids setting it as the target
+value if the parameter value is zero.  However, it also sets the cold
+memory scheme with a target value that is calculated as '10000 -
+active_mem_bp + 2'.  Hence, if a user sets active_mem_bp 10002, the cold
+memory scheme's quota goal target value can be zero.  As a result,
+division by zero can be triggered.  Fix by returning an error when the
+user tries to start DAMON with >10000 active_mem_bp parameter value.
 
-DAMON_SAMPLE_MTIER and DAMON_LRU_SORT allow the user to trigger division
-by zero in damos_quota_score().  Avoid it by adding parameters validation
-checks.
-
-
-This patch (of 2):
-
-damos_quota_score() can trigger division by zero if the target_value is
-zero.  DAMON_SAMPLE_MTIER lets users set the target_value via
-node0_mem_{used,free}_bp parameters.  It doesn't guard zero value case,
-though.  As a result, users can trigger division by zero.  Fix the issue
-by returning an error when the user tries to start DAMON with zero
-node0_mem_{used,free}_bp parameter values.
-
-DAMON_SAMPLE_MTIER is just a sample module, but the consequence is quite
-bad.  Also the zero node0_mem_free_bp parameter might look like a
-reasonable setup to some users.  Hence, the issue might really happen in
-the real world.
+It makes no sense to set active_mem_bp with 10002.  It also requires
+module parameters write permission to reproduce the issue.  That said, the
+consequence is quite bad.
 
 One reliable way to reproduce the issue is like below:
 
-    # cd /sys/module/damon_sample_mtier/parameters
-    # echo 4096 > node0_start_addr
-    # echo 8192 > node0_end_addr
-    # echo 8192 > node1_start_addr
-    # echo 81920 > node1_end_addr
-    # echo 0 > node0_mem_free_bp
+    # cd /sys/module/damon_lru_sort/parameters
+    # echo 1000 > wmarks_high
+    # echo 995 > wmarks_mid
+    # echo 0 > wmarks_low
+    # echo 10002 > active_mem_bp
     # echo Y > enabled
     # dmesg -w
     [...]
-    [18792.235916] Oops: divide error: 0000 [#1] SMP NOPTI
-    [...]
-    [18792.242787] RIP: 0010:damos_quota_score+0x6f/0x480
-    [...]
+    [  597.421247] Oops: divide error: 0000 [#1] SMP NOPTI
+    [  597.428848] RIP: 0010:damos_quota_score+0x6f/0x480
 
 This issue was discovered [1] by Sashiko.
 
-Link: https://lore.kernel.org/20260803134034.15217-1-sj@kernel.org
-Link: https://lore.kernel.org/20260803134034.15217-2-sj@kernel.org
-Link: https://lore.kernel.org/20260801202657.117135-1-sj@kernel.org [1]
-Fixes: c5e67d40a102 ("samples/damon/mtier: add parameters for node0 memory usage")
+Link: https://lore.kernel.org/20260803134034.15217-3-sj@kernel.org
+Link: https://lore.kernel.org/20260801213028.5127-1-sj@kernel.org [1]
+Fixes: 40d98d31cd70 ("mm/damon/lru_sort: support active:inactive memory ratio based auto-tuning")
 Signed-off-by: SJ Park <sj@kernel.org>
-Cc: <stable@vger.kernel.org> # 6.17.x
+Cc: <stable@vger.kernel.org> # 7.0.x
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- samples/damon/mtier.c |    3 +++
- 1 file changed, 3 insertions(+)
+ mm/damon/lru_sort.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/samples/damon/mtier.c~samples-damon-mtier-error-out-for-zero-quota-goal-target-values
-+++ a/samples/damon/mtier.c
-@@ -156,6 +156,9 @@ static struct damon_ctx *damon_sample_mt
- 	if (!scheme)
- 		goto free_out;
- 	damon_set_schemes(ctx, &scheme, 1);
-+	/* zero target value causes division by zero in damos_quota_store() */
-+	if (!node0_mem_used_bp || !node0_mem_free_bp)
-+		goto free_out;
- 	quota_goal = damos_new_quota_goal(
- 			promote ? DAMOS_QUOTA_NODE_MEM_USED_BP :
- 			DAMOS_QUOTA_NODE_MEM_FREE_BP,
+--- a/mm/damon/lru_sort.c~mm-damon-lru_sort-error-out-for-10000-active_mem_bp
++++ a/mm/damon/lru_sort.c
+@@ -233,6 +233,8 @@ static int damon_lru_sort_add_quota_goal
+ 
+ 	if (!active_mem_bp)
+ 		return 0;
++	if (10000 < active_mem_bp)
++		return -EINVAL;
+ 	goal = damos_new_quota_goal(DAMOS_QUOTA_ACTIVE_MEM_BP, active_mem_bp);
+ 	if (!goal)
+ 		return -ENOMEM;
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
