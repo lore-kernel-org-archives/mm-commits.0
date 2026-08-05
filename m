@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0D4B03BF66B
-	for <mm-commits@vger.kernel.org>; Wed,  5 Aug 2026 02:24:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4E6453BF68D
+	for <mm-commits@vger.kernel.org>; Wed,  5 Aug 2026 02:24:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785896675; cv=none; b=JvzSuPcurWPu74pIEU4rpUbnGohZ+dWz0k+J+bbvwFmOGteDAnk6Axv6aRPT8zVFgVkQgwxuMBhbukh3loTYJHOPmxzcRtWUWC9QLiheGcKpZaeQRwMiZ+t/mdH/JlgEtMMQWhgGS33/FrmHUh3Z/R75Ld7M+DF01p09wo1bDP4=
+	t=1785896676; cv=none; b=EjIMJ1KqU2Um8GQPJbIrh88oSryv+c7RWv0x8fxX9zd2+eXYTn8rbUcBaPoGCpvRubiKC5e7YdbyKX7EveYlo43y3W2u+HhxVVbz5zhrvGojtEctyFIEuu+CxaIYb3KOl54HOPlGRPPs64xWq6zKviYrTwW05WofhrbYsEIBMn8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785896675; c=relaxed/simple;
-	bh=FboW8VuV2jEnjDRmthxPrkFarzX8mDWOzy7tm8mwY+s=;
-	h=Date:To:From:Subject:Message-Id; b=f9Bi67RZV1nYFILfT1/7Fijsk86HHlP0IgGfnAnQL6pPT1SyFAfOeYj3PqD7JNYyLLEtUPQWs5fC1pSLo6eKsjYn+GdlJqNwRaGin5xwxIFTbSFV20niA5MuUxZavAE2b+BgUopRhJBHJlgejju209wBKo/NOMVFTw3OvH8LFx8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=enVuh+xs; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785896676; c=relaxed/simple;
+	bh=xhNEGPeg4zSsoE2vVl1SDAryTp9dUi+LrLdqtwKwn0w=;
+	h=Date:To:From:Subject:Message-Id; b=kyZ1MxZmTS3js5uasgl+mhNcEpG7klCsreIAPWoQlrMRTH3hSA5JN9my9brtxcjsCu+KnhAkXTfDW3P8z2EYsDZez8xNxYjullUhk4s2aKqkm3OMvCL/venYJ2G/lGUlR4GdibuF9ucQCaxwQw8gkMi7LTNNDNPq2UCPomLKf1c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jXUqJMJQ; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="enVuh+xs"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7B6D41F00A3D;
-	Wed,  5 Aug 2026 02:24:31 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jXUqJMJQ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 17AF51F00A3A;
+	Wed,  5 Aug 2026 02:24:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785896671;
-	bh=Bt1xD7R8QBic1CcYHXq6RkeFPqhrDzqhijinrauSybY=;
+	d=linux-foundation.org; s=korg; t=1785896674;
+	bh=FBLKPJ6+Z6leDCFmWJI8F4cNomhbn4sMs2Dm6OovtvE=;
 	h=Date:To:From:Subject;
-	b=enVuh+xsiQyfacIyVd2TB2sTUpV+Ua5sIrmLVbN/UTxAK8w1m9qYJVJkjjjJR/Yz1
-	 KGYyzrlxn9ms8Ws0Cj6qeDhlTe8QeMMbebmH3CHZmzJ21pc5EiKpzgLDdQK1lV2ZfZ
-	 ATuL/ptJFrW7yxNyfY63dXtazghVJ3yWySXrrZH8=
-Date: Tue, 04 Aug 2026 19:24:30 -0700
+	b=jXUqJMJQEnE4qxiuFihzWSm7BQf0NwIc/IWKK3n7Y2JFiU9USwdH/MWvsB4DEcl+i
+	 4DnDR2iKFX7u+p/fW0d9G2ZntRxIOv9ye68b2d4P/5GoRhec21/nqy5CcebfuPQGYM
+	 KMJsvFp2bE5ogZmQBGPIHXW8s4QRjngYb4NhOUcM=
+Date: Tue, 04 Aug 2026 19:24:33 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-core-s-nr_accesses_for_new_attrs-nr_samples_for_new_attrs.patch removed from -mm tree
-Message-Id: <20260805022431.7B6D41F00A3D@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-core-handle-unreset-probe_hits-in-probe_hits_mvsum.patch removed from -mm tree
+Message-Id: <20260805022434.17AF51F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,59 +35,53 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/damon/core: s/nr_accesses_for_new_attrs/nr_samples_for_new_attrs/
+     Subject: mm/damon/core: handle unreset probe_hits in probe_hits_mvsum()
 has been removed from the -mm tree.  Its filename was
-     mm-damon-core-s-nr_accesses_for_new_attrs-nr_samples_for_new_attrs.patch
+     mm-damon-core-handle-unreset-probe_hits-in-probe_hits_mvsum.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/core: s/nr_accesses_for_new_attrs/nr_samples_for_new_attrs/
-Date: Wed, 8 Jul 2026 06:53:55 -0700
+Subject: mm/damon/core: handle unreset probe_hits in probe_hits_mvsum()
+Date: Wed, 8 Jul 2026 06:53:57 -0700
 
-damon_nr_accesses_for_new_attrs() can be used for not only nr_accesses but
-also any positive sample count, like probe_hits.  Rename to be able to be
-used for such general uses without confusion.
+If damon_update_monitoring_result() is called at the end of the
+aggregation interval, probe_hits is not reset.  That's because the value
+will be exposed to the user via damon_region_aggregated trace event.
 
-Link: https://lore.kernel.org/20260708135359.122587-6-sj@kernel.org
+Meanwhile, damon_probe_hits_mvsum() can be called in this state.  Due to
+its logic, it will return a value that is incorrectly high.  This could
+happen if the user requested DAMOS schemes applied regions sysfs files
+update exactly in the time sequence.
+
+The impact is minor, but better to avoid.  Check the timing and simply
+return the fully aggregated last_probe_hits, like
+damon_nr_accesses_mvsum() also does.  It is not 100% accurate since it is
+the last interval's aggregation.  But better than the value that is
+completely reset.
+
+Link: https://lore.kernel.org/20260708135359.122587-8-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/core.c |    9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ mm/damon/core.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/mm/damon/core.c~mm-damon-core-s-nr_accesses_for_new_attrs-nr_samples_for_new_attrs
+--- a/mm/damon/core.c~mm-damon-core-handle-unreset-probe_hits-in-probe_hits_mvsum
 +++ a/mm/damon/core.c
-@@ -890,22 +890,21 @@ static unsigned int damon_sample_count_t
- 	return mult_frac(count, 10000, damon_nr_samples_per_aggr(attrs));
- }
+@@ -290,6 +290,9 @@ unsigned char damon_probe_hits_mvsum(int
+ 			ctx->passed_sample_intervals;
+ 	left_window_bp = mult_frac(left_window, 10000, window_len);
  
--static unsigned int damon_nr_accesses_for_new_attrs(unsigned int nr_accesses,
-+static unsigned int damon_nr_samples_for_new_attrs(unsigned int nr,
- 		struct damon_attrs *old_attrs, struct damon_attrs *new_attrs)
- {
- 	return damon_sample_bp_to_count(
--			damon_sample_count_to_bp(nr_accesses, old_attrs),
--			new_attrs);
-+			damon_sample_count_to_bp(nr, old_attrs), new_attrs);
++	if (left_window_bp == 10000)
++		return r->last_probe_hits[probe_idx];
++
+ 	return damon_mvsum(r->probe_hits[probe_idx],
+ 			r->last_probe_hits[probe_idx], left_window_bp);
  }
- 
- static void damon_update_monitoring_result(struct damon_region *r,
- 		struct damon_attrs *old_attrs, struct damon_attrs *new_attrs,
- 		bool aggregating)
- {
--	r->last_nr_accesses = damon_nr_accesses_for_new_attrs(
-+	r->last_nr_accesses = damon_nr_samples_for_new_attrs(
- 			r->last_nr_accesses, old_attrs, new_attrs);
- 	if (!aggregating)
--		r->nr_accesses = damon_nr_accesses_for_new_attrs(
-+		r->nr_accesses = damon_nr_samples_for_new_attrs(
- 				r->nr_accesses, old_attrs, new_attrs);
- 	else
- 		/*
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
