@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 346943BE17B
-	for <mm-commits@vger.kernel.org>; Wed,  5 Aug 2026 02:23:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B49373BE17B
+	for <mm-commits@vger.kernel.org>; Wed,  5 Aug 2026 02:23:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785896616; cv=none; b=Zr8mBie+4nMS37zDDo1GaJzszXXxIJbPRYLDB2LtFzSVOfYu47WX7wcruC84sf6kh7NAibUx7S4lnXKmwLsDfpHC+5Yxmg9UF6xeMXFyZsSH/B90B1UNPeBKBo3kOf649PJjgnV1lDvD513hkhyiJ/OQEcb5V8W33fuHCPF9zHE=
+	t=1785896618; cv=none; b=FJR1DDl5ZShynGjV0ytpe+svukLhqs9wln5ceqnWvTI+0IR+hOm8WWvXJiP4UaThyCWFZ6bo1MeMjbM0NDcfk7wmHu/MCUULO4l9zBuyo3KBcFakmGcf0qFu/TQTxpOY642mLvVnfOXZZ6FiOp8FFBa3iU7F1D+DZ1f5pLA6iK8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785896616; c=relaxed/simple;
-	bh=Vr+VvRk90Z6pOkX89wx399tVkL+r0yFbC5Nbj07W/Eg=;
-	h=Date:To:From:Subject:Message-Id; b=NQZ3lgSPUW7DrRWMF+GKRouSRuytdSaJaiM1x0fBK93HIzz1eqr6kjIdMrVmmtIZCZHKFp6XGekQ8QeysrAgf+9qwEJXuMEwUU3qIU5wNOSXXe/fJsKMLkNhgaC4myxc8diTkSH39//u9BZ+80ba0MTi+sAtTZt6Q5u3vTGMMzM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Zs7lGUiI; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785896618; c=relaxed/simple;
+	bh=hfAWryaErWI7Ly8xY6JPx36VJrFCqMfrqurXop7Xd2o=;
+	h=Date:To:From:Subject:Message-Id; b=t0Vnohjxj3Ro4a6Z7ZIxbrEWYzAQNY6x/wFG4ErZ5XKMO2y/hZbT7gYfOhRTpHbeV0RC3o8Q2BVEjkPXJiBCGoNR6EPkOc+8QPDI2JWKqnjIG+VHn4DdrVyw/tNQordOgxOb4n1O4+1uT8rc0VFpT9JkGllnzKvArOwjBdBwOGI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hg8yuarI; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Zs7lGUiI"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F229E1F000E9;
-	Wed,  5 Aug 2026 02:23:34 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hg8yuarI"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 740D31F000E9;
+	Wed,  5 Aug 2026 02:23:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785896615;
-	bh=cs+P+OlFN8jyY6rbG9U8S49pdqhm+oVw+XRAH6bzedM=;
+	d=linux-foundation.org; s=korg; t=1785896616;
+	bh=LFOMor/PB2CdsQHohOg8M6dagPGsyq9Qtrr/vHkLDGg=;
 	h=Date:To:From:Subject;
-	b=Zs7lGUiIIZIH6MYFReofXS8aq9DDFr/lJcfoZYjCNNiWBB8L+rnN51O8tldmBVfOe
-	 CSka74iRtipZlBGbszF36CQVqZfCkJ4siWucyLdrX37G8dSl7OGyN/TW/9jUyPkuYU
-	 QALD2Os/TGII4B8sStfRDJb4++8xAVPSxA5RYyyE=
-Date: Tue, 04 Aug 2026 19:23:34 -0700
-To: mm-commits@vger.kernel.org,hughd@google.com,elver@google.com,baolin.wang@linux.alibaba.com,jaeyeon.lee.dev@gmail.com,akpm@linux-foundation.org
+	b=hg8yuarIQPq2gqGDnTps62OFUdhGRRNMNt9z6pguaKe9JqVnZ/OegBqg/zZYQJTq4
+	 7uLLQ8NlX24eWXV7jMTl+05asJKSQFp/vaq2yX51sse4Cje1q6rfxoTazujZXB0nMH
+	 7nHQNhKjKf5j0/2XtgEYgSCg75bRTMXwKdTcgS7c=
+Date: Tue, 04 Aug 2026 19:23:35 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,surenb@google.com,sj@kernel.org,seanjc@google.com,rppt@kernel.org,peterx@redhat.com,pbonzini@redhat.com,ljs@kernel.org,liam@infradead.org,jthoughton@google.com,david@kernel.org,corbet@lwn.net,aarcange@redhat.com,kas@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-shmem-annotate-benign-data-race-in-shmem_getattr.patch removed from -mm tree
-Message-Id: <20260805022334.F229E1F000E9@smtp.kernel.org>
+Subject: [merged mm-stable] mm-decouple-protnone-helpers-from-config_numa_balancing.patch removed from -mm tree
+Message-Id: <20260805022336.740D31F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,52 +35,383 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/shmem: annotate benign data-race in shmem_getattr()
+     Subject: mm: decouple protnone helpers from CONFIG_NUMA_BALANCING
 has been removed from the -mm tree.  Its filename was
-     mm-shmem-annotate-benign-data-race-in-shmem_getattr.patch
+     mm-decouple-protnone-helpers-from-config_numa_balancing.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Jaeyeon Lee <jaeyeon.lee.dev@gmail.com>
-Subject: mm/shmem: annotate benign data-race in shmem_getattr()
-Date: Wed, 8 Jul 2026 13:19:41 +0200
+From: "Kiryl Shutsemau (Meta)" <kas@kernel.org>
+Subject: mm: decouple protnone helpers from CONFIG_NUMA_BALANCING
+Date: Wed, 8 Jul 2026 12:14:02 +0100
 
-shmem_getattr() reads info->alloced, info->swapped and i_mapping->nrpages
-without info->lock to decide whether shmem_recalc_inode() should be
-called.  shmem_recalc_inode() recomputes these under info->lock, so a
-stale read here only affects whether shmem_recalc_inode() runs.
+Patch series "userfaultfd: working set tracking for VM guest memory", v10.
 
-Annotate data_race() to silence KCSAN.
+This series adds userfaultfd support for tracking the working set of VM
+guest memory, so a VMM can identify hot pages and reclaim cold ones to
+tiered or remote storage.
 
-Link: https://lore.kernel.org/20260708111941.35460-1-jaeyeon.lee.dev@gmail.com
-Signed-off-by: Jaeyeon Lee <jaeyeon.lee.dev@gmail.com>
-Reported-by: syzbot+dfb578404df369f6599b@syzkaller.appspotmail.com
-Closes: https://syzkaller.appspot.com/bug?extid=dfb578404df369f6599b
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Marco Elver <elver@google.com>
+
+This patch (of 15):
+
+pte_protnone() and pmd_protnone() detect present-but-inaccessible page
+table entries.  This capability is useful beyond NUMA balancing -- for
+example, userfaultfd working set tracking uses protnone PTEs to track page
+access without unmapping pages.
+
+Introduce CONFIG_ARCH_HAS_PTE_PROTNONE to decouple the protnone PTE
+infrastructure from CONFIG_NUMA_BALANCING.  The six architectures that
+support protnone PTEs (x86_64, arm64, powerpc, s390, riscv, loongarch) now
+select this option, and CONFIG_NUMA_BALANCING depends on it.
+
+No functional change -- the same set of architectures continues to have
+working protnone support, but the infrastructure is now available
+independently of NUMA balancing.
+
+Link: https://lore.kernel.org/20260708111417.173443-1-kirill@shutemov.name
+Link: https://lore.kernel.org/20260708111417.173443-2-kirill@shutemov.name
+Signed-off-by: Kiryl Shutsemau (Meta) <kas@kernel.org>
+Assisted-by: Claude:claude-opus-4-6
+Acked-by: SeongJae Park <sj@kernel.org>
+Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: James Houghton <jthoughton@google.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Liam Howlett <liam@infradead.org>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Paolo Bonzini <pbonzini@redhat.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Sean Christopherson <seanjc@google.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ arch/arm64/Kconfig                           |    1 
+ arch/arm64/include/asm/pgtable.h             |    7 +--
+ arch/loongarch/Kconfig                       |    1 
+ arch/loongarch/include/asm/pgtable.h         |    4 +-
+ arch/powerpc/include/asm/book3s/64/pgtable.h |    8 ++--
+ arch/powerpc/platforms/Kconfig.cputype       |    1 
+ arch/riscv/Kconfig                           |    1 
+ arch/riscv/include/asm/pgtable.h             |    7 +--
+ arch/s390/Kconfig                            |    1 
+ arch/s390/include/asm/pgtable.h              |    4 +-
+ arch/x86/Kconfig                             |    1 
+ arch/x86/include/asm/pgtable.h               |    8 +---
+ include/linux/pgtable.h                      |   32 +++++++++++------
+ init/Kconfig                                 |    8 ++++
+ mm/debug_vm_pgtable.c                        |    4 +-
+ 15 files changed, 52 insertions(+), 36 deletions(-)
 
---- a/mm/shmem.c~mm-shmem-annotate-benign-data-race-in-shmem_getattr
-+++ a/mm/shmem.c
-@@ -1297,7 +1297,8 @@ static int shmem_getattr(struct mnt_idma
- 	struct inode *inode = path->dentry->d_inode;
- 	struct shmem_inode_info *info = SHMEM_I(inode);
+--- a/arch/arm64/include/asm/pgtable.h~mm-decouple-protnone-helpers-from-config_numa_balancing
++++ a/arch/arm64/include/asm/pgtable.h
+@@ -553,10 +553,7 @@ static inline pte_t pte_swp_clear_uffd_w
+ }
+ #endif /* CONFIG_HAVE_ARCH_USERFAULTFD_WP */
  
--	if (info->alloced - info->swapped != inode->i_mapping->nrpages)
-+	/* Fast-path hint; recalc under info->lock corrects any stale read. */
-+	if (data_race(info->alloced - info->swapped != inode->i_mapping->nrpages))
- 		shmem_recalc_inode(inode, 0, 0);
+-#ifdef CONFIG_NUMA_BALANCING
+-/*
+- * See the comment in include/linux/pgtable.h
+- */
++#ifdef CONFIG_ARCH_HAS_PTE_PROTNONE
+ static inline int pte_protnone(pte_t pte)
+ {
+ 	/*
+@@ -575,7 +572,7 @@ static inline int pmd_protnone(pmd_t pmd
+ {
+ 	return pte_protnone(pmd_pte(pmd));
+ }
+-#endif
++#endif /* CONFIG_ARCH_HAS_PTE_PROTNONE */
  
- 	if (info->fsflags & FS_APPEND_FL)
+ #define pmd_present(pmd)	pte_present(pmd_pte(pmd))
+ #define pmd_dirty(pmd)		pte_dirty(pmd_pte(pmd))
+--- a/arch/arm64/Kconfig~mm-decouple-protnone-helpers-from-config_numa_balancing
++++ a/arch/arm64/Kconfig
+@@ -78,6 +78,7 @@ config ARM64
+ 	select ARCH_SUPPORTS_CFI
+ 	select ARCH_SUPPORTS_ATOMIC_RMW
+ 	select ARCH_SUPPORTS_INT128 if CC_HAS_INT128
++	select ARCH_HAS_PTE_PROTNONE
+ 	select ARCH_SUPPORTS_NUMA_BALANCING
+ 	select ARCH_SUPPORTS_PAGE_TABLE_CHECK
+ 	select ARCH_SUPPORTS_PER_VMA_LOCK
+--- a/arch/loongarch/include/asm/pgtable.h~mm-decouple-protnone-helpers-from-config_numa_balancing
++++ a/arch/loongarch/include/asm/pgtable.h
+@@ -623,7 +623,7 @@ static inline pmd_t pmdp_huge_get_and_cl
+ 
+ #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
+ 
+-#ifdef CONFIG_NUMA_BALANCING
++#ifdef CONFIG_ARCH_HAS_PTE_PROTNONE
+ static inline long pte_protnone(pte_t pte)
+ {
+ 	return (pte_val(pte) & _PAGE_PROTNONE);
+@@ -633,7 +633,7 @@ static inline long pmd_protnone(pmd_t pm
+ {
+ 	return (pmd_val(pmd) & _PAGE_PROTNONE);
+ }
+-#endif /* CONFIG_NUMA_BALANCING */
++#endif /* CONFIG_ARCH_HAS_PTE_PROTNONE */
+ 
+ #define pmd_leaf(pmd)		((pmd_val(pmd) & _PAGE_HUGE) != 0)
+ #define pud_leaf(pud)		((pud_val(pud) & _PAGE_HUGE) != 0)
+--- a/arch/loongarch/Kconfig~mm-decouple-protnone-helpers-from-config_numa_balancing
++++ a/arch/loongarch/Kconfig
+@@ -67,6 +67,7 @@ config LOONGARCH
+ 	select ARCH_SUPPORTS_LTO_CLANG
+ 	select ARCH_SUPPORTS_LTO_CLANG_THIN
+ 	select ARCH_SUPPORTS_MSEAL_SYSTEM_MAPPINGS
++	select ARCH_HAS_PTE_PROTNONE if 64BIT
+ 	select ARCH_SUPPORTS_NUMA_BALANCING if NUMA
+ 	select ARCH_SUPPORTS_PER_VMA_LOCK
+ 	select ARCH_SUPPORTS_RT
+--- a/arch/powerpc/include/asm/book3s/64/pgtable.h~mm-decouple-protnone-helpers-from-config_numa_balancing
++++ a/arch/powerpc/include/asm/book3s/64/pgtable.h
+@@ -490,13 +490,13 @@ static inline pte_t pte_clear_soft_dirty
+ }
+ #endif /* CONFIG_HAVE_ARCH_SOFT_DIRTY */
+ 
+-#ifdef CONFIG_NUMA_BALANCING
++#ifdef CONFIG_ARCH_HAS_PTE_PROTNONE
+ static inline int pte_protnone(pte_t pte)
+ {
+ 	return (pte_raw(pte) & cpu_to_be64(_PAGE_PRESENT | _PAGE_PTE | _PAGE_RWX)) ==
+ 		cpu_to_be64(_PAGE_PRESENT | _PAGE_PTE);
+ }
+-#endif /* CONFIG_NUMA_BALANCING */
++#endif /* CONFIG_ARCH_HAS_PTE_PROTNONE */
+ 
+ static inline bool pte_hw_valid(pte_t pte)
+ {
+@@ -1067,12 +1067,12 @@ static inline pte_t *pmdp_ptep(pmd_t *pm
+ #endif
+ #endif /* CONFIG_HAVE_ARCH_SOFT_DIRTY */
+ 
+-#ifdef CONFIG_NUMA_BALANCING
++#ifdef CONFIG_ARCH_HAS_PTE_PROTNONE
+ static inline int pmd_protnone(pmd_t pmd)
+ {
+ 	return pte_protnone(pmd_pte(pmd));
+ }
+-#endif /* CONFIG_NUMA_BALANCING */
++#endif /* CONFIG_ARCH_HAS_PTE_PROTNONE */
+ 
+ #define pmd_write(pmd)		pte_write(pmd_pte(pmd))
+ 
+--- a/arch/powerpc/platforms/Kconfig.cputype~mm-decouple-protnone-helpers-from-config_numa_balancing
++++ a/arch/powerpc/platforms/Kconfig.cputype
+@@ -87,6 +87,7 @@ config PPC_BOOK3S_64
+ 	select ARCH_ENABLE_HUGEPAGE_MIGRATION if HUGETLB_PAGE && MIGRATION
+ 	select ARCH_ENABLE_SPLIT_PMD_PTLOCK
+ 	select ARCH_SUPPORTS_HUGETLBFS
++	select ARCH_HAS_PTE_PROTNONE
+ 	select ARCH_SUPPORTS_NUMA_BALANCING
+ 	select HAVE_MOVE_PMD
+ 	select HAVE_MOVE_PUD
+--- a/arch/riscv/include/asm/pgtable.h~mm-decouple-protnone-helpers-from-config_numa_balancing
++++ a/arch/riscv/include/asm/pgtable.h
+@@ -534,10 +534,7 @@ static inline pte_t pte_swp_clear_soft_d
+ 					PAGE_SIZE)
+ #endif
+ 
+-#ifdef CONFIG_NUMA_BALANCING
+-/*
+- * See the comment in include/asm-generic/pgtable.h
+- */
++#ifdef CONFIG_ARCH_HAS_PTE_PROTNONE
+ static inline int pte_protnone(pte_t pte)
+ {
+ 	return (pte_val(pte) & (_PAGE_PRESENT | _PAGE_PROT_NONE)) == _PAGE_PROT_NONE;
+@@ -547,7 +544,7 @@ static inline int pmd_protnone(pmd_t pmd
+ {
+ 	return pte_protnone(pmd_pte(pmd));
+ }
+-#endif
++#endif /* CONFIG_ARCH_HAS_PTE_PROTNONE */
+ 
+ /* Modify page protection bits */
+ static inline pte_t pte_modify(pte_t pte, pgprot_t newprot)
+--- a/arch/riscv/Kconfig~mm-decouple-protnone-helpers-from-config_numa_balancing
++++ a/arch/riscv/Kconfig
+@@ -71,6 +71,7 @@ config RISCV
+ 	select ARCH_SUPPORTS_MSEAL_SYSTEM_MAPPINGS if 64BIT && MMU
+ 	select ARCH_SUPPORTS_PAGE_TABLE_CHECK if MMU
+ 	select ARCH_SUPPORTS_PER_VMA_LOCK if MMU
++	select ARCH_HAS_PTE_PROTNONE if MMU
+ 	select ARCH_SUPPORTS_RT
+ 	select ARCH_SUPPORTS_SHADOW_CALL_STACK if HAVE_SHADOW_CALL_STACK
+ 	select ARCH_SUPPORTS_SCHED_MC if SMP
+--- a/arch/s390/include/asm/pgtable.h~mm-decouple-protnone-helpers-from-config_numa_balancing
++++ a/arch/s390/include/asm/pgtable.h
+@@ -842,7 +842,7 @@ static inline int pte_same(pte_t a, pte_
+ 	return pte_val(a) == pte_val(b);
+ }
+ 
+-#ifdef CONFIG_NUMA_BALANCING
++#ifdef CONFIG_ARCH_HAS_PTE_PROTNONE
+ static inline int pte_protnone(pte_t pte)
+ {
+ 	return pte_present(pte) && !(pte_val(pte) & _PAGE_READ);
+@@ -853,7 +853,7 @@ static inline int pmd_protnone(pmd_t pmd
+ 	/* pmd_leaf(pmd) implies pmd_present(pmd) */
+ 	return pmd_leaf(pmd) && !(pmd_val(pmd) & _SEGMENT_ENTRY_READ);
+ }
+-#endif
++#endif /* CONFIG_ARCH_HAS_PTE_PROTNONE */
+ 
+ static inline bool pte_swp_exclusive(pte_t pte)
+ {
+--- a/arch/s390/Kconfig~mm-decouple-protnone-helpers-from-config_numa_balancing
++++ a/arch/s390/Kconfig
+@@ -148,6 +148,7 @@ config S390
+ 	select ARCH_SUPPORTS_HUGETLBFS
+ 	select ARCH_SUPPORTS_INT128 if CC_HAS_INT128 && CC_IS_CLANG
+ 	select ARCH_SUPPORTS_MSEAL_SYSTEM_MAPPINGS
++	select ARCH_HAS_PTE_PROTNONE
+ 	select ARCH_SUPPORTS_NUMA_BALANCING
+ 	select ARCH_SUPPORTS_PAGE_TABLE_CHECK
+ 	select ARCH_SUPPORTS_PER_VMA_LOCK
+--- a/arch/x86/include/asm/pgtable.h~mm-decouple-protnone-helpers-from-config_numa_balancing
++++ a/arch/x86/include/asm/pgtable.h
+@@ -985,11 +985,7 @@ static inline int pmd_present(pmd_t pmd)
+ 	return pmd_flags(pmd) & (_PAGE_PRESENT | _PAGE_PROTNONE | _PAGE_PSE);
+ }
+ 
+-#ifdef CONFIG_NUMA_BALANCING
+-/*
+- * These work without NUMA balancing but the kernel does not care. See the
+- * comment in include/linux/pgtable.h
+- */
++#ifdef CONFIG_ARCH_HAS_PTE_PROTNONE
+ static inline int pte_protnone(pte_t pte)
+ {
+ 	return (pte_flags(pte) & (_PAGE_PROTNONE | _PAGE_PRESENT))
+@@ -1001,7 +997,7 @@ static inline int pmd_protnone(pmd_t pmd
+ 	return (pmd_flags(pmd) & (_PAGE_PROTNONE | _PAGE_PRESENT))
+ 		== _PAGE_PROTNONE;
+ }
+-#endif /* CONFIG_NUMA_BALANCING */
++#endif /* CONFIG_ARCH_HAS_PTE_PROTNONE */
+ 
+ static inline int pmd_none(pmd_t pmd)
+ {
+--- a/arch/x86/Kconfig~mm-decouple-protnone-helpers-from-config_numa_balancing
++++ a/arch/x86/Kconfig
+@@ -124,6 +124,7 @@ config X86
+ 	select ARCH_SUPPORTS_DEBUG_PAGEALLOC
+ 	select ARCH_SUPPORTS_HUGETLBFS
+ 	select ARCH_SUPPORTS_PAGE_TABLE_CHECK	if X86_64
++	select ARCH_HAS_PTE_PROTNONE		if X86_64
+ 	select ARCH_SUPPORTS_NUMA_BALANCING	if X86_64
+ 	select ARCH_SUPPORTS_KMAP_LOCAL_FORCE_MAP	if NR_CPUS <= 4096
+ 	select ARCH_SUPPORTS_CFI		if X86_64
+--- a/include/linux/pgtable.h~mm-decouple-protnone-helpers-from-config_numa_balancing
++++ a/include/linux/pgtable.h
+@@ -2110,18 +2110,26 @@ static inline int pud_trans_unstable(pud
+ 	return 0;
+ }
+ 
+-#ifndef CONFIG_NUMA_BALANCING
++#ifndef CONFIG_ARCH_HAS_PTE_PROTNONE
+ /*
+- * In an inaccessible (PROT_NONE) VMA, pte_protnone() may indicate "yes". It is
+- * perfectly valid to indicate "no" in that case, which is why our default
+- * implementation defaults to "always no".
++ * In an inaccessible (PROT_NONE) VMA, pte_protnone() may indicate "yes". It
++ * is perfectly valid to indicate "no" in that case, which is why our
++ * default implementation defaults to "always no".
+  *
+- * In an accessible VMA, however, pte_protnone() reliably indicates PROT_NONE
+- * page protection due to NUMA hinting. NUMA hinting faults only apply in
+- * accessible VMAs.
++ * In an accessible VMA, pte_protnone() reliably indicates a present
++ * PROT_NONE page protection. Today the kernel uses such PTEs for two
++ * purposes: NUMA hinting faults, and userfaultfd RWP tracking on
++ * VM_UFFD_RWP VMAs. The two are distinguished by the uffd PTE bit and
++ * the VMA flag; see include/linux/userfaultfd_k.h.
+  *
+- * So, to reliably identify PROT_NONE PTEs that require a NUMA hinting fault,
+- * looking at the VMA accessibility is sufficient.
++ * So, to reliably identify PROT_NONE PTEs that require kernel handling,
++ * looking at the VMA accessibility (and the uffd bit on RWP VMAs) is
++ * sufficient.
++ *
++ * Architectures without CONFIG_ARCH_HAS_PTE_PROTNONE get the always-zero
++ * stubs below; PAGE_NONE references that survive to runtime fire the
++ * BUILD_BUG() fallback, since callers should have folded such paths to
++ * dead code via IS_ENABLED(CONFIG_ARCH_HAS_PTE_PROTNONE).
+  */
+ static inline int pte_protnone(pte_t pte)
+ {
+@@ -2132,7 +2140,11 @@ static inline int pmd_protnone(pmd_t pmd
+ {
+ 	return 0;
+ }
+-#endif /* CONFIG_NUMA_BALANCING */
++
++#ifndef PAGE_NONE
++#define PAGE_NONE ({ BUILD_BUG(); (pgprot_t){0}; })
++#endif
++#endif /* CONFIG_ARCH_HAS_PTE_PROTNONE */
+ 
+ #endif /* CONFIG_MMU */
+ 
+--- a/init/Kconfig~mm-decouple-protnone-helpers-from-config_numa_balancing
++++ a/init/Kconfig
+@@ -948,6 +948,13 @@ config SCHED_PROXY_EXEC
+ endmenu
+ 
+ #
++# For architectures that support present-but-inaccessible (PROT_NONE) page
++# table entries detectable via pte_protnone() / pmd_protnone():
++#
++config ARCH_HAS_PTE_PROTNONE
++	bool
++
++#
+ # For architectures that want to enable the support for NUMA-affine scheduler
+ # balancing logic:
+ #
+@@ -1013,6 +1020,7 @@ config ARCH_WANT_NUMA_VARIABLE_LOCALITY
+ config NUMA_BALANCING
+ 	bool "Memory placement aware NUMA scheduler"
+ 	depends on ARCH_SUPPORTS_NUMA_BALANCING
++	depends on ARCH_HAS_PTE_PROTNONE
+ 	depends on !ARCH_WANT_NUMA_VARIABLE_LOCALITY
+ 	depends on SMP && NUMA_MIGRATION && !PREEMPT_RT
+ 	help
+--- a/mm/debug_vm_pgtable.c~mm-decouple-protnone-helpers-from-config_numa_balancing
++++ a/mm/debug_vm_pgtable.c
+@@ -672,7 +672,7 @@ static void __init pte_protnone_tests(st
+ {
+ 	pte_t pte = pfn_pte(args->fixed_pte_pfn, args->page_prot_none);
+ 
+-	if (!IS_ENABLED(CONFIG_NUMA_BALANCING))
++	if (!IS_ENABLED(CONFIG_ARCH_HAS_PTE_PROTNONE))
+ 		return;
+ 
+ 	pr_debug("Validating PTE protnone\n");
+@@ -685,7 +685,7 @@ static void __init pmd_protnone_tests(st
+ {
+ 	pmd_t pmd;
+ 
+-	if (!IS_ENABLED(CONFIG_NUMA_BALANCING))
++	if (!IS_ENABLED(CONFIG_ARCH_HAS_PTE_PROTNONE))
+ 		return;
+ 
+ 	if (!has_transparent_hugepage())
 _
 
-Patches currently in -mm which might be from jaeyeon.lee.dev@gmail.com are
+Patches currently in -mm which might be from kas@kernel.org are
 
+selftests-mm-add-pagemap_scan-test-for-thp-pmd-holes.patch
+mm-huge_memory-remove-unused-can_split_folio.patch
+mm-huge_memory-fold-split_folio_to_list_to_order-into-split_folio_to_order.patch
+mm-fold-userfaultfd_rwp-to-false-without-config_arch_has_pte_protnone.patch
 
