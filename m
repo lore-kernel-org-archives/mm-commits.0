@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0DAA862809
-	for <mm-commits@vger.kernel.org>; Wed,  5 Aug 2026 01:13:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B0AA6266581
+	for <mm-commits@vger.kernel.org>; Wed,  5 Aug 2026 01:14:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785892389; cv=none; b=mn8yU4vDshf9AQBBmV3JDIqiGaiZ2tswszDoA44i+s+VEmCVkZ0lc7tb9/JZtw5cdxwPcFhiDIzMGUGtcaBmUxZSHtgsEDYcyS+VLnpNjCGJcw7NaUzGrkERPO7KkByA6pH/QkGak4Bf5u+KXEqn8Q9S2S+4+N9AqWCkgLalX9k=
+	t=1785892457; cv=none; b=I5THsBlSqIS3/idzeD9gUCt/GmBzbqv+1TwFn85oyu7mlm7c8TXhSL671l5Wc+aRJX/XOxU8aD+YYCTP8zssWblCMun4lZZ1Xmvsc0niIxgcCvSXmqP+0RNCXIx7fdeKRAxFqbQjgfOLz4NC1nPh6zSPl+19BFLuug41a7iipnk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785892389; c=relaxed/simple;
-	bh=jzdndW5fKCNEYNSNRdtX8R/dMdauDJwY9VROGvtlGcY=;
-	h=Date:To:From:Subject:Message-Id; b=HEr7t9dgksjfyk2Jw2YFBCFIm4BFGmSwIuQaXilyjv6l6nINtTHnD36txcJyWQQle5eWq2g3Cb/QUrbkchn4ds/1sj/7g4gGetvtKRGXlWTGWrP06KHw/e+MhOTPeFHAKPNfKJ3K46Gj7FO5gaZ6jPE78hIfGHjyOViaDZ5z7t0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=E6iWqXgf; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785892457; c=relaxed/simple;
+	bh=bxN82NwC2Jjm/eRJGpp11OHtoElDMUMxIgr3QXJucZA=;
+	h=Date:To:From:Subject:Message-Id; b=hrNq+owD8rXgIuUiefjebckrxm1IjowRYfQFMfQeu1jlo8Yy2w8lhO8RSFnIzdU0VvrRUnZwGP5dyF/xnWiVa0vhmFTNIIA4LZYlDN9m1pFyL5zPE6N+RfQeFqR19ugtQNuPYKSaV0giLR4AcLOYQHBFXumea1vms6W28fv55nk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=J6C6GqsF; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="E6iWqXgf"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6DB1D1F000E9;
-	Wed,  5 Aug 2026 01:13:07 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="J6C6GqsF"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4282D1F000E9;
+	Wed,  5 Aug 2026 01:14:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785892387;
-	bh=w8ThPSL4ZIokcMze6VUCwiGjau0PDlQBrjB03+77mFE=;
+	d=linux-foundation.org; s=korg; t=1785892455;
+	bh=1PzOuy16bWUqJN4Y+KVRrLyvBEkj+3ZcYfEbUYx3948=;
 	h=Date:To:From:Subject;
-	b=E6iWqXgfexgmQMUW9eLYduDhmaDy18cJOgEDLjr36+1ofCNN57hYa956bS1vKDYZV
-	 PajYIvAYsmcaRhzG0G6Bk9dXFs3EpB+osV4gPXlMM70aa5Hfl23qZhJO/aTioriMrr
-	 7a5hs+NCyTeJQt3GuQ9ud03BRrkVh3Lr97a8Ssvs=
-Date: Tue, 04 Aug 2026 18:13:07 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,urezki@gmail.com,tj@kernel.org,surenb@google.com,sj@kernel.org,pratyush@kernel.org,pasha.tatashin@soleen.com,osalvador@suse.de,muchun.song@linux.dev,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,jackmanb@google.com,hannes@cmpxchg.org,graf@amazon.com,glider@google.com,elver@google.com,dvyukov@google.com,dennis@kernel.org,david@kernel.org,brendan.jackman@linux.dev,rppt@kernel.org,akpm@linux-foundation.org
+	b=J6C6GqsFKFq68wVszjikYl1D1KOvKER1yO7+tpXwix30UPhKZBzYLn4lDzPKVkISc
+	 bq2WWZPGhFVPxXkOFaN+IbTiLaGidXMLMBlaK9IMz4OmasL9Ds0z1cBeJ8BZgJcQkK
+	 xcpt5ZRHT9JtmY8G1yKcc6yo8tTg28mcDu0eftI0=
+Date: Tue, 04 Aug 2026 18:14:14 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,tzimmermann@suse.de,sj@kernel.org,pfalcato@suse.de,m.szyprowski@samsung.com,ljs@kernel.org,liam@infradead.org,kai.huang@intel.com,gourry@gourry.net,david@kernel.org,ackerleytng@google.com,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-split-out-mm_init-and-memblock-declarations-from-internalh-fix.patch removed from -mm tree
-Message-Id: <20260805011307.6DB1D1F000E9@smtp.kernel.org>
+Subject: [folded-merged] mm-vma-add-and-use-vma__pgoff-fix.patch removed from -mm tree
+Message-Id: <20260805011415.4282D1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,132 +35,55 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: memblock tests: split stubfs from internal.h to mm_init.h
+     Subject: mm-vma-add-and-use-vma__pgoff-fix
 has been removed from the -mm tree.  Its filename was
-     mm-split-out-mm_init-and-memblock-declarations-from-internalh-fix.patch
+     mm-vma-add-and-use-vma__pgoff-fix.patch
 
-This patch was dropped because it was folded into mm-split-out-mm_init-and-memblock-declarations-from-internalh.patch
+This patch was dropped because it was folded into mm-vma-add-and-use-vma__pgoff.patch
 
 ------------------------------------------------------
-From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
-Subject: memblock tests: split stubfs from internal.h to mm_init.h
-Date: Sat, 11 Jul 2026 18:11:13 +0300
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-vma-add-and-use-vma__pgoff-fix
+Date: Fri Jul 17 08:03:43 PM PDT 2026
 
-Following the split of declarations from mm/internal.h to mm/mm_init.h
-update memblock tests to match the kernel core, otherwise they fail to
-build.
+use linear_page_delta() in __split_vma(), per Vlastimal & Lorenzo
 
-Link: https://lore.kernel.org/alJd1BLypyK9Mpaw@kernel.org
-Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Cc: Alexander Graf <graf@amazon.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Brendan Jackman <jackmanb@google.com>
-Cc: Brendan Jackman <brendan.jackman@linux.dev>
+Cc: Ackerley Tng <ackerleytng@google.com>
 Cc: David Hildenbrand (Arm) <david@kernel.org>
-Cc: Dennis Zhou <dennis@kernel.org>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Gregory Price <gourry@gourry.net>
+Cc: Kai Huang <kai.huang@intel.com>
+Cc: Liam R. Howlett (Oracle) <liam@infradead.org>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Marco Elver <elver@google.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
-Cc: Pratyush Yadav <pratyush@kernel.org>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: Pedro Falcato <pfalcato@suse.de>
 Cc: SJ Park <sj@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
+Cc: Thomas Zimmermann <tzimmermann@suse.de>
 Cc: Vlastimil Babka (SUSE) <vbabka@kernel.org>
 Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/memblock/internal.h |   20 --------------------
- tools/testing/memblock/mm_init.h  |   24 ++++++++++++++++++++++++
- 2 files changed, 24 insertions(+), 20 deletions(-)
+ mm/vma.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/tools/testing/memblock/internal.h~mm-split-out-mm_init-and-memblock-declarations-from-internalh-fix
-+++ a/tools/testing/memblock/internal.h
-@@ -28,22 +28,6 @@ static inline struct page *virt_to_page(
- 	return virt;
- }
+--- a/mm/vma.c~mm-vma-add-and-use-vma__pgoff-fix
++++ a/mm/vma.c
+@@ -556,7 +556,7 @@ __split_vma(struct vma_iterator *vmi, st
  
--void memblock_free_pages(unsigned long pfn, unsigned int order)
--{
--}
--
--static inline void accept_memory(phys_addr_t start, unsigned long size)
--{
--}
--
--unsigned long free_reserved_area(void *start, void *end, int poison, const char *s);
--void free_reserved_page(struct page *page);
--
--static inline bool deferred_pages_enabled(void)
--{
--	return false;
--}
--
- #define for_each_valid_pfn(pfn, start_pfn, end_pfn)			 \
- 	for ((pfn) = (start_pfn); (pfn) < (end_pfn); (pfn)++)
- 
-@@ -60,10 +44,6 @@ static inline bool __is_kernel(unsigned
- #define for_each_valid_pfn(pfn, start_pfn, end_pfn)                     \
-        for ((pfn) = (start_pfn); (pfn) < (end_pfn); (pfn)++)
- 
--static inline void init_deferred_page(unsigned long pfn, int nid)
--{
--}
--
- #define __SetPageReserved(p)	((void)(p))
- 
- #endif
-diff --git a/tools/testing/memblock/mm_init.h a/tools/testing/memblock/mm_init.h
-new file mode 100644
---- /dev/null
-+++ a/tools/testing/memblock/mm_init.h
-@@ -0,0 +1,24 @@
-+/* SPDX-License-Identifier: GPL-2.0-or-later */
-+#ifndef __MM_MM_INIT_H
-+#define __MM_MM_INIT_H
-+
-+void memblock_free_pages(unsigned long pfn, unsigned int order)
-+{
-+}
-+
-+static inline void accept_memory(phys_addr_t start, unsigned long size)
-+{
-+}
-+
-+unsigned long free_reserved_area(void *start, void *end, int poison, const char *s);
-+void free_reserved_page(struct page *page);
-+
-+static inline bool deferred_pages_enabled(void)
-+{
-+	return false;
-+}
-+
-+static inline void init_deferred_page(unsigned long pfn, int nid)
-+{
-+}
-+#endif /* __MM_MM_INIT_H */
+ 	if (new_below) {
+ 		vma->vm_start = addr;
+-		vma_add_pgoff(vma, (addr - new->vm_start) >> PAGE_SHIFT);
++		vma_add_pgoff(vma, linear_page_delta(new, addr));
+ 	} else {
+ 		vma->vm_end = addr;
+ 	}
 _
 
-Patches currently in -mm which might be from rppt@kernel.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-split-out-mm_init-and-memblock-declarations-from-internalh.patch
-mm-split-out-sparse-declarations-from-internalh.patch
-mm-split-out-vmalloc-declarations-from-internalh.patch
-sh-remove-config_numa-and-realted-configuration-options.patch
-sh-mm-remove-numac.patch
-sh-mm-drop-allocate_pgdat.patch
-sh-remove-setup_bootmem_node-and-plat_mem_setup.patch
-sh-drop-dead-code-guarded-by-ifdef-config_numa.patch
-sh-drop-include-asm-mmzoneh.patch
-init-kconfig-drop-arch_want_numa_variable_locality.patch
-sh-init-remove-call-the-memblock_set_node.patch
-sh-remove-sparsemem-related-entries-from-kconfig.patch
-sh-drop-include-asm-sparsememh.patch
+mm-hmm-make-config_hmm_mirror-select-config_mmu_notifier.patch
+mm-vma-add-and-use-vma__pgoff.patch
+alloc_tag-add-ioctl-to-proc-allocinfo-fix.patch
+mm-page_alloc-only-update-lowmem_reserve_ratio-on-sysctl-write-fix.patch
+drivers-media-v4l2-core-v4l2-vp9c-reduce-inlining.patch
 
