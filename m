@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 201923BFE47
-	for <mm-commits@vger.kernel.org>; Wed,  5 Aug 2026 02:25:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CB2763BFE3A
+	for <mm-commits@vger.kernel.org>; Wed,  5 Aug 2026 02:25:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785896710; cv=none; b=AOaaYUMJOz3RWsZgdn4A0AZ4BxTtviKVHM8BlyeiZZY3citrgCjYfGcVB/nyQw7Zt7DOQbk6SO+B3ToCrgRLc3/3jRWiuxzJKpRBIAYZ+wuaFneL8F1a3erFAQVXB/+OACb1sUnBCSkjYZsx0l69AiUFV8BdNpBgGIVV7PykXG8=
+	t=1785896712; cv=none; b=lEvEXHhhfLmuvZs3avF0OQL//CWNn93Ywgro965MwofcVsJaigZJ11lzYXY4zH7ELRoFI3DSW+7oqzKPq10ML1+PqWmP9iQKqzJyaVt1gjCoMCROclDBxN0K6DUNyNJpblSAm5McxtEA4KMDXYoPAUUTkgNKeTZx16Kp904sBX8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785896710; c=relaxed/simple;
-	bh=VgpFR5J/2iZmlSHJTucoxs81h2jUB3f4LojwAJok1U8=;
-	h=Date:To:From:Subject:Message-Id; b=apz2clbJuWGFwWUa/6yMFIdm8VJsz+t4HpcMwAcD1escXXPhFzAaBhnS9GBFFpwNJIAln8MYMOISOBxTmGMrGU574itAuPSzSNWW+YXH5Ts1O2KeYsAVGDH22wYg9CYKaPk25SFF7IP5WO3uQIHKRpgS/62VhNAr828Z0WD1mZ0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Bf89wpvH; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785896712; c=relaxed/simple;
+	bh=ROI9WwTF2XPep/Z1HG1ge8zgV/BNLzA7R8NX72xlrp8=;
+	h=Date:To:From:Subject:Message-Id; b=Tx6G1ni04ohI+u5wYkOMkv/JzO7iEjNP2oz7VV9O4PROObrTAUThMOVGNMNXgtLJSeeitMYy3PBspWlmbhYfOyMgiK24yv64xr9r96/ixdnmWdN7BUZoA3GCaaU9kQo4jQOJF4mwGh1fAeKxlVun0IIO18ZwVCyGfNmBAKFEaNc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BsM+Qq5X; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Bf89wpvH"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DE3691F00A3A;
-	Wed,  5 Aug 2026 02:25:08 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BsM+Qq5X"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4B2531F000E9;
+	Wed,  5 Aug 2026 02:25:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785896709;
-	bh=q4KcH2elV7Ypd10o0VEK4s8TXxGc7WSd0TtnBF04oQ4=;
+	d=linux-foundation.org; s=korg; t=1785896710;
+	bh=ydZJDQ7Mttamc1Bou8gXOJWTQAWK9uUBYeOv8tUOi1Q=;
 	h=Date:To:From:Subject;
-	b=Bf89wpvHOEXy+jsjGKVPhAuCjALwXFXaecyGQX/4A9TB76HrnTMRqn94lP9BpYq1W
-	 h3/ZWjxx6TtpOsHtt7+yt8qSot7w5n052iY3AhAq+K5Hh9qSchwvWaGQF4i1m0X+9M
-	 ZfnXXmbk7Y1JnKDaMhiBCa7YHw+k4sLvt28VK4a0=
-Date: Tue, 04 Aug 2026 19:25:08 -0700
+	b=BsM+Qq5X63PKtBpn/RtRxfRAenNHokuljFcMdg8hDGnAOvsZMbaolC8P+VSHXdIpd
+	 QvXBuJltRl3dGhqT9TFFN0Zk5ecaZlty1r6hrF5vUttI56yUAs9dGFTN6JQ0a8QXmA
+	 +HU2hDlGb07dv1NO4t5mbo0ZK7/g4H4DdnocWsqw=
+Date: Tue, 04 Aug 2026 19:25:09 -0700
 To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-paddr-respect-return_max_wsum.patch removed from -mm tree
-Message-Id: <20260805022508.DE3691F00A3A@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-core-use-abs_diff-instead-of-abs.patch removed from -mm tree
+Message-Id: <20260805022510.4B2531F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,22 +35,29 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/damon/paddr: respect return_max_wsum
+     Subject: mm/damon/core: use abs_diff() instead of abs()
 has been removed from the -mm tree.  Its filename was
-     mm-damon-paddr-respect-return_max_wsum.patch
+     mm-damon-core-use-abs_diff-instead-of-abs.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/paddr: respect return_max_wsum
-Date: Fri, 10 Jul 2026 06:46:35 -0700
+Subject: mm/damon/core: use abs_diff() instead of abs()
+Date: Fri, 10 Jul 2026 06:46:36 -0700
 
-apply_probes() ops implementation in DAMON_PADDR is ignoring
-return_max_wsum.  Respect it.
+Use of abs() in damon_merge_regions_of() could cause a silent integer
+overflow since the macro casts unsigned int to signed int.  It is unlikely
+to have such a large value for nr_accesses.  Even though it happens, the
+user impact is just degraded monitoring results.  Users showing bad
+monitoring results for weird setup is quite trivial.  But the code is
+obviously wrong.  Use abs_diff() instead.
 
-Link: https://lore.kernel.org/20260710134651.18084-7-sj@kernel.org
+The issue was discovered [1] by Sashiko.
+
+Link: https://lore.kernel.org/20260710134651.18084-8-sj@kernel.org
+Link: https://lore.kernel.org/20260705213817.100841-1-sj@kernel.org/ [1]
 Signed-off-by: SJ Park <sj@kernel.org>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
@@ -63,41 +70,29 @@ Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/paddr.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ mm/damon/core.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/damon/paddr.c~mm-damon-paddr-respect-return_max_wsum
-+++ a/mm/damon/paddr.c
-@@ -172,6 +172,7 @@ static unsigned int damon_pa_apply_probe
- 	struct damon_target *t;
- 	struct damon_region *r;
- 	struct damon_probe *p;
-+	unsigned int max_wsum = 0;
+--- a/mm/damon/core.c~mm-damon-core-use-abs_diff-instead-of-abs
++++ a/mm/damon/core.c
+@@ -3261,7 +3261,7 @@ static void damon_merge_regions_of(struc
+ 	struct damon_region *r, *prev = NULL, *next;
  
- 	damon_for_each_target(t, ctx) {
- 		damon_for_each_region(r, t) {
-@@ -182,7 +183,6 @@ static unsigned int damon_pa_apply_probe
- 			if (set_samples)
- 				r->sampling_addr = damon_rand(ctx, r->ar.start,
- 						r->ar.end);
--
- 			pa = damon_pa_phys_addr(r->sampling_addr,
- 					ctx->addr_unit);
- 			folio = damon_get_folio(PHYS_PFN(pa));
-@@ -193,9 +193,12 @@ static unsigned int damon_pa_apply_probe
- 			}
- 			if (folio)
- 				folio_put(folio);
-+			if (return_max_wsum)
-+				max_wsum = max(damon_probe_hits_wsum(r, false,
-+							ctx), max_wsum);
- 		}
- 	}
--	return 0;
-+	return max_wsum;
- }
+ 	damon_for_each_region_safe(r, next, t) {
+-		if (abs(r->nr_accesses - r->last_nr_accesses) > thres)
++		if (abs_diff(r->nr_accesses, r->last_nr_accesses) > thres)
+ 			r->age = 0;
+ 		else if ((r->nr_accesses == 0) != (r->last_nr_accesses == 0))
+ 			r->age = 0;
+@@ -3269,7 +3269,7 @@ static void damon_merge_regions_of(struc
+ 			r->age++;
  
- /*
+ 		if (prev && prev->ar.end == r->ar.start &&
+-		    abs(prev->nr_accesses - r->nr_accesses) <= thres &&
++		    abs_diff(prev->nr_accesses, r->nr_accesses) <= thres &&
+ 		    damon_sz_region(prev) + damon_sz_region(r) <= sz_limit)
+ 			damon_merge_two_regions(t, prev, r);
+ 		else
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
