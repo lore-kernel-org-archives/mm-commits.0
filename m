@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6E18236196A;
-	Wed,  5 Aug 2026 03:03:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F06233C10B6;
+	Wed,  5 Aug 2026 03:03:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785898983; cv=none; b=pHKlFLLJNI5gNT3fJlpCKlqNSFcqTp/0Qyz/HVuM/+ku5I/LkkIvr941/W4nllj4dz91OzcNY6nZqcv9mGNffmInF289WjkEJRK2AFtNtMYBk2jsNvweR529LmFScWy3LSnW96uztiCRdGtGZJejR/uJTCc2eNpzcXolyTkkxu4=
+	t=1785898985; cv=none; b=FoTDVZAo7iF/fOaER6vpq3Lv/R6st+fRIM1j8MfRzP0lpyQmnlsaGC0GdyWi/l2PJMocnyUPqXsCOBn2MRHHIubnTbX7ddXg/rNeDcnIbWK/l5XPmGxua7qOgZeLmb5kKqK8N/9UUvc4j5r/AY9wwCaaoq8RybsuBkmHPAlKJoI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785898983; c=relaxed/simple;
-	bh=wUm0150Ej5vP7ogB9C2HTpeqy+B8f/eEAxkqK6LqPlQ=;
-	h=Date:To:From:Subject:Message-Id; b=h31Wz26LgGo71wqo3y41Fm9V3pcdmW6R8Ek2PypdJsAfUTxYl1ORMI7hrSmI9JwMfNwyRJpcratwVRZa9E9RDaM4XkK7ySsu7wTL8xiRCfvLY0WEBfdg+9Y+QG+CmjC654fAL1JNzcH2GwXCOAweZqVpisbAPnzfI2Jg0L6QXUw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XBjjTY5d; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785898985; c=relaxed/simple;
+	bh=8qAzYKDSXQ/YZppdOSCXnmJXLJ/tY7GUghnER1w1GqU=;
+	h=Date:To:From:Subject:Message-Id; b=Do/6iPXcJrqTge4GHzdssaGOsbpo+V+ekmzWDChCzU6UgZqwWik3XAKob7ny3FOBwxE85dnwknl9AOBBxwJ0H0paOUCDR2SDviV9uw5ChpEnV52keDcpUNJq5qff4yXV1U2GPBbLYbYQ25djmra6tMfKzPbPMfwY2lVRCzBYU6s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qcyx/+mN; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XBjjTY5d"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 44F5C1F000E9;
-	Wed,  5 Aug 2026 03:03:02 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qcyx/+mN"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 973411F00A3A;
+	Wed,  5 Aug 2026 03:03:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785898982;
-	bh=4EL4rOY6KnFbyQl+FBmJRW5spuQMWifrLFmPeDBm6gY=;
+	d=linux-foundation.org; s=korg; t=1785898983;
+	bh=uBeAt8isLvJtuRBZcPq1/9bleDhCsuHkJb7u+stQvp0=;
 	h=Date:To:From:Subject;
-	b=XBjjTY5dGxFV6dhe0NTS2wvSMh2PkX+uJzHq4F2croc8jFPBdZKMa4p9YFsoczjlQ
-	 ZOQcybqRaDcDURjMaSVYE2h24YKkaH+fREekWKcZ9d4/jYPimQCgKkhuz7gYFT532K
-	 P/OonI8v6P2/lpHIe8+QKyq+svN0Ywy2I1bt+E+o=
-Date: Tue, 04 Aug 2026 20:03:01 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
+	b=qcyx/+mNLE5cLX9q8K0XIbN2NV7Fxtc48yE9JEYgnRH67kezV1Xt9gt1tllo+hduR
+	 ieH01q9NBnJ9IMYN3JvMRmoOJsRPAL6V/nZqZJ8yHtAX1DqZhLlJntXCJYc1GQQa47
+	 s6i/nBWxC26FwuG1lBRCzN4N9+TgiIHdZ8DEa9SU=
+Date: Tue, 04 Aug 2026 20:03:03 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,aethernet65535@gmail.com,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-damon-lru_sort-error-out-for-10000-active_mem_bp.patch removed from -mm tree
-Message-Id: <20260805030302.44F5C1F000E9@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-damon-reclaim-skip-damon_call-if-ctx-has-not-started.patch removed from -mm tree
+Message-Id: <20260805030303.973411F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,69 +35,87 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/damon/lru_sort: error out for >10000 active_mem_bp
+     Subject: mm/damon/reclaim: skip damon_call() if ctx has not started
 has been removed from the -mm tree.  Its filename was
-     mm-damon-lru_sort-error-out-for-10000-active_mem_bp.patch
+     mm-damon-reclaim-skip-damon_call-if-ctx-has-not-started.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/lru_sort: error out for >10000 active_mem_bp
-Date: Mon, 3 Aug 2026 06:40:33 -0700
+Subject: mm/damon/reclaim: skip damon_call() if ctx has not started
+Date: Mon, 3 Aug 2026 06:46:44 -0700
 
-damos_quota_score() can trigger division by zero if the target value is
-zero.  DAMON_LRU_SORT lets users set the target value for the hot memory
-scheme via active_mem_bp parameter.  It avoids setting it as the target
-value if the parameter value is zero.  However, it also sets the cold
-memory scheme with a target value that is calculated as '10000 -
-active_mem_bp + 2'.  Hence, if a user sets active_mem_bp 10002, the cold
-memory scheme's quota goal target value can be zero.  As a result,
-division by zero can be triggered.  Fix by returning an error when the
-user tries to start DAMON with >10000 active_mem_bp parameter value.
+Patch series "mm/damon/{reclaim,lru_sort}: fix commit_inputs infinite
+hang".
 
-It makes no sense to set active_mem_bp with 10002.  It also requires
-module parameters write permission to reproduce the issue.  That said, the
-consequence is quite bad.
+Writing 'Y' to commit_inputs parameters of DAMON_RECLAIM and
+DAMON_LRU_SORT before the modules were ever turned on causes infinite
+hang.  Fix those.
 
-One reliable way to reproduce the issue is like below:
+The issue was discovered [1] by Sashiko.
 
-    # cd /sys/module/damon_lru_sort/parameters
-    # echo 1000 > wmarks_high
-    # echo 995 > wmarks_mid
-    # echo 0 > wmarks_low
-    # echo 10002 > active_mem_bp
-    # echo Y > enabled
-    # dmesg -w
-    [...]
-    [  597.421247] Oops: divide error: 0000 [#1] SMP NOPTI
-    [  597.428848] RIP: 0010:damos_quota_score+0x6f/0x480
 
-This issue was discovered [1] by Sashiko.
+This patch (of 2):
 
-Link: https://lore.kernel.org/20260803134034.15217-3-sj@kernel.org
-Link: https://lore.kernel.org/20260801213028.5127-1-sj@kernel.org [1]
-Fixes: 40d98d31cd70 ("mm/damon/lru_sort: support active:inactive memory ratio based auto-tuning")
+DAMON_RECLAIM calls damon_call() for commit_inputs parameter user input if
+the DAMON context is initialized.  The context could be initialized, but
+not yet successfully started.  In the case, damon_call() could
+indefinitely hang.  Read the comment on damon_call() for more detail.  Fix
+the problem by memorizing if the DAMON context has ever successfully
+started, and skip damon_call() if it has not.
+
+This issue can easily be reproduced by writing Y to commit_inputs on a
+system that DAMON_RECLAIM was not turned on before.
+
+Link: https://lore.kernel.org/20260803134646.16640-1-sj@kernel.org
+Link: https://lore.kernel.org/20260803134646.16640-2-sj@kernel.org
+Link: https://lore.kernel.org/20260802173021.762-1-sj@kernel.org [1]
+Fixes: de3c60e1c831 ("mm/damon: add synchronous commit for commit_inputs")
 Signed-off-by: SJ Park <sj@kernel.org>
-Cc: <stable@vger.kernel.org> # 7.0.x
+Cc: Liew Rui Yan <aethernet65535@gmail.com>
+Cc: <stable@vger.kernel.org> # 7.2.x
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/lru_sort.c |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/damon/reclaim.c |   11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
---- a/mm/damon/lru_sort.c~mm-damon-lru_sort-error-out-for-10000-active_mem_bp
-+++ a/mm/damon/lru_sort.c
-@@ -233,6 +233,8 @@ static int damon_lru_sort_add_quota_goal
+--- a/mm/damon/reclaim.c~mm-damon-reclaim-skip-damon_call-if-ctx-has-not-started
++++ a/mm/damon/reclaim.c
+@@ -276,6 +276,8 @@ static int damon_reclaim_commit_inputs_f
+ 	return damon_reclaim_apply_parameters();
+ }
  
- 	if (!active_mem_bp)
++static bool damon_reclaim_damon_has_started;
++
+ static int damon_reclaim_commit_inputs_store(const char *val,
+ 					     const struct kernel_param *kp)
+ {
+@@ -296,11 +298,8 @@ static int damon_reclaim_commit_inputs_s
+ 	if (!commit_inputs_request)
  		return 0;
-+	if (10000 < active_mem_bp)
-+		return -EINVAL;
- 	goal = damos_new_quota_goal(DAMOS_QUOTA_ACTIVE_MEM_BP, active_mem_bp);
- 	if (!goal)
- 		return -ENOMEM;
+ 
+-	/*
+-	 * Skip damon_call() if ctx is not initialized to avoid
+-	 * NULL pointer dereference.
+-	 */
+-	if (!ctx)
++	/* Skip damon_call() if ctx has not successfully started. */
++	if (!damon_reclaim_damon_has_started)
+ 		return -EINVAL;
+ 
+ 	err = damon_call(ctx, &control);
+@@ -347,6 +346,8 @@ static int damon_reclaim_turn(bool on)
+ 	err = damon_start(&ctx, 1, true);
+ 	if (err)
+ 		return err;
++	if (!damon_reclaim_damon_has_started)
++		damon_reclaim_damon_has_started = true;
+ 	return damon_call(ctx, &call_control);
+ }
+ 
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
