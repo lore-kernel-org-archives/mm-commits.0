@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8C4A13C0611
-	for <mm-commits@vger.kernel.org>; Wed,  5 Aug 2026 02:26:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F203E3C0A10
+	for <mm-commits@vger.kernel.org>; Wed,  5 Aug 2026 02:26:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785896791; cv=none; b=kJbYypa6oCnnuGCMCG6oaBRw1HRaUm1gx03UI7refaWODYz9mQKIYXX97+AHjJ8QvRBaXyLXZGpaO7Mrl0kBIPVDLlmxeyYrTTp8alPw3lmHzWlOIMZQORQK8GW5WQNYmItk8BkdLgbyidCg8S/yHy4odpx9NbRtc+gA+NnLdzs=
+	t=1785896792; cv=none; b=Qj0JWvoQYDi29askhGes/t2xr6Czpsae96DDQ7pnxDl/0E2KNwvetLvTWWJhrHmd/GSm+oY0QcHRTku6rOQJc/Wh/iHZM6yK1/Si1K5gSgT6gM4QiUCTFsgJz/rV6QpZDjVyM47fN6JHtHAh+s03LC64wqojI/ZkpCQihUVvXyk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785896791; c=relaxed/simple;
-	bh=g2AyDXlBFVyptmv8MSrY62itlSjni00FNtU32e5k2IM=;
-	h=Date:To:From:Subject:Message-Id; b=uCduO/yXoz/OsunVWhhU+pPFb6VOjhary5+YtZO5AFqnKHREhsYsibC8twzYhQzfrDPhzh+xRdIgVbtrQKgW/+Yj3tkhyYCMXbNrPBCE1JD5L0nkO3jhVi2gSqALZ35A+tacvarqsMgaxlZ2JQ28FKSnKW/8tILgPzhkzTS0R6I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sJ5NM/FU; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785896792; c=relaxed/simple;
+	bh=LTOB7mQ/nC/Op4n9VX2PMtFxIzbcnVOX5yHc8q1gOow=;
+	h=Date:To:From:Subject:Message-Id; b=gAy8ftqT+G0Y+2MXYm/51/aQ5KXTq0IYCUCfZtYnwEdWf1eZzrKzImuyzePDIkTVWrM4mIhj2emHjg5THxpgNTaFhNFyXh6jGM7cQPp06wBTwVgVYFWzcs3RtJ7pfoKYkm7iKQ5uNWezVewhMxPIsjcaqf7edONwaO0ufnC5Kw8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=F1aXinbS; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sJ5NM/FU"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 559531F00A3A;
-	Wed,  5 Aug 2026 02:26:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="F1aXinbS"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BBA1A1F000E9;
+	Wed,  5 Aug 2026 02:26:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785896789;
-	bh=diDxDDVMnnNhmFYWU86uAkt95288iFZyBl2fK9NC6jQ=;
+	d=linux-foundation.org; s=korg; t=1785896790;
+	bh=Qnw/RCbCTQY878iErkyRNu32sfDoD/iK0CqPsMfEX/k=;
 	h=Date:To:From:Subject;
-	b=sJ5NM/FUXLyV5Esuc3k7+W0eiMgXDWNDbSAzGt//aOckiWMmsX76zQe/D2V6GvoBx
-	 bZMRkOAIzDvlTJJIw1hPDQ2eITxzwI3+adicuV0zDiZsGeftzN7MlM0A09jDnT9PJN
-	 PQFBbWFMGYKqVIdVheZ/bNqdPxC7g+oukmQgRjI0=
-Date: Tue, 04 Aug 2026 19:26:28 -0700
+	b=F1aXinbSewn1CDJJZZx/hSQjpZ1QyEi4B6b1d9BbQVYaTenEY1QeSaLOaWhcStc/o
+	 gL1IgS+Bn6Wcm3gQDNFeztpBileagbtNXxlsu6WzRyx4gODBXIKOnpNtBl4+6LKyp7
+	 9F9/oj/9NP1T/nrrVAUnXFAS6+EKqYQNPE6y8pcw=
+Date: Tue, 04 Aug 2026 19:26:30 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,tzimmermann@suse.de,sj@kernel.org,pfalcato@suse.de,m.szyprowski@samsung.com,liam@infradead.org,kai.huang@intel.com,gourry@gourry.net,david@kernel.org,ackerleytng@google.com,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-vma-update-vmg_adjust_set_range-to-offset-pgoff-instead.patch removed from -mm tree
-Message-Id: <20260805022629.559531F00A3A@smtp.kernel.org>
+Subject: [merged mm-stable] mm-vma-slightly-rework-the-anonymous-check-in-__mmap_new_vma.patch removed from -mm tree
+Message-Id: <20260805022630.BBA1A1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,41 +35,36 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/vma: update vmg_adjust_set_range() to offset pgoff instead
+     Subject: mm/vma: slightly rework the anonymous check in __mmap_new_vma()
 has been removed from the -mm tree.  Its filename was
-     mm-vma-update-vmg_adjust_set_range-to-offset-pgoff-instead.patch
+     mm-vma-slightly-rework-the-anonymous-check-in-__mmap_new_vma.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <ljs@kernel.org>
-Subject: mm/vma: update vmg_adjust_set_range() to offset pgoff instead
-Date: Fri, 10 Jul 2026 21:17:08 +0100
+Subject: mm/vma: slightly rework the anonymous check in __mmap_new_vma()
+Date: Fri, 10 Jul 2026 21:17:09 +0100
 
-We are calculating the pgoff as an offset, since we have vma_add_pgoff()
-and vma_sub_pgoff() available, just offset this value directly and use
-__vma_set_range() for vma->vm_[start, end] values.
+Determine if the VMA is anonymous early on, so we separate the logic which
+invokes callbacks from the rest of the logic.
 
-We take care to update the range before offsetting the page offset, so the
-adjusted VMA's vm_start and vm_pgoff are mutually consistent at the point
-the page offset helpers operate - this matters once vma_set_pgoff() comes
-to assert invariants which relate the two.
-
-Doing so lays the foundation for future work which allows for use of
-virtual page offsets for MAP_PRIVATE-file backed mappings.
+This is in order that a subsequent commit which asserts correct virtual
+page offset for anonymous mappings correctly asserts this for new anonymous
+mappings.
 
 No functional change intended.
 
-Link: https://lore.kernel.org/20260710-b4-pre-scalable-cow-v2-27-2a5aa403d977@kernel.org
+Link: https://lore.kernel.org/20260710-b4-pre-scalable-cow-v2-28-2a5aa403d977@kernel.org
 Signed-off-by: Lorenzo Stoakes <ljs@kernel.org>
-Reviewed-by: Pedro Falcato <pfalcato@suse.de>
 Reviewed-by: Gregory Price <gourry@gourry.net>
 Reviewed-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
 Cc: Ackerley Tng <ackerleytng@google.com>
 Cc: David Hildenbrand (Arm) <david@kernel.org>
 Cc: Kai Huang <kai.huang@intel.com>
 Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: Pedro Falcato <pfalcato@suse.de>
 Cc: SJ Park <sj@kernel.org>
 Cc: Thomas Zimmermann <tzimmermann@suse.de>
 Cc: Liam R. Howlett (Oracle) <liam@infradead.org>
@@ -77,48 +72,46 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vma.c |   15 ++++-----------
- 1 file changed, 4 insertions(+), 11 deletions(-)
+ mm/vma.c |   11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
 
---- a/mm/vma.c~mm-vma-update-vmg_adjust_set_range-to-offset-pgoff-instead
+--- a/mm/vma.c~mm-vma-slightly-rework-the-anonymous-check-in-__mmap_new_vma
 +++ a/mm/vma.c
-@@ -714,9 +714,6 @@ void validate_mm(struct mm_struct *mm)
-  */
- static void vmg_adjust_set_range(struct vma_merge_struct *vmg)
+@@ -2587,6 +2587,8 @@ static int __mmap_new_file_vma(struct mm
+ static int __mmap_new_vma(struct mmap_state *map, struct vm_area_struct **vmap,
+ 	struct mmap_action *action)
  {
--	struct vm_area_struct *adjust;
--	pgoff_t pgoff;
--
- 	if (vmg->__adjust_middle_start) {
- 		/*
- 		 * vmg->start    vmg->end
-@@ -735,8 +732,8 @@ static void vmg_adjust_set_range(struct
- 		struct vm_area_struct *middle = vmg->middle;
- 		const unsigned long delta = vmg->end - middle->vm_start;
++	const bool is_anon = !map->file &&
++		!vma_flags_test(&map->vma_flags, VMA_SHARED_BIT);
+ 	struct vma_iterator *vmi = map->vmi;
+ 	int error = 0;
+ 	struct vm_area_struct *vma;
+@@ -2601,6 +2603,10 @@ static int __mmap_new_vma(struct mmap_st
+ 		return -ENOMEM;
  
--		pgoff = vma_start_pgoff(middle) + (delta >> PAGE_SHIFT);
--		adjust = middle;
-+		__vma_set_range(middle, vmg->end, middle->vm_end);
-+		vma_add_pgoff(middle, delta >> PAGE_SHIFT);
- 	} else if (vmg->__adjust_next_start) {
- 		/*
- 		 *                Originally:
-@@ -764,13 +761,9 @@ static void vmg_adjust_set_range(struct
- 		struct vm_area_struct *next = vmg->next;
- 		const unsigned long delta = next->vm_start - vmg->end;
- 
--		pgoff = vma_start_pgoff(next) - (delta >> PAGE_SHIFT);
--		adjust = next;
--	} else {
--		return;
-+		__vma_set_range(next, vmg->end, next->vm_end);
-+		vma_sub_pgoff(next, delta >> PAGE_SHIFT);
+ 	vma_iter_config(vmi, map->addr, map->end);
++
++	if (is_anon)
++		vma_set_anonymous(vma);
++
+ 	vma_set_range(vma, map->addr, map->end, map->pgoff);
+ 	vma->flags = map->vma_flags;
+ 	vma->vm_page_prot = map->page_prot;
+@@ -2610,12 +2616,11 @@ static int __mmap_new_vma(struct mmap_st
+ 		goto free_vma;
  	}
--
--	vma_set_range(adjust, vmg->end, adjust->vm_end, pgoff);
- }
  
- /*
++	/* Invoke callbacks. */
+ 	if (map->file)
+ 		error = __mmap_new_file_vma(map, vma);
+-	else if (vma_flags_test(&map->vma_flags, VMA_SHARED_BIT))
++	else if (!is_anon)
+ 		error = shmem_zero_setup(vma);
+-	else
+-		vma_set_anonymous(vma);
+ 
+ 	if (error)
+ 		goto free_iter_vma;
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
