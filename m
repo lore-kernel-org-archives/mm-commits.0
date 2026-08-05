@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 391293BBFBE
-	for <mm-commits@vger.kernel.org>; Wed,  5 Aug 2026 02:22:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C8FDE24293C
+	for <mm-commits@vger.kernel.org>; Wed,  5 Aug 2026 02:22:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785896571; cv=none; b=oq3KMtPwmxfgs6u33t+WXUrdvCf49vQgi+fTPlTKOxeVzE1jbI+VlHmGpa4Coj48BKi3JnEwBoHTV2mzKu8ZrWtTJnNlxlKsllYY+JHV/DpPPnxa42CZLySg/SJdUV0UV7qPeeZxdGmYy3IJEtC4jpIriu9Gd4Cb1HLa5j/4hUE=
+	t=1785896574; cv=none; b=Lv0ChZcEGph4dx7uuVJF0PKBkyNUL7qXRTtPhxJY4bs82q+XjYOGmNv6TsWL6bhxTuBZmzwVNj42KstoyX/tadDJROlNSeVfIh0mCP0gZ75izJBFPAyIcrzc6fwhu8h5YspzXYFs5LWzE32NAcKAKO01PPIACdu4ItEiAKlSKNk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785896571; c=relaxed/simple;
-	bh=43aBLAXQH/+733equSa1576O1nODcqiM62hSbTHKAT0=;
-	h=Date:To:From:Subject:Message-Id; b=YOdqDbi9uDvMKZkDtyM4Mo2OEko0fy8hk4wTl8vmeKGksXsg4skhv/0R3fhUej8CR2rnVD9jzrtakxRJoTKWFwNGhkP91lASWMSRvvyJT9IL9mAQmEoQgXIO3iXQB3bMhMxXLVRfEaSGGBzf8Zqa6P8JeDY3dfofLbj2wWN/7Do=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=exBgDaKj; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785896574; c=relaxed/simple;
+	bh=mTvVeeWfh6XRFlPOV2yjc1Srqd+LPDH9ClUUz50Blk4=;
+	h=Date:To:From:Subject:Message-Id; b=ZPqu1AEmwfgpFSe24Cyx9OIC4dGrqC2mjMhhGTdECv6rjP3hpSi3+AM4++3pOUwCy0Q77qeZakF6MsOUprzYxzYi545bW52o2oRZ4UpyTRzJq8QckCrR7Lwa7uYAEDzWrZRaaAeOyn6cx7ZGqyuqHhjQWH3ml6mefYNKX4jzaTE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JKX3HaWc; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="exBgDaKj"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 036B61F00A3D;
-	Wed,  5 Aug 2026 02:22:49 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JKX3HaWc"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9285B1F00A3A;
+	Wed,  5 Aug 2026 02:22:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785896570;
-	bh=GWea+D088xEqqL94YylslpRWNRpdXuK2RR1n8xomSSg=;
+	d=linux-foundation.org; s=korg; t=1785896573;
+	bh=OVAvvAdY0st7eo81ib/hD8e0h4ZeiGk0NV4PEE7ZQyg=;
 	h=Date:To:From:Subject;
-	b=exBgDaKj0wUU5hH2wiyvdxChFkTq2AP1h/VZ07b7fBldbyIjm+j4iqDaz2uaeC9tb
-	 TVHGOpzpHYYnv4KIhKrouX0nTo0sKQ3EgWSMQqZOI8cEnUbrVY/Xj3/uX5+PSYHSGI
-	 YEfVuM1RaXhFIH/sAO5ZZIFTw3KROVHhdn5ROHbM=
-Date: Tue, 04 Aug 2026 19:22:49 -0700
+	b=JKX3HaWchIZBleE+rxSb4MIj7on8l2x/U4M+4cuIkGNye3QcJ0xnYZRybpq9gzrQX
+	 hgvmybqkPW75V9VxbxZURAoj1PYZExFlDwC4uCJEyT2Gt7W+OoTcA9gIPC/2uofGzG
+	 ZP3hPki9todbVVxcQbp7XO9+XX9PuPEoWrLlFspo=
+Date: Tue, 04 Aug 2026 19:22:53 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] samples-damon-mtier-do-not-stop-first-context-for-damon_start-failure.patch removed from -mm tree
-Message-Id: <20260805022250.036B61F00A3D@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-sysfs-ignore-damon_stop-return-value.patch removed from -mm tree
+Message-Id: <20260805022253.9285B1F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,42 +35,45 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: samples/damon/mtier: do not stop first context for damon_start() failure
+     Subject: mm/damon/sysfs: ignore damon_stop() return value
 has been removed from the -mm tree.  Its filename was
-     samples-damon-mtier-do-not-stop-first-context-for-damon_start-failure.patch
+     mm-damon-sysfs-ignore-damon_stop-return-value.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: samples/damon/mtier: do not stop first context for damon_start() failure
-Date: Mon, 6 Jul 2026 07:06:17 -0700
+Subject: mm/damon/sysfs: ignore damon_stop() return value
+Date: Mon, 6 Jul 2026 07:06:19 -0700
 
-damon_start() was able to fail while keeping the first context running. 
-mtier hence stops the first context in the case.  damon_start() is
-refactored to avoid that.  The error handling is no longer necessary. 
-Remove it.
+damon_stop() return value is guaranteed to be 0.  Ignore it.
 
-Link: https://lore.kernel.org/20260706140628.87414-3-sj@kernel.org
+Link: https://lore.kernel.org/20260706140628.87414-5-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- samples/damon/mtier.c |    2 --
- 1 file changed, 2 deletions(-)
+ mm/damon/sysfs.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/samples/damon/mtier.c~samples-damon-mtier-do-not-stop-first-context-for-damon_start-failure
-+++ a/samples/damon/mtier.c
-@@ -193,8 +193,6 @@ static int damon_sample_mtier_start(void
- 	if (!err)
- 		return 0;
+--- a/mm/damon/sysfs.c~mm-damon-sysfs-ignore-damon_stop-return-value
++++ a/mm/damon/sysfs.c
+@@ -2262,12 +2262,13 @@ static int damon_sysfs_turn_damon_off(st
+ {
+ 	if (!kdamond->damon_ctx)
+ 		return -EINVAL;
+-	return damon_stop(&kdamond->damon_ctx, 1);
++	damon_stop(&kdamond->damon_ctx, 1);
+ 	/*
+ 	 * To allow users show final monitoring results of already turned-off
+ 	 * DAMON, we free kdamond->damon_ctx in next
+ 	 * damon_sysfs_turn_damon_on(), or kdamonds_nr_store()
+ 	 */
++	return 0;
+ }
  
--	if (damon_is_running(ctxs[0]))
--		damon_stop(ctxs, 1);
- 	damon_destroy_ctx(ctxs[0]);
- 	damon_destroy_ctx(ctxs[1]);
- 	return err;
+ static int damon_sysfs_damon_call(int (*fn)(void *data),
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
