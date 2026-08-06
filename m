@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 28DA4425873
-	for <mm-commits@vger.kernel.org>; Thu,  6 Aug 2026 23:28:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 61A1C425873
+	for <mm-commits@vger.kernel.org>; Thu,  6 Aug 2026 23:28:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786058909; cv=none; b=aWCElk6ZuyeCH+IqrnisGgUu6wTRDDmj+xOGGD24aQETj2oN+ZdNXnF6GOSPFF2x7wZ8VDKmzqspSlB4dPkMgBKV1rRiwfyuT/KdJEtxo8YN/Eb28Bx80vQG6bbwFgykQUSpVEUqVwAEsQOsfjDGHkWuv/rIn9z7KTytSelwVqk=
+	t=1786058913; cv=none; b=Lmd1b1SoaqOkaLsCWsQdCPat5pmThFq2zk7I9FG87MPraraccjI3c7Va3CCOqaY409w3TdP7i91nQAKktMZXDAPpYwavmVtwLTxZGQq0s2ZkT2vuWl1HIl3wO4gGpGoG29oWA6fWzCKrSjG9UKvCjoAoVgqA9zzOyHwtxXp0h/4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786058909; c=relaxed/simple;
-	bh=i1UofNtmd3vTN/o7XyoVFEl551ER5wQJzo6/Ic7V5OU=;
-	h=Date:To:From:Subject:Message-Id; b=OkpOtYwDcs11k4H7c8rdmxiXjMH7lN7y4g5ZQo4+4B8+GqDIqzK+9iEkv7slqwhjlliPla5hwRuYP4BT5CSiah+ibgGJV/GQ9dzaJ++I5jrww6GZcignQJkJUdXvMocWcxaxMcfdpk+L/JfOLqjNs+rPLhOBYEqtWoa/juMLjdk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YogUTZHQ; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1786058913; c=relaxed/simple;
+	bh=tHGQnmFWrMhTrfK9fTEKY5lFGOVjDnjyjj75b+TyE7s=;
+	h=Date:To:From:Subject:Message-Id; b=c9CnDndd/aEk2Ijo+pcXavlSocZZ9OG/69j4p7TywoUqAUK9gqgAFwlNH6OBnsAdNcDLGttIOhWnItJVedogjQ3kpBUnZNmE8VP6yQWxttXUwElqyjzc+OKZOe0jVJiAAqiioF+VAk7Yj3lXNc6wDkD0/pqEI663SIDqElfcAi4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SVhyCmd7; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YogUTZHQ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A61FF1F000E9;
-	Thu,  6 Aug 2026 23:28:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SVhyCmd7"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0606E1F000E9;
+	Thu,  6 Aug 2026 23:28:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1786058907;
-	bh=5xHCrsUBXMnghYTH7cB1w+6opYvzoymhAKl7y8/ReC4=;
+	d=linux-foundation.org; s=korg; t=1786058911;
+	bh=0qZurm1bs18VAIiXjuxbBsOPaODD2tyRKzyIP1KgXR0=;
 	h=Date:To:From:Subject;
-	b=YogUTZHQpqWtHq0LteOTjbonVuPySrau/yF0zZ2dD3O2Qr/gpO3gyyKJrg99GAtLO
-	 N5gIzJh+6bobGLTgYF60sqXqyxBrmx+kk76AoPklkDCBkYNaBuykCBRddgikhSGptK
-	 AnVz6dsEwuFWICdIWJq2rqDpHz/tGoylpY90Hngg=
-Date: Thu, 06 Aug 2026 16:28:27 -0700
+	b=SVhyCmd7mHItOZqBfkdG8d5sgvugh0vi66y+rJfy3hw+CoOFScixk54VOcn8Gn+hI
+	 6RDWeEslRw5rkTQEFjWPFMwvflUZs+q/3TnqC9khv8XXW/PGBJWcWKSBaulWzVNMgt
+	 4N3yOsi79j6GUZaizVzFlkex3y1nf4Kzz2McZUZc=
+Date: Thu, 06 Aug 2026 16:28:30 -0700
 To: mm-commits@vger.kernel.org,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vma-fix-self-merge-check-in-copy_vma.patch added to mm-unstable branch
-Message-Id: <20260806232827.A61FF1F000E9@smtp.kernel.org>
+Subject: + tools-testing-vma-add-tests-for-copy_vma-self-merge.patch added to mm-unstable branch
+Message-Id: <20260806232831.0606E1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/vma: fix self-merge check in copy_vma()
+     Subject: tools/testing/vma: add tests for copy_vma() self-merge
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-vma-fix-self-merge-check-in-copy_vma.patch
+     tools-testing-vma-add-tests-for-copy_vma-self-merge.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vma-fix-self-merge-check-in-copy_vma.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/tools-testing-vma-add-tests-for-copy_vma-self-merge.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,65 +59,21 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: mm/vma: fix self-merge check in copy_vma()
-Date: Thu, 06 Aug 2026 21:21:32 +0100
+Subject: tools/testing/vma: add tests for copy_vma() self-merge
+Date: Thu, 06 Aug 2026 21:21:33 +0100
 
-The existing logic is very confusing so improve things.  Firstly rename
-the confusing faulted_in_anon_vma variable to can_self_merge and update
-this when the page offset is updated.
+Assert that a VMA can be moved backwards, forwards and between a preceding
+VMA and its old self.
 
-What is being checked for is a 'self-merge' - that is between the VMA
-being remapped and its prior VMA (remember that this is copy_vma() - if a
-non-MREMAP_DONTUNMAP remap the original VMA is only removed afterwards).
+In the cases in which the VMA merges only with itself expect that to be
+achieved by expanding its old self, so assert that these function
+correctly.
 
-This can happen if the VMA is moved immediately adjacent to itself, either
-before or after it:
+However in the case of a merge between a preceding VMA and itself the
+original VMA is removed, so assert that the preceding VMA replaces the one
+passed in as vmap and the merge is as expected.
 
-		|----------------|----------------|
-		|		 |                |
-		v		 |		  v
-	|...............||---------------||...............|
-	|      new      ||      old      ||      new      |
-	|...............||---------------||---------------|
-
-In these cases the old VMA is simply expanded to cover the new range.
-
-It is also possible for the move to both self-merge and merge with a prior
-VMA if it is placed between a preceding VMA and its old self:
-
-				|---------------|
-				|		|
-				v		|
-	|---------------||...............||---------------|
-	|      prev     ||     new       ||     old       |
-	|---------------||...............||---------------|
-
-In this case, the old VMA is removed and 'prev' is expanded and replaces
-it.
-
-Since copy_vma_and_data() which calls copy_vma() intends to reference the
-old VMA after the merge, it must have this pointer updated.
-
-This kind of self-merge is not possible with a succeeding merge, as the
-merge always prefers to expand the preceding VMA if possible.
-
-copy_vma() accounts for this by explicitly checking to see if a self-merge
-occurred and updating the vmap pointer if so.  However it incorrect did so
-even for a subsequent merge (this is simply a noop so it had no impact).
-
-So change this to only check for the case which matters - a backwards
-merge - and rearrange the parameters to make it clearer we're doing that -
-i.e.  check new_vma->vm_start < old_vma_start (having already renamed
-vma_start to old_vma_start to make it clear this is the previous VMA).
-
-Also update the existing wall-of-text comment to be a lot clearer.
-
-While we're here, replace the VM_BUG_ON_VMA() with a VM_WARN_ON_ONCE_VMA()
-and update the VMA userland tests accordingly.
-
-No functional change intended.
-
-Link: https://lore.kernel.org/20260806-b4-scalable-cow-virt-pgoff-v4-7-ab318a350404@kernel.org
+Link: https://lore.kernel.org/20260806-b4-scalable-cow-virt-pgoff-v4-8-ab318a350404@kernel.org
 Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Cc: Adrian Hunter <adrian.hunter@intel.com>
 Cc: Alexander Deucher <alexander.deucher@amd.com>
@@ -199,82 +155,64 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vma.c                         |   35 +++++++++++++----------------
- tools/testing/vma/vma_internal.h |    1 
- 2 files changed, 17 insertions(+), 19 deletions(-)
+ tools/testing/vma/tests/vma.c |   46 +++++++++++++++++++++++++++++++-
+ 1 file changed, 45 insertions(+), 1 deletion(-)
 
---- a/mm/vma.c~mm-vma-fix-self-merge-check-in-copy_vma
-+++ a/mm/vma.c
-@@ -1911,10 +1911,10 @@ struct vm_area_struct *copy_vma(struct v
- 	bool *need_rmap_locks)
- {
- 	struct vm_area_struct *vma = *vmap;
--	unsigned long vma_start = vma->vm_start;
-+	unsigned long old_vma_start = vma->vm_start;
- 	struct mm_struct *mm = vma->vm_mm;
- 	struct vm_area_struct *new_vma;
--	bool faulted_in_anon_vma = true;
-+	bool can_self_merge = false;
- 	VMA_ITERATOR(vmi, mm, addr);
- 	VMG_VMA_STATE(vmg, &vmi, NULL, vma, addr, addr + len);
+--- a/tools/testing/vma/tests/vma.c~tools-testing-vma-add-tests-for-copy_vma-self-merge
++++ a/tools/testing/vma/tests/vma.c
+@@ -33,7 +33,51 @@ static bool test_copy_vma(void)
+ 	struct mm_struct mm = {};
+ 	bool need_locks = false;
+ 	VMA_ITERATOR(vmi, &mm, 0);
+-	struct vm_area_struct *vma, *vma_new, *vma_next;
++	struct vm_area_struct *vma, *vma_prev, *vma_new, *vma_next, *vma_orig;
++
++	/* Move forwards, adjacent to old self - self-merge. */
++
++	vma = alloc_and_link_vma(&mm, 0x1000, 0x2000, 1, vma_flags);
++	vma_set_anonymous(vma);
++	vma_orig = vma;
++	vma_new = copy_vma(&vma, 0x2000, 0x1000, 1, &need_locks);
++	ASSERT_EQ(vma_new, vma_orig);
++	ASSERT_EQ(vma, vma_orig);
++	ASSERT_EQ(vma_new->vm_start, 0x1000);
++	ASSERT_EQ(vma_new->vm_end, 0x3000);
++
++	cleanup_mm(&mm, &vmi);
++
++	/* Move backwards, adjacent to old self - self-merge. */
++
++	vma = alloc_and_link_vma(&mm, 0x2000, 0x3000, 2, vma_flags);
++	vma_set_anonymous(vma);
++	vma_orig = vma;
++	vma_new = copy_vma(&vma, 0x1000, 0x1000, 2, &need_locks);
++	ASSERT_EQ(vma_new, vma_orig);
++	ASSERT_EQ(vma, vma_orig);
++	ASSERT_EQ(vma_new->vm_start, 0x1000);
++	ASSERT_EQ(vma_new->vm_end, 0x3000);
++
++	cleanup_mm(&mm, &vmi);
++
++	/*
++	 * Move backwards between prior VMA and old self - self-merge and vma
++	 * updated to a new VMA.
++	 */
++
++	vma_prev = alloc_and_link_vma(&mm, 0x1000, 0x2000, 1, vma_flags);
++	vma_set_anonymous(vma_prev);
++	vma = alloc_and_link_vma(&mm, 0x3000, 0x4000, 3, vma_flags);
++	vma_set_anonymous(vma);
++	vma_orig = vma;
++	vma_new = copy_vma(&vma, 0x2000, 0x1000, 3, &need_locks);
++	ASSERT_NE(vma_new, vma_orig);
++	ASSERT_EQ(vma_new, vma);
++	ASSERT_EQ(vma_new->vm_start, 0x1000);
++	ASSERT_EQ(vma_new->vm_end, 0x4000);
++
++	cleanup_mm(&mm, &vmi);
  
-@@ -1924,7 +1924,7 @@ struct vm_area_struct *copy_vma(struct v
- 	 */
- 	if (unlikely(vma_is_anonymous(vma) && !vma->anon_vma)) {
- 		pgoff = addr >> PAGE_SHIFT;
--		faulted_in_anon_vma = false;
-+		can_self_merge = true;
- 	}
+ 	/* Move backwards and do not merge. */
  
- 	/*
-@@ -1944,24 +1944,21 @@ struct vm_area_struct *copy_vma(struct v
- 	new_vma = vma_merge_copied_range(&vmg);
- 
- 	if (new_vma) {
--		/*
--		 * Source vma may have been merged into new_vma
--		 */
--		if (unlikely(vma_start >= new_vma->vm_start &&
--			     vma_start < new_vma->vm_end)) {
-+		/* Self-merged and VMA replaced. */
-+		if (unlikely(new_vma->vm_start < old_vma_start &&
-+			     new_vma->vm_end > old_vma_start)) {
- 			/*
--			 * The only way we can get a vma_merge with
--			 * self during an mremap is if the vma hasn't
--			 * been faulted in yet and we were allowed to
--			 * reset the dst vma->vm_pgoff to the
--			 * destination address of the mremap to allow
--			 * the merge to happen. mremap must change the
--			 * vm_pgoff linearity between src and dst vmas
--			 * (in turn preventing a vma_merge) to be
--			 * safe. It is only safe to keep the vm_pgoff
--			 * linear if there are no pages mapped yet.
-+			 * The only way a VMA can both self-merge and be
-+			 * replaced is if the remap places the new VMA
-+			 * immediately prior to its old self ('next') and
-+			 * immediately after another VMA ('prev') causing the
-+			 * next to be removed and prev to be expanded to cover
-+			 * the entire range.
-+			 *
-+			 * This should only be possible if the page offset was
-+			 * updated, i.e. the VMA is unfaulted.
- 			 */
--			VM_BUG_ON_VMA(faulted_in_anon_vma, new_vma);
-+			VM_WARN_ON_ONCE_VMA(!can_self_merge, new_vma);
- 			*vmap = vma = new_vma;
- 		}
- 		*need_rmap_locks =
---- a/tools/testing/vma/vma_internal.h~mm-vma-fix-self-merge-check-in-copy_vma
-+++ a/tools/testing/vma/vma_internal.h
-@@ -53,6 +53,7 @@ typedef __bitwise unsigned int vm_fault_
- 
- #define VM_WARN_ON(_expr) (WARN_ON(_expr))
- #define VM_WARN_ON_ONCE(_expr) (WARN_ON_ONCE(_expr))
-+#define VM_WARN_ON_ONCE_VMA(_expr, _vma) (WARN_ON_ONCE(_expr))
- #define VM_WARN_ON_VMG(_expr, _vmg) (WARN_ON(_expr))
- #define VM_BUG_ON(_expr) (BUG_ON(_expr))
- #define VM_BUG_ON_VMA(_expr, _vma) (BUG_ON(_expr))
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
