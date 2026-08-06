@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9618647F777
-	for <mm-commits@vger.kernel.org>; Thu,  6 Aug 2026 23:28:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C61FD490BE7
+	for <mm-commits@vger.kernel.org>; Thu,  6 Aug 2026 23:28:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786058923; cv=none; b=obVIFv2a/XEuEdYF/qvXk5pw8x+0rvuAYmJ8fkKOMWajrnzVpdwCbsK05ivb+srhNLt87OEUHJ+PlcYHZRzi80InvW2XCrC325FnWRllnXry4qwgMFFBr0R+gb9jSCGMvFvD90GFOqJ4luJYxxe38KEi8gTEYWIS9MEGQ+MYT0k=
+	t=1786058925; cv=none; b=GfoeOs26ewG/IN/8v6NYIUjtgEodRh/qxdzwTHe3z6R1HK0hh/M2kflTaVkZlP3Gt4W2K888doXoyUAgQw3aizfX6HEFEs2gtaFDoWTcdp85SrzevyapyRhaSgKEouHU2Ga3l4qLeoTidx00YVoVOs+KaqY8Mti/2trOi/xVC/s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786058923; c=relaxed/simple;
-	bh=bpwfCLimQhi6Bz1xsgAy2uY7Z1vPPzNwxeQ8ZECLxqU=;
-	h=Date:To:From:Subject:Message-Id; b=K7IYrSYDhvBVwnpe7S/RU6xMIHiyDS2RwDx1K56hu8CSQUT3oXRfUbgatlcKCh0E/9KP/kZJXqSqy5ghCWmoRk+eMZk6VZtHvMxSGaH4Fn17bEMiAZ3eetRA4rEdTPFILnrzeyUHoL5/AiSM9vMLKDjmKKP4ADDP6I4b/e5MBVM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=la7EiJB9; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1786058925; c=relaxed/simple;
+	bh=z2du9EVNBgtn0AwJhPI3nzkYFwKUJpCWhm7FdXZw6Ko=;
+	h=Date:To:From:Subject:Message-Id; b=JUITtITQ6qr4OCTyzpWlqGJnIBlXKq0FpTXgHmyowGkf+FItTtqpLzVZDw8QVL7GENHwHUg7W4QyxLp0ALDRxVASzWbUctyvYGWZdTnx9J2RUnW74dX24rXArK2BqpQEbmTSlEB5K/Tf6uFUpQIuu46lGxL3TD/DIXUs59Qc4ek=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=y5b0i6+B; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="la7EiJB9"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 15A3C1F000E9;
-	Thu,  6 Aug 2026 23:28:40 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="y5b0i6+B"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 67AF71F00A3A;
+	Thu,  6 Aug 2026 23:28:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1786058920;
-	bh=K8d9fDpgXHIyCUb2gD/L1AxerMfDeFFpxTpK1EokM7s=;
+	d=linux-foundation.org; s=korg; t=1786058923;
+	bh=JtyYEM5KVwjEt5/gSbGcyLNoJHXso/FXgYUA8k11R0g=;
 	h=Date:To:From:Subject;
-	b=la7EiJB9rhAR3onJTYY1LHNZJmvJw9tw4FtqWUOl9BlbbFYFApQC0Kj+q8CqRwVnw
-	 3ze5iApRxOB+M5iexo2pVn0xrTn15MZpaSkU8yX6Pumq2vt5SBDZZEYkJwOpEGOz6t
-	 pSi2JPEOCnE2DGlTRtwz5Xw1Ik6aWcPDo875JwjE=
-Date: Thu, 06 Aug 2026 16:28:39 -0700
+	b=y5b0i6+B1H0CRQFTal9uUloGm1pJzQanRbiDG+bIwYorquJ5U8hCzccefGiMnlafh
+	 cZZLrSPZLY/el6BAl6NzCyQB/Ak2QiohRP97uPgk2DvsZFHPzJ9owWoob5o/0Dk80A
+	 b91GmG/0cyibM/67ZhPFsRUzaLKUallEFM0tKFhE=
+Date: Thu, 06 Aug 2026 16:28:43 -0700
 To: mm-commits@vger.kernel.org,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-rmap-track-whether-the-page-vma-mapped-pgoff-is-anonymous.patch added to mm-unstable branch
-Message-Id: <20260806232840.15A3C1F000E9@smtp.kernel.org>
+Subject: + mm-clean-up-vma_address_end.patch added to mm-unstable branch
+Message-Id: <20260806232843.67AF71F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/rmap: track whether the page VMA mapped pgoff is anonymous
+     Subject: mm: clean up vma_address_end()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-rmap-track-whether-the-page-vma-mapped-pgoff-is-anonymous.patch
+     mm-clean-up-vma_address_end.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-rmap-track-whether-the-page-vma-mapped-pgoff-is-anonymous.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-clean-up-vma_address_end.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,27 +59,23 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: mm/rmap: track whether the page VMA mapped pgoff is anonymous
-Date: Thu, 06 Aug 2026 21:21:35 +0100
+Subject: mm: clean up vma_address_end()
+Date: Thu, 06 Aug 2026 21:21:36 +0100
 
-Update the page_vma_mapped_walk structure to track whether the pgoff being
-tracked is an anonymous pgoff or not and update the comments to reflect
-this.
+vma_address_end() is a confusing function with a lot of moving parts so
+clean it up prior to extending it for anon page indexed mappings.
 
-This is necessary in order to determine the correct VMA page offset in
-vma_address_end() when pvmw->nr_pages > 1.
+Const-ify some variables and establish pgoff_vma_start and pgoff_end
+variables to clearly identify the page offset for the start of the VMA and
+the end of the page offset range specified by the page walk.
 
-Also document that pvmw->pgoff is meaningless for pvmw->nr_pages == 1 and
-for KSM.
-
-Do not set this field where pgoff is not specified.
-
-This is laying the groundwork for eventually using anonymous page offsets
-as the index for all anonymous folios.
+This simplifies the function significantly and lays the groundwork for a
+future change to update this function to account for anonymously page
+indexed folios.
 
 No functional change intended.
 
-Link: https://lore.kernel.org/20260806-b4-scalable-cow-virt-pgoff-v4-10-ab318a350404@kernel.org
+Link: https://lore.kernel.org/20260806-b4-scalable-cow-virt-pgoff-v4-11-ab318a350404@kernel.org
 Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Cc: Adrian Hunter <adrian.hunter@intel.com>
 Cc: Alexander Deucher <alexander.deucher@amd.com>
@@ -161,54 +157,41 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/rmap.h |    4 +++-
- mm/rmap.c            |    2 ++
- 2 files changed, 5 insertions(+), 1 deletion(-)
+ mm/internal.h |   12 +++++++-----
+ 1 file changed, 7 insertions(+), 5 deletions(-)
 
---- a/include/linux/rmap.h~mm-rmap-track-whether-the-page-vma-mapped-pgoff-is-anonymous
-+++ a/include/linux/rmap.h
-@@ -864,13 +864,14 @@ struct page *make_device_exclusive(struc
- struct page_vma_mapped_walk {
- 	unsigned long pfn;
- 	unsigned long nr_pages;
+--- a/mm/internal.h~mm-clean-up-vma_address_end
++++ a/mm/internal.h
+@@ -1091,22 +1091,24 @@ static inline unsigned long vma_anon_add
+ }
+ 
+ /*
+- * Then at what user virtual address will none of the range be found in vma?
++ * At what user virtual address will none of the range be found in vma?
+  * Assumes that vma_address() already returned a good starting address.
+  */
+ static inline unsigned long vma_address_end(struct page_vma_mapped_walk *pvmw)
+ {
+-	struct vm_area_struct *vma = pvmw->vma;
 -	pgoff_t pgoff;
-+	pgoff_t pgoff;	/* Only meaningful if nr_pages > 1 and not a KSM walk */
- 	struct vm_area_struct *vma;
++	const pgoff_t pgoff_end = pvmw->pgoff + pvmw->nr_pages;
++	const struct vm_area_struct *vma = pvmw->vma;
++	pgoff_t pgoff_vma_start;
  	unsigned long address;
- 	pmd_t *pmd;
- 	pte_t *pte;
- 	spinlock_t *ptl;
- 	unsigned int flags;
-+	bool pgoff_is_anon : 1;
- };
  
- #define DEFINE_FOLIO_VMA_WALK(name, _folio, _vma, _address, _flags)	\
-@@ -881,6 +882,7 @@ struct page_vma_mapped_walk {
- 		.vma = _vma,						\
- 		.address = _address,					\
- 		.flags = _flags,					\
-+		.pgoff_is_anon = folio_test_anon(_folio),		\
- 	}
+ 	/* Common case, plus ->pgoff is invalid for KSM */
+ 	if (pvmw->nr_pages == 1)
+ 		return pvmw->address + PAGE_SIZE;
  
- static inline void page_vma_mapped_walk_done(struct page_vma_mapped_walk *pvmw)
---- a/mm/rmap.c~mm-rmap-track-whether-the-page-vma-mapped-pgoff-is-anonymous
-+++ a/mm/rmap.c
-@@ -1240,6 +1240,7 @@ static bool mapping_wrprotect_range_one(
- 		.vma		= vma,
- 		.address	= address,
- 		.flags		= PVMW_SYNC,
-+		.pgoff_is_anon	= false,
- 	};
- 
- 	state->cleaned += page_vma_mkclean_one(&pvmw);
-@@ -1317,6 +1318,7 @@ int pfn_mkclean_range(unsigned long pfn,
- 		.pgoff		= pgoff,
- 		.vma		= vma,
- 		.flags		= PVMW_SYNC,
-+		.pgoff_is_anon	= false,
- 	};
- 
- 	if (invalid_mkclean_vma(vma, NULL))
+-	pgoff = pvmw->pgoff + pvmw->nr_pages;
++	pgoff_vma_start = vma_start_pgoff(vma);
++
+ 	address = vma->vm_start +
+-		((pgoff - vma_start_pgoff(vma)) << PAGE_SHIFT);
++		((pgoff_end - pgoff_vma_start) << PAGE_SHIFT);
+ 	/* Check for address beyond vma (or wrapped through 0?) */
+ 	if (address < vma->vm_start || address > vma->vm_end)
+ 		address = vma->vm_end;
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
