@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 479863C73C9
-	for <mm-commits@vger.kernel.org>; Thu,  6 Aug 2026 23:13:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D9324440A00
+	for <mm-commits@vger.kernel.org>; Thu,  6 Aug 2026 23:13:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786058037; cv=none; b=irjEiW7+Jt0ZdszXEQ9kn5QT/fHo37YolsXiU3Sm2IRcHCgprGqDIK2Kii/T6RRYfl8JpDInPkOigh1e/8LSw5u0oDtLB7hMT3qj6Q2R7xHXs94SsF2Ne3KSDoS2Cm3UjKrOsjmV2QvK6+KpXdcCPO+A/+5dxQc5GUUE5rwtmM8=
+	t=1786058039; cv=none; b=YEGcPJ37flK0fauRC88bQF6e5QhVVmHUG0L+1bZN8vIntzeJsC5+GRrHWYqeg/75CdVJPaAH+A0cwwY0i/5Q9MTQmw77naowawFoFn91gM+2Gt0oLlK+PMxqjLSzWHsqlwx76LnW/odbs3Gu/RnoMK4k6tfPEMnbXsbh+aNydHY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786058037; c=relaxed/simple;
-	bh=N7rJ2SRTQ9DNtFnt/h5eZ6Vg7i9xML5gmIPtKiTaHMI=;
-	h=Date:To:From:Subject:Message-Id; b=KDtj3W+ix8sHsjDgJEc+GfGLsPjWwH2SEQ+/qznA9xKLnpFQ/VrHEax1YC4UxJS2SyC34fr4yYU1IEcLO2iiAwTTQBAe5P0sbcFPeUv8aJAOG5nknUzwPMISBgucLHre/V+/vVcJv5w+sLR1HFA4uy45Ob6w7K6lGYb+X07lVig=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hs7IkbyU; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1786058039; c=relaxed/simple;
+	bh=O4jjpvPl4BmLO/i3ZQd3VaNL+pdrFcTC76bDzR/GjQs=;
+	h=Date:To:From:Subject:Message-Id; b=C5lY1Q5Kd38rPu/vvrtxbSFfM1Q9HNUoqMqtixKAGO06mvVIBjxibFz4mVNSJbCzik95AoOilD4kBur1rPWgXIYLSWKwpCPTdXk6GU+iFE6o92/H5j8J+Iur57Yx3fc4CVfjnk5xMB3j9BUl61qP+7Q0i0tyEiPRKwBxaPEI2bA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Flwr066U; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hs7IkbyU"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E04BC1F00A3A;
-	Thu,  6 Aug 2026 23:13:55 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Flwr066U"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 72E551F000E9;
+	Thu,  6 Aug 2026 23:13:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1786058036;
-	bh=RtVwSgqOrXTCfE+l3jYTYRkCbBjesT/hvmbiVVThhf4=;
+	d=linux-foundation.org; s=korg; t=1786058037;
+	bh=aYiTeL+jP54YNgnhzLYrD1ggT513I5sgwrvGGmUNvt0=;
 	h=Date:To:From:Subject;
-	b=hs7IkbyUeLgXq8FweYto5tG28JaHqaNiuNSp6mEUJFslvv8rG7M278EFlqphy4nrl
-	 K3NkUMljsKxSsI6UL+OaJVTyJIOS4BZVMXuYc3rj1OqqX3Mzh9fJxulVIuBNPuJOEV
-	 cS71asztvVWe2pQGgUez+1kwb5BQTTxcdoTTPcI0=
-Date: Thu, 06 Aug 2026 16:13:55 -0700
+	b=Flwr066UbxFzLL0OGH69JsqEL6LTbkEUkhCFUnr8Fd6Rc1TzqnYsqae/gS4XEZs9b
+	 pPBZlSnp9li3Gqcu1yEWW1x1P5epidSoY57AeYHu7XsP5ufghwlEDqpFm+vEWHnOYE
+	 as0qgTv/VdpXbsKWpiQNY3ee0eN/GHFMcR3qAMfA=
+Date: Thu, 06 Aug 2026 16:13:57 -0700
 To: mm-commits@vger.kernel.org,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-introduce-linear_virt_page_index.patch removed from -mm tree
-Message-Id: <20260806231355.E04BC1F00A3A@smtp.kernel.org>
+Subject: [to-be-updated] mm-abstract-vma_address-and-introduce-vma_anon_address.patch removed from -mm tree
+Message-Id: <20260806231357.72E551F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,43 +35,36 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: introduce linear_virt_page_index()
+     Subject: mm: abstract vma_address() and introduce vma_anon_address()
 has been removed from the -mm tree.  Its filename was
-     mm-introduce-linear_virt_page_index.patch
+     mm-abstract-vma_address-and-introduce-vma_anon_address.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: mm: introduce linear_virt_page_index()
-Date: Mon, 20 Jul 2026 15:38:28 +0100
+Subject: mm: abstract vma_address() and introduce vma_anon_address()
+Date: Mon, 20 Jul 2026 15:38:29 +0100
 
-This function provides the virtual equivalent of linear_page_index(),
-instead offsetting based on the virtual page offset of the VMA.
+Introduce __vma_address() which abstracts the VMA start page offset field
+as pgoff_start, then update vma_address() to use it.
 
-It is valid only for anonymous or MAP_PRIVATE file-backed mappings.  It
-must not be called for shared file-backed mappings.
+Then introduce vma_anon_address() which does the equivalent of
+vma_address(), only using the virtual page offset of the VMA rather than
+the file-backed one.
 
-For pure anon VMAs, this will be equal to linear_page_index().
+Also add an assert to ensure that the function is not called for mappings
+which are file-backed but not MAP_PRIVATE to ensure it is only used in the
+correct places.
 
-We implement the algorithm in __linear_virt_page_index(), which is
-provided for internal mm code that might be interacting with shared VMAs.
+This will be necessary for determining the address of a folio's index
+within a VMA when the folio belongs to a MAP_PRIVATE file-backed VMA but
+has been CoW'd, and thus is anonymous, once the anonymous VMA page offset
+field is used for the reverse mapping.
 
-In linear_virt_page_index() we assert that both of these invariants are
-true.
+No callers are updated, so no functional change intended.
 
-Note that MAP_PRIVATE-/dev/zero mappings will satisfy vma_is_anonymous()
-but not fulfill this invariant, so when asserting this we check
-vma->vm_file to account for this.
-
-We do not update callsites yet, so no functional change intended.
-
-Also const-ify vma_is_anonymous() to make it compatible with the
-const-ified linear_virt_page_index().
-
-VMA userland tests are updated accordingly.
-
-Link: https://lore.kernel.org/20260720-b4-scalable-cow-virt-pgoff-v2-2-2d549757a76f@kernel.org
+Link: https://lore.kernel.org/20260720-b4-scalable-cow-virt-pgoff-v2-3-2d549757a76f@kernel.org
 Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Arnd Bergmann <arnd@arndb.de>
@@ -110,111 +103,75 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h              |    2 -
- include/linux/pagemap.h         |   42 ++++++++++++++++++++++++++++++
- tools/testing/vma/include/dup.h |   25 +++++++++++++++++
- 3 files changed, 67 insertions(+), 2 deletions(-)
+ mm/internal.h |   49 ++++++++++++++++++++++++++++++++++++------------
+ 1 file changed, 37 insertions(+), 12 deletions(-)
 
---- a/include/linux/mm.h~mm-introduce-linear_virt_page_index
-+++ a/include/linux/mm.h
-@@ -1556,7 +1556,7 @@ static inline void vma_desc_set_anonymou
- 	desc->vm_ops = NULL;
- }
+--- a/mm/internal.h~mm-abstract-vma_address-and-introduce-vma_anon_address
++++ a/mm/internal.h
+@@ -1017,19 +1017,9 @@ void mlock_drain_remote(int cpu);
  
--static inline bool vma_is_anonymous(struct vm_area_struct *vma)
-+static inline bool vma_is_anonymous(const struct vm_area_struct *vma)
+ extern pmd_t maybe_pmd_mkwrite(pmd_t pmd, struct vm_area_struct *vma);
+ 
+-/**
+- * vma_address - Find the virtual address a page range is mapped at
+- * @vma: The vma which maps this object.
+- * @pgoff: The page offset within its object.
+- * @nr_pages: The number of pages to consider.
+- *
+- * If any page in this range is mapped by this VMA, return the first address
+- * where any of these pages appear.  Otherwise, return -EFAULT.
+- */
+-static inline unsigned long vma_address(const struct vm_area_struct *vma,
+-		pgoff_t pgoff, unsigned long nr_pages)
++static inline unsigned long __vma_address(const struct vm_area_struct *vma,
++		pgoff_t pgoff, pgoff_t pgoff_start, unsigned long nr_pages)
  {
- 	return !vma->vm_ops;
- }
---- a/include/linux/pagemap.h~mm-introduce-linear_virt_page_index
-+++ a/include/linux/pagemap.h
-@@ -1101,6 +1101,48 @@ static inline pgoff_t linear_page_index(
- 	return pgoff;
+-	const pgoff_t pgoff_start = vma_start_pgoff(vma);
+ 	unsigned long address;
+ 
+ 	if (pgoff >= pgoff_start) {
+@@ -1047,6 +1037,41 @@ static inline unsigned long vma_address(
+ 	return address;
  }
  
-+static inline pgoff_t __linear_virt_page_index(const struct vm_area_struct *vma,
-+					       const unsigned long address)
++/**
++ * vma_address - Find the virtual address a page range is mapped at.
++ * @vma: The vma which maps this object.
++ * @pgoff: The page offset within its object.
++ * @nr_pages: The number of pages to consider.
++ *
++ * If any page in this range is mapped by this VMA, return the first address
++ * where any of these pages appear.  Otherwise, return -EFAULT.
++ */
++static inline unsigned long vma_address(const struct vm_area_struct *vma,
++		pgoff_t pgoff, unsigned long nr_pages)
 +{
-+	pgoff_t pgoff;
-+
-+	pgoff = linear_page_delta(vma, address);
-+	pgoff += vma_start_virt_pgoff(vma);
-+	return pgoff;
++	return __vma_address(vma, pgoff, vma_start_pgoff(vma), nr_pages);
 +}
 +
 +/**
-+ * linear_virt_page_index() - Determine the absolute virtual page offset of
-+ * @address within @vma.
-+ * @vma: An anonymous or MAP_PRIVATE file-backed VMA in which @address resides.
-+ * @address: The address whose absolute page offset is required.
++ * vma_anon_address - Find the address an anonymous folio with index @pgoff_virt
++ * is mapped at.
++ * @vma: The vma which maps this object.
++ * @pgoff_virt: The virtual page index belonging to the folio.
++ * @nr_pages: The number of pages to consider.
 + *
-+ * This returns the virtual page offset of @address, which is the page offset
-+ * the address possessed at the time the VMA was first faulted.
++ * This is only valid for anonymous or MAP_PRIVATE-mapped file-backed VMAs.
 + *
-+ * For anonymous mappings, this returns the same value as linear_page_index().
-+ *
-+ * For MAP_PRIVATE file-backed mappings, this returns the virtual page offset of
-+ * @address, which is the page offset the address possessed at the time the VMA
-+ * was first faulted.
-+ *
-+ * It is not valid to call this function for shared file-backed mappings.
-+ *
-+ * Returns: The absolute virtual page offset of @address within @vma.
++ * Returns: If any page in this range is mapped by this VMA, return the first address
++ * where any of these pages appear. Otherwise, return -EFAULT.
 + */
-+static inline pgoff_t linear_virt_page_index(const struct vm_area_struct *vma,
-+					     const unsigned long address)
++static inline unsigned long vma_anon_address(const struct vm_area_struct *vma,
++		pgoff_t pgoff_virt, unsigned long nr_pages)
 +{
-+	const pgoff_t pgoff = __linear_virt_page_index(vma, address);
++	VM_WARN_ON_ONCE(!vma_is_anonymous(vma) && vma_test(vma, VMA_SHARED_BIT));
 +
-+	VM_WARN_ON_ONCE(vma_test(vma, VMA_SHARED_BIT));
-+	/* Account for MAP_PRIVATE-/dev/zero which is only semi-anonymous. */
-+	if (vma_is_anonymous(vma) && !vma->vm_file)
-+		VM_WARN_ON_ONCE(pgoff != linear_page_index(vma, address));
-+
-+	return pgoff;
++	return __vma_address(vma, pgoff_virt, vma_start_virt_pgoff(vma), nr_pages);
 +}
 +
- struct wait_page_key {
- 	struct folio *folio;
- 	int bit_nr;
---- a/tools/testing/vma/include/dup.h~mm-introduce-linear_virt_page_index
-+++ a/tools/testing/vma/include/dup.h
-@@ -1417,7 +1417,7 @@ static inline void vma_iter_set(struct v
- 	mas_set(&vmi->mas, addr);
- }
- 
--static inline bool vma_is_anonymous(struct vm_area_struct *vma)
-+static inline bool vma_is_anonymous(const struct vm_area_struct *vma)
- {
- 	return !vma->vm_ops;
- }
-@@ -1610,3 +1610,26 @@ static inline pgprot_t vma_get_page_prot
- {
- 	return vma_flags_to_page_prot(vma->flags);
- }
-+
-+static inline pgoff_t __linear_virt_page_index(const struct vm_area_struct *vma,
-+					       const unsigned long address)
-+{
-+	pgoff_t pgoff;
-+
-+	pgoff = linear_page_delta(vma, address);
-+	pgoff += vma_start_virt_pgoff(vma);
-+	return pgoff;
-+}
-+
-+static inline pgoff_t linear_virt_page_index(const struct vm_area_struct *vma,
-+					     const unsigned long address)
-+{
-+	const pgoff_t pgoff = __linear_virt_page_index(vma, address);
-+
-+	VM_WARN_ON_ONCE(vma_test(vma, VMA_SHARED_BIT));
-+	/* Account for MAP_PRIVATE-/dev/zero which is only semi-anonymous. */
-+	if (vma_is_anonymous(vma) && !vma->vm_file)
-+		VM_WARN_ON_ONCE(pgoff != linear_page_index(vma, address));
-+
-+	return pgoff;
-+}
+ /*
+  * Then at what user virtual address will none of the range be found in vma?
+  * Assumes that vma_address() already returned a good starting address.
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
@@ -238,7 +195,6 @@ mm-mremap-convert-mremap-code-to-use-vma_flags_t.patch
 mm-mseal-remove-superfluous-comments-fix-confusion-around-mm.patch
 mm-mseal-limit-scope-of-mseal-address-zero-to-address-zero.patch
 mm-mseal-remove-further-superfluous-comments-do_mseal.patch
-mm-abstract-vma_address-and-introduce-vma_anon_address.patch
 mm-update-print_bad_page_map-to-show-virtual-page-index.patch
 mm-introduce-and-use-vma_filebacked_address.patch
 mm-propagate-vma-virtual-page-offset-on-map-remap-split-merge.patch
