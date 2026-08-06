@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E8BE3375F62;
-	Thu,  6 Aug 2026 04:13:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A998437DEBA
+	for <mm-commits@vger.kernel.org>; Thu,  6 Aug 2026 04:16:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785989636; cv=none; b=XO+2Ma558GJ4dw3O6DYUTER8LQCQUXDMhRd9THo/40J6wWB/1inA/eMKUfXbIOxs7Qdy1gowUdcjuAvyxbmF4s/AsJr4vf0Q9BqP0WNZitx4abfsv+G4MZQWODz0ednnTSpQt57sEKfY/QUC4Em8Yfd3nxBuzUuz9KWwsg94R5o=
+	t=1785989808; cv=none; b=Ozsdoy7mTKgXcx1L/RZ87kbiRZ4AmwizuGS7alFKa45v4Sa4DUIk0OCoecPLVZZ1W1LN45pRf463TeDsfOq1VGfhdEyoFjmJq1iAG76rwIrnHls4p3AkoY/t/0hV6ZChp2IixKOrtQ4cbFd3XTam4c0wVwK4HkcEqRAQWokaFbE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785989636; c=relaxed/simple;
-	bh=QTmyYgwTlVGqAWDISsd2rVFpvLBu/1U1vjj5vIDrRmY=;
-	h=Date:To:From:Subject:Message-Id; b=Gs6bo+KpdlTgRoSBBP8ytCNejE1ioYFCJQQ1oomQiLCgA5JwKXbSfJp2ZcZZYZMhuvmZLokizzadRooxiUtP4zsv/9vXfrVRUuKqfFKKQfggDl2bmjecrrGWiX9SeqaRRROCtSAYS58Tw3+uqJbeIebn4AHH1A7eHu+s4kWU6js=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Glpq/EGA; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785989808; c=relaxed/simple;
+	bh=f/SmfztDR16QQ55SPIWdDBQQj5cYWJlNCaB/eakZzRY=;
+	h=Date:To:From:Subject:Message-Id; b=sC+IF/wSRcu4MmRKLz4bfR/Rl0ix8cv0NmGlOfu1Pin9TGf3H6hjA3UCVRNbJQkUUXsGgbJZXqMA7jahlcxaim60+7fK8T/Y+XRK7zl9bo1grAZG+x22kRtEUXsldpL0BVU9O6zUpRj6TRAAvvGgXiqm9XgVekJupaVhtMMvgHo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BNFvj7W6; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Glpq/EGA"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 60D521F000E9;
-	Thu,  6 Aug 2026 04:13:54 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BNFvj7W6"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4046C1F000E9;
+	Thu,  6 Aug 2026 04:16:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1785989634;
-	bh=O5D7Aic3XQ+q1wdDJHVzQZdUZ2OT26xR0U6vNCB3DMo=;
+	d=linux-foundation.org; s=korg; t=1785989806;
+	bh=deldPKFXKMtbvsLPEPFC/UDJbsBsitIezuijS4x9LSo=;
 	h=Date:To:From:Subject;
-	b=Glpq/EGAo9at/CGWvl+9rr7q8tQiyuwbPH33+948M6RnPhLb60B04KVBCPUkSjsmM
-	 JJH+NTuHJ+wv2aOfYJtZ9+j159pa1Ewes/pTLjjju4UC17NNztWk8y5cBFvWHehy+u
-	 hanu/sraUsyZTcKUXDB/x5X+e5kDdlz4iGRzM1yU=
-Date: Wed, 05 Aug 2026 21:13:53 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,senozhatsky@chromium.org,xialonglong@kylinos.cn,akpm@linux-foundation.org
+	b=BNFvj7W6ifGNSy2qnG8O/EIBZD7cBuVkakk9+cYbT/rINEWcUryUf86VzpwbIm9MA
+	 /Sk60dCSHoeh34vfoOSefF7aHdEHPYBmBVbIFaemYBZOFzk7bLQ2JdWTPHRoOk5LGf
+	 iPTShyZoNkmtq/4gtt9a4rRLyA4BnHD6kOhoB9yg=
+Date: Wed, 05 Aug 2026 21:16:45 -0700
+To: mm-commits@vger.kernel.org,xialonglong2025@163.com,minchan@kernel.org,akpm@linux-foundation.org,senozhatsky@chromium.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [alternative-merged] zram-reject-disksizes-that-exceed-slot-index-range.patch removed from -mm tree
-Message-Id: <20260806041354.60D521F000E9@smtp.kernel.org>
+Subject: + zram-switch-to-unsigned-long-indexing.patch added to mm-new branch
+Message-Id: <20260806041646.4046C1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,62 +34,567 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: zram: reject disksizes that exceed slot index range
-has been removed from the -mm tree.  Its filename was
-     zram-reject-disksizes-that-exceed-slot-index-range.patch
+The patch titled
+     Subject: zram: switch to unsigned long indexing
+has been added to the -mm mm-new branch.  Its filename is
+     zram-switch-to-unsigned-long-indexing.patch
 
-This patch was dropped because an alternative patch was or shall be merged
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-switch-to-unsigned-long-indexing.patch
+
+This patch will later appear in the mm-new branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
 ------------------------------------------------------
-From: Longlong Xia <xialonglong@kylinos.cn>
-Subject: zram: reject disksizes that exceed slot index range
-Date: Tue, 4 Aug 2026 22:38:32 +0800
+From: Sergey Senozhatsky <senozhatsky@chromium.org>
+Subject: zram: switch to unsigned long indexing
+Date: Thu, 6 Aug 2026 12:16:32 +0900
 
-zram uses u32 slot indexes, while disksize_store() accepts a u64 size.  On
-32-bit systems, a disksize larger than U32_MAX pages is truncated when
-zram_meta_alloc() assigns the page count to size_t.  array_size() then
-sees only the truncated count, so a small table can be allocated while the
-original capacity is published.  Valid I/O within that capacity can
-subsequently access beyond zram->table.
+zram has always used "unsigned int" for (page) index calculations, which
+unnecessarily limited max zram disksize.
 
-The same oversized capacity also lets full-device scanners compare a u32
-index with an upper bound larger than U32_MAX, so the index can wrap
-instead of terminating.
+Switch to "unsigned long" and permit much larger zram devices.
 
-Reject disksizes larger than U32_MAX pages before aligning and allocating
-the table.  This keeps the table size, published capacity and slot index
-range consistent.
-
-Link: https://lore.kernel.org/20260804143832.146129-1-xialonglong2025@163.com
-Fixes: 33863c21e69e ("Staging: zram: Replace ioctls with sysfs interface")
-Assisted-by: Codex:gpt-5.6-sol
-Signed-off-by: Longlong Xia <xialonglong@kylinos.cn>
-Reviewed-by: Sergey Senozhatsky <senozhatsky@chromium.org>
-Cc: <stable@vger.kernel.org>
+Link: https://lore.kernel.org/20260806031640.536615-1-senozhatsky@chromium.org
+Suggested-by: Andrew Morton <akpm@linux-foundation.org>
+Co-developed-by: Longlong Xia <xialonglong2025@163.com>
+Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
+Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |    3 +++
- 1 file changed, 3 insertions(+)
+ drivers/block/zram/zram_drv.c |  137 +++++++++++++++++---------------
+ 1 file changed, 77 insertions(+), 60 deletions(-)
 
---- a/drivers/block/zram/zram_drv.c~zram-reject-disksizes-that-exceed-slot-index-range
+--- a/drivers/block/zram/zram_drv.c~zram-switch-to-unsigned-long-indexing
 +++ a/drivers/block/zram/zram_drv.c
-@@ -2881,6 +2881,9 @@ static ssize_t disksize_store(struct dev
- 		return -EBUSY;
+@@ -56,7 +56,7 @@ static size_t huge_class_size;
+ 
+ static const struct block_device_operations zram_devops;
+ 
+-static void slot_free(struct zram *zram, u32 index);
++static void slot_free(struct zram *zram, unsigned long index);
+ 
+ /*
+  * entry locking rules:
+@@ -70,7 +70,7 @@ static void slot_free(struct zram *zram,
+  * 4) Use TRY lock variant when in atomic context
+  *    - must check return value and handle locking failers
+  */
+-static __must_check bool slot_trylock(struct zram *zram, u32 index)
++static __must_check bool slot_trylock(struct zram *zram, unsigned long index)
+ {
+ 	unsigned long *lock = &zram->table[index].__lock;
+ 
+@@ -83,7 +83,7 @@ static __must_check bool slot_trylock(st
+ 	return false;
+ }
+ 
+-static void slot_lock(struct zram *zram, u32 index)
++static void slot_lock(struct zram *zram, unsigned long index)
+ {
+ 	unsigned long *lock = &zram->table[index].__lock;
+ 
+@@ -92,7 +92,7 @@ static void slot_lock(struct zram *zram,
+ 	lock_acquired(&zram->table_lock_map, _RET_IP_);
+ }
+ 
+-static void slot_unlock(struct zram *zram, u32 index)
++static void slot_unlock(struct zram *zram, unsigned long index)
+ {
+ 	unsigned long *lock = &zram->table[index].__lock;
+ 
+@@ -110,55 +110,56 @@ static inline struct zram *dev_to_zram(s
+ 	return (struct zram *)dev_to_disk(dev)->private_data;
+ }
+ 
+-static unsigned long get_slot_handle(struct zram *zram, u32 index)
++static unsigned long get_slot_handle(struct zram *zram, unsigned long index)
+ {
+ 	return zram->table[index].handle;
+ }
+ 
+-static void set_slot_handle(struct zram *zram, u32 index, unsigned long handle)
++static void set_slot_handle(struct zram *zram, unsigned long index,
++			    unsigned long handle)
+ {
+ 	zram->table[index].handle = handle;
+ }
+ 
+-static bool test_slot_flag(struct zram *zram, u32 index,
++static bool test_slot_flag(struct zram *zram, unsigned long index,
+ 			   enum zram_pageflags flag)
+ {
+ 	return zram->table[index].attr.flags & BIT(flag);
+ }
+ 
+-static void set_slot_flag(struct zram *zram, u32 index,
++static void set_slot_flag(struct zram *zram, unsigned long index,
+ 			  enum zram_pageflags flag)
+ {
+ 	zram->table[index].attr.flags |= BIT(flag);
+ }
+ 
+-static void clear_slot_flag(struct zram *zram, u32 index,
++static void clear_slot_flag(struct zram *zram, unsigned long index,
+ 			    enum zram_pageflags flag)
+ {
+ 	zram->table[index].attr.flags &= ~BIT(flag);
+ }
+ 
+-static size_t get_slot_size(struct zram *zram, u32 index)
++static size_t get_slot_size(struct zram *zram, unsigned long index)
+ {
+ 	return zram->table[index].attr.flags & (BIT(ZRAM_FLAG_SHIFT) - 1);
+ }
+ 
+-static void set_slot_size(struct zram *zram, u32 index, size_t size)
++static void set_slot_size(struct zram *zram, unsigned long index, size_t size)
+ {
+ 	unsigned long flags = zram->table[index].attr.flags >> ZRAM_FLAG_SHIFT;
+ 
+ 	zram->table[index].attr.flags = (flags << ZRAM_FLAG_SHIFT) | size;
+ }
+ 
+-static inline bool slot_allocated(struct zram *zram, u32 index)
++static inline bool slot_allocated(struct zram *zram, unsigned long index)
+ {
+ 	return get_slot_size(zram, index) ||
+ 		test_slot_flag(zram, index, ZRAM_SAME) ||
+ 		test_slot_flag(zram, index, ZRAM_WB);
+ }
+ 
+-static inline void set_slot_comp_priority(struct zram *zram, u32 index,
+-					  u32 prio)
++static inline void set_slot_comp_priority(struct zram *zram,
++					  unsigned long index, u32 prio)
+ {
+ 	prio &= ZRAM_COMP_PRIORITY_MASK;
+ 	/*
+@@ -170,14 +171,14 @@ static inline void set_slot_comp_priorit
+ 	zram->table[index].attr.flags |= (prio << ZRAM_COMP_PRIORITY_BIT1);
+ }
+ 
+-static inline u32 get_slot_comp_priority(struct zram *zram, u32 index)
++static inline u32 get_slot_comp_priority(struct zram *zram, unsigned long index)
+ {
+ 	u32 prio = zram->table[index].attr.flags >> ZRAM_COMP_PRIORITY_BIT1;
+ 
+ 	return prio & ZRAM_COMP_PRIORITY_MASK;
+ }
+ 
+-static void mark_slot_accessed(struct zram *zram, u32 index)
++static void mark_slot_accessed(struct zram *zram, unsigned long index)
+ {
+ 	clear_slot_flag(zram, index, ZRAM_IDLE);
+ 	clear_slot_flag(zram, index, ZRAM_PP_SLOT);
+@@ -284,7 +285,7 @@ static void release_pp_ctl(struct zram *
+ }
+ 
+ static bool place_pp_slot(struct zram *zram, struct zram_pp_ctl *ctl,
+-			  u32 index)
++			  unsigned long index)
+ {
+ 	struct zram_pp_slot *pps;
+ 	u32 bid;
+@@ -418,7 +419,7 @@ static void mark_idle(struct zram *zram,
+ {
+ 	int is_idle = 1;
+ 	unsigned long nr_pages = zram->disksize >> PAGE_SHIFT;
+-	int index;
++	unsigned long index;
+ 
+ 	for (index = 0; index < nr_pages; index++) {
+ 		/*
+@@ -485,8 +486,9 @@ static ssize_t idle_store(struct device
+ #define INVALID_BDEV_BLOCK		(~0UL)
+ 
+ static int read_from_zspool_raw(struct zram *zram, struct page *page,
+-				u32 index);
+-static int read_from_zspool(struct zram *zram, struct page *page, u32 index);
++				unsigned long index);
++static int read_from_zspool(struct zram *zram, struct page *page,
++			    unsigned long index);
+ 
+ struct zram_wb_ctl {
+ 	/* idle list is accessed only by the writeback task, no concurency */
+@@ -522,7 +524,7 @@ struct zram_rb_req {
+ 		/* error status (sync read) */
+ 		int error;
+ 	};
+-	u32 index;
++	unsigned long index;
+ };
+ 
+ #define FOUR_K(x) ((x) * (1 << (PAGE_SHIFT - 12)))
+@@ -910,7 +912,7 @@ static void zram_account_writeback_submi
+ 
+ static int zram_writeback_complete(struct zram *zram, struct zram_wb_req *req)
+ {
+-	u32 index = req->pps->index;
++	unsigned long index = req->pps->index;
+ 	int err;
+ 
+ 	err = blk_status_to_errno(req->bio.bi_status);
+@@ -1032,7 +1034,7 @@ static int zram_writeback_slots(struct z
+ 	struct zram_wb_req *req = NULL;
+ 	struct zram_pp_slot *pps;
+ 	int ret = 0, err = 0;
+-	u32 index = 0;
++	unsigned long index = 0;
+ 
+ 	while ((pps = select_pp_slot(ctl))) {
+ 		if (zram->wb_limit_enable && !zram->bd_wb_limit) {
+@@ -1198,7 +1200,7 @@ static void scan_slots_for_writeback(str
+ 				     unsigned long lo, unsigned long hi,
+ 				     struct zram_pp_ctl *ctl)
+ {
+-	u32 index = lo;
++	unsigned long index = lo;
+ 
+ 	while (index < hi) {
+ 		bool ok = true;
+@@ -1235,7 +1237,7 @@ static ssize_t writeback_store(struct de
+ 			       const char *buf, size_t len)
+ {
+ 	struct zram *zram = dev_to_zram(dev);
+-	u64 nr_pages;
++	unsigned long nr_pages;
+ 	unsigned long lo = 0, hi;
+ 	struct zram_pp_ctl *pp_ctl = NULL;
+ 	struct zram_wb_ctl *wb_ctl = NULL;
+@@ -1336,7 +1338,8 @@ out:
+ 	return ret;
+ }
+ 
+-static int decompress_bdev_page(struct zram *zram, struct page *page, u32 index)
++static int decompress_bdev_page(struct zram *zram, struct page *page,
++				unsigned long index)
+ {
+ 	struct zcomp_strm *zstrm;
+ 	unsigned int size;
+@@ -1378,7 +1381,7 @@ static void zram_deferred_decompress(str
+ 	struct zram_rb_req *req = container_of(w, struct zram_rb_req, work);
+ 	struct page *page = bio_first_page_all(req->bio);
+ 	struct zram *zram = req->zram;
+-	u32 index = req->index;
++	unsigned long index = req->index;
+ 	int ret;
+ 
+ 	ret = decompress_bdev_page(zram, page, index);
+@@ -1429,7 +1432,7 @@ static void zram_async_read_endio(struct
+ }
+ 
+ static int read_from_bdev_async(struct zram *zram, struct page *page,
+-				u32 index, unsigned long blk_idx,
++				unsigned long index, unsigned long blk_idx,
+ 				struct bio *parent)
+ {
+ 	struct zram_rb_req *req;
+@@ -1479,8 +1482,8 @@ static void zram_sync_read(struct work_s
+  * chained IO with parent IO in same context, it's a deadlock. To avoid that,
+  * use a worker thread context.
+  */
+-static int read_from_bdev_sync(struct zram *zram, struct page *page, u32 index,
+-			       unsigned long blk_idx)
++static int read_from_bdev_sync(struct zram *zram, struct page *page,
++			       unsigned long index, unsigned long blk_idx)
+ {
+ 	struct zram_rb_req req;
+ 
+@@ -1499,8 +1502,9 @@ static int read_from_bdev_sync(struct zr
+ 	return decompress_bdev_page(zram, page, index);
+ }
+ 
+-static int read_from_bdev(struct zram *zram, struct page *page, u32 index,
+-			  unsigned long blk_idx, struct bio *parent)
++static int read_from_bdev(struct zram *zram, struct page *page,
++			  unsigned long index, unsigned long blk_idx,
++			  struct bio *parent)
+ {
+ 	atomic64_inc(&zram->stats.bd_reads);
+ 	if (!parent) {
+@@ -1512,8 +1516,9 @@ static int read_from_bdev(struct zram *z
+ }
+ #else
+ static inline void reset_bdev(struct zram *zram) {};
+-static int read_from_bdev(struct zram *zram, struct page *page, u32 index,
+-			  unsigned long blk_idx, struct bio *parent)
++static int read_from_bdev(struct zram *zram, struct page *page,
++			  unsigned long index, unsigned long blk_idx,
++			  struct bio *parent)
+ {
+ 	return -EIO;
+ }
+@@ -1541,7 +1546,8 @@ static ssize_t read_block_state(struct f
+ 				size_t count, loff_t *ppos)
+ {
+ 	char *kbuf;
+-	ssize_t index, written = 0;
++	unsigned long index;
++	ssize_t written = 0;
+ 	struct zram *zram = file->private_data;
+ 	unsigned long nr_pages;
+ 
+@@ -1565,7 +1571,7 @@ static ssize_t read_block_state(struct f
+ 			goto next;
+ 
+ 		copied = snprintf(kbuf + written, count,
+-			"%12zd %12u.%06d %c%c%c%c%c%c\n",
++			"%12lu %12u.%06d %c%c%c%c%c%c\n",
+ 			index, zram->table[index].attr.ac_time, 0,
+ 			test_slot_flag(zram, index, ZRAM_SAME) ? 's' : '.',
+ 			test_slot_flag(zram, index, ZRAM_WB) ? 'w' : '.',
+@@ -1972,8 +1978,8 @@ static ssize_t debug_stat_show(struct de
+ 
+ static void zram_meta_free(struct zram *zram, u64 disksize)
+ {
+-	size_t num_pages = disksize >> PAGE_SHIFT;
+-	size_t index;
++	unsigned long num_pages = disksize >> PAGE_SHIFT;
++	unsigned long index;
+ 
+ 	if (!zram->table)
+ 		return;
+@@ -1990,7 +1996,7 @@ static void zram_meta_free(struct zram *
+ 
+ static bool zram_meta_alloc(struct zram *zram, u64 disksize)
+ {
+-	size_t num_pages;
++	unsigned long num_pages;
+ 
+ 	num_pages = disksize >> PAGE_SHIFT;
+ 	zram->table = vzalloc(array_size(num_pages, sizeof(*zram->table)));
+@@ -2013,7 +2019,7 @@ static bool zram_meta_alloc(struct zram
+ 	return true;
+ }
+ 
+-static void slot_free(struct zram *zram, u32 index)
++static void slot_free(struct zram *zram, unsigned long index)
+ {
+ 	unsigned long handle;
+ 
+@@ -2067,7 +2073,7 @@ out:
+ }
+ 
+ static int read_same_filled_page(struct zram *zram, struct page *page,
+-				 u32 index)
++				 unsigned long index)
+ {
+ 	void *mem;
+ 
+@@ -2078,7 +2084,7 @@ static int read_same_filled_page(struct
+ }
+ 
+ static int read_incompressible_page(struct zram *zram, struct page *page,
+-				    u32 index)
++				    unsigned long index)
+ {
+ 	unsigned long handle;
+ 	void *src, *dst;
+@@ -2093,7 +2099,8 @@ static int read_incompressible_page(stru
+ 	return 0;
+ }
+ 
+-static int read_compressed_page(struct zram *zram, struct page *page, u32 index)
++static int read_compressed_page(struct zram *zram, struct page *page,
++				unsigned long index)
+ {
+ 	struct zcomp_strm *zstrm;
+ 	unsigned long handle;
+@@ -2118,7 +2125,8 @@ static int read_compressed_page(struct z
+ }
+ 
+ #if defined CONFIG_ZRAM_WRITEBACK
+-static int read_from_zspool_raw(struct zram *zram, struct page *page, u32 index)
++static int read_from_zspool_raw(struct zram *zram, struct page *page,
++				unsigned long index)
+ {
+ 	struct zcomp_strm *zstrm;
+ 	unsigned long handle;
+@@ -2150,7 +2158,8 @@ static int read_from_zspool_raw(struct z
+  * Reads (decompresses if needed) a page from zspool (zsmalloc).
+  * Corresponding ZRAM slot should be locked.
+  */
+-static int read_from_zspool(struct zram *zram, struct page *page, u32 index)
++static int read_from_zspool(struct zram *zram, struct page *page,
++			    unsigned long index)
+ {
+ 	if (test_slot_flag(zram, index, ZRAM_SAME) ||
+ 	    !get_slot_handle(zram, index))
+@@ -2162,8 +2171,8 @@ static int read_from_zspool(struct zram
+ 		return read_incompressible_page(zram, page, index);
+ }
+ 
+-static int zram_read_page(struct zram *zram, struct page *page, u32 index,
+-			  struct bio *parent)
++static int zram_read_page(struct zram *zram, struct page *page,
++			  unsigned long index, struct bio *parent)
+ {
+ 	int ret;
+ 
+@@ -2185,7 +2194,7 @@ static int zram_read_page(struct zram *z
+ 
+ 	/* Should NEVER happen. Return bio error if it does. */
+ 	if (WARN_ON(ret < 0))
+-		pr_err("Decompression failed! err=%d, page=%u\n", ret, index);
++		pr_err("Decompression failed! err=%d, page=%lu\n", ret, index);
+ 
+ 	return ret;
+ }
+@@ -2195,7 +2204,7 @@ static int zram_read_page(struct zram *z
+  * always expects a full page for the output.
+  */
+ static int zram_bvec_read_partial(struct zram *zram, struct bio_vec *bvec,
+-				  u32 index, int offset)
++				  unsigned long index, int offset)
+ {
+ 	struct page *page = alloc_page(GFP_NOIO);
+ 	int ret;
+@@ -2210,7 +2219,7 @@ static int zram_bvec_read_partial(struct
+ }
+ 
+ static int zram_bvec_read(struct zram *zram, struct bio_vec *bvec,
+-			  u32 index, int offset, struct bio *bio)
++			  unsigned long index, int offset, struct bio *bio)
+ {
+ 	if (is_partial_io(bvec))
+ 		return zram_bvec_read_partial(zram, bvec, index, offset);
+@@ -2218,7 +2227,7 @@ static int zram_bvec_read(struct zram *z
+ }
+ 
+ static int write_same_filled_page(struct zram *zram, unsigned long fill,
+-				  u32 index)
++				  unsigned long index)
+ {
+ 	slot_lock(zram, index);
+ 	slot_free(zram, index);
+@@ -2233,7 +2242,7 @@ static int write_same_filled_page(struct
+ }
+ 
+ static int write_incompressible_page(struct zram *zram, struct page *page,
+-				     u32 index)
++				     unsigned long index)
+ {
+ 	unsigned long handle;
+ 	void *src;
+@@ -2273,7 +2282,8 @@ static int write_incompressible_page(str
+ 	return 0;
+ }
+ 
+-static int zram_write_page(struct zram *zram, struct page *page, u32 index)
++static int zram_write_page(struct zram *zram, struct page *page,
++			   unsigned long index)
+ {
+ 	int ret = 0;
+ 	unsigned long handle;
+@@ -2340,7 +2350,7 @@ static int zram_write_page(struct zram *
+  * This is a partial IO. Read the full page before writing the changes.
+  */
+ static int zram_bvec_write_partial(struct zram *zram, struct bio_vec *bvec,
+-				   u32 index, int offset)
++				   unsigned long index, int offset)
+ {
+ 	struct page *page = alloc_page(GFP_NOIO);
+ 	int ret;
+@@ -2358,7 +2368,7 @@ static int zram_bvec_write_partial(struc
+ }
+ 
+ static int zram_bvec_write(struct zram *zram, struct bio_vec *bvec,
+-			   u32 index, int offset)
++			   unsigned long index, int offset)
+ {
+ 	if (is_partial_io(bvec))
+ 		return zram_bvec_write_partial(zram, bvec, index, offset);
+@@ -2426,8 +2436,9 @@ next:
+  *
+  * Corresponding ZRAM slot should be locked.
+  */
+-static int recompress_slot(struct zram *zram, u32 index, struct page *page,
+-			   u64 *num_recomp_pages, u32 threshold, u32 prio)
++static int recompress_slot(struct zram *zram, unsigned long index,
++			   struct page *page, u64 *num_recomp_pages,
++			   u32 threshold, u32 prio)
+ {
+ 	struct zcomp_strm *zstrm = NULL;
+ 	unsigned long handle_old;
+@@ -2679,7 +2690,7 @@ out:
+ static void zram_bio_discard(struct zram *zram, struct bio *bio)
+ {
+ 	size_t n = bio->bi_iter.bi_size;
+-	u32 index = bio->bi_iter.bi_sector >> SECTORS_PER_PAGE_SHIFT;
++	unsigned long index = bio->bi_iter.bi_sector >> SECTORS_PER_PAGE_SHIFT;
+ 	u32 offset = (bio->bi_iter.bi_sector & (SECTORS_PER_PAGE - 1)) <<
+ 			SECTOR_SHIFT;
+ 
+@@ -2720,7 +2731,7 @@ static void zram_bio_read(struct zram *z
+ 	struct bvec_iter iter = bio->bi_iter;
+ 
+ 	do {
+-		u32 index = iter.bi_sector >> SECTORS_PER_PAGE_SHIFT;
++		unsigned long index = iter.bi_sector >> SECTORS_PER_PAGE_SHIFT;
+ 		u32 offset = (iter.bi_sector & (SECTORS_PER_PAGE - 1)) <<
+ 				SECTOR_SHIFT;
+ 		struct bio_vec bv = bio_iter_iovec(bio, iter);
+@@ -2751,7 +2762,7 @@ static void zram_bio_write(struct zram *
+ 	struct bvec_iter iter = bio->bi_iter;
+ 
+ 	do {
+-		u32 index = iter.bi_sector >> SECTORS_PER_PAGE_SHIFT;
++		unsigned long index = iter.bi_sector >> SECTORS_PER_PAGE_SHIFT;
+ 		u32 offset = (iter.bi_sector & (SECTORS_PER_PAGE - 1)) <<
+ 				SECTOR_SHIFT;
+ 		struct bio_vec bv = bio_iter_iovec(bio, iter);
+@@ -2865,6 +2876,7 @@ static void zram_reset_device(struct zra
+ static ssize_t disksize_store(struct device *dev, struct device_attribute *attr,
+ 			      const char *buf, size_t len)
+ {
++	unsigned long num_pages;
+ 	u64 disksize;
+ 	struct zcomp *comp;
+ 	struct zram *zram = dev_to_zram(dev);
+@@ -2882,6 +2894,11 @@ static ssize_t disksize_store(struct dev
  	}
  
-+	if (disksize > (u64)U32_MAX << PAGE_SHIFT)
+ 	disksize = PAGE_ALIGN(disksize);
++	num_pages = disksize >> PAGE_SHIFT;
++	/* Slots are addressed by an unsigned long index */
++	if (!num_pages || ((u64)num_pages << PAGE_SHIFT) != disksize)
 +		return -EINVAL;
 +
- 	disksize = PAGE_ALIGN(disksize);
  	if (!zram_meta_alloc(zram, disksize))
  		return -ENOMEM;
+ 
 _
 
-Patches currently in -mm which might be from xialonglong@kylinos.cn are
+Patches currently in -mm which might be from senozhatsky@chromium.org are
 
-mm-ksm-avoid-missing-ksmd-wakeups-in-ksm_enter.patch
-zram-fix-out-of-bounds-access-in-writeback_store.patch
-zram-fix-out-of-bounds-access-in-read_block_state.patch
+documentation-zram-remove-sections-numbering.patch
+zram-set-default-primary-compressor-in-zram_destroy_comps.patch
+zram-validate-deflate-params.patch
+documentation-zram-correct-algo-parameters-configuration-documentation.patch
+zram-switch-to-unsigned-long-indexing.patch
 
