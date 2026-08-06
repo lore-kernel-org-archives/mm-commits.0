@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 89E3A3B4E8F
-	for <mm-commits@vger.kernel.org>; Thu,  6 Aug 2026 19:28:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 538C93B8948
+	for <mm-commits@vger.kernel.org>; Thu,  6 Aug 2026 20:18:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786044531; cv=none; b=AKEMR3m6XKZfLl7KaSPZjmOgiAZ1C0TpS7a746Yozd7KwKkhxrfpPmgrhrCvDsQfNqiaBEI3yvrlNpyOu9bstGxpQtdsjc9JzKIxh124eKiyonVHhc2KdtAb2TZV8vNmTv7twrQiKHk0j5Gpi+jlIjsXWDZ4r9aObYl233XfVDM=
+	t=1786047540; cv=none; b=CbfrSYRQtepvA0yfyPK1bqO+q1MWyDpUI9j7j6tV8Yhxm+iONR85YjdNFyDAzo4HB/ewukiFxJm++t+8UMiVK7pIAadYzSrqcrIRP+PodpyLeud06SUGm050kOYNRf8TDUifXs4uslXQ/zupN0iRDe9tMLT6Y5ZTvWXXIKYqQbQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786044531; c=relaxed/simple;
-	bh=H2DrN8xDDkgvwcaTqxaX7fDDh2rrdN1b1zANIsroANI=;
-	h=Date:To:From:Subject:Message-Id; b=uGWDens6GOxw9IFeWvXPwq6MLvNacKNmFHjB0LeizZsew7uu7Pkl/oDCH8zFSpfedAU93eSeuT2eRH/7A9mkD3o2I0+UoCFxoUrCS9SAeKuPbexQVHrtKy4185jiwlf/LuLuGwDJvn5jxKhAOa0kvFm1INByyMDOmWaQXB6tL74=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hzmuN5e9; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1786047540; c=relaxed/simple;
+	bh=QPQo4F/WNZnXNLysytNfwLNBak/leIuMpRnA9gZqMfA=;
+	h=Date:To:From:Subject:Message-Id; b=DRS9khcW8VWaTFA81vfnulshwsMvNWiMteMq899VWsKCmzBYp1HJ02s1Ae4QevqS9qNmxYpbe4nJwrL9Ua7Sranbs8DB0CTk1Od8fUKqRZkcPG+6Lf27iqRrcUulsA6jVSKvE9EdvFbLCC+ZdexexxGgL570evClsBenPXToGOs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Zpn9kIZQ; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hzmuN5e9"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E9D841F000E9;
-	Thu,  6 Aug 2026 19:28:49 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Zpn9kIZQ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B6E031F000E9;
+	Thu,  6 Aug 2026 20:18:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1786044530;
-	bh=6G+tPeCE4bNJpqySGXWkav1dfJ+wkv/4qKdXAvfICjo=;
+	d=linux-foundation.org; s=korg; t=1786047538;
+	bh=urTIb664DhECiSFBeD8QSsDxpom4/IP21NIVG8GzrrM=;
 	h=Date:To:From:Subject;
-	b=hzmuN5e9D6Key9lpxfxWkVdpCjEK7OqvCtDH/nm3pKBOU3CFNWryitlYgtlW6ZAOr
-	 DZVP5BhGE4foO33s1mBLnxlReF74bMUI19vqfyuhkavKbvWlICfMbr9cvOVJ7YvKbK
-	 8flklKOAJ16vSjz2/Td5EvE/6m9BzsITT+0rFfNs=
-Date: Thu, 06 Aug 2026 12:28:49 -0700
-To: mm-commits@vger.kernel.org,debarbos@redhat.com,phillip@squashfs.org.uk,akpm@linux-foundation.org
+	b=Zpn9kIZQk0DEKk7Ti+1uaJwTSi1WG8nb+F9gqf8PcPYVN2ekF4ZK8hAlcGtWtvA8q
+	 fHvQQOqZal2EcWZNr+Wesx4Oguk0XLzxbcNc4mXs21Zv92QCYHlc1GCRHg5WG81R34
+	 fTknU9bKGZ1dFwabNOMQyzQjypK6haLo2iPAOCzw=
+Date: Thu, 06 Aug 2026 13:18:58 -0700
+To: mm-commits@vger.kernel.org,zhanxusheng@xiaomi.com,liam@infradead.org,andrewjballance@gmail.com,aliceryhl@google.com,zhanxusheng1024@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + maintainers-remove-git-url-for-squashfs.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260806192849.E9D841F000E9@smtp.kernel.org>
+Subject: + maple_tree-remove-unused-mas_is_root_limits.patch added to mm-new branch
+Message-Id: <20260806201858.B6E031F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,26 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: MAINTAINERS: remove git URL for Squashfs
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     maintainers-remove-git-url-for-squashfs.patch
+     Subject: maple_tree: remove unused mas_is_root_limits()
+has been added to the -mm mm-new branch.  Its filename is
+     maple_tree-remove-unused-mas_is_root_limits.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maintainers-remove-git-url-for-squashfs.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-remove-unused-mas_is_root_limits.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,37 +69,46 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Phillip Lougher <phillip@squashfs.org.uk>
-Subject: MAINTAINERS: remove git URL for Squashfs
-Date: Thu, 6 Aug 2026 19:19:15 +0100
+From: Zhan Xusheng <zhanxusheng1024@gmail.com>
+Subject: maple_tree: remove unused mas_is_root_limits()
+Date: Wed, 5 Aug 2026 15:05:29 +0800
 
-The squashfs-next.git URL hasn't been updated for many years, and it now
-doesn't exist.
+The last callers of mas_is_root_limits() were removed by commit
+b8852ef30c67 ("maple_tree: remove maple big node and subtree structs"),
+together with the maple subtree state (mast_*) code that used it.  As a
+static inline it does not trigger -Wunused-function, so it went unnoticed.
 
-So remove it from the MAINTAINERS entry.
+Remove it. No functional change.
 
-Link: https://lore.kernel.org/20260806181916.617881-1-phillip@squashfs.org.uk
-Signed-off-by: Phillip Lougher <phillip@squashfs.org.uk>
-Cc: Derek Barbosa <debarbos@redhat.com>
+Link: https://lore.kernel.org/20260805070529.4118794-1-zhanxusheng@xiaomi.com
+Signed-off-by: Zhan Xusheng <zhanxusheng@xiaomi.com>
+Reviewed-by: Liam R. Howlett (Oracle) <liam@infradead.org>
+Cc: Alice Ryhl <aliceryhl@google.com>
+Cc: Andrew Ballance <andrewjballance@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    1 -
- 1 file changed, 1 deletion(-)
+ lib/maple_tree.c |    5 -----
+ 1 file changed, 5 deletions(-)
 
---- a/MAINTAINERS~maintainers-remove-git-url-for-squashfs
-+++ a/MAINTAINERS
-@@ -25553,7 +25553,6 @@ M:	Phillip Lougher <phillip@squashfs.org
- L:	squashfs-devel@lists.sourceforge.net (subscribers-only)
- S:	Maintained
- W:	http://squashfs.org.uk
--T:	git git://git.kernel.org/pub/scm/linux/kernel/git/pkl/squashfs-next.git
- F:	Documentation/filesystems/squashfs.rst
- F:	fs/squashfs/
+--- a/lib/maple_tree.c~maple_tree-remove-unused-mas_is_root_limits
++++ a/lib/maple_tree.c
+@@ -362,11 +362,6 @@ static __always_inline bool mte_is_root(
+ 	return ma_is_root(mte_to_node(node));
+ }
  
+-static inline bool mas_is_root_limits(const struct ma_state *mas)
+-{
+-	return !mas->min && mas->max == ULONG_MAX;
+-}
+-
+ static __always_inline bool mt_is_alloc(struct maple_tree *mt)
+ {
+ 	return (mt->ma_flags & MT_FLAGS_ALLOC_RANGE);
 _
 
-Patches currently in -mm which might be from phillip@squashfs.org.uk are
+Patches currently in -mm which might be from zhanxusheng1024@gmail.com are
 
-maintainers-remove-git-url-for-squashfs.patch
+maple_tree-remove-unused-mas_is_root_limits.patch
+ocfs2-fix-readdir-position-truncation-on-32-bit-kernels.patch
 
