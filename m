@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EE3023EFFCC
-	for <mm-commits@vger.kernel.org>; Thu,  6 Aug 2026 21:00:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ED4C04DB54F
+	for <mm-commits@vger.kernel.org>; Thu,  6 Aug 2026 21:00:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786050012; cv=none; b=lt/RQ3okXUK/Ns1kFIUE678zZvB9HzYo3mezE5oCvSZWVnAEJ9ii9hA6rlXzA9g+giAWfnC25aEN8B2gREm5Mbk52MyrxHsVtPCYFtjXfduEBf+ER80B8c767jRp/iT5Rtu5wnBqccbtueJ8MRGjeIVVtR5hUHMWMYUd31P5miM=
+	t=1786050014; cv=none; b=UBcXAfi6rI8LWtPYmMK1PnjPLzS4ZnowIdQrsjq6h251V7Th6O/hMSJclulF1c0tJadE1XDgHESkZxEcSi2MCqMZDSR53whuJvATTOHv5l+yTJvaCdi9yNiQ4Nl95oHQwivtfOy4DL3+lhLnLJJNraTnL7rRz0jB0nQ982yHNn8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786050012; c=relaxed/simple;
-	bh=PMGZODo/GY3u+ujRdGBN5Pebjf8guq/oF8UekuIcwRU=;
-	h=Date:To:From:Subject:Message-Id; b=RljtdLxzKVdg2yGOBmaXXMjjCjIUb59pDyUt9CTL5vA0wP6V5uI/AwMCKGF+2QBb74tz9HQzvaqLgddUXq4jbHxl7SLFSONsajyS89HSNCuvecGfPW0u30bpUK0325FO3urD0ZO1ys1a7eCWmTjrtl3uDtcXNni4qlZqUr//ZgU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Fjy+CJzJ; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1786050014; c=relaxed/simple;
+	bh=i6o1jngbfwWRBe+EYAI3OumIbahrXV0tgoxeKih6pCE=;
+	h=Date:To:From:Subject:Message-Id; b=WEL+jJ8k5fzoZA0BhVxgs6Kpibeoa1QAFuSEgBvuAYp9wA13zIaytDpspAPGhacmEm0oUhu7cM6SRkH3OXYYge8EpMt890dsoibNd0VpvOY8knLDNH2r8qZeFvCXLCb+iUphWjqjNQNFzIgbfB7XuBTIDEgQzSr7dI16/5kzX00=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BKwYnob7; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Fjy+CJzJ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 110961F00A3D;
-	Thu,  6 Aug 2026 21:00:10 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BKwYnob7"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 40A7F1F00A3A;
+	Thu,  6 Aug 2026 21:00:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1786050010;
-	bh=y20CevV4vTJCWFiI6HoM7nAGZmdWLvF7R/Bsk3H3e1w=;
+	d=linux-foundation.org; s=korg; t=1786050012;
+	bh=rA7x6Jjl31KNa7sxlnAj2FeySFM9IjfHR+uuoO8fvPY=;
 	h=Date:To:From:Subject;
-	b=Fjy+CJzJEyqKM1nYYjIRcY5it6m6T27a3Z+9big56xcbwOQNq1fB7F1hiDdrwdZ+M
-	 q3LeRcdrpAuGh8DQAJFq4RWENusolZbUw5M0gbOqF04yzGuM0HB3rXTT72WwfoGL9r
-	 uWmpytwnGZ/yPCqqmU+MW13k4JdwkuVxfxno8zlo=
-Date: Thu, 06 Aug 2026 14:00:09 -0700
+	b=BKwYnob7n1egeFZY/ZSMrwmXFvPgmraSSSpmUFZV9zB6XmcfqclQ/BQxlIwG7F3Me
+	 RcuYBprzAblnhJnGn4pM4o9xtMhqasa9v/w4B2wNl1CQ7alyInT0PUg8nPzKeYtp2j
+	 ySKuCGjpCOhT2lW+PyNnXfy8gIOkBR58judLpylg=
+Date: Thu, 06 Aug 2026 14:00:11 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,usama.arif@linux.dev,surenb@google.com,shuah@kernel.org,sarthak.sharma@arm.com,ryan.roberts@arm.com,rppt@kernel.org,npache@redhat.com,nao.horiguchi@gmail.com,mhocko@suse.com,ljs@kernel.org,linmiaohe@huawei.com,liam@infradead.org,lance.yang@linux.dev,dev.jain@arm.com,david@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,usama.anjum@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-skip-hard-dirty-page-cache-test-on-nfs.patch added to mm-new branch
-Message-Id: <20260806210010.110961F00A3D@smtp.kernel.org>
+Subject: + selftests-mm-retry-migration-failures-for-the-full-runtime.patch added to mm-new branch
+Message-Id: <20260806210012.40A7F1F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: skip hard dirty page-cache test on NFS
+     Subject: selftests/mm: retry migration failures for the full runtime
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-mm-skip-hard-dirty-page-cache-test-on-nfs.patch
+     selftests-mm-retry-migration-failures-for-the-full-runtime.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-skip-hard-dirty-page-cache-test-on-nfs.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-retry-migration-failures-for-the-full-runtime.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,26 +70,20 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Muhammad Usama Anjum <usama.anjum@arm.com>
-Subject: selftests/mm: skip hard dirty page-cache test on NFS
-Date: Mon, 27 Jul 2026 10:52:20 +0100
+Subject: selftests/mm: retry migration failures for the full runtime
+Date: Mon, 27 Jul 2026 10:52:21 +0100
 
-The hard dirty_pagecache variant uses MADV_HWPOISON to exercise recovery
-of a dirty file-backed page.  The recovery path records -EIO in the
-address_space mapping, which NFS later reports when the test closes the
-file.  This makes the test fail after the hwpoison checks have completed.
+move_pages() is best effort and can temporarily fail when concurrent
+faults race with page unmapping.  A busy shared-anon workload can exhaust
+the current 100 retries long before the intended 20-second runtime and
+produce a false failure.
 
-Skip this variant when the test file is on NFS.  Keep the hard clean-page
-and both soft-offline variants enabled because they use folio removal,
-invalidation, or migration rather than recording a delayed writeback
-error.
+Use the full runtime as the retry window.  Since the initial page location
+is unknown, require it to reach both alternating NUMA targets to confirm
+that cross-node migration made progress despite transient contention.
 
-The unsupported-filesystem path in clean_pagecache() also returns without
-closing the opened test file.  Close the descriptor before skipping there
-and in dirty_pagecache().
-
-Link: https://lore.kernel.org/20260727095225.372655-5-usama.anjum@arm.com
+Link: https://lore.kernel.org/20260727095225.372655-6-usama.anjum@arm.com
 Signed-off-by: Muhammad Usama Anjum <usama.anjum@arm.com>
-Reviewed-by: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Barry Song <baohua@kernel.org>
 Cc: David Hildenbrand <david@kernel.org>
@@ -97,6 +91,7 @@ Cc: Dev Jain <dev.jain@arm.com>
 Cc: Lance Yang <lance.yang@linux.dev>
 Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
@@ -111,41 +106,85 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/memory-failure.c |   14 ++++++++++++--
- 1 file changed, 12 insertions(+), 2 deletions(-)
+ tools/testing/selftests/mm/migration.c |   37 ++++++++++++-----------
+ 1 file changed, 20 insertions(+), 17 deletions(-)
 
---- a/tools/testing/selftests/mm/memory-failure.c~selftests-mm-skip-hard-dirty-page-cache-test-on-nfs
-+++ a/tools/testing/selftests/mm/memory-failure.c
-@@ -287,8 +287,10 @@ TEST_F(memory_failure, clean_pagecache)
- 	if (fd < 0)
- 		SKIP(return, "failed to open test file.\n");
- 	fs_type = get_fs_type(fd);
--	if (!fs_type || fs_type == TMPFS_MAGIC)
-+	if (!fs_type || fs_type == TMPFS_MAGIC) {
-+		close(fd);
- 		SKIP(return, "unsupported filesystem :%x\n", fs_type);
-+	}
+--- a/tools/testing/selftests/mm/migration.c~selftests-mm-retry-migration-failures-for-the-full-runtime
++++ a/tools/testing/selftests/mm/migration.c
+@@ -7,7 +7,7 @@
+ #include "kselftest_harness.h"
+ #include "hugepage_settings.h"
  
- 	addr = mmap(0, self->page_size, PROT_READ | PROT_WRITE,
- 		    MAP_SHARED, fd, 0);
-@@ -327,8 +329,16 @@ TEST_F(memory_failure, dirty_pagecache)
- 	if (fd < 0)
- 		SKIP(return, "failed to open test file.\n");
- 	fs_type = get_fs_type(fd);
--	if (!fs_type || fs_type == TMPFS_MAGIC)
-+	/*
-+	 * MADV_HARD poisoning of dirty page-cache data records an expected
-+	 * -EIO in the file mapping. NFS reports this error on close(), so
-+	 * skip this variant.
-+	 */
-+	if (!fs_type || fs_type == TMPFS_MAGIC ||
-+	    (fs_type == NFS_SUPER_MAGIC && variant->type == MADV_HARD)) {
-+		close(fd);
- 		SKIP(return, "unsupported filesystem :%x\n", fs_type);
-+	}
+-#include <strings.h>
++#include <string.h>
+ #include <pthread.h>
+ #include <numa.h>
+ #include <numaif.h>
+@@ -20,7 +20,6 @@
  
- 	addr = mmap(0, self->page_size, PROT_READ | PROT_WRITE,
- 		    MAP_SHARED, fd, 0);
+ #define TWOMEG		(2<<20)
+ #define RUNTIME		(20)
+-#define MAX_RETRIES	100
+ #define ALIGN(x, a)	(((x) + (a - 1)) & (~((a) - 1)))
+ 
+ HUGETLB_SETUP_DEFAULT_PAGES(1)
+@@ -110,7 +109,7 @@ int migrate(uint64_t *ptr, int n1, int n
+ 	int ret, tmp;
+ 	int status = 0;
+ 	struct timespec ts1, ts2;
+-	int failures = 0;
++	int success = 0;
+ 
+ 	if (clock_gettime(CLOCK_MONOTONIC, &ts1))
+ 		return -1;
+@@ -119,29 +118,33 @@ int migrate(uint64_t *ptr, int n1, int n
+ 		if (clock_gettime(CLOCK_MONOTONIC, &ts2))
+ 			return -1;
+ 
+-		if (ts2.tv_sec - ts1.tv_sec >= RUNTIME)
+-			return 0;
++		if (ts2.tv_sec - ts1.tv_sec >= RUNTIME) {
++			/* Reaching both targets verifies a cross-node move. */
++			if (success >= 2)
++				return 0;
++			else
++				return -2;
++		}
+ 
+ 		ret = move_pages(0, 1, (void **) &ptr, &n2, &status,
+ 				MPOL_MF_MOVE_ALL);
+-		if (ret) {
+-			if (ret > 0) {
+-				/* Migration is best effort; try again */
+-				if (++failures < MAX_RETRIES)
+-					continue;
+-				printf("Didn't migrate %d pages\n", ret);
+-			}
+-			else
+-				perror("Couldn't migrate pages");
++		if (ret < 0) {
++			perror("Couldn't migrate pages");
++			return ret;
++		}
++		/* Migration is best effort. Try again */
++		if (ret > 0 || status < 0)
++			continue;
++		if (status != n2) {
++			printf("Page is on node %d instead of target node %d\n",
++			       status, n2);
+ 			return -2;
+ 		}
+-		failures = 0;
++		success++;
+ 		tmp = n2;
+ 		n2 = n1;
+ 		n1 = tmp;
+ 	}
+-
+-	return 0;
+ }
+ 
+ void *access_mem(void *ptr)
 _
 
 Patches currently in -mm which might be from usama.anjum@arm.com are
