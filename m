@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1E6FF41A900
-	for <mm-commits@vger.kernel.org>; Thu,  6 Aug 2026 23:14:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E6413490BF3
+	for <mm-commits@vger.kernel.org>; Thu,  6 Aug 2026 23:14:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786058056; cv=none; b=rFqZAIzvOjmQ/Hra7AdK0yf+abd0vWgjiip+wBlksYM3eOv5/soDAlkf79P3jbVPRuQZde7wah0SH9yQDM1VEwYqenpyhYEtW5/8A3TXElqY0AaDLCHNHPgCWXx7xzmawjpzy/FvwNr2zK6uC8eB/xwdhIisRB62xt2VLjx0fbU=
+	t=1786058058; cv=none; b=sbqqiFoAauw88IdQkWIUjYQHorVGDSd7NEByOANGQfLgU8drB7lis33DD077H4x0VWZ4GXrm6W12i5WAhlWkycIHuLwVQS2dAL+seMc9qALm/kXYlPEvugQtMiArVYrMLgR7/Q6m43e/gyc2bc4FP1qY074AwixDA0ZvfC7bC4k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786058056; c=relaxed/simple;
-	bh=2KBfwB++1Th/g8whs3XGAAKXm053xxEgVCkXo884IZM=;
-	h=Date:To:From:Subject:Message-Id; b=DRG6bQKXmx4DpXZ9tn5EOP418euhUySvy0cTiWFfDFFmJq7d7nlrAjrOMPGTDgTtqvLYZVodv6zlLv4xPhJKlkLrQfOWqBC2hZOuJlPkla2rfnqqfKbYY6q0tifucr8bX78XdZPNDP2AbtH/UU3vCr01WIWOrF8oGO06a6gkonI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ldXzqQVR; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1786058058; c=relaxed/simple;
+	bh=x4P5l9bl/gInV9JXURLL90tzSiEenkpifmoB+S83zck=;
+	h=Date:To:From:Subject:Message-Id; b=mvq6XfWT1c6iO7g1keBlE6IhlKBbQY6G7fJsbnm0Sdrce3J01sPZObkorTn164Hrj0Eng8k+qrvsn864zgtI+vhDOe0LEaI4mkUMV3xrMdBEGBuZiHNwmch6IxMoBadrfnXwkQ7H/9FmshGpGNjfCaS1NonNqeI7wf+blq0OWI8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BYQ/1K0g; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ldXzqQVR"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E74F81F00A3A;
-	Thu,  6 Aug 2026 23:14:14 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BYQ/1K0g"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 768B51F000E9;
+	Thu,  6 Aug 2026 23:14:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1786058055;
-	bh=+BPsZn1FVjGtE2A3vb59phToLWavK8pcQEdvhK4RNAQ=;
+	d=linux-foundation.org; s=korg; t=1786058056;
+	bh=s/pLzqXSSGVkhhKccrJmM8467Q9v5cqW5wM/GPBFvIg=;
 	h=Date:To:From:Subject;
-	b=ldXzqQVR+ET43EvqCp/r7eNBnTSQngsgqKOUpGddg0QguYHKya1LpJG8oEo00mmJQ
-	 sLRkye1hwGMVna/fj8XWfaVPyN/QANMTL9F4OhtXXVGCNccVpUPGb+qtFDsI7114Iq
-	 jWiaOiBm04ZeOBEEYAFKWcAsRWfMjIAVturF+3qw=
-Date: Thu, 06 Aug 2026 16:14:14 -0700
+	b=BYQ/1K0gu51r8AM84jM02Zpz+xmKcJdpGYNvv3xPUe3EwnDpF4LUc+R0Nf1Sko53X
+	 xUTsueNq3zAtN+LlWzZGa3EKiE9yYNOmttc+NUzJqhn8iesF1ZPwI+UF4j4NdidOtr
+	 Ul6M0OE+46074DxgQx1Jte42FO2cHhQvtIb5jjfY=
+Date: Thu, 06 Aug 2026 16:14:16 -0700
 To: mm-commits@vger.kernel.org,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] tools-testing-vma-add-test-to-assert-map_private-dev-zero-is-anon.patch removed from -mm tree
-Message-Id: <20260806231414.E74F81F00A3A@smtp.kernel.org>
+Subject: [to-be-updated] tools-testing-selftests-mm-add-map_private-dev-zero-merge-tests.patch removed from -mm tree
+Message-Id: <20260806231416.768B51F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,22 +35,29 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: tools/testing/vma: add test to assert MAP_PRIVATE-/dev/zero is anon
+     Subject: tools/testing/selftests/mm: add MAP_PRIVATE-/dev/zero merge tests
 has been removed from the -mm tree.  Its filename was
-     tools-testing-vma-add-test-to-assert-map_private-dev-zero-is-anon.patch
+     tools-testing-selftests-mm-add-map_private-dev-zero-merge-tests.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: tools/testing/vma: add test to assert MAP_PRIVATE-/dev/zero is anon
-Date: Mon, 20 Jul 2026 15:38:40 +0100
+Subject: tools/testing/selftests/mm: add MAP_PRIVATE-/dev/zero merge tests
+Date: Mon, 20 Jul 2026 15:38:41 +0100
 
-Now we've made MAP_PRIVATE-mapped /dev/zero mappings truly anonymous, add
-a VMA userland test to assert that this is the case and everything is as
-we would expect for an anonymous mapping.
+Assert that MAP_PRIVATE-mapped /dev/zero mappings behave like they are
+anonymous.
 
-Link: https://lore.kernel.org/20260720-b4-scalable-cow-virt-pgoff-v2-14-2d549757a76f@kernel.org
+We test both unfaulted and faulted/unfaulted merges - each with the
+regions having page offset of 0, which would not merge if the mappings
+were treated as if they were file-backed.
+
+With the recent change that makes them behave as pure anonymous mappings,
+the merges should succeed as their page offsets are equal to their virtual
+page offsets.
+
+Link: https://lore.kernel.org/20260720-b4-scalable-cow-virt-pgoff-v2-15-2d549757a76f@kernel.org
 Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Arnd Bergmann <arnd@arndb.de>
@@ -89,80 +96,122 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/vma/include/dup.h |    1 
- tools/testing/vma/tests/mmap.c  |   50 ++++++++++++++++++++++++++++++
- 2 files changed, 51 insertions(+)
+ tools/testing/selftests/mm/merge.c |  104 +++++++++++++++++++++++++++
+ 1 file changed, 104 insertions(+)
 
---- a/tools/testing/vma/include/dup.h~tools-testing-vma-add-test-to-assert-map_private-dev-zero-is-anon
-+++ a/tools/testing/vma/include/dup.h
-@@ -20,6 +20,7 @@ struct task_struct *get_current(void);
- 
- #define MAJOR(dev)	((unsigned int) ((dev) >> MINORBITS))
- #define MINOR(dev)	((unsigned int) ((dev) & MINORMASK))
-+#define MKDEV(ma, mi)	(((ma) << MINORBITS) | (mi))
- 
- #define S_IFMT  00170000
- #define S_IFCHR  0020000
---- a/tools/testing/vma/tests/mmap.c~tools-testing-vma-add-test-to-assert-map_private-dev-zero-is-anon
-+++ a/tools/testing/vma/tests/mmap.c
-@@ -45,7 +45,57 @@ static bool test_mmap_region_basic(void)
- 	return true;
+--- a/tools/testing/selftests/mm/merge.c~tools-testing-selftests-mm-add-map_private-dev-zero-merge-tests
++++ a/tools/testing/selftests/mm/merge.c
+@@ -1362,6 +1362,110 @@ TEST_F(merge, virt_and_page_offset_misma
+ 	ASSERT_EQ(procmap->query.vma_end, (unsigned long)ptr + 5 * page_size);
  }
  
-+static int dummy_mmap_prepare(struct vm_area_desc *desc)
++TEST_F(merge, merge_map_private_dev_zero_unfaulted)
 +{
-+	return 0;
-+}
++	struct procmap_fd *procmap = &self->procmap;
++	unsigned int page_size = self->page_size;
++	char *carveout = self->carveout;
++	char *ptr, *ptr2;
++	int fd_zero;
 +
-+static bool test_pure_anon_dev_zero(void)
-+{
-+	const vma_flags_t vma_flags = mk_vma_flags(VMA_READ_BIT, VMA_WRITE_BIT,
-+			VMA_MAYREAD_BIT, VMA_MAYWRITE_BIT);
-+	const struct file_operations f_op = {
-+		.mmap_prepare = dummy_mmap_prepare,
-+	};
-+	struct inode inode = {
-+		.i_mode = S_IFCHR,
-+		.i_rdev = MKDEV(MEM_MAJOR, DEVZERO_MINOR),
-+	};
-+	struct file file = {
-+		.f_inode = &inode,
-+		.f_op = &f_op,
-+	};
-+	struct mm_struct mm = {};
-+	struct vm_area_struct *vma;
-+	unsigned long addr;
-+	VMA_ITERATOR(vmi, &mm, 0);
-+
-+	current->mm = &mm;
++	if (access("/dev/zero", F_OK))
++		SKIP(return, "No /dev/zero.");
++	fd_zero = open("/dev/zero", O_RDWR);
++	ASSERT_NE(fd_zero, -1);
 +
 +	/*
-+	 * Map a MAP_PRIVATE-/dev/zero mapping at address 0x300000 with a page
-+	 * offset of 0x10, which we expect to be reset to the virtual page
-+	 * offset.
++	 * Map two MAP_PRIVATE-/dev/zero VMAs next to one another with offset 0
++	 * each.
++	 *
++	 * With these being made truly anonymous upon mapping, they will
++	 * merge. If they were file-backed VMAs the page offsets would prevent
++	 * merge:
++	 *
++	 * |-----||------|    |-------------|
++	 * | ptr || ptr2 | -> |     ptr     |
++	 * |-----||------|    |-------------|
 +	 */
-+	addr = __mmap_region(&file, 0x300000, 0x3000, vma_flags, 0x10, NULL);
-+	ASSERT_EQ(addr, 0x300000);
++	ptr = mmap(carveout, 5 * page_size, PROT_READ | PROT_WRITE,
++		   MAP_FIXED | MAP_PRIVATE, fd_zero, 0);
++	if (ptr == MAP_FAILED) {
++		close(fd_zero);
++		ASSERT_TRUE(false);
++	}
++	ptr2 = mmap(&carveout[5 * page_size], 5 * page_size,
++		   PROT_READ | PROT_WRITE, MAP_FIXED | MAP_PRIVATE, fd_zero, 0);
++	if (ptr2 == MAP_FAILED) {
++		close(fd_zero);
++		ASSERT_TRUE(false);
++	}
++	close(fd_zero);
 +
-+	/* Assert that it truly is an anonymous mapping. */
-+	vma = vma_lookup(&mm, addr);
-+	ASSERT_NE(vma, NULL);
-+	ASSERT_TRUE(vma_is_anonymous(vma));
-+	ASSERT_EQ(vma->vm_file, NULL);
-+	ASSERT_EQ(vma->vm_private_data, NULL);
-+	/* Expect virtual page offsets. */
-+	ASSERT_EQ(vma->vm_pgoff, 0x300);
-+	ASSERT_EQ(vma_start_virt_pgoff(vma), 0x300);
-+
-+	cleanup_mm(&mm, &vmi);
-+	return true;
++	/* Assert that they merged. */
++	ASSERT_TRUE(find_vma_procmap(procmap, ptr));
++	ASSERT_EQ(procmap->query.vma_start, (unsigned long)ptr);
++	ASSERT_EQ(procmap->query.vma_end, (unsigned long)ptr + 10 * page_size);
 +}
 +
- static void run_mmap_tests(int *num_tests, int *num_fail)
++TEST_F(merge, merge_map_private_dev_zero_faulted_unfaulted)
++{
++	struct procmap_fd *procmap = &self->procmap;
++	unsigned int page_size = self->page_size;
++	char *carveout = self->carveout;
++	char *ptr, *ptr2;
++	int fd_zero;
++
++	if (access("/dev/zero", F_OK))
++		SKIP(return, "No /dev/zero.");
++	fd_zero = open("/dev/zero", O_RDWR);
++	ASSERT_NE(fd_zero, -1);
++
++	/*
++	 * Map a MAP_PRIVATE mapping of /dev/zero with page offset 0, then fault
++	 * it in:
++	 *
++	 * |-------------------------------|
++	 * |           faulted             |
++	 * |-------------------------------|
++	 */
++	ptr = mmap(carveout, 15 * page_size, PROT_READ | PROT_WRITE,
++		   MAP_FIXED | MAP_PRIVATE, fd_zero, 0);
++	if (ptr == MAP_FAILED) {
++		close(fd_zero);
++		ASSERT_TRUE(false);
++	}
++	memset(ptr, 'x', 15 * page_size);
++
++	/*
++	 * Unmap the middle:
++	 *
++	 * |---------|           |---------|
++	 * | faulted |           | faulted |
++	 * |---------|           |---------|
++	 */
++	ASSERT_EQ(munmap(&ptr[5 * page_size], 5 * page_size), 0);
++
++	/*
++	 * Map in a new unfaulted mapping in the middle with page offset 0 -
++	 * this should merge and would not if it were treated as a file rather
++	 * than pure anon:
++	 *
++	 * |---------|-----------|---------|
++	 * | faulted | unfaulted | faulted |
++	 * |---------|-----------|---------|
++	 */
++	ptr2 = mmap(&carveout[5 * page_size], 5 * page_size,
++		    PROT_READ | PROT_WRITE, MAP_FIXED | MAP_PRIVATE,
++		    fd_zero, 0);
++	close(fd_zero);
++	ASSERT_NE(ptr2, MAP_FAILED);
++
++	/* Assert that they merged. */
++	ASSERT_TRUE(find_vma_procmap(procmap, ptr));
++	ASSERT_EQ(procmap->query.vma_start, (unsigned long)ptr);
++	ASSERT_EQ(procmap->query.vma_end, (unsigned long)ptr + 15 * page_size);
++}
++
+ TEST_F(merge_with_fork, mremap_faulted_to_unfaulted_prev)
  {
- 	TEST(mmap_region_basic);
-+	TEST(pure_anon_dev_zero);
- }
+ 	struct procmap_fd *procmap = &self->procmap;
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
@@ -186,6 +235,5 @@ mm-mremap-convert-mremap-code-to-use-vma_flags_t.patch
 mm-mseal-remove-superfluous-comments-fix-confusion-around-mm.patch
 mm-mseal-limit-scope-of-mseal-address-zero-to-address-zero.patch
 mm-mseal-remove-further-superfluous-comments-do_mseal.patch
-tools-testing-selftests-mm-add-map_private-dev-zero-merge-tests.patch
 mm-add-some-missing-includes-to-mm-local-headers.patch
 
