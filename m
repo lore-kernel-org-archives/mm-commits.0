@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 538C93B8948
-	for <mm-commits@vger.kernel.org>; Thu,  6 Aug 2026 20:18:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 755DA47F761
+	for <mm-commits@vger.kernel.org>; Thu,  6 Aug 2026 20:29:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786047540; cv=none; b=CbfrSYRQtepvA0yfyPK1bqO+q1MWyDpUI9j7j6tV8Yhxm+iONR85YjdNFyDAzo4HB/ewukiFxJm++t+8UMiVK7pIAadYzSrqcrIRP+PodpyLeud06SUGm050kOYNRf8TDUifXs4uslXQ/zupN0iRDe9tMLT6Y5ZTvWXXIKYqQbQ=
+	t=1786048191; cv=none; b=ndUTRVPqTYd5jr9IjDV7a0YLDBsQ+0AI5LB4oUPSppqamm7IIjuDkNDZ299l+LnFALRVGW+5QXkcvyFqWaspRGuZCvS28M2YMAysm68T8pSP14Kk4b/37658EHJTSZpjNwRuxGut66w3VAeNPdpLjaAjWj+w6hm/Op4vhartDC8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786047540; c=relaxed/simple;
-	bh=QPQo4F/WNZnXNLysytNfwLNBak/leIuMpRnA9gZqMfA=;
-	h=Date:To:From:Subject:Message-Id; b=DRS9khcW8VWaTFA81vfnulshwsMvNWiMteMq899VWsKCmzBYp1HJ02s1Ae4QevqS9qNmxYpbe4nJwrL9Ua7Sranbs8DB0CTk1Od8fUKqRZkcPG+6Lf27iqRrcUulsA6jVSKvE9EdvFbLCC+ZdexexxGgL570evClsBenPXToGOs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Zpn9kIZQ; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1786048191; c=relaxed/simple;
+	bh=kH9iSZ0vU+eyafB3R1C5xKgJ7x/eZoA33Uy5NBvUrf4=;
+	h=Date:To:From:Subject:Message-Id; b=hpIztVNY5kzo+5doY+P1iLmtdhcJCpaaoRAVLgA49TCsIF7JOMrZgIY8Y8KOiMPJthODA4aDNRpcmP8Lz6FQhLfsH1pLI3IY4CWoWaKnf+BFPIDnXh9Z76hFdcREEoErfvNqWamQWLf1nmQolOPp8I/Ps9uCjpivyoOH/xnPVIg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=h+stQfox; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Zpn9kIZQ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B6E031F000E9;
-	Thu,  6 Aug 2026 20:18:58 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="h+stQfox"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3693E1F000E9;
+	Thu,  6 Aug 2026 20:29:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1786047538;
-	bh=urTIb664DhECiSFBeD8QSsDxpom4/IP21NIVG8GzrrM=;
+	d=linux-foundation.org; s=korg; t=1786048190;
+	bh=XEiuc+7hcqHvO18AqRlVdLHt8D3PmgybQ6o4Hc+W3dI=;
 	h=Date:To:From:Subject;
-	b=Zpn9kIZQk0DEKk7Ti+1uaJwTSi1WG8nb+F9gqf8PcPYVN2ekF4ZK8hAlcGtWtvA8q
-	 fHvQQOqZal2EcWZNr+Wesx4Oguk0XLzxbcNc4mXs21Zv92QCYHlc1GCRHg5WG81R34
-	 fTknU9bKGZ1dFwabNOMQyzQjypK6haLo2iPAOCzw=
-Date: Thu, 06 Aug 2026 13:18:58 -0700
-To: mm-commits@vger.kernel.org,zhanxusheng@xiaomi.com,liam@infradead.org,andrewjballance@gmail.com,aliceryhl@google.com,zhanxusheng1024@gmail.com,akpm@linux-foundation.org
+	b=h+stQfoxIQmyKf9NFlxXYoaBgz2psOdnh0NP8tjrlot0JMsikqoG6LU6jP3aYVcrn
+	 VSiM+tx0dkylHvf3V0S04RC3zQ8bYN8kCx0NMICcIEc5JHujeTI6xa031kZLKsbknF
+	 45pA07S5gWO0fGwYsxWOMXp5IoJ+rp5YJsiCvVVE=
+Date: Thu, 06 Aug 2026 13:29:49 -0700
+To: mm-commits@vger.kernel.org,zhanxusheng@xiaomi.com,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,heming.zhao@suse.com,gechangwei@live.cn,zhanxusheng1024@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + maple_tree-remove-unused-mas_is_root_limits.patch added to mm-new branch
-Message-Id: <20260806201858.B6E031F000E9@smtp.kernel.org>
+Subject: + ocfs2-bound-check-dir-entries-in-the-readdir-re-validation-scan.patch added to mm-nonmm-unstable branch
+Message-Id: <20260806202950.3693E1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,26 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: maple_tree: remove unused mas_is_root_limits()
-has been added to the -mm mm-new branch.  Its filename is
-     maple_tree-remove-unused-mas_is_root_limits.patch
+     Subject: ocfs2: bound-check dir entries in the readdir re-validation scan
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     ocfs2-bound-check-dir-entries-in-the-readdir-re-validation-scan.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-remove-unused-mas_is_root_limits.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-bound-check-dir-entries-in-the-readdir-re-validation-scan.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -70,45 +59,68 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Zhan Xusheng <zhanxusheng1024@gmail.com>
-Subject: maple_tree: remove unused mas_is_root_limits()
-Date: Wed, 5 Aug 2026 15:05:29 +0800
+Subject: ocfs2: bound-check dir entries in the readdir re-validation scan
+Date: Thu, 6 Aug 2026 20:21:33 +0800
 
-The last callers of mas_is_root_limits() were removed by commit
-b8852ef30c67 ("maple_tree: remove maple big node and subtree structs"),
-together with the maple subtree state (mast_*) code that used it.  As a
-static inline it does not trigger -Wunused-function, so it went unnoticed.
+When the inode version changed since the last readdir(),
+ocfs2_dir_foreach_blk_el() re-scans the directory block from its start to
+relocate the current position:
 
-Remove it. No functional change.
+	for (i = 0; i < sb->s_blocksize && i < offset; ) {
+		de = (struct ocfs2_dir_entry *)(bh->b_data + i);
+		if (le16_to_cpu(de->rec_len) < OCFS2_DIR_REC_LEN(1))
+			break;
+		i += le16_to_cpu(de->rec_len);
+	}
 
-Link: https://lore.kernel.org/20260805070529.4118794-1-zhanxusheng@xiaomi.com
+The loop dereferences de->rec_len (at byte offset 8 within the entry)
+guarded only by i < sb->s_blocksize.  `offset` is derived from ctx->pos,
+which userspace controls via lseek() on the directory fd, so i can reach
+the last bytes of the block; reading de->rec_len then reads a few bytes
+past the s_blocksize-sized block buffer (an out-of-bounds read).
+
+The main emit loop below already guards this via ocfs2_check_dir_entry(),
+which rejects entries too close to the buffer end before touching de. 
+Apply the same lower bound to the re-validation scan so that a full
+minimal directory entry is known to fit before de is dereferenced.  For a
+consistent directory this changes nothing: entries are at least
+OCFS2_DIR_REC_LEN(1) bytes, so no valid entry starts in the excluded tail.
+
+Found by the sashiko review tool; fix approach suggested by Joseph Qi.
+
+Link: https://lore.kernel.org/20260806122133.956847-1-zhanxusheng@xiaomi.com
+Link: https://sashiko.dev/#/patchset/20260806022044.167962-1-zhanxusheng@xiaomi.com
 Signed-off-by: Zhan Xusheng <zhanxusheng@xiaomi.com>
-Reviewed-by: Liam R. Howlett (Oracle) <liam@infradead.org>
-Cc: Alice Ryhl <aliceryhl@google.com>
-Cc: Andrew Ballance <andrewjballance@gmail.com>
+Suggested-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Jun Piao <piaojun@huawei.com>
+Cc: Heming Zhao <heming.zhao@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/maple_tree.c |    5 -----
- 1 file changed, 5 deletions(-)
+ fs/ocfs2/dir.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/lib/maple_tree.c~maple_tree-remove-unused-mas_is_root_limits
-+++ a/lib/maple_tree.c
-@@ -362,11 +362,6 @@ static __always_inline bool mte_is_root(
- 	return ma_is_root(mte_to_node(node));
- }
- 
--static inline bool mas_is_root_limits(const struct ma_state *mas)
--{
--	return !mas->min && mas->max == ULONG_MAX;
--}
--
- static __always_inline bool mt_is_alloc(struct maple_tree *mt)
- {
- 	return (mt->ma_flags & MT_FLAGS_ALLOC_RANGE);
+--- a/fs/ocfs2/dir.c~ocfs2-bound-check-dir-entries-in-the-readdir-re-validation-scan
++++ a/fs/ocfs2/dir.c
+@@ -1945,7 +1945,8 @@ static int ocfs2_dir_foreach_blk_el(stru
+ 		 * dirent right now.  Scan from the start of the block
+ 		 * to make sure. */
+ 		if (!inode_eq_iversion(inode, *f_version)) {
+-			for (i = 0; i < sb->s_blocksize && i < offset; ) {
++			for (i = 0; i + OCFS2_DIR_REC_LEN(1) <= sb->s_blocksize &&
++			     i < offset;) {
+ 				de = (struct ocfs2_dir_entry *) (bh->b_data + i);
+ 				/* It's too expensive to do a full
+ 				 * dirent test each time round this
 _
 
 Patches currently in -mm which might be from zhanxusheng1024@gmail.com are
 
 maple_tree-remove-unused-mas_is_root_limits.patch
 ocfs2-fix-readdir-position-truncation-on-32-bit-kernels.patch
+ocfs2-bound-check-dir-entries-in-the-readdir-re-validation-scan.patch
 
