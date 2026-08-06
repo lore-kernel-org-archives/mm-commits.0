@@ -1,169 +1,122 @@
-Received: from latitanza.investici.org (latitanza.investici.org [185.218.207.228])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4B09648C405
-	for <mm-commits@vger.kernel.org>; Thu,  6 Aug 2026 18:27:41 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.218.207.228
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 15483B640
+	for <mm-commits@vger.kernel.org>; Thu,  6 Aug 2026 18:36:09 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786040863; cv=none; b=pYOHEVUddjljMBVy/j6FJO4NKjMOD7rplGrAHq2jxfgsHOBT/Ktg32Fc5ctD+ap7ti6VsE1MstXc5SPwdWqAEZHsC+GdCGeU3QYw28UI6c9rKcmYI9bfmVZMJzr4du/dD6sbak9CYK46K/I96q69JHxufC+wHaQk2RPtGnv/tb8=
+	t=1786041371; cv=none; b=uG0turotWG+mA9u67oJHW2lvHcEk01XNvr6NBA7VZFMvuLcbXpE3oYtU/RZZGaVhhUEVaHO3idaccsOYRs8Epfw5Lo+y5AavWy/HQUfrcggrAMHW17HjACUEnS8oOTuBuhmv8rbQH8R2TYkNcFRO8MGTBGpyoTHV5E0eHL1xBIs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786040863; c=relaxed/simple;
-	bh=lmPzGjztyNd69RrNBEkLh8CXUCTgy1LlqzfgMW2cTYU=;
-	h=Date:From:To:Subject:In-Reply-To:References:Message-ID:
-	 MIME-Version:Content-Type; b=uumBaIPO/ayHYIpBvu/cp9mJFonvHttFodUMKbKGd0DTz8OLSLAkA0qxsbDdFgyL5guLXVFK9vXIyQ6RTmF4Jb04CsCK01J+/YVv/Xiwilkj2LysMVygRXHZin4RnyJ1Ucahw5DvJklUpLs1NgtcQW2arCugtWOlA7wT3ZpEmUo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=grrlz.net; spf=pass smtp.mailfrom=grrlz.net; dkim=pass (1024-bit key) header.d=grrlz.net header.i=@grrlz.net header.b=rOu51B8D; arc=none smtp.client-ip=185.218.207.228
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=grrlz.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=grrlz.net
+	s=arc-20240116; t=1786041371; c=relaxed/simple;
+	bh=sD0beItS+tLd10L0IED0TrrZ72sQUDS7u0oEeGWn474=;
+	h=Date:To:From:Subject:Message-Id; b=dthvU3DHIQkGWWgGLWnQPItSyhKDwAXjCplU0XUtS1cmMIJA1UO3H9dYco4aLk78bNHgy0Vw4INGfr7mRcDe8d9JaaOsjPIBUW0EfEjh1RHfwW2fSGGXBHQ/HRQ9GRmIBy6V+MZ1bxAhoRT4xcmhyjpiI4J09BRc5vCgwU/MTbw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kOsMZkNP; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=grrlz.net header.i=@grrlz.net header.b="rOu51B8D"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=grrlz.net;
-	s=stigmate; t=1786040858;
-	bh=zc/ucHz8C1kz8yWnmvh+iBPHmuhADy6uv6rferqp9DA=;
-	h=Date:From:To:Subject:In-Reply-To:References:From;
-	b=rOu51B8DQcSjO/2u1vnArmHj4zqHIP7yWk7B8Ee5UWSX+DYFJJI/wAoIzsGz1wjPU
-	 xMEL5NAVXHnteI/vDuqK0J3nQRYYnCwdLJMt6JQVbdJJsa6G3wXQo697ZBSaC4Z3m/
-	 UMfGL0EkRFbA2RLuF86BYeKXeYrqwlFrMkJPKlcc=
-Received: from mx3.investici.org (unknown [127.0.0.1])
-	by latitanza.investici.org (Postfix) with ESMTP id 4hGG3Z5Z7KzGpNr;
-	Thu, 06 Aug 2026 18:27:38 +0000 (UTC)
-Received: by mx3.investici.org (Postfix) id 4hGG3Z31MyzGpNw;
-	Thu, 06 Aug 2026 18:27:38 +0000 (UTC)
-Date: Thu, 06 Aug 2026 19:27:38 +0100
-From: Bradley Morgan <include@grrlz.net>
-To: Andrew Morton <akpm@linux-foundation.org>, mm-commits@vger.kernel.org,
- tglx@kernel.org, oleg@redhat.com, brauner@kernel.org,
- akpm@linux-foundation.org
-Subject: =?US-ASCII?Q?Re=3A_+_signal-factor-out-the-kernel-reserved-si=5Fc?=
- =?US-ASCII?Q?ode-check=2Epatch_added_to_mm-nonmm-unstable_branch?=
-In-Reply-To: <20260806181825.8D1451F000E9@smtp.kernel.org>
-References: <20260806181825.8D1451F000E9@smtp.kernel.org>
-Message-ID: <631905F7-41C5-48F2-BA83-AF81B31D2128@grrlz.net>
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kOsMZkNP"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C2B931F00A3A;
+	Thu,  6 Aug 2026 18:36:09 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=linux-foundation.org; s=korg; t=1786041369;
+	bh=HHnEZ++Y4ssj+G8N5vTX1wi7KTzsWY8mGDQ4t9AHEkw=;
+	h=Date:To:From:Subject;
+	b=kOsMZkNP5Ng2wzxnr8C/q1F6OswjGK/sj74OJYpsTbwOwNH3FgbhW0nhlELv/XySm
+	 NrIpJsOdCruhzsPzUJvt209GtiUhonntRkpywi6y9D/op6/LP+iiaai+ObKFQBqcd4
+	 gdFHKAR4DoBWOxIw5yiTslE8vLjCeUvzuY5i4wyM=
+Date: Thu, 06 Aug 2026 11:36:09 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,shuah@kernel.org,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,audra@redhat.com,akpm@linux-foundation.org
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: + correct-__pagemap_scan_get_categories-return-value.patch added to mm-new branch
+Message-Id: <20260806183609.C2B931F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain;
- charset=utf-8
-Content-Transfer-Encoding: 8bit
 
-On 6 August 2026 19:18:24 BST, Andrew Morton <akpm@linux-foundation.org>
-wrote:
->
->The patch titled
->     Subject: signal: factor out the kernel reserved si_code check
->has been added to the -mm mm-nonmm-unstable branch.  Its filename is
->     signal-factor-out-the-kernel-reserved-si_code-check.patch
->
->This patch will shortly appear at
->     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/signal-factor-out-the-kernel-reserved-si_code-check.patch
->
->This patch will later appear in the mm-nonmm-unstable branch at
->    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
->
->Before you just go and hit "reply", please:
->   a) Consider who else should be cc'ed
->   b) Prefer to cc a suitable mailing list as well
->   c) Ideally: find the original patch on the mailing list and do a
->      reply-to-all to that, adding suitable additional cc's
->
->*** Remember to use Documentation/process/submit-checklist.rst when
->testing your code ***
->
->The -mm tree is included into linux-next via various
->branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
->and is updated there most days
->
->------------------------------------------------------
->From: Bradley Morgan <include@grrlz.net>
->Subject: signal: factor out the kernel reserved si_code check
->Date: Thu, 6 Aug 2026 13:30:13 +0000
->
->The check that prevents userspace from sending siginfo with si_code values
->reserved to the kernel is duplicated across do_rt_sigqueueinfo(),
->do_rt_tgsigqueueinfo() and do_pidfd_send_signal().  Move the check into a
->helper so the rule lives in one place.
->
->Link: https://lore.kernel.org/20260806133013.4341-1-include@grrlz.net
->Signed-off-by: Bradley Morgan <include@grrlz.net>
->Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
 
-Thanks for the R-B, Oleg added his A-B btw.
+The patch titled
+     Subject: selftests/mm/vm_util.c: correct __pagemap_scan_get_categories return value
+has been added to the -mm mm-new branch.  Its filename is
+     correct-__pagemap_scan_get_categories-return-value.patch
 
->Cc: Christian Brauner <brauner@kernel.org>
->Cc: Oleg Nesterov <oleg@redhat.com>
->Cc: Thomas Gleixner <tglx@kernel.org>
->Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
->---
->
-> kernel/signal.c |   25 ++++++++++++++-----------
-> 1 file changed, 14 insertions(+), 11 deletions(-)
->
->--- a/kernel/signal.c~signal-factor-out-the-kernel-reserved-si_code-check
->+++ a/kernel/signal.c
->@@ -3944,6 +3944,15 @@ static void prepare_kill_siginfo(int sig
-> 	info->si_uid = from_kuid_munged(current_user_ns(), current_uid());
-> }
-> 
->+/*
->+ * Not even root can pretend to send SI_FROMKERNEL() signals.
->+ * Nor can they impersonate kill()/tgkill(), which have si_pid/uid
->+ */
->+static bool si_code_reserved_to_kernel(int si_code)
->+{
->+	return si_code >= 0 || si_code == SI_TKILL;
->+}
->+
-> /**
->  *  sys_kill - send a signal to a process
->  *  @pid: the PID of the process
->@@ -4035,7 +4044,7 @@ static int do_pidfd_send_signal(struct p
-> 
-> 		/* Only allow sending arbitrary signals to yourself. */
-> 		if ((task_pid(current) != pid || type > PIDTYPE_TGID) &&
->-		    (kinfo.si_code >= 0 || kinfo.si_code == SI_TKILL))
->+		    si_code_reserved_to_kernel(kinfo.si_code))
-> 			return -EPERM;
-> 	} else {
-> 		prepare_kill_siginfo(sig, &kinfo, type);
->@@ -4190,11 +4199,8 @@ SYSCALL_DEFINE2(tkill, pid_t, pid, int,
-> 
-> static int do_rt_sigqueueinfo(pid_t pid, int sig, kernel_siginfo_t *info)
-> {
->-	/* Not even root can pretend to send signals from the kernel.
->-	 * Nor can they impersonate a kill()/tgkill(), which adds source info.
->-	 */
->-	if ((info->si_code >= 0 || info->si_code == SI_TKILL) &&
->-	    (task_pid_vnr(current) != pid))
->+	if (si_code_reserved_to_kernel(info->si_code) &&
->+	    task_pid_vnr(current) != pid)
-> 		return -EPERM;
-> 
-> 	/* POSIX.1b doesn't mention process groups.  */
->@@ -4237,11 +4243,8 @@ static int do_rt_tgsigqueueinfo(pid_t tg
-> 	if (pid <= 0 || tgid <= 0)
-> 		return -EINVAL;
-> 
->-	/* Not even root can pretend to send signals from the kernel.
->-	 * Nor can they impersonate a kill()/tgkill(), which adds source info.
->-	 */
->-	if ((info->si_code >= 0 || info->si_code == SI_TKILL) &&
->-	    (task_pid_vnr(current) != pid))
->+	if (si_code_reserved_to_kernel(info->si_code) &&
->+	    task_pid_vnr(current) != pid)
-> 		return -EPERM;
-> 
-> 	return do_send_specific(tgid, pid, sig, info);
->_
->
->Patches currently in -mm which might be from include@grrlz.net are
->
->taskstats-drop-the-dead-null-attribute-check-in-parse.patch
->taskstats-fold-the-two-cpumask-handlers-into-one.patch
->taskstats-copy-signal-stats-under-siglock-in-taskstats_exit.patch
->signal-factor-out-the-kernel-reserved-si_code-check.patch
->
->
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/correct-__pagemap_scan_get_categories-return-value.patch
 
-Thanks!
+This patch will later appear in the mm-new branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
+
+------------------------------------------------------
+From: Audra Mitchell <audra@redhat.com>
+Subject: selftests/mm/vm_util.c: correct __pagemap_scan_get_categories return value
+Date: Thu, 6 Aug 2026 11:00:34 -0400
+
+Currently __pagemap_scan_get_categories returns the result from the ioctl
+call which should be an int, not uint64_t.  The ioctl may return -1 on
+error, which will be interpreted as UINT64_MAX.  Adjust the return type to
+use the correct value.
+
+Link: https://lore.kernel.org/20260806150339.1824251-2-audra@redhat.com
+Signed-off-by: Audra Mitchell <audra@redhat.com>
+Reviewed-by: Liam R. Howlett (Oracle) <liam@infradead.org>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ tools/testing/selftests/mm/vm_util.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+--- a/tools/testing/selftests/mm/vm_util.c~correct-__pagemap_scan_get_categories-return-value
++++ a/tools/testing/selftests/mm/vm_util.c
+@@ -34,7 +34,7 @@ uint64_t pagemap_get_entry(int fd, char
+ 	return entry;
+ }
+ 
+-static uint64_t __pagemap_scan_get_categories(int fd, char *start, struct page_region *r)
++static int __pagemap_scan_get_categories(int fd, char *start, struct page_region *r)
+ {
+ 	struct pm_scan_arg arg;
+ 
+@@ -58,7 +58,7 @@ static uint64_t __pagemap_scan_get_categ
+ static uint64_t pagemap_scan_get_categories(int fd, char *start)
+ {
+ 	struct page_region r;
+-	long ret;
++	int ret;
+ 
+ 	ret = __pagemap_scan_get_categories(fd, start, &r);
+ 	if (ret < 0)
+_
+
+Patches currently in -mm which might be from audra@redhat.com are
+
+correct-__pagemap_scan_get_categories-return-value.patch
+
