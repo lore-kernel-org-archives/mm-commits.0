@@ -1,88 +1,95 @@
-Received: from mail-pf1-f180.google.com (mail-pf1-f180.google.com [209.85.210.180])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 913321A9FBA
-	for <mm-commits@vger.kernel.org>; Thu,  6 Aug 2026 03:41:54 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.180
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E8BE3375F62;
+	Thu,  6 Aug 2026 04:13:54 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785987716; cv=none; b=HsTytz6Di2OTbzgAvw82OCBZKC7El6nQ/Yx09OsvhyyfsHe29VUc/dfPFmmZ0gYOhRWiXzv7C5sgXQJM1MATCyH3RacPNyGEPSW4lM2b6R4RSlw8cW05ubWWfe1XfS/iDWAMNhrS7oR8tO2uW5h6ZfLxJ3L5eXKGVa/2WicTJKY=
+	t=1785989636; cv=none; b=XO+2Ma558GJ4dw3O6DYUTER8LQCQUXDMhRd9THo/40J6wWB/1inA/eMKUfXbIOxs7Qdy1gowUdcjuAvyxbmF4s/AsJr4vf0Q9BqP0WNZitx4abfsv+G4MZQWODz0ednnTSpQt57sEKfY/QUC4Em8Yfd3nxBuzUuz9KWwsg94R5o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785987716; c=relaxed/simple;
-	bh=CwhYbikRvMaDHOlP8y3Uj/dg4iTaxackAEIaAerGW5E=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=u1N+jzlwgo+VcxtLKP67ae6N5X4KnDzhMkpRnib2fE33qUhQJ+dNKwUywNZj5l4Th7yG03yi0LUJwO2+KSaWtoAUahlC0Ip6Wq7Ciz2rF0w7JkcTWMhe5Lh5DZKx9Ahjp9bs+WsafQQMEp/Ol4lVNzpH7uAN7+P+5fR6j4hTadE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org; spf=pass smtp.mailfrom=chromium.org; dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b=Gf2/zKvZ; arc=none smtp.client-ip=209.85.210.180
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=chromium.org
+	s=arc-20240116; t=1785989636; c=relaxed/simple;
+	bh=QTmyYgwTlVGqAWDISsd2rVFpvLBu/1U1vjj5vIDrRmY=;
+	h=Date:To:From:Subject:Message-Id; b=Gs6bo+KpdlTgRoSBBP8ytCNejE1ioYFCJQQ1oomQiLCgA5JwKXbSfJp2ZcZZYZMhuvmZLokizzadRooxiUtP4zsv/9vXfrVRUuKqfFKKQfggDl2bmjecrrGWiX9SeqaRRROCtSAYS58Tw3+uqJbeIebn4AHH1A7eHu+s4kWU6js=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Glpq/EGA; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="Gf2/zKvZ"
-Received: by mail-pf1-f180.google.com with SMTP id d2e1a72fcca58-848479c9bd5so1592369b3a.3
-        for <mm-commits@vger.kernel.org>; Wed, 05 Aug 2026 20:41:54 -0700 (PDT)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Glpq/EGA"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 60D521F000E9;
+	Thu,  6 Aug 2026 04:13:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=chromium.org; s=google; t=1785987714; x=1786592514; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:from:date:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=jFSf2V0NRaAWT2/+cpciF/RWo86JJIrKrftTaJppXow=;
-        b=Gf2/zKvZNweFlgUSkOXrNiACcJRwz4zT4etEwFrC4wiUuf3BbA5uPcVMSmLXigIvQo
-         +K5t//Y7LMwEWscV6CfxH0hd7UDr17m3/eTXcwX5bmbDRFFPkMmS0ONuyqexTOtpC87n
-         2F+BadGKsL8nOyTB63QcXkMO6gC/kDOiaa3Xs=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1785987714; x=1786592514;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:from:date:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=jFSf2V0NRaAWT2/+cpciF/RWo86JJIrKrftTaJppXow=;
-        b=Q1NmD0VAASrOuv9fRCzIMXCf4euTs4Tj7WPWUUN/xDxAXt0EfD/7dMHKX3pw/9j93C
-         JKceGdW4s+1j8gKmrpNqgDI2G6xErzQuAYjHLFvNSIKsklDouwfS/yq5T62ibDPGo5RA
-         InvUs36U/hlgVkAp4+PyaAa/eRrVDgzOmURFd2Dg1yPWsdy3r6DkvFTsl4fIj8ezYg8V
-         o8/6dPEZBjp7zEGp5Gzmi5aQFbL5hpgRGXCoVpMTjAtMf/wDa6NS5Vft3jx9nQLfkzQd
-         J+eZonVTS/L+P0JX3LlHYgxsJGgGnQRUk2OVvT8FmkcxVF3NEqKiqyari3grYrE27h0P
-         iVoQ==
-X-Gm-Message-State: AOJu0Yz/2iFG7YDmF7PVGwcFhEKhwuqHfOrynnV7pASVULmJx4adsPu+
-	9JdnnRzcmypheC6v4Nilt/9Ro5R/W5W67d5kBtnpojoQkH1jbhOACDaivRWleZk7Qg==
-X-Gm-Gg: AR+sD119Mthaed+rKMBUhJlbv4Kr/CnuJdWMoxBL92W+/jY5V+BWgSauZaJnkZAYA8r
-	dcKDE+kMbA01yq5B/29cDgAOQsQs7VsPiBRZOk/bRpa3IoIfbLL0hnnILjqiI7yfFrVHgRcEQJN
-	y6ChSQyibLdtSv0v3C2L5W5AXDG5OmUTvvDIUzVLQiT/oLxQNAu2okD5Oy1VmOm1TjmIxYOYRpH
-	bJzXG6tTYrHiXLr4gv7RmiUftjJcCCQuAcbYJ12adsM1YuWT0l8t/vQCk1J+h+kQQ9Lbrs7/r0R
-	Rf1oNFrHoDc6/WrG1caeVL5hhRMFrdOsZxwXL/Pb+ya/gfMK6Y563ykOYDAbo9c0/TF8nxdPIox
-	SU/R7hClJVAbk+nooGx7JkDQRdmaFQWgvJWTpIsryP1xKI4bwXCmmF+FqCyEHTR43tKfH2FM2zy
-	bt0teh3CUl2pIP3X64Yk0uB2Qx6xzzBBhSfM3NEmB/imZ+yVrcg079dO1RsvmK6kooTZJDhS0v4
-	RO3yRpDDpdFy8nQM+J7hN/iq6p/
-X-Received: by 2002:a05:6a00:b806:b0:847:e2c7:59b6 with SMTP id d2e1a72fcca58-84f2e031181mr13517709b3a.11.1785987713953;
-        Wed, 05 Aug 2026 20:41:53 -0700 (PDT)
-Received: from google.com ([2a00:79e0:2031:6:8002:2a47:a704:5a58])
-        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-84f453b0adfsm408354b3a.15.2026.08.05.20.41.52
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 05 Aug 2026 20:41:53 -0700 (PDT)
-Date: Thu, 6 Aug 2026 12:41:50 +0900
-From: Sergey Senozhatsky <senozhatsky@chromium.org>
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: mm-commits@vger.kernel.org, stable@vger.kernel.org, 
-	senozhatsky@chromium.org, xialonglong@kylinos.cn
-Subject: Re: + zram-reject-disksizes-that-exceed-slot-index-range.patch added
- to mm-new branch
-Message-ID: <anQCNYyJ4mI3l2a4@google.com>
-References: <20260805184803.00F171F00A3A@smtp.kernel.org>
+	d=linux-foundation.org; s=korg; t=1785989634;
+	bh=O5D7Aic3XQ+q1wdDJHVzQZdUZ2OT26xR0U6vNCB3DMo=;
+	h=Date:To:From:Subject;
+	b=Glpq/EGAo9at/CGWvl+9rr7q8tQiyuwbPH33+948M6RnPhLb60B04KVBCPUkSjsmM
+	 JJH+NTuHJ+wv2aOfYJtZ9+j159pa1Ewes/pTLjjju4UC17NNztWk8y5cBFvWHehy+u
+	 hanu/sraUsyZTcKUXDB/x5X+e5kDdlz4iGRzM1yU=
+Date: Wed, 05 Aug 2026 21:13:53 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,senozhatsky@chromium.org,xialonglong@kylinos.cn,akpm@linux-foundation.org
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: [alternative-merged] zram-reject-disksizes-that-exceed-slot-index-range.patch removed from -mm tree
+Message-Id: <20260806041354.60D521F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260805184803.00F171F00A3A@smtp.kernel.org>
 
-On (26/08/05 11:48), Andrew Morton wrote:
-> The patch titled
->      Subject: zram: reject disksizes that exceed slot index range
-> has been added to the -mm mm-new branch.  Its filename is
->      zram-reject-disksizes-that-exceed-slot-index-range.patch
-> 
-> This patch will shortly appear at
->      https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-reject-disksizes-that-exceed-slot-index-range.patch
 
-This patch is superseded by
-https://lore.kernel.org/linux-kernel/ 20260806031640.536615-1-senozhatsky@chromium.org
+The quilt patch titled
+     Subject: zram: reject disksizes that exceed slot index range
+has been removed from the -mm tree.  Its filename was
+     zram-reject-disksizes-that-exceed-slot-index-range.patch
+
+This patch was dropped because an alternative patch was or shall be merged
+
+------------------------------------------------------
+From: Longlong Xia <xialonglong@kylinos.cn>
+Subject: zram: reject disksizes that exceed slot index range
+Date: Tue, 4 Aug 2026 22:38:32 +0800
+
+zram uses u32 slot indexes, while disksize_store() accepts a u64 size.  On
+32-bit systems, a disksize larger than U32_MAX pages is truncated when
+zram_meta_alloc() assigns the page count to size_t.  array_size() then
+sees only the truncated count, so a small table can be allocated while the
+original capacity is published.  Valid I/O within that capacity can
+subsequently access beyond zram->table.
+
+The same oversized capacity also lets full-device scanners compare a u32
+index with an upper bound larger than U32_MAX, so the index can wrap
+instead of terminating.
+
+Reject disksizes larger than U32_MAX pages before aligning and allocating
+the table.  This keeps the table size, published capacity and slot index
+range consistent.
+
+Link: https://lore.kernel.org/20260804143832.146129-1-xialonglong2025@163.com
+Fixes: 33863c21e69e ("Staging: zram: Replace ioctls with sysfs interface")
+Assisted-by: Codex:gpt-5.6-sol
+Signed-off-by: Longlong Xia <xialonglong@kylinos.cn>
+Reviewed-by: Sergey Senozhatsky <senozhatsky@chromium.org>
+Cc: <stable@vger.kernel.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ drivers/block/zram/zram_drv.c |    3 +++
+ 1 file changed, 3 insertions(+)
+
+--- a/drivers/block/zram/zram_drv.c~zram-reject-disksizes-that-exceed-slot-index-range
++++ a/drivers/block/zram/zram_drv.c
+@@ -2881,6 +2881,9 @@ static ssize_t disksize_store(struct dev
+ 		return -EBUSY;
+ 	}
+ 
++	if (disksize > (u64)U32_MAX << PAGE_SHIFT)
++		return -EINVAL;
++
+ 	disksize = PAGE_ALIGN(disksize);
+ 	if (!zram_meta_alloc(zram, disksize))
+ 		return -ENOMEM;
+_
+
+Patches currently in -mm which might be from xialonglong@kylinos.cn are
+
+mm-ksm-avoid-missing-ksmd-wakeups-in-ksm_enter.patch
+zram-fix-out-of-bounds-access-in-writeback_store.patch
+zram-fix-out-of-bounds-access-in-read_block_state.patch
+
