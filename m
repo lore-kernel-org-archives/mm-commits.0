@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4037F3B6363
-	for <mm-commits@vger.kernel.org>; Fri,  7 Aug 2026 02:02:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A64993B19A3
+	for <mm-commits@vger.kernel.org>; Fri,  7 Aug 2026 02:02:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786068133; cv=none; b=c9PxbeI/DbYGE04s1/m38q/c1TMzZOWgZEWCAYL04xQb6pVJdV7yQBZeifcJMnxDbjy18VMb+E/xFJKy4a2yAxSwdNp/U6zQQqQvmgCNUdiDKy2skGkUwRRji4rciI43wdDYsG9gmd8jyxc5NjSX5HiObdFUSoH670F2PtdVhk8=
+	t=1786068134; cv=none; b=WcRxi6s9EXcqVNp/MgCafY4/ORas/n5TIFhoN5Sapgm3F3ez6Th/0cdgyhKzlxFIjKSDrZ74kJCjXC/D/2Re3wUMIzvuFtQBc9+H3eFoXMCn+5z+mSvR1Lle3Mw3++D1WgQPE35+vKetl3mzzH9iMQ1bbCAsiNITBKiLu6y5KAE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786068133; c=relaxed/simple;
-	bh=+/N1Aa3zDiR8Ag2boGLqBk5WkNLJxtOK6NPWZq4NRvA=;
-	h=Date:To:From:Subject:Message-Id; b=NTQ5VxUSj0/DdFHEZD3eN0tdMI6+HpenNVMqGJEg46QW5E2XCx1WjCT18a/crjJdnknxobzNJwcl0bIKUNFZRnylzNw2bsJbtg3P5DGw9cLivzlgJM243HhMWDOghNrTDnF7dlbRYwgKEH+45ODjq7mvHpErD4qY/iUdzWecR/0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TEKZgeWZ; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1786068134; c=relaxed/simple;
+	bh=x3um0/7zRlA+hrIKki4QnHacFfj0yKvn8bqDenrqMwQ=;
+	h=Date:To:From:Subject:Message-Id; b=bN8Baevl7eQcCHV1ddKIG61AzrzcpyvIr9lSlCcfEbjNDvTEsrhdoGnju9oizAqcr3xCjIVO8e/Zu2dQcLO5hBHB2RA1Yp7bDFPLGhM/iVwuwdAkCh4lUFlv+1ACbBrzr/Rl6yu0n6bnmnaJ8UT2EoTci18BkjGYCo0lkLRrLE0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZTyE6fz3; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TEKZgeWZ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 13B6F1F00A3A;
-	Fri,  7 Aug 2026 02:02:12 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZTyE6fz3"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2D6D71F00A3E;
+	Fri,  7 Aug 2026 02:02:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1786068132;
-	bh=36chbgCdwVzwn94bXan9TLUOE9IAUHD5IodZuIn60Dk=;
+	d=linux-foundation.org; s=korg; t=1786068133;
+	bh=SKw+SPaxQT/9KxAagW+8TdPNrdKmMDuZjabBeV2/0Q8=;
 	h=Date:To:From:Subject;
-	b=TEKZgeWZGExbEs/dO3De0Cl62VLaKlvFXs81FSfXXrYb0koqNWooV3PWhQQsUXCuy
-	 fzkDnnPQS9/EVE7UGhBkvElVrOSIIj8uglQqHLbIU14IEAqQt8dktTCBnf40zre9/k
-	 zozhF+vLJwf858XIxzvDFwwvFprFUl0WlkRhLxBQ=
-Date: Thu, 06 Aug 2026 19:02:11 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,xu.xin16@zte.com.cn,willy@infradead.org,wangkefeng.wang@huawei.com,svetly.todorov@memverge.com,sunnanyong@huawei.com,luizcap@redhat.com,linmiaohe@huawei.com,david@kernel.org,chengming.zhou@linux.dev,tujinjiang@huawei.com,akpm@linux-foundation.org
+	b=ZTyE6fz3Aouizer0bu5hjsyWX2l1/J9XbQXgFnYgt0YyrJbNg/zCiTh7kpdB7tBGV
+	 XA4VNXhLDGkMH7BY1EDyIuA5/UpnQ+U2Ih+H7iX75jiTz3CPuH1mex5TPOQ4uBmFah
+	 NpV+Uw6NgVnH6XK9Xb6Bm15e2e/8f9LUYECQRMU8=
+Date: Thu, 06 Aug 2026 19:02:12 -0700
+To: mm-commits@vger.kernel.org,osalvador@suse.de,muchun.song@linux.dev,david@kernel.org,chenyichong@uniontech.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] fs-stable_page_flags-simplify-kpf_idle-handling.patch removed from -mm tree
-Message-Id: <20260807020212.13B6F1F00A3A@smtp.kernel.org>
+Subject: [merged mm-stable] hugetlb-make-hugepage_put_subpool-tolerate-null.patch removed from -mm tree
+Message-Id: <20260807020213.2D6D71F00A3E@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,70 +35,73 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: fs: stable_page_flags(): simplify KPF_IDLE handling
+     Subject: hugetlb: make hugepage_put_subpool() tolerate NULL
 has been removed from the -mm tree.  Its filename was
-     fs-stable_page_flags-simplify-kpf_idle-handling.patch
+     hugetlb-make-hugepage_put_subpool-tolerate-null.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Jinjiang Tu <tujinjiang@huawei.com>
-Subject: fs: stable_page_flags(): simplify KPF_IDLE handling
-Date: Mon, 20 Jul 2026 11:30:21 +0800
+From: Yichong Chen <chenyichong@uniontech.com>
+Subject: hugetlb: make hugepage_put_subpool() tolerate NULL
+Date: Mon, 20 Jul 2026 15:38:41 +0800
 
-For KPF_IDLE, folio_test_idle() check in set_ps_flags() already handles
-all config cases, so remove the duplicate code in stable_page_flags() that
-deals with CONFIG_PAGE_IDLE_FLAG for the 64‑bit case.
+Both callers of hugepage_put_subpool() check whether the subpool pointer
+is NULL before calling it.  Move the NULL check into
+hugepage_put_subpool() so callers can use the helper unconditionally.
 
-No functional change is intended.
+This is a follow-up cleanup after using hugepage_put_subpool() from the
+hugetlbfs_fill_super() failure path.
 
-Link: https://lore.kernel.org/20260720033021.4091944-4-tujinjiang@huawei.com
-Signed-off-by: Jinjiang Tu <tujinjiang@huawei.com>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Cc: Chengming Zhou <chengming.zhou@linux.dev>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Luiz Capitulino <luizcap@redhat.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Nanyong Sun <sunnanyong@huawei.com>
-Cc: Svetly Todorov <svetly.todorov@memverge.com>
-Cc: xu xin <xu.xin16@zte.com.cn>
-Cc: Zi Yan <ziy@nvidia.com>
+Link: https://lore.kernel.org/20260720073841.1389354-1-chenyichong@uniontech.com
+Signed-off-by: Yichong Chen <chenyichong@uniontech.com>
+Reviewed-by: Muchun Song <muchun.song@linux.dev>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Oscar Salvador <osalvador@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/page.c |   10 +++-------
- 1 file changed, 3 insertions(+), 7 deletions(-)
+ fs/hugetlbfs/inode.c |    6 ++----
+ mm/hugetlb.c         |    3 +++
+ 2 files changed, 5 insertions(+), 4 deletions(-)
 
---- a/fs/proc/page.c~fs-stable_page_flags-simplify-kpf_idle-handling
-+++ a/fs/proc/page.c
-@@ -196,6 +196,9 @@ u64 stable_page_flags(const struct page
- 	if (ps.flags & PAGE_SNAPSHOT_PG_BUDDY)
- 		u |= BIT_ULL(KPF_BUDDY);
+--- a/fs/hugetlbfs/inode.c~hugetlb-make-hugepage_put_subpool-tolerate-null
++++ a/fs/hugetlbfs/inode.c
+@@ -1129,8 +1129,7 @@ static void hugetlbfs_put_super(struct s
+ 	if (sbi) {
+ 		sb->s_fs_info = NULL;
  
-+	if (ps.flags & PAGE_SNAPSHOT_PG_IDLE)
-+		u |= BIT_ULL(KPF_IDLE);
+-		if (sbi->spool)
+-			hugepage_put_subpool(sbi->spool);
++		hugepage_put_subpool(sbi->spool);
+ 
+ 		kfree(sbi);
+ 	}
+@@ -1419,8 +1418,7 @@ hugetlbfs_fill_super(struct super_block
+ 		goto out_free;
+ 	return 0;
+ out_free:
+-	if (sbinfo->spool)
+-		hugepage_put_subpool(sbinfo->spool);
++	hugepage_put_subpool(sbinfo->spool);
+ 	kfree(sbinfo);
+ 	return -ENOMEM;
+ }
+--- a/mm/hugetlb.c~hugetlb-make-hugepage_put_subpool-tolerate-null
++++ a/mm/hugetlb.c
+@@ -182,6 +182,9 @@ void hugepage_put_subpool(struct hugepag
+ {
+ 	unsigned long flags;
+ 
++	if (!spool)
++		return;
 +
- 	if (folio_test_offline(folio))
- 		u |= BIT_ULL(KPF_OFFLINE);
- 	if (folio_test_pgtable(folio))
-@@ -203,13 +206,6 @@ u64 stable_page_flags(const struct page
- 	if (folio_test_slab(folio))
- 		u |= BIT_ULL(KPF_SLAB);
- 
--#if defined(CONFIG_PAGE_IDLE_FLAG) && defined(CONFIG_64BIT)
--	u |= kpf_copy_bit(k, KPF_IDLE,          PG_idle);
--#else
--	if (ps.flags & PAGE_SNAPSHOT_PG_IDLE)
--		u |= BIT_ULL(KPF_IDLE);
--#endif
--
- 	u |= kpf_copy_bit(k, KPF_LOCKED,	PG_locked);
- 	u |= kpf_copy_bit(k, KPF_DIRTY,		PG_dirty);
- 	u |= kpf_copy_bit(k, KPF_UPTODATE,	PG_uptodate);
+ 	spin_lock_irqsave(&spool->lock, flags);
+ 	BUG_ON(!spool->count);
+ 	spool->count--;
 _
 
-Patches currently in -mm which might be from tujinjiang@huawei.com are
+Patches currently in -mm which might be from chenyichong@uniontech.com are
 
 
