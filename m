@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A4B803F39E4
-	for <mm-commits@vger.kernel.org>; Fri,  7 Aug 2026 21:57:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 650E24582DD
+	for <mm-commits@vger.kernel.org>; Fri,  7 Aug 2026 21:59:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786139878; cv=none; b=iqPgcCmtr/qnukTGIRIkZOX3QfCZjOuEQTm7JPa9tZyMVD/k3PUpa+H/HR5pgRZNGUlTkn8fXk19GIIBVj/lTThiTT8fDMB6Uqu1exkUnqJcVKR/dSCZj/dxE1qF9l4zk+3XMJhtla+6MAWG9dS76jk2u1Ogr53LVyYkKMasobE=
+	t=1786139974; cv=none; b=DoduPxvyvIMmuLqpU+Qh+FB0BrOx3O0eYDlY5lZeYjipjoVi1L37qdF8mVBCg9cupAOPd75AAtplhXYh7IXRREwS36Sctz3Xq41TkOLtWeydYVBBQ2T10TKiIK/JKBCpexGKhOJ4c4yTZF2k763qSkThboKLWRwd6p4w5/MGx/M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786139878; c=relaxed/simple;
-	bh=bP/uk6FdRA0AyTkuJZqBvFXkYxI+xkUZ4Z6nOrTiSi8=;
-	h=Date:To:From:Subject:Message-Id; b=jOg7jJzZZbi9phsbTg6UHTxLi0nExZ1eClrMtba7A7Pr1UvCcgxbGZzLr2KaRHvboRuW1YPDc6RbW0mhTPOU+Vml61liSBzulC70dSSx4rDdJ60J+gQf5R5d3GhkgGPess8EbLujnNRwUa8ROYDt9ArDnU+pX+X/0XGL5/1s2E8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TLshpeWr; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1786139974; c=relaxed/simple;
+	bh=hNSWo+S9GV86OISYf2izN1H+USBkFWdVzglFeY8LbpA=;
+	h=Date:To:From:Subject:Message-Id; b=Wk77XZblqXcaPKhWrfv9ZByzS4kgmwKSoSRB7WvEO4V7W/V73Ahthb3x2f7ySc09cd8vJbP0Bu/VEPlhmUHQwm33bAybJb7kiJw++fB794nHqyR5N+qbPlRf31o42inx8hZ5SwYBwdwf6pqmPTl7qIPHG4Ls7p4Ki+RP3IzC5YE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RqIkbdDE; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TLshpeWr"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 316C01F000E9;
-	Fri,  7 Aug 2026 21:57:56 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RqIkbdDE"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DDB781F000E9;
+	Fri,  7 Aug 2026 21:59:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1786139876;
-	bh=/+FNT/LQddpHOoyHlUv4BTje2U5l8duF/sv+IewQYwE=;
+	d=linux-foundation.org; s=korg; t=1786139973;
+	bh=1x0szWi/0NAVZ5a+36DYpXOzGwx7JxvkmzwOxctFEz8=;
 	h=Date:To:From:Subject;
-	b=TLshpeWrPW9ZQF97KtOxzKEEygizZj5fj+Q6b4y0rq/oi/QLNnIdbYHECJ4Auvsk8
-	 yVLeBRypw0lxxVWHrZZaHOwOsCoPrSL6DL3XKgocUx7sPIZwh0D3PCcNiTmnBK4QUL
-	 O+oXLiCsJk8b14xErPGR5qbr/cuCzNcM9ZwiyJcY=
-Date: Fri, 07 Aug 2026 14:57:55 -0700
-To: mm-commits@vger.kernel.org,namcao@linutronix.de,jszhang@kernel.org,joe@perches.com,pjw@kernel.org,akpm@linux-foundation.org
+	b=RqIkbdDESY6JFrbrRtqH0WXfTj2504Ez0jXmfrSPEhpDQzGKGnmJMJgYrWGlA8osv
+	 ZohS5T7lo8YJYmDlZdlz/9EAda+Sc5Qya858VIYiJodRqh0rtH6G/PoXOsBRnkhgI+
+	 nQjs5fk5phdCB0LXVqG+Y4T4hhqCd2iRQn/ZUTGI=
+Date: Fri, 07 Aug 2026 14:59:32 -0700
+To: mm-commits@vger.kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,jp.kobryn@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + checkpatch-add-nokprobe_symbol-to-the-whitelist-of-lines-that-can-occur-immediately-after-functions.patch added to mm-nonmm-unstable branch
-Message-Id: <20260807215756.316C01F000E9@smtp.kernel.org>
+Subject: + maintainers-mailmap-update-email-address-for-jp-kobryn.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260807215932.DDB781F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: checkpatch: add NOKPROBE_SYMBOL to the whitelist of lines that can occur immediately after functions
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     checkpatch-add-nokprobe_symbol-to-the-whitelist-of-lines-that-can-occur-immediately-after-functions.patch
+     Subject: MAINTAINERS, mailmap: update email address for JP Kobryn
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     maintainers-mailmap-update-email-address-for-jp-kobryn.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/checkpatch-add-nokprobe_symbol-to-the-whitelist-of-lines-that-can-occur-immediately-after-functions.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maintainers-mailmap-update-email-address-for-jp-kobryn.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,47 +58,47 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Paul Walmsley <pjw@kernel.org>
-Subject: checkpatch: add NOKPROBE_SYMBOL to the whitelist of lines that can occur immediately after functions
-Date: Thu, 6 Aug 2026 19:00:47 -0600 (MDT)
+From: JP Kobryn <jp.kobryn@linux.dev>
+Subject: MAINTAINERS, mailmap: update email address for JP Kobryn
+Date: Thu, 6 Aug 2026 18:02:26 -0700
 
-It's customary for NOKPROBE_SYMBOL() macro usage to appear immediately
-after a function's final closing brace, but checkpatch doesn't know that
-yet.  As a result, checkpatch --strict incorrectly flags this common
-kernel pattern, e.g.,
+Switch to my linux.dev address and add previous one to mailmap.
 
-CHECK: Please use a blank line after function/struct/union/enum declarations
-33: FILE: arch/riscv/kernel/traps.c:273:
- }
-+NOKPROBE_SYMBOL(probe_single_step_handler);
-
-Fix by adding NOKPROBE_SYMBOL to the whitelist of patterns that are
-cleared to appear immediately after functions.
-
-Link: https://lore.kernel.org/130be7db-6098-86a4-60fe-0c1a5d9e30ba@kernel.org
-Signed-off-by: Paul Walmsley <pjw@kernel.org>
-Acked-by: Joe Perches <joe@perches.com>
-Cc: Nam Cao <namcao@linutronix.de>
-Cc: Jisheng Zhang <jszhang@kernel.org>
+Link: https://lore.kernel.org/20260807010226.8995-1-jp.kobryn@linux.dev
+Signed-off-by: JP Kobryn <jp.kobryn@linux.dev>
+Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    1 +
- 1 file changed, 1 insertion(+)
+ .mailmap    |    1 +
+ MAINTAINERS |    2 +-
+ 2 files changed, 2 insertions(+), 1 deletion(-)
 
---- a/scripts/checkpatch.pl~checkpatch-add-nokprobe_symbol-to-the-whitelist-of-lines-that-can-occur-immediately-after-functions
-+++ a/scripts/checkpatch.pl
-@@ -4154,6 +4154,7 @@ sub process {
- 		      $line =~ /^\+[a-z_]*init/ ||
- 		      $line =~ /^\+\s*(?:static\s+)?[A-Z_]*ATTR/ ||
- 		      $line =~ /^\+\s*DECLARE/ ||
-+		      $line =~ /^\+\s*NOKPROBE_SYMBOL/ ||
- 		      $line =~ /^\+\s*builtin_[\w_]*driver/ ||
- 		      $line =~ /^\+\s*__setup/)) {
- 			if (CHK("LINE_SPACING",
+--- a/.mailmap~maintainers-mailmap-update-email-address-for-jp-kobryn
++++ a/.mailmap
+@@ -459,6 +459,7 @@ Jorge Ramirez-Ortiz <jorge.ramirez@oss.q
+ Josh Poimboeuf <jpoimboe@kernel.org> <jpoimboe@redhat.com>
+ Josh Poimboeuf <jpoimboe@kernel.org> <jpoimboe@us.ibm.com>
+ Jouni Malinen <quic_jouni@quicinc.com> <jouni@codeaurora.org>
++JP Kobryn <jp.kobryn@linux.dev> <inwardvessel@gmail.com>
+ Juha Yrjola <at solidboot.com>
+ Juha Yrjola <juha.yrjola@nokia.com>
+ Juha Yrjola <juha.yrjola@solidboot.com>
+--- a/MAINTAINERS~maintainers-mailmap-update-email-address-for-jp-kobryn
++++ a/MAINTAINERS
+@@ -4982,7 +4982,7 @@ F:	tools/lib/bpf/
+ 
+ BPF [MEMORY MANAGEMENT EXTENSIONS]
+ M:	Roman Gushchin <roman.gushchin@linux.dev>
+-M:	JP Kobryn <inwardvessel@gmail.com>
++M:	JP Kobryn <jp.kobryn@linux.dev>
+ M:	Shakeel Butt <shakeel.butt@linux.dev>
+ L:	bpf@vger.kernel.org
+ L:	linux-mm@kvack.org
 _
 
-Patches currently in -mm which might be from pjw@kernel.org are
+Patches currently in -mm which might be from jp.kobryn@linux.dev are
 
-checkpatch-add-nokprobe_symbol-to-the-whitelist-of-lines-that-can-occur-immediately-after-functions.patch
+maintainers-mailmap-update-email-address-for-jp-kobryn.patch
 
