@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AEF7A3B5F63;
-	Fri,  7 Aug 2026 02:01:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E326D27144B
+	for <mm-commits@vger.kernel.org>; Fri,  7 Aug 2026 02:01:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786068095; cv=none; b=J2zcVtvAjDj83Uq00Ej8lCp7kH72LmtnSLIIJZgjhWaNFse5iYkuyvZrmQGf/C3kDyuQUEPesihCQySymAwc3eRYlcbW0wbXcmohGjiDLI/yEjYNFzAlW2w1aAx4659O0AXvqzX1JzPtPhMg004JG8ArcfjeyMSY6tdq5L17nS8=
+	t=1786068096; cv=none; b=qnaeqjX04w63MpRuNbuK3HoWdd8PhhPEy6jcR/xRRBrbDJxdS+Evhx4vTUjw+/O6KSLCtvFDuUOoyYUd0pFNRq9Bnrq29HKQb/N+gRST0OwecIC/sYBh8WfqwaYgw/PAgWBafLhu7Um8qi/b4DrnACbeX0iCoS2dA7dzYqlnnC8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786068095; c=relaxed/simple;
-	bh=DCjYREOveDBoE3Dq3n4GGd+qzrEPH90KO6I5zO+AhHk=;
-	h=Date:To:From:Subject:Message-Id; b=Uj5JxGa8GswfWC0wx1j2s1xoEOm9wMAlBiPuojJazqQ6EPlaDaQQXBOX7gG23qmbfEeh+Wtl6CAJL2M5hdvTc72oTgXVPo5XDovbRCDOvvDG9koVDY0FIQ1RKF9vyzOllgcpbTAp2Cw63dbiCnw1Bqo04aj0Rja7AX3M3P5eFdc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Kc03GHwf; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1786068096; c=relaxed/simple;
+	bh=TIi0QCEMSz+xaYhhdt6nVrULYYGiw7AHvOGG0HBHpM8=;
+	h=Date:To:From:Subject:Message-Id; b=Yy7MWYd0rDrPpM6kiHHovnFcLYLXWPHanWFxqYMz8FBW/Eyiaz0r1Fsjx3/ftTDtzFRia9zaMDjEzbJ7KWkWza+BiJGO7LuTjQIZSp099XVx3v/pJA5IyZ3cexo0/voWX7wiVVSd08NQk/graoCRK/EfnIHcXhuYE7hy3rQTPfo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kzMsFPXx; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Kc03GHwf"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 867C81F00A3D;
-	Fri,  7 Aug 2026 02:01:25 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kzMsFPXx"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1DD811F00ACA;
+	Fri,  7 Aug 2026 02:01:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1786068085;
-	bh=3yeDW5WxAaH4SQWXRv0MFoBb6me4MUV1nC8wcDmUY7g=;
+	d=linux-foundation.org; s=korg; t=1786068093;
+	bh=26ZDhKqfqnYJlOK9icgnGJLjdTxKTm/W1LW8MuGo+Xg=;
 	h=Date:To:From:Subject;
-	b=Kc03GHwfvBkIVl++va5MkJ86xTL1cb/Gr0GJdL5Wt/fM4UgoIgAB+u7cQpSoFOErk
-	 gidq5loXoAkWgscX0JKtGxKxoq0ZEPlbiHAsPdw62M0OwNBotdoglxkekFKxU2Ff7T
-	 3mJyu/pFqyfI/z+DCKVvjZpravqxsX6hnSF7lrJk=
-Date: Thu, 06 Aug 2026 19:01:25 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,surenb@google.com,stable@vger.kernel.org,shakeel.butt@linux.dev,rostedt@goodmis.org,mhocko@suse.com,harry@kernel.org,hannes@cmpxchg.org,brendan.jackman@linux.dev,bigeasy@linutronix.de,ast@kernel.org,jackmanb@google.com,akpm@linux-foundation.org
+	b=kzMsFPXxKZFvuZKSjOghV49etS0t6nYQFFiPibyOAeF6zdDyW7vF9Gaah9oLswy16
+	 p53eOGkbLpG4swlJAB/qK0++5BLNXFLAQUnZON2eyAvfmUoTKRIRYIrm26DXlEam6v
+	 CM2nKmjsXfq9xIxd7QFC48nTe+9vuiGkPNhaIRjg=
+Date: Thu, 06 Aug 2026 19:01:32 -0700
+To: mm-commits@vger.kernel.org,viro@zeniv.linux.org.uk,vbabka@kernel.org,surenb@google.com,rppt@kernel.org,pfalcato@suse.de,mhocko@suse.com,liam@infradead.org,kees@kernel.org,jannh@google.com,jack@suse.cz,david@kernel.org,brauner@kernel.org,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-page_alloc-dont-spin_trylock-in-nmi-on-up.patch removed from -mm tree
-Message-Id: <20260807020125.867C81F00A3D@smtp.kernel.org>
+Subject: [merged mm-stable] mm-mseal-remove-superfluous-comments-fix-confusion-around-mm.patch removed from -mm tree
+Message-Id: <20260807020133.1DD811F00ACA@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,76 +35,183 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/page_alloc: don't spin_trylock() in NMI on UP
+     Subject: mm/mseal: remove superfluous comments, fix confusion around mm
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-dont-spin_trylock-in-nmi-on-up.patch
+     mm-mseal-remove-superfluous-comments-fix-confusion-around-mm.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Brendan Jackman <jackmanb@google.com>
-Subject: mm/page_alloc: don't spin_trylock() in NMI on UP
-Date: Wed, 15 Jul 2026 09:03:58 +0000
+From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
+Subject: mm/mseal: remove superfluous comments, fix confusion around mm
+Date: Fri, 17 Jul 2026 18:27:09 +0100
 
-Patch series "mm/page_alloc: fixes for free_pages_nolock() on RT/UP".
+Patch series "mm/mseal: further cleanups", v2.
 
-Pre-existing bugs found by Sashiko during review of this other series:
-https://lore.kernel.org/all/20260703-alloc-trylock-v5-0-c87b714e19d3@google.com/
+The mseal implementation is still rather confusing, so tighten things up a
+little.
 
-I have not reproduced these bugs, and I suspect there is no real-world
-user that is affected by them.
+The only user of do_mseal() outside of the system call is the
+MMAP_PAGE_ZERO process personality - retain better control over how mseal
+is utilised by providing mseal_mmap_page_zero() for this instead.
+
+The comments are overly long and confusion, so cut them down so they're a
+lot clearer.
+
+Remove confusing mm_struct params (mseal can not be used on remote mm's)
+and wrap the actual system call logic into the system call declaration.
 
 
-This patch (of 2):
+This patch (of 3):
 
-As noted in can_spin_trylock(), using this is unsafe in this context. 
-commit 620b46ed6ae17 ("mm/page_alloc: return NULL early from
-alloc_frozen_pages_nolock() in NMI on UP") fixed this on the alloc side
-but missed the free side.
+Remove comment blocks that don't add value and eliminate any confusion
+about whether or not we permit mseal()'ing of remote mm's by not passing
+through an mm parameter but rather referencing current->mm in each
+function.
 
-Impact: If BPF programs using these features in NMI (probably tracing) are
-present on non-SMP builds this might crash the kernel and is probably
-exploitable by local attackers for privilege escalation.
+Also while we're here, avoid an ugly goto by using an else branch, and
+move local parameters declarations into reverse xmas tree order.
 
-Link: https://lore.kernel.org/20260715-alloc-nolock-fixes-v1-0-fadc49952dda@google.com
-Link: https://lore.kernel.org/20260715-alloc-nolock-fixes-v1-1-fadc49952dda@google.com
-Fixes: 8c57b687e833 ("mm, bpf: Introduce free_pages_nolock()")
-Signed-off-by: Brendan Jackman <jackmanb@google.com>
-Reported-by: sashiko-bot@kernel.org
-Closes: https://sashiko.dev/#/patchset/20260703-alloc-trylock-v5-0-c87b714e19d3%40google.com?part=18
-Reviewed-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
-Reviewed-by: Harry Yoo (Oracle) <harry@kernel.org>
-Cc: Brendan Jackman <brendan.jackman@linux.dev>
-Cc: Alexei Starovoitov <ast@kernel.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+No functional change intended.
+
+Link: https://lore.kernel.org/20260717-mseal-fixups-v2-0-0daa0014b813@kernel.org
+Link: https://lore.kernel.org/20260717-mseal-fixups-v2-1-0daa0014b813@kernel.org
+Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Reviewed-by: Pedro Falcato <pfalcato@suse.de>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Jann Horn <jannh@google.com>
+Cc: Kees Cook <kees@kernel.org>
+Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Michal Hocko <mhocko@suse.com>
-Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Zi Yan <ziy@nvidia.com>
-Cc: <stable@vger.kernel.org>
+Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ mm/mseal.c |   53 ++++++++++-----------------------------------------
+ 1 file changed, 11 insertions(+), 42 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-dont-spin_trylock-in-nmi-on-up
-+++ a/mm/page_alloc.c
-@@ -2979,8 +2979,7 @@ static void __free_frozen_pages(struct p
- 		migratetype = MIGRATE_MOVABLE;
- 	}
+--- a/mm/mseal.c~mm-mseal-remove-superfluous-comments-fix-confusion-around-mm
++++ a/mm/mseal.c
+@@ -16,32 +16,11 @@
+ #include <linux/sched.h>
+ #include "internal.h"
  
--	if (unlikely((fpi_flags & FPI_TRYLOCK) && IS_ENABLED(CONFIG_PREEMPT_RT)
--		     && (in_nmi() || in_hardirq()))) {
-+	if (unlikely((fpi_flags & FPI_TRYLOCK) && !can_spin_trylock())) {
- 		add_page_to_zone_llist(zone, page, order);
- 		return;
- 	}
+-/*
+- * mseal() disallows an input range which contain unmapped ranges (VMA holes).
+- *
+- * It disallows unmapped regions from start to end whether they exist at the
+- * start, in the middle, or at the end of the range, or any combination thereof.
+- *
+- * This is because after sealing a range, there's nothing to stop memory mapping
+- * of ranges in the remaining gaps later, meaning that the user might then
+- * wrongly consider the entirety of the mseal()'d range to be sealed when it
+- * in fact isn't.
+- */
+-
+-/*
+- * Does the [start, end) range contain any unmapped memory?
+- *
+- * We ensure that:
+- * - start is part of a valid VMA.
+- * - end is part of a valid VMA.
+- * - no gap (unallocated memory) exists between start and end.
+- */
+-static bool range_contains_unmapped(struct mm_struct *mm,
+-		unsigned long start, unsigned long end)
++static bool range_contains_unmapped(unsigned long start, unsigned long end)
+ {
+-	struct vm_area_struct *vma;
+-	unsigned long prev_end = start;
+ 	VMA_ITERATOR(vmi, current->mm, start);
++	unsigned long prev_end = start;
++	struct vm_area_struct *vma;
+ 
+ 	for_each_vma_range(vmi, vma, end) {
+ 		if (vma->vm_start > prev_end)
+@@ -53,11 +32,10 @@ static bool range_contains_unmapped(stru
+ 	return prev_end < end;
+ }
+ 
+-static int mseal_apply(struct mm_struct *mm,
+-		unsigned long start, unsigned long end)
++static int mseal_apply(unsigned long start, unsigned long end)
+ {
++	VMA_ITERATOR(vmi, current->mm, start);
+ 	struct vm_area_struct *vma, *prev;
+-	VMA_ITERATOR(vmi, mm, start);
+ 
+ 	/* We know there are no gaps so this will be non-NULL. */
+ 	vma = vma_iter_load(&vmi);
+@@ -142,10 +120,10 @@ static int mseal_apply(struct mm_struct
+  */
+ int do_mseal(unsigned long start, size_t len_in, unsigned long flags)
+ {
+-	size_t len;
+-	int ret = 0;
+-	unsigned long end;
+ 	struct mm_struct *mm = current->mm;
++	unsigned long end;
++	int ret = 0;
++	size_t len;
+ 
+ 	/* Verify flags not set. */
+ 	if (flags)
+@@ -170,20 +148,11 @@ int do_mseal(unsigned long start, size_t
+ 	if (mmap_write_lock_killable(mm))
+ 		return -EINTR;
+ 
+-	if (range_contains_unmapped(mm, start, end)) {
++	if (range_contains_unmapped(start, end))
+ 		ret = -ENOMEM;
+-		goto out;
+-	}
+-
+-	/*
+-	 * Second pass, this should success, unless there are errors
+-	 * from vma_modify_flags, e.g. merge/split error, or process
+-	 * reaching the max supported VMAs, however, those cases shall
+-	 * be rare.
+-	 */
+-	ret = mseal_apply(mm, start, end);
++	else
++		ret = mseal_apply(start, end);
+ 
+-out:
+ 	mmap_write_unlock(mm);
+ 	return ret;
+ }
 _
 
-Patches currently in -mm which might be from jackmanb@google.com are
+Patches currently in -mm which might be from ljs@kernel.org are
 
+x86-mm-pat-acquire-init_mm-write-lock-on-collapse-to-avoid-uaf.patch
+x86-mm-pat-acquire-init_mm-read-lock-on-attribute-change-to-avoid-uaf.patch
+x86-mm-pat-allocate-split-page-tables-as-kernel-page-tables.patch
+mm-vma-introduce-vma-anon-page-offset-field-and-add-helpers.patch
+mm-provide-vma_is_cow_mapping-and-remove-is_cow_mapping.patch
+mm-introduce-linear_anon_page_index.patch
+mm-abstract-vma_address-and-introduce-vma_anon_address.patch
+mm-update-print_bad_page_map-to-show-anon-index-if-appropriate.patch
+mm-introduce-and-use-vma_filebacked_address.patch
+mm-vma-fix-self-merge-check-in-copy_vma.patch
+tools-testing-vma-add-tests-for-copy_vma-self-merge.patch
+mm-propagate-vma-anonymous-page-offset-on-map-remap-split-merge.patch
+mm-rmap-track-whether-the-page-vma-mapped-pgoff-is-anonymous.patch
+mm-clean-up-vma_address_end.patch
+mm-huge_memory-update-remove_migration_pmd-to-accept-a-folio.patch
+mm-migrate-calculate-large-folio-page-index-using-pfn.patch
+mm-rmap-use-anon-pgoff-to-track-map_private-file-backed-anon-folios.patch
+tools-testing-vma-expand-vma-merge-tests-to-assert-anon-pgoff.patch
+tools-testing-selftests-mm-test-anonymous-page-offset-merge-behaviour.patch
+mm-vma-only-permit-map_private-dev-zero-to-be-mapped-anonymous.patch
+mm-vma-make-map_private-mapped-dev-zero-mappings-truly-anonymous.patch
+tools-testing-vma-add-test-to-assert-map_private-dev-zero-is-anon.patch
+tools-testing-selftests-mm-add-map_private-dev-zero-merge-tests.patch
+mm-add-some-missing-includes-to-mm-local-headers.patch
 
