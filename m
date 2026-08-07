@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2A9FE3B7B93
-	for <mm-commits@vger.kernel.org>; Fri,  7 Aug 2026 02:00:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A84CB27144B
+	for <mm-commits@vger.kernel.org>; Fri,  7 Aug 2026 02:00:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786068059; cv=none; b=hVbh0rNeLgdc+X9wHdjrJZ1tbzanMC4Zq/k/LsIWjd05KJ8qPlY9ld1wfo4aAZ7Q1Yv9ma42GLKFEmVIE5bXuavQh4U/GraZWKHKzS1g1GdEUCBSO6/Zq+W/+PHcB18ZIX2+mtD64VLXjs7WVTFBQdnPVoM6rRVSR6kSgeE9T0g=
+	t=1786068058; cv=none; b=tHY28scbwP4f5jtCq5xyeayCQ9VneSBTW8p1fNB8qO2xVBtT0WyudUtwsjPEJrdYVCIAqNJtHFabUBqdGax7Y0v+qH4fPpd8NKDrktPleq/zB/EK0ZRQh/ciiYYmpjT42vVSW7urufW2zrCetGMqo5RxFU6C68jk9hCvA8960oU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786068059; c=relaxed/simple;
-	bh=kC7oyHfvQ50byPOHDxu1IJqq5bEUys8UwZCm9OF5KPU=;
-	h=Date:To:From:Subject:Message-Id; b=gy/JhinsWZe1DHOvojjwMroJLDFan0vU/ks/ozFDYuLzTxIH1b1Jbwjqsg0oqP4NeYE5o2lfLI4RqwabvuD/gX4rWUpwXKKv8qXZRWZ0+AQbCbFV46lEeD6mrg3+16PseC4ztSMp9n6cn2nIxMqMi5jzO6OlP0TKlQwCBECxNi4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=g7C4bYh7; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1786068058; c=relaxed/simple;
+	bh=EFhY8Eg2GJjQqrk2V9xCu85t3L8LEgCVrSG39J4JySQ=;
+	h=Date:To:From:Subject:Message-Id; b=QGmPs/qGrnCLP48V5BvokQcYRYLIXtnMYEg2AKUISw3Bj2JQpVrRCQLUWpaZ9g8IUEawIROGfJMGRjO4DlQ+kw404v7Nv4wHIKuPYwwuYbGxbybs3RJ4Aqk3kOSpz7pLspzOOmKPmR9MAeXHPZylcHPLUjt40zZilwfEx9edojg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MGvVlL/C; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="g7C4bYh7"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B7A961F00A3A;
-	Fri,  7 Aug 2026 02:00:54 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MGvVlL/C"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2751A1F00AC4;
+	Fri,  7 Aug 2026 02:00:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1786068054;
-	bh=lBDmhNgDfiAuw3V9ROIVwh+dIz7hXGXY4Ts+bmxxObU=;
+	d=linux-foundation.org; s=korg; t=1786068052;
+	bh=2WOj3MTfsQAcN2xmSyQbS54A995lnQCa7scnhFkB0WQ=;
 	h=Date:To:From:Subject;
-	b=g7C4bYh7RdpnQr43DayfAOFGHSKlKPIx/AwYifFUOwyzkFE/8sparjz4mBhuh+IhA
-	 pU0TZr4JRmGNQJIyJVGnMPqjsDydvie9o7lDz/nSqmCAA1b0ISc1dj3Z9TEO3uGy3p
-	 uDZKcdk90W+riyLAjISN3nr8Me0NXZpZD/IehBXI=
-Date: Thu, 06 Aug 2026 19:00:54 -0700
+	b=MGvVlL/CJN7yxNDR+6hQ26mU3FiCQnEJ0eS5Cj1zkMusjssQmODw/5Zf+NKVDSt69
+	 rczEy4KvIyaCYPf2+ermnFYDkHZMMOJC2SPLYH3JSMLYTPnAdvDokFukmyxbFbPvfs
+	 ehyss1c/9anIO7+J4S+RK3NSVndgChyhsgIGGHmU=
+Date: Thu, 06 Aug 2026 19:00:51 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,tzimmermann@suse.de,surenb@google.com,rppt@kernel.org,pfalcato@suse.de,osalvador@suse.de,npache@redhat.com,muchun.song@linux.dev,lance.yang@linux.dev,jannh@google.com,jani.nikula@intel.com,jack@suse.cz,dev.jain@arm.com,david@kernel.org,brauner@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,airlied@gmail.com,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-vma-convert-miscellaneous-uses-of-vma-flags-in-core-mm.patch removed from -mm tree
-Message-Id: <20260807020054.B7A961F00A3A@smtp.kernel.org>
+Subject: [merged mm-stable] mm-introduce-vma_get_page_prot-and-use-it.patch removed from -mm tree
+Message-Id: <20260807020052.2751A1F00AC4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,26 +35,33 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/vma: convert miscellaneous uses of VMA flags in core mm
+     Subject: mm: introduce vma_get_page_prot() and use it
 has been removed from the -mm tree.  Its filename was
-     mm-vma-convert-miscellaneous-uses-of-vma-flags-in-core-mm.patch
+     mm-introduce-vma_get_page_prot-and-use-it.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <ljs@kernel.org>
-Subject: mm/vma: convert miscellaneous uses of VMA flags in core mm
-Date: Sat, 11 Jul 2026 19:45:07 +0100
+Subject: mm: introduce vma_get_page_prot() and use it
+Date: Sat, 11 Jul 2026 19:45:05 +0100
 
-Update various uses of legacy flags in vma.c and mmap.c to the new
-vma_flags_t type, updating comments alongside them to be consistent.
+There's a large number of vm_get_page_prot(vma->vm_flags) invocations. 
+Make life easier by introducing vma_get_page_prot() parameterised by the
+VMA.
+
+This also makes converting vm_get_page_prot() to vma_flags_t easier.
+
+Also update the userland VMA tests to reflect the change.
 
 No functional change intended.
 
-Link: https://lore.kernel.org/20260711-b4-vma-flags-mm-v2-10-0fa2357d5431@kernel.org
+Link: https://lore.kernel.org/20260711-b4-vma-flags-mm-v2-8-0fa2357d5431@kernel.org
 Signed-off-by: Lorenzo Stoakes <ljs@kernel.org>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
+Acked-by: Zi Yan <ziy@nvidia.com>
+Acked-by: Jani Nikula <jani.nikula@intel.com> # for i915
+Reviewed-by: Thomas Zimmermann <tzimmermann@suse.de>	[DRM]
 Reviewed-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Barry Song <baohua@kernel.org>
@@ -62,7 +69,6 @@ Cc: Christian Brauner <brauner@kernel.org>
 Cc: Dave Airlie <airlied@gmail.com>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Dev Jain <dev.jain@arm.com>
-Cc: Jani Nikula <jani.nikula@intel.com>
 Cc: Jan Kara <jack@suse.cz>
 Cc: Jann Horn <jannh@google.com>
 Cc: Lance Yang <lance.yang@linux.dev>
@@ -72,174 +78,378 @@ Cc: Nico Pache <npache@redhat.com>
 Cc: Oscar Salvador <osalvador@suse.de>
 Cc: Pedro Falcato <pfalcato@suse.de>
 Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Thomas Zimmermann <tzimmermann@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |   39 +++++++++++++++++++++------------------
- mm/vma.c  |   13 ++++++++-----
- 2 files changed, 29 insertions(+), 23 deletions(-)
+ drivers/gpu/drm/drm_gem.c                   |    2 +-
+ drivers/gpu/drm/drm_gem_dma_helper.c        |    2 +-
+ drivers/gpu/drm/drm_gem_shmem_helper.c      |    2 +-
+ drivers/gpu/drm/etnaviv/etnaviv_gem.c       |    2 +-
+ drivers/gpu/drm/exynos/exynos_drm_gem.c     |    6 +++---
+ drivers/gpu/drm/i915/gem/i915_gem_mman.c    |   12 ++++++------
+ drivers/gpu/drm/msm/msm_gem.c               |    2 +-
+ drivers/gpu/drm/nouveau/nouveau_gem.c       |    2 +-
+ drivers/gpu/drm/omapdrm/omap_fbdev.c        |    2 +-
+ drivers/gpu/drm/omapdrm/omap_gem.c          |    6 +++---
+ drivers/gpu/drm/panthor/panthor_gem.c       |    2 +-
+ drivers/gpu/drm/rockchip/rockchip_drm_gem.c |    2 +-
+ drivers/gpu/drm/tegra/gem.c                 |    2 +-
+ drivers/gpu/drm/virtio/virtgpu_vram.c       |    2 +-
+ drivers/gpu/drm/vmwgfx/vmwgfx_page_dirty.c  |    2 +-
+ drivers/gpu/drm/xe/xe_device.c              |    2 +-
+ drivers/gpu/drm/xe/xe_mmio_gem.c            |    2 +-
+ drivers/gpu/drm/xen/xen_drm_front_gem.c     |    2 +-
+ drivers/video/fbdev/core/fb_io_fops.c       |    2 +-
+ include/linux/mm.h                          |   11 ++++++++++-
+ mm/vma.c                                    |    2 +-
+ mm/vma_exec.c                               |    2 +-
+ sound/core/memalloc.c                       |    2 +-
+ tools/testing/vma/include/dup.h             |    5 +++++
+ 24 files changed, 46 insertions(+), 32 deletions(-)
 
---- a/mm/mmap.c~mm-vma-convert-miscellaneous-uses-of-vma-flags-in-core-mm
-+++ a/mm/mmap.c
-@@ -557,8 +557,8 @@ unsigned long do_mmap(struct file *file,
- 	}
- 
- 	/*
--	 * Set 'VM_NORESERVE' if we should not account for the
--	 * memory use of this mapping.
-+	 * Set VMA_NORESERVE_BIT if we should not account for the memory use
-+	 * of this mapping.
- 	 */
- 	if (flags & MAP_NORESERVE) {
- 		/* We honor MAP_NORESERVE if allowed to overcommit */
-@@ -985,7 +985,7 @@ struct vm_area_struct *find_extend_vma_l
- 		return NULL;
- 	if (expand_stack_locked(prev, addr))
- 		return NULL;
--	if (prev->vm_flags & VM_LOCKED)
-+	if (vma_test(prev, VMA_LOCKED_BIT))
- 		populate_vma_page_range(prev, addr, prev->vm_end, NULL);
- 	return prev;
- }
-@@ -1009,7 +1009,7 @@ struct vm_area_struct *find_extend_vma_l
- 	start = vma->vm_start;
- 	if (expand_stack_locked(vma, addr))
- 		return NULL;
--	if (vma->vm_flags & VM_LOCKED)
-+	if (vma_test(vma, VMA_LOCKED_BIT))
- 		populate_vma_page_range(vma, addr, start, NULL);
- 	return vma;
- }
-@@ -1134,18 +1134,18 @@ SYSCALL_DEFINE5(remap_file_pages, unsign
- 	 */
- 	vma = vma_lookup(mm, start);
- 
--	if (!vma || !(vma->vm_flags & VM_SHARED)) {
-+	if (!vma || !vma_test(vma, VMA_SHARED_BIT)) {
- 		mmap_read_unlock(mm);
- 		return -EINVAL;
- 	}
- 
--	prot |= vma->vm_flags & VM_READ ? PROT_READ : 0;
--	prot |= vma->vm_flags & VM_WRITE ? PROT_WRITE : 0;
--	prot |= vma->vm_flags & VM_EXEC ? PROT_EXEC : 0;
-+	prot |= vma_test(vma, VMA_READ_BIT) ? PROT_READ : 0;
-+	prot |= vma_test(vma, VMA_WRITE_BIT) ? PROT_WRITE : 0;
-+	prot |= vma_test(vma, VMA_EXEC_BIT) ? PROT_EXEC : 0;
- 
- 	flags &= MAP_NONBLOCK;
- 	flags |= MAP_SHARED | MAP_FIXED | MAP_POPULATE;
--	if (vma->vm_flags & VM_LOCKED)
-+	if (vma_test(vma, VMA_LOCKED_BIT))
- 		flags |= MAP_LOCKED;
- 
- 	/* Save vm_flags used to calculate prot and flags, and recheck later. */
-@@ -1271,7 +1271,7 @@ unsigned long tear_down_vmas(struct mm_s
- 	mmap_assert_write_locked(mm);
- 	vma_iter_set(vmi, vma->vm_end);
- 	do {
--		if (vma->vm_flags & VM_ACCOUNT)
-+		if (vma_test(vma, VMA_ACCOUNT_BIT))
- 			nr_accounted += vma_pages(vma);
- 		vma_mark_detached(vma);
- 		remove_vma(vma);
-@@ -1420,7 +1420,7 @@ static int special_mapping_split(struct
- {
- 	/*
- 	 * Forbid splitting special mappings - kernel has expectations over
--	 * the number of pages in mapping. Together with VM_DONTEXPAND
-+	 * the number of pages in mapping. Together with VMA_DONTEXPAND_BIT
- 	 * the size of vma should stay the same over the special mapping's
- 	 * lifetime.
- 	 */
-@@ -1692,7 +1692,7 @@ bool mmap_read_lock_maybe_expand(struct
- 		return true;
- 	}
- 
--	if (!(new_vma->vm_flags & VM_GROWSDOWN))
-+	if (!vma_test(new_vma, VMA_GROWSDOWN_BIT))
- 		return false;
- 
- 	mmap_write_lock(mm);
-@@ -1742,7 +1742,7 @@ __latent_entropy int dup_mmap(struct mm_
- 		retval = vma_start_write_killable(mpnt);
- 		if (retval < 0)
- 			goto loop_out;
--		if (mpnt->vm_flags & VM_DONTCOPY) {
-+		if (vma_test(mpnt, VMA_DONTCOPY_BIT)) {
- 			retval = vma_iter_clear_gfp(&vmi, mpnt->vm_start,
- 						    mpnt->vm_end, GFP_KERNEL);
- 			if (retval)
-@@ -1752,7 +1752,7 @@ __latent_entropy int dup_mmap(struct mm_
- 			continue;
+--- a/drivers/gpu/drm/drm_gem.c~mm-introduce-vma_get_page_prot-and-use-it
++++ a/drivers/gpu/drm/drm_gem.c
+@@ -1252,7 +1252,7 @@ int drm_gem_mmap_obj(struct drm_gem_obje
  		}
- 		charge = 0;
--		if (mpnt->vm_flags & VM_ACCOUNT) {
-+		if (vma_test(mpnt, VMA_ACCOUNT_BIT)) {
- 			unsigned long len = vma_pages(mpnt);
  
- 			if (security_vm_enough_memory_mm(oldmm, len)) /* sic */
-@@ -1770,16 +1770,19 @@ __latent_entropy int dup_mmap(struct mm_
- 		retval = dup_userfaultfd(tmp, &uf);
- 		if (retval)
- 			goto fail_nomem_anon_vma_fork;
--		if (tmp->vm_flags & VM_WIPEONFORK) {
-+
-+		if (vma_test(tmp, VMA_WIPEONFORK_BIT)) {
- 			/*
--			 * VM_WIPEONFORK gets a clean slate in the child.
-+			 * VMA_WIPEONFORK_BIT gets a clean slate in the child.
- 			 * Don't prepare anon_vma until fault since we don't
- 			 * copy page for current vma.
- 			 */
- 			tmp->anon_vma = NULL;
- 		} else if (anon_vma_fork(tmp, mpnt))
- 			goto fail_nomem_anon_vma_fork;
--		vm_flags_clear(tmp, VM_LOCKED_MASK);
-+
-+		vma_start_write(tmp);
-+		vma_clear_flags_mask(tmp, VMA_LOCKED_MASK);
+ 		vm_flags_set(vma, VM_IO | VM_PFNMAP | VM_DONTEXPAND | VM_DONTDUMP);
+-		vma->vm_page_prot = pgprot_writecombine(vm_get_page_prot(vma->vm_flags));
++		vma->vm_page_prot = pgprot_writecombine(vma_get_page_prot(vma));
+ 		vma->vm_page_prot = pgprot_decrypted(vma->vm_page_prot);
+ 	}
+ 
+--- a/drivers/gpu/drm/drm_gem_dma_helper.c~mm-introduce-vma_get_page_prot-and-use-it
++++ a/drivers/gpu/drm/drm_gem_dma_helper.c
+@@ -540,7 +540,7 @@ int drm_gem_dma_mmap(struct drm_gem_dma_
+ 	vm_flags_mod(vma, VM_DONTDUMP | VM_DONTEXPAND, VM_PFNMAP);
+ 
+ 	if (dma_obj->map_noncoherent) {
+-		vma->vm_page_prot = vm_get_page_prot(vma->vm_flags);
++		vma->vm_page_prot = vma_get_page_prot(vma);
+ 
+ 		ret = dma_mmap_pages(drm_dev_dma_dev(dma_obj->base.dev),
+ 				     vma, vma->vm_end - vma->vm_start,
+--- a/drivers/gpu/drm/drm_gem_shmem_helper.c~mm-introduce-vma_get_page_prot-and-use-it
++++ a/drivers/gpu/drm/drm_gem_shmem_helper.c
+@@ -764,7 +764,7 @@ int drm_gem_shmem_mmap(struct drm_gem_sh
+ 		return ret;
+ 
+ 	vm_flags_set(vma, VM_PFNMAP | VM_DONTEXPAND | VM_DONTDUMP);
+-	vma->vm_page_prot = vm_get_page_prot(vma->vm_flags);
++	vma->vm_page_prot = vma_get_page_prot(vma);
+ 	if (shmem->map_wc)
+ 		vma->vm_page_prot = pgprot_writecombine(vma->vm_page_prot);
+ 
+--- a/drivers/gpu/drm/etnaviv/etnaviv_gem.c~mm-introduce-vma_get_page_prot-and-use-it
++++ a/drivers/gpu/drm/etnaviv/etnaviv_gem.c
+@@ -133,7 +133,7 @@ static int etnaviv_gem_mmap_obj(struct e
+ 
+ 	vm_flags_set(vma, VM_PFNMAP | VM_DONTEXPAND | VM_DONTDUMP);
+ 
+-	vm_page_prot = vm_get_page_prot(vma->vm_flags);
++	vm_page_prot = vma_get_page_prot(vma);
+ 
+ 	if (etnaviv_obj->flags & ETNA_BO_WC) {
+ 		vma->vm_page_prot = pgprot_writecombine(vm_page_prot);
+--- a/drivers/gpu/drm/exynos/exynos_drm_gem.c~mm-introduce-vma_get_page_prot-and-use-it
++++ a/drivers/gpu/drm/exynos/exynos_drm_gem.c
+@@ -377,13 +377,13 @@ static int exynos_drm_gem_mmap(struct dr
+ 
+ 	/* non-cachable as default. */
+ 	if (exynos_gem->flags & EXYNOS_BO_CACHABLE)
+-		vma->vm_page_prot = vm_get_page_prot(vma->vm_flags);
++		vma->vm_page_prot = vma_get_page_prot(vma);
+ 	else if (exynos_gem->flags & EXYNOS_BO_WC)
+ 		vma->vm_page_prot =
+-			pgprot_writecombine(vm_get_page_prot(vma->vm_flags));
++			pgprot_writecombine(vma_get_page_prot(vma));
+ 	else
+ 		vma->vm_page_prot =
+-			pgprot_noncached(vm_get_page_prot(vma->vm_flags));
++			pgprot_noncached(vma_get_page_prot(vma));
+ 
+ 	ret = exynos_drm_gem_mmap_buffer(exynos_gem, vma);
+ 	if (ret)
+--- a/drivers/gpu/drm/i915/gem/i915_gem_mman.c~mm-introduce-vma_get_page_prot-and-use-it
++++ a/drivers/gpu/drm/i915/gem/i915_gem_mman.c
+@@ -112,7 +112,7 @@ i915_gem_mmap_ioctl(struct drm_device *d
+ 		vma = find_vma(mm, addr);
+ 		if (vma && __vma_matches(vma, obj->base.filp, addr, args->size))
+ 			vma->vm_page_prot =
+-				pgprot_writecombine(vm_get_page_prot(vma->vm_flags));
++				pgprot_writecombine(vma_get_page_prot(vma));
+ 		else
+ 			addr = -ENOMEM;
+ 		mmap_write_unlock(mm);
+@@ -1024,7 +1024,7 @@ i915_gem_object_mmap(struct drm_i915_gem
+ 	fput(anon);
+ 
+ 	if (obj->ops->mmap_ops) {
+-		vma->vm_page_prot = pgprot_decrypted(vm_get_page_prot(vma->vm_flags));
++		vma->vm_page_prot = pgprot_decrypted(vma_get_page_prot(vma));
+ 		vma->vm_ops = obj->ops->mmap_ops;
+ 		vma->vm_private_data = obj->base.vma_node.driver_private;
+ 		return 0;
+@@ -1035,7 +1035,7 @@ i915_gem_object_mmap(struct drm_i915_gem
+ 	switch (mmo->mmap_type) {
+ 	case I915_MMAP_TYPE_WC:
+ 		vma->vm_page_prot =
+-			pgprot_writecombine(vm_get_page_prot(vma->vm_flags));
++			pgprot_writecombine(vma_get_page_prot(vma));
+ 		vma->vm_ops = &vm_ops_cpu;
+ 		break;
+ 
+@@ -1043,19 +1043,19 @@ i915_gem_object_mmap(struct drm_i915_gem
+ 		GEM_WARN_ON(1);
+ 		fallthrough;
+ 	case I915_MMAP_TYPE_WB:
+-		vma->vm_page_prot = vm_get_page_prot(vma->vm_flags);
++		vma->vm_page_prot = vma_get_page_prot(vma);
+ 		vma->vm_ops = &vm_ops_cpu;
+ 		break;
+ 
+ 	case I915_MMAP_TYPE_UC:
+ 		vma->vm_page_prot =
+-			pgprot_noncached(vm_get_page_prot(vma->vm_flags));
++			pgprot_noncached(vma_get_page_prot(vma));
+ 		vma->vm_ops = &vm_ops_cpu;
+ 		break;
+ 
+ 	case I915_MMAP_TYPE_GTT:
+ 		vma->vm_page_prot =
+-			pgprot_writecombine(vm_get_page_prot(vma->vm_flags));
++			pgprot_writecombine(vma_get_page_prot(vma));
+ 		vma->vm_ops = &vm_ops_gtt;
+ 		break;
+ 	}
+--- a/drivers/gpu/drm/msm/msm_gem.c~mm-introduce-vma_get_page_prot-and-use-it
++++ a/drivers/gpu/drm/msm/msm_gem.c
+@@ -1125,7 +1125,7 @@ static int msm_gem_object_mmap(struct dr
+ 	struct msm_gem_object *msm_obj = to_msm_bo(obj);
+ 
+ 	vm_flags_set(vma, VM_PFNMAP | VM_DONTEXPAND | VM_DONTDUMP);
+-	vma->vm_page_prot = msm_gem_pgprot(msm_obj, vm_get_page_prot(vma->vm_flags));
++	vma->vm_page_prot = msm_gem_pgprot(msm_obj, vma_get_page_prot(vma));
+ 
+ 	return 0;
+ }
+--- a/drivers/gpu/drm/nouveau/nouveau_gem.c~mm-introduce-vma_get_page_prot-and-use-it
++++ a/drivers/gpu/drm/nouveau/nouveau_gem.c
+@@ -55,7 +55,7 @@ static vm_fault_t nouveau_ttm_fault(stru
+ 		goto error_unlock;
+ 
+ 	nouveau_bo_del_io_reserve_lru(bo);
+-	prot = vm_get_page_prot(vma->vm_flags);
++	prot = vma_get_page_prot(vma);
+ 	ret = ttm_bo_vm_fault_reserved(vmf, prot, TTM_BO_VM_NUM_PREFAULT);
+ 	nouveau_bo_add_io_reserve_lru(bo);
+ 	if (ret == VM_FAULT_RETRY && !(vmf->flags & FAULT_FLAG_RETRY_NOWAIT))
+--- a/drivers/gpu/drm/omapdrm/omap_fbdev.c~mm-introduce-vma_get_page_prot-and-use-it
++++ a/drivers/gpu/drm/omapdrm/omap_fbdev.c
+@@ -84,7 +84,7 @@ fallback:
+ 
+ static int omap_fbdev_fb_mmap(struct fb_info *info, struct vm_area_struct *vma)
+ {
+-	vma->vm_page_prot = pgprot_writecombine(vm_get_page_prot(vma->vm_flags));
++	vma->vm_page_prot = pgprot_writecombine(vma_get_page_prot(vma));
+ 
+ 	return fb_deferred_io_mmap(info, vma);
+ }
+--- a/drivers/gpu/drm/omapdrm/omap_gem.c~mm-introduce-vma_get_page_prot-and-use-it
++++ a/drivers/gpu/drm/omapdrm/omap_gem.c
+@@ -538,9 +538,9 @@ static int omap_gem_object_mmap(struct d
+ 	vm_flags_set(vma, VM_DONTEXPAND | VM_DONTDUMP | VM_IO | VM_MIXEDMAP);
+ 
+ 	if (omap_obj->flags & OMAP_BO_WC) {
+-		vma->vm_page_prot = pgprot_writecombine(vm_get_page_prot(vma->vm_flags));
++		vma->vm_page_prot = pgprot_writecombine(vma_get_page_prot(vma));
+ 	} else if (omap_obj->flags & OMAP_BO_UNCACHED) {
+-		vma->vm_page_prot = pgprot_noncached(vm_get_page_prot(vma->vm_flags));
++		vma->vm_page_prot = pgprot_noncached(vma_get_page_prot(vma));
+ 	} else {
  		/*
- 		 * Copy/update hugetlb private vma information.
- 		 */
-@@ -1812,7 +1815,7 @@ __latent_entropy int dup_mmap(struct mm_
- 			i_mmap_unlock_write(mapping);
- 		}
+ 		 * We do have some private objects, at least for scanout buffers
+@@ -558,7 +558,7 @@ static int omap_gem_object_mmap(struct d
+ 		vma->vm_pgoff -= drm_vma_node_start(&obj->vma_node);
+ 		vma_set_file(vma, obj->filp);
  
--		if (!(tmp->vm_flags & VM_WIPEONFORK))
-+		if (!vma_test(tmp, VMA_WIPEONFORK_BIT))
- 			retval = copy_page_range(tmp, mpnt);
+-		vma->vm_page_prot = vm_get_page_prot(vma->vm_flags);
++		vma->vm_page_prot = vma_get_page_prot(vma);
+ 	}
  
- 		if (retval) {
---- a/mm/vma.c~mm-vma-convert-miscellaneous-uses-of-vma-flags-in-core-mm
-+++ a/mm/vma.c
-@@ -3419,17 +3419,20 @@ struct vm_area_struct *__install_special
- 	vm_flags_t vm_flags, void *priv,
- 	const struct vm_operations_struct *ops)
+ 	vma->vm_page_prot = pgprot_decrypted(vma->vm_page_prot);
+--- a/drivers/gpu/drm/panthor/panthor_gem.c~mm-introduce-vma_get_page_prot-and-use-it
++++ a/drivers/gpu/drm/panthor/panthor_gem.c
+@@ -776,7 +776,7 @@ static int panthor_gem_mmap(struct drm_g
+ 	}
+ 
+ 	vm_flags_set(vma, VM_PFNMAP | VM_DONTEXPAND | VM_DONTDUMP);
+-	vma->vm_page_prot = vm_get_page_prot(vma->vm_flags);
++	vma->vm_page_prot = vma_get_page_prot(vma);
+ 	if (should_map_wc(bo))
+ 		vma->vm_page_prot = pgprot_writecombine(vma->vm_page_prot);
+ 
+--- a/drivers/gpu/drm/rockchip/rockchip_drm_gem.c~mm-introduce-vma_get_page_prot-and-use-it
++++ a/drivers/gpu/drm/rockchip/rockchip_drm_gem.c
+@@ -255,7 +255,7 @@ static int rockchip_drm_gem_object_mmap(
+ 	 */
+ 	vm_flags_mod(vma, VM_IO | VM_DONTEXPAND | VM_DONTDUMP, VM_PFNMAP);
+ 
+-	vma->vm_page_prot = pgprot_writecombine(vm_get_page_prot(vma->vm_flags));
++	vma->vm_page_prot = pgprot_writecombine(vma_get_page_prot(vma));
+ 	vma->vm_page_prot = pgprot_decrypted(vma->vm_page_prot);
+ 
+ 	if (rk_obj->pages)
+--- a/drivers/gpu/drm/tegra/gem.c~mm-introduce-vma_get_page_prot-and-use-it
++++ a/drivers/gpu/drm/tegra/gem.c
+@@ -602,7 +602,7 @@ int __tegra_gem_mmap(struct drm_gem_obje
+ 
+ 		vma->vm_pgoff = vm_pgoff;
+ 	} else {
+-		pgprot_t prot = vm_get_page_prot(vma->vm_flags);
++		pgprot_t prot = vma_get_page_prot(vma);
+ 
+ 		vm_flags_mod(vma, VM_MIXEDMAP, VM_PFNMAP);
+ 
+--- a/drivers/gpu/drm/virtio/virtgpu_vram.c~mm-introduce-vma_get_page_prot-and-use-it
++++ a/drivers/gpu/drm/virtio/virtgpu_vram.c
+@@ -55,7 +55,7 @@ static int virtio_gpu_vram_mmap(struct d
+ 
+ 	vma->vm_pgoff -= drm_vma_node_start(&obj->vma_node);
+ 	vm_flags_set(vma, VM_MIXEDMAP | VM_DONTEXPAND);
+-	vma->vm_page_prot = vm_get_page_prot(vma->vm_flags);
++	vma->vm_page_prot = vma_get_page_prot(vma);
+ 	vma->vm_page_prot = pgprot_decrypted(vma->vm_page_prot);
+ 	vma->vm_ops = &virtio_gpu_vram_vm_ops;
+ 
+--- a/drivers/gpu/drm/vmwgfx/vmwgfx_page_dirty.c~mm-introduce-vma_get_page_prot-and-use-it
++++ a/drivers/gpu/drm/vmwgfx/vmwgfx_page_dirty.c
+@@ -481,7 +481,7 @@ vm_fault_t vmw_bo_vm_fault(struct vm_fau
+ 	if (vbo->dirty && vbo->dirty->method == VMW_BO_DIRTY_MKWRITE)
+ 		prot = vm_get_page_prot(vma->vm_flags & ~VM_SHARED);
+ 	else
+-		prot = vm_get_page_prot(vma->vm_flags);
++		prot = vma_get_page_prot(vma);
+ 
+ 	ret = ttm_bo_vm_fault_reserved(vmf, prot, num_prefault);
+ 	if (ret == VM_FAULT_RETRY && !(vmf->flags & FAULT_FLAG_RETRY_NOWAIT))
+--- a/drivers/gpu/drm/xen/xen_drm_front_gem.c~mm-introduce-vma_get_page_prot-and-use-it
++++ a/drivers/gpu/drm/xen/xen_drm_front_gem.c
+@@ -80,7 +80,7 @@ static int xen_drm_front_gem_object_mmap
+ 	 * which is mapped as Normal Inner Write-Back Outer Write-Back
+ 	 * Inner-Shareable.
+ 	 */
+-	vma->vm_page_prot = vm_get_page_prot(vma->vm_flags);
++	vma->vm_page_prot = vma_get_page_prot(vma);
+ 
+ 	/*
+ 	 * vm_operations_struct.fault handler will be called if CPU access
+--- a/drivers/gpu/drm/xe/xe_device.c~mm-introduce-vma_get_page_prot-and-use-it
++++ a/drivers/gpu/drm/xe/xe_device.c
+@@ -281,7 +281,7 @@ static vm_fault_t barrier_fault(struct v
+ 	pgprot_t prot;
+ 	int idx;
+ 
+-	prot = vm_get_page_prot(vma->vm_flags);
++	prot = vma_get_page_prot(vma);
+ 
+ 	if (drm_dev_enter(dev, &idx)) {
+ 		unsigned long pfn;
+--- a/drivers/gpu/drm/xe/xe_mmio_gem.c~mm-introduce-vma_get_page_prot-and-use-it
++++ a/drivers/gpu/drm/xe/xe_mmio_gem.c
+@@ -149,7 +149,7 @@ static int xe_mmio_gem_mmap(struct drm_g
+ 
+ 	/* Set vm_pgoff (used as a fake buffer offset by DRM) to 0 */
+ 	vma->vm_pgoff = 0;
+-	vma->vm_page_prot = pgprot_noncached(vm_get_page_prot(vma->vm_flags));
++	vma->vm_page_prot = pgprot_noncached(vma_get_page_prot(vma));
+ 	vm_flags_set(vma, VM_IO | VM_PFNMAP | VM_DONTEXPAND | VM_DONTDUMP |
+ 		     VM_DONTCOPY | VM_NORESERVE);
+ 
+--- a/drivers/video/fbdev/core/fb_io_fops.c~mm-introduce-vma_get_page_prot-and-use-it
++++ a/drivers/video/fbdev/core/fb_io_fops.c
+@@ -161,7 +161,7 @@ int fb_io_mmap(struct fb_info *info, str
+ 		len = info->fix.mmio_len;
+ 	}
+ 
+-	vma->vm_page_prot = vm_get_page_prot(vma->vm_flags);
++	vma->vm_page_prot = vma_get_page_prot(vma);
+ 	vma->vm_page_prot = pgprot_framebuffer(vma->vm_page_prot, vma->vm_start,
+ 					       vma->vm_end, start);
+ 
+--- a/include/linux/mm.h~mm-introduce-vma_get_page_prot-and-use-it
++++ a/include/linux/mm.h
+@@ -4610,6 +4610,11 @@ static inline pgprot_t vma_flags_to_page
+ 	return vm_get_page_prot(vm_flags);
+ }
+ 
++static inline pgprot_t vma_get_page_prot(const struct vm_area_struct *vma)
++{
++	return vma_flags_to_page_prot(vma->flags);
++}
++
+ void vma_set_page_prot(struct vm_area_struct *vma);
+ #else
+ static inline pgprot_t vm_get_page_prot(vm_flags_t vm_flags)
+@@ -4620,9 +4625,13 @@ static inline pgprot_t vma_flags_to_page
  {
--	int ret;
-+	vma_flags_t vma_flags = legacy_to_vma_flags(vm_flags);
- 	struct vm_area_struct *vma;
-+	int ret;
+ 	return __pgprot(0);
+ }
++static inline pgprot_t vma_get_page_prot(const struct vm_area_struct *vma)
++{
++	return __pgprot(0);
++}
+ static inline void vma_set_page_prot(struct vm_area_struct *vma)
+ {
+-	vma->vm_page_prot = vm_get_page_prot(vma->vm_flags);
++	vma->vm_page_prot = vma_get_page_prot(vma);
+ }
+ #endif
  
- 	vma = vm_area_alloc(mm);
--	if (unlikely(vma == NULL))
-+	if (unlikely(!vma))
- 		return ERR_PTR(-ENOMEM);
- 
--	vm_flags |= vma_flags_to_legacy(mm->def_vma_flags) | VM_DONTEXPAND;
-+	vma_flags_set_mask(&vma_flags, mm->def_vma_flags);
-+	vma_flags_set(&vma_flags, VMA_DONTEXPAND_BIT);
+--- a/mm/vma.c~mm-introduce-vma_get_page_prot-and-use-it
++++ a/mm/vma.c
+@@ -3430,7 +3430,7 @@ struct vm_area_struct *__install_special
  	if (pgtable_supports_soft_dirty())
--		vm_flags |= VM_SOFTDIRTY;
--	vm_flags_init(vma, vm_flags & ~VM_LOCKED_MASK);
-+		vma_flags_set(&vma_flags, VMA_SOFTDIRTY_BIT);
-+	vma_flags_clear_mask(&vma_flags, VMA_LOCKED_MASK);
-+	vma->flags = vma_flags;
- 	vma->vm_page_prot = vma_get_page_prot(vma);
+ 		vm_flags |= VM_SOFTDIRTY;
+ 	vm_flags_init(vma, vm_flags & ~VM_LOCKED_MASK);
+-	vma->vm_page_prot = vm_get_page_prot(vma->vm_flags);
++	vma->vm_page_prot = vma_get_page_prot(vma);
  
  	vma->vm_ops = ops;
+ 	vma->vm_private_data = priv;
+--- a/mm/vma_exec.c~mm-introduce-vma_get_page_prot-and-use-it
++++ a/mm/vma_exec.c
+@@ -146,7 +146,7 @@ int create_init_stack_vma(struct mm_stru
+ 	if (pgtable_supports_soft_dirty())
+ 		flags |= VM_SOFTDIRTY;
+ 	vm_flags_init(vma, flags);
+-	vma->vm_page_prot = vm_get_page_prot(vma->vm_flags);
++	vma->vm_page_prot = vma_get_page_prot(vma);
+ 
+ 	err = insert_vm_struct(mm, vma);
+ 	if (err)
+--- a/sound/core/memalloc.c~mm-introduce-vma_get_page_prot-and-use-it
++++ a/sound/core/memalloc.c
+@@ -851,7 +851,7 @@ static void snd_dma_noncoherent_free(str
+ static int snd_dma_noncoherent_mmap(struct snd_dma_buffer *dmab,
+ 				    struct vm_area_struct *area)
+ {
+-	area->vm_page_prot = vm_get_page_prot(area->vm_flags);
++	area->vm_page_prot = vma_get_page_prot(area);
+ 	return dma_mmap_pages(dmab->dev.dev, area,
+ 			      area->vm_end - area->vm_start,
+ 			      virt_to_page(dmab->area));
+--- a/tools/testing/vma/include/dup.h~mm-introduce-vma_get_page_prot-and-use-it
++++ a/tools/testing/vma/include/dup.h
+@@ -1575,3 +1575,8 @@ static inline void vma_assert_can_modify
+ 	if (vma_is_attached(vma))
+ 		vma_assert_write_locked(vma);
+ }
++
++static inline pgprot_t vma_get_page_prot(const struct vm_area_struct *vma)
++{
++	return vma_flags_to_page_prot(vma->flags);
++}
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
