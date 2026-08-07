@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6EFB2455177
-	for <mm-commits@vger.kernel.org>; Fri,  7 Aug 2026 21:51:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 503FE4756C0
+	for <mm-commits@vger.kernel.org>; Fri,  7 Aug 2026 21:53:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786139464; cv=none; b=KFPI7MwgxXfZIg0vlrz2FU1Dp/E5WoUH81M4zO4dBotEGTmWPHLn49/lL99p2l8DABpmDzf1xCYNXZwCIZYRzLhFBU7vp1z2K8QgNmmXuMiQDwtR5FvHrySqtBa69MGntZzFmkwXLxSVqab7uVSbEZVk/xVPR0HGe4l2lIhv6Rs=
+	t=1786139588; cv=none; b=LSwrG9nUyfXwBWNzsxCqRKhYtYpJqUo2ynrGqGvW4kIVNW7qxhnizQFJ8Vv8VGAddZ1w1VRHENvf5D4Zf5HWKCBhLMagjRdfspVBtCItr/cG3e0p7ME9qO0mpdqlJ+3TTmV6ZqX6XU+EiFFtymCFVXdk8pP3cB3dzXq9SBrof60=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786139464; c=relaxed/simple;
-	bh=yyGVVqHZ/XcI4q40czyHLJSli4GojlhdAVW46aJ5bgQ=;
-	h=Date:To:From:Subject:Message-Id; b=JLW51yK60HmgeaGKyqqAAlRx0a4auVcftWUIlwwgdc3XvuOrXPJ3omUF+LzquqoQJ1mQ/aNLwqIeqkGLY/YwbgyRUCt7GKwd34r7gmSTWKDCQKNnmGm9JIIMteyxT0RpDd8NTgOw4HcucYtnRNLyXZz7DxqSdvrNg0n0KnOEFWo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zbUQ+UI4; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1786139588; c=relaxed/simple;
+	bh=1aQ7R4Ag8wZXFjsOLL3juAoKkwAbZm48Zn2J6YOK7kw=;
+	h=Date:To:From:Subject:Message-Id; b=J9vuidzZu0Wn311d7G0zWKJEF/KrBLiuj6z9XnUgiY3T6QGG8LtZbqE9IjhjujIHBc4crJ1gYBVizhT/fCtRdPvT8HIXUwVhltMP/v0dkXx2qIgGHadv/z5tlDqZUbaPYpn1poh9bhofTXuPNgEICJUdrYI+tZeRIx4YzsaCjwE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KrVyM+AG; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zbUQ+UI4"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C13981F000E9;
-	Fri,  7 Aug 2026 21:51:02 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KrVyM+AG"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AAF831F000E9;
+	Fri,  7 Aug 2026 21:53:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1786139462;
-	bh=qtbZjo5cOo/KttodL6CXQm6zkc1JbR7CS6MDJwXkXZw=;
+	d=linux-foundation.org; s=korg; t=1786139585;
+	bh=hYFYgNZW2Hj+wQewubAKHf5o1bmL49wNYIQkHmp4dxU=;
 	h=Date:To:From:Subject;
-	b=zbUQ+UI4902QV2E9hTFdt5TurrPymnzv8fmBc4sYJN46AtkOZT7mgMeA2sEnroFP0
-	 zcRE/IkDIl/1hz1TVuZgZAYUYVcO/EexkN7vNGnyb6GOQHXL88/e3VsuQ1LN5w7CSH
-	 dFFxn+AMRTwhdvsOgcTIGqCCErT88hZZeDz21MIs=
-Date: Fri, 07 Aug 2026 14:51:02 -0700
-To: mm-commits@vger.kernel.org,souravpanda@google.com,akpm@linux-foundation.org
+	b=KrVyM+AGjIufMhoWUzeUXhJTMSXPvuXIDE7Mij4a0H18NfxQK3A7XFpLO7DWJBZom
+	 JgeRwb4YvJTVp1x446tBOqY4VrXmujRfLakJ6/e13AhfMd99/ecmT7/xSj4kRTy1gK
+	 2M0qtAlOBX/caxZnLsHaOcLGhPO0uBuSRRjthWQE=
+Date: Fri, 07 Aug 2026 14:53:05 -0700
+To: mm-commits@vger.kernel.org,usama.arif@linux.dev,surenb@google.com,rientjes@google.com,osalvador@suse.de,muchun.song@linux.dev,gthelen@google.com,fvdl@google.com,david@kernel.org,souravpanda@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-hugetlb_cma-support-percentage-based-hugetlb_cma-reservation.patch removed from -mm tree
-Message-Id: <20260807215102.C13981F000E9@smtp.kernel.org>
+Subject: + mm-hugetlb_cma-support-percentage-based-hugetlb_cma-reservation.patch added to mm-new branch
+Message-Id: <20260807215305.AAF831F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,17 +34,44 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
+The patch titled
      Subject: mm/hugetlb_cma: support percentage-based hugetlb_cma reservation
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm mm-new branch.  Its filename is
      mm-hugetlb_cma-support-percentage-based-hugetlb_cma-reservation.patch
 
-This patch was dropped because an updated version will be issued
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb_cma-support-percentage-based-hugetlb_cma-reservation.patch
+
+This patch will later appear in the mm-new branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
 ------------------------------------------------------
 From: Sourav Panda <souravpanda@google.com>
 Subject: mm/hugetlb_cma: support percentage-based hugetlb_cma reservation
-Date: Wed, 29 Jul 2026 16:31:48 +0000
+Date: Fri, 7 Aug 2026 04:00:03 +0000
 
 Currently, hugetlb_cma reservation only supports absolute sizes (e.g.,
 hugetlb_cma=2G or hugetlb_cma=0:1G,1:1G).  This can be restrictive in
@@ -58,8 +85,9 @@ The percentage is calculated against the total memory (for global
 settings) or against the node-specific memory (for node-specific settings)
 using memblock APIs during early boot.
 
-Link: https://lore.kernel.org/20260729163148.3271755-1-souravpanda@google.com
+Link: https://lore.kernel.org/20260807040003.2156630-1-souravpanda@google.com
 Signed-off-by: Sourav Panda <souravpanda@google.com>
+Acked-by: Usama Arif <usama.arif@linux.dev>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Frank van der Linden <fvdl@google.com>
@@ -70,13 +98,13 @@ Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/kernel-parameters.txt |    7 
- mm/hugetlb_cma.c                                |  128 +++++++++++++-
- 2 files changed, 125 insertions(+), 10 deletions(-)
+ Documentation/admin-guide/kernel-parameters.txt |   10 
+ mm/hugetlb_cma.c                                |  142 +++++++++++++-
+ 2 files changed, 142 insertions(+), 10 deletions(-)
 
 --- a/Documentation/admin-guide/kernel-parameters.txt~mm-hugetlb_cma-support-percentage-based-hugetlb_cma-reservation
 +++ a/Documentation/admin-guide/kernel-parameters.txt
-@@ -2064,8 +2064,11 @@ Kernel parameters
+@@ -2064,8 +2064,14 @@ Kernel parameters
  	hugetlb_cma=	[HW,CMA,EARLY] The size of a CMA area used for allocation
  			of gigantic hugepages. Or using node format, the size
  			of a CMA area per node can be specified.
@@ -84,6 +112,9 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 -				<node>:nn[KMGTPE][,<node>:nn[KMGTPE]]
 +			The size can be an absolute value (e.g., 2G) or a
 +			percentage of the total memory or node memory (e.g., 20%).
++			Percentage-derived sizes are rounded down to a multiple of
++			the architecture's gigantic hugepage size and may become
++			zero.
 +			Format: nn[KMGTPE] or nn% or (node format)
 +				<node>:nn[KMGTPE][,<node>:nn[KMGTPE]] or
 +				<node>:nn%[,<node>:nn%]
@@ -131,7 +162,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  void hugetlb_cma_free_frozen_folio(struct folio *folio)
  {
  	WARN_ON_ONCE(!cma_release_frozen(hugetlb_cma[folio_nid(folio)],
-@@ -93,14 +118,28 @@ static int __init cmdline_parse_hugetlb_
+@@ -93,14 +118,31 @@ static int __init cmdline_parse_hugetlb_
  			break;
  
  		if (s[count] == ':') {
@@ -141,6 +172,9 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  				break;
  			nid = array_index_nospec(tmp, MAX_NUMNODES);
  
++			hugetlb_cma_size = 0;
++			hugetlb_cma_percent = 0;
++
  			s += count + 1;
 -			tmp = memparse(s, &s);
 -			hugetlb_cma_size_in_node[nid] = tmp;
@@ -163,7 +197,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  
  			/*
  			 * Skip the separator if have one, otherwise
-@@ -111,7 +150,28 @@ static int __init cmdline_parse_hugetlb_
+@@ -111,7 +153,28 @@ static int __init cmdline_parse_hugetlb_
  			else
  				break;
  		} else {
@@ -193,7 +227,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  			break;
  		}
  	}
-@@ -137,8 +197,36 @@ void __init hugetlb_cma_reserve(void)
+@@ -137,8 +200,36 @@ void __init hugetlb_cma_reserve(void)
  {
  	unsigned long size, reserved, per_node, order, gigantic_page_size;
  	bool node_specific_cma_alloc = false;
@@ -230,19 +264,31 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  	if (!hugetlb_cma_size)
  		return;
  
-@@ -157,6 +245,20 @@ void __init hugetlb_cma_reserve(void)
+@@ -157,6 +248,32 @@ void __init hugetlb_cma_reserve(void)
  	VM_WARN_ON(order <= MAX_PAGE_ORDER);
  	gigantic_page_size = PAGE_SIZE << order;
  
 +	if (hugetlb_cma_percent) {
++		unsigned long orig_size = hugetlb_cma_size;
++
 +		hugetlb_cma_size = ALIGN_DOWN(hugetlb_cma_size, PAGE_SIZE << order);
++		if (orig_size && !hugetlb_cma_size)
++			pr_warn("hugetlb_cma: reservation size rounded down to 0 from %lu MiB (%u%%)\n",
++				orig_size / SZ_1M, hugetlb_cma_percent);
 +	} else if (has_node_specific_param) {
 +		hugetlb_cma_size = 0;
 +		for (nid = 0; nid < MAX_NUMNODES; nid++) {
 +			if (hugetlb_cma_percent_in_node[nid]) {
++				unsigned long orig_size = hugetlb_cma_size_in_node[nid];
++
 +				hugetlb_cma_size_in_node[nid] =
 +					ALIGN_DOWN(hugetlb_cma_size_in_node[nid],
 +						   PAGE_SIZE << order);
++				if (orig_size && !hugetlb_cma_size_in_node[nid])
++					pr_warn("hugetlb_cma: reservation size rounded down to 0 from %lu MiB (%u%%) on node %d\n",
++						orig_size / SZ_1M,
++						hugetlb_cma_percent_in_node[nid],
++						nid);
 +			}
 +			hugetlb_cma_size += hugetlb_cma_size_in_node[nid];
 +		}
@@ -251,7 +297,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  	hugetlb_bootmem_set_nodes();
  
  	for (nid = 0; nid < MAX_NUMNODES; nid++) {
-@@ -197,8 +299,14 @@ void __init hugetlb_cma_reserve(void)
+@@ -197,8 +314,13 @@ void __init hugetlb_cma_reserve(void)
  		per_node = DIV_ROUND_UP(hugetlb_cma_size,
  					nodes_weight(hugetlb_bootmem_nodes));
  		per_node = round_up(per_node, gigantic_page_size);
@@ -263,12 +309,11 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 +				per_node / SZ_1M);
 +		else
 +			pr_info("hugetlb_cma: reserve %lu MiB, up to %lu MiB per node\n",
-+				hugetlb_cma_size / SZ_1M,
-+				per_node / SZ_1M);
++				hugetlb_cma_size / SZ_1M, per_node / SZ_1M);
  	}
  
  	reserved = 0;
-@@ -233,8 +341,12 @@ void __init hugetlb_cma_reserve(void)
+@@ -233,8 +355,12 @@ void __init hugetlb_cma_reserve(void)
  		}
  
  		reserved += size;
@@ -288,4 +333,5 @@ _
 Patches currently in -mm which might be from souravpanda@google.com are
 
 mm-hugetlb_cma-fix-null-nodemask-dereference-in-hugetlb_cma_alloc_frozen_folio.patch
+mm-hugetlb_cma-support-percentage-based-hugetlb_cma-reservation.patch
 
