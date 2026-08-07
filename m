@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E186C3B811F
-	for <mm-commits@vger.kernel.org>; Fri,  7 Aug 2026 02:00:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 051453B71B1
+	for <mm-commits@vger.kernel.org>; Fri,  7 Aug 2026 02:00:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786068055; cv=none; b=sQayxVbiRyGE8DCHqz27iQDPVydI0Y7veuFKNIpgz5FGF4448j1z71A6l8z39Gzk/vkjg8D4Y+66U3Dhi/pKKBZ3i1K08XaCfQVTSM11Y9Amy8X2zNu2FeeZMzUJKWShtSBJAgqSa94Bf3+YK4IHHVjnSNToMk2xqfStsj23jOQ=
+	t=1786068057; cv=none; b=IInjjrE0gUVmWXbeAk+VdKjGHzBBlevUpPfBYn0YdMkDccvZq23+apFIRWkcztQ7+jAgv/oItXMY4iSj6U7KOrqNC5ZgN9RYMfYCLADOWX76+nJ4C15ws8M27E7IhiYUR7F1mFHDyAuJtxM9vGfk1rllXBUcaN863qRyrxaSFPI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786068055; c=relaxed/simple;
-	bh=StxsVCPZCAy3PHtmuU4ucPgL/IvRcSNCzj4NtyOrgYs=;
-	h=Date:To:From:Subject:Message-Id; b=OxAeoErbOWNE8qvRr/THduKm6fPN4KPBkxNEuItJPo4yESNSGMtHoy0tfHhvYgJZv/ekJPnHutlHXLBM1PgPD9SqPo2eECSv8JJ0uTZLqfz3Q7VmtK7lvdosifTB9mQcPJ7ydgipsfzUXmwER9bdQkrCqsnXBJdj44i719+Fd5c=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jTt/SHoe; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1786068057; c=relaxed/simple;
+	bh=avwx9Qw7TzWSyQ3ZdTkeTHdO9y8q5BW1ESOirmXT6M0=;
+	h=Date:To:From:Subject:Message-Id; b=jxAXwayFJovOt2kEI468G3KadXhGQXvm1kYx7lFcF0u372sMlW+2SS97Hh8eEnl6kuj6KoWKDNzFMp9QB1MQ8HgFLiSOUWYoJXZYIDfJwahekw4QzT8CZ0igN6eqd4jAB3sx7geLtp5ou+ghHC4BR01ruYdkRAGX6zVZS5g67p4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=iRV/JtT+; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jTt/SHoe"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8EB551F00A3E;
-	Fri,  7 Aug 2026 02:00:49 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="iRV/JtT+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6FDB61F000E9;
+	Fri,  7 Aug 2026 02:00:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1786068049;
-	bh=a9KFi0RL8gbRQqsrZmu2Q5VlKeWg/HH4La6bEUN8znE=;
+	d=linux-foundation.org; s=korg; t=1786068053;
+	bh=xpWO/KUBCmYtN6E+YZ3NJOd5y0OrwvaM4WQrMsq83Vc=;
 	h=Date:To:From:Subject;
-	b=jTt/SHoe10E3VCJBPyhM1cN4vtWSDGhtSPg4oNecysl4MUftXbvoJAjJPUUJoNZeU
-	 qaL2BNOREJL2v/J02MiApa5l6z1Me1JH3RRv8pA3c97wmZaGpOUnOPTxcSutlQupHh
-	 M3kYVZI2z7wKBZApTbS4IjYjz9VX81C7v9wNdJ6s=
-Date: Thu, 06 Aug 2026 19:00:49 -0700
+	b=iRV/JtT+p/Ty7Eq0RTk/WEhvx2wBKy3IujY2TovTtpyj8MFVgq2FJDBcDfnWUazGb
+	 sJ7hMhSh6S/Ft/k5MUl+fTBQYRQxTLwdSYrgn8NAMqiuzDT7/gd7WUnERGWfIO3wLM
+	 dPp0v30ZgXWvGnl6OA/eKjyhUPXnzNqoE+XFZcXA=
+Date: Thu, 06 Aug 2026 19:00:53 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,tzimmermann@suse.de,surenb@google.com,rppt@kernel.org,pfalcato@suse.de,osalvador@suse.de,npache@redhat.com,muchun.song@linux.dev,lance.yang@linux.dev,jannh@google.com,jani.nikula@intel.com,jack@suse.cz,dev.jain@arm.com,david@kernel.org,brauner@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,airlied@gmail.com,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-vma-convert-vm_pgprot_modify-to-use-vma_flags_t-and-rename.patch removed from -mm tree
-Message-Id: <20260807020049.8EB551F00A3E@smtp.kernel.org>
+Subject: [merged mm-stable] mm-vma-update-create_init_stack_vma-to-use-vma_flags_t.patch removed from -mm tree
+Message-Id: <20260807020053.6FDB61F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,36 +35,31 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/vma: convert vm_pgprot_modify() to use vma_flags_t and rename
+     Subject: mm/vma: update create_init_stack_vma() to use vma_flags_t
 has been removed from the -mm tree.  Its filename was
-     mm-vma-convert-vm_pgprot_modify-to-use-vma_flags_t-and-rename.patch
+     mm-vma-update-create_init_stack_vma-to-use-vma_flags_t.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <ljs@kernel.org>
-Subject: mm/vma: convert vm_pgprot_modify() to use vma_flags_t and rename
-Date: Sat, 11 Jul 2026 19:45:03 +0100
+Subject: mm/vma: update create_init_stack_vma() to use vma_flags_t
+Date: Sat, 11 Jul 2026 19:45:06 +0100
 
-Update vm_pgprot_modify() to use the new VMA flags type vma_flags_t
-and rename to vma_pgprot_modify() accordingly.
+Replace use of the legacy vm_flags_t flags with vma_flags_t values in
+create_init_stack_vma().
 
-This is part of the ongoing work to convert vm_flags_t to vma_flags_t, in
-order to eliminate the arbitrary limit of the number of bits in a system
-word on available VMA flags.
-
-Update VMA userland tests accordingly, updating vma_set_page_prot() to no
-longer inline vma_pgprot_modify(), rather we can simply define
-vma_pgprot_modify() as a static inline function and the tests will pick it
-up from vma.h.
+As part of this change we add VMA_STACK_EARLY and VMA_STACK_INCOMPLETE
+vma_flags_t defines, and slightly rework create_init_stack_vma() for
+clarity.
 
 No functional change intended.
 
-Link: https://lore.kernel.org/20260711-b4-vma-flags-mm-v2-6-0fa2357d5431@kernel.org
+Link: https://lore.kernel.org/20260711-b4-vma-flags-mm-v2-9-0fa2357d5431@kernel.org
 Signed-off-by: Lorenzo Stoakes <ljs@kernel.org>
-Reviewed-by: Lance Yang <lance.yang@linux.dev>
 Reviewed-by: Zi Yan <ziy@nvidia.com>
+Reviewed-by: Lance Yang <lance.yang@linux.dev>
 Reviewed-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Barry Song <baohua@kernel.org>
@@ -85,58 +80,103 @@ Cc: Thomas Zimmermann <tzimmermann@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |    8 ++++----
- mm/vma.c  |    2 +-
- mm/vma.h  |    6 ++++--
- 3 files changed, 9 insertions(+), 7 deletions(-)
+ include/linux/mm.h              |    4 ++++
+ mm/vma_exec.c                   |   18 +++++++++++-------
+ tools/testing/vma/include/dup.h |    4 ++++
+ 3 files changed, 19 insertions(+), 7 deletions(-)
 
---- a/mm/mmap.c~mm-vma-convert-vm_pgprot_modify-to-use-vma_flags_t-and-rename
-+++ a/mm/mmap.c
-@@ -80,13 +80,13 @@ core_param(ignore_rlimit_data, ignore_rl
- /* Update vma->vm_page_prot to reflect vma->vm_flags. */
- void vma_set_page_prot(struct vm_area_struct *vma)
- {
--	vm_flags_t vm_flags = vma->vm_flags;
-+	vma_flags_t vma_flags = vma->flags;
- 	pgprot_t vm_page_prot;
- 
--	vm_page_prot = vm_pgprot_modify(vma->vm_page_prot, vm_flags);
-+	vm_page_prot = vma_pgprot_modify(vma->vm_page_prot, vma_flags);
- 	if (vma_wants_writenotify(vma, vm_page_prot)) {
--		vm_flags &= ~VM_SHARED;
--		vm_page_prot = vm_pgprot_modify(vm_page_prot, vm_flags);
-+		vma_flags_clear(&vma_flags, VMA_SHARED_BIT);
-+		vm_page_prot = vma_pgprot_modify(vm_page_prot, vma_flags);
- 	}
- 	/* remove_protection_ptes reads vma->vm_page_prot without mmap_lock */
- 	WRITE_ONCE(vma->vm_page_prot, vm_page_prot);
---- a/mm/vma.c~mm-vma-convert-vm_pgprot_modify-to-use-vma_flags_t-and-rename
-+++ a/mm/vma.c
-@@ -2176,7 +2176,7 @@ bool vma_wants_writenotify(struct vm_are
- 	/* The open routine did something to the protections that pgprot_modify
- 	 * won't preserve? */
- 	if (pgprot_val(vm_page_prot) !=
--	    pgprot_val(vm_pgprot_modify(vm_page_prot, vma->vm_flags)))
-+	    pgprot_val(vma_pgprot_modify(vm_page_prot, vma->flags)))
- 		return false;
- 
- 	/*
---- a/mm/vma.h~mm-vma-convert-vm_pgprot_modify-to-use-vma_flags_t-and-rename
-+++ a/mm/vma.h
-@@ -541,9 +541,11 @@ static inline bool vma_wants_manual_pte_
- }
- 
- #ifdef CONFIG_MMU
--static inline pgprot_t vm_pgprot_modify(pgprot_t oldprot, vm_flags_t vm_flags)
-+static inline pgprot_t vma_pgprot_modify(pgprot_t oldprot, vma_flags_t vma_flags)
- {
--	return pgprot_modify(oldprot, vm_get_page_prot(vm_flags));
-+	const pgprot_t prot = vma_get_page_prot(vma_flags);
-+
-+	return pgprot_modify(oldprot, prot);
- }
+--- a/include/linux/mm.h~mm-vma-update-create_init_stack_vma-to-use-vma_flags_t
++++ a/include/linux/mm.h
+@@ -442,8 +442,10 @@ enum {
+ #define VM_STACK	INIT_VM_FLAG(STACK)
+ #ifdef CONFIG_STACK_GROWSUP
+ #define VM_STACK_EARLY	INIT_VM_FLAG(STACK_EARLY)
++#define VMA_STACK_EARLY mk_vma_flags(VMA_STACK_EARLY_BIT)
+ #else
+ #define VM_STACK_EARLY	VM_NONE
++#define VMA_STACK_EARLY EMPTY_VMA_FLAGS
  #endif
+ #ifdef CONFIG_ARCH_HAS_PKEYS
+ #define VM_PKEY_SHIFT ((__force int)VMA_HIGH_ARCH_0_BIT)
+@@ -544,6 +546,8 @@ enum {
  
+ /* Bits set in the VMA until the stack is in its final location */
+ #define VM_STACK_INCOMPLETE_SETUP (VM_RAND_READ | VM_SEQ_READ | VM_STACK_EARLY)
++#define VMA_STACK_INCOMPLETE_SETUP append_vma_flags(		\
++	VMA_STACK_EARLY, VMA_RAND_READ_BIT, VMA_SEQ_READ_BIT)
+ 
+ #define TASK_EXEC_BIT ((current->personality & READ_IMPLIES_EXEC) ? \
+ 		       VMA_EXEC_BIT : VMA_READ_BIT)
+--- a/mm/vma_exec.c~mm-vma-update-create_init_stack_vma-to-use-vma_flags_t
++++ a/mm/vma_exec.c
+@@ -112,15 +112,17 @@ int relocate_vma_down(struct vm_area_str
+ int create_init_stack_vma(struct mm_struct *mm, struct vm_area_struct **vmap,
+ 			  unsigned long *top_mem_p)
+ {
+-	unsigned long flags = VM_STACK_FLAGS | VM_STACK_INCOMPLETE_SETUP;
++	vma_flags_t flags = VMA_STACK_INCOMPLETE_SETUP;
++	struct vm_area_struct *vma;
+ 	int err;
+-	struct vm_area_struct *vma = vm_area_alloc(mm);
+ 
++	/* VMA_STACK_FLAGS and VMA_STACK_INCOMPLETE_SETUP must not overlap. */
++	VM_WARN_ON_ONCE(vma_flags_test_any_mask(&flags, VMA_STACK_FLAGS));
++
++	vma = vm_area_alloc(mm);
+ 	if (!vma)
+ 		return -ENOMEM;
+ 
+-	vma_set_anonymous(vma);
+-
+ 	if (mmap_write_lock_killable(mm)) {
+ 		err = -EINTR;
+ 		goto err_free;
+@@ -134,18 +136,20 @@ int create_init_stack_vma(struct mm_stru
+ 	if (err)
+ 		goto err_ksm;
+ 
++	vma_flags_set_mask(&flags, VMA_STACK_FLAGS);
++	vma_set_anonymous(vma);
++
+ 	/*
+ 	 * Place the stack at the largest stack address the architecture
+ 	 * supports. Later, we'll move this to an appropriate place. We don't
+ 	 * use STACK_TOP because that can depend on attributes which aren't
+ 	 * configured yet.
+ 	 */
+-	VM_WARN_ON_ONCE(VM_STACK_FLAGS & VM_STACK_INCOMPLETE_SETUP);
+ 	vma->vm_end = STACK_TOP_MAX;
+ 	vma->vm_start = vma->vm_end - PAGE_SIZE;
+ 	if (pgtable_supports_soft_dirty())
+-		flags |= VM_SOFTDIRTY;
+-	vm_flags_init(vma, flags);
++		vma_flags_set(&flags, VMA_SOFTDIRTY_BIT);
++	vma->flags = flags;
+ 	vma->vm_page_prot = vma_get_page_prot(vma);
+ 
+ 	err = insert_vm_struct(mm, vma);
+--- a/tools/testing/vma/include/dup.h~mm-vma-update-create_init_stack_vma-to-use-vma_flags_t
++++ a/tools/testing/vma/include/dup.h
+@@ -245,8 +245,10 @@ enum {
+ #define VM_STACK	INIT_VM_FLAG(STACK)
+ #ifdef CONFIG_STACK_GROWS_UP
+ #define VM_STACK_EARLY	INIT_VM_FLAG(STACK_EARLY)
++#define VMA_STACK_EARLY mk_vma_flags(VMA_STACK_EARLY_BIT)
+ #else
+ #define VM_STACK_EARLY	VM_NONE
++#define VMA_STACK_EARLY EMPTY_VMA_FLAGS
+ #endif
+ #ifdef CONFIG_ARCH_HAS_PKEYS
+ #define VM_PKEY_SHIFT ((__force int)VMA_HIGH_ARCH_0_BIT)
+@@ -315,6 +317,8 @@ enum {
+ 
+ /* Bits set in the VMA until the stack is in its final location */
+ #define VM_STACK_INCOMPLETE_SETUP (VM_RAND_READ | VM_SEQ_READ | VM_STACK_EARLY)
++#define VMA_STACK_INCOMPLETE_SETUP append_vma_flags(		\
++	VMA_STACK_EARLY, VMA_RAND_READ_BIT, VMA_SEQ_READ_BIT)
+ 
+ #define TASK_EXEC_BIT ((current->personality & READ_IMPLIES_EXEC) ? \
+ 		       VM_EXEC_BIT : VM_READ_BIT)
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
