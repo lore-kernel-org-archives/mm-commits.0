@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 216633B7752
-	for <mm-commits@vger.kernel.org>; Fri,  7 Aug 2026 02:02:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3FCA43B992C
+	for <mm-commits@vger.kernel.org>; Fri,  7 Aug 2026 02:02:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786068125; cv=none; b=dQS63BKVjuJme4E8BZ5ht4Hiltuqv3t8OmhQuzgGHOnzC3N8G8S0XVJEwQ/VAIYr/k54yAqSihLSxV9majpJ6OiWM0p4HTwjJioDErwqd0qD+4djBwBgKkfH7nZSdVpB16z2ewfscRARgyeQ/farqr3wR4SdOpqw3j0pbT1N7dU=
+	t=1786068126; cv=none; b=KfSfKbeXCKk25ZXMF3tRqlJPXio5PT5HTucpTQuj41FG3K6/olZr8GTJyfwyB7idmm4V1xcyo4wn8ZfNwuDcvuB5tnD+FABJmZrlDGgi66mYOBmPM/+680sAeK7G9UI+SFkEVqJnA8olp60Sk4DD4N9hk4wmM5hRS38vi5KokHg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786068125; c=relaxed/simple;
-	bh=15SvW1DMmxYiqtlnjyQPju0X6vX+XUuuEQ6WqKw9lZE=;
-	h=Date:To:From:Subject:Message-Id; b=IghKkQFEE6s/aRqJeVQQdQwS9q1G59AfvWJQJHbomBw5SeoZGlDR2n7pBxdh88ZmWssnSaKFPbUty6yRgLpn1p9OA7p1+Cjf434kcd3vNs8fbqIZNAtrZVSBl68Zbp9Qe2aoMDjjjCVv27bOAZY+5P3WEzGUjyYTBf1aE5BVghE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qce4perJ; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1786068126; c=relaxed/simple;
+	bh=IhKdjDZZHvER6mnQa2FG3XigtUC6fAz+s6uQlI1tKCA=;
+	h=Date:To:From:Subject:Message-Id; b=HswfAr6l0PUaNpfWktYeN6/YZGOeQ2HV0craWCVCcpGKjyvNf9jUuZgkNB1EK0IfCFESRzq90Ck5QbCBSIyTcFHuT/e4Jh7hYmRqIZdPouqlITrKp2+6AhzvPImZsO2ef+J0ZldeF9b86f9yQnH+q9YK6SPNuz9p5l7Ckypiv4A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AyQ+HKYw; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qce4perJ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id ED90B1F000E9;
-	Fri,  7 Aug 2026 02:02:03 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AyQ+HKYw"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 173ED1F00A3A;
+	Fri,  7 Aug 2026 02:02:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1786068124;
-	bh=N4IhmoPLKRGsgFhIbYaP1WsnacsxOY/Iob50A8NrtVk=;
+	d=linux-foundation.org; s=korg; t=1786068125;
+	bh=MGwzU3dHMPGx7p148D3x9GMr1KMUGraLETW464aFrAk=;
 	h=Date:To:From:Subject;
-	b=qce4perJpQlEMZdkzFU9C7MSZMZ5eNZ79GzYtXcEih9ladZfEDWo1pxEAprJCi4R7
-	 6009+XUF+f8+2O3yPPtdltKNdBvY08N6HA7ivaMXCRTdp3gG2FuRvCPQjuscH2lrGe
-	 GsCdQGKOp/wksmoFmNaqqmps75C5wtcmiqa+hA6E=
-Date: Thu, 06 Aug 2026 19:02:03 -0700
-To: mm-commits@vger.kernel.org,sj@kernel.org,lienze@kylinos.cn,akpm@linux-foundation.org
+	b=AyQ+HKYwNFjTvsS98Q4cUlhnJnGshvYaY3EGII3kGSXeO3FuAJR80ZEy9VGOM0TRz
+	 aHpotbOLMS2EPw3w2WlxHcCMQWo4ov1Jj4qBSydbbfMz0y1kH5g0JbYBxa1GhnT1lX
+	 LeWD7aUU7QW4yPicQq3vWOYI/WPG71Q0jeo3MIFk=
+Date: Thu, 06 Aug 2026 19:02:04 -0700
+To: mm-commits@vger.kernel.org,osalvador@suse.de,muchun.song@linux.dev,david@kernel.org,chenyichong@uniontech.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-ops-common-remove-redundant-local-variable-in-damon_migrate_folio_list.patch removed from -mm tree
-Message-Id: <20260807020203.ED90B1F000E9@smtp.kernel.org>
+Subject: [merged mm-stable] hugetlbfs-release-subpool-on-fill_super-failure.patch removed from -mm tree
+Message-Id: <20260807020205.173ED1F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,47 +35,55 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/damon/ops-common: remove redundant local variable in damon_migrate_folio_list()
+     Subject: hugetlbfs: release subpool on fill_super failure
 has been removed from the -mm tree.  Its filename was
-     mm-damon-ops-common-remove-redundant-local-variable-in-damon_migrate_folio_list.patch
+     hugetlbfs-release-subpool-on-fill_super-failure.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Enze Li <lienze@kylinos.cn>
-Subject: mm/damon/ops-common: remove redundant local variable in damon_migrate_folio_list()
-Date: Sat, 18 Jul 2026 08:21:25 +0800
+From: Yichong Chen <chenyichong@uniontech.com>
+Subject: hugetlbfs: release subpool on fill_super failure
+Date: Mon, 20 Jul 2026 10:18:59 +0800
 
-In damon_migrate_folio_list(), we're redeclaring folio inside the first
-while loop, but it just shadows the outer one.  Since the second loop uses
-the outer folio anyway, the inner declaration is pointless.
+hugetlbfs_fill_super() allocates a hugepage subpool when size or min_size
+mount options are specified.  hugepage_new_subpool() may also reserve huge
+pages for min_size.
 
-Remove it to consistently reuse the same variable throughout the
-function and improve readability.
+If root dentry creation fails after the subpool is created, the failure
+path frees the subpool with kfree().  This bypasses hugepage_put_subpool()
+and can leave min_size reservations charged.
 
-Link: https://lore.kernel.org/20260718002125.637104-1-lienze@kylinos.cn
-Signed-off-by: Enze Li <lienze@kylinos.cn>
-Reviewed-by: SJ Park <sj@kernel.org>
+Use hugepage_put_subpool() on the failure path, matching the normal
+put_super path.
+
+Link: https://lore.kernel.org/20260720021900.1376309-1-chenyichong@uniontech.com
+Fixes: 7ca02d0ae586 ("hugetlbfs: accept subpool min_size mount option and setup accordingly")
+Signed-off-by: Yichong Chen <chenyichong@uniontech.com>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Oscar Salvador <osalvador@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/ops-common.c |    2 --
- 1 file changed, 2 deletions(-)
+ fs/hugetlbfs/inode.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/mm/damon/ops-common.c~mm-damon-ops-common-remove-redundant-local-variable-in-damon_migrate_folio_list
-+++ a/mm/damon/ops-common.c
-@@ -339,8 +339,6 @@ static unsigned int damon_migrate_folio_
- 	LIST_HEAD(migrate_folios);
- 
- 	while (!list_empty(folio_list)) {
--		struct folio *folio;
--
- 		cond_resched();
- 
- 		folio = lru_to_folio(folio_list);
+--- a/fs/hugetlbfs/inode.c~hugetlbfs-release-subpool-on-fill_super-failure
++++ a/fs/hugetlbfs/inode.c
+@@ -1419,7 +1419,8 @@ hugetlbfs_fill_super(struct super_block
+ 		goto out_free;
+ 	return 0;
+ out_free:
+-	kfree(sbinfo->spool);
++	if (sbinfo->spool)
++		hugepage_put_subpool(sbinfo->spool);
+ 	kfree(sbinfo);
+ 	return -ENOMEM;
+ }
 _
 
-Patches currently in -mm which might be from lienze@kylinos.cn are
+Patches currently in -mm which might be from chenyichong@uniontech.com are
 
 
