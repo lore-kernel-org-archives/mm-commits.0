@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5517A3B6C0C
-	for <mm-commits@vger.kernel.org>; Fri,  7 Aug 2026 02:01:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5BE373B19A3;
+	Fri,  7 Aug 2026 02:01:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786068116; cv=none; b=Eo3RdJiiUzNN4H2mh7CBGOl6gVVmB6zNFCacNW0mi8PoL8C/eROxyvCt31RBUqjX1kyRhv2pf3m6FuEEQbjacbwe3uuICia4pyUqVG6tw5oHoDnSUSxAdKZix680JuMs3Pzj4Ooj3bqO2UlTNRR/qdFn7KrHS5sky57nBj4L2v8=
+	t=1786068117; cv=none; b=YQvEPi7G524ozaYEFULM1wJ7/toKHCiAqXxK/xT6IYx6y9YuxlHkM4T42LidQB9/DA5q+AzihOa494vUkGdmk3a/VLVC/BZsmAwbiOr8gj/ZNft5kC7h99/u4/eylAuQ1J68R5YoNZigFfr0GFnvELQlXiINZzU2+3zdn+PcpC4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786068116; c=relaxed/simple;
-	bh=p+1HAI5D8fitfGaw/l0Ge0Dgywv5FkRd8BDImbeg5qQ=;
-	h=Date:To:From:Subject:Message-Id; b=Mhj6BU7WjmONXMDTX5YFcE8Tzx4ji1QShjcX72BTtAMsdvulPd4ylgnPpzYK9PhQjp6HSIhSDjbwz+Baj7qmNBjVzFHFzmIG6v24bKe6mgdUA51e6+opT5dLzfaq+yzmptWL0PepqdNTGzTC2i1sKj4ZBh94FWjCFYY20YxjTEQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RTgNBouI; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1786068117; c=relaxed/simple;
+	bh=hL+XuBtewfc769Pvn7RUDj6sz1uM0NcRQ72zDXZ1Ax4=;
+	h=Date:To:From:Subject:Message-Id; b=BG+dMZ39i6uBKb0sytVCBTfDXQW/EzadOXhannvH2qWaBmTd2tfy55XBw7CBYXTIu1Ljwl6I83peiwULX+GuvTz8j0N3g862LlLjiedrwdzaZfU4wLpVu24QzfjpX+YhjlfA22vDXXQzo+YUedddrSEzH/vB9mMC5tz6cnPow/k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=S8Q2dQQH; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RTgNBouI"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EA0491F000E9;
-	Fri,  7 Aug 2026 02:01:54 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="S8Q2dQQH"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1DD701F00A3A;
+	Fri,  7 Aug 2026 02:01:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1786068115;
-	bh=nnpwcYvoKyk2DBNajJTVFB6L7Vpz9Jgqt2DS46c5LJQ=;
+	d=linux-foundation.org; s=korg; t=1786068116;
+	bh=dCAsGmoGtS4yzywPAzGqL35JAaxRzz5ZetFhX0J//vE=;
 	h=Date:To:From:Subject;
-	b=RTgNBouIVSIHHRr47u/XZLG8JaoSwGwBRSIx8ntS5UsMa5Bi91yXUOMTMwV5r0fpp
-	 mGcryRUZUn7761QbYL1li7FTt/YZdIVRiZDVNVmOD+pHnN0JGWIT05F20CNeNZ+Yz0
-	 jk+7I09hrUhZQrp847xv6B8SmJZO56qaW8e93pqU=
-Date: Thu, 06 Aug 2026 19:01:54 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,usama.arif@linux.dev,ryan.roberts@arm.com,npache@redhat.com,ljs@kernel.org,liam@infradead.org,lance.yang@linux.dev,dev.jain@arm.com,david@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,kas@kernel.org,akpm@linux-foundation.org
+	b=S8Q2dQQH72RAJyCfO2dq8Ok00s8jrguUfUho+No0QRs0RSvnPlqw7wcsvyhjRs9Ng
+	 v0kZ5Qt7XLuFhCAQ7L+TFzgBOZmhElmypKTzjz9hgFVutvDtUu0/tDpOqirNRsQT+d
+	 VuEyxD6/DRsA9QzzmzNL4qegtFwQpA6JtQj10IS4=
+Date: Thu, 06 Aug 2026 19:01:55 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,brendan.higgins@linux.dev,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-huge_memory-fold-split_folio_to_list_to_order-into-split_folio_to_order.patch removed from -mm tree
-Message-Id: <20260807020154.EA0491F000E9@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-core-initialize-damos-last_applied.patch removed from -mm tree
+Message-Id: <20260807020156.1DD701F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,65 +35,80 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/huge_memory: fold split_folio_to_list_to_order() into split_folio_to_order()
+     Subject: mm/damon/core: initialize damos->last_applied
 has been removed from the -mm tree.  Its filename was
-     mm-huge_memory-fold-split_folio_to_list_to_order-into-split_folio_to_order.patch
+     mm-damon-core-initialize-damos-last_applied.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Kiryl Shutsemau (Meta)" <kas@kernel.org>
-Subject: mm/huge_memory: fold split_folio_to_list_to_order() into split_folio_to_order()
-Date: Thu, 16 Jul 2026 11:03:45 +0100
+From: SJ Park <sj@kernel.org>
+Subject: mm/damon/core: initialize damos->last_applied
+Date: Fri, 17 Jul 2026 17:14:35 -0700
 
-split_folio_to_list_to_order() had no direct callers; its only user was
-split_folio_to_order(), which always passed a NULL list.  Fold it into
-split_folio_to_order() and call split_huge_page_to_list_to_order()
-directly.
+Patch series "mm/damon: fix uninitialized DAMOS field and kunit exec
+expectation bugs".
 
-No functional change.
+Fix a few Sashiko-found unurgent bugs.  Patch 1 fixes use of uninitialized
+damos->last_applied field.  Patches 2-7 fix DAMON kunit tests that do
+invalid memory access under test failures.
 
-Link: https://lore.kernel.org/20260716100345.473473-3-kirill@shutemov.name
-Signed-off-by: Kiryl Shutsemau (Meta) <kas@kernel.org>
-Acked-by: Usama Arif <usama.arif@linux.dev>
-Reviewed-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Lance Yang <lance.yang@linux.dev>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Nico Pache <npache@redhat.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
+The bugs are better to be fixed and eventually merged into stable@ kernel.
+That said, the fixes are arguably not urgent.  Patch 1 only introduces
+negligible DAMOS efficiency degradation in occasional cases.  Kunit fixes
+could introduce quite bad consequences but those are test code that affect
+only test run setups.
+
+
+This patch (of 7):
+
+Multiple DAMON regions could exist across a folio.  If they fulfill the
+condition to apply a DAMOS scheme, the scheme could be applied multiple
+times to the folio.  To avoid this, each DAMOS scheme stores the folio
+that the scheme was applied to last time in the damos->last_applied field
+and skips repeatedly applying the same scheme to the same folio.
+
+The field is being used without initialization, though.  Hence, the
+mechanism could wrongly skip applying a scheme to a folio at the very
+first time of DAMOS run.
+
+The user impact is trivial.  DAMON might unexpectedly skip applying DAMOS
+action for one folio for the first time per scheme.  In the DAMON's
+best-effort world, this is never a real problem.  No critical consequences
+such as kernel panic or memory corruption happen.
+
+It is a clear bug, though, and the fix is straightforward.  Fix the issue
+by initializing the field in DAMOS scheme creation function,
+damon_new_scheme().
+
+The issue was discovered [1] by Sashiko.
+
+Link: https://lore.kernel.org/20260718001442.87129-1-sj@kernel.org
+Link: https://lore.kernel.org/20260718001442.87129-2-sj@kernel.org
+Link: https://lore.kernel.org/20260714055436.120034-1-sj@kernel.org [1]
+Fixes: 94ba17adaba0 ("mm/damon: avoid applying DAMOS action to same entity multiple times")
+Signed-off-by: SJ Park <sj@kernel.org>
+Cc: Brendan Higgins <brendan.higgins@linux.dev>
+Cc: <stable@vger.kernel.org> # 6.15.x
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/huge_mm.h |    8 +-------
- 1 file changed, 1 insertion(+), 7 deletions(-)
+ mm/damon/core.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/include/linux/huge_mm.h~mm-huge_memory-fold-split_folio_to_list_to_order-into-split_folio_to_order
-+++ a/include/linux/huge_mm.h
-@@ -823,15 +823,9 @@ static inline bool is_pmd_order(unsigned
- 	return order == HPAGE_PMD_ORDER;
- }
+--- a/mm/damon/core.c~mm-damon-core-initialize-damos-last_applied
++++ a/mm/damon/core.c
+@@ -705,6 +705,7 @@ struct damos *damon_new_scheme(struct da
+ 	INIT_LIST_HEAD(&scheme->ops_filters);
+ 	scheme->stat = (struct damos_stat){};
+ 	scheme->max_nr_snapshots = 0;
++	scheme->last_applied = NULL;
+ 	INIT_LIST_HEAD(&scheme->list);
  
--static inline int split_folio_to_list_to_order(struct folio *folio,
--		struct list_head *list, int new_order)
--{
--	return split_huge_page_to_list_to_order(&folio->page, list, new_order);
--}
--
- static inline int split_folio_to_order(struct folio *folio, int new_order)
- {
--	return split_folio_to_list_to_order(folio, NULL, new_order);
-+	return split_huge_page_to_list_to_order(&folio->page, NULL, new_order);
- }
- 
- /**
+ 	scheme->quota = *(damos_quota_init(quota));
 _
 
-Patches currently in -mm which might be from kas@kernel.org are
+Patches currently in -mm which might be from sj@kernel.org are
 
 
