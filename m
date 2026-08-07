@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C8B093B42EC
-	for <mm-commits@vger.kernel.org>; Fri,  7 Aug 2026 02:02:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A91413B960C
+	for <mm-commits@vger.kernel.org>; Fri,  7 Aug 2026 02:02:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786068147; cv=none; b=ExdKTYsX/b10V9bBRfosHUaHEPoYwYUqL5DWeDP0BFrieY+5pSlSHXifcg6n/D36Ib8TY2o0+N7K6DA7k0UGXhOuKMM9ATmw+K3/LpxBgCcnk5eO8BeVo36dwKSC1uhsWNAlZzANI+m8S5myxEaogbUrO4DXBYZTh8MbXgX/q7A=
+	t=1786068150; cv=none; b=RVDmuZV1DWe954nu2I/dVf3K37IbcjTEP2g1t5Lbdt9HqFlc/yOPQpel+WzYoiNcXuZF4R4fjAtUlx5hc57OSnJVQa0dZN8oeXtWTDdb1wS06N78btTbDdyD4CrBZd1wmTHFczz1NT66o9YQK8dTxbl7BXoWhzmdaCGd82WRTPY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786068147; c=relaxed/simple;
-	bh=EhfMbWLUOTTLWs0LebQFU6Qi7jALiZoCc3TUAVgGBlw=;
-	h=Date:To:From:Subject:Message-Id; b=dmGR62YeoiRiJu6knXKyfwOWxTVQVvsPU7v2Cf2RU709vJ02hpKHIlKHdWAwhZjgbfkN3n58UY7rNPcqTdDw6v55XfEr9EQu4xsOG7N3j4vojn4N2nrNmukmjmC8V+fcmndqWOgSGSuwkIx87VwVmKo2WdNrQ+VBeRc/uifH06I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yKK+J02S; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1786068150; c=relaxed/simple;
+	bh=mjgiXjZYNIdfIFqm+D7z8JzPJyIUxn74tVo14G58PnU=;
+	h=Date:To:From:Subject:Message-Id; b=Iw3U6GST7uoqbhhBaMdFHCXfyOhWLAxCHzNWujx+em01sxejnEGpjHM62IQRlLp/dlyfdYEl4unY+EIdNYXlghNF2LRFarsdEqCeFqSMEBR2sY3aWdSdKDUHQwzE3/g1bHN9iXf0JluMAcvm0/CXWpr9wf5WNogochXAI1CkAfo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SBZDmG7Z; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yKK+J02S"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 99D621F000E9;
-	Fri,  7 Aug 2026 02:02:26 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SBZDmG7Z"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3192E1F000E9;
+	Fri,  7 Aug 2026 02:02:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1786068146;
-	bh=S7GFOf9lDTdE49lPjs/cLBBtCq/SLhnwBtAkYT2N8pk=;
+	d=linux-foundation.org; s=korg; t=1786068149;
+	bh=LrLUyuEtFoMAChOAq5UnfipKzasOTvQ8dv+rlMX968k=;
 	h=Date:To:From:Subject;
-	b=yKK+J02Slsdu/6rQArYYXrEF2o3NTsB+cTUEsww8tyYkhO6w2j3qBdCB/AyQ6n/SG
-	 vGwwz8u5kjuJXQh3t34+335nQ505ZF1tHLrs6jO7yVviA5I6kkKBTErcAwX57S/4b8
-	 sGNaB0v66rtLQmeVehx7AurmFjxp3iCtHLGr3WTk=
-Date: Thu, 06 Aug 2026 19:02:26 -0700
-To: mm-commits@vger.kernel.org,sj@kernel.org,wangxuewen@kylinos.cn,akpm@linux-foundation.org
+	b=SBZDmG7ZpATywzH8NvXjON4BofTu9m/IcGCHeESvBLIkzGfZ9i21W74fEXho1V87c
+	 TuY/qrFv/T7TXSSj/wVrTdIBQmp3xhP4WJhco3CL6UoOhfwuXldl7hLqworSLNp3ZG
+	 kVZ38oO8EKq5iCDrN7HVSMCbmp6bQ1P2LxVLOYdo=
+Date: Thu, 06 Aug 2026 19:02:28 -0700
+To: mm-commits@vger.kernel.org,osalvador@suse.de,muchun.song@linux.dev,joshua.hahnjy@gmail.com,jane.chu@oracle.com,david@kernel.org,chenyichong@uniontech.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-remove-trailing-semicolons-after-function-definitions.patch removed from -mm tree
-Message-Id: <20260807020226.99D621F000E9@smtp.kernel.org>
+Subject: [merged mm-stable] hugetlb-evaluate-subpool-free-state-while-locked.patch removed from -mm tree
+Message-Id: <20260807020229.3192E1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,73 +35,60 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/damon: remove trailing semicolons after function definitions
+     Subject: hugetlb: evaluate subpool free state while locked
 has been removed from the -mm tree.  Its filename was
-     mm-damon-remove-trailing-semicolons-after-function-definitions.patch
+     hugetlb-evaluate-subpool-free-state-while-locked.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Xuewen Wang <wangxuewen@kylinos.cn>
-Subject: mm/damon: remove trailing semicolons after function definitions
-Date: Tue, 21 Jul 2026 06:53:31 -0700
+From: Yichong Chen <chenyichong@uniontech.com>
+Subject: hugetlb: evaluate subpool free state while locked
+Date: Tue, 21 Jul 2026 11:52:07 +0800
 
-Three function definitions terminate with '};' instead of '}', which is
-unnecessary and inconsistent with kernel coding style:
+unlock_or_release_subpool() drops spool->lock before calling
+subpool_is_free().  However, subpool_is_free() reads fields that are
+updated under spool->lock, including count, used_hpages and rsv_hpages.
 
-- damon_pa_initcall() in paddr.c
-- damon_va_initcall() in vaddr.c
-- damos_get_some_mem_psi_total() in core.c
+Keep the free-state evaluation under the same lock that protects those
+fields.  The reservation accounting and kfree() calls still happen after
+dropping spool->lock.
 
-No functional change intended.
-
-Link: https://lore.kernel.org/20260721135333.241106-1-sj@kernel.org
-Signed-off-by: Xuewen Wang <wangxuewen@kylinos.cn>
-Reviewed-by: SJ Park <sj@kernel.org>
-Signed-off-by: SJ Park <sj@kernel.org>
+Link: https://lore.kernel.org/20260721035207.1437935-1-chenyichong@uniontech.com
+Signed-off-by: Yichong Chen <chenyichong@uniontech.com>
+Reviewed-by: Joshua Hahn <joshua.hahnjy@gmail.com>
+Reviewed-by: Jane Chu <jane.chu@oracle.com>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Oscar Salvador <osalvador@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/core.c  |    2 +-
- mm/damon/paddr.c |    2 +-
- mm/damon/vaddr.c |    2 +-
- 3 files changed, 3 insertions(+), 3 deletions(-)
+ mm/hugetlb.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
---- a/mm/damon/core.c~mm-damon-remove-trailing-semicolons-after-function-definitions
-+++ a/mm/damon/core.c
-@@ -2791,7 +2791,7 @@ static u64 damos_get_some_mem_psi_total(
- static inline u64 damos_get_some_mem_psi_total(void)
+--- a/mm/hugetlb.c~hugetlb-evaluate-subpool-free-state-while-locked
++++ a/mm/hugetlb.c
+@@ -141,12 +141,14 @@ static inline bool subpool_is_free(struc
+ static inline void unlock_or_release_subpool(struct hugepage_subpool *spool,
+ 						unsigned long irq_flags)
  {
- 	return 0;
--};
-+}
+-	spin_unlock_irqrestore(&spool->lock, irq_flags);
++	bool free_subpool = subpool_is_free(spool);
  
- #endif	/* CONFIG_PSI */
- 
---- a/mm/damon/paddr.c~mm-damon-remove-trailing-semicolons-after-function-definitions
-+++ a/mm/damon/paddr.c
-@@ -447,6 +447,6 @@ static int __init damon_pa_initcall(void
- 	};
- 
- 	return damon_register_ops(&ops);
--};
-+}
- 
- subsys_initcall(damon_pa_initcall);
---- a/mm/damon/vaddr.c~mm-damon-remove-trailing-semicolons-after-function-definitions
-+++ a/mm/damon/vaddr.c
-@@ -959,7 +959,7 @@ static int __init damon_va_initcall(void
- 	if (err)
- 		return err;
- 	return damon_register_ops(&ops_fvaddr);
--};
-+}
- 
- subsys_initcall(damon_va_initcall);
- 
+ 	/* If no pages are used, and no other handles to the subpool
+ 	 * remain, give up any reservations based on minimum size and
+ 	 * free the subpool */
+-	if (subpool_is_free(spool)) {
++	spin_unlock_irqrestore(&spool->lock, irq_flags);
++
++	if (free_subpool) {
+ 		if (spool->min_hpages != -1)
+ 			hugetlb_acct_memory(spool->hstate,
+ 						-spool->min_hpages);
 _
 
-Patches currently in -mm which might be from wangxuewen@kylinos.cn are
+Patches currently in -mm which might be from chenyichong@uniontech.com are
 
 
