@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6C9093B05B6
-	for <mm-commits@vger.kernel.org>; Fri,  7 Aug 2026 02:00:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E06993B2D24;
+	Fri,  7 Aug 2026 02:00:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786068034; cv=none; b=sXkCzLoe+5kGXzfEQblyNqm0w/9rt2gIq5IJw/ItU82d+/SbpYbkKblfBqhDb/QfA7Ft50p30xI+7/RrPl+TjW7VDd723wDrEYGk/Wxd9TT0EQ1ZN0yVBLkTXLVx5Mq8XUkJ+ECoBfoW7niJFfJngiaPxd2BWc//55pfp+UOqsg=
+	t=1786068033; cv=none; b=kfni7UTUoci0U43bREan7Uj3HZIw+Jpy1VP9N6qHw7/XWNfA4FQiobHXdEcz6CJLhbcEuA/inUeS9PjJH56ktyBxCCdlDAyOxHCwlM1vCIfcVD0sloC8v54MMFXNmy3jmOVqOKYuh6HU7MT1rTuTszRzoax8/+8Q82HB+piwgeU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786068034; c=relaxed/simple;
-	bh=zEBVDMVFpagdswuVD4QZLgWJfqvJNIbnBL/AJZSn03c=;
-	h=Date:To:From:Subject:Message-Id; b=CTVCGSMp0EdBguHTfRKN5aUxqM1uwn4Jq1TDSMUq6GpzVpBRaXQXX8G+nexGWaQJn1reDz7Up/f/RTIvQ3A5XXU6BMI6ua4AUSeRe6AktBaom03gaJbb7jFSknmFDgDxy23Hrcp1R1hPlTUM2cKLlUfFd5Ge6pFzL3UKTIbIOD0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DFMQHCj9; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1786068033; c=relaxed/simple;
+	bh=ok9Ts9Y0GE1RjkCj/5XwU5R+DP62TUFesaq7oWsG7Vw=;
+	h=Date:To:From:Subject:Message-Id; b=XELlCqMGR2k9+HOtTjuKN6nFc9zpVrlL4iNXolyEBknrSidFpobScO7vY28TBAYJFzFFjkrYBA5sdOMkP0lYtOI/8/9rdOOreaMs2AmNm4kG9D6Ui8ohSvElZhks07edX/kSDyy1/M+nDzgXd/h9Tqt6ibA0Wjm5bFb9QdaM0EI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XXmKF6uv; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DFMQHCj9"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A0A211F00ADF;
-	Fri,  7 Aug 2026 02:00:28 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XXmKF6uv"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 66BB71F00ACA;
+	Fri,  7 Aug 2026 02:00:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1786068028;
-	bh=Az+cPugpFueOz3Ta4fGtbvGFgddg74m6OVfbedP7uVU=;
+	d=linux-foundation.org; s=korg; t=1786068022;
+	bh=ct1hoq26I73HfNGL0p7bxNO8xFS1zEhZmded3L2v19I=;
 	h=Date:To:From:Subject;
-	b=DFMQHCj9d5GBHrWhVeoleR0z3gwCbyFXs72ByNcgN38gEAaAmBpFBoiEF0K1KhxmG
-	 FtlsKM6JpPTB9rWA2vHKQPieLXslMua7ad92KzWFk0GiSw7PJRX0RiHpOP2DIoqnlc
-	 GtZxKQGteRsXfDoK/MOnfQ4hHpm/KHA1me+t/WEs=
-Date: Thu, 06 Aug 2026 19:00:28 -0700
-To: mm-commits@vger.kernel.org,vishal.l.verma@intel.com,vbabka@kernel.org,surenb@google.com,shuah@kernel.org,rppt@kernel.org,rafael@kernel.org,pankaj.gupta@amd.com,osalvador@suse.de,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,hare@suse.de,gregkh@linuxfoundation.org,djbw@kernel.org,david@kernel.org,dave.jiang@intel.com,dakr@kernel.org,alison.schofield@intel.com,gourry@gourry.net,akpm@linux-foundation.org
+	b=XXmKF6uvD0HF+Uiz/7f/fLzMzX7Oyhb4wLl5iRY1Dw23WCaeNeZiKEZUhI32tnXIb
+	 SVwlfpbdzwgIWiJm+BCkFjc/srShRSnPr/IMV132l8U5r0892WCF4zfZg6oZjIr6vi
+	 AOlYGl0PxP9adQ3PevX25d45xvgylU4jB7iZZEjs=
+Date: Thu, 06 Aug 2026 19:00:21 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-memory-add-memory_block_aligned_range-helper.patch removed from -mm tree
-Message-Id: <20260807020028.A0A211F00ADF@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-core-skip-aging-from-repeated-aggressive-merging.patch removed from -mm tree
+Message-Id: <20260807020022.66BB71F00ACA@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,147 +35,110 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/memory: add memory_block_aligned_range() helper
+     Subject: mm/damon/core: skip aging from repeated aggressive merging
 has been removed from the -mm tree.  Its filename was
-     mm-memory-add-memory_block_aligned_range-helper.patch
+     mm-damon-core-skip-aging-from-repeated-aggressive-merging.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Gregory Price <gourry@gourry.net>
-Subject: mm/memory: add memory_block_aligned_range() helper
-Date: Sun, 12 Jul 2026 11:44:55 -0400
+From: SJ Park <sj@kernel.org>
+Subject: mm/damon/core: skip aging from repeated aggressive merging
+Date: Sun, 12 Jul 2026 09:54:30 -0700
 
-Patch series "dax/kmem: atomic whole-device hotplug via sysfs", v7.
+The number of DAMON regions could temporarily exceed the user-defined
+maximum number of regions limit for corner cases.  For example, users
+could lower the limit via runtime parameters update.  For such a case,
+kdamond_merge_regions() repeats merging regions in the case doubling the
+merge threshold.  The repeated merge operation could update the age of
+regions multiple times.  This corrupts the monitoring results.  Fix the
+issue by asking the merge operation to skip aging for the corner case.
 
-The dax kmem driver onlines memory during probe using the system default
-policy, with no atomic control for the state of an entire region at
-runtime - only by toggling individual memory blocks.
+The user impact is degradation of the monitoring quality.  The impact
+should be mild, since the degradation is only temporal, and it is not
+common to happen in realistic setups.
 
-Offlining and removing a whole region therefore races with other userland
-controllers that interfere between the two steps.
+The issue was discovered [1,2] by Sashiko.
 
-This series adds a sysfs "state" attribute for atomic whole-device hotplug
-control, plus the mm and dax plumbing to support it.
-
-Transitions are atomic across every range of the device.  The state names
-mirror the per-block memoryX/state ABI with one modification:
-
-  - "unplugged":      memory blocks are not present
-  - "online":         online as system RAM, zone chosen by the kernel
-  - "online_kernel":  online in ZONE_NORMAL
-  - "online_movable": online in ZONE_MOVABLE
-
-"offline" (blocks present but offline) is reportable for backward
-compatibility but is not writable because it entices the race condition we
-are trying to solve (separate atomic steps for offline and unplug).
-
-'unplugged' (atomic offline+remove of the whole device) is the new
-capability provided by the new kmem sysfs attribute.
-
-dax/kmem probe still creates the memory blocks by default when the default
-policy is "offline", to preserve backwards compatibility.
-
-
-This patch (of 10):
-
-Memory hotplug operations require ranges aligned to memory block
-boundaries.  This is a generic operation for hotplug.
-
-Add memory_block_aligned_range() as a common helper in <linux/memory.h>
-that aligns the start address up and end address down to memory block
-boundaries.  Guard against end underflow when the range falls below the
-first memory block boundary, returning an empty range instead.
-
-Update dax/kmem to use this helper.
-
-Link: https://lore.kernel.org/20260712154505.3564379-1-gourry@gourry.net
-Link: https://lore.kernel.org/20260712154505.3564379-2-gourry@gourry.net
-Signed-off-by: Gregory Price <gourry@gourry.net>
-Reviewed-by: Dave Jiang <dave.jiang@intel.com>
-Reviewed-by: Dan Williams <djbw@kernel.org>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Cc: Alison Schofield <alison.schofield@intel.com>
-Cc: Danilo Krummrich <dakr@kernel.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vishal Verma <vishal.l.verma@intel.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Hannes Reinecke <hare@suse.de>
-Cc: Pankaj Gupta <pankaj.gupta@amd.com>
+Link: https://lore.kernel.org/20260712165432.87609-1-sj@kernel.org
+Link: https://lore.kernel.org/20260621203548.10718-1-sj@kernel.org [1]
+Link: https://lore.kernel.org/20260709145425.96247-1-sj@kernel.org [2]
+Fixes: 310d6c15e910 ("mm/damon/core: merge regions aggressively when max_nr_regions is unmet")
+Signed-off-by: SJ Park <sj@kernel.org>
+Cc: <stable@vger.kernel.org> # 6.10
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/dax/kmem.c     |    4 +---
- include/linux/memory.h |   27 +++++++++++++++++++++++++++
- 2 files changed, 28 insertions(+), 3 deletions(-)
+ mm/damon/core.c             |   21 +++++++++++++--------
+ mm/damon/tests/core-kunit.h |    2 +-
+ 2 files changed, 14 insertions(+), 9 deletions(-)
 
---- a/drivers/dax/kmem.c~mm-memory-add-memory_block_aligned_range-helper
-+++ a/drivers/dax/kmem.c
-@@ -33,9 +33,7 @@ static int dax_kmem_range(struct dev_dax
- 	struct dev_dax_range *dax_range = &dev_dax->ranges[i];
- 	struct range *range = &dax_range->range;
+--- a/mm/damon/core.c~mm-damon-core-skip-aging-from-repeated-aggressive-merging
++++ a/mm/damon/core.c
+@@ -3308,7 +3308,7 @@ static unsigned int damon_merge_score(st
+  * sz_limit	size upper limit of each region
+  */
+ static void damon_merge_regions_of(struct damon_target *t, unsigned int thres,
+-		unsigned long sz_limit, struct damon_ctx *ctx)
++		unsigned long sz_limit, struct damon_ctx *ctx, bool count_age)
+ {
+ 	struct damon_region *r, *prev = NULL, *next;
+ 	bool use_probe_hits = damon_has_probe_weights(ctx);
+@@ -3319,12 +3319,14 @@ static void damon_merge_regions_of(struc
+ 		score = damon_merge_score(r, false, ctx, use_probe_hits);
+ 		last_score = damon_merge_score(r, true, ctx, use_probe_hits);
  
--	/* memory-block align the hotplug range */
--	r->start = ALIGN(range->start, memory_block_size_bytes());
--	r->end = ALIGN_DOWN(range->end + 1, memory_block_size_bytes()) - 1;
-+	*r = memory_block_aligned_range(range);
- 	if (r->start >= r->end) {
- 		r->start = range->start;
- 		r->end = range->end;
---- a/include/linux/memory.h~mm-memory-add-memory_block_aligned_range-helper
-+++ a/include/linux/memory.h
-@@ -20,6 +20,7 @@
- #include <linux/compiler.h>
- #include <linux/mutex.h>
- #include <linux/memory_hotplug.h>
-+#include <linux/range.h>
+-		if (abs_diff(score, last_score) > thres)
+-			r->age = 0;
+-		else if ((score == 0) != (last_score == 0))
+-			r->age = 0;
+-		else
+-			r->age++;
++		if (count_age) {
++			if (abs_diff(score, last_score) > thres)
++				r->age = 0;
++			else if ((score == 0) != (last_score == 0))
++				r->age = 0;
++			else
++				r->age++;
++		}
  
- #define MIN_MEMORY_BLOCK_SIZE     (1UL << SECTION_SIZE_BITS)
+ 		if (!prev)
+ 			goto set_prev_continue;
+@@ -3366,15 +3368,18 @@ static void kdamond_merge_regions(struct
+ 	struct damon_target *t;
+ 	unsigned int nr_regions;
+ 	unsigned int max_thres;
++	bool count_age = true;
  
-@@ -100,6 +101,32 @@ int arch_get_memory_phys_device(unsigned
- unsigned long memory_block_size_bytes(void);
- int set_memory_block_size_order(unsigned int order);
+ 	max_thres = c->attrs.aggr_interval /
+ 		(c->attrs.sample_interval ?  c->attrs.sample_interval : 1);
+ 	do {
+ 		nr_regions = 0;
+ 		damon_for_each_target(t, c) {
+-			damon_merge_regions_of(t, threshold, sz_limit, c);
++			damon_merge_regions_of(t, threshold, sz_limit, c,
++					count_age);
+ 			nr_regions += damon_nr_regions(t);
+ 		}
++		count_age = false;
+ 		threshold = max(1, threshold * 2);
+ 	} while (nr_regions > c->attrs.max_nr_regions &&
+ 			threshold / 2 < max_thres);
+--- a/mm/damon/tests/core-kunit.h~mm-damon-core-skip-aging-from-repeated-aggressive-merging
++++ a/mm/damon/tests/core-kunit.h
+@@ -257,7 +257,7 @@ static void damon_test_merge_regions_of(
+ 		damon_add_region(r, t);
+ 	}
  
-+/**
-+ * memory_block_aligned_range - align a physical address range to memory blocks
-+ * @range: the input range to align
-+ *
-+ * Aligns the start address up and the end address down to memory block
-+ * boundaries. This is required for memory hotplug operations which must
-+ * operate on memory-block aligned ranges.
-+ *
-+ * Returns the aligned range. Callers should check that the returned
-+ * range is valid (aligned.start < aligned.end) before using it.
-+ */
-+static inline struct range memory_block_aligned_range(const struct range *range)
-+{
-+	struct range aligned;
-+
-+	aligned.start = ALIGN(range->start, memory_block_size_bytes());
-+	aligned.end = ALIGN_DOWN(range->end + 1, memory_block_size_bytes());
-+	/* No whole block fits (e.g. range below the first boundary): empty. */
-+	if (aligned.end <= aligned.start)
-+		aligned.start = aligned.end;
-+	else
-+		aligned.end -= 1;
-+
-+	return aligned;
-+}
-+
- struct memory_notify {
- 	unsigned long start_pfn;
- 	unsigned long nr_pages;
+-	damon_merge_regions_of(t, 9, 9999, ctx);
++	damon_merge_regions_of(t, 9, 9999, ctx, true);
+ 	/* 0-112, 114-130, 130-156, 156-170, 170-230, 230-10170 */
+ 	KUNIT_EXPECT_EQ(test, damon_nr_regions(t), 6u);
+ 	for (i = 0; i < 6; i++) {
 _
 
-Patches currently in -mm which might be from gourry@gourry.net are
+Patches currently in -mm which might be from sj@kernel.org are
 
 
