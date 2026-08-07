@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 51A343B14A1
-	for <mm-commits@vger.kernel.org>; Fri,  7 Aug 2026 02:00:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 672163A6F1C
+	for <mm-commits@vger.kernel.org>; Fri,  7 Aug 2026 02:00:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786068024; cv=none; b=M/8fD04cTRL1IzhuFWeYCcLp3JsjCgMwJniw2GBgObkkAb+kqhhkT3234l/TlnCUolelrC/CX9RY/5yqBlm/3MfdSBM24Ic5XuynbtyT9uoORn2/gw/yz8LgNqMl1DAoUvVb17Lat5+dVC6a/2lF+o8Cnthu5FfGkqqkZzyjcHI=
+	t=1786068026; cv=none; b=ni4z2JZ9xXD232AXt0+Vgg4oqcPQE1EwLjl5d36cd63It4CpoQKVEy2FQZjQM2RHovlLwhROzemf+Az8M+QYtII4ofaMDhNEBwDFCnhQ5VaM6rhqUAxL0+iy/nEJHVJnuaKF4Rkgu76oulbevXM1cCgp+MyxuYvU/Af7B/if9A0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786068024; c=relaxed/simple;
-	bh=IDRsR/UFczMJkEwr1+qtQoLlUL9D7EesSEsdxrVGe9k=;
-	h=Date:To:From:Subject:Message-Id; b=eKPjgC4uix3Px97eD4praFOQJxxsUMmSy28uOiTBojsHJT6hu7dS12Y0K9KW8C9xUMCLwa8zZGuXW0ediuhjou9vsKEK/Qxz7PSQwuNKOsOXHDdheheBjcdut09BA8tGg3kqXw08TZDahrVtPtc8YeIrhLIIswPjMldhWde58/4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DDDUr9LM; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1786068026; c=relaxed/simple;
+	bh=TAK/L2YQjbLpxGYDUrjqo9tpMxOKuojab0CaaYsVgo0=;
+	h=Date:To:From:Subject:Message-Id; b=iAKQzU9TGpU1+ZGZ3phbq1kaLqsfV439yWOLeaMQQeKDfFUDv8qsJ/bYINTyv8yZFFbXGEfD67qdTIMtEDZh5nARhpHu4YSCLPkaIoboQP0U51+M6aVDrDZrvx0Wi/Yjk9r4IzUKTwSKYJuxLCieH2L46g9UUQGU6+H3BJVqsqQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cmXcHryK; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DDDUr9LM"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 687711F00A3E;
-	Fri,  7 Aug 2026 02:00:10 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cmXcHryK"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 549151F00ACF;
+	Fri,  7 Aug 2026 02:00:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1786068010;
-	bh=wL/zNfTSh5PiaK97uLLlrKdOCZ2ZzLtGEIM9NbTFAl4=;
+	d=linux-foundation.org; s=korg; t=1786068015;
+	bh=U0p57gXYcIjXvpcHiTQZ8in0oIZpMQSTUaKpwN941zU=;
 	h=Date:To:From:Subject;
-	b=DDDUr9LMPTZEfayU591arVPh/YzTah8QIQMk7DVam3g4e0LzWcHpc8BB5mtPZc7wF
-	 pQ/luIXdf/owlSVWLVdMXkO2SLl9OlF7BhjWcIi46FCvVl5kU/uGzef3PMawd6o6e8
-	 zxnUe9hEBw3NfiijaeGKi7iekhL0tgZfW2SfIVpU=
-Date: Thu, 06 Aug 2026 19:00:10 -0700
-To: mm-commits@vger.kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@suse.com,hannes@cmpxchg.org,zhangguopeng@kylinos.cn,akpm@linux-foundation.org
+	b=cmXcHryKU6d10X2u4oSk7/svshlbwimhU2kwtq02nehzAcutirWsQuya/amnrCt3H
+	 NZJQidulmBQrHfEKKyAj9qtpf5xVWC1CyfoIQZLCC0ctLplgQSZIs5C6McdK+yRHp0
+	 BCo6O0hCa/Ht4XIN2S0mJG6VlelypbEA8NrvG7rs=
+Date: Thu, 06 Aug 2026 19:00:14 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,shuah@kernel.org,muchun.song@linux.dev,jack@suse.cz,wangyijia.yeah@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-memcontrol-drop-unused-cpu-argument-from-flush_nmi_stats.patch removed from -mm tree
-Message-Id: <20260807020010.687711F00A3E@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-mincore-count-file-mmap-readahead-on-both-sides.patch removed from -mm tree
+Message-Id: <20260807020015.549151F00ACF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,71 +35,76 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: memcontrol: drop unused cpu argument from flush_nmi_stats
+     Subject: selftests: mincore: count file-mmap readahead on both sides
 has been removed from the -mm tree.  Its filename was
-     mm-memcontrol-drop-unused-cpu-argument-from-flush_nmi_stats.patch
+     selftests-mincore-count-file-mmap-readahead-on-both-sides.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Guopeng Zhang <zhangguopeng@kylinos.cn>
-Subject: mm: memcontrol: drop unused cpu argument from flush_nmi_stats
-Date: Mon, 13 Jul 2026 17:00:10 +0800
+From: Yijia Wang <wangyijia.yeah@bytedance.com>
+Subject: selftests: mincore: count file-mmap readahead on both sides
+Date: Mon, 13 Jul 2026 17:43:19 +0800
 
-flush_nmi_stats() does not use its cpu argument.  Remove it from the
-function and its !CONFIG_MEMCG_NMI_SAFETY_REQUIRES_ATOMIC stub.  The
-caller still uses cpu for the subsequent per-CPU rstat flush.
+check_file_mmap() faults a page in the middle of a file mapping and
+expects the mmap read-around path to make neighbouring pages resident. 
+The test currently counts only pages after the faulted page.
 
-No functional change.
+That misses valid read-around on systems with large base page sizes.  On
+arm64 with 64K pages and the default 128K readahead setting, the
+read-around window is two pages wide and centred on the faulting page. 
+Faulting page 32 makes pages 31 and 32 resident, so the forward-only scan
+from page 33 reports ra_pages == 0 even though a neighbouring page was
+brought in.
 
-Link: https://lore.kernel.org/20260713090010.2991906-1-guopeng.zhang@linux.dev
-Signed-off-by: Guopeng Zhang <zhangguopeng@kylinos.cn>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Reviewed-by: Muchun Song <muchun.song@linux.dev>
-Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Keep the existing readahead assertion, but count resident neighbouring
+pages on both sides of the faulted page.  This fixes the 64K-page false
+failure without teaching the selftest to compute the expected readahead
+window from sysfs or other implementation details.
+
+Link: https://lore.kernel.org/20260713094319.771550-1-wangyijia.yeah@bytedance.com
+Signed-off-by: Yijia Wang <wangyijia.yeah@bytedance.com>
+Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
+ tools/testing/selftests/mincore/mincore_selftest.c |   12 +++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
 
---- a/mm/memcontrol.c~mm-memcontrol-drop-unused-cpu-argument-from-flush_nmi_stats
-+++ a/mm/memcontrol.c
-@@ -4433,8 +4433,7 @@ static void mem_cgroup_stat_aggregate(st
- }
- 
- #ifdef CONFIG_MEMCG_NMI_SAFETY_REQUIRES_ATOMIC
--static void flush_nmi_stats(struct mem_cgroup *memcg, struct mem_cgroup *parent,
--			    int cpu)
-+static void flush_nmi_stats(struct mem_cgroup *memcg, struct mem_cgroup *parent)
- {
- 	int nid;
- 
-@@ -4485,8 +4484,7 @@ static void flush_nmi_stats(struct mem_c
+--- a/tools/testing/selftests/mincore/mincore_selftest.c~selftests-mincore-count-file-mmap-readahead-on-both-sides
++++ a/tools/testing/selftests/mincore/mincore_selftest.c
+@@ -242,8 +242,10 @@ TEST(check_file_mmap)
  	}
- }
- #else
--static void flush_nmi_stats(struct mem_cgroup *memcg, struct mem_cgroup *parent,
--			    int cpu)
-+static void flush_nmi_stats(struct mem_cgroup *memcg, struct mem_cgroup *parent)
- {}
- #endif
  
-@@ -4498,7 +4496,7 @@ static void mem_cgroup_css_rstat_flush(s
- 	struct aggregate_control ac;
- 	int nid;
+ 	/*
+-	 * Touch a page in the middle of the mapping. We expect the next
+-	 * few pages (the readahead window) to be populated too.
++	 * Touch a page in the middle of the mapping. We expect some
++	 * surrounding pages (the readahead window) to be populated too.
++	 * Depending on the page size and readahead setting, the pages may
++	 * land before the faulted page rather than after it.
+ 	 */
+ 	addr[FILE_SIZE / 2] = 1;
+ 	retval = mincore(addr, FILE_SIZE, vec);
+@@ -252,6 +254,12 @@ TEST(check_file_mmap)
+ 		TH_LOG("Page not found in memory after use");
+ 	}
  
--	flush_nmi_stats(memcg, parent, cpu);
-+	flush_nmi_stats(memcg, parent);
- 
- 	statc = per_cpu_ptr(memcg->vmstats_percpu, cpu);
- 
++	i = FILE_SIZE / 2 / page_size - 1;
++	while (i >= 0 && vec[i]) {
++		ra_pages++;
++		i--;
++	}
++
+ 	i = FILE_SIZE / 2 / page_size + 1;
+ 	while (i < vec_size && vec[i]) {
+ 		ra_pages++;
 _
 
-Patches currently in -mm which might be from zhangguopeng@kylinos.cn are
+Patches currently in -mm which might be from wangyijia.yeah@bytedance.com are
 
-mm-memcg-stop-reclaim-when-a-limit-update-is-superseded.patch
 
