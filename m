@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D58A73B71CF
-	for <mm-commits@vger.kernel.org>; Fri,  7 Aug 2026 02:02:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 150FA3C062F
+	for <mm-commits@vger.kernel.org>; Fri,  7 Aug 2026 02:02:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786068165; cv=none; b=NitpNZAmRVxAjc61VHxToSLbTNSim182qKVd1XoqtuNzzkl1saTrouajcbZ1P88FKc/58t/sO9wepkYilf2FynmD9X+Ikxo2KDGSG0wexXTXcrRJWyrKvn2xHwc+2LpONx/sklsYn7lIF2TbdgYYGwS2znEytDiJ0165uSU63Ss=
+	t=1786068166; cv=none; b=fKfKnrINj93tLbXwQWCC4f0uONdke+jbvrEpXRHDjcS8EmAWHbOHBt+IY2QCDA2B2GKvS1STzX3vUtsra95+KMkSKtt99kyJ58Hg2RqyY7PxfV/lwmtIYcf7sRTC0DF5jDlA8Df/sIuSh0Dd7kF6bNjn7zyJ5ENJpIqD7TwNQK8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786068165; c=relaxed/simple;
-	bh=YjuhrE8PDv6boTYt6i2r+0Tl6N9KOkpdU47tktiRG0I=;
-	h=Date:To:From:Subject:Message-Id; b=pgj0HyhaWvVlsJOqr8f+ypEwyFm9IyW7k1OdOMLCEVbUPtGRcjMRQN3SDHoHfd+F8rv2rZ3mQ7uA3mfXBWOe7KvS4Kphh1eqzWIo9Yf+MuKdV5Lhha2jcgENGgyuPg6W0vaa33E6mqX9ub/TwJ/rTEYBlNafxbMEySXrSf9gDxM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xcQvx43R; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1786068166; c=relaxed/simple;
+	bh=v/gQvqy3r9bwt2bh43j9/dZbPMCpioCYemFPfNmvgrY=;
+	h=Date:To:From:Subject:Message-Id; b=rm2MkawxeI/JD83yutj9x5N/HdE3cYULdpC63nbrYgKniMfbeCOC8UUf8Vnn3w4OJihYmJOVxb1w6ZclzHmjNaX0wxAV8uU5hNGrQ8GnYh7woK/EKQeQjCaKnwtTwGQE2iK4nZ1JLy7xAf0uDUPubJcXIDRruQnRntEP32qI+Oo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=s0xM/YKg; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xcQvx43R"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A9C6E1F000E9;
-	Fri,  7 Aug 2026 02:02:43 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="s0xM/YKg"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DFEDF1F00A3A;
+	Fri,  7 Aug 2026 02:02:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1786068163;
-	bh=+J2T85w/7si2S0gg4BPH/luw3Ug7WfaEHS9lG63NDZc=;
+	d=linux-foundation.org; s=korg; t=1786068165;
+	bh=KZfyQY96kOWhbzDKwOrw4umwu9ki8MXcZJSZbIK73xE=;
 	h=Date:To:From:Subject;
-	b=xcQvx43RT4sLqhARp8AjlNm5gVMIfKmPRMzpRhBF99oxPcZoXCuckByfYH0BJpBHc
-	 W9VdVZbSecLuNLHW6wjTIM7auUaPAD3ee9+xfKeTmOxWIjiyc2nGutrnQLhYF2A6BZ
-	 5nHQie8FFAyce5tEmApPJlVgaVixn1shZx8HajV0=
-Date: Thu, 06 Aug 2026 19:02:43 -0700
-To: mm-commits@vger.kernel.org,senozhatsky@chromium.org,minchan@kernel.org,liumartin@google.com,richardycc@google.com,akpm@linux-foundation.org
+	b=s0xM/YKgKAultmgKdGX2dNRkzeo0jWOidtDrPhl3l/lDrKaa4nnGDoifai4NxTD+N
+	 JR94IU9k0LC8HqVHLWxeUWMP+5uakiwVu8AYLjbUc5/k4yBX/GWdPGmgaT7+/NaD5L
+	 fLeOrM8pjZrnPuetychdTc1wY4M1eC5m9fhDmlLs=
+Date: Thu, 06 Aug 2026 19:02:44 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,ryan.roberts@arm.com,npache@redhat.com,ljs@kernel.org,liam@infradead.org,lance.yang@linux.dev,dev.jain@arm.com,david@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,akpm@linux-foundation.org,jakovnovak30@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-zsmalloc-fix-release-order-of-locks-in-zs_page_migrate.patch removed from -mm tree
-Message-Id: <20260807020243.A9C6E1F000E9@smtp.kernel.org>
+Subject: [merged mm-stable] mm-khugepaged-replace-mutex_lock-mutex_unlock-usage-with-guard-macro.patch removed from -mm tree
+Message-Id: <20260807020244.DFEDF1F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,67 +35,107 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/zsmalloc: fix release order of locks in zs_page_migrate()
+     Subject: mm/khugepaged: replace mutex_lock/mutex_unlock usage with guard macro
 has been removed from the -mm tree.  Its filename was
-     mm-zsmalloc-fix-release-order-of-locks-in-zs_page_migrate.patch
+     mm-khugepaged-replace-mutex_lock-mutex_unlock-usage-with-guard-macro.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Richard Chang <richardycc@google.com>
-Subject: mm/zsmalloc: fix release order of locks in zs_page_migrate()
-Date: Tue, 28 Jul 2026 05:53:33 +0000
+From: Jakov Novak <jakovnovak30@gmail.com>
+Subject: mm/khugepaged: replace mutex_lock/mutex_unlock usage with guard macro
+Date: Thu, 30 Jul 2026 22:47:24 +0200
 
-In zs_page_migrate(), locks are acquired in the following order:
-  1. write_lock(&pool->lock)
-  2. spin_lock(&class->lock)
-  3. zspage_write_trylock(zspage)
+Currently, khugepaged locks the khugepaged_mutex in two functions:
+start_stop_khugepaged and khugepaged_min_free_kbytes_update.  Remove
+mutex_lock/mutex_unlock usage in these functions and replace it with the
+guard macro.  This makes the code more readable (removing a goto
+statement) and makes it harder to introduce bugs in the future.  No
+functional changes introduced.
 
-However, upon successful page migration, they were being released in
-forward acquisition (FIFO) order:
-  1. write_unlock(&pool->lock)
-  2. spin_unlock(&class->lock)
-  3. zspage_write_unlock(zspage)
-
-Fix the unlocking order to release locks in strict reverse (LIFO)
-order of acquisition:
-  3. zspage_write_unlock(zspage)
-  2. spin_unlock(&class->lock)
-  1. write_unlock(&pool->lock)
-
-Releasing locks in reverse order of acquisition adheres to standard
-kernel locking hygiene, prevents potential lock ordering and lockdep
-inconsistencies.
-
-Link: https://lore.kernel.org/20260728055333.421080-1-richardycc@google.com
-Signed-off-by: Richard Chang <richardycc@google.com>
-Reviewed-by: Sergey Senozhatsky <senozhatsky@chromium.org>
-Tested-by: Sergey Senozhatsky <senozhatsky@chromium.org>
-Cc: Martin Liu <liumartin@google.com>
-Cc: Minchan Kim <minchan@kernel.org>
+Link: https://lore.kernel.org/20260730204724.16912-1-jakovnovak30@gmail.com
+Signed-off-by: Jakov Novak <jakovnovak30@gmail.com>
+Reviewed-by: Dev Jain <dev.jain@arm.com>
+Reviewed-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Lance Yang <lance.yang@linux.dev>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Nico Pache <npache@redhat.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zsmalloc.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/khugepaged.c |   31 +++++++++++++++----------------
+ 1 file changed, 15 insertions(+), 16 deletions(-)
 
---- a/mm/zsmalloc.c~mm-zsmalloc-fix-release-order-of-locks-in-zs_page_migrate
-+++ a/mm/zsmalloc.c
-@@ -1926,9 +1926,9 @@ static int zs_page_migrate(struct page *
- 	 * Since we complete the data copy and set up new zspage structure,
- 	 * it's okay to release migration_lock.
- 	 */
--	write_unlock(&pool->lock);
--	spin_unlock(&class->lock);
- 	zspage_write_unlock(zspage);
-+	spin_unlock(&class->lock);
-+	write_unlock(&pool->lock);
+--- a/mm/khugepaged.c~mm-khugepaged-replace-mutex_lock-mutex_unlock-usage-with-guard-macro
++++ a/mm/khugepaged.c
+@@ -23,6 +23,7 @@
+ #include <linux/ksm.h>
+ #include <linux/pgalloc.h>
+ #include <linux/backing-dev.h>
++#include <linux/cleanup.h>
  
- 	zpdesc_get(newzpdesc);
- 	if (zpdesc_zone(newzpdesc) != zpdesc_zone(zpdesc)) {
+ #include <asm/tlb.h>
+ #include "internal.h"
+@@ -3115,18 +3116,19 @@ update_wmarks:
+ 
+ int start_stop_khugepaged(void)
+ {
+-	int err = 0;
+-
+-	mutex_lock(&khugepaged_mutex);
++	guard(mutex)(&khugepaged_mutex);
+ 	if (hugepage_enabled()) {
+-		if (!khugepaged_thread)
+-			khugepaged_thread = kthread_run(khugepaged, NULL,
+-							"khugepaged");
+-		if (IS_ERR(khugepaged_thread)) {
+-			pr_err("khugepaged: kthread_run(khugepaged) failed\n");
+-			err = PTR_ERR(khugepaged_thread);
+-			khugepaged_thread = NULL;
+-			goto fail;
++		if (!khugepaged_thread) {
++			struct task_struct *new_thread = kthread_run(khugepaged,
++								     NULL,
++								     "khugepaged");
++
++			if (IS_ERR(new_thread)) {
++				pr_err("khugepaged: kthread_run(khugepaged) failed\n");
++				return PTR_ERR(new_thread);
++			}
++
++			khugepaged_thread = new_thread;
+ 		}
+ 
+ 		if (!list_empty(&khugepaged_scan.mm_head))
+@@ -3136,17 +3138,14 @@ int start_stop_khugepaged(void)
+ 		khugepaged_thread = NULL;
+ 	}
+ 	set_recommended_min_free_kbytes();
+-fail:
+-	mutex_unlock(&khugepaged_mutex);
+-	return err;
++	return 0;
+ }
+ 
+ void khugepaged_min_free_kbytes_update(void)
+ {
+-	mutex_lock(&khugepaged_mutex);
++	guard(mutex)(&khugepaged_mutex);
+ 	if (hugepage_enabled() && khugepaged_thread)
+ 		set_recommended_min_free_kbytes();
+-	mutex_unlock(&khugepaged_mutex);
+ }
+ 
+ bool current_is_khugepaged(void)
 _
 
-Patches currently in -mm which might be from richardycc@google.com are
+Patches currently in -mm which might be from jakovnovak30@gmail.com are
 
 
