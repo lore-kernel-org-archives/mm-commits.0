@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 971183A7F70
-	for <mm-commits@vger.kernel.org>; Fri,  7 Aug 2026 02:00:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C2B103AFD12
+	for <mm-commits@vger.kernel.org>; Fri,  7 Aug 2026 02:00:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786068032; cv=none; b=fZS61JJ/hSPQL0BtZggqPX4OC6VOoKKdbdhSqS27PL1shIzvk13dwV1r4xFKVnUsGmxHcEuWVzxEIWTf6JjCYVy3NA/JMCkX/Hp5+p0YU7iqPqKxXCfWyix+b5VY4k8DPMT/OrtVPLuCMi2U40RKluBx4xTZa7vLVOLuQ3yiamw=
+	t=1786068034; cv=none; b=ectX4D8N1M0aqIjpm5ZVTuD7lfI7xeQd87woSt1ejJM8xowosjbi9aXJMTshLTaf+9YHEe7QrcUVgRSrYTp7EwY7A5NT9w8GUjMCsnz/8XZnEtGL0dJgvTSiB9hGFm6hem0JJj7nmB9CchhvGaSB4aU8PbV8HmK/NxM490yQfIw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786068032; c=relaxed/simple;
-	bh=xkwpKeL+44HAIdma13NDXw79/Jzra6gtQkKbX0RZ8NA=;
-	h=Date:To:From:Subject:Message-Id; b=uoE5c1WWbXAe2qHnwpXgO75P5dJgxc5MR6N429/E74GuQ4tKRIah5kcyHyZ95jsdAqFB/w88tqYsA+EeW3STYjBQQeIDE9JdVTlEz/wV8A3AAdSgI0b1B5G2wgKHU3UHF9MmZXqNtH7Me0H9l+yvt8TvZI/2Ms+CUc4JJI2OBLo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Z8h89IbD; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1786068034; c=relaxed/simple;
+	bh=mvBLV4Vl7RQNwY2wcjZp/pdODH5k5uF6FFyaqnOVag8=;
+	h=Date:To:From:Subject:Message-Id; b=rVKoj3Ji5vjMQb6D+Q309Oem/eXK0eDvUM4VbXMqks6gUfWHRKP7DKR5WmKD8wgH6gO7h2pJps0m943EnkKSTqFJAMF827KwCW+vJCwLkCQeJNk8eK3uOGV5MRrlx/Vv6Bax2hoUwvHZm1t6DpmHaICWlYmg5f6BKs/BRnCc2JE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BQLCv/pf; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Z8h89IbD"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 478601F00ACF;
-	Fri,  7 Aug 2026 02:00:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BQLCv/pf"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E70111F00AC4;
+	Fri,  7 Aug 2026 02:00:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1786068027;
-	bh=/ml2TXLxRWY7VukEPELw4M8MIbjdQf809UFI5aVK3mo=;
+	d=linux-foundation.org; s=korg; t=1786068030;
+	bh=9NET/QDYB/KvgxO8B+cwUHQ5OtTmvQT4g9FHCjuqqsM=;
 	h=Date:To:From:Subject;
-	b=Z8h89IbDPN9yMvCNKB4VhEffdto7nxzbsGbkicHPJHt+YTUv8ZgvDcYdSgrJZ+LcG
-	 bBkbwlDe48/9RiqTUnsEHNSAYFfzHRXiMSpp+YzfVDLhSxHPqRg/8EbV2TDNVnCeWm
-	 HImHsw5hgs1icnc7v10gyHwLVu1i/lrLy3G4kA0I=
-Date: Thu, 06 Aug 2026 19:00:26 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,sj@kernel.org,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,corbet@lwn.net,husong@kylinos.cn,akpm@linux-foundation.org
+	b=BQLCv/pfvh2Pe1vi4c8xSXCMdRCZled0CPlEsuvKSfCzxEYgh76Sl+d+BQZOHpyjB
+	 8WYoaYbpWWTukrSEH00U+E4wwTrGBcQCyaD9CMon6iWXGJZltUcOi0Gkf4tuRJuyw1
+	 RlGyNiLDrIenm5QSWlbFic0wOY7+KlLxrTwrhD7s=
+Date: Thu, 06 Aug 2026 19:00:29 -0700
+To: mm-commits@vger.kernel.org,vishal.l.verma@intel.com,vbabka@kernel.org,surenb@google.com,shuah@kernel.org,rppt@kernel.org,rafael@kernel.org,pankaj.gupta@amd.com,osalvador@suse.de,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,hare@suse.de,gregkh@linuxfoundation.org,djbw@kernel.org,david@kernel.org,dave.jiang@intel.com,dakr@kernel.org,alison.schofield@intel.com,gourry@gourry.net,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] docs-abi-damon-document-tried_regions-probe-hits.patch removed from -mm tree
-Message-Id: <20260807020027.478601F00ACF@smtp.kernel.org>
+Subject: [merged mm-stable] mm-memory_hotplug-add-mhp_online_type_to_str-and-export-string-helpers.patch removed from -mm tree
+Message-Id: <20260807020029.E70111F00AC4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,62 +35,79 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: Docs/ABI/damon: document tried_regions probe hits
+     Subject: mm/memory_hotplug: add mhp_online_type_to_str() and export string helpers
 has been removed from the -mm tree.  Its filename was
-     docs-abi-damon-document-tried_regions-probe-hits.patch
+     mm-memory_hotplug-add-mhp_online_type_to_str-and-export-string-helpers.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Song Hu <husong@kylinos.cn>
-Subject: Docs/ABI/damon: document tried_regions probe hits
-Date: Tue, 14 Jul 2026 07:01:16 -0700
+From: Gregory Price <gourry@gourry.net>
+Subject: mm/memory_hotplug: add mhp_online_type_to_str() and export string helpers
+Date: Sun, 12 Jul 2026 11:44:56 -0400
 
-The 'tried_regions/<R>/probes/<P>/hits' file, added in commit 5b0de1bc3325
-("mm/damon/sysfs-schemes: implement probe/hits file"), is described in
-usage.rst but missing from the canonical ABI document.
+Add mhp_online_type_to_str() as the inverse of mhp_online_type_from_str(),
+and export both so a driver can render and parse the memory online type
+through its own sysfs interface.
 
-Document the 'probes/' directory and the 'probes/<P>/hits' file.
-
-Link: https://lore.kernel.org/20260714140117.94147-5-sj@kernel.org
-Signed-off-by: Song Hu <husong@kylinos.cn>
-Reviewed-by: SJ Park <sj@kernel.org>
-Signed-off-by: SJ Park <sj@kernel.org>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
+Link: https://lore.kernel.org/20260712154505.3564379-3-gourry@gourry.net
+Signed-off-by: Gregory Price <gourry@gourry.net>
+Reviewed-by: Dave Jiang <dave.jiang@intel.com>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Reviewed-by: Dan Williams <djbw@kernel.org>
+Cc: Alison Schofield <alison.schofield@intel.com>
+Cc: Danilo Krummrich <dakr@kernel.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Hannes Reinecke <hare@suse.de>
 Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Pankaj Gupta <pankaj.gupta@amd.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Shuah Khan <shuah@kernel.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vishal Verma <vishal.l.verma@intel.com>
 Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/ABI/testing/sysfs-kernel-mm-damon |   12 ++++++++++++
- 1 file changed, 12 insertions(+)
+ drivers/base/memory.c          |    9 +++++++++
+ include/linux/memory_hotplug.h |    1 +
+ 2 files changed, 10 insertions(+)
 
---- a/Documentation/ABI/testing/sysfs-kernel-mm-damon~docs-abi-damon-document-tried_regions-probe-hits
-+++ a/Documentation/ABI/testing/sysfs-kernel-mm-damon
-@@ -650,3 +650,15 @@ Contact:	SJ Park <sj@kernel.org>
- Description:	Reading this file returns the size of the memory in the region
- 		that passed DAMON operations layer-handled filters of the
- 		scheme in bytes.
+--- a/drivers/base/memory.c~mm-memory_hotplug-add-mhp_online_type_to_str-and-export-string-helpers
++++ a/drivers/base/memory.c
+@@ -46,6 +46,15 @@ int mhp_online_type_from_str(const char
+ 	}
+ 	return -EINVAL;
+ }
++EXPORT_SYMBOL_GPL(mhp_online_type_from_str);
 +
-+What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/tried_regions/<R>/probes/
-+Date:		May 2026
-+Contact:	SJ Park <sj@kernel.org>
-+Description:	Directory for DAMON data-attribute monitoring probes of the
-+		region.
-+
-+What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/tried_regions/<R>/probes/<P>/hits
-+Date:		May 2026
-+Contact:	SJ Park <sj@kernel.org>
-+Description:	Reading this file returns the number of data-attribute
-+		monitoring probe-hit positive samples of the region.
++const char *mhp_online_type_to_str(int online_type)
++{
++	if (online_type < 0 || online_type >= (int)ARRAY_SIZE(online_type_to_str))
++		return NULL;
++	return online_type_to_str[online_type];
++}
++EXPORT_SYMBOL_GPL(mhp_online_type_to_str);
+ 
+ #define to_memory_block(dev) container_of(dev, struct memory_block, dev)
+ 
+--- a/include/linux/memory_hotplug.h~mm-memory_hotplug-add-mhp_online_type_to_str-and-export-string-helpers
++++ a/include/linux/memory_hotplug.h
+@@ -127,6 +127,7 @@ extern int arch_add_memory(int nid, u64
+ extern u64 max_mem_size;
+ 
+ extern int mhp_online_type_from_str(const char *str);
++const char *mhp_online_type_to_str(int online_type);
+ 
+ /* If movable_node boot option specified */
+ extern bool movable_node_enabled;
 _
 
-Patches currently in -mm which might be from husong@kylinos.cn are
+Patches currently in -mm which might be from gourry@gourry.net are
 
 
