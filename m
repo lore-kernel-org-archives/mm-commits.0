@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AA80E3B995F
-	for <mm-commits@vger.kernel.org>; Fri,  7 Aug 2026 02:00:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6AA243B71B8
+	for <mm-commits@vger.kernel.org>; Fri,  7 Aug 2026 02:00:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786068045; cv=none; b=MvUhbRC0mXaVCXfoSTSY1GmVzlXLOkTtgMFUoFnGkCGlfxlIZwa25f5APZN+ntlGTcKvpc0734aQQ+/K6OiDcyergBeZTSeodSCSY0noaoeBwDov53PiEYFiLG1i+ThuCDuXbflzKxZGs6c1nRxFmG5OBhlJ4PFmGZHuGgMs73o=
+	t=1786068046; cv=none; b=TILsvKLdbbev+/BnLONGGLLWv82zFTTNL80eKF7cJ+A+DjOlzudO1lBVLcHhpnXQDaLcXXz0StB18RJ3OzVNbqC+nwqMORjm2efplLnqVXVbToEK0KynC6Ad/01U03+gv7iODXIOwkB0HIOtidT/D/pjWhaLHnI0bWSVWL+FztU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786068045; c=relaxed/simple;
-	bh=byYYY8c+hRhZivp0sdju7+3+R4Q8i0XRmYIrfLEvbqw=;
-	h=Date:To:From:Subject:Message-Id; b=F2oJn3u8QqZQlDrSQR+9q1+wizR8EzwSxuGuZ0v3KnZLaetQd0Fi2QrlbEGp/fsGNAfZjLbq+Vk9O4Qna4XESnJPAviYNNBLdneZpp0D0NK6v7b8ZbsbRyulqsJq9+/mKJm8bjje4q4WO9Ri1rsYAkxxcQ6FaSpVgoNUuwQ4qQY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MGL8xf5b; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1786068046; c=relaxed/simple;
+	bh=O+V8qOovDkepANzsIC/dfBnJj/jh3hhpfaQ/SkYG2sw=;
+	h=Date:To:From:Subject:Message-Id; b=i34BHvih6X24OEEeolTlv1uaazm91hIhUm5BX7WJhwYT29KynvBJyqAkOEqSOqzna8HqkXOmUcBz6dTfZUj1BDpNbue8KBkuAopQNrEuA17i5nyMEqIWnStF3dKjWIoP/j4HDXNINdoRhLH1RCTncRNLqsgs2vu5ErfI2iGPRlg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ytZY7tvH; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MGL8xf5b"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6610E1F00A3F;
-	Fri,  7 Aug 2026 02:00:40 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ytZY7tvH"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C289D1F000E9;
+	Fri,  7 Aug 2026 02:00:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1786068040;
-	bh=T3pImMU7QdK2r389PlX5rA/cRzKoptsUGECfQkcQhTo=;
+	d=linux-foundation.org; s=korg; t=1786068041;
+	bh=AAE5/i/ftX9dmvI+QnZAXZVM5db0e4OFBf4/Q2qSagA=;
 	h=Date:To:From:Subject;
-	b=MGL8xf5bXjN3guhGamWRpR3E8Z7u0gfDFffa7829MVKsQRfijOCWZMSM051uAOGAj
-	 MjQbgBcwnlZevnncWRM8XuaIfdafHOmTPn/pb4WrjitgMkXnAqmny0ajC0yT96yokc
-	 TuRDBboki217F5uY3DYhPIAi2kTwcZMUWN1eylUc=
-Date: Thu, 06 Aug 2026 19:00:39 -0700
-To: mm-commits@vger.kernel.org,vishal.l.verma@intel.com,vbabka@kernel.org,surenb@google.com,shuah@kernel.org,rppt@kernel.org,rafael@kernel.org,pankaj.gupta@amd.com,osalvador@suse.de,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,hare@suse.de,gregkh@linuxfoundation.org,david@kernel.org,dave.jiang@intel.com,dakr@kernel.org,alison.schofield@intel.com,gourry@gourry.net,akpm@linux-foundation.org
+	b=ytZY7tvHb+JbQmQhQ1XuTMLOOAOlZ+yPw6Ni6jGBBtPKPoLVZ7S9g1KqhCu8FzCAX
+	 DKb3yH2zTwAm5PF9pw0i5b3PjuMpDQqcF3B7RrHaL8UZDsZL5VUpk3kysEy556Ioqc
+	 UlSvsZKUrHd39fMAmpyU7iZsQTPYK2syKNfkD8jo=
+Date: Thu, 06 Aug 2026 19:00:41 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,tzimmermann@suse.de,surenb@google.com,rppt@kernel.org,pfalcato@suse.de,osalvador@suse.de,npache@redhat.com,muchun.song@linux.dev,lance.yang@linux.dev,jannh@google.com,jani.nikula@intel.com,jack@suse.cz,dev.jain@arm.com,david@kernel.org,brauner@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,airlied@gmail.com,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-dax-add-dax-kmem-hotplug-sysfs-regression-test.patch removed from -mm tree
-Message-Id: <20260807020040.6610E1F00A3F@smtp.kernel.org>
+Subject: [merged mm-stable] mm-introduce-vma_flags_can_grow-and-vma_can_grow.patch removed from -mm tree
+Message-Id: <20260807020041.C289D1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,437 +35,148 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests/dax: add dax/kmem hotplug sysfs regression test
+     Subject: mm: introduce vma_flags_can_grow() and vma_can_grow()
 has been removed from the -mm tree.  Its filename was
-     selftests-dax-add-dax-kmem-hotplug-sysfs-regression-test.patch
+     mm-introduce-vma_flags_can_grow-and-vma_can_grow.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Gregory Price <gourry@gourry.net>
-Subject: selftests/dax: add dax/kmem hotplug sysfs regression test
-Date: Sun, 12 Jul 2026 11:45:04 -0400
+From: Lorenzo Stoakes <ljs@kernel.org>
+Subject: mm: introduce vma_flags_can_grow() and vma_can_grow()
+Date: Sat, 11 Jul 2026 19:44:58 +0100
 
-Add a kselftest for the dax/kmem whole-device "state" sysfs attribute
-(/sys/bus/dax/devices/daxX.Y/state), which transitions a kmem-backed
-dax device between "unplugged", "online" and "online_movable".
+Patch series "mm: convert more vm_flags_t users to vma_flags_t", v2.
 
-The kselftest also includes a test to demonstrate the force-unbind
-does not deadlock - but this is destructive (the dax device can never
-be rebound), so it only runs when DAX_KMEM_TEST_UNBIND=1 is set.
+This series makes further progress in converting usage of the deprecated
+vm_flags_t type to its replacement, vma_flags_t.
 
-Provisioning a devdax device and binding it to kmem needs daxctl/ndctl
-out of scope for an in-tree selftest.  As the test mutates a device's
-memory, the operator opts in by naming it in DAX_KMEM_TEST_DEV (or
-"auto" to pick the first kmem-bound device); it SKIPs when unset, when
-no device is present, or when the memory cannot be freed to a baseline.
+It focuses on mm, though updates some users of mm APIs also.
 
-When a device is available it validates the interface contract:
-  - online / online_movable actually add memory (MemTotal grows),
-  - online is idempotent,
-  - switching between online types without unplug is rejected,
-  - unplug removes memory and the reported state is "unplugged"
-  - invalid input is rejected,
-  - unplug and unbind tolerate blocks toggled out-of-band through the
-    per-block memoryX/state interface.
+It updates:
 
-One specific regression test:
-    online -> unplug -> online_movable -> unplug
+* The core do_mmap() code path for VMA mapping.
+* Unmapped area logic.
+* The usage of mm->def_vma_flags.
+* VMA page protection bit logic.
+* General usage of VMA flags in core mm code, mlock, mprotect, mremap.
 
-Re-online must re-reserve per-range resources so subsequent unplug
-actually offlines and removes instead of silently reporting success
-while the memory stays online.
 
-Link: https://lore.kernel.org/20260712154505.3564379-11-gourry@gourry.net
-Signed-off-by: Gregory Price <gourry@gourry.net>
-Cc: Alison Schofield <alison.schofield@intel.com>
-Cc: Danilo Krummrich <dakr@kernel.org>
-Cc: Dave Jiang <dave.jiang@intel.com>
-Cc: David Hildenbrand (Arm) <david@kernel.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Hannes Reinecke <hare@suse.de>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
+This patch (of 13):
+
+These test whether the VMA has stack semantics, i.e.  is able to grow
+upwards or downwards depending on the architecture.
+
+In order to account for arches which do not support upward-growing stacks,
+introduce VMA_GROWSUP whose definition depends on the architecture
+supporting it, and use vma_flags_test_single_mask() in
+vma_flags_can_grow() to account for this.
+
+No functional change intended.
+
+Link: https://lore.kernel.org/20260711-b4-vma-flags-mm-v2-0-0fa2357d5431@kernel.org
+Link: https://lore.kernel.org/20260711-b4-vma-flags-mm-v2-1-0fa2357d5431@kernel.org
+Signed-off-by: Lorenzo Stoakes <ljs@kernel.org>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Reviewed-by: Lance Yang <lance.yang@linux.dev>
+Reviewed-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Dave Airlie <airlied@gmail.com>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Jann Horn <jannh@google.com>
+Cc: Lance Yang <lance.yang@linux.dev>
 Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Nico Pache <npache@redhat.com>
 Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Pankaj Gupta <pankaj.gupta@amd.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Shuah Khan <shuah@kernel.org>
+Cc: Pedro Falcato <pfalcato@suse.de>
 Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vishal Verma <vishal.l.verma@intel.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Zi Yan <ziy@nvidia.com>
+Cc: Jani Nikula <jani.nikula@intel.com>
+Cc: Thomas Zimmermann <tzimmermann@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/Makefile                |    1 
- tools/testing/selftests/dax/Makefile            |    6 
- tools/testing/selftests/dax/config              |    4 
- tools/testing/selftests/dax/dax-kmem-hotplug.sh |  317 ++++++++++++++
- tools/testing/selftests/dax/settings            |    1 
- 5 files changed, 329 insertions(+)
+ include/linux/mm.h |   21 ++++++++++++++++++---
+ 1 file changed, 18 insertions(+), 3 deletions(-)
 
-diff --git a/tools/testing/selftests/dax/config a/tools/testing/selftests/dax/config
-new file mode 100644
---- /dev/null
-+++ a/tools/testing/selftests/dax/config
-@@ -0,0 +1,4 @@
-+CONFIG_DEV_DAX=m
-+CONFIG_DEV_DAX_KMEM=m
-+CONFIG_MEMORY_HOTPLUG=y
-+CONFIG_MEMORY_HOTREMOVE=y
-diff --git a/tools/testing/selftests/dax/dax-kmem-hotplug.sh a/tools/testing/selftests/dax/dax-kmem-hotplug.sh
-new file mode 100755
---- /dev/null
-+++ a/tools/testing/selftests/dax/dax-kmem-hotplug.sh
-@@ -0,0 +1,317 @@
-+#!/bin/bash
-+# SPDX-License-Identifier: GPL-2.0
-+#
-+# Exercise the dax/kmem "state" sysfs attribute:
-+#   /sys/bus/dax/devices/daxX.Y/state  ->  unplugged | online | online_kernel | online_movable
-+#
-+# The test needs a dax device already bound to the kmem driver.
-+#
-+# This test mutates a device's memory: online/offline cycles migrate any
-+# in-use pages, and the optional unbind subtest wedges the device until
-+# reboot. The tester must identify the target device and opt into the
-+# destructive unbind tests.
-+#
-+#   DAX_KMEM_TEST_DEV=daxX.Y   test this specific device
-+#   DAX_KMEM_TEST_DEV=auto     auto-discover the first kmem-bound dax device
-+#                              (best-effort: it may be a device in use!)
-+#   DAX_KMEM_TEST_UNBIND=1     also run the destructive unbind-while-online test
-+#
-+# If DAX_KMEM_TEST_DEV is unset the whole test SKIPs.
-+#
-+# A dax device can be provisioned with the memmap= boot param, e.g.:
-+#   memmap=2G!4G
-+#
-+# then, in the booted system:
-+#
-+#   ndctl create-namespace -m devdax -e namespace0.0 -f
-+#   daxctl reconfigure-device -N -m system-ram dax0.0   # bind kmem
-+#   DAX_KMEM_TEST_DEV=auto ./dax-kmem-hotplug.sh
-+
-+# shellcheck disable=SC1091
-+DIR="$(dirname "$(readlink -f "$0")")"
-+. "$DIR"/../kselftest/ktap_helpers.sh
-+
-+DAX_BASE=/sys/bus/dax/devices
-+MEM_BASE=/sys/devices/system/memory
-+
-+memtotal_kb() { awk '/^MemTotal:/ {print $2}' /proc/meminfo; }
-+get_state() { cat "$HP" 2>/dev/null; }
-+# set_state STATE -- write a state to the state attribute; returns the
-+# write's exit status (0 = accepted by the kernel)
-+set_state() { echo "$1" > "$HP" 2>/dev/null; }
-+
-+is_kmem_dax() {
-+	local drv
-+	[ -e "$DAX_BASE/$1/state" ] || return 1
-+	drv=$(readlink "$DAX_BASE/$1/driver" 2>/dev/null)
-+	[ "$(basename "${drv:-}")" = kmem ]
+--- a/include/linux/mm.h~mm-introduce-vma_flags_can_grow-and-vma_can_grow
++++ a/include/linux/mm.h
+@@ -474,6 +474,7 @@ enum {
+ #define VM_SAO		INIT_VM_FLAG(SAO)
+ #elif defined(CONFIG_PARISC)
+ #define VM_GROWSUP	INIT_VM_FLAG(GROWSUP)
++#define VMA_GROWSUP	mk_vma_flags(VMA_GROWSUP_BIT)
+ #elif defined(CONFIG_SPARC64)
+ #define VM_SPARC_ADI	INIT_VM_FLAG(SPARC_ADI)
+ #define VM_ARCH_CLEAR	INIT_VM_FLAG(ARCH_CLEAR)
+@@ -485,6 +486,7 @@ enum {
+ #endif
+ #ifndef VM_GROWSUP
+ #define VM_GROWSUP	VM_NONE
++#define VMA_GROWSUP	EMPTY_VMA_FLAGS
+ #endif
+ #ifdef CONFIG_ARM64_MTE
+ #define VM_MTE		INIT_VM_FLAG(MTE)
+@@ -1578,11 +1580,24 @@ static inline bool vma_is_initial_stack(
+ 		vma->vm_end >= vma->vm_mm->start_stack;
+ }
+ 
+-static inline bool vma_is_temporary_stack(const struct vm_area_struct *vma)
++static inline bool vma_flags_can_grow(const vma_flags_t *flags)
+ {
+-	int maybe_stack = vma->vm_flags & (VM_GROWSDOWN | VM_GROWSUP);
++	if (vma_flags_test_single_mask(flags, VMA_GROWSUP))
++		return true;
++	if (vma_flags_test(flags, VMA_GROWSDOWN_BIT))
++		return true;
+ 
+-	if (!maybe_stack)
++	return false;
 +}
 +
-+find_kmem_dax() {
-+	local d
-+	for d in "$DAX_BASE"/dax*; do
-+		is_kmem_dax "$(basename "$d")" || continue
-+		basename "$d"
-+		return 0
-+	done
-+	return 1
++static inline bool vma_can_grow(const struct vm_area_struct *vma)
++{
++	return vma_flags_can_grow(&vma->flags);
 +}
 +
-+# find_device_blocks -- print every memoryN block backing this dax device.
-+# The blocks are derived from the device's own range(s) in /proc/iomem (the
-+# reserved resource is named after the device), so we act on *its* blocks
-+# rather than guessing by NUMA node - the target node may also hold unrelated
-+# (and non-offlineable) memory.
-+find_device_blocks() {
-+	local bs
-+	bs=$(cat "$MEM_BASE/block_size_bytes" 2>/dev/null)	# hex, no leading 0x
-+	[ -n "$bs" ] || return 1
-+	grep -E " : ${DAX}\$" /proc/iomem | while read -r line; do
-+		local range s e i
-+		range=${line%% :*}; range=${range// /}
-+		s=${range%-*}; e=${range#*-}
-+		for (( i = 0x$s / 0x$bs; i <= 0x$e / 0x$bs; i++ )); do
-+			echo "memory$i"
-+		done
-+	done
-+}
-+
-+# find_device_block -- print the first online block backing this dax device.
-+find_device_block() {
-+	local b
-+	for b in $(find_device_blocks); do
-+		[ -f "$MEM_BASE/$b/state" ] || continue
-+		[ "$(cat "$MEM_BASE/$b/state")" = online ] || continue
-+		echo "$b"
-+		return 0
-+	done
-+	return 1
-+}
-+
-+ktap_print_header
-+
-+if [ "$UID" != 0 ]; then
-+	ktap_skip_all "must be run as root"
-+	exit "$KSFT_SKIP"
-+fi
-+
-+# Device selection is opt-in - see the header for why.
-+DEV_SEL=${DAX_KMEM_TEST_DEV:-}
-+if [ -z "$DEV_SEL" ]; then
-+	ktap_skip_all "set DAX_KMEM_TEST_DEV=<daxX.Y|auto> to opt in (mutates device memory)"
-+	exit "$KSFT_SKIP"
-+fi
-+if [ "$DEV_SEL" = auto ]; then
-+	DAX=$(find_kmem_dax)
-+else
-+	DAX=$DEV_SEL
-+fi
-+if [ -z "$DAX" ] || ! is_kmem_dax "$DAX"; then
-+	ktap_skip_all "no kmem-bound dax device with a state attribute (${DEV_SEL})"
-+	exit "$KSFT_SKIP"
-+fi
-+HP=$DAX_BASE/$DAX/state
-+ORIG=$(get_state)
-+
-+# A failure to reach the baseline is environmental (memory in use), not an
-+# interface failure, so skip rather than fail.
-+set_state unplugged; rc=$?
-+if [ "$rc" != 0 ] || [ "$(get_state)" != unplugged ]; then
-+	ktap_skip_all "$DAX: cannot reach 'unplugged' baseline (memory in use?)"
-+	[ -n "$ORIG" ] && set_state "$ORIG"
-+	exit "$KSFT_SKIP"
-+fi
-+mt_unplugged=$(memtotal_kb)
-+
-+DRV=/sys/bus/dax/drivers/kmem
-+AOB=$MEM_BASE/auto_online_blocks
-+
-+ktap_print_msg "using $DAX (initial state was: $ORIG)"
-+ktap_set_plan 10
-+
-+# A public (N_MEMORY) kmem node onlined into a kernel zone (online/online_kernel)
-+# collects unmovable allocations and can then never be offlined, which would
-+# wedge the device for the rest of this test.  So this test only ever
-+# successfully onlines online_movable, the one mode that is reliably unpluggable.
-+
-+set_state online_movable; rc=$?
-+mt_online=$(memtotal_kb)
-+if [ "$rc" = 0 ] && [ "$(get_state)" = online_movable ] && [ "$mt_online" -gt "$mt_unplugged" ]; then
-+	ktap_test_pass "online_movable: state=online_movable, MemTotal $mt_unplugged -> $mt_online kB"
-+else
-+	ktap_test_fail "online_movable: rc=$rc state=$(get_state) MemTotal $mt_unplugged -> $mt_online"
-+fi
-+
-+set_state online_movable; rc=$?
-+if [ "$rc" = 0 ] && [ "$(get_state)" = online_movable ]; then
-+	ktap_test_pass "online_movable idempotent"
-+else
-+	ktap_test_fail "online_movable idempotent: rc=$rc state=$(get_state)"
-+fi
-+
-+# A different online type is rejected without an intervening unplug.  The write
-+# is refused before any hotplug, so this never actually onlines a kernel zone.
-+set_state online_kernel; rc=$?
-+if [ "$rc" != 0 ] && [ "$(get_state)" = online_movable ]; then
-+	ktap_test_pass "reject online_kernel without intervening unplug (no kernel-zone online)"
-+else
-+	ktap_test_fail "online_movable->online_kernel not rejected: rc=$rc state=$(get_state)"
-+fi
-+
-+set_state unplugged; rc=$?
-+mt=$(memtotal_kb)
-+if [ "$rc" = 0 ] && [ "$(get_state)" = unplugged ] && [ "$mt" -lt "$mt_online" ]; then
-+	ktap_test_pass "unplug from online_movable: MemTotal $mt_online -> $mt kB"
-+else
-+	ktap_test_fail "unplug from online_movable: rc=$rc state=$(get_state) MemTotal $mt_online -> $mt"
-+fi
-+
-+before=$(get_state)
-+set_state bogus_state; rc=$?
-+if [ "$rc" != 0 ] && [ "$(get_state)" = "$before" ]; then
-+	ktap_test_pass "reject invalid state string"
-+else
-+	ktap_test_fail "invalid state not rejected: rc=$rc state=$(get_state)"
-+fi
-+
-+# An online_movable -> unplug cycle must re-acquire the per-range resources on
-+# each online and release them on each unplug.  Assert every iteration grows
-+# MemTotal past the baseline and returns exactly to it; memory left online after
-+# unplug (off > baseline) is a partial-free failure.
-+set_state unplugged
-+cycle_ok=1; fail_i=0; on=0; off=0
-+for i in 1 2 3; do
-+	if ! set_state online_movable; then cycle_ok=0; fail_i=$i; break; fi
-+	on=$(memtotal_kb)
-+	if ! set_state unplugged; then cycle_ok=0; fail_i=$i; break; fi
-+	off=$(memtotal_kb)
-+	# online must grow past baseline, and unplug must return to it - a
-+	# partial free (memory left online) is a failure, not just off == on.
-+	if [ "$on" -le "$mt_unplugged" ] || [ "$off" -gt "$mt_unplugged" ]; then
-+		cycle_ok=0; fail_i=$i; break
-+	fi
-+done
-+if [ "$cycle_ok" = 1 ]; then
-+	ktap_test_pass "online_movable/unplug cycle re-acquires resources (3x: added and freed each time)"
-+else
-+	ktap_test_fail "online_movable/unplug cycle regressed at iteration $fail_i (on=$on off=$off baseline=$mt_unplugged)"
-+fi
-+
-+# Desync: toggle a block through the legacy per-block memoryN/state interface
-+# behind the driver's back, then unplug the whole device via daxX.Y/state.
-+#
-+# The driver only updates daxX.Y/state on its own writes, so it still reports
-+# online_movable while a block underneath is already offline.
-+#
-+# Whole-device unplug must still succeed (within reason, an actor changing a
-+# device from online_movable to online_kernel can no longer guarantee unplug).
-+# At the very least, an already-offline block should not produce an error.
-+set_state unplugged
-+set_state online_movable
-+blk=$(find_device_block)
-+if [ -n "$blk" ] && echo offline > "$MEM_BASE/$blk/state" 2>/dev/null; then
-+	# daxX.Y/state is now stale (still online_movable); unplug the device.
-+	set_state unplugged; rc=$?
-+	mt=$(memtotal_kb)
-+	if [ "$rc" = 0 ] && [ "$(get_state)" = unplugged ] && [ "$mt" -le "$mt_unplugged" ]; then
-+		ktap_test_pass "unplug tolerates a block pre-offlined via memoryN/state ($blk)"
-+	else
-+		ktap_test_fail "desync unplug: rc=$rc state=$(get_state) MemTotal=$mt baseline=$mt_unplugged"
-+	fi
-+else
-+	set_state unplugged 2>/dev/null
-+	ktap_test_skip "could not locate a device block to offline for desync test"
-+fi
-+
-+# change system default online policy while the device is unbound, and show
-+# the new system default policy is utilized across bindings.
-+set_state unplugged
-+if [ -w "$AOB" ] && [ -w "$DRV/unbind" ] && [ -w "$DRV/bind" ]; then
-+	orig_aob=$(cat "$AOB")
-+	echo "$DAX" > "$DRV/unbind" 2>/dev/null
-+	echo offline > "$AOB" 2>/dev/null
-+	echo "$DAX" > "$DRV/bind" 2>/dev/null
-+	sleep 1
-+	st=$(get_state)
-+	echo "$orig_aob" > "$AOB" 2>/dev/null		# restore system policy
-+	if [ "$st" = offline ]; then
-+		ktap_test_pass "online policy resolved at bind: auto_online_blocks=offline -> state=offline"
-+	else
-+		ktap_test_fail "bind-time policy not honored: state=$st (expected offline)"
-+	fi
-+	set_state unplugged 2>/dev/null
-+else
-+	ktap_test_skip "auto_online_blocks or driver bind/unbind not writable"
-+fi
-+
-+# Blocks offlined out-of-band (via memoryN/state) leave daxX.Y/state stale
-+# (still online_movable) while every block is actually offline.  A driver unbind
-+# must still hot-remove the offline memory and free its resources rather than
-+# trust the stale state and leak until reboot.  Unbind uses remove_memory(),
-+# which never offlines, so removing already-offline blocks is non-destructive and
-+# the device rebinds cleanly afterwards.
-+if [ -w "$DRV/unbind" ] && [ -w "$DRV/bind" ]; then
-+	set_state unplugged
-+	set_state online_movable
-+	offl_ok=1
-+	for b in $(find_device_blocks); do
-+		[ -f "$MEM_BASE/$b/state" ] || continue
-+		[ "$(cat "$MEM_BASE/$b/state")" = online ] || continue
-+		echo offline > "$MEM_BASE/$b/state" 2>/dev/null || offl_ok=0
-+	done
-+	# daxX.Y/state is now stale (still online_movable) while all blocks are
-+	# offline; the unbind must hot-remove them anyway.
-+	if [ "$offl_ok" = 1 ] && [ "$(get_state)" = online_movable ]; then
-+		echo "$DAX" > "$DRV/unbind" 2>/dev/null
-+		mt_after=$(memtotal_kb)
-+		leaked=$(grep -cE " : ${DAX}\$" /proc/iomem)	# before rebind
-+		echo "$DAX" > "$DRV/bind" 2>/dev/null		# restore for later steps
-+		sleep 1
-+		if [ "$mt_after" -le "$mt_unplugged" ] && [ "$leaked" = 0 ]; then
-+			ktap_test_pass "unbind with stale online state hot-removes offlined blocks (no leak)"
-+		else
-+			ktap_test_fail "desync unbind leaked: MemTotal=$mt_after baseline=$mt_unplugged iomem_left=$leaked"
-+		fi
-+		set_state unplugged 2>/dev/null
-+	else
-+		ktap_test_skip "could not offline all device blocks for desync-unbind test"
-+	fi
-+else
-+	ktap_test_skip "driver bind/unbind not writable for desync-unbind test"
-+fi
-+
-+[ -n "$ORIG" ] && set_state "$ORIG"
-+
-+# DESTRUCTIVE and opt-in only (DAX_KMEM_TEST_UNBIND=1):
-+#
-+# unbinding the driver while memory is online causes the resources to leak - but
-+# the unbind should not deadlock.  Instead the driver leaks it with a warning.
-+
-+# This leaves the memory online and the device unbound until reboot, so it runs
-+# last and only when explicitly requested.  online_movable only: this test
-+# never onlines a public node into a kernel zone.
-+
-+if [ "${DAX_KMEM_TEST_UNBIND:-}" = 1 ] && [ -w "$DRV/unbind" ]; then
-+	set_state unplugged; set_state online_movable
-+fi
-+if [ "${DAX_KMEM_TEST_UNBIND:-}" = 1 ] && [ "$(get_state)" = online_movable ] &&
-+   [ -w "$DRV/unbind" ]; then
-+	mt_on=$(memtotal_kb)
-+	dmesg -C 2>/dev/null
-+	echo "$DAX" > "$DRV/unbind" 2>/dev/null
-+	mt_after=$(memtotal_kb)
-+	# The leaked "System RAM (kmem)" regions stay in the iomem tree; reading
-+	# their names dereferences res_name, which a buggy unbind already freed.
-+	# Walk /proc/iomem to provoke that use-after-free (caught by KASAN).
-+	cat /proc/iomem > /dev/null 2>&1
-+	splat=$(dmesg 2>/dev/null | grep -ciE "KASAN|BUG:|use-after-free|general protection|Oops|refcount_t")
-+	if [ "$splat" = 0 ] && [ "$mt_after" -ge "$mt_on" ]; then
-+		ktap_test_pass "unbind while online: memory left online, no UAF/oops (MemTotal $mt_on -> $mt_after kB)"
-+	else
-+		ktap_test_fail "unbind while online regressed: splat=$splat MemTotal $mt_on -> $mt_after kB"
-+	fi
-+else
-+	ktap_test_skip "destructive unbind-while-online test (set DAX_KMEM_TEST_UNBIND=1)"
-+fi
-+
-+ktap_finished
-diff --git a/tools/testing/selftests/dax/Makefile a/tools/testing/selftests/dax/Makefile
-new file mode 100644
---- /dev/null
-+++ a/tools/testing/selftests/dax/Makefile
-@@ -0,0 +1,6 @@
-+# SPDX-License-Identifier: GPL-2.0
-+all:
-+
-+TEST_PROGS := dax-kmem-hotplug.sh
-+
-+include ../lib.mk
-diff --git a/tools/testing/selftests/dax/settings a/tools/testing/selftests/dax/settings
-new file mode 100644
---- /dev/null
-+++ a/tools/testing/selftests/dax/settings
-@@ -0,0 +1 @@
-+timeout=90
---- a/tools/testing/selftests/Makefile~selftests-dax-add-dax-kmem-hotplug-sysfs-regression-test
-+++ a/tools/testing/selftests/Makefile
-@@ -14,6 +14,7 @@ TARGETS += core
- TARGETS += cpufreq
- TARGETS += cpu-hotplug
- TARGETS += damon
-+TARGETS += dax
- TARGETS += devices/error_logs
- TARGETS += devices/probe
- TARGETS += dmabuf-heaps
++static inline bool vma_is_temporary_stack(const struct vm_area_struct *vma)
++{
++	if (!vma_can_grow(vma))
+ 		return false;
+ 
+ 	if ((vma->vm_flags & VM_STACK_INCOMPLETE_SETUP) ==
 _
 
-Patches currently in -mm which might be from gourry@gourry.net are
+Patches currently in -mm which might be from ljs@kernel.org are
 
+x86-mm-pat-acquire-init_mm-write-lock-on-collapse-to-avoid-uaf.patch
+x86-mm-pat-acquire-init_mm-read-lock-on-attribute-change-to-avoid-uaf.patch
+x86-mm-pat-allocate-split-page-tables-as-kernel-page-tables.patch
+mm-vma-introduce-vma-anon-page-offset-field-and-add-helpers.patch
+mm-provide-vma_is_cow_mapping-and-remove-is_cow_mapping.patch
+mm-introduce-linear_anon_page_index.patch
+mm-abstract-vma_address-and-introduce-vma_anon_address.patch
+mm-update-print_bad_page_map-to-show-anon-index-if-appropriate.patch
+mm-introduce-and-use-vma_filebacked_address.patch
+mm-vma-fix-self-merge-check-in-copy_vma.patch
+tools-testing-vma-add-tests-for-copy_vma-self-merge.patch
+mm-propagate-vma-anonymous-page-offset-on-map-remap-split-merge.patch
+mm-rmap-track-whether-the-page-vma-mapped-pgoff-is-anonymous.patch
+mm-clean-up-vma_address_end.patch
+mm-huge_memory-update-remove_migration_pmd-to-accept-a-folio.patch
+mm-migrate-calculate-large-folio-page-index-using-pfn.patch
+mm-rmap-use-anon-pgoff-to-track-map_private-file-backed-anon-folios.patch
+tools-testing-vma-expand-vma-merge-tests-to-assert-anon-pgoff.patch
+tools-testing-selftests-mm-test-anonymous-page-offset-merge-behaviour.patch
+mm-vma-only-permit-map_private-dev-zero-to-be-mapped-anonymous.patch
+mm-vma-make-map_private-mapped-dev-zero-mappings-truly-anonymous.patch
+tools-testing-vma-add-test-to-assert-map_private-dev-zero-is-anon.patch
+tools-testing-selftests-mm-add-map_private-dev-zero-merge-tests.patch
+mm-add-some-missing-includes-to-mm-local-headers.patch
 
