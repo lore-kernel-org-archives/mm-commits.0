@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 195083C09F7
-	for <mm-commits@vger.kernel.org>; Fri,  7 Aug 2026 02:02:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D58A73B71CF
+	for <mm-commits@vger.kernel.org>; Fri,  7 Aug 2026 02:02:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786068164; cv=none; b=m60vb89rq6EF+GuMJx4OWxSX588T2omjS2tMEumopB5aNI1ehEyZA1mZylarTPj/tN3lUry2vcqHCjPeqetlrRSHUuOx1bl5Ya1aNGBviIudiAYXplzMbptlf/KPW2xcnfx0/7TbdzTefRIFMJ5EuDr4KHWfVs8nBqhJMF1RBLo=
+	t=1786068165; cv=none; b=NitpNZAmRVxAjc61VHxToSLbTNSim182qKVd1XoqtuNzzkl1saTrouajcbZ1P88FKc/58t/sO9wepkYilf2FynmD9X+Ikxo2KDGSG0wexXTXcrRJWyrKvn2xHwc+2LpONx/sklsYn7lIF2TbdgYYGwS2znEytDiJ0165uSU63Ss=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786068164; c=relaxed/simple;
-	bh=waOX5C3GMHhKu4MW2LwU6x68rPbIMQick6RCtibYjAg=;
-	h=Date:To:From:Subject:Message-Id; b=LhT2irU9+EMTzPWM+dUTRpYaeJJ6IkVX/ITD7EZ++KnjJdDU0kaFpT8R9DkzpvAwFN0HghZ/Ai2zYhp6NKnEtEgcMKJPdcbbMMgOUEDudhSAMU68cTC8upev1jOwfR3Xk3aJngInGpMbnT4TE/wxjY8TlW1ie5w/BDVnkfqiX6M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=z92M+CdB; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1786068165; c=relaxed/simple;
+	bh=YjuhrE8PDv6boTYt6i2r+0Tl6N9KOkpdU47tktiRG0I=;
+	h=Date:To:From:Subject:Message-Id; b=pgj0HyhaWvVlsJOqr8f+ypEwyFm9IyW7k1OdOMLCEVbUPtGRcjMRQN3SDHoHfd+F8rv2rZ3mQ7uA3mfXBWOe7KvS4Kphh1eqzWIo9Yf+MuKdV5Lhha2jcgENGgyuPg6W0vaa33E6mqX9ub/TwJ/rTEYBlNafxbMEySXrSf9gDxM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xcQvx43R; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="z92M+CdB"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 836DD1F00A3A;
-	Fri,  7 Aug 2026 02:02:42 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xcQvx43R"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A9C6E1F000E9;
+	Fri,  7 Aug 2026 02:02:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1786068162;
-	bh=uh1Nuzmp8Xm9RTYRiEZKBABupfCkwjoPaWPE7+rkqYY=;
+	d=linux-foundation.org; s=korg; t=1786068163;
+	bh=+J2T85w/7si2S0gg4BPH/luw3Ug7WfaEHS9lG63NDZc=;
 	h=Date:To:From:Subject;
-	b=z92M+CdBxHq/V5eJg/rIc7qRcSdi2w47Wc+sqOx2Lu4Hq/SlPNieJ1aJARXvSiyJc
-	 3MVctoTG1Yx2Chkf7UPpJKGo+9T//LaZ8XYn8J4od3ZLYKkCYCKTXgzvRpKZBhOIKe
-	 dIaPSIXaDblTZTM9cUyCp05SBQJnbptob145qd10=
-Date: Thu, 06 Aug 2026 19:02:42 -0700
-To: mm-commits@vger.kernel.org,sj@kernel.org,minchan@kernel.org,corbet@lwn.net,bigeasy@linutronix.de,senozhatsky@chromium.org,akpm@linux-foundation.org
+	b=xcQvx43RT4sLqhARp8AjlNm5gVMIfKmPRMzpRhBF99oxPcZoXCuckByfYH0BJpBHc
+	 W9VdVZbSecLuNLHW6wjTIM7auUaPAD3ee9+xfKeTmOxWIjiyc2nGutrnQLhYF2A6BZ
+	 5nHQie8FFAyce5tEmApPJlVgaVixn1shZx8HajV0=
+Date: Thu, 06 Aug 2026 19:02:43 -0700
+To: mm-commits@vger.kernel.org,senozhatsky@chromium.org,minchan@kernel.org,liumartin@google.com,richardycc@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] documentation-zram-remove-sections-numbering.patch removed from -mm tree
-Message-Id: <20260807020242.836DD1F00A3A@smtp.kernel.org>
+Subject: [merged mm-stable] mm-zsmalloc-fix-release-order-of-locks-in-zs_page_migrate.patch removed from -mm tree
+Message-Id: <20260807020243.A9C6E1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,150 +35,67 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: Documentation: zram: remove sections numbering
+     Subject: mm/zsmalloc: fix release order of locks in zs_page_migrate()
 has been removed from the -mm tree.  Its filename was
-     documentation-zram-remove-sections-numbering.patch
+     mm-zsmalloc-fix-release-order-of-locks-in-zs_page_migrate.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: Documentation: zram: remove sections numbering
-Date: Tue, 28 Jul 2026 11:12:11 +0900
+From: Richard Chang <richardycc@google.com>
+Subject: mm/zsmalloc: fix release order of locks in zs_page_migrate()
+Date: Tue, 28 Jul 2026 05:53:33 +0000
 
-Those numbers are difficult to maintain and in fact
-we can refer to sections by their names (in html).
+In zs_page_migrate(), locks are acquired in the following order:
+  1. write_lock(&pool->lock)
+  2. spin_lock(&class->lock)
+  3. zspage_write_trylock(zspage)
 
-Link: https://lore.kernel.org/20260728021229.181627-1-senozhatsky@chromium.org
-Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
-Suggested-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Reviewed-by: SJ Park <sj@kernel.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
+However, upon successful page migration, they were being released in
+forward acquisition (FIFO) order:
+  1. write_unlock(&pool->lock)
+  2. spin_unlock(&class->lock)
+  3. zspage_write_unlock(zspage)
+
+Fix the unlocking order to release locks in strict reverse (LIFO)
+order of acquisition:
+  3. zspage_write_unlock(zspage)
+  2. spin_unlock(&class->lock)
+  1. write_unlock(&pool->lock)
+
+Releasing locks in reverse order of acquisition adheres to standard
+kernel locking hygiene, prevents potential lock ordering and lockdep
+inconsistencies.
+
+Link: https://lore.kernel.org/20260728055333.421080-1-richardycc@google.com
+Signed-off-by: Richard Chang <richardycc@google.com>
+Reviewed-by: Sergey Senozhatsky <senozhatsky@chromium.org>
+Tested-by: Sergey Senozhatsky <senozhatsky@chromium.org>
+Cc: Martin Liu <liumartin@google.com>
 Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/blockdev/zram.rst |   40 +++++++++---------
- 1 file changed, 20 insertions(+), 20 deletions(-)
+ mm/zsmalloc.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/Documentation/admin-guide/blockdev/zram.rst~documentation-zram-remove-sections-numbering
-+++ a/Documentation/admin-guide/blockdev/zram.rst
-@@ -61,8 +61,8 @@ and, in general case, something like::
+--- a/mm/zsmalloc.c~mm-zsmalloc-fix-release-order-of-locks-in-zs_page_migrate
++++ a/mm/zsmalloc.c
+@@ -1926,9 +1926,9 @@ static int zs_page_migrate(struct page *
+ 	 * Since we complete the data copy and set up new zspage structure,
+ 	 * it's okay to release migration_lock.
+ 	 */
+-	write_unlock(&pool->lock);
+-	spin_unlock(&class->lock);
+ 	zspage_write_unlock(zspage);
++	spin_unlock(&class->lock);
++	write_unlock(&pool->lock);
  
- should suffice.
- 
--1) Load Module
--==============
-+Load Module
-+===========
- 
- ::
- 
-@@ -73,8 +73,8 @@ This creates 4 devices: /dev/zram{0,1,2,
- num_devices parameter is optional and tells zram how many devices should be
- pre-created. Default: 1.
- 
--2) Select compression algorithm
--===============================
-+Select compression algorithm
-+============================
- 
- Using comp_algorithm device attribute one can see available and
- currently selected (shown in square brackets) compression algorithms,
-@@ -93,8 +93,8 @@ Examples::
- For the time being, the `comp_algorithm` content shows only compression
- algorithms that are supported by zram.
- 
--3) Set compression algorithm parameters: Optional
--=================================================
-+Set compression algorithm parameters: Optional
-+==============================================
- 
- Compression algorithms may support specific parameters which can be
- tweaked for particular dataset. ZRAM has an `algorithm_params` device
-@@ -124,8 +124,8 @@ better the compression ratio, it even ca
- algorithms), for other algorithms `level` is acceleration level (the higher
- the value the lower the compression ratio).
- 
--4) Set Disksize
--===============
-+Set Disksize
-+============
- 
- Set disk size by writing the value to sysfs node 'disksize'.
- The value can be either in bytes or you can use mem suffixes.
-@@ -144,8 +144,8 @@ There is little point creating a zram of
- since we expect a 2:1 compression ratio. Note that zram uses about 0.1% of the
- size of the disk when not in use so a huge zram is wasteful.
- 
--5) Set memory limit: Optional
--=============================
-+Set memory limit: Optional
-+==========================
- 
- Set memory limit by writing the value to sysfs node 'mem_limit'.
- The value can be either in bytes or you can use mem suffixes.
-@@ -163,8 +163,8 @@ Examples::
- 	# To disable memory limit
- 	echo 0 > /sys/block/zram0/mem_limit
- 
--6) Activate
--===========
-+Activate
-+========
- 
- ::
- 
-@@ -174,8 +174,8 @@ Examples::
- 	mkfs.ext4 /dev/zram1
- 	mount /dev/zram1 /tmp
- 
--7) Add/remove zram devices
--==========================
-+Add/remove zram devices
-+=======================
- 
- zram provides a control interface, which enables dynamic (on-demand) device
- addition and removal.
-@@ -194,8 +194,8 @@ execute::
- 
- 	echo X > /sys/class/zram-control/hot_remove
- 
--8) Stats
--========
-+Stats
-+=====
- 
- Per-device statistics are exported as various nodes under /sys/block/zram<id>/
- 
-@@ -296,16 +296,16 @@ a single line of text and contains the f
- 		Unit: 4K bytes
-  ============== =============================================================
- 
--9) Deactivate
--==============
-+Deactivate
-+==========
- 
- ::
- 
- 	swapoff /dev/zram0
- 	umount /dev/zram1
- 
--10) Reset
--=========
-+Reset
-+=====
- 
- 	Write any positive value to 'reset' sysfs node::
- 
+ 	zpdesc_get(newzpdesc);
+ 	if (zpdesc_zone(newzpdesc) != zpdesc_zone(zpdesc)) {
 _
 
-Patches currently in -mm which might be from senozhatsky@chromium.org are
+Patches currently in -mm which might be from richardycc@google.com are
 
-zram-set-default-primary-compressor-in-zram_destroy_comps.patch
-zram-validate-deflate-params.patch
-documentation-zram-correct-algo-parameters-configuration-documentation.patch
-zram-switch-to-unsigned-long-indexing.patch
 
