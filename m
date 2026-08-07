@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3FCA43B992C
-	for <mm-commits@vger.kernel.org>; Fri,  7 Aug 2026 02:02:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5BF983B7752;
+	Fri,  7 Aug 2026 02:02:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786068126; cv=none; b=KfSfKbeXCKk25ZXMF3tRqlJPXio5PT5HTucpTQuj41FG3K6/olZr8GTJyfwyB7idmm4V1xcyo4wn8ZfNwuDcvuB5tnD+FABJmZrlDGgi66mYOBmPM/+680sAeK7G9UI+SFkEVqJnA8olp60Sk4DD4N9hk4wmM5hRS38vi5KokHg=
+	t=1786068127; cv=none; b=KH6JlX/rgU/AfaNExYtIvVYhg3bplwzojtomN4Th8ZbRMNsKPk5xSAO/re2smmBQgb7tNBna03L+xjkmT57p4lqEYZEZ7R/Amy+3qcmkDvsj/akrvHh4fPexeoYZ3AQTGGB6aEADUyqiG6a2I0nGoyC09QgYmBxDVnjPc3vbTnM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786068126; c=relaxed/simple;
-	bh=IhKdjDZZHvER6mnQa2FG3XigtUC6fAz+s6uQlI1tKCA=;
-	h=Date:To:From:Subject:Message-Id; b=HswfAr6l0PUaNpfWktYeN6/YZGOeQ2HV0craWCVCcpGKjyvNf9jUuZgkNB1EK0IfCFESRzq90Ck5QbCBSIyTcFHuT/e4Jh7hYmRqIZdPouqlITrKp2+6AhzvPImZsO2ef+J0ZldeF9b86f9yQnH+q9YK6SPNuz9p5l7Ckypiv4A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AyQ+HKYw; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1786068127; c=relaxed/simple;
+	bh=4To70h559V1wJUi/RR+JsafMHNfyF52dFsfGy4QoSJY=;
+	h=Date:To:From:Subject:Message-Id; b=Y3DAi49bL66TX7OtPeLooDaKhwi1TG7OJOY6c+kTTIuLMogHn24RxJAiwbU6aHYLS+xWGIW5lwiwyjqujBu98dY1pxnuHjlcXW9UMXDGEJaEPoNIWlnPjR7AxWTOrUIJWkPWix9PLBRhd8a5ACFldNwE5RlpT9pxaqyJe2HVQIc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lXXqEaq3; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AyQ+HKYw"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 173ED1F00A3A;
-	Fri,  7 Aug 2026 02:02:05 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lXXqEaq3"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 32F231F00A3D;
+	Fri,  7 Aug 2026 02:02:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1786068125;
-	bh=MGwzU3dHMPGx7p148D3x9GMr1KMUGraLETW464aFrAk=;
+	d=linux-foundation.org; s=korg; t=1786068126;
+	bh=9IAeoR6WtryCBKd2IuPmvYGOH5m5VmpweHFe1BJ1jdk=;
 	h=Date:To:From:Subject;
-	b=AyQ+HKYwNFjTvsS98Q4cUlhnJnGshvYaY3EGII3kGSXeO3FuAJR80ZEy9VGOM0TRz
-	 aHpotbOLMS2EPw3w2WlxHcCMQWo4ov1Jj4qBSydbbfMz0y1kH5g0JbYBxa1GhnT1lX
-	 LeWD7aUU7QW4yPicQq3vWOYI/WPG71Q0jeo3MIFk=
-Date: Thu, 06 Aug 2026 19:02:04 -0700
-To: mm-commits@vger.kernel.org,osalvador@suse.de,muchun.song@linux.dev,david@kernel.org,chenyichong@uniontech.com,akpm@linux-foundation.org
+	b=lXXqEaq3hQtnQ+g0lU/e824dxm9lUxeImUQjrRUnaE1R9aDrV+pOs/emGUr5KBQoD
+	 vIbWEm05A7mYVGueqn51ad3ta6xkLrBNI0iS2vtT4gFd2WeDEA1+1Oj+I4M+nxQx62
+	 JurTHhplDt/RuYPPcdWF/bVVMnoPLLrBnG3jx6t0=
+Date: Thu, 06 Aug 2026 19:02:05 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] hugetlbfs-release-subpool-on-fill_super-failure.patch removed from -mm tree
-Message-Id: <20260807020205.173ED1F00A3A@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-ops-common-use-nr_accesses-moving-sum-for-quota-score.patch removed from -mm tree
+Message-Id: <20260807020206.32F231F00A3D@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,55 +35,59 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: hugetlbfs: release subpool on fill_super failure
+     Subject: mm/damon/ops-common: use nr_accesses moving sum for quota score
 has been removed from the -mm tree.  Its filename was
-     hugetlbfs-release-subpool-on-fill_super-failure.patch
+     mm-damon-ops-common-use-nr_accesses-moving-sum-for-quota-score.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Yichong Chen <chenyichong@uniontech.com>
-Subject: hugetlbfs: release subpool on fill_super failure
-Date: Mon, 20 Jul 2026 10:18:59 +0800
+From: SJ Park <sj@kernel.org>
+Subject: mm/damon/ops-common: use nr_accesses moving sum for quota score
+Date: Sun, 19 Jul 2026 09:11:33 -0700
 
-hugetlbfs_fill_super() allocates a hugepage subpool when size or min_size
-mount options are specified.  hugepage_new_subpool() may also reserve huge
-pages for min_size.
+Since commit 42f994b71404 ("mm/damon/core: implement scheme-specific apply
+interval"), DAMOS scheme can be applied at any time.  At that time,
+nr_accesses may not be fully aggregated.  But the quota prioritization
+score is calculated using the not fully aggregated count.  As a result,
+the performance of DAMOS could be degraded.  Fix by using
+damon_nr_accesses_mvsum() instead.
 
-If root dentry creation fails after the subpool is created, the failure
-path frees the subpool with kfree().  This bypasses hugepage_put_subpool()
-and can leave min_size reservations charged.
+The user impact of the issue is suboptimum DAMOS performance under certain
+setups.  Nonetheless, the bug was there from the beginning of the setup
+availability.  In other words, the suboptimum performance is the baseline
+of the setup and hence it didn't cause regression.  Also the extent of the
+suboptimality was not big enough to be found from users and testers. 
+Still, this is a clear bug that is better to be fixed, and can be easily
+fixed.
 
-Use hugepage_put_subpool() on the failure path, matching the normal
-put_super path.
-
-Link: https://lore.kernel.org/20260720021900.1376309-1-chenyichong@uniontech.com
-Fixes: 7ca02d0ae586 ("hugetlbfs: accept subpool min_size mount option and setup accordingly")
-Signed-off-by: Yichong Chen <chenyichong@uniontech.com>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Oscar Salvador <osalvador@suse.de>
+Link: https://lore.kernel.org/20260719161136.90191-1-sj@kernel.org
+Fixes: 42f994b71404 ("mm/damon/core: implement scheme-specific apply interval")
+Signed-off-by: SJ Park <sj@kernel.org>
+Cc: <stable@vger.kernel.org> # 6.7.x
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hugetlbfs/inode.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/damon/ops-common.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
---- a/fs/hugetlbfs/inode.c~hugetlbfs-release-subpool-on-fill_super-failure
-+++ a/fs/hugetlbfs/inode.c
-@@ -1419,7 +1419,8 @@ hugetlbfs_fill_super(struct super_block
- 		goto out_free;
- 	return 0;
- out_free:
--	kfree(sbinfo->spool);
-+	if (sbinfo->spool)
-+		hugepage_put_subpool(sbinfo->spool);
- 	kfree(sbinfo);
- 	return -ENOMEM;
- }
+--- a/mm/damon/ops-common.c~mm-damon-ops-common-use-nr_accesses-moving-sum-for-quota-score
++++ a/mm/damon/ops-common.c
+@@ -111,8 +111,9 @@ int damon_hot_score(struct damon_ctx *c,
+ 	unsigned int age_weight = s->quota.weight_age;
+ 	int hotness;
+ 
+-	freq_subscore = r->nr_accesses * DAMON_MAX_SUBSCORE /
+-		damon_nr_samples_per_aggr(&c->attrs);
++	freq_subscore = mult_frac(damon_nr_accesses_mvsum(r, c),
++			DAMON_MAX_SUBSCORE,
++			damon_nr_samples_per_aggr(&c->attrs));
+ 
+ 	age_in_sec = (unsigned long)r->age * c->attrs.aggr_interval / 1000000;
+ 	if (age_in_sec)
 _
 
-Patches currently in -mm which might be from chenyichong@uniontech.com are
+Patches currently in -mm which might be from sj@kernel.org are
 
 
