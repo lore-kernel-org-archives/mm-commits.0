@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 672163A6F1C
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 15C8D3B2FCE
 	for <mm-commits@vger.kernel.org>; Fri,  7 Aug 2026 02:00:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786068026; cv=none; b=ni4z2JZ9xXD232AXt0+Vgg4oqcPQE1EwLjl5d36cd63It4CpoQKVEy2FQZjQM2RHovlLwhROzemf+Az8M+QYtII4ofaMDhNEBwDFCnhQ5VaM6rhqUAxL0+iy/nEJHVJnuaKF4Rkgu76oulbevXM1cCgp+MyxuYvU/Af7B/if9A0=
+	t=1786068027; cv=none; b=TDR8KnH7iPIU+UjQWXjxvOCSJh22z3QPo1PL7q13QoL6fnMyAno5WZTpQWrftCy2sN+3JDqkQ2DvC+YSYYyrTQYgKKDGwh2kAU6c21RPUaQNnB3pMNjQd36euBP5hAU3X5wjcuaar9g8PmmNWfPZE8G9MmivWAqyXkSwCUXxd1E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786068026; c=relaxed/simple;
-	bh=TAK/L2YQjbLpxGYDUrjqo9tpMxOKuojab0CaaYsVgo0=;
-	h=Date:To:From:Subject:Message-Id; b=iAKQzU9TGpU1+ZGZ3phbq1kaLqsfV439yWOLeaMQQeKDfFUDv8qsJ/bYINTyv8yZFFbXGEfD67qdTIMtEDZh5nARhpHu4YSCLPkaIoboQP0U51+M6aVDrDZrvx0Wi/Yjk9r4IzUKTwSKYJuxLCieH2L46g9UUQGU6+H3BJVqsqQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cmXcHryK; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1786068027; c=relaxed/simple;
+	bh=bl99AXCclC8rYolY5ILaItlm2WcK4iE3HWLPa/ZHjSQ=;
+	h=Date:To:From:Subject:Message-Id; b=K3mcanxye4v+TGSu+n9XFiVmmOptr+NvoRo4Uv1R0ihcJnhLl/G8KQ4ZBbKRwnyJDiKpKEKPJD3QnO9hmXVsZMWFGpfhRaB9ZGKEQS8smWPmznRgT82Wpt3UtuUF2zwqIoOZde6ohC/ikJwzF+UgC1kWaZ0KXSVac+gV8vDCSqs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tcgHZJkw; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cmXcHryK"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 549151F00ACF;
-	Fri,  7 Aug 2026 02:00:15 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tcgHZJkw"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 184291F00AC4;
+	Fri,  7 Aug 2026 02:00:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1786068015;
-	bh=U0p57gXYcIjXvpcHiTQZ8in0oIZpMQSTUaKpwN941zU=;
+	d=linux-foundation.org; s=korg; t=1786068014;
+	bh=LKedZ2CsPHXWDvfxMS1Vy1S8B6EeRi1RRSWCDKccGtc=;
 	h=Date:To:From:Subject;
-	b=cmXcHryKU6d10X2u4oSk7/svshlbwimhU2kwtq02nehzAcutirWsQuya/amnrCt3H
-	 NZJQidulmBQrHfEKKyAj9qtpf5xVWC1CyfoIQZLCC0ctLplgQSZIs5C6McdK+yRHp0
-	 BCo6O0hCa/Ht4XIN2S0mJG6VlelypbEA8NrvG7rs=
-Date: Thu, 06 Aug 2026 19:00:14 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,shuah@kernel.org,muchun.song@linux.dev,jack@suse.cz,wangyijia.yeah@bytedance.com,akpm@linux-foundation.org
+	b=tcgHZJkw4iLs4Y1kNJ+7l4eCdGniwL2WWxNwM8r/n3gCgdlx8LXH4KttuyKNjOV5p
+	 G3+BOdlLmhJQFUJVHrLxiXdh4rW9Vr9bIS6UP6YcynWmnWhPA7jvMcBOZl1sMXRRcO
+	 yeywqSbAizdXcj3Tiy9mLGVjbs5YAW+mmpUvOVUg=
+Date: Thu, 06 Aug 2026 19:00:13 -0700
+To: mm-commits@vger.kernel.org,sj@kernel.org,husong@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-mincore-count-file-mmap-readahead-on-both-sides.patch removed from -mm tree
-Message-Id: <20260807020015.549151F00ACF@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-tests-core-kunit-test-damon_nr_accesses_mvsum.patch removed from -mm tree
+Message-Id: <20260807020014.184291F00AC4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,76 +35,104 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests: mincore: count file-mmap readahead on both sides
+     Subject: mm/damon/tests/core-kunit: test damon_nr_accesses_mvsum()
 has been removed from the -mm tree.  Its filename was
-     selftests-mincore-count-file-mmap-readahead-on-both-sides.patch
+     mm-damon-tests-core-kunit-test-damon_nr_accesses_mvsum.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Yijia Wang <wangyijia.yeah@bytedance.com>
-Subject: selftests: mincore: count file-mmap readahead on both sides
-Date: Mon, 13 Jul 2026 17:43:19 +0800
+From: Song Hu <husong@kylinos.cn>
+Subject: mm/damon/tests/core-kunit: test damon_nr_accesses_mvsum()
+Date: Mon, 13 Jul 2026 17:46:48 +0800
 
-check_file_mmap() faults a page in the middle of a file mapping and
-expects the mmap read-around path to make neighbouring pages resident. 
-The test currently counts only pages after the faulted page.
+damon_nr_accesses_mvsum() wraps damon_mvsum() with the monitoring
+intervals of the context to compute the pseudo moving sum of a region's
+access frequency, with a special case for when the whole aggregation
+window remains.  damon_mvsum() itself is already covered by
+damon_test_mvsum(), but the wrapper is not.
 
-That misses valid read-around on systems with large base page sizes.  On
-arm64 with 64K pages and the default 128K readahead setting, the
-read-around window is two pages wide and centred on the faulting page. 
-Faulting page 32 makes pages 31 and 32 resident, so the forward-only scan
-from page 33 reports ra_pages == 0 even though a neighbouring page was
-brought in.
+Add a table-driven KUnit test that exercises the full-window-remaining
+boundary (with both reset and not-yet-reset nr_accesses), partially
+elapsed windows, and the no-window-remaining case.
 
-Keep the existing readahead assertion, but count resident neighbouring
-pages on both sides of the faulted page.  This fixes the 64K-page false
-failure without teaching the selftest to compute the expected readahead
-window from sysfs or other implementation details.
-
-Link: https://lore.kernel.org/20260713094319.771550-1-wangyijia.yeah@bytedance.com
-Signed-off-by: Yijia Wang <wangyijia.yeah@bytedance.com>
-Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Shuah Khan <shuah@kernel.org>
+Link: https://lore.kernel.org/20260713094648.897239-1-husong@kylinos.cn
+Signed-off-by: Song Hu <husong@kylinos.cn>
+Reviewed-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mincore/mincore_selftest.c |   12 +++++++++--
- 1 file changed, 10 insertions(+), 2 deletions(-)
+ mm/damon/tests/core-kunit.h |   49 ++++++++++++++++++++++++++++++++++
+ 1 file changed, 49 insertions(+)
 
---- a/tools/testing/selftests/mincore/mincore_selftest.c~selftests-mincore-count-file-mmap-readahead-on-both-sides
-+++ a/tools/testing/selftests/mincore/mincore_selftest.c
-@@ -242,8 +242,10 @@ TEST(check_file_mmap)
+--- a/mm/damon/tests/core-kunit.h~mm-damon-tests-core-kunit-test-damon_nr_accesses_mvsum
++++ a/mm/damon/tests/core-kunit.h
+@@ -677,6 +677,54 @@ static void damon_test_mvsum(struct kuni
  	}
+ }
  
- 	/*
--	 * Touch a page in the middle of the mapping. We expect the next
--	 * few pages (the readahead window) to be populated too.
-+	 * Touch a page in the middle of the mapping. We expect some
-+	 * surrounding pages (the readahead window) to be populated too.
-+	 * Depending on the page size and readahead setting, the pages may
-+	 * land before the faulted page rather than after it.
- 	 */
- 	addr[FILE_SIZE / 2] = 1;
- 	retval = mincore(addr, FILE_SIZE, vec);
-@@ -252,6 +254,12 @@ TEST(check_file_mmap)
- 		TH_LOG("Page not found in memory after use");
- 	}
- 
-+	i = FILE_SIZE / 2 / page_size - 1;
-+	while (i >= 0 && vec[i]) {
-+		ra_pages++;
-+		i--;
++/*
++ * Test damon_nr_accesses_mvsum(), which wraps damon_mvsum() with the
++ * monitoring intervals of the context.  With a sample interval of 1 and an
++ * aggregation interval of 10, an aggregation window is 10 sample intervals
++ * long.  Each row below specifies the passed sample intervals, the next
++ * aggregation time in sample intervals, the current and last nr_accesses of a
++ * region, and the expected return value.
++ */
++static void damon_test_nr_accesses_mvsum(struct kunit *test)
++{
++	unsigned long input_expects[] = {
++		/* passed, next_aggr, nr_accesses, last_nr_accesses, expect */
++		0, 10, 5, 3, 3,		/* full window left, unreset */
++		0, 10, 0, 7, 7,		/* full window left, reset */
++		5, 10, 3, 10, 8,	/* half window left */
++		8, 10, 3, 10, 5,	/* 20% window left */
++		10, 10, 42, 49, 42,	/* no window left */
++	};
++	struct damon_ctx *c = damon_new_ctx();
++	struct damon_region *r;
++	int i;
++
++	if (!c)
++		kunit_skip(test, "ctx alloc fail");
++
++	r = damon_new_region(0, 4096);
++	if (!r) {
++		damon_destroy_ctx(c);
++		kunit_skip(test, "region alloc fail");
 +	}
 +
- 	i = FILE_SIZE / 2 / page_size + 1;
- 	while (i < vec_size && vec[i]) {
- 		ra_pages++;
++	c->attrs.sample_interval = 1;
++	c->attrs.aggr_interval = 10;
++
++	for (i = 0; i < ARRAY_SIZE(input_expects); i += 5) {
++		c->passed_sample_intervals = input_expects[i];
++		c->next_aggregation_sis = input_expects[i + 1];
++		r->nr_accesses = input_expects[i + 2];
++		r->last_nr_accesses = input_expects[i + 3];
++
++		KUNIT_EXPECT_EQ(test, (unsigned int)input_expects[i + 4],
++				damon_nr_accesses_mvsum(r, c));
++	}
++
++	damon_free_region(r);
++	damon_destroy_ctx(c);
++}
++
+ static void damos_test_new_filter(struct kunit *test)
+ {
+ 	struct damos_filter *filter;
+@@ -1569,6 +1617,7 @@ static struct kunit_case damon_test_case
+ 	KUNIT_CASE(damon_test_update_monitoring_result),
+ 	KUNIT_CASE(damon_test_set_attrs),
+ 	KUNIT_CASE(damon_test_mvsum),
++	KUNIT_CASE(damon_test_nr_accesses_mvsum),
+ 	KUNIT_CASE(damos_test_new_filter),
+ 	KUNIT_CASE(damos_test_commit_quota_goal),
+ 	KUNIT_CASE(damos_test_commit_quota_goals),
 _
 
-Patches currently in -mm which might be from wangyijia.yeah@bytedance.com are
+Patches currently in -mm which might be from husong@kylinos.cn are
 
 
