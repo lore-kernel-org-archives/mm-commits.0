@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E9B433BBFDD;
-	Fri,  7 Aug 2026 02:02:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7D3583B9D9A;
+	Fri,  7 Aug 2026 02:02:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786068153; cv=none; b=SwRbVDhq9p4FqDCnx1FOVpLsx6Ke1230GCzzAE49SFnMnlhz5eCVxpXr09oeeAIut/IzAPjk4X/q9CnJhmqGUgzm4juuXhTdTywHrBkie3Rl5iAkfdal7S/b7kOJQgncRz6yuPy5p0WCEIRQbqh1fr/NVb/z4imV15WFq/umwpM=
+	t=1786068155; cv=none; b=IXEhfSWu09eNznn6C8TtdFtft+rtcpctjWbvzyuITGt3WbZE7jZPpUZHKH1n6gjfTs+qNZR9NAewGokb8aEhn1QKuR/vsSW8ZFPlK04PPCXbei0iqvghaFoIiAu36J2A8rFrmXhw985AlCQ0T/riz57aCpK+gXa8xWHqHpwqVOg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786068153; c=relaxed/simple;
-	bh=fTNJMrmq3oxJ+BAiSPt87QEIBAFp3wng7GtsyLQMFao=;
-	h=Date:To:From:Subject:Message-Id; b=d/myC8oH1fkTOJHNIZTmCPSV1eCT0fByEF6/MjKKYdFm7Y9aoZGAnCeqetpM8YWUxViulF92qHdYfkDtzOwNoYXu0LZJHeyh/6mhTWflEm4bohqT4Azu0e7F3GaDozSfsgwOx0Of6NnymJBjMUQmtXZAnQNg9Jh42mzNcK9hK1Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JmMABcUQ; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1786068155; c=relaxed/simple;
+	bh=mUmG1Q590TsBuIzT57p209MP5fsoVEmbqGEtB+nbwu4=;
+	h=Date:To:From:Subject:Message-Id; b=ZA5lZF+zk4gOOjzhvDcJWPeSz9Ses5liWmG3SGzJVABfIfRTDs9k0CfE7r+H00x7YGG6qwaivjk7NhSyRCfszC0G5W+cn72+jPK5WRfvWMnbaVHRJYOVgZKyZF/TcVFFEO1ZS4dvBq2uZcF7gKDZa3CnqL75jw+BtnyTr5rmnDQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Nko0w9aC; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JmMABcUQ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BE2481F000E9;
-	Fri,  7 Aug 2026 02:02:31 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Nko0w9aC"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0C47A1F00A3A;
+	Fri,  7 Aug 2026 02:02:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1786068151;
-	bh=hejGLG/bDSmGP8/+j2ciDqmy0vc8OZTnXglm783OWhY=;
+	d=linux-foundation.org; s=korg; t=1786068153;
+	bh=/6pqlepfpX1T9otEgw9uS/OFhG73w64ve4kjbMZqosg=;
 	h=Date:To:From:Subject;
-	b=JmMABcUQcKk1ppzoH+YuNK6q1V30It5Jl4CdPiSkCU8TlcP8j9eP0vLyQOPQ1m998
-	 KhRI5wj0caSvI/4eeQ+7yzPvR/9N3knLhb+FCuk4q+U7/dMpJc+sEZyuTmrp1zGXHL
-	 1n3IQNvXRalUptMuCDevYNSY13nzes1ygX8C/Dwg=
-Date: Thu, 06 Aug 2026 19:02:31 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,surenb@google.com,stable@vger.kernel.org,shakeel.butt@linux.dev,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,jackmanb@google.com,gourry@gourry.net,david@kernel.org,brendan.jackman@linux.dev,hannes@cmpxchg.org,akpm@linux-foundation.org
+	b=Nko0w9aC3GTzoL3GEjRPZEBcPkZuWiVBCLN1NZymj8iFTSiJaLhERClMEROAspBvU
+	 dpzyDJsS9WR5IrVRGLuoktIlWBDa7C574FFp+nGrVCMQ52AM0+YNcQ+c6/WBpKkTmx
+	 bDUqxxvUX1gp250WqUTbsMZdmXCtXbWhEhRzSGOc=
+Date: Thu, 06 Aug 2026 19:02:32 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,surenb@google.com,stable@vger.kernel.org,shakeel.butt@linux.dev,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,jackmanb@google.com,hannes@cmpxchg.org,gourry@gourry.net,david@kernel.org,brendan.jackman@linux.dev,vbabka@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-compaction-support-non-movable-compaction-for-pageblock-requests.patch removed from -mm tree
-Message-Id: <20260807020231.BE2481F000E9@smtp.kernel.org>
+Subject: [merged mm-stable] mm-page_alloc-move-capture_control-to-the-page-allocator.patch removed from -mm tree
+Message-Id: <20260807020233.0C47A1F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,46 +35,43 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: compaction: support non-movable compaction for pageblock requests
+     Subject: mm: page_alloc: move capture_control to the page allocator
 has been removed from the -mm tree.  Its filename was
-     mm-compaction-support-non-movable-compaction-for-pageblock-requests.patch
+     mm-page_alloc-move-capture_control-to-the-page-allocator.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: compaction: support non-movable compaction for pageblock requests
-Date: Wed, 22 Jul 2026 10:56:45 -0400
+From: "Vlastimil Babka (SUSE)" <vbabka@kernel.org>
+Subject: mm: page_alloc: move capture_control to the page allocator
+Date: Wed, 22 Jul 2026 10:56:46 -0400
 
-While trying to fix a reclaim storm in defrag_mode, I noticed that
-non-movable direct compaction is extremely inefficient.
+The compaction capturing code assumes the allocation request order and
+compaction target order are the same.  That won't be true once defrag_mode
+promotes sub-block allocations to pageblock-order compaction: compaction
+targets the larger order, while capture should remain at the original
+allocation order.
 
-When searching for space to evacuate, compaction only allows blocks of the
-same type as the incoming request.  This is to prevent migratetype
-pollution, where a small non-movable request frees space in a movable
-block and provokes the allocator to fall back and pollute it.
+Move the capture_control to the page allocator and give it its own copies
+of what the page freeing path matches against - zone, migratetype and the
+allocation order - rather than reaching into compaction's live
+compact_control.  __alloc_pages_direct_compact() fills in migratetype and
+order, and installs and hides current->capture_control around the whole
+compaction call; try_to_compact_pages() aims capc->zone at each zone while
+it is being compacted.  compact_zone_order() no longer deals with capture
+at all.
 
-This protection is reasonable on one hand, but the downside is that it
-makes non-movable direct compaction nearly useless: if we get the type
-annotations right, by definition there aren't any movable pages inside the
-non-movable blocks it is allowed to scan.
+Pass the capture_control through try_to_compact_pages() /
+compact_zone_order() in place of the bare struct page **.
 
-With defrag_mode, the goal is the production of whole blocks, which are
-essentially type neutral: __rmqueue_claim() will convert them wholesale on
-alloc.  This makes type mixing and pollution a non-issue.
+No functional change.
 
-Fix the pollution gates to take the requested order into account, and
-allow whole-block requests to scan blocks of other types.
-
-The only exception is CMA blocks.  That type is sticky and these blocks
-cannot be claimed to other types.  Continue to be strict with them, and
-allow only explicit ALLOC_CMA requests and kcompactd to evacuate them.
-
-Link: https://lore.kernel.org/20260722150006.3848560-3-hannes@cmpxchg.org
+Link: https://lore.kernel.org/20260722150006.3848560-4-hannes@cmpxchg.org
 Fixes: e3aa7df331bc ("mm: page_alloc: defrag_mode")
+Signed-off-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
+Co-developed-by: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Reviewed-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
 Reviewed-by: Gregory Price <gourry@gourry.net>
 Cc: Brendan Jackman <brendan.jackman@linux.dev>
 Cc: Brendan Jackman <jackmanb@google.com>
@@ -90,79 +87,218 @@ Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |   46 +++++++++++++++++++++++++++++++++++++++-------
- 1 file changed, 39 insertions(+), 7 deletions(-)
+ include/linux/compaction.h |    3 +-
+ mm/compaction.c            |   50 +++++++++--------------------------
+ mm/internal.h              |    4 ++
+ mm/page_alloc.c            |   45 ++++++++++++++++++++++++++-----
+ 4 files changed, 57 insertions(+), 45 deletions(-)
 
---- a/mm/compaction.c~mm-compaction-support-non-movable-compaction-for-pageblock-requests
+--- a/include/linux/compaction.h~mm-page_alloc-move-capture_control-to-the-page-allocator
++++ a/include/linux/compaction.h
+@@ -58,6 +58,7 @@ enum compact_result {
+ };
+ 
+ struct alloc_context; /* in mm/internal.h */
++struct capture_control; /* in mm/internal.h */
+ 
+ /*
+  * Number of free order-0 pages that should be available above given watermark
+@@ -92,7 +93,7 @@ extern int fragmentation_index(struct zo
+ extern enum compact_result try_to_compact_pages(gfp_t gfp_mask,
+ 		unsigned int order, unsigned int alloc_flags,
+ 		const struct alloc_context *ac, enum compact_priority prio,
+-		struct page **page);
++		struct capture_control *capc);
+ extern void reset_isolation_suitable(pg_data_t *pgdat);
+ extern bool compaction_suitable(struct zone *zone, int order,
+ 				unsigned long watermark, int highest_zoneidx);
+--- a/mm/compaction.c~mm-page_alloc-move-capture_control-to-the-page-allocator
 +++ a/mm/compaction.c
-@@ -1381,12 +1381,44 @@ static bool suitable_migration_source(st
- 	if (pageblock_skip_persistent(page))
+@@ -2800,9 +2800,8 @@ out:
+ static enum compact_result compact_zone_order(struct zone *zone, int order,
+ 		gfp_t gfp_mask, enum compact_priority prio,
+ 		unsigned int alloc_flags, int highest_zoneidx,
+-		struct page **capture)
++		struct capture_control *capc)
+ {
+-	enum compact_result ret;
+ 	struct compact_control cc = {
+ 		.order = order,
+ 		.search_order = order,
+@@ -2817,38 +2816,8 @@ static enum compact_result compact_zone_
+ 		.ignore_skip_hint = (prio == MIN_COMPACT_PRIORITY),
+ 		.ignore_block_suitable = (prio == MIN_COMPACT_PRIORITY)
+ 	};
+-	struct capture_control capc = {
+-		.cc = &cc,
+-		.page = NULL,
+-	};
+-
+-	/*
+-	 * Make sure the structs are really initialized before we expose the
+-	 * capture control, in case we are interrupted and the interrupt handler
+-	 * frees a page.
+-	 */
+-	barrier();
+-	WRITE_ONCE(current->capture_control, &capc);
+-
+-	ret = compact_zone(&cc, &capc);
+-
+-	/*
+-	 * Make sure we hide capture control first before we read the captured
+-	 * page pointer, otherwise an interrupt could free and capture a page
+-	 * and we would leak it.
+-	 */
+-	WRITE_ONCE(current->capture_control, NULL);
+-	*capture = READ_ONCE(capc.page);
+-	/*
+-	 * Technically, it is also possible that compaction is skipped but
+-	 * the page is still captured out of luck(IRQ came and freed the page).
+-	 * Returning COMPACT_SUCCESS in such cases helps in properly accounting
+-	 * the COMPACT[STALL|FAIL] when compaction is skipped.
+-	 */
+-	if (*capture)
+-		ret = COMPACT_SUCCESS;
+ 
+-	return ret;
++	return compact_zone(&cc, capc);
+ }
+ 
+ /**
+@@ -2858,13 +2827,13 @@ static enum compact_result compact_zone_
+  * @alloc_flags: The allocation flags of the current allocation
+  * @ac: The context of current allocation
+  * @prio: Determines how hard direct compaction should try to succeed
+- * @capture: Pointer to free page created by compaction will be stored here
++ * @capc: Free page capture bypassing the freelist
+  *
+  * This is the main entry point for direct page compaction.
+  */
+ enum compact_result try_to_compact_pages(gfp_t gfp_mask, unsigned int order,
+ 		unsigned int alloc_flags, const struct alloc_context *ac,
+-		enum compact_priority prio, struct page **capture)
++		enum compact_priority prio, struct capture_control *capc)
+ {
+ 	struct zoneref *z;
+ 	struct zone *zone;
+@@ -2891,8 +2860,17 @@ enum compact_result try_to_compact_pages
+ 			continue;
+ 		}
+ 
++		WRITE_ONCE(capc->zone, zone);
++
+ 		status = compact_zone_order(zone, order, gfp_mask, prio,
+-				alloc_flags, ac->highest_zoneidx, capture);
++				alloc_flags, ac->highest_zoneidx, capc);
++
++		WRITE_ONCE(capc->zone, NULL);
++
++		/* Stop if a page has been captured */
++		if (READ_ONCE(capc->page))
++			status = COMPACT_SUCCESS;
++
+ 		rc = max(status, rc);
+ 
+ 		/* The allocation should succeed, stop compacting */
+--- a/mm/internal.h~mm-page_alloc-move-capture_control-to-the-page-allocator
++++ a/mm/internal.h
+@@ -868,7 +868,9 @@ struct compact_control {
+  * immediately when one is created during the free path.
+  */
+ struct capture_control {
+-	struct compact_control *cc;
++	struct zone *zone;
++	int migratetype;
++	int order;
+ 	struct page *page;
+ };
+ 
+--- a/mm/page_alloc.c~mm-page_alloc-move-capture_control-to-the-page-allocator
++++ a/mm/page_alloc.c
+@@ -725,14 +725,14 @@ static inline struct capture_control *ta
+ 	return unlikely(capc) &&
+ 		!(current->flags & PF_KTHREAD) &&
+ 		!capc->page &&
+-		capc->cc->zone == zone ? capc : NULL;
++		capc->zone == zone ? capc : NULL;
+ }
+ 
+ static inline bool
+ compaction_capture(struct capture_control *capc, struct page *page,
+ 		   int order, int migratetype)
+ {
+-	if (!capc || order != capc->cc->order)
++	if (!capc || order != capc->order)
  		return false;
  
--	if ((cc->mode != MIGRATE_ASYNC) || !cc->direct_compaction)
-+	/*
-+	 * Background compaction produces blocks for the zone at
-+	 * large, with no particular allocation context. Allow all
-+	 * block types, including CMA.
-+	 */
-+	if (!cc->direct_compaction)
- 		return true;
- 
- 	block_mt = get_pageblock_migratetype(page);
- 
--	if (cc->migratetype == MIGRATE_MOVABLE)
-+	/*
-+	 * CMA pages can only be taken by ALLOC_CMA requests. For anybody
-+	 * else, vacating a CMA block consumes free pages the caller
-+	 * could have used, and produces free pages it cannot.
-+	 */
-+	if (is_migrate_cma(block_mt) && !(cc->alloc_flags & ALLOC_CMA))
-+		return false;
-+
-+	/*
-+	 * Per default, scans are restricted to blocks compatible with
-+	 * the request, to prevent cross-contamination. Once
-+	 * compaction priority escalates to synchronous scans, though,
-+	 * scan all blocks to try to make forward progress. For
-+	 * movable request, this likely helps little: there shouldn't
-+	 * be many migratable pages inside non-movable blocks besides
-+	 * allocator fallbacks. For non-movable requests, this helps a
-+	 * lot, as they can finally scan movable blocks.
-+	 */
-+	if (cc->mode != MIGRATE_ASYNC)
-+		return true;
-+
-+	/*
-+	 * Prevent <pageblock_order unmovable/reclaimable requests from
-+	 * polluting movable blocks through fallbacks. Whole-block production
-+	 * (directly requested, or defrag_mode) is exempt as the allocator
-+	 * claims and converts these.
-+	 */
-+	if (cc->migratetype == MIGRATE_MOVABLE || cc->order >= pageblock_order)
- 		return is_migrate_movable(block_mt);
- 	else
- 		return block_mt == cc->migratetype;
-@@ -1972,12 +2004,12 @@ static unsigned long fast_find_migratebl
- 		return pfn;
- 
- 	/*
--	 * Only allow kcompactd and direct requests for movable pages to
--	 * quickly clear out a MOVABLE pageblock for allocation. This
--	 * reduces the risk that a large movable pageblock is freed for
--	 * an unmovable/reclaimable small allocation.
-+	 * Prevent <pageblock_order unmovable/reclaimable requests from
-+	 * polluting movable blocks through fallbacks. Whole-block production
-+	 * is exempt as the allocator claims and converts these.
+ 	/* Do not accidentally pollute CMA or isolated regions*/
+@@ -748,12 +748,12 @@ compaction_capture(struct capture_contro
+ 	 * have trouble finding a high-order free page.
  	 */
--	if (cc->direct_compaction && cc->migratetype != MIGRATE_MOVABLE)
-+	if (cc->direct_compaction && cc->migratetype != MIGRATE_MOVABLE &&
-+	    cc->order < pageblock_order)
- 		return pfn;
+ 	if (order < pageblock_order && migratetype == MIGRATE_MOVABLE &&
+-	    capc->cc->migratetype != MIGRATE_MOVABLE)
++	    capc->migratetype != MIGRATE_MOVABLE)
+ 		return false;
  
- 	/*
+-	if (migratetype != capc->cc->migratetype)
+-		trace_mm_page_alloc_extfrag(page, capc->cc->order, order,
+-					    capc->cc->migratetype, migratetype);
++	if (migratetype != capc->migratetype)
++		trace_mm_page_alloc_extfrag(page, capc->order, order,
++					    capc->migratetype, migratetype);
+ 
+ 	capc->page = page;
+ 	return true;
+@@ -4143,6 +4143,12 @@ __alloc_pages_direct_compact(gfp_t gfp_m
+ 	struct page *page = NULL;
+ 	unsigned long pflags;
+ 	unsigned int noreclaim_flag;
++	struct capture_control capc = {
++		.zone = NULL,
++		.migratetype = ac->migratetype,
++		.order = order,
++		.page = NULL,
++	};
+ 
+ 	if (!order)
+ 		return NULL;
+@@ -4152,8 +4158,33 @@ __alloc_pages_direct_compact(gfp_t gfp_m
+ 	fs_reclaim_acquire(gfp_mask);
+ 	noreclaim_flag = memalloc_noreclaim_save();
+ 
++	/*
++	 * Make sure the structs are really initialized before we expose the
++	 * capture control, in case we are interrupted and the interrupt handler
++	 * frees a page.
++	 */
++	barrier();
++	WRITE_ONCE(current->capture_control, &capc);
++
+ 	*compact_result = try_to_compact_pages(gfp_mask, order, alloc_flags, ac,
+-								prio, &page);
++							       prio, &capc);
++
++	/*
++	 * Make sure we hide capture control first before we read the captured
++	 * page pointer, otherwise an interrupt could free and capture a page
++	 * and we would leak it.
++	 */
++	WRITE_ONCE(current->capture_control, NULL);
++	page = READ_ONCE(capc.page);
++
++	/*
++	 * Technically, it is also possible that compaction is skipped but
++	 * the page is still captured out of luck(IRQ came and freed the page).
++	 * Returning COMPACT_SUCCESS in such cases helps in properly accounting
++	 * the COMPACT[STALL|FAIL] when compaction is skipped.
++	 */
++	if (page)
++		*compact_result = COMPACT_SUCCESS;
+ 
+ 	memalloc_noreclaim_restore(noreclaim_flag);
+ 	fs_reclaim_release(gfp_mask);
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from vbabka@kernel.org are
 
-mm-mempolicy-fix-automatic-numa-balancing-for-shmem.patch
 
