@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 908FE3B6363
-	for <mm-commits@vger.kernel.org>; Fri,  7 Aug 2026 02:02:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 195083C09F7
+	for <mm-commits@vger.kernel.org>; Fri,  7 Aug 2026 02:02:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786068162; cv=none; b=TyfMAjTRFye+1UgBjLFjgkUumnSowbNTQNKhObDW9w93HG9yHjQRWZu2gWAhcq5KjD6rh7CnwvADTZdWhStqHyi7+mVpO9ntTviUsnQAz98ZxlswofaDpRJ4ySYAdO0G2LpcOjvASiLpmHGVyxtYQ3CsxBRuAz1GOAT7kAjSqyg=
+	t=1786068164; cv=none; b=m60vb89rq6EF+GuMJx4OWxSX588T2omjS2tMEumopB5aNI1ehEyZA1mZylarTPj/tN3lUry2vcqHCjPeqetlrRSHUuOx1bl5Ya1aNGBviIudiAYXplzMbptlf/KPW2xcnfx0/7TbdzTefRIFMJ5EuDr4KHWfVs8nBqhJMF1RBLo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786068162; c=relaxed/simple;
-	bh=a97CpfzJRDYemJVbkvOC+qr53ZQL3jn2Ys0cvuHIlcQ=;
-	h=Date:To:From:Subject:Message-Id; b=X49SCeCTwh2pzn0PkdPK7R62E6I4xfHWKH6aWJ1FY4Nxlq08LSLRKqmueMsIeVm27Bx8BE5ruT7dNBqNQ4lMZCGvk/96+NkGAq51tLNEjRpCI5YXdQpwb+7tyxiplSWaS0Vdi4HvTG0CVozv01WD9B4cfLr9IFZpXzPjsmUWBSY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GjnZVTZ6; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1786068164; c=relaxed/simple;
+	bh=waOX5C3GMHhKu4MW2LwU6x68rPbIMQick6RCtibYjAg=;
+	h=Date:To:From:Subject:Message-Id; b=LhT2irU9+EMTzPWM+dUTRpYaeJJ6IkVX/ITD7EZ++KnjJdDU0kaFpT8R9DkzpvAwFN0HghZ/Ai2zYhp6NKnEtEgcMKJPdcbbMMgOUEDudhSAMU68cTC8upev1jOwfR3Xk3aJngInGpMbnT4TE/wxjY8TlW1ie5w/BDVnkfqiX6M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=z92M+CdB; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GjnZVTZ6"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 658911F000E9;
-	Fri,  7 Aug 2026 02:02:41 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="z92M+CdB"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 836DD1F00A3A;
+	Fri,  7 Aug 2026 02:02:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1786068161;
-	bh=AvDsXi+9OaP7UYOA7KoXkzuDT/wxXiYFSayLu73W6Wk=;
+	d=linux-foundation.org; s=korg; t=1786068162;
+	bh=uh1Nuzmp8Xm9RTYRiEZKBABupfCkwjoPaWPE7+rkqYY=;
 	h=Date:To:From:Subject;
-	b=GjnZVTZ6KAi/FIPjg/zaFjf/r95aQxMWK0Phru1Xe/MI3KuZuA+W78SgufdaT06kw
-	 +RoeE38F8rLwO1U/4HrB2XiQYCyrz7H2LZCU5K70gfpksieN/K+WNoOatL/b1X8O3/
-	 VU0sIhZzsFTsE/WYLQCDBSAE0nOBW526m+EjJz9s=
-Date: Thu, 06 Aug 2026 19:02:41 -0700
-To: mm-commits@vger.kernel.org,xu.xin16@zte.com.cn,david@kernel.org,chengming.zhou@linux.dev,wsw9603@163.com,akpm@linux-foundation.org
+	b=z92M+CdBxHq/V5eJg/rIc7qRcSdi2w47Wc+sqOx2Lu4Hq/SlPNieJ1aJARXvSiyJc
+	 3MVctoTG1Yx2Chkf7UPpJKGo+9T//LaZ8XYn8J4od3ZLYKkCYCKTXgzvRpKZBhOIKe
+	 dIaPSIXaDblTZTM9cUyCp05SBQJnbptob145qd10=
+Date: Thu, 06 Aug 2026 19:02:42 -0700
+To: mm-commits@vger.kernel.org,sj@kernel.org,minchan@kernel.org,corbet@lwn.net,bigeasy@linutronix.de,senozhatsky@chromium.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] ksm-stop-iterating-vmas-when-ksm_test_exit-returns-true.patch removed from -mm tree
-Message-Id: <20260807020241.658911F000E9@smtp.kernel.org>
+Subject: [merged mm-stable] documentation-zram-remove-sections-numbering.patch removed from -mm tree
+Message-Id: <20260807020242.836DD1F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,47 +35,150 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: ksm: stop iterating VMAs when ksm_test_exit returns true
+     Subject: Documentation: zram: remove sections numbering
 has been removed from the -mm tree.  Its filename was
-     ksm-stop-iterating-vmas-when-ksm_test_exit-returns-true.patch
+     documentation-zram-remove-sections-numbering.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Wang Wensheng <wsw9603@163.com>
-Subject: ksm: stop iterating VMAs when ksm_test_exit returns true
-Date: Sun, 26 Jul 2026 21:35:01 +0800
+From: Sergey Senozhatsky <senozhatsky@chromium.org>
+Subject: Documentation: zram: remove sections numbering
+Date: Tue, 28 Jul 2026 11:12:11 +0900
 
-In scan_get_next_rmap_item() the break statement only exits the inner
-while loop, leaving remaining VMAs to be iterated even if ksm_test_exit()
-returns true.  Replace it with a goto statement to avoid the unnecessary
-work.
+Those numbers are difficult to maintain and in fact
+we can refer to sections by their names (in html).
 
-Link: https://lore.kernel.org/20260726133501.504048-1-wsw9603@163.com
-Signed-off-by: Wang Wensheng <wsw9603@163.com>
-Reviewed-by: Xu Xin <xu.xin16@zte.com.cn>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Cc: Chengming Zhou <chengming.zhou@linux.dev>
+Link: https://lore.kernel.org/20260728021229.181627-1-senozhatsky@chromium.org
+Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
+Suggested-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Reviewed-by: SJ Park <sj@kernel.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/ksm.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/admin-guide/blockdev/zram.rst |   40 +++++++++---------
+ 1 file changed, 20 insertions(+), 20 deletions(-)
 
---- a/mm/ksm.c~ksm-stop-iterating-vmas-when-ksm_test_exit-returns-true
-+++ a/mm/ksm.c
-@@ -2700,7 +2700,7 @@ next_mm:
- 			struct folio *folio;
+--- a/Documentation/admin-guide/blockdev/zram.rst~documentation-zram-remove-sections-numbering
++++ a/Documentation/admin-guide/blockdev/zram.rst
+@@ -61,8 +61,8 @@ and, in general case, something like::
  
- 			if (ksm_test_exit(mm))
--				break;
-+				goto no_vmas;
+ should suffice.
  
- 			int found;
+-1) Load Module
+-==============
++Load Module
++===========
+ 
+ ::
+ 
+@@ -73,8 +73,8 @@ This creates 4 devices: /dev/zram{0,1,2,
+ num_devices parameter is optional and tells zram how many devices should be
+ pre-created. Default: 1.
+ 
+-2) Select compression algorithm
+-===============================
++Select compression algorithm
++============================
+ 
+ Using comp_algorithm device attribute one can see available and
+ currently selected (shown in square brackets) compression algorithms,
+@@ -93,8 +93,8 @@ Examples::
+ For the time being, the `comp_algorithm` content shows only compression
+ algorithms that are supported by zram.
+ 
+-3) Set compression algorithm parameters: Optional
+-=================================================
++Set compression algorithm parameters: Optional
++==============================================
+ 
+ Compression algorithms may support specific parameters which can be
+ tweaked for particular dataset. ZRAM has an `algorithm_params` device
+@@ -124,8 +124,8 @@ better the compression ratio, it even ca
+ algorithms), for other algorithms `level` is acceleration level (the higher
+ the value the lower the compression ratio).
+ 
+-4) Set Disksize
+-===============
++Set Disksize
++============
+ 
+ Set disk size by writing the value to sysfs node 'disksize'.
+ The value can be either in bytes or you can use mem suffixes.
+@@ -144,8 +144,8 @@ There is little point creating a zram of
+ since we expect a 2:1 compression ratio. Note that zram uses about 0.1% of the
+ size of the disk when not in use so a huge zram is wasteful.
+ 
+-5) Set memory limit: Optional
+-=============================
++Set memory limit: Optional
++==========================
+ 
+ Set memory limit by writing the value to sysfs node 'mem_limit'.
+ The value can be either in bytes or you can use mem suffixes.
+@@ -163,8 +163,8 @@ Examples::
+ 	# To disable memory limit
+ 	echo 0 > /sys/block/zram0/mem_limit
+ 
+-6) Activate
+-===========
++Activate
++========
+ 
+ ::
+ 
+@@ -174,8 +174,8 @@ Examples::
+ 	mkfs.ext4 /dev/zram1
+ 	mount /dev/zram1 /tmp
+ 
+-7) Add/remove zram devices
+-==========================
++Add/remove zram devices
++=======================
+ 
+ zram provides a control interface, which enables dynamic (on-demand) device
+ addition and removal.
+@@ -194,8 +194,8 @@ execute::
+ 
+ 	echo X > /sys/class/zram-control/hot_remove
+ 
+-8) Stats
+-========
++Stats
++=====
+ 
+ Per-device statistics are exported as various nodes under /sys/block/zram<id>/
+ 
+@@ -296,16 +296,16 @@ a single line of text and contains the f
+ 		Unit: 4K bytes
+  ============== =============================================================
+ 
+-9) Deactivate
+-==============
++Deactivate
++==========
+ 
+ ::
+ 
+ 	swapoff /dev/zram0
+ 	umount /dev/zram1
+ 
+-10) Reset
+-=========
++Reset
++=====
+ 
+ 	Write any positive value to 'reset' sysfs node::
  
 _
 
-Patches currently in -mm which might be from wsw9603@163.com are
+Patches currently in -mm which might be from senozhatsky@chromium.org are
 
+zram-set-default-primary-compressor-in-zram_destroy_comps.patch
+zram-validate-deflate-params.patch
+documentation-zram-correct-algo-parameters-configuration-documentation.patch
+zram-switch-to-unsigned-long-indexing.patch
 
