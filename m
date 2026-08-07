@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7A0A63B992C;
-	Fri,  7 Aug 2026 02:02:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CCFBB3BB117
+	for <mm-commits@vger.kernel.org>; Fri,  7 Aug 2026 02:02:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786068129; cv=none; b=f3KOHBzJ8VqVeBfpCW9tBXPG0ci4F9rWHryIKO8TH02yftpgpPKOPO7sz2EajPaTcB5X9dUGJRqGdf0aF3r62/oKeKe8A0wK4elh4beDbZ0o/9bMjN+Fvs4m3pGNUponUZP3ykO580sHs0fibqgrlfSwNPdnM1MAoJKzhNbXZkw=
+	t=1786068131; cv=none; b=rY5EB3gG6yTO8nCA1J7do39HjFRTZaoOZBOMqueWbuwXF00THd7rXK4vDsbji44lXcFvUV6qJx4tiqRk/n5Fodvcdd+dSx+0VgA4WMWjxZQtFvWKjUezXPHbMy7EGzm51Nl6yZ3nK9dxXO8+4tAb/WJ/7HDwBPvFbHu/UxixFpU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786068129; c=relaxed/simple;
-	bh=9mVDisbw1UCdxYMW5ndA7+tUS1d1gj/Y+UL4qSB3nV4=;
-	h=Date:To:From:Subject:Message-Id; b=V2Ct0WI3IpBm2bwsyCSs2P4Ij4keaHMKY4QDnwT5ZI4C3FJUaSTYQp5ciSjfYBF3P6c35JmO3Lu5IUnMjwTWypNMPrqyvAu/1rW8NOJ9ZTAgExDNUcIbyhVbuZsWrQLrvccYg7bTVY2Q+rzikfL4rbWrDWgW7lTz9SzXM/ZT+qs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GhNBldyT; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1786068131; c=relaxed/simple;
+	bh=IfnCKdDXrZR+8SQS1SuUbDu+M3tYR0/7WX9pIm7weTg=;
+	h=Date:To:From:Subject:Message-Id; b=UpvI2b8sXdBTU11eauugyKf3d5ToNleTjJv6IsKPbuwu1OpSt4NxlWrgFKydPYCpjPlD4XOK1Rrhig/urFiKAqiEg2rkY6/8P8Vb8sIMpFWObcIKRPoXuzVPMm6lbghL4OTDbnrDSOmYyMqmXSbG3l1cYFdmyFUKQ0rcLOZU7cU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WJlgh+tq; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GhNBldyT"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 513251F000E9;
-	Fri,  7 Aug 2026 02:02:07 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WJlgh+tq"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A1DD61F00A3D;
+	Fri,  7 Aug 2026 02:02:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1786068127;
-	bh=/8C1/32h4IHYznYPaPftABoCl+KZZodfC2qhpIFV4Mw=;
+	d=linux-foundation.org; s=korg; t=1786068129;
+	bh=5aAJ2Vfwgj89YxGBZWCsPDwM3vFxsGg+YcpmzkyXGIg=;
 	h=Date:To:From:Subject;
-	b=GhNBldyTEXlh2Y2DlkTUrV5zbM3lgj2Gg6Q2Iqp/+7hJPQAge+ixQ+QVBRH2awKD3
-	 YWdgVnRmjGOmPB/crUKsMPXOgbvpYGovFnmYZ87i6783xWrX16KL/U3MeAuuyU1uOj
-	 QLUK83ig2D6CHSa79quApucUegbyOK49LcKjBt/s=
-Date: Thu, 06 Aug 2026 19:02:06 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
+	b=WJlgh+tqb2hizgZtl91B2ynJmnCk+OdkqsgA7W8gvnInEomvfGNaTqAxyxjmUhA2h
+	 9s+LDseTRzsNYfrzl2JIqImrYW6srNU9aex19gvslgXZqZaMAjH7tNWe+sBu7t34jB
+	 zC5wuaulgmPzFD5IQaDMlJrXTa9H4qe42PExv8p4=
+Date: Thu, 06 Aug 2026 19:02:09 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,xu.xin16@zte.com.cn,willy@infradead.org,wangkefeng.wang@huawei.com,svetly.todorov@memverge.com,sunnanyong@huawei.com,luizcap@redhat.com,linmiaohe@huawei.com,david@kernel.org,chengming.zhou@linux.dev,tujinjiang@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-core-handle-region-split-failure-in-apply_min_nr_regions.patch removed from -mm tree
-Message-Id: <20260807020207.513251F000E9@smtp.kernel.org>
+Subject: [merged mm-stable] fs-stable_page_flags-use-bit_ull-for-kpf-flags.patch removed from -mm tree
+Message-Id: <20260807020209.A1DD61F00A3D@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,110 +35,149 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/damon/core: handle region split failure in apply_min_nr_regions()
+     Subject: fs: stable_page_flags(): use BIT_ULL() for KPF flags
 has been removed from the -mm tree.  Its filename was
-     mm-damon-core-handle-region-split-failure-in-apply_min_nr_regions.patch
+     fs-stable_page_flags-use-bit_ull-for-kpf-flags.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: SJ Park <sj@kernel.org>
-Subject: mm/damon/core: handle region split failure in apply_min_nr_regions()
-Date: Sun, 19 Jul 2026 08:54:40 -0700
+From: Jinjiang Tu <tujinjiang@huawei.com>
+Subject: fs: stable_page_flags(): use BIT_ULL() for KPF flags
+Date: Mon, 20 Jul 2026 11:30:19 +0800
 
-damon_apply_min_nr_regions() repeatedly split each region until its size
-becomes small enough to meet the user-defined low limit of the number of
-regions.  The loop assumes the split operation (damon_split_region_at())
-will always succeed and create the new region.  But the operation could
-silently fail for memory allocation failures, for example.
+Patch series "cleanup for stable_page_flags()", v2.
 
-If such failure happens and the region was the last region, the linked
-list-based next region fetching returns invalid pointer.  As a result,
-invalid memory dereference and corruption could happen.  Even if the
-corner case is handled, it imposes stress to the allocator by trying split
-regions for other targets.  Fix the issue by breaking all the loops for
-any region split failure.
+This series cleans up stable_page_flags(), see the details in the commit
+messages.
 
-This means there could be a min_nr_regions violation.  It will only rarely
-happen since the allocation is arguably too small to fail.  Even if it
-happens, it is only temporal.  damon_apply_min_nr_regions() will be called
-again after the aggregation interval.
 
-The user impact of the issue should be minor, since the allocation is
-arguably too small to fail.  But, it could still theoretically happen, and
-the consequence is very bad.
+This patch (of 3):
 
-This issue was discovered [1] by Sashiko.
+The stable_page_flags() function currently sets page flag bits using "1 <<
+KPF_xxx" for various KPF_* definitions.  KPF_* may be larger than 32,
+which will trigger -Wshift-count-overflow warning.  All KPF_* values
+currently used in "1 << KPF_xxx" are smaller than 33, so no warning is
+triggered with current code.
 
-Link: https://lore.kernel.org/20260719155442.88794-1-sj@kernel.org
-Link: https://lore.kernel.org/20260717011834.120715-1-sj@kernel.org [1]
-Fixes: b1029f29eb1d ("mm/damon/core: split regions for min_nr_regions")
-Signed-off-by: SJ Park <sj@kernel.org>
-Cc: <stable@vger.kernel.org> # 7.1.x
+Replace all occurrences of "1 << KPF_*" with the BIT_ULL() macro to ensure
+all shifts are performed on a 64-bit unsigned type.  This makes the code
+robust, and safe for future extension.
+
+No functional change is intended.
+
+Link: https://lore.kernel.org/20260720033021.4091944-1-tujinjiang@huawei.com
+Link: https://lore.kernel.org/20260720033021.4091944-2-tujinjiang@huawei.com
+Signed-off-by: Jinjiang Tu <tujinjiang@huawei.com>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Acked-by: Zi Yan <ziy@nvidia.com>
+Cc: Chengming Zhou <chengming.zhou@linux.dev>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Luiz Capitulino <luizcap@redhat.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Nanyong Sun <sunnanyong@huawei.com>
+Cc: Svetly Todorov <svetly.todorov@memverge.com>
+Cc: xu xin <xu.xin16@zte.com.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/core.c |   13 +++++++++----
- 1 file changed, 9 insertions(+), 4 deletions(-)
+ fs/proc/page.c |   34 +++++++++++++++++-----------------
+ 1 file changed, 17 insertions(+), 17 deletions(-)
 
---- a/mm/damon/core.c~mm-damon-core-handle-region-split-failure-in-apply_min_nr_regions
-+++ a/mm/damon/core.c
-@@ -1886,7 +1886,7 @@ static unsigned long damon_region_sz_lim
- 	return sz;
- }
+--- a/fs/proc/page.c~fs-stable_page_flags-use-bit_ull-for-kpf-flags
++++ a/fs/proc/page.c
+@@ -157,7 +157,7 @@ u64 stable_page_flags(const struct page
+ 	 * it differentiates a memory hole from a page with no flags
+ 	 */
+ 	if (!page)
+-		return 1 << KPF_NOPAGE;
++		return BIT_ULL(KPF_NOPAGE);
  
--static void damon_split_region_at(struct damon_target *t,
-+static int damon_split_region_at(struct damon_target *t,
- 				  struct damon_region *r, unsigned long sz_r);
- 
- /*
-@@ -1912,11 +1912,13 @@ static unsigned long damon_apply_min_nr_
- 	damon_for_each_target(t, ctx) {
- 		damon_for_each_region_safe(r, next, t) {
- 			while (damon_sz_region(r) > max_region_sz) {
--				damon_split_region_at(t, r, max_region_sz);
-+				if (damon_split_region_at(t, r, max_region_sz))
-+					goto out;
- 				r = damon_next_region(r);
- 			}
- 		}
+ 	snapshot_page(&ps, page);
+ 	folio = &ps.folio_snapshot;
+@@ -170,11 +170,11 @@ u64 stable_page_flags(const struct page
+ 	 * pseudo flags for the well known (anonymous) memory mapped pages
+ 	 */
+ 	if (folio_mapped(folio))
+-		u |= 1 << KPF_MMAP;
++		u |= BIT_ULL(KPF_MMAP);
+ 	if (is_anon) {
+-		u |= 1 << KPF_ANON;
++		u |= BIT_ULL(KPF_ANON);
+ 		if ((mapping & FOLIO_MAPPING_FLAGS) == FOLIO_MAPPING_KSM)
+-			u |= 1 << KPF_KSM;
++			u |= BIT_ULL(KPF_KSM);
  	}
-+out:
- 	return max_region_sz;
- }
  
-@@ -3411,8 +3413,10 @@ static void damon_verify_split_region_at
-  *
-  * r		the region to be split
-  * sz_r		size of the first sub-region that will be made
-+ *
-+ * Return: 0 on success, negative error code otherwise.
-  */
--static void damon_split_region_at(struct damon_target *t,
-+static int damon_split_region_at(struct damon_target *t,
- 				  struct damon_region *r, unsigned long sz_r)
- {
- 	struct damon_region *new;
-@@ -3420,7 +3424,7 @@ static void damon_split_region_at(struct
- 	damon_verify_split_region_at(r, sz_r);
- 	new = damon_new_region(r->ar.start + sz_r, r->ar.end);
- 	if (!new)
--		return;
-+		return -ENOMEM;
+ 	/*
+@@ -184,35 +184,35 @@ u64 stable_page_flags(const struct page
+ 	if (ps.idx == 0)
+ 		u |= kpf_copy_bit(k, KPF_COMPOUND_HEAD, PG_head);
+ 	else
+-		u |= 1 << KPF_COMPOUND_TAIL;
++		u |= BIT_ULL(KPF_COMPOUND_TAIL);
+ 	if (folio_test_hugetlb(folio))
+-		u |= 1 << KPF_HUGE;
++		u |= BIT_ULL(KPF_HUGE);
+ 	else if (folio_test_large(folio) &&
+ 	         folio_test_large_rmappable(folio)) {
+ 		/* Note: we indicate any THPs here, not just PMD-sized ones */
+-		u |= 1 << KPF_THP;
++		u |= BIT_ULL(KPF_THP);
+ 	} else if (is_huge_zero_pfn(ps.pfn)) {
+-		u |= 1 << KPF_ZERO_PAGE;
+-		u |= 1 << KPF_THP;
++		u |= BIT_ULL(KPF_ZERO_PAGE);
++		u |= BIT_ULL(KPF_THP);
+ 	} else if (is_zero_pfn(ps.pfn)) {
+-		u |= 1 << KPF_ZERO_PAGE;
++		u |= BIT_ULL(KPF_ZERO_PAGE);
+ 	}
  
- 	r->ar.end = new->ar.start;
+ 	if (ps.flags & PAGE_SNAPSHOT_PG_BUDDY)
+-		u |= 1 << KPF_BUDDY;
++		u |= BIT_ULL(KPF_BUDDY);
  
-@@ -3433,6 +3437,7 @@ static void damon_split_region_at(struct
- 			sizeof(r->last_probe_hits));
+ 	if (folio_test_offline(folio))
+-		u |= 1 << KPF_OFFLINE;
++		u |= BIT_ULL(KPF_OFFLINE);
+ 	if (folio_test_pgtable(folio))
+-		u |= 1 << KPF_PGTABLE;
++		u |= BIT_ULL(KPF_PGTABLE);
+ 	if (folio_test_slab(folio))
+-		u |= 1 << KPF_SLAB;
++		u |= BIT_ULL(KPF_SLAB);
  
- 	damon_insert_region(new, r, damon_next_region(r), t);
-+	return 0;
- }
+ #if defined(CONFIG_PAGE_IDLE_FLAG) && defined(CONFIG_64BIT)
+ 	u |= kpf_copy_bit(k, KPF_IDLE,          PG_idle);
+ #else
+ 	if (ps.flags & PAGE_SNAPSHOT_PG_IDLE)
+-		u |= 1 << KPF_IDLE;
++		u |= BIT_ULL(KPF_IDLE);
+ #endif
  
- /* Split every region in the given target into 'nr_subs' regions */
+ 	u |= kpf_copy_bit(k, KPF_LOCKED,	PG_locked);
+@@ -227,14 +227,14 @@ u64 stable_page_flags(const struct page
+ 
+ #define SWAPCACHE ((1 << PG_swapbacked) | (1 << PG_swapcache))
+ 	if ((k & SWAPCACHE) == SWAPCACHE)
+-		u |= 1 << KPF_SWAPCACHE;
++		u |= BIT_ULL(KPF_SWAPCACHE);
+ 	u |= kpf_copy_bit(k, KPF_SWAPBACKED,	PG_swapbacked);
+ 
+ 	u |= kpf_copy_bit(k, KPF_UNEVICTABLE,	PG_unevictable);
+ 	u |= kpf_copy_bit(k, KPF_MLOCKED,	PG_mlocked);
+ 
+ #ifdef CONFIG_MEMORY_FAILURE
+-	if (u & (1 << KPF_HUGE))
++	if (u & BIT_ULL(KPF_HUGE))
+ 		u |= kpf_copy_bit(k, KPF_HWPOISON,	PG_hwpoison);
+ 	else
+ 		u |= kpf_copy_bit(ps.page_snapshot.flags.f, KPF_HWPOISON, PG_hwpoison);
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from tujinjiang@huawei.com are
 
 
