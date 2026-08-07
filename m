@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ED34E38E8B8;
-	Fri,  7 Aug 2026 02:01:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4BAED392836
+	for <mm-commits@vger.kernel.org>; Fri,  7 Aug 2026 02:01:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786068095; cv=none; b=lAO7890r1rHYS0BXRq6qCV8+JIOybVKB4GtPcj77JQy/V31YdXz+DuMYn+MM/IJe9Ru7//gimgeSIZsjxFSTTPEhouoCqAlNcrutejBoaPWeLXNChokehtXEcTwXkW3zOkc3Kavfjtssx0OcxSZoTbWFNYtHOgi2UDzJdB7mzWc=
+	t=1786068095; cv=none; b=PiOKzS1W/wfo5OIQxXfltlPm2b46Tb2Xsguw+dy/g31nqbxYCfgvq4Zj9wtkJDHd3Am9heR7XyRj+w6PP0FMDMltYHeCpt8Uns+3F8PZLx8d3KPIEl9wOHwB1V2MgoByY+na+6P/DlEAN9QJoZIn8OGCWg7X27d4QTB11QN31OA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1786068095; c=relaxed/simple;
-	bh=nphmidJDXxVgBGgWwdZKYNbIh8jbU6ov7HFkWBOXf4s=;
-	h=Date:To:From:Subject:Message-Id; b=FVmstRRlnmevKe8fOu3znem4sJ90v4iFA9eA/qm91ouswcgvsO57C+sWs/5FjFJ1oKacJiXTEYiQCQks8NXww/YegZxZ+IZBPqZU8nsjHOnhRXxri0fmW3xCM7kZJbNYnw/cnNbuLR90e9rUFKvUaXAQgT6PN3/owCX2bRb++xc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QPha8rFt; arc=none smtp.client-ip=100.103.45.18
+	bh=7E2TeGl9TmPV1Pmj5vcN1WnXmQejq4/aYWQYdvf1950=;
+	h=Date:To:From:Subject:Message-Id; b=u2izOYJdOm9J0IGx0XQd2oyPyp+zTFktm6vkupJw7wsgK5DqMGc+gu6A/KQokEZKxRibgT3rzh4hGOmqmo6pqxE2/0ivJso1M0NvLhIWunYarLsiuuvZQply850vYAulzxim97zybo2KcPCNBvt5zEpp3YVQUgNQ0oFzrBg/sNw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ljyZduf6; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QPha8rFt"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C411F1F000E9;
-	Fri,  7 Aug 2026 02:01:26 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ljyZduf6"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D44101F00AC4;
+	Fri,  7 Aug 2026 02:01:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1786068086;
-	bh=4v8vRAw4x8AwT/fz6p44tTbg73ENQvgCJro7Rlt6JeU=;
+	d=linux-foundation.org; s=korg; t=1786068091;
+	bh=4l9mzr3c0Y76Idxri3Z8w691fecxnvJXo2z1BYz8AfU=;
 	h=Date:To:From:Subject;
-	b=QPha8rFtoH6MPMUI4Cd3CnkaBAT//BuV/LdA9asiR+VRHwW8TzpGPq/qNSgQi2JD2
-	 kDWReUVHWckPapLTYpp9VY81Bqm/EaA8eEgza+yjwkFz8n5hYaP09zE53XvW7UJ81L
-	 KO3G/STowk2HZIP280pviZlRuNAlNRozvpJJ3d+M=
-Date: Thu, 06 Aug 2026 19:01:26 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,surenb@google.com,stable@vger.kernel.org,shakeel.butt@linux.dev,rostedt@goodmis.org,mhocko@suse.com,harry@kernel.org,hannes@cmpxchg.org,brendan.jackman@linux.dev,bigeasy@linutronix.de,ast@kernel.org,jackmanb@google.com,akpm@linux-foundation.org
+	b=ljyZduf6gJ1uoXAdQlHGg8l3Pw3OerHL3LqTF9P4MmCSa8yJMrOvo9+XSjIMtKTsD
+	 hvKNezMVBR+nUfEffjEWa5u4E08x3m0XA8cFCpWJdEdKVlrQWCSqSv2pQzcv/v9MXx
+	 oXkQEnXwC+f4hwMr+HTBkAKkwZNHmvVbWARUkRAs=
+Date: Thu, 06 Aug 2026 19:01:31 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,tj@kernel.org,surenb@google.com,rppt@kernel.org,rostedt@goodmis.org,mkoutny@suse.com,mhocko@suse.com,longman@redhat.com,ljs@kernel.org,liam@infradead.org,hannes@cmpxchg.org,david@kernel.org,brendan.jackman@linux.dev,bigeasy@linutronix.de,jackmanb@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-page_alloc-dont-spin_trylock-when-disallowed-in-free_one_page.patch removed from -mm tree
-Message-Id: <20260807020126.C411F1F000E9@smtp.kernel.org>
+Subject: [merged mm-stable] mm-page_alloc-remove-a-couple-of-vm_bug_onst.patch removed from -mm tree
+Message-Id: <20260807020131.D44101F00AC4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,62 +35,69 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/page_alloc: don't spin_trylock() when disallowed in free_one_page()
+     Subject: mm/page_alloc: remove a couple of VM_BUG_ON()st
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-dont-spin_trylock-when-disallowed-in-free_one_page.patch
+     mm-page_alloc-remove-a-couple-of-vm_bug_onst.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Brendan Jackman <jackmanb@google.com>
-Subject: mm/page_alloc: don't spin_trylock() when disallowed in free_one_page()
-Date: Wed, 15 Jul 2026 09:03:59 +0000
+Subject: mm/page_alloc: remove a couple of VM_BUG_ON()st
+Date: Wed, 15 Jul 2026 11:03:21 +0000
 
-__free_frozen_pages() checks can_spin_trylock() before entering into the
-main free_frozen_page_commit()/free_one_page() path, but before this it
-can get to free_one_page() via the !pcp_allowed_order() and
-MIGRATE_ISOLATE paths.
+VM_BUG_ON() is out of favour and on the way to removal, since I recently
+touched alloc_pages_node_noprof() I am removing that invocation, and also
+removing the __folio_alloc_node_noprof() one for consistency.  If this
+precondition is violated, the system will soon crash anyway.
 
-The !pcp_allowed_order() path depends on usage by callers so might not be
-possible in practice.  The MIGRATE_ISOLATE path probably means kernel
-crashes and privilege escalation if anyone ever did memory hotplug and BPF
-tracing on a PREEMPT_RT or !SMP build.
-
-Link: https://lore.kernel.org/20260715-alloc-nolock-fixes-v1-2-fadc49952dda@google.com
+Link: https://lore.kernel.org/20260715-spin-trylock-followup-v3-4-fc4d246f705d@google.com
 Signed-off-by: Brendan Jackman <jackmanb@google.com>
-Fixes: 8c57b687e833 ("mm, bpf: Introduce free_pages_nolock()")
-Reported-by: sashiko-bot@kernel.org
-Closes: https://sashiko.dev/#/patchset/20260710-spin-trylock-followup-v1-0-affb5fe5ed00%40google.com?part=2
+Suggested-by: Zi Yan <ziy@nvidia.com>
+Link: https://lore.kernel.org/all/7F866265-3F2E-4765-B9D4-9AB898A9C4AC@nvidia.com/
+Acked-by: Zi Yan <ziy@nvidia.com>
 Reviewed-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
-Reviewed-by: Harry Yoo (Oracle) <harry@kernel.org>
 Cc: Brendan Jackman <brendan.jackman@linux.dev>
-Cc: Alexei Starovoitov <ast@kernel.org>
+Cc: David Hildenbrand <david@kernel.org>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
 Cc: Michal Hocko <mhocko@suse.com>
+Cc: Michal Koutný <mkoutny@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
 Cc: Steven Rostedt <rostedt@goodmis.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Zi Yan <ziy@nvidia.com>
-Cc: <stable@vger.kernel.org>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Waiman Long <longman@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/gfp.h |    1 -
+ mm/page_alloc.c     |    1 -
+ 2 files changed, 2 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-dont-spin_trylock-when-disallowed-in-free_one_page
-+++ a/mm/page_alloc.c
-@@ -1559,7 +1559,7 @@ static void free_one_page(struct zone *z
- 	unsigned long flags;
+--- a/include/linux/gfp.h~mm-page_alloc-remove-a-couple-of-vm_bug_onst
++++ a/include/linux/gfp.h
+@@ -255,7 +255,6 @@ static inline void warn_if_node_offline(
+ static inline
+ struct folio *__folio_alloc_node_noprof(gfp_t gfp, unsigned int order, int nid)
+ {
+-	VM_BUG_ON(nid < 0 || nid >= MAX_NUMNODES);
+ 	warn_if_node_offline(nid, gfp);
  
- 	if (unlikely(fpi_flags & FPI_TRYLOCK)) {
--		if (!spin_trylock_irqsave(&zone->lock, flags)) {
-+		if (!can_spin_trylock() || !spin_trylock_irqsave(&zone->lock, flags)) {
- 			add_page_to_zone_llist(zone, page, order);
- 			return;
- 		}
+ 	return __folio_alloc_noprof(gfp, order, nid, NULL);
+--- a/mm/page_alloc.c~mm-page_alloc-remove-a-couple-of-vm_bug_onst
++++ a/mm/page_alloc.c
+@@ -5426,7 +5426,6 @@ struct page *alloc_pages_node_noprof(int
+ 	if (nid == NUMA_NO_NODE)
+ 		nid = numa_mem_id();
+ 
+-	VM_BUG_ON(nid < 0 || nid >= MAX_NUMNODES);
+ 	warn_if_node_offline(nid, gfp_mask);
+ 
+ 	return __alloc_pages_noprof(gfp_mask, order, nid, NULL, ALLOC_DEFAULT);
 _
 
 Patches currently in -mm which might be from jackmanb@google.com are
