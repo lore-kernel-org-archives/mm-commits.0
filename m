@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AC9A02E282B
-	for <mm-commits@vger.kernel.org>; Sat,  8 Aug 2026 06:16:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E2B0737D124
+	for <mm-commits@vger.kernel.org>; Sat,  8 Aug 2026 06:29:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786169773; cv=none; b=CulfXNt8XqduE12vEohOSO5bU2wzNGeYrpbFM8qVCQYdOgy1GalwlVmistaQ+/7edNkde0VTcl4rGUG5fUMeVyFMYP6TSsUkweMmcp74zjAiqD8dx95xlOgJJDDfR69lJB0hR/AA4hw6I+gyRK833P20XyZU1ELya5RkiaGP5cw=
+	t=1786170584; cv=none; b=lHIzB5pX4yxLu3M3BRbTTGPCHaZu0J21QYdC2CPsf/6/yxODJ/EpaQdzeGYVfd++yBe6DT4S+FddQSCJh0EoOcl0DDJ0Xd4TNvFogIQhMnbZM2jD6yfk2o88xzYr91FnzX1xSBizVztd59DHOmUC3bqm3XiP3lYXHnU/O0EmCQU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786169773; c=relaxed/simple;
-	bh=8nsf+HHX8IJY7Vu2FkzcML0HO+PHRtXe2Vy29CRN69k=;
-	h=Date:To:From:Subject:Message-Id; b=QnYMUBNhvStP5PG+Q0/GiaFvaAchYFROVqAnQM1C0IJjzbQgwOeduxAeG2UL2CS7klX0XyXdQraJuWXmWMvqkYHLjyPSYuw3u9djzOFapP7oU6xP2y+itxP/Co7soSI8akfDacN+0CqKd2zUltMG3gFZOcbS+r4CF9Iy7OVLYvc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=onBCtmvZ; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1786170584; c=relaxed/simple;
+	bh=0lOg/+2wk1R8tJD/azIzUSHMLuQTTRFstDpmrZ/48HY=;
+	h=Date:To:From:Subject:Message-Id; b=UA612Widivlx6iM6VXR/EbIXOrWmfhkdq8u0eNKtu5kVBjY5zGfmZQPvoiFc4QlpsFiFMpdUfQyuccD5Zl4Q3lxlLNSPpwNK3onbJLiKC1ng/Np9DcLrfzePdFLxA3uU/jWqF0noqjCOHe1IX+7LB2UuGS7nt/5qd0TlTxVBX3k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dZrjdBEa; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="onBCtmvZ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4BF0B1F00A3A;
-	Sat,  8 Aug 2026 06:16:11 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dZrjdBEa"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C56291F000E9;
+	Sat,  8 Aug 2026 06:29:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1786169771;
-	bh=ZB92Zi9U2SJd1gc2vz0zVuWTITBNQRt9ixy1vWVwNHk=;
+	d=linux-foundation.org; s=korg; t=1786170581;
+	bh=VtchjeKIMKlkv4bEIMJ+SJ0F40c8aYertimb9ykqMs0=;
 	h=Date:To:From:Subject;
-	b=onBCtmvZeNJuxd/KnpwOIpPCYKmYcwde4s7w/+GbxnJnba6MKPKLFISxr9WcMYvJq
-	 QBlljA/BwWQvJMA7tjPTQdAs3ihsnFLJXPFaEq5wk2n8XWL9ULqyKSqTod+EJuEzHc
-	 yEWC3pfzt7JmWC3I1YGqtMRpdzrItogaQNqhFmxQ=
-Date: Fri, 07 Aug 2026 23:16:10 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,yuanchu@google.com,willy@infradead.org,weixugc@google.com,vbabka@suse.cz,surenb@google.com,sj@kernel.org,rppt@kernel.org,pabeni@redhat.com,mhocko@suse.com,liam@infradead.org,lance.yang@linux.dev,kuba@kernel.org,jackmanb@google.com,horms@kernel.org,hannes@cmpxchg.org,edumazet@google.com,david@kernel.org,davem@davemloft.net,brendan.jackman@linux.dev,axelrasmussen@google.com,realwujing@gmail.com,akpm@linux-foundation.org
+	b=dZrjdBEaAltjn89LOw2Oi7QzXoZcG2fjQDcRyp4sIVm4zbTdDReqw277OIrmscQzq
+	 XdUZYC9ilXzw1IILhiZIZ43dJ5iXVAMfejeHz3hEKO4Z2veHd+EYgcr9Ys54XqYXXN
+	 /5S2vI7t5+xDLaeaFLk9e9qt6IMBke4UOOzMlG7U=
+Date: Fri, 07 Aug 2026 23:29:41 -0700
+To: mm-commits@vger.kernel.org,tj@kernel.org,shuah@kernel.org,nphamcs@gmail.com,mkoutny@suse.com,hannes@cmpxchg.org,chengming.zhou@linux.dev,anshuman.khandual@arm.com,akpm@linux-foundation.org,wfelipe@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [obsolete] mm-page_alloc-boost-watermarks-on-atomic-allocation-failure.patch removed from -mm tree
-Message-Id: <20260808061611.4BF0B1F00A3A@smtp.kernel.org>
+Subject: [to-be-updated] selftests-cgroup-test_zswap-skip-test_no_kmem_bypass-if-debugfs-is-unavailable.patch removed from -mm tree
+Message-Id: <20260808062941.C56291F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,231 +35,78 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/page_alloc: boost watermarks on atomic allocation failure
+     Subject: selftests/cgroup: test_zswap: skip test_no_kmem_bypass if debugfs is unavailable
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-boost-watermarks-on-atomic-allocation-failure.patch
+     selftests-cgroup-test_zswap-skip-test_no_kmem_bypass-if-debugfs-is-unavailable.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Qiliang Yuan <realwujing@gmail.com>
-Subject: mm/page_alloc: boost watermarks on atomic allocation failure
-Date: Mon, 20 Jul 2026 16:15:48 +0800
+From: Wilson Felipe Pereira <wfelipe@google.com>
+Subject: selftests/cgroup: test_zswap: skip test_no_kmem_bypass if debugfs is unavailable
+Date: Sat, 1 Aug 2026 04:12:46 +0000
 
-Atomic allocations (GFP_ATOMIC) are prone to failure under heavy memory
-pressure as they cannot enter direct reclaim.
+test_no_kmem_bypass() needs to read /sys/kernel/debug/zswap/stored_pages
+via get_zswap_stored_pages() to verify that compressed pages are charged
+to the memcg.
 
-Handle these failures by introducing a watermark boost mechanism for
-atomic requests. Refactor boost_watermark() using an internal helper to
-support both fragmentation and atomic paths. Apply zone-proportional
-boosts (~0.1% of managed pages) for atomic allocations, while
-decoupling it from watermark_boost_factor.
+When running in an environment where debugfs is not mounted or
+CONFIG_DEBUG_FS is disabled, get_zswap_stored_pages() fails, causing the
+loop to terminate early and report a false negative (KSFT_FAIL).
 
-Implement boost_zones_for_atomic() to iterate through and boost all
-eligible zones in the zonelist, respecting nodemasks. Use a per-zone
-1-second debounce timer via last_boost_jiffies to prevent excessive
-boosting. Check and update the debounce timestamp under zone->lock,
-alongside the watermark modification, so concurrent callers on other
-CPUs cannot all observe a stale timestamp and pile onto the same zone
-within the same window. Verify with lockdep. Integrate the mechanism
-into the page allocation slowpath specifically for order-0 GFP_ATOMIC
-requests.
+Selftests should not fail when if debugfs is unavailable, and it should
+print a message when it is skipped.
 
-This approach reuses existing infrastructure and ensures emergency
-reserves even if fragmentation boosting is disabled.
-
-The mechanism is bounded by construction. Each zone accepts at most
-one boost per second (the debounce timer), and zone->watermark_boost
-is clamped to zone->_watermark[WMARK_HIGH] / 10 regardless of how
-long the atomic pressure lasts or how many zones are boosted in a
-single slowpath call. Worst case, sustained atomic pressure across
-all zones in a zonelist adds at most one extra kswapd wakeup per zone
-per second, and the boost on any single zone cannot exceed 10% of
-that zone's high watermark. It cannot run away or starve unrelated
-allocations beyond that ceiling.
-
-This failure signature keeps recurring in production: a host running
-a downstream 4.19 kernel logged 144 order-0 GFP_ATOMIC failures over a
-4h15m window, all through the same NIC driver receive softirq path,
-across several unrelated network-facing services on the box. This
-confirms the underlying problem is real and ongoing. It does not by
-itself measure this patch's effect, since the fix has not been
-deployed on that fleet yet.
-
-Allocation failure logs:
-[38535644.718700] node 0: slabs: 1031, objs: 43328, free: 0
-[38535644.725059] node 1: slabs: 339, objs: 17616, free: 317
-[38535645.428345] SLUB: Unable to allocate memory on node -1, gfp=0x480020(GFP_ATOMIC)
-[38535645.436888] cache: skbuff_head_cache, object size: 232, buffer size: 256, default order: 2, min order: 0
-[38535645.447664] node 0: slabs: 940, objs: 40864, free: 144
-[38535645.454026] node 1: slabs: 322, objs: 19168, free: 383
-[38535645.556122] SLUB: Unable to allocate memory on node -1, gfp=0x480020(GFP_ATOMIC)
-[38535645.564576] cache: skbuff_head_cache, object size: 232, buffer size: 256, default order: 2, min order: 0
-[38535649.655523] warn_alloc: 59 callbacks suppressed
-[38535649.655527] swapper/100: page allocation failure: order:0, mode:0x480020(GFP_ATOMIC), nodemask=(null)
-[38535649.671692] swapper/100 cpuset=/ mems_allowed=0-1
-
-Link: https://lore.kernel.org/20260720-feat-mm-page_alloc-v11-v11-1-7376b02c27b3@gmail.com
-Signed-off-by: Qiliang Yuan <realwujing@gmail.com>
-Signed-off-by: Jing Wu <realwujing@gmail.com>
-Acked-by: SeongJae Park <sj@kernel.org>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Brendan Jackman <jackmanb@google.com>
-Cc: Brendan Jackman <brendan.jackman@linux.dev>
-Cc: David Hildenbrand <david@kernel.org>
+Link: https://lore.kernel.org/20260801041255.752039-1-wfelipe@google.com
+Signed-off-by: Wilson Felipe Pereira <wfelipe@google.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Chengming Zhou <chengming.zhou@linux.dev>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Lance Yang <lance.yang@linux.dev>
-Cc: Liam Howlett <liam@infradead.org>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: SeongJae Park <sj@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Wei Xu <weixugc@google.com>
-Cc: Yuanchu Xie <yuanchu@google.com>
-Cc: Zi Yan <ziy@nvidia.com>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Eric Dumazet <edumazet@google.com>
-Cc: Jakub Kicinski <kuba@kernel.org>
-Cc: Paolo Abeni <pabeni@redhat.com>
-Cc: Simon Horman <horms@kernel.org>
+Cc: Michal Koutný <mkoutny@suse.com>
+Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |    1 
- mm/page_alloc.c        |   80 ++++++++++++++++++++++++++++++++++-----
- 2 files changed, 72 insertions(+), 9 deletions(-)
+ tools/testing/selftests/cgroup/test_zswap.c |   10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
 
---- a/include/linux/mmzone.h~mm-page_alloc-boost-watermarks-on-atomic-allocation-failure
-+++ a/include/linux/mmzone.h
-@@ -982,6 +982,7 @@ struct zone {
- 	/* zone watermarks, access with *_wmark_pages(zone) macros */
- 	unsigned long _watermark[NR_WMARK];
- 	unsigned long watermark_boost;
-+	unsigned long last_boost_jiffies;
+--- a/tools/testing/selftests/cgroup/test_zswap.c~selftests-cgroup-test_zswap-skip-test_no_kmem_bypass-if-debugfs-is-unavailable
++++ a/tools/testing/selftests/cgroup/test_zswap.c
+@@ -566,12 +566,19 @@ static int test_no_kmem_bypass(const cha
+ 	int child_status;
+ 	char *test_group = NULL;
+ 	pid_t child_pid;
++	size_t stored_pages;
  
- 	unsigned long nr_reserved_highatomic;
- 	unsigned long nr_free_highatomic;
---- a/mm/page_alloc.c~mm-page_alloc-boost-watermarks-on-atomic-allocation-failure
-+++ a/mm/page_alloc.c
-@@ -2172,12 +2172,15 @@ bool pageblock_unisolate_and_move_free_p
- 
- #endif /* CONFIG_MEMORY_ISOLATION */
- 
--static inline bool boost_watermark(struct zone *zone)
-+/*
-+ * Helper for boosting watermarks. Called with zone->lock held.
-+ * Use max_boost to limit the boost to a percentage of the high watermark.
-+ */
-+static inline bool __boost_watermark(struct zone *zone, unsigned long amount,
-+				     unsigned long max_boost)
- {
--	unsigned long max_boost;
-+	lockdep_assert_held(&zone->lock);
- 
--	if (!watermark_boost_factor)
--		return false;
- 	/*
- 	 * Don't bother in zones that are unlikely to produce results.
- 	 * On small machines, including kdump capture kernels running
-@@ -2187,9 +2190,6 @@ static inline bool boost_watermark(struc
- 	if ((pageblock_nr_pages * 4) > zone_managed_pages(zone))
- 		return false;
- 
--	max_boost = mult_frac(zone->_watermark[WMARK_HIGH],
--			watermark_boost_factor, 10000);
--
- 	/*
- 	 * high watermark may be uninitialised if fragmentation occurs
- 	 * very early in boot so do not boost. We do not fall
-@@ -2203,13 +2203,71 @@ static inline bool boost_watermark(struc
- 
- 	max_boost = max(pageblock_nr_pages, max_boost);
- 
--	zone->watermark_boost = min(zone->watermark_boost + pageblock_nr_pages,
--		max_boost);
-+	zone->watermark_boost = min(zone->watermark_boost + amount,
-+				    max_boost);
- 
- 	return true;
- }
- 
- /*
-+ * Boost watermarks to increase reclaim pressure when fragmentation occurs
-+ * and we fall back to other migratetypes.
-+ */
-+static inline bool boost_watermark(struct zone *zone)
-+{
-+	if (!watermark_boost_factor)
-+		return false;
-+
-+	return __boost_watermark(zone, pageblock_nr_pages,
-+			mult_frac(zone->_watermark[WMARK_HIGH],
-+				  watermark_boost_factor, 10000));
-+}
-+
-+/*
-+ * Boost watermarks by ~0.1% of zone size on atomic allocation pressure.
-+ * This provides zone-proportional safety buffers: ~1MB per 1GB of zone
-+ * size. Max boost ceiling is fixed at ~10% of high watermark.
-+ *
-+ * This emergency reserve is independent of watermark_boost_factor.
-+ */
-+static inline bool boost_watermark_atomic(struct zone *zone)
-+{
-+	return __boost_watermark(zone,
-+			max(pageblock_nr_pages, zone_managed_pages(zone) / 1000),
-+			zone->_watermark[WMARK_HIGH] / 10);
-+}
-+
-+static void boost_zones_for_atomic(struct alloc_context *ac, gfp_t gfp_mask)
-+{
-+	struct zoneref *z;
-+	struct zone *zone;
-+	unsigned long now = jiffies;
-+
-+	for_each_zone_zonelist_nodemask(zone, z, ac->zonelist,
-+					ac->highest_zoneidx, ac->nodemask) {
-+		unsigned long flags;
-+		bool should_wake = false;
-+
-+		/*
-+		 * Check and update the per-zone debounce timestamp under
-+		 * zone->lock so concurrent callers on other CPUs (e.g. a
-+		 * multi-queue NIC spreading GFP_ATOMIC allocations across
-+		 * several softirqs) cannot all observe a stale timestamp
-+		 * and pile onto the same zone within the same window.
-+		 */
-+		spin_lock_irqsave(&zone->lock, flags);
-+		if (time_after(now, zone->last_boost_jiffies + HZ)) {
-+			zone->last_boost_jiffies = now;
-+			should_wake = boost_watermark_atomic(zone);
-+		}
-+		spin_unlock_irqrestore(&zone->lock, flags);
-+
-+		if (should_wake)
-+			wakeup_kswapd(zone, gfp_mask, 0, ac->highest_zoneidx);
+ 	/* Read sys info and compute test values accordingly */
+ 	if (sysinfo(&sys_info) != 0)
+ 		return KSFT_FAIL;
+-	if (sys_info.totalram > 5000000000)
++	if (sys_info.totalram > 5000000000) {
++		ksft_print_msg("requires less than 5000000000 total ram\n");
+ 		return KSFT_SKIP;
 +	}
-+}
-+
-+/*
-  * When we are falling back to another migratetype during allocation, should we
-  * try to claim an entire block to satisfy further allocations, instead of
-  * polluting multiple pageblocks?
-@@ -4824,6 +4882,10 @@ restart:
- 	cpuset_mems_cookie = read_mems_allowed_begin();
- 	zonelist_iter_cookie = zonelist_iter_begin();
++	if (get_zswap_stored_pages(&stored_pages)) {
++		ksft_print_msg("debugfs at /sys/kernel/debug is required\n");
++		return KSFT_SKIP;
++	}
+ 	values = mmap(0, sizeof(struct no_kmem_bypass_child_args), PROT_READ |
+ 			PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
+ 	if (values == MAP_FAILED)
+@@ -604,7 +611,6 @@ static int test_no_kmem_bypass(const cha
+ 	/* Try to wakeup kswapd and let it push child memory to zswap */
+ 	set_min_free_kb(min_free_kb_high);
+ 	for (int i = 0; i < 20; i++) {
+-		size_t stored_pages;
+ 		char *trigger_allocation = malloc(trigger_allocation_size);
  
-+	/* Boost watermarks for atomic requests entering slowpath */
-+	if (((gfp_mask & GFP_ATOMIC) == GFP_ATOMIC) && order == 0 && !can_direct_reclaim)
-+		boost_zones_for_atomic(ac, gfp_mask);
-+
- 	/*
- 	 * For costly allocations, try direct compaction first, as it's likely
- 	 * that we have enough base pages and don't need to reclaim. For non-
+ 		if (!trigger_allocation)
 _
 
-Patches currently in -mm which might be from realwujing@gmail.com are
+Patches currently in -mm which might be from wfelipe@google.com are
 
+mm-zswap-drop-list_lru-param-from-zswap_lru_add-and-_del.patch
 
