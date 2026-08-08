@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6E8A72F8E86
-	for <mm-commits@vger.kernel.org>; Sat,  8 Aug 2026 06:15:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AC9A02E282B
+	for <mm-commits@vger.kernel.org>; Sat,  8 Aug 2026 06:16:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786169728; cv=none; b=ja6dpMmDKLUeQBC85EU5lstQqjx2wJOic//SOpTRnrgFVi+JLDDldNgz1Q9UDYE37e8FZ06N+4UbOYQRwssLHgqZ43HFVH93lZsRFwLoZcF0kqLm2JbGf9RDjj/Ugpbi66znm8PdAuuLx4kHVpmP5tq5mtj3pX8oOZdGhxVLM5o=
+	t=1786169773; cv=none; b=CulfXNt8XqduE12vEohOSO5bU2wzNGeYrpbFM8qVCQYdOgy1GalwlVmistaQ+/7edNkde0VTcl4rGUG5fUMeVyFMYP6TSsUkweMmcp74zjAiqD8dx95xlOgJJDDfR69lJB0hR/AA4hw6I+gyRK833P20XyZU1ELya5RkiaGP5cw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786169728; c=relaxed/simple;
-	bh=1Cmjnjy9UfKeBhWgh6AYw8fI4VjAnJf1uprNTz3e2qU=;
-	h=Date:To:From:Subject:Message-Id; b=uAApzBuS+LJ3GMxaPehnq8D+NOTTXvBKDq3jpYrfGg7l0kqgexojCmVBKV4cx8B0x48gTpdHwMxzcy2JBF98y4Gp6xQ1zZvKwwKvyo8agiWJXsGzYChNfYBoNF3x3pdXprv+GKR7qNGO6VJ18jQ6gGCh9GiE81ZmtwcqVtYvAy4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jS2zS+i1; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1786169773; c=relaxed/simple;
+	bh=8nsf+HHX8IJY7Vu2FkzcML0HO+PHRtXe2Vy29CRN69k=;
+	h=Date:To:From:Subject:Message-Id; b=QnYMUBNhvStP5PG+Q0/GiaFvaAchYFROVqAnQM1C0IJjzbQgwOeduxAeG2UL2CS7klX0XyXdQraJuWXmWMvqkYHLjyPSYuw3u9djzOFapP7oU6xP2y+itxP/Co7soSI8akfDacN+0CqKd2zUltMG3gFZOcbS+r4CF9Iy7OVLYvc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=onBCtmvZ; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jS2zS+i1"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BF2A01F000E9;
-	Sat,  8 Aug 2026 06:15:26 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="onBCtmvZ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4BF0B1F00A3A;
+	Sat,  8 Aug 2026 06:16:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1786169726;
-	bh=pE86nTiszHpKdE/963LSJtEzK9mGfpaKfR5s+MXha78=;
+	d=linux-foundation.org; s=korg; t=1786169771;
+	bh=ZB92Zi9U2SJd1gc2vz0zVuWTITBNQRt9ixy1vWVwNHk=;
 	h=Date:To:From:Subject;
-	b=jS2zS+i19wFHwYLHKw5NQMwfHUxoB3KB3jUUghRkxR7HwwggHLIaY+1ghcouqzR8G
-	 ukH3xQc3zFStIsMbCdsv0vrzLK/Mw4fq9xQfK79JBaD1gNIIShGVY7sBNtdJK5VKem
-	 vcTWhj/0cOC21RhOHYsvRnQG5uq3YQ4GpesOUI74=
-Date: Fri, 07 Aug 2026 23:15:26 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,surenb@google.com,shuah@kernel.org,ryan.roberts@arm.com,rppt@kernel.org,npache@redhat.com,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,lance.yang@linux.dev,dev.jain@arm.com,david@kernel.org,broonie@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,aishwarya.tcv@arm.com,sarthak.sharma@arm.com,akpm@linux-foundation.org
+	b=onBCtmvZeNJuxd/KnpwOIpPCYKmYcwde4s7w/+GbxnJnba6MKPKLFISxr9WcMYvJq
+	 QBlljA/BwWQvJMA7tjPTQdAs3ihsnFLJXPFaEq5wk2n8XWL9ULqyKSqTod+EJuEzHc
+	 yEWC3pfzt7JmWC3I1YGqtMRpdzrItogaQNqhFmxQ=
+Date: Fri, 07 Aug 2026 23:16:10 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,yuanchu@google.com,willy@infradead.org,weixugc@google.com,vbabka@suse.cz,surenb@google.com,sj@kernel.org,rppt@kernel.org,pabeni@redhat.com,mhocko@suse.com,liam@infradead.org,lance.yang@linux.dev,kuba@kernel.org,jackmanb@google.com,horms@kernel.org,hannes@cmpxchg.org,edumazet@google.com,david@kernel.org,davem@davemloft.net,brendan.jackman@linux.dev,axelrasmussen@google.com,realwujing@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] selftests-mm-transhuge-stress-check-duration-inside-page-loop.patch removed from -mm tree
-Message-Id: <20260808061526.BF2A01F000E9@smtp.kernel.org>
+Subject: [obsolete] mm-page_alloc-boost-watermarks-on-atomic-allocation-failure.patch removed from -mm tree
+Message-Id: <20260808061611.4BF0B1F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,127 +35,231 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests/mm: transhuge-stress: check duration inside page loop
+     Subject: mm/page_alloc: boost watermarks on atomic allocation failure
 has been removed from the -mm tree.  Its filename was
-     selftests-mm-transhuge-stress-check-duration-inside-page-loop.patch
+     mm-page_alloc-boost-watermarks-on-atomic-allocation-failure.patch
 
-This patch was dropped because an updated version will be issued
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-From: Sarthak Sharma <sarthak.sharma@arm.com>
-Subject: selftests/mm: transhuge-stress: check duration inside page loop
-Date: Mon, 20 Jul 2026 16:01:05 +0530
+From: Qiliang Yuan <realwujing@gmail.com>
+Subject: mm/page_alloc: boost watermarks on atomic allocation failure
+Date: Mon, 20 Jul 2026 16:15:48 +0800
 
-transhuge-stress.c currently scans memory equal to RAM by default, in
-jumps of hugepage size, trying to allocate and split a THP at each step. 
-After the entire range is covered, it checks whether elapsed time is
-greater than the duration.  But it is possible that the THP work it does
-takes time more than the duration itself, causing the test to exceed the
-CI timeout.
+Atomic allocations (GFP_ATOMIC) are prone to failure under heavy memory
+pressure as they cannot enter direct reclaim.
 
-Check the elapsed time after each THP operation.  If the duration has
-elapsed, break and end the test.  Adjust the statistics calculations to
-accommodate partially completed passes.  Also, reject sizes which are
-smaller than a huge page.
+Handle these failures by introducing a watermark boost mechanism for
+atomic requests. Refactor boost_watermark() using an internal helper to
+support both fragmentation and atomic paths. Apply zone-proportional
+boosts (~0.1% of managed pages) for atomic allocations, while
+decoupling it from watermark_boost_factor.
 
-Link: https://lore.kernel.org/20260720103105.169955-1-sarthak.sharma@arm.com
-Signed-off-by: Sarthak Sharma <sarthak.sharma@arm.com>
-Reported-by: Aishwarya TCV <aishwarya.tcv@arm.com>
-Suggested-by: Dev Jain <dev.jain@arm.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Barry Song <baohua@kernel.org>
+Implement boost_zones_for_atomic() to iterate through and boost all
+eligible zones in the zonelist, respecting nodemasks. Use a per-zone
+1-second debounce timer via last_boost_jiffies to prevent excessive
+boosting. Check and update the debounce timestamp under zone->lock,
+alongside the watermark modification, so concurrent callers on other
+CPUs cannot all observe a stale timestamp and pile onto the same zone
+within the same window. Verify with lockdep. Integrate the mechanism
+into the page allocation slowpath specifically for order-0 GFP_ATOMIC
+requests.
+
+This approach reuses existing infrastructure and ensures emergency
+reserves even if fragmentation boosting is disabled.
+
+The mechanism is bounded by construction. Each zone accepts at most
+one boost per second (the debounce timer), and zone->watermark_boost
+is clamped to zone->_watermark[WMARK_HIGH] / 10 regardless of how
+long the atomic pressure lasts or how many zones are boosted in a
+single slowpath call. Worst case, sustained atomic pressure across
+all zones in a zonelist adds at most one extra kswapd wakeup per zone
+per second, and the boost on any single zone cannot exceed 10% of
+that zone's high watermark. It cannot run away or starve unrelated
+allocations beyond that ceiling.
+
+This failure signature keeps recurring in production: a host running
+a downstream 4.19 kernel logged 144 order-0 GFP_ATOMIC failures over a
+4h15m window, all through the same NIC driver receive softirq path,
+across several unrelated network-facing services on the box. This
+confirms the underlying problem is real and ongoing. It does not by
+itself measure this patch's effect, since the fix has not been
+deployed on that fleet yet.
+
+Allocation failure logs:
+[38535644.718700] node 0: slabs: 1031, objs: 43328, free: 0
+[38535644.725059] node 1: slabs: 339, objs: 17616, free: 317
+[38535645.428345] SLUB: Unable to allocate memory on node -1, gfp=0x480020(GFP_ATOMIC)
+[38535645.436888] cache: skbuff_head_cache, object size: 232, buffer size: 256, default order: 2, min order: 0
+[38535645.447664] node 0: slabs: 940, objs: 40864, free: 144
+[38535645.454026] node 1: slabs: 322, objs: 19168, free: 383
+[38535645.556122] SLUB: Unable to allocate memory on node -1, gfp=0x480020(GFP_ATOMIC)
+[38535645.564576] cache: skbuff_head_cache, object size: 232, buffer size: 256, default order: 2, min order: 0
+[38535649.655523] warn_alloc: 59 callbacks suppressed
+[38535649.655527] swapper/100: page allocation failure: order:0, mode:0x480020(GFP_ATOMIC), nodemask=(null)
+[38535649.671692] swapper/100 cpuset=/ mems_allowed=0-1
+
+Link: https://lore.kernel.org/20260720-feat-mm-page_alloc-v11-v11-1-7376b02c27b3@gmail.com
+Signed-off-by: Qiliang Yuan <realwujing@gmail.com>
+Signed-off-by: Jing Wu <realwujing@gmail.com>
+Acked-by: SeongJae Park <sj@kernel.org>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Brendan Jackman <jackmanb@google.com>
+Cc: Brendan Jackman <brendan.jackman@linux.dev>
 Cc: David Hildenbrand <david@kernel.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Lance Yang <lance.yang@linux.dev>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Mark Brown <broonie@kernel.org>
+Cc: Liam Howlett <liam@infradead.org>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Nico Pache <npache@redhat.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Shuah Khan <shuah@kernel.org>
+Cc: SeongJae Park <sj@kernel.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Wei Xu <weixugc@google.com>
+Cc: Yuanchu Xie <yuanchu@google.com>
 Cc: Zi Yan <ziy@nvidia.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Eric Dumazet <edumazet@google.com>
+Cc: Jakub Kicinski <kuba@kernel.org>
+Cc: Paolo Abeni <pabeni@redhat.com>
+Cc: Simon Horman <horms@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/transhuge-stress.c |   28 ++++++++++++----
- 1 file changed, 22 insertions(+), 6 deletions(-)
+ include/linux/mmzone.h |    1 
+ mm/page_alloc.c        |   80 ++++++++++++++++++++++++++++++++++-----
+ 2 files changed, 72 insertions(+), 9 deletions(-)
 
---- a/tools/testing/selftests/mm/transhuge-stress.c~selftests-mm-transhuge-stress-check-duration-inside-page-loop
-+++ a/tools/testing/selftests/mm/transhuge-stress.c
-@@ -35,6 +35,7 @@ int main(int argc, char **argv)
- 	size_t map_len;
- 	int pagemap_fd;
- 	int duration = 0;
-+	double elapsed = 0;
+--- a/include/linux/mmzone.h~mm-page_alloc-boost-watermarks-on-atomic-allocation-failure
++++ a/include/linux/mmzone.h
+@@ -982,6 +982,7 @@ struct zone {
+ 	/* zone watermarks, access with *_wmark_pages(zone) macros */
+ 	unsigned long _watermark[NR_WMARK];
+ 	unsigned long watermark_boost;
++	unsigned long last_boost_jiffies;
  
- 	ksft_print_header();
+ 	unsigned long nr_reserved_highatomic;
+ 	unsigned long nr_free_highatomic;
+--- a/mm/page_alloc.c~mm-page_alloc-boost-watermarks-on-atomic-allocation-failure
++++ a/mm/page_alloc.c
+@@ -2172,12 +2172,15 @@ bool pageblock_unisolate_and_move_free_p
  
-@@ -60,8 +61,6 @@ int main(int argc, char **argv)
- 			len = atoll(argv[i]) << 20;
- 	}
+ #endif /* CONFIG_MEMORY_ISOLATION */
  
--	ksft_set_plan(1);
+-static inline bool boost_watermark(struct zone *zone)
++/*
++ * Helper for boosting watermarks. Called with zone->lock held.
++ * Use max_boost to limit the boost to a percentage of the high watermark.
++ */
++static inline bool __boost_watermark(struct zone *zone, unsigned long amount,
++				     unsigned long max_boost)
+ {
+-	unsigned long max_boost;
++	lockdep_assert_held(&zone->lock);
+ 
+-	if (!watermark_boost_factor)
+-		return false;
+ 	/*
+ 	 * Don't bother in zones that are unlikely to produce results.
+ 	 * On small machines, including kdump capture kernels running
+@@ -2187,9 +2190,6 @@ static inline bool boost_watermark(struc
+ 	if ((pageblock_nr_pages * 4) > zone_managed_pages(zone))
+ 		return false;
+ 
+-	max_boost = mult_frac(zone->_watermark[WMARK_HIGH],
+-			watermark_boost_factor, 10000);
 -
- 	if (name) {
- 		backing_fd = open(name, O_RDWR);
- 		if (backing_fd == -1)
-@@ -78,6 +77,10 @@ int main(int argc, char **argv)
- 		ksft_exit_fail_msg("open pagemap\n");
+ 	/*
+ 	 * high watermark may be uninitialised if fragmentation occurs
+ 	 * very early in boot so do not boost. We do not fall
+@@ -2203,13 +2203,71 @@ static inline bool boost_watermark(struc
  
- 	len -= len % HPAGE_SIZE;
-+	if (len == 0)
-+		ksft_exit_fail_msg("len must be at least %d MiB\n",
-+			HPAGE_SIZE >> 20);
+ 	max_boost = max(pageblock_nr_pages, max_boost);
+ 
+-	zone->watermark_boost = min(zone->watermark_boost + pageblock_nr_pages,
+-		max_boost);
++	zone->watermark_boost = min(zone->watermark_boost + amount,
++				    max_boost);
+ 
+ 	return true;
+ }
+ 
+ /*
++ * Boost watermarks to increase reclaim pressure when fragmentation occurs
++ * and we fall back to other migratetypes.
++ */
++static inline bool boost_watermark(struct zone *zone)
++{
++	if (!watermark_boost_factor)
++		return false;
 +
- 	ptr = mmap(NULL, len + HPAGE_SIZE, PROT_RW, mmap_flags, backing_fd, 0);
- 	if (ptr == MAP_FAILED)
- 		ksft_exit_fail_msg("initial mmap");
-@@ -91,6 +94,7 @@ int main(int argc, char **argv)
- 	if (!map)
- 		ksft_exit_fail_msg("map malloc\n");
- 
-+	ksft_set_plan(1);
- 	clock_gettime(CLOCK_MONOTONIC, &start);
- 
- 	while (1) {
-@@ -125,16 +129,28 @@ int main(int argc, char **argv)
- 			/* split transhuge page, keep last page */
- 			if (madvise(p, HPAGE_SIZE - psize(), MADV_DONTNEED))
- 				ksft_exit_fail_msg("MADV_DONTNEED");
++	return __boost_watermark(zone, pageblock_nr_pages,
++			mult_frac(zone->_watermark[WMARK_HIGH],
++				  watermark_boost_factor, 10000));
++}
 +
-+			if (duration > 0) {
-+				clock_gettime(CLOCK_MONOTONIC, &b);
-+				elapsed = b.tv_sec - start.tv_sec +
-+					(b.tv_nsec - start.tv_nsec) / 1000000000.;
-+				if (elapsed >= duration)
-+					break;
-+			}
- 		}
- 		clock_gettime(CLOCK_MONOTONIC, &b);
- 		s = b.tv_sec - a.tv_sec + (b.tv_nsec - a.tv_nsec) / 1000000000.;
++/*
++ * Boost watermarks by ~0.1% of zone size on atomic allocation pressure.
++ * This provides zone-proportional safety buffers: ~1MB per 1GB of zone
++ * size. Max boost ceiling is fixed at ~10% of high watermark.
++ *
++ * This emergency reserve is independent of watermark_boost_factor.
++ */
++static inline bool boost_watermark_atomic(struct zone *zone)
++{
++	return __boost_watermark(zone,
++			max(pageblock_nr_pages, zone_managed_pages(zone) / 1000),
++			zone->_watermark[WMARK_HIGH] / 10);
++}
++
++static void boost_zones_for_atomic(struct alloc_context *ac, gfp_t gfp_mask)
++{
++	struct zoneref *z;
++	struct zone *zone;
++	unsigned long now = jiffies;
++
++	for_each_zone_zonelist_nodemask(zone, z, ac->zonelist,
++					ac->highest_zoneidx, ac->nodemask) {
++		unsigned long flags;
++		bool should_wake = false;
++
++		/*
++		 * Check and update the per-zone debounce timestamp under
++		 * zone->lock so concurrent callers on other CPUs (e.g. a
++		 * multi-queue NIC spreading GFP_ATOMIC allocations across
++		 * several softirqs) cannot all observe a stale timestamp
++		 * and pile onto the same zone within the same window.
++		 */
++		spin_lock_irqsave(&zone->lock, flags);
++		if (time_after(now, zone->last_boost_jiffies + HZ)) {
++			zone->last_boost_jiffies = now;
++			should_wake = boost_watermark_atomic(zone);
++		}
++		spin_unlock_irqrestore(&zone->lock, flags);
++
++		if (should_wake)
++			wakeup_kswapd(zone, gfp_mask, 0, ac->highest_zoneidx);
++	}
++}
++
++/*
+  * When we are falling back to another migratetype during allocation, should we
+  * try to claim an entire block to satisfy further allocations, instead of
+  * polluting multiple pageblocks?
+@@ -4824,6 +4882,10 @@ restart:
+ 	cpuset_mems_cookie = read_mems_allowed_begin();
+ 	zonelist_iter_cookie = zonelist_iter_begin();
  
- 		ksft_print_msg("%.3f s/loop, %.3f ms/page, %10.3f MiB/s\t"
--			       "%4d succeed, %4d failed, %4d different pages\n",
--			       s, s * 1000 / (len >> HPAGE_SHIFT), len / s / (1 << 20),
--			       nr_succeed, nr_failed, nr_pages);
-+				"%4d succeed, %4d failed, %4d different pages\n",
-+				s, s * 1000 / (nr_failed + nr_succeed),
-+				s > 0 ?
-+					(double)(nr_failed + nr_succeed) *
-+					(HPAGE_SIZE >> 20) / s :
-+					0.0,
-+				nr_succeed, nr_failed, nr_pages);
- 
--		if (duration > 0 && b.tv_sec - start.tv_sec >= duration) {
-+		if (duration > 0 && elapsed >= duration) {
- 			ksft_test_result_pass("Completed\n");
- 			ksft_finished();
- 		}
++	/* Boost watermarks for atomic requests entering slowpath */
++	if (((gfp_mask & GFP_ATOMIC) == GFP_ATOMIC) && order == 0 && !can_direct_reclaim)
++		boost_zones_for_atomic(ac, gfp_mask);
++
+ 	/*
+ 	 * For costly allocations, try direct compaction first, as it's likely
+ 	 * that we have enough base pages and don't need to reclaim. For non-
 _
 
-Patches currently in -mm which might be from sarthak.sharma@arm.com are
+Patches currently in -mm which might be from realwujing@gmail.com are
 
 
