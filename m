@@ -1,80 +1,74 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 05858284880
-	for <mm-commits@vger.kernel.org>; Mon, 10 Aug 2026 20:23:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CF47B353A69
+	for <mm-commits@vger.kernel.org>; Mon, 10 Aug 2026 20:23:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786393417; cv=none; b=hLNVXBtpzDN2x6u0CAqqjg9Xw/Rf9pE9ffa3jS+n8Xf8lymI6n2+p7xOpL6M+acsSsCZAyiqJq6X70hQXJ72OCRWCcrwhqFRl6OYNbdA7Dv6esDCEscUdkZuDol7FjRWwd1jxPatwuXu9BpN1uLHQRG6DWdu/rjVH2Pv4I7Pieg=
+	t=1786393430; cv=none; b=jD8E710YsPeMYtw82GY8ZX6BDk1SU6iceQrQKIKE7pqSTujR02HKyfImEy6mSR6I1wen+57bsqaCXG/5XNE2NoQerbpAg46XVNk3oi/sBQtpdYy0Zoc/L6Saqn/HZyiEOhNw4xdWMkileZhFXKewqm/r0wSueqjYfJeK1K2azg4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786393417; c=relaxed/simple;
-	bh=OemExdP0ZG84LSgIQPiZJZv7P1Vpy+YkKStw1lKUiAo=;
-	h=Date:From:To:Cc:Subject:Message-Id:In-Reply-To:References:
-	 Mime-Version:Content-Type; b=RPwMb81zac46pr7TZ3dmK1Dorn2A+TtxCCXG7GXDTiFsY/tbLVWIW65g7TvTft/Bz2L5H1GqH8G2fNE9uMvRSfbA8bF9Zv1BRBySEAjimRc8et06K9XEOukdeWu7oZAeBFyrfLCTd57MZSOD/EITvhKfUCuAKWBRoRC0kBRcdbY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QPO+gtNs; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1786393430; c=relaxed/simple;
+	bh=T7syBRLjZcpo0dYU6Ejm6cYBUEHkD+wo/cEm37cmUg8=;
+	h=Date:To:From:Subject:Message-Id; b=FbTssvBL1XlVEWUOiHcItNydgiR+YwTZNm/xQG1NW7JpGAPvjgSQ8oPjayfvI9oabObvyrrBk8CxsHxVDmBNkhbymfAhOeeol2tpy/lwR5UJCG+jUE1q43/6kKV7OKlEr7LhXbc/v79fC2bD9Sf/VF+Ub549Xz3KaHZw3azrlMg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lDAsGKHV; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QPO+gtNs"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5E9231F000E9;
-	Mon, 10 Aug 2026 20:23:35 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lDAsGKHV"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8EA1F1F000E9;
+	Mon, 10 Aug 2026 20:23:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1786393415;
-	bh=nqOA+3smWlYmWZnKA+ZlQGSHPttzuKCyY9xCjtxixKo=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References;
-	b=QPO+gtNsFr3mhwBGxeMw2VpABTVOyrysbpkvdqWcmpGnvPQyOOkxUkdYvxiR2i+Gx
-	 S7I2fmr9RncPOQU8Q5pnKg2U5eKlbWiIACs8PCewD65+Z1h43EgCVu5Ya2BitLmULj
-	 am4pe5Mf3aHDbEKo6bn4kNMCeYCzRhjiEiZ5BUpM=
-Date: Mon, 10 Aug 2026 13:23:34 -0700
+	d=linux-foundation.org; s=korg; t=1786393428;
+	bh=rONA/Gs5KuV8y2es2kS9mTLytHFXcf0KcalbbBFz3f8=;
+	h=Date:To:From:Subject;
+	b=lDAsGKHVadHnowy6Zr2PspeAKP1i6wzMwqTpyN4n+t2JR8dmOOWJ2oy+l4rGABUL8
+	 bJNGxp3vnyeMGgexQscEqOz0ZN4vrcoXQWXuAOYGvaD+iTh2a3vcHCYcFyRp49N2m/
+	 ybfrY0eBmcH3FLF6lBOpUpsVS8ARAJZpu9j4aj7E=
+Date: Mon, 10 Aug 2026 13:23:48 -0700
+To: mm-commits@vger.kernel.org,skinsburskii@gmail.com,lkp@intel.com,david@kernel.org,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-To: kernel test robot <lkp@intel.com>
-Cc: David Hildenbrand <david@kernel.org>, Linux Memory Management List
- <linux-mm@kvack.org>, mm-commits@vger.kernel.org, Stanislav Kinsburskii
- <skinsburskii@gmail.com>
-Subject: Re: [akpm-mm:mm-new] BUILD SUCCESS WITH UNVERIFIED WARNING
- e0ffd277b09a7c9f1a436e5f75be37ac490bc59f
-Message-Id: <20260810132334.3cf85dc3e9061bc7072759f8@linux-foundation.org>
-In-Reply-To: <202608101053.PhnVUM4u-lkp@intel.com>
-References: <202608101053.PhnVUM4u-lkp@intel.com>
-X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+Subject: + mm-hmmc-hmm_do_fault-suppress-sparse-warning.patch added to mm-new branch
+Message-Id: <20260810202348.8EA1F1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-
-On Mon, 10 Aug 2026 10:44:13 +0800 kernel test robot <lkp@intel.com> wrote:
-
-> tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm.git mm-new
-> branch HEAD: e0ffd277b09a7c9f1a436e5f75be37ac490bc59f  mm/swap, PM: hibernate: atomically replace hibernation pin
-> 
-> Unverified Warning (likely false positive, kindly check if interested):
-> 
->     https://lore.kernel.org/oe-kbuild/202607120402.clBrrZQA-lkp@intel.com
-> 
->     mm/hmm.c:673 hmm_do_fault() error: we previously assumed 'hmm_vma_walk->locked' could be null (see line 654)
-> 
-> Warning ids grouped by kconfigs:
-
-Thanks.  I assume this warning was produced by sparse?  The report
-doesn't tell us this, and I suggest that it do so.
-
-> recent_errors
-> `-- s390-randconfig-r071-20260809
->     `-- mm-hmm.c-hmm_do_fault()-error:we-previously-assumed-hmm_vma_walk-locked-could-be-null-(see-line-)
-
-Caused by
-
-	121170831228 ("mm/hmm: add hmm_range_fault_unlocked_timeout() for mmap lock-drop support")
 
 
-Stanislaw, you've previously said that this is a can't-happen, but boy
-I'm getting tired of seeing this warning report.  Would the below change
-hurt anything?  I can't immediately think of a cost-free way of doing
-this.
+The patch titled
+     Subject: mm/hmm.c:hmm_do_fault(): suppress sparse warning
+has been added to the -mm mm-new branch.  Its filename is
+     mm-hmmc-hmm_do_fault-suppress-sparse-warning.patch
 
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hmmc-hmm_do_fault-suppress-sparse-warning.patch
 
+This patch will later appear in the mm-new branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
+
+------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
 Subject: mm/hmm.c:hmm_do_fault(): suppress sparse warning
 Date: Mon Aug 10 01:16:37 PM PDT 2026
@@ -108,4 +102,13 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  		}
  
 _
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+mm-page_alloc-only-update-lowmem_reserve_ratio-on-sysctl-write-fix.patch
+selftests-mm-use-pattern-matching-in-gitignore-fix.patch
+selftests-mm-fix-soft-dirty-kselftest-supported-check-fix.patch
+alloc_tag-add-ioctl-to-proc-allocinfo-fix.patch
+mm-hmmc-hmm_do_fault-suppress-sparse-warning.patch
+drivers-media-v4l2-core-v4l2-vp9c-reduce-inlining.patch
 
