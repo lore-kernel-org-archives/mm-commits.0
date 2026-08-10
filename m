@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B5BA423AE87
-	for <mm-commits@vger.kernel.org>; Mon, 10 Aug 2026 22:44:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CD94535C6B1
+	for <mm-commits@vger.kernel.org>; Mon, 10 Aug 2026 22:48:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786401898; cv=none; b=bMGKSYFPIxpQmZsE1SCwWcsRON+0degKn16K/5L7YI6P6oD/9Ls5SBzH+zD0c5SpaUFuUyF8HnXVNEfRFA3EZrW+fJ4RRjCCnua91F9bmCTDCMdXU6AO29BKrH8TtLg0y4RCYpwSI2auT1G4OST6RjbzWnh6P4jzUrSK2dZGHk0=
+	t=1786402110; cv=none; b=IA40PhTmVgQ2qc//Ek3X3q35YYgwRXzFdumWzDXSlzV5ZJp5i1JnxNU1q7fJRMq9viCGqFb272oL3dgw5vjHSJi9HuhnhcqLqmP8/bcrz/B7Gmx6gJSGn6nHZgIp8ZgiEk9NBfeWg4ovCX+5o64iTys0xEKn4k3YgPr9R+wBwh4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786401898; c=relaxed/simple;
-	bh=sNfFLGe/wwcyurGMCdKJBqfIzk5j4bpjcF5oDos8nx8=;
-	h=Date:To:From:Subject:Message-Id; b=tZbzuHlcRLlVVkKTr+FSz5qVOwhDq4areN346SHKQ/hiJ/lRf1BEQCDIp20sL0pe7sYYggFXAflrSSABNAFR4j1BTQMsMcbROHlB0G5IcxHzLqGnaK1R48WrxwcQhTaXn5yQB/G9QNT/DLua7FUooQe3fYZWHdpwTIjZHehgxCQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DlC1edot; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1786402110; c=relaxed/simple;
+	bh=ZDyPwWz1eW5p02z6ClyE75dUu1x0MJpNtNqJEoCRb/c=;
+	h=Date:To:From:Subject:Message-Id; b=nJ39mTE22wE9CcST4wv/unZvYlShMtV7xMrpk+qBNRVprzRyNJdPdizEhIlLNA8cRTadmBYu0/IzYSmbq30YSFeFxJ8UR1cxhuKBw5kWCz/xkIn1QC4KyI5kIXa5K4zAQad4I9IwExcKKcS6ulKOR6yhOdUYMpbV61IcKiOG4IE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FQOYMKvX; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DlC1edot"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3A04E1F00A3F;
-	Mon, 10 Aug 2026 22:44:57 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FQOYMKvX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4C22E1F000E9;
+	Mon, 10 Aug 2026 22:48:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1786401897;
-	bh=brfi2JNJk1jHIhHfSWzyvxIKEnkNiK9EzG/l38JK+PA=;
+	d=linux-foundation.org; s=korg; t=1786402108;
+	bh=JlI8jMrGYXxk1NPbNKQHbxnLT0ziEha+Bht9CEdIef8=;
 	h=Date:To:From:Subject;
-	b=DlC1edotmGAKu8VAa8Qx5Uh5X+lphSLIRvM6G476Zw1DI3Betzdop9ZawQ7G/1y5D
-	 +rnCpshwipFYDGe66gGcHVCQ9yHF3pO+PjcQ1EeMqyntBvd8xmHhkPNl2bqkgFHPyK
-	 RSpj/CeiMJAgBUOaHcPiEvLbtk3F7RTdJWljNNHQ=
-Date: Mon, 10 Aug 2026 15:44:56 -0700
-To: mm-commits@vger.kernel.org,gorcunov@openvz.org,adobriyan@gmail.com,include@grrlz.net,akpm@linux-foundation.org
+	b=FQOYMKvXdWe02IWZ43K9WbY8k932ZmJCemEztexfei/5PkS7ajMhQLLlEe/VUYQSF
+	 kQOv4mIY4eChY/9kuX4kMMTFCHEYERBnA7nOMJ4jTVFQFzR+PXrQPBQOvmJNd10Bt+
+	 iF2Hi6DOh38eloWsVN3F5WJIPjSJjfD861Gw6ZY0=
+Date: Mon, 10 Aug 2026 15:48:27 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,shuah@kernel.org,liam@infradead.org,jannh@google.com,adobriyan@gmail.com,kmehltretter@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + prctl-fix-pr_set_mm_auxv-losing-the-forced-at_null-terminator.patch added to mm-nonmm-unstable branch
-Message-Id: <20260810224457.3A04E1F00A3F@smtp.kernel.org>
+Subject: + selftests-proc-make-proc-maps-race-work-with-read_implies_exec.patch added to mm-new branch
+Message-Id: <20260810224828.4C22E1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,26 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: prctl: fix PR_SET_MM_AUXV losing the forced AT_NULL terminator
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     prctl-fix-pr_set_mm_auxv-losing-the-forced-at_null-terminator.patch
+     Subject: selftests/proc: make proc-maps-race work with READ_IMPLIES_EXEC
+has been added to the -mm mm-new branch.  Its filename is
+     selftests-proc-make-proc-maps-race-work-with-read_implies_exec.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/prctl-fix-pr_set_mm_auxv-losing-the-forced-at_null-terminator.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-proc-make-proc-maps-race-work-with-read_implies_exec.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,88 +69,53 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Bradley Morgan <include@grrlz.net>
-Subject: prctl: fix PR_SET_MM_AUXV losing the forced AT_NULL terminator
-Date: Sun, 9 Aug 2026 00:29:01 +0000
+From: Karl Mehltretter <kmehltretter@gmail.com>
+Subject: selftests/proc: make proc-maps-race work with READ_IMPLIES_EXEC
+Date: Sat, 8 Aug 2026 22:03:12 +0200
 
-prctl_set_auxv() copies the user vector into a stack buffer, forces
-AT_NULL on the last two entries there, and then copies only len bytes into
-mm->saved_auxv.  Which is fine until the vector is shorter than the
-buffer, because then the forced terminator sits past the end of the copy
-and never lands in saved_auxv at all.
+test_maps_tearing_from_split times out when READ_IMPLIES_EXEC is set. 
+This happens by default on pre-ARMv6 CPUs, which lack no-execute support.
 
-The code even says
+split_vma() re-maps the first page with mod_info->prot | PROT_EXEC to make
+it differ from its neighbours.  With READ_IMPLIES_EXEC the original
+mapping is already executable, so no split occurs and the test hangs
+waiting for the modifier child.
 
-	/* Make sure the last entry is always AT_NULL */
+Use PROT_NONE for the split mapping, which always differs from its
+readable neighbours.
 
-and it does, just not in the part that gets copied.
-
-So mm->saved_auxv keeps the stale tail from exec.  Reproducing it is easy:
-from a process with CAP_SYS_RESOURCE (just run it as root), call
-prctl(PR_SET_MM, PR_SET_MM_AUXV, ...) with a vector that has a couple of
-entries and no AT_NULL inside len (32 bytes on arm64), and then hexdump
-/proc/self/auxv, or gcore the process and look at the AUXV note with
-readelf -n.  This is arm64, the new vector was just { AT_UID, 0x1111,
-AT_GID, 0x2222 }:
-
-    idx  before (from exec)               after the prctl
-    [0]  AT_SYSINFO_EHDR   0x7ed1d6e000   AT_UID    0x1111    <- new
-    [1]  AT_MINSIGSTKSZ    0x1270         AT_GID    0x2222    <- new
-    [2]  AT_HWCAP          0x119fff       AT_HWCAP  0x119fff  <- stale
-    [3]  AT_PAGESZ         0x1000         AT_PAGESZ 0x1000    <- stale
-    ...  16 more entries                  ...                 <- stale
-    [20] AT_NULL           0x0            AT_NULL   0x0
-
-21 entries before the prctl, still 21 after: the two new ones plus all 19
-left over from exec.
-
-Every consumer walks the vector until AT_NULL, so what they get now is a
-vector that never existed at exec, the head from the prctl glued onto the
-tail of the old binary.  gdb and crash pull the AUXV note out of coredumps
-to find AT_PHDR, AT_ENTRY, AT_SYSINFO_EHDR and friends, and a mixed vector
-points them at the wrong layout.  /proc/<pid>/auxv and PR_GET_AUXV hand
-the same mess out to live processes too.  Nothing crashes, everything just
-quietly reads a frankenstein auxv.
-
-And callers that terminate their own vector hide the whole thing, which is
-likely why nobody noticed since PR_SET_MM_AUXV landed in 2012.  Nothing
-exciting security wise either, I mean it needs CAP_SYS_RESOURCE to begin
-with.
-
-prctl_set_mm_map() right above already copies the whole buffer for exactly
-this reason, so just do the same here.  user_auxv is zero initialized and
-only partially filled from userspace, so the rest is zeros and nothing
-leaks.
-
-Link: https://lore.kernel.org/20260809002901.32591-1-include@grrlz.net
-Fixes: fe8c7f5cbf91 ("c/r: prctl: extend PR_SET_MM to set up more mm_struct entries")
-Signed-off-by: Bradley Morgan <include@grrlz.net>
+Link: https://lore.kernel.org/20260808200312.6326-1-kmehltretter@gmail.com
+Fixes: beb69e817246 ("selftests/proc: add /proc/pid/maps tearing from vma split test")
+Assisted-by: Codex:gpt-5.6-terra
+Signed-off-by: Karl Mehltretter <kmehltretter@gmail.com>
 Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Cyrill Gorcuno <gorcunov@openvz.org>
+Cc: Jann Horn <jannh@google.com>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sys.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ tools/testing/selftests/proc/proc-maps-race.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/kernel/sys.c~prctl-fix-pr_set_mm_auxv-losing-the-forced-at_null-terminator
-+++ a/kernel/sys.c
-@@ -2189,7 +2189,7 @@ static int prctl_set_auxv(struct mm_stru
- 	BUILD_BUG_ON(sizeof(user_auxv) != sizeof(mm->saved_auxv));
+--- a/tools/testing/selftests/proc/proc-maps-race.c~selftests-proc-make-proc-maps-race-work-with-read_implies_exec
++++ a/tools/testing/selftests/proc/proc-maps-race.c
+@@ -490,7 +490,8 @@ static bool query_addr_at(int maps_fd, v
  
- 	task_lock(current);
--	memcpy(mm->saved_auxv, user_auxv, len);
-+	memcpy(mm->saved_auxv, user_auxv, sizeof(user_auxv));
- 	task_unlock(current);
+ static inline bool split_vma(FIXTURE_DATA(proc_maps_race) *self)
+ {
+-	return mmap(self->mod_info->addr, self->page_size, self->mod_info->prot | PROT_EXEC,
++	/* PROT_NONE differs from both readable neighbors. */
++	return mmap(self->mod_info->addr, self->page_size, PROT_NONE,
+ 		    MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED, -1, 0) != MAP_FAILED;
+ }
  
- 	return 0;
 _
 
-Patches currently in -mm which might be from include@grrlz.net are
+Patches currently in -mm which might be from kmehltretter@gmail.com are
 
-taskstats-drop-the-dead-null-attribute-check-in-parse.patch
-taskstats-fold-the-two-cpumask-handlers-into-one.patch
-signal-factor-out-the-kernel-reserved-si_code-check.patch
-taskstats-copy-signal-stats-under-siglock-in-taskstats_exit.patch
-prctl-fix-pr_set_mm_auxv-losing-the-forced-at_null-terminator.patch
+selftests-proc-make-proc-maps-race-work-with-read_implies_exec.patch
+lib-interval_tree-fix-allocation-warning-messages.patch
 
