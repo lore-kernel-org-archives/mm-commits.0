@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6C35D346AE8;
-	Mon, 10 Aug 2026 22:37:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B5BA423AE87
+	for <mm-commits@vger.kernel.org>; Mon, 10 Aug 2026 22:44:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786401471; cv=none; b=CUPKoro/WDpl/d0U8Sbt/m6foO54kPJ8ZtcFxZZ/k9tcevSyY2walowxpuQ/eWTzrna0OigmojN0TLDq3NgFVzOGhxObFvSo5bUmPwVGsz91y3IloDZAaOb+FQL2GJJ+Hc//+4sJ+OxTxAZt/iUI2ezYLIZ0CT0QMh3+STlTkCE=
+	t=1786401898; cv=none; b=bMGKSYFPIxpQmZsE1SCwWcsRON+0degKn16K/5L7YI6P6oD/9Ls5SBzH+zD0c5SpaUFuUyF8HnXVNEfRFA3EZrW+fJ4RRjCCnua91F9bmCTDCMdXU6AO29BKrH8TtLg0y4RCYpwSI2auT1G4OST6RjbzWnh6P4jzUrSK2dZGHk0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786401471; c=relaxed/simple;
-	bh=A+s2iLx81WzsdXsT4rm1vrlEL8ObAD72I6gMQ8gxNUs=;
-	h=Date:To:From:Subject:Message-Id; b=J/ycWo3YQSHcFQchJkADA9ZxdIOJhzHHpaZTDzwRavaBwmKWAMLChMpUhIDkN6j+nYapuT09bJr8YFJ2+KXy8reqjku6ymoPjgrtYgA+nJuwe/4uIFkJLSowy+bjosVr5X/0m9pH/2QZrcbtOBDKRKfPCeMf93aReZAuNtFPwZM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Qvu2MzkY; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1786401898; c=relaxed/simple;
+	bh=sNfFLGe/wwcyurGMCdKJBqfIzk5j4bpjcF5oDos8nx8=;
+	h=Date:To:From:Subject:Message-Id; b=tZbzuHlcRLlVVkKTr+FSz5qVOwhDq4areN346SHKQ/hiJ/lRf1BEQCDIp20sL0pe7sYYggFXAflrSSABNAFR4j1BTQMsMcbROHlB0G5IcxHzLqGnaK1R48WrxwcQhTaXn5yQB/G9QNT/DLua7FUooQe3fYZWHdpwTIjZHehgxCQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DlC1edot; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Qvu2MzkY"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D851A1F000E9;
-	Mon, 10 Aug 2026 22:37:49 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DlC1edot"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3A04E1F00A3F;
+	Mon, 10 Aug 2026 22:44:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1786401470;
-	bh=+tF+MgWT3SEa8TMaVAxXkcKdpPvkE5rjXcIBxD2GGC0=;
+	d=linux-foundation.org; s=korg; t=1786401897;
+	bh=brfi2JNJk1jHIhHfSWzyvxIKEnkNiK9EzG/l38JK+PA=;
 	h=Date:To:From:Subject;
-	b=Qvu2MzkYj/ceEkAJJQRyYSV/fXhqC5ioLu9XQ2tqufVbfa+rC3xFlGsvdgXOtn8+V
-	 LZo9vOBlSTpIzk3AokP9hXbKFBMJc66bk1SOYe92l1kPj3wIHVqJW7Q0bIZNuxb44r
-	 YDOeoVALOsxvwXy20okKGxuQpiI0eDQMnV9CxfDY=
-Date: Mon, 10 Aug 2026 15:37:49 -0700
-To: mm-commits@vger.kernel.org,wangkefeng.wang@huawei.com,usamaarif642@gmail.com,surenb@google.com,stable@vger.kernel.org,shakeel.butt@linux.dev,osalvador@suse.de,muchun.song@linux.dev,gthelen@google.com,fvdl@google.com,david@kernel.org,anshuman.khandual@arm.com,souravpanda@google.com,akpm@linux-foundation.org
+	b=DlC1edotmGAKu8VAa8Qx5Uh5X+lphSLIRvM6G476Zw1DI3Betzdop9ZawQ7G/1y5D
+	 +rnCpshwipFYDGe66gGcHVCQ9yHF3pO+PjcQ1EeMqyntBvd8xmHhkPNl2bqkgFHPyK
+	 RSpj/CeiMJAgBUOaHcPiEvLbtk3F7RTdJWljNNHQ=
+Date: Mon, 10 Aug 2026 15:44:56 -0700
+To: mm-commits@vger.kernel.org,gorcunov@openvz.org,adobriyan@gmail.com,include@grrlz.net,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb_cma-fix-null-nodemask-dereference-in-hugetlb_cma_alloc_frozen_folio-v5.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260810223749.D851A1F000E9@smtp.kernel.org>
+Subject: + prctl-fix-pr_set_mm_auxv-losing-the-forced-at_null-terminator.patch added to mm-nonmm-unstable branch
+Message-Id: <20260810224457.3A04E1F00A3F@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/hugetlb_cma: Fix null nodemask dereference in hugetlb_cma_alloc_frozen_folio
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-hugetlb_cma-fix-null-nodemask-dereference-in-hugetlb_cma_alloc_frozen_folio-v5.patch
+     Subject: prctl: fix PR_SET_MM_AUXV losing the forced AT_NULL terminator
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     prctl-fix-pr_set_mm_auxv-losing-the-forced-at_null-terminator.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb_cma-fix-null-nodemask-dereference-in-hugetlb_cma_alloc_frozen_folio-v5.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/prctl-fix-pr_set_mm_auxv-losing-the-forced-at_null-terminator.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,74 +58,88 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Sourav Panda <souravpanda@google.com>
-Subject: mm/hugetlb_cma: Fix null nodemask dereference in hugetlb_cma_alloc_frozen_folio
-Date: Sun, 9 Aug 2026 04:32:50 +0000
+From: Bradley Morgan <include@grrlz.net>
+Subject: prctl: fix PR_SET_MM_AUXV losing the forced AT_NULL terminator
+Date: Sun, 9 Aug 2026 00:29:01 +0000
 
-Changes in v5:
-- Replaced defaulting nodemask to &node_states[N_MEMORY] with safely reading
-  cpuset_current_mems_allowed using a seqcount retry loop, ensuring fallback
-  allocations comply with task hardwall cpusets as suggested by Usama Arif.
+prctl_set_auxv() copies the user vector into a stack buffer, forces
+AT_NULL on the last two entries there, and then copies only len bytes into
+mm->saved_auxv.  Which is fine until the vector is shorter than the
+buffer, because then the forced terminator sits past the end of the copy
+and never lands in saved_auxv at all.
 
-Link: https://lore.kernel.org/20260809043250.2917406-1-souravpanda@google.com
-Fixes: eb02f14c4a2b ("mm/hugetlb: allow overcommitting gigantic hugepages")
-Signed-off-by: Sourav Panda <souravpanda@google.com>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Frank van der Linden <fvdl@google.com>
-Cc: Greg Thelen <gthelen@google.com>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Usama Arif <usamaarif642@gmail.com>
-Cc: <stable@vger.kernel.org>
+The code even says
+
+	/* Make sure the last entry is always AT_NULL */
+
+and it does, just not in the part that gets copied.
+
+So mm->saved_auxv keeps the stale tail from exec.  Reproducing it is easy:
+from a process with CAP_SYS_RESOURCE (just run it as root), call
+prctl(PR_SET_MM, PR_SET_MM_AUXV, ...) with a vector that has a couple of
+entries and no AT_NULL inside len (32 bytes on arm64), and then hexdump
+/proc/self/auxv, or gcore the process and look at the AUXV note with
+readelf -n.  This is arm64, the new vector was just { AT_UID, 0x1111,
+AT_GID, 0x2222 }:
+
+    idx  before (from exec)               after the prctl
+    [0]  AT_SYSINFO_EHDR   0x7ed1d6e000   AT_UID    0x1111    <- new
+    [1]  AT_MINSIGSTKSZ    0x1270         AT_GID    0x2222    <- new
+    [2]  AT_HWCAP          0x119fff       AT_HWCAP  0x119fff  <- stale
+    [3]  AT_PAGESZ         0x1000         AT_PAGESZ 0x1000    <- stale
+    ...  16 more entries                  ...                 <- stale
+    [20] AT_NULL           0x0            AT_NULL   0x0
+
+21 entries before the prctl, still 21 after: the two new ones plus all 19
+left over from exec.
+
+Every consumer walks the vector until AT_NULL, so what they get now is a
+vector that never existed at exec, the head from the prctl glued onto the
+tail of the old binary.  gdb and crash pull the AUXV note out of coredumps
+to find AT_PHDR, AT_ENTRY, AT_SYSINFO_EHDR and friends, and a mixed vector
+points them at the wrong layout.  /proc/<pid>/auxv and PR_GET_AUXV hand
+the same mess out to live processes too.  Nothing crashes, everything just
+quietly reads a frankenstein auxv.
+
+And callers that terminate their own vector hide the whole thing, which is
+likely why nobody noticed since PR_SET_MM_AUXV landed in 2012.  Nothing
+exciting security wise either, I mean it needs CAP_SYS_RESOURCE to begin
+with.
+
+prctl_set_mm_map() right above already copies the whole buffer for exactly
+this reason, so just do the same here.  user_auxv is zero initialized and
+only partially filled from userspace, so the rest is zeros and nothing
+leaks.
+
+Link: https://lore.kernel.org/20260809002901.32591-1-include@grrlz.net
+Fixes: fe8c7f5cbf91 ("c/r: prctl: extend PR_SET_MM to set up more mm_struct entries")
+Signed-off-by: Bradley Morgan <include@grrlz.net>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Cyrill Gorcuno <gorcunov@openvz.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb_cma.c |   14 ++++++++++++--
- 1 file changed, 12 insertions(+), 2 deletions(-)
+ kernel/sys.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/hugetlb_cma.c~mm-hugetlb_cma-fix-null-nodemask-dereference-in-hugetlb_cma_alloc_frozen_folio-v5
-+++ a/mm/hugetlb_cma.c
-@@ -3,6 +3,7 @@
- #include <linux/mm.h>
- #include <linux/cma.h>
- #include <linux/compiler.h>
-+#include <linux/cpuset.h>
- #include <linux/mm_inline.h>
+--- a/kernel/sys.c~prctl-fix-pr_set_mm_auxv-losing-the-forced-at_null-terminator
++++ a/kernel/sys.c
+@@ -2189,7 +2189,7 @@ static int prctl_set_auxv(struct mm_stru
+ 	BUILD_BUG_ON(sizeof(user_auxv) != sizeof(mm->saved_auxv));
  
- #include <asm/page.h>
-@@ -30,12 +31,21 @@ struct folio *hugetlb_cma_alloc_frozen_f
- 	int node;
- 	struct folio *folio;
- 	struct page *page = NULL;
-+	nodemask_t local_node_mask;
+ 	task_lock(current);
+-	memcpy(mm->saved_auxv, user_auxv, len);
++	memcpy(mm->saved_auxv, user_auxv, sizeof(user_auxv));
+ 	task_unlock(current);
  
- 	if (!hugetlb_cma_size)
- 		return NULL;
- 
--	if (!nodemask)
--		nodemask = &node_states[N_MEMORY];
-+	if (!nodemask) {
-+		unsigned int cpuset_mems_cookie;
-+
-+		do {
-+			cpuset_mems_cookie = read_mems_allowed_begin();
-+			local_node_mask = cpuset_current_mems_allowed;
-+		} while (read_mems_allowed_retry(cpuset_mems_cookie));
-+
-+		nodemask = &local_node_mask;
-+	}
- 
- 	if (hugetlb_cma[nid] && node_isset(nid, *nodemask))
- 		page = cma_alloc_frozen_compound(hugetlb_cma[nid], order);
+ 	return 0;
 _
 
-Patches currently in -mm which might be from souravpanda@google.com are
+Patches currently in -mm which might be from include@grrlz.net are
 
-mm-hugetlb_cma-fix-null-nodemask-dereference-in-hugetlb_cma_alloc_frozen_folio.patch
-mm-hugetlb_cma-fix-null-nodemask-dereference-in-hugetlb_cma_alloc_frozen_folio-v5.patch
-mm-hugetlb_cma-support-percentage-based-hugetlb_cma-reservation.patch
+taskstats-drop-the-dead-null-attribute-check-in-parse.patch
+taskstats-fold-the-two-cpumask-handlers-into-one.patch
+signal-factor-out-the-kernel-reserved-si_code-check.patch
+taskstats-copy-signal-stats-under-siglock-in-taskstats_exit.patch
+prctl-fix-pr_set_mm_auxv-losing-the-forced-at_null-terminator.patch
 
