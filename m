@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0259D3659EB
-	for <mm-commits@vger.kernel.org>; Mon, 10 Aug 2026 22:49:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B000F3A1A54
+	for <mm-commits@vger.kernel.org>; Mon, 10 Aug 2026 22:54:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786402163; cv=none; b=QB3Qb0Q1wZde/qPCNaYU+5j1sk5BSy32tX2qPg9BeUFisknZSrxQ0ozJCTcXfP16C3FmWthimGi2Crcx27wQcDGi51fFJOa2S9QLgLuYE5evkINoAmHmxRzp7xT4Qf5F+IaViJDvoXbRo73jERbHoUv90O+6NFyqNMl4MtWFVO8=
+	t=1786402473; cv=none; b=F6z1vRwVPEf4T1X2LRGU3iGnbpWCUd3zMva4KpT5W/SMWnXuFnMy87u8PmlecHIaz4i0momM3MBwBxrXvXmaR66m7ePr8SDE1vDtd8fWiuIICgGQDlIzG37YF7Wn8Q4ezcrQ6GF6pV81zh9ntPnq4TarjwxpTKPobGfMqr89x0w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786402163; c=relaxed/simple;
-	bh=ldQTvqINBmr3C0ylQuCZbQmfY5/4GINmsKMNDZQCALU=;
-	h=Date:To:From:Subject:Message-Id; b=EGZdwoVn3tKPVkAWi2ZXJJr4qDFfrKoYlqKhOLbyaaO9Pc8hXh6sQaLUui7FBMRt+O4JF2FlTkmlyRgxnVW15gvAX3cYBTn5ZpXrUwcM7f9HKfxEWKfTXganBtHoWeUzCGTctGp0DeDzA73LFc56HOt2G8jH8c8zXaAUOri3UZA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EvyWsyTV; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1786402473; c=relaxed/simple;
+	bh=EmPrk/zgSFFy//IzmA6AoLUcqrDV42yrFd/w6Hx0lIo=;
+	h=Date:To:From:Subject:Message-Id; b=tT2A8pOwJDtLL4yDNFO7t6/cWQ0mPBG3S5PO8+p30kelOaLeVREqLMRakPu9R2Q7gGINjjR28OjXGMkTKj658qoTzoNMcIulb56WT6yRRgRlF/8RM7ShScDtSIaAYETqy1cKKw0hdu64P90phvFrwGmctBjiRCNE7knPScyS2cM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UjDZ+RuY; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EvyWsyTV"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B3F0E1F000E9;
-	Mon, 10 Aug 2026 22:49:21 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UjDZ+RuY"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2533B1F000E9;
+	Mon, 10 Aug 2026 22:54:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1786402161;
-	bh=m9fEeEU2xWeX8jozTacgDNcs2FZzPtg5GZpjXrWH5uA=;
+	d=linux-foundation.org; s=korg; t=1786402472;
+	bh=i/9npYiVWiU8dRnODPIIn2tVDfi7SieXaxV2MV1KoXw=;
 	h=Date:To:From:Subject;
-	b=EvyWsyTVKx5lJn68dUbYWGk6LGFVHirkYuqHVjc5hxCwFv7sJQwKpWrC8bGC/6Frv
-	 jfnmUBRFm3NehA8yAMvYIQ9a5iDikfD8ARohpwV5VcOC1bfS4Jh6+rTk/34F8zUJPU
-	 sVGK4Rqm5ctJyCFLWAQq58fJMMvQcDIp37vgbvH4=
-Date: Mon, 10 Aug 2026 15:49:21 -0700
-To: mm-commits@vger.kernel.org,vincenzo.frascino@arm.com,ryabinin.a.a@gmail.com,glider@google.com,dvyukov@google.com,andreyknvl@gmail.com,akpm@linux-foundation.org,sh_def@163.com,akpm@linux-foundation.org
+	b=UjDZ+RuYchhpVIfPgNJiyzjVtiS3QNkPczt5WPAd2BuZx1cRQ+k5pFpty6aC09aIV
+	 3YeUEDVUXbS2YqDYkbRMaicHclyDHXy9r8ulS+nf8Tf1F3Pb5lQjWyStA2gZESGpgt
+	 X0Sk5nKQcz+XTWAKdVPM9O+OR7lWLjghKn6scXGY=
+Date: Mon, 10 Aug 2026 15:54:31 -0700
+To: mm-commits@vger.kernel.org,usama.arif@linux.dev,shikemeng@huaweicloud.com,sfrench@samba.org,ryncsn@gmail.com,nphamcs@gmail.com,kasong@tencent.com,chrisl@kernel.org,baoquan.he@linux.dev,hch@lst.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kasan-avoid-unnecessary-quarantine-lock-cycling.patch added to mm-new branch
-Message-Id: <20260810224921.B3F0E1F000E9@smtp.kernel.org>
+Subject: + mm-swap-revert-to-single-folio-writes-for-synchronous-swap-devices.patch added to mm-new branch
+Message-Id: <20260810225432.2533B1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kasan: avoid unnecessary quarantine lock cycling
+     Subject: mm/swap: revert to single-folio writes for synchronous swap devices
 has been added to the -mm mm-new branch.  Its filename is
-     kasan-avoid-unnecessary-quarantine-lock-cycling.patch
+     mm-swap-revert-to-single-folio-writes-for-synchronous-swap-devices.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kasan-avoid-unnecessary-quarantine-lock-cycling.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-revert-to-single-folio-writes-for-synchronous-swap-devices.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,58 +69,77 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Hui Su <sh_def@163.com>
-Subject: kasan: avoid unnecessary quarantine lock cycling
-Date: Sun, 9 Aug 2026 03:12:31 +0800
+From: Christoph Hellwig <hch@lst.de>
+Subject: mm/swap: revert to single-folio writes for synchronous swap devices
+Date: Thu, 23 Jul 2026 07:46:04 +0200
 
-kasan_quarantine_remove_cache() drops quarantine_lock and restores
-interrupts after scanning each non-empty quarantine batch so that
-cond_resched() can schedule during a long scan.
+Patch series "swap_ops updates", v2.
 
-When no reschedule is pending, the unlock/IRQ restore and subsequent IRQ
-save/relock cycle is unnecessary.
+This series is a follow on to the swap ops series now in mm-unstable.
 
-Check need_resched() before cycling quarantine_lock to avoid this overhead
-when rescheduling is not needed.
+The first patch reintroduces direct folio writes for synchronous
+swap files, the other two remove the double indirect for file
+system based swap.
 
-Link: https://lore.kernel.org/20260808191230.3345930-2-sh_def@163.com
-Signed-off-by: Hui Su <sh_def@163.com>
-Suggested-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
+
+This patch (of 3):
+
+Kairui Song reported that zram benefits from submitting each folio
+directly instead of batching up I/O because the classic LRU scanning
+benefits from clearing the folio writeback bit in the scan loop.
+
+Accommodate that by kicking off writes for synchronous devices for each
+iteration.
+
+Link: https://lore.kernel.org/20260723054622.3460249-1-hch@lst.de
+Link: https://lore.kernel.org/20260723054622.3460249-2-hch@lst.de
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Acked-by: Usama Arif <usama.arif@linux.dev>
+Acked-by: Chris Li <chrisl@kernel.org>
+Cc: Baoquan He <baoquan.he@linux.dev>
+Cc: Kairui Song <kasong@tencent.com>
+Cc: Kairui Song <ryncsn@gmail.com>
+Cc: Kemeng Shi <shikemeng@huaweicloud.com>
+Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: Steve French <sfrench@samba.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/quarantine.c |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ mm/page_io.c |   11 ++++++++++-
+ 1 file changed, 10 insertions(+), 1 deletion(-)
 
---- a/mm/kasan/quarantine.c~kasan-avoid-unnecessary-quarantine-lock-cycling
-+++ a/mm/kasan/quarantine.c
-@@ -373,10 +373,12 @@ void kasan_quarantine_remove_cache(struc
- 		if (qlist_empty(&global_quarantine[i]))
- 			continue;
- 		qlist_move_cache(&global_quarantine[i], &to_free, cache);
--		/* Scanning whole quarantine can take a while. */
--		raw_spin_unlock_irqrestore(&quarantine_lock, flags);
--		cond_resched();
--		raw_spin_lock_irqsave(&quarantine_lock, flags);
-+		if (need_resched()) {
-+			/* Scanning whole quarantine can take a while. */
-+			raw_spin_unlock_irqrestore(&quarantine_lock, flags);
-+			cond_resched();
-+			raw_spin_lock_irqsave(&quarantine_lock, flags);
-+		}
+--- a/mm/page_io.c~mm-swap-revert-to-single-folio-writes-for-synchronous-swap-devices
++++ a/mm/page_io.c
+@@ -358,7 +358,16 @@ static void swap_add_folio(struct swap_i
  	}
- 	raw_spin_unlock_irqrestore(&quarantine_lock, flags);
- 
+ 	bvec_set_folio(&sio->bvecs[sio->nr_bvecs], folio, folio_size(folio), 0);
+ 	sio->len += folio_size(folio);
+-	if (++sio->nr_bvecs == ARRAY_SIZE(sio->bvecs)) {
++
++	/*
++	 * Write out the iocb if we filled it, or if the device is synchronous.
++	 *
++	 * The latter is to work around expectations in the classic LRU code
++	 * which make synchronous clearing of the folio writeback flag in the
++	 * reclaim path beneficial.
++	 */
++	if (++sio->nr_bvecs == ARRAY_SIZE(sio->bvecs) ||
++	    (rw == WRITE && (sis->flags & SWP_SYNCHRONOUS_IO))) {
+ 		if (rw == WRITE)
+ 			swap_write_submit(ctx);
+ 		else
 _
 
-Patches currently in -mm which might be from sh_def@163.com are
+Patches currently in -mm which might be from hch@lst.de are
 
-kasan-fix-cache-shrink-race-with-cpu-hotplug.patch
-kasan-avoid-unnecessary-quarantine-lock-cycling.patch
+shmem-provide-a-shmem_write_folio-wrapper.patch
+mm-swap-introduce-struct-swap_io_ctx.patch
+mm-swap-also-use-struct-swap_iocb-for-block-i-o.patch
+mm-swap-remove-count_swpout_vm_event.patch
+mm-swap-use-swap_ops-to-register-swap-devices-methods.patch
+mm-swap-remove-swp_fs_ops.patch
+mm-vmstat-add-nrswpinout-counters.patch
+mm-swap-revert-to-single-folio-writes-for-synchronous-swap-devices.patch
+mm-swap-add-a-new-swap_opsh-header-to-allow-for-pluggable-swap-ops.patch
+mm-swap-move-swap_ops-into-file-systems-for-file-system-based-swap.patch
 
