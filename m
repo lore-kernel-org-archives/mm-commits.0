@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CD94535C6B1
-	for <mm-commits@vger.kernel.org>; Mon, 10 Aug 2026 22:48:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0259D3659EB
+	for <mm-commits@vger.kernel.org>; Mon, 10 Aug 2026 22:49:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786402110; cv=none; b=IA40PhTmVgQ2qc//Ek3X3q35YYgwRXzFdumWzDXSlzV5ZJp5i1JnxNU1q7fJRMq9viCGqFb272oL3dgw5vjHSJi9HuhnhcqLqmP8/bcrz/B7Gmx6gJSGn6nHZgIp8ZgiEk9NBfeWg4ovCX+5o64iTys0xEKn4k3YgPr9R+wBwh4=
+	t=1786402163; cv=none; b=QB3Qb0Q1wZde/qPCNaYU+5j1sk5BSy32tX2qPg9BeUFisknZSrxQ0ozJCTcXfP16C3FmWthimGi2Crcx27wQcDGi51fFJOa2S9QLgLuYE5evkINoAmHmxRzp7xT4Qf5F+IaViJDvoXbRo73jERbHoUv90O+6NFyqNMl4MtWFVO8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786402110; c=relaxed/simple;
-	bh=ZDyPwWz1eW5p02z6ClyE75dUu1x0MJpNtNqJEoCRb/c=;
-	h=Date:To:From:Subject:Message-Id; b=nJ39mTE22wE9CcST4wv/unZvYlShMtV7xMrpk+qBNRVprzRyNJdPdizEhIlLNA8cRTadmBYu0/IzYSmbq30YSFeFxJ8UR1cxhuKBw5kWCz/xkIn1QC4KyI5kIXa5K4zAQad4I9IwExcKKcS6ulKOR6yhOdUYMpbV61IcKiOG4IE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FQOYMKvX; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1786402163; c=relaxed/simple;
+	bh=ldQTvqINBmr3C0ylQuCZbQmfY5/4GINmsKMNDZQCALU=;
+	h=Date:To:From:Subject:Message-Id; b=EGZdwoVn3tKPVkAWi2ZXJJr4qDFfrKoYlqKhOLbyaaO9Pc8hXh6sQaLUui7FBMRt+O4JF2FlTkmlyRgxnVW15gvAX3cYBTn5ZpXrUwcM7f9HKfxEWKfTXganBtHoWeUzCGTctGp0DeDzA73LFc56HOt2G8jH8c8zXaAUOri3UZA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EvyWsyTV; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FQOYMKvX"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4C22E1F000E9;
-	Mon, 10 Aug 2026 22:48:28 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EvyWsyTV"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B3F0E1F000E9;
+	Mon, 10 Aug 2026 22:49:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1786402108;
-	bh=JlI8jMrGYXxk1NPbNKQHbxnLT0ziEha+Bht9CEdIef8=;
+	d=linux-foundation.org; s=korg; t=1786402161;
+	bh=m9fEeEU2xWeX8jozTacgDNcs2FZzPtg5GZpjXrWH5uA=;
 	h=Date:To:From:Subject;
-	b=FQOYMKvXdWe02IWZ43K9WbY8k932ZmJCemEztexfei/5PkS7ajMhQLLlEe/VUYQSF
-	 kQOv4mIY4eChY/9kuX4kMMTFCHEYERBnA7nOMJ4jTVFQFzR+PXrQPBQOvmJNd10Bt+
-	 iF2Hi6DOh38eloWsVN3F5WJIPjSJjfD861Gw6ZY0=
-Date: Mon, 10 Aug 2026 15:48:27 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,shuah@kernel.org,liam@infradead.org,jannh@google.com,adobriyan@gmail.com,kmehltretter@gmail.com,akpm@linux-foundation.org
+	b=EvyWsyTVKx5lJn68dUbYWGk6LGFVHirkYuqHVjc5hxCwFv7sJQwKpWrC8bGC/6Frv
+	 jfnmUBRFm3NehA8yAMvYIQ9a5iDikfD8ARohpwV5VcOC1bfS4Jh6+rTk/34F8zUJPU
+	 sVGK4Rqm5ctJyCFLWAQq58fJMMvQcDIp37vgbvH4=
+Date: Mon, 10 Aug 2026 15:49:21 -0700
+To: mm-commits@vger.kernel.org,vincenzo.frascino@arm.com,ryabinin.a.a@gmail.com,glider@google.com,dvyukov@google.com,andreyknvl@gmail.com,akpm@linux-foundation.org,sh_def@163.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-proc-make-proc-maps-race-work-with-read_implies_exec.patch added to mm-new branch
-Message-Id: <20260810224828.4C22E1F000E9@smtp.kernel.org>
+Subject: + kasan-avoid-unnecessary-quarantine-lock-cycling.patch added to mm-new branch
+Message-Id: <20260810224921.B3F0E1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/proc: make proc-maps-race work with READ_IMPLIES_EXEC
+     Subject: kasan: avoid unnecessary quarantine lock cycling
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-proc-make-proc-maps-race-work-with-read_implies_exec.patch
+     kasan-avoid-unnecessary-quarantine-lock-cycling.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-proc-make-proc-maps-race-work-with-read_implies_exec.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kasan-avoid-unnecessary-quarantine-lock-cycling.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,53 +69,58 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Karl Mehltretter <kmehltretter@gmail.com>
-Subject: selftests/proc: make proc-maps-race work with READ_IMPLIES_EXEC
-Date: Sat, 8 Aug 2026 22:03:12 +0200
+From: Hui Su <sh_def@163.com>
+Subject: kasan: avoid unnecessary quarantine lock cycling
+Date: Sun, 9 Aug 2026 03:12:31 +0800
 
-test_maps_tearing_from_split times out when READ_IMPLIES_EXEC is set. 
-This happens by default on pre-ARMv6 CPUs, which lack no-execute support.
+kasan_quarantine_remove_cache() drops quarantine_lock and restores
+interrupts after scanning each non-empty quarantine batch so that
+cond_resched() can schedule during a long scan.
 
-split_vma() re-maps the first page with mod_info->prot | PROT_EXEC to make
-it differ from its neighbours.  With READ_IMPLIES_EXEC the original
-mapping is already executable, so no split occurs and the test hangs
-waiting for the modifier child.
+When no reschedule is pending, the unlock/IRQ restore and subsequent IRQ
+save/relock cycle is unnecessary.
 
-Use PROT_NONE for the split mapping, which always differs from its
-readable neighbours.
+Check need_resched() before cycling quarantine_lock to avoid this overhead
+when rescheduling is not needed.
 
-Link: https://lore.kernel.org/20260808200312.6326-1-kmehltretter@gmail.com
-Fixes: beb69e817246 ("selftests/proc: add /proc/pid/maps tearing from vma split test")
-Assisted-by: Codex:gpt-5.6-terra
-Signed-off-by: Karl Mehltretter <kmehltretter@gmail.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Jann Horn <jannh@google.com>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Link: https://lore.kernel.org/20260808191230.3345930-2-sh_def@163.com
+Signed-off-by: Hui Su <sh_def@163.com>
+Suggested-by: Andrew Morton <akpm@linux-foundation.org>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/proc/proc-maps-race.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/kasan/quarantine.c |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
---- a/tools/testing/selftests/proc/proc-maps-race.c~selftests-proc-make-proc-maps-race-work-with-read_implies_exec
-+++ a/tools/testing/selftests/proc/proc-maps-race.c
-@@ -490,7 +490,8 @@ static bool query_addr_at(int maps_fd, v
- 
- static inline bool split_vma(FIXTURE_DATA(proc_maps_race) *self)
- {
--	return mmap(self->mod_info->addr, self->page_size, self->mod_info->prot | PROT_EXEC,
-+	/* PROT_NONE differs from both readable neighbors. */
-+	return mmap(self->mod_info->addr, self->page_size, PROT_NONE,
- 		    MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED, -1, 0) != MAP_FAILED;
- }
+--- a/mm/kasan/quarantine.c~kasan-avoid-unnecessary-quarantine-lock-cycling
++++ a/mm/kasan/quarantine.c
+@@ -373,10 +373,12 @@ void kasan_quarantine_remove_cache(struc
+ 		if (qlist_empty(&global_quarantine[i]))
+ 			continue;
+ 		qlist_move_cache(&global_quarantine[i], &to_free, cache);
+-		/* Scanning whole quarantine can take a while. */
+-		raw_spin_unlock_irqrestore(&quarantine_lock, flags);
+-		cond_resched();
+-		raw_spin_lock_irqsave(&quarantine_lock, flags);
++		if (need_resched()) {
++			/* Scanning whole quarantine can take a while. */
++			raw_spin_unlock_irqrestore(&quarantine_lock, flags);
++			cond_resched();
++			raw_spin_lock_irqsave(&quarantine_lock, flags);
++		}
+ 	}
+ 	raw_spin_unlock_irqrestore(&quarantine_lock, flags);
  
 _
 
-Patches currently in -mm which might be from kmehltretter@gmail.com are
+Patches currently in -mm which might be from sh_def@163.com are
 
-selftests-proc-make-proc-maps-race-work-with-read_implies_exec.patch
-lib-interval_tree-fix-allocation-warning-messages.patch
+kasan-fix-cache-shrink-race-with-cpu-hotplug.patch
+kasan-avoid-unnecessary-quarantine-lock-cycling.patch
 
