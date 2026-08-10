@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 07610282F0C;
-	Mon, 10 Aug 2026 22:17:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F361839AD3B;
+	Mon, 10 Aug 2026 22:28:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786400256; cv=none; b=krlutMA9Bpk8pZw/r+h1t+hRblfm19L0CRlgHcCsMGFGjun9PtibfCQlPXFBtztLhccUFq3YrA+X2yBIxcpRDA0vM1J7Y8cty6rrMYKi2UdJrYSepT6+KI1N7h/XrPMhEOMXlv6pJcwB8KLZIc06K2VbiuGiNAIC3Ibdn2W+VqQ=
+	t=1786400890; cv=none; b=RGpar9yNEfjbEfY9bykjAYARA6hr3Sq+0/p7y4XhU2aQDoKZ6dkjzQ0QAbLukdFyQMdtMsLgkgb6yXLGaOLYEewevsELvv2/jCFo5P1tupWybDlj0YihzL/oJ8fjcsa1KrztbupOSE4mKk5BbLyzQ5kdvwa6oDYe+wtNAwGNVqU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786400256; c=relaxed/simple;
-	bh=7pCAdkiLecLq7sw2aSbaDcqDOAcBjPaF/pTvW+66T3k=;
-	h=Date:To:From:Subject:Message-Id; b=OgwtYTrCcREoGRLbl/zeOk8IJCPvD13MuKuAORMJvtrDsq0H7giwqdJr1+ovN+hv5ZoCzonIWwovUEeug3KBcdwpuqisfh1wG7ByTzFG6DJxXHB4qY3IfpybQJV+6fqknyX2TXDYipCZuCahOAEHZ6Cgdl8zDfbqJEo3fUHUafM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LTE/PZAp; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1786400890; c=relaxed/simple;
+	bh=jz4kdXCOX9Lca5hMecVNLn1qvactiwWo2FjFc45yk7A=;
+	h=Date:To:From:Subject:Message-Id; b=enSC+Kta2XDRtAyRuvu/hlbJWmXrCk825hd7N0EJwvLJhMtIMMmZ7vCCEuSlNa5TTCTWM0uky/3mvpVpBjSoTlMyBAdzAmCju8aHmQxgKS/wSG74c4/vlhgcdbfDWIXHGYuhOhJZOSI/WNHiWIH3o9I/N1jEpwRRpQy4wzPMRyI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WfGwYwwB; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LTE/PZAp"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 510251F000E9;
-	Mon, 10 Aug 2026 22:17:34 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WfGwYwwB"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4FBB31F000E9;
+	Mon, 10 Aug 2026 22:28:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1786400254;
-	bh=70vdFw/jEnA3endoRmKaVBYiqPeVl0yiNYThZY2eRpI=;
+	d=linux-foundation.org; s=korg; t=1786400888;
+	bh=kpagiX9DgPtfQIkvA3YX5ltDtveDervQAPfdUG3A6U0=;
 	h=Date:To:From:Subject;
-	b=LTE/PZAps5uzznga5RsPDBgKsukgFeyWosWMacKj4A7UuIzifKB1vUT/2O1ohMj+B
-	 3nv06/uFE+OxdFIFb+tMS44eaTCQwrHQXZunsu/iZH93zCrU+9wkFNZ4FjaKYuTRq/
-	 IOshq+xTBiax6o+biUu38Y3LFNxX0HbdheUfcHtE=
-Date: Mon, 10 Aug 2026 15:17:33 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,rppt@kernel.org,peterx@redhat.com,jianhuizzzzz@gmail.com,akpm@linux-foundation.org
+	b=WfGwYwwBWzX2AE5HAt4g/xKOhmdpkvIjMmvLuYY9eeOrqPiwsnkc32P8Zz5vH9ZZn
+	 ZL24e4de8/IQ1sEHZwJn2Rvt80hqAK/kTSdGYqt9vLreM3OaIYZyTXKBelqSfhrPDR
+	 gh+llElDgFscEY4A9mwW0NnzieVDZgvCTolcYwo8=
+Date: Mon, 10 Aug 2026 15:28:07 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,senozhatsky@chromium.org,minchan@kernel.org,xialonglong@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [obsolete] mm-userfaultfd-clear-uffd-wp-pte-state-when-re-registering-without-wp.patch removed from -mm tree
-Message-Id: <20260810221734.510251F000E9@smtp.kernel.org>
+Subject: + zsmalloc-account-for-handle-size-in-class-lookup.patch added to mm-new branch
+Message-Id: <20260810222808.4FBB31F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,81 +34,117 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: mm/userfaultfd: clear uffd-wp PTE state when re-registering without WP
-has been removed from the -mm tree.  Its filename was
-     mm-userfaultfd-clear-uffd-wp-pte-state-when-re-registering-without-wp.patch
+The patch titled
+     Subject: zsmalloc: account for handle size in class lookup
+has been added to the -mm mm-new branch.  Its filename is
+     zsmalloc-account-for-handle-size-in-class-lookup.patch
 
-This patch was dropped because it is obsolete
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zsmalloc-account-for-handle-size-in-class-lookup.patch
+
+This patch will later appear in the mm-new branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
 ------------------------------------------------------
-From: Jianhui Zhou <jianhuizzzzz@gmail.com>
-Subject: mm/userfaultfd: clear uffd-wp PTE state when re-registering without WP
-Date: Mon, 1 Jun 2026 16:26:09 +0800
+From: Longlong Xia <xialonglong@kylinos.cn>
+Subject: zsmalloc: account for handle size in class lookup
+Date: Sun, 9 Aug 2026 19:55:18 +0800
 
-UFFDIO_REGISTER can be issued on a range that is already registered in the
-same userfaultfd context, replacing the VMA's userfaultfd tracking mode. 
-For example, a range can be registered with UFFDIO_REGISTER_MODE_WP and
-later re-registered with UFFDIO_REGISTER_MODE_MISSING.
+zs_lookup_class_index() lets zram recompression decide whether a newly
+compressed object would use a smaller size class.  It currently classifies
+the payload size directly, while zs_malloc() adds ZS_HANDLE_SIZE before
+selecting the class.
 
-When the second registration removes VM_UFFD_WP, the VMA flags are updated
-but existing uffd-wp state in page-table entries is left behind.  That
-stale state can survive in swap PTEs.  On swapin, do_swap_page() restores
-_PAGE_UFFD_WP from the swap PTE and can then install a writable PTE,
-triggering page_table_check:
+This makes lookup disagree with allocation near size-class boundaries. 
+With 4 KiB pages, CONFIG_ZSMALLOC_CHAIN_SIZE=8, and 64-bit handles, a
+1025-to-1024-byte recompression appears to move from class 64 to class 62
+although both allocations use class 64.  Conversely, a 1049-to-1025-byte
+recompression appears to stay in class 64 although the allocations move
+from class 65 to class 64.
 
-  pte_uffd_wp(pte) && pte_write(pte)
+As a result, zram can accept replacements with no allocation benefit or
+reject ones that would save memory, potentially marking the object
+incompressible.
 
-Handle removal of WP mode through UFFDIO_REGISTER the same way as
-UFFDIO_UNREGISTER: resolve the per-PTE uffd-wp state before dropping
-VM_UFFD_WP from the VMA.
+Factor size-class selection into lookup_size_class(), account for the
+handle there, and use the helper for both lookup and allocation.
 
-Also make the same-context fast path require an exact UFFD mode match. 
-The old subset check treats MISSING|WP -> MISSING as a no-op, even though
-WP mode is being removed.
-
-Link: https://lore.kernel.org/20260601082609.170076-1-jianhuizzzzz@gmail.com
-Fixes: f45ec5ff16a7 ("userfaultfd: wp: support swap and page migration")
-Signed-off-by: Jianhui Zhou <jianhuizzzzz@gmail.com>
-Reported-by: syzbot+18d274a59b87cf80e86d@syzkaller.appspotmail.com
-Closes: https://syzkaller.appspot.com/bug?extid=18d274a59b87cf80e86d
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Peter Xu <peterx@redhat.com>
+Link: https://lore.kernel.org/20260809115518.3791787-1-xialonglong2025@163.com
+Fixes: 7c2af309abd2 ("zram: add size class equals check into recompression")
+Assisted-by: Codex:gpt-5.6-sol
+Signed-off-by: Longlong Xia <xialonglong@kylinos.cn>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/userfaultfd.c |   10 +++++++++-
- 1 file changed, 9 insertions(+), 1 deletion(-)
+ mm/zsmalloc.c |   11 +++++++----
+ 1 file changed, 7 insertions(+), 4 deletions(-)
 
---- a/mm/userfaultfd.c~mm-userfaultfd-clear-uffd-wp-pte-state-when-re-registering-without-wp
-+++ a/mm/userfaultfd.c
-@@ -2337,7 +2337,7 @@ static int userfaultfd_register_range(st
- 		 * userfaultfd and with the right tracking mode too.
- 		 */
- 		if (vma->vm_userfaultfd_ctx.ctx == ctx &&
--		    vma_test_all_mask(vma, vma_flags))
-+		    (vma->vm_flags & __VM_UFFD_FLAGS) == vm_flags)
- 			goto skip;
+--- a/mm/zsmalloc.c~zsmalloc-account-for-handle-size-in-class-lookup
++++ a/mm/zsmalloc.c
+@@ -552,6 +552,11 @@ static int get_size_class_index(int size
+ 	return min_t(int, ZS_SIZE_CLASSES - 1, idx);
+ }
  
- 		/*
-@@ -2352,6 +2352,14 @@ static int userfaultfd_register_range(st
- 			start = vma->vm_start;
- 		vma_end = min(end, vma->vm_end);
- 
-+		/*
-+		 * Re-registering into the same userfaultfd can remove WP mode.
-+		 * Clear any per-PTE uffd-wp state before dropping VM_UFFD_WP,
-+		 * matching the UFFDIO_UNREGISTER cleanup semantics.
-+		 */
-+		if (userfaultfd_wp(vma) && !(vm_flags & VM_UFFD_WP))
-+			uffd_wp_range(vma, start, vma_end - start, false);
++static struct size_class *lookup_size_class(struct zs_pool *pool, size_t size)
++{
++	return pool->size_class[get_size_class_index(size + ZS_HANDLE_SIZE)];
++}
 +
- 		new_vma_flags = vma->flags;
- 		vma_flags_clear_mask(&new_vma_flags, __VMA_UFFD_FLAGS);
- 		vma_flags_set_mask(&new_vma_flags, vma_flags);
+ static inline void class_stat_add(struct size_class *class, int type,
+ 				  unsigned long cnt)
+ {
+@@ -1117,7 +1122,7 @@ unsigned int zs_lookup_class_index(struc
+ {
+ 	struct size_class *class;
+ 
+-	class = pool->size_class[get_size_class_index(size)];
++	class = lookup_size_class(pool, size);
+ 
+ 	return class->index;
+ }
+@@ -1407,9 +1412,7 @@ unsigned long zs_malloc(struct zs_pool *
+ 	if (!handle)
+ 		return (unsigned long)ERR_PTR(-ENOMEM);
+ 
+-	/* extra space in chunk to keep the handle */
+-	size += ZS_HANDLE_SIZE;
+-	class = pool->size_class[get_size_class_index(size)];
++	class = lookup_size_class(pool, size);
+ 
+ 	/* class->lock effectively protects the zpage migration */
+ 	spin_lock(&class->lock);
 _
 
-Patches currently in -mm which might be from jianhuizzzzz@gmail.com are
+Patches currently in -mm which might be from xialonglong@kylinos.cn are
 
+mm-ksm-avoid-missing-ksmd-wakeups-in-ksm_enter.patch
+zram-fix-out-of-bounds-access-in-writeback_store.patch
+zram-fix-out-of-bounds-access-in-read_block_state.patch
+zsmalloc-account-for-handle-size-in-class-lookup.patch
 
