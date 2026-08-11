@@ -1,103 +1,77 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4FA64267B89;
-	Tue, 11 Aug 2026 04:07:59 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 163AD41CB5E
+	for <mm-commits@vger.kernel.org>; Tue, 11 Aug 2026 08:52:47 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786421281; cv=none; b=VQKgdTERSVO2/mCkOMTeJUI8WvhOt8Mya11bj/NlldJqgY0Isn0wdLK22zWX3p6vGVSLgOGLZyCIuqqnzLZNLohGGiscgk9xqRB/my7jcaLLglGEMfO0Qle1xv+JFjrXFqr1V2N3pbqZ5BXZuv+OQJxfH7QQ5U5ENFMHo9vmdwU=
+	t=1786438369; cv=none; b=X1kdqxdRhQRhUUv+841zd1aTApFiMybxTWq4I4AQS9FDs6QQiR/j69vCsql3fZ1yy7vjlPUaGaXjlioGmTyy4pYPg3SIoX8aqITKpRVZ1CVtNvWBQLKg622dkkKitrxPUPfMzE6yRYeCYZWIfbxkxvGwwntNYqMnzOgmivssffU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786421281; c=relaxed/simple;
-	bh=GH5m6+Ldts+SGo6QuZO4Ij8ymzr3iZQxTQjWfoWF/KE=;
-	h=Date:To:From:Subject:Message-Id; b=o1H8epQ/MIuP/KLLZ5DD/SMXNXLZFogQ2f+RhJMGuysNqiMP2q8e34z5pTo8yq1ZE0+lVQrkP/OuU3JGLYRn5Tuc8+iSN9mblM2ITd8lNMXlc8Oc83zggmFXdIRRUrccIYH/UgAzz9rxE5+dsBlPzeaFXQjFVsmtnx3EHiZSCWw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=h+uJPtI7; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1786438369; c=relaxed/simple;
+	bh=1sT/8/bXGlgWWr8sT4d1akxiHSx5+WimWbSLwBHtz88=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=ffsEtMvdTe9UKHDoxmaubY5EupZjvTuPQcaaylgPMoNIZaowCraCcmqPSSFvE3krkzhlpLJOHMkZZROrFXP3aY48gQ+yokiPavfRyPtcCumQFoOGPbA1n8hnAot+ztsKp1Z23VuPsABOYdtaeOfnAG/qaDptZJiXCfj6rKCYdSU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=kXcYbnH7; arc=none smtp.client-ip=217.140.110.172
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="h+uJPtI7"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2F7FC1F000E9;
-	Tue, 11 Aug 2026 04:07:59 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1786421279;
-	bh=zF64x0wmm+8aHcV8TP9oXcETL4UoaYCDC1GtVOnzhzo=;
-	h=Date:To:From:Subject;
-	b=h+uJPtI7yB34/gLAmi6IUGaZra+HuJFl8Pkp1fl6re7UvxqUXAGKZwSrFasv6wJw3
-	 0RHgIaar24KTZxpb72dbCuIQCcc1gVAkZ4JjWRZt37TGmbLugoJNxux/WxGOrkD3U5
-	 lisI4vfHI9oPDtiyGzgcfzq4ESXnjpuQHy3JGJUI=
-Date: Mon, 10 Aug 2026 21:07:58 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@suse.com,hannes@cmpxchg.org,zhangguopeng@kylinos.cn,akpm@linux-foundation.org
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-memcg-v1-fix-memorymemswfailcnt-accounting.patch removed from -mm tree
-Message-Id: <20260811040759.2F7FC1F000E9@smtp.kernel.org>
+	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="kXcYbnH7"
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 931AF1516;
+	Tue, 11 Aug 2026 01:52:42 -0700 (PDT)
+Received: from arm.com (usa-sjc-mx-foss1.foss.arm.com [172.31.20.19])
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 43A5F3F86F;
+	Tue, 11 Aug 2026 01:52:45 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
+	t=1786438366; bh=1sT/8/bXGlgWWr8sT4d1akxiHSx5+WimWbSLwBHtz88=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=kXcYbnH7pM2nuGcXXj7v4u44FrUkIEqCR4193OEnL7ib2Hl67f5ZIGEQ53iAGonaT
+	 baDA4wNyaVa4GsEeju8jsESb6RRaXAkraLA8eOdIagVZWiCIPfXEUAoGebrmmmK+dN
+	 b5437M9+lWTZ3vDuzN15NEVaWhur8rxA9OHeHn8A=
+Date: Tue, 11 Aug 2026 09:52:42 +0100
+From: Catalin Marinas <catalin.marinas@arm.com>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Breno Leitao <leitao@debian.org>, Matthew Wilcox <willy@infradead.org>,
+	mm-commits@vger.kernel.org, kent.overstreet@linux.dev,
+	bigeasy@linutronix.de, arnd@arndb.de
+Subject: Re: +
+ radix-tree-fix-kmemleak-false-positives-on-tree-head-reassignment.patch
+ added to mm-new branch
+Message-ID: <anri2rKW2gG28tXC@arm.com>
+References: <20260705021240.79E101F000E9@smtp.kernel.org>
+ <ako1sMPVu4dfQR4K@casper.infradead.org>
+ <akuFSv7JaXo6M8gx@gmail.com>
+ <akuT8pEjBKvByPlA@arm.com>
+ <akuzsny_3EpxaPww@gmail.com>
+ <akvW9RwjVmRnNzHM@arm.com>
+ <akw4FspAoT60tQeu@arm.com>
+ <akzZSIN5ALd8iH52@gmail.com>
+ <20260810201814.52d1353d5c3f1ce27ba10186@linux-foundation.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260810201814.52d1353d5c3f1ce27ba10186@linux-foundation.org>
 
+On Mon, Aug 10, 2026 at 08:18:14PM -0700, Andrew Morton wrote:
+> On Tue, 7 Jul 2026 04:26:43 -0700 Breno Leitao <leitao@debian.org> wrote:
+> 
+> > > Anyway, a better diff for the first idea below. I need to do more
+> > > testing and can turn it into a proper commit (if we don't deem it
+> > > redundant because of the other min_unref_count).
+> > 
+> > Thanks for it. I've reviewed it and it looks sane.
+> > 
+> > I am also testing it on my side.
+> 
+> This went quiet.  I take it that we won't be proceeding with this
+> patch, "radix-tree: fix kmemleak false positives on tree head
+> reassignment", v2?
 
-The quilt patch titled
-     Subject: mm: memcg-v1: fix memory.memsw.failcnt accounting
-has been removed from the -mm tree.  Its filename was
-     mm-memcg-v1-fix-memorymemswfailcnt-accounting.patch
+Yeah, I think the recent heuristics additions make this annotation
+unnecessary. Well, Breno to confirm.
 
-This patch was dropped because an updated version will be issued
-
-------------------------------------------------------
-From: Guopeng Zhang <zhangguopeng@kylinos.cn>
-Subject: mm: memcg-v1: fix memory.memsw.failcnt accounting
-Date: Mon, 10 Aug 2026 15:42:47 +0800
-
-Commit 0e2759afcaf9 ("page_counter: track failcnt only for legacy
-cgroups") made failcnt accounting conditional on track_failcnt.  It
-enabled the flag for memcg->memory, but not for memcg->memsw.
-
-Consequently, memory.memsw.failcnt remains zero when the memory+swap limit
-is hit.  Enable failcnt accounting for the v1 memsw counter.
-
-Reproducer:
-
-    CG=/sys/fs/cgroup/memory/memsw-test
-    LIMIT=33554432
-    mkdir "$CG"
-    echo "$LIMIT" > "$CG/memory.limit_in_bytes"
-    echo "$LIMIT" > "$CG/memory.memsw.limit_in_bytes"
-
-Start a child process in the cgroup and make it allocate and touch 96 MiB
-of memory, causing a memcg OOM.
-
-    cat "$CG/memory.memsw.failcnt"
-
-Without the patch, memory.memsw.failcnt is 0.  With the patch,
-memory.memsw.failcnt is greater than 0.
-
-Link: https://lore.kernel.org/20260810074247.52747-1-guopeng.zhang@linux.dev
-Fixes: 0e2759afcaf9 ("page_counter: track failcnt only for legacy cgroups")
-Signed-off-by: Guopeng Zhang <zhangguopeng@kylinos.cn>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: <stable@vger.kernel.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- mm/memcontrol.c |    1 +
- 1 file changed, 1 insertion(+)
-
---- a/mm/memcontrol.c~mm-memcg-v1-fix-memorymemswfailcnt-accounting
-+++ a/mm/memcontrol.c
-@@ -4180,6 +4180,7 @@ mem_cgroup_css_alloc(struct cgroup_subsy
- 		page_counter_init(&memcg->swap, &parent->swap, false);
- #ifdef CONFIG_MEMCG_V1
- 		memcg->memory.track_failcnt = !memcg_on_dfl;
-+		memcg->memsw.track_failcnt = !memcg_on_dfl;
- 		WRITE_ONCE(memcg->oom_kill_disable, READ_ONCE(parent->oom_kill_disable));
- 		page_counter_init(&memcg->kmem, &parent->kmem, false);
- 		page_counter_init(&memcg->tcpmem, &parent->tcpmem, false);
-_
-
-Patches currently in -mm which might be from zhangguopeng@kylinos.cn are
-
-mm-memcg-v1-fix-memsw-and-tcp-failcnt-accounting.patch
-mm-memcg-stop-reclaim-when-a-limit-update-is-superseded.patch
-
+-- 
+Catalin
