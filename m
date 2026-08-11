@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 22E2A3A4F5B;
-	Tue, 11 Aug 2026 18:47:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 26C793ACEF2;
+	Tue, 11 Aug 2026 19:38:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786474072; cv=none; b=nhNoXbxflZLiv0B1RaVHHq7oqoM6b4bUHJSkuHgPIxRaUY8tAsmhyhtnPszG6vKhYWuUP+7kpnbuMM1nE/BFdFBfWr6HoCJmyOkY9FbsImr/YfsBs7kQldHYE6qy6c4IM4HKqfdI6EhC2snJtTeb3wT0v66XT9SsvH5D59onA6M=
+	t=1786477124; cv=none; b=GQ+mxL40VNVft261glrnanL11Nk08m+MQHaf+AkEIzT++NMsoW/ayR9nxgWulehHm3OCo1+5DWBLU3oV3TinIm6keUgDOYqtXrMOarpQc76nMGcSzJ9be5ijBRnaXgmEcSRp3EgmahrsaRAooWe/pfJT7GQ/kmzrFhXiBkQvi28=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786474072; c=relaxed/simple;
-	bh=+0CnjeQILP8XToCEaBM6mbLxbyGJHSdXLNVrYjAqFko=;
-	h=Date:To:From:Subject:Message-Id; b=VP9vHm4G7aKHY83j5Wnr5w5b4Ot6SOPKtrOjFKrkzSrkofz1X3YQGOeutmyyTP0XiRmMCS//WiIdrOAUkSe+dUko9TPyQHt0r4YmH7vZ6/VmsOG0hjPhd8UPWZBSaE+9XPcWBd8Rcwq3Y1UJ8kHAzsQ/RzO09af5WmVzSP/Owho=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=iPY2eUTG; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1786477124; c=relaxed/simple;
+	bh=kdwaezZG/lpZUu9hqQOgK0xeZGI07Ie8FRbsQ+Wefs8=;
+	h=Date:To:From:Subject:Message-Id; b=DxOkLwcVowFlmu1HUVcDDGbEoov/Ig2W82LLojcmUepksYrCY9woXvPgxSou1nmd+DIPIoB6t7ye/iYEKSc987PHn7Q1kc9ZXNALtRQrTXW1i8Fz/F+BaSykwNhmJf4qJWL+7x5FZNvFdTnUPHAWe0hHqJZMxZKLJUW6Rts9ffQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bjB/ZtmB; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="iPY2eUTG"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9DA781F000E9;
-	Tue, 11 Aug 2026 18:47:50 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bjB/ZtmB"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A5DF71F000E9;
+	Tue, 11 Aug 2026 19:38:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1786474070;
-	bh=Rv8bhvJp4nyAkCPp0U3mhaFLBK2pN4mgurXSkg9+jRQ=;
+	d=linux-foundation.org; s=korg; t=1786477122;
+	bh=wK9xAUNm/7h0OUd/u47IfYHlJkbMbItUmfct8dEIfi8=;
 	h=Date:To:From:Subject;
-	b=iPY2eUTGxfRqeDC2mldWt01zD+VzjDFHDD4c+/QI5SAhTVjgTUuHTlmY67i3OpetT
-	 83o/5twhSpahKMFKXq84dWKQJQTvZ/j4UJot7pb+A2Nx9jX3tEkBxA0X+RdbQK9SmS
-	 wGk3o4giFmj2UUTIp8LfBPLTopgWmCOaXdzJnLg4=
-Date: Tue, 11 Aug 2026 11:47:50 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,shikemeng@huaweicloud.com,nphamcs@gmail.com,kasong@tencent.com,chrisl@kernel.org,baoquan.he@linux.dev,baohua@kernel.org,youngjun.park@lge.com,akpm@linux-foundation.org
+	b=bjB/ZtmBXqQe0DSok12IUkiZvsbznWkPu8EyqEM0YV9FVwAvYc4kkyjEimeBFwO/G
+	 Ri3wxlJmiGe0EXRbcZJfVzLFAc/qjJWO+9Kl3Ki5AlrRn8lccK35PmsfLgmumx9t7w
+	 o6Q/TSuGyQFG+9q1h7Qv7IM4fOaNhi3tSocfeEoY=
+Date: Tue, 11 Aug 2026 12:38:42 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,stable@vger.kernel.org,rppt@kernel.org,mhocko@suse.com,mboone@akamai.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,imv4bel@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-swap-dont-free-a-hibernation-slot-that-is-in-the-swap-cache.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260811184750.9DA781F000E9@smtp.kernel.org>
+Subject: + mm-pagewalk-fix-stale-walk-action-escaping-walk_pmd_range.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260811193842.A5DF71F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm, swap: don't free a hibernation slot that is in the swap cache
+     Subject: mm/pagewalk: fix stale walk->action escaping walk_pmd_range()
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-swap-dont-free-a-hibernation-slot-that-is-in-the-swap-cache.patch
+     mm-pagewalk-fix-stale-walk-action-escaping-walk_pmd_range.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-dont-free-a-hibernation-slot-that-is-in-the-swap-cache.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-pagewalk-fix-stale-walk-action-escaping-walk_pmd_range.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,72 +58,98 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Youngjun Park <youngjun.park@lge.com>
-Subject: mm, swap: don't free a hibernation slot that is in the swap cache
-Date: Tue, 11 Aug 2026 22:22:06 +0900
+From: Hyunwoo Kim <imv4bel@gmail.com>
+Subject: mm/pagewalk: fix stale walk->action escaping walk_pmd_range()
+Date: Wed, 12 Aug 2026 01:18:57 +0900
 
-A slot with a folio in the swap cache is freed when the folio leaves the
-cache, not when its count drops.  swap_put_entries_cluster() follows that
-rule.  swap_free_hibernation_slot() does not, it calls
-__swap_cluster_free_entries() whether or not a folio sits on the slot.
+If ->pmd_entry() sets walk->action = ACTION_AGAIN, the pmd_none() check is
+retried.  The PMD entry may be cleared at the point of retry.
 
-Cluster readahead can put one there.  It walks a raw page_cluster sized
-window of offsets around the faulting entry, and a hibernation slot passes
-__swap_cache_add_check() because it is not a folio and its count is not
-zero.  Freeing the slot then clears the entry under that folio.
+In this case, if walk->ops->install_pte is not specified, the code
+continues to the next PMD entry in the range without resetting
+walk->action to ACTION_SUBTREE.
 
-The folio is now unreachable from the swap table, and the offset goes back
-to the allocator.  The folio is still on the LRU though, so reclaim can
-pick it up later.  It then takes the old offset out of folio->swap and
-overwrites the table entry there, which by then may belong to someone
-else.
+This leaves walk->action erroneously set to ACTION_AGAIN, which is
+incorrect.
 
-This bug can trigger silent memory corruption, process crashes, or data
-instability across completely unrelated userspace applications - typically
-occurring after a system resumes from hibernation (suspend-to-disk).
+This was incorrect but not problematic up until commit 3b89863c3fa4
+("mm/pagewalk: fix race between concurrent split and refault") which
+updated walk_pud_range() to check for walk->action == ACTION_AGAIN upon
+walk_pmd_range()'s return, causing the PUD walk to be retried.
 
-Check for a cached folio before freeing.  The slot is then left in the
-ordinary state where only the swap cache holds it, and it is freed when
-the folio leaves the cache, either through the reclaim below or through
-normal reclaim later.
+In this case this results in duplicate walk callbacks being invoked, which
+is erroneous and will break any caller that is not idempotent with respect
+to this (and waste time for those which are).
 
-Link: https://lore.kernel.org/20260811132209.2862708-2-youngjun.park@lge.com
-Fixes: 0d6af9bcf383 ("mm, swap: use the swap table to track the swap count")
-Signed-off-by: Youngjun Park <youngjun.park@lge.com>
-Acked-by: Kairui Song <kasong@tencent.com>
-Cc: Baoquan He <baoquan.he@linux.dev>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: Kemeng Shi <shikemeng@huaweicloud.com>
-Cc: Nhat Pham <nphamcs@gmail.com>
+A specific example of this breaking things is mincore which walks an
+internal cursor data structure a byte at a time on assumption that page
+table entry callbacks are called only once for each entry.
+
+Fix the problem by resetting walk->action to ACTION_SUBTREE prior to the
+none check.
+
+The pattern also exists in walk_pud_range() so fix it there too.
+
+This issue was found through AI-based fuzzing.
+
+Link: https://lore.kernel.org/20260811161949.3879321-2-imv4bel@gmail.com
+Fixes: 3b89863c3fa4 ("mm/pagewalk: fix race between concurrent split and refault")
+Assisted-by: Claude:claude-opus-5
+Signed-off-by: Hyunwoo Kim <imv4bel@gmail.com>
+Reviewed-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Cc: Max Boone <mboone@akamai.com>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |    9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+ mm/pagewalk.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
---- a/mm/swapfile.c~mm-swap-dont-free-a-hibernation-slot-that-is-in-the-swap-cache
-+++ a/mm/swapfile.c
-@@ -2196,7 +2196,14 @@ void swap_free_hibernation_slot(swp_entr
+--- a/mm/pagewalk.c~mm-pagewalk-fix-stale-walk-action-escaping-walk_pmd_range
++++ a/mm/pagewalk.c
+@@ -126,6 +126,7 @@ static int walk_pmd_range(pud_t *pud, un
+ 	pmd = pmd_offset(pud, addr);
+ 	do {
+ again:
++		walk->action = ACTION_SUBTREE;
+ 		next = pmd_addr_end(addr, end);
+ 		if (pmd_none(*pmd)) {
+ 			if (has_install)
+@@ -138,8 +139,6 @@ again:
+ 				continue;
+ 		}
  
- 	ci = swap_cluster_lock(si, offset);
- 	__swap_cluster_put_entry(ci, offset % SWAPFILE_CLUSTER);
--	__swap_cluster_free_entries(si, ci, offset % SWAPFILE_CLUSTER, 1);
-+	/*
-+	 * A slot with a folio in the swap cache is freed when the folio
-+	 * leaves the cache, the same rule swap_put_entries_cluster() follows.
-+	 * Readahead can put a folio here, and freeing the slot now would
-+	 * leave that folio with no entry behind it.
-+	 */
-+	if (!swp_tb_is_folio(__swap_table_get(ci, offset % SWAPFILE_CLUSTER)))
-+		__swap_cluster_free_entries(si, ci, offset % SWAPFILE_CLUSTER, 1);
- 	swap_cluster_unlock(ci);
+-		walk->action = ACTION_SUBTREE;
+-
+ 		/*
+ 		 * This implies that each ->pmd_entry() handler
+ 		 * needs to know about pmd_trans_huge() pmds
+@@ -196,6 +195,7 @@ static int walk_pud_range(p4d_t *p4d, un
+ 	pud = pud_offset(p4d, addr);
+ 	do {
+  again:
++		walk->action = ACTION_SUBTREE;
+ 		next = pud_addr_end(addr, end);
+ 		if (pud_none(*pud)) {
+ 			if (has_install)
+@@ -208,8 +208,6 @@ static int walk_pud_range(p4d_t *p4d, un
+ 				continue;
+ 		}
  
- 	/* In theory readahead might add it to the swap cache by accident */
+-		walk->action = ACTION_SUBTREE;
+-
+ 		if (ops->pud_entry)
+ 			err = ops->pud_entry(pud, addr, next, walk);
+ 		if (err)
 _
 
-Patches currently in -mm which might be from youngjun.park@lge.com are
+Patches currently in -mm which might be from imv4bel@gmail.com are
 
-mm-swap-dont-free-a-hibernation-slot-that-is-in-the-swap-cache.patch
+mm-pagewalk-fix-stale-walk-action-escaping-walk_pmd_range.patch
 
