@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 44F96239E9B;
-	Tue, 11 Aug 2026 03:23:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EAFAD23909F
+	for <mm-commits@vger.kernel.org>; Tue, 11 Aug 2026 04:04:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786418582; cv=none; b=dq61xdUr2jsw274uC0W+edKwglV0pUakw3Qqun7qjhWuU2eZncvw23bQQSzCuhLr/QNVpyke6UCMHHagXhFi3Fg0DD7ZwKqiNrDuDwTZyyNbT8qR+3qQ2k1IVindh/7aKHTF5zAA85KL552FOa0cZtTHxQRBy6HnDAVgrNd/PTA=
+	t=1786421067; cv=none; b=FB7lUNHqTbhKsFQDgil4WSMUOqCyfJnSk7iiGgjnX5ycs+9I9dDerVzBAN3nGbcSAgfWWSE7a+dTzOBO/UZASDDThE2uI1bHp0SfYtA01WVxMTeGgCctEkHJPBYW81Qdm8UE4kYBOwrfZurjoGTP3cRnCg4HmKzgDw6Vpr5kEWg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786418582; c=relaxed/simple;
-	bh=ydNMzMe0rkRm74rJSalYUHdFn4AElTELTytdpO1THs4=;
-	h=Date:To:From:Subject:Message-Id; b=A4zhIeOvpXGE1sZwfk5FN8YyjPaNV95cdylCgGmBPEIE42O/WYBN2l/nZEq0kZklT1V4iU0AfUApWoiiSGB0cMBYppXJtgZMdfs54Ylvc9PC+mHQO4gXGC9A9s0Bc6DWPcXvCESvfyXkhvl+BfGk4q2ohfbLCeOX3FQb6zkOdlo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ufaab2B+; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1786421067; c=relaxed/simple;
+	bh=q4+I3QYu/WutFWF0F2Y4UBGV9JbBHhBgXMExrNzaJgQ=;
+	h=Date:To:From:Subject:Message-Id; b=TAk1FuwkBjYCz4UkUpAT4Mta0v6hZxa4b2fnPPFpY6XdUIel3nhhtpg1eYluUUWVRrbT0E5cz8jWA7S5ikE4P5JwwiV/6/mAJif6Xi4S1SRWD6bbjvKUA4Nghc45Si/2m8OgkfvK3wXdP9ZoOi8BO9Sta1ZxWbnSDw9Zrwq8eR8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EYm1+B/M; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ufaab2B+"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 98D4B1F000E9;
-	Tue, 11 Aug 2026 03:23:00 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EYm1+B/M"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4E68E1F000E9;
+	Tue, 11 Aug 2026 04:04:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1786418580;
-	bh=HuftU/q0Vx+A3VZbaApGCs0UmgQ3xilNRE+Y0UGOs6A=;
+	d=linux-foundation.org; s=korg; t=1786421065;
+	bh=7+9X9qKOA3giOPnUEZ2x+uTli1DXpuavKl1kBt3h954=;
 	h=Date:To:From:Subject;
-	b=ufaab2B+x+YcZnjU2QJVgQo9Ymh0MqeZ9T6NNpV8kbppOfgoa2FGMIr18sbuxgTfc
-	 uOowaJFaoB1vqBl4tHQ0G58UFqHpp+N6Gkk9eXuQqygetW0FNI5GEajO2DtvLq+UaE
-	 FVl1FeLFlNJ0k0gQ13IYuc7YRjnWh/Hga6LQLX7o=
-Date: Mon, 10 Aug 2026 20:23:00 -0700
-To: mm-commits@vger.kernel.org,surenb@google.com,stable@vger.kernel.org,hao.ge@linux.dev,akpm@linux-foundation.org
+	b=EYm1+B/MmiKIQm63VdKL3IZjjdGroyKPiIRmhwb8eKEn30XRvJbUebPLc2IaHrRmA
+	 fJ74EPbTL8s0w0JdaCMzN0wKMel7JWrFWNDQ1YDzae+cxg4UtqKvSnjOxUyrXGPea7
+	 xWGrgabJsGg7kcxRh+YANjLwp8ogeQwapXojpmR4=
+Date: Mon, 10 Aug 2026 21:04:24 -0700
+To: mm-commits@vger.kernel.org,tj@kernel.org,surenb@google.com,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] alloc_tag-fix-undetected-compressed-tag-overflow-when-profiling-is-disabled.patch removed from -mm tree
-Message-Id: <20260811032300.98D4B1F000E9@smtp.kernel.org>
+Subject: + lib-kconfigdebug-make-debug_force_weak_per_cpu-depend-on-s390alpha.patch added to mm-new branch
+Message-Id: <20260811040425.4E68E1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,77 +34,86 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: alloc_tag: fix undetected compressed tag overflow when profiling is disabled
-has been removed from the -mm tree.  Its filename was
-     alloc_tag-fix-undetected-compressed-tag-overflow-when-profiling-is-disabled.patch
+The patch titled
+     Subject: lib/Kconfig.debug: make DEBUG_FORCE_WEAK_PER_CPU depend on S390||ALPHA
+has been added to the -mm mm-new branch.  Its filename is
+     lib-kconfigdebug-make-debug_force_weak_per_cpu-depend-on-s390alpha.patch
 
-This patch was dropped because an updated version will be issued
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-kconfigdebug-make-debug_force_weak_per_cpu-depend-on-s390alpha.patch
+
+This patch will later appear in the mm-new branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
 ------------------------------------------------------
-From: Hao Ge <hao.ge@linux.dev>
-Subject: alloc_tag: fix undetected compressed tag overflow when profiling is disabled
-Date: Wed, 5 Aug 2026 17:06:33 +0800
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: lib/Kconfig.debug: make DEBUG_FORCE_WEAK_PER_CPU depend on S390||ALPHA
+Date: Mon Aug 10 08:50:56 PM PDT 2026
 
-In reserve_module_tags(), the tag overflow check is gated on
-mem_alloc_profiling_enabled():
+CONFIG_DEBUG_FORCE_WEAK_PER_CPU appears to be alpha-specific.  The Kconfig
+help text says s390 can need it also, but the comment in percpu-defs.h
+only mentions alpha.  The original commit 7c756e6e19e7 ("percpu: implement
+optional weak percpu definitions") mentions both alpha and s390.
 
-    if (mem_alloc_profiling_enabled() && !tags_addressable())
+All quite mysterious and perhaps this feature is no longer needed.
 
-If profiling is toggled off at runtime and a module is loaded whose tags
-exceed the compressed-mode limit, shutdown_mem_profiling() is skipped. 
-vm_module_tags_populate() still maps memory for the tags and the module
-loads successfully, but the total tag count now exceeds what
-NR_UNUSED_PAGEFLAG_BITS can address.
+However x86_64 allmodconfig enables it, and because mm/alloc_tag.c
+requires !DEBUG_FORCE_WEAK_PER_CPU (another mystery), alloc_tag isn't
+getting allmodconfig build coverage.
 
-Once profiling is re-enabled, ref_to_idx() computes each tag's index as
-its position in the alloc_tag array.  update_page_tag_ref() masks it to
-alloc_tag_ref_mask before storing in page->flags.  Indices beyond the mask
-are truncated and idx_to_ref() resolves them to wrong tags.
+Adding `depends on S390||ALPHA' fixes this.
 
-This silently corrupts /proc/allocinfo: allocated pages get attributed to
-the wrong call sites, so the statistics it reports are wrong.
-
-mem_alloc_profiling_enabled() and mem_profiling_compressed are
-independent.  Once compressed mode is established at boot, it stays active
-regardless of runtime toggles of mem_profiling.
-
-Remove the mem_alloc_profiling_enabled() guard.  Also return an error
-after shutdown_mem_profiling() to skip vm_module_tags_populate(), as the
-mapped pages would never be reused - shutdown_mem_profiling() sets
-mem_profiling_support to false, so no future module load enters the
-codetag path.
-
-Link: https://lore.kernel.org/20260805090633.141001-1-hao.ge@linux.dev
-Fixes: 4835f747d3ed ("alloc_tag: support for page allocation tag compression")
-Signed-off-by: Hao Ge <hao.ge@linux.dev>
-Acked-by: Suren Baghdasaryan <surenb@google.com>
-Cc: <stable@vger.kernel.org>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/alloc_tag.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ lib/Kconfig.debug |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/alloc_tag.c~alloc_tag-fix-undetected-compressed-tag-overflow-when-profiling-is-disabled
-+++ a/mm/alloc_tag.c
-@@ -904,10 +904,11 @@ unlock:
- 		int grow_res;
- 
- 		module_tags.size = offset + size;
--		if (mem_alloc_profiling_enabled() && !tags_addressable()) {
-+		if (!tags_addressable()) {
- 			shutdown_mem_profiling(true);
--			pr_warn("With module %s there are too many tags to fit in %d page flag bits. Memory allocation profiling is disabled!\n",
--				mod->name, NR_UNUSED_PAGEFLAG_BITS);
-+			pr_warn_once("With module %s there are too many tags to fit in %d page flag bits. Memory allocation profiling is disabled!\n",
-+				     mod->name, NR_UNUSED_PAGEFLAG_BITS);
-+			return ERR_PTR(-ENOMEM);
- 		}
- 
- 		grow_res = vm_module_tags_populate();
+--- a/lib/Kconfig.debug~lib-kconfigdebug-make-debug_force_weak_per_cpu-depend-on-s390alpha
++++ a/lib/Kconfig.debug
+@@ -616,6 +616,7 @@ config BUILTIN_MODULE_RANGES
+ config DEBUG_FORCE_WEAK_PER_CPU
+ 	bool "Force weak per-cpu definitions"
+ 	depends on DEBUG_KERNEL
++	depends on S390 || ALPHA
+ 	help
+ 	  s390 and alpha require percpu variables in modules to be
+ 	  defined weak to work around addressing range issue which
 _
 
-Patches currently in -mm which might be from hao.ge@linux.dev are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+mm-provide-vma_is_cow_mapping-and-remove-is_cow_mapping-fix.patch
+mm-page_alloc-only-update-lowmem_reserve_ratio-on-sysctl-write-fix.patch
+selftests-mm-use-pattern-matching-in-gitignore-fix.patch
+selftests-mm-fix-soft-dirty-kselftest-supported-check-fix.patch
+alloc_tag-add-ioctl-to-proc-allocinfo-fix.patch
+mm-hmmc-hmm_do_fault-suppress-sparse-warning.patch
+lib-kconfigdebug-make-debug_force_weak_per_cpu-depend-on-s390alpha.patch
+drivers-media-v4l2-core-v4l2-vp9c-reduce-inlining.patch
 
