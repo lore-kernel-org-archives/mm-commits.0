@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2DAF537DEA1
-	for <mm-commits@vger.kernel.org>; Tue, 11 Aug 2026 18:24:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 22E2A3A4F5B;
+	Tue, 11 Aug 2026 18:47:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786472676; cv=none; b=N8kNdzbiO8oWF+wc8WhT2SbKDUeYYzLUSTDEWc6cVfmRtSKd8tIQ0n1thFy4/BUM2AxjaDrWi3RuYs/jHAoLBhVTAF1YQPbdTsgsLsCzo/yvWV980N7Tty785ueJFi2Qq4WRd7Vx51nnmcI/NjVctlgrwrFomFrR88QzvOiuge0=
+	t=1786474072; cv=none; b=nhNoXbxflZLiv0B1RaVHHq7oqoM6b4bUHJSkuHgPIxRaUY8tAsmhyhtnPszG6vKhYWuUP+7kpnbuMM1nE/BFdFBfWr6HoCJmyOkY9FbsImr/YfsBs7kQldHYE6qy6c4IM4HKqfdI6EhC2snJtTeb3wT0v66XT9SsvH5D59onA6M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786472676; c=relaxed/simple;
-	bh=M2/Jf8ukYffmuk2X9wBc4mZ5b2zKyL2WHNSYexDFZiA=;
-	h=Date:To:From:Subject:Message-Id; b=hSseZNoVuByOywdwUEp68g/P+NyCwTzYgB5hH75eIj5eCdLPKIMdx8Jk+Je59hlx2UWes3XyVgnPgsU79SrxdrcTzvVu/KbvpfvSKjkcFuuF2vXkUMQgnQ/Sjbr8BBsllNdd0ngO0AaIYLUAVeHSyRLXlvGeo6Wcpc3/r1o/Zu0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1gfsd72K; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1786474072; c=relaxed/simple;
+	bh=+0CnjeQILP8XToCEaBM6mbLxbyGJHSdXLNVrYjAqFko=;
+	h=Date:To:From:Subject:Message-Id; b=VP9vHm4G7aKHY83j5Wnr5w5b4Ot6SOPKtrOjFKrkzSrkofz1X3YQGOeutmyyTP0XiRmMCS//WiIdrOAUkSe+dUko9TPyQHt0r4YmH7vZ6/VmsOG0hjPhd8UPWZBSaE+9XPcWBd8Rcwq3Y1UJ8kHAzsQ/RzO09af5WmVzSP/Owho=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=iPY2eUTG; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1gfsd72K"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A3C3D1F00A3A;
-	Tue, 11 Aug 2026 18:24:34 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="iPY2eUTG"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9DA781F000E9;
+	Tue, 11 Aug 2026 18:47:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1786472674;
-	bh=bXSub9ySR2KLFPCHmIcIfzcj+m0sIwD9kuNWq3YS8sM=;
+	d=linux-foundation.org; s=korg; t=1786474070;
+	bh=Rv8bhvJp4nyAkCPp0U3mhaFLBK2pN4mgurXSkg9+jRQ=;
 	h=Date:To:From:Subject;
-	b=1gfsd72KrJkxMvV4pP/e1o3XM/gov+qYtm88ixHVbjK4sW0d7C58L29We/nQyrwV9
-	 eHK5zwYh6/YU0FUO9KdR4YfV09ajxIIwvE3E8IRqwg2zScC7kYh5Nae0zB49Km0oLQ
-	 EJ2NXg0w32x6NSckmxM5BDVrq8znDriiFAYE1fjo=
-Date: Tue, 11 Aug 2026 11:24:34 -0700
-To: mm-commits@vger.kernel.org,nico.pache@linux.dev,akpm@linux-foundation.org
+	b=iPY2eUTGxfRqeDC2mldWt01zD+VzjDFHDD4c+/QI5SAhTVjgTUuHTlmY67i3OpetT
+	 83o/5twhSpahKMFKXq84dWKQJQTvZ/j4UJot7pb+A2Nx9jX3tEkBxA0X+RdbQK9SmS
+	 wGk3o4giFmj2UUTIp8LfBPLTopgWmCOaXdzJnLg4=
+Date: Tue, 11 Aug 2026 11:47:50 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,shikemeng@huaweicloud.com,nphamcs@gmail.com,kasong@tencent.com,chrisl@kernel.org,baoquan.he@linux.dev,baohua@kernel.org,youngjun.park@lge.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-documentation-clarify-where-the-mthp-stats-live.patch added to mm-unstable branch
-Message-Id: <20260811182434.A3C3D1F00A3A@smtp.kernel.org>
+Subject: + mm-swap-dont-free-a-hibernation-slot-that-is-in-the-swap-cache.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260811184750.9DA781F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: Documentation: clarify where the mTHP stats live
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-documentation-clarify-where-the-mthp-stats-live.patch
+     Subject: mm, swap: don't free a hibernation slot that is in the swap cache
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-swap-dont-free-a-hibernation-slot-that-is-in-the-swap-cache.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-documentation-clarify-where-the-mthp-stats-live.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-dont-free-a-hibernation-slot-that-is-in-the-swap-cache.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,71 +58,72 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: "Nico Pache (Red Hat)" <nico.pache@linux.dev>
-Subject: mm: Documentation: clarify where the mTHP stats live
-Date: Tue, 11 Aug 2026 06:48:39 -0600
+From: Youngjun Park <youngjun.park@lge.com>
+Subject: mm, swap: don't free a hibernation slot that is in the swap cache
+Date: Tue, 11 Aug 2026 22:22:06 +0900
 
-The note about khugepaged counters references /proc/vmstat for the PMD
-case, but never mentions where the mTHPs stats can be found (i.e.:
-/sys/kernel/mm/transparent_hugepage/hugepages-<size>kB/stats/) Add a small
-addition to this section for clarity.
+A slot with a folio in the swap cache is freed when the folio leaves the
+cache, not when its count drops.  swap_put_entries_cluster() follows that
+rule.  swap_free_hibernation_slot() does not, it calls
+__swap_cluster_free_entries() whether or not a folio sits on the slot.
 
-Also fix a missing period while we are at it.
+Cluster readahead can put one there.  It walks a raw page_cluster sized
+window of offsets around the faulting entry, and a hibernation slot passes
+__swap_cache_add_check() because it is not a folio and its count is not
+zero.  Freeing the slot then clears the entry under that folio.
 
-Link: https://lore.kernel.org/20260811-khugepaged_pte_refactor-v4-7-ddac39d61c4a@linux.dev
-Signed-off-by: Nico Pache (Red Hat) <nico.pache@linux.dev>
-Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Suggested-by: Lorenzo Stoakes <ljs@kernel.org>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+The folio is now unreachable from the swap table, and the offset goes back
+to the allocator.  The folio is still on the LRU though, so reclaim can
+pick it up later.  It then takes the old offset out of folio->swap and
+overwrites the table entry there, which by then may belong to someone
+else.
+
+This bug can trigger silent memory corruption, process crashes, or data
+instability across completely unrelated userspace applications - typically
+occurring after a system resumes from hibernation (suspend-to-disk).
+
+Check for a cached folio before freeing.  The slot is then left in the
+ordinary state where only the swap cache holds it, and it is freed when
+the folio leaves the cache, either through the reclaim below or through
+normal reclaim later.
+
+Link: https://lore.kernel.org/20260811132209.2862708-2-youngjun.park@lge.com
+Fixes: 0d6af9bcf383 ("mm, swap: use the swap table to track the swap count")
+Signed-off-by: Youngjun Park <youngjun.park@lge.com>
+Acked-by: Kairui Song <kasong@tencent.com>
+Cc: Baoquan He <baoquan.he@linux.dev>
 Cc: Barry Song <baohua@kernel.org>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Lance Yang <lance.yang@linux.dev>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Usama Arif <usama.arif@linux.dev>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Zi Yan <ziy@nvidia.com>
+Cc: Chris Li <chrisl@kernel.org>
+Cc: Kemeng Shi <shikemeng@huaweicloud.com>
+Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/mm/transhuge.rst |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ mm/swapfile.c |    9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
---- a/Documentation/admin-guide/mm/transhuge.rst~mm-documentation-clarify-where-the-mthp-stats-live
-+++ a/Documentation/admin-guide/mm/transhuge.rst
-@@ -224,7 +224,7 @@ khugepaged will be automatically started
- (either of the per-size anon control or the top-level control are set
- to "always" or "madvise"), and it'll be automatically shutdown when
- all THP sizes are disabled (when both the per-size anon control and the
--top-level control are "never")
-+top-level control are "never").
+--- a/mm/swapfile.c~mm-swap-dont-free-a-hibernation-slot-that-is-in-the-swap-cache
++++ a/mm/swapfile.c
+@@ -2196,7 +2196,14 @@ void swap_free_hibernation_slot(swp_entr
  
- process THP controls
- --------------------
-@@ -301,7 +301,9 @@ being replaced by a PMD mapping, or (2)
- hugepage of various sizes (PMD-sized or mTHP). Each may happen independently,
- or together, depending on the type of memory and the failures that occur.
- As such, this value should be interpreted roughly as a sign of progress,
--and counters in /proc/vmstat consulted for more accurate accounting)::
-+and counters in /proc/vmstat consulted for more accurate accounting.
-+Per-order mTHP collapse statistics are also available under
-+/sys/kernel/mm/transparent_hugepage/hugepages-<size>kB/stats/)::
+ 	ci = swap_cluster_lock(si, offset);
+ 	__swap_cluster_put_entry(ci, offset % SWAPFILE_CLUSTER);
+-	__swap_cluster_free_entries(si, ci, offset % SWAPFILE_CLUSTER, 1);
++	/*
++	 * A slot with a folio in the swap cache is freed when the folio
++	 * leaves the cache, the same rule swap_put_entries_cluster() follows.
++	 * Readahead can put a folio here, and freeing the slot now would
++	 * leave that folio with no entry behind it.
++	 */
++	if (!swp_tb_is_folio(__swap_table_get(ci, offset % SWAPFILE_CLUSTER)))
++		__swap_cluster_free_entries(si, ci, offset % SWAPFILE_CLUSTER, 1);
+ 	swap_cluster_unlock(ci);
  
- 	/sys/kernel/mm/transparent_hugepage/khugepaged/pages_collapsed
- 
+ 	/* In theory readahead might add it to the swap cache by accident */
 _
 
-Patches currently in -mm which might be from nico.pache@linux.dev are
+Patches currently in -mm which might be from youngjun.park@lge.com are
 
-mm-khugepaged-refactor-per-scan-state-clearing-into-collapse_control_init_scan.patch
-mm-khugepaged-extract-reference-check-into-folio_pte_referenced-helper.patch
-mm-khugepaged-introduce-a-count_collapse_event-helper.patch
-mm-khugepaged-fix-outdated-comments.patch
-mm-khugepaged-refactor-the-pte-state-checks-into-a-helper.patch
-mm-khugepaged-unmap-pte-before-releasing-vma-write-lock.patch
-mm-documentation-clarify-where-the-mthp-stats-live.patch
+mm-swap-dont-free-a-hibernation-slot-that-is-in-the-swap-cache.patch
 
