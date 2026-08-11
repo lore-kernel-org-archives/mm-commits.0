@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 02D4D37B41F
-	for <mm-commits@vger.kernel.org>; Tue, 11 Aug 2026 18:24:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 365B037B41F
+	for <mm-commits@vger.kernel.org>; Tue, 11 Aug 2026 18:24:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786472665; cv=none; b=rnkNV2RXK2o7JfGmqvXwilQwBFjHL9FIKLoHdBPYIrCoa6gTcSc6wExFJKLvGvtPdjU7Xk068KphD2G2a1aYQaXi9E1PuZCSF+Lj0/rcl8UjWmYK1EwUNSD0gwJoopscoNUv+Rkb1jlaMAg6gTh8Ke2aJJ56G2k/XQGAiy4qXQ0=
+	t=1786472667; cv=none; b=couo03v5seZ9IkFpd9jlZovG68Q7omsBHjcvupdpD/dfU9IQKK8c0QO6pTsWdTnN/9kyetfbHuqyG8tUPdV4lkxnwrH13QAr5Cpx30SQCYgVVKc/E/14fvmRIhXkXfC9XntfoIrvahRxdJIlr70Eedsji0z1WLl8BrAezXgdcYU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786472665; c=relaxed/simple;
-	bh=xW7tfUwd5evgg9uMKE9iYyRSrDJYknRTne2D77WXQIE=;
-	h=Date:To:From:Subject:Message-Id; b=KeaLKr/ASUZdsbx1Fxg4mgQv97IPjJdHa8GK9WFBxr6HK0+L8nioDWj6OiKFE+szFULoi7bx9RALIOGJCk3AG59sSbOwYA5er7aiBEvdlaDw55xU/PQXPi68qmOiUm3XVdZmitppqnfS5psjFgiRpsm5CuicChxhr2/F8Kyz9NY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Cu/0d4d6; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1786472667; c=relaxed/simple;
+	bh=MzdlUireWTC9TMZhf9lL+RLpfWllG7U1Sux368zQv8U=;
+	h=Date:To:From:Subject:Message-Id; b=l0oghTby4DDlb5OJsGQWPVLXgfVIgZvEWup2rTUdvBYPkqhKFRXJU8sgmhSLz6iv5Ebal8O/8aFkxBeuv4gZ7RH8YecSu8EOVqXuSr2uyf7OtOrZ90Y3mw43i7s9tVtM288JIvmqX3teA/C6qwErG7VlmxVeokDgt8aOw5zmrRM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=efnA6cDI; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Cu/0d4d6"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 912D41F000E9;
-	Tue, 11 Aug 2026 18:24:23 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="efnA6cDI"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B5A761F000E9;
+	Tue, 11 Aug 2026 18:24:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1786472663;
-	bh=khH1rnSYIujIgvyKbjVbX5Fi2bBGKoLLrFrwRFQ1czI=;
+	d=linux-foundation.org; s=korg; t=1786472665;
+	bh=yFV7H3A9a95eeTIyORkwf6BhrrbOuGhTpGTDL8+02/o=;
 	h=Date:To:From:Subject;
-	b=Cu/0d4d6ZEkeQIYQq4hR/HXaiozr4Prb5lH9ZsuRbY9CJvCM3KP6LUAK4mv0FaBka
-	 vawvBSRtZ6ETRdAjzFJgVpZwXfEzoiPoVdLQsjRZt+7VNcdG56T7HcF/zYULlLzZTU
-	 qjeEz9sLFcbErosiuGmPCLnufKfXEybaJNn87Lrk=
-Date: Tue, 11 Aug 2026 11:24:23 -0700
+	b=efnA6cDIXH5xr4hFpFmx6iNfbCOHB4TfMMUEkP+7Xoo+FCoMtZKO0WZYZqetXoq0F
+	 w94LQ2zp0SHU+mkFgnuw6wLP7I5LpRw69ZLLTXo1EcEXBO3Z/LgyxkJDAeyJCe23a1
+	 TM29KDouTlKU3kgOIHK94hYSTMzUTJRQFN+shIrM=
+Date: Tue, 11 Aug 2026 11:24:25 -0700
 To: mm-commits@vger.kernel.org,nico.pache@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-khugepaged-extract-reference-check-into-folio_pte_referenced-helper.patch added to mm-unstable branch
-Message-Id: <20260811182423.912D41F000E9@smtp.kernel.org>
+Subject: + mm-khugepaged-introduce-a-count_collapse_event-helper.patch added to mm-unstable branch
+Message-Id: <20260811182425.B5A761F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/khugepaged: extract reference check into folio_pte_referenced() helper
+     Subject: mm/khugepaged: introduce a count_collapse_event() helper
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-khugepaged-extract-reference-check-into-folio_pte_referenced-helper.patch
+     mm-khugepaged-introduce-a-count_collapse_event-helper.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-extract-reference-check-into-folio_pte_referenced-helper.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-introduce-a-count_collapse_event-helper.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,23 +59,20 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Nico Pache (Red Hat)" <nico.pache@linux.dev>
-Subject: mm/khugepaged: extract reference check into folio_pte_referenced() helper
-Date: Tue, 11 Aug 2026 06:48:34 -0600
+Subject: mm/khugepaged: introduce a count_collapse_event() helper
+Date: Tue, 11 Aug 2026 06:48:35 -0600
 
-This change deduplicates the "is this PTE/folio referenced enough to be
-considered for a collapse" condition that was repeated in both
-__collapse_huge_page_isolate() and collapse_scan_pmd(), extracting it into
-a single inline helper function.
+Provide a simple helper function to help reduce a often used, and
+duplicate pattern across the khugepaged code.
 
-Also move the comment and use it as the function header.  While we are at
-it, updated the comment to clarify that a young pte is a recently accessed
-one.
+When collapsing to a PMD we need to record a vm_event and the mTHP_stat
+event.  When doing mTHP collapse we only update the mTHP stat.
 
-Link: https://lore.kernel.org/20260811-khugepaged_pte_refactor-v4-2-ddac39d61c4a@linux.dev
+Link: https://lore.kernel.org/20260811-khugepaged_pte_refactor-v4-3-ddac39d61c4a@linux.dev
 Signed-off-by: Nico Pache (Red Hat) <nico.pache@linux.dev>
-Acked-by: Usama Arif <usama.arif@linux.dev>
+Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
 Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Acked-by: Usama Arif <usama.arif@linux.dev>
 Cc: Barry Song <baohua@kernel.org>
 Cc: Dev Jain <dev.jain@arm.com>
 Cc: Jonathan Corbet <corbet@lwn.net>
@@ -91,66 +88,105 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |   32 ++++++++++++++++++--------------
- 1 file changed, 18 insertions(+), 14 deletions(-)
+ mm/khugepaged.c |   42 +++++++++++++++++++++---------------------
+ 1 file changed, 21 insertions(+), 21 deletions(-)
 
---- a/mm/khugepaged.c~mm-khugepaged-extract-reference-check-into-folio_pte_referenced-helper
+--- a/mm/khugepaged.c~mm-khugepaged-introduce-a-count_collapse_event-helper
 +++ a/mm/khugepaged.c
-@@ -672,6 +672,22 @@ static void release_pte_pages(pte_t *pte
- 	}
+@@ -688,6 +688,14 @@ static inline bool folio_pte_referenced(
+ 	return pte_young(pteval) || mmu_notifier_test_young(vma->vm_mm, addr);
  }
  
-+/*
-+ * folio_pte_referenced() - Check if a folio or its PTE mapping was recently used
-+ *
-+ * Return: true if recent access was observed through either the folio state
-+ * or the current PTE mapping.
-+ */
-+static inline bool folio_pte_referenced(struct folio *folio,
-+		struct vm_area_struct *vma, unsigned long addr, pte_t pteval)
++static void count_collapse_event(unsigned int order, enum vm_event_item vm_event,
++		enum mthp_stat_item mthp_event)
 +{
-+	/* The folio was referenced previously ... */
-+	if (folio_test_young(folio) || folio_test_referenced(folio))
-+		return true;
-+	/* ... or the PTE mapping was recently used */
-+	return pte_young(pteval) || mmu_notifier_test_young(vma->vm_mm, addr);
++	if (is_pmd_order(order))
++		count_vm_event(vm_event);
++	count_mthp_stat(order, mthp_event);
 +}
 +
  static enum scan_result __collapse_huge_page_isolate(struct vm_area_struct *vma,
  		unsigned long start_addr, pte_t *pte, struct collapse_control *cc,
  		unsigned int order, struct list_head *compound_pagelist)
-@@ -810,14 +826,8 @@ static enum scan_result __collapse_huge_
- 		if (folio_test_large(folio))
- 			list_add_tail(&folio->lru, compound_pagelist);
- next:
--		/*
--		 * If collapse was initiated by khugepaged, check that there is
--		 * enough young pte to justify collapsing the page
--		 */
- 		if (cc->is_khugepaged &&
--		    (pte_young(pteval) || folio_test_young(folio) ||
--		     folio_test_referenced(folio) ||
--		     mmu_notifier_test_young(vma->vm_mm, addr)))
-+		    folio_pte_referenced(folio, vma, addr, pteval))
- 			referenced++;
- 	}
- 
-@@ -1766,14 +1776,8 @@ static enum scan_result collapse_scan_pm
- 			goto out_unmap;
+@@ -708,9 +716,8 @@ static enum scan_result __collapse_huge_
+ 		if (pte_none_or_zero(pteval)) {
+ 			if (++none_or_zero > max_ptes_none) {
+ 				result = SCAN_EXCEED_NONE_PTE;
+-				if (is_pmd_order(order))
+-					count_vm_event(THP_SCAN_EXCEED_NONE_PTE);
+-				count_mthp_stat(order, MTHP_STAT_COLLAPSE_EXCEED_NONE);
++				count_collapse_event(order, THP_SCAN_EXCEED_NONE_PTE,
++						     MTHP_STAT_COLLAPSE_EXCEED_NONE);
+ 				goto out;
+ 			}
+ 			continue;
+@@ -752,9 +759,8 @@ static enum scan_result __collapse_huge_
+ 			 */
+ 			if (++shared > max_ptes_shared) {
+ 				result = SCAN_EXCEED_SHARED_PTE;
+-				if (is_pmd_order(order))
+-					count_vm_event(THP_SCAN_EXCEED_SHARED_PTE);
+-				count_mthp_stat(order, MTHP_STAT_COLLAPSE_EXCEED_SHARED);
++				count_collapse_event(order, THP_SCAN_EXCEED_SHARED_PTE,
++						     MTHP_STAT_COLLAPSE_EXCEED_SHARED);
+ 				goto out;
+ 			}
  		}
- 
--		/*
--		 * If collapse was initiated by khugepaged, check that there is
--		 * enough young pte to justify collapsing the page
--		 */
- 		if (cc->is_khugepaged &&
--		    (pte_young(pteval) || folio_test_young(folio) ||
--		     folio_test_referenced(folio) ||
--		     mmu_notifier_test_young(vma->vm_mm, addr)))
-+		    folio_pte_referenced(folio, vma, addr, pteval))
- 			referenced++;
+@@ -1264,15 +1270,12 @@ static enum scan_result alloc_charge_fol
+ 	folio = __folio_alloc(gfp, order, node, &cc->alloc_nmask);
+ 	if (!folio) {
+ 		*foliop = NULL;
+-		if (is_pmd_order(order))
+-			count_vm_event(THP_COLLAPSE_ALLOC_FAILED);
+-		count_mthp_stat(order, MTHP_STAT_COLLAPSE_ALLOC_FAILED);
++		count_collapse_event(order, THP_COLLAPSE_ALLOC_FAILED,
++				     MTHP_STAT_COLLAPSE_ALLOC_FAILED);
+ 		return SCAN_ALLOC_HUGE_PAGE_FAIL;
  	}
- 	if (cc->is_khugepaged &&
+ 
+-	if (is_pmd_order(order))
+-		count_vm_event(THP_COLLAPSE_ALLOC);
+-	count_mthp_stat(order, MTHP_STAT_COLLAPSE_ALLOC);
++	count_collapse_event(order, THP_COLLAPSE_ALLOC, MTHP_STAT_COLLAPSE_ALLOC);
+ 
+ 	if (unlikely(mem_cgroup_charge(folio, mm, gfp))) {
+ 		folio_put(folio);
+@@ -1662,9 +1665,8 @@ static enum scan_result collapse_scan_pm
+ 		if (pte_none_or_zero(pteval)) {
+ 			if (++none_or_zero > max_ptes_none) {
+ 				result = SCAN_EXCEED_NONE_PTE;
+-				count_vm_event(THP_SCAN_EXCEED_NONE_PTE);
+-				count_mthp_stat(HPAGE_PMD_ORDER,
+-						MTHP_STAT_COLLAPSE_EXCEED_NONE);
++				count_collapse_event(HPAGE_PMD_ORDER, THP_SCAN_EXCEED_NONE_PTE,
++						     MTHP_STAT_COLLAPSE_EXCEED_NONE);
+ 				goto out_unmap;
+ 			}
+ 			continue;
+@@ -1672,9 +1674,8 @@ static enum scan_result collapse_scan_pm
+ 		if (!pte_present(pteval)) {
+ 			if (++unmapped > max_ptes_swap) {
+ 				result = SCAN_EXCEED_SWAP_PTE;
+-				count_vm_event(THP_SCAN_EXCEED_SWAP_PTE);
+-				count_mthp_stat(HPAGE_PMD_ORDER,
+-						MTHP_STAT_COLLAPSE_EXCEED_SWAP);
++				count_collapse_event(HPAGE_PMD_ORDER, THP_SCAN_EXCEED_SWAP_PTE,
++						     MTHP_STAT_COLLAPSE_EXCEED_SWAP);
+ 				goto out_unmap;
+ 			}
+ 			/*
+@@ -1731,9 +1732,8 @@ static enum scan_result collapse_scan_pm
+ 		if (folio_maybe_mapped_shared(folio)) {
+ 			if (++shared > max_ptes_shared) {
+ 				result = SCAN_EXCEED_SHARED_PTE;
+-				count_vm_event(THP_SCAN_EXCEED_SHARED_PTE);
+-				count_mthp_stat(HPAGE_PMD_ORDER,
+-						MTHP_STAT_COLLAPSE_EXCEED_SHARED);
++				count_collapse_event(HPAGE_PMD_ORDER, THP_SCAN_EXCEED_SHARED_PTE,
++						     MTHP_STAT_COLLAPSE_EXCEED_SHARED);
+ 				goto out_unmap;
+ 			}
+ 		}
 _
 
 Patches currently in -mm which might be from nico.pache@linux.dev are
