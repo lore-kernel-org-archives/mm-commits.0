@@ -1,166 +1,393 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C25B02765D7;
-	Wed, 12 Aug 2026 01:45:32 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DDCC32C1586
+	for <mm-commits@vger.kernel.org>; Wed, 12 Aug 2026 01:48:24 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.10
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786499134; cv=none; b=Nst3zXAfkuPqAB7Yf0JPv9VxMpkZn8x6RBnBWyHTZbx0WvWzay8wOt08/Fvmp0K1AGRORqa7sTBDO1/IxTU9WITukBxpMyr07K7hqvUeqYRnuM2OyNT0xBvs9CeyW/3N9bgYrpT0ROU9hn1xMbXqrqDj5KQKFewvCUcyn62n9ug=
+	t=1786499309; cv=none; b=OYvKdVCC4EAPloe7ne2+48y5UwK3YDmuesV083GBvpR6X+6sJtIEX3VI7fYHYLvI6osjnp58/ckYxPAWYwPWNlP7ugo8qjlIax4Gp8NKf3Uay1Q+EhKjdkDufRBybnpR+UWsAPjmRI3Q/ayfrZi+qvrnJvcf+fWeDU9WQkjtq9o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786499134; c=relaxed/simple;
-	bh=obAGY9gsWNVOli/1LFL94m/t2nqUeluBSOcsrnkxQJw=;
-	h=Date:To:From:Subject:Message-Id; b=bw+dtp4ovzOEsRpNY38zZZoRvS7xdXQHkSb9gY+8MPr9JrF9zIHJXjY90hpznvcBFnUqWPaF259J4tp/+UtIcFwFhGMp75VQ6HAqupsz6hyNiIUDoqVuNVaiRiT6Z8pu3W95CUcKU/dNGCX2bYaLNiretPyjTfg3D1ZJP89hslY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wyFP/z6R; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1786499309; c=relaxed/simple;
+	bh=GAuDrBlrychbUMsJxe/lbW/Fj2S9CVT2BYdqaa4RTHQ=;
+	h=Date:From:To:Cc:Subject:Message-ID; b=MpuIF43Kx0kAEm7cXcKM3SMY4UlkLeAAShEE5gphPdMa5V31MPwExZN0A92En/lEE9FIHzUupzzMUKU8du/zHJKm4XRMUxAF1tU/3WK+NrAhsueX6cGFiA68T6PM+LlcvckGxDKnpWQhLAUbhshd1yDFPsqoJb/pYcARRuGeKfg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=WuaU6BUU; arc=none smtp.client-ip=192.198.163.10
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wyFP/z6R"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 391C61F000E9;
-	Wed, 12 Aug 2026 01:45:32 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1786499132;
-	bh=Y8GfhmhWvkGeHqt870xpRXaasoUG/5uOvKBMWN4EJvM=;
-	h=Date:To:From:Subject;
-	b=wyFP/z6RMFWD55u06xyM2JLdqXZffMwc8OsKFa+xoA7ViGUEmEgyAv4oYmJpFB2ns
-	 ud6WOspM3oyrUFrWSH8ILxG3vo/QRRvEVN3nWPZtSa0aPRzhZKMVal1a5n967aDtYP
-	 YzD2OEEbAQE1gjif6Q2AfGptbp701J4dx6/6ZQIo=
-Date: Tue, 11 Aug 2026 18:45:31 -0700
-To: mm-commits@vger.kernel.org,wangkefeng.wang@huawei.com,usamaarif642@gmail.com,surenb@google.com,stable@vger.kernel.org,shakeel.butt@linux.dev,osalvador@suse.de,muchun.song@linux.dev,gthelen@google.com,fvdl@google.com,david@kernel.org,anshuman.khandual@arm.com,souravpanda@google.com,akpm@linux-foundation.org
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-hugetlb_cma-fix-null-nodemask-dereference-in-hugetlb_cma_alloc_frozen_folio.patch removed from -mm tree
-Message-Id: <20260812014532.391C61F000E9@smtp.kernel.org>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="WuaU6BUU"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1786499304; x=1818035304;
+  h=date:from:to:cc:subject:message-id;
+  bh=GAuDrBlrychbUMsJxe/lbW/Fj2S9CVT2BYdqaa4RTHQ=;
+  b=WuaU6BUUSGAUUiX/Lt1SCWjYSIGFwjiJVbYVqv/EOm4OMpgXKRF9XFB/
+   VHlTOBPtnssGbzp3ODAeblusJl50I4I+x/vg2qkro/n7scZj5S0e/fMI0
+   lpEbKS137/un1IuQLyFgH8dIWzsB6nJ6561hHchjT6C/VRXAnCRCp9n6Y
+   2czrFv6rVHD0bu9jI2282vLi25McBvCsjeLXgw/nEHYdqryMwgpb13cgT
+   YvRlovgxyE+K5pDHTNNM0pr43JbGnQ+27+YFaXp+Wthty9fP7PR+rPFHi
+   pBfB9TRBaH0WHZkHCzf4dETB4DYUdjY9DlnRZ2GJ7oF2zJ/Tiz4baS3pZ
+   A==;
+X-CSE-ConnectionGUID: BX65MzP1Tbe6+4IvWmGtlQ==
+X-CSE-MsgGUID: WU+vGssaSSOsM5pmXWsRQA==
+X-IronPort-AV: E=McAfee;i="6800,10657,11872"; a="98399574"
+X-IronPort-AV: E=Sophos;i="6.25,218,1779174000"; 
+   d="scan'208";a="98399574"
+Received: from orviesa005.jf.intel.com ([10.64.159.145])
+  by fmvoesa104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 Aug 2026 18:48:24 -0700
+X-CSE-ConnectionGUID: aGR9z4UwSmmwM5JKvbm5bA==
+X-CSE-MsgGUID: hu/z+v9JTdObPeePjZu6mA==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.25,218,1779174000"; 
+   d="scan'208";a="267757874"
+Received: from lkp-server01.sh.intel.com (HELO 6eda058d650d) ([10.239.97.150])
+  by orviesa005.jf.intel.com with ESMTP; 11 Aug 2026 18:48:22 -0700
+Received: from kbuild by 6eda058d650d with local (Exim 4.98.2)
+	(envelope-from <lkp@intel.com>)
+	id 1wty4p-00000000Pbq-0Zkz;
+	Wed, 12 Aug 2026 01:48:19 +0000
+Date: Wed, 12 Aug 2026 09:47:24 +0800
+From: kernel test robot <lkp@intel.com>
+To: Christoph Hellwig <hch@lst.de>
+Cc: oe-kbuild-all@lists.linux.dev, David Hildenbrand <david@kernel.org>,
+ Andrew Morton <akpm@linux-foundation.org>,
+ Linux Memory Management List <linux-mm@kvack.org>,
+ mm-commits@vger.kernel.org
+Subject: [akpm-mm:mm-new 223/226] WARNING: modpost: vmlinux: section
+ mismatch in reference: chmod_common+0x94 (section: .text) ->
+ tegra_p2u_driver_init (section: .init.text)
+Message-ID: <202608120824.3r84IiZb-lkp@intel.com>
+User-Agent: s-nail v14.9.25
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
+tree:   https://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm.git mm-new
+head:   480a31230b426efb005b6e71a14ef80f405f18b6
+commit: 7180df00addf6dbb96228c349a2b8641f77e633b [223/226] mm/swap: move swap_ops into file systems for file system-based swap
+config: mips-randconfig-r051-20260811 (https://download.01.org/0day-ci/archive/20260812/202608120824.3r84IiZb-lkp@intel.com/config)
+compiler: clang version 22.1.3 (https://github.com/llvm/llvm-project e9846648fd6183ee6d8cbdb4502213fcf902a211)
+reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20260812/202608120824.3r84IiZb-lkp@intel.com/reproduce)
 
-The quilt patch titled
-     Subject: mm/hugetlb_cma: fix null nodemask dereference in hugetlb_cma_alloc_frozen_folio
-has been removed from the -mm tree.  Its filename was
-     mm-hugetlb_cma-fix-null-nodemask-dereference-in-hugetlb_cma_alloc_frozen_folio.patch
+If you fix the issue in a separate patch/commit (i.e. not just a new version of
+the same patch/commit), kindly add following tags
+| Reported-by: kernel test robot <lkp@intel.com>
+| Closes: https://lore.kernel.org/oe-kbuild-all/202608120824.3r84IiZb-lkp@intel.com/
 
-This patch was dropped because an updated version will be issued
+All warnings (new ones prefixed by >>, old ones prefixed by <<):
 
-------------------------------------------------------
-From: Sourav Panda <souravpanda@google.com>
-Subject: mm/hugetlb_cma: fix null nodemask dereference in hugetlb_cma_alloc_frozen_folio
-Date: Sun, 26 Jul 2026 07:29:34 +0000
+WARNING: modpost: vmlinux: section mismatch in reference: lockdep_register_key+0x24 (section: .text) -> stm32_combophy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: lockdep_register_key+0x28 (section: .text) -> stm32_combophy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: static_obj+0x14 (section: .text) -> stm32_combophy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: static_obj+0x18 (section: .text) -> stm32_combophy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: lockdep_init_map_type+0x7c (section: .text) -> stm32_combophy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: lockdep_init_map_type+0x80 (section: .text) -> stm32_combophy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: is_dynamic_key+0x24 (section: .text) -> stm32_combophy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: is_dynamic_key+0x28 (section: .text) -> stm32_combophy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: lockdep_unregister_key+0x54 (section: .text) -> stm32_combophy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: lockdep_unregister_key+0x58 (section: .text) -> stm32_combophy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: assign_lock_key+0x3c (section: .text) -> stm32_combophy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: assign_lock_key+0x40 (section: .text) -> stm32_combophy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: dma_map_page_attrs+0x70 (section: .text) -> stf_dphy_driver_init (section: .init.text)
+WARNING: modpost: vmlinux: section mismatch in reference: dma_map_resource+0x10 (section: .text) -> stf_dphy_driver_init (section: .init.text)
+WARNING: modpost: vmlinux: section mismatch in reference: hmm_dma_map_pfn+0x98 (section: .text) -> stf_dphy_driver_init (section: .init.text)
+WARNING: modpost: vmlinux: section mismatch in reference: do_truncate+0x90 (section: .text) -> tegra_p2u_driver_init (section: .init.text)
+WARNING: modpost: vmlinux: section mismatch in reference: break_lease+0x60 (section: .text) -> tegra_p2u_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: do_ftruncate+0x140 (section: .text) -> tegra_p2u_driver_init (section: .init.text)
+>> WARNING: modpost: vmlinux: section mismatch in reference: chmod_common+0x94 (section: .text) -> tegra_p2u_driver_init (section: .init.text)
+WARNING: modpost: vmlinux: section mismatch in reference: chmod_common+0x104 (section: .text) -> tegra_p2u_driver_exit (section: .exit.text)
+>> WARNING: modpost: vmlinux: section mismatch in reference: chown_common+0x180 (section: .text) -> tegra_p2u_driver_init (section: .init.text)
+WARNING: modpost: vmlinux: section mismatch in reference: chown_common+0x1f0 (section: .text) -> tegra_p2u_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: do_dentry_open+0x4c4 (section: .text) -> tegra_p2u_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: vfs_create+0x198 (section: .text) -> tegra_p2u_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: try_break_deleg+0x64 (section: .text) -> tegra_p2u_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: path_openat+0x85c (section: .text) -> tegra_p2u_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: path_openat+0x990 (section: .text) -> tegra_p2u_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: vfs_mknod+0x204 (section: .text) -> tegra_p2u_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: filename_mknodat+0x21c (section: .text) -> tegra_p2u_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: vfs_mkdir+0x1e0 (section: .text) -> tegra_p2u_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: filename_mkdirat+0x154 (section: .text) -> tegra_p2u_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: vfs_rmdir+0x1e4 (section: .text) -> tegra_p2u_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: filename_rmdir+0x218 (section: .text) -> tegra_p2u_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: vfs_unlink+0x1e0 (section: .text) -> tegra_p2u_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: vfs_unlink+0x238 (section: .text) -> tegra_p2u_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: filename_unlinkat+0x114 (section: .text) -> tegra_p2u_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: vfs_symlink+0x11c (section: .text) -> tegra_p2u_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: filename_symlinkat+0x164 (section: .text) -> tegra_p2u_driver_exit (section: .exit.text)
+>> WARNING: modpost: vmlinux: section mismatch in reference: filename_linkat+0x1e4 (section: .text) -> tegra_p2u_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: filename_renameat2+0x368 (section: .text) -> tegra_p2u_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: file_remove_privs_flags+0xd0 (section: .text) -> tegra_p2u_driver_init (section: .init.text)
+WARNING: modpost: vmlinux: section mismatch in reference: notify_change+0x554 (section: .text) -> tegra_p2u_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: __vfs_setxattr_locked+0x100 (section: .text) -> tegra_p2u_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: vfs_setxattr+0x130 (section: .text) -> tegra_p2u_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: __vfs_removexattr_locked+0xdc (section: .text) -> tegra_p2u_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: vfs_removexattr+0xc4 (section: .text) -> tegra_p2u_driver_exit (section: .exit.text)
+>> WARNING: modpost: vmlinux: section mismatch in reference: vfs_utimes+0x19c (section: .text) -> tegra_p2u_driver_init (section: .init.text)
+WARNING: modpost: vmlinux: section mismatch in reference: vfs_utimes+0x20c (section: .text) -> tegra_p2u_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: vfs_set_acl+0x1a4 (section: .text) -> tegra_p2u_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: vfs_set_acl+0x228 (section: .text) -> tegra_p2u_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: vfs_remove_acl+0xd4 (section: .text) -> tegra_p2u_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: vfs_remove_acl+0x150 (section: .text) -> tegra_p2u_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: ovl_destroy_inode+0x40 (section: .text) -> omap_control_phy_init (section: .init.text)
+WARNING: modpost: vmlinux: section mismatch in reference: ovl_statfs+0x2c (section: .text) -> omap_control_phy_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: ovl_workdir_create+0x24c (section: .text) -> tegra_p2u_driver_init (section: .init.text)
+WARNING: modpost: vmlinux: section mismatch in reference: ovl_verify_lowerdata+0x148 (section: .text) -> omap_control_phy_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: ovl_setattr+0x13c (section: .text) -> tegra_p2u_driver_init (section: .init.text)
+WARNING: modpost: vmlinux: section mismatch in reference: ovl_getattr+0x60 (section: .text) -> omap_control_phy_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: ovl_fileattr_set+0x38 (section: .text) -> omap_control_phy_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: ovl_fileattr_get+0x24 (section: .text) -> omap_control_phy_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: ovl_create_handle_whiteouts+0x3e0 (section: .text) -> tegra_p2u_driver_init (section: .init.text)
+WARNING: modpost: vmlinux: section mismatch in reference: ovl_dir_open+0x54 (section: .text) -> omap_control_phy_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: ovl_set_attr+0x6c (section: .text) -> tegra_p2u_driver_init (section: .init.text)
+WARNING: modpost: vmlinux: section mismatch in reference: ovl_set_attr+0xbc (section: .text) -> tegra_p2u_driver_init (section: .init.text)
+WARNING: modpost: vmlinux: section mismatch in reference: ovl_set_attr+0x154 (section: .text) -> tegra_p2u_driver_init (section: .init.text)
+WARNING: modpost: vmlinux: section mismatch in reference: ovl_copy_up_flags+0xd2c (section: .text) -> tegra_p2u_driver_init (section: .init.text)
+WARNING: modpost: vmlinux: section mismatch in reference: ovl_copy_up_flags+0xf1c (section: .text) -> tegra_p2u_driver_init (section: .init.text)
+WARNING: modpost: vmlinux: section mismatch in reference: ovl_copy_up_metadata+0x398 (section: .text) -> tegra_p2u_driver_init (section: .init.text)
+WARNING: modpost: vmlinux: section mismatch in reference: xfs_file_write_checks+0x164 (section: .text) -> tegra_p2u_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: xfs_ilock2_io_mmap+0xe4 (section: .text) -> tegra_p2u_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: xfs_ilock2_io_mmap+0x144 (section: .text) -> tegra_p2u_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: xfs_ilock2_io_mmap+0x188 (section: .text) -> tegra_p2u_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: xfs_ilock2_io_mmap+0x1e0 (section: .text) -> tegra_p2u_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: xfs_break_leased_layouts+0xa4 (section: .text) -> tegra_p2u_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: xfs_break_leased_layouts+0x134 (section: .text) -> tegra_p2u_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: btrfs_update_inode+0x80 (section: .text) -> da8xx_usb_phy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: btrfs_create_new_inode+0x76c (section: .text) -> da8xx_usb_phy_driver_init (section: .init.text)
+WARNING: modpost: vmlinux: section mismatch in reference: btrfs_rename2+0x1078 (section: .text) -> da8xx_usb_phy_driver_init (section: .init.text)
+WARNING: modpost: vmlinux: section mismatch in reference: btrfs_unlink+0xd8 (section: .text) -> da8xx_usb_phy_driver_init (section: .init.text)
+WARNING: modpost: vmlinux: section mismatch in reference: btrfs_rmdir+0x11c (section: .text) -> da8xx_usb_phy_driver_init (section: .init.text)
+WARNING: modpost: vmlinux: section mismatch in reference: btrfs_remove_free_space_inode+0x88 (section: .text) -> da8xx_usb_phy_driver_init (section: .init.text)
+WARNING: modpost: vmlinux: section mismatch in reference: create_reloc_inode+0x2f8 (section: .text) -> da8xx_usb_phy_driver_init (section: .init.text)
+WARNING: modpost: vmlinux: section mismatch in reference: btrfs_begin_enable_verity+0xac (section: .text) -> da8xx_usb_phy_driver_init (section: .init.text)
+WARNING: modpost: vmlinux: section mismatch in reference: blk_dma_map_iter_start+0xa8 (section: .text) -> stf_dphy_driver_init (section: .init.text)
+WARNING: modpost: vmlinux: section mismatch in reference: blk_rq_dma_map_iter_next+0x94 (section: .text) -> stf_dphy_driver_init (section: .init.text)
+WARNING: modpost: vmlinux: section mismatch in reference: blk_rq_integrity_dma_map_iter_next+0x94 (section: .text) -> stf_dphy_driver_init (section: .init.text)
+WARNING: modpost: vmlinux: section mismatch in reference: packing_test_unpack_fields+0x54 (section: .text) -> xpsgtr_driver_init (section: .init.text)
+WARNING: modpost: vmlinux: section mismatch in reference: mhi_unmap_single_no_bb+0x18 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: cpm_muram_init+0x124 (section: .text) -> xpsgtr_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: cmdq_pkt_destroy+0x28 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: virtqueue_add+0x4c0 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: virtqueue_add+0x8f8 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: virtqueue_unmap_page_attrs+0x38 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: virtqueue_unmap_single_attrs+0x48 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: virtqueue_add_split+0x678 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: detach_buf_split_in_order+0x88 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: detach_buf_split_in_order+0x1cc (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: detach_buf_split_in_order+0x278 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: virtqueue_add_indirect_packed+0x2b0 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: vring_unmap_extra_packed+0x8c (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: detach_buf_packed_in_order+0xdc (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+>> WARNING: modpost: vmlinux: section mismatch in reference: msm_stop_dma+0xe4 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: s3c24xx_serial_release_dma+0x4c (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: s3c24xx_serial_release_dma+0xa0 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: tegra_uart_shutdown+0x2cc (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: tegra_uart_startup+0x4f4 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: ttm_pool_unmap_and_free+0x70 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: ttm_pool_backup+0x3dc (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: virtio_gpu_probe+0x4c (section: .text) -> pinctrl_init (section: .init.text)
+WARNING: modpost: vmlinux: section mismatch in reference: sti_bind+0x1c (section: .text) -> pinctrl_init (section: .init.text)
+WARNING: modpost: vmlinux: section mismatch in reference: imx_drm_bind+0x20 (section: .text) -> pinctrl_init (section: .init.text)
+WARNING: modpost: vmlinux: section mismatch in reference: meson_drv_bind_master+0xac (section: .text) -> pinctrl_init (section: .init.text)
+WARNING: modpost: vmlinux: section mismatch in reference: kirin_drm_bind+0x44 (section: .text) -> pinctrl_init (section: .init.text)
+WARNING: modpost: vmlinux: section mismatch in reference: stm32_timers_dma_burst_read+0x240 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: nvme_rdma_setup_ctrl+0x33c (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: nvme_rdma_teardown_admin_queue+0xf8 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: nvme_rdma_destroy_queue_ib+0x118 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: nvme_rdma_free_ring+0x60 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: nvme_rdma_cm_handler+0x8b4 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: nvme_rdma_complete_rq+0xd4 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+>> WARNING: modpost: vmlinux: section mismatch in reference: nvme_rdma_queue_rq+0x148 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: nvme_fc_rcv_ls_req+0x258 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: nvme_fc_xmt_ls_rsp_free+0xb8 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: nvme_fc_delete_association+0x14c (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: nvme_fc_delete_association+0x170 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: nvme_fc_term_aen_ops+0x34 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: nvme_fc_term_aen_ops+0x58 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: __nvme_fc_send_ls_req+0x250 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: __nvme_fc_finish_ls_req+0x98 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: nvme_fc_exit_request+0x30 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: nvme_fc_exit_request+0x54 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: nvmet_rdma_free_rsp+0x28 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: nvmet_rdma_cm_handler+0xc1c (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: nvmet_rdma_alloc_cmds+0x3ac (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: nvmet_rdma_alloc_cmds+0x418 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: nvmet_rdma_free_cmd+0x88 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: nvmet_rdma_free_cmd+0xe8 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: nvmet_rdma_free_rsps+0x74 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: ag71xx_poll+0x154 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: ag71xx_hard_start_xmit+0x29c (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: ag71xx_rings_cleanup+0x80 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: xgmac_tx_timeout_work+0x188 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: xgmac_poll+0x168 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: xgmac_poll+0x478 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: xgmac_stop+0x1b0 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: xgmac_stop+0x284 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: xgmac_xmit+0x438 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: xgmac_xmit+0x4bc (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: geth_cleanup_freeq+0xb4 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: geth_resize_freeq+0x3bc (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: geth_freeq_alloc_map_page+0x148 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: gmac_clean_txq+0xcc (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: gmac_map_tx_bufs+0x46c (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: ftgmac100_hard_start_xmit+0x438 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: ftgmac100_hard_start_xmit+0x590 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: ftgmac100_poll+0x168 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: ftgmac100_poll+0x418 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: ftgmac100_free_buffers+0xac (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: ftgmac100_free_buffers+0x1a8 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: ftmac100_poll+0x204 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: ftmac100_poll+0x5e4 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: ftmac100_free_buffers+0x88 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: ftmac100_free_buffers+0x10c (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: hix5hd2_poll+0x1e0 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: hix5hd2_poll+0x264 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: hix5hd2_poll+0x310 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: hix5hd2_poll+0x528 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: hix5hd2_net_close+0xe8 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: hix5hd2_net_close+0x164 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: hip04_rx_poll+0x13c (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: hip04_mac_stop+0x168 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: hip04_tx_reclaim+0x104 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: hip04_tx_reclaim+0x1ac (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: hnae_fini_ring+0x104 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: hnae_init_ring+0x2ac (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: hnae_unmap_buffer+0x44 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: hnae_unmap_buffer+0x7c (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: hns_nic_net_xmit_hw+0x434 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: hisi_femac_poll+0xe4 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: hisi_femac_poll+0x23c (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: hisi_femac_net_close+0x104 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: hisi_femac_net_close+0x1a0 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: libeth_tx_complete_any+0x90 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: libeth_tx_complete_any+0x114 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: mtk_napi_rx+0xc78 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: mtk_rx_clean+0xd4 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: mtk_tx_unmap+0x54 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: mtk_tx_unmap+0x78 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: mtk_tx_unmap+0xb4 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: mtk_tx_unmap+0xd4 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: mtk_wed_hwrro_free_buffer+0x70 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: __mtk_wed_detach+0x74 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: __mtk_wed_detach+0xe4 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: mtk_wed_amsdu_buffer_alloc+0x150 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: mtk_wed_wo_deinit+0xb0 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: mtk_wed_wo_deinit+0x15c (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: mtk_wed_wo_irq_tasklet+0x160 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: mlxbf_gige_rx_init+0x3a0 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: mlxbf_gige_rx_deinit+0x8c (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: mlxbf_gige_poll+0x1ac (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: mlxbf_gige_tx_deinit+0xbc (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: mlxbf_gige_tx_deinit+0x13c (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: mlxbf_gige_handle_tx_complete+0x19c (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: lan966x_fdma_napi_poll+0x124 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: lan966x_fdma_napi_poll+0x188 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: nixge_poll+0xd0 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: nixge_start_xmit+0x340 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: nixge_start_xmit+0x37c (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: nixge_dma_err_handler+0x9c (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: nixge_tx_irq+0x17c (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: nixge_hw_dma_bd_release+0x40 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: ave_napi_poll_tx+0x1a4 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: ave_stop+0x18c (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: ave_stop+0x220 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: ave_rx_receive+0x174 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: netsec_napi_poll+0xb8 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: netsec_uninit_pkt_dring+0x130 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: bam_dmux_remove+0x224 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: bam_dmux_power_off+0x108 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: fw_iso_buffer_map_dma+0xec (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: fw_iso_buffer_destroy+0x58 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: at91_twi_dma_cleanup+0x10c (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: at91_twi_read_data_dma_callback+0x28 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: at91_twi_write_data_dma_callback+0x20 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: i2c_imx_dma_xfer+0x168 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: i2c_imx_dma_callback+0x28 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: lpi2c_imx_xfer_common+0x10cc (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: lpi2c_imx_xfer_common+0x1100 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: lpi2c_imx_xfer_common+0x115c (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: lpi2c_imx_xfer_common+0x11b4 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: lpi2c_imx_xfer_common+0x1208 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: lpi2c_imx_xfer_common+0x12d4 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: lpi2c_imx_xfer_common+0x13d4 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: lpi2c_imx_xfer_common+0x1718 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: mtk_i2c_transfer+0xa60 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: mtk_i2c_transfer+0xa88 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: mtk_i2c_transfer+0xab0 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: mtk_i2c_transfer+0xac8 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: mtk_i2c_transfer+0xb58 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: mtk_i2c_transfer+0xcb8 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: sh_mobile_xfer+0x3a8 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: sh_mobile_xfer+0x454 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: sh_mobile_xfer+0x704 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: sh_mobile_i2c_dma_callback+0x40 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: stm32f7_i2c_handle_isr_errs+0x108 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: stm32f7_i2c_dma_callback+0x64 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: stm32_i2c_prep_dma_xfer+0x1a8 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: i3c_master_dma_unmap_single+0x20 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: hci_dma_free+0xd0 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: rdma_rw_ctx_init_bvec+0x14c (section: .text) -> stf_dphy_driver_init (section: .init.text)
+WARNING: modpost: vmlinux: section mismatch in reference: rdma_rw_ctx_init_bvec+0x4ec (section: .text) -> stf_dphy_driver_init (section: .init.text)
+WARNING: modpost: vmlinux: section mismatch in reference: ib_mad_send_done+0x1bc (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: ib_mad_send_done+0x1e4 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: ib_send_mad+0x28c (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: ib_send_mad+0x2b0 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: ib_send_mad+0x354 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: ib_mad_init_device+0xa00 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: ib_mad_init_device+0xa80 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: ib_mad_port_close+0x19c (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: ib_mad_port_close+0x240 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: ib_mad_post_receive_mads+0x2d0 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: ib_mad_recv_done+0x114 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: srp_free_ch_ib+0x1f0 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: srp_free_ch_ib+0x294 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: srp_init_cmd_priv+0x138 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: srp_exit_cmd_priv+0x50 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: srp_cm_rep_handler+0x460 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: srp_cm_rep_handler+0x4b4 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: srpt_alloc_ioctx_ring+0x2ac (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: srpt_free_ioctx_ring+0xa8 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: iser_alloc_rx_descriptors+0x37c (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: iser_alloc_rx_descriptors+0x3dc (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: iser_free_login_buf+0x48 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: iser_free_login_buf+0x70 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: iser_free_rx_descriptors+0x70 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: iser_dataout_comp+0x48 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: iscsi_iser_cleanup_task+0x54 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: scm_legacy_call+0x354 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: qcom_tzmem_pool_add_memory+0x148 (section: .text) -> xpsgtr_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: tee_protmem_static_pool_alloc+0xa0 (section: .text) -> xpsgtr_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: tee_shm_pool_alloc_res_mem+0x9c (section: .text) -> xpsgtr_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: tso_dma_map_init+0x13c (section: .text) -> stf_dphy_driver_init (section: .init.text)
+WARNING: modpost: vmlinux: section mismatch in reference: tso_dma_map_init+0x240 (section: .text) -> stf_dphy_driver_init (section: .init.text)
+WARNING: modpost: vmlinux: section mismatch in reference: page_pool_return_netmem+0x70 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: page_pool_release+0x404 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: page_pool_dma_map+0x28c (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: net_devmem_bind_dmabuf+0x304 (section: .text) -> xpsgtr_driver_exit (section: .exit.text)
+>> WARNING: modpost: vmlinux: section mismatch in reference: ct_seq_show+0x3e8 (section: .text) -> log_buf_len_setup (section: .init.text)
+WARNING: modpost: vmlinux: section mismatch in reference: ct_seq_show+0x3f0 (section: .text) -> log_buf_len_setup (section: .init.text)
+>> WARNING: modpost: vmlinux: section mismatch in reference: ct_seq_show+0x3f4 (section: .text) -> log_buf_len_update (section: .init.text)
+WARNING: modpost: vmlinux: section mismatch in reference: ct_seq_show+0x3fc (section: .text) -> log_buf_len_update (section: .init.text)
+>> WARNING: modpost: vmlinux: section mismatch in reference: ct_seq_show+0x434 (section: .text) -> new_log_buf_len (section: .init.data)
+WARNING: modpost: vmlinux: section mismatch in reference: ct_seq_show+0x438 (section: .text) -> new_log_buf_len (section: .init.data)
+WARNING: modpost: vmlinux: section mismatch in reference: sctp_make_abort_user+0x248 (section: .text) -> algif_hash_init (section: .init.text)
+WARNING: modpost: vmlinux: section mismatch in reference: sctp_make_abort_user+0x24c (section: .text) -> algif_hash_init (section: .init.text)
+WARNING: modpost: vmlinux: section mismatch in reference: sctp_user_addto_chunk+0xb0 (section: .text) -> algif_hash_init (section: .init.text)
+WARNING: modpost: vmlinux: section mismatch in reference: sctp_user_addto_chunk+0xb4 (section: .text) -> algif_hash_init (section: .init.text)
+WARNING: modpost: vmlinux: section mismatch in reference: rdma_request+0x190 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: rdma_request+0x398 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: send_done+0x44 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: recv_done+0x44 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: digital_start_poll+0x224 (section: .text) -> sw842_debugfs_remove (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: digital_start_poll+0x228 (section: .text) -> sw842_debugfs_remove (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: __xp_dma_unmap+0x78 (section: .text) -> stf_dphy_driver_exit (section: .exit.text)
+>> WARNING: modpost: vmlinux: section mismatch in reference: resource_init+0x78 (section: .init.text) -> stm32_combophy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: resource_init+0x7c (section: .init.text) -> stm32_combophy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: mem_init_print_info+0x110 (section: .init.text) -> stm32_combophy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: mem_init_print_info+0x114 (section: .init.text) -> stm32_combophy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: libeth_xdp_xmit_return_bulk+0x58 (section: .text.unlikely.) -> stf_dphy_driver_exit (section: .exit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: mtk_setup_legacy_sram+0x9c (section: .text.unlikely.) -> xpsgtr_driver_exit (section: .exit.text)
 
-alloc_buddy_hugetlb_folio_with_mpol() can pass a NULL nodemask to
-alloc_fresh_hugetlb_folio() as a fallback to allocate from all nodes.  If
-order is gigantic, alloc_fresh_hugetlb_folio() propagates the NULL
-nodemask down to hugetlb_cma_alloc_frozen_folio() via
-alloc_gigantic_frozen_folio().
-
-Additionally, hugetlb_cma_alloc_frozen_folio() previously attempted
-allocation on hugetlb_cma[nid] without verifying if nid is included in the
-caller's nodemask.  Adding a node_isset(nid, *nodemask) check ensures the
-initial preferred node allocation honors the memory policy / nodemask.
-
-However, hugetlb_cma_alloc_frozen_folio() dereferences the nodemask in
-node_isset(nid, *nodemask) and for_each_node_mask(node, *nodemask),
-leading to a null pointer dereference kernel panic when nodemask is NULL.
-
-Fix this by checking if nodemask is NULL in
-hugetlb_cma_alloc_frozen_folio() and defaulting it to
-cpuset_current_mems_allowed (safely read using a seqcount retry loop). 
-This ensures that the initial node check and fallback loop safely honor
-the task's cpuset without violating cpuset constraints or causing NULL
-pointer dereferences.
-
-From a userspace perspective, this bug allows an unprivileged user to
-crash the kernel (trigger a panic) by requesting a gigantic hugepage
-allocation with MPOL_PREFERRED_MANY on a system where CMA is only
-configured on a subset of NUMA nodes.
-
-This can be reproduced by booting a VM with two NUMA nodes, restricting
-CMA to Node 1 (e.g., hugetlb_cma=1:1G default_hugepagesz=1G hugepagesz=1G
-hugepages=0), and running a program that allocates a 1GB hugepage area
-without reserving, restricts allocation to Node 0 using mbind() with
-MPOL_PREFERRED_MANY, and triggers a page fault:
-
-  void *ptr = mmap(NULL, 1UL << 30, PROT_READ | PROT_WRITE,
-                   MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB |
-                   MAP_HUGE_1GB | MAP_NORESERVE, -1, 0);
-  unsigned long nodemask = 1; /* Node 0 */
-  mbind(ptr, 1UL << 30, MPOL_PREFERRED_MANY, &nodemask,
-        sizeof(nodemask) * 8, 0);
-  memset(ptr, 0, 1UL << 30); /* Trigger fault */
-
-This results in a NULL pointer dereference:
-
-  BUG: kernel NULL pointer dereference, address: 0000000000000000
-  #PF: supervisor read access in kernel mode
-  #PF: error_code(0x0000) - not-present page
-  Oops: Oops: 0000 [#1] SMP NOPTI
-  RIP: 0010:hugetlb_cma_alloc_frozen_folio+0x75/0x120
-  Call Trace:
-   <TASK>
-   only_alloc_fresh_hugetlb_folio.isra.0+0x2c/0x160
-   alloc_surplus_hugetlb_folio+0x6d/0x100
-   alloc_hugetlb_folio+0x3c5/0x660
-   hugetlb_no_page+0x3d9/0x650
-
-[souravpanda@google.com: v5]
-  Link: https://lore.kernel.org/20260809043250.2917406-1-souravpanda@google.com
-Link: https://lore.kernel.org/20260726072935.3513996-1-souravpanda@google.com
-Fixes: eb02f14c4a2b ("mm/hugetlb: allow overcommitting gigantic hugepages")
-Signed-off-by: Sourav Panda <souravpanda@google.com>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Usama Arif <usamaarif642@gmail.com>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Frank van der Linden <fvdl@google.com>
-Cc: Greg Thelen <gthelen@google.com>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: <stable@vger.kernel.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- mm/hugetlb_cma.c |   15 ++++++++++++++-
- 1 file changed, 14 insertions(+), 1 deletion(-)
-
---- a/mm/hugetlb_cma.c~mm-hugetlb_cma-fix-null-nodemask-dereference-in-hugetlb_cma_alloc_frozen_folio
-+++ a/mm/hugetlb_cma.c
-@@ -3,6 +3,7 @@
- #include <linux/mm.h>
- #include <linux/cma.h>
- #include <linux/compiler.h>
-+#include <linux/cpuset.h>
- #include <linux/mm_inline.h>
- 
- #include <asm/page.h>
-@@ -30,11 +31,23 @@ struct folio *hugetlb_cma_alloc_frozen_f
- 	int node;
- 	struct folio *folio;
- 	struct page *page = NULL;
-+	nodemask_t local_node_mask;
- 
- 	if (!hugetlb_cma_size)
- 		return NULL;
- 
--	if (hugetlb_cma[nid])
-+	if (!nodemask) {
-+		unsigned int cpuset_mems_cookie;
-+
-+		do {
-+			cpuset_mems_cookie = read_mems_allowed_begin();
-+			local_node_mask = cpuset_current_mems_allowed;
-+		} while (read_mems_allowed_retry(cpuset_mems_cookie));
-+
-+		nodemask = &local_node_mask;
-+	}
-+
-+	if (hugetlb_cma[nid] && node_isset(nid, *nodemask))
- 		page = cma_alloc_frozen_compound(hugetlb_cma[nid], order);
- 
- 	if (!page && !(gfp_mask & __GFP_THISNODE)) {
-_
-
-Patches currently in -mm which might be from souravpanda@google.com are
-
-mm-hugetlb_cma-support-percentage-based-hugetlb_cma-reservation.patch
-
+--
+0-DAY CI Kernel Test Service
+https://github.com/intel/lkp-tests/wiki
