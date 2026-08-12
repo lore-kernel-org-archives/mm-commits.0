@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 291D84B04B7
-	for <mm-commits@vger.kernel.org>; Wed, 12 Aug 2026 18:37:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E79AE46E01C;
+	Wed, 12 Aug 2026 21:00:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786559845; cv=none; b=WbO3IpULTuY6EEukNfPUAL7jPkSozy5GHYUwRaEvFvFvAhz4KTSuvfEyVgZLtQQ4Jgzjay3qjbsMZnxz314k0KfFVcfXi4z4Q10dpKrOQr5llhkXeoTGiW+lc2PHGmylRGcqPgxWksThyq5nSUx0VLUDZzNZBok/A7DLaQqaLgk=
+	t=1786568463; cv=none; b=gOAwztjKpzXdBKNjONzyJjKiWtDB9MoljWeAeJfSEu8oC3zU69bhwrBa7C1ZHoq3/f3hbLksuatdhleBw75qRbs3mY4enqssG0QB2neS5jMZmeGKJfftmJS7W1iWHUGraT7Z3SxrtD+khUa1/bRNGtY2vI1kW4zXuDishP52kH4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786559845; c=relaxed/simple;
-	bh=21WhS8xSuKf8erp2BaUIHK0AWaJGyD0sJXO4rkM4slA=;
-	h=Date:To:From:Subject:Message-Id; b=YK7yqIkVjgM5m0Ibd9tQPfGPvk0T4MBaZkHXa7WrDRrAIYmFNf16MMLuRsnM0TBSiuvnr+zD7UlA/PxSmCpYMYGWImv7gJGfR+rnuJ+EBXvRsR1hKAIiiJfpI+zWEWIYiuw2EiqZNG6Nta012HOC4o0TaXyFbmv3bzTgKQAKfp8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=h5UE6BaA; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1786568463; c=relaxed/simple;
+	bh=T7H9pP6jCWseNjfy3ztFkcDXxDEZu1mAC/17cddfb+I=;
+	h=Date:To:From:Subject:Message-Id; b=ERpZOYiQp03Ns6TkKMiTOT1KzDtxKY/gFy7fz4PSsnf2cRAtyo76Bgslf/wpai1PEn0u1QjqIW+2+RAiDyP58Nrf7rI73M3TpRPLEf7xUbM+GT5hAjs614xtgSTT6JPeAgzhb8WJAU2CeUJIiyY3i/y5bjblNzm4vAc+541Oaxc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YSLaj8W4; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="h5UE6BaA"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D097E1F000E9;
-	Wed, 12 Aug 2026 18:37:23 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YSLaj8W4"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0B2F81F000E9;
+	Wed, 12 Aug 2026 21:00:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1786559843;
-	bh=2jZYb04mIjBWF/XtY5lLC3s9pFuqWpz53Na+Ep3CwJ0=;
+	d=linux-foundation.org; s=korg; t=1786568457;
+	bh=WFmCWXXf89domoFoOfeqgrQAPwNz4FAQ+Q43Cs0TAXM=;
 	h=Date:To:From:Subject;
-	b=h5UE6BaASpp484jn/zFK2YXYYx5qdbIU/sbntLo0QB0hN4L42n9qre68KG1VZSPrP
-	 9iBbcUkoWe7j7QF0MMQKj+FvM80m1gYWlwadszAiY1eQcburx31kLwLdQM+s5pHBSu
-	 azfrf/7Gp0uLp1axzMh0egMzRX1V/sK/Gt3B0C14=
-Date: Wed, 12 Aug 2026 11:37:23 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,rppt@kernel.org,pfalcato@suse.de,mhocko@suse.com,liam@infradead.org,jannh@google.com,david@kernel.org,arnd@arndb.de,ljs@kernel.org,akpm@linux-foundation.org
+	b=YSLaj8W4o54WVQU8g/uXJqTuAg8PctBumna9n3GN9lgSyb61L+h0sToIUhwLBzu1S
+	 Jj3eNm8H97zWV1kYvl57op8PrMbKL4F9H+US4TMkaL6WCzGzZs3So9nHkM8f2ZEtR/
+	 Fb8HrrGLXC4NAJWxto7bzeN4zrZpPsCu6ItTNC+8=
+Date: Wed, 12 Aug 2026 14:00:56 -0700
+To: mm-commits@vger.kernel.org,yuzhao@google.com,yuanchu@google.com,weixugc@google.com,suleiman@google.com,steven@liquorix.net,stable@vger.kernel.org,shakeel.butt@linux.dev,oleksandr@natalenko.name,mhocko@kernel.org,ljs@kernel.org,heftig@archlinux.org,hannes@cmpxchg.org,david@kernel.org,bgeffon@google.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,axelrasmussen@google.com,kasong@tencent.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + maintainers-add-drivers-char-memc-to-mm-misc-memory-mapping-sections.patch added to mm-unstable branch
-Message-Id: <20260812183723.D097E1F000E9@smtp.kernel.org>
+Subject: + mm-mglru-fix-and-remove-redundant-unevictable-folio-handling.patch added to mm-new branch
+Message-Id: <20260812210057.0B2F81F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,26 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: MAINTAINERS: add drivers/char/mem.c to mm misc, memory mapping sections
-has been added to the -mm mm-unstable branch.  Its filename is
-     maintainers-add-drivers-char-memc-to-mm-misc-memory-mapping-sections.patch
+     Subject: mm/mglru: fix and remove redundant unevictable folio handling
+has been added to the -mm mm-new branch.  Its filename is
+     mm-mglru-fix-and-remove-redundant-unevictable-folio-handling.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maintainers-add-drivers-char-memc-to-mm-misc-memory-mapping-sections.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mglru-fix-and-remove-redundant-unevictable-folio-handling.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,86 +69,114 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: MAINTAINERS: add drivers/char/mem.c to mm misc, memory mapping sections
-Date: Wed, 12 Aug 2026 08:43:31 +0100
+From: Kairui Song <kasong@tencent.com>
+Subject: mm/mglru: fix and remove redundant unevictable folio handling
+Date: Wed, 12 Aug 2026 20:22:39 +0800
 
-This file is a 'special' driver that implements /dev/zero and /dev/mem
-among other things.
+sort_folio() has a shortcut for moving folios that are no longer evictable
+but are still sitting on a generation list.  However, this shortcut is
+buggy.  It does not follow the PG_lru usage convention, and it has a more
+serious issue.
 
-As such it makes sense for mm to be cc'd on mails and to have some say in
-how things are changed there, so add it to the mm misc section.
+Unevictable folios are not threaded on lists[LRU_UNEVICTABLE], so that
+folio->lru can be reused to hold folio->mlock_count (see the comment in
+lruvec_init()).  Hence lruvec_add_folio() skips the list_add() for them,
+and every other place that turns a folio unevictable initialises
+mlock_count explicitly: lru_add() sets it to 0, __mlock_folio() and
+__mlock_new_folio() set it to !!folio_test_mlocked(folio).  sort_folio()
+sets nothing, and the lru_gen_del_folio() right above it may have already
+poisoned folio->lru via list_del(), so mlock_count ends up aliasing
+LIST_POISON2, which reads as 0x122, i.e.  290.  The result is user
+visible.  On munlock, __munlock_folio() decrements that bogus count, finds
+it still non-zero and bails out before clearing PG_mlocked, so the folio
+remains unevictable and the Mlocked accounting stays inflated until the
+folio is freed.
 
-Uniquely, it provides the 'old way' of obtaining an anonymous mapping -
-MAP_PRIVATE of /dev/zero - so is directly tied to memory mapping,
-therefore also add it to the memory mapping section.
+The shortcut also touches the LRU flags in the wrong order.  It calls
+lru_gen_del_folio() while PG_lru is still set, so a concurrent
+folio_test_clear_lru() (e.g.  compaction, folio_isolate_lru()) can succeed
+on a folio that has already been taken off the generation list, which may
+lead to unexpected behavior.
 
-scripts/get_maintainer.pl copes perfectly fine with files in multiple
-sections so everything should work correctly.
+So fix it by isolating them as common folios and letting the generic
+shrink path cull them.  This matches the classical LRU behavior, and there
+should be no visible effect on the generic eviction or isolation behavior.
 
-Link: https://lore.kernel.org/20260812-add-drivers-mem-to-mm-maintainers-v1-1-6218b861f4c8@kernel.org
-Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Jann Horn <jannh@google.com>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Pedro Falcato <pfalcato@suse.de>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
+There is no performance concern either, such a folio goes through this
+once, and then it is off the generation lists for good.
+
+Link: https://lore.kernel.org/20260812-mglru-mlock-fix-v2-1-a3fec5853c08@tencent.com
+Fixes: ac35a4902374 ("mm: multi-gen LRU: minimal implementation")
+Signed-off-by: Kairui Song <kasong@tencent.com>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Brian Geffon <bgeffon@google.com>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Jan Alexander Steffens (heftig) <heftig@archlinux.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Oleksandr Natalenko <oleksandr@natalenko.name>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Steven Barrett <steven@liquorix.net>
+Cc: Suleiman Souhlal <suleiman@google.com>
+Cc: Wei Xu <weixugc@google.com>
+Cc: Yuanchu Xie <yuanchu@google.com>
+Cc: Yu Zhao <yuzhao@google.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/vmscan.c |   19 +++++--------------
+ 1 file changed, 5 insertions(+), 14 deletions(-)
 
---- a/MAINTAINERS~maintainers-add-drivers-char-memc-to-mm-misc-memory-mapping-sections
-+++ a/MAINTAINERS
-@@ -17115,6 +17115,7 @@ F:	Documentation/ABI/testing/sysfs-kerne
- F:	Documentation/ABI/testing/sysfs-kernel-mm-numa
- F:	Documentation/admin-guide/mm/
- F:	Documentation/mm/
-+F:	drivers/char/mem.c
- F:	include/linux/cma.h
- F:	include/linux/dmapool.h
- F:	include/linux/ioremap.h
-@@ -17319,6 +17320,7 @@ L:	linux-mm@kvack.org
- S:	Maintained
- W:	http://www.linux-mm.org
- T:	git git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-+F:	drivers/char/mem.c
- F:	include/trace/events/mmap.h
- F:	fs/proc/task_mmu.c
- F:	fs/proc/task_nommu.c
+--- a/mm/vmscan.c~mm-mglru-fix-and-remove-redundant-unevictable-folio-handling
++++ a/mm/vmscan.c
+@@ -4649,7 +4649,6 @@ void lru_gen_reparent_memcg(struct mem_c
+ static bool sort_folio(struct lruvec *lruvec, struct folio *folio, struct scan_control *sc,
+ 		       int tier_idx)
+ {
+-	bool success;
+ 	int gen = folio_lru_gen(folio);
+ 	int type = folio_is_file_lru(folio);
+ 	int zone = folio_zonenum(folio);
+@@ -4661,15 +4660,9 @@ static bool sort_folio(struct lruvec *lr
+ 
+ 	VM_WARN_ON_ONCE_FOLIO(gen >= MAX_NR_GENS, folio);
+ 
+-	/* unevictable */
+-	if (!folio_evictable(folio)) {
+-		success = lru_gen_del_folio(lruvec, folio, true);
+-		VM_WARN_ON_ONCE_FOLIO(!success, folio);
+-		folio_set_unevictable(folio);
+-		lruvec_add_folio(lruvec, folio);
+-		__count_vm_events(UNEVICTABLE_PGCULLED, delta);
+-		return true;
+-	}
++	/* unevictable: let it through and the generic path will cull it */
++	if (!folio_evictable(folio))
++		return false;
+ 
+ 	/* promoted */
+ 	if (gen != lru_gen_from_seq(lrugen->min_seq[type])) {
+@@ -4922,11 +4915,9 @@ retry:
+ 	list_for_each_entry_safe_reverse(folio, next, &list, lru) {
+ 		DEFINE_MIN_SEQ(lruvec);
+ 
+-		if (!folio_evictable(folio)) {
+-			list_del(&folio->lru);
+-			folio_putback_lru(folio);
++		/* move_folios_to_lru() culls unevictable folios via folio_putback_lru() */
++		if (!folio_evictable(folio))
+ 			continue;
+-		}
+ 
+ 		/* retry folios that may have missed folio_rotate_reclaimable() */
+ 		if (!skip_retry && !folio_test_active(folio) && !folio_mapped(folio) &&
 _
 
-Patches currently in -mm which might be from ljs@kernel.org are
+Patches currently in -mm which might be from kasong@tencent.com are
 
-x86-mm-pat-acquire-init_mm-write-lock-on-collapse-to-avoid-uaf.patch
-x86-mm-pat-acquire-init_mm-read-lock-on-attribute-change-to-avoid-uaf.patch
-x86-mm-pat-allocate-split-page-tables-as-kernel-page-tables.patch
-mm-vma-introduce-vma-anon-page-offset-field-and-add-helpers.patch
-mm-provide-vma_is_cow_mapping-and-remove-is_cow_mapping.patch
-mm-introduce-linear_anon_page_index.patch
-mm-abstract-vma_address-and-introduce-vma_anon_address.patch
-mm-update-print_bad_page_map-to-show-anon-index-if-appropriate.patch
-mm-introduce-and-use-vma_filebacked_address.patch
-mm-vma-fix-self-merge-check-in-copy_vma.patch
-tools-testing-vma-add-tests-for-copy_vma-self-merge.patch
-mm-propagate-vma-anonymous-page-offset-on-map-remap-split-merge.patch
-mm-rmap-track-whether-the-page-vma-mapped-pgoff-is-anonymous.patch
-mm-clean-up-vma_address_end.patch
-mm-huge_memory-update-remove_migration_pmd-to-accept-a-folio.patch
-mm-migrate-calculate-large-folio-page-index-using-pfn.patch
-mm-rmap-use-anon-pgoff-to-track-map_private-file-backed-anon-folios.patch
-tools-testing-vma-expand-vma-merge-tests-to-assert-anon-pgoff.patch
-tools-testing-selftests-mm-test-anonymous-page-offset-merge-behaviour.patch
-mm-vma-only-permit-map_private-dev-zero-to-be-mapped-anonymous.patch
-mm-vma-make-map_private-mapped-dev-zero-mappings-truly-anonymous.patch
-tools-testing-vma-add-test-to-assert-map_private-dev-zero-is-anon.patch
-tools-testing-selftests-mm-add-map_private-dev-zero-merge-tests.patch
-mm-add-some-missing-includes-to-mm-local-headers.patch
-maintainers-add-drivers-char-memc-to-mm-misc-memory-mapping-sections.patch
+mm-mglru-fix-and-remove-redundant-unevictable-folio-handling.patch
 
