@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CA5D9345EC5
-	for <mm-commits@vger.kernel.org>; Wed, 12 Aug 2026 00:28:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B843421D5B0
+	for <mm-commits@vger.kernel.org>; Wed, 12 Aug 2026 01:19:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786494527; cv=none; b=VwTfLCLyi9wCTMoX3gX0ojA8xY6MVX0K97tY8xEPxuIktcLWgAT3tB71AORno54DtFqiE2UO+yTziJpJxzPfBIVswLQDughfFkuNqWPrHoC0bhCf9BfWkzvbSy4ZyYm/3743ASI/6kXzy6tljR8uFwRca93cJtP1sVWfv+wJF9o=
+	t=1786497569; cv=none; b=ncxCMqgiLhlOrwKl5YjV85V8CW/r0lxslkeNAtK989tgglkf4vohG48p0xoPk8GZlc0gw/mchSR2cgsWZyYfhtTky1+MqsGW/lK15NiE7nF3iLT6YXedVkoflYUY/SSuiXnDV/FTG8bGio9y4cICjEJcQrzyvPOsgFwgkAghmzo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786494527; c=relaxed/simple;
-	bh=OtAedqKYNmxqWlPLZIwZMo6lx7wZNUtbNc8QpIThtj4=;
-	h=Date:To:From:Subject:Message-Id; b=PkgUyPdPqFya9XhY5w9GIMAZ09PTVdd3jXzRIZvRCaMPKB0raFcHbD6cpWeeEpoHB35oWGrdtBir00ANg5vOPAztwksSmQxaruYGIFagdtE6tKTnIB7ywAF9C2dfbvV//x60N+8JJyxe2V4BzHF+3lCJfxWhDPnTO4xBr4sgEiU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SeJF/c4c; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1786497569; c=relaxed/simple;
+	bh=2gIv/Z74aX9WL2/qXNsbK3K7CLmDmI7awy5j1RaCfdQ=;
+	h=Date:To:From:Subject:Message-Id; b=KXqxfAetr+cyrXf52H/bTbNtnfDAuFbM4sNaCz8TU36yEaUxkDZYI+PxP5yG7+AXvmxlBnBCZfrwaovzT5elRVRNAaNAvsWd5Cmc4bDMa3G0S2vMarKA/jdrOOwY1HoLoCkUATy8+PCjKTAPefVzUQpLMfuTSuLsaCxoipaftaM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Yohy229t; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SeJF/c4c"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6D5931F00A3A;
-	Wed, 12 Aug 2026 00:28:45 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Yohy229t"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 412631F000E9;
+	Wed, 12 Aug 2026 01:19:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1786494525;
-	bh=W3O7IGo3ZRtzVO2BS0stGfSTcpPV1klXVf31jekvw4s=;
+	d=linux-foundation.org; s=korg; t=1786497568;
+	bh=YDNPFdf9lM+aICpNW23W8cBoQqdz2mHaaZFAru2tozc=;
 	h=Date:To:From:Subject;
-	b=SeJF/c4cRpYaWUzASE3eQ+Cl31wA/q0gourDurv47y2XJ9Q2x0TJKAjiPVPHq7K2Q
-	 X6fvuhGuJFLqo4GkGpvzBFY86U4/G8JJG1xUoJF5Wp1Cmdc0litHXLL9qc9ddXwQnp
-	 KbJKyiH6YA8A0rA29AO5Do6aQqcLywojbNdIGdtQ=
-Date: Tue, 11 Aug 2026 17:28:45 -0700
-To: mm-commits@vger.kernel.org,skinsburskii@gmail.com,lkp@intel.com,david@kernel.org,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=Yohy229tqT78Rl1asdeSj22CY6/tw2LttaleUm94lSw4dzQYGBl9jyy3rmQlFQFKs
+	 Ug4nUCiB9L0h/PXyKTV9j5/p7j61PjtHLEtcsTmOMhgs8O0V8c8ML7nOYs51fMI5TD
+	 eYwGqFX0GyEltGnQkWglfTpN+v7mAlsJx4vU5ZCc=
+Date: Tue, 11 Aug 2026 18:19:27 -0700
+To: mm-commits@vger.kernel.org,rdunlap@infradead.org,ljs@kernel.org,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hmmc-hmm_do_fault-suppress-sparse-warning-fix.patch added to mm-new branch
-Message-Id: <20260812002845.6D5931F00A3A@smtp.kernel.org>
+Subject: + mm-provide-vma_is_cow_mapping-and-remove-is_cow_mapping-fix-fix.patch added to mm-unstable branch
+Message-Id: <20260812011928.412631F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,26 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm-hmmc-hmm_do_fault-suppress-sparse-warning-fix
-has been added to the -mm mm-new branch.  Its filename is
-     mm-hmmc-hmm_do_fault-suppress-sparse-warning-fix.patch
+     Subject: mm-provide-vma_is_cow_mapping-and-remove-is_cow_mapping-fix-fix
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-provide-vma_is_cow_mapping-and-remove-is_cow_mapping-fix-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hmmc-hmm_do_fault-suppress-sparse-warning-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-provide-vma_is_cow_mapping-and-remove-is_cow_mapping-fix-fix.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -70,40 +59,37 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-hmmc-hmm_do_fault-suppress-sparse-warning-fix
-Date: Tue Aug 11 05:23:28 PM PDT 2026
+Subject: mm-provide-vma_is_cow_mapping-and-remove-is_cow_mapping-fix-fix
+Date: Tue Aug 11 06:18:29 PM PDT 2026
 
-WARN_ON_ONCE() if the handler didn't set ->locked, per Stanislav
+fix kerneldoc
 
-Link: https://lore.kernel.org/anu1N-DOnQwxO1kF@skinsburskii
-Cc: David Hildenbrand <david@kernel.org>
-Cc: kernel test robot <lkp@intel.com>
-Cc: Stanislav Kinsburskii <skinsburskii@gmail.com>
+Cc: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
+Reported-by: Randy Dunlap <rdunlap@infradead.org>
+Closes: https://lore.kernel.org/e7911812-9b99-4f94-be6b-597bf202ffeb@infradead.org
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hmm.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ include/linux/mm.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/hmm.c~mm-hmmc-hmm_do_fault-suppress-sparse-warning-fix
-+++ a/mm/hmm.c
-@@ -670,8 +670,10 @@ static int hmm_do_fault(struct mm_struct
- 		ret = handle_mm_fault(vma, addr, fault_flags, NULL);
+--- a/include/linux/mm.h~mm-provide-vma_is_cow_mapping-and-remove-is_cow_mapping-fix-fix
++++ a/include/linux/mm.h
+@@ -2319,7 +2319,7 @@ static inline bool vma_flags_is_cow_mapp
  
- 		if (ret & (VM_FAULT_COMPLETED | VM_FAULT_RETRY)) {
--			if (hmm_vma_walk->locked)	/* needed by sparse */
-+			if (hmm_vma_walk->locked)    /* needed by sparse */
- 				*hmm_vma_walk->locked = false;
-+			else
-+				WARN_ON_ONCE(1);    /* broken fault handler */
- 			return HMM_FAULT_UNLOCKED;
- 		}
- 
+ /**
+  * vma_is_cow_mapping() - Is this VMA a CoW mapping?
+- * @desc: The VMA to check.
++ * @vma: The VMA to check.
+  *
+  * See vma_flags_is_cow_mapping() for details.
+  *
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 mm-provide-vma_is_cow_mapping-and-remove-is_cow_mapping-fix.patch
+mm-provide-vma_is_cow_mapping-and-remove-is_cow_mapping-fix-fix.patch
 tools-testing-selftests-mm-test-anonymous-page-offset-merge-behaviour-fix.patch
 mm-page_alloc-only-update-lowmem_reserve_ratio-on-sysctl-write-fix.patch
 selftests-mm-use-pattern-matching-in-gitignore-fix.patch
