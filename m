@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9B7961DA62E
-	for <mm-commits@vger.kernel.org>; Wed, 12 Aug 2026 18:32:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 291D84B04B7
+	for <mm-commits@vger.kernel.org>; Wed, 12 Aug 2026 18:37:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786559558; cv=none; b=n2vX6QGXAHwySOLANDakhYxMrbK4E2hvMPMMRTREWShaziXHFUuiBRciOpf/AYjeRoHdOmtU7WRioUO6Jxqm1EdFD4momNnEej1XbyYHDe1YzdfGClbWDjFs44FmMvzEUV7qF5VHBo26/Xy/T2wPYY1NeZ93x5cy2NVfrUmnWzA=
+	t=1786559845; cv=none; b=WbO3IpULTuY6EEukNfPUAL7jPkSozy5GHYUwRaEvFvFvAhz4KTSuvfEyVgZLtQQ4Jgzjay3qjbsMZnxz314k0KfFVcfXi4z4Q10dpKrOQr5llhkXeoTGiW+lc2PHGmylRGcqPgxWksThyq5nSUx0VLUDZzNZBok/A7DLaQqaLgk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786559558; c=relaxed/simple;
-	bh=Xr3P3Klcb+zik0xZ3p4/QS6PDR9YgJvbPKoPO6ieZhE=;
-	h=Date:To:From:Subject:Message-Id; b=g9c8mRRH9TrqNx5HonPfMfLtwB9PluO2McbRwLNTVTyRCz8fzh28PZSvru7CjVRrFamotNdKIgJ6VgTE46puztK2oi3JUdv0HbidPBd+ufS5ie646LQ9B9ZaG94lUvnMjXJ1Pnsg8erjO8pKVkBoF+o+Lb6b7+7Fud0inVD5BNY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1uJl5fS+; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1786559845; c=relaxed/simple;
+	bh=21WhS8xSuKf8erp2BaUIHK0AWaJGyD0sJXO4rkM4slA=;
+	h=Date:To:From:Subject:Message-Id; b=YK7yqIkVjgM5m0Ibd9tQPfGPvk0T4MBaZkHXa7WrDRrAIYmFNf16MMLuRsnM0TBSiuvnr+zD7UlA/PxSmCpYMYGWImv7gJGfR+rnuJ+EBXvRsR1hKAIiiJfpI+zWEWIYiuw2EiqZNG6Nta012HOC4o0TaXyFbmv3bzTgKQAKfp8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=h5UE6BaA; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1uJl5fS+"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 37F281F00A3A;
-	Wed, 12 Aug 2026 18:32:37 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="h5UE6BaA"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D097E1F000E9;
+	Wed, 12 Aug 2026 18:37:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1786559557;
-	bh=QQKfZNLcQGbqHjkRZnJIikQcrWLb6v8AS+XadfWR2s0=;
+	d=linux-foundation.org; s=korg; t=1786559843;
+	bh=2jZYb04mIjBWF/XtY5lLC3s9pFuqWpz53Na+Ep3CwJ0=;
 	h=Date:To:From:Subject;
-	b=1uJl5fS+Mxna/IikrDH4fWCecYTtQCly93yDV1GhUlKRWymTs4LSNyuypPXqXar5d
-	 BW3EKa1CQ7ZnMjcNUTArIcLyvjRIsEb0WmLJ36sOZxwi1IRwFumHSNO7yoUIZL1bTO
-	 N4ui+Tultkpv9wxWaE4M1kPhCOKaimt0Rz94KJGc=
-Date: Wed, 12 Aug 2026 11:32:36 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,shuah@kernel.org,sarthak.sharma@arm.com,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,rppt@kernel.org,akpm@linux-foundation.org
+	b=h5UE6BaASpp484jn/zFK2YXYYx5qdbIU/sbntLo0QB0hN4L42n9qre68KG1VZSPrP
+	 9iBbcUkoWe7j7QF0MMQKj+FvM80m1gYWlwadszAiY1eQcburx31kLwLdQM+s5pHBSu
+	 azfrf/7Gp0uLp1axzMh0egMzRX1V/sK/Gt3B0C14=
+Date: Wed, 12 Aug 2026 11:37:23 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,rppt@kernel.org,pfalcato@suse.de,mhocko@suse.com,liam@infradead.org,jannh@google.com,david@kernel.org,arnd@arndb.de,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-thuge-gen-fix-test_shmget-for-page_size-check.patch added to mm-unstable branch
-Message-Id: <20260812183237.37F281F00A3A@smtp.kernel.org>
+Subject: + maintainers-add-drivers-char-memc-to-mm-misc-memory-mapping-sections.patch added to mm-unstable branch
+Message-Id: <20260812183723.D097E1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: thuge-gen: fix test_shmget() for PAGE_SIZE check
+     Subject: MAINTAINERS: add drivers/char/mem.c to mm misc, memory mapping sections
 has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-mm-thuge-gen-fix-test_shmget-for-page_size-check.patch
+     maintainers-add-drivers-char-memc-to-mm-misc-memory-mapping-sections.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-thuge-gen-fix-test_shmget-for-page_size-check.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maintainers-add-drivers-char-memc-to-mm-misc-memory-mapping-sections.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,100 +58,86 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
-Subject: selftests/mm: thuge-gen: fix test_shmget() for PAGE_SIZE check
-Date: Wed, 12 Aug 2026 11:17:40 +0300
+From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
+Subject: MAINTAINERS: add drivers/char/mem.c to mm misc, memory mapping sections
+Date: Wed, 12 Aug 2026 08:43:31 +0100
 
-Commit 49a4e7186b08 ("selftests/mm: thuge-gen: add setup of HugeTLB
-pages") changed thuge-gen test to use common functions for reading hugetlb
-attributes from sysfs, but it missed that the original read_free()
-function special cased PAGE_SIZE tests.
+This file is a 'special' driver that implements /dev/zero and /dev/mem
+among other things.
 
-For PAGE_SIZE tests, failure to read sysfs was ignored and read_free()
-returned 0.
+As such it makes sense for mm to be cc'd on mails and to have some say in
+how things are changed there, so add it to the mm misc section.
 
-This allowed test_shmget() to essentially skip the check of how many huge
-pages was consumed when it ran with PAGE_SIZE.
+Uniquely, it provides the 'old way' of obtaining an anonymous mapping -
+MAP_PRIVATE of /dev/zero - so is directly tied to memory mapping,
+therefore also add it to the memory mapping section.
 
-Commit 3199b0c09efa ("selftests/mm: fix read_file() return value check")
-fixed checks for read_file() return value and this exposed the issue in
-test_shmget() that checks the number of free hugetlb pages even for
-PAGE_SIZE test, tries to access
+scripts/get_maintainer.pl copes perfectly fine with files in multiple
+sections so everything should work correctly.
 
-/sys/kernel/mm/hugepages/hugepages-<PAGE_SIZE>/free_hugepages
-
-and obviously fails there.
-
-Gate the checks for free huge pages on size != getpagesize() and
-initialize before and after variables to values matching PAGE_SIZE test.
-
-Link: https://lore.kernel.org/20260812-selftests-thuge-gen-fix-v2-1-9adaa693e73b@kernel.org
-Fixes: 49a4e7186b08 ("selftests/mm: thuge-gen: add setup of HugeTLB pages")
+Link: https://lore.kernel.org/20260812-add-drivers-mem-to-mm-maintainers-v1-1-6218b861f4c8@kernel.org
+Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Reviewed-by: Sarthak Sharma <sarthak.sharma@arm.com>
-Acked-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
-Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Jann Horn <jannh@google.com>
 Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Michal Hocko <mhocko@suse.com>
-Cc: Shuah Khan <shuah@kernel.org>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Pedro Falcato <pfalcato@suse.de>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/thuge-gen.c |   15 ++++++++++-----
- 1 file changed, 10 insertions(+), 5 deletions(-)
+ MAINTAINERS |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/tools/testing/selftests/mm/thuge-gen.c~selftests-mm-thuge-gen-fix-test_shmget-for-page_size-check
-+++ a/tools/testing/selftests/mm/thuge-gen.c
-@@ -71,12 +71,16 @@ void test_mmap(unsigned long size, unsig
- 
- void test_shmget(unsigned long size, unsigned flags)
- {
--	int id;
--	unsigned long before, after;
-+	/* values for PAGE_SIZE test */
-+	unsigned long before = NUM_PAGES;
-+	unsigned long after = 0;
- 	struct shm_info i;
- 	char *map;
-+	int id;
-+
-+	if (size != getpagesize())
-+		before = hugetlb_free_pages(size);
- 
--	before = hugetlb_free_pages(size);
- 	id = shmget(IPC_PRIVATE, size * NUM_PAGES, IPC_CREAT|0600|flags);
- 	if (id < 0) {
- 		if (errno == EPERM) {
-@@ -97,10 +101,11 @@ void test_shmget(unsigned long size, uns
- 	shmctl(id, IPC_RMID, NULL);
- 
- 	memset(map, 0xff, size*NUM_PAGES);
--	after = hugetlb_free_pages(size);
-+	if (size != getpagesize())
-+		after = hugetlb_free_pages(size);
- 
- 	show(size);
--	ksft_test_result(size == getpagesize() || (before - after) == NUM_PAGES,
-+	ksft_test_result((before - after) == NUM_PAGES,
- 			 "%s: mmap %lu %x\n", __func__, size, flags);
- 	if (shmdt(map))
- 		ksft_exit_fail_msg("%s: shmdt: %s\n", __func__, strerror(errno));
+--- a/MAINTAINERS~maintainers-add-drivers-char-memc-to-mm-misc-memory-mapping-sections
++++ a/MAINTAINERS
+@@ -17115,6 +17115,7 @@ F:	Documentation/ABI/testing/sysfs-kerne
+ F:	Documentation/ABI/testing/sysfs-kernel-mm-numa
+ F:	Documentation/admin-guide/mm/
+ F:	Documentation/mm/
++F:	drivers/char/mem.c
+ F:	include/linux/cma.h
+ F:	include/linux/dmapool.h
+ F:	include/linux/ioremap.h
+@@ -17319,6 +17320,7 @@ L:	linux-mm@kvack.org
+ S:	Maintained
+ W:	http://www.linux-mm.org
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
++F:	drivers/char/mem.c
+ F:	include/trace/events/mmap.h
+ F:	fs/proc/task_mmu.c
+ F:	fs/proc/task_nommu.c
 _
 
-Patches currently in -mm which might be from rppt@kernel.org are
+Patches currently in -mm which might be from ljs@kernel.org are
 
-selftests-mm-thuge-gen-fix-test_shmget-for-page_size-check.patch
-drivers-base-mm-move-arch_numac-to-mm.patch
-sh-remove-config_numa-and-realted-configuration-options.patch
-sh-mm-remove-numac.patch
-sh-mm-drop-allocate_pgdat.patch
-sh-remove-setup_bootmem_node-and-plat_mem_setup.patch
-sh-drop-dead-code-guarded-by-ifdef-config_numa.patch
-sh-drop-include-asm-mmzoneh.patch
-init-kconfig-drop-arch_want_numa_variable_locality.patch
-sh-init-remove-call-the-memblock_set_node.patch
-sh-remove-sparsemem-related-entries-from-kconfig.patch
-sh-drop-include-asm-sparsememh.patch
+x86-mm-pat-acquire-init_mm-write-lock-on-collapse-to-avoid-uaf.patch
+x86-mm-pat-acquire-init_mm-read-lock-on-attribute-change-to-avoid-uaf.patch
+x86-mm-pat-allocate-split-page-tables-as-kernel-page-tables.patch
+mm-vma-introduce-vma-anon-page-offset-field-and-add-helpers.patch
+mm-provide-vma_is_cow_mapping-and-remove-is_cow_mapping.patch
+mm-introduce-linear_anon_page_index.patch
+mm-abstract-vma_address-and-introduce-vma_anon_address.patch
+mm-update-print_bad_page_map-to-show-anon-index-if-appropriate.patch
+mm-introduce-and-use-vma_filebacked_address.patch
+mm-vma-fix-self-merge-check-in-copy_vma.patch
+tools-testing-vma-add-tests-for-copy_vma-self-merge.patch
+mm-propagate-vma-anonymous-page-offset-on-map-remap-split-merge.patch
+mm-rmap-track-whether-the-page-vma-mapped-pgoff-is-anonymous.patch
+mm-clean-up-vma_address_end.patch
+mm-huge_memory-update-remove_migration_pmd-to-accept-a-folio.patch
+mm-migrate-calculate-large-folio-page-index-using-pfn.patch
+mm-rmap-use-anon-pgoff-to-track-map_private-file-backed-anon-folios.patch
+tools-testing-vma-expand-vma-merge-tests-to-assert-anon-pgoff.patch
+tools-testing-selftests-mm-test-anonymous-page-offset-merge-behaviour.patch
+mm-vma-only-permit-map_private-dev-zero-to-be-mapped-anonymous.patch
+mm-vma-make-map_private-mapped-dev-zero-mappings-truly-anonymous.patch
+tools-testing-vma-add-test-to-assert-map_private-dev-zero-is-anon.patch
+tools-testing-selftests-mm-add-map_private-dev-zero-merge-tests.patch
+mm-add-some-missing-includes-to-mm-local-headers.patch
+maintainers-add-drivers-char-memc-to-mm-misc-memory-mapping-sections.patch
 
