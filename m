@@ -1,168 +1,177 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.9])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8CF57384232
-	for <mm-commits@vger.kernel.org>; Thu, 13 Aug 2026 19:43:15 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7603B42124C
+	for <mm-commits@vger.kernel.org>; Thu, 13 Aug 2026 20:00:16 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.9
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786650196; cv=none; b=EYkJCNDjPHEh9bikWuUwfYjZ1krJxL51FYtPyNzE1TrVESzotSfVH5AHUN2kDZhWCxCPddzWeA5IEXVb/JdLyqv47m5rxJLST8a/QxFE3VpgecE83lkSGWrjPFuuXIggg5DhezRx1VEUGo5Z41fXantEyFkD81727tEr85IGNwk=
+	t=1786651219; cv=none; b=VKIZuo4a/zjk+e2gMt2RIASvwY7tO/d4gRSSCGmCJQop6AAjy40AlKKLAs2pMyeBVpqPYnn8nTMS9lfaA7pjJbrWq4Rtd0bYW6CE3XSrLsehTOtWmBdmN9Db29uVk7OuLuanJzq40g8T/blznXvSWigdzKAWNKwh4GDx6bgTzM8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786650196; c=relaxed/simple;
-	bh=rQFzr1EDD5CX89Eb8TNd1bZZeZfTa/EYafxB93vEbnA=;
-	h=Date:To:From:Subject:Message-Id; b=oNUBJuicryuGG6VhnHm/5p5FubiVH9OssC+Bbp/INFHu9JOBHkU4BxcseCNjpE64TPjGIWmQQsKHKisxXkA6zodcylOTGK65u883BcrruswacgsMsDVa/Kykz4baqL2wep1Mf5UWe61JBg130aazdPTvBLBXzEzjuyLF/rfiAqI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yrQaZ2HC; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1786651219; c=relaxed/simple;
+	bh=9vzAxeBH2BtC0FH01hUcoTki5Yl0Y1uumD4S1t1C8BI=;
+	h=Date:From:To:Cc:Subject:Message-ID; b=bevscbz+YibvVsAOatn+mbNhl/TwhAfs85i3zHJz6wySzArRbR/bJoWNdVwOZ/Ssgbf7AocG3jf/j1OTFSGkfvE5a8YWdbC3JijFtpxZnWaoeaCfWPo9yQrVznv8Ul9vHTeooTOKO0v2+6y9T8DEAjymOOmcSuKhMcaDYNyH+iY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=VcqdPH76; arc=none smtp.client-ip=192.198.163.9
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yrQaZ2HC"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1CEA61F000E9;
-	Thu, 13 Aug 2026 19:43:15 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1786650195;
-	bh=lCUQ8wVKp+Xe9TMaMIVsq8TSwMzBPL3zLn3PeiHelOw=;
-	h=Date:To:From:Subject;
-	b=yrQaZ2HC7UuV/Hu90RJpA9SI9cvGl/AqZKUwtAjfGC4uID9wPuaWHx/JgORiedCaw
-	 WHfkbEBx9a/nRPphRobhX6bikLmsIi00H3+eP5YHElReJThFjyYj3Xd8irrKXmpJJ1
-	 4NMqTpfURkjchC49x8gQ+JZogB4PrtGaMJ4AJ+dY=
-Date: Thu, 13 Aug 2026 12:43:14 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,usama.arif@linux.dev,surenb@google.com,shuah@kernel.org,sarthak.sharma@arm.com,ryan.roberts@arm.com,rppt@kernel.org,npache@redhat.com,nao.horiguchi@gmail.com,mhocko@suse.com,ljs@kernel.org,linmiaohe@huawei.com,liam@infradead.org,lance.yang@linux.dev,dev.jain@arm.com,david@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,usama.anjum@arm.com,akpm@linux-foundation.org
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [nacked] selftests-mm-skip-khugepaged-swap-tests-without-swap.patch removed from -mm tree
-Message-Id: <20260813194315.1CEA61F000E9@smtp.kernel.org>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="VcqdPH76"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1786651217; x=1818187217;
+  h=date:from:to:cc:subject:message-id;
+  bh=9vzAxeBH2BtC0FH01hUcoTki5Yl0Y1uumD4S1t1C8BI=;
+  b=VcqdPH7669pxSmt2fjxEa3lqXZm6BRAruJLcGqq3nRzcviwOl56VisW6
+   2BLiuyCX1Op96G107q519FHvry76g7MB+SgFuDYFREh0aDu1c02AQtGKi
+   kNb/+bYczS06VDE2KXrKPouIFgn47ErUN7GbnLpI2amNUgCkt6YxaW9gi
+   DrtyLpoitp4LHgQ6BSee4MuPeUSVwIzscnDUBnPt87EC9Ta1UtkmZEDMp
+   fEWxnbDrcxLB67a3f46KI9PCdTEJnXxjVMqx2dmg6hRCWtF0KjuIh3oUc
+   rpyv2fTTPZFNXmTFt05ri682dPWPta/ziMqtxPhdHtHi9nqQ531q84yT0
+   w==;
+X-CSE-ConnectionGUID: TvAnjo/RQ1+xjPLB1ODAjQ==
+X-CSE-MsgGUID: JCgNhrqkR668CCKhb7AhPg==
+X-IronPort-AV: E=McAfee;i="6800,10657,11874"; a="97900467"
+X-IronPort-AV: E=Sophos;i="6.25,221,1779174000"; 
+   d="scan'208";a="97900467"
+Received: from fmviesa010.fm.intel.com ([10.60.135.150])
+  by fmvoesa103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Aug 2026 13:00:16 -0700
+X-CSE-ConnectionGUID: jl44uicwQouakakoggUYlA==
+X-CSE-MsgGUID: Si13IeYuSzKRAqQMJYAx9w==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.25,221,1779174000"; 
+   d="scan'208";a="260224902"
+Received: from lkp-server01.sh.intel.com (HELO 6eda058d650d) ([10.239.97.150])
+  by fmviesa010.fm.intel.com with ESMTP; 13 Aug 2026 13:00:14 -0700
+Received: from kbuild by 6eda058d650d with local (Exim 4.98.2)
+	(envelope-from <lkp@intel.com>)
+	id 1wubb2-00000000WSI-2MhB;
+	Thu, 13 Aug 2026 20:00:12 +0000
+Date: Fri, 14 Aug 2026 04:00:07 +0800
+From: kernel test robot <lkp@intel.com>
+To: David Hildenbrand <david@kernel.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>,
+ Linux Memory Management List <linux-mm@kvack.org>,
+ mm-commits@vger.kernel.org
+Subject: [akpm-mm:mm-new] BUILD SUCCESS
+ 7ba5daade5ab61776382020b708b1ef75c9af1ea
+Message-ID: <202608140354.JfBGizlK-lkp@intel.com>
+User-Agent: s-nail v14.9.25
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
+tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm.git mm-new
+branch HEAD: 7ba5daade5ab61776382020b708b1ef75c9af1ea  mm/swap, PM: hibernate: atomically replace hibernation pin
 
-The quilt patch titled
-     Subject: selftests/mm: skip khugepaged swap tests without swap
-has been removed from the -mm tree.  Its filename was
-     selftests-mm-skip-khugepaged-swap-tests-without-swap.patch
+elapsed time: 786m
 
-This patch was dropped because it was nacked
+configs tested: 98
+configs skipped: 0
 
-------------------------------------------------------
-From: Muhammad Usama Anjum <usama.anjum@arm.com>
-Subject: selftests/mm: skip khugepaged swap tests without swap
-Date: Mon, 27 Jul 2026 10:52:19 +0100
+The following configs have been built successfully.
+More configs may be tested in the coming days.
 
-collapse_swapin_single_pte and collapse_max_ptes_swap require MADV_PAGEOUT
-to replace anonymous pages with swap entries.  On swapless systems there
-is no backing store with which to create those entries, so check_swap()
-reports missing setup rather than broken khugepaged behavior.
+tested configs:
+alpha                            allnoconfig    gcc-16.1.0
+alpha                           allyesconfig    gcc-16.1.0
+alpha                              defconfig    gcc-16.1.0
+arc                             allmodconfig    gcc-16.1.0
+arc                             allyesconfig    gcc-16.1.0
+arc                  randconfig-001-20260813    gcc-13.4.0
+arc                  randconfig-002-20260813    gcc-8.5.0
+arm                  randconfig-001-20260813    gcc-8.5.0
+arm                  randconfig-002-20260813    clang-19
+arm                  randconfig-003-20260813    gcc-8.5.0
+arm                  randconfig-004-20260813    gcc-10.5.0
+arm64                randconfig-001-20260813    clang-24
+arm64                randconfig-002-20260813    gcc-8.5.0
+arm64                randconfig-003-20260813    gcc-9.5.0
+arm64                randconfig-004-20260813    gcc-15.2.0
+csky                            allmodconfig    gcc-16.1.0
+csky                 randconfig-001-20260813    gcc-16.1.0
+csky                 randconfig-002-20260813    gcc-16.1.0
+hexagon              randconfig-001-20260813    clang-24
+hexagon              randconfig-002-20260813    clang-17
+i386                            allmodconfig    gcc-14
+i386                buildonly-randconfig-001    gcc-14
+i386       buildonly-randconfig-001-20260813    gcc-14
+i386       buildonly-randconfig-002-20260813    clang-22
+i386       buildonly-randconfig-003-20260813    gcc-14
+i386       buildonly-randconfig-004-20260813    gcc-14
+i386       buildonly-randconfig-005-20260813    clang-22
+i386       buildonly-randconfig-006-20260813    gcc-12
+i386                 randconfig-001-20260813    gcc-14
+i386                 randconfig-002-20260813    clang-22
+i386                 randconfig-003-20260813    clang-22
+i386                 randconfig-004-20260813    clang-22
+i386                 randconfig-005-20260813    gcc-14
+i386                 randconfig-006-20260813    clang-22
+i386                 randconfig-007-20260813    clang-22
+i386                 randconfig-011-20260813    clang-22
+i386                 randconfig-012-20260813    clang-22
+i386                 randconfig-013-20260813    clang-22
+i386                 randconfig-014-20260813    clang-22
+i386                 randconfig-015-20260813    clang-22
+i386                 randconfig-016-20260813    clang-22
+i386                 randconfig-017-20260813    clang-22
+loongarch                          defconfig    clang-24
+loongarch            randconfig-001-20260813    gcc-16.1.0
+loongarch            randconfig-002-20260813    gcc-16.1.0
+nios2                           allmodconfig    gcc-11.5.0
+nios2                            allnoconfig    gcc-11.5.0
+nios2                randconfig-001-20260813    gcc-11.5.0
+nios2                randconfig-002-20260813    gcc-11.5.0
+parisc                          allmodconfig    gcc-16.1.0
+parisc                          allyesconfig    gcc-16.1.0
+parisc                             defconfig    gcc-16.1.0
+parisc               randconfig-001-20260813    gcc-12.5.0
+parisc               randconfig-002-20260813    gcc-10.5.0
+powerpc                      holly_defconfig    clang-24
+powerpc              randconfig-001-20260813    gcc-8.5.0
+powerpc              randconfig-002-20260813    gcc-13.4.0
+powerpc64            randconfig-001-20260813    gcc-10.5.0
+powerpc64            randconfig-002-20260813    gcc-11.5.0
+riscv                randconfig-001-20260813    clang-24
+riscv                randconfig-002-20260813    gcc-15.2.0
+s390                 randconfig-001-20260813    gcc-8.5.0
+s390                 randconfig-002-20260813    gcc-10.5.0
+sh                                 defconfig    gcc-16.1.0
+sh                   randconfig-001-20260813    gcc-11.5.0
+sh                   randconfig-002-20260813    gcc-9.5.0
+sparc                randconfig-001-20260813    gcc-14.3.0
+sparc                randconfig-002-20260813    gcc-8.5.0
+sparc64              randconfig-001-20260813    clang-24
+sparc64              randconfig-002-20260813    clang-20
+um                   randconfig-001-20260813    gcc-14
+um                   randconfig-002-20260813    gcc-14
+x86_64     buildonly-randconfig-001-20260813    gcc-14
+x86_64     buildonly-randconfig-002-20260813    clang-22
+x86_64     buildonly-randconfig-003-20260813    gcc-14
+x86_64     buildonly-randconfig-004-20260813    gcc-14
+x86_64     buildonly-randconfig-005-20260813    gcc-14
+x86_64     buildonly-randconfig-006-20260813    clang-22
+x86_64               randconfig-001-20260813    gcc-14
+x86_64               randconfig-002-20260813    clang-22
+x86_64               randconfig-003-20260813    clang-22
+x86_64               randconfig-004-20260813    clang-22
+x86_64               randconfig-005-20260813    gcc-13
+x86_64               randconfig-006-20260813    clang-22
+x86_64               randconfig-011-20260813    clang-22
+x86_64               randconfig-012-20260813    gcc-14
+x86_64               randconfig-013-20260813    clang-22
+x86_64               randconfig-014-20260813    clang-22
+x86_64               randconfig-015-20260813    gcc-14
+x86_64               randconfig-016-20260813    clang-22
+x86_64               randconfig-071-20260813    gcc-14
+x86_64               randconfig-072-20260813    gcc-14
+x86_64               randconfig-073-20260813    gcc-14
+x86_64               randconfig-074-20260813    gcc-14
+x86_64               randconfig-075-20260813    gcc-14
+x86_64               randconfig-076-20260813    clang-22
+xtensa               randconfig-001-20260813    gcc-14.3.0
+xtensa               randconfig-002-20260813    gcc-12.5.0
 
-Swapless configurations are common on Android and other constrained test
-devices.  Failing these cases obscures actionable results from the rest of
-the khugepaged suite.
-
-Check /proc/swaps before either swap-dependent case and skip when no
-active swap area exists.  With swap present, retain the existing
-MADV_PAGEOUT and swap-entry assertions unchanged.
-
-Print each existing swapout diagnostic before the prerequisite check so
-skip() completes a KTAP diagnostic line instead of emitting an unprefixed
-message.
-
-Link: https://lore.kernel.org/20260727095225.372655-4-usama.anjum@arm.com
-Signed-off-by: Muhammad Usama Anjum <usama.anjum@arm.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Lance Yang <lance.yang@linux.dev>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
-Cc: Nico Pache <npache@redhat.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Sarthak Sharma <sarthak.sharma@arm.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Usama Arif <usama.arif@linux.dev>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Zi Yan <ziy@nvidia.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- tools/testing/selftests/mm/khugepaged.c |   38 ++++++++++++++++++++--
- 1 file changed, 36 insertions(+), 2 deletions(-)
-
---- a/tools/testing/selftests/mm/khugepaged.c~selftests-mm-skip-khugepaged-swap-tests-without-swap
-+++ a/tools/testing/selftests/mm/khugepaged.c
-@@ -103,6 +103,28 @@ static void skip(const char *msg)
- 	exit_status = KSFT_SKIP;
- }
- 
-+static bool is_swap_enabled(void)
-+{
-+	char buf[MAX_LINE_LENGTH];
-+	FILE *file;
-+	bool enabled = false;
-+
-+	file = fopen("/proc/swaps", "r");
-+	if (!file)
-+		return false;
-+
-+	if (!fgets(buf, sizeof(buf), file))
-+		goto out;
-+
-+	/* Check for first active swap entry. */
-+	if (fgets(buf, sizeof(buf), file))
-+		enabled = true;
-+
-+out:
-+	fclose(file);
-+	return enabled;
-+}
-+
- static void save_settings(void)
- {
- 	ksft_print_msg("Save THP and khugepaged settings...");
-@@ -821,10 +843,16 @@ static void collapse_swapin_single_pte(s
- {
- 	void *p;
- 
-+	ksft_print_msg("Swapout one page...");
-+	if (!is_swap_enabled()) {
-+		skip("No active swap");
-+		ksft_test_result_report(exit_status, "%s\n", __func__);
-+		return;
-+	}
-+
- 	p = ops->setup_area(1);
- 	ops->fault(p, 0, hpage_pmd_size);
- 
--	ksft_print_msg("Swapout one page...");
- 	if (madvise(p, page_size, MADV_PAGEOUT))
- 		ksft_exit_fail_perror("madvise(MADV_PAGEOUT)");
- 	if (check_swap(p, page_size)) {
-@@ -847,10 +875,16 @@ static void collapse_max_ptes_swap(struc
- 	int max_ptes_swap = thp_read_num("khugepaged/max_ptes_swap");
- 	void *p;
- 
-+	ksft_print_msg("Swapout %d of %d pages...", max_ptes_swap + 1, hpage_pmd_nr);
-+	if (!is_swap_enabled()) {
-+		skip("No active swap");
-+		ksft_test_result_report(exit_status, "%s\n", __func__);
-+		return;
-+	}
-+
- 	p = ops->setup_area(1);
- 	ops->fault(p, 0, hpage_pmd_size);
- 
--	ksft_print_msg("Swapout %d of %d pages...", max_ptes_swap + 1, hpage_pmd_nr);
- 	if (madvise(p, (max_ptes_swap + 1) * page_size, MADV_PAGEOUT))
- 		ksft_exit_fail_perror("madvise(MADV_PAGEOUT)");
- 	if (check_swap(p, (max_ptes_swap + 1) * page_size)) {
-_
-
-Patches currently in -mm which might be from usama.anjum@arm.com are
-
-selftests-mm-skip-cow-tmpfile-cases-when-fallocate-is-unsupported.patch
-selftests-mm-skip-guard-hole-punch-test-if-madv_remove-is-unsupported.patch
-selftests-mm-skip-hard-dirty-page-cache-test-on-nfs.patch
-selftests-mm-retry-migration-failures-for-the-full-runtime.patch
-
+--
+0-DAY CI Kernel Test Service
+https://github.com/intel/lkp-tests/wiki
