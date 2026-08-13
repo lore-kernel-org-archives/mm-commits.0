@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3A3BD3FD132;
-	Thu, 13 Aug 2026 22:42:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4EF953F822B
+	for <mm-commits@vger.kernel.org>; Thu, 13 Aug 2026 22:42:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786660977; cv=none; b=mFlyMkznZljU6UJK8Fy79Wl74h0Aw0PEnetmTZuCb+YBwocqANxv/+2uuXOOzel01ffICRAdI/M8i8od4DOSNgX+syb2bXqXCUe8ZDDRj3envLRwyE6twd7AEjKSziXJmaJXpsfEymMcy8Ebjq5MtCBaq1a/dtBepEiekjuELfY=
+	t=1786660979; cv=none; b=WPBvjr/CM1FMnM5zX6juYMaxTAZ8HHmKr5arn+aEmjXXN+7/PqksUBgUNR67afJV6NGN94q86RxwYR8Qdpa2zjrDnNuxtZYtjeJggKLevd7YI0Qa5QhwJ4BHQnohTI6iNi08YR1owg+oMS4JWRhbiNDuZZHoMLlrcSYxtXnrG5o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786660977; c=relaxed/simple;
-	bh=bwYfbvcujMmG/QQgrSmbW/49AsBFEK6bsdLkKmpCpzI=;
-	h=Date:To:From:Subject:Message-Id; b=fGI50/Be5tRcV3pEO+xm/8BXClUIBeC8lleeHUzXmD/5WPGsmOHKNm9IiQlKrsnyPQJXLB1gXaxW9ovgbW7keFuv1khuD6p67olthwBsIfY/tdV6AO2sMtcCZw0UeMauhYVI04O0640lWOBMLaP0WZFSwRzinbHhujhjaJSpSwU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lTeECoPn; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1786660979; c=relaxed/simple;
+	bh=1/Qducu9kIn/aLGfIhWpRQPb+pcZfr1dGpH9r+klSlQ=;
+	h=Date:To:From:Subject:Message-Id; b=qBTNN55jd7oaTWduPQkPkrO1t260RzBkHdcBFBetOXfG7PxNA8DuRY7GRfkUOfn8FSQEHsBprUqueXwhJ9pz4ZgzmNjSvD6AJYsZmxDa/OQ/fkD8j94958f3n64A0UL9nBks4N8oJb00H4rYFCz3d6SBEp7qB7BWDP/ARg2yDlY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tYhIPYgd; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lTeECoPn"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C37371F00A3A;
-	Thu, 13 Aug 2026 22:42:55 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tYhIPYgd"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 23B091F00A3A;
+	Thu, 13 Aug 2026 22:42:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1786660975;
-	bh=erAdG3L53+v6wvoHrChG3Zyts/MvH7Qw22D/GiOHLy4=;
+	d=linux-foundation.org; s=korg; t=1786660978;
+	bh=K8Ek99Tw4JpiKRn4/ud69s/738rsaHrhWuMjULGL43k=;
 	h=Date:To:From:Subject;
-	b=lTeECoPn3zHc0tIriLCAcU9zeJPffNTNLKl2B9dImwKnS6ThHu0E5be4UNfx1itxZ
-	 FQ87iE5++oCPkSd6Im7fI4v7dBlTIXUqJ0Y9v9MuuMLb8Ie0OudakDORDqyzuK7c4j
-	 zvbM5wo9Cgl2gaGb8GQXoZaX3dkLe7pwldwYmsi0=
-Date: Thu, 13 Aug 2026 15:42:55 -0700
-To: mm-commits@vger.kernel.org,zhanxusheng@xiaomi.com,yi.zhang@huawei.com,tytso@mit.edu,stable@vger.kernel.org,ritesh.list@gmail.com,piaojun@huawei.com,ojaswin@linux.ibm.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,jack@suse.cz,heming.zhao@suse.com,gechangwei@live.cn,adilger.kernel@dilger.ca,zhanxusheng1024@gmail.com,akpm@linux-foundation.org
+	b=tYhIPYgdcXqjYhsNdtltyBjpRmQd85YnBD8wuPUhryFoYDb8SKXUF5Q7fbbS810IS
+	 HwA2n+g0M4rVUVF0mXlFBAwV5aE3gst5onGLpvwsF9XUXd1ZwCDCeG2gG9WmNH7tMU
+	 kSA7wByI8XemhovVwxvrKBFI2lcGatIBA1NwdTo0=
+Date: Thu, 13 Aug 2026 15:42:57 -0700
+To: mm-commits@vger.kernel.org,syjcnss@gmail.com,phillip@squashfs.org.uk,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] ocfs2-fix-readdir-position-truncation-on-32-bit-kernels.patch removed from -mm tree
-Message-Id: <20260813224255.C37371F00A3A@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] squashfs-check-block-offset-is-not-negative.patch removed from -mm tree
+Message-Id: <20260813224258.23B091F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,89 +35,57 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: ocfs2: fix readdir position truncation on 32-bit kernels
+     Subject: Squashfs: check block offset is not negative
 has been removed from the -mm tree.  Its filename was
-     ocfs2-fix-readdir-position-truncation-on-32-bit-kernels.patch
+     squashfs-check-block-offset-is-not-negative.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Zhan Xusheng <zhanxusheng1024@gmail.com>
-Subject: ocfs2: fix readdir position truncation on 32-bit kernels
-Date: Thu, 6 Aug 2026 10:20:44 +0800
+From: Phillip Lougher <phillip@squashfs.org.uk>
+Subject: Squashfs: check block offset is not negative
+Date: Fri, 7 Aug 2026 17:29:51 +0100
 
-In ocfs2_dir_foreach_blk_el(), the directory cookie position is
-rebuilt with
+If a negative offset is read off disk (for example the offset into the
+decompressed fragment block), this will cause squashfs_copy_data() to
+perform an out of bounds access.
 
-	ctx->pos = (ctx->pos & ~(sb->s_blocksize - 1)) | offset;
+Fix by checking if offset is negative, and returning 0.  This matches
+existing behaviour where an offset beyond the block returns 0 bytes
+copied.
 
-`ctx->pos` is loff_t (signed 64-bit), while `sb->s_blocksize` is
-unsigned long.  On 32-bit kernels unsigned long is 32-bit, so the mask
+To trigger this out of bounds access requires a crafted Squashfs
+filesystem and CAP_SYS_ADMIN to mount it.  Unprivileged users will not be
+able to mount such a filesystem, but once mounted, an unprivileged user
+can trigger the out of bounds access by reading the crafted file with the
+negative offset.
 
-	~(sb->s_blocksize - 1)
-
-is computed as a 32-bit unsigned value (e.g. 0xfffff000 for a 4 KiB
-block size).  In the AND expression with the 64-bit `ctx->pos`, that
-unsigned operand is zero-extended to 64 bits per the usual arithmetic
-conversions, yielding 0x00000000fffff000.  The high 32 bits of
-`ctx->pos` are silently cleared, even though directory size is
-allowed to exceed 4 GiB.
-
-When readdir() crosses the 4 GiB boundary on a 32-bit kernel the
-position is reset back into the first 4 GiB block, making the
-re-validation path re-enumerate already-returned dirents indefinitely.
-
-This is ocfs2_dir_foreach_blk_el(), the extent-list readdir path taken
-for all non-inline directories, so a directory large enough to cross
-4 GiB reaches it.
-
-This is the same class of bug that commit 3dce5bb82c97 ("exfat: Fix
-bitwise operation having different size") fixed in exfat, and the
-fix mirrors the equivalent ext4 fix in this series.  Cast the operand
-to loff_t so the mask is 64-bit before the AND:
-
-	ctx->pos = (ctx->pos & ~((loff_t)sb->s_blocksize - 1)) | offset;
-
-64-bit kernels are unaffected.
-
-Link: https://lore.kernel.org/20260806022044.167962-3-zhanxusheng@xiaomi.com
-Fixes: ccd979bdbce9 ("[PATCH] OCFS2: The Second Oracle Cluster Filesystem")
-Signed-off-by: Zhan Xusheng <zhanxusheng@xiaomi.com>
-Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Jun Piao <piaojun@huawei.com>
-Cc: Heming Zhao <heming.zhao@suse.com>
-Cc: Andreas Dilger <adilger.kernel@dilger.ca>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Ojaswin Mujoo <ojaswin@linux.ibm.com>
-Cc: "Ritesh Harjani (IBM)" <ritesh.list@gmail.com>
-Cc: Ted Ts'o <tytso@mit.edu>
-Cc: "zhangyi (F)" <yi.zhang@huawei.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lore.kernel.org/20260807162951.672510-1-phillip@squashfs.org.uk
+Fixes: f400e12656ab ("Squashfs: cache operations")
+Signed-off-by: Phillip Lougher <phillip@squashfs.org.uk>
+Reported-by: Yuejie Shi <syjcnss@gmail.com>
+Closes: https://lore.kernel.org/all/20260803032735.81785-1-syjcnss@gmail.com/
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/dir.c |    2 +-
+ fs/squashfs/cache.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/fs/ocfs2/dir.c~ocfs2-fix-readdir-position-truncation-on-32-bit-kernels
-+++ a/fs/ocfs2/dir.c
-@@ -1959,7 +1959,7 @@ static int ocfs2_dir_foreach_blk_el(stru
- 				i += le16_to_cpu(de->rec_len);
- 			}
- 			offset = i;
--			ctx->pos = (ctx->pos & ~(sb->s_blocksize - 1))
-+			ctx->pos = (ctx->pos & ~((loff_t)sb->s_blocksize - 1))
- 				| offset;
- 			*f_version = inode_query_iversion(inode);
- 		}
+--- a/fs/squashfs/cache.c~squashfs-check-block-offset-is-not-negative
++++ a/fs/squashfs/cache.c
+@@ -299,7 +299,7 @@ int squashfs_copy_data(void *buffer, str
+ {
+ 	int remaining = length;
+ 
+-	if (length == 0)
++	if (length == 0 || offset < 0)
+ 		return 0;
+ 	else if (buffer == NULL)
+ 		return min(length, entry->length - offset);
 _
 
-Patches currently in -mm which might be from zhanxusheng1024@gmail.com are
+Patches currently in -mm which might be from phillip@squashfs.org.uk are
 
-maple_tree-remove-unused-mas_is_root_limits.patch
+maintainers-remove-git-url-for-squashfs.patch
 
