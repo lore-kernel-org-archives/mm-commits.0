@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E3C263F6C30
-	for <mm-commits@vger.kernel.org>; Thu, 13 Aug 2026 22:42:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 317C13E7145
+	for <mm-commits@vger.kernel.org>; Thu, 13 Aug 2026 22:42:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786660964; cv=none; b=sFEOEn880MIWSnALuA0jikW/mk8nCuC6E8BpfTGkUNCliBChjys0EaIofAwcHIsiNySPIrYpH8E0vqbha2Bw9I423DL0cwn2QW48VjcA6A0t4DYkcfrS/+AwBGtjOvDtkU/3rActQGM2UxJunK4E4XJPLSVLRNBOChPF09OR4aw=
+	t=1786660966; cv=none; b=f2Wvr47MxTamHv1wVlF+LHFSkoMv2iQyVpKjBWFZg2NafA53or75scAHs8M/vN64WGOBIPgoYLkwoXiZipzGYYFAID+IyuG4k7LNpmvoLpT8XMCKxS/QBmKVAOBcp+jn8M4BKKESglzrh+bqChQD9IGMHAQTRud+eyP8bID0YPE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786660964; c=relaxed/simple;
-	bh=fygWmoDaQRvIoh4PMeEdIuMbLFMnsf7eGL+UL/I3vtk=;
-	h=Date:To:From:Subject:Message-Id; b=N+frpmh74BcXckNu/P90xd1W8Zd5Rg4mnnzazYXHLZxP7YNL0dRcnwBXzB/P8s54DRLM4j+HXWQzyOifmrQQf0CYC3Hv6g3QZxpt6lLq0QvhQypc7DVGVCozwRkNoB88ow5MmgtcU4sUaPdgM3CgZqHl48pvrORac822G9CnkM4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tMJApXbc; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1786660966; c=relaxed/simple;
+	bh=AP9IqKQEHyqt4liooqGJrgdNxp7Ktr86r8oYPlnBPzI=;
+	h=Date:To:From:Subject:Message-Id; b=cuKBEKW71e+UQmFbDYTWSHDfJDTxnaQe9n5MT4wlLonQ43L95A5+zzi2Y05sPj6eUr+mcR2gjDZuJzzZwJvDB4yufq0W5655eO/wnsUqPUeO0LNY7PaNsxKJhkd1RqO/0nBXiGx+9Ec1HtOdya3crywmuQsdiiz/5aFD4ptpVy4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BZ9MFDYP; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tMJApXbc"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B66C21F00A3A;
-	Thu, 13 Aug 2026 22:42:42 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BZ9MFDYP"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id ECAF81F000E9;
+	Thu, 13 Aug 2026 22:42:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1786660962;
-	bh=tH0LA+7LiLM/1pPP6AsSikWaMeylMR8gK1bGxrGxqHw=;
+	d=linux-foundation.org; s=korg; t=1786660964;
+	bh=V40dnd6NnHbG53uX4WmtLpFihJhtigyCCtNoxQiRVGs=;
 	h=Date:To:From:Subject;
-	b=tMJApXbcSCmYSG7HkQl/szbUAdtytzNp6Qr7n5rBpwgyWcQp597LqZ4u/TH21hFyS
-	 VtKIRTLT4YFUCE1xBiif7X7qutomF+0ZHlozch9mtxjmxAqpoVP5ZL/9xKGRWSZBOp
-	 pvL35HKU+aJtJUFASpu8zNszWTnauSxMkYB2Eb0I=
-Date: Thu, 13 Aug 2026 15:42:42 -0700
-To: mm-commits@vger.kernel.org,bsingharora@gmail.com,include@grrlz.net,akpm@linux-foundation.org
+	b=BZ9MFDYP5IO0YbOBVCwBdls7ZPpQ+DwvuzpgCv3mNW/OYyChXQ1xD45KlxXFbeElG
+	 Lng44ZfGkYkxPE8z8NHax6vku1NCdx1bX0++BLLE49yzP0NskPvvFRaFEA9rQpsCop
+	 oMzqrVKiudeD9dQsShEqfspa4eoogOC5D018haUs=
+Date: Thu, 13 Aug 2026 15:42:43 -0700
+To: mm-commits@vger.kernel.org,pmladek@suse.com,mhiramat@kernel.org,lance.yang@linux.dev,wangxb12@chinatelecom.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] taskstats-fold-the-two-cpumask-handlers-into-one.patch removed from -mm tree
-Message-Id: <20260813224242.B66C21F00A3A@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] hung_task-update-detect_hung_task_blocker-kconfig-help.patch removed from -mm tree
+Message-Id: <20260813224243.ECAF81F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,98 +35,54 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: taskstats: fold the two cpumask handlers into one
+     Subject: hung_task: update DETECT_HUNG_TASK_BLOCKER Kconfig help
 has been removed from the -mm tree.  Its filename was
-     taskstats-fold-the-two-cpumask-handlers-into-one.patch
+     hung_task-update-detect_hung_task_blocker-kconfig-help.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Bradley Morgan <include@grrlz.net>
-Subject: taskstats: fold the two cpumask handlers into one
-Date: Tue, 28 Jul 2026 20:21:04 +0000
+From: Xibo Wang <wangxb12@chinatelecom.cn>
+Subject: hung_task: update DETECT_HUNG_TASK_BLOCKER Kconfig help
+Date: Thu, 30 Jul 2026 14:18:54 +0800
 
-cmd_attr_register_cpumask() and cmd_attr_deregister_cpumask() differed
-only in which attribute they parsed and which action they passed on, so
-take both as arguments.  __free(free_cpumask_var) then removes the goto.
+The help text still says the feature only covers mutexes, but blocker
+tracking has since been extended to semaphores and rwsems. Update the
+description to match the supported lock types.
 
-No functional change.
-
-Link: https://lore.kernel.org/20260728202104.17839-3-include@grrlz.net
-Signed-off-by: Bradley Morgan <include@grrlz.net>
-Cc: Balbir Singh <bsingharora@gmail.com>
+Link: https://lore.kernel.org/20260730061854.176547-1-wangxb12@chinatelecom.cn
+Cc: Petr Mladek <pmladek@suse.com>
+Signed-off-by: Xibo Wang <wangxb12@chinatelecom.cn>
+Suggested-by: Lance Yang <lance.yang@linux.dev>
+Reviewed-by: Lance Yang <lance.yang@linux.dev>
+Cc: "Masami Hiramatsu (Google)" <mhiramat@kernel.org>
+Cc: Petr Mladek <pmladek@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/taskstats.c |   38 ++++++++++++--------------------------
- 1 file changed, 12 insertions(+), 26 deletions(-)
+ lib/Kconfig.debug |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/kernel/taskstats.c~taskstats-fold-the-two-cpumask-handlers-into-one
-+++ a/kernel/taskstats.c
-@@ -448,36 +448,18 @@ static int cgroupstats_user_cmd(struct s
- 	return send_reply(rep_skb, info);
- }
+--- a/lib/Kconfig.debug~hung_task-update-detect_hung_task_blocker-kconfig-help
++++ a/lib/Kconfig.debug
+@@ -1320,10 +1320,10 @@ config DETECT_HUNG_TASK_BLOCKER
+ 	depends on !PREEMPT_RT
+ 	default y
+ 	help
+-	  Say Y here to show the blocker task's stacktrace who acquires
+-	  the mutex lock which "hung tasks" are waiting.
+-	  This will add overhead a bit but shows suspicious tasks and
+-	  call trace if it comes from waiting a mutex.
++	  Say Y here to show a possible blocker task's stacktrace when
++	  a hung task is waiting on a mutex, semaphore, or rwsem.
++	  This will add a bit of overhead but shows suspicious tasks and
++	  call traces for waits on one of these locks.
  
--static int cmd_attr_register_cpumask(struct genl_info *info)
-+static int cmd_attr_cpumask(struct genl_info *info, int attr,
-+			    enum actions action)
- {
--	cpumask_var_t mask;
-+	cpumask_var_t mask __free(free_cpumask_var) = CPUMASK_VAR_NULL;
- 	int rc;
- 
- 	if (!alloc_cpumask_var(&mask, GFP_KERNEL))
- 		return -ENOMEM;
--	rc = parse(info->attrs[TASKSTATS_CMD_ATTR_REGISTER_CPUMASK], mask);
-+	rc = parse(info->attrs[attr], mask);
- 	if (rc < 0)
--		goto out;
--	rc = add_del_listener(info->snd_portid, mask, REGISTER);
--out:
--	free_cpumask_var(mask);
--	return rc;
--}
--
--static int cmd_attr_deregister_cpumask(struct genl_info *info)
--{
--	cpumask_var_t mask;
--	int rc;
--
--	if (!alloc_cpumask_var(&mask, GFP_KERNEL))
--		return -ENOMEM;
--	rc = parse(info->attrs[TASKSTATS_CMD_ATTR_DEREGISTER_CPUMASK], mask);
--	if (rc < 0)
--		goto out;
--	rc = add_del_listener(info->snd_portid, mask, DEREGISTER);
--out:
--	free_cpumask_var(mask);
--	return rc;
-+		return rc;
-+	return add_del_listener(info->snd_portid, mask, action);
- }
- 
- static size_t taskstats_packet_size(void)
-@@ -552,9 +534,13 @@ err:
- static int taskstats_user_cmd(struct sk_buff *skb, struct genl_info *info)
- {
- 	if (info->attrs[TASKSTATS_CMD_ATTR_REGISTER_CPUMASK])
--		return cmd_attr_register_cpumask(info);
-+		return cmd_attr_cpumask(info,
-+					TASKSTATS_CMD_ATTR_REGISTER_CPUMASK,
-+					REGISTER);
- 	else if (info->attrs[TASKSTATS_CMD_ATTR_DEREGISTER_CPUMASK])
--		return cmd_attr_deregister_cpumask(info);
-+		return cmd_attr_cpumask(info,
-+					TASKSTATS_CMD_ATTR_DEREGISTER_CPUMASK,
-+					DEREGISTER);
- 	else if (info->attrs[TASKSTATS_CMD_ATTR_PID])
- 		return cmd_attr_pid(info);
- 	else if (info->attrs[TASKSTATS_CMD_ATTR_TGID])
+ config WQ_WATCHDOG
+ 	bool "Detect Workqueue Stalls"
 _
 
-Patches currently in -mm which might be from include@grrlz.net are
+Patches currently in -mm which might be from wangxb12@chinatelecom.cn are
 
-prctl-fix-pr_set_mm_auxv-losing-the-forced-at_null-terminator.patch
-taskstats-copy-signal-stats-under-siglock-in-taskstats_exit.patch
 
