@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CB65A3E7159;
-	Thu, 13 Aug 2026 22:42:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3A3BD3FD132;
+	Thu, 13 Aug 2026 22:42:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786660976; cv=none; b=BTxf7tEYuyn3380HnUBcwwLyVVEjZ2qvZtQif/GJlV6OiUGarSIpo7K+6V9Hy/3U4VFyDnxEsj3sBXfP77T6AKeNSR+5islC90nnAwBvQUMH1cZE11PZ5D2ehExij+iwReTDyrVP0zibQHvWxALtVLnmwvtjE16AFDY55og4f6I=
+	t=1786660977; cv=none; b=mFlyMkznZljU6UJK8Fy79Wl74h0Aw0PEnetmTZuCb+YBwocqANxv/+2uuXOOzel01ffICRAdI/M8i8od4DOSNgX+syb2bXqXCUe8ZDDRj3envLRwyE6twd7AEjKSziXJmaJXpsfEymMcy8Ebjq5MtCBaq1a/dtBepEiekjuELfY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786660976; c=relaxed/simple;
-	bh=WM9ACsG0xMcH6MtJ52BiLuNHevVKqQ3FjYvMzpuIca4=;
-	h=Date:To:From:Subject:Message-Id; b=nTeqNBGST44HvIobMWOj0eUr1b/KzSDgdtn6+FY6Ml88paPRpsGoOzFvyX+YvpgVWL4ujeuyQkGE9VKIPWY5QJS97yJGJvdM7XsGTAOjAD4Dbai9uNYk3GQp0iBm7YfMsE3Bikkxd118Pun7ayM2RjmNhGzm1qJ3QPGJpYFmriU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tuMEtlbC; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1786660977; c=relaxed/simple;
+	bh=bwYfbvcujMmG/QQgrSmbW/49AsBFEK6bsdLkKmpCpzI=;
+	h=Date:To:From:Subject:Message-Id; b=fGI50/Be5tRcV3pEO+xm/8BXClUIBeC8lleeHUzXmD/5WPGsmOHKNm9IiQlKrsnyPQJXLB1gXaxW9ovgbW7keFuv1khuD6p67olthwBsIfY/tdV6AO2sMtcCZw0UeMauhYVI04O0640lWOBMLaP0WZFSwRzinbHhujhjaJSpSwU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lTeECoPn; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tuMEtlbC"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 61D331F000E9;
-	Thu, 13 Aug 2026 22:42:54 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lTeECoPn"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C37371F00A3A;
+	Thu, 13 Aug 2026 22:42:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1786660974;
-	bh=x/QfYFdxGWaAtSlCnTGmeUlCxpEHaK4gy41T3ZoAMpk=;
+	d=linux-foundation.org; s=korg; t=1786660975;
+	bh=erAdG3L53+v6wvoHrChG3Zyts/MvH7Qw22D/GiOHLy4=;
 	h=Date:To:From:Subject;
-	b=tuMEtlbCmeMWf9yQyqbgmvcIEDPpI/ygMHBGAwTiJV2KHm5+6osln+45rJG1IqnfV
-	 cOZFqNmc0VnSlbzD2edi/fwjb5eS8hiX420/wzp8mBm2+exVLWBwRpvqPI/nlxneyW
-	 2Envo8XfWcZ6C0vgIIaGYYIKnBAUgSc9JTbGQpeE=
-Date: Thu, 13 Aug 2026 15:42:53 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,heming.zhao@suse.com,gechangwei@live.cn,matthias.goergens@gmail.com,akpm@linux-foundation.org
+	b=lTeECoPn3zHc0tIriLCAcU9zeJPffNTNLKl2B9dImwKnS6ThHu0E5be4UNfx1itxZ
+	 FQ87iE5++oCPkSd6Im7fI4v7dBlTIXUqJ0Y9v9MuuMLb8Ie0OudakDORDqyzuK7c4j
+	 zvbM5wo9Cgl2gaGb8GQXoZaX3dkLe7pwldwYmsi0=
+Date: Thu, 13 Aug 2026 15:42:55 -0700
+To: mm-commits@vger.kernel.org,zhanxusheng@xiaomi.com,yi.zhang@huawei.com,tytso@mit.edu,stable@vger.kernel.org,ritesh.list@gmail.com,piaojun@huawei.com,ojaswin@linux.ibm.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,jack@suse.cz,heming.zhao@suse.com,gechangwei@live.cn,adilger.kernel@dilger.ca,zhanxusheng1024@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] ocfs2-fix-cached-cluster-count-after-suballocator-reclaim.patch removed from -mm tree
-Message-Id: <20260813224254.61D331F000E9@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] ocfs2-fix-readdir-position-truncation-on-32-bit-kernels.patch removed from -mm tree
+Message-Id: <20260813224255.C37371F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,46 +35,55 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: ocfs2: fix cached cluster count after suballocator reclaim
+     Subject: ocfs2: fix readdir position truncation on 32-bit kernels
 has been removed from the -mm tree.  Its filename was
-     ocfs2-fix-cached-cluster-count-after-suballocator-reclaim.patch
+     ocfs2-fix-readdir-position-truncation-on-32-bit-kernels.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Matthias Goergens <matthias.goergens@gmail.com>
-Subject: ocfs2: fix cached cluster count after suballocator reclaim
-Date: Wed, 5 Aug 2026 19:39:20 +0800
+From: Zhan Xusheng <zhanxusheng1024@gmail.com>
+Subject: ocfs2: fix readdir position truncation on 32-bit kernels
+Date: Thu, 6 Aug 2026 10:20:44 +0800
 
-When reclaiming a suballocator block group, first reduce the on-disk
-cluster count by cl_cpg.  The current code then subtracts that new count
-(fe->i_clusters) from the old cached count
-(OCFS2_I(alloc_inode)->ip_clusters).
+In ocfs2_dir_foreach_blk_el(), the directory cookie position is
+rebuilt with
 
-For an allocator with N block groups, that leaves the cache at
+	ctx->pos = (ctx->pos & ~(sb->s_blocksize - 1)) | offset;
 
-    N * cl_cpg - (N * cl_cpg - cl_cpg) = cl_cpg
+`ctx->pos` is loff_t (signed 64-bit), while `sb->s_blocksize` is
+unsigned long.  On 32-bit kernels unsigned long is 32-bit, so the mask
 
-i.e.  ip_clusters -= (fe->i_clusters - cl_cpg) leaves ip_clusters equal to
-cl_cpg regardless of N.  This happens to be correct when reclaiming from
-two block groups, but undercounts the clusters from three block groups
-onwards.  The incorrect cache value is also used immediately to update
-i_blocks.
+	~(sb->s_blocksize - 1)
 
-Assign the updated on-disk count to the cache, matching the allocation and
-inode refresh paths.
+is computed as a 32-bit unsigned value (e.g. 0xfffff000 for a 4 KiB
+block size).  In the AND expression with the 64-bit `ctx->pos`, that
+unsigned operand is zero-extended to 64 bits per the usual arithmetic
+conversions, yielding 0x00000000fffff000.  The high 32 bits of
+`ctx->pos` are silently cleared, even though directory size is
+allowed to exceed 4 GiB.
 
-In a QEMU test using a clean 256 MiB OCFS2 image and a 10,000-file
-create/delete workload, the first buggy reclaim left the on-disk
-(fe->i_clusters) and cached (ip_clusters) counts at 2048 and 512 clusters
-respectively; later reclaims underflowed the cache.  With this change, the
-cache matched the on-disk count across all four reclaims: 2048, 1536,
-1024, and 512 clusters.
+When readdir() crosses the 4 GiB boundary on a 32-bit kernel the
+position is reset back into the first 4 GiB block, making the
+re-validation path re-enumerate already-returned dirents indefinitely.
 
-Link: https://lore.kernel.org/20260805113920.385959-1-matthias.goergens@gmail.com
-Fixes: 4a54331616b3 ("ocfs2: give ocfs2 the ability to reclaim suballocator free bg")
-Signed-off-by: Matthias Goergens <matthias.goergens@gmail.com>
+This is ocfs2_dir_foreach_blk_el(), the extent-list readdir path taken
+for all non-inline directories, so a directory large enough to cross
+4 GiB reaches it.
+
+This is the same class of bug that commit 3dce5bb82c97 ("exfat: Fix
+bitwise operation having different size") fixed in exfat, and the
+fix mirrors the equivalent ext4 fix in this series.  Cast the operand
+to loff_t so the mask is 64-bit before the AND:
+
+	ctx->pos = (ctx->pos & ~((loff_t)sb->s_blocksize - 1)) | offset;
+
+64-bit kernels are unaffected.
+
+Link: https://lore.kernel.org/20260806022044.167962-3-zhanxusheng@xiaomi.com
+Fixes: ccd979bdbce9 ("[PATCH] OCFS2: The Second Oracle Cluster Filesystem")
+Signed-off-by: Zhan Xusheng <zhanxusheng@xiaomi.com>
 Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
 Cc: Mark Fasheh <mark@fasheh.com>
 Cc: Joel Becker <jlbec@evilplan.org>
@@ -82,26 +91,33 @@ Cc: Junxiao Bi <junxiao.bi@oracle.com>
 Cc: Changwei Ge <gechangwei@live.cn>
 Cc: Jun Piao <piaojun@huawei.com>
 Cc: Heming Zhao <heming.zhao@suse.com>
+Cc: Andreas Dilger <adilger.kernel@dilger.ca>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Ojaswin Mujoo <ojaswin@linux.ibm.com>
+Cc: "Ritesh Harjani (IBM)" <ritesh.list@gmail.com>
+Cc: Ted Ts'o <tytso@mit.edu>
+Cc: "zhangyi (F)" <yi.zhang@huawei.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/suballoc.c |    2 +-
+ fs/ocfs2/dir.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/fs/ocfs2/suballoc.c~ocfs2-fix-cached-cluster-count-after-suballocator-reclaim
-+++ a/fs/ocfs2/suballoc.c
-@@ -2759,7 +2759,7 @@ static int _ocfs2_reclaim_suballoc_to_ma
- 	fe->i_clusters = cpu_to_le32(tmp_used - le16_to_cpu(cl->cl_cpg));
- 
- 	spin_lock(&OCFS2_I(alloc_inode)->ip_lock);
--	OCFS2_I(alloc_inode)->ip_clusters -= le32_to_cpu(fe->i_clusters);
-+	OCFS2_I(alloc_inode)->ip_clusters = le32_to_cpu(fe->i_clusters);
- 	fe->i_size = cpu_to_le64(ocfs2_clusters_to_bytes(alloc_inode->i_sb,
- 					     le32_to_cpu(fe->i_clusters)));
- 	spin_unlock(&OCFS2_I(alloc_inode)->ip_lock);
+--- a/fs/ocfs2/dir.c~ocfs2-fix-readdir-position-truncation-on-32-bit-kernels
++++ a/fs/ocfs2/dir.c
+@@ -1959,7 +1959,7 @@ static int ocfs2_dir_foreach_blk_el(stru
+ 				i += le16_to_cpu(de->rec_len);
+ 			}
+ 			offset = i;
+-			ctx->pos = (ctx->pos & ~(sb->s_blocksize - 1))
++			ctx->pos = (ctx->pos & ~((loff_t)sb->s_blocksize - 1))
+ 				| offset;
+ 			*f_version = inode_query_iversion(inode);
+ 		}
 _
 
-Patches currently in -mm which might be from matthias.goergens@gmail.com are
+Patches currently in -mm which might be from zhanxusheng1024@gmail.com are
 
+maple_tree-remove-unused-mas_is_root_limits.patch
 
