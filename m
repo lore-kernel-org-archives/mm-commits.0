@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 40A483ED5B2
-	for <mm-commits@vger.kernel.org>; Thu, 13 Aug 2026 17:55:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E01073E3141
+	for <mm-commits@vger.kernel.org>; Thu, 13 Aug 2026 17:55:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786643718; cv=none; b=j4Abk1MjNHIIbiHa35Ocalcj+QgmjZ85PdBBQ2APRYKzC19jDfdY1xkEJfUZmwxV3J3MghgOd1jCNpZK7tcOsWQh8GKIxalJY5iRQyQ4jK+CHKhtxfqJjmbuus3NzYRqUrYQ8FtW+DJ3bIqJhHoCkj+a+dZhP7t7Sn/pH8NHA68=
+	t=1786643721; cv=none; b=TFgApUe1fT3R4u/LO2egqlWSsW3CHRQAME2lJIEmPGR7pus+RRzgylSFW5f7jw8pMc8LDiltBpVG1bBQUUS8A+lo8d3jHDwg4DAoaUiR6uhrPffJy1O9PYeALGDYrxELLE9MDgUpkSAaGdv1NxoP5XO08JTGPi1jJm9+V1LawlQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786643718; c=relaxed/simple;
-	bh=4seq98LTvJ4jXgMCtdpAlBVdV3h+EDxBz5R+3QA41l4=;
-	h=Date:To:From:Subject:Message-Id; b=MPM4lkdLECpDGqQxGWms7UaXrqUqaraKvXK5Kz1M1wrg58eIShJE8B0LvSFNJnRKnlyvDpT0cue7D2T83GrqX0rR/mEeK7AK4oHCt0osrZ8fIVIyc6+BIO0xk5evR1UQFchcY8QgwC/jcjXyL8IF73wDsL1g2FM8saf1gE+WRZU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gsrNHei3; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1786643721; c=relaxed/simple;
+	bh=BJo5B4rL2S5mlF8RTs0S0Dyz03YjnCdwJUb3vOzKZvg=;
+	h=Date:To:From:Subject:Message-Id; b=ndQk3S8afos+qS3EBQQwyY45cKaoy7rOQ3Bj0XWrVD54t96NYGiPGaPw5ZI6S4/tcKmXHkhURn7cGJLcBorDITMiTFLJu8lxidyRNP3qnjR3gaMCuqva3A9CmXGEdXRYril2DGO0fR4p3s4VEMvt4qqTiWdXs4+SGZHZvuW/hOA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=I8jKt0vM; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gsrNHei3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 914511F00A3D;
-	Thu, 13 Aug 2026 17:55:04 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="I8jKt0vM"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BD36F1F000E9;
+	Thu, 13 Aug 2026 17:55:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1786643704;
-	bh=1+x5JIqPAeNp1K0NQ7GejZ1e9TGGICZDrnhZLLj4t68=;
+	d=linux-foundation.org; s=korg; t=1786643713;
+	bh=sgPuLvDyGykFyNYRFE6YRn5gdonVjEF/MOxwfHdbxMI=;
 	h=Date:To:From:Subject;
-	b=gsrNHei33fb/1Iq7dg9uJBgQZS7eTvnpMORoMKZnEKDRnP4XpNksaQja2H/bBZwws
-	 HrHGF3d+o4kpBQkIvEFmdwSp871/PP5d6j4AmIWOOt/4WuOvhDOqHzp3hifotuOvJ7
-	 BI7GKqidXqa8dQrYKPKWBf8Uu6PnObqBBEqpod0k=
-Date: Thu, 13 Aug 2026 10:55:04 -0700
+	b=I8jKt0vM1bOrIyUVkdSqVFUSkgMoXr7i2ZiYFr38OJ3HKkjoH+kg99dlfaibpNnu9
+	 z58UEsW0siWHL5gBTQpIcUC/fvf8zFE9XwCyJxdrz2Kp9jz6snzhPeO9P8cOyxf3mq
+	 zGPArLoA8hWxf8VPDoVFkSJL9ua7O4dJrbgZAFd4=
+Date: Thu, 13 Aug 2026 10:55:13 -0700
 To: mm-commits@vger.kernel.org,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-introduce-linear_anon_page_index.patch removed from -mm tree
-Message-Id: <20260813175504.914511F00A3D@smtp.kernel.org>
+Subject: [to-be-updated] mm-vma-fix-self-merge-check-in-copy_vma.patch removed from -mm tree
+Message-Id: <20260813175513.BD36F1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,44 +35,74 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: introduce linear_anon_page_index()
+     Subject: mm/vma: fix self-merge check in copy_vma()
 has been removed from the -mm tree.  Its filename was
-     mm-introduce-linear_anon_page_index.patch
+     mm-vma-fix-self-merge-check-in-copy_vma.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: mm: introduce linear_anon_page_index()
-Date: Thu, 06 Aug 2026 21:21:28 +0100
+Subject: mm/vma: fix self-merge check in copy_vma()
+Date: Thu, 06 Aug 2026 21:21:32 +0100
 
-This function provides the anonymous equivalent of linear_page_index(),
-instead offsetting based on the anonymous page offset of the VMA.
+The existing logic is very confusing so improve things.  Firstly rename
+the confusing faulted_in_anon_vma variable to can_self_merge and update
+this when the page offset is updated.
 
-It is valid only for anonymous or MAP_PRIVATE file-backed mappings, in
-other words CoW mappings.
+What is being checked for is a 'self-merge' - that is between the VMA
+being remapped and its prior VMA (remember that this is copy_vma() - if a
+non-MREMAP_DONTUNMAP remap the original VMA is only removed afterwards).
 
-For pure anon VMAs, this will be equal to linear_page_index().
+This can happen if the VMA is moved immediately adjacent to itself, either
+before or after it:
 
-Assert that both of these invariants are true in linear_anon_page_index()
-and implement the algorithm in __linear_anon_page_index().
+		|----------------|----------------|
+		|		 |                |
+		v		 |		  v
+	|...............||---------------||...............|
+	|      new      ||      old      ||      new      |
+	|...............||---------------||---------------|
 
-Note that MAP_PRIVATE-/dev/zero mappings will satisfy vma_is_anonymous()
-but not fulfill this invariant, so when asserting this we check
-vma->vm_file to account for this.
+In these cases the old VMA is simply expanded to cover the new range.
 
-We do not update callsites yet, so no functional change intended.
+It is also possible for the move to both self-merge and merge with a prior
+VMA if it is placed between a preceding VMA and its old self:
 
-Also const-ify vma_is_anonymous() to make it compatible with the
-const-ified linear_anon_page_index().
+				|---------------|
+				|		|
+				v		|
+	|---------------||...............||---------------|
+	|      prev     ||     new       ||     old       |
+	|---------------||...............||---------------|
 
-While we're here, update linear_page_index() to be more succinct.
+In this case, the old VMA is removed and 'prev' is expanded and replaces
+it.
 
-VMA userland tests are also updated accordingly.
+Since copy_vma_and_data() which calls copy_vma() intends to reference the
+old VMA after the merge, it must have this pointer updated.
 
-Link: https://lore.kernel.org/20260806-b4-scalable-cow-virt-pgoff-v4-3-ab318a350404@kernel.org
+This kind of self-merge is not possible with a succeeding merge, as the
+merge always prefers to expand the preceding VMA if possible.
+
+copy_vma() accounts for this by explicitly checking to see if a self-merge
+occurred and updating the vmap pointer if so.  However it incorrect did so
+even for a subsequent merge (this is simply a noop so it had no impact).
+
+So change this to only check for the case which matters - a backwards
+merge - and rearrange the parameters to make it clearer we're doing that -
+i.e.  check new_vma->vm_start < old_vma_start (having already renamed
+vma_start to old_vma_start to make it clear this is the previous VMA).
+
+Also update the existing wall-of-text comment to be a lot clearer.
+
+While we're here, replace the VM_BUG_ON_VMA() with a VM_WARN_ON_ONCE_VMA()
+and update the VMA userland tests accordingly.
+
+No functional change intended.
+
+Link: https://lore.kernel.org/20260806-b4-scalable-cow-virt-pgoff-v4-7-ab318a350404@kernel.org
 Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
-Reviewed-by: Gregory Price (Meta) <gourry@gourry.net>
 Acked-by: David Hildenbrand (Arm) <david@kernel.org>
 Cc: Adrian Hunter <adrian.hunter@intel.com>
 Cc: Alexander Deucher <alexander.deucher@amd.com>
@@ -95,6 +125,7 @@ Cc: Dave Airlie <airlied@gmail.com>
 Cc: Dev Jain <dev.jain@arm.com>
 Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Gregory Price (Meta) <gourry@gourry.net>
 Cc: Harry Yoo <harry@kernel.org>
 Cc: Heiko Carstens <hca@linux.ibm.com>
 Cc: Huang Ray <Ray.Huang@amd.com>
@@ -152,118 +183,86 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h              |    2 -
- include/linux/pagemap.h         |   40 +++++++++++++++++++++++++++---
- tools/testing/vma/include/dup.h |   25 ++++++++++++++++++
- 3 files changed, 62 insertions(+), 5 deletions(-)
+ mm/vma.c                         |   35 +++++++++++++----------------
+ tools/testing/vma/vma_internal.h |    1 
+ 2 files changed, 17 insertions(+), 19 deletions(-)
 
---- a/include/linux/mm.h~mm-introduce-linear_anon_page_index
-+++ a/include/linux/mm.h
-@@ -1556,7 +1556,7 @@ static inline void vma_desc_set_anonymou
- 	desc->vm_ops = NULL;
- }
- 
--static inline bool vma_is_anonymous(struct vm_area_struct *vma)
-+static inline bool vma_is_anonymous(const struct vm_area_struct *vma)
+--- a/mm/vma.c~mm-vma-fix-self-merge-check-in-copy_vma
++++ a/mm/vma.c
+@@ -1911,10 +1911,10 @@ struct vm_area_struct *copy_vma(struct v
+ 	bool *need_rmap_locks)
  {
- 	return !vma->vm_ops;
- }
---- a/include/linux/pagemap.h~mm-introduce-linear_anon_page_index
-+++ a/include/linux/pagemap.h
-@@ -1094,10 +1094,44 @@ static inline pgoff_t linear_page_delta(
- static inline pgoff_t linear_page_index(const struct vm_area_struct *vma,
- 					const unsigned long address)
- {
--	pgoff_t pgoff;
-+	return linear_page_delta(vma, address) + vma_start_pgoff(vma);
-+}
-+
-+static inline pgoff_t __linear_anon_page_index(const struct vm_area_struct *vma,
-+		const unsigned long address)
-+{
-+	return linear_page_delta(vma, address) + vma_start_anon_pgoff(vma);
-+}
-+
-+/**
-+ * linear_anon_page_index() - Determine the absolute anonymous page offset of
-+ * @address within @vma.
-+ * @vma: An anonymous or MAP_PRIVATE file-backed VMA in which @address resides.
-+ * @address: The address whose absolute page offset is required.
-+ *
-+ * This returns the anonymous page offset of @address, which is the page offset
-+ * the address possessed at the time the VMA was first faulted.
-+ *
-+ * For anonymous mappings, this returns the same value as linear_page_index().
-+ *
-+ * For MAP_PRIVATE file-backed mappings, this returns the anonymous page offset
-+ * of @address, which is the page offset the address possessed at the time the
-+ * VMA was first faulted.
-+ *
-+ * It is not valid to call this function for shared file-backed mappings.
-+ *
-+ * Returns: The absolute anonymous page offset of @address within @vma.
-+ */
-+static inline pgoff_t linear_anon_page_index(const struct vm_area_struct *vma,
-+		const unsigned long address)
-+{
-+	const pgoff_t pgoff = __linear_anon_page_index(vma, address);
-+
-+	VM_WARN_ON_ONCE(!vma_is_cow_mapping(vma));
-+	/* Account for MAP_PRIVATE-/dev/zero which is only semi-anonymous. */
-+	if (vma_is_anonymous(vma) && !vma->vm_file)
-+		VM_WARN_ON_ONCE(pgoff != linear_page_index(vma, address));
+ 	struct vm_area_struct *vma = *vmap;
+-	unsigned long vma_start = vma->vm_start;
++	unsigned long old_vma_start = vma->vm_start;
+ 	struct mm_struct *mm = vma->vm_mm;
+ 	struct vm_area_struct *new_vma;
+-	bool faulted_in_anon_vma = true;
++	bool can_self_merge = false;
+ 	VMA_ITERATOR(vmi, mm, addr);
+ 	VMG_VMA_STATE(vmg, &vmi, NULL, vma, addr, addr + len);
  
--	pgoff = linear_page_delta(vma, address);
--	pgoff += vma_start_pgoff(vma);
- 	return pgoff;
- }
+@@ -1924,7 +1924,7 @@ struct vm_area_struct *copy_vma(struct v
+ 	 */
+ 	if (unlikely(vma_is_anonymous(vma) && !vma->anon_vma)) {
+ 		pgoff = addr >> PAGE_SHIFT;
+-		faulted_in_anon_vma = false;
++		can_self_merge = true;
+ 	}
  
---- a/tools/testing/vma/include/dup.h~mm-introduce-linear_anon_page_index
-+++ a/tools/testing/vma/include/dup.h
-@@ -1428,7 +1428,7 @@ static inline void vma_iter_set(struct v
- 	mas_set(&vmi->mas, addr);
- }
+ 	/*
+@@ -1944,24 +1944,21 @@ struct vm_area_struct *copy_vma(struct v
+ 	new_vma = vma_merge_copied_range(&vmg);
  
--static inline bool vma_is_anonymous(struct vm_area_struct *vma)
-+static inline bool vma_is_anonymous(const struct vm_area_struct *vma)
- {
- 	return !vma->vm_ops;
- }
-@@ -1621,3 +1621,26 @@ static inline pgprot_t vma_get_page_prot
- {
- 	return vma_flags_to_page_prot(vma->flags);
- }
-+
-+static inline pgoff_t __linear_anon_page_index(const struct vm_area_struct *vma,
-+					       const unsigned long address)
-+{
-+	pgoff_t pgoff;
-+
-+	pgoff = linear_page_delta(vma, address);
-+	pgoff += vma_start_anon_pgoff(vma);
-+	return pgoff;
-+}
-+
-+static inline pgoff_t linear_anon_page_index(const struct vm_area_struct *vma,
-+		const unsigned long address)
-+{
-+	const pgoff_t pgoff = __linear_anon_page_index(vma, address);
-+
-+	VM_WARN_ON_ONCE(!vma_is_cow_mapping(vma));
-+	/* Account for MAP_PRIVATE-/dev/zero which is only semi-anonymous. */
-+	if (vma_is_anonymous(vma) && !vma->vm_file)
-+		VM_WARN_ON_ONCE(pgoff != linear_page_index(vma, address));
-+
-+	return pgoff;
-+}
+ 	if (new_vma) {
+-		/*
+-		 * Source vma may have been merged into new_vma
+-		 */
+-		if (unlikely(vma_start >= new_vma->vm_start &&
+-			     vma_start < new_vma->vm_end)) {
++		/* Self-merged and VMA replaced. */
++		if (unlikely(new_vma->vm_start < old_vma_start &&
++			     new_vma->vm_end > old_vma_start)) {
+ 			/*
+-			 * The only way we can get a vma_merge with
+-			 * self during an mremap is if the vma hasn't
+-			 * been faulted in yet and we were allowed to
+-			 * reset the dst vma->vm_pgoff to the
+-			 * destination address of the mremap to allow
+-			 * the merge to happen. mremap must change the
+-			 * vm_pgoff linearity between src and dst vmas
+-			 * (in turn preventing a vma_merge) to be
+-			 * safe. It is only safe to keep the vm_pgoff
+-			 * linear if there are no pages mapped yet.
++			 * The only way a VMA can both self-merge and be
++			 * replaced is if the remap places the new VMA
++			 * immediately prior to its old self ('next') and
++			 * immediately after another VMA ('prev') causing the
++			 * next to be removed and prev to be expanded to cover
++			 * the entire range.
++			 *
++			 * This should only be possible if the page offset was
++			 * updated, i.e. the VMA is unfaulted.
+ 			 */
+-			VM_BUG_ON_VMA(faulted_in_anon_vma, new_vma);
++			VM_WARN_ON_ONCE_VMA(!can_self_merge, new_vma);
+ 			*vmap = vma = new_vma;
+ 		}
+ 		*need_rmap_locks =
+--- a/tools/testing/vma/vma_internal.h~mm-vma-fix-self-merge-check-in-copy_vma
++++ a/tools/testing/vma/vma_internal.h
+@@ -53,6 +53,7 @@ typedef __bitwise unsigned int vm_fault_
+ 
+ #define VM_WARN_ON(_expr) (WARN_ON(_expr))
+ #define VM_WARN_ON_ONCE(_expr) (WARN_ON_ONCE(_expr))
++#define VM_WARN_ON_ONCE_VMA(_expr, _vma) (WARN_ON_ONCE(_expr))
+ #define VM_WARN_ON_VMG(_expr, _vmg) (WARN_ON(_expr))
+ #define VM_BUG_ON(_expr) (BUG_ON(_expr))
+ #define VM_BUG_ON_VMA(_expr, _vma) (BUG_ON(_expr))
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
 
-mm-abstract-vma_address-and-introduce-vma_anon_address.patch
-mm-update-print_bad_page_map-to-show-anon-index-if-appropriate.patch
-mm-introduce-and-use-vma_filebacked_address.patch
-mm-vma-fix-self-merge-check-in-copy_vma.patch
 tools-testing-vma-add-tests-for-copy_vma-self-merge.patch
 mm-propagate-vma-anonymous-page-offset-on-map-remap-split-merge.patch
 mm-rmap-track-whether-the-page-vma-mapped-pgoff-is-anonymous.patch
