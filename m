@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0C98E3EC2E3
-	for <mm-commits@vger.kernel.org>; Thu, 13 Aug 2026 17:55:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6B4BF3F20E8
+	for <mm-commits@vger.kernel.org>; Thu, 13 Aug 2026 17:55:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786643742; cv=none; b=mMXpeC6/Yen7vsPbuDbf2/15gSuu85+Pbyzo9shyDSDUgw28el5eTXr0doIqzgErA/Zi1DLM6oYFVoLuwYpbBii/IGhJp74jYlrl1ExHm448rNirK/HUOTpfIk9YB16+w2LHElCRRElXJmtDY4oWagwMq05+zLZN9kYASvGVbwQ=
+	t=1786643743; cv=none; b=mhiFlT2zl56LpfEDQEbrsVVGtim8CvUAqOk6JfKF8BqCJKMNtFN1VwmcdMvhtsLaHAzsqXzgbLrnMM9+mTnOinSbqN9Ginr2svGs2Dg/R2zqzfcFasNEqUD782JBtcEAiBe8PuBrbWOJzt7T6V/Q1x/jIEyBheAIPUsrCtedgxU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786643742; c=relaxed/simple;
-	bh=GAyVyx3f3PWnPrVR7VPT3CeYyK9ji7k3VHmFWgAC4ec=;
-	h=Date:To:From:Subject:Message-Id; b=Y1LM6W5OQ59zIYucxIh9NME5/KZrC+yujhKUrG8IOR+pv9evPo8w1tWeNb/c42gVlWs0rBhWYsO5sbCN1GLKl17ThtQJP0BNQqKNj5osrqDhL3Ez8S1RzTn3AETupTL7wUJXNc7CNWXGHDOWI+ebxAfH5jo9IyvO7gM/PEeGjVc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=il7Er6VT; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1786643743; c=relaxed/simple;
+	bh=/GJcidWQHa1CQkT9RrHPNtKaX16lGH36yZIYWWk6iwY=;
+	h=Date:To:From:Subject:Message-Id; b=cr852hOsYxlzuvVJ5wWKxGMYwqEMLzh5vN57EKHEeLDkFZJEP+sycIVqB65vlibVzjmos7joEOin/RJl3P1CTUpRKqDvVltlsWcNMiQ3tA5ne59Pc7JQ7ejV1AF3+XBTldM9z+ndiph1zhQOlOzVmIyVPfj07h+F8wLxy1epkQY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YsX7EIht; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="il7Er6VT"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5CFC11F00A3A;
-	Thu, 13 Aug 2026 17:55:37 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YsX7EIht"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A57CF1F00A3F;
+	Thu, 13 Aug 2026 17:55:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1786643737;
-	bh=JXeBbF6Lsd2XI7ZP4ALxKmcpAcCLyuHF2D9b6iDKBKU=;
+	d=linux-foundation.org; s=korg; t=1786643730;
+	bh=MRD+JfMqNlTN7g1LCl5guwNahRxzD96JBiQRk5HKD5s=;
 	h=Date:To:From:Subject;
-	b=il7Er6VTBN4zlh8Hp3piStGj1hIIFNV6dHarOFa5cZyN5h/PbMF4VceZOiAJKeoCb
-	 mwQHgJHpJnutKbZ6+lpwZQ+rdUF1QUm3XycZhHB40h5YcC4k6kwCo8vr5efzBNS6/I
-	 r86E7Ae+/P/eREWkEWXYNuhLV8ii4HTMwHBqM2Ow=
-Date: Thu, 13 Aug 2026 10:55:37 -0700
+	b=YsX7EIhtiuO0IY5AdfL3QfsbBdC9tJTIqXJN2m4oJ/T0lWo3yOwjn/3gfhyIJWaOD
+	 SsO1UJpJztS2hOsYgc9nxdm4gA3FixvtKvoq6gHZQ6PEHnYfNciVDfzf20vk1CXume
+	 Y7ol8OcqA+mNmN24e29SOWD8oUKCNhv85kPF9FWQ=
+Date: Thu, 13 Aug 2026 10:55:30 -0700
 To: mm-commits@vger.kernel.org,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-vma-make-map_private-mapped-dev-zero-mappings-truly-anonymous.patch removed from -mm tree
-Message-Id: <20260813175537.5CFC11F00A3A@smtp.kernel.org>
+Subject: [to-be-updated] tools-testing-vma-expand-vma-merge-tests-to-assert-anon-pgoff.patch removed from -mm tree
+Message-Id: <20260813175530.A57CF1F00A3F@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,71 +35,26 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/vma: make MAP_PRIVATE-mapped /dev/zero mappings truly anonymous
+     Subject: tools/testing/vma: expand VMA merge tests to assert anon pgoff
 has been removed from the -mm tree.  Its filename was
-     mm-vma-make-map_private-mapped-dev-zero-mappings-truly-anonymous.patch
+     tools-testing-vma-expand-vma-merge-tests-to-assert-anon-pgoff.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: mm/vma: make MAP_PRIVATE-mapped /dev/zero mappings truly anonymous
-Date: Thu, 06 Aug 2026 21:21:43 +0100
+Subject: tools/testing/vma: expand VMA merge tests to assert anon pgoff
+Date: Thu, 06 Aug 2026 21:21:40 +0100
 
-When mapping /dev/zero with MAP_PRIVATE, one ends up with strange VMAs
-originating from Linux's distant past.
+Now we have introduced the VMA anonymous page offset attribute and update
+it when VMAs are manipulated, update VMA merge tests to assert that the
+anonymous page offset is as expected.
 
-These have vma->vm_file set but NULL vma->vm_ops, meaning they satisfy
-vma_is_anonymous() but otherwise resemble a file-backed VMA.
+Also update instances where we could use vma_start_pgoff() to do so.
 
-The introduction of anonymous page offsets and their subsequent use as
-indexes for MAP_PRIVATE-file-backed mappings mean the rmap does the right
-thing with these but we are left with inconsistencies.
-
-The vma_start_pgoff(vma) == vma_start_anon_pgoff(vma) invariant is true
-for all other anonymous VMAs, but not these.
-
-These VMAs are also observable as files in /proc/<pid>/[maps, smaps,
-map_files] but otherwise behave like anonymous mappings.
-
-Therefore let's make these VMAs actually anonymous at mapping time which
-will activate the anonymous code path for mappings.
-
-This means we no longer have to account for this discrepancy anywhere and
-no longer have to think about these at all.
-
-This is user-observable, as MAP_PRIVATE-/dev/zero will no longer appear in
-procfs as a file-backed mapping, but the impact of this change should be
-low as likely nobody is relying upon this.
-
-However in any case, in using MAP_PRIVATE-/dev/zero they are explicitly
-asking anonymous memory, so no longer seeing these as file mappings is in
-fact correct.
-
-A previous commit gave us map_is_dev_zero() to positively identify these
-mappings, so we expressly only do so for these alone.
-
-Update assert_sane_pgoff(), the comment for vma_start_pgoff() and
-linear_anon_page_index() to reflect the change.
-
-We make this change in call_mmap_prepare() alone as /dev/zero has been
-converted to an mmap_prepare hook and we do not permit nested MAP_PRIVATE
-mapping of /dev/zero.
-
-We also remove the now defunct vma_desc_set_anonymous() and eliminate the
-temporary bisection hazard fix from the previous commit.
-
-Also update the VMA userland tests to reflect the change.
-
-Finally, update the procfs self tests proc-self-map-files-001 and
-proc-self-map-files-002 which both intend to map an arbitrary file
-MAP_PRIVATE then assert procfs state, but happen to choose /dev/zero.
-
-Fix them by updating these to /proc/self/exe which is guaranteed to be
-present if procfs is mounted.
-
-Link: https://lore.kernel.org/20260806-b4-scalable-cow-virt-pgoff-v4-18-ab318a350404@kernel.org
+Link: https://lore.kernel.org/20260806-b4-scalable-cow-virt-pgoff-v4-15-ab318a350404@kernel.org
 Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
 Cc: Adrian Hunter <adrian.hunter@intel.com>
 Cc: Alexander Deucher <alexander.deucher@amd.com>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
@@ -118,7 +73,6 @@ Cc: Christan König <christian.koenig@amd.com>
 Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
 Cc: Claudio Imbrenda <imbrenda@linux.ibm.com>
 Cc: Dave Airlie <airlied@gmail.com>
-Cc: David Hildenbrand (Arm) <david@kernel.org>
 Cc: Dev Jain <dev.jain@arm.com>
 Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
@@ -180,166 +134,246 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h                                     |   10 ---
- include/linux/pagemap.h                                |    3 -
- mm/vma.c                                               |   26 ++++++----
- mm/vma.h                                               |    3 -
- tools/testing/selftests/proc/proc-self-map-files-001.c |    2 
- tools/testing/selftests/proc/proc-self-map-files-002.c |    2 
- tools/testing/vma/include/dup.h                        |    3 -
- 7 files changed, 23 insertions(+), 26 deletions(-)
+ tools/testing/vma/tests/merge.c |   45 ++++++++++++++++++++++++------
+ 1 file changed, 36 insertions(+), 9 deletions(-)
 
---- a/include/linux/mm.h~mm-vma-make-map_private-mapped-dev-zero-mappings-truly-anonymous
-+++ a/include/linux/mm.h
-@@ -1554,11 +1554,6 @@ static inline void vma_set_anonymous(str
- 	vma->vm_ops = NULL;
- }
+--- a/tools/testing/vma/tests/merge.c~tools-testing-vma-expand-vma-merge-tests-to-assert-anon-pgoff
++++ a/tools/testing/vma/tests/merge.c
+@@ -121,6 +121,7 @@ static bool test_simple_merge(void)
+ 	ASSERT_EQ(vma->vm_start, 0);
+ 	ASSERT_EQ(vma->vm_end, 0x3000);
+ 	ASSERT_EQ(vma_start_pgoff(vma), 0);
++	ASSERT_EQ(vma_start_anon_pgoff(vma), 0);
+ 	ASSERT_FLAGS_SAME_MASK(&vma->flags, vma_flags);
  
--static inline void vma_desc_set_anonymous(struct vm_area_desc *desc)
--{
--	desc->vm_ops = NULL;
--}
--
- static inline bool vma_is_anonymous(const struct vm_area_struct *vma)
- {
- 	return !vma->vm_ops;
-@@ -4412,9 +4407,8 @@ static inline unsigned long vma_pages(co
-  * If @vma is a MAP_PRIVATE file-backed mapping, then this returns the
-  * page offset within the file.
-  *
-- * Edge cases: nommu does not abide by these, MAP_PRIVATE-/dev/zero satisfies
-- * vma_is_anonymous() but has file-backed page offset, and MAP_PRIVATE-pfnmap
-- * regions have their page offset set to the first PFN in the range.
-+ * Edge cases: nommu does not abide by these and CoW MAP_PRIVATE-pfnmap regions
-+ * have their page offset set to the first PFN in the range.
-  *
-  * Returns: The page offset of the start of @vma.
-  */
---- a/include/linux/pagemap.h~mm-vma-make-map_private-mapped-dev-zero-mappings-truly-anonymous
-+++ a/include/linux/pagemap.h
-@@ -1128,8 +1128,7 @@ static inline pgoff_t linear_anon_page_i
- 	const pgoff_t pgoff = __linear_anon_page_index(vma, address);
+ 	detach_free_vma(vma);
+@@ -153,6 +154,7 @@ static bool test_simple_modify(void)
+ 	ASSERT_EQ(vma->vm_start, 0x1000);
+ 	ASSERT_EQ(vma->vm_end, 0x2000);
+ 	ASSERT_EQ(vma_start_pgoff(vma), 1);
++	ASSERT_EQ(vma_start_anon_pgoff(vma), 1);
  
- 	VM_WARN_ON_ONCE(!vma_is_cow_mapping(vma));
--	/* Account for MAP_PRIVATE-/dev/zero which is only semi-anonymous. */
--	if (vma_is_anonymous(vma) && !vma->vm_file)
-+	if (vma_is_anonymous(vma))
- 		VM_WARN_ON_ONCE(pgoff != linear_page_index(vma, address));
+ 	/*
+ 	 * Now walk through the three split VMAs and make sure they are as
+@@ -165,6 +167,7 @@ static bool test_simple_modify(void)
+ 	ASSERT_EQ(vma->vm_start, 0);
+ 	ASSERT_EQ(vma->vm_end, 0x1000);
+ 	ASSERT_EQ(vma_start_pgoff(vma), 0);
++	ASSERT_EQ(vma_start_anon_pgoff(vma), 0);
  
- 	return pgoff;
---- a/mm/vma.c~mm-vma-make-map_private-mapped-dev-zero-mappings-truly-anonymous
-+++ a/mm/vma.c
-@@ -2634,6 +2634,13 @@ static bool map_is_dev_zero(const struct
- 	return imajor(inode) == MEM_MAJOR && iminor(inode) == DEVZERO_MINOR;
- }
+ 	detach_free_vma(vma);
+ 	vma_iter_clear(&vmi);
+@@ -174,6 +177,7 @@ static bool test_simple_modify(void)
+ 	ASSERT_EQ(vma->vm_start, 0x1000);
+ 	ASSERT_EQ(vma->vm_end, 0x2000);
+ 	ASSERT_EQ(vma_start_pgoff(vma), 1);
++	ASSERT_EQ(vma_start_anon_pgoff(vma), 1);
  
-+static void map_set_anon(struct mmap_state *map)
-+{
-+	map->file = NULL;
-+	map->vm_ops = NULL;
-+	map->pgoff = map->addr >> PAGE_SHIFT;
-+}
-+
- static bool map_is_private(const struct mmap_state *map)
- {
- 	return !vma_flags_test(&map->vma_flags, VMA_SHARED_BIT);
-@@ -2641,10 +2648,7 @@ static bool map_is_private(const struct
+ 	detach_free_vma(vma);
+ 	vma_iter_clear(&vmi);
+@@ -183,6 +187,7 @@ static bool test_simple_modify(void)
+ 	ASSERT_EQ(vma->vm_start, 0x2000);
+ 	ASSERT_EQ(vma->vm_end, 0x3000);
+ 	ASSERT_EQ(vma_start_pgoff(vma), 2);
++	ASSERT_EQ(vma_start_anon_pgoff(vma), 2);
  
- static bool map_is_anon(const struct mmap_state *map)
- {
--	if (!map_is_private(map))
--		return false;
--
--	return !map->file || map_is_dev_zero(map);
-+	return map_is_private(map) && !map->file;
- }
+ 	detach_free_vma(vma);
+ 	mtree_destroy(&mm.mm_mt);
+@@ -212,6 +217,7 @@ static bool test_simple_expand(void)
+ 	ASSERT_EQ(vma->vm_start, 0);
+ 	ASSERT_EQ(vma->vm_end, 0x3000);
+ 	ASSERT_EQ(vma_start_pgoff(vma), 0);
++	ASSERT_EQ(vma_start_anon_pgoff(vma), 0);
  
- /*
-@@ -2676,7 +2680,7 @@ static int __mmap_new_vma(struct mmap_st
+ 	detach_free_vma(vma);
+ 	mtree_destroy(&mm.mm_mt);
+@@ -234,6 +240,7 @@ static bool test_simple_shrink(void)
+ 	ASSERT_EQ(vma->vm_start, 0);
+ 	ASSERT_EQ(vma->vm_end, 0x1000);
+ 	ASSERT_EQ(vma_start_pgoff(vma), 0);
++	ASSERT_EQ(vma_start_anon_pgoff(vma), 0);
  
- 	vma_iter_config(vmi, map->addr, map->end);
+ 	detach_free_vma(vma);
+ 	mtree_destroy(&mm.mm_mt);
+@@ -346,6 +353,7 @@ static bool __test_merge_new(bool is_sti
+ 	ASSERT_EQ(vma->vm_start, 0);
+ 	ASSERT_EQ(vma->vm_end, 0x5000);
+ 	ASSERT_EQ(vma_start_pgoff(vma), 0);
++	ASSERT_EQ(vma_start_anon_pgoff(vma), 0);
+ 	ASSERT_EQ(vma->anon_vma, &dummy_anon_vma);
+ 	ASSERT_TRUE(vma_write_started(vma));
+ 	ASSERT_EQ(mm.map_count, 3);
+@@ -367,6 +375,7 @@ static bool __test_merge_new(bool is_sti
+ 	ASSERT_EQ(vma->vm_start, 0x6000);
+ 	ASSERT_EQ(vma->vm_end, 0x9000);
+ 	ASSERT_EQ(vma_start_pgoff(vma), 6);
++	ASSERT_EQ(vma_start_anon_pgoff(vma), 6);
+ 	ASSERT_EQ(vma->anon_vma, &dummy_anon_vma);
+ 	ASSERT_TRUE(vma_write_started(vma));
+ 	ASSERT_EQ(mm.map_count, 3);
+@@ -387,6 +396,7 @@ static bool __test_merge_new(bool is_sti
+ 	ASSERT_EQ(vma->vm_start, 0);
+ 	ASSERT_EQ(vma->vm_end, 0x9000);
+ 	ASSERT_EQ(vma_start_pgoff(vma), 0);
++	ASSERT_EQ(vma_start_anon_pgoff(vma), 0);
+ 	ASSERT_EQ(vma->anon_vma, &dummy_anon_vma);
+ 	ASSERT_TRUE(vma_write_started(vma));
+ 	ASSERT_EQ(mm.map_count, 2);
+@@ -407,6 +417,7 @@ static bool __test_merge_new(bool is_sti
+ 	ASSERT_EQ(vma->vm_start, 0xa000);
+ 	ASSERT_EQ(vma->vm_end, 0xc000);
+ 	ASSERT_EQ(vma_start_pgoff(vma), 0xa);
++	ASSERT_EQ(vma_start_anon_pgoff(vma), 0xa);
+ 	ASSERT_EQ(vma->anon_vma, &dummy_anon_vma);
+ 	ASSERT_TRUE(vma_write_started(vma));
+ 	ASSERT_EQ(mm.map_count, 2);
+@@ -426,6 +437,7 @@ static bool __test_merge_new(bool is_sti
+ 	ASSERT_EQ(vma->vm_start, 0);
+ 	ASSERT_EQ(vma->vm_end, 0xc000);
+ 	ASSERT_EQ(vma_start_pgoff(vma), 0);
++	ASSERT_EQ(vma_start_anon_pgoff(vma), 0);
+ 	ASSERT_EQ(vma->anon_vma, &dummy_anon_vma);
+ 	ASSERT_TRUE(vma_write_started(vma));
+ 	ASSERT_EQ(mm.map_count, 1);
+@@ -446,6 +458,7 @@ static bool __test_merge_new(bool is_sti
+ 		ASSERT_EQ(vma->vm_start, 0);
+ 		ASSERT_EQ(vma->vm_end, 0xc000);
+ 		ASSERT_EQ(vma_start_pgoff(vma), 0);
++		ASSERT_EQ(vma_start_anon_pgoff(vma), 0);
+ 		ASSERT_EQ(vma->anon_vma, &dummy_anon_vma);
  
--	if (is_anon && !map->file)
-+	if (is_anon)
- 		vma_set_anonymous(vma);
+ 		detach_free_vma(vma);
+@@ -642,7 +655,8 @@ static bool test_vma_merge_with_close(vo
+ 	ASSERT_EQ(vmg.state, VMA_MERGE_SUCCESS);
+ 	ASSERT_EQ(vma_prev->vm_start, 0);
+ 	ASSERT_EQ(vma_prev->vm_end, 0x5000);
+-	ASSERT_EQ(vma_prev->vm_pgoff, 0);
++	ASSERT_EQ(vma_start_pgoff(vma_prev), 0);
++	ASSERT_EQ(vma_start_anon_pgoff(vma_prev), 0);
  
- 	vma_set_range(vma, map->addr, map->end, map->pgoff, map->anon_pgoff);
-@@ -2694,10 +2698,6 @@ static int __mmap_new_vma(struct mmap_st
- 	else if (!is_anon)
- 		error = shmem_zero_setup(vma);
+ 	ASSERT_EQ(cleanup_mm(&mm, &vmi), 2);
  
--	/* Temporary MAP_PRIVATE-/dev/zero workaround. */
--	if (is_anon && map->file)
--		vma_set_anonymous(vma);
--
- 	if (error)
- 		goto free_iter_vma;
+@@ -753,7 +767,8 @@ static bool test_vma_merge_with_close(vo
+ 	ASSERT_EQ(vmg.state, VMA_MERGE_SUCCESS);
+ 	ASSERT_EQ(vma_prev->vm_start, 0);
+ 	ASSERT_EQ(vma_prev->vm_end, 0x5000);
+-	ASSERT_EQ(vma_prev->vm_pgoff, 0);
++	ASSERT_EQ(vma_start_pgoff(vma_prev), 0);
++	ASSERT_EQ(vma_start_anon_pgoff(vma_prev), 0);
  
-@@ -2826,6 +2826,14 @@ static int call_mmap_prepare(struct mmap
- 	map->vm_ops = desc->vm_ops;
- 	map->vm_private_data = desc->private_data;
+ 	ASSERT_EQ(cleanup_mm(&mm, &vmi), 2);
  
-+	/*
-+	 * MAP_PRIVATE-/dev/zero mappings are an ancient way of getting
-+	 * anonymous mappings. Rather than allowing these mappings to be odd
-+	 * outliers, simply make them truly anonymous.
-+	 */
-+	if (map_is_private(map) && map_is_dev_zero(map))
-+		map_set_anon(map);
-+
- 	return 0;
- }
+@@ -808,6 +823,7 @@ static bool test_vma_merge_new_with_clos
+ 	ASSERT_EQ(vma->vm_start, 0);
+ 	ASSERT_EQ(vma->vm_end, 0x5000);
+ 	ASSERT_EQ(vma_start_pgoff(vma), 0);
++	ASSERT_EQ(vma_start_anon_pgoff(vma), 0);
+ 	ASSERT_EQ(vma->vm_ops, &vm_ops);
+ 	ASSERT_TRUE(vma_write_started(vma));
+ 	ASSERT_EQ(mm.map_count, 2);
+@@ -863,11 +879,13 @@ static bool __test_merge_existing(bool p
+ 	ASSERT_EQ(vmg.state, VMA_MERGE_SUCCESS);
+ 	ASSERT_EQ(vma_next->vm_start, 0x3000);
+ 	ASSERT_EQ(vma_next->vm_end, 0x9000);
+-	ASSERT_EQ(vma_next->vm_pgoff, 3);
++	ASSERT_EQ(vma_start_pgoff(vma_next), 3);
++	ASSERT_EQ(vma_start_anon_pgoff(vma_next), 3);
+ 	ASSERT_EQ(vma_next->anon_vma, &dummy_anon_vma);
+ 	ASSERT_EQ(vma->vm_start, 0x2000);
+ 	ASSERT_EQ(vma->vm_end, 0x3000);
+ 	ASSERT_EQ(vma_start_pgoff(vma), 2);
++	ASSERT_EQ(vma_start_anon_pgoff(vma), 2);
+ 	ASSERT_TRUE(vma_write_started(vma));
+ 	ASSERT_TRUE(vma_write_started(vma_next));
+ 	ASSERT_EQ(mm.map_count, 2);
+@@ -897,7 +915,8 @@ static bool __test_merge_existing(bool p
+ 	ASSERT_EQ(vmg.state, VMA_MERGE_SUCCESS);
+ 	ASSERT_EQ(vma_next->vm_start, 0x2000);
+ 	ASSERT_EQ(vma_next->vm_end, 0x9000);
+-	ASSERT_EQ(vma_next->vm_pgoff, 2);
++	ASSERT_EQ(vma_start_pgoff(vma_next), 2);
++	ASSERT_EQ(vma_start_anon_pgoff(vma_next), 2);
+ 	ASSERT_EQ(vma_next->anon_vma, &dummy_anon_vma);
+ 	ASSERT_TRUE(vma_write_started(vma_next));
+ 	ASSERT_EQ(mm.map_count, 1);
+@@ -929,11 +948,13 @@ static bool __test_merge_existing(bool p
+ 	ASSERT_EQ(vmg.state, VMA_MERGE_SUCCESS);
+ 	ASSERT_EQ(vma_prev->vm_start, 0);
+ 	ASSERT_EQ(vma_prev->vm_end, 0x6000);
+-	ASSERT_EQ(vma_prev->vm_pgoff, 0);
++	ASSERT_EQ(vma_start_pgoff(vma_prev), 0);
++	ASSERT_EQ(vma_start_anon_pgoff(vma_prev), 0);
+ 	ASSERT_EQ(vma_prev->anon_vma, &dummy_anon_vma);
+ 	ASSERT_EQ(vma->vm_start, 0x6000);
+ 	ASSERT_EQ(vma->vm_end, 0x7000);
+ 	ASSERT_EQ(vma_start_pgoff(vma), 6);
++	ASSERT_EQ(vma_start_anon_pgoff(vma), 6);
+ 	ASSERT_TRUE(vma_write_started(vma_prev));
+ 	ASSERT_TRUE(vma_write_started(vma));
+ 	ASSERT_EQ(mm.map_count, 2);
+@@ -964,7 +985,8 @@ static bool __test_merge_existing(bool p
+ 	ASSERT_EQ(vmg.state, VMA_MERGE_SUCCESS);
+ 	ASSERT_EQ(vma_prev->vm_start, 0);
+ 	ASSERT_EQ(vma_prev->vm_end, 0x7000);
+-	ASSERT_EQ(vma_prev->vm_pgoff, 0);
++	ASSERT_EQ(vma_start_pgoff(vma_prev), 0);
++	ASSERT_EQ(vma_start_anon_pgoff(vma_prev), 0);
+ 	ASSERT_EQ(vma_prev->anon_vma, &dummy_anon_vma);
+ 	ASSERT_TRUE(vma_write_started(vma_prev));
+ 	ASSERT_EQ(mm.map_count, 1);
+@@ -996,7 +1018,8 @@ static bool __test_merge_existing(bool p
+ 	ASSERT_EQ(vmg.state, VMA_MERGE_SUCCESS);
+ 	ASSERT_EQ(vma_prev->vm_start, 0);
+ 	ASSERT_EQ(vma_prev->vm_end, 0x9000);
+-	ASSERT_EQ(vma_prev->vm_pgoff, 0);
++	ASSERT_EQ(vma_start_pgoff(vma_prev), 0);
++	ASSERT_EQ(vma_start_anon_pgoff(vma_prev), 0);
+ 	ASSERT_EQ(vma_prev->anon_vma, &dummy_anon_vma);
+ 	ASSERT_TRUE(vma_write_started(vma_prev));
+ 	ASSERT_EQ(mm.map_count, 1);
+@@ -1126,7 +1149,8 @@ static bool test_anon_vma_non_mergeable(
+ 	ASSERT_EQ(vmg.state, VMA_MERGE_SUCCESS);
+ 	ASSERT_EQ(vma_prev->vm_start, 0);
+ 	ASSERT_EQ(vma_prev->vm_end, 0x7000);
+-	ASSERT_EQ(vma_prev->vm_pgoff, 0);
++	ASSERT_EQ(vma_start_pgoff(vma_prev), 0);
++	ASSERT_EQ(vma_start_anon_pgoff(vma_prev), 0);
+ 	ASSERT_TRUE(vma_write_started(vma_prev));
+ 	ASSERT_FALSE(vma_write_started(vma_next));
  
---- a/mm/vma.h~mm-vma-make-map_private-mapped-dev-zero-mappings-truly-anonymous
-+++ a/mm/vma.h
-@@ -267,9 +267,6 @@ static inline void assert_sane_pgoff(str
- 	 */
- 	if (!vma_is_anonymous(vma))
- 		return;
--	/* MAP_PRIVATE-/dev/zero is anon, non-NULL vm_file, but has file pgoff. */
--	if (vma->vm_file)
--		return;
- 	/* If faulted in, could have been remapped. */
- 	if (vma->anon_vma)
- 		return;
---- a/tools/testing/selftests/proc/proc-self-map-files-001.c~mm-vma-make-map_private-mapped-dev-zero-mappings-truly-anonymous
-+++ a/tools/testing/selftests/proc/proc-self-map-files-001.c
-@@ -51,7 +51,7 @@ int main(void)
- 	int fd;
- 	unsigned long a, b;
+@@ -1157,7 +1181,8 @@ static bool test_anon_vma_non_mergeable(
+ 	ASSERT_EQ(vmg.state, VMA_MERGE_SUCCESS);
+ 	ASSERT_EQ(vma_prev->vm_start, 0);
+ 	ASSERT_EQ(vma_prev->vm_end, 0x7000);
+-	ASSERT_EQ(vma_prev->vm_pgoff, 0);
++	ASSERT_EQ(vma_start_pgoff(vma_prev), 0);
++	ASSERT_EQ(vma_start_anon_pgoff(vma_prev), 0);
+ 	ASSERT_TRUE(vma_write_started(vma_prev));
+ 	ASSERT_FALSE(vma_write_started(vma_next));
  
--	fd = open("/dev/zero", O_RDONLY);
-+	fd = open("/proc/self/exe", O_RDONLY);
- 	if (fd == -1)
- 		return 1;
+@@ -1419,6 +1444,7 @@ static bool test_merge_extend(void)
+ 	ASSERT_EQ(vma->vm_start, 0);
+ 	ASSERT_EQ(vma->vm_end, 0x4000);
+ 	ASSERT_EQ(vma_start_pgoff(vma), 0);
++	ASSERT_EQ(vma_start_anon_pgoff(vma), 0);
+ 	ASSERT_TRUE(vma_write_started(vma));
+ 	ASSERT_EQ(mm.map_count, 1);
  
---- a/tools/testing/selftests/proc/proc-self-map-files-002.c~mm-vma-make-map_private-mapped-dev-zero-mappings-truly-anonymous
-+++ a/tools/testing/selftests/proc/proc-self-map-files-002.c
-@@ -57,7 +57,7 @@ int main(void)
- 	int fd;
- 	unsigned long a, b;
- 
--	fd = open("/dev/zero", O_RDONLY);
-+	fd = open("/proc/self/exe", O_RDONLY);
- 	if (fd == -1)
- 		return 1;
- 
---- a/tools/testing/vma/include/dup.h~mm-vma-make-map_private-mapped-dev-zero-mappings-truly-anonymous
-+++ a/tools/testing/vma/include/dup.h
-@@ -1659,8 +1659,7 @@ static inline pgoff_t linear_anon_page_i
- 	const pgoff_t pgoff = __linear_anon_page_index(vma, address);
- 
- 	VM_WARN_ON_ONCE(!vma_is_cow_mapping(vma));
--	/* Account for MAP_PRIVATE-/dev/zero which is only semi-anonymous. */
--	if (vma_is_anonymous(vma) && !vma->vm_file)
-+	if (vma_is_anonymous(vma))
- 		VM_WARN_ON_ONCE(pgoff != linear_page_index(vma, address));
- 
- 	return pgoff;
+@@ -1459,6 +1485,7 @@ static bool test_expand_only_mode(void)
+ 	ASSERT_EQ(vma->vm_start, 0x3000);
+ 	ASSERT_EQ(vma->vm_end, 0x9000);
+ 	ASSERT_EQ(vma_start_pgoff(vma), 3);
++	ASSERT_EQ(vma_start_anon_pgoff(vma), 3);
+ 	ASSERT_TRUE(vma_write_started(vma));
+ 	ASSERT_EQ(vma_iter_addr(&vmi), 0x3000);
+ 	vma_assert_attached(vma);
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
 
+tools-testing-selftests-mm-test-anonymous-page-offset-merge-behaviour.patch
+mm-vma-only-permit-map_private-dev-zero-to-be-mapped-anonymous.patch
+mm-vma-make-map_private-mapped-dev-zero-mappings-truly-anonymous.patch
 tools-testing-vma-add-test-to-assert-map_private-dev-zero-is-anon.patch
 tools-testing-selftests-mm-add-map_private-dev-zero-merge-tests.patch
 mm-add-some-missing-includes-to-mm-local-headers.patch
