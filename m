@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CF00F3F076E
-	for <mm-commits@vger.kernel.org>; Thu, 13 Aug 2026 17:55:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 105213F0A87
+	for <mm-commits@vger.kernel.org>; Thu, 13 Aug 2026 17:55:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786643731; cv=none; b=dlgqSHvX1Mjs6vuC38NcvIVZWEemqT2/rAOmM1OXUtev0i4PEcUuaZfuiOjqw1UQGiaeQ04bTwhQ0UVnDD2c3Qcp3Gc94r/MivNgfIAlC/rQg9f2fIN/Fwn3W5SxdMxOPCJMC9l/b9Ewm1kisKtL0b2EKjMIejV5R6G5GecQyqg=
+	t=1786643735; cv=none; b=T/ZrpmXj0u9UxNNEO3jucMgjIVrbcq7o+Lmj+xe/ra7XolAPPdKDuQsQMduftvuYw8isXczgsNYTiMv0qaQs4OBFzETUTz2Js066vJtMQz03f3vOrp46NLcRWxvMxaDjIQDG93wFolUigKzWCiE8jBFPpyP6xTkWqXu0Js9Unrk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786643731; c=relaxed/simple;
-	bh=C4j5opgW8QdFyZwVWHDGoVS3ru43luzXnY51MFKDJXA=;
-	h=Date:To:From:Subject:Message-Id; b=Wz9Kb5RHGqZXGkrBkwy9OABT6wN1LGblS1MN/xvoIQ1eLy1LX65SP/XsSB/78TZaFVd8frjiIev06otDRxs4VSSst7YyrXyldO5qOOwDlJEFZmTmMv5GzdECEZFoncdWhKbq04WM3EuZLk7id2m079lAOJeuaukgFR4/hJEySEo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kS/O0MdH; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1786643735; c=relaxed/simple;
+	bh=q+EBklMl8Zl5K6q3ZlccEnpf/NCw/meJ9yKT3Iy7tHE=;
+	h=Date:To:From:Subject:Message-Id; b=jexY8BN2LVhl7CI1GUZe/68fW2Ly7TfD7i/RNSGro2S+83x+B5v77Yy4rRgLXrbwwew2EkoZNudjB5XyFjtJ4V3Jxs8KCZbwxCvyOgyY4u9REbE+kOfpwpmIpwWqeC3V5JI/UWijzfpjBX2fZVnRFyUP7zbhbxgJ4Bd+8k/71lI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MkCM1aPp; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kS/O0MdH"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2A9FF1F000E9;
-	Thu, 13 Aug 2026 17:55:22 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MkCM1aPp"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 521331F00A3A;
+	Thu, 13 Aug 2026 17:55:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1786643722;
-	bh=vrfXwHgeyHBBLySwEmEQbVqFUjGVelJHtr1FZ179rLs=;
+	d=linux-foundation.org; s=korg; t=1786643726;
+	bh=n7mGzM6Hm8f9aO1NUxLjcL4VCLzh1b5GQV0odNBSKRk=;
 	h=Date:To:From:Subject;
-	b=kS/O0MdHSlt5sxZlB4jsSBRT6fVzJqTdV9dEgpnDxxNhqlfMbLLcSed6EsKiV3J/V
-	 pze+ieRIylfrV33d5+JlFQubxQ6OttDRzjkCBQSaTltkKvtZFAqVBExXvwN0fFH3g1
-	 ZDyElbCVLhg1+dVtIypzmTdwTkX/f7BWgszi2AZY=
-Date: Thu, 13 Aug 2026 10:55:21 -0700
+	b=MkCM1aPpePiOpJoVV9B+bGEfG2XyhkWPkcM7tBVXVcQLWXmCi54+1qOWPkXEDPven
+	 PSwx9Y5Zn7vY9bIvpBRy2sj/w5EDRhIPA9HDOkpi3kCGbBFemJFGO7izUsRjrPOJ9A
+	 /hJHTHUeTJLpxLhKQrrL/3rbCLowJOcVpq4oCXtw=
+Date: Thu, 13 Aug 2026 10:55:25 -0700
 To: mm-commits@vger.kernel.org,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-clean-up-vma_address_end.patch removed from -mm tree
-Message-Id: <20260813175522.2A9FF1F000E9@smtp.kernel.org>
+Subject: [to-be-updated] mm-migrate-calculate-large-folio-page-index-using-pfn.patch removed from -mm tree
+Message-Id: <20260813175526.521331F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,32 +35,34 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: clean up vma_address_end()
+     Subject: mm/migrate: calculate large folio page index using PFN
 has been removed from the -mm tree.  Its filename was
-     mm-clean-up-vma_address_end.patch
+     mm-migrate-calculate-large-folio-page-index-using-pfn.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: mm: clean up vma_address_end()
-Date: Thu, 06 Aug 2026 21:21:36 +0100
+Subject: mm/migrate: calculate large folio page index using PFN
+Date: Thu, 06 Aug 2026 21:21:38 +0100
 
-vma_address_end() is a confusing function with a lot of moving parts so
-clean it up prior to extending it for anon page indexed mappings.
+Rather than having to figure out the page index to use using
+linear_page_index(), calculate it using PFN.
 
-Const-ify some variables and establish pgoff_vma_start and pgoff_end
-variables to clearly identify the page offset for the start of the VMA and
-the end of the page offset range specified by the page walk.
+This is a more natural fit as the linear page index is immaterial to
+determining the folio page index.
 
-This simplifies the function significantly and lays the groundwork for a
-future change to update this function to account for anonymously page
-indexed folios.
+Derive the page index from the offset between migration entry PFN and
+folio PFN - pvmw.pfn (set via DEFINE_FOLIO_VMA_WALK() which uses
+folio_pfn() to obtain it).
+
+Additionally remove a not so useful comment and clean the code layout up.
 
 No functional change intended.
 
-Link: https://lore.kernel.org/20260806-b4-scalable-cow-virt-pgoff-v4-11-ab318a350404@kernel.org
+Link: https://lore.kernel.org/20260806-b4-scalable-cow-virt-pgoff-v4-13-ab318a350404@kernel.org
 Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+Suggested-by: David Hildenbrand (Arm) <david@kernel.org>
 Acked-by: David Hildenbrand (Arm) <david@kernel.org>
 Cc: Adrian Hunter <adrian.hunter@intel.com>
 Cc: Alexander Deucher <alexander.deucher@amd.com>
@@ -141,47 +143,56 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/internal.h |   12 +++++++-----
- 1 file changed, 7 insertions(+), 5 deletions(-)
+ mm/migrate.c |   19 +++++++++----------
+ 1 file changed, 9 insertions(+), 10 deletions(-)
 
---- a/mm/internal.h~mm-clean-up-vma_address_end
-+++ a/mm/internal.h
-@@ -1091,22 +1091,24 @@ static inline unsigned long vma_anon_add
- }
+--- a/mm/migrate.c~mm-migrate-calculate-large-folio-page-index-using-pfn
++++ a/mm/migrate.c
+@@ -356,16 +356,11 @@ static bool remove_migration_pte(struct
  
- /*
-- * Then at what user virtual address will none of the range be found in vma?
-+ * At what user virtual address will none of the range be found in vma?
-  * Assumes that vma_address() already returned a good starting address.
-  */
- static inline unsigned long vma_address_end(struct page_vma_mapped_walk *pvmw)
- {
--	struct vm_area_struct *vma = pvmw->vma;
--	pgoff_t pgoff;
-+	const pgoff_t pgoff_end = pvmw->pgoff + pvmw->nr_pages;
-+	const struct vm_area_struct *vma = pvmw->vma;
-+	pgoff_t pgoff_vma_start;
- 	unsigned long address;
+ 	while (page_vma_mapped_walk(&pvmw)) {
+ 		rmap_t rmap_flags = RMAP_NONE;
+-		pte_t old_pte;
+-		pte_t pte;
++		unsigned long idx = 0;
+ 		softleaf_t entry;
+ 		struct page *new;
+-		unsigned long idx = 0;
+-
+-		/* pgoff is invalid for ksm pages, but they are never large */
+-		if (folio_test_large(folio) && !folio_test_hugetlb(folio))
+-			idx = linear_page_index(vma, pvmw.address) - pvmw.pgoff;
+-		new = folio_page(folio, idx);
++		pte_t old_pte;
++		pte_t pte;
  
- 	/* Common case, plus ->pgoff is invalid for KSM */
- 	if (pvmw->nr_pages == 1)
- 		return pvmw->address + PAGE_SIZE;
- 
--	pgoff = pvmw->pgoff + pvmw->nr_pages;
-+	pgoff_vma_start = vma_start_pgoff(vma);
+ #ifdef CONFIG_ARCH_HAS_PMD_SOFTLEAVES
+ 		/* PMD-mapped THP migration entry */
+@@ -381,14 +376,18 @@ static bool remove_migration_pte(struct
+ 						pvmw.pte);
+ 		else
+ 			old_pte = ptep_get(pvmw.pte);
 +
- 	address = vma->vm_start +
--		((pgoff - vma_start_pgoff(vma)) << PAGE_SHIFT);
-+		((pgoff_end - pgoff_vma_start) << PAGE_SHIFT);
- 	/* Check for address beyond vma (or wrapped through 0?) */
- 	if (address < vma->vm_start || address > vma->vm_end)
- 		address = vma->vm_end;
++		entry = softleaf_from_pte(old_pte);
++		if (folio_test_large(folio) && !folio_test_hugetlb(folio))
++			idx = softleaf_to_pfn(entry) - pvmw.pfn;
++
+ 		if (rmap_walk_arg->map_unused_to_zeropage &&
+ 		    try_to_map_unused_to_zeropage(&pvmw, folio, old_pte, idx))
+ 			continue;
+ 
+ 		folio_get(folio);
++		new = folio_page(folio, idx);
+ 		pte = mk_pte(new, READ_ONCE(vma->vm_page_prot));
+-
+-		entry = softleaf_from_pte(old_pte);
+ 		if (!softleaf_is_migration_young(entry))
+ 			pte = pte_mkold(pte);
+ 		if (folio_test_dirty(folio) && softleaf_is_migration_dirty(entry))
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
 
-mm-huge_memory-update-remove_migration_pmd-to-accept-a-folio.patch
-mm-migrate-calculate-large-folio-page-index-using-pfn.patch
 mm-rmap-use-anon-pgoff-to-track-map_private-file-backed-anon-folios.patch
 tools-testing-vma-expand-vma-merge-tests-to-assert-anon-pgoff.patch
 tools-testing-selftests-mm-test-anonymous-page-offset-merge-behaviour.patch
