@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5167548A8C2
-	for <mm-commits@vger.kernel.org>; Thu, 13 Aug 2026 18:54:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F0C2C48A8C2
+	for <mm-commits@vger.kernel.org>; Thu, 13 Aug 2026 18:54:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786647279; cv=none; b=BHAqwUa5vV04YH7oYgPVLUw3eHmiDEa7VqcDY3Q5XHld4eHwyrE0WdGzUrC2XjcWPFKcvV0IXBQGuRCvhejStiP0Kt11kadfng8yWYy2ri8M1BFdvsd1ZUcqHMvJGG+c3GgrwOfa+YELFQDpyW4hVkStu/skAKCcmEBUKjAQ5mU=
+	t=1786647283; cv=none; b=JBIPeCn93fxC+vcFD5PcdA8NtoqW4l3bYTS6HA0Aw9id7gxgl/t0UEtbFKtU4PxNC70LO2qkap1XS5J5Bghrsi/G9xaLKS63iPQK2CJzIL1VX/7i942QrYEtN8YU50Ppk5jl0z3nveL/6rvlydXOOf60u1hBtCgbIwEgqIdOv2I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786647279; c=relaxed/simple;
-	bh=Vga/TOvgu6dEf8N6+7UraSTLqgUw7sh9PTRApq75rTk=;
-	h=Date:To:From:Subject:Message-Id; b=Vrd7QFMn1ND+mCjoYFdkaEVFSfu9qtE9NcelvHooQGS1uypa1hx7obOy6CEJ3Kp8Lq17VpywXABcQikqMIND2e7bdMgjDjdp8XjDv3yNKpTunekUcBWUUct31w3zCBslftYVz4ThQUundrocMxC3h9lhur8TSZsQB6yCaK/Hxb8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZSSQGkYI; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1786647283; c=relaxed/simple;
+	bh=mOp7JhDdLxQC4YV4wIzfEOZNrjsvibEb2L1sfi+Ltic=;
+	h=Date:To:From:Subject:Message-Id; b=lwv5Odagn3cLtq2030wTYfrZ49bVEMCCZGiqRGaCZmRtEuHW2PpjyHMM4f1iOxoAaGVcI2+t8XTa8X6YLgJYKu1/Ur9TLebYA2EIOEQwkCrU5anWip3ntL319EVQfL4e5vOXMfEte44zMBsNZPC+If5vAUYQ49DwGwjLqw40gA8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kA7132/4; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZSSQGkYI"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1D3AC1F000E9;
-	Thu, 13 Aug 2026 18:54:37 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kA7132/4"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8AED91F000E9;
+	Thu, 13 Aug 2026 18:54:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1786647277;
-	bh=WvMMtpOPq2516SvEwqzPV4w+rh/hIHsZawjzJ9Ml+qw=;
+	d=linux-foundation.org; s=korg; t=1786647281;
+	bh=wo4bfj+S6Ee5tP+sc5ApSQc9X4Xh3mgQjWMLm8J3VFM=;
 	h=Date:To:From:Subject;
-	b=ZSSQGkYIQQU6OvSvn1bcj8THgP8RuPXVS0GMNTIZbPYcW/d3PLPEm9/Z9o/Qpquok
-	 3qpm9t8Q2gEoGB0C+X3DjQTVj1SXV6KjbBrrqzDUdQmjM89mIoiphM00UWHMvOXG40
-	 4sID+Eg2MeEbF6d5bimKxWOyf9gCZKOI/5z/OKIc=
-Date: Thu, 13 Aug 2026 11:54:36 -0700
+	b=kA7132/4NuPeMPlt5tVUe3Vf3IaFKOkr3/7XUktz7SALSwz1V2nZhuU9puAH5h7kZ
+	 DCYyXDnAqs1SQ7dd3C3xJkNY2eIO1wdMroFzqROb5ESfzSrlGF4TKYAwu+eQigzry3
+	 W54OnOEzMbrCvbl7xRqFPTNPkCI1/CcUjRZniH4c=
+Date: Thu, 13 Aug 2026 11:54:41 -0700
 To: mm-commits@vger.kernel.org,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-introduce-and-use-vma_filebacked_address.patch added to mm-unstable branch
-Message-Id: <20260813185437.1D3AC1F000E9@smtp.kernel.org>
+Subject: + mm-vma-fix-self-merge-check-in-copy_vma.patch added to mm-unstable branch
+Message-Id: <20260813185441.8AED91F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: introduce and use vma_filebacked_address()
+     Subject: mm/vma: fix self-merge check in copy_vma()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-introduce-and-use-vma_filebacked_address.patch
+     mm-vma-fix-self-merge-check-in-copy_vma.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-introduce-and-use-vma_filebacked_address.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vma-fix-self-merge-check-in-copy_vma.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,23 +59,66 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: mm: introduce and use vma_filebacked_address()
-Date: Thu, 13 Aug 2026 18:32:23 +0100
+Subject: mm/vma: fix self-merge check in copy_vma()
+Date: Thu, 13 Aug 2026 18:32:24 +0100
 
-In cases where we know that the VMA is file-backed, use
-vma_filebacked_address() rather than vma_address().
+The existing logic is very confusing so improve things.  Firstly rename
+the confusing faulted_in_anon_vma variable to can_self_merge and update
+this when the page offset is updated.
 
-This lays the foundation for using the anonymous page offset via
-vma_anon_address().
+What is being checked for is a 'self-merge' - that is between the VMA
+being remapped and its prior VMA (remember that this is copy_vma() - if a
+non-MREMAP_DONTUNMAP remap the original VMA is only removed afterwards).
 
-Also add an assert to ensure that the VMA whose address is required is not
-anonymous.
+This can happen if the VMA is moved immediately adjacent to itself, either
+before or after it:
+
+		|----------------|----------------|
+		|		 |                |
+		v		 |		  v
+	|...............||---------------||...............|
+	|      new      ||      old      ||      new      |
+	|...............||---------------||---------------|
+
+In these cases the old VMA is simply expanded to cover the new range.
+
+It is also possible for the move to both self-merge and merge with a prior
+VMA if it is placed between a preceding VMA and its old self:
+
+				|---------------|
+				|		|
+				v		|
+	|---------------||...............||---------------|
+	|      prev     ||     new       ||     old       |
+	|---------------||...............||---------------|
+
+In this case, the old VMA is removed and 'prev' is expanded and replaces
+it.
+
+Since copy_vma_and_data() which calls copy_vma() intends to reference the
+old VMA after the merge, it must have this pointer updated.
+
+This kind of self-merge is not possible with a succeeding merge, as the
+merge always prefers to expand the preceding VMA if possible.
+
+copy_vma() accounts for this by explicitly checking to see if a self-merge
+occurred and updating the vmap pointer if so.  However it incorrect did so
+even for a subsequent merge (this is simply a noop so it had no impact).
+
+So change this to only check for the case which matters - a backwards
+merge - and rearrange the parameters to make it clearer we're doing that -
+i.e.  check new_vma->vm_start < old_vma_start (having already renamed
+vma_start to old_vma_start to make it clear this is the previous VMA).
+
+Also update the existing wall-of-text comment to be a lot clearer.
+
+While we're here, replace the VM_BUG_ON_VMA() with a VM_WARN_ON_ONCE_VMA()
+and update the VMA userland tests accordingly.
 
 No functional change intended.
 
-Link: https://lore.kernel.org/20260813-b4-scalable-cow-virt-pgoff-v5-6-c21581c0c3c8@kernel.org
+Link: https://lore.kernel.org/20260813-b4-scalable-cow-virt-pgoff-v5-7-c21581c0c3c8@kernel.org
 Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
-Tested-by: syzbot@syzkaller.appspotmail.com
 Acked-by: David Hildenbrand (Arm) <david@kernel.org>
 Cc: Adrian Hunter <adrian.hunter@intel.com>
 Cc: Alexander Deucher <alexander.deucher@amd.com>
@@ -155,120 +198,82 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/internal.h        |   18 ++++++++++++++++++
- mm/memory-failure.c  |    4 ++--
- mm/page_vma_mapped.c |    6 +++++-
- mm/rmap.c            |   10 ++++++----
- 4 files changed, 31 insertions(+), 7 deletions(-)
+ mm/vma.c                         |   35 +++++++++++++----------------
+ tools/testing/vma/vma_internal.h |    1 
+ 2 files changed, 17 insertions(+), 19 deletions(-)
 
---- a/mm/internal.h~mm-introduce-and-use-vma_filebacked_address
-+++ a/mm/internal.h
-@@ -1038,6 +1038,24 @@ static inline unsigned long __vma_addres
- }
- 
- /**
-+ * vma_filebacked_address - Find the virtual address a file-backed page range is
-+ * mapped at.
-+ * @vma: The vma which maps this object.
-+ * @pgoff: The page offset within its object.
-+ * @nr_pages: The number of pages to consider.
-+ *
-+ * Returns: If any page in this range is mapped by this VMA, return the first
-+ * address where any of these pages appear.  Otherwise, return -EFAULT.
-+ */
-+static inline unsigned long vma_filebacked_address(const struct vm_area_struct *vma,
-+		pgoff_t pgoff, unsigned long nr_pages)
-+{
-+	VM_WARN_ON_ONCE(vma_is_anonymous(vma));
-+
-+	return __vma_address(vma, pgoff, vma_start_pgoff(vma), nr_pages);
-+}
-+
-+/**
-  * vma_address - Find the virtual address a page range is mapped at.
-  * @vma: The vma which maps this object.
-  * @pgoff: The page offset within its object.
---- a/mm/memory-failure.c~mm-introduce-and-use-vma_filebacked_address
-+++ a/mm/memory-failure.c
-@@ -620,7 +620,7 @@ static void add_to_kill_fsdax(struct tas
- 			      struct vm_area_struct *vma,
- 			      struct list_head *to_kill, pgoff_t pgoff)
+--- a/mm/vma.c~mm-vma-fix-self-merge-check-in-copy_vma
++++ a/mm/vma.c
+@@ -1911,10 +1911,10 @@ struct vm_area_struct *copy_vma(struct v
+ 	bool *need_rmap_locks)
  {
--	unsigned long addr = vma_address(vma, pgoff, 1);
-+	unsigned long addr = vma_filebacked_address(vma, pgoff, 1);
- 	__add_to_kill(tsk, p, vma, to_kill, addr);
- }
+ 	struct vm_area_struct *vma = *vmap;
+-	unsigned long vma_start = vma->vm_start;
++	unsigned long old_vma_start = vma->vm_start;
+ 	struct mm_struct *mm = vma->vm_mm;
+ 	struct vm_area_struct *new_vma;
+-	bool faulted_in_anon_vma = true;
++	bool can_self_merge = false;
+ 	VMA_ITERATOR(vmi, mm, addr);
+ 	VMG_VMA_STATE(vmg, &vmi, NULL, vma, addr, addr + len);
  
-@@ -2265,7 +2265,7 @@ static void add_to_kill_pgoff(struct tas
+@@ -1924,7 +1924,7 @@ struct vm_area_struct *copy_vma(struct v
+ 	 */
+ 	if (unlikely(vma_is_anonymous(vma) && !vma->anon_vma)) {
+ 		pgoff = addr >> PAGE_SHIFT;
+-		faulted_in_anon_vma = false;
++		can_self_merge = true;
  	}
  
- 	/* Check for pgoff not backed by struct page */
--	tk->addr = vma_address(vma, pgoff, 1);
-+	tk->addr = vma_filebacked_address(vma, pgoff, 1);
- 	tk->size_shift = PAGE_SHIFT;
+ 	/*
+@@ -1944,24 +1944,21 @@ struct vm_area_struct *copy_vma(struct v
+ 	new_vma = vma_merge_copied_range(&vmg);
  
- 	if (tk->addr == -EFAULT)
---- a/mm/page_vma_mapped.c~mm-introduce-and-use-vma_filebacked_address
-+++ a/mm/page_vma_mapped.c
-@@ -356,6 +356,7 @@ unsigned long page_mapped_in_vma(const s
- 		struct vm_area_struct *vma)
- {
- 	const struct folio *folio = page_folio(page);
-+	const pgoff_t pgoff = page_pgoff(folio, page);
- 	struct page_vma_mapped_walk pvmw = {
- 		.pfn = page_to_pfn(page),
- 		.nr_pages = 1,
-@@ -363,7 +364,10 @@ unsigned long page_mapped_in_vma(const s
- 		.flags = PVMW_SYNC,
- 	};
+ 	if (new_vma) {
+-		/*
+-		 * Source vma may have been merged into new_vma
+-		 */
+-		if (unlikely(vma_start >= new_vma->vm_start &&
+-			     vma_start < new_vma->vm_end)) {
++		/* Self-merged and VMA replaced. */
++		if (unlikely(new_vma->vm_start < old_vma_start &&
++			     new_vma->vm_end > old_vma_start)) {
+ 			/*
+-			 * The only way we can get a vma_merge with
+-			 * self during an mremap is if the vma hasn't
+-			 * been faulted in yet and we were allowed to
+-			 * reset the dst vma->vm_pgoff to the
+-			 * destination address of the mremap to allow
+-			 * the merge to happen. mremap must change the
+-			 * vm_pgoff linearity between src and dst vmas
+-			 * (in turn preventing a vma_merge) to be
+-			 * safe. It is only safe to keep the vm_pgoff
+-			 * linear if there are no pages mapped yet.
++			 * The only way a VMA can both self-merge and be
++			 * replaced is if the remap places the new VMA
++			 * immediately prior to its old self ('next') and
++			 * immediately after another VMA ('prev') causing the
++			 * next to be removed and prev to be expanded to cover
++			 * the entire range.
++			 *
++			 * This should only be possible if the page offset was
++			 * updated, i.e. the VMA is unfaulted.
+ 			 */
+-			VM_BUG_ON_VMA(faulted_in_anon_vma, new_vma);
++			VM_WARN_ON_ONCE_VMA(!can_self_merge, new_vma);
+ 			*vmap = vma = new_vma;
+ 		}
+ 		*need_rmap_locks =
+--- a/tools/testing/vma/vma_internal.h~mm-vma-fix-self-merge-check-in-copy_vma
++++ a/tools/testing/vma/vma_internal.h
+@@ -53,6 +53,7 @@ typedef __bitwise unsigned int vm_fault_
  
--	pvmw.address = vma_address(vma, page_pgoff(folio, page), 1);
-+	if (folio_test_anon(folio))
-+		pvmw.address = vma_address(vma, pgoff, 1);
-+	else
-+		pvmw.address = vma_filebacked_address(vma, pgoff, 1);
- 	if (pvmw.address == -EFAULT)
- 		goto out;
- 	if (!page_vma_mapped_walk(&pvmw))
---- a/mm/rmap.c~mm-introduce-and-use-vma_filebacked_address
-+++ a/mm/rmap.c
-@@ -865,14 +865,15 @@ unsigned long page_address_in_vma(const
- 		if (!vma->anon_vma || !anon_vma ||
- 		    vma->anon_vma->root != anon_vma->root)
- 			return -EFAULT;
-+		/* KSM folios don't reach here because of the !anon_vma check */
-+		return vma_address(vma, page_pgoff(folio, page), 1);
- 	} else if (!vma->vm_file) {
- 		return -EFAULT;
- 	} else if (vma->vm_file->f_mapping != folio->mapping) {
- 		return -EFAULT;
- 	}
- 
--	/* KSM folios don't reach here because of the !anon_vma check */
--	return vma_address(vma, page_pgoff(folio, page), 1);
-+	return vma_filebacked_address(vma, page_pgoff(folio, page), 1);
- }
- 
- /*
-@@ -1321,7 +1322,7 @@ int pfn_mkclean_range(unsigned long pfn,
- 	if (invalid_mkclean_vma(vma, NULL))
- 		return 0;
- 
--	pvmw.address = vma_address(vma, pgoff, nr_pages);
-+	pvmw.address = vma_filebacked_address(vma, pgoff, nr_pages);
- 	VM_BUG_ON_VMA(pvmw.address == -EFAULT, vma);
- 
- 	return page_vma_mkclean_one(&pvmw);
-@@ -3098,7 +3099,8 @@ static void __rmap_walk_file(struct foli
- 	}
- lookup:
- 	mapping_rmap_tree_foreach(vma, mapping, pgoff_start, pgoff_end) {
--		unsigned long address = vma_address(vma, pgoff_start, nr_pages);
-+		unsigned long address = vma_filebacked_address(vma, pgoff_start,
-+							       nr_pages);
- 
- 		VM_BUG_ON_VMA(address == -EFAULT, vma);
- 		cond_resched();
+ #define VM_WARN_ON(_expr) (WARN_ON(_expr))
+ #define VM_WARN_ON_ONCE(_expr) (WARN_ON_ONCE(_expr))
++#define VM_WARN_ON_ONCE_VMA(_expr, _vma) (WARN_ON_ONCE(_expr))
+ #define VM_WARN_ON_VMG(_expr, _vmg) (WARN_ON(_expr))
+ #define VM_BUG_ON(_expr) (BUG_ON(_expr))
+ #define VM_BUG_ON_VMA(_expr, _vma) (BUG_ON(_expr))
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
