@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F042E3D0932
-	for <mm-commits@vger.kernel.org>; Thu, 13 Aug 2026 17:55:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CF00F3F076E
+	for <mm-commits@vger.kernel.org>; Thu, 13 Aug 2026 17:55:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786643728; cv=none; b=pxazUvpovbl9WU+ytfAuaUU7jjDQDYa0e5JyUuLh29AXFFuaYeICvYO+cd9XH1/skknHz42kv966HPT+1Kb/Y4zLZxOz7KiZ5uXUqf2CdcC54rf5aaZ1aEHxmr4auAlB4tC+9OFv7GUYCBdnEYnNNAd8iZyb7nQ/yiR9d1m1Uq8=
+	t=1786643731; cv=none; b=dlgqSHvX1Mjs6vuC38NcvIVZWEemqT2/rAOmM1OXUtev0i4PEcUuaZfuiOjqw1UQGiaeQ04bTwhQ0UVnDD2c3Qcp3Gc94r/MivNgfIAlC/rQg9f2fIN/Fwn3W5SxdMxOPCJMC9l/b9Ewm1kisKtL0b2EKjMIejV5R6G5GecQyqg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786643728; c=relaxed/simple;
-	bh=0Luv/mQef3Nd2/vsXgIdKobaIPZEcHpNxqOZ29W1b7Y=;
-	h=Date:To:From:Subject:Message-Id; b=bRmOuHtSUxPK3ZOgSPb1s3rHqY1y5aRsN3UdnEHUPhlzHEMy8xLsGNpJEJDpphcThaRi3NLFdSZIMGT1NnNwHmOGWiYcFS4FmXYVI9eioIIOSq1cohI6zspWUuVtZVg7xKAlanDUwYKImabg0fuj7iRlNEB9Lrxv5/sYGYjyiDI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VZVxGPZk; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1786643731; c=relaxed/simple;
+	bh=C4j5opgW8QdFyZwVWHDGoVS3ru43luzXnY51MFKDJXA=;
+	h=Date:To:From:Subject:Message-Id; b=Wz9Kb5RHGqZXGkrBkwy9OABT6wN1LGblS1MN/xvoIQ1eLy1LX65SP/XsSB/78TZaFVd8frjiIev06otDRxs4VSSst7YyrXyldO5qOOwDlJEFZmTmMv5GzdECEZFoncdWhKbq04WM3EuZLk7id2m079lAOJeuaukgFR4/hJEySEo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kS/O0MdH; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VZVxGPZk"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CF3331F00A3E;
-	Thu, 13 Aug 2026 17:55:15 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kS/O0MdH"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2A9FF1F000E9;
+	Thu, 13 Aug 2026 17:55:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1786643715;
-	bh=AM1/MQuBrd8qbGXcokSINvcaHt/n8SjTmqDoxgVyXOY=;
+	d=linux-foundation.org; s=korg; t=1786643722;
+	bh=vrfXwHgeyHBBLySwEmEQbVqFUjGVelJHtr1FZ179rLs=;
 	h=Date:To:From:Subject;
-	b=VZVxGPZkMd6RWe93+gjDHGAeKd11KzQXCmGb3cb91fNYDoMKbQtl0mGfXlEYK1dd4
-	 sn1tP4tW6ZSo2YlB5QIdiB27jYfOrW1+pcuGqay106dFtMIKB+ZD/HVQdTC8qqmzxr
-	 1At/6jpSNk/lnFHGU928xPSG41lAlE0tYUoTVjBw=
-Date: Thu, 13 Aug 2026 10:55:15 -0700
+	b=kS/O0MdHSlt5sxZlB4jsSBRT6fVzJqTdV9dEgpnDxxNhqlfMbLLcSed6EsKiV3J/V
+	 pze+ieRIylfrV33d5+JlFQubxQ6OttDRzjkCBQSaTltkKvtZFAqVBExXvwN0fFH3g1
+	 ZDyElbCVLhg1+dVtIypzmTdwTkX/f7BWgszi2AZY=
+Date: Thu, 13 Aug 2026 10:55:21 -0700
 To: mm-commits@vger.kernel.org,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] tools-testing-vma-add-tests-for-copy_vma-self-merge.patch removed from -mm tree
-Message-Id: <20260813175515.CF3331F00A3E@smtp.kernel.org>
+Subject: [to-be-updated] mm-clean-up-vma_address_end.patch removed from -mm tree
+Message-Id: <20260813175522.2A9FF1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,29 +35,31 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: tools/testing/vma: add tests for copy_vma() self-merge
+     Subject: mm: clean up vma_address_end()
 has been removed from the -mm tree.  Its filename was
-     tools-testing-vma-add-tests-for-copy_vma-self-merge.patch
+     mm-clean-up-vma_address_end.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: tools/testing/vma: add tests for copy_vma() self-merge
-Date: Thu, 06 Aug 2026 21:21:33 +0100
+Subject: mm: clean up vma_address_end()
+Date: Thu, 06 Aug 2026 21:21:36 +0100
 
-Assert that a VMA can be moved backwards, forwards and between a preceding
-VMA and its old self.
+vma_address_end() is a confusing function with a lot of moving parts so
+clean it up prior to extending it for anon page indexed mappings.
 
-In the cases in which the VMA merges only with itself expect that to be
-achieved by expanding its old self, so assert that these function
-correctly.
+Const-ify some variables and establish pgoff_vma_start and pgoff_end
+variables to clearly identify the page offset for the start of the VMA and
+the end of the page offset range specified by the page walk.
 
-However in the case of a merge between a preceding VMA and itself the
-original VMA is removed, so assert that the preceding VMA replaces the one
-passed in as vmap and the merge is as expected.
+This simplifies the function significantly and lays the groundwork for a
+future change to update this function to account for anonymously page
+indexed folios.
 
-Link: https://lore.kernel.org/20260806-b4-scalable-cow-virt-pgoff-v4-8-ab318a350404@kernel.org
+No functional change intended.
+
+Link: https://lore.kernel.org/20260806-b4-scalable-cow-virt-pgoff-v4-11-ab318a350404@kernel.org
 Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Acked-by: David Hildenbrand (Arm) <david@kernel.org>
 Cc: Adrian Hunter <adrian.hunter@intel.com>
@@ -139,71 +141,45 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/vma/tests/vma.c |   46 +++++++++++++++++++++++++++++++-
- 1 file changed, 45 insertions(+), 1 deletion(-)
+ mm/internal.h |   12 +++++++-----
+ 1 file changed, 7 insertions(+), 5 deletions(-)
 
---- a/tools/testing/vma/tests/vma.c~tools-testing-vma-add-tests-for-copy_vma-self-merge
-+++ a/tools/testing/vma/tests/vma.c
-@@ -33,7 +33,51 @@ static bool test_copy_vma(void)
- 	struct mm_struct mm = {};
- 	bool need_locks = false;
- 	VMA_ITERATOR(vmi, &mm, 0);
--	struct vm_area_struct *vma, *vma_new, *vma_next;
-+	struct vm_area_struct *vma, *vma_prev, *vma_new, *vma_next, *vma_orig;
-+
-+	/* Move forwards, adjacent to old self - self-merge. */
-+
-+	vma = alloc_and_link_vma(&mm, 0x1000, 0x2000, 1, vma_flags);
-+	vma_set_anonymous(vma);
-+	vma_orig = vma;
-+	vma_new = copy_vma(&vma, 0x2000, 0x1000, 1, &need_locks);
-+	ASSERT_EQ(vma_new, vma_orig);
-+	ASSERT_EQ(vma, vma_orig);
-+	ASSERT_EQ(vma_new->vm_start, 0x1000);
-+	ASSERT_EQ(vma_new->vm_end, 0x3000);
-+
-+	cleanup_mm(&mm, &vmi);
-+
-+	/* Move backwards, adjacent to old self - self-merge. */
-+
-+	vma = alloc_and_link_vma(&mm, 0x2000, 0x3000, 2, vma_flags);
-+	vma_set_anonymous(vma);
-+	vma_orig = vma;
-+	vma_new = copy_vma(&vma, 0x1000, 0x1000, 2, &need_locks);
-+	ASSERT_EQ(vma_new, vma_orig);
-+	ASSERT_EQ(vma, vma_orig);
-+	ASSERT_EQ(vma_new->vm_start, 0x1000);
-+	ASSERT_EQ(vma_new->vm_end, 0x3000);
-+
-+	cleanup_mm(&mm, &vmi);
-+
-+	/*
-+	 * Move backwards between prior VMA and old self - self-merge and vma
-+	 * updated to a new VMA.
-+	 */
-+
-+	vma_prev = alloc_and_link_vma(&mm, 0x1000, 0x2000, 1, vma_flags);
-+	vma_set_anonymous(vma_prev);
-+	vma = alloc_and_link_vma(&mm, 0x3000, 0x4000, 3, vma_flags);
-+	vma_set_anonymous(vma);
-+	vma_orig = vma;
-+	vma_new = copy_vma(&vma, 0x2000, 0x1000, 3, &need_locks);
-+	ASSERT_NE(vma_new, vma_orig);
-+	ASSERT_EQ(vma_new, vma);
-+	ASSERT_EQ(vma_new->vm_start, 0x1000);
-+	ASSERT_EQ(vma_new->vm_end, 0x4000);
-+
-+	cleanup_mm(&mm, &vmi);
+--- a/mm/internal.h~mm-clean-up-vma_address_end
++++ a/mm/internal.h
+@@ -1091,22 +1091,24 @@ static inline unsigned long vma_anon_add
+ }
  
- 	/* Move backwards and do not merge. */
+ /*
+- * Then at what user virtual address will none of the range be found in vma?
++ * At what user virtual address will none of the range be found in vma?
+  * Assumes that vma_address() already returned a good starting address.
+  */
+ static inline unsigned long vma_address_end(struct page_vma_mapped_walk *pvmw)
+ {
+-	struct vm_area_struct *vma = pvmw->vma;
+-	pgoff_t pgoff;
++	const pgoff_t pgoff_end = pvmw->pgoff + pvmw->nr_pages;
++	const struct vm_area_struct *vma = pvmw->vma;
++	pgoff_t pgoff_vma_start;
+ 	unsigned long address;
  
+ 	/* Common case, plus ->pgoff is invalid for KSM */
+ 	if (pvmw->nr_pages == 1)
+ 		return pvmw->address + PAGE_SIZE;
+ 
+-	pgoff = pvmw->pgoff + pvmw->nr_pages;
++	pgoff_vma_start = vma_start_pgoff(vma);
++
+ 	address = vma->vm_start +
+-		((pgoff - vma_start_pgoff(vma)) << PAGE_SHIFT);
++		((pgoff_end - pgoff_vma_start) << PAGE_SHIFT);
+ 	/* Check for address beyond vma (or wrapped through 0?) */
+ 	if (address < vma->vm_start || address > vma->vm_end)
+ 		address = vma->vm_end;
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
 
-mm-propagate-vma-anonymous-page-offset-on-map-remap-split-merge.patch
-mm-rmap-track-whether-the-page-vma-mapped-pgoff-is-anonymous.patch
-mm-clean-up-vma_address_end.patch
 mm-huge_memory-update-remove_migration_pmd-to-accept-a-folio.patch
 mm-migrate-calculate-large-folio-page-index-using-pfn.patch
 mm-rmap-use-anon-pgoff-to-track-map_private-file-backed-anon-folios.patch
