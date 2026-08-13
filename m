@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A76213E556B
-	for <mm-commits@vger.kernel.org>; Thu, 13 Aug 2026 18:54:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AEE793D9025
+	for <mm-commits@vger.kernel.org>; Thu, 13 Aug 2026 18:54:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786647259; cv=none; b=GtVtwTuOBE5WGP4f1U1VAhdFijVAWMUpYJ48CEsw7zJN1T14aSAW+Kt/3gZAAGQ4FqzGg1LQVApDuNEVgHfy44CnBW0aN2xsSrkkcn+BBJnoULLrshwk8yBfNcKrc1lWOOCza4Qh0Z37Z7EY04CuAqQrMhRosn8c3TWKYziWT+4=
+	t=1786647269; cv=none; b=qm5KuUe6OsN/2taiMWtESCe9+mbbbbNiVasah7TVMvJuxVmeZcVlhPrv0lcRgDFtg8WRCJ1cQi5kaAmGKKtDrsRFU6Js/K5PmvjNJwEUz3WJ3Y5xknnYn9j5i/PsgYiHVNKnQWndaF+vtiOBZ/xoMM9QzJfyq2I3AS5w8aInzKA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786647259; c=relaxed/simple;
-	bh=ko49QEP5E9zx7WZZD80kVfPJIxcL4BpnQVrkkk9I9Mg=;
-	h=Date:To:From:Subject:Message-Id; b=MZ7Xh+MqDUA63zqIUESipeJ3OgMHcC41Q3Y2BRi4/KH8xHithQ/o7mcZD+C3+61NeUfbWDDMDx1JtGld/rp5YPDGj9WgYdIhRzwOaXMDZNdc1hYAFHU0Xne+/fHTKNmJ6QlS1V+4sLehudPAX5l47KmXZ36wCObIVKDE09zre7w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=n79NHXff; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1786647269; c=relaxed/simple;
+	bh=9rdz5YTHMnxjZwCJWQZ5h2AkA6WNkt6eWlM483dEcEs=;
+	h=Date:To:From:Subject:Message-Id; b=MJz3kQCnpp9zQ0n8rxOtixPGEchdEhrcSGxccWLMoBP8Y3Y9Fj/tJghd7DBD7VeHCsZsuMG8T/oytTxDNrwMYsKwtiZV18eUJ9B7mG1AVusS9tzpJ0ZIVZBloTeCYkyidkphOzIkVhelIJM5T0VbRv2ptRZpd1HHVgfFHma3NyM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sXscxNZs; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="n79NHXff"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4C9861F000E9;
-	Thu, 13 Aug 2026 18:54:17 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sXscxNZs"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 411E41F000E9;
+	Thu, 13 Aug 2026 18:54:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1786647257;
-	bh=kuD8yakXHly8g8k5k7ZXCJZUqh3K3crSP3bgoxVxYO0=;
+	d=linux-foundation.org; s=korg; t=1786647267;
+	bh=9O1S0CQEXgHbvIrW7dRtLL4m54ACueviyp7X0anOl1w=;
 	h=Date:To:From:Subject;
-	b=n79NHXffXJVo2E758Dq4U/b+LpBhiTvLzwGHSh+asM34fmz49k3hcKAsU66DtPtiS
-	 JiDACggHMPQwXfu+kVypSRRwxma7ae5OFvK3vT1yss3Yh96mrcm31cOVbAmZvWjbLf
-	 NzKeSqyAnjDZRaOd06h6H4rZ182p15llMJOTGFfE=
-Date: Thu, 13 Aug 2026 11:54:16 -0700
+	b=sXscxNZsA34EVN48L3jdNs3s0QIE1nXtRkZNzN6/uRRvW2eEfNrm+2xq+fMccUl3b
+	 zdEE/zqJ6cpIqpYM2KXipfz+eMetD1YboNmiAgHc65+QOwM2LS+oAQrwRILJOPAcgi
+	 3SOsvegvDoaaLaGKGNoHFUyHcfUkMYl8uu9S4D+Y=
+Date: Thu, 13 Aug 2026 11:54:26 -0700
 To: mm-commits@vger.kernel.org,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-provide-vma_is_cow_mapping-and-remove-is_cow_mapping.patch added to mm-unstable branch
-Message-Id: <20260813185417.4C9861F000E9@smtp.kernel.org>
+Subject: + mm-introduce-linear_anon_page_index.patch added to mm-unstable branch
+Message-Id: <20260813185427.411E41F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: provide vma_[flags_]is_cow_mapping() and remove is_cow_mapping()
+     Subject: mm: introduce linear_anon_page_index()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-provide-vma_is_cow_mapping-and-remove-is_cow_mapping.patch
+     mm-introduce-linear_anon_page_index.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-provide-vma_is_cow_mapping-and-remove-is_cow_mapping.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-introduce-linear_anon_page_index.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,27 +59,36 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: mm: provide vma_[flags_]is_cow_mapping() and remove is_cow_mapping()
-Date: Thu, 13 Aug 2026 18:32:19 +0100
+Subject: mm: introduce linear_anon_page_index()
+Date: Thu, 13 Aug 2026 18:32:20 +0100
 
-All remaining callers of is_cow_mapping() are invoking it in the form of
-is_cow_mapping(vma->vm_flags) or an indirected version of this.
+This function provides the anonymous equivalent of linear_page_index(),
+instead offsetting based on the anonymous page offset of the VMA.
 
-Therefore, provide a helper - vma_is_cow_mapping() to directly test the
-VMA.
+It is valid only for anonymous or MAP_PRIVATE file-backed mappings, in
+other words CoW mappings.
 
-Additionally provide a new helper vma_flags_is_cow_mapping() which
-performs the check using the new vma_flags_t type, and share this logic
-between vma_is_cow_mapping() and vma_desc_is_cow_mapping().
+For pure anon VMAs, this will be equal to linear_page_index().
 
-With these changes, no callers of is_cow_mapping() remain, so remove it.
+Assert that both of these invariants are true in linear_anon_page_index()
+and implement the algorithm in __linear_anon_page_index().
 
-Also update the userland VMA tests to reflect the change.
+Note that MAP_PRIVATE-/dev/zero mappings will satisfy vma_is_anonymous()
+but not fulfill this invariant, so when asserting this we check
+vma->vm_file to account for this.
 
-No functional change intended.
+We do not update callsites yet, so no functional change intended.
 
-Link: https://lore.kernel.org/20260813-b4-scalable-cow-virt-pgoff-v5-2-c21581c0c3c8@kernel.org
+Also const-ify vma_is_anonymous() to make it compatible with the
+const-ified linear_anon_page_index().
+
+While we're here, update linear_page_index() to be more succinct.
+
+VMA userland tests are also updated accordingly.
+
+Link: https://lore.kernel.org/20260813-b4-scalable-cow-virt-pgoff-v5-3-c21581c0c3c8@kernel.org
 Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+Reviewed-by: Gregory Price (Meta) <gourry@gourry.net>
 Acked-by: David Hildenbrand (Arm) <david@kernel.org>
 Cc: Adrian Hunter <adrian.hunter@intel.com>
 Cc: Alexander Deucher <alexander.deucher@amd.com>
@@ -102,7 +111,6 @@ Cc: Dave Airlie <airlied@gmail.com>
 Cc: Dev Jain <dev.jain@arm.com>
 Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Gregory Price (Meta) <gourry@gourry.net>
 Cc: Harry Yoo <harry@kernel.org>
 Cc: Heiko Carstens <hca@linux.ibm.com>
 Cc: Huang Ray <Ray.Huang@amd.com>
@@ -159,414 +167,110 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/mm/gmap_helpers.c             |    2 
- drivers/gpu/drm/amd/amdgpu/amdgpu_gem.c |    4 -
- drivers/gpu/drm/drm_gem_shmem_helper.c  |    2 
- drivers/gpu/drm/panthor/panthor_gem.c   |    2 
- drivers/gpu/drm/ttm/ttm_bo_vm.c         |    2 
- drivers/gpu/drm/xe/xe_device.c          |    2 
- fs/proc/task_mmu.c                      |    2 
- include/linux/mm.h                      |   71 ++++++++++++++++++++--
- kernel/events/uprobes.c                 |    2 
- mm/gup.c                                |    2 
- mm/huge_memory.c                        |    8 +-
- mm/hugetlb.c                            |    2 
- mm/internal.h                           |    2 
- mm/memory.c                             |   25 +++----
- mm/mempolicy.c                          |    2 
- tools/testing/vma/include/dup.h         |   11 +++
- 16 files changed, 105 insertions(+), 36 deletions(-)
+ include/linux/mm.h              |    2 -
+ include/linux/pagemap.h         |   40 +++++++++++++++++++++++++++---
+ tools/testing/vma/include/dup.h |   25 ++++++++++++++++++
+ 3 files changed, 62 insertions(+), 5 deletions(-)
 
---- a/arch/s390/mm/gmap_helpers.c~mm-provide-vma_is_cow_mapping-and-remove-is_cow_mapping
-+++ a/arch/s390/mm/gmap_helpers.c
-@@ -200,7 +200,7 @@ static int find_zeropage_pte_entry(pte_t
- 		 * currently only works in COW mappings, which is also where
- 		 * mm_forbids_zeropage() is checked.
- 		 */
--		if (!is_cow_mapping(walk->vma->vm_flags))
-+		if (!vma_is_cow_mapping(walk->vma))
- 			return -EFAULT;
- 
- 		*found_addr = addr;
---- a/drivers/gpu/drm/amd/amdgpu/amdgpu_gem.c~mm-provide-vma_is_cow_mapping-and-remove-is_cow_mapping
-+++ a/drivers/gpu/drm/amd/amdgpu/amdgpu_gem.c
-@@ -377,9 +377,9 @@ static int amdgpu_gem_object_mmap(struct
- 	/* Workaround for Thunk bug creating PROT_NONE,MAP_PRIVATE mappings
- 	 * for debugger access to invisible VRAM. Should have used MAP_SHARED
- 	 * instead. Clearing VM_MAYWRITE prevents the mapping from ever
--	 * becoming writable and makes is_cow_mapping(vm_flags) false.
-+	 * becoming writable and makes vma_is_cow_mapping(vma) false.
- 	 */
--	if (is_cow_mapping(vma->vm_flags) &&
-+	if (vma_is_cow_mapping(vma) &&
- 	    !(vma->vm_flags & VM_ACCESS_FLAGS))
- 		vm_flags_clear(vma, VM_MAYWRITE);
- 
---- a/drivers/gpu/drm/drm_gem_shmem_helper.c~mm-provide-vma_is_cow_mapping-and-remove-is_cow_mapping
-+++ a/drivers/gpu/drm/drm_gem_shmem_helper.c
-@@ -753,7 +753,7 @@ int drm_gem_shmem_mmap(struct drm_gem_sh
- 		return ret;
- 	}
- 
--	if (is_cow_mapping(vma->vm_flags))
-+	if (vma_is_cow_mapping(vma))
- 		return -EINVAL;
- 
- 	dma_resv_lock(shmem->base.resv, NULL);
---- a/drivers/gpu/drm/panthor/panthor_gem.c~mm-provide-vma_is_cow_mapping-and-remove-is_cow_mapping
-+++ a/drivers/gpu/drm/panthor/panthor_gem.c
-@@ -761,7 +761,7 @@ static int panthor_gem_mmap(struct drm_g
- 		return ret;
- 	}
- 
--	if (is_cow_mapping(vma->vm_flags))
-+	if (vma_is_cow_mapping(vma))
- 		return -EINVAL;
- 
- 	if (!refcount_inc_not_zero(&bo->cmap.mmap_count)) {
---- a/drivers/gpu/drm/ttm/ttm_bo_vm.c~mm-provide-vma_is_cow_mapping-and-remove-is_cow_mapping
-+++ a/drivers/gpu/drm/ttm/ttm_bo_vm.c
-@@ -489,7 +489,7 @@ static const struct vm_operations_struct
- int ttm_bo_mmap_obj(struct vm_area_struct *vma, struct ttm_buffer_object *bo)
- {
- 	/* Enforce no COW since would have really strange behavior with it. */
--	if (is_cow_mapping(vma->vm_flags))
-+	if (vma_is_cow_mapping(vma))
- 		return -EINVAL;
- 
- 	drm_gem_object_get(&bo->base);
---- a/drivers/gpu/drm/xe/xe_device.c~mm-provide-vma_is_cow_mapping-and-remove-is_cow_mapping
-+++ a/drivers/gpu/drm/xe/xe_device.c
-@@ -330,7 +330,7 @@ static int xe_pci_barrier_mmap(struct fi
- 	if (vma->vm_end - vma->vm_start > SZ_4K)
- 		return -EINVAL;
- 
--	if (is_cow_mapping(vma->vm_flags))
-+	if (vma_is_cow_mapping(vma))
- 		return -EINVAL;
- 
- 	if (vma->vm_flags & (VM_READ | VM_EXEC))
---- a/fs/proc/task_mmu.c~mm-provide-vma_is_cow_mapping-and-remove-is_cow_mapping
-+++ a/fs/proc/task_mmu.c
-@@ -1693,7 +1693,7 @@ static inline bool pte_is_pinned(struct
- 
- 	if (!pte_write(pte))
- 		return false;
--	if (!is_cow_mapping(vma->vm_flags))
-+	if (!vma_is_cow_mapping(vma))
- 		return false;
- 	if (likely(!mm_flags_test(MMF_HAS_PINNED, vma->vm_mm)))
- 		return false;
---- a/include/linux/mm.h~mm-provide-vma_is_cow_mapping-and-remove-is_cow_mapping
+--- a/include/linux/mm.h~mm-introduce-linear_anon_page_index
 +++ a/include/linux/mm.h
-@@ -2271,17 +2271,76 @@ void unpin_user_pages(struct page **page
- void unpin_user_folio(struct folio *folio, unsigned long npages);
- void unpin_folios(struct folio **folios, unsigned long nfolios);
- 
--static inline bool is_cow_mapping(vm_flags_t flags)
-+/**
-+ * vma_flags_is_cow_mapping() - Do these VMA flags imply a CoW mapping?
-+ * @flags: The VMA flags to check.
-+ *
-+ * Mappings which could be CoW'd (subject to Copy-On-Write faults) are
-+ * described as CoW mappings.
-+ *
-+ * All mappings backed by anonymous folios (all anonymous mappings and most
-+ * MAP_PRIVATE-file backed ranges) are CoW mappings.
-+ *
-+ * All other mappings (including all MAP_SHARED mappings) are non-CoW.
-+ *
-+ * The criteria are !VMA_SHARED_BIT, VMA_MAYWRITE_BIT.
-+ *
-+ * VMA_MAYWRITE_BIT is checked instead of VMA_WRITE_BIT to account for both
-+ * future mprotect() calls which can render a read-only mapping writable, and
-+ * GUP with FOLL_FORCE (e.g. ptrace) which can CoW a read-only mapping.
-+ *
-+ * - No anonymous mapping can ever clear VMA_MAYWRITE_BIT.
-+ *
-+ * - Writes to anonymous mappings do not immediately result in CoW faults but
-+ *   may do so after the process is forked or if a read is followed by a
-+ *   write.
-+ *
-+ * - Writes to MAP_PRIVATE file-backed mappings result in CoW faults and may
-+ *   do so again after fork.
-+ *
-+ * - MAP_SHARED mappings of a file opened read-only are transformed into
-+ *   VMA_MAYSHARE_BIT, !VMA_SHARED_BIT, !VMA_MAYWRITE_BIT mappings, so remain
-+ *   non-CoW.
-+ *
-+ * - Drivers may clear VMA_MAYWRITE_BIT but do so at mmap() time and cannot
-+ *   mark themselves anonymous. Having cleared this flag it is not valid for
-+ *   them to leave the VMA_WRITE_BIT flag set.
-+ *
-+ * As a consequence, the anonymous reverse mapping only tracks CoW mappings.
-+ *
-+ * Returns: true if the flags indicate a CoW mapping, otherwise false.
-+ */
-+static inline bool vma_flags_is_cow_mapping(const vma_flags_t *flags)
- {
--	return (flags & (VM_SHARED | VM_MAYWRITE)) == VM_MAYWRITE;
-+	return vma_flags_test(flags, VMA_MAYWRITE_BIT) &&
-+		!vma_flags_test(flags, VMA_SHARED_BIT);
+@@ -1556,7 +1556,7 @@ static inline void vma_desc_set_anonymou
+ 	desc->vm_ops = NULL;
  }
  
--static inline bool vma_desc_is_cow_mapping(struct vm_area_desc *desc)
-+/**
-+ * vma_is_cow_mapping() - Is this VMA a CoW mapping?
-+ * @desc: The VMA to check.
-+ *
-+ * See vma_flags_is_cow_mapping() for details.
-+ *
-+ * Returns: true if the VMA is a CoW mapping, otherwise false.
-+ */
-+static inline bool vma_is_cow_mapping(const struct vm_area_struct *vma)
+-static inline bool vma_is_anonymous(struct vm_area_struct *vma)
++static inline bool vma_is_anonymous(const struct vm_area_struct *vma)
  {
--	const vma_flags_t *flags = &desc->vma_flags;
-+	return vma_flags_is_cow_mapping(&vma->flags);
+ 	return !vma->vm_ops;
+ }
+--- a/include/linux/pagemap.h~mm-introduce-linear_anon_page_index
++++ a/include/linux/pagemap.h
+@@ -1094,10 +1094,44 @@ static inline pgoff_t linear_page_delta(
+ static inline pgoff_t linear_page_index(const struct vm_area_struct *vma,
+ 					const unsigned long address)
+ {
+-	pgoff_t pgoff;
++	return linear_page_delta(vma, address) + vma_start_pgoff(vma);
 +}
- 
--	return vma_flags_test(flags, VMA_MAYWRITE_BIT) &&
--		!vma_flags_test(flags, VMA_SHARED_BIT);
-+/**
-+ * vma_desc_is_cow_mapping() - Is this VMA descriptor a CoW mapping?
-+ * @desc: The VMA descriptor to check.
-+ *
-+ * See vma_flags_is_cow_mapping() for details.
-+ *
-+ * Returns: true if the VMA descriptor describes a CoW mapping, otherwise
-+ * false.
-+ */
-+static inline bool vma_desc_is_cow_mapping(struct vm_area_desc *desc)
++
++static inline pgoff_t __linear_anon_page_index(const struct vm_area_struct *vma,
++		const unsigned long address)
 +{
-+	return vma_flags_is_cow_mapping(&desc->vma_flags);
++	return linear_page_delta(vma, address) + vma_start_anon_pgoff(vma);
++}
++
++/**
++ * linear_anon_page_index() - Determine the absolute anonymous page offset of
++ * @address within @vma.
++ * @vma: An anonymous or MAP_PRIVATE file-backed VMA in which @address resides.
++ * @address: The address whose absolute page offset is required.
++ *
++ * This returns the anonymous page offset of @address, which is the page offset
++ * the address possessed at the time the VMA was first faulted.
++ *
++ * For anonymous mappings, this returns the same value as linear_page_index().
++ *
++ * For MAP_PRIVATE file-backed mappings, this returns the anonymous page offset
++ * of @address, which is the page offset the address possessed at the time the
++ * VMA was first faulted.
++ *
++ * It is not valid to call this function for shared file-backed mappings.
++ *
++ * Returns: The absolute anonymous page offset of @address within @vma.
++ */
++static inline pgoff_t linear_anon_page_index(const struct vm_area_struct *vma,
++		const unsigned long address)
++{
++	const pgoff_t pgoff = __linear_anon_page_index(vma, address);
++
++	VM_WARN_ON_ONCE(!vma_is_cow_mapping(vma));
++	/* Account for MAP_PRIVATE-/dev/zero which is only semi-anonymous. */
++	if (vma_is_anonymous(vma) && !vma->vm_file)
++		VM_WARN_ON_ONCE(pgoff != linear_page_index(vma, address));
+ 
+-	pgoff = linear_page_delta(vma, address);
+-	pgoff += vma_start_pgoff(vma);
+ 	return pgoff;
  }
  
- #ifndef CONFIG_MMU
---- a/kernel/events/uprobes.c~mm-provide-vma_is_cow_mapping-and-remove-is_cow_mapping
-+++ a/kernel/events/uprobes.c
-@@ -513,7 +513,7 @@ int uprobe_write(struct arch_uprobe *aup
- 
- 	uprobe = container_of(auprobe, struct uprobe, arch);
- 
--	if (WARN_ON_ONCE(!is_cow_mapping(vma->vm_flags)))
-+	if (WARN_ON_ONCE(!vma_is_cow_mapping(vma)))
- 		return -EINVAL;
- 
- 	/*
---- a/mm/gup.c~mm-provide-vma_is_cow_mapping-and-remove-is_cow_mapping
-+++ a/mm/gup.c
-@@ -1236,7 +1236,7 @@ static int check_vma_flags(struct vm_are
- 			 * Anon pages in shared mappings are surprising: now
- 			 * just reject it.
- 			 */
--			if (!is_cow_mapping(vm_flags))
-+			if (!vma_is_cow_mapping(vma))
- 				return -EFAULT;
- 		}
- 	} else if (!(vm_flags & VM_READ)) {
---- a/mm/huge_memory.c~mm-provide-vma_is_cow_mapping-and-remove-is_cow_mapping
-+++ a/mm/huge_memory.c
-@@ -1681,7 +1681,7 @@ vm_fault_t vmf_insert_pfn_pmd(struct vm_
- 	BUG_ON(!(vma->vm_flags & (VM_PFNMAP|VM_MIXEDMAP)));
- 	BUG_ON((vma->vm_flags & (VM_PFNMAP|VM_MIXEDMAP)) ==
- 						(VM_PFNMAP|VM_MIXEDMAP));
--	BUG_ON((vma->vm_flags & VM_PFNMAP) && is_cow_mapping(vma->vm_flags));
-+	BUG_ON((vma->vm_flags & VM_PFNMAP) && vma_is_cow_mapping(vma));
- 
- 	pfnmap_setup_cachemode_pfn(pfn, &pgprot);
- 
-@@ -1789,7 +1789,7 @@ vm_fault_t vmf_insert_pfn_pud(struct vm_
- 	BUG_ON(!(vma->vm_flags & (VM_PFNMAP|VM_MIXEDMAP)));
- 	BUG_ON((vma->vm_flags & (VM_PFNMAP|VM_MIXEDMAP)) ==
- 						(VM_PFNMAP|VM_MIXEDMAP));
--	BUG_ON((vma->vm_flags & VM_PFNMAP) && is_cow_mapping(vma->vm_flags));
-+	BUG_ON((vma->vm_flags & VM_PFNMAP) && vma_is_cow_mapping(vma));
- 
- 	pfnmap_setup_cachemode_pfn(pfn, &pgprot);
- 
-@@ -1931,7 +1931,7 @@ int copy_huge_pmd(struct mm_struct *dst_
- 		 * applied special bit, or we made the PRIVATE mapping be
- 		 * able to wrongly write to the backend MMIO.
- 		 */
--		VM_WARN_ON_ONCE(is_cow_mapping(src_vma->vm_flags) && pmd_write(pmd));
-+		VM_WARN_ON_ONCE(vma_is_cow_mapping(src_vma) && pmd_write(pmd));
- 		goto set_pmd;
- 	}
- 
-@@ -2052,7 +2052,7 @@ int copy_huge_pud(struct mm_struct *dst_
- 	 * TODO: once we support anonymous pages, use
- 	 * folio_try_dup_anon_rmap_*() and split if duplicating fails.
- 	 */
--	if (is_cow_mapping(vma->vm_flags) && pud_write(pud)) {
-+	if (vma_is_cow_mapping(vma) && pud_write(pud)) {
- 		pudp_set_wrprotect(src_mm, addr, src_pud);
- 		pud = pud_wrprotect(pud);
- 	}
---- a/mm/hugetlb.c~mm-provide-vma_is_cow_mapping-and-remove-is_cow_mapping
-+++ a/mm/hugetlb.c
-@@ -4898,7 +4898,7 @@ int copy_hugetlb_page_range(struct mm_st
- 	pte_t *src_pte, *dst_pte, entry;
- 	struct folio *pte_folio;
- 	unsigned long addr;
--	bool cow = is_cow_mapping(src_vma->vm_flags);
-+	bool cow = vma_is_cow_mapping(src_vma);
- 	struct hstate *h = hstate_vma(src_vma);
- 	unsigned long sz = huge_page_size(h);
- 	unsigned long npages = pages_per_huge_page(h);
---- a/mm/internal.h~mm-provide-vma_is_cow_mapping-and-remove-is_cow_mapping
-+++ a/mm/internal.h
-@@ -1353,7 +1353,7 @@ static inline bool gup_must_unshare(stru
- 		 * ... because we only care about writable private ("COW")
- 		 * mappings where we have to break COW early.
- 		 */
--		return is_cow_mapping(vma->vm_flags);
-+		return vma_is_cow_mapping(vma);
- 	}
- 
- 	/* Paired with a memory barrier in folio_try_share_anon_rmap_*(). */
---- a/mm/memory.c~mm-provide-vma_is_cow_mapping-and-remove-is_cow_mapping
-+++ a/mm/memory.c
-@@ -780,7 +780,7 @@ static inline struct page *__vm_normal_p
- 				/* Only CoW'ed anon folios are "normal". */
- 				if (pfn == index)
- 					return NULL;
--				if (!is_cow_mapping(vma->vm_flags))
-+				if (!vma_is_cow_mapping(vma))
- 					return NULL;
- 			}
- 		}
-@@ -1002,7 +1002,6 @@ copy_nonpresent_pte(struct mm_struct *ds
- 		pte_t *dst_pte, pte_t *src_pte, struct vm_area_struct *dst_vma,
- 		struct vm_area_struct *src_vma, unsigned long addr, int *rss)
- {
--	vm_flags_t vm_flags = dst_vma->vm_flags;
- 	pte_t orig_pte = ptep_get(src_pte);
- 	softleaf_t entry = softleaf_from_pte(orig_pte);
- 	pte_t pte = orig_pte;
-@@ -1026,7 +1025,7 @@ copy_nonpresent_pte(struct mm_struct *ds
- 		rss[mm_counter(folio)]++;
- 
- 		if (!softleaf_is_migration_read(entry) &&
--				is_cow_mapping(vm_flags)) {
-+				vma_is_cow_mapping(dst_vma)) {
- 			/*
- 			 * COW mappings require pages in both parent and child
- 			 * to be set to read. A previously exclusive entry is
-@@ -1067,7 +1066,7 @@ copy_nonpresent_pte(struct mm_struct *ds
- 		 * save and restore device driver state).
- 		 */
- 		if (softleaf_is_device_private_write(entry) &&
--		    is_cow_mapping(vm_flags)) {
-+		    vma_is_cow_mapping(dst_vma)) {
- 			entry = make_readable_device_private_entry(
- 							swp_offset(entry));
- 			pte = swp_entry_to_pte(entry);
-@@ -1082,7 +1081,7 @@ copy_nonpresent_pte(struct mm_struct *ds
- 		 * exclusive entries currently only support private writable
- 		 * (ie. COW) mappings.
- 		 */
--		VM_BUG_ON(!is_cow_mapping(src_vma->vm_flags));
-+		VM_BUG_ON(!vma_is_cow_mapping(src_vma));
- 		if (try_restore_exclusive_pte(src_vma, addr, src_pte, orig_pte))
- 			return -EBUSY;
- 		return -ENOENT;
-@@ -1181,7 +1180,7 @@ static __always_inline void __copy_prese
- 	}
- 
- 	/* If it's a COW mapping, write protect it both processes. */
--	if (is_cow_mapping(src_vma->vm_flags) && writable) {
-+	if (vma_is_cow_mapping(src_vma) && writable) {
- 		wrprotect_ptes(src_mm, addr, src_pte, nr);
- 		pte = pte_wrprotect(pte);
- 	}
-@@ -1602,9 +1601,9 @@ copy_page_range(struct vm_area_struct *d
- 	 * We need to invalidate the secondary MMU mappings only when
- 	 * there could be a permission downgrade on the ptes of the
- 	 * parent mm. And a permission downgrade will only happen if
--	 * is_cow_mapping() returns true.
-+	 * vma_is_cow_mapping() returns true.
- 	 */
--	is_cow = is_cow_mapping(src_vma->vm_flags);
-+	is_cow = vma_is_cow_mapping(src_vma);
- 
- 	if (is_cow) {
- 		mmu_notifier_range_init(&range, MMU_NOTIFY_PROTECTION_PAGE,
-@@ -2437,7 +2436,7 @@ static bool vm_mixed_zeropage_allowed(st
- 	if (mm_forbids_zeropage(vma->vm_mm))
- 		return false;
- 	/* zeropages in COW mappings are common and unproblematic. */
--	if (is_cow_mapping(vma->vm_flags))
-+	if (vma_is_cow_mapping(vma))
- 		return true;
- 	/* Mappings that do not allow for writable PTEs are unproblematic. */
- 	if (!(vma->vm_flags & (VM_WRITE | VM_MAYWRITE)))
-@@ -2888,7 +2887,7 @@ vm_fault_t vmf_insert_pfn_prot(struct vm
- 	BUG_ON(!(vma->vm_flags & (VM_PFNMAP|VM_MIXEDMAP)));
- 	BUG_ON((vma->vm_flags & (VM_PFNMAP|VM_MIXEDMAP)) ==
- 						(VM_PFNMAP|VM_MIXEDMAP));
--	BUG_ON((vma->vm_flags & VM_PFNMAP) && is_cow_mapping(vma->vm_flags));
-+	BUG_ON((vma->vm_flags & VM_PFNMAP) && vma_is_cow_mapping(vma));
- 	BUG_ON((vma->vm_flags & VM_MIXEDMAP) && pfn_valid(pfn));
- 
- 	if (addr < vma->vm_start || addr >= vma->vm_end)
-@@ -3300,7 +3299,7 @@ static int remap_pfn_range_prepare_vma(s
- 				       unsigned long size)
- {
- 	const unsigned long end = addr + PAGE_ALIGN(size);
--	const bool is_cow = is_cow_mapping(vma->vm_flags);
-+	const bool is_cow = vma_is_cow_mapping(vma);
- 	int err;
- 
- 	err = get_remap_pgoff(is_cow, addr, end, vma->vm_start, vma->vm_end,
-@@ -6800,7 +6799,7 @@ static vm_fault_t sanitize_fault_flags(s
- 		 * FAULT_FLAG_UNSHARE only applies to COW mappings. Let's
- 		 * just treat it like an ordinary read-fault otherwise.
- 		 */
--		if (!is_cow_mapping(vma->vm_flags))
-+		if (!vma_is_cow_mapping(vma))
- 			*flags &= ~FAULT_FLAG_UNSHARE;
- 	} else if (*flags & FAULT_FLAG_WRITE) {
- 		/* Write faults on read-only mappings are impossible ... */
-@@ -6808,7 +6807,7 @@ static vm_fault_t sanitize_fault_flags(s
- 			return VM_FAULT_SIGSEGV;
- 		/* ... and FOLL_FORCE only applies to COW mappings. */
- 		if (WARN_ON_ONCE(!(vma->vm_flags & VM_WRITE) &&
--				 !is_cow_mapping(vma->vm_flags)))
-+				 !vma_is_cow_mapping(vma)))
- 			return VM_FAULT_SIGSEGV;
- 	}
- #ifdef CONFIG_PER_VMA_LOCK
---- a/mm/mempolicy.c~mm-provide-vma_is_cow_mapping-and-remove-is_cow_mapping
-+++ a/mm/mempolicy.c
-@@ -844,7 +844,7 @@ bool folio_can_map_prot_numa(struct foli
- 		return false;
- 
- 	/* Also skip shared copy-on-write folios */
--	if (is_cow_mapping(vma->vm_flags) && folio_maybe_mapped_shared(folio))
-+	if (vma_is_cow_mapping(vma) && folio_maybe_mapped_shared(folio))
- 		return false;
- 
- 	/* Folios are pinned and can't be migrated */
---- a/tools/testing/vma/include/dup.h~mm-provide-vma_is_cow_mapping-and-remove-is_cow_mapping
+--- a/tools/testing/vma/include/dup.h~mm-introduce-linear_anon_page_index
 +++ a/tools/testing/vma/include/dup.h
-@@ -1162,6 +1162,17 @@ static inline bool vma_is_shared_maywrit
- 	return is_shared_maywrite(&vma->flags);
+@@ -1428,7 +1428,7 @@ static inline void vma_iter_set(struct v
+ 	mas_set(&vmi->mas, addr);
  }
  
-+static inline bool vma_flags_is_cow_mapping(const vma_flags_t *flags)
-+{
-+	return vma_flags_test(flags, VMA_MAYWRITE_BIT) &&
-+		!vma_flags_test(flags, VMA_SHARED_BIT);
-+}
-+
-+static inline bool vma_is_cow_mapping(const struct vm_area_struct *vma)
-+{
-+	return vma_flags_is_cow_mapping(&vma->flags);
-+}
-+
- static inline struct vm_area_struct *vma_next(struct vma_iterator *vmi)
+-static inline bool vma_is_anonymous(struct vm_area_struct *vma)
++static inline bool vma_is_anonymous(const struct vm_area_struct *vma)
  {
- 	/*
+ 	return !vma->vm_ops;
+ }
+@@ -1621,3 +1621,26 @@ static inline pgprot_t vma_get_page_prot
+ {
+ 	return vma_flags_to_page_prot(vma->flags);
+ }
++
++static inline pgoff_t __linear_anon_page_index(const struct vm_area_struct *vma,
++					       const unsigned long address)
++{
++	pgoff_t pgoff;
++
++	pgoff = linear_page_delta(vma, address);
++	pgoff += vma_start_anon_pgoff(vma);
++	return pgoff;
++}
++
++static inline pgoff_t linear_anon_page_index(const struct vm_area_struct *vma,
++		const unsigned long address)
++{
++	const pgoff_t pgoff = __linear_anon_page_index(vma, address);
++
++	VM_WARN_ON_ONCE(!vma_is_cow_mapping(vma));
++	/* Account for MAP_PRIVATE-/dev/zero which is only semi-anonymous. */
++	if (vma_is_anonymous(vma) && !vma->vm_file)
++		VM_WARN_ON_ONCE(pgoff != linear_page_index(vma, address));
++
++	return pgoff;
++}
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
