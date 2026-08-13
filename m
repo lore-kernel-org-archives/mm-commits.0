@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B62753E715E
-	for <mm-commits@vger.kernel.org>; Thu, 13 Aug 2026 17:55:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7AF903B774B
+	for <mm-commits@vger.kernel.org>; Thu, 13 Aug 2026 17:55:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786643724; cv=none; b=HJS0clpnxbbZjOo7bdr5mA/8U/w2JN3EFB13hsMermtFgpD3n7QHe0VMyAavAT5+Vls9es3EGGCcZsYboZJzajqSSTEemf+A4S1mtF//XwsM4ch9m+U/H1nctfuYDvolIqcehCok+cuZ00dNC9rqbdqTa/cbO7esz9nn3gEOV/g=
+	t=1786643725; cv=none; b=rtX1uJBMBPPe5sRGUH5bDvED1RKaCNzc3QPtFBBN+c9Mdll2Ef43F68L1F5V1mBq/vZ7dV5c1g0adKrnj3F77bCtyPwEtabHpvb0cmFlGbQx+MxmkvCf7KdHX47GXeQ8hpfBJJQTqD33RcjdjJ2aeBk4W3bhIrKtTy3BZXBs9m8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786643724; c=relaxed/simple;
-	bh=//e5zUFD+hxODauqKOlH9+c2Y+h0ZCBJ3Fhzl6sP6nw=;
-	h=Date:To:From:Subject:Message-Id; b=LZLPVKnB5gHklpOubAe/zRTA+2wA+1eK/Lep8lQFfme6QoEXWt9qsfN/4r+MVIq2KQ6fROIjz8adVQUA5JUXberT1Y+D2dUoBacyZRPd5XlVLcQHBuNgAKLzCpgdk+RY0eRkBfAuCnB2tuodKZEJ83vNnAKvG4OPtshMgRRH69Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yZXe23Du; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1786643725; c=relaxed/simple;
+	bh=1pNDhESJRK5geMPzUz6sqsFmlevnY3hAOLVrRDy0+7A=;
+	h=Date:To:From:Subject:Message-Id; b=aMCMjmDVA91ZOsAmY/aaVLG5GzIdnXEg2MUq5KTzEplQHnnyCVQyFMAv9qqHr1nXH6OUIyyJii1I8KV24b3Q42MN+mpMbL/HKzaddztS5Dd0wtvp0i3MLtlcyZxFNs8PzCAIEdUM3QkMN+DtpcPv2FeWWCOWsA2FsnfPNq4ERys=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sGc444Ay; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yZXe23Du"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3BCFD1F00A3F;
-	Thu, 13 Aug 2026 17:55:09 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sGc444Ay"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1B7C21F00A3D;
+	Thu, 13 Aug 2026 17:55:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1786643709;
-	bh=sL4MJExR72um8ht37DQW9G7EJdfHfu6ViH7Kn/h/f24=;
+	d=linux-foundation.org; s=korg; t=1786643720;
+	bh=hE+5vCu+wVDbBkQYiKqzOLbbcoyW27PpEHrLirZg6xc=;
 	h=Date:To:From:Subject;
-	b=yZXe23DuFOK8eT1Sih6CBDuq7pdat2kqYMPAAkAEu7eTDCSZ+RBuZMp1RjAtYdJqG
-	 7exXN3Oct6mq2ANvghbNiBDue5+DmNZXBI9g3u8fYm5XXzG6DKcmQScGk/3G9r6ABn
-	 7EtBRwkKvMs5xSG6vBqb6Jbf5YSxrHJZGoivbcIc=
-Date: Thu, 13 Aug 2026 10:55:08 -0700
+	b=sGc444AypHu5fBEYNl7HPcsi1ZxPwUqIHaPR5CAEG0LT05JHneUwPJHFNlLAx4pR/
+	 ccv34/5ozbaMz4YtiD6VTFJzAphbeD93SzPrTRnlVYkj5m7t5Hjdm04mpoovmkiX3J
+	 6U29oTQbDOXfJX+Gym+ue5q1EwdEALcgbq4B0MAI=
+Date: Thu, 13 Aug 2026 10:55:19 -0700
 To: mm-commits@vger.kernel.org,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-update-print_bad_page_map-to-show-anon-index-if-appropriate.patch removed from -mm tree
-Message-Id: <20260813175509.3BCFD1F00A3F@smtp.kernel.org>
+Subject: [to-be-updated] mm-rmap-track-whether-the-page-vma-mapped-pgoff-is-anonymous.patch removed from -mm tree
+Message-Id: <20260813175520.1B7C21F00A3D@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,39 +35,37 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: update print_bad_page_map() to show anon index if appropriate
+     Subject: mm/rmap: track whether the page VMA mapped pgoff is anonymous
 has been removed from the -mm tree.  Its filename was
-     mm-update-print_bad_page_map-to-show-anon-index-if-appropriate.patch
+     mm-rmap-track-whether-the-page-vma-mapped-pgoff-is-anonymous.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: mm: update print_bad_page_map() to show anon index if appropriate
-Date: Thu, 06 Aug 2026 21:21:30 +0100
+Subject: mm/rmap: track whether the page VMA mapped pgoff is anonymous
+Date: Thu, 06 Aug 2026 21:21:35 +0100
 
-If the VMA is a CoW mapping page offset may differ from anon page offset,
-indicating different positions in the relevant rmap trees.
+Update the page_vma_mapped_walk structure to track whether the pgoff being
+tracked is an anonymous pgoff or not and update the comments to reflect
+this.
 
-Update print_bad_page_map() to reflect that - if the mapping is non-CoW or
-the indexes match, then output only one index as before, otherwise output
-both with (file) or (anon) suffixes to reflect which is which.
+This is necessary in order to determine the correct VMA page offset in
+vma_address_end() when pvmw->nr_pages > 1.
 
-It's not possible to give only one index as there is no folio available to
-perform folio_test_anon() upon (the page table entry is bad so this is
-unavailable).
+Also document that pvmw->pgoff is meaningless for pvmw->nr_pages == 1 and
+for KSM.
 
-This is potentially useful debugging information and matches the existing
-page offset provided.
+Do not set this field where pgoff is not specified.
 
-Use the raw __linear_anon_page_index() function so as to always output
-this value regardless of whether the mapping is file-backed or not and to
-avoid asserts that shouldn't apply here.
+This is laying the groundwork for eventually using anonymous page offsets
+as the index for all anonymous folios.
 
-Link: https://lore.kernel.org/20260806-b4-scalable-cow-virt-pgoff-v4-5-ab318a350404@kernel.org
+No functional change intended.
+
+Link: https://lore.kernel.org/20260806-b4-scalable-cow-virt-pgoff-v4-10-ab318a350404@kernel.org
 Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Reviewed-by: Gregory Price (Meta) <gourry@gourry.net>
 Cc: Adrian Hunter <adrian.hunter@intel.com>
 Cc: Alexander Deucher <alexander.deucher@amd.com>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
@@ -89,6 +87,7 @@ Cc: Dave Airlie <airlied@gmail.com>
 Cc: Dev Jain <dev.jain@arm.com>
 Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Gregory Price (Meta) <gourry@gourry.net>
 Cc: Harry Yoo <harry@kernel.org>
 Cc: Heiko Carstens <hca@linux.ibm.com>
 Cc: Huang Ray <Ray.Huang@amd.com>
@@ -146,53 +145,58 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |   13 ++++++++++---
- 1 file changed, 10 insertions(+), 3 deletions(-)
+ include/linux/rmap.h |    4 +++-
+ mm/rmap.c            |    2 ++
+ 2 files changed, 5 insertions(+), 1 deletion(-)
 
---- a/mm/memory.c~mm-update-print_bad_page_map-to-show-anon-index-if-appropriate
-+++ a/mm/memory.c
-@@ -631,13 +631,14 @@ static void print_bad_page_map(struct vm
- {
- 	struct address_space *mapping;
- 	char entry_str[PTVAL_STR_MAX];
--	pgoff_t index;
-+	pgoff_t index, anon_index;
+--- a/include/linux/rmap.h~mm-rmap-track-whether-the-page-vma-mapped-pgoff-is-anonymous
++++ a/include/linux/rmap.h
+@@ -864,13 +864,14 @@ struct page *make_device_exclusive(struc
+ struct page_vma_mapped_walk {
+ 	unsigned long pfn;
+ 	unsigned long nr_pages;
+-	pgoff_t pgoff;
++	pgoff_t pgoff;	/* Only meaningful if nr_pages > 1 and not a KSM walk */
+ 	struct vm_area_struct *vma;
+ 	unsigned long address;
+ 	pmd_t *pmd;
+ 	pte_t *pte;
+ 	spinlock_t *ptl;
+ 	unsigned int flags;
++	bool pgoff_is_anon : 1;
+ };
  
- 	if (is_bad_page_map_ratelimited())
- 		return;
+ #define DEFINE_FOLIO_VMA_WALK(name, _folio, _vma, _address, _flags)	\
+@@ -881,6 +882,7 @@ struct page_vma_mapped_walk {
+ 		.vma = _vma,						\
+ 		.address = _address,					\
+ 		.flags = _flags,					\
++		.pgoff_is_anon = folio_test_anon(_folio),		\
+ 	}
  
- 	mapping = vma->vm_file ? vma->vm_file->f_mapping : NULL;
- 	index = linear_page_index(vma, addr);
-+	anon_index = __linear_anon_page_index(vma, addr);
+ static inline void page_vma_mapped_walk_done(struct page_vma_mapped_walk *pvmw)
+--- a/mm/rmap.c~mm-rmap-track-whether-the-page-vma-mapped-pgoff-is-anonymous
++++ a/mm/rmap.c
+@@ -1240,6 +1240,7 @@ static bool mapping_wrprotect_range_one(
+ 		.vma		= vma,
+ 		.address	= address,
+ 		.flags		= PVMW_SYNC,
++		.pgoff_is_anon	= false,
+ 	};
  
- 	ptval_bytes_to_hex_str(entry_str, sizeof(entry_str), entry, entry_size);
- 	pr_alert("BUG: Bad page map in process %s  %s:%s", current->comm,
-@@ -645,8 +646,14 @@ static void print_bad_page_map(struct vm
- 	__print_bad_page_map_pgtable(vma->vm_mm, addr);
- 	if (page)
- 		dump_page(page, "bad page map");
--	pr_alert("addr:%px vm_flags:%08lx anon_vma:%px mapping:%px index:%lx\n",
--		 (void *)addr, vma->vm_flags, vma->anon_vma, mapping, index);
-+	pr_alert("addr:%px vm_flags:%08lx anon_vma:%px mapping:%px",
-+		 (void *)addr, vma->vm_flags, vma->anon_vma, mapping);
-+	if (!vma_is_cow_mapping(vma) || index == anon_index) {
-+		pr_cont(" index:%lx\n", index);
-+	} else {
-+		pr_cont(" index:%lx (file) %lx (anon)\n", index, anon_index);
-+	}
-+
- 	pr_alert("file:%pD fault:%ps mmap:%ps mmap_prepare: %ps read_folio:%ps\n",
- 		 vma->vm_file,
- 		 vma->vm_ops ? vma->vm_ops->fault : NULL,
+ 	state->cleaned += page_vma_mkclean_one(&pvmw);
+@@ -1317,6 +1318,7 @@ int pfn_mkclean_range(unsigned long pfn,
+ 		.pgoff		= pgoff,
+ 		.vma		= vma,
+ 		.flags		= PVMW_SYNC,
++		.pgoff_is_anon	= false,
+ 	};
+ 
+ 	if (invalid_mkclean_vma(vma, NULL))
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
 
-mm-introduce-and-use-vma_filebacked_address.patch
-mm-vma-fix-self-merge-check-in-copy_vma.patch
-tools-testing-vma-add-tests-for-copy_vma-self-merge.patch
-mm-propagate-vma-anonymous-page-offset-on-map-remap-split-merge.patch
-mm-rmap-track-whether-the-page-vma-mapped-pgoff-is-anonymous.patch
 mm-clean-up-vma_address_end.patch
 mm-huge_memory-update-remove_migration_pmd-to-accept-a-folio.patch
 mm-migrate-calculate-large-folio-page-index-using-pfn.patch
