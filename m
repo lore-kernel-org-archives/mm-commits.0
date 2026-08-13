@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D0F693D0932
-	for <mm-commits@vger.kernel.org>; Thu, 13 Aug 2026 17:55:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1073C3F0AAD
+	for <mm-commits@vger.kernel.org>; Thu, 13 Aug 2026 17:55:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786643737; cv=none; b=iy7LQZbZ10XtTtGHngbvDDEXN0nNLBAQMoDobz4KkuDEVh1PeeETQjC5HRU0BkpdZQOwUVSJ45amE4Pv/pCfQMpX9ry9mnB/BF7A6bdzqnXXbiGEfh08NoFnR+LurJr0885SRcRzw1soO6OmDSXW8qI97B+BAtU9goD+mdhrD3I=
+	t=1786643738; cv=none; b=MfkdtZGM09O/R3Tk3ZcTLVRxw0XzombX64qWFq0bSVW1W/xEVZdE9SgwrNUJZvopR1NDX3rabcl4o4oG+Q7VcmA92dl/EY7MZEhBCeIRPnIzWuWo3U3PklnuR+mTLFu29JeMl1kZIzOUDNoLN4+fGbFLsJGaMwIZhE/JDkv8jRY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786643737; c=relaxed/simple;
-	bh=CMBf+dK+QrxwW0s7wIkd50WclZz/bvmwpFubG6uYghY=;
-	h=Date:To:From:Subject:Message-Id; b=kUD9ud5Cpp7Rc7pppxg4YgCImgOMqX0hWkE8oWYuFY52B6MbnxWkNJfK389sgWn5nVJKWHMN9XNgdT3LhdV1Na0NiduayKB4l0KEjad4sZ2YqP2CV+Xr0z5oaCsqtqfuYzG8khlkD6HSOQRwk7bF0H4886WDfn3HFswHVPoc5cE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Md7x9KR4; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1786643738; c=relaxed/simple;
+	bh=LggE28JGq/l2XAnqkUroVE3lKG5pT879n0UlV8YPcQg=;
+	h=Date:To:From:Subject:Message-Id; b=QqCYvkD0Tj/PxiamXfg+zinS0+RFt8qBO8j8GDnOJxO7PU/+7LsGGs/rqXQE2vvMx1jxLOcxisG8j8Z649KjblbtEGtb2VRujqnnxPFX2vJtKcPY76Z76jJkag/YtA1UE3YbWSrmEK0CIyvBOKFQjAm/vLP+Ks6pFap+71j3u7o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hwP6YI5A; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Md7x9KR4"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BF37A1F000E9;
-	Thu, 13 Aug 2026 17:55:32 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hwP6YI5A"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3875B1F00ACA;
+	Thu, 13 Aug 2026 17:55:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1786643732;
-	bh=L4fA4SjDoev0S14+gdIklxfxE3mSJD8SA9Ji56nmBLg=;
+	d=linux-foundation.org; s=korg; t=1786643724;
+	bh=CQhhHIkTfz9kv7nY0MV2F46icRFFuauarBd4bRMLM5g=;
 	h=Date:To:From:Subject;
-	b=Md7x9KR4I9v/VU9Dq/7pA9kH5Sbb4DW5IEbDfBCCVZrPQWec05atrvSJNTecST4SR
-	 tfeXTf+tUJ0JtxqnOMjvnIBABUOZOkXh3hrPdbs5oY1y3KMA3kcSc9RCO5YT/i75x3
-	 V7B6f2Se5I8U0kv5w/5g91mYMQmqpZgB0YTPpgD8=
-Date: Thu, 13 Aug 2026 10:55:32 -0700
+	b=hwP6YI5AcArurfZZvJf5uCP0UpD2optdXPszkNo7VJS8UBKEmce/BoxsmER2+Kawr
+	 BL2XfPUXhKirQkmnKlXg4cPXJKAvwP4cIFVzCtU6WTIugNFFCUAGy5PK01bo5sWyFm
+	 nARC+Z2TChAuGPA3RHOzCqBWX7c/v0490MdwVHrg=
+Date: Thu, 13 Aug 2026 10:55:23 -0700
 To: mm-commits@vger.kernel.org,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] tools-testing-selftests-mm-test-anonymous-page-offset-merge-behaviour.patch removed from -mm tree
-Message-Id: <20260813175532.BF37A1F000E9@smtp.kernel.org>
+Subject: [to-be-updated] mm-huge_memory-update-remove_migration_pmd-to-accept-a-folio.patch removed from -mm tree
+Message-Id: <20260813175524.3875B1F00ACA@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,28 +35,29 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: tools/testing/selftests/mm: test anonymous page offset merge behaviour
+     Subject: mm/huge_memory: update remove_migration_pmd() to accept a folio
 has been removed from the -mm tree.  Its filename was
-     tools-testing-selftests-mm-test-anonymous-page-offset-merge-behaviour.patch
+     mm-huge_memory-update-remove_migration_pmd-to-accept-a-folio.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: tools/testing/selftests/mm: test anonymous page offset merge behaviour
-Date: Thu, 06 Aug 2026 21:21:41 +0100
+Subject: mm/huge_memory: update remove_migration_pmd() to accept a folio
+Date: Thu, 06 Aug 2026 21:21:37 +0100
 
-While maintaining anonymous page offsets for VMAs has no impact for most
-merge cases, it does impact MAP_PRIVATE-mapped file-backed mappings which
-happen to have matching page offset but not matching anonymous page
-offset.
+This function does not need to accept a page and requiring it to is
+unnecessary and misleading.
 
-Assert this behaviour by attempting to map an unfaulted MAP_PRIVATE-memfd
-region with a faulted one with compatible file page offsets but
-incompatible anonymous page offsets.
+make_[writable, readable]_device_private_entry() must be passed a
+PMD-aligned PFN as they immediately used to obtain a softleaf PMD entry
+and the same argument applies to folio_add_[anon, file]_rmap_pmd().
 
-[akpm@linux-foundation.org: tweak comment, per David]
-Link: https://lore.kernel.org/20260806-b4-scalable-cow-virt-pgoff-v4-16-ab318a350404@kernel.org
+While we are here, update a VM_BUG_ON() to a VM_WARN_ON_ONCE().
+
+No functional change intended.
+
+Link: https://lore.kernel.org/20260806-b4-scalable-cow-virt-pgoff-v4-12-ab318a350404@kernel.org
 Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Acked-by: David Hildenbrand (Arm) <david@kernel.org>
 Cc: Adrian Hunter <adrian.hunter@intel.com>
@@ -138,79 +139,95 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/merge.c |   57 +++++++++++++++++++++++++++
- 1 file changed, 57 insertions(+)
+ include/linux/swapops.h |    6 +++---
+ mm/huge_memory.c        |   16 +++++++---------
+ mm/migrate.c            |    2 +-
+ 3 files changed, 11 insertions(+), 13 deletions(-)
 
---- a/tools/testing/selftests/mm/merge.c~tools-testing-selftests-mm-test-anonymous-page-offset-merge-behaviour
-+++ a/tools/testing/selftests/mm/merge.c
-@@ -1305,6 +1305,63 @@ TEST_F(merge, merge_vmas_with_mseal)
- 	ASSERT_EQ(procmap->query.vma_end, (unsigned long)ptr + 2 * page_size);
+--- a/include/linux/swapops.h~mm-huge_memory-update-remove_migration_pmd-to-accept-a-folio
++++ a/include/linux/swapops.h
+@@ -325,8 +325,8 @@ struct page_vma_mapped_walk;
+ extern int set_pmd_migration_entry(struct page_vma_mapped_walk *pvmw,
+ 		struct page *page);
+ 
+-extern void remove_migration_pmd(struct page_vma_mapped_walk *pvmw,
+-		struct page *new);
++void remove_migration_pmd(struct page_vma_mapped_walk *pvmw,
++		struct folio *folio);
+ 
+ extern void pmd_migration_entry_wait(struct mm_struct *mm, pmd_t *pmd);
+ 
+@@ -346,7 +346,7 @@ static inline int set_pmd_migration_entr
  }
  
-+TEST_F(merge, anon_and_page_offset_mismatch_memfd)
-+{
-+	struct procmap_fd *procmap = &self->procmap;
-+	unsigned int page_size = self->page_size;
-+	char *carveout = self->carveout;
-+	char *ptr, *ptr2;
-+	int fd;
-+
-+	/* Create a 10 page memfd descriptor. */
-+	fd = memfd_create("anon_page_offset_test", MFD_CLOEXEC);
-+	ASSERT_NE(fd, -1);
-+	ASSERT_EQ(ftruncate(fd, 10 * page_size), 0);
-+
-+	/* Map a region using the memfd at page offset 0. */
-+	ptr = mmap(carveout, 5 * page_size, PROT_READ | PROT_WRITE,
-+		   MAP_FIXED | MAP_PRIVATE, fd, 0);
-+	ASSERT_NE(ptr, MAP_FAILED);
-+
-+	/*
-+	 * Map another separately and trigger a CoW fault, at page offset 5:
-+	 *
-+	 * |-----------|           |---------|
-+	 * | unfaulted |           | faulted |
-+	 * |-----------|           |---------|
-+	 */
-+	ptr2 = mmap(&carveout[10 * page_size], 5 * page_size,
-+		    PROT_READ | PROT_WRITE, MAP_FIXED | MAP_PRIVATE,
-+		    fd, 5 * page_size);
-+	ASSERT_NE(ptr2, MAP_FAILED);
-+	ptr2[0] = 'x';
-+
-+	/*
-+	 * Now move it in place:
-+	 *
-+	 *                   |----------|
-+	 *                   |          |
-+	 *                   v          |
-+	 * |-----------|           |---------|
-+	 * | unfaulted |           | faulted |
-+	 * |-----------|           |---------|
-+	 *
-+	 * Because the anonymous page offset of the faulted region is now
-+	 * &carveout[10 * page_size], despite the two regions being mergeable
-+	 * due to file page offset, they are NOT mergeable due to anonymous
-+	 * page offset.
-+	 */
-+	ptr2 = sys_mremap(ptr2, 5 * page_size, 5 * page_size,
-+			  MREMAP_MAYMOVE | MREMAP_FIXED,
-+			  &carveout[5 * page_size]);
-+	ASSERT_NE(ptr2, MAP_FAILED);
-+
-+	/* Assert that they did not merge. */
-+	ASSERT_TRUE(find_vma_procmap(procmap, ptr));
-+	ASSERT_EQ(procmap->query.vma_start, (unsigned long)ptr);
-+	ASSERT_EQ(procmap->query.vma_end, (unsigned long)ptr + 5 * page_size);
-+}
-+
- TEST_F(merge_with_fork, mremap_faulted_to_unfaulted_prev)
+ static inline void remove_migration_pmd(struct page_vma_mapped_walk *pvmw,
+-		struct page *new)
++		struct folio *folio)
  {
- 	struct procmap_fd *procmap = &self->procmap;
+ 	BUILD_BUG();
+ }
+--- a/mm/huge_memory.c~mm-huge_memory-update-remove_migration_pmd-to-accept-a-folio
++++ a/mm/huge_memory.c
+@@ -5077,9 +5077,8 @@ int set_pmd_migration_entry(struct page_
+ 	return 0;
+ }
+ 
+-void remove_migration_pmd(struct page_vma_mapped_walk *pvmw, struct page *new)
++void remove_migration_pmd(struct page_vma_mapped_walk *pvmw, struct folio *folio)
+ {
+-	struct folio *folio = page_folio(new);
+ 	struct vm_area_struct *vma = pvmw->vma;
+ 	struct mm_struct *mm = vma->vm_mm;
+ 	unsigned long address = pvmw->address;
+@@ -5115,11 +5114,9 @@ void remove_migration_pmd(struct page_vm
+ 		swp_entry_t entry;
+ 
+ 		if (pmd_write(pmde))
+-			entry = make_writable_device_private_entry(
+-							page_to_pfn(new));
++			entry = make_writable_device_private_entry(folio_pfn(folio));
+ 		else
+-			entry = make_readable_device_private_entry(
+-							page_to_pfn(new));
++			entry = make_readable_device_private_entry(folio_pfn(folio));
+ 		pmde = softleaf_to_pmd(entry);
+ 
+ 		if (pmd_swp_soft_dirty(*pvmw->pmd))
+@@ -5134,11 +5131,12 @@ void remove_migration_pmd(struct page_vm
+ 		if (!softleaf_is_migration_read(entry))
+ 			rmap_flags |= RMAP_EXCLUSIVE;
+ 
+-		folio_add_anon_rmap_pmd(folio, new, vma, haddr, rmap_flags);
++		folio_add_anon_rmap_pmd(folio, &folio->page, vma, haddr, rmap_flags);
+ 	} else {
+-		folio_add_file_rmap_pmd(folio, new, vma);
++		folio_add_file_rmap_pmd(folio, &folio->page, vma);
+ 	}
+-	VM_BUG_ON(pmd_write(pmde) && folio_test_anon(folio) && !PageAnonExclusive(new));
++	VM_WARN_ON_ONCE(pmd_write(pmde) && folio_test_anon(folio) &&
++			!PageAnonExclusive(&folio->page));
+ 	set_pmd_at(mm, haddr, pvmw->pmd, pmde);
+ 
+ 	/* No need to invalidate - it was non-present before */
+--- a/mm/migrate.c~mm-huge_memory-update-remove_migration_pmd-to-accept-a-folio
++++ a/mm/migrate.c
+@@ -372,7 +372,7 @@ static bool remove_migration_pte(struct
+ 		if (!pvmw.pte) {
+ 			VM_BUG_ON_FOLIO(folio_test_hugetlb(folio) ||
+ 					!folio_test_pmd_mappable(folio), folio);
+-			remove_migration_pmd(&pvmw, new);
++			remove_migration_pmd(&pvmw, folio);
+ 			continue;
+ 		}
+ #endif
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
 
+mm-migrate-calculate-large-folio-page-index-using-pfn.patch
+mm-rmap-use-anon-pgoff-to-track-map_private-file-backed-anon-folios.patch
+tools-testing-vma-expand-vma-merge-tests-to-assert-anon-pgoff.patch
+tools-testing-selftests-mm-test-anonymous-page-offset-merge-behaviour.patch
 mm-vma-only-permit-map_private-dev-zero-to-be-mapped-anonymous.patch
 mm-vma-make-map_private-mapped-dev-zero-mappings-truly-anonymous.patch
 tools-testing-vma-add-test-to-assert-map_private-dev-zero-is-anon.patch
