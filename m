@@ -1,151 +1,176 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.19])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 849AB22D4C3;
-	Fri, 14 Aug 2026 21:16:05 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 005383A875B
+	for <mm-commits@vger.kernel.org>; Fri, 14 Aug 2026 21:46:12 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.19
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786742166; cv=none; b=VpdF3I05YR+4cphwU4J4vRjbavXx/al3Zjo85UVF/ypwMVu/DBMVfoDV+LcLnNkx3nHbzG4/SbRG1vzw5LYJ5ZF2NeqTq0PB5hIeF8TJsBR31Jn8DY5SqBKEmFQNdQT45h69KbfX8NQUSfE8tv3+L4HQbbcy0dYx6low2103k1Y=
+	t=1786743978; cv=none; b=OIR1yp7YoORvUGWUBVuJR1RmpEFwW7dLy7J1/e59AFEGjVuNie9JS5LCDKNVYUxv8WNwNQxXkSma/D2LZpWQRIPN99GdC1+MORx4jWh9pfmIjUMoVIqq5zbW8oSBZ0oWNunKfyZNbWkf9r1Uk6L6ccj/zgX6gU6khjZ3S8S8VTU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786742166; c=relaxed/simple;
-	bh=Xo2Lyg1H6kjT4+1at9Xl3VjTQWE23j3sPQiTGcDPU30=;
-	h=Date:To:From:Subject:Message-Id; b=l4/0TJk3Vg+UJyTI9CuMLp98UPbjcqFRX4Jgz3jA7u6uTNKrNEyg8IUmGREaccleWw9aPmYcbkpNM3ELpOhUkuzt4JrxiWB5uEBpjsHRrNQc31hSfEXEP7INURmlDNp+C02Jq86JSCj6JHVqxUUOiV2TFMLYunm7kOcTF3rp4+Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mOl7NkrS; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1786743978; c=relaxed/simple;
+	bh=5icbQX2VJlEt+gAZ3GH5ApZAlYrfxqHnTWTlpRn0QWs=;
+	h=Date:From:To:Cc:Subject:Message-ID; b=mI+sVs9wUE7rPK7NE3D3k9iy4MPUlWC1+opp4TzJLNBxJ/jNFe/+mRTl+bSh/3IgC7ehS4h1U9XZFT2GhlAGmE9J2siCTuR8w2qtAN04jdXpdWp9C+aQwNfNeTHO6dHxLyA9jV+elfrVEkAejE/8HqlElZLZ7hSTAGY1yQ2/7Ss=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=cz4G0/Wg; arc=none smtp.client-ip=192.198.163.19
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mOl7NkrS"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DF9FD1F000E9;
-	Fri, 14 Aug 2026 21:16:04 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1786742165;
-	bh=JZfoEZhy5UPGnccHP3LFKuw215JBj5sdNMCVaul3CkY=;
-	h=Date:To:From:Subject;
-	b=mOl7NkrSz3OJBSm60XdH5M0PbP/jTwMjkl/cjhSWtqO/7YV0kJqkFnllGFQVSSHEr
-	 8F/s+qL6H0tEcyuwzIbRyxYHbvMnOTWjgflnypvirZjLuRpCxBsFHn+0Q09xq7AVeQ
-	 eJzyNT52LGD580HgtyxkeQcHN/DkfCoUkYLMz+Sc=
-Date: Fri, 14 Aug 2026 14:16:04 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,rppt@kernel.org,ndesaulniers@google.com,morbo@google.com,kees@kernel.org,justinstitt@google.com,nathan@kernel.org,akpm@linux-foundation.org
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + arch_numa-avoid-false-positive-fortify-warning-in-setup_node_to_cpumask_map.patch added to mm-unstable branch
-Message-Id: <20260814211604.DF9FD1F000E9@smtp.kernel.org>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="cz4G0/Wg"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1786743973; x=1818279973;
+  h=date:from:to:cc:subject:message-id;
+  bh=5icbQX2VJlEt+gAZ3GH5ApZAlYrfxqHnTWTlpRn0QWs=;
+  b=cz4G0/WgGAue1wWLC3h7geKRhj0AzWVIh8oFac5GaQoCb7rhttf19gBH
+   hBUXm7l3odCwzk5Kvx/8z4VP0WxbJhc/DsITNLt3LYaKb+c7T6Na92H9g
+   fXvnzMyOdtEEybWWQr+rJRQk+r1o6yvrj6dtunIgwI5De+wkDlmNe66m6
+   P9ksapeLWnVQj0gxY0n5oYrA5olOSVWbZtqewiEwNmGye3vCZLRDH8W8G
+   H6yDjhdIwTXls//r0rICwD2z6ONuIORILEVRKbpIcdnC3r08y6/zNKu5f
+   BVD1ZJ7WgWhTjUl+CiYovoElN2DUSRe2TRC04/JPGcEZ2e+QWZGjnST0R
+   g==;
+X-CSE-ConnectionGUID: OGzRXJdWTl+5u0N6BUagqA==
+X-CSE-MsgGUID: 7VyOvDb0S16hUh1oqWb+5Q==
+X-IronPort-AV: E=McAfee;i="6800,10657,11875"; a="86287675"
+X-IronPort-AV: E=Sophos;i="6.25,224,1779174000"; 
+   d="scan'208";a="86287675"
+Received: from fmviesa006.fm.intel.com ([10.60.135.146])
+  by fmvoesa113.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Aug 2026 14:46:12 -0700
+X-CSE-ConnectionGUID: XRPJ+L0RSb6Yc3rFAESRMw==
+X-CSE-MsgGUID: Brw3EAkeStumoDoyW/MbXA==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.25,224,1779174000"; 
+   d="scan'208";a="260091269"
+Received: from lkp-server01.sh.intel.com (HELO 6eda058d650d) ([10.239.97.150])
+  by fmviesa006.fm.intel.com with ESMTP; 14 Aug 2026 14:46:11 -0700
+Received: from kbuild by 6eda058d650d with local (Exim 4.98.2)
+	(envelope-from <lkp@intel.com>)
+	id 1wuzj6-00000000aIH-2usI;
+	Fri, 14 Aug 2026 21:46:08 +0000
+Date: Sat, 15 Aug 2026 05:45:37 +0800
+From: kernel test robot <lkp@intel.com>
+To: David Hildenbrand <david@kernel.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>,
+ Linux Memory Management List <linux-mm@kvack.org>,
+ mm-commits@vger.kernel.org
+Subject: [akpm-mm:mm-new] BUILD SUCCESS
+ 6c2cdf00fe5205942b5f29e16905603a1717b931
+Message-ID: <202608150524.CchPIr2M-lkp@intel.com>
+User-Agent: s-nail v14.9.25
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
+tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm.git mm-new
+branch HEAD: 6c2cdf00fe5205942b5f29e16905603a1717b931  mm/swap, PM: hibernate: atomically replace hibernation pin
 
-The patch titled
-     Subject: arch_numa: avoid false positive fortify warning in setup_node_to_cpumask_map()
-has been added to the -mm mm-unstable branch.  Its filename is
-     arch_numa-avoid-false-positive-fortify-warning-in-setup_node_to_cpumask_map.patch
+elapsed time: 794m
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arch_numa-avoid-false-positive-fortify-warning-in-setup_node_to_cpumask_map.patch
+configs tested: 97
+configs skipped: 0
 
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+The following configs have been built successfully.
+More configs may be tested in the coming days.
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+tested configs:
+alpha                            allnoconfig    gcc-16.1.0
+alpha                           allyesconfig    gcc-16.1.0
+alpha                              defconfig    gcc-16.1.0
+arc                             allmodconfig    gcc-16.1.0
+arc                             allyesconfig    gcc-16.1.0
+arc                  randconfig-001-20260814    gcc-10.5.0
+arc                  randconfig-002-20260814    gcc-12.5.0
+arm                  randconfig-001-20260814    gcc-16.1.0
+arm                  randconfig-002-20260814    gcc-10.5.0
+arm                  randconfig-003-20260814    gcc-16.1.0
+arm                  randconfig-004-20260814    clang-17
+arm64                randconfig-001-20260814    gcc-10.5.0
+arm64                randconfig-002-20260814    clang-24
+arm64                randconfig-003-20260814    clang-19
+arm64                randconfig-004-20260814    clang-17
+csky                            allmodconfig    gcc-16.1.0
+csky                 randconfig-001-20260814    gcc-16.1.0
+csky                 randconfig-002-20260814    gcc-10.5.0
+hexagon              randconfig-001-20260814    clang-17
+hexagon              randconfig-002-20260814    clang-19
+i386                            allmodconfig    gcc-14
+i386       buildonly-randconfig-001-20260814    clang-22
+i386       buildonly-randconfig-002-20260814    gcc-13
+i386       buildonly-randconfig-003-20260814    clang-22
+i386       buildonly-randconfig-004-20260814    clang-22
+i386       buildonly-randconfig-005-20260814    gcc-13
+i386       buildonly-randconfig-006-20260814    gcc-14
+i386                 randconfig-001-20260814    clang-22
+i386                 randconfig-002-20260814    gcc-14
+i386                 randconfig-003-20260814    gcc-14
+i386                 randconfig-004-20260814    clang-22
+i386                 randconfig-005-20260814    clang-22
+i386                 randconfig-006-20260814    clang-22
+i386                 randconfig-007-20260814    clang-22
+i386                 randconfig-011-20260814    gcc-14
+i386                 randconfig-012-20260814    gcc-12
+i386                 randconfig-013-20260814    gcc-12
+i386                 randconfig-014-20260814    gcc-14
+i386                 randconfig-015-20260814    gcc-12
+i386                 randconfig-016-20260814    gcc-14
+i386                 randconfig-017-20260814    gcc-14
+loongarch                          defconfig    clang-24
+loongarch            randconfig-001-20260814    gcc-16.1.0
+loongarch            randconfig-002-20260814    clang-24
+nios2                           allmodconfig    gcc-11.5.0
+nios2                            allnoconfig    gcc-11.5.0
+nios2                randconfig-001-20260814    gcc-11.5.0
+nios2                randconfig-002-20260814    gcc-11.5.0
+parisc                          allmodconfig    gcc-16.1.0
+parisc                          allyesconfig    gcc-16.1.0
+parisc                             defconfig    gcc-16.1.0
+parisc               randconfig-001-20260814    gcc-15.2.0
+parisc               randconfig-002-20260814    gcc-9.5.0
+powerpc              randconfig-001-20260814    gcc-8.5.0
+powerpc              randconfig-002-20260814    clang-18
+powerpc                    tqm5200_defconfig    gcc-16.1.0
+powerpc64            randconfig-001-20260814    gcc-14.3.0
+powerpc64            randconfig-002-20260814    gcc-8.5.0
+riscv                randconfig-001-20260814    gcc-14.3.0
+riscv                randconfig-002-20260814    clang-24
+s390                 randconfig-001-20260814    gcc-11.5.0
+s390                 randconfig-002-20260814    gcc-13.4.0
+sh                                 defconfig    gcc-16.1.0
+sh                   randconfig-001-20260814    gcc-16.1.0
+sh                   randconfig-002-20260814    gcc-16.1.0
+sparc                randconfig-001-20260814    gcc-16.1.0
+sparc                randconfig-002-20260814    gcc-15.2.0
+sparc64              randconfig-001-20260814    gcc-8.5.0
+sparc64              randconfig-002-20260814    clang-24
+um                   randconfig-001-20260814    gcc-14
+um                   randconfig-002-20260814    clang-22
+x86_64     buildonly-randconfig-001-20260814    clang-22
+x86_64     buildonly-randconfig-002-20260814    clang-22
+x86_64     buildonly-randconfig-003-20260814    clang-22
+x86_64     buildonly-randconfig-004-20260814    clang-22
+x86_64     buildonly-randconfig-005-20260814    clang-22
+x86_64     buildonly-randconfig-006-20260814    gcc-14
+x86_64               randconfig-001-20260814    gcc-14
+x86_64               randconfig-002-20260814    clang-22
+x86_64               randconfig-003-20260814    clang-22
+x86_64               randconfig-004-20260814    clang-22
+x86_64               randconfig-005-20260814    gcc-14
+x86_64               randconfig-006-20260814    gcc-14
+x86_64               randconfig-011-20260814    clang-22
+x86_64               randconfig-012-20260814    gcc-13
+x86_64               randconfig-013-20260814    clang-22
+x86_64               randconfig-014-20260814    gcc-14
+x86_64               randconfig-015-20260814    gcc-14
+x86_64               randconfig-016-20260814    clang-22
+x86_64               randconfig-071-20260814    gcc-14
+x86_64               randconfig-072-20260814    clang-22
+x86_64               randconfig-073-20260814    clang-22
+x86_64               randconfig-074-20260814    gcc-13
+x86_64               randconfig-075-20260814    gcc-14
+x86_64               randconfig-076-20260814    clang-22
+xtensa               randconfig-001-20260814    gcc-9.5.0
+xtensa               randconfig-002-20260814    gcc-15.2.0
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
-
-------------------------------------------------------
-From: Nathan Chancellor <nathan@kernel.org>
-Subject: arch_numa: avoid false positive fortify warning in setup_node_to_cpumask_map()
-Date: Thu, 13 Aug 2026 20:12:55 -0700
-
-When building ARCH=riscv using clang with CONFIG_FORTIFY_SOURCE and
-CONFIG_UBSAN_BOUNDS enabled, CONFIG_NR_CPUS > 64, and the default value of
-2 for CONFIG_NODES_SHIFT, there is a compiletime warning from the fortify
-routines.
-
-  In file included from mm/arch_numa.c:11:
-  In file included from include/linux/acpi.h:14:
-  In file included from include/linux/resource_ext.h:11:
-  In file included from include/linux/slab.h:17:
-  In file included from include/linux/gfp.h:7:
-  In file included from include/linux/mmzone.h:8:
-  In file included from include/linux/spinlock.h:60:
-  In file included from include/linux/interrupt_rc.h:17:
-  In file included from include/linux/smp.h:13:
-  In file included from include/linux/cpumask.h:11:
-  In file included from include/linux/bitmap.h:13:
-  In file included from include/linux/string.h:383:
-  include/linux/fortify-string.h:430:4: warning: call to '__write_overflow_field' declared with 'warning' attribute: detected write beyond size of field (1st parameter); maybe use struct_group()? [-Wattribue-warning]
-    430 |                         __write_overflow_field(p_size_field, size);
-        |                         ^
-  include/linux/fortify-string.h:430:4: note: called by function 'fortify_memset_chk(unsigned long, unsigned long, unsigned long)'
-  include/linux/bitmap.h:248:3: note: inlined by function 'setup_node_to_cpumask_map'
-    248 |                 memset(dst, 0, len);
-        |                 ^
-  include/linux/fortify-string.h:462:25: note: expanded from macro 'memset'
-    462 | #define memset(p, c, s) __fortify_memset_chk(p, c, s,                   \
-        |                         ^
-  include/linux/fortify-string.h:453:2: note: expanded from macro '__fortify_memset_chk'
-    453 |         fortify_memset_chk(__fortify_size, p_size, p_size_field),       \
-        |         ^
-  include/linux/fortify-string.h:430:4: note: use '-gline-directives-only' (implied by '-g1') or higher for more accurate inlining chain locations
-    430 |                         __write_overflow_field(p_size_field, size);
-        |                         ^
-  1 warning generated.
-
-In this configuration, MAX_NUMNODES is 4.  clang unrolls the for loop in
-setup_node_to_cpumask_map() past this, which triggers the fortify check
-when accessing node_to_cpumask_map on the theoretical fifth loop iteration
-because it would be an out of bounds write.
-
-Make it clear to clang that nr_node_ids is bounded by MAX_NUMNODES due to
-the logic in setup_nr_node_ids() by early returning in
-setup_node_to_cpumask_map() should that condition be violated.
-
-Link: https://lore.kernel.org/20260813-arch_numa-avoid-fortify-warning-v2-1-093ad97a78df@kernel.org
-Signed-off-by: Nathan Chancellor <nathan@kernel.org>
-Closes: https://github.com/ClangBuiltLinux/linux/issues/2174
-Cc: Kees Cook <kees@kernel.org>
-Cc: Bill Wendling <morbo@google.com>
-Cc: Justin Stitt <justinstitt@google.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Nathan Chancellor <nathan@kernel.org>
-Cc: Nick Desaulniers <ndesaulniers@google.com>
-Cc: <stable@vger.kernel.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- mm/arch_numa.c |   12 ++++++++++++
- 1 file changed, 12 insertions(+)
-
---- a/mm/arch_numa.c~arch_numa-avoid-false-positive-fortify-warning-in-setup_node_to_cpumask_map
-+++ a/mm/arch_numa.c
-@@ -105,6 +105,18 @@ static void __init setup_node_to_cpumask
- 	if (nr_node_ids == MAX_NUMNODES)
- 		setup_nr_node_ids();
- 
-+	/*
-+	 * This check should never be true but it makes it clear to compilers
-+	 * that node_to_cpumask_map is bound by nr_node_ids, avoiding false
-+	 * positive fortify warnings when accessing node_to_cpumask_map in the
-+	 * for loop below.
-+	 */
-+	if (unlikely(nr_node_ids > MAX_NUMNODES)) {
-+		pr_err("nr_node_ids (%u) is larger than MAX_NUMNODES (%u)\n",
-+		       nr_node_ids, MAX_NUMNODES);
-+		return;
-+	}
-+
- 	/* allocate and clear the mapping */
- 	for (node = 0; node < nr_node_ids; node++) {
- 		alloc_bootmem_cpumask_var(&node_to_cpumask_map[node]);
-_
-
-Patches currently in -mm which might be from nathan@kernel.org are
-
-arch_numa-avoid-false-positive-fortify-warning-in-setup_node_to_cpumask_map.patch
-
+--
+0-DAY CI Kernel Test Service
+https://github.com/intel/lkp-tests/wiki
