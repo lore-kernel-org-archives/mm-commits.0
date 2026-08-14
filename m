@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D449B49252E
-	for <mm-commits@vger.kernel.org>; Fri, 14 Aug 2026 18:29:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 849AB22D4C3;
+	Fri, 14 Aug 2026 21:16:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786732193; cv=none; b=lIpye1gX2MCAxFOqOpMF943oXMkbsl/JLogGZGHdxJPd6vNwq/N/TYN7nZXq4EDI99oHAoosivr/Mp59SCwWxYLJL8iMNGDwT58D081tCnBLqOOW5gNIVySfDtvFZ7UWqs9881HpvJuqlo1AJ+qWn4Ey2UTasm/JLmMvgVzwBTQ=
+	t=1786742166; cv=none; b=VpdF3I05YR+4cphwU4J4vRjbavXx/al3Zjo85UVF/ypwMVu/DBMVfoDV+LcLnNkx3nHbzG4/SbRG1vzw5LYJ5ZF2NeqTq0PB5hIeF8TJsBR31Jn8DY5SqBKEmFQNdQT45h69KbfX8NQUSfE8tv3+L4HQbbcy0dYx6low2103k1Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786732193; c=relaxed/simple;
-	bh=y/QeILA/xcNeMPEjdFKtKW3Wgyvyi8zNu7F7s1B2JRg=;
-	h=Date:To:From:Subject:Message-Id; b=tPi9dIqrt/X1TdZlO831PnDsD4yFxXwEhYyWfP7wv2WRuOY0dWfYgjGXc10JmKn6M10BAHtq9SXTzVvrVpRb7moi2fddb8YHjgVRm1KO/goCK6DmrUvlNdazEpt8cxeBRwneyLO8rnNCw7y/FjGHl0Kj6x6MFi8Via0H04q2uGU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=L1VVpLC3; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1786742166; c=relaxed/simple;
+	bh=Xo2Lyg1H6kjT4+1at9Xl3VjTQWE23j3sPQiTGcDPU30=;
+	h=Date:To:From:Subject:Message-Id; b=l4/0TJk3Vg+UJyTI9CuMLp98UPbjcqFRX4Jgz3jA7u6uTNKrNEyg8IUmGREaccleWw9aPmYcbkpNM3ELpOhUkuzt4JrxiWB5uEBpjsHRrNQc31hSfEXEP7INURmlDNp+C02Jq86JSCj6JHVqxUUOiV2TFMLYunm7kOcTF3rp4+Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mOl7NkrS; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="L1VVpLC3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 723B41F000E9;
-	Fri, 14 Aug 2026 18:29:51 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mOl7NkrS"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DF9FD1F000E9;
+	Fri, 14 Aug 2026 21:16:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1786732191;
-	bh=jzO3DXFEh/6o/Z+hNeunJzrzxTkvBhunXEuvQ12kA60=;
+	d=linux-foundation.org; s=korg; t=1786742165;
+	bh=JZfoEZhy5UPGnccHP3LFKuw215JBj5sdNMCVaul3CkY=;
 	h=Date:To:From:Subject;
-	b=L1VVpLC361iVY0qiE8Q+OX0H77zKC9MBSasJlsaweIfpPb/olLz4ur04pU+aTCXC/
-	 eZmxnIeLRTnxRsBlPDx8RCa7Thck5DBU+jp54bLPldVdnuouI9+2GLf97fpw8fssSq
-	 oq+3SEb6cTGqDjp+ZKZJ8qiJv1yalOFXtFhfg2io=
-Date: Fri, 14 Aug 2026 11:29:50 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,riel@surriel.com,ljs@kernel.org,liam@infradead.org,lance.yang@linux.dev,jannh@google.com,harry@kernel.org,david@kernel.org,seohyun.kim@outlook.kr,akpm@linux-foundation.org
+	b=mOl7NkrSz3OJBSm60XdH5M0PbP/jTwMjkl/cjhSWtqO/7YV0kJqkFnllGFQVSSHEr
+	 8F/s+qL6H0tEcyuwzIbRyxYHbvMnOTWjgflnypvirZjLuRpCxBsFHn+0Q09xq7AVeQ
+	 eJzyNT52LGD580HgtyxkeQcHN/DkfCoUkYLMz+Sc=
+Date: Fri, 14 Aug 2026 14:16:04 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,rppt@kernel.org,ndesaulniers@google.com,morbo@google.com,kees@kernel.org,justinstitt@google.com,nathan@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-rmap-synchronize-lock-and-unlock-target-in-anon_vma_clone.patch added to mm-unstable branch
-Message-Id: <20260814182951.723B41F000E9@smtp.kernel.org>
+Subject: + arch_numa-avoid-false-positive-fortify-warning-in-setup_node_to_cpumask_map.patch added to mm-unstable branch
+Message-Id: <20260814211604.DF9FD1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/rmap: synchronize lock and unlock target in anon_vma_clone
+     Subject: arch_numa: avoid false positive fortify warning in setup_node_to_cpumask_map()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-rmap-synchronize-lock-and-unlock-target-in-anon_vma_clone.patch
+     arch_numa-avoid-false-positive-fortify-warning-in-setup_node_to_cpumask_map.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-rmap-synchronize-lock-and-unlock-target-in-anon_vma_clone.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arch_numa-avoid-false-positive-fortify-warning-in-setup_node_to_cpumask_map.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,47 +58,94 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Eric Kim <seohyun.kim@outlook.kr>
-Subject: mm/rmap: synchronize lock and unlock target in anon_vma_clone
-Date: Fri, 14 Aug 2026 15:30:51 +0900
+From: Nathan Chancellor <nathan@kernel.org>
+Subject: arch_numa: avoid false positive fortify warning in setup_node_to_cpumask_map()
+Date: Thu, 13 Aug 2026 20:12:55 -0700
 
-Currently, in anon_vma_clone(), src vma's anon_vma is assigned to
-active_anon_vma and is used when unlocking anon_vma after linking new
-AVCs.  However, the anon_vma is locked using src->anon_vma, instead of
-active_anon_vma, making the lock and unlock target inconsistent.
+When building ARCH=riscv using clang with CONFIG_FORTIFY_SOURCE and
+CONFIG_UBSAN_BOUNDS enabled, CONFIG_NR_CPUS > 64, and the default value of
+2 for CONFIG_NODES_SHIFT, there is a compiletime warning from the fortify
+routines.
 
-Use active_anon_vma for both locking and unlocking.
+  In file included from mm/arch_numa.c:11:
+  In file included from include/linux/acpi.h:14:
+  In file included from include/linux/resource_ext.h:11:
+  In file included from include/linux/slab.h:17:
+  In file included from include/linux/gfp.h:7:
+  In file included from include/linux/mmzone.h:8:
+  In file included from include/linux/spinlock.h:60:
+  In file included from include/linux/interrupt_rc.h:17:
+  In file included from include/linux/smp.h:13:
+  In file included from include/linux/cpumask.h:11:
+  In file included from include/linux/bitmap.h:13:
+  In file included from include/linux/string.h:383:
+  include/linux/fortify-string.h:430:4: warning: call to '__write_overflow_field' declared with 'warning' attribute: detected write beyond size of field (1st parameter); maybe use struct_group()? [-Wattribue-warning]
+    430 |                         __write_overflow_field(p_size_field, size);
+        |                         ^
+  include/linux/fortify-string.h:430:4: note: called by function 'fortify_memset_chk(unsigned long, unsigned long, unsigned long)'
+  include/linux/bitmap.h:248:3: note: inlined by function 'setup_node_to_cpumask_map'
+    248 |                 memset(dst, 0, len);
+        |                 ^
+  include/linux/fortify-string.h:462:25: note: expanded from macro 'memset'
+    462 | #define memset(p, c, s) __fortify_memset_chk(p, c, s,                   \
+        |                         ^
+  include/linux/fortify-string.h:453:2: note: expanded from macro '__fortify_memset_chk'
+    453 |         fortify_memset_chk(__fortify_size, p_size, p_size_field),       \
+        |         ^
+  include/linux/fortify-string.h:430:4: note: use '-gline-directives-only' (implied by '-g1') or higher for more accurate inlining chain locations
+    430 |                         __write_overflow_field(p_size_field, size);
+        |                         ^
+  1 warning generated.
 
-Link: https://lore.kernel.org/OS7PR01MB139142FE16EC63B892559D40496DA2@OS7PR01MB13914.jpnprd01.prod.outlook.com
-Signed-off-by: Eric Kim <seohyun.kim@outlook.kr>
-Reviewed-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Harry Yoo <harry@kernel.org>
-Cc: Jann Horn <jannh@google.com>
-Cc: Lance Yang <lance.yang@linux.dev>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
+In this configuration, MAX_NUMNODES is 4.  clang unrolls the for loop in
+setup_node_to_cpumask_map() past this, which triggers the fortify check
+when accessing node_to_cpumask_map on the theoretical fifth loop iteration
+because it would be an out of bounds write.
+
+Make it clear to clang that nr_node_ids is bounded by MAX_NUMNODES due to
+the logic in setup_nr_node_ids() by early returning in
+setup_node_to_cpumask_map() should that condition be violated.
+
+Link: https://lore.kernel.org/20260813-arch_numa-avoid-fortify-warning-v2-1-093ad97a78df@kernel.org
+Signed-off-by: Nathan Chancellor <nathan@kernel.org>
+Closes: https://github.com/ClangBuiltLinux/linux/issues/2174
+Cc: Kees Cook <kees@kernel.org>
+Cc: Bill Wendling <morbo@google.com>
+Cc: Justin Stitt <justinstitt@google.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Nathan Chancellor <nathan@kernel.org>
+Cc: Nick Desaulniers <ndesaulniers@google.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/rmap.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/arch_numa.c |   12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
---- a/mm/rmap.c~mm-rmap-synchronize-lock-and-unlock-target-in-anon_vma_clone
-+++ a/mm/rmap.c
-@@ -350,7 +350,7 @@ int anon_vma_clone(struct vm_area_struct
- 	 * Now link the anon_vma's back to the newly inserted AVCs.
- 	 * Note that all anon_vma's share the same root.
- 	 */
--	anon_vma_lock_write(src->anon_vma);
-+	anon_vma_lock_write(active_anon_vma);
- 	list_for_each_entry_reverse(avc, &dst->anon_vma_chain, same_vma) {
- 		struct anon_vma *anon_vma = avc->anon_vma;
+--- a/mm/arch_numa.c~arch_numa-avoid-false-positive-fortify-warning-in-setup_node_to_cpumask_map
++++ a/mm/arch_numa.c
+@@ -105,6 +105,18 @@ static void __init setup_node_to_cpumask
+ 	if (nr_node_ids == MAX_NUMNODES)
+ 		setup_nr_node_ids();
  
++	/*
++	 * This check should never be true but it makes it clear to compilers
++	 * that node_to_cpumask_map is bound by nr_node_ids, avoiding false
++	 * positive fortify warnings when accessing node_to_cpumask_map in the
++	 * for loop below.
++	 */
++	if (unlikely(nr_node_ids > MAX_NUMNODES)) {
++		pr_err("nr_node_ids (%u) is larger than MAX_NUMNODES (%u)\n",
++		       nr_node_ids, MAX_NUMNODES);
++		return;
++	}
++
+ 	/* allocate and clear the mapping */
+ 	for (node = 0; node < nr_node_ids; node++) {
+ 		alloc_bootmem_cpumask_var(&node_to_cpumask_map[node]);
 _
 
-Patches currently in -mm which might be from seohyun.kim@outlook.kr are
+Patches currently in -mm which might be from nathan@kernel.org are
 
-mm-rmap-synchronize-lock-and-unlock-target-in-anon_vma_clone.patch
+arch_numa-avoid-false-positive-fortify-warning-in-setup_node_to_cpumask_map.patch
 
