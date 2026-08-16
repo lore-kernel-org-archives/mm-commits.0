@@ -1,178 +1,141 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.16])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D8D041F938
-	for <mm-commits@vger.kernel.org>; Sun, 16 Aug 2026 00:05:24 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.16
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5EE8A9460
+	for <mm-commits@vger.kernel.org>; Sun, 16 Aug 2026 04:12:49 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786838726; cv=none; b=Cqs89BbJOYCLYHiyi3iJ6M6Oj+DLbxkZ8U2mNTF2YLdWpwoVtoRahOcgfbBrWaqnOfxC7/xjV5qft7QMhtpA9aS0f+V7jtCbYP605AzFElwtpL6WTIf6KQIvCEy+6j7CZa0CfgCDcT4DRhjjybfEp13trFKAiiET6EaV/0yrbno=
+	t=1786853570; cv=none; b=sizlkmBfvY95RuNAkX9oKPr5b226wlTTTR/az/nOvRbiTYvooKHkKWMCO61sThCo4OdqBAn9HkWiM1D+I7Gxs82vBse9EX6xRfsZt2UVNHFhVln4w6gQZFAPGeoFTBVHR6wa2pHqNRvFgLhlr/MMPKBlZbB7ZTEMDXDfouErf5M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786838726; c=relaxed/simple;
-	bh=VaOQwjUn/5W+Vxjff4nmO2RENY8dlbFq5sFTlodLZMY=;
-	h=Date:From:To:Cc:Subject:Message-ID; b=adpy0egWUY34te84NQkevMUfPU2JfK9byE0Pv9pKepeGPDMaAs82utR1CmLui4P/mMsjnXO4HwgIx5AsEBo29HAvYXxMa3khzmSHZV/kasGmGbJWWAv223qODVTch9EO23rbKkMAg2cCfrzi8bPYj5YRO+8JVxXun210hwcn4sI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=bKQ0fedU; arc=none smtp.client-ip=198.175.65.16
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	s=arc-20240116; t=1786853570; c=relaxed/simple;
+	bh=sT5Rzqk2+tQo6eBMHeHr5o8ZUR6m2czkyF/YeP4B86s=;
+	h=Date:To:From:Subject:Message-Id; b=N0rMMmbNN3Aso3ryUaE8RBDOWg5kpD3NSEDm5fOXKewoyK+KF5cx5ogukW0TM4uDVI2nvQvIYQvcKIOsLVspebVl2pJTBfSir0xGuIecY72c3KA3sqG5bMBSW+uULJAg/o1YTD1xNm6yFqwWGwgRhxFVZY7T/Zs8pNXgr4Wh5f0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=u4/9dnv2; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="bKQ0fedU"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1786838725; x=1818374725;
-  h=date:from:to:cc:subject:message-id;
-  bh=VaOQwjUn/5W+Vxjff4nmO2RENY8dlbFq5sFTlodLZMY=;
-  b=bKQ0fedUX2joaCJG5I/vdTBCoLTJ0MsCZk+YmxR4Ie5Vj/tgN410j0aM
-   jINgwaQyY1EIZOkNd1O+7swFDsiw/sDp25roJHV89XF1L45V9xzmY+3ci
-   MYU/9HRb5PIZdNetRb59bZq55zd1gxFwW4z9Pwj5z4nXaH2V/QSG+NC11
-   jhlRg4Eks6rYhVtmWdFTm0WuGEUJH8be2MmJvyKJZsSQbjy3II+r/Cw2y
-   Ze2v2/3YaHVE+rFOst1B4ZhlXBFSZtlHv1ws4e3y2sebgVS1iqaQ19D1b
-   j6Y5HwMFJu0rygVwWy2ttxUTNrgQkZ6tAXqL9URRs00KuGdrUjCuP3jAB
-   g==;
-X-CSE-ConnectionGUID: R7Y6wSeGQT+69x5+pzGFLQ==
-X-CSE-MsgGUID: K4dbM1JkQ6+gDq3ofSp/tg==
-X-IronPort-AV: E=McAfee;i="6800,10657,11876"; a="87576796"
-X-IronPort-AV: E=Sophos;i="6.25,226,1779174000"; 
-   d="scan'208";a="87576796"
-Received: from fmviesa007.fm.intel.com ([10.60.135.147])
-  by orvoesa108.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 15 Aug 2026 17:05:24 -0700
-X-CSE-ConnectionGUID: 9rGtrACvRVu6jWmeacnoYQ==
-X-CSE-MsgGUID: /4g+NdXbTxK1B4enuqfjWQ==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.25,226,1779174000"; 
-   d="scan'208";a="261284156"
-Received: from lkp-server01.sh.intel.com (HELO 6eda058d650d) ([10.239.97.150])
-  by fmviesa007.fm.intel.com with ESMTP; 15 Aug 2026 17:05:23 -0700
-Received: from kbuild by 6eda058d650d with local (Exim 4.98.2)
-	(envelope-from <lkp@intel.com>)
-	id 1wvONM-00000000cYo-0uUj;
-	Sun, 16 Aug 2026 00:05:20 +0000
-Date: Sun, 16 Aug 2026 08:05:08 +0800
-From: kernel test robot <lkp@intel.com>
-To: David Hildenbrand <david@kernel.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>,
- Linux Memory Management List <linux-mm@kvack.org>,
- mm-commits@vger.kernel.org
-Subject: [akpm-mm:mm-new] BUILD SUCCESS
- 33f61b12d297562321533c048e034b1fb21c1cf3
-Message-ID: <202608160855.VZWST6gY-lkp@intel.com>
-User-Agent: s-nail v14.9.25
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="u4/9dnv2"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D9A801F000E9;
+	Sun, 16 Aug 2026 04:12:48 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=linux-foundation.org; s=korg; t=1786853569;
+	bh=1NOQ7joh8UV2RL8i61czk28cIUnPUiVHBF+JL2vvbYo=;
+	h=Date:To:From:Subject;
+	b=u4/9dnv2Or/wD99z6wj29pSATrKs/f3Jbm+YUbrLjzJTnbMZVdKltDmdygAS6t1nz
+	 daPPsMvFUqDUuhWYlV2266feym8PEYBO3nz7wPOFA0F8yRBmZcoe5EPrDdMSd1OF9z
+	 LktgzVb3WdUdY3r3SlgwSLx1QcPDRoZMRzkXSj6Y=
+Date: Sat, 15 Aug 2026 21:12:48 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,shuah@kernel.org,sarthak.sharma@arm.com,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,rppt@kernel.org,akpm@linux-foundation.org
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: [merged mm-stable] selftests-mm-thuge-gen-fix-test_shmget-for-page_size-check.patch removed from -mm tree
+Message-Id: <20260816041248.D9A801F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
-tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm.git mm-new
-branch HEAD: 33f61b12d297562321533c048e034b1fb21c1cf3  mm/swap, PM: hibernate: atomically replace hibernation pin
 
-elapsed time: 773m
+The quilt patch titled
+     Subject: selftests/mm: thuge-gen: fix test_shmget() for PAGE_SIZE check
+has been removed from the -mm tree.  Its filename was
+     selftests-mm-thuge-gen-fix-test_shmget-for-page_size-check.patch
 
-configs tested: 99
-configs skipped: 1
+This patch was dropped because it was merged into the mm-stable branch
+of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
-The following configs have been built successfully.
-More configs may be tested in the coming days.
+------------------------------------------------------
+From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
+Subject: selftests/mm: thuge-gen: fix test_shmget() for PAGE_SIZE check
+Date: Wed, 12 Aug 2026 11:17:40 +0300
 
-tested configs:
-alpha                            allnoconfig    gcc-16.1.0
-alpha                           allyesconfig    gcc-16.1.0
-alpha                              defconfig    gcc-16.1.0
-arc                             allmodconfig    gcc-16.1.0
-arc                             allyesconfig    gcc-16.1.0
-arc                  randconfig-001-20260815    gcc-11.5.0
-arc                  randconfig-002-20260815    gcc-8.5.0
-arm                  randconfig-001-20260815    clang-21
-arm                  randconfig-002-20260815    gcc-8.5.0
-arm                  randconfig-003-20260815    clang-17
-arm                  randconfig-004-20260815    gcc-8.5.0
-arm64                randconfig-001-20260815    clang-24
-arm64                randconfig-002-20260815    gcc-8.5.0
-arm64                randconfig-003-20260815    clang-17
-arm64                randconfig-004-20260815    clang-24
-csky                            allmodconfig    gcc-16.1.0
-csky                 randconfig-001-20260815    gcc-13.4.0
-csky                 randconfig-002-20260815    gcc-15.2.0
-hexagon              randconfig-001-20260815    clang-24
-hexagon              randconfig-002-20260815    clang-22
-i386                            allmodconfig    gcc-14
-i386       buildonly-randconfig-001-20260815    gcc-14
-i386       buildonly-randconfig-002-20260815    gcc-14
-i386       buildonly-randconfig-003-20260815    gcc-14
-i386       buildonly-randconfig-004-20260815    gcc-14
-i386       buildonly-randconfig-005-20260815    gcc-14
-i386       buildonly-randconfig-006-20260815    clang-22
-i386                          randconfig-001    clang-22
-i386                 randconfig-001-20260815    clang-22
-i386                 randconfig-002-20260815    clang-22
-i386                 randconfig-003-20260815    gcc-14
-i386                 randconfig-004-20260815    clang-22
-i386                 randconfig-005-20260815    gcc-14
-i386                 randconfig-006-20260815    gcc-14
-i386                 randconfig-007-20260815    gcc-14
-i386                 randconfig-011-20260815    clang-22
-i386                 randconfig-012-20260815    gcc-14
-i386                 randconfig-013-20260815    clang-22
-i386                 randconfig-014-20260815    clang-22
-i386                 randconfig-015-20260815    clang-22
-i386                 randconfig-016-20260815    gcc-14
-i386                 randconfig-017-20260815    clang-22
-loongarch                          defconfig    clang-24
-loongarch            randconfig-001-20260815    clang-18
-loongarch            randconfig-002-20260815    clang-18
-nios2                           allmodconfig    gcc-11.5.0
-nios2                            allnoconfig    gcc-11.5.0
-nios2                randconfig-001-20260815    gcc-8.5.0
-nios2                randconfig-002-20260815    gcc-8.5.0
-parisc                          allmodconfig    gcc-16.1.0
-parisc                          allyesconfig    gcc-16.1.0
-parisc                             defconfig    gcc-16.1.0
-parisc               randconfig-001-20260815    gcc-8.5.0
-parisc               randconfig-002-20260815    gcc-16.1.0
-powerpc              randconfig-001-20260815    gcc-9.5.0
-powerpc              randconfig-002-20260815    clang-17
-powerpc64            randconfig-001-20260815    gcc-11.5.0
-powerpc64            randconfig-002-20260815    gcc-8.5.0
-riscv                randconfig-001-20260815    gcc-8.5.0
-riscv                randconfig-002-20260815    gcc-8.5.0
-s390                 randconfig-001-20260815    clang-24
-s390                 randconfig-002-20260815    clang-21
-sh                                 defconfig    gcc-16.1.0
-sh                   randconfig-001-20260815    gcc-16.1.0
-sh                   randconfig-002-20260815    gcc-11.5.0
-sparc                randconfig-001-20260815    gcc-8.5.0
-sparc                randconfig-002-20260815    gcc-16.1.0
-sparc64              randconfig-001-20260815    clang-20
-sparc64              randconfig-002-20260815    gcc-8.5.0
-um                   randconfig-001-20260815    clang-24
-um                   randconfig-002-20260815    clang-24
-x86_64     buildonly-randconfig-001-20260815    clang-22
-x86_64     buildonly-randconfig-002-20260815    gcc-14
-x86_64     buildonly-randconfig-003-20260815    gcc-14
-x86_64     buildonly-randconfig-004-20260815    gcc-14
-x86_64     buildonly-randconfig-005-20260815    gcc-14
-x86_64     buildonly-randconfig-006-20260815    clang-22
-x86_64                        randconfig-001    gcc-14
-x86_64               randconfig-001-20260815    gcc-13
-x86_64               randconfig-002-20260815    clang-22
-x86_64               randconfig-003-20260815    clang-22
-x86_64               randconfig-004-20260815    clang-22
-x86_64               randconfig-005-20260815    clang-22
-x86_64               randconfig-006-20260815    gcc-14
-x86_64               randconfig-011-20260815    clang-22
-x86_64               randconfig-012-20260815    gcc-14
-x86_64               randconfig-013-20260815    clang-22
-x86_64               randconfig-014-20260815    clang-22
-x86_64               randconfig-015-20260815    gcc-14
-x86_64               randconfig-016-20260815    gcc-14
-x86_64               randconfig-071-20260815    clang-22
-x86_64               randconfig-072-20260815    clang-22
-x86_64               randconfig-073-20260815    gcc-12
-x86_64               randconfig-074-20260815    clang-22
-x86_64               randconfig-075-20260815    clang-22
-x86_64               randconfig-076-20260815    clang-22
-xtensa               randconfig-001-20260815    gcc-8.5.0
-xtensa               randconfig-002-20260815    gcc-8.5.0
-xtensa                        virt_defconfig    gcc-16.1.0
+Commit 49a4e7186b08 ("selftests/mm: thuge-gen: add setup of HugeTLB
+pages") changed thuge-gen test to use common functions for reading hugetlb
+attributes from sysfs, but it missed that the original read_free()
+function special cased PAGE_SIZE tests.
 
---
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests/wiki
+For PAGE_SIZE tests, failure to read sysfs was ignored and read_free()
+returned 0.
+
+This allowed test_shmget() to essentially skip the check of how many huge
+pages was consumed when it ran with PAGE_SIZE.
+
+Commit 3199b0c09efa ("selftests/mm: fix read_file() return value check")
+fixed checks for read_file() return value and this exposed the issue in
+test_shmget() that checks the number of free hugetlb pages even for
+PAGE_SIZE test, tries to access
+
+/sys/kernel/mm/hugepages/hugepages-<PAGE_SIZE>/free_hugepages
+
+and obviously fails there.
+
+Gate the checks for free huge pages on size != getpagesize() and
+initialize before and after variables to values matching PAGE_SIZE test.
+
+Link: https://lore.kernel.org/20260812-selftests-thuge-gen-fix-v2-1-9adaa693e73b@kernel.org
+Fixes: 49a4e7186b08 ("selftests/mm: thuge-gen: add setup of HugeTLB pages")
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Reviewed-by: Sarthak Sharma <sarthak.sharma@arm.com>
+Acked-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ tools/testing/selftests/mm/thuge-gen.c |   15 ++++++++++-----
+ 1 file changed, 10 insertions(+), 5 deletions(-)
+
+--- a/tools/testing/selftests/mm/thuge-gen.c~selftests-mm-thuge-gen-fix-test_shmget-for-page_size-check
++++ a/tools/testing/selftests/mm/thuge-gen.c
+@@ -71,12 +71,16 @@ void test_mmap(unsigned long size, unsig
+ 
+ void test_shmget(unsigned long size, unsigned flags)
+ {
+-	int id;
+-	unsigned long before, after;
++	/* values for PAGE_SIZE test */
++	unsigned long before = NUM_PAGES;
++	unsigned long after = 0;
+ 	struct shm_info i;
+ 	char *map;
++	int id;
++
++	if (size != getpagesize())
++		before = hugetlb_free_pages(size);
+ 
+-	before = hugetlb_free_pages(size);
+ 	id = shmget(IPC_PRIVATE, size * NUM_PAGES, IPC_CREAT|0600|flags);
+ 	if (id < 0) {
+ 		if (errno == EPERM) {
+@@ -97,10 +101,11 @@ void test_shmget(unsigned long size, uns
+ 	shmctl(id, IPC_RMID, NULL);
+ 
+ 	memset(map, 0xff, size*NUM_PAGES);
+-	after = hugetlb_free_pages(size);
++	if (size != getpagesize())
++		after = hugetlb_free_pages(size);
+ 
+ 	show(size);
+-	ksft_test_result(size == getpagesize() || (before - after) == NUM_PAGES,
++	ksft_test_result((before - after) == NUM_PAGES,
+ 			 "%s: mmap %lu %x\n", __func__, size, flags);
+ 	if (shmdt(map))
+ 		ksft_exit_fail_msg("%s: shmdt: %s\n", __func__, strerror(errno));
+_
+
+Patches currently in -mm which might be from rppt@kernel.org are
+
+drivers-base-mm-move-arch_numac-to-mm.patch
+sh-remove-config_numa-and-realted-configuration-options.patch
+sh-mm-remove-numac.patch
+sh-mm-drop-allocate_pgdat.patch
+sh-remove-setup_bootmem_node-and-plat_mem_setup.patch
+sh-drop-dead-code-guarded-by-ifdef-config_numa.patch
+sh-drop-include-asm-mmzoneh.patch
+init-kconfig-drop-arch_want_numa_variable_locality.patch
+sh-init-remove-call-the-memblock_set_node.patch
+sh-remove-sparsemem-related-entries-from-kconfig.patch
+sh-drop-include-asm-sparsememh.patch
+
