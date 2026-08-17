@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 491CF235045;
-	Mon, 17 Aug 2026 21:41:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 21984472550
+	for <mm-commits@vger.kernel.org>; Mon, 17 Aug 2026 21:42:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787002908; cv=none; b=lDHBlvonPRchqEogrzjvNT86VmxiHw57GVRsbmHKQTyCoi6ZE3ZRWLL2XvwdELmmu+oQhe0usXqAwYKEURzoGa4kWm95pYtMtYwgnqANjr3HilWWQM31HXp2Y2As/5gYZeXiXkkj9rG6ZvRsJhZwT14tlIKNpwo5tcYaw2XH3Y4=
+	t=1787002973; cv=none; b=M1hjDt3YPDn4AcpzwVKjn9F8cyocFYr1P0CvjyneAND7PbvmJiE8sBL+BuawRwnGK3GxMk+z0sxokJFQ6Jx0xyX0STQKO1d7R2S7ikwRK2uOY+3Dg7S9njjzQLsDHrMXqEWIzdKU1ehWmAkdc9ySSzDYnOxtMU7RFCx7VlXkXJk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787002908; c=relaxed/simple;
-	bh=4WmHemqiGzwEr1P1GxIM9j8ebaIyfeQllPWsWFoDuzM=;
-	h=Date:To:From:Subject:Message-Id; b=j5JKBQmLhwxAJqJelDH7SpPa0W/vgpf31hcSzVhTj5HHvEigfui0eMRfpbvY4wAMcHvZ4uaASTfYF7skfqLx5vvloP11pxgXEgzQojSPnaEnco/SzzJL78PeMzICOV0FnU7LVXbnMkjJxePiK752aei8i7M9WB9sQoyDHT597YU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wOXU9p2K; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1787002973; c=relaxed/simple;
+	bh=l2UqfTM5f5ydiYDNfFxwi18R5OIQULljBB/UCmJQCeg=;
+	h=Date:To:From:Subject:Message-Id; b=VHKWTduUne5vFz3A+DMBfZJX7FSIxADK9J+y4aplxjBZMAMlYM4mp7/iD6hkMvVNu/mv27FTjUYO2I+jJGuDcfAMLT6URJvcjj7kYt2A+uV3xX2qQKLhCtlTrsnQSdpNPw3td2UjQduJ+dnCBwp4i/WHt4fUsfCGF+zLuesdH5k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vCtVW6ws; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wOXU9p2K"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C20191F000E9;
-	Mon, 17 Aug 2026 21:41:46 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vCtVW6ws"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 912061F000E9;
+	Mon, 17 Aug 2026 21:42:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1787002906;
-	bh=ilJFcXuONEQu0+B/j2F5OhA+v+1LDqzZjl8KkJQ9AWo=;
+	d=linux-foundation.org; s=korg; t=1787002971;
+	bh=imycEkTRcTcaCd3bnGa3HgFVI/FjaOSJZk6htCXg21k=;
 	h=Date:To:From:Subject;
-	b=wOXU9p2KWkYpMm+KoAe0RN/bztE6aqx9KSEkNl1kK4aL/UXJbErrM0Ol5UXb/I/lT
-	 MukG8KRB34zYwzMRZYKehyAvmYraXW2ddcy0R1odzkHLpBvc7an8AoRhljHu9o4dV+
-	 eSwuDsJmO7Ld7uv/E0B8jZOv3IplWdkeVCeDjjKM=
-Date: Mon, 17 Aug 2026 14:41:46 -0700
-To: mm-commits@vger.kernel.org,tujinjiang@huawei.com,stable@vger.kernel.org,osalvador@suse.de,muchun.song@linux.dev,david@kernel.org,xialonglong@kylinos.cn,akpm@linux-foundation.org
+	b=vCtVW6wsIykyCVggwQ3Esy9kXP3TnK7Rz8jyVdRe7N2AM7DXxI6CGjH/evIx4ZEmB
+	 RGDWFVF7gPDjCEmqYik0GXIjVgDP2PcArE2B13AQ2OuZecVFzRdOVSd8PgjrnpqK+w
+	 QiViokzuRd3UOUx62aFzlhrqhU5TutIkboBGftSE=
+Date: Mon, 17 Aug 2026 14:42:51 -0700
+To: mm-commits@vger.kernel.org,taniya.das@oss.qualcomm.com,konrad.dybcio@oss.qualcomm.com,konradybcio@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb-keep-max_huge_pages-when-dissolving-surplus-folios.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260817214146.C20191F000E9@smtp.kernel.org>
+Subject: + mailmap-fix-bouncing-address-for-taniya-das.patch added to mm-nonmm-unstable branch
+Message-Id: <20260817214251.912061F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/hugetlb: keep max_huge_pages when dissolving surplus folios
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-hugetlb-keep-max_huge_pages-when-dissolving-surplus-folios.patch
+     Subject: mailmap: Fix bouncing address for Taniya Das
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     mailmap-fix-bouncing-address-for-taniya-das.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-keep-max_huge_pages-when-dissolving-surplus-folios.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mailmap-fix-bouncing-address-for-taniya-das.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,65 +58,40 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Longlong Xia <xialonglong@kylinos.cn>
-Subject: mm/hugetlb: keep max_huge_pages when dissolving surplus folios
-Date: Fri, 14 Aug 2026 16:30:27 +0800
+From: Konrad Dybcio <konradybcio@kernel.org>
+Subject: mailmap: Fix bouncing address for Taniya Das
+Date: Mon, 17 Aug 2026 15:33:46 +0200
 
-dissolve_free_hugetlb_folio() can remove a free folio as surplus when its
-node has surplus pages.  In that case remove_hugetlb_folio() decrements
-both nr_huge_pages and surplus_huge_pages, leaving the persistent pool
-size unchanged.
 
-Updating max_huge_pages as if a persistent folio had been removed can
-therefore corrupt the persistent pool target and underflow it when
-max_huge_pages is zero.  Keep max_huge_pages unchanged for surplus folios,
-including the vmemmap restoration rollback path.
+The quic_username@quicinc.com emails have been deprecated inside
+Qualcomm for a while now in favor of firstname.lastname@oss.qualcomm.com
+Re-route the emails to Taniya's current OSS email address to avoid
+Outlook bounces ("recipient's inbox is full").
 
-Link: https://lore.kernel.org/20260814083027.1419487-1-xialonglong2025@163.com
-Fixes: cb402bbdabca ("mm/hugetlb: fix surplus pages in dissolve_free_huge_page()")
-Assisted-by: Codex:gpt-5.6-sol
-Signed-off-by: Longlong Xia <xialonglong@kylinos.cn>
-Reviewed-by: Muchun Song <muchun.song@linux.dev>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Jinjiang Tu <tujinjiang@huawei.com>
-Cc: Longlong Xia <xialonglong@kylinos.cn>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: <stable@vger.kernel.org>
+Link: https://lore.kernel.org/20260817-topic-taniya_email_bounce-v1-1-d7af1f113d64@oss.qualcomm.com
+Signed-off-by: Konrad Dybcio <konrad.dybcio@oss.qualcomm.com>
+Cc: Taniya Das <taniya.das@oss.qualcomm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ .mailmap |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-keep-max_huge_pages-when-dissolving-surplus-folios
-+++ a/mm/hugetlb.c
-@@ -2002,7 +2002,8 @@ retry:
- 		if (h->surplus_huge_pages_node[folio_nid(folio)])
- 			adjust_surplus = true;
- 		remove_hugetlb_folio(h, folio, adjust_surplus);
--		h->max_huge_pages--;
-+		if (!adjust_surplus)
-+			h->max_huge_pages--;
- 		spin_unlock_irq(&hugetlb_lock);
- 
- 		/*
-@@ -2022,7 +2023,8 @@ retry:
- 			if (rc) {
- 				spin_lock_irq(&hugetlb_lock);
- 				add_hugetlb_folio(h, folio, adjust_surplus);
--				h->max_huge_pages++;
-+				if (!adjust_surplus)
-+					h->max_huge_pages++;
- 				goto out;
- 			}
- 		} else {
+--- a/.mailmap~mailmap-fix-bouncing-address-for-taniya-das
++++ a/.mailmap
+@@ -873,7 +873,8 @@ Szymon Wilczek <swilczek.lx@gmail.com> <
+ Takashi YOSHII <takashi.yoshii.zj@renesas.com>
+ Tamir Duberstein <tamird@kernel.org> <tamird@gmail.com>
+ Tamizh Chelvam Raja <quic_tamizhr@quicinc.com> <tamizhr@codeaurora.org>
+-Taniya Das <quic_tdas@quicinc.com> <tdas@codeaurora.org>
++Taniya Das <taniya.das@oss.qualcomm.com> <quic_tdas@quicinc.com>
++Taniya Das <taniya.das@oss.qualcomm.com> <tdas@codeaurora.org>
+ Tanzir Hasan <tanzhasanwork@gmail.com> <tanzirh@google.com>
+ Tejun Heo <htejun@gmail.com>
+ Tomeu Vizoso <tomeu@tomeuvizoso.net> <tomeu.vizoso@collabora.com>
 _
 
-Patches currently in -mm which might be from xialonglong@kylinos.cn are
+Patches currently in -mm which might be from konradybcio@kernel.org are
 
-mm-hugetlb-keep-max_huge_pages-when-dissolving-surplus-folios.patch
-mm-ksm-avoid-missing-ksmd-wakeups-in-ksm_enter.patch
-zram-fix-out-of-bounds-access-in-writeback_store.patch
-zram-fix-out-of-bounds-access-in-read_block_state.patch
-zsmalloc-account-for-handle-size-in-class-lookup.patch
+mailmap-fix-bouncing-address-for-taniya-das.patch
 
