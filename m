@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4B1ED3EDE56;
-	Mon, 17 Aug 2026 17:39:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9A388275AFD
+	for <mm-commits@vger.kernel.org>; Mon, 17 Aug 2026 17:44:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786988396; cv=none; b=jQrkCX4WgYGV4gnxgwrvy13OzDktjSf4GGsAiJ6AZ2hH0bv8pebwMVBs+Qt23Uk8AL5vgnf3B30Q0ccsBPBGPy3ZNYpINWt+W4jURJHPgFwhf2JkSRaCbaNH0utD3wh6+/IClriW5UxsWZev7pMa/B4VymzPMKFxUAJV9BuZ43g=
+	t=1786988683; cv=none; b=KKeEM85G0cvBi3jJlpLbOhV/t7H6qsz3V177RBypwHl+WV2cuHHCmgv0J5260SA4uOFbifzNuWgbsnPtEhKUE5wdZk0OkPyTsDOOpgBZtX0lVE1+h2YicSuP61OyUK4yw7XBozH4koGbeWx0fQy5QKrlKXXgxNKZVwgQ/s311k4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786988396; c=relaxed/simple;
-	bh=2T5hZS+acnYJei3onSPKaMoghg+2/HwCbfoFBnCL6pg=;
-	h=Date:To:From:Subject:Message-Id; b=spEYpOhB6yOsegHPFxwuSkHQkmzufsIWmfPb4yoVCclR9CdhAJaiYu+76J8l2/r/iaO6CljrijsQYf/Vw8NA9ozituA0wXuVioM1AIe/CocEuoLrT1RRf36Ew+CJNGQXfOpmL2nR74qQCKnpknoLiDHC+o542a7HQ3CJfVFzN4M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GPDcx6Ip; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1786988683; c=relaxed/simple;
+	bh=zjP1zykZDsXa+y031f3aGNIKCoHiC2/KXppa7p+jwlw=;
+	h=Date:To:From:Subject:Message-Id; b=UxFX0KZTxm2lYanvJ2NYy9yEk+KHUNcgQ8aY8CEMNk9n/hwWf6tLeZyJMbwUWh3veHHXyVsQ2MPml5QX+2shCtr8C5Q/RHyIs4pVEOKq0AWCVyT3TbN6qC1pkDd4nR+ygF7J+7eztr60hiRWJRNbH9Y4fDM4A1Kjc0BEFl5Jd20=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=iUWsFr5o; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GPDcx6Ip"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 12DD01F000E9;
-	Mon, 17 Aug 2026 17:39:55 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="iUWsFr5o"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5C7921F000E9;
+	Mon, 17 Aug 2026 17:44:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1786988395;
-	bh=GDs9i7t6c6qitcypguUc+yWYAOD4eHwPMEwxiWBMlGM=;
+	d=linux-foundation.org; s=korg; t=1786988682;
+	bh=EuAwpy+IzLDBKXH2o7qCbgD5iroZuLqaq05c9mHWI5A=;
 	h=Date:To:From:Subject;
-	b=GPDcx6IpnGEavCtGFbcvsHEm1WzMA561R3hsvXrHmePoGC/RGRkQOdAltDko9mCwG
-	 jXWAzsO2dFC+GNKKlFx545a3fhXHgTB0+CiyT2hm7KHV7n6p8TobP5+UzdJmcxyk9G
-	 7BFSwkVKP46++dORMGnMuvH1I47ndir0HyhbCw1U=
-Date: Mon, 17 Aug 2026 10:39:54 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,shakeel.butt@linux.dev,osalvador@suse.de,muchun.song@linux.dev,david@kernel.org,njilav@gmail.com,akpm@linux-foundation.org
+	b=iUWsFr5oD8i5VtzMwayW+jy08rG4Kfc94ETu2piBpU92s7feUnOuWiBHsRxyRlNFQ
+	 vACQbiYKwR+UdkK5sHBIOlK4xqIGT8yfYQ1DfFK9+jpS0MITNMHW13Mo5O4E6F5K3k
+	 IJB1EB47VhbjFFX+9KoHgTpdNmi4jAYQgimZg2GM=
+Date: Mon, 17 Aug 2026 10:44:41 -0700
+To: mm-commits@vger.kernel.org,yi1.lai@intel.com,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,david@kernel.org,usama.arif@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb_cgroup-call-page_counter_set_max-outside-vm_bug_on.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260817173955.12DD01F000E9@smtp.kernel.org>
+Subject: + mm-memcontrol-avoid-false-sharing-between-vmstats-and-events.patch added to mm-unstable branch
+Message-Id: <20260817174442.5C7921F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/hugetlb_cgroup: call page_counter_set_max() outside VM_BUG_ON()
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-hugetlb_cgroup-call-page_counter_set_max-outside-vm_bug_on.patch
+     Subject: mm/memcontrol: avoid false sharing between vmstats and events
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-memcontrol-avoid-false-sharing-between-vmstats-and-events.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb_cgroup-call-page_counter_set_max-outside-vm_bug_on.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcontrol-avoid-false-sharing-between-vmstats-and-events.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,84 +58,75 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Narek Jilavyan <njilav@gmail.com>
-Subject: mm/hugetlb_cgroup: call page_counter_set_max() outside VM_BUG_ON()
-Date: Mon, 17 Aug 2026 10:34:33 +0000
+From: Usama Arif <usama.arif@linux.dev>
+Subject: mm/memcontrol: avoid false sharing between vmstats and events
+Date: Mon, 17 Aug 2026 03:38:35 -0700
 
-hugetlb_cgroup_css_alloc() rounds the counter limit down to a multiple of
-the huge page size and then applies it inside an assertion:
+Moving v1 userspace eventfd handling into memcontrol-v1.c shrank struct
+vmpressure from 112 to 24 bytes when CONFIG_MEMCG_V1 is disabled.  This
+moved memory_events_local[MEMCG_SWAP_FAIL] and the hot vmstats_percpu
+pointer onto the same cacheline.
 
-	VM_BUG_ON(page_counter_set_max(fault, limit));
-	VM_BUG_ON(page_counter_set_max(rsvd, limit));
+The stress-ng mremap stressor exercises MADV_PAGEOUT with swap disabled,
+generating about 20 million MEMCG_SWAP_FAIL updates per 60-second run on a
+176-CPU test system.  Those writes bounce the line while memcg statistics
+paths load vmstats_percpu.
 
-With CONFIG_DEBUG_VM=n, VM_BUG_ON(cond) is BUILD_BUG_ON_INVALID(cond),
-i.e.  ((void)(sizeof((__force long)(cond)))), whose operand is never
-evaluated.  page_counter_set_max() is not a predicate - it performs
-xchg(&counter->max, nr_pages) - so on every non-debug kernel the limit is
-never applied and the counters keep page_counter_init()'s
-PAGE_COUNTER_MAX.
+Move cgwb_list into the existing alignment gap and cacheline-align
+vmstats_percpu.  This separates the pointer from the event counters
+without increasing the size of struct mem_cgroup in the tested
+configuration.
 
-That is user-visible, because hugetlb_cgroup_read_u64_max() recomputes the
-same rounded value and uses equality as its "unlimited" sentinel. 
-PAGE_COUNTER_MAX is LONG_MAX / PAGE_SIZE = 2251799813685247, which is odd,
-so round_down() really does change it and the two sides disagree.  With
-CONFIG_DEBUG_VM=n:
+The blamed commit reduced median mremap throughput by 4.38% on the test
+system with one socket.  The patched kernel brings the performance to
+within 0.5% of the parent which is within the observed boot-to-boot spread
+(up to 1.2%).
 
-	$ cat /sys/fs/cgroup/t/hugetlb.2MB.max
-	9223372036854771712
-
-and with this patch:
-
-	$ cat /sys/fs/cgroup/t/hugetlb.2MB.max
-	max
-
-A debug option should not change cgroup output.
-
-Call the function, then assert the result, as v6.12 did.  Use
-VM_WARN_ON_ONCE() rather than restoring VM_BUG_ON(): the two are identical
-under CONFIG_DEBUG_VM=n, and checkpatch asks that new code not use BUG()
-variants.
-
-Link: https://lore.kernel.org/20260817103433.191266-1-njilav@gmail.com
-Fixes: 0e2759afcaf9 ("page_counter: track failcnt only for legacy cgroups")
-Signed-off-by: Narek Jilavyan <njilav@gmail.com>
-Reviewed-by: Muchun Song <muchun.song@linux.dev>
+Link: https://lore.kernel.org/20260817103835.2937733-1-usama.arif@linux.dev
+Fixes: ea928e9e18da ("mm/vmpressure: move v1 userspace eventfd code into memcontrol-v1.c")
+Signed-off-by: Usama Arif <usama.arif@linux.dev>
+Reported-by: kernel test robot <yi1.lai@intel.com>
+Closes: https://lore.kernel.org/oe-lkp/202608131743.c6a7dda4-lkp@intel.com
+Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
 Cc: David Hildenbrand <david@kernel.org>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: <stable@vger.kernel.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Yi Lai <yi1.lai@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb_cgroup.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ include/linux/memcontrol.h |    9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
---- a/mm/hugetlb_cgroup.c~mm-hugetlb_cgroup-call-page_counter_set_max-outside-vm_bug_on
-+++ a/mm/hugetlb_cgroup.c
-@@ -97,6 +97,7 @@ static void hugetlb_cgroup_init(struct h
- 		struct page_counter *fault, *fault_parent = NULL;
- 		struct page_counter *rsvd, *rsvd_parent = NULL;
- 		unsigned long limit;
-+		int ret;
+--- a/include/linux/memcontrol.h~mm-memcontrol-avoid-false-sharing-between-vmstats-and-events
++++ a/include/linux/memcontrol.h
+@@ -268,10 +268,15 @@ struct mem_cgroup {
+ #endif
+ 	int kmemcg_id;
  
- 		if (parent_h_cgroup) {
- 			fault_parent = hugetlb_cgroup_counter_from_cgroup(
-@@ -118,8 +119,10 @@ static void hugetlb_cgroup_init(struct h
- 		limit = round_down(PAGE_COUNTER_MAX,
- 				   pages_per_huge_page(&hstates[idx]));
- 
--		VM_BUG_ON(page_counter_set_max(fault, limit));
--		VM_BUG_ON(page_counter_set_max(rsvd, limit));
-+		ret = page_counter_set_max(fault, limit);
-+		VM_WARN_ON_ONCE(ret);
-+		ret = page_counter_set_max(rsvd, limit);
-+		VM_WARN_ON_ONCE(ret);
- 	}
- }
- 
+-	struct memcg_vmstats_percpu __percpu *vmstats_percpu;
+-
+ #ifdef CONFIG_CGROUP_WRITEBACK
+ 	struct list_head cgwb_list;
++#endif
++
++	/* Keep the hot per-CPU stats pointer away from memory event counters. */
++	struct memcg_vmstats_percpu __percpu *vmstats_percpu
++		____cacheline_aligned_in_smp;
++
++#ifdef CONFIG_CGROUP_WRITEBACK
+ 	struct wb_domain cgwb_domain;
+ 	struct memcg_cgwb_frn cgwb_frn[MEMCG_CGWB_FRN_CNT];
+ #endif
 _
 
-Patches currently in -mm which might be from njilav@gmail.com are
+Patches currently in -mm which might be from usama.arif@linux.dev are
 
-mm-hugetlb_cgroup-call-page_counter_set_max-outside-vm_bug_on.patch
+mm-vmstat-mm-memcontrol-add-_monotonic-vmstat-readers.patch
+mm-vmscan-add-pgrotate_anon-and-pgrotate_file-vmstat-counters.patch
+mm-vmscan-reduce-lru_lock-contention-via-vmstat-derived-scan-balance-cost.patch
+mm-memcontrol-avoid-false-sharing-between-vmstats-and-events.patch
+squashfs-avoid-thundering-herd-cache-wakeups.patch
 
