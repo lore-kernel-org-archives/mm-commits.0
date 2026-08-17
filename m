@@ -1,124 +1,141 @@
-Received: from mail-qt1-f170.google.com (mail-qt1-f170.google.com [209.85.160.170])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7A8F713C9C4
-	for <mm-commits@vger.kernel.org>; Sun, 16 Aug 2026 13:34:35 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.170
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4B1ED3EDE56;
+	Mon, 17 Aug 2026 17:39:55 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786887276; cv=none; b=RTIy2hhm1YpFRVVNyOAOfCywH93icmQo6hxePPP7vshqkAyFJWkY4FLtjTKn0Dmvlq+l5fH2Pz1pRIcg7Ytjv06EJfKUsxFJ6dihkoujRrfAyfu5ODM27GP8G/uTeT0F3yfL5ICN4z1m+4gLD+pM6k2COgkyHWG/jUDZxaIEjoA=
+	t=1786988396; cv=none; b=jQrkCX4WgYGV4gnxgwrvy13OzDktjSf4GGsAiJ6AZ2hH0bv8pebwMVBs+Qt23Uk8AL5vgnf3B30Q0ccsBPBGPy3ZNYpINWt+W4jURJHPgFwhf2JkSRaCbaNH0utD3wh6+/IClriW5UxsWZev7pMa/B4VymzPMKFxUAJV9BuZ43g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786887276; c=relaxed/simple;
-	bh=i3Hrly7bt+yFoHa8+EOOb3wFJh7QLx2cMw3T9LkEY9c=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=TEJJkyum2tmBYnifhnU/qlfqwqoNlKUzqXAojJSSUqNmSXOgN/QEUuUUk0MYg93kE7H1+lFK7bRiKfBsJ3uxAKdEXBsudSmX9FzdWe25KcXHu7HpgBEtnGus+jE3dKXBJ/zKQ4bccEpfIRrDHdSViB5Pjc5vJFD53WgAW+9SiY0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=h2Thewq0; arc=none smtp.client-ip=209.85.160.170
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1786988396; c=relaxed/simple;
+	bh=2T5hZS+acnYJei3onSPKaMoghg+2/HwCbfoFBnCL6pg=;
+	h=Date:To:From:Subject:Message-Id; b=spEYpOhB6yOsegHPFxwuSkHQkmzufsIWmfPb4yoVCclR9CdhAJaiYu+76J8l2/r/iaO6CljrijsQYf/Vw8NA9ozituA0wXuVioM1AIe/CocEuoLrT1RRf36Ew+CJNGQXfOpmL2nR74qQCKnpknoLiDHC+o542a7HQ3CJfVFzN4M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GPDcx6Ip; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="h2Thewq0"
-Received: by mail-qt1-f170.google.com with SMTP id d75a77b69052e-51c05dcdf49so29962081cf.0
-        for <mm-commits@vger.kernel.org>; Sun, 16 Aug 2026 06:34:35 -0700 (PDT)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GPDcx6Ip"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 12DD01F000E9;
+	Mon, 17 Aug 2026 17:39:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1786887274; x=1787492074; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:from:date:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=RmT/AGzwEAxbVkUvJcJEXPv+tY662th9KIiDQPj5yA4=;
-        b=h2Thewq0mG0AwtrGRCYYeXwt3KiWfI6avC9SB6vgf8g6wOuLBSi/ay+Yr0PTCfPcGG
-         tACk09DqeR23LFqCptOVp+LnJ0WApju4URcI0zL01QqEcM65y3tH1iR1Tl5YFZIDSY0g
-         Dqng1PXbldD/nIs9m66Mse3hvLR+j5gxV/cSXQaT3FrRCpQDfwNXUR69U2pvJhv4zDyP
-         fvH/o3yR1Rxr2KponxOaZTQOfwydFzr2/e7lxiEKd0sXfmnPHE0r0GrWmjCh8WTqH1LR
-         k7j5vsDoGPJ4h3MO+W6BuVtOUCdA4cPKsKjxBgtU/+g3L4DZRcXtMvM0mIuWhe4Oobca
-         bEAQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1786887274; x=1787492074;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:from:date:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=RmT/AGzwEAxbVkUvJcJEXPv+tY662th9KIiDQPj5yA4=;
-        b=nEN09OAjPKuwoF5IV9g6BB3l6S6ffLB+PU8RGXG1WH1YmouBMWfXPE3NLj+X01mGEF
-         rXxsufO8Gqamzw76eWtdJDe87nyeOZan0ZYw/grSueAF9aUb2pSqVxNVjJIBGsL10OGS
-         dFPQNcQQAfdwH+DN/m5X9bdm+cqayMM0zsfpytDL3FUXNKmXe3sjuSYsGFRE3/BRAu6Y
-         W2pjtUaEBjtU+QcTZeE1rYFQHebpTexLwFb2xs/P+1x8RpPgdvaytIeRo+ZrXq9ruWkm
-         n2nJEAI7sqxlVddIeU24TRNs8q6UyqYRUsYwCxdBC21nvo+/GjhsGUNVA6SwhDk/rKRO
-         T6TQ==
-X-Forwarded-Encrypted: i=1; AHgh+RrBOkrKs7EvnjOdWILiDRdU02fFJPs6I/BvgoZelOHLL/ZjDy8A2WiFmR4ebhvk1L0WcOzqZyHBE3ig@vger.kernel.org
-X-Gm-Message-State: AOJu0YxBGgPOJ94ZSXThj+HXpqp7NNutB+pqX1v+TumWxtMyvc0btI71
-	0RtNA/+PFcHo3Qspq0Fon2Xff/EzSqHsbPwxc4P/1a5L9OXBdLxjDpEO
-X-Gm-Gg: AR+sD13IV6I7igU7zgdqPLl+XYzKWkVDQF2hUq6AC5hDpoh0BFPu7WftXzeWgW6Jupp
-	S0l/fDsC3PBPNy/2CMVwXymFVc7hggnv2ll8w+/dUQBag3K93qCdFJ/Fojb8yMyZJ5HvRawgqNF
-	mcV2mw7hLCQNXQMbmwPyyGjiM7kEt9aXV+B/nf5kRZE5N12MEg+aOad7QNm6apPoyq5kPRD9eM+
-	ub7K1kWcQz/BXilaqL1dlzPu0FvGWLxdyYct/4Deu6UE1RFGEmvfGwvvt932fKXoPrMZjJg1B/M
-	rFcyMO2ahpxg8XohVx1zPDsTR1H0b2Zik2wHqzuYYgV1ZPx6/wzMqIsVV8Hd4f11EEBuusX7dgJ
-	m7RL0nB5d5Wj+gUOqtcOa9dfXD6BvZJYwhowu6CGuf33AIQ5XuO2PEU7x5a9tvlh/0g4VJw4EDN
-	kwoBzcCMipJVmwinXcAzXzjFtQKVGtcEn3QBauBtbVB4JHtyliNfYu6jAH1JnaxHw=
-X-Received: by 2002:a05:622a:8d12:b0:52d:918b:92e1 with SMTP id d75a77b69052e-52d918b9790mr143650671cf.5.1786887274314;
-        Sun, 16 Aug 2026 06:34:34 -0700 (PDT)
-Received: from skinsburskii ([38.69.194.34])
-        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-90a93594436sm59883946d6.46.2026.08.16.06.34.33
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 16 Aug 2026 06:34:33 -0700 (PDT)
-Date: Sun, 16 Aug 2026 06:34:32 -0700
-From: Stanislav Kinsburskii <skinsburskii@gmail.com>
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: kernel test robot <lkp@intel.com>, David Hildenbrand <david@kernel.org>,
-	Linux Memory Management List <linux-mm@kvack.org>,
-	mm-commits@vger.kernel.org
-Subject: Re: [akpm-mm:mm-new] BUILD SUCCESS WITH UNVERIFIED WARNING
- e0ffd277b09a7c9f1a436e5f75be37ac490bc59f
-Message-ID: <aoG8aLLa2l_G1GRX@skinsburskii>
-References: <202608101053.PhnVUM4u-lkp@intel.com>
- <20260810132334.3cf85dc3e9061bc7072759f8@linux-foundation.org>
- <anu1N-DOnQwxO1kF@skinsburskii>
- <20260811172713.d9f98913055bf8dc8331cda1@linux-foundation.org>
+	d=linux-foundation.org; s=korg; t=1786988395;
+	bh=GDs9i7t6c6qitcypguUc+yWYAOD4eHwPMEwxiWBMlGM=;
+	h=Date:To:From:Subject;
+	b=GPDcx6IpnGEavCtGFbcvsHEm1WzMA561R3hsvXrHmePoGC/RGRkQOdAltDko9mCwG
+	 jXWAzsO2dFC+GNKKlFx545a3fhXHgTB0+CiyT2hm7KHV7n6p8TobP5+UzdJmcxyk9G
+	 7BFSwkVKP46++dORMGnMuvH1I47ndir0HyhbCw1U=
+Date: Mon, 17 Aug 2026 10:39:54 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,shakeel.butt@linux.dev,osalvador@suse.de,muchun.song@linux.dev,david@kernel.org,njilav@gmail.com,akpm@linux-foundation.org
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: + mm-hugetlb_cgroup-call-page_counter_set_max-outside-vm_bug_on.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260817173955.12DD01F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260811172713.d9f98913055bf8dc8331cda1@linux-foundation.org>
 
-On Tue, Aug 11, 2026 at 05:27:13PM -0700, Andrew Morton wrote:
-> On Tue, 11 Aug 2026 16:50:15 -0700 Stanislav Kinsburskii <skinsburskii@gmail.com> wrote:
-> 
-> > > Caused by
-> > > 
-> > > 	121170831228 ("mm/hmm: add hmm_range_fault_unlocked_timeout() for mmap lock-drop support")
-> > > 
-> > > 
-> > > Stanislaw, you've previously said that this is a can't-happen, but boy
-> > > I'm getting tired of seeing this warning report.  Would the below change
-> > > hurt anything?  I can't immediately think of a cost-free way of doing
-> > > this.
-> > > 
-> > 
-> > I think this change doesn't do any harm.
-> > Perhaps it worth a WARN_ON_ONCE to expose a wrong fault handler
-> > behavior?
-> 
-> Like this?
-> 
-> 		if (ret & (VM_FAULT_COMPLETED | VM_FAULT_RETRY)) {
-> 			if (hmm_vma_walk->locked)    /* needed by sparse */
-> 				*hmm_vma_walk->locked = false;
-> 			else
-> 				WARN_ON_ONCE(1);    /* broken fault handler */
-> 			return HMM_FAULT_UNLOCKED;
-> 		}
-> 
 
-Yes, or even like this:
+The patch titled
+     Subject: mm/hugetlb_cgroup: call page_counter_set_max() outside VM_BUG_ON()
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-hugetlb_cgroup-call-page_counter_set_max-outside-vm_bug_on.patch
 
- 		if (ret & (VM_FAULT_COMPLETED | VM_FAULT_RETRY)) {
- 			if (WARN_ON_ONCE(hmm_vma_walk->locked))    /* needed by sparse */
- 				*hmm_vma_walk->locked = false;
- 			return HMM_FAULT_UNLOCKED;
- 		}
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb_cgroup-call-page_counter_set_max-outside-vm_bug_on.patch
+
+This patch will later appear in the mm-hotfixes-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
+
+------------------------------------------------------
+From: Narek Jilavyan <njilav@gmail.com>
+Subject: mm/hugetlb_cgroup: call page_counter_set_max() outside VM_BUG_ON()
+Date: Mon, 17 Aug 2026 10:34:33 +0000
+
+hugetlb_cgroup_css_alloc() rounds the counter limit down to a multiple of
+the huge page size and then applies it inside an assertion:
+
+	VM_BUG_ON(page_counter_set_max(fault, limit));
+	VM_BUG_ON(page_counter_set_max(rsvd, limit));
+
+With CONFIG_DEBUG_VM=n, VM_BUG_ON(cond) is BUILD_BUG_ON_INVALID(cond),
+i.e.  ((void)(sizeof((__force long)(cond)))), whose operand is never
+evaluated.  page_counter_set_max() is not a predicate - it performs
+xchg(&counter->max, nr_pages) - so on every non-debug kernel the limit is
+never applied and the counters keep page_counter_init()'s
+PAGE_COUNTER_MAX.
+
+That is user-visible, because hugetlb_cgroup_read_u64_max() recomputes the
+same rounded value and uses equality as its "unlimited" sentinel. 
+PAGE_COUNTER_MAX is LONG_MAX / PAGE_SIZE = 2251799813685247, which is odd,
+so round_down() really does change it and the two sides disagree.  With
+CONFIG_DEBUG_VM=n:
+
+	$ cat /sys/fs/cgroup/t/hugetlb.2MB.max
+	9223372036854771712
+
+and with this patch:
+
+	$ cat /sys/fs/cgroup/t/hugetlb.2MB.max
+	max
+
+A debug option should not change cgroup output.
+
+Call the function, then assert the result, as v6.12 did.  Use
+VM_WARN_ON_ONCE() rather than restoring VM_BUG_ON(): the two are identical
+under CONFIG_DEBUG_VM=n, and checkpatch asks that new code not use BUG()
+variants.
+
+Link: https://lore.kernel.org/20260817103433.191266-1-njilav@gmail.com
+Fixes: 0e2759afcaf9 ("page_counter: track failcnt only for legacy cgroups")
+Signed-off-by: Narek Jilavyan <njilav@gmail.com>
+Reviewed-by: Muchun Song <muchun.song@linux.dev>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: <stable@vger.kernel.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ mm/hugetlb_cgroup.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
+
+--- a/mm/hugetlb_cgroup.c~mm-hugetlb_cgroup-call-page_counter_set_max-outside-vm_bug_on
++++ a/mm/hugetlb_cgroup.c
+@@ -97,6 +97,7 @@ static void hugetlb_cgroup_init(struct h
+ 		struct page_counter *fault, *fault_parent = NULL;
+ 		struct page_counter *rsvd, *rsvd_parent = NULL;
+ 		unsigned long limit;
++		int ret;
  
+ 		if (parent_h_cgroup) {
+ 			fault_parent = hugetlb_cgroup_counter_from_cgroup(
+@@ -118,8 +119,10 @@ static void hugetlb_cgroup_init(struct h
+ 		limit = round_down(PAGE_COUNTER_MAX,
+ 				   pages_per_huge_page(&hstates[idx]));
+ 
+-		VM_BUG_ON(page_counter_set_max(fault, limit));
+-		VM_BUG_ON(page_counter_set_max(rsvd, limit));
++		ret = page_counter_set_max(fault, limit);
++		VM_WARN_ON_ONCE(ret);
++		ret = page_counter_set_max(rsvd, limit);
++		VM_WARN_ON_ONCE(ret);
+ 	}
+ }
+ 
+_
 
-Thanks,
-Stanislav
+Patches currently in -mm which might be from njilav@gmail.com are
+
+mm-hugetlb_cgroup-call-page_counter_set_max-outside-vm_bug_on.patch
+
