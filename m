@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4D4173D1712
-	for <mm-commits@vger.kernel.org>; Mon, 17 Aug 2026 21:56:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3B7073EA959
+	for <mm-commits@vger.kernel.org>; Mon, 17 Aug 2026 22:12:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787003794; cv=none; b=CpZO2HFUAoIR7JpLWiNSYngYBm2fW1dVMgHpfsbjDcoZDFvwf0NtQaAvpTgw15H6vhtUrx9En61yCVnEY+68e7MCkDojtxc+GRsH3fA/n81UBUFG4gv9kO7TNNQ9IUCFf2Tmyw6AEoOlc+GLbO+JrqnkEnc4nYp2LIHbUI/l+vs=
+	t=1787004729; cv=none; b=RinKOEaVbZHhDk1NJ00vG3ryIaCjHPWYS1Tnn2MCyoj3h92bFwYMUmK54MjwuCo732vI98OugCTX3BkaORztl48oipIfg6JFAcwazVB56RtXXq/Gcr4ynvg3TN8xrGzukqUknUZYTK8w+LEgbvpMQBaL7HvoMj47Ir3Ud0/u8+4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787003794; c=relaxed/simple;
-	bh=R60a6ulgz77l3ThrQyHbXKUzbSDwFmFyQEgmZoJAl48=;
-	h=Date:To:From:Subject:Message-Id; b=Q8Wk2nU2F0dWX/aO7wtIO/9WDkMzLCrJUuMY6JYSynCDNITz9avHhlUmu5o/JBx0ZNFWo0gawaNkXJh1yQ76DSDlVJIPR65eF2vxbn52G74M76v3aUUhDddgCKIqw9Xt7fPQsIHggrr1AGAu+ZftWdnKz7adw45zc2x0ak230dg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Bqaxvazd; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1787004729; c=relaxed/simple;
+	bh=2f8wB29OuxMjkLIYGyZOmUv9LLfBd5FpEGQFqQpbyRw=;
+	h=Date:To:From:Subject:Message-Id; b=NzCZxY+mItdDrrAg4dl+RSvyEzKZ8OcDe05XlzkRuhkiCU4eC7uiU0N6kmrtYnO2nLbeMMzU85atKzMQHAnPWgEQpbbCkCEZhZoMSG6E1jKQrv4ebgcVHhz/VBLhNvh/IIchlU5MpkV1V5VGCfZ5UOBLZmrwJnkm/bILUxXWzic=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RwLSMeYP; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Bqaxvazd"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 592C81F000E9;
-	Mon, 17 Aug 2026 21:56:28 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RwLSMeYP"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A77D21F00AC4;
+	Mon, 17 Aug 2026 22:12:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1787003788;
-	bh=XPCUNZsuyDPzY5KEsDNuRbHmyFBbx3DcICq8S/l0IhE=;
+	d=linux-foundation.org; s=korg; t=1787004727;
+	bh=WD/5o2Sw4boMzkcwbeKwKarfxvBJy88CkTicmXVfN1o=;
 	h=Date:To:From:Subject;
-	b=BqaxvazdMfbTLuIJKaHXq5l+DGLsAWmwubEhSkCYS2jLtY0dIz4dd54rR5SGOxix3
-	 aNpxFV7ZVtQ6Ylwyb3Qm89IedUb6n+/gdHqVWJyuHj8po4pYLtZ61FG6fQfRaz60GZ
-	 P2Chx5b1zgL5WJxb0M4ZR8jzR2E6xDuIJF6bfn78=
-Date: Mon, 17 Aug 2026 14:56:27 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,usama.anjum@arm.com,surenb@google.com,shuah@kernel.org,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,lihongfu@kylinos.cn,akpm@linux-foundation.org
+	b=RwLSMeYPIVJ0wh1wfSvxfNRMGFfxbRiTKTzlPRmf5wY/fRwfDqhorv5/vLPHMFB6k
+	 MMsMEN+2FC/SrqCT3AcIFsjlVrbhJRkduWX4m9Aea2PogZ7ys2+4gIvbioJnVobK8W
+	 81zMbaNtwdLwFWuB7p0vaVcH1ATl243yejf2QpDY=
+Date: Mon, 17 Aug 2026 15:12:07 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,rakie.kim@sk.com,matthew.brost@intel.com,joshua.hahnjy@gmail.com,gourry@gourry.net,david@kernel.org,byungchul@sk.com,balbirs@nvidia.com,apopple@nvidia.com,sh_def@163.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-drop-redundant-open-in-mprotect_tests.patch added to mm-unstable branch
-Message-Id: <20260817215628.592C81F000E9@smtp.kernel.org>
+Subject: + mm-migrate_device-fix-cache-flush-when-replacing-huge-zero-pmd.patch added to mm-unstable branch
+Message-Id: <20260817221207.A77D21F00AC4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: drop redundant open() in mprotect_tests()
+     Subject: mm/migrate_device: fix cache flush when replacing huge zero PMD
 has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-mm-drop-redundant-open-in-mprotect_tests.patch
+     mm-migrate_device-fix-cache-flush-when-replacing-huge-zero-pmd.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-drop-redundant-open-in-mprotect_tests.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-migrate_device-fix-cache-flush-when-replacing-huge-zero-pmd.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,54 +58,63 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Hongfu Li <lihongfu@kylinos.cn>
-Subject: selftests/mm: drop redundant open() in mprotect_tests()
-Date: Mon, 17 Aug 2026 16:06:16 +0800
+From: Hui Su <sh_def@163.com>
+Subject: mm/migrate_device: fix cache flush when replacing huge zero PMD
+Date: Mon, 17 Aug 2026 14:08:46 +0800
 
-Remove duplicate open() for local pagemap_fd in mprotect_tests() that
-shadows the global pagemap_fd already opened in main().  The local fd is
-never used in the function.
+migrate_vma_insert_huge_pmd_page() calls flush_cache_page() before
+replacing an existing huge zero PMD.  However, the third argument to
+flush_cache_page() is a PFN, while addr + HPAGE_PMD_SIZE is an end virtual
+address.
 
-Link: https://lore.kernel.org/20260817080616.52946-1-hongfu.li@linux.dev
-Signed-off-by: Hongfu Li <lihongfu@kylinos.cn>
-Reviewed-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
-Reviewed-by: Muhammad Usama Anjum <usama.anjum@arm.com>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
+More importantly, the mapping being invalidated is PMD-sized rather than
+PAGE_SIZE-sized.  Flush the whole PMD range with flush_cache_range(),
+matching other huge PMD invalidation paths.
+
+There is no userspace-visible effect today.  The architectures that
+currently enable ARCH_ENABLE_THP_MIGRATION use no-op implementations of
+flush_cache_page()/flush_cache_range().  32-bit ARM has non-trivial
+implementations, but does not enable ARCH_ENABLE_THP_MIGRATION.
+
+So this appears to be a latent API misuse rather than a currently
+observable bug, and I don't think a stable backport is necessary.
+
+Link: https://lore.kernel.org/20260817060845.377800-2-sh_def@163.com
+Fixes: a30b48bf1b24 ("mm/migrate_device: implement THP migration of zone device pages")
+Signed-off-by: Hui Su <sh_def@163.com>
+Reviewed-by: Balbir Singh <balbirs@nvidia.com>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Byungchul Park <byungchul@sk.com>
+Cc: Gregory Price <gourry@gourry.net>
+Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
+Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
+Cc: Matthew Brost <matthew.brost@intel.com>
+Cc: Rakie Kim <rakie.kim@sk.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/pagemap_ioctl.c |    6 ------
- 1 file changed, 6 deletions(-)
+ mm/migrate_device.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/tools/testing/selftests/mm/pagemap_ioctl.c~selftests-mm-drop-redundant-open-in-mprotect_tests
-+++ a/tools/testing/selftests/mm/pagemap_ioctl.c
-@@ -1332,12 +1332,6 @@ int mprotect_tests(void)
- 	int ret;
- 	char *mem, *mem2;
- 	struct page_region vec;
--	int pagemap_fd = open("/proc/self/pagemap", O_RDONLY);
--
--	if (pagemap_fd < 0) {
--		fprintf(stderr, "open() failed\n");
--		exit(1);
--	}
+--- a/mm/migrate_device.c~mm-migrate_device-fix-cache-flush-when-replacing-huge-zero-pmd
++++ a/mm/migrate_device.c
+@@ -882,7 +882,7 @@ static int migrate_vma_insert_huge_pmd_p
  
- 	/* 1. Map two pages */
- 	mem = mmap(0, 2 * page_size, PROT_READ|PROT_WRITE, MAP_PRIVATE | MAP_ANON, -1, 0);
+ 	if (flush) {
+ 		pte_free(vma->vm_mm, pgtable);
+-		flush_cache_page(vma, addr, addr + HPAGE_PMD_SIZE);
++		flush_cache_range(vma, addr, addr + HPAGE_PMD_SIZE);
+ 		pmdp_invalidate(vma, addr, pmdp);
+ 	} else {
+ 		pgtable_trans_huge_deposit(vma->vm_mm, pmdp, pgtable);
 _
 
-Patches currently in -mm which might be from lihongfu@kylinos.cn are
+Patches currently in -mm which might be from sh_def@163.com are
 
-ksm-update-comments-and-docs-to-reference-folio-mapping.patch
-selftests-mm-drop-duplicate-test_seal_mprotect_two_vma_with_gap-call.patch
-selftests-mm-fix-read_file-return-value-check.patch
-mm-swap-fix-swap_cluster_lock-config_swap-stub-signature-mismatch.patch
-mm-cma-remove-stray-newline-from-auto-generated-cma-area-name.patch
-selftests-mm-drop-redundant-open-in-mprotect_tests.patch
+mm-migrate_device-avoid-out-of-bounds-writes-for-compound-folios.patch
+kasan-fix-cache-shrink-race-with-cpu-hotplug.patch
+kasan-fix-quarantine_size-accounting-during-cache-removal.patch
+mm-migrate_device-fix-cache-flush-when-replacing-huge-zero-pmd.patch
 
