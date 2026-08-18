@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 66DAE3DA5B6
-	for <mm-commits@vger.kernel.org>; Tue, 18 Aug 2026 18:01:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D3C2E48424C
+	for <mm-commits@vger.kernel.org>; Tue, 18 Aug 2026 18:12:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787076090; cv=none; b=mEQjDzlOSSJQzGBTA7R9a+Fu1GKAPzoQJxVOORw5JDbgPIVcPdChUCmmICRYCoUxQrGeat+EmQAGQzQJPKdoAluGOV3GFLYiMnKc01S5SXgVteoL1wPxR63QeDVherd6cBSKLLDBLejYQJmi2Cg91QT96VdZeOCGoRzUiJzNpek=
+	t=1787076767; cv=none; b=PI88q6Fa5XCQf4PniaPiGNxuV4voA7ohIcP69b+u+KRzWKrwrulTr7niLQN2Jlz6KravCDY3ujvVD3UYTmvmt0dF/ixRQSI0D9bHCCCTC2QOmAacPjMXyWIC7Ym8WiwuPsQlR0EZi3CJpK0RaipqZO4vPRQ2EEua7xwF6VO4afI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787076090; c=relaxed/simple;
-	bh=aPk5R8k7WQsrDjqhp7UHVKQPEXRDUzY4Fs43PFXlFEA=;
-	h=Date:To:From:Subject:Message-Id; b=YLW8YbyEvkdzB+K9RsrzjzAaM6QsZBQMasKpBvPWvSOC40EN4M4Je2NfRJN1Dt99js9PSfiucUxlzmvsn+dtUAyN1xnFAQMPGVUBm6skaJ1r7oHIkHyckAMepxahRvv9IDSEW7qHJXpkSQvX2bnspf2NOadx+0JsgtKEsHw0jRw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AJJzzYrd; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1787076767; c=relaxed/simple;
+	bh=O7SRbk5I2WR9oy+hKfFUMUdXjXn7vHUly2zeWCT6YTY=;
+	h=Date:To:From:Subject:Message-Id; b=vAorizKjUE1nLf5/U7IVzIvcsWaZffLIqqXYqSvDYIA267jZ6y2Luoa1nxlIJagj5ee+QGb90pzY5miKlZgFS18gDGgdFEKwBgeMJRh6wC6+GY5qiUcBQBWquUC5As0pZGnNWkbUrqinv3IvqfV6RKLrqR9mBaMrFF3OKZhMpBI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LhGFlQgM; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AJJzzYrd"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E729B1F000E9;
-	Tue, 18 Aug 2026 18:01:28 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LhGFlQgM"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 360ED1F000E9;
+	Tue, 18 Aug 2026 18:12:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1787076089;
-	bh=sneldPVd8OjEBZlug7xFaUaBAJkk+eajGTw2CsdRp9Y=;
+	d=linux-foundation.org; s=korg; t=1787076765;
+	bh=0rCDOTXYVAdk5/LXNindm1KEGzGGkJdzpHc6th/1lC8=;
 	h=Date:To:From:Subject;
-	b=AJJzzYrdrmJhZsqtJvjyGofdmM5lBZgOmiA1UrnjjIIkx/OaOMoIb0LSir/3dpF/Q
-	 S56DZKae2+s46osBvfZyp9D/EpiJcRclG7hpr2YJMQ9femnMzVDQ0ygzqVtKwuFXXJ
-	 IVOTbbXEvpKAx5dxf0U9aVXwD1VtkAnZ5CAoBjBo=
-Date: Tue, 18 Aug 2026 11:01:28 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,npache@redhat.com,muchun.song@linux.dev,mhocko@suse.com,joshua.hahnjy@gmail.com,hannes@cmpxchg.org,audra@redhat.com,husong@kylinos.cn,akpm@linux-foundation.org
+	b=LhGFlQgMN1ajtaGgX+I7yPNK4SnVNaskCmRgxruf6sLxOgBxv9+2PeygsoiLPf185
+	 D0MV+uCi1wTcy9yiuR6odJ5C6X26C7xmeFOIKUSPEbah3UXzXKqc8WUyRQFCfIGOy7
+	 vGDHyJXcmlt0811mhtOnHguo42HvNFRgwFap5XFU=
+Date: Tue, 18 Aug 2026 11:12:44 -0700
+To: mm-commits@vger.kernel.org,shuah@kernel.org,david@kernel.org,akpm@linux-foundation.org,anshumantewari123@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memcg-release-the-css-reference-when-a-stock-slot-empties.patch added to mm-unstable branch
-Message-Id: <20260818180128.E729B1F000E9@smtp.kernel.org>
+Subject: + selftests-mm-fix-unchecked-ftruncate-return-value-in-soft-dirty-test.patch added to mm-unstable branch
+Message-Id: <20260818181245.360ED1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: memcg: release the css reference when a stock slot empties
+     Subject: selftests/mm: fix unchecked ftruncate return value in soft-dirty test
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-memcg-release-the-css-reference-when-a-stock-slot-empties.patch
+     selftests-mm-fix-unchecked-ftruncate-return-value-in-soft-dirty-test.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcg-release-the-css-reference-when-a-stock-slot-empties.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-fix-unchecked-ftruncate-return-value-in-soft-dirty-test.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,67 +58,47 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Song Hu <husong@kylinos.cn>
-Subject: mm: memcg: release the css reference when a stock slot empties
-Date: Tue, 18 Aug 2026 21:01:35 +0800
+From: Anshuman <anshumantewari123@gmail.com>
+Subject: selftests/mm: fix unchecked ftruncate return value in soft-dirty test
+Date: Tue, 18 Aug 2026 19:02:06 +0530
 
-consume_stock() can drive a stock slot's nr_pages to zero while its
-cached[] pointer stays set, so the slot keeps pinning the css reference
-that refill_stock() took.  The offlining drain only flushes slots with
-cached pages, so the reference is never released unless the slot happens
-to be displaced by an unrelated charge or by CPU hotplug, and the memcg
-lingers in the dying state - up to NR_MEMCG_STOCK (7) of them per CPU
-under container churn.
+test_mprotect() calls ftruncate() to resize the backing file before
+mmap()'ing it, but never checks the return value.  If ftruncate() fails,
+the file may remain shorter than the requested mapping size.  The
+subsequent mmap() with MAP_SHARED can still succeed in this case, but the
+very next line writes directly into the mapped memory (*map = 1), which
+can trigger SIGBUS if the mapping extends beyond the actual file size.
 
-Keeping the slot populated past the last page only saves a
-css_get()/css_put() pair on the next charge of the same memcg, and costs
-more than that: the offlining drain has to know about empty slots, and
-refill_stock() cannot reuse them either, so a charge under a different
-memcg evicts a live batch through the drain_idx rotation instead.
+Check the return value and fail cleanly with ksft_exit_fail_msg() if
+ftruncate() fails, matching the error-handling style already used for the
+mmap() call immediately below it.
 
-Drop the reference in consume_stock() when the slot empties.  Empty slots
-stop existing, so is_memcg_drain_needed() and the drain path stay as they
-are, and refill_stock() reuses emptied slots directly.  The cost is one
-refcount pair per emptied slot, at most once per MEMCG_CHARGE_BATCH pages.
-
-Link: https://lore.kernel.org/20260818130135.154315-1-husong@kylinos.cn
-Fixes: d1a05b6973c7 ("memcg: do not try to drain per-cpu caches without pages")
-Signed-off-by: Song Hu <husong@kylinos.cn>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Audra Mitchell <audra@redhat.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Nico Pache <npache@redhat.com>
+Link: https://lore.kernel.org/20260818133206.39503-1-anshumantewari123@gmail.com
+Signed-off-by: Anshuman <anshumantewari123@gmail.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ tools/testing/selftests/mm/soft-dirty.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/mm/memcontrol.c~mm-memcg-release-the-css-reference-when-a-stock-slot-empties
-+++ a/mm/memcontrol.c
-@@ -2140,7 +2140,12 @@ static bool consume_stock(struct mem_cgr
- 
- 		stock_pages = READ_ONCE(stock->nr_pages[i]);
- 		if (stock_pages >= nr_pages) {
--			WRITE_ONCE(stock->nr_pages[i], stock_pages - nr_pages);
-+			stock_pages -= nr_pages;
-+			WRITE_ONCE(stock->nr_pages[i], stock_pages);
-+			if (!stock_pages) {
-+				css_put(&memcg->css);
-+				WRITE_ONCE(stock->cached[i], NULL);
-+			}
- 			ret = true;
+--- a/tools/testing/selftests/mm/soft-dirty.c~selftests-mm-fix-unchecked-ftruncate-return-value-in-soft-dirty-test
++++ a/tools/testing/selftests/mm/soft-dirty.c
+@@ -152,7 +152,8 @@ static void test_mprotect(int pagemap_fd
+ 			return;
  		}
- 		break;
+ 		unlink(fname);
+-		ftruncate(test_fd, pagesize);
++		if (ftruncate(test_fd, pagesize) != 0)
++			ksft_exit_fail_msg("ftruncate failed\n");
+ 		map = mmap(NULL, pagesize, PROT_READ|PROT_WRITE,
+ 			   MAP_SHARED, test_fd, 0);
+ 		if (map == MAP_FAILED)
 _
 
-Patches currently in -mm which might be from husong@kylinos.cn are
+Patches currently in -mm which might be from anshumantewari123@gmail.com are
 
-docs-mm-fix-outdated-radix-tree-in-page_migration.patch
-mm-memcg-release-the-css-reference-when-a-stock-slot-empties.patch
+selftests-mm-fix-unchecked-ftruncate-return-value-in-soft-dirty-test.patch
 
