@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 15E9623D295;
-	Tue, 18 Aug 2026 23:28:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 59F393BE652
+	for <mm-commits@vger.kernel.org>; Wed, 19 Aug 2026 03:29:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787095694; cv=none; b=FIZWweEmg/MKwwUtgjE3dHJB/OMtENRes07H4Kb3YteXDmdtzkTBBoOTH41GrZuMcIQGtyAkPha+xFlY2yURV6+Gbw3bhUAqR1Ddbzbpb6J8Pp4YaqNeQ4l2KMy3RTV+AjqDhMxjHqY/s+J6BgZqfb9tPuKcMe2S8snKQj3SDkU=
+	t=1787110143; cv=none; b=uY5XDHSATtLo+yUX+ocssdG8giEq35tskzZbFujncPlqZueaHzA4a1w+7FVJIGIdmGiug8PaKaZRq1q1F0j+BFcoTpr6aIA84vZjZuklvWpoUuUTD2OLWfTqZC+6ftlhBXnU3YaMvVRZUorBMwLmsiMC5sQPYRDiXN9HJekSGhc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787095694; c=relaxed/simple;
-	bh=p8lWGYN4SPwCbT8u8RgCkD/rLBl5NXDmf7KYUMPYLZY=;
-	h=Date:To:From:Subject:Message-Id; b=Y3LX+IBSCohpX+UuAmMuZJVGGWjIwhozLIwpeeUP3aMvJNEbR4m9JCvG6ag8prZfBGTQ6jH4PdypN6BDtr1ItqbM9hXf+j8hQH6MW09xoRjkixfyr3gqPmIKVBamJoK2v+klHlrvMiZweDXjUZFKqbO3Zi+QGMC/6v6gmGgx3G8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LmzVjgii; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1787110143; c=relaxed/simple;
+	bh=Kr1ljh5GtM2+hzFH5ujQ+jiA5Dc66cv/Wfih00vo/Bw=;
+	h=Date:To:From:Subject:Message-Id; b=RNGtAJA9prZ1KGCxAZifTOJdPSi7o2aq68pul8RFf/MZYBaeZeNfcZ3ghHUUCEZwdTdGtnx1LCwjtp328sFXfSAkzf1xVQ5t/PlOp0NF83dwrKXbBuO3RSdUbQMPl3Qd+t1InYAO1C/5kCcqIt88bqtiRAiVcfNr9XiC2ew/h1M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WW/w+HB5; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LmzVjgii"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 58CD31F000E9;
-	Tue, 18 Aug 2026 23:28:11 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WW/w+HB5"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AE02D1F000E9;
+	Wed, 19 Aug 2026 03:29:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1787095691;
-	bh=6Ru1WbE+nyuqk23Q9At8GFASEFcIDodjHyn9s9UD0d8=;
+	d=linux-foundation.org; s=korg; t=1787110141;
+	bh=edNOVkoG41zokzbk8cr0qJlY3sX64jqNFlTCRI6qjH4=;
 	h=Date:To:From:Subject;
-	b=LmzVjgii8oMu+MqPMS9Cln5kMFc6hWRbBVMpNhc2ZMiku72VSBFcdeJraXHrfyEK7
-	 jGR+Ce3h7hqVNN/xSD8x0N9BPeT4m0AvHfNbK+StLPzSACp9mh6wWckAG2YoLl0hxs
-	 xXR2s8xAM//KMnJ6GaGWhSX3ku4IP7WU/3lv8LXY=
-Date: Tue, 18 Aug 2026 16:28:10 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,osalvador@suse.de,muchun.song@linux.dev,mhocko@suse.com,lance.yang@linux.dev,david@kernel.org,leon.hwang@linux.dev,akpm@linux-foundation.org
+	b=WW/w+HB5kZt8tN7FdajQluMM/ylRKvxaFnD77LBS29/dPbQIUNUV6jhZaL0FSmXpy
+	 2Nil1nafXpSos2AWAYdRHBCi8V3A2axpEb+r8dF2i/t7ZDTkpkNcTwWpbt59qUVpoy
+	 uRSTjtNjniS1DC7W8BSQA/Yq/0D6/habb0VJ8YG4=
+Date: Tue, 18 Aug 2026 20:29:01 -0700
+To: mm-commits@vger.kernel.org,surenb@google.com,rppt@kernel.org,peterx@redhat.com,foxieflakey@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + hugetlb-add-cond_resched-to-__unmap_hugepage_range.patch added to mm-unstable branch
-Message-Id: <20260818232811.58CD31F000E9@smtp.kernel.org>
+Subject: + userfaultfd-reset-err-to-be-0-when-move_pages_ptes-succeeded.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260819032901.AE02D1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: hugetlb: add cond_resched() to __unmap_hugepage_range()
-has been added to the -mm mm-unstable branch.  Its filename is
-     hugetlb-add-cond_resched-to-__unmap_hugepage_range.patch
+     Subject: userfaultfd: reset err to be 0 when move_pages_ptes succeeded
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     userfaultfd-reset-err-to-be-0-when-move_pages_ptes-succeeded.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hugetlb-add-cond_resched-to-__unmap_hugepage_range.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/userfaultfd-reset-err-to-be-0-when-move_pages_ptes-succeeded.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,53 +58,47 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Leon Hwang <leon.hwang@linux.dev>
-Subject: hugetlb: add cond_resched() to __unmap_hugepage_range()
-Date: Tue, 18 Aug 2026 21:50:29 +0800
+From: Bryan Lim <foxieflakey@gmail.com>
+Subject: userfaultfd: reset err to be 0 when move_pages_ptes succeeded
+Date: Wed, 19 Aug 2026 10:08:24 +0700 (WIB)
 
-Packet receive timeouts were traced to sparse HugeTLB unmapping in
-production.  A task unmapping a sparse 2.5 TiB HugeTLB mapping could
-remain in kernel context for over 40 ms without reaching a scheduling
-point while walking empty huge PTEs.  Although hard IRQs could still be
-handled, the per-CPU ksoftirqd thread and other runnable tasks could not
-run during that interval, delaying NET_RX softirq work queued to
-ksoftirqd.
+During move_pages() operation, when move_pages_ptes() returns EAGAIN, the
+error code is not cleared even after we processed it.  This leads to a
+successful retry but then the same pages are retried again due to the
+stale error code.  This time move fails because pages are already moved,
+loop is terminated and move_pages() reports a failure.  Clear the error
+code once we processes EAGAIN.
 
-Add cond_resched() at the beginning of the hugepage loop so ksoftirqd and
-other runnable tasks can run between iterations.  Testing with
-PREEMPT_NONE showed that the maximum interval between scheduling points
-fell from over 40 ms to below 2.5 ms.  Total time spent in
-__unmap_hugepage_range() remained about 36 ms.
-
-Link: https://lore.kernel.org/20260818135029.93288-1-leon.hwang@linux.dev
-Signed-off-by: Leon Hwang <leon.hwang@linux.dev>
-Reported-by: Lance Yang <lance.yang@linux.dev>
-Tested-by: Lance Yang <lance.yang@linux.dev>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: <stable@vger.kernel.org>
+Link: https://lore.kernel.org/e1e0b5f8-c3c6-0537-670b-4397f822f980@gmail.com
+Fixes: 50944692052b ("userfaultfd: opportunistic TLB-flush batching for present pages in MOVE")
+Assisted-by: ChatGPT:GPT-5.6-Luna
+Signed-off-by: Bryan Lim <foxieflakey@gmail.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/userfaultfd.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
---- a/mm/hugetlb.c~hugetlb-add-cond_resched-to-__unmap_hugepage_range
-+++ a/mm/hugetlb.c
-@@ -5235,6 +5235,8 @@ void __unmap_hugepage_range(struct mmu_g
- 	last_addr_mask = hugetlb_mask_last_page(h);
- 	address = start;
- 	for (; address < end; address += sz) {
-+		cond_resched();
-+
- 		ptep = hugetlb_walk(vma, address, sz);
- 		if (!ptep) {
- 			address |= last_addr_mask;
+--- a/mm/userfaultfd.c~userfaultfd-reset-err-to-be-0-when-move_pages_ptes-succeeded
++++ a/mm/userfaultfd.c
+@@ -2085,8 +2085,10 @@ static ssize_t move_pages(struct userfau
+ 		}
+ 
+ 		if (err) {
+-			if (err == -EAGAIN)
++			if (err == -EAGAIN) {
++				err = 0;
+ 				continue;
++			}
+ 			break;
+ 		}
+ 
 _
 
-Patches currently in -mm which might be from leon.hwang@linux.dev are
+Patches currently in -mm which might be from foxieflakey@gmail.com are
 
-hugetlb-add-cond_resched-to-__unmap_hugepage_range.patch
+userfaultfd-reset-err-to-be-0-when-move_pages_ptes-succeeded.patch
 
