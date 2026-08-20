@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3C7821A262D;
-	Thu, 20 Aug 2026 22:37:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D665D318ED6
+	for <mm-commits@vger.kernel.org>; Thu, 20 Aug 2026 22:58:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787265441; cv=none; b=efj7wqKb73a4Xy3entawoyQe6RkkbavyH1PLb6GbW5X9/Cif7fwxA547qfN0xFTgn3le2O9GuLz9FUd9t8cq5Ku6ykdMlrcCth7lYWrOwZHtSZGab+F7m5KeEIeY80i9B9T/bBS8nB0JXtSN6EiZIkJhA8bC6C+dAjaSBxWJFBY=
+	t=1787266709; cv=none; b=hVj37pLFNOY8d+vKt+7mFvG0KHTvZSeL0aLyGcFGRroY/z8TD05pvFOf5CvGCWR0sU7BTGmbq4EuUdcRu9+mzNMz5AbwgeNb/6IMhwrWGUq85l9s86hpcGRRJJG7DOxs7aO/2c0YRi8edhDP4Eh80gh7v3/KS56oPH3DxquiVAs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787265441; c=relaxed/simple;
-	bh=GNh1oKIqh1hYIXNfY62No/2QEQy26mL/OGvmGJICiHM=;
-	h=Date:To:From:Subject:Message-Id; b=RB8EjKk7bNh3C7RN2fILG2yi5QN5Qv3wSGukqAj5GA4tU5MYFww10cJGN+X1sO4rwO3CB8jca0M+QaZn3ngtGQUXHb/KEcbjroVxJ4Unx27zaqKAUmHMMiMl12g66kn3MOlEeSSlEVLEHC5U19CRXD5Z9qbHWXwmAtNqzkheokc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xK/zJ4wz; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1787266709; c=relaxed/simple;
+	bh=WWGoSA60dOyYACZPzZ5TB4CLEJ9HnBEGX+jj3h1FMHY=;
+	h=Date:To:From:Subject:Message-Id; b=Ru6yTcD5tQWv8Wf85Zn1KywZV73kemV9Ccnh6UhVGVBLe4OE0xBZYJh4/HtMwjMTGl6wG8yZIvgzpM6JuwuRdMEDR3ox7gCpbrqFaUXk08UK9cQNsaceQRVnwJlHgyFcQ4dVzD0pcHJr0lrsMlMWYXLZAL0VgzwsyEmhA4sJe1w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IMofY15q; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xK/zJ4wz"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A4A3C1F000E9;
-	Thu, 20 Aug 2026 22:37:19 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IMofY15q"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 84C491F000E9;
+	Thu, 20 Aug 2026 22:58:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1787265439;
-	bh=aR7QFhU2qyyqWdWg7WWSdTugbKcWOxnWP7sqGWbushs=;
+	d=linux-foundation.org; s=korg; t=1787266707;
+	bh=OUf9tRZKRVs+8SMEu56S1vxBt4SMdGcXDwOWwoUhaXE=;
 	h=Date:To:From:Subject;
-	b=xK/zJ4wztatdgR/B8NQbYzjbFu//GilTvJbqL0RCpTWt7Dxo0g6OZs35knQzUjgcd
-	 0S1CCwc/TGBkBg7VMeTM3IkMBCeK2AdkfwrIOYVnl0WAXtMTfD22kxYOfyy24OKEjL
-	 CRWh9uE6yNnhcj52utOIANrvoYUm3JM+BXStF6HU=
-Date: Thu, 20 Aug 2026 15:37:19 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,stern@rowland.harvard.edu,stable@vger.kernel.org,gregkh@linuxfoundation.org,ziy@nvidia.com,akpm@linux-foundation.org
+	b=IMofY15qFqU1RyGMCZDnPz8HA1J/MsjnxaLvwoeDDgnG8jzgkuuindv0yHqbe6JP5
+	 miTWFLlE/4uerQS5HeDaonnK4LEQBfhkcBkR+95D/NnA9tcMxEeDCvfzuaDOc0GBAn
+	 /e1nA1LiFTcDWW4e5g75yfZv93nvHZpxKFbRk4OI=
+Date: Thu, 20 Aug 2026 15:58:27 -0700
+To: mm-commits@vger.kernel.org,tj@kernel.org,shuah@kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mkoutny@suse.com,mhocko@kernel.org,hannes@cmpxchg.org,lihongfu@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + usb-gadgetfs-do-not-warn-about-excessively-large-memory-allocations.patch added to mm-nonmm-unstable branch
-Message-Id: <20260820223719.A4A3C1F000E9@smtp.kernel.org>
+Subject: + selftests-cgroup-fix-cg_run_in_subcgroups-ignoring-arg-parameter.patch added to mm-new branch
+Message-Id: <20260820225827.84C491F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,26 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: USB: gadgetfs: do not WARN about excessively large memory allocations
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     usb-gadgetfs-do-not-warn-about-excessively-large-memory-allocations.patch
+     Subject: selftests/cgroup: fix cg_run_in_subcgroups ignoring arg parameter
+has been added to the -mm mm-new branch.  Its filename is
+     selftests-cgroup-fix-cg_run_in_subcgroups-ignoring-arg-parameter.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/usb-gadgetfs-do-not-warn-about-excessively-large-memory-allocations.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-cgroup-fix-cg_run_in_subcgroups-ignoring-arg-parameter.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,65 +69,56 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Zi Yan <ziy@nvidia.com>
-Subject: USB: gadgetfs: do not WARN about excessively large memory allocations
-Date: Thu, 20 Aug 2026 09:19:12 -0400
+From: Hongfu Li <lihongfu@kylinos.cn>
+Subject: selftests/cgroup: fix cg_run_in_subcgroups ignoring arg parameter
+Date: Thu, 20 Aug 2026 15:09:44 +0800
 
-GadgetFS passes an excessively large user input len to kmalloc and kmalloc
-gives a WARN (see below for details).  Suppress it by passing __GFP_NOWARN
-to kmalloc used by both ep_write_iter() and ep_read_iter().  Follow the
-same method as commit 4f2629ea67e72 ("USB: usbfs: Don't WARN about
-excessively large memory allocations").
+cg_run_in_subcgroups() discards its arg and always passes NULL to
+cg_run(), turning the (void *)100 from test_kmem_dead_cgroups() into NULL
+so no allocation occurs.
 
-kmalloc is used to allocate physically contiguous memory for kernel
-allocations.  For requests larger than KMALLOC_MAX_CACHE_SIZE, kmalloc
-uses the page allocator and can only support up to KMALLOC_MAX_SIZE.  For
-request sizes bigger than KMALLOC_MAX_SIZE, the page allocator can emit a
-WARN because kmalloc allocates an order greater than MAX_PAGE_ORDER.
+This makes test_kmem_dead_cgroups() falsely pass without exercising the
+"dying cgroup with charged slab" scenario it intends to test.
 
-Link: https://lore.kernel.org/DKTTMAS94IMH.2C6ERY0ZIVWVZ@nvidia.com
-Fixes: b3c466ce5129 ("page allocator: do not sanity check order in the fast=
- path")
-Signed-off-by: Zi Yan <ziy@nvidia.com>
-Reported-by: syzbot+805630f1453e490427fa@syzkaller.appspotmail.com
-Closes: https://lore.kernel.org/all/6a820ebc.9ebadd4d.20b15e.001b.GAE@googl=
-e.com/
-Tested-by: syzbot+805630f1453e490427fa@syzkaller.appspotmail.com
-Acked-by: Alan Stern <stern@rowland.harvard.edu>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: <stable@vger.kernel.org>
+Pass the arg through to cg_run() to fix this.
+
+Link: https://lore.kernel.org/20260820070944.31451-1-hongfu.li@linux.dev
+Fixes: 933dc80ec262 ("kselftests: cgroup: add kernel memory accounting tests")
+Signed-off-by: Hongfu Li <lihongfu@kylinos.cn>
+Reviewed-by: Michal Koutný <mkoutny@suse.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/gadget/legacy/inode.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ tools/testing/selftests/cgroup/test_kmem.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/drivers/usb/gadget/legacy/inode.c~usb-gadgetfs-do-not-warn-about-excessively-large-memory-allocations
-+++ a/drivers/usb/gadget/legacy/inode.c
-@@ -604,7 +604,7 @@ ep_read_iter(struct kiocb *iocb, struct
- 		return -EBADMSG;
- 	}
+--- a/tools/testing/selftests/cgroup/test_kmem.c~selftests-cgroup-fix-cg_run_in_subcgroups-ignoring-arg-parameter
++++ a/tools/testing/selftests/cgroup/test_kmem.c
+@@ -145,7 +145,7 @@ static int cg_run_in_subcgroups(const ch
+ 			return -1;
+ 		}
  
--	buf = kmalloc(len, GFP_KERNEL);
-+	buf = kmalloc(len, GFP_KERNEL | __GFP_NOWARN);
- 	if (unlikely(!buf)) {
- 		mutex_unlock(&epdata->lock);
- 		return -ENOMEM;
-@@ -666,7 +666,7 @@ ep_write_iter(struct kiocb *iocb, struct
- 		return -EBADMSG;
- 	}
- 
--	buf = kmalloc(len, GFP_KERNEL);
-+	buf = kmalloc(len, GFP_KERNEL | __GFP_NOWARN);
- 	if (unlikely(!buf)) {
- 		mutex_unlock(&epdata->lock);
- 		return -ENOMEM;
+-		if (cg_run(child, fn, NULL)) {
++		if (cg_run(child, fn, arg)) {
+ 			cg_destroy(child);
+ 			free(child);
+ 			return -1;
 _
 
-Patches currently in -mm which might be from ziy@nvidia.com are
+Patches currently in -mm which might be from lihongfu@kylinos.cn are
 
-mm-huge_memory-use-folios-memcg-inside-__folio_split.patch
-xarray-honor-xa_flags_account-in-xas_split_alloc.patch
-usb-gadgetfs-do-not-warn-about-excessively-large-memory-allocations.patch
+ksm-update-comments-and-docs-to-reference-folio-mapping.patch
+selftests-mm-drop-duplicate-test_seal_mprotect_two_vma_with_gap-call.patch
+selftests-mm-fix-read_file-return-value-check.patch
+mm-swap-fix-swap_cluster_lock-config_swap-stub-signature-mismatch.patch
+mm-cma-remove-stray-newline-from-auto-generated-cma-area-name.patch
+selftests-mm-drop-redundant-open-in-mprotect_tests.patch
+selftests-cgroup-fix-cg_run_in_subcgroups-ignoring-arg-parameter.patch
 
