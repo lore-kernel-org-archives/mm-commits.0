@@ -1,80 +1,94 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 24D84382380
-	for <mm-commits@vger.kernel.org>; Thu, 20 Aug 2026 02:55:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 74E68361DA6;
+	Thu, 20 Aug 2026 04:35:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787194543; cv=none; b=LKxXd6uyHs3KvZNkQnUgEYWgzPDyuDFD0KHax7T8MlJso9rXChQBOXzuRleh3FqsmrvIzShQhne51qHWSF7Q1P9WAgrobzDabDC1Rdu7d0fNVShqBK/12PdjKTSdspGt+Qp4yc0pp5v6fgvjCUxMur7kuxxXZHEDqNX4Y6H2hSQ=
+	t=1787200550; cv=none; b=J+bCtiNP5fe4u2E1hV6FZoDuPQvRFZ4SE/Rf8fVDKzAU8XK+2WInhrokSYd+fsk0pKy0DogIURQCdjSb8Xr1eU0gdz9CIifUUl4yI0IruAUr1Ns9OtkET9VVpW9EyOgdi8k/8zgIrzZW+KSDV+UqDsGSCAg3c1x1M934j6wz++Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787194543; c=relaxed/simple;
-	bh=WVF9lMJ7MZuS+AWqfbdQe2y2bhjZekkFcqN/djQg9L0=;
-	h=Date:To:From:Subject:Message-Id; b=iLe0gaAOPK8anz1wW2/MR0z1WU6nm7fJuYHAEUl5R0tsjU7LhYvhLA3HSfV6URJ6pNZPCYOhJJCxI+7bRh5d1PHvDk8HM6Bt7TwnYmoMXvTYi/+Av0jRZ9ca56V4MAUEoN5IIskgIFVVKFvqePztq0MHCUd+mNac8VrCphml2IE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=x2p/fx+9; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1787200550; c=relaxed/simple;
+	bh=vv/WMpx9ehxo47rj4T5HRfPRXMP/7okW9KOafJFSfLY=;
+	h=Date:From:To:Cc:Subject:Message-Id:Mime-Version:Content-Type; b=BaO7NkiMI2NPR7Fhtz2NFvKdOLo5CnQU8wvnLYBegE9aIwCUASoN59X57ZPArmGF6pxpCEIvLAlhs+W69nRh4ICipI4U1tQVDc175Bz2AehFBsEDvr9yQWV+vy2KS0Eg7+nz+8sBbeSCz8rEymLGnmb+Lsd3EERGYgG0MynS74A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=aA/EjqIS; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="x2p/fx+9"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A6DEF1F000E9;
-	Thu, 20 Aug 2026 02:55:41 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="aA/EjqIS"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BE58C1F000E9;
+	Thu, 20 Aug 2026 04:35:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1787194541;
-	bh=DyGCMqtt6nIlYuZ8LTXrUsloFFif2fMMd/ONwSF8cSU=;
-	h=Date:To:From:Subject;
-	b=x2p/fx+9xk+90my1WRrTrBUjAe7Dr6BJuRUM8uJpsnna1Ev2T44iUU8qdmsYhTYUv
-	 u5/xy2kcLosVV7mPvikb6OVBFv1bp4mFy1fguNhrGxbw/1DCmDY4YNm4G8HZeIiWv5
-	 Ghjfr03kigE1qsxbmGqt7XXKg6E95h+dHSH9VW1A=
-Date: Wed, 19 Aug 2026 19:55:41 -0700
-To: mm-commits@vger.kernel.org,taniya.das@oss.qualcomm.com,konrad.dybcio@oss.qualcomm.com,akpm@linux-foundation.org
+	d=linux-foundation.org; s=korg; t=1787200548;
+	bh=0UCl+bymr0EVEpu0WEcn7AlKSOyhvVMhIe4G+bqwAr0=;
+	h=Date:From:To:Cc:Subject;
+	b=aA/EjqISqhfzGL9cmUa1qc6uJqWVEsQ+/Nhj2bLZqy3l6S7yFmS5jYWV+J4mm2el0
+	 jlzmbAvKkpjpFznDfyAjoSmTNhRDDV8ci6rBOFJlPjovm9j2UXZYJWm/xdMVSj9TiA
+	 zfPm8zJTVFMQua/VQs+zL/oaWvqcG+W9fjUq+Fbc=
+Date: Wed, 19 Aug 2026 21:35:48 -0700
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] mailmap-fix-bouncing-address-for-taniya-das.patch removed from -mm tree
-Message-Id: <20260820025541.A6DEF1F000E9@smtp.kernel.org>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org,
+ mm-commits@vger.kernel.org
+Subject: [GIT PULL] hotfixes for 7.3-rc1
+Message-Id: <20260819213548.4160b501de0b9ab41029cfcf@linux-foundation.org>
+X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+
+Linus, please merge this batch of hotfixes, thanks.
 
 
-The quilt patch titled
-     Subject: mailmap: fix bouncing address for Taniya Das
-has been removed from the -mm tree.  Its filename was
-     mailmap-fix-bouncing-address-for-taniya-das.patch
+The following changes since commit 1ec0e6b6f7321feb769f50d2f094a0aa6c2eda63:
 
-This patch was dropped because it was merged into the mm-nonmm-stable branch
-of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+  mm/damon: adjust isolated pages stat for DAMOS_MIGRATE_{HOT,COLD} (2026-08-04 20:02:04 -0700)
 
-------------------------------------------------------
-From: Konrad Dybcio <konrad.dybcio@oss.qualcomm.com>
-Subject: mailmap: fix bouncing address for Taniya Das
-Date: Mon, 17 Aug 2026 15:33:46 +0200
+are available in the Git repository at:
 
-The quic_username@quicinc.com emails have been deprecated inside Qualcomm
-for a while now in favor of firstname.lastname@oss.qualcomm.com Re-route
-the emails to Taniya's current OSS email address to avoid Outlook bounces
-("recipient's inbox is full").
+  git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2026-08-19-21-33
 
-Link: https://lore.kernel.org/20260817-topic-taniya_email_bounce-v1-1-d7af1f113d64@oss.qualcomm.com
-Signed-off-by: Konrad Dybcio <konrad.dybcio@oss.qualcomm.com>
-Cc: Taniya Das <taniya.das@oss.qualcomm.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+for you to fetch changes up to aedf2efd18977e0cef7eb963166e2b1fcc0aa321:
 
- .mailmap |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+  mm/pagewalk: fix stale walk->action escaping walk_pmd_range() (2026-08-13 18:06:48 -0700)
 
---- a/.mailmap~mailmap-fix-bouncing-address-for-taniya-das
-+++ a/.mailmap
-@@ -864,7 +864,8 @@ Szymon Wilczek <swilczek.lx@gmail.com> <
- Takashi YOSHII <takashi.yoshii.zj@renesas.com>
- Tamir Duberstein <tamird@kernel.org> <tamird@gmail.com>
- Tamizh Chelvam Raja <quic_tamizhr@quicinc.com> <tamizhr@codeaurora.org>
--Taniya Das <quic_tdas@quicinc.com> <tdas@codeaurora.org>
-+Taniya Das <taniya.das@oss.qualcomm.com> <quic_tdas@quicinc.com>
-+Taniya Das <taniya.das@oss.qualcomm.com> <tdas@codeaurora.org>
- Tanzir Hasan <tanzhasanwork@gmail.com> <tanzirh@google.com>
- Tejun Heo <htejun@gmail.com>
- Tomeu Vizoso <tomeu@tomeuvizoso.net> <tomeu.vizoso@collabora.com>
-_
+----------------------------------------------------------------
+8 hotfixes.  5 are cc:stable.  5 are for MM.
 
-Patches currently in -mm which might be from konrad.dybcio@oss.qualcomm.com are
+All are singletons, please see their changelogs for details.
 
+----------------------------------------------------------------
+Breno Leitao (1):
+      mm/vmscan: report RCU-tasks quiescent states in shrink_lruvec()
+
+Guodong Xu (1):
+      mailmap: add entries for Guodong Xu
+
+Guopeng Zhang (1):
+      mm: memcg-v1: fix memsw and TCP failcnt accounting
+
+Hyunwoo Kim (1):
+      mm/pagewalk: fix stale walk->action escaping walk_pmd_range()
+
+JP Kobryn (1):
+      MAINTAINERS, mailmap: update email address for JP Kobryn
+
+Phillip Lougher (1):
+      MAINTAINERS: remove git URL for Squashfs
+
+Shakeel Butt (1):
+      memcg: keep folio's objcg same as its node
+
+Youngjun Park (1):
+      mm, swap: don't free a hibernation slot that is in the swap cache
+
+ .mailmap        |   3 ++
+ MAINTAINERS     |   3 +-
+ mm/memcontrol.c | 102 ++++++++++++++++++++++++++++++++++++++++++++++----------
+ mm/pagewalk.c   |   6 ++--
+ mm/swapfile.c   |   9 ++++-
+ mm/vmscan.c     |   2 +-
+ 6 files changed, 100 insertions(+), 25 deletions(-)
 
