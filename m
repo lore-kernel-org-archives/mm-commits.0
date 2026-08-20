@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C4609348C70
-	for <mm-commits@vger.kernel.org>; Thu, 20 Aug 2026 02:55:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 075982690EC
+	for <mm-commits@vger.kernel.org>; Thu, 20 Aug 2026 02:55:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787194538; cv=none; b=A1Z4eOEfqCYslIzAzIrfwXxdqZnQMrRS3Ev5rEf//7C0JoVmLCbNkp10s66eqqs49xaPUuJd0kkZbmYIq5ICPaK9+RUORTBf/+UalvwBBPMbXAsjg8BC82fYQ6+l1+VwY8kIDl4WzlI8K251kBibcDTKRvHIOl5gaB0tjDjdbt4=
+	t=1787194539; cv=none; b=mtzq+DvJpTmv/3VcKt3pmhKQMrqD4/bKBgi/GyM1iydoOZP8JujAu3gMnFOTiQUkO0Cpt0uXCN92jEXHGW1dBTx8zQDnVO+TuWBJntZG6sNgAsZltrlQqzWtrI7GNiX22hXaE4lqPRUwELuime3A6EJEBPXrvgbwPV0QBodSwHY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787194538; c=relaxed/simple;
-	bh=lcVXOO+3auEL9dttxCeSyPwo2psb/b9126y5eou0yBk=;
-	h=Date:To:From:Subject:Message-Id; b=irfzNjLxO2dNrFzOJWjYwU4mP8JSCB4p3AWkJpvVgu4lATp0l5ar8HrubjpE6InL1bURkW2g2v8PfYJ0k+sUNksL+CNpDy01fZd3VVdCwEcdctDtkOJibhhGJ/2fuzhE6dWScaUxFLfyunDAuIGuhQ++m754Si8VGgC1c+p9Lws=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Tg4ynbbz; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1787194539; c=relaxed/simple;
+	bh=BwECwvsb4xF3iF/I4jzy6tRgFNgFCna+yIvIxuoolVo=;
+	h=Date:To:From:Subject:Message-Id; b=H4EcuU7POb2U+BkaJSrWH/qqUQL3t0b6RSpN3YKFf2R16ApD1QTLooLRDKy9YpgCNJyXFhm8JIfVQDGB2C7Gujc9TfkLEhhHUi9WhAb1sN9P9MknoZBysrQxdUok/bv5wEIkbrhCLH+NDkGx67gC7MzHCRVB+FPZhX/za0NBOIk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=z9qnQB5y; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Tg4ynbbz"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 552B61F000E9;
-	Thu, 20 Aug 2026 02:55:36 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="z9qnQB5y"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 933C61F00A3A;
+	Thu, 20 Aug 2026 02:55:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1787194536;
-	bh=uL2l+GMxcMRneo3pu2LRXpfI81kfR4/6+/zix1/kS+s=;
+	d=linux-foundation.org; s=korg; t=1787194537;
+	bh=TP88qC6vcUbxBI2GsrYtVd4KL4ekoxxjlGY7sq+Py9s=;
 	h=Date:To:From:Subject;
-	b=Tg4ynbbzrp/cz3uALc3WifBxapvENrfMHk9FkIkrKJ82DnUfNv+R/pq2+Cs3dgDoE
-	 WtUnh14OwUpfLD2bUhyMpZVzzlaO+8goSGWdyGXzhvJeFo3IFJZt2CauU4tCKEVshs
-	 f9h4GM44HR1yQV6dp1qnAzE2xdOwelhga8yPwTyc=
-Date: Wed, 19 Aug 2026 19:55:35 -0700
-To: mm-commits@vger.kernel.org,gorcunov@openvz.org,adobriyan@gmail.com,include@grrlz.net,akpm@linux-foundation.org
+	b=z9qnQB5yiSAjXqEG/2Hpw0+6JiMCjTDrkEgOGEuUz9QI69ugKI8ha1Fm6AtRSxVMG
+	 7QPSNOkX9nHr/weDZFtsOumsjFTKR0jVhWrjgLKc65qX8GVEhc+Xoo/h4AUMMYi6l9
+	 xA3otS9RHxT12G5c8hmLzUgaw50+Q+UHV4pHN26E=
+Date: Wed, 19 Aug 2026 19:55:37 -0700
+To: mm-commits@vger.kernel.org,shakeel.butt@linux.dev,riel@surriel.com,phillip@squashfs.org.uk,jlayton@kernel.org,hannes@cmpxchg.org,brauner@kernel.org,boris@bur.io,usama.arif@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] prctl-fix-pr_set_mm_auxv-losing-the-forced-at_null-terminator.patch removed from -mm tree
-Message-Id: <20260820025536.552B61F000E9@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] squashfs-avoid-thundering-herd-cache-wakeups.patch removed from -mm tree
+Message-Id: <20260820025537.933C61F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,92 +35,284 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: prctl: fix PR_SET_MM_AUXV losing the forced AT_NULL terminator
+     Subject: squashfs: avoid thundering-herd cache wakeups
 has been removed from the -mm tree.  Its filename was
-     prctl-fix-pr_set_mm_auxv-losing-the-forced-at_null-terminator.patch
+     squashfs-avoid-thundering-herd-cache-wakeups.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Bradley Morgan <include@grrlz.net>
-Subject: prctl: fix PR_SET_MM_AUXV losing the forced AT_NULL terminator
-Date: Sun, 9 Aug 2026 00:29:01 +0000
+From: Usama Arif <usama.arif@linux.dev>
+Subject: squashfs: avoid thundering-herd cache wakeups
+Date: Fri, 7 Aug 2026 10:24:21 -0700
 
-prctl_set_auxv() copies the user vector into a stack buffer, forces
-AT_NULL on the last two entries there, and then copies only len bytes into
-mm->saved_auxv.  Which is fine until the vector is shorter than the
-buffer, because then the forced terminator sits past the end of the copy
-and never lands in saved_auxv at all.
+squashfs_cache_get() puts a task to sleep when its block is not cached and
+every cache entry is busy.  Those sleeps are non-exclusive, so the
+nr_exclusive == 1 budget squashfs_cache_put() has always passed to
+wake_up() is inert and one release makes every waiter runnable.  A wakee
+only returns to squashfs_cache_get() if it observes cache->unused before
+the entry is reclaimed; later wakees see zero and re-queue inside
+wait_event() without rescanning.  One freed entry satisfies exactly one
+capacity waiter, so waking the rest is waste.
 
-The code even says
+On a Meta production host serving a Python web application from a packaged
+squashfs image, a 30-second trace caught 1,045,132 cache-release wake
+calls and 19,511,556 wakeups: 18.7 per release, although each release
+added only one reusable cache entry.  This was causing significant spikes
+in CPU usage.
 
-	/* Make sure the last entry is always AT_NULL */
+Make the waits exclusive, enqueueing while still holding cache->lock so
+that a concurrent lookup either sees the waiter queued or the waiter sees
+the block that lookup publishes.  Two things follow.
 
-and it does, just not in the part that gets copied.
+A wakee cannot be assumed to consume the entry it was woken for: it may
+find its own block published meanwhile, share that entry, and leave the
+freed one unclaimed.  So a wakee which shares hands its wakeup on to the
+next waiter, as commit 0ddad21d3e99 ("pipe: use exclusive waits when
+reading or writing") does with wake_next_reader.
 
-So mm->saved_auxv keeps the stale tail from exec.  Reproducing it is easy:
-from a process with CAP_SYS_RESOURCE (just run it as root), call
-prctl(PR_SET_MM, PR_SET_MM_AUXV, ...) with a vector that has a couple of
-entries and no AT_NULL inside len (32 bytes on arm64), and then hexdump
-/proc/self/auxv, or gcore the process and look at the AUXV note with
-readelf -n.  This is arm64, the new vector was just { AT_UID, 0x1111,
-AT_GID, 0x2222 }:
+And a waiter can now sleep through a publication of the very block it
+wants, which the old broadcast gave it repeated chances to notice.  So
+waiters are keyed by block: publishing wakes every waiter for that block
+(nr_exclusive == 0), freeing an entry wakes one.  That needs a custom wake
+callback, like wake_page_function() in mm/filemap.c, which also records
+which wakeup arrived so the handoff only fires for a capacity wakee.
 
-    idx  before (from exec)               after the prctl
-    [0]  AT_SYSINFO_EHDR   0x7ed1d6e000   AT_UID    0x1111    <- new
-    [1]  AT_MINSIGSTKSZ    0x1270         AT_GID    0x2222    <- new
-    [2]  AT_HWCAP          0x119fff       AT_HWCAP  0x119fff  <- stale
-    [3]  AT_PAGESZ         0x1000         AT_PAGESZ 0x1000    <- stale
-    ...  16 more entries                  ...                 <- stale
-    [20] AT_NULL           0x0            AT_NULL   0x0
+Broadcast is kept where more than one task can proceed - every waiter for
+a published block, and the wake_up_all() on entry->wait_queue - at the
+cost of walking the queue under wait_queue.lock to test the key.  Waiters
+are now served FIFO with a scheduling round trip per handoff hop, so
+per-waiter latency changes; the filebench run below is 4x oversubscribed,
+where that should hurt most.
 
-21 entries before the prctl, still 21 after: the two new ones plus all 19
-left over from exec.
+Measured on a 32-CPU VM against a read-only squashfs (gzip,
+DECOMP_MULTI_PERCPU, FILE_DIRECT, default 8 metadata / 3 fragment cache
+entries) staged in tmpfs, page cache dropped each iteration to force cold
+decompression:
 
-Every consumer walks the vector until AT_NULL, so what they get now is a
-vector that never existed at exec, the head from the prctl glued onto the
-tail of the old binary.  gdb and crash pull the AUXV note out of coredumps
-to find AT_PHDR, AT_ENTRY, AT_SYSINFO_EHDR and friends, and a mixed vector
-points them at the wrong layout.  /proc/<pid>/auxv and PR_GET_AUXV hand
-the same mess out to live processes too.  Nothing crashes, everything just
-quietly reads a frankenstein auxv.
+  elbencho, 64 threads
+    metadata stat        700 ->  1320 files/s    1.9x
+    small-file read       40 ->    60 MiB/s      1.5x
 
-And callers that terminate their own vector hide the whole thing, which is
-likely why nobody noticed since PR_SET_MM_AUXV landed in 2012.  Nothing
-exciting security wise either, I mean it needs CAP_SYS_RESOURCE to begin
-with.
+  filebench, 128 threads, open+read+stat+close (mean of 3x 30s)
+    throughput        11,314 -> 25,186 ops/s     2.2x
+    sched:sched_wakeup  27.0 ->   4.55 per op    5.9x fewer
+    context switches    37.2 ->   7.64 per op    4.9x fewer
 
-prctl_set_mm_map() right above already copies the whole buffer for exactly
-this reason, so just do the same here.  user_auxv is zero initialized and
-only partially filled from userspace, so the rest is zeros and nothing
-leaks.
+Wakeups and context switches are per operation, since the two runs did
+2.2x different amounts of work.  Workloads which never queue for a cache
+entry gain no wakeups.
 
-Link: https://lore.kernel.org/20260809002901.32591-1-include@grrlz.net
-Fixes: fe8c7f5cbf91 ("c/r: prctl: extend PR_SET_MM to set up more mm_struct entries")
-Signed-off-by: Bradley Morgan <include@grrlz.net>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Cyrill Gorcuno <gorcunov@openvz.org>
+Link: https://lore.kernel.org/20260807172421.3875982-1-usama.arif@linux.dev
+Signed-off-by: Usama Arif <usama.arif@linux.dev>
+Reviewed-by: Phillip Lougher <phillip@squashfs.org.uk>
+Cc: Boris Burkov <boris@bur.io>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Jeff Layton <jlayton@kernel.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sys.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/squashfs/cache.c          |  114 +++++++++++++++++++++++++++++++--
+ fs/squashfs/squashfs_fs_sb.h |    9 ++
+ 2 files changed, 117 insertions(+), 6 deletions(-)
 
---- a/kernel/sys.c~prctl-fix-pr_set_mm_auxv-losing-the-forced-at_null-terminator
-+++ a/kernel/sys.c
-@@ -2189,7 +2189,7 @@ static int prctl_set_auxv(struct mm_stru
- 	BUILD_BUG_ON(sizeof(user_auxv) != sizeof(mm->saved_auxv));
+--- a/fs/squashfs/cache.c~squashfs-avoid-thundering-herd-cache-wakeups
++++ a/fs/squashfs/cache.c
+@@ -46,18 +46,81 @@
+ #include "page_actor.h"
  
- 	task_lock(current);
--	memcpy(mm->saved_auxv, user_auxv, len);
-+	memcpy(mm->saved_auxv, user_auxv, sizeof(user_auxv));
- 	task_unlock(current);
+ /*
++ * Waiters on cache->wait_queue are keyed by the block they want, so a wakeup
++ * can name who it is for.  A NULL key is a capacity wakeup: one entry became
++ * free, so wake one waiter.  A block key is a publication wakeup: that block
++ * now has an entry, so wake every waiter which can share it.
++ */
++struct squashfs_cache_wait {
++	wait_queue_entry_t	wait;
++	u64			block;
++	bool			capacity_wake;
++};
++
++static int squashfs_cache_wake_function(wait_queue_entry_t *wait,
++					unsigned int mode, int sync, void *key)
++{
++	struct squashfs_cache_wait *cache_wait =
++		container_of(wait, struct squashfs_cache_wait, wait);
++	u64 *block = key;
++
++	if (block && cache_wait->block != *block)
++		return 0;
++
++	WRITE_ONCE(cache_wait->capacity_wake, !block);
++
++	/*
++	 * Wake and unlink unconditionally instead of using
++	 * autoremove_wake_function(), which unlinks only when it changed the
++	 * task state.  A waiter can be made runnable by something which does
++	 * not go through this queue: wake_up_process() takes TASK_NORMAL, and
++	 * a cgroup v2 thaw calls it on every task in the cgroup, as do
++	 * free_pid() on a pid namespace init and a late rcuwait_wake_up().
++	 * try_to_wake_up() then fails.  Leaving such a waiter queued with a
++	 * reason already recorded would let it act on a freed entry it was not
++	 * given, and the failure would not consume the exclusive budget, so a
++	 * second waiter would be woken for the same entry.
++	 *
++	 * list_del_init_careful() must be the last access to @cache_wait: it
++	 * releases the waiter, whose wait structure lives on its stack, and it
++	 * pairs with list_empty_careful() in finish_wait() to publish the
++	 * store above.  __wake_up_common() samples ->flags and the next entry
++	 * before calling here, so it does not touch @wait afterwards either.
++	 */
++	default_wake_function(wait, mode, sync, key);
++	list_del_init_careful(&wait->entry);
++
++	return 1;
++}
++
++static void squashfs_cache_wake_block(struct squashfs_cache *cache, u64 block)
++{
++	/* nr_exclusive == 0: wake every waiter which matches the key. */
++	__wake_up(&cache->wait_queue, TASK_NORMAL, 0, &block);
++}
++
++/*
+  * Look-up block in cache, and increment usage count.  If not in cache, read
+  * and decompress it from disk.
++ *
++ * A caller which finds no free entry sleeps on cache->wait_queue as an
++ * exclusive waiter, so squashfs_cache_put() releasing one entry wakes exactly
++ * one task.  Because a wakee may find its block published in the meantime and
++ * share that entry rather than claim the free one, a wakee which shares hands
++ * its wakeup on to the next waiter.
+  */
+ struct squashfs_cache_entry *squashfs_cache_get(struct super_block *sb,
+ 	struct squashfs_cache *cache, u64 block, int length)
+ {
+ 	int i, n;
+ 	struct squashfs_cache_entry *entry;
++	bool capacity_wake = false;
  
- 	return 0;
+ 	spin_lock(&cache->lock);
+ 
+ 	while (1) {
++		bool pending, wake_next, wake_block;
++
+ 		for (i = cache->curr_blk, n = 0; n < cache->entries; n++) {
+ 			if (cache->entry[i].block == block) {
+ 				cache->curr_blk = i;
+@@ -72,9 +135,25 @@ struct squashfs_cache_entry *squashfs_ca
+ 			 * go to sleep waiting for one to become available.
+ 			 */
+ 			if (cache->unused == 0) {
++				struct squashfs_cache_wait wait = {
++					.block		= block,
++					.capacity_wake	= false,
++				};
++
++				init_wait_func(&wait.wait,
++					       squashfs_cache_wake_function);
+ 				cache->num_waiters++;
++				/*
++				 * Enqueue while still holding cache->lock, so
++				 * that a concurrent lookup either sees us
++				 * queued or we see the block it publishes.
++				 */
++				prepare_to_wait_exclusive(&cache->wait_queue,
++						&wait.wait, TASK_UNINTERRUPTIBLE);
+ 				spin_unlock(&cache->lock);
+-				wait_event(cache->wait_queue, cache->unused);
++				schedule();
++				finish_wait(&cache->wait_queue, &wait.wait);
++				capacity_wake = READ_ONCE(wait.capacity_wake);
+ 				spin_lock(&cache->lock);
+ 				cache->num_waiters--;
+ 				continue;
+@@ -105,8 +184,18 @@ struct squashfs_cache_entry *squashfs_ca
+ 			entry->pending = 1;
+ 			entry->num_waiters = 0;
+ 			entry->error = 0;
++			wake_block = cache->num_waiters > 0;
+ 			spin_unlock(&cache->lock);
+ 
++			/*
++			 * The entry is now findable, so release everybody
++			 * queued for this block to share it rather than each
++			 * waiting for an entry of their own.  They will block
++			 * on entry->wait_queue below until the read completes.
++			 */
++			if (wake_block)
++				squashfs_cache_wake_block(cache, block);
++
+ 			entry->length = squashfs_read_data(sb, block, length,
+ 				&entry->next_index, entry->actor);
+ 
+@@ -138,20 +227,33 @@ struct squashfs_cache_entry *squashfs_ca
+ 		 * for reuse.
+ 		 */
+ 		entry = &cache->entry[i];
+-		if (entry->refcount == 0)
++		if (entry->refcount == 0) {
+ 			cache->unused--;
++			/* This claims the capacity we were woken for. */
++			capacity_wake = false;
++		}
+ 		entry->refcount++;
+ 
+ 		/*
+ 		 * If the entry is currently being filled in by another process
+ 		 * go to sleep waiting for it to become available.
+ 		 */
+-		if (entry->pending) {
++		pending = entry->pending;
++		if (pending)
+ 			entry->num_waiters++;
+-			spin_unlock(&cache->lock);
++
++		/*
++		 * We were woken because an entry became free, but shared a
++		 * block instead of claiming it.  Hand the wakeup on, otherwise
++		 * the free entry sits unclaimed while others sleep.
++		 */
++		wake_next = capacity_wake && cache->unused && cache->num_waiters;
++		spin_unlock(&cache->lock);
++
++		if (wake_next)
++			wake_up(&cache->wait_queue);
++		if (pending)
+ 			wait_event(entry->wait_queue, !entry->pending);
+-		} else
+-			spin_unlock(&cache->lock);
+ 
+ 		goto out;
+ 	}
+--- a/fs/squashfs/squashfs_fs_sb.h~squashfs-avoid-thundering-herd-cache-wakeups
++++ a/fs/squashfs/squashfs_fs_sb.h
+@@ -12,6 +12,15 @@
+ 
+ #include "squashfs_fs.h"
+ 
++/*
++ * Waiters for a cache entry sleep on wait_queue as exclusive waiters, so
++ * freeing one entry wakes one task.  See squashfs_cache_get().
++ *
++ * num_waiters is only a hint used to skip pointless wakeups: it is
++ * incremented before a task queues itself and decremented after it is woken,
++ * so it can transiently exceed the number of queued tasks.  It never
++ * undercounts them, which is what the wakeup paths rely on.
++ */
+ struct squashfs_cache {
+ 	char			*name;
+ 	int			entries;
 _
 
-Patches currently in -mm which might be from include@grrlz.net are
+Patches currently in -mm which might be from usama.arif@linux.dev are
 
-taskstats-copy-signal-stats-under-siglock-in-taskstats_exit.patch
+mm-vmstat-mm-memcontrol-add-_monotonic-vmstat-readers.patch
+mm-vmscan-add-pgrotate_anon-and-pgrotate_file-vmstat-counters.patch
+mm-vmscan-reduce-lru_lock-contention-via-vmstat-derived-scan-balance-cost.patch
+mm-memcontrol-avoid-false-sharing-between-vmstats-and-events.patch
 
