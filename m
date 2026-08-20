@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 95B451AC44D
-	for <mm-commits@vger.kernel.org>; Thu, 20 Aug 2026 02:55:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 866A1348C70
+	for <mm-commits@vger.kernel.org>; Thu, 20 Aug 2026 02:55:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787194534; cv=none; b=um0Ah4PcAsbMIKoPReJ40y+3TTXVXn6hNZBVSToEdiOwoNhFhqWXEyn110vsPI10Qn8dz8zO7A1yuVzK40iy77ZBNjC5kVdxV0XpQHDQP38DL4b1RA/Vj/SMHTn77nKjEBGKK5WjRL0VrBZx4Ebc9Fv/oXFN0gyivTucD8Mxx0w=
+	t=1787194536; cv=none; b=k3OrA32z8fOLIlAKwy4JpQ1mdTKDNI3ni8Ph4CVluO5ORJ+NU/LwoICHrdexDSgD+wZnWxq3s/OGAaY550vevykg+1lAMrqKMesc7wWjMv9QA32TCmQN51swtdxnnOxPHD4M1HcOuXzVGBH0Vx++Dm5Nvk2NNSMxSDgCEdAn2eo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787194534; c=relaxed/simple;
-	bh=mfYrdXlB/FEmo64J/OfHYQcKQGkFym20SuHJwQOb1gw=;
-	h=Date:To:From:Subject:Message-Id; b=AUym5lb7WY74LyB9L4zXemBlQFjKFk7UlAGUwQuUQxlAxO/8gNSt/kYAJTQDVPa+Ipnu+nCv1aDOXcits7rmNKPvdXALcyY78g46jdvGfE9b+FwA3g8KjtI593h6bkXyXDHBJA/hUNsFvw6AcqiuCvXzJirZiaqwCua2WYPaGWU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hb4iyMnW; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1787194536; c=relaxed/simple;
+	bh=2RxzUvnJUXcaCLn1YkPih7bX3RLH0L88slI2GaefFhM=;
+	h=Date:To:From:Subject:Message-Id; b=souY/G2xdOeYi4RKnCuzVEnzYVxj/K0EiC+qv5kfBzZ4CeBygNpEfgXfKMirakxrEoFD45c6fZUNvlEcBKU9EGMrk1AAbkxYfj4MYL82ObJhcrbtNk2pE6AJR88whXrvN7h0HCdvD4R6rOfL/KqnSVCAaEcUrQDvDrEpNLqOh4c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qwM73T7f; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hb4iyMnW"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 019EC1F000E9;
-	Thu, 20 Aug 2026 02:55:32 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qwM73T7f"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 191B71F00A3A;
+	Thu, 20 Aug 2026 02:55:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1787194533;
-	bh=4Xe3jBbMv986OzdH3LV96eiyXdR8bDl6BhbIIid+r/s=;
+	d=linux-foundation.org; s=korg; t=1787194534;
+	bh=YXWAC2uLb4zxBObvgt3mdfJOgS8SFsVMKCtWZHk8Qhc=;
 	h=Date:To:From:Subject;
-	b=hb4iyMnW57lk3U0ktxzdfyp4PV12bTKa9B4U1QtSuyxQXwrIxLWcVS8X7jiJeRMz1
-	 pezHr3HgvdSYodX6BuCrirKf1mz59bQOls4HJ0k1xUYsy8AUgnA+VTqprXyI+ah5y/
-	 R7AY3bk7fz+wviW1hTIoHoXoz0wiD0GD3/ICyZDo=
-Date: Wed, 19 Aug 2026 19:55:32 -0700
-To: mm-commits@vger.kernel.org,richard.weiyang@gmail.com,akpm@linux-foundation.org,kmehltretter@gmail.com,akpm@linux-foundation.org
+	b=qwM73T7fLLdyzqne/VGK4c5LplGrxTsFbk5CwdZC4X7fh8z8Wu1uW0rZeju5V0L2u
+	 K5vHQvySSJRtwzvwnBaWBidfOWRzgPh4gIREbnmJb7vcRBN71P8DfxSjZkYfLo8c3r
+	 0dlfKiCbjoTGKx1ZyZjtescm9QZ0ImuyfTYnOrU8=
+Date: Wed, 19 Aug 2026 19:55:33 -0700
+To: mm-commits@vger.kernel.org,linfeng.sun.dev@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] lib-interval_tree-fix-allocation-warning-messages.patch removed from -mm tree
-Message-Id: <20260820025533.019EC1F000E9@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] mailmap-update-email-address-for-linfeng-sun.patch removed from -mm tree
+Message-Id: <20260820025534.191B71F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,61 +35,43 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: lib/interval_tree: fix allocation warning messages
+     Subject: mailmap: update email address for Linfeng Sun
 has been removed from the -mm tree.  Its filename was
-     lib-interval_tree-fix-allocation-warning-messages.patch
+     mailmap-update-email-address-for-linfeng-sun.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Karl Mehltretter <kmehltretter@gmail.com>
-Subject: lib/interval_tree: fix allocation warning messages
-Date: Sat, 8 Aug 2026 14:36:08 +0200
+From: Linfeng Sun <linfeng.sun.dev@gmail.com>
+Subject: mailmap: update email address for Linfeng Sun
+Date: Mon, 10 Aug 2026 15:32:35 +0800
 
-WARN_ON_ONCE() takes a condition, not a message.  The string literals are
-always true, so the warnings still trigger but the messages are never
-printed.
+1. Update my university email to my personal Gmail, as the former will
+   expire after graduation.
+2. Fix a typo in my Gmail domain.
 
-Use WARN_ONCE(1, ...) instead to print the messages and keep the once-only
-behavior.
-
-Found with a Coccinelle script.  Clang's -Wstring-conversion also flags
-such calls but is not enabled in kernel builds.
-
-Link: https://lore.kernel.org/20260808123608.73613-1-kmehltretter@gmail.com
-Fixes: 82114e45131f ("lib/interval_tree: add test case for interval_tree_iter_xxx() helpers")
-Assisted-by: Claude:claude-fable-5 coccinelle
-Signed-off-by: Karl Mehltretter <kmehltretter@gmail.com>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Wei Yang <richard.weiyang@gmail.com>
+Link: https://lore.kernel.org/20260810073235.22980-1-linfeng.sun.dev@gmail.com
+Signed-off-by: Linfeng Sun <linfeng.sun.dev@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/interval_tree_test.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ .mailmap |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/lib/interval_tree_test.c~lib-interval_tree-fix-allocation-warning-messages
-+++ a/lib/interval_tree_test.c
-@@ -140,13 +140,13 @@ static int intersection_range_check(void
- 
- 	intxn1 = bitmap_alloc(nnodes, GFP_KERNEL);
- 	if (!intxn1) {
--		WARN_ON_ONCE("Failed to allocate intxn1\n");
-+		WARN_ONCE(1, "Failed to allocate intxn1\n");
- 		return -ENOMEM;
- 	}
- 
- 	intxn2 = bitmap_alloc(nnodes, GFP_KERNEL);
- 	if (!intxn2) {
--		WARN_ON_ONCE("Failed to allocate intxn2\n");
-+		WARN_ONCE(1, "Failed to allocate intxn2\n");
- 		bitmap_free(intxn1);
- 		return -ENOMEM;
- 	}
+--- a/.mailmap~mailmap-update-email-address-for-linfeng-sun
++++ a/.mailmap
+@@ -516,6 +516,8 @@ Leo Yan <leo.yan@linux.dev> <leo.yan@lin
+ Liam R. Howlett <liam@infradead.org> <Liam.Howlett@oracle.com>
+ Liam Mark <quic_lmark@quicinc.com> <lmark@codeaurora.org>
+ Linas Vepstas <linas@austin.ibm.com>
++Linfeng Sun <linfeng.sun.dev@gmail.com> <slf@hdu.edu.cn>
++Linfeng Sun <linfeng.sun.dev@gmail.com> <linfeng.sun.dev@gamil.com>
+ Linus Lüssing <linus.luessing@c0d3.blue> <linus.luessing@ascom.ch>
+ Linus Lüssing <linus.luessing@c0d3.blue> <linus.luessing@web.de>
+ Linus Lüssing <linus.luessing@c0d3.blue> <ll@simonwunderlich.de>
 _
 
-Patches currently in -mm which might be from kmehltretter@gmail.com are
+Patches currently in -mm which might be from linfeng.sun.dev@gmail.com are
 
-selftests-proc-make-proc-maps-race-work-with-read_implies_exec.patch
 
