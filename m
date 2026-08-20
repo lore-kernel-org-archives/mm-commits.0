@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 075982690EC
-	for <mm-commits@vger.kernel.org>; Thu, 20 Aug 2026 02:55:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 432CD348C70
+	for <mm-commits@vger.kernel.org>; Thu, 20 Aug 2026 02:55:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787194539; cv=none; b=mtzq+DvJpTmv/3VcKt3pmhKQMrqD4/bKBgi/GyM1iydoOZP8JujAu3gMnFOTiQUkO0Cpt0uXCN92jEXHGW1dBTx8zQDnVO+TuWBJntZG6sNgAsZltrlQqzWtrI7GNiX22hXaE4lqPRUwELuime3A6EJEBPXrvgbwPV0QBodSwHY=
+	t=1787194540; cv=none; b=fCgKcW1rtWmXILbirxGFWCK3HK8GtXhnhV20kZabAdJ+izD/4nnmhfbeClkSLU/P1vtZGhzYRbYAuqZVmFGLFMciu/4ETJspSP57BuLCq+yWBsl5ABCpTqvDjvVS+oEhh3p0yRH9uDz06YsB8YP1S6hhtLstA7nnjh/0GxvNGo0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787194539; c=relaxed/simple;
-	bh=BwECwvsb4xF3iF/I4jzy6tRgFNgFCna+yIvIxuoolVo=;
-	h=Date:To:From:Subject:Message-Id; b=H4EcuU7POb2U+BkaJSrWH/qqUQL3t0b6RSpN3YKFf2R16ApD1QTLooLRDKy9YpgCNJyXFhm8JIfVQDGB2C7Gujc9TfkLEhhHUi9WhAb1sN9P9MknoZBysrQxdUok/bv5wEIkbrhCLH+NDkGx67gC7MzHCRVB+FPZhX/za0NBOIk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=z9qnQB5y; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1787194540; c=relaxed/simple;
+	bh=K9ZvgV6dYAK8na+U/4dgQNEA1v762WzdS8CcY9XxROI=;
+	h=Date:To:From:Subject:Message-Id; b=j94YvmHct/RqsOP4ootGdwjiuTcJQ9inveuUZyl2vh3fEsN0f+F51ollNfUqq62fyySl2zb81EV6Jy6FTkBlACHHI5Q9Q/fRmy6YPSAk602tosMQr4PG24HMCwG2nGw98Z30VZOI8NMMPOFxIQc8OypYhKb1YryyjRpjyMxpMnw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AiUV4V+C; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="z9qnQB5y"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 933C61F00A3A;
-	Thu, 20 Aug 2026 02:55:37 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AiUV4V+C"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DA8E61F000E9;
+	Thu, 20 Aug 2026 02:55:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1787194537;
-	bh=TP88qC6vcUbxBI2GsrYtVd4KL4ekoxxjlGY7sq+Py9s=;
+	d=linux-foundation.org; s=korg; t=1787194539;
+	bh=6djf/1wPxTnP6qAcGn8yIjWM3RG/9+K6qkH13LVsmBo=;
 	h=Date:To:From:Subject;
-	b=z9qnQB5yiSAjXqEG/2Hpw0+6JiMCjTDrkEgOGEuUz9QI69ugKI8ha1Fm6AtRSxVMG
-	 7QPSNOkX9nHr/weDZFtsOumsjFTKR0jVhWrjgLKc65qX8GVEhc+Xoo/h4AUMMYi6l9
-	 xA3otS9RHxT12G5c8hmLzUgaw50+Q+UHV4pHN26E=
-Date: Wed, 19 Aug 2026 19:55:37 -0700
-To: mm-commits@vger.kernel.org,shakeel.butt@linux.dev,riel@surriel.com,phillip@squashfs.org.uk,jlayton@kernel.org,hannes@cmpxchg.org,brauner@kernel.org,boris@bur.io,usama.arif@linux.dev,akpm@linux-foundation.org
+	b=AiUV4V+CohMEvYz/AxOlm5M1YexUrWAo0tVUCCBxsFKI1rHSzxSNBwff76d45Zpl2
+	 TEyBrolwQle4lIkldT7Td0CtOkC60VjAATbXsh1LjYfYnxzzYoab2ouD564Ahi4qrv
+	 I+IN6c1IOGxB72rBfC0Li3vv6Bilp3xmbIdXCP+Y=
+Date: Wed, 19 Aug 2026 19:55:38 -0700
+To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,heming.zhao@suse.com,gechangwei@live.cn,zhanxusheng@xiaomi.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] squashfs-avoid-thundering-herd-cache-wakeups.patch removed from -mm tree
-Message-Id: <20260820025537.933C61F00A3A@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] ocfs2-bound-check-dir-entries-in-the-readdir-re-validation-scan.patch removed from -mm tree
+Message-Id: <20260820025538.DA8E61F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,284 +35,119 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: squashfs: avoid thundering-herd cache wakeups
+     Subject: ocfs2: bound-check dir entries in the readdir re-validation scan
 has been removed from the -mm tree.  Its filename was
-     squashfs-avoid-thundering-herd-cache-wakeups.patch
+     ocfs2-bound-check-dir-entries-in-the-readdir-re-validation-scan.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Usama Arif <usama.arif@linux.dev>
-Subject: squashfs: avoid thundering-herd cache wakeups
-Date: Fri, 7 Aug 2026 10:24:21 -0700
+From: Zhan Xusheng <zhanxusheng@xiaomi.com>
+Subject: ocfs2: bound-check dir entries in the readdir re-validation scan
+Date: Tue, 11 Aug 2026 10:43:36 +0800
 
-squashfs_cache_get() puts a task to sleep when its block is not cached and
-every cache entry is busy.  Those sleeps are non-exclusive, so the
-nr_exclusive == 1 budget squashfs_cache_put() has always passed to
-wake_up() is inert and one release makes every waiter runnable.  A wakee
-only returns to squashfs_cache_get() if it observes cache->unused before
-the entry is reclaimed; later wakees see zero and re-queue inside
-wait_event() without rescanning.  One freed entry satisfies exactly one
-capacity waiter, so waking the rest is waste.
+Patch series "ocfs2: bound-check both readdir re-validation scans", v2.
 
-On a Meta production host serving a Python web application from a packaged
-squashfs image, a 30-second trace caught 1,045,132 cache-release wake
-calls and 19,511,556 wakeups: 18.7 per release, although each release
-added only one reusable cache entry.  This was causing significant spikes
-in CPU usage.
 
-Make the waits exclusive, enqueueing while still holding cache->lock so
-that a concurrent lookup either sees the waiter queued or the waiter sees
-the block that lookup publishes.  Two things follow.
+This patch (of 2):
 
-A wakee cannot be assumed to consume the entry it was woken for: it may
-find its own block published meanwhile, share that entry, and leave the
-freed one unclaimed.  So a wakee which shares hands its wakeup on to the
-next waiter, as commit 0ddad21d3e99 ("pipe: use exclusive waits when
-reading or writing") does with wake_next_reader.
+When the inode version changed since the last readdir(),
+ocfs2_dir_foreach_blk_el() re-scans the directory block from its start to
+relocate the current position:
 
-And a waiter can now sleep through a publication of the very block it
-wants, which the old broadcast gave it repeated chances to notice.  So
-waiters are keyed by block: publishing wakes every waiter for that block
-(nr_exclusive == 0), freeing an entry wakes one.  That needs a custom wake
-callback, like wake_page_function() in mm/filemap.c, which also records
-which wakeup arrived so the handoff only fires for a capacity wakee.
+	for (i = 0; i < sb->s_blocksize && i < offset; ) {
+		de = (struct ocfs2_dir_entry *)(bh->b_data + i);
+		if (le16_to_cpu(de->rec_len) < OCFS2_DIR_REC_LEN(1))
+			break;
+		i += le16_to_cpu(de->rec_len);
+	}
 
-Broadcast is kept where more than one task can proceed - every waiter for
-a published block, and the wake_up_all() on entry->wait_queue - at the
-cost of walking the queue under wait_queue.lock to test the key.  Waiters
-are now served FIFO with a scheduling round trip per handoff hop, so
-per-waiter latency changes; the filebench run below is 4x oversubscribed,
-where that should hurt most.
+i walks the block on rec_len values taken from the block itself and the
+only thing tested is that rec_len is not too small, so a single bogus
+rec_len leaves i anywhere in the block, including its last
+OCFS2_DIR_REC_LEN(1) - 1 bytes.  @offset comes from ctx->pos, which
+userspace moves with lseek() on the directory fd, and decides how far the
+walk gets.
 
-Measured on a 32-CPU VM against a read-only squashfs (gzip,
-DECOMP_MULTI_PERCPU, FILE_DIRECT, default 8 metadata / 3 fragment cache
-entries) staged in tmpfs, page cache dropped each iteration to force cold
-decompression:
+Two bounds are missing, both of which ocfs2_check_dir_entry() applies for
+the emit loop below.
 
-  elbencho, 64 threads
-    metadata stat        700 ->  1320 files/s    1.9x
-    small-file read       40 ->    60 MiB/s      1.5x
+de->rec_len sits at byte offset 8 within the entry, so dereferencing de in
+that tail reads past the s_blocksize buffer.  ocfs2_check_dir_entry()
+declines to look at an entry that close to the end:
 
-  filebench, 128 threads, open+read+stat+close (mean of 3x 30s)
-    throughput        11,314 -> 25,186 ops/s     2.2x
-    sched:sched_wakeup  27.0 ->   4.55 per op    5.9x fewer
-    context switches    37.2 ->   7.64 per op    4.9x fewer
+	size - buf_offset < OCFS2_DIR_REC_LEN(1)
 
-Wakeups and context switches are per operation, since the two runs did
-2.2x different amounts of work.  Workloads which never queue for a cache
-entry gain no wakeups.
+Nothing bounds i += rec_len either, so i can end up past the block.  The
+emit loop that follows is guarded by offset < sb->s_blocksize and does not
+run, but
 
-Link: https://lore.kernel.org/20260807172421.3875982-1-usama.arif@linux.dev
-Signed-off-by: Usama Arif <usama.arif@linux.dev>
-Reviewed-by: Phillip Lougher <phillip@squashfs.org.uk>
-Cc: Boris Burkov <boris@bur.io>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Jeff Layton <jlayton@kernel.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
+	offset = i;
+	ctx->pos = (ctx->pos & ~((loff_t)sb->s_blocksize - 1)) | offset;
+
+runs first and ORs a value with bits above the block mask into ctx->pos,
+corrupting the block number readdir() resumes from. 
+ocfs2_check_dir_entry() rejects that as "directory entry overrun":
+
+	next_offset = buf_offset + rlen;
+	... next_offset > size
+
+Apply both bounds.  For a consistent directory this changes nothing:
+entries are at least OCFS2_DIR_REC_LEN(1) bytes and do not cross the end
+of the block, so no valid entry is skipped.
+
+Found by the sashiko review tool; fix approach suggested by Joseph Qi.
+
+Link: https://lore.kernel.org/20260811024337.3972976-1-zhanxusheng@xiaomi.com
+Link: https://sashiko.dev/#/patchset/20260806022044.167962-1-zhanxusheng@xiaomi.com
+Link: https://lore.kernel.org/20260811024337.3972976-2-zhanxusheng@xiaomi.com
+Signed-off-by: Zhan Xusheng <zhanxusheng@xiaomi.com>
+Suggested-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Jun Piao <piaojun@huawei.com>
+Cc: Heming Zhao <heming.zhao@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/squashfs/cache.c          |  114 +++++++++++++++++++++++++++++++--
- fs/squashfs/squashfs_fs_sb.h |    9 ++
- 2 files changed, 117 insertions(+), 6 deletions(-)
+ fs/ocfs2/dir.c |   12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
 
---- a/fs/squashfs/cache.c~squashfs-avoid-thundering-herd-cache-wakeups
-+++ a/fs/squashfs/cache.c
-@@ -46,18 +46,81 @@
- #include "page_actor.h"
- 
- /*
-+ * Waiters on cache->wait_queue are keyed by the block they want, so a wakeup
-+ * can name who it is for.  A NULL key is a capacity wakeup: one entry became
-+ * free, so wake one waiter.  A block key is a publication wakeup: that block
-+ * now has an entry, so wake every waiter which can share it.
-+ */
-+struct squashfs_cache_wait {
-+	wait_queue_entry_t	wait;
-+	u64			block;
-+	bool			capacity_wake;
-+};
+--- a/fs/ocfs2/dir.c~ocfs2-bound-check-dir-entries-in-the-readdir-re-validation-scan
++++ a/fs/ocfs2/dir.c
+@@ -1945,7 +1945,10 @@ static int ocfs2_dir_foreach_blk_el(stru
+ 		 * dirent right now.  Scan from the start of the block
+ 		 * to make sure. */
+ 		if (!inode_eq_iversion(inode, *f_version)) {
+-			for (i = 0; i < sb->s_blocksize && i < offset; ) {
++			for (i = 0; i + OCFS2_DIR_REC_LEN(1) <= sb->s_blocksize &&
++			     i < offset;) {
++				unsigned int rec_len;
 +
-+static int squashfs_cache_wake_function(wait_queue_entry_t *wait,
-+					unsigned int mode, int sync, void *key)
-+{
-+	struct squashfs_cache_wait *cache_wait =
-+		container_of(wait, struct squashfs_cache_wait, wait);
-+	u64 *block = key;
-+
-+	if (block && cache_wait->block != *block)
-+		return 0;
-+
-+	WRITE_ONCE(cache_wait->capacity_wake, !block);
-+
-+	/*
-+	 * Wake and unlink unconditionally instead of using
-+	 * autoremove_wake_function(), which unlinks only when it changed the
-+	 * task state.  A waiter can be made runnable by something which does
-+	 * not go through this queue: wake_up_process() takes TASK_NORMAL, and
-+	 * a cgroup v2 thaw calls it on every task in the cgroup, as do
-+	 * free_pid() on a pid namespace init and a late rcuwait_wake_up().
-+	 * try_to_wake_up() then fails.  Leaving such a waiter queued with a
-+	 * reason already recorded would let it act on a freed entry it was not
-+	 * given, and the failure would not consume the exclusive budget, so a
-+	 * second waiter would be woken for the same entry.
-+	 *
-+	 * list_del_init_careful() must be the last access to @cache_wait: it
-+	 * releases the waiter, whose wait structure lives on its stack, and it
-+	 * pairs with list_empty_careful() in finish_wait() to publish the
-+	 * store above.  __wake_up_common() samples ->flags and the next entry
-+	 * before calling here, so it does not touch @wait afterwards either.
-+	 */
-+	default_wake_function(wait, mode, sync, key);
-+	list_del_init_careful(&wait->entry);
-+
-+	return 1;
-+}
-+
-+static void squashfs_cache_wake_block(struct squashfs_cache *cache, u64 block)
-+{
-+	/* nr_exclusive == 0: wake every waiter which matches the key. */
-+	__wake_up(&cache->wait_queue, TASK_NORMAL, 0, &block);
-+}
-+
-+/*
-  * Look-up block in cache, and increment usage count.  If not in cache, read
-  * and decompress it from disk.
-+ *
-+ * A caller which finds no free entry sleeps on cache->wait_queue as an
-+ * exclusive waiter, so squashfs_cache_put() releasing one entry wakes exactly
-+ * one task.  Because a wakee may find its block published in the meantime and
-+ * share that entry rather than claim the free one, a wakee which shares hands
-+ * its wakeup on to the next waiter.
-  */
- struct squashfs_cache_entry *squashfs_cache_get(struct super_block *sb,
- 	struct squashfs_cache *cache, u64 block, int length)
- {
- 	int i, n;
- 	struct squashfs_cache_entry *entry;
-+	bool capacity_wake = false;
- 
- 	spin_lock(&cache->lock);
- 
- 	while (1) {
-+		bool pending, wake_next, wake_block;
-+
- 		for (i = cache->curr_blk, n = 0; n < cache->entries; n++) {
- 			if (cache->entry[i].block == block) {
- 				cache->curr_blk = i;
-@@ -72,9 +135,25 @@ struct squashfs_cache_entry *squashfs_ca
- 			 * go to sleep waiting for one to become available.
- 			 */
- 			if (cache->unused == 0) {
-+				struct squashfs_cache_wait wait = {
-+					.block		= block,
-+					.capacity_wake	= false,
-+				};
-+
-+				init_wait_func(&wait.wait,
-+					       squashfs_cache_wake_function);
- 				cache->num_waiters++;
-+				/*
-+				 * Enqueue while still holding cache->lock, so
-+				 * that a concurrent lookup either sees us
-+				 * queued or we see the block it publishes.
-+				 */
-+				prepare_to_wait_exclusive(&cache->wait_queue,
-+						&wait.wait, TASK_UNINTERRUPTIBLE);
- 				spin_unlock(&cache->lock);
--				wait_event(cache->wait_queue, cache->unused);
-+				schedule();
-+				finish_wait(&cache->wait_queue, &wait.wait);
-+				capacity_wake = READ_ONCE(wait.capacity_wake);
- 				spin_lock(&cache->lock);
- 				cache->num_waiters--;
- 				continue;
-@@ -105,8 +184,18 @@ struct squashfs_cache_entry *squashfs_ca
- 			entry->pending = 1;
- 			entry->num_waiters = 0;
- 			entry->error = 0;
-+			wake_block = cache->num_waiters > 0;
- 			spin_unlock(&cache->lock);
- 
-+			/*
-+			 * The entry is now findable, so release everybody
-+			 * queued for this block to share it rather than each
-+			 * waiting for an entry of their own.  They will block
-+			 * on entry->wait_queue below until the read completes.
-+			 */
-+			if (wake_block)
-+				squashfs_cache_wake_block(cache, block);
-+
- 			entry->length = squashfs_read_data(sb, block, length,
- 				&entry->next_index, entry->actor);
- 
-@@ -138,20 +227,33 @@ struct squashfs_cache_entry *squashfs_ca
- 		 * for reuse.
- 		 */
- 		entry = &cache->entry[i];
--		if (entry->refcount == 0)
-+		if (entry->refcount == 0) {
- 			cache->unused--;
-+			/* This claims the capacity we were woken for. */
-+			capacity_wake = false;
-+		}
- 		entry->refcount++;
- 
- 		/*
- 		 * If the entry is currently being filled in by another process
- 		 * go to sleep waiting for it to become available.
- 		 */
--		if (entry->pending) {
-+		pending = entry->pending;
-+		if (pending)
- 			entry->num_waiters++;
--			spin_unlock(&cache->lock);
-+
-+		/*
-+		 * We were woken because an entry became free, but shared a
-+		 * block instead of claiming it.  Hand the wakeup on, otherwise
-+		 * the free entry sits unclaimed while others sleep.
-+		 */
-+		wake_next = capacity_wake && cache->unused && cache->num_waiters;
-+		spin_unlock(&cache->lock);
-+
-+		if (wake_next)
-+			wake_up(&cache->wait_queue);
-+		if (pending)
- 			wait_event(entry->wait_queue, !entry->pending);
--		} else
--			spin_unlock(&cache->lock);
- 
- 		goto out;
- 	}
---- a/fs/squashfs/squashfs_fs_sb.h~squashfs-avoid-thundering-herd-cache-wakeups
-+++ a/fs/squashfs/squashfs_fs_sb.h
-@@ -12,6 +12,15 @@
- 
- #include "squashfs_fs.h"
- 
-+/*
-+ * Waiters for a cache entry sleep on wait_queue as exclusive waiters, so
-+ * freeing one entry wakes one task.  See squashfs_cache_get().
-+ *
-+ * num_waiters is only a hint used to skip pointless wakeups: it is
-+ * incremented before a task queues itself and decremented after it is woken,
-+ * so it can transiently exceed the number of queued tasks.  It never
-+ * undercounts them, which is what the wakeup paths rely on.
-+ */
- struct squashfs_cache {
- 	char			*name;
- 	int			entries;
+ 				de = (struct ocfs2_dir_entry *) (bh->b_data + i);
+ 				/* It's too expensive to do a full
+ 				 * dirent test each time round this
+@@ -1953,10 +1956,11 @@ static int ocfs2_dir_foreach_blk_el(stru
+ 				 * least that it is non-zero.  A
+ 				 * failure will be detected in the
+ 				 * dirent test below. */
+-				if (le16_to_cpu(de->rec_len) <
+-				    OCFS2_DIR_REC_LEN(1))
++				rec_len = le16_to_cpu(de->rec_len);
++				if (rec_len < OCFS2_DIR_REC_LEN(1) ||
++				    i + rec_len > sb->s_blocksize)
+ 					break;
+-				i += le16_to_cpu(de->rec_len);
++				i += rec_len;
+ 			}
+ 			offset = i;
+ 			ctx->pos = (ctx->pos & ~((loff_t)sb->s_blocksize - 1))
 _
 
-Patches currently in -mm which might be from usama.arif@linux.dev are
+Patches currently in -mm which might be from zhanxusheng@xiaomi.com are
 
-mm-vmstat-mm-memcontrol-add-_monotonic-vmstat-readers.patch
-mm-vmscan-add-pgrotate_anon-and-pgrotate_file-vmstat-counters.patch
-mm-vmscan-reduce-lru_lock-contention-via-vmstat-derived-scan-balance-cost.patch
-mm-memcontrol-avoid-false-sharing-between-vmstats-and-events.patch
 
