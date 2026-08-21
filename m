@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8086A39021C
-	for <mm-commits@vger.kernel.org>; Fri, 21 Aug 2026 22:43:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E61DB3B9DAC
+	for <mm-commits@vger.kernel.org>; Fri, 21 Aug 2026 22:43:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787352226; cv=none; b=k4FuP8+yYoFOH1JHsMZq+uwkFnv8QQbuQ42F54fDFn7jURrU6+udAeD4PvmRUSo9imc3yzXKvFtjx0X3OeqTw0eSBfUOK2M/s9QLqCod51b9L9kKlzMoQSFEzbxlKRQmQT60QeVqvTWrs40Q4XQnTYnlkcM/WfGhZ3cNcM0pU80=
+	t=1787352229; cv=none; b=cc7p6kAJCCtlb5SuXIW1bDVkEkztYmRcWXp/YQrieFjBpXXaHesJj7pQvFlhMHfGrcy/SyNI5AQ5e6VgQC+BTPnNpcJx9pZ9i76ooLWD+5iQlq9PGSj4pOi956/uVsQi70cyGYKkupk4DzAyolfP+lxCPlpaQQPA3OBUkq7JflE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787352226; c=relaxed/simple;
-	bh=9elKwhtE6VazgkBuSSQaKpriWGY0/zkjP48HGZeelq0=;
-	h=Date:To:From:Subject:Message-Id; b=hqg5HC6VuEMvvoZsoyOPUOVZnejcVBteQJLFcGZ6A9K6baOTqlLCESlWjKW91C7LO0G1oyLROWFyCyccjDhFQte3XKX2LuvbCfnuIM4MaITgkXF+QzjQieufc8Cfv3vJtZ4oaslp64ZijODwGitLMS/ES8IScSqoRb0OSn9f3MM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Xg5XFGyc; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1787352229; c=relaxed/simple;
+	bh=4lCpKl2U2tJtL60XDT4Q3i8vpOyQfy4/MGjjzb8lTvk=;
+	h=Date:To:From:Subject:Message-Id; b=pXDkntwrssFcHR4cnl+pcZjfBc/aUW3zPisu79DKTQxKSkwti7G3a1ipJ20gbzOwnT0p59W8Eei8EIvF15jxmYZOQKeF+EqEVY3Iwgs7f2QPv105XYwNFt3rHb8CJUzBOunQlvGfHfUE/Q6RpnJVyzN0gxxvxkh5pm2Bzu37wyU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SDf1hXFQ; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Xg5XFGyc"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4DCE51F000E9;
-	Fri, 21 Aug 2026 22:43:45 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SDf1hXFQ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 52E5D1F00A3A;
+	Fri, 21 Aug 2026 22:43:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1787352225;
-	bh=UTNCbly82S3Jq3qr4I8TNrnKg13DnJhYSfXjVOvb8Bs=;
+	d=linux-foundation.org; s=korg; t=1787352227;
+	bh=3ia0LRWhjMyE3Vng8h2cWwKLxQmoGFwa9zfEM1afw68=;
 	h=Date:To:From:Subject;
-	b=Xg5XFGycZJlA4QWj66svlWWF2RhBWa9e+wBONYJyxvkbmrDBS8zfdGj/SUsCEyRkY
-	 zyACXmbEpdsW5PZRxg7rNwwNSNkigxPs1F7OnaOv9jvneTVVQ4PXKMEonau0fX5dFW
-	 mMqt0SA2ajvLG6FcqvfoSlbaTDBmVtBxwlbXO1kU=
-Date: Fri, 21 Aug 2026 15:43:44 -0700
+	b=SDf1hXFQoqvWQh5NIu+RtdnoCzuU+pQHFc6Lsm4SxgT4in8FO9zw6vP+Z/0qC1XBt
+	 SCiwJHVTzOz1fJuEDwb1UvFGd2UOOR2L2Y3y6O8YkYl5pWnKLVKK70L4h3UYCWy/B+
+	 MgCA152MfAzZd6rWozYVpM1cRhbTwOJW6qK2f1ys=
+Date: Fri, 21 Aug 2026 15:43:46 -0700
 To: mm-commits@vger.kernel.org,liam@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + maple_tree-clarify-comments-on-mas_nomem.patch added to mm-unstable branch
-Message-Id: <20260821224345.4DCE51F000E9@smtp.kernel.org>
+Subject: + maple_tree-use-prefetched-value-in-mas_wr_store_type.patch added to mm-unstable branch
+Message-Id: <20260821224347.52E5D1F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: maple_tree: clarify comments on mas_nomem()
+     Subject: maple_tree: use prefetched value in mas_wr_store_type()
 has been added to the -mm mm-unstable branch.  Its filename is
-     maple_tree-clarify-comments-on-mas_nomem.patch
+     maple_tree-use-prefetched-value-in-mas_wr_store_type.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-clarify-comments-on-mas_nomem.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-use-prefetched-value-in-mas_wr_store_type.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,16 +59,13 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Liam R. Howlett (Oracle)" <liam@infradead.org>
-Subject: maple_tree: clarify comments on mas_nomem()
-Date: Fri, 21 Aug 2026 15:26:15 -0400
+Subject: maple_tree: use prefetched value in mas_wr_store_type()
+Date: Fri, 21 Aug 2026 15:26:16 -0400
 
-When an allocation completely fails, the return is false.  If the
-allocation succeeds or partially succeeds, return true to indicate a retry
-of the operation.  Note that since the lock may have been dropped, the
-operation is retried from the start - including potentially allocating
-more memory.
+The slot contents exist in wr_mas->content, which has less overhead than
+reading the slot again.
 
-Link: https://lore.kernel.org/20260821192627.4085470-8-liam@infradead.org
+Link: https://lore.kernel.org/20260821192627.4085470-9-liam@infradead.org
 Signed-off-by: Liam R. Howlett (Oracle) <liam@infradead.org>
 Cc: Boqun Feng <boqun.feng@gmail.com>
 Cc: Breno Leitao <leitao@debian.org>
@@ -84,36 +81,20 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/maple_tree.c |    9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+ lib/maple_tree.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/lib/maple_tree.c~maple_tree-clarify-comments-on-mas_nomem
+--- a/lib/maple_tree.c~maple_tree-use-prefetched-value-in-mas_wr_store_type
 +++ a/lib/maple_tree.c
-@@ -5677,10 +5677,11 @@ EXPORT_SYMBOL_GPL(mas_erase);
+@@ -3280,7 +3280,7 @@ static inline void mas_wr_slot_store(str
+ 	void __rcu **slots = wr_mas->slots;
+ 	bool gap = false;
  
- /**
-  * mas_nomem() - Check if there was an error allocating and do the allocation
-- * if necessary If there are allocations, then free them.
-+ * if necessary.
-+ *
-  * @mas: The maple state
-  * @gfp: The GFP_FLAGS to use for allocations
-- * Return: true on allocation, false otherwise.
-+ * Return: False on no memory.  True otherwise (partial success as well)
-  */
- bool mas_nomem(struct ma_state *mas, gfp_t gfp)
- 	__must_hold(mas->tree->ma_lock)
-@@ -5696,6 +5697,10 @@ bool mas_nomem(struct ma_state *mas, gfp
- 		mas_alloc_nodes(mas, gfp);
- 	}
+-	gap |= !mt_slot_locked(mas->tree, slots, offset);
++	gap |= !wr_mas->content;
+ 	gap |= !mt_slot_locked(mas->tree, slots, offset + 1);
  
-+	/*
-+	 * Return false on zero forward progress.  Partial allocations are kept
-+	 * so the retry path will attempt to get the rest.
-+	 */
- 	if (!mas->sheaf && !mas->alloc)
- 		return false;
- 
+ 	if (wr_mas->offset_end - offset == 1) {
 _
 
 Patches currently in -mm which might be from liam@infradead.org are
