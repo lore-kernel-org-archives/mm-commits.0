@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 11A073AAF47
-	for <mm-commits@vger.kernel.org>; Fri, 21 Aug 2026 22:22:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 45FC740B107
+	for <mm-commits@vger.kernel.org>; Fri, 21 Aug 2026 22:22:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787350922; cv=none; b=YrJHrBE0qkV/Xg2KebK3b+y/PyiqanMH4JKoUO6YwAKJRjUFod3jvsWEkg7he/0FtzqIHNITmMVBOGQCbptx3tgv85TseUQB7SBD1+BHp57j9+/JtOoWqPIh5Jk3n6cXnHvcQO76b29t5Qjxsqbqu+d5PtjEt4ODSdn2P19eYjA=
+	t=1787350923; cv=none; b=aHpDGfmvaVt520Q1R3SbYIn5ZUmqDP9bBijWK3gD7OOzFV6oqx6nKR8CANk99LmlIKyJQ+HdlaLV1/XQk73JXcLr6kqnbfbS6kgWcivoZZR+S/AFpVCjANsYyq+QnOyL8W4jkQ2/Ua5HiSZZwdr5wXLd+KA0UDyBnPqHPjyydvM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787350922; c=relaxed/simple;
-	bh=iJvJXbFBDBFGbM8ixl/mEeHnC1OEYLlon4oNh7dDs0Q=;
-	h=Date:To:From:Subject:Message-Id; b=oifhOSGKHvDjuwQ4Kf/5ma9lCtWX8LiUC3J2QEiitafqzw2OT1DrFFgU/c0M6OLswmPfnL/MjB983IZ2OxnDoktyR9lxDLn7D7xODxIR4DQbqS053Cq5zM2YzTJrqmt+0/MRh+hnHhkq+CIAVo1OGMXjAQttyGfoGkQZ2WMO7GE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HkyX14Wa; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1787350923; c=relaxed/simple;
+	bh=bWhDujMoOcVarkeZSZNUmWr5rcPtGwGiGZJTnzfskw0=;
+	h=Date:To:From:Subject:Message-Id; b=sM43aG/P9WB3e0YCGApoGOJxZSf9O9CN2qtW3Tn22Oz+eHP31O5OS2BQB2+Lbe9UuMcU/NZhq7tPRGJLGSkg+BGwgNmTG3KKyMSerUywxaj5J1Amvzqoazyl315+v7QD0VRhHTutYZ7Q2EMSohJesfibE+xGjsDoPCXxxP+4fY0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DW1xjz25; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HkyX14Wa"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8694C1F000E9;
-	Fri, 21 Aug 2026 22:22:00 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DW1xjz25"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C79C11F00A3A;
+	Fri, 21 Aug 2026 22:22:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1787350920;
-	bh=YJfunDo8rkmY8FNEwGo+rRauDaPQMiEjKh5KNrHah8g=;
+	d=linux-foundation.org; s=korg; t=1787350921;
+	bh=pqrcIAlwEcU/ucCj2K8Etidhr4zUK/phHjJiBcCo++g=;
 	h=Date:To:From:Subject;
-	b=HkyX14WaCr4zIBFVpdfpumf6lt89e4XZe/rd8anfvJrm+S9riQH53PPHcGueGL/Gc
-	 AdKanGxh/R+uZ5D6cGXbNDZ99079WwSpsnQQYrC8kJKM55UEftu/y6ZpRQfQIadnyN
-	 CICXwu2iG9KmdrzB0N+2aijY/qCLS8HCFyEb15BA=
-Date: Fri, 21 Aug 2026 15:22:00 -0700
+	b=DW1xjz25/Oyoq0+fWHF5pnJ3Tu6+wzzd5a8gLn/IQgRLJ6BrNSATecnaAS70vsKFR
+	 f0pR8nvnZQxHgDXrlSveWaPAXdcOi2LT7E2FKt3txpSszDFyCcq8OTv++qsIPy9HHw
+	 IdD6BDnT7MZKtkAL9FBc5l5EMwZLM9Kd2nzaGd4Q=
+Date: Fri, 21 Aug 2026 15:22:01 -0700
 To: mm-commits@vger.kernel.org,liam@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] maple_tree-avoid-extra-gap-calculation.patch removed from -mm tree
-Message-Id: <20260821222200.8694C1F000E9@smtp.kernel.org>
+Subject: [to-be-updated] maple_tree-add-helper-mas_make_walkable.patch removed from -mm tree
+Message-Id: <20260821222201.C79C11F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,25 +35,22 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: maple_tree: avoid extra gap calculation
+     Subject: maple_tree: add helper mas_make_walkable()
 has been removed from the -mm tree.  Its filename was
-     maple_tree-avoid-extra-gap-calculation.patch
+     maple_tree-add-helper-mas_make_walkable.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
 From: "Liam R. Howlett (Oracle)" <liam@infradead.org>
-Subject: maple_tree: avoid extra gap calculation
-Date: Tue, 30 Jun 2026 15:08:42 -0400
+Subject: maple_tree: add helper mas_make_walkable()
+Date: Tue, 30 Jun 2026 15:08:43 -0400
 
-Prior to ending the ascension loop of larger operations like split,
-rebalance, and spanning store the gap in the node had been calculated. 
-Once the node is inserted into the tree, the gap is recalculated in
-mas_update_gap().  This can be avoided by creating a helper for
-mas_update_gap() that accepts the known gap value, which reduces the
-operations required for gap updating path.
+A check in mas_walk() was incorrect and caused inefficient use of the
+maple state.  The same issue existed in mas_erase(), but was left unfixed.
+Making a helper function is the obvious answer.
 
-Link: https://lore.kernel.org/20260630190843.3563858-19-liam@infradead.org
+Link: https://lore.kernel.org/20260630190843.3563858-20-liam@infradead.org
 Signed-off-by: Liam R. Howlett (Oracle) <liam@infradead.org>
 Cc: Boqun Feng <boqun.feng@gmail.com>
 Cc: Chris Mason <clm@meta.com>
@@ -68,69 +65,47 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/maple_tree.c |   28 +++++++++++++++++-----------
- 1 file changed, 17 insertions(+), 11 deletions(-)
+ lib/maple_tree.c |   13 ++++++++-----
+ 1 file changed, 8 insertions(+), 5 deletions(-)
 
---- a/lib/maple_tree.c~maple_tree-avoid-extra-gap-calculation
+--- a/lib/maple_tree.c~maple_tree-add-helper-mas_make_walkable
 +++ a/lib/maple_tree.c
-@@ -1566,14 +1566,26 @@ ascend:
- 	goto ascend;
+@@ -261,6 +261,12 @@ static inline bool mas_is_underflow(stru
+ 	return mas->status == ma_underflow;
  }
  
-+static __always_inline void mas_update_gap_known(struct ma_state *mas,
-+		unsigned long gap)
++static inline void mas_make_walkable(struct ma_state *mas)
 +{
-+	unsigned char pslot;
-+	unsigned long p_gap;
-+
-+	pslot = mte_parent_slot(mas->node);
-+	p_gap = ma_gaps(mte_parent(mas->node),
-+			mas_parent_type(mas, mas->node))[pslot];
-+
-+	if (p_gap != gap)
-+		mas_parent_gap(mas, pslot, gap);
++	if (!mas_is_active(mas) && !mas_is_start(mas))
++		mas->status = ma_start;
 +}
 +
- /*
-  * mas_update_gap() - Update a nodes gaps and propagate up if necessary.
-  * @mas: the maple state.
-  */
- static inline void mas_update_gap(struct ma_state *mas)
+ static __always_inline struct maple_node *mte_to_node(
+ 		const struct maple_enode *entry)
  {
--	unsigned char pslot;
--	unsigned long p_gap;
- 	unsigned long max_gap;
+@@ -4447,8 +4453,7 @@ void *mas_walk(struct ma_state *mas)
+ 	void *entry;
  
- 	if (!mt_is_alloc(mas->tree))
-@@ -1583,13 +1595,7 @@ static inline void mas_update_gap(struct
- 		return;
+ 	mas_may_init_lock_check(mas);
+-	if (!mas_is_active(mas) && !mas_is_start(mas))
+-		mas->status = ma_start;
++	mas_make_walkable(mas);
+ retry:
+ 	entry = mas_state_walk(mas);
+ 	if (mas_is_start(mas)) {
+@@ -5684,9 +5689,7 @@ void *mas_erase(struct ma_state *mas)
+ 	if (mt_external_lock(mas->tree))
+ 		might_alloc(GFP_KERNEL);
  
- 	max_gap = mas_max_gap(mas);
+-	if (!mas_is_active(mas) || !mas_is_start(mas))
+-		mas->status = ma_start;
 -
--	pslot = mte_parent_slot(mas->node);
--	p_gap = ma_gaps(mte_parent(mas->node),
--			mas_parent_type(mas, mas->node))[pslot];
--
--	if (p_gap != max_gap)
--		mas_parent_gap(mas, pslot, max_gap);
-+	mas_update_gap_known(mas, max_gap);
- }
- 
- /*
-@@ -2137,8 +2143,8 @@ static inline void mas_wmb_replace(struc
- 	mas->node = mt_slot_locked(mas->tree, cp->slot, 0);
- 	/* Insert the new data in the tree */
- 	mas_topiary_replace(mas, old_enode, cp->height);
--	if (!mte_is_leaf(mas->node))
--		mas_update_gap(mas);
-+	if (mt_is_alloc(mas->tree) && !mte_is_root(mas->node))
-+		mas_update_gap_known(mas, cp->gap[0]);
- 
- 	mtree_range_walk(mas);
- }
++	mas_make_walkable(mas);
+ write_retry:
+ 	entry = mas_state_walk(mas);
+ 	if (!entry)
 _
 
 Patches currently in -mm which might be from liam@infradead.org are
 
-maple_tree-add-helper-mas_make_walkable.patch
 
