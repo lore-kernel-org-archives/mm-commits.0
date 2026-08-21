@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5C88D361977
-	for <mm-commits@vger.kernel.org>; Fri, 21 Aug 2026 22:21:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 93AA03BCD37
+	for <mm-commits@vger.kernel.org>; Fri, 21 Aug 2026 22:21:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787350904; cv=none; b=cEK5OhfpGoJzf5FHC6ZLv2m3eJFflGgF7crn6yMNNyEx+zqKDhPhs6zhNz6JiwjTbRXpcIdq8U6Cp2ykmv5947h5ohI0A2Yc854zWWOIGIcgsxKTWjlbsFyhq6fYM/GQ7FI3HRugs2/Y8Y4N673/sV4gGaK7L5uopmnZytimMvA=
+	t=1787350905; cv=none; b=RqzJQXuOZ50jtBDI7jdxFpUy4gUi13nOgMvnYU3YbNh+oIhx8xnAIh0HK4WS8JdeIlPOa+lDwiKoU3Sythorc383Ttz1wxXlZFCg5oCe8DBMy5/rOge5Ac+FVGoHKNQ+rWbM1DU7weympLp3C6OIvxJv1lN7J/XuW4sHw6nUerc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787350904; c=relaxed/simple;
-	bh=i9BqkHjNipFI7MGjTK+pmvhwIIHbGkSOHvJN21ulSl0=;
-	h=Date:To:From:Subject:Message-Id; b=WHwQFAjeDsQikhMi16j2kqbf5F5HG+kGHFxeZIeSEDVIpzV0sx3DU7NF3Elcweh+wT/YlbP4UkhSveWfDqfTnWwqFPLaDyMPny70hUQNZavZLuUSpplrALa5PQa8kMyd5ka4TDdLUWqRvKj+ODPeoiP0A4X5/OP1KamKJXexLa0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=a9taR6Hi; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1787350905; c=relaxed/simple;
+	bh=I1HL7AgQfm9zjuFpevmEMrrcJ7ku8nuXHrrfDxTxKlg=;
+	h=Date:To:From:Subject:Message-Id; b=JXPgJWCzqaoNwmIRaFH+LIdercwO3h4sbIABeX1g1AJcDLVwPiOnHxQOMemuRoD1cX/HJ3hxztWxJ+TefwB6Hrh/vNiqHdsmxxgcTfLG09sGdZMMSq0xj20caoCYn8+QKTKBk5hr4Gk4EOw3V8hI2z8JsOE6mblFTcKqUIoUbOk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MhXiJYBd; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="a9taR6Hi"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 34A291F00A3E;
-	Fri, 21 Aug 2026 22:21:43 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MhXiJYBd"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6C7F61F000E9;
+	Fri, 21 Aug 2026 22:21:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1787350903;
-	bh=kQirqErDGmS5osvmG0I0hLicIcWDMvVPzRiWMX1fZdo=;
+	d=linux-foundation.org; s=korg; t=1787350904;
+	bh=5MgsOoz5sxcDF1IWgWLgWhILeSx9ck9DM8NWzOQWtzM=;
 	h=Date:To:From:Subject;
-	b=a9taR6HipG5XqMqAL5bc6thaK8yIjeR2UDC35OT2YoTRcmW6c3r8paDUJNRKsinYT
-	 YHflO/E5zb8IE4kiAAg4497Zwh7nLi9PCbMw9hEUBLkR+vmjXyhL/CDhtHDdvpNgg+
-	 qichxyKEJsXh7kAACduEM7BbhWlGGw1tFKKG8uGo=
-Date: Fri, 21 Aug 2026 15:21:42 -0700
+	b=MhXiJYBdmdGqPMgjYetMwBJn5OnxhDhDiDubEBKcKYz32L05V5zsGvXeLtzhKm4mG
+	 1vEfh40AQxpqt+uC/0AMMzZj/lGyWkqOnTfKbcpxuYQIEKISkYXBP30QXPSQjlnSbJ
+	 rUgxDvxOkkgBJdmWX1+9fTBs3Dnv4NfbzgfGrzk0=
+Date: Fri, 21 Aug 2026 15:21:44 -0700
 To: mm-commits@vger.kernel.org,liam@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] maple_tree-documentation-fix.patch removed from -mm tree
-Message-Id: <20260821222143.34A291F00A3E@smtp.kernel.org>
+Subject: [to-be-updated] maple_tree-drop-dead-code-from-mas_extend_spanning_null.patch removed from -mm tree
+Message-Id: <20260821222144.6C7F61F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,20 +35,34 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: maple_tree: documentation fix
+     Subject: maple_tree: drop dead code from mas_extend_spanning_null()
 has been removed from the -mm tree.  Its filename was
-     maple_tree-documentation-fix.patch
+     maple_tree-drop-dead-code-from-mas_extend_spanning_null.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
 From: "Liam R. Howlett (Oracle)" <liam@infradead.org>
-Subject: maple_tree: documentation fix
-Date: Tue, 30 Jun 2026 15:08:28 -0400
+Subject: maple_tree: drop dead code from mas_extend_spanning_null()
+Date: Tue, 30 Jun 2026 15:08:29 -0400
 
-Don't include the word flag in the quotes with the actual flag.
+mas_extend_spanning_null() had a clause if the end of the range being
+written (mas->last) is the same as the end of the existing range it is
+overwriting (wr_mas->r_max), action will be taken.
 
-Link: https://lore.kernel.org/20260630190843.3563858-5-liam@infradead.org
+This code path is not possible because the only calling function
+increments mas->last (unless it's ULONG_MAX) to walk to one beyond the
+write and then resets the value back to the initial value.
+
+In the case of mas->last == ULONG_MAX, then the second part of the
+statement will always be false - mas->last cannot be less than the node
+max.
+
+This code never executed and is flawed anyways (the arguments are
+incorrectly ordered), so removing it is the safest action.  Since the code
+never executes, it is not fixing any issue so Fixes tag is not given.
+
+Link: https://lore.kernel.org/20260630190843.3563858-6-liam@infradead.org
 Signed-off-by: Liam R. Howlett (Oracle) <liam@infradead.org>
 Cc: Boqun Feng <boqun.feng@gmail.com>
 Cc: Chris Mason <clm@meta.com>
@@ -63,25 +77,29 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/core-api/maple_tree.rst |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/maple_tree.c |    7 -------
+ 1 file changed, 7 deletions(-)
 
---- a/Documentation/core-api/maple_tree.rst~maple_tree-documentation-fix
-+++ a/Documentation/core-api/maple_tree.rst
-@@ -211,7 +211,7 @@ Advanced Locking
+--- a/lib/maple_tree.c~maple_tree-drop-dead-code-from-mas_extend_spanning_null
++++ a/lib/maple_tree.c
+@@ -2997,13 +2997,6 @@ static inline void mas_extend_spanning_n
+ 		if (r_mas->last < r_wr_mas->r_max)
+ 			r_mas->last = r_wr_mas->r_max;
+ 		r_mas->offset++;
+-	} else if ((r_mas->last == r_wr_mas->r_max) &&
+-	    (r_mas->last < r_mas->max) &&
+-	    !mas_slot_locked(r_mas, r_wr_mas->slots, r_mas->offset + 1)) {
+-		r_mas->last = mas_safe_pivot(r_mas, r_wr_mas->pivots,
+-					     r_wr_mas->type, r_mas->offset + 1);
+-		r_mas->offset++;
+-		r_wr_mas->r_max = r_mas->last;
+ 	}
+ }
  
- The maple tree uses a spinlock by default, but external locks can be used for
- tree updates as well.  To use an external lock, the tree must be initialized
--with the ``MT_FLAGS_LOCK_EXTERN flag``, this is usually done with the
-+with the ``MT_FLAGS_LOCK_EXTERN`` flag, this is usually done with the
- MTREE_INIT_EXT() #define, which takes an external lock as an argument.
- 
- Functions and structures
 _
 
 Patches currently in -mm which might be from liam@infradead.org are
 
-maple_tree-drop-dead-code-from-mas_extend_spanning_null.patch
 maple_tree-drop-maple_alloc_slots.patch
 maple_tree-clarify-comments-on-mas_nomem.patch
 maple_tree-use-prefetched-value-in-mas_wr_store_type.patch
