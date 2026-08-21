@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DA2073B05A2
-	for <mm-commits@vger.kernel.org>; Fri, 21 Aug 2026 22:21:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3568D361977
+	for <mm-commits@vger.kernel.org>; Fri, 21 Aug 2026 22:21:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787350901; cv=none; b=LbjsHLuOfyYCReKbEdrAYQx9mjOOxCjh+pShjFOoT8+RREqg0CU1+2MuTaO0+zd/o2QSInWMPQkLXw2tTHukzTlX4zq8wMp8l18prgjD3PUl6Ge5oqY9eludHl3/mP+tXp8HGBgTRrL5DPp3gbHbfhbFCPCW8nU3aqQDqGg+MDo=
+	t=1787350902; cv=none; b=cZoT58thaAsZA67q0mcWjVlVk6TtuhadWNu+MQBb4hX03YpV7Nh2hi8f0Fjvo7KdK+fPH8H5qW3Yd1DjzxTz+M9In+a7543zGxy+yDPavZ8J3U6RfdziwixousZaE7EgOauDzYID7JRcs30OIkRJMZ3OLqH4hUB1nyl2+0ZFBB0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787350901; c=relaxed/simple;
-	bh=jNEwJDZiARvqFVtykrpbrVMqGXf5fY+hqZRVlBiogIs=;
-	h=Date:To:From:Subject:Message-Id; b=G6cfMGbyGCHBjRJnMN+BexpsJswECae7pkaX1xPec+G7ZlyHSum7UPR8dhbkIE+owVsI+8GOv3RmS1X/dg+DyAAfwGwz3ug1pX3C/zZxd2VbeCKHtMwfm2pv51Q/tfeNOzFFayvTxF7zFPYzqWXNcBuybZwzyWR1a789NKFXU8k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2dFROBaw; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1787350902; c=relaxed/simple;
+	bh=An7fxsuojdwy0Lg8kTsNzh/zc5kBvTOrfGUOO9YPUMA=;
+	h=Date:To:From:Subject:Message-Id; b=DPcQ+aZuP65XNd8iBKxGYay1sDEVQ9fz7b2g6vlLWE+8OtUFaKoVygNXynX/yzwP7hTGlw2eJN7B2n6HuC91BQRbdNalX4xVRmpjD7KyBIMySkNiUaTCAhCWvKzaxVt7lltXwinaRElOiOnRHL67Wo8v/EHjdhLfWULO3XKZERQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=scFnTEwC; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2dFROBaw"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6FCF31F00A3A;
-	Fri, 21 Aug 2026 22:21:39 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="scFnTEwC"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B11851F00A3D;
+	Fri, 21 Aug 2026 22:21:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1787350899;
-	bh=/Zo5uKSyD3OkF/rlGiwZDz167vkVEn41pfKMeBbTKZA=;
+	d=linux-foundation.org; s=korg; t=1787350900;
+	bh=n7bUHjpYNDYDSzeAtG+XJPlVmAaBPngN+gQwQ7fTZEI=;
 	h=Date:To:From:Subject;
-	b=2dFROBawi/u8/aBNq6f9tJ23Khs7NaJs0NSrEcdp01h19lLrZNTsNNxO9f3j2sbEM
-	 1pJydws2zuPqoFEHN+kZd75TA8/aZpjhI0KhyiLkwVEnLLyI3Cq72/QQfWA9NbXlAE
-	 Nn1mAVAL9eAO27w+YSTUKQopxd3SMHa+wimz87TU=
-Date: Fri, 21 Aug 2026 15:21:39 -0700
+	b=scFnTEwCcAsIuo86X6+tIrA7jKtQyDqHghYXIYvm7wIlfAgpATUbitvp8lXszui8v
+	 6xLTkUXDY1xum/S4zCmVYrWZC8CIM3cALTbtLMnwyXjSFy5jynlD7J9aH76M/3tVL7
+	 k79bezum+MHqjxzbHunSB2s8B6/fsenxgYvw57Jo=
+Date: Fri, 21 Aug 2026 15:21:40 -0700
 To: mm-commits@vger.kernel.org,liam@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] locking-lockdep-add-sequence-counter-to-held_lock.patch removed from -mm tree
-Message-Id: <20260821222139.6FCF31F00A3A@smtp.kernel.org>
+Subject: [to-be-updated] maple_tree-add-write-lock-checking-with-lockdep-sequence-numbers.patch removed from -mm tree
+Message-Id: <20260821222140.B11851F00A3D@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,208 +35,188 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: locking/lockdep: add sequence counter to held_lock
+     Subject: maple_tree: add write lock checking with lockdep sequence numbers
 has been removed from the -mm tree.  Its filename was
-     locking-lockdep-add-sequence-counter-to-held_lock.patch
+     maple_tree-add-write-lock-checking-with-lockdep-sequence-numbers.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
 From: "Liam R. Howlett (Oracle)" <liam@infradead.org>
-Subject: locking/lockdep: add sequence counter to held_lock
-Date: Tue, 30 Jun 2026 15:08:26 -0400
+Subject: maple_tree: add write lock checking with lockdep sequence numbers
+Date: Tue, 30 Jun 2026 15:08:27 -0400
 
-Add an 8 bit small sequence counter to the held_lock struct to detect if
-the lock as been dropped and reacquired.  This is useful when a data
-structure depends on a constant locking context, but is not able to detect
-locking and unlocking of the lock through its own API.
+Use the lockdep sequence numbers to ensure the write lock is not dropped
+between write operations.  The lockdep sequence is recorded on any walk
+that starts from the top of the tree and re-checked prior to any operation
+using an active node.
 
-Since the __lock_unpin_lock() will no longer detect underflow by casting
-the unsigned int to a signed int, update the casting code to use a temp
-variable for calculations using a signed int.
-
-Link: https://lore.kernel.org/20260630190843.3563858-3-liam@infradead.org
-Link: https://lore.kernel.org/all/h3tpnj5kzcrxms5picmimtkpg4aypcpip5wbd6bt2rpdj5k7eb@nhtzs3lefrkq/
+Link: https://lore.kernel.org/20260630190843.3563858-4-liam@infradead.org
 Signed-off-by: Liam R. Howlett (Oracle) <liam@infradead.org>
-Suggested-by: Peter Zijlstra <peterz@infradead.org>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Will Deacon <will@kernel.org>
 Cc: Boqun Feng <boqun.feng@gmail.com>
-Cc: Waiman Long <longman@redhat.com>
 Cc: Chris Mason <clm@meta.com>
 Cc: Chuck Lever <cel@kernel.org>
+Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Jason Gunthorpe <jgg@ziepe.ca>
 Cc: Joe Perches <joe@perches.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
 Cc: Rik van Riel <riel@surriel.com>
+Cc: Waiman Long <longman@redhat.com>
+Cc: Will Deacon <will@kernel.org>
+Cc: Breno Leitao <leitao@debian.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/lockdep.h       |    3 +
- include/linux/lockdep_types.h |    3 +
- include/linux/sched.h         |    1 
- kernel/locking/lockdep.c      |   58 ++++++++++++++++++++++++++++----
- 4 files changed, 57 insertions(+), 8 deletions(-)
+ include/linux/maple_tree.h |    7 +++-
+ lib/maple_tree.c           |   58 +++++++++++++++++++++++++++--------
+ 2 files changed, 51 insertions(+), 14 deletions(-)
 
---- a/include/linux/lockdep.h~locking-lockdep-add-sequence-counter-to-held_lock
-+++ a/include/linux/lockdep.h
-@@ -273,6 +273,9 @@ extern struct pin_cookie lock_pin_lock(s
- extern void lock_repin_lock(struct lockdep_map *lock, struct pin_cookie);
- extern void lock_unpin_lock(struct lockdep_map *lock, struct pin_cookie);
- 
-+extern u32 lock_sequence(struct lockdep_map *lock);
-+#define lockdep_sequence(lock)	lock_sequence(&(lock)->dep_map)
-+
- #define lockdep_depth(tsk)	(debug_locks ? (tsk)->lockdep_depth : 0)
- 
- #define lockdep_assert(cond)		\
---- a/include/linux/lockdep_types.h~locking-lockdep-add-sequence-counter-to-held_lock
-+++ a/include/linux/lockdep_types.h
-@@ -253,7 +253,8 @@ struct held_lock {
- 	unsigned int hardirqs_off:1;
- 	unsigned int sync:1;
- 	unsigned int references:11;					/* 32 bits */
--	unsigned int pin_count;
-+	unsigned int pin_count:24;
-+	unsigned int seq_count:8;
+--- a/include/linux/maple_tree.h~maple_tree-add-write-lock-checking-with-lockdep-sequence-numbers
++++ a/include/linux/maple_tree.h
+@@ -484,9 +484,12 @@ struct ma_state {
+ 	unsigned char mas_flags;
+ 	unsigned char end;		/* The end of the node */
+ 	enum store_type store_type;	/* The type of store needed for this operation */
+-#if IS_ENABLED(CONFIG_LOCKDEP) && IS_ENABLED(CONFIG_RCU_STRICT_GRACE_PERIOD)
++#ifdef CONFIG_LOCKDEP
++	u32 ld_seq;
++#ifdef CONFIG_RCU_STRICT_GRACE_PERIOD
+ 	unsigned long rcu_gp;
+-#endif
++#endif /* CONFIG_RCU_STRICT_GRACE_PERIOD */
++#endif /* CONFIG_LOCKDEP */
  };
  
- #else /* !CONFIG_LOCKDEP */
---- a/include/linux/sched.h~locking-lockdep-add-sequence-counter-to-held_lock
-+++ a/include/linux/sched.h
-@@ -1288,6 +1288,7 @@ struct task_struct {
- 	u64				curr_chain_key;
- 	int				lockdep_depth;
- 	unsigned int			lockdep_recursion;
-+	unsigned int			lockdep_seq;
- 	struct held_lock		held_locks[MAX_LOCK_DEPTH];
- #endif
+ struct ma_wr_state {
+--- a/lib/maple_tree.c~maple_tree-add-write-lock-checking-with-lockdep-sequence-numbers
++++ a/lib/maple_tree.c
+@@ -1148,40 +1148,71 @@ static inline void mas_free(struct ma_st
+ 	ma_free_rcu(mte_to_node(used));
+ }
  
---- a/kernel/locking/lockdep.c~locking-lockdep-add-sequence-counter-to-held_lock
-+++ a/kernel/locking/lockdep.c
-@@ -5077,7 +5077,7 @@ static int __lock_is_held(const struct l
- static int __lock_acquire(struct lockdep_map *lock, unsigned int subclass,
- 			  int trylock, int read, int check, int hardirqs_off,
- 			  struct lockdep_map *nest_lock, unsigned long ip,
--			  int references, int pin_count, int sync)
-+			  int references, int pin_count, int sync, int seq)
+-void mas_lock_check(struct ma_state *mas)
++
++#ifdef CONFIG_LOCKDEP
++static struct lockdep_map *mas_lockdep_map(struct ma_state *mas)
  {
- 	struct task_struct *curr = current;
- 	struct lock_class *class = NULL;
-@@ -5183,6 +5183,7 @@ static int __lock_acquire(struct lockdep
- 	hlock->holdtime_stamp = lockstat_clock();
- #endif
- 	hlock->pin_count = pin_count;
-+	hlock->seq_count = seq;
- 
- 	if (check_wait_context(curr, hlock))
- 		return 0;
-@@ -5388,7 +5389,7 @@ static int reacquire_held_locks(struct t
- 				    hlock->read, hlock->check,
- 				    hlock->hardirqs_off,
- 				    hlock->nest_lock, hlock->acquire_ip,
--				    hlock->references, hlock->pin_count, 0)) {
-+				    hlock->references, hlock->pin_count, 0, hlock->seq_count)) {
- 		case 0:
- 			return 1;
- 		case 1:
-@@ -5669,14 +5670,17 @@ static void __lock_unpin_lock(struct loc
- 		struct held_lock *hlock = curr->held_locks + i;
- 
- 		if (match_held_lock(hlock, lock)) {
-+			int pin_count;
++	struct maple_tree *mt = mas->tree;
 +
- 			if (WARN(!hlock->pin_count, "unpinning an unpinned lock\n"))
- 				return;
++	if (mt_external_lock(mt))
++		return mt->ma_external_lock;
++
++	return &(mt->ma_lock).dep_map;
++}
++
++#endif
  
--			hlock->pin_count -= cookie.val;
-+			pin_count = hlock->pin_count - cookie.val;
+-#if IS_ENABLED(CONFIG_LOCKDEP) && IS_ENABLED(CONFIG_RCU_STRICT_GRACE_PERIOD)
++static void mas_lock_check(struct ma_state *mas)
++{
++#ifdef CONFIG_LOCKDEP
++	struct lockdep_map *map;
+ 	if (!mas_is_active(mas))
+ 		return;
  
--			if (WARN((int)hlock->pin_count < 0, "pin count corrupted\n"))
--				hlock->pin_count = 0;
-+			if (WARN(pin_count < 0, "pin count corrupted\n"))
-+				pin_count = 0;
- 
-+			hlock->pin_count = pin_count;
- 			return;
- 		}
++#ifdef CONFIG_RCU_STRICT_GRACE_PERIOD
+ 	if (!mt_locked(mas->tree)) {
+ 		if (mt_in_rcu(mas->tree))
+ 			WARN_ON_ONCE(poll_state_synchronize_rcu(mas->rcu_gp));
  	}
-@@ -5684,6 +5688,24 @@ static void __lock_unpin_lock(struct loc
- 	WARN(1, "unpinning an unheld lock\n");
+-#endif
++#endif /* CONFIG_RCU_STRICT_GRACE_PERIOD */
++
++	map = mas_lockdep_map(mas);
++	if (map && lock_is_held(map))
++		WARN_ON_ONCE(mas->ld_seq != lock_sequence(map));
++#endif /* CONFIG_LOCKDEP */
+ 
  }
  
-+static u32 __lock_sequence(struct lockdep_map *lock)
-+{
-+	struct task_struct *curr = current;
-+	int i;
+-void mas_init_lock_check(struct ma_state *mas)
++static void mas_init_lock_check(struct ma_state *mas)
+ {
+-#if IS_ENABLED(CONFIG_LOCKDEP) && IS_ENABLED(CONFIG_RCU_STRICT_GRACE_PERIOD)
++#ifdef CONFIG_LOCKDEP
++	struct lockdep_map *map;
++#ifdef CONFIG_RCU_STRICT_GRACE_PERIOD
+ 	if (!mt_locked(mas->tree)) {
+ 		if (mt_in_rcu(mas->tree))
+ 			mas->rcu_gp = get_state_synchronize_rcu();
++		return;
+ 	}
+-#endif
++#endif /* CONFIG_RCU_STRICT_GRACE_PERIOD */
 +
-+	if (unlikely(!debug_locks))
-+		return ~0;
-+
-+	for (i = 0; i < curr->lockdep_depth; i++) {
-+		struct held_lock *hlock = curr->held_locks + i;
-+
-+		if (match_held_lock(hlock, lock))
-+			return hlock->seq_count;
++	map = mas_lockdep_map(mas);
++	if (map && lock_is_held(map))
++		mas->ld_seq = lock_sequence(mas_lockdep_map(mas));
++#endif /* CONFIG_LOCKDEP */
+ 
+ }
+ 
+ static void mas_may_init_lock_check(struct ma_state *mas)
+ {
+-#if IS_ENABLED(CONFIG_LOCKDEP) && IS_ENABLED(CONFIG_RCU_STRICT_GRACE_PERIOD)
+-	if (mas_is_start(mas) || mas_is_paused(mas))
++#ifdef CONFIG_LOCKDEP
++#ifdef CONFIG_RCU_STRICT_GRACE_PERIOD
++	if (mas_is_start(mas) || mas_is_paused(mas)) {
+ 		mas_init_lock_check(mas);
+-	else
+-		mas_lock_check(mas);
+-#endif
++		return;
 +	}
-+
-+	return ~0;
-+}
-+
++#endif /* CONFIG_RCU_STRICT_GRACE_PERIOD */
++	mas_lock_check(mas);
++#endif /* CONFIG_LOCKDEP */
+ }
+ 
  /*
-  * Check whether we follow the irq-flags state precisely:
-  */
-@@ -5866,7 +5888,8 @@ void lock_acquire(struct lockdep_map *lo
+@@ -4864,6 +4895,7 @@ void *mas_store(struct ma_state *mas, vo
+ {
+ 	MA_WR_STATE(wr_mas, mas, entry);
  
- 	lockdep_recursion_inc();
- 	__lock_acquire(lock, subclass, trylock, read, check,
--		       irqs_disabled_flags(flags), nest_lock, ip, 0, 0, 0);
-+		       irqs_disabled_flags(flags), nest_lock, ip, 0, 0, 0,
-+		       ++current->lockdep_seq);
- 	lockdep_recursion_finish();
- 	raw_local_irq_restore(flags);
- }
-@@ -5914,7 +5937,8 @@ void lock_sync(struct lockdep_map *lock,
++	mas_may_init_lock_check(mas);
+ 	trace_ma_write(TP_FCT, mas, 0, entry);
+ #ifdef CONFIG_DEBUG_MAPLE_TREE
+ 	if (MAS_WARN_ON(mas, mas->index > mas->last))
+@@ -4922,6 +4954,7 @@ int mas_store_gfp(struct ma_state *mas,
+ 	MA_WR_STATE(wr_mas, mas, entry);
+ 	int ret = 0;
  
- 	lockdep_recursion_inc();
- 	__lock_acquire(lock, subclass, 0, read, check,
--		       irqs_disabled_flags(flags), nest_lock, ip, 0, 0, 1);
-+		       irqs_disabled_flags(flags), nest_lock, ip, 0, 0, 1,
-+		       ++current->lockdep_seq);
- 	check_chain_key(current);
- 	lockdep_recursion_finish();
- 	raw_local_irq_restore(flags);
-@@ -6000,6 +6024,26 @@ void lock_unpin_lock(struct lockdep_map
- }
- EXPORT_SYMBOL_GPL(lock_unpin_lock);
++	mas_may_init_lock_check(mas);
+ retry:
+ 	mas_wr_preallocate(&wr_mas, entry);
+ 	if (unlikely(mas_nomem(mas, gfp))) {
+@@ -4952,6 +4985,7 @@ void mas_store_prealloc(struct ma_state
+ {
+ 	MA_WR_STATE(wr_mas, mas, entry);
  
-+u32 lock_sequence(struct lockdep_map *lock)
-+{
-+	unsigned long flags;
-+	u32 seq = ~0;
-+
-+	if (unlikely(!lockdep_enabled()))
-+		return seq;
-+
-+	raw_local_irq_save(flags);
-+	check_flags(flags);
-+
-+	lockdep_recursion_inc();
-+	seq = __lock_sequence(lock);
-+	lockdep_recursion_finish();
-+	raw_local_irq_restore(flags);
-+
-+	return seq;
-+}
-+EXPORT_SYMBOL_GPL(lock_sequence);
-+
- #ifdef CONFIG_LOCK_STAT
- static void print_lock_contention_bug(struct task_struct *curr,
- 				      struct lockdep_map *lock,
++	mas_lock_check(mas);
+ 	if (mas->store_type == wr_store_root) {
+ 		mas_wr_prealloc_setup(&wr_mas);
+ 		goto store;
+@@ -4984,6 +5018,7 @@ int mas_preallocate(struct ma_state *mas
+ {
+ 	MA_WR_STATE(wr_mas, mas, entry);
+ 
++	mas_may_init_lock_check(mas);
+ 	mas_wr_prealloc_setup(&wr_mas);
+ 	mas->store_type = mas_wr_store_type(&wr_mas);
+ 	mas_prealloc_calc(&wr_mas, entry);
+@@ -5469,7 +5504,6 @@ EXPORT_SYMBOL_GPL(mas_find_range);
+ static bool mas_find_rev_setup(struct ma_state *mas, unsigned long min,
+ 		void **entry)
+ {
+-
+ 	switch (mas->status) {
+ 	case ma_active:
+ 		goto active;
 _
 
 Patches currently in -mm which might be from liam@infradead.org are
 
-maple_tree-add-write-lock-checking-with-lockdep-sequence-numbers.patch
 maple_tree-stop-flooding-logs-when-debug_locks-is-set-to-zero-fix.patch
 maple_tree-documentation-fix.patch
 maple_tree-drop-dead-code-from-mas_extend_spanning_null.patch
