@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BB2133B9DAC
-	for <mm-commits@vger.kernel.org>; Fri, 21 Aug 2026 22:43:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8086A39021C
+	for <mm-commits@vger.kernel.org>; Fri, 21 Aug 2026 22:43:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787352225; cv=none; b=Gf6Pwn86+praueZlp2qSx3xIZShLFwGBK76uVOZynlwPJkohRek5VyOhskpDS5n9B+WR1VBccSuGfLsOoxaDeDtFtV4p7hNbs7NkvDcyeYQWqQNwdLE9SipMSI76Ba6KR9/YHykyNempfaiHRsqqsNz1ggHNcgPizviSUHI/RFE=
+	t=1787352226; cv=none; b=k4FuP8+yYoFOH1JHsMZq+uwkFnv8QQbuQ42F54fDFn7jURrU6+udAeD4PvmRUSo9imc3yzXKvFtjx0X3OeqTw0eSBfUOK2M/s9QLqCod51b9L9kKlzMoQSFEzbxlKRQmQT60QeVqvTWrs40Q4XQnTYnlkcM/WfGhZ3cNcM0pU80=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787352225; c=relaxed/simple;
-	bh=zpkcQhB/xHYyBbKrml6Y0Tf7P1TYjxe4Vzi7+40zjks=;
-	h=Date:To:From:Subject:Message-Id; b=MKWkTphCZhf4dunEq0k6OoSMgI5nuxGr+WRSvHqWO8rbRsZhnsmCdmTQ3jmIDYJ5H0mBY7mtyVH+sLrdBogMarlHDmkPq0qSo1MzFm5vrbY5vg6GjZZMqsJs6lwjU1ApFxXSHEv/6W0nBPAPaRUlMsHfC8+wSL7lERv1RgmQBGQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RgUjKqPD; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1787352226; c=relaxed/simple;
+	bh=9elKwhtE6VazgkBuSSQaKpriWGY0/zkjP48HGZeelq0=;
+	h=Date:To:From:Subject:Message-Id; b=hqg5HC6VuEMvvoZsoyOPUOVZnejcVBteQJLFcGZ6A9K6baOTqlLCESlWjKW91C7LO0G1oyLROWFyCyccjDhFQte3XKX2LuvbCfnuIM4MaITgkXF+QzjQieufc8Cfv3vJtZ4oaslp64ZijODwGitLMS/ES8IScSqoRb0OSn9f3MM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Xg5XFGyc; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RgUjKqPD"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4D8CF1F000E9;
-	Fri, 21 Aug 2026 22:43:43 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Xg5XFGyc"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4DCE51F000E9;
+	Fri, 21 Aug 2026 22:43:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1787352223;
-	bh=TadwCYb2nMA2zO8qP8LqGzP4Z7s4+hQ2DF8Wbd05YZo=;
+	d=linux-foundation.org; s=korg; t=1787352225;
+	bh=UTNCbly82S3Jq3qr4I8TNrnKg13DnJhYSfXjVOvb8Bs=;
 	h=Date:To:From:Subject;
-	b=RgUjKqPD3jF7m7BzYr4MsqKFhiUstD+ZICNV6u2yFIeIqq9GCk/3ZXhjBcmXjfQ/I
-	 YaBOwm56ygMSc42mx+spyON+kDEmsMAEOL49Lf/w11CdPDxIMyequTqY+dCT+VnlbR
-	 yggn2ChElNl0W1EoeL2IWe+QAn/Xi2USvgzPEg4o=
-Date: Fri, 21 Aug 2026 15:43:42 -0700
+	b=Xg5XFGycZJlA4QWj66svlWWF2RhBWa9e+wBONYJyxvkbmrDBS8zfdGj/SUsCEyRkY
+	 zyACXmbEpdsW5PZRxg7rNwwNSNkigxPs1F7OnaOv9jvneTVVQ4PXKMEonau0fX5dFW
+	 mMqt0SA2ajvLG6FcqvfoSlbaTDBmVtBxwlbXO1kU=
+Date: Fri, 21 Aug 2026 15:43:44 -0700
 To: mm-commits@vger.kernel.org,liam@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + maple_tree-drop-maple_alloc_slots.patch added to mm-unstable branch
-Message-Id: <20260821224343.4D8CF1F000E9@smtp.kernel.org>
+Subject: + maple_tree-clarify-comments-on-mas_nomem.patch added to mm-unstable branch
+Message-Id: <20260821224345.4DCE51F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: maple_tree: drop MAPLE_ALLOC_SLOTS
+     Subject: maple_tree: clarify comments on mas_nomem()
 has been added to the -mm mm-unstable branch.  Its filename is
-     maple_tree-drop-maple_alloc_slots.patch
+     maple_tree-clarify-comments-on-mas_nomem.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-drop-maple_alloc_slots.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-clarify-comments-on-mas_nomem.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,12 +59,16 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Liam R. Howlett (Oracle)" <liam@infradead.org>
-Subject: maple_tree: drop MAPLE_ALLOC_SLOTS
-Date: Fri, 21 Aug 2026 15:26:14 -0400
+Subject: maple_tree: clarify comments on mas_nomem()
+Date: Fri, 21 Aug 2026 15:26:15 -0400
 
-MAPLE_ALLOC_SLOTS is no longer used, so remove it.
+When an allocation completely fails, the return is false.  If the
+allocation succeeds or partially succeeds, return true to indicate a retry
+of the operation.  Note that since the lock may have been dropped, the
+operation is retried from the start - including potentially allocating
+more memory.
 
-Link: https://lore.kernel.org/20260821192627.4085470-7-liam@infradead.org
+Link: https://lore.kernel.org/20260821192627.4085470-8-liam@infradead.org
 Signed-off-by: Liam R. Howlett (Oracle) <liam@infradead.org>
 Cc: Boqun Feng <boqun.feng@gmail.com>
 Cc: Breno Leitao <leitao@debian.org>
@@ -80,25 +84,36 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/maple_tree.h |    2 --
- 1 file changed, 2 deletions(-)
+ lib/maple_tree.c |    9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
---- a/include/linux/maple_tree.h~maple_tree-drop-maple_alloc_slots
-+++ a/include/linux/maple_tree.h
-@@ -28,13 +28,11 @@
- #define MAPLE_NODE_SLOTS	31	/* 256 bytes including ->parent */
- #define MAPLE_RANGE64_SLOTS	16	/* 256 bytes */
- #define MAPLE_ARANGE64_SLOTS	10	/* 240 bytes */
--#define MAPLE_ALLOC_SLOTS	(MAPLE_NODE_SLOTS - 1)
- #else
- /* 32bit sizes */
- #define MAPLE_NODE_SLOTS	63	/* 256 bytes including ->parent */
- #define MAPLE_RANGE64_SLOTS	32	/* 256 bytes */
- #define MAPLE_ARANGE64_SLOTS	21	/* 240 bytes */
--#define MAPLE_ALLOC_SLOTS	(MAPLE_NODE_SLOTS - 2)
- #endif /* defined(CONFIG_64BIT) || defined(BUILD_VDSO32_64) */
+--- a/lib/maple_tree.c~maple_tree-clarify-comments-on-mas_nomem
++++ a/lib/maple_tree.c
+@@ -5677,10 +5677,11 @@ EXPORT_SYMBOL_GPL(mas_erase);
  
- #define MAPLE_NODE_MASK		255UL
+ /**
+  * mas_nomem() - Check if there was an error allocating and do the allocation
+- * if necessary If there are allocations, then free them.
++ * if necessary.
++ *
+  * @mas: The maple state
+  * @gfp: The GFP_FLAGS to use for allocations
+- * Return: true on allocation, false otherwise.
++ * Return: False on no memory.  True otherwise (partial success as well)
+  */
+ bool mas_nomem(struct ma_state *mas, gfp_t gfp)
+ 	__must_hold(mas->tree->ma_lock)
+@@ -5696,6 +5697,10 @@ bool mas_nomem(struct ma_state *mas, gfp
+ 		mas_alloc_nodes(mas, gfp);
+ 	}
+ 
++	/*
++	 * Return false on zero forward progress.  Partial allocations are kept
++	 * so the retry path will attempt to get the rest.
++	 */
+ 	if (!mas->sheaf && !mas->alloc)
+ 		return false;
+ 
 _
 
 Patches currently in -mm which might be from liam@infradead.org are
