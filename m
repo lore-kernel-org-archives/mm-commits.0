@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 585043B05A2
-	for <mm-commits@vger.kernel.org>; Fri, 21 Aug 2026 22:21:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5C88D361977
+	for <mm-commits@vger.kernel.org>; Fri, 21 Aug 2026 22:21:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787350903; cv=none; b=duS1IU5nZfm12Bm9/OF4Vlo4YoQPlZ81UyouRM7WMH3Jy13WbNW3b+UyZmYSnFujFLp10xW9o/Og0xpWE/FYcCBu8pzVEJ/lRIzK5aAH4ys7I4GuCv/OlBWV9FZvTaXJGTUUhbDRw+oyomxK3YKI8RY2wA8+UVn3JGXKbb0vuQ8=
+	t=1787350904; cv=none; b=cEK5OhfpGoJzf5FHC6ZLv2m3eJFflGgF7crn6yMNNyEx+zqKDhPhs6zhNz6JiwjTbRXpcIdq8U6Cp2ykmv5947h5ohI0A2Yc854zWWOIGIcgsxKTWjlbsFyhq6fYM/GQ7FI3HRugs2/Y8Y4N673/sV4gGaK7L5uopmnZytimMvA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787350903; c=relaxed/simple;
-	bh=NSwJffno3LepxPLdUxUKcgpy94MFVUuYxixncqoCt88=;
-	h=Date:To:From:Subject:Message-Id; b=P3qwS6vEJeZLyMvqcb7B7NEjVI+SxhROutP8C+M7nsJXMgoegyL3TP0vbY15IX2Q93vWWzx4EAgr1pg1NOQk/ySPL25vvLtP+lhDmR3FAMdC4axMYZR9Wy4YDNtGP/fUlBgE0qyv3yxTn0QmKHjQoSKus+yP5/VxwWBVM1pTAqo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jHZt1VBp; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1787350904; c=relaxed/simple;
+	bh=i9BqkHjNipFI7MGjTK+pmvhwIIHbGkSOHvJN21ulSl0=;
+	h=Date:To:From:Subject:Message-Id; b=WHwQFAjeDsQikhMi16j2kqbf5F5HG+kGHFxeZIeSEDVIpzV0sx3DU7NF3Elcweh+wT/YlbP4UkhSveWfDqfTnWwqFPLaDyMPny70hUQNZavZLuUSpplrALa5PQa8kMyd5ka4TDdLUWqRvKj+ODPeoiP0A4X5/OP1KamKJXexLa0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=a9taR6Hi; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jHZt1VBp"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F3C241F00A3A;
-	Fri, 21 Aug 2026 22:21:41 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="a9taR6Hi"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 34A291F00A3E;
+	Fri, 21 Aug 2026 22:21:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1787350902;
-	bh=TN2DTxmgmeBQkT2eyzX+i5gwBZkE51AJDVSTCoeLm8Y=;
+	d=linux-foundation.org; s=korg; t=1787350903;
+	bh=kQirqErDGmS5osvmG0I0hLicIcWDMvVPzRiWMX1fZdo=;
 	h=Date:To:From:Subject;
-	b=jHZt1VBpXmn3SH8qOqmK9pAhaLgai7p621MLKbwqybNa36YZazsZ7DmcEval4zuph
-	 kJrA9uA5E9tMa4XVNPEy/cjT76GvODKFIKi3ldwHhfmz3myS9/nJ8athtrFS/SWTlX
-	 s+aptMhnFDKSLypsn5Amxjws6zND6F698PMrZm/k=
-Date: Fri, 21 Aug 2026 15:21:41 -0700
+	b=a9taR6HipG5XqMqAL5bc6thaK8yIjeR2UDC35OT2YoTRcmW6c3r8paDUJNRKsinYT
+	 YHflO/E5zb8IE4kiAAg4497Zwh7nLi9PCbMw9hEUBLkR+vmjXyhL/CDhtHDdvpNgg+
+	 qichxyKEJsXh7kAACduEM7BbhWlGGw1tFKKG8uGo=
+Date: Fri, 21 Aug 2026 15:21:42 -0700
 To: mm-commits@vger.kernel.org,liam@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] maple_tree-stop-flooding-logs-when-debug_locks-is-set-to-zero-fix.patch removed from -mm tree
-Message-Id: <20260821222141.F3C241F00A3A@smtp.kernel.org>
+Subject: [to-be-updated] maple_tree-documentation-fix.patch removed from -mm tree
+Message-Id: <20260821222143.34A291F00A3E@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,36 +35,21 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: maple_tree-stop-flooding-logs-when-debug_locks-is-set-to-zero-fix
+     Subject: maple_tree: documentation fix
 has been removed from the -mm tree.  Its filename was
-     maple_tree-stop-flooding-logs-when-debug_locks-is-set-to-zero-fix.patch
+     maple_tree-documentation-fix.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
 From: "Liam R. Howlett (Oracle)" <liam@infradead.org>
-Subject: maple_tree-stop-flooding-logs-when-debug_locks-is-set-to-zero-fix
-Date: Mon, 20 Jul 2026 17:30:38 -0400
+Subject: maple_tree: documentation fix
+Date: Tue, 30 Jun 2026 15:08:28 -0400
 
-stop flooding logs when debug_locks is set to zero
+Don't include the word flag in the quotes with the actual flag.
 
-When lockdep detects an issue, it sets debug_locks to 0 disabling further
-reports.  The newly added maple tree sequence counting on locks to detect
-errors is not taking this nor the fact that lock_is_held() can return -1
-(unknown state) into account.  The resulting action is a flood of logging
-of not matching sequence numbers being reported on failure.
-
-__lock_sequnece() will return u32 ~0 when debug_locks is zero, and the
-real sequnece count cannot return such a high value as it is less than
-32bits.
-
-By always updating the sequence number, regardless of lock state and by
-ignoring ~0 value in the sequence number will avoid ever printing a
-WARN_ON when this condition is hit.
-
-Link: https://lore.kernel.org/fo5r2xl3fql6gyvjasfvfu4ftugjti2vxg7zskdw7hjeo3xvqm@kk66qmsf762s
+Link: https://lore.kernel.org/20260630190843.3563858-5-liam@infradead.org
 Signed-off-by: Liam R. Howlett (Oracle) <liam@infradead.org>
-Tested-by: Breno Leitao <leitao@debian.org>
 Cc: Boqun Feng <boqun.feng@gmail.com>
 Cc: Chris Mason <clm@meta.com>
 Cc: Chuck Lever <cel@kernel.org>
@@ -78,51 +63,24 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/maple_tree.c |   14 ++++++++++----
- 1 file changed, 10 insertions(+), 4 deletions(-)
+ Documentation/core-api/maple_tree.rst |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/lib/maple_tree.c~maple_tree-stop-flooding-logs-when-debug_locks-is-set-to-zero-fix
-+++ a/lib/maple_tree.c
-@@ -1166,6 +1166,8 @@ static void mas_lock_check(struct ma_sta
- {
- #ifdef CONFIG_LOCKDEP
- 	struct lockdep_map *map;
-+	u32 seq;
-+
- 	if (!mas_is_active(mas))
- 		return;
+--- a/Documentation/core-api/maple_tree.rst~maple_tree-documentation-fix
++++ a/Documentation/core-api/maple_tree.rst
+@@ -211,7 +211,7 @@ Advanced Locking
  
-@@ -1177,8 +1179,12 @@ static void mas_lock_check(struct ma_sta
- #endif /* CONFIG_RCU_STRICT_GRACE_PERIOD */
+ The maple tree uses a spinlock by default, but external locks can be used for
+ tree updates as well.  To use an external lock, the tree must be initialized
+-with the ``MT_FLAGS_LOCK_EXTERN flag``, this is usually done with the
++with the ``MT_FLAGS_LOCK_EXTERN`` flag, this is usually done with the
+ MTREE_INIT_EXT() #define, which takes an external lock as an argument.
  
- 	map = mas_lockdep_map(mas);
--	if (map && lock_is_held(map))
--		WARN_ON_ONCE(mas->ld_seq != lock_sequence(map));
-+	if (!map)
-+		return;
-+
-+	seq = lock_sequence(map);
-+	if (seq != UINT_MAX && mas->ld_seq != UINT_MAX)
-+		WARN_ON_ONCE(mas->ld_seq != seq);
- #endif /* CONFIG_LOCKDEP */
- 
- }
-@@ -1196,8 +1202,8 @@ static void mas_init_lock_check(struct m
- #endif /* CONFIG_RCU_STRICT_GRACE_PERIOD */
- 
- 	map = mas_lockdep_map(mas);
--	if (map && lock_is_held(map))
--		mas->ld_seq = lock_sequence(mas_lockdep_map(mas));
-+	if (map) /* Update regardless of lock state */
-+		mas->ld_seq = lock_sequence(map);
- #endif /* CONFIG_LOCKDEP */
- 
- }
+ Functions and structures
 _
 
 Patches currently in -mm which might be from liam@infradead.org are
 
-maple_tree-documentation-fix.patch
 maple_tree-drop-dead-code-from-mas_extend_spanning_null.patch
 maple_tree-drop-maple_alloc_slots.patch
 maple_tree-clarify-comments-on-mas_nomem.patch
