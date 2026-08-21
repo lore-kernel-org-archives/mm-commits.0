@@ -1,163 +1,135 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ed1-f42.google.com (mail-ed1-f42.google.com [209.85.208.42])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3841F313546
-	for <mm-commits@vger.kernel.org>; Thu, 20 Aug 2026 23:41:27 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EC383282F1E
+	for <mm-commits@vger.kernel.org>; Fri, 21 Aug 2026 02:05:19 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.42
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787269289; cv=none; b=Q9IxBi+wL6j5V30G9oicI0b1Pusn24ELLPlD0VXRmmvCuQSCeOhvx1/osSjQV4d4luiac/TBs8z5/kwJPPv4xzLHNSfPm/FI9cmiKc0GAccDmtP9jG5vberCsnRzQxFasW0PbQnliPTJpPM0VzcYB4BOxwFgde5LSKjXq1cYGl0=
+	t=1787277922; cv=none; b=HipdKZ4DGxd9CUCqLoA4Q6S3hnFu2hH5m/zvUNmFFlztaaQ7zqEszdepSbKr1dWYmi85mRBvx3suxRfFok5YHUa/bgSwzqarLPsr3uFqBPyuYU77/DkM89aCbby/kcwRO0ATCAB9g2KNGKBQQxTyO0qJ8jQSead4vkOW8XqOJS4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787269289; c=relaxed/simple;
-	bh=aer4yqPKsDeeOSt/sMx3InYwL79zyVe5/lleTneXeuA=;
-	h=Date:To:From:Subject:Message-Id; b=cjz3qHK9InJDfTnnH+NPMmLF1WGO62+5C3lvcK8aOhrUmZ6ui4nDe1zzjOUlxkL4Q1J1vT/5DK0jC2CD8Lqp5tF73X0/YJOqzIjRQAppZm+y5uwdUMc7IUYBDE9hPEvgaQwU/JU+wuplV6QZdHgkZgC4Ka1VvW7vHrgQTgK9boI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=I0JiWzml; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1787277922; c=relaxed/simple;
+	bh=VkDIFxnNcvfI7Vu1l9huOaU+ZFOxKvBssjpg/dMffUM=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=bP7B8Zg4Ov/CsMAdfh7k8NZq0sUq3lWCiuBUyjPYAo2QFXRkplCdMoPeaLZzcobRlXe4cHVNdzE8UfBBLTZ5iohYXutnusFqHUHt5eouvTNKara+BFPjQxvqgKCcpP8BdUDUiV+T+5zYNSvPVmiCF9yXqVi3+Cd/PKo7w4kHxzw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-foundation.org; spf=pass smtp.mailfrom=linuxfoundation.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Ndsk8F6j; arc=none smtp.client-ip=209.85.208.42
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-foundation.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linuxfoundation.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="I0JiWzml"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9CD151F000E9;
-	Thu, 20 Aug 2026 23:41:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Ndsk8F6j"
+Received: by mail-ed1-f42.google.com with SMTP id 4fb4d7f45d1cf-6a41191c9a9so1193648a12.3
+        for <mm-commits@vger.kernel.org>; Thu, 20 Aug 2026 19:05:19 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1787269287;
-	bh=qkQlHG3GgrOgfxO4ncIpKLg7omgoUd88PPGmHEbCp7E=;
-	h=Date:To:From:Subject;
-	b=I0JiWzmlC93YE5J+14+bEjNyMkskoW1xBkt9Mb0uJ5DcqYHVdWv5qJObPe/gjiUwW
-	 EEANuJmvtNZNjuUtG7zNAHTQtGRPCr9WSx8L9CGxmoDuRmi8+m84btMQD0+imaovvs
-	 Gpnm0flpfgSi1OJCe1eUnK0xPimJdx8OotDkuz2Q=
-Date: Thu, 20 Aug 2026 16:41:27 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,wangkefeng.wang@huawei.com,vbabka@kernel.org,surenb@google.com,sunnanyong@huawei.com,mhocko@suse.com,longli@microsoft.com,kotaranov@microsoft.com,kbingham@kernel.org,jan.kiszka@siemens.com,hannes@cmpxchg.org,xiqi2@huawei.com,akpm@linux-foundation.org
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-drop-stale-max_order-references.patch added to mm-new branch
-Message-Id: <20260820234127.9CD151F000E9@smtp.kernel.org>
+        d=linux-foundation.org; s=google; t=1787277918; x=1787882718; darn=vger.kernel.org;
+        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
+         :references:mime-version:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=ilqWqTcp2QIIegN8Wykudvyua68HMB1s5p79u7p9ot0=;
+        b=Ndsk8F6jonJ6bGTmIfR1aWY+7mCaSL1bxqWHrWVez3LHle0NgZ7RodsSMnuotCM0XO
+         OXW3gp287aLQikRtPV/izppq08FiH6hy/FJFozSVZ4GAZxJPdEbdbCuRXD2w/NtMnzCV
+         PZdQLKBd9Lz/f46uRS0ikoZTbo4hAWBK4lCu0=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1787277918; x=1787882718;
+        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
+         :references:mime-version:x-gm-gg:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to:content-type;
+        bh=ilqWqTcp2QIIegN8Wykudvyua68HMB1s5p79u7p9ot0=;
+        b=LRqFqIxetzIKoI8TzjFb3kr5aNfK0zZpC/a1mfLHde9jfL7ZDuOKqu8yeZwEf4ZSK8
+         tSltNZGz9zET3L2egRX/pOc/9AylGyCt1ldGH6mTwnwAxlyzuJ1P99J1PLABhtAR5vZq
+         3/4cUk1HBzaASoPx0ON8FCJyx4sUwvOURZZjzUCWwg1D3behzJkLFsbIsIb4/KNP4bxH
+         f45IcOddbk8nKbEx1GAkceXnx8fs5+YZ5c9LGqQhohOnArgJ0GPQ9kQRkhhfCWqPrf5/
+         bcplZW3+Fo4b1MVB1F+NPZlPcqJQcolaLnbQdZAJ/GsC4dAKEH9mbAb1Grx3anRldm75
+         o4zg==
+X-Forwarded-Encrypted: i=1; AHgh+Rp2U+lkpwazzTMieA3H0GSIogDqj4bxQflWw2/F+Nzw6hjOm+7xGWd2sLJbBOqkufNPyaUrGimTiYL3@vger.kernel.org
+X-Gm-Message-State: AFuF++lc3/ZLip0n5iWoQ/W0B9OJaFAe4BOmZ/BzFG7KA3fRP1USnQIm
+	RsgJST5dL3dCNa7HX7LnrUpINka7+DVg9DoRHt4DyGBpPylNgmD4OqxnwMMZaSJLyTaHwTg90wU
+	wChp9MYa9dA==
+X-Gm-Gg: AR+sD10rtGsTaBlPYf55nPuGgzuwDtyZtxq5uR6tpQTLHHRQUDfAG9wGU4X8DXKh3LC
+	MXL2aJWRHw5eDTLM49qZrK/yHGjmLEzKKQuDOrpijc6ZZckyprpXvX8cBw2gEsDRrMJmtky88HS
+	yIwWDtgy6N+noDQFsulrPmyIg7eStQthu3xFZJueacnsfeEKU9GkLQqhYFcZzkx0bDNtQcZa0/T
+	EZlX7qSr+eTorwJyYPd2dVSIP1oI5MiBy4nTUzy57l46jsgEim3F5ET0n8ZE/B2eWVh8Hrl+Cu1
+	ohUkoypUVEFTaSUiyUlyWhWBE227CURd9eFHzB797JwnbzvXgHrMvNKXUyjnOzdkIaZhgaz2NIc
+	JPSfWG0NtLuiiGqbzcqF0kSJ0fCmtp24PaTcXFZp+U3olujhC1RosvvVcm1rBCWM5oO7LuC5jM8
+	Bz2h+D4VuqECb4aE6b4X5hbHiOiLKa1abIFd0NSpA3bUiX9dnoH1MApXsQm5+O24k6km7/fk31G
+	MSLlNmioIILFOiwfuoMx742plQpqoNEtijMdQ==
+X-Received: by 2002:a05:6402:a0cd:b0:698:ac8a:9a21 with SMTP id 4fb4d7f45d1cf-6a42f185778mr2728038a12.8.1787277918127;
+        Thu, 20 Aug 2026 19:05:18 -0700 (PDT)
+Received: from mail-ed1-f41.google.com (mail-ed1-f41.google.com. [209.85.208.41])
+        by smtp.gmail.com with ESMTPSA id 4fb4d7f45d1cf-6a3ff1563c5sm4086264a12.14.2026.08.20.19.05.17
+        for <mm-commits@vger.kernel.org>
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Thu, 20 Aug 2026 19:05:17 -0700 (PDT)
+Received: by mail-ed1-f41.google.com with SMTP id 4fb4d7f45d1cf-6a374bea882so1154269a12.1
+        for <mm-commits@vger.kernel.org>; Thu, 20 Aug 2026 19:05:17 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AHgh+RrCwBlMJk2MbwwV044V6b85+LW/qH7XUfHSZYwnT64kH/64lMpOo2yCa8mY2Pzf1soPX0JbMwV2EgGx@vger.kernel.org
+X-Received: by 2002:a05:6402:24c4:b0:698:ecf:d18a with SMTP id
+ 4fb4d7f45d1cf-6a42f1be3d5mr2627931a12.9.1787277917155; Thu, 20 Aug 2026
+ 19:05:17 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+References: <20260818220711.d5d577cb135b213ae11549c9@linux-foundation.org>
+In-Reply-To: <20260818220711.d5d577cb135b213ae11549c9@linux-foundation.org>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Date: Thu, 20 Aug 2026 19:04:59 -0700
+X-Gmail-Original-Message-ID: <CAHk-=wipdFaYVXO6egyacqXiTfUEQWjqsOSjxjbhZ0FK_MjRTA@mail.gmail.com>
+X-Gm-Features: AcwNN1Vv4YswxSOrIw8YhWVa3VKcmfREmzL5hnmqA7uUN5u66DG9Dsgsk0KbPg4
+Message-ID: <CAHk-=wipdFaYVXO6egyacqXiTfUEQWjqsOSjxjbhZ0FK_MjRTA@mail.gmail.com>
+Subject: Re: [GIT PULL] MM updates for 7.3-rc1
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-mm@kvack.org, mm-commits@vger.kernel.org, 
+	linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 
+On Tue, 18 Aug 2026 at 22:07, Andrew Morton <akpm@linux-foundation.org> wrote:
+>
+> I don't enjoy typing up those patch series summaries, so I haven't been
+> doing them well.  This time I recruited Gemini to draft many of the
+> bullets and then I did a review/edit pass.  I think the result is
+> better(?).
 
-The patch titled
-     Subject: mm: drop stale MAX_ORDER references
-has been added to the -mm mm-new branch.  Its filename is
-     mm-drop-stale-max_order-references.patch
+So I fixed up some stuff. I suspect you did the same thing last merge
+window too, it had a similar feel to it.
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-drop-stale-max_order-references.patch
+And I detest the silly use of present tense prose for bug fixes etc
+("Do ABC, fixing X").
 
-This patch will later appear in the mm-new branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+Or the unnecessary use of filler words.
 
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
+Or saying "This 5 patch series".
 
-The mm-new branch of mm.git is not included in linux-next
+Things like that should not matter in a merge message.
 
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
+You say what changed or what was fixed, not "Five patches to doing ABC
+fixing XYZ".
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+If somebody cares about there being five patches, they'd be looking
+at the patches themselves. The merge message should be about
+higher-level concepts.
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+(Or - and if people really care about the delineation of patch series
+- maybe it should be visible in the *history* with explicit
+no-fastforward merges around the individual series)
 
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+I didn't do a *lot* of editing, but let's take a entirely random example:
 
-------------------------------------------------------
-From: Qi Xi <xiqi2@huawei.com>
-Subject: mm: drop stale MAX_ORDER references
-Date: Wed, 19 Aug 2026 16:20:52 +0800
+ - The 2 patch series "selftests/damon: fix memcg_path staging handling"
+   from Cheng Nie fixes a bug in _damon_sysfs.py for damos_filter
+   memcg_path setup, and adds a test case for it in sysfs.py.
 
-The treewide rename in commit 5e0a760b4441 ("mm, treewide: rename
-MAX_ORDER to MAX_PAGE_ORDER") left a few spots still using the old name:
+and I edited it to state the basics without present tense:
 
-  - two comments in include/net/mana/mana.h and mm/page_alloc.c;
-  - the gdb helper scripts/gdb/linux/mm.py, where self.MAX_ORDER is
-    a local mirror of the kernel's MAX_ORDER define.
+ - "selftests/damon: fix memcg_path staging handling" (Cheng Nie)
 
-Rename the leftover instances to MAX_PAGE_ORDER so the tree is consistent.
+   Fix a bug in _damon_sysfs.py for damos_filter memcg_path setup, and
+   add a test case for it in sysfs.py.
 
-No functional changes.
+iow, straight and to the point. Not "Patch X optimizes abc", just "Optimize abc"
 
-Link: https://lore.kernel.org/20260819082052.3338603-1-xiqi2@huawei.com
-Signed-off-by: Qi Xi <xiqi2@huawei.com>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
-Cc: Jan Kiszka <jan.kiszka@siemens.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Kieran Bingham <kbingham@kernel.org>
-Cc: Konstantin Taranov <kotaranov@microsoft.com>
-Cc: Long Li <longli@microsoft.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Nanyong Sun <sunnanyong@huawei.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+But I guess it's a matter of taste. But if you use Gemini, you could
+try to tell it to not use filler words, and use imperative mood. Don't
+say "So-and-so did X, fixing Y", just state what was done.
 
- include/net/mana/mana.h |    4 ++--
- mm/page_alloc.c         |    2 +-
- scripts/gdb/linux/mm.py |    8 ++++----
- 3 files changed, 7 insertions(+), 7 deletions(-)
-
---- a/include/net/mana/mana.h~mm-drop-stale-max_order-references
-+++ a/include/net/mana/mana.h
-@@ -40,8 +40,8 @@ enum TRI_STATE {
- #define COMP_ENTRY_SIZE 64
- 
- /* This Max value for RX buffers is derived from __alloc_page()'s max page
-- * allocation calculation. It allows maximum 2^(MAX_ORDER -1) pages. RX buffer
-- * size beyond this value gets rejected by __alloc_page() call.
-+ * allocation calculation. It allows maximum 2^MAX_PAGE_ORDER pages. RX
-+ * buffer size beyond this value gets rejected by __alloc_page() call.
-  */
- #define MAX_RX_BUFFERS_PER_QUEUE 8192
- #define DEF_RX_BUFFERS_PER_QUEUE 1024
---- a/mm/page_alloc.c~mm-drop-stale-max_order-references
-+++ a/mm/page_alloc.c
-@@ -7978,7 +7978,7 @@ static bool cond_accept_memory(struct zo
- 	/*
- 	 * Watermarks have not been initialized yet.
- 	 *
--	 * Accepting one MAX_ORDER page to ensure progress.
-+	 * Accepting one MAX_PAGE_ORDER page to ensure progress.
- 	 */
- 	if (!wmark)
- 		return try_to_accept_memory_one(zone);
---- a/scripts/gdb/linux/mm.py~mm-drop-stale-max_order-references
-+++ a/scripts/gdb/linux/mm.py
-@@ -56,7 +56,7 @@ class x86_page_ops():
- 
-         self.MAX_PHYSMEM_BITS = 46
-         self.SECTION_SIZE_BITS = 27
--        self.MAX_ORDER = 10
-+        self.MAX_PAGE_ORDER = 10
- 
-         self.SECTIONS_SHIFT = self.MAX_PHYSMEM_BITS - self.SECTION_SIZE_BITS
-         self.NR_MEM_SECTIONS = 1 << self.SECTIONS_SHIFT
-@@ -233,11 +233,11 @@ class aarch64_page_ops():
-         self.SECTIONS_SHIFT = self.MAX_PHYSMEM_BITS - self.SECTION_SIZE_BITS
- 
-         if str(constants.LX_CONFIG_ARCH_FORCE_MAX_ORDER).isdigit():
--            self.MAX_ORDER = constants.LX_CONFIG_ARCH_FORCE_MAX_ORDER
-+            self.MAX_PAGE_ORDER = constants.LX_CONFIG_ARCH_FORCE_MAX_ORDER
-         else:
--            self.MAX_ORDER = 10
-+            self.MAX_PAGE_ORDER = 10
- 
--        self.MAX_ORDER_NR_PAGES = 1 << (self.MAX_ORDER)
-+        self.MAX_ORDER_NR_PAGES = 1 << (self.MAX_PAGE_ORDER)
-         self.PFN_SECTION_SHIFT = self.SECTION_SIZE_BITS - self.PAGE_SHIFT
-         self.NR_MEM_SECTIONS = 1 << self.SECTIONS_SHIFT
-         self.PAGES_PER_SECTION = 1 << self.PFN_SECTION_SHIFT
-_
-
-Patches currently in -mm which might be from xiqi2@huawei.com are
-
-mm-drop-stale-max_order-references.patch
-
+             Linus
