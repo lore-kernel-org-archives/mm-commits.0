@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DB4CC2DEA61
-	for <mm-commits@vger.kernel.org>; Fri, 21 Aug 2026 19:56:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AC252361977
+	for <mm-commits@vger.kernel.org>; Fri, 21 Aug 2026 22:21:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787342191; cv=none; b=Mo5bU3RnRgreeNkI6GdROPwB+CuvGV30NP99SlMD2W2U/TbV3qT8/F7WAjMxJWpngXnPYVTMrux8mlhx7cmsD6ve+xKf56m+Bjmi1YopO+xVtBBH+x+P2j5GwvnP0wIVjI+IEYwM4OS20XMLKbgtPi815A0S6J4f3jBJawdoG20=
+	t=1787350900; cv=none; b=b2DNH1MOSGXfkT9ZP1gvBC0NxBz0z9aj4eyAJ/A8vFCCzNEJinenebu71K2XK6akU8ruYodnL+6eYPVccuHrCq0Zs+10qQQc2ab0cbtTi+nATFlSSsJw+OnSi00/lkXbRuya/ppSBx22JnMSyr9JLkCzddB890D5trSJOrpP2HU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787342191; c=relaxed/simple;
-	bh=FAlMNsEvJaOQcu3nlat8DMk5DKtaISnf6DsC+aNPUfs=;
-	h=Date:To:From:Subject:Message-Id; b=gCrS5qEdybnBEkqRyHAvkyP1oPSaXc5+KLzCnEr8q3X9w5nJm9SCq2p7096Yd4Wi0t/PgljkNHSaa4BaGVsw8P/77dSjSip4wF3l2JgkVaXptz1uuKoJLnYCJp/Vc/APEpR5T1OEd2g/CUXH6U5M/yADqZqTMOShT/ctTcCRxh8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=r5XFmAOQ; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1787350900; c=relaxed/simple;
+	bh=LN4Z+4zpd/0Kahm1WyoHmYNsimhIkVhxeIrVtuxFZ+8=;
+	h=Date:To:From:Subject:Message-Id; b=pExa82Z/TM4ITo+m6qr6FdHPg8QS+PBs0n6CcurCyBcrDOKaXm8q/cG73Q88CF1XWkKaamOS+qsI7UytQ1dwBQ18OVysCUli2rUZ6hkE0Zd2hoPw5UytXQBs1Boey9ftn+Wz+rGTbtjN48ACi/3a4s0HNcl/oDGWTozDoE8tVxM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Nwy9P3U+; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="r5XFmAOQ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 45D5C1F00A3F;
-	Fri, 21 Aug 2026 19:56:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Nwy9P3U+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 386951F000E9;
+	Fri, 21 Aug 2026 22:21:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1787342189;
-	bh=ppOhrGEIOl9O3OFuoZGpMHnFv8llx2r+0FCMAkOfHR8=;
+	d=linux-foundation.org; s=korg; t=1787350898;
+	bh=429gcTE148azfdN4anhFoThDzV6NCMLSIBWYrsPa8Uw=;
 	h=Date:To:From:Subject;
-	b=r5XFmAOQgI34FUvDIUWlbh+72CNBGb+Qza+KvvGKPw92AAa6AiTiAV/uDHmGvN9nE
-	 DSG+dc7zNkJh0ZwDQ7OmaJSCUjQuwcMeYM4FGaO7/JawkmnJrHUjZix5UVA65N7v3X
-	 Fd0aeYALzNmK+lIHHYfOsC0FMyf2kGzLkOEMry2s=
-Date: Fri, 21 Aug 2026 12:56:28 -0700
-To: mm-commits@vger.kernel.org,tj@kernel.org,shuah@kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mkoutny@suse.com,mhocko@kernel.org,hannes@cmpxchg.org,lihongfu@kylinos.cn,akpm@linux-foundation.org
+	b=Nwy9P3U+PrCJFs3kPZRsQH5NuWTjJbQXUHDDgW2iq9xFOsY5i3fE4odI/2e+WRTZZ
+	 2rQFEkBFk5alDkryvEmdwFqYDAXUapPVl2rgEI7tMAYtczxsejFdFG/jKqQq8IjVQu
+	 mprjVIeqRETy2YOulUerxP4M/5AvSFhbq++niTSQ=
+Date: Fri, 21 Aug 2026 15:21:37 -0700
+To: mm-commits@vger.kernel.org,liam@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged] selftests-cgroup-fix-cg_run_in_subcgroups-ignoring-arg-parameter.patch removed from -mm tree
-Message-Id: <20260821195629.45D5C1F00A3F@smtp.kernel.org>
+Subject: [to-be-updated] maple_tree-add-rcu-locking-check-when-lockdep-is-enabled.patch removed from -mm tree
+Message-Id: <20260821222138.386951F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,63 +35,250 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests/cgroup: fix cg_run_in_subcgroups ignoring arg parameter
+     Subject: maple_tree: add rcu locking check when LOCKDEP is enabled
 has been removed from the -mm tree.  Its filename was
-     selftests-cgroup-fix-cg_run_in_subcgroups-ignoring-arg-parameter.patch
+     maple_tree-add-rcu-locking-check-when-lockdep-is-enabled.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Hongfu Li <lihongfu@kylinos.cn>
-Subject: selftests/cgroup: fix cg_run_in_subcgroups ignoring arg parameter
-Date: Thu, 20 Aug 2026 15:09:44 +0800
+From: "Liam R. Howlett (Oracle)" <liam@infradead.org>
+Subject: maple_tree: add rcu locking check when LOCKDEP is enabled
+Date: Tue, 30 Jun 2026 15:08:25 -0400
 
-cg_run_in_subcgroups() discards its arg and always passes NULL to
-cg_run(), turning the (void *)100 from test_kmem_dead_cgroups() into NULL
-so no allocation occurs.
+Patch series "maple_tree: lock checking and clean ups", v2.
 
-This makes test_kmem_dead_cgroups() falsely pass without exercising the
-"dying cgroup with charged slab" scenario it intends to test.
+The goals of this series are:
+1. Lock issue detection
+  A number of syzbot reports are incorrectly pointing to the mm exit as
+  a source of the locking error.  The first three patches attempt to
+  help users detect errors in their locking - but they still have to use
+  LOCKDEP.  I guess it's still down to hope and prayers.
 
-Pass the arg through to cg_run() to fix this.
+2. Documentation fixes
+  The documentation was lacking clarity, there are updates to try and
+  help the users, especially around the erase() cases.
 
-Link: https://lore.kernel.org/20260820070944.31451-1-hongfu.li@linux.dev
-Fixes: 933dc80ec262 ("kselftests: cgroup: add kernel memory accounting tests")
-Signed-off-by: Hongfu Li <lihongfu@kylinos.cn>
-Reviewed-by: Michal Koutný <mkoutny@suse.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Tejun Heo <tj@kernel.org>
+3. Two benign issues
+  The cyclic allocator may have a race, although no in-kernel user can
+  hit it.
+  The erase functions may cause allocation issues if used with the
+  incorrect locking type, but none are present in-tree.
+
+Beyond these goals there are some test fixes, some general speed-up
+patches targeting extra work and cycles, and dropping dead code.
+
+
+This patch (of 19):
+
+When CONFIG_LOCKDEP and CONFIG_RCU_STRICT_GRACE_PERIOD is enabled, check
+for rcu locking issues by recording the grace period in the maple state
+and checking the rcu window is still valid whenever the maple state is
+reused with a state that is not MA_START or MA_PAUSED.
+
+Link: https://lore.kernel.org/20260630190843.3563858-1-liam@infradead.org
+Link: https://lore.kernel.org/20260630190843.3563858-2-liam@infradead.org
+Signed-off-by: Liam R. Howlett (Oracle) <liam@infradead.org>
+Cc: Boqun Feng <boqun.feng@gmail.com>
+Cc: Chris Mason <clm@meta.com>
+Cc: Chuck Lever <cel@kernel.org>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Joe Perches <joe@perches.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: Waiman Long <longman@redhat.com>
+Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/cgroup/test_kmem.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/maple_tree.h |    3 ++
+ lib/maple_tree.c           |   50 ++++++++++++++++++++++++++++++++++-
+ 2 files changed, 52 insertions(+), 1 deletion(-)
 
---- a/tools/testing/selftests/cgroup/test_kmem.c~selftests-cgroup-fix-cg_run_in_subcgroups-ignoring-arg-parameter
-+++ a/tools/testing/selftests/cgroup/test_kmem.c
-@@ -145,7 +145,7 @@ static int cg_run_in_subcgroups(const ch
- 			return -1;
- 		}
+--- a/include/linux/maple_tree.h~maple_tree-add-rcu-locking-check-when-lockdep-is-enabled
++++ a/include/linux/maple_tree.h
+@@ -484,6 +484,9 @@ struct ma_state {
+ 	unsigned char mas_flags;
+ 	unsigned char end;		/* The end of the node */
+ 	enum store_type store_type;	/* The type of store needed for this operation */
++#if IS_ENABLED(CONFIG_LOCKDEP) && IS_ENABLED(CONFIG_RCU_STRICT_GRACE_PERIOD)
++	unsigned long rcu_gp;
++#endif
+ };
  
--		if (cg_run(child, fn, NULL)) {
-+		if (cg_run(child, fn, arg)) {
- 			cg_destroy(child);
- 			free(child);
- 			return -1;
+ struct ma_wr_state {
+--- a/lib/maple_tree.c~maple_tree-add-rcu-locking-check-when-lockdep-is-enabled
++++ a/lib/maple_tree.c
+@@ -1148,6 +1148,42 @@ static inline void mas_free(struct ma_st
+ 	ma_free_rcu(mte_to_node(used));
+ }
+ 
++void mas_lock_check(struct ma_state *mas)
++{
++
++#if IS_ENABLED(CONFIG_LOCKDEP) && IS_ENABLED(CONFIG_RCU_STRICT_GRACE_PERIOD)
++	if (!mas_is_active(mas))
++		return;
++
++	if (!mt_locked(mas->tree)) {
++		if (mt_in_rcu(mas->tree))
++			WARN_ON_ONCE(poll_state_synchronize_rcu(mas->rcu_gp));
++	}
++#endif
++
++}
++
++void mas_init_lock_check(struct ma_state *mas)
++{
++#if IS_ENABLED(CONFIG_LOCKDEP) && IS_ENABLED(CONFIG_RCU_STRICT_GRACE_PERIOD)
++	if (!mt_locked(mas->tree)) {
++		if (mt_in_rcu(mas->tree))
++			mas->rcu_gp = get_state_synchronize_rcu();
++	}
++#endif
++
++}
++
++static void mas_may_init_lock_check(struct ma_state *mas)
++{
++#if IS_ENABLED(CONFIG_LOCKDEP) && IS_ENABLED(CONFIG_RCU_STRICT_GRACE_PERIOD)
++	if (mas_is_start(mas) || mas_is_paused(mas))
++		mas_init_lock_check(mas);
++	else
++		mas_lock_check(mas);
++#endif
++}
++
+ /*
+  * mas_start() - Sets up maple state for operations.
+  * @mas: The maple state.
+@@ -1166,6 +1202,7 @@ static inline struct maple_enode *mas_st
+ 	if (likely(mas_is_start(mas))) {
+ 		struct maple_enode *root;
+ 
++		mas_init_lock_check(mas);
+ 		mas->min = 0;
+ 		mas->max = ULONG_MAX;
+ 
+@@ -4355,6 +4392,7 @@ void *mas_walk(struct ma_state *mas)
+ {
+ 	void *entry;
+ 
++	mas_may_init_lock_check(mas);
+ 	if (!mas_is_active(mas) && !mas_is_start(mas))
+ 		mas->status = ma_start;
+ retry:
+@@ -4992,6 +5030,7 @@ static void mas_may_activate(struct ma_s
+ 		mas->status = ma_start;
+ 	} else {
+ 		mas->status = ma_active;
++		mas_lock_check(mas);
+ 	}
+ }
+ 
+@@ -5069,6 +5108,7 @@ void *mas_next(struct ma_state *mas, uns
+ {
+ 	void *entry = NULL;
+ 
++	mas_may_init_lock_check(mas);
+ 	if (mas_next_setup(mas, max, &entry))
+ 		return entry;
+ 
+@@ -5092,6 +5132,7 @@ void *mas_next_range(struct ma_state *ma
+ {
+ 	void *entry = NULL;
+ 
++	mas_may_init_lock_check(mas);
+ 	if (mas_next_setup(mas, max, &entry))
+ 		return entry;
+ 
+@@ -5200,6 +5241,7 @@ void *mas_prev(struct ma_state *mas, uns
+ {
+ 	void *entry = NULL;
+ 
++	mas_may_init_lock_check(mas);
+ 	if (mas_prev_setup(mas, min, &entry))
+ 		return entry;
+ 
+@@ -5223,6 +5265,7 @@ void *mas_prev_range(struct ma_state *ma
+ {
+ 	void *entry = NULL;
+ 
++	mas_may_init_lock_check(mas);
+ 	if (mas_prev_setup(mas, min, &entry))
+ 		return entry;
+ 
+@@ -5269,6 +5312,7 @@ EXPORT_SYMBOL_GPL(mt_prev);
+  */
+ void mas_pause(struct ma_state *mas)
+ {
++	mas_lock_check(mas);
+ 	mas->status = ma_pause;
+ 	mas->node = NULL;
+ }
+@@ -5377,6 +5421,7 @@ void *mas_find(struct ma_state *mas, uns
+ {
+ 	void *entry = NULL;
+ 
++	mas_may_init_lock_check(mas);
+ 	if (mas_find_setup(mas, max, &entry))
+ 		return entry;
+ 
+@@ -5404,6 +5449,7 @@ void *mas_find_range(struct ma_state *ma
+ {
+ 	void *entry = NULL;
+ 
++	mas_may_init_lock_check(mas);
+ 	if (mas_find_setup(mas, max, &entry))
+ 		return entry;
+ 
+@@ -5516,6 +5562,7 @@ void *mas_find_rev(struct ma_state *mas,
+ {
+ 	void *entry = NULL;
+ 
++	mas_may_init_lock_check(mas);
+ 	if (mas_find_rev_setup(mas, min, &entry))
+ 		return entry;
+ 
+@@ -5542,6 +5589,7 @@ void *mas_find_range_rev(struct ma_state
+ {
+ 	void *entry = NULL;
+ 
++	mas_may_init_lock_check(mas);
+ 	if (mas_find_rev_setup(mas, min, &entry))
+ 		return entry;
+ 
+@@ -5618,7 +5666,7 @@ bool mas_nomem(struct ma_state *mas, gfp
+ 	if (!mas->sheaf && !mas->alloc)
+ 		return false;
+ 
+-	mas->status = ma_start;
++	mas_reset(mas);
+ 	return true;
+ }
+ 
 _
 
-Patches currently in -mm which might be from lihongfu@kylinos.cn are
+Patches currently in -mm which might be from liam@infradead.org are
 
-ksm-update-comments-and-docs-to-reference-folio-mapping.patch
-selftests-mm-drop-duplicate-test_seal_mprotect_two_vma_with_gap-call.patch
-selftests-mm-fix-read_file-return-value-check.patch
-mm-swap-fix-swap_cluster_lock-config_swap-stub-signature-mismatch.patch
-mm-cma-remove-stray-newline-from-auto-generated-cma-area-name.patch
-selftests-mm-drop-redundant-open-in-mprotect_tests.patch
-mm-use-a-folio-in-the-softleaf_is_device_private-path.patch
+locking-lockdep-add-sequence-counter-to-held_lock.patch
+maple_tree-add-write-lock-checking-with-lockdep-sequence-numbers.patch
+maple_tree-stop-flooding-logs-when-debug_locks-is-set-to-zero-fix.patch
+maple_tree-documentation-fix.patch
+maple_tree-drop-dead-code-from-mas_extend_spanning_null.patch
+maple_tree-drop-maple_alloc_slots.patch
+maple_tree-clarify-comments-on-mas_nomem.patch
+maple_tree-use-prefetched-value-in-mas_wr_store_type.patch
+maple_tree-optimise-mas_wr_node_store-when-not-in-rcu-mode.patch
+maple_tree-micro-optimisation-of-mas_wr_store_type.patch
+maple_tree-add-bulk-parent-set-helper.patch
+maple_tree-catch-race-in-mas_alloc_cyclic.patch
+maple_tree-document-that-erase-may-use-gfp_kernel-for-allocations.patch
+maple_tree-warn_on_once-when-allocations-fail.patch
+maple_tree-document-erase-and-allocations-better.patch
+maple_tree-change-two-gfp-flags-in-tests.patch
+maple_tree-fix-argument-name-in-header.patch
+maple_tree-avoid-extra-gap-calculation.patch
+maple_tree-add-helper-mas_make_walkable.patch
 
