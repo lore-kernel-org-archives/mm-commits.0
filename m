@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D8A583B7753
-	for <mm-commits@vger.kernel.org>; Fri, 21 Aug 2026 22:44:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7B55938F64D
+	for <mm-commits@vger.kernel.org>; Fri, 21 Aug 2026 22:44:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787352263; cv=none; b=LmYI8q9Yrlxt34aOqFcGQTC1myguq7bg5TajzzsJjRBNFFSULcNK+BTZELTRkClBchmDoCkbkn/xX9V8LoScqj5wGwgoCxXTIpj9zn/2yfn5RVWuL+gucrlP7gRmJHEv6DM6oaRdrwCD2KCM/ffvJTC03bCE+glWgQaVcG2xeb8=
+	t=1787352288; cv=none; b=aAZMXz17S1iI0LHAnp87hVI5okPlfsoyHeLL9YDH/Wq53NaqnHAuUg8a4+nLy9tBoinz/6FcKAAO/5tG2nhqxs/e4MJUPK+Dwj2jWNpMz5tTRGDaK959xwCNfv48Ltc9bZn9UgNWio/XBTZr0ymQ3suMlrqBV9btmWBOvrWcM8I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787352263; c=relaxed/simple;
-	bh=42ZKCspLKjxCoPIdXs7dhvEXt67nTWPqAJJdW1LcFhg=;
-	h=Date:To:From:Subject:Message-Id; b=Osdzg8VNeHOlEawW8fup1e0ZnN8SWk21e2IC17qKzUnzPKLxPVVnG4Wp3+mTCldiP11Ivvq2yEAvUzhi7UY4JBjCiALfpWhVc8snUdGcE9K9QjpY1G8jwIRwcCwsLhNI6K/npFzA6mqalpHr3k14I5F2iMKy8eCnzfO2+7jw7Ek=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uQrqKC6l; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1787352288; c=relaxed/simple;
+	bh=9yYjBvjKsebFRDZEB2YK3g0QpXViqzn+sX5CzpI0ppo=;
+	h=Date:To:From:Subject:Message-Id; b=HlgaI8UhP6CZtktQb9x9SjyAlFMQdswZBmdyYnpjzngJ3H/JtAMl/9M4qRKk3AQLCWtNyiyHcLvMRlyoqpQwn5yKllTvbkm8VaHiYRoAuTAW7j1ezszU3NxOZnnoyDmw41VQU9cu/w2xTT83m17kqFB5/UpU5FAqkEbA8dGD8+0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KqIu9fUJ; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uQrqKC6l"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6537C1F000E9;
-	Fri, 21 Aug 2026 22:44:21 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KqIu9fUJ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 234EF1F000E9;
+	Fri, 21 Aug 2026 22:44:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1787352261;
-	bh=InisavcDBiVJwek98QIDA7I7+iYK9nHiKkntKpdGw4I=;
+	d=linux-foundation.org; s=korg; t=1787352287;
+	bh=MQJUN2SxzX3kuGB1iepu9vyA7VUweIsa8fEbGxv0ztI=;
 	h=Date:To:From:Subject;
-	b=uQrqKC6lT35kx7Zou1xZzpJ0OXJ2Qk1FCYgcxi7vNl7QZkmczVgtKyI5+uoRu5onK
-	 94q44uHBZqSNVjsNR+5iH0J1JD/maMUB4YtW+woCk1SqwE0hMgqfp+RYPf64SrCI+Y
-	 LGAjUGTA2o08oI/9c+UrHdWitcyL4TQTzSW010EY=
-Date: Fri, 21 Aug 2026 15:44:20 -0700
-To: mm-commits@vger.kernel.org,liam@infradead.org,akpm@linux-foundation.org
+	b=KqIu9fUJ3dC0RISOSHuM8Ca4m2DACqvFLdI7jiGpWvEvwhsOO53IvUfQArdmO3ps8
+	 qNNHSXLH0y7EDJa9dGWQuIlv3pME6oJDqO5n4/9gljhbRnbgaLfXLTjSjUjGwfyic6
+	 F+SShyIbRWgJ6VCXaoHIOw56cyklhzqGajqUCBJY=
+Date: Fri, 21 Aug 2026 15:44:46 -0700
+To: mm-commits@vger.kernel.org,will@kernel.org,riel@surriel.com,peterz@infradead.org,mingo@redhat.com,longman@redhat.com,liam@infradead.org,leitao@debian.org,joe@perches.com,jgg@ziepe.ca,clm@meta.com,cel@kernel.org,boqun.feng@gmail.com,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + maple_tree-add-helper-mas_make_walkable.patch added to mm-unstable branch
-Message-Id: <20260821224421.6537C1F000E9@smtp.kernel.org>
+Subject: + maple_tree-document-erase-and-allocations-better-fix.patch added to mm-unstable branch
+Message-Id: <20260821224447.234EF1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: maple_tree: add helper mas_make_walkable()
+     Subject: maple_tree-document-erase-and-allocations-better-fix
 has been added to the -mm mm-unstable branch.  Its filename is
-     maple_tree-add-helper-mas_make_walkable.patch
+     maple_tree-document-erase-and-allocations-better-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-add-helper-mas_make_walkable.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-document-erase-and-allocations-better-fix.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,90 +58,50 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: "Liam R. Howlett (Oracle)" <liam@infradead.org>
-Subject: maple_tree: add helper mas_make_walkable()
-Date: Fri, 21 Aug 2026 15:26:27 -0400
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: maple_tree-document-erase-and-allocations-better-fix
+Date: Fri Aug 21 03:27:57 PM PDT 2026
 
-A check in mas_walk() was incorrect and caused inefficient use of the
-maple state.  The same issue existed in mas_erase(), but was left unfixed.
-Making a helper function is the obvious answer.
+tweak mtree_erase() description, per Jason
 
-Link: https://lore.kernel.org/20260821192627.4085470-20-liam@infradead.org
-Signed-off-by: Liam R. Howlett (Oracle) <liam@infradead.org>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: "Liam R. Howlett (Oracle)" <liam@infradead.org>
+Cc: Rik van Riel <riel@surriel.com>
 Cc: Boqun Feng <boqun.feng@gmail.com>
 Cc: Breno Leitao <leitao@debian.org>
 Cc: Chris Mason <clm@meta.com>
 Cc: Chuck Lever <cel@kernel.org>
 Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
 Cc: Joe Perches <joe@perches.com>
 Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Rik van Riel <riel@surriel.com>
 Cc: Waiman Long <longman@redhat.com>
 Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/maple_tree.c |   13 ++++++++-----
- 1 file changed, 8 insertions(+), 5 deletions(-)
+ Documentation/core-api/maple_tree.rst |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/lib/maple_tree.c~maple_tree-add-helper-mas_make_walkable
-+++ a/lib/maple_tree.c
-@@ -261,6 +261,12 @@ static inline bool mas_is_underflow(stru
- 	return mas->status == ma_underflow;
- }
+--- a/Documentation/core-api/maple_tree.rst~maple_tree-document-erase-and-allocations-better-fix
++++ a/Documentation/core-api/maple_tree.rst
+@@ -75,7 +75,8 @@ given index.  You can use mtree_erase()
+ knowing one value within that range, or mtree_store() call with an entry of
+ NULL may be used to partially erase a range or many ranges at once.  Note that
+ mtree_erase() may use GFP_KERNEL | __GFP_NOFAIL for allocations and cannot
+-fail, but may need to sleep - do not use mtree_erase() from a blocking context.
++fail.  mtree_erase() can sleep, so it must not be called from an atomic
++context.
  
-+static inline void mas_make_walkable(struct ma_state *mas)
-+{
-+	if (!mas_is_active(mas) && !mas_is_start(mas))
-+		mas->status = ma_start;
-+}
-+
- static __always_inline struct maple_node *mte_to_node(
- 		const struct maple_enode *entry)
- {
-@@ -4447,8 +4453,7 @@ void *mas_walk(struct ma_state *mas)
- 	void *entry;
- 
- 	mas_may_init_lock_check(mas);
--	if (!mas_is_active(mas) && !mas_is_start(mas))
--		mas->status = ma_start;
-+	mas_make_walkable(mas);
- retry:
- 	entry = mas_state_walk(mas);
- 	if (mas_is_start(mas)) {
-@@ -5685,9 +5690,7 @@ void *mas_erase(struct ma_state *mas)
- 	if (mt_external_lock(mas->tree))
- 		might_alloc(GFP_KERNEL);
- 
--	if (!mas_is_active(mas) || !mas_is_start(mas))
--		mas->status = ma_start;
--
-+	mas_make_walkable(mas);
- write_retry:
- 	entry = mas_state_walk(mas);
- 	if (!entry)
+ If you want to only store a new entry to a range (or index) if that range is
+ currently ``NULL``, you can use mtree_insert_range() or mtree_insert() which
 _
 
-Patches currently in -mm which might be from liam@infradead.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-maple_tree-add-rcu-locking-check-when-lockdep-is-enabled.patch
-locking-lockdep-add-sequence-counter-to-held_lock.patch
-maple_tree-add-write-lock-checking-with-lockdep-sequence-numbers.patch
-maple_tree-documentation-fix.patch
-maple_tree-drop-dead-code-from-mas_extend_spanning_null.patch
-maple_tree-drop-maple_alloc_slots.patch
-maple_tree-clarify-comments-on-mas_nomem.patch
-maple_tree-use-prefetched-value-in-mas_wr_store_type.patch
-maple_tree-optimise-mas_wr_node_store-when-not-in-rcu-mode.patch
-maple_tree-micro-optimisation-of-mas_wr_store_type.patch
-maple_tree-add-bulk-parent-set-helper.patch
-maple_tree-catch-race-in-mas_alloc_cyclic.patch
-maple_tree-document-that-erase-may-use-gfp_kernel-for-allocations.patch
-maple_tree-avoid-mas_erase-and-mtree_erase-failures.patch
-maple_tree-document-erase-and-allocations-better.patch
-maple_tree-change-two-gfp-flags-in-tests.patch
-maple_tree-fix-argument-name-in-header.patch
-maple_tree-avoid-extra-gap-calculation.patch
-maple_tree-add-helper-mas_make_walkable.patch
+mm-provide-vma_is_cow_mapping-and-remove-is_cow_mapping-fix.patch
+selftests-cgroup-test_zswap-skip-test_no_kmem_bypass-if-debugfs-is-unavailable-fix.patch
+mm-hmmc-hmm_do_fault-suppress-sparse-warning.patch
+mm-hmmc-hmm_do_fault-suppress-sparse-warning-fix.patch
+maple_tree-document-erase-and-allocations-better-fix.patch
+drivers-media-v4l2-core-v4l2-vp9c-reduce-inlining.patch
 
