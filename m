@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 677E049365D;
-	Fri, 21 Aug 2026 17:43:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 41588389473;
+	Fri, 21 Aug 2026 18:36:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787334205; cv=none; b=Zfe1CQGilLIgdvoUYpsfAY7dfGMRK0qAvnN56HrRqlvgv6qCZss9nrWx271H+wZBw2FiyYbLBL3pO/w71yF0T6vZC8JQDSpHZsgXvlFGxSWLxtieoXP+bd6d+p/KhM9wOpP3lxeVfmZJJtC9zYAiP/sZTlRtTvhb+mUg4ICGy0A=
+	t=1787337376; cv=none; b=FbnzYYWsKTws/lH85UsXlGoBNNC24YCOxMZwBMMtRV0dx/5P/nWK3rNXS5ObYiQtDNIJQZMK7pSRDpqDhWytKrjzxMjv4mhDoSay68k2AQfp3dG65PgX50bpOo+Oeu2F489CHYshO35iD0kYiDIYkaJCYlKGErjOSLMrvLKnUO0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787334205; c=relaxed/simple;
-	bh=cRjQqXBDa3VN/IHuV3/DZYql8VzajxfkGDpmBW9xBtQ=;
-	h=Date:To:From:Subject:Message-Id; b=AtZvC7B04um1HgpavmJ99Xd8TathSNkEUb/+wmacXZ5gJ+InGVyioRQbmJ/yzvza+dNq69keaVchhylcxfVK9Jca0I641rrdVKJ9PbfnGei0kSKpqRCUq9PKK3TjyZtROQQhmYDDKKg4CC7fvfaUEsmWU/PE8nYIB/FL1guGWUY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=usrCrmQd; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1787337376; c=relaxed/simple;
+	bh=cCjfNaLYwXJJ5NuRIOTwji6zpxQP6tWEArGHuW1h3AA=;
+	h=Date:To:From:Subject:Message-Id; b=YcNHOOq0eTM291aRfESQtXNI818t+Hxrz8xuz0nN4HzqYng3KrssJF9hZ4K0Qt5/X97uqi686MJtwUrl3nVYRTH+fu8pSfXZfatULXcOwSbFNRN382pdzSRa007UOzUjVL5uwC8SHpDNJ/YrRejg5uUeDUF7YO4IylW7CRT6eB4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Orumuhkd; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="usrCrmQd"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 023401F000E9;
-	Fri, 21 Aug 2026 17:43:23 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Orumuhkd"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6646C1F000E9;
+	Fri, 21 Aug 2026 18:36:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1787334204;
-	bh=otvhbtai+ornLzJdnkwIe0nfHiIYwkr2ql58EnvcGzA=;
+	d=linux-foundation.org; s=korg; t=1787337373;
+	bh=XQxaU1vWKgjENkU9EpWsz8KK+8s1eCGf4bLaKnLTrBs=;
 	h=Date:To:From:Subject;
-	b=usrCrmQdZPTdEz6cah0rqiPu1uMn2DTZGc1/M27xFwiTA+F1RXcULSClz5PPS8hLz
-	 3gj2uiheFyB3DxpLOPnQ9DNbnhEx6/olm8z2nSfZDiv1FT3hlYfgzHw4FiuNEEuu1y
-	 p11ecWPeqbY1rK+40AZ+QCtgLWUQPm45wN2ZMFpQ=
-Date: Fri, 21 Aug 2026 10:43:23 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,stable@vger.kernel.org,rakie.kim@sk.com,matthew.brost@intel.com,joshua.hahnjy@gmail.com,gourry@gourry.net,david@kernel.org,byungchul@sk.com,apopple@nvidia.com,akpm@linux-foundation.org,edumazet@google.com,akpm@linux-foundation.org
+	b=Orumuhkdo0B0jQmBfvSEgO6KF5GssEk/vLibQpegzGf5bWVlDC0BSAslU63BeraWC
+	 RLqwzNHUGT+OdfWtK/UN1vdB16qbQxTT8GzGAQsYdu7gMr5hhAyQ8nXdOFLF+7Npna
+	 /k6hf6nz1i7phzXIDnWPUgYJzmMXs9SMNm2zHX5k=
+Date: Fri, 21 Aug 2026 11:36:12 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,kees@kernel.org,include@grrlz.net,broonie@kernel.org,bhelgaas@google.com,akpm@linux-foundation.org,drj19981414013@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mempolicy-fix-sleeping-allocation-in-alloc_pages_bulk_weighted_interleave.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260821174324.023401F000E9@smtp.kernel.org>
+Subject: + resource-fix-lost-wakeup-when-waiting-for-a-muxed-region.patch added to mm-nonmm-unstable branch
+Message-Id: <20260821183613.6646C1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/mempolicy: fix sleeping allocation in alloc_pages_bulk_weighted_interleave()
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-mempolicy-fix-sleeping-allocation-in-alloc_pages_bulk_weighted_interleave.patch
+     Subject: resource: fix lost wakeup when waiting for a muxed region
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     resource-fix-lost-wakeup-when-waiting-for-a-muxed-region.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mempolicy-fix-sleeping-allocation-in-alloc_pages_bulk_weighted_interleave.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/resource-fix-lost-wakeup-when-waiting-for-a-muxed-region.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,66 +58,70 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Eric Dumazet <edumazet@google.com>
-Subject: mm/mempolicy: fix sleeping allocation in alloc_pages_bulk_weighted_interleave()
-Date: Fri, 21 Aug 2026 17:04:07 +0000
+From: DAI RENJIE <drj19981414013@gmail.com>
+Subject: resource: fix lost wakeup when waiting for a muxed region
+Date: Fri, 21 Aug 2026 14:08:17 +0000
 
-syzbot reported a sleeping function called from invalid context splat in
-bucket_table_alloc().
+A task waiting for a muxed region can sleep forever in
+TASK_UNINTERRUPTIBLE even though the region it waits for is already free. 
+__request_region_locked() queues itself on muxed_resource_wait and drops
+resource_lock before setting TASK_UNINTERRUPTIBLE, while
+__release_region() wakes the queue after dropping the same lock.  A wakeup
+landing in between finds TASK_RUNNING, does not match TASK_NORMAL and is
+discarded; callers hold a muxed region only across a bounded transaction,
+so no further release is coming.  The task is unkillable and its caller
+never returns.
 
-When rhashtable_insert_slow() rehashes the table under rcu_read_lock(), it
-calls bucket_table_alloc(..., GFP_ATOMIC | __GFP_NOWARN).  If the bucket
-table allocation uses vmalloc, __vmalloc_node_range_noprof() invokes
-vm_area_alloc_pages() -> alloc_pages_bulk_mempolicy_noprof() with the
-passed GFP_ATOMIC flags.
+The window is one store wide, but an interrupt is enough to hold the
+waiter in it, and the machine this was seen on runs PREEMPT_DYNAMIC in its
+voluntary default.  Since v6.11 spd5118 exports the DDR5 sensors of AMD
+boards through i2c-piix4, which takes a muxed region per SMBus
+transaction; a third of the in-tree users of request_muxed_region() are
+hwmon drivers, so reading a world-readable attribute is all an
+unprivileged user needs to drive the contention.  The blocked task sleeps
+holding the i2c adapter bus lock, and 27 more piled up behind it.
 
-If the current task has an MPOL_WEIGHTED_INTERLEAVE mempolicy,
-alloc_pages_bulk_weighted_interleave() is called and currently hardcodes
-GFP_KERNEL when allocating the temporary weights array, triggering a
-might_alloc() splat in atomic/RCU contexts.
+Reproduced by building a kernel with the two orderings selectable at
+runtime and a 2ms delay inside the window.  Switching only that knob, a
+two-thread barriered reproducer loses the wakeup 200 times out of 200
+before the fix and 0 out of 200 after it; without the delay it goes 20000
+times through the wait path and loses none.
 
-Pass the gfp flags (masked with GFP_RECLAIM_MASK to strip page-allocator
-zone modifiers like __GFP_HIGHMEM) received by
-alloc_pages_bulk_weighted_interleave() to kmalloc() instead of hardcoding
-GFP_KERNEL.  Since the weights buffer is immediately initialized in full,
-kmalloc() is sufficient.
+Fix it by setting the task state before dropping resource_lock, as
+prepare_to_wait() does: the releasing side needs resource_lock to unlink
+the resource, so it cannot reach the wakeup before the state is published.
 
-Link: https://lore.kernel.org/20260821170407.3721004-1-edumazet@google.com
-Fixes: fa3bea4e1f82 ("mm/mempolicy: introduce MPOL_WEIGHTED_INTERLEAVE for weighted interleaving")
-Signed-off-by: Eric Dumazet <edumazet@google.com>
-Reported-by: syzbot+0dbf6d295b3350944f0b@syzkaller.appspotmail.com
-Closes: https://lore.kernel.org/lkml/6a88837e.ae6ddae5.3da009.0040.GAE@google.com/T/#u
+Link: https://lore.kernel.org/20260821-b4-resource-muxed-lost-wakeup-v1-1-37eb6473a76c@gmail.com
+Fixes: 8b6d043b7ee2 ("resource: shared I/O region support")
+Signed-off-by: DAI RENJIE <drj19981414013@gmail.com>
+Reviewed-by: Bradley Morgan <include@grrlz.net>
+Assisted-by: Claude:claude-opus-5
 Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Byungchul Park <byungchul@sk.com>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Gregory Price <gourry@gourry.net>
-Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
-Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
-Cc: Matthew Brost <matthew.brost@intel.com>
-Cc: Rakie Kim <rakie.kim@sk.com>
-Cc: Zi Yan <ziy@nvidia.com>
+Cc: Mark Brown <broonie@kernel.org>
+Cc: Kees Cook <kees@kernel.org>
+Cc: Bjorn Helgaas <bhelgaas@google.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |    2 +-
+ kernel/resource.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/mempolicy.c~mm-mempolicy-fix-sleeping-allocation-in-alloc_pages_bulk_weighted_interleave
-+++ a/mm/mempolicy.c
-@@ -2683,7 +2683,7 @@ static unsigned long alloc_pages_bulk_we
- 	prev_node = node;
- 
- 	/* create a local copy of node weights to operate on outside rcu */
--	weights = kzalloc(nr_node_ids, GFP_KERNEL);
-+	weights = kmalloc(nr_node_ids, gfp & GFP_RECLAIM_MASK);
- 	if (!weights)
- 		return total_allocated;
- 
+--- a/kernel/resource.c~resource-fix-lost-wakeup-when-waiting-for-a-muxed-region
++++ a/kernel/resource.c
+@@ -1350,8 +1350,8 @@ static int __request_region_locked(struc
+ 		}
+ 		if (conflict->flags & flags & IORESOURCE_MUXED) {
+ 			add_wait_queue(&muxed_resource_wait, &wait);
+-			write_unlock(&resource_lock);
+ 			set_current_state(TASK_UNINTERRUPTIBLE);
++			write_unlock(&resource_lock);
+ 			schedule();
+ 			remove_wait_queue(&muxed_resource_wait, &wait);
+ 			write_lock(&resource_lock);
 _
 
-Patches currently in -mm which might be from edumazet@google.com are
+Patches currently in -mm which might be from drj19981414013@gmail.com are
 
-mm-mempolicy-fix-sleeping-allocation-in-alloc_pages_bulk_weighted_interleave.patch
+resource-fix-lost-wakeup-when-waiting-for-a-muxed-region.patch
 
