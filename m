@@ -1,434 +1,300 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B5E073BB40;
-	Sun, 23 Aug 2026 00:07:29 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787443651; cv=none; b=pRyO7uTFc0XcIagf1uhuGAK2LArD1s93LQjJy1dTnT1owi5yTvq2dJ7A7HUhu8JmP5mN+JdyGBR2naedXcBav00onUHp/m6QIFn10FHOydBJ7ROSvgIkn4LhAy7Bv6Cd8jMvHvcZ59xl+/wkEIns5PWbYZJGvjVYwWJSz7q/R1c=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787443651; c=relaxed/simple;
-	bh=9ytDHbNFobAI+7hMP8DTo8q09G17hCJcSPyqpyYJu9E=;
-	h=Date:From:To:Cc:Subject:Message-Id:Mime-Version:Content-Type; b=lw+Ce6qFzYqE2n0KRT07Sn2vgIia+DnEZ7tiqwCxIxURuTrlf+GC3V49oE19ZOaqAc5t1LPHXB7L88mekllTSZvFvwKKYeCEcDizv5kz1O3zzES01FIpJQ/0CPSE1hAarwl6iKRnFjLN396rbuj8ZgLK/vQYB+rJgvI793Ka8Dc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tZ9gVfSl; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 709043254AE
+	for <mm-commits@vger.kernel.org>; Sun, 23 Aug 2026 12:26:58 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=192.198.163.18
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1787488019; cv=fail; b=EPb24Y9yDn0yHJ7/g6SPRTU1wZIwhahdtaT+W8ynd0wyBNxkxy7M4kQZ81ZJScrQuBB+aTGub1ux6QEc2JxiwIkm/cvLaK7qQtVNrB6rgRqQT5Ieb1d3UKUN21C6nhUSm42R2fFW6X0u+2MHz/ltxxIcsC8CWvmCSfchP2w7bGI=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1787488019; c=relaxed/simple;
+	bh=7ZC7yAjOeFxsXFE3b55R4rh7U+tL9D+AkvbyA79hZ6k=;
+	h=Date:From:To:CC:Subject:Message-ID:Content-Type:
+	 Content-Disposition:MIME-Version; b=GbWU6BGmZVH8uBCLpvupr+mdc2HMS3BQfmzEppQeHhn52jjot/1bGPlyR14rm8xX2bj7lDnkWEe2AH8xospvffH+EJDgkH1vWj+u3Zn6Z2DW/3CacVTW3jLeP+DZTFScuRggHTsf5fdwbe7trUZ1/cf1NaGR/2IvacsV28d6VyU=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=lHtTnd5C; arc=fail smtp.client-ip=192.198.163.18
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tZ9gVfSl"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 16BE91F000E9;
-	Sun, 23 Aug 2026 00:07:29 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1787443649;
-	bh=Jv9OK1rc+KFJbl15QLqqmRw3mFydCFiVTSz+aKJB6jE=;
-	h=Date:From:To:Cc:Subject;
-	b=tZ9gVfSlIrEXJYlJIxWJhXzkSDx9gOr+NRWi/eEOSnQaCI20mwUfRd2yKntsNfGiz
-	 JL4RYV9jVXDwyqK1/i/lHev8C3oxMBUDvLy+wqdZYKcmJRBbD4ewTxq83yPJ+VaNwk
-	 wVyepnn139kvV3rMUvGe8y70E0teKUt6Ku8K0ZBE=
-Date: Sat, 22 Aug 2026 17:07:28 -0700
-From: Andrew Morton <akpm@linux-foundation.org>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: linux-kernel@vger.kernel.org, linux-mm@kvack.org,
- mm-commits@vger.kernel.org
-Subject: [GIT PULL] Non-MM updates for 7.3.rc1
-Message-Id: <20260822170728.415abdaf6589f2849d6de871@linux-foundation.org>
-X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="lHtTnd5C"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1787488018; x=1819024018;
+  h=date:from:to:cc:subject:message-id:mime-version;
+  bh=7ZC7yAjOeFxsXFE3b55R4rh7U+tL9D+AkvbyA79hZ6k=;
+  b=lHtTnd5CVhqNdhKbfKTCo93undJS81qioGMt1TgjrEjBuCUiUhP4kvTL
+   QqHvP4USeeeeQwqvTRkoOYY6jBJ2NNmbL+y5o1RZzcSr8nLkvFDK+6TpW
+   kYG2ejK/JpU+mtf5By4VR0gxX2AY4ZLQEhFwHz1eO4bsujG0YbKZtrYi2
+   vfWk+u9fNuHQEJDWJDVY3I2pRf8kmhFvw7BOYDxYZHzkogKbindRcN0rt
+   BeGTh6yVAIN6FW4rdxoDgoEvN635OzxpqrWchNivoZpwhS18TP4rFVoAQ
+   xluFOV5mJgrpQK1HqbnO2gfWDALqzJFr1Wrle756axN1fkU5kDU4pah+B
+   w==;
+X-CSE-ConnectionGUID: Kamx16DST+K68tkxprx9Ug==
+X-CSE-MsgGUID: o9IzO85eRFW9qv9TgdsXzw==
+X-IronPort-AV: E=McAfee;i="6800,10657,11883"; a="87076724"
+X-IronPort-AV: E=Sophos;i="6.25,238,1779174000"; 
+   d="scan'208";a="87076724"
+Received: from orviesa005.jf.intel.com ([10.64.159.145])
+  by fmvoesa112.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Aug 2026 05:26:58 -0700
+X-CSE-ConnectionGUID: GzYTMAZ5Q+S9ed5KfbNJQw==
+X-CSE-MsgGUID: jZnm3+WfSq+EL/DSz/ipeg==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.25,238,1779174000"; 
+   d="scan'208";a="270966344"
+Received: from orsmsx901.amr.corp.intel.com ([10.22.229.23])
+  by orviesa005.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Aug 2026 05:26:58 -0700
+Received: from ORSMSX903.amr.corp.intel.com (10.22.229.25) by
+ ORSMSX901.amr.corp.intel.com (10.22.229.23) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.2562.45; Sun, 23 Aug 2026 05:26:57 -0700
+Received: from ORSEDG901.ED.cps.intel.com (10.7.248.11) by
+ ORSMSX903.amr.corp.intel.com (10.22.229.25) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.2562.45 via Frontend Transport; Sun, 23 Aug 2026 05:26:57 -0700
+Received: from DM5PR21CU001.outbound.protection.outlook.com (52.101.62.27) by
+ edgegateway.intel.com (134.134.137.111) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.2562.45; Sun, 23 Aug 2026 05:26:57 -0700
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=vFy86CXELitHxISDaUAZa+iXcmuJaa2ASAvbLi+f+daEZgexwz7n5cf+BEbWsRDfGXHPKqrv0Jhx2Q8c40/cSDbvZhzFCTfGEqULonjYL0ieTL7iCjpgjXIroZVPjvDCKRQaY+0nlQxxiKNK3/2ALdQtyr0IOkf4LmiMaN8rH4KD5FVqAdl2WaPM4Eu1S7FJ8N2bd9kE5bOvKY8Ud0A6HJW4uCRjexXSLi5/I/Z8XzEYUBhWNTCZ7je3hQXBAdFP3NQTvcC0adhCpu0FzvO8E451Lch4/EdjYm5wVb2nniRnoKUbDUNG+R8YGIrssn+hSEB6nLlN92QcCpFieLcfMg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=f61nISFTlYdv+0VZdCrsHbVtu7BJumiVUwXwFczri1c=;
+ b=nxxp758xF/9xEuRTlpDi2jljKNSdMmksjFl1ogU1eIRHck/b/3pWprCpJglUi5KMjvpGw1PutJl+jlbkxC0equEfx41gBtaEOcvATWpDoo4uS6w6iRl9MFIIRR1E5Y2tu9cXsuxdbX9uJWhqaI2V1Y+mHHe8oVB442lQdOS3TPVVjbGI/bFyEq55aGvpeJg/xnOoau5NqKAP+Zwt0UjuXoRM8R7ZFnZerjzRAvkEhFk5jVkgMnlNLkpy+ld/ib5D4bTwi6OFKgXttf3QJmQ6rDKelUnUzPmNumsdHiVVspRLcb0YjnN8GtT4kqoV7bmCK04FWiw0ivlWAX8GDoGu4A==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
+ dkim=pass header.d=intel.com; arc=none
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=intel.com;
+Received: from SJ0PR11MB5214.namprd11.prod.outlook.com (2603:10b6:a03:2df::22)
+ by IA4PR11MB9324.namprd11.prod.outlook.com (2603:10b6:208:569::13) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.339.11; Sun, 23 Aug
+ 2026 12:26:50 +0000
+Received: from SJ0PR11MB5214.namprd11.prod.outlook.com
+ ([fe80::5926:3836:4212:8640]) by SJ0PR11MB5214.namprd11.prod.outlook.com
+ ([fe80::5926:3836:4212:8640%4]) with mapi id 15.21.0339.012; Sun, 23 Aug 2026
+ 12:26:49 +0000
+Date: Sun, 23 Aug 2026 20:26:42 +0800
+From: kernel test robot <lkp@intel.com>
+To: David Hildenbrand <david@kernel.org>
+CC: Andrew Morton <akpm@linux-foundation.org>, Linux Memory Management List
+	<linux-mm@kvack.org>, <mm-commits@vger.kernel.org>
+Subject: [akpm-mm:mm-new] BUILD SUCCESS
+ a032d41a86cb82a747bc14d9c82b3e153a9a9ab7
+Message-ID: <202608230151.Bk7deCva-lkp@intel.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+X-ClientProxiedBy: TP0P295CA0044.TWNP295.PROD.OUTLOOK.COM (2603:1096:910:4::6)
+ To SJ0PR11MB5214.namprd11.prod.outlook.com (2603:10b6:a03:2df::22)
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-
-
-Linus, please merge mm,git's other-than-MM updates for the upcoming -rc
-cycle.
-
-I'm seeing no present or upcoming conflicts at this time.
-
-Thanks.
-
-
-The following changes since commit 62cc90241548d5570ee68e01aaba6506964e9811:
-
-  Merge tag 'mm-hotfixes-stable-2026-07-27-14-18' of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm (2026-07-27 14:36:26 -0700)
-
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-nonmm-stable-2026-08-22-16-57
-
-for you to fetch changes up to eef628bce8e18ce1eb8531c396bf55e36f86c62c:
-
-  mailmap: fix bouncing address for Taniya Das (2026-08-19 19:55:06 -0700)
-
-----------------------------------------------------------------
-mm.git review status for master..mm-nonmm-stable
-
-Total patches:       95
-Reviews/patch:       0.63
-Reviewed rate:       56%
-
-Summary of patch series in this merge:
-
-- "ocfs2/dlm: bound peer-controlled lengths in the o2dlm" (Bryam Vargas):
-
-  Validate and bound all input lengths and count fields in the o2dlm
-  migration and recovery receive handlers to prevent memory corruption and
-  kernel panics from malformed cluster messages
-
-- "ocfs2: validate xattr entry bounds" (Cen Zhang):
-
-  Validate OCFS2 extended attribute entry name and value bounds during
-  metadata reads to prevent out-of-range memory accesses during retrieval
-  or listing operations.
-
-- "taskstats: fix cgroupstats invalid fd handling and add selftests"
-  (Yiyang Chen):
-
-  Return -EBADF when cgroupstats receives an invalid file descriptor to
-  prevent caller hangs and misleading success ACKs.  Add a kselftest to
-  validate valid cgroup v1 queries and verify proper error handling across
-  different Netlink flag combinations.
-
-- "misc lib/raid/ improvements v2" (Christoph Hellwig):
-
-  Improve benchmark-based algorithm selection for the XOR and RAID6
-  libraries, add KUnit benchmark tests, and cleanup minor implementation
-  details.
-
-- "ocfs2: cluster: o2hb_region_pin() fixes" (Joseph Qi):
-
-  Fix sleeping-in-atomic, lock order inversion and error-path cleanup
-  bugs in o2hb_region_pin() by releasing o2hb_live_lock across sleeping
-  configfs_depend_item() calls and using unlocked variants from callback
-  context.  Ensure failed pin attempts properly decrement user counts and
-  unpin partially initialized heartbeat regions to prevent memory leaks
-  and unprotected states.
-
-- "lib/ucs2_string.c: fix out-of-bounds read in ucs2_strnlen()" (Vincent
-  Mailhol)
-
-  Fix an off-by-one which could cause an out-of-bounds read.
-
-- "ocfs2: harden heartbeat teardown races" (Cen Zhang):
-
-  Fix two OCFS2 heartbeat/o2net teardown races found by KASAN.
-
-- "taskstats: tidy up the cpumask command path" *Bradley Morgan)
-
-  make two small cleanups in kernel/taskstats.c.
-
-- "ocfs2: validate active orphan slots during inode read" (ZhengYuan Huang):
-
-  Validate active ordinary and append-DIO orphan slots read from OCFS2
-  dinodes at the metadata boundary to prevent corrupted slot indices from
-  causing out-of-bounds array accesses.
-
-- "ocfs2: bound-check both readdir re-validation scans" (Zhan Xusheng)
-
-  Enforce strict boundary checks on directory entry record lengths and
-  offset calculations during OCFS2 directory re-scans to prevent
-  out-of-bounds memory reads and directory position corruption.
-
-----------------------------------------------------------------
-Adi Nata (1):
-      lib/math: add KUnit test suite for polynomial_calc()
-
-Andrea Calabrese (1):
-      kernel: refactor: shorten has_pending_signals
-
-Bradley Morgan (7):
-      lib/string: fix memchr_inv() for large ranges
-      signal: avoid shared siginfo namespace rewrites
-      taskstats: fix cpumask parsing cutting off the last character
-      taskstats: drop the dead NULL attribute check in parse()
-      taskstats: fold the two cpumask handlers into one
-      signal: factor out the kernel reserved si_code check
-      prctl: fix PR_SET_MM_AUXV losing the forced AT_NULL terminator
-
-Bryam Vargas (2):
-      ocfs2: bound namelen in dlm_migrate_request_handler
-      ocfs2: validate lengths in dlm_mig_lockres_handler
-
-Calvin Owens (3):
-      pps: don't try to wait for negative timeouts in PPS_FETCH
-      pps: don't allow PPS_KC_BIND on removed devices
-      pps-gpio: remove dead capture_clear code
-
-Cen Zhang (5):
-      ocfs2/cluster: keep heartbeat local node stable
-      ocfs2: validate inline xattrs during inode block validation
-      ocfs2: validate external xattr entries when reading metadata
-      ocfs2: synchronize heartbeat callbacks with o2net teardown
-      ocfs2: o2hb: quiesce negotiate handlers and timeout work
-
-Charlie Jenkins (1):
-      mailmap: add entry for Charlie Jenkins
-
-Chen-Yu Tsai (1):
-      checkpatch: don't emit warnings for ID-base USB & PCI DT compatibles
-
-Christoph Hellwig (8):
-      xor: enable lock context analysis
-      xor: improve the runtime selection benchmark
-      xor/kunit: fix a spelling error
-      xor/kunit: add a benchmark
-      raid6: enable lock context analysis
-      raid6: defer implementation selection when built-in
-      raid6: improve the runtime selection benchmark
-      raid6/kunit: add a benchmark
-
-Deepanshu Kartikey (1):
-      ocfs2: use inode_lock_nested() for orphan dir locking
-
-Dmitry Antipov (2):
-      ocfs2: do not use make_bad_inode() in ocfs2_read_inode_block_full()
-      ocfs2: always run deallocs on copy-on-write completion
-
-Doruk Tan Ozturk (1):
-      ocfs2: validate directory-index entry counts when reading metadata
-
-Gou Hao (3):
-      drm: remove dead WARN_ON NULL check after GFP_NOFAIL allocation
-      lib/test_hmm: remove dead NULL checks after GFP_NOFAIL allocations
-      RDMA/cxgb4: remove dead NULL checks after GFP_NOFAIL allocations
-
-Guangshuo Li (1):
-      rapidio: clear mport->net when rio_add_net() fails
-
-Hongfu Li (1):
-      selftests/prctl: fix non-anonymous VMA mapping in set-anon-vma-name test
-
-Ian Bridges (1):
-      ocfs2: fix missing metadata reservation for large xattrs
-
-Ibrahim Hashimov (1):
-      ocfs2: validate rl_used against rl_count in refcount block validator
-
-James Kim (1):
-      rapidio: mport_cdev: fix use-after-free in dma_req_free()
-
-Jiaming Zhang (1):
-      ocfs2: fix hung task in orphan recovery
-
-JianChunfu (1):
-      kernel/fork: declare max_threads __read_mostly
-
-Jianlin Shi (1):
-      ipc: only destroy orphaned shm segments on sysctl write
-
-Jim Cromie (1):
-      kernel/params: fix a pr_debug(" %p ") in parse_one()
-
-Jordan R Abrahams-Whitehead (1):
-      include/linux/list.h: mark list_add and __list_add as __always_inline
-
-Joseph Qi (5):
-      ocfs2: cluster: use GFP_NOFS for heartbeat bio allocation
-      ocfs2: cluster: use an on-stack bio for the heartbeat write
-      ocfs2: cluster: don't sleep while holding o2hb_live_lock in o2hb_region_pin()
-      ocfs2: cluster: avoid lock order inversion in o2hb_region_pin() from drop_item
-      ocfs2: cluster: fix o2hb_dependent_users leak on pin failure
-
-Joy H.J. Lee (1):
-      tools/compiler: match glibc 2.42 definition of __attribute_const__
-
-Karl Mehltretter (1):
-      lib/interval_tree: fix allocation warning messages
-
-Kir Chou (1):
-      lib/random32: convert selftest to KUnit
-
-Konrad Dybcio (1):
-      mailmap: fix bouncing address for Taniya Das
-
-Krystian Kaniewski (1):
-      ocfs2: fix circular locking dependency in ocfs2_init_acl()
-
-Lasse Collin (2):
-      lib/xz: use size_t instead of uint32_t in a few places
-      lib/xz: fix comments
-
-Linfeng Sun (1):
-      mailmap: update email address for Linfeng Sun
-
-Manuel Quintero Fonseca (1):
-      resource: downgrade "resource sanity check" warning to debug level
-
-Matthew Chen (1):
-      watchdog/softlockup: fix softlockup typos
-
-Matthias Goergens (1):
-      ocfs2: fix cached cluster count after suballocator reclaim
-
-Michael Byczkowski (1):
-      pps: pps-gpio: split IRQ handler into hardirq timestamper + threaded handler
-
-Nathan Chancellor (1):
-      .get_maintainer.ignore: add Nathan Chancellor
-
-Oleg Nesterov (2):
-      signal: change sys_kill() to use SEND_SIG_NOINFO
-      signal: avoid unconditional siginfo copy in send_signal_locked()
-
-Paul Walmsley (1):
-      checkpatch: add NOKPROBE_SYMBOL to the whitelist of lines that can occur immediately after functions
-
-Paul White (1):
-      selftests: ipc: change operation not supported error number
-
-Petr Mladek (1):
-      Revert "printf: Compile the kunit test with DISABLE_BRANCH_PROFILING DISABLE_BRANCH_PROFILING"
-
-Petr Vorel (1):
-      MAINTAINERS: add IRC and patchwork for LTP
-
-Phillip Lougher (1):
-      Squashfs: check block offset is not negative
-
-Randy Dunlap (3):
-      rbtree: fixup kernel-doc names
-      llist: use correct function parameter name
-      stacktrace: header: repair kernel-doc comments
-
-Sara Sena (1):
-      tools/accounting/delaytop.c: fix typo in PSI header string
-
-Shivank Sharma (1):
-      tools/accounting: fix macro typos in getdelays
-
-Tetsuo Handa (1):
-      kcov: fix data corruption and race conditions on PREEMPT_RT
-
-Thorsten Blum (1):
-      lib/xz: replace min_t with min
-
-Usama Arif (1):
-      squashfs: avoid thundering-herd cache wakeups
-
-Vincent Mailhol (2):
-      lib/ucs2_string.c: fix out-of-bounds read in ucs2_strnlen()
-      lib/ucs2_string.c: fix indentation
-
-Warren Xiong (1):
-      tools/mm: prevent page_owner_sort from truncating input
-
-Xibo Wang (1):
-      hung_task: update DETECT_HUNG_TASK_BLOCKER Kconfig help
-
-Yemu Lu (1):
-      fat: restore original value when fat_ent_write failed
-
-Yichong Chen (1):
-      fat: release buffer head after rebuilding parent
-
-Yiyang Chen (4):
-      taskstats: remove dead taskstats_exit_mutex declaration
-      taskstats: return -EBADF when cgroupstats receives an invalid fd
-      selftests/acct: add cgroupstats functional test
-      selftests/acct: share netlink helpers
-
-Zhan Xusheng (3):
-      ocfs2: fix readdir position truncation on 32-bit kernels
-      ocfs2: bound-check dir entries in the readdir re-validation scan
-      ocfs2: bound-check dir entries in the inline-data re-validation scan
-
-ZhengYuan Huang (2):
-      ocfs2: validate orphan slot during inode read
-      ocfs2: validate DIO orphan slot during inode read
-
-Ziran Zhang (1):
-      FAT: allow 0xE9 near jump in fat_read_static_bpb()
-
- .get_maintainer.ignore                             |   1 +
- .mailmap                                           |   6 +-
- MAINTAINERS                                        |   2 +
- drivers/gpu/drm/drm_modeset_lock.c                 |   4 -
- drivers/infiniband/hw/cxgb4/mem.c                  |  10 +-
- drivers/pps/clients/pps-gpio.c                     |  72 ++--
- drivers/pps/kc.c                                   |  10 +
- drivers/pps/pps.c                                  |  10 +-
- drivers/rapidio/devices/rio_mport_cdev.c           |  10 +-
- drivers/rapidio/rio-scan.c                         |   1 +
- fs/fat/inode.c                                     |   5 +-
- fs/fat/misc.c                                      |   4 +
- fs/fat/nfs.c                                       |   4 +-
- fs/ocfs2/acl.c                                     | 135 +++++---
- fs/ocfs2/acl.h                                     |  19 +-
- fs/ocfs2/cluster/heartbeat.c                       | 381 +++++++++++++++------
- fs/ocfs2/cluster/heartbeat.h                       |   5 +
- fs/ocfs2/cluster/nodemanager.c                     |  29 +-
- fs/ocfs2/cluster/nodemanager.h                     |   3 +
- fs/ocfs2/cluster/tcp.c                             | 186 ++++++++--
- fs/ocfs2/cluster/tcp.h                             |   2 +
- fs/ocfs2/dir.c                                     |  93 ++++-
- fs/ocfs2/dlm/dlmmaster.c                           |   6 +
- fs/ocfs2/dlm/dlmrecovery.c                         |   9 +
- fs/ocfs2/inode.c                                   |  22 +-
- fs/ocfs2/namei.c                                   |  34 +-
- fs/ocfs2/refcounttree.c                            |  47 ++-
- fs/ocfs2/suballoc.c                                |   2 +-
- fs/ocfs2/xattr.c                                   | 324 +++++++++++++++---
- fs/ocfs2/xattr.h                                   |  11 +-
- fs/squashfs/cache.c                                | 116 ++++++-
- fs/squashfs/squashfs_fs_sb.h                       |   9 +
- include/linux/list.h                               |  15 +-
- include/linux/llist.h                              |   2 +-
- include/linux/nmi.h                                |   4 +-
- include/linux/pps_kernel.h                         |   1 +
- include/linux/rbtree.h                             |   2 +-
- include/linux/rbtree_latch.h                       |   2 +-
- include/linux/sched.h                              |   8 +
- include/linux/stacktrace.h                         |   6 +-
- include/linux/taskstats_kern.h                     |   1 -
- ipc/ipc_sysctl.c                                   |   2 +-
- kernel/fork.c                                      |   2 +-
- kernel/kcov.c                                      |  90 ++---
- kernel/params.c                                    |   4 +-
- kernel/resource.c                                  |   2 +-
- kernel/signal.c                                    |  76 ++--
- kernel/sys.c                                       |   2 +-
- kernel/taskstats.c                                 |  45 +--
- kernel/watchdog.c                                  |  16 +-
- lib/Kconfig                                        |   6 -
- lib/Kconfig.debug                                  |  39 ++-
- lib/interval_tree_test.c                           |   4 +-
- lib/math/tests/Makefile                            |   1 +
- lib/math/tests/polynomial_kunit.c                  | 270 +++++++++++++++
- lib/raid/Kconfig                                   |  12 +
- lib/raid/raid6/Makefile                            |   2 +
- lib/raid/raid6/algos.c                             | 102 +++---
- lib/raid/raid6/tests/raid6_kunit.c                 |  66 +++-
- lib/raid/xor/Makefile                              |   2 +
- lib/raid/xor/tests/Makefile                        |   2 +
- lib/raid/xor/tests/xor_kunit.c                     |  64 +++-
- lib/raid/xor/xor-core.c                            |  55 ++-
- lib/random32.c                                     | 184 +---------
- lib/string.c                                       |   3 +-
- lib/test_hmm.c                                     |   6 -
- lib/tests/Makefile                                 |   3 +-
- lib/tests/random32_kunit.c                         | 182 ++++++++++
- lib/ucs2_string.c                                  |  38 +-
- lib/xz/xz_dec_bcj.c                                |   2 +-
- lib/xz/xz_dec_lzma2.c                              |  63 ++--
- lib/xz/xz_dec_stream.c                             |   4 +-
- lib/xz/xz_lzma2.h                                  |   2 +-
- scripts/checkpatch.pl                              |   7 +
- tools/accounting/delaytop.c                        |   2 +-
- tools/accounting/getdelays.c                       |  32 +-
- tools/include/linux/compiler.h                     |   2 +-
- tools/mm/page_owner_sort.c                         |  10 +-
- tools/testing/selftests/acct/.gitignore            |   1 +
- tools/testing/selftests/acct/Makefile              |  11 +
- tools/testing/selftests/acct/cgroupstats.c         | 231 +++++++++++++
- tools/testing/selftests/acct/netlink_helper.c      | 116 +++++++
- tools/testing/selftests/acct/netlink_helper.h      |  44 +++
- .../selftests/acct/taskstats_fill_stats_tgid.c     | 134 +-------
- tools/testing/selftests/ipc/msgque.c               |   2 +-
- .../selftests/prctl/set-anon-vma-name-test.c       |  21 +-
- 86 files changed, 2589 insertions(+), 988 deletions(-)
- create mode 100644 lib/math/tests/polynomial_kunit.c
- create mode 100644 lib/tests/random32_kunit.c
- create mode 100644 tools/testing/selftests/acct/cgroupstats.c
- create mode 100644 tools/testing/selftests/acct/netlink_helper.c
- create mode 100644 tools/testing/selftests/acct/netlink_helper.h
-
+MIME-Version: 1.0
+X-MS-Exchange-MessageSentRepresentingType: 1
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: SJ0PR11MB5214:EE_|IA4PR11MB9324:EE_
+X-MS-Office365-Filtering-Correlation-Id: aa6f89c0-4bcb-4ae8-56ab-08df0111ce5a
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;ARA:13230040|1800799024|23010399003|366016|376014|18002099003|56012099006|10067099003|11063799006;
+X-Microsoft-Antispam-Message-Info: C2QpuRfK4kFoi2jHKv/7yujoc0CPhIkkKkS4/rX1J6o5jJB8mgNui997NqzVZTjTQKtgjPq/jZHieX6cjt+g9RkoBf+43coQ8EeXzMpPhqGwn1JPUdaD44HH1r/FKJug/n0aDA5lmhd8vUeqpKgq58i7Ny7tOsl53z7T1c+zqa1sl+VVU/UpYU78TecQJ40doptvym3U8gbN7t8t+zoupBAsIkwSD9v+TA5gcDbUHUvJD2o5TY7iLKz8Hw0D2QIrYqm9US6nHHTRwBj0qWXBctUTum6zKJFmlunyfE/f2vxUwgD+TFrwvV3k39p0Il/aaoFsxLLSrycCd9j4kn7eyX2/bsMiKUECA3WhGHqtZYl59gGu/5zhjyjn0IfUu1ZKowDRYLTztmbYrPQQvTrTojd5KyXccC5u18F9p2GMoqxua0VlVQ7powanAuZKsDXGNBWKMPQpwfzY00NMigUKsMhTXyjPgBtx5zZ72G721OvGXNJJtStAHMuCv36wbAp0QaLn80BVlCxDmMIfgFvjEnYLE/RMNutw+UI38jjgV4EVBxj2HfLlHkfQ33yl/xo4Qrs1x5sw0+4HNMUVbl0nCZrmiVcxk/tzsRszhfiFqtLhdR/le9jkVyuLfJnX8+oZWMvxR3B20Tsdsiug1RJakcnrtnk49gAPh9GTUyFuekc=
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:SJ0PR11MB5214.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(1800799024)(23010399003)(366016)(376014)(18002099003)(56012099006)(10067099003)(11063799006);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?En90hLwfp7ORStQ3zdYnh5cZKVAc3bHvDh38HR11+WpPu3zDP+PzLr6dbr3E?=
+ =?us-ascii?Q?hcajuOVfEBNLSa9SOJIed6vE8vC7UdVnKY+0OzK22rIYrKFz71pj1rmON+oW?=
+ =?us-ascii?Q?w98QceQD7sVZQWw3shKAkWnuHB2lMEXNeT6wtWxech1ItAueZtcZSDIMUJza?=
+ =?us-ascii?Q?SZQ0jQo62PqPx/r8+JJdZSinyQ46wuj1J2OwfrnzTlJSdik/Bl8k4nEyef0v?=
+ =?us-ascii?Q?tlYfiXP5x4ab7U+n+u+WWGWntVik13mcM/tI2PcLTC7xLFd5DcccN+ehocTW?=
+ =?us-ascii?Q?ynUd/fSATfvJ+S06IpOiqlds6IJtRfw63LziplfBhxIo1vuJT9QDYUyhsv3C?=
+ =?us-ascii?Q?pl1eSv0XcJ5T+hxvKcSGVYnlS50x/KsWADTrBPZqnXI1ofxZuMLMFint7G0Z?=
+ =?us-ascii?Q?4Kcd1suh8p9v4ia0MyxvzE3bR4owVjCppNj7dHLLOXXMKwYbZzqp1d+ADK08?=
+ =?us-ascii?Q?ESxerAfeH+9uT9wg6LfKBb2TzpgGsliqzs5gjEPBdiQu76GkLzoTHz6dX5Ed?=
+ =?us-ascii?Q?qTpPWUp1UF+YcPR5Gr9zwUcobuXiWmSllLHGUhqsBlFnHbj70b2lBjgkuMa1?=
+ =?us-ascii?Q?Ff5BQsUL8oGTxg1CWU+5S4rDiNieIEa5W1k6s4te/fLrCSHEXYPR8OMGY4je?=
+ =?us-ascii?Q?r3I0iplD2DL6sOghUVh6I0mUYmGnVtDjoAA6P5FxFKIWS2CkOwkEjDbojKYm?=
+ =?us-ascii?Q?vB7Ug2LjPJy8hrkYePYfwsOhNMOu8LH94OsKd4hfM3ozj8ieI6YUk7Wn7Heb?=
+ =?us-ascii?Q?rM2bdEzeGTEhzfA1XxWD8mSc8Nyih9uwaUc4DZZfyUPYTn2VHtoifqYPxrvS?=
+ =?us-ascii?Q?vCoGWvGX0DGg8fHnM1iTqnJguOhubojC69ZXooubPA0OC7wFXnvfQKX50jrr?=
+ =?us-ascii?Q?KJaR35mPakP6FdngGiREiWXeflQxI7nNLyWcI6YmmLJtDwg4m2/C2jblQRuw?=
+ =?us-ascii?Q?/zpFO6HNAeUiPrJP/kr3yrpnUwsBPde2mQzodhaOaaLmUBP6J8IBItBxSoM2?=
+ =?us-ascii?Q?mAYDR/5SPrQwVZCAo7fm59ETQLlYBa8zkcx/Pq/YogMA9S9lw3qcp6yr1UX7?=
+ =?us-ascii?Q?QgMvnDTRBhHZiy8aPlHuRz0OudGP6YDhtFshO8gZvEUk9p7nLCOnzZWsNhET?=
+ =?us-ascii?Q?4/6NPxPJOuruGw4mwOOKhrzJUlaw5znEkJylt69pgNDleeqz1zYFPX2xTCla?=
+ =?us-ascii?Q?dHH9NjFtGGiTpdbIcOGsJHnnkwZfUcqG23+QA/Gc2ALpGBbi+9x8uWvJzY9r?=
+ =?us-ascii?Q?RaNSGrJYRfug/+pXyhaGTjpDG9WXMqBmtndGjPXALYazRmidf8mF3vdVj1Sf?=
+ =?us-ascii?Q?IPmzVBiwqMnuJAp7MUHEpM/Yu8oppxv8zWt/uumnfTRy+n3BGOq2XYJ+EGgp?=
+ =?us-ascii?Q?j/w2pDf9iHMlf+iMqwsCEYL0n2zO31cODlR8Nq2U2qwPhSKX1Yunu76UGybz?=
+ =?us-ascii?Q?jmgXqG4OQdjPnzObLfL7GgwgH5syr7wDVWfNrOJkOFwqBZA5fb3ieCIW89Uw?=
+ =?us-ascii?Q?GuDejMkX3GIcmPN2GdX7LBWf1Kl3Dqqvig3+ry85lEXO58qp3BtgLhrNllAE?=
+ =?us-ascii?Q?K2GUNOUDtc/2eBI43oJ0WMs+fwyqbOPJHvyXtcQjsH7MkFtOLHIOextrNxbY?=
+ =?us-ascii?Q?W5HwX+qyS76IMCUl7r+OtK5RVsf/aD3nHbDFxi1+fJRc08+Q0rKMBasU/ZPA?=
+ =?us-ascii?Q?hysDvDoeAkDvyEQn857GH0FIbbjk9rTtLtx86+wtxHBb24p2EOwjMfMpsW5u?=
+ =?us-ascii?Q?vSva7c2Q6A=3D=3D?=
+X-Exchange-RoutingPolicyChecked: Z6KK8qsQjuQYW0ubl/uuwIlqzKdjslgNllZ/Aut2QoyPbHW1LuQkGMiHxS/bLz15aYU96W5tfoKGoWGZF+YICl5FrgcOshvlzYaAVse3hvxuU+mCE30SV3CdkyBacUwUcrnB5LyLA8Gov7cpSdVl0pZ1mgi6IGgL7dNa43PrWlRUP5CyGXEujajyYetGgrKgzm/e3sct8my6vJ34XY+KE7gF2n9ApwHqVdq5WlVAU3rIuVgjqZYB9agOby8LYaoIiQw5twYXI1KQMXcdiG02AeSggiydtkr4+7wty//1gtdbBf65JleNfR9+dfPchwURwSHzWfe52+KXTKhrqtE5Bw==
+X-MS-Exchange-CrossTenant-Network-Message-Id: aa6f89c0-4bcb-4ae8-56ab-08df0111ce5a
+X-MS-Exchange-CrossTenant-AuthSource: SJ0PR11MB5214.namprd11.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 23 Aug 2026 12:26:49.9225
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: PHOg/IImrlOohlWoMMO/hQinRQpM3WocLhh/VtJ2oHsT3zJhS6H+BAcGrxnVhqLN5nsZ8/o8XEvaidQCCa26dA==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: IA4PR11MB9324
+X-OriginatorOrg: intel.com
+
+tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm.git mm-new
+branch HEAD: a032d41a86cb82a747bc14d9c82b3e153a9a9ab7  mm/swap, PM: hibernate: atomically replace hibernation pin
+
+elapsed time: 1937m
+
+configs tested: 136
+configs skipped: 2
+
+The following configs have been built successfully.
+More configs may be tested in the coming days.
+
+tested configs:
+alpha                            allnoconfig    gcc-16.1.0
+alpha                           allyesconfig    gcc-16.1.0
+alpha                              defconfig    gcc-16.1.0
+arc                             allmodconfig    gcc-16.1.0
+arc                             allyesconfig    gcc-16.1.0
+arc                nsimosci_hs_smp_defconfig    gcc-16.1.0
+arc                  randconfig-001-20260821    gcc-13.4.0
+arc                  randconfig-001-20260822    gcc-10.5.0
+arc                  randconfig-002-20260821    gcc-11.5.0
+arc                  randconfig-002-20260822    gcc-10.5.0
+arm                  randconfig-001-20260821    gcc-15.2.0
+arm                  randconfig-001-20260822    gcc-10.5.0
+arm                  randconfig-002-20260821    gcc-10.5.0
+arm                  randconfig-002-20260822    gcc-10.5.0
+arm                  randconfig-003-20260821    gcc-11.5.0
+arm                  randconfig-003-20260822    gcc-10.5.0
+arm                  randconfig-004-20260821    gcc-13.4.0
+arm                  randconfig-004-20260822    gcc-10.5.0
+arm64                randconfig-001-20260821    gcc-8.5.0
+arm64                randconfig-002-20260821    gcc-11.5.0
+arm64                randconfig-003-20260821    gcc-8.5.0
+arm64                randconfig-004-20260821    clang-19
+csky                            allmodconfig    gcc-16.1.0
+csky                 randconfig-001-20260821    gcc-16.1.0
+csky                 randconfig-002-20260821    gcc-13.4.0
+hexagon                       randconfig-001    clang-17
+hexagon              randconfig-001-20260821    clang-24
+hexagon              randconfig-001-20260822    gcc-16.1.0
+hexagon              randconfig-002-20260821    clang-17
+hexagon              randconfig-002-20260822    gcc-16.1.0
+i386                            allmodconfig    gcc-14
+i386       buildonly-randconfig-001-20260821    gcc-12
+i386       buildonly-randconfig-002-20260821    clang-22
+i386       buildonly-randconfig-003-20260821    gcc-14
+i386       buildonly-randconfig-004-20260821    clang-22
+i386       buildonly-randconfig-005-20260821    clang-22
+i386       buildonly-randconfig-006-20260821    gcc-12
+i386                          randconfig-001    clang-22
+i386                 randconfig-001-20260821    gcc-14
+i386                 randconfig-002-20260821    gcc-14
+i386                 randconfig-003-20260821    gcc-14
+i386                 randconfig-004-20260821    clang-22
+i386                 randconfig-005-20260821    clang-22
+i386                 randconfig-006-20260821    gcc-14
+i386                 randconfig-007-20260821    gcc-14
+i386                          randconfig-011    gcc-14
+i386                 randconfig-011-20260821    gcc-13
+i386                 randconfig-011-20260822    gcc-14
+i386                 randconfig-012-20260821    gcc-13
+i386                 randconfig-012-20260822    gcc-14
+i386                 randconfig-013-20260821    clang-22
+i386                 randconfig-013-20260822    gcc-14
+i386                 randconfig-014-20260821    clang-22
+i386                 randconfig-014-20260822    gcc-14
+i386                 randconfig-015-20260821    clang-22
+i386                 randconfig-015-20260822    gcc-14
+i386                 randconfig-016-20260821    clang-22
+i386                 randconfig-016-20260822    gcc-14
+i386                 randconfig-017-20260821    clang-22
+i386                 randconfig-017-20260822    gcc-14
+loongarch                          defconfig    clang-24
+loongarch            randconfig-001-20260821    gcc-16.1.0
+loongarch            randconfig-001-20260822    gcc-16.1.0
+loongarch            randconfig-002-20260821    clang-24
+loongarch            randconfig-002-20260822    gcc-16.1.0
+mips                          gcw0_defconfig    clang-24
+nios2                           allmodconfig    gcc-11.5.0
+nios2                            allnoconfig    gcc-11.5.0
+nios2                randconfig-001-20260821    gcc-8.5.0
+nios2                randconfig-001-20260822    gcc-16.1.0
+nios2                randconfig-002-20260821    gcc-11.5.0
+nios2                randconfig-002-20260822    gcc-16.1.0
+parisc                          allmodconfig    gcc-16.1.0
+parisc                          allyesconfig    gcc-16.1.0
+parisc                             defconfig    gcc-16.1.0
+parisc               randconfig-001-20260821    gcc-12.5.0
+parisc               randconfig-001-20260822    gcc-15.2.0
+parisc               randconfig-002-20260821    gcc-8.5.0
+parisc               randconfig-002-20260822    gcc-15.2.0
+powerpc              randconfig-001-20260821    gcc-8.5.0
+powerpc              randconfig-001-20260822    gcc-15.2.0
+powerpc              randconfig-002-20260821    gcc-9.5.0
+powerpc              randconfig-002-20260822    gcc-15.2.0
+powerpc64            randconfig-001-20260821    clang-19
+powerpc64            randconfig-001-20260822    gcc-15.2.0
+powerpc64            randconfig-002-20260821    clang-24
+powerpc64            randconfig-002-20260822    gcc-15.2.0
+riscv                randconfig-001-20260821    gcc-9.5.0
+riscv                randconfig-001-20260822    clang-17
+riscv                randconfig-002-20260821    gcc-11.5.0
+riscv                randconfig-002-20260822    clang-17
+s390                 randconfig-001-20260821    clang-24
+s390                 randconfig-001-20260822    clang-17
+s390                 randconfig-002-20260821    clang-24
+s390                 randconfig-002-20260822    clang-17
+sh                                 defconfig    gcc-16.1.0
+sh                   randconfig-001-20260821    gcc-16.1.0
+sh                   randconfig-001-20260822    clang-17
+sh                   randconfig-002-20260821    gcc-13.4.0
+sh                   randconfig-002-20260822    clang-17
+sparc                         randconfig-001    gcc-16.1.0
+sparc                randconfig-001-20260821    gcc-14.3.0
+sparc                randconfig-002-20260821    gcc-16.1.0
+sparc64              randconfig-001-20260821    clang-24
+sparc64              randconfig-002-20260821    clang-24
+um                   randconfig-001-20260821    gcc-14
+um                   randconfig-002-20260821    gcc-14
+x86_64              buildonly-randconfig-001    gcc-12
+x86_64     buildonly-randconfig-001-20260821    gcc-14
+x86_64     buildonly-randconfig-002-20260821    clang-22
+x86_64     buildonly-randconfig-003-20260821    gcc-14
+x86_64     buildonly-randconfig-004-20260821    clang-22
+x86_64     buildonly-randconfig-005-20260821    clang-22
+x86_64     buildonly-randconfig-006-20260821    gcc-14
+x86_64                                 kexec    clang-22
+x86_64               randconfig-001-20260821    clang-22
+x86_64               randconfig-002-20260821    gcc-13
+x86_64               randconfig-003-20260821    clang-22
+x86_64               randconfig-004-20260821    gcc-13
+x86_64               randconfig-005-20260821    gcc-14
+x86_64               randconfig-006-20260821    clang-22
+x86_64               randconfig-011-20260821    gcc-14
+x86_64               randconfig-012-20260821    clang-22
+x86_64               randconfig-013-20260821    gcc-14
+x86_64               randconfig-014-20260821    gcc-14
+x86_64               randconfig-015-20260821    clang-22
+x86_64               randconfig-016-20260821    clang-22
+x86_64               randconfig-071-20260821    gcc-14
+x86_64               randconfig-072-20260821    clang-22
+x86_64               randconfig-073-20260821    gcc-14
+x86_64               randconfig-074-20260821    gcc-14
+x86_64               randconfig-075-20260821    clang-22
+x86_64               randconfig-076-20260821    clang-22
+x86_64                          rhel-9.4-bpf    gcc-14
+xtensa               randconfig-001-20260821    gcc-8.5.0
+xtensa               randconfig-002-20260821    gcc-8.5.0
+
+--
+0-DAY CI Kernel Test Service
+https://github.com/intel/lkp-tests/wiki
