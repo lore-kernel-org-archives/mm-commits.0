@@ -1,553 +1,434 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 82E3B3382CB;
-	Sat, 22 Aug 2026 21:52:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B5E073BB40;
+	Sun, 23 Aug 2026 00:07:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787435572; cv=none; b=VMpY13tN+nGdRzmjDa1bgWqu+Y3ArPcJFEJyovRJj5XU3sl7SmZM55b8SPD1wqtAqfufI5YO3cAhnPJAMz1UtWfscg8WeXtqa/NWdL6k4Cc308OWqh/SlDk8BYkDSw53VbjmHBEvX04t1b88sTPhnPul7iPNDEK3U9jDuFHojhA=
+	t=1787443651; cv=none; b=pRyO7uTFc0XcIagf1uhuGAK2LArD1s93LQjJy1dTnT1owi5yTvq2dJ7A7HUhu8JmP5mN+JdyGBR2naedXcBav00onUHp/m6QIFn10FHOydBJ7ROSvgIkn4LhAy7Bv6Cd8jMvHvcZ59xl+/wkEIns5PWbYZJGvjVYwWJSz7q/R1c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787435572; c=relaxed/simple;
-	bh=QnUk3CMVmRrPIUlp/6SH7x0tg2nGUMm+7Ket9KG4Ngc=;
-	h=Date:To:From:Subject:Message-Id; b=pGDqEpo9SnC4nwooYL1VCmUy/qDpq7wsG1Ucoip80hwq+o1Df+iq1Jy4KKkX1ImcOGErCg4uusGTPMDPPOziaxwLka9f/fryXJYomZxDbs/tziyxGBbYFZgosX94eCjZoRuwfZaSkTRLyqLzAutKi2yorpkLx1VP5Tt+4f1pbwc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CEu3KU88; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1787443651; c=relaxed/simple;
+	bh=9ytDHbNFobAI+7hMP8DTo8q09G17hCJcSPyqpyYJu9E=;
+	h=Date:From:To:Cc:Subject:Message-Id:Mime-Version:Content-Type; b=lw+Ce6qFzYqE2n0KRT07Sn2vgIia+DnEZ7tiqwCxIxURuTrlf+GC3V49oE19ZOaqAc5t1LPHXB7L88mekllTSZvFvwKKYeCEcDizv5kz1O3zzES01FIpJQ/0CPSE1hAarwl6iKRnFjLN396rbuj8ZgLK/vQYB+rJgvI793Ka8Dc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tZ9gVfSl; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CEu3KU88"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 25BD91F000E9;
-	Sat, 22 Aug 2026 21:52:50 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tZ9gVfSl"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 16BE91F000E9;
+	Sun, 23 Aug 2026 00:07:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1787435570;
-	bh=meAfWWUO14LgcD9Z75wfIainIhiFo0JGSu9TNdoCoUA=;
-	h=Date:To:From:Subject;
-	b=CEu3KU888zFW0vK6aEWwcFnpET4obDGsND2od4Ox1nJhHcZAGiyV5aNR610srIU7M
-	 ejZcWQK7d64FDnXrH/1Q5fffLgxvhifaFQQgsAf9Y6qngIj8pUH06huXky3+h0FiNp
-	 5vONQf6cDsJoSpdU21Eh/wE3Ir4jrQNFmRu4B3r0=
-Date: Sat, 22 Aug 2026 14:52:49 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,stable@vger.kernel.org,shuah@kernel.org,sdf@fomichev.me,rppt@kernel.org,mhocko@suse.com,liam@infradead.org,kuba@kernel.org,john.fastabend@gmail.com,james.bottomley@HansenPartnership.com,hawk@kernel.org,hagen@jauu.net,david@kernel.org,davem@davemloft.net,ast@kernel.org,4ncienth@gmail.com,ljs@kernel.org,akpm@linux-foundation.org
+	d=linux-foundation.org; s=korg; t=1787443649;
+	bh=Jv9OK1rc+KFJbl15QLqqmRw3mFydCFiVTSz+aKJB6jE=;
+	h=Date:From:To:Cc:Subject;
+	b=tZ9gVfSlIrEXJYlJIxWJhXzkSDx9gOr+NRWi/eEOSnQaCI20mwUfRd2yKntsNfGiz
+	 JL4RYV9jVXDwyqK1/i/lHev8C3oxMBUDvLy+wqdZYKcmJRBbD4ewTxq83yPJ+VaNwk
+	 wVyepnn139kvV3rMUvGe8y70E0teKUt6Ku8K0ZBE=
+Date: Sat, 22 Aug 2026 17:07:28 -0700
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-secretmem-properly-account-locked-pages.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260822215250.25BD91F000E9@smtp.kernel.org>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: linux-kernel@vger.kernel.org, linux-mm@kvack.org,
+ mm-commits@vger.kernel.org
+Subject: [GIT PULL] Non-MM updates for 7.3.rc1
+Message-Id: <20260822170728.415abdaf6589f2849d6de871@linux-foundation.org>
+X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
 
-The patch titled
-     Subject: mm/secretmem: properly account locked pages
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-secretmem-properly-account-locked-pages.patch
+Linus, please merge mm,git's other-than-MM updates for the upcoming -rc
+cycle.
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-secretmem-properly-account-locked-pages.patch
+I'm seeing no present or upcoming conflicts at this time.
 
-This patch will later appear in the mm-hotfixes-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+Thanks.
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+The following changes since commit 62cc90241548d5570ee68e01aaba6506964e9811:
 
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+  Merge tag 'mm-hotfixes-stable-2026-07-27-14-18' of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm (2026-07-27 14:36:26 -0700)
 
-------------------------------------------------------
-From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: mm/secretmem: properly account locked pages
-Date: Sat, 22 Aug 2026 20:14:02 +0100
+are available in the Git repository at:
 
-secretmem has a relatively laissez-faire attitude to accounting the folios
-it allocates.
+  git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-nonmm-stable-2026-08-22-16-57
 
-The intention is that the memory is treated as if it were mlock()'d and
-thus is limited by the RLIMIT_MEMLOCK limit if the CAP_IPC_LOCK capability
-is not in place (which broadly allows unlimited ranges of mlock()'d
-memory).
+for you to fetch changes up to eef628bce8e18ce1eb8531c396bf55e36f86c62c:
 
-The lifecycle for memfd accounting against this limit is - account on map,
-unaccount on unmap but the lifecycle of memfd folios is allocate on fault,
-deallocate on inode eviction.
+  mailmap: fix bouncing address for Taniya Das (2026-08-19 19:55:06 -0700)
 
-This mismatch is problematic because the folios are unevictable and remain
-so until the inode is evicted (set using mapping_set_unevictable()).
+----------------------------------------------------------------
+mm.git review status for master..mm-nonmm-stable
 
-This is problematic as it eliminates usual mlock() semantics - mapping
-folios then unmapping them does not clear their unevictable state, since
-it depends on AS_UNEVICTABLE, not PG_mlocked.
+Total patches:       95
+Reviews/patch:       0.63
+Reviewed rate:       56%
 
-A user can therefore easily work around the RLIMIT_MEMLOCK limit - simply
-map then unmap and VmLck no longer counts the secretmem range (or more
-involved - fork which also achieves the same thing).
+Summary of patch series in this merge:
 
-Worse - they are not accounted in the process's RSS even if mapped again,
-meaning the OOM killer won't know to kill the process.
+- "ocfs2/dlm: bound peer-controlled lengths in the o2dlm" (Bryam Vargas):
 
-A user without the CAP_IPC_LOCK capability can therefore repeatedly
-map/unmap (or map/fork) and consume all available system memory with
-unevictable folios and cause system instability.
+  Validate and bound all input lengths and count fields in the o2dlm
+  migration and recovery receive handlers to prevent memory corruption and
+  kernel panics from malformed cluster messages
 
-A secretmem fd can be passed between processes and over fork so a
-per-process limit simply does not make sense.
+- "ocfs2: validate xattr entry bounds" (Cen Zhang):
 
-So follow the precedent set by io_uring, perf, skbuff, iommufd and xdp -
-track the number of locked pages in user_struct->locked_vm.
+  Validate OCFS2 extended attribute entry name and value bounds during
+  metadata reads to prevent out-of-range memory accesses during retrieval
+  or listing operations.
 
-Since the scope tracked is actually inode lifetime, the RLIMIT_MEMLOCK
-applies per-user not per-process.  Also given the change in scope it
-doesn't make sense to bypass for users with CAP_IPC_LOCK, so remove it.
+- "taskstats: fix cgroupstats invalid fd handling and add selftests"
+  (Yiyang Chen):
 
-There is simply no reason to carry on marking the mapping as mlock()'d
-since it's misleading and the lifecycle is now correctly handled, so
-remove this too.
+  Return -EBADF when cgroupstats receives an invalid file descriptor to
+  prevent caller hangs and misleading success ACKs.  Add a kselftest to
+  validate valid cgroup v1 queries and verify proper error handling across
+  different Netlink flag combinations.
 
-Additionally, fix the selftest which checks the limit as this now must
-assert SIGBUS on limit violation on fault-in.
+- "misc lib/raid/ improvements v2" (Christoph Hellwig):
 
-__secretmem_account_pages() is more or less a duplicate of the code that
-io_uring etc.  use, but since this is a bug fix that needs backporting,
-defer any de-duplication efforts to a follow-up.
+  Improve benchmark-based algorithm selection for the XOR and RAID6
+  libraries, add KUnit benchmark tests, and cleanup minor implementation
+  details.
 
-Link: https://lore.kernel.org/20260822-secretmem-accounting-v2-1-fe445a7c6eb1@kernel.org
-Fixes: 1507f51255c9 ("mm: introduce memfd_secret system call to create "secret" memory areas")
-Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
-Reported-by: Daehyeon Ko <4ncienth@gmail.com>
-Closes: https://lore.kernel.org/linux-mm/20260813225328.2010303-1-4ncienth@gmail.com/
-Cc: Alexei Starovoitov <ast@kernel.org>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Hagen Paul Pfeifer <hagen@jauu.net>
-Cc: Jakub Kacinski <kuba@kernel.org>
-Cc: James Bottomley <james.bottomley@HansenPartnership.com>
-Cc: Jesper Dangaard Brouer <hawk@kernel.org>
-Cc: John Fastabend <john.fastabend@gmail.com>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Stanislav Fomichev <sdf@fomichev.me>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: <stable@vger.kernel.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+- "ocfs2: cluster: o2hb_region_pin() fixes" (Joseph Qi):
 
- include/linux/sched/user.h                |    3 
- mm/secretmem.c                            |  117 ++++++++++++++++++--
- tools/testing/selftests/mm/memfd_secret.c |   96 +++++++++++++++-
- 3 files changed, 198 insertions(+), 18 deletions(-)
+  Fix sleeping-in-atomic, lock order inversion and error-path cleanup
+  bugs in o2hb_region_pin() by releasing o2hb_live_lock across sleeping
+  configfs_depend_item() calls and using unlocked variants from callback
+  context.  Ensure failed pin attempts properly decrement user counts and
+  unpin partially initialized heartbeat regions to prevent memory leaks
+  and unprotected states.
 
---- a/include/linux/sched/user.h~mm-secretmem-properly-account-locked-pages
-+++ a/include/linux/sched/user.h
-@@ -25,7 +25,8 @@ struct user_struct {
- 
- #if defined(CONFIG_PERF_EVENTS) || defined(CONFIG_BPF_SYSCALL) || \
- 	defined(CONFIG_NET) || defined(CONFIG_IO_URING) || \
--	defined(CONFIG_VFIO_PCI_ZDEV_KVM) || IS_ENABLED(CONFIG_IOMMUFD)
-+	defined(CONFIG_VFIO_PCI_ZDEV_KVM) || IS_ENABLED(CONFIG_IOMMUFD) || \
-+	defined(CONFIG_SECRETMEM)
- 	atomic_long_t locked_vm;
- #endif
- #ifdef CONFIG_WATCH_QUEUE
---- a/mm/secretmem.c~mm-secretmem-properly-account-locked-pages
-+++ a/mm/secretmem.c
-@@ -18,6 +18,8 @@
- #include <linux/secretmem.h>
- #include <linux/set_memory.h>
- #include <linux/sched/signal.h>
-+#include <linux/sched/user.h>
-+#include <linux/cred.h>
- 
- #include <uapi/linux/magic.h>
- 
-@@ -47,10 +49,70 @@ bool secretmem_active(void)
- 	return !!atomic_read(&secretmem_users);
- }
- 
-+struct secretmem_inode_state {
-+	struct user_struct	*user;
-+	atomic_long_t		nr_pages_accounted;
-+};
-+
-+static bool __secretmem_account_pages(struct user_struct *user,
-+		unsigned long nr_pages)
-+{
-+	unsigned long page_limit, cur_pages, new_pages;
-+
-+	if (!nr_pages)
-+		return true;
-+
-+	page_limit = rlimit(RLIMIT_MEMLOCK) >> PAGE_SHIFT;
-+
-+	cur_pages = atomic_long_read(&user->locked_vm);
-+	do {
-+		new_pages = cur_pages + nr_pages;
-+		if (new_pages > page_limit)
-+			return false;
-+	} while (!atomic_long_try_cmpxchg(&user->locked_vm,
-+					  &cur_pages, new_pages));
-+	return true;
-+}
-+
-+static bool secretmem_account_folio(struct secretmem_inode_state *state,
-+		const struct folio *folio)
-+{
-+	unsigned long nr_pages;
-+
-+	nr_pages = folio_nr_pages(folio);
-+	if (!__secretmem_account_pages(state->user, nr_pages))
-+		return false;
-+
-+	atomic_long_add(nr_pages, &state->nr_pages_accounted);
-+	return true;
-+}
-+
-+static void __secretmem_unaccount_pages(struct secretmem_inode_state *state,
-+		unsigned long nr_pages)
-+{
-+	atomic_long_sub(nr_pages, &state->user->locked_vm);
-+	atomic_long_sub(nr_pages, &state->nr_pages_accounted);
-+}
-+
-+static void secretmem_unaccount_folio(struct secretmem_inode_state *state,
-+		struct folio *folio)
-+{
-+	__secretmem_unaccount_pages(state, folio_nr_pages(folio));
-+}
-+
-+static void secretmem_unaccount_all_folios(struct secretmem_inode_state *state)
-+{
-+	unsigned long nr_pages_accounted;
-+
-+	nr_pages_accounted = atomic_long_read(&state->nr_pages_accounted);
-+	__secretmem_unaccount_pages(state, nr_pages_accounted);
-+}
-+
- static vm_fault_t secretmem_fault(struct vm_fault *vmf)
- {
- 	struct address_space *mapping = vmf->vma->vm_file->f_mapping;
- 	struct inode *inode = file_inode(vmf->vma->vm_file);
-+	struct secretmem_inode_state *state = inode->i_private;
- 	pgoff_t offset = vmf->pgoff;
- 	gfp_t gfp = vmf->gfp_mask;
- 	unsigned long addr;
-@@ -72,8 +134,15 @@ retry:
- 			goto out;
- 		}
- 
-+		if (!secretmem_account_folio(state, folio)) {
-+			folio_put(folio);
-+			ret = VM_FAULT_SIGBUS;
-+			goto out;
-+		}
-+
- 		err = set_direct_map_invalid_noflush(folio_page(folio, 0));
- 		if (err) {
-+			secretmem_unaccount_folio(state, folio);
- 			folio_put(folio);
- 			ret = vmf_error(err);
- 			goto out;
-@@ -82,6 +151,7 @@ retry:
- 		__folio_mark_uptodate(folio);
- 		err = filemap_add_folio(mapping, folio, offset, gfp);
- 		if (unlikely(err)) {
-+			secretmem_unaccount_folio(state, folio);
- 			/*
- 			 * If a split of large page was required, it
- 			 * already happened when we marked the page invalid
-@@ -112,22 +182,30 @@ static const struct vm_operations_struct
- 	.fault = secretmem_fault,
- };
- 
-+static void secretmem_destroy_inode_priv(struct inode *inode)
-+{
-+	struct secretmem_inode_state *state = inode->i_private;
-+
-+	secretmem_unaccount_all_folios(state);
-+	free_uid(state->user);
-+	kfree(state);
-+	inode->i_private = NULL;
-+}
-+
- static int secretmem_release(struct inode *inode, struct file *file)
- {
- 	atomic_dec(&secretmem_users);
-+	secretmem_destroy_inode_priv(inode);
-+
- 	return 0;
- }
- 
- static int secretmem_mmap_prepare(struct vm_area_desc *desc)
- {
--	const unsigned long len = vma_desc_size(desc);
--
- 	if (!vma_desc_test_any(desc, VMA_SHARED_BIT, VMA_MAYSHARE_BIT))
- 		return -EINVAL;
- 
--	vma_desc_set_flags(desc, VMA_LOCKED_BIT, VMA_DONTDUMP_BIT);
--	if (!mlock_future_ok(desc->mm, /*is_vma_locked=*/ true, len))
--		return -EAGAIN;
-+	vma_desc_set_flags(desc, VMA_DONTDUMP_BIT);
- 	desc->vm_ops = &secretmem_vm_ops;
- 
- 	return 0;
-@@ -187,20 +265,40 @@ static const struct inode_operations sec
- 
- static struct vfsmount *secretmem_mnt;
- 
-+static int secretmem_init_inode_priv(struct inode *inode)
-+{
-+	struct secretmem_inode_state *state;
-+
-+	state = kzalloc_obj(*state);
-+	if (!state)
-+		return -ENOMEM;
-+
-+	state->user = get_uid(current_user());
-+	inode->i_private = state;
-+	return 0;
-+}
-+
- static struct file *secretmem_file_create(unsigned long flags)
- {
- 	struct file *file;
- 	struct inode *inode;
- 	const char *anon_name = "[secretmem]";
-+	int err;
- 
- 	inode = anon_inode_make_secure_inode(secretmem_mnt->mnt_sb, anon_name, NULL);
- 	if (IS_ERR(inode))
- 		return ERR_CAST(inode);
- 
-+	err = secretmem_init_inode_priv(inode);
-+	if (err)
-+		goto err_free_inode;
-+
- 	file = alloc_file_pseudo(inode, secretmem_mnt, "secretmem",
- 				 O_RDWR | O_LARGEFILE, &secretmem_fops);
--	if (IS_ERR(file))
--		goto err_free_inode;
-+	if (IS_ERR(file)) {
-+		err = PTR_ERR(file);
-+		goto err_free_priv;
-+	}
- 
- 	mapping_set_gfp_mask(inode->i_mapping, GFP_HIGHUSER);
- 	mapping_set_unevictable(inode->i_mapping);
-@@ -215,10 +313,11 @@ static struct file *secretmem_file_creat
- 	atomic_inc(&secretmem_users);
- 
- 	return file;
--
-+err_free_priv:
-+	secretmem_destroy_inode_priv(inode);
- err_free_inode:
- 	iput(inode);
--	return file;
-+	return ERR_PTR(err);
- }
- 
- SYSCALL_DEFINE1(memfd_secret, unsigned int, flags)
---- a/tools/testing/selftests/mm/memfd_secret.c~mm-secretmem-properly-account-locked-pages
-+++ a/tools/testing/selftests/mm/memfd_secret.c
-@@ -15,6 +15,8 @@
- #include <sys/resource.h>
- #include <sys/capability.h>
- 
-+#include <setjmp.h>
-+#include <signal.h>
- #include <stdlib.h>
- #include <string.h>
- #include <unistd.h>
-@@ -22,6 +24,8 @@
- #include <stdio.h>
- #include <fcntl.h>
- 
-+#include <sys/mman.h>
-+
- #include "kselftest.h"
- 
- #define fail(fmt, ...) ksft_test_result_fail(fmt, ##__VA_ARGS__)
-@@ -31,6 +35,11 @@
- #ifdef __NR_memfd_secret
- 
- #define PATTERN	0x55
-+/*
-+ * Set 8 MiB as a reasonable mlock limit so users with unlimited or absurdly
-+ * high RLIMIT_MEMLOCK don't cause us to overflow in the tests.
-+ */
-+#define MLOCK_LIMIT_CAP	(8UL << 20)
- 
- static const int prot = PROT_READ | PROT_WRITE;
- static const int mode = MAP_SHARED;
-@@ -39,6 +48,13 @@ static unsigned long page_size;
- static unsigned long mlock_limit_cur;
- static unsigned long mlock_limit_max;
- 
-+static sigjmp_buf fault_env;
-+
-+static void sigbus_handler(int sig)
-+{
-+	siglongjmp(fault_env, 1);
-+}
-+
- static int memfd_secret(unsigned int flags)
- {
- 	return syscall(__NR_memfd_secret, flags);
-@@ -57,10 +73,31 @@ static void test_file_apis(int fd)
- 		pass("file IO is blocked as expected\n");
- }
- 
--static void test_mlock_limit(int fd)
-+/* GUP disallows automatic fault-in of secretmem, so do it manually. */
-+static bool fault_in_secretmem(char *mem, size_t len)
-+{
-+	if (sigsetjmp(fault_env, 1))
-+		return false;
-+	memset(mem, PATTERN, len);
-+	return true;
-+}
-+
-+static void test_mlock_limit(void)
- {
- 	size_t len;
- 	char *mem;
-+	int fd;
-+
-+	/* Locked pages have an inode lifetime, so need a new fd. */
-+	fd = memfd_secret(0);
-+	if (fd < 0) {
-+		fail("memfd_secret failed: %s\n", strerror(errno));
-+		return;
-+	}
-+	if (ftruncate(fd, mlock_limit_max * 2)) {
-+		fail("ftruncate failed: %s\n", strerror(errno));
-+		goto out_close;
-+	}
- 
- 	len = mlock_limit_cur;
- 	if (len % page_size != 0)
-@@ -69,19 +106,50 @@ static void test_mlock_limit(int fd)
- 	mem = mmap(NULL, len, prot, mode, fd, 0);
- 	if (mem == MAP_FAILED) {
- 		fail("unable to mmap secret memory\n");
--		return;
-+		goto out_close;
- 	}
--	munmap(mem, len);
- 
-+	if (!fault_in_secretmem(mem, len)) {
-+		fail("unable to fault in secret memory\n");
-+		goto out;
-+	}
-+
-+	munmap(mem, len);
- 	len = mlock_limit_max * 2;
- 	mem = mmap(NULL, len, prot, mode, fd, 0);
--	if (mem != MAP_FAILED) {
--		fail("unexpected mlock limit violation\n");
--		munmap(mem, len);
--		return;
-+
-+	if (mem == MAP_FAILED) {
-+		fail("unable to mmap secret memory\n");
-+		goto out_close;
-+	}
-+
-+	if (fault_in_secretmem(mem, len)) {
-+		fail("mlock limit is not respected\n");
-+		goto out;
-+	}
-+
-+	munmap(mem, len);
-+	len = page_size;
-+
-+	/* map a page past the limit to assert inode scope. */
-+
-+	mem = mmap(NULL, page_size, prot, mode, fd,
-+		   mlock_limit_max & ~(page_size - 1));
-+	if (mem == MAP_FAILED) {
-+		fail("unable to mmap secret memory\n");
-+		goto out_close;
-+	}
-+
-+	if (fault_in_secretmem(mem, page_size)) {
-+		fail("mlock limit is not respected\n");
-+		goto out;
- 	}
- 
- 	pass("mlock limit is respected\n");
-+out:
-+	munmap(mem, len);
-+out_close:
-+	close(fd);
- }
- 
- static void test_vmsplice(int fd, const char *desc)
-@@ -292,6 +360,12 @@ static void prepare(void)
- 	if (page_size > mlock_limit_max)
- 		mlock_limit_max = page_size;
- 
-+	/* Clamp huge or unlimited. */
-+	if (mlock_limit_max > MLOCK_LIMIT_CAP)
-+		mlock_limit_max = MLOCK_LIMIT_CAP;
-+	if (mlock_limit_cur > mlock_limit_max)
-+		mlock_limit_cur = mlock_limit_max;
-+
- 	if (set_cap_limits(mlock_limit_max))
- 		ksft_exit_fail_msg("Unable to set mlock limit: %s\n",
- 				   strerror(errno));
-@@ -301,6 +375,7 @@ static void prepare(void)
- 
- int main(int argc, char *argv[])
- {
-+	struct sigaction sa = { .sa_handler = sigbus_handler };
- 	int fd;
- 
- 	prepare();
-@@ -316,10 +391,15 @@ int main(int argc, char *argv[])
- 			ksft_exit_fail_msg("memfd_secret failed: %s\n",
- 					   strerror(errno));
- 	}
-+
-+	sigemptyset(&sa.sa_mask);
-+	if (sigaction(SIGBUS, &sa, NULL))
-+		ksft_exit_fail_msg("Cannot set up SIGBUS handler");
-+
- 	if (ftruncate(fd, page_size))
- 		ksft_exit_fail_msg("ftruncate failed: %s\n", strerror(errno));
- 
--	test_mlock_limit(fd);
-+	test_mlock_limit();
- 	test_file_apis(fd);
- 	/*
- 	 * We have to run the first vmsplice test before any secretmem page was
-_
+- "lib/ucs2_string.c: fix out-of-bounds read in ucs2_strnlen()" (Vincent
+  Mailhol)
 
-Patches currently in -mm which might be from ljs@kernel.org are
+  Fix an off-by-one which could cause an out-of-bounds read.
 
-mm-secretmem-properly-account-locked-pages.patch
-mm-vma-introduce-vma-anon-page-offset-field-and-add-helpers.patch
-mm-provide-vma_is_cow_mapping-and-remove-is_cow_mapping.patch
-mm-introduce-linear_anon_page_index.patch
-mm-abstract-vma_address-and-introduce-vma_anon_address.patch
-mm-update-print_bad_page_map-to-show-anon-index-if-appropriate.patch
-mm-introduce-and-use-vma_filebacked_address.patch
-mm-vma-fix-self-merge-check-in-copy_vma.patch
-tools-testing-vma-add-tests-for-copy_vma-self-merge.patch
-mm-propagate-vma-anonymous-page-offset-on-map-remap-split-merge.patch
-mm-rmap-track-whether-the-page-vma-mapped-pgoff-is-anonymous.patch
-mm-clean-up-vma_address_end.patch
-mm-huge_memory-update-remove_migration_pmd-to-accept-a-folio.patch
-mm-migrate-calculate-large-folio-page-index-using-pfn.patch
-mm-rmap-use-anon-pgoff-to-track-map_private-file-backed-anon-folios.patch
-tools-testing-vma-expand-vma-merge-tests-to-assert-anon-pgoff.patch
-tools-testing-selftests-mm-test-anonymous-page-offset-merge-behaviour.patch
-mm-add-some-missing-includes-to-mm-local-headers.patch
-maintainers-add-drivers-char-memc-to-mm-misc-memory-mapping-sections.patch
+- "ocfs2: harden heartbeat teardown races" (Cen Zhang):
+
+  Fix two OCFS2 heartbeat/o2net teardown races found by KASAN.
+
+- "taskstats: tidy up the cpumask command path" *Bradley Morgan)
+
+  make two small cleanups in kernel/taskstats.c.
+
+- "ocfs2: validate active orphan slots during inode read" (ZhengYuan Huang):
+
+  Validate active ordinary and append-DIO orphan slots read from OCFS2
+  dinodes at the metadata boundary to prevent corrupted slot indices from
+  causing out-of-bounds array accesses.
+
+- "ocfs2: bound-check both readdir re-validation scans" (Zhan Xusheng)
+
+  Enforce strict boundary checks on directory entry record lengths and
+  offset calculations during OCFS2 directory re-scans to prevent
+  out-of-bounds memory reads and directory position corruption.
+
+----------------------------------------------------------------
+Adi Nata (1):
+      lib/math: add KUnit test suite for polynomial_calc()
+
+Andrea Calabrese (1):
+      kernel: refactor: shorten has_pending_signals
+
+Bradley Morgan (7):
+      lib/string: fix memchr_inv() for large ranges
+      signal: avoid shared siginfo namespace rewrites
+      taskstats: fix cpumask parsing cutting off the last character
+      taskstats: drop the dead NULL attribute check in parse()
+      taskstats: fold the two cpumask handlers into one
+      signal: factor out the kernel reserved si_code check
+      prctl: fix PR_SET_MM_AUXV losing the forced AT_NULL terminator
+
+Bryam Vargas (2):
+      ocfs2: bound namelen in dlm_migrate_request_handler
+      ocfs2: validate lengths in dlm_mig_lockres_handler
+
+Calvin Owens (3):
+      pps: don't try to wait for negative timeouts in PPS_FETCH
+      pps: don't allow PPS_KC_BIND on removed devices
+      pps-gpio: remove dead capture_clear code
+
+Cen Zhang (5):
+      ocfs2/cluster: keep heartbeat local node stable
+      ocfs2: validate inline xattrs during inode block validation
+      ocfs2: validate external xattr entries when reading metadata
+      ocfs2: synchronize heartbeat callbacks with o2net teardown
+      ocfs2: o2hb: quiesce negotiate handlers and timeout work
+
+Charlie Jenkins (1):
+      mailmap: add entry for Charlie Jenkins
+
+Chen-Yu Tsai (1):
+      checkpatch: don't emit warnings for ID-base USB & PCI DT compatibles
+
+Christoph Hellwig (8):
+      xor: enable lock context analysis
+      xor: improve the runtime selection benchmark
+      xor/kunit: fix a spelling error
+      xor/kunit: add a benchmark
+      raid6: enable lock context analysis
+      raid6: defer implementation selection when built-in
+      raid6: improve the runtime selection benchmark
+      raid6/kunit: add a benchmark
+
+Deepanshu Kartikey (1):
+      ocfs2: use inode_lock_nested() for orphan dir locking
+
+Dmitry Antipov (2):
+      ocfs2: do not use make_bad_inode() in ocfs2_read_inode_block_full()
+      ocfs2: always run deallocs on copy-on-write completion
+
+Doruk Tan Ozturk (1):
+      ocfs2: validate directory-index entry counts when reading metadata
+
+Gou Hao (3):
+      drm: remove dead WARN_ON NULL check after GFP_NOFAIL allocation
+      lib/test_hmm: remove dead NULL checks after GFP_NOFAIL allocations
+      RDMA/cxgb4: remove dead NULL checks after GFP_NOFAIL allocations
+
+Guangshuo Li (1):
+      rapidio: clear mport->net when rio_add_net() fails
+
+Hongfu Li (1):
+      selftests/prctl: fix non-anonymous VMA mapping in set-anon-vma-name test
+
+Ian Bridges (1):
+      ocfs2: fix missing metadata reservation for large xattrs
+
+Ibrahim Hashimov (1):
+      ocfs2: validate rl_used against rl_count in refcount block validator
+
+James Kim (1):
+      rapidio: mport_cdev: fix use-after-free in dma_req_free()
+
+Jiaming Zhang (1):
+      ocfs2: fix hung task in orphan recovery
+
+JianChunfu (1):
+      kernel/fork: declare max_threads __read_mostly
+
+Jianlin Shi (1):
+      ipc: only destroy orphaned shm segments on sysctl write
+
+Jim Cromie (1):
+      kernel/params: fix a pr_debug(" %p ") in parse_one()
+
+Jordan R Abrahams-Whitehead (1):
+      include/linux/list.h: mark list_add and __list_add as __always_inline
+
+Joseph Qi (5):
+      ocfs2: cluster: use GFP_NOFS for heartbeat bio allocation
+      ocfs2: cluster: use an on-stack bio for the heartbeat write
+      ocfs2: cluster: don't sleep while holding o2hb_live_lock in o2hb_region_pin()
+      ocfs2: cluster: avoid lock order inversion in o2hb_region_pin() from drop_item
+      ocfs2: cluster: fix o2hb_dependent_users leak on pin failure
+
+Joy H.J. Lee (1):
+      tools/compiler: match glibc 2.42 definition of __attribute_const__
+
+Karl Mehltretter (1):
+      lib/interval_tree: fix allocation warning messages
+
+Kir Chou (1):
+      lib/random32: convert selftest to KUnit
+
+Konrad Dybcio (1):
+      mailmap: fix bouncing address for Taniya Das
+
+Krystian Kaniewski (1):
+      ocfs2: fix circular locking dependency in ocfs2_init_acl()
+
+Lasse Collin (2):
+      lib/xz: use size_t instead of uint32_t in a few places
+      lib/xz: fix comments
+
+Linfeng Sun (1):
+      mailmap: update email address for Linfeng Sun
+
+Manuel Quintero Fonseca (1):
+      resource: downgrade "resource sanity check" warning to debug level
+
+Matthew Chen (1):
+      watchdog/softlockup: fix softlockup typos
+
+Matthias Goergens (1):
+      ocfs2: fix cached cluster count after suballocator reclaim
+
+Michael Byczkowski (1):
+      pps: pps-gpio: split IRQ handler into hardirq timestamper + threaded handler
+
+Nathan Chancellor (1):
+      .get_maintainer.ignore: add Nathan Chancellor
+
+Oleg Nesterov (2):
+      signal: change sys_kill() to use SEND_SIG_NOINFO
+      signal: avoid unconditional siginfo copy in send_signal_locked()
+
+Paul Walmsley (1):
+      checkpatch: add NOKPROBE_SYMBOL to the whitelist of lines that can occur immediately after functions
+
+Paul White (1):
+      selftests: ipc: change operation not supported error number
+
+Petr Mladek (1):
+      Revert "printf: Compile the kunit test with DISABLE_BRANCH_PROFILING DISABLE_BRANCH_PROFILING"
+
+Petr Vorel (1):
+      MAINTAINERS: add IRC and patchwork for LTP
+
+Phillip Lougher (1):
+      Squashfs: check block offset is not negative
+
+Randy Dunlap (3):
+      rbtree: fixup kernel-doc names
+      llist: use correct function parameter name
+      stacktrace: header: repair kernel-doc comments
+
+Sara Sena (1):
+      tools/accounting/delaytop.c: fix typo in PSI header string
+
+Shivank Sharma (1):
+      tools/accounting: fix macro typos in getdelays
+
+Tetsuo Handa (1):
+      kcov: fix data corruption and race conditions on PREEMPT_RT
+
+Thorsten Blum (1):
+      lib/xz: replace min_t with min
+
+Usama Arif (1):
+      squashfs: avoid thundering-herd cache wakeups
+
+Vincent Mailhol (2):
+      lib/ucs2_string.c: fix out-of-bounds read in ucs2_strnlen()
+      lib/ucs2_string.c: fix indentation
+
+Warren Xiong (1):
+      tools/mm: prevent page_owner_sort from truncating input
+
+Xibo Wang (1):
+      hung_task: update DETECT_HUNG_TASK_BLOCKER Kconfig help
+
+Yemu Lu (1):
+      fat: restore original value when fat_ent_write failed
+
+Yichong Chen (1):
+      fat: release buffer head after rebuilding parent
+
+Yiyang Chen (4):
+      taskstats: remove dead taskstats_exit_mutex declaration
+      taskstats: return -EBADF when cgroupstats receives an invalid fd
+      selftests/acct: add cgroupstats functional test
+      selftests/acct: share netlink helpers
+
+Zhan Xusheng (3):
+      ocfs2: fix readdir position truncation on 32-bit kernels
+      ocfs2: bound-check dir entries in the readdir re-validation scan
+      ocfs2: bound-check dir entries in the inline-data re-validation scan
+
+ZhengYuan Huang (2):
+      ocfs2: validate orphan slot during inode read
+      ocfs2: validate DIO orphan slot during inode read
+
+Ziran Zhang (1):
+      FAT: allow 0xE9 near jump in fat_read_static_bpb()
+
+ .get_maintainer.ignore                             |   1 +
+ .mailmap                                           |   6 +-
+ MAINTAINERS                                        |   2 +
+ drivers/gpu/drm/drm_modeset_lock.c                 |   4 -
+ drivers/infiniband/hw/cxgb4/mem.c                  |  10 +-
+ drivers/pps/clients/pps-gpio.c                     |  72 ++--
+ drivers/pps/kc.c                                   |  10 +
+ drivers/pps/pps.c                                  |  10 +-
+ drivers/rapidio/devices/rio_mport_cdev.c           |  10 +-
+ drivers/rapidio/rio-scan.c                         |   1 +
+ fs/fat/inode.c                                     |   5 +-
+ fs/fat/misc.c                                      |   4 +
+ fs/fat/nfs.c                                       |   4 +-
+ fs/ocfs2/acl.c                                     | 135 +++++---
+ fs/ocfs2/acl.h                                     |  19 +-
+ fs/ocfs2/cluster/heartbeat.c                       | 381 +++++++++++++++------
+ fs/ocfs2/cluster/heartbeat.h                       |   5 +
+ fs/ocfs2/cluster/nodemanager.c                     |  29 +-
+ fs/ocfs2/cluster/nodemanager.h                     |   3 +
+ fs/ocfs2/cluster/tcp.c                             | 186 ++++++++--
+ fs/ocfs2/cluster/tcp.h                             |   2 +
+ fs/ocfs2/dir.c                                     |  93 ++++-
+ fs/ocfs2/dlm/dlmmaster.c                           |   6 +
+ fs/ocfs2/dlm/dlmrecovery.c                         |   9 +
+ fs/ocfs2/inode.c                                   |  22 +-
+ fs/ocfs2/namei.c                                   |  34 +-
+ fs/ocfs2/refcounttree.c                            |  47 ++-
+ fs/ocfs2/suballoc.c                                |   2 +-
+ fs/ocfs2/xattr.c                                   | 324 +++++++++++++++---
+ fs/ocfs2/xattr.h                                   |  11 +-
+ fs/squashfs/cache.c                                | 116 ++++++-
+ fs/squashfs/squashfs_fs_sb.h                       |   9 +
+ include/linux/list.h                               |  15 +-
+ include/linux/llist.h                              |   2 +-
+ include/linux/nmi.h                                |   4 +-
+ include/linux/pps_kernel.h                         |   1 +
+ include/linux/rbtree.h                             |   2 +-
+ include/linux/rbtree_latch.h                       |   2 +-
+ include/linux/sched.h                              |   8 +
+ include/linux/stacktrace.h                         |   6 +-
+ include/linux/taskstats_kern.h                     |   1 -
+ ipc/ipc_sysctl.c                                   |   2 +-
+ kernel/fork.c                                      |   2 +-
+ kernel/kcov.c                                      |  90 ++---
+ kernel/params.c                                    |   4 +-
+ kernel/resource.c                                  |   2 +-
+ kernel/signal.c                                    |  76 ++--
+ kernel/sys.c                                       |   2 +-
+ kernel/taskstats.c                                 |  45 +--
+ kernel/watchdog.c                                  |  16 +-
+ lib/Kconfig                                        |   6 -
+ lib/Kconfig.debug                                  |  39 ++-
+ lib/interval_tree_test.c                           |   4 +-
+ lib/math/tests/Makefile                            |   1 +
+ lib/math/tests/polynomial_kunit.c                  | 270 +++++++++++++++
+ lib/raid/Kconfig                                   |  12 +
+ lib/raid/raid6/Makefile                            |   2 +
+ lib/raid/raid6/algos.c                             | 102 +++---
+ lib/raid/raid6/tests/raid6_kunit.c                 |  66 +++-
+ lib/raid/xor/Makefile                              |   2 +
+ lib/raid/xor/tests/Makefile                        |   2 +
+ lib/raid/xor/tests/xor_kunit.c                     |  64 +++-
+ lib/raid/xor/xor-core.c                            |  55 ++-
+ lib/random32.c                                     | 184 +---------
+ lib/string.c                                       |   3 +-
+ lib/test_hmm.c                                     |   6 -
+ lib/tests/Makefile                                 |   3 +-
+ lib/tests/random32_kunit.c                         | 182 ++++++++++
+ lib/ucs2_string.c                                  |  38 +-
+ lib/xz/xz_dec_bcj.c                                |   2 +-
+ lib/xz/xz_dec_lzma2.c                              |  63 ++--
+ lib/xz/xz_dec_stream.c                             |   4 +-
+ lib/xz/xz_lzma2.h                                  |   2 +-
+ scripts/checkpatch.pl                              |   7 +
+ tools/accounting/delaytop.c                        |   2 +-
+ tools/accounting/getdelays.c                       |  32 +-
+ tools/include/linux/compiler.h                     |   2 +-
+ tools/mm/page_owner_sort.c                         |  10 +-
+ tools/testing/selftests/acct/.gitignore            |   1 +
+ tools/testing/selftests/acct/Makefile              |  11 +
+ tools/testing/selftests/acct/cgroupstats.c         | 231 +++++++++++++
+ tools/testing/selftests/acct/netlink_helper.c      | 116 +++++++
+ tools/testing/selftests/acct/netlink_helper.h      |  44 +++
+ .../selftests/acct/taskstats_fill_stats_tgid.c     | 134 +-------
+ tools/testing/selftests/ipc/msgque.c               |   2 +-
+ .../selftests/prctl/set-anon-vma-name-test.c       |  21 +-
+ 86 files changed, 2589 insertions(+), 988 deletions(-)
+ create mode 100644 lib/math/tests/polynomial_kunit.c
+ create mode 100644 lib/tests/random32_kunit.c
+ create mode 100644 tools/testing/selftests/acct/cgroupstats.c
+ create mode 100644 tools/testing/selftests/acct/netlink_helper.c
+ create mode 100644 tools/testing/selftests/acct/netlink_helper.h
 
