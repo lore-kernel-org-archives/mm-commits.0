@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F06DA1C84CB;
-	Tue, 25 Aug 2026 01:45:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 41590214813;
+	Tue, 25 Aug 2026 01:45:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787622322; cv=none; b=XrazGDB+Xdhshiw4cB7IbgOxlrtvaU5vWEY3aLVfirR64q8cmGaDgqNoADHspbKAGGlbF9jgxEbSiIlOoJbsnnfdiKTy0robBZRna+tRfMJnyO4nph4yYtYfSpcemPyfUWa6KkEUCHW5NQipVrbYHHVE1YsviZGrCS40ELap4dc=
+	t=1787622323; cv=none; b=upCAngsEUD1IVIkwy/HG8MIxKEiVREFZMPE5Knq9J20VXCZ4PvXheL6rjp/LdS0ndykQLC9iJfFj2GcA5z4/RC3frjFgXvSX8pmVzQox9HzzxSLiOy0plRFqW/XKZ+olnkNLhpEQHSqbtnNFIeN2hAokC90ODMLfEuC2ULN3CmY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787622322; c=relaxed/simple;
-	bh=U4Fk9Hjn+76WcVhcs2OXntv5IK7yw3GLi9nzxOy9U2c=;
-	h=Date:To:From:Subject:Message-Id; b=rh8uEKrJnTymXcP9x2BxuStPG+ILFjvCDtmaFrqQ91FSnNViQVB7tZr29Lq6k/nGdiu0XTbMi4aVcZx8nncEhx+tMH2oWryyBlO45etDBAHUmpafFhJTUt8nBlxOlwT2Scghc9DOVQ+Uo5GefK1xMlPMmIv0y8HEor+zaNXBZHs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2HTn27iH; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1787622323; c=relaxed/simple;
+	bh=16TrJwsrvWqTb+tVZzikgtmkhERQ/vK9smVELzUhb04=;
+	h=Date:To:From:Subject:Message-Id; b=Wc3O4XAP3Y19wqDwX02HaXsWZELPzHskIxoVXD4kpMg/oqLBi+2WnOkG0KdEv5uvg0Y5JaLHUM69CGIeu47y647AOr/IstV2XcRulS6MvN9KKwf1xT7bHHmETlQqyobXWS3LwnsKce/bA0fh71tlyq6JkfQhMUDddUTZhFBajuw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gz5b68he; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2HTn27iH"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C4E4F1F00A3A;
-	Tue, 25 Aug 2026 01:45:20 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gz5b68he"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 145291F000E9;
+	Tue, 25 Aug 2026 01:45:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1787622320;
-	bh=Ah5i46KIUoWYCNAdTM/Du2zqUuNV74L3ObdP2oFa5C8=;
+	d=linux-foundation.org; s=korg; t=1787622322;
+	bh=x+g6HcVZ/Qlt7O6WMXmsWafdffGbw8D52gp1I9qrmKk=;
 	h=Date:To:From:Subject;
-	b=2HTn27iHEYrlJ365HCqHRA8LxghzrpfrmYyJe9FeS7yJ9HX6SpLDECV+Kjg8bS3Gp
-	 jl/0ebN7dFd8uSTNB1AwKdHpGgB3LjQ0Xj5jABlplj2TgwbM7Q+ViZG6Ed3RvtduWt
-	 qrGpBd9OseImJVkI6I6zOAKIo1lidYCEzUCNxAX8=
-Date: Mon, 24 Aug 2026 18:45:20 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,minchan@kernel.org,haoqinhuang7@gmail.com,senozhatsky@chromium.org,akpm@linux-foundation.org
+	b=gz5b68heghe87F8yEftKEqn/np/EF1i70EakCnFQLaiGQuelPks46ODbf4TKlHT5K
+	 SetfVu4U1m8uw0WUTwI2sdIaCYNLEAb1oy6WjigtsigiHcYlTHcdOCrhtOaVUrPOcV
+	 ceT05M+B+k2h6yLCg3kdJBxeMGginLdQWM2uiGus=
+Date: Mon, 24 Aug 2026 18:45:21 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,cuitao@kylinos.cn,zhangguopeng@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] zram-validate-deflate-params.patch removed from -mm tree
-Message-Id: <20260825014520.C4E4F1F00A3A@smtp.kernel.org>
+Subject: [merged mm-stable] mm-memcg-stop-reclaim-when-a-limit-update-is-superseded.patch removed from -mm tree
+Message-Id: <20260825014522.145291F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,57 +35,87 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: zram: validate deflate params
+     Subject: mm: memcg: stop reclaim when a limit update is superseded
 has been removed from the -mm tree.  Its filename was
-     zram-validate-deflate-params.patch
+     mm-memcg-stop-reclaim-when-a-limit-update-is-superseded.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: zram: validate deflate params
-Date: Wed, 29 Jul 2026 13:57:36 +0900
+From: Guopeng Zhang <zhangguopeng@kylinos.cn>
+Subject: mm: memcg: stop reclaim when a limit update is superseded
+Date: Fri, 24 Jul 2026 10:18:05 +0800
 
-We must validate user-supplied deflate winbits before we pass it to
-zlib_deflate_workspacesize(), which triggers BUG_ON() if winbits value is
-outside of valid ranges.
+kernfs serializes file operations only per open file, so separate open
+files can update the same memory.high or memory.max file concurrently. 
+Both handlers store the new limit before synchronous reclaim, but continue
+to use the writer's local target in the reclaim loop.  If another writer
+raises or removes the limit, the first writer can continue reclaiming
+toward a stale target.
 
-Link: https://lore.kernel.org/20260729045745.775973-3-senozhatsky@chromium.org
-Fixes: dc75a0d93bd5 ("zram: support deflate-specific params")
-Link: https://sashiko.dev/#/patchset/20260728092935.31139-1-haoqinhuang7@gmail.com
-Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Haoqin Huang <haoqinhuang7@gmail.com>
+For memory.max, this can leave the writer looping indefinitely once
+reclaim retries are exhausted.  The OOM path sees sufficient margin under
+the current limit and returns true without killing, while the writer still
+compares usage against its stale target and records another OOM event.
+
+Check the current limit at the start of each reclaim iteration and stop if
+it no longer matches the writer's target.
+
+Reproducer:
+
+Populate a cgroup with anonymous memory and disable swapping.  Lower
+memory.max from one open file, then restore it to "max" through another
+open file after the new limit becomes visible.
+
+Without the patch, the first writer remains blocked and repeatedly
+increments the OOM event counter.  With the patch, it returns normally.
+
+This was not motivated by a reported production workload.  We found it
+through automated randomized testing for our cgroup observability work
+and reduced it to the reproducer above.
+
+Link: https://lore.kernel.org/20260724021805.1234583-1-guopeng.zhang@linux.dev
+Fixes: 8c8c383c04f6 ("mm: memcontrol: try harder to set a new memory.high")
+Fixes: b6e6edcfa405 ("mm: memcontrol: reclaim and OOM kill when shrinking memory.max below usage")
+Signed-off-by: Guopeng Zhang <zhangguopeng@kylinos.cn>
+Acked-by: Tao Cui <cuitao@kylinos.cn>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/backend_deflate.c |   10 +++++++++-
- 1 file changed, 9 insertions(+), 1 deletion(-)
+ mm/memcontrol.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
---- a/drivers/block/zram/backend_deflate.c~zram-validate-deflate-params
-+++ a/drivers/block/zram/backend_deflate.c
-@@ -24,8 +24,16 @@ static int deflate_setup_params(struct z
- {
- 	if (params->level == ZCOMP_PARAM_NOT_SET)
- 		params->level = Z_DEFAULT_COMPRESSION;
--	if (params->deflate.winbits == ZCOMP_PARAM_NOT_SET)
-+	if (params->deflate.winbits == ZCOMP_PARAM_NOT_SET) {
- 		params->deflate.winbits = DEFLATE_DEF_WINBITS;
-+	} else {
-+		s32 wb = params->deflate.winbits;
-+
-+		if ((wb < -15 || wb > -9) && (wb < 9 || wb > 15)) {
-+			pr_err("invalid deflate winbits: %d\n", wb);
-+			return -EINVAL;
-+		}
-+	}
+--- a/mm/memcontrol.c~mm-memcg-stop-reclaim-when-a-limit-update-is-superseded
++++ a/mm/memcontrol.c
+@@ -4839,6 +4839,9 @@ static ssize_t memory_high_write(struct
+ 		unsigned long nr_pages = page_counter_read(&memcg->memory);
+ 		unsigned long reclaimed;
  
- 	return 0;
- }
++		if (high != READ_ONCE(memcg->memory.high))
++			break;
++
+ 		if (nr_pages <= high)
+ 			break;
+ 
+@@ -4894,6 +4897,9 @@ static ssize_t memory_max_write(struct k
+ 	for (;;) {
+ 		unsigned long nr_pages = page_counter_read(&memcg->memory);
+ 
++		if (max != READ_ONCE(memcg->memory.max))
++			break;
++
+ 		if (nr_pages <= max)
+ 			break;
+ 
 _
 
-Patches currently in -mm which might be from senozhatsky@chromium.org are
+Patches currently in -mm which might be from zhangguopeng@kylinos.cn are
 
 
