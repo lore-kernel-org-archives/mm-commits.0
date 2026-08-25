@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DC5E8372B3D
-	for <mm-commits@vger.kernel.org>; Tue, 25 Aug 2026 01:55:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4317337E5FE
+	for <mm-commits@vger.kernel.org>; Tue, 25 Aug 2026 01:55:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787622927; cv=none; b=b+sr720RHUtU4yJDpT+Izn7lw0lFkMwB/d/3Uuk1BHkfh3in6HykHIQMQGXur+0KvUZXadGteiBs/3VIDu5Rd0D+LY/gIMRinSt0A0K2/urlsIIEftR3j+ZT9VCG0+3fimXdrvgtfJwzELwfCJuGZQtCovqiqe5ctWwOMLvzZkE=
+	t=1787622927; cv=none; b=IYBF2Jl5qI0t0C6MRvc5NWj8CO7R8cIjk4TRTZbBGOLsWblakL7zC/E8OWUU5C3/LRwaWOo8GsJlWmYaHIpDJmEho/oKxIkt1hj8OC+qjfqQ14ubb554gp0GYGFHzzvibVRKcQlqzHT9FJmDx0WhZPsgaRUsyoON+GBZaOFc5Tc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1787622927; c=relaxed/simple;
-	bh=pZoXIOXv/A7sXLX9adGYbhzNzEfUAILAdA6snuoQ06U=;
-	h=Date:To:From:Subject:Message-Id; b=FNr9ks59t1D6nmJW9KhPatxF926wMg645oU5bXku2h85IqUKZMGWKx5ROYHN9X6n28wA0S+RS8BxWulqkCw4GQEAAUetTxidQcrHJiEETFEYc9cEzqrM5nPy8lkDVyYYwWnPFU+DiPR9edHQikA6QOWcRwDmay2k1Fly0VD9jJk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=t+0Qicbb; arc=none smtp.client-ip=100.103.45.18
+	bh=iFeXrHjR+h8MHVdluvda90Tlq4l718uof3ZwS1rGNZc=;
+	h=Date:To:From:Subject:Message-Id; b=JUZohymVc+JALl0Vcq7MgU54f4kvXUcqgadiSZy09bqUiV/gKfRCYOHoUJ0o15sb0Sma7NxYDLwN8I5HPQnyrgzdTJ5Fke3/QnK98LJ31i/GGovB5GNxL81C7m35apl/uQbHyY/E4bleUtXd/mzUx9k6PCM6UfgPZ8J5NyGN2z4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=M4E82hXU; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="t+0Qicbb"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F11421F00A3D;
-	Tue, 25 Aug 2026 01:55:19 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="M4E82hXU"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 17D631F000E9;
+	Tue, 25 Aug 2026 01:55:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1787622920;
-	bh=TmdxQuZZ0zGnawJjJipt8fP0Z/QRGdPPof3o4kNDsmg=;
+	d=linux-foundation.org; s=korg; t=1787622924;
+	bh=iL5zsy4fXCsJIRXpZ+wnNdc2N8qFS5ba+m2Sy9BkLck=;
 	h=Date:To:From:Subject;
-	b=t+0QicbbAgjt2ZNeadFC9Kd65xis6eo0UN/RF2ROwYeKC1AC0OFbACuoSde5eERQf
-	 8wTvPZZnGHogWUbLgFDzAjIpPxIXwM5NjCXN1bfCIHmwCtJ8tLADqydR4/4FQfUVaA
-	 jqc2vGAcXmyHuvoUF4FiXv3OmmgDqq7AjDFOAJl0=
-Date: Mon, 24 Aug 2026 18:55:19 -0700
-To: mm-commits@vger.kernel.org,vincenzo.frascino@arm.com,sashiko-bot@kernel.org,ryabinin.a.a@gmail.com,glider@google.com,dvyukov@google.com,andreyknvl@gmail.com,sh_def@163.com,akpm@linux-foundation.org
+	b=M4E82hXU4wY5xeXeXa0tyRls8/lml21L1lBFgnnCtGmCnK+O6egyxobF0hn1UGC9G
+	 LntFlcHkadBnlZdflikcwjdJ0ut8BmtyfhzUnhPC+S1F2UkO+53cf9NtpC8emumtRf
+	 Ut+3234Rj0Kb6o1BX9cL5FqruE5oMxyw3Zh1FSCU=
+Date: Mon, 24 Aug 2026 18:55:23 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,sj@kernel.org,rppt@kernel.org,pfalcato@suse.de,mhocko@suse.com,liam@infradead.org,jannh@google.com,david@kernel.org,arnd@arndb.de,anshuman.khandual@arm.com,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] kasan-fix-quarantine_size-accounting-during-cache-removal.patch removed from -mm tree
-Message-Id: <20260825015519.F11421F00A3D@smtp.kernel.org>
+Subject: [merged mm-stable] maintainers-add-drivers-char-memc-to-mm-misc-memory-mapping-sections.patch removed from -mm tree
+Message-Id: <20260825015524.17D631F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,78 +35,71 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: kasan: fix quarantine_size accounting during cache removal
+     Subject: MAINTAINERS: add drivers/char/mem.c to mm misc, memory mapping sections
 has been removed from the -mm tree.  Its filename was
-     kasan-fix-quarantine_size-accounting-during-cache-removal.patch
+     maintainers-add-drivers-char-memc-to-mm-misc-memory-mapping-sections.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Hui Su <sh_def@163.com>
-Subject: kasan: fix quarantine_size accounting during cache removal
-Date: Tue, 11 Aug 2026 15:33:32 +0800
+From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
+Subject: MAINTAINERS: add drivers/char/mem.c to mm misc, memory mapping sections
+Date: Wed, 12 Aug 2026 08:43:31 +0100
 
-quarantine_size tracks the total number of bytes stored in
-global_quarantine[].  It is incremented when per-CPU quarantine objects
-are moved into the global quarantine and decremented when a global batch
-is evicted by kasan_quarantine_reduce().
+This file is a 'special' driver that implements /dev/zero and /dev/mem
+among other things.
 
-kasan_quarantine_remove_cache() also removes objects from the global
-quarantine.  qlist_move_cache() rebuilds the source batch and updates its
-.bytes field, but quarantine_size is not adjusted accordingly.
+As such it makes sense for mm to be cc'd on mails and to have some say in
+how things are changed there, so add it to the mm misc section.
 
-As a result, quarantine_size remains over-counted by the size of the
-removed objects.  The stale accounting accumulates across cache removals. 
-Once the inflated value exceeds quarantine_max_size,
-kasan_quarantine_reduce() can evict a batch even though the actual number
-of bytes in global_quarantine[] is still below quarantine_max_size,
-shortening the quarantine window.
+Uniquely, it provides the 'old way' of obtaining an anonymous mapping -
+MAP_PRIVATE of /dev/zero - so is directly tied to memory mapping,
+therefore also add it to the memory mapping section.
 
-Fix the accounting by recording each batch's size before
-qlist_move_cache() and subtracting the number of bytes actually removed
-from quarantine_size while holding quarantine_lock.
+scripts/get_maintainer.pl copes perfectly fine with files in multiple
+sections so everything should work correctly.
 
-A KUnit reproducer used during testing observed the over-count grow by
-4698864 bytes after one kasan_quarantine_remove_cache() call with the fix
-reverted.  With this change applied, the over-count did not grow.
-
-Link: https://lore.kernel.org/20260811073332.1351893-1-sh_def@163.com
-Fixes: 64abdcb24351 ("kasan: eliminate long stalls during quarantine reduction")
-Signed-off-by: Hui Su <sh_def@163.com>
-Reported-by: Sashiko <sashiko-bot@kernel.org>
-Closes: https://sashiko.dev/#/patchset/20260808031459.3032812-1-sh_def%40163.com
-Reviewed-by: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Link: https://lore.kernel.org/20260812-add-drivers-mem-to-mm-maintainers-v1-1-6218b861f4c8@kernel.org
+Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Acked-by: SJ Park <sj@kernel.org>
+Reviewed-by: Anshuman Khandual<anshuman.khandual@arm.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Jann Horn <jannh@google.com>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Pedro Falcato <pfalcato@suse.de>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/quarantine.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ MAINTAINERS |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/mm/kasan/quarantine.c~kasan-fix-quarantine_size-accounting-during-cache-removal
-+++ a/mm/kasan/quarantine.c
-@@ -370,9 +370,14 @@ void kasan_quarantine_remove_cache(struc
- 
- 	raw_spin_lock_irqsave(&quarantine_lock, flags);
- 	for (i = 0; i < QUARANTINE_BATCHES; i++) {
-+		size_t old_bytes;
-+
- 		if (qlist_empty(&global_quarantine[i]))
- 			continue;
-+		old_bytes = global_quarantine[i].bytes;
- 		qlist_move_cache(&global_quarantine[i], &to_free, cache);
-+		WRITE_ONCE(quarantine_size, quarantine_size -
-+			   (old_bytes - global_quarantine[i].bytes));
- 		/* Scanning whole quarantine can take a while. */
- 		raw_spin_unlock_irqrestore(&quarantine_lock, flags);
- 		cond_resched();
+--- a/MAINTAINERS~maintainers-add-drivers-char-memc-to-mm-misc-memory-mapping-sections
++++ a/MAINTAINERS
+@@ -17115,6 +17115,7 @@ F:	Documentation/ABI/testing/sysfs-kerne
+ F:	Documentation/ABI/testing/sysfs-kernel-mm-numa
+ F:	Documentation/admin-guide/mm/
+ F:	Documentation/mm/
++F:	drivers/char/mem.c
+ F:	include/linux/cma.h
+ F:	include/linux/dmapool.h
+ F:	include/linux/ioremap.h
+@@ -17319,6 +17320,7 @@ L:	linux-mm@kvack.org
+ S:	Maintained
+ W:	http://www.linux-mm.org
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
++F:	drivers/char/mem.c
+ F:	include/trace/events/mmap.h
+ F:	fs/proc/task_mmu.c
+ F:	fs/proc/task_nommu.c
 _
 
-Patches currently in -mm which might be from sh_def@163.com are
+Patches currently in -mm which might be from ljs@kernel.org are
 
-mm-migrate_device-avoid-out-of-bounds-writes-for-compound-folios.patch
 
