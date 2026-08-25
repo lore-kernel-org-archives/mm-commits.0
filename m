@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8B8F5376475
-	for <mm-commits@vger.kernel.org>; Tue, 25 Aug 2026 01:55:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1FD49372B50
+	for <mm-commits@vger.kernel.org>; Tue, 25 Aug 2026 01:55:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787622941; cv=none; b=BvE6aYYkMvSfuOxEDsjq+uErhgZbnlwDeoPycyeISwu5Nq0PUmcfNxdtpqIp1CzPdswUg3qFImbLG4fEBJYe6VL0gdRJT55wrfdiT7v3GcqkS7raIGfRqHZzTth25l/flZ7Iio3FFqhNwR6Gw0HR/1AIswieSxOXgp5MylKnOxM=
+	t=1787622943; cv=none; b=D29r/xTUJH++kEE2jDOvNAzL2IDrwlh2/ouWgiqDGDr41LBQxi2BubAcgtf9WKjRmXCn2Thx5NBgSGtCzSC78DncSjNf82h/Nuxk4Vj3Lu3ZqzNsoBO3OpD/oPKT6GPUz9PaN4U3B5OrowaW2vglVpN9O/c8abHqsW44N+FKZ3I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787622941; c=relaxed/simple;
-	bh=s62k1jL6whcK5IQJ1QNsNyQpZdLH8sVOVvZCWzK2l1A=;
-	h=Date:To:From:Subject:Message-Id; b=GFwGSFA2mZlfL4wieo8lQZ0qj+q1Ina08PN1MbBjMSlnLi5OJ5KAeeVzDzl31A+VBYMBTubcH+fTLqt7h8GnLcfD2wE4XKNomUQKaAjk5u+u1NsZBAVgjCjcLBrTJux6OZd2+cxsCTJNSoas6xnv1UrnZsiEotyFZDfW9VyrLek=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=eo4N4vts; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1787622943; c=relaxed/simple;
+	bh=Pqiu2UF+5A39bxT953KSNwuz37/ETDKB0cGb2+PCK5I=;
+	h=Date:To:From:Subject:Message-Id; b=sGMO8Lsffa5ZkZ9KACm7HOTHe+dIMFJDRNxXIMuK12jE2fBYINJ5SsT0ogmw7HJXJ2em4WUvxx3+OOtlC8E6mZ6HHowNb3yoBIiJ/S2X9X1ggj6VhDjTEGdkNAyyvVId4PARwVoHPnV1UVi6sE9sZLwOBCmKB55jHy4xbkm+Byg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zLec5ElT; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="eo4N4vts"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 654581F000E9;
-	Tue, 25 Aug 2026 01:55:40 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zLec5ElT"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E87DB1F00A3A;
+	Tue, 25 Aug 2026 01:55:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1787622940;
-	bh=Dtwf8pdLLMlga/0q8JEaoJe6ELGd20t5eEUDN8Gq9YM=;
+	d=linux-foundation.org; s=korg; t=1787622942;
+	bh=h2E8gS7aPyVZk9OE95zRRNMhZg1Z+Bry+iCijCrg3CU=;
 	h=Date:To:From:Subject;
-	b=eo4N4vtsL+z15YrgeICx2Il6sN/hrh8dB6kR8BQQ8utCu0aVAf/+XDALmJym5GpfA
-	 MNXLD9I2QNr4tUBftvp+f9E4c9NsWcR0apu9miNuxP1LItgyjgA+zOd9d3K7pAgOSu
-	 m95rRpKcNn1ERtmesuh7TEA9YafpO89jYdyd4xgo=
-Date: Mon, 24 Aug 2026 18:55:40 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,usama.arif@linux.dev,surenb@google.com,ryan.roberts@arm.com,rppt@kernel.org,pfalcato@suse.de,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,lance.yang@linux.dev,dev.jain@arm.com,david@kernel.org,corbet@lwn.net,baolin.wang@linux.alibaba.com,baohua@kernel.org,nico.pache@linux.dev,akpm@linux-foundation.org
+	b=zLec5ElT1VJnwbv0nCabTBGShUEZNPW7eayCYozEmC/iNDON9rnDakdrtt8Jdf0PA
+	 slUcDGYo6VjpiVtlUidj7heJbhxQxIPS03F9YPnvg30pJ5+OHB7CX9y7Z7izkQgzjz
+	 Gd7XcASs8N9ZD8pMjevfOdh6gzT6UfYMN9zm0cpI=
+Date: Mon, 24 Aug 2026 18:55:41 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@kernel.org,surenb@google.com,rppt@kernel.org,rdunlap@infradead.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,jack@suse.cz,david@kernel.org,corbet@lwn.net,husong@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-documentation-clarify-where-the-mthp-stats-live.patch removed from -mm tree
-Message-Id: <20260825015540.654581F000E9@smtp.kernel.org>
+Subject: [merged mm-stable] docs-mm-fix-outdated-radix-tree-in-page_migration.patch removed from -mm tree
+Message-Id: <20260825015541.E87DB1F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,74 +35,63 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: Documentation: clarify where the mTHP stats live
+     Subject: Docs/mm: fix outdated "radix tree" in page_migration
 has been removed from the -mm tree.  Its filename was
-     mm-documentation-clarify-where-the-mthp-stats-live.patch
+     docs-mm-fix-outdated-radix-tree-in-page_migration.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Nico Pache (Red Hat)" <nico.pache@linux.dev>
-Subject: mm: Documentation: clarify where the mTHP stats live
-Date: Tue, 11 Aug 2026 06:48:39 -0600
+From: Song Hu <husong@kylinos.cn>
+Subject: Docs/mm: fix outdated "radix tree" in page_migration
+Date: Wed, 12 Aug 2026 15:57:39 +0800
 
-The note about khugepaged counters references /proc/vmstat for the PMD
-case, but never mentions where the mTHPs stats can be found (i.e.:
-/sys/kernel/mm/transparent_hugepage/hugepages-<size>kB/stats/) Add a small
-addition to this section for clarity.
+Steps 7 and 9 of the migration description still say "radix tree", unlike
+steps 5 and 11 which already use "i_pages lock".  The page cache moved to
+the XArray at mapping->i_pages long ago.  Use "page cache tree" for the
+two remaining references.
 
-Also fix a missing period while we are at it.
-
-Link: https://lore.kernel.org/20260811-khugepaged_pte_refactor-v4-7-ddac39d61c4a@linux.dev
-Signed-off-by: Nico Pache (Red Hat) <nico.pache@linux.dev>
-Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Suggested-by: Lorenzo Stoakes <ljs@kernel.org>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
-Acked-by: Pedro Falcato <pfalcato@suse.de> 
-Reviewed-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
-Reviewed-by: Lance Yang <lance.yang@linux.dev>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Dev Jain <dev.jain@arm.com>
+Link: https://lore.kernel.org/20260812075739.325441-1-husong@kylinos.cn
+Signed-off-by: Song Hu <husong@kylinos.cn>
+Cc: David Hildenbrand <david@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Randy Dunlap <rdunlap@infradead.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Usama Arif <usama.arif@linux.dev>
 Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/mm/transhuge.rst |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ Documentation/mm/page_migration.rst |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/Documentation/admin-guide/mm/transhuge.rst~mm-documentation-clarify-where-the-mthp-stats-live
-+++ a/Documentation/admin-guide/mm/transhuge.rst
-@@ -224,7 +224,7 @@ khugepaged will be automatically started
- (either of the per-size anon control or the top-level control are set
- to "always" or "madvise"), and it'll be automatically shutdown when
- all THP sizes are disabled (when both the per-size anon control and the
--top-level control are "never")
-+top-level control are "never").
+--- a/Documentation/mm/page_migration.rst~docs-mm-fix-outdated-radix-tree-in-page_migration
++++ a/Documentation/mm/page_migration.rst
+@@ -110,13 +110,13 @@ Steps:
+ 6. The refcount of the page is examined and we back out if references remain.
+    Otherwise, we know that we are the only one referencing this page.
  
- process THP controls
- --------------------
-@@ -301,7 +301,9 @@ being replaced by a PMD mapping, or (2)
- hugepage of various sizes (PMD-sized or mTHP). Each may happen independently,
- or together, depending on the type of memory and the failures that occur.
- As such, this value should be interpreted roughly as a sign of progress,
--and counters in /proc/vmstat consulted for more accurate accounting)::
-+and counters in /proc/vmstat consulted for more accurate accounting.
-+Per-order mTHP collapse statistics are also available under
-+/sys/kernel/mm/transparent_hugepage/hugepages-<size>kB/stats/)::
+-7. The radix tree is checked and if it does not contain the pointer to this
+-   page then we back out because someone else modified the radix tree.
++7. The page cache tree is checked and if it does not contain the pointer to this
++   page then we back out because someone else modified the page cache tree.
  
- 	/sys/kernel/mm/transparent_hugepage/khugepaged/pages_collapsed
+ 8. The new page is prepped with some settings from the old page so that
+    accesses to the new page will discover a page with the correct settings.
  
+-9. The radix tree is changed to point to the new page.
++9. The page cache tree is changed to point to the new page.
+ 
+ 10. The reference count of the old page is dropped because the address space
+     reference is gone. A reference to the new page is established because
 _
 
-Patches currently in -mm which might be from nico.pache@linux.dev are
+Patches currently in -mm which might be from husong@kylinos.cn are
 
 
