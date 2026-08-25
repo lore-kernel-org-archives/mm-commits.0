@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2794B313545;
-	Tue, 25 Aug 2026 01:45:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5051533A6F2
+	for <mm-commits@vger.kernel.org>; Tue, 25 Aug 2026 01:45:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787622306; cv=none; b=btpeLesqHuvM1RZWktaRUtlBDJfwtilU8UmqG9TFK0dvE28PA3iQNvuT4HngLgt8nq3xP7pbxYw1nV2rvlA8RzE0mc+5qzjjbt5CaHond/tzjj5LUypTBgUxAAPRIdruGWt2JXrD0KGT9k6y9re4Z0uIOG374PZQe1TYZjR9gvo=
+	t=1787622307; cv=none; b=O0KJRXvfC5WqdmCnF0bMSOkQZ8P0spClM9FBONlV5W/J/6sVfV7QA2Pc+oh/5FulkGQmrw3ML8JTjLlSPjMD9bNZXkzhNwzJetxsboRsWIIp/ke0CUOEfTYVq63cQd+dluOB6REkwtmfO6YAZeuuLmfuAQhArXY56/SU/dXnim0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787622306; c=relaxed/simple;
-	bh=sMpZUMqPdOphVvKcnAlW61q0q21l1tF57kzV23+yx78=;
-	h=Date:To:From:Subject:Message-Id; b=KDY6CI0BdO8ZnmlEuwB/570HyRa7UMACxPS4jiQa/mTgB9gY3lHDBpDDxe9iD9mnCLMz1Prq/icS4A3S15uGi/yEiNNw+FUU7Ftovd+KquYBXXItimG5rIvsJGpk9Kn8F1NXlME8wHN5VzsuaiTg3lB6DOFMkZZ9zjdwZW6t0uU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HZXbKMX0; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1787622307; c=relaxed/simple;
+	bh=k6JkDuQavKw+NGTEFujvrfBrpUi9zaeZq5fELfndeIM=;
+	h=Date:To:From:Subject:Message-Id; b=lj3kUgZrG2L50ibVSJOycE5w2ckEh8zv62TdRbPVdxZ/gaBgDIoB2qYLB/q3HnwudvdkLAux3JRMuXJpQebk3KG3017TOiUQYK/zSVYBN64iS6gwIbkXvLX4D7K+bQ1ZFOIS3KYRc/gEEFvGtYKDNiu6BG8QGHg6qge7Dc8lpi8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qurTaDY6; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HZXbKMX0"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A5A801F000E9;
-	Tue, 25 Aug 2026 01:45:04 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qurTaDY6"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E9D6E1F00A3A;
+	Tue, 25 Aug 2026 01:45:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1787622304;
-	bh=e3YhobTR7/umOkKHr4SCH7VZwgZH9eUTttBjErIYId8=;
+	d=linux-foundation.org; s=korg; t=1787622306;
+	bh=KtXxfKXdGtEdi92Wi9aIR1KwgkJ3pU929sK/GVePWl8=;
 	h=Date:To:From:Subject;
-	b=HZXbKMX0bDprX5rfyjkyw9LBxGO806PaQNk9d5lrvdtb96WOebto11W2pCC+h3sh7
-	 1DdASPJUaklLd2uf9AkvegUiojS18ZgUMWX4ejoH/uONqUDRh2HdJzEYcT5w3KC4Ft
-	 lXIzzaFPdZdbZkmDKCmSs686IryUj+WWmaEVWENg=
-Date: Mon, 24 Aug 2026 18:45:04 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,sj@kernel.org,puranjay@kernel.org,paulmck@kernel.org,catalin.marinas@arm.com,leitao@debian.org,akpm@linux-foundation.org
+	b=qurTaDY67E80+VdkJg/SIVW7BLug2Utlgk0+XE3XCaFo0eQ/4a51LVn/k2IKW8p8/
+	 mDb2VrHdkkF0bt/ethZbjZExk4bUOGkNc9OHfy0e7nq1m5FaSBvRvhvJx4JrstF/3H
+	 N7Gnk+uGfHMItEsr3Q539Vd5j8/oJJv1s4fcY8cg=
+Date: Mon, 24 Aug 2026 18:45:05 -0700
+To: mm-commits@vger.kernel.org,yuanchu@google.com,weixugc@google.com,vbabka@kernel.org,shakeel.butt@linux.dev,riel@surriel.com,mhocko@kernel.org,ljs@kernel.org,liam@infradead.org,lance.yang@linux.dev,kasong@tencent.com,jannh@google.com,harry@kernel.org,hannes@cmpxchg.org,david@kernel.org,baohua@kernel.org,axelrasmussen@google.com,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-kmemleak-report-rcu-tasks-quiescent-states-during-the-scan.patch removed from -mm tree
-Message-Id: <20260825014504.A5A801F000E9@smtp.kernel.org>
+Subject: [merged mm-stable] mm-vmscan-convert-folio_referenced-to-use-vma_flags_t.patch removed from -mm tree
+Message-Id: <20260825014505.E9D6E1F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,130 +35,225 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/kmemleak: report RCU-tasks quiescent states during the scan
+     Subject: mm: vmscan: convert folio_referenced() to use vma_flags_t
 has been removed from the -mm tree.  Its filename was
-     mm-kmemleak-report-rcu-tasks-quiescent-states-during-the-scan.patch
+     mm-vmscan-convert-folio_referenced-to-use-vma_flags_t.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Breno Leitao <leitao@debian.org>
-Subject: mm/kmemleak: report RCU-tasks quiescent states during the scan
-Date: Mon, 20 Jul 2026 06:23:45 -0700
+From: Baolin Wang <baolin.wang@linux.alibaba.com>
+Subject: mm: vmscan: convert folio_referenced() to use vma_flags_t
+Date: Mon, 20 Jul 2026 19:12:00 +0800
 
-kmemleak_scan() can run for ages on large debug kernels. It was
-causing some soft-lockups which I got fixed with commit
-3175fcfec8b16baeb ("mm/kmemleak: avoid soft lockup when scanning task
-stacks") with our beloved cond_resched().
+Patch series "promote mapped executable folios after first usage for
+MGLRU", v4.
 
-I've got the fix above deployed in the Meta fleet, and now I am seeing:
+Now MGLRU's protection of mapped executable file folios is less reliable. 
+Follow the classical LRU's logic, promoting mapped executable file folios
+after their first usage to give executable code a better chance to stay in
+memory and improve workload performance (See patch 2 for more details).
 
-  INFO: rcu_tasks detected stalls on tasks:
-    task:kmemleak state:R ... nvcsw: 274/274 holdout: 1 idle_cpu: -1/3
-     scan_block
-     scan_gray_list
-     kmemleak_scan
 
-and, worse, blocks the callers waiting on that grace period.  Here a BPF
-struct_ops map free, which waits via synchronize_rcu_mult(call_rcu,
-call_rcu_tasks), is stuck long enough to also trip the hung task check:
+This patch (of 3):
 
-  INFO: task kworker/...:bpf_map_free_deferred blocked for 122 seconds
-     __wait_rcu_gp
-     bpf_struct_ops_map_free
+Replace use of the legacy vm_flags_t flags with vma_flags_t values for
+folio_referenced() and related logic.  This is also a preparation for the
+following changes.
 
-Then I've learned that cond_resched() is not an RCU-tasks quiescent
-state, so, we need to use stronger primitives.
+No functional changes.
 
-Use cond_resched_tasks_rcu_qs() at the scan reschedule points so the scan
-reports an RCU-tasks quiescent state as it proceeds.
-
-Inspired by commit b96285e10aad ("tracing: Have osnoise_main() add a
-quiescent state for task rcu").
-
-Link: https://lore.kernel.org/20260720-kmemleak_rcu_task-v1-1-5b460ade777d@debian.org
-Fixes: c4b28963fd79 ("mm/kmemleak: rely on rcu for task stack scanning")
-Signed-off-by: Breno Leitao <leitao@debian.org>
-Reviewed-by: Paul E. McKenney <paulmck@kernel.org>
-Reviewed-by: SJ Park <sj@kernel.org>
-Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Breno Leitao <leitao@debian.org>
-Cc: Puranjay Mohan <puranjay@kernel.org>
-Cc: <stable@vger.kernel.org>
+Link: https://lore.kernel.org/cover.1784509721.git.baolin.wang@linux.alibaba.com
+Link: https://lore.kernel.org/2bd39e16ec19e3e3c4716aa9a1a25775c26cac57.1784509721.git.baolin.wang@linux.alibaba.com
+Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Reviewed-by: Barry Song <baohua@kernel.org>
+Reviewed-by: Kairui Song <kasong@tencent.com>
+Reviewed-by: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Harry Yoo <harry@kernel.org>
+Cc: Jann Horn <jannh@google.com>
+Cc: Lance Yang <lance.yang@linux.dev>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Wei Xu <weixugc@google.com>
+Cc: Yuanchu Xie <yuanchu@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kmemleak.c |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ include/linux/rmap.h |    7 +++----
+ mm/rmap.c            |   19 +++++++++++--------
+ mm/vmscan.c          |   14 +++++++-------
+ 3 files changed, 21 insertions(+), 19 deletions(-)
 
---- a/mm/kmemleak.c~mm-kmemleak-report-rcu-tasks-quiescent-states-during-the-scan
-+++ a/mm/kmemleak.c
-@@ -1571,7 +1571,7 @@ static int scan_large_block(void *start,
- 		if (scan_block(start, next, NULL))
- 			return 1;
- 		start = next;
--		cond_resched();
-+		cond_resched_tasks_rcu_qs();
- 	}
+--- a/include/linux/rmap.h~mm-vmscan-convert-folio_referenced-to-use-vma_flags_t
++++ a/include/linux/rmap.h
+@@ -843,7 +843,7 @@ static inline int folio_try_share_anon_r
+  * Called from mm/vmscan.c to handle paging out
+  */
+ int folio_referenced(struct folio *, int is_locked,
+-			struct mem_cgroup *memcg, vm_flags_t *vm_flags);
++		struct mem_cgroup *memcg, vma_flags_t *vma_flags);
  
+ void try_to_migrate(struct folio *folio, enum ttu_flags flags);
+ void try_to_unmap(struct folio *, enum ttu_flags flags);
+@@ -977,10 +977,9 @@ struct anon_vma *folio_lock_anon_vma_rea
+ #define anon_vma_prepare(vma)	(0)
+ 
+ static inline int folio_referenced(struct folio *folio, int is_locked,
+-				  struct mem_cgroup *memcg,
+-				  vm_flags_t *vm_flags)
++		struct mem_cgroup *memcg, vma_flags_t *vma_flags)
+ {
+-	*vm_flags = 0;
++	vma_flags_clear_all(vma_flags);
  	return 0;
-@@ -1608,7 +1608,7 @@ static void scan_object(struct kmemleak_
- 			scan_block(start, end, object);
- 
- 			raw_spin_unlock_irqrestore(&object->lock, flags);
--			cond_resched();
-+			cond_resched_tasks_rcu_qs();
- 			raw_spin_lock_irqsave(&object->lock, flags);
- 			if (!(object->flags & OBJECT_ALLOCATED))
- 				break;
-@@ -1630,7 +1630,7 @@ static void scan_object(struct kmemleak_
- 				break;
- 
- 			raw_spin_unlock_irqrestore(&object->lock, flags);
--			cond_resched();
-+			cond_resched_tasks_rcu_qs();
- 			raw_spin_lock_irqsave(&object->lock, flags);
- 		} while (object->flags & OBJECT_ALLOCATED);
- 	} else {
-@@ -1658,7 +1658,7 @@ static void scan_gray_list(void)
- 	 */
- 	object = list_entry(gray_list.next, typeof(*object), gray_list);
- 	while (&object->gray_list != &gray_list) {
--		cond_resched();
-+		cond_resched_tasks_rcu_qs();
- 
- 		/* may add new objects to the list */
- 		if (!scan_should_stop())
-@@ -1693,7 +1693,7 @@ static void kmemleak_cond_resched(struct
- 	raw_spin_unlock_irq(&kmemleak_lock);
- 
- 	rcu_read_unlock();
--	cond_resched();
-+	cond_resched_tasks_rcu_qs();
- 	rcu_read_lock();
- 
- 	raw_spin_lock_irq(&kmemleak_lock);
-@@ -1738,7 +1738,7 @@ static void kmemleak_scan_task_stacks(vo
- 			}
- 			put_task_struct(p);
- 		}
--		cond_resched();
-+		cond_resched_tasks_rcu_qs();
- 	} while (pid && !stop);
  }
  
-@@ -1915,7 +1915,7 @@ static void kmemleak_scan(void)
- 			struct page *page = pfn_to_online_page(pfn);
+--- a/mm/rmap.c~mm-vmscan-convert-folio_referenced-to-use-vma_flags_t
++++ a/mm/rmap.c
+@@ -908,7 +908,7 @@ out:
+ struct folio_referenced_arg {
+ 	int mapcount;
+ 	int referenced;
+-	vm_flags_t vm_flags;
++	vma_flags_t vma_flags;
+ 	struct mem_cgroup *memcg;
+ };
  
- 			if (!(pfn & 63))
--				cond_resched();
-+				cond_resched_tasks_rcu_qs();
+@@ -927,7 +927,7 @@ static bool folio_referenced_one(struct
+ 		address = pvmw.address;
+ 		nr = 1;
  
- 			if (!page)
+-		if (vma->vm_flags & VM_LOCKED) {
++		if (vma_test(vma, VMA_LOCKED_BIT)) {
+ 			ptes++;
+ 			pra->mapcount--;
+ 
+@@ -948,7 +948,7 @@ static bool folio_referenced_one(struct
+ 			/* Restore the mlock which got missed */
+ 			mlock_vma_folio(folio, vma);
+ 			page_vma_mapped_walk_done(&pvmw);
+-			pra->vm_flags |= VM_LOCKED;
++			vma_flags_set(&pra->vma_flags, VMA_LOCKED_BIT);
+ 			return false; /* To break the loop */
+ 		}
+ 
+@@ -1016,8 +1016,11 @@ static bool folio_referenced_one(struct
+ 		referenced++;
+ 
+ 	if (referenced) {
++		vma_flags_t vma_flags = vma->flags;
++
+ 		pra->referenced++;
+-		pra->vm_flags |= vma->vm_flags & ~VM_LOCKED;
++		vma_flags_clear(&vma_flags, VMA_LOCKED_BIT);
++		vma_flags_set_mask(&pra->vma_flags, vma_flags);
+ 	}
+ 
+ 	if (!pra->mapcount)
+@@ -1055,7 +1058,7 @@ static bool invalid_folio_referenced_vma
+  * @folio: The folio to test.
+  * @is_locked: Caller holds lock on the folio.
+  * @memcg: target memory cgroup
+- * @vm_flags: A combination of all the vma->vm_flags which referenced the folio.
++ * @vma_flags: A combination of all the vma->flags which referenced the folio.
+  *
+  * Quick test_and_clear_referenced for all mappings of a folio,
+  *
+@@ -1063,7 +1066,7 @@ static bool invalid_folio_referenced_vma
+  * the function bailed out due to rmap lock contention.
+  */
+ int folio_referenced(struct folio *folio, int is_locked,
+-		     struct mem_cgroup *memcg, vm_flags_t *vm_flags)
++		struct mem_cgroup *memcg, vma_flags_t *vma_flags)
+ {
+ 	bool we_locked = false;
+ 	struct folio_referenced_arg pra = {
+@@ -1079,7 +1082,7 @@ int folio_referenced(struct folio *folio
+ 	};
+ 
+ 	VM_WARN_ON_ONCE_FOLIO(folio_is_zone_device(folio), folio);
+-	*vm_flags = 0;
++	vma_flags_clear_all(vma_flags);
+ 	if (!pra.mapcount)
+ 		return 0;
+ 
+@@ -1093,7 +1096,7 @@ int folio_referenced(struct folio *folio
+ 	}
+ 
+ 	rmap_walk(folio, &rwc);
+-	*vm_flags = pra.vm_flags;
++	vma_flags_set_mask(vma_flags, pra.vma_flags);
+ 
+ 	if (we_locked)
+ 		folio_unlock(folio);
+--- a/mm/vmscan.c~mm-vmscan-convert-folio_referenced-to-use-vma_flags_t
++++ a/mm/vmscan.c
+@@ -861,16 +861,16 @@ static enum folio_references folio_check
+ 						  struct scan_control *sc)
+ {
+ 	int referenced_ptes, referenced_folio;
+-	vm_flags_t vm_flags;
++	vma_flags_t vma_flags;
+ 
+ 	referenced_ptes = folio_referenced(folio, 1, sc->target_mem_cgroup,
+-					   &vm_flags);
++					   &vma_flags);
+ 
+ 	/*
+ 	 * The supposedly reclaimable folio was found to be in a VM_LOCKED vma.
+ 	 * Let the folio, now marked Mlocked, be moved to the unevictable list.
+ 	 */
+-	if (vm_flags & VM_LOCKED)
++	if (vma_flags_test(&vma_flags, VMA_LOCKED_BIT))
+ 		return FOLIOREF_ACTIVATE;
+ 
+ 	/*
+@@ -914,7 +914,7 @@ static enum folio_references folio_check
+ 		/*
+ 		 * Activate file-backed executable folios after first usage.
+ 		 */
+-		if ((vm_flags & VM_EXEC) && folio_is_file_lru(folio))
++		if (vma_flags_test(&vma_flags, VMA_EXEC_BIT) && folio_is_file_lru(folio))
+ 			return FOLIOREF_ACTIVATE;
+ 
+ 		return FOLIOREF_KEEP;
+@@ -2065,7 +2065,7 @@ static void shrink_active_list(unsigned
+ {
+ 	unsigned long nr_taken;
+ 	unsigned long nr_scanned;
+-	vm_flags_t vm_flags;
++	vma_flags_t vma_flags;
+ 	LIST_HEAD(l_hold);	/* The folios which were snipped off */
+ 	LIST_HEAD(l_active);
+ 	LIST_HEAD(l_inactive);
+@@ -2109,7 +2109,7 @@ static void shrink_active_list(unsigned
+ 
+ 		/* Referenced or rmap lock contention: rotate */
+ 		if (folio_referenced(folio, 0, sc->target_mem_cgroup,
+-				     &vm_flags) != 0) {
++				     &vma_flags) != 0) {
+ 			/*
+ 			 * Identify referenced, file-backed active folios and
+ 			 * give them one more trip around the active list. So
+@@ -2119,7 +2119,7 @@ static void shrink_active_list(unsigned
+ 			 * IO, plus JVM can create lots of anon VM_EXEC folios,
+ 			 * so we ignore them here.
+ 			 */
+-			if ((vm_flags & VM_EXEC) && folio_is_file_lru(folio)) {
++			if (vma_flags_test(&vma_flags, VMA_EXEC_BIT) && folio_is_file_lru(folio)) {
+ 				nr_rotated += folio_nr_pages(folio);
+ 				list_add(&folio->lru, &l_active);
  				continue;
 _
 
-Patches currently in -mm which might be from leitao@debian.org are
+Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
 
+mm-fix-incorrect-vm_flags-usage-when-checking-allowable-orders-for-tmpfs.patch
 
