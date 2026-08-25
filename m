@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3DC7733F8A6;
-	Tue, 25 Aug 2026 01:53:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4C3D42F83B5;
+	Tue, 25 Aug 2026 01:53:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787622813; cv=none; b=UclESyVOuabvrO4x7pe2PdZBj2R4gHKiSDKW8TPEc6mgfsyVpGNlWz+9RNkjjVIwa3kP4KACYM19hMyKRr92oT2Wni+W7IZaPM/AtoSrSZeooNhuOvwrfmFS+3LtxHgOc4jBlW2F1HS/0f4eziPQDWDj9UqK5AUqsRFfvxHNrA8=
+	t=1787622816; cv=none; b=I/IQsWs4AILNhubHHUt0CA6Ru77oozpUHsXVv4Dolv4XTUVKoVEbnKBw/1TuO9c6RxLZWePGPuHAsR6JtlBvLfzejcUSmuV6VptISBZajL2CdbcpYX1qx2ncsZNRUtuZA4CErf+84001AtMQQQ8sOCiS2NaJN2yKvFUi/uvPFGg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787622813; c=relaxed/simple;
-	bh=vCGGrNjPPF2v8fUKVi3JYPvE9OLcEia4UdDB+K0OXgE=;
-	h=Date:To:From:Subject:Message-Id; b=uhbQkmwtvRSkeNMpLUcswvFQt8+13ZCp2GWnQLOxCs4a62QtPgFnPkrzwZBcxEdCz3AXzyrthFd2ZrSD/i33SzcEm64qTuWijNJNVHBf6XTlDlFMGiF4lwkzGBtAKHh+WNpVrEeSh2O0mIP72UI2dyzaMUyJq4l1d3xmNbFt4jo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=O42DmxYY; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1787622816; c=relaxed/simple;
+	bh=WzTI4gK88G4bcTzgpv6PZ+ecr/8nQo7R8VRf/4ykwZM=;
+	h=Date:To:From:Subject:Message-Id; b=bdAIipSVuZkUiGdvGJCMGjZMca++WKgbQULE2UbVfjZFEKHIw3DPJonQU1ykC5G7IsFlFH6243Q8IefEhVNJpGmxD9C0M9QFMHIHkJY2V8Gq8oa6TvikSphet1ImLiEiOduXBXs/Lo6QiNQH+Es5XwBEGl6sQ+CFUP2Bfa9mztM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Im3vF7+X; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="O42DmxYY"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 13C9D1F00A3A;
-	Tue, 25 Aug 2026 01:53:32 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Im3vF7+X"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CBAC71F000E9;
+	Tue, 25 Aug 2026 01:53:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1787622812;
-	bh=dsbPfZokcKpoIS9Xe3aKrG6kbwYS+XoBKJfBSiCrfd0=;
+	d=linux-foundation.org; s=korg; t=1787622814;
+	bh=38DWONlX2M0NohCYqhtudocZd8JcAgGaJUCkIU2gJz8=;
 	h=Date:To:From:Subject;
-	b=O42DmxYY0Yvq8RglVP9aO1fi3k6K62EPwKmv7U2LpAVyivMoeK1kkeJraM/oXxZjl
-	 C6f7fq9dSK0EqFfPGcNQ00LKodndDGdWCYLIIulnWng6D02xBTIkFD5Lg/BSkiYzIy
-	 Sp2nBHCipcLYjMtUuDVHVQoDerFBHhxSjdpCSmjM=
-Date: Mon, 24 Aug 2026 18:53:31 -0700
+	b=Im3vF7+X2fjzxqZnAatpdMdZQ9ddx7f1G1PB0i34eFqp2gWevXty/mydbYACkRepi
+	 tvtfbb432M7wJNjQZ8C560XWpmkngLFBOy1v+ca2tueJshQe3oNBZ4cFfDRPgCXFb6
+	 U3jBKXE3v+qXe3JUvKqJgFrqM11/p5evMPv4I500=
+Date: Mon, 24 Aug 2026 18:53:34 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,william.kucharski@oracle.com,stable@vger.kernel.org,ryan.roberts@arm.com,ljs@kernel.org,liam@infradead.org,lance.yang@linux.dev,hannes@cmpxchg.org,dev.jain@arm.com,david@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,ziy@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-huge_memory-use-folios-memcg-inside-__folio_split.patch removed from -mm tree
-Message-Id: <20260825015332.13C9D1F00A3A@smtp.kernel.org>
+Subject: [merged mm-stable] xarray-honor-xa_flags_account-in-xas_split_alloc.patch removed from -mm tree
+Message-Id: <20260825015334.CBAC71F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,53 +35,33 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/huge_memory: use folio's memcg inside __folio_split()
+     Subject: xarray: honor XA_FLAGS_ACCOUNT in xas_split_alloc()
 has been removed from the -mm tree.  Its filename was
-     mm-huge_memory-use-folios-memcg-inside-__folio_split.patch
+     xarray-honor-xa_flags_account-in-xas_split_alloc.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Zi Yan <ziy@nvidia.com>
-Subject: mm/huge_memory: use folio's memcg inside __folio_split()
-Date: Tue, 04 Aug 2026 17:04:27 -0400
+Subject: xarray: honor XA_FLAGS_ACCOUNT in xas_split_alloc()
+Date: Tue, 04 Aug 2026 17:04:28 -0400
 
-Patch series "Honor XA_FLAGS_ACCOUNT in xas_split_alloc() and charge to
-folio's memcg", v3.
+XArray operations that allocate xa_nodes, such as xas_nomem() and
+xas_alloc(), add __GFP_ACCOUNT when the array has XA_FLAGS_ACCOUNT set. 
+This charges the allocated memory and avoids the workingset convergence
+issue described by commit 7b785645e8f13 ("mm: fix page cache convergence
+regression").
 
-__GFP_ACCOUNT is needed for xarray node allocation accounting when
-XA_FLAGS_ACCOUNT is set. Commit 7b785645e8f13 ("mm: fix page cache
-convergence regression") fixed a workingset regression with it.
-xas_split_alloc() does not have it and needs to be fixed.
+xas_split_alloc() does not add _GFP_ACCOUNT when XA_FLAGS_ACCOUNT is
+present.  Fix it.
 
-In addition, based on Sashiko's review[1] and Johannes' confirmation[2], to
-charge the right memcg, folio's memcg needs to be active during folio
-split. Add that before adding __GFP_ACCOUNT.
-
-There is no workingset convergence regression related to missing
-__GFP_ACCOUNT in xas_split_alloc() and the impact to userspace should be
-minor.
-
-
-This patch (of 2):
-
-During a pagecache folio split, an xarray node allocation can happen and
-needs to charge at folio's memcg instead of folio split invoker's memcg,
-because for example folio split can happen during reclaim and reclaim's
-active memcg might not be folio's memcg.  Switch to folio's memcg at the
-beginning and switch back afterwards.
-
-Link: https://lore.kernel.org/20260804-add-gfp_account-to-xas_split_alloc-v3-0-38cb3ff325c5@nvidia.com
-Link: https://lore.kernel.org/20260804-add-gfp_account-to-xas_split_alloc-v3-1-38cb3ff325c5@nvidia.com
-Link: https://sashiko.dev/#/patchset/20260727-add-gfp_account-to-xas_split_alloc-v1-1-9fae6bf64838%40nvidia.com?part=1 [1]
-Link: https://lore.kernel.org/all/amtcBZ-_QVRgCd6b@cmpxchg.org/ [2]
+Link: https://lore.kernel.org/20260804-add-gfp_account-to-xas_split_alloc-v3-2-38cb3ff325c5@nvidia.com
 Fixes: 6b24ca4a1a8d ("mm: Use multi-index entries in the page cache")
 Signed-off-by: Zi Yan <ziy@nvidia.com>
-Suggested-by: Johannes Weiner <hannes@cmpxchg.org>
-Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Acked-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+Reviewed-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Barry Song <baohua@kernel.org>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Dev Jain <dev.jain@arm.com>
@@ -94,69 +74,21 @@ Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   20 ++++++++++++++++----
- 1 file changed, 16 insertions(+), 4 deletions(-)
+ lib/xarray.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/mm/huge_memory.c~mm-huge_memory-use-folios-memcg-inside-__folio_split
-+++ a/mm/huge_memory.c
-@@ -4105,34 +4105,42 @@ static int __folio_split(struct folio *f
- 	XA_STATE(xas, &folio->mapping->i_pages, folio->index);
- 	struct folio *end_folio = folio_next(folio);
- 	bool is_anon = folio_test_anon(folio);
-+	struct mem_cgroup *memcg, *old_memcg;
- 	struct address_space *mapping = NULL;
- 	struct anon_vma *anon_vma = NULL;
- 	int old_order = folio_order(folio);
- 	struct folio *new_folio, *next;
- 	int nr_shmem_dropped = 0;
- 	enum ttu_flags ttu_flags = 0;
--	int ret;
- 	pgoff_t end = 0;
-+	int ret;
+--- a/lib/xarray.c~xarray-honor-xa_flags_account-in-xas_split_alloc
++++ a/lib/xarray.c
+@@ -1053,6 +1053,9 @@ void xas_split_alloc(struct xa_state *xa
+ 	if (xas->xa_shift + XA_CHUNK_SHIFT > order)
+ 		return;
  
- 	VM_WARN_ON_ONCE_FOLIO(!folio_test_locked(folio), folio);
- 	VM_WARN_ON_ONCE_FOLIO(!folio_test_large(folio), folio);
- 
- 	if (folio != page_folio(split_at) || folio != page_folio(lock_at)) {
- 		ret = -EINVAL;
--		goto out;
-+		goto out_no_memcg;
- 	}
- 
- 	if (new_order >= old_order) {
- 		ret = -EINVAL;
--		goto out;
-+		goto out_no_memcg;
- 	}
- 
- 	ret = folio_check_splittable(folio, new_order, split_type);
- 	if (ret) {
- 		VM_WARN_ONCE(ret == -EINVAL, "Tried to split an unsplittable folio");
--		goto out;
-+		goto out_no_memcg;
- 	}
- 
-+	/*
-+	 * switch to folio's memcg as xarray node allocation can happen and
-+	 * needs to charge to it.
-+	 */
-+	memcg = get_mem_cgroup_from_folio(folio);
-+	old_memcg = set_active_memcg(memcg);
++	if (xas->xa->xa_flags & XA_FLAGS_ACCOUNT)
++		gfp |= __GFP_ACCOUNT;
 +
- 	if (is_anon) {
- 		/*
- 		 * The caller does not necessarily hold an mmap_lock that would
-@@ -4275,6 +4283,10 @@ out_unlock:
- 	if (mapping)
- 		i_mmap_unlock_read(mapping);
- out:
-+	/* restore to caller's old_memcg */
-+	set_active_memcg(old_memcg);
-+	mem_cgroup_put(memcg);
-+out_no_memcg:
- 	xas_destroy(&xas);
- 	if (is_pmd_order(old_order))
- 		count_vm_event(!ret ? THP_SPLIT_PAGE : THP_SPLIT_PAGE_FAILED);
+ 	do {
+ 		struct xa_node *node;
+ 
 _
 
 Patches currently in -mm which might be from ziy@nvidia.com are
