@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 053BD369D51;
-	Tue, 25 Aug 2026 01:55:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5CBD1349CC4
+	for <mm-commits@vger.kernel.org>; Tue, 25 Aug 2026 01:56:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787622960; cv=none; b=Y1Bx+Ou+6Cm/Tf/2Yu9j+RACllZCx0U0mGHV3yy2l7n8JeGsvVie8rih7edvW3BxzachCVxiqFuInCZtnXmGUFLiT56zVO11pujjCgcUBmOezV+IpdScBxxtOz7FVWDpnSK8amiE6Nvz7Jfax25lPMsTycLpTZap8KpKDgbnW24=
+	t=1787622961; cv=none; b=NX0Tye7TvZ00Bzdpc9F+SStzHwoVIlgh/iHJmghhC8zMZJqwbA9HdHP+/aLKTWw0ggvX2wZW3Elb5mHutfq89P5LrMW+hT+TkwSQEYsK4v9YeHgxH9AVUVQpMh+Raach/bp910H6vsDWp/0ahUvZ+vLCCF1Uq4IA/nPm3BdlL8s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787622960; c=relaxed/simple;
-	bh=h68WxliiAM98eqpQclSdDH7g3rMWBR93KAabbl4MS6E=;
-	h=Date:To:From:Subject:Message-Id; b=Cic/LwIvCnuXYeM7s4X5nGvJCr45lXjB4wRsq5GmoSmsmXfOUZY4d2oe1HtxiEGjqaMw6X/Qhb5C0Aef0kcEvBgwwB6mCGUUMGFKJ/cAkpDPsIwuSO7+7KUzVVqPzQW0ei8hvSEasOwZFqV/rOgB/McNupX5SIDY+UMqYh+w95s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lOGIGL4F; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1787622961; c=relaxed/simple;
+	bh=m64ui3FLe8Vm/xaXSJKdQv7YywDzREpM/fW0duMhxFA=;
+	h=Date:To:From:Subject:Message-Id; b=qoCEuUKrus3a2TL8vkf1UHYiyP1iag6HGON+/gvwIZrQIS8oHtgMx7Q1c8mu0l6D5SuGMSw3bGHQcNdMBx1xBYsl5XBCZKh8VM+hqPeRe7M1EJKmGPO4oxOvYlJOTdR+3yQbZ1cxw5EP1Wbj6RBn9lllVg9tVj/YHT6o804BTug=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=C+9SEGso; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lOGIGL4F"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CD98D1F00A3A;
-	Tue, 25 Aug 2026 01:55:58 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="C+9SEGso"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0341B1F000E9;
+	Tue, 25 Aug 2026 01:55:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1787622958;
-	bh=haePXnmC4NTXD6UfextFfV+k/p0/oXERsEllcbEqyPU=;
+	d=linux-foundation.org; s=korg; t=1787622960;
+	bh=hijnXD+aFsrwOfvYOUEOALqi8Z9EnQZ7Om285ifRJkc=;
 	h=Date:To:From:Subject;
-	b=lOGIGL4FfDtlAZAkXr0oVgBwe1IX4UoAq3a/ccncwVmw//aydP2iF1o0t05J91tTO
-	 qulxkczlvMJ4EEngG+rV7thp3WdIA2KPlXq/byzvIAsUfEtlvKhMexUnAeF0c2ueDs
-	 quxn5AE/a7feCiN9KSUzPysb/hCbij7g1E1nPqQo=
-Date: Mon, 24 Aug 2026 18:55:58 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,shikemeng@huaweicloud.com,osalvador@suse.de,nphamcs@gmail.com,linmiaohe@huawei.com,kasong@tencent.com,david@kernel.org,chrisl@kernel.org,baoquan.he@linux.dev,baohua@kernel.org,leitao@debian.org,akpm@linux-foundation.org
+	b=C+9SEGsoDOIPwJKkNAgMJDHTJpMST0hKBkgdfaOFEEcT/DAro3c9qa8aPMofjs18k
+	 8EOLaH4WZkoDVOjo5Tpr7O7J0Xr0WIDBExDCXm/jgWogROE+oY5w15hClvZIBI5dWF
+	 E76UT2Ym3girsjQrKZZnv+FjIL4bnADwFuIAqztU=
+Date: Mon, 24 Aug 2026 18:55:59 -0700
+To: mm-commits@vger.kernel.org,sj@kernel.org,shuah@kernel.org,sarthak.sharma@arm.com,ljs@kernel.org,david@kernel.org,akpm@linux-foundation.org,anshumantewari123@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-swap-ratelimit-bad-swap-entry-reports.patch removed from -mm tree
-Message-Id: <20260825015558.CD98D1F00A3A@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-mm-check-stat-return-value-in-khugepaged-get_finfo.patch removed from -mm tree
+Message-Id: <20260825015600.0341B1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,74 +35,61 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm, swap: ratelimit bad swap entry reports
+     Subject: selftests/mm: check stat() return value in khugepaged get_finfo()
 has been removed from the -mm tree.  Its filename was
-     mm-swap-ratelimit-bad-swap-entry-reports.patch
+     selftests-mm-check-stat-return-value-in-khugepaged-get_finfo.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Breno Leitao <leitao@debian.org>
-Subject: mm, swap: ratelimit bad swap entry reports
-Date: Tue, 18 Aug 2026 02:03:40 -0700
+From: Anshuman <anshumantewari123@gmail.com>
+Subject: selftests/mm: check stat() return value in khugepaged get_finfo()
+Date: Wed, 19 Aug 2026 17:44:26 +0530
 
-A corrupt page table hands the same bogus entry to get_swap_device() on
-every access to the mapping, and every rejection is logged.  One machine
-logged 6185620 copies of the same line in a few hours.
+get_finfo() calls stat() to get metadata about the target directory, but
+never checks the return value.  On failure, stat() returns -1 and leaves
+path_stat unmodified, so path_stat.st_mode may contain uninitialized stack
+data.
 
-swap_dup_entry_direct() prints the same message from the fork path, once
-per call: the WARN_ON_ONCE() guarding it warns once, the pr_err() inside
-does not.
+The code then checks S_ISDIR(path_stat.st_mode) against this potentially
+garbage value.  This can produce a misleading "Not a directory" error when
+the real problem is a nonexistent or inaccessible path, or, in the worst
+case, the check could pass by chance on garbage data and let the function
+continue using an invalid path_stat for the rest of its logic.
 
-Rate limit all three prints.
+Check the return value and fail with a clear error message if stat()
+fails, matching the error-handling style already used for statfs() and
+read_file() later in the same function.
 
-Link: https://lore.kernel.org/20260818-swap_part_one-v1-1-a4fc58119fc0@debian.org
-Fixes: 23b230ba8ac3 ("mm/swap: print bad swap offset entry in get_swap_device")
-Signed-off-by: Breno Leitao <leitao@debian.org>
-Reviewed-by: Barry Song <baohua@kernel.org>
-Reviewed-by: Nhat Pham <nphamcs@gmail.com>
-Acked-by: Kairui Song <kasong@tencent.com>
+Link: https://lore.kernel.org/20260819121426.49500-1-anshumantewari123@gmail.com
+Signed-off-by: Anshuman <anshumantewari123@gmail.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Reviewed-by: SJ Park <sj@kernel.org>
+Reviewed-by: Sarthak Sharma <sarthak.sharma@arm.com>
 Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Cc: Baoquan He <baoquan.he@linux.dev>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: Kemeng Shi <shikemeng@huaweicloud.com>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: <stable@vger.kernel.org>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ tools/testing/selftests/mm/khugepaged.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/mm/swapfile.c~mm-swap-ratelimit-bad-swap-entry-reports
-+++ a/mm/swapfile.c
-@@ -1899,11 +1899,11 @@ struct swap_info_struct *get_swap_device
+--- a/tools/testing/selftests/mm/khugepaged.c~selftests-mm-check-stat-return-value-in-khugepaged-get_finfo
++++ a/tools/testing/selftests/mm/khugepaged.c
+@@ -124,7 +124,8 @@ static void get_finfo(const char *dir)
+ 	char *str, *end;
  
- 	return si;
- bad_nofile:
--	pr_err("%s: %s%08lx\n", __func__, Bad_file, entry.val);
-+	pr_err_ratelimited("%s: %s%08lx\n", __func__, Bad_file, entry.val);
- out:
- 	return NULL;
- put_out:
--	pr_err("%s: %s%08lx\n", __func__, Bad_offset, entry.val);
-+	pr_err_ratelimited("%s: %s%08lx\n", __func__, Bad_offset, entry.val);
- 	percpu_ref_put(&si->users);
- 	return NULL;
- }
-@@ -3883,7 +3883,7 @@ int swap_dup_entry_direct(swp_entry_t en
- 
- 	si = swap_entry_to_info(entry);
- 	if (WARN_ON_ONCE(!si)) {
--		pr_err("%s%08lx\n", Bad_file, entry.val);
-+		pr_err_ratelimited("%s%08lx\n", Bad_file, entry.val);
- 		return -EINVAL;
- 	}
- 
+ 	finfo.dir = dir;
+-	stat(finfo.dir, &path_stat);
++	if (stat(finfo.dir, &path_stat))
++		ksft_exit_fail_perror("stat()");
+ 	if (!S_ISDIR(path_stat.st_mode))
+ 		ksft_exit_fail_msg("%s: Not a directory (%s)\n", __func__, finfo.dir);
+ 	if (snprintf(finfo.path, sizeof(finfo.path), "%s/" TEST_FILE,
 _
 
-Patches currently in -mm which might be from leitao@debian.org are
+Patches currently in -mm which might be from anshumantewari123@gmail.com are
 
 
