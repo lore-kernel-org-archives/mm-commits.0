@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F1EEA34750B;
-	Tue, 25 Aug 2026 01:54:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 444B725B098
+	for <mm-commits@vger.kernel.org>; Tue, 25 Aug 2026 01:54:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787622844; cv=none; b=fb4XHroUbOsb5QR63VosURBHsDdedvM9TWUwj1TyoqQmG/J1LLRYuoUXsRtcLXgW1GmKCbGnixDfIdEV2zfCr5o9TDJa+3InAyWL8e1/5Y9s+8hZXYWRDdcWkVGF7+S8hgK84oWqKN2qMlDtqzFjFehQKoMv57vnjArvksrhsy0=
+	t=1787622847; cv=none; b=Kfws/KawoF1emObBBfKX6LX8rqrl3umCogdK54+aA07TR4td7n3UuQNxLUwa6ZFuwavER99V7S+TWYGpGq8LxZagH73ODpFJ+2eXpJu2VfoUSIBFsFT7xZmoUYRIngOljPWYkoAytKyn5CQw+Irze73zFmg18rvUiA+sHpsghhY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787622844; c=relaxed/simple;
-	bh=cedJOA8hGIcsm6DoP/sqrV+t/UHTH6k9/whO4iySTh4=;
-	h=Date:To:From:Subject:Message-Id; b=oNNdNFLQBVYrizCryC0mp7scXsuicWcScaSugldwdactlnm62wslBOQnV82T1gpixPFVS3eLJ22oRq6xyPalC2kPM472BOSOefNnJZzXFw0uVJU1hGDfcdzR9CCHVokz82GzgiPyXPwieoy7KXBwQq++aODSqozOt0/d9ag2HoI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sE9SLCJI; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1787622847; c=relaxed/simple;
+	bh=CocjphDXfegypJRudqjFQ6y3zH5eawqCB3DUxY/SFmQ=;
+	h=Date:To:From:Subject:Message-Id; b=PyTJnyprmY1V+N/qP3Nr3pqkfuhIdBNMImr7sqRU8Mgfel8m5dzS7OLhi9avEZLvauQyfw80AahAbLwRh+31YAwCV38IJy++1CUErFWF7pDwlSfg2P7K6QWmXAN0f/nC5v25LfmqNL+nrxDOmtB949kTL5GVTDdI+vTciJD4ffU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=14Nlg5mL; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sE9SLCJI"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B5D4E1F00A3A;
-	Tue, 25 Aug 2026 01:54:02 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="14Nlg5mL"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DDB521F000E9;
+	Tue, 25 Aug 2026 01:54:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1787622842;
-	bh=Voa+3ELiotseOJj3TdxYHHK4uLaTr7LSnhh5NRMXkB8=;
+	d=linux-foundation.org; s=korg; t=1787622844;
+	bh=nnHq4+OOc+iY9Q7Mysn5XNDBymdm1pH9h4UT1h7/9Y4=;
 	h=Date:To:From:Subject;
-	b=sE9SLCJIDyVgFSxYVt/aNt0CAOfTxu84ySj6eTzVRETL7ltwdx5PI6yao93iK1VJY
-	 e7A0o2NDxK4H6giaOxmi8Dg74Rv3QrEZPIb0LCL8GC2xD91uu7dCEXVh7oRz1X+BO0
-	 oYCbvO6Qam5dEfyLt6REvuxdAN301HGkvqArDIZI=
-Date: Mon, 24 Aug 2026 18:54:02 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,senozhatsky@chromium.org,minchan@kernel.org,axboe@kernel.dk,xialonglong@kylinos.cn,akpm@linux-foundation.org
+	b=14Nlg5mL6BujUsoNB5xfSl+pKlowqc/XLn3QyLoGMWnjUCgjNb2WPJ0X79E7iB9Qh
+	 BLkT7wAfTMmAbYoNcrbijXCpdgDA/OynwRDwuunj2qdxyGkn6qwVVHrhsuqmW4E1ZD
+	 Fp1WleaDUxquaD67CLvH5E/XC5Li1MhC+Ucr1jTU=
+Date: Mon, 24 Aug 2026 18:54:03 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,surenb@google.com,mhocko@suse.com,hannes@cmpxchg.org,akpm@linux-foundation.org,liuye@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] zram-fix-out-of-bounds-access-in-read_block_state.patch removed from -mm tree
-Message-Id: <20260825015402.B5D4E1F00A3A@smtp.kernel.org>
+Subject: [merged mm-stable] mm-debug_page_alloc-fix-type-mismatch-for-debug_guardpage_minorder.patch removed from -mm tree
+Message-Id: <20260825015403.DDB521F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,64 +35,62 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: zram: fix out-of-bounds access in read_block_state()
+     Subject: mm: debug_page_alloc: fix type mismatch for debug_guardpage_minorder
 has been removed from the -mm tree.  Its filename was
-     zram-fix-out-of-bounds-access-in-read_block_state.patch
+     mm-debug_page_alloc-fix-type-mismatch-for-debug_guardpage_minorder.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Longlong Xia <xialonglong@kylinos.cn>
-Subject: zram: fix out-of-bounds access in read_block_state()
-Date: Tue, 4 Aug 2026 14:59:19 +0800
+From: Ye Liu <liuye@kylinos.cn>
+Subject: mm: debug_page_alloc: fix type mismatch for debug_guardpage_minorder
+Date: Wed, 5 Aug 2026 17:31:07 +0800
 
-read_block_state() calculates nr_pages before taking dev_lock.  If the
-device is reset and reinitialized with a smaller disksize before lock
-acquisition, nr_pages still describes the old table.  The subsequent loop
-can then call slot_lock() past the end of the newly allocated table.
+The debug_guardpage_minorder local variable is declared as unsigned int,
+but debug_guardpage_minorder_setup() uses unsigned long and kstrtoul() to
+parse the value.
 
-Read disksize after acquiring dev_lock and checking that the device is
-initialized.  The read lock then keeps the table and its bound stable for
-the duration of the scan.
+Use kstrtouint() with unsigned int local variable to match the actual type
+of _debug_guardpage_minorder.  Also fix the format specifier from %lu to
+%u accordingly.
 
-Link: https://lore.kernel.org/20260804065919.3970386-3-xialonglong2025@163.com
-Fixes: c0265342bff4 ("zram: introduce zram memory tracking")
-Assisted-by: Codex:gpt-5.6-sol
-Signed-off-by: Longlong Xia <xialonglong@kylinos.cn>
-Reviewed-by: Sergey Senozhatsky <senozhatsky@chromium.org>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: <stable@vger.kernel.org>
+Link: https://lore.kernel.org/20260805093108.2352900-1-ye.liu@linux.dev
+Signed-off-by: Ye Liu <liuye@kylinos.cn>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ mm/debug_page_alloc.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/drivers/block/zram/zram_drv.c~zram-fix-out-of-bounds-access-in-read_block_state
-+++ a/drivers/block/zram/zram_drv.c
-@@ -1543,7 +1543,7 @@ static ssize_t read_block_state(struct f
- 	char *kbuf;
- 	ssize_t index, written = 0;
- 	struct zram *zram = file->private_data;
--	unsigned long nr_pages = zram->disksize >> PAGE_SHIFT;
-+	unsigned long nr_pages;
+--- a/mm/debug_page_alloc.c~mm-debug_page_alloc-fix-type-mismatch-for-debug_guardpage_minorder
++++ a/mm/debug_page_alloc.c
+@@ -20,14 +20,14 @@ early_param("debug_pagealloc", early_deb
  
- 	kbuf = kvmalloc(count, GFP_KERNEL);
- 	if (!kbuf)
-@@ -1555,6 +1555,8 @@ static ssize_t read_block_state(struct f
- 		return -EINVAL;
+ static int __init debug_guardpage_minorder_setup(char *buf)
+ {
+-	unsigned long res;
++	unsigned int res;
+ 
+-	if (kstrtoul(buf, 10, &res) < 0 ||  res > MAX_PAGE_ORDER / 2) {
++	if (kstrtouint(buf, 10, &res) < 0 ||  res > MAX_PAGE_ORDER / 2) {
+ 		pr_err("Bad debug_guardpage_minorder value: %s\n", buf);
+ 		return 0;
  	}
- 
-+	nr_pages = zram->disksize >> PAGE_SHIFT;
-+
- 	for (index = *ppos; index < nr_pages; index++) {
- 		int copied;
- 
+ 	_debug_guardpage_minorder = res;
+-	pr_info("Setting debug_guardpage_minorder to %lu\n", res);
++	pr_info("Setting debug_guardpage_minorder to %u\n", res);
+ 	return 0;
+ }
+ early_param("debug_guardpage_minorder", debug_guardpage_minorder_setup);
 _
 
-Patches currently in -mm which might be from xialonglong@kylinos.cn are
+Patches currently in -mm which might be from liuye@kylinos.cn are
 
-mm-hugetlb-keep-max_huge_pages-when-dissolving-surplus-folios.patch
 
