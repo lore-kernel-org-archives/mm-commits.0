@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0BBCE233942
-	for <mm-commits@vger.kernel.org>; Tue, 25 Aug 2026 01:53:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4357E2F83B5
+	for <mm-commits@vger.kernel.org>; Tue, 25 Aug 2026 01:53:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787622832; cv=none; b=qOBHwPNgrpZF9/HplHw0aSDtJLnzAk3159eQGnpFr5iJyMwBySxXk/Mo9Kdf9WzpeC9oiSs6mN3G0uuZus1Eb7oNfnPM7IXnCNGsVn+uVoMCbuoVUd6WUYyEFwqnQMa7u08E3a08692GriPQEenRjK9lKc03/3YG33ztrIRO3Tc=
+	t=1787622833; cv=none; b=GFlUsCvNUdtIwZxD071jhl1ePyaR4A1e5TAjZtBDcR/BXwlF3PsksJaJ3ZYdlj3sD3ly/hCVrKjqr/5+xzd+vBvhhEgfcl0t+d2boDinn2lioc9maJ4K3w6oHeTA594lBOT125Ux2C8lK+oCoJuiR4XPkVLgTQhWsLNoULy+mEU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787622832; c=relaxed/simple;
-	bh=Er/YwcYi+66jafdrXjimjWa6ElUZn7GFl1WWg801Q74=;
-	h=Date:To:From:Subject:Message-Id; b=AblORp4NkAkcM9fMwQW8AzYQjtVyU5kVnj9+2wwOh8oPbdEP014cwJZDa249UjpA7vaIhDzGOk9bp8LwMPEN8ApFFuea7PaEn8ArX4YPTMG77szgRt5+Fa/0J1abxr0wz9ygBlXl6WbsYEuqhJ4BoZmWvP0ptTAnAczY9Gx0OkE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UQo5F1zC; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1787622833; c=relaxed/simple;
+	bh=5FG3oEGbnS7jFbNgJeTNvINJWctv9KrPd5q2CpxDnLI=;
+	h=Date:To:From:Subject:Message-Id; b=j72LtSxs83mtGctITGg7UR5sg8XCXXsXMF42ZIc5JAmRwRJCenrPjeWJ5DP2/LLGOsXvip7sJNO19es3zIkJg0jDPL6oYMQxWwQJWfO9iHrrxp1xpNBD5rA2FamSJlLtDOOmnnjUKv7h+BAa51M/fgdjGjH8LBzahpvzUIpQ4Ss=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1KaCb69D; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UQo5F1zC"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C4EB51F00A3A;
-	Tue, 25 Aug 2026 01:53:50 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1KaCb69D"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1C92B1F000E9;
+	Tue, 25 Aug 2026 01:53:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1787622830;
-	bh=sQTIbW/XXHrcrvY5pLCypRCm3IRRnmFwP/pZXA/bKUs=;
+	d=linux-foundation.org; s=korg; t=1787622832;
+	bh=AePs3hRymeiwjCAGjLexlnCoDlw80AzAXg23vuzfxIk=;
 	h=Date:To:From:Subject;
-	b=UQo5F1zCE5yCExEONdTma0kTKVVWCe4uS4PotXD9gOvw3vBMqWU+Dnx83dSgpXQjn
-	 dHzULm6LvIrEn7Mxkisc6l91nsI41K9Gx0NfdjrqXf78Q1WCBfWSU54jFdsQpQGd3+
-	 qMDwDO3NrMUvQV7vGG+c/l6oraAoPkVonRlO3tYM=
-Date: Mon, 24 Aug 2026 18:53:50 -0700
-To: mm-commits@vger.kernel.org,baoquan.he@linux.dev,anshuman.khandual@arm.com,urezki@gmail.com,akpm@linux-foundation.org
+	b=1KaCb69Dzne97rIf0GW2PpW+eaDF8sZq3HmSQ4XYTBbeFRnx8QkxIgqV/RR7TT1Ap
+	 YAmi1pU/pSBshqGioK5Z8+NEwwrWQRebPgVdtihZWorzbrXf93YZdAyfRfaLgViOuY
+	 DwC/pnxFJhtiMLiIwuz37md/1/UOyP7GF2PQeQ2Y=
+Date: Mon, 24 Aug 2026 18:53:51 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,urezki@gmail.com,surenb@google.com,shikemeng@huaweicloud.com,shakeel.butt@linux.dev,rppt@kernel.org,roman.gushchin@linux.dev,osalvador@suse.de,nphamcs@gmail.com,muchun.song@linux.dev,mhocko@kernel.org,liam@infradead.org,kasong@tencent.com,hannes@cmpxchg.org,david@kernel.org,chrisl@kernel.org,baoquan.he@linux.dev,baohua@kernel.org,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-vmalloc-do-not-warn-on-enomem-from-va_alloc.patch removed from -mm tree
-Message-Id: <20260825015350.C4EB51F00A3A@smtp.kernel.org>
+Subject: [merged mm-stable] mm-add-some-missing-includes-to-mm-local-headers.patch removed from -mm tree
+Message-Id: <20260825015352.1C92B1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,69 +35,142 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/vmalloc: do not warn on -ENOMEM from va_alloc()
+     Subject: mm: add some missing includes to mm-local headers
 has been removed from the -mm tree.  Its filename was
-     mm-vmalloc-do-not-warn-on-enomem-from-va_alloc.patch
+     mm-add-some-missing-includes-to-mm-local-headers.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
-Subject: mm/vmalloc: do not warn on -ENOMEM from va_alloc()
-Date: Sun, 2 Aug 2026 12:46:27 +0200
+From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
+Subject: mm: add some missing includes to mm-local headers
+Date: Tue, 04 Aug 2026 11:08:59 +0100
 
-Since vmalloc() accepts non-blocking GFP flags, allocation requests may
-fail when callers pass restrictive GFP masks.
+There are a number of internal headers local to mm/ which reference
+functions and data types without including the relevant headers.
 
-va_clip() may return -ENOMEM when its GFP_NOWAIT fallback allocation fails
-during NE_FIT_TYPE splitting.  This is an expected failure, so va_alloc()
-should return the error without triggering a kernel splat.
+mm/vma.h is a special case that intentionally does not include additional
+headers, but the others are not.
 
-Link: https://lore.kernel.org/20260802104627.63892-1-urezki@gmail.com
-Signed-off-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
-Reported-by: syzbot+61c997e6be1d9bb300ba@syzkaller.appspotmail.com
-Closes: https://lore.kernel.org/6a6d3cbd.6ce73036.24301b.000e.GAE@google.com
-Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
+This breaks tooling like clangd (which is where I noticed this), though
+the build is OK due to the C files including the headers happening to
+include required dependencies.
+
+It's better to be explicit about dependencies anyway, so add the missing
+includes and fix clangd as a bonus.
+
+Link: https://lore.kernel.org/20260804-fix-some-local-headers-v1-1-a7beb173c116@kernel.org
+Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+Acked-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Acked-by: Zi Yan <ziy@nvidia.com>
+Reviewed-by: Barry Song <baohua@kernel.org>
 Reviewed-by: Baoquan He <baoquan.he@linux.dev>
+Cc: Chris Li <chrisl@kernel.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Kairui Song <kasong@tencent.com>
+Cc: Kemeng Shi <shikemeng@huaweicloud.com>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |   13 ++++++-------
- 1 file changed, 6 insertions(+), 7 deletions(-)
+ mm/cma.h           |    1 +
+ mm/hugetlb_cma.h   |    2 ++
+ mm/memcontrol-v1.h |    1 +
+ mm/pgalloc-track.h |    3 +++
+ mm/shuffle.h       |    2 ++
+ mm/swap.h          |    1 +
+ mm/vmalloc.h       |    2 ++
+ 7 files changed, 12 insertions(+)
 
---- a/mm/vmalloc.c~mm-vmalloc-do-not-warn-on-enomem-from-va_alloc
-+++ a/mm/vmalloc.c
-@@ -1840,8 +1840,10 @@ va_alloc(struct vmap_area *va,
+--- a/mm/cma.h~mm-add-some-missing-includes-to-mm-local-headers
++++ a/mm/cma.h
+@@ -2,6 +2,7 @@
+ #ifndef __MM_CMA_H__
+ #define __MM_CMA_H__
  
- 	/* Update the free vmap_area. */
- 	ret = va_clip(root, head, va, nva_start_addr, size);
--	if (WARN_ON_ONCE(ret))
-+	if (ret) {
-+		WARN_ON_ONCE(ret != -ENOMEM);
- 		return ret;
-+	}
++#include <linux/cma.h>
+ #include <linux/debugfs.h>
+ #include <linux/kobject.h>
  
- 	return nva_start_addr;
- }
-@@ -1914,12 +1916,9 @@ preload_this_cpu_lock(spinlock_t *lock,
+--- a/mm/hugetlb_cma.h~mm-add-some-missing-includes-to-mm-local-headers
++++ a/mm/hugetlb_cma.h
+@@ -2,6 +2,8 @@
+ #ifndef _LINUX_HUGETLB_CMA_H
+ #define _LINUX_HUGETLB_CMA_H
  
- 	/*
- 	 * Preload this CPU with one extra vmap_area object. It is used
--	 * when fit type of free area is NE_FIT_TYPE. It guarantees that
--	 * a CPU that does an allocation is preloaded.
--	 *
--	 * We do it in non-atomic context, thus it allows us to use more
--	 * permissive allocation masks to be more stable under low memory
--	 * condition and high memory pressure.
-+	 * when fit type of free area is NE_FIT_TYPE. It is best effort
-+	 * pre-loading. If it fails va_clip() may return -ENOMEM from its
-+	 * GFP_NOWAIT fallback.
- 	 */
- 	if (!this_cpu_read(ne_fit_preload_node))
- 		va = kmem_cache_alloc_node(vmap_area_cachep, gfp_mask, node);
++#include <linux/hugetlb.h>
++
+ #ifdef CONFIG_CMA
+ void hugetlb_cma_free_frozen_folio(struct folio *folio);
+ struct folio *hugetlb_cma_alloc_frozen_folio(int order, gfp_t gfp_mask,
+--- a/mm/memcontrol-v1.h~mm-add-some-missing-includes-to-mm-local-headers
++++ a/mm/memcontrol-v1.h
+@@ -4,6 +4,7 @@
+ #define __MM_MEMCONTROL_V1_H
+ 
+ #include <linux/cgroup-defs.h>
++#include <linux/memcontrol.h>
+ 
+ /* Cgroup v1 and v2 common declarations */
+ 
+--- a/mm/pgalloc-track.h~mm-add-some-missing-includes-to-mm-local-headers
++++ a/mm/pgalloc-track.h
+@@ -2,6 +2,9 @@
+ #ifndef _LINUX_PGALLOC_TRACK_H
+ #define _LINUX_PGALLOC_TRACK_H
+ 
++#include <linux/mm.h>
++#include <linux/pgtable.h>
++
+ #if defined(CONFIG_MMU)
+ static inline p4d_t *p4d_alloc_track(struct mm_struct *mm, pgd_t *pgd,
+ 				     unsigned long address,
+--- a/mm/shuffle.h~mm-add-some-missing-includes-to-mm-local-headers
++++ a/mm/shuffle.h
+@@ -2,7 +2,9 @@
+ // Copyright(c) 2018 Intel Corporation. All rights reserved.
+ #ifndef _MM_SHUFFLE_H
+ #define _MM_SHUFFLE_H
++
+ #include <linux/jump_label.h>
++#include <linux/mmzone.h>
+ 
+ #define SHUFFLE_ORDER MAX_PAGE_ORDER
+ 
+--- a/mm/swap.h~mm-add-some-missing-includes-to-mm-local-headers
++++ a/mm/swap.h
+@@ -5,6 +5,7 @@
+ #include <linux/atomic.h> /* for atomic_long_t */
+ #include <linux/mm.h> /* for PAGE_SHIFT */
+ #include <linux/memcontrol.h> /* for mem_cgroup_swappiness() */
++#include <linux/swap.h> /* for MAX_SWAPFILES_SHIFT, struct swap_info_struct */
+ 
+ struct mempolicy;
+ struct swap_iocb;
+--- a/mm/vmalloc.h~mm-add-some-missing-includes-to-mm-local-headers
++++ a/mm/vmalloc.h
+@@ -5,6 +5,8 @@
+ #ifndef __MM_VMALLOC_H
+ #define __MM_VMALLOC_H
+ 
++#include <linux/vmalloc.h>
++
+ #ifdef CONFIG_MMU
+ void __init vmalloc_init(void);
+ int __must_check vmap_pages_range_noflush(unsigned long addr, unsigned long end,
 _
 
-Patches currently in -mm which might be from urezki@gmail.com are
+Patches currently in -mm which might be from ljs@kernel.org are
 
 
