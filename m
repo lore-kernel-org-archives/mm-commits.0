@@ -1,32 +1,33 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 478E532AACB
-	for <mm-commits@vger.kernel.org>; Tue, 25 Aug 2026 01:44:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CA62332B119
+	for <mm-commits@vger.kernel.org>; Tue, 25 Aug 2026 01:44:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787622263; cv=none; b=AK8NLZobK4YhxRw3I4gZmkwWUZv2KvZE6lukS44A5mcURYGBilRF319Q46yOOUek1VklAGO/YhzgRZzXWEs2uxOruXP3bBPc+CoetfoLR8vHjwsdqd3xTJy7jM//cA9596P2PWVAujQgkpeLXT82k+gZfYrx1yVI366BM76pq9o=
+	t=1787622266; cv=none; b=CIV+/WqTwuXjqOWWh4N4a9BVox2NVhbTXnkmD6ZNFHrcursJEcLtyKrvvMN6vzVwzLXrlxFGv48bYT3itEYd/9OVjt5W+B3mqq//6eg4HzPpmykIamSip6EzSx/wD5vieute/ny8aiADqPRD4Qen13Fjb8CyCx26rKmLinje4Ds=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787622263; c=relaxed/simple;
-	bh=joxC3ZhCI0CD5v1uEQUA/aZTRIGlo5Qri/sYN28+odA=;
-	h=Date:To:From:Subject:Message-Id; b=LG9zl7Cvefu81gZhzQ6Irux+LStAJnA9iBcvm2xkSpCFOrdhPpcXjkIz9DOg9ogWcG3BslGK5lr0Yh7SPB+Wr8MN1loIMR3fiBE5g+ns9NHqBMGFIkkOeRHaZQAQOeJtRXyXLM8pTTAjBRK24EcDgJ8Qn0Tx3ut5iFpwp5XtMUU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=r0snHJDh; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1787622266; c=relaxed/simple;
+	bh=ZGUDYjndspCzcayQbWsHt1x9oAeqM5yHSrv5bYmPU8Q=;
+	h=Date:To:From:Subject:Message-Id; b=tFdJMplXzaqHOIVd5qycOGyDJOyHZ4dZYcVK5mcPBT9NHZVc2rgCyCOxWfEDBNZh1WrerQ1X48ATsSE/bxPNxaK2YVvAaji1r/7SaTdXTGZm6lltFDRygFfD60tQIKiYmxBc1T1swSbimPVZFB2dLoU45as4122DfSAViJd4uIw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=fail (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lbgH2Hai reason="signature verification failed"; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="r0snHJDh"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1CD601F00A3A;
-	Tue, 25 Aug 2026 01:44:22 +0000 (UTC)
+	dkim=fail reason="signature verification failed" (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lbgH2Hai"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5E1F71F000E9;
+	Tue, 25 Aug 2026 01:44:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1787622262;
-	bh=Duzwgs9df8p5iz5eFWtHOIDnu03pe+W6sHPZO3Gkp5E=;
+	d=linux-foundation.org; s=korg; t=1787622264;
+	bh=ZQel8Yy2Xa269tFQvLp2uVoWLxWp27yxswG7ugH4hWA=;
 	h=Date:To:From:Subject;
-	b=r0snHJDhOa/mbIO21rjcvCCzqZhAwTAppq6Kgoc74+2LPrMf6KDiVcNd7qeQ49Wex
-	 IOnZBZ4eczIZsDzpQ+G7YGNp3IUaKQkSOY7lMTn7GZaV3oeojsAOguN0FvzHVjqZbZ
-	 ENeUc/1UScV1zwfqCYLkTmcMipO28DmhVYw7S0dQ=
-Date: Mon, 24 Aug 2026 18:44:21 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,rppt@kernel.org,muchun.song@linux.dev,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,julianbraha@gmail.com,david@kernel.org,chengkaitao@kylinos.cn,akpm@linux-foundation.org
+	b=lbgH2HaiBKYU0WmPK3tXR8YBUZEHE2sUbG9eoEReJT+EH3WcxrQTHtX4TS65y532Z
+	 W9yOdUDR512Qp42dLLTbFAYWy0g6zAlhvnOBljEqCHRtrhjrC6Eka1bKQX1wDBUx94
+	 kj0mlt7OPUlUi0tmtvHUIrMNVTxvM8FAjZEQrUc0=
+Date: Mon, 24 Aug 2026 18:44:24 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,xu.xin16@zte.com.cn,willy@infradead.org,vbabka@kernel.org,tzimmermann@suse.de,thomas.hellstrom@linux.intel.com,svens@linux.ibm.com,surenb@google.com,steven.price@arm.com,shikemeng@huaweicloud.com,ryan.roberts@arm.com,rppt@kernel.org,rodrigo.vivi@intel.com,riel@surriel.com,Ray.Huang@amd.com,rakie.kim@sk.com,pfalcato@suse.de,peterz@infradead.org,peterx@redhat.com,osalvador@suse.de,oleg@redhat.com,nphamcs@gmail.com,npache@redhat.com,nao.horiguchi@gmail.com,namhyung@kernel.org,muchun.song@linux.dev,mripard@kernel.org,mingo@redhat.com,mhocko@suse.com,mhiramat@kernel.org,matthew.brost@intel.com,matthew.auld@intel.com,mark.rutland@arm.com,maarten.lankhorst@linux.intel.com,liviu.dudau@arm.com,linmiaohe@huawei.com,liam@infradead.org,lance.yang@linux.dev,kees@kernel.org,kasong@tencent.com,joshua.hahnjy@gmail.com,jolsa@kernel.org,jhubbard@nvidia.com,jgg@ziepe.ca,jannh@google.com,james.clark@linaro.org,jack@suse.cz,iroger
+ s@google.com,imbrenda@linux.ibm.com,hca@linux.ibm.com,harry@kernel.org,gregkh@linuxfoundation.org,gourry@gourry.net,gor@linux.ibm.com,gerald.schaefer@linux.ibm.com,frankja@linux.ibm.com,dev.jain@arm.com,david@kernel.org,christian.koenig@amd.com,chrisl@kernel.org,chengming.zhou@linux.dev,byungchul@sk.com,borntraeger@linux.ibm.com,boris.brezillon@collabora.com,baoquan.he@linux.dev,baolin.wang@linux.alibaba.com,baohua@kernel.org,arnd@arndb.de,apopple@nvidia.com,alexander.shishkin@linux.intel.com,alexander.deucher@amd.com,airlied@gmail.com,agordeev@linux.ibm.com,adrian.hunter@intel.com,acme@kernel.org,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-kconfig-drop-redundant-dependency-wrappers.patch removed from -mm tree
-Message-Id: <20260825014422.1CD601F00A3A@smtp.kernel.org>
+Subject: [merged mm-stable] mm-vma-introduce-vma-anon-page-offset-field-and-add-helpers.patch removed from -mm tree
+Message-Id: <20260825014424.5E1F71F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,105 +36,405 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/kconfig: drop redundant dependency wrappers
+     Subject: mm/vma: introduce VMA anon page offset field and add helpers
 has been removed from the -mm tree.  Its filename was
-     mm-kconfig-drop-redundant-dependency-wrappers.patch
+     mm-vma-introduce-vma-anon-page-offset-field-and-add-helpers.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Kaitao Cheng <chengkaitao@kylinos.cn>
-Subject: mm/kconfig: drop redundant dependency wrappers
-Date: Sun, 12 Jul 2026 17:33:26 +0800
+From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
+Subject: mm/vma: introduce VMA anon page offset field and add helpers
+Date: Thu, 13 Aug 2026 18:32:18 +0100
 
-Some mm Kconfig entries repeat dependencies that are already expressed by
-their surrounding blocks or menus.
+Patch series "mm/rmap: index MAP_PRIVATE file-backed folios by anonymous
+pgoff", v5.
 
-The zsmalloc allocator options menu already depends on ZSMALLOC, so the
-outer if ZSMALLOC block does not add any extra constraint. 
-MEMORY_HOTREMOVE and MHP_MEMMAP_ON_MEMORY are both inside the if
-MEMORY_HOTPLUG block, so their local depends on MEMORY_HOTPLUG entries are
-redundant.
+In memory management we've managed to manufacture a great deal of
+confusion around the concept of anonymous memory.  We have:
 
-PTE_MARKER_UFFD_WP is the only entry under if USERFAULTFD.  Move the
-USERFAULTFD dependency into the symbol itself and combine it with the
-architecture support dependency.
+1. 'Pure anon' memory - anonymous VMAs whose folios are anonymous and
+   swap-backed (thus for reclaim purposes, treated as anonymous). These are
+   simple enough.
 
-This keeps the same visibility and defaults while avoiding duplicate
-dependency expressions.
+2. shmem - file-backed VMAs, file-backed folios (from rmap perspective) so
+   present in the page cache and mapped by an address_space object, but
+   whose folios are also swap-backed (thus treated as anonymous for reclaim
+   purposes).
 
-Link: https://lore.kernel.org/20260712093326.8313-1-kaitao.cheng@linux.dev
-Signed-off-by: Kaitao Cheng <chengkaitao@kylinos.cn>
-Suggested-by: Julian Braha <julianbraha@gmail.com>
-Reviewed-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+3. MAP_PRIVATE-mapped /dev/zero - a strange beast whose VMAs have
+   vma->vm_file set, but which clears vma->vm_ops to satisfy
+   vma_is_anonymous(), resulting in VMAs that were mmap()'d referencing a
+   file, but are in every other sense anonymous, including the folios.
+
+4. Other MAP_PRIVATE-file backed mappings - These possess file-backed VMAs
+   and have file-backed folios until CoW'd, at which point those CoW'd
+   folios are anonymous.
+
+This series fixes issue 3.
+
+In order for us to traverse VMAs using the reverse mapping, we require two
+fields - folio->mapping and folio->index.  The first tells the rmap code
+where to look for VMAs, and the second tells it at which offset the folio
+starts within the referenced object.
+
+For anonymous folios, folio->mapping points at an anon_vma object.  For
+file-backed folios, it points at an address_space.  And:
+
+* For file-backed folios folio->index is simply the page offset of the start
+  of the folio within the file.
+
+* For anonymous folios belonging to pure anon mappings, folio->index is
+  equal to the anonymous page offset of the folio.
+
+* For anonymous folios belonging to file-backed mappings (i.e. CoW'd folios
+  of a MAP_PRIVATE file-backed mapping), folio->index is equal to the file
+  page offset.
+
+This series establishes a new anonymous page offset property of VMAs to
+allow us to map anonymous folios at their anonymous page offset,
+consistent with pure anon.
+
+The purpose of doing so is to lay the foundations for the scalable CoW
+work.  This is necessary because scalable CoW looks in the maple tree for
+the VMA located at folio->index << PAGE_SHIFT, before falling back to
+looking up tracked remaps if necessary.
+
+The MAP_PRIVATE file-backed case means that folio indices will very often
+conflict with one another and this remap tracking becomes substantially
+more contended, and of course the fast path can never be used.
+
+This also makes it possible, in future, to unshare anonymously mapped
+folios with deep fork hierarchies on remap, eliminating the need for remap
+tracking in the vast majority of cases.
+
+Similar to page offset of pure anonymous VMAs, we update the anonymous
+page offset of unfaulted file-backed VMAs on remap, but do not once CoW'd
+(i.e.  vma->anon_vma is non-NULL).
+
+Overall, there is little impact on mergeability, which remains exactly the
+same for pure anonymous and shared file-backed mappings, with the only
+impact being on MAP_PRIVATE-mapped file-backed mappings, which must now
+match on anonymous page offset as well as file page offset to be merged.
+
+To fail to merge like this would require CoW'ing the mapping, then finding
+another VMA with identical file and compatible page offset to remap next
+to.
+
+This is therefore very much an edge case that should have very little
+impact (and which scalable CoW may very well address in any case).
+
+
+This patch (of 16):
+
+Establish fields in vm_area_struct to store the anonymous page offset of
+VMAs.
+
+Initially, the anonymous page offset of a VMA is vma->vm_start >>
+PAGE_SHIFT.
+
+When a VMA is remapped to new_address its anonymous page offset is either
+updated to new_address >> PAGE_SHIFT if unfaulted or, if faulted, remains
+equal to the anonymous page offset it had when first faulted.
+
+Currently, anonymous folios belonging to CoW'd MAP_PRIVATE-mapped
+file-backed VMAs are tracked by their file offsets.  By adding anonymous
+offset as a property of VMAs, we can now track them by their anonymous
+page offset instead.
+
+By tracking this, we provide the means by which to eliminate this
+inconsistency, and more importantly lay the foundations for future work
+for the scalable CoW anonymous rmap rework.
+
+This patch simply adds the fields and some simple helpers.  Subsequent
+patches will update mm code to make use of these fields correctly.
+
+The fields chosen are packed in the VMA such that, for 64-bit kernel
+builds, no additional space is taken up.
+
+The first field is present on cacheline 0 containing key VMA fields, and
+the second on cacheline 3, which contains file-backed reverse mapping
+fields.
+
+Given the relative time spent accessing reverse mapping fields as well as
+updating them, there shouldn't be any performance impact here from false
+sharing.
+
+Update the VMA userland tests to account for this change.
+
+No callsites are updated yet, so no functional change intended.
+
+Link: https://lore.kernel.org/20260813-b4-scalable-cow-virt-pgoff-v5-0-c21581c0c3c8@kernel.org
+Link: https://lore.kernel.org/20260813-b4-scalable-cow-virt-pgoff-v5-1-c21581c0c3c8@kernel.org
+Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Reviewed-by: Gregory Price (Meta) <gourry@gourry.net>
+Reviewed-by: Xu Xin <xu.xin16@zte.com.cn>
+Cc: Adrian Hunter <adrian.hunter@intel.com>
+Cc: Alexander Deucher <alexander.deucher@amd.com>
+Cc: Alexander Gordeev <agordeev@linux.ibm.com>
+Cc: Alexander Shishkin <alexander.shishkin@linux.intel.com>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Arnaldo Carvalho de Melo <acme@kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Baoquan He <baoquan.he@linux.dev>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Boris Brezillon <boris.brezillon@collabora.com>
+Cc: Byungchul Park <byungchul@sk.com>
+Cc: Chengming Zhou <chengming.zhou@linux.dev>
+Cc: Chris Li <chrisl@kernel.org>
+Cc: Christan König <christian.koenig@amd.com>
+Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
+Cc: Claudio Imbrenda <imbrenda@linux.ibm.com>
+Cc: Dave Airlie <airlied@gmail.com>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Harry Yoo <harry@kernel.org>
+Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: Huang Ray <Ray.Huang@amd.com>
+Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
+Cc: Ian Rogers <irogers@google.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: James Clark <james.clark@linaro.org>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Jann Horn <jannh@google.com>
+Cc: Janosch Frank <frankja@linux.ibm.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Jiri Olsa <jolsa@kernel.org>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
+Cc: Kairui Song <kasong@tencent.com>
+Cc: Kees Cook <kees@kernel.org>
+Cc: Kemeng Shi <shikemeng@huaweicloud.com>
+Cc: Lance Yang <lance.yang@linux.dev>
 Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Liviu Dudau <liviu.dudau@arm.com>
+Cc: Maarten Lankhorst <maarten.lankhorst@linux.intel.com>
+Cc: Marc Rutland <mark.rutland@arm.com>
+Cc: "Masami Hiramatsu (Google)" <mhiramat@kernel.org>
+Cc: Matthew Auld <matthew.auld@intel.com>
+Cc: Matthew Brost <matthew.brost@intel.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Maxime Ripard <mripard@kernel.org>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Namhyung kim <namhyung@kernel.org>
+Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
+Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: Nico Pache <npache@redhat.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Pedro Falcato <pfalcato@suse.de>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Rakie Kim <rakie.kim@sk.com>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: Rodrigo Vivi <rodrigo.vivi@intel.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Steven Price <steven.price@arm.com>
 Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Sven Schnelle <svens@linux.ibm.com>
+Cc: Thomas Hellström <thomas.hellstrom@linux.intel.com>
+Cc: Thomas Zimemrmann <tzimmermann@suse.de>
+Cc: Vasily Gorbik <gor@linux.ibm.com>
 Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: xu xin <xu.xin16@zte.com.cn>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/Kconfig |   10 +---------
- 1 file changed, 1 insertion(+), 9 deletions(-)
+ include/linux/mm.h              |   59 ++++++++++++++++++++++++++++++
+ include/linux/mm_types.h        |   12 ++++++
+ mm/vma.h                        |   14 +++++++
+ mm/vma_init.c                   |    1 
+ tools/testing/vma/include/dup.h |   26 +++++++++++++
+ 5 files changed, 112 insertions(+)
 
---- a/mm/Kconfig~mm-kconfig-drop-redundant-dependency-wrappers
-+++ a/mm/Kconfig
-@@ -125,8 +125,6 @@ config ZSWAP_COMPRESSOR_DEFAULT
- config ZSMALLOC
- 	tristate
+--- a/include/linux/mm.h~mm-vma-introduce-vma-anon-page-offset-field-and-add-helpers
++++ a/include/linux/mm.h
+@@ -4393,6 +4393,65 @@ static inline pgoff_t vma_last_pgoff(con
+ 	return vma_end_pgoff(vma) - 1;
+ }
  
--if ZSMALLOC
--
- menu "Zsmalloc allocator options"
- 	depends on ZSMALLOC
++/**
++ * vma_start_anon_pgoff() - Get the anonymous page offset of the start of @vma
++ * @vma: The VMA whose anonymous page offset is required.
++ *
++ * If unfaulted, then this is vma->vm_start >> PAGE_SHIFT, if faulted then the
++ * anonymous page offset at the time of first fault.
++ *
++ * If the VMA is anonymous, this returns the same value as vma_start_pgoff().
++ *
++ * This value is used for tracking MAP_PRIVATE file-backed mappings by their
++ * anonymous page offset.
++ *
++ * Returns: The anonymous page offset of the start of @vma.
++ */
++static inline pgoff_t vma_start_anon_pgoff(const struct vm_area_struct *vma)
++{
++	pgoff_t pgoff = 0;
++
++#ifdef CONFIG_64BIT
++	pgoff += vma->__vm_anon_pgoff_hi;
++	pgoff <<= 32;
++#endif
++	pgoff += vma->__vm_anon_pgoff_lo;
++	return pgoff;
++}
++
++/**
++ * vma_end_anon_pgoff() - Get the anonymous page offset of the exclusive end of
++ * @vma.
++ * @vma: The VMA whose end anonymous page offset is required.
++ *
++ * This returns the anonymous exclusive end page offset of @vma, which is useful
++ * for expressing page offset ranges.
++ *
++ * See the description of vma_start_anon_pgoff() for a description of VMA
++ * anonymous page offsets.
++ *
++ * Returns: The exclusive end anonymous page offset of @vma.
++ */
++static inline pgoff_t vma_end_anon_pgoff(const struct vm_area_struct *vma)
++{
++	return vma_start_anon_pgoff(vma) + vma_pages(vma);
++}
++
++/**
++ * vma_last_anon_pgoff() - Get the anonymous page offset of the last page in
++ * @vma.
++ * @vma: The VMA whose last anonymous page offset is required.
++ *
++ * See the description of vma_start_anon_pgoff() for a description of VMA
++ * anonymous page offsets.
++ *
++ * Returns: The last anonymous page offset of @vma.
++ */
++static inline pgoff_t vma_last_anon_pgoff(const struct vm_area_struct *vma)
++{
++	return vma_end_anon_pgoff(vma) - 1;
++}
++
+ static inline unsigned long vma_desc_size(const struct vm_area_desc *desc)
+ {
+ 	return desc->end - desc->start;
+--- a/include/linux/mm_types.h~mm-vma-introduce-vma-anon-page-offset-field-and-add-helpers
++++ a/include/linux/mm_types.h
+@@ -968,6 +968,11 @@ struct vm_area_struct {
+ 	unsigned int vm_lock_seq;
+ #endif
+ 	/*
++	 * Low 32-bits of anonymous page offset.
++	 * See vma_start_anon_pgoff() comment for details.
++	 */
++	unsigned int __vm_anon_pgoff_lo;
++	/*
+ 	 * A file's MAP_PRIVATE vma can be in both i_mmap tree and anon_vma
+ 	 * list, after a COW of one of the file pages.	A MAP_SHARED vma
+ 	 * can only be in the i_mmap tree.  An anonymous MAP_PRIVATE, stack
+@@ -1042,6 +1047,13 @@ struct vm_area_struct {
+ 	struct lockdep_map vmlock_dep_map;
+ #endif
+ #endif
++#ifdef CONFIG_64BIT
++	/*
++	 * High 32-bits of anonymous page offset.
++	 * See vma_start_anon_pgoff() comment for details.
++	 */
++	unsigned int __vm_anon_pgoff_hi;
++#endif
+ 	/*
+ 	 * For areas with an address space and backing store,
+ 	 * linkage into the address_space->i_mmap interval tree.
+--- a/mm/vma.h~mm-vma-introduce-vma-anon-page-offset-field-and-add-helpers
++++ a/mm/vma.h
+@@ -283,6 +283,20 @@ static inline void vma_set_pgoff(struct
+ 	vma->vm_pgoff = pgoff;
+ }
  
-@@ -161,8 +159,6 @@ config ZSMALLOC_CHAIN_SIZE
++static inline void __vma_set_anon_pgoff(struct vm_area_struct *vma, pgoff_t pgoff)
++{
++#ifdef CONFIG_64BIT
++	vma->__vm_anon_pgoff_hi = pgoff >> 32;
++#endif
++	vma->__vm_anon_pgoff_lo = pgoff & GENMASK(31, 0);
++}
++
++static inline void vma_set_anon_pgoff(struct vm_area_struct *vma, pgoff_t pgoff)
++{
++	vma_assert_can_modify(vma);
++	__vma_set_anon_pgoff(vma, pgoff);
++}
++
+ static inline void vma_add_pgoff(struct vm_area_struct *vma, pgoff_t delta)
+ {
+ 	vma_assert_can_modify(vma);
+--- a/mm/vma_init.c~mm-vma-introduce-vma-anon-page-offset-field-and-add-helpers
++++ a/mm/vma_init.c
+@@ -51,6 +51,7 @@ static void vm_area_init_from(const stru
+ 	dest->vm_end = src->vm_end;
+ 	dest->anon_vma = src->anon_vma;
+ 	dest->vm_pgoff = vma_start_pgoff(src);
++	__vma_set_anon_pgoff(dest, vma_start_anon_pgoff(src));
+ 	dest->vm_file = src->vm_file;
+ 	dest->vm_private_data = src->vm_private_data;
+ 	vm_flags_init(dest, src->vm_flags);
+--- a/tools/testing/vma/include/dup.h~mm-vma-introduce-vma-anon-page-offset-field-and-add-helpers
++++ a/tools/testing/vma/include/dup.h
+@@ -577,6 +577,7 @@ struct vm_area_struct {
+ 	 */
+ 	unsigned int vm_lock_seq;
+ #endif
++	unsigned int __vm_anon_pgoff_lo;
  
- endmenu
+ 	/*
+ 	 * A file's MAP_PRIVATE vma can be in both i_mmap tree and anon_vma
+@@ -613,6 +614,9 @@ struct vm_area_struct {
+ 	/* Unstable RCU readers are allowed to read this. */
+ 	refcount_t vm_refcnt;
+ #endif
++#ifdef CONFIG_64BIT
++	unsigned int __vm_anon_pgoff_hi;
++#endif
+ 	/*
+ 	 * For areas with an address space and backing store,
+ 	 * linkage into the address_space->i_mmap interval tree.
+@@ -1320,6 +1324,28 @@ static inline pgoff_t vma_end_pgoff(cons
+ 	return vma_start_pgoff(vma) + vma_pages(vma);
+ }
  
--endif
--
- menu "Slab allocator options"
- 
- config SLUB
-@@ -583,12 +579,10 @@ endchoice
- 
- config MEMORY_HOTREMOVE
- 	bool "Allow for memory hot remove"
--	depends on MEMORY_HOTPLUG
- 	select MIGRATION
- 
- config MHP_MEMMAP_ON_MEMORY
- 	def_bool y
--	depends on MEMORY_HOTPLUG
- 	depends on ARCH_MHP_MEMMAP_ON_MEMORY_ENABLE
- 
- endif # MEMORY_HOTPLUG
-@@ -1393,17 +1387,15 @@ menuconfig USERFAULTFD
- 	  Enable the userfaultfd() system call that allows to intercept and
- 	  handle page faults in userland.
- 
--if USERFAULTFD
- config PTE_MARKER_UFFD_WP
- 	bool "Userfaultfd write protection support for shmem/hugetlbfs"
- 	default y
--	depends on HAVE_ARCH_USERFAULTFD_WP
-+	depends on USERFAULTFD && HAVE_ARCH_USERFAULTFD_WP
- 
- 	help
- 	  Allows to create marker PTEs for userfaultfd write protection
- 	  purposes.  It is required to enable userfaultfd write protection on
- 	  file-backed memory types like shmem and hugetlbfs.
--endif # USERFAULTFD
- 
- # multi-gen LRU {
- config LRU_GEN
++static inline pgoff_t vma_start_anon_pgoff(const struct vm_area_struct *vma)
++{
++	pgoff_t pgoff = 0;
++
++#ifdef CONFIG_64BIT
++	pgoff += vma->__vm_anon_pgoff_hi;
++	pgoff <<= 32;
++#endif
++	pgoff += vma->__vm_anon_pgoff_lo;
++	return pgoff;
++}
++
++static inline pgoff_t vma_end_anon_pgoff(const struct vm_area_struct *vma)
++{
++	return vma_start_anon_pgoff(vma) + vma_pages(vma);
++}
++
++static inline pgoff_t vma_last_anon_pgoff(const struct vm_area_struct *vma)
++{
++	return vma_end_anon_pgoff(vma) - 1;
++}
++
+ static inline int vfs_mmap_prepare(struct file *file, struct vm_area_desc *desc)
+ {
+ 	return file->f_op->mmap_prepare(desc);
 _
 
-Patches currently in -mm which might be from chengkaitao@kylinos.cn are
+Patches currently in -mm which might be from ljs@kernel.org are
 
 
