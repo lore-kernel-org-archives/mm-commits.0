@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 228FC233942
-	for <mm-commits@vger.kernel.org>; Tue, 25 Aug 2026 01:53:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 822FD32ED4E
+	for <mm-commits@vger.kernel.org>; Tue, 25 Aug 2026 01:53:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787622828; cv=none; b=s0trHJJoo5R3E+NNNdoYFNBpKJuie1XgXks65NXgq7hGxLYUfkz0kGqGEX9dmEhhXRy53ZhK3l0cFR76/nX9sU7kX8ANRa0dBXue1nR6d0pmxqNS88fRbMlfAB/wJdZVt80OEeqAZQp2X0YUpbMLpkhFQeRgx4YwBy1+LhYEOaI=
+	t=1787622829; cv=none; b=fl5e6G6AYFZClKavPzs4e3+Tmh2d80qmnnOvihvcFnA18G3dESszIK5fsjYdzzfmDum6Fh7/hJWoPwMXIKlohpSrDzuiMGr2/T2C5QwRFKqczDHAmKmD3qPWW4Lf9j4f1A2cOhEEsGbB/fXNXgjg8i7Re93uHQ1P/aV739B8uCo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787622828; c=relaxed/simple;
-	bh=kuuIcCeATHpIIzHKKTCscz9uFfQvlsOUA6lVo8Ky2CU=;
-	h=Date:To:From:Subject:Message-Id; b=SW8GXvVnFZACKCsIv4dGFxS4nM2tWoCBw5dttIVpc7k8hIXwacyWGKDGU6JJdE79FIDgpCUAYd3m2cwBg64fsOin2DLQOyMNdqfuXVdxwzutXaxdAlhEoU50hs7rkLiv0b2EvREjwFSZvCgr8hz4GQbVckoF3AhQed6yXoX2oMg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ndvAS+BC; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1787622829; c=relaxed/simple;
+	bh=ttkTQiDxjuUuYzu8+XgOfcEH6seiW+u5dOg4e7w8+Mc=;
+	h=Date:To:From:Subject:Message-Id; b=TEKzjEIjaPaF0O6TuwYx09r9Egw7FVOUy0vc4xHb/tKEhJ24WqqCuctLmlu5VMARkTrbqN0nnJp9mk4Aej/rFV6wGV73KueyuSeMCl/pThtItNOSDUHFm5mlrTxld4Ft4E/QHEMJoSaKDrOeA3J/+HhLOtBfMwAgo7mC4uYmk5o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hRQlIckN; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ndvAS+BC"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EAD5F1F000E9;
-	Tue, 25 Aug 2026 01:53:46 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hRQlIckN"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1A3821F00A3A;
+	Tue, 25 Aug 2026 01:53:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1787622827;
-	bh=GE2gkxnyLb6d904ZZXqsNLTE8XUNxS0dyCGXsxapRLE=;
+	d=linux-foundation.org; s=korg; t=1787622828;
+	bh=ZlzSH70x47/UcKtW9i0fuus4x+D8kFvKTMkABNkh66Y=;
 	h=Date:To:From:Subject;
-	b=ndvAS+BCFTC+okPwBOa4k85NQ66S2EEmeDo+6mVWKwU1unayqXL3A9VWzYUrBCd61
-	 RXAVt2wANhuB4VPgNcmFHX5wK6WWqLEsCVfFhy914pVaBDj1kEZqHUgAsHunUFOc3k
-	 Ct2QmV6S9nmQE/qi9MmUxvmfPekovGmTJevKxW/w=
-Date: Mon, 24 Aug 2026 18:53:46 -0700
-To: mm-commits@vger.kernel.org,yosry@kernel.org,vbabka@kernel.org,surenb@google.com,sj@kernel.org,shuah@kernel.org,rppt@kernel.org,peterx@redhat.com,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,jhubbard@nvidia.com,jgg@ziepe.ca,david@kernel.org,pratmal@google.com,akpm@linux-foundation.org
+	b=hRQlIckNIPU8iwU6Re2S/lJahv+0xTY5XYHWSee+nzO3ox/et44jbtu80NSzY5Zc6
+	 2vZfVQJNHysDDEVO9cH0upK9ACJDFFhxmvNHzbf7b2HIGeMoUSd3rAP/9NVY04DiJM
+	 BMKF7afqa72SATth0VeTE9Ot4gczeooCj9mPNdW4=
+Date: Mon, 24 Aug 2026 18:53:47 -0700
+To: mm-commits@vger.kernel.org,xu.xin16@zte.com.cn,ieidus@redhat.com,david@kernel.org,chengming.zhou@linux.dev,akpm@linux-foundation.org,xialonglong@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-mm-use-pattern-matching-in-gitignore.patch removed from -mm tree
-Message-Id: <20260825015346.EAD5F1F000E9@smtp.kernel.org>
+Subject: [merged mm-stable] mm-ksm-avoid-missing-ksmd-wakeups-in-ksm_enter.patch removed from -mm tree
+Message-Id: <20260825015348.1A3821F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,133 +35,60 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests/mm: use pattern matching in .gitignore
+     Subject: mm/ksm: avoid missing ksmd wakeups in ksm_enter
 has been removed from the -mm tree.  Its filename was
-     selftests-mm-use-pattern-matching-in-gitignore.patch
+     mm-ksm-avoid-missing-ksmd-wakeups-in-ksm_enter.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Pratyush Mallick <pratmal@google.com>
-Subject: selftests/mm: use pattern matching in .gitignore
-Date: Mon, 3 Aug 2026 22:17:32 +0000
+From: Longlong Xia <xialonglong@kylinos.cn>
+Subject: mm/ksm: avoid missing ksmd wakeups in ksm_enter
+Date: Wed, 5 Aug 2026 21:27:34 +0800
 
-The current .gitignore hardcodes each generated test binary by name,
-requiring updates every time a new test is added.
+__ksm_enter() decides whether ksmd needs a wakeup by checking if the mm
+slot list is empty before inserting the new slot.
 
-Switch to the pattern-matching approach similar to KVM:selftests.  Ignore
-everything by default and then allow source extensions (.c, .h, .sh) and
-tracked non-source files.
+The empty check is currently outside ksm_mmlist_lock.  Another CPU can
+remove the last slot and let ksmd go back to sleep after the unlocked
+check, while this CPU inserts a new slot and skips the wakeup based on the
+stale result.
 
-Note that local_config.h was renamed to local_config.h_gen in a previous
-patch so that un-ignoring *.h files does not cause generated build
-artifacts to become untracked.
+Take ksm_mmlist_lock before checking the list so the empty-to-nonempty
+transition and the insertion are observed as one critical section.
 
-[akpm@linux-foundation.org: fix botched merge resolution]
-Link: https://lore.kernel.org/20260803221732.3651981-3-pratmal@google.com
-Signed-off-by: Pratyush Mallick <pratmal@google.com>
-Reviewed-by: Lorenzo Stoakes <ljs@kernel.org>
-Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Suggested-by: Yosry Ahmed <yosry@kernel.org>
-Reviewed-by: SJ Park <sj@kernel.org>
+Link: https://lore.kernel.org/20260805132736.1063408-1-xialonglong2025@163.com
+Fixes: 6e15838425ac ("ksm: keep quiet while list empty")
+Signed-off-by: Longlong Xia <xialonglong@kylinos.cn>
 Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: "Liam R. Howlett" <liam@infradead.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Chengming Zhou <chengming.zhou@linux.dev>
+Cc: Izik Eidus <ieidus@redhat.com>
+Cc: xu xin <xu.xin16@zte.com.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/.gitignore |   76 ++----------------------
- 1 file changed, 9 insertions(+), 67 deletions(-)
+ mm/ksm.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/tools/testing/selftests/mm/.gitignore~selftests-mm-use-pattern-matching-in-gitignore
-+++ a/tools/testing/selftests/mm/.gitignore
-@@ -1,68 +1,10 @@
- # SPDX-License-Identifier: GPL-2.0-only
--cow
--hugepage-mmap
--hugepage-mremap
--hugepage-shm
--hugepage-vmemmap
--hugetlb-mmap
--hugetlb-mremap
--hugetlb-shm
--hugetlb-vmemmap
--hugetlb-madvise
--hugetlb-read-hwpoison
--hugetlb-soft-offline
--khugepaged
--map_hugetlb
--map_populate
--thuge-gen
--compaction_test
--memory-failure
--migration
--mlock2-tests
--mrelease_test
--mremap_dontunmap
--mremap_test
--on-fault-limit
--transhuge-stress
--pagemap_ioctl
--pfnmap
--process_madv
--*.tmp*
--protection_keys
--protection_keys_32
--protection_keys_64
--madv_populate
--uffd-stress
--uffd-unit-tests
--uffd-wp-mremap
--mlock-intersect-test
--mlock-random-test
--virtual_address_range
--gup_test
--va_128TBswitch
--map_fixed_noreplace
--write_to_hugetlbfs
--hmm-tests
--memfd_secret
--soft-dirty
--split_huge_page_test
--ksm_tests
--local_config.h
--local_config.mk
--ksm_functional_tests
--mdwe_test
--gup_longterm
--mkdirty
--va_high_addr_switch
--hugetlb_fault_after_madv
--hugetlb_madv_vs_map
--mseal_test
--droppable
--hugetlb_dio
--pkey_sighandler_tests_32
--pkey_sighandler_tests_64
--guard-regions
--merge
--prctl_thp_disable
--rmap
--folio_split_race_test
-+*
-+!/**/
-+!*.c
-+!*.h
-+!*.sh
-+!.gitignore
-+!Makefile
-+!config
-+!settings
+--- a/mm/ksm.c~mm-ksm-avoid-missing-ksmd-wakeups-in-ksm_enter
++++ a/mm/ksm.c
+@@ -3060,10 +3060,9 @@ int __ksm_enter(struct mm_struct *mm)
+ 
+ 	slot = &mm_slot->slot;
+ 
++	spin_lock(&ksm_mmlist_lock);
+ 	/* Check ksm_run too?  Would need tighter locking */
+ 	needs_wakeup = list_empty(&ksm_mm_head.slot.mm_node);
+-
+-	spin_lock(&ksm_mmlist_lock);
+ 	mm_slot_insert(mm_slots_hash, mm, slot);
+ 	/*
+ 	 * When KSM_RUN_MERGE (or KSM_RUN_STOP),
 _
 
-Patches currently in -mm which might be from pratmal@google.com are
+Patches currently in -mm which might be from xialonglong@kylinos.cn are
 
+mm-hugetlb-keep-max_huge_pages-when-dissolving-surplus-folios.patch
 
