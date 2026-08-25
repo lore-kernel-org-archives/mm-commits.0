@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8CF9D32AACB
-	for <mm-commits@vger.kernel.org>; Tue, 25 Aug 2026 01:44:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C62C83264D5
+	for <mm-commits@vger.kernel.org>; Tue, 25 Aug 2026 01:44:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787622258; cv=none; b=CK150Wc++fNeySSBhAB8bTN9yeW57ZfRHFonKf5HnXstVdS7AGBD3xKNN5FVnSpfNjvz/ielZUfSHrmokLzwXtQPrSjGxJo/IN0CpPR4TB8DlhqlTXXLPwLdmixpGSap18Ds3iXF57sWsIAWa1CxcOTjVW5V6p2WFdp0DcEJnSI=
+	t=1787622259; cv=none; b=ENZty6DALU089utOHwHJo2X/OJ1SiWxqwddc1yjDe1vLsWPxfi3SQDUtFg78BDyxFR+WuG7EQopTL8por/wQDEB99s1WjrSTDaBprA60ZJ/uE57LNFKRdHQAcAl2J1UKyUh5Rpc94zGzOKot8Cn+BMrxYAeIfT+eq9ReV4V6yFU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787622258; c=relaxed/simple;
-	bh=xKlLLhbaGygGG9olyGmvaOwq6s3XhMaHIV2ktsQCXC4=;
-	h=Date:To:From:Subject:Message-Id; b=r5gI4xhkYWQY8+gpDRo+PN5YZwhJ64vPB+bfScC9CMUZGuTxiGgETkO0Zn9zgyxuXx083eDlQ59JQGkPDNarnla8/JFb8Ul495f7f43HaaWtKxn3WdsJSzL103zCAiLrFMNXvSBc7M1PWGvRODADDe/MvBlKdbcVGtKkcvbkQjg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=o2rTOAvj; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1787622259; c=relaxed/simple;
+	bh=s8QTqVCkuF4hyoC2hFckOpWj0W/noDOMzMrEL62w+hg=;
+	h=Date:To:From:Subject:Message-Id; b=X5DGYbvipFR9N46maFj0nF4EgS0e/xGfcu5uSPyHDMZzjPy04SBHudqFEA/Ae77E2U4obFLGXcYiiwYv6XDPpDYeSRQz2ZZ8g2QJx2kbYp0diI9iqWpq9v0O+RbewRryiqKH6r2iYiCEutzyTxRIKeEoq609ELWZ2igDqolRrkk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CbKiJ74d; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="o2rTOAvj"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 188381F00A3A;
-	Tue, 25 Aug 2026 01:44:17 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CbKiJ74d"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4A94F1F000E9;
+	Tue, 25 Aug 2026 01:44:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1787622257;
-	bh=2y1J2FZ9IAwcCN+pPGTBL3TuYggRxj2/l6Ji5tAukhg=;
+	d=linux-foundation.org; s=korg; t=1787622258;
+	bh=bbRlCltqUjAM2ldA9MHxzc+ohr+1T0AVSJ8E/eXr0xE=;
 	h=Date:To:From:Subject;
-	b=o2rTOAvjKEJG4FrQD6jXtq0Qwr7Pc/v9HejDcPr2f+ZT4pJ6PHLJOt8qFJscNyt3A
-	 bIOp8T+saruFceiEM74NDXRm42ROgsEM3lHGlmFTB0Fe4L9pN7Ltp5Sx8Q2XjjEz4i
-	 2qk5wvL1DS3JTDNYtr7ADunCVxQ1YuOrQKtHyvFo=
-Date: Mon, 24 Aug 2026 18:44:16 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,pfalcato@suse.de,ljs@kernel.org,liam@infradead.org,jannh@google.com,thehajime@gmail.com,akpm@linux-foundation.org
+	b=CbKiJ74d8lxJ+bgm9ms+i0wMKdoHNwAF3JaVyQxBFjaXhlh3oYgevn4mqLjBg8UwT
+	 XBfB7lGJ2gzMiy/kcvAoCixo7WYzHi8Zz4hqZ2CPoxxzTxFKgS2v9/vB7GobRyLFRY
+	 Bu5N5vRRhfzLWket7JVZcZQzQqkAg2Loh56v1uuA=
+Date: Mon, 24 Aug 2026 18:44:17 -0700
+To: mm-commits@vger.kernel.org,sj@kernel.org,liam@infradead.org,andrewjballance@gmail.com,aliceryhl@google.com,enelsonmoore@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-nommu-point-to-the-write-iterator-upon-split_vma.patch removed from -mm tree
-Message-Id: <20260825014417.188381F00A3A@smtp.kernel.org>
+Subject: [merged mm-stable] maple_tree-remove-undocumented-config_maple_rcu_disabled-macro.patch removed from -mm tree
+Message-Id: <20260825014418.4A94F1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,101 +35,61 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: nommu: point to the write iterator upon split_vma
+     Subject: maple_tree: remove undocumented CONFIG_MAPLE_RCU_DISABLED macro
 has been removed from the -mm tree.  Its filename was
-     mm-nommu-point-to-the-write-iterator-upon-split_vma.patch
+     maple_tree-remove-undocumented-config_maple_rcu_disabled-macro.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Hajime Tazaki <thehajime@gmail.com>
-Subject: mm: nommu: point to the write iterator upon split_vma
-Date: Thu, 2 Jul 2026 10:25:46 +0900
+From: Ethan Nelson-Moore <enelsonmoore@gmail.com>
+Subject: maple_tree: remove undocumented CONFIG_MAPLE_RCU_DISABLED macro
+Date: Wed, 10 Jun 2026 15:09:04 -0700
 
-When a user invokes munmap(2) on a partial region allocated by mmap(), the
-kernel may split the original region if necessary and shrink it to the
-correct size.  At the beginning of vmi_shrink_vma(), the unused part is
-cleared; however, an assertion is triggered if the shrink occurs after
-split_vma().
+<linux/maple_tree.h> consults the macro CONFIG_MAPLE_RCU_DISABLED to
+determine whether to disable the mt_in_rcu() function (by making it always
+return false).  This macro is not reachable via Kconfig, despite its name,
+and is not documented anywhere.  Remove it to avoid polluting the CONFIG_*
+namespace.
 
-This commit fixes the issue by correctly configuring the pointer to the
-iterator at the end of split_vma().
+Discovered while searching for CONFIG_* symbols referenced in code but not
+defined in any Kconfig file.
 
-This bug was detected using the Linux Test Project (LTP) test linked
-below, running on a nommu UML (User-Mode Linux) environment (via an
-out-of-tree extension to UML).
-
-Here is a minimal reproducible chunk of code for this issue:
-
-	void *addr;
-	size_t pagesize = getpagesize();
-
-	addr = mmap(NULL, pagesize * 4, PROT_READ | PROT_WRITE,
-		    MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
-	munmap(addr + pagesize * 1, pagesize);
-
-This is the console output with CONFIG_DEBUG_MAPLE_TREE=y.
-
-nommu: WARN at __mas_set_range:791 (1)
-MAS: tree=0000000091c23b08 enode=0000000065057663
-(ma_active)
-Store Type:
-node_store
-[9/9] index=70af8000 last=ffffffffffffffff
-     min=0 max=ffffffffffffffff sheaf=0000000000000000, request 0
-depth=0, flags=0
-maple_tree(0000000091c23b08) flags 307, height 1 root 0000000083394c06
-0-ffffffffffffffff: node 0000000010c90bd6 depth 0 type 1 parent
-0000000050e1ddf8 contents: 0000000000000000 707A
-7FFF 00000000eb0ac2b5 707AFFFF 0000000000000000 7093FFFF
-0000000045ead616 7095FFFF 0000000000000000 7096CFFF 000
-00000681c7151 7096FFFF 0000000000000000 70AF3FFF 000000006c78b9e9
-70AF4FFF 000000001914ab0b 70AF7FFF 00000000000
-00000 FFFFFFFFFFFFFFFF 0000000000000000 0 0000000000000000 0
-0000000000000000 0 0000000000000000 0 0000000000000
-000 0 00000000bca8be4f
-  0-707a7fff: 0000000000000000
-  707a8000-707affff: 00000000eb0ac2b5
-  707b0000-7093ffff: 0000000000000000
-  70940000-7095ffff: 0000000045ead616
-  70960000-7096cfff: 0000000000000000
-  7096d000-7096ffff: 00000000681c7151
-  70970000-70af3fff: 0000000000000000
-  70af4000-70af4fff: 000000006c78b9e9
-  70af5000-70af7fff: 000000001914ab0b
-  70af8000-ffffffffffffffff: 0000000000000000
-nommu: Pass: 796 Run:797
-
-Link: https://github.com/linux-test-project/ltp/blob/master/testcases/kernel/syscalls/mseal/mseal02.c
-Link: https://lore.kernel.org/20260702012546.665383-1-thehajime@gmail.com
-Signed-off-by: Hajime Tazaki <thehajime@gmail.com>
-Cc: Jann Horn <jannh@google.com>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Pedro Falcato <pfalcato@suse.de>
-Cc: Vlastimil Babka <vbabka@kernel.org>
+Link: https://lore.kernel.org/20260610220905.99860-1-enelsonmoore@gmail.com
+Signed-off-by: Ethan Nelson-Moore <enelsonmoore@gmail.com>
+Acked-by: SeongJae Park <sj@kernel.org>
+Reviewed-by: Liam Howlett <liam@infradead.org>
+Reviewed-by: Alice Ryhl <aliceryhl@google.com>
+Cc: Andrew Ballance <andrewjballance@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/nommu.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ include/linux/maple_tree.h |    4 ----
+ 1 file changed, 4 deletions(-)
 
---- a/mm/nommu.c~mm-nommu-point-to-the-write-iterator-upon-split_vma
-+++ a/mm/nommu.c
-@@ -1393,6 +1393,10 @@ static int split_vma(struct vma_iterator
- 	setup_vma_to_mm(vma, mm);
- 	setup_vma_to_mm(new, mm);
- 	vma_iter_store_new(vmi, new);
-+
-+	/* vmi should point lower address */
-+	if (new_below)
-+		vma_next(vmi);
- 	mm->map_count++;
- 	return 0;
+--- a/include/linux/maple_tree.h~maple_tree-remove-undocumented-config_maple_rcu_disabled-macro
++++ a/include/linux/maple_tree.h
+@@ -11,7 +11,6 @@
+ #include <linux/kernel.h>
+ #include <linux/rcupdate.h>
+ #include <linux/spinlock.h>
+-/* #define CONFIG_MAPLE_RCU_DISABLED */
+ 
+ /*
+  * Allocated nodes are mutable until they have been inserted into the tree,
+@@ -864,9 +863,6 @@ static inline void mt_init(struct maple_
+ 
+ static inline bool mt_in_rcu(struct maple_tree *mt)
+ {
+-#ifdef CONFIG_MAPLE_RCU_DISABLED
+-	return false;
+-#endif
+ 	return mt->ma_flags & MT_FLAGS_USE_RCU;
+ }
  
 _
 
-Patches currently in -mm which might be from thehajime@gmail.com are
+Patches currently in -mm which might be from enelsonmoore@gmail.com are
 
 
