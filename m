@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5710825B098
-	for <mm-commits@vger.kernel.org>; Tue, 25 Aug 2026 01:45:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A3C76334C39;
+	Tue, 25 Aug 2026 01:45:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787622325; cv=none; b=QIeXzMLB149f+9AIcWNoQAfjWBiEBN6rMNuavhcVm1ANPAOrSS3CwDY7K+58AaqcS5HHgX1GlcaD8lzu3T8PLvtigVgyOQ15+mLY/kpsNl9AZr3ytIarC+Tifmj7Q/OplpjBJ632cuTsDtcB00MFUclkS7fQxBUOLWPCxPXm9LM=
+	t=1787622326; cv=none; b=dg7/sECWnqJGtqqMtnj9U8HzsjnTtlg+1m9UzPtGgw6u0xm9fpWKFQtkIYayE4BfE+wDlaXClAXoWEs4EIlCZExSmaHAzp0BayDTdwwdK9cC7bcXAKgtt/6Fupm44Hvp/gqpXv+3xT0KNnt2CSjhT86le52j1UIail2eFwkYtTg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787622325; c=relaxed/simple;
-	bh=wyuhZY2XVo0Q9lchEXvfnh8pDDYfwihr/Uc40EdRcRM=;
-	h=Date:To:From:Subject:Message-Id; b=cwq2klMaSRr3FiMttRJo8F4iYOP05S8IpDcf9g1lWI/odnQDF+hEqd6gMOrzHcRzscMPV4iGoBkXHlFlmO01vZlA8Sh4maERBJDI4t6t8OYczXYaVq3CdBXem3N7Q45b5RtZNX0L5BRRmIZUw7VmGPxIhoPopv7RtPqXfdlk5W8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OdrcaVWb; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1787622326; c=relaxed/simple;
+	bh=GPZszh/xslgTpq4HRtW6AR3I1M0Gm1YtpVsfVL5Hr2M=;
+	h=Date:To:From:Subject:Message-Id; b=Pq3zcUkaRWXo7fK5W9O9O80gasGbEh+NsJlOHLovvJYcV37nr7bMpDEMLatHRaVFUCrZMiCBhmSf8AwiOvM6o129wpDNqepy2H3L1TXdowSjZL8O80q6h6bDlstLzzoxp+JC/1hob0ckxV6PZ6vmm+ge8Y1h1qrIytYk0pjgP0g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YcSyKPAj; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OdrcaVWb"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2B4501F00A3A;
-	Tue, 25 Aug 2026 01:45:23 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YcSyKPAj"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 79DD41F000E9;
+	Tue, 25 Aug 2026 01:45:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1787622323;
-	bh=7A8c1M6TBPOLtk4CBvtZRpjl/M6bWZbL5C3b/WRbaVU=;
+	d=linux-foundation.org; s=korg; t=1787622324;
+	bh=4aUL4MdIVrpduydjWkDTNv3WNFXZl5ZLg8xCLGa39kg=;
 	h=Date:To:From:Subject;
-	b=OdrcaVWb3p+9LS101122RbJOAWEquUMvHM6FdLc/Q4m3woi57BnbJHrPRfy+L0bOj
-	 K/Chs2b2rI6xgPs4dffCEZ22iveNstuu7MVWbwxT6JIl81nNTPgEJidqjoA9waxj42
-	 Eo6L9oIPMB54PMmSudFP/LEKQbxw65M1eLlg9yns=
-Date: Mon, 24 Aug 2026 18:45:22 -0700
-To: mm-commits@vger.kernel.org,minchan@kernel.org,corbet@lwn.net,senozhatsky@chromium.org,akpm@linux-foundation.org
+	b=YcSyKPAjCzqJvoq03nJzrU89In/GTxUOAmKKZdp36vQpvkQdO4/MBHXfKaBHz7IH6
+	 N23+677Jy86aihSZFTq3URIodeROBGRg3kp/B8Gz/TJrjcZHfjH2gZ/fCh/pKzphBp
+	 KdjbTeNAybbmr4X4sOPfn6OpPtgcm5QeTHLxsxb8=
+Date: Mon, 24 Aug 2026 18:45:24 -0700
+To: mm-commits@vger.kernel.org,surenb@google.com,stable@vger.kernel.org,roman.gushchin@linux.dev,rientjes@google.com,riel@surriel.com,nphamcs@gmail.com,muchun.song@linux.dev,mhocko@suse.com,hannes@cmpxchg.org,shakeel.butt@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] documentation-zram-correct-algo-parameters-configuration-documentation.patch removed from -mm tree
-Message-Id: <20260825014523.2B4501F00A3A@smtp.kernel.org>
+Subject: [merged mm-stable] memcg-bypass-the-reclaim-and-oom-killer-for-dying-tasks-once-oom_reaper-is-done.patch removed from -mm tree
+Message-Id: <20260825014524.79DD41F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,92 +35,138 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: Documentation: zram: correct algo parameters configuration documentation
+     Subject: memcg: bypass the reclaim and oom killer for dying tasks once oom_reaper is done
 has been removed from the -mm tree.  Its filename was
-     documentation-zram-correct-algo-parameters-configuration-documentation.patch
+     memcg-bypass-the-reclaim-and-oom-killer-for-dying-tasks-once-oom_reaper-is-done.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: Documentation: zram: correct algo parameters configuration documentation
-Date: Thu, 30 Jul 2026 16:51:46 +0900
+From: Shakeel Butt <shakeel.butt@linux.dev>
+Subject: memcg: bypass the reclaim and oom killer for dying tasks once oom_reaper is done
+Date: Tue, 28 Jul 2026 19:46:12 -0700
 
-zram has always reset all previously set parameters for the given
-algorithm in comp_params_store().  Make documentation more clear and
-explicitly state that all relevant/necessary parameters should be set in
-one configuration write.
+At Meta, we are seeing instances where an OOM killed job is stuck in the
+exit path for several hours.  In one particular case, the job was stuck
+for more than 8 hours and I had to manually remove the memory.max limits
+to allow the process to exit.
 
-Link: https://lore.kernel.org/20260730075158.1339787-1-senozhatsky@chromium.org
-Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Minchan Kim <minchan@kernel.org>
+The job was a single process job and had ~55 GiB memory.max and zswap
+enabled.  It had almost 0 anon in memory and ~111 GiB in zswap compressed
+to ~51 GiB zswap pool (i.e.  almost all of memory.current was zswap). 
+Nothing was left on the LRUs to reclaim.
+
+On further inspection, I observed ~20k threads of that process stuck with
+the following stack:
+
+[<0>] mem_cgroup_out_of_memory+0x4e/0xa0
+[<0>] charge_memcg+0x8bf/0x990
+[<0>] mem_cgroup_swapin_charge_folio+0x4e/0x80
+[<0>] __read_swap_cache_async+0x10c/0x260
+[<0>] swapin_readahead+0x116/0x3f0
+[<0>] do_swap_page+0x13c/0x1ce0
+[<0>] handle_mm_fault+0x61d/0x11f0
+[<0>] do_user_addr_fault+0x3e7/0x6d0
+[<0>] exc_page_fault+0x8f/0x110
+[<0>] asm_exc_page_fault+0x22/0x30
+[<0>] __get_user_8+0x14/0x20
+[<0>] futex_cleanup+0x27/0x1c0
+[<0>] futex_exit_release+0x47/0x60
+[<0>] do_exit+0x107/0x940
+[<0>] do_group_exit+0x81/0xa0
+[<0>] get_signal+0x2b1/0x6e0
+[<0>] arch_do_signal_or_restart+0x1a/0x1c0
+[<0>] exit_to_user_mode_loop+0xa8/0x1c0
+[<0>] do_syscall_64+0x152/0x250
+[<0>] entry_SYSCALL_64_after_hwframe+0x4b/0x53
+
+In addition the dmesg was filled with "Out of memory and no killable
+processes..." messages.
+
+I have no idea why oom reaper was not able to reap/unmap the process.  My
+guess is that since oom reaper tries to acquire mmap_lock in read mode
+limited number of times and then gives up, there might be a thread of that
+process which had mmap_lock in write mode at that time.
+
+My initial suspicion was the futex_cleanup and kernel page fault causing
+infinite fault and charge retries but that was put to rest in previous
+discussions happened on similar problem [1].
+
+My current theory is that it is just a simple slow serialization behind
+the oom_lock.  Unlike page allocator, memcg charge code takes the oom_lock
+without the "try".  Though memcg oom code uses mutex_lock_killable(), note
+that in the call stack get_signal() consumes SIGKILL (or
+sigdelset(SIGKILL)) before calling do_group_exit().  So this
+mutex_lock_killable() is just a mutex_lock() here.  Therefore 10s of
+thousands of threads are waiting on oom_lock and one by one they get
+-EFAULT from get_user() in the futex cleanup code and bails out.
+
+Discussion from [1] led to commit a75ffa26122b ("memcg, oom: do not bypass
+oom killer for dying tasks") which routes dying tasks into the OOM path
+precisely so the oom_reaper can reap their mm and free the memory
+asynchronously.  But the reaper is best-effort and one-shot: if it cannot
+take mmap_lock for read (e.g.  a sibling thread holds it for write) it
+sets MMF_OOM_SKIP and never retries, leaving only the glacial
+oom_lock-serialized synchronous drain.
+
+Once MMF_OOM_SKIP is set there is no more asynchronous reclaim coming for
+the mm, so a dying task charging against it has nothing left to wait for:
+it frees its memory only once it finishes exiting.  Running reclaim and
+the (no-victim) OOM killer for it is then pointless, and doing it for 10s
+of thousands of exiting threads is what serializes them behind oom_lock. 
+So before reclaim, if current is an OOM victim whose reaper is done, fail
+the charge.
+
+Reproduced with 20k threads, each parking a robust futex head on its own
+zswapped page, OOM-group-killed while a sibling holds mmap_lock for write
+so the reaper gives up and sets MMF_OOM_SKIP.  Tested on next-20260728 and
+baseline show ~90 seconds exit time while with the patch the exit time
+reduced to ~3 seconds.
+
+Link: https://lore.kernel.org/20260729024612.3369005-1-shakeel.butt@linux.dev
+Link: https://lore.kernel.org/7a4e5591f45df455e6a485fc5400989569d3d22d.camel@surriel.com/ [1]
+Signed-off-by: Shakeel Butt <shakeel.butt@linux.dev>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/blockdev/zram.rst |   34 +++++++++++++++++-
- 1 file changed, 33 insertions(+), 1 deletion(-)
+ mm/memcontrol.c |   13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
---- a/Documentation/admin-guide/blockdev/zram.rst~documentation-zram-correct-algo-parameters-configuration-documentation
-+++ a/Documentation/admin-guide/blockdev/zram.rst
-@@ -109,14 +109,41 @@ path to the `dict` along with other para
- 	#pass path to pre-trained zstd dictionary
- 	echo "algo=zstd dict=/etc/dictionary" > /sys/block/zram0/algorithm_params
+--- a/mm/memcontrol.c~memcg-bypass-the-reclaim-and-oom-killer-for-dying-tasks-once-oom_reaper-is-done
++++ a/mm/memcontrol.c
+@@ -2693,6 +2693,19 @@ retry:
+ 	if (!gfpflags_allow_blocking(gfp_mask))
+ 		goto nomem;
  
-+	#pass path to pre-trained zstd dictionary and compression level
-+	echo "algo=zstd level=8 dict=/etc/dictionary" > \
-+		/sys/block/zram0/algorithm_params
++	/*
++	 * OOM victim still needs to charge memory to exit. OOM reaper should
++	 * help but it might fail on mmap_lock contention. If the victim is a
++	 * large thread group then all exiting threads might compete on oom_lock
++	 * just to learn that there is nothing really killable anymore. Bail
++	 * out early and fail the charge to expedite their exit. They are
++	 * considered fully reclaimed by the oom reaper and they shouldn't
++	 * contribute further charges.
++	 */
++	if (tsk_is_oom_victim(current) &&
++	    mm_flags_test(MMF_OOM_SKIP, current->signal->oom_mm))
++		goto nomem;
 +
- 	#same, but using algorithm priority
-+	echo "algo=zstd priority=1" > /sys/block/zram0/recomp_algorithm
- 	echo "priority=1 dict=/etc/dictionary" > \
- 		/sys/block/zram0/algorithm_params
- 
--	#pass path to pre-trained zstd dictionary and compression level
-+Each write to `algorithm_params` replaces the entire set of parameters of
-+the corresponding algorithm, parameters that are not listed in the write
-+are reset to their default values.  Configure all of the parameters of an
-+algorithm in one write::
-+
-+	#WRONG: the second write resets level back to its default value
-+	echo "algo=zstd level=8" > /sys/block/zram0/algorithm_params
-+	echo "algo=zstd dict=/etc/dictionary" > /sys/block/zram0/algorithm_params
-+
-+	#RIGHT
- 	echo "algo=zstd level=8 dict=/etc/dictionary" > \
- 		/sys/block/zram0/algorithm_params
- 
-+Select the compression algorithm before configuring its parameters.  The
-+parameters of one algorithm are not necessarily valid for another one, so
-+changing the algorithm of a particular priority resets that priority's
-+parameters::
-+
-+	#WRONG: comp_algorithm write resets the previously configured level
-+	echo "level=8" > /sys/block/zram0/algorithm_params
-+	echo zstd > /sys/block/zram0/comp_algorithm
-+
-+	#RIGHT
-+	echo zstd > /sys/block/zram0/comp_algorithm
-+	echo "algo=zstd level=8" > /sys/block/zram0/algorithm_params
-+
- Parameters are algorithm specific: not all algorithms support pre-trained
- dictionaries, not all algorithms support `level`. Furthermore, for certain
- algorithms `level` controls the compression level (the higher the value the
-@@ -124,6 +151,11 @@ better the compression ratio, it even ca
- algorithms), for other algorithms `level` is acceleration level (the higher
- the value the lower the compression ratio).
- 
-+Parameters are handed over to the compression algorithm when the device is
-+initialised, hence invalid parameters (or parameters that the selected
-+algorithm does not support) are reported by the `disksize` write, and not
-+by the `algorithm_params` write that has configured them.
-+
- Set Disksize
- ============
+ 	__memcg_memory_event(mem_over_limit, MEMCG_MAX, allow_spinning);
+ 	raised_max_event = true;
  
 _
 
-Patches currently in -mm which might be from senozhatsky@chromium.org are
+Patches currently in -mm which might be from shakeel.butt@linux.dev are
 
+memcg-make-the-v1-soft-limit-knob-inert.patch
 
