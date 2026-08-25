@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6A409349CC4
-	for <mm-commits@vger.kernel.org>; Tue, 25 Aug 2026 01:55:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A6E0437998A
+	for <mm-commits@vger.kernel.org>; Tue, 25 Aug 2026 01:55:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787622956; cv=none; b=WlhNadIorYc781dZL5IgXgHRiy7t/ApLVB2ulwpnK3Cj6081+oK95jZBMC51k4PEwkGU2rTFWz3EPWXxTKSm58JddwxLhC7xM/4ry3bLhGeHBoRWfZZrTDTOfSm9GCNHVs9LydbvC/UMzo+hEtGxP0k/CUn9rNnxPxCxEdZBP4k=
+	t=1787622957; cv=none; b=pel0hreRRhZi7zVOfpoBtZYGVWjqKsQvqYbg6bTSMhqSL4IL4bYLJmcp/ouwHixddBOMQKLnPJQxxsENKsMN+OOcBvNN/5bREiSOkbaQmyfB5Zlacx2IBr9/PkGZCO9+pl2QitZ17dt/VYdyLMWMXqZNv7svpExWCxoEasNxhxI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787622956; c=relaxed/simple;
-	bh=/6jmCCyWv/mJtvUZ0scsO/9r/Km/qcLmMCdWXWNur5s=;
-	h=Date:To:From:Subject:Message-Id; b=MzClfICYiz3hI9nJEnpy6znj+6UEqVuR/RkrPe8QVeyLhmLIxMYBF1uIo+/38ZCrOyeMHrxYAyXEisa5Fhm6yJXbQY1WYCpY6v2GCqP9SdrHhrE8KAyvcuPSk2BnCssDChx25B1l0plk8N9g0oFaTLuvERWguRjAOAFyZDMJpGw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QKOLzeTV; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1787622957; c=relaxed/simple;
+	bh=quAtvGp1ZF3q7LleQ534xAVJdVKG7iqAeLI9UemT1Wg=;
+	h=Date:To:From:Subject:Message-Id; b=psZGTMvWgYNQywdue4p9tYb2OE+MVpqBlqlZiACq3aPqrCVAAbX//FVrGLlnSE9b6heQxqMmWiHhpx7irurZA3MH9g+Jsz4ZqKpy0zL20NFUCtx1Ha/KImKU9Q+WwfMjHaIbv/IvJJ92zQqy1E4Nb3ArCJhN0mYiIVHzvJ30JLQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OdE5s8im; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QKOLzeTV"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 40D441F000E9;
-	Tue, 25 Aug 2026 01:55:55 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OdE5s8im"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7BAE91F00A3A;
+	Tue, 25 Aug 2026 01:55:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1787622955;
-	bh=G1xsb1b9Us0wR8guTaqBc6Mzwg7iGfozHCUmEAO9VW4=;
+	d=linux-foundation.org; s=korg; t=1787622956;
+	bh=I8CPbvjy18I0WGk4osK1ZSICPd2XBppJgLOI4PYyjP8=;
 	h=Date:To:From:Subject;
-	b=QKOLzeTVfEkfJYvVG6/+00CfcqNj7fN5q8I3YiQXULFpEH6WkKfdA3l27zGYoZdKJ
-	 XzNi1tylj0bYxltElQzb8MK/e1eMhDDVHTd6Bda6RZDnZAxFd1AUNS2bU6MA71mgWc
-	 9ZsizLov99mBRBItF6qHz8cit5EMLyrm0RCZbhkY=
-Date: Mon, 24 Aug 2026 18:55:54 -0700
-To: mm-commits@vger.kernel.org,shikemeng@huaweicloud.com,nphamcs@gmail.com,lkp@intel.com,ljs@kernel.org,kasong@tencent.com,chrisl@kernel.org,baoquan.he@linux.dev,baohua@kernel.org,kas@kernel.org,akpm@linux-foundation.org
+	b=OdE5s8imc7wQxMt5WUQM10uBAz3HZf563tvECMI45npMrEDgf88Mwot8hKZi0+Nnq
+	 dV12EYCEqi6zF0LODo/v83/9ZHJZTLFd0nH189gfLgUEIweiC7C4k1zxOTkkxSVyne
+	 NdtD2dyyS5hOHK7MeT+zS2Mjj8F/M0nV0n+faWgY=
+Date: Mon, 24 Aug 2026 18:55:56 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,npache@redhat.com,muchun.song@linux.dev,mhocko@suse.com,joshua.hahnjy@gmail.com,hannes@cmpxchg.org,audra@redhat.com,husong@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-include-swaph-in-swapopsh.patch removed from -mm tree
-Message-Id: <20260825015555.40D441F000E9@smtp.kernel.org>
+Subject: [merged mm-stable] mm-memcg-release-the-css-reference-when-a-stock-slot-empties.patch removed from -mm tree
+Message-Id: <20260825015556.7BAE91F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,59 +35,73 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: include swap.h in swapops.h
+     Subject: mm: memcg: release the css reference when a stock slot empties
 has been removed from the -mm tree.  Its filename was
-     mm-include-swaph-in-swapopsh.patch
+     mm-memcg-release-the-css-reference-when-a-stock-slot-empties.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Kiryl Shutsemau (Meta)" <kas@kernel.org>
-Subject: mm: include swap.h in swapops.h
-Date: Tue, 18 Aug 2026 12:50:26 +0100
+From: Song Hu <husong@kylinos.cn>
+Subject: mm: memcg: release the css reference when a stock slot empties
+Date: Tue, 18 Aug 2026 21:01:35 +0800
 
-swapops.h uses MAX_SWAPFILES_SHIFT, SWP_MIGRATION_READ and SWP_PTE_MARKER,
-all of which swap.h defines, but does not include swap.h.  It compiles only
-where the translation unit pulled swap.h in first.  leafops.h includes
-swapops.h on the line above swap.h, so a file whose include list reaches
-leafops.h before swap.h gets:
+consume_stock() can drive a stock slot's nr_pages to zero while its
+cached[] pointer stays set, so the slot keeps pinning the css reference
+that refill_stock() took.  The offlining drain only flushes slots with
+cached pages, so the reference is never released unless the slot happens
+to be displaced by an unrelated charge or by CPU hotplug, and the memcg
+lingers in the dying state - up to NR_MEMCG_STOCK (7) of them per CPU
+under container churn.
 
-    In file included from include/linux/leafops.h:11:
-    include/linux/swapops.h:88:21: error: use of undeclared
-    identifier 'MAX_SWAPFILES_SHIFT'
+Keeping the slot populated past the last page only saves a
+css_get()/css_put() pair on the next charge of the same memcg, and costs
+more than that: the offlining drain has to know about empty slots, and
+refill_stock() cannot reuse them either, so a charge under a different
+memcg evicts a live batch through the drain_idx rotation instead.
 
-A header that uses a definition has to include the header that provides it.
+Drop the reference in consume_stock() when the slot empties.  Empty slots
+stop existing, so is_memcg_drain_needed() and the drain path stay as they
+are, and refill_stock() reuses emptied slots directly.  The cost is one
+refcount pair per emptied slot, at most once per MEMCG_CHARGE_BATCH pages.
 
-Link: https://lore.kernel.org/20260818115026.656406-1-kirill@shutemov.name
-Signed-off-by: Kiryl Shutsemau (Meta) <kas@kernel.org>
-Reported-by: kernel test robot <lkp@intel.com>
-Closes: https://lore.kernel.org/oe-kbuild-all/202608181757.mza9RRj7-lkp@intel.com/
-Reviewed-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
-Reviewed-by: Barry Song <baohua@kernel.org>
-Cc: Baoquan He <baoquan.he@linux.dev>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: Kairui Song <kasong@tencent.com>
-Cc: Kemeng Shi <shikemeng@huaweicloud.com>
-Cc: Nhat Pham <nphamcs@gmail.com>
+Link: https://lore.kernel.org/20260818130135.154315-1-husong@kylinos.cn
+Fixes: d1a05b6973c7 ("memcg: do not try to drain per-cpu caches without pages")
+Signed-off-by: Song Hu <husong@kylinos.cn>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
+Reviewed-by: Joshua Hahn <joshua.hahnjy@gmail.com>
+Cc: Audra Mitchell <audra@redhat.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Nico Pache <npache@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swapops.h |    1 +
- 1 file changed, 1 insertion(+)
+ mm/memcontrol.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
---- a/include/linux/swapops.h~mm-include-swaph-in-swapopsh
-+++ a/include/linux/swapops.h
-@@ -5,6 +5,7 @@
- #include <linux/radix-tree.h>
- #include <linux/bug.h>
- #include <linux/mm_types.h>
-+#include <linux/swap.h>
+--- a/mm/memcontrol.c~mm-memcg-release-the-css-reference-when-a-stock-slot-empties
++++ a/mm/memcontrol.c
+@@ -2140,7 +2140,12 @@ static bool consume_stock(struct mem_cgr
  
- #ifdef CONFIG_MMU
- 
+ 		stock_pages = READ_ONCE(stock->nr_pages[i]);
+ 		if (stock_pages >= nr_pages) {
+-			WRITE_ONCE(stock->nr_pages[i], stock_pages - nr_pages);
++			stock_pages -= nr_pages;
++			WRITE_ONCE(stock->nr_pages[i], stock_pages);
++			if (!stock_pages) {
++				css_put(&memcg->css);
++				WRITE_ONCE(stock->cached[i], NULL);
++			}
+ 			ret = true;
+ 		}
+ 		break;
 _
 
-Patches currently in -mm which might be from kas@kernel.org are
+Patches currently in -mm which might be from husong@kylinos.cn are
 
 
