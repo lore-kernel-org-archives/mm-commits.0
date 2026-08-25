@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2E1622C2363
-	for <mm-commits@vger.kernel.org>; Tue, 25 Aug 2026 01:53:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 53A8A346E54
+	for <mm-commits@vger.kernel.org>; Tue, 25 Aug 2026 01:53:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787622839; cv=none; b=eJ2c79RVu0Ng85r8aG5NhwM+E/prg5pFgDgywLrl1JDiD+P1cdeC/IXHGaO+ua0tERLORg+ihFauBq0+AKFfWHD0od4YJcBnBUFWOO4FohHB3z5tIUU53deYcTTc87qL5X0A/IEJru4hfUYdSu8+dDBYtjC5WM9NQKDUCIK5ero=
+	t=1787622840; cv=none; b=rBq4jKPm4bFQX1rshT96O7OkuOm4jIlpDs3KAkjhgfhybCzMBQf6xLWKXXkVdZy4t2m68ku+zMJqj+AanuhZXoy6MQDV7XD/yV8wu5pZOE7ClrLN8vzn0dK2oC8nT9D6QF+Y/Y+sgerLaKJJ8nCQEMNqrWawgvWt0Bb98F5IuQE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787622839; c=relaxed/simple;
-	bh=65qV6vldekZ+X+gqHj8U+01gUNL514GnOpRWXoL09o4=;
-	h=Date:To:From:Subject:Message-Id; b=KPS+OAkrkiIEMZP35N2GWiulc5hYWWhCgjMWAbek7YK+lCPYIzZ9EkM9WT5dezTvVBV+LLfu5RGXoKFLfNmws0DBSDUp2tF4mJ+0eUNYT/p2eeWJtf0qylt0H/yFnztNeQ0h6FMJ7hqDXPEj4rT654yUt5nhOQpuzzfv7Rcpo4o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=D3wrxTa4; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1787622840; c=relaxed/simple;
+	bh=tD4NHRMOa+YS3AD4Q1jOd+L8yMoidhg/JXb+O70RVHU=;
+	h=Date:To:From:Subject:Message-Id; b=lixjSgAUAH96SbHfaHSlI449Xdi7jw2Pqm0lCNROrcEmqyaq5D8LThsLItkXcXDMnIHHktDcB4TeUvpDh8WYr47gkBwB1cBV1wlANKbhd0pZ7g4GZgBhEv7DXpQw9KGCxMLNcBhZ1ki2TxozgbxfXhP0mrmUMBj3e3OleXx1jyg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Qbw5GC/J; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="D3wrxTa4"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 048461F00A3A;
-	Tue, 25 Aug 2026 01:53:57 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Qbw5GC/J"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2A9651F000E9;
+	Tue, 25 Aug 2026 01:53:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1787622838;
-	bh=+FmklLYFyxiLI0cVa5jYmibwvquO2f+dpE9UsMgKSN4=;
+	d=linux-foundation.org; s=korg; t=1787622839;
+	bh=sm6St/iwX/S3uetgBSwpJhgiCQG3cTzDQp89yQhvEiQ=;
 	h=Date:To:From:Subject;
-	b=D3wrxTa4ndA/DYcsQIAFz1wnHHHfNJQRehCPYHYoEMEsAEOzUY29kA7LFSVMB4B5r
-	 7mB8HnrUgmfKj7HYqmFFBM9NDKIrSRrnMHV7uWhhLc7OVhcIy7uY0VMAfjYnj4n80Y
-	 3ORiNDyVEquhoTKrnjS9bHBjDLd90+kAyheetjT4=
-Date: Mon, 24 Aug 2026 18:53:57 -0700
+	b=Qbw5GC/J+D/Fs3R8K+MlJtd3ZuFFoM2mR44/3IieAlQs/YC4H7l5jexVC9yPyS3KA
+	 6rXYCeKoGHlh36OocFHIffq+BDQ5ABMW+etx7hBuAlJmcHVLb0PvmyWFF7IO2k50HO
+	 QVGxy7NzN9WK+L+QbFIHMC33sREtc9HNrwLQDKK0=
+Date: Mon, 24 Aug 2026 18:53:58 -0700
 To: mm-commits@vger.kernel.org,zigiwang@tencent.com,terrelln@fb.com,senozhatsky@chromium.org,minchan@kernel.org,dsterba@suse.com,axboe@kernel.dk,haoqinhuang@tencent.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] zram-add-pr_fmt-to-backend-files.patch removed from -mm tree
-Message-Id: <20260825015358.048461F00A3A@smtp.kernel.org>
+Subject: [merged mm-stable] zram-validate-parameters-in-each-backends-setup_params.patch removed from -mm tree
+Message-Id: <20260825015359.2A9651F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,23 +35,24 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: zram: add pr_fmt to backend files
+     Subject: zram: validate parameters in each backend's setup_params
 has been removed from the -mm tree.  Its filename was
-     zram-add-pr_fmt-to-backend-files.patch
+     zram-validate-parameters-in-each-backends-setup_params.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Haoqin Huang <haoqinhuang@tencent.com>
-Subject: zram: add pr_fmt to backend files
-Date: Tue, 4 Aug 2026 17:38:39 +0800
+Subject: zram: validate parameters in each backend's setup_params
+Date: Tue, 4 Aug 2026 17:38:40 +0800
 
-Add pr_fmt to each backend so that pr_err() messages are auto-prefixed
-with the algorithm name.  While at it, tweak the deflate winbits pr_err to
-avoid a duplicated "deflate" prefix.
+Dict and level parameters are silently accepted even for backends that do
+not support them.  Validate these parameters in each backend's
+.setup_params() to reject unsupported combinations and out-of-range levels
+with a specific error message.
 
-Link: https://lore.kernel.org/20260804093841.67920-4-haoqinhuang7@gmail.com
+Link: https://lore.kernel.org/20260804093841.67920-5-haoqinhuang7@gmail.com
 Signed-off-by: Haoqin Huang <haoqinhuang@tencent.com>
 Signed-off-by: Rongwei Wang <zigiwang@tencent.com>
 Reviewed-by: Sergey Senozhatsky <senozhatsky@chromium.org>
@@ -63,94 +64,144 @@ Cc: Nick Terrell <terrelln@fb.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/backend_842.c     |    2 ++
- drivers/block/zram/backend_deflate.c |    4 +++-
- drivers/block/zram/backend_lz4.c     |    4 ++++
- drivers/block/zram/backend_lz4hc.c   |    4 ++++
- drivers/block/zram/backend_lzo.c     |    2 ++
- drivers/block/zram/backend_lzorle.c  |    2 ++
- drivers/block/zram/backend_zstd.c    |    2 ++
- 7 files changed, 19 insertions(+), 1 deletion(-)
+ drivers/block/zram/backend_842.c     |    8 ++++++++
+ drivers/block/zram/backend_deflate.c |   13 ++++++++++++-
+ drivers/block/zram/backend_lz4.c     |    6 +++++-
+ drivers/block/zram/backend_lz4hc.c   |   12 +++++++++++-
+ drivers/block/zram/backend_lzo.c     |    8 ++++++++
+ drivers/block/zram/backend_lzorle.c  |    8 ++++++++
+ drivers/block/zram/backend_zstd.c    |    7 ++++++-
+ 7 files changed, 58 insertions(+), 4 deletions(-)
 
---- a/drivers/block/zram/backend_842.c~zram-add-pr_fmt-to-backend-files
+--- a/drivers/block/zram/backend_842.c~zram-validate-parameters-in-each-backends-setup_params
 +++ a/drivers/block/zram/backend_842.c
-@@ -1,5 +1,7 @@
- // SPDX-License-Identifier: GPL-2.0-or-later
+@@ -15,6 +15,14 @@ static void release_params_842(struct zc
  
-+#define pr_fmt(fmt) "842: " fmt
-+
- #include <linux/kernel.h>
- #include <linux/slab.h>
- #include <linux/sw842.h>
---- a/drivers/block/zram/backend_deflate.c~zram-add-pr_fmt-to-backend-files
+ static int setup_params_842(struct zcomp_params *params)
+ {
++	if (params->dict_sz) {
++		pr_err("dictionary is not supported\n");
++		return -EOPNOTSUPP;
++	}
++	if (params->level != ZCOMP_PARAM_NOT_SET) {
++		pr_err("compression level is not supported\n");
++		return -EOPNOTSUPP;
++	}
+ 	return 0;
+ }
+ 
+--- a/drivers/block/zram/backend_deflate.c~zram-validate-parameters-in-each-backends-setup_params
 +++ a/drivers/block/zram/backend_deflate.c
-@@ -1,5 +1,7 @@
- // SPDX-License-Identifier: GPL-2.0-or-later
+@@ -24,8 +24,19 @@ static void deflate_release_params(struc
  
-+#define pr_fmt(fmt) "deflate: " fmt
+ static int deflate_setup_params(struct zcomp_params *params)
+ {
+-	if (params->level == ZCOMP_PARAM_NOT_SET)
++	if (params->dict_sz) {
++		pr_err("dictionary is not supported\n");
++		return -EOPNOTSUPP;
++	}
 +
- #include <linux/kernel.h>
- #include <linux/slab.h>
- #include <linux/vmalloc.h>
-@@ -30,7 +32,7 @@ static int deflate_setup_params(struct z
- 		s32 wb = params->deflate.winbits;
- 
- 		if ((wb < -15 || wb > -9) && (wb < 9 || wb > 15)) {
--			pr_err("invalid deflate winbits: %d\n", wb);
-+			pr_err("invalid winbits %d\n", wb);
- 			return -EINVAL;
- 		}
- 	}
---- a/drivers/block/zram/backend_lz4.c~zram-add-pr_fmt-to-backend-files
++	if (params->level == ZCOMP_PARAM_NOT_SET) {
+ 		params->level = Z_DEFAULT_COMPRESSION;
++	} else if (params->level < Z_DEFAULT_COMPRESSION ||
++		   params->level > Z_BEST_COMPRESSION) {
++		pr_err("invalid compression level %d\n", params->level);
++		return -EINVAL;
++	}
++
+ 	if (params->deflate.winbits == ZCOMP_PARAM_NOT_SET) {
+ 		params->deflate.winbits = DEFLATE_DEF_WINBITS;
+ 	} else {
+--- a/drivers/block/zram/backend_lz4.c~zram-validate-parameters-in-each-backends-setup_params
 +++ a/drivers/block/zram/backend_lz4.c
-@@ -1,3 +1,7 @@
-+// SPDX-License-Identifier: GPL-2.0-or-later
-+
-+#define pr_fmt(fmt) "lz4: " fmt
-+
- #include <linux/kernel.h>
- #include <linux/lz4.h>
- #include <linux/slab.h>
---- a/drivers/block/zram/backend_lz4hc.c~zram-add-pr_fmt-to-backend-files
+@@ -32,8 +32,12 @@ static int lz4_setup_params(struct zcomp
+ 	LZ4_stream_t *dict_stream;
+ 	int ret;
+ 
+-	if (params->level == ZCOMP_PARAM_NOT_SET)
++	if (params->level == ZCOMP_PARAM_NOT_SET) {
+ 		params->level = LZ4_ACCELERATION_DEFAULT;
++	} else if (params->level < LZ4_ACCELERATION_DEFAULT) {
++		pr_err("invalid compression level %d\n", params->level);
++		return -EINVAL;
++	}
+ 
+ 	if (!params->dict || !params->dict_sz)
+ 		return 0;
+--- a/drivers/block/zram/backend_lz4hc.c~zram-validate-parameters-in-each-backends-setup_params
 +++ a/drivers/block/zram/backend_lz4hc.c
-@@ -1,3 +1,7 @@
-+// SPDX-License-Identifier: GPL-2.0-or-later
-+
-+#define pr_fmt(fmt) "lz4hc: " fmt
-+
- #include <linux/kernel.h>
- #include <linux/lz4.h>
- #include <linux/slab.h>
---- a/drivers/block/zram/backend_lzo.c~zram-add-pr_fmt-to-backend-files
+@@ -22,8 +22,18 @@ static void lz4hc_release_params(struct
+ 
+ static int lz4hc_setup_params(struct zcomp_params *params)
+ {
+-	if (params->level == ZCOMP_PARAM_NOT_SET)
++	if (params->level == ZCOMP_PARAM_NOT_SET) {
+ 		params->level = LZ4HC_DEFAULT_CLEVEL;
++	} else if (params->level < 1 || params->level > LZ4HC_MAX_CLEVEL) {
++		/*
++		 * Use < 1 rather than < LZ4HC_MIN_CLEVEL here because
++		 * LZ4HC_compress_generic() only clamps levels below 1
++		 * (levels 1 and 2 are valid). LZ4HC_MIN_CLEVEL (3) is
++		 * advisory and not enforced by the library.
++		 */
++		pr_err("invalid compression level %d\n", params->level);
++		return -EINVAL;
++	}
+ 
+ 	return 0;
+ }
+--- a/drivers/block/zram/backend_lzo.c~zram-validate-parameters-in-each-backends-setup_params
 +++ a/drivers/block/zram/backend_lzo.c
-@@ -1,5 +1,7 @@
- // SPDX-License-Identifier: GPL-2.0-or-later
+@@ -14,6 +14,14 @@ static void lzo_release_params(struct zc
  
-+#define pr_fmt(fmt) "lzo: " fmt
-+
- #include <linux/kernel.h>
- #include <linux/slab.h>
- #include <linux/lzo.h>
---- a/drivers/block/zram/backend_lzorle.c~zram-add-pr_fmt-to-backend-files
+ static int lzo_setup_params(struct zcomp_params *params)
+ {
++	if (params->dict_sz) {
++		pr_err("dictionary is not supported\n");
++		return -EOPNOTSUPP;
++	}
++	if (params->level != ZCOMP_PARAM_NOT_SET) {
++		pr_err("compression level is not supported\n");
++		return -EOPNOTSUPP;
++	}
+ 	return 0;
+ }
+ 
+--- a/drivers/block/zram/backend_lzorle.c~zram-validate-parameters-in-each-backends-setup_params
 +++ a/drivers/block/zram/backend_lzorle.c
-@@ -1,5 +1,7 @@
- // SPDX-License-Identifier: GPL-2.0-or-later
+@@ -14,6 +14,14 @@ static void lzorle_release_params(struct
  
-+#define pr_fmt(fmt) "lzo-rle: " fmt
-+
- #include <linux/kernel.h>
- #include <linux/slab.h>
- #include <linux/lzo.h>
---- a/drivers/block/zram/backend_zstd.c~zram-add-pr_fmt-to-backend-files
+ static int lzorle_setup_params(struct zcomp_params *params)
+ {
++	if (params->dict_sz) {
++		pr_err("dictionary is not supported\n");
++		return -EOPNOTSUPP;
++	}
++	if (params->level != ZCOMP_PARAM_NOT_SET) {
++		pr_err("compression level is not supported\n");
++		return -EOPNOTSUPP;
++	}
+ 	return 0;
+ }
+ 
+--- a/drivers/block/zram/backend_zstd.c~zram-validate-parameters-in-each-backends-setup_params
 +++ a/drivers/block/zram/backend_zstd.c
-@@ -1,5 +1,7 @@
- // SPDX-License-Identifier: GPL-2.0-or-later
+@@ -60,8 +60,13 @@ static int zstd_setup_params(struct zcom
+ 		return -ENOMEM;
  
-+#define pr_fmt(fmt) "zstd: " fmt
-+
- #include <linux/kernel.h>
- #include <linux/slab.h>
- #include <linux/vmalloc.h>
+ 	params->drv_data = zp;
+-	if (params->level == ZCOMP_PARAM_NOT_SET)
++	if (params->level == ZCOMP_PARAM_NOT_SET) {
+ 		params->level = zstd_default_clevel();
++	} else if (params->level < zstd_min_clevel() ||
++		   params->level > zstd_max_clevel()) {
++		pr_err("invalid compression level %d\n", params->level);
++		goto error;
++	}
+ 
+ 	zp->cprm = zstd_get_params(params->level, PAGE_SIZE);
+ 
 _
 
 Patches currently in -mm which might be from haoqinhuang@tencent.com are
