@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B324634887E
-	for <mm-commits@vger.kernel.org>; Tue, 25 Aug 2026 01:54:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 52AC9343D91
+	for <mm-commits@vger.kernel.org>; Tue, 25 Aug 2026 01:54:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787622850; cv=none; b=r9sR5amswQI6y5yIjbyD+EKTde/bMOn/5OeOh1IjD0uwZYjwENsU9WHQ31VeR5TE1PQcbIMC/8m3Ucpslp4Lbd6/2xFh/RFDP5tkxYnxwzE4U/vYcfI69UBLPf4WD5cpK8+NacH7Z8whclMNd2zmgRKb6ewv1YqiF24TrfRIQ6g=
+	t=1787622853; cv=none; b=mpmkXPTs3gysyqe+c54I+OwHArxYlmS2Eby+Ejjcqjgbh+LJP1bxmMgtb+Oc41OjYaV2N9pdbHcfUbikMTfdclqTdefa1K26EEu1+B5jv2qTKnjpGIsH7h5MgE/wMGU5EN6MFwaVN6mjczuzjJgMAj+BgX1qKnAlKCXIpcFNgmU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787622850; c=relaxed/simple;
-	bh=95sKcpouHuzThbSSjTYIKsu9GFFjkGFVp2NSwC0yTdU=;
-	h=Date:To:From:Subject:Message-Id; b=XwYogMk8jnarQNAjlZDlAQ1zfpBrTJZwzRBKfZUZbPYhHJYS2lpRWoLnk1/uPMaEEO6zrdy6wnpSifjYE+d3h1AcvYlfXI8nHiVlk7ZBDPD+HazpI9Hdjfki+KysI0rff/fnHVPMwV6Np620BpJLyb3hlXsJ3LpzmrRP2PmfUUY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=i4cX49ja; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1787622853; c=relaxed/simple;
+	bh=oBftJWHVtQ3Qdugtwxf/Ph7NFgjep3eMUB42rFLaOgM=;
+	h=Date:To:From:Subject:Message-Id; b=SjU86y4UUquXPqjY4A6U8B34HXvfzeLGlrgDbWT5nO0Ahdee51tasFDMB7NCvNJ1QCC+jNgV97ScKsNYBJbnYOjduVE1hxx5wQ8y0SnxvLCULZZMobY6EvjEz99o8EfeycoRm2A0gXeEazaReeon3NXXTBHCh5UsaatORLaw0wg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qh6DBLbd; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="i4cX49ja"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 725521F00A3E;
-	Tue, 25 Aug 2026 01:54:08 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qh6DBLbd"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 244D31F000E9;
+	Tue, 25 Aug 2026 01:54:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1787622848;
-	bh=rgQvYLHM7Blb6euc75mbSV+RDVwxm5SNN95s9Wd5d2Y=;
+	d=linux-foundation.org; s=korg; t=1787622851;
+	bh=uPaknxHfQvcJrRFlSPp3w8lnCXWm8hX0PJJwRMPGJQ8=;
 	h=Date:To:From:Subject;
-	b=i4cX49jaIRK/zKYxsHC2O2/rtx6Z8Q7B0u9+wJqd+gJjcMseBwcWTGoIvYDnQkFzo
-	 6PGcPEIfrt/ogSK/eZRekq/LafKwgtAuruH+I2JV2ngn93D56RbMslPLWz/JWB1tnD
-	 qD/ftguu1IqvLE/M1V7uA4wIboTGtTodreJ6fTbQ=
-Date: Mon, 24 Aug 2026 18:54:08 -0700
-To: mm-commits@vger.kernel.org,xialonglong2025@163.com,minchan@kernel.org,akpm@linux-foundation.org,senozhatsky@chromium.org,akpm@linux-foundation.org
+	b=qh6DBLbd1HQEUoRmzFPrqzqHgacO8oaNFP6kRRf55paeghDst26T2Af7QMTJl16vU
+	 kr1sUJkLwbHkTPpu6+b+6n+/TeL9QssrmuiqXl20fV4zG3gHkb5NI2lzUGTlvaZ2A3
+	 rfUVv1cfM9JFNb1GIiy+9+/nLkzAY2z7hc327x5c=
+Date: Mon, 24 Aug 2026 18:54:10 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,ryan.roberts@arm.com,nico.pache@linux.dev,ljs@kernel.org,liam@infradead.org,lance.yang@linux.dev,kas@kernel.org,dev.jain@arm.com,david@kernel.org,baohua@kernel.org,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] zram-switch-to-unsigned-long-indexing.patch removed from -mm tree
-Message-Id: <20260825015408.725521F00A3E@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-mm-extend-the-check_huge-to-support-mthp-check.patch removed from -mm tree
+Message-Id: <20260825015411.244D31F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,535 +35,488 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: zram: switch to unsigned long indexing
+     Subject: selftests: mm: extend the check_huge() to support mTHP check
 has been removed from the -mm tree.  Its filename was
-     zram-switch-to-unsigned-long-indexing.patch
+     selftests-mm-extend-the-check_huge-to-support-mthp-check.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: zram: switch to unsigned long indexing
-Date: Thu, 6 Aug 2026 12:16:32 +0900
+From: Baolin Wang <baolin.wang@linux.alibaba.com>
+Subject: selftests: mm: extend the check_huge() to support mTHP check
+Date: Thu, 6 Aug 2026 11:34:12 +0800
 
-zram has always used "unsigned int" for (page) index calculations, which
-unnecessarily limited max zram disksize.
+Patch series "add anon mTHP collapse test cases", v3.
 
-Switch to "unsigned long" and permit much larger zram devices.
 
-Link: https://lore.kernel.org/20260806031640.536615-1-senozhatsky@chromium.org
-Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
-Suggested-by: Andrew Morton <akpm@linux-foundation.org>
-Co-developed-by: Longlong Xia <xialonglong2025@163.com>
-Cc: Minchan Kim <minchan@kernel.org>
+This patch (of 4):
+
+To support checking for various sized mTHPs during mTHP collapse, extend
+the check_huge() function prototype to accept two new parameters
+specifying the address range and mTHP size, in preparation for the
+following patches.
+
+No functional changes.
+
+Link: https://lore.kernel.org/cover.1785985999.git.baolin.wang@linux.alibaba.com
+Link: https://lore.kernel.org/e5039cbc70f8de853e6c21048d65803a5fe41042.1785985999.git.baolin.wang@linux.alibaba.com
+Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Reviewed-by: Nico Pache (Red Hat) <nico.pache@linux.dev>
+Tested-by: Nico Pache (Red Hat) <nico.pache@linux.dev>
+Acked-by: Zi Yan <ziy@nvidia.com>
+Acked-by: Kiryl Shutsemau (Meta) <kas@kernel.org>
+Cc: Barry Song <baohua@kernel.org>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Lance Yang <lance.yang@linux.dev>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |  137 +++++++++++++++++---------------
- 1 file changed, 77 insertions(+), 60 deletions(-)
+ tools/testing/selftests/mm/folio_split_race_test.c |    2 
+ tools/testing/selftests/mm/khugepaged.c            |   66 ++++++-----
+ tools/testing/selftests/mm/pagemap_ioctl.c         |    2 
+ tools/testing/selftests/mm/prctl_thp_disable.c     |    2 
+ tools/testing/selftests/mm/soft-dirty.c            |    2 
+ tools/testing/selftests/mm/split_huge_page_test.c  |   14 +-
+ tools/testing/selftests/mm/uffd-common.c           |    4 
+ tools/testing/selftests/mm/vm_util.c               |    6 -
+ tools/testing/selftests/mm/vm_util.h               |    6 -
+ 9 files changed, 56 insertions(+), 48 deletions(-)
 
---- a/drivers/block/zram/zram_drv.c~zram-switch-to-unsigned-long-indexing
-+++ a/drivers/block/zram/zram_drv.c
-@@ -56,7 +56,7 @@ static size_t huge_class_size;
+--- a/tools/testing/selftests/mm/folio_split_race_test.c~selftests-mm-extend-the-check_huge-to-support-mthp-check
++++ a/tools/testing/selftests/mm/folio_split_race_test.c
+@@ -182,7 +182,7 @@ static uint64_t run_iteration(void)
+ 	for (i = 0; i < TOTAL_PAGES; i++)
+ 		fill_page(mmap_base, i);
  
- static const struct block_device_operations zram_devops;
+-	if (!check_huge_shmem(mmap_base, NR_PMD_PAGE, pmd_pagesize))
++	if (!check_huge_shmem(mmap_base, FILE_SIZE, NR_PMD_PAGE, pmd_pagesize))
+ 		ksft_exit_fail_msg("No shmem THP is allocated\n");
  
--static void slot_free(struct zram *zram, u32 index);
-+static void slot_free(struct zram *zram, unsigned long index);
- 
- /*
-  * entry locking rules:
-@@ -70,7 +70,7 @@ static void slot_free(struct zram *zram,
-  * 4) Use TRY lock variant when in atomic context
-  *    - must check return value and handle locking failers
-  */
--static __must_check bool slot_trylock(struct zram *zram, u32 index)
-+static __must_check bool slot_trylock(struct zram *zram, unsigned long index)
- {
- 	unsigned long *lock = &zram->table[index].__lock;
- 
-@@ -83,7 +83,7 @@ static __must_check bool slot_trylock(st
- 	return false;
- }
- 
--static void slot_lock(struct zram *zram, u32 index)
-+static void slot_lock(struct zram *zram, unsigned long index)
- {
- 	unsigned long *lock = &zram->table[index].__lock;
- 
-@@ -92,7 +92,7 @@ static void slot_lock(struct zram *zram,
- 	lock_acquired(&zram->table_lock_map, _RET_IP_);
- }
- 
--static void slot_unlock(struct zram *zram, u32 index)
-+static void slot_unlock(struct zram *zram, unsigned long index)
- {
- 	unsigned long *lock = &zram->table[index].__lock;
- 
-@@ -110,55 +110,56 @@ static inline struct zram *dev_to_zram(s
- 	return (struct zram *)dev_to_disk(dev)->private_data;
- }
- 
--static unsigned long get_slot_handle(struct zram *zram, u32 index)
-+static unsigned long get_slot_handle(struct zram *zram, unsigned long index)
- {
- 	return zram->table[index].handle;
- }
- 
--static void set_slot_handle(struct zram *zram, u32 index, unsigned long handle)
-+static void set_slot_handle(struct zram *zram, unsigned long index,
-+			    unsigned long handle)
- {
- 	zram->table[index].handle = handle;
- }
- 
--static bool test_slot_flag(struct zram *zram, u32 index,
-+static bool test_slot_flag(struct zram *zram, unsigned long index,
- 			   enum zram_pageflags flag)
- {
- 	return zram->table[index].attr.flags & BIT(flag);
- }
- 
--static void set_slot_flag(struct zram *zram, u32 index,
-+static void set_slot_flag(struct zram *zram, unsigned long index,
- 			  enum zram_pageflags flag)
- {
- 	zram->table[index].attr.flags |= BIT(flag);
- }
- 
--static void clear_slot_flag(struct zram *zram, u32 index,
-+static void clear_slot_flag(struct zram *zram, unsigned long index,
- 			    enum zram_pageflags flag)
- {
- 	zram->table[index].attr.flags &= ~BIT(flag);
- }
- 
--static size_t get_slot_size(struct zram *zram, u32 index)
-+static size_t get_slot_size(struct zram *zram, unsigned long index)
- {
- 	return zram->table[index].attr.flags & (BIT(ZRAM_FLAG_SHIFT) - 1);
- }
- 
--static void set_slot_size(struct zram *zram, u32 index, size_t size)
-+static void set_slot_size(struct zram *zram, unsigned long index, size_t size)
- {
- 	unsigned long flags = zram->table[index].attr.flags >> ZRAM_FLAG_SHIFT;
- 
- 	zram->table[index].attr.flags = (flags << ZRAM_FLAG_SHIFT) | size;
- }
- 
--static inline bool slot_allocated(struct zram *zram, u32 index)
-+static inline bool slot_allocated(struct zram *zram, unsigned long index)
- {
- 	return get_slot_size(zram, index) ||
- 		test_slot_flag(zram, index, ZRAM_SAME) ||
- 		test_slot_flag(zram, index, ZRAM_WB);
- }
- 
--static inline void set_slot_comp_priority(struct zram *zram, u32 index,
--					  u32 prio)
-+static inline void set_slot_comp_priority(struct zram *zram,
-+					  unsigned long index, u32 prio)
- {
- 	prio &= ZRAM_COMP_PRIORITY_MASK;
- 	/*
-@@ -170,14 +171,14 @@ static inline void set_slot_comp_priorit
- 	zram->table[index].attr.flags |= (prio << ZRAM_COMP_PRIORITY_BIT1);
- }
- 
--static inline u32 get_slot_comp_priority(struct zram *zram, u32 index)
-+static inline u32 get_slot_comp_priority(struct zram *zram, unsigned long index)
- {
- 	u32 prio = zram->table[index].attr.flags >> ZRAM_COMP_PRIORITY_BIT1;
- 
- 	return prio & ZRAM_COMP_PRIORITY_MASK;
- }
- 
--static void mark_slot_accessed(struct zram *zram, u32 index)
-+static void mark_slot_accessed(struct zram *zram, unsigned long index)
- {
- 	clear_slot_flag(zram, index, ZRAM_IDLE);
- 	clear_slot_flag(zram, index, ZRAM_PP_SLOT);
-@@ -284,7 +285,7 @@ static void release_pp_ctl(struct zram *
- }
- 
- static bool place_pp_slot(struct zram *zram, struct zram_pp_ctl *ctl,
--			  u32 index)
-+			  unsigned long index)
- {
- 	struct zram_pp_slot *pps;
- 	u32 bid;
-@@ -418,7 +419,7 @@ static void mark_idle(struct zram *zram,
- {
- 	int is_idle = 1;
- 	unsigned long nr_pages = zram->disksize >> PAGE_SHIFT;
--	int index;
-+	unsigned long index;
- 
- 	for (index = 0; index < nr_pages; index++) {
- 		/*
-@@ -485,8 +486,9 @@ static ssize_t idle_store(struct device
- #define INVALID_BDEV_BLOCK		(~0UL)
- 
- static int read_from_zspool_raw(struct zram *zram, struct page *page,
--				u32 index);
--static int read_from_zspool(struct zram *zram, struct page *page, u32 index);
-+				unsigned long index);
-+static int read_from_zspool(struct zram *zram, struct page *page,
-+			    unsigned long index);
- 
- struct zram_wb_ctl {
- 	/* idle list is accessed only by the writeback task, no concurency */
-@@ -522,7 +524,7 @@ struct zram_rb_req {
- 		/* error status (sync read) */
- 		int error;
- 	};
--	u32 index;
-+	unsigned long index;
+ 	if (pthread_barrier_init(&ctl.barrier, NULL, NUM_READER_THREADS + 1) != 0)
+--- a/tools/testing/selftests/mm/khugepaged.c~selftests-mm-extend-the-check_huge-to-support-mthp-check
++++ a/tools/testing/selftests/mm/khugepaged.c
+@@ -51,7 +51,7 @@ struct mem_ops {
+ 	void *(*setup_area)(int nr_hpages);
+ 	void (*cleanup_area)(void *p, unsigned long size);
+ 	void (*fault)(void *p, unsigned long start, unsigned long end);
+-	bool (*check_huge)(void *addr, int nr_hpages);
++	bool (*check_huge)(void *addr, size_t len, int nr_hpages, unsigned long hpage_size);
+ 	const char *name;
  };
  
- #define FOUR_K(x) ((x) * (1 << (PAGE_SHIFT - 12)))
-@@ -910,7 +912,7 @@ static void zram_account_writeback_submi
+@@ -276,7 +276,7 @@ static void *alloc_hpage(struct mem_ops
+ 	ksft_print_msg("Allocate huge page...");
+ 	if (madvise_collapse_retry(p, hpage_pmd_size))
+ 		ksft_exit_fail_perror("madvise(MADV_COLLAPSE)");
+-	if (!ops->check_huge(p, 1))
++	if (!ops->check_huge(p, hpage_pmd_size, 1, hpage_pmd_size))
+ 		ksft_exit_fail_perror("madvise(MADV_COLLAPSE)");
+ 	if (madvise(p, hpage_pmd_size, MADV_HUGEPAGE))
+ 		ksft_exit_fail_perror("madvise(MADV_HUGEPAGE)");
+@@ -310,9 +310,10 @@ static void anon_fault(void *p, unsigned
+ 	fill_memory(p, start, end);
+ }
  
- static int zram_writeback_complete(struct zram *zram, struct zram_wb_req *req)
+-static bool anon_check_huge(void *addr, int nr_hpages)
++static bool anon_check_huge(void *addr, size_t len, int nr_hpages,
++		unsigned long hpage_size)
  {
--	u32 index = req->pps->index;
-+	unsigned long index = req->pps->index;
- 	int err;
+-	return check_huge_anon(addr, nr_hpages, hpage_pmd_size);
++	return check_huge_anon(addr, len, nr_hpages, hpage_size);
+ }
  
- 	err = blk_status_to_errno(req->bio.bi_status);
-@@ -1032,7 +1034,7 @@ static int zram_writeback_slots(struct z
- 	struct zram_wb_req *req = NULL;
- 	struct zram_pp_slot *pps;
- 	int ret = 0, err = 0;
--	u32 index = 0;
-+	unsigned long index = 0;
+ static void *file_setup_area_common(int nr_hpages, enum file_setup_ops setup)
+@@ -412,13 +413,14 @@ static void file_fault_write(void *p, un
+ 		ksft_exit_fail_perror("madvise(MADV_POPULATE_WRITE)");
+ }
  
- 	while ((pps = select_pp_slot(ctl))) {
- 		if (zram->wb_limit_enable && !zram->bd_wb_limit) {
-@@ -1198,7 +1200,7 @@ static void scan_slots_for_writeback(str
- 				     unsigned long lo, unsigned long hi,
- 				     struct zram_pp_ctl *ctl)
+-static bool file_check_huge(void *addr, int nr_hpages)
++static bool file_check_huge(void *addr, size_t len, int nr_hpages,
++		unsigned long hpage_size)
  {
--	u32 index = lo;
-+	unsigned long index = lo;
+ 	switch (finfo.type) {
+ 	case VMA_FILE:
+-		return check_huge_file(addr, nr_hpages, hpage_pmd_size);
++		return check_huge_file(addr, len, nr_hpages, hpage_size);
+ 	case VMA_SHMEM:
+-		return check_huge_shmem(addr, nr_hpages, hpage_pmd_size);
++		return check_huge_shmem(addr, len, nr_hpages, hpage_size);
+ 	default:
+ 		exit(EXIT_FAILURE);
+ 		return false;
+@@ -448,9 +450,10 @@ static void shmem_cleanup_area(void *p,
+ 	close(finfo.fd);
+ }
  
- 	while (index < hi) {
- 		bool ok = true;
-@@ -1235,7 +1237,7 @@ static ssize_t writeback_store(struct de
- 			       const char *buf, size_t len)
+-static bool shmem_check_huge(void *addr, int nr_hpages)
++static bool shmem_check_huge(void *addr, size_t len, int nr_hpages,
++		unsigned long hpage_size)
  {
- 	struct zram *zram = dev_to_zram(dev);
--	u64 nr_pages;
-+	unsigned long nr_pages;
- 	unsigned long lo = 0, hi;
- 	struct zram_pp_ctl *pp_ctl = NULL;
- 	struct zram_wb_ctl *wb_ctl = NULL;
-@@ -1336,7 +1338,8 @@ out:
+-	return check_huge_shmem(addr, nr_hpages, hpage_pmd_size);
++	return check_huge_shmem(addr, len, nr_hpages, hpage_size);
+ }
+ 
+ static struct mem_ops __anon_ops = {
+@@ -533,7 +536,7 @@ static void __madvise_collapse(const cha
+ 	ret = madvise_collapse_retry(p, nr_hpages * hpage_pmd_size);
+ 	if (((bool)ret) == expect)
+ 		fail("Fail: Bad return value");
+-	else if (!ops->check_huge(p, expect ? nr_hpages : 0))
++	else if (!ops->check_huge(p, nr_hpages * hpage_pmd_size, expect ? nr_hpages : 0, hpage_pmd_size))
+ 		fail("Fail: check_huge()");
+ 	else
+ 		success("OK");
+@@ -545,7 +548,7 @@ static void madvise_collapse(const char
+ 			     struct mem_ops *ops, bool expect)
+ {
+ 	/* Sanity check */
+-	if (!ops->check_huge(p, 0))
++	if (!ops->check_huge(p, nr_hpages * hpage_pmd_size, 0, hpage_pmd_size))
+ 		ksft_exit_fail_msg("Unexpected huge page\n");
+ 	__madvise_collapse(msg, p, nr_hpages, ops, expect);
+ }
+@@ -554,11 +557,12 @@ static void madvise_collapse(const char
+ static bool wait_for_scan(const char *msg, char *p, int nr_hpages,
+ 			  struct mem_ops *ops)
+ {
++	size_t len = nr_hpages * hpage_pmd_size;
+ 	int full_scans;
+ 	int timeout = 6; /* 3 seconds */
+ 
+ 	/* Sanity check */
+-	if (!ops->check_huge(p, 0))
++	if (!ops->check_huge(p, len, 0, hpage_pmd_size))
+ 		ksft_exit_fail_msg("Unexpected huge page\n");
+ 
+ 	madvise(p, nr_hpages * hpage_pmd_size, MADV_HUGEPAGE);
+@@ -568,7 +572,7 @@ static bool wait_for_scan(const char *ms
+ 
+ 	ksft_print_msg("%s...", msg);
+ 	while (timeout--) {
+-		if (ops->check_huge(p, nr_hpages))
++		if (ops->check_huge(p, len, nr_hpages, hpage_pmd_size))
+ 			break;
+ 		if (thp_read_num("khugepaged/full_scans") >= full_scans)
+ 			break;
+@@ -582,6 +586,8 @@ static bool wait_for_scan(const char *ms
+ static void khugepaged_collapse(const char *msg, char *p, int nr_hpages,
+ 				struct mem_ops *ops, bool expect)
+ {
++	size_t len = nr_hpages * hpage_pmd_size;
++
+ 	/*
+ 	 * read&write file collapse fails since khugepaged does not flush
+ 	 * the target dirty folios
+@@ -605,7 +611,7 @@ static void khugepaged_collapse(const ch
+ 	if (ops != &__anon_ops)
+ 		ops->fault(p, 0, nr_hpages * hpage_pmd_size);
+ 
+-	if (ops->check_huge(p, expect ? nr_hpages : 0))
++	if (ops->check_huge(p, len, expect ? nr_hpages : 0, hpage_pmd_size))
+ 		success("OK");
+ 	else
+ 		fail("Fail");
+@@ -634,7 +640,7 @@ static void alloc_at_fault(void)
+ 	p = alloc_mapping(1);
+ 	*p = 1;
+ 	ksft_print_msg("Allocate huge page on fault...");
+-	if (check_huge_anon(p, 1, hpage_pmd_size))
++	if (check_huge_anon(p, hpage_pmd_size, 1, hpage_pmd_size))
+ 		success("OK");
+ 	else
+ 		fail("Fail");
+@@ -643,7 +649,7 @@ static void alloc_at_fault(void)
+ 
+ 	madvise(p, page_size, MADV_DONTNEED);
+ 	ksft_print_msg("Split huge PMD on MADV_DONTNEED...");
+-	if (check_huge_anon(p, 0, hpage_pmd_size))
++	if (check_huge_anon(p, hpage_pmd_size, 0, hpage_pmd_size))
+ 		success("OK");
+ 	else
+ 		fail("Fail");
+@@ -815,7 +821,7 @@ static void collapse_single_pte_entry_co
+ 	madvise(p, hpage_pmd_size, MADV_NOHUGEPAGE);
+ 	ksft_print_msg("Split huge page leaving single PTE mapping compound page...");
+ 	madvise(p + page_size, hpage_pmd_size - page_size, MADV_DONTNEED);
+-	if (ops->check_huge(p, 0))
++	if (ops->check_huge(p, hpage_pmd_size, 0, hpage_pmd_size))
+ 		success("OK");
+ 	else
+ 		fail("Fail");
+@@ -836,7 +842,7 @@ static void collapse_full_of_compound(st
+ 	ksft_print_msg("Split huge page leaving single PTE page table full of compound pages...");
+ 	madvise(p, page_size, MADV_NOHUGEPAGE);
+ 	madvise(p, hpage_pmd_size, MADV_NOHUGEPAGE);
+-	if (ops->check_huge(p, 0))
++	if (ops->check_huge(p, hpage_pmd_size, 0, hpage_pmd_size))
+ 		success("OK");
+ 	else
+ 		fail("Fail");
+@@ -858,7 +864,7 @@ static void collapse_compound_extreme(st
+ 	for (i = 0; i < hpage_pmd_nr; i++) {
+ 		madvise(BASE_ADDR, hpage_pmd_size, MADV_HUGEPAGE);
+ 		ops->fault(BASE_ADDR, 0, hpage_pmd_size);
+-		if (!ops->check_huge(BASE_ADDR, 1))
++		if (!ops->check_huge(BASE_ADDR, hpage_pmd_size, 1, hpage_pmd_size))
+ 			ksft_exit_fail_msg("Failed to allocate huge page\n");
+ 		madvise(BASE_ADDR, hpage_pmd_size, MADV_NOHUGEPAGE);
+ 
+@@ -881,7 +887,7 @@ static void collapse_compound_extreme(st
+ 
+ 	ops->cleanup_area(BASE_ADDR, hpage_pmd_size);
+ 	ops->fault(p, 0, hpage_pmd_size);
+-	if (!ops->check_huge(p, 1))
++	if (!ops->check_huge(p, hpage_pmd_size, 1, hpage_pmd_size))
+ 		success("OK");
+ 	else
+ 		fail("Fail");
+@@ -903,7 +909,7 @@ static void collapse_fork(struct collaps
+ 
+ 	ksft_print_msg("Allocate small page...");
+ 	ops->fault(p, 0, page_size);
+-	if (ops->check_huge(p, 0))
++	if (ops->check_huge(p, hpage_pmd_size, 0, hpage_pmd_size))
+ 		success("OK");
+ 	else
+ 		fail("Fail");
+@@ -911,7 +917,7 @@ static void collapse_fork(struct collaps
+ 	ksft_print_msg("Share small page over fork()...");
+ 	if (!fork()) {
+ 		/* Do not touch settings on child exit */
+-		if (ops->check_huge(p, 0))
++		if (ops->check_huge(p, hpage_pmd_size, 0, hpage_pmd_size))
+ 			success("OK");
+ 		else
+ 			fail("Fail");
+@@ -929,7 +935,7 @@ static void collapse_fork(struct collaps
+ 	exit_status = WEXITSTATUS(wstatus);
+ 
+ 	ksft_print_msg("Check if parent still has small page...");
+-	if (ops->check_huge(p, 0))
++	if (ops->check_huge(p, hpage_pmd_size, 0, hpage_pmd_size))
+ 		success("OK");
+ 	else
+ 		fail("Fail");
+@@ -947,7 +953,7 @@ static void collapse_fork_compound(struc
+ 	ksft_print_msg("Share huge page over fork()...");
+ 	if (!fork()) {
+ 		/* Do not touch settings on child exit */
+-		if (ops->check_huge(p, 1))
++		if (ops->check_huge(p, hpage_pmd_size, 1, hpage_pmd_size))
+ 			success("OK");
+ 		else
+ 			fail("Fail");
+@@ -955,7 +961,7 @@ static void collapse_fork_compound(struc
+ 		ksft_print_msg("Split huge page PMD in child process...");
+ 		madvise(p, page_size, MADV_NOHUGEPAGE);
+ 		madvise(p, hpage_pmd_size, MADV_NOHUGEPAGE);
+-		if (ops->check_huge(p, 0))
++		if (ops->check_huge(p, hpage_pmd_size, 0, hpage_pmd_size))
+ 			success("OK");
+ 		else
+ 			fail("Fail");
+@@ -976,7 +982,7 @@ static void collapse_fork_compound(struc
+ 	exit_status = WEXITSTATUS(wstatus);
+ 
+ 	ksft_print_msg("Check if parent still has huge page...");
+-	if (ops->check_huge(p, 1))
++	if (ops->check_huge(p, hpage_pmd_size, 1, hpage_pmd_size))
+ 		success("OK");
+ 	else
+ 		fail("Fail");
+@@ -995,7 +1001,7 @@ static void collapse_max_ptes_shared(str
+ 	ksft_print_msg("Share huge page over fork()...");
+ 	if (!fork()) {
+ 		/* Do not touch settings on child exit */
+-		if (ops->check_huge(p, 1))
++		if (ops->check_huge(p, hpage_pmd_size, 1, hpage_pmd_size))
+ 			success("OK");
+ 		else
+ 			fail("Fail");
+@@ -1003,7 +1009,7 @@ static void collapse_max_ptes_shared(str
+ 		ksft_print_msg("Trigger CoW on page %d of %d...",
+ 				hpage_pmd_nr - max_ptes_shared - 1, hpage_pmd_nr);
+ 		ops->fault(p, 0, (hpage_pmd_nr - max_ptes_shared - 1) * page_size);
+-		if (ops->check_huge(p, 0))
++		if (ops->check_huge(p, hpage_pmd_size, 0, hpage_pmd_size))
+ 			success("OK");
+ 		else
+ 			fail("Fail");
+@@ -1016,7 +1022,7 @@ static void collapse_max_ptes_shared(str
+ 			       hpage_pmd_nr - max_ptes_shared, hpage_pmd_nr);
+ 			ops->fault(p, 0, (hpage_pmd_nr - max_ptes_shared) *
+ 				    page_size);
+-			if (ops->check_huge(p, 0))
++			if (ops->check_huge(p, hpage_pmd_size, 0, hpage_pmd_size))
+ 				success("OK");
+ 			else
+ 				fail("Fail");
+@@ -1034,7 +1040,7 @@ static void collapse_max_ptes_shared(str
+ 	exit_status = WEXITSTATUS(wstatus);
+ 
+ 	ksft_print_msg("Check if parent still has huge page...");
+-	if (ops->check_huge(p, 1))
++	if (ops->check_huge(p, hpage_pmd_size, 1, hpage_pmd_size))
+ 		success("OK");
+ 	else
+ 		fail("Fail");
+--- a/tools/testing/selftests/mm/pagemap_ioctl.c~selftests-mm-extend-the-check_huge-to-support-mthp-check
++++ a/tools/testing/selftests/mm/pagemap_ioctl.c
+@@ -1085,7 +1085,7 @@ static void unpopulated_written_test(con
+ 	memset(mem, 1, size);
+ 	if (use_thp &&
+ 	    (madvise(mem, size, MADV_COLLAPSE) ||
+-	     !check_huge_anon(mem, size / hpage_size, hpage_size))) {
++	     !check_huge_anon(mem, size, size / hpage_size, hpage_size))) {
+ 		ksft_test_result_skip("%s could not form a THP\n", name);
+ 		goto out;
+ 	}
+--- a/tools/testing/selftests/mm/prctl_thp_disable.c~selftests-mm-extend-the-check_huge-to-support-mthp-check
++++ a/tools/testing/selftests/mm/prctl_thp_disable.c
+@@ -67,7 +67,7 @@ static int test_mmap_thp(enum thp_collap
+ 	/* HACK: make sure we have a separate VMA that we can check reliably. */
+ 	mprotect(mem, pmdsize, PROT_READ);
+ 
+-	ret = check_huge_anon(mem, 1, pmdsize);
++	ret = check_huge_anon(mem, pmdsize, 1, pmdsize);
+ 	munmap(mmap_mem, mmap_size);
  	return ret;
  }
+--- a/tools/testing/selftests/mm/soft-dirty.c~selftests-mm-extend-the-check_huge-to-support-mthp-check
++++ a/tools/testing/selftests/mm/soft-dirty.c
+@@ -103,7 +103,7 @@ static void test_hugepage(int pagemap_fd
+ 	for (i = 0; i < hpage_len; i++)
+ 		map[i] = (char)i;
  
--static int decompress_bdev_page(struct zram *zram, struct page *page, u32 index)
-+static int decompress_bdev_page(struct zram *zram, struct page *page,
-+				unsigned long index)
- {
- 	struct zcomp_strm *zstrm;
- 	unsigned int size;
-@@ -1378,7 +1381,7 @@ static void zram_deferred_decompress(str
- 	struct zram_rb_req *req = container_of(w, struct zram_rb_req, work);
- 	struct page *page = bio_first_page_all(req->bio);
- 	struct zram *zram = req->zram;
--	u32 index = req->index;
-+	unsigned long index = req->index;
- 	int ret;
+-	if (check_huge_anon(map, 1, hpage_len)) {
++	if (check_huge_anon(map, hpage_len, 1, hpage_len)) {
+ 		ksft_test_result_pass("Test %s huge page allocation\n", __func__);
  
- 	ret = decompress_bdev_page(zram, page, index);
-@@ -1429,7 +1432,7 @@ static void zram_async_read_endio(struct
- }
+ 		clear_softdirty();
+--- a/tools/testing/selftests/mm/split_huge_page_test.c~selftests-mm-extend-the-check_huge-to-support-mthp-check
++++ a/tools/testing/selftests/mm/split_huge_page_test.c
+@@ -296,7 +296,7 @@ static void verify_rss_anon_split_huge_p
+ 	unsigned long rss_anon_before, rss_anon_after;
+ 	size_t i;
  
- static int read_from_bdev_async(struct zram *zram, struct page *page,
--				u32 index, unsigned long blk_idx,
-+				unsigned long index, unsigned long blk_idx,
- 				struct bio *parent)
- {
- 	struct zram_rb_req *req;
-@@ -1479,8 +1482,8 @@ static void zram_sync_read(struct work_s
-  * chained IO with parent IO in same context, it's a deadlock. To avoid that,
-  * use a worker thread context.
-  */
--static int read_from_bdev_sync(struct zram *zram, struct page *page, u32 index,
--			       unsigned long blk_idx)
-+static int read_from_bdev_sync(struct zram *zram, struct page *page,
-+			       unsigned long index, unsigned long blk_idx)
- {
- 	struct zram_rb_req req;
+-	if (!check_huge_anon(one_page, nr_hpages, pmd_pagesize))
++	if (!check_huge_anon(one_page, nr_hpages * pmd_pagesize, nr_hpages, pmd_pagesize))
+ 		ksft_exit_fail_msg("No THP is allocated\n");
  
-@@ -1499,8 +1502,9 @@ static int read_from_bdev_sync(struct zr
- 	return decompress_bdev_page(zram, page, index);
- }
+ 	rss_anon_before = rss_anon();
+@@ -311,7 +311,7 @@ static void verify_rss_anon_split_huge_p
+ 		if (one_page[i] != (char)0)
+ 			ksft_exit_fail_msg("%ld byte corrupted\n", i);
  
--static int read_from_bdev(struct zram *zram, struct page *page, u32 index,
--			  unsigned long blk_idx, struct bio *parent)
-+static int read_from_bdev(struct zram *zram, struct page *page,
-+			  unsigned long index, unsigned long blk_idx,
-+			  struct bio *parent)
- {
- 	atomic64_inc(&zram->stats.bd_reads);
- 	if (!parent) {
-@@ -1512,8 +1516,9 @@ static int read_from_bdev(struct zram *z
- }
- #else
- static inline void reset_bdev(struct zram *zram) {};
--static int read_from_bdev(struct zram *zram, struct page *page, u32 index,
--			  unsigned long blk_idx, struct bio *parent)
-+static int read_from_bdev(struct zram *zram, struct page *page,
-+			  unsigned long index, unsigned long blk_idx,
-+			  struct bio *parent)
- {
- 	return -EIO;
- }
-@@ -1541,7 +1546,8 @@ static ssize_t read_block_state(struct f
- 				size_t count, loff_t *ppos)
- {
- 	char *kbuf;
--	ssize_t index, written = 0;
-+	unsigned long index;
-+	ssize_t written = 0;
- 	struct zram *zram = file->private_data;
- 	unsigned long nr_pages;
+-	if (!check_huge_anon(one_page, 0, pmd_pagesize))
++	if (!check_huge_anon(one_page, nr_hpages * pmd_pagesize, 0, pmd_pagesize))
+ 		ksft_exit_fail_msg("Still AnonHugePages not split\n");
  
-@@ -1565,7 +1571,7 @@ static ssize_t read_block_state(struct f
- 			goto next;
+ 	rss_anon_after = rss_anon();
+@@ -347,7 +347,7 @@ static void split_pmd_thp_to_order(int o
+ 	for (i = 0; i < len; i++)
+ 		one_page[i] = (char)i;
  
- 		copied = snprintf(kbuf + written, count,
--			"%12zd %12u.%06d %c%c%c%c%c%c\n",
-+			"%12lu %12u.%06d %c%c%c%c%c%c\n",
- 			index, zram->table[index].attr.ac_time, 0,
- 			test_slot_flag(zram, index, ZRAM_SAME) ? 's' : '.',
- 			test_slot_flag(zram, index, ZRAM_WB) ? 'w' : '.',
-@@ -1972,8 +1978,8 @@ static ssize_t debug_stat_show(struct de
+-	if (!check_huge_anon(one_page, 4, pmd_pagesize))
++	if (!check_huge_anon(one_page, 4 * pmd_pagesize, 4, pmd_pagesize))
+ 		ksft_exit_fail_msg("No THP is allocated\n");
  
- static void zram_meta_free(struct zram *zram, u64 disksize)
- {
--	size_t num_pages = disksize >> PAGE_SHIFT;
--	size_t index;
-+	unsigned long num_pages = disksize >> PAGE_SHIFT;
-+	unsigned long index;
+ 	/* split all THPs */
+@@ -366,7 +366,7 @@ static void split_pmd_thp_to_order(int o
+ 					   (pmd_order + 1)))
+ 		ksft_exit_fail_msg("Unexpected THP split\n");
  
- 	if (!zram->table)
- 		return;
-@@ -1990,7 +1996,7 @@ static void zram_meta_free(struct zram *
+-	if (!check_huge_anon(one_page, 0, pmd_pagesize))
++	if (!check_huge_anon(one_page, 4 * pmd_pagesize, 0, pmd_pagesize))
+ 		ksft_exit_fail_msg("Still AnonHugePages not split\n");
  
- static bool zram_meta_alloc(struct zram *zram, u64 disksize)
- {
--	size_t num_pages;
-+	unsigned long num_pages;
+ 	ksft_test_result_pass("Split huge pages to order %d successful\n", order);
+@@ -393,7 +393,7 @@ static void split_pte_mapped_thp(void)
+ 	for (i = 0; i < thp_area_size; i++)
+ 		thp_area[i] = (char)i;
  
- 	num_pages = disksize >> PAGE_SHIFT;
- 	zram->table = vzalloc(array_size(num_pages, sizeof(*zram->table)));
-@@ -2013,7 +2019,7 @@ static bool zram_meta_alloc(struct zram
- 	return true;
- }
+-	if (!check_huge_anon(thp_area, nr_thps, pmd_pagesize)) {
++	if (!check_huge_anon(thp_area, nr_thps * pmd_pagesize, nr_thps, pmd_pagesize)) {
+ 		ksft_test_result_skip("Not all THPs allocated\n");
+ 		goto out;
+ 	}
+@@ -657,7 +657,7 @@ static int create_pagecache_thp_and_fd(c
  
--static void slot_free(struct zram *zram, u32 index)
-+static void slot_free(struct zram *zram, unsigned long index)
- {
- 	unsigned long handle;
+ 	force_read_pages(*addr, fd_size / pmd_pagesize, pmd_pagesize);
  
-@@ -2067,7 +2073,7 @@ out:
- }
- 
- static int read_same_filled_page(struct zram *zram, struct page *page,
--				 u32 index)
-+				 unsigned long index)
- {
- 	void *mem;
- 
-@@ -2078,7 +2084,7 @@ static int read_same_filled_page(struct
- }
- 
- static int read_incompressible_page(struct zram *zram, struct page *page,
--				    u32 index)
-+				    unsigned long index)
- {
- 	unsigned long handle;
- 	void *src, *dst;
-@@ -2093,7 +2099,8 @@ static int read_incompressible_page(stru
- 	return 0;
- }
- 
--static int read_compressed_page(struct zram *zram, struct page *page, u32 index)
-+static int read_compressed_page(struct zram *zram, struct page *page,
-+				unsigned long index)
- {
- 	struct zcomp_strm *zstrm;
- 	unsigned long handle;
-@@ -2118,7 +2125,8 @@ static int read_compressed_page(struct z
- }
- 
- #if defined CONFIG_ZRAM_WRITEBACK
--static int read_from_zspool_raw(struct zram *zram, struct page *page, u32 index)
-+static int read_from_zspool_raw(struct zram *zram, struct page *page,
-+				unsigned long index)
- {
- 	struct zcomp_strm *zstrm;
- 	unsigned long handle;
-@@ -2150,7 +2158,8 @@ static int read_from_zspool_raw(struct z
-  * Reads (decompresses if needed) a page from zspool (zsmalloc).
-  * Corresponding ZRAM slot should be locked.
-  */
--static int read_from_zspool(struct zram *zram, struct page *page, u32 index)
-+static int read_from_zspool(struct zram *zram, struct page *page,
-+			    unsigned long index)
- {
- 	if (test_slot_flag(zram, index, ZRAM_SAME) ||
- 	    !get_slot_handle(zram, index))
-@@ -2162,8 +2171,8 @@ static int read_from_zspool(struct zram
- 		return read_incompressible_page(zram, page, index);
- }
- 
--static int zram_read_page(struct zram *zram, struct page *page, u32 index,
--			  struct bio *parent)
-+static int zram_read_page(struct zram *zram, struct page *page,
-+			  unsigned long index, struct bio *parent)
- {
- 	int ret;
- 
-@@ -2185,7 +2194,7 @@ static int zram_read_page(struct zram *z
- 
- 	/* Should NEVER happen. Return bio error if it does. */
- 	if (WARN_ON(ret < 0))
--		pr_err("Decompression failed! err=%d, page=%u\n", ret, index);
-+		pr_err("Decompression failed! err=%d, page=%lu\n", ret, index);
- 
- 	return ret;
- }
-@@ -2195,7 +2204,7 @@ static int zram_read_page(struct zram *z
-  * always expects a full page for the output.
-  */
- static int zram_bvec_read_partial(struct zram *zram, struct bio_vec *bvec,
--				  u32 index, int offset)
-+				  unsigned long index, int offset)
- {
- 	struct page *page = alloc_page(GFP_NOIO);
- 	int ret;
-@@ -2210,7 +2219,7 @@ static int zram_bvec_read_partial(struct
- }
- 
- static int zram_bvec_read(struct zram *zram, struct bio_vec *bvec,
--			  u32 index, int offset, struct bio *bio)
-+			  unsigned long index, int offset, struct bio *bio)
- {
- 	if (is_partial_io(bvec))
- 		return zram_bvec_read_partial(zram, bvec, index, offset);
-@@ -2218,7 +2227,7 @@ static int zram_bvec_read(struct zram *z
- }
- 
- static int write_same_filled_page(struct zram *zram, unsigned long fill,
--				  u32 index)
-+				  unsigned long index)
- {
- 	slot_lock(zram, index);
- 	slot_free(zram, index);
-@@ -2233,7 +2242,7 @@ static int write_same_filled_page(struct
- }
- 
- static int write_incompressible_page(struct zram *zram, struct page *page,
--				     u32 index)
-+				     unsigned long index)
- {
- 	unsigned long handle;
- 	void *src;
-@@ -2273,7 +2282,8 @@ static int write_incompressible_page(str
- 	return 0;
- }
- 
--static int zram_write_page(struct zram *zram, struct page *page, u32 index)
-+static int zram_write_page(struct zram *zram, struct page *page,
-+			   unsigned long index)
- {
- 	int ret = 0;
- 	unsigned long handle;
-@@ -2340,7 +2350,7 @@ static int zram_write_page(struct zram *
-  * This is a partial IO. Read the full page before writing the changes.
-  */
- static int zram_bvec_write_partial(struct zram *zram, struct bio_vec *bvec,
--				   u32 index, int offset)
-+				   unsigned long index, int offset)
- {
- 	struct page *page = alloc_page(GFP_NOIO);
- 	int ret;
-@@ -2358,7 +2368,7 @@ static int zram_bvec_write_partial(struc
- }
- 
- static int zram_bvec_write(struct zram *zram, struct bio_vec *bvec,
--			   u32 index, int offset)
-+			   unsigned long index, int offset)
- {
- 	if (is_partial_io(bvec))
- 		return zram_bvec_write_partial(zram, bvec, index, offset);
-@@ -2426,8 +2436,9 @@ next:
-  *
-  * Corresponding ZRAM slot should be locked.
-  */
--static int recompress_slot(struct zram *zram, u32 index, struct page *page,
--			   u64 *num_recomp_pages, u32 threshold, u32 prio)
-+static int recompress_slot(struct zram *zram, unsigned long index,
-+			   struct page *page, u64 *num_recomp_pages,
-+			   u32 threshold, u32 prio)
- {
- 	struct zcomp_strm *zstrm = NULL;
- 	unsigned long handle_old;
-@@ -2679,7 +2690,7 @@ out:
- static void zram_bio_discard(struct zram *zram, struct bio *bio)
- {
- 	size_t n = bio->bi_iter.bi_size;
--	u32 index = bio->bi_iter.bi_sector >> SECTORS_PER_PAGE_SHIFT;
-+	unsigned long index = bio->bi_iter.bi_sector >> SECTORS_PER_PAGE_SHIFT;
- 	u32 offset = (bio->bi_iter.bi_sector & (SECTORS_PER_PAGE - 1)) <<
- 			SECTOR_SHIFT;
- 
-@@ -2720,7 +2731,7 @@ static void zram_bio_read(struct zram *z
- 	struct bvec_iter iter = bio->bi_iter;
- 
- 	do {
--		u32 index = iter.bi_sector >> SECTORS_PER_PAGE_SHIFT;
-+		unsigned long index = iter.bi_sector >> SECTORS_PER_PAGE_SHIFT;
- 		u32 offset = (iter.bi_sector & (SECTORS_PER_PAGE - 1)) <<
- 				SECTOR_SHIFT;
- 		struct bio_vec bv = bio_iter_iovec(bio, iter);
-@@ -2751,7 +2762,7 @@ static void zram_bio_write(struct zram *
- 	struct bvec_iter iter = bio->bi_iter;
- 
- 	do {
--		u32 index = iter.bi_sector >> SECTORS_PER_PAGE_SHIFT;
-+		unsigned long index = iter.bi_sector >> SECTORS_PER_PAGE_SHIFT;
- 		u32 offset = (iter.bi_sector & (SECTORS_PER_PAGE - 1)) <<
- 				SECTOR_SHIFT;
- 		struct bio_vec bv = bio_iter_iovec(bio, iter);
-@@ -2865,6 +2876,7 @@ static void zram_reset_device(struct zra
- static ssize_t disksize_store(struct device *dev, struct device_attribute *attr,
- 			      const char *buf, size_t len)
- {
-+	unsigned long num_pages;
- 	u64 disksize;
- 	struct zcomp *comp;
- 	struct zram *zram = dev_to_zram(dev);
-@@ -2882,6 +2894,11 @@ static ssize_t disksize_store(struct dev
+-	if (!check_huge_file(*addr, fd_size / pmd_pagesize, pmd_pagesize)) {
++	if (!check_huge_file(*addr, fd_size, fd_size / pmd_pagesize, pmd_pagesize)) {
+ 		ksft_print_msg("No large pagecache folio generated, please provide a filesystem supporting large folio\n");
+ 		munmap(*addr, fd_size);
+ 		close(*fd);
+@@ -735,7 +735,7 @@ static void split_thp_in_pagecache_to_or
+ 		goto out;
  	}
  
- 	disksize = PAGE_ALIGN(disksize);
-+	num_pages = disksize >> PAGE_SHIFT;
-+	/* Slots are addressed by an unsigned long index */
-+	if (!num_pages || ((u64)num_pages << PAGE_SHIFT) != disksize)
-+		return -EINVAL;
+-	if (!check_huge_file(addr, 0, pmd_pagesize)) {
++	if (!check_huge_file(addr, fd_size, 0, pmd_pagesize)) {
+ 		ksft_print_msg("Still FilePmdMapped not split\n");
+ 		err = EXIT_FAILURE;
+ 		goto out;
+--- a/tools/testing/selftests/mm/uffd-common.c~selftests-mm-extend-the-check_huge-to-support-mthp-check
++++ a/tools/testing/selftests/mm/uffd-common.c
+@@ -194,7 +194,9 @@ static void shmem_alias_mapping(uffd_glo
+ 
+ static void shmem_check_pmd_mapping(uffd_global_test_opts_t *gopts, void *p, int expect_nr_hpages)
+ {
+-	if (!check_huge_shmem(gopts->area_dst_alias, expect_nr_hpages,
++	size_t len = expect_nr_hpages * read_pmd_pagesize();
 +
- 	if (!zram_meta_alloc(zram, disksize))
- 		return -ENOMEM;
++	if (!check_huge_shmem(gopts->area_dst_alias, len, expect_nr_hpages,
+ 			      read_pmd_pagesize()))
+ 		err("Did not find expected %d number of hugepages",
+ 		    expect_nr_hpages);
+--- a/tools/testing/selftests/mm/vm_util.c~selftests-mm-extend-the-check_huge-to-support-mthp-check
++++ a/tools/testing/selftests/mm/vm_util.c
+@@ -247,17 +247,17 @@ err_out:
+ 	return thp == (nr_hpages * (hpage_size >> 10));
+ }
+ 
+-bool check_huge_anon(void *addr, int nr_hpages, uint64_t hpage_size)
++bool check_huge_anon(void *addr, size_t len, int nr_hpages, uint64_t hpage_size)
+ {
+ 	return __check_huge(addr, "AnonHugePages: ", nr_hpages, hpage_size);
+ }
+ 
+-bool check_huge_file(void *addr, int nr_hpages, uint64_t hpage_size)
++bool check_huge_file(void *addr, size_t len, int nr_hpages, uint64_t hpage_size)
+ {
+ 	return __check_huge(addr, "FilePmdMapped:", nr_hpages, hpage_size);
+ }
+ 
+-bool check_huge_shmem(void *addr, int nr_hpages, uint64_t hpage_size)
++bool check_huge_shmem(void *addr, size_t len, int nr_hpages, uint64_t hpage_size)
+ {
+ 	return __check_huge(addr, "ShmemPmdMapped:", nr_hpages, hpage_size);
+ }
+--- a/tools/testing/selftests/mm/vm_util.h~selftests-mm-extend-the-check_huge-to-support-mthp-check
++++ a/tools/testing/selftests/mm/vm_util.h
+@@ -90,9 +90,9 @@ void clear_softdirty(void);
+ bool check_for_pattern(FILE *fp, const char *pattern, char *buf, size_t len);
+ uint64_t read_pmd_pagesize(void);
+ unsigned long rss_anon(void);
+-bool check_huge_anon(void *addr, int nr_hpages, uint64_t hpage_size);
+-bool check_huge_file(void *addr, int nr_hpages, uint64_t hpage_size);
+-bool check_huge_shmem(void *addr, int nr_hpages, uint64_t hpage_size);
++bool check_huge_anon(void *addr, size_t len, int nr_hpages, uint64_t hpage_size);
++bool check_huge_file(void *addr, size_t len, int nr_hpages, uint64_t hpage_size);
++bool check_huge_shmem(void *addr, size_t len, int nr_hpages, uint64_t hpage_size);
+ int64_t allocate_transhuge(void *ptr, int pagemap_fd);
+ int pageflags_get(unsigned long pfn, int kpageflags_fd, uint64_t *flags);
  
 _
 
-Patches currently in -mm which might be from senozhatsky@chromium.org are
+Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
 
+mm-fix-incorrect-vm_flags-usage-when-checking-allowable-orders-for-tmpfs.patch
 
