@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2399D32ED4E
-	for <mm-commits@vger.kernel.org>; Tue, 25 Aug 2026 01:53:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0BBCE233942
+	for <mm-commits@vger.kernel.org>; Tue, 25 Aug 2026 01:53:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787622831; cv=none; b=CyuHrG6lP8OCnYiTOccYS7ubGJw9aNAm8wGmqw5XngBgLbnG9zD+L+JlSvh9UHpY5ncPkLo/W5MlmY2DLfP1Hh4R+kD2Q6jcc0UugfQg9fhdhql+MQPu3btRSPZOLKBVVQKjyxmhu5Db8TN5KzJXeHjr297S8KLW74SlupOjeUQ=
+	t=1787622832; cv=none; b=qOBHwPNgrpZF9/HplHw0aSDtJLnzAk3159eQGnpFr5iJyMwBySxXk/Mo9Kdf9WzpeC9oiSs6mN3G0uuZus1Eb7oNfnPM7IXnCNGsVn+uVoMCbuoVUd6WUYyEFwqnQMa7u08E3a08692GriPQEenRjK9lKc03/3YG33ztrIRO3Tc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787622831; c=relaxed/simple;
-	bh=jvsSynBsOV/cvq4PTH7uWnBNUEb+nN0Ot/vVJwt86lc=;
-	h=Date:To:From:Subject:Message-Id; b=oTPGoFRdmp9V/Oyz7wcO3n13k6S5kgh4iHYtHjWKBFbJU/YbbqP5upGg528sINuobN7l5HgVZ5xjniszUlGfv4ibL/NqB3a9JhYENy04Z0V7QOtnVqLlB0Zb16aWATudxgBUFqUcNiI28bubEpGuGFepEJyvNepE/pf4xADnOOA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bAH3s2BC; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1787622832; c=relaxed/simple;
+	bh=Er/YwcYi+66jafdrXjimjWa6ElUZn7GFl1WWg801Q74=;
+	h=Date:To:From:Subject:Message-Id; b=AblORp4NkAkcM9fMwQW8AzYQjtVyU5kVnj9+2wwOh8oPbdEP014cwJZDa249UjpA7vaIhDzGOk9bp8LwMPEN8ApFFuea7PaEn8ArX4YPTMG77szgRt5+Fa/0J1abxr0wz9ygBlXl6WbsYEuqhJ4BoZmWvP0ptTAnAczY9Gx0OkE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UQo5F1zC; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bAH3s2BC"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AE6B51F000E9;
-	Tue, 25 Aug 2026 01:53:49 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UQo5F1zC"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C4EB51F00A3A;
+	Tue, 25 Aug 2026 01:53:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1787622829;
-	bh=keEANANckLv+Ed3MQ+sBNdbBELanjl1ZiqYFYbMjBAs=;
+	d=linux-foundation.org; s=korg; t=1787622830;
+	bh=sQTIbW/XXHrcrvY5pLCypRCm3IRRnmFwP/pZXA/bKUs=;
 	h=Date:To:From:Subject;
-	b=bAH3s2BCaI6ko6CFHnSak0S7LvoPKCd+EvRLlomyLwfwTjuHLOv7Tapk7mE1u7bdR
-	 52WAYSHmli8hw4/aptNdj2+L6qNsRTaCAGu6rdaiSxs+aNETdNoE/mHL40mOi0Iwee
-	 k9VTlZfraRcjdrGQsYw8yeZLBtDOMK7jos0ncPJ0=
-Date: Mon, 24 Aug 2026 18:53:49 -0700
-To: mm-commits@vger.kernel.org,xu.xin16@zte.com.cn,vbabka@kernel.org,surenb@google.com,si.yanteng@linux.dev,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,dzm91@hust.edu.cn,david@kernel.org,corbet@lwn.net,chengming.zhou@linux.dev,alexs@kernel.org,lihongfu@kylinos.cn,akpm@linux-foundation.org
+	b=UQo5F1zCE5yCExEONdTma0kTKVVWCe4uS4PotXD9gOvw3vBMqWU+Dnx83dSgpXQjn
+	 dHzULm6LvIrEn7Mxkisc6l91nsI41K9Gx0NfdjrqXf78Q1WCBfWSU54jFdsQpQGd3+
+	 qMDwDO3NrMUvQV7vGG+c/l6oraAoPkVonRlO3tYM=
+Date: Mon, 24 Aug 2026 18:53:50 -0700
+To: mm-commits@vger.kernel.org,baoquan.he@linux.dev,anshuman.khandual@arm.com,urezki@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] ksm-update-comments-and-docs-to-reference-folio-mapping.patch removed from -mm tree
-Message-Id: <20260825015349.AE6B51F000E9@smtp.kernel.org>
+Subject: [merged mm-stable] mm-vmalloc-do-not-warn-on-enomem-from-va_alloc.patch removed from -mm tree
+Message-Id: <20260825015350.C4EB51F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,101 +35,69 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: ksm: update comments and docs to reference folio->mapping
+     Subject: mm/vmalloc: do not warn on -ENOMEM from va_alloc()
 has been removed from the -mm tree.  Its filename was
-     ksm-update-comments-and-docs-to-reference-folio-mapping.patch
+     mm-vmalloc-do-not-warn-on-enomem-from-va_alloc.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Hongfu Li <lihongfu@kylinos.cn>
-Subject: ksm: update comments and docs to reference folio->mapping
-Date: Wed, 5 Aug 2026 18:59:07 +0800
+From: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
+Subject: mm/vmalloc: do not warn on -ENOMEM from va_alloc()
+Date: Sun, 2 Aug 2026 12:46:27 +0200
 
-The KSM code already stores and checks the stable node key via
-folio->mapping, but the comment in ksm_get_folio() and the reverse mapping
-documentation in ksm.rst still refer to page->mapping.
+Since vmalloc() accepts non-blocking GFP flags, allocation requests may
+fail when callers pass restrictive GFP masks.
 
-This is a pure wording update to match the folio-based implementation.  No
-functional change is intended.
+va_clip() may return -ENOMEM when its GFP_NOWAIT fallback allocation fails
+during NE_FIT_TYPE splitting.  This is an expected failure, so va_alloc()
+should return the error without triggering a kernel splat.
 
-Link: https://lore.kernel.org/20260805105927.41987-1-hongfu.li@linux.dev
-Signed-off-by: Hongfu Li <lihongfu@kylinos.cn>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Reviewed-by: Xu Xin <xu.xin16@zte.com.cn>
-Reviewed-by: Dongliang Mu <dzm91@hust.edu.cn>
-Cc: Alex Shi <alexs@kernel.org>
-Cc: Chengming Zhou <chengming.zhou@linux.dev>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Yanteng Si <si.yanteng@linux.dev>
+Link: https://lore.kernel.org/20260802104627.63892-1-urezki@gmail.com
+Signed-off-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
+Reported-by: syzbot+61c997e6be1d9bb300ba@syzkaller.appspotmail.com
+Closes: https://lore.kernel.org/6a6d3cbd.6ce73036.24301b.000e.GAE@google.com
+Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
+Reviewed-by: Baoquan He <baoquan.he@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/mm/ksm.rst                    |    4 ++--
- Documentation/translations/zh_CN/mm/ksm.rst |    4 ++--
- mm/ksm.c                                    |    7 +++----
- 3 files changed, 7 insertions(+), 8 deletions(-)
+ mm/vmalloc.c |   13 ++++++-------
+ 1 file changed, 6 insertions(+), 7 deletions(-)
 
---- a/Documentation/mm/ksm.rst~ksm-update-comments-and-docs-to-reference-folio-mapping
-+++ a/Documentation/mm/ksm.rst
-@@ -24,13 +24,13 @@ tree.
+--- a/mm/vmalloc.c~mm-vmalloc-do-not-warn-on-enomem-from-va_alloc
++++ a/mm/vmalloc.c
+@@ -1840,8 +1840,10 @@ va_alloc(struct vmap_area *va,
  
- If a KSM page is shared between less than ``max_page_sharing`` VMAs,
- the node of the stable tree that represents such KSM page points to a
--list of struct ksm_rmap_item and the ``page->mapping`` of the
-+list of struct ksm_rmap_item and the ``folio->mapping`` of the
- KSM page points to the stable tree node.
+ 	/* Update the free vmap_area. */
+ 	ret = va_clip(root, head, va, nva_start_addr, size);
+-	if (WARN_ON_ONCE(ret))
++	if (ret) {
++		WARN_ON_ONCE(ret != -ENOMEM);
+ 		return ret;
++	}
  
- When the sharing passes this threshold, KSM adds a second dimension to
- the stable tree. The tree node becomes a "chain" that links one or
- more "dups". Each "dup" keeps reverse mapping information for a KSM
--page with ``page->mapping`` pointing to that "dup".
-+page with ``folio->mapping`` pointing to that "dup".
+ 	return nva_start_addr;
+ }
+@@ -1914,12 +1916,9 @@ preload_this_cpu_lock(spinlock_t *lock,
  
- Every "chain" and all "dups" linked into a "chain" enforce the
- invariant that they represent the same write protected memory content,
---- a/Documentation/translations/zh_CN/mm/ksm.rst~ksm-update-comments-and-docs-to-reference-folio-mapping
-+++ a/Documentation/translations/zh_CN/mm/ksm.rst
-@@ -31,10 +31,10 @@ KSM维护着稳定树中的KSM页的逆�
- 
- 当KSM页面的共享数小于 ``max_page_sharing`` 的虚拟内存区域(VMAs)时，则代表了
- KSM页的稳定树其中的节点指向了一个ksm_rmap_item结构体类型的列表。同时，这个KSM页
--的 ``page->mapping`` 指向了该稳定树节点。
-+的 ``folio->mapping`` 指向了该稳定树节点。
- 
- 如果共享数超过了阈值，KSM将给稳定树添加第二个维度。稳定树就变成链接一个或多
--个稳定树"副本"的"链"。每个副本都保留KSM页的逆映射信息，其中 ``page->mapping``
-+个稳定树"副本"的"链"。每个副本都保留KSM页的逆映射信息，其中 ``folio->mapping``
- 指向该"副本"。
- 
- 每个链以及链接到该链中的所有"副本"强制不变的是，它们代表了相同的写保护内存
---- a/mm/ksm.c~ksm-update-comments-and-docs-to-reference-folio-mapping
-+++ a/mm/ksm.c
-@@ -959,10 +959,9 @@ enum ksm_get_folio_flags {
-  * seconds or even minutes: much too unresponsive.  So instead we use a
-  * "keyhole reference": access to the ksm page from the stable node peeps
-  * out through its keyhole to see if that page still holds the right key,
-- * pointing back to this stable node.  This relies on freeing a PageAnon
-- * page to reset its page->mapping to NULL, and relies on no other use of
-- * a page to put something that might look like our key in page->mapping.
-- * is on its way to being freed; but it is an anomaly to bear in mind.
-+ * pointing back to this stable node.  This relies on freeing an anon
-+ * folio to reset its mapping to NULL, and relies on no other use of a
-+ * folio to put something that might look like our key in its mapping.
-  */
- static struct folio *ksm_get_folio(struct ksm_stable_node *stable_node,
- 				 enum ksm_get_folio_flags flags)
+ 	/*
+ 	 * Preload this CPU with one extra vmap_area object. It is used
+-	 * when fit type of free area is NE_FIT_TYPE. It guarantees that
+-	 * a CPU that does an allocation is preloaded.
+-	 *
+-	 * We do it in non-atomic context, thus it allows us to use more
+-	 * permissive allocation masks to be more stable under low memory
+-	 * condition and high memory pressure.
++	 * when fit type of free area is NE_FIT_TYPE. It is best effort
++	 * pre-loading. If it fails va_clip() may return -ENOMEM from its
++	 * GFP_NOWAIT fallback.
+ 	 */
+ 	if (!this_cpu_read(ne_fit_preload_node))
+ 		va = kmem_cache_alloc_node(vmap_area_cachep, gfp_mask, node);
 _
 
-Patches currently in -mm which might be from lihongfu@kylinos.cn are
+Patches currently in -mm which might be from urezki@gmail.com are
 
-mm-use-a-folio-in-the-softleaf_is_device_private-path.patch
 
