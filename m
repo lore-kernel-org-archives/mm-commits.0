@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D3F3C377ABE
-	for <mm-commits@vger.kernel.org>; Tue, 25 Aug 2026 01:55:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0307D369D64
+	for <mm-commits@vger.kernel.org>; Tue, 25 Aug 2026 01:55:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787622953; cv=none; b=XOZaMJYXSCKzKpouxqUyAYJ6h9IQtfnvfbiboihf9xAOZQwB/kzs23R159pvcwNwtE2vi2XuTJbYKZWt2ex14wLy24oHymCjQiXbQKBPvuKjw/4z5gEJPkoXgQtLkup4+52YjwIQjBh+YNY9oV57kbkurjBKNW8+SW5q0GvGZT4=
+	t=1787622954; cv=none; b=bOPFuRx/+PsA0vEYfupY84e2+l0eQviHmRkJZuXEEuPiN33f7J3zGvli6wS//7GV4rwGMAnY2J1xeXwx0hl5RKpQ6Nzl0ybbJQ+njOFdswBxuCctO0RXOP8WyoupcB6Vhc8ISwA8Osu6YCCHtxtDG4rO0JBjj1dHQdyZkeWE+0I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787622953; c=relaxed/simple;
-	bh=H1/ZKp4W/IYsZnrkGJ2ePwnl0F2fqUPtifMhQiCkJIk=;
-	h=Date:To:From:Subject:Message-Id; b=N8/lQ9fx5OBraY8UBznR0Mi95hVUjKx+zo8eWWVLaq3RTqQjsmXo8RYXSwbhC4fQvUBDLI6RhliheQN8MOxq3KZR/BqKRT7iQr0f9aLLECXZaW2wr1TLarwll8YSrevuewo+V9Vk1XocpFVQHzA7IomfDn2v1tG/ncMnXTEsX7Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bSPEPKn+; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1787622954; c=relaxed/simple;
+	bh=8K+qxdwCzCFUx2cNaxlibh98gdAKCFQZskjFnaA9714=;
+	h=Date:To:From:Subject:Message-Id; b=LYksuxg7U2pp1gUR+64sgBYgq/zLTdYzD8ESh1HSfUG3ssu+RFE1HDY/x4c3zItQsxo8UW3sxp73n6Qrq3cCrSyqg2aa0IKnQYuWyvFVHdEbkWQ9XbohK6LyxwSoXQWeX2fm8ebZYexjDJep0Tqejg4h0cXIj5k0zvfUCOaTRTU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uudghGz6; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bSPEPKn+"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 96D211F00A3D;
-	Tue, 25 Aug 2026 01:55:51 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uudghGz6"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CD7BC1F000E9;
+	Tue, 25 Aug 2026 01:55:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1787622951;
-	bh=fbzUDzs1kw9rlpMbRTJEIYU+fvSbkDpd+sSz1Eo8VcM=;
+	d=linux-foundation.org; s=korg; t=1787622952;
+	bh=KEgP8DIy3PS6mUG+CvavVRhvmED+rGGKv0lzIjMezKg=;
 	h=Date:To:From:Subject;
-	b=bSPEPKn+rgLLFODwpDos74yqH/4EAk6hVPQNwZmcGnNOX11cjwOvswy9D/PoEi8eQ
-	 iwQoU1fo2cTR4xbr40gU8hlAIPtRPzN4Cj1fjsT2fIXmQZmEOV+yECw541uK90NNqa
-	 9GiR0aJdT8g+eMDXKXm/AG5dSYNDYo6Ez8YQKtGo=
-Date: Mon, 24 Aug 2026 18:55:51 -0700
-To: mm-commits@vger.kernel.org,yi1.lai@intel.com,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@suse.com,hannes@cmpxchg.org,david@kernel.org,usama.arif@linux.dev,akpm@linux-foundation.org
+	b=uudghGz6enLMF45tguGhwGbu6LEyZXCjD8DuvwrYRCvq6S0JaVWeCDWq1Ys2wrHUg
+	 yH/4qxykD8t8IA5snz/IgLipWhjUosa+ij1hNB5sS5Ddf/qQ8CsOMZIlvqGGOj7bMd
+	 VB4mExasiMZshLLseffJFoy54HzhHjlHyoUnQUm0=
+Date: Mon, 24 Aug 2026 18:55:52 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,usama.anjum@arm.com,surenb@google.com,sj@kernel.org,shuah@kernel.org,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,anshuman.khandual@arm.com,lihongfu@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-memcontrol-avoid-false-sharing-between-vmstats-and-events.patch removed from -mm tree
-Message-Id: <20260825015551.96D211F00A3D@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-mm-drop-redundant-open-in-mprotect_tests.patch removed from -mm tree
+Message-Id: <20260825015552.CD7BC1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,81 +35,59 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/memcontrol: avoid false sharing between vmstats and events
+     Subject: selftests/mm: drop redundant open() in mprotect_tests()
 has been removed from the -mm tree.  Its filename was
-     mm-memcontrol-avoid-false-sharing-between-vmstats-and-events.patch
+     selftests-mm-drop-redundant-open-in-mprotect_tests.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Usama Arif <usama.arif@linux.dev>
-Subject: mm/memcontrol: avoid false sharing between vmstats and events
-Date: Mon, 17 Aug 2026 03:38:35 -0700
+From: Hongfu Li <lihongfu@kylinos.cn>
+Subject: selftests/mm: drop redundant open() in mprotect_tests()
+Date: Mon, 17 Aug 2026 16:06:16 +0800
 
-Moving v1 userspace eventfd handling into memcontrol-v1.c shrank struct
-vmpressure from 112 to 24 bytes when CONFIG_MEMCG_V1 is disabled.  This
-moved memory_events_local[MEMCG_SWAP_FAIL] and the hot vmstats_percpu
-pointer onto the same cacheline.
+Remove duplicate open() for local pagemap_fd in mprotect_tests() that
+shadows the global pagemap_fd already opened in main().  The local fd is
+never used in the function.
 
-The stress-ng mremap stressor exercises MADV_PAGEOUT with swap disabled,
-generating about 20 million MEMCG_SWAP_FAIL updates per 60-second run on a
-176-CPU test system.  Those writes bounce the line while memcg statistics
-paths load vmstats_percpu.
-
-Move cgwb_list into the existing alignment gap and cacheline-align
-vmstats_percpu.  This separates the pointer from the event counters
-without increasing the size of struct mem_cgroup in the tested
-configuration.
-
-The blamed commit reduced median mremap throughput by 4.38% on the test
-system with one socket.  The patched kernel brings the performance to
-within 0.5% of the parent which is within the observed boot-to-boot spread
-(up to 1.2%).
-
-Link: https://lore.kernel.org/20260817103835.2937733-1-usama.arif@linux.dev
-Fixes: ea928e9e18da ("mm/vmpressure: move v1 userspace eventfd code into memcontrol-v1.c")
-Signed-off-by: Usama Arif <usama.arif@linux.dev>
-Reported-by: kernel test robot <yi1.lai@intel.com>
-Closes: https://lore.kernel.org/oe-lkp/202608131743.c6a7dda4-lkp@intel.com
-Tested-by: kernel test robot <yi1.lai@intel.com>
-  Link: http://lore.kernel.org/aoAABX59IzUXz/Rv@ly-workstation
-Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Yi Lai <yi1.lai@intel.com>
+Link: https://lore.kernel.org/20260817080616.52946-1-hongfu.li@linux.dev
+Signed-off-by: Hongfu Li <lihongfu@kylinos.cn>
+Reviewed-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+Reviewed-by: Muhammad Usama Anjum <usama.anjum@arm.com>
+Reviewed-by: SJ Park <sj@kernel.org>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+ tools/testing/selftests/mm/pagemap_ioctl.c |    6 ------
+ 1 file changed, 6 deletions(-)
 
---- a/include/linux/memcontrol.h~mm-memcontrol-avoid-false-sharing-between-vmstats-and-events
-+++ a/include/linux/memcontrol.h
-@@ -268,10 +268,15 @@ struct mem_cgroup {
- #endif
- 	int kmemcg_id;
- 
--	struct memcg_vmstats_percpu __percpu *vmstats_percpu;
+--- a/tools/testing/selftests/mm/pagemap_ioctl.c~selftests-mm-drop-redundant-open-in-mprotect_tests
++++ a/tools/testing/selftests/mm/pagemap_ioctl.c
+@@ -1332,12 +1332,6 @@ int mprotect_tests(void)
+ 	int ret;
+ 	char *mem, *mem2;
+ 	struct page_region vec;
+-	int pagemap_fd = open("/proc/self/pagemap", O_RDONLY);
 -
- #ifdef CONFIG_CGROUP_WRITEBACK
- 	struct list_head cgwb_list;
-+#endif
-+
-+	/* Keep the hot per-CPU stats pointer away from memory event counters. */
-+	struct memcg_vmstats_percpu __percpu *vmstats_percpu
-+		____cacheline_aligned_in_smp;
-+
-+#ifdef CONFIG_CGROUP_WRITEBACK
- 	struct wb_domain cgwb_domain;
- 	struct memcg_cgwb_frn cgwb_frn[MEMCG_CGWB_FRN_CNT];
- #endif
+-	if (pagemap_fd < 0) {
+-		fprintf(stderr, "open() failed\n");
+-		exit(1);
+-	}
+ 
+ 	/* 1. Map two pages */
+ 	mem = mmap(0, 2 * page_size, PROT_READ|PROT_WRITE, MAP_PRIVATE | MAP_ANON, -1, 0);
 _
 
-Patches currently in -mm which might be from usama.arif@linux.dev are
+Patches currently in -mm which might be from lihongfu@kylinos.cn are
 
-mm-huge_memory-transfer-the-pmd-dirty-bit-to-the-folio-on-zap.patch
+mm-use-a-folio-in-the-softleaf_is_device_private-path.patch
 
