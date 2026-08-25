@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9B0EB33F8DC
-	for <mm-commits@vger.kernel.org>; Tue, 25 Aug 2026 01:53:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D68B41C84CB
+	for <mm-commits@vger.kernel.org>; Tue, 25 Aug 2026 01:53:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787622826; cv=none; b=ILLukV5++0d93eXxQtczcJ8OH+mVqR2qFZeDHtFAaxGW7HLqOdYHaji/YepaVAPUcDseLshH3AVzJIBtFxrni8JGED1zaKg465UWyWxEDAOPzXIOB8QhLnLCZ6uYY76Hu7aSgnc8uGJxLL/6N1cPpYal5rX1Z0Hf4VXmqSvtJm8=
+	t=1787622826; cv=none; b=XrJywfFT3kEL1BWloWISC4YkfoZCq5eUqW3zPLgS5Jcup9Q7vGKHkb3VDCFgu9fTfhCZyieDGVuIHnKE9cuQ+Mm6AvvpHVjSDtRndKGH2hsYa/bed4OfbPJ3gBgbdrFawyOvMYH5lhl1bVcpW+yHqWZH1c+sN9GER+AlcECp//Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1787622826; c=relaxed/simple;
-	bh=dFd5bAe9ftZ8ZlppJozIXn9GuW4yOzZTOHU/qJDD8eg=;
-	h=Date:To:From:Subject:Message-Id; b=bqQvwmD/mU6sIQvgYbm+QwBRpszB2NG3oZ9ERlLDhfo7PEtivQ9qLds/Fq9TK8HLsBUXzZfpbn9ThpxzF5EePyyWkzKJas/b8CuPz2WwJ1joC/hSmoELWbwUDBOXFsxRyir7jTsnYL2EjPSyLSO+apGFHpu8FrMLL9hYDKx0+Zw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vA2++SrJ; arc=none smtp.client-ip=100.103.45.18
+	bh=c6pERmJWAfuK3n56x61LilwgvOrd824nQymGn5AMsUw=;
+	h=Date:To:From:Subject:Message-Id; b=UNzM96eX/DpQZVNFalyxDHaKApGaM7BvNEedvhEnAw2iDr4HzSqgJf8k4Ca4Jjm7imQHQEkdzb/qywsOy9lPX6rWNmpQY8Mupf62/Qp/8B/6xDm8nqt10ITbvFG3OzGH6QDQrFR80GBCx0mKAs5fpLUqmlEJZPZmIXKwKjt+Hok=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lXQYz34w; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vA2++SrJ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 415901F000E9;
-	Tue, 25 Aug 2026 01:53:43 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lXQYz34w"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8173F1F00A3A;
+	Tue, 25 Aug 2026 01:53:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1787622823;
-	bh=Zgt9ojPO4oViS+FibAsmEA8UfFmKItu+5CfaNVCWqRE=;
+	d=linux-foundation.org; s=korg; t=1787622824;
+	bh=BINYh6vqfhsndSicph1R6is9xPaihbKRVNLvhJDP4h4=;
 	h=Date:To:From:Subject;
-	b=vA2++SrJlecN2ALg2sOdtoPV9abUsGlyVS2ey5O7rqMiYOrRVljW9IQ2PGBCLqX54
-	 L2jO72SeLGEc7zyH3ReitUk+pYVoqujpulWyf/vGbaxoRSgTBp1xzGCdNWZ2LQb29n
-	 x97uB6xGfG2DLE7aUIMwP9PznncfELqdgp2XsxNY=
-Date: Mon, 24 Aug 2026 18:53:42 -0700
-To: mm-commits@vger.kernel.org,viro@zeniv.linux.org.uk,ljs@kernel.org,liam@infradead.org,brauner@kernel.org,daniel@thingy.jp,akpm@linux-foundation.org
+	b=lXQYz34w6/TA4KcHYelioBXoPyeRSfDeaImzXhI/r5gWrTQT8jvCqoUjrE1N3Q6HH
+	 RKwIm+hhhjzZtnzAIpw6CnpF/PY51vqXji4kijvEv1UTWmqd0iv86m6ut4cimRQDbB
+	 Rphtw8uQfWGtQzy/LoiNJvi8OgNwZ1H/JJJSkP5U=
+Date: Mon, 24 Aug 2026 18:53:44 -0700
+To: mm-commits@vger.kernel.org,yosry@kernel.org,vbabka@kernel.org,surenb@google.com,sj@kernel.org,shuah@kernel.org,rppt@kernel.org,peterx@redhat.com,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,jhubbard@nvidia.com,jgg@ziepe.ca,david@kernel.org,pratmal@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] tmpfs-ramfs-let-memfd_create-work-on-nommu.patch removed from -mm tree
-Message-Id: <20260825015343.415901F000E9@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-mm-rename-local_configh-to-local_configh_gen.patch removed from -mm tree
+Message-Id: <20260825015344.8173F1F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,63 +35,127 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: tmpfs/ramfs: let memfd_create() work on nommu
+     Subject: selftests/mm: rename local_config.h to local_config.h_gen
 has been removed from the -mm tree.  Its filename was
-     tmpfs-ramfs-let-memfd_create-work-on-nommu.patch
+     selftests-mm-rename-local_configh-to-local_configh_gen.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Daniel Palmer <daniel@thingy.jp>
-Subject: tmpfs/ramfs: let memfd_create() work on nommu
-Date: Sat, 23 May 2026 22:04:45 +0900
+From: Pratyush Mallick <pratmal@google.com>
+Subject: selftests/mm: rename local_config.h to local_config.h_gen
+Date: Mon, 3 Aug 2026 22:17:31 +0000
 
-Currently trying to use memfd_create() on nommu returns an error with
-errno set to EFBIG.  The manpage memfd_create() doesn't have EFBIG as a
-possible error value.
+Patch series "selftests/mm: use pattern matching in .gitignore", v4.
 
-Doing some digging this is coming from 0 getting passed as newsize to
-ramfs_nommu_expand_for_mapping() and that getting into get_order() and
-there "The result is undefined if the size is 0".
+The current selftests/mm/.gitignore hardcodes each generated test binary
+by name, which requires manual updates every time a new test is added.
 
-Whatever comes out of get_order() is then used in the following logic and
-that results in the EFBIG that causes the syscall to fail and the errno in
-userspace.
+This series switches to a pattern-matching approach (similar to KVM
+selftests), ignoring everything by default and allowing specific source
+extensions.  To accommodate this without tracking generated headers,
+local_config.h is renamed to local_config.h_gen.
 
-If newsize is 0 there is nothing to do so just return.
 
-Roughly tested on m68k nommu by creating a process, creating an memfd,
-forking another process, mmap()ing the memfd in the child, writing into
-the mapping, then mmap()ing in the parent and checking that the right data
-is there.
+This patch (of 2):
 
-Link: https://lore.kernel.org/20260523130445.1101818-1-daniel@thingy.jp
-Signed-off-by: Daniel Palmer <daniel@thingy.jp>
-Acked-by: Lorenzo Stoakes <ljs@kernel.org>
+Because local_config.h is a generated build artifact, un-ignoring all .h
+files in .gitignore causes it to incorrectly show up as an untracked file
+in git status.
+
+Rename it to local_config.h_gen so it no longer matches the !*.h inclusion
+rule, preparing for a subsequent patch that switches .gitignore to a
+pattern-matching approach.
+
+Update Makefile, check_config.sh, and affected test sources (cow.c,
+gup_longterm.c) accordingly.
+
+Link: https://lore.kernel.org/20260803221732.3651981-1-pratmal@google.com
+Link: https://lore.kernel.org/20260803221732.3651981-2-pratmal@google.com
+Signed-off-by: Pratyush Mallick <pratmal@google.com>
+Reviewed-by: Lorenzo Stoakes <ljs@kernel.org>
+Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Suggested-by: David Hildenbrand <david@kernel.org>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: John Hubbard <jhubbard@nvidia.com>
 Cc: "Liam R. Howlett" <liam@infradead.org>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christian Brauner <brauner@kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: SeongJae Park <sj@kernel.org>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Yosry Ahmed <yosry@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ramfs/file-nommu.c |    3 +++
- 1 file changed, 3 insertions(+)
+ tools/testing/selftests/mm/Makefile        |    6 +++---
+ tools/testing/selftests/mm/check_config.sh |    2 +-
+ tools/testing/selftests/mm/cow.c           |    2 +-
+ tools/testing/selftests/mm/gup_longterm.c  |    2 +-
+ 4 files changed, 6 insertions(+), 6 deletions(-)
 
---- a/fs/ramfs/file-nommu.c~tmpfs-ramfs-let-memfd_create-work-on-nommu
-+++ a/fs/ramfs/file-nommu.c
-@@ -69,6 +69,9 @@ int ramfs_nommu_expand_for_mapping(struc
- 	gfp_t gfp = mapping_gfp_mask(inode->i_mapping);
+--- a/tools/testing/selftests/mm/check_config.sh~selftests-mm-rename-local_configh-to-local_configh_gen
++++ a/tools/testing/selftests/mm/check_config.sh
+@@ -4,7 +4,7 @@
+ # Probe for libraries and create header files to record the results. Both C
+ # header files and Makefile include fragments are created.
  
- 	/* make various checks */
-+	if (!newsize)
-+		return 0;
-+
- 	order = get_order(newsize);
- 	if (unlikely(order > MAX_PAGE_ORDER))
- 		return -EFBIG;
+-OUTPUT_H_FILE=local_config.h
++OUTPUT_H_FILE=local_config.h_gen
+ OUTPUT_MKFILE=local_config.mk
+ 
+ tmpname=$(mktemp)
+--- a/tools/testing/selftests/mm/cow.c~selftests-mm-rename-local_configh-to-local_configh_gen
++++ a/tools/testing/selftests/mm/cow.c
+@@ -21,7 +21,7 @@
+ #include <sys/wait.h>
+ #include <linux/memfd.h>
+ 
+-#include "local_config.h"
++#include "local_config.h_gen"
+ #ifdef LOCAL_CONFIG_HAVE_LIBURING
+ #include <liburing.h>
+ #endif /* LOCAL_CONFIG_HAVE_LIBURING */
+--- a/tools/testing/selftests/mm/gup_longterm.c~selftests-mm-rename-local_configh-to-local_configh_gen
++++ a/tools/testing/selftests/mm/gup_longterm.c
+@@ -21,7 +21,7 @@
+ #include <linux/magic.h>
+ #include <linux/memfd.h>
+ 
+-#include "local_config.h"
++#include "local_config.h_gen"
+ #ifdef LOCAL_CONFIG_HAVE_LIBURING
+ #include <liburing.h>
+ #endif /* LOCAL_CONFIG_HAVE_LIBURING */
+--- a/tools/testing/selftests/mm/Makefile~selftests-mm-rename-local_configh-to-local_configh_gen
++++ a/tools/testing/selftests/mm/Makefile
+@@ -5,7 +5,7 @@
+ # script so kunit knows to run it, and add it to the list below.
+ # If you do not YOUR TESTS WILL NOT RUN IN THE CI.
+ 
+-LOCAL_HDRS += $(selfdir)/mm/local_config.h $(top_srcdir)/mm/gup_test.h
++LOCAL_HDRS += $(selfdir)/mm/local_config.h_gen $(top_srcdir)/mm/gup_test.h
+ LOCAL_HDRS += $(selfdir)/mm/mseal_helpers.h
+ 
+ include local_config.mk
+@@ -261,11 +261,11 @@ $(OUTPUT)/migration: LDLIBS += -lnuma
+ 
+ $(OUTPUT)/rmap: LDLIBS += -lnuma
+ 
+-local_config.mk local_config.h: check_config.sh
++local_config.mk local_config.h_gen: check_config.sh
+ 	$(call msg,CHK,config,$@)
+ 	$(Q)CC="$(CC)" CFLAGS="$(CFLAGS)" ./check_config.sh
+ 
+-EXTRA_CLEAN += local_config.mk local_config.h
++EXTRA_CLEAN += local_config.mk local_config.h_gen
+ 
+ ifeq ($(IOURING_EXTRA_LIBS),)
+ all: warn_missing_liburing
 _
 
-Patches currently in -mm which might be from daniel@thingy.jp are
+Patches currently in -mm which might be from pratmal@google.com are
 
 
