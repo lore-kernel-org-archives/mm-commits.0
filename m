@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B3019369D64
-	for <mm-commits@vger.kernel.org>; Tue, 25 Aug 2026 01:55:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8B8F5376475
+	for <mm-commits@vger.kernel.org>; Tue, 25 Aug 2026 01:55:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787622938; cv=none; b=s1oIy6MGXhExhSwQWyE3X+iOKaZcaCaaGYu1b2IxqomPVnxDXKzlE+YDwqXbdb9UAmf2mDn0TZs+PWuNyt9XNMLey3FKxb9G77my77BsyuzRDlJcS5RqJK9tX3eJOaz7lQ6ZLjsf4ikz99YmvgB7A1J6vajb1Ko/l3QNc536kLs=
+	t=1787622941; cv=none; b=BvE6aYYkMvSfuOxEDsjq+uErhgZbnlwDeoPycyeISwu5Nq0PUmcfNxdtpqIp1CzPdswUg3qFImbLG4fEBJYe6VL0gdRJT55wrfdiT7v3GcqkS7raIGfRqHZzTth25l/flZ7Iio3FFqhNwR6Gw0HR/1AIswieSxOXgp5MylKnOxM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787622938; c=relaxed/simple;
-	bh=HU5ctBdVF6fA/rnt3fVZTqWcwn+qOnUjumDFGNLZ7es=;
-	h=Date:To:From:Subject:Message-Id; b=HlJgquMyaTaTGeq1AvW1CxAfDGd152eaU8Gx3AJA3GL77aXsPZ4KstjXe0JEp0/xjbd2k95F9J9Xu21etsSWtJQMW/SOmb2sZ3tfB4YDkav3A2bUci40bXCeGExY0voLb2+Qc7vE/qmHDiVqtkk8z8YF8T66t+jp2JOBrpjSCwU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IgX9qw9a; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1787622941; c=relaxed/simple;
+	bh=s62k1jL6whcK5IQJ1QNsNyQpZdLH8sVOVvZCWzK2l1A=;
+	h=Date:To:From:Subject:Message-Id; b=GFwGSFA2mZlfL4wieo8lQZ0qj+q1Ina08PN1MbBjMSlnLi5OJ5KAeeVzDzl31A+VBYMBTubcH+fTLqt7h8GnLcfD2wE4XKNomUQKaAjk5u+u1NsZBAVgjCjcLBrTJux6OZd2+cxsCTJNSoas6xnv1UrnZsiEotyFZDfW9VyrLek=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=eo4N4vts; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IgX9qw9a"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 539011F000E9;
-	Tue, 25 Aug 2026 01:55:37 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="eo4N4vts"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 654581F000E9;
+	Tue, 25 Aug 2026 01:55:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1787622937;
-	bh=Dm+GF3Yg79Nsx0sN5+oRpreP2bFKjiKUJjcGmCcEttk=;
+	d=linux-foundation.org; s=korg; t=1787622940;
+	bh=Dtwf8pdLLMlga/0q8JEaoJe6ELGd20t5eEUDN8Gq9YM=;
 	h=Date:To:From:Subject;
-	b=IgX9qw9aAxONQWnNZZCmAWKpK+zlqSF/3WA1hAZKnIfZb3clrlJ+5FQKcDAebNnP/
-	 /R84bguZqWCsMb2+qofNyWSJOuX0Rm3x38drgouGFfC0djWH2E89JyzYFrNeV2FTip
-	 +xhYqML1Ubc9l0I1zp/MhkS3uMXYgVQxb4whomkM=
-Date: Mon, 24 Aug 2026 18:55:36 -0700
+	b=eo4N4vtsL+z15YrgeICx2Il6sN/hrh8dB6kR8BQQ8utCu0aVAf/+XDALmJym5GpfA
+	 MNXLD9I2QNr4tUBftvp+f9E4c9NsWcR0apu9miNuxP1LItgyjgA+zOd9d3K7pAgOSu
+	 m95rRpKcNn1ERtmesuh7TEA9YafpO89jYdyd4xgo=
+Date: Mon, 24 Aug 2026 18:55:40 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,usama.arif@linux.dev,surenb@google.com,ryan.roberts@arm.com,rppt@kernel.org,pfalcato@suse.de,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,lance.yang@linux.dev,dev.jain@arm.com,david@kernel.org,corbet@lwn.net,baolin.wang@linux.alibaba.com,baohua@kernel.org,nico.pache@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-khugepaged-unmap-pte-before-releasing-vma-write-lock.patch removed from -mm tree
-Message-Id: <20260825015537.539011F000E9@smtp.kernel.org>
+Subject: [merged mm-stable] mm-documentation-clarify-where-the-mthp-stats-live.patch removed from -mm tree
+Message-Id: <20260825015540.654581F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,29 +35,32 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/khugepaged: unmap pte before releasing vma write lock
+     Subject: mm: Documentation: clarify where the mTHP stats live
 has been removed from the -mm tree.  Its filename was
-     mm-khugepaged-unmap-pte-before-releasing-vma-write-lock.patch
+     mm-documentation-clarify-where-the-mthp-stats-live.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Nico Pache (Red Hat)" <nico.pache@linux.dev>
-Subject: mm/khugepaged: unmap pte before releasing vma write lock
-Date: Tue, 11 Aug 2026 06:48:38 -0600
+Subject: mm: Documentation: clarify where the mTHP stats live
+Date: Tue, 11 Aug 2026 06:48:39 -0600
 
-We are currently dropping the anon_vma write lock before unmapping the
-PTE.  Although this is safe, due to us still holding the mmap_write_lock,
-its safer and less confusing to switch the order of these two operations.
+The note about khugepaged counters references /proc/vmstat for the PMD
+case, but never mentions where the mTHPs stats can be found (i.e.:
+/sys/kernel/mm/transparent_hugepage/hugepages-<size>kB/stats/) Add a small
+addition to this section for clarity.
 
-Link: https://lore.kernel.org/20260811-khugepaged_pte_refactor-v4-6-ddac39d61c4a@linux.dev
+Also fix a missing period while we are at it.
+
+Link: https://lore.kernel.org/20260811-khugepaged_pte_refactor-v4-7-ddac39d61c4a@linux.dev
 Signed-off-by: Nico Pache (Red Hat) <nico.pache@linux.dev>
-Suggested-by: David Hildenbrand <david@kernel.org>
+Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Suggested-by: Lorenzo Stoakes <ljs@kernel.org>
 Acked-by: David Hildenbrand (Arm) <david@kernel.org>
 Reviewed-by: Zi Yan <ziy@nvidia.com>
-Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Acked-by: Pedro Falcato <pfalcato@suse.de>
+Acked-by: Pedro Falcato <pfalcato@suse.de> 
 Reviewed-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Reviewed-by: Lance Yang <lance.yang@linux.dev>
 Cc: Barry Song <baohua@kernel.org>
@@ -73,24 +76,31 @@ Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ Documentation/admin-guide/mm/transhuge.rst |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
---- a/mm/khugepaged.c~mm-khugepaged-unmap-pte-before-releasing-vma-write-lock
-+++ a/mm/khugepaged.c
-@@ -1463,10 +1463,10 @@ static enum scan_result collapse_huge_pa
+--- a/Documentation/admin-guide/mm/transhuge.rst~mm-documentation-clarify-where-the-mthp-stats-live
++++ a/Documentation/admin-guide/mm/transhuge.rst
+@@ -224,7 +224,7 @@ khugepaged will be automatically started
+ (either of the per-size anon control or the top-level control are set
+ to "always" or "madvise"), and it'll be automatically shutdown when
+ all THP sizes are disabled (when both the per-size anon control and the
+-top-level control are "never")
++top-level control are "never").
  
- 	result = SCAN_SUCCEED;
- out_up_write:
--	if (anon_vma_locked)
--		anon_vma_unlock_write(vma->anon_vma);
- 	if (pte)
- 		pte_unmap(pte);
-+	if (anon_vma_locked)
-+		anon_vma_unlock_write(vma->anon_vma);
- 	mmap_write_unlock(mm);
- out_nolock:
- 	if (folio)
+ process THP controls
+ --------------------
+@@ -301,7 +301,9 @@ being replaced by a PMD mapping, or (2)
+ hugepage of various sizes (PMD-sized or mTHP). Each may happen independently,
+ or together, depending on the type of memory and the failures that occur.
+ As such, this value should be interpreted roughly as a sign of progress,
+-and counters in /proc/vmstat consulted for more accurate accounting)::
++and counters in /proc/vmstat consulted for more accurate accounting.
++Per-order mTHP collapse statistics are also available under
++/sys/kernel/mm/transparent_hugepage/hugepages-<size>kB/stats/)::
+ 
+ 	/sys/kernel/mm/transparent_hugepage/khugepaged/pages_collapsed
+ 
 _
 
 Patches currently in -mm which might be from nico.pache@linux.dev are
