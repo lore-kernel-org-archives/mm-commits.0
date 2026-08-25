@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 868D234A3D6
-	for <mm-commits@vger.kernel.org>; Tue, 25 Aug 2026 01:54:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9F569346FB3
+	for <mm-commits@vger.kernel.org>; Tue, 25 Aug 2026 01:54:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787622859; cv=none; b=eSIbtNYUrROOcY7V/7fHSrSwkwCqQHWOhkdPCiCJ+9XA16dQiwcdUIUZl0jkFH/UdQN8sJZerKlm6pu/QC3//slOGySNNLUJsJlj1VOsz5KUd2kv1gnKh1zTq8DMd2lG5bslKWitZsRUALG5FK14ZnjgNaOZPDxyeeBz/0pKPZY=
+	t=1787622860; cv=none; b=L8cSzt2Bb3J+7SRNH+DARx5guvsyI7dbKVCfyvcxZHj7YvMRAXFZIRI8spmqcANfDkRQSr8czLzZl0SJoxokqrBVOz6QrLZZh3z6NdBHy35ma5DO2EHPBqln/oJxEcDwd1OCNmetQ2bTKGMmyVDaQSyNzkHUwIDyTDPYtbA3WxM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787622859; c=relaxed/simple;
-	bh=sWLza4D0ESwuouKfc81kto+h6N5Jpj2cGASluPaPZNk=;
-	h=Date:To:From:Subject:Message-Id; b=ZuEqKoLmUa5vnyNV0pNUoP3BAEPW/ff7z6Zlwa7BJ/7BzgXBmcxxJWmvxhSG+riNte5GtMTUtHdQ1iIsYix+g97vMqxYnui+r2XeDpb1sRBqoFvRZoa83KYdQSXDo5wGgOCAlUJXQffJqkXAEA8Ylk8Sf91WPMgXTQQ0J88yJVk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rNZMe9qw; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1787622860; c=relaxed/simple;
+	bh=nJFtBdQY1TELpgMa1UleE7UADrsB7Lr/66Fu6z777ec=;
+	h=Date:To:From:Subject:Message-Id; b=BkNSsncraIhaLLYP6KGgmX2Sz1NQa3E9gtr+fmNBi6GB/wfF4/629enF+ljOvN01vBQabTtxVM1ORQ01kRuE0jWkBgx8tRDG1fp7CNW5oD7nzayJjpvkNMAVLIjmP80mLXZImjU3WaBDkETRcfNe1agGsImzpPyWzSftb5oYvCA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yaVB78uu; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rNZMe9qw"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5CF761F000E9;
-	Tue, 25 Aug 2026 01:54:18 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yaVB78uu"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 76B221F00A3A;
+	Tue, 25 Aug 2026 01:54:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1787622858;
-	bh=+wFApaa4TboJiSG420RzTtMjqXCwNuqD80XSuyk6gm4=;
+	d=linux-foundation.org; s=korg; t=1787622859;
+	bh=Ge9s33VHa0dwvmNKxqAdfbOuLjzkwykuWm1AwAcJ51o=;
 	h=Date:To:From:Subject;
-	b=rNZMe9qw6sqqYtI7cnQLFPt6lA4PvWz/4EIXZBrDWrdqOljr/yMHtrngmLy9nC88w
-	 oZuMxnncG8BJe+u5tGFM37bDO1lk0njLu4xCsYugmg7SW+xPIWUik8PQqRSF89G+wY
-	 AR3CQ1c1Vfg7zlmcCHDm0g/S5TYB3vkCsQA5kIdc=
-Date: Mon, 24 Aug 2026 18:54:17 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,shuah@kernel.org,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,audra@redhat.com,akpm@linux-foundation.org
+	b=yaVB78uuGkCmb/HA2BPxqk2qLDFgEDdt+RzMYckJxZsnpoJYUMaXsNOKUKU0JEoGu
+	 t90vLT1B13yhG5yP8tNCrvuS0YDc2/1k130RiFL5YLqUiVX9n21UATmp82LXJYM1Fa
+	 xvBx+eBNUyYDkph9fqZGHlgTsblnHG59znDq2TwQ=
+Date: Mon, 24 Aug 2026 18:54:19 -0700
+To: mm-commits@vger.kernel.org,zhanxusheng@xiaomi.com,liam@infradead.org,andrewjballance@gmail.com,aliceryhl@google.com,zhanxusheng1024@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] correct-__pagemap_scan_get_categories-return-value.patch removed from -mm tree
-Message-Id: <20260825015418.5CF761F000E9@smtp.kernel.org>
+Subject: [merged mm-stable] maple_tree-remove-unused-mas_is_root_limits.patch removed from -mm tree
+Message-Id: <20260825015419.76B221F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,62 +35,52 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests/mm/vm_util.c: correct __pagemap_scan_get_categories return value
+     Subject: maple_tree: remove unused mas_is_root_limits()
 has been removed from the -mm tree.  Its filename was
-     correct-__pagemap_scan_get_categories-return-value.patch
+     maple_tree-remove-unused-mas_is_root_limits.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Audra Mitchell <audra@redhat.com>
-Subject: selftests/mm/vm_util.c: correct __pagemap_scan_get_categories return value
-Date: Thu, 6 Aug 2026 11:00:34 -0400
+From: Zhan Xusheng <zhanxusheng1024@gmail.com>
+Subject: maple_tree: remove unused mas_is_root_limits()
+Date: Wed, 5 Aug 2026 15:05:29 +0800
 
-Currently __pagemap_scan_get_categories returns the result from the ioctl
-call which should be an int, not uint64_t.  The ioctl may return -1 on
-error, which will be interpreted as UINT64_MAX.  Adjust the return type to
-use the correct value.
+The last callers of mas_is_root_limits() were removed by commit
+b8852ef30c67 ("maple_tree: remove maple big node and subtree structs"),
+together with the maple subtree state (mast_*) code that used it.  As a
+static inline it does not trigger -Wunused-function, so it went unnoticed.
 
-Link: https://lore.kernel.org/20260806150339.1824251-2-audra@redhat.com
-Signed-off-by: Audra Mitchell <audra@redhat.com>
+Remove it. No functional change.
+
+Link: https://lore.kernel.org/20260805070529.4118794-1-zhanxusheng@xiaomi.com
+Signed-off-by: Zhan Xusheng <zhanxusheng@xiaomi.com>
 Reviewed-by: Liam R. Howlett (Oracle) <liam@infradead.org>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Alice Ryhl <aliceryhl@google.com>
+Cc: Andrew Ballance <andrewjballance@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/vm_util.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ lib/maple_tree.c |    5 -----
+ 1 file changed, 5 deletions(-)
 
---- a/tools/testing/selftests/mm/vm_util.c~correct-__pagemap_scan_get_categories-return-value
-+++ a/tools/testing/selftests/mm/vm_util.c
-@@ -34,7 +34,7 @@ uint64_t pagemap_get_entry(int fd, char
- 	return entry;
+--- a/lib/maple_tree.c~maple_tree-remove-unused-mas_is_root_limits
++++ a/lib/maple_tree.c
+@@ -356,11 +356,6 @@ static __always_inline bool mte_is_root(
+ 	return ma_is_root(mte_to_node(node));
  }
  
--static uint64_t __pagemap_scan_get_categories(int fd, char *start, struct page_region *r)
-+static int __pagemap_scan_get_categories(int fd, char *start, struct page_region *r)
+-static inline bool mas_is_root_limits(const struct ma_state *mas)
+-{
+-	return !mas->min && mas->max == ULONG_MAX;
+-}
+-
+ static __always_inline bool mt_is_alloc(struct maple_tree *mt)
  {
- 	struct pm_scan_arg arg;
- 
-@@ -58,7 +58,7 @@ static uint64_t __pagemap_scan_get_categ
- static uint64_t pagemap_scan_get_categories(int fd, char *start)
- {
- 	struct page_region r;
--	long ret;
-+	int ret;
- 
- 	ret = __pagemap_scan_get_categories(fd, start, &r);
- 	if (ret < 0)
+ 	return (mt->ma_flags & MT_FLAGS_ALLOC_RANGE);
 _
 
-Patches currently in -mm which might be from audra@redhat.com are
+Patches currently in -mm which might be from zhanxusheng1024@gmail.com are
 
-selftests-mm-fix-soft-dirty-kselftest-supported-check.patch
 
