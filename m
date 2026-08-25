@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6CFEA374170;
-	Tue, 25 Aug 2026 01:55:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 38074367F59
+	for <mm-commits@vger.kernel.org>; Tue, 25 Aug 2026 01:55:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787622915; cv=none; b=p7ptL9eX8Mvze5S3pGc/g2p7Turg+iK6ljbdHi/wCehDL8nBOqzVtDWz2iXJNPVlHqeB0l/zTfeR8lWiFrggy9YKXvIMx0qBRgbVZrkUIf3f2ddWIwsUSAeWaq0Kj94DctJmS2mhbWaXJApvdjLGmyXZDnjJzlEdYOfvjxgLvdg=
+	t=1787622915; cv=none; b=GQY81f47HwVzhIxXDDIxDmE0PJiUfpborqjgl4ovElCLyyjaPeLiK5hQw6n2wnrnBv/STWv9Izoly6hzts1WlNnShFOj2BM8gKKqpoL8WYEaR7JYMfrdrdo3UUu0hew2Epohr6t6wBoJcTUszZf6FwXYOxEBEdLj45sclzVD9tc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1787622915; c=relaxed/simple;
-	bh=kPAGCdy+OAdyCtSQIMl4fEdlUgAvlv8YTucvotB0a94=;
-	h=Date:To:From:Subject:Message-Id; b=NLEXtK+cM4srCwPxueCoEHKWIzk5AIPYUE3X2YuU4Rx6Ef8DG8BVLZtc8ECdRE2oT3ufGI/qUdujaMoC97nfzCuGWJsfKWdaam9VZNOA4qhE5JewIi4d7uEB9HmEuSMXcQj9VD1OpIdf81ucrEYabZAqfnR2FjkM4TPzeedM4IU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=iY6yHToL; arc=none smtp.client-ip=100.103.45.18
+	bh=sorLOdTWwxnv+DZ15TgkSxmgcAGyA9CM9pjJ5LSIC60=;
+	h=Date:To:From:Subject:Message-Id; b=Wo1UJKZJQrryjqwKdqPrrnKjmmGGao4avn3idfRFrfsjM3YDfCwykHSMlW1pNqASEbAnKXnfzno/6cnxagtPcd/9BiZvyKn3hc+/ZHyIsIidvxROza6Qry6BZu5BAqPooyDIZ3ISaV2D5+PbxV2C1NVCAlAGYqkNRkjziq8paMQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=veo1MGEY; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="iY6yHToL"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E493D1F00A3A;
-	Tue, 25 Aug 2026 01:55:12 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="veo1MGEY"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0E90F1F000E9;
+	Tue, 25 Aug 2026 01:55:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1787622913;
-	bh=Fhqu5bMi5nUdgeC/dyLkj6K25le8wL4hDEAn42hU+uY=;
+	d=linux-foundation.org; s=korg; t=1787622914;
+	bh=AU5G86w13ox6iof0RR4ZSs+3pQ/0/TkHDuN1EBzMWGI=;
 	h=Date:To:From:Subject;
-	b=iY6yHToLVv6nAMyp5t9UrSZOcebl9CPBDqTz9Yc8Xk8aUFPNUkPM11zVg4zrFMSYk
-	 WpMf/QbAQY5EYWGe8vecjA8zRj0iItgkKOxbqOYryc6Owp2+p/3a36WjTpMYSKbzMt
-	 AExlbHhQ/lJTYBVTSSE+sDchjVEGE/60XXgFgSqQ=
-Date: Mon, 24 Aug 2026 18:55:12 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,senozhatsky@chromium.org,minchan@kernel.org,devnexen@gmail.com,akpm@linux-foundation.org
+	b=veo1MGEY65eH/9d0HluHzEnitmGwI0s3LddZzqg9t4XbzYissxOamrVs8ILU0aUPC
+	 2jeT5BP23wBcNhUK6CmGewayBFUmG4U4dfjiz1mlz9aQpJaKR/FgffaKk9eF7BUDPc
+	 EIwa3TnVAjnld1yiY0Q/RE93FRaxeZTXjw+C0ZxU=
+Date: Mon, 24 Aug 2026 18:55:13 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,jack@suse.cz,hch@lst.de,jannh@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] zram-fix-slot-lock-bit-position-on-big-endian-64-bit.patch removed from -mm tree
-Message-Id: <20260825015512.E493D1F00A3A@smtp.kernel.org>
+Subject: [merged mm-stable] mm-page-writeback-document-folio_mark_dirty-locking-more-explicitly.patch removed from -mm tree
+Message-Id: <20260825015514.0E90F1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,104 +35,73 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: zram: fix slot lock bit position on big-endian 64-bit
+     Subject: mm/page-writeback: document folio_mark_dirty() locking more explicitly
 has been removed from the -mm tree.  Its filename was
-     zram-fix-slot-lock-bit-position-on-big-endian-64-bit.patch
+     mm-page-writeback-document-folio_mark_dirty-locking-more-explicitly.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: David Carlier <devnexen@gmail.com>
-Subject: zram: fix slot lock bit position on big-endian 64-bit
-Date: Mon, 10 Aug 2026 21:22:37 +0100
+From: Jann Horn <jannh@google.com>
+Subject: mm/page-writeback: document folio_mark_dirty() locking more explicitly
+Date: Mon, 10 Aug 2026 20:10:01 +0200
 
-The slot lock is a bit operation on the whole __lock word, which flags and
-ac_time alias as two u32s.  On little-endian the lock bit lands in the
-position ZRAM_ENTRY_LOCK reserves in flags, so the aliasing works out.  On
-64-bit big-endian it lands in ac_time instead: with
-ZRAM_TRACK_ENTRY_ACTIME enabled, storing the access time from
-mark_slot_accessed() or slot_free() wipes out the held lock bit, letting
-another CPU take the same slot lock; an access time value with that bit
-set makes the slot look locked forever.
+We have had bugs where set_page_dirty() was used on a page from GUP
+without appropriate locking, leading to UAF, in:
 
-Shift the lock bit into the flags half of the word on big-endian 64-bit.
+ - KVM, see
+   https://lore.kernel.org/r/20260810-x86-kvm-setpagedirty-v1-1-85f180892d4f@google.com
+ - i915, see commit 0d4bbe3d407f ("drm/i915/userptr: Try to acquire the
+   page lock around set_page_dirty()").
+ - VMCI, see commit 5a16c535409f ("VMCI: Use set_page_dirty_lock() when
+   unregistering guest memory")
+ - kpc2000 staging driver, see commit b6d13bd9f2c1 ("staging: kpc2000:
+   kpc_dma: Convert set_page_dirty() --> set_page_dirty_lock()")
 
-Link: https://lore.kernel.org/20260810202241.2436603-1-devnexen@gmail.com
-Fixes: 2e8ff2f51dde ("zram: use u32 for entry ac_time tracking")
-Signed-off-by: David Carlier <devnexen@gmail.com>
-Reviewed-by: Sergey Senozhatsky <senozhatsky@chromium.org>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: <stable@vger.kernel.org>
+I think set_page_dirty() and folio_mark_dirty() need more explicit
+documentation on how they should be used with pages from GUP; so add a
+comment on top of set_page_dirty() and make the comment above
+folio_mark_dirty() more explicit.
+
+Link: https://lore.kernel.org/20260810-set-page-dirty-warnings-v2-1-1bd40fadfacd@google.com
+Signed-off-by: Jann Horn <jannh@google.com>
+Reviewed-by: Jan Kara <jack@suse.cz>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |    6 +++---
- drivers/block/zram/zram_drv.h |   14 ++++++++++++++
- 2 files changed, 17 insertions(+), 3 deletions(-)
+ mm/folio-compat.c   |    1 +
+ mm/page-writeback.c |    5 +++++
+ 2 files changed, 6 insertions(+)
 
---- a/drivers/block/zram/zram_drv.c~zram-fix-slot-lock-bit-position-on-big-endian-64-bit
-+++ a/drivers/block/zram/zram_drv.c
-@@ -74,7 +74,7 @@ static __must_check bool slot_trylock(st
+--- a/mm/folio-compat.c~mm-page-writeback-document-folio_mark_dirty-locking-more-explicitly
++++ a/mm/folio-compat.c
+@@ -41,6 +41,7 @@ void set_page_writeback(struct page *pag
+ }
+ EXPORT_SYMBOL(set_page_writeback);
+ 
++/* Read the comment above folio_mark_dirty() regarding required locks! */
+ bool set_page_dirty(struct page *page)
  {
- 	unsigned long *lock = &zram->table[index].__lock;
- 
--	if (!test_and_set_bit_lock(ZRAM_ENTRY_LOCK, lock)) {
-+	if (!test_and_set_bit_lock(ZRAM_ENTRY_LOCK_BIT, lock)) {
- 		mutex_acquire(&zram->table_lock_map, 0, 1, _RET_IP_);
- 		lock_acquired(&zram->table_lock_map, _RET_IP_);
- 		return true;
-@@ -88,7 +88,7 @@ static void slot_lock(struct zram *zram,
- 	unsigned long *lock = &zram->table[index].__lock;
- 
- 	mutex_acquire(&zram->table_lock_map, 0, 0, _RET_IP_);
--	wait_on_bit_lock(lock, ZRAM_ENTRY_LOCK, TASK_UNINTERRUPTIBLE);
-+	wait_on_bit_lock(lock, ZRAM_ENTRY_LOCK_BIT, TASK_UNINTERRUPTIBLE);
- 	lock_acquired(&zram->table_lock_map, _RET_IP_);
- }
- 
-@@ -97,7 +97,7 @@ static void slot_unlock(struct zram *zra
- 	unsigned long *lock = &zram->table[index].__lock;
- 
- 	mutex_release(&zram->table_lock_map, _RET_IP_);
--	clear_and_wake_up_bit(ZRAM_ENTRY_LOCK, lock);
-+	clear_and_wake_up_bit(ZRAM_ENTRY_LOCK_BIT, lock);
- }
- 
- static inline bool init_done(struct zram *zram)
---- a/drivers/block/zram/zram_drv.h~zram-fix-slot-lock-bit-position-on-big-endian-64-bit
-+++ a/drivers/block/zram/zram_drv.h
-@@ -15,6 +15,7 @@
- #ifndef _ZRAM_DRV_H_
- #define _ZRAM_DRV_H_
- 
-+#include <asm/byteorder.h>
- #include <linux/rwsem.h>
- #include <linux/zsmalloc.h>
- 
-@@ -58,6 +59,19 @@ enum zram_pageflags {
- };
- 
- /*
-+ * The slot lock is a bit-wait lock on the whole __lock word, while
-+ * flags and ac_time alias that word as two u32s.  The lock bit must
-+ * land in the slot that ZRAM_ENTRY_LOCK reserves in attr.flags; on
-+ * 64-bit big-endian the flags word maps to the upper half of __lock,
-+ * so the bit position has to be shifted up.
-+ */
-+#if defined(CONFIG_64BIT) && defined(__BIG_ENDIAN)
-+#define ZRAM_ENTRY_LOCK_BIT  (ZRAM_ENTRY_LOCK + 32)
-+#else
-+#define ZRAM_ENTRY_LOCK_BIT  ZRAM_ENTRY_LOCK
-+#endif
-+
-+/*
-  * Allocated for each disk page.  We use bit-lock (ZRAM_ENTRY_LOCK bit
-  * of flags) to save memory.  There can be plenty of entries and standard
-  * locking primitives (e.g. mutex) will significantly increase sizeof()
+ 	return folio_mark_dirty(page_folio(page));
+--- a/mm/page-writeback.c~mm-page-writeback-document-folio_mark_dirty-locking-more-explicitly
++++ a/mm/page-writeback.c
+@@ -2763,6 +2763,11 @@ EXPORT_SYMBOL(folio_redirty_for_writepag
+  * in this folio.  Truncation will block on the page table lock as it
+  * unmaps pages before removing the folio from its mapping.
+  *
++ * .. DANGER::
++ *    Do not use this on a folio obtained from a function like
++ *    get_user_pages_fast() without holding appropriate locks; you might want to
++ *    use set_page_dirty_lock() or folio_mark_dirty_lock() instead.
++ *
+  * Return: True if the folio was newly dirtied, false if it was already dirty.
+  */
+ bool folio_mark_dirty(struct folio *folio)
 _
 
-Patches currently in -mm which might be from devnexen@gmail.com are
+Patches currently in -mm which might be from jannh@google.com are
 
-mm-swap-pm-hibernate-atomically-replace-hibernation-pin.patch
 
