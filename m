@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1634538911B
-	for <mm-commits@vger.kernel.org>; Tue, 25 Aug 2026 01:56:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A2ADE380FC1
+	for <mm-commits@vger.kernel.org>; Tue, 25 Aug 2026 01:56:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787622991; cv=none; b=SmDGGQ+LNk6cHYEvE+cHRyAhnDIhF+ukInYpzl5gmBNfnTlvEyCYmAqPqWu48QNeRTCa6i9cQ/tIjkNDrnA+uGSg6H80MhHx1pssBaHTC8igkEKFKSfwFuuEid6y5HB4m4STv20P9aDh4l+hgVzxzadsDETPiuYYWpRpHpc9bLQ=
+	t=1787622993; cv=none; b=uAKAQngWBTWFeAxEc7Uy+0Qg11f1uvEliVeZlBuNk63Ye5S929aij6QbTVw6mWj/Ht1sdKEN14k+bVe/vY+VxVITMlACBlEiYnADaXREnnyX1kLGtN2BIt/UlAx3//QKYMNLvAUoo/nBq2cOQgpvL1v0Mfd052avDM/5uBbGrUA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787622991; c=relaxed/simple;
-	bh=mwrr+wqBGbkqiK2m24IM7UfsQNnXNaa+VaiJdmNNQ2A=;
-	h=Date:To:From:Subject:Message-Id; b=iawsDohC0CkhcW2XvQ9kTyVwyxyC/ta5/yycRuGuCqyA0Vn4sVtV1FpAyxsmROmGCxAeB2fTdzwBS8gX10/fHar33Vcdfqj+6NaMZ3qUkc/39SMnEEVrTbesGb7PwsxeaHyK5AFIEkOl7+LLeh0kJUMiBIbx3zMYIF8yy3JwfUY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=m5G9HMsm; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1787622993; c=relaxed/simple;
+	bh=hReXeSTAs+F5wT8eUAWyZ2VYsAQlKzWDdx596M4KgT0=;
+	h=Date:To:From:Subject:Message-Id; b=VgKJEVtJc6XzFQKRqo/OjI70vhYDFykth6t5Sk/t+KOJcsCjv/lE1iGmRWvnU0x9HWzrUfbQgqlj/waofc+7FdlBDvT18ElZqdVzfI/klqksQVjovmna4XLrEmVNwYnLqCsm6m62x1n95ePXE4bu16lofqnfFQgJk5sVqXSrkbU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cKwdd0Dz; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="m5G9HMsm"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DB2471F00A3A;
-	Tue, 25 Aug 2026 01:56:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cKwdd0Dz"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 73DB81F000E9;
+	Tue, 25 Aug 2026 01:56:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1787622990;
-	bh=Z5EYCfhTm8nKSosd+WMyJ5nynqfkWIHtpGMIzMRVwBg=;
+	d=linux-foundation.org; s=korg; t=1787622991;
+	bh=Q4rBJ6GVj6uOjzzwjEiPA3j7qEa/JQHHr6pTtP+hfAw=;
 	h=Date:To:From:Subject;
-	b=m5G9HMsmSER18scSRDn415lrlNfUheuxFjUsKVKqF/KuqvAnyjEf7x/U+WNyqEv/d
-	 4A0gZ6jpi1ry5xQFJg/ktfzLT4M2S4BEmM1pR4iLJmktIrHddJhe7o+lLigT3ngVB5
-	 k2RB0L+w8vmzEhh/UkXAl1TxPtH7zXPOzz2HVHjw=
-Date: Mon, 24 Aug 2026 18:56:29 -0700
-To: mm-commits@vger.kernel.org,will@kernel.org,riel@surriel.com,peterz@infradead.org,mingo@redhat.com,longman@redhat.com,leitao@debian.org,joe@perches.com,jgg@ziepe.ca,clm@meta.com,cel@kernel.org,boqun.feng@gmail.com,liam@infradead.org,akpm@linux-foundation.org
+	b=cKwdd0DzlEjO64f4B3VysTQrTquggf6Y7aw369xdZpCu5mQo0haNGvvrCKSwHK7kt
+	 Yw92Y6keFRJDEcDVvDu40GLA7wKrt+6BWEYshqd2xXWoRln/6kPnj2ZIT+Hk7e9FTS
+	 d59Rg/S1EOhY+WQWLFCvqotN6Xj2xNr0nb++AGKM=
+Date: Mon, 24 Aug 2026 18:56:31 -0700
+To: mm-commits@vger.kernel.org,yuanchu@google.com,weixugc@google.com,shakeel.butt@linux.dev,mhocko@kernel.org,ljs@kernel.org,kasong@tencent.com,hannes@cmpxchg.org,enlin.mu@unisoc.com,david@kernel.org,baohua@kernel.org,axelrasmussen@google.com,enlin.mu@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] maple_tree-add-helper-mas_make_walkable.patch removed from -mm tree
-Message-Id: <20260825015629.DB2471F00A3A@smtp.kernel.org>
+Subject: [merged mm-stable] mm-vmscan-fix-comment-logic-in-balance_pgdat.patch removed from -mm tree
+Message-Id: <20260825015631.73DB81F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,79 +35,58 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: maple_tree: add helper mas_make_walkable()
+     Subject: mm/vmscan: fix comment logic in balance_pgdat
 has been removed from the -mm tree.  Its filename was
-     maple_tree-add-helper-mas_make_walkable.patch
+     mm-vmscan-fix-comment-logic-in-balance_pgdat.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Liam R. Howlett (Oracle)" <liam@infradead.org>
-Subject: maple_tree: add helper mas_make_walkable()
-Date: Fri, 21 Aug 2026 15:26:27 -0400
+From: Enlin Mu <enlin.mu@linux.dev>
+Subject: mm/vmscan: fix comment logic in balance_pgdat
+Date: Fri, 21 Aug 2026 14:40:57 +0800
 
-A check in mas_walk() was incorrect and caused inefficient use of the
-maple state.  The same issue existed in mas_erase(), but was left unfixed.
-Making a helper function is the obvious answer.
+In balance_pgdat(), when the low watermark is met, processes sleeping on
+pfmemalloc_wait are woken up because they are able to safely make forward
+progress.
 
-Link: https://lore.kernel.org/20260821192627.4085470-20-liam@infradead.org
-Signed-off-by: Liam R. Howlett (Oracle) <liam@infradead.org>
-Cc: Boqun Feng <boqun.feng@gmail.com>
-Cc: Breno Leitao <leitao@debian.org>
-Cc: Chris Mason <clm@meta.com>
-Cc: Chuck Lever <cel@kernel.org>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Joe Perches <joe@perches.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Waiman Long <longman@redhat.com>
-Cc: Will Deacon <will@kernel.org>
+However, the comment incorrectly states "they should not be able",
+which contradicts the actual code behavior. Fix this typo to accurately
+reflect the logic.
+
+Link: https://lore.kernel.org/20260821064057.4081-1-enlin.mu@linux.dev
+Signed-off-by: Enlin Mu <enlin.mu@unisoc.com>
+Signed-off-by: Enlin Mu <enlin.mu@linux.dev>
+Reviewed-by: Barry Song <baohua@kernel.org>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Kairui Song <kasong@tencent.com>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Wei Xu <weixugc@google.com>
+Cc: Yuanchu Xie <yuanchu@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/maple_tree.c |   13 ++++++++-----
- 1 file changed, 8 insertions(+), 5 deletions(-)
+ mm/vmscan.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/lib/maple_tree.c~maple_tree-add-helper-mas_make_walkable
-+++ a/lib/maple_tree.c
-@@ -261,6 +261,12 @@ static inline bool mas_is_underflow(stru
- 	return mas->status == ma_underflow;
- }
+--- a/mm/vmscan.c~mm-vmscan-fix-comment-logic-in-balance_pgdat
++++ a/mm/vmscan.c
+@@ -7276,7 +7276,7 @@ restart:
  
-+static inline void mas_make_walkable(struct ma_state *mas)
-+{
-+	if (!mas_is_active(mas) && !mas_is_start(mas))
-+		mas->status = ma_start;
-+}
-+
- static __always_inline struct maple_node *mte_to_node(
- 		const struct maple_enode *entry)
- {
-@@ -4447,8 +4453,7 @@ void *mas_walk(struct ma_state *mas)
- 	void *entry;
- 
- 	mas_may_init_lock_check(mas);
--	if (!mas_is_active(mas) && !mas_is_start(mas))
--		mas->status = ma_start;
-+	mas_make_walkable(mas);
- retry:
- 	entry = mas_state_walk(mas);
- 	if (mas_is_start(mas)) {
-@@ -5685,9 +5690,7 @@ void *mas_erase(struct ma_state *mas)
- 	if (mt_external_lock(mas->tree))
- 		might_alloc(GFP_KERNEL);
- 
--	if (!mas_is_active(mas) || !mas_is_start(mas))
--		mas->status = ma_start;
--
-+	mas_make_walkable(mas);
- write_retry:
- 	entry = mas_state_walk(mas);
- 	if (!entry)
+ 		/*
+ 		 * If the low watermark is met there is no need for processes
+-		 * to be throttled on pfmemalloc_wait as they should not be
++		 * to be throttled on pfmemalloc_wait as they should now be
+ 		 * able to safely make forward progress. Wake them
+ 		 */
+ 		if (waitqueue_active(&pgdat->pfmemalloc_wait) &&
 _
 
-Patches currently in -mm which might be from liam@infradead.org are
+Patches currently in -mm which might be from enlin.mu@linux.dev are
 
 
