@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6ABB7376468;
-	Tue, 25 Aug 2026 01:55:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C6C313750CB
+	for <mm-commits@vger.kernel.org>; Tue, 25 Aug 2026 01:55:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787622944; cv=none; b=e1XHp/MNdeQHLqNafcZWYmazQoJTlpxJniAPlTG28oyCkF0x+2uBn95LQI+ksjy1Ob3Ew8yL/5Z0kIOQCfDFbD7izwHEJ0oJuVMqSplOpuFkqoHrcto8N9haF+PEF4/eSzOWjDJO2xeVYd0QGzx1Flos1e/R+cXsKz+ZkjsQsb0=
+	t=1787622946; cv=none; b=kX1rBSSeIivklnt8zJj7Jh8eQvU/Co/PJseY0+jJ3jQlu+PHuR2At3dIBuix03P/zFLTRaE3dSJSXAIawCJN5xa5wSJ/DwoCjplGvV/SFGQ7dM68XTXtFVgYYU+Rir1i27fNmOQwugiydJSefS+gwMA8miBrSl1gKtaTD6CPicM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787622944; c=relaxed/simple;
-	bh=5DJozmw8IGgHrSGNtI2l5hgc/CQkM2dTevTpes7xAu0=;
-	h=Date:To:From:Subject:Message-Id; b=OUstVI5OiXK8lmevW/F341zIfSINIn4GSjL00FBjlyrlLJEHkqf0IYbZ9Gpa+cnXrWeCzdE36auu9fSY3DBkkX9QtZ/IMn4EZSQZs14lQOSOVvTFOgVq6WPpE1D7VBaBHi19SYOYfdIypx8yPG7dgywGIbFhlFy5xUr6ocpggY0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MjL2Fn4X; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1787622946; c=relaxed/simple;
+	bh=kx158mgIy4hfqT+1SJc+pKnTJ00MretiwGEQYawtugw=;
+	h=Date:To:From:Subject:Message-Id; b=uolCozfq98bQFdE4v6Ro61gbrLdq4tCGyDaC8kJVUBpAOYuU27I7JfbKakiV0wx7YY3pxQwXudnRBlOzuHv2dikmCk6usCVFvvdJ6rBoJqL5gNqju4YqTYgAAylMq0YRmjHR8R0mKkAKfPHkKEwPULy6jYEK7Eef/iQ0czTVD+o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OgPx14xd; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MjL2Fn4X"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 45C231F000E9;
-	Tue, 25 Aug 2026 01:55:43 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OgPx14xd"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6448F1F00A3A;
+	Tue, 25 Aug 2026 01:55:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1787622943;
-	bh=J3DPObgIkgPswYENdgjVVLYjHlz0FG92HHr1vdKy/rU=;
+	d=linux-foundation.org; s=korg; t=1787622944;
+	bh=EOKA3MuC8ostdnu3hfZ4LLWhPDG2246O/thkpxU1rTc=;
 	h=Date:To:From:Subject;
-	b=MjL2Fn4XoACTZbWXKzQ9d2DPE0M5gjV1pw6jM6r3djnc54Jl3uuMImaa++g/p+2J7
-	 XDbGPRR1ZW970RsJ08VTerXIU33kXZtHEjZ5Ms02C2atRNuK90ILvicf+FUro3qwBK
-	 xJeonrcp1u52oBhcZWe15GiBEspFbks3dSi90N4g=
-Date: Mon, 24 Aug 2026 18:55:42 -0700
-To: mm-commits@vger.kernel.org,yuzhao@google.com,yuanchu@google.com,weixugc@google.com,suleiman@google.com,steven@liquorix.net,stable@vger.kernel.org,shakeel.butt@linux.dev,oleksandr@natalenko.name,mhocko@kernel.org,ljs@kernel.org,heftig@archlinux.org,hannes@cmpxchg.org,david@kernel.org,bgeffon@google.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,axelrasmussen@google.com,kasong@tencent.com,akpm@linux-foundation.org
+	b=OgPx14xdRgcGuYgidxNRJ/ia4PphFQWJPVHYlDe+XbX3xV7vWOeyS6VIsb27GR6Ds
+	 mS3pIz0ks2Pwgpj0Ah9nGwtMo65vR4N1JwiSlSs3wws3Yd3tpxFEXQohIiP5CJiquq
+	 GaXsMafEY923HPRFr9nW2gqzAwtfwMxHsMYQIO/0=
+Date: Mon, 24 Aug 2026 18:55:44 -0700
+To: mm-commits@vger.kernel.org,surenb@google.com,rostedt@goodmis.org,kent.overstreet@linux.dev,gmonaco@redhat.com,dennis@kernel.org,akpm@linux-foundation.org,tj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-mglru-fix-and-remove-redundant-unevictable-folio-handling.patch removed from -mm tree
-Message-Id: <20260825015543.45C231F000E9@smtp.kernel.org>
+Subject: [merged mm-stable] percpu-drop-config_debug_force_weak_per_cpu.patch removed from -mm tree
+Message-Id: <20260825015544.6448F1F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,121 +35,116 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/mglru: fix and remove redundant unevictable folio handling
+     Subject: percpu: drop CONFIG_DEBUG_FORCE_WEAK_PER_CPU
 has been removed from the -mm tree.  Its filename was
-     mm-mglru-fix-and-remove-redundant-unevictable-folio-handling.patch
+     percpu-drop-config_debug_force_weak_per_cpu.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Kairui Song <kasong@tencent.com>
-Subject: mm/mglru: fix and remove redundant unevictable folio handling
-Date: Wed, 12 Aug 2026 20:22:39 +0800
+From: Tejun Heo <tj@kernel.org>
+Subject: percpu: drop CONFIG_DEBUG_FORCE_WEAK_PER_CPU
+Date: Wed, 12 Aug 2026 09:47:43 -1000
 
-sort_folio() has a shortcut for moving folios that are no longer evictable
-but are still sitting on a generation list.  However, this shortcut is
-buggy.  It does not follow the PG_lru usage convention, and it has a more
-serious issue.
+alpha requires percpu variables in modules to be defined as weak so that the
+compiler generates GOT based external references for them. This puts two
+extra restrictions on percpu variable definitions. The symbol must be
+globally unique even when static and a static percpu variable can't be
+defined inside a function. DEBUG_FORCE_WEAK_PER_CPU exists to give generic
+code build coverage for these restrictions without building for alpha.
 
-Unevictable folios are not threaded on lists[LRU_UNEVICTABLE], so that
-folio->lru can be reused to hold folio->mlock_count (see the comment in
-lruvec_init()).  Hence lruvec_add_folio() skips the list_add() for them,
-and every other place that turns a folio unevictable initialises
-mlock_count explicitly: lru_add() sets it to 0, __mlock_folio() and
-__mlock_new_folio() set it to !!folio_test_mlocked(folio).  sort_folio()
-sets nothing, and the lru_gen_del_folio() right above it may have already
-poisoned folio->lru via list_del(), so mlock_count ends up aliasing
-LIST_POISON2, which reads as 0x122, i.e.  290.  The result is user
-visible.  On munlock, __munlock_folio() decrements that bogus count, finds
-it still non-zero and bails out before clearing PG_mlocked, so the folio
-remains unevictable and the Mlocked accounting stays inflated until the
-folio is freed.
+MEM_ALLOC_PROFILING defines a static percpu counter at each allocation call
+site and thus can't be built with weak percpu definitions, so it depends on
+!DEBUG_FORCE_WEAK_PER_CPU. As allmodconfig enables DEBUG_FORCE_WEAK_PER_CPU,
+this knocks MEM_ALLOC_PROFILING out of allmodconfig build coverage.
 
-The shortcut also touches the LRU flags in the wrong order.  It calls
-lru_gen_del_folio() while PG_lru is still set, so a concurrent
-folio_test_clear_lru() (e.g.  compaction, folio_isolate_lru()) can succeed
-on a folio that has already been taken off the generation list, which may
-lead to unexpected behavior.
+allmodconfig coverage for MEM_ALLOC_PROFILING is worth more than build
+coverage for restrictions which only matter to alpha module builds. Drop
+DEBUG_FORCE_WEAK_PER_CPU. Restriction violations will now show up only on
+alpha builds.
 
-So fix it by isolating them as common folios and letting the generic
-shrink path cull them.  This matches the classical LRU behavior, and there
-should be no visible effect on the generic eviction or isolation behavior.
-
-There is no performance concern either, such a folio goes through this
-once, and then it is off the generation lists for good.
-
-Link: https://lore.kernel.org/20260812-mglru-mlock-fix-v2-1-a3fec5853c08@tencent.com
-Fixes: ac35a4902374 ("mm: multi-gen LRU: minimal implementation")
-Signed-off-by: Kairui Song <kasong@tencent.com>
-Reviewed-by: Barry Song <baohua@kernel.org>
-Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Brian Geffon <bgeffon@google.com>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Jan Alexander Steffens (heftig) <heftig@archlinux.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Oleksandr Natalenko <oleksandr@natalenko.name>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Steven Barrett <steven@liquorix.net>
-Cc: Suleiman Souhlal <suleiman@google.com>
-Cc: Wei Xu <weixugc@google.com>
-Cc: Yuanchu Xie <yuanchu@google.com>
-Cc: Yu Zhao <yuzhao@google.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lore.kernel.org/178656406317.2437052.7257990869957704195@slm.duckdns.org
+Signed-off-by: Tejun Heo <tj@kernel.org>
+Reported-by: Andrew Morton <akpm@linux-foundation.org>
+Reviewed-by: Suren Baghdasaryan <surenb@google.com>
+Acked-by: Gabriele Monaco <gmonaco@redhat.com>	[include/rv/da_monitor.h]
+Cc: Dennis Zhou <dennis@kernel.org>
+Cc: Kent Overstreet <kent.overstreet@linux.dev>
+Cc: Steven Rostedt <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   19 +++++--------------
- 1 file changed, 5 insertions(+), 14 deletions(-)
+ include/linux/percpu-defs.h |    7 +------
+ include/rv/da_monitor.h     |    2 +-
+ lib/Kconfig.debug           |   15 ---------------
+ mm/Kconfig.debug            |    1 -
+ 4 files changed, 2 insertions(+), 23 deletions(-)
 
---- a/mm/vmscan.c~mm-mglru-fix-and-remove-redundant-unevictable-folio-handling
-+++ a/mm/vmscan.c
-@@ -4649,7 +4649,6 @@ void lru_gen_reparent_memcg(struct mem_c
- static bool sort_folio(struct lruvec *lruvec, struct folio *folio, struct scan_control *sc,
- 		       int tier_idx)
- {
--	bool success;
- 	int gen = folio_lru_gen(folio);
- 	int type = folio_is_file_lru(folio);
- 	int zone = folio_zonenum(folio);
-@@ -4661,15 +4660,9 @@ static bool sort_folio(struct lruvec *lr
+--- a/include/linux/percpu-defs.h~percpu-drop-config_debug_force_weak_per_cpu
++++ a/include/linux/percpu-defs.h
+@@ -65,13 +65,8 @@
+  *
+  * Archs which need weak percpu definitions should set
+  * CONFIG_ARCH_MODULE_NEEDS_WEAK_PER_CPU when necessary.
+- *
+- * To ensure that the generic code observes the above two
+- * restrictions, if CONFIG_DEBUG_FORCE_WEAK_PER_CPU is set weak
+- * definition is used for all cases.
+  */
+-#if (defined(CONFIG_ARCH_MODULE_NEEDS_WEAK_PER_CPU) && defined(MODULE)) || \
+-	defined(CONFIG_DEBUG_FORCE_WEAK_PER_CPU)
++#if defined(CONFIG_ARCH_MODULE_NEEDS_WEAK_PER_CPU) && defined(MODULE)
+ /*
+  * __pcpu_scope_* dummy variable is used to enforce scope.  It
+  * receives the static modifier when it's used in front of
+--- a/include/rv/da_monitor.h~percpu-drop-config_debug_force_weak_per_cpu
++++ a/include/rv/da_monitor.h
+@@ -24,7 +24,7 @@
  
- 	VM_WARN_ON_ONCE_FOLIO(gen >= MAX_NR_GENS, folio);
+ /*
+  * Per-cpu variables require a unique name although static in some
+- * configurations (e.g. CONFIG_DEBUG_FORCE_WEAK_PER_CPU or alpha modules).
++ * configurations (e.g. alpha modules).
+  */
+ #define DA_MON_NAME CONCATENATE(da_mon_, MONITOR_NAME)
  
--	/* unevictable */
--	if (!folio_evictable(folio)) {
--		success = lru_gen_del_folio(lruvec, folio, true);
--		VM_WARN_ON_ONCE_FOLIO(!success, folio);
--		folio_set_unevictable(folio);
--		lruvec_add_folio(lruvec, folio);
--		__count_vm_events(UNEVICTABLE_PGCULLED, delta);
--		return true;
--	}
-+	/* unevictable: let it through and the generic path will cull it */
-+	if (!folio_evictable(folio))
-+		return false;
+--- a/lib/Kconfig.debug~percpu-drop-config_debug_force_weak_per_cpu
++++ a/lib/Kconfig.debug
+@@ -613,21 +613,6 @@ config BUILTIN_MODULE_RANGES
+ 	 It also records an anchor symbol to determine the load address of the
+ 	 section.
  
- 	/* promoted */
- 	if (gen != lru_gen_from_seq(lrugen->min_seq[type])) {
-@@ -4922,11 +4915,9 @@ retry:
- 	list_for_each_entry_safe_reverse(folio, next, &list, lru) {
- 		DEFINE_MIN_SEQ(lruvec);
- 
--		if (!folio_evictable(folio)) {
--			list_del(&folio->lru);
--			folio_putback_lru(folio);
-+		/* move_folios_to_lru() culls unevictable folios via folio_putback_lru() */
-+		if (!folio_evictable(folio))
- 			continue;
--		}
- 
- 		/* retry folios that may have missed folio_rotate_reclaimable() */
- 		if (!skip_retry && !folio_test_active(folio) && !folio_mapped(folio) &&
+-config DEBUG_FORCE_WEAK_PER_CPU
+-	bool "Force weak per-cpu definitions"
+-	depends on DEBUG_KERNEL
+-	help
+-	  s390 and alpha require percpu variables in modules to be
+-	  defined weak to work around addressing range issue which
+-	  puts the following two restrictions on percpu variable
+-	  definitions.
+-
+-	  1. percpu symbols must be unique whether static or not
+-	  2. percpu variables can't be defined inside a function
+-
+-	  To ensure that generic code follows the above rules, this
+-	  option forces all percpu variables to be defined as weak.
+-
+ config WARN_CONTEXT_ANALYSIS
+ 	bool "Compiler context-analysis warnings"
+ 	depends on CC_IS_CLANG && CLANG_VERSION >= 230000
+--- a/mm/Kconfig.debug~percpu-drop-config_debug_force_weak_per_cpu
++++ a/mm/Kconfig.debug
+@@ -326,7 +326,6 @@ config MEM_ALLOC_PROFILING
+ 	default n
+ 	depends on MMU
+ 	depends on PROC_FS
+-	depends on !DEBUG_FORCE_WEAK_PER_CPU
+ 	select CODE_TAGGING
+ 	select PAGE_EXTENSION
+ 	select SLAB_OBJ_EXT
 _
 
-Patches currently in -mm which might be from kasong@tencent.com are
+Patches currently in -mm which might be from tj@kernel.org are
 
 
