@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D6D6134751F
-	for <mm-commits@vger.kernel.org>; Tue, 25 Aug 2026 01:55:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2D6D434E777
+	for <mm-commits@vger.kernel.org>; Tue, 25 Aug 2026 01:55:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787622912; cv=none; b=Hj8RpftgVKQy9PwRGl0qBAdaEpecB3ovyPhD0xBo82KfvUtk6JMX46ZWubuyYybTbaWzGIwuOzZwZey6jFEgBTBnJAaeYWX7VxmcFKlI1jGMIBhyEC6PE5WCnjwrEyul9IKs95uUMoYwxOi/XXJEmPfNmbn/Vbm9+ea4q0ebptE=
+	t=1787622913; cv=none; b=FQIxyV5WdTFS1OsSprLt+sK2a2xhhKt4ZvTZS2+/SPALwpuQuT6anAepyDC5QLVk35G4FojYCR2E1ZBBERANt3hia9A13ZU0BIj0aNdcTIY5BPD+T2MDQo3EDUaS1k76I12ZKRiIQW0ENY3OgkRQMJH0GQG5WPYif2MXVmziknc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787622912; c=relaxed/simple;
-	bh=COFsFnhKMywarDE0T5tKJIakCm/XRwEiV41Jg5Ut2jg=;
-	h=Date:To:From:Subject:Message-Id; b=BvPVQSK3D3Ah1VPlfIgPWwT8k7h8nBTyVGwDQxr+gVaQo8zfvGGQNxIJkFLxrqpArzuySm1ktfaISdcte2NnYt+jOh88Fk3bzZh8TAUr81+Q8r1+EAr2vBnC6hvzhNvjKiKe3Irb+J7+aqdUFdjnTrXe0e7KcrGNMRZngAy07YQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MxIgLIrb; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1787622913; c=relaxed/simple;
+	bh=sgFbJrrvu38eDDR/8WyF1t6k4PsGiHq7MLXYBShybe0=;
+	h=Date:To:From:Subject:Message-Id; b=OxdNKlEHpLa5WEqZ1FHbS5AdnGeIepesn6bQPPu7wuO1AiBJrg8yHvd3ChLbAw0AhV+tVK9UyYaHg4bZNHHkX3v1IWanv4H7JXg9R9twz0r1RJqeELvOdA94FlcgBOM01H5UJYLsdDc96GHoLyMdSaJknfAUD77FsnFFy8IPYtw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=M9NqhGf3; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MxIgLIrb"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A5F411F00A3A;
-	Tue, 25 Aug 2026 01:55:10 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="M9NqhGf3"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C09C71F000E9;
+	Tue, 25 Aug 2026 01:55:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1787622910;
-	bh=0aTanrnQhffLevNTnRC19A1xkg63Vv+4BRvhxUBvQwc=;
+	d=linux-foundation.org; s=korg; t=1787622911;
+	bh=iRdA1MxPi2ZiouR04zrIFpUpfqvKt9pmc1zWgPu8yJs=;
 	h=Date:To:From:Subject;
-	b=MxIgLIrbpkZm0XE37BIgXID6JxN3IMnQ+dpgI34bKmeQuk9367SL2yFlXSyKCPE7R
-	 LlrggwKhLsJXtdMjsup1j2kqrr1fbiB66tdw6+Zc2g2K+OyOTtKj8z36GmpFuuveDY
-	 bKFR1sAB1Rip0S8dCjwCSplH0Dv4PVsMUnmofOMw=
-Date: Mon, 24 Aug 2026 18:55:10 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,shuah@kernel.org,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,corbet@lwn.net,catalin.marinas@arm.com,leitao@debian.org,akpm@linux-foundation.org
+	b=M9NqhGf3OxALqqi5tnm13EcszMVyc2EKNERndnPW9HQmw10hg3KFkLPcBgZkbYetG
+	 vD1eQMeA1SAaHfL5tlvvcj3A9uyS7/vwNpwflQmZzeQFQN4humYc/Ut/kS/VLvTdDX
+	 BrVsIPFLJhJJ7MYEPk1PNfCPhU8CGiaw8BVTWR94=
+Date: Mon, 24 Aug 2026 18:55:11 -0700
+To: mm-commits@vger.kernel.org,liam@infradead.org,andrewjballance@gmail.com,aliceryhl@google.com,akpm@linux-foundation.org,sercombe.joel.mark@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-mm-kmemleak-drop-stale-min_unref_scans-default-from-comments.patch removed from -mm tree
-Message-Id: <20260825015510.A5F411F00A3A@smtp.kernel.org>
+Subject: [merged mm-stable] maple_tree-fix-comment-typo.patch removed from -mm tree
+Message-Id: <20260825015511.C09C71F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,77 +35,46 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests/mm: kmemleak: drop stale min_unref_scans default from comments
+     Subject: maple_tree: fix comment typo
 has been removed from the -mm tree.  Its filename was
-     selftests-mm-kmemleak-drop-stale-min_unref_scans-default-from-comments.patch
+     maple_tree-fix-comment-typo.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Breno Leitao <leitao@debian.org>
-Subject: selftests/mm: kmemleak: drop stale min_unref_scans default from comments
-Date: Fri, 31 Jul 2026 03:13:06 -0700
+From: Mark Sercombe <sercombe.joel.mark@gmail.com>
+Subject: maple_tree: fix comment typo
+Date: Thu, 13 Aug 2026 20:38:47 +0200
 
-The test writes min_unref_scans explicitly for every case, so its comments
-describing 1 as the default are both unnecessary and, since the default is
-now conditional, wrong.  Refer to the threshold values directly.
+Fix a spelling mistake n a code comment.  This is a comment only change
+with no functional impact.
 
-No functional change.
-
-Link: https://lore.kernel.org/20260731-kmemleak_hardened-v2-3-7b9689ac77cb@debian.org
-Signed-off-by: Breno Leitao <leitao@debian.org>
-Acked-by: Catalin Marinas <catalin.marinas@arm.com>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
+Link: https://lore.kernel.org/20260813183847.474357-1-sercombe.joel.mark@gmail.com
+Signed-off-by: Mark Sercombe <sercombe.joel.mark@gmail.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Reviewed-by: Liam R. Howlett (Oracle) <liam@infradead.org>
+Cc: Alice Ryhl <aliceryhl@google.com>
+Cc: Andrew Ballance <andrewjballance@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/ksft_kmemleak_confirm.sh |   10 ++++------
- 1 file changed, 4 insertions(+), 6 deletions(-)
+ lib/maple_tree.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/tools/testing/selftests/mm/ksft_kmemleak_confirm.sh~selftests-mm-kmemleak-drop-stale-min_unref_scans-default-from-comments
-+++ a/tools/testing/selftests/mm/ksft_kmemleak_confirm.sh
-@@ -5,7 +5,7 @@
- # (the min_unref_scans module parameter).
- #
- # kmemleak only reports an object once it has stayed unreferenced for
--# min_unref_scans consecutive scans. The default of 1 reports on the first
-+# min_unref_scans consecutive scans. A threshold of 1 reports on the first
- # scan (historical behaviour); higher values filter transient false
- # positives where a live object's only reference is briefly invisible to a
- # single scan (e.g. an RCU tree update in flight while the scan runs). The
-@@ -16,8 +16,7 @@
- #   - a freshly allocated object is greyed on its first scan (its checksum
- #     settles then), so nothing can be reported before that priming scan;
- #     each case below primes once first,
--#   - with the default threshold (min_unref_scans=1) one scan after priming
--#     reports the orphans,
-+#   - at min_unref_scans=1 one scan after priming reports the orphans,
- #   - raising the threshold to 2 needs two scans after priming: one is not
- #     enough, the second reports,
- #   - the parameter reads back what was written.
-@@ -105,9 +104,8 @@ echo 3 > "$PARAM"
- # scan. Every case below runs this priming scan before counting.
- prime() { scan; }
+--- a/lib/maple_tree.c~maple_tree-fix-comment-typo
++++ a/lib/maple_tree.c
+@@ -3590,7 +3590,7 @@ set_content:
  
--# 1) min_unref_scans=1 (default): one scan after priming reports the
--#    orphans. This also establishes that the helper produces detectable
--#    orphans here.
-+# 1) min_unref_scans=1: one scan after priming reports the orphans. This
-+#    also establishes that the helper produces detectable orphans here.
- echo 1 > "$PARAM"
- gen_orphans
- prime
+ /**
+  * mas_prealloc_calc() - Calculate number of nodes needed for a
+- * given store oepration
++ * given store operation
+  * @wr_mas: The maple write state
+  * @entry: The entry to store into the tree
+  *
 _
 
-Patches currently in -mm which might be from leitao@debian.org are
+Patches currently in -mm which might be from sercombe.joel.mark@gmail.com are
 
 
