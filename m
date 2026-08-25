@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4357E2F83B5
-	for <mm-commits@vger.kernel.org>; Tue, 25 Aug 2026 01:53:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7DEF930F55F
+	for <mm-commits@vger.kernel.org>; Tue, 25 Aug 2026 01:53:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787622833; cv=none; b=GFlUsCvNUdtIwZxD071jhl1ePyaR4A1e5TAjZtBDcR/BXwlF3PsksJaJ3ZYdlj3sD3ly/hCVrKjqr/5+xzd+vBvhhEgfcl0t+d2boDinn2lioc9maJ4K3w6oHeTA594lBOT125Ux2C8lK+oCoJuiR4XPkVLgTQhWsLNoULy+mEU=
+	t=1787622834; cv=none; b=aXSxl9yfvxOeuLyp/GwvBP4dfjxW6xSI+AH22KtPDNhwYg0UTFmSfB41WzXTjSk2yI5jdWrrnp6i/Z6df2aEzE3zP6k0WRVqHojG91dLgG5aTwISAvoXdR2d6/aGqqzunrrta+Gp9Bt41NGqpd5arZp6GgMoREJkU2Vp5B2Qlro=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787622833; c=relaxed/simple;
-	bh=5FG3oEGbnS7jFbNgJeTNvINJWctv9KrPd5q2CpxDnLI=;
-	h=Date:To:From:Subject:Message-Id; b=j72LtSxs83mtGctITGg7UR5sg8XCXXsXMF42ZIc5JAmRwRJCenrPjeWJ5DP2/LLGOsXvip7sJNO19es3zIkJg0jDPL6oYMQxWwQJWfO9iHrrxp1xpNBD5rA2FamSJlLtDOOmnnjUKv7h+BAa51M/fgdjGjH8LBzahpvzUIpQ4Ss=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1KaCb69D; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1787622834; c=relaxed/simple;
+	bh=gGIcMLm4v3oJty0MkmisLG5gQfr9TV58jL+Owe4LSck=;
+	h=Date:To:From:Subject:Message-Id; b=YWrDcbGLEZYVoJn9RnQOw34GyNNRt63toiMyIy81EYZoJYdI1dtX1mSWzls7Q0+kJGJbNeVf/DaWLgPjQ6CSWu4g8FFw+ZhuVeOSa4TUmGVroTOVfi32oJ7o377jwNtvyW1g/Z1tI/Y6em3YR5FHstQ4L/C71QboPj93llnf2fQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wXLEukym; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1KaCb69D"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1C92B1F000E9;
-	Tue, 25 Aug 2026 01:53:52 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wXLEukym"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 510DE1F00A3A;
+	Tue, 25 Aug 2026 01:53:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1787622832;
-	bh=AePs3hRymeiwjCAGjLexlnCoDlw80AzAXg23vuzfxIk=;
+	d=linux-foundation.org; s=korg; t=1787622833;
+	bh=A5QFTlEgosNC2+3DT4nKJkXQZ1MSj/LAFDHdG88Eigk=;
 	h=Date:To:From:Subject;
-	b=1KaCb69Dzne97rIf0GW2PpW+eaDF8sZq3HmSQ4XYTBbeFRnx8QkxIgqV/RR7TT1Ap
-	 YAmi1pU/pSBshqGioK5Z8+NEwwrWQRebPgVdtihZWorzbrXf93YZdAyfRfaLgViOuY
-	 DwC/pnxFJhtiMLiIwuz37md/1/UOyP7GF2PQeQ2Y=
-Date: Mon, 24 Aug 2026 18:53:51 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,urezki@gmail.com,surenb@google.com,shikemeng@huaweicloud.com,shakeel.butt@linux.dev,rppt@kernel.org,roman.gushchin@linux.dev,osalvador@suse.de,nphamcs@gmail.com,muchun.song@linux.dev,mhocko@kernel.org,liam@infradead.org,kasong@tencent.com,hannes@cmpxchg.org,david@kernel.org,chrisl@kernel.org,baoquan.he@linux.dev,baohua@kernel.org,ljs@kernel.org,akpm@linux-foundation.org
+	b=wXLEukymFXb2bDSsZw2OSedx+K+vV6yrij/emLLxkrRZ6jncxfCpun8tRDlxZcyym
+	 eCx473e8n3zTedXVA5yZD/C+ZwemrUkKmvPS5Vupa/H0M7SQeDBxdceJk66DqqssTU
+	 oPiljMuPbkNoeX1EyPe47d7YJzukEK24sd4bx5D8=
+Date: Mon, 24 Aug 2026 18:53:52 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,surenb@google.com,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,hannes@cmpxchg.org,david@kernel.org,ekffu200098@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-add-some-missing-includes-to-mm-local-headers.patch removed from -mm tree
-Message-Id: <20260825015352.1C92B1F000E9@smtp.kernel.org>
+Subject: [merged mm-stable] mm-kconfig-make-flatmem-depend-on-numa.patch removed from -mm tree
+Message-Id: <20260825015353.510DE1F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,142 +35,78 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: add some missing includes to mm-local headers
+     Subject: mm/Kconfig: make FLATMEM depend on !NUMA
 has been removed from the -mm tree.  Its filename was
-     mm-add-some-missing-includes-to-mm-local-headers.patch
+     mm-kconfig-make-flatmem-depend-on-numa.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: mm: add some missing includes to mm-local headers
-Date: Tue, 04 Aug 2026 11:08:59 +0100
+From: Sang-Heon Jeon <ekffu200098@gmail.com>
+Subject: mm/Kconfig: make FLATMEM depend on !NUMA
+Date: Wed, 5 Aug 2026 00:11:41 +0900
 
-There are a number of internal headers local to mm/ which reference
-functions and data types without including the relevant headers.
+Patch series "mm/page_ext: remove pgdat_page_ext_init()", v2.
 
-mm/vma.h is a special case that intentionally does not include additional
-headers, but the others are not.
+pgdat_page_ext_init() has no effect on FLATMEM. The pgdat is always
+the zero-initialized contig_page_data, because no architecture
+supports FLATMEM + NUMA.
 
-This breaks tooling like clangd (which is where I noticed this), though
-the build is OK due to the C files including the headers happening to
-include required dependencies.
+That constraint is only implicit in the arch Kconfig files. So patch 1
+makes it explicit in mm/Kconfig, and patch 2 removes pgdat_page_ext_init().
 
-It's better to be explicit about dependencies anyway, so add the missing
-includes and fix clangd as a bonus.
+No functional change.
 
-Link: https://lore.kernel.org/20260804-fix-some-local-headers-v1-1-a7beb173c116@kernel.org
-Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
-Acked-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+
+This patch (of 2):
+
+FLATMEM + NUMA is not supported by any architecture and fails to build. 
+The constraint is only implicit in the arch Kconfig files.
+
+So make it explicit in mm/Kconfig.
+
+No functional change.
+
+Link: https://lore.kernel.org/20260804151145.3419768-1-ekffu200098@gmail.com
+Link: https://lore.kernel.org/20260804151145.3419768-2-ekffu200098@gmail.com
+Signed-off-by: Sang-Heon Jeon <ekffu200098@gmail.com>
+Suggested-by: Zi Yan <ziy@nvidia.com>
 Acked-by: Zi Yan <ziy@nvidia.com>
-Reviewed-by: Barry Song <baohua@kernel.org>
-Reviewed-by: Baoquan He <baoquan.he@linux.dev>
-Cc: Chris Li <chrisl@kernel.org>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Kairui Song <kasong@tencent.com>
-Cc: Kemeng Shi <shikemeng@huaweicloud.com>
 Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
 Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/cma.h           |    1 +
- mm/hugetlb_cma.h   |    2 ++
- mm/memcontrol-v1.h |    1 +
- mm/pgalloc-track.h |    3 +++
- mm/shuffle.h       |    2 ++
- mm/swap.h          |    1 +
- mm/vmalloc.h       |    2 ++
- 7 files changed, 12 insertions(+)
+ mm/Kconfig |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/mm/cma.h~mm-add-some-missing-includes-to-mm-local-headers
-+++ a/mm/cma.h
-@@ -2,6 +2,7 @@
- #ifndef __MM_CMA_H__
- #define __MM_CMA_H__
+--- a/mm/Kconfig~mm-kconfig-make-flatmem-depend-on-numa
++++ a/mm/Kconfig
+@@ -390,6 +390,7 @@ choice
  
-+#include <linux/cma.h>
- #include <linux/debugfs.h>
- #include <linux/kobject.h>
+ config FLATMEM_MANUAL
+ 	bool "Flat Memory"
++	depends on !NUMA
+ 	depends on !ARCH_SPARSEMEM_ENABLE || ARCH_FLATMEM_ENABLE
+ 	help
+ 	  This option is best suited for non-NUMA systems with
+@@ -424,6 +425,7 @@ config SPARSEMEM
  
---- a/mm/hugetlb_cma.h~mm-add-some-missing-includes-to-mm-local-headers
-+++ a/mm/hugetlb_cma.h
-@@ -2,6 +2,8 @@
- #ifndef _LINUX_HUGETLB_CMA_H
- #define _LINUX_HUGETLB_CMA_H
+ config FLATMEM
+ 	def_bool y
++	depends on !NUMA
+ 	depends on !SPARSEMEM || FLATMEM_MANUAL
  
-+#include <linux/hugetlb.h>
-+
- #ifdef CONFIG_CMA
- void hugetlb_cma_free_frozen_folio(struct folio *folio);
- struct folio *hugetlb_cma_alloc_frozen_folio(int order, gfp_t gfp_mask,
---- a/mm/memcontrol-v1.h~mm-add-some-missing-includes-to-mm-local-headers
-+++ a/mm/memcontrol-v1.h
-@@ -4,6 +4,7 @@
- #define __MM_MEMCONTROL_V1_H
- 
- #include <linux/cgroup-defs.h>
-+#include <linux/memcontrol.h>
- 
- /* Cgroup v1 and v2 common declarations */
- 
---- a/mm/pgalloc-track.h~mm-add-some-missing-includes-to-mm-local-headers
-+++ a/mm/pgalloc-track.h
-@@ -2,6 +2,9 @@
- #ifndef _LINUX_PGALLOC_TRACK_H
- #define _LINUX_PGALLOC_TRACK_H
- 
-+#include <linux/mm.h>
-+#include <linux/pgtable.h>
-+
- #if defined(CONFIG_MMU)
- static inline p4d_t *p4d_alloc_track(struct mm_struct *mm, pgd_t *pgd,
- 				     unsigned long address,
---- a/mm/shuffle.h~mm-add-some-missing-includes-to-mm-local-headers
-+++ a/mm/shuffle.h
-@@ -2,7 +2,9 @@
- // Copyright(c) 2018 Intel Corporation. All rights reserved.
- #ifndef _MM_SHUFFLE_H
- #define _MM_SHUFFLE_H
-+
- #include <linux/jump_label.h>
-+#include <linux/mmzone.h>
- 
- #define SHUFFLE_ORDER MAX_PAGE_ORDER
- 
---- a/mm/swap.h~mm-add-some-missing-includes-to-mm-local-headers
-+++ a/mm/swap.h
-@@ -5,6 +5,7 @@
- #include <linux/atomic.h> /* for atomic_long_t */
- #include <linux/mm.h> /* for PAGE_SHIFT */
- #include <linux/memcontrol.h> /* for mem_cgroup_swappiness() */
-+#include <linux/swap.h> /* for MAX_SWAPFILES_SHIFT, struct swap_info_struct */
- 
- struct mempolicy;
- struct swap_iocb;
---- a/mm/vmalloc.h~mm-add-some-missing-includes-to-mm-local-headers
-+++ a/mm/vmalloc.h
-@@ -5,6 +5,8 @@
- #ifndef __MM_VMALLOC_H
- #define __MM_VMALLOC_H
- 
-+#include <linux/vmalloc.h>
-+
- #ifdef CONFIG_MMU
- void __init vmalloc_init(void);
- int __must_check vmap_pages_range_noflush(unsigned long addr, unsigned long end,
+ #
 _
 
-Patches currently in -mm which might be from ljs@kernel.org are
+Patches currently in -mm which might be from ekffu200098@gmail.com are
 
 
