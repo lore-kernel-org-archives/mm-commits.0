@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4C418346AE1
-	for <mm-commits@vger.kernel.org>; Tue, 25 Aug 2026 01:54:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6086834BA24
+	for <mm-commits@vger.kernel.org>; Tue, 25 Aug 2026 01:54:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787622857; cv=none; b=eccDRFMUfWzezP0bcemK14xZSc4n1T5hdpHYa1uYC2R7mCN9EUStwMDPLRq9q/Lav0xiek/NWD/elSRvGiZTIwEDX5AqeTlQ3c3gqlMFJkAM6SV5YyVoop8ZxnfI81TuVqKeHgqdV7T5ny5IVgB2s4slug+kSol1uZWRSG9CP5Q=
+	t=1787622858; cv=none; b=OASeqGSmuyQywflmDkAdZz1TFmwj9B8AD1P1neGu/HLn7TZEqqU+Oztd+Gurw0ld51/XXabgMgZPkZUC6N4a+aCxUDRjGPnG7ueRW8Mk7+mj2NKTIb36DZyXjoMTD5cil6+Wjor9iRiG9AJRT+jcbE62p2LLspa28G+89PU7BpQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787622857; c=relaxed/simple;
-	bh=t1XbKpi0Y7u2zw7KR9TdVM1ckcA3AHyz6ywzmITbeAE=;
-	h=Date:To:From:Subject:Message-Id; b=c2Kp3yxaxL/BLOmt833JhjBygkScybpyylDtzjt5Me1Fz1+jzEaKxmsHW4qNH9Yz/KXs4LPeJrTmGi2Un/EpjrtllTKIEgxvemla/yLlhmvEG/3SydzGVfbUBIGviCfP0NPWg8vPopdVgImhe3b3JvZUiYANv9m+4nOQOEJlUpI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=I75OnGVn; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1787622858; c=relaxed/simple;
+	bh=852bx8TAHrokrpMtqURuBgWcqqURZFF9sEUA1QE/BLM=;
+	h=Date:To:From:Subject:Message-Id; b=eRFk7WIfS/bL2EUTgDNctVA0v5v3xwijrrlCApyPyZr5D+ay3GxqyerXmwshNhlAbd8lEtmBBmDCjQ73eCUPlaquEP5QtV4JQHAH/phH6h812T9Hdo3uaxV+hwqoxSfrG968DpMyO3Kg8eLaU0rVertf0fPvi86O+snLSkAaTCY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JJcFT4rE; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="I75OnGVn"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0AB2D1F000E9;
-	Tue, 25 Aug 2026 01:54:16 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JJcFT4rE"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 372961F00A3A;
+	Tue, 25 Aug 2026 01:54:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1787622856;
-	bh=JCXQzCpwRhrA6eDmoYmYodWLv5sCot9OLk+Rtl+z1uQ=;
+	d=linux-foundation.org; s=korg; t=1787622857;
+	bh=RWpPVjWEoQPuBXgkE7GS5SZzwTjLj4iqJxby0YP9xF8=;
 	h=Date:To:From:Subject;
-	b=I75OnGVnPS3Kc4FdZ55rdHCZJL0I7/Iw/uyknTGesscA1cuC+2chDxYS88AJeD071
-	 bBrrebKgs4L+UGbNXrCXILf9qjTHFE+eH2RX38NlTh818mZ6y248322jjUb2fsMXUe
-	 OflcLamh2yPL0MqkAUZHAzO0dplf588P3zQ6fVmk=
-Date: Mon, 24 Aug 2026 18:54:15 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,sj@kernel.org,shuah@kernel.org,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,anshuman.khandual@arm.com,lihongfu@kylinos.cn,akpm@linux-foundation.org
+	b=JJcFT4rEehb6y/6+eMq/CiPe05HGuHj7oh0A3O3tvwUFJ5vSYmEpAgWxXeLWHD+ny
+	 ZpkOT1yl/P817OzqMtw9LjSDbwCEBvvm07ukBgfZFb0ndIlnXSNlvwJJBwe4nsKw3e
+	 u575Q0p48SaBeRJk0fT+fFZD4ZeI1ZxERSpbEcR4=
+Date: Mon, 24 Aug 2026 18:54:16 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,surenb@google.com,mhocko@suse.com,jhubbard@nvidia.com,hannes@cmpxchg.org,akpm@linux-foundation.org,liuye@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-mm-drop-duplicate-test_seal_mprotect_two_vma_with_gap-call.patch removed from -mm tree
-Message-Id: <20260825015416.0AB2D1F000E9@smtp.kernel.org>
+Subject: [merged mm-stable] mm-debug_page_alloc-fix-null-buf-in-debug_guardpage_minorder_setup.patch removed from -mm tree
+Message-Id: <20260825015417.372961F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,62 +35,60 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests/mm: drop duplicate test_seal_mprotect_two_vma_with_gap() call
+     Subject: mm: debug_page_alloc: fix NULL buf in debug_guardpage_minorder_setup
 has been removed from the -mm tree.  Its filename was
-     selftests-mm-drop-duplicate-test_seal_mprotect_two_vma_with_gap-call.patch
+     mm-debug_page_alloc-fix-null-buf-in-debug_guardpage_minorder_setup.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Hongfu Li <lihongfu@kylinos.cn>
-Subject: selftests/mm: drop duplicate test_seal_mprotect_two_vma_with_gap() call
-Date: Thu, 6 Aug 2026 11:08:50 +0800
+From: Ye Liu <liuye@kylinos.cn>
+Subject: mm: debug_page_alloc: fix NULL buf in debug_guardpage_minorder_setup
+Date: Thu, 6 Aug 2026 08:45:55 +0800
 
-mseal_test main() invokes test_seal_mprotect_two_vma_with_gap() twice. 
-The second run repeats all assertions with no benefit.  Drop the duplicate
-call.
+If the kernel command line includes "debug_guardpage_minorder" without an
+equals sign (i.e., no value is provided), the early parameter parser
+passes a NULL buf pointer to the setup function.
 
-Link: https://lore.kernel.org/20260806030850.76077-1-hongfu.li@linux.dev
-Signed-off-by: Hongfu Li <lihongfu@kylinos.cn>
-Reviewed-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Reviewed-by: SJ Park <sj@kernel.org>
-Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Liam R. Howlett <liam@infradead.org>
+kstrtouint() does not perform a NULL check on its input and calls directly
+into kstrtoull() which dereferences s[0] unconditionally, leading to a
+NULL pointer dereference and early boot crash.
+
+Additionally, the error path's pr_err("%s", buf) would also crash with a
+NULL format argument.
+
+Link: https://lore.kernel.org/20260806004556.2633049-1-ye.liu@linux.dev
+Fixes: c0a32fc5a2e4 ("mm: more intensive memory corruption debugging")
+Signed-off-by: Ye Liu <liuye@kylinos.cn>
+Acked-by: Zi Yan <ziy@nvidia.com>
+Reviewed-by: John Hubbard <jhubbard@nvidia.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Shuah Khan <shuah@kernel.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/mseal_test.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ mm/debug_page_alloc.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/tools/testing/selftests/mm/mseal_test.c~selftests-mm-drop-duplicate-test_seal_mprotect_two_vma_with_gap-call
-+++ a/tools/testing/selftests/mm/mseal_test.c
-@@ -1876,7 +1876,7 @@ int main(void)
- 	if (!pkey_supported())
- 		ksft_print_msg("PKEY not supported\n");
+--- a/mm/debug_page_alloc.c~mm-debug_page_alloc-fix-null-buf-in-debug_guardpage_minorder_setup
++++ a/mm/debug_page_alloc.c
+@@ -22,8 +22,8 @@ static int __init debug_guardpage_minord
+ {
+ 	unsigned int res;
  
--	ksft_set_plan(88);
-+	ksft_set_plan(87);
- 
- 	test_seal_addseal();
- 	test_seal_unmapped_start();
-@@ -1914,7 +1914,6 @@ int main(void)
- 	test_seal_mprotect_partial_mprotect(true);
- 
- 	test_seal_mprotect_two_vma_with_gap();
--	test_seal_mprotect_two_vma_with_gap();
- 
- 	test_seal_mprotect_merge(false);
- 	test_seal_mprotect_merge(true);
+-	if (kstrtouint(buf, 10, &res) < 0 ||  res > MAX_PAGE_ORDER / 2) {
+-		pr_err("Bad debug_guardpage_minorder value: %s\n", buf);
++	if (!buf || kstrtouint(buf, 10, &res) < 0 || res > MAX_PAGE_ORDER / 2) {
++		pr_err("Bad debug_guardpage_minorder value: %s\n", buf ?: "(missing)");
+ 		return 0;
+ 	}
+ 	_debug_guardpage_minorder = res;
 _
 
-Patches currently in -mm which might be from lihongfu@kylinos.cn are
+Patches currently in -mm which might be from liuye@kylinos.cn are
 
-mm-use-a-folio-in-the-softleaf_is_device_private-path.patch
 
