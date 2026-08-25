@@ -1,33 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 454FB33A9E2
-	for <mm-commits@vger.kernel.org>; Tue, 25 Aug 2026 01:45:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2794B313545;
+	Tue, 25 Aug 2026 01:45:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787622305; cv=none; b=LJMugytRtfz80HaPbwcsWelTZmfp700Iqrl2PSUDt1FCdVe3/WbdlTh6lSp5qxR++9KDNGZ0C/kWaB86xD0ZDgZYIZzEI2DHZz3Z40I2PW1GLOhJ9Zw0xXXAiDh2ptdMrA4Fb9l9l/79PTlRbKhIxNblaiaipFTmXpinLrb9UxE=
+	t=1787622306; cv=none; b=btpeLesqHuvM1RZWktaRUtlBDJfwtilU8UmqG9TFK0dvE28PA3iQNvuT4HngLgt8nq3xP7pbxYw1nV2rvlA8RzE0mc+5qzjjbt5CaHond/tzjj5LUypTBgUxAAPRIdruGWt2JXrD0KGT9k6y9re4Z0uIOG374PZQe1TYZjR9gvo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787622305; c=relaxed/simple;
-	bh=x4QJpSGFFm5paxdkxqOO1J/Xk24ryhbhG6vNU5gPdWc=;
-	h=Date:To:From:Subject:Message-Id; b=blZTOl4LXhitfbYvDq/I5E+iIc568Q3KC/veSR00uA7sCRtT52F9JRiaNgQG1HnsHLHN8ET/8NL0s98eEro7rzw6nTasP/ShlwB66rK0S9QXGs08JIH7r/cdIp4JP5qIuH67dbF7IVFZCW+d+SuaFUMnNdV6rqTgRtVeWopvOI4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=fail (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pWOpeFpA reason="signature verification failed"; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1787622306; c=relaxed/simple;
+	bh=sMpZUMqPdOphVvKcnAlW61q0q21l1tF57kzV23+yx78=;
+	h=Date:To:From:Subject:Message-Id; b=KDY6CI0BdO8ZnmlEuwB/570HyRa7UMACxPS4jiQa/mTgB9gY3lHDBpDDxe9iD9mnCLMz1Prq/icS4A3S15uGi/yEiNNw+FUU7Ftovd+KquYBXXItimG5rIvsJGpk9Kn8F1NXlME8wHN5VzsuaiTg3lB6DOFMkZZ9zjdwZW6t0uU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HZXbKMX0; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=fail reason="signature verification failed" (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pWOpeFpA"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 15F711F00A3A;
-	Tue, 25 Aug 2026 01:45:03 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HZXbKMX0"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A5A801F000E9;
+	Tue, 25 Aug 2026 01:45:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1787622303;
-	bh=lA35SuDUjp/6Bdp9rHozxMGxlWTZM4SjARJTcd2Ucjk=;
+	d=linux-foundation.org; s=korg; t=1787622304;
+	bh=e3YhobTR7/umOkKHr4SCH7VZwgZH9eUTttBjErIYId8=;
 	h=Date:To:From:Subject;
-	b=pWOpeFpA/uWLQozVdrJg63hGEJ7U80nwRmzTdypTNb0Sw07QI5JwtGuPvOPsDRxEp
-	 fn6Nzhyyu4YTOWHIOqej24DP/d4Ct19Cq3/43fR/bYWjuYfkqizn+rcSlZFKFtQwpl
-	 m5H2MI9XG0GS1m3/R62sYwxkyaHzGRdqPufdZLS4=
-Date: Mon, 24 Aug 2026 18:45:02 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,xu.xin16@zte.com.cn,willy@infradead.org,vbabka@kernel.org,tzimmermann@suse.de,thomas.hellstrom@linux.intel.com,svens@linux.ibm.com,surenb@google.com,steven.price@arm.com,shikemeng@huaweicloud.com,ryan.roberts@arm.com,rppt@kernel.org,rodrigo.vivi@intel.com,riel@surriel.com,Ray.Huang@amd.com,rakie.kim@sk.com,pfalcato@suse.de,peterz@infradead.org,peterx@redhat.com,osalvador@suse.de,oleg@redhat.com,nphamcs@gmail.com,npache@redhat.com,nao.horiguchi@gmail.com,namhyung@kernel.org,muchun.song@linux.dev,mripard@kernel.org,mingo@redhat.com,mhocko@suse.com,mhiramat@kernel.org,matthew.brost@intel.com,matthew.auld@intel.com,mark.rutland@arm.com,maarten.lankhorst@linux.intel.com,liviu.dudau@arm.com,linmiaohe@huawei.com,liam@infradead.org,lance.yang@linux.dev,kees@kernel.org,kasong@tencent.com,joshua.hahnjy@gmail.com,jolsa@kernel.org,jhubbard@nvidia.com,jgg@ziepe.ca,jannh@google.com,james.clark@linaro.org,jack@suse.cz,iroger
- s@google.com,imbrenda@linux.ibm.com,hca@linux.ibm.com,harry@kernel.org,gregkh@linuxfoundation.org,gourry@gourry.net,gor@linux.ibm.com,gerald.schaefer@linux.ibm.com,frankja@linux.ibm.com,dev.jain@arm.com,david@kernel.org,christian.koenig@amd.com,chrisl@kernel.org,chengming.zhou@linux.dev,byungchul@sk.com,borntraeger@linux.ibm.com,boris.brezillon@collabora.com,baoquan.he@linux.dev,baolin.wang@linux.alibaba.com,baohua@kernel.org,arnd@arndb.de,apopple@nvidia.com,alexander.shishkin@linux.intel.com,alexander.deucher@amd.com,airlied@gmail.com,agordeev@linux.ibm.com,adrian.hunter@intel.com,acme@kernel.org,ljs@kernel.org,akpm@linux-foundation.org
+	b=HZXbKMX0bDprX5rfyjkyw9LBxGO806PaQNk9d5lrvdtb96WOebto11W2pCC+h3sh7
+	 1DdASPJUaklLd2uf9AkvegUiojS18ZgUMWX4ejoH/uONqUDRh2HdJzEYcT5w3KC4Ft
+	 lXIzzaFPdZdbZkmDKCmSs686IryUj+WWmaEVWENg=
+Date: Mon, 24 Aug 2026 18:45:04 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,sj@kernel.org,puranjay@kernel.org,paulmck@kernel.org,catalin.marinas@arm.com,leitao@debian.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] tools-testing-selftests-mm-test-anonymous-page-offset-merge-behaviour.patch removed from -mm tree
-Message-Id: <20260825014503.15F711F00A3A@smtp.kernel.org>
+Subject: [merged mm-stable] mm-kmemleak-report-rcu-tasks-quiescent-states-during-the-scan.patch removed from -mm tree
+Message-Id: <20260825014504.A5A801F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -36,179 +35,130 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: tools/testing/selftests/mm: test anonymous page offset merge behaviour
+     Subject: mm/kmemleak: report RCU-tasks quiescent states during the scan
 has been removed from the -mm tree.  Its filename was
-     tools-testing-selftests-mm-test-anonymous-page-offset-merge-behaviour.patch
+     mm-kmemleak-report-rcu-tasks-quiescent-states-during-the-scan.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: tools/testing/selftests/mm: test anonymous page offset merge behaviour
-Date: Thu, 13 Aug 2026 18:32:33 +0100
+From: Breno Leitao <leitao@debian.org>
+Subject: mm/kmemleak: report RCU-tasks quiescent states during the scan
+Date: Mon, 20 Jul 2026 06:23:45 -0700
 
-While maintaining anonymous page offsets for VMAs has no impact for most
-merge cases, it does impact MAP_PRIVATE-mapped file-backed mappings which
-happen to have matching page offset but not matching anonymous page
-offset.
+kmemleak_scan() can run for ages on large debug kernels. It was
+causing some soft-lockups which I got fixed with commit
+3175fcfec8b16baeb ("mm/kmemleak: avoid soft lockup when scanning task
+stacks") with our beloved cond_resched().
 
-Assert this behaviour by attempting to map an unfaulted MAP_PRIVATE-memfd
-region with a faulted one with compatible file page offsets but
-incompatible anonymous page offsets.
+I've got the fix above deployed in the Meta fleet, and now I am seeing:
 
-Link: https://lore.kernel.org/20260813-b4-scalable-cow-virt-pgoff-v5-16-c21581c0c3c8@kernel.org
-Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Cc: Adrian Hunter <adrian.hunter@intel.com>
-Cc: Alexander Deucher <alexander.deucher@amd.com>
-Cc: Alexander Gordeev <agordeev@linux.ibm.com>
-Cc: Alexander Shishkin <alexander.shishkin@linux.intel.com>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Arnaldo Carvalho de Melo <acme@kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Baoquan He <baoquan.he@linux.dev>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Boris Brezillon <boris.brezillon@collabora.com>
-Cc: Byungchul Park <byungchul@sk.com>
-Cc: Chengming Zhou <chengming.zhou@linux.dev>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: Christan König <christian.koenig@amd.com>
-Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
-Cc: Claudio Imbrenda <imbrenda@linux.ibm.com>
-Cc: Dave Airlie <airlied@gmail.com>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Gregory Price (Meta) <gourry@gourry.net>
-Cc: Harry Yoo <harry@kernel.org>
-Cc: Heiko Carstens <hca@linux.ibm.com>
-Cc: Huang Ray <Ray.Huang@amd.com>
-Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
-Cc: Ian Rogers <irogers@google.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: James Clark <james.clark@linaro.org>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Jann Horn <jannh@google.com>
-Cc: Janosch Frank <frankja@linux.ibm.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Jiri Olsa <jolsa@kernel.org>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
-Cc: Kairui Song <kasong@tencent.com>
-Cc: Kees Cook <kees@kernel.org>
-Cc: Kemeng Shi <shikemeng@huaweicloud.com>
-Cc: Lance Yang <lance.yang@linux.dev>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Liviu Dudau <liviu.dudau@arm.com>
-Cc: Maarten Lankhorst <maarten.lankhorst@linux.intel.com>
-Cc: Marc Rutland <mark.rutland@arm.com>
-Cc: "Masami Hiramatsu (Google)" <mhiramat@kernel.org>
-Cc: Matthew Auld <matthew.auld@intel.com>
-Cc: Matthew Brost <matthew.brost@intel.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Maxime Ripard <mripard@kernel.org>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Namhyung kim <namhyung@kernel.org>
-Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
-Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: Nico Pache <npache@redhat.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Pedro Falcato <pfalcato@suse.de>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Rakie Kim <rakie.kim@sk.com>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Rodrigo Vivi <rodrigo.vivi@intel.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Steven Price <steven.price@arm.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Sven Schnelle <svens@linux.ibm.com>
-Cc: Thomas Hellström <thomas.hellstrom@linux.intel.com>
-Cc: Thomas Zimemrmann <tzimmermann@suse.de>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: xu xin <xu.xin16@zte.com.cn>
-Cc: Zi Yan <ziy@nvidia.com>
+  INFO: rcu_tasks detected stalls on tasks:
+    task:kmemleak state:R ... nvcsw: 274/274 holdout: 1 idle_cpu: -1/3
+     scan_block
+     scan_gray_list
+     kmemleak_scan
+
+and, worse, blocks the callers waiting on that grace period.  Here a BPF
+struct_ops map free, which waits via synchronize_rcu_mult(call_rcu,
+call_rcu_tasks), is stuck long enough to also trip the hung task check:
+
+  INFO: task kworker/...:bpf_map_free_deferred blocked for 122 seconds
+     __wait_rcu_gp
+     bpf_struct_ops_map_free
+
+Then I've learned that cond_resched() is not an RCU-tasks quiescent
+state, so, we need to use stronger primitives.
+
+Use cond_resched_tasks_rcu_qs() at the scan reschedule points so the scan
+reports an RCU-tasks quiescent state as it proceeds.
+
+Inspired by commit b96285e10aad ("tracing: Have osnoise_main() add a
+quiescent state for task rcu").
+
+Link: https://lore.kernel.org/20260720-kmemleak_rcu_task-v1-1-5b460ade777d@debian.org
+Fixes: c4b28963fd79 ("mm/kmemleak: rely on rcu for task stack scanning")
+Signed-off-by: Breno Leitao <leitao@debian.org>
+Reviewed-by: Paul E. McKenney <paulmck@kernel.org>
+Reviewed-by: SJ Park <sj@kernel.org>
+Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Breno Leitao <leitao@debian.org>
+Cc: Puranjay Mohan <puranjay@kernel.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/merge.c |   57 +++++++++++++++++++++++++++
- 1 file changed, 57 insertions(+)
+ mm/kmemleak.c |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
---- a/tools/testing/selftests/mm/merge.c~tools-testing-selftests-mm-test-anonymous-page-offset-merge-behaviour
-+++ a/tools/testing/selftests/mm/merge.c
-@@ -1305,6 +1305,63 @@ TEST_F(merge, merge_vmas_with_mseal)
- 	ASSERT_EQ(procmap->query.vma_end, (unsigned long)ptr + 2 * page_size);
+--- a/mm/kmemleak.c~mm-kmemleak-report-rcu-tasks-quiescent-states-during-the-scan
++++ a/mm/kmemleak.c
+@@ -1571,7 +1571,7 @@ static int scan_large_block(void *start,
+ 		if (scan_block(start, next, NULL))
+ 			return 1;
+ 		start = next;
+-		cond_resched();
++		cond_resched_tasks_rcu_qs();
+ 	}
+ 
+ 	return 0;
+@@ -1608,7 +1608,7 @@ static void scan_object(struct kmemleak_
+ 			scan_block(start, end, object);
+ 
+ 			raw_spin_unlock_irqrestore(&object->lock, flags);
+-			cond_resched();
++			cond_resched_tasks_rcu_qs();
+ 			raw_spin_lock_irqsave(&object->lock, flags);
+ 			if (!(object->flags & OBJECT_ALLOCATED))
+ 				break;
+@@ -1630,7 +1630,7 @@ static void scan_object(struct kmemleak_
+ 				break;
+ 
+ 			raw_spin_unlock_irqrestore(&object->lock, flags);
+-			cond_resched();
++			cond_resched_tasks_rcu_qs();
+ 			raw_spin_lock_irqsave(&object->lock, flags);
+ 		} while (object->flags & OBJECT_ALLOCATED);
+ 	} else {
+@@ -1658,7 +1658,7 @@ static void scan_gray_list(void)
+ 	 */
+ 	object = list_entry(gray_list.next, typeof(*object), gray_list);
+ 	while (&object->gray_list != &gray_list) {
+-		cond_resched();
++		cond_resched_tasks_rcu_qs();
+ 
+ 		/* may add new objects to the list */
+ 		if (!scan_should_stop())
+@@ -1693,7 +1693,7 @@ static void kmemleak_cond_resched(struct
+ 	raw_spin_unlock_irq(&kmemleak_lock);
+ 
+ 	rcu_read_unlock();
+-	cond_resched();
++	cond_resched_tasks_rcu_qs();
+ 	rcu_read_lock();
+ 
+ 	raw_spin_lock_irq(&kmemleak_lock);
+@@ -1738,7 +1738,7 @@ static void kmemleak_scan_task_stacks(vo
+ 			}
+ 			put_task_struct(p);
+ 		}
+-		cond_resched();
++		cond_resched_tasks_rcu_qs();
+ 	} while (pid && !stop);
  }
  
-+TEST_F(merge, anon_and_page_offset_mismatch_memfd)
-+{
-+	struct procmap_fd *procmap = &self->procmap;
-+	unsigned int page_size = self->page_size;
-+	char *carveout = self->carveout;
-+	char *ptr, *ptr2;
-+	int fd;
-+
-+	/* Create a 10 page memfd descriptor. */
-+	fd = memfd_create("anon_page_offset_test", MFD_CLOEXEC);
-+	ASSERT_NE(fd, -1);
-+	ASSERT_EQ(ftruncate(fd, 10 * page_size), 0);
-+
-+	/* Map a region using the memfd at page offset 0. */
-+	ptr = mmap(carveout, 5 * page_size, PROT_READ | PROT_WRITE,
-+		   MAP_FIXED | MAP_PRIVATE, fd, 0);
-+	ASSERT_NE(ptr, MAP_FAILED);
-+
-+	/*
-+	 * Map another separately and trigger a CoW fault at page offset 5:
-+	 *
-+	 * |-----------|           |---------|
-+	 * | unfaulted |           | faulted |
-+	 * |-----------|           |---------|
-+	 */
-+	ptr2 = mmap(&carveout[10 * page_size], 5 * page_size,
-+		    PROT_READ | PROT_WRITE, MAP_FIXED | MAP_PRIVATE,
-+		    fd, 5 * page_size);
-+	ASSERT_NE(ptr2, MAP_FAILED);
-+	ptr2[0] = 'x';
-+
-+	/*
-+	 * Now move it in place:
-+	 *
-+	 *                   |----------|
-+	 *                   |          |
-+	 *                   v          |
-+	 * |-----------|           |---------|
-+	 * | unfaulted |           | faulted |
-+	 * |-----------|           |---------|
-+	 *
-+	 * Because the anonymous page offset of the faulted region is now
-+	 * &carveout[10 * page_size], despite the two regions being mergeable
-+	 * due to file page offset, they are NOT mergeable due to anonymous
-+	 * page offset.
-+	 */
-+	ptr2 = sys_mremap(ptr2, 5 * page_size, 5 * page_size,
-+			  MREMAP_MAYMOVE | MREMAP_FIXED,
-+			  &carveout[5 * page_size]);
-+	ASSERT_NE(ptr2, MAP_FAILED);
-+
-+	/* Assert that they did not merge. */
-+	ASSERT_TRUE(find_vma_procmap(procmap, ptr));
-+	ASSERT_EQ(procmap->query.vma_start, (unsigned long)ptr);
-+	ASSERT_EQ(procmap->query.vma_end, (unsigned long)ptr + 5 * page_size);
-+}
-+
- TEST_F(merge_with_fork, mremap_faulted_to_unfaulted_prev)
- {
- 	struct procmap_fd *procmap = &self->procmap;
+@@ -1915,7 +1915,7 @@ static void kmemleak_scan(void)
+ 			struct page *page = pfn_to_online_page(pfn);
+ 
+ 			if (!(pfn & 63))
+-				cond_resched();
++				cond_resched_tasks_rcu_qs();
+ 
+ 			if (!page)
+ 				continue;
 _
 
-Patches currently in -mm which might be from ljs@kernel.org are
+Patches currently in -mm which might be from leitao@debian.org are
 
 
