@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7B8D737C936
-	for <mm-commits@vger.kernel.org>; Tue, 25 Aug 2026 01:56:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B1DAA37999D
+	for <mm-commits@vger.kernel.org>; Tue, 25 Aug 2026 01:56:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787622966; cv=none; b=ZKfzDcCzM3+G9urlcKFkVUxi5e9PnWxJvu8+vwigkSkNcERYCM47yJGCVuTWWWJe2PE1hhua35IfN051uIZJKy4iUy9f2YP9SOKi+/QD63pLABP+vvsktZHw4H9D3iJVpFEOn2BbWDi5L5MYS/RkwKulj/yFHEYkYtVuA2oOcEM=
+	t=1787622967; cv=none; b=ldqO54aHkVNTqMlAlREBHnMGbu6NVLHjgl7Sej9JMwk94uZiisc8GomwJkRoIZPhee3Ppb1z5EWdw24Zssalmfb/eclQihKo8ldscZE1FoXXxq0D1kLc1/cdPyo8fIpCVdpcycmzgYw2Y/MY+YeqiBrtSlMe8nSU3Bsjk+tXOO8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787622966; c=relaxed/simple;
-	bh=LtuPsE6p0BBzUu1h4sPcv9p+/llmKLzlzJnSMOT74oQ=;
-	h=Date:To:From:Subject:Message-Id; b=J1nJWpwQRbJZ6mNxFxigNwf9aTHC0n74dky6mosljbkzVFCjM/Ms9o57TToFsc7WQtEu9IZCcJ0PamwDHpqKAqU2IX+m5xJRt86DzkaqcaVYbQE3Xo5Or3JG29LYoSuLC1Kazyw27ZXkBwYJXACTlKvhRM8IJf4mMuCeqOghfQE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EXUpRXVH; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1787622967; c=relaxed/simple;
+	bh=EUHwFH3pKIzma8JplyTssBtaH3YjaAtjRk0LMYjaNVQ=;
+	h=Date:To:From:Subject:Message-Id; b=A+k6HdW1uNnpQEJyXKGNgVkgjrfpQQ4I5yK0EetOr8BQAbKkPkNCM7IduyAkL9I3dcn1Xr+LJMAsQu5EjoREha/XbTJtwdBn+L1yGGfTXzNb8ZdaMrtZ21TA/v/pJ/eqVz83ZZOGD9GunvArxuVYEST72L3Tt6keRP13r2fq1dQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=x2vAwKNA; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EXUpRXVH"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A98911F000E9;
-	Tue, 25 Aug 2026 01:56:04 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="x2vAwKNA"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 476091F00A3A;
+	Tue, 25 Aug 2026 01:56:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1787622964;
-	bh=5jQdsI0uk1Yzdk766VvHMdPHvOPweL2fEmBtS+pyVhY=;
+	d=linux-foundation.org; s=korg; t=1787622966;
+	bh=XSBp5bBM7+HQNT9oQXZovgNv0846udZZQjtvYkZdlMM=;
 	h=Date:To:From:Subject;
-	b=EXUpRXVHJrYvzxGlFraEd26jxIMWoHHf9CEIOmIWwgXK/CmzHnkE6rds8VbPZ1VLX
-	 4l4O7IsABReWYSv58ck2t7ixWSmzrnRaL4pHl7j6mesX4AxbdL+w3zf2MvE6FqQcPm
-	 ZH0evQnRe5Elb18nUJBxNA8In5tfAkH9dSWu3hO8=
-Date: Mon, 24 Aug 2026 18:56:04 -0700
+	b=x2vAwKNAh69XaQl4og0yJzx29oM1NLY+4TH/7u/bVWSZ/WFB4+KjgLoxq4IYaKHBg
+	 RI5VrvwZ3jAjSDWvuoxo8u3M68QKPKXQHpRwnGdU7ZA6qqeccsFjwDBWiY6pXVPOdq
+	 TL8Gldy2Wixq9BPtIOycfu/Y/D9qrh8W0FevtiO0=
+Date: Mon, 24 Aug 2026 18:56:05 -0700
 To: mm-commits@vger.kernel.org,will@kernel.org,riel@surriel.com,peterz@infradead.org,mingo@redhat.com,longman@redhat.com,leitao@debian.org,joe@perches.com,jgg@ziepe.ca,clm@meta.com,cel@kernel.org,boqun.feng@gmail.com,liam@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] maple_tree-add-write-lock-checking-with-lockdep-sequence-numbers.patch removed from -mm tree
-Message-Id: <20260825015604.A98911F000E9@smtp.kernel.org>
+Subject: [merged mm-stable] maple_tree-documentation-fix.patch removed from -mm tree
+Message-Id: <20260825015606.476091F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,37 +35,24 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: maple_tree: add write lock checking with lockdep sequence numbers
+     Subject: maple_tree: documentation fix
 has been removed from the -mm tree.  Its filename was
-     maple_tree-add-write-lock-checking-with-lockdep-sequence-numbers.patch
+     maple_tree-documentation-fix.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Liam R. Howlett (Oracle)" <liam@infradead.org>
-Subject: maple_tree: add write lock checking with lockdep sequence numbers
-Date: Fri, 21 Aug 2026 15:26:11 -0400
+Subject: maple_tree: documentation fix
+Date: Fri, 21 Aug 2026 15:26:12 -0400
 
-Use the lockdep sequence numbers to ensure the write lock is not dropped
-between write operations.  The lockdep sequence is recorded on any walk
-that starts from the top of the tree and re-checked prior to any operation
-using an active node.
+Don't include the word flag in the quotes with the actual flag.
 
-When lockdep detects an issue, it sets debug_locks to 0 disabling further
-reports.  __lock_sequnece() will return u32 ~0 when debug_locks is zero,
-and the real sequnece count cannot return such a high value as it is less
-than 32bits.
-
-By always updating the sequence number, regardless of lock state and by
-ignoring ~0 value in the sequence number will avoid ever printing a
-WARN_ON when lockdep sets debug_locks to 0.
-
-Link: https://lore.kernel.org/20260821192627.4085470-4-liam@infradead.org
+Link: https://lore.kernel.org/20260821192627.4085470-5-liam@infradead.org
 Signed-off-by: Liam R. Howlett (Oracle) <liam@infradead.org>
-Cc: Breno Leitao <leitao@debian.org>
-Tested-by: Breno Leitao <leitao@debian.org>
 Cc: Boqun Feng <boqun.feng@gmail.com>
+Cc: Breno Leitao <leitao@debian.org>
 Cc: Chris Mason <clm@meta.com>
 Cc: Chuck Lever <cel@kernel.org>
 Cc: Ingo Molnar <mingo@redhat.com>
@@ -78,158 +65,20 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/maple_tree.h |    7 ++-
- lib/maple_tree.c           |   64 ++++++++++++++++++++++++++++-------
- 2 files changed, 57 insertions(+), 14 deletions(-)
+ Documentation/core-api/maple_tree.rst |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/maple_tree.h~maple_tree-add-write-lock-checking-with-lockdep-sequence-numbers
-+++ a/include/linux/maple_tree.h
-@@ -484,9 +484,12 @@ struct ma_state {
- 	unsigned char mas_flags;
- 	unsigned char end;		/* The end of the node */
- 	enum store_type store_type;	/* The type of store needed for this operation */
--#if IS_ENABLED(CONFIG_LOCKDEP) && IS_ENABLED(CONFIG_RCU_STRICT_GRACE_PERIOD)
-+#ifdef CONFIG_LOCKDEP
-+	u32 ld_seq;
-+#ifdef CONFIG_RCU_STRICT_GRACE_PERIOD
- 	unsigned long rcu_gp;
--#endif
-+#endif /* CONFIG_RCU_STRICT_GRACE_PERIOD */
-+#endif /* CONFIG_LOCKDEP */
- };
+--- a/Documentation/core-api/maple_tree.rst~maple_tree-documentation-fix
++++ a/Documentation/core-api/maple_tree.rst
+@@ -211,7 +211,7 @@ Advanced Locking
  
- struct ma_wr_state {
---- a/lib/maple_tree.c~maple_tree-add-write-lock-checking-with-lockdep-sequence-numbers
-+++ a/lib/maple_tree.c
-@@ -1148,40 +1148,77 @@ static inline void mas_free(struct ma_st
- 	ma_free_rcu(mte_to_node(used));
- }
+ The maple tree uses a spinlock by default, but external locks can be used for
+ tree updates as well.  To use an external lock, the tree must be initialized
+-with the ``MT_FLAGS_LOCK_EXTERN flag``, this is usually done with the
++with the ``MT_FLAGS_LOCK_EXTERN`` flag, this is usually done with the
+ MTREE_INIT_EXT() #define, which takes an external lock as an argument.
  
--void mas_lock_check(struct ma_state *mas)
-+
-+#ifdef CONFIG_LOCKDEP
-+static struct lockdep_map *mas_lockdep_map(struct ma_state *mas)
- {
-+	struct maple_tree *mt = mas->tree;
-+
-+	if (mt_external_lock(mt))
-+		return mt->ma_external_lock;
-+
-+	return &(mt->ma_lock).dep_map;
-+}
-+
-+#endif
-+
-+static void mas_lock_check(struct ma_state *mas)
-+{
-+#ifdef CONFIG_LOCKDEP
-+	struct lockdep_map *map;
-+	u32 seq;
- 
--#if IS_ENABLED(CONFIG_LOCKDEP) && IS_ENABLED(CONFIG_RCU_STRICT_GRACE_PERIOD)
- 	if (!mas_is_active(mas))
- 		return;
- 
-+#ifdef CONFIG_RCU_STRICT_GRACE_PERIOD
- 	if (!mt_locked(mas->tree)) {
- 		if (mt_in_rcu(mas->tree))
- 			WARN_ON_ONCE(poll_state_synchronize_rcu(mas->rcu_gp));
- 	}
--#endif
-+#endif /* CONFIG_RCU_STRICT_GRACE_PERIOD */
-+
-+	map = mas_lockdep_map(mas);
-+	if (!map)
-+		return;
-+
-+	seq = lock_sequence(map);
-+	if (seq != UINT_MAX && mas->ld_seq != UINT_MAX)
-+		WARN_ON_ONCE(mas->ld_seq != seq);
-+#endif /* CONFIG_LOCKDEP */
- 
- }
- 
--void mas_init_lock_check(struct ma_state *mas)
-+static void mas_init_lock_check(struct ma_state *mas)
- {
--#if IS_ENABLED(CONFIG_LOCKDEP) && IS_ENABLED(CONFIG_RCU_STRICT_GRACE_PERIOD)
-+#ifdef CONFIG_LOCKDEP
-+	struct lockdep_map *map;
-+#ifdef CONFIG_RCU_STRICT_GRACE_PERIOD
- 	if (!mt_locked(mas->tree)) {
- 		if (mt_in_rcu(mas->tree))
- 			mas->rcu_gp = get_state_synchronize_rcu();
-+		return;
- 	}
--#endif
-+#endif /* CONFIG_RCU_STRICT_GRACE_PERIOD */
-+
-+	map = mas_lockdep_map(mas);
-+	if (map) /* Update regardless of lock state */
-+		mas->ld_seq = lock_sequence(map);
-+#endif /* CONFIG_LOCKDEP */
- 
- }
- 
- static void mas_may_init_lock_check(struct ma_state *mas)
- {
--#if IS_ENABLED(CONFIG_LOCKDEP) && IS_ENABLED(CONFIG_RCU_STRICT_GRACE_PERIOD)
--	if (mas_is_start(mas) || mas_is_paused(mas))
-+#ifdef CONFIG_LOCKDEP
-+#ifdef CONFIG_RCU_STRICT_GRACE_PERIOD
-+	if (mas_is_start(mas) || mas_is_paused(mas)) {
- 		mas_init_lock_check(mas);
--	else
--		mas_lock_check(mas);
--#endif
-+		return;
-+	}
-+#endif /* CONFIG_RCU_STRICT_GRACE_PERIOD */
-+	mas_lock_check(mas);
-+#endif /* CONFIG_LOCKDEP */
- }
- 
- /*
-@@ -4864,6 +4901,7 @@ void *mas_store(struct ma_state *mas, vo
- {
- 	MA_WR_STATE(wr_mas, mas, entry);
- 
-+	mas_may_init_lock_check(mas);
- 	trace_ma_write(TP_FCT, mas, 0, entry);
- #ifdef CONFIG_DEBUG_MAPLE_TREE
- 	if (MAS_WARN_ON(mas, mas->index > mas->last))
-@@ -4922,6 +4960,7 @@ int mas_store_gfp(struct ma_state *mas,
- 	MA_WR_STATE(wr_mas, mas, entry);
- 	int ret = 0;
- 
-+	mas_may_init_lock_check(mas);
- retry:
- 	mas_wr_preallocate(&wr_mas, entry);
- 	if (unlikely(mas_nomem(mas, gfp))) {
-@@ -4952,6 +4991,7 @@ void mas_store_prealloc(struct ma_state
- {
- 	MA_WR_STATE(wr_mas, mas, entry);
- 
-+	mas_lock_check(mas);
- 	if (mas->store_type == wr_store_root) {
- 		mas_wr_prealloc_setup(&wr_mas);
- 		goto store;
-@@ -4984,6 +5024,7 @@ int mas_preallocate(struct ma_state *mas
- {
- 	MA_WR_STATE(wr_mas, mas, entry);
- 
-+	mas_may_init_lock_check(mas);
- 	mas_wr_prealloc_setup(&wr_mas);
- 	mas->store_type = mas_wr_store_type(&wr_mas);
- 	mas_prealloc_calc(&wr_mas, entry);
-@@ -5469,7 +5510,6 @@ EXPORT_SYMBOL_GPL(mas_find_range);
- static bool mas_find_rev_setup(struct ma_state *mas, unsigned long min,
- 		void **entry)
- {
--
- 	switch (mas->status) {
- 	case ma_active:
- 		goto active;
+ Functions and structures
 _
 
 Patches currently in -mm which might be from liam@infradead.org are
