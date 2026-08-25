@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5A475346AE1
-	for <mm-commits@vger.kernel.org>; Tue, 25 Aug 2026 01:54:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EC112371D1F
+	for <mm-commits@vger.kernel.org>; Tue, 25 Aug 2026 01:54:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787622874; cv=none; b=dYDcUFDeQsPlj7zx7Y2Px0lxL6c6FWlGPDajuEgMuIb9xUEtzRFHkseuMnYu6tHDaosLIsXw/tA0B3gNSzIPesOcoVAMov6WVZEOL1kMGt5X7wswLa+NTVWCRrlkAcoJBhrZNcAcE6qX4sVJyOn10PnuUmmjdeLtIohWM/Zc1p8=
+	t=1787622878; cv=none; b=bO2qg/OkkAl1lqbTCgXTnXb8z6iyqZxPdytFvPdNDY891Hmhfr4bfZkxD6MKHmiyji9hRUD19SpJ6AAUc25NVukgmKbp3+9YRdSNfFktTJZlWCJecv7tNxoj7ku4TVRDhg1IfdUqKzBH2XCg+hIhWfb9qDeQemMTuxPiQMa1aOg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787622874; c=relaxed/simple;
-	bh=ZhWNCg+0GrGukA87c1xR9ndAGeVkVrRMVp+t0ErtTkQ=;
-	h=Date:To:From:Subject:Message-Id; b=YHKX9MBF7BkqLOYdrxjGCWkh9SAHhzNdZ3kMPLCw+vdzyAP1YLi5R/sB16txp4iI7cYD25qYMJiKhk0yg2CnRhwXTI5HpkFQiF4jFKID548kTz/yYXNON0LhIzvwb8hKqvv1m0YC8HFTg3AIOVZQMZRX4scuDQ7fqsnUNrEy3JE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Nn+tHWAC; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1787622878; c=relaxed/simple;
+	bh=1McOqhz8VgKAPzCacYAgBM1quXVJC+lz4Sb5WZc9rGw=;
+	h=Date:To:From:Subject:Message-Id; b=SidAoUgcHNefTTBVEWf9qYOav1czgDnyYoaZTW2wN3yJULd91e+EDM/CRPsyLccuaGs8qOyNB7kOiEJhxl7hjt7CaelUyGvWOntmf/YjHS0N2/ML4nG81/4hq1d69R2RY5SKylM7O9AGja67yw8cDyEGhz3XhyHvptoCRRVpkaA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IXpKyyKz; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Nn+tHWAC"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F23041F00A3A;
-	Tue, 25 Aug 2026 01:54:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IXpKyyKz"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5CC451F00A3D;
+	Tue, 25 Aug 2026 01:54:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1787622871;
-	bh=LgSAsurA1pBSmVrbKdsDRSx+m0NwtOL1sCokoHRoqg4=;
+	d=linux-foundation.org; s=korg; t=1787622876;
+	bh=mjPNl7CU50og++o5dbIZVbMplNImls1MT060D4ahPxI=;
 	h=Date:To:From:Subject;
-	b=Nn+tHWACGubx5PiWkAyYqNwtE+w6GkuVyufLZ5YH5BlPsNbhXzQBFiroMaMs2S7Uf
-	 wLSDdWJ6kE4vpkpGc2cODVs5R33dA4wuabw8HfJP1DhTir9SDYa5s/MJtrOf+jcd2x
-	 bI7DtndZRYru2tLa32HLZdwa6g5FgqI7DpJM0sis=
-Date: Mon, 24 Aug 2026 18:54:30 -0700
-To: mm-commits@vger.kernel.org,will@kernel.org,vbabka@kernel.org,surenb@google.com,rafael@kernel.org,palmer@dabbelt.com,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,gregkh@linuxfoundation.org,david@kernel.org,dakr@kernel.org,catalin.marinas@arm.com,aou@eecs.berkeley.edu,alex@ghiti.fr,rppt@kernel.org,akpm@linux-foundation.org
+	b=IXpKyyKzmZJhGAGtvdOIC8C3f+1MRPNePZFpb276WCxRf6kBf9VS8PgnRDGcU/A9s
+	 ybpvrxVoe9rgLMCC4yNYrrpIkQGVnCdNNP2DvaKJo0undimV0XGn0pkqD7xafzZFgu
+	 q+wO+IHRbiPGCgebpg6KSup5PdFTZRRIC+uU1igk=
+Date: Mon, 24 Aug 2026 18:54:35 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,surenb@google.com,shuah@kernel.org,ryan.roberts@arm.com,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,lance.yang@linux.dev,dev.jain@arm.com,david@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,lihongfu@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] drivers-base-mm-move-arch_numac-to-mm.patch removed from -mm tree
-Message-Id: <20260825015430.F23041F00A3A@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-mm-fix-read_file-return-value-check.patch removed from -mm tree
+Message-Id: <20260825015436.5CC451F00A3D@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,891 +35,76 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: drivers/base, mm: move arch_numa.c to mm/
+     Subject: selftests/mm: fix read_file() return value check
 has been removed from the -mm tree.  Its filename was
-     drivers-base-mm-move-arch_numac-to-mm.patch
+     selftests-mm-fix-read_file-return-value-check.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
-Subject: drivers/base, mm: move arch_numa.c to mm/
-Date: Thu, 06 Aug 2026 09:58:38 +0300
+From: Hongfu Li <lihongfu@kylinos.cn>
+Subject: selftests/mm: fix read_file() return value check
+Date: Fri, 7 Aug 2026 09:35:55 +0800
 
-arch_numa.c implements boot time discovery and initialization of NUMA
-topology on architectures that select GENERIC_ARCH_NUMA (currently arm64
-and riscv).
+read_file() returns 0 on open/read failures and never returns negative
+values.  Existing < 0 error checks never trigger, so read failures are
+silently ignored.  Check for zero return to detect read_file() failures.
 
-Since this is step in the initialization of the memory management
-subsystem, it's logical to have arch_numa.c in mm/ alongside numa.c,
-numa_memblks.c and numa_emulation.c.
+Also fix misleading error message in get_finfo().  The error string
+incorrectly references read_num when reading uevent files.
 
-Move arch_numa.c to mm/ and add its F: entry to "MEMBLOCK AND MEMORY
-MANAGEMENT INITIALIZATION" in MAINTAINERS.
-
-Link: https://lore.kernel.org/20260806-arch-numa-v1-1-968ec128121e@kernel.org
-Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Acked-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
-Acked-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
+Link: https://lore.kernel.org/20260807013555.36525-1-hongfu.li@linux.dev
+Fixes: e0c13f9761df ("khugepaged: add self test")
+Signed-off-by: Hongfu Li <lihongfu@kylinos.cn>
 Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Acked-by: Danilo Krummrich <dakr@kernel.org>
-Cc: Albert Ou <aou@eecs.berkeley.edu>
-Cc: Alexandre Ghiti <alex@ghiti.fr>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Lance Yang <lance.yang@linux.dev>
 Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
 Cc: Michal Hocko <mhocko@suse.com>
-Cc: Palmer Dabbelt <palmer@dabbelt.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Shuah Khan <shuah@kernel.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Will Deacon <will@kernel.org>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS              |    1 
- drivers/base/Kconfig     |    7 
- drivers/base/Makefile    |    1 
- drivers/base/arch_numa.c |  375 -------------------------------------
- mm/Kconfig               |    7 
- mm/Makefile              |    1 
- mm/arch_numa.c           |  375 +++++++++++++++++++++++++++++++++++++
- 7 files changed, 384 insertions(+), 383 deletions(-)
+ tools/testing/selftests/mm/khugepaged.c |    4 ++--
+ tools/testing/selftests/mm/vm_util.c    |    2 +-
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/base/arch_numa.c a/drivers/base/arch_numa.c
-deleted file mode 100644
---- a/drivers/base/arch_numa.c
-+++ /dev/null
-@@ -1,375 +0,0 @@
--// SPDX-License-Identifier: GPL-2.0-only
--/*
-- * NUMA support, based on the x86 implementation.
-- *
-- * Copyright (C) 2015 Cavium Inc.
-- * Author: Ganapatrao Kulkarni <gkulkarni@cavium.com>
-- */
--
--#define pr_fmt(fmt) "NUMA: " fmt
--
--#include <linux/acpi.h>
--#include <linux/memblock.h>
--#include <linux/module.h>
--#include <linux/of.h>
--#include <linux/numa_memblks.h>
--
--#include <asm/sections.h>
--
--static int cpu_to_node_map[NR_CPUS] = { [0 ... NR_CPUS-1] = NUMA_NO_NODE };
--
--bool numa_off;
--
--static __init int numa_parse_early_param(char *opt)
--{
--	if (!opt)
--		return -EINVAL;
--	if (str_has_prefix(opt, "off"))
--		numa_off = true;
--	if (!strncmp(opt, "fake=", 5))
--		return numa_emu_cmdline(opt + 5);
--
--	return 0;
--}
--early_param("numa", numa_parse_early_param);
--
--cpumask_var_t node_to_cpumask_map[MAX_NUMNODES];
--EXPORT_SYMBOL(node_to_cpumask_map);
--
--#ifdef CONFIG_DEBUG_PER_CPU_MAPS
--
--/*
-- * Returns a pointer to the bitmask of CPUs on Node 'node'.
-- */
--const struct cpumask *cpumask_of_node(int node)
--{
--
--	if (node == NUMA_NO_NODE)
--		return cpu_all_mask;
--
--	if (WARN_ON(node < 0 || node >= nr_node_ids))
--		return cpu_none_mask;
--
--	if (WARN_ON(node_to_cpumask_map[node] == NULL))
--		return cpu_online_mask;
--
--	return node_to_cpumask_map[node];
--}
--EXPORT_SYMBOL(cpumask_of_node);
--
--#endif
--
--#ifndef CONFIG_NUMA_EMU
--static void numa_update_cpu(unsigned int cpu, bool remove)
--{
--	int nid = cpu_to_node(cpu);
--
--	if (nid == NUMA_NO_NODE)
--		return;
--
--	if (remove)
--		cpumask_clear_cpu(cpu, node_to_cpumask_map[nid]);
--	else
--		cpumask_set_cpu(cpu, node_to_cpumask_map[nid]);
--}
--
--void numa_add_cpu(unsigned int cpu)
--{
--	numa_update_cpu(cpu, false);
--}
--
--void numa_remove_cpu(unsigned int cpu)
--{
--	numa_update_cpu(cpu, true);
--}
--#endif
--
--void numa_clear_node(unsigned int cpu)
--{
--	numa_remove_cpu(cpu);
--	set_cpu_numa_node(cpu, NUMA_NO_NODE);
--}
--
--/*
-- * Allocate node_to_cpumask_map based on number of available nodes
-- * Requires node_possible_map to be valid.
-- *
-- * Note: cpumask_of_node() is not valid until after this is done.
-- * (Use CONFIG_DEBUG_PER_CPU_MAPS to check this.)
-- */
--static void __init setup_node_to_cpumask_map(void)
--{
--	int node;
--
--	/* setup nr_node_ids if not done yet */
--	if (nr_node_ids == MAX_NUMNODES)
--		setup_nr_node_ids();
--
--	/* allocate and clear the mapping */
--	for (node = 0; node < nr_node_ids; node++) {
--		alloc_bootmem_cpumask_var(&node_to_cpumask_map[node]);
--		cpumask_clear(node_to_cpumask_map[node]);
--	}
--
--	/* cpumask_of_node() will now work */
--	pr_debug("Node to cpumask map for %u nodes\n", nr_node_ids);
--}
--
--/*
-- * Set the cpu to node and mem mapping
-- */
--void numa_store_cpu_info(unsigned int cpu)
--{
--	set_cpu_numa_node(cpu, cpu_to_node_map[cpu]);
--}
--
--void __init early_map_cpu_to_node(unsigned int cpu, int nid)
--{
--	/* fallback to node 0 */
--	if (nid < 0 || nid >= MAX_NUMNODES || numa_off)
--		nid = 0;
--
--	cpu_to_node_map[cpu] = nid;
--
--	/*
--	 * We should set the numa node of cpu0 as soon as possible, because it
--	 * has already been set up online before. cpu_to_node(0) will soon be
--	 * called.
--	 */
--	if (!cpu)
--		set_cpu_numa_node(cpu, nid);
--}
--
--#ifdef CONFIG_HAVE_SETUP_PER_CPU_AREA
--unsigned long __per_cpu_offset[NR_CPUS] __read_mostly;
--EXPORT_SYMBOL(__per_cpu_offset);
--
--int early_cpu_to_node(int cpu)
--{
--	return cpu_to_node_map[cpu];
--}
--
--static int __init pcpu_cpu_distance(unsigned int from, unsigned int to)
--{
--	return node_distance(early_cpu_to_node(from), early_cpu_to_node(to));
--}
--
--void __init setup_per_cpu_areas(void)
--{
--	unsigned long delta;
--	unsigned int cpu;
--	int rc = -EINVAL;
--
--	if (pcpu_chosen_fc != PCPU_FC_PAGE) {
--		/*
--		 * Always reserve area for module percpu variables.  That's
--		 * what the legacy allocator did.
--		 */
--		rc = pcpu_embed_first_chunk(PERCPU_MODULE_RESERVE,
--					    PERCPU_DYNAMIC_RESERVE, PAGE_SIZE,
--					    pcpu_cpu_distance,
--					    early_cpu_to_node);
--#ifdef CONFIG_NEED_PER_CPU_PAGE_FIRST_CHUNK
--		if (rc < 0)
--			pr_warn("PERCPU: %s allocator failed (%d), falling back to page size\n",
--				   pcpu_fc_names[pcpu_chosen_fc], rc);
--#endif
--	}
--
--#ifdef CONFIG_NEED_PER_CPU_PAGE_FIRST_CHUNK
--	if (rc < 0)
--		rc = pcpu_page_first_chunk(PERCPU_MODULE_RESERVE, early_cpu_to_node);
--#endif
--	if (rc < 0)
--		panic("Failed to initialize percpu areas (err=%d).", rc);
--
--	delta = (unsigned long)pcpu_base_addr - (unsigned long)__per_cpu_start;
--	for_each_possible_cpu(cpu)
--		__per_cpu_offset[cpu] = delta + pcpu_unit_offsets[cpu];
--}
--#endif
--
--/*
-- * Initialize NODE_DATA for a node on the local memory
-- */
--static void __init setup_node_data(int nid, u64 start_pfn, u64 end_pfn)
--{
--	if (start_pfn >= end_pfn)
--		pr_info("Initmem setup node %d [<memory-less node>]\n", nid);
--
--	alloc_node_data(nid);
--
--	NODE_DATA(nid)->node_id = nid;
--	NODE_DATA(nid)->node_start_pfn = start_pfn;
--	NODE_DATA(nid)->node_spanned_pages = end_pfn - start_pfn;
--}
--
--static int __init numa_register_nodes(void)
--{
--	int nid;
--
--	/* Check the validity of the memblock/node mapping */
--	if (!memblock_validate_numa_coverage(0))
--		return -EINVAL;
--
--	/* Finally register nodes. */
--	for_each_node_mask(nid, numa_nodes_parsed) {
--		unsigned long start_pfn, end_pfn;
--
--		get_pfn_range_for_nid(nid, &start_pfn, &end_pfn);
--		setup_node_data(nid, start_pfn, end_pfn);
--		node_set_online(nid);
--	}
--
--	/* Setup online nodes to actual nodes*/
--	node_possible_map = numa_nodes_parsed;
--
--	return 0;
--}
--
--static int __init numa_init(int (*init_func)(void))
--{
--	int ret;
--
--	ret = numa_memblks_init(init_func, /* memblock_force_top_down */ false);
--	if (ret < 0)
--		goto out_free_distance;
--
--	if (nodes_empty(numa_nodes_parsed)) {
--		pr_info("No NUMA configuration found\n");
--		ret = -EINVAL;
--		goto out_free_distance;
--	}
--
--	ret = numa_register_nodes();
--	if (ret < 0)
--		goto out_free_distance;
--
--	setup_node_to_cpumask_map();
--
--	return 0;
--out_free_distance:
--	numa_reset_distance();
--	return ret;
--}
--
--/**
-- * dummy_numa_init() - Fallback dummy NUMA init
-- *
-- * Used if there's no underlying NUMA architecture, NUMA initialization
-- * fails, or NUMA is disabled on the command line.
-- *
-- * Must online at least one node (node 0) and add memory blocks that cover all
-- * allowed memory. It is unlikely that this function fails.
-- *
-- * Return: 0 on success, -errno on failure.
-- */
--static int __init dummy_numa_init(void)
--{
--	phys_addr_t start = memblock_start_of_DRAM();
--	phys_addr_t end = memblock_end_of_DRAM() - 1;
--	int ret;
--
--	if (numa_off)
--		pr_info("NUMA disabled\n"); /* Forced off on command line. */
--	pr_info("Faking a node at [mem %pap-%pap]\n", &start, &end);
--
--	ret = numa_add_memblk(0, start, end + 1);
--	if (ret) {
--		pr_err("NUMA init failed\n");
--		return ret;
--	}
--	node_set(0, numa_nodes_parsed);
--
--	numa_off = true;
--	return 0;
--}
--
--#ifdef CONFIG_ACPI_NUMA
--static int __init arch_acpi_numa_init(void)
--{
--	int ret;
--
--	ret = acpi_numa_init();
--	if (ret) {
--		pr_debug("Failed to initialise from firmware\n");
--		return ret;
--	}
--
--	return srat_disabled() ? -EINVAL : 0;
--}
--#else
--static int __init arch_acpi_numa_init(void)
--{
--	return -EOPNOTSUPP;
--}
--#endif
--
--/**
-- * arch_numa_init() - Initialize NUMA
-- *
-- * Try each configured NUMA initialization method until one succeeds. The
-- * last fallback is dummy single node config encompassing whole memory.
-- */
--void __init arch_numa_init(void)
--{
--	if (!numa_off) {
--		if (!acpi_disabled && !numa_init(arch_acpi_numa_init))
--			return;
--		if (acpi_disabled && !numa_init(of_numa_init))
--			return;
--	}
--
--	numa_init(dummy_numa_init);
--}
--
--#ifdef CONFIG_NUMA_EMU
--void __init numa_emu_update_cpu_to_node(int *emu_nid_to_phys,
--					unsigned int nr_emu_nids)
--{
--	int i, j;
--
--	/*
--	 * Transform cpu_to_node_map table to use emulated nids by
--	 * reverse-mapping phys_nid.  The maps should always exist but fall
--	 * back to zero just in case.
--	 */
--	for (i = 0; i < ARRAY_SIZE(cpu_to_node_map); i++) {
--		if (cpu_to_node_map[i] == NUMA_NO_NODE)
--			continue;
--		for (j = 0; j < nr_emu_nids; j++)
--			if (cpu_to_node_map[i] == emu_nid_to_phys[j])
--				break;
--		cpu_to_node_map[i] = j < nr_emu_nids ? j : 0;
--	}
--}
--
--u64 __init numa_emu_dma_end(void)
--{
--	return memblock_start_of_DRAM() + SZ_4G;
--}
--
--void debug_cpumask_set_cpu(unsigned int cpu, int node, bool enable)
--{
--	struct cpumask *mask;
--
--	if (node == NUMA_NO_NODE)
--		return;
--
--	mask = node_to_cpumask_map[node];
--	if (!cpumask_available(mask)) {
--		pr_err("node_to_cpumask_map[%i] NULL\n", node);
--		dump_stack();
--		return;
--	}
--
--	if (enable)
--		cpumask_set_cpu(cpu, mask);
--	else
--		cpumask_clear_cpu(cpu, mask);
--
--	pr_debug("%s cpu %d node %d: mask now %*pbl\n",
--		 enable ? "numa_add_cpu" : "numa_remove_cpu",
--		 cpu, node, cpumask_pr_args(mask));
--}
--#endif /* CONFIG_NUMA_EMU */
---- a/drivers/base/Kconfig~drivers-base-mm-move-arch_numac-to-mm
-+++ a/drivers/base/Kconfig
-@@ -239,13 +239,6 @@ config GENERIC_ARCH_TOPOLOGY
- 	  appropriate scaling, sysfs interface for reading capacity values at
- 	  runtime.
+--- a/tools/testing/selftests/mm/khugepaged.c~selftests-mm-fix-read_file-return-value-check
++++ a/tools/testing/selftests/mm/khugepaged.c
+@@ -141,8 +141,8 @@ static void get_finfo(const char *dir)
+ 		     major(path_stat.st_dev), minor(path_stat.st_dev))
+ 	    >= sizeof(path))
+ 		ksft_exit_fail_msg("%s: Pathname is too long\n", __func__);
+-	if (read_file(path, buf, sizeof(buf)) < 0)
+-		ksft_exit_fail_perror("read_file(read_num)");
++	if (!read_file(path, buf, sizeof(buf)))
++		ksft_exit_fail_perror("read_file(uevent)");
+ 	if (strstr(buf, "DEVTYPE=disk")) {
+ 		/* Found it */
+ 		if (snprintf(finfo.dev_queue_read_ahead_path,
+--- a/tools/testing/selftests/mm/vm_util.c~selftests-mm-fix-read_file-return-value-check
++++ a/tools/testing/selftests/mm/vm_util.c
+@@ -942,7 +942,7 @@ unsigned long read_num(const char *path)
+ {
+ 	char buf[21];
  
--config GENERIC_ARCH_NUMA
--	bool
--	select NUMA_MEMBLKS
--	help
--	  Enable support for generic NUMA implementation. Currently, RISC-V
--	  and ARM64 use it.
--
- config FW_DEVLINK_SYNC_STATE_TIMEOUT
- 	bool "sync_state() behavior defaults to timeout instead of strict"
- 	help
---- a/drivers/base/Makefile~drivers-base-mm-move-arch_numac-to-mm
-+++ a/drivers/base/Makefile
-@@ -25,7 +25,6 @@ obj-$(CONFIG_PINCTRL) += pinctrl.o
- obj-$(CONFIG_DEV_COREDUMP) += devcoredump.o
- obj-$(CONFIG_GENERIC_MSI_IRQ) += platform-msi.o
- obj-$(CONFIG_GENERIC_ARCH_TOPOLOGY) += arch_topology.o
--obj-$(CONFIG_GENERIC_ARCH_NUMA) += arch_numa.o
- obj-$(CONFIG_ACPI) += physical_location.o
+-	if (read_file(path, buf, sizeof(buf)) < 0)
++	if (!read_file(path, buf, sizeof(buf)))
+ 		ksft_exit_fail_perror("read_file()");
  
- obj-y			+= test/
---- a/MAINTAINERS~drivers-base-mm-move-arch_numac-to-mm
-+++ a/MAINTAINERS
-@@ -16880,6 +16880,7 @@ T:	git git://git.kernel.org/pub/scm/linu
- F:	Documentation/core-api/boot-time-mm.rst
- F:	include/linux/kho/abi/memblock.h
- F:	include/linux/memblock.h
-+F:	mm/arch_numa.c
- F:	mm/memblock.c
- F:	mm/memtest.c
- F:	mm/mm_init.c
-diff --git a/mm/arch_numa.c a/mm/arch_numa.c
-new file mode 100664
---- /dev/null
-+++ a/mm/arch_numa.c
-@@ -0,0 +1,375 @@
-+// SPDX-License-Identifier: GPL-2.0-only
-+/*
-+ * NUMA support, based on the x86 implementation.
-+ *
-+ * Copyright (C) 2015 Cavium Inc.
-+ * Author: Ganapatrao Kulkarni <gkulkarni@cavium.com>
-+ */
-+
-+#define pr_fmt(fmt) "NUMA: " fmt
-+
-+#include <linux/acpi.h>
-+#include <linux/memblock.h>
-+#include <linux/module.h>
-+#include <linux/of.h>
-+#include <linux/numa_memblks.h>
-+
-+#include <asm/sections.h>
-+
-+static int cpu_to_node_map[NR_CPUS] = { [0 ... NR_CPUS-1] = NUMA_NO_NODE };
-+
-+bool numa_off;
-+
-+static __init int numa_parse_early_param(char *opt)
-+{
-+	if (!opt)
-+		return -EINVAL;
-+	if (str_has_prefix(opt, "off"))
-+		numa_off = true;
-+	if (!strncmp(opt, "fake=", 5))
-+		return numa_emu_cmdline(opt + 5);
-+
-+	return 0;
-+}
-+early_param("numa", numa_parse_early_param);
-+
-+cpumask_var_t node_to_cpumask_map[MAX_NUMNODES];
-+EXPORT_SYMBOL(node_to_cpumask_map);
-+
-+#ifdef CONFIG_DEBUG_PER_CPU_MAPS
-+
-+/*
-+ * Returns a pointer to the bitmask of CPUs on Node 'node'.
-+ */
-+const struct cpumask *cpumask_of_node(int node)
-+{
-+
-+	if (node == NUMA_NO_NODE)
-+		return cpu_all_mask;
-+
-+	if (WARN_ON(node < 0 || node >= nr_node_ids))
-+		return cpu_none_mask;
-+
-+	if (WARN_ON(node_to_cpumask_map[node] == NULL))
-+		return cpu_online_mask;
-+
-+	return node_to_cpumask_map[node];
-+}
-+EXPORT_SYMBOL(cpumask_of_node);
-+
-+#endif
-+
-+#ifndef CONFIG_NUMA_EMU
-+static void numa_update_cpu(unsigned int cpu, bool remove)
-+{
-+	int nid = cpu_to_node(cpu);
-+
-+	if (nid == NUMA_NO_NODE)
-+		return;
-+
-+	if (remove)
-+		cpumask_clear_cpu(cpu, node_to_cpumask_map[nid]);
-+	else
-+		cpumask_set_cpu(cpu, node_to_cpumask_map[nid]);
-+}
-+
-+void numa_add_cpu(unsigned int cpu)
-+{
-+	numa_update_cpu(cpu, false);
-+}
-+
-+void numa_remove_cpu(unsigned int cpu)
-+{
-+	numa_update_cpu(cpu, true);
-+}
-+#endif
-+
-+void numa_clear_node(unsigned int cpu)
-+{
-+	numa_remove_cpu(cpu);
-+	set_cpu_numa_node(cpu, NUMA_NO_NODE);
-+}
-+
-+/*
-+ * Allocate node_to_cpumask_map based on number of available nodes
-+ * Requires node_possible_map to be valid.
-+ *
-+ * Note: cpumask_of_node() is not valid until after this is done.
-+ * (Use CONFIG_DEBUG_PER_CPU_MAPS to check this.)
-+ */
-+static void __init setup_node_to_cpumask_map(void)
-+{
-+	int node;
-+
-+	/* setup nr_node_ids if not done yet */
-+	if (nr_node_ids == MAX_NUMNODES)
-+		setup_nr_node_ids();
-+
-+	/* allocate and clear the mapping */
-+	for (node = 0; node < nr_node_ids; node++) {
-+		alloc_bootmem_cpumask_var(&node_to_cpumask_map[node]);
-+		cpumask_clear(node_to_cpumask_map[node]);
-+	}
-+
-+	/* cpumask_of_node() will now work */
-+	pr_debug("Node to cpumask map for %u nodes\n", nr_node_ids);
-+}
-+
-+/*
-+ * Set the cpu to node and mem mapping
-+ */
-+void numa_store_cpu_info(unsigned int cpu)
-+{
-+	set_cpu_numa_node(cpu, cpu_to_node_map[cpu]);
-+}
-+
-+void __init early_map_cpu_to_node(unsigned int cpu, int nid)
-+{
-+	/* fallback to node 0 */
-+	if (nid < 0 || nid >= MAX_NUMNODES || numa_off)
-+		nid = 0;
-+
-+	cpu_to_node_map[cpu] = nid;
-+
-+	/*
-+	 * We should set the numa node of cpu0 as soon as possible, because it
-+	 * has already been set up online before. cpu_to_node(0) will soon be
-+	 * called.
-+	 */
-+	if (!cpu)
-+		set_cpu_numa_node(cpu, nid);
-+}
-+
-+#ifdef CONFIG_HAVE_SETUP_PER_CPU_AREA
-+unsigned long __per_cpu_offset[NR_CPUS] __read_mostly;
-+EXPORT_SYMBOL(__per_cpu_offset);
-+
-+int early_cpu_to_node(int cpu)
-+{
-+	return cpu_to_node_map[cpu];
-+}
-+
-+static int __init pcpu_cpu_distance(unsigned int from, unsigned int to)
-+{
-+	return node_distance(early_cpu_to_node(from), early_cpu_to_node(to));
-+}
-+
-+void __init setup_per_cpu_areas(void)
-+{
-+	unsigned long delta;
-+	unsigned int cpu;
-+	int rc = -EINVAL;
-+
-+	if (pcpu_chosen_fc != PCPU_FC_PAGE) {
-+		/*
-+		 * Always reserve area for module percpu variables.  That's
-+		 * what the legacy allocator did.
-+		 */
-+		rc = pcpu_embed_first_chunk(PERCPU_MODULE_RESERVE,
-+					    PERCPU_DYNAMIC_RESERVE, PAGE_SIZE,
-+					    pcpu_cpu_distance,
-+					    early_cpu_to_node);
-+#ifdef CONFIG_NEED_PER_CPU_PAGE_FIRST_CHUNK
-+		if (rc < 0)
-+			pr_warn("PERCPU: %s allocator failed (%d), falling back to page size\n",
-+				   pcpu_fc_names[pcpu_chosen_fc], rc);
-+#endif
-+	}
-+
-+#ifdef CONFIG_NEED_PER_CPU_PAGE_FIRST_CHUNK
-+	if (rc < 0)
-+		rc = pcpu_page_first_chunk(PERCPU_MODULE_RESERVE, early_cpu_to_node);
-+#endif
-+	if (rc < 0)
-+		panic("Failed to initialize percpu areas (err=%d).", rc);
-+
-+	delta = (unsigned long)pcpu_base_addr - (unsigned long)__per_cpu_start;
-+	for_each_possible_cpu(cpu)
-+		__per_cpu_offset[cpu] = delta + pcpu_unit_offsets[cpu];
-+}
-+#endif
-+
-+/*
-+ * Initialize NODE_DATA for a node on the local memory
-+ */
-+static void __init setup_node_data(int nid, u64 start_pfn, u64 end_pfn)
-+{
-+	if (start_pfn >= end_pfn)
-+		pr_info("Initmem setup node %d [<memory-less node>]\n", nid);
-+
-+	alloc_node_data(nid);
-+
-+	NODE_DATA(nid)->node_id = nid;
-+	NODE_DATA(nid)->node_start_pfn = start_pfn;
-+	NODE_DATA(nid)->node_spanned_pages = end_pfn - start_pfn;
-+}
-+
-+static int __init numa_register_nodes(void)
-+{
-+	int nid;
-+
-+	/* Check the validity of the memblock/node mapping */
-+	if (!memblock_validate_numa_coverage(0))
-+		return -EINVAL;
-+
-+	/* Finally register nodes. */
-+	for_each_node_mask(nid, numa_nodes_parsed) {
-+		unsigned long start_pfn, end_pfn;
-+
-+		get_pfn_range_for_nid(nid, &start_pfn, &end_pfn);
-+		setup_node_data(nid, start_pfn, end_pfn);
-+		node_set_online(nid);
-+	}
-+
-+	/* Setup online nodes to actual nodes*/
-+	node_possible_map = numa_nodes_parsed;
-+
-+	return 0;
-+}
-+
-+static int __init numa_init(int (*init_func)(void))
-+{
-+	int ret;
-+
-+	ret = numa_memblks_init(init_func, /* memblock_force_top_down */ false);
-+	if (ret < 0)
-+		goto out_free_distance;
-+
-+	if (nodes_empty(numa_nodes_parsed)) {
-+		pr_info("No NUMA configuration found\n");
-+		ret = -EINVAL;
-+		goto out_free_distance;
-+	}
-+
-+	ret = numa_register_nodes();
-+	if (ret < 0)
-+		goto out_free_distance;
-+
-+	setup_node_to_cpumask_map();
-+
-+	return 0;
-+out_free_distance:
-+	numa_reset_distance();
-+	return ret;
-+}
-+
-+/**
-+ * dummy_numa_init() - Fallback dummy NUMA init
-+ *
-+ * Used if there's no underlying NUMA architecture, NUMA initialization
-+ * fails, or NUMA is disabled on the command line.
-+ *
-+ * Must online at least one node (node 0) and add memory blocks that cover all
-+ * allowed memory. It is unlikely that this function fails.
-+ *
-+ * Return: 0 on success, -errno on failure.
-+ */
-+static int __init dummy_numa_init(void)
-+{
-+	phys_addr_t start = memblock_start_of_DRAM();
-+	phys_addr_t end = memblock_end_of_DRAM() - 1;
-+	int ret;
-+
-+	if (numa_off)
-+		pr_info("NUMA disabled\n"); /* Forced off on command line. */
-+	pr_info("Faking a node at [mem %pap-%pap]\n", &start, &end);
-+
-+	ret = numa_add_memblk(0, start, end + 1);
-+	if (ret) {
-+		pr_err("NUMA init failed\n");
-+		return ret;
-+	}
-+	node_set(0, numa_nodes_parsed);
-+
-+	numa_off = true;
-+	return 0;
-+}
-+
-+#ifdef CONFIG_ACPI_NUMA
-+static int __init arch_acpi_numa_init(void)
-+{
-+	int ret;
-+
-+	ret = acpi_numa_init();
-+	if (ret) {
-+		pr_debug("Failed to initialise from firmware\n");
-+		return ret;
-+	}
-+
-+	return srat_disabled() ? -EINVAL : 0;
-+}
-+#else
-+static int __init arch_acpi_numa_init(void)
-+{
-+	return -EOPNOTSUPP;
-+}
-+#endif
-+
-+/**
-+ * arch_numa_init() - Initialize NUMA
-+ *
-+ * Try each configured NUMA initialization method until one succeeds. The
-+ * last fallback is dummy single node config encompassing whole memory.
-+ */
-+void __init arch_numa_init(void)
-+{
-+	if (!numa_off) {
-+		if (!acpi_disabled && !numa_init(arch_acpi_numa_init))
-+			return;
-+		if (acpi_disabled && !numa_init(of_numa_init))
-+			return;
-+	}
-+
-+	numa_init(dummy_numa_init);
-+}
-+
-+#ifdef CONFIG_NUMA_EMU
-+void __init numa_emu_update_cpu_to_node(int *emu_nid_to_phys,
-+					unsigned int nr_emu_nids)
-+{
-+	int i, j;
-+
-+	/*
-+	 * Transform cpu_to_node_map table to use emulated nids by
-+	 * reverse-mapping phys_nid.  The maps should always exist but fall
-+	 * back to zero just in case.
-+	 */
-+	for (i = 0; i < ARRAY_SIZE(cpu_to_node_map); i++) {
-+		if (cpu_to_node_map[i] == NUMA_NO_NODE)
-+			continue;
-+		for (j = 0; j < nr_emu_nids; j++)
-+			if (cpu_to_node_map[i] == emu_nid_to_phys[j])
-+				break;
-+		cpu_to_node_map[i] = j < nr_emu_nids ? j : 0;
-+	}
-+}
-+
-+u64 __init numa_emu_dma_end(void)
-+{
-+	return memblock_start_of_DRAM() + SZ_4G;
-+}
-+
-+void debug_cpumask_set_cpu(unsigned int cpu, int node, bool enable)
-+{
-+	struct cpumask *mask;
-+
-+	if (node == NUMA_NO_NODE)
-+		return;
-+
-+	mask = node_to_cpumask_map[node];
-+	if (!cpumask_available(mask)) {
-+		pr_err("node_to_cpumask_map[%i] NULL\n", node);
-+		dump_stack();
-+		return;
-+	}
-+
-+	if (enable)
-+		cpumask_set_cpu(cpu, mask);
-+	else
-+		cpumask_clear_cpu(cpu, mask);
-+
-+	pr_debug("%s cpu %d node %d: mask now %*pbl\n",
-+		 enable ? "numa_add_cpu" : "numa_remove_cpu",
-+		 cpu, node, cpumask_pr_args(mask));
-+}
-+#endif /* CONFIG_NUMA_EMU */
---- a/mm/Kconfig~drivers-base-mm-move-arch_numac-to-mm
-+++ a/mm/Kconfig
-@@ -1463,6 +1463,13 @@ config NUMA_EMU
- 	  into virtual nodes when booted with "numa=fake=N", where N is the
- 	  number of nodes. This is only useful for debugging.
- 
-+config GENERIC_ARCH_NUMA
-+	bool
-+	select NUMA_MEMBLKS
-+	help
-+	  Enable support for generic NUMA implementation. Currently, RISC-V
-+	  and ARM64 use it.
-+
- config ARCH_HAS_USER_SHADOW_STACK
- 	bool
- 	help
---- a/mm/Makefile~drivers-base-mm-move-arch_numac-to-mm
-+++ a/mm/Makefile
-@@ -122,6 +122,7 @@ obj-$(CONFIG_CMA)	+= cma.o
- obj-$(CONFIG_NUMA) += numa.o
- obj-$(CONFIG_NUMA_MEMBLKS) += numa_memblks.o
- obj-$(CONFIG_NUMA_EMU) += numa_emulation.o
-+obj-$(CONFIG_GENERIC_ARCH_NUMA) += arch_numa.o
- obj-$(CONFIG_BALLOON) += balloon.o
- obj-$(CONFIG_PAGE_EXTENSION) += page_ext.o
- obj-$(CONFIG_PAGE_TABLE_CHECK) += page_table_check.o
+ 	return strtoul(buf, NULL, 10);
 _
 
-Patches currently in -mm which might be from rppt@kernel.org are
+Patches currently in -mm which might be from lihongfu@kylinos.cn are
 
-sh-remove-config_numa-and-realted-configuration-options.patch
-sh-mm-remove-numac.patch
-sh-mm-drop-allocate_pgdat.patch
-sh-remove-setup_bootmem_node-and-plat_mem_setup.patch
-sh-drop-dead-code-guarded-by-ifdef-config_numa.patch
-sh-drop-include-asm-mmzoneh.patch
-init-kconfig-drop-arch_want_numa_variable_locality.patch
-sh-init-remove-call-the-memblock_set_node.patch
-sh-remove-sparsemem-related-entries-from-kconfig.patch
-sh-drop-include-asm-sparsememh.patch
+mm-use-a-folio-in-the-softleaf_is_device_private-path.patch
 
