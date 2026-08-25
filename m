@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 93D42317145
-	for <mm-commits@vger.kernel.org>; Mon, 24 Aug 2026 20:20:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 666C43264D5;
+	Tue, 25 Aug 2026 01:44:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787602819; cv=none; b=LWqCHmZjrT4ANae7Q2kfqKWmFwKtLtyoIAUUucXKvP3/acUrVLoiDu5tCHyUyNltnYGTLGdgO8oaX3g4o7/aLJsgBlrqssJ4w21Sfpd3K/TyOS9F3DVT9b80QhKzBEzxM8hi4AYKDydXtKKSM9ktq9Rc4i1mEhrF046VUJXsdts=
+	t=1787622257; cv=none; b=gWr158IalzNcvi0iHbEv3jSFfaH+3x32ayuVtWtuVswyBOwef04BiEih/nqJdW0A/WF7rkRJjeNN7eXR1DukwioSEGBk78xX3V4P2SUoWQgE+tfk2dCKClbyd09Ob81FkoZS0gywrRk8YC1U0aSd216/L5jC4AMJO1pA6XSki/c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787602819; c=relaxed/simple;
-	bh=GNufW2XQbjYU5ZHzPTOiNNYg7WBN+02kPY45raXj3tE=;
-	h=Date:To:From:Subject:Message-Id; b=FwXTtGavQ3VzmhX8sm7DtfMzvKktflqd92TzC0FBQZG4YC1wTP7EfPO6ZTjeMTWOEOOKt37lh2pDIt2VHcf0RIy2Ki/foFNdYjYnvldrYPu6MTPp+5mlfwqJ03OGagA1ULVNy7e8/fxmRYOftSEOZTByki1HzSWtoh4Xa0Chrvk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ohsmlIVO; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1787622257; c=relaxed/simple;
+	bh=xA9ehdxfRDTnNC0/viA2vSOXFplOsA4uYpk9a2bKYZY=;
+	h=Date:To:From:Subject:Message-Id; b=uVo6ZUjYPKrDFwuBkKsOfEARPE+Y5rZ5QdTXsWCPJLUXK6EOWIk7CbNDrpD6M9xYOo94+Z9MwzZ95o3XmNEAzFZUBlJR8pLWtZo4F9JO+3+a7EB3Waohz9GRwewAxJRGC9I4tWyMhQMj+svf+GZt7d0K2IoW3YmWwGZZRgp0sAw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AwDYMZjM; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ohsmlIVO"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 547251F000E9;
-	Mon, 24 Aug 2026 20:20:18 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AwDYMZjM"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CFCFA1F000E9;
+	Tue, 25 Aug 2026 01:44:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1787602818;
-	bh=uVr4qYiZeSqOaFcd2gCzOGhgaorm/vXHCapyw3mrnnA=;
+	d=linux-foundation.org; s=korg; t=1787622255;
+	bh=RgSO62oKk2CvhoD27VuFwLRcErr807FZQ8yJ8NIYRls=;
 	h=Date:To:From:Subject;
-	b=ohsmlIVOBDwQ87EeX4ftQmWiaALb35mRKBzFUEg+O0/Yp5sNLbMxIDq00HCPQMO2I
-	 FIqQdOlSV6UMuGhjNeAVvMvNpMdEMzn/jR1raKEd7lSiUYuxpNutq7HwAp4dEYbTuO
-	 R45YHpcDwZt3dkQ/fDWTFDvtbhR2pQ20tEyCqFLU=
-Date: Mon, 24 Aug 2026 13:20:17 -0700
-To: mm-commits@vger.kernel.org,will@kernel.org,riel@surriel.com,peterz@infradead.org,mingo@redhat.com,longman@redhat.com,liam@infradead.org,leitao@debian.org,joe@perches.com,jgg@ziepe.ca,clm@meta.com,cel@kernel.org,boqun.feng@gmail.com,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=AwDYMZjMng2i0knACXUzWMP6AUI/7YWXdPA8BfOZYN1h4juByoJm/Ua0vps2oUNWq
+	 zId8EPOAnPpo6qz3UQgEMkakZDkOjYsLXHiM26Ha9YKgiddpkIOihwhGmFVGAXzjIu
+	 iAEfPsV1Iolwc/NNaO0xKvkdXLqpFynYjw3BF00A=
+Date: Mon, 24 Aug 2026 18:44:15 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,stable@vger.kernel.org,rakie.kim@sk.com,nehagholkar@gmail.com,matthew.brost@intel.com,joshua.hahnjy@gmail.com,gourry@gourry.net,david@kernel.org,byungchul@sk.com,balbirs@nvidia.com,apopple@nvidia.com,hannes@cmpxchg.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] maple_tree-document-erase-and-allocations-better-fix.patch removed from -mm tree
-Message-Id: <20260824202018.547251F000E9@smtp.kernel.org>
+Subject: [merged mm-stable] mm-mempolicy-fix-automatic-numa-balancing-for-shmem.patch removed from -mm tree
+Message-Id: <20260825014415.CFCFA1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,54 +35,105 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: maple_tree-document-erase-and-allocations-better-fix
+     Subject: mm: mempolicy: fix automatic numa balancing for shmem
 has been removed from the -mm tree.  Its filename was
-     maple_tree-document-erase-and-allocations-better-fix.patch
+     mm-mempolicy-fix-automatic-numa-balancing-for-shmem.patch
 
-This patch was dropped because it was folded into maple_tree-document-erase-and-allocations-better.patch
+This patch was dropped because it was merged into the mm-stable branch
+of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: maple_tree-document-erase-and-allocations-better-fix
-Date: Fri Aug 21 03:27:57 PM PDT 2026
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: mempolicy: fix automatic numa balancing for shmem
+Date: Mon, 29 Jun 2026 12:33:37 -0400
 
-tweak mtree_erase() description, per Jason
+Neha reports that mapped shmem aren't considered for NUMA balancing,
+noting convergence problems and bandwidth bottlenecking for cachelib based
+workloads on tiered memory systems.
 
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: "Liam R. Howlett (Oracle)" <liam@infradead.org>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Boqun Feng <boqun.feng@gmail.com>
-Cc: Breno Leitao <leitao@debian.org>
-Cc: Chris Mason <clm@meta.com>
-Cc: Chuck Lever <cel@kernel.org>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Joe Perches <joe@perches.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Waiman Long <longman@redhat.com>
-Cc: Will Deacon <will@kernel.org>
+Looking at the code and going through the git history, this doesn't
+actually seem intentional:
+
+Commit fc3147245d19 ("mm: numa: Limit NUMA scanning to migrate-on-fault
+VMAs") added a vma_policy_mof() gate to task_numa_work() so VMAs whose
+policy lacks MPOL_F_MOF are skipped from NUMA balancing scans.  The
+motivation was a real usecase: Oracle was pinning shared segments with
+mbind(MPOL_BIND) so trapping faults was both expensive and pointless.
+
+The handling of NULL from vm_ops->get_policy, however, treated "user
+explicitly opted out" the same as "user never specified anything." For
+VMAs whose shared policy is absent - the common case for shmem - the scan
+was disabled too.
+
+This issue is old.  It probably hurts less in conventional NUMA.  But it's
+very noticeable on tiered systems, where entire tmpfs workingsets can get
+stuck on lower-bandwidth memory.
+
+Fix this by having vma_policy_mof() use __get_vma_policy() directly, and
+thereby handle the fallback to task policy (-> preferred_node_policy() has
+MPOL_F_MOF per default).  Every other consumer of vm_ops->get_policy
+already handles it this way, the scan-eligibility check was the outlier.
+
+This preserves Mel's intended fix: don't scan stuff the user explicitly
+pinned.  But allow default policy vmas to participate in balancing.
+
+Link: https://lore.kernel.org/20260629163337.1264881-1-hannes@cmpxchg.org
+Fixes: fc3147245d19 ("mm: numa: Limit NUMA scanning to migrate-on-fault VMAs")
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Reported-by: Neha Gholkar <nehagholkar@gmail.com>
+Tested-by: Neha Gholkar <nehagholkar@gmail.com>
+Reviewed-by: Gregory Price <gourry@gourry.net>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Acked-by: Balbir Singh <balbirs@nvidia.com>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Byungchul Park <byungchul@sk.com>
+Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
+Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
+Cc: Matthew Brost <matthew.brost@intel.com>
+Cc: Rakie Kim <rakie.kim@sk.com>
+Cc: Zi Yan <ziy@nvidia.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/core-api/maple_tree.rst |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/mempolicy.c |   21 ++++++---------------
+ 1 file changed, 6 insertions(+), 15 deletions(-)
 
---- a/Documentation/core-api/maple_tree.rst~maple_tree-document-erase-and-allocations-better-fix
-+++ a/Documentation/core-api/maple_tree.rst
-@@ -75,7 +75,8 @@ given index.  You can use mtree_erase()
- knowing one value within that range, or mtree_store() call with an entry of
- NULL may be used to partially erase a range or many ranges at once.  Note that
- mtree_erase() may use GFP_KERNEL | __GFP_NOFAIL for allocations and cannot
--fail, but may need to sleep - do not use mtree_erase() from a blocking context.
-+fail.  mtree_erase() can sleep, so it must not be called from an atomic
-+context.
+--- a/mm/mempolicy.c~mm-mempolicy-fix-automatic-numa-balancing-for-shmem
++++ a/mm/mempolicy.c
+@@ -2060,24 +2060,15 @@ struct mempolicy *get_vma_policy(struct
+ bool vma_policy_mof(struct vm_area_struct *vma)
+ {
+ 	struct mempolicy *pol;
++	pgoff_t ilx;
++	bool mof;
  
- If you want to only store a new entry to a range (or index) if that range is
- currently ``NULL``, you can use mtree_insert_range() or mtree_insert() which
+-	if (vma->vm_ops && vma->vm_ops->get_policy) {
+-		bool ret = false;
+-		pgoff_t ilx;		/* ignored here */
+-
+-		pol = vma->vm_ops->get_policy(vma, vma->vm_start, &ilx);
+-		if (pol && (pol->flags & MPOL_F_MOF))
+-			ret = true;
+-		mpol_cond_put(pol);
+-
+-		return ret;
+-	}
+-
+-	pol = vma->vm_policy;
++	pol = __get_vma_policy(vma, vma->vm_start, &ilx);
+ 	if (!pol)
+ 		pol = get_task_policy(current);
+-
+-	return pol->flags & MPOL_F_MOF;
++	mof = pol->flags & MPOL_F_MOF;
++	mpol_cond_put(pol);
++	return mof;
+ }
+ 
+ bool apply_policy_zone(struct mempolicy *policy, enum zone_type zone)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
-mm-hmmc-hmm_do_fault-suppress-sparse-warning.patch
-maple_tree-document-erase-and-allocations-better.patch
-drivers-media-v4l2-core-v4l2-vp9c-reduce-inlining.patch
 
