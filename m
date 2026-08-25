@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 06FFC34250E
-	for <mm-commits@vger.kernel.org>; Tue, 25 Aug 2026 01:53:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5B6D830F55F;
+	Tue, 25 Aug 2026 01:53:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787622819; cv=none; b=iUsxfXMFGckOR2owVGDQUaF9zzHopLtdoNLTXLvvRoPmJEbUbGO47vWX2fsM1/MJztTgKoVQzA0Q0OlOktK1fKWZxrI5WTYKTI475GCQiVyzt1yA1/lRbT2K+E3k37kbXrz8qpf2Ui3GMeUo4BRb0i3LA5lNZ8uWAxsoNYhUfgY=
+	t=1787622820; cv=none; b=JY96iRgQQ5nubaOwzyVFhPPG3Rbh5b4aRxAsJzkPHTMKPLoTZmkINhtjC2EmtGSARHtC/V+zcAYtDRD373WCDABgSMb9QaiXNz3zpromDnUiWS46Vb9T8zm2ojMU2uzKhlhAXa8+VdPBDAPuv42zuilhJxBwqSB2fWokAGI1Eo0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787622819; c=relaxed/simple;
-	bh=K6KRzyZnF8EeVtxsxacrQGCAhH4adbeBEIzsXmydNB0=;
-	h=Date:To:From:Subject:Message-Id; b=MCCGD3JjpwA1ibzd6JiHlBoSTEshoiFktxs5gSBgzHDHXaoqId2kePjzkUG9o02T4fJpkDCiocXiIFIoLdW3uCjAAbLWXn7u5VK9CUXbe6k8FfMiLBDdxq09rsNA3kV6smy8IuYYCD2VnPRZYAaI3ktv1wREx3sW0jMUywLD3JA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DiL/6xfC; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1787622820; c=relaxed/simple;
+	bh=IWgwrN1jJfywTIYoyn5ASGcsKoOGhUJoXPQOAR9hfBw=;
+	h=Date:To:From:Subject:Message-Id; b=TH5dBvVWi7jTvXil8FhgfvMQvkJT0Efromd1ajQkfx/DUVLAnOG5EF3GmyAiCQze2H6uvnyTwRIMqIU5AzM8K3HPEGsR8C1b5AyqcXrQ/z2AyRfwhsJ2zlSuUtbJeM1k6nl7ourdcS5Dqoxave+HGDXahRCuBQwyshaXopxw5XQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qpEaHMHl; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DiL/6xfC"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B58AD1F000E9;
-	Tue, 25 Aug 2026 01:53:37 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qpEaHMHl"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E5E8C1F00A3A;
+	Tue, 25 Aug 2026 01:53:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1787622817;
-	bh=xIWFXqiKA/7wsKiZxDmHqjsTbQTBPDe5tHmoMJzx8pc=;
+	d=linux-foundation.org; s=korg; t=1787622819;
+	bh=77/cPFsUKZAIUly6cxCNMaQAxPi5AvuZa3DIGhNg/l4=;
 	h=Date:To:From:Subject;
-	b=DiL/6xfCkhAkEIChhel4Hw5YQDYJPo8jKVdvlmyz3cuX2CBSA5/xvopDoEKxrRYuC
-	 mIYVWsxUTFlneGy70UfBB1pacLn6hWq5ZASKTZmGa/URzpk4J0YXCbe65QCauUWFL0
-	 53izFLWXpyN9uDWvLnUOzgXwG2pIGAdqGhEqfBvg=
-Date: Mon, 24 Aug 2026 18:53:37 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,shikemeng@huaweicloud.com,seanjc@google.com,rppt@kernel.org,peterx@redhat.com,nphamcs@gmail.com,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,kasong@tencent.com,jhubbard@nvidia.com,jgg@ziepe.ca,fuad.tabba@linux.dev,chrisl@kernel.org,baoquan.he@linux.dev,baohua@kernel.org,ackerleytng@google.com,david@kernel.org,akpm@linux-foundation.org
+	b=qpEaHMHltMVHN5zUwpIDFFNnCEHbVS+He52S3zIUHJEOIA1nKotowncvIbC3wKEVm
+	 JF3P9BWkb8oDUGl6FX71HO69m+tQnx6QqARxTFNXWTWdmUWyVjYcNsuOqB6xzTtUXN
+	 FZ+0BHIhKMFDUTVqFa/oumRWLgrEurd6P6RXABaE=
+Date: Mon, 24 Aug 2026 18:53:38 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,urezki@gmail.com,stable@vger.kernel.org,shivamkalra98@zohomail.in,akpm@linux-foundation.org,iprintercanon@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-gup-factor-out-lru-cache-draining-for-folio-into-lru_cache_drain_for_folio.patch removed from -mm tree
-Message-Id: <20260825015337.B58AD1F000E9@smtp.kernel.org>
+Subject: [merged mm-stable] mm-vmalloc-make-vm_structnr_pages-an-unsigned-long.patch removed from -mm tree
+Message-Id: <20260825015338.E5E8C1F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,186 +35,256 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/gup: factor out LRU cache draining for folio into lru_cache_drain_for_folio()
+     Subject: mm/vmalloc: make vm_struct.nr_pages an unsigned long
 has been removed from the -mm tree.  Its filename was
-     mm-gup-factor-out-lru-cache-draining-for-folio-into-lru_cache_drain_for_folio.patch
+     mm-vmalloc-make-vm_structnr_pages-an-unsigned-long.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "David Hildenbrand (Arm)" <david@kernel.org>
-Subject: mm/gup: factor out LRU cache draining for folio into lru_cache_drain_for_folio()
-Date: Thu, 06 Aug 2026 20:09:06 +0200
+From: Artem Lytkin <iprintercanon@gmail.com>
+Subject: mm/vmalloc: make vm_struct.nr_pages an unsigned long
+Date: Sat, 1 Aug 2026 14:49:15 +0300
 
-KVM with guest_memfd wants to remove any folio references due to LRU
-caches, as it really must only allow to convert folios from shared to
-private when there are no unexpected folio references (e.g., from GUP
-references).
+vm_struct::nr_pages is an unsigned int, and the file keeps deriving byte
+counts from it as nr_pages << PAGE_SHIFT.  A shift is evaluated in the
+type of its promoted left operand, so those are 32-bit arithmetic and wrap
+at 4 GiB of bytes, which is 2^20 pages.  Every site depends on a cast
+being remembered; vmap() has one, two recent commits did not. 
+vread_iter() then computes a size of zero for a 4 GiB VM_ALLOC area and
+/proc/kcore returns it as zeros while reporting a successful read, which
+drgn, crash or gdb cannot tell from real memory, and the vrealloc()
+grow-in-place check declines a request that would have fit.
 
-So, to drive the refcount down, it needs a way to flush the LRU caches. 
-Let's factor out what we have in lru_cache_drain_for_folio().  Document
-it, and also mention that concurrent folio (un)mapping might, in theory,
-miss detecting LRU cache references.  Keep obtaining the expected refcount
-twice to minimize the possibility.  For the current and future user that
-should work, and we don't really have a better alternative: we could
-detect if the mapcount changed, but it would still be racy and add more
-complexity with questionable benefit.
+Widen the field so the class of bug goes away instead of one site at a
+time.  Everything feeding or consuming it widens too:
+vm_area_alloc_pages() and its accumulators, nr_small_pages, new_nr_pages
+and old_nr_pages, the index range of vm_area_free_pages(), and three page
+indexes that were plain int.  Five casts go.  Two prints needed fixing as
+well, %u in vmalloc_dump_obj() and %d for the unsigned field in
+vmalloc_info_show().
 
-Maybe there is a chance to avoid the draining entirely in the future, by
-avoiding extra references from the LRU cache: Hugh thinks there might be a
-way.  But for the time being, this handling is unfortunately required.
+No bug report behind this, I found it reading the code.  The 4 GiB wrap
+needs only a machine with over 4 GiB of memory.  Neither larger threshold
+is a practical concern: 2^32 pages, where the field itself truncates, is
+16 TiB and beyond what hardware can populate, and 2^31, where the plain
+int indexes break, is 8 TiB and larger than anything in the tree asks for.
+The int *nr cursor in the mapping path is unchanged and is separate work.
+Users outside mm/vmalloc.c need no change either.  Those handing the
+count to a narrower parameter cannot drive it near 2^31, and
+kho_preserve_vmalloc() stores it into a 32-bit ABI field that still
+receives the same low bits; above 2^32 pages the truncation just moves out
+of vm_struct into that store.
 
-Make folio_may_be_lru_cached() accept a const pointer so
-lru_cache_drain_for_folio() can accept a const pointer as well.
+sizeof(struct vm_struct) on x86-64 stays 72 bytes with
+CONFIG_HAVE_ARCH_HUGE_VMALLOC=n and goes from 72 to 80 with it enabled,
+both inside the kmalloc-96 bucket it already comes from.
 
-Link: https://lore.kernel.org/20260806-lru_cache_drain_for_folio-v1-1-c6287d295e99@kernel.org
-Signed-off-by: David Hildenbrand (Arm) <david@kernel.org>
-Reviewed-by: Fuad Tabba <fuad.tabba@linux.dev>
-Cc: Ackerley Tng <ackerleytng@google.com>
-Cc: Baoquan He <baoquan.he@linux.dev>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Kairui Song <kasong@tencent.com>
-Cc: Kemeng Shi <shikemeng@huaweicloud.com>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Sean Christopherson <seanjc@google.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
+Link: https://lore.kernel.org/20260801114915.115224-1-iprintercanon@gmail.com
+Fixes: 0bca23804632 ("mm/vmalloc: use physical page count in vread_iter() for VM_ALLOC areas")
+Fixes: d57ac904ffdc ("mm/vmalloc: use physical page count for vrealloc() grow-in-place check")
+Signed-off-by: Artem Lytkin <iprintercanon@gmail.com>
+Suggested-by: Andrew Morton <akpm@linux-foundation.org>
+Reviewed-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
+Assisted-by: Claude:claude-fable-5
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: <shivamkalra98@zohomail.in>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |    8 +++++++
- mm/folio.c           |   46 +++++++++++++++++++++++++++++++++++++++++
- mm/gup.c             |   15 +------------
- mm/internal.h        |    2 -
- 4 files changed, 57 insertions(+), 14 deletions(-)
+ include/linux/vmalloc.h |    2 -
+ mm/vmalloc.c            |   60 ++++++++++++++++++--------------------
+ 2 files changed, 30 insertions(+), 32 deletions(-)
 
---- a/include/linux/swap.h~mm-gup-factor-out-lru-cache-draining-for-folio-into-lru_cache_drain_for_folio
-+++ a/include/linux/swap.h
-@@ -298,6 +298,14 @@ void folio_add_lru(struct folio *folio);
- void folio_mark_accessed(struct folio *folio);
- void lru_add_drain_all(void);
- 
-+enum lru_cache_drained {
-+	LRU_CACHE_NOT_DRAINED,
-+	LRU_CACHE_DRAINED,
-+	LRU_CACHE_DRAINED_ALL,
-+};
-+void lru_cache_drain_for_folio(const struct folio *folio,
-+		unsigned int extra_refs, enum lru_cache_drained *drained);
-+
- /* linux/mm/folio-compat.c */
- void mark_page_accessed(struct page *page);
- 
---- a/mm/folio.c~mm-gup-factor-out-lru-cache-draining-for-folio-into-lru_cache_drain_for_folio
-+++ a/mm/folio.c
-@@ -881,6 +881,52 @@ void lru_add_drain_all(void)
- }
- #endif /* CONFIG_SMP */
- 
-+/**
-+ * lru_cache_drain_for_folio() - drain LRU caches if the caches might hold
-+ *				 folio references
-+ * @folio: The folio.
-+ * @extra_refs: Extra folio references held by the caller.
-+ * @drained: Drain status for batch folio processing.
-+ *
-+ * Drain LRU caches if the caches might hold folio references. Start
-+ * with a local LRU cache drain, to then drain LRU caches on all CPUs if
-+ * local draining was insufficient.
-+ *
-+ * This function detects LRU cache references by comparing the folio refcount
-+ * with the sum of the expected folio refcount + extra references held by the
-+ * caller. Note that we cannot rely on PG_lru to reliably detect all LRU
-+ * cache references, and there are rare scenarios (concurrent folio (un)mapping)
-+ * where this function might miss detecting LRU cache references.
-+ *
-+ * If @drained is not NULL, the function will avoid re-draining LRU caches
-+ * when processing multiple folios in a row. In that case, the variable
-+ * @drained points at must be initialized to LRU_CACHE_NOT_DRAINED before
-+ * the first invocation by the caller.
-+ */
-+void lru_cache_drain_for_folio(const struct folio *folio,
-+		unsigned int extra_refs, enum lru_cache_drained *drained)
-+{
-+	if (!folio_may_be_lru_cached(folio))
-+		return;
-+
-+	if (!drained || *drained == LRU_CACHE_NOT_DRAINED) {
-+		if (folio_ref_count(folio) ==
-+		    folio_expected_ref_count(folio) + extra_refs)
-+			return;
-+		lru_add_drain();
-+		if (drained)
-+			*drained = LRU_CACHE_DRAINED;
-+	}
-+	if (!drained || *drained == LRU_CACHE_DRAINED) {
-+		if (folio_ref_count(folio) ==
-+		    folio_expected_ref_count(folio) + extra_refs)
-+			return;
-+		lru_add_drain_all();
-+		if (drained)
-+			*drained = LRU_CACHE_DRAINED_ALL;
-+	}
-+}
-+
- atomic_t lru_disable_count = ATOMIC_INIT(0);
- 
- /*
---- a/mm/gup.c~mm-gup-factor-out-lru-cache-draining-for-folio-into-lru_cache_drain_for_folio
-+++ a/mm/gup.c
-@@ -2266,9 +2266,9 @@ static unsigned long collect_longterm_un
- 		struct list_head *movable_folio_list,
- 		struct pages_or_folios *pofs)
+--- a/include/linux/vmalloc.h~mm-vmalloc-make-vm_structnr_pages-an-unsigned-long
++++ a/include/linux/vmalloc.h
+@@ -62,7 +62,7 @@ struct vm_struct {
+ #ifdef CONFIG_HAVE_ARCH_HUGE_VMALLOC
+ 	unsigned int		page_order;
+ #endif
+-	unsigned int		nr_pages;
++	unsigned long		nr_pages;
+ 	phys_addr_t		phys_addr;
+ 	const void		*caller;
+ 	unsigned long		requested_size;
+--- a/mm/vmalloc.c~mm-vmalloc-make-vm_structnr_pages-an-unsigned-long
++++ a/mm/vmalloc.c
+@@ -3361,7 +3361,7 @@ struct vm_struct *remove_vm_area(const v
+ static inline void set_area_direct_map(const struct vm_struct *area,
+ 				       int (*set_direct_map)(struct page *page))
  {
-+	enum lru_cache_drained drained = LRU_CACHE_NOT_DRAINED;
- 	unsigned long collected = 0;
- 	struct folio *folio;
--	int drained = 0;
- 	long i = 0;
+-	int i;
++	unsigned long i;
  
- 	for (folio = pofs_get_folio(pofs, i); folio;
-@@ -2293,18 +2293,7 @@ static unsigned long collect_longterm_un
- 		 * but also to remove any other folio references from LRU
- 		 * caches.
- 		 */
--		if (drained == 0 && folio_may_be_lru_cached(folio) &&
--				folio_ref_count(folio) !=
--				folio_expected_ref_count(folio) + pin_refs) {
--			lru_add_drain();
--			drained = 1;
--		}
--		if (drained == 1 && folio_may_be_lru_cached(folio) &&
--				folio_ref_count(folio) !=
--				folio_expected_ref_count(folio) + pin_refs) {
--			lru_add_drain_all();
--			drained = 2;
--		}
-+		lru_cache_drain_for_folio(folio, pin_refs, &drained);
+ 	/* HUGE_VMALLOC passes small pages to set_direct_map */
+ 	for (i = 0; i < area->nr_pages; i++)
+@@ -3377,7 +3377,7 @@ static void vm_reset_perms(struct vm_str
+ 	unsigned long start = ULONG_MAX, end = 0;
+ 	unsigned int page_order = vm_area_page_order(area);
+ 	int flush_dmap = 0;
+-	int i;
++	unsigned long i;
  
- 		if (!folio_isolate_lru(folio))
- 			continue;
---- a/mm/internal.h~mm-gup-factor-out-lru-cache-draining-for-folio-into-lru_cache_drain_for_folio
-+++ a/mm/internal.h
-@@ -43,7 +43,7 @@ void workingset_activation(struct folio
- /* mm/folio.c */
- void folio_add_lru_vma(struct folio *folio, struct vm_area_struct *vma);
- 
--static inline bool folio_may_be_lru_cached(struct folio *folio)
-+static inline bool folio_may_be_lru_cached(const struct folio *folio)
- {
  	/*
- 	 * Holding PMD-sized folios in per-CPU LRU cache unbalances accounting.
+ 	 * Find the start and end range of the direct mappings to make sure that
+@@ -3450,10 +3450,10 @@ void vfree_atomic(const void *addr)
+  * Caller is responsible for unmapping (vunmap_range) and KASAN
+  * poisoning before calling this.
+  */
+-static void vm_area_free_pages(struct vm_struct *vm, unsigned int start_idx,
+-			       unsigned int end_idx)
++static void vm_area_free_pages(struct vm_struct *vm, unsigned long start_idx,
++			       unsigned long end_idx)
+ {
+-	unsigned int i;
++	unsigned long i;
+ 
+ 	if (!(vm->flags & VM_MAP_PUT_PAGES)) {
+ 		for (i = start_idx; i < end_idx; i++)
+@@ -3665,12 +3665,12 @@ static inline gfp_t vmalloc_gfp_adjust(g
+ 	return flags;
+ }
+ 
+-static inline unsigned int
++static inline unsigned long
+ vm_area_alloc_pages(gfp_t gfp, int nid,
+-		unsigned int order, unsigned int nr_pages, struct page **pages)
++		unsigned int order, unsigned long nr_pages, struct page **pages)
+ {
+-	unsigned int nr_allocated = 0;
+-	unsigned int nr_remaining = nr_pages;
++	unsigned long nr_allocated = 0;
++	unsigned long nr_remaining = nr_pages;
+ 	unsigned int max_attempt_order = MAX_PAGE_ORDER;
+ 	struct page *page;
+ 	int i;
+@@ -3718,7 +3718,7 @@ vm_area_alloc_pages(gfp_t gfp, int nid,
+ 	if (!order) {
+ 		while (nr_allocated < nr_pages) {
+ 			unsigned int nr, nr_pages_request;
+-			int i;
++			unsigned long i;
+ 
+ 			/*
+ 			 * A maximum allowed request is hard-coded and is 100
+@@ -3726,7 +3726,7 @@ vm_area_alloc_pages(gfp_t gfp, int nid,
+ 			 * long preemption off scenario in the bulk-allocator
+ 			 * so the range is [1:100].
+ 			 */
+-			nr_pages_request = min(100U, nr_pages - nr_allocated);
++			nr_pages_request = min(100UL, nr_pages - nr_allocated);
+ 
+ 			/* memory allocation should consider mempolicy, we can't
+ 			 * wrongly use nearest node when nid == NUMA_NO_NODE,
+@@ -3872,12 +3872,12 @@ static void *__vmalloc_area_node(struct
+ 	unsigned long addr = (unsigned long)area->addr;
+ 	unsigned long size = get_vm_area_size(area);
+ 	unsigned long array_size;
+-	unsigned int nr_small_pages = size >> PAGE_SHIFT;
++	unsigned long nr_small_pages = size >> PAGE_SHIFT;
+ 	unsigned int page_order;
+ 	unsigned int flags;
+ 	int ret;
+ 
+-	array_size = (unsigned long)nr_small_pages * sizeof(struct page *);
++	array_size = nr_small_pages * sizeof(struct page *);
+ 
+ 	/* __GFP_NOFAIL and "noblock" flags are mutually exclusive. */
+ 	if (!gfpflags_allow_blocking(gfp_mask))
+@@ -4375,7 +4375,7 @@ void *vrealloc_node_align_noprof(const v
+ 	}
+ 
+ 	if (size <= old_size) {
+-		unsigned int new_nr_pages = PAGE_ALIGN(size) >> PAGE_SHIFT;
++		unsigned long new_nr_pages = PAGE_ALIGN(size) >> PAGE_SHIFT;
+ 
+ 		/* Zero out "freed" memory, potentially for future realloc. */
+ 		if (want_init_on_free() || want_init_on_alloc(flags))
+@@ -4404,7 +4404,7 @@ void *vrealloc_node_align_noprof(const v
+ 		    !(vm->flags & (VM_FLUSH_RESET_PERMS | VM_USERMAP)) &&
+ 		    gfp_has_io_fs(flags)) {
+ 			unsigned long addr = (unsigned long)kasan_reset_tag(p);
+-			unsigned int old_nr_pages = vm->nr_pages;
++			unsigned long old_nr_pages = vm->nr_pages;
+ 
+ 			/*
+ 			 * Use the node lock to synchronize with concurrent
+@@ -4417,16 +4417,13 @@ void *vrealloc_node_align_noprof(const v
+ 			spin_unlock(&vn->busy.lock);
+ 
+ 			/* Notify kmemleak of the reduced allocation size before unmapping. */
+-			kmemleak_free_part(
+-				(void *)addr + ((unsigned long)new_nr_pages
+-						<< PAGE_SHIFT),
+-				(unsigned long)(old_nr_pages - new_nr_pages)
+-					<< PAGE_SHIFT);
+-
+-			vunmap_range(addr + ((unsigned long)new_nr_pages
+-					     << PAGE_SHIFT),
+-				     addr + ((unsigned long)old_nr_pages
+-					     << PAGE_SHIFT));
++			kmemleak_free_part((void *)addr +
++					   (new_nr_pages << PAGE_SHIFT),
++					   (old_nr_pages - new_nr_pages)
++						<< PAGE_SHIFT);
++
++			vunmap_range(addr + (new_nr_pages << PAGE_SHIFT),
++				     addr + (old_nr_pages << PAGE_SHIFT));
+ 
+ 			vm_area_free_pages(vm, new_nr_pages, old_nr_pages);
+ 		}
+@@ -5250,7 +5247,7 @@ bool vmalloc_dump_obj(void *object)
+ 	struct vmap_area *va;
+ 	struct vmap_node *vn;
+ 	unsigned long addr;
+-	unsigned int nr_pages;
++	unsigned long nr_pages;
+ 
+ 	addr = PAGE_ALIGN((unsigned long) object);
+ 	vn = addr_to_node(addr);
+@@ -5270,7 +5267,7 @@ bool vmalloc_dump_obj(void *object)
+ 	nr_pages = vm->nr_pages;
+ 	spin_unlock(&vn->busy.lock);
+ 
+-	pr_cont(" %u-page vmalloc region starting at %#lx allocated at %pS\n",
++	pr_cont(" %lu-page vmalloc region starting at %#lx allocated at %pS\n",
+ 		nr_pages, addr, caller);
+ 
+ 	return true;
+@@ -5288,16 +5285,17 @@ bool vmalloc_dump_obj(void *object)
+ static void show_numa_info(struct seq_file *m, struct vm_struct *v,
+ 				 unsigned int *counters)
+ {
+-	unsigned int nr;
+ 	unsigned int step = 1U << vm_area_page_order(v);
++	unsigned long i;
++	unsigned int nr;
+ 
+ 	if (!counters)
+ 		return;
+ 
+ 	memset(counters, 0, nr_node_ids * sizeof(unsigned int));
+ 
+-	for (nr = 0; nr < v->nr_pages; nr += step)
+-		counters[page_to_nid(v->pages[nr])] += step;
++	for (i = 0; i < v->nr_pages; i += step)
++		counters[page_to_nid(v->pages[i])] += step;
+ 	for_each_node_state(nr, N_HIGH_MEMORY)
+ 		if (counters[nr])
+ 			seq_printf(m, " N%u=%u", nr, counters[nr]);
+@@ -5355,7 +5353,7 @@ static int vmalloc_info_show(struct seq_
+ 				seq_printf(m, " %pS", v->caller);
+ 
+ 			if (v->nr_pages)
+-				seq_printf(m, " pages=%d", v->nr_pages);
++				seq_printf(m, " pages=%lu", v->nr_pages);
+ 
+ 			if (v->phys_addr)
+ 				seq_printf(m, " phys=%pa", &v->phys_addr);
 _
 
-Patches currently in -mm which might be from david@kernel.org are
+Patches currently in -mm which might be from iprintercanon@gmail.com are
 
 
