@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7FFC1340A57
-	for <mm-commits@vger.kernel.org>; Tue, 25 Aug 2026 01:54:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 85C13233942
+	for <mm-commits@vger.kernel.org>; Tue, 25 Aug 2026 01:54:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787622848; cv=none; b=Y2cSMjPwbZ9ZyAEEFk4QEZbiDKysXpY/VdKUVoTLkHsyA+A/p1oEdHfDlg4vyWaiF6Uni1Qq+gHW4FuanD0q7kPpAIG9ABm1wQdIN/oDAhaBBqG8wuehRc35dFEkALmTCFszCEAGcXWpeog2nnm744SpuONzu1gPU0ItSmYrl9I=
+	t=1787622850; cv=none; b=re9BpGYZDNmdXD+MvEjG+GX0Y2+LPgKeZQRbOQ6IQq53vFI2SZ6sNAVyeQi/s+3su5ALHqR82hIIY5eRKBrbRHfBdinK/sWYPWjvNnqZsLXKpgXiIJfiXnvaspigOgl3p5rpCQRA0XdVGGpY9CPGBYF9sd79CzL2HNY08SuxfuI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787622848; c=relaxed/simple;
-	bh=YN+SSb0nERvboYhlS8t3NdXJNInGzL6g0H6+7BNKmrc=;
-	h=Date:To:From:Subject:Message-Id; b=dQ80YgMGuht7v9ob1WqpMvXH5evUwO/+f/unTAcZSd/zckuDHsJKuzDVFuLH8tJmlZLsokeCWhDmULYG15l+DpSkspoM4CB+yYAPJXTm9jAAmP2XOz9M2hHWXTj0G+wGY2845s38kMwuevlMVDdOAAkWOgLc/1vaFvi2mUKbYyQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UdKFWX3S; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1787622850; c=relaxed/simple;
+	bh=7EP+hDzq00K6jvPaCWf2krpKmwXIJnaVlrzzXiHdG/I=;
+	h=Date:To:From:Subject:Message-Id; b=OEC2FR2qzvyz0oujHhw+EnucgECFjJ96krlxMMj7FbWMHAJRaz/sQZOEG2KNsU5KoZe/X0HQyATejPs1m/FUIkGmbO0YlYGLfkQFTIUfdbNNA27J3YLTMx5dB/0LlEaQBWm0yBBJKjUhTwGtz+feDBdDKq8BZv621WoPy8RQQIg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VZgj4Bri; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UdKFWX3S"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 574721F000E9;
-	Tue, 25 Aug 2026 01:54:07 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VZgj4Bri"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 025501F00A3A;
+	Tue, 25 Aug 2026 01:54:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1787622847;
-	bh=TaW3WQUb9K9UqKv50+0A2z/cYsIQEWPLLB6jYEldMis=;
+	d=linux-foundation.org; s=korg; t=1787622845;
+	bh=oZ8jZjvFMVsfURmKvobWZYBxhWvwMWBG+NNFKjDfXvQ=;
 	h=Date:To:From:Subject;
-	b=UdKFWX3S24bZmADjXCF/wHW97L3HXi7nzirGeVtDL2jhTGGYbswJcOryhTa68yqjH
-	 H4Lcbp4aurOwsnYdM4tOb2A+FFiPtSIRy5beKFXTv1e0eBMaI4GZ/c9Qyo2ZQcE3uU
-	 y81H17CJMUPSHkd4/PyaAfE3SuvXYFxJ8rbswnCI=
-Date: Mon, 24 Aug 2026 18:54:06 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,surenb@google.com,mhocko@suse.com,hannes@cmpxchg.org,liuye@kylinos.cn,akpm@linux-foundation.org
+	b=VZgj4BriMTg1We8lC6CmW0mx7fcTZrqMQB+c3hPCyLUcJipe3aIRZLJ0qV8BG8Cuu
+	 HSogM7H1syihHIERrvRQogHgME7kKzQAPm7n/b2XhAb9JUXXOVRr/8Fi4JyLx17xAs
+	 jGhkeukpbQgfijJe30l0APfALT2Wy9Mvl75ju0Ps=
+Date: Mon, 24 Aug 2026 18:54:04 -0700
+To: mm-commits@vger.kernel.org,surenb@google.com,hao.ge@linux.dev,abhishekbapat@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-show_mem-fix-format-string-inconsistencies-and-type-mismatches.patch removed from -mm tree
-Message-Id: <20260825015407.574721F000E9@smtp.kernel.org>
+Subject: [merged mm-stable] alloc_tag-expose-boot-time-compression-configuration.patch removed from -mm tree
+Message-Id: <20260825015405.025501F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,103 +35,77 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/show_mem: fix format string inconsistencies and type mismatches
+     Subject: alloc_tag: expose boot-time compression configuration
 has been removed from the -mm tree.  Its filename was
-     mm-show_mem-fix-format-string-inconsistencies-and-type-mismatches.patch
+     alloc_tag-expose-boot-time-compression-configuration.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Ye Liu <liuye@kylinos.cn>
-Subject: mm/show_mem: fix format string inconsistencies and type mismatches
-Date: Wed, 5 Aug 2026 10:15:55 +0800
+From: Abhishek Bapat <abhishekbapat@google.com>
+Subject: alloc_tag: expose boot-time compression configuration
+Date: Wed, 5 Aug 2026 17:29:52 +0000
 
-Fix five format string issues in show_free_areas() and __show_mem():
+Currently, userspace has limited visibility into the exact active runtime
+state of memory allocation profiling and its page extension compression
+('sysctl.vm.mem_profiling={0|1|never}[,compressed]').
 
-1-2. reserved_highatomic and free_highatomic: %luKB -> %lukB
-   The uppercase "KB" is inconsistent with all other fields in the
-   same output block and with /proc/meminfo convention.
+While reading the sysctl provides basic on/off status, it is currently
+impossible for userspace to natively determine whether page-tag
+compression was successfully enabled without scraping dmesg boot logs.
 
-3. local_pcp: %ukB -> %lukB with explicit (unsigned long) cast
-   per_cpu_pages.count is int, so K(count) yields int. Using %u
-   was a signed/unsigned mismatch. Cast to unsigned long and use
-   %lu for consistency with all other K() usages in the file.
+Add a new read-only sysctl representing how compression was configured
+at boot time.
 
-4. total pagecache pages: %ld -> %lu
-   global_node_page_state() returns unsigned long. Using %ld is a
-   signedness mismatch caught by gcc -Wformat-signedness.
-
-5. hwpoisoned pages: %lu -> %ld
-   atomic_long_read() returns long (signed). Using %lu is a
-   signedness mismatch caught by gcc -Wformat-signedness.
-
-Verified with: make KCFLAGS="-Wformat -Wformat-signedness" mm/show_mem.o
-
-Link: https://lore.kernel.org/20260805021556.1908807-1-ye.liu@linux.dev
-Signed-off-by: Ye Liu <liuye@kylinos.cn>
-Acked-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Zi Yan <ziy@nvidia.com>
+Link: https://lore.kernel.org/c795f8089f82841e8a6e00d7ca286da2b23aeb7b.1785950530.git.abhishekbapat@google.com
+Signed-off-by: Abhishek Bapat <abhishekbapat@google.com>
+Acked-by: Suren Baghdasaryan <surenb@google.com>
+Cc: Hao Ge <hao.ge@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/show_mem.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ Documentation/mm/allocation-profiling.rst |   11 +++++++++++
+ mm/alloc_tag.c                            |    6 ++++++
+ 2 files changed, 17 insertions(+)
 
---- a/mm/show_mem.c~mm-show_mem-fix-format-string-inconsistencies-and-type-mismatches
-+++ a/mm/show_mem.c
-@@ -309,8 +309,8 @@ static void show_free_areas(unsigned int
- 			" min:%lukB"
- 			" low:%lukB"
- 			" high:%lukB"
--			" reserved_highatomic:%luKB"
--			" free_highatomic:%luKB"
-+			" reserved_highatomic:%lukB"
-+			" free_highatomic:%lukB"
- 			" active_anon:%lukB"
- 			" inactive_anon:%lukB"
- 			" active_file:%lukB"
-@@ -323,7 +323,7 @@ static void show_free_areas(unsigned int
- 			" mlocked:%lukB"
- 			" bounce:%lukB"
- 			" free_pcp:%lukB"
--			" local_pcp:%ukB"
-+			" local_pcp:%lukB"
- 			" free_cma:%lukB"
- 			"\n",
- 			zone->name,
-@@ -350,7 +350,7 @@ static void show_free_areas(unsigned int
- 			K(zone_page_state(zone, NR_MLOCK)),
- 			0UL,
- 			K(free_pcp),
--			K(this_cpu_read(zone->per_cpu_pageset->count)),
-+			K((unsigned long)this_cpu_read(zone->per_cpu_pageset->count)),
- 			K(zone_page_state(zone, NR_FREE_CMA_PAGES)));
- 		printk("lowmem_reserve[]:");
- 		for (i = 0; i < MAX_NR_ZONES; i++)
-@@ -400,7 +400,7 @@ static void show_free_areas(unsigned int
- 		hugetlb_show_meminfo_node(nid);
- 	}
+--- a/Documentation/mm/allocation-profiling.rst~alloc_tag-expose-boot-time-compression-configuration
++++ a/Documentation/mm/allocation-profiling.rst
+@@ -43,6 +43,17 @@ sysctl:
+   warnings produced by allocations made while profiling is disabled and freed
+   when it's enabled.
  
--	printk("%ld total pagecache pages\n", global_node_page_state(NR_FILE_PAGES));
-+	printk("%lu total pagecache pages\n", global_node_page_state(NR_FILE_PAGES));
++  /proc/sys/vm/mem_profiling_compressed
++
++  1: Page alloc tag compression is enabled.
++
++  0: Page alloc tag compression is disabled.
++
++  This reflects a static boot-time configuration of how page allocation tags are
++  stored (in page flags when compression is enabled and in page_ext when disabled).
++  Toggling ``mem_profiling`` at runtime does not change the state of
++  ``mem_profiling_compressed``.
++
+ Runtime info:
+   /proc/allocinfo
  
- 	show_swap_cache_info();
- }
-@@ -430,7 +430,7 @@ void __show_mem(unsigned int filter, con
- 	printk("%lu pages cma reserved\n", totalcma_pages);
- #endif
- #ifdef CONFIG_MEMORY_FAILURE
--	printk("%lu pages hwpoisoned\n", atomic_long_read(&num_poisoned_pages));
-+	printk("%ld pages hwpoisoned\n", atomic_long_read(&num_poisoned_pages));
- #endif
- #ifdef CONFIG_MEM_ALLOC_PROFILING
- 	static DEFINE_SPINLOCK(mem_alloc_profiling_spinlock);
+--- a/mm/alloc_tag.c~alloc_tag-expose-boot-time-compression-configuration
++++ a/mm/alloc_tag.c
+@@ -961,6 +961,12 @@ static const struct ctl_table memory_all
+ 		.mode		= 0644,
+ 		.proc_handler	= proc_mem_profiling_handler,
+ 	},
++	{
++		.procname	= "mem_profiling_compressed",
++		.data		= &mem_profiling_compressed,
++		.mode		= 0444,
++		.proc_handler	= proc_do_static_key,
++	},
+ };
+ 
+ static void __init sysctl_init(void)
 _
 
-Patches currently in -mm which might be from liuye@kylinos.cn are
+Patches currently in -mm which might be from abhishekbapat@google.com are
 
 
