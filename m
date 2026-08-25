@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C6C313750CB
-	for <mm-commits@vger.kernel.org>; Tue, 25 Aug 2026 01:55:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BDB7837268D
+	for <mm-commits@vger.kernel.org>; Tue, 25 Aug 2026 01:55:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787622946; cv=none; b=kX1rBSSeIivklnt8zJj7Jh8eQvU/Co/PJseY0+jJ3jQlu+PHuR2At3dIBuix03P/zFLTRaE3dSJSXAIawCJN5xa5wSJ/DwoCjplGvV/SFGQ7dM68XTXtFVgYYU+Rir1i27fNmOQwugiydJSefS+gwMA8miBrSl1gKtaTD6CPicM=
+	t=1787622947; cv=none; b=s1R3QYCshhJ0n6Tp9mfHmNaIkkIboKQLxwQwuNb15AvfH4hpnTy6bCVB/2znqlGhdyAn9GM1PqP0dO3u22gyDoZnw3ul/j0riK2dg8GP4VAPHMybNoP2QqAKiN9gdtl+o+maUsHU/+fPI9mUVVTzPsnDykzaw9skVmcQalpFlm8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787622946; c=relaxed/simple;
-	bh=kx158mgIy4hfqT+1SJc+pKnTJ00MretiwGEQYawtugw=;
-	h=Date:To:From:Subject:Message-Id; b=uolCozfq98bQFdE4v6Ro61gbrLdq4tCGyDaC8kJVUBpAOYuU27I7JfbKakiV0wx7YY3pxQwXudnRBlOzuHv2dikmCk6usCVFvvdJ6rBoJqL5gNqju4YqTYgAAylMq0YRmjHR8R0mKkAKfPHkKEwPULy6jYEK7Eef/iQ0czTVD+o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OgPx14xd; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1787622947; c=relaxed/simple;
+	bh=Fe8zZBP2cQRJ7vxjkHn7rkQswARawT4ZF14T7P8ADgI=;
+	h=Date:To:From:Subject:Message-Id; b=kfLxqz/DWVziiJFyNL2kho/t+wIhPIi2yi4pkY1Bu6VOhjgN83dUIeTe4wpg8GnSVWdqT0BsG3SsbzD/Y71lyZiHs9S9lDYZS+Cg6yDvzhzJXCv4nmHG5UsxyMONl7LYlv8bRIrr+QSJi6K/gi8zZKaM15AP7sX2MKuJXygRs/g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Bn2iaiL+; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OgPx14xd"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6448F1F00A3A;
-	Tue, 25 Aug 2026 01:55:44 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Bn2iaiL+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 804D91F000E9;
+	Tue, 25 Aug 2026 01:55:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1787622944;
-	bh=EOKA3MuC8ostdnu3hfZ4LLWhPDG2246O/thkpxU1rTc=;
+	d=linux-foundation.org; s=korg; t=1787622945;
+	bh=yFNAZ/eKy1zQyV0w5S5ixpRYeOgdEP0cKbV2DUP+IpI=;
 	h=Date:To:From:Subject;
-	b=OgPx14xdRgcGuYgidxNRJ/ia4PphFQWJPVHYlDe+XbX3xV7vWOeyS6VIsb27GR6Ds
-	 mS3pIz0ks2Pwgpj0Ah9nGwtMo65vR4N1JwiSlSs3wws3Yd3tpxFEXQohIiP5CJiquq
-	 GaXsMafEY923HPRFr9nW2gqzAwtfwMxHsMYQIO/0=
-Date: Mon, 24 Aug 2026 18:55:44 -0700
-To: mm-commits@vger.kernel.org,surenb@google.com,rostedt@goodmis.org,kent.overstreet@linux.dev,gmonaco@redhat.com,dennis@kernel.org,akpm@linux-foundation.org,tj@kernel.org,akpm@linux-foundation.org
+	b=Bn2iaiL+VZliq75eiczqQbd+vkh4diLfYMwU4bQL4elLY9o2hG3rjZQloAiAat9tq
+	 cHJaSaezei2wRdSgiu7bF3tUcXeuI3pFNGxCTQpOX19PULHuKz99T8yXpB28NJiO1i
+	 eo+xJ717uBiMb3QkQUvunBjr0TBRuu49YY4KpdaQ=
+Date: Mon, 24 Aug 2026 18:55:45 -0700
+To: mm-commits@vger.kernel.org,leon@kernel.org,jgg@ziepe.ca,liuqiang@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] percpu-drop-config_debug_force_weak_per_cpu.patch removed from -mm tree
-Message-Id: <20260825015544.6448F1F00A3A@smtp.kernel.org>
+Subject: [merged mm-stable] lib-test_hmm-fix-garbage-pfn-and-wrong-direction-in-devmem-fault-debug.patch removed from -mm tree
+Message-Id: <20260825015545.804D91F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,116 +35,50 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: percpu: drop CONFIG_DEBUG_FORCE_WEAK_PER_CPU
+     Subject: lib/test_hmm: fix garbage pfn and wrong direction in devmem fault debug
 has been removed from the -mm tree.  Its filename was
-     percpu-drop-config_debug_force_weak_per_cpu.patch
+     lib-test_hmm-fix-garbage-pfn-and-wrong-direction-in-devmem-fault-debug.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Tejun Heo <tj@kernel.org>
-Subject: percpu: drop CONFIG_DEBUG_FORCE_WEAK_PER_CPU
-Date: Wed, 12 Aug 2026 09:47:43 -1000
+From: Qiang Liu <liuqiang@kylinos.cn>
+Subject: lib/test_hmm: fix garbage pfn and wrong direction in devmem fault debug
+Date: Wed, 12 Aug 2026 17:28:56 +0800
 
-alpha requires percpu variables in modules to be defined as weak so that the
-compiler generates GOT based external references for them. This puts two
-extra restrictions on percpu variable definitions. The symbol must be
-globally unique even when static and a static percpu variable can't be
-defined inside a function. DEBUG_FORCE_WEAK_PER_CPU exists to give generic
-code build coverage for these restrictions without building for alpha.
+Move pr_debug() inside the `if (dpage)` block to avoid printing garbage
+pfn for NULL dpage, and correct the direction label from "sys to dev" to
+"dev to sys".
 
-MEM_ALLOC_PROFILING defines a static percpu counter at each allocation call
-site and thus can't be built with weak percpu definitions, so it depends on
-!DEBUG_FORCE_WEAK_PER_CPU. As allmodconfig enables DEBUG_FORCE_WEAK_PER_CPU,
-this knocks MEM_ALLOC_PROFILING out of allmodconfig build coverage.
-
-allmodconfig coverage for MEM_ALLOC_PROFILING is worth more than build
-coverage for restrictions which only matter to alpha module builds. Drop
-DEBUG_FORCE_WEAK_PER_CPU. Restriction violations will now show up only on
-alpha builds.
-
-Link: https://lore.kernel.org/178656406317.2437052.7257990869957704195@slm.duckdns.org
-Signed-off-by: Tejun Heo <tj@kernel.org>
-Reported-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Suren Baghdasaryan <surenb@google.com>
-Acked-by: Gabriele Monaco <gmonaco@redhat.com>	[include/rv/da_monitor.h]
-Cc: Dennis Zhou <dennis@kernel.org>
-Cc: Kent Overstreet <kent.overstreet@linux.dev>
-Cc: Steven Rostedt <rostedt@goodmis.org>
+Link: https://lore.kernel.org/20260812092856.55296-1-liuqiangneo@163.com
+Signed-off-by: Qiang Liu <liuqiang@kylinos.cn>
+Assisted-by: Qoder:Qwen-3.8-MAX-Preview
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Leon Romanovsky <leon@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/percpu-defs.h |    7 +------
- include/rv/da_monitor.h     |    2 +-
- lib/Kconfig.debug           |   15 ---------------
- mm/Kconfig.debug            |    1 -
- 4 files changed, 2 insertions(+), 23 deletions(-)
+ lib/test_hmm.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
---- a/include/linux/percpu-defs.h~percpu-drop-config_debug_force_weak_per_cpu
-+++ a/include/linux/percpu-defs.h
-@@ -65,13 +65,8 @@
-  *
-  * Archs which need weak percpu definitions should set
-  * CONFIG_ARCH_MODULE_NEEDS_WEAK_PER_CPU when necessary.
-- *
-- * To ensure that the generic code observes the above two
-- * restrictions, if CONFIG_DEBUG_FORCE_WEAK_PER_CPU is set weak
-- * definition is used for all cases.
-  */
--#if (defined(CONFIG_ARCH_MODULE_NEEDS_WEAK_PER_CPU) && defined(MODULE)) || \
--	defined(CONFIG_DEBUG_FORCE_WEAK_PER_CPU)
-+#if defined(CONFIG_ARCH_MODULE_NEEDS_WEAK_PER_CPU) && defined(MODULE)
- /*
-  * __pcpu_scope_* dummy variable is used to enforce scope.  It
-  * receives the static modifier when it's used in front of
---- a/include/rv/da_monitor.h~percpu-drop-config_debug_force_weak_per_cpu
-+++ a/include/rv/da_monitor.h
-@@ -24,7 +24,7 @@
+--- a/lib/test_hmm.c~lib-test_hmm-fix-garbage-pfn-and-wrong-direction-in-devmem-fault-debug
++++ a/lib/test_hmm.c
+@@ -1151,10 +1151,9 @@ static vm_fault_t dmirror_devmem_fault_a
+ 		if (!dpage && !order)
+ 			return VM_FAULT_OOM;
  
- /*
-  * Per-cpu variables require a unique name although static in some
-- * configurations (e.g. CONFIG_DEBUG_FORCE_WEAK_PER_CPU or alpha modules).
-+ * configurations (e.g. alpha modules).
-  */
- #define DA_MON_NAME CONCATENATE(da_mon_, MONITOR_NAME)
- 
---- a/lib/Kconfig.debug~percpu-drop-config_debug_force_weak_per_cpu
-+++ a/lib/Kconfig.debug
-@@ -613,21 +613,6 @@ config BUILTIN_MODULE_RANGES
- 	 It also records an anchor symbol to determine the load address of the
- 	 section.
- 
--config DEBUG_FORCE_WEAK_PER_CPU
--	bool "Force weak per-cpu definitions"
--	depends on DEBUG_KERNEL
--	help
--	  s390 and alpha require percpu variables in modules to be
--	  defined weak to work around addressing range issue which
--	  puts the following two restrictions on percpu variable
--	  definitions.
+-		pr_debug("migrating from sys to dev pfn src: 0x%lx pfn dst: 0x%lx\n",
+-				page_to_pfn(spage), page_to_pfn(dpage));
 -
--	  1. percpu symbols must be unique whether static or not
--	  2. percpu variables can't be defined inside a function
--
--	  To ensure that generic code follows the above rules, this
--	  option forces all percpu variables to be defined as weak.
--
- config WARN_CONTEXT_ANALYSIS
- 	bool "Compiler context-analysis warnings"
- 	depends on CC_IS_CLANG && CLANG_VERSION >= 230000
---- a/mm/Kconfig.debug~percpu-drop-config_debug_force_weak_per_cpu
-+++ a/mm/Kconfig.debug
-@@ -326,7 +326,6 @@ config MEM_ALLOC_PROFILING
- 	default n
- 	depends on MMU
- 	depends on PROC_FS
--	depends on !DEBUG_FORCE_WEAK_PER_CPU
- 	select CODE_TAGGING
- 	select PAGE_EXTENSION
- 	select SLAB_OBJ_EXT
+ 		if (dpage) {
++			pr_debug("migrating from dev to sys pfn src: 0x%lx pfn dst: 0x%lx\n",
++					page_to_pfn(spage), page_to_pfn(dpage));
+ 			lock_page(dpage);
+ 			*dst |= migrate_pfn(page_to_pfn(dpage));
+ 		}
 _
 
-Patches currently in -mm which might be from tj@kernel.org are
+Patches currently in -mm which might be from liuqiang@kylinos.cn are
 
 
