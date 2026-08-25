@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B4889346AE1;
-	Tue, 25 Aug 2026 01:54:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F1EEA34750B;
+	Tue, 25 Aug 2026 01:54:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787622843; cv=none; b=MKmasRNBGhhHkzNZRcgw7ce8ku66OqZuYmKJfXfisz8JNWr5s8mdyBL3M+ls8aTeuCtxawtQdqQg2ChNjKr+gbGcesJpKptQm7HWVRXDvTsKGI6U5hyNBeUy/tRD15F5+VCNetcUQtEnagWSJXvjCgKOySHEbTuZDku069FBH/E=
+	t=1787622844; cv=none; b=fb4XHroUbOsb5QR63VosURBHsDdedvM9TWUwj1TyoqQmG/J1LLRYuoUXsRtcLXgW1GmKCbGnixDfIdEV2zfCr5o9TDJa+3InAyWL8e1/5Y9s+8hZXYWRDdcWkVGF7+S8hgK84oWqKN2qMlDtqzFjFehQKoMv57vnjArvksrhsy0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787622843; c=relaxed/simple;
-	bh=pBdtcemevuwkSgQ7HfB/ZLJhIRDOKV4JmXMbaUvMzaQ=;
-	h=Date:To:From:Subject:Message-Id; b=U2iGNevwJ4NCLPQNMCX8H+Z3DL8ESBLxBhmKTK6qjuqGgWE8R8FgoDyoL3roprE6Cp4wkNtszyLevUuX+qkwprq4BP8DaCzQDtA9CA2V3Q3A5yudqJmtB22LaBz7vPTJNJKRosrYfiMmRVaRt8VSubspWiGuAToBBdHq+w3TNQQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=imNeySJS; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1787622844; c=relaxed/simple;
+	bh=cedJOA8hGIcsm6DoP/sqrV+t/UHTH6k9/whO4iySTh4=;
+	h=Date:To:From:Subject:Message-Id; b=oNNdNFLQBVYrizCryC0mp7scXsuicWcScaSugldwdactlnm62wslBOQnV82T1gpixPFVS3eLJ22oRq6xyPalC2kPM472BOSOefNnJZzXFw0uVJU1hGDfcdzR9CCHVokz82GzgiPyXPwieoy7KXBwQq++aODSqozOt0/d9ag2HoI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sE9SLCJI; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="imNeySJS"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 921051F000E9;
-	Tue, 25 Aug 2026 01:54:01 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sE9SLCJI"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B5D4E1F00A3A;
+	Tue, 25 Aug 2026 01:54:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1787622841;
-	bh=L5Xa/nquVif7gbdUEpPSNLYs8GemIMvG0yb4PKuZllE=;
+	d=linux-foundation.org; s=korg; t=1787622842;
+	bh=Voa+3ELiotseOJj3TdxYHHK4uLaTr7LSnhh5NRMXkB8=;
 	h=Date:To:From:Subject;
-	b=imNeySJSnVSbM1NVVF5Afg7GZVK1O/FCZ4fFYAhAG88bPWutOTMor760q2Q0uJnq/
-	 TCaAh5cZ1WgSTd8r/9DZxgQx/s8hiU+Du+/4VEb+Tn6nyT+LmCye/U32QCn+NraooQ
-	 snBvhEs8qbA/AriPHt0O9oCf/9ADa1xez7GEhyz8=
-Date: Mon, 24 Aug 2026 18:54:01 -0700
+	b=sE9SLCJIDyVgFSxYVt/aNt0CAOfTxu84ySj6eTzVRETL7ltwdx5PI6yao93iK1VJY
+	 e7A0o2NDxK4H6giaOxmi8Dg74Rv3QrEZPIb0LCL8GC2xD91uu7dCEXVh7oRz1X+BO0
+	 oYCbvO6Qam5dEfyLt6REvuxdAN301HGkvqArDIZI=
+Date: Mon, 24 Aug 2026 18:54:02 -0700
 To: mm-commits@vger.kernel.org,stable@vger.kernel.org,senozhatsky@chromium.org,minchan@kernel.org,axboe@kernel.dk,xialonglong@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] zram-fix-out-of-bounds-access-in-writeback_store.patch removed from -mm tree
-Message-Id: <20260825015401.921051F000E9@smtp.kernel.org>
+Subject: [merged mm-stable] zram-fix-out-of-bounds-access-in-read_block_state.patch removed from -mm tree
+Message-Id: <20260825015402.B5D4E1F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,46 +35,29 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: zram: fix out-of-bounds access in writeback_store()
+     Subject: zram: fix out-of-bounds access in read_block_state()
 has been removed from the -mm tree.  Its filename was
-     zram-fix-out-of-bounds-access-in-writeback_store.patch
+     zram-fix-out-of-bounds-access-in-read_block_state.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Longlong Xia <xialonglong@kylinos.cn>
-Subject: zram: fix out-of-bounds access in writeback_store()
-Date: Tue, 4 Aug 2026 14:59:18 +0800
+Subject: zram: fix out-of-bounds access in read_block_state()
+Date: Tue, 4 Aug 2026 14:59:19 +0800
 
-Patch series "zram: fix stale scan bounds after reinitialization".
+read_block_state() calculates nr_pages before taking dev_lock.  If the
+device is reset and reinitialized with a smaller disksize before lock
+acquisition, nr_pages still describes the old table.  The subsequent loop
+can then call slot_lock() past the end of the newly allocated table.
 
-Both writeback_store() and read_block_state() derive their table scan
-bounds from zram->disksize before acquiring dev_lock.  If the device is
-reset and reinitialized with a smaller disksize between that read and lock
-acquisition, the bound can describe the old table while the scan operates
-on the new one.  This can lead to out-of-bounds slot accesses.
+Read disksize after acquiring dev_lock and checking that the device is
+initialized.  The read lock then keeps the table and its bound stable for
+the duration of the scan.
 
-Move both bound calculations under dev_lock so each bound remains
-consistent with the table throughout its scan.  Keep the fixes separate
-because the affected interfaces originate from different commits and can
-be backported independently.
-
-
-This patch (of 2):
-
-writeback_store() calculates the table scan bounds before taking dev_lock.
-A reset followed by reconfiguration with a smaller disksize can therefore
-replace zram->table while writeback_store() is waiting for the lock.  Once
-it acquires the lock, it sees an initialized device but scans the new
-table using the old upper bound, resulting in an out-of-bounds access.
-
-Calculate the number of pages while holding dev_lock so the scan bound
-matches the table protected by the lock.
-
-Link: https://lore.kernel.org/20260804065919.3970386-1-xialonglong2025@163.com
-Link: https://lore.kernel.org/20260804065919.3970386-2-xialonglong2025@163.com
-Fixes: a939888ec38b ("zram: support idle/huge page writeback")
+Link: https://lore.kernel.org/20260804065919.3970386-3-xialonglong2025@163.com
+Fixes: c0265342bff4 ("zram: introduce zram memory tracking")
 Assisted-by: Codex:gpt-5.6-sol
 Signed-off-by: Longlong Xia <xialonglong@kylinos.cn>
 Reviewed-by: Sergey Senozhatsky <senozhatsky@chromium.org>
@@ -84,32 +67,29 @@ Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ drivers/block/zram/zram_drv.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
---- a/drivers/block/zram/zram_drv.c~zram-fix-out-of-bounds-access-in-writeback_store
+--- a/drivers/block/zram/zram_drv.c~zram-fix-out-of-bounds-access-in-read_block_state
 +++ a/drivers/block/zram/zram_drv.c
-@@ -1235,8 +1235,8 @@ static ssize_t writeback_store(struct de
- 			       const char *buf, size_t len)
- {
- 	struct zram *zram = dev_to_zram(dev);
--	u64 nr_pages = zram->disksize >> PAGE_SHIFT;
--	unsigned long lo = 0, hi = nr_pages;
-+	u64 nr_pages;
-+	unsigned long lo = 0, hi;
- 	struct zram_pp_ctl *pp_ctl = NULL;
- 	struct zram_wb_ctl *wb_ctl = NULL;
- 	char *args, *param, *val;
-@@ -1250,6 +1250,9 @@ static ssize_t writeback_store(struct de
- 	if (!zram->backing_dev)
- 		return -ENODEV;
+@@ -1543,7 +1543,7 @@ static ssize_t read_block_state(struct f
+ 	char *kbuf;
+ 	ssize_t index, written = 0;
+ 	struct zram *zram = file->private_data;
+-	unsigned long nr_pages = zram->disksize >> PAGE_SHIFT;
++	unsigned long nr_pages;
+ 
+ 	kbuf = kvmalloc(count, GFP_KERNEL);
+ 	if (!kbuf)
+@@ -1555,6 +1555,8 @@ static ssize_t read_block_state(struct f
+ 		return -EINVAL;
+ 	}
  
 +	nr_pages = zram->disksize >> PAGE_SHIFT;
-+	hi = nr_pages;
 +
- 	pp_ctl = init_pp_ctl();
- 	if (!pp_ctl)
- 		return -ENOMEM;
+ 	for (index = *ppos; index < nr_pages; index++) {
+ 		int copied;
+ 
 _
 
 Patches currently in -mm which might be from xialonglong@kylinos.cn are
