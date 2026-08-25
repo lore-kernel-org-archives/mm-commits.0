@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B5B8C34E777
-	for <mm-commits@vger.kernel.org>; Tue, 25 Aug 2026 01:55:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 53DD1363C53
+	for <mm-commits@vger.kernel.org>; Tue, 25 Aug 2026 01:55:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787622903; cv=none; b=RXiKXCeH/r7Nwn4hKl2dusfuK+gGIFEFZQStBJeCiooxNLlyf5JtYFrITD6441ed6FMQMka5I8epEqPanW7iWxVNZHaTDIRgwiEUyO21i4kdUgf82XC1WlZrljixP0VvyWPEcQPdGUap+VwHeSCAJgqrbHtaLFBaN4iivwojYJk=
+	t=1787622904; cv=none; b=VhxACMQcwSks4vJnhbSIpYbsP7rNxrBdkRm5tcRf5Ft8Kdku1S+QaT3Hil1sqYvzRXRlajNY0LGIClVMQFsGZr7tQWcX2iyAmwLKq1xqRbxaAja1Y1v4GEwWvRsbkfbkPpHYIw17JDBvm/oXx6060p/cokElplMqYnueOwcxVGg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787622903; c=relaxed/simple;
-	bh=leCBxKAClRoswx7sRMcLln3sXrmBb4yqvo6lXMFYxLM=;
-	h=Date:To:From:Subject:Message-Id; b=f2w8UV+ztSt1x+DW2zfeTrXxhKZS1ZbE3MbLSL409jR5kxfVutwMUKl6HUnEVpyhp7UA6tUDEH92MZgGusc/s7fWBEG6PUZhYeymknt2mGgIQb34n/UBKe93ZgTLXqrNnl1aVjrUPfB9VNx93dBCSHq2LG4AdswZ/tL6Fw+YyJI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=X5NRwzpB; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1787622904; c=relaxed/simple;
+	bh=0a702BUceXLjAc6iMe1TUVKfe1cNHg54QvExIYutSfU=;
+	h=Date:To:From:Subject:Message-Id; b=DO1Sg22PTb2vSMQLhUgfJJP4G0LK8FNfFBmcRjoS9bFnlOhk+vE8skkk+vCHiA0XXd4x3h2s2NSsFcPotp6QB7HSDsfamBgLnrociT5cLkhljj0zeD38GW5wwk06X4jX4lYos15XTMs2Fu1yJBpgOE6ZpxnQveYqVJuzykOZS0M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=aDEi1Ika; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="X5NRwzpB"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8D4FB1F000E9;
-	Tue, 25 Aug 2026 01:55:01 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="aDEi1Ika"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D70601F00A3A;
+	Tue, 25 Aug 2026 01:55:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1787622901;
-	bh=QBVW23gEFcva+JOGCOw+9Vbzs22sFoHN+W25Yd6TT5g=;
+	d=linux-foundation.org; s=korg; t=1787622903;
+	bh=/LTlddBgm4cNZfeqS+OKUdqrX2BYanoGuGUYMAfGsMo=;
 	h=Date:To:From:Subject;
-	b=X5NRwzpBYhxwXf2fR/Arc5WZoOBuz4pZZ4PQHnRFWbB/QY5cN2WftSLF3lRRUVc9r
-	 NjIYW3DeU17hswLsyA+FmV8kC1y7F6tP9T5W//FDzKYn9qCxL+Rk0JUJioqz1b4f4c
-	 fkwK6FqjipLzttbBqYjGaBK7vADYgmfCw1idHwfM=
-Date: Mon, 24 Aug 2026 18:55:01 -0700
-To: mm-commits@vger.kernel.org,yang.lee@linux.alibaba.com,peterx@redhat.com,lance.yang@linux.dev,jhubbard@nvidia.com,jgg@ziepe.ca,cuiyunhui@bytedance.com,david@kernel.org,akpm@linux-foundation.org
+	b=aDEi1Ika+Wuz+7ozN3+5GbMfU+hEvryYqUxTxYQw97fQ6TDO2j2GdqBDqLONYh1OS
+	 z9LUNiHgSi1qYOVJ7jYFLKEUMZRBHgyqYgWOFeMB3xgUHX//DLRGp4OesdDnnTQk0f
+	 Nvj46zkKAutRn9Ci+UccWOjOhvbqZrVosXp9d29w=
+Date: Mon, 24 Aug 2026 18:55:02 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,shuah@kernel.org,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,leitao@debian.org,geert@linux-m68k.org,david@kernel.org,corbet@lwn.net,catalin.marinas@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-gup_test-keep-longterm-pin-state-per-file.patch removed from -mm tree
-Message-Id: <20260825015501.8D4FB1F000E9@smtp.kernel.org>
+Subject: [merged mm-stable] mm-kmemleak-confirm-suspected-leaks-with-a-second-scan.patch removed from -mm tree
+Message-Id: <20260825015502.D70601F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,239 +35,219 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/gup_test: keep longterm pin state per file
+     Subject: mm: kmemleak: confirm suspected leaks with a second scan
 has been removed from the -mm tree.  Its filename was
-     mm-gup_test-keep-longterm-pin-state-per-file.patch
+     mm-kmemleak-confirm-suspected-leaks-with-a-second-scan.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "David Hildenbrand (Arm)" <david@kernel.org>
-Subject: mm/gup_test: keep longterm pin state per file
-Date: Mon, 10 Aug 2026 13:31:14 +0200
+From: Catalin Marinas <catalin.marinas@arm.com>
+Subject: mm: kmemleak: confirm suspected leaks with a second scan
+Date: Mon, 13 Jul 2026 04:48:04 -0700
 
-The pin longterm test currently stores its data globally, shared among
-multiple concurrent users of the interface (multiple open file descriptors
--> multiple "struct file"'s).  That makes the gup_test interface
-problematic to use concurrently: two users, such as concurrent selftest
-runs, can interfere with the same longterm pin state.
+Patch series "mm: kmemleak: reduce transient false positives by confirming
+leaks".
 
-While this has not been observed as a problem so far in practice, let's
-just handle it cleanly.  There could be a way to trigger selftest failures
-by e.g., running the cow.c and gup_longerm.c selftests concurrently, but
-we usually run them sequentially.  Let's add a "Fixes" tag to be safe, but
-not need to CC stable.
+This series combines two kmemleak enhancements that were originally
+submitted separately but both required rebasing after commit 79c37ae3733e9
+("mm/kmemleak: fix checksum computation for per-cpu objects").
 
-Link: https://lore.kernel.org/20260810-gup_test_data-v1-1-fb1d41be5bb4@kernel.org
-Fixes: c77369b437f9 ("mm/gup_test: start/stop/read functionality for PIN LONGTERM test")
-Signed-off-by: David Hildenbrand (Arm) <david@kernel.org>
-Reported-by: yunhui cui <cuiyunhui@bytedance.com>
-Closes: https://lore.kernel.org/r/20260608025043.88087-1-cuiyunhui@bytedance.com
-Tested-by: Yunhui Cui <cuiyunhui@bytedance.com>
-Tested-by: Lance Yang <lance.yang@linux.dev>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Yang Li <yang.lee@linux.alibaba.com>
+The first feature introduces a second scan to confirm suspected leaks:
+
+        https://lore.kernel.org/all/20260709173347.689607-1-catalin.marinas@arm.com/
+
+The second feature adds a module parameter controlling the minimum number
+of consecutive unreferenced scans before a leak is reported, as discussed
+in:
+
+        https://lore.kernel.org/all/20260626-kmemleak_twice-v1-0-ab28f7cc0971@debian.org/
+
+Changes from v1:
+Now that commit 79c37ae3733e9 is upstream, the selftest includes an additional
+priming phase scan as requested by Catalin.
+
+Additionally, I've factored out the leak-detection conditional into a helper
+function to be more digestible for the reader's eye.
+
+This 4-patch series resolves all outstanding kmemleak issues I've been
+tracking.
+
+
+This patch (of 4):
+
+The kmemleak marking phase is not atomic.  While the object graph is
+traversed, the kernel can modify pointers, free objects or allocate new
+ones.  If a reference to an object is moved from one location to another,
+kmemleak scanning may miss it.  We have explicit annotations like
+kmemleak_transient_leak() but identifying and maintaining them is not
+trivial.
+
+Given that such transient leaks are short-lived, rather than just
+reporting such objects as leaks, do another scan to confirm the suspected
+objects.  If no new leaks are found during the first scan, skip the
+confirmation one.
+
+Link: https://lore.kernel.org/20260713-catalin_pto-v1-0-5b93b1131089@debian.org
+Link: https://lore.kernel.org/20260713-catalin_pto-v1-1-5b93b1131089@debian.org
+Signed-off-by: Catalin Marinas <catalin.marinas@arm.com>
+Assisted-by: Claude:claude-opus-4-8
+Signed-off-by: Breno Leitao <leitao@debian.org>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup_test.c |   94 +++++++++++++++++++++++++++++++-----------------
- 1 file changed, 62 insertions(+), 32 deletions(-)
+ mm/kmemleak.c |   57 +++++++++++++++++++++++++++++++++++++++++++++---
+ 1 file changed, 54 insertions(+), 3 deletions(-)
 
---- a/mm/gup_test.c~mm-gup_test-keep-longterm-pin-state-per-file
-+++ a/mm/gup_test.c
-@@ -8,6 +8,12 @@
- #include <linux/highmem.h>
- #include "gup_test.h"
+--- a/mm/kmemleak.c~mm-kmemleak-confirm-suspected-leaks-with-a-second-scan
++++ a/mm/kmemleak.c
+@@ -175,6 +175,8 @@ struct kmemleak_object {
+ #define OBJECT_PHYS		(1 << 4)
+ /* flag set for per-CPU pointers */
+ #define OBJECT_PERCPU		(1 << 5)
++/* flag set on an object left unreferenced by the full scan, pending confirmation */
++#define OBJECT_SUSPECT		(1 << 6)
  
-+struct gup_test_data {
-+	struct mutex longterm_mutex;
-+	struct page **longterm_pages;
-+	unsigned long longterm_nr_pages;
-+};
+ /* set when __remove_object() called */
+ #define DELSTATE_REMOVED	(1 << 0)
+@@ -235,6 +237,8 @@ static unsigned long jiffies_min_age;
+ static unsigned long jiffies_last_scan;
+ /* delay between automatic memory scannings */
+ static unsigned long jiffies_scan_wait;
++/* number of objects flagged OBJECT_SUSPECT during the current scan */
++static int nr_suspects;
+ /* enables or disables the task stacks scanning */
+ static int kmemleak_stack_scan = 1;
+ /* protects the memory scanning, parameters and debug/kmemleak file access */
+@@ -1440,6 +1444,11 @@ static void update_refs(struct kmemleak_
+ 	 */
+ 	object->count++;
+ 	if (color_gray(object)) {
++		/* referenced after all, no longer a suspect */
++		if (object->flags & OBJECT_SUSPECT) {
++			object->flags &= ~OBJECT_SUSPECT;
++			nr_suspects--;
++		}
+ 		/* put_object() called when removing from gray_list */
+ 		WARN_ON(!get_object(object));
+ 		list_add_tail(&object->gray_list, &gray_list);
+@@ -1844,16 +1853,16 @@ static void dedup_flush(struct xarray *d
+  * kernel's standard allocators. This function must be called with the
+  * scan_mutex held.
+  */
+-static void kmemleak_scan(void)
++static int __kmemleak_scan(bool full)
+ {
+ 	struct kmemleak_object *object;
+ 	struct zone *zone;
+ 	int __maybe_unused i;
+-	struct xarray dedup;
+-	int new_leaks = 0;
+ 	int stop = 0;
+ 
+ 	jiffies_last_scan = jiffies;
++	if (full)
++		nr_suspects = 0;
+ 
+ 	/* prepare the kmemleak_object's */
+ 	rcu_read_lock();
+@@ -1883,6 +1892,8 @@ static void kmemleak_scan(void)
+ 
+ 		/* reset the reference count (whiten the object) */
+ 		object->count = 0;
++		if (full)
++			object->flags &= ~OBJECT_SUSPECT;
+ 		if (color_gray(object) && get_object(object))
+ 			list_add_tail(&object->gray_list, &gray_list);
+ 
+@@ -1950,6 +1961,10 @@ static void kmemleak_scan(void)
+ scan_gray:
+ 	scan_gray_list();
+ 
++	/* a confirmation scan does not look for modified objects */
++	if (!full)
++		return nr_suspects;
 +
- static void put_back_pages(unsigned int cmd, struct page **pages,
- 			   unsigned long nr_pages, unsigned int gup_test_flags)
- {
-@@ -208,23 +214,20 @@ free_pages:
- 	return ret;
- }
- 
--static DEFINE_MUTEX(pin_longterm_test_mutex);
--static struct page **pin_longterm_test_pages;
--static unsigned long pin_longterm_test_nr_pages;
--
--static inline void pin_longterm_test_stop(void)
-+static inline void pin_longterm_test_stop(struct gup_test_data *data)
- {
--	if (pin_longterm_test_pages) {
--		if (pin_longterm_test_nr_pages)
--			unpin_user_pages(pin_longterm_test_pages,
--					 pin_longterm_test_nr_pages);
--		kvfree(pin_longterm_test_pages);
--		pin_longterm_test_pages = NULL;
--		pin_longterm_test_nr_pages = 0;
-+	if (data->longterm_pages) {
-+		if (data->longterm_nr_pages)
-+			unpin_user_pages(data->longterm_pages,
-+					 data->longterm_nr_pages);
-+		kvfree(data->longterm_pages);
-+		data->longterm_pages = NULL;
-+		data->longterm_nr_pages = 0;
- 	}
- }
- 
--static inline int pin_longterm_test_start(unsigned long arg)
-+static inline int pin_longterm_test_start(struct gup_test_data *data,
-+		unsigned long arg)
- {
- 	long nr_pages, cur_pages, addr, remaining_pages;
- 	int gup_flags = FOLL_LONGTERM;
-@@ -233,7 +236,7 @@ static inline int pin_longterm_test_star
- 	int ret = 0;
- 	bool fast;
- 
--	if (pin_longterm_test_pages)
-+	if (data->longterm_pages)
- 		return -EINVAL;
- 
- 	if (copy_from_user(&args, (void __user *)arg, sizeof(args)))
-@@ -263,12 +266,12 @@ static inline int pin_longterm_test_star
- 		return -EINTR;
- 	}
- 
--	pin_longterm_test_pages = pages;
--	pin_longterm_test_nr_pages = 0;
-+	data->longterm_pages = pages;
-+	data->longterm_nr_pages = 0;
- 
--	while (nr_pages - pin_longterm_test_nr_pages) {
--		remaining_pages = nr_pages - pin_longterm_test_nr_pages;
--		addr = args.addr + pin_longterm_test_nr_pages * PAGE_SIZE;
-+	while (nr_pages - data->longterm_nr_pages) {
-+		remaining_pages = nr_pages - data->longterm_nr_pages;
-+		addr = args.addr + data->longterm_nr_pages * PAGE_SIZE;
- 
- 		if (fast)
- 			cur_pages = pin_user_pages_fast(addr, remaining_pages,
-@@ -277,11 +280,11 @@ static inline int pin_longterm_test_star
- 			cur_pages = pin_user_pages(addr, remaining_pages,
- 						   gup_flags, pages);
- 		if (cur_pages < 0) {
--			pin_longterm_test_stop();
-+			pin_longterm_test_stop(data);
- 			ret = cur_pages;
- 			break;
+ 	/*
+ 	 * Check for new or unreferenced objects modified since the previous
+ 	 * scan and color them gray until the next scan.
+@@ -1972,6 +1987,11 @@ scan_gray:
+ 			/* color it gray temporarily */
+ 			object->count = object->min_count;
+ 			list_add_tail(&object->gray_list, &gray_list);
++		} else if (unreferenced_object(object) &&
++			   !(object->flags & OBJECT_REPORTED)) {
++			/* flag the objects left unreferenced by this scan */
++			object->flags |= OBJECT_SUSPECT;
++			nr_suspects++;
  		}
--		pin_longterm_test_nr_pages += cur_pages;
-+		data->longterm_nr_pages += cur_pages;
- 		pages += cur_pages;
+ 		raw_spin_unlock_irq(&object->lock);
  	}
+@@ -1982,6 +2002,26 @@ scan_gray:
+ 	 */
+ 	scan_gray_list();
  
-@@ -290,19 +293,20 @@ static inline int pin_longterm_test_star
- 	return ret;
- }
- 
--static inline int pin_longterm_test_read(unsigned long arg)
-+static inline int pin_longterm_test_read(struct gup_test_data *data,
-+		unsigned long arg)
- {
- 	__u64 user_addr;
- 	unsigned long i;
- 
--	if (!pin_longterm_test_pages)
-+	if (!data->longterm_pages)
- 		return -EINVAL;
- 
- 	if (copy_from_user(&user_addr, (void __user *)arg, sizeof(user_addr)))
- 		return -EFAULT;
- 
--	for (i = 0; i < pin_longterm_test_nr_pages; i++) {
--		void *addr = kmap_local_page(pin_longterm_test_pages[i]);
-+	for (i = 0; i < data->longterm_nr_pages; i++) {
-+		void *addr = kmap_local_page(data->longterm_pages[i]);
- 		unsigned long ret;
- 
- 		ret = copy_to_user((void __user *)(unsigned long)user_addr, addr,
-@@ -318,25 +322,26 @@ static inline int pin_longterm_test_read
- static long pin_longterm_test_ioctl(struct file *filep, unsigned int cmd,
- 				    unsigned long arg)
- {
-+	struct gup_test_data *data = filep->private_data;
- 	int ret = -EINVAL;
- 
--	if (mutex_lock_killable(&pin_longterm_test_mutex))
-+	if (mutex_lock_killable(&data->longterm_mutex))
- 		return -EINTR;
- 
- 	switch (cmd) {
- 	case PIN_LONGTERM_TEST_START:
--		ret = pin_longterm_test_start(arg);
-+		ret = pin_longterm_test_start(data, arg);
- 		break;
- 	case PIN_LONGTERM_TEST_STOP:
--		pin_longterm_test_stop();
-+		pin_longterm_test_stop(data);
- 		ret = 0;
- 		break;
- 	case PIN_LONGTERM_TEST_READ:
--		ret = pin_longterm_test_read(arg);
-+		ret = pin_longterm_test_read(data, arg);
- 		break;
- 	}
- 
--	mutex_unlock(&pin_longterm_test_mutex);
-+	mutex_unlock(&data->longterm_mutex);
- 	return ret;
- }
- 
-@@ -375,15 +380,40 @@ static long gup_test_ioctl(struct file *
- 	return 0;
- }
- 
-+static int gup_test_open(struct inode *inode, struct file *file)
-+{
-+	struct gup_test_data *data;
-+	int ret;
-+
-+	data = kzalloc_obj(*data);
-+	if (!data)
-+		return -ENOMEM;
-+
-+	ret = nonseekable_open(inode, file);
-+	if (ret) {
-+		kfree(data);
-+		return ret;
-+	}
-+
-+	mutex_init(&data->longterm_mutex);
-+	file->private_data = data;
-+	return 0;
++	return nr_suspects;
 +}
 +
- static int gup_test_release(struct inode *inode, struct file *file)
- {
--	pin_longterm_test_stop();
-+	struct gup_test_data *data = file->private_data;
++/*
++ * Scan the memory and report the unreferenced objects as leaks. Must be
++ * called with the scan_mutex held.
++ */
++static void kmemleak_scan(void)
++{
++	struct kmemleak_object *object;
++	struct xarray dedup;
++	int new_leaks = 0;
 +
-+	pin_longterm_test_stop(data);
-+	mutex_destroy(&data->longterm_mutex);
-+	kfree(data);
-+	file->private_data = NULL;
++	/*
++	 * Full scan. Objects left unreferenced are flagged OBJECT_SUSPECT and
++	 * counted in the return value; nothing to confirm or report otherwise.
++	 */
++	if (!__kmemleak_scan(true))
++		return;
++
+ 	/*
+ 	 * If scanning was stopped do not report any new unreferenced objects.
+ 	 */
+@@ -1989,6 +2029,16 @@ scan_gray:
+ 		return;
  
- 	return 0;
- }
- 
- static const struct file_operations gup_test_fops = {
--	.open = nonseekable_open,
-+	.open = gup_test_open,
- 	.unlocked_ioctl = gup_test_ioctl,
- 	.compat_ioctl = compat_ptr_ioctl,
- 	.release = gup_test_release,
+ 	/*
++	 * A live object whose only reference is moved by, for example, a
++	 * concurrent RCU update can be missed for one scan and reported as a
++	 * transient false positive. Scan again and only report the objects
++	 * left unreferenced (still flagged OBJECT_SUSPECT) by both scans.
++	 */
++	__kmemleak_scan(false);
++	if (scan_should_stop())
++		return;
++
++	/*
+ 	 * Scanning result reporting. When verbose printing is enabled, dedupe
+ 	 * by stackdepot trace_handle so each unique backtrace is logged once
+ 	 * per scan, annotated with the number of objects that share it. The
+@@ -2015,6 +2065,7 @@ scan_gray:
+ 		trace_handle = 0;
+ 		dedup_print = false;
+ 		if (unreferenced_object(object) &&
++		    (object->flags & OBJECT_SUSPECT) &&
+ 		    !(object->flags & OBJECT_REPORTED)) {
+ 			object->flags |= OBJECT_REPORTED;
+ 			if (kmemleak_verbose) {
 _
 
-Patches currently in -mm which might be from david@kernel.org are
+Patches currently in -mm which might be from catalin.marinas@arm.com are
 
 
