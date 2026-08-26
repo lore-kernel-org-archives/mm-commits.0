@@ -1,138 +1,187 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.12])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B0FA52F7EF5;
-	Tue, 25 Aug 2026 17:44:51 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 716692472AF
+	for <mm-commits@vger.kernel.org>; Wed, 26 Aug 2026 01:14:50 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.12
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787679893; cv=none; b=ZvImlPeC7SybexUZ4W0caGJ//F8OrQ5V9aaiKZJLJS6CtJGlSHnubUPjKmBsQNK0Ka9D16XYEF2sKIucOnZQBFwR2EKxp0xGnv7xtdydOYSXDUG+3JGDzfUsxtBzL7wzEooPoch67ezxed6EzLhMgJ8rw0AlvrrDvdvk3BN8u+0=
+	t=1787706892; cv=none; b=sa5XrtxwJNQEGZvlW33Y9qE/4It8wFND6p761cpm944yuCxXkKYFCNrjFuQyAjNpy/0lW7ZcHc++9iIWuC4zzoeVxrIgl/rBVByVnXQkIA/rk3GaRaOUt6fSO6OQzKpKzVqMm8tR1KNloMPdu1/G9WxsuptZ7lyXKk0AnFjs4ns=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787679893; c=relaxed/simple;
-	bh=IvWFykD79hZlQAf9Yz33kNHckU0lf7DJHusgEUFmvI4=;
-	h=Date:To:From:Subject:Message-Id; b=Cbxrj1yy0QnPlX2fKj7Tnca1kg5rt93GMQcGzsRJDvq9eCQA4Awpn5mJ53LxP7JvkF2b1AcZbfZuu8WRIv/ZmAGjOpCOQUgbMXKLl5o19HdzHssa6ZSNVsWCgVZERCmY08O8f58H4r3QCYjDTjNC791c6B3b1MKNf6umH53wz78=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KtXVxjWJ; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1787706892; c=relaxed/simple;
+	bh=MN9m1g5Yz/k5WhNsRHT4dQtbYlDO4tuN8qaTTI6cHE0=;
+	h=Date:From:To:Cc:Subject:Message-ID; b=RHttaZxbbT0dvupyO4OqxO+zCAwmphdOc3rp3eCJy4GdAcK2CXsjPYnaY/kHIjUdbSBm07s+iA9gATWMntYTTdXR/Ggt+1MyBKLMHX2xXUc8/2xGqJ1K6kqcCIKmApus04Zqn+FHFa7YRI6RXs+fGa7pSpb119IUdkF4wOy8l9s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=Co0gN+qi; arc=none smtp.client-ip=192.198.163.12
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KtXVxjWJ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5EDE61F000E9;
-	Tue, 25 Aug 2026 17:44:51 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1787679891;
-	bh=uFyJO5DeWFx0FRxNd0kZ245YNDEH+Lh6CCL2arLJneE=;
-	h=Date:To:From:Subject;
-	b=KtXVxjWJXF0027Zk2GiBmK0RV49U+VN7gsp0S9l+bpjf1TRpIL7c1D2PSuVl0IpaL
-	 dXoA9Q02Pv0265Dq4Yqr14PraYF9Gd+sSRjxH01Lgtr1AyutztdTUXkQAU0uM7Px21
-	 0HuFxdRLFMwzCwUrp0puzyevMP4cxS0CIfWdkdrs=
-Date: Tue, 25 Aug 2026 10:44:50 -0700
-To: mm-commits@vger.kernel.org,tony.luck@intel.com,stable@vger.kernel.org,shinichiro.kawasaki@wdc.com,reinette.chatre@intel.com,nilay@linux.ibm.com,kbusch@kernel.org,edumazet@google.com,akpm@linux-foundation.org
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + revert-once-dont-use-a-work-queue-to-reset-sleepable-static-key.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260825174451.5EDE61F000E9@smtp.kernel.org>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="Co0gN+qi"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1787706890; x=1819242890;
+  h=date:from:to:cc:subject:message-id;
+  bh=MN9m1g5Yz/k5WhNsRHT4dQtbYlDO4tuN8qaTTI6cHE0=;
+  b=Co0gN+qiImnPUPWwMUc49GG8+2Ru7RmCW3bhZ6RdYVNqlX5mbo/l5Znb
+   pSg3JF2X2YfbX1QFgrJFG9Mz23EUCvfeZmlm3R5Ss7CajmcKzs6HPQMh8
+   A4KFMlzIwpI9FFNRpVqb8nXYR+90tKsO+ZnSyRN8gKVnFN0j4K2+xncqL
+   cgYLgCUWg2YFz4FcBcL3Lj1FaNspl06bILmLH/FfFPfi7EKIN2PdIKLPP
+   OCWYLxhqHBO4WmUzjG+tH167B5RGdxEuu+wI7mBtO54w57KBSMIIkiOLS
+   djXjiqLhJOPpFK53vg5NhxIdH2hIyFNkyKXENhNnjDqd8MnGd+7rCguIh
+   Q==;
+X-CSE-ConnectionGUID: T1P2DzPpSba379xzf6qyGQ==
+X-CSE-MsgGUID: +2FTPtk2RACf4XWk7SOkxg==
+X-IronPort-AV: E=McAfee;i="6800,10657,11886"; a="92002193"
+X-IronPort-AV: E=Sophos;i="6.25,243,1779174000"; 
+   d="scan'208";a="92002193"
+Received: from orviesa004.jf.intel.com ([10.64.159.144])
+  by fmvoesa106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 Aug 2026 18:14:49 -0700
+X-CSE-ConnectionGUID: SAdetNXoTXyvgPnReeOsHg==
+X-CSE-MsgGUID: Sf/SUP8+Q/CJ/oeYgx/ioA==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.25,243,1779174000"; 
+   d="scan'208";a="271224585"
+Received: from lkp-server01.sh.intel.com (HELO 3532383e6126) ([10.239.97.150])
+  by orviesa004.jf.intel.com with ESMTP; 25 Aug 2026 18:14:48 -0700
+Received: from kbuild by 3532383e6126 with local (Exim 4.98.2)
+	(envelope-from <lkp@intel.com>)
+	id 1wz2E0-000000006iV-2Odw;
+	Wed, 26 Aug 2026 01:14:44 +0000
+Date: Wed, 26 Aug 2026 09:14:19 +0800
+From: kernel test robot <lkp@intel.com>
+To: David Hildenbrand <david@kernel.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>,
+ Linux Memory Management List <linux-mm@kvack.org>,
+ mm-commits@vger.kernel.org
+Subject: [akpm-mm:mm-new] BUILD SUCCESS
+ 1a46b1e97bde62afa7d925bb0dcd9f9748a1d7c3
+Message-ID: <202608260904.mMJZXd01-lkp@intel.com>
+User-Agent: s-nail v14.9.25
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
+tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm.git mm-new
+branch HEAD: 1a46b1e97bde62afa7d925bb0dcd9f9748a1d7c3  mm/swap, PM: hibernate: atomically replace hibernation pin
 
-The patch titled
-     Subject: Revert "once: don't use a work queue to reset sleepable static key"
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     revert-once-dont-use-a-work-queue-to-reset-sleepable-static-key.patch
+elapsed time: 854m
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/revert-once-dont-use-a-work-queue-to-reset-sleepable-static-key.patch
+configs tested: 108
+configs skipped: 1
 
-This patch will later appear in the mm-hotfixes-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+The following configs have been built successfully.
+More configs may be tested in the coming days.
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+tested configs:
+alpha                            allnoconfig    gcc-16.1.0
+alpha                           allyesconfig    gcc-16.1.0
+alpha                              defconfig    gcc-16.1.0
+arc                             allmodconfig    gcc-16.1.0
+arc                             allyesconfig    gcc-16.1.0
+arc                  randconfig-001-20260825    gcc-8.5.0
+arc                  randconfig-002-20260825    gcc-8.5.0
+arm                  randconfig-001-20260825    clang-20
+arm                  randconfig-002-20260825    gcc-8.5.0
+arm                  randconfig-003-20260825    clang-24
+arm                  randconfig-004-20260825    gcc-13.4.0
+arm64                         randconfig-001    gcc-14.3.0
+arm64                randconfig-001-20260825    gcc-13.4.0
+arm64                randconfig-002-20260825    clang-24
+arm64                randconfig-003-20260825    clang-24
+arm64                randconfig-004-20260825    gcc-8.5.0
+csky                            allmodconfig    gcc-16.1.0
+csky                 randconfig-001-20260825    gcc-11.5.0
+csky                 randconfig-002-20260825    gcc-9.5.0
+hexagon              randconfig-001-20260825    clang-17
+hexagon              randconfig-002-20260825    clang-24
+i386                            allmodconfig    gcc-14
+i386       buildonly-randconfig-001-20260825    clang-22
+i386       buildonly-randconfig-002-20260825    gcc-14
+i386       buildonly-randconfig-003-20260825    gcc-12
+i386       buildonly-randconfig-004-20260825    clang-22
+i386       buildonly-randconfig-005-20260825    gcc-14
+i386       buildonly-randconfig-006-20260825    gcc-14
+i386                 randconfig-001-20260825    clang-22
+i386                 randconfig-001-20260826    gcc-14
+i386                 randconfig-002-20260825    gcc-14
+i386                 randconfig-002-20260826    clang-22
+i386                 randconfig-003-20260825    clang-22
+i386                 randconfig-003-20260826    clang-22
+i386                 randconfig-004-20260826    clang-22
+i386                 randconfig-005-20260825    gcc-14
+i386                 randconfig-005-20260826    gcc-14
+i386                 randconfig-006-20260825    gcc-14
+i386                 randconfig-006-20260826    clang-22
+i386                 randconfig-007-20260826    gcc-14
+i386                 randconfig-011-20260825    gcc-14
+i386                 randconfig-012-20260825    clang-22
+i386                 randconfig-013-20260825    clang-22
+i386                 randconfig-014-20260825    clang-22
+i386                 randconfig-015-20260825    clang-22
+i386                 randconfig-016-20260825    gcc-13
+i386                 randconfig-017-20260825    clang-22
+loongarch                          defconfig    clang-24
+loongarch            randconfig-001-20260825    gcc-16.1.0
+loongarch            randconfig-002-20260825    gcc-16.1.0
+nios2                           allmodconfig    gcc-11.5.0
+nios2                            allnoconfig    gcc-11.5.0
+nios2                randconfig-001-20260825    gcc-9.5.0
+nios2                randconfig-002-20260825    gcc-8.5.0
+parisc                          allmodconfig    gcc-16.1.0
+parisc                          allyesconfig    gcc-16.1.0
+parisc                             defconfig    gcc-16.1.0
+parisc               randconfig-001-20260825    gcc-12.5.0
+parisc               randconfig-002-20260825    gcc-14.3.0
+powerpc                     chrp32_defconfig    clang-24
+powerpc              randconfig-001-20260825    clang-24
+powerpc              randconfig-002-20260825    gcc-8.5.0
+powerpc64            randconfig-001-20260825    clang-24
+powerpc64            randconfig-002-20260825    clang-24
+riscv                randconfig-001-20260825    gcc-13.4.0
+riscv                randconfig-002-20260825    gcc-15.2.0
+s390                 randconfig-001-20260825    clang-24
+s390                 randconfig-002-20260825    clang-24
+sh                                 defconfig    gcc-16.1.0
+sh                   randconfig-001-20260825    gcc-15.2.0
+sh                   randconfig-002-20260825    gcc-9.5.0
+sparc                randconfig-001-20260825    gcc-8.5.0
+sparc                randconfig-002-20260825    gcc-12.5.0
+sparc64              randconfig-001-20260825    gcc-10.5.0
+sparc64              randconfig-002-20260825    clang-24
+um                   randconfig-001-20260825    gcc-14
+um                   randconfig-002-20260825    gcc-12
+x86_64              buildonly-randconfig-001    gcc-12
+x86_64     buildonly-randconfig-001-20260825    gcc-12
+x86_64     buildonly-randconfig-002-20260825    gcc-14
+x86_64     buildonly-randconfig-003-20260825    clang-22
+x86_64     buildonly-randconfig-004-20260825    gcc-14
+x86_64     buildonly-randconfig-005-20260825    clang-22
+x86_64     buildonly-randconfig-006-20260825    clang-22
+x86_64                                 kexec    clang-22
+x86_64                        randconfig-001    gcc-14
+x86_64               randconfig-001-20260825    clang-22
+x86_64               randconfig-002-20260825    clang-22
+x86_64               randconfig-003-20260825    clang-22
+x86_64               randconfig-004-20260825    clang-22
+x86_64               randconfig-005-20260825    clang-22
+x86_64               randconfig-006-20260825    gcc-13
+x86_64               randconfig-011-20260825    gcc-14
+x86_64               randconfig-012-20260825    gcc-14
+x86_64               randconfig-013-20260825    clang-22
+x86_64               randconfig-014-20260825    gcc-12
+x86_64               randconfig-015-20260825    gcc-14
+x86_64               randconfig-016-20260825    gcc-14
+x86_64                        randconfig-071    gcc-14
+x86_64               randconfig-071-20260825    clang-22
+x86_64               randconfig-072-20260825    clang-22
+x86_64               randconfig-073-20260825    clang-22
+x86_64               randconfig-074-20260825    gcc-14
+x86_64               randconfig-075-20260825    clang-22
+x86_64               randconfig-076-20260825    gcc-14
+x86_64                          rhel-9.4-bpf    gcc-14
+xtensa               randconfig-001-20260825    gcc-14.3.0
+xtensa               randconfig-002-20260825    gcc-12.5.0
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
-
-------------------------------------------------------
-From: Eric Dumazet <edumazet@google.com>
-Subject: Revert "once: don't use a work queue to reset sleepable static key"
-Date: Tue, 25 Aug 2026 14:25:15 +0000
-
-This reverts commit e8eef69a99f185e75909adb24ab93d706e07bf27.
-
-While DO_ONCE_SLEEPABLE() is used from sleepable/process context, callers
-may still be holding arbitrary subsystem locks.
-
-For instance, __inet_hash_connect() uses get_random_sleepable_once() which
-invokes DO_ONCE_SLEEPABLE() while holding the socket lock (sk_lock):
-
-  lock_sock(sk)
-    __inet_hash_connect()
-      get_random_sleepable_once()
-        DO_ONCE_SLEEPABLE()
-          __do_once_sleepable_done()
-            static_branch_disable()
-              static_key_disable()
-                cpus_read_lock()
-
-Calling static_branch_disable() directly from __do_once_sleepable_done()
-causes static_key_disable() to synchronously acquire cpus_read_lock()
-(cpu_hotplug_lock) and jump_label_mutex inside the caller's lock context.
-
-This introduces an unwanted lockdep dependency:
-  sk_lock -> cpu_hotplug_lock
-
-Because cpu_hotplug_lock depends on fs_reclaim (via workqueue CPU bringup
-allocating memory with GFP_KERNEL), and storage/block layers (such as
-NVMe-TCP) acquire sk_lock during I/O dispatch, lockdep reports circular
-locking dependencies:
-
-  set->srcu -> sk_lock -> cpu_hotplug_lock -> fs_reclaim -> q_usage_counter -> elevator_lock -> set->srcu
-
-This false positive previously prompted commit 19bdb70c77d3 ("nvme-tcp:
-lockdep: use dynamic lockdep keys per socket instance") to work around the
-warning using per-socket dynamic keys in NVMe-TCP.  That in turn broke
-asynchronous socket teardown and caused syzbot warnings in
-tcp_tsq_handler().
-
-Restoring once_disable_jump() in __do_once_sleepable_done() ensures that
-static_branch_disable() is executed asynchronously from a system workqueue
-without holding the caller's locks.
-
-Link: https://lore.kernel.org/20260825142515.1965654-1-edumazet@google.com
-Fixes: e8eef69a99f1 ("once: don't use a work queue to reset sleepable static key")
-Signed-off-by: Eric Dumazet <edumazet@google.com>
-Closes: https://lore.kernel.org/lkml/ao0mwtt8ePAINFni@shinhome/
-Reported-by: Shin'ichiro Kawasaki <shinichiro.kawasaki@wdc.com>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Reinette Chatre <reinette.chatre@intel.com>
-Cc: Keith Busch <kbusch@kernel.org>
-Cc: Nilay Shroff <nilay@linux.ibm.com>
-Cc: <stable@vger.kernel.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- lib/once.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
---- a/lib/once.c~revert-once-dont-use-a-work-queue-to-reset-sleepable-static-key
-+++ a/lib/once.c
-@@ -93,6 +93,6 @@ void __do_once_sleepable_done(bool *done
- {
- 	*done = true;
- 	mutex_unlock(&once_mutex);
--	static_branch_disable(once_key);
-+	once_disable_jump(once_key, mod);
- }
- EXPORT_SYMBOL(__do_once_sleepable_done);
-_
-
-Patches currently in -mm which might be from edumazet@google.com are
-
-mm-mempolicy-fix-sleeping-allocation-in-alloc_pages_bulk_weighted_interleave.patch
-revert-once-dont-use-a-work-queue-to-reset-sleepable-static-key.patch
-
+--
+0-DAY CI Kernel Test Service
+https://github.com/intel/lkp-tests/wiki
