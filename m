@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6FFF7379C33;
-	Thu, 27 Aug 2026 20:08:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EE6DA353A6B;
+	Thu, 27 Aug 2026 20:08:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787861309; cv=none; b=VjgYQRxhqDsbQlksLsLSkGLjC/UaOmXoQ3OIeafC2wItrCY1/O8rXbAe+8Ce4WQofejPT1ZS3ZCGx9EJTaxOv1lVU20BwIwpFK9Jv8PZhdL0KSmYt5R76qDFJ5OCnfxZIAG2XenQn4F1swPm12Dtunot/EiTnVLK57gdFjXKDu4=
+	t=1787861310; cv=none; b=ZyTtouqzI7UuGMmjjd36y2kHwVEQ97MaivqSbi+iIrksbVGWhnFAmODH+u+sTu3pr+mKk80Za/muzvh2YdrcJsvhNF54G941IIckzTzdfuSjC4gXhBiQphqLcq3C76LxD18MhU2ZIe90q4k2dlZ4QEa7cvCcjPOgVWnKg0Hztlo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787861309; c=relaxed/simple;
-	bh=49CrmBTXJ/WTzXvxf1DuKPMLE7TJH+cZM6C61o46aJY=;
-	h=Date:To:From:Subject:Message-Id; b=ss7Bizg0+o7bQzP1Fl5c/nEFw3x0Wk9oyD1Oo3Ld3/wpHz2pMfrWCx1+SG0RACb4tLEg64jnzctpkaorhDlUml9jkPiB6t/IdjXdCLgp67SNRkitblCHm5q+XCi/koOR2c/JAezx5coMn9ljnlEt9H0NZ35VVe2AWkI5ZcorBPE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IwdR5RGx; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1787861310; c=relaxed/simple;
+	bh=aLNvl+PiCR2DNljdb8ZBx+3dqBERKJ039Uqiw4AE2O0=;
+	h=Date:To:From:Subject:Message-Id; b=D+yRW+ryY/iE+FaTgD/D7nWlmkop5/yyg0OtwJDC1w/BwRtKKxgZKSQp47p13AruwOoM/93guWEY2nfek/Z6X71kJrujLinO/i0BYufUF7L9Z5Y+2PtFvydwoD/Fz93jMBU6pTdWaYjFyY90+9LAK/dsHuwj2gw89wS3nt6oFFE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=llmlWQKD; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IwdR5RGx"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0469F1F000E9;
-	Thu, 27 Aug 2026 20:08:23 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="llmlWQKD"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3EF451F00A3E;
+	Thu, 27 Aug 2026 20:08:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1787861304;
-	bh=/YUEziEWluRjG2aOf5jIPZe3zDXgWQg3+fpnSo/trgc=;
+	d=linux-foundation.org; s=korg; t=1787861308;
+	bh=1HjYwhi7HLWnfV/Nf6IEVvNyxLPFg2/4DZnZLASQuME=;
 	h=Date:To:From:Subject;
-	b=IwdR5RGxtYRNCCwcOvD7HLgHX+atQC5VvkzwtRiEpTIge6rhsyte6MjBgyvU8FChu
-	 L8wJrjbAq4P8gliBDK96Nqj+DQVxgvPACWz7RFJFor1dSmG3iU28ymadrx+LTAaq9h
-	 OID2hhmzl0y0SobB9GrMWVXSEsL1BgZ0eXyP+8AE=
-Date: Thu, 27 Aug 2026 13:08:23 -0700
-To: mm-commits@vger.kernel.org,tujinjiang@huawei.com,stable@vger.kernel.org,osalvador@suse.de,muchun.song@linux.dev,david@kernel.org,xialonglong@kylinos.cn,akpm@linux-foundation.org
+	b=llmlWQKDDwIMZ08vvnUx4GGR8WWnJItmliFOW1PbHbMk8PneEUGnEa+GOMbSQYkhv
+	 LHCMuDM9FYXquz/i7nq/IRlQdfZOFr/p/3J/9hcPgP66EaxQzhvdl7bdL9dzcGJ0T3
+	 oQoYPgDX28e3HAmnxc1qCfbYE9s3EmhRw+SgWLkA=
+Date: Thu, 27 Aug 2026 13:08:27 -0700
+To: mm-commits@vger.kernel.org,surenb@google.com,stable@vger.kernel.org,rppt@kernel.org,peterx@redhat.com,foxieflakey@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-hugetlb-keep-max_huge_pages-when-dissolving-surplus-folios.patch removed from -mm tree
-Message-Id: <20260827200824.0469F1F000E9@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] userfaultfd-reset-err-to-be-0-when-move_pages_ptes-succeeded.patch removed from -mm tree
+Message-Id: <20260827200828.3EF451F00A3E@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,68 +35,55 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/hugetlb: keep max_huge_pages when dissolving surplus folios
+     Subject: userfaultfd: reset err to be 0 when move_pages_ptes succeeded
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-keep-max_huge_pages-when-dissolving-surplus-folios.patch
+     userfaultfd-reset-err-to-be-0-when-move_pages_ptes-succeeded.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Longlong Xia <xialonglong@kylinos.cn>
-Subject: mm/hugetlb: keep max_huge_pages when dissolving surplus folios
-Date: Fri, 14 Aug 2026 16:30:27 +0800
+From: Bryan Lim <foxieflakey@gmail.com>
+Subject: userfaultfd: reset err to be 0 when move_pages_ptes succeeded
+Date: Wed, 19 Aug 2026 10:08:24 +0700 (WIB)
 
-dissolve_free_hugetlb_folio() can remove a free folio as surplus when its
-node has surplus pages.  In that case remove_hugetlb_folio() decrements
-both nr_huge_pages and surplus_huge_pages, leaving the persistent pool
-size unchanged.
+During move_pages() operation, when move_pages_ptes() returns EAGAIN, the
+error code is not cleared even after we processed it.  This leads to a
+successful retry but then the same pages are retried again due to the
+stale error code.  This time move fails because pages are already moved,
+loop is terminated and move_pages() reports a failure.  Clear the error
+code once we processes EAGAIN.
 
-Updating max_huge_pages as if a persistent folio had been removed can
-therefore corrupt the persistent pool target and underflow it when
-max_huge_pages is zero.  Keep max_huge_pages unchanged for surplus folios,
-including the vmemmap restoration rollback path.
-
-Link: https://lore.kernel.org/20260814083027.1419487-1-xialonglong2025@163.com
-Fixes: cb402bbdabca ("mm/hugetlb: fix surplus pages in dissolve_free_huge_page()")
-Assisted-by: Codex:gpt-5.6-sol
-Signed-off-by: Longlong Xia <xialonglong@kylinos.cn>
-Reviewed-by: Muchun Song <muchun.song@linux.dev>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Jinjiang Tu <tujinjiang@huawei.com>
-Cc: Longlong Xia <xialonglong@kylinos.cn>
-Cc: Oscar Salvador <osalvador@suse.de>
+Link: https://lore.kernel.org/e1e0b5f8-c3c6-0537-670b-4397f822f980@gmail.com
+Fixes: 50944692052b ("userfaultfd: opportunistic TLB-flush batching for present pages in MOVE")
+Assisted-by: ChatGPT:GPT-5.6-Luna
+Signed-off-by: Bryan Lim <foxieflakey@gmail.com>
+Reviewed-by: Suren Baghdasaryan <surenb@google.com>
+Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Cc: Peter Xu <peterx@redhat.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ mm/userfaultfd.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-keep-max_huge_pages-when-dissolving-surplus-folios
-+++ a/mm/hugetlb.c
-@@ -1992,7 +1992,8 @@ retry:
- 		if (h->surplus_huge_pages_node[folio_nid(folio)])
- 			adjust_surplus = true;
- 		remove_hugetlb_folio(h, folio, adjust_surplus);
--		h->max_huge_pages--;
-+		if (!adjust_surplus)
-+			h->max_huge_pages--;
- 		spin_unlock_irq(&hugetlb_lock);
+--- a/mm/userfaultfd.c~userfaultfd-reset-err-to-be-0-when-move_pages_ptes-succeeded
++++ a/mm/userfaultfd.c
+@@ -2171,8 +2171,10 @@ static ssize_t move_pages(struct userfau
+ 		}
  
- 		/*
-@@ -2012,7 +2013,8 @@ retry:
- 			if (rc) {
- 				spin_lock_irq(&hugetlb_lock);
- 				add_hugetlb_folio(h, folio, adjust_surplus);
--				h->max_huge_pages++;
-+				if (!adjust_surplus)
-+					h->max_huge_pages++;
- 				goto out;
- 			}
- 		} else {
+ 		if (err) {
+-			if (err == -EAGAIN)
++			if (err == -EAGAIN) {
++				err = 0;
+ 				continue;
++			}
+ 			break;
+ 		}
+ 
 _
 
-Patches currently in -mm which might be from xialonglong@kylinos.cn are
+Patches currently in -mm which might be from foxieflakey@gmail.com are
 
 
