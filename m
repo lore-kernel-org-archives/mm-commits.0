@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EE6DA353A6B;
-	Thu, 27 Aug 2026 20:08:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6660B23BF9F
+	for <mm-commits@vger.kernel.org>; Thu, 27 Aug 2026 20:08:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787861310; cv=none; b=ZyTtouqzI7UuGMmjjd36y2kHwVEQ97MaivqSbi+iIrksbVGWhnFAmODH+u+sTu3pr+mKk80Za/muzvh2YdrcJsvhNF54G941IIckzTzdfuSjC4gXhBiQphqLcq3C76LxD18MhU2ZIe90q4k2dlZ4QEa7cvCcjPOgVWnKg0Hztlo=
+	t=1787861311; cv=none; b=gOydjv+F+TsszjmjZVseBBLU8C0YN7XQ3NYJ4J019aTjMZN3/7IJSwCU0vaVxbU+mWwyx/6VygR7oXhXrzcpRdBCWq2oC+83vBXJZgYXhUr4zM6znpQ3MZI79sCa5RIHVNeIQ6eOSiK1h++yRzRxV53gwhVG92yYp5p3y0UvbHc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787861310; c=relaxed/simple;
-	bh=aLNvl+PiCR2DNljdb8ZBx+3dqBERKJ039Uqiw4AE2O0=;
-	h=Date:To:From:Subject:Message-Id; b=D+yRW+ryY/iE+FaTgD/D7nWlmkop5/yyg0OtwJDC1w/BwRtKKxgZKSQp47p13AruwOoM/93guWEY2nfek/Z6X71kJrujLinO/i0BYufUF7L9Z5Y+2PtFvydwoD/Fz93jMBU6pTdWaYjFyY90+9LAK/dsHuwj2gw89wS3nt6oFFE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=llmlWQKD; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1787861311; c=relaxed/simple;
+	bh=42P1tuU5WoMPCYsBQGHXrvn10E//Z7qqu5L74eaQcdk=;
+	h=Date:To:From:Subject:Message-Id; b=uT3p2yvqDH0wbOJHF+I1mGZ+4jgZzXkoqhkZ9sU/SJ8F/gBEwfx1nt8gWFXN3pWV+vnGObs1wbeQ1uDkjQIyznDyo3ZaoyXeIrfVk/oQ5wRjUpQGZ56TIfhwwfLjwXQMMRx9HPtGF+Yhki6hkJ2IY1XquNmTIyoZW6ceUQae6YA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JBfg6iCX; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="llmlWQKD"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3EF451F00A3E;
-	Thu, 27 Aug 2026 20:08:28 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JBfg6iCX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3D3FD1F000E9;
+	Thu, 27 Aug 2026 20:08:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1787861308;
-	bh=1HjYwhi7HLWnfV/Nf6IEVvNyxLPFg2/4DZnZLASQuME=;
+	d=linux-foundation.org; s=korg; t=1787861310;
+	bh=NcorbtcYmZlr4dZeNcwpoRDzk4BBRLhRThthC8TnQ2o=;
 	h=Date:To:From:Subject;
-	b=llmlWQKDDwIMZ08vvnUx4GGR8WWnJItmliFOW1PbHbMk8PneEUGnEa+GOMbSQYkhv
-	 LHCMuDM9FYXquz/i7nq/IRlQdfZOFr/p/3J/9hcPgP66EaxQzhvdl7bdL9dzcGJ0T3
-	 oQoYPgDX28e3HAmnxc1qCfbYE9s3EmhRw+SgWLkA=
-Date: Thu, 27 Aug 2026 13:08:27 -0700
-To: mm-commits@vger.kernel.org,surenb@google.com,stable@vger.kernel.org,rppt@kernel.org,peterx@redhat.com,foxieflakey@gmail.com,akpm@linux-foundation.org
+	b=JBfg6iCXim+r5Usam6p1V5U27yJXxILZIqhxC/yUpf4+pEyZnXC59xfGte2sUIYyq
+	 QqYT+GJzdsCy0hWlRTngf7Sxicfs4wG/3rKJvczfTwTiy1jZwB1kOVctvg7E90wXKO
+	 MLexvpAifQ8e49dm9m6ZlstYLJVK3ubCs5xMV+Sw=
+Date: Thu, 27 Aug 2026 13:08:29 -0700
+To: mm-commits@vger.kernel.org,pmladek@suse.com,mhiramat@kernel.org,lance.yang@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] userfaultfd-reset-err-to-be-0-when-move_pages_ptes-succeeded.patch removed from -mm tree
-Message-Id: <20260827200828.3EF451F00A3E@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] maintainers-add-lance-yang-as-a-hung-task-detector-co-maintainer.patch removed from -mm tree
+Message-Id: <20260827200830.3D3FD1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,55 +35,46 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: userfaultfd: reset err to be 0 when move_pages_ptes succeeded
+     Subject: MAINTAINERS: add Lance Yang as a hung task detector co-maintainer
 has been removed from the -mm tree.  Its filename was
-     userfaultfd-reset-err-to-be-0-when-move_pages_ptes-succeeded.patch
+     maintainers-add-lance-yang-as-a-hung-task-detector-co-maintainer.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Bryan Lim <foxieflakey@gmail.com>
-Subject: userfaultfd: reset err to be 0 when move_pages_ptes succeeded
-Date: Wed, 19 Aug 2026 10:08:24 +0700 (WIB)
+From: Lance Yang <lance.yang@linux.dev>
+Subject: MAINTAINERS: add Lance Yang as a hung task detector co-maintainer
+Date: Thu, 20 Aug 2026 09:45:35 +0800
 
-During move_pages() operation, when move_pages_ptes() returns EAGAIN, the
-error code is not cleared even after we processed it.  This leads to a
-successful retry but then the same pages are retried again due to the
-stale error code.  This time move fails because pages are already moved,
-loop is terminated and move_pages() reports a failure.  Clear the error
-code once we processes EAGAIN.
+I've been a hung_task reviewer for over a year now and plan to stay
+involved.
 
-Link: https://lore.kernel.org/e1e0b5f8-c3c6-0537-670b-4397f822f980@gmail.com
-Fixes: 50944692052b ("userfaultfd: opportunistic TLB-flush batching for present pages in MOVE")
-Assisted-by: ChatGPT:GPT-5.6-Luna
-Signed-off-by: Bryan Lim <foxieflakey@gmail.com>
-Reviewed-by: Suren Baghdasaryan <surenb@google.com>
-Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: <stable@vger.kernel.org>
+Take on more responsibility for hung_task as a co-maintainer.
+
+Link: https://lore.kernel.org/20260820014535.79105-1-lance.yang@linux.dev
+Signed-off-by: Lance Yang <lance.yang@linux.dev>
+Acked-by: Petr Mladek <pmladek@suse.com>
+Cc: "Masami Hiramatsu (Google)" <mhiramat@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/userfaultfd.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ MAINTAINERS |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/userfaultfd.c~userfaultfd-reset-err-to-be-0-when-move_pages_ptes-succeeded
-+++ a/mm/userfaultfd.c
-@@ -2171,8 +2171,10 @@ static ssize_t move_pages(struct userfau
- 		}
+--- a/MAINTAINERS~maintainers-add-lance-yang-as-a-hung-task-detector-co-maintainer
++++ a/MAINTAINERS
+@@ -12224,7 +12224,7 @@ F:	drivers/tty/hvc/
  
- 		if (err) {
--			if (err == -EAGAIN)
-+			if (err == -EAGAIN) {
-+				err = 0;
- 				continue;
-+			}
- 			break;
- 		}
- 
+ HUNG TASK DETECTOR
+ M:	Andrew Morton <akpm@linux-foundation.org>
+-R:	Lance Yang <lance.yang@linux.dev>
++M:	Lance Yang <lance.yang@linux.dev>
+ R:	Masami Hiramatsu <mhiramat@kernel.org>
+ R:	Petr Mladek <pmladek@suse.com>
+ L:	linux-kernel@vger.kernel.org
 _
 
-Patches currently in -mm which might be from foxieflakey@gmail.com are
+Patches currently in -mm which might be from lance.yang@linux.dev are
 
 
