@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5A430380FD5
-	for <mm-commits@vger.kernel.org>; Thu, 27 Aug 2026 02:05:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0EDCC296BCF
+	for <mm-commits@vger.kernel.org>; Thu, 27 Aug 2026 02:08:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787796304; cv=none; b=Tf9y9okHgRDd1tHTXzbQQz5W+c6njZIAiyPaPZQMGddpTXEMAZe+PLTgFFKkLhZ7zk06kORpSe4JfcQsf7NA7SFQCKArQoskKzutTPi4oDZPrhc0AcSgKOIxqXe9dHnL7uW/4N7wNvqyW3ApWFhM0x4tqg0QWcBI0KX8ock3lu8=
+	t=1787796510; cv=none; b=S2NMCZAy2Bi5z9gMJfehQn/YHBJ3kvJjS6yqHBW3m5rAHVi3eYIBVT/3lqRSzwgYIpKmNOwi6jQuHykXxwcRkCj5nLoy1UGMluz5Ntm1kzQrMLPxoizmfVmL9NlMsb0g3FL0whYRfowpxhNKZrs+YyVOWr6app7p+5QXcgLez80=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787796304; c=relaxed/simple;
-	bh=OawlBpW+zCr5nm/5fbm/fQXlWMqwT2mpsAFfJcWxGtg=;
-	h=Date:To:From:Subject:Message-Id; b=C+h/KP59hXaAGKHHerB4HFmvpHus8gZUQrn9rGgBMKegg87yQeItD/YRFdFhM9YqwD6PtlWUR+r/qUsamgjssBaHA8IF9CmYKnhkr+9gjHgzHqF51xugx0JsBqtMSfquSKMTEFq7i+mA73rEHxD7sVG1noDTipIfvZiSMT/GRPs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Qe7EcjgR; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1787796510; c=relaxed/simple;
+	bh=UeVLYJ6ZyL/9e54sFd08yV3PtwRm8kGwAQD9sP2fQus=;
+	h=Date:To:From:Subject:Message-Id; b=IZXcrXI9F3v8uKZ1IS9RR1WVlYHQecQ4X0yx2vlZoiWbf4o8LFwLCxtTXFfU0QfXd9eiJk/+TUG4qZPm+WZ7UkD9r13ZVoUB89OduTPs5DxE2HhbYFy73LGkodxfXYckV8sxudPOlnkfPspPrdGdB1ydW+tI809QRNdeWf1KCoM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FO85yBqy; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Qe7EcjgR"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C4A361F000E9;
-	Thu, 27 Aug 2026 02:05:02 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FO85yBqy"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CB4CB1F000E9;
+	Thu, 27 Aug 2026 02:08:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1787796302;
-	bh=mGC2q+WFlQvIXfRBT/uAY9ZveFj/qrKCw5u1YWYH22k=;
+	d=linux-foundation.org; s=korg; t=1787796508;
+	bh=YBBlqowCOtoIaESVd/SV2pBmfM35+Bx0oMT5JE6FTkU=;
 	h=Date:To:From:Subject;
-	b=Qe7EcjgR8YYG394E8NqU+gGf7Kv3VKchBl/Gi13nAOGTj2ZzraeloC/YHHtn0UfVa
-	 jzKZ/ov8QryS6chvy4baT+lTMshPJP2ixgahnglNHWJSXYpAt6Y1aoKrfidEdTj+8M
-	 PpJ687HOfSuZQsOtLZ3gjC+gUc0dAZcgk7Swwu9k=
-Date: Wed, 26 Aug 2026 19:05:02 -0700
-To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,jlbec@evilplan.org,heming.zhao@suse.com,gechangwei@live.cn,gality369@gmail.com,joseph.qi@linux.alibaba.com,akpm@linux-foundation.org
+	b=FO85yBqyv7hgdkW3yM5UT4TZoZmsr5l8NPqlla46R2d3XIgtM2evHBYgoNnBkyawj
+	 s+J9Oso9xcY+nNB4qp2iybrfzguJZM5g3/P3IHPWvbGoYTF2uvEoOShVqycifGKubY
+	 L3Y+XckCmDNj2g6Nn+zlBSWM3uIhhgtKG5o69L4s=
+Date: Wed, 26 Aug 2026 19:08:28 -0700
+To: mm-commits@vger.kernel.org,yuanchu@google.com,weixugc@google.com,shakeel.butt@linux.dev,roman.gushchin@linux.dev,mhocko@suse.com,ljs@kernel.org,kasong@tencent.com,hannes@cmpxchg.org,david@kernel.org,dave@stgolabs.net,baohua@kernel.org,axelrasmussen@google.com,chenridong@xiaomi.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + ocfs2-fix-deadlock-in-inline-data-truncate-transactions.patch added to mm-nonmm-unstable branch
-Message-Id: <20260827020502.C4A361F000E9@smtp.kernel.org>
+Subject: + mm-vmscan-drop-the-combined-limit-gate-in-__node_reclaim.patch added to mm-new branch
+Message-Id: <20260827020828.CB4CB1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,26 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: ocfs2: fix deadlock in inline-data truncate transactions
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     ocfs2-fix-deadlock-in-inline-data-truncate-transactions.patch
+     Subject: mm/vmscan: drop the combined limit gate in __node_reclaim()
+has been added to the -mm mm-new branch.  Its filename is
+     mm-vmscan-drop-the-combined-limit-gate-in-__node_reclaim.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-fix-deadlock-in-inline-data-truncate-transactions.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmscan-drop-the-combined-limit-gate-in-__node_reclaim.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,305 +69,76 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Joseph Qi <joseph.qi@linux.alibaba.com>
-Subject: ocfs2: fix deadlock in inline-data truncate transactions
-Date: Wed, 26 Aug 2026 19:26:59 +0800
+From: Ridong Chen <chenridong@xiaomi.com>
+Subject: mm/vmscan: drop the combined limit gate in __node_reclaim()
+Date: Wed, 26 Aug 2026 20:44:09 +0800
 
-Updating an inode xattr can cause an ABBA deadlock with inline file
-truncation:
+__node_reclaim() is called from two paths: node_reclaim() and
+user_proactive_reclaim().
 
-  ocfs2_truncate_file()
-    down_write(&oi->ip_alloc_sem)
-    ocfs2_truncate_inline()
-      ocfs2_start_trans()
+node_reclaim() already bails out early unless node_pagecache_reclaimable()
+is over pgdat->min_unmapped_pages or the reclaimable slab is over
+pgdat->min_slab_pages.  The identical check inside __node_reclaim() that
+guards the shrink_node() loop is therefore redundant for this path.
 
-  ocfs2_xattr_set()
-    ocfs2_start_trans()
-    ocfs2_xattr_ibody_set()
-      down_write(&oi->ip_alloc_sem)
+user_proactive_reclaim() is proactive reclaim driven by userspace and
+should not be gated by the per-node min_unmapped_pages / min_slab_pages
+limits at all [1].  With the gate in place, a proactive request is
+silently turned into a no-op whenever the node happens to sit below both
+thresholds.
 
-The xattr set path starts the merged transaction before the inode-body
-xattr helper acquires ip_alloc_sem, reversing the ip_alloc_sem ->
-transaction order used by the allocation and truncate paths.  The
-transaction merge in commit 85db90e77806 ("ocfs2/xattr: Merge xattr set
-transaction.") introduced this ordering.
+Drop the gate in __node_reclaim() and always run the shrink_node() loop. 
+The node_reclaim() path is unchanged, since its caller has already applied
+the same test; the proactive path is no longer wrongly gated.
 
-Fix it by acquiring ip_alloc_sem once in ocfs2_xattr_set(), before xattr
-preparation, allocation reservations and ocfs2_start_trans(), and removing
-the per-helper acquisition from ocfs2_xattr_ibody_find(),
-ocfs2_xattr_ibody_set() and ocfs2_xattr_create_index_block().  These
-helpers now assert via lockdep that the caller holds ip_alloc_sem.
-
-ocfs2_xattr_set_handle(), which only sets initial ACL or security xattrs
-on unpublished inodes inside the create transaction, takes ip_alloc_sem
-under a dedicated lockdep subclass so that the assertions hold without
-creating a transaction -> ip_alloc_sem cycle against the ip_alloc_sem ->
-transaction order.  The inode is unpublished, so the acquisition can never
-contend.
-
-This keeps the established ip_alloc_sem -> transaction order and makes the
-locking unconditional, so lockdep can verify a single plain ordering
-instead of conditional acquisitions.
-
-Link: https://lore.kernel.org/20260826112659.246574-1-joseph.qi@linux.alibaba.com
-Fixes: 85db90e77806 ("ocfs2/xattr: Merge xattr set transaction.")
-Signed-off-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Cc: ZhengYuan Huang <gality369@gmail.com>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Jun Piao <piaojun@huawei.com>
-Cc: Heming Zhao <heming.zhao@suse.com>
+Link: https://lore.kernel.org/20260826124409.35569-1-ridong.chen@linux.dev
+Link: https://sashiko.dev/#/patchset/20260723045718.2052070-1-ridong.chen@linux.dev [1]
+Fixes: b980077899ea ("mm: introduce per-node proactive reclaim interface")
+Assisted-by: Claude:claude-opus-4-8
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Signed-off-by: Ridong Chen <chenridong@xiaomi.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
+Cc: Kairui Song <kasong@tencent.com>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Wei Xu <weixugc@google.com>
+Cc: Yuanchu Xie <yuanchu@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/xattr.c |   79 ++++++++++++++++++++++++++++++---------------
- 1 file changed, 53 insertions(+), 26 deletions(-)
+ mm/vmscan.c |   13 +++----------
+ 1 file changed, 3 insertions(+), 10 deletions(-)
 
---- a/fs/ocfs2/xattr.c~ocfs2-fix-deadlock-in-inline-data-truncate-transactions
-+++ a/fs/ocfs2/xattr.c
-@@ -2912,6 +2912,9 @@ static int ocfs2_xattr_has_space_inline(
-  *
-  * Find extended attribute in inode block and
-  * fill search info into struct ocfs2_xattr_search.
-+ *
-+ * The inline free-space check races with truncate and allocation, so
-+ * callers must hold ip_alloc_sem for writing.
-  */
- static int ocfs2_xattr_ibody_find(struct inode *inode,
- 				  int name_index,
-@@ -2923,13 +2926,13 @@ static int ocfs2_xattr_ibody_find(struct
- 	int ret;
- 	int has_space = 0;
+--- a/mm/vmscan.c~mm-vmscan-drop-the-combined-limit-gate-in-__node_reclaim
++++ a/mm/vmscan.c
+@@ -7851,16 +7851,9 @@ static unsigned long __node_reclaim(stru
+ 	noreclaim_flag = memalloc_noreclaim_save();
+ 	set_task_reclaim_state(p, &sc->reclaim_state);
  
-+	lockdep_assert_held_write(&oi->ip_alloc_sem);
-+
- 	if (inode->i_sb->s_blocksize == OCFS2_MIN_BLOCKSIZE)
- 		return 0;
+-	if (node_pagecache_reclaimable(pgdat) > pgdat->min_unmapped_pages ||
+-	    node_page_state_pages(pgdat, NR_SLAB_RECLAIMABLE_B) > pgdat->min_slab_pages) {
+-		/*
+-		 * Free memory by calling shrink node with increasing
+-		 * priorities until we have enough memory freed.
+-		 */
+-		do {
+-			shrink_node(pgdat, sc);
+-		} while (sc->nr_reclaimed < nr_pages && --sc->priority >= 0);
+-	}
++	do {
++		shrink_node(pgdat, sc);
++	} while (sc->nr_reclaimed < nr_pages && --sc->priority >= 0);
  
- 	if (!(oi->ip_dyn_features & OCFS2_INLINE_XATTR_FL)) {
--		down_read(&oi->ip_alloc_sem);
- 		has_space = ocfs2_xattr_has_space_inline(inode, di);
--		up_read(&oi->ip_alloc_sem);
- 		if (!has_space)
- 			return 0;
- 	}
-@@ -3010,6 +3013,7 @@ out:
-  *
-  * Set, replace or remove an extended attribute into inode block.
-  *
-+ * Callers must hold ip_alloc_sem for writing.
-  */
- static int ocfs2_xattr_ibody_set(struct inode *inode,
- 				 struct ocfs2_xattr_info *xi,
-@@ -3020,16 +3024,17 @@ static int ocfs2_xattr_ibody_set(struct
- 	struct ocfs2_inode_info *oi = OCFS2_I(inode);
- 	struct ocfs2_xa_loc loc;
- 
-+	lockdep_assert_held_write(&oi->ip_alloc_sem);
-+
- 	if (inode->i_sb->s_blocksize == OCFS2_MIN_BLOCKSIZE)
- 		return -ENOSPC;
- 
--	down_write(&oi->ip_alloc_sem);
- 	if (!(oi->ip_dyn_features & OCFS2_INLINE_XATTR_FL)) {
- 		ret = ocfs2_xattr_ibody_init(inode, xs->inode_bh, ctxt);
- 		if (ret) {
- 			if (ret != -ENOSPC)
- 				mlog_errno(ret);
--			goto out;
-+			return ret;
- 		}
- 	}
- 
-@@ -3039,13 +3044,10 @@ static int ocfs2_xattr_ibody_set(struct
- 	if (ret) {
- 		if (ret != -ENOSPC)
- 			mlog_errno(ret);
--		goto out;
-+		return ret;
- 	}
- 	xs->here = loc.xl_entry;
- 
--out:
--	up_write(&oi->ip_alloc_sem);
--
- 	return ret;
- }
- 
-@@ -3690,6 +3692,18 @@ out:
- }
- 
- /*
-+ * ip_alloc_sem subclass for inodes being initialized before publication.
-+ * ocfs2_xattr_set_handle() runs inside the create transaction, so taking
-+ * ip_alloc_sem there adds a transaction -> ip_alloc_sem order that would
-+ * form a lockdep cycle with the ip_alloc_sem -> transaction order used
-+ * elsewhere, if not for this separate subclass.  The inode is unpublished
-+ * so the acquisition can never contend.
-+ */
-+enum {
-+	OCFS2_IP_ALLOC_SEM_UNPUBLISHED = 1,
-+};
-+
-+/*
-  * This helper is only for setting initial ACL or security xattrs on an inode
-  * that is still unpublished, unhashed, and unattached to a dentry.
-  * Ordinary xattr updates must use ocfs2_xattr_set().
-@@ -3750,6 +3764,13 @@ int ocfs2_xattr_set_handle(handle_t *han
- 	xis.inode_bh = xbs.inode_bh = di_bh;
- 	di = (struct ocfs2_dinode *)di_bh->b_data;
- 
-+	/*
-+	 * The inode is unpublished and cannot contend, but take the
-+	 * semaphore anyway so the helpers' lockdep assertions hold.
-+	 */
-+	down_write_nested(&OCFS2_I(inode)->ip_alloc_sem,
-+			  OCFS2_IP_ALLOC_SEM_UNPUBLISHED);
-+
- 	ret = ocfs2_xattr_ibody_find(inode, name_index, name, &xis);
- 	if (ret)
- 		goto cleanup;
-@@ -3762,6 +3783,7 @@ int ocfs2_xattr_set_handle(handle_t *han
- 	ret = __ocfs2_xattr_set_handle(inode, di, &xi, &xis, &xbs, &ctxt);
- 
- cleanup:
-+	up_write(&OCFS2_I(inode)->ip_alloc_sem);
- 	brelse(xbs.xattr_bh);
- 	ocfs2_xattr_bucket_free(xbs.bucket);
- 
-@@ -3831,29 +3853,37 @@ int ocfs2_xattr_set(struct inode *inode,
- 
- 	down_write(&OCFS2_I(inode)->ip_xattr_sem);
- 	/*
-+	 * The allocation and truncate paths take ip_alloc_sem before
-+	 * starting a transaction, so take it here before xattr
-+	 * preparation, allocation reservations and ocfs2_start_trans()
-+	 * to keep that order.  The xattr helpers below no longer take
-+	 * it themselves.
-+	 */
-+	down_write(&OCFS2_I(inode)->ip_alloc_sem);
-+	/*
- 	 * Scan inode and external block to find the same name
- 	 * extended attribute and collect search information.
- 	 */
- 	ret = ocfs2_xattr_ibody_find(inode, name_index, name, &xis);
- 	if (ret)
--		goto cleanup;
-+		goto out_free_ac;
- 	if (xis.not_found) {
- 		ret = ocfs2_xattr_block_find(inode, name_index, name, &xbs);
- 		if (ret)
--			goto cleanup;
-+			goto out_free_ac;
- 	}
- 
- 	if (xis.not_found && xbs.not_found) {
- 		ret = -ENODATA;
- 		if (flags & XATTR_REPLACE)
--			goto cleanup;
-+			goto out_free_ac;
- 		ret = 0;
- 		if (!value)
--			goto cleanup;
-+			goto out_free_ac;
- 	} else {
- 		ret = -EEXIST;
- 		if (flags & XATTR_CREATE)
--			goto cleanup;
-+			goto out_free_ac;
- 	}
- 
- 	/* Check whether the value is refcounted and do some preparation. */
-@@ -3864,7 +3894,7 @@ int ocfs2_xattr_set(struct inode *inode,
- 						   &ref_meta, &ref_credits);
- 		if (ret) {
- 			mlog_errno(ret);
--			goto cleanup;
-+			goto out_free_ac;
- 		}
- 	}
- 
-@@ -3875,7 +3905,7 @@ int ocfs2_xattr_set(struct inode *inode,
- 		if (ret < 0) {
- 			inode_unlock(tl_inode);
- 			mlog_errno(ret);
--			goto cleanup;
-+			goto out_free_ac;
- 		}
- 	}
- 	inode_unlock(tl_inode);
-@@ -3884,7 +3914,7 @@ int ocfs2_xattr_set(struct inode *inode,
- 					&xbs, &ctxt, ref_meta, &credits);
- 	if (ret) {
- 		mlog_errno(ret);
--		goto cleanup;
-+		goto out_free_ac;
- 	}
- 
- 	/* we need to update inode's ctime field, so add credit for it. */
-@@ -3902,6 +3932,7 @@ int ocfs2_xattr_set(struct inode *inode,
- 	ocfs2_commit_trans(osb, ctxt.handle);
- 
- out_free_ac:
-+	up_write(&OCFS2_I(inode)->ip_alloc_sem);
- 	if (ctxt.data_ac)
- 		ocfs2_free_alloc_context(ctxt.data_ac);
- 	if (ctxt.meta_ac)
-@@ -3910,7 +3941,6 @@ out_free_ac:
- 		ocfs2_schedule_truncate_log_flush(osb, 1);
- 	ocfs2_run_deallocs(osb, &ctxt.dealloc);
- 
--cleanup:
- 	if (ref_tree)
- 		ocfs2_unlock_refcount_tree(osb, ref_tree, 1);
- 	up_write(&OCFS2_I(inode)->ip_xattr_sem);
-@@ -4511,6 +4541,10 @@ static void ocfs2_xattr_update_xattr_sea
- 	xs->here = &xs->header->xh_entries[i];
- }
- 
-+/*
-+ * Caller must hold ip_alloc_sem for writing, since a new xattr block
-+ * is allocated and the xattr block header is rewritten.
-+ */
- static int ocfs2_xattr_create_index_block(struct inode *inode,
- 					  struct ocfs2_xattr_search *xs,
- 					  struct ocfs2_xattr_set_ctxt *ctxt)
-@@ -4526,19 +4560,14 @@ static int ocfs2_xattr_create_index_bloc
- 	struct ocfs2_xattr_tree_root *xr;
- 	u16 xb_flags = le16_to_cpu(xb->xb_flags);
- 
-+	lockdep_assert_held_write(&oi->ip_alloc_sem);
-+
- 	trace_ocfs2_xattr_create_index_block_begin(
- 				(unsigned long long)xb_bh->b_blocknr);
- 
- 	BUG_ON(xb_flags & OCFS2_XATTR_INDEXED);
- 	BUG_ON(!xs->bucket);
- 
--	/*
--	 * XXX:
--	 * We can use this lock for now, and maybe move to a dedicated mutex
--	 * if performance becomes a problem later.
--	 */
--	down_write(&oi->ip_alloc_sem);
--
- 	ret = ocfs2_journal_access_xb(handle, INODE_CACHE(inode), xb_bh,
- 				      OCFS2_JOURNAL_ACCESS_WRITE);
- 	if (ret) {
-@@ -4600,8 +4629,6 @@ static int ocfs2_xattr_create_index_bloc
- 	ocfs2_journal_dirty(handle, xb_bh);
- 
- out:
--	up_write(&oi->ip_alloc_sem);
--
- 	return ret;
- }
- 
+ 	set_task_reclaim_state(p, NULL);
+ 	memalloc_noreclaim_restore(noreclaim_flag);
 _
 
-Patches currently in -mm which might be from joseph.qi@linux.alibaba.com are
+Patches currently in -mm which might be from chenridong@xiaomi.com are
 
-ocfs2-fix-deadlock-in-inline-data-truncate-transactions.patch
+mm-vmscan-drop-the-combined-limit-gate-in-__node_reclaim.patch
 
