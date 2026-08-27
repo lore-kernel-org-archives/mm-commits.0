@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0A2E5222599
-	for <mm-commits@vger.kernel.org>; Thu, 27 Aug 2026 03:11:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1BD9D231C91
+	for <mm-commits@vger.kernel.org>; Thu, 27 Aug 2026 03:23:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787800267; cv=none; b=G19LKgkcqlp1igBdezyFHkhWv65G513zn78+QHIsPGbNk6cdmSCZ1+O/7zGQV4v8eFipbsRbyTTUjnmDlHXDWJJ4oPB2jMqjTbGf6OZkCWCFh1R89x7sYjFGNPtd0o+QUhRDyKcmY8k8cyOk/1jCyZhtF3pGe0+aHsDQQUNQt6k=
+	t=1787801041; cv=none; b=td12Omz0E6qO/aHvHO4dkf/pNm2FyXKITVNDF0nAC8DI7vGtqC220TJouDuq4O0wyCd6Zcr8jsoWrsy1QRQtgU7AU3xsTjolSXOxA41fIVwV2HbEFFkrLSuXMRS9hPmgg9/lLBQzyLpM1xxS70yjBIX7lrNcCyLP72yQO26Hp2o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787800267; c=relaxed/simple;
-	bh=4/jKTI5GRWVE/HQb7HNCLzixcU49uZ96b7h3LZSswNo=;
-	h=Date:To:From:Subject:Message-Id; b=M1tsFCB1Qz37N6HQSRQ0g90TeeLiiuWw6ZwjwEQMylLAkNuHhCRi/F5kUGMNrieFu+gNDgZxwdd8BwekURyyf6NRDb+9eRwbn32pStXWwUkWD2aEtHX/xCZlq9LqBYZuHrLcjnoRKjZA2iD71QjbQNdi8C2Ef0E9eHu49SpT4e0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WvQriOsP; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1787801041; c=relaxed/simple;
+	bh=zUaxnajILwZOvMUlgC7dat0WWUJhijgwKlpvv1Muz3k=;
+	h=Date:To:From:Subject:Message-Id; b=nSlxtiXKqZ5IE3H+ti4/8DHg7DG4yVV/HEN9y4ZRjd6KIR2ggVAjaUZQaWJ0yGZz0laAf3DuS84RzcTH78wNtpKJFmh/roXvsJY/KgDKzXjKvoECnUyxFE0IwYOyzvQbhAPusWb4B5xxt906y7Y9tQRj6TKSIJmEHaN04OfHSL4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mZRDjgkc; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WvQriOsP"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5C7551F000E9;
-	Thu, 27 Aug 2026 03:11:05 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mZRDjgkc"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 86C2A1F000E9;
+	Thu, 27 Aug 2026 03:23:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1787800265;
-	bh=Y4a9sFIavde71Ds3tDiViJrSsobOfeILck5jo7x0svU=;
+	d=linux-foundation.org; s=korg; t=1787801039;
+	bh=jp6RDGYDVpgj+alX8LAp6GqvIxZ0ASgQGvFOvkWjzWg=;
 	h=Date:To:From:Subject;
-	b=WvQriOsPg/0xGxn1ckgZlpWP8XZ75EcEQH6brlxz/hILND0EktmZussEhx5y5Rbd4
-	 Ej7NZSm6bxJdHo4F1RUUhzAWYVE/+r+xdq3YZ7tmSvx+iV8f5UgfZZdbUDRGgH2oSu
-	 p5OMFFrr5mPxZVCPAqoHJic+Xm20cb1AdRGdzPt0=
-Date: Wed, 26 Aug 2026 20:11:04 -0700
-To: mm-commits@vger.kernel.org,yury.khrustalev@arm.com,vbabka@kernel.org,surenb@google.com,sj@kernel.org,shuah@kernel.org,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,kevin.brodsky@arm.com,david@kernel.org,hemanth.selam@gmail.com,akpm@linux-foundation.org
+	b=mZRDjgkciUW1M/ZAweRNEC8CTJu+DRSivMWEKkKVyPsBSeKRRPqmoaPVRvzmYKHbO
+	 Wl3Idzsqgjc8NfGp7UOTdVOG6yhWYSSQbLqsYBUoUQZp6YL5gG78i0sXv/gECC1jAC
+	 eOsEybdhsFm9t0BageysSQDmo3AYp0QVlFx9UKrY=
+Date: Wed, 26 Aug 2026 20:23:59 -0700
+To: mm-commits@vger.kernel.org,yuzhao@google.com,yuanchu@google.com,weixugc@google.com,suleiman@google.com,steven@liquorix.net,shakeel.butt@linux.dev,oleksandr@natalenko.name,mhocko@kernel.org,ljs@kernel.org,kasong@tencent.com,heftig@archlinux.org,hannes@cmpxchg.org,david@kernel.org,baohua@kernel.org,axelrasmussen@google.com,chenridong@xiaomi.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-remove-the-local-pkey_unrestricted-fallback.patch added to mm-new branch
-Message-Id: <20260827031105.5C7551F000E9@smtp.kernel.org>
+Subject: + mm-mglru-preserve-inactive-placement-when-enabling-mglru.patch added to mm-new branch
+Message-Id: <20260827032359.86C2A1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: remove the local PKEY_UNRESTRICTED fallback
+     Subject: mm/mglru: preserve inactive placement when enabling MGLRU
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-mm-remove-the-local-pkey_unrestricted-fallback.patch
+     mm-mglru-preserve-inactive-placement-when-enabling-mglru.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-remove-the-local-pkey_unrestricted-fallback.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mglru-preserve-inactive-placement-when-enabling-mglru.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,65 +69,105 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Hemanth Selam <hemanth.selam@gmail.com>
-Subject: selftests/mm: remove the local PKEY_UNRESTRICTED fallback
-Date: Tue, 25 Aug 2026 21:47:15 +0530
+From: Ridong Chen <chenridong@xiaomi.com>
+Subject: mm/mglru: preserve inactive placement when enabling MGLRU
+Date: Fri, 21 Aug 2026 10:16:06 +0800
 
-pkey-helpers.h defines PKEY_UNRESTRICTED itself when the macro is not
-already known, a stopgap from when the generic definition was still under
-review.  It has been merged since, commit 6d61527d931b ("mm/pkey: Add
-PKEY_UNRESTRICTED macro"), so the guard is never taken and the FIXME can
-be honoured.
+When the LRU is switched to MGLRU (echo y > /sys/kernel/mm/lru_gen/
+enabled), fill_evictable() re-inserts every folio via
+lru_gen_add_folio(..., false).  With reclaiming hardcoded to false, an
+inactive anonymous folio (no PG_active, not in the swapcache) takes the
+"gen = MIN_NR_GENS" branch in lru_gen_folio_seq() and is seeded at seq =
+max_seq - 1, which lru_gen_is_active() treats as active.  Its inactive
+placement is lost and NR_INACTIVE_ANON is folded into NR_ACTIVE_ANON.
 
-The definition comes from tools/include/uapi/asm-generic/mman-common.h via
-TOOLS_INCLUDES, which commit e076eaca5906 ("selftests: break the
-dependency upon local header files") added so that the mm selftests build
-without "make headers".  It is reached through the <asm-generic/mman.h>
-that the system <asm/mman.h> includes.  Building the pkey tests with
-KHDR_INCLUDES pointing at an empty directory confirms that; emptying
-TOOLS_INCLUDES as well is what makes the macro go missing.
+Pass reclaiming=!active so a folio from an inactive list is seeded into an
+older generation.  Folios from the active list carry PG_active and hit the
+first branch either way, so they are unchanged.
 
-No functional change intended.
+Reclaiming also selects the insertion end in lru_gen_add_folio():
+list_add_tail() for inactive folios, list_add() for active ones.  Both the
+legacy LRU and a MGLRU generation keep the hottest folios at the head and
+the coldest at the tail, and reclaim takes from the tail.  To preserve
+that order the folio must be taken from the end matching the insertion
+end, so take inactive folios from the head and active folios from the
+tail; otherwise hot/cold would be reversed within the generation.
 
-Assisted-by: Cursor:claude-opus-5
-Link: https://lore.kernel.org/20260825161715.2807297-1-hemanth.selam@gmail.com
-Signed-off-by: Hemanth Selam <hemanth.selam@gmail.com>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Acked-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
-Reviewed-by: SJ Park <sj@kernel.org>
-Cc: Kevin Brodsky <kevin.brodsky@arm.com>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Yury Khrustalev <yury.khrustalev@arm.com>
+Tested on x86_64, next-20260812, 2G VM + 1G swap, ~1.5G anon pushed onto
+the inactive list before enabling MGLRU:
+
+                         Active(anon)  Inactive(anon)
+  before switch (legacy)        2952         1548792   kB
+  after `echo y`, unpatched  1552052               0   kB
+  after `echo y`, patched      15144         1536636   kB
+
+Inactive file folios stay inactive either way (NR_INACTIVE_FILE is
+preserved).
+
+Link: https://lore.kernel.org/20260821021606.877330-1-ridong.chen@linux.dev
+Fixes: 354ed5974429 ("mm: multi-gen LRU: kill switch")
+Signed-off-by: Ridong Chen <chenridong@xiaomi.com>
+Suggested-by: Barry Song <baohua@kernel.org>
+Assisted-by: Claude:claude-opus-4-8
+Acked-by: Barry Song <baohua@kernel.org>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Jan Alexander Steffens (heftig) <heftig@archlinux.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Kairui Song <kasong@tencent.com>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Oleksandr Natalenko <oleksandr@natalenko.name>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Steven Barrett <steven@liquorix.net>
+Cc: Suleiman Souhlal <suleiman@google.com>
+Cc: Wei Xu <weixugc@google.com>
+Cc: Yuanchu Xie <yuanchu@google.com>
+Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/pkey-helpers.h |    7 -------
- 1 file changed, 7 deletions(-)
+ mm/vmscan.c |   18 ++++++++++++++++--
+ 1 file changed, 16 insertions(+), 2 deletions(-)
 
---- a/tools/testing/selftests/mm/pkey-helpers.h~selftests-mm-remove-the-local-pkey_unrestricted-fallback
-+++ a/tools/testing/selftests/mm/pkey-helpers.h
-@@ -114,13 +114,6 @@ void record_pkey_malloc(void *ptr, long
- #define PKEY_MASK	(PKEY_DISABLE_ACCESS | PKEY_DISABLE_WRITE)
- #endif
+--- a/mm/vmscan.c~mm-mglru-preserve-inactive-placement-when-enabling-mglru
++++ a/mm/vmscan.c
+@@ -5307,7 +5307,17 @@ static bool fill_evictable(struct lruvec
  
--/*
-- * FIXME: Remove once the generic PKEY_UNRESTRICTED definition is merged.
-- */
--#ifndef PKEY_UNRESTRICTED
--#define PKEY_UNRESTRICTED 0x0
--#endif
--
- #ifndef set_pkey_bits
- static inline u64 set_pkey_bits(u64 reg, int pkey, u64 flags)
- {
+ 		while (!list_empty(head)) {
+ 			bool success;
+-			struct folio *folio = lru_to_folio(head);
++			struct folio *folio;
++
++			/*
++			 * lru_gen_add_folio() uses list_add_tail() rather
++			 * than list_add() when reclaiming is true.  Match
++			 * its ordering to avoid cold/hot inversion.
++			 */
++			if (active)
++				folio = lru_to_folio(head);
++			else
++				folio = list_first_entry(head, struct folio, lru);
+ 
+ 			VM_WARN_ON_ONCE_FOLIO(folio_test_unevictable(folio), folio);
+ 			VM_WARN_ON_ONCE_FOLIO(folio_test_active(folio) != active, folio);
+@@ -5315,7 +5325,11 @@ static bool fill_evictable(struct lruvec
+ 			VM_WARN_ON_ONCE_FOLIO(folio_lru_gen(folio) != -1, folio);
+ 
+ 			lruvec_del_folio(lruvec, folio);
+-			success = lru_gen_add_folio(lruvec, folio, false);
++			/*
++			 * Borrow reclaiming=true to place inactive folios in
++			 * the older gens.
++			 */
++			success = lru_gen_add_folio(lruvec, folio, !active);
+ 			VM_WARN_ON_ONCE(!success);
+ 
+ 			if (!--remaining)
 _
 
-Patches currently in -mm which might be from hemanth.selam@gmail.com are
+Patches currently in -mm which might be from chenridong@xiaomi.com are
 
-selftests-mm-remove-the-local-pkey_unrestricted-fallback.patch
+mm-vmscan-drop-the-combined-limit-gate-in-__node_reclaim.patch
+mm-mglru-preserve-inactive-placement-when-enabling-mglru.patch
 
