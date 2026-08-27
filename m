@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9F36647CC6C;
-	Thu, 27 Aug 2026 17:29:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 83E8C3F1052;
+	Thu, 27 Aug 2026 20:04:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787851799; cv=none; b=IAlBRMW1tDxg3M92iCSzEP6FxqAlUbwVHnqCJHfAOqFrfDPBdZtBSNtbQbWGR3pe7rnrHeAuXMlyI95u6+g7IBF9kjngHCOF9NECCQTZVsJzIAi65J95nKowST9o6J+r5Vl7qUo6jjCe7/X/4Cg7XgcW3JtSFCetQRKIYduj2F0=
+	t=1787861070; cv=none; b=Q7ppvIAXZxD6L2aqWQiLC68AMWHWHy+KonJ04B3EBLwd6LHOgQc8WhfFrMzsvXWqqA7vIhmV/gmY6IRv8K726qLe8pBSHFfYnMBcFDEN6ThYXgBQIShoqK5/5GRi+P4OpQv88XGIFyfZpRwce40PC1hbokjA3Pskz6o22WFYB1M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787851799; c=relaxed/simple;
-	bh=eA+59eXuk5d3Iu/JzNIxr/oFTeHloFRpoPlY3U79k50=;
-	h=Date:To:From:Subject:Message-Id; b=VmiDOQMdq+7tpcD1mmtlPX6bMIhnsvQ3ppC7SdtiPeRSyUJ1QsrHpcHcAbXJrnZ5OwXVzkdDa6wmLWUTzflCv3wHZRwwhiWFTedQlWAXFxqqKEDVLpDcLFaMzJdXzcyttWARnO3gCUFdWoHI8c+hnSIEqhrE5Riqh6pVapN6/7c=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=srL2yqa5; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1787861070; c=relaxed/simple;
+	bh=IQnClMi7NlCPMSD13Bv0pJ82pLqAe6LwRafF5SSgWsE=;
+	h=Date:To:From:Subject:Message-Id; b=pOGZXVOA5D8CuN26CdEd+0mZBKRK9wNOPlqxN2VwDoGq+V6FTVxV4/ajEFSjq6DT9vQZq4tgFN/P8FayiQ43pUsYFR8LGXzBzMYM51UDtpEpt7gJU9pLyI1CttOPJ90xgCx2fYmJxJrTqeZYT5lrf3Qwr5mkV94o4hwngu3Qvl4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=D3gtQUNt; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="srL2yqa5"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F23311F000E9;
-	Thu, 27 Aug 2026 17:29:57 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="D3gtQUNt"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EA47C1F000E9;
+	Thu, 27 Aug 2026 20:04:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1787851798;
-	bh=L1IUe41TigVLEBKZAFL8x4gB6k0riRkkI6nkPXLfIvk=;
+	d=linux-foundation.org; s=korg; t=1787861069;
+	bh=guBzHEuJ556yjS9/3iNHWwlxnwmPBZAdmq2SjkEaG3w=;
 	h=Date:To:From:Subject;
-	b=srL2yqa5JL1ebi3A6h6HUgFM2nbQfEP/6JZ33JOK7ig53F7LJxuiRKEecDPgRr92g
-	 TWV9c90pspOHkdnTLj4hgrqB+86qPeWyK1YAX4lkrhf8cjCarTkJ1VkHaH4QCusRI/
-	 sBiBBCzs49zn4wf8nyfzh5ory9EVtBe1Y+/DcWFE=
-Date: Thu, 27 Aug 2026 10:29:57 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,hughd@google.com,brauner@kernel.org,baolin.wang@linux.alibaba.com,andrealmeid@igalia.com,hnkz.64@gmail.com,akpm@linux-foundation.org
+	b=D3gtQUNt4oXMTD71LYXOuNd583puUtkS39dIePObkVL8pfUZ7TFP+sIdM/fPJj77h
+	 J1eW+irzr0uVaeLRsvQHv6ns18li27GMJWFW36xjq5fziw0JU4xvDuB2Gwa2XvC2aS
+	 GMGI/kc2NIOpWiwovYnXeaJV0icF/UNIVuckShm4=
+Date: Thu, 27 Aug 2026 13:04:28 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,stable@vger.kernel.org,pfalcato@suse.de,lixinhai.lxh@gmail.com,liam@infradead.org,kunwu.chan@gmail.com,jannh@google.com,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + tmpfs-fix-unicode_map-leaks-in-casefold-option-handling.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260827172957.F23311F000E9@smtp.kernel.org>
+Subject: + mm-mremap-reset-unfaulted-vma-page-offset-for-mremap_dontunmap.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260827200428.EA47C1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: tmpfs: fix unicode_map leaks in casefold option handling
+     Subject: mm/mremap: reset unfaulted VMA page offset for MREMAP_DONTUNMAP
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     tmpfs-fix-unicode_map-leaks-in-casefold-option-handling.patch
+     mm-mremap-reset-unfaulted-vma-page-offset-for-mremap_dontunmap.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/tmpfs-fix-unicode_map-leaks-in-casefold-option-handling.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mremap-reset-unfaulted-vma-page-offset-for-mremap_dontunmap.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,71 +58,92 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Kazuki Hanai <hnkz.64@gmail.com>
-Subject: tmpfs: fix unicode_map leaks in casefold option handling
-Date: Fri, 28 Aug 2026 00:25:16 +0900
+From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
+Subject: mm/mremap: reset unfaulted VMA page offset for MREMAP_DONTUNMAP
+Date: Tue, 25 Aug 2026 08:55:26 +0100
 
-shmem_parse_opt_casefold() stores the unicode_map returned by utf8_load()
-in ctx->encoding.  The casefold parameter can be supplied more than once
-for the same filesystem context, but replacing the stored map does not
-release the previous reference.
+Uniquely an mremap() invocation using the MREMAP_DONTUNMAP flag can reset
+a faulted VMA into an unfaulted one.
 
-The final reference is also leaked when an unmounted filesystem context is
-freed.
+It does so after the page tables have been moved to the copied VMA with
+MREMAP_DONTUNMAP leaving the old VMA in place which is naturally unfaulted
+as the page tables it had are no longer present.
 
-Release the previous map before replacing it, clear ctx->encoding after
-transferring ownership to the superblock, and release any remaining
-reference from shmem_free_fc().
+However, in doing so, it violates the invariant that the anonymous page
+offset of an unfaulted VMA is vma->vm_start >> PAGE_SHIFT.
 
-An unprivileged user can repeatedly set the casefold parameter on a tmpfs
-filesystem context from a user namespace.  This causes unbounded kernel
-memory consumption and can result in a local denial of service.
+This is because a VMA may have been faulted in, mremap()'d (causing a
+delta between its page offset and vma->vm_start >> PAGE_SHIFT), and then
+mremap()'d again with MREMAP_DONTUNMAP resulting in the unfaulting.
 
-Link: https://lore.kernel.org/20260827152516.805622-1-hnkz.64@gmail.com
-Fixes: 58e55efd6c72 ("tmpfs: Add casefold lookup support")
-Signed-off-by: Kazuki Hanai <hnkz.64@gmail.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: André Almeida <andrealmeid@igalia.com>
-Cc: Christian Brauner <brauner@kernel.org>
+This condition is a violation of a fundamental assumption in mm, but now
+also triggers an assert in assert_sane_pgoff() which explicitly checks for
+this condition.
+
+Correct it by resetting the VMA's page offset at the point of completing
+the MREMAP_DONTUNMAP operation.
+
+Link: https://lore.kernel.org/20260825-fix-mremap-dontunmap-pgoff-v1-1-39a40b2c98b3@kernel.org
+Fixes: 1583aa278f5f ("mm: mremap: unlink anon_vmas when mremap with MREMAP_DONTUNMAP success")
+Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+Reported-by: syzbot+f12658786a4153df5113@syzkaller.appspotmail.com
+Closes: https://lore.kernel.org/all/6a87853b.ae6ddae5.3da009.0023.GAE@google.com/
+Acked-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
+Cc: Jann Horn <jannh@google.com>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Li Xinhai <lixinhai.lxh@gmail.com>
+Cc: Pedro Falcato <pfalcato@suse.de>
+Cc: Kunwu Chan <kunwu.chan@gmail.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ mm/mremap.c |   22 +++++++++++++++++-----
+ 1 file changed, 17 insertions(+), 5 deletions(-)
 
---- a/mm/shmem.c~tmpfs-fix-unicode_map-leaks-in-casefold-option-handling
-+++ a/mm/shmem.c
-@@ -4502,6 +4502,7 @@ static int shmem_parse_opt_casefold(stru
- 	pr_info("tmpfs: Using encoding : utf8-%u.%u.%u\n",
- 		unicode_major(version), unicode_minor(version), unicode_rev(version));
+--- a/mm/mremap.c~mm-mremap-reset-unfaulted-vma-page-offset-for-mremap_dontunmap
++++ a/mm/mremap.c
+@@ -1331,18 +1331,30 @@ static void dontunmap_complete(struct vm
+ {
+ 	unsigned long start = vrm->addr;
+ 	unsigned long end = vrm->addr + vrm->old_len;
+-	unsigned long old_start = vrm->vma->vm_start;
+-	unsigned long old_end = vrm->vma->vm_end;
++	struct vm_area_struct *vma = vrm->vma;
++	unsigned long old_start = vma->vm_start;
++	unsigned long old_end = vma->vm_end;
  
-+	utf8_unload(ctx->encoding);
- 	ctx->encoding = encoding;
+ 	/* We always clear VMA_LOCKED[ONFAULT]_BIT on the old VMA. */
+-	vma_clear_flags_mask(vrm->vma, VMA_LOCKED_MASK);
++	vma_clear_flags_mask(vma, VMA_LOCKED_MASK);
  
- 	return 0;
-@@ -4970,6 +4971,7 @@ static int shmem_fill_super(struct super
+ 	/*
+ 	 * anon_vma links of the old vma is no longer needed after its page
+ 	 * table has been moved.
+ 	 */
+-	if (new_vma != vrm->vma && start == old_start && end == old_end)
+-		unlink_anon_vmas(vrm->vma);
++	if (new_vma != vma && start == old_start && end == old_end) {
++		const pgoff_t pgoff_unfaulted = vma->vm_start >> PAGE_SHIFT;
++
++		unlink_anon_vmas(vma);
++		/*
++		 * The VMA is now unfaulted and it is an invariant that
++		 * unfaulted anonymous VMAs have page offset equal to
++		 * vma->vm_start >> PAGE_SHIFT.
++		 */
++		vma_set_anon_pgoff(vma, pgoff_unfaulted);
++		if (vma_is_anonymous(vma) && !vma->vm_file)
++			vma_set_pgoff(vma, pgoff_unfaulted);
++	}
  
- 	if (ctx->encoding) {
- 		sb->s_encoding = ctx->encoding;
-+		ctx->encoding = NULL;
- 		set_default_d_op(sb, &shmem_ci_dentry_ops);
- 		if (ctx->strict_encoding)
- 			sb->s_encoding_flags = SB_ENC_STRICT_MODE_FL;
-@@ -5067,6 +5069,9 @@ static void shmem_free_fc(struct fs_cont
- 	struct shmem_options *ctx = fc->fs_private;
- 
- 	if (ctx) {
-+#if IS_ENABLED(CONFIG_UNICODE)
-+		utf8_unload(ctx->encoding);
-+#endif
- 		mpol_put(ctx->mpol);
- 		kfree(ctx);
- 	}
+ 	/* Because we won't unmap we don't need to touch locked_vm. */
+ }
 _
 
-Patches currently in -mm which might be from hnkz.64@gmail.com are
+Patches currently in -mm which might be from ljs@kernel.org are
 
-tmpfs-fix-unicode_map-leaks-in-casefold-option-handling.patch
+maintainers-remove-myself-as-thp-co-maintainer.patch
+mm-mremap-reset-unfaulted-vma-page-offset-for-mremap_dontunmap.patch
+mm-secretmem-properly-account-locked-pages.patch
 
