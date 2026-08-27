@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2F89B377A86;
-	Thu, 27 Aug 2026 20:08:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AF23C377019;
+	Thu, 27 Aug 2026 20:08:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787861303; cv=none; b=jqoT3bXWWNeWLv6jAISemLcY7RHJ6QQ+cN0PXjcVGLkMZwyWAZM7TI29ZhL5S3hsrjqVmiNxKmH/Ht4JwnhrMQAOuJLgidhTIMlGa5B1cJ53DqwsrFThNPIwkY2XouyMPL3f259twImIiMXtN5UHeQ0+yhfbwNBGrJzzlttUq+U=
+	t=1787861305; cv=none; b=trannqkvzBNU3TT0RFUXea8oB5Q2MQL9QwX1avS68QXUTi7oWIWBT5VtHh9saYb4xxspRt1C1WrUMsIEF0U7Yi7OoLwpbCqu4cqXijvpB5MG7L10aN5vCu7YHkFkvUyKpe5JVNiMlyLVuC0n5q816ILHGotzek2ntMS3G2hklbc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787861303; c=relaxed/simple;
-	bh=SMQMAcH7e7NpdB9reBwsx13YT1spRUCxPlY2s3DF+PE=;
-	h=Date:To:From:Subject:Message-Id; b=nv7WDuOGUjIh7wvbuXcKw1qoYymra7pGNnCZtgTK2HzFbhviaE9fPT3dkdXTEYaMBhzmeOcZ2JJnAbImFvHt2csKob5u035zWn2PRGWGGI+Eiti6dVlM1QJIJISOURJrDWPAoQ6cTsPZaFt04elDpENadc7cJIbGWlx/Okb/0K8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HZUfd6L/; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1787861305; c=relaxed/simple;
+	bh=iCLeU3rVNSENvnBl+WIRtKCjTDSCy6y/XdqRm6DtRSs=;
+	h=Date:To:From:Subject:Message-Id; b=ra+UZ819oRMhOZiPB5cPBPvZ1hIFe+R6wwvCoI1QRR+P4ca4JnF/svgItVZo/X0o7w3N3Ar6N1deoaGOxWftTJJzG2TpKmsxh5wG4673MYsmjZEU5mzrODnmaFDwRtpAcISIEB7IIvqGwQZT0dOWqGsfapMFDHC074TvtRoAF34=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bt3YyfpM; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HZUfd6L/"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B2EA91F00A3D;
-	Thu, 27 Aug 2026 20:08:20 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bt3YyfpM"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EEE441F00A3E;
+	Thu, 27 Aug 2026 20:08:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1787861300;
-	bh=HMKBpqoRtZeeRCix5goKfBjbAdNN+sS+hzI/x0NtJ8Y=;
+	d=linux-foundation.org; s=korg; t=1787861302;
+	bh=WxNfcrs4yeg9Y25ZC995lfIxXjLIowcw6hg/YjQtNs8=;
 	h=Date:To:From:Subject;
-	b=HZUfd6L/HBWpUyyiJzbWL9C+C5QiujxwDw7WZ0fk7iaqcAa6GThvAJToZ0GiZZyPD
-	 WdpXSobbuGgUWZp6zj5YmbqkOciZXUlCc0HhtAeEpLEAM4nmZclSpj3pGgn6pVHhGy
-	 8hgBgrM4cmVDxD45SaJwVILdJ2aJcPlRV592y/FE=
-Date: Thu, 27 Aug 2026 13:08:20 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,shakeel.butt@linux.dev,osalvador@suse.de,muchun.song@linux.dev,david@kernel.org,njilav@gmail.com,akpm@linux-foundation.org
+	b=bt3YyfpMehZKPuZZtpVYLIdi7KYrZRqpiCduM/k3yUVGZ1nmEV2eljRGPS347HSC5
+	 Zo5FE0cl2XMXDe01bieG7VrAs6T7v7WbdfsnAriQVs+wJqHIKDjcETkGFFDxllbbCc
+	 80JLfuBzkO4XmksRZbv0wcpYTr9/sQXU22IkDHzs=
+Date: Thu, 27 Aug 2026 13:08:21 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,stable@vger.kernel.org,rakie.kim@sk.com,matthew.brost@intel.com,joshua.hahnjy@gmail.com,gourry@gourry.net,david@kernel.org,byungchul@sk.com,balbirs@nvidia.com,apopple@nvidia.com,sh_def@163.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-hugetlb_cgroup-call-page_counter_set_max-outside-vm_bug_on.patch removed from -mm tree
-Message-Id: <20260827200820.B2EA91F00A3D@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-migrate_device-avoid-out-of-bounds-writes-for-compound-folios.patch removed from -mm tree
+Message-Id: <20260827200821.EEE441F00A3E@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,91 +35,96 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/hugetlb_cgroup: call page_counter_set_max() outside VM_BUG_ON()
+     Subject: mm/migrate_device: avoid out-of-bounds writes for compound folios
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb_cgroup-call-page_counter_set_max-outside-vm_bug_on.patch
+     mm-migrate_device-avoid-out-of-bounds-writes-for-compound-folios.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Narek Jilavyan <njilav@gmail.com>
-Subject: mm/hugetlb_cgroup: call page_counter_set_max() outside VM_BUG_ON()
-Date: Mon, 17 Aug 2026 10:34:33 +0000
+From: Hui Su <sh_def@163.com>
+Subject: mm/migrate_device: avoid out-of-bounds writes for compound folios
+Date: Mon, 17 Aug 2026 20:08:00 +0800
 
-hugetlb_cgroup_css_alloc() rounds the counter limit down to a multiple of
-the huge page size and then applies it inside an assertion:
+migrate_device_range() and migrate_device_pfns() clear the entries
+following a compound folio so that the PFN arrays retain their
+page-granular representation.
 
-	VM_BUG_ON(page_counter_set_max(fault, limit));
-	VM_BUG_ON(page_counter_set_max(rsvd, limit));
+If a compound folio extends beyond the end of the caller-provided range,
+the loops clear all following folio entries without limiting them to the
+number of slots remaining in the npages-sized array, causing an
+out-of-bounds write.
 
-With CONFIG_DEBUG_VM=n, VM_BUG_ON(cond) is BUILD_BUG_ON_INVALID(cond),
-i.e.  ((void)(sizeof((__force long)(cond)))), whose operand is never
-evaluated.  page_counter_set_max() is not a predicate - it performs
-xchg(&counter->max, nr_pages) - so on every non-debug kernel the limit is
-never applied and the counters keep page_counter_init()'s
-PAGE_COUNTER_MAX.
+Do not proceed with a compound folio if its page-granular representation
+does not fit entirely in the remaining PFN array.  If this happens, drop
+any reference and lock acquired for the folio, clear the remaining
+entries, and stop collecting.
 
-That is user-visible, because hugetlb_cgroup_read_u64_max() recomputes the
-same rounded value and uses equality as its "unlimited" sentinel. 
-PAGE_COUNTER_MAX is LONG_MAX / PAGE_SIZE = 2251799813685247, which is odd,
-so round_down() really does change it and the two sides disagree.  With
-CONFIG_DEBUG_VM=n:
+Observed with a KASAN x86 QEMU kernel using the HMM migrate_anon_huge_zero
+selftest.  Closing /dev/hmm_dmirror0 after migrating an anonymous huge
+page to device memory exercises:
 
-	$ cat /sys/fs/cgroup/t/hugetlb.2MB.max
-	9223372036854771712
+  dmirror_fops_release()
+    -> dmirror_device_evict_chunk()
+      -> migrate_device_range()
 
-and with this patch:
-
-	$ cat /sys/fs/cgroup/t/hugetlb.2MB.max
-	max
-
-A debug option should not change cgroup output.
-
-Call the function, then assert the result, as v6.12 did.  Use
-VM_WARN_ON_ONCE() rather than restoring VM_BUG_ON(): the two are identical
-under CONFIG_DEBUG_VM=n, and checkpatch asks that new code not use BUG()
-variants.
-
-Link: https://lore.kernel.org/20260817103433.191266-1-njilav@gmail.com
-Fixes: 0e2759afcaf9 ("page_counter: track failcnt only for legacy cgroups")
-Signed-off-by: Narek Jilavyan <njilav@gmail.com>
-Reviewed-by: Muchun Song <muchun.song@linux.dev>
+Link: https://lore.kernel.org/20260817120758.669807-3-sh_def@163.com
+Fixes: a30b48bf1b24 ("mm/migrate_device: implement THP migration of zone device pages")
+Signed-off-by: Hui Su <sh_def@163.com>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Balbir Singh <balbirs@nvidia.com>
+Cc: Byungchul Park <byungchul@sk.com>
 Cc: David Hildenbrand <david@kernel.org>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Gregory Price <gourry@gourry.net>
+Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
+Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
+Cc: Matthew Brost <matthew.brost@intel.com>
+Cc: Rakie Kim <rakie.kim@sk.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb_cgroup.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ mm/migrate_device.c |   18 ++++++++++++++++++
+ 1 file changed, 18 insertions(+)
 
---- a/mm/hugetlb_cgroup.c~mm-hugetlb_cgroup-call-page_counter_set_max-outside-vm_bug_on
-+++ a/mm/hugetlb_cgroup.c
-@@ -97,6 +97,7 @@ static void hugetlb_cgroup_init(struct h
- 		struct page_counter *fault, *fault_parent = NULL;
- 		struct page_counter *rsvd, *rsvd_parent = NULL;
- 		unsigned long limit;
-+		int ret;
+--- a/mm/migrate_device.c~mm-migrate_device-avoid-out-of-bounds-writes-for-compound-folios
++++ a/mm/migrate_device.c
+@@ -1423,6 +1423,15 @@ int migrate_device_range(unsigned long *
  
- 		if (parent_h_cgroup) {
- 			fault_parent = hugetlb_cgroup_counter_from_cgroup(
-@@ -118,8 +119,10 @@ static void hugetlb_cgroup_init(struct h
- 		limit = round_down(PAGE_COUNTER_MAX,
- 				   pages_per_huge_page(&hstates[idx]));
+ 		src_pfns[i] = migrate_device_pfn_lock(pfn);
+ 		nr = folio_nr_pages(folio);
++		if (nr > npages - i) {
++			if (src_pfns[i] & MIGRATE_PFN_MIGRATE) {
++				folio_unlock(folio);
++				folio_put(folio);
++			}
++			memset(&src_pfns[i], 0,
++			       (npages - i) * sizeof(*src_pfns));
++			break;
++		}
+ 		if (nr > 1) {
+ 			src_pfns[i] |= MIGRATE_PFN_COMPOUND;
+ 			for (j = 1; j < nr; j++)
+@@ -1457,6 +1466,15 @@ int migrate_device_pfns(unsigned long *s
  
--		VM_BUG_ON(page_counter_set_max(fault, limit));
--		VM_BUG_ON(page_counter_set_max(rsvd, limit));
-+		ret = page_counter_set_max(fault, limit);
-+		VM_WARN_ON_ONCE(ret);
-+		ret = page_counter_set_max(rsvd, limit);
-+		VM_WARN_ON_ONCE(ret);
- 	}
- }
- 
+ 		src_pfns[i] = migrate_device_pfn_lock(src_pfns[i]);
+ 		nr = folio_nr_pages(folio);
++		if (nr > npages - i) {
++			if (src_pfns[i] & MIGRATE_PFN_MIGRATE) {
++				folio_unlock(folio);
++				folio_put(folio);
++			}
++			memset(&src_pfns[i], 0,
++			       (npages - i) * sizeof(*src_pfns));
++			break;
++		}
+ 		if (nr > 1) {
+ 			src_pfns[i] |= MIGRATE_PFN_COMPOUND;
+ 			for (j = 1; j < nr; j++)
 _
 
-Patches currently in -mm which might be from njilav@gmail.com are
+Patches currently in -mm which might be from sh_def@163.com are
 
 
