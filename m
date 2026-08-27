@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C330D1ABEDE;
-	Thu, 27 Aug 2026 02:02:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5A430380FD5
+	for <mm-commits@vger.kernel.org>; Thu, 27 Aug 2026 02:05:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787796176; cv=none; b=ppu4INu7VXdk4Ir5jNZ54caNerJrkpmKxgIhqFQ8xOOAMI5RTw7RAD6vxVDnWWmPBaCwfT42kcXr1niMwvKOk/wBWZVQlVbUUC9iUdOXIrnPFyQ5iNn4vd3pdgW7G8ctTiLrRPJCBhnwGst5RnCMEmdwpd3NlEPx81NFGZEbc8M=
+	t=1787796304; cv=none; b=Tf9y9okHgRDd1tHTXzbQQz5W+c6njZIAiyPaPZQMGddpTXEMAZe+PLTgFFKkLhZ7zk06kORpSe4JfcQsf7NA7SFQCKArQoskKzutTPi4oDZPrhc0AcSgKOIxqXe9dHnL7uW/4N7wNvqyW3ApWFhM0x4tqg0QWcBI0KX8ock3lu8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787796176; c=relaxed/simple;
-	bh=2Y3wHWGSJgk4/PsN6xJagMe6gGZvMijyJyQYtpUh9u8=;
-	h=Date:To:From:Subject:Message-Id; b=YgeZorelSWmjlpGKDeQJgB3NFcZnR0pOFq3vc+57PlWGmn5kUH/LItQJt0xflYb/08Rghthcyx5CfZi3BsuBR76QyTG4KCZcpN4p9QAWHkuIyl1RRVcvjXRZITFZvKz2DDKvopnj/BynnpBGEV6/j+RU+QMBeORyIMvxKJ6tjg0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1NdsYVhU; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1787796304; c=relaxed/simple;
+	bh=OawlBpW+zCr5nm/5fbm/fQXlWMqwT2mpsAFfJcWxGtg=;
+	h=Date:To:From:Subject:Message-Id; b=C+h/KP59hXaAGKHHerB4HFmvpHus8gZUQrn9rGgBMKegg87yQeItD/YRFdFhM9YqwD6PtlWUR+r/qUsamgjssBaHA8IF9CmYKnhkr+9gjHgzHqF51xugx0JsBqtMSfquSKMTEFq7i+mA73rEHxD7sVG1noDTipIfvZiSMT/GRPs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Qe7EcjgR; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1NdsYVhU"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2D3ED1F000E9;
-	Thu, 27 Aug 2026 02:02:54 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Qe7EcjgR"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C4A361F000E9;
+	Thu, 27 Aug 2026 02:05:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1787796174;
-	bh=m3jj90jfuXHNsTd4F9jG4VMGJ3o+E1cT8bTUYQKrA+A=;
+	d=linux-foundation.org; s=korg; t=1787796302;
+	bh=mGC2q+WFlQvIXfRBT/uAY9ZveFj/qrKCw5u1YWYH22k=;
 	h=Date:To:From:Subject;
-	b=1NdsYVhU/j4JGif2yUfVEequccLbSplF8aKPOQEUxo1eXBQlK/CKtjb4iLvYr71od
-	 GqMu3bl/CZmM7qXM8nbhZfQakRKRo8ENo1PGYeDhTokLQEI04+jLJQwoX/mqOzZcgO
-	 vErYUqw6yHTQ7fR+ogTt6F/TEGJJdLRqcWReaJsU=
-Date: Wed, 26 Aug 2026 19:02:53 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,dmoulding@me.com,blum@kernel.org,akpm@linux-foundation.org
+	b=Qe7EcjgR8YYG394E8NqU+gGf7Kv3VKchBl/Gi13nAOGTj2ZzraeloC/YHHtn0UfVa
+	 jzKZ/ov8QryS6chvy4baT+lTMshPJP2ixgahnglNHWJSXYpAt6Y1aoKrfidEdTj+8M
+	 PpJ687HOfSuZQsOtLZ3gjC+gUc0dAZcgk7Swwu9k=
+Date: Wed, 26 Aug 2026 19:05:02 -0700
+To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,jlbec@evilplan.org,heming.zhao@suse.com,gechangwei@live.cn,gality369@gmail.com,joseph.qi@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + init-fix-early-boot-crash-with-bare-hostname-parameter.patch added to mm-nonmm-unstable branch
-Message-Id: <20260827020254.2D3ED1F000E9@smtp.kernel.org>
+Subject: + ocfs2-fix-deadlock-in-inline-data-truncate-transactions.patch added to mm-nonmm-unstable branch
+Message-Id: <20260827020502.C4A361F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: init: Fix early boot crash with bare hostname parameter
+     Subject: ocfs2: fix deadlock in inline-data truncate transactions
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     init-fix-early-boot-crash-with-bare-hostname-parameter.patch
+     ocfs2-fix-deadlock-in-inline-data-truncate-transactions.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/init-fix-early-boot-crash-with-bare-hostname-parameter.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-fix-deadlock-in-inline-data-truncate-transactions.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,44 +58,305 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Thorsten Blum <blum@kernel.org>
-Subject: init: Fix early boot crash with bare hostname parameter
-Date: Wed, 26 Aug 2026 12:09:03 +0200
+From: Joseph Qi <joseph.qi@linux.alibaba.com>
+Subject: ocfs2: fix deadlock in inline-data truncate transactions
+Date: Wed, 26 Aug 2026 19:26:59 +0800
 
-When a bare hostname parameter is specified on the kernel command line
-without the '=' separator, early parameter parsing passes NULL to
-early_hostname(), which dereferences it in strscpy() and can crash the
-system during early boot.
+Updating an inode xattr can cause an ABBA deadlock with inline file
+truncation:
 
-Reject NULL values in early_hostname() and return -EINVAL instead.
+  ocfs2_truncate_file()
+    down_write(&oi->ip_alloc_sem)
+    ocfs2_truncate_inline()
+      ocfs2_start_trans()
 
-Link: https://lore.kernel.org/20260826100904.296151-2-blum@kernel.org
-Fixes: 5a704629f2c1 ("init: add "hostname" kernel parameter")
-Signed-off-by: Thorsten Blum <blum@kernel.org>
-Cc: Dan Moulding <dmoulding@me.com>
-Cc: <stable@vger.kernel.org>
+  ocfs2_xattr_set()
+    ocfs2_start_trans()
+    ocfs2_xattr_ibody_set()
+      down_write(&oi->ip_alloc_sem)
+
+The xattr set path starts the merged transaction before the inode-body
+xattr helper acquires ip_alloc_sem, reversing the ip_alloc_sem ->
+transaction order used by the allocation and truncate paths.  The
+transaction merge in commit 85db90e77806 ("ocfs2/xattr: Merge xattr set
+transaction.") introduced this ordering.
+
+Fix it by acquiring ip_alloc_sem once in ocfs2_xattr_set(), before xattr
+preparation, allocation reservations and ocfs2_start_trans(), and removing
+the per-helper acquisition from ocfs2_xattr_ibody_find(),
+ocfs2_xattr_ibody_set() and ocfs2_xattr_create_index_block().  These
+helpers now assert via lockdep that the caller holds ip_alloc_sem.
+
+ocfs2_xattr_set_handle(), which only sets initial ACL or security xattrs
+on unpublished inodes inside the create transaction, takes ip_alloc_sem
+under a dedicated lockdep subclass so that the assertions hold without
+creating a transaction -> ip_alloc_sem cycle against the ip_alloc_sem ->
+transaction order.  The inode is unpublished, so the acquisition can never
+contend.
+
+This keeps the established ip_alloc_sem -> transaction order and makes the
+locking unconditional, so lockdep can verify a single plain ordering
+instead of conditional acquisitions.
+
+Link: https://lore.kernel.org/20260826112659.246574-1-joseph.qi@linux.alibaba.com
+Fixes: 85db90e77806 ("ocfs2/xattr: Merge xattr set transaction.")
+Signed-off-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: ZhengYuan Huang <gality369@gmail.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Jun Piao <piaojun@huawei.com>
+Cc: Heming Zhao <heming.zhao@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/version.c |    3 +++
- 1 file changed, 3 insertions(+)
+ fs/ocfs2/xattr.c |   79 ++++++++++++++++++++++++++++++---------------
+ 1 file changed, 53 insertions(+), 26 deletions(-)
 
---- a/init/version.c~init-fix-early-boot-crash-with-bare-hostname-parameter
-+++ a/init/version.c
-@@ -23,6 +23,9 @@ static int __init early_hostname(char *a
- 	size_t maxlen  = bufsize - 1;
- 	ssize_t arglen;
+--- a/fs/ocfs2/xattr.c~ocfs2-fix-deadlock-in-inline-data-truncate-transactions
++++ a/fs/ocfs2/xattr.c
+@@ -2912,6 +2912,9 @@ static int ocfs2_xattr_has_space_inline(
+  *
+  * Find extended attribute in inode block and
+  * fill search info into struct ocfs2_xattr_search.
++ *
++ * The inline free-space check races with truncate and allocation, so
++ * callers must hold ip_alloc_sem for writing.
+  */
+ static int ocfs2_xattr_ibody_find(struct inode *inode,
+ 				  int name_index,
+@@ -2923,13 +2926,13 @@ static int ocfs2_xattr_ibody_find(struct
+ 	int ret;
+ 	int has_space = 0;
  
-+	if (!arg)
-+		return -EINVAL;
++	lockdep_assert_held_write(&oi->ip_alloc_sem);
 +
- 	arglen = strscpy(init_uts_ns.name.nodename, arg, bufsize);
- 	if (arglen < 0) {
- 		pr_warn("hostname parameter exceeds %zd characters and will be truncated",
+ 	if (inode->i_sb->s_blocksize == OCFS2_MIN_BLOCKSIZE)
+ 		return 0;
+ 
+ 	if (!(oi->ip_dyn_features & OCFS2_INLINE_XATTR_FL)) {
+-		down_read(&oi->ip_alloc_sem);
+ 		has_space = ocfs2_xattr_has_space_inline(inode, di);
+-		up_read(&oi->ip_alloc_sem);
+ 		if (!has_space)
+ 			return 0;
+ 	}
+@@ -3010,6 +3013,7 @@ out:
+  *
+  * Set, replace or remove an extended attribute into inode block.
+  *
++ * Callers must hold ip_alloc_sem for writing.
+  */
+ static int ocfs2_xattr_ibody_set(struct inode *inode,
+ 				 struct ocfs2_xattr_info *xi,
+@@ -3020,16 +3024,17 @@ static int ocfs2_xattr_ibody_set(struct
+ 	struct ocfs2_inode_info *oi = OCFS2_I(inode);
+ 	struct ocfs2_xa_loc loc;
+ 
++	lockdep_assert_held_write(&oi->ip_alloc_sem);
++
+ 	if (inode->i_sb->s_blocksize == OCFS2_MIN_BLOCKSIZE)
+ 		return -ENOSPC;
+ 
+-	down_write(&oi->ip_alloc_sem);
+ 	if (!(oi->ip_dyn_features & OCFS2_INLINE_XATTR_FL)) {
+ 		ret = ocfs2_xattr_ibody_init(inode, xs->inode_bh, ctxt);
+ 		if (ret) {
+ 			if (ret != -ENOSPC)
+ 				mlog_errno(ret);
+-			goto out;
++			return ret;
+ 		}
+ 	}
+ 
+@@ -3039,13 +3044,10 @@ static int ocfs2_xattr_ibody_set(struct
+ 	if (ret) {
+ 		if (ret != -ENOSPC)
+ 			mlog_errno(ret);
+-		goto out;
++		return ret;
+ 	}
+ 	xs->here = loc.xl_entry;
+ 
+-out:
+-	up_write(&oi->ip_alloc_sem);
+-
+ 	return ret;
+ }
+ 
+@@ -3690,6 +3692,18 @@ out:
+ }
+ 
+ /*
++ * ip_alloc_sem subclass for inodes being initialized before publication.
++ * ocfs2_xattr_set_handle() runs inside the create transaction, so taking
++ * ip_alloc_sem there adds a transaction -> ip_alloc_sem order that would
++ * form a lockdep cycle with the ip_alloc_sem -> transaction order used
++ * elsewhere, if not for this separate subclass.  The inode is unpublished
++ * so the acquisition can never contend.
++ */
++enum {
++	OCFS2_IP_ALLOC_SEM_UNPUBLISHED = 1,
++};
++
++/*
+  * This helper is only for setting initial ACL or security xattrs on an inode
+  * that is still unpublished, unhashed, and unattached to a dentry.
+  * Ordinary xattr updates must use ocfs2_xattr_set().
+@@ -3750,6 +3764,13 @@ int ocfs2_xattr_set_handle(handle_t *han
+ 	xis.inode_bh = xbs.inode_bh = di_bh;
+ 	di = (struct ocfs2_dinode *)di_bh->b_data;
+ 
++	/*
++	 * The inode is unpublished and cannot contend, but take the
++	 * semaphore anyway so the helpers' lockdep assertions hold.
++	 */
++	down_write_nested(&OCFS2_I(inode)->ip_alloc_sem,
++			  OCFS2_IP_ALLOC_SEM_UNPUBLISHED);
++
+ 	ret = ocfs2_xattr_ibody_find(inode, name_index, name, &xis);
+ 	if (ret)
+ 		goto cleanup;
+@@ -3762,6 +3783,7 @@ int ocfs2_xattr_set_handle(handle_t *han
+ 	ret = __ocfs2_xattr_set_handle(inode, di, &xi, &xis, &xbs, &ctxt);
+ 
+ cleanup:
++	up_write(&OCFS2_I(inode)->ip_alloc_sem);
+ 	brelse(xbs.xattr_bh);
+ 	ocfs2_xattr_bucket_free(xbs.bucket);
+ 
+@@ -3831,29 +3853,37 @@ int ocfs2_xattr_set(struct inode *inode,
+ 
+ 	down_write(&OCFS2_I(inode)->ip_xattr_sem);
+ 	/*
++	 * The allocation and truncate paths take ip_alloc_sem before
++	 * starting a transaction, so take it here before xattr
++	 * preparation, allocation reservations and ocfs2_start_trans()
++	 * to keep that order.  The xattr helpers below no longer take
++	 * it themselves.
++	 */
++	down_write(&OCFS2_I(inode)->ip_alloc_sem);
++	/*
+ 	 * Scan inode and external block to find the same name
+ 	 * extended attribute and collect search information.
+ 	 */
+ 	ret = ocfs2_xattr_ibody_find(inode, name_index, name, &xis);
+ 	if (ret)
+-		goto cleanup;
++		goto out_free_ac;
+ 	if (xis.not_found) {
+ 		ret = ocfs2_xattr_block_find(inode, name_index, name, &xbs);
+ 		if (ret)
+-			goto cleanup;
++			goto out_free_ac;
+ 	}
+ 
+ 	if (xis.not_found && xbs.not_found) {
+ 		ret = -ENODATA;
+ 		if (flags & XATTR_REPLACE)
+-			goto cleanup;
++			goto out_free_ac;
+ 		ret = 0;
+ 		if (!value)
+-			goto cleanup;
++			goto out_free_ac;
+ 	} else {
+ 		ret = -EEXIST;
+ 		if (flags & XATTR_CREATE)
+-			goto cleanup;
++			goto out_free_ac;
+ 	}
+ 
+ 	/* Check whether the value is refcounted and do some preparation. */
+@@ -3864,7 +3894,7 @@ int ocfs2_xattr_set(struct inode *inode,
+ 						   &ref_meta, &ref_credits);
+ 		if (ret) {
+ 			mlog_errno(ret);
+-			goto cleanup;
++			goto out_free_ac;
+ 		}
+ 	}
+ 
+@@ -3875,7 +3905,7 @@ int ocfs2_xattr_set(struct inode *inode,
+ 		if (ret < 0) {
+ 			inode_unlock(tl_inode);
+ 			mlog_errno(ret);
+-			goto cleanup;
++			goto out_free_ac;
+ 		}
+ 	}
+ 	inode_unlock(tl_inode);
+@@ -3884,7 +3914,7 @@ int ocfs2_xattr_set(struct inode *inode,
+ 					&xbs, &ctxt, ref_meta, &credits);
+ 	if (ret) {
+ 		mlog_errno(ret);
+-		goto cleanup;
++		goto out_free_ac;
+ 	}
+ 
+ 	/* we need to update inode's ctime field, so add credit for it. */
+@@ -3902,6 +3932,7 @@ int ocfs2_xattr_set(struct inode *inode,
+ 	ocfs2_commit_trans(osb, ctxt.handle);
+ 
+ out_free_ac:
++	up_write(&OCFS2_I(inode)->ip_alloc_sem);
+ 	if (ctxt.data_ac)
+ 		ocfs2_free_alloc_context(ctxt.data_ac);
+ 	if (ctxt.meta_ac)
+@@ -3910,7 +3941,6 @@ out_free_ac:
+ 		ocfs2_schedule_truncate_log_flush(osb, 1);
+ 	ocfs2_run_deallocs(osb, &ctxt.dealloc);
+ 
+-cleanup:
+ 	if (ref_tree)
+ 		ocfs2_unlock_refcount_tree(osb, ref_tree, 1);
+ 	up_write(&OCFS2_I(inode)->ip_xattr_sem);
+@@ -4511,6 +4541,10 @@ static void ocfs2_xattr_update_xattr_sea
+ 	xs->here = &xs->header->xh_entries[i];
+ }
+ 
++/*
++ * Caller must hold ip_alloc_sem for writing, since a new xattr block
++ * is allocated and the xattr block header is rewritten.
++ */
+ static int ocfs2_xattr_create_index_block(struct inode *inode,
+ 					  struct ocfs2_xattr_search *xs,
+ 					  struct ocfs2_xattr_set_ctxt *ctxt)
+@@ -4526,19 +4560,14 @@ static int ocfs2_xattr_create_index_bloc
+ 	struct ocfs2_xattr_tree_root *xr;
+ 	u16 xb_flags = le16_to_cpu(xb->xb_flags);
+ 
++	lockdep_assert_held_write(&oi->ip_alloc_sem);
++
+ 	trace_ocfs2_xattr_create_index_block_begin(
+ 				(unsigned long long)xb_bh->b_blocknr);
+ 
+ 	BUG_ON(xb_flags & OCFS2_XATTR_INDEXED);
+ 	BUG_ON(!xs->bucket);
+ 
+-	/*
+-	 * XXX:
+-	 * We can use this lock for now, and maybe move to a dedicated mutex
+-	 * if performance becomes a problem later.
+-	 */
+-	down_write(&oi->ip_alloc_sem);
+-
+ 	ret = ocfs2_journal_access_xb(handle, INODE_CACHE(inode), xb_bh,
+ 				      OCFS2_JOURNAL_ACCESS_WRITE);
+ 	if (ret) {
+@@ -4600,8 +4629,6 @@ static int ocfs2_xattr_create_index_bloc
+ 	ocfs2_journal_dirty(handle, xb_bh);
+ 
+ out:
+-	up_write(&oi->ip_alloc_sem);
+-
+ 	return ret;
+ }
+ 
 _
 
-Patches currently in -mm which might be from blum@kernel.org are
+Patches currently in -mm which might be from joseph.qi@linux.alibaba.com are
 
-maintainers-mailmap-update-entries-for-thorsten-blum.patch
-init-fix-early-boot-crash-with-bare-hostname-parameter.patch
+ocfs2-fix-deadlock-in-inline-data-truncate-transactions.patch
 
