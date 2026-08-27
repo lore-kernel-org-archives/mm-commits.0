@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0EDCC296BCF
-	for <mm-commits@vger.kernel.org>; Thu, 27 Aug 2026 02:08:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1EADA37F737
+	for <mm-commits@vger.kernel.org>; Thu, 27 Aug 2026 02:14:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787796510; cv=none; b=S2NMCZAy2Bi5z9gMJfehQn/YHBJ3kvJjS6yqHBW3m5rAHVi3eYIBVT/3lqRSzwgYIpKmNOwi6jQuHykXxwcRkCj5nLoy1UGMluz5Ntm1kzQrMLPxoizmfVmL9NlMsb0g3FL0whYRfowpxhNKZrs+YyVOWr6app7p+5QXcgLez80=
+	t=1787796890; cv=none; b=gtO7uglPMhl8/3b4o1Van8qEfkxNpSqUfvuJniWM+zTEItZNzXvUtRzRmCO/gofS4MSUHBXKFVBpeLyFfXfecdQ+F1G7wP20PfT/HXy2q52Q2tQTdQkkJwOeZS5T5XDiu9gU83h8eOYA+dlWhgeD3+EcmUfHg9uVOZaN7lbL1Mo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787796510; c=relaxed/simple;
-	bh=UeVLYJ6ZyL/9e54sFd08yV3PtwRm8kGwAQD9sP2fQus=;
-	h=Date:To:From:Subject:Message-Id; b=IZXcrXI9F3v8uKZ1IS9RR1WVlYHQecQ4X0yx2vlZoiWbf4o8LFwLCxtTXFfU0QfXd9eiJk/+TUG4qZPm+WZ7UkD9r13ZVoUB89OduTPs5DxE2HhbYFy73LGkodxfXYckV8sxudPOlnkfPspPrdGdB1ydW+tI809QRNdeWf1KCoM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FO85yBqy; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1787796890; c=relaxed/simple;
+	bh=GtZ0Bl7t66bjBvaPYJUst0QvW/QZmqlkxQxTs+xMRvE=;
+	h=Date:To:From:Subject:Message-Id; b=lFDVwa6eFPjCWFR+249E2lWiUjj87BAaXzzzlV+aTn54P+K2FSxK3Ty7YFa+r4YXwuVdSQMkWl3RU8Z7W9REN5WOahRCzzotifURJNWKFoVBoxygaygg71Y/vhWU72MBLtxsmR6c6ulYc9NwowI48yh955QkGhun+IaD9ioVwtk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2SXse2jv; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FO85yBqy"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CB4CB1F000E9;
-	Thu, 27 Aug 2026 02:08:28 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2SXse2jv"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9983B1F000E9;
+	Thu, 27 Aug 2026 02:14:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1787796508;
-	bh=YBBlqowCOtoIaESVd/SV2pBmfM35+Bx0oMT5JE6FTkU=;
+	d=linux-foundation.org; s=korg; t=1787796888;
+	bh=2W0GJ+sNokcwPVOqZYr8d5dMFjeaTklcatnkIjOHkM0=;
 	h=Date:To:From:Subject;
-	b=FO85yBqyv7hgdkW3yM5UT4TZoZmsr5l8NPqlla46R2d3XIgtM2evHBYgoNnBkyawj
-	 s+J9Oso9xcY+nNB4qp2iybrfzguJZM5g3/P3IHPWvbGoYTF2uvEoOShVqycifGKubY
-	 L3Y+XckCmDNj2g6Nn+zlBSWM3uIhhgtKG5o69L4s=
-Date: Wed, 26 Aug 2026 19:08:28 -0700
-To: mm-commits@vger.kernel.org,yuanchu@google.com,weixugc@google.com,shakeel.butt@linux.dev,roman.gushchin@linux.dev,mhocko@suse.com,ljs@kernel.org,kasong@tencent.com,hannes@cmpxchg.org,david@kernel.org,dave@stgolabs.net,baohua@kernel.org,axelrasmussen@google.com,chenridong@xiaomi.com,akpm@linux-foundation.org
+	b=2SXse2jvEjoUag2cvIK4pc8quziqvYAOGr1qtb0v8hRvdOXVcfGNhr+S4vU7w3rEX
+	 hUu5BlsSmOH3YZ0Z+YQgVRu8Sv+Lzotm3vrDDR5ULCzaUHQ0CFc+vGDjJX5NpWMOBh
+	 ik/bn0clkLsj5YK/bo+bisWW862grzd2xmUtcsjk=
+Date: Wed, 26 Aug 2026 19:14:48 -0700
+To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,heming.zhao@suse.com,gechangwei@live.cn,gality369@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmscan-drop-the-combined-limit-gate-in-__node_reclaim.patch added to mm-new branch
-Message-Id: <20260827020828.CB4CB1F000E9@smtp.kernel.org>
+Subject: + ocfs2-reject-inconsistent-local-xattr-entries.patch added to mm-nonmm-unstable branch
+Message-Id: <20260827021448.9983B1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,26 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/vmscan: drop the combined limit gate in __node_reclaim()
-has been added to the -mm mm-new branch.  Its filename is
-     mm-vmscan-drop-the-combined-limit-gate-in-__node_reclaim.patch
+     Subject: ocfs2: reject inconsistent local xattr entries
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     ocfs2-reject-inconsistent-local-xattr-entries.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmscan-drop-the-combined-limit-gate-in-__node_reclaim.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-reject-inconsistent-local-xattr-entries.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,76 +58,213 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Ridong Chen <chenridong@xiaomi.com>
-Subject: mm/vmscan: drop the combined limit gate in __node_reclaim()
-Date: Wed, 26 Aug 2026 20:44:09 +0800
+From: ZhengYuan Huang <gality369@gmail.com>
+Subject: ocfs2: reject inconsistent local xattr entries
+Date: Thu, 6 Aug 2026 16:50:12 +0800
 
-__node_reclaim() is called from two paths: node_reclaim() and
-user_proactive_reclaim().
+[BUG]
+A corrupt OCFS2 xattr entry can set OCFS2_XATTR_ENTRY_LOCAL while
+keeping xe_value_size larger than OCFS2_XATTR_INLINE_SIZE. When that
+entry reaches namevalue_size_xe(), the filesystem hits its BUG_ON:
 
-node_reclaim() already bails out early unless node_pagecache_reclaimable()
-is over pgdat->min_unmapped_pages or the reclaimable slab is over
-pgdat->min_slab_pages.  The identical check inside __node_reclaim() that
-guards the shrink_node() loop is therefore redundant for this path.
+kernel BUG at fs/ocfs2/xattr.c:231!
+Oops: invalid opcode: 0000 [#1] SMP KASAN NOPTI
+RIP: 0010:namevalue_size_xe fs/ocfs2/xattr.c:231 [inline]
+RIP: 0010:ocfs2_xa_block_wipe_namevalue+0x2e4/0x330 fs/ocfs2/xattr.c:1638
+Call Trace:
+ ocfs2_xa_wipe_namevalue fs/ocfs2/xattr.c:1470 [inline]
+ ocfs2_xa_remove_entry+0xae/0x1d0 fs/ocfs2/xattr.c:1941
+ ocfs2_xa_remove fs/ocfs2/xattr.c:2043 [inline]
+ ocfs2_xa_set+0x11a8/0x30a0 fs/ocfs2/xattr.c:2247
+ ocfs2_xattr_ibody_set+0x302/0xc50 fs/ocfs2/xattr.c:2795
+ __ocfs2_xattr_set_handle+0x7e6/0xdb0 fs/ocfs2/xattr.c:3416
+ ocfs2_xattr_set+0x1447/0x2610 fs/ocfs2/xattr.c:3650
+ ocfs2_xattr_security_set+0x37/0x50 fs/ocfs2/xattr.c:7241
+ __vfs_removexattr+0x14d/0x1d0 fs/xattr.c:518
+ cap_inode_killpriv+0x29/0x50 security/commoncap.c:355
+ security_inode_killpriv+0x105/0x220 security/security.c:2724
+ setattr_prepare+0x147/0x8a0 fs/attr.c:219
+ ocfs2_setattr+0x504/0x1fd0 fs/ocfs2/file.c:1148
+ notify_change+0x4b5/0x1030 fs/attr.c:546
+ do_truncate+0x1d2/0x230 fs/open.c:68
+ handle_truncate fs/namei.c:3596 [inline]
+ do_open fs/namei.c:3979 [inline]
+ path_openat+0x260f/0x2ce0 fs/namei.c:4134
+ do_filp_open+0x1f6/0x430 fs/namei.c:4161
+ do_sys_openat2+0x117/0x1c0 fs/open.c:1437
+ ...
 
-user_proactive_reclaim() is proactive reclaim driven by userspace and
-should not be gated by the per-node min_unmapped_pages / min_slab_pages
-limits at all [1].  With the gate in place, a proactive request is
-silently turned into a no-op whenever the node happens to sit below both
-thresholds.
+[CAUSE]
+namevalue_size_xe() assumes that local entries contain an inline value
+no larger than OCFS2_XATTR_INLINE_SIZE. Existing xattr metadata
+validation only checks whether the value fits the storage region, and
+cached entries can reach lookup and bucket maintenance paths without a
+semantic check. A corrupt entry can therefore be passed to
+namevalue_size_xe().
 
-Drop the gate in __node_reclaim() and always run the shrink_node() loop. 
-The node_reclaim() path is unchanged, since its caller has already applied
-the same test; the proactive path is no longer wrongly gated.
+[FIX]
+Validate the local/value-size invariant in the existing flat and bucket
+metadata validators and before accepting matched entries or traversing
+bucket entries in paths that call namevalue_size_xe(). Return an OCFS2
+corruption error instead of firing the assertion.
 
-Link: https://lore.kernel.org/20260826124409.35569-1-ridong.chen@linux.dev
-Link: https://sashiko.dev/#/patchset/20260723045718.2052070-1-ridong.chen@linux.dev [1]
-Fixes: b980077899ea ("mm: introduce per-node proactive reclaim interface")
-Assisted-by: Claude:claude-opus-4-8
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Signed-off-by: Ridong Chen <chenridong@xiaomi.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Davidlohr Bueso <dave@stgolabs.net>
-Cc: Kairui Song <kasong@tencent.com>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Wei Xu <weixugc@google.com>
-Cc: Yuanchu Xie <yuanchu@google.com>
+Link: https://lore.kernel.org/20260806085012.2650042-1-gality369@gmail.com
+Signed-off-by: ZhengYuan Huang <gality369@gmail.com>
+Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Jun Piao <piaojun@huawei.com>
+Cc: Heming Zhao <heming.zhao@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   13 +++----------
- 1 file changed, 3 insertions(+), 10 deletions(-)
+ fs/ocfs2/xattr.c |   53 +++++++++++++++++++++++++++++++++++++++------
+ 1 file changed, 46 insertions(+), 7 deletions(-)
 
---- a/mm/vmscan.c~mm-vmscan-drop-the-combined-limit-gate-in-__node_reclaim
-+++ a/mm/vmscan.c
-@@ -7851,16 +7851,9 @@ static unsigned long __node_reclaim(stru
- 	noreclaim_flag = memalloc_noreclaim_save();
- 	set_task_reclaim_state(p, &sc->reclaim_state);
+--- a/fs/ocfs2/xattr.c~ocfs2-reject-inconsistent-local-xattr-entries
++++ a/fs/ocfs2/xattr.c
+@@ -237,6 +237,21 @@ static int namevalue_size_xe(struct ocfs
+ 	return namevalue_size(xe->xe_name_len, value_len);
+ }
  
--	if (node_pagecache_reclaimable(pgdat) > pgdat->min_unmapped_pages ||
--	    node_page_state_pages(pgdat, NR_SLAB_RECLAIMABLE_B) > pgdat->min_slab_pages) {
--		/*
--		 * Free memory by calling shrink node with increasing
--		 * priorities until we have enough memory freed.
--		 */
--		do {
--			shrink_node(pgdat, sc);
--		} while (sc->nr_reclaimed < nr_pages && --sc->priority >= 0);
--	}
-+	do {
-+		shrink_node(pgdat, sc);
-+	} while (sc->nr_reclaimed < nr_pages && --sc->priority >= 0);
++static int ocfs2_validate_xattr_entry(struct super_block *sb, u64 blkno,
++				      struct ocfs2_xattr_entry *xe)
++{
++	u64 value_len = le64_to_cpu(xe->xe_value_size);
++
++	if (value_len > OCFS2_XATTR_INLINE_SIZE &&
++	    ocfs2_xattr_is_local(xe))
++		return ocfs2_error(sb,
++				   "Invalid local xattr in block %llu: value size %llu\n",
++				   (unsigned long long)blkno,
++				   (unsigned long long)value_len);
++
++	return 0;
++}
++
  
- 	set_task_reclaim_state(p, NULL);
- 	memalloc_noreclaim_restore(noreclaim_flag);
+ static int ocfs2_xattr_bucket_get_name_value(struct super_block *sb,
+ 					     struct ocfs2_xattr_header *xh,
+@@ -992,7 +1007,7 @@ static int ocfs2_validate_xattr_entries_
+ 	size_t entries_limit = region_size;
+ 	size_t nv_limit = region_size;
+ 	size_t max_entries;
+-	int i;
++	int i, ret;
+ 
+ 	if (region_size < sizeof(*xh))
+ 		return ocfs2_error(sb,
+@@ -1012,6 +1027,11 @@ static int ocfs2_validate_xattr_entries_
+ 		struct ocfs2_xattr_entry *xe = &xh->xh_entries[i];
+ 		size_t name_offset = le16_to_cpu(xe->xe_name_offset);
+ 		size_t value_offset;
++		u64 value_len = le64_to_cpu(xe->xe_value_size);
++
++		ret = ocfs2_validate_xattr_entry(sb, blkno, xe);
++		if (ret)
++			return ret;
+ 
+ 		if (name_offset > nv_limit ||
+ 		    xe->xe_name_len > nv_limit - name_offset)
+@@ -1026,8 +1046,7 @@ static int ocfs2_validate_xattr_entries_
+ 					   (unsigned long long)blkno, i);
+ 
+ 		if (ocfs2_xattr_is_local(xe)) {
+-			if (le64_to_cpu(xe->xe_value_size) >
+-			    nv_limit - value_offset)
++			if (value_len > nv_limit - value_offset)
+ 				return ocfs2_error(sb,
+ 						   "Invalid xattr in block %llu: entry %d value is out of bounds\n",
+ 						   (unsigned long long)blkno,
+@@ -1112,7 +1131,7 @@ static int ocfs2_validate_xattr_bucket(s
+ 	size_t entries_limit = sb->s_blocksize;
+ 	size_t nv_limit = sb->s_blocksize;
+ 	size_t max_entries;
+-	int i;
++	int i, ret;
+ 
+ 	if (region_size < sizeof(*xh))
+ 		return ocfs2_error(sb,
+@@ -1140,6 +1159,11 @@ static int ocfs2_validate_xattr_bucket(s
+ 		size_t block_off = name_offset >> sb->s_blocksize_bits;
+ 		size_t block_offset = name_offset % nv_limit;
+ 		size_t value_offset;
++		u64 value_len = le64_to_cpu(xe->xe_value_size);
++
++		ret = ocfs2_validate_xattr_entry(sb, blkno, xe);
++		if (ret)
++			return ret;
+ 
+ 		if (name_offset >= region_size || block_off >= bucket->bu_blocks)
+ 			return ocfs2_error(sb,
+@@ -1158,8 +1182,7 @@ static int ocfs2_validate_xattr_bucket(s
+ 					   (unsigned long long)blkno, i);
+ 
+ 		if (ocfs2_xattr_is_local(xe)) {
+-			if (le64_to_cpu(xe->xe_value_size) >
+-			    nv_limit - value_offset)
++			if (value_len > nv_limit - value_offset)
+ 				return ocfs2_error(sb,
+ 						   "Invalid xattr bucket %llu: entry %d value is out of bounds\n",
+ 						   (unsigned long long)blkno,
+@@ -1307,7 +1330,7 @@ static int ocfs2_xattr_find_entry(struct
+ {
+ 	struct ocfs2_xattr_entry *entry;
+ 	size_t name_len;
+-	int i, name_offset, cmp = 1;
++	int i, name_offset, cmp = 1, ret;
+ 
+ 	if (name == NULL)
+ 		return -EINVAL;
+@@ -1330,6 +1353,12 @@ static int ocfs2_xattr_find_entry(struct
+ 				return -EFSCORRUPTED;
+ 			}
+ 			cmp = memcmp(name, (xs->base + name_offset), name_len);
++			if (!cmp) {
++				ret = ocfs2_validate_xattr_entry(inode->i_sb,
++								 OCFS2_I(inode)->ip_blkno, entry);
++				if (ret)
++					return ret;
++			}
+ 		}
+ 		if (cmp == 0)
+ 			break;
+@@ -4071,6 +4100,10 @@ static int ocfs2_find_xe_in_bucket(struc
+ 
+ 		xe_name = bucket_block(bucket, block_off) + new_offset;
+ 		if (!memcmp(name, xe_name, name_len)) {
++			ret = ocfs2_validate_xattr_entry(inode->i_sb,
++							 OCFS2_I(inode)->ip_blkno, xe);
++			if (ret)
++				break;
+ 			*xe_index = i;
+ 			*found = 1;
+ 			ret = 0;
+@@ -4708,6 +4741,9 @@ static int ocfs2_defrag_xattr_bucket(str
+ 	xe = xh->xh_entries;
+ 	end = OCFS2_XATTR_BUCKET_SIZE;
+ 	for (i = 0; i < le16_to_cpu(xh->xh_count); i++, xe++) {
++		ret = ocfs2_validate_xattr_entry(inode->i_sb, blkno, xe);
++		if (ret)
++			goto out;
+ 		offset = le16_to_cpu(xe->xe_name_offset);
+ 		len = namevalue_size_xe(xe);
+ 
+@@ -4990,6 +5026,9 @@ static int ocfs2_divide_xattr_bucket(str
+ 	name_value_len = 0;
+ 	for (i = 0; i < start; i++) {
+ 		xe = &xh->xh_entries[i];
++		ret = ocfs2_validate_xattr_entry(inode->i_sb, blk, xe);
++		if (ret)
++			goto out;
+ 		name_value_len += namevalue_size_xe(xe);
+ 		if (le16_to_cpu(xe->xe_name_offset) < name_offset)
+ 			name_offset = le16_to_cpu(xe->xe_name_offset);
 _
 
-Patches currently in -mm which might be from chenridong@xiaomi.com are
+Patches currently in -mm which might be from gality369@gmail.com are
 
-mm-vmscan-drop-the-combined-limit-gate-in-__node_reclaim.patch
+ocfs2-reject-inconsistent-local-xattr-entries.patch
 
