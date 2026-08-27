@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 14BA6368D5F;
-	Thu, 27 Aug 2026 20:08:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 69127372EFF;
+	Thu, 27 Aug 2026 20:08:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787861316; cv=none; b=hUCvNQ8hr7R0N8FxhCO3BzgI9eO7latM7w4tmnaXDI9dH8ruy9y+8yMVEFvinI8edfBeFURbPKwEoCRRv93erzfVhzJKgN0BMvWrRYEj/QgLFVb/SKaqxyn9WgvOrjNH2aFdbiol3EeV48qfTQo84qaUiuogvhyoakZx5kTsdZI=
+	t=1787861318; cv=none; b=GqreeGUECSGDeFlG1NXKGFz7piJ/eKg5DQF4665n/Pc11vD8jAa2JJKsxh5ZYdvRg3G3s9KI+l3OUaxPo/RqYjhpqQfUiw82WezjIM0huBVJ54lG2Tb/gN0wgFCvGVyA/ZHGzFrl6btsnCIzc8n2LSwMrkDL6gf4ce4+zyvnGAk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787861316; c=relaxed/simple;
-	bh=Rv5cGUG7x4RjllMYkTiGqjrRO7gj7+XnICs8REL0sws=;
-	h=Date:To:From:Subject:Message-Id; b=J9bvXq2FRcmg7i19NQsMDv3BqMvEl3foAs6PJwuTGPWAqWKrT5vepLqQ2aag8B435rtez6Kz4YRBTjXOEKFTDCY7PDn56+Hk6oAx6uiJVbagCmq7muH31UW1Ttqy7amZ9e3lNZUbvXSKa4m/NWytv28U/PTlglGqiFFMQW14ai4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zEAImXc1; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1787861318; c=relaxed/simple;
+	bh=ivfvmGJOOofdSKqvxo9hS22av/AOSKBAH33GYt8CZvo=;
+	h=Date:To:From:Subject:Message-Id; b=s03DVyq0keBuXvi+6wo+5du405M0/bEd8L0xKuz1EycSi810YawdrM59AKZk7sOGRseBv5cZ7Tu+m8RVobsYCHc5uMyANPCLx99dn8rLr0dGKhxmYen9Wnu9HfAC1r7iBvgWwCBqwI5p3KCBgxv5tYxhADmLeLF6I4mleRx05Nw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KZ964a8u; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zEAImXc1"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B090C1F000E9;
-	Thu, 27 Aug 2026 20:08:34 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KZ964a8u"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D6A0F1F000E9;
+	Thu, 27 Aug 2026 20:08:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1787861314;
-	bh=QF6NxKOGfzLXI8A+xaBHlFeCmBDGJH8h6c2gvvVNOsQ=;
+	d=linux-foundation.org; s=korg; t=1787861316;
+	bh=uNAcoZbE/XW0keWCDwECz7jBx2FewXBOfbmiWlf3dEM=;
 	h=Date:To:From:Subject;
-	b=zEAImXc1rSHy5Svxu0vzb84KJen0o6L65UDWLVqypCfkdPI4OcKBv+GtduUop4h+M
-	 a5ZGOCGhPMKmamL2EYdhsa4XIExv6cVxxmnxYUo897CeLjoQgEUrz8trIKhHrSNq9h
-	 cr5w/wjiMzc3WUx083aOewa/v2Q7TJQI340A1Kw8=
-Date: Thu, 27 Aug 2026 13:08:34 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,stable@vger.kernel.org,rakie.kim@sk.com,matthew.brost@intel.com,joshua.hahnjy@gmail.com,gourry@gourry.net,david@kernel.org,byungchul@sk.com,apopple@nvidia.com,akpm@linux-foundation.org,edumazet@google.com,akpm@linux-foundation.org
+	b=KZ964a8u+w2gmu47Sfg4RtDnzJAKOP1ZPjl5ceWrtxxaXvOn4kbdHBVJpERMco2Qx
+	 eqjpAzRQIMOl7FQHw8fnKtw4BaWDm2PY3n9E0kaY3vTXsPYlGN2qWqzclt9sLdoOu3
+	 Y53StMSTTosuB3Bl2CGpAyXUg5unXRARnxYdRudg=
+Date: Thu, 27 Aug 2026 13:08:36 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,osalvador@suse.de,muchun.song@linux.dev,david@kernel.org,baolin.wang@linux.alibaba.com,mawupeng1@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-mempolicy-fix-sleeping-allocation-in-alloc_pages_bulk_weighted_interleave.patch removed from -mm tree
-Message-Id: <20260827200834.B090C1F000E9@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-hugetlb-fix-missing-migratable-flag-on-same-node-hugetlb-migration.patch removed from -mm tree
+Message-Id: <20260827200836.D6A0F1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,73 +35,101 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/mempolicy: fix sleeping allocation in alloc_pages_bulk_weighted_interleave()
+     Subject: mm/hugetlb: fix missing migratable flag on same-node hugetlb migration
 has been removed from the -mm tree.  Its filename was
-     mm-mempolicy-fix-sleeping-allocation-in-alloc_pages_bulk_weighted_interleave.patch
+     mm-hugetlb-fix-missing-migratable-flag-on-same-node-hugetlb-migration.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Eric Dumazet <edumazet@google.com>
-Subject: mm/mempolicy: fix sleeping allocation in alloc_pages_bulk_weighted_interleave()
-Date: Fri, 21 Aug 2026 17:04:07 +0000
+From: Wupeng Ma <mawupeng1@huawei.com>
+Subject: mm/hugetlb: fix missing migratable flag on same-node hugetlb migration
+Date: Tue, 7 Jul 2026 19:02:54 +0800
 
-syzbot reported a sleeping function called from invalid context splat in
-bucket_table_alloc().
+Commit ba23f58de896 ("mm/migrate: don't call
+folio_putback_active_hugetlb() on dst hugetlb folio") moved setting of the
+migratable flag and active-list placement from
+folio_putback_active_hugetlb(dst) into move_hugetlb_state(), so that the
+freshly allocated destination folio is handled where allocation is known
+to have succeeded.
 
-When rhashtable_insert_slow() rehashes the table under rcu_read_lock(), it
-calls bucket_table_alloc(..., GFP_ATOMIC | __GFP_NOWARN).  If the bucket
-table allocation uses vmalloc, __vmalloc_node_range_noprof() invokes
-vm_area_alloc_pages() -> alloc_pages_bulk_mempolicy_noprof() with the
-passed GFP_ATOMIC flags.
+Unfortunately, the new code was appended after the existing
+temporary-folio block in move_hugetlb_state(), which contains an early
+return added earlier by commit 5af1ab1d24e08 ("mm/hugetlb: optimize the
+surplus state transfer code in move_hugetlb_state()"):
 
-If the current task has an MPOL_WEIGHTED_INTERLEAVE mempolicy,
-alloc_pages_bulk_weighted_interleave() is called and currently hardcodes
-GFP_KERNEL when allocating the temporary weights array, triggering a
-might_alloc() splat in atomic/RCU contexts.
+  if (folio_test_hugetlb_temporary(new_folio)) {
+      ...
+      if (new_nid == old_nid)
+          return;                       <-- skips the new code
+      ...
+  }
 
-Pass the gfp flags (masked with GFP_RECLAIM_MASK to strip page-allocator
-zone modifiers like __GFP_HIGHMEM) received by
-alloc_pages_bulk_weighted_interleave() to kmalloc() instead of hardcoding
-GFP_KERNEL.  Since the weights buffer is immediately initialized in full,
-kmalloc() is sufficient.
+  /* added by ba23f58 */
+  folio_set_hugetlb_migratable(new_folio);
+  list_move_tail(&new_folio->lru, ...&h->hugepage_activelist);
 
-Link: https://lore.kernel.org/20260821170407.3721004-1-edumazet@google.com
-Fixes: fa3bea4e1f82 ("mm/mempolicy: introduce MPOL_WEIGHTED_INTERLEAVE for weighted interleaving")
-Signed-off-by: Eric Dumazet <edumazet@google.com>
-Reported-by: syzbot+0dbf6d295b3350944f0b@syzkaller.appspotmail.com
-Closes: https://lore.kernel.org/lkml/6a88837e.ae6ddae5.3da009.0040.GAE@google.com/T/#u
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Gregory Price (Meta) <gourry@gourry.net>
+When the destination folio is temporary (i.e.  the hugetlb pool was
+exhausted and the migration callback fell back to
+alloc_migrate_hugetlb_folio()) and the migration does not cross a node --
+the common case, and always true on a single-NUMA system --
+move_hugetlb_state() returns before setting the migratable flag or adding
+the new folio to the active list.  The destination folio is then installed
+in the page table but cannot be isolated afterwards, since
+folio_isolate_hugetlb() rejects folios without the migratable flag; a
+subsequent soft-offline, hard-offline or memory-hotplug offline of that
+folio fails with -EBUSY.
+
+This was reproduced on a single-NUMA arm64 VM: a second MADV_SOFT_OFFLINE
+on an already-migrated hugetlb page returned EBUSY and logged "hugepage
+isolation failed".
+
+Keep the surplus adjustment, which is the only part that depends on the
+node crossing, guarded by `if (new_nid != old_nid)', while making the
+migratable flag and active-list placement unconditional.  This preserves
+the cleanup intent of ba23f58 and closes the early-return hole.
+
+Link: https://lore.kernel.org/20260707110254.3147686-1-mawupeng1@huawei.com
+Fixes: ba23f58de896 ("mm/migrate: don't call folio_putback_active_hugetlb() on dst hugetlb folio")
+Signed-off-by: Wupeng Ma <mawupeng1@huawei.com>
 Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Byungchul Park <byungchul@sk.com>
-Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
-Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
-Cc: Matthew Brost <matthew.brost@intel.com>
-Cc: Rakie Kim <rakie.kim@sk.com>
-Cc: Zi Yan <ziy@nvidia.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Oscar Salvador <osalvador@suse.de>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/hugetlb.c |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
---- a/mm/mempolicy.c~mm-mempolicy-fix-sleeping-allocation-in-alloc_pages_bulk_weighted_interleave
-+++ a/mm/mempolicy.c
-@@ -2679,7 +2679,7 @@ static unsigned long alloc_pages_bulk_we
- 	prev_node = node;
+--- a/mm/hugetlb.c~mm-hugetlb-fix-missing-migratable-flag-on-same-node-hugetlb-migration
++++ a/mm/hugetlb.c
+@@ -7332,14 +7332,14 @@ void move_hugetlb_state(struct folio *ol
+ 		 * There is no need to transfer the per-node surplus state
+ 		 * when we do not cross the node.
+ 		 */
+-		if (new_nid == old_nid)
+-			return;
+-		spin_lock_irq(&hugetlb_lock);
+-		if (h->surplus_huge_pages_node[old_nid]) {
+-			h->surplus_huge_pages_node[old_nid]--;
+-			h->surplus_huge_pages_node[new_nid]++;
++		if (new_nid != old_nid) {
++			spin_lock_irq(&hugetlb_lock);
++			if (h->surplus_huge_pages_node[old_nid]) {
++				h->surplus_huge_pages_node[old_nid]--;
++				h->surplus_huge_pages_node[new_nid]++;
++			}
++			spin_unlock_irq(&hugetlb_lock);
+ 		}
+-		spin_unlock_irq(&hugetlb_lock);
+ 	}
  
- 	/* create a local copy of node weights to operate on outside rcu */
--	weights = kzalloc(nr_node_ids, GFP_KERNEL);
-+	weights = kmalloc(nr_node_ids, gfp & GFP_RECLAIM_MASK);
- 	if (!weights)
- 		return total_allocated;
- 
+ 	/*
 _
 
-Patches currently in -mm which might be from edumazet@google.com are
+Patches currently in -mm which might be from mawupeng1@huawei.com are
 
 
