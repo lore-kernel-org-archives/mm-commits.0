@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 86EE7282F29;
-	Thu, 27 Aug 2026 03:42:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 64E6E1FB1
+	for <mm-commits@vger.kernel.org>; Thu, 27 Aug 2026 03:46:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787802145; cv=none; b=Gopb4XDjNuhpVXdgJZNYE+z7viTNXxT2ScXQg6+0erlhT7BbQ4Zz/lELyo0aRa68+syJYXo4dxIWuoIluzIQG4e0kWJ9mrDxHy7XAKGueuBLNc9ZMKLyLH9mN64u2JbDwHDfkVWkiqAyp6RADdXSEFBu+Y3ff6LOnIlVxBseDMo=
+	t=1787802361; cv=none; b=oaR8oJ4KJEK/jTe6IM7eARhnSqToW7dB6XAZgPZ4lKYQnjXe2pwf1HkowwlnVGBMuNQR4SQsOuebzx0PtF1zp0ZLiiPntOePo+0q2E85YLvp8kwuDzPyyJAORnhLNgFMSAm2aY2n3FKXAaG8Plvbp/enoi81MRTOdWS8OASwX+k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787802145; c=relaxed/simple;
-	bh=TnXg1gWFLDdcuQ4BKoHGN4O5gKFrn37nTCCicl2IZFY=;
-	h=Date:To:From:Subject:Message-Id; b=HaQ1eBW/gJdtV8Ds4MksXmEGZYkH4GbhAAej2KG0bu/WUO8uiZPY6pYTuoL190v5VS95ZmohQvgfTqB6GfpfJ8iyDOVzUsoHyFIZocbcYidIsn3WPAoKV9tka8yodl/BcwhuA2H3EzYDaW2NQ5TODgTw4jwZOCONRjEUaWl5VW8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tvKEz5wW; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1787802361; c=relaxed/simple;
+	bh=CD8qa3zB5dkDZx7Mj7AHZjkV28e8WYr4BwyVYKS+bE0=;
+	h=Date:To:From:Subject:Message-Id; b=THi+garlm5QznmMg9Y6Ne13/NTODPjeB+whnz0SqbczaGPHmdGEcnXNGA+cl4vXXwVQ1oZPQ5k+pbLzVIy3dpYmhgD5dwrDkG+e/7Xvs5e4Lr37E46b/fgzcg9Ll3UwqLQZt2HuiPZ26y//xBkhe0yNBSmYCWWQt63+YJD8SH9c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Q5P8qMy8; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tvKEz5wW"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 27A811F000E9;
-	Thu, 27 Aug 2026 03:42:24 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Q5P8qMy8"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 05B231F000E9;
+	Thu, 27 Aug 2026 03:45:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1787802144;
-	bh=hK72YDTO2q8/FTK5H+dTEAZMAhBQm0AQ87eEYgkh2f4=;
+	d=linux-foundation.org; s=korg; t=1787802360;
+	bh=HNqgXQOc5nrH4+8Vqq4ggGeJyWb1zO8X0D7bsj5Y6WY=;
 	h=Date:To:From:Subject;
-	b=tvKEz5wWoWJtICKhlwB6Y5sSxfH59NiZIBNngAIHRnPXlPa+DcLqRM61Jk6fe4zma
-	 bB30MPT9z4JIud4KN8gIxjpHDhZFBQDDclDIVxGtQu4eme9RDi9e5COjbO8kPr5VNP
-	 xnKgIV47xNmJER302tLHjOkElBWZQFpilxxSCVqQ=
-Date: Wed, 26 Aug 2026 20:42:23 -0700
-To: mm-commits@vger.kernel.org,surenb@google.com,stable@vger.kernel.org,sashiko-bot@kernel.org,kent.overstreet@linux.dev,hao.ge@linux.dev,akpm@linux-foundation.org
+	b=Q5P8qMy87QSSYf9YgClekQsTZxebaRbIVSD8Ay3nj9nC/FKGxlxP9OuCAIegyrAOw
+	 dZwdQnh7aqoO2z1O1HYhGOTzIcVtqizgPoN6b51JX68IKJqBACu9bFGEpmnoCiH7uT
+	 lZOeoD4rcHwCQULzrabYHDI8igvJKuYS+IWyKids=
+Date: Wed, 26 Aug 2026 20:45:59 -0700
+To: mm-commits@vger.kernel.org,osalvador@suse.de,muchun.song@linux.dev,joshua.hahnjy@gmail.com,david@kernel.org,chengkaitao@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + alloc_tag-remove-proc-allocinfo-outside-of-mod_lock.patch added to mm-new branch
-Message-Id: <20260827034224.27A811F000E9@smtp.kernel.org>
+Subject: + mm-hugetlb-use-hugetlb_vmemmap_optimizable-in-boolean-contexts.patch added to mm-new branch
+Message-Id: <20260827034600.05B231F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: alloc_tag: remove /proc/allocinfo outside of mod_lock
+     Subject: mm/hugetlb: use hugetlb_vmemmap_optimizable() in boolean contexts
 has been added to the -mm mm-new branch.  Its filename is
-     alloc_tag-remove-proc-allocinfo-outside-of-mod_lock.patch
+     mm-hugetlb-use-hugetlb_vmemmap_optimizable-in-boolean-contexts.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/alloc_tag-remove-proc-allocinfo-outside-of-mod_lock.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-use-hugetlb_vmemmap_optimizable-in-boolean-contexts.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,79 +69,53 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Hao Ge <hao.ge@linux.dev>
-Subject: alloc_tag: remove /proc/allocinfo outside of mod_lock
-Date: Mon, 17 Aug 2026 14:27:26 +0800
+From: Kaitao Cheng <chengkaitao@kylinos.cn>
+Subject: mm/hugetlb: use hugetlb_vmemmap_optimizable() in boolean contexts
+Date: Mon, 24 Aug 2026 23:16:55 +0800
 
-shutdown_mem_profiling() calls remove_proc_entry() from
-reserve_module_tags(), which runs under mod_lock held for write. 
-remove_proc_entry() waits for readers, and a reader takes mod_lock for
-read in allocinfo_start():
+The two boot-time sites in hugetlb_hstate_alloc_pages_onenode() and
+hugetlb_pages_alloc_boot_node() only need to know whether HVO is
+applicable, not the exact optimizable size.  Switch them from
+hugetlb_vmemmap_optimizable_size() to hugetlb_vmemmap_optimizable() to
+make intent explicit.
 
-  CPU0 (insmod)                      CPU1 (read /proc/allocinfo)
-  ----------------                   ----------------------------
-  reserve_module_tags()
-    down_write(&mod_lock)  [held]
-                                     use_pde()            [in_use++]
-                                     allocinfo_start()
-                                       down_read(&mod_lock)  <- blocks
-    shutdown_mem_profiling()
-      remove_proc_entry()
-        wait for in_use == 0         <- blocks
+No functional change intended.
 
-Move remove_proc_entry() to a workqueue.
-
-Link: https://lore.kernel.org/20260817062726.106511-3-hao.ge@linux.dev
-Fixes: 4835f747d3ed ("alloc_tag: support for page allocation tag compression")
-Signed-off-by: Hao Ge <hao.ge@linux.dev>
-Reported-by: Sashiko <sashiko-bot@kernel.org>
-Acked-by: Suren Baghdasaryan <surenb@google.com>
-Cc: Kent Overstreet <kent.overstreet@linux.dev>
-Cc: <stable@vger.kernel.org>
+Link: https://lore.kernel.org/20260824151655.30840-1-kaitao.cheng@linux.dev
+Signed-off-by: Kaitao Cheng <chengkaitao@kylinos.cn>
+Reviewed-by: Joshua hahn <joshua.hahnjy@gmail.com>
+Reviewed-by: Muchun Song <muchun.song@linux.dev>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Oscar Salvador <osalvador@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/alloc_tag.c |   10 +++++++++-
- 1 file changed, 9 insertions(+), 1 deletion(-)
+ mm/hugetlb.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/alloc_tag.c~alloc_tag-remove-proc-allocinfo-outside-of-mod_lock
-+++ a/mm/alloc_tag.c
-@@ -15,6 +15,7 @@
- #include <linux/seq_file.h>
- #include <linux/string_choices.h>
- #include <linux/vmalloc.h>
-+#include <linux/workqueue.h>
- #include <linux/kmemleak.h>
- #include <uapi/linux/alloc_tag.h>
+--- a/mm/hugetlb.c~mm-hugetlb-use-hugetlb_vmemmap_optimizable-in-boolean-contexts
++++ a/mm/hugetlb.c
+@@ -3425,7 +3425,7 @@ static void __init hugetlb_hstate_alloc_
+ 			folio = only_alloc_fresh_hugetlb_folio(h, gfp_mask, nid,
+ 					&node_states[N_MEMORY], NULL);
+ 			if (!folio && !list_empty(&folio_list) &&
+-			    hugetlb_vmemmap_optimizable_size(h)) {
++			    hugetlb_vmemmap_optimizable(h)) {
+ 				prep_and_add_allocated_folios(h, &folio_list);
+ 				INIT_LIST_HEAD(&folio_list);
+ 				folio = only_alloc_fresh_hugetlb_folio(h, gfp_mask, nid,
+@@ -3494,7 +3494,7 @@ static void __init hugetlb_pages_alloc_b
+ 	for (i = 0; i < num; ++i) {
+ 		struct folio *folio;
  
-@@ -591,6 +592,13 @@ void pgalloc_tag_swap(struct folio *new,
- 	put_page_tag_ref(handle_new);
- }
- 
-+static void remove_allocinfo_file(struct work_struct *work)
-+{
-+	remove_proc_entry(ALLOCINFO_FILE_NAME, NULL);
-+}
-+
-+static DECLARE_WORK(remove_allocinfo_work, remove_allocinfo_file);
-+
- static void shutdown_mem_profiling(bool remove_file)
- {
- 	if (mem_alloc_profiling_enabled())
-@@ -600,7 +608,7 @@ static void shutdown_mem_profiling(bool
- 		return;
- 
- 	if (remove_file)
--		remove_proc_entry(ALLOCINFO_FILE_NAME, NULL);
-+		schedule_work(&remove_allocinfo_work);
- 	mem_profiling_support = false;
- }
- 
+-		if (hugetlb_vmemmap_optimizable_size(h) &&
++		if (hugetlb_vmemmap_optimizable(h) &&
+ 		    (si_mem_available() == 0) && !list_empty(&folio_list)) {
+ 			prep_and_add_allocated_folios(h, &folio_list);
+ 			INIT_LIST_HEAD(&folio_list);
 _
 
-Patches currently in -mm which might be from hao.ge@linux.dev are
+Patches currently in -mm which might be from chengkaitao@kylinos.cn are
 
-module-fix-lost-error-code-from-codetag_load_module.patch
-alloc_tag-skip-percpu-counter-allocation-when-profiling-is-disabled.patch
-alloc_tag-remove-proc-allocinfo-outside-of-mod_lock.patch
+mm-hugetlb-use-hugetlb_vmemmap_optimizable-in-boolean-contexts.patch
 
