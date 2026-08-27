@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5069A48822F
-	for <mm-commits@vger.kernel.org>; Thu, 27 Aug 2026 16:08:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D8CC2485CF7
+	for <mm-commits@vger.kernel.org>; Thu, 27 Aug 2026 16:20:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787846915; cv=none; b=N/PXQkAqI7KMptohTZkG3gzgWxih//JCb7K90qlb37RJBefgX80Tr75Zap6oAnB5lNUJtmZysYZcSbgGw+i8bmiiRRJAqFEbhVxEz90pomzWHuUruFzh9scKX/Gim1FTf/hiW0yuE5FQt4z1BcfMi6bwsFv1ZBE3JhrqHUXgon8=
+	t=1787847650; cv=none; b=ZieRf8VjAg7q7yaGt1gtTaD/hD2turXc0Bhak5vvNmiVBBp84eaQydVigcbv9rdC99jtYnbQIQjkAm6wLpBrdedtrS4xirngO7gb3RC/KSCnQZnc9k1ZQJJCuIExf0VZ7YhvejXaUvSQmZp3oc2k6hWbf4NBgSRe1CgyUF+faEA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787846915; c=relaxed/simple;
-	bh=40c5J4RXYGORF674O22Mk1FatQyPX+CGAsKTiGuNJls=;
-	h=Date:To:From:Subject:Message-Id; b=Tb5bUBr3ssUHwTeCOjBoNXAEpB+2koWHPcoyqTOLgzV0NbhOo4TzkwWKXZ7z0XKNKLNdXGEjghqRF6xNQB/1nmAU7gvWHGLZMkMbECpK/8AnJvPf2bMvT8d2MCgivyYdd0vVXeKxVw3HtkFQ2pV/ZFK79BOmFDYZJCrBlQmbyQ8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=POrb8v/d; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1787847650; c=relaxed/simple;
+	bh=jlJfCG9e7f30Ge4SwMgGIThX1XfA9AiiJu8nU5ivmGg=;
+	h=Date:To:From:Subject:Message-Id; b=FuH9ui2y9Za8gifmyTtdcS8n1z/LRAoI8X0HOlsPY4jKHEfl+5scleGhK8VuLhoUppJ9BOLvdGyLsUXmf7tic+5d4+5gqh77wavNcF+nTj4TmfILJB4PxzjRHvztpUr/wEm2rS4JIvDokl9B1EqReKlVC78H8dAx9XxGmz4jf6o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fmFijKIU; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="POrb8v/d"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9CAA41F01561;
-	Thu, 27 Aug 2026 16:08:32 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fmFijKIU"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5B80F1F000E9;
+	Thu, 27 Aug 2026 16:20:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1787846912;
-	bh=BLA3cqdOXjqgAGWBa1o4gAv5EpuI1oikyqhe+HscnzM=;
+	d=linux-foundation.org; s=korg; t=1787847648;
+	bh=PlFUKVVRjm9TDHMhRtgrUjc/Tp7Vxlw389zOibIMLZE=;
 	h=Date:To:From:Subject;
-	b=POrb8v/dS/5h1b0tT9H8ZHl0sUZP3O3R4p4vtu+in0QGhhywcPzddfaHmplcA1JTL
-	 3dd/MjTyg2s0aOxnkETmZXXvBh9G+DKBzA4yXyK+R/1WMCUflVLy/1VCng4ghSQMYx
-	 5+3QnGRFdUrbLyBNoSQLDpWyJ3eIhOJHQG9lgM6I=
-Date: Thu, 27 Aug 2026 09:08:32 -0700
-To: mm-commits@vger.kernel.org,yukuai@fygo.io,xiao@kernel.org,song@kernel.org,magiclinan@didiglobal.com,hch@lst.de,akpm@linux-foundation.org,geert+renesas@glider.be,akpm@linux-foundation.org
+	b=fmFijKIUrjb4fuHGtMWLVk2e4+7tv1L4q/9DAfUjSm5Oeq2dn3aRDmPbcdpOh3Dl6
+	 bbMBkRrWIH2LJxfQUONgRQWWoW4IijORv6jVZL/K3jdtfr0jzrpDL+C6teBa97iJoa
+	 YwnOnvVZw8NdrkAj18MTEF4zOxl0YjMk/w9us/N8=
+Date: Thu, 27 Aug 2026 09:20:47 -0700
+To: mm-commits@vger.kernel.org,shikemeng@huaweicloud.com,sef1548@gmail.com,nphamcs@gmail.com,kasong@tencent.com,chrisl@kernel.org,baoquan.he@linux.dev,baohua@kernel.org,yuehaibing@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + maintainers-cover-all-of-raid.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260827160832.9CAA41F01561@smtp.kernel.org>
+Subject: + mm-swap-remove-unused-declaration-swapcache_clear.patch added to mm-new branch
+Message-Id: <20260827162048.5B80F1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,26 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: MAINTAINERS: cover all of RAID
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     maintainers-cover-all-of-raid.patch
+     Subject: mm/swap: remove unused declaration swapcache_clear()
+has been added to the -mm mm-new branch.  Its filename is
+     mm-swap-remove-unused-declaration-swapcache_clear.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maintainers-cover-all-of-raid.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-remove-unused-declaration-swapcache_clear.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,44 +69,41 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Geert Uytterhoeven <geert+renesas@glider.be>
-Subject: MAINTAINERS: cover all of RAID
-Date: Thu, 27 Aug 2026 09:20:56 +0200
+From: Yue Haibing <yuehaibing@huawei.com>
+Subject: mm/swap: remove unused declaration swapcache_clear()
+Date: Thu, 27 Aug 2026 16:27:22 +0800
 
-While commit 3626738bc7147d52 ("raid6: move to lib/raid/") handled the
-move of RAID6, it didn't take into account there was already more RAID
-code under lib/raid/, as XOR got moved over in commit 9e229025e2474115
-("xor: move to lib/raid/") before.
+Commit c246d236b18b ("mm/shmem: never bypass the swap cache for
+SWP_SYNCHRONOUS_IO") removed the implementations but leave this.
 
-Link: https://lore.kernel.org/7a2e5de234cc0286e3fe9bc11b810433775f2280.1787815121.git.geert+renesas@glider.be
-Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
-Reported-by: Andrew Morton <akpm@linux-foundation.org>
-Closes: https://lore.kernel.org/20260826205058.a6ff019d0584f75c7f50430b@linux-foundation.org
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Song Liu <song@kernel.org>
-Cc: Yu Kuai <yukuai@fygo.io>
-Cc: Li Nan <magiclinan@didiglobal.com>
-Cc: Xiao Ni <xiao@kernel.org>
+Link: https://lore.kernel.org/20260827082722.1809702-1-yuehaibing@huawei.com
+Signed-off-by: Yue Haibing <yuehaibing@huawei.com>
+Reviewed-by: Baoquan He <baoquan.he@linux.dev>
+Acked-by: Kairui Song <kasong@tencent.com>
+Acked-by: Nick Huang <sef1548@gmail.com>
+Reviewed-by: Barry Song <baohua@kernel.org>
+Cc: Chris Li <chrisl@kernel.org>
+Cc: Kemeng Shi <shikemeng@huaweicloud.com>
+Cc: Nhat Pham <nphamcs@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/swap.h |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/MAINTAINERS~maintainers-cover-all-of-raid
-+++ a/MAINTAINERS
-@@ -25128,7 +25128,7 @@ F:	drivers/md/md*
- F:	drivers/md/raid*
- F:	include/linux/raid/
- F:	include/uapi/linux/raid/
--F:	lib/raid/raid6/
-+F:	lib/raid/
+--- a/mm/swap.h~mm-swap-remove-unused-declaration-swapcache_clear
++++ a/mm/swap.h
+@@ -324,7 +324,6 @@ void __swap_cache_replace_folio(struct s
+ 				struct folio *old, struct folio *new);
  
- SOLIDRUN CLEARFOG SUPPORT
- M:	Russell King <linux@armlinux.org.uk>
+ void show_swap_cache_info(void);
+-void swapcache_clear(struct swap_info_struct *si, swp_entry_t entry, int nr);
+ struct folio *read_swap_cache_async(struct swap_io_ctx *ctx, swp_entry_t entry,
+ 		gfp_t gfp_mask, struct vm_area_struct *vma, unsigned long addr);
+ struct folio *swap_cluster_readahead(swp_entry_t entry, gfp_t flag,
 _
 
-Patches currently in -mm which might be from geert+renesas@glider.be are
+Patches currently in -mm which might be from yuehaibing@huawei.com are
 
-maintainers-cover-all-of-raid.patch
+mm-swap-remove-unused-declaration-swapcache_clear.patch
 
