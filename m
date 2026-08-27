@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B31B537418C;
-	Thu, 27 Aug 2026 20:08:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2F89B377A86;
+	Thu, 27 Aug 2026 20:08:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787861302; cv=none; b=J2CggnCLciev5iLJdZo78EHmXJ35lDJmjv7PfkPAZt39T9D5izV8XnE3gABh3LC/Ab/scoUmmpIl2nXh7x7WMQTp/1PRvGxT3g16lj9pYNJToNlgHxLUBEZUntstZ6gu/TlLCXgSkCpZgF9XV6nc0K2JT9KgDtQ7Gpi3Jx47XdQ=
+	t=1787861303; cv=none; b=jqoT3bXWWNeWLv6jAISemLcY7RHJ6QQ+cN0PXjcVGLkMZwyWAZM7TI29ZhL5S3hsrjqVmiNxKmH/Ht4JwnhrMQAOuJLgidhTIMlGa5B1cJ53DqwsrFThNPIwkY2XouyMPL3f259twImIiMXtN5UHeQ0+yhfbwNBGrJzzlttUq+U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787861302; c=relaxed/simple;
-	bh=4UKJ9whEN9YcADyRCmJMpaI6tb6TlyrZCR5glTJLEnU=;
-	h=Date:To:From:Subject:Message-Id; b=FzOsTp/VB/sfI1XlFwYHaTGxgk9BXorc7kX/V1VCWVHunqElOWm/vMC9iwi+5P5nISff2S0uBI64k9xm5JMCNyRi7kGt/DcED65tHbrRiXPG4WF7hFaxqDfZdT1+8SOl9IX1YQ18upPeCHFffo1uD2SxKV6slbSwNqyJBOEiDfI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PDY9LLgS; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1787861303; c=relaxed/simple;
+	bh=SMQMAcH7e7NpdB9reBwsx13YT1spRUCxPlY2s3DF+PE=;
+	h=Date:To:From:Subject:Message-Id; b=nv7WDuOGUjIh7wvbuXcKw1qoYymra7pGNnCZtgTK2HzFbhviaE9fPT3dkdXTEYaMBhzmeOcZ2JJnAbImFvHt2csKob5u035zWn2PRGWGGI+Eiti6dVlM1QJIJISOURJrDWPAoQ6cTsPZaFt04elDpENadc7cJIbGWlx/Okb/0K8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HZUfd6L/; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PDY9LLgS"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2BC771F00A3A;
-	Thu, 27 Aug 2026 20:08:19 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HZUfd6L/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B2EA91F00A3D;
+	Thu, 27 Aug 2026 20:08:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1787861299;
-	bh=Xqu4x4MEG8ymwl5hR+WifEARgGc34ErIN38iMi14Vgg=;
+	d=linux-foundation.org; s=korg; t=1787861300;
+	bh=HMKBpqoRtZeeRCix5goKfBjbAdNN+sS+hzI/x0NtJ8Y=;
 	h=Date:To:From:Subject;
-	b=PDY9LLgSPZJzuqllykaFnNa+r/G1Di6139AiQaZT2Lj9tXP8EXBNqKJTfPiIotkUw
-	 cCDdVY6LBfpgiz7MDdHz+7xXzwVDpAiuySNsCsskzWwm+TYMVTFmfJJdDtAapVLZ2D
-	 CJguz7eO4A3IWv8vLBe05phPVpqFK+HyXZaJerKc=
-Date: Thu, 27 Aug 2026 13:08:18 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@suse.com,ljs@kernel.org,kasong@tencent.com,hannes@cmpxchg.org,david@kernel.org,baohua@kernel.org,axelrasmussen@google.com,shakeel.butt@linux.dev,akpm@linux-foundation.org
+	b=HZUfd6L/HBWpUyyiJzbWL9C+C5QiujxwDw7WZ0fk7iaqcAa6GThvAJToZ0GiZZyPD
+	 WdpXSobbuGgUWZp6zj5YmbqkOciZXUlCc0HhtAeEpLEAM4nmZclSpj3pGgn6pVHhGy
+	 8hgBgrM4cmVDxD45SaJwVILdJ2aJcPlRV592y/FE=
+Date: Thu, 27 Aug 2026 13:08:20 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,shakeel.butt@linux.dev,osalvador@suse.de,muchun.song@linux.dev,david@kernel.org,njilav@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] memcg-make-the-v1-soft-limit-knob-inert.patch removed from -mm tree
-Message-Id: <20260827200819.2BC771F00A3A@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-hugetlb_cgroup-call-page_counter_set_max-outside-vm_bug_on.patch removed from -mm tree
+Message-Id: <20260827200820.B2EA91F00A3D@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,216 +35,91 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: memcg: make the v1 soft limit knob inert
+     Subject: mm/hugetlb_cgroup: call page_counter_set_max() outside VM_BUG_ON()
 has been removed from the -mm tree.  Its filename was
-     memcg-make-the-v1-soft-limit-knob-inert.patch
+     mm-hugetlb_cgroup-call-page_counter_set_max-outside-vm_bug_on.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Shakeel Butt <shakeel.butt@linux.dev>
-Subject: memcg: make the v1 soft limit knob inert
-Date: Tue, 11 Aug 2026 13:31:55 -0700
+From: Narek Jilavyan <njilav@gmail.com>
+Subject: mm/hugetlb_cgroup: call page_counter_set_max() outside VM_BUG_ON()
+Date: Mon, 17 Aug 2026 10:34:33 +0000
 
-The v1 soft limit has been deprecated since v6.12 and nobody has reported
-depending on it.  Start the removal by decoupling the interface from the
-implementation: keep memory.soft_limit_in_bytes, but ignore writes to it
-and always report the maximum value on read similar to what
-memory.kmem.limit_in_bytes already does.
+hugetlb_cgroup_css_alloc() rounds the counter limit down to a multiple of
+the huge page size and then applies it inside an assertion:
 
-Writes are still parsed, so malformed input keeps returning -EINVAL.  The
-knob now also behaves the same everywhere: it used to return -EOPNOTSUPP
-on PREEMPT_RT, where soft limit reclaim has always been disabled.
+	VM_BUG_ON(page_counter_set_max(fault, limit));
+	VM_BUG_ON(page_counter_set_max(rsvd, limit));
 
-This also fixes the syzbot report linked below.  Soft limit reclaim is the
-only caller that runs shrink_lruvec() from kswapd against a specific
-memcg, so it is the only way to reach lru_gen_shrink_lruvec() and in turn
-set_mm_walk(), which warns when called from kswapd.
+With CONFIG_DEBUG_VM=n, VM_BUG_ON(cond) is BUILD_BUG_ON_INVALID(cond),
+i.e.  ((void)(sizeof((__force long)(cond)))), whose operand is never
+evaluated.  page_counter_set_max() is not a predicate - it performs
+xchg(&counter->max, nr_pages) - so on every non-debug kernel the limit is
+never applied and the counters keep page_counter_init()'s
+PAGE_COUNTER_MAX.
 
-Link: https://lore.kernel.org/20260811203203.3456029-2-shakeel.butt@linux.dev
-Signed-off-by: Shakeel Butt <shakeel.butt@linux.dev>
-Reported-by: syzbot+12ee2725d5fde63a9c96@syzkaller.appspotmail.com
-Closes: https://lore.kernel.org/all/6a7a6929.b50370da.49fe0.005e.GAE@google.com/
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Barry Song <baohua@kernel.org>
+That is user-visible, because hugetlb_cgroup_read_u64_max() recomputes the
+same rounded value and uses equality as its "unlimited" sentinel. 
+PAGE_COUNTER_MAX is LONG_MAX / PAGE_SIZE = 2251799813685247, which is odd,
+so round_down() really does change it and the two sides disagree.  With
+CONFIG_DEBUG_VM=n:
+
+	$ cat /sys/fs/cgroup/t/hugetlb.2MB.max
+	9223372036854771712
+
+and with this patch:
+
+	$ cat /sys/fs/cgroup/t/hugetlb.2MB.max
+	max
+
+A debug option should not change cgroup output.
+
+Call the function, then assert the result, as v6.12 did.  Use
+VM_WARN_ON_ONCE() rather than restoring VM_BUG_ON(): the two are identical
+under CONFIG_DEBUG_VM=n, and checkpatch asks that new code not use BUG()
+variants.
+
+Link: https://lore.kernel.org/20260817103433.191266-1-njilav@gmail.com
+Fixes: 0e2759afcaf9 ("page_counter: track failcnt only for legacy cgroups")
+Signed-off-by: Narek Jilavyan <njilav@gmail.com>
+Reviewed-by: Muchun Song <muchun.song@linux.dev>
 Cc: David Hildenbrand <david@kernel.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Kairui Song <kasong@tencent.com>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/cgroup-v1/memory.rst |   49 +--------------
- mm/memcontrol-v1.c                             |   43 +++++++------
- 2 files changed, 32 insertions(+), 60 deletions(-)
+ mm/hugetlb_cgroup.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
---- a/Documentation/admin-guide/cgroup-v1/memory.rst~memcg-make-the-v1-soft-limit-knob-inert
-+++ a/Documentation/admin-guide/cgroup-v1/memory.rst
-@@ -47,7 +47,6 @@ Features:
-  - pages are linked to per-memcg LRU exclusively, and there is no global LRU.
-  - optionally, memory+swap usage can be accounted and limited.
-  - hierarchical accounting
-- - soft limit
-  - moving (recharging) account at moving a task is selectable.
-  - usage threshold notifier
-  - memory pressure notifier
-@@ -76,10 +75,9 @@ Brief summary of control files.
-  memory.memsw.failcnt		     show the number of memory+Swap hits limits
-  memory.max_usage_in_bytes	     show max memory usage recorded
-  memory.memsw.max_usage_in_bytes     show max memory+Swap usage recorded
-- memory.soft_limit_in_bytes	     set/show soft limit of memory usage
--				     This knob is not available on CONFIG_PREEMPT_RT systems.
--                                     This knob is deprecated and shouldn't be
--                                     used.
-+ memory.soft_limit_in_bytes	     This knob is deprecated and has no effect.
-+                                     Writes are ignored and reads always
-+                                     return the maximum value.
-  memory.stat			     show various statistics
-  memory.use_hierarchy		     set/show hierarchical account enabled
-                                      This knob is deprecated and shouldn't be
-@@ -340,9 +338,6 @@ memory.kmem.usage_in_bytes, or in a sepa
- The main "kmem" counter is fed into the main counter, so kmem charges will
- also be visible from the user counter.
+--- a/mm/hugetlb_cgroup.c~mm-hugetlb_cgroup-call-page_counter_set_max-outside-vm_bug_on
++++ a/mm/hugetlb_cgroup.c
+@@ -97,6 +97,7 @@ static void hugetlb_cgroup_init(struct h
+ 		struct page_counter *fault, *fault_parent = NULL;
+ 		struct page_counter *rsvd, *rsvd_parent = NULL;
+ 		unsigned long limit;
++		int ret;
  
--Currently no soft limit is implemented for kernel memory. It is future work
--to trigger slab reclaim when those limits are reached.
--
- 2.7.1 Current Kernel Memory resources accounted
- -----------------------------------------------
+ 		if (parent_h_cgroup) {
+ 			fault_parent = hugetlb_cgroup_counter_from_cgroup(
+@@ -118,8 +119,10 @@ static void hugetlb_cgroup_init(struct h
+ 		limit = round_down(PAGE_COUNTER_MAX,
+ 				   pages_per_huge_page(&hstates[idx]));
  
-@@ -710,42 +705,10 @@ For compatibility reasons writing 1 to m
- 
- THIS IS DEPRECATED!
- 
--Soft limits allow for greater sharing of memory. The idea behind soft limits
--is to allow control groups to use as much of the memory as needed, provided
--
--a. There is no memory contention
--b. They do not exceed their hard limit
--
--When the system detects memory contention or low memory, control groups
--are pushed back to their soft limits. If the soft limit of each control
--group is very high, they are pushed back as much as possible to make
--sure that one control group does not starve the others of memory.
--
--Please note that soft limits is a best-effort feature; it comes with
--no guarantees, but it does its best to make sure that when memory is
--heavily contended for, memory is allocated based on the soft limit
--hints/setup. Currently soft limit based reclaim is set up such that
--it gets invoked from balance_pgdat (kswapd).
--
--7.1 Interface
---------------
-+Writing to memory.soft_limit_in_bytes has no effect and reading it will
-+always return the maximum value.
- 
--Soft limits can be setup by using the following commands (in this example we
--assume a soft limit of 256 MiB)::
--
--	# echo 256M > memory.soft_limit_in_bytes
--
--If we want to change this to 1G, we can at any time use::
--
--	# echo 1G > memory.soft_limit_in_bytes
--
--.. note::
--       Soft limits take effect over a long period of time, since they involve
--       reclaiming memory for balancing between memory cgroups
--
--.. note::
--       It is recommended to set the soft limit always below the hard limit,
--       otherwise the hard limit will take precedence.
-+Use memory.low and memory.min in cgroup v2 instead.
- 
- .. _cgroup-v1-memory-move-charges:
- 
---- a/mm/memcontrol-v1.c~memcg-make-the-v1-soft-limit-knob-inert
-+++ a/mm/memcontrol-v1.c
-@@ -96,7 +96,6 @@ enum {
- 	RES_LIMIT,
- 	RES_MAX_USAGE,
- 	RES_FAILCNT,
--	RES_SOFT_LIMIT,
- };
- 
- #ifdef CONFIG_LOCKDEP
-@@ -1888,6 +1887,30 @@ static int mem_cgroup_hierarchy_write(st
- 	return -EINVAL;
+-		VM_BUG_ON(page_counter_set_max(fault, limit));
+-		VM_BUG_ON(page_counter_set_max(rsvd, limit));
++		ret = page_counter_set_max(fault, limit);
++		VM_WARN_ON_ONCE(ret);
++		ret = page_counter_set_max(rsvd, limit);
++		VM_WARN_ON_ONCE(ret);
+ 	}
  }
  
-+static u64 mem_cgroup_soft_limit_read(struct cgroup_subsys_state *css,
-+				      struct cftype *cft)
-+{
-+	return (u64)PAGE_COUNTER_MAX * PAGE_SIZE;
-+}
-+
-+static ssize_t mem_cgroup_soft_limit_write(struct kernfs_open_file *of,
-+					   char *buf, size_t nbytes, loff_t off)
-+{
-+	unsigned long nr_pages;
-+	int ret;
-+
-+	ret = page_counter_memparse(strstrip(buf), "-1", &nr_pages);
-+	if (ret)
-+		return ret;
-+
-+	pr_warn_once("soft_limit_in_bytes is deprecated and will be removed. "
-+		     "Writing any value to this file has no effect. "
-+		     "Please report your usecase to linux-mm@kvack.org if you "
-+		     "depend on this functionality.\n");
-+
-+	return nbytes;
-+}
-+
- static u64 mem_cgroup_read_u64(struct cgroup_subsys_state *css,
- 			       struct cftype *cft)
- {
-@@ -1924,8 +1947,6 @@ static u64 mem_cgroup_read_u64(struct cg
- 		return (u64)counter->watermark * PAGE_SIZE;
- 	case RES_FAILCNT:
- 		return counter->failcnt;
--	case RES_SOFT_LIMIT:
--		return (u64)READ_ONCE(memcg->soft_limit) * PAGE_SIZE;
- 	default:
- 		BUG();
- 	}
-@@ -2020,17 +2041,6 @@ static ssize_t mem_cgroup_write(struct k
- 			break;
- 		}
- 		break;
--	case RES_SOFT_LIMIT:
--		if (IS_ENABLED(CONFIG_PREEMPT_RT)) {
--			ret = -EOPNOTSUPP;
--		} else {
--			pr_warn_once("soft_limit_in_bytes is deprecated and will be removed. "
--				     "Please report your usecase to linux-mm@kvack.org if you "
--				     "depend on this functionality.\n");
--			WRITE_ONCE(memcg->soft_limit, nr_pages);
--			ret = 0;
--		}
--		break;
- 	}
- 	return ret ?: nbytes;
- }
-@@ -2384,9 +2394,8 @@ struct cftype mem_cgroup_legacy_files[]
- 	},
- 	{
- 		.name = "soft_limit_in_bytes",
--		.private = MEMFILE_PRIVATE(_MEM, RES_SOFT_LIMIT),
--		.write = mem_cgroup_write,
--		.read_u64 = mem_cgroup_read_u64,
-+		.write = mem_cgroup_soft_limit_write,
-+		.read_u64 = mem_cgroup_soft_limit_read,
- 	},
- 	{
- 		.name = "failcnt",
 _
 
-Patches currently in -mm which might be from shakeel.butt@linux.dev are
+Patches currently in -mm which might be from njilav@gmail.com are
 
 
