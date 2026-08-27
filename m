@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 664D233A9DA
-	for <mm-commits@vger.kernel.org>; Thu, 27 Aug 2026 04:30:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 952982F747A;
+	Thu, 27 Aug 2026 04:39:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787805026; cv=none; b=T3YedWadSkVmV4RT5/8EwnVDWTocNPeh+n21eAqM7SKrzlyBvXOrH/DRydzS3cNlAEm2XXiI37x7QgNf0+aA6vjm3mZ6nMUBxc/hN8t+fGKKf6wcIWTWpWQxQIkt6iIznrBIUvMCLrHG7EcyEJy0Ek4+rblUCImEYJrRFB07Nx8=
+	t=1787805598; cv=none; b=rwJq3jVLy8bmY6CFDo0DGLLOxzD6gtqT+NK5JYCYDGCasNU6UEQfEkUVfXb/njXQk3nHpAVG5kju8xVKoqC6LNeh/5xMaq0n3RGxjs2+l/1UmLR8qGaavYCDnZZnASsLaH5kXL5Br0DA/9C28dvTUl/8kvPeRl3XoItkiR5H3MM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787805026; c=relaxed/simple;
-	bh=N9QhvJ9pf3XM3bQH5R4NfKqWehYQnCBn0xKtTSY3lss=;
-	h=Date:To:From:Subject:Message-Id; b=GDofGosl+fSfbpOTFGu+PDo6c5R9YhoPoG8sGE2G0caaxfe9ylplXY8uHW/KPbsUmGwlz2AsZ0eYEJ0Jwzq+rJsBNVrlFP6IO+2ddE8XopvagukxsrXKSCk+JotpmcWzieDEbCLYTth7WdH0ct3L1vyYfeUpGP0NZyXf0WxykAM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AYwQyNrR; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1787805598; c=relaxed/simple;
+	bh=RHxIikPc7hergzh3NxifN9KYH5P4fU8Kqyx0Ch89eF8=;
+	h=Date:To:From:Subject:Message-Id; b=LnyqeAik6DPfPpSJC7EvB9uIeDiXw0N1w2zTcf3NEzq5LUAYJm4hkeBFi96rmgMG4xMA/tneG9rSJTUxPXkflK9qo8MThYIX1tTabDV0VOC/0SM5zI3APaOxsjJzK4nHMXbe4O3cHJsfBuY3V/zVCO7HNKPT6gAjtRRbArPkrM0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PTpg5rC7; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AYwQyNrR"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E9B201F000E9;
-	Thu, 27 Aug 2026 04:30:24 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PTpg5rC7"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EE7271F000E9;
+	Thu, 27 Aug 2026 04:39:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1787805025;
-	bh=swRbPAlvkzUoA8xYJKzMzQBYeQG6Y8zdUjTMKHpa9Z0=;
+	d=linux-foundation.org; s=korg; t=1787805597;
+	bh=G27fV0oynmgN/z73nxVrc4j5aydEc/NhC9AtYuFO95g=;
 	h=Date:To:From:Subject;
-	b=AYwQyNrR2STXvTcs3rlWd0VdcneVoRqJwH09nusgfp7nrCAD4ojzkSRGtR9SD0Lxf
-	 AxZTEol+Jf+uF26jQDjCX9YS0IudeuzGbppngWwXhkSGKw4qPs0umsL1JZ4NsKTKMI
-	 kPrt9cn2LZauUuZ6hwzRGTpSuQZYXIJYPDOHN6gM=
-Date: Wed, 26 Aug 2026 21:30:24 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,surenb@google.com,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,libaokun1@huawei.com,liam@infradead.org,hannes@cmpxchg.org,david@kernel.org,richard.weiyang@gmail.com,akpm@linux-foundation.org
+	b=PTpg5rC7cYnCm9veMMtx9Lufn+MQQTWIKHL1+U4fEiBS6Bc2migbUhSSWx1HNW3oq
+	 dDrLrKZO5Q90ngX2QCR/yW3rUlgLN7MQc1g48+37L1sq65nOm06Gk6fx4Jub/q2dmQ
+	 s7MviiIIGP37y/6XoDXzJdAJ5b5f/0w0QDH/XdZA=
+Date: Wed, 26 Aug 2026 21:39:56 -0700
+To: mm-commits@vger.kernel.org,yanquanmin1@huawei.com,stable@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-remove-out-dated-document-of-__gfp_nofail.patch added to mm-new branch
-Message-Id: <20260827043024.E9B201F000E9@smtp.kernel.org>
+Subject: + mm-damon-core-initialize-damos_quota_goal-last_psi_total.patch added to mm-new branch
+Message-Id: <20260827043956.EE7271F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: remove out-dated document of __GFP_NOFAIL
+     Subject: mm/damon/core: initialize damos_quota_goal->last_psi_total
 has been added to the -mm mm-new branch.  Its filename is
-     mm-remove-out-dated-document-of-__gfp_nofail.patch
+     mm-damon-core-initialize-damos_quota_goal-last_psi_total.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-out-dated-document-of-__gfp_nofail.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-initialize-damos_quota_goal-last_psi_total.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,65 +69,102 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Wei Yang <richard.weiyang@gmail.com>
-Subject: mm: remove out-dated document of __GFP_NOFAIL
-Date: Thu, 27 Aug 2026 03:05:48 +0000
+From: SJ Park <sj@kernel.org>
+Subject: mm/damon/core: initialize damos_quota_goal->last_psi_total
+Date: Wed, 26 Aug 2026 21:29:18 -0700
 
-Commit ee040cbd6e48 ("mm/page_alloc: don't warn about large allocations
-with __GFP_NOFAIL") remove a warning on allocating large folio with
-__GFP_NOFAIL, which is adjusted by commit 903edea6c53f ("mm: warn about
-illegal __GFP_NOFAIL usage in a more appropriate location and manner").
+Patch series "mm/damon: fix wrong behaviors in DAMOS PSI goal and sysfs
+refresh_ms".
 
-While in that commit, it also documented this behavior which is out-dated
-now.
+PSI based DAMOS auto-tuning and DAMON sysfs refresh_ms file have bugs that
+can produce non critical but still unexpected behaviors.  Fix the two
+bugs.
 
-Adjust the document to align to current code, and adjust the comment while
-at it.
 
-Link: https://lore.kernel.org/20260827030548.16631-1-richard.weiyang@gmail.com
-Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
-Cc: Baokun Li <libaokun1@huawei.com>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Zi Yan <ziy@nvidia.com>
+This patch (of 2):
+
+When DAMOS_QUOTA_SOME_MEM_PSI_US metric damos quota goal is set, the PSI
+delta for the feedback loop is calculated using
+damos_quota_goal->last_psi_total.  However, it is initialized only after
+the first feedback loop.  The first iteration of the loop uses the
+uninitialized value.  As a result, the feedback loop can change the
+effective quota in an unexpected way at the first iteration.
+
+The user impact of the issue is not big, because the issue impacts only
+the first iteration of the feedback loop.  The feedback loop also has an
+internal cap of the quota adjustment.  The wrong adjustment will soon be
+corrected over a few iterations.  For this reason, doing no initialization
+at commit time was intentional.  It is also explicitly commented.  That
+said, nobody likes behaviors that are unexpected or difficult to be
+expected.  Fixing it is also simple and not expensive.
+
+Initialize the field at the beginning of kdamond and each commit of
+SOME_MEM_PSI_US type quota goals.
+
+The issue was discovered [1] by Sashiko.
+
+Link: https://lore.kernel.org/20260827042920.93580-2-sj@kernel.org
+Link: https://lore.kernel.org/20260718005316.89585-1-sj@kernel.org [1]
+Fixes: 2dbb60f789cb ("mm/damon/core: implement PSI metric DAMOS quota goal")
+Signed-off-by: SJ Park <sj@kernel.org>
+Cc: Quanmin Yan <yanquanmin1@huawei.com>
+Cc: <stable@vger.kernel.org> # 6.9.x
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/gfp_types.h |    2 --
- mm/page_alloc.c           |    2 +-
- 2 files changed, 1 insertion(+), 3 deletions(-)
+ mm/damon/core.c |   16 +++++++++++++++-
+ 1 file changed, 15 insertions(+), 1 deletion(-)
 
---- a/include/linux/gfp_types.h~mm-remove-out-dated-document-of-__gfp_nofail
-+++ a/include/linux/gfp_types.h
-@@ -243,8 +243,6 @@ enum {
-  * used only when there is no reasonable failure policy) but it is
-  * definitely preferable to use the flag rather than opencode endless
-  * loop around allocator.
-- * Allocating pages from the buddy with __GFP_NOFAIL and order > 1 is
-- * not supported. Please consider using kvmalloc() instead.
-  */
- #define __GFP_IO	((__force gfp_t)___GFP_IO)
- #define __GFP_FS	((__force gfp_t)___GFP_FS)
---- a/mm/page_alloc.c~mm-remove-out-dated-document-of-__gfp_nofail
-+++ a/mm/page_alloc.c
-@@ -4804,7 +4804,7 @@ __alloc_pages_slowpath(gfp_t gfp_mask, u
+--- a/mm/damon/core.c~mm-damon-core-initialize-damos_quota_goal-last_psi_total
++++ a/mm/damon/core.c
+@@ -1122,6 +1122,9 @@ static void damos_commit_quota_goal_unio
+ 		struct damos_quota_goal *dst, struct damos_quota_goal *src)
+ {
+ 	switch (dst->metric) {
++	case DAMOS_QUOTA_SOME_MEM_PSI_US:
++		dst->last_psi_total = damos_get_some_mem_psi_total();
++		break;
+ 	case DAMOS_QUOTA_NODE_MEM_USED_BP:
+ 	case DAMOS_QUOTA_NODE_MEM_FREE_BP:
+ 		dst->nid = src->nid;
+@@ -1143,7 +1146,6 @@ static void damos_commit_quota_goal(
+ 	dst->target_value = src->target_value;
+ 	if (dst->metric == DAMOS_QUOTA_USER_INPUT)
+ 		dst->current_value = src->current_value;
+-	/* keep last_psi_total as is, since it will be updated in next cycle */
+ 	damos_commit_quota_goal_union(dst, src);
+ }
  
- 	if (unlikely(nofail)) {
- 		/*
--		 * Also we don't support __GFP_NOFAIL without __GFP_DIRECT_RECLAIM,
-+		 * We don't support __GFP_NOFAIL without __GFP_DIRECT_RECLAIM,
- 		 * otherwise, we may result in lockup.
- 		 */
- 		WARN_ON_ONCE(!can_direct_reclaim);
+@@ -3727,6 +3729,17 @@ static int kdamond_wait_activation(struc
+ 	return -EBUSY;
+ }
+ 
++static void damos_init_quota_goal_last_psi(struct damos *s)
++{
++	struct damos_quota_goal *goal;
++
++	damos_for_each_quota_goal(goal, &s->quota) {
++		if (goal->metric != DAMOS_QUOTA_SOME_MEM_PSI_US)
++			continue;
++		goal->last_psi_total = damos_get_some_mem_psi_total();
++	}
++}
++
+ static void kdamond_init_ctx(struct damon_ctx *ctx)
+ {
+ 	unsigned long sample_interval = ctx->attrs.sample_interval ?
+@@ -3743,6 +3756,7 @@ static void kdamond_init_ctx(struct damo
+ 	damon_for_each_scheme(scheme, ctx) {
+ 		damos_set_next_apply_sis(scheme, ctx);
+ 		damos_set_filters_default_reject(scheme);
++		damos_init_quota_goal_last_psi(scheme);
+ 	}
+ }
+ 
 _
 
-Patches currently in -mm which might be from richard.weiyang@gmail.com are
+Patches currently in -mm which might be from sj@kernel.org are
 
-mm-remove-out-dated-document-of-__gfp_nofail.patch
+mm-damon-core-initialize-damos_quota_goal-last_psi_total.patch
+mm-damon-sysfs-set-next-refresh-jiffies-per-sysfs-context.patch
 
