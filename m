@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 54AF722AE65
-	for <mm-commits@vger.kernel.org>; Thu, 27 Aug 2026 02:17:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 76B0121ABAA
+	for <mm-commits@vger.kernel.org>; Thu, 27 Aug 2026 02:48:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787797034; cv=none; b=o7we7A+YQyoRo+klQdSesTvdwBKikKBWEWYWZ8e+tKjEZS1zeIluRJmAazZ/1luCNUnzYP/vPaEse2YUbI5L18kDOSBgeamzSxOYzcEXjUXDeozTOfedoU8PZ4Z2hSgt7ocJCNuq8IyEmfKo32aqibsryIQQDRb55rhaQHTo2BA=
+	t=1787798909; cv=none; b=SuJ4+Dp7IIjJjY1vLfdD2GOceJWy4xoXS1KAvz0+/iA02bxUK7sZEDQjwklOShVMaCFkn/Ug/TtxbHarMuptvSEAhpafZG+Yrrklluu4rKApAmZn9eqjKDfH70JRdfAg8M7Glsx7cKqpr34IoCa2kCCRmDubUKqqGCXO5CdukPQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787797034; c=relaxed/simple;
-	bh=ezpROrm7QtikJkAd0pnSrCoEkKnqiZF6dEak6TZpBa8=;
-	h=Date:To:From:Subject:Message-Id; b=OOHFgzW4FDl81q0s5GvVvYF2iM0mRjsFtj6wiO1fs7Ey6FdT9TRzjuibeVPZrtXsgt9gxE3EZi8eh8hlMD3oVihzc9s9Fv4fDYbygZ8hbiAb1v0pShiw1lMBJknMJyYyvcGvy9g6a3NyHUSUjMHmjAllewlYK+I3vYdBZ8/yI0c=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QllgW71x; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1787798909; c=relaxed/simple;
+	bh=PbMuDn8whv9nON1jLMLEmbmsKMpSaFSjGLABZwfnw78=;
+	h=Date:To:From:Subject:Message-Id; b=HYpczldStBJtUhB8QsYsrpsvJGaTc++Wp9y7RUaan5QhFmrwJDFxtpfyy1Ar7Y9vzFaJ7JXJLbrKBuxRaU4ABxpDaaWKqUFhjmLIxzyapuB7hxP8IZ3yLnc5nfmTIanL4eWljzzwvaqYpltc71yDCsRtYqq+7xwCbGIaqpzcP0g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hAmT1IYK; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QllgW71x"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CBC621F000E9;
-	Thu, 27 Aug 2026 02:17:12 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hAmT1IYK"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0557D1F000E9;
+	Thu, 27 Aug 2026 02:48:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1787797032;
-	bh=9+pwxa+wrySiPJzzpdV+lmrhmabRvv1SAsnL3dijDTA=;
+	d=linux-foundation.org; s=korg; t=1787798908;
+	bh=BXBrnxdqJeD1CV63iXJl0SOejE5IyXBqQ0S0kx8ozus=;
 	h=Date:To:From:Subject;
-	b=QllgW71xxP62pYqPkpqtchdx1BiJierPWBtb+xR+oetGPenHmOl+Nl7NBQ9vIc0af
-	 9kCTyydBQsND8xA/xOGykaEdUX4qochDIM74Z8ybG8ssk1hx9sb1ABO7A3mLoFt2B8
-	 Ag5PaZve2LtDTkPwI/fyQ8B1uuM5TF+wer158meo=
-Date: Wed, 26 Aug 2026 19:17:12 -0700
-To: mm-commits@vger.kernel.org,urezki@gmail.com,jianhuizzzzz@gmail.com,jonaszhou-oc@zhaoxin.com,akpm@linux-foundation.org
+	b=hAmT1IYK2kk8rwTIC6+p4kRaefAGPg0hghtWJr9bYMs2wuxnAO5nRuuw/f8E3Op2z
+	 ouA6paJjBkpr5+s8e034vOgZr2UBLz3fyEy6ulBkJx7/5u1VYrflEjlQy5dnC411Qy
+	 dnCKEPlTm++Fj4tbhZLtKI+SpBYV5JzUz+sbsLJo=
+Date: Wed, 26 Aug 2026 19:48:27 -0700
+To: mm-commits@vger.kernel.org,vivek.kasireddy@intel.com,steven.sistare@oracle.com,osalvador@suse.de,muchun.song@linux.dev,david@kernel.org,lihongfu@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmalloc-avoid-false-sharing-with-drain_vmap_work.patch added to mm-new branch
-Message-Id: <20260827021712.CBC621F000E9@smtp.kernel.org>
+Subject: + mm-hugetlb-fix-resv_huge_pages-double-decrement-in-memfd-error-path.patch added to mm-new branch
+Message-Id: <20260827024828.0557D1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/vmalloc: avoid false sharing with drain_vmap_work
+     Subject: mm/hugetlb: fix resv_huge_pages double decrement in memfd error path
 has been added to the -mm mm-new branch.  Its filename is
-     mm-vmalloc-avoid-false-sharing-with-drain_vmap_work.patch
+     mm-hugetlb-fix-resv_huge_pages-double-decrement-in-memfd-error-path.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmalloc-avoid-false-sharing-with-drain_vmap_work.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-fix-resv_huge_pages-double-decrement-in-memfd-error-path.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,60 +69,60 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: "=?UTF-8?B?Sm9uYXNaaG91LW9j?=" <jonaszhou-oc@zhaoxin.com>
-Subject: mm/vmalloc: avoid false sharing with drain_vmap_work
-Date: Tue, 25 Aug 2026 18:46:59 +0800
+From: Hongfu Li <lihongfu@kylinos.cn>
+Subject: mm/hugetlb: fix resv_huge_pages double decrement in memfd error path
+Date: Tue, 25 Aug 2026 10:10:13 +0800
 
-free_vmap_area_noflush() queues drain_vmap_work after the number of lazily
-freed pages exceeds lazy_max_pages().  Until the worker purges those
-pages, concurrent frees keep calling schedule_work().  Even if the work is
-already pending, queue_work_on() performs a locked test_and_set_bit() on
-the pending bit in the work item.
+alloc_hugetlb_folio_reserve() decrements h->resv_huge_pages when dequeuing
+a folio, but unlike the use_global_reservation handling in
+hugetlb_alloc_folio(), it does not set HPageRestoreReserve on the folio.
 
-On the tested x86-64 build, drain_vmap_work and vmap_nodes occupy the same
-64-byte cache line.  The work item starts at offset 0 and the vmap_nodes
-pointer at offset 32.  The latter is read by vmap allocation and free
-paths, so updates to the work item invalidate a cache line read by all
-CPUs.
+Its sole caller memfd_alloc_folio() pre-allocates a reservation via
+hugetlb_reserve_pages() before allocating.  When
+hugetlb_add_to_page_cache() fails, folio_put() drops the folio without
+HPageRestoreReserve set, so free_huge_folio() does not restore the
+reservation.  The subsequent hugetlb_unreserve_pages() on the err_unresv
+path decrements the counter a second time, leaving resv_huge_pages off by
+one for every failed allocation.
 
-Put drain_vmap_work in the cacheline-aligned data section.  Tests were run
-on Linux 7.2.
+Set HPageRestoreReserve when consuming the reservation in
+alloc_hugetlb_folio_reserve().  On the error path, free_huge_folio() then
+restores the reservation before hugetlb_unreserve_pages() releases it. 
+The success path is unaffected, as hugetlb_add_to_page_cache() clears the
+flag once the folio is added to the page cache.
 
-On a two-socket Intel Xeon Silver 4208 system using 16 workers, the
-runtimes of vmalloc.fix_align, vmalloc.fix_size, and
-vmalloc.no_block_alloc decreased by 12.61%, 5.78%, and 6.87%,
-respectively.  HITM samples for the affected cache line and total HITM
-samples decreased by 96.55% and 13.36%, respectively.
-
-Link: https://lore.kernel.org/20260825104659.100134-1-jonaszhou-oc@zhaoxin.com
-Signed-off-by: JonasZhou <jonaszhou-oc@zhaoxin.com>
-Reviewed-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
-Cc: <jianhuizzzzz@gmail.com>
+Link: https://lore.kernel.org/20260825021013.25672-1-hongfu.li@linux.dev
+Fixes: 26a8ea80929c ("mm/hugetlb: fix memfd_pin_folios resv_huge_pages leak")
+Signed-off-by: Hongfu Li <lihongfu@kylinos.cn>
+Reviewed-by: Muchun Song <muchun.song@linux.dev>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Steven Sistare <steven.sistare@oracle.com>
+Cc: Vivek Kasireddy <vivek.kasireddy@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ mm/hugetlb.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
---- a/mm/vmalloc.c~mm-vmalloc-avoid-false-sharing-with-drain_vmap_work
-+++ a/mm/vmalloc.c
-@@ -1089,7 +1089,12 @@ RB_DECLARE_CALLBACKS_MAX(static, free_vm
- static void reclaim_and_purge_vmap_areas(void);
- static BLOCKING_NOTIFIER_HEAD(vmap_notify_list);
- static void drain_vmap_area_work(struct work_struct *work);
--static DECLARE_WORK(drain_vmap_work, drain_vmap_area_work);
-+/*
-+ * Keep the work item, whose pending bit is updated by freeing CPUs,
-+ * away from vmap metadata read by allocation and free paths.
-+ */
-+static __cacheline_aligned_in_smp
-+DECLARE_WORK(drain_vmap_work, drain_vmap_area_work);
+--- a/mm/hugetlb.c~mm-hugetlb-fix-resv_huge_pages-double-decrement-in-memfd-error-path
++++ a/mm/hugetlb.c
+@@ -2178,8 +2178,10 @@ struct folio *alloc_hugetlb_folio_reserv
  
- static __cacheline_aligned_in_smp atomic_long_t vmap_lazy_nr;
+ 	folio = dequeue_hugetlb_folio_nodemask(h, gfp_mask, preferred_nid,
+ 					       nmask);
+-	if (folio)
++	if (folio) {
++		folio_set_hugetlb_restore_reserve(folio);
+ 		h->resv_huge_pages--;
++	}
  
+ 	spin_unlock_irq(&hugetlb_lock);
+ 	return folio;
 _
 
-Patches currently in -mm which might be from jonaszhou-oc@zhaoxin.com are
+Patches currently in -mm which might be from lihongfu@kylinos.cn are
 
-mm-vmalloc-avoid-false-sharing-with-drain_vmap_work.patch
+mm-use-a-folio-in-the-softleaf_is_device_private-path.patch
+mm-hugetlb-fix-resv_huge_pages-double-decrement-in-memfd-error-path.patch
 
