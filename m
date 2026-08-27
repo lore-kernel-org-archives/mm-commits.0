@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 00E0536F915;
-	Thu, 27 Aug 2026 04:28:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 664D233A9DA
+	for <mm-commits@vger.kernel.org>; Thu, 27 Aug 2026 04:30:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787804912; cv=none; b=JJQj2VMbZgf7Uzolghoqt00AdQJNdl4uRXKJEvzBOWfGceUrv+zIGyyzuWrW65s1Y4fxFgVEjn1UXpF6/K23+r/EPfX/buHwXHoCtL61KoBS5YyYSNKnb8xRrRJSOuDClR7RayPsjYLAmE0nJjVkidCzyKKMYe2k5B4bfiyQz/k=
+	t=1787805026; cv=none; b=T3YedWadSkVmV4RT5/8EwnVDWTocNPeh+n21eAqM7SKrzlyBvXOrH/DRydzS3cNlAEm2XXiI37x7QgNf0+aA6vjm3mZ6nMUBxc/hN8t+fGKKf6wcIWTWpWQxQIkt6iIznrBIUvMCLrHG7EcyEJy0Ek4+rblUCImEYJrRFB07Nx8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787804912; c=relaxed/simple;
-	bh=xyaJQFMX64NE0fQPeOs6YcPoLcOTNqOsPrTJQ29j1IU=;
-	h=Date:To:From:Subject:Message-Id; b=Eudx8F/8Njh7uU5UZMt61H29NC1dbOo5tc9DRDKnfqE16iZCA52DvccUGhdHgsu4GtPCO1mgI0ic3sUKX2YNnL8S0PwUFlJNXBq+zu2p1vTwTf4H8OEr50h3Dhyo1MjiEarizXlWaNWbyKO3SGuVpYNKtyFmrANvAoFHFbHTKgE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=clzflJQC; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1787805026; c=relaxed/simple;
+	bh=N9QhvJ9pf3XM3bQH5R4NfKqWehYQnCBn0xKtTSY3lss=;
+	h=Date:To:From:Subject:Message-Id; b=GDofGosl+fSfbpOTFGu+PDo6c5R9YhoPoG8sGE2G0caaxfe9ylplXY8uHW/KPbsUmGwlz2AsZ0eYEJ0Jwzq+rJsBNVrlFP6IO+2ddE8XopvagukxsrXKSCk+JotpmcWzieDEbCLYTth7WdH0ct3L1vyYfeUpGP0NZyXf0WxykAM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AYwQyNrR; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="clzflJQC"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7F5B21F000E9;
-	Thu, 27 Aug 2026 04:28:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AYwQyNrR"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E9B201F000E9;
+	Thu, 27 Aug 2026 04:30:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1787804910;
-	bh=cEmfQx0GIdLmQUNDrS4RoFXHd18+tiRb8JE2ZPVSGuc=;
+	d=linux-foundation.org; s=korg; t=1787805025;
+	bh=swRbPAlvkzUoA8xYJKzMzQBYeQG6Y8zdUjTMKHpa9Z0=;
 	h=Date:To:From:Subject;
-	b=clzflJQCR4t8O0JC3FFOKsVhGs5guz4vpvus23UMTTCZfYXjG784CPf43/KsZYGBF
-	 jDYgoTh6CeLI5Ugv9GV5VMlAsbkZbOaS803X+y4eoo83/NJaW526PgSBhe+aLdAgTf
-	 y5th+kKv1vugPiOeJLZlrRkOuCCQ8qmvHT16cof0=
-Date: Wed, 26 Aug 2026 21:28:30 -0700
-To: mm-commits@vger.kernel.org,surenb@google.com,stable@vger.kernel.org,sashiko-bot@kernel.org,samitolvanen@google.com,petr.pavlu@suse.com,mcgrof@kernel.org,brads@mainlining.org,atomlin@atomlin.com,hao.ge@linux.dev,akpm@linux-foundation.org
+	b=AYwQyNrR2STXvTcs3rlWd0VdcneVoRqJwH09nusgfp7nrCAD4ojzkSRGtR9SD0Lxf
+	 AxZTEol+Jf+uF26jQDjCX9YS0IudeuzGbppngWwXhkSGKw4qPs0umsL1JZ4NsKTKMI
+	 kPrt9cn2LZauUuZ6hwzRGTpSuQZYXIJYPDOHN6gM=
+Date: Wed, 26 Aug 2026 21:30:24 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,surenb@google.com,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,libaokun1@huawei.com,liam@infradead.org,hannes@cmpxchg.org,david@kernel.org,richard.weiyang@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + module-fix-lost-error-code-from-codetag_load_module.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260827042830.7F5B21F000E9@smtp.kernel.org>
+Subject: + mm-remove-out-dated-document-of-__gfp_nofail.patch added to mm-new branch
+Message-Id: <20260827043024.E9B201F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,26 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: module: fix lost error code from codetag_load_module()
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     module-fix-lost-error-code-from-codetag_load_module.patch
+     Subject: mm: remove out-dated document of __GFP_NOFAIL
+has been added to the -mm mm-new branch.  Its filename is
+     mm-remove-out-dated-document-of-__gfp_nofail.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/module-fix-lost-error-code-from-codetag_load_module.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-out-dated-document-of-__gfp_nofail.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,63 +69,65 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Hao Ge <hao.ge@linux.dev>
-Subject: module: fix lost error code from codetag_load_module()
-Date: Thu, 27 Aug 2026 11:05:03 +0800
+From: Wei Yang <richard.weiyang@gmail.com>
+Subject: mm: remove out-dated document of __GFP_NOFAIL
+Date: Thu, 27 Aug 2026 03:05:48 +0000
 
-If codetag_load_module() fails, err is not set to reflect the failure
-and load_module() returns 0 after the module has been torn down.
+Commit ee040cbd6e48 ("mm/page_alloc: don't warn about large allocations
+with __GFP_NOFAIL") remove a warning on allocating large folio with
+__GFP_NOFAIL, which is adjusted by commit 903edea6c53f ("mm: warn about
+illegal __GFP_NOFAIL usage in a more appropriate location and manner").
 
-Also, if the module is a livepatch, mod->klp_info allocated by
-copy_module_elf() leaks on this error path.  Free it via a new
-livepatch_cleanup label.
+While in that commit, it also documented this behavior which is out-dated
+now.
 
-Link: https://lore.kernel.org/20260827030503.49171-1-hao.ge@linux.dev
-Fixes: 044d2aee6c57 ("alloc_tag: handle module codetag load errors as module load failures")
-Signed-off-by: Hao Ge <hao.ge@linux.dev>
-Reported-by: Sashiko <sashiko-bot@kernel.org>
-Suggested-by: Petr Pavlu <petr.pavlu@suse.com>
-Reviewed-by: Bradley Morgan <brads@mainlining.org>
-Cc: Aaron Tomlin <atomlin@atomlin.com>
-Cc: Luis Chamberalin <mcgrof@kernel.org>
-Cc: Sami Tolvanen <samitolvanen@google.com>
+Adjust the document to align to current code, and adjust the comment while
+at it.
+
+Link: https://lore.kernel.org/20260827030548.16631-1-richard.weiyang@gmail.com
+Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
+Cc: Baokun Li <libaokun1@huawei.com>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: <stable@vger.kernel.org>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/module/main.c |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ include/linux/gfp_types.h |    2 --
+ mm/page_alloc.c           |    2 +-
+ 2 files changed, 1 insertion(+), 3 deletions(-)
 
---- a/kernel/module/main.c~module-fix-lost-error-code-from-codetag_load_module
-+++ a/kernel/module/main.c
-@@ -3568,8 +3568,9 @@ static int load_module(struct load_info
- 			goto sysfs_cleanup;
- 	}
+--- a/include/linux/gfp_types.h~mm-remove-out-dated-document-of-__gfp_nofail
++++ a/include/linux/gfp_types.h
+@@ -243,8 +243,6 @@ enum {
+  * used only when there is no reasonable failure policy) but it is
+  * definitely preferable to use the flag rather than opencode endless
+  * loop around allocator.
+- * Allocating pages from the buddy with __GFP_NOFAIL and order > 1 is
+- * not supported. Please consider using kvmalloc() instead.
+  */
+ #define __GFP_IO	((__force gfp_t)___GFP_IO)
+ #define __GFP_FS	((__force gfp_t)___GFP_FS)
+--- a/mm/page_alloc.c~mm-remove-out-dated-document-of-__gfp_nofail
++++ a/mm/page_alloc.c
+@@ -4804,7 +4804,7 @@ __alloc_pages_slowpath(gfp_t gfp_mask, u
  
--	if (codetag_load_module(mod))
--		goto sysfs_cleanup;
-+	err = codetag_load_module(mod);
-+	if (err)
-+		goto livepatch_cleanup;
- 
- 	/* Get rid of temporary copy. */
- 	free_copy(info, flags);
-@@ -3579,6 +3580,9 @@ static int load_module(struct load_info
- 
- 	return do_init_module(mod);
- 
-+ livepatch_cleanup:
-+	if (is_livepatch_module(mod))
-+		free_module_elf(mod);
-  sysfs_cleanup:
- 	mod_sysfs_teardown(mod);
-  coming_cleanup:
+ 	if (unlikely(nofail)) {
+ 		/*
+-		 * Also we don't support __GFP_NOFAIL without __GFP_DIRECT_RECLAIM,
++		 * We don't support __GFP_NOFAIL without __GFP_DIRECT_RECLAIM,
+ 		 * otherwise, we may result in lockup.
+ 		 */
+ 		WARN_ON_ONCE(!can_direct_reclaim);
 _
 
-Patches currently in -mm which might be from hao.ge@linux.dev are
+Patches currently in -mm which might be from richard.weiyang@gmail.com are
 
-module-fix-lost-error-code-from-codetag_load_module.patch
-alloc_tag-skip-percpu-counter-allocation-when-profiling-is-disabled.patch
-alloc_tag-remove-proc-allocinfo-outside-of-mod_lock.patch
+mm-remove-out-dated-document-of-__gfp_nofail.patch
 
