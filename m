@@ -1,486 +1,199 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.16])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 93569442386
-	for <mm-commits@vger.kernel.org>; Fri, 28 Aug 2026 11:51:15 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.16
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 74A0C2B9B7
+	for <mm-commits@vger.kernel.org>; Fri, 28 Aug 2026 16:48:20 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787917888; cv=none; b=JpMNfZLcAj6oaCSEt/bNhF9tWN6z0x1PezF+kGS6Vc1ScnH/y3ARlq5FrufxQHbTnQOBTajWK0HKJL6xuniL1eOcV0J9RO9phiDUSMBWiXMBnjy79jkHHAw0+iBYDWKq4MSE06qR78NwgHFpQqEZo7pEFRgWpKEwzIjAXqd1qh4=
+	t=1787935701; cv=none; b=W+LES6hQXgWG5oMF4RoAz8I98oHJrP0U/GAKiM4k7YgQU7lBn229i/zwDVb2qhUQv9xngk7LdP8cqO8rPu5qY6VKH2O4f8qvNhCORzlqYD9PHTfT5AAFXjSOFEyy8TkBNedBQWxjem9dSDX7jrc/ZboR98oZLsTTUx9QMdYmdVQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787917888; c=relaxed/simple;
-	bh=XNx9+dFujD5edMjpBTYsyZXqqE4kmavHmMsu+iY+Eo4=;
-	h=Date:From:To:Cc:Subject:Message-ID; b=pTZFpfxtPsRPpxbvy3NYA6ZrLO82i3owaavK8tvq5FljDeWh72Y32IclWg2GqgGUkeLNCBy7f67hv+dpb5ptBvTnxQUEV6wk2PHivVJKbW70fpTw4FWJxguE26dPjukdet5GPYbdsqYP7JLfc1FvRQ7DvqczA4p4M0fZ05plACc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=GUZYOu0+; arc=none smtp.client-ip=198.175.65.16
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	s=arc-20240116; t=1787935701; c=relaxed/simple;
+	bh=6zADOj47r+BVNIxEV73NLopvDzDrUH2+YDHR/02U8KE=;
+	h=Date:To:From:Subject:Message-Id; b=scSjXOfBErvNDXOzv6K6ptyLuu+MEPULtX/OI8nw1GMOmbymXyOUsgkhd5s/1P2zwqYfSc0pfFJCxgFvGrvqraT6uIHUwi0N2VLRgn2AixA12FeWEXEpd2oL1eAo2NqKu+UYtZjAhxtUKFXw25rSIX9Ipt0Qv0MtY4ES7gbq9nc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AC3RE+ul; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="GUZYOu0+"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1787917876; x=1819453876;
-  h=date:from:to:cc:subject:message-id;
-  bh=XNx9+dFujD5edMjpBTYsyZXqqE4kmavHmMsu+iY+Eo4=;
-  b=GUZYOu0+ETE3VycnZV8/WKqadh7JYV3P0fdCjWBYvomHBVk73Xmao39O
-   8r3nOktUtgT19VTbNKCRzwFn2yLKDIUBYeHMHMvehNWKQjI2xi1GiA4q3
-   iESvHLFG/7Uttqg3suU5SaR1eK2x/jWJnO/GwvuqPHO+YEvCPK85FECan
-   JMLWt2S7YqSvsUvctocvigrPaxxdD4NVcccUUhGXSYPcME06mLR6Asgqm
-   bK8DZJS0nhCHgj72TGxTXirAg4R4cQVdUfWYrlVtclKLt/KG/KpC3IjCn
-   vr4w0hk6lfEsVXgb7L6ZYnUIN2dd952m0/ySZVB9hPimqm6X+yPT1D0j+
-   Q==;
-X-CSE-ConnectionGUID: DxTl6QDTRMWHa5kmj9F9lQ==
-X-CSE-MsgGUID: hiJHvMg9RwOx1/JL9T/8TQ==
-X-IronPort-AV: E=McAfee;i="6800,10657,11888"; a="88630413"
-X-IronPort-AV: E=Sophos;i="6.25,248,1779174000"; 
-   d="scan'208";a="88630413"
-Received: from fmviesa002.fm.intel.com ([10.60.135.142])
-  by orvoesa108.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 28 Aug 2026 04:51:12 -0700
-X-CSE-ConnectionGUID: HibPXRyPTWqzJ4Znle0WoQ==
-X-CSE-MsgGUID: BaLLlXDsSO2O+s1WNHRuug==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.25,248,1779174000"; 
-   d="scan'208";a="291625018"
-Received: from lkp-server01.sh.intel.com (HELO 3532383e6126) ([10.239.97.150])
-  by fmviesa002.fm.intel.com with ESMTP; 28 Aug 2026 04:51:10 -0700
-Received: from kbuild by 3532383e6126 with local (Exim 4.98.2)
-	(envelope-from <lkp@intel.com>)
-	id 1wzv6x-00000000B0r-2LB8;
-	Fri, 28 Aug 2026 11:51:07 +0000
-Date: Fri, 28 Aug 2026 19:50:44 +0800
-From: kernel test robot <lkp@intel.com>
-To: David Hildenbrand <david@kernel.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>,
- Linux Memory Management List <linux-mm@kvack.org>,
- mm-commits@vger.kernel.org
-Subject: [akpm-mm:mm-new] BUILD SUCCESS
- dde94c26af59f5020adafafa08ece21ccd32590b
-Message-ID: <202608281932.pzdpjrt8-lkp@intel.com>
-User-Agent: s-nail v14.9.25
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AC3RE+ul"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EEC0F1F000E9;
+	Fri, 28 Aug 2026 16:48:19 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=linux-foundation.org; s=korg; t=1787935700;
+	bh=Giq2kyGziX9uFzloI1IbjH2EN0Mc19xzfPHZRd0T+zQ=;
+	h=Date:To:From:Subject;
+	b=AC3RE+ulNIbkOUev3UAJhUNmg9Fv+mQjbnU+/uNxOOVqA07V+HhddevTVspPQ8sAI
+	 Ws3CuK1n1nWHECnECZCj782Gt3vlo9LVI7+YfGZ6s2Iglo1m8e7awF7gzIgJsilThi
+	 zxRuhofSb+bYpqtmszd40aHT8uPEYl7gAL/8RIik=
+Date: Fri, 28 Aug 2026 09:48:19 -0700
+To: mm-commits@vger.kernel.org,shuah@kernel.org,rpenyaev@suse.de,r@hev.cc,brauner@kernel.org,florian.schmaus@codasip.com,akpm@linux-foundation.org
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: + selftests-epoll-fix-race-condition-in-multi-waiter-wakeup-tests.patch added to mm-nonmm-unstable branch
+Message-Id: <20260828164819.EEC0F1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
-tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm.git mm-new
-branch HEAD: dde94c26af59f5020adafafa08ece21ccd32590b  mm/swap, PM: hibernate: atomically replace hibernation pin
 
-elapsed time: 1439m
+The patch titled
+     Subject: selftests/epoll: fix race condition in multi-waiter wakeup tests
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     selftests-epoll-fix-race-condition-in-multi-waiter-wakeup-tests.patch
 
-configs tested: 407
-configs skipped: 22
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-epoll-fix-race-condition-in-multi-waiter-wakeup-tests.patch
 
-The following configs have been built successfully.
-More configs may be tested in the coming days.
+This patch will later appear in the mm-nonmm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
-tested configs:
-alpha                             allnoconfig    gcc-16.1.0
-alpha                            allyesconfig    gcc-16.1.0
-alpha                               defconfig    gcc-16.1.0
-arc                              allmodconfig    clang-14
-arc                              allmodconfig    clang-24
-arc                              allmodconfig    gcc-16.1.0
-arc                               allnoconfig    gcc-16.1.0
-arc                              allyesconfig    clang-14
-arc                              allyesconfig    clang-24
-arc                              allyesconfig    gcc-16.1.0
-arc                                 defconfig    gcc-16.1.0
-arc                        nsim_700_defconfig    gcc-16.1.0
-arc                     nsimosci_hs_defconfig    gcc-16.1.0
-arc                            randconfig-001    gcc-16.1.0
-arc                   randconfig-001-20260827    gcc-11.5.0
-arc                   randconfig-001-20260828    clang-17
-arc                   randconfig-001-20260828    gcc-16.1.0
-arc                            randconfig-002    gcc-16.1.0
-arc                   randconfig-002-20260827    gcc-13.4.0
-arc                   randconfig-002-20260828    clang-17
-arc                   randconfig-002-20260828    gcc-16.1.0
-arc                        vdk_hs38_defconfig    gcc-16.1.0
-arm                               allnoconfig    clang-17
-arm                               allnoconfig    gcc-16.1.0
-arm                              allyesconfig    clang-14
-arm                              allyesconfig    clang-24
-arm                              allyesconfig    gcc-16.1.0
-arm                       aspeed_g5_defconfig    gcc-16.1.0
-arm                         at91_dt_defconfig    gcc-16.1.0
-arm                         axm55xx_defconfig    gcc-16.1.0
-arm                          collie_defconfig    gcc-16.1.0
-arm                                 defconfig    clang-14
-arm                                 defconfig    gcc-16.1.0
-arm                          ixp4xx_defconfig    gcc-16.1.0
-arm                            mmp2_defconfig    gcc-16.1.0
-arm                       multi_v4t_defconfig    gcc-16.1.0
-arm                        mvebu_v5_defconfig    gcc-16.1.0
-arm                        neponset_defconfig    gcc-16.1.0
-arm                             pxa_defconfig    gcc-16.1.0
-arm                            randconfig-001    gcc-16.1.0
-arm                   randconfig-001-20260827    clang-14
-arm                   randconfig-001-20260828    clang-17
-arm                   randconfig-001-20260828    gcc-16.1.0
-arm                            randconfig-002    gcc-16.1.0
-arm                   randconfig-002-20260827    gcc-15.2.0
-arm                   randconfig-002-20260828    clang-17
-arm                   randconfig-002-20260828    gcc-16.1.0
-arm                            randconfig-003    gcc-16.1.0
-arm                   randconfig-003-20260827    gcc-8.5.0
-arm                   randconfig-003-20260828    clang-17
-arm                   randconfig-003-20260828    gcc-16.1.0
-arm                            randconfig-004    gcc-16.1.0
-arm                   randconfig-004-20260827    gcc-8.5.0
-arm                   randconfig-004-20260828    clang-17
-arm                   randconfig-004-20260828    gcc-16.1.0
-arm                       spear13xx_defconfig    gcc-16.1.0
-arm                       versatile_defconfig    gcc-16.1.0
-arm                         vf610m4_defconfig    gcc-16.1.0
-arm64                            allmodconfig    clang-14
-arm64                            allmodconfig    clang-24
-arm64                             allnoconfig    gcc-16.1.0
-arm64                               defconfig    gcc-16.1.0
-arm64                          randconfig-001    clang-24
-arm64                 randconfig-001-20260827    gcc-8.5.0
-arm64                 randconfig-001-20260828    clang-14
-arm64                 randconfig-001-20260828    clang-24
-arm64                          randconfig-002    clang-24
-arm64                 randconfig-002-20260827    gcc-9.5.0
-arm64                 randconfig-002-20260828    clang-14
-arm64                 randconfig-002-20260828    clang-24
-arm64                          randconfig-003    clang-24
-arm64                 randconfig-003-20260828    clang-14
-arm64                 randconfig-003-20260828    clang-24
-arm64                          randconfig-004    clang-24
-arm64                 randconfig-004-20260827    gcc-8.5.0
-arm64                 randconfig-004-20260828    clang-14
-arm64                 randconfig-004-20260828    clang-24
-csky                             allmodconfig    gcc-16.1.0
-csky                              allnoconfig    gcc-16.1.0
-csky                                defconfig    gcc-16.1.0
-csky                           randconfig-001    clang-24
-csky                  randconfig-001-20260827    gcc-9.5.0
-csky                  randconfig-001-20260828    clang-14
-csky                  randconfig-001-20260828    clang-24
-csky                           randconfig-002    clang-24
-csky                  randconfig-002-20260827    gcc-15.2.0
-csky                  randconfig-002-20260828    clang-14
-csky                  randconfig-002-20260828    clang-24
-hexagon                          allmodconfig    clang-14
-hexagon                          allmodconfig    gcc-16.1.0
-hexagon                           allnoconfig    clang-14
-hexagon                           allnoconfig    gcc-16.1.0
-hexagon                             defconfig    clang-14
-hexagon                             defconfig    gcc-16.1.0
-hexagon               randconfig-001-20260827    clang-14
-hexagon               randconfig-001-20260828    clang-18
-hexagon                        randconfig-002    clang-14
-hexagon               randconfig-002-20260827    clang-14
-hexagon               randconfig-002-20260828    clang-18
-i386                             allmodconfig    clang-22
-i386                             allmodconfig    gcc-14
-i386                              allnoconfig    gcc-14
-i386                              allnoconfig    gcc-16.1.0
-i386                             allyesconfig    clang-22
-i386                             allyesconfig    gcc-14
-i386                 buildonly-randconfig-001    gcc-14
-i386        buildonly-randconfig-001-20260827    clang-22
-i386        buildonly-randconfig-001-20260828    clang-22
-i386                 buildonly-randconfig-002    clang-22
-i386        buildonly-randconfig-002-20260827    clang-22
-i386        buildonly-randconfig-002-20260828    clang-22
-i386                 buildonly-randconfig-003    clang-22
-i386        buildonly-randconfig-003-20260827    clang-22
-i386        buildonly-randconfig-003-20260828    clang-22
-i386                 buildonly-randconfig-004    gcc-14
-i386        buildonly-randconfig-004-20260827    clang-22
-i386        buildonly-randconfig-004-20260828    clang-22
-i386                 buildonly-randconfig-005    gcc-14
-i386        buildonly-randconfig-005-20260827    clang-22
-i386        buildonly-randconfig-005-20260828    clang-22
-i386                 buildonly-randconfig-006    gcc-14
-i386        buildonly-randconfig-006-20260827    clang-22
-i386        buildonly-randconfig-006-20260828    clang-22
-i386                                defconfig    clang-22
-i386                                defconfig    gcc-16.1.0
-i386                  randconfig-001-20260828    gcc-14
-i386                  randconfig-002-20260828    gcc-14
-i386                  randconfig-003-20260828    gcc-14
-i386                  randconfig-004-20260828    gcc-14
-i386                  randconfig-005-20260828    gcc-14
-i386                  randconfig-006-20260828    gcc-14
-i386                  randconfig-007-20260828    gcc-14
-i386                           randconfig-011    clang-22
-i386                  randconfig-011-20260827    clang-22
-i386                  randconfig-011-20260828    gcc-14
-i386                           randconfig-012    clang-22
-i386                  randconfig-012-20260827    clang-22
-i386                  randconfig-012-20260828    gcc-14
-i386                           randconfig-013    gcc-14
-i386                  randconfig-013-20260827    gcc-14
-i386                  randconfig-013-20260828    gcc-14
-i386                           randconfig-014    clang-22
-i386                  randconfig-014-20260827    gcc-13
-i386                  randconfig-014-20260828    gcc-14
-i386                           randconfig-015    gcc-14
-i386                  randconfig-015-20260827    gcc-14
-i386                  randconfig-015-20260828    gcc-14
-i386                           randconfig-016    gcc-14
-i386                  randconfig-016-20260827    clang-22
-i386                  randconfig-016-20260828    gcc-14
-i386                           randconfig-017    gcc-14
-i386                  randconfig-017-20260827    clang-22
-i386                  randconfig-017-20260828    gcc-14
-loongarch                        allmodconfig    clang-14
-loongarch                        allmodconfig    clang-19
-loongarch                        allmodconfig    clang-24
-loongarch                         allnoconfig    clang-20
-loongarch                         allnoconfig    gcc-16.1.0
-loongarch                           defconfig    clang-14
-loongarch                           defconfig    clang-24
-loongarch                loongson32_defconfig    gcc-16.1.0
-loongarch                      randconfig-001    clang-14
-loongarch             randconfig-001-20260827    clang-22
-loongarch             randconfig-001-20260828    clang-18
-loongarch                      randconfig-002    gcc-16.1.0
-loongarch             randconfig-002-20260827    gcc-16.1.0
-loongarch             randconfig-002-20260828    clang-18
-m68k                             alldefconfig    gcc-16.1.0
-m68k                             allmodconfig    gcc-16.1.0
-m68k                              allnoconfig    gcc-16.1.0
-m68k                             allyesconfig    clang-14
-m68k                             allyesconfig    clang-24
-m68k                             allyesconfig    gcc-16.1.0
-m68k                                defconfig    clang-14
-m68k                                defconfig    clang-24
-m68k                       m5329evb_defconfig    gcc-16.1.0
-m68k                          multi_defconfig    gcc-16.1.0
-microblaze                        allnoconfig    gcc-16.1.0
-microblaze                       allyesconfig    gcc-16.1.0
-microblaze                          defconfig    clang-14
-microblaze                          defconfig    clang-24
-microblaze                          defconfig    gcc-16.1.0
-mips                             allmodconfig    gcc-16.1.0
-mips                              allnoconfig    gcc-16.1.0
-mips                             allyesconfig    gcc-16.1.0
-mips                     decstation_defconfig    gcc-16.1.0
-mips                     loongson2k_defconfig    gcc-16.1.0
-mips                   sb1250_swarm_defconfig    gcc-16.1.0
-nios2                         10m50_defconfig    gcc-16.1.0
-nios2                            allmodconfig    clang-20
-nios2                             allnoconfig    clang-14
-nios2                             allnoconfig    clang-24
-nios2                             allnoconfig    gcc-11.5.0
-nios2                               defconfig    clang-14
-nios2                               defconfig    clang-24
-nios2                               defconfig    gcc-11.5.0
-nios2                          randconfig-001    gcc-11.5.0
-nios2                 randconfig-001-20260827    gcc-11.5.0
-nios2                 randconfig-001-20260828    clang-18
-nios2                          randconfig-002    gcc-8.5.0
-nios2                 randconfig-002-20260827    gcc-11.5.0
-nios2                 randconfig-002-20260828    clang-18
-openrisc                         allmodconfig    clang-20
-openrisc                         allmodconfig    gcc-16.1.0
-openrisc                          allnoconfig    clang-14
-openrisc                          allnoconfig    clang-24
-openrisc                          allnoconfig    gcc-16.1.0
-openrisc                            defconfig    gcc-16.1.0
-parisc                           allmodconfig    gcc-16.1.0
-parisc                            allnoconfig    clang-14
-parisc                            allnoconfig    clang-24
-parisc                            allnoconfig    gcc-16.1.0
-parisc                           allyesconfig    clang-17
-parisc                           allyesconfig    gcc-16.1.0
-parisc                              defconfig    gcc-16.1.0
-parisc                randconfig-001-20260827    gcc-14.3.0
-parisc                randconfig-001-20260828    gcc-9.5.0
-parisc                randconfig-002-20260827    gcc-16.1.0
-parisc                randconfig-002-20260828    gcc-9.5.0
-parisc64                            defconfig    clang-14
-parisc64                            defconfig    clang-24
-parisc64                            defconfig    gcc-16.1.0
-powerpc                          allmodconfig    gcc-16.1.0
-powerpc                           allnoconfig    clang-14
-powerpc                           allnoconfig    clang-24
-powerpc                           allnoconfig    gcc-16.1.0
-powerpc                  iss476-smp_defconfig    gcc-16.1.0
-powerpc                   lite5200b_defconfig    gcc-16.1.0
-powerpc               randconfig-001-20260827    gcc-13.4.0
-powerpc               randconfig-001-20260828    gcc-9.5.0
-powerpc               randconfig-002-20260827    clang-17
-powerpc               randconfig-002-20260828    gcc-9.5.0
-powerpc                        warp_defconfig    gcc-16.1.0
-powerpc                         wii_defconfig    gcc-16.1.0
-powerpc64             randconfig-001-20260827    gcc-15.2.0
-powerpc64             randconfig-001-20260828    gcc-9.5.0
-powerpc64             randconfig-002-20260827    gcc-13.4.0
-powerpc64             randconfig-002-20260828    gcc-9.5.0
-riscv                            allmodconfig    clang-14
-riscv                            allmodconfig    clang-24
-riscv                             allnoconfig    clang-14
-riscv                             allnoconfig    clang-24
-riscv                             allnoconfig    gcc-16.1.0
-riscv                            allyesconfig    clang-14
-riscv                            allyesconfig    clang-24
-riscv                               defconfig    clang-14
-riscv                               defconfig    gcc-16.1.0
-riscv                 randconfig-001-20260827    gcc-8.5.0
-riscv                 randconfig-001-20260828    clang-17
-riscv                 randconfig-002-20260827    clang-14
-riscv                 randconfig-002-20260828    clang-17
-s390                             allmodconfig    clang-14
-s390                             allmodconfig    clang-17
-s390                              allnoconfig    clang-14
-s390                              allnoconfig    clang-24
-s390                             allyesconfig    gcc-16.1.0
-s390                                defconfig    clang-18
-s390                                defconfig    gcc-16.1.0
-s390                  randconfig-001-20260827    gcc-10.5.0
-s390                  randconfig-001-20260828    clang-17
-s390                  randconfig-002-20260827    clang-14
-s390                  randconfig-002-20260828    clang-17
-sh                               allmodconfig    gcc-16.1.0
-sh                                allnoconfig    clang-14
-sh                                allnoconfig    clang-24
-sh                                allnoconfig    gcc-16.1.0
-sh                               allyesconfig    clang-17
-sh                               allyesconfig    gcc-16.1.0
-sh                                  defconfig    gcc-14
-sh                                  defconfig    gcc-16.1.0
-sh                    randconfig-001-20260827    gcc-13.4.0
-sh                    randconfig-001-20260828    clang-17
-sh                    randconfig-002-20260827    gcc-11.5.0
-sh                    randconfig-002-20260828    clang-17
-sh                           se7724_defconfig    gcc-16.1.0
-sh                        sh7757lcr_defconfig    gcc-16.1.0
-sparc                             allnoconfig    clang-14
-sparc                             allnoconfig    clang-24
-sparc                             allnoconfig    gcc-16.1.0
-sparc                               defconfig    gcc-16.1.0
-sparc                          randconfig-001    gcc-16.1.0
-sparc                 randconfig-001-20260827    gcc-12.5.0
-sparc                 randconfig-001-20260828    gcc-9.5.0
-sparc                          randconfig-002    gcc-11.5.0
-sparc                 randconfig-002-20260827    gcc-8.5.0
-sparc                 randconfig-002-20260828    gcc-9.5.0
-sparc                       sparc64_defconfig    gcc-16.1.0
-sparc64                          alldefconfig    gcc-16.1.0
-sparc64                          allmodconfig    clang-20
-sparc64                             defconfig    clang-14
-sparc64                             defconfig    gcc-14
-sparc64                        randconfig-001    gcc-12.5.0
-sparc64               randconfig-001-20260827    clang-20
-sparc64               randconfig-001-20260828    gcc-9.5.0
-sparc64                        randconfig-002    clang-20
-sparc64               randconfig-002-20260827    gcc-8.5.0
-sparc64               randconfig-002-20260828    gcc-9.5.0
-um                               allmodconfig    clang-17
-um                                allnoconfig    clang-14
-um                                allnoconfig    clang-17
-um                                allnoconfig    clang-24
-um                               allyesconfig    gcc-14
-um                               allyesconfig    gcc-16.1.0
-um                                  defconfig    clang-14
-um                                  defconfig    gcc-14
-um                             i386_defconfig    gcc-14
-um                             randconfig-001    clang-14
-um                    randconfig-001-20260827    clang-14
-um                    randconfig-001-20260828    gcc-9.5.0
-um                             randconfig-002    clang-14
-um                    randconfig-002-20260827    clang-17
-um                    randconfig-002-20260828    gcc-9.5.0
-um                           x86_64_defconfig    clang-14
-um                           x86_64_defconfig    gcc-14
-x86_64                           allmodconfig    clang-22
-x86_64                            allnoconfig    clang-14
-x86_64                            allnoconfig    clang-22
-x86_64                            allnoconfig    clang-24
-x86_64                           allyesconfig    clang-22
-x86_64               buildonly-randconfig-001    gcc-12
-x86_64               buildonly-randconfig-001    gcc-14
-x86_64      buildonly-randconfig-001-20260827    gcc-14
-x86_64      buildonly-randconfig-001-20260828    gcc-14
-x86_64               buildonly-randconfig-002    clang-22
-x86_64               buildonly-randconfig-002    gcc-14
-x86_64      buildonly-randconfig-002-20260827    clang-22
-x86_64      buildonly-randconfig-002-20260828    gcc-14
-x86_64               buildonly-randconfig-003    gcc-14
-x86_64      buildonly-randconfig-003-20260827    clang-22
-x86_64      buildonly-randconfig-003-20260828    gcc-14
-x86_64               buildonly-randconfig-004    gcc-14
-x86_64      buildonly-randconfig-004-20260827    clang-22
-x86_64      buildonly-randconfig-004-20260828    gcc-14
-x86_64               buildonly-randconfig-005    gcc-14
-x86_64      buildonly-randconfig-005-20260827    clang-22
-x86_64      buildonly-randconfig-005-20260828    gcc-14
-x86_64               buildonly-randconfig-006    clang-22
-x86_64               buildonly-randconfig-006    gcc-14
-x86_64      buildonly-randconfig-006-20260827    gcc-14
-x86_64      buildonly-randconfig-006-20260828    gcc-14
-x86_64                              defconfig    gcc-14
-x86_64                                  kexec    clang-22
-x86_64                randconfig-001-20260827    clang-22
-x86_64                randconfig-001-20260828    gcc-14
-x86_64                randconfig-002-20260827    gcc-14
-x86_64                randconfig-002-20260828    gcc-14
-x86_64                randconfig-003-20260827    gcc-14
-x86_64                randconfig-003-20260828    gcc-14
-x86_64                randconfig-004-20260827    gcc-14
-x86_64                randconfig-004-20260828    gcc-14
-x86_64                randconfig-005-20260827    clang-22
-x86_64                randconfig-005-20260828    gcc-14
-x86_64                randconfig-006-20260827    clang-22
-x86_64                randconfig-006-20260828    gcc-14
-x86_64                randconfig-011-20260827    gcc-14
-x86_64                randconfig-011-20260828    clang-22
-x86_64                randconfig-012-20260827    clang-22
-x86_64                randconfig-012-20260828    clang-22
-x86_64                randconfig-013-20260827    gcc-14
-x86_64                randconfig-013-20260828    clang-22
-x86_64                randconfig-014-20260827    clang-22
-x86_64                randconfig-014-20260828    clang-22
-x86_64                randconfig-015-20260827    clang-22
-x86_64                randconfig-015-20260828    clang-22
-x86_64                randconfig-016-20260827    gcc-12
-x86_64                randconfig-016-20260828    clang-22
-x86_64                         randconfig-071    gcc-14
-x86_64                randconfig-071-20260827    gcc-14
-x86_64                randconfig-071-20260828    clang-22
-x86_64                         randconfig-072    gcc-14
-x86_64                randconfig-072-20260827    gcc-14
-x86_64                randconfig-072-20260828    clang-22
-x86_64                         randconfig-073    clang-22
-x86_64                randconfig-073-20260827    clang-22
-x86_64                randconfig-073-20260828    clang-22
-x86_64                         randconfig-074    gcc-14
-x86_64                randconfig-074-20260827    clang-22
-x86_64                randconfig-074-20260828    clang-22
-x86_64                         randconfig-075    gcc-13
-x86_64                randconfig-075-20260827    gcc-14
-x86_64                randconfig-075-20260828    clang-22
-x86_64                         randconfig-076    clang-22
-x86_64                randconfig-076-20260827    gcc-14
-x86_64                randconfig-076-20260828    clang-22
-x86_64                               rhel-9.4    clang-22
-x86_64                           rhel-9.4-bpf    gcc-14
-x86_64                          rhel-9.4-func    clang-22
-x86_64                    rhel-9.4-kselftests    clang-22
-x86_64                         rhel-9.4-kunit    gcc-14
-x86_64                           rhel-9.4-ltp    gcc-14
-x86_64                          rhel-9.4-rust    clang-22
-xtensa                            allnoconfig    clang-14
-xtensa                            allnoconfig    clang-24
-xtensa                            allnoconfig    gcc-16.1.0
-xtensa                           allyesconfig    clang-20
-xtensa                           allyesconfig    gcc-16.1.0
-xtensa                  audio_kc705_defconfig    gcc-16.1.0
-xtensa                  cadence_csp_defconfig    gcc-16.1.0
-xtensa                          iss_defconfig    gcc-16.1.0
-xtensa                  nommu_kc705_defconfig    gcc-16.1.0
-xtensa                         randconfig-001    gcc-8.5.0
-xtensa                randconfig-001-20260827    gcc-16.1.0
-xtensa                randconfig-001-20260828    gcc-9.5.0
-xtensa                         randconfig-002    gcc-13.4.0
-xtensa                randconfig-002-20260827    gcc-10.5.0
-xtensa                randconfig-002-20260828    gcc-9.5.0
-xtensa                    smp_lx200_defconfig    gcc-16.1.0
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
---
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests/wiki
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
+
+------------------------------------------------------
+From: Florian Schmaus <florian.schmaus@codasip.com>
+Subject: selftests/epoll: fix race condition in multi-waiter wakeup tests
+Date: Fri, 28 Aug 2026 17:54:07 +0200
+
+In tests with multiple concurrent waiters on edge-triggered epoll
+instances where an emitter writes to multiple sockets (epoll16, epoll56,
+epoll58):
+
+When the emitter performs its first write(), ep_poll_callback() fires and
+wakes up both waiters because one waiter uses epoll_wait() and the other
+one uses poll().  This translates to different wait queues, ep->wq for
+epoll and ep->poll_wait for poll/select, which are both awoken by the
+kernel because of that single write.  Next, both waiter threads invoke
+epoll_wait(), but since there is only one event, only one epoll_wait()
+will return non-zero because of the edge-triggered mode being used (in
+level-triggered mode, the kernel would re-queue the event because of
+remaining unread data).
+
+Since the second waiter sees an empty ready list, it does not increment
+ctx.count and the test fails spuriously with ctx.count == 1 instead of 2.
+
+  Emitter (CPU 0)      Thread 0 (CPU 1)        Thread 1 (CPU 2)
+  ===============      ================        ================
+                       epoll_wait(e0, -1)      poll(e0, -1)
+                       [on e0->wq]             [on e0->poll_wait]
+
+  write(sfd[1])
+       |
+       +--(Kernel wakes BOTH e0->wq and e0->poll_wait via callback)--+
+       |                                                             |
+       |               wakes up                wakes up              |
+       |               epoll_wait() reaps e1   poll() returns 1      |
+       |               (e1 removed via ET)     (wants event)         |
+       |               e0->rdllist is EMPTY          |               |
+       |               count++ (count = 1)           v               |
+       |                                       epoll_wait(e0, 0)     |
+       |                                       sees EMPTY list!      |
+       |                                       returns 0!            |
+       |                                       thread exits          |
+       v                                                             |
+  write(sfd[3])                                                      |
+  (event arrives too late!)                                          v
+                           EXPECT_EQ(count, 2)  <-- SPURIOUS FAILURE!
+
+Introduce waiter_entry1ap_loop() to retry poll() if the initial
+epoll_wait(..., 0) yielded no events.  This ensures the thread waits for
+the subsequent write rather than failing immediately.  Apply this helper
+in epoll16, epoll56, and for both waiter threads in epoll58.
+
+Link: https://lore.kernel.org/20260828-selftest-epoll-fix-race-v2-1-953ab57fd60a@codasip.com
+Fixes: f2728fe80cef ("selftests: add epoll selftests")
+Signed-off-by: Florian Schmaus <florian.schmaus@codasip.com>
+Cc: Heiher <r@hev.cc>
+Cc: Roman Penyaev <rpenyaev@suse.de>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Christian Brauner <brauner@kernel.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ tools/testing/selftests/filesystems/epoll/epoll_wakeup_test.c |   32 ++++++----
+ 1 file changed, 22 insertions(+), 10 deletions(-)
+
+--- a/tools/testing/selftests/filesystems/epoll/epoll_wakeup_test.c~selftests-epoll-fix-race-condition-in-multi-waiter-wakeup-tests
++++ a/tools/testing/selftests/filesystems/epoll/epoll_wakeup_test.c
+@@ -74,6 +74,24 @@ static void *waiter_entry1ap(void *data)
+ 	return NULL;
+ }
+ 
++static void *waiter_entry1ap_loop(void *data)
++{
++	struct pollfd pfd;
++	struct epoll_event e;
++	struct epoll_mtcontext *ctx = data;
++
++	pfd.fd = ctx->efd[0];
++	pfd.events = POLLIN;
++	while (poll(&pfd, 1, 2000) > 0) {
++		if (epoll_wait(ctx->efd[0], &e, 1, 0) > 0) {
++			__sync_fetch_and_add(&ctx->count, 1);
++			break;
++		}
++	}
++
++	return NULL;
++}
++
+ static void *waiter_entry1o(void *data)
+ {
+ 	struct epoll_event e;
+@@ -809,7 +827,7 @@ TEST(epoll16)
+ 	ASSERT_EQ(epoll_ctl(ctx.efd[0], EPOLL_CTL_ADD, ctx.sfd[2], events), 0);
+ 
+ 	ctx.main = pthread_self();
+-	ASSERT_EQ(pthread_create(&ctx.waiter, NULL, waiter_entry1ap, &ctx), 0);
++	ASSERT_EQ(pthread_create(&ctx.waiter, NULL, waiter_entry1ap_loop, &ctx), 0);
+ 	ASSERT_EQ(pthread_create(&emitter, NULL, emitter_entry2, &ctx), 0);
+ 
+ 	if (epoll_wait(ctx.efd[0], events, 1, -1) > 0)
+@@ -2925,7 +2943,7 @@ TEST(epoll56)
+ 	ASSERT_EQ(epoll_ctl(ctx.efd[0], EPOLL_CTL_ADD, ctx.efd[2], &e), 0);
+ 
+ 	ctx.main = pthread_self();
+-	ASSERT_EQ(pthread_create(&ctx.waiter, NULL, waiter_entry1ap, &ctx), 0);
++	ASSERT_EQ(pthread_create(&ctx.waiter, NULL, waiter_entry1ap_loop, &ctx), 0);
+ 	ASSERT_EQ(pthread_create(&emitter, NULL, emitter_entry2, &ctx), 0);
+ 
+ 	if (epoll_wait(ctx.efd[0], &e, 1, -1) > 0)
+@@ -3030,7 +3048,6 @@ TEST(epoll57)
+ TEST(epoll58)
+ {
+ 	pthread_t emitter;
+-	struct pollfd pfd;
+ 	struct epoll_event e;
+ 	struct epoll_mtcontext ctx = { 0 };
+ 
+@@ -3061,15 +3078,10 @@ TEST(epoll58)
+ 	ASSERT_EQ(epoll_ctl(ctx.efd[0], EPOLL_CTL_ADD, ctx.efd[2], &e), 0);
+ 
+ 	ctx.main = pthread_self();
+-	ASSERT_EQ(pthread_create(&ctx.waiter, NULL, waiter_entry1ap, &ctx), 0);
++	ASSERT_EQ(pthread_create(&ctx.waiter, NULL, waiter_entry1ap_loop, &ctx), 0);
+ 	ASSERT_EQ(pthread_create(&emitter, NULL, emitter_entry2, &ctx), 0);
+ 
+-	pfd.fd = ctx.efd[0];
+-	pfd.events = POLLIN;
+-	if (poll(&pfd, 1, -1) > 0) {
+-		if (epoll_wait(ctx.efd[0], &e, 1, 0) > 0)
+-			__sync_fetch_and_add(&ctx.count, 1);
+-	}
++	waiter_entry1ap_loop(&ctx);
+ 
+ 	ASSERT_EQ(pthread_join(ctx.waiter, NULL), 0);
+ 	EXPECT_EQ(ctx.count, 2);
+_
+
+Patches currently in -mm which might be from florian.schmaus@codasip.com are
+
+selftests-epoll-fix-race-condition-in-multi-waiter-wakeup-tests.patch
+
