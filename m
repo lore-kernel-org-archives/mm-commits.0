@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 419AB3A9DA2;
-	Fri, 28 Aug 2026 17:53:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 633D02517A5
+	for <mm-commits@vger.kernel.org>; Fri, 28 Aug 2026 18:06:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787939609; cv=none; b=lAdJaMpRPdM9ewtQlwR4bW1/gbFfT66YkpSC6foSWQObQ2bxsLUzuiPyzbBI5+WJo+qvHjNJm+B4aZAfmB14stXzcOHn+FF+rM27UNz1Ug42gie/24LoMAzcn7ugiXKQTH84ANa2KxSJKpXvtHPNOLpf0ukRQAw4MkeoU67gXNg=
+	t=1787940365; cv=none; b=OKyvePZSAwiindX1iUf+FDFhNDuvH/6DEYhPyFXzacRx1+1CNh5fq99CVG0CFhsBkJnMgUbeVByJ1jzqNvM+Aby8uh55SDkIR7dcrd0qB8FKZyIwgLjF68ic/YmRuHYRs2KJMGHnMmuQQpmqSFYOoOtqEfThufbZp3TbVYrXgDY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787939609; c=relaxed/simple;
-	bh=kqUZJGesjqLOGE0OnnvnVs6UIaEzluoX0RmjWm/1rPg=;
-	h=Date:To:From:Subject:Message-Id; b=Ee55J1zLg8En9jNJlqTSs7lhybjnYlz+hSqgrGfSRydVUMnrxHEDoQOZMT09ZyvJhf2tGN1Q1DUD71ssi1oXh4ICX+vcJcHS68noucDVkmFzeINGrC9+06GObgmlLlUeykVWV8vSBQo2L96xoSF+OpqTE0L0stiM2aftqPMq6u4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RR9j3r/L; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1787940365; c=relaxed/simple;
+	bh=l29tqTuI5pwTUN1NhcRJIRliaab0AfVkB8VEDcK+pUE=;
+	h=Date:To:From:Subject:Message-Id; b=XkEqd1j85/YUKNgQvfRvl89Mc/fqBPqEnlNzB0KEnbMybFGqIuGm0sw3Gh3mSe830N/ybP4wdzt/q6su78CsdezrGno+TawLjnrspDvbRhY75canLk6kwur+9Gd6mnLrBwoQelQLu58aiqSCOLTlILA3YQVR+OfjV5P1AjuXNsQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wYZ+g2vN; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RR9j3r/L"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AF2B81F000E9;
-	Fri, 28 Aug 2026 17:53:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wYZ+g2vN"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E36821F000E9;
+	Fri, 28 Aug 2026 18:06:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1787939607;
-	bh=T9mvozqe6ox4n8Pq0cTNiCzZfPRTNsAZ92MuVXTQfd8=;
+	d=linux-foundation.org; s=korg; t=1787940364;
+	bh=eAcEzxHeM5eUN2dobMTH1Nb6TYZe01EKoawR8e3ciG4=;
 	h=Date:To:From:Subject;
-	b=RR9j3r/LnOx4acdIGKcioggU+xQchzsRx/lmWmenhmWyD0jAEe87DRcO+u01LE/wu
-	 4LR8hJTiXHJap/jn5HG0w2XWsHfVsEnsBnj92z/YuBY6P8uB/0rYsh6Sk3pmiYO0GC
-	 sClmalwp7+ynj/GQAK8j6U1X5tLP1USPu4mlrRuw=
-Date: Fri, 28 Aug 2026 10:53:27 -0700
-To: mm-commits@vger.kernel.org,zokeefe@google.com,stable@vger.kernel.org,ryan.roberts@arm.com,ljs@kernel.org,lance.yang@linux.dev,dev.jain@arm.com,david@kernel.org,baohua@kernel.org,yanglincheng@kylinos.cn,akpm@linux-foundation.org
+	b=wYZ+g2vNujv+iR7qIx9QAnwiL88bH9aFgl4L9+vrmBWZQzJX5+3l8INEmMwTMYdTF
+	 Yd1ejXCgEyE/TqSjz2jeSK9hfrwa9ohJ40T/CXlMVnJyjLtPsoD3GsZrUyAb6QZwVP
+	 Q7tI9ZMnjlH2Gg8UCPRqtLoKEP+H7sHz3YWWIhho=
+Date: Fri, 28 Aug 2026 11:06:03 -0700
+To: mm-commits@vger.kernel.org,urezki@gmail.com,dev.jain@arm.com,liuye@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-khugepaged-fix-folio-is-used-after-folio_put-unlock.patch added to mm-new branch
-Message-Id: <20260828175327.AF2B81F000E9@smtp.kernel.org>
+Subject: + mm-vmalloc-fix-vmap_purge_lock-livelock-under-memory-pressure.patch added to mm-new branch
+Message-Id: <20260828180603.E36821F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: khugepaged: fix folio is used after folio_put/unlock()
+     Subject: mm: vmalloc: fix vmap_purge_lock livelock under memory pressure
 has been added to the -mm mm-new branch.  Its filename is
-     mm-khugepaged-fix-folio-is-used-after-folio_put-unlock.patch
+     mm-vmalloc-fix-vmap_purge_lock-livelock-under-memory-pressure.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-fix-folio-is-used-after-folio_put-unlock.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmalloc-fix-vmap_purge_lock-livelock-under-memory-pressure.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,92 +69,85 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Vernon Yang <yanglincheng@kylinos.cn>
-Subject: mm: khugepaged: fix folio is used after folio_put/unlock()
-Date: Fri, 28 Aug 2026 13:59:26 +0800
+From: Ye Liu <liuye@kylinos.cn>
+Subject: mm: vmalloc: fix vmap_purge_lock livelock under memory pressure
+Date: Fri, 28 Aug 2026 17:17:53 +0800
 
-On the rollback path, folio_put() has already dropped the last reference
-of new_folio.  On the success path, new_folio is already unlocked and can
-be freed concurrently.  The trace_mm_khugepaged_collapse_file() is left
-with a dangling folio pointer.
+The vmap_purge_lock mutex can be held for an extended period by
+__purge_vmap_area_lazy() which calls flush_work() to wait for
+purge_vmap_node workers while holding the lock.  Under memory pressure,
+those workers may themselves be blocked in direct reclaim trying to
+acquire the same lock via the vmap_node_shrink_scan() shrinker callback,
+creating a circular dependency that deadlocks the entire system.
 
-So using the folio_pfn() before dropping the reference, closing
-use-after-free window.
+Two places acquire vmap_purge_lock from paths that can be reached
+during direct reclaim:
 
-Link: https://lore.kernel.org/20260828055926.346744-4-vernon2gm@gmail.com
-Fixes: 4c9473e87e75 ("mm/khugepaged: add tracepoint to collapse_file()")
-Signed-off-by: Vernon Yang <yanglincheng@kylinos.cn>
-Acked-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
-Cc: Barry Song <baohua@kernel.org>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Lance Yang <lance.yang@linux.dev>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Zach O'Keefe <zokeefe@google.com>
-Cc: <stable@vger.kernel.org>
+1. vmap_node_shrink_scan(): replace blocking guard(mutex) with
+   mutex_trylock().  This is a shrinker that only decays the vmap
+   pool and returns SHRINK_STOP without freeing memory; skipping a
+   decay cycle when the lock is contended is harmless and prevents
+   tasks from piling up on the mutex in the direct reclaim path.
+
+2. reclaim_and_purge_vmap_areas(): replace mutex_lock() with
+   mutex_trylock().  This is called from the vmalloc allocation
+   overflow path; if trylock fails, another thread is already
+   purging and the allocator's retry will find freed space.  The
+   notifier chain provides a fallback if the retry still fails.
+
+Both trylock failures break the circular dependency: the lock holder's
+flush_work() can complete because workers are no longer blocked on
+vmap_purge_lock in the direct reclaim path.
+
+Link: https://lore.kernel.org/20260828091753.299295-1-ye.liu@linux.dev
+Fixes: 7679ba6b36db ("mm: vmalloc: add a shrinker to drain vmap pools")
+Signed-off-by: Ye Liu <liuye@kylinos.cn>
+Suggested-by: Uladzislau Rezki <urezki@gmail.com>
+Suggested-by: Dev Jain <dev.jain@arm.com>
+Reviewed-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/trace/events/huge_memory.h |    6 +++---
- mm/khugepaged.c                    |    4 +++-
- 2 files changed, 6 insertions(+), 4 deletions(-)
+ mm/vmalloc.c |   15 +++++++++++++--
+ 1 file changed, 13 insertions(+), 2 deletions(-)
 
---- a/include/trace/events/huge_memory.h~mm-khugepaged-fix-folio-is-used-after-folio_put-unlock
-+++ a/include/trace/events/huge_memory.h
-@@ -211,10 +211,10 @@ TRACE_EVENT(mm_khugepaged_scan_file,
- );
+--- a/mm/vmalloc.c~mm-vmalloc-fix-vmap_purge_lock-livelock-under-memory-pressure
++++ a/mm/vmalloc.c
+@@ -2445,7 +2445,8 @@ static bool __purge_vmap_area_lazy(unsig
+ static void reclaim_and_purge_vmap_areas(void)
  
- TRACE_EVENT(mm_khugepaged_collapse_file,
--	TP_PROTO(struct mm_struct *mm, struct folio *new_folio, pgoff_t index,
-+	TP_PROTO(struct mm_struct *mm, unsigned long new_pfn, pgoff_t index,
- 			unsigned long addr, bool is_shmem, struct file *file,
- 			int nr, int result),
--	TP_ARGS(mm, new_folio, index, addr, is_shmem, file, nr, result),
-+	TP_ARGS(mm, new_pfn, index, addr, is_shmem, file, nr, result),
- 	TP_STRUCT__entry(
- 		__field(struct mm_struct *, mm)
- 		__field(unsigned long, hpfn)
-@@ -228,7 +228,7 @@ TRACE_EVENT(mm_khugepaged_collapse_file,
+ {
+-	mutex_lock(&vmap_purge_lock);
++	if (!mutex_trylock(&vmap_purge_lock))
++		return;
+ 	purge_fragmented_blocks_allcpus();
+ 	__purge_vmap_area_lazy(ULONG_MAX, 0, true);
+ 	mutex_unlock(&vmap_purge_lock);
+@@ -5526,10 +5527,20 @@ vmap_node_shrink_scan(struct shrinker *s
+ {
+ 	struct vmap_node *vn;
  
- 	TP_fast_assign(
- 		__entry->mm = mm;
--		__entry->hpfn = new_folio ? folio_pfn(new_folio) : -1;
-+		__entry->hpfn = new_pfn;
- 		__entry->index = index;
- 		__entry->addr = addr;
- 		__entry->is_shmem = is_shmem;
---- a/mm/khugepaged.c~mm-khugepaged-fix-folio-is-used-after-folio_put-unlock
-+++ a/mm/khugepaged.c
-@@ -2256,6 +2256,7 @@ static enum scan_result collapse_file(st
- 	struct address_space *mapping = file->f_mapping;
- 	struct page *dst;
- 	struct folio *folio, *tmp, *new_folio;
-+	unsigned long new_pfn = -1;
- 	pgoff_t index = 0, end = start + HPAGE_PMD_NR;
- 	LIST_HEAD(pagelist);
- 	XA_STATE_ORDER(xas, &mapping->i_pages, start, HPAGE_PMD_ORDER);
-@@ -2275,6 +2276,7 @@ static enum scan_result collapse_file(st
- 	result = alloc_charge_folio(&new_folio, mm, cc, HPAGE_PMD_ORDER);
- 	if (result != SCAN_SUCCEED)
- 		goto out;
-+	new_pfn = folio_pfn(new_folio);
+-	guard(mutex)(&vmap_purge_lock);
++	/*
++	 * This shrinker is invoked from direct reclaim where memory
++	 * pressure is already high.  Blocking on vmap_purge_lock here
++	 * can deadlock the system: the lock holder may be blocked in
++	 * flush_work() waiting for a worker that is stuck in this same
++	 * reclaim path trying to acquire the same lock.  Use trylock
++	 * to avoid this; skipping a pool decay cycle is harmless.
++	 */
++	if (!mutex_trylock(&vmap_purge_lock))
++		return SHRINK_STOP;
+ 	for_each_vmap_node(vn)
+ 		decay_va_pool_node(vn, true);
  
- 	mapping_set_update(&xas, mapping);
- 
-@@ -2678,7 +2680,7 @@ rollback:
- 	folio_put(new_folio);
- out:
- 	VM_BUG_ON(!list_empty(&pagelist));
--	trace_mm_khugepaged_collapse_file(mm, new_folio, index, addr, is_shmem, file, HPAGE_PMD_NR, result);
-+	trace_mm_khugepaged_collapse_file(mm, new_pfn, index, addr, is_shmem, file, HPAGE_PMD_NR, result);
- 	return result;
++	mutex_unlock(&vmap_purge_lock);
+ 	return SHRINK_STOP;
  }
  
 _
 
-Patches currently in -mm which might be from yanglincheng@kylinos.cn are
+Patches currently in -mm which might be from liuye@kylinos.cn are
 
-mm-khugepaged-fix-swap-entry-value-to-folio_pfn.patch
-mm-khugepaged-fix-folio-is-used-after-pte_unmap_unlock.patch
-mm-khugepaged-fix-folio-is-used-after-folio_put-unlock.patch
+mm-vmalloc-fix-vmap_purge_lock-livelock-under-memory-pressure.patch
 
