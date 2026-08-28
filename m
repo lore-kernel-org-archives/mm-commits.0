@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 21A4629E10B
-	for <mm-commits@vger.kernel.org>; Fri, 28 Aug 2026 17:22:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2EB32377563;
+	Fri, 28 Aug 2026 17:23:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787937725; cv=none; b=IgOaUWry7R+zeFR5cyyJ3H4ixRDbj87bcUzQHq9uw3Wt/FxTjVH6uzpeeYkU2SnDuIr5eVeMZ9IlPzvNIu52mwAHnqw0QbDr4GcOTu/2phCYfmEIjRV/UBre/2/hS27dF3P9uZAS/gbyaBesPJCwiMWDQGrx0Wt9najkCf/w3Fo=
+	t=1787937805; cv=none; b=sX1SQ+XEO3im1wlovNkUHvvNutua4C2NGUojuCAF0XKpfQ3/1SiXOy5YnAf1dldITQc71g53q20dM8PQ6c0y0HX9KGt0h+qFH/lDQ9EoS/dPzcCvpaCb8kiTVDrWGtMIZGdf/0z5Wk0Mmch4zr1psK/sj8yIdLpKOsIk5BqgKJg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787937725; c=relaxed/simple;
-	bh=ncIWG5KT3bDmKnVvCSmPpWGwlDfQvEb2tOJOcyCyvq0=;
-	h=Date:To:From:Subject:Message-Id; b=kZUV+dei7MbsRCohUmwvqP6uG0XuyQ0dwVnEynK4fQX2DeDWbCFlPLMK3jFkKv4AdZPxlIopdvs26UHGppeyhADH4F/mtHk+WlGD4IbH6p+QF0N9Gj0vacWSWCeC/bG1s7YqoqG+Dnr83syCHturIcFl5Gco0szZVNcLfO9ZFUM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lDIUwK7N; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1787937805; c=relaxed/simple;
+	bh=h9A/7jvz9pekY2on0jx2wVO4f+wekUpazqKkAvWuczM=;
+	h=Date:To:From:Subject:Message-Id; b=Jgko01u4/b3Mmxq81YNVJZlPEZbQC0Hsy31uiJeCZkNCGJjbKibgw6S0A1VdjsO7JPkIkiynC1JFecF7B0Ib69qlTnfs5sbbA8J638vaJ+iZvk9gCPFZq3698K1dnUbQv1tDrhpe8xT4iIzqcwK4TS4FFQY3EWRPjsS1GsPUO68=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pSkuY1w2; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lDIUwK7N"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 194261F00A3D;
-	Fri, 28 Aug 2026 17:22:03 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pSkuY1w2"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 923A91F000E9;
+	Fri, 28 Aug 2026 17:23:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1787937723;
-	bh=VxaiHF/cEcI0eRlLzSRsmkwN/n21IRVMuxDwO7wJk5k=;
+	d=linux-foundation.org; s=korg; t=1787937803;
+	bh=Cs2ZMxhzd4tkFNgRBgxhQjMthxbUyY22zFRACXCbi48=;
 	h=Date:To:From:Subject;
-	b=lDIUwK7N+CLSoQ+X/6LGGqbSSI4ON/rX+EcfZxTj5OcGZB+I3ptK0iAsoTpyD+zJj
-	 99/j4XdYJ89RwhquSNCI0e1D2nyBgbX5u7ESEy+TKxpcVv2HYvwFzcnTaxhkqwPnLn
-	 /LC0kzjiQxBDtFbZyei7mCkEPXBhDCBOrmrPnT84=
-Date: Fri, 28 Aug 2026 10:22:02 -0700
-To: mm-commits@vger.kernel.org,coiby.xu@gmail.com,akpm@linux-foundation.org
+	b=pSkuY1w2dbXYKx9nrwP9sRHe4zf7IWO+gUxwcki1E7TFswad+n8GEyhtTuwLiawe4
+	 9n9krR9jM1QgbbLPY75YZN6j/vncN35Y55i6Mabd9IQ6cmlM+GauEnw7k2j5CJvKcm
+	 MGztSZcFGtMiE/mg7gR0GHWLxZWK/YoPg5XyjiAQ=
+Date: Fri, 28 Aug 2026 10:23:23 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,senozhatsky@chromium.org,minchan@kernel.org,bgeffon@google.com,axboe@kernel.dk,jiahao1@lixiang.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mailmap-map-coiby-xus-address.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260828172203.194261F00A3D@smtp.kernel.org>
+Subject: + zram-fix-idle-age_sec-underflow-in-idle_store.patch added to mm-new branch
+Message-Id: <20260828172323.923A91F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,26 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mailmap: map Coiby Xu's address
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mailmap-map-coiby-xus-address.patch
+     Subject: zram: fix idle age_sec underflow in idle_store()
+has been added to the -mm mm-new branch.  Its filename is
+     zram-fix-idle-age_sec-underflow-in-idle_store.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mailmap-map-coiby-xus-address.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-fix-idle-age_sec-underflow-in-idle_store.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,33 +69,103 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Coiby Xu <coiby.xu@gmail.com>
-Subject: mailmap: map Coiby Xu's address
-Date: Fri, 28 Aug 2026 16:41:06 +0800
+From: Hao Jia <jiahao1@lixiang.com>
+Subject: zram: fix idle age_sec underflow in idle_store()
+Date: Fri, 28 Aug 2026 16:31:49 +0800
 
-Point to my gmail address as I've left Red Hat.
+After commit 2e8ff2f51dde ("zram: use u32 for entry ac_time tracking"),
+idle_store() computes the idle cutoff as:
 
-Link: https://lore.kernel.org/20260828084106.1494733-1-coiby.xu@gmail.com
-Signed-off-by: Coiby Xu <coiby.xu@gmail.com>
+	cutoff = ktime_sub((u32)ktime_get_boottime_seconds(), age_sec);
+
+Because the left operand is cast to u32, when age_sec exceeds the current
+uptime the subtraction wraps modulo 2^32 and the huge result is
+zero-extended into the s64 cutoff.  mark_idle() then marks every entry as
+idle instead of matching nothing.  For instance, running
+
+	echo 86400 > /sys/block/zramX/idle
+
+on a machine up for only two minutes marks all newly written pages idle
+and hands them to idle writeback and recompression.
+
+No slot can have been accessed before the system booted, so an age_sec
+that reaches back past uptime cannot match any slot.  Return early in that
+case, without walking the table or taking any slot locks.
+
+Track the cutoff as time64_t rather than ktime_t.  Both cutoff and ac_time
+are boot-time values in seconds, so a plain arithmetic comparison against
+ac_time in mark_idle() is correct and no ktime helpers are needed.
+
+Link: https://lore.kernel.org/20260828083149.45760-1-jiahao.kernel@gmail.com
+Fixes: 2e8ff2f51dde ("zram: use u32 for entry ac_time tracking")
+Signed-off-by: Hao Jia <jiahao1@lixiang.com>
+Suggested-by: Sergey Senozhatsky <senozhatsky@chromium.org>
+Cc: Brian Geffon <bgeffon@google.com>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- .mailmap |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/block/zram/zram_drv.c |   21 +++++++++++++--------
+ 1 file changed, 13 insertions(+), 8 deletions(-)
 
---- a/.mailmap~mailmap-map-coiby-xus-address
-+++ a/.mailmap
-@@ -221,6 +221,7 @@ Chuck Lever <cel@kernel.org> <chuck.leve
- Chuck Lever <cel@kernel.org> <cel@netapp.com>
- Chuck Lever <cel@kernel.org> <cel@citi.umich.edu>
- Claudiu Beznea <claudiu.beznea@tuxon.dev> <claudiu.beznea@microchip.com>
-+Coiby Xu <coiby.xu@gmail.com> <coxu@redhat.com>
- Colin Ian King <colin.i.king@gmail.com> <colin.king@canonical.com>
- Corey Minyard <minyard@acm.org>
- Damian Hobson-Garcia <dhobsong@igel.co.jp>
+--- a/drivers/block/zram/zram_drv.c~zram-fix-idle-age_sec-underflow-in-idle_store
++++ a/drivers/block/zram/zram_drv.c
+@@ -415,7 +415,7 @@ static ssize_t mem_used_max_store(struct
+  * Mark all pages which are older than or equal to cutoff as IDLE.
+  * Callers should hold the zram init lock in read mode
+  */
+-static void mark_idle(struct zram *zram, ktime_t cutoff)
++static void mark_idle(struct zram *zram, time64_t cutoff)
+ {
+ 	int is_idle = 1;
+ 	unsigned long nr_pages = zram->disksize >> PAGE_SHIFT;
+@@ -439,7 +439,7 @@ static void mark_idle(struct zram *zram,
+ 
+ #ifdef CONFIG_ZRAM_TRACK_ENTRY_ACTIME
+ 		is_idle = !cutoff ||
+-			ktime_after(cutoff, zram->table[index].attr.ac_time);
++			cutoff > zram->table[index].attr.ac_time;
+ #endif
+ 		if (is_idle)
+ 			set_slot_flag(zram, index, ZRAM_IDLE);
+@@ -453,21 +453,26 @@ static ssize_t idle_store(struct device
+ 			  const char *buf, size_t len)
+ {
+ 	struct zram *zram = dev_to_zram(dev);
+-	ktime_t cutoff = 0;
++	time64_t cutoff = 0;
+ 
+ 	if (!sysfs_streq(buf, "all")) {
+ 		/*
+ 		 * If it did not parse as 'all' try to treat it as an integer
+ 		 * when we have memory tracking enabled.
+ 		 */
++		time64_t uptime;
+ 		u32 age_sec;
+ 
+-		if (IS_ENABLED(CONFIG_ZRAM_TRACK_ENTRY_ACTIME) &&
+-		    !kstrtouint(buf, 0, &age_sec))
+-			cutoff = ktime_sub((u32)ktime_get_boottime_seconds(),
+-					   age_sec);
+-		else
++		if (!IS_ENABLED(CONFIG_ZRAM_TRACK_ENTRY_ACTIME) ||
++		    kstrtouint(buf, 0, &age_sec))
+ 			return -EINVAL;
++
++		/* No slot can be older than the system uptime */
++		uptime = ktime_get_boottime_seconds();
++		if (age_sec >= uptime)
++			return len;
++
++		cutoff = uptime - age_sec;
+ 	}
+ 
+ 	guard(rwsem_read)(&zram->dev_lock);
 _
 
-Patches currently in -mm which might be from coiby.xu@gmail.com are
+Patches currently in -mm which might be from jiahao1@lixiang.com are
 
-mailmap-map-coiby-xus-address.patch
+zram-fix-idle-age_sec-underflow-in-idle_store.patch
 
