@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2EB32377563;
-	Fri, 28 Aug 2026 17:23:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 04D63359A68
+	for <mm-commits@vger.kernel.org>; Fri, 28 Aug 2026 17:38:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787937805; cv=none; b=sX1SQ+XEO3im1wlovNkUHvvNutua4C2NGUojuCAF0XKpfQ3/1SiXOy5YnAf1dldITQc71g53q20dM8PQ6c0y0HX9KGt0h+qFH/lDQ9EoS/dPzcCvpaCb8kiTVDrWGtMIZGdf/0z5Wk0Mmch4zr1psK/sj8yIdLpKOsIk5BqgKJg=
+	t=1787938687; cv=none; b=FCOPoETlKnjMp1Q81C66S3KHoN/OcRPZ6cWwbyIeE1fgaHiGxoyRDIpHKu6/bnuaVVNJakiIPI5C/AF6yfKrSEt1LwhIZ5wbCfGnF3xiE7V3qZWuF/Lq2V7l5t9syNokldr7/oVdOy4g/AVJNr14V+/kofvDGbnvxqFrEtTzfj0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787937805; c=relaxed/simple;
-	bh=h9A/7jvz9pekY2on0jx2wVO4f+wekUpazqKkAvWuczM=;
-	h=Date:To:From:Subject:Message-Id; b=Jgko01u4/b3Mmxq81YNVJZlPEZbQC0Hsy31uiJeCZkNCGJjbKibgw6S0A1VdjsO7JPkIkiynC1JFecF7B0Ib69qlTnfs5sbbA8J638vaJ+iZvk9gCPFZq3698K1dnUbQv1tDrhpe8xT4iIzqcwK4TS4FFQY3EWRPjsS1GsPUO68=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pSkuY1w2; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1787938687; c=relaxed/simple;
+	bh=qrW+lvkb20xy9is/YkgbEOTjeV4Whp2Hs1jGxpT5oCc=;
+	h=Date:To:From:Subject:Message-Id; b=OhCubxrStkUQacwnc+tJj5b4IXbK/BZdDsZKuGiKQe28YIJqDSjEk6kU2Ym2P821jmE+xPUvwI9TDLpz5q2Zkl9TsUS0W/Egyg/WrVK1V/3E2uAPazbSwIlcCrd/JyeZ4MF0LHlSl/w0eALZWdycxNEvDswZeQnsktxKSgxagWs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IPhKEi9r; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pSkuY1w2"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 923A91F000E9;
-	Fri, 28 Aug 2026 17:23:23 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IPhKEi9r"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4CDF11F000E9;
+	Fri, 28 Aug 2026 17:38:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1787937803;
-	bh=Cs2ZMxhzd4tkFNgRBgxhQjMthxbUyY22zFRACXCbi48=;
+	d=linux-foundation.org; s=korg; t=1787938685;
+	bh=7ZW5Ai3TFtgUpXm795dD5xiSKdp6mt8DWBER1orfkCc=;
 	h=Date:To:From:Subject;
-	b=pSkuY1w2dbXYKx9nrwP9sRHe4zf7IWO+gUxwcki1E7TFswad+n8GEyhtTuwLiawe4
-	 9n9krR9jM1QgbbLPY75YZN6j/vncN35Y55i6Mabd9IQ6cmlM+GauEnw7k2j5CJvKcm
-	 MGztSZcFGtMiE/mg7gR0GHWLxZWK/YoPg5XyjiAQ=
-Date: Fri, 28 Aug 2026 10:23:23 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,senozhatsky@chromium.org,minchan@kernel.org,bgeffon@google.com,axboe@kernel.dk,jiahao1@lixiang.com,akpm@linux-foundation.org
+	b=IPhKEi9rJ6QNSrxTSiBpvqAFVxGBmnxECMLRyA0wQwV5oxnL4u0DXCs5ouX06Ycsz
+	 FndhHaWL/WvfJj7D68AKHCqE73qjzVrORx9w4gwlRhULw4/C9ivpjjIxDTmFqn4vnw
+	 qVS5PAgiJ0Ja4fC6UlPEeDXxCwlN7FgE1noxLB0Q=
+Date: Fri, 28 Aug 2026 10:38:04 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,saravanand@crusoe.ai,ryan.roberts@arm.com,peterx@redhat.com,ljs@kernel.org,liam@infradead.org,lance.yang@linux.dev,jgg@ziepe.ca,dev.jain@arm.com,david@kernel.org,clg@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + zram-fix-idle-age_sec-underflow-in-idle_store.patch added to mm-new branch
-Message-Id: <20260828172323.923A91F000E9@smtp.kernel.org>
+Subject: + mm-huge_memory-bypass-thp-tuneables-for-huge-pfnmap-mappings-fix.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260828173805.4CDF11F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,26 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: zram: fix idle age_sec underflow in idle_store()
-has been added to the -mm mm-new branch.  Its filename is
-     zram-fix-idle-age_sec-underflow-in-idle_store.patch
+     Subject: mm-huge_memory-bypass-thp-tuneables-for-huge-pfnmap-mappings-fix
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-huge_memory-bypass-thp-tuneables-for-huge-pfnmap-mappings-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-fix-idle-age_sec-underflow-in-idle_store.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-bypass-thp-tuneables-for-huge-pfnmap-mappings-fix.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,103 +58,55 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Hao Jia <jiahao1@lixiang.com>
-Subject: zram: fix idle age_sec underflow in idle_store()
-Date: Fri, 28 Aug 2026 16:31:49 +0800
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-huge_memory-bypass-thp-tuneables-for-huge-pfnmap-mappings-fix
+Date: Fri Aug 28 10:35:55 AM PDT 2026
 
-After commit 2e8ff2f51dde ("zram: use u32 for entry ac_time tracking"),
-idle_store() computes the idle cutoff as:
+s/vma_check_thp_tuneables_file/vma_file_check_thp_tuneables/, per Zi Yan
 
-	cutoff = ktime_sub((u32)ktime_get_boottime_seconds(), age_sec);
-
-Because the left operand is cast to u32, when age_sec exceeds the current
-uptime the subtraction wraps modulo 2^32 and the huge result is
-zero-extended into the s64 cutoff.  mark_idle() then marks every entry as
-idle instead of matching nothing.  For instance, running
-
-	echo 86400 > /sys/block/zramX/idle
-
-on a machine up for only two minutes marks all newly written pages idle
-and hands them to idle writeback and recompression.
-
-No slot can have been accessed before the system booted, so an age_sec
-that reaches back past uptime cannot match any slot.  Return early in that
-case, without walking the table or taking any slot locks.
-
-Track the cutoff as time64_t rather than ktime_t.  Both cutoff and ac_time
-are boot-time values in seconds, so a plain arithmetic comparison against
-ac_time in mark_idle() is correct and no ktime helpers are needed.
-
-Link: https://lore.kernel.org/20260828083149.45760-1-jiahao.kernel@gmail.com
-Fixes: 2e8ff2f51dde ("zram: use u32 for entry ac_time tracking")
-Signed-off-by: Hao Jia <jiahao1@lixiang.com>
-Suggested-by: Sergey Senozhatsky <senozhatsky@chromium.org>
-Cc: Brian Geffon <bgeffon@google.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: <stable@vger.kernel.org>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Cedric Le Goater <clg@redhat.com>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Lance Yang <lance.yang@linux.dev>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Saravanan D <saravanand@crusoe.ai>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |   21 +++++++++++++--------
- 1 file changed, 13 insertions(+), 8 deletions(-)
+ mm/huge_memory.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/drivers/block/zram/zram_drv.c~zram-fix-idle-age_sec-underflow-in-idle_store
-+++ a/drivers/block/zram/zram_drv.c
-@@ -415,7 +415,7 @@ static ssize_t mem_used_max_store(struct
-  * Mark all pages which are older than or equal to cutoff as IDLE.
-  * Callers should hold the zram init lock in read mode
-  */
--static void mark_idle(struct zram *zram, ktime_t cutoff)
-+static void mark_idle(struct zram *zram, time64_t cutoff)
+--- a/mm/huge_memory.c~mm-huge_memory-bypass-thp-tuneables-for-huge-pfnmap-mappings-fix
++++ a/mm/huge_memory.c
+@@ -143,7 +143,7 @@ static bool vma_thp_tuneables_allow_file
+ 	return false;
+ }
+ 
+-static bool vma_check_thp_tuneables_file(const struct vm_area_struct *vma,
++static bool vma_file_check_thp_tuneables(const struct vm_area_struct *vma,
+ 		vm_flags_t vm_flags, enum tva_type type)
  {
- 	int is_idle = 1;
- 	unsigned long nr_pages = zram->disksize >> PAGE_SHIFT;
-@@ -439,7 +439,7 @@ static void mark_idle(struct zram *zram,
+ 	return vma_bypass_thp_tuneables_file(vma, type) ||
+@@ -159,7 +159,7 @@ static bool vma_can_map_huge_file(const
+ 	 * Enforce THP collapse requirements as necessary. Anonymous vmas
+ 	 * were already handled in thp_vma_allowable_orders().
+ 	 */
+-	if (!vma_check_thp_tuneables_file(vma, vm_flags, type))
++	if (!vma_file_check_thp_tuneables(vma, vm_flags, type))
+ 		return false;
  
- #ifdef CONFIG_ZRAM_TRACK_ENTRY_ACTIME
- 		is_idle = !cutoff ||
--			ktime_after(cutoff, zram->table[index].attr.ac_time);
-+			cutoff > zram->table[index].attr.ac_time;
- #endif
- 		if (is_idle)
- 			set_slot_flag(zram, index, ZRAM_IDLE);
-@@ -453,21 +453,26 @@ static ssize_t idle_store(struct device
- 			  const char *buf, size_t len)
- {
- 	struct zram *zram = dev_to_zram(dev);
--	ktime_t cutoff = 0;
-+	time64_t cutoff = 0;
- 
- 	if (!sysfs_streq(buf, "all")) {
- 		/*
- 		 * If it did not parse as 'all' try to treat it as an integer
- 		 * when we have memory tracking enabled.
- 		 */
-+		time64_t uptime;
- 		u32 age_sec;
- 
--		if (IS_ENABLED(CONFIG_ZRAM_TRACK_ENTRY_ACTIME) &&
--		    !kstrtouint(buf, 0, &age_sec))
--			cutoff = ktime_sub((u32)ktime_get_boottime_seconds(),
--					   age_sec);
--		else
-+		if (!IS_ENABLED(CONFIG_ZRAM_TRACK_ENTRY_ACTIME) ||
-+		    kstrtouint(buf, 0, &age_sec))
- 			return -EINVAL;
-+
-+		/* No slot can be older than the system uptime */
-+		uptime = ktime_get_boottime_seconds();
-+		if (age_sec >= uptime)
-+			return len;
-+
-+		cutoff = uptime - age_sec;
- 	}
- 
- 	guard(rwsem_read)(&zram->dev_lock);
+ 	switch (type) {
 _
 
-Patches currently in -mm which might be from jiahao1@lixiang.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-zram-fix-idle-age_sec-underflow-in-idle_store.patch
+mm-huge_memory-bypass-thp-tuneables-for-huge-pfnmap-mappings-fix.patch
+drivers-media-v4l2-core-v4l2-vp9c-reduce-inlining.patch
 
