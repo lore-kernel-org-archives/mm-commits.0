@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4B09639D6D5;
-	Fri, 28 Aug 2026 03:26:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AC42917BED0
+	for <mm-commits@vger.kernel.org>; Fri, 28 Aug 2026 03:39:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787887596; cv=none; b=cy66+Js7zvtJR4sVFtZpWTpNnol7v0PJe1I36i2eEBfyePqpLcPE02ew5A6heYAmnP3tbx7RFupNJEMZToVvcwqXCzkpur9R0S/DKVx5d91i0t/G9faz/6iz/8mru707g/VU/zDJiDfrFA+EhteKZxe/jJg5QmiahzY2Qff0SfA=
+	t=1787888381; cv=none; b=h+H40QkHq14M4rNbX9ocRZ46Mbo4sL+8jqIuOUAwRjOBhtbtb517OLf+joawcpkGmVKyfIJtacFy3EsmbrHkYke+aFBoQBZsd4aDktLfULsRyfOIE7c2dDlZBP6bBZLJ0/h2X20/QNLLIeUEi8nNs30t1XVtVZXdZixffKHBS7U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787887596; c=relaxed/simple;
-	bh=0GpNrVVrmEOOsCTGUmHM+m+P/u6f+qiX5vW1iPo1G64=;
-	h=Date:To:From:Subject:Message-Id; b=huVIW2GAobjCyNvTRj5tJEobLW2LpWi0bAAEMyAgoLZshFYJErdSBl6/eBk++YthvhMW82SGnBezzarbHi0H0EgNZLR3VSvbi5D2/hjBAJ+/i02yv0rtDVld4PFas0M3cuhwqYln1CmZv6DiCWF0A+/nFK9semkeL9A64NFP/og=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=T9dXug4u; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1787888381; c=relaxed/simple;
+	bh=XlrvjiLKjtq6TxcFwoT12RNLObiilQ1AaiziGtkAha8=;
+	h=Date:To:From:Subject:Message-Id; b=TaVQy4uMsL7VdBbkMBQmSWLSyhIcBo1eeYoPaYSKm2gcQ0UyF6+LNrmbeYZ0yNHmoLjpBYm4Kl5iCVQv+LNeFpcKjwD9bABA7XMoDsLcBBpxd69voLvqKAjSc4WG2IWwlTz/Dq9HCQmBeTGciK5fDbgYTRb+xgp2Og4YgwPSbi4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Hhcf06cv; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="T9dXug4u"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0F1BD1F000E9;
-	Fri, 28 Aug 2026 03:26:31 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Hhcf06cv"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1CB9B1F00A3A;
+	Fri, 28 Aug 2026 03:39:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1787887591;
-	bh=tK1jNK07xAbnZDO8ZMs5looH5ZrzdcieXtERFBlDfAA=;
+	d=linux-foundation.org; s=korg; t=1787888380;
+	bh=nOT2eCc6QsZIasoOoz4HP3ov7znJaGd0uQhYxfrHqP0=;
 	h=Date:To:From:Subject;
-	b=T9dXug4uk+dGjLM2DqhmwzemxCPM1Hg9QzwqCEvfSu1OgEe0HXu6lFBILgBrWNqBm
-	 s0VeiRmJqbwCyCzbcaSX7GW9cPj1gUtEAt/o0TVeGDIKSVRIiUwqwWokHI3+m7SUrS
-	 GGz23ktwZdkIEQIEbaQqpG20ztsgfEN2CBtC/X6c=
-Date: Thu, 27 Aug 2026 20:26:30 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,senozhatsky@chromium.org,minchan@kernel.org,axboe@kernel.dk,jiahao1@lixiang.com,akpm@linux-foundation.org
+	b=Hhcf06cvJiIfafqkhOXl+0CbkuVi9QDq+/GtzGQ/9298SXMTY31XYPy6UiMzeJewc
+	 BZUjq07WhYnop/PwotN1tDCfdOXr/IKlyvhk6pTlg1RfVCtJX8VdVyDjP7wKot4b6v
+	 pL3JC21xheBRePnX1RXO+6qh09ehQYQlJswMtgo0=
+Date: Thu, 27 Aug 2026 20:39:39 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,usama.arif@linux.dev,ljs@kernel.org,lance.yang@linux.dev,dev.jain@arm.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,anshumantewari123@gmail.com,akpm@linux-foundation.org,david@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + zram-fix-idle-age_sec-underflow-in-idle_store.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260828032631.0F1BD1F000E9@smtp.kernel.org>
+Subject: + selftests-mm-khugepaged-remove-str_dup-usage.patch added to mm-new branch
+Message-Id: <20260828033940.1CB9B1F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,26 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: zram: fix idle age_sec underflow in idle_store()
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     zram-fix-idle-age_sec-underflow-in-idle_store.patch
+     Subject: selftests/mm: khugepaged: remove str_dup() usage
+has been added to the -mm mm-new branch.  Its filename is
+     selftests-mm-khugepaged-remove-str_dup-usage.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-fix-idle-age_sec-underflow-in-idle_store.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-khugepaged-remove-str_dup-usage.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,85 +69,50 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Hao Jia <jiahao1@lixiang.com>
-Subject: zram: fix idle age_sec underflow in idle_store()
-Date: Tue, 25 Aug 2026 17:23:16 +0800
+From: "David Hildenbrand (Arm)" <david@kernel.org>
+Subject: selftests/mm: khugepaged: remove str_dup() usage
+Date: Tue, 25 Aug 2026 13:20:59 +0200
 
-After commit 2e8ff2f51dde ("zram: use u32 for entry ac_time tracking"),
-idle_store() computes the idle cutoff as follows:
+We don't check str_dup() return value and never free it.  While both
+things are irrelevant in practice, let's just clean it up by working on
+argv[0] directly and avoiding the str_dup().
 
-	cutoff = ktime_sub((u32)ktime_get_boottime_seconds(), age_sec);
+Nobody after us needs these parts of the argv[0] string anyway.
 
-Because the left operand is cast to a 32-bit unsigned integer, when
-age_sec exceeds the current uptime, the subtraction wraps modulo 2^32 and
-the huge result is zero-extended into the s64 cutoff.  mark_idle()
-subsequently marks every entry as idle instead of matching nothing,
-breaking the intended semantics of /sys/block/zramX/idle.  For instance,
-running echo 86400 > idle on a machine up for only two minutes causes all
-newly written pages to be marked as idle and handed over to idle writeback
-and recompression.
+This patch is inspired by previous work from Anshuman Tewari [1].
 
-Drop the explicit cast to perform the subtraction in signed arithmetic
-again, restoring the previous behavior: an age_sec greater than uptime
-yields a negative cutoff, and one equal to uptime yields 0.  Since a
-cutoff of 0 is now a valid computed value, it can no longer double as the
-"all" sentinel.  Switch to KTIME_MIN instead, which no ac_time can be
-after.
-
-Link: https://lore.kernel.org/20260825092316.69658-1-jiahao.kernel@gmail.com
-Fixes: 2e8ff2f51dde ("zram: use u32 for entry ac_time tracking")
-Signed-off-by: Hao Jia <jiahao1@lixiang.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
-Cc: <stable@vger.kernel.org>
+Link: https://lore.kernel.org/r/20260821114416.12255-1-anshumantewari123@gmail.com [1]
+Link: https://lore.kernel.org/20260825-remove_str_dup-v1-1-0ba2121a820c@kernel.org
+Signed-off-by: David Hildenbrand (Arm) <david@kernel.org>
+Reviewed-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+Reviewed-by: Anshuman Tewari <anshumantewari123@gmail.com>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Reviewed-by: Lance Yang <lance.yang@linux.dev>
+Reviewed-by: Dev Jain <dev.jain@arm.com>
+Acked-by: Usama Arif <usama.arif@linux.dev>
+Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Reviewed-by: Barry Song <baohua@kernel.org>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ tools/testing/selftests/mm/khugepaged.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/drivers/block/zram/zram_drv.c~zram-fix-idle-age_sec-underflow-in-idle_store
-+++ a/drivers/block/zram/zram_drv.c
-@@ -438,7 +438,7 @@ static void mark_idle(struct zram *zram,
- 		}
+--- a/tools/testing/selftests/mm/khugepaged.c~selftests-mm-khugepaged-remove-str_dup-usage
++++ a/tools/testing/selftests/mm/khugepaged.c
+@@ -1227,7 +1227,7 @@ static void parse_test_type(int argc, ch
+ 		return;
+ 	}
  
- #ifdef CONFIG_ZRAM_TRACK_ENTRY_ACTIME
--		is_idle = !cutoff ||
-+		is_idle = cutoff == KTIME_MIN ||
- 			ktime_after(cutoff, zram->table[index].attr.ac_time);
- #endif
- 		if (is_idle)
-@@ -453,7 +453,7 @@ static ssize_t idle_store(struct device
- 			  const char *buf, size_t len)
- {
- 	struct zram *zram = dev_to_zram(dev);
--	ktime_t cutoff = 0;
-+	ktime_t cutoff = KTIME_MIN;
+-	buf = strdup(argv[0]);
++	buf = argv[0];
+ 	token = strsep(&buf, ":");
  
- 	if (!sysfs_streq(buf, "all")) {
- 		/*
-@@ -464,7 +464,7 @@ static ssize_t idle_store(struct device
- 
- 		if (IS_ENABLED(CONFIG_ZRAM_TRACK_ENTRY_ACTIME) &&
- 		    !kstrtouint(buf, 0, &age_sec))
--			cutoff = ktime_sub((u32)ktime_get_boottime_seconds(),
-+			cutoff = ktime_sub(ktime_get_boottime_seconds(),
- 					   age_sec);
- 		else
- 			return -EINVAL;
-@@ -475,7 +475,7 @@ static ssize_t idle_store(struct device
- 		return -EINVAL;
- 
- 	/*
--	 * A cutoff of 0 marks everything as idle, this is the
-+	 * A cutoff of KTIME_MIN marks everything as idle, this is the
- 	 * "all" behavior.
- 	 */
- 	mark_idle(zram, cutoff);
+ 	if (!strcmp(token, "all")) {
 _
 
-Patches currently in -mm which might be from jiahao1@lixiang.com are
+Patches currently in -mm which might be from david@kernel.org are
 
-zram-fix-idle-age_sec-underflow-in-idle_store.patch
+selftests-mm-khugepaged-remove-str_dup-usage.patch
 
