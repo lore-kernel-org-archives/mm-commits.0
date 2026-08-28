@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A587A3B9927;
-	Fri, 28 Aug 2026 20:17:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 386BB3F1066
+	for <mm-commits@vger.kernel.org>; Fri, 28 Aug 2026 23:17:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787948274; cv=none; b=Ps9YZTv73ozZel+l16JSANsQBrO6FQ3Ig+5aiyT71iBAz1NSeU5wq/nV+wDEbIaDnCMEGxbFrO4x/Ui1xiDWNpUUCbRCqhDj/Z0qnwvUbkBPytmNx9SZUyY/9JBlYZisgtlPafSipn2ZRjDFLrKHnEIPeX0PasfOfARePu6fLtE=
+	t=1787959059; cv=none; b=AxM/FupBd5VvDf5nM2Q6EJi2BACt6CIEGmSPE+AzPESJ5DeD/8Mj/y7YDkGq0RScR6Ed53ThziCf3HLOIYwTX2s2L2jTVcHKmjljuNoyeVJe5nfrnfm1JvyaA7Is4zLp0sDYfT7sdbTKRdHvjamaqgvqYyp/1FMvpMGPrQn/JMc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787948274; c=relaxed/simple;
-	bh=FgfYKGFgSetuMUHy4hEzMQsH1/zi/8Fq0psKJoL29Yk=;
-	h=Date:To:From:Subject:Message-Id; b=kpzcxHn99fry+f4b7Fo7FF5MBKOEdhw2Ew025Q5HlMUNuDwKsHMk0sviLmf8EVxywuNyrB01djROuJKVFa6Nl9AIX2PHrcaCjdBL4P91pdt4s+h1pnV/I2lFn4sw/vzZAoWNtCDnFJK+wPGrcbYWz5nTDrkWPuA/GYQYUJn8xKs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NmhaaV4A; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1787959059; c=relaxed/simple;
+	bh=qoBwUKUKwoFJff89Y+zsBabzwOMezGK9DIb3c5R2t5U=;
+	h=Date:To:From:Subject:Message-Id; b=Vhdj5bsooVm9ZzY02WcISD4aBsZtNeo8kXjkRTDdWeWeawlPspA0ho5Qe82EHagCeymGXAzDDN+tRd6E46zaMUi+OF1hv3614cSNQIXhJ8zwHNmxOqaj/Vor+OH5Y6FJ/Fv8hF7toKRNeJy4Hfxf3KP2r4UMb0fwZEtitScO2HQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WHCUhmLs; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NmhaaV4A"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 110651F000E9;
-	Fri, 28 Aug 2026 20:17:52 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WHCUhmLs"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B0C681F000E9;
+	Fri, 28 Aug 2026 23:17:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1787948272;
-	bh=mKg6eCvSdJocWjYIk+kQAcRn1zZ7RT3pb0vDWn04DRI=;
+	d=linux-foundation.org; s=korg; t=1787959057;
+	bh=B3hMbGam22lKO76/01gcVtoYEXxPI0Euo8oD/P7rd1s=;
 	h=Date:To:From:Subject;
-	b=NmhaaV4Ar6dLDOGgb1rQTgMHNGGZUtNsi6a2kuM+Wld7MSsnBjyi/0bhQThZSceiW
-	 rRczXMZpdRCJAzeAHLaZuJ7LLPOskxRCk4W3YvzbIn0+01dczpdjzR0RKCqHNO1ols
-	 /MDr6/DwsWoud++j3jYbLI9f6ttLUcVEymMJafRU=
-Date: Fri, 28 Aug 2026 13:17:51 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,urezki@gmail.com,stable@vger.kernel.org,rakie.kim@sk.com,matthew.brost@intel.com,joshua.hahnjy@gmail.com,david@kernel.org,chenwandun@huawei.com,chelsyratnawat2001@gmail.com,byungchul@sk.com,apopple@nvidia.com,gourry@gourry.net,akpm@linux-foundation.org
+	b=WHCUhmLsjme11wHDl76riWuVQcbmtf5/LvtbQdu9AVdbLdB5WD1nhHffHx6Sp8Ibb
+	 miLv7AJEQkVErd0DAbgjUyNkdzjh5CL15W+kTW5MbJeXTxv2xlB9zdUNgHlkDdKoVP
+	 ipzx2Ruobv2gQeokTaCcqL++Ljo0EFfaOWyM2kyQ=
+Date: Fri, 28 Aug 2026 16:17:37 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,yuzhao@google.com,yuanchu@google.com,weixugc@google.com,vbabka@kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,ridong.chen@linux.dev,qi.zheng@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,ljs@kernel.org,lianux.mm@gmail.com,liam@infradead.org,hannes@cmpxchg.org,david@kernel.org,chrisl@kernel.org,baoquan.he@linux.dev,baolin.wang@linux.alibaba.com,baohua@kernel.org,axelrasmussen@google.com,kasong@tencent.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mempolicy-take-a-cpuset-cookie-for-the-interleave-node-count.patch added to mm-new branch
-Message-Id: <20260828201752.110651F000E9@smtp.kernel.org>
+Subject: + mm-memcontrol-make-lru_zone_size-atomic-and-simplify-sanity-check.patch added to mm-new branch
+Message-Id: <20260828231737.B0C681F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/mempolicy: take a cpuset cookie for the interleave node count
+     Subject: mm/memcontrol: make lru_zone_size atomic and simplify sanity check
 has been added to the -mm mm-new branch.  Its filename is
-     mm-mempolicy-take-a-cpuset-cookie-for-the-interleave-node-count.patch
+     mm-memcontrol-make-lru_zone_size-atomic-and-simplify-sanity-check.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mempolicy-take-a-cpuset-cookie-for-the-interleave-node-count.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcontrol-make-lru_zone_size-atomic-and-simplify-sanity-check.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,99 +69,155 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Gregory Price <gourry@gourry.net>
-Subject: mm/mempolicy: take a cpuset cookie for the interleave node count
-Date: Fri, 28 Aug 2026 15:31:11 -0400
+From: Kairui Song <kasong@tencent.com>
+Subject: mm/memcontrol: make lru_zone_size atomic and simplify sanity check
+Date: Wed, 26 Aug 2026 01:53:34 +0800
 
-alloc_pages_bulk_interleave() counts pol->nodes without a cpuset cookie:
+Patch series "mm/mglru: clean up folio counters and flag usage", v3.
 
-	nodes = nodes_weight(pol->nodes);
-	nr_pages_per_node = nr_pages / nodes;
+This is a cleanup series separated out from the MGLRU-FG series [1].  As
+that series is getting too long in following updates, seperate out the
+clean up part for easier review and merge.
 
-nodemask_t spans several words once MAX_NUMNODES exceeds BITS_PER_LONG, so
-a concurrent cpuset rebind can tear that read and yield an empty mask even
-though neither version of it was empty.  The call then allocates nothing
-and returns 0.
+No feature change is intended, except one bugfix.  It mostly replaces the
+open-coded bit operations scattered throughout the MGLRU code with new
+helpers, with proper kdocs, sanity debug checks, and hardens a few MGLRU
+functions.
 
-Some compilers will hoist the loop entry test above the division,
-because nr_pages_per_node is dead when the loop does not run.
+A subtle generation counter leak is also found during the refactoring and
+the fix is included.
 
-	682e:	call	...		<- nodes_weight()
-	6838:	test	%eax,%eax
-	683a:	jle	692d		<- nodes <= 0 skips the loop
-	684a:	div	%rcx
+Also collected review feedbacks on the cleanup part from the posted
+series.
 
-So in most deployments, this div/0 is unreachable - but nothing in the
-source guarantees that, it's just not easily exercised.
 
-Take the cookie around the count and bail if the mask really is empty. 
-Only the count needs it, interleave_nodes() takes the cookie itself so so
-a torn read there is already retried.
+This patch (of 6):
 
-A rebind landing mid-loop can still leave the count disagreeing with the
-mask, so the loop may revisit a node or skip one - but a rebind where
-nodes change causes migration, so a handful of misplaced pages isn't
-catastrophic in any sense.
+commit ca707239e8a7 ("mm: update_lru_size warn and reset bad lru_size")
+introduced a sanity check to catch memcg counter underflow, which was more
+of a workaround for another bug: lru_zone_size is unsigned, so underflow
+wraps it around and returns an enormously large number, then the memcg
+shrinker loops almost forever as the calculated number of folios to shrink
+is huge.  That commit also checked if a zero value matches the empty LRU
+list, so we have to hold the LRU lock, and handle the positive and
+negative deltas separately.
 
-Measured on a 72 node VM (NODES_SHIFT=10) with a cgroup v2 cpuset flipping
-cpuset.mems between a word 0 and a word 1 node set, and the two word read
-artificially widened: 330 zero counts in 130414 calls without the cookie,
-and 401 retries with it.
+But later commit b4536f0c829c ("mm, memcg: fix the active list aging for
+lowmem requests when memcg is enabled") already removed the LRU emptiness
+check, so handling the deltas separately is no longer needed.  And if we
+just turn it into an atomic long, underflow isn't a big issue either, and
+can be checked at the reader side, which is called much less frequently
+than the updater.
 
-Link: https://lore.kernel.org/20260828193111.1023497-1-gourry@gourry.net
-Fixes: c00b6b961099 ("mm/vmalloc: introduce alloc_pages_bulk_array_mempolicy to accelerate memory allocation")
-Signed-off-by: Gregory Price (Meta) <gourry@gourry.net>
-Reported-by: Chelsy Ratnawat <chelsyratnawat2001@gmail.com>
-Link: https://lore.kernel.org/all/20250907160829.91628-1-chelsyratnawat2001@gmail.com/
-Assisted-by: Claude:claude-opus-5
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Byungchul Park <byungchul@sk.com>
-Cc: Chenwandun <chenwandun@huawei.com>
+So let's turn the counter into an atomic long and check at the reader side
+instead, which has a smaller overhead.  The underflow correction is
+removed: a massive leak of the LRU size counter would indicate that
+something else has gone very wrong, and one should fix that leaking site
+instead.  Besides, the updater-side sanity check is unlikely to catch the
+leaking site anyway: if a folio was removed without updating the counter
+while other folios remain on the LRU, the WARN only triggers much later,
+from a likely innocent callsite.
+
+Link: https://lore.kernel.org/20260826-mglru-flags-cleanup-v3-0-d9f1c75549c8@tencent.com
+Link: https://lore.kernel.org/20260826-mglru-flags-cleanup-v3-1-d9f1c75549c8@tencent.com
+Link: https://lore.kernel.org/linux-mm/20260804-mglru-fg-v1-0-4d8dad39dad6@tencent.com/ [1]
+Signed-off-by: Kairui Song <kasong@tencent.com>
+Reviewed-by: Ridong Chen <ridong.chen@linux.dev>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Baoquan He <baoquan.he@linux.dev>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Chris Li <chrisl@kernel.org>
 Cc: David Hildenbrand <david@kernel.org>
-Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
-Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
-Cc: Matthew Brost <matthew.brost@intel.com>
-Cc: Rakie Kim <rakie.kim@sk.com>
-Cc: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Wei Xu <weixugc@google.com>
+Cc: Yuanchu Xie <yuanchu@google.com>
+Cc: Yu Zhao <yuzhao@google.com>
 Cc: Zi Yan <ziy@nvidia.com>
-Cc: <stable@vger.kernel.org>
+Cc: Lian Wang <lianux.mm@gmail.com>
+Cc: Qi Zheng <qi.zheng@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |   12 +++++++++++-
- 1 file changed, 11 insertions(+), 1 deletion(-)
+ include/linux/memcontrol.h |    9 +++++++--
+ mm/memcontrol.c            |   18 +-----------------
+ 2 files changed, 8 insertions(+), 19 deletions(-)
 
---- a/mm/mempolicy.c~mm-mempolicy-take-a-cpuset-cookie-for-the-interleave-node-count
-+++ a/mm/mempolicy.c
-@@ -2592,6 +2592,7 @@ static unsigned long alloc_pages_bulk_in
- 		struct mempolicy *pol, unsigned long nr_pages,
- 		struct page **page_array)
- {
-+	unsigned int cpuset_mems_cookie;
- 	int nodes;
- 	unsigned long nr_pages_per_node;
- 	int delta;
-@@ -2599,7 +2600,16 @@ static unsigned long alloc_pages_bulk_in
- 	unsigned long nr_allocated;
- 	unsigned long total_allocated = 0;
+--- a/include/linux/memcontrol.h~mm-memcontrol-make-lru_zone_size-atomic-and-simplify-sanity-check
++++ a/include/linux/memcontrol.h
+@@ -113,7 +113,7 @@ struct mem_cgroup_per_node {
+ 	/* Fields which get updated often at the end. */
+ 	struct lruvec		lruvec;
+ 	CACHELINE_PADDING(_pad2_);
+-	unsigned long		lru_zone_size[MAX_NR_ZONES][NR_LRU_LISTS];
++	atomic_long_t		lru_zone_size[MAX_NR_ZONES][NR_LRU_LISTS];
+ 	struct mem_cgroup_reclaim_iter	iter;
  
--	nodes = nodes_weight(pol->nodes);
-+	/* count the nodes, retry if a rebind happened during the read */
-+	do {
-+		cpuset_mems_cookie = read_mems_allowed_begin();
-+		nodes = nodes_weight(pol->nodes);
-+	} while (read_mems_allowed_retry(cpuset_mems_cookie));
-+
-+	/* if the nodemask has become invalid, we cannot do anything */
-+	if (!nodes)
+ 	/*
+@@ -902,10 +902,15 @@ static inline
+ unsigned long mem_cgroup_get_zone_lru_size(struct lruvec *lruvec,
+ 		enum lru_list lru, int zone_idx)
+ {
++	long val;
+ 	struct mem_cgroup_per_node *mz;
+ 
+ 	mz = container_of(lruvec, struct mem_cgroup_per_node, lruvec);
+-	return READ_ONCE(mz->lru_zone_size[zone_idx][lru]);
++	val = atomic_long_read(&mz->lru_zone_size[zone_idx][lru]);
++	if (WARN_ON_ONCE(val < 0))
 +		return 0;
 +
- 	nr_pages_per_node = nr_pages / nodes;
- 	delta = nr_pages - nodes * nr_pages_per_node;
++	return val;
+ }
  
+ void __mem_cgroup_handle_over_high(gfp_t gfp_mask);
+--- a/mm/memcontrol.c~mm-memcontrol-make-lru_zone_size-atomic-and-simplify-sanity-check
++++ a/mm/memcontrol.c
+@@ -1529,28 +1529,12 @@ void mem_cgroup_update_lru_size(struct l
+ 				int zid, long nr_pages)
+ {
+ 	struct mem_cgroup_per_node *mz;
+-	unsigned long *lru_size;
+-	long size;
+ 
+ 	if (mem_cgroup_disabled())
+ 		return;
+ 
+ 	mz = container_of(lruvec, struct mem_cgroup_per_node, lruvec);
+-	lru_size = &mz->lru_zone_size[zid][lru];
+-
+-	if (nr_pages < 0)
+-		*lru_size += nr_pages;
+-
+-	size = *lru_size;
+-	if (WARN_ONCE(size < 0,
+-		"%s(%p, %d, %ld): lru_size %ld\n",
+-		__func__, lruvec, lru, nr_pages, size)) {
+-		VM_BUG_ON(1);
+-		*lru_size = 0;
+-	}
+-
+-	if (nr_pages > 0)
+-		*lru_size += nr_pages;
++	atomic_long_add(nr_pages, &mz->lru_zone_size[zid][lru]);
+ }
+ 
+ /**
 _
 
-Patches currently in -mm which might be from gourry@gourry.net are
+Patches currently in -mm which might be from kasong@tencent.com are
 
-mm-mempolicy-take-a-cpuset-cookie-for-the-interleave-node-count.patch
+mm-memcontrol-make-lru_zone_size-atomic-and-simplify-sanity-check.patch
+mm-mglru-introduce-helpers-for-manipulating-gen-and-refs-flags.patch
+mm-migrate-copy-all-referenced-state-via-folio_migrate_lru_refs.patch
+mm-mglru-move-max_seq-read-into-walk_update_folio.patch
+mm-mglru-use-explicit-tier-range-in-read_ctrl_pos.patch
+mm-mglru-fix-potential-generation-folio-number-leak.patch
 
