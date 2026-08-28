@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A93D23C3C1C
-	for <mm-commits@vger.kernel.org>; Fri, 28 Aug 2026 05:47:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6C5FD30D40E
+	for <mm-commits@vger.kernel.org>; Fri, 28 Aug 2026 05:48:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787896073; cv=none; b=kJyJOMdmekNLEuIB4tgEvOpaS8GVb4ytTmaBpSHDS8KHIhDjyyAQzDZEtiqKhKh+/rPVuBM+WEoET5FhjTpL/ZOMPliBKoJLq0y/P4TfgN63j+EtC0AEnWWG+ETQd/M0dzLfRk10t3gvOSZ7+Dqu+hXpXUQLym84yCQJ/Zz8wDU=
+	t=1787896117; cv=none; b=RqkHGZJnZKINDtqxPOEh6FDnPCh+47hpVlodvKNEYs385zi7J4EtArACv2V5tACV/TUppIEpwS1kMAyc9R+eMLLRE86qy86oZ6gMfMFqbOAnzEpt1FBoDwyLIBGvYLzu3Dm8bjgnv4+xjTO/aaTfpJx2ZnuhGutoNNWyta8u7x0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787896073; c=relaxed/simple;
-	bh=FxjouAJORIRTpd39+jarsOIPTtzIiBRxlxSogqf/NPA=;
-	h=Date:To:From:Subject:Message-Id; b=WhUqERqrNAtLEMaK7L0fvfb/IeGYuokF1gXl10doV0M9aHxMDLqMrby6bJgcGsARcAYvcHJQVjOkgN1jAwGJ9dIEiZtTFl245WYpAPNYiohk/WUKvWec2reMJ7WVYxKv8QUtV7jb5qa3D+TRvqk+bE+lJOwQA/Thg2fKcyhnBN0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cR0MKnFB; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1787896117; c=relaxed/simple;
+	bh=Oh48viknUAlzrOYizIWBhiMkl9tMIhnnCwN29G13hQM=;
+	h=Date:To:From:Subject:Message-Id; b=Qj0HuAo9fp4cCxBHhGr0D2Y0THxQyh1h8RJmWyRr19Wpa1gtdqLvi8HBuXvSLnL419sMqYfPHTL2ELDaEXvM4In4KlLXck5s6lAW5OUnX5DuNyMFead/LKn5feUbhOXPiofu56HcOvpddYUneEDivqM8OI3A/yFNC+zwciEz4WU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KWLZ78Z3; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cR0MKnFB"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 401471F000E9;
-	Fri, 28 Aug 2026 05:47:52 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KWLZ78Z3"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 04BBD1F000E9;
+	Fri, 28 Aug 2026 05:48:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1787896072;
-	bh=OvLcwTIqy73DzkXTC/j8NuFnShb4A9Te8q20N/5h1S0=;
+	d=linux-foundation.org; s=korg; t=1787896116;
+	bh=qWUvLvui8ci7WNd73bt16qUi918PAZKUdAevWX6xWm8=;
 	h=Date:To:From:Subject;
-	b=cR0MKnFB7D+Id5jIIBVSX/5R6iHyRmhZLjNZhSqRthV5k3GpRnFnBYmAQYvR/Tdp3
-	 tU+hKWNw6gsqKM5dVEPOlv9ktb6owHBBhCrnCGbkcYZrBnPArYrbUnjmBzRBP9/5Pu
-	 z0L8QvJ1QREPQjhp1fU2F1JL0I3yAMUY9qWlHU68=
-Date: Thu, 27 Aug 2026 22:47:51 -0700
+	b=KWLZ78Z3mugd1rrTGzGWQUIiXANCTsDe/aIRqvBGJyTII3evxj5lvUEuZ9hv/HAUx
+	 DVc+SM5n3TrvTBJqcjW/pD0oPwo1mwbgtJvSUHg3QdpKXjLNTaU+I02APsztPF2Kzd
+	 bTneX8JjPOgfB3Iz93SD7npWcrvEJt4JOFdn2B8U=
+Date: Thu, 27 Aug 2026 22:48:35 -0700
 To: mm-commits@vger.kernel.org,visitorckw@gmail.com,pmladek@suse.com,pasha.tatashin@soleen.com,kees@kernel.org,gustavoars@kernel.org,dmantipov@yandex.ru,david@davidgow.net,brendan.higgins@linux.dev,morbo@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + stacktrace-add-__counted_by_ptr-attribute-to-struct-stack_trace.patch added to mm-nonmm-unstable branch
-Message-Id: <20260828054752.401471F000E9@smtp.kernel.org>
+Subject: [to-be-updated] stacktrace-add-__counted_by_ptr-attribute-to-struct-stack_trace.patch removed from -mm tree
+Message-Id: <20260828054836.04BBD1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,28 +34,12 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
+The quilt patch titled
      Subject: stacktrace: add __counted_by_ptr attribute to struct stack_trace
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+has been removed from the -mm tree.  Its filename was
      stacktrace-add-__counted_by_ptr-attribute-to-struct-stack_trace.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/stacktrace-add-__counted_by_ptr-attribute-to-struct-stack_trace.patch
-
-This patch will later appear in the mm-nonmm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
 From: Bill Wendling <morbo@google.com>
@@ -113,5 +97,4 @@ _
 
 Patches currently in -mm which might be from morbo@google.com are
 
-stacktrace-add-__counted_by_ptr-attribute-to-struct-stack_trace.patch
 
