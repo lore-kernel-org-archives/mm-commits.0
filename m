@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 163C7360ECF
-	for <mm-commits@vger.kernel.org>; Fri, 28 Aug 2026 02:47:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BF3563655D8
+	for <mm-commits@vger.kernel.org>; Fri, 28 Aug 2026 02:53:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787885256; cv=none; b=P2MwPqj+hlM+hupExTsqyhsAR/NFC+2EKMeFU0PhphUfGxyNG8nMtXeKmTnYt3yrJN7oaxLpXtqjWao3rKr880zCNq+uGQ7d8E+uvdtqjODEsVLAL8nF0l+mYzrsJplmVqp8R3LjdNKNJeTGYarAkG0vh9Z3N86krMCzNKW6UD0=
+	t=1787885597; cv=none; b=b6W2EraEOD81GK3rbekiP2KTpfIci10KQrykbwrNKkwpa1Fjh+royEpqesYP/Cz0V++zGd70gWrf08oi/+IU0R8XB3SbdYr5zQ/jAUWBgq+qYtmlz05iVK8oS5t7+JeFYa3mbgGBLv0y0F0B8q8VH8Jqz9wugfNiZS/Bv+qykRg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787885256; c=relaxed/simple;
-	bh=tOgLu3HgxPimWsBIgI4CfEJJnJOyh1uAQUc5961sb94=;
-	h=Date:To:From:Subject:Message-Id; b=DMD9S+mSGJe7mBXMA3wBN4efFSL5YFGWKF7TzIW7WHP2ti2ecBey+vohlwOTvQvEh/pkd5Dwb8cXKxHVW/NHyyo7djIXzE8qwQbpiyC3IirA1crO4PQvMs6xS+IqR2gqcsJoUK5MvFVRGTQIpkSrInsYpIdg9wxLyZse590y1lo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=psPeO4Sz; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1787885597; c=relaxed/simple;
+	bh=qPNwO8+Clg2lQKucDw4hoSfDSYjlaL6GayrWLkpjQnA=;
+	h=Date:To:From:Subject:Message-Id; b=g157ligZwbUUdVcymHBuDHXSfyREVV+GLYz24rmVz5VlQnihARvUJb/g7sZ1GecRkQ0KnBTzqgFywLgnk/Pd7bOFtLha2n7Z4wpOXlGHWKaa42RQzjnSg4OizHtPVsThU4ZYvx4MIX35kLanYm0U3Kex0QTy3Gy8Rro/q3IE2CI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MEEv0uxm; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="psPeO4Sz"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 889931F000E9;
-	Fri, 28 Aug 2026 02:47:32 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MEEv0uxm"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B6BB11F000E9;
+	Fri, 28 Aug 2026 02:53:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1787885252;
-	bh=3RVaQIGvX3O4ycwpYQfkrmWa9mmAtepb3zf/WCsyD8w=;
+	d=linux-foundation.org; s=korg; t=1787885594;
+	bh=Q7ozEPQBW3+CKnegj/XkWDugd+GTt7Nim3AcI8DQcdw=;
 	h=Date:To:From:Subject;
-	b=psPeO4Sz8k50d4YTVnqOFknlvOKXplzqEOJ0CTffXun7Hs1dlp18JKOKCSjCRYnpd
-	 EgxuC+Kg3WNzYYRzX3H3fJd/CWKjxjSYOfmbREulDq633+F+0gAeSSaQ2VmDMoNUUC
-	 Rs1Y+dDmWBFc/WG0FT9pM5/BJD5h8q2By9AocMNI=
-Date: Thu, 27 Aug 2026 19:47:32 -0700
-To: mm-commits@vger.kernel.org,tj@kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mkoutny@suse.com,mhocko@suse.com,hannes@cmpxchg.org,cuitao@kylinos.cn,akpm@linux-foundation.org
+	b=MEEv0uxm2GpBABoJJG/HL/DYZVRR9kzJ5rda6T+7NcA2i5k0Gj6oWW929HfQCt2gy
+	 HhBJ6IU1dIA4pZHkmJQ4gpuM+t+Lb/W6CEt5HYsIvFVBqP8/q1ZwTneFlPdc3wlwJC
+	 Yu9bCG2LjKO1Cz4oDjuJmhUUEUR2U9yJ6SsTYsss=
+Date: Thu, 27 Aug 2026 19:53:14 -0700
+To: mm-commits@vger.kernel.org,vschneid@redhat.com,vincent.guittot@linaro.org,shuah@kernel.org,rostedt@goodmis.org,richard.weiyang@gmail.com,peterz@infradead.org,paulmck@kernel.org,mjeanson@efficios.com,mingo@redhat.com,mgorman@suse.de,mathieu.desnoyers@efficios.com,kprateek.nayak@amd.com,juri.lelli@redhat.com,dietmar.eggemann@arm.com,bsegall@google.com,christian.gellermann@codasip.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + docs-cgroup-document-empty-write-behavior-of-memory-limit-knobs.patch added to mm-new branch
-Message-Id: <20260828024732.889931F000E9@smtp.kernel.org>
+Subject: + selftests-membarrier-introduce-helper-to-get-membarrier-command-registrations.patch added to mm-nonmm-unstable branch
+Message-Id: <20260828025314.B6BB11F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,26 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: docs: cgroup: document empty-write behavior of memory limit knobs
-has been added to the -mm mm-new branch.  Its filename is
-     docs-cgroup-document-empty-write-behavior-of-memory-limit-knobs.patch
+     Subject: selftests/membarrier: introduce helper to get membarrier command registrations
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     selftests-membarrier-introduce-helper-to-get-membarrier-command-registrations.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-cgroup-document-empty-write-behavior-of-memory-limit-knobs.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-membarrier-introduce-helper-to-get-membarrier-command-registrations.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,65 +58,74 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Tao Cui <cuitao@kylinos.cn>
-Subject: docs: cgroup: document empty-write behavior of memory limit knobs
-Date: Wed, 26 Aug 2026 10:17:53 +0800
+From: Chris Gellermann <christian.gellermann@codasip.com>
+Subject: selftests/membarrier: introduce helper to get membarrier command registrations
+Date: Mon, 3 Aug 2026 14:48:59 +0200
 
-A maintenance script on a cluster wrote an unset variable into memory.max
-of a workload cgroup; the variable expanded to an empty string, the write
-succeeded, and the workload in the cgroup was OOM-killed.  Nothing pointed
-back at the write, so it took quite some time to trace the OOM kills to
-that script.
+Patch series "selftests/membarrier: Skip an unregistered memory barrier
+test on Musl".
 
-The memory controller documentation does not say what an empty write does;
-the cpuset controller documents its empty-value semantics.  The actual
-behavior is that the empty string is accepted as 0.  Reproduced on a k8s
-cluster (v1.29, cgroup v2, two-container pod, 384M limit):
+The membarrier test "membarrier MEMBARRIER_CMD_PRIVATE_EXPEDITED not
+registered failure" fails in the multithreaded test scenario when using
+Musl libc as the command gets preregistered implicitly during thread
+creation.  Skip the test if command registration is detected.
 
-  # LIMIT=
-  # echo "$LIMIT" > $CG/memory.max
-  # echo $?
-  0
 
-  m6demo   0/2     OOMKilled   0
+This patch (of 2):
 
-  Memory cgroup out of memory: Killed process 339529 (sleep) ... anon-rss:32kB
+Add a new membarrier_get_registrations() for reusage.
 
-State it where the interface files are introduced, alongside the existing
-notes on units and page rounding.
-
-Link: https://lore.kernel.org/all/aoVUlFdZYLFn_gvJ@tiehlicka/
-Link: https://lore.kernel.org/20260826021753.197871-1-cui.tao@linux.dev
-Signed-off-by: Tao Cui <cuitao@kylinos.cn>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Koutný <mkoutny@suse.com>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Tejun Heo <tj@kernel.org>
+Link: https://lore.kernel.org/20260803124900.3328789-1-christian.gellermann@codasip.com
+Link: https://lore.kernel.org/20260803124900.3328789-2-christian.gellermann@codasip.com
+Signed-off-by: Chris Gellermann <christian.gellermann@codasip.com>
+Tested-by: Michael Jeanson <mjeanson@efficios.com>
+Cc: Ben Segall <bsegall@google.com>
+Cc: Dietmar Eggemann <dietmar.eggemann@arm.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Juri Lelli <juri.lelli@redhat.com>
+Cc: K Prateek Nayak <kprateek.nayak@amd.com>
+Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: "Paul E . McKenney" <paulmck@kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Valentin Schneider <vschneid@redhat.com>
+Cc: Vincent Guittot <vincent.guittot@linaro.org>
+Cc: Wei Yang <richard.weiyang@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/cgroup-v2.rst |    4 ++++
- 1 file changed, 4 insertions(+)
+ tools/testing/selftests/membarrier/membarrier_test_impl.h |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
---- a/Documentation/admin-guide/cgroup-v2.rst~docs-cgroup-document-empty-write-behavior-of-memory-limit-knobs
-+++ a/Documentation/admin-guide/cgroup-v2.rst
-@@ -1315,6 +1315,10 @@ All memory amounts are in bytes.  If a v
- PAGE_SIZE is written, the value may be rounded up to the closest
- PAGE_SIZE multiple when read back.
+--- a/tools/testing/selftests/membarrier/membarrier_test_impl.h~selftests-membarrier-introduce-helper-to-get-membarrier-command-registrations
++++ a/tools/testing/selftests/membarrier/membarrier_test_impl.h
+@@ -16,6 +16,11 @@ static int sys_membarrier(int cmd, int f
+ 	return syscall(__NR_membarrier, cmd, flags);
+ }
  
-+For the limit files described below, an empty or all-whitespace
-+write is accepted and sets the limit to 0.  To disable a limit,
-+write "max"; to set it to zero explicitly, write "0".
++static int membarrier_get_registrations(void)
++{
++	return sys_membarrier(MEMBARRIER_CMD_GET_REGISTRATIONS, 0);
++}
 +
-   memory.current
- 	A read-only single value file which exists on non-root
- 	cgroups.
+ static int test_membarrier_get_registrations(int cmd)
+ {
+ 	int ret, flags = 0;
+@@ -24,7 +29,7 @@ static int test_membarrier_get_registrat
+ 
+ 	registrations |= cmd;
+ 
+-	ret = sys_membarrier(MEMBARRIER_CMD_GET_REGISTRATIONS, 0);
++	ret = membarrier_get_registrations();
+ 	if (ret < 0) {
+ 		ksft_exit_fail_msg(
+ 			"%s test: flags = %d, errno = %d\n",
 _
 
-Patches currently in -mm which might be from cuitao@kylinos.cn are
+Patches currently in -mm which might be from christian.gellermann@codasip.com are
 
-docs-cgroup-document-empty-write-behavior-of-memory-limit-knobs.patch
+selftests-membarrier-introduce-helper-to-get-membarrier-command-registrations.patch
+selftests-membarrier-skip-unpermitted-membarrier-command-test-if-preregistered-by-libc.patch
 
