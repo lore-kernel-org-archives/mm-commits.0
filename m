@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8A8802D3EEB
-	for <mm-commits@vger.kernel.org>; Fri, 28 Aug 2026 04:21:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D5C333368BF
+	for <mm-commits@vger.kernel.org>; Fri, 28 Aug 2026 04:21:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787890901; cv=none; b=ORPrFWpcf3wyR2iB4LZ23kLXp3e7ths0QicBMgLTOfwj773CIJgxMeRI+tPrUPQzGeBwTa6dtvSQHFuTuviRO+h24Cc4BOnGduKk4sB0VbJhuioDsowEqGGKnJSsgtPfiuovuzb3+d2lXKKjtd444U6Cgm2BfAXPNvUPCX81ETg=
+	t=1787890905; cv=none; b=Tw0hdwpGv46UiRi43/SWyJziIlL+PnJI03U0eq1GU/qQUmqhf1HQYCx24jeSVWmbD2LHNikVD5LroYJ/ed/4CmSN9mHwKKExh+8vRItSfVjTLYYHBdXJq4zOhgCKQCaaxL6jqzYlgdKTVCYXzGOZzY0sGd6O0YLw0VcKXbPKRw4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787890901; c=relaxed/simple;
-	bh=7xyqp9nT3y+4fQhTZrnXMzyNCLbGtjXs7K38vSI2HIY=;
-	h=Date:To:From:Subject:Message-Id; b=TvwmBAWAD6QT1LACoMM+x3M32NvOdhviD/maPB7yX1I83L0fnRsu8NvtAHck9Qbqc9eL4Oxrqz/YNIi2bmVstdCUJLeHGuDpHa9+tCMs5b/PqK4dOV+w6/8GRu56snFNvhZRjMEHMflWdmm+/C6wpv/2EP5j356u3dz5tc2HI4E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pnUSeRmy; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1787890905; c=relaxed/simple;
+	bh=XTec6WzIQLF0C7ZlPae/9DyM9MTDlpCt+/d0FDmHLOM=;
+	h=Date:To:From:Subject:Message-Id; b=SPetu7XOmvP/tBaF+T2unN8MMPrwapruI02Sm8Z/rBubVi8Vq4OtkazZD/46xlogmn/hMDdBEKT4i/gcs58I9g3ic1mjVBofjo4bIxPA/pbFPaSr9FIoOQMcF1e+ES9DlMMnCBmCV/fvqGkIwJsVzrL0yP/HkecjBypLsQ6M/Es=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cPSreMAJ; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pnUSeRmy"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5E6181F000E9;
-	Fri, 28 Aug 2026 04:21:39 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cPSreMAJ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AA46B1F000E9;
+	Fri, 28 Aug 2026 04:21:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1787890899;
-	bh=WBKvczmomDD3FhJ0fjUcc9Q8RiIKke9ZdNBmvJQ/USQ=;
+	d=linux-foundation.org; s=korg; t=1787890903;
+	bh=hBR6G/MEiDE5WZ2axqvTO2ApeRdhlTUaiCSt8i6Wfy8=;
 	h=Date:To:From:Subject;
-	b=pnUSeRmy5d10+WHN2qxZRdJYfr0YNVD5xjq52vOhOxYvgEvG+Umqi9AIRjmhwGaVR
-	 kss7WIQIAL2huTlZQqpAEa67CRX59vXkN4kmFrsHh/eOR7FaaGfVW5hl+qRsL57/70
-	 AL2z2KP03jB2s9PrfAcG5LKHlDNIKMLjhHppBq2Y=
-Date: Thu, 27 Aug 2026 21:21:38 -0700
+	b=cPSreMAJUUsoJhy4WtprNOBVUC6XanVai6VINqMjqvkJzvdqZHmGFkPRULteyv4s0
+	 sh49DmujklBaN94A/W3rSHnQ/se5JA+EP4QUKdTYg58P9O0j3QbGr6iEULmnIhniIw
+	 GfjzEasbw0PoFbQl7cf3M/P9w8OBMnsV3DwjM1Jc=
+Date: Thu, 27 Aug 2026 21:21:43 -0700
 To: mm-commits@vger.kernel.org,songmuchun@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-sparse-vmemmap-remove-sparsemem_vmemmap_preinit-support.patch added to mm-new branch
-Message-Id: <20260828042139.5E6181F000E9@smtp.kernel.org>
+Subject: + mm-sparse-inline-usemap-allocation-into-sparse_init_nid.patch added to mm-new branch
+Message-Id: <20260828042143.AA46B1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/sparse-vmemmap: remove SPARSEMEM_VMEMMAP_PREINIT support
+     Subject: mm/sparse: inline usemap allocation into sparse_init_nid()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-sparse-vmemmap-remove-sparsemem_vmemmap_preinit-support.patch
+     mm-sparse-inline-usemap-allocation-into-sparse_init_nid.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-sparse-vmemmap-remove-sparsemem_vmemmap_preinit-support.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-sparse-inline-usemap-allocation-into-sparse_init_nid.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,199 +70,118 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm/sparse-vmemmap: remove SPARSEMEM_VMEMMAP_PREINIT support
-Date: Tue, 25 Aug 2026 16:46:02 +0800
+Subject: mm/sparse: inline usemap allocation into sparse_init_nid()
+Date: Tue, 25 Aug 2026 16:46:03 +0800
 
-SPARSEMEM_VMEMMAP_PREINIT existed only to support HugeTLB's early vmemmap
-optimization setup.
+After removing SPARSEMEM_VMEMMAP_PREINIT, sparse_init_nid() no longer
+needs the transient sparse_usagebuf state and its helper wrappers.
 
-Now that HugeTLB bootmem vmemmap optimization uses the common
-section-based sparse-vmemmap path, the sparse initialization code no
-longer needs a separate pre-initialization mechanism for vmemmap
-population.
+Allocate the usemap buffer directly in sparse_init_nid(), pass it to
+sparse_init_one_section(), and drop sparse_usage_init(),
+sparse_usage_fini(), and sparse_init_early_section().
 
-Remove the related Kconfig symbols, section flag, and empty early hook, so
-present sections always go through the normal sparse setup path.
-
-Link: https://lore.kernel.org/20260825084608.47437-12-songmuchun@bytedance.com
+Link: https://lore.kernel.org/20260825084608.47437-13-songmuchun@bytedance.com
 Signed-off-by: Muchun Song <songmuchun@bytedance.com>
 Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Acked-by: Qi Zheng <qi.zheng@linux.dev>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: David Laight <david.laight.linux@gmail.com>
 Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Qi Zheng <qi.zheng@linux.dev>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/Kconfig       |    1 -
- fs/Kconfig             |    1 -
- include/linux/mmzone.h |   25 -------------------------
- mm/Kconfig             |    5 -----
- mm/sparse-vmemmap.c    |   13 -------------
- mm/sparse.c            |   23 ++++++++---------------
- 6 files changed, 8 insertions(+), 60 deletions(-)
+ include/linux/mmzone.h |    3 --
+ mm/sparse.c            |   46 +++++----------------------------------
+ 2 files changed, 7 insertions(+), 42 deletions(-)
 
---- a/arch/x86/Kconfig~mm-sparse-vmemmap-remove-sparsemem_vmemmap_preinit-support
-+++ a/arch/x86/Kconfig
-@@ -150,7 +150,6 @@ config X86
- 	select ARCH_WANT_LD_ORPHAN_WARN
- 	select ARCH_WANT_OPTIMIZE_DAX_VMEMMAP	if X86_64
- 	select ARCH_WANT_OPTIMIZE_HUGETLB_VMEMMAP	if X86_64
--	select ARCH_WANT_HUGETLB_VMEMMAP_PREINIT if X86_64
- 	select ARCH_WANTS_THP_SWAP		if X86_64
- 	select ARCH_HAS_PARANOID_L1D_FLUSH
- 	select ARCH_WANT_IRQS_OFF_ACTIVATE_MM
---- a/fs/Kconfig~mm-sparse-vmemmap-remove-sparsemem_vmemmap_preinit-support
-+++ a/fs/Kconfig
-@@ -278,7 +278,6 @@ config HUGETLB_PAGE_OPTIMIZE_VMEMMAP
- 	def_bool HUGETLB_PAGE
- 	depends on ARCH_WANT_OPTIMIZE_HUGETLB_VMEMMAP
- 	depends on SPARSEMEM_VMEMMAP
--	select SPARSEMEM_VMEMMAP_PREINIT if ARCH_WANT_HUGETLB_VMEMMAP_PREINIT
- 
- config HUGETLB_PMD_PAGE_TABLE_SHARING
- 	def_bool HUGETLB_PAGE
---- a/include/linux/mmzone.h~mm-sparse-vmemmap-remove-sparsemem_vmemmap_preinit-support
+--- a/include/linux/mmzone.h~mm-sparse-inline-usemap-allocation-into-sparse_init_nid
 +++ a/include/linux/mmzone.h
-@@ -2096,9 +2096,6 @@ enum {
- #ifdef CONFIG_ZONE_DEVICE
- 	SECTION_TAINT_ZONE_DEVICE_BIT,
- #endif
--#ifdef CONFIG_SPARSEMEM_VMEMMAP_PREINIT
--	SECTION_IS_VMEMMAP_PREINIT_BIT,
--#endif
- 	SECTION_MAP_LAST_BIT,
- };
- 
-@@ -2109,9 +2106,6 @@ enum {
- #ifdef CONFIG_ZONE_DEVICE
- #define SECTION_TAINT_ZONE_DEVICE	BIT(SECTION_TAINT_ZONE_DEVICE_BIT)
- #endif
--#ifdef CONFIG_SPARSEMEM_VMEMMAP_PREINIT
--#define SECTION_IS_VMEMMAP_PREINIT	BIT(SECTION_IS_VMEMMAP_PREINIT_BIT)
--#endif
- #define SECTION_MAP_MASK		(~(BIT(SECTION_MAP_LAST_BIT) - 1))
- #define SECTION_NID_SHIFT		SECTION_MAP_LAST_BIT
- 
-@@ -2166,24 +2160,6 @@ static inline int online_device_section(
+@@ -2223,9 +2223,6 @@ static inline bool pfn_section_first_val
  }
  #endif
  
--#ifdef CONFIG_SPARSEMEM_VMEMMAP_PREINIT
--static inline int preinited_vmemmap_section(const struct mem_section *section)
+-void sparse_init_early_section(int nid, struct page *map, unsigned long pnum,
+-			       unsigned long flags);
+-
+ #ifndef CONFIG_HAVE_ARCH_PFN_VALID
+ /**
+  * pfn_valid - check if there is a valid memory map entry for a PFN
+--- a/mm/sparse.c~mm-sparse-inline-usemap-allocation-into-sparse_init_nid
++++ a/mm/sparse.c
+@@ -235,42 +235,6 @@ void __weak __meminit vmemmap_populate_p
+ {
+ }
+ 
+-static void *sparse_usagebuf __initdata;
+-static void *sparse_usagebuf_end __initdata;
+-
+-/*
+- * Helper function that is used for generic section initialization, and
+- * can also be used by any hooks added above.
+- */
+-void __init sparse_init_early_section(int nid, struct page *map,
+-				      unsigned long pnum, unsigned long flags)
 -{
--	return (section &&
--		(section->section_mem_map & SECTION_IS_VMEMMAP_PREINIT));
+-	BUG_ON(!sparse_usagebuf || sparse_usagebuf >= sparse_usagebuf_end);
+-	sparse_init_one_section(__nr_to_section(pnum), pnum, map,
+-			sparse_usagebuf, SECTION_IS_EARLY | flags);
+-	sparse_usagebuf = (void *)sparse_usagebuf + mem_section_usage_size();
 -}
 -
--void sparse_vmemmap_init_nid_early(int nid);
--#else
--static inline int preinited_vmemmap_section(const struct mem_section *section)
+-static int __init sparse_usage_init(int nid, unsigned long map_count)
 -{
+-	unsigned long size;
+-
+-	size = mem_section_usage_size() * map_count;
+-	sparse_usagebuf = memblock_alloc_node(size, SMP_CACHE_BYTES, nid);
+-	if (!sparse_usagebuf) {
+-		sparse_usagebuf_end = NULL;
+-		return -ENOMEM;
+-	}
+-
+-	sparse_usagebuf_end = sparse_usagebuf + size;
 -	return 0;
 -}
--static inline void sparse_vmemmap_init_nid_early(int nid)
+-
+-static void __init sparse_usage_fini(void)
 -{
+-	sparse_usagebuf = sparse_usagebuf_end = NULL;
 -}
--#endif
 -
- static inline int online_section_nr(unsigned long nr)
+ /*
+  * Initialize sparse on a specific node. The node spans [pnum_begin, pnum_end)
+  * And number of present sections in this node is map_count.
+@@ -280,8 +244,11 @@ static void __init sparse_init_nid(int n
+ 				   unsigned long map_count)
  {
- 	return online_section(__nr_to_section(nr));
-@@ -2385,7 +2361,6 @@ static inline unsigned long next_present
- #endif
+ 	unsigned long pnum;
++	struct mem_section_usage *usage;
  
- #else
--#define sparse_vmemmap_init_nid_early(_nid) do {} while (0)
- #define pfn_in_present_section pfn_valid
- #endif /* CONFIG_SPARSEMEM */
- 
---- a/mm/Kconfig~mm-sparse-vmemmap-remove-sparsemem_vmemmap_preinit-support
-+++ a/mm/Kconfig
-@@ -461,8 +461,6 @@ config SPARSEMEM_VMEMMAP
- 	  pfn_to_page and page_to_pfn operations.  This is the most
- 	  efficient option when sufficient kernel resources are available.
- 
--config SPARSEMEM_VMEMMAP_PREINIT
--	bool
- #
- # Select this config option from the architecture Kconfig, if it is preferred
- # to enable the feature of HugeTLB/dev_dax vmemmap optimization.
-@@ -473,9 +471,6 @@ config ARCH_WANT_OPTIMIZE_DAX_VMEMMAP
- config ARCH_WANT_OPTIMIZE_HUGETLB_VMEMMAP
- 	bool
- 
--config ARCH_WANT_HUGETLB_VMEMMAP_PREINIT
--	bool
--
- config HAVE_MEMBLOCK_PHYS_MAP
- 	bool
- 
---- a/mm/sparse.c~mm-sparse-vmemmap-remove-sparsemem_vmemmap_preinit-support
-+++ a/mm/sparse.c
-@@ -284,27 +284,20 @@ static void __init sparse_init_nid(int n
- 	if (sparse_usage_init(nid, map_count))
+-	if (sparse_usage_init(nid, map_count))
++	usage = memblock_alloc_node(map_count * mem_section_usage_size(),
++				    SMP_CACHE_BYTES, nid);
++	if (!usage)
  		panic("Failed to allocate usemap for node %d\n", nid);
  
--	sparse_vmemmap_init_nid_early(nid);
--
  	for_each_present_section_nr(pnum_begin, pnum) {
--		struct mem_section *ms;
- 		unsigned long pfn = section_nr_to_pfn(pnum);
-+		struct page *map;
- 
- 		if (pnum >= pnum_end)
- 			break;
- 
--		ms = __nr_to_section(pnum);
--		if (!preinited_vmemmap_section(ms)) {
--			struct page *map;
--
--			map = __populate_section_memmap(pfn, PAGES_PER_SECTION,
--							nid, NULL, NULL);
--			if (!map)
--				panic("Failed to allocate memmap for section %lu\n", pnum);
--			memmap_boot_pages_add(section_nr_vmemmap_pages(pfn, PAGES_PER_SECTION,
--								       NULL, NULL));
--			sparse_init_early_section(nid, map, pnum, 0);
--		}
-+		map = __populate_section_memmap(pfn, PAGES_PER_SECTION,
-+						nid, NULL, NULL);
-+		if (!map)
-+			panic("Failed to allocate memmap for section %lu\n", pnum);
-+		memmap_boot_pages_add(section_nr_vmemmap_pages(pfn, PAGES_PER_SECTION,
-+							       NULL, NULL));
-+		sparse_init_early_section(nid, map, pnum, 0);
+@@ -297,9 +264,10 @@ static void __init sparse_init_nid(int n
+ 			panic("Failed to allocate memmap for section %lu\n", pnum);
+ 		memmap_boot_pages_add(section_nr_vmemmap_pages(pfn, PAGES_PER_SECTION,
+ 							       NULL, NULL));
+-		sparse_init_early_section(nid, map, pnum, 0);
++		sparse_init_one_section(__nr_to_section(pnum), pnum, map, usage,
++					SECTION_IS_EARLY);
++		usage = (void *)usage + mem_section_usage_size();
  	}
- 	sparse_usage_fini();
- }
---- a/mm/sparse-vmemmap.c~mm-sparse-vmemmap-remove-sparsemem_vmemmap_preinit-support
-+++ a/mm/sparse-vmemmap.c
-@@ -594,19 +594,6 @@ struct page * __meminit __populate_secti
- 	return pfn_to_page(pfn);
+-	sparse_usage_fini();
  }
  
--#ifdef CONFIG_SPARSEMEM_VMEMMAP_PREINIT
--/*
-- * This is called just before initializing sections for a NUMA node.
-- * Any special initialization that needs to be done before the
-- * generic initialization can be done from here. Sections that
-- * are initialized in hooks called from here will be skipped by
-- * the generic initialization.
-- */
--void __init sparse_vmemmap_init_nid_early(int nid)
--{
--}
--#endif
--
- static void subsection_mask_set(unsigned long *map, unsigned long pfn,
- 		unsigned long nr_pages)
- {
+ /*
 _
 
 Patches currently in -mm which might be from songmuchun@bytedance.com are
