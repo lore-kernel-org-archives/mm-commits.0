@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DF0993515D4;
-	Fri, 28 Aug 2026 19:21:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 955D83AD530;
+	Fri, 28 Aug 2026 19:28:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787944882; cv=none; b=kiHgW842uzlmp9XES4xcewqvbGTnRQDZVkdIKpGcyw9Dr9AVtcrSbR2XUQUKrF4DgRDpGKtvkr/o6bZ1LWWr8AlXZtCzh1kJzI6MANmg1QPCwjYizPgrksaPiP/EDF8VpaSMTcH3XiIiwarCo6Eo35mBkSo4dBCg1iEJ1LiU2MU=
+	t=1787945301; cv=none; b=Q1Hv3z+pLtRDVAn1bfUW13HbggeHmHYYgrWJ6s1Gc0bkBpqe4iMMKuPljkoLbHVExyPoCIKyp4+8GYsgkUBFIZpQMpLX24b2qKUm4Lf57bRTxtkwXP2rnMVJ4wiyL4AVA73G+Fg9+7/KX/R26IYkThNk/1fH1cFxcIo2hpxmgGo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787944882; c=relaxed/simple;
-	bh=nTNkf0XnH0unR2bJpeFCa08cOylFM15AT6EKrqyG+54=;
-	h=Date:To:From:Subject:Message-Id; b=U1CzQRH1WBaZhvoz/x2oKpiNgIk6W/lvsbYiGuhRN3HPenrXNDzUQnsyj2feku6irJ4IlZAAF+vf8zXzIbkiRAEWIiV+ZxsX/rT5qS32p9qOrG18cszGF63btdsaJo0LDgKyITzOwSUDIdl6c0LuXEEmUpDEPFYUpPATmsmS/yc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LIEz/86S; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1787945301; c=relaxed/simple;
+	bh=lxcM/iq6RF0ZUUkp8oOJH9hcB/MrlWo/DxGcxFPXo8E=;
+	h=Date:To:From:Subject:Message-Id; b=l/tkAzlJDS5R7lVd/u/I9diV5SGV8X5335R4q3QILi0Pgz3sT1/m3vgOQFGWo7h5vj7+99UQVmpQWxw3coYpqKcvUCwugmZao7ia8VXr2FR7MTBEhJHgvYhiGbFWrYyPWKrqvk09KgIJ2qpG18VMlOxJ51S2Y60nk51lui50bMQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XkY6lMaN; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LIEz/86S"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 991481F00A3E;
-	Fri, 28 Aug 2026 19:21:20 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XkY6lMaN"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 151721F000E9;
+	Fri, 28 Aug 2026 19:28:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1787944880;
-	bh=6lJcR8HLMfcfSyUb7aEi9Pbge4iCWRlvJpoCX9I+0iw=;
+	d=linux-foundation.org; s=korg; t=1787945299;
+	bh=lUYqQrr+tiICteqvz4sWNtT8Aj6HINSc44PuVQpZI80=;
 	h=Date:To:From:Subject;
-	b=LIEz/86S8pv7dvFbGf5JLIl+6XCl/dvynMoR5vxTu8snGA9ygNleVZWCZFNQPRgJ8
-	 xYS8E9zhM7v7ER3VPgd0+Rx8LVDHTeQsaM9OlmJDl9Tx95OcuyKCR7iykv7HFTfFyE
-	 1WaEhOCOqgQ4btkwfzvuaVkwXoBwv7ZNEvXFtBo4=
-Date: Fri, 28 Aug 2026 12:21:20 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@suse.com,hannes@cmpxchg.org,riel@surriel.com,akpm@linux-foundation.org
+	b=XkY6lMaNjs4RcSJ/ha+CIY+46we/c7vWQ9e6AE6RKPR/r75zulrtkZgp2/g4V25PZ
+	 H8TWbg3gZWkakPmHg7w3ZdedUeBDZeg7eUJ8LkG1se1ZqziesOGSibxbyi1G3efV0V
+	 lBbG4yEhRmV40SgPinXuKRrcFTBhXMNyQOHc+8rs=
+Date: Fri, 28 Aug 2026 12:28:18 -0700
+To: mm-commits@vger.kernel.org,youngjun.park@lge.com,stable@vger.kernel.org,shikemeng@huaweicloud.com,shakeel.butt@linux.dev,sashiko-bot@kernel.org,kasong@tencent.com,joshua.hahnjy@gmail.com,hannes@cmpxchg.org,gourry@gourry.net,chrisl@kernel.org,baoquan.he@linux.dev,baohua@kernel.org,akpm@linux-foundation.org,nphamcs@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memcontrol-fix-stuck-flushing_cached_charge-bit-on-isolated-cpus.patch added to mm-new branch
-Message-Id: <20260828192120.991481F00A3E@smtp.kernel.org>
+Subject: + mm-swap-fix-swap_usage_offlist_bit-collision-with-real-usage-count.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260828192819.151721F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,26 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/memcontrol: fix stuck FLUSHING_CACHED_CHARGE bit on isolated cpus
-has been added to the -mm mm-new branch.  Its filename is
-     mm-memcontrol-fix-stuck-flushing_cached_charge-bit-on-isolated-cpus.patch
+     Subject: mm, swap: fix SWAP_USAGE_OFFLIST_BIT collision with real usage count
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-swap-fix-swap_usage_offlist_bit-collision-with-real-usage-count.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcontrol-fix-stuck-flushing_cached_charge-bit-on-isolated-cpus.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-fix-swap_usage_offlist_bit-collision-with-real-usage-count.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,90 +58,77 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Rik van Riel <riel@surriel.com>
-Subject: mm/memcontrol: fix stuck FLUSHING_CACHED_CHARGE bit on isolated cpus
-Date: Fri, 28 Aug 2026 13:50:36 -0400
+From: Nhat Pham <nphamcs@gmail.com>
+Subject: mm, swap: fix SWAP_USAGE_OFFLIST_BIT collision with real usage count
+Date: Fri, 28 Aug 2026 12:14:33 -0700
 
-When drain_all_stock() sets FLUSHING_CACHED_CHARGE before checking
-isolation, schedule_drain_work() can drop the work in a separate RCU
-critical section, and housekeeping_update()'s synchronize_rcu() can race
-that second check, leaving the flag set.
+SWAP_USAGE_OFFLIST_BIT is embedded in the si->inuse_pages usage counter,
+and is meant to sit above any value that counter can reach.  However, it
+is defined from BITS_PER_TYPE(atomic_t), so it is bit 30.  On a system
+with 4 KiB pages the flag collides with the usage count once that count
+reaches 4 TiB.
 
-drain_local_stock() only clears the bit for work that ran, so the flag
-remains set and the stock is never drained again.
+swap_usage_in_pages() masks bit 30 out, so whenever the real count has
+that bit set, every caller of it reads 4 TiB low:
 
-Have schedule_drain_work() return whether the work was queued, and clear
-FLUSHING_CACHED_CHARGE in drain_all_stock() when the remote CPU is
-isolated, so future drains can retry.
+* /proc/swaps understates Used by 4 TiB.
 
-Link: https://lore.kernel.org/20260828135036.7d44361f@fangorn
-Fixes: 6a792697a53a ("memcg: do not drain charge pcp caches on remote isolated cpus")
-Suggested-by: Michal Hocko <mhocko@suse.com>
-Suggested-by: Shakeel Butt <shakeel.butt@linux.dev>
-Signed-off-by: Rik van Riel <riel@surriel.com>
-Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
+* A raw count of exactly 2^30 masks to zero, so try_to_unuse() takes its
+  "if (!swap_usage_in_pages(si)) goto success;" early exit and swapoff
+  tears the device down while pages are still swapped out. Nothing in
+  the rest of swapoff aborts the teardown, so those pages are lost.
+
+Independently of swapoff, the collision also corrupts the counter and the
+plist.  On a device in normal use, a free that leaves bit 30 set in the
+count makes swap_usage_sub() see the flag where there is only count, and
+call add_to_avail_list().  It clears the bit with
+fetch_and(~SWAP_USAGE_OFFLIST_BIT), leaving the stored count 4 TiB below
+the real one, and calls plist_add() on a device that is already listed,
+tripping the WARN_ON(!plist_node_empty(node)) in plist_add() and linking
+the node a second time.
+
+Change the definition of SWAP_USAGE_OFFLIST_BIT to be based on
+atomic_long_t instead.  Note that the usage counter field itself is of
+this same type, so it is still a valid bit.
+
+Link: https://lore.kernel.org/20260828191433.3304458-1-nphamcs@gmail.com
+Fixes: b228386cf237 ("mm, swap: clean up plist removal and adding")
+Signed-off-by: Nhat Pham <nphamcs@gmail.com>
+Reported-by: Sashiko <sashiko-bot@kernel.org>
+Closes: https://sashiko.dev/#/patchset/20260825153238.2695446-1-nphamcs%40gmail.com
+Suggested-by: Andrew Morton <akpm@linux-foundation.org>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Baoquan He <baoquan.he@linux.dev>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Chris Li <chrisl@kernel.org>
+Cc: Gregory Price <gourry@gourry.net>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
+Cc: Kairui Song <kasong@tencent.com>
+Cc: Kemeng Shi <shikemeng@huaweicloud.com>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Youngjun Park <youngjun.park@lge.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   19 ++++++++++++-------
- 1 file changed, 12 insertions(+), 7 deletions(-)
+ mm/swapfile.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/memcontrol.c~mm-memcontrol-fix-stuck-flushing_cached_charge-bit-on-isolated-cpus
-+++ a/mm/memcontrol.c
-@@ -2306,7 +2306,7 @@ static bool is_memcg_drain_needed(struct
- 	return flush;
- }
- 
--static void schedule_drain_work(int cpu, struct work_struct *work)
-+static bool schedule_drain_work(int cpu, struct work_struct *work)
+--- a/mm/swapfile.c~mm-swap-fix-swap_usage_offlist_bit-collision-with-real-usage-count
++++ a/mm/swapfile.c
+@@ -156,7 +156,7 @@ static struct swap_info_struct *swap_ent
+  * This bit will be set if the device is not on the plist and not
+  * usable, will be cleared if the device is on the plist.
+  */
+-#define SWAP_USAGE_OFFLIST_BIT (1UL << (BITS_PER_TYPE(atomic_t) - 2))
++#define SWAP_USAGE_OFFLIST_BIT (1UL << (BITS_PER_TYPE(atomic_long_t) - 2))
+ #define SWAP_USAGE_COUNTER_MASK (~SWAP_USAGE_OFFLIST_BIT)
+ static long swap_usage_in_pages(struct swap_info_struct *si)
  {
- 	/*
- 	 * Protect housekeeping cpumask read and work enqueue together
-@@ -2315,8 +2315,11 @@ static void schedule_drain_work(int cpu,
- 	 * pending work on newly isolated CPUs.
- 	 */
- 	guard(rcu)();
--	if (!cpu_is_isolated(cpu))
--		queue_work_on(cpu, memcg_wq, work);
-+	if (cpu_is_isolated(cpu))
-+		return false;
-+
-+	queue_work_on(cpu, memcg_wq, work);
-+	return true;
- }
- 
- /*
-@@ -2348,8 +2351,9 @@ void drain_all_stock(struct mem_cgroup *
- 				      &memcg_st->flags)) {
- 			if (cpu == curcpu)
- 				drain_local_memcg_stock(&memcg_st->work);
--			else
--				schedule_drain_work(cpu, &memcg_st->work);
-+			else if (!schedule_drain_work(cpu, &memcg_st->work))
-+				clear_bit(FLUSHING_CACHED_CHARGE,
-+					  &memcg_st->flags);
- 		}
- 
- 		if (!test_bit(FLUSHING_CACHED_CHARGE, &obj_st->flags) &&
-@@ -2358,8 +2362,9 @@ void drain_all_stock(struct mem_cgroup *
- 				      &obj_st->flags)) {
- 			if (cpu == curcpu)
- 				drain_local_obj_stock(&obj_st->work);
--			else
--				schedule_drain_work(cpu, &obj_st->work);
-+			else if (!schedule_drain_work(cpu, &obj_st->work))
-+				clear_bit(FLUSHING_CACHED_CHARGE,
-+					  &obj_st->flags);
- 		}
- 	}
- 	migrate_enable();
 _
 
-Patches currently in -mm which might be from riel@surriel.com are
+Patches currently in -mm which might be from nphamcs@gmail.com are
 
-mm-memcontrol-fix-stuck-flushing_cached_charge-bit-on-isolated-cpus.patch
+mm-swap-fix-swap_usage_offlist_bit-collision-with-real-usage-count.patch
 
