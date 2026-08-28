@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1873C31195B
-	for <mm-commits@vger.kernel.org>; Fri, 28 Aug 2026 18:46:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0605731195B
+	for <mm-commits@vger.kernel.org>; Fri, 28 Aug 2026 18:46:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787942773; cv=none; b=kEMsOT4i9H2ODf0aQq8mt9Sxje7/gLicIzD3BJmBv0H8gQX0Rp7/cw96bMJOdLo8pKp54FxIRyNAj40f+nVyUaCsNRmGTNtIikuKEk9JUvnshvwXZ1/lDFU6h4I0CGxbc4wB8ICuSm0I7+oITlIVDxrzl1hzDWKGARwS0rehAHU=
+	t=1787942775; cv=none; b=YyRIXLr3x+qit6wEyLx4Nsx3ouR5N5CkUFGSuCNxmej4rZyCpBIhF5OjR7oxlPT8u9dhm1tnWvEniPVQxbwspX2DqbulBmbcwoXvreSbD0siRq3NBJrJhdrTgI125++kkqdkHJmoASogcHWQQj4H5iHfZdTI0NIcOj9egtahPxk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787942773; c=relaxed/simple;
-	bh=fxHOyAr6KjB5Z7KZPVVL0bvVRFvOXHTkomargcwgoKI=;
-	h=Date:To:From:Subject:Message-Id; b=Jyrfnr5olsuP6HJpIbjqZfHyD8LeQ/krp7HU0MIzlHv8pFdhrxM2Kf5nsw3BoGCa+KWyOMvsXP50QTLUIj8Lnjcv+cDD8NB+k272d41+16LzpPLHy5iv2p9UWkdZrN/b+8ALmwdcNqKvDOdHoFl05Pva1DCEOX6oySyRRHZJ/cU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=H3lAjgTh; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1787942775; c=relaxed/simple;
+	bh=1VDq144CdCla3UObVHbBBAcyWZe+HuKtdWZZmRI34mQ=;
+	h=Date:To:From:Subject:Message-Id; b=tOc747MWzHiBvv5Ddj4poQA5NW1mZ9NQOD083I9z3Cxc3/bY1OyVobZSIYQcImF6ZDCXbWEnPoo6UEt8ZDtsSoqHETzTkBNbyL5JjUkylQxpaFMRD8P5Jm50+e3Q+xOfciu8vMk8PxDLbl2Bq6W4OqA4VFx/FKoSDpPkkJ2qTWQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=T60FDhzN; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="H3lAjgTh"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 73F7A1F000E9;
-	Fri, 28 Aug 2026 18:46:11 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="T60FDhzN"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8ADD41F000E9;
+	Fri, 28 Aug 2026 18:46:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1787942771;
-	bh=izC/kg3EYQ9WW4pXleXG3HYTBCYJSRfisNjz9e71alQ=;
+	d=linux-foundation.org; s=korg; t=1787942773;
+	bh=BZAUPCSVjoRzaH+y+i/v7KLi+E8f5E7t16TDyIqlTfw=;
 	h=Date:To:From:Subject;
-	b=H3lAjgThE3uRtwc7oMNf6joTxd7O+aXoXA0XkdyrWLigsY1c3Nl7Fz2pH9xJuwGtv
-	 qGlQklRbrvI3rrUTlR3RyfLKKbdAJzJqJLX/kbI/0r7KwwgsZkk3ib+Xn63BQqkDJM
-	 ZI9J8AMvBKZKuaC8uGU9vNJKN2qsqRRXkIbpc6is=
-Date: Fri, 28 Aug 2026 11:46:11 -0700
+	b=T60FDhzNM+PrOGutydfIR4NArDVajukwc3px1rIaQpTU3pggIvXy4LkCwOsUAH2/I
+	 fdxr2mIXFbXHRDiPPsPcSpEwUJzcOpwm3AWcsocZpF8Z9GWw1mqld01wTgOxRqNeMV
+	 34gnxM7NvqRADUAkBUUjbcZOsUsP3Hb6yfsD6PkM=
+Date: Fri, 28 Aug 2026 11:46:13 -0700
 To: mm-commits@vger.kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,hughd@google.com,hannes@cmpxchg.org,david@kernel.org,brauner@kernel.org,baolin.wang@linux.alibaba.com,zhengqi.arch@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + fs-fix-missed-removal-of-super_fs_objects_eligible.patch added to mm-new branch
-Message-Id: <20260828184611.73F7A1F000E9@smtp.kernel.org>
+Subject: + mm-memcontrol-make-obj_cgroup_memcg-handle-null-objcg.patch added to mm-new branch
+Message-Id: <20260828184613.8ADD41F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: fs: fix missed removal of super_fs_objects_eligible()
+     Subject: mm: memcontrol: make obj_cgroup_memcg() handle NULL objcg
 has been added to the -mm mm-new branch.  Its filename is
-     fs-fix-missed-removal-of-super_fs_objects_eligible.patch
+     mm-memcontrol-make-obj_cgroup_memcg-handle-null-objcg.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-fix-missed-removal-of-super_fs_objects_eligible.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcontrol-make-obj_cgroup_memcg-handle-null-objcg.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,72 +70,26 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Qi Zheng <zhengqi.arch@bytedance.com>
-Subject: fs: fix missed removal of super_fs_objects_eligible()
-Date: Mon, 17 Aug 2026 17:03:25 +0800
+Subject: mm: memcontrol: make obj_cgroup_memcg() handle NULL objcg
+Date: Mon, 17 Aug 2026 17:03:26 +0800
 
-Patch series "make unused huge shrinker memcg aware", v4.
+obj_cgroup_memcg() currently requires a non-NULL objcg, so callers that
+may hold a NULL objcg must guard the call with an explicit NULL check. 
+This pattern is duplicated in folio_memcg(), folio_memcg_check(),
+mm/page_owner.c, and mm/zswap.c.
 
-The shmem unused huge shrinker maintains a per-superblock list of inodes
-whose tail huge folio extends beyond i_size.  Because this list is not
-memcg aware, reclaim triggered by memcg A can scan inodes across the
-entire superblock and split huge folios charged to unrelated memcg B,
-causing unexpected impact on it.
+Teach obj_cgroup_memcg() to accept NULL and return NULL in that case, then
+remove the redundant NULL checks at the call sites.  Also remove the
+mem_cgroup_from_entry() wrapper in zswap, which existed solely to provide
+this NULL-safe behaviour, and replace its two callers with direct
+obj_cgroup_memcg() calls.
 
-In the worst case, memcg A has no reclaimable shmem at all, making the
-reclaim entirely useless and incurring unnecessary latency.  We observed
-this in production, where page lock contention during split caused
-multi-hundred-millisecond stalls:
+No functional change intended.
 
-  tid 11340 comm scanner locked a page for 182264 us! kstack:
-          unlock_page+1
-          split_huge_page_to_list+3135
-          shmem_unused_huge_shrink+767
-          super_cache_scan+329
-          do_shrink_slab+291
-          shrink_slab+533
-          shrink_node+400
-          do_try_to_free_pages+206
-          try_to_free_mem_cgroup_pages+262
-          try_charge_memcg+591
-          mem_cgroup_charge+136
-          __handle_mm_fault+2431
-          handle_mm_fault+194
-          do_user_addr_fault+462
-          __do_page_fault+176
-          do_page_fault+48
-          page_fault+62
-
-Usama's recent patch [1] prevents the shmem unused shrinker from being
-invoked during memcg-level reclaim altogether, but this is overly
-conservative: we can do better by reclaiming only the shmem charged to the
-reclaiming memcg.
-
-This series converts the shrinker list to a memcg-aware list_lru, so that
-non-root memcg reclaim walks only candidates charged to the reclaiming
-memcg.  Global reclaim, root memcg reclaim and shmem quota reclaim retain
-their existing global semantics.
-
-To avoid pinning a dying memcg through a long-lived CSS reference, each
-inode stores an obj_cgroup reference instead of a mem_cgroup reference. 
-The list_lru add/delete paths resolve the current memcg from the objcg
-under RCU, staying consistent with list_lru's own memcg migration on
-offline.
-
-
-This patch (of 4):
-
-Commit 0ef8faff490be ("fs: push nr_cached_objects memcg gating into
-individual filesystems") forgot to drop the super_fs_objects_eligible(),
-just fix it.
-
-Link: https://lore.kernel.org/3b038d373c70ebac7cdabfb0035bb91d1d6e6cfe.1786955972.git.zhengqi.arch@bytedance.com
-Link: https://lore.kernel.org/all/20260715103516.2410175-1-usama.arif@linux.dev/ [0]
-Fixes: 0ef8faff490be ("fs: push nr_cached_objects memcg gating into individual filesystems")
+Link: https://lore.kernel.org/09bcf74312246a6e4146be8a0cb9787f8beddb28.1786955972.git.zhengqi.arch@bytedance.com
 Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
+Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Hugh Dickins <hughd@google.com>
 Cc: Christian Brauner <brauner@kernel.org>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Hugh Dickins <hughd@google.com>
@@ -143,54 +97,106 @@ Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Muchun Song <muchun.song@linux.dev>
 Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/super.c |   18 ++----------------
- 1 file changed, 2 insertions(+), 16 deletions(-)
+ include/linux/memcontrol.h |   11 ++++++++---
+ mm/page_owner.c            |    2 +-
+ mm/zswap.c                 |   17 ++---------------
+ 3 files changed, 11 insertions(+), 19 deletions(-)
 
---- a/fs/super.c~fs-fix-missed-removal-of-super_fs_objects_eligible
-+++ a/fs/super.c
-@@ -172,19 +172,6 @@ static void super_wake(struct super_bloc
+--- a/include/linux/memcontrol.h~mm-memcontrol-make-obj_cgroup_memcg-handle-null-objcg
++++ a/include/linux/memcontrol.h
+@@ -380,7 +380,7 @@ enum objext_flags {
+ static inline struct mem_cgroup *obj_cgroup_memcg(struct obj_cgroup *objcg)
+ {
+ 	lockdep_assert_once(rcu_read_lock_held() || lockdep_is_held(&cgroup_mutex));
+-	return READ_ONCE(objcg->memcg);
++	return objcg ? READ_ONCE(objcg->memcg) : NULL;
  }
  
  /*
-- * The s_op->nr_cached_objects hooks (used for example by btrfs and xfs)
-- * operate on filesystem-global state and ignore sc->memcg. Driving them
-- * from per-memcg shrink_slab_memcg() invocations only burns CPU walking
-- * per-cpu counters and queueing duplicate work: the actual reclaim happens on
-- * the global path (kswapd or root direct reclaim) regardless. Restrict them
-- * to that path.
-- */
--static inline bool super_fs_objects_eligible(struct shrink_control *sc)
+@@ -433,7 +433,7 @@ static inline struct mem_cgroup *folio_m
+ {
+ 	struct obj_cgroup *objcg = folio_objcg(folio);
+ 
+-	return objcg ? obj_cgroup_memcg(objcg) : NULL;
++	return obj_cgroup_memcg(objcg);
+ }
+ 
+ /*
+@@ -476,7 +476,7 @@ static inline struct mem_cgroup *folio_m
+ 
+ 	objcg = (void *)(memcg_data & ~OBJEXTS_FLAGS_MASK);
+ 
+-	return objcg ? obj_cgroup_memcg(objcg) : NULL;
++	return obj_cgroup_memcg(objcg);
+ }
+ 
+ static inline struct mem_cgroup *page_memcg_check(struct page *page)
+@@ -1050,6 +1050,11 @@ void mem_cgroup_flush_workqueue(void);
+ extern int mem_cgroup_init(void);
+ #else /* CONFIG_MEMCG */
+ 
++static inline struct mem_cgroup *obj_cgroup_memcg(struct obj_cgroup *objcg)
++{
++	return NULL;
++}
++
+ #define MEM_CGROUP_ID_SHIFT	0
+ 
+ #define root_mem_cgroup		(NULL)
+--- a/mm/page_owner.c~mm-memcontrol-make-obj_cgroup_memcg-handle-null-objcg
++++ a/mm/page_owner.c
+@@ -575,7 +575,7 @@ static inline int print_page_owner_memcg
+ 	}
+ 
+ 	objcg = (void *)(memcg_data & ~OBJEXTS_FLAGS_MASK);
+-	memcg = objcg ? obj_cgroup_memcg(objcg) : NULL;
++	memcg = obj_cgroup_memcg(objcg);
+ 	if (!memcg)
+ 		goto out_unlock;
+ 
+--- a/mm/zswap.c~mm-memcontrol-make-obj_cgroup_memcg-handle-null-objcg
++++ a/mm/zswap.c
+@@ -647,19 +647,6 @@ static int zswap_enabled_param_set(const
+ * lru functions
+ **********************************/
+ 
+-/* should be called under RCU */
+-#ifdef CONFIG_MEMCG
+-static inline struct mem_cgroup *mem_cgroup_from_entry(struct zswap_entry *entry)
 -{
--	return !sc->memcg || mem_cgroup_is_root(sc->memcg);
+-	return entry->objcg ? obj_cgroup_memcg(entry->objcg) : NULL;
 -}
+-#else
+-static inline struct mem_cgroup *mem_cgroup_from_entry(struct zswap_entry *entry)
+-{
+-	return NULL;
+-}
+-#endif
 -
--/*
-  * One thing we have to be careful of with a per-sb shrinker is that we don't
-  * drop the last active reference to the superblock from within the shrinker.
-  * If that happens we could trigger unregistering the shrinker from within the
-@@ -213,7 +200,7 @@ static unsigned long super_cache_scan(st
- 	if (!super_trylock_shared(sb))
- 		return SHRINK_STOP;
+ static inline int entry_to_nid(struct zswap_entry *entry)
+ {
+ 	return page_to_nid(virt_to_page(entry));
+@@ -682,7 +669,7 @@ static void zswap_lru_add(struct zswap_e
+ 	 * Similar reasoning holds for list_lru_del().
+ 	 */
+ 	rcu_read_lock();
+-	memcg = mem_cgroup_from_entry(entry);
++	memcg = obj_cgroup_memcg(entry->objcg);
+ 	/* will always succeed */
+ 	list_lru_add(&zswap_list_lru, &entry->lru, nid, memcg);
+ 	rcu_read_unlock();
+@@ -694,7 +681,7 @@ static void zswap_lru_del(struct zswap_e
+ 	struct mem_cgroup *memcg;
  
--	if (sb->s_op->nr_cached_objects && super_fs_objects_eligible(sc))
-+	if (sb->s_op->nr_cached_objects)
- 		fs_objects = sb->s_op->nr_cached_objects(sb, sc);
- 
- 	inodes = list_lru_shrink_count(&sb->s_inode_lru, sc);
-@@ -274,8 +261,7 @@ static unsigned long super_cache_count(s
- 		return 0;
- 	smp_rmb();
- 
--	if (sb->s_op && sb->s_op->nr_cached_objects &&
--	    super_fs_objects_eligible(sc))
-+	if (sb->s_op && sb->s_op->nr_cached_objects)
- 		total_objects = sb->s_op->nr_cached_objects(sb, sc);
- 
- 	total_objects += list_lru_shrink_count(&sb->s_dentry_lru, sc);
+ 	rcu_read_lock();
+-	memcg = mem_cgroup_from_entry(entry);
++	memcg = obj_cgroup_memcg(entry->objcg);
+ 	/* will always succeed */
+ 	list_lru_del(&zswap_list_lru, &entry->lru, nid, memcg);
+ 	rcu_read_unlock();
 _
 
 Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
