@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 596F61C69D
-	for <mm-commits@vger.kernel.org>; Fri, 28 Aug 2026 04:21:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C13793B52EA
+	for <mm-commits@vger.kernel.org>; Fri, 28 Aug 2026 04:21:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787890915; cv=none; b=mCbCNaqzYPnknpwmZpGay6OetBZKA6eUjMU0UgQt0F2WRFELcrOs6PDQ8Jq/SVG4xiLYll8pzcyheRy2aOJlcpZemvmQY+zCv9xZs16T5e8xi0eR6ZdMUXqmY4olzPTEu3z4vo1jTNSfBNGBUDtEQcIBKqMr+xYRwgnF3QAWQn4=
+	t=1787890919; cv=none; b=X0NjH16xu5Up+fu73sQ52t2LN2a4TN2nBYikB6u1HRTdHisy0J8vWTcWJoEKmO5V8Jdc2XN52YHBQSS8h9DWTQs35bqRF5oTeVk1qiLokTpbtwTZOrSyNTZEnGWesBFhZFe0Qlt/8GwfTvCGMhQSl98QjsBXcvr18kvK6oNU3l0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787890915; c=relaxed/simple;
-	bh=f3o+Ax4ZYgDUbcyQxY+Q2sNjLVJqJOMK+l8NXig0FYc=;
-	h=Date:To:From:Subject:Message-Id; b=Zs8W2IeITj3EaAFNKD+UuZucj+nj3rthojZFy43zKmKKdG5ZrEKH4uRnnJzX/elQReon45/2Ki7HF3YNrn03oYV/FYGP8HvgXVob6dcl0SiWtAmYvYTa94q1xBpipUH5GhJStyMXGBacV76ztlZGogVkr9C9KjK5mon3JojO4RQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yoDZp8h4; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1787890919; c=relaxed/simple;
+	bh=Gs7yPCBix8Kchc7syYknwj7QQoSuW5yhyduS5ZopUaE=;
+	h=Date:To:From:Subject:Message-Id; b=rdG7fBiYiuXvhFXcPI6Jfie4D76zsRYbY/Vbcaqj8XjOcOxO35178GkX1mL/tTwWRmmCFlkNxOmv5MzlexWovy0/uapWIOVn1g3xLwMygOb707NX0u0/hgrgqlO+GSTUj2FfQ2k8Ox05bHmziWWMtHsWFq5vCA02HOxPgsBWnaE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=o/rDEpM3; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yoDZp8h4"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2CE6C1F000E9;
-	Fri, 28 Aug 2026 04:21:54 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="o/rDEpM3"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 95C081F000E9;
+	Fri, 28 Aug 2026 04:21:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1787890914;
-	bh=4QSd5ii9Hp9Q91EWEYFqZ25izlf8q6LdJ/B3APIcopc=;
+	d=linux-foundation.org; s=korg; t=1787890917;
+	bh=uVHMLp6/Cym//bW8QRXpYr1rwTJcuPYvuRqTSY50EMA=;
 	h=Date:To:From:Subject;
-	b=yoDZp8h4iN6HYg6e3tj7NorWv9tPIpssX3H9rF+hEfHJKxTnGOAt7AHVoJ3IOPYjN
-	 Mpa0Z7OPtw5xkzt9wXQ7fYe4oiC2CLTMmVMkQJpeWrqPkLhqzrbGw5Z5O6JUPkSA7p
-	 +Hqu85ww9GOBhzsQ6qDQ6l1EbpFEhA6Dm69N8In8=
-Date: Thu, 27 Aug 2026 21:21:53 -0700
+	b=o/rDEpM3njarKZzSjlCNJ9e+x6PBvUDHJbwlYKUHBAv1rIO/9SeQUh+nD5ISTNtWv
+	 WewgLsMGLmyy2mBpCM/NKcVSyamP7rtqf1T3YRBVzTmL92j5dHUyAl1PJ5qbmdhkiF
+	 Y2uV6Dbdw+guhtTabKZQ82qBCdr/cQufdjZs+YJ4=
+Date: Thu, 27 Aug 2026 21:21:57 -0700
 To: mm-commits@vger.kernel.org,songmuchun@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb-localize-struct-huge_bootmem_page.patch added to mm-new branch
-Message-Id: <20260828042154.2CE6C1F000E9@smtp.kernel.org>
+Subject: + mm-hugetlb-localize-huge_bootmem_zones_valid.patch added to mm-new branch
+Message-Id: <20260828042157.95C081F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/hugetlb: localize struct huge_bootmem_page
+     Subject: mm/hugetlb: localize HUGE_BOOTMEM_ZONES_VALID
 has been added to the -mm mm-new branch.  Its filename is
-     mm-hugetlb-localize-struct-huge_bootmem_page.patch
+     mm-hugetlb-localize-huge_bootmem_zones_valid.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-localize-struct-huge_bootmem_page.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-localize-huge_bootmem_zones_valid.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,20 +70,16 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm/hugetlb: localize struct huge_bootmem_page
-Date: Tue, 25 Aug 2026 16:46:07 +0800
+Subject: mm/hugetlb: localize HUGE_BOOTMEM_ZONES_VALID
+Date: Tue, 25 Aug 2026 16:46:08 +0800
 
-struct huge_bootmem_page is only used by hugetlb boot-time allocation
-code, but its definition currently lives in mm/internal.h because
-hugetlb_vmemmap_optimize_bootmem_page() takes it as an argument.  This
-exposes a hugetlb-specific internal type more broadly than needed.
+HUGE_BOOTMEM_ZONES_VALID is only used by the huge_bootmem_page flag
+handling in mm/hugetlb.c.  Keep the definition next to that private data
+structure instead of exposing it through the public hugetlb header.
 
-Change hugetlb_vmemmap_optimize_bootmem_page() to take the information it
-actually needs.  With that interface, mm/hugetlb_vmemmap.h no longer needs
-to include mm/internal.h, and struct huge_bootmem_page can move into
-mm/hugetlb.c.
+No functional change is intended.
 
-Link: https://lore.kernel.org/20260825084608.47437-17-songmuchun@bytedance.com
+Link: https://lore.kernel.org/20260825084608.47437-18-songmuchun@bytedance.com
 Signed-off-by: Muchun Song <songmuchun@bytedance.com>
 Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Acked-by: Qi Zheng <qi.zheng@linux.dev>
@@ -98,108 +94,32 @@ Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c         |    8 +++++++-
- mm/hugetlb_vmemmap.c |    8 +++-----
- mm/hugetlb_vmemmap.h |    5 ++---
- mm/internal.h        |    7 -------
- 4 files changed, 12 insertions(+), 16 deletions(-)
+ include/linux/hugetlb.h |    2 --
+ mm/hugetlb.c            |    2 ++
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-localize-struct-huge_bootmem_page
+--- a/include/linux/hugetlb.h~mm-hugetlb-localize-huge_bootmem_zones_valid
++++ a/include/linux/hugetlb.h
+@@ -675,8 +675,6 @@ struct hstate {
+ 	char name[HSTATE_NAME_LEN];
+ };
+ 
+-#define HUGE_BOOTMEM_ZONES_VALID	BIT(0)
+-
+ int isolate_or_dissolve_huge_folio(struct folio *folio, struct list_head *list);
+ int replace_free_hugepage_folios(unsigned long start_pfn, unsigned long end_pfn);
+ void wait_for_freed_hugetlb_folios(void);
+--- a/mm/hugetlb.c~mm-hugetlb-localize-huge_bootmem_zones_valid
 +++ a/mm/hugetlb.c
-@@ -55,6 +55,12 @@
+@@ -55,6 +55,8 @@
  #include "sparse.h"
  #include <linux/page-isolation.h>
  
-+struct huge_bootmem_page {
-+	struct list_head list;
-+	struct hstate *hstate;
-+	unsigned long flags;
-+};
++#define HUGE_BOOTMEM_ZONES_VALID	BIT(0)
 +
- int hugetlb_max_hstate __read_mostly;
- unsigned int default_hstate_idx;
- struct hstate hstates[HUGE_MAX_HSTATE];
-@@ -3142,7 +3148,7 @@ static bool __init alloc_bootmem_huge_pa
- 	} else {
- 		list_add_tail(&m->list, &huge_boot_pages[nid]);
- 		m->flags |= HUGE_BOOTMEM_ZONES_VALID;
--		hugetlb_vmemmap_optimize_bootmem_page(m);
-+		hugetlb_vmemmap_optimize_bootmem_page(pfn, huge_page_order(h));
- 		/*
- 		 * Only initialize the head struct page in memmap_init_reserved_pages,
- 		 * rest of the struct pages will be initialized by the HugeTLB
---- a/mm/hugetlb_vmemmap.c~mm-hugetlb-localize-struct-huge_bootmem_page
-+++ a/mm/hugetlb_vmemmap.c
-@@ -19,6 +19,7 @@
- #include <asm/tlbflush.h>
- #include "hugetlb_vmemmap.h"
- #include "sparse.h"
-+#include "internal.h"
- 
- /**
-  * struct vmemmap_remap_walk - walk vmemmap page table
-@@ -705,15 +706,12 @@ void hugetlb_vmemmap_optimize_bootmem_fo
- 	__hugetlb_vmemmap_optimize_folios(h, folio_list, true);
- }
- 
--void __init hugetlb_vmemmap_optimize_bootmem_page(struct huge_bootmem_page *m)
-+void __init hugetlb_vmemmap_optimize_bootmem_page(unsigned long pfn, unsigned int order)
- {
--	struct hstate *h = m->hstate;
--	unsigned long pfn = PHYS_PFN(__pa(m));
--
- 	if (!READ_ONCE(vmemmap_optimize_enabled))
- 		return;
- 
--	section_set_order_range(pfn, pages_per_huge_page(h), huge_page_order(h));
-+	section_set_order_range(pfn, 1UL << order, order);
- }
- 
- static const struct ctl_table hugetlb_vmemmap_sysctls[] = {
---- a/mm/hugetlb_vmemmap.h~mm-hugetlb-localize-struct-huge_bootmem_page
-+++ a/mm/hugetlb_vmemmap.h
-@@ -9,7 +9,6 @@
- #ifndef _LINUX_HUGETLB_VMEMMAP_H
- #define _LINUX_HUGETLB_VMEMMAP_H
- #include <linux/hugetlb.h>
--#include "internal.h"
- 
- /*
-  * Reserve one vmemmap page, all vmemmap addresses are mapped to it. See
-@@ -26,7 +25,7 @@ long hugetlb_vmemmap_restore_folios(cons
- void hugetlb_vmemmap_optimize_folio(const struct hstate *h, struct folio *folio);
- void hugetlb_vmemmap_optimize_folios(struct hstate *h, struct list_head *folio_list);
- void hugetlb_vmemmap_optimize_bootmem_folios(struct hstate *h, struct list_head *folio_list);
--void hugetlb_vmemmap_optimize_bootmem_page(struct huge_bootmem_page *m);
-+void hugetlb_vmemmap_optimize_bootmem_page(unsigned long pfn, unsigned int order);
- 
- static inline unsigned int hugetlb_vmemmap_size(const struct hstate *h)
- {
-@@ -77,7 +76,7 @@ static inline unsigned int hugetlb_vmemm
- 	return 0;
- }
- 
--static inline void hugetlb_vmemmap_optimize_bootmem_page(struct huge_bootmem_page *m)
-+static inline void hugetlb_vmemmap_optimize_bootmem_page(unsigned long pfn, unsigned int order)
- {
- }
- #endif /* CONFIG_HUGETLB_PAGE_OPTIMIZE_VMEMMAP */
---- a/mm/internal.h~mm-hugetlb-localize-struct-huge_bootmem_page
-+++ a/mm/internal.h
-@@ -23,13 +23,6 @@
- #include "vma.h"
- 
- struct folio_batch;
--struct hstate;
--
--struct huge_bootmem_page {
--	struct list_head list;
--	struct hstate *hstate;
--	unsigned long flags;
--};
- 
- /* mm/workingset.c */
- bool workingset_test_recent(void *shadow, bool file, bool *workingset,
+ struct huge_bootmem_page {
+ 	struct list_head list;
+ 	struct hstate *hstate;
 _
 
 Patches currently in -mm which might be from songmuchun@bytedance.com are
