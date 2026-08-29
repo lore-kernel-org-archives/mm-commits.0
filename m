@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1D62636215F
-	for <mm-commits@vger.kernel.org>; Sat, 29 Aug 2026 20:38:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0B01437E5C8
+	for <mm-commits@vger.kernel.org>; Sat, 29 Aug 2026 20:38:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788035922; cv=none; b=cBOB9RJsmemuGLQuY6F5pTq9OAfM3hE1A0I0g4pAmBPFpYLoKPZIOHZWIwpj13STlB7UAd9sc681m/a+sdsSVejCX1ojf2UQOkp3OoLDOzIawizixtZwzB+6K+8Gwkg9OOSQpiK+Okqnx2dCS3/RDQt0rfJ4PrYIUEcdhpiABOw=
+	t=1788035924; cv=none; b=n43MS+eH9ujTt2U1APJQyKXZIkamGiUvX8dWHRPm5NKlMb0l170oyfgDIW8H6kTNThBtvNmUjHfqCizkw9JFsmMlWWnIfJdT7V8RMIw1pICBBWx2VeT4EJXK4AxGkdm6IHHvrkbgejZpdtSItuZq/dP8ofJhvV2wuGVLj1AW62g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788035922; c=relaxed/simple;
-	bh=2Fv/Q9eppwl0WkmSu6Nz+c8tlbinzJWYU2RgZVD9GrA=;
-	h=Date:To:From:Subject:Message-Id; b=ZVGz4uISfrHzxZC6kqsNK1Kc5nFKJOp5R2mIi0rpcTUdHZ+T/R+qP+4sNytjU1O83Qff5QkQ0CqxRNad7WdTb+tAN1GnxYCobizQTEomAXQio9yQ713s6eB9ILx4CUsyO/BFJjD1RCy205xC8T4Q6Ynif9yYRVz2DmNc79MI21w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zZGSbnd6; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788035924; c=relaxed/simple;
+	bh=fHLbffr3NnZ6rGLfMsFCnzc6NAXPSoDvIlMgfuzZJ+I=;
+	h=Date:To:From:Subject:Message-Id; b=J0RuUDkcxW/k87mE+GKjjsmr6wSngLlJzDle3LMpeBVfuEo6e4H1VeA0LWfNiyDLnZqoSmv+5XhhLtC7wWsCHexa0Hw1L4UzYYrJxxAYZ09I1EIyVDbU0nI2ff7IvK0cJlzTHqGYoW8i6dTCeh0yRk1XUV/Q/QGse6M60qhl5o0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=K2xwVSex; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zZGSbnd6"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8B07E1F000E9;
-	Sat, 29 Aug 2026 20:38:40 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="K2xwVSex"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 844ED1F00A3D;
+	Sat, 29 Aug 2026 20:38:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788035920;
-	bh=ENZ4HXqHu3w9Rv1JV6O0z6QgEcvX8eZ4qNlC94akQ34=;
+	d=linux-foundation.org; s=korg; t=1788035922;
+	bh=i792Mpujuco9CkY8mvKGulN/aQnqBbaI6cxOkW/kDQs=;
 	h=Date:To:From:Subject;
-	b=zZGSbnd6vjlXPHM1q5zmJtbJ3DZlopAsSwpNJSnhYXoxm0V8XvvFIE+FlLhGp2YLK
-	 53XpMlvcVoqc9rjm/1MIlG/siYz0QV6BpnNsYR27VgvjxjCXGfkM/vAUI32JoUQHT9
-	 9QWvvm4ayKoVTXaF2tL3Vh6a6Tp0nKKq9H45w/yI=
-Date: Sat, 29 Aug 2026 13:38:39 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@kernel.org,surenb@google.com,shikemeng@huaweicloud.com,rppt@kernel.org,nphamcs@gmail.com,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,kasong@tencent.com,hch@lst.de,hannes@cmpxchg.org,david@kernel.org,chrisl@kernel.org,chengming.zhou@linux.dev,baoquan.he@linux.dev,baohua@kernel.org,tz2294@columbia.edu,akpm@linux-foundation.org
+	b=K2xwVSex6KQCy4rMowjSBGjyAx00MQcBCDh5eoK3Tkd4veHaJMXM0UKY99g56pyJl
+	 z3XB091wZUp5CjRkZ7AlZn1Pp8Lgr+dA30vM0yuv66dT0L9F7Jlp1i5pYgvHekeYlj
+	 qJkbS2IcHMLNOKSeC6Gyb5qyfdO7npwLOm+YeM/k=
+Date: Sat, 29 Aug 2026 13:38:42 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,ljs@kernel.org,hannes@cmpxchg.org,david@kernel.org,tz2294@columbia.edu,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_io-convert-write-completion-handlers-to-folios.patch added to mm-new branch
-Message-Id: <20260829203840.8B07E1F000E9@smtp.kernel.org>
+Subject: + mm-remove-pagereclaim.patch added to mm-new branch
+Message-Id: <20260829203842.844ED1F00A3D@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/page_io: convert write completion handlers to folios
+     Subject: mm: remove PageReclaim
 has been added to the -mm mm-new branch.  Its filename is
-     mm-page_io-convert-write-completion-handlers-to-folios.patch
+     mm-remove-pagereclaim.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_io-convert-write-completion-handlers-to-folios.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-pagereclaim.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,95 +70,37 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Tal Zussman <tz2294@columbia.edu>
-Subject: mm/page_io: convert write completion handlers to folios
-Date: Sat, 29 Aug 2026 15:09:00 -0400
+Subject: mm: remove PageReclaim
+Date: Sat, 29 Aug 2026 15:09:01 -0400
 
-Patch series "mm/page_io: folio conversion cleanups", v2.
+This flag is now only used on folios, so we can remove all the page
+accessors.  folio_test_clear_reclaim() is not used, so don't add
+FOLIO_TEST_CLEAR_FLAG() for it.
 
-Convert the remaining struct page usage in mm/page_io.c to folios.  This
-removes one of the last callers of end_page_writeback(), along with the
-last caller of ClearPageReclaim().  This allows us to remove the
-PG_reclaim page accessors entirely.  Clean up a few other stale references
-to pages throughout while at it.
-
-The rename of mm/page_io.c to mm/swap_io.c is deferred to a separate
-series.
-
-
-This patch (of 6):
-
-Convert swap_write_end() and swap_fs_write_complete() to operate on folios
-directly instead of going through the folio-compat page APIs.  This
-removes calls to end_page_writeback() and set_page_dirty(), and the last
-caller of ClearPageReclaim(), saving two calls to compound_head() per
-folio on the write error path.
-
-Link: https://lore.kernel.org/20260829-b4-page_io-folios-v2-0-649728091117@columbia.edu
-Link: https://lore.kernel.org/20260829-b4-page_io-folios-v2-1-649728091117@columbia.edu
+Link: https://lore.kernel.org/20260829-b4-page_io-folios-v2-2-649728091117@columbia.edu
 Signed-off-by: Tal Zussman <tz2294@columbia.edu>
 Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Reviewed-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
-Cc: Baoquan He <baoquan.he@linux.dev>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Chengming Zhou <chengming.zhou@linux.dev>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Kairui Song <kasong@tencent.com>
-Cc: Kemeng Shi <shikemeng@huaweicloud.com>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_io.c |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ include/linux/page-flags.h |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/mm/page_io.c~mm-page_io-convert-write-completion-handlers-to-folios
-+++ a/mm/page_io.c
-@@ -497,13 +497,13 @@ static void swap_write_end(struct swap_i
- 	int p;
+--- a/include/linux/page-flags.h~mm-remove-pagereclaim
++++ a/include/linux/page-flags.h
+@@ -593,8 +593,7 @@ TESTPAGEFLAG(Writeback, writeback, PF_NO
+ FOLIO_FLAG(mappedtodisk, FOLIO_HEAD_PAGE)
  
- 	for (p = 0; p < sio->nr_bvecs; p++) {
--		struct page *page = sio->bvecs[p].bv_page;
-+		struct folio *folio = bvec_folio(&sio->bvecs[p]);
+ /* PG_readahead is only used for reads; PG_reclaim is only for writes */
+-PAGEFLAG(Reclaim, reclaim, PF_NO_TAIL)
+-	TESTCLEARFLAG(Reclaim, reclaim, PF_NO_TAIL)
++FOLIO_FLAG(reclaim, FOLIO_HEAD_PAGE)
+ FOLIO_FLAG(readahead, FOLIO_HEAD_PAGE)
+ 	FOLIO_TEST_CLEAR_FLAG(readahead, FOLIO_HEAD_PAGE)
  
- 		if (failed) {
--			set_page_dirty(page);
--			ClearPageReclaim(page);
-+			folio_mark_dirty(folio);
-+			folio_clear_reclaim(folio);
- 		}
--		end_page_writeback(page);
-+		folio_end_writeback(folio);
- 	}
- 	mempool_free(sio, sio_pool);
- }
-@@ -514,16 +514,16 @@ static void swap_fs_write_complete(struc
- 	bool failed = ret != sio->len;
- 
- 	if (failed) {
--		struct page *page = sio->bvecs[0].bv_page;
-+		struct folio *folio = bvec_folio(&sio->bvecs[0]);
- 
- 		/*
- 		 * In the case of swap-over-nfs, this can be a temporary failure
- 		 * if the system has limited memory for allocating transmit
--		 * buffers.  Mark the page dirty and avoid
-+		 * buffers.  Mark the folio dirty and avoid
- 		 * folio_rotate_reclaimable but rate-limit the messages.
- 		 */
- 		pr_err_ratelimited("Write error %ld on dio swapfile (%llu)\n",
--				   ret, swap_dev_pos(page_swap_entry(page)));
-+				   ret, swap_dev_pos(folio->swap));
- 	}
- 
- 	swap_write_end(sio, failed);
 _
 
 Patches currently in -mm which might be from tz2294@columbia.edu are
