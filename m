@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1391A20E030
-	for <mm-commits@vger.kernel.org>; Sat, 29 Aug 2026 02:09:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 05F7F20E030
+	for <mm-commits@vger.kernel.org>; Sat, 29 Aug 2026 02:09:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787969373; cv=none; b=MZJuh09io+W0obyzt9B+FqZJT87ca2BLFVx/6QNm/KDPSlt+H/9gxqsqjrXF7SzVzI+nFF0CQjueWvSf7T4+XHE7mjjLnKq9Ay/Zlgc/2xsFj83q0gItOop1YObPDmQ2iqIfWPHCDDoXEMsy8imjK9mi5fQh0W2Rvv956GDKvfA=
+	t=1787969375; cv=none; b=YHA2w6eSGp8SeqKobZ1Kq7wujL58XepXAcp/hKL4pdZe5cymx4zkr2A7vCFO46vkag3DGEG7vixbEP0vbybkgy6ruu/DwUX5wlfYKNfSLqUtMqpoT4gW4DJlpkM9Psx2ZMaj5IfCCF3229jgH1egJ6Uv5ySrAa/AcbEzxvRvNp8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787969373; c=relaxed/simple;
-	bh=gJ+1oPVSbHOM+P/IC6MmkdY6uKJ/pr00+4t99nqluDc=;
-	h=Date:To:From:Subject:Message-Id; b=p9yB5WcAbRER1hoHGutnjvnc4L+I+pPD5Lc+QAJ49EtmtAQZhrVW9YRmFYBkga0NQiBeap7NzGH5pzWjwFmHJeJZ4XlJil5uFJ05do+8clKpXEkpaH0ONx4aJwFgqSyjHwrbzHFOdgfzHRsoqMG40JXglT3j+6zhEr2vC9eOz8k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FIjCq7/s; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1787969375; c=relaxed/simple;
+	bh=z8beP/myxTr5kAEpstYiDJJ8MIqFPL8sw5BH+hkzS4A=;
+	h=Date:To:From:Subject:Message-Id; b=Jq+gE2fntJxHIZqsx487mcGUH+BtSMgmgeM8GvkxkX/jn4r7rdTYmysY25YgOxPeGzBOMeg4w48MWU0RKpKMRE0tQl+9h1Jhd2G71uI4FqvdWHFuKYphTHSgWE7sutIJ65yx9mQcGTcCaiA8Hcqdb+WtNNDK5jwMs+h/wdNmScw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HoouKZaZ; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FIjCq7/s"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7F5241F000E9;
-	Sat, 29 Aug 2026 02:09:31 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HoouKZaZ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 96EDA1F000E9;
+	Sat, 29 Aug 2026 02:09:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1787969371;
-	bh=eK8lVQRbmBCGyVj+GbUrMm3VxJMcHatHnTDy/YLcyhI=;
+	d=linux-foundation.org; s=korg; t=1787969373;
+	bh=GFmsmbRGN/vx+IjAFL9CIYWsCjJfa9DNq0uDEuIYVe0=;
 	h=Date:To:From:Subject;
-	b=FIjCq7/sClRvn//Zkspc8BCRdaAeaDYMuaeKQesQGxVh7JS9mILtPUpi4U61T/FME
-	 EqTE7k7k+To+pg/Ozn9i92lveGQ4avitK0dKlWmAOXZparOsuOKuIFjJkp2Nugds5Q
-	 RXuVqN8PdSFUIIY6ppev0yom10V6FC0lEL+1+FoE=
-Date: Fri, 28 Aug 2026 19:09:31 -0700
+	b=HoouKZaZ2SGNt+A+GtULGuOGGE6LbtyhLVXZ69LWJht5HPeuooEsph7kz1L0naKyb
+	 +yEg7da2s+gKrEHjY+5PaMch8FwVQhKbr0cUSxUUXKTtv2fla0DBPJPA3EAG0/ig/H
+	 BlsVsip6KibyNdBZ5bn5n8dAGhoFIUnNU3YcbVMg=
+Date: Fri, 28 Aug 2026 19:09:33 -0700
 To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liujing@cmss.chinamobile.com,liam@infradead.org,david@kernel.org,corbet@lwn.net,chenyichong@uniontech.com,liuye@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + tools-mm-page_owner_sort-fix-sort-option-being-silently-ignored.patch added to mm-new branch
-Message-Id: <20260829020931.7F5241F000E9@smtp.kernel.org>
+Subject: + tools-mm-page_owner_sort-add-module-name-sort-cull-filter-support.patch added to mm-new branch
+Message-Id: <20260829020933.96EDA1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: tools/mm/page_owner_sort: fix --sort option being silently ignored
+     Subject: tools/mm/page_owner_sort: add module name sort/cull/filter support
 has been added to the -mm mm-new branch.  Its filename is
-     tools-mm-page_owner_sort-fix-sort-option-being-silently-ignored.patch
+     tools-mm-page_owner_sort-add-module-name-sort-cull-filter-support.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/tools-mm-page_owner_sort-fix-sort-option-being-silently-ignored.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/tools-mm-page_owner_sort-add-module-name-sort-cull-filter-support.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,61 +70,28 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Ye Liu <liuye@kylinos.cn>
-Subject: tools/mm/page_owner_sort: fix --sort option being silently ignored
-Date: Wed, 19 Aug 2026 10:16:09 +0800
+Subject: tools/mm/page_owner_sort: add module name sort/cull/filter support
+Date: Wed, 19 Aug 2026 10:16:10 +0800
 
-Patch series "tools/mm/page_owner_sort: fix --sort, add module filter,
-improve usage", v3.
+Page owner stack traces already contain kernel module names in the
+"[module]" format produced by %pS, but page_owner_sort has no way to sort,
+cull, or filter by module.
 
-This series improves the page_owner_sort tool with a bug fix, a new
-module-name feature, and better usage text.
+Extract the first module name from each record's stack trace using the
+regex \[([a-zA-Z0-9_]+)\].  Records whose stack traces contain no module
+frames are assigned "vmlinux".
 
-Patch 1 fixes a long-standing bug where --sort was silently ignored when
-used without a short option (-a, -m, -p, etc.).  The COMP_NO_FLAG case
-fell through to COMP_NUM and overwrote the sort conditions configured by
-parse_sort_args().
+New options:
+  -M                  Sort by module name
+  --sort=mod          Sort by module name (supports +/- prefix)
+  --cull=mod          Cull (aggregate) by module name
+  --module <modlist>  Filter to records matching the given module(s)
 
-Patch 2 adds kernel module name support for sort, cull, and filter
-operations.  Page owner stack traces already contain module names in the
-"function+0xNN/0xNN [module]" format produced by %pS, but page_owner_sort
-had no way to use them.  Records without module frames are assigned
-"vmlinux".
+The module field is also printed in cull output when relevant.
 
-  # Aggregate page usage per module
-  ./page_owner_sort input.txt output.txt --cull=mod
-
-  # Filter to records from xfs module only
-  ./page_owner_sort input.txt output.txt --module xfs
-
-  # Sort by module name, then by pid descending
-  ./page_owner_sort input.txt output.txt --sort=mod,-pid
-
-Patch 3 lists all available sort keys with abbreviations and examples
-directly in the --sort help section so users no longer need to read the
-source to discover valid keys.
-
-
-This patch (of 3):
-
-When --sort is used without any short option (-a, -m, -p, etc.),
-compare_flag remains COMP_NO_FLAG.  The switch (compare_flag) then falls
-through to the COMP_NUM case and calls set_single_cmp(), which
-unconditionally overwrites the sort conditions that parse_sort_args()
-already configured.  This makes --sort silently ineffective unless a short
-option is also supplied.
-
-Split COMP_NO_FLAG out of the COMP_NUM fallthrough so that --sort is
-respected when no short option is present.
-
-Reproduction:
-  # Before fix: ascending order (ignored --sort=-pid)
-  ./page_owner_sort --sort=-pid input.txt output.txt
-  # After fix: descending order as expected
-
-Link: https://lore.kernel.org/20260819021611.2910835-1-ye.liu@linux.dev
-Link: https://lore.kernel.org/20260819021611.2910835-2-ye.liu@linux.dev
+Link: https://lore.kernel.org/20260819021611.2910835-3-ye.liu@linux.dev
 Signed-off-by: Ye Liu <liuye@kylinos.cn>
-Cc: David Hildenbrand <david@kernel.org>
+Cc: David Hildenbrand (Arm) <david@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
@@ -137,21 +104,373 @@ Cc: Yichong Chen <chenyichong@uniontech.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/mm/page_owner_sort.c |    3 +++
- 1 file changed, 3 insertions(+)
+ Documentation/mm/page_owner.rst |    8 +
+ tools/mm/page_owner_sort.c      |  122 +++++++++++++++++++++++++-----
+ 2 files changed, 110 insertions(+), 20 deletions(-)
 
---- a/tools/mm/page_owner_sort.c~tools-mm-page_owner_sort-fix-sort-option-being-silently-ignored
+--- a/Documentation/mm/page_owner.rst~tools-mm-page_owner_sort-add-module-name-sort-cull-filter-support
++++ a/Documentation/mm/page_owner.rst
+@@ -199,6 +199,7 @@ Usage
+ 		-p		Sort by pid.
+ 		-P		Sort by tgid.
+ 		-n		Sort by task command name.
++		-M		Sort by module name.
+ 		-r		Sort by memory release time.
+ 		-s		Sort by stack trace.
+ 		-t		Sort by times (default).
+@@ -240,8 +241,10 @@ Usage
+ 					group ID numbers appear in <tgidlist>.
+ 		--name <cmdlist>	Select by task command name. This selects the blocks whose
+ 					task command name appear in <cmdlist>.
++		--module <modlist>	Select by module name. This selects the blocks whose
++					module name appear in <modlist>.
+ 
+-		<pidlist>, <tgidlist>, <cmdlist> are single arguments in the form of a comma-separated list,
++		<pidlist>, <tgidlist>, <cmdlist>, <modlist> are single arguments in the form of a comma-separated list,
+ 		which offers a way to specify individual selecting rules.
+ 
+ 
+@@ -249,6 +252,7 @@ Usage
+ 				./page_owner_sort <input> <output> --pid=1
+ 				./page_owner_sort <input> <output> --tgid=1,2,3
+ 				./page_owner_sort <input> <output> --name name1,name2
++				./page_owner_sort <input> <output> --module xfs,ext4
+ 
+ STANDARD FORMAT SPECIFIERS
+ ==========================
+@@ -265,6 +269,7 @@ STANDARD FORMAT SPECIFIERS
+ 	ft		free_ts		timestamp of the page when it was released
+ 	at		alloc_ts	timestamp of the page when it was allocated
+ 	ator		allocator	memory allocator for pages
++	mod		module		kernel module name
+ 
+   For --cull option:
+ 
+@@ -275,6 +280,7 @@ STANDARD FORMAT SPECIFIERS
+ 	f		free		whether the page has been released or not
+ 	st		stacktrace	stack trace of the page allocation
+ 	ator		allocator	memory allocator for pages
++	mod		module		kernel module name
+ 
+ Filtering page_owner output
+ ============================
+--- a/tools/mm/page_owner_sort.c~tools-mm-page_owner_sort-add-module-name-sort-cull-filter-support
 +++ a/tools/mm/page_owner_sort.c
-@@ -821,6 +821,9 @@ int main(int argc, char **argv)
- 		set_single_cmp(compare_stacktrace, SORT_ASC);
- 		break;
- 	case COMP_NO_FLAG:
-+		if (sc.size > 0)
+@@ -25,11 +25,13 @@
+ #include <getopt.h>
+ 
+ #define TASK_COMM_LEN 16
++#define MODULE_NAME_LEN 64
+ 
+ struct block_list {
+ 	char *txt;
+ 	char *comm; // task command name
+ 	char *stacktrace;
++	char *module; // kernel module name
+ 	__u64 ts_nsec;
+ 	int len;
+ 	int num;
+@@ -41,7 +43,8 @@ struct block_list {
+ enum FILTER_BIT {
+ 	FILTER_PID = 1<<1,
+ 	FILTER_TGID = 1<<2,
+-	FILTER_COMM = 1<<3
++	FILTER_COMM = 1<<3,
++	FILTER_MODULE = 1<<4
+ };
+ 
+ enum FILTER_RESULT {
+@@ -55,7 +58,8 @@ enum CULL_BIT {
+ 	CULL_TGID = 1<<2,
+ 	CULL_COMM = 1<<3,
+ 	CULL_STACKTRACE = 1<<4,
+-	CULL_ALLOCATOR = 1<<5
++	CULL_ALLOCATOR = 1<<5,
++	CULL_MODULE = 1<<6
+ };
+ enum ALLOCATOR_BIT {
+ 	ALLOCATOR_CMA = 1<<1,
+@@ -65,7 +69,8 @@ enum ALLOCATOR_BIT {
+ };
+ enum ARG_TYPE {
+ 	ARG_TXT, ARG_COMM, ARG_STACKTRACE, ARG_ALLOC_TS, ARG_CULL_TIME,
+-	ARG_PAGE_NUM, ARG_PID, ARG_TGID, ARG_UNKNOWN, ARG_ALLOCATOR
++	ARG_PAGE_NUM, ARG_PID, ARG_TGID, ARG_UNKNOWN, ARG_ALLOCATOR,
++	ARG_MODULE
+ };
+ enum SORT_ORDER {
+ 	SORT_ASC = 1,
+@@ -79,15 +84,18 @@ enum COMP_FLAG {
+ 	COMP_STACK = 1<<3,
+ 	COMP_NUM = 1<<4,
+ 	COMP_TGID = 1<<5,
+-	COMP_COMM = 1<<6
++	COMP_COMM = 1<<6,
++	COMP_MODULE = 1<<7
+ };
+ struct filter_condition {
+ 	pid_t *pids;
+ 	pid_t *tgids;
+ 	char **comms;
++	char **modules;
+ 	int pids_size;
+ 	int tgids_size;
+ 	int comms_size;
++	int modules_size;
+ };
+ struct sort_condition {
+ 	int (**cmps)(const void *, const void *);
+@@ -101,6 +109,7 @@ static regex_t pid_pattern;
+ static regex_t tgid_pattern;
+ static regex_t comm_pattern;
+ static regex_t ts_nsec_pattern;
++static regex_t module_pattern;
+ static struct block_list *list;
+ static int list_size;
+ static int max_size;
+@@ -184,6 +193,13 @@ static int compare_comm(const void *p1,
+ 	return strcmp(l1->comm, l2->comm);
+ }
+ 
++static int compare_module(const void *p1, const void *p2)
++{
++	const struct block_list *l1 = p1, *l2 = p2;
++
++	return strcmp(l1->module, l2->module);
++}
++
+ static int compare_ts(const void *p1, const void *p2)
+ {
+ 	const struct block_list *l1 = p1, *l2 = p2;
+@@ -207,6 +223,8 @@ static int compare_cull_condition(const
+ 		return compare_tgid(p1, p2);
+ 	if ((cull & CULL_COMM) && compare_comm(p1, p2))
+ 		return compare_comm(p1, p2);
++	if ((cull & CULL_MODULE) && compare_module(p1, p2))
++		return compare_module(p1, p2);
+ 	if ((cull & CULL_ALLOCATOR) && compare_allocator(p1, p2))
+ 		return compare_allocator(p1, p2);
+ 	return 0;
+@@ -411,9 +429,33 @@ static char *get_comm(char *buf)
+ 	return comm_str;
+ }
+ 
++static char *get_module(char *buf)
++{
++	char *module_str = malloc(MODULE_NAME_LEN);
++	regmatch_t pmatch[2];
++	int val_len;
++
++	if (!module_str)
++		return NULL;
++	memset(module_str, 0, MODULE_NAME_LEN);
++	if (regexec(&module_pattern, buf, 2, pmatch, REG_NOTBOL) != 0 || pmatch[1].rm_so == -1) {
++		strcpy(module_str, "vmlinux");
++		return module_str;
++	}
++
++	val_len = pmatch[1].rm_eo - pmatch[1].rm_so;
++	if ((size_t)val_len >= MODULE_NAME_LEN)
++		val_len = MODULE_NAME_LEN - 1;
++	memcpy(module_str, buf + pmatch[1].rm_so, val_len);
++	module_str[val_len] = '\0';
++
++	return module_str;
++}
++
+ static void free_block_list(struct block_list *block)
+ {
+ 	free(block->comm);
++	free(block->module);
+ 	free(block->txt);
+ }
+ 
+@@ -433,6 +475,8 @@ static int get_arg_type(const char *arg)
+ 		return ARG_ALLOC_TS;
+ 	else if (!strcmp(arg, "allocator") || !strcmp(arg, "ator"))
+ 		return ARG_ALLOCATOR;
++	else if (!strcmp(arg, "module") || !strcmp(arg, "mod"))
++		return ARG_MODULE;
+ 	else {
+ 		return ARG_UNKNOWN;
+ 	}
+@@ -483,25 +527,36 @@ static bool match_str_list(const char *s
+ 
+ static enum FILTER_RESULT filter_record(char *buf)
+ {
+-	char *comm;
++	char *comm, *module;
+ 
+ 	if ((filter & FILTER_PID) && !match_num_list(get_pid(buf), fc.pids, fc.pids_size))
+ 		return FILTER_SKIP;
+ 	if ((filter & FILTER_TGID) &&
+ 		!match_num_list(get_tgid(buf), fc.tgids, fc.tgids_size))
+ 		return FILTER_SKIP;
+-	if (!(filter & FILTER_COMM))
++	if (!(filter & (FILTER_COMM | FILTER_MODULE)))
+ 		return FILTER_MATCH;
+ 
+-	comm = get_comm(buf);
+-	if (!comm)
+-		return FILTER_ERROR;
+-
+-	if (!match_str_list(comm, fc.comms, fc.comms_size)) {
++	if (filter & FILTER_COMM) {
++		comm = get_comm(buf);
++		if (!comm)
++			return FILTER_ERROR;
++		if (!match_str_list(comm, fc.comms, fc.comms_size)) {
++			free(comm);
++			return FILTER_SKIP;
++		}
+ 		free(comm);
+-		return FILTER_SKIP;
+ 	}
+-	free(comm);
++	if (filter & FILTER_MODULE) {
++		module = get_module(buf);
++		if (!module)
++			return FILTER_ERROR;
++		if (!match_str_list(module, fc.modules, fc.modules_size)) {
++			free(module);
++			return FILTER_SKIP;
++		}
++		free(module);
++	}
+ 	return FILTER_MATCH;
+ }
+ 
+@@ -547,6 +602,12 @@ static bool add_list(char *buf, int len,
+ 		list[list_size].stacktrace++;
+ 	list[list_size].ts_nsec = get_ts_nsec(buf);
+ 	list[list_size].allocator = get_allocator(buf, ext_buf);
++	list[list_size].module = get_module(buf);
++	if (!list[list_size].module) {
++		fprintf(stderr, "Out of memory\n");
++		free_block_list(&list[list_size]);
++		return false;
++	}
+ 	list_size++;
+ 	if (list_size % 1000 == 0) {
+ 		printf("loaded %d\r", list_size);
+@@ -573,6 +634,8 @@ static bool parse_cull_args(const char *
+ 			cull |= CULL_STACKTRACE;
+ 		else if (arg_type == ARG_ALLOCATOR)
+ 			cull |= CULL_ALLOCATOR;
++		else if (arg_type == ARG_MODULE)
++			cull |= CULL_MODULE;
+ 		else {
+ 			free_explode(args, size);
+ 			return false;
+@@ -635,6 +698,8 @@ static bool parse_sort_args(const char *
+ 			sc.cmps[i] = compare_txt;
+ 		else if (arg_type == ARG_ALLOCATOR)
+ 			sc.cmps[i] = compare_allocator;
++		else if (arg_type == ARG_MODULE)
++			sc.cmps[i] = compare_module;
+ 		else {
+ 			free_explode(args, size);
+ 			sc.size = 0;
+@@ -691,7 +756,8 @@ static void usage(void)
+ 		"-p\t\t\tSort by pid.\n"
+ 		"-P\t\t\tSort by tgid.\n"
+ 		"-s\t\t\tSort by the stacktrace.\n"
+-		"-t\t\t\tSort by number of times record is seen (default).\n\n"
++		"-t\t\t\tSort by number of times record is seen (default).\n"
++		"-M\t\t\tSort by module name.\n\n"
+ 		"--pid <pidlist>\t\tSelect by pid. This selects the information"
+ 		" of\n\t\t\tblocks whose process ID numbers appear in <pidlist>.\n"
+ 		"--tgid <tgidlist>\tSelect by tgid. This selects the information"
+@@ -700,10 +766,11 @@ static void usage(void)
+ 		"--name <cmdlist>\tSelect by command name. This selects the"
+ 		" information\n\t\t\tof blocks whose command name appears in"
+ 		" <cmdlist>.\n"
+-		"--cull <rules>\t\tCull by user-defined rules. <rules> is a "
+-		"single\n\t\t\targument in the form of a comma-separated list "
+-		"with some\n\t\t\tcommon fields predefined (pid, tgid, comm, "
+-		"stacktrace, allocator)\n"
++		"--module <modlist>\tSelect by module name. This selects the information\n"
++		"\t\t\tof blocks whose module name appears in <modlist>.\n"
++		"--cull <rules>\t\tCull by user-defined rules. <rules> is a single\n"
++		"\t\t\targument in the form of a comma-separated list with some\n"
++		"\t\t\tcommon fields predefined (pid, tgid, comm, stacktrace, allocator, module)\n"
+ 		"--sort <order>\t\tSpecify sort order as: [+|-]key[,[+|-]key[,...]]\n"
+ 	);
+ }
+@@ -721,13 +788,14 @@ int main(int argc, char **argv)
+ 		{ "name", required_argument, NULL, 3 },
+ 		{ "cull", required_argument, NULL, 4 },
+ 		{ "sort", required_argument, NULL, 5 },
++		{ "module", required_argument, NULL, 6 },
+ 		{ "help", no_argument, NULL, 'h' },
+ 		{ 0, 0, 0, 0},
+ 	};
+ 
+ 	compare_flag = COMP_NO_FLAG;
+ 
+-	while ((opt = getopt_long(argc, argv, "admnpstPh", longopts, NULL)) != -1)
++	while ((opt = getopt_long(argc, argv, "admnpstPMh", longopts, NULL)) != -1)
+ 		switch (opt) {
+ 		case 'a':
+ 			compare_flag |= COMP_ALLOC;
+@@ -753,6 +821,9 @@ int main(int argc, char **argv)
+ 		case 'n':
+ 			compare_flag |= COMP_COMM;
+ 			break;
++		case 'M':
++			compare_flag |= COMP_MODULE;
 +			break;
-+		/* fallthrough */
- 	case COMP_NUM:
- 		set_single_cmp(compare_num, SORT_DESC);
+ 		case 'h':
+ 			usage();
+ 			exit(0);
+@@ -792,6 +863,10 @@ int main(int argc, char **argv)
+ 				exit(1);
+ 			}
+ 			break;
++		case 6:
++			filter = filter | FILTER_MODULE;
++			fc.modules = explode(',', optarg, &fc.modules_size);
++			break;
+ 		default:
+ 			usage();
+ 			exit(1);
+@@ -833,6 +908,9 @@ int main(int argc, char **argv)
+ 	case COMP_COMM:
+ 		set_single_cmp(compare_comm, SORT_ASC);
  		break;
++	case COMP_MODULE:
++		set_single_cmp(compare_module, SORT_ASC);
++		break;
+ 	default:
+ 		usage();
+ 		exit(1);
+@@ -855,6 +933,8 @@ int main(int argc, char **argv)
+ 		goto out_comm;
+ 	if (!check_regcomp(&ts_nsec_pattern, "ts\\s*([0-9]*)\\s*ns"))
+ 		goto out_ts;
++	if (!check_regcomp(&module_pattern, "\\+0x[0-9a-f]+/0x[0-9a-f]+\\s*\\[([a-zA-Z0-9_-]+)\\]"))
++		goto out_module;
+ 
+ 	fstat(fileno(fin), &st);
+ 	max_size = st.st_size / 100; /* hack ... */
+@@ -920,6 +1000,8 @@ int main(int argc, char **argv)
+ 				fprintf(fout, ", TGID %d", list[i].tgid);
+ 			if (cull & CULL_COMM || filter & FILTER_COMM)
+ 				fprintf(fout, ", task_comm_name: %s", list[i].comm);
++			if (cull & CULL_MODULE || filter & FILTER_MODULE)
++				fprintf(fout, ", module: %s", list[i].module);
+ 			if (cull & CULL_ALLOCATOR) {
+ 				fprintf(fout, ", ");
+ 				print_allocator(fout, list[i].allocator);
+@@ -940,6 +1022,8 @@ out_free:
+ 			free_block_list(&list[i]);
+ 		free(list);
+ 	}
++out_module:
++	regfree(&module_pattern);
+ out_ts:
+ 	regfree(&ts_nsec_pattern);
+ out_comm:
 _
 
 Patches currently in -mm which might be from liuye@kylinos.cn are
