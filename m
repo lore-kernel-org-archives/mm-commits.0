@@ -1,34 +1,34 @@
 Received: from mail.mainlining.org (mail.mainlining.org [5.75.144.95])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 06FF413D891
-	for <mm-commits@vger.kernel.org>; Sat, 29 Aug 2026 23:32:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8DAE8420486
+	for <mm-commits@vger.kernel.org>; Sat, 29 Aug 2026 23:34:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=5.75.144.95
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788046326; cv=none; b=VVvd0yZipQQ5qIRT1JAvZus9MIw1OYfB8TUi586/WQJ53IrU1BfKdfZDrNpSM/LniJV+Kht4u8VnalpvHekJe810QBInAKUivo9mnklWKZxtBL89dIePon0EUNlLE9qz7BA3W9F1ypNrxObL145CftEN/JxI6NzXqJWy5sChIHs=
+	t=1788046448; cv=none; b=Or58n3Q3qgtswWgUoKHfTr8+bJxIlpkr7WwJLaJADGlfLXpV+SrdUlVefoteglqDOZNfwoJyhTspCnkpF2iClRXv3YibFsajrj2HfJ+SV1o5TgtLzubrG4oM6w21jNo6osdmkSSd25RcIfqbE1p7kpOpIu8eHQaJwaqhqKzreGk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788046326; c=relaxed/simple;
-	bh=A5DEr/+U7S9Oq3YZnng7upNtYGRzq8Xzelc3CwPAb1I=;
+	s=arc-20240116; t=1788046448; c=relaxed/simple;
+	bh=XihCiZqYEk3nRUXRhSMhrcO40lvQFTtwoqvjt5pSgns=;
 	h=Date:From:To:CC:Subject:In-Reply-To:References:Message-ID:
-	 MIME-Version:Content-Type; b=kL/oavjjLB3JmIoIziqiDTzAJx22ZQYuN1gCfcxQiVdOBphX5KCXl4TEqAXPZ25vPNPe92VPxLOCDNFYmQr8zqTe/VcnuVgHR+KV4JUxfDmyAMNPinemfT2vM6GnXzIfE1huovU3iPLTpwEUd8qdpzG87KgnQ1PnY7p7lEqtPdU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=mainlining.org; spf=pass smtp.mailfrom=mainlining.org; dkim=pass (2048-bit key) header.d=mainlining.org header.i=@mainlining.org header.b=ANPebS6x; dkim=permerror (0-bit key) header.d=mainlining.org header.i=@mainlining.org header.b=sBquOLnq; arc=none smtp.client-ip=5.75.144.95
+	 MIME-Version:Content-Type; b=bVrXiKVlsLkmY9vcYJJAsMOgFLl6GXjJvxVjS7+8WqF1PUw1zbsryiKimm3FTDL80iN//5P0id9KgvWb5vWZfkX53ndJ3ugweYb2ybuugEeSbFfW8WQH8CwiGiCN5fTrR9tdYL6tSsXDwRjqW/IkZh7L60NZCFCNFvnwiRy7SIY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=mainlining.org; spf=pass smtp.mailfrom=mainlining.org; dkim=pass (2048-bit key) header.d=mainlining.org header.i=@mainlining.org header.b=St2BD1Tr; dkim=permerror (0-bit key) header.d=mainlining.org header.i=@mainlining.org header.b=QBiVmFWN; arc=none smtp.client-ip=5.75.144.95
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=mainlining.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=mainlining.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=mainlining.org header.i=@mainlining.org header.b="ANPebS6x";
-	dkim=permerror (0-bit key) header.d=mainlining.org header.i=@mainlining.org header.b="sBquOLnq"
+	dkim=pass (2048-bit key) header.d=mainlining.org header.i=@mainlining.org header.b="St2BD1Tr";
+	dkim=permerror (0-bit key) header.d=mainlining.org header.i=@mainlining.org header.b="QBiVmFWN"
 DKIM-Signature: v=1; a=rsa-sha256; s=202507r; d=mainlining.org; c=relaxed/relaxed;
-	h=Message-ID:Subject:To:From:Date; t=1788046322; bh=5Dufz/7mS57nQT4tUGx3X5J
-	Em3U5R56kNaMTgcFvrRo=; b=ANPebS6xs2F+3OqYTAo30c+r//E5VMx3h5IQDNf9Bhfuqc8eNL
-	xR/HMBGntvdkb+vJEVdpsNrwT7ipnk72jwiF8NsjyYyazxdsodCPz3noeJcU9IeTbffrn+KF12D
-	10kdJXLipXdIgwOgi2XjgBfR23l/0uLpGsKJ/DAbT6f1HHPbTeFXWSEN9UmJOderfn6aDu7zTc/
-	EHSdDU9AjVPDJI3Web/k1DQHrX6t4JveRgy3ZmuCt4o5OffQGhiDD7OrahtYFta0fo4P/W+/kHu
-	XFWrOw6ZPOidIhX2ZntRBRtnZH5tH06+wzRqEYTnqxvnt6gAfZjJ5/BXdXebsH19kng==;
+	h=Message-ID:Subject:To:From:Date; t=1788046444; bh=GV+n10zvhGgNawHC5gLqPhZ
+	PFoshUpZhNNE1k8hKLrg=; b=St2BD1Tr93qa4a6C4mr7gYSwrZEMqzXavLwzL64AjJh/n/Urdn
+	sNio7XDP4D4WeN9A2TyRTVsGC/M7OrBXHvEQlju9YPRhFOY9OOWlaKcti1uKqxeVIld78RKfTqO
+	OvTj2yKna5I6y0Ui4FMO08eBkz7LsbbGEILRvFHWdkj+bgb1Kp451ZQRpeSFqDB7z8T2JAH4gk4
+	s2xYyPPUwppNQgh/0ADT1Jw9+I8zkfB0a3tEj3sSqs80TWi6Xm4ZM2pqJYdkgFdPcaf7LYxP6th
+	UednY+aKZhl6EOh/SYT2giaAMuP/tWt7PRUpWdS7Y2/XptmZbtNFda1FayK4slcEKQQ==;
 DKIM-Signature: v=1; a=ed25519-sha256; s=202507e; d=mainlining.org; c=relaxed/relaxed;
-	h=Message-ID:Subject:To:From:Date; t=1788046322; bh=5Dufz/7mS57nQT4tUGx3X5J
-	Em3U5R56kNaMTgcFvrRo=; b=sBquOLnq5sp0GEtVqD0FlwWGKS1bNmkr5B2IFdxHlrLvUm0MjJ
-	W8IwLXzv1cGaBaTqWSVv9oyY1oYPQXLVlDDg==;
-Date: Sun, 30 Aug 2026 00:32:04 +0100
+	h=Message-ID:Subject:To:From:Date; t=1788046444; bh=GV+n10zvhGgNawHC5gLqPhZ
+	PFoshUpZhNNE1k8hKLrg=; b=QBiVmFWNywfgolrmLIrIS2JExcW9Au4oqkDFHjsuJ/bIut0zsN
+	GDXpLLjD5havMECka90drJch9ScIgNGil5Cg==;
+Date: Sun, 30 Aug 2026 00:34:05 +0100
 From: Bradley Morgan <brads@mainlining.org>
 To: Andrew Morton <akpm@linux-foundation.org>
 CC: mm-commits@vger.kernel.org, pmladek@suse.com, mhiramat@kernel.org,
@@ -37,7 +37,7 @@ Subject: =?US-ASCII?Q?Re=3A_+_hung=5Ftask-reset-warning-budget-when-problem-g?=
  =?US-ASCII?Q?ets-resolved=2Epatch_added_to_mm-nonmm-unstable_branch?=
 In-Reply-To: <20260829162541.50f77ff5de42c35b7eadffe1@linux-foundation.org>
 References: <20260829224704.C3D0B1F000E9@smtp.kernel.org> <1C7F9139-85AC-44C5-A1D2-6C7429C84661@mainlining.org> <20260829162541.50f77ff5de42c35b7eadffe1@linux-foundation.org>
-Message-ID: <30D6FBCC-D7E9-41F9-94FD-393F7E10926F@mainlining.org>
+Message-ID: <255A8DAB-0314-41F5-9641-D31D9B5A67A5@mainlining.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -71,9 +71,19 @@ wrote:
 >> My client had issues.
 >
 >If you mean you want a Reviewed-by: in there then please send one!
-Oh fiddlesticks
 
-Reviewed-by: Bradley Morgan <brads@mainlining.org>
+Oh and also your repo is gone for me
+.
+
+
+
+<https://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm.git/>
+
+Resolves as
+
+No repositories found
+
+Sigh.
 
 --- Thanks!
 https://lore.kernel.org/all/EE579805-42F2-4C58-B752-F28779EEB717@grrlz.net/
