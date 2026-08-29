@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DB6093F1055
-	for <mm-commits@vger.kernel.org>; Sat, 29 Aug 2026 23:36:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 477CB4399C4
+	for <mm-commits@vger.kernel.org>; Sat, 29 Aug 2026 23:42:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788046601; cv=none; b=jTfR6M8Z8RKwn7GoH/QvLyoOFaGg/XV9gnqIJGoQu3KBCzNbNzdKiv/HJ/wO8LwTzmQxe7PsY1Ol5gV1QV7ibWdP4V2G+PfY44A4VbdNRVx8aCDhFEqSsUw4Eg/W+26duzyWKi6u+Ea7UikMxtdg2cuN30ktUbiuinIcuJpAYMI=
+	t=1788046975; cv=none; b=C+sXSUJYsivisPes/OgoOj1twPYoj7GLY0MghaL+1Z5NtLhSC8z3DVuy+bQg3SDMO6N3q8FIS9GMjhVN/2HxC+jRjSZTI/uKqbvtoc+QhxjmwDFEK0K8GO1SiL4j45zvUIA/YQXqxfsNczELKdYCtWxf17GQRDjY5/yXXYQzaY4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788046601; c=relaxed/simple;
-	bh=ZNDv200IvAb8BxAMX9nMS+0X45r1Fm3bD39Q1bDx+SU=;
-	h=Date:To:From:Subject:Message-Id; b=ldX7LcT10pgIDM9/2hu7XGULyhpZrb/Er2FMurNdQom9UwIhlsObbX+jbQiMxt8q0VTyADlvSlSxYjJJFi60vob+AOtnyrlDVU97cZHTwU77mY3qqo8kgu1l4YlcjLgfXohmdI/sTApodsn+oeu9yQ1Su7prOuiAUKtcy7ae+ow=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zpmSRWvM; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788046975; c=relaxed/simple;
+	bh=RKGXq2isizh/NLrZeIw6MBNdrtiObE57ULLoQeTbXcw=;
+	h=Date:To:From:Subject:Message-Id; b=oYbmruFhFffVG3ew/jOkF7Kso02EDI9cwTv6uxz/PVF2Oh7+90p5/vNIN/GK139XARTdTSfE7u+oHR5QYufAIUj42FiCw53im5vAXMGxEYWWyeIXqkcbfgtSaaY6OOEIfi1PQuW/AI6MQwT24wS/Rg6b+qi7MUoUwFPAbCaMnfc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Fp/fhLDE; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zpmSRWvM"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5E6801F000E9;
-	Sat, 29 Aug 2026 23:36:39 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Fp/fhLDE"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F2B141F000E9;
+	Sat, 29 Aug 2026 23:42:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788046599;
-	bh=Rg0aDLqYkx9J1v/fo18JxuJ4O86guscICrtGguYipbw=;
+	d=linux-foundation.org; s=korg; t=1788046974;
+	bh=qvjl08f+/tWEdHifLSW8DUE9oN8Jdfqo91T5JSc1HrU=;
 	h=Date:To:From:Subject;
-	b=zpmSRWvMokKnjK4eAsqTUdr2J+6RbhzS3JOm08jBL3qn9yJkjaDcK+oIJUZYSjgEp
-	 LD4qWZnfm7UtXj+Zm06YasIcEIF9mpkIx5n6zFsLnFC5OVGgko8KtVYdgAJ4JCPen8
-	 9EqMh9YMmGV8YtKUCsgrNqzwWP6kdcZ12U1TEOWs=
-Date: Sat, 29 Aug 2026 16:36:38 -0700
-To: mm-commits@vger.kernel.org,svens@linux.ibm.com,palmer@dabbelt.com,maze@google.com,hca@linux.ibm.com,gor@linux.ibm.com,borntraeger@linux.ibm.com,arnd@arndb.de,aou@eecs.berkeley.edu,alex@ghiti.fr,agordeev@linux.ibm.com,wfelipe@google.com,akpm@linux-foundation.org
+	b=Fp/fhLDE7+FEEvJ7smBlGq3B/NL72U1zecAZB04IL2oPRTaH6ntkMuX4cvJlPwhYO
+	 OszGMU5qxzq+muy7xCBspkoNMR+cYkBI4JaWdxgWLjkuNnwZXZXpx2iSrhLr0tZymw
+	 GSxEso4lFnPnuBUhKNNIbqT3fpQGUJbYWL74Wpy8=
+Date: Sat, 29 Aug 2026 16:42:53 -0700
+To: mm-commits@vger.kernel.org,hpa@zytor.com,david.laight.linux@gmail.com,zhanxusheng@xiaomi.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + init-kconfig-make-config-init_env_arg_limit-user-configurable.patch added to mm-nonmm-unstable branch
-Message-Id: <20260829233639.5E6801F000E9@smtp.kernel.org>
+Subject: + minmaxh-update-the-stale-x-versus-ux-comment.patch added to mm-nonmm-unstable branch
+Message-Id: <20260829234253.F2B141F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: init/Kconfig: make config INIT_ENV_ARG_LIMIT user-configurable
+     Subject: minmax.h: update the stale 'x' versus 'ux' comment
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     init-kconfig-make-config-init_env_arg_limit-user-configurable.patch
+     minmaxh-update-the-stale-x-versus-ux-comment.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/init-kconfig-make-config-init_env_arg_limit-user-configurable.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/minmaxh-update-the-stale-x-versus-ux-comment.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,81 +58,50 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Wilson Felipe Pereira <wfelipe@google.com>
-Subject: init/Kconfig: make config INIT_ENV_ARG_LIMIT user-configurable
-Date: Tue, 18 Aug 2026 23:16:33 +0000
+From: Zhan Xusheng <zhanxusheng@xiaomi.com>
+Subject: minmax.h: update the stale 'x' versus 'ux' comment
+Date: Mon, 17 Aug 2026 20:16:13 +0800
 
-Patch series "init, arch: make command line size and init arg limit
-configurable", v2.
+Commit b280bb27a9f7 ("minmax.h: reduce the #define expansion of min(),
+max() and clamp()") made __sign_use(), __is_nonneg() and __types_ok() take
+only 'ux', and commit a5743f32baec ("minmax.h: use BUILD_BUG_ON_MSG() for
+the lo < hi test in clamp()") did the same for the clamp() limit test. 
+The comment describing the old split was added one patch earlier and was
+never updated.
 
-This patch series promotes COMMAND_LINE_SIZE from arch/s390/Kconfig to
-init/Kconfig to be generally available to other architectures.
+'ux' now carries the value check too, since __is_nonneg() tests it rather
+than the original expression, and nothing here looks at the value of 'x'
+any more: it is expanded only to initialise 'ux' and in the error message,
+as the first of those changes intended.
 
-In some use cases, such as netboot kernels, rootfs configurations, larger
-initramfs setups, require larger sizes.  While for embedded workloads, it
-can be reduced to save memory.
-
-Since COMMAND_LINE_SIZE can be larger, it also makes sense to allow
-INIT_ENV_ARG_LIMIT to be configured.
-
-
-This patch (of 2):
-
-INIT_ENV_ARG_LIMIT is defined without a prompt string (`int`), making it a
-hidden Kconfig symbol that defaults to 32 (or 128 for UML) and cannot be
-configured in `make menuconfig`.
-
-Now that CONFIG_COMMAND_LINE_SIZE is configurable across all
-architectures, users who select larger kernel command lines (e.g., 4096
-bytes) may pass more than 32 command-line arguments or environment
-variables (`foo=bar`) to `/sbin/init`.  If INIT_ENV_ARG_LIMIT remains
-hardcoded at 32, any argument after the 32nd sets the panic_later flag and
-causes a hard kernel panic on boot.
-
-Add a prompt string ("Maximum number of kernel command line arguments")
-and a `range 32 4096` to `config INIT_ENV_ARG_LIMIT` so that users can
-configure their init argument and environment variable limit when needed,
-while preserving the existing default of 32 for standard builds.
-
-Link: https://lore.kernel.org/20260818231646.804507-1-wfelipe@google.com
-Link: https://lore.kernel.org/20260818231646.804507-3-wfelipe@google.com
-Signed-off-by: Maciej Żenczykowski <maze@google.com>
-Signed-off-by: Wilson Felipe Pereira <wfelipe@google.com>
-Cc: Albert Ou <aou@eecs.berkeley.edu>
-Cc: Alexander Gordeev <agordeev@linux.ibm.com>
-Cc: Alexandre Ghiti <alex@ghiti.fr>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
-Cc: Heiko Carstens <hca@linux.ibm.com>
-Cc: Palmer Dabbelt <palmer@dabbelt.com>
-Cc: Sven Schnelle <svens@linux.ibm.com>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
+Link: https://lore.kernel.org/20260817121613.3846511-1-zhanxusheng@xiaomi.com
+Signed-off-by: Zhan Xusheng <zhanxusheng@xiaomi.com>
+Cc: David Laight <david.laight.linux@gmail.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/Kconfig |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ include/linux/minmax.h |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/init/Kconfig~init-kconfig-make-config-init_env_arg_limit-user-configurable
-+++ a/init/Kconfig
-@@ -231,9 +231,10 @@ config BROKEN_ON_SMP
- 	default y
- 
- config INIT_ENV_ARG_LIMIT
--	int
-+	int "Maximum number of kernel command line arguments"
- 	default 32 if !UML
- 	default 128 if UML
-+	range 32 4096
- 	help
- 	  Maximum of each of the number of arguments and environment
- 	  variables passed to init from the kernel command line.
+--- a/include/linux/minmax.h~minmaxh-update-the-stale-x-versus-ux-comment
++++ a/include/linux/minmax.h
+@@ -38,9 +38,9 @@
+  * Note that 'x' is the original expression, and 'ux' is the unique variable
+  * that contains the value.
+  *
+- * We use 'ux' for pure type checking, and 'x' for when we need to look at the
+- * value (but without evaluating it for side effects!
+- * Careful to only ever evaluate it with sizeof() or __builtin_constant_p() etc).
++ * We use 'ux' for both the type and the value checks, so 'x' itself is only
++ * expanded twice: once to initialise 'ux', and once quoted in the error
++ * message.
+  *
+  * Pointers end up being checked by the normal C type rules at the actual
+  * comparison, and these expressions only need to be careful to not cause
 _
 
-Patches currently in -mm which might be from wfelipe@google.com are
+Patches currently in -mm which might be from zhanxusheng@xiaomi.com are
 
-selftests-cgroup-test_zswap-wait-for-cgroup-to-unpopulate-in-test_zswap_writeback.patch
-selftests-cgroup-test_zswap-fix-implicit-unsigned-promotion-bug-in-test_no_kmem_bypass.patch
-init-arch-make-config_command_line_size-globally-configurable.patch
-init-kconfig-make-config-init_env_arg_limit-user-configurable.patch
+minmaxh-update-the-stale-x-versus-ux-comment.patch
 
