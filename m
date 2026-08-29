@@ -1,89 +1,396 @@
-Received: from mail.mainlining.org (mail.mainlining.org [5.75.144.95])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8DAE8420486
-	for <mm-commits@vger.kernel.org>; Sat, 29 Aug 2026 23:34:06 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=5.75.144.95
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0A016EEA8
+	for <mm-commits@vger.kernel.org>; Sat, 29 Aug 2026 23:36:29 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788046448; cv=none; b=Or58n3Q3qgtswWgUoKHfTr8+bJxIlpkr7WwJLaJADGlfLXpV+SrdUlVefoteglqDOZNfwoJyhTspCnkpF2iClRXv3YibFsajrj2HfJ+SV1o5TgtLzubrG4oM6w21jNo6osdmkSSd25RcIfqbE1p7kpOpIu8eHQaJwaqhqKzreGk=
+	t=1788046591; cv=none; b=rHRsK5IkfSBvjYkDHVE2jKXc9Ry521klsoFP4AenengvQwCW9/sidyqdfQ6iR/h3RMQVQsCtKxpWVfWOAIsWRW1VBer92hxwiOKbpqRA50+Hql2Urjm9SCv25utzYoaVBLq+JawfADilRfhucnu7uITFM4d7qCouk+ZGEa3hkfA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788046448; c=relaxed/simple;
-	bh=XihCiZqYEk3nRUXRhSMhrcO40lvQFTtwoqvjt5pSgns=;
-	h=Date:From:To:CC:Subject:In-Reply-To:References:Message-ID:
-	 MIME-Version:Content-Type; b=bVrXiKVlsLkmY9vcYJJAsMOgFLl6GXjJvxVjS7+8WqF1PUw1zbsryiKimm3FTDL80iN//5P0id9KgvWb5vWZfkX53ndJ3ugweYb2ybuugEeSbFfW8WQH8CwiGiCN5fTrR9tdYL6tSsXDwRjqW/IkZh7L60NZCFCNFvnwiRy7SIY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=mainlining.org; spf=pass smtp.mailfrom=mainlining.org; dkim=pass (2048-bit key) header.d=mainlining.org header.i=@mainlining.org header.b=St2BD1Tr; dkim=permerror (0-bit key) header.d=mainlining.org header.i=@mainlining.org header.b=QBiVmFWN; arc=none smtp.client-ip=5.75.144.95
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=mainlining.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=mainlining.org
+	s=arc-20240116; t=1788046591; c=relaxed/simple;
+	bh=8SiXQrVZmdA76xWHiIXZpi/iu3jru6sFVig7RmU1P2E=;
+	h=Date:To:From:Subject:Message-Id; b=G/CTxCQNYqMYoKkOG+QHSABGd9o1oDaD7SSlIuk+de4R0dSgFeaJdPk7rgRQSWTdceDVCR7U0C4m2AxwA2MgJdSpZ0miT4kS31aXpeDteE5eI1m0mqilHhDDdBuQ06/6MNFe+vw26nFCIbGSX3dLpau+0QKaPdET6vQetDfsMfE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=o5xpIgrQ; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=mainlining.org header.i=@mainlining.org header.b="St2BD1Tr";
-	dkim=permerror (0-bit key) header.d=mainlining.org header.i=@mainlining.org header.b="QBiVmFWN"
-DKIM-Signature: v=1; a=rsa-sha256; s=202507r; d=mainlining.org; c=relaxed/relaxed;
-	h=Message-ID:Subject:To:From:Date; t=1788046444; bh=GV+n10zvhGgNawHC5gLqPhZ
-	PFoshUpZhNNE1k8hKLrg=; b=St2BD1Tr93qa4a6C4mr7gYSwrZEMqzXavLwzL64AjJh/n/Urdn
-	sNio7XDP4D4WeN9A2TyRTVsGC/M7OrBXHvEQlju9YPRhFOY9OOWlaKcti1uKqxeVIld78RKfTqO
-	OvTj2yKna5I6y0Ui4FMO08eBkz7LsbbGEILRvFHWdkj+bgb1Kp451ZQRpeSFqDB7z8T2JAH4gk4
-	s2xYyPPUwppNQgh/0ADT1Jw9+I8zkfB0a3tEj3sSqs80TWi6Xm4ZM2pqJYdkgFdPcaf7LYxP6th
-	UednY+aKZhl6EOh/SYT2giaAMuP/tWt7PRUpWdS7Y2/XptmZbtNFda1FayK4slcEKQQ==;
-DKIM-Signature: v=1; a=ed25519-sha256; s=202507e; d=mainlining.org; c=relaxed/relaxed;
-	h=Message-ID:Subject:To:From:Date; t=1788046444; bh=GV+n10zvhGgNawHC5gLqPhZ
-	PFoshUpZhNNE1k8hKLrg=; b=QBiVmFWNywfgolrmLIrIS2JExcW9Au4oqkDFHjsuJ/bIut0zsN
-	GDXpLLjD5havMECka90drJch9ScIgNGil5Cg==;
-Date: Sun, 30 Aug 2026 00:34:05 +0100
-From: Bradley Morgan <brads@mainlining.org>
-To: Andrew Morton <akpm@linux-foundation.org>
-CC: mm-commits@vger.kernel.org, pmladek@suse.com, mhiramat@kernel.org,
- lance.yang@linux.dev, david.laight.linux@gmail.com, atomlin@atomlin.com
-Subject: =?US-ASCII?Q?Re=3A_+_hung=5Ftask-reset-warning-budget-when-problem-g?=
- =?US-ASCII?Q?ets-resolved=2Epatch_added_to_mm-nonmm-unstable_branch?=
-In-Reply-To: <20260829162541.50f77ff5de42c35b7eadffe1@linux-foundation.org>
-References: <20260829224704.C3D0B1F000E9@smtp.kernel.org> <1C7F9139-85AC-44C5-A1D2-6C7429C84661@mainlining.org> <20260829162541.50f77ff5de42c35b7eadffe1@linux-foundation.org>
-Message-ID: <255A8DAB-0314-41F5-9641-D31D9B5A67A5@mainlining.org>
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="o5xpIgrQ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 659A71F000E9;
+	Sat, 29 Aug 2026 23:36:29 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=linux-foundation.org; s=korg; t=1788046589;
+	bh=bk26zFMZOTz+KOjNMzI0oleKJaOa7UmbwKwJujbOSTY=;
+	h=Date:To:From:Subject;
+	b=o5xpIgrQ+X3iKxuBhHV+O3PohLeCdjGmf5eqaeC1j2IVKNdx2Zzfexvsz+W38O/rD
+	 nxrJLchg/hdc870RAepvP00/MZr3SNaO9BZwik37fYJpaewnwxq0KrXC/573wGDuXr
+	 MQY5UMEPB7/pnRmnJ2cg/G9tcY67eE+t2CzSxwos=
+Date: Sat, 29 Aug 2026 16:36:28 -0700
+To: mm-commits@vger.kernel.org,svens@linux.ibm.com,palmer@dabbelt.com,maze@google.com,hca@linux.ibm.com,gor@linux.ibm.com,borntraeger@linux.ibm.com,arnd@arndb.de,aou@eecs.berkeley.edu,alex@ghiti.fr,agordeev@linux.ibm.com,wfelipe@google.com,akpm@linux-foundation.org
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: + init-arch-make-config_command_line_size-globally-configurable.patch added to mm-nonmm-unstable branch
+Message-Id: <20260829233629.659A71F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain;
- charset=utf-8
-Content-Transfer-Encoding: 8bit
-
-On 30 August 2026 00:25:41 BST, Andrew Morton <akpm@linux-foundation.org>
-wrote:
->On Sat, 29 Aug 2026 23:48:39 +0100 Bradley Morgan <brads@mainlining.org>
->wrote:
->
->> >Link:
->https://lore.kernel.org/20260829145321.18423-1-atomlin@atomlin.com
->> >Link:
->https://lore.kernel.org/20260829145321.18423-2-atomlin@atomlin.com
->> >Signed-off-by: Aaron Tomlin <atomlin@atomlin.com>
->> >Suggested-by: Petr Mladek <pmladek@suse.com>
->> >Suggested-by: Lance Yang <lance.yang@linux.dev>
->> >Tested-by: Lance Yang <lance.yang@linux.dev>
->> >Reviewed-by: Lance Yang <lance.yang@linux.dev>
->> >Cc: Bradley Morgan <brads@mainlining.org>
->> 
->> 
->> 
->> Andrewwwwww, your gonna killlll meeee but can u plssss add my
->taggggg.....
->> My client had issues.
->
->If you mean you want a Reviewed-by: in there then please send one!
-
-Oh and also your repo is gone for me
-.
 
 
+The patch titled
+     Subject: init, arch: make CONFIG_COMMAND_LINE_SIZE globally configurable
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     init-arch-make-config_command_line_size-globally-configurable.patch
 
-<https://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm.git/>
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/init-arch-make-config_command_line_size-globally-configurable.patch
 
-Resolves as
+This patch will later appear in the mm-nonmm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
-No repositories found
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-Sigh.
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
 
---- Thanks!
-https://lore.kernel.org/all/EE579805-42F2-4C58-B752-F28779EEB717@grrlz.net/
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
+
+------------------------------------------------------
+From: Wilson Felipe Pereira <wfelipe@google.com>
+Subject: init, arch: make CONFIG_COMMAND_LINE_SIZE globally configurable
+Date: Tue, 18 Aug 2026 23:16:32 +0000
+
+Currently, s390 has the ability to configure the maximum kernel command
+line size via Kconfig (CONFIG_COMMAND_LINE_SIZE).  Other architectures
+define a hardcoded COMMAND_LINE_SIZE macro in their setup.h headers.
+
+In some use cases, such as netboot kernels, rootfs configurations, or
+larger initramfs setups, a larger command line size is required.  While
+for embedded workloads, it can be reduced to save memory.
+
+Move CONFIG_COMMAND_LINE_SIZE out of arch/s390/Kconfig and into
+init/Kconfig under General setup, and update every architecture's setup.h
+header to define COMMAND_LINE_SIZE as CONFIG_COMMAND_LINE_SIZE.
+
+For user-space API (uapi) headers, wrap the definition in an `#ifdef
+__KERNEL__` guard and retain the historical hardcoded default in the
+`#else` block.  When user-space headers are installed via `make
+headers_install`, unifdef strips out the kernel section, ensuring the same
+value as before for user-space applications including `<asm/setup.h>`.
+
+For S390, the range is kept the same, but other architectures have varying
+constraints.  S390 requires a minimum of 896 bytes to protect legacy
+bootloaders from overwriting the .text section.  ARM, M68K, and NIOS2
+allocate the command line directly on severely constrained decompressor
+stacks, so their ranges are strictly capped at 2048 bytes to prevent
+deterministic stack exhaustion and boot panics.  PowerPC (PPC) boot
+wrappers silently truncate arguments past 2048 bytes, so it is also capped
+at 2048 to prevent silent parameter loss.
+
+The SuperH (SUPERH) boot parameter page allocates exactly PAGE_SIZE
+(typically 4096 bytes), and placing a 4096-byte command line starting at
+offset 256 would cause strscpy() to read out of bounds; it is capped at
+3840 bytes.  Alpha physically limits its boot parameter block to 256
+bytes, so its limit is strictly locked to 256.  All other architectures
+are capped at 4096 bytes to prevent unreasonable allocations.
+
+Link: https://lore.kernel.org/20260818231646.804507-2-wfelipe@google.com
+Signed-off-by: Maciej Żenczykowski <maze@google.com>
+Signed-off-by: Wilson Felipe Pereira <wfelipe@google.com>
+Cc: Albert Ou <aou@eecs.berkeley.edu>
+Cc: Alexander Gordeev <agordeev@linux.ibm.com>
+Cc: Alexandre Ghiti <alex@ghiti.fr>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
+Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: Palmer Dabbelt <palmer@dabbelt.com>
+Cc: Sven Schnelle <svens@linux.ibm.com>
+Cc: Vasily Gorbik <gor@linux.ibm.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ arch/alpha/include/uapi/asm/setup.h      |    4 ++++
+ arch/arc/include/asm/setup.h             |    2 +-
+ arch/arm/include/uapi/asm/setup.h        |    6 +++++-
+ arch/arm64/include/uapi/asm/setup.h      |    4 ++++
+ arch/loongarch/include/uapi/asm/setup.h  |    4 ++++
+ arch/m68k/include/uapi/asm/setup.h       |    6 +++++-
+ arch/microblaze/include/uapi/asm/setup.h |    4 ++++
+ arch/mips/include/uapi/asm/setup.h       |    4 ++++
+ arch/parisc/include/uapi/asm/setup.h     |    4 ++++
+ arch/powerpc/include/uapi/asm/setup.h    |    4 ++++
+ arch/riscv/include/uapi/asm/setup.h      |    4 ++++
+ arch/s390/Kconfig                        |    8 --------
+ arch/sparc/include/uapi/asm/setup.h      |   10 +++++++---
+ arch/um/include/asm/setup.h              |    2 +-
+ arch/x86/include/asm/setup.h             |    2 +-
+ arch/xtensa/include/uapi/asm/setup.h     |    4 ++++
+ include/uapi/asm-generic/setup.h         |    4 ++++
+ init/Kconfig                             |   16 ++++++++++++++++
+ 18 files changed, 76 insertions(+), 16 deletions(-)
+
+--- a/arch/alpha/include/uapi/asm/setup.h~init-arch-make-config_command_line_size-globally-configurable
++++ a/arch/alpha/include/uapi/asm/setup.h
+@@ -2,6 +2,10 @@
+ #ifndef _UAPI__ALPHA_SETUP_H
+ #define _UAPI__ALPHA_SETUP_H
+ 
++#ifdef __KERNEL__
++#define COMMAND_LINE_SIZE	CONFIG_COMMAND_LINE_SIZE
++#else
+ #define COMMAND_LINE_SIZE	256
++#endif
+ 
+ #endif /* _UAPI__ALPHA_SETUP_H */
+--- a/arch/arc/include/asm/setup.h~init-arch-make-config_command_line_size-globally-configurable
++++ a/arch/arc/include/asm/setup.h
+@@ -9,7 +9,7 @@
+ #include <linux/types.h>
+ #include <uapi/asm/setup.h>
+ 
+-#define COMMAND_LINE_SIZE 256
++#define COMMAND_LINE_SIZE CONFIG_COMMAND_LINE_SIZE
+ 
+ /*
+  * Data structure to map a ID to string
+--- a/arch/arm64/include/uapi/asm/setup.h~init-arch-make-config_command_line_size-globally-configurable
++++ a/arch/arm64/include/uapi/asm/setup.h
+@@ -22,6 +22,10 @@
+ 
+ #include <linux/types.h>
+ 
++#ifdef __KERNEL__
++#define COMMAND_LINE_SIZE	CONFIG_COMMAND_LINE_SIZE
++#else
+ #define COMMAND_LINE_SIZE	2048
++#endif
+ 
+ #endif
+--- a/arch/arm/include/uapi/asm/setup.h~init-arch-make-config_command_line_size-globally-configurable
++++ a/arch/arm/include/uapi/asm/setup.h
+@@ -17,7 +17,11 @@
+ 
+ #include <linux/types.h>
+ 
+-#define COMMAND_LINE_SIZE 1024
++#ifdef __KERNEL__
++#define COMMAND_LINE_SIZE	CONFIG_COMMAND_LINE_SIZE
++#else
++#define COMMAND_LINE_SIZE	1024
++#endif
+ 
+ /* The list ends with an ATAG_NONE node. */
+ #define ATAG_NONE	0x00000000
+--- a/arch/loongarch/include/uapi/asm/setup.h~init-arch-make-config_command_line_size-globally-configurable
++++ a/arch/loongarch/include/uapi/asm/setup.h
+@@ -3,6 +3,10 @@
+ #ifndef _UAPI_ASM_LOONGARCH_SETUP_H
+ #define _UAPI_ASM_LOONGARCH_SETUP_H
+ 
++#ifdef __KERNEL__
++#define COMMAND_LINE_SIZE	CONFIG_COMMAND_LINE_SIZE
++#else
+ #define COMMAND_LINE_SIZE	4096
++#endif
+ 
+ #endif /* _UAPI_ASM_LOONGARCH_SETUP_H */
+--- a/arch/m68k/include/uapi/asm/setup.h~init-arch-make-config_command_line_size-globally-configurable
++++ a/arch/m68k/include/uapi/asm/setup.h
+@@ -12,6 +12,10 @@
+ #ifndef _UAPI_M68K_SETUP_H
+ #define _UAPI_M68K_SETUP_H
+ 
+-#define COMMAND_LINE_SIZE 256
++#ifdef __KERNEL__
++#define COMMAND_LINE_SIZE	CONFIG_COMMAND_LINE_SIZE
++#else
++#define COMMAND_LINE_SIZE	256
++#endif
+ 
+ #endif /* _UAPI_M68K_SETUP_H */
+--- a/arch/microblaze/include/uapi/asm/setup.h~init-arch-make-config_command_line_size-globally-configurable
++++ a/arch/microblaze/include/uapi/asm/setup.h
+@@ -12,6 +12,10 @@
+ #ifndef _UAPI_ASM_MICROBLAZE_SETUP_H
+ #define _UAPI_ASM_MICROBLAZE_SETUP_H
+ 
++#ifdef __KERNEL__
++#define COMMAND_LINE_SIZE	CONFIG_COMMAND_LINE_SIZE
++#else
+ #define COMMAND_LINE_SIZE	256
++#endif
+ 
+ #endif /* _UAPI_ASM_MICROBLAZE_SETUP_H */
+--- a/arch/mips/include/uapi/asm/setup.h~init-arch-make-config_command_line_size-globally-configurable
++++ a/arch/mips/include/uapi/asm/setup.h
+@@ -2,7 +2,11 @@
+ #ifndef _UAPI_MIPS_SETUP_H
+ #define _UAPI_MIPS_SETUP_H
+ 
++#ifdef __KERNEL__
++#define COMMAND_LINE_SIZE	CONFIG_COMMAND_LINE_SIZE
++#else
+ #define COMMAND_LINE_SIZE	4096
++#endif
+ 
+ 
+ #endif /* _UAPI_MIPS_SETUP_H */
+--- a/arch/parisc/include/uapi/asm/setup.h~init-arch-make-config_command_line_size-globally-configurable
++++ a/arch/parisc/include/uapi/asm/setup.h
+@@ -2,6 +2,10 @@
+ #ifndef _PARISC_SETUP_H
+ #define _PARISC_SETUP_H
+ 
++#ifdef __KERNEL__
++#define COMMAND_LINE_SIZE	CONFIG_COMMAND_LINE_SIZE
++#else
+ #define COMMAND_LINE_SIZE	1024
++#endif
+ 
+ #endif /* _PARISC_SETUP_H */
+--- a/arch/powerpc/include/uapi/asm/setup.h~init-arch-make-config_command_line_size-globally-configurable
++++ a/arch/powerpc/include/uapi/asm/setup.h
+@@ -2,6 +2,10 @@
+ #ifndef _UAPI_ASM_POWERPC_SETUP_H
+ #define _UAPI_ASM_POWERPC_SETUP_H
+ 
++#ifdef __KERNEL__
++#define COMMAND_LINE_SIZE	CONFIG_COMMAND_LINE_SIZE
++#else
+ #define COMMAND_LINE_SIZE	2048
++#endif
+ 
+ #endif /* _UAPI_ASM_POWERPC_SETUP_H */
+--- a/arch/riscv/include/uapi/asm/setup.h~init-arch-make-config_command_line_size-globally-configurable
++++ a/arch/riscv/include/uapi/asm/setup.h
+@@ -3,6 +3,10 @@
+ #ifndef _UAPI_ASM_RISCV_SETUP_H
+ #define _UAPI_ASM_RISCV_SETUP_H
+ 
++#ifdef __KERNEL__
++#define COMMAND_LINE_SIZE	CONFIG_COMMAND_LINE_SIZE
++#else
+ #define COMMAND_LINE_SIZE	2048
++#endif
+ 
+ #endif /* _UAPI_ASM_RISCV_SETUP_H */
+--- a/arch/s390/Kconfig~init-arch-make-config_command_line_size-globally-configurable
++++ a/arch/s390/Kconfig
+@@ -521,14 +521,6 @@ endchoice
+ config 64BIT
+ 	def_bool y
+ 
+-config COMMAND_LINE_SIZE
+-	int "Maximum size of kernel command line"
+-	default 4096
+-	range 896 1048576
+-	help
+-	  This allows you to specify the maximum length of the kernel command
+-	  line.
+-
+ config SMP
+ 	def_bool y
+ 
+--- a/arch/sparc/include/uapi/asm/setup.h~init-arch-make-config_command_line_size-globally-configurable
++++ a/arch/sparc/include/uapi/asm/setup.h
+@@ -6,10 +6,14 @@
+ #ifndef _UAPI_SPARC_SETUP_H
+ #define _UAPI_SPARC_SETUP_H
+ 
+-#if defined(__sparc__) && defined(__arch64__)
+-# define COMMAND_LINE_SIZE 2048
++#ifdef __KERNEL__
++# define COMMAND_LINE_SIZE CONFIG_COMMAND_LINE_SIZE
+ #else
+-# define COMMAND_LINE_SIZE 256
++# if defined(__sparc__) && defined(__arch64__)
++#  define COMMAND_LINE_SIZE 2048
++# else
++#  define COMMAND_LINE_SIZE 256
++# endif
+ #endif
+ 
+ 
+--- a/arch/um/include/asm/setup.h~init-arch-make-config_command_line_size-globally-configurable
++++ a/arch/um/include/asm/setup.h
+@@ -6,6 +6,6 @@
+  * command line, so this choice is ok.
+  */
+ 
+-#define COMMAND_LINE_SIZE 4096
++#define COMMAND_LINE_SIZE CONFIG_COMMAND_LINE_SIZE
+ 
+ #endif		/* SETUP_H_INCLUDED */
+--- a/arch/x86/include/asm/setup.h~init-arch-make-config_command_line_size-globally-configurable
++++ a/arch/x86/include/asm/setup.h
+@@ -4,7 +4,7 @@
+ 
+ #include <uapi/asm/setup.h>
+ 
+-#define COMMAND_LINE_SIZE 2048
++#define COMMAND_LINE_SIZE CONFIG_COMMAND_LINE_SIZE
+ 
+ #include <linux/linkage.h>
+ #include <asm/page_types.h>
+--- a/arch/xtensa/include/uapi/asm/setup.h~init-arch-make-config_command_line_size-globally-configurable
++++ a/arch/xtensa/include/uapi/asm/setup.h
+@@ -12,6 +12,10 @@
+ #ifndef _XTENSA_SETUP_H
+ #define _XTENSA_SETUP_H
+ 
++#ifdef __KERNEL__
++#define COMMAND_LINE_SIZE	CONFIG_COMMAND_LINE_SIZE
++#else
+ #define COMMAND_LINE_SIZE	256
++#endif
+ 
+ #endif
+--- a/include/uapi/asm-generic/setup.h~init-arch-make-config_command_line_size-globally-configurable
++++ a/include/uapi/asm-generic/setup.h
+@@ -2,6 +2,10 @@
+ #ifndef __ASM_GENERIC_SETUP_H
+ #define __ASM_GENERIC_SETUP_H
+ 
++#ifdef __KERNEL__
++#define COMMAND_LINE_SIZE	CONFIG_COMMAND_LINE_SIZE
++#else
+ #define COMMAND_LINE_SIZE	512
++#endif
+ 
+ #endif	/* __ASM_GENERIC_SETUP_H */
+--- a/init/Kconfig~init-arch-make-config_command_line_size-globally-configurable
++++ a/init/Kconfig
+@@ -1607,6 +1607,22 @@ config CMDLINE_FROM_BOOTCONFIG
+ 
+ 	  If unsure, say N.
+ 
++config COMMAND_LINE_SIZE
++	int "Maximum size of kernel command line"
++	default 4096 if S390 || LOONGARCH || MIPS || UML
++	default 2048 if X86 || ARM64 || PPC || SPARC64 || RISCV
++	default 1024 if ARM || PARISC
++	default 256 if ALPHA || ARC || M68K || MICROBLAZE || SPARC32 || XTENSA
++	default 512
++	range 896 1048576 if S390
++	range 256 2048 if ARM || M68K || NIOS2 || PPC
++	range 256 3840 if SUPERH
++	range 256 256 if ALPHA
++	range 256 4096
++	help
++	  This allows you to specify the maximum length of the kernel command
++	  line.
++
+ config CMDLINE_LOG_WRAP_IDEAL_LEN
+ 	int "Length to try to wrap the cmdline when logged at boot"
+ 	default 1021
+_
+
+Patches currently in -mm which might be from wfelipe@google.com are
+
+selftests-cgroup-test_zswap-wait-for-cgroup-to-unpopulate-in-test_zswap_writeback.patch
+selftests-cgroup-test_zswap-fix-implicit-unsigned-promotion-bug-in-test_no_kmem_bypass.patch
+init-arch-make-config_command_line_size-globally-configurable.patch
+init-kconfig-make-config-init_env_arg_limit-user-configurable.patch
+
