@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4E08EEEA8
-	for <mm-commits@vger.kernel.org>; Sat, 29 Aug 2026 22:47:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BBDADEEA8
+	for <mm-commits@vger.kernel.org>; Sat, 29 Aug 2026 22:47:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788043626; cv=none; b=rIE9D02sauN48IoGSQmu9DFStQyo7OuXr7KXFRiJCRpA4regsjVU+MXEBZuZcCCkQwnp4OwphW3h4VJiOvr9xflpFVHUzyHXKAzKlgwB1XuU2asZVSk/aOLr1+P4stk4Q7cuE2On92BnsklE/PHJUUemZqMich4QEv6YVBuG5ec=
+	t=1788043628; cv=none; b=RGGhHIJWO6ze4FVFE1LKRRzgYOtlDvL4A7MYHKwE+9BQEfDp8esLrOFhi45wbnc5WTwk+EqseIVIwfxO1rvn23ny4zduqRGo+vbajbn2t37z9v6X921YhVURQM7d5T/S8Esyh9mexOh1Lyi9wy9MHGLvkdtyro5vtzvThOPChFs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788043626; c=relaxed/simple;
-	bh=JlLMt73pACcEHGU7y8RKzVakkByEUwufeXM91Y4zQEY=;
-	h=Date:To:From:Subject:Message-Id; b=EPMYylCuy3LhWYH22WGZJBjU/C4OOuDFoN0Wo37Sb8OuXnJmY6X3SOCRGlaGbNsxmt7yKwKIe6AaNvfotu+GjPm1L5afK7ruVHf4zEcmJPfA/RkVZQEBbR6BhAjM7+3+7fXGOvoRxm5UcIeHQUFVeVBnVPAc7RQDRNZmBFP/Gpw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GvqPa0L/; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788043628; c=relaxed/simple;
+	bh=X5akXfxiPE/wk0g+8XbdJNE1N6WxFZu/pYsKr59EBzw=;
+	h=Date:To:From:Subject:Message-Id; b=FYirK6gvhQWrg8yHSpXFWKMBFKA7mSpAuCVSqvnyQsGvUnwvhAptzsEBOCsxfuvdWUlbC6anbw6rXeg+VXJXXMrD3/MXJn5kP3DgH0Q7UB2YpmD16OgbKHynm712EN/hcdUHHCq99d0XdgGFM5pSqsMctqRijTnvAIMEE3L9p0I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=B5vzKvhs; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GvqPa0L/"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C3D0B1F000E9;
-	Sat, 29 Aug 2026 22:47:04 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="B5vzKvhs"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 597551F000E9;
+	Sat, 29 Aug 2026 22:47:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788043624;
-	bh=fV/Z7XOGIRJpMGDS8UukNNwDUCRA18NfwN8/3+x0Z5g=;
+	d=linux-foundation.org; s=korg; t=1788043627;
+	bh=G9Eh5WWDsDpeLG7yJYCcBw/9Ka7XTq2no57UWBAMpKo=;
 	h=Date:To:From:Subject;
-	b=GvqPa0L/CWSDj8+Xc3KVlgLWmyERREig4Ms66iXwpwVZiRK7oMJSISXO5y1NTISPQ
-	 p3uB09h5GcBujrvXXa6vi1Cg7mww/RWwR4H1ounjS1zBKmfBFl/33ZNTlzCEZLOYay
-	 rqgVUn+XmBU+LULIceybUFhWlP6NXucHGeCazPSQ=
-Date: Sat, 29 Aug 2026 15:47:04 -0700
+	b=B5vzKvhsMWv3tw9KzAXtRQ+zdRwtKUFZZsGalrmnQLEzJIUYYNVOhdPr6//9p2qtw
+	 OHKOaD4ECUbWZ+GOeyayKwnWPHSM1lPg9tR9b/QqosGWcCq6gETebF0Z2IzBApgU+i
+	 +/eEqXbnRm2uq1zRlT0x3aLLl8Kf5Cr2Mmnqfx7k=
+Date: Sat, 29 Aug 2026 15:47:06 -0700
 To: mm-commits@vger.kernel.org,pmladek@suse.com,mhiramat@kernel.org,lance.yang@linux.dev,david.laight.linux@gmail.com,brads@mainlining.org,atomlin@atomlin.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + hung_task-reset-warning-budget-when-problem-gets-resolved.patch added to mm-nonmm-unstable branch
-Message-Id: <20260829224704.C3D0B1F000E9@smtp.kernel.org>
+Subject: + hung_task-log-summary-line-when-warning-budget-is-exhausted.patch added to mm-nonmm-unstable branch
+Message-Id: <20260829224707.597551F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: hung_task: reset warning budget when problem gets resolved
+     Subject: hung_task: log summary line when warning budget is exhausted
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     hung_task-reset-warning-budget-when-problem-gets-resolved.patch
+     hung_task-log-summary-line-when-warning-budget-is-exhausted.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hung_task-reset-warning-budget-when-problem-gets-resolved.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hung_task-log-summary-line-when-warning-budget-is-exhausted.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,208 +59,55 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Aaron Tomlin <atomlin@atomlin.com>
-Subject: hung_task: reset warning budget when problem gets resolved
-Date: Sat, 29 Aug 2026 10:53:20 -0400
+Subject: hung_task: log summary line when warning budget is exhausted
+Date: Sat, 29 Aug 2026 10:53:21 -0400
 
-Patch series "hung_task: Improve warning budget handling and task
-reporting", v10.
+Once the warning budget is exhausted, hung_task_info() normally stops
+printing per-task details.  When panic is triggered, full details are
+still printed so diagnostics remain available before panic.
 
-The hung_task watchdog detects tasks stuck in TASK_UNINTERRUPTIBLE (D)
-state for longer than CONFIG_DEFAULT_HUNG_TASK_TIMEOUT seconds.  To
-prevent log spam during system spikes, sysctl_hung_task_warnings enforces
-a budget on the number of logged warnings.
+To retain visibility without restoring per-task output after budget
+exhaustion, emit a single aggregate summary line at the end of each
+watchdog scan that detects hung tasks with an exhausted budget.  This
+keeps non-panic per-task reports budgeted during system-wide hangs.
 
-However, the current implementation has two major limitations:
-
-    1. Permanent exhaustion of warning budget
-
-       sysctl_hung_task_warnings is decremented directly when
-       printing warnings.  Once this budget hits zero, no further warnings
-       are reported until an administrator manually updates the sysctl
-       value or reboots the system.  Consequently, a single temporary hang
-       episode permanently blinds the kernel watchdog to any subsequent
-       hung tasks after system recovery.
-
-    2. Total log suppression when budget is exhausted
-
-       Once the warning budget reaches zero, hung_task_info()
-       completely suppresses all output, including the basic single-line
-       alert.  While suppressing verbose stack dumps and lock debugging is
-       desirable to prevent dmesg flooding, hiding basic task alerts
-       leaves administrators entirely unaware that tasks are hanging.
-
-This patch series resolves both limitations by decoupling the configured
-warning limit from the active runtime budget, automatically resetting the
-budget upon system recovery or sysctl updates, and emitting a single
-aggregate summary line when hung tasks are detected under an exhausted
-warning budget.
-
-Patch 1 separates the configured sysctl hung_task_warnings from the
-runtime budget, making khungtaskd the sole owner of runtime budget
-updates.  The budget is reloaded directly when a scan finds zero hung
-tasks, or via an atomic reset request published on sysctl write.
-
-Patch 2 prevents dmesg flooding during system-wide hangs by keeping
-non-panic per-task stack dumps budgeted, while providing ongoing
-visibility by logging a single aggregate summary line at the end of each
-scan iteration when the warning budget is exhausted.
-
-
-This patch (of 2):
-
-The sysctl hung_task_warnings currently holds both the configured warning
-limit and the remaining budget.  Each detailed report decrements the
-sysctl, so once it reaches zero, the configured limit is lost and cannot
-be restored automatically.
-
-Keep sysctl_hung_task_warnings as the configured warning limit and make
-khungtaskd the sole owner of the remaining budget.  A check that finds no
-hung tasks reloads the budget directly from the configured limit.  A
-successful sysctl write publishes an atomic reset request, which
-khungtaskd consumes at the start of the next check.
-
-Link: https://lore.kernel.org/20260829145321.18423-1-atomlin@atomlin.com
-Link: https://lore.kernel.org/20260829145321.18423-2-atomlin@atomlin.com
+Link: https://lore.kernel.org/20260829145321.18423-3-atomlin@atomlin.com
 Signed-off-by: Aaron Tomlin <atomlin@atomlin.com>
 Suggested-by: Petr Mladek <pmladek@suse.com>
 Suggested-by: Lance Yang <lance.yang@linux.dev>
-Tested-by: Lance Yang <lance.yang@linux.dev>
+Reviewed-by: Petr Mladek <pmladek@suse.com>
 Reviewed-by: Lance Yang <lance.yang@linux.dev>
-Cc: Bradley Morgan <brads@mainlining.org>
+Reviewed-by: Bradley Morgan <brads@mainlining.org>
 Cc: David Laight <david.laight.linux@gmail.com>
 Cc: "Masami Hiramatsu (Google)" <mhiramat@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/sysctl/kernel.rst |    5 +
- kernel/hung_task.c                          |   49 +++++++++++++++---
- 2 files changed, 44 insertions(+), 10 deletions(-)
+ kernel/hung_task.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
---- a/Documentation/admin-guide/sysctl/kernel.rst~hung_task-reset-warning-budget-when-problem-gets-resolved
-+++ a/Documentation/admin-guide/sysctl/kernel.rst
-@@ -459,8 +459,9 @@ hung_task_warnings
- ==================
- 
- The maximum number of warnings to report. During a check interval
--if a hung task is detected, this value is decreased by 1.
--When this value reaches 0, no more warnings will be reported.
-+if a hung task is detected, the internal warning budget is decreased by 1.
-+When this budget reaches 0, no more detailed warnings will be reported. The
-+warning budget is reset to the configured limit when no hung task is found.
- This file shows up if ``CONFIG_DETECT_HUNG_TASK`` is enabled.
- 
- -1: report an infinite number of warnings.
---- a/kernel/hung_task.c~hung_task-reset-warning-budget-when-problem-gets-resolved
+--- a/kernel/hung_task.c~hung_task-log-summary-line-when-warning-budget-is-exhausted
 +++ a/kernel/hung_task.c
-@@ -57,8 +57,20 @@ unsigned long __read_mostly sysctl_hung_
-  */
- static unsigned long __read_mostly sysctl_hung_task_check_interval_secs;
- 
-+/*
-+ * Limit the number of printed hung tasks to prevent printing
-+ * the same or similar backtraces repeatedly.
-+ */
- static int __read_mostly sysctl_hung_task_warnings = 10;
- 
-+/*
-+ * The number of hung tasks which still can be reported.
-+ * The budget gets restored to the original limit when
-+ * the previous stall is resolved.
-+ */
-+static int hung_task_warnings_budget = 10;
-+static atomic_t reset_hung_task_warnings = ATOMIC_INIT(0);
-+
- static int __read_mostly did_panic;
- static bool hung_task_call_panic;
- 
-@@ -245,11 +257,11 @@ static void hung_task_info(struct task_s
- 	/*
- 	 * The given task did not get scheduled for more than
- 	 * CONFIG_DEFAULT_HUNG_TASK_TIMEOUT. Therefore, complain
--	 * accordingly
-+	 * accordingly with full details if the budget is not exhausted.
- 	 */
--	if (sysctl_hung_task_warnings || hung_task_call_panic) {
--		if (sysctl_hung_task_warnings > 0)
--			sysctl_hung_task_warnings--;
-+	if (hung_task_warnings_budget || hung_task_call_panic) {
-+		if (hung_task_warnings_budget > 0)
-+			hung_task_warnings_budget--;
- 		pr_err("INFO: task %s:%d blocked%s for more than %ld seconds.\n",
- 		       t->comm, t->pid, t->in_iowait ? " in I/O wait" : "",
- 		       (jiffies - t->last_switch_time) / HZ);
-@@ -264,7 +276,7 @@ static void hung_task_info(struct task_s
- 		sched_show_task(t);
+@@ -277,7 +277,7 @@ static void hung_task_info(struct task_s
  		debug_show_blocker(t, timeout);
  
--		if (!sysctl_hung_task_warnings)
-+		if (!hung_task_warnings_budget)
- 			pr_info("Future hung task reports are suppressed, see sysctl kernel.hung_task_warnings\n");
+ 		if (!hung_task_warnings_budget)
+-			pr_info("Future hung task reports are suppressed, see sysctl kernel.hung_task_warnings\n");
++			pr_info("hung_task: further per-task details suppressed until warning budget is reset or panic is triggered (see sysctl kernel.hung_task_warnings)\n");
  	}
  
-@@ -304,7 +316,7 @@ static void check_hung_uninterruptible_t
- 	unsigned long last_break = jiffies;
- 	struct task_struct *g, *t;
- 	unsigned long this_round_count;
--	int need_warning = sysctl_hung_task_warnings;
-+	int need_warning;
- 	unsigned long si_mask = hung_task_si_mask;
- 
- 	/*
-@@ -314,6 +326,11 @@ static void check_hung_uninterruptible_t
- 	if (test_taint(TAINT_DIE) || did_panic)
+ 	touch_nmi_watchdog();
+@@ -363,6 +363,10 @@ static void check_hung_uninterruptible_t
  		return;
+ 	}
  
-+	if (atomic_xchg_acquire(&reset_hung_task_warnings, 0))
-+		hung_task_warnings_budget =
-+			READ_ONCE(sysctl_hung_task_warnings);
-+	need_warning = hung_task_warnings_budget;
++	if (!hung_task_warnings_budget && !hung_task_call_panic)
++		pr_info("hung_task: %lu hung tasks detected, warning budget exhausted\n",
++			this_round_count);
 +
- 	this_round_count = 0;
- 	rcu_read_lock();
- 	for_each_process_thread(g, t) {
-@@ -340,8 +357,11 @@ static void check_hung_uninterruptible_t
-  unlock:
- 	rcu_read_unlock();
- 
--	if (!this_round_count)
-+	if (!this_round_count) {
-+		hung_task_warnings_budget =
-+			READ_ONCE(sysctl_hung_task_warnings);
- 		return;
-+	}
- 
  	if (need_warning || hung_task_call_panic) {
  		si_mask |= SYS_INFO_LOCKS;
-@@ -425,6 +445,19 @@ static int proc_dohung_task_timeout_secs
- 	return ret;
- }
  
-+static int proc_dohung_task_warnings(const struct ctl_table *table, int write,
-+				     void *buffer,
-+				     size_t *lenp, loff_t *ppos)
-+{
-+	int ret;
-+
-+	ret = proc_dointvec_minmax(table, write, buffer, lenp, ppos);
-+	if (!ret && write)
-+		atomic_set_release(&reset_hung_task_warnings, 1);
-+
-+	return ret;
-+}
-+
- /*
-  * This is needed for proc_doulongvec_minmax of sysctl_hung_task_timeout_secs
-  * and hung_task_check_interval_secs
-@@ -480,7 +513,7 @@ static const struct ctl_table hung_task_
- 		.data		= &sysctl_hung_task_warnings,
- 		.maxlen		= sizeof(int),
- 		.mode		= 0644,
--		.proc_handler	= proc_dointvec_minmax,
-+		.proc_handler	= proc_dohung_task_warnings,
- 		.extra1		= SYSCTL_NEG_ONE,
- 	},
- 	{
 _
 
 Patches currently in -mm which might be from atomlin@atomlin.com are
