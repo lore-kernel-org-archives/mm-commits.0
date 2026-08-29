@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ADC2620E030
-	for <mm-commits@vger.kernel.org>; Sat, 29 Aug 2026 02:09:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3AE18E56A
+	for <mm-commits@vger.kernel.org>; Sat, 29 Aug 2026 02:11:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787969378; cv=none; b=boXWmNOJ8bgP5FM4Nrmyf6dD9wguQKp8sK2A5T+GrVnArn+mxL/NIvPNIqf+OEbNZYcHmH230H2cn6JngnerWzxIxw7lARxGhWfSA5cHlSGeUXmaEkSGnRMZYsUNgyXXFhkCZFonLEyGcDTf1AW3Hfp6PoNDwrnu9SSpidcS+Fo=
+	t=1787969485; cv=none; b=CTNPf2d1UxAKOolMgquf2Lo222xIqNLLWoIG0WXFYZhuGBPHteCnO/eC8SjSZTrNh5FRIjSrKmZwthLgNl7KAGuNsJgpdoay1+bwzekrCh5o9haf72/lNT0jd3TsN6EJQJ69urljp6lLenqRwOOLnBYUB5U7G8w76GjKDDCIwlk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787969378; c=relaxed/simple;
-	bh=ym3z6+6YZfgBJ2l8Qkuuxal1CgVp2b9sWbdZEstrKM0=;
-	h=Date:To:From:Subject:Message-Id; b=QCWbj2JWEmy9trDBRQd4t8g1j/2V2abBsWDzwpZVcTSP1Fxivj96/JHGlyd9AHkW/J+cqdMVafJpqcln78w1jcNp8JFcsQAYUDYjzF/whM7SuFGcU2QT8/cAgx4eRxJ+ulUrupcQ28+IeJDZeM/WtQ0bDpEtEE5ovVKPXtqUIOM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=iMl/sRR0; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1787969485; c=relaxed/simple;
+	bh=oelBEjhHl1hxMjbFWrByIYOyj96Vax0A+e/kCuSj454=;
+	h=Date:To:From:Subject:Message-Id; b=LHMsMmI+24hnc/40giorwg5KgRdB59qhHpgR2xHLL7o/xIUBymS7a41Nhf0g7HJjQsC+ow3jRJy8FjNhh4csk6vNp9Hw4CTmFlUUqpiIeYnIZiDDg+brbwTnGEKdfOyD+cy5MjYO/GTxy28g0XbX1AJID9OoKaVXFo/J68CPf8w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Vzl0n8g1; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="iMl/sRR0"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 55D341F000E9;
-	Sat, 29 Aug 2026 02:09:36 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Vzl0n8g1"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 95D3D1F000E9;
+	Sat, 29 Aug 2026 02:11:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1787969376;
-	bh=R/iGMVnpUqB7X1Dujsqq34KpUfbZaVy8SA0Z0JowSec=;
+	d=linux-foundation.org; s=korg; t=1787969482;
+	bh=Az4dgFQH72iotHxlcw0tcRMaNk9E4sl7eI4sKJh6Cwo=;
 	h=Date:To:From:Subject;
-	b=iMl/sRR0KpL42avU5Iyko4ofblfky8QNCUV9PVWho3c/Pc3O16a7DiiFu+3Tl2zpB
-	 wIDmFo8Tf6nMqrmfkJZb7vBNrOB2lqf+dfB3ObzpCXQygN0UFKDvbgsBht3b86YMbT
-	 PBVNqb4of8dLCH1dL0gD+ZSDaui5SZLM7Zfsuuyc=
-Date: Fri, 28 Aug 2026 19:09:35 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liujing@cmss.chinamobile.com,liam@infradead.org,david@kernel.org,corbet@lwn.net,chenyichong@uniontech.com,liuye@kylinos.cn,akpm@linux-foundation.org
+	b=Vzl0n8g1HUyWKfG0cxqvikKQo5f+tPiojmjVyVWe8ZAFO3MRfdRmp0dCkk8D0/Xa6
+	 5vKEZAl66Sv94asqUeFYYOXE323faEOOKfQPs/vXymfGjqeB3NXxknPY4iFGFNOeJ2
+	 6PSIOG8IVJ0Df0YySpqYMyd4+OTgRRI/elSTYMoo=
+Date: Fri, 28 Aug 2026 19:11:22 -0700
+To: mm-commits@vger.kernel.org,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@suse.com,kuba@kernel.org,joshua.hahnjy@gmail.com,hannes@cmpxchg.org,cxiong@meta.com,shakeel.butt@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + tools-mm-page_owner_sort-show-available-sort-keys-in-usage-text.patch added to mm-new branch
-Message-Id: <20260829020936.55D341F000E9@smtp.kernel.org>
+Subject: + memcg-trim-the-per-cpu-charge-stock-instead-of-draining-it.patch added to mm-new branch
+Message-Id: <20260829021122.95D3D1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: tools/mm/page_owner_sort: show available sort keys in usage text
+     Subject: memcg: trim the per-cpu charge stock instead of draining it
 has been added to the -mm mm-new branch.  Its filename is
-     tools-mm-page_owner_sort-show-available-sort-keys-in-usage-text.patch
+     memcg-trim-the-per-cpu-charge-stock-instead-of-draining-it.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/tools-mm-page_owner_sort-show-available-sort-keys-in-usage-text.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memcg-trim-the-per-cpu-charge-stock-instead-of-draining-it.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,59 +69,116 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Ye Liu <liuye@kylinos.cn>
-Subject: tools/mm/page_owner_sort: show available sort keys in usage text
-Date: Wed, 19 Aug 2026 10:16:11 +0800
+From: Shakeel Butt <shakeel.butt@linux.dev>
+Subject: memcg: trim the per-cpu charge stock instead of draining it
+Date: Wed, 19 Aug 2026 18:20:10 -0700
 
-The --sort option accepts abbreviated or complete key names, but the usage
-text never listed them.  Users had to read the source or the documentation
-to discover valid keys.
+Joy reported that an application generating a request/response traffic
+pattern spends 44.6% to 57.0% of CPU in the memcg charge/uncharge path for
+a range of message sizes, against 0.27% to 0.71% outside that range. 
+Running from the root memcg, where socket memory accounting is skipped,
+recovers the performance.
 
-List all available keys (full form and abbreviation) with a brief
-description and examples directly in the --sort help section.
+Tracing the charge path showed that the application generates a pattern
+where the write syscall charges one page and the read syscall uncharges
+two pages on the same CPU.  This hits a corner case in the memcg percpu
+stock code that thrashes the stock continuously.
 
-Link: https://lore.kernel.org/20260819021611.2910835-4-ye.liu@linux.dev
-Signed-off-by: Ye Liu <liuye@kylinos.cn>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Yichong Chen <chenyichong@uniontech.com>
-Cc: Liu Jing <liujing@cmss.chinamobile.com>
+In the memcg percpu stock code, MEMCG_CHARGE_BATCH (64) is both the high
+watermark and the emptying target, i.e.  on a request to charge one page
+the kernel charges MEMCG_CHARGE_BATCH pages and caches (MEMCG_CHARGE_BATCH
+- 1) of them in the percpu stock.  The following uncharge of 2 pages takes
+the cached count to (MEMCG_CHARGE_BATCH + 1), and refill_stock() then
+empties the cache completely.  With such a pattern the percpu stock
+becomes completely ineffective.
+
+Instead of a single boundary point for charges, use the technique the page
+allocator uses for its own percpu caches, which keeps the watermark and
+the emptying target apart: nr_pcp_free() frees between batch and high -
+batch pages, leaving at least pcp->batch on the list.  Add a high
+watermark MEMCG_STOCK_HIGH and, once the cached count goes over it, return
+only the pages above MEMCG_STOCK_LOW.  The watermarks are
+MEMCG_CHARGE_BATCH apart, so a page_counter update still covers a full
+batch.
+
+For now, keep MEMCG_STOCK_HIGH same as MEMCG_CHARGE_BATCH and in future we
+will reevaluate if it makes sense to increase it.
+
+Link: https://lore.kernel.org/20260820012010.2016086-1-shakeel.butt@linux.dev
+Signed-off-by: Shakeel Butt <shakeel.butt@linux.dev>
+Reported-by: Joy Chaoyue Xiong <cxiong@meta.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Jakub Kacinski <kuba@kernel.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/mm/page_owner_sort.c |    9 +++++++++
- 1 file changed, 9 insertions(+)
+ mm/memcontrol.c |   25 +++++++++++++++++++------
+ 1 file changed, 19 insertions(+), 6 deletions(-)
 
---- a/tools/mm/page_owner_sort.c~tools-mm-page_owner_sort-show-available-sort-keys-in-usage-text
-+++ a/tools/mm/page_owner_sort.c
-@@ -772,6 +772,15 @@ static void usage(void)
- 		"\t\t\targument in the form of a comma-separated list with some\n"
- 		"\t\t\tcommon fields predefined (pid, tgid, comm, stacktrace, allocator, module)\n"
- 		"--sort <order>\t\tSpecify sort order as: [+|-]key[,[+|-]key[,...]]\n"
-+		"\t\t\tAvailable keys:\n"
-+		"\t\t\t  pid(p), tgid(tg), name(n), stacktrace(st),\n"
-+		"\t\t\t  txt(T), alloc_ts(at), allocator(ator), module(mod)\n"
-+		"\t\t\tThe \"+\" is optional since default direction is\n"
-+		"\t\t\tincreasing numerical or lexicographic order.\n"
-+		"\t\t\tMixed use of abbreviated and complete-form is allowed.\n"
-+		"\t\t\tExamples:\n"
-+		"\t\t\t  --sort=n,+pid,-tgid\n"
-+		"\t\t\t  --sort=mod,at\n"
- 	);
- }
+--- a/mm/memcontrol.c~memcg-trim-the-per-cpu-charge-stock-instead-of-draining-it
++++ a/mm/memcontrol.c
+@@ -2032,6 +2032,15 @@ void mem_cgroup_print_oom_group(struct m
+  * nr_pages in a single cacheline. This may change in future.
+  */
+ #define NR_MEMCG_STOCK 7
++
++/*
++ * Watermarks for a charge stock slot, in the spirit of pcp->high and
++ * pcp->batch: MEMCG_STOCK_HIGH is the high watermark at which a slot is
++ * trimmed, and it is trimmed down to MEMCG_STOCK_LOW rather than emptied.
++ */
++#define MEMCG_STOCK_LOW		(MEMCG_CHARGE_BATCH / 2)
++#define MEMCG_STOCK_HIGH	(MEMCG_CHARGE_BATCH)
++
+ #define FLUSHING_CACHED_CHARGE	0
+ struct memcg_stock_pcp {
+ 	local_trylock_t lock;
+@@ -2212,17 +2221,18 @@ static void refill_stock(struct mem_cgro
+ {
+ 	struct memcg_stock_pcp *stock;
+ 	struct mem_cgroup *cached;
+-	uint8_t stock_pages;
++	unsigned int stock_pages;
+ 	bool success = false;
+ 	int empty_slot = -1;
+ 	int i;
  
+ 	/*
+-	 * For now limit MEMCG_CHARGE_BATCH to 127 and less. In future if we
+-	 * decide to increase it more than 127 then we will need more careful
+-	 * handling of nr_pages[] in struct memcg_stock_pcp.
++	 * nr_pages[] is a uint8_t and a slot's count is capped at
++	 * MEMCG_STOCK_HIGH. Raising MEMCG_CHARGE_BATCH beyond 127 would need
++	 * more careful handling of nr_pages[] in struct memcg_stock_pcp.
+ 	 */
+ 	BUILD_BUG_ON(MEMCG_CHARGE_BATCH > S8_MAX);
++	BUILD_BUG_ON(MEMCG_STOCK_HIGH > U8_MAX);
+ 
+ 	VM_WARN_ON_ONCE(mem_cgroup_is_root(memcg));
+ 
+@@ -2243,9 +2253,12 @@ static void refill_stock(struct mem_cgro
+ 			empty_slot = i;
+ 		if (memcg == READ_ONCE(stock->cached[i])) {
+ 			stock_pages = READ_ONCE(stock->nr_pages[i]) + nr_pages;
++			if (stock_pages > MEMCG_STOCK_HIGH) {
++				memcg_uncharge(memcg,
++					       stock_pages - MEMCG_STOCK_LOW);
++				stock_pages = MEMCG_STOCK_LOW;
++			}
+ 			WRITE_ONCE(stock->nr_pages[i], stock_pages);
+-			if (stock_pages > MEMCG_CHARGE_BATCH)
+-				drain_stock(stock, i);
+ 			success = true;
+ 			break;
+ 		}
 _
 
-Patches currently in -mm which might be from liuye@kylinos.cn are
+Patches currently in -mm which might be from shakeel.butt@linux.dev are
 
-mm-vmalloc-fix-vmap_purge_lock-livelock-under-memory-pressure.patch
-tools-mm-page_owner_sort-fix-sort-option-being-silently-ignored.patch
-tools-mm-page_owner_sort-add-module-name-sort-cull-filter-support.patch
-tools-mm-page_owner_sort-show-available-sort-keys-in-usage-text.patch
+memcg-clear-flushing_cached_charge-on-cpu-offline.patch
+memcg-trim-the-per-cpu-charge-stock-instead-of-draining-it.patch
 
