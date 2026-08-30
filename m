@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1BD9517B505;
-	Sun, 30 Aug 2026 00:18:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0DB0D25B09C;
+	Sun, 30 Aug 2026 00:18:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788049128; cv=none; b=m0sdcEaJqhG9swpykR5P4r+4sJmyvIBmoZDFl76lVapiB/GhC3NV+U9fsXIK01JhtKAMcw7603pDa6HKZ+GJ7JJg236AVhslzgnPwz/Yq5w+e0c+MqR6aN6xnbkweaGvDs8fIKVJhnVs1ASvSHNQsLyhYOb8zlng9w/jXg5cuk0=
+	t=1788049130; cv=none; b=rAyK4KWMRrVFFYbJDBK4s//oQAXHfbiUx7q2sKecPanWocB6kWx/HoHnYrZBZWOVTx6BUieM04hjVCMSpVysz2EscLCd6tJCXWi53UxC44LDiPmfhUgNo+vLGogmF4oVrTDJngLHFJc5/H2x5qKP4Ty/WqWZXK0JPc83BQJoCWc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788049128; c=relaxed/simple;
-	bh=6xAAEf9n2ejie2nvZlwnCvtEIsdrlUOQrQyAS7eDFA4=;
-	h=Date:To:From:Subject:Message-Id; b=HCxj2SDOSdwrn7XlxnRJYH/PxuR1T4oyswMbgl5bZRXxwfSkaJMzNz1+2WFYC5kR+MrKeQ1u9pmSt7Zd2BszemwdOJMys3zBARFWwdCOGVjsYv/8w0rwD0c8rBAB0sBfFvQyEiwNcv5lIWSFh3h/71MzF4ZqV+9sXDh2jZz6Gow=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=A5uR3Mdi; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788049130; c=relaxed/simple;
+	bh=93jdF4EurVPEf4xGc2I4TfdZW5b/vKJmUKpT1KfVSUU=;
+	h=Date:To:From:Subject:Message-Id; b=GJrJfbnubeLATXdbCjXkmDchkmwtMhlaTLXaS3F7aAOxm+NmF+e1JkhIJoDlTwVk3kweeDYYUqSVn70YvGzcv+3vU/Tb342pleWXnBIMwZIxJdhaQGjFA5T16aTDcHqNherZsAg+/Jhk51FkCgGJHBWIZg9gvJZM3jUn67xzOYk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DKlKB+GG; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="A5uR3Mdi"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A5D561F000E9;
-	Sun, 30 Aug 2026 00:18:46 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DKlKB+GG"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DCACB1F000E9;
+	Sun, 30 Aug 2026 00:18:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788049126;
-	bh=5Ay+6KugRyQ4ifN3giYIgpitSA3B98X9sP/rNUQjWVI=;
+	d=linux-foundation.org; s=korg; t=1788049128;
+	bh=8KaJRgGkA5NY0TN8puCBbFBBTdGu/r9IWpGj5cu9MOg=;
 	h=Date:To:From:Subject;
-	b=A5uR3MdiRqRazNNsyulJOgTWRCedDl0aV8IzaXC8OxGYIHZx21jNNV4BLvsmGAL/5
-	 yzzV3Jd0Didj1v1H/tY85wsjp3LHn9b+K7ZDDwrCEwKVTHQPMjxbK6mfuSpqNPRhfT
-	 lwwjukdUlFPfnynTOTCLsKdGSfSLXfw8+gv3F+P8=
-Date: Sat, 29 Aug 2026 17:18:46 -0700
+	b=DKlKB+GGocYtO4P6O8N1tZR/DtloPCU0axaftseifeiCllpOqOUqagkkKQ9EZQpzx
+	 oImCrXdd/5RyhB1wvn0LgkjW/ytfYcU82ESIwoMnykFeVmnvB1yc6aSbWDy3BdFHwv
+	 hzB0wnY63iCPEW0LPiHgTqfBLBvakVu5NoYc3KMU=
+Date: Sat, 29 Aug 2026 17:18:48 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,vbabka@kernel.org,stable@vger.kernel.org,ryan.roberts@arm.com,rakie.kim@sk.com,matthew.brost@intel.com,ljs@kernel.org,liam@infradead.org,lance.yang@linux.dev,joshua.hahnjy@gmail.com,jannh@google.com,dev.jain@arm.com,david@kernel.org,byungchul@sk.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,balbirs@nvidia.com,apopple@nvidia.com,gourry@gourry.net,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-madvise-skip-zone-device-folios-in-cold-pageout-pmd-range.patch added to mm-new branch
-Message-Id: <20260830001846.A5D561F000E9@smtp.kernel.org>
+Subject: + mm-mempolicy-skip-zone-device-folios-when-queueing-folios.patch added to mm-new branch
+Message-Id: <20260830001848.DCACB1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/madvise: skip zone device folios in cold/pageout PMD range
+     Subject: mm/mempolicy: skip zone device folios when queueing folios
 has been added to the -mm mm-new branch.  Its filename is
-     mm-madvise-skip-zone-device-folios-in-cold-pageout-pmd-range.patch
+     mm-mempolicy-skip-zone-device-folios-when-queueing-folios.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-madvise-skip-zone-device-folios-in-cold-pageout-pmd-range.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mempolicy-skip-zone-device-folios-when-queueing-folios.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,34 +70,37 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Gregory Price <gourry@gourry.net>
-Subject: mm/madvise: skip zone device folios in cold/pageout PMD range
-Date: Mon, 17 Aug 2026 18:08:09 -0400
+Subject: mm/mempolicy: skip zone device folios when queueing folios
+Date: Mon, 17 Aug 2026 18:08:10 -0400
 
-madvise_cold_or_pageout_pte_range() resolves the folio backing a PMD via
-pmd_folio() and ages or reclaims it without checking for zone device
-memory.
+queue_folios_pte_range() already pairs vm_normal_folio() with an explicit
+folio_is_zone_device() check before adding folios to the migration
+pagelist.
 
-The surrounding guards do not cover every zone device case:
+vm_normal_folio() alone does not reject zone device memory (a present
+device-coherent page in a normal VMA is returned as "normal").
 
-  - can_madv_lru_vma() excludes VM_PFNMAP and VM_HUGETLB VMAs
-    (so device DAX is filtered)
+Mirror the explicit check in queue_folios_pmd() as well.
 
-  - !pmd_present() branch above rejects device-private and
-    migration entries, which are non-present.
+queue_folios_pmd() uses pmd_folio() directly and can encounter a present
+zone device PMD - e.g. a device-coherent THP.
 
-  - A present zone device PMD - e.g. a device-coherent THP - is
-    not filtered by any of these, nor by pmd_folio() (unlike
-    vm_normal_page_pmd(), it performs no special/pfnmap check),
-    and would be aged or paged out here.
+This is not filtered by existing checks:
+  !pmd_present()   - only rejects non-present device-private and
+                     migration entries
 
-Skip ZONE_DEVICE folios explicitly during MADV_COLD/PAGEOUT.
+  vma_migratable() - excludes DAX and VM_PFNMAP.
 
-Link: https://lore.kernel.org/20260817220810.1175596-3-gourry@gourry.net
+The early return also means such a folio is no longer counted in
+qp->nr_failed under MPOL_MF_STRICT.  This is the same pattern used by
+queue_folios_pte_range() (skipping zone device without failing).
+
+Link: https://lore.kernel.org/20260817220810.1175596-4-gourry@gourry.net
 Fixes: a30b48bf1b24 ("mm/migrate_device: implement THP migration of zone device pages")
 Signed-off-by: Gregory Price (Meta) <gourry@gourry.net>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Reviewed-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Reviewed-by: Balbir Singh <balbirs@nvidia.com>
+Acked-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
 Tested-by: Lance Yang <lance.yang@linux.dev>
 Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
@@ -117,21 +120,20 @@ Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/madvise.c |    3 +++
- 1 file changed, 3 insertions(+)
+ mm/mempolicy.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/mm/madvise.c~mm-madvise-skip-zone-device-folios-in-cold-pageout-pmd-range
-+++ a/mm/madvise.c
-@@ -404,6 +404,9 @@ static int madvise_cold_or_pageout_pte_r
- 
- 		folio = pmd_folio(orig_pmd);
- 
-+		if (folio_is_zone_device(folio))
-+			goto huge_unlock;
-+
- 		/* Do not interfere with other mappings of this folio */
- 		if (folio_maybe_mapped_shared(folio))
- 			goto huge_unlock;
+--- a/mm/mempolicy.c~mm-mempolicy-skip-zone-device-folios-when-queueing-folios
++++ a/mm/mempolicy.c
+@@ -679,6 +679,8 @@ static void queue_folios_pmd(pmd_t *pmd,
+ 		return;
+ 	}
+ 	folio = pmd_folio(pmdval);
++	if (folio_is_zone_device(folio))
++		return;
+ 	if (is_huge_zero_folio(folio)) {
+ 		walk->action = ACTION_CONTINUE;
+ 		return;
 _
 
 Patches currently in -mm which might be from gourry@gourry.net are
