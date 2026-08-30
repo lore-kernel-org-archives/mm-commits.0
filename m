@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 730A1214A9B
-	for <mm-commits@vger.kernel.org>; Sun, 30 Aug 2026 03:09:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 684101A262D
+	for <mm-commits@vger.kernel.org>; Sun, 30 Aug 2026 03:33:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788059382; cv=none; b=pZSLhMlgGxgNj9vgVfSxMHiMuGiV5Wuej8gQm1nG75iq0IHaWX0J6caVMWszJVViWMhK1UVOZApEmYUzvQq0UD+o6+Fp+VYZOvottNMVQv6PfJbXrIYZnz4A0CRpU3Ksgz0+w++1f/Qh6LoHM7OrzioVceu23onVYI50F/5X1H4=
+	t=1788060789; cv=none; b=mmcyqR1oVLVp4dyzPJwwQiNyH+cuxQwT+5w0PhdeyKepuwxl2kWEwLbreJByLETgFBbVixMq6AbZfvdw/NLfiWcp+lSGBiVASIi2H7e5NMVko3jT2Hrc7EbQpyxEi9i2e9c9x/okwPOlzXWkc1q+tH9JI5/pJKagJ/YOS8yloOQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788059382; c=relaxed/simple;
-	bh=Fl9JrD7jT7lbjncerKLqJevXfLf4YV1oSDcMKHmhoh8=;
-	h=Date:To:From:Subject:Message-Id; b=WFkhfqaOHyCgobIqKx2YCog4HCcri9AOdIeOVPbGCByphQJbOO7G35Zsf4qe8TF5KOU1MuUHf4F+f8cmjs8IiCZBHg41ZHAzvxz8mrXgnN2y8N5mGymZ0HJW7TtBZot+2GK6CGQwLjWNrUbcXg2ZLx3k4NEBaWTxLOv73T3tOkE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=i1z8XD6t; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788060789; c=relaxed/simple;
+	bh=rQt7SqgMfpOpittCqH7rw5Xfe6xyDDJX0NMtTZO1SdU=;
+	h=Date:To:From:Subject:Message-Id; b=Tj+HoEJir51vmqKXAI5BLgFnHr8N9wpH6KphHUhtekBkj4CQJliIFeZSRkKzvpQ6zxWOIrrJ2M6skH/EwKIK72E2Yc3MHut2c8+cAHEr83klGlt4a34RN3jTvmOFWVSM50y15XYisrQNHb79bXN994J4tNYiCZkcsqv0uyMMx5w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dBBQubeU; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="i1z8XD6t"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EAC211F000E9;
-	Sun, 30 Aug 2026 03:09:40 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dBBQubeU"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B95951F000E9;
+	Sun, 30 Aug 2026 03:33:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788059381;
-	bh=2vjjZQ5T+H4Z5xhfBfmJfO94IX5Lay3Z6OFOu0kGaWs=;
+	d=linux-foundation.org; s=korg; t=1788060787;
+	bh=bxcdTSGVTu0ArkB8Mr4fn68zrbLSkVGJHS3W3HV+7mU=;
 	h=Date:To:From:Subject;
-	b=i1z8XD6tzXZs9WpOxzJITVmv2lbmGDb9CmfG16YBoebo/oRCTbNldm3Lx7/2UoYcf
-	 InvLD/Mu7+xrwv2pg4VAjuwZm3mloZGstUnhp5N9uWdeajMmnF4jWnufl7F8avsufT
-	 f/rPrsNB6X5pqQaXy0ptl38octmOp08EvsJkAdqs=
-Date: Sat, 29 Aug 2026 20:09:40 -0700
-To: mm-commits@vger.kernel.org,shakeel.butt@linux.dev,rientjes@google.com,mhocko@suse.com,husong@kylinos.cn,liuye@kylinos.cn,akpm@linux-foundation.org
+	b=dBBQubeUTV11wk6kWWOJ54Gutnhqf3KTAkeAPRIoLnSjAmlrfxaaS+wbBkxot2TiY
+	 i/u9aj3ZZN3nnugtFqPVLMVPO6EhB2z4jghM0GBOca7X47oc/iyTDTSG3VUi6FMXix
+	 5yk5RpPP9HS8TEU5ObfjUfInSBv2fk+ruBxp0NQo=
+Date: Sat, 29 Aug 2026 20:33:07 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,surenb@google.com,sj@kernel.org,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,hannes@cmpxchg.org,david@kernel.org,brendan.jackman@linux.dev,pfalcato@suse.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-oom_kill-proc-replace-magic-number-1000-with-oom_score_adj_max.patch added to mm-new branch
-Message-Id: <20260830030940.EAC211F000E9@smtp.kernel.org>
+Subject: + mm-replace-custom-bad-page-map-ratelimiting-logic.patch added to mm-new branch
+Message-Id: <20260830033307.B95951F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/oom_kill, proc: replace magic number 1000 with OOM_SCORE_ADJ_MAX
+     Subject: mm: replace custom bad page map ratelimiting logic
 has been added to the -mm mm-new branch.  Its filename is
-     mm-oom_kill-proc-replace-magic-number-1000-with-oom_score_adj_max.patch
+     mm-replace-custom-bad-page-map-ratelimiting-logic.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-oom_kill-proc-replace-magic-number-1000-with-oom_score_adj_max.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-replace-custom-bad-page-map-ratelimiting-logic.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,63 +69,100 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Ye Liu <liuye@kylinos.cn>
-Subject: mm/oom_kill, proc: replace magic number 1000 with OOM_SCORE_ADJ_MAX
-Date: Tue, 11 Aug 2026 11:36:08 +0800
+From: Pedro Falcato <pfalcato@suse.de>
+Subject: mm: replace custom bad page map ratelimiting logic
+Date: Tue, 11 Aug 2026 18:21:55 +0100
 
-In oom_badness() and proc_oom_score(), the oom_score_adj normalization
-uses a hardcoded 1000, which is the value of OOM_SCORE_ADJ_MAX defined in
-include/uapi/linux/oom.h.  Other code in the kernel (e.g.  fs/proc/base.c
-oom_adj handling) already uses OOM_SCORE_ADJ_MAX for the same purpose.
+Patch series "mm: replace custom ratelimiting logic".
 
-Replace the magic number with the macro for consistency and readability. 
-No functional change.
+The kernel has a perfectly cromulent and mostly-equivalent variant in
+lib/ratelimit.c that can be used.
 
-Link: https://lore.kernel.org/20260811033609.3992348-1-ye.liu@linux.dev
-Signed-off-by: Ye Liu <liuye@kylinos.cn>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Liu Ye <liuye@kylinos.cn>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Song Hu <husong@kylinos.cn>
+
+This patch (of 2):
+
+The current logic (allow up to $BURST prints per minute) can be entirely
+replaced by the generic version in lib/ratelimit.c, used around the
+kernel.
+
+Do so.  The only functional difference should be that the new logs will
+read something like:
+
+KERN_WARNING "print_bad_page_map: %d callbacks suppressed\n", ...
+
+But that should be fine enough.
+
+Link: https://lore.kernel.org/20260811172156.356053-1-pfalcato@suse.de
+Link: https://lore.kernel.org/20260811172156.356053-2-pfalcato@suse.de
+Signed-off-by: Pedro Falcato <pfalcato@suse.de>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Zi Yan <ziy@nvidia.com>
+Reviewed-by: SJ Park <sj@kernel.org>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Reviewed-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+Acked-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
+Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Cc: Brendan Jackman <brendan.jackman@linux.dev>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c |    3 ++-
- mm/oom_kill.c  |    2 +-
- 2 files changed, 3 insertions(+), 2 deletions(-)
+ mm/memory.c |   30 +++---------------------------
+ 1 file changed, 3 insertions(+), 27 deletions(-)
 
---- a/fs/proc/base.c~mm-oom_kill-proc-replace-magic-number-1000-with-oom_score_adj_max
-+++ a/fs/proc/base.c
-@@ -594,7 +594,8 @@ static int proc_oom_score(struct seq_fil
- 	 * exporting for a long time so userspace might depend on it.
- 	 */
- 	if (badness != LONG_MIN)
--		points = (1000 + badness * 1000 / (long)totalpages) * 2 / 3;
-+		points = (OOM_SCORE_ADJ_MAX +
-+			  badness * OOM_SCORE_ADJ_MAX / (long)totalpages) * 2 / 3;
+--- a/mm/memory.c~mm-replace-custom-bad-page-map-ratelimiting-logic
++++ a/mm/memory.c
+@@ -492,32 +492,8 @@ static inline void add_mm_rss_vec(struct
+ 			add_mm_counter(mm, i, rss[i]);
+ }
  
- 	seq_printf(m, "%lu\n", points);
+-static bool is_bad_page_map_ratelimited(void)
+-{
+-	static unsigned long resume;
+-	static unsigned long nr_shown;
+-	static unsigned long nr_unshown;
+-
+-	/*
+-	 * Allow a burst of 60 reports, then keep quiet for that minute;
+-	 * or allow a steady drip of one report per second.
+-	 */
+-	if (nr_shown == 60) {
+-		if (time_before(jiffies, resume)) {
+-			nr_unshown++;
+-			return true;
+-		}
+-		if (nr_unshown) {
+-			pr_alert("BUG: Bad page map: %lu messages suppressed\n",
+-				 nr_unshown);
+-			nr_unshown = 0;
+-		}
+-		nr_shown = 0;
+-	}
+-	if (nr_shown++ == 0)
+-		resume = jiffies + 60 * HZ;
+-	return false;
+-}
++/* Allow a burst of 60 bad page map reports per minute. */
++static DEFINE_RATELIMIT_STATE(bad_page_map_ratelimit, 60 * HZ, 60);
  
---- a/mm/oom_kill.c~mm-oom_kill-proc-replace-magic-number-1000-with-oom_score_adj_max
-+++ a/mm/oom_kill.c
-@@ -230,7 +230,7 @@ long oom_badness(struct task_struct *p,
- 	task_unlock(p);
+ static void ptval_bytes_to_hex_str(char *buf, size_t buf_size, const void *entry, size_t entry_size)
+ {
+@@ -633,7 +609,7 @@ static void print_bad_page_map(struct vm
+ 	char entry_str[PTVAL_STR_MAX];
+ 	pgoff_t index, anon_index;
  
- 	/* Normalize to oom_score_adj units */
--	adj *= totalpages / 1000;
-+	adj *= totalpages / OOM_SCORE_ADJ_MAX;
- 	points += adj;
+-	if (is_bad_page_map_ratelimited())
++	if (!__ratelimit(&bad_page_map_ratelimit))
+ 		return;
  
- 	return points;
+ 	mapping = vma->vm_file ? vma->vm_file->f_mapping : NULL;
 _
 
-Patches currently in -mm which might be from liuye@kylinos.cn are
+Patches currently in -mm which might be from pfalcato@suse.de are
 
-mm-vmalloc-fix-vmap_purge_lock-livelock-under-memory-pressure.patch
-tools-mm-page_owner_sort-fix-sort-option-being-silently-ignored.patch
-tools-mm-page_owner_sort-add-module-name-sort-cull-filter-support.patch
-tools-mm-page_owner_sort-show-available-sort-keys-in-usage-text.patch
-mm-oom_kill-remove-unreachable-__gfp_thisnode-check-in-constrained_alloc.patch
-mm-oom_kill-proc-replace-magic-number-1000-with-oom_score_adj_max.patch
+x86-alternative-exclude-text-poking-against-change_page_attr.patch
+mm-replace-custom-bad-page-map-ratelimiting-logic.patch
+mm-page_alloc-replace-custom-bad-page-ratelimiting-logic.patch
 
