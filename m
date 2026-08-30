@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0DB0D25B09C;
-	Sun, 30 Aug 2026 00:18:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 072F2283FD9
+	for <mm-commits@vger.kernel.org>; Sun, 30 Aug 2026 00:22:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788049130; cv=none; b=rAyK4KWMRrVFFYbJDBK4s//oQAXHfbiUx7q2sKecPanWocB6kWx/HoHnYrZBZWOVTx6BUieM04hjVCMSpVysz2EscLCd6tJCXWi53UxC44LDiPmfhUgNo+vLGogmF4oVrTDJngLHFJc5/H2x5qKP4Ty/WqWZXK0JPc83BQJoCWc=
+	t=1788049371; cv=none; b=s3QMT8I8dX7SF+J2oUyfvMR1sgmoghxP6AkS4NBIyZOP0lJr46J6zuEWO4OQJ/iy21xPujYDtgHIHecOQ8p3xzvcP8mfxZf3Xo21N1kQa2b6TwzHUri91H80668lsZgsvTUMG6gTyQ6r9m32XnBemFCg3koXm8guCvqbEQjBlzY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788049130; c=relaxed/simple;
-	bh=93jdF4EurVPEf4xGc2I4TfdZW5b/vKJmUKpT1KfVSUU=;
-	h=Date:To:From:Subject:Message-Id; b=GJrJfbnubeLATXdbCjXkmDchkmwtMhlaTLXaS3F7aAOxm+NmF+e1JkhIJoDlTwVk3kweeDYYUqSVn70YvGzcv+3vU/Tb342pleWXnBIMwZIxJdhaQGjFA5T16aTDcHqNherZsAg+/Jhk51FkCgGJHBWIZg9gvJZM3jUn67xzOYk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DKlKB+GG; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788049371; c=relaxed/simple;
+	bh=VSs7qwW3PQa1wC1OWM6+GqEJGo5GYANZ0kF/G6S3oDM=;
+	h=Date:To:From:Subject:Message-Id; b=j+aHcG6hgu/dP21mHf7boWvhZpFqchNQSFkDMeAGUvGa1/Uqc5XSSw66UF0XBwYqgbxrWwUvJ2CZzQIfFCi/AsSXgNvoTqCOxySSAFvvcw5vg1dKLyvvcoCl+OqzSQyOGGzsFx3qPNeqKFkHS/XqwVDf+yv6mq7RVdrDs+9QKRc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lzYj0rAV; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DKlKB+GG"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DCACB1F000E9;
-	Sun, 30 Aug 2026 00:18:48 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lzYj0rAV"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 972B01F000E9;
+	Sun, 30 Aug 2026 00:22:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788049128;
-	bh=8KaJRgGkA5NY0TN8puCBbFBBTdGu/r9IWpGj5cu9MOg=;
+	d=linux-foundation.org; s=korg; t=1788049369;
+	bh=IRw0Wa8IVv3EGBKSsW90+pMyJrxo3ldz0MT+mP7D3wg=;
 	h=Date:To:From:Subject;
-	b=DKlKB+GGocYtO4P6O8N1tZR/DtloPCU0axaftseifeiCllpOqOUqagkkKQ9EZQpzx
-	 oImCrXdd/5RyhB1wvn0LgkjW/ytfYcU82ESIwoMnykFeVmnvB1yc6aSbWDy3BdFHwv
-	 hzB0wnY63iCPEW0LPiHgTqfBLBvakVu5NoYc3KMU=
-Date: Sat, 29 Aug 2026 17:18:48 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,vbabka@kernel.org,stable@vger.kernel.org,ryan.roberts@arm.com,rakie.kim@sk.com,matthew.brost@intel.com,ljs@kernel.org,liam@infradead.org,lance.yang@linux.dev,joshua.hahnjy@gmail.com,jannh@google.com,dev.jain@arm.com,david@kernel.org,byungchul@sk.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,balbirs@nvidia.com,apopple@nvidia.com,gourry@gourry.net,akpm@linux-foundation.org
+	b=lzYj0rAVhOC532um29kFPaxE2mMLaJVczBoUKZ5klJWJfrsy0SMBJXm5KGhQ5W0iy
+	 7STUarJn+2m29TGB6hKmLDUeXDvq4/hVWJso19Yj+uC3jkeD4QTw+5JnDxTGO09rV5
+	 ANuFgTQeLAZjCZomXjpa6VHIWJESAVaO0lzxgeOc=
+Date: Sat, 29 Aug 2026 17:22:49 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,shikemeng@huaweicloud.com,rppt@kernel.org,pfalcato@suse.de,peterx@redhat.com,nphamcs@gmail.com,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,kasong@tencent.com,jannh@google.com,hughd@google.com,hannes@cmpxchg.org,david@kernel.org,chrisl@kernel.org,chengming.zhou@linux.dev,baoquan.he@linux.dev,baolin.wang@linux.alibaba.com,baohua@kernel.org,leitao@debian.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mempolicy-skip-zone-device-folios-when-queueing-folios.patch added to mm-new branch
-Message-Id: <20260830001848.DCACB1F000E9@smtp.kernel.org>
+Subject: + mm-swap-distinguish-a-malformed-swap-entry-from-a-dying-device.patch added to mm-new branch
+Message-Id: <20260830002249.972B01F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/mempolicy: skip zone device folios when queueing folios
+     Subject: mm, swap: distinguish a malformed swap entry from a dying device
 has been added to the -mm mm-new branch.  Its filename is
-     mm-mempolicy-skip-zone-device-folios-when-queueing-folios.patch
+     mm-swap-distinguish-a-malformed-swap-entry-from-a-dying-device.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mempolicy-skip-zone-device-folios-when-queueing-folios.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-distinguish-a-malformed-swap-entry-from-a-dying-device.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,79 +69,245 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Gregory Price <gourry@gourry.net>
-Subject: mm/mempolicy: skip zone device folios when queueing folios
-Date: Mon, 17 Aug 2026 18:08:10 -0400
+From: Breno Leitao <leitao@debian.org>
+Subject: mm, swap: distinguish a malformed swap entry from a dying device
+Date: Tue, 18 Aug 2026 03:06:23 -0700
 
-queue_folios_pte_range() already pairs vm_normal_folio() with an explicit
-folio_is_zone_device() check before adding folios to the migration
-pagelist.
+Patch series "mm, swap: don't spin on a bad swap entry", v3.
 
-vm_normal_folio() alone does not reject zone device memory (a present
-device-coherent page in a normal VMA is returned as "normal").
+I've seen some machines at Meta fleet that show the following type of
+problem:
 
-Mirror the explicit check in queue_folios_pmd() as well.
+1) It gets some weird warning:
 
-queue_folios_pmd() uses pmd_folio() directly and can encounter a present
-zone device PMD - e.g. a device-coherent THP.
+  BUG: Bad page map in process khugepaged  pte:f000eef300000017 pmd:00000067
+  addr:00007f57c0a01000 vm_flags:20200073 anon_vma:ffff88829af7c340 mapping:0000000000000000 index:7f57c0a01
 
-This is not filtered by existing checks:
-  !pmd_present()   - only rejects non-present device-private and
-                     migration entries
+The corruption is most likely the collapse/PT_RECLAIM race fixed by commit
+366a4532d96f ("mm: fix the race between collapse and PT_RECLAIM under
+per-vma lock").  But this series is not about this one.
 
-  vma_migratable() - excludes DAX and VM_PFNMAP.
+2) Then the fault never makes progress. do_swap_page() returns 0 when
+   get_swap_device() fails, so the fault is retried, reads the same
+   entry and faults again. Nothing in the round trip changes the PTE,
+   and the same line comes out on every pass:
 
-The early return also means such a folio is no longer counted in
-qp->nr_failed under MPOL_MF_STRICT.  This is the same pattern used by
-queue_folios_pte_range() (skipping zone device without failing).
+  get_swap_device: Bad swap offset entry 3ffffffc043c5
 
-Link: https://lore.kernel.org/20260817220810.1175596-4-gourry@gourry.net
-Fixes: a30b48bf1b24 ("mm/migrate_device: implement THP migration of zone device pages")
-Signed-off-by: Gregory Price (Meta) <gourry@gourry.net>
-Reviewed-by: Balbir Singh <balbirs@nvidia.com>
-Acked-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+Patch 1 makes get_swap_device() return ERR_PTR(-EIO) for a malformed
+entry, keeping NULL for a device swapoff is taking away, and converts the
+callers.  No functional change expected.
+
+Patch 2 uses that to return VM_FAULT_SIGBUS instead of retrying.
+
+
+This patch (of 2):
+
+get_swap_device() returns NULL for two different things: an entry whose
+type names no swap device or whose offset is past the end of one, and a
+device that swapoff is taking away.  The first never becomes valid, the
+second does, and callers cannot tell them apart.
+
+Return ERR_PTR(-EIO) for the two malformed cases and keep NULL for
+swapoff.  copy_nonpresent_pte() already reports -EIO for an entry whose
+type names no device.
+
+Callers bail out on failure either way, so switch them to
+IS_ERR_OR_NULL(), and let the two paths that drop the reference skip an
+error pointer.  No functional change.
+
+Link: https://lore.kernel.org/20260818-swap-v3-0-d3fa52598a59@debian.org
+Link: https://lore.kernel.org/20260818-swap-v3-1-d3fa52598a59@debian.org
+Signed-off-by: Breno Leitao <leitao@debian.org>
+Reviewed-by: Barry Song <baohua@kernel.org>
+Acked-by: Kairui Song <kasong@tencent.com>
+Reviewed-by: Nhat Pham <nphamcs@gmail.com>
 Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Tested-by: Lance Yang <lance.yang@linux.dev>
-Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Byungchul Park <byungchul@sk.com>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
+Cc: Baoquan He <baoquan.he@linux.dev>
+Cc: Chengming Zhou <chengming.zhou@linux.dev>
+Cc: Chris Li <chrisl@kernel.org>
+Cc: Hugh Dickins <hughd@google.com>
 Cc: Jann Horn <jannh@google.com>
-Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Kemeng Shi <shikemeng@huaweicloud.com>
 Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Matthew Brost <matthew.brost@intel.com>
-Cc: Rakie Kim <rakie.kim@sk.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Pedro Falcato <pfalcato@suse.de>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Zi Yan <ziy@nvidia.com>
-Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/memory.c      |    6 +++---
+ mm/mincore.c     |    2 +-
+ mm/shmem.c       |    2 +-
+ mm/swap_state.c  |    4 ++--
+ mm/swapfile.c    |   15 ++++++++++-----
+ mm/userfaultfd.c |    4 ++--
+ mm/zswap.c       |    2 +-
+ 7 files changed, 20 insertions(+), 15 deletions(-)
 
---- a/mm/mempolicy.c~mm-mempolicy-skip-zone-device-folios-when-queueing-folios
-+++ a/mm/mempolicy.c
-@@ -679,6 +679,8 @@ static void queue_folios_pmd(pmd_t *pmd,
- 		return;
+--- a/mm/memory.c~mm-swap-distinguish-a-malformed-swap-entry-from-a-dying-device
++++ a/mm/memory.c
+@@ -4956,9 +4956,9 @@ vm_fault_t do_swap_page(struct vm_fault
+ 		goto out;
  	}
- 	folio = pmd_folio(pmdval);
-+	if (folio_is_zone_device(folio))
-+		return;
- 	if (is_huge_zero_folio(folio)) {
- 		walk->action = ACTION_CONTINUE;
+ 
+-	/* Prevent swapoff from happening to us. */
++	/* Prevent swapoff from happening to us, and reject a bad entry. */
+ 	si = get_swap_device(entry);
+-	if (unlikely(!si))
++	if (IS_ERR_OR_NULL(si))
+ 		goto out;
+ 
+ 	folio = swap_cache_get_folio(entry);
+@@ -5268,7 +5268,7 @@ unlock:
+ 	if (vmf->pte)
+ 		pte_unmap_unlock(vmf->pte, vmf->ptl);
+ out:
+-	if (si)
++	if (!IS_ERR_OR_NULL(si))
+ 		put_swap_device(si);
+ 	return ret;
+ out_nomap:
+--- a/mm/mincore.c~mm-swap-distinguish-a-malformed-swap-entry-from-a-dying-device
++++ a/mm/mincore.c
+@@ -71,7 +71,7 @@ static unsigned char mincore_swap(swp_en
+ 	 */
+ 	if (shmem) {
+ 		si = get_swap_device(entry);
+-		if (!si)
++		if (IS_ERR_OR_NULL(si))
+ 			return 0;
+ 	}
+ 	folio = swap_cache_get_folio(entry);
+--- a/mm/shmem.c~mm-swap-distinguish-a-malformed-swap-entry-from-a-dying-device
++++ a/mm/shmem.c
+@@ -2478,7 +2478,7 @@ static int shmem_swapin_folio(struct ino
+ 
+ 	si = get_swap_device(index_entry);
+ 	order = shmem_confirm_swap(mapping, index, index_entry);
+-	if (unlikely(!si)) {
++	if (IS_ERR_OR_NULL(si)) {
+ 		if (order < 0)
+ 			return -EEXIST;
+ 		else
+--- a/mm/swapfile.c~mm-swap-distinguish-a-malformed-swap-entry-from-a-dying-device
++++ a/mm/swapfile.c
+@@ -1504,7 +1504,7 @@ int swap_retry_table_alloc(swp_entry_t e
+ 	unsigned long offset = swp_offset(entry);
+ 
+ 	si = get_swap_device(entry);
+-	if (!si)
++	if (IS_ERR_OR_NULL(si))
+ 		return 0;
+ 
+ 	ci = __swap_offset_to_cluster(si, offset);
+@@ -1859,7 +1859,10 @@ void folio_put_swap(struct folio *folio,
+  * Check whether swap entry is valid in the swap device.  If so,
+  * return pointer to swap_info_struct, and keep the swap entry valid
+  * via preventing the swap device from being swapoff, until
+- * put_swap_device() is called.  Otherwise return NULL.
++ * put_swap_device() is called.  Return NULL for an empty entry or a
++ * device that is going away, and ERR_PTR(-EIO) if the entry's type
++ * names no swap device or its offset is past the end of one. These EIOs
++ * are preceded by pr_err().
+  *
+  * Notice that swapoff or swapoff+swapon can still happen before the
+  * percpu_ref_tryget_live() in get_swap_device() or after the
+@@ -1900,12 +1903,14 @@ struct swap_info_struct *get_swap_device
+ 	return si;
+ bad_nofile:
+ 	pr_err_ratelimited("%s: %s%08lx\n", __func__, Bad_file, entry.val);
++	return ERR_PTR(-EIO);
++
+ out:
+ 	return NULL;
+ put_out:
+ 	pr_err_ratelimited("%s: %s%08lx\n", __func__, Bad_offset, entry.val);
+ 	percpu_ref_put(&si->users);
+-	return NULL;
++	return ERR_PTR(-EIO);
+ }
+ 
+ /*
+@@ -2001,7 +2006,7 @@ int swp_swapcount(swp_entry_t entry)
+ 	int count;
+ 
+ 	si = get_swap_device(entry);
+-	if (!si)
++	if (IS_ERR_OR_NULL(si))
+ 		return 0;
+ 
+ 	ci = swap_cluster_lock(si, swp_offset(entry));
+@@ -2127,7 +2132,7 @@ void swap_put_entries_direct(swp_entry_t
+ 	struct swap_info_struct *si;
+ 
+ 	si = get_swap_device(entry);
+-	if (WARN_ON_ONCE(!si))
++	if (WARN_ON_ONCE(IS_ERR_OR_NULL(si)))
  		return;
+ 	if (WARN_ON_ONCE(end_offset > si->max))
+ 		goto out;
+--- a/mm/swap_state.c~mm-swap-distinguish-a-malformed-swap-entry-from-a-dying-device
++++ a/mm/swap_state.c
+@@ -716,7 +716,7 @@ struct folio *read_swap_cache_async(stru
+ 	struct folio *folio;
+ 
+ 	si = get_swap_device(entry);
+-	if (!si)
++	if (IS_ERR_OR_NULL(si))
+ 		return NULL;
+ 
+ 	mpol = get_vma_policy(vma, addr, 0, &ilx);
+@@ -952,7 +952,7 @@ static struct folio *swap_vma_readahead(
+ 		 */
+ 		if (swp_type(entry) != swp_type(targ_entry)) {
+ 			si = get_swap_device(entry);
+-			if (!si)
++			if (IS_ERR_OR_NULL(si))
+ 				continue;
+ 		}
+ 		folio = swap_cache_read_folio(&ctx, entry, gfp_mask, mpol, ilx,
+--- a/mm/userfaultfd.c~mm-swap-distinguish-a-malformed-swap-entry-from-a-dying-device
++++ a/mm/userfaultfd.c
+@@ -1700,7 +1700,7 @@ retry:
+ 		}
+ 
+ 		si = get_swap_device(entry);
+-		if (unlikely(!si)) {
++		if (IS_ERR_OR_NULL(si)) {
+ 			ret = -EAGAIN;
+ 			goto out;
+ 		}
+@@ -1757,7 +1757,7 @@ out:
+ 	if (dst_pte)
+ 		pte_unmap(dst_pte);
+ 	mmu_notifier_invalidate_range_end(&range);
+-	if (si)
++	if (!IS_ERR_OR_NULL(si))
+ 		put_swap_device(si);
+ 
+ 	return ret;
+--- a/mm/zswap.c~mm-swap-distinguish-a-malformed-swap-entry-from-a-dying-device
++++ a/mm/zswap.c
+@@ -984,7 +984,7 @@ static int zswap_writeback_entry(struct
+ 
+ 	/* try to allocate swap cache folio */
+ 	si = get_swap_device(swpentry);
+-	if (!si)
++	if (IS_ERR_OR_NULL(si))
+ 		return -EEXIST;
+ 
+ 	mpol = get_task_policy(current);
 _
 
-Patches currently in -mm which might be from gourry@gourry.net are
+Patches currently in -mm which might be from leitao@debian.org are
 
-mm-mempolicy-take-a-cpuset-cookie-for-the-interleave-node-count.patch
-mm-mempolicy-use-srcu-for-the-weighted-interleave-state.patch
-mm-mempolicy-stop-copying-the-nodemask-in-the-interleave-paths.patch
-mm-huge_memory-skip-zone-device-folios-in-madvise_free_huge_pmd.patch
-mm-madvise-skip-zone-device-folios-in-cold-pageout-pmd-range.patch
-mm-mempolicy-skip-zone-device-folios-when-queueing-folios.patch
+mm-swap-distinguish-a-malformed-swap-entry-from-a-dying-device.patch
+mm-fail-the-fault-on-a-malformed-swap-entry-instead-of-retrying-it.patch
 
