@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 483671A6828
-	for <mm-commits@vger.kernel.org>; Sat, 29 Aug 2026 23:58:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D88CC3F1045;
+	Sun, 30 Aug 2026 00:18:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788047939; cv=none; b=SawYqKZb6xgdwXjS2OmJU9NVGxlcn/lqMbLtSOOzKdIXrp3UkJlPwEhocC3rZox4PQigbk3liB5BSsqHbfOk4p47rEaoTl4Q/sEd3BsGDsBsQI6fJ8mTL0iZHdBn/0LTipN91CR2vliCsncJOR/Css/76+O8AZaGV3nWyYyArSU=
+	t=1788049126; cv=none; b=rDqzIvuIK6AgM367vTfm5kHDwmAqy0KLMU6NBQoYRULqiNTl19NhPoYzV+NoA+qMxC8H50u8Y0J1g/+omj935M9qaaOMZa2UUUk+inGdaKaXBZxwLZFjqVFM1Jk1kNUOOen17pka5pWS54JorHxMPDinAnU8gPOEFg7JJLNFjJo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788047939; c=relaxed/simple;
-	bh=H+Vj8V9C1AQm+nE6L+dzohe5SiKIOWBzWk3aL8L5eOg=;
-	h=Date:To:From:Subject:Message-Id; b=OfjUQQBy5ZJ/uN/KA2H85Ohq9Q1FdVkb24LBo+hg+R1vwFOT3jTQljWLvWMhFClwv/RsHelMdUiPH5YzP54PwjIttVP9ta307FETcX/5Eiyhd+PO7kG5ysIoZjdh+y0rlJWXxDBY8lcn3qaVoFMfiVkmtKTs2GfrAT5KjQJ2J9g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=P0aGAi8d; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788049126; c=relaxed/simple;
+	bh=fEf+c07wSHeMNcQ/IRFKZIRC9DxjiJ0hEE0hsgp/ASo=;
+	h=Date:To:From:Subject:Message-Id; b=XAedJZskTZdzcnI5MCBf0q84I7U8s6S/HuB7T3Z82cA0BJAUS8ico87otKK2Ea+RedLuXdZwoZUvBBRqqWNf6+gXoYCGMMLwjAdEbiXY5ixIvMjNMNcX6Ukdsy7NDvae3xQyLDR77QHkorGktQsUDNC2BuENp53GWxuDb9Mgc4M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OcH9CPJw; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="P0aGAi8d"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D313E1F000E9;
-	Sat, 29 Aug 2026 23:58:57 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OcH9CPJw"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 67DB21F000E9;
+	Sun, 30 Aug 2026 00:18:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788047937;
-	bh=9FE3fK43Vn2IPR0aF9oqcwbfd3fzIRROPZ/MgOEW4wQ=;
+	d=linux-foundation.org; s=korg; t=1788049124;
+	bh=sSskkZC0i1EtX0h3ugbs5+nE7KCCJ4ju2fFTiS9nlVU=;
 	h=Date:To:From:Subject;
-	b=P0aGAi8dHjP1/h35bVYXgCjzNRLFjorJ0l9KoFE1B2EWPdcjXk2/7XIA04H9hcAlQ
-	 fZD5tRmYCvv82X/2YuExkTehxzdUBKmIFjRFLcw1ElOSMUkSdJT1Srq1iGZn853NfY
-	 snkU3Be1zz87Q+TK0obKiAd2dwg84P9vQqhwXmmM=
-Date: Sat, 29 Aug 2026 16:58:57 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,shikemeng@huaweicloud.com,rppt@kernel.org,pfalcato@suse.de,peterx@redhat.com,nphamcs@gmail.com,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,kasong@tencent.com,jannh@google.com,hughd@google.com,hannes@cmpxchg.org,david@kernel.org,chrisl@kernel.org,chengming.zhou@linux.dev,baoquan.he@linux.dev,baolin.wang@linux.alibaba.com,baohua@kernel.org,leitao@debian.org,akpm@linux-foundation.org
+	b=OcH9CPJwVR6UN6hrPEWlPZ6uamcip9XxUeTxDlmRPn4ie+pq8OY3XojqlmScHWeup
+	 r2rOEccnlIL5hp4n2TBMsQuwcA5ZyUc1jiq2I2wVB8/D+xOhwn45mJPkYtBVBXyLsA
+	 GDR4Z8UKPIxtx3IKnKCvj0gc1e05pNxGBrxCnRo8=
+Date: Sat, 29 Aug 2026 17:18:44 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,vbabka@kernel.org,stable@vger.kernel.org,ryan.roberts@arm.com,rakie.kim@sk.com,matthew.brost@intel.com,ljs@kernel.org,liam@infradead.org,lance.yang@linux.dev,joshua.hahnjy@gmail.com,jannh@google.com,dev.jain@arm.com,david@kernel.org,byungchul@sk.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,balbirs@nvidia.com,apopple@nvidia.com,gourry@gourry.net,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-fail-the-fault-on-a-malformed-swap-entry-instead-of-retrying-it.patch added to mm-new branch
-Message-Id: <20260829235857.D313E1F000E9@smtp.kernel.org>
+Subject: + mm-huge_memory-skip-zone-device-folios-in-madvise_free_huge_pmd.patch added to mm-new branch
+Message-Id: <20260830001844.67DB21F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: fail the fault on a malformed swap entry instead of retrying it
+     Subject: mm/huge_memory: skip zone device folios in madvise_free_huge_pmd()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-fail-the-fault-on-a-malformed-swap-entry-instead-of-retrying-it.patch
+     mm-huge_memory-skip-zone-device-folios-in-madvise_free_huge_pmd.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-fail-the-fault-on-a-malformed-swap-entry-instead-of-retrying-it.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-skip-zone-device-folios-in-madvise_free_huge_pmd.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,65 +69,102 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Breno Leitao <leitao@debian.org>
-Subject: mm: fail the fault on a malformed swap entry instead of retrying it
-Date: Tue, 18 Aug 2026 03:06:24 -0700
+From: Gregory Price <gourry@gourry.net>
+Subject: mm/huge_memory: skip zone device folios in madvise_free_huge_pmd()
+Date: Mon, 17 Aug 2026 18:08:08 -0400
 
-do_swap_page() returns 0 when get_swap_device() fails, which the fault
-handler reads as "handled".  For an entry that can never become valid the
-retry takes the same fault again, so the thread spins forever, retrying on
-the same fault.
+Patch series "mm: reject zone device folios in more folio walkers", v2.
 
-Return VM_FAULT_SIGBUS (Bad access) for a malformed entry (pr_err() was
-called at get_swap_device()).
+Several LRU-oriented mm walkers resolve the folio backing a PMD entry (or
+a physical pfn) and then reclaim, age, migrate, or lazyfree it without
+ever checking for ZONE_DEVICE memory.
 
-Link: https://lore.kernel.org/20260818-swap-v3-2-d3fa52598a59@debian.org
-Signed-off-by: Breno Leitao <leitao@debian.org>
-Acked-by: Kairui Song <kasong@tencent.com>
-Reviewed-by: Barry Song <baohua@kernel.org>
-Reviewed-by: Nhat Pham <nphamcs@gmail.com>
+This series adds missing folio_is_zone_device() rejections, matching the
+checks that comparable walkers already perform.
+
+- mm/huge_memory, mm/madvise: the !pmd_present branch above these sites
+  only filters device-private entries (which are non-present).
+
+  A present zone device PMD (e.g. device-coherent) would still reach the
+  folio and be lazyfreed / aged / paged out. Add an explicit check.
+
+- mm/mempolicy: queue_folios_pmd() can see a present zone device PMD
+  (e.g. device-coherent) and queue it for migration.
+
+No crash reproducer - this is a correctness/hardening cleanup found by
+inspection.  All checks are placed after the folio is resolved and before
+it is acted upon, on paths that already hold the relevant page-table lock,
+so no locking or refcount changes are involved.
+
+
+This patch (of 3):
+
+madvise_free_huge_pmd() resolves the folio backing a PMD via pmd_folio()
+and marks it lazyfree without checking for zone device memory.
+
+The surrounding guards do not cover every zone device case:
+
+ - MADV_FREE only operates on anonymous VMAs (DAX mappings are excluded)
+
+ - !pmd_present() branch rejects device-private and migration entries
+
+ - present zone device PMD (device coherent THP) is not filtered.
+   Unlike vm_normal_page_pmd(), it performs no special/pfnmap check,
+   and would be marked lazyfree here.
+
+Bail out when the folio is a zone device folio.
+
+Link: https://lore.kernel.org/20260817220810.1175596-1-gourry@gourry.net
+Link: https://lore.kernel.org/20260817220810.1175596-2-gourry@gourry.net
+Fixes: a30b48bf1b24 ("mm/migrate_device: implement THP migration of zone device pages")
+Signed-off-by: Gregory Price (Meta) <gourry@gourry.net>
 Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Reviewed-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+Tested-by: Lance Yang <lance.yang@linux.dev>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Balbir Singh <balbirs@nvidia.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Baoquan He <baoquan.he@linux.dev>
-Cc: Chengming Zhou <chengming.zhou@linux.dev>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: Hugh Dickins <hughd@google.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Byungchul Park <byungchul@sk.com>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Gregory Price <gourry@gourry.net>
+Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
 Cc: Jann Horn <jannh@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Kemeng Shi <shikemeng@huaweicloud.com>
+Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
 Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Pedro Falcato <pfalcato@suse.de>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Matthew Brost <matthew.brost@intel.com>
+Cc: Rakie Kim <rakie.kim@sk.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
 Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Zi Yan <ziy@nvidia.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ mm/huge_memory.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
---- a/mm/memory.c~mm-fail-the-fault-on-a-malformed-swap-entry-instead-of-retrying-it
-+++ a/mm/memory.c
-@@ -4958,8 +4958,11 @@ vm_fault_t do_swap_page(struct vm_fault
+--- a/mm/huge_memory.c~mm-huge_memory-skip-zone-device-folios-in-madvise_free_huge_pmd
++++ a/mm/huge_memory.c
+@@ -2423,6 +2423,10 @@ bool madvise_free_huge_pmd(struct mmu_ga
+ 	}
  
- 	/* Prevent swapoff from happening to us, and reject a bad entry. */
- 	si = get_swap_device(entry);
--	if (IS_ERR_OR_NULL(si))
-+	if (IS_ERR_OR_NULL(si)) {
-+		if (IS_ERR(si))
-+			ret = VM_FAULT_SIGBUS;
- 		goto out;
-+	}
- 
- 	folio = swap_cache_get_folio(entry);
- 	if (folio)
+ 	folio = pmd_folio(orig_pmd);
++
++	if (folio_is_zone_device(folio))
++		goto out;
++
+ 	/*
+ 	 * If other processes are mapping this folio, we couldn't discard
+ 	 * the folio unless they all do MADV_FREE so let's skip the folio.
 _
 
-Patches currently in -mm which might be from leitao@debian.org are
+Patches currently in -mm which might be from gourry@gourry.net are
 
-mm-swap-distinguish-a-malformed-swap-entry-from-a-dying-device.patch
-mm-fail-the-fault-on-a-malformed-swap-entry-instead-of-retrying-it.patch
+mm-mempolicy-take-a-cpuset-cookie-for-the-interleave-node-count.patch
+mm-mempolicy-use-srcu-for-the-weighted-interleave-state.patch
+mm-mempolicy-stop-copying-the-nodemask-in-the-interleave-paths.patch
+mm-huge_memory-skip-zone-device-folios-in-madvise_free_huge_pmd.patch
+mm-madvise-skip-zone-device-folios-in-cold-pageout-pmd-range.patch
+mm-mempolicy-skip-zone-device-folios-when-queueing-folios.patch
 
