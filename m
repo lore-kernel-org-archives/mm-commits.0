@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4848C38D
-	for <mm-commits@vger.kernel.org>; Sun, 30 Aug 2026 01:11:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A676138D
+	for <mm-commits@vger.kernel.org>; Sun, 30 Aug 2026 01:12:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788052269; cv=none; b=Cq2MoqUFSeAIngyBZgKKHyKRUhkE5HxudJlgYYzU4OrgzDLdg1b4BEuDGDCC+uBWQ+SZ4osjiNhN+sOkSKuqHI6PY2l+FhGz8toCoxt9DC0SVMFIIKEs/hl9lSpBQafd7pkn0VKSKuzhI13ijtezM4+MkbtLaQIaGmkajWxJjhc=
+	t=1788052337; cv=none; b=Q9FQ5tTj8Jxp8CtqfGZ7x6PiTFx/PKxx6U8Do4aeKvUpVLIKKOJFDMxif02CPUKOgeN3cI+lTpRq0Yf6heAp449EBUUMmCpeLhFK/RUf0RVQqqOY+IScQWusyX+xJ4FDOigH2BcAOimMWsK1MprarL2omJcMSi11ivDlLFY6BLo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788052269; c=relaxed/simple;
-	bh=Qv5SwKDtL7wUz7mK2OJ3IiBdBmgNVp8piFIKJQE/U7Q=;
-	h=Date:To:From:Subject:Message-Id; b=jCeksxgKD1Aw8529Ita3nDZ8wcm+s/ogMfrOHkjgM5X68BzCF/QQJMvEk6aidt070N9nZwjXP/cCL/HdGP/iTIt6G2dJ9948S7XiLqECDM4fH8tDfnku+qUTa/7tZzbgruTeuWqWErnjz3REm8HGWzGTTKf0jS7P9cF/Cwkx8ys=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lInoQ4sy; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788052337; c=relaxed/simple;
+	bh=ATdc3r1PqvZCyAxBlqLJokDWwkGGxrBnNka8pfvofgU=;
+	h=Date:To:From:Subject:Message-Id; b=B6HTyZ+E6jnyNWbtMO0Zbs2R+SrL+vbypdZK3KK3em6poSFUh1mpaDtDbPv+GJfg9XZs9Ojf4YHqQdnV5dRfU+l5PG+gAMHTE5sbUEhO/FukhMhpJE7JlFlNAfWSU2S7Y7tOI8jkbvVaTmDYNiCVxJRNoP3FA4TY0ovfHnWG7M4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XXgnVnTx; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lInoQ4sy"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D9B561F000E9;
-	Sun, 30 Aug 2026 01:11:07 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XXgnVnTx"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 42B1A1F000E9;
+	Sun, 30 Aug 2026 01:12:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788052268;
-	bh=4U6GrgLOdeKe9nD16Wh+j7RRC70rA+vebCmzHei6pUA=;
+	d=linux-foundation.org; s=korg; t=1788052336;
+	bh=1f02Xtq5MVRkAncd4MqjGl+DxFzUL3Rv1UvDHU5a+Ms=;
 	h=Date:To:From:Subject;
-	b=lInoQ4sywSoRcy3ShbYPqKv8fKlL+5aoto9HPCMuc9f6diW5VOuGm/EMKsiMWE+zy
-	 6voKiofw+zlzTemhLdN14otskKSz1fbSTrhhaVcr1JvIPhFCv7bEwV4UEzZg/cqyf6
-	 UyF/cqJbN9J+lovtBVWZG8//sh9DDX3aFFrcE10c=
-Date: Sat, 29 Aug 2026 18:11:07 -0700
-To: mm-commits@vger.kernel.org,tj@kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mkoutny@suse.com,mhocko@kernel.org,hannes@cmpxchg.org,davidf@vimeo.com,cuitao@kylinos.cn,chenridong@xiaomi.com,akpm@linux-foundation.org
+	b=XXgnVnTxNls4Z3XiofQadjxBpy7O0NbtIeIck0ydz2tygMiw+ysIKXBSrlaimZqxa
+	 KNjlzWW0kbAaYdE5QUreczWfIyLLYrI/g2FmznqSnC/+83MWed/q5sDboSpf4+6uCf
+	 yz56D72sz0Rt64VCJFN8xEDeTvyJb9RnKl4Oibgk=
+Date: Sat, 29 Aug 2026 18:12:15 -0700
+To: mm-commits@vger.kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,cuitao@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memcg-fix-memorypeak-reset-clobbering-other-fds-watermark.patch added to mm-new branch
-Message-Id: <20260830011107.D9B561F000E9@smtp.kernel.org>
+Subject: [alternative-merged] mm-page_counter-reject-empty-string-in-page_counter_memparse.patch removed from -mm tree
+Message-Id: <20260830011216.42B1A1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,115 +34,71 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: mm, memcg: fix memory.peak reset clobbering other fds' watermark
-has been added to the -mm mm-new branch.  Its filename is
-     mm-memcg-fix-memorypeak-reset-clobbering-other-fds-watermark.patch
+The quilt patch titled
+     Subject: mm: page_counter: reject empty string in page_counter_memparse()
+has been removed from the -mm tree.  Its filename was
+     mm-page_counter-reject-empty-string-in-page_counter_memparse.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcg-fix-memorypeak-reset-clobbering-other-fds-watermark.patch
-
-This patch will later appear in the mm-new branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because an alternative patch was or shall be merged
 
 ------------------------------------------------------
-From: Ridong Chen <chenridong@xiaomi.com>
-Subject: mm, memcg: fix memory.peak reset clobbering other fds' watermark
-Date: Sun, 30 Aug 2026 08:20:44 +0800
+From: Tao Cui <cuitao@kylinos.cn>
+Subject: mm: page_counter: reject empty string in page_counter_memparse()
+Date: Mon, 17 Aug 2026 12:26:52 +0800
 
-Writing to memory.peak resets the peak for that fd only.  Each fd is a
-watcher and reads back max(its own value, the shared local_watermark).
+memparse() consumes no characters on an empty input and leaves the end
+pointer at the terminating NUL.  The only validation in
+page_counter_memparse() checks for trailing characters, so an empty input
+slips through and the limit becomes 0.
 
-peak_write() resets by lowering local_watermark to the current usage.  To
-keep the other watchers' peaks it then walks the watcher list, but it
-stores the current usage into them instead of the old watermark.  So once
-usage has dropped from a peak, a reset on one fd wrongly drags every other
-fd's peak down too, even fds that never reset.
+All limit write callbacks of the memory controller strstrip() the input
+before calling this helper, so a script that writes an unset variable hits
+this path:
 
-Reproduced on 7.2.0-rc5-next under QEMU, two fds A and B on one cgroup: B
-sees the peak (410624 KB), usage drops, then A resets -- and B's peak
-collapses to 1060 KB although B never reset.  With this patch B keeps
-reading 410624 KB.
+  LIMIT=
+  echo "$LIMIT" > $CG/memory.max
+  echo $?
+  0
+  cat $CG/memory.max
+  0
 
-Fix: save the old watermark before lowering it and use that to floor the
-other watchers, so a reset only affects the fd that issued it.
+Nothing reports the mistake: the limit is now 0 and the OOM killer goes
+after every task in the cgroup.  The same happens for memory.min,
+memory.low, memory.high, memory.swap.high, memory.swap.max and
+memory.zswap.max, where 0 silently removes the protection or disables swap
+and zswap.
 
-Link: https://lore.kernel.org/20260830002044.1938621-3-ridong.chen@linux.dev
-Fixes: c6f53ed8f213 ("mm, memcg: cg2 memory{.swap,}.peak write handlers")
-Signed-off-by: Ridong Chen <chenridong@xiaomi.com>
-Closes: https://sashiko.dev/#/patchset/20260807090000.1532495-1-ridong.chen@linux.dev
-Assisted-by: Claude:claude-opus-4-8
-Acked-by: Tao Cui <cuitao@kylinos.cn>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Reject the input when no characters were consumed, which is the one case
+the trailing-character check cannot catch.
+
+Link: https://lore.kernel.org/20260817042652.74136-1-cui.tao@linux.dev
+Fixes: 3e32cb2e0a12 ("mm: memcontrol: lockless page counters")
+Signed-off-by: Tao Cui <cuitao@kylinos.cn>
 Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: David Finkel <davidf@vimeo.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Michal Koutný <mkoutny@suse.com>
 Cc: Muchun Song <muchun.song@linux.dev>
 Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ mm/page_counter.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/memcontrol.c~mm-memcg-fix-memorypeak-reset-clobbering-other-fds-watermark
-+++ a/mm/memcontrol.c
-@@ -4759,7 +4759,7 @@ static ssize_t peak_write(struct kernfs_
- 			  loff_t off, struct page_counter *pc,
- 			  struct list_head *watchers)
- {
--	unsigned long usage;
-+	unsigned long usage, old_watermark;
- 	struct cgroup_of_peak *peer_ctx;
- 	struct mem_cgroup *memcg = mem_cgroup_from_css(of_css(of));
- 	struct cgroup_of_peak *ofp = of_peak(of);
-@@ -4767,11 +4767,12 @@ static ssize_t peak_write(struct kernfs_
- 	spin_lock(&memcg->peaks_lock);
+--- a/mm/page_counter.c~mm-page_counter-reject-empty-string-in-page_counter_memparse
++++ a/mm/page_counter.c
+@@ -281,7 +281,7 @@ int page_counter_memparse(const char *bu
+ 	}
  
- 	usage = page_counter_read(pc);
-+	old_watermark = READ_ONCE(pc->local_watermark);
- 	WRITE_ONCE(pc->local_watermark, usage);
+ 	bytes = memparse(buf, &end);
+-	if (*end != '\0')
++	if (*end != '\0' || end == buf)
+ 		return -EINVAL;
  
- 	list_for_each_entry(peer_ctx, watchers, list)
--		if (usage > peer_ctx->value)
--			WRITE_ONCE(peer_ctx->value, usage);
-+		if (peer_ctx != ofp && old_watermark > peer_ctx->value)
-+			WRITE_ONCE(peer_ctx->value, old_watermark);
- 
- 	/* initial write, register watcher */
- 	if (ofp->value == OFP_PEAK_UNSET)
+ 	*nr_pages = min(bytes / PAGE_SIZE, (u64)PAGE_COUNTER_MAX);
 _
 
-Patches currently in -mm which might be from chenridong@xiaomi.com are
+Patches currently in -mm which might be from cuitao@kylinos.cn are
 
-mm-vmscan-drop-the-combined-limit-gate-in-__node_reclaim.patch
-mm-mglru-preserve-inactive-placement-when-enabling-mglru.patch
-mm-mglru-make-type-fallback-logic-explicit-in-isolate_folios.patch
-memcg-acquire-peaks_lock-when-reading-memorypeak.patch
-mm-memcg-fix-memorypeak-reset-clobbering-other-fds-watermark.patch
+docs-cgroup-document-empty-write-behavior-of-memory-limit-knobs.patch
 
