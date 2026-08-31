@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C001F3B9935
-	for <mm-commits@vger.kernel.org>; Mon, 31 Aug 2026 22:26:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3E914378D72
+	for <mm-commits@vger.kernel.org>; Mon, 31 Aug 2026 22:26:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788215198; cv=none; b=QFXxsfmhxQ33fGpPfxyUAChd7TPVZXNKZGYEKWOFlyYmst9NnL49XwmFtkvFkfy65YR4eBLfKb63oNsWVmqpdr2PeKaM11Hep8EEplRmRPV0qKXVqx43yxeOLQTlsvO6ZKmcheJUHkeCV0tl3JhA5IPjYxeGU6IcxXWudzsdKMs=
+	t=1788215200; cv=none; b=Ot58fyTSzsaAyNam3PGGFLWrnknmA7pCrx3TCo/WRBqwXRyH/BrCHPl4RfMT511cpXO9BT/VYu49FX04NDprKHEeRXusjRwnjeuc70a6Rbp9vv4PKOSam47Kj1jC+qZ0P8HirABl0A2Fle9nuui/iEm6GjHf73cdpidPQ5g2yuY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788215198; c=relaxed/simple;
-	bh=fNNhem+frMzMUOeqrlth6eZxuESW2zNm2eWUArTEbaY=;
-	h=Date:To:From:Subject:Message-Id; b=uyWDiz9rRUGsSpNQPePxWFMewshCE/03z4tuLftLUluuOLnXf8smcnlRNtShtkK8AuTz9mJWsiUFKLNQfzMGDRmi18YaTTMwDkTG9asXJC9TF2QQ/5HqwGoEOWbTe67EQFxbL4lHJizMk4B78Ys0vqA+Nf1XEVZoT8P8WZEn4IY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fFppzvrd; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788215200; c=relaxed/simple;
+	bh=2HL3btKFTLv4xdMHEaOSnxvRCCMKYtoR2NY+A+kbdvY=;
+	h=Date:To:From:Subject:Message-Id; b=Jpc7V8gDzmS5foODHwMy6PMfdz4hFvWbcqCgIRbrGLfsZxYBsTXcCINU6LE0HwY2L94m7ahNjsQJDMZDaCDkpX3OSjX+faXZdXFFaDBHxygi+IbHqbO50c/Mznki9F8lUDAnEQkVO3RoLv026H2Fcsvh4BwTiVNOkMSlor0FvWM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HuuKM9Ed; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fFppzvrd"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 873241F00A3E;
-	Mon, 31 Aug 2026 22:26:36 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HuuKM9Ed"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 12CC31F00A3D;
+	Mon, 31 Aug 2026 22:26:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788215196;
-	bh=UdtFqTIxtifjQsq66iwYeEtP29cVoYVrpizR3ooN340=;
+	d=linux-foundation.org; s=korg; t=1788215199;
+	bh=D7luRKIxqc0/VTfLvbCwIwhB4sNweqhavlsxQYdnvNQ=;
 	h=Date:To:From:Subject;
-	b=fFppzvrd6eQfdf9CuaUbalPlLf7QMoW32xvBbAD6Vhatvc/47LzVulnbzMXwhT6xi
-	 mZ1nEjR86AnIkf4BXl998Bl38R4lcfSjDMqEXRVYy/NT/nLDdmrc3OrXSuNTejQGsz
-	 vlWGnEdsfS3ToY5qTw18JWnvs+6y7scQupVYQXVA=
-Date: Mon, 31 Aug 2026 15:26:36 -0700
+	b=HuuKM9Edh9NQgBEmxRgKyVGRrYvWJwPoI9FiXmZyD6GhxMX094YXHTC0nH9cVateK
+	 nDdWRIkbpwLNxasVLpPyGztZOI8GlvQB894hKbp8Jiz3jqcN/HEPL8Le5dwyFsZH33
+	 rOGVuiHdtjw37BuP3mTi6WxBGdWWQhCghhvtxT3o=
+Date: Mon, 31 Aug 2026 15:26:38 -0700
 To: mm-commits@vger.kernel.org,dave.hansen@linux.intel.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-add-rcu-based-vma-lookup-helper-that-waits-for-writers.patch removed from -mm tree
-Message-Id: <20260831222636.873241F00A3E@smtp.kernel.org>
+Subject: [to-be-updated] tcp-remove-mmap_lock-fallback-path.patch removed from -mm tree
+Message-Id: <20260831222639.12CC31F00A3D@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,49 +35,35 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: add RCU-based VMA lookup helper that waits for writers
+     Subject: tcp: remove mmap_lock fallback path
 has been removed from the -mm tree.  Its filename was
-     mm-add-rcu-based-vma-lookup-helper-that-waits-for-writers.patch
+     tcp-remove-mmap_lock-fallback-path.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
 From: Dave Hansen <dave.hansen@linux.intel.com>
-Subject: mm: add RCU-based VMA lookup helper that waits for writers
-Date: Thu, 13 Aug 2026 12:34:31 -0700
+Subject: tcp: remove mmap_lock fallback path
+Date: Thu, 13 Aug 2026 12:34:33 -0700
 
-There are basically two parallel ways to look up a VMA: the traditional
-way, which is protected by mmap_read_lock, and the RCU-based per-VMA lock
-way which is based on RCU and refcounts.  However, per-VMA locks will fail
-if the lock is help by a writer and therefore never waits.  In a number of
-places we need to wait for the lock and it's done by falling back to
-mmap_read_lock, locking the VMA and releasing the mmap_lock once VMA is
-locked.
+Previously, the per-VMA locking could fail in the face of writers which
+necessitates a fallback to mmap_lock.  The new vma_start_read_unlocked()
+will wait for writers instead of failing.
 
-Add vma_start_read_unlocked() - a variant of the RCU-based lookup that
-waits for writers.  This is basically the same as the existing RCU-based
-lookup, but on a failure to lock it temporarily takes mmap_lock for read
-and waits for writers to finish before locking the VMA, dropping the
-mmap_read_lock and returning the locked VMA.  This has some advantages:
+Use the new helper.  Wait for writers.  Remove the fallback to mmap_lock. 
+The fallback removal does not affect NOMMU case because TCP_ZEROCOPY is
+gated on CONFIG_MMU.
 
- 1. Callers do not need to have a fallback path for when they
-    collide with writers.
- 2. Its fast path does not require taking mmap_lock for read.
+This really is a nice cleanup.  It removes the need to pass the lock state
+back and forth to find_tcp_vma().
 
-Basically, when applied correctly, this approach results in faster *and*
-simpler code.
-
-While at it, fix the comments for vma_start_read_locked(),
-vma_start_read_locked_nested(), and uffd_lock_vma().
-
-Link: https://lore.kernel.org/20260813193433.3318288-4-surenb@google.com
+Link: https://lore.kernel.org/20260813193433.3318288-6-surenb@google.com
 Signed-off-by: Dave Hansen <dave.hansen@linux.intel.com>
 Signed-off-by: Suren Baghdasaryan <surenb@google.com>
-Suggested-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
-Reviewed-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+Acked-by: Lorenzo Stoakes <ljs@kernel.org>
 Acked-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
+Tested-by: syzbot@syzkaller.appspotmail.com
 Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
 Cc: Vlastimil Babka <vbabka@kernel.org>
 Cc: Shakeel Butt <shakeel.butt@linux.dev>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
@@ -91,119 +77,77 @@ Cc: Arve Hjønnevåg <arve@android.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmap_lock.h |   19 +++++++++++++++----
- mm/mmap_lock.c            |   35 +++++++++++++++++++++++++++++++++++
- mm/userfaultfd.c          |    6 ++++--
- 3 files changed, 54 insertions(+), 6 deletions(-)
+ net/ipv4/tcp.c |   31 +++++++++----------------------
+ 1 file changed, 9 insertions(+), 22 deletions(-)
 
---- a/include/linux/mmap_lock.h~mm-add-rcu-based-vma-lookup-helper-that-waits-for-writers
-+++ a/include/linux/mmap_lock.h
-@@ -228,10 +228,14 @@ static inline void vma_refcount_put(stru
+--- a/net/ipv4/tcp.c~tcp-remove-mmap_lock-fallback-path
++++ a/net/ipv4/tcp.c
+@@ -2167,27 +2167,18 @@ static void tcp_zc_finalize_rx_tstamp(st
  }
  
- /*
-- * Use only while holding mmap read lock which guarantees that locking will not
-- * fail (nobody can concurrently write-lock the vma). vma_start_read() should
-+ * Use only while holding mmap read lock which guarantees that vma lock is not
-+ * contended (nobody can concurrently write-lock the vma). vma_start_read() should
-  * not be used in such cases because it might fail due to mm_lock_seq overflow.
-  * This functionality is used to obtain vma read lock and drop the mmap read lock.
-+ *
-+ * VMA can't be detached while we are holding mmap lock, therefore in practice this
-+ * function can fail only when there are so many readers that vm_refcnt overflows.
-+ * The failure case is very unlikely and is already annotated as such internally.
-  */
- static inline bool vma_start_read_locked_nested(struct vm_area_struct *vma, int subclass)
+ static struct vm_area_struct *find_tcp_vma(struct mm_struct *mm,
+-					   unsigned long address,
+-					   bool *mmap_locked)
++					   unsigned long address)
  {
-@@ -247,16 +251,23 @@ static inline bool vma_start_read_locked
+-	struct vm_area_struct *vma = lock_vma_under_rcu(mm, address);
++	struct vm_area_struct *vma = vma_start_read_unlocked(mm, address);
+ 
+-	if (vma) {
+-		if (vma->vm_ops != &tcp_vm_ops) {
+-			vma_end_read(vma);
+-			return NULL;
+-		}
+-		*mmap_locked = false;
+-		return vma;
+-	}
++	if (!vma)
++		return NULL;
+ 
+-	mmap_read_lock(mm);
+-	vma = vma_lookup(mm, address);
+-	if (!vma || vma->vm_ops != &tcp_vm_ops) {
+-		mmap_read_unlock(mm);
++	if (vma->vm_ops != &tcp_vm_ops) {
++		vma_end_read(vma);
+ 		return NULL;
+ 	}
+-	*mmap_locked = true;
++
+ 	return vma;
  }
  
- /*
-- * Use only while holding mmap read lock which guarantees that locking will not
-- * fail (nobody can concurrently write-lock the vma). vma_start_read() should
-+ * Use only while holding mmap read lock which guarantees that vma lock is not
-+ * contended (nobody can concurrently write-lock the vma). vma_start_read() should
-  * not be used in such cases because it might fail due to mm_lock_seq overflow.
-  * This functionality is used to obtain vma read lock and drop the mmap read lock.
-+ *
-+ * VMA can't be detached while we are holding mmap lock, therefore in practice this
-+ * function can fail only when there are so many readers that vm_refcnt overflows.
-+ * The failure case is very unlikely and is already annotated as such internally.
-  */
- static inline bool vma_start_read_locked(struct vm_area_struct *vma)
- {
- 	return vma_start_read_locked_nested(vma, 0);
- }
+@@ -2208,7 +2199,6 @@ static int tcp_zerocopy_receive(struct s
+ 	u32 seq = tp->copied_seq;
+ 	u32 total_bytes_to_map;
+ 	int inq = tcp_inq(sk);
+-	bool mmap_locked;
+ 	int ret;
  
-+struct vm_area_struct *vma_start_read_unlocked(struct mm_struct *mm,
-+					       unsigned long address);
-+
- static inline void vma_end_read(struct vm_area_struct *vma)
- {
- 	vma_refcount_put(vma);
---- a/mm/mmap_lock.c~mm-add-rcu-based-vma-lookup-helper-that-waits-for-writers
-+++ a/mm/mmap_lock.c
-@@ -340,6 +340,41 @@ inval:
- 	return NULL;
- }
+ 	zc->copybuf_len = 0;
+@@ -2233,7 +2223,7 @@ static int tcp_zerocopy_receive(struct s
+ 		return 0;
+ 	}
  
-+/**
-+ * vma_start_read_unlocked() - Find the VMA covering 'address' and read-lock it.
-+ * @mm: the mm_struct of the address space to search
-+ * @address: address that the vma should contain
-+ *
-+ * The fast path does not take mmap_lock. Waits for writers to finish if the
-+ * VMA is being modified by taking mmap_lock.
-+ * Use when mmap_lock is not held, otherwise use vma_start_read_locked().
-+ * Nothing prevents VMAs being unmapped/mapped before or after the VMA is
-+ * looked up, if a stronger guarantee is required, take an mmap_lock.
-+ *
-+ * Return: If a VMA exists which spans @address, return that VMA, read-locked.
-+ * If no VMA is mapped there or, very unlikely, a reference count overflow
-+ * occurred, return NULL.
-+ */
-+struct vm_area_struct *vma_start_read_unlocked(struct mm_struct *mm,
-+					       unsigned long address)
-+{
-+	struct vm_area_struct *vma;
-+
-+	/* Fast path: return stable VMA covering 'address': */
-+	vma = lock_vma_under_rcu(mm, address);
-+	if (vma)
-+		return vma;
-+
-+	/* Slow path: preclude VMA writers by temporarily getting mmap read lock. */
-+	mmap_read_lock(mm);
-+	vma = vma_lookup(mm, address);
-+	if (vma && !vma_start_read_locked(vma))
-+		vma = NULL;
-+	mmap_read_unlock(mm);
-+
-+	return vma;
-+}
-+
- static struct vm_area_struct *lock_next_vma_under_mmap_lock(struct mm_struct *mm,
- 							    struct vma_iterator *vmi,
- 							    unsigned long from_addr)
---- a/mm/userfaultfd.c~mm-add-rcu-based-vma-lookup-helper-that-waits-for-writers
-+++ a/mm/userfaultfd.c
-@@ -129,8 +129,10 @@ struct vm_area_struct *find_vma_and_prep
-  *
-  * Should be called without holding mmap_lock.
-  *
-- * Return: A locked vma containing @address, -ENOENT if no vma is found, or
-- * -ENOMEM if anon_vma couldn't be allocated.
-+ * Return: A locked vma containing @address, -ENOENT if no vma is found,
-+ * -ENOMEM if anon_vma couldn't be allocated, or -EAGAIN if vma refcount
-+ * overflow happened due to high number of readers and the caller should
-+ * retry later.
-  */
- static struct vm_area_struct *uffd_lock_vma(struct mm_struct *mm,
- 				       unsigned long address)
+-	vma = find_tcp_vma(current->mm, address, &mmap_locked);
++	vma = find_tcp_vma(current->mm, address);
+ 	if (!vma)
+ 		return -EINVAL;
+ 
+@@ -2315,10 +2305,7 @@ static int tcp_zerocopy_receive(struct s
+ 						   zc, total_bytes_to_map);
+ 	}
+ out:
+-	if (mmap_locked)
+-		mmap_read_unlock(current->mm);
+-	else
+-		vma_end_read(vma);
++	vma_end_read(vma);
+ 	/* Try to copy straggler data. */
+ 	if (!ret)
+ 		copylen = tcp_zc_handle_leftover(zc, sk, skb, &seq, copybuf_len, tss);
 _
 
 Patches currently in -mm which might be from dave.hansen@linux.intel.com are
 
-binder-remove-mmap_lock-fallback.patch
-tcp-remove-mmap_lock-fallback-path.patch
 
