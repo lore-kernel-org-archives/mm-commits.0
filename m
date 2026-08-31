@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3E914378D72
-	for <mm-commits@vger.kernel.org>; Mon, 31 Aug 2026 22:26:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 15F883B9DAB
+	for <mm-commits@vger.kernel.org>; Mon, 31 Aug 2026 22:26:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788215200; cv=none; b=Ot58fyTSzsaAyNam3PGGFLWrnknmA7pCrx3TCo/WRBqwXRyH/BrCHPl4RfMT511cpXO9BT/VYu49FX04NDprKHEeRXusjRwnjeuc70a6Rbp9vv4PKOSam47Kj1jC+qZ0P8HirABl0A2Fle9nuui/iEm6GjHf73cdpidPQ5g2yuY=
+	t=1788215200; cv=none; b=UsH3yKxetwAOvb01TEY0s4tnp1OTScS/e+ShcMoArX+acpJbeTsbcGHxrW6NL7vTUQylDfSr9f0t/FPQ89MgLHKI3XWYiid3MYayjPbPG4sdF8GbV3QF2Z8EVeQGZyk6buec3/pVqC6JewN9ITeSnsk6Ieq3A370llwBoY9dQDM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1788215200; c=relaxed/simple;
-	bh=2HL3btKFTLv4xdMHEaOSnxvRCCMKYtoR2NY+A+kbdvY=;
-	h=Date:To:From:Subject:Message-Id; b=Jpc7V8gDzmS5foODHwMy6PMfdz4hFvWbcqCgIRbrGLfsZxYBsTXcCINU6LE0HwY2L94m7ahNjsQJDMZDaCDkpX3OSjX+faXZdXFFaDBHxygi+IbHqbO50c/Mznki9F8lUDAnEQkVO3RoLv026H2Fcsvh4BwTiVNOkMSlor0FvWM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HuuKM9Ed; arc=none smtp.client-ip=100.103.45.18
+	bh=P08rrQH1mQoKiOmJRcVmanKebxzV5jqazIEmNPrrVxM=;
+	h=Date:To:From:Subject:Message-Id; b=Umm2SqYQkieFyhbvWamSyvg3h+x/aPIaFx8Abccwu7WtckUsDNWOxlLsSi5AFlvxvkKpVLOW10S8txPoKvCRyh1b+9Q/DgqtY1SrLK4TdOPH6T+Gx0s69IIVLTKaoenR527CtUx7D3vzAVlLpHXY7vWv6S0JxtANqzZIEnwHvNw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vNdNcTC7; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HuuKM9Ed"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 12CC31F00A3D;
-	Mon, 31 Aug 2026 22:26:39 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vNdNcTC7"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C3FA41F000E9;
+	Mon, 31 Aug 2026 22:26:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788215199;
-	bh=D7luRKIxqc0/VTfLvbCwIwhB4sNweqhavlsxQYdnvNQ=;
+	d=linux-foundation.org; s=korg; t=1788215197;
+	bh=FwCcpohh8gE8SruSsIKI6rBQZH/eMIwjc5pVXN0ZCUc=;
 	h=Date:To:From:Subject;
-	b=HuuKM9Edh9NQgBEmxRgKyVGRrYvWJwPoI9FiXmZyD6GhxMX094YXHTC0nH9cVateK
-	 nDdWRIkbpwLNxasVLpPyGztZOI8GlvQB894hKbp8Jiz3jqcN/HEPL8Le5dwyFsZH33
-	 rOGVuiHdtjw37BuP3mTi6WxBGdWWQhCghhvtxT3o=
-Date: Mon, 31 Aug 2026 15:26:38 -0700
+	b=vNdNcTC7fpLPuBhzUSCVvsrKAi2V9zDMOIRFzvfx67d9Qj58Cm6bVjCKEB2QsIE9e
+	 1cBkP5IK1ktY5YLXnwk9coIgyekBZaqoWHhuQwoTo/a11t9SjziscynSYZFZ3DTUTl
+	 hoeFkMyMZ32Lo0hFMIKMuItao3Xa/VXIiIBSfjtQ=
+Date: Mon, 31 Aug 2026 15:26:37 -0700
 To: mm-commits@vger.kernel.org,dave.hansen@linux.intel.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] tcp-remove-mmap_lock-fallback-path.patch removed from -mm tree
-Message-Id: <20260831222639.12CC31F00A3D@smtp.kernel.org>
+Subject: [to-be-updated] binder-remove-mmap_lock-fallback.patch removed from -mm tree
+Message-Id: <20260831222637.C3FA41F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,34 +35,28 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: tcp: remove mmap_lock fallback path
+     Subject: binder: remove mmap_lock fallback
 has been removed from the -mm tree.  Its filename was
-     tcp-remove-mmap_lock-fallback-path.patch
+     binder-remove-mmap_lock-fallback.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
 From: Dave Hansen <dave.hansen@linux.intel.com>
-Subject: tcp: remove mmap_lock fallback path
-Date: Thu, 13 Aug 2026 12:34:33 -0700
+Subject: binder: remove mmap_lock fallback
+Date: Thu, 13 Aug 2026 12:34:32 -0700
 
 Previously, the per-VMA locking could fail in the face of writers which
-necessitates a fallback to mmap_lock.  The new vma_start_read_unlocked()
+necessitate a fallback to mmap_lock.  The new vma_start_read_unlocked()
 will wait for writers instead of failing.
 
-Use the new helper.  Wait for writers.  Remove the fallback to mmap_lock. 
-The fallback removal does not affect NOMMU case because TCP_ZEROCOPY is
-gated on CONFIG_MMU.
+Use the new helper. Wait for writers. Remove the fallback to mmap_lock.
 
-This really is a nice cleanup.  It removes the need to pass the lock state
-back and forth to find_tcp_vma().
-
-Link: https://lore.kernel.org/20260813193433.3318288-6-surenb@google.com
+Link: https://lore.kernel.org/20260813193433.3318288-5-surenb@google.com
 Signed-off-by: Dave Hansen <dave.hansen@linux.intel.com>
 Signed-off-by: Suren Baghdasaryan <surenb@google.com>
-Acked-by: Lorenzo Stoakes <ljs@kernel.org>
-Acked-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
-Tested-by: syzbot@syzkaller.appspotmail.com
+Reviewed-by: Alice Ryhl <aliceryhl@google.com>
+Acked-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Vlastimil Babka <vbabka@kernel.org>
 Cc: Shakeel Butt <shakeel.butt@linux.dev>
@@ -77,77 +71,107 @@ Cc: Arve Hjønnevåg <arve@android.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/ipv4/tcp.c |   31 +++++++++----------------------
- 1 file changed, 9 insertions(+), 22 deletions(-)
+ drivers/android/binder/page_range.rs |   19 ++---------------
+ drivers/android/binder_alloc.c       |   17 ++++-----------
+ rust/kernel/mm.rs                    |   27 +++++++++++++++++++++++++
+ 3 files changed, 35 insertions(+), 28 deletions(-)
 
---- a/net/ipv4/tcp.c~tcp-remove-mmap_lock-fallback-path
-+++ a/net/ipv4/tcp.c
-@@ -2167,27 +2167,18 @@ static void tcp_zc_finalize_rx_tstamp(st
- }
+--- a/drivers/android/binder_alloc.c~binder-remove-mmap_lock-fallback
++++ a/drivers/android/binder_alloc.c
+@@ -259,21 +259,14 @@ static int binder_page_insert(struct bin
+ 	struct vm_area_struct *vma;
+ 	int ret = -ESRCH;
  
- static struct vm_area_struct *find_tcp_vma(struct mm_struct *mm,
--					   unsigned long address,
--					   bool *mmap_locked)
-+					   unsigned long address)
- {
--	struct vm_area_struct *vma = lock_vma_under_rcu(mm, address);
-+	struct vm_area_struct *vma = vma_start_read_unlocked(mm, address);
- 
+-	/* attempt per-vma lock first */
+-	vma = lock_vma_under_rcu(mm, addr);
 -	if (vma) {
--		if (vma->vm_ops != &tcp_vm_ops) {
--			vma_end_read(vma);
--			return NULL;
--		}
--		*mmap_locked = false;
--		return vma;
--	}
-+	if (!vma)
-+		return NULL;
- 
--	mmap_read_lock(mm);
--	vma = vma_lookup(mm, address);
--	if (!vma || vma->vm_ops != &tcp_vm_ops) {
--		mmap_read_unlock(mm);
-+	if (vma->vm_ops != &tcp_vm_ops) {
-+		vma_end_read(vma);
- 		return NULL;
- 	}
--	*mmap_locked = true;
-+
- 	return vma;
- }
- 
-@@ -2208,7 +2199,6 @@ static int tcp_zerocopy_receive(struct s
- 	u32 seq = tp->copied_seq;
- 	u32 total_bytes_to_map;
- 	int inq = tcp_inq(sk);
--	bool mmap_locked;
- 	int ret;
- 
- 	zc->copybuf_len = 0;
-@@ -2233,7 +2223,7 @@ static int tcp_zerocopy_receive(struct s
- 		return 0;
- 	}
- 
--	vma = find_tcp_vma(current->mm, address, &mmap_locked);
-+	vma = find_tcp_vma(current->mm, address);
- 	if (!vma)
- 		return -EINVAL;
- 
-@@ -2315,10 +2305,7 @@ static int tcp_zerocopy_receive(struct s
- 						   zc, total_bytes_to_map);
- 	}
- out:
--	if (mmap_locked)
--		mmap_read_unlock(current->mm);
--	else
+-		if (binder_alloc_is_mapped(alloc))
+-			ret = vm_insert_page(vma, addr, page);
 -		vma_end_read(vma);
++	vma = vma_start_read_unlocked(mm, addr);
++	if (!vma)
+ 		return ret;
+-	}
+ 
+-	/* fall back to mmap_lock */
+-	mmap_read_lock(mm);
+-	vma = vma_lookup(mm, addr);
+-	if (vma && binder_alloc_is_mapped(alloc))
++	if (binder_alloc_is_mapped(alloc))
+ 		ret = vm_insert_page(vma, addr, page);
+-	mmap_read_unlock(mm);
++
 +	vma_end_read(vma);
- 	/* Try to copy straggler data. */
- 	if (!ret)
- 		copylen = tcp_zc_handle_leftover(zc, sk, skb, &seq, copybuf_len, tss);
+ 
+ 	return ret;
+ }
+--- a/drivers/android/binder/page_range.rs~binder-remove-mmap_lock-fallback
++++ a/drivers/android/binder/page_range.rs
+@@ -439,22 +439,9 @@ impl ShrinkablePageRange {
+         // workqueue.
+         let mm = MmWithUser::into_mmput_async(self.mm.mmget_not_zero().ok_or(ESRCH)?);
+         {
+-            let vma_read;
+-            let mmap_read;
+-            let vma = if let Some(ret) = mm.lock_vma_under_rcu(vma_addr) {
+-                vma_read = ret;
+-                check_vma(&vma_read, self)
+-            } else {
+-                mmap_read = mm.mmap_read_lock();
+-                mmap_read
+-                    .vma_lookup(vma_addr)
+-                    .and_then(|vma| check_vma(vma, self))
+-            };
+-
+-            match vma {
+-                Some(vma) => vma.vm_insert_page(user_page_addr, &new_page)?,
+-                None => return Err(ESRCH),
+-            }
++            let vma_read_guard = mm.vma_start_read_unlocked(vma_addr).ok_or(ESRCH)?;
++            let vma = check_vma(&vma_read_guard, self).ok_or(ESRCH)?;
++            vma.vm_insert_page(user_page_addr, &new_page)?;
+         }
+ 
+         let inner = self.lock.lock();
+--- a/rust/kernel/mm.rs~binder-remove-mmap_lock-fallback
++++ a/rust/kernel/mm.rs
+@@ -186,6 +186,33 @@ impl MmWithUser {
+         })
+     }
+ 
++    /// Find the VMA covering 'address' and read-lock it.
++    ///
++    /// The fast path does not take mmap_lock. Waits for writers to finish if the
++    /// VMA is being modified by taking mmap_lock.
++    /// Use when mmap_lock is not held, otherwise use vma_start_read_locked().
++    /// Nothing prevents VMAs being unmapped/mapped before or after the VMA is
++    /// looked up, if a stronger guarantee is required, take an mmap_lock.
++    ///
++    /// Return: If a VMA exists which spans @address, return that VMA, read-locked.
++    /// If no VMA is mapped there or, very unlikely, a reference count overflow
++    /// occurred, return NULL.
++    #[inline]
++    pub fn vma_start_read_unlocked(&self, vma_addr: usize) -> Option<VmaReadGuard<'_>> {
++        // SAFETY: We may invoke `vma_start_read_unlocked` because we know this `mm` has non-zero
++        // `mm_users`.
++        let vma = unsafe { bindings::vma_start_read_unlocked(self.as_raw(), vma_addr) };
++        if vma.is_null() {
++            return None;
++        }
++        Some(VmaReadGuard {
++            // SAFETY: If `vma_start_read_unlocked` returns a non-null ptr, then it points at a
++            // valid vma. The vma is stable for as long as the vma read lock is held.
++            vma: unsafe { VmaRef::from_raw(vma) },
++            _nts: NotThreadSafe,
++        })
++    }
++
+     /// Lock the mmap read lock.
+     #[inline]
+     pub fn mmap_read_lock(&self) -> MmapReadGuard<'_> {
 _
 
 Patches currently in -mm which might be from dave.hansen@linux.intel.com are
 
+tcp-remove-mmap_lock-fallback-path.patch
 
