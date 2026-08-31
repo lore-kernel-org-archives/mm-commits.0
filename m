@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 904583BB107
-	for <mm-commits@vger.kernel.org>; Mon, 31 Aug 2026 23:24:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 990DB39794B
+	for <mm-commits@vger.kernel.org>; Mon, 31 Aug 2026 23:24:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788218668; cv=none; b=tOOjKnW7eqsA0dHVQnUInvPBwEdT85PIXmN3O3h3Bga0XCUTYcedlyh8ovWAccq8ZxJRgmYEII/tmvffxsFuA/GrcPmQ8QDgV0ParGH2n25z74kvmLZHx1VmcVnunEv/cwVdE2EHPzwfAO2cmNjSqc1FngENwr50RDevZy3K/Og=
+	t=1788218670; cv=none; b=nr2JFsa6Yb/TEmSWObmswgJKpKlLlkGR9jq1GY00xLDBwo4rYCSuy4sRrH9J42saaZOaYOt9+ayxgHzGd7yjsA3HwfLpXX9HCqsv3Ueu4HXHUfDSWErLcoKtZKNyKxua0VNgCAOyHqYtjubwjEJAmq+duGbRlKbNr37kuw3sPic=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788218668; c=relaxed/simple;
-	bh=lg1pIAqAZ+PB3X62z72SALiDOQTWw0JsdDxj9zjW0yw=;
-	h=Date:To:From:Subject:Message-Id; b=eLR0n4b3mfhkx9gUqikABAzW566eA27UAZz+/jCYJT9GnBzTnkgw3ARZxYycLVLGUvn5CNlOGxAISVQ1+n2qJ0t5m1hc/LGsxw+cfC8u4nm5emqCmmqCfAqpOCFrT275Bx0TyW2e2XxKEAQ3e+BDCLlbjpSw7qGaVjKHD54Na+4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vNU2o+E/; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788218670; c=relaxed/simple;
+	bh=X13kHoc55dChZ6kVnrZwDxjG7o5LCNvwOP+IcK9AaZU=;
+	h=Date:To:From:Subject:Message-Id; b=KhdyLiORnhuJWNHXslHCHE0/9CUGwBpKWy50Fs2kVWj+8+JJNY6DpuvWe2HjQYuu+jMyfVNp30b9AyZKQHpCgTvdmTHIGvnok7lQ3Ywy9PoOZO0XgrynlYw0mR2/xy33FYfz9vxGaAgTlCXqOUWkigkMYjDNNnX8O13i4b0U27Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vR4YN5lf; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vNU2o+E/"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 182AA1F000E9;
-	Mon, 31 Aug 2026 23:24:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vR4YN5lf"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 23F5B1F000E9;
+	Mon, 31 Aug 2026 23:24:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788218667;
-	bh=GT1IJlhT9JCR3MLn9FHfOnd0wrobxv4zthziGdbUOZ0=;
+	d=linux-foundation.org; s=korg; t=1788218669;
+	bh=jrOWY2MOSJGfItuwJpcP5bSqToejswzwSP1m9JmFUts=;
 	h=Date:To:From:Subject;
-	b=vNU2o+E/UqIMZdSD6pIMQxVT9XTFr0Zwjn9aRTynZqdTtpxwYyqDK5RsurZUEVZfA
-	 lzzoxrE/3UHo1aCkevVleJoLKveThX5bKMZ9M+ScFCTaVxNh964zghl+iMIl43D40s
-	 WLYtKhuHBOOM4QJYR755ihd4FDVvbDghRGOrVDBI=
-Date: Mon, 31 Aug 2026 16:24:26 -0700
+	b=vR4YN5lfy3Au4bU+YuMlVoloR8cTtoQbVIpSnmB5ZtK8dLGz6jizsxzNuWyb0lJZ3
+	 7oTiU2puGNlJ3Hr5tQkMeb57bJuM0sT4FY3IDa9Lvzzcw94hwprXVqtF/+DjAnt8Fe
+	 c0vr7cW2bb6kcGiu52GCE/jV/k8tiXt8gkIpTezk=
+Date: Mon, 31 Aug 2026 16:24:28 -0700
 To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,sj@kernel.org,rppt@kernel.org,rdunlap@infradead.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,corbet@lwn.net,gutierrez.asier@huawei-partners.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-sysfs-support-hugepage_mem_bp-quota-goal-metric.patch added to mm-new branch
-Message-Id: <20260831232427.182AA1F000E9@smtp.kernel.org>
+Subject: + docs-mm-damon-design-document-hugepage_mem_bp-target-metric.patch added to mm-new branch
+Message-Id: <20260831232429.23F5B1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/sysfs: support hugepage_mem_bp quota goal metric
+     Subject: Docs/mm/damon/design: cocument hugepage_mem_bp target metric
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-sysfs-support-hugepage_mem_bp-quota-goal-metric.patch
+     docs-mm-damon-design-document-hugepage_mem_bp-target-metric.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-support-hugepage_mem_bp-quota-goal-metric.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-mm-damon-design-document-hugepage_mem_bp-target-metric.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,15 +70,12 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Asier Gutierrez <gutierrez.asier@huawei-partners.com>
-Subject: mm/damon/sysfs: support hugepage_mem_bp quota goal metric
-Date: Mon, 31 Aug 2026 07:47:29 -0700
+Subject: Docs/mm/damon/design: cocument hugepage_mem_bp target metric
+Date: Mon, 31 Aug 2026 07:47:30 -0700
 
-DAMOS has a new autotune policy metric: DAMOS_QUOTA_HUGEPAGE_MEM_BP.  This
-patch exposes DAMOS_QUOTA_HUGEPAGE_MEM_BP through sysfs.
+Document hugepage_mem_bp metric exposed by sysfs.
 
-Add the "hugepage_mem_bp" to the sysfs-schemes interface.
-
-Link: https://lore.kernel.org/20260831144732.80910-3-sj@kernel.org
+Link: https://lore.kernel.org/20260831144732.80910-4-sj@kernel.org
 Signed-off-by: Asier Gutierrez <gutierrez.asier@huawei-partners.com>
 Signed-off-by: SJ Park <sj@kernel.org>
 Reviewed-by: SJ Park <sj@kernel.org>
@@ -94,22 +91,20 @@ Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/sysfs-schemes.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ Documentation/mm/damon/design.rst |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/mm/damon/sysfs-schemes.c~mm-damon-sysfs-support-hugepage_mem_bp-quota-goal-metric
-+++ a/mm/damon/sysfs-schemes.c
-@@ -1269,6 +1269,10 @@ struct damos_sysfs_qgoal_metric_name dam
- 		.metric = DAMOS_QUOTA_NODE_ELIGIBLE_MEM_BP,
- 		.name = "node_eligible_mem_bp",
- 	},
-+	{
-+		.metric = DAMOS_QUOTA_HUGEPAGE_MEM_BP,
-+		.name = "hugepage_mem_bp",
-+	},
- };
+--- a/Documentation/mm/damon/design.rst~docs-mm-damon-design-document-hugepage_mem_bp-target-metric
++++ a/Documentation/mm/damon/design.rst
+@@ -713,6 +713,8 @@ mechanism tries to make ``current_value`
+   bp (1/10,000).
+ - ``node_eligible_mem_bp``: Scheme target access pattern-eligible memory ratio
+   of a node in bp (1/10,000).
++- ``hugepage_mem_bp``: Total huge page to total used memory ratio in bp
++  (1/10,000).
  
- static ssize_t target_metric_show(struct kobject *kobj,
+ ``nid`` is optionally required for ``node_mem_used_bp``, ``node_mem_free_bp``,
+ ``node_memcg_used_bp``, ``node_memcg_free_bp`` and ``node_eligible_mem_bp`` to
 _
 
 Patches currently in -mm which might be from gutierrez.asier@huawei-partners.com are
