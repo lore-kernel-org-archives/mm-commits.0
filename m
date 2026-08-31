@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 990DB39794B
-	for <mm-commits@vger.kernel.org>; Mon, 31 Aug 2026 23:24:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6AF7A3C10B9
+	for <mm-commits@vger.kernel.org>; Mon, 31 Aug 2026 23:31:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788218670; cv=none; b=nr2JFsa6Yb/TEmSWObmswgJKpKlLlkGR9jq1GY00xLDBwo4rYCSuy4sRrH9J42saaZOaYOt9+ayxgHzGd7yjsA3HwfLpXX9HCqsv3Ueu4HXHUfDSWErLcoKtZKNyKxua0VNgCAOyHqYtjubwjEJAmq+duGbRlKbNr37kuw3sPic=
+	t=1788219107; cv=none; b=V1Oxdo1qMBlCOfP0XBt+ygn3AY+gwAc8dlSRXyYqgtSaS61t3gBLwnkGHl7Mz7ZHlxl1raDPSG9wGNvc54oPFNeshi58PZQ/Ntr4fecabvLbIIc2NVvmiUnPRFaHDJxnrmss5y8VQ0cwZGtA5yXJ0SsRTns0fs0Ah1ov0sNxyTQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788218670; c=relaxed/simple;
-	bh=X13kHoc55dChZ6kVnrZwDxjG7o5LCNvwOP+IcK9AaZU=;
-	h=Date:To:From:Subject:Message-Id; b=KhdyLiORnhuJWNHXslHCHE0/9CUGwBpKWy50Fs2kVWj+8+JJNY6DpuvWe2HjQYuu+jMyfVNp30b9AyZKQHpCgTvdmTHIGvnok7lQ3Ywy9PoOZO0XgrynlYw0mR2/xy33FYfz9vxGaAgTlCXqOUWkigkMYjDNNnX8O13i4b0U27Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vR4YN5lf; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788219107; c=relaxed/simple;
+	bh=ZjS3N5ttbKW/dgUc/q1vsScEoR5EDVKaZHsZY4cL1cs=;
+	h=Date:To:From:Subject:Message-Id; b=WAyyuEUZeVVdrk23ES0p+MKN7TydDxIjbW3BwWkaooFcfz7pZO2FjYhVUpxXm6SKGLk/7acGl5b56cqBwxzRYwVu1rKIwWg5zGkygL2OUsWyy+6/7WiDjSsXRX1esJOuOezSNCDlfUba9iDSVFCbASctOwbeZDM/P4gb9asH8Jo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=g2ABGu5K; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vR4YN5lf"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 23F5B1F000E9;
-	Mon, 31 Aug 2026 23:24:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="g2ABGu5K"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F265C1F000E9;
+	Mon, 31 Aug 2026 23:31:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788218669;
-	bh=jrOWY2MOSJGfItuwJpcP5bSqToejswzwSP1m9JmFUts=;
+	d=linux-foundation.org; s=korg; t=1788219106;
+	bh=VcgZtM8om4BD08f4mbAxBjzESNUX+zxGBLxqq1AH+8U=;
 	h=Date:To:From:Subject;
-	b=vR4YN5lfy3Au4bU+YuMlVoloR8cTtoQbVIpSnmB5ZtK8dLGz6jizsxzNuWyb0lJZ3
-	 7oTiU2puGNlJ3Hr5tQkMeb57bJuM0sT4FY3IDa9Lvzzcw94hwprXVqtF/+DjAnt8Fe
-	 c0vr7cW2bb6kcGiu52GCE/jV/k8tiXt8gkIpTezk=
-Date: Mon, 31 Aug 2026 16:24:28 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,sj@kernel.org,rppt@kernel.org,rdunlap@infradead.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,corbet@lwn.net,gutierrez.asier@huawei-partners.com,akpm@linux-foundation.org
+	b=g2ABGu5KvsTAv6za4+ZxM+8JEkhgAC2PKhY3rKQkYiEbZRrntdWGqlD/yh7BtUky8
+	 voHfkomXCXkKGNqaBgtOFDJLWc70FEeVkl35m0AQ6klr0FDcpDKjx321Eyqo4NVUzT
+	 k0wTYvSz4POXP6q7d1Ji3Py5deNf4C3AKzSsocBo=
+Date: Mon, 31 Aug 2026 16:31:45 -0700
+To: mm-commits@vger.kernel.org,zhaozhengzhuo@uniontech.com,sj@kernel.org,shuah@kernel.org,liyouhong@kylinos.cn,lienze@kylinos.cn,jaeyeon.lee.dev@gmail.com,harimishal1@gmail.com,gregkh@linuxfoundation.org,zenghui.yu@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + docs-mm-damon-design-document-hugepage_mem_bp-target-metric.patch added to mm-new branch
-Message-Id: <20260831232429.23F5B1F000E9@smtp.kernel.org>
+Subject: + mm-damon-core-remove-declaration-of-__damon_commit_ctx.patch added to mm-new branch
+Message-Id: <20260831233145.F265C1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: Docs/mm/damon/design: cocument hugepage_mem_bp target metric
+     Subject: mm/damon/core: remove declaration of __damon_commit_ctx()
 has been added to the -mm mm-new branch.  Its filename is
-     docs-mm-damon-design-document-hugepage_mem_bp-target-metric.patch
+     mm-damon-core-remove-declaration-of-__damon_commit_ctx.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-mm-damon-design-document-hugepage_mem_bp-target-metric.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-remove-declaration-of-__damon_commit_ctx.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,47 +69,59 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Asier Gutierrez <gutierrez.asier@huawei-partners.com>
-Subject: Docs/mm/damon/design: cocument hugepage_mem_bp target metric
-Date: Mon, 31 Aug 2026 07:47:30 -0700
+From: "Zenghui Yu (Huawei)" <zenghui.yu@linux.dev>
+Subject: mm/damon/core: remove declaration of __damon_commit_ctx()
+Date: Mon, 31 Aug 2026 07:26:03 -0700
 
-Document hugepage_mem_bp metric exposed by sysfs.
+Patch series "mm/damon: misc cleanups".
 
-Link: https://lore.kernel.org/20260831144732.80910-4-sj@kernel.org
-Signed-off-by: Asier Gutierrez <gutierrez.asier@huawei-partners.com>
+Cleanup the code, tests and samples for clarifications and readability.
+
+The patches are individually sent by the authors.  I'm reposting those as
+one series for convenience of handling.  For this reason, changelog is on
+each patch's commentary section.
+
+
+This patch (of 7):
+
+__damon_commit_ctx() was added by commit b1471afe4d10 ("mm/damon/core: do
+parameter testing commit on damon_start()") but is actually not needed. 
+Remove it.
+
+Link: https://lore.kernel.org/20260831142611.77572-1-sj@kernel.org
+Link: https://lore.kernel.org/20260831142611.77572-2-sj@kernel.org
+Signed-off-by: Zenghui Yu (Huawei) <zenghui.yu@linux.dev>
 Signed-off-by: SJ Park <sj@kernel.org>
 Reviewed-by: SJ Park <sj@kernel.org>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Randy Dunlap <rdunlap@infradead.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Zenghui Yu <zenghui.yu@linux.dev>
+Cc: Enze Li <lienze@kylinos.cn>
+Cc: Hari Mishal <harimishal1@gmail.com>
+Cc: Jaeyeon Lee <jaeyeon.lee.dev@gmail.com>
+Cc: Li Youhong <liyouhong@kylinos.cn>
+Cc: zhaozhengzhuo <zhaozhengzhuo@uniontech.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/mm/damon/design.rst |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/damon/core.c |    2 --
+ 1 file changed, 2 deletions(-)
 
---- a/Documentation/mm/damon/design.rst~docs-mm-damon-design-document-hugepage_mem_bp-target-metric
-+++ a/Documentation/mm/damon/design.rst
-@@ -713,6 +713,8 @@ mechanism tries to make ``current_value`
-   bp (1/10,000).
- - ``node_eligible_mem_bp``: Scheme target access pattern-eligible memory ratio
-   of a node in bp (1/10,000).
-+- ``hugepage_mem_bp``: Total huge page to total used memory ratio in bp
-+  (1/10,000).
+--- a/mm/damon/core.c~mm-damon-core-remove-declaration-of-__damon_commit_ctx
++++ a/mm/damon/core.c
+@@ -1935,8 +1935,6 @@ static int __damon_start(struct damon_ct
+ 	return err;
+ }
  
- ``nid`` is optionally required for ``node_mem_used_bp``, ``node_mem_free_bp``,
- ``node_memcg_used_bp``, ``node_memcg_free_bp`` and ``node_eligible_mem_bp`` to
+-static int __damon_commit_ctx(struct damon_ctx *dst, struct damon_ctx *src);
+-
+ /**
+  * damon_start() - Starts the monitorings for a given group of contexts.
+  * @ctxs:	an array of the pointers for contexts to start monitoring
 _
 
-Patches currently in -mm which might be from gutierrez.asier@huawei-partners.com are
+Patches currently in -mm which might be from zenghui.yu@linux.dev are
 
-mm-damon-introduce-damos_quota_hugepage-auto-tuning.patch
-mm-damon-sysfs-support-hugepage_mem_bp-quota-goal-metric.patch
-docs-mm-damon-design-document-hugepage_mem_bp-target-metric.patch
+selftests-mm-fix-incorrect-skip-output-in-pkey_sighandler_tests.patch
+mm-damon-core-remove-declaration-of-__damon_commit_ctx.patch
 
