@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E31C130C164
-	for <mm-commits@vger.kernel.org>; Mon, 31 Aug 2026 23:32:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6005E375ABE
+	for <mm-commits@vger.kernel.org>; Mon, 31 Aug 2026 23:46:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788219124; cv=none; b=F5khr8gtccam60rivYI/Zt8lGaqJP8I22iB8pPVukulCvJ0zg+LMdjKrJtXBKnCbgnwfumSuCWQqNiHQnApd07Cs4l2Y79xsWXzeo5vpsJo9ehUmh34aGoSRJIi2Bj/HwSGUAlodLCvD/ccwaGi9t/SQjZtsC2/EkC6qjWmJ7TM=
+	t=1788219964; cv=none; b=mkH4YOCbqBfGw8UdgU++JQ8uwtn9G21vDgn4uV/7ROKANZVenUApLfnZc8LiCncgJ+7yR7YCGtxuqaPEvTF6wdOf+/1tAOQaWQUV4TCSbmllF3wD9KwAluGw3JvpvpAFt9iILzWz5IbyhmjW5r6BDCNPbHnjfOlsDiw29rlsVgk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788219124; c=relaxed/simple;
-	bh=VcK4UcVs+bFeyDvZhywl9mCU4Z8/PjjqWr4ySczCfvg=;
-	h=Date:To:From:Subject:Message-Id; b=YL40bk67wQtM0ZryMldWlpyNvWyIjB6ka885j/c17lKh6VdPyxbV1OsMWQblsHAkvEA6VufOns97nsHrnO381Hzo7+3cEZjOdEJe2zL+crfu05VZWnIzLWp3okMLdSEH0d6jwy1HqjpReqblQNa93AWlcu3ksdY52O6r9Q6MUCw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oBz054Cb; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788219964; c=relaxed/simple;
+	bh=RksWBmfte9l9WTzzhJ3JFrGMRh+qfvxd3Rlwz1ZWeWY=;
+	h=Date:To:From:Subject:Message-Id; b=YLS6lZYAb3PeHqjJIuOZOiRrym+fiYmiksr/IA/TP4ZpfgQHJ6KL05NoYJdr5/qa257haWsEy86YicfWxvDyEZG1A+QnAHhDJNPkJ2xPud/JJBAjnVvdsBV2iM0aDNTMzZ5XURDNZv1a55omcRjbmc20a0AIIZPgdhX7BaKsQYw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EBkeRb6g; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oBz054Cb"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5A87C1F000E9;
-	Mon, 31 Aug 2026 23:32:00 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EBkeRb6g"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B56521F000E9;
+	Mon, 31 Aug 2026 23:46:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788219120;
-	bh=Xx/AG01IZih+2PR5V9HTH/6dgN6/4hrMSwMONvG0704=;
+	d=linux-foundation.org; s=korg; t=1788219962;
+	bh=XlfQA4lmD/XYATZXmDS78BmoCczSby9qii3ILsm6BmQ=;
 	h=Date:To:From:Subject;
-	b=oBz054CbXO3SZLTPrkC+Ls2vtJBAGIiGX1ksWx7qAD/4EyKlAzuRE+Pb6n+5xjc67
-	 BuaF9Q4lQ6YvUICuEW+QrZxc2XyZU8VlPLbUKPjza5DCl5EAL12AJCNdjLphLKypCt
-	 3bFzFbNxOAcOVZlBFNMTxQmcr+DOPFs8mOYFl+f4=
-Date: Mon, 31 Aug 2026 16:31:59 -0700
-To: mm-commits@vger.kernel.org,zhaozhengzhuo@uniontech.com,zenghui.yu@linux.dev,sj@kernel.org,shuah@kernel.org,liyouhong@kylinos.cn,jaeyeon.lee.dev@gmail.com,harimishal1@gmail.com,gregkh@linuxfoundation.org,lienze@kylinos.cn,akpm@linux-foundation.org
+	b=EBkeRb6gy+Bmtrsp8Sf3vFZsad3g2jggWv3+APjQNzvP/b/r8LKT90lnP8fMHE8o4
+	 MnCW1Y/g/AkmmXOanb/K+RbVRLqaGFO9ZRyY5q40IHzW7CdI5PpPae7n3eXqTKthDX
+	 ZcYOecuxg1BWCh/w82H71txypw3McRHmfKAme9Gs=
+Date: Mon, 31 Aug 2026 16:46:02 -0700
+To: mm-commits@vger.kernel.org,rppt@kernel.org,muchun.song@linux.dev,mingo@redhat.com,kees@kernel.org,david@kernel.org,dave.hansen@linux.intel.com,bp@alien8.de,balbirs@nvidia.com,arnd@arndb.de,apopple@nvidia.com,lizhe.67@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + samples-damon-mtier-add-comment-for-struct-region_range.patch added to mm-new branch
-Message-Id: <20260831233200.5A87C1F000E9@smtp.kernel.org>
+Subject: + mm-fix-stale-zone_device-refcount-comment.patch added to mm-new branch
+Message-Id: <20260831234602.B56521F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: samples/damon/mtier: add comment for struct region_range
+     Subject: mm: fix stale ZONE_DEVICE refcount comment
 has been added to the -mm mm-new branch.  Its filename is
-     samples-damon-mtier-add-comment-for-struct-region_range.patch
+     mm-fix-stale-zone_device-refcount-comment.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/samples-damon-mtier-add-comment-for-struct-region_range.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-fix-stale-zone_device-refcount-comment.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,50 +69,208 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Enze Li <lienze@kylinos.cn>
-Subject: samples/damon/mtier: add comment for struct region_range
-Date: Mon, 31 Aug 2026 07:26:09 -0700
+From: "Li Zhe" <lizhe.67@bytedance.com>
+Subject: mm: fix stale ZONE_DEVICE refcount comment
+Date: Mon, 31 Aug 2026 19:16:32 +0800
 
-The mtier sample defines a local struct region_range using phys_addr_t
-instead of damon_addr_range which uses unsigned long.  Add a comment
-explaining the rationale: on 32-bit systems with more than 4GiB memory,
-phys_addr_t will be 64-bit while unsigned long is 32-bit.
+Patch series "mm: optimize zone-device memmap initialization", v11.
 
-Link: https://lore.kernel.org/20260831142611.77572-8-sj@kernel.org
-Signed-off-by: Enze Li <lienze@kylinos.cn>
-Signed-off-by: SJ Park <sj@kernel.org>
-Reviewed-by: SJ Park <sj@kernel.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Hari Mishal <harimishal1@gmail.com>
-Cc: Jaeyeon Lee <jaeyeon.lee.dev@gmail.com>
-Cc: Li Youhong <liyouhong@kylinos.cn>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: "Zenghui Yu (Huawei)" <zenghui.yu@linux.dev>
-Cc: zhaozhengzhuo <zhaozhengzhuo@uniontech.com>
+memmap_init_zone_device() can take a noticeable amount of time when large
+pmem namespaces are bound or rebound, because it initializes nearly
+identical struct page descriptors one PFN at a time.  This series reduces
+that ZONE_DEVICE memmap initialization overhead by reusing prepared struct
+page templates and, on x86, using memcpy_nontemporal() for the template
+copy path.
+
+The main target is large fsdax/devdax pmem configurations, where the cost
+of initializing the memmap shows up directly in nd_pmem/dax_pmem bind and
+rebind latency.  This matters because the cost is paid in the synchronous
+probe/bind path for large DAX/PMEM ZONE_DEVICE mappings.  Userspace
+workflows such as provisioning or reconfiguring nd_pmem/dax_pmem
+namespaces, bringing hot-added PMEM-backed capacity online, and recovering
+or rebinding a device after driver or device changes all wait for this
+initialization to finish.  Reducing this cost will yield benefits as lower
+user-visible provisioning, hot-add, recovery, and rebind latency for large
+DAX/PMEM devices.
+
+Patches 1-2 are preparatory cleanups and helper extraction.  Patches 3-4
+add the template-copy path for head pages and compound tails.  Patch 5
+introduces memcpy_nontemporal().  Patch 6 switches the ZONE_DEVICE
+template-copy path over to memcpy_nontemporal().  Patch 7 extends the x86
+fixed-size memcpy_flushcache() inline cases used by the x86
+memcpy_nontemporal() backend for struct page sized copies.
+
+Architectures without a specialized memcpy_nontemporal() backend fall back
+to memcpy(), so the generic template-copy optimization remains available
+without arch-specific support.  On x86, memcpy_nontemporal() maps to the
+existing memcpy_flushcache() backend and can use the fixed-size MOVNTI
+paths added by this series for struct page sized copies.
+
+memcpy_nontemporal() is only a copy primitive.  It does not imply a drain
+or a publication barrier.  Callers that use it before a producer-consumer
+or device-visible handoff must provide the required ordering.  The
+ZONE_DEVICE template-copy path uses it only while initializing struct page
+metadata, so the copy primitive itself does not grow a separate drain
+contract.
+
+The numbers below measure the time spent in memmap_init_zone_device()
+during driver bind/rebind.  They are not measurements of the full nd_pmem
+or dax_pmem bind/rebind operation.
+
+Tested in an x86_64 QEMU/KVM VM with a 100 GB fsdax namespace device
+configured with map=dev and a 100 GB devdax namespace (align=2097152) on
+Intel Ice Lake server.
+
+Test procedure:
+Rebind the nd_pmem and dax_pmem drivers 30 times and collect the memmap
+initialization time from the pr_debug() output of
+memmap_init_zone_device().
+
+Base(v7.3-rc1):
+  Average of nd_pmem rebinds: 221.07 ms
+  Average of dax_pmem rebinds: 191.20 ms
+
+With this series applied:
+  Average of nd_pmem rebinds:  71.93 ms
+  Average of dax_pmem rebinds:  87.37 ms
+
+This reduces the average memmap initialization time measured during rebind
+by about 67.5% for nd_pmem and 54.3% for dax_pmem.
+
+As an additional x86_64 data point, I also ran measurements on the same
+physical host with a 100 GB PMEM region created via the memmap= kernel
+command line, configured as fsdax and devdax namespaces with map=dev and 2
+MiB alignment.
+
+For brevity, the individual patches keep only the VM results rather than
+including a second set of physical-host measurements throughout the
+series.  The physical-host numbers below are included only as supplemental
+evidence that the same optimization also provides a similar benefit on a
+non-virtualized system.
+
+Test procedure:
+Reconfigure the namespace mode, rebind the nd_pmem or dax_pmem driver
+30 times, and collect the memmap initialization time from the pr_debug()
+output of memmap_init_zone_device().
+
+Base (v7.3-rc1):
+  nd_pmem / fsdax: 205.90 ms
+  dax_pmem / devdax: 225.43 ms
+
+With this series applied:
+  nd_pmem / fsdax: 69.13 ms
+  dax_pmem / devdax: 90.67 ms
+
+This reduces the measured memmap initialization time during rebind by
+about 66.4% for nd_pmem and 59.8% for dax_pmem on that setup, which is
+broadly consistent with the VM results above.
+
+As another supplemental data point, I measured the test_hmm.ko module on
+the same physical x86_64 host, using the test_hmm.ko setup from the
+previous discussion that times ten 64 GB memremap_pages()/memunmap_pages()
+iterations during module insertion[1].  By default, module insertion
+initializes two DEVICE_PRIVATE dmirror devices, so two avg memremap values
+are reported; each value is the average for one 64 GB chunk.
+
+This is not the primary target workload of the series, but it exercises
+the same large ZONE_DEVICE memmap initialization path and shows the same
+direction of improvement.
+
+Base (v7.3-rc1):
+  avg memremap reported during module insertion: 116500596 ns, 116438028 ns
+
+With this series applied:
+  avg memremap reported during module insertion: 46953088 ns, 46428399 ns
+
+This corresponds to about a 59.9% reduction based on the mean of the
+reported values, which is again consistent with the pmem bind/rebind
+results above.
+
+I also include an arm64 data point for the generic template-copy part.  It
+was measured on an arm64 QEMU virt VM with 64 KB pages and a 100 GB ACPI
+NVDIMM sparse backend.  This setup does not use the x86 MOVNTI fast paths,
+so it exercises the architecture-independent part of the optimization.
+
+For devdax, 2 MiB alignment is rejected in this 64 KB page setup, so the
+devdax namespace was tested with the supported default 512 MiB alignment.
+
+Base (v7.3-rc1):
+  Average of rebinds for nd_pmem driver: 27.93 ms
+  Average of rebinds for dax_pmem driver: 27.87 ms
+
+With this series applied:
+  Average of rebinds for nd_pmem driver: 14.53 ms
+  Average of rebinds for dax_pmem driver: 16.27 ms
+
+This reduces the average memmap initialization time measured during rebind
+by about 48.0% for nd_pmem and 41.6% for dax_pmem on that arm64 VM setup. 
+Since this arm64 setup does not use the x86 MOVNTI fast paths, the result
+also suggests that the generic template-copy optimization can benefit
+architectures without an architecture-specific memcpy_nontemporal()
+backend.
+
+
+This patch (of 7):
+
+The comment in __init_zone_device_page() still uses the old MEMORY_TYPE_*
+names and implies that FS_DAX pages regain a refcount of 1 in the free
+path.  That no longer matches the code.
+
+Update the comment to describe the current policy correctly:
+MEMORY_DEVICE_GENERIC pages regain a refcount of 1 in the free path, while
+the remaining ZONE_DEVICE types start from 0 here and raise the count
+again when the allocator or driver hands the page out.
+
+No functional change intended.
+
+Link: https://lore.kernel.org/20260831111638.76012-1-lizhe.67@bytedance.com
+Link: https://lore.kernel.org/20260831111638.76012-2-lizhe.67@bytedance.com
+Link: https://lore.kernel.org/all/aiEoByaQdRR3xtM5@nvdebian.thelocal/ [1]
+Signed-off-by: Li Zhe <lizhe.67@bytedance.com>
+Reviewed-by: David Hildenbrand (Arm) <david@kernel.org>
+Reviewed-by: Alistair Popple <apopple@nvidia.com>
+Reviewed-by: Muchun Song <muchun.song@linux.dev>
+Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Balbir Singh <balbirs@nvidia.com>
+Cc: "Borislav Petkov (AMD)" <bp@alien8.de>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Kees Cook <kees@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- samples/damon/mtier.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ mm/mm_init.c |   10 +++-------
+ 1 file changed, 3 insertions(+), 7 deletions(-)
 
---- a/samples/damon/mtier.c~samples-damon-mtier-add-comment-for-struct-region_range
-+++ a/samples/damon/mtier.c
-@@ -52,6 +52,11 @@ module_param(detect_node_addresses, bool
+--- a/mm/mm_init.c~mm-fix-stale-zone_device-refcount-comment
++++ a/mm/mm_init.c
+@@ -1012,13 +1012,9 @@ static void __ref __init_zone_device_pag
+ 	page->zone_device_data = NULL;
  
- static struct damon_ctx *ctxs[2];
- 
-+/*
-+ * Use phys_addr_t instead of damon_addr_range (unsigned long) for physical
-+ * addresses.  On 32-bit systems with more than 4GB memory, phys_addr_t will
-+ * be 64-bit while unsigned long is 32-bit.
-+ */
- struct region_range {
- 	phys_addr_t start;
- 	phys_addr_t end;
+ 	/*
+-	 * ZONE_DEVICE pages other than MEMORY_TYPE_GENERIC are released
+-	 * directly to the driver page allocator which will set the page count
+-	 * to 1 when allocating the page.
+-	 *
+-	 * MEMORY_TYPE_GENERIC and MEMORY_TYPE_FS_DAX pages automatically have
+-	 * their refcount reset to one whenever they are freed (ie. after
+-	 * their refcount drops to 0).
++	 * MEMORY_DEVICE_GENERIC pages regain a refcount of 1 in the free
++	 * path. The remaining ZONE_DEVICE types start from 0 here and raise
++	 * the count again when the allocator or driver hands the page out.
+ 	 */
+ 	switch (pgmap->type) {
+ 	case MEMORY_DEVICE_FS_DAX:
 _
 
-Patches currently in -mm which might be from lienze@kylinos.cn are
+Patches currently in -mm which might be from lizhe.67@bytedance.com are
 
-mm-damon-core-introduce-damon_set_target_pid.patch
-samples-damon-mtier-add-comment-for-struct-region_range.patch
+mm-fix-stale-zone_device-refcount-comment.patch
+mm-add-a-set_page_section_from_pfn-helper.patch
+mm-add-a-template-based-fast-path-for-zone-device-page-init.patch
+mm-extend-the-template-fast-path-to-zone-device-compound-tails.patch
+string-introduce-memcpy_nontemporal.patch
+mm-use-memcpy_nontemporal-in-zone-device-template-copies.patch
+x86-string-extend-memcpy_flushcache-fixed-size-fastpaths.patch
 
