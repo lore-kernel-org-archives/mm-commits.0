@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9C5FB39A802;
-	Mon, 31 Aug 2026 22:14:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 574513B4E8B;
+	Mon, 31 Aug 2026 22:14:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788214468; cv=none; b=EQxzciAuyS+BNJ8kz0YndkUr0z3U06pIh3Gi0qnqIpxzzFWGof3hRRXJmYYi3om68OyN20sefvU4CBRfcEcUrRRzYOUPsEOpGMgM3pfr5Yew7ufO4dIxuwTZO3T/mk71dHaxGEgQpcakS72LZidbV/z6gJpAx+1rbvkESMgdYEw=
+	t=1788214470; cv=none; b=u6uDXeuxFEy3wXvZI47MQIziGgn0tWn4/L+EAfI4D1bJKK9Nph3SkoXCAwVztF4KVXRC3lSo+/M4Hizl79Jr52BlEdfGh2krG7O+LC42+xhqunwBoOVOVDuJVgk3Y777GbHBWtsog54bgIQekGcl6ll0OKI2nbaiKVmScepvMjk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788214468; c=relaxed/simple;
-	bh=7TIuEjADm4D2dYWhjo7SiHbExcrloyVoXvPDY7mYfUE=;
-	h=Date:To:From:Subject:Message-Id; b=qVG6vrUVAoaMqOHFgv2NBQ21V1TEsfuwBJAF7y/fDiYFgYSzKuEKLGfcKnM9l6Ptkc8FYCggnAf9OWGRWzgxCCH+aDkywUxH4Q4KkpuQ7H8++pRjTP+YJPyCyXNQfyrsHUFBJfVNZFSwMcTjFREaE6e4HAsKIfS0TcNpWguBcqk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vPZkx7FA; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788214470; c=relaxed/simple;
+	bh=ImKZeFh455EgNr8UI3V6d+ah/rLEpssyw3G3a4chF18=;
+	h=Date:To:From:Subject:Message-Id; b=WIOW9nMxlkVtHQpFhnXrn9kdeVhZdbY6+vo6ucRJd7yolySgsG2CCmuNqnaAtZPVtjRNwnP7JtEvLH+7913VjAdyVreY4evMxkGCqzFwsaJxAbXabLiV1ZIGNIJeSfhl0mSIryndjtwUpmxLXfHKOijNSMP9TO0SaiYFGQ+GMXY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Ym552jmj; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vPZkx7FA"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1F6CA1F000E9;
-	Mon, 31 Aug 2026 22:14:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Ym552jmj"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 21D401F000E9;
+	Mon, 31 Aug 2026 22:14:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788214467;
-	bh=hrO9NFFmDQD0mduI27NkGGIDV300DkllyGG7ZLkhzyU=;
+	d=linux-foundation.org; s=korg; t=1788214469;
+	bh=zcI/G2ziQBBZ+LURweL3RjPmM1dQv+6/QA+OB45oQoo=;
 	h=Date:To:From:Subject;
-	b=vPZkx7FAVcNErWis0cwxMDuN7gnIUCQ4Rk4TKWZE06wE1vMg55f3OnCwgHjAZ/+kG
-	 eb+pHEY+w7PmDniV6QkTHKeI+cRcwRKR2PAbU+Rm1Ym2i6MX/iu5wD0EIkLwkRV/T4
-	 REVfkN10VomQMllSlkZFnjpuiXPknslcg/vK7eQg=
-Date: Mon, 31 Aug 2026 15:14:26 -0700
+	b=Ym552jmjPoeR8EO8RSK+axi+hKcwrtbFSToGK/ooMbkvvdx51UNb4cu/Ay48yX6f0
+	 /j+YbooOWf+2xj8DukVvgklHvI05yBzIqoO8ppF6nt4AU3V7LncXyee+hEHJe9oh5O
+	 nA35q6E2wfnCdkqm5XCQZvlBkBkXepA9epJen054=
+Date: Mon, 31 Aug 2026 15:14:28 -0700
 To: mm-commits@vger.kernel.org,stable@vger.kernel.org,hch@lst.de,ebiggers@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + xor-add-missing-vzeroupper-to-avx-code.patch added to mm-nonmm-unstable branch
-Message-Id: <20260831221427.1F6CA1F000E9@smtp.kernel.org>
+Subject: + raid6-add-missing-vzeroupper-to-avx2-code.patch added to mm-nonmm-unstable branch
+Message-Id: <20260831221429.21D401F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: xor: add missing vzeroupper to AVX code
+     Subject: raid6: add missing vzeroupper to AVX2 code
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     xor-add-missing-vzeroupper-to-avx-code.patch
+     raid6-add-missing-vzeroupper-to-avx2-code.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/xor-add-missing-vzeroupper-to-avx-code.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/raid6-add-missing-vzeroupper-to-avx2-code.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,30 +59,90 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Eric Biggers <ebiggers@kernel.org>
-Subject: xor: add missing vzeroupper to AVX code
-Date: Mon, 31 Aug 2026 14:22:48 -0700
+Subject: raid6: add missing vzeroupper to AVX2 code
+Date: Mon, 31 Aug 2026 14:23:08 -0700
 
-Since the AVX optimized XOR code uses YMM registers, execute vzeroupper
+Since the AVX2 optimized RAID6 code uses YMM registers, execute vzeroupper
 before returning from it.  This is needed to avoid degrading the
 performance of any later SSE code that may happen to be executed.
 
-Link: https://lore.kernel.org/20260831212248.213805-1-ebiggers@kernel.org
-Fixes: ea4d26ae24e5 ("raid5: add AVX optimized RAID5 checksumming")
+Link: https://lore.kernel.org/20260831212308.213855-1-ebiggers@kernel.org
+Fixes: 2c935842bdb4 ("lib/raid6: Add AVX2 optimized gen_syndrome functions")
+Fixes: 7056741fd9fc ("lib/raid6: Add AVX2 optimized recovery functions")
 Signed-off-by: Eric Biggers <ebiggers@kernel.org>
 Cc: Christoph Hellwig <hch@lst.de>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/raid/xor/x86/xor-avx.c |    1 +
- 1 file changed, 1 insertion(+)
+ lib/raid/raid6/x86/avx2.c       |    6 ++++++
+ lib/raid/raid6/x86/recov_avx2.c |    2 ++
+ 2 files changed, 8 insertions(+)
 
---- a/lib/raid/xor/x86/xor-avx.c~xor-add-missing-vzeroupper-to-avx-code
-+++ a/lib/raid/xor/x86/xor-avx.c
-@@ -147,6 +147,7 @@ static void xor_gen_avx(void *dest, void
- {
- 	kernel_fpu_begin();
- 	xor_gen_avx_inner(dest, srcs, src_cnt, bytes);
+--- a/lib/raid/raid6/x86/avx2.c~raid6-add-missing-vzeroupper-to-avx2-code
++++ a/lib/raid/raid6/x86/avx2.c
+@@ -67,6 +67,7 @@ static void raid6_avx21_gen_syndrome(int
+ 	}
+ 
+ 	asm volatile("sfence" : : : "memory");
++	asm volatile("vzeroupper");
+ 	kernel_fpu_end();
+ }
+ 
+@@ -115,6 +116,7 @@ static void raid6_avx21_xor_syndrome(int
+ 	}
+ 
+ 	asm volatile("sfence" : : : "memory");
++	asm volatile("vzeroupper");
+ 	kernel_fpu_end();
+ }
+ 
+@@ -175,6 +177,7 @@ static void raid6_avx22_gen_syndrome(int
+ 	}
+ 
+ 	asm volatile("sfence" : : : "memory");
++	asm volatile("vzeroupper");
+ 	kernel_fpu_end();
+ }
+ 
+@@ -243,6 +246,7 @@ static void raid6_avx22_xor_syndrome(int
+ 	}
+ 
+ 	asm volatile("sfence" : : : "memory");
++	asm volatile("vzeroupper");
+ 	kernel_fpu_end();
+ }
+ 
+@@ -334,6 +338,7 @@ static void raid6_avx24_gen_syndrome(int
+ 	}
+ 
+ 	asm volatile("sfence" : : : "memory");
++	asm volatile("vzeroupper");
+ 	kernel_fpu_end();
+ }
+ 
+@@ -444,6 +449,7 @@ static void raid6_avx24_xor_syndrome(int
+ 		asm volatile("vmovntdq %%ymm14,%0" : "=m" (q[d+96]));
+ 	}
+ 	asm volatile("sfence" : : : "memory");
++	asm volatile("vzeroupper");
+ 	kernel_fpu_end();
+ }
+ 
+--- a/lib/raid/raid6/x86/recov_avx2.c~raid6-add-missing-vzeroupper-to-avx2-code
++++ a/lib/raid/raid6/x86/recov_avx2.c
+@@ -176,6 +176,7 @@ static void raid6_2data_recov_avx2(int d
+ #endif
+ 	}
+ 
++	asm volatile("vzeroupper");
+ 	kernel_fpu_end();
+ }
+ 
+@@ -293,6 +294,7 @@ static void raid6_datap_recov_avx2(int d
+ #endif
+ 	}
+ 
 +	asm volatile("vzeroupper");
  	kernel_fpu_end();
  }
