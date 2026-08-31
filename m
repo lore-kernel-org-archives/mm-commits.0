@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D4EFF3A48D9;
-	Mon, 31 Aug 2026 23:04:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 36E3C362120
+	for <mm-commits@vger.kernel.org>; Mon, 31 Aug 2026 23:13:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788217469; cv=none; b=IWZPPyFq91biTbrr63ddNQvhLxAW23PTjnw6qgcwOL9S/vMyMRg07OvZZyOO+dCa4sLqcjfiRsSgh1xSq1HRX4a+q+T3pMSfEMtBCF1wTtPJqaavt5AMe2iPilQnclbE/hNEHAGY1V7ycfixTFa04unOEru13uXo+i4GXswOF+8=
+	t=1788218020; cv=none; b=LdrVJq2B7jVvz87G1ijaaRL9RISB3DiH2tbzJTSshHkDgLD3Qm2dhI+acNiq+wNisGm7mNAkQrYiVVjIZV7rPhep5wJRcGs0eZqfoefU3hBi3+4IuxtEJDEHg/H+NF+WEO0vW6BPTr3Ldhaf1zXCYGh0WrC2B1KISBe/+wEs/+4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788217469; c=relaxed/simple;
-	bh=ThhYoNT7kYxUohsVKMpwl16OMc9yaPmm4mfRITZhV2E=;
-	h=Date:To:From:Subject:Message-Id; b=lHLaAMnwS9pt6XJ+p0r/mX5ZeqQ6v0vfmGMPNFhQy7QKJ9A+mVs7iGOqN5haszbTzu6eHKEB8OXAzP1pgt92CZZlkxM7N+0+U2ZaEQNwrzJddJV8ZvtH9zqElYynl4hJhWwNkdRJzl0LdlZJP8Nl2jt6xL8ymd5uLHnsK2iTRdg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HE1Bx2si; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788218020; c=relaxed/simple;
+	bh=GRNNt2kyZUL8mZjCQhVg31vL/alKdrEf0dnVVAF36HM=;
+	h=Date:To:From:Subject:Message-Id; b=DoKcIfEIR2rNiHl0lcrkyTD4YGoJsCYGvKHQf+x93a0kjLVhgd7xR/eOPWM+F/QhCKnTC73IJvMjP0elSwEuK8wcoE2VcW238n2tC4+x4sgD3DCnNzaZ3ndTl/dG/eHDFYZctoQIDZIKoEMgVHq/DdavtqrNWtJsPIWGDG9G5Ok=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Lv3eN301; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HE1Bx2si"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 54C881F000E9;
-	Mon, 31 Aug 2026 23:04:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Lv3eN301"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BD4F61F00A3D;
+	Mon, 31 Aug 2026 23:13:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788217467;
-	bh=CPzFypsQlD3009E5ae/mpWYx12nyXPF3FJ03CZUAIzc=;
+	d=linux-foundation.org; s=korg; t=1788218018;
+	bh=4tGLFdopCv1fRsrEIpCy3rrDEhmiLkxG+FFl8bbu1QI=;
 	h=Date:To:From:Subject;
-	b=HE1Bx2siOgrJoGXDPnO7/wQ0ZDY15G/SmVD9PNJcKKcdSTstkDPqXGfzwiGXLtAFB
-	 F0qXnl70dQboCCuCG367yKykUqiVjyR1kdMJw0gEEN68vr7O/Ql6Jo5idcHFlEJXEH
-	 Cke5jmiTP5kws7VQN6sI6yQItPEhio7mWAjlfH8Y=
-Date: Mon, 31 Aug 2026 16:04:26 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,joe@dama.to,akpm@linux-foundation.org
+	b=Lv3eN301nk/rHdsVRv9awxr5dWVqN2yr84ocntaVqQ4m+kFL7WX0RuAzR4ePDtyIO
+	 B650l9S4l/VACFIEqW/qlxxDy0uwISYlmnEy2LYG95ivo3YNGszkDrWULix07E8H64
+	 vwLUJdoibGIPjlV3WWeMu56w6TNqS+0HgZmbRcLQ=
+Date: Mon, 31 Aug 2026 16:13:38 -0700
+To: mm-commits@vger.kernel.org,sj@kernel.org,davidgow@davidgow.net,brendan.higgins@linux.dev,jasonangelov@ucla.edu,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memcontrol-raise-memcg_max-for-charges-that-fail-without-reclaiming.patch added to mm-new branch
-Message-Id: <20260831230427.54C881F000E9@smtp.kernel.org>
+Subject: + mm-damon-core-kunit-test-probe_hits-handling-at-region-split-and-merge.patch added to mm-new branch
+Message-Id: <20260831231338.BD4F61F00A3D@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: memcontrol: raise MEMCG_MAX for charges that fail without reclaiming
+     Subject: mm/damon/core-kunit: test probe_hits handling at region split and merge
 has been added to the -mm mm-new branch.  Its filename is
-     mm-memcontrol-raise-memcg_max-for-charges-that-fail-without-reclaiming.patch
+     mm-damon-core-kunit-test-probe_hits-handling-at-region-split-and-merge.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcontrol-raise-memcg_max-for-charges-that-fail-without-reclaiming.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-kunit-test-probe_hits-handling-at-region-split-and-merge.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,122 +69,90 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Joe Damato <joe@dama.to>
-Subject: mm: memcontrol: raise MEMCG_MAX for charges that fail without reclaiming
-Date: Mon, 31 Aug 2026 10:48:35 -0700
+From: Jason Angelov <jasonangelov@ucla.edu>
+Subject: mm/damon/core-kunit: test probe_hits handling at region split and merge
+Date: Mon, 31 Aug 2026 08:06:48 -0700
 
-Charges that exceed memory.max and return through the nomem label can
-raise no event and simply return -ENOMEM.
+Patch series "mm/damon: add kunit tests for probe_hits handling and probe
+params validation", v2.
 
-A non-blocking charge can hit the limit, get rejected, but is not visible
-in memory.events.
+DAMON recently introduced probes and probe weights.  Add kunit tests for
+the propagation of probe_hits at region split and merge, and the rejection
+of invalid probe parameters by damon_valid_probe_params().
 
-This was noticed in a production setting where bpf_mem_alloc() attempted
-to refill its per-cpu freelists, which triggered a non-blocking charge
-while at the limit.
 
-Commit d6e103a757fa ("mm: memcontrol: do not miss MEMCG_MAX events for
-enforced allocations") added raised_max_event to cover charges that are
-force charged without ever reaching reclaim, but charges that are rejected
-outright were left out.  Getting an allocation failure without the
-corresponding MEMCG_MAX event is unexpected and makes debugging and
-monitoring harder.
+This patch (of 2):
 
-Raise the event on the way out for rejected charges as well, by routing
-the -ENOMEM return through the same exit path that already covers forced
-charges.  The existing behavior of raising a MEMCG_MAX event on every
-charge/reclaim/retry iteration is left unchanged.
+damon_split_region_at() copies probe_hits[] and last_probe_hits[] to the
+new split region.
 
-Tested with a module that performs accounted GFP_NOWAIT page allocations
-from a task in a cgroup at its memory.max, and measures the resulting
-memory.events:max delta.  Without this patch the rejected charges raise no
-event at all; with it the delta matches the number of rejected charges
-exactly.  A GFP_KERNEL|__GFP_NORETRY control, which reaches reclaim,
-raises the same two events per failed charge before and after, confirming
-the existing charge/reclaim/retry accounting is unchanged.
+damon_merge_two_regions() sets probe_hits[] to the size-weighted
+average of the merged regions.
 
-Link: https://lore.kernel.org/20260831174836.3102406-1-joe@dama.to
-Fixes: d6e103a757fa ("mm: memcontrol: do not miss MEMCG_MAX events for enforced allocations")
-Signed-off-by: Joe Damato <joe@dama.to>
-Suggested-by: Shakeel Butt <shakeel.butt@linux.dev>
-Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: <stable@vger.kernel.org>
+Extend damon_test_split_at() and damon_test_merge_two() tests to cover
+those fields.
+
+Link: https://lore.kernel.org/20260831150650.84829-1-sj@kernel.org
+Link: https://lore.kernel.org/20260831150650.84829-2-sj@kernel.org
+Signed-off-by: Jason Angelov <jasonangelov@ucla.edu>
+Signed-off-by: SJ Park <sj@kernel.org>
+Reviewed-by: SJ Park <sj@kernel.org>
+Cc: David Gow <davidgow@davidgow.net>
+Cc: Brendan Higgins <brendan.higgins@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   28 ++++++++++++++++------------
- 1 file changed, 16 insertions(+), 12 deletions(-)
+ mm/damon/tests/core-kunit.h |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
---- a/mm/memcontrol.c~mm-memcontrol-raise-memcg_max-for-charges-that-fail-without-reclaiming
-+++ a/mm/memcontrol.c
-@@ -2669,10 +2669,11 @@ static int try_charge_memcg(struct mem_c
- 	bool raised_max_event = false;
- 	unsigned long pflags;
- 	bool allow_spinning = gfpflags_allow_spinning(gfp_mask);
-+	int ret = 0;
+--- a/mm/damon/tests/core-kunit.h~mm-damon-core-kunit-test-probe_hits-handling-at-region-split-and-merge
++++ a/mm/damon/tests/core-kunit.h
+@@ -152,6 +152,8 @@ static void damon_test_split_at(struct k
+ 	}
+ 	r->nr_accesses = 42;
+ 	r->last_nr_accesses = 15;
++	r->probe_hits[0] = 7;
++	r->last_probe_hits[0] = 3;
+ 	r->age = 10;
+ 	damon_add_region(r, t);
+ 	damon_split_region_at(t, r, 25);
+@@ -168,6 +170,8 @@ static void damon_test_split_at(struct k
  
- retry:
- 	if (consume_stock(memcg, nr_pages))
--		return 0;
-+		return ret;
+ 	KUNIT_EXPECT_EQ(test, r->nr_accesses, r_new->nr_accesses);
+ 	KUNIT_EXPECT_EQ(test, r->last_nr_accesses, r_new->last_nr_accesses);
++	KUNIT_EXPECT_EQ(test, r->probe_hits[0], r_new->probe_hits[0]);
++	KUNIT_EXPECT_EQ(test, r->last_probe_hits[0], r_new->last_probe_hits[0]);
+ 	KUNIT_EXPECT_EQ(test, r->age, r_new->age);
  
- 	if (!allow_spinning)
- 		/* Avoid the refill and flush of the older stock */
-@@ -2783,17 +2784,12 @@ nomem:
- 	 * put the burden of reclaim on regular allocation requests
- 	 * and let these go through as privileged allocations.
- 	 */
--	if (!(gfp_mask & (__GFP_NOFAIL | __GFP_HIGH)))
--		return -ENOMEM;
-+	if (!(gfp_mask & (__GFP_NOFAIL | __GFP_HIGH))) {
-+		ret = -ENOMEM;
-+		goto out;
-+	}
- force:
- 	/*
--	 * If the allocation has to be enforced, don't forget to raise
--	 * a MEMCG_MAX event.
--	 */
--	if (!raised_max_event)
--		__memcg_memory_event(mem_over_limit, MEMCG_MAX, allow_spinning);
--
--	/*
- 	 * The allocation either can't fail or will lead to more memory
- 	 * being freed very soon.  Allow memory usage go over the limit
- 	 * temporarily by force charging it.
-@@ -2802,7 +2798,15 @@ force:
- 	if (do_memsw_account())
- 		page_counter_charge(&memcg->memsw, nr_pages);
+ out:
+@@ -189,6 +193,7 @@ static void damon_test_merge_two(struct
+ 		kunit_skip(test, "region alloc fail");
+ 	}
+ 	r->nr_accesses = 10;
++	r->probe_hits[0] = 6;
+ 	r->age = 9;
+ 	damon_add_region(r, t);
+ 	r2 = damon_new_region(100, 300);
+@@ -197,6 +202,7 @@ static void damon_test_merge_two(struct
+ 		kunit_skip(test, "second region alloc fail");
+ 	}
+ 	r2->nr_accesses = 20;
++	r2->probe_hits[0] = 14;
+ 	r2->age = 21;
+ 	damon_add_region(r2, t);
  
--	return 0;
-+out:
-+	/*
-+	 * Don't forget to raise a MEMCG_MAX event for forced or rejected
-+	 * requests.
-+	 */
-+	if (!raised_max_event)
-+		__memcg_memory_event(mem_over_limit, MEMCG_MAX, allow_spinning);
-+
-+	return ret;
+@@ -204,6 +210,7 @@ static void damon_test_merge_two(struct
+ 	KUNIT_EXPECT_EQ(test, r->ar.start, 0ul);
+ 	KUNIT_EXPECT_EQ(test, r->ar.end, 300ul);
+ 	KUNIT_EXPECT_EQ(test, r->nr_accesses, 16u);
++	KUNIT_EXPECT_EQ(test, r->probe_hits[0], 11);
+ 	KUNIT_EXPECT_EQ(test, r->age, 17u);
  
- done_restock:
- 	if (batch > nr_pages)
-@@ -2861,7 +2865,7 @@ done_restock:
- 	    !(current->flags & PF_MEMALLOC) &&
- 	    gfpflags_allow_blocking(gfp_mask))
- 		__mem_cgroup_handle_over_high(gfp_mask);
--	return 0;
-+	return ret;
- }
- 
- static inline int try_charge(struct mem_cgroup *memcg, gfp_t gfp_mask,
+ 	i = 0;
 _
 
-Patches currently in -mm which might be from joe@dama.to are
+Patches currently in -mm which might be from jasonangelov@ucla.edu are
 
-mm-memcontrol-raise-memcg_max-for-charges-that-fail-without-reclaiming.patch
+mm-damon-core-kunit-test-probe_hits-handling-at-region-split-and-merge.patch
+mm-damon-core-kunit-test-damon_valid_probe_params.patch
 
