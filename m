@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 83F44403EA1
-	for <mm-commits@vger.kernel.org>; Mon, 31 Aug 2026 23:31:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 68258403E9D
+	for <mm-commits@vger.kernel.org>; Mon, 31 Aug 2026 23:31:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788219115; cv=none; b=F1ZYRHpAUP0jE/YV7tOw/BQ6YIK5YysDn2RaOP7+v3O+dbwAxQQ0CFUYuaZ7dhnMVv2203QGz/v2iveg7WhokOCtSDmFPp9ol0pcW9KcROVEIKu2KyL2/WhEDvPGLTQ/nSLUkGxFQnrgNC4k0P1y5KGUr6jHKg24jSiASXKnBxY=
+	t=1788219117; cv=none; b=T4hopENA/F5yqC+rpW49khgNz0g+XszrFQIjB+/eNeKzqKubaImlH1bymgIEqIFfXZF7GyUIrkHNmzIOjqwI2vmPJYDaSIZhl5ClgENoXGNQlQ3cZ4a8RLHV9rvXWSJ1vhntgk/H1APmDF9wMIssTwTztYpomxaBWU+mZM76AGQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788219115; c=relaxed/simple;
-	bh=0+cJrB9JfdwHYlYv+DYPJnkuN7ArF8YA2FHbu99CCaQ=;
-	h=Date:To:From:Subject:Message-Id; b=PN5+f5nfUSKDwVY7UCFOdMyVOmurmN0WHZ/ajbHuLXP7mBUrU7N2zh9SdaxPkun9yl0qddvV+XGvRbjsWzxprq5IMfhvjHYSZ5wvg5DK7MbhR44dsIKYy1FYxxNxIRSh40uDx/sOH7tl/a9Gcg3Ncex4jzL/M+cfcoiIrzQrHh8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZgFQ5c5P; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788219117; c=relaxed/simple;
+	bh=SUgM0UlAjnWxMoY8JaIsW6+OdU2H/uKInVUgWA/kvBc=;
+	h=Date:To:From:Subject:Message-Id; b=XZCl6Pyh/Ps7yxBJtBXJ2/MxMMX0/m9x2ud5370epSiqDcJr8EbgkEQpzxw5dRZ3wPEPIlqKPoViceq55ZlzH79NTMn5Mdk2Y4PSjo6LJ/RTQUtRGajq5Zk8OnKZWCVL6lfRXaNzEN/ts75D52iXxON73gkYNUF2JY95c+FGAHY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TeI9PaLO; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZgFQ5c5P"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 148D41F000E9;
-	Mon, 31 Aug 2026 23:31:54 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TeI9PaLO"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 196881F000E9;
+	Mon, 31 Aug 2026 23:31:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788219114;
-	bh=ccCiqLe6OE76dnAlxU+90JVtCX1KQWmwSiMCPTJ7jYA=;
+	d=linux-foundation.org; s=korg; t=1788219116;
+	bh=TtVQsNfVl9ssaQAV7iM29o9wwO/l3ZVT1B6144v1RaI=;
 	h=Date:To:From:Subject;
-	b=ZgFQ5c5P8DLKux1ta6uFiUHF4b0zCKXlr7E+bHdG+HjSQvOnmcML7W2VJShSapd2D
-	 udDs331YNBsBntUVyki23BcjH3Ku2Emoi1xsEI1ShqSEXjgU3cGP/jKJKlqGM/CFHc
-	 mQXYY9wNLl8PLbq67YsAK7sgoveJFNLLG4Blnn9M=
-Date: Mon, 31 Aug 2026 16:31:53 -0700
-To: mm-commits@vger.kernel.org,zhaozhengzhuo@uniontech.com,zenghui.yu@linux.dev,sj@kernel.org,shuah@kernel.org,liyouhong@kylinos.cn,lienze@kylinos.cn,jaeyeon.lee.dev@gmail.com,gregkh@linuxfoundation.org,harimishal1@gmail.com,akpm@linux-foundation.org
+	b=TeI9PaLOXrVotdyMfLFuW8/x+hr6wWDuy4pYTFC93xN05lgf5rnhEANMNC4+2LVc1
+	 yvX5+YqZ8GFLnlATe234LscXQjO0oOcYI/vEYoll/Yi+zlSzNMC6hvsLxOwzjXiRza
+	 g0uAKNFq4goWVSwjNTA+P6KJm2PjSmewJPPV1JVA=
+Date: Mon, 31 Aug 2026 16:31:55 -0700
+To: mm-commits@vger.kernel.org,zhaozhengzhuo@uniontech.com,zenghui.yu@linux.dev,sj@kernel.org,shuah@kernel.org,liyouhong@kylinos.cn,lienze@kylinos.cn,harimishal1@gmail.com,gregkh@linuxfoundation.org,jaeyeon.lee.dev@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-damon-sysfspy-clean-up-sh-processes-used-for-obsolete_target-test.patch added to mm-new branch
-Message-Id: <20260831233154.148D41F000E9@smtp.kernel.org>
+Subject: + mm-damon-tests-use-scoped_guard-for-damon_test_ops_registration.patch added to mm-new branch
+Message-Id: <20260831233156.196881F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/damon/sysfs.py: clean up sh processes used for obsolete_target test
+     Subject: mm/damon/tests: use scoped_guard() for damon_test_ops_registration
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-damon-sysfspy-clean-up-sh-processes-used-for-obsolete_target-test.patch
+     mm-damon-tests-use-scoped_guard-for-damon_test_ops_registration.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-damon-sysfspy-clean-up-sh-processes-used-for-obsolete_target-test.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-tests-use-scoped_guard-for-damon_test_ops_registration.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,25 +69,22 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Hari Mishal <harimishal1@gmail.com>
-Subject: selftests/damon/sysfs.py: clean up sh processes used for obsolete_target test
-Date: Mon, 31 Aug 2026 07:26:06 -0700
+From: Jaeyeon Lee <jaeyeon.lee.dev@gmail.com>
+Subject: mm/damon/tests: use scoped_guard() for damon_test_ops_registration
+Date: Mon, 31 Aug 2026 07:26:07 -0700
 
-The obsolete_target test spawns three sh processes and uses their pids as
-DAMON monitoring targets.  These processes are never terminated or waited
-on, so they are left running (or become zombies) as orphaned children
-after the test program exits.
+Replace manual mutex_lock() and mutex_unlock() calls with the
+scoped_guard() macro.  This simplifies the code, improves readability, and
+ensures that the lock is automatically released when the scope ends,
+preventing potential lock leaks in the future.
 
-Terminate each process and communicate() with it after the targets are no
-longer needed, so it exits and gets reaped instead of being leaked.
-
-Link: https://lore.kernel.org/20260831142611.77572-5-sj@kernel.org
-Signed-off-by: Hari Mishal <harimishal1@gmail.com>
+Link: https://lore.kernel.org/20260831142611.77572-6-sj@kernel.org
+Signed-off-by: Jaeyeon Lee <jaeyeon.lee.dev@gmail.com>
 Signed-off-by: SJ Park <sj@kernel.org>
 Reviewed-by: SJ Park <sj@kernel.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: Enze Li <lienze@kylinos.cn>
-Cc: Jaeyeon Lee <jaeyeon.lee.dev@gmail.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Hari Mishal <harimishal1@gmail.com>
 Cc: Li Youhong <liyouhong@kylinos.cn>
 Cc: Shuah Khan <shuah@kernel.org>
 Cc: "Zenghui Yu (Huawei)" <zenghui.yu@linux.dev>
@@ -95,25 +92,53 @@ Cc: zhaozhengzhuo <zhaozhengzhuo@uniontech.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/damon/sysfs.py |    4 ++++
- 1 file changed, 4 insertions(+)
+ mm/damon/tests/core-kunit.h |   21 ++++++++++-----------
+ 1 file changed, 10 insertions(+), 11 deletions(-)
 
---- a/tools/testing/selftests/damon/sysfs.py~selftests-damon-sysfspy-clean-up-sh-processes-used-for-obsolete_target-test
-+++ a/tools/testing/selftests/damon/sysfs.py
-@@ -385,6 +385,10 @@ def main():
-     assert_ctxs_committed(kdamonds)
-     kdamonds.stop()
+--- a/mm/damon/tests/core-kunit.h~mm-damon-tests-use-scoped_guard-for-damon_test_ops_registration
++++ a/mm/damon/tests/core-kunit.h
+@@ -441,17 +441,17 @@ static void damon_test_ops_registration(
+ 	KUNIT_EXPECT_EQ(test, damon_select_ops(c, NR_DAMON_OPS), -EINVAL);
  
-+    for proc in (proc1, proc2, proc3):
-+        proc.terminate()
-+        proc.communicate()
-+
-     test_memcg_filter_memcg_path_staging()
+ 	/* Registration should success after unregistration */
+-	mutex_lock(&damon_ops_lock);
+-	bak = damon_registered_ops[DAMON_OPS_VADDR];
+-	damon_registered_ops[DAMON_OPS_VADDR] = (struct damon_operations){};
+-	mutex_unlock(&damon_ops_lock);
++	scoped_guard(mutex, &damon_ops_lock) {
++		bak = damon_registered_ops[DAMON_OPS_VADDR];
++		damon_registered_ops[DAMON_OPS_VADDR] =
++			(struct damon_operations){};
++	}
  
- if __name__ == '__main__':
+ 	ops.id = DAMON_OPS_VADDR;
+ 	KUNIT_EXPECT_EQ(test, damon_register_ops(&ops), 0);
+ 
+-	mutex_lock(&damon_ops_lock);
+-	damon_registered_ops[DAMON_OPS_VADDR] = bak;
+-	mutex_unlock(&damon_ops_lock);
++	scoped_guard(mutex, &damon_ops_lock)
++		damon_registered_ops[DAMON_OPS_VADDR] = bak;
+ 
+ 	/* Check double-registration failure again */
+ 	KUNIT_EXPECT_EQ(test, damon_register_ops(&ops), -EINVAL);
+@@ -459,10 +459,9 @@ static void damon_test_ops_registration(
+ 	damon_destroy_ctx(c);
+ 
+ 	if (need_cleanup) {
+-		mutex_lock(&damon_ops_lock);
+-		damon_registered_ops[DAMON_OPS_VADDR] =
+-			(struct damon_operations){};
+-		mutex_unlock(&damon_ops_lock);
++		scoped_guard(mutex, &damon_ops_lock)
++			damon_registered_ops[DAMON_OPS_VADDR] =
++				(struct damon_operations){};
+ 	}
+ }
+ 
 _
 
-Patches currently in -mm which might be from harimishal1@gmail.com are
+Patches currently in -mm which might be from jaeyeon.lee.dev@gmail.com are
 
-selftests-damon-sysfspy-clean-up-sh-processes-used-for-obsolete_target-test.patch
+mm-damon-tests-use-scoped_guard-for-damon_test_ops_registration.patch
 
