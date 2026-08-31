@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E267E37C929
-	for <mm-commits@vger.kernel.org>; Mon, 31 Aug 2026 22:35:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DB2693BE620
+	for <mm-commits@vger.kernel.org>; Mon, 31 Aug 2026 22:35:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788215755; cv=none; b=o2i05enk4HQRHpVOPn+A1mhCZu7ZGqJJNUOXzomhlUhf4FQC+I9sJnBihBy3TZ1YrJEez2xOZl8t5b6wQFkAZLcA75xgp48KVPQVkklKa4hq8VXevyb/5HNAMpidcMjVf4C10FqCT7E7x9m5CCEcCSGnC96zIOVKJdXSwgRFHCU=
+	t=1788215759; cv=none; b=Eu0jZltPsTP1zPeIqyOLBDIuU5xIq1pESlrx4G/7nhN2xBbiW4+rizjRHw/aa602dnMaEqssb9VxKCY8Tx6upxD7uT2dVrR/BTLsAudV0axIcCR/O8B98rWjyGTgW/MUp59yUGOTN6XW8WEEAFOBJhHLHTfsgH90UsIjYdNrVuI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788215755; c=relaxed/simple;
-	bh=JsTchy61kMYl4SjwPnvgNPWPCuSF5G+wJ34wK2vHuFg=;
-	h=Date:To:From:Subject:Message-Id; b=Atpm3ZatM9tVQVKiwrM6qmRTtHEZN38rXy4KDFWTuvYnk74HLpJ77QrJP4NpT6WD4Jlw/59ZyfyoUedj0/abPRGTaNsjL//lnFIuHPYeseQ+B+N4LXc1i6Nfrib+/nLvcZOO95YTGudDPWlhrkCmbYD4ZY2bUu6L8E5kotR8Lgg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sbJedamj; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788215759; c=relaxed/simple;
+	bh=F5LMVv8egubwtHl7ILwllMN6DZTyd4j7i/bPW5BsG0Q=;
+	h=Date:To:From:Subject:Message-Id; b=Ekh8HyCMzpDi75f1Wu3EbUsvmfpeBnOVIYz7W5Bm3HGHF4tL7tR5onRFUjnup7Oc9AG14WzBsvjT1oKusoW2IzdQrWXIbLZKw5RfAVqsxW/SP6faJDKVGwa9E6642P2IryL5AsFElO1mbV/B/0HYUD+vrnZD1FVDimGhFuhOPzQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tOtfj+IJ; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sbJedamj"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 71FAA1F000E9;
-	Mon, 31 Aug 2026 22:35:53 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tOtfj+IJ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8D9AB1F000E9;
+	Mon, 31 Aug 2026 22:35:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788215753;
-	bh=qPhtIEYl3+dgAdWkV427zlx2DiWu0RJSjz/tdG9VS3k=;
+	d=linux-foundation.org; s=korg; t=1788215756;
+	bh=tBhgV4x8qUIJFG4a7R0cWsgBnG2hCnNbPrY9L1sGxb0=;
 	h=Date:To:From:Subject;
-	b=sbJedamjgl8H7mGZF5EHXwNGSXMqu8cPm1FEpBR4mnppXRxcOZi6cFEqrRBlnbbcj
-	 Cx9a8k+Gf7MAWuR35bMWBcN/49qBuSpsmda6awqp4ofotBVK/p6a1IHzBYiU9ugNnI
-	 IkZQ1r76so3vaBcuymFXu6xLKHHrAUjgd1NoZ240=
-Date: Mon, 31 Aug 2026 15:35:53 -0700
+	b=tOtfj+IJuEQU3gmCZKugPjo0C6zJhwb/7mMhheS7Bj7cTdGnM1yNr7AJB60zhFfwU
+	 /UW9jbRdgwsjWFEfJvZ3qpQ5R1ErOL1ae/4AXsxt6OdshtWif5rocRBI/7CzFfZ/72
+	 kTNzIyl4AZEa/nzO0fuLdzm2kQl/9l+F7pDJnQ8A=
+Date: Mon, 31 Aug 2026 15:35:56 -0700
 To: mm-commits@vger.kernel.org,vbabka@kernel.org,tkjos@android.com,surenb@google.com,shakeel.butt@linux.dev,ljs@kernel.org,Liam.Howlett@oracle.com,gregkh@linuxfoundation.org,dsahern@kernel.org,davem@davemloft.net,cmllamas@google.com,christian@brauner.io,arve@android.com,aliceryhl@google.com,dave.hansen@linux.intel.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-add-rcu-based-vma-lookup-helper-that-waits-for-writers.patch added to mm-new branch
-Message-Id: <20260831223553.71FAA1F000E9@smtp.kernel.org>
+Subject: + binder-remove-mmap_lock-fallback.patch added to mm-new branch
+Message-Id: <20260831223556.8D9AB1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: add RCU-based VMA lookup helper that waits for writers
+     Subject: binder: remove mmap_lock fallback
 has been added to the -mm mm-new branch.  Its filename is
-     mm-add-rcu-based-vma-lookup-helper-that-waits-for-writers.patch
+     binder-remove-mmap_lock-fallback.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-rcu-based-vma-lookup-helper-that-waits-for-writers.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/binder-remove-mmap_lock-fallback.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,41 +70,22 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Dave Hansen <dave.hansen@linux.intel.com>
-Subject: mm: add RCU-based VMA lookup helper that waits for writers
-Date: Mon, 31 Aug 2026 13:30:54 -0700
+Subject: binder: remove mmap_lock fallback
+Date: Mon, 31 Aug 2026 13:30:55 -0700
 
-There are basically two parallel ways to look up a VMA: the traditional
-way, which is protected by mmap_read_lock, and the RCU-based per-VMA lock
-way which is based on RCU and refcounts.  However, per-VMA locks will fail
-if the lock is help by a writer and therefore never waits.  In a number of
-places we need to wait for the lock and it's done by falling back to
-mmap_read_lock, locking the VMA and releasing the mmap_lock once VMA is
-locked.
+Previously, the per-VMA locking could fail in the face of writers which
+necessitate a fallback to mmap_lock.  The new vma_start_read_unlocked()
+will wait for writers instead of failing.
 
-Add vma_start_read_unlocked() - a variant of the RCU-based lookup that
-waits for writers.  This is basically the same as the existing RCU-based
-lookup, but on a failure to lock it temporarily takes mmap_lock for read
-and waits for writers to finish before locking the VMA, dropping the
-mmap_read_lock and returning the locked VMA.  This has some advantages:
+Use the new helper.  Wait for writers.  Remove the fallback to mmap_lock.
 
-1. Callers do not need to have a fallback path for when they collide
-with writers.
-
-2. Its fast path does not require taking mmap_lock for read.
-
-Basically, when applied correctly, this approach results in faster *and*
-simpler code.
-
-While at it, fix the comments for vma_start_read_locked(),
-vma_start_read_locked_nested(), and uffd_lock_vma().
-
-Link: https://lore.kernel.org/20260831203056.838265-4-surenb@google.com
+Link: https://lore.kernel.org/20260831203056.838265-5-surenb@google.com
 Signed-off-by: Dave Hansen <dave.hansen@linux.intel.com>
 Signed-off-by: Suren Baghdasaryan <surenb@google.com>
-Suggested-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
-Reviewed-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
-Acked-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
+Reviewed-by: Alice Ryhl <aliceryhl@google.com>
+Acked-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
 Cc: Shakeel Butt <shakeel.butt@linux.dev>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: Todd Kjos <tkjos@android.com>
@@ -117,115 +98,105 @@ Cc: Arve Hjønnevåg <arve@android.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmap_lock.h |   19 +++++++++++++++----
- mm/mmap_lock.c            |   35 +++++++++++++++++++++++++++++++++++
- mm/userfaultfd.c          |    6 ++++--
- 3 files changed, 54 insertions(+), 6 deletions(-)
+ drivers/android/binder/page_range.rs |   19 ++--------------
+ drivers/android/binder_alloc.c       |   17 ++++-----------
+ rust/kernel/mm.rs                    |   28 +++++++++++++++++++++++++
+ 3 files changed, 36 insertions(+), 28 deletions(-)
 
---- a/include/linux/mmap_lock.h~mm-add-rcu-based-vma-lookup-helper-that-waits-for-writers
-+++ a/include/linux/mmap_lock.h
-@@ -228,10 +228,14 @@ static inline void vma_refcount_put(stru
- }
+--- a/drivers/android/binder_alloc.c~binder-remove-mmap_lock-fallback
++++ a/drivers/android/binder_alloc.c
+@@ -259,21 +259,14 @@ static int binder_page_insert(struct bin
+ 	struct vm_area_struct *vma;
+ 	int ret = -ESRCH;
  
- /*
-- * Use only while holding mmap read lock which guarantees that locking will not
-- * fail (nobody can concurrently write-lock the vma). vma_start_read() should
-+ * Use only while holding mmap read lock which guarantees that vma lock is not
-+ * contended (nobody can concurrently write-lock the vma). vma_start_read() should
-  * not be used in such cases because it might fail due to mm_lock_seq overflow.
-  * This functionality is used to obtain vma read lock and drop the mmap read lock.
-+ *
-+ * VMA can't be detached while we are holding mmap lock, therefore in practice this
-+ * function can fail only when there are so many readers that vm_refcnt overflows.
-+ * The failure case is very unlikely and is already annotated as such internally.
-  */
- static inline bool vma_start_read_locked_nested(struct vm_area_struct *vma, int subclass)
- {
-@@ -247,16 +251,23 @@ static inline bool vma_start_read_locked
- }
+-	/* attempt per-vma lock first */
+-	vma = lock_vma_under_rcu(mm, addr);
+-	if (vma) {
+-		if (binder_alloc_is_mapped(alloc))
+-			ret = vm_insert_page(vma, addr, page);
+-		vma_end_read(vma);
++	vma = vma_start_read_unlocked(mm, addr);
++	if (!vma)
+ 		return ret;
+-	}
  
- /*
-- * Use only while holding mmap read lock which guarantees that locking will not
-- * fail (nobody can concurrently write-lock the vma). vma_start_read() should
-+ * Use only while holding mmap read lock which guarantees that vma lock is not
-+ * contended (nobody can concurrently write-lock the vma). vma_start_read() should
-  * not be used in such cases because it might fail due to mm_lock_seq overflow.
-  * This functionality is used to obtain vma read lock and drop the mmap read lock.
-+ *
-+ * VMA can't be detached while we are holding mmap lock, therefore in practice this
-+ * function can fail only when there are so many readers that vm_refcnt overflows.
-+ * The failure case is very unlikely and is already annotated as such internally.
-  */
- static inline bool vma_start_read_locked(struct vm_area_struct *vma)
- {
- 	return vma_start_read_locked_nested(vma, 0);
- }
+-	/* fall back to mmap_lock */
+-	mmap_read_lock(mm);
+-	vma = vma_lookup(mm, addr);
+-	if (vma && binder_alloc_is_mapped(alloc))
++	if (binder_alloc_is_mapped(alloc))
+ 		ret = vm_insert_page(vma, addr, page);
+-	mmap_read_unlock(mm);
++
++	vma_end_read(vma);
  
-+struct vm_area_struct *vma_start_read_unlocked(struct mm_struct *mm,
-+					       unsigned long address);
-+
- static inline void vma_end_read(struct vm_area_struct *vma)
- {
- 	vma_refcount_put(vma);
---- a/mm/mmap_lock.c~mm-add-rcu-based-vma-lookup-helper-that-waits-for-writers
-+++ a/mm/mmap_lock.c
-@@ -340,6 +340,41 @@ inval:
- 	return NULL;
+ 	return ret;
  }
+--- a/drivers/android/binder/page_range.rs~binder-remove-mmap_lock-fallback
++++ a/drivers/android/binder/page_range.rs
+@@ -439,22 +439,9 @@ impl ShrinkablePageRange {
+         // workqueue.
+         let mm = MmWithUser::into_mmput_async(self.mm.mmget_not_zero().ok_or(ESRCH)?);
+         {
+-            let vma_read;
+-            let mmap_read;
+-            let vma = if let Some(ret) = mm.lock_vma_under_rcu(vma_addr) {
+-                vma_read = ret;
+-                check_vma(&vma_read, self)
+-            } else {
+-                mmap_read = mm.mmap_read_lock();
+-                mmap_read
+-                    .vma_lookup(vma_addr)
+-                    .and_then(|vma| check_vma(vma, self))
+-            };
+-
+-            match vma {
+-                Some(vma) => vma.vm_insert_page(user_page_addr, &new_page)?,
+-                None => return Err(ESRCH),
+-            }
++            let vma_read_guard = mm.vma_start_read_unlocked(vma_addr).ok_or(ESRCH)?;
++            let vma = check_vma(&vma_read_guard, self).ok_or(ESRCH)?;
++            vma.vm_insert_page(user_page_addr, &new_page)?;
+         }
  
-+/**
-+ * vma_start_read_unlocked() - Find the VMA covering 'address' and read-lock it.
-+ * @mm: the mm_struct of the address space to search
-+ * @address: address that the vma should contain
-+ *
-+ * The fast path does not take mmap_lock. Waits for writers to finish if the
-+ * VMA is being modified by taking mmap_lock.
-+ * Use when mmap_lock is not held, otherwise use vma_start_read_locked().
-+ * Nothing prevents VMAs being unmapped/mapped before or after the VMA is
-+ * looked up, if a stronger guarantee is required, take an mmap_lock.
-+ *
-+ * Return: If a VMA exists which spans @address, return that VMA, read-locked.
-+ * If no VMA is mapped there or, very unlikely, a reference count overflow
-+ * occurred, return NULL.
-+ */
-+struct vm_area_struct *vma_start_read_unlocked(struct mm_struct *mm,
-+					       unsigned long address)
-+{
-+	struct vm_area_struct *vma;
+         let inner = self.lock.lock();
+--- a/rust/kernel/mm.rs~binder-remove-mmap_lock-fallback
++++ a/rust/kernel/mm.rs
+@@ -186,6 +186,34 @@ impl MmWithUser {
+         })
+     }
+ 
++    /// Find the VMA covering 'address' and read-lock it.
++    ///
++    /// The fast path does not take mmap_lock. Waits for writers to finish if the
++    /// VMA is being modified by taking mmap_lock.
++    /// Use when mmap_lock is not held, otherwise use vma_start_read_locked().
++    /// Nothing prevents VMAs being unmapped/mapped before or after the VMA is
++    /// looked up, if a stronger guarantee is required, take an mmap_lock.
++    ///
++    /// Return: If a VMA exists which spans @address, return that VMA, read-locked.
++    /// If no VMA is mapped there or, very unlikely, a reference count overflow
++    /// occurred, return NULL.
++    #[inline]
++    pub fn vma_start_read_unlocked(&self, vma_addr: usize) -> Option<VmaReadGuard<'_>> {
++        // SAFETY: We may invoke `vma_start_read_unlocked` because we know this `mm` has non-zero
++        // `mm_users`.
++        let vma = unsafe { bindings::vma_start_read_unlocked(self.as_raw(), vma_addr) };
++        if vma.is_null() {
++            return None;
++        }
++        // INVARIANT: We just acquired the VMA read lock.
++        Some(VmaReadGuard {
++            // SAFETY: If `vma_start_read_unlocked` returns a non-null ptr, then it points at a
++            // valid vma. The vma is stable for as long as the vma read lock is held.
++            vma: unsafe { VmaRef::from_raw(vma) },
++            _nts: NotThreadSafe,
++        })
++    }
 +
-+	/* Fast path: return stable VMA covering 'address': */
-+	vma = lock_vma_under_rcu(mm, address);
-+	if (vma)
-+		return vma;
-+
-+	/* Slow path: preclude VMA writers by temporarily getting mmap read lock. */
-+	mmap_read_lock(mm);
-+	vma = vma_lookup(mm, address);
-+	if (vma && !vma_start_read_locked(vma))
-+		vma = NULL;
-+	mmap_read_unlock(mm);
-+
-+	return vma;
-+}
-+
- static struct vm_area_struct *lock_next_vma_under_mmap_lock(struct mm_struct *mm,
- 							    struct vma_iterator *vmi,
- 							    unsigned long from_addr)
---- a/mm/userfaultfd.c~mm-add-rcu-based-vma-lookup-helper-that-waits-for-writers
-+++ a/mm/userfaultfd.c
-@@ -129,8 +129,10 @@ struct vm_area_struct *find_vma_and_prep
-  *
-  * Should be called without holding mmap_lock.
-  *
-- * Return: A locked vma containing @address, -ENOENT if no vma is found, or
-- * -ENOMEM if anon_vma couldn't be allocated.
-+ * Return: A locked vma containing @address, -ENOENT if no vma is found,
-+ * -ENOMEM if anon_vma couldn't be allocated, or -EAGAIN if vma refcount
-+ * overflow happened due to high number of readers and the caller should
-+ * retry later.
-  */
- static struct vm_area_struct *uffd_lock_vma(struct mm_struct *mm,
- 				       unsigned long address)
+     /// Lock the mmap read lock.
+     #[inline]
+     pub fn mmap_read_lock(&self) -> MmapReadGuard<'_> {
 _
 
 Patches currently in -mm which might be from dave.hansen@linux.intel.com are
