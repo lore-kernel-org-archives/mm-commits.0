@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3CF8E2C0303
-	for <mm-commits@vger.kernel.org>; Mon, 31 Aug 2026 17:18:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9C5FB39A802;
+	Mon, 31 Aug 2026 22:14:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788196711; cv=none; b=sZkFDNKhYiPGEHLE/xWOo4ayTU/uAp961ZxTSYKgTTc2fXgd+PK7U8bCWPtKigTOpJYHBEOEMuRskHC8PVvL4yefc6aCo5VJr7MBmh+cdOdQzstSizP6CM4B5hcjaCiaCLr5LBk3k/NZuBGYoqA+v5v090funurbdBpeO6wqa6g=
+	t=1788214468; cv=none; b=EQxzciAuyS+BNJ8kz0YndkUr0z3U06pIh3Gi0qnqIpxzzFWGof3hRRXJmYYi3om68OyN20sefvU4CBRfcEcUrRRzYOUPsEOpGMgM3pfr5Yew7ufO4dIxuwTZO3T/mk71dHaxGEgQpcakS72LZidbV/z6gJpAx+1rbvkESMgdYEw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788196711; c=relaxed/simple;
-	bh=rOA6Evv7l4uWG/cN5Do6EptarYDK10MvZbE7cSZN+gc=;
-	h=Date:To:From:Subject:Message-Id; b=H5Cj4x1yk2A0oCpGqrjEx9S+MUW0p4/+7tNZASElCwL7AgLu4kr1rlaZBuWvwIPcHbLPNGV26atTvRm5jZD5GuzzTJmeCjlCvSBKWnxy6lf/wdb1BRAqtVzkG73Cdbd9tc2P+rOWtt08TX+Le38JQQ6NrDA9isG//zXWlmBbwnQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=G4JBh9Ag; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788214468; c=relaxed/simple;
+	bh=7TIuEjADm4D2dYWhjo7SiHbExcrloyVoXvPDY7mYfUE=;
+	h=Date:To:From:Subject:Message-Id; b=qVG6vrUVAoaMqOHFgv2NBQ21V1TEsfuwBJAF7y/fDiYFgYSzKuEKLGfcKnM9l6Ptkc8FYCggnAf9OWGRWzgxCCH+aDkywUxH4Q4KkpuQ7H8++pRjTP+YJPyCyXNQfyrsHUFBJfVNZFSwMcTjFREaE6e4HAsKIfS0TcNpWguBcqk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vPZkx7FA; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="G4JBh9Ag"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 00ED71F000E9;
-	Mon, 31 Aug 2026 17:18:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vPZkx7FA"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1F6CA1F000E9;
+	Mon, 31 Aug 2026 22:14:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788196710;
-	bh=8uxfzh7+fOQoM2Xga5aYHvEd2wpDN0MBKlQZyw3/uhg=;
+	d=linux-foundation.org; s=korg; t=1788214467;
+	bh=hrO9NFFmDQD0mduI27NkGGIDV300DkllyGG7ZLkhzyU=;
 	h=Date:To:From:Subject;
-	b=G4JBh9AgPfYtIYRiQs14/bsdSe1g+YYJis6Td7uZZWYQjDeVnQLEqhAZF/ONIZpxW
-	 tJGUoxetaedYsrkLnYnIKOYCCEqNHLTUgPTtxYTVaMl7vC47mlPoZ2tn2w1bPFYTQx
-	 6zk9naEXJu5o7G5Rk0NYgdShkgLIX4NQeydUdUBA=
-Date: Mon, 31 Aug 2026 10:18:29 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,shuah@kernel.org,rppt@kernel.org,mhocko@suse.com,liam@infradead.org,david@kernel.org,ljs@kernel.org,akpm@linux-foundation.org
+	b=vPZkx7FAVcNErWis0cwxMDuN7gnIUCQ4Rk4TKWZE06wE1vMg55f3OnCwgHjAZ/+kG
+	 eb+pHEY+w7PmDniV6QkTHKeI+cRcwRKR2PAbU+Rm1Ym2i6MX/iu5wD0EIkLwkRV/T4
+	 REVfkN10VomQMllSlkZFnjpuiXPknslcg/vK7eQg=
+Date: Mon, 31 Aug 2026 15:14:26 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,hch@lst.de,ebiggers@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + tools-testing-selftests-mm-add-missing-gitignore-entries.patch added to mm-new branch
-Message-Id: <20260831171830.00ED71F000E9@smtp.kernel.org>
+Subject: + xor-add-missing-vzeroupper-to-avx-code.patch added to mm-nonmm-unstable branch
+Message-Id: <20260831221427.1F6CA1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,26 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: tools/testing/selftests/mm: add missing .gitignore entries
-has been added to the -mm mm-new branch.  Its filename is
-     tools-testing-selftests-mm-add-missing-gitignore-entries.patch
+     Subject: xor: add missing vzeroupper to AVX code
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     xor-add-missing-vzeroupper-to-avx-code.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/tools-testing-selftests-mm-add-missing-gitignore-entries.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/xor-add-missing-vzeroupper-to-avx-code.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,59 +58,40 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: tools/testing/selftests/mm: add missing .gitignore entries
-Date: Mon, 31 Aug 2026 15:18:23 +0100
+From: Eric Biggers <ebiggers@kernel.org>
+Subject: xor: add missing vzeroupper to AVX code
+Date: Mon, 31 Aug 2026 14:22:48 -0700
 
-Commit 2bee308f3adb ("selftests/mm: use pattern matching in .gitignore")
-switched to a pattern-matching mechanism to reduce churn in .gitignore.
+Since the AVX optimized XOR code uses YMM registers, execute vzeroupper
+before returning from it.  This is needed to avoid degrading the
+performance of any later SSE code that may happen to be executed.
 
-It however accidentally excluded the page_frag test's-generated module
-intermediate C file with .mod.c extension, and also the local_config.h
-header generated if liburing is available locally.
-
-Explicitly fix both the issues, fixing the module-generated C file as a
-general pattern as these are always intermediate files that should be
-ignored.
-
-Since this is a trivial .gitignore change it doesn't seem necessary to
-treat it as a hotfix.
-
-Link: https://lore.kernel.org/20260831-fix-mm-selftests-gitignore-v1-1-c984bbd4c5e4@kernel.org
-Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
+Link: https://lore.kernel.org/20260831212248.213805-1-ebiggers@kernel.org
+Fixes: ea4d26ae24e5 ("raid5: add AVX optimized RAID5 checksumming")
+Signed-off-by: Eric Biggers <ebiggers@kernel.org>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/.gitignore |    2 ++
- 1 file changed, 2 insertions(+)
+ lib/raid/xor/x86/xor-avx.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/tools/testing/selftests/mm/.gitignore~tools-testing-selftests-mm-add-missing-gitignore-entries
-+++ a/tools/testing/selftests/mm/.gitignore
-@@ -2,7 +2,9 @@
- *
- !/**/
- !*.c
-+*.mod.c
- !*.h
-+local_config.h
- !*.sh
- !.gitignore
- !Makefile
+--- a/lib/raid/xor/x86/xor-avx.c~xor-add-missing-vzeroupper-to-avx-code
++++ a/lib/raid/xor/x86/xor-avx.c
+@@ -147,6 +147,7 @@ static void xor_gen_avx(void *dest, void
+ {
+ 	kernel_fpu_begin();
+ 	xor_gen_avx_inner(dest, srcs, src_cnt, bytes);
++	asm volatile("vzeroupper");
+ 	kernel_fpu_end();
+ }
+ 
 _
 
-Patches currently in -mm which might be from ljs@kernel.org are
+Patches currently in -mm which might be from ebiggers@kernel.org are
 
-mm-mremap-reset-unfaulted-vma-page-offset-for-mremap_dontunmap.patch
-mm-secretmem-properly-account-locked-pages.patch
-mm-huge_memory-bypass-thp-tuneables-for-huge-pfnmap-mappings.patch
-mm-mremap-account-mm-locked_vm-correctly-for-mremap_dontunmap.patch
-mm-vmpressure-remove-window-size-todo.patch
-tools-testing-selftests-mm-add-missing-gitignore-entries.patch
+xor-add-missing-vzeroupper-to-avx-code.patch
+raid6-add-missing-vzeroupper-to-avx2-code.patch
+raid6-add-missing-vzeroupper-to-avx-512-code.patch
 
