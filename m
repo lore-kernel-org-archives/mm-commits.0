@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6624A3E7BBF
-	for <mm-commits@vger.kernel.org>; Mon, 31 Aug 2026 23:15:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7B0583A4F3B
+	for <mm-commits@vger.kernel.org>; Mon, 31 Aug 2026 23:19:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788218142; cv=none; b=VC00LrlE5mpZOOaqKX0H2foRiKPMekcjefHIUMflMnK9KM4adCvrwCPdlPUXpSwsQHHbXvulcg670MqmqXybUZQb51xYisf/AjA220Snttkof+woIQy3vn/36uCuIacIM10aHrQE80pWJS/ABxX1fUr38TdWrtq4z4t5VX5B//c=
+	t=1788218360; cv=none; b=RCP0vVo9ZPZ0tyNoQ7arAUzYJxgNrQsomMvudrH5RKRzWfDb59AE8bUHaR0uqRnicor0WKsYm2t6VFi1RdFkFipbQauftqqe1XXWILiGO/GyOjq/TeB9Ul44gFTA6bhJaJWLy8zllSnH7aJBNpfNjgAQswXUSo3XRHEdR9F0Fdk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788218142; c=relaxed/simple;
-	bh=yqC8zSKHHXninOM1Iz63f+tS8o8awzuR3YERRX7SDmY=;
-	h=Date:To:From:Subject:Message-Id; b=QwwVZjq4ME/VfUnMS/BO4kKossYU/5TP7Yj3/t4nHlSH8tReXmg3jWfslQYYI5OOnl2V+dp8HlI8q8G32k3xQUunsIbdqYpFyLGBDGtkaI8wpV/2BiZDbhfq0PLroNrPz0qdtEUSN1QYx0vxmgXD+TeIb22M+1GhPjp9qWePryo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IRMyOT9x; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788218360; c=relaxed/simple;
+	bh=Me3v0CGFbSdLRwQvTEhqctYRA3xi0P/4A/dHIl2o/EU=;
+	h=Date:To:From:Subject:Message-Id; b=P7oNicKUaWK3q0dI/hjTSS5yANr0K7pDxQTRPm8YQ7AnXf/WW0oLrjinmVj6ObH3qi1WoQpSQ4U56jmePudDubk67XwHvfNiMQ/5zI0S6EPNM3dHgkUlk8S0Ao4eJNintdTUcjQEV1IC6QCISPCZoe1tu5aUQhNgi50QFXcHu/w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CjyEpg0k; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IRMyOT9x"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CB3151F000E9;
-	Mon, 31 Aug 2026 23:15:40 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CjyEpg0k"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E8F111F000E9;
+	Mon, 31 Aug 2026 23:19:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788218140;
-	bh=A5fkeR1JYkhdVeVnNpb/zdi4IqNe3Rfn3Xc6GHpp/l0=;
+	d=linux-foundation.org; s=korg; t=1788218359;
+	bh=Cy32dkKL4sVbdsqrl4qSg51xtwUXmon/S7fOS5XTeag=;
 	h=Date:To:From:Subject;
-	b=IRMyOT9xMVA24zgWXAqy4Z44DSipTl9IVI/hK5yIK0CSDcIbsMqmKKItWQLuW2TSN
-	 1u8HoNlIQ4MwR3PkRJ7cR3dp7sMZEV0iL+qYipeAqb0G82IW3AgUN0rVt2o99ZBWxn
-	 SJJ/hZBPYs2Rh4rr1ihX+5saMBJ8a9m4ou00nmno=
-Date: Mon, 31 Aug 2026 16:15:40 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,sj@kernel.org,rppt@kernel.org,rdunlap@infradead.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,corbet@lwn.net,aethernet65535@gmail.com,akpm@linux-foundation.org
+	b=CjyEpg0kdeWp+O+cVk1pdM2jOhlOYFJl8Ax2UFi1JLV4CZae4AC+Wwvq3VlTtWWb6
+	 zpX4PqepA99Pezka4IRY3c7UcAQsjMZyTD4MStsrCcH4qtO8L5yGyePl3tLErkY0LQ
+	 dLD2ICA94i93i3enDbMGJffq5lL0qp9s7T2WecKw=
+Date: Mon, 31 Aug 2026 16:19:18 -0700
+To: mm-commits@vger.kernel.org,sj@kernel.org,hank20010209@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + docs-mm-damon-design-fix-typo-of-max_nr_snapshots.patch added to mm-new branch
-Message-Id: <20260831231540.CB3151F000E9@smtp.kernel.org>
+Subject: + mm-damon-core-remove-unused-damon_targets_empty.patch added to mm-new branch
+Message-Id: <20260831231918.E8F111F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: docs/mm/damon/design: fix typo of max_nr_snapshots
+     Subject: mm/damon/core: remove unused damon_targets_empty()
 has been added to the -mm mm-new branch.  Its filename is
-     docs-mm-damon-design-fix-typo-of-max_nr_snapshots.patch
+     mm-damon-core-remove-unused-damon_targets_empty.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-mm-damon-design-fix-typo-of-max_nr_snapshots.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-remove-unused-damon_targets_empty.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,62 +69,66 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Liew Rui Yan <aethernet65535@gmail.com>
-Subject: docs/mm/damon/design: fix typo of max_nr_snapshots
-Date: Mon, 31 Aug 2026 08:02:26 -0700
+From: Cheng-Han Wu <hank20010209@gmail.com>
+Subject: mm/damon/core: remove unused damon_targets_empty()
+Date: Mon, 31 Aug 2026 07:57:21 -0700
 
-Fix a typo (nr_snapshots -> max_nr_snapshots) and corrects a grammar
-error.
+Patch series "mm/damon/core: remove unused helper functions", v2.
 
-Link: https://lore.kernel.org/20260831150227.83416-4-sj@kernel.org
-Signed-off-by: Liew Rui Yan <aethernet65535@gmail.com>
+Both damon_targets_empty() and damon_nr_running_ctxs() have had no in-tree
+users since commit 5ec4333b1967 ("mm/damon: remove DAMON debugfs
+interface") removed their remaining callers.
+
+Remove the unused declarations and definitions.
+
+
+This patch (of 2):
+
+damon_targets_empty() has had no in-tree users since commit 5ec4333b1967
+("mm/damon: remove DAMON debugfs interface") removed its last caller.
+
+Remove the unused declaration and definition.
+
+Link: https://lore.kernel.org/20260831145724.82387-1-sj@kernel.org
+Link: https://lore.kernel.org/20260831145724.82387-2-sj@kernel.org
+Signed-off-by: Cheng-Han Wu <hank20010209@gmail.com>
 Signed-off-by: SJ Park <sj@kernel.org>
 Reviewed-by: SJ Park <sj@kernel.org>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Randy Dunlap <rdunlap@infradead.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/mm/damon/design.rst |    4 ++--
- include/linux/damon.h             |    2 +-
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ include/linux/damon.h |    1 -
+ mm/damon/core.c       |    5 -----
+ 2 files changed, 6 deletions(-)
 
---- a/Documentation/mm/damon/design.rst~docs-mm-damon-design-fix-typo-of-max_nr_snapshots
-+++ a/Documentation/mm/damon/design.rst
-@@ -871,8 +871,8 @@ action is ``pageout`` while all pages of
- the action to the region will fail.
- 
- Unlike normal stats, ``max_nr_snapshots`` is set by users.  If it is set as
--non-zero and ``nr_snapshots`` be same to or greater than ``nr_snapshots``, the
--scheme is deactivated.  Note that, unlike watermarks, even if a scheme's
-+non-zero and ``nr_snapshots`` equals or is greater than ``max_nr_snapshots``,
-+the scheme is deactivated.  Note that, unlike watermarks, even if a scheme's
- ``nr_snapshots`` reaches ``max_nr_snapshots``, monitoring will not stop.
- 
- To know how user-space can read the stats via :ref:`DAMON sysfs interface
---- a/include/linux/damon.h~docs-mm-damon-design-fix-typo-of-max_nr_snapshots
+--- a/include/linux/damon.h~mm-damon-core-remove-unused-damon_targets_empty
 +++ a/include/linux/damon.h
-@@ -549,7 +549,7 @@ struct damos_migrate_dests {
-  *
-  * After applying the &action to each region, &stat is updated.
-  *
-- * If &max_nr_snapshots is set as non-zero and &stat.nr_snapshots be same to or
-+ * If &max_nr_snapshots is set as non-zero and &stat.nr_snapshots equals or is
-  * greater than it, the scheme is deactivated.
-  */
- struct damos {
+@@ -1055,7 +1055,6 @@ int damos_commit_quota_goals(struct damo
+ 
+ struct damon_target *damon_new_target(void);
+ void damon_add_target(struct damon_ctx *ctx, struct damon_target *t);
+-bool damon_targets_empty(struct damon_ctx *ctx);
+ void damon_free_target(struct damon_target *t);
+ void damon_destroy_target(struct damon_target *t, struct damon_ctx *ctx);
+ unsigned int damon_nr_regions(struct damon_target *t);
+--- a/mm/damon/core.c~mm-damon-core-remove-unused-damon_targets_empty
++++ a/mm/damon/core.c
+@@ -795,11 +795,6 @@ void damon_add_target(struct damon_ctx *
+ 	list_add_tail(&t->list, &ctx->adaptive_targets);
+ }
+ 
+-bool damon_targets_empty(struct damon_ctx *ctx)
+-{
+-	return list_empty(&ctx->adaptive_targets);
+-}
+-
+ static void damon_del_target(struct damon_target *t)
+ {
+ 	list_del(&t->list);
 _
 
-Patches currently in -mm which might be from aethernet65535@gmail.com are
+Patches currently in -mm which might be from hank20010209@gmail.com are
 
-docs-mm-damon-design-accurate-semantics-of-nr_snapshots.patch
-docs-mm-damon-design-difference-between-watermarks-and-nr_snapshots.patch
-docs-mm-damon-design-fix-typo-of-max_nr_snapshots.patch
+mm-damon-core-remove-unused-damon_targets_empty.patch
+mm-damon-core-remove-unused-damon_nr_running_ctxs.patch
 
