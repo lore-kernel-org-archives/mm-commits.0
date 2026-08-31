@@ -1,245 +1,133 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.12])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5D89330F540
-	for <mm-commits@vger.kernel.org>; Mon, 31 Aug 2026 08:16:14 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.12
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4D06146A5F8
+	for <mm-commits@vger.kernel.org>; Mon, 31 Aug 2026 17:17:22 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788164176; cv=none; b=BAdcaEYJIUTFo5MM02SV0GR/sw2WBq1xAwslMujrle5gKZuojYLpf9qpvetkEm9NfQSF6gYI6Fxb7W1/pA3CO+NP+uyBm2Ju/vJLYTVl6yyn5SR6zrxboYU1ceaERHdsDudRUK4fOhXfj+KQcFHVamQtzbiSirR0w7N6v+dbEWY=
+	t=1788196643; cv=none; b=Y9n+tOaDv1KFzMGJx4tenqwtwXoIyUwXOdke2EEnjWaoAP5P0LVUXe8zctcvRPC1jpe0PUKvDEIhsmKrLWhWdtVwNHiwu8y1m+UJBRYP7lOnHy3nIA9eTS5QyVThpZ3Sug96lfvapduP0Cu70Ml8ZrO5NGuWRQpGlGABkMBSnic=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788164176; c=relaxed/simple;
-	bh=0U702yJcbd24Mu5PvfVhwQ/Kix6w1KoMLIReavJw4Cs=;
-	h=Date:From:To:Cc:Subject:Message-ID; b=pY47gghNiQqshen8wfj9FB42OtUYqrpAgqy35LmZd1eG5BsXBge3nyLt/6Q/sahAsb0IZ7BbSpIqmmp5KGYUe441ZmHk+uIRRkSIilI1DK7jQapaVZB8xF+P5+QpioM0NiTbYgENkoY3xaiNjr3j9djbgUhDKiNBdTQOvjpWynE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=io7ADe37; arc=none smtp.client-ip=198.175.65.12
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	s=arc-20240116; t=1788196643; c=relaxed/simple;
+	bh=CfzYIXSjTWFdktRjHjPWG1ozB0am17J/QlOH4XNcMGM=;
+	h=Date:To:From:Subject:Message-Id; b=qCTYi1iGkmZsOvZFIULvS0weo9M4SkkCLQJ0rnuOUgGa8P6jB0J081iMbvEeyI2v2AMyIj8Oo29aIiYaIzbNERGd+1aWkr0SduravtGnKrsEQ2eEmFQLEBQRugqXKQrPkBr2Z3GyBLuffHW7NRm7uTbDvSfYcbfHRzbcKhGJslQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ic/VND6/; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="io7ADe37"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1788164174; x=1819700174;
-  h=date:from:to:cc:subject:message-id;
-  bh=0U702yJcbd24Mu5PvfVhwQ/Kix6w1KoMLIReavJw4Cs=;
-  b=io7ADe37mTFtMU2mArqtfiEndTIq8IYeT1mRkNn7RG+9WhbF9A41+LyY
-   L8sNyeZwX1pu1fb5iaHgI19If0lR+5ss3/oOOuY90MFANxmjE9At4Fa6j
-   3ykqvrJeNbW3qEzRNIWa99T8AXQZSnzUoVC4LkYeQa/q4SYIvBZ1kqitX
-   WkrDFNc0av7Zp8ngH4U8ZVNWEzU4Vkmzj3nsRpHPGxjAyrBr+gVJGFL13
-   cmwfYJkQ3NatjQRFAwdlC3ddpWrAp199LH/lN3Fkv3p4XyaQ7BBc+5PW0
-   Sh0GvOZ8cQL1zR9fHC1O923+2iWcOlNQtagPZpmP62UrMFQ4Y9xPkGTwo
-   g==;
-X-CSE-ConnectionGUID: H/LZHAr6R0CW9skpr/v4HQ==
-X-CSE-MsgGUID: 2OA+FkXNSW6fhio5BdUhcA==
-X-IronPort-AV: E=McAfee;i="6800,10657,11891"; a="100076775"
-X-IronPort-AV: E=Sophos;i="6.25,252,1779174000"; 
-   d="scan'208";a="100076775"
-Received: from fmviesa005.fm.intel.com ([10.60.135.145])
-  by orvoesa104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 31 Aug 2026 01:16:13 -0700
-X-CSE-ConnectionGUID: JA2LiJtbSeyyxboh5pUlzg==
-X-CSE-MsgGUID: +z45bSEwQyug/K4UVqvIIQ==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.25,252,1779174000"; 
-   d="scan'208";a="274002441"
-Received: from lkp-server01.sh.intel.com (HELO 12c799cf0c09) ([10.239.97.150])
-  by fmviesa005.fm.intel.com with ESMTP; 31 Aug 2026 01:16:10 -0700
-Received: from kbuild by 12c799cf0c09 with local (Exim 4.98.2)
-	(envelope-from <lkp@intel.com>)
-	id 1x0x9w-000000000NY-31uk;
-	Mon, 31 Aug 2026 08:14:38 +0000
-Date: Mon, 31 Aug 2026 15:51:44 +0800
-From: kernel test robot <lkp@intel.com>
-To: David Hildenbrand <david@kernel.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>,
- Linux Memory Management List <linux-mm@kvack.org>,
- mm-commits@vger.kernel.org
-Subject: [akpm-mm:mm-new] BUILD SUCCESS
- da6c37ed8beb273e3308e42d4bca3ce11b4432fa
-Message-ID: <202608311524.TNSAy5ID-lkp@intel.com>
-User-Agent: s-nail v14.9.25
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ic/VND6/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E89181F000E9;
+	Mon, 31 Aug 2026 17:17:21 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=linux-foundation.org; s=korg; t=1788196642;
+	bh=xUvcbVDWZjmAzlmQeRYjWmSFNGzxqbgigeJfDcx5zUc=;
+	h=Date:To:From:Subject;
+	b=ic/VND6/qSbjll8GTSUcQgjrYczgjyRsB/RwqU7REwBYzN72sgEAEwWtoEjKee+Wn
+	 mnXWQ7Jxb0yYe7RSLTw9eFCUiBWIE8XyDyAv1CShPML212qje13CkS+j0Yb5II5rXN
+	 Nvn5/Qt0FRYLAh7l9bzLnllsxIZEHH2VN4Of+bP8=
+Date: Mon, 31 Aug 2026 10:17:21 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,rppt@kernel.org,mhocko@suse.com,liam@infradead.org,david@kernel.org,ljs@kernel.org,akpm@linux-foundation.org
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: + mm-vmpressure-remove-window-size-todo.patch added to mm-new branch
+Message-Id: <20260831171721.E89181F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
-tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm.git mm-new
-branch HEAD: da6c37ed8beb273e3308e42d4bca3ce11b4432fa  mm/swap, PM: hibernate: atomically replace hibernation pin
 
-elapsed time: 848m
+The patch titled
+     Subject: mm/vmpressure: remove window size TODO
+has been added to the -mm mm-new branch.  Its filename is
+     mm-vmpressure-remove-window-size-todo.patch
 
-configs tested: 166
-configs skipped: 4
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmpressure-remove-window-size-todo.patch
 
-The following configs have been built successfully.
-More configs may be tested in the coming days.
+This patch will later appear in the mm-new branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
-tested configs:
-alpha                             allnoconfig    gcc-16.1.0
-alpha                            allyesconfig    gcc-16.1.0
-alpha                               defconfig    gcc-16.1.0
-arc                              allmodconfig    gcc-16.1.0
-arc                               allnoconfig    gcc-16.1.0
-arc                              allyesconfig    gcc-16.1.0
-arc                                 defconfig    gcc-16.1.0
-arc                   randconfig-001-20260831    gcc-8.5.0
-arc                   randconfig-002-20260831    gcc-14.3.0
-arm                               allnoconfig    clang-17
-arm                              allyesconfig    gcc-16.1.0
-arm                       aspeed_g5_defconfig    gcc-16.1.0
-arm                                 defconfig    clang-24
-arm                   randconfig-001-20260831    clang-20
-arm                   randconfig-002-20260831    gcc-16.1.0
-arm                   randconfig-003-20260831    gcc-14.3.0
-arm                   randconfig-004-20260831    gcc-16.1.0
-arm64                            allmodconfig    clang-24
-arm64                             allnoconfig    gcc-16.1.0
-arm64                               defconfig    gcc-16.1.0
-arm64                 randconfig-001-20260831    gcc-16.1.0
-arm64                 randconfig-002-20260831    clang-24
-arm64                 randconfig-003-20260831    gcc-16.1.0
-arm64                 randconfig-004-20260831    clang-21
-csky                             allmodconfig    gcc-16.1.0
-csky                              allnoconfig    gcc-16.1.0
-csky                                defconfig    gcc-16.1.0
-csky                  randconfig-001-20260831    gcc-16.1.0
-csky                  randconfig-002-20260831    gcc-16.1.0
-hexagon                          allmodconfig    clang-24
-hexagon                           allnoconfig    clang-24
-hexagon                             defconfig    clang-24
-hexagon               randconfig-001-20260831    clang-24
-hexagon               randconfig-002-20260831    clang-20
-i386                             allmodconfig    gcc-14
-i386                              allnoconfig    gcc-14
-i386                             allyesconfig    gcc-14
-i386        buildonly-randconfig-001-20260831    clang-22
-i386        buildonly-randconfig-002-20260831    gcc-14
-i386        buildonly-randconfig-003-20260831    clang-22
-i386        buildonly-randconfig-004-20260831    gcc-14
-i386        buildonly-randconfig-005-20260831    gcc-13
-i386        buildonly-randconfig-006-20260831    clang-22
-i386                                defconfig    clang-22
-i386                  randconfig-001-20260831    clang-22
-i386                  randconfig-002-20260831    clang-22
-i386                  randconfig-003-20260831    clang-22
-i386                  randconfig-004-20260831    gcc-14
-i386                  randconfig-005-20260831    gcc-14
-i386                  randconfig-006-20260831    gcc-14
-i386                  randconfig-007-20260831    clang-22
-i386                  randconfig-011-20260831    clang-22
-i386                  randconfig-012-20260831    clang-22
-i386                  randconfig-013-20260831    gcc-14
-i386                  randconfig-014-20260831    gcc-14
-i386                  randconfig-015-20260831    gcc-12
-i386                  randconfig-016-20260831    gcc-14
-i386                  randconfig-017-20260831    gcc-14
-loongarch                        allmodconfig    clang-19
-loongarch                         allnoconfig    clang-20
-loongarch                           defconfig    clang-24
-loongarch                loongson64_defconfig    clang-24
-loongarch             randconfig-001-20260831    clang-24
-loongarch             randconfig-002-20260831    clang-24
-m68k                             allmodconfig    gcc-16.1.0
-m68k                              allnoconfig    gcc-16.1.0
-m68k                             allyesconfig    gcc-16.1.0
-m68k                                defconfig    gcc-16.1.0
-microblaze                        allnoconfig    gcc-16.1.0
-microblaze                       allyesconfig    gcc-16.1.0
-microblaze                          defconfig    gcc-16.1.0
-mips                              allnoconfig    gcc-16.1.0
-mips                             allyesconfig    gcc-16.1.0
-mips                          eyeq6_defconfig    clang-24
-nios2                            allmodconfig    gcc-11.5.0
-nios2                             allnoconfig    gcc-11.5.0
-nios2                               defconfig    gcc-11.5.0
-nios2                 randconfig-001-20260831    gcc-11.5.0
-nios2                 randconfig-002-20260831    gcc-8.5.0
-openrisc                         allmodconfig    gcc-16.1.0
-openrisc                          allnoconfig    gcc-16.1.0
-openrisc                            defconfig    gcc-16.1.0
-parisc                           allmodconfig    gcc-16.1.0
-parisc                            allnoconfig    gcc-16.1.0
-parisc                           allyesconfig    gcc-16.1.0
-parisc                              defconfig    gcc-16.1.0
-parisc                randconfig-001-20260831    gcc-8.5.0
-parisc                randconfig-002-20260831    gcc-15.2.0
-parisc64                            defconfig    gcc-16.1.0
-powerpc                          allmodconfig    gcc-16.1.0
-powerpc                           allnoconfig    gcc-16.1.0
-powerpc               randconfig-001-20260831    clang-21
-powerpc               randconfig-002-20260831    clang-21
-powerpc64             randconfig-001-20260831    clang-24
-powerpc64             randconfig-002-20260831    gcc-14.3.0
-riscv                             allnoconfig    gcc-16.1.0
-riscv                            allyesconfig    clang-24
-riscv                               defconfig    clang-24
-riscv                 randconfig-001-20260831    clang-17
-riscv                 randconfig-002-20260831    gcc-8.5.0
-s390                             allmodconfig    clang-24
-s390                              allnoconfig    clang-24
-s390                             allyesconfig    gcc-16.1.0
-s390                                defconfig    clang-18
-s390                  randconfig-001-20260831    clang-17
-s390                  randconfig-002-20260831    clang-24
-s390                       zfcpdump_defconfig    clang-22
-sh                               allmodconfig    gcc-16.1.0
-sh                                allnoconfig    gcc-16.1.0
-sh                               allyesconfig    gcc-16.1.0
-sh                                  defconfig    gcc-16.1.0
-sh                          r7780mp_defconfig    gcc-16.1.0
-sh                    randconfig-001-20260831    gcc-14.3.0
-sh                    randconfig-002-20260831    gcc-16.1.0
-sh                          sdk7780_defconfig    gcc-16.1.0
-sh                           se7343_defconfig    gcc-16.1.0
-sparc                             allnoconfig    gcc-16.1.0
-sparc                               defconfig    gcc-16.1.0
-sparc                 randconfig-001-20260831    gcc-11.5.0
-sparc                 randconfig-002-20260831    gcc-16.1.0
-sparc64                          allmodconfig    clang-20
-sparc64                             defconfig    clang-24
-sparc64               randconfig-001-20260831    gcc-15.2.0
-sparc64               randconfig-002-20260831    gcc-13.4.0
-um                               allmodconfig    clang-17
-um                                allnoconfig    clang-17
-um                               allyesconfig    gcc-14
-um                                  defconfig    clang-24
-um                             i386_defconfig    gcc-14
-um                    randconfig-001-20260831    clang-20
-um                    randconfig-002-20260831    clang-20
-um                           x86_64_defconfig    clang-24
-x86_64                           allmodconfig    clang-22
-x86_64                            allnoconfig    clang-22
-x86_64                           allyesconfig    clang-22
-x86_64      buildonly-randconfig-001-20260831    gcc-14
-x86_64      buildonly-randconfig-002-20260831    gcc-14
-x86_64      buildonly-randconfig-003-20260831    gcc-13
-x86_64      buildonly-randconfig-004-20260831    clang-22
-x86_64      buildonly-randconfig-005-20260831    gcc-13
-x86_64      buildonly-randconfig-006-20260831    clang-22
-x86_64                              defconfig    gcc-14
-x86_64                randconfig-001-20260831    gcc-14
-x86_64                randconfig-002-20260831    gcc-14
-x86_64                randconfig-003-20260831    gcc-14
-x86_64                randconfig-004-20260831    gcc-12
-x86_64                randconfig-005-20260831    clang-22
-x86_64                randconfig-006-20260831    gcc-14
-x86_64                randconfig-011-20260831    clang-22
-x86_64                randconfig-012-20260831    clang-22
-x86_64                randconfig-013-20260831    gcc-14
-x86_64                randconfig-014-20260831    clang-22
-x86_64                randconfig-015-20260831    gcc-14
-x86_64                randconfig-016-20260831    clang-22
-x86_64                randconfig-071-20260831    clang-22
-x86_64                randconfig-072-20260831    clang-22
-x86_64                randconfig-073-20260831    gcc-14
-x86_64                randconfig-074-20260831    clang-22
-x86_64                randconfig-075-20260831    clang-22
-x86_64                randconfig-076-20260831    clang-22
-x86_64                          rhel-9.4-rust    clang-22
-xtensa                            allnoconfig    gcc-16.1.0
-xtensa                           allyesconfig    gcc-16.1.0
-xtensa                       common_defconfig    gcc-16.1.0
-xtensa                randconfig-001-20260831    gcc-11.5.0
-xtensa                randconfig-002-20260831    gcc-13.4.0
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
 
---
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests/wiki
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
+
+------------------------------------------------------
+From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
+Subject: mm/vmpressure: remove window size TODO
+Date: Mon, 31 Aug 2026 14:42:11 +0100
+
+There has been a steady stream of patches that have been submitted by
+newcomers to core mm 'fixing' this TODO, with all but the original having
+very likely been generated by LLMs.
+
+It appears that TODOs to LLMs are like red rags to a bull.
+
+In addition, TODOs in code often bitrot and are distracting - those who
+understand the code know what could be improved in future.
+
+Therefore remove the TODO.
+
+The work required to actually fix this TODO requires somebody who both has
+understanding of the code and significant real-world data to back their
+changes.
+
+Such a person doesn't require a TODO prompt to implement this change, so
+nothing of value is being lost here.
+
+Link: https://lore.kernel.org/all/20260831130316.448-1-tahasezer.is@gmail.com/
+Link: https://lore.kernel.org/linux-mm/20260724054305.516126-1-cui.tao@linux.dev/
+Link: https://lore.kernel.org/linux-mm/20260715143646.15828-1-gaikwad.dcg@gmail.com/
+Link: https://lore.kernel.org/all/20260227221555.29969-1-mcq@disroot.org/
+Link: https://lore.kernel.org/20260831-remove-vmpressure-todo-v1-1-498515e59cdf@kernel.org
+Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ mm/vmpressure.c |    3 ---
+ 1 file changed, 3 deletions(-)
+
+--- a/mm/vmpressure.c~mm-vmpressure-remove-window-size-todo
++++ a/mm/vmpressure.c
+@@ -30,9 +30,6 @@
+  *
+  * As the vmscan reclaimer logic works with chunks which are multiple of
+  * SWAP_CLUSTER_MAX, it makes sense to use it for the window size as well.
+- *
+- * TODO: Make the window size depend on machine size, as we do for vmstat
+- * thresholds. Currently we set it to 512 pages (2MB for 4KB pages).
+  */
+ const unsigned long vmpressure_win = SWAP_CLUSTER_MAX * 16;
+ 
+_
+
+Patches currently in -mm which might be from ljs@kernel.org are
+
+mm-mremap-reset-unfaulted-vma-page-offset-for-mremap_dontunmap.patch
+mm-secretmem-properly-account-locked-pages.patch
+mm-huge_memory-bypass-thp-tuneables-for-huge-pfnmap-mappings.patch
+mm-mremap-account-mm-locked_vm-correctly-for-mremap_dontunmap.patch
+mm-vmpressure-remove-window-size-todo.patch
+
