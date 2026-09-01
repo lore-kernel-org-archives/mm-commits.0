@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3B259486654
-	for <mm-commits@vger.kernel.org>; Tue,  1 Sep 2026 17:17:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8A01B48167D
+	for <mm-commits@vger.kernel.org>; Tue,  1 Sep 2026 17:17:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788283070; cv=none; b=D8uZW8RsO3RvdSBxWr07ef8t8NWZvM5O4Uzd9z89lRL6CQ9FERJa8y3Tf4isYhFcI7TTHvfh3O9H58FqXH89GBsa7xA3U+qrVB7jc+sdE061pE2fNgGeynsHv44db7pc0IYy8LOlh0zSDUU9SzMvYVBxMIg67RhNEoAHfDL/PSI=
+	t=1788283072; cv=none; b=pUkO6lJUFHg6bBUwZTjDa2R7+LDR64jW+HkMTiilheBZNDtbqPGZpV9fpsDuxp+yGB9YdXx8GLZ9ImxttUXqg1f1L9Ld2aHaIOvf0K+BkG/H0bfyqLghEZyhXPbtZW3ES6DaqpyHwj70UyF8bt3bqWRsXwzeNAIpmajPuHeXB0Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788283070; c=relaxed/simple;
-	bh=DIFsqJ/KjTb6kC0iUre4I6EvsjHZaPHIiZU7FB1zxWU=;
-	h=Date:To:From:Subject:Message-Id; b=lsnNSgK4lbRI+ubU3smXjtb2rzrn8sB2HiRoOUbUU4B0jDABsTh8HDbUEBavnJUAmtZA/50wkFtDAJqkUnha5o01MAeq3fvf1rsVlmyFmBvBru4/0GGiSn7WTiSN3dKTclzVmGrAYX+HwnYPxAZL67QMejmtTcTCPxBDs4G2sgc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=B0XBZOev; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788283072; c=relaxed/simple;
+	bh=8pJklW8UIpA68X0/0h+zmqcAlHNg+je4IW0QiosMDko=;
+	h=Date:To:From:Subject:Message-Id; b=JQqqQEOrqLzaSh+UWgoX8jS9K8FyVP1LjsUZQEwI6UYplbI9kaZjTVbkyShF4zwvRP9AGbygAXCo3Gst1exyAVA6KkRBMak/ehNGijT19+d62WrxZus9Rtt5OMd2AuI9i4h/c6TSPjwzqYUiNd22LI/liwQYFNYFWtVVt2EWOgQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Sf6CcWSN; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="B0XBZOev"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D04C11F00A3A;
-	Tue,  1 Sep 2026 17:17:48 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Sf6CcWSN"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5DE421F000E9;
+	Tue,  1 Sep 2026 17:17:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788283068;
-	bh=7wMADefd6SpZpmn1bSPAb8rBNIbMZc4FcajnaArr+tI=;
+	d=linux-foundation.org; s=korg; t=1788283071;
+	bh=+NSzNpLVd5F3xBDZ1bTMbb85ACpZmxqiMi7MXYl+HnQ=;
 	h=Date:To:From:Subject;
-	b=B0XBZOev9ktJtScneaWKSBHfxQ5+C2UI8j0H8sZminUZCTbp1GNtFfAHABExRlcJf
-	 bZrXcPGAibZ+iPa/InLDJS6ZqWiMW1uXVSrpL930osCcXrU0HSu1WrvpsUEjyfJzSB
-	 G6MyeQXv0hLCT/ezOj6GS+XsS/9KnhWbobDvz+/k=
-Date: Tue, 01 Sep 2026 10:17:48 -0700
+	b=Sf6CcWSNnpM8lnlLp2KWiO8R8JwPIubTgagzlo9AGbuC7l/yetXtj//ri3aqTCtrT
+	 T3MJgMhqPjDmbOUaQNY54pl7+qvpAxgOVxMUwmt9J0f/M6cXfikeOvi+G+5LE3Jnaf
+	 mu3s9s3ezr25WAOwXqMgERchQXWt2pS2W8Tdx2y8=
+Date: Tue, 01 Sep 2026 10:17:50 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-core-introduce-damon_operations-prep_probes.patch added to mm-new branch
-Message-Id: <20260901171748.D04C11F00A3A@smtp.kernel.org>
+Subject: + mm-damon-paddr-support-damon_prep.patch added to mm-new branch
+Message-Id: <20260901171751.5DE421F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/core: introduce damon_operations->prep_probes()
+     Subject: mm/damon/paddr: support damon_prep
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-core-introduce-damon_operations-prep_probes.patch
+     mm-damon-paddr-support-damon_prep.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-introduce-damon_operations-prep_probes.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-paddr-support-damon_prep.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,15 +70,16 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/core: introduce damon_operations->prep_probes()
-Date: Tue, 1 Sep 2026 06:24:54 -0700
+Subject: mm/damon/paddr: support damon_prep
+Date: Tue, 1 Sep 2026 06:24:55 -0700
 
-damon_prep needs to be executed by the underlying DAMON operation set. 
-Extend the operation set callback list for the execution of damon_prep
-actions.  If the underlying operation set implements the callback, DAMON
-core executes it in the monitoring preparation time.
+Implement damon_operations->prep_probes() callback.  Support the only
+existing prep action, DAMON_PREP_SET_PGIDLE in a way similar to what it
+was doing for the access check preparation: unset page table accessed bits
+and set PG_Idle flag.  Reuse the function for the access check
+preparation.
 
-Link: https://lore.kernel.org/20260901132506.99243-8-sj@kernel.org
+Link: https://lore.kernel.org/20260901132506.99243-9-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
@@ -93,89 +94,60 @@ Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/damon.h |    5 +++++
- mm/damon/core.c       |   20 +++++++++++++++++++-
- 2 files changed, 24 insertions(+), 1 deletion(-)
+ mm/damon/paddr.c |   35 +++++++++++++++++++++++++++++++++++
+ 1 file changed, 35 insertions(+)
 
---- a/include/linux/damon.h~mm-damon-core-introduce-damon_operations-prep_probes
-+++ a/include/linux/damon.h
-@@ -630,6 +630,7 @@ enum damon_ops_id {
-  * @update:			Update operations-related data structures.
-  * @prepare_access_checks:	Prepare next access check of target regions.
-  * @check_accesses:		Check the accesses to target regions.
-+ * @prep_probes:		Prepare applying probes for each region.
-  * @apply_probes:		Apply probes for each region.
-  * @get_scheme_score:		Get the score of a region for a scheme.
-  * @apply_scheme:		Apply a DAMON-based operation scheme.
-@@ -657,6 +658,9 @@ enum damon_ops_id {
-  * last preparation and update the number of observed accesses of each region.
-  * It should also return max number of observed accesses that made as a result
-  * of its update.  The value will be used for regions adjustment threshold.
-+ * @prep_probes should execute required &struct damon_prep for next &struct
-+ * damon_probe applications to each region.  It should also set
-+ * &damon_region->sampling_addr of each region if ``set_samples`` is true.
-  * @apply_probes should apply the data attribute probes to each region and
-  * accordingly update the probe hits counter of the region.  It should also
-  * set &damon_region->sampling_addr of each region if ``set_samples`` is true.
-@@ -679,6 +683,7 @@ struct damon_operations {
- 	void (*update)(struct damon_ctx *context);
- 	void (*prepare_access_checks)(struct damon_ctx *context);
- 	unsigned int (*check_accesses)(struct damon_ctx *context);
-+	void (*prep_probes)(struct damon_ctx *context, bool set_samples);
- 	unsigned int (*apply_probes)(struct damon_ctx *context,
- 			bool set_samples, bool return_max_wsum);
- 	int (*get_scheme_score)(struct damon_ctx *context,
---- a/mm/damon/core.c~mm-damon-core-introduce-damon_operations-prep_probes
-+++ a/mm/damon/core.c
-@@ -157,6 +157,18 @@ static struct damon_prep *damon_nth_prep
- 	return NULL;
+--- a/mm/damon/paddr.c~mm-damon-paddr-support-damon_prep
++++ a/mm/damon/paddr.c
+@@ -105,6 +105,40 @@ static unsigned int damon_pa_check_acces
+ 	return max_nr_accesses;
  }
  
-+static bool damon_has_prep(struct damon_ctx *c)
++static void damon_pa_prep_probes_region(struct damon_region *r,
++		struct damon_probe *probe, struct damon_ctx *ctx)
 +{
-+	struct damon_prep *prep;
-+	struct damon_probe *probe;
++	struct damon_prep *p;
 +
-+	damon_for_each_probe(probe, c) {
-+		damon_for_each_prep(prep, probe)
-+			return true;
++	damon_for_each_prep(p, probe) {
++		switch (p->action) {
++		case DAMON_PREP_SET_PGIDLE:
++			damon_pa_mkold(damon_pa_phys_addr(r->sampling_addr,
++						ctx->addr_unit));
++			break;
++		default:
++			break;
++		}
 +	}
-+	return false;
 +}
 +
- struct damon_filter *damon_new_filter(enum damon_filter_type type,
- 		bool matching, bool allow)
- {
-@@ -3894,14 +3906,19 @@ static int kdamond_fn(void *data)
- 		unsigned long next_ops_update_sis = ctx->next_ops_update_sis;
- 		unsigned long sample_interval = ctx->attrs.sample_interval;
- 		bool access_check_disabled = damon_has_probe_weights(ctx);
-+		bool do_prep;
- 		unsigned int max_merge_score = 0, max_wsum;
- 		bool get_max_wsum;
- 
- 		if (kdamond_wait_activation(ctx))
- 			break;
- 
-+		do_prep = ctx->ops.prep_probes && damon_has_prep(ctx);
++static void damon_pa_prep_probes(struct damon_ctx *ctx, bool set_samples)
++{
++	struct damon_target *t;
++	struct damon_region *r;
++	struct damon_probe *p;
 +
- 		if (!access_check_disabled && ctx->ops.prepare_access_checks)
- 			ctx->ops.prepare_access_checks(ctx);
-+		if (do_prep)
-+			ctx->ops.prep_probes(ctx, access_check_disabled);
- 
- 		kdamond_usleep(sample_interval);
- 		ctx->passed_sample_intervals++;
-@@ -3916,7 +3933,8 @@ static int kdamond_fn(void *data)
- 			else
- 				get_max_wsum = false;
- 			max_wsum = ctx->ops.apply_probes(ctx,
--					access_check_disabled, get_max_wsum);
-+					access_check_disabled && !do_prep,
-+					get_max_wsum);
- 			if (get_max_wsum)
- 				max_merge_score = max_wsum;
- 		}
++	damon_for_each_target(t, ctx) {
++		damon_for_each_region(r, t) {
++			if (set_samples)
++				r->sampling_addr = damon_rand(ctx, r->ar.start,
++						r->ar.end);
++			damon_for_each_probe(p, ctx)
++				damon_pa_prep_probes_region(r, p, ctx);
++		}
++	}
++}
++
+ static bool damon_pa_filter_match(struct damon_filter *filter,
+ 		struct folio *folio)
+ {
+@@ -448,6 +482,7 @@ static int __init damon_pa_initcall(void
+ 		.update = NULL,
+ 		.prepare_access_checks = damon_pa_prepare_access_checks,
+ 		.check_accesses = damon_pa_check_accesses,
++		.prep_probes = damon_pa_prep_probes,
+ 		.apply_probes = damon_pa_apply_probes,
+ 		.target_valid = NULL,
+ 		.apply_scheme = damon_pa_apply_scheme,
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
