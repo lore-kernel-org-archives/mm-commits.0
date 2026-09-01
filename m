@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E4B723DB64D
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8904D3F58C9
 	for <mm-commits@vger.kernel.org>; Tue,  1 Sep 2026 01:55:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788227770; cv=none; b=Ioe7JczMY0w9x44yw9k7HvPksgw8rxsEFcUTJI5QH8nKu/CN79/dzeGyw9SgQIWy2stmOKp30qNNv0nrHs+Dl0M3pLfUVrX++GJbR8mf17lpLRM4F8Wg4ZWKaYA2kmrXsIae89Wb+DuEp88HqARt76unv/4xB09WixRzGFCD1Uo=
+	t=1788227769; cv=none; b=lD8DmFjOTimt3T2zZWD/gbvBsBKd4s3Li1RdpRrs07tMNJWdN+v8tUjmwwRShQlQtH+/okFfsYOLOhu+zS9LrgSecS3bE373WlF4oUno9EuW09jhr57mTE/+evH1tdRlyzXZ35rvrgfP0h5qpVxjTT1mwolfNxF45XN5S/QNKO8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788227770; c=relaxed/simple;
-	bh=Xnmg1sP2A879hJhXnycWJgOQaKY9//moTdcZjfDAImw=;
-	h=Date:To:From:Subject:Message-Id; b=KiIuCkOVUVjUydhfM3AKKPpSoerpPjeX7NuO+VSZ6qfnHD0sEvNDAXeRBbzNYh1GiILpMDrQwKIUSOeHwP2nBG9DcM9cwwnrIgCiHYtbAZar/w+RKJQFip9SlRZBOxb78zcmUTRTF5/jpfoCAqON0FTO+RoQKDHuNn5lvyR6gfc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZBrfoROA; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788227769; c=relaxed/simple;
+	bh=Hyqz30JsNjDulVOODdPKDHzSqAstH2fd3M5LNn+8oGI=;
+	h=Date:To:From:Subject:Message-Id; b=BxTE4pNplGJiZCfOM83fZQ3AQh5zUtm8rKbh4zXLmA+my/bhtSMoxNGJ0T0so2Rm3UHboSZ5+dMkdyruuoOvNWnt13TG5Oxt9ZN3NfZD+MTHhHoOfmuh3P8Qq6xliCseHe7G2rQ8IsXT834bDwCvRxrCENmAefxeBgccSEBLnik=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=O2/Q9mUc; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZBrfoROA"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 445041F00ADB;
-	Tue,  1 Sep 2026 01:55:52 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="O2/Q9mUc"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 353201F000E9;
+	Tue,  1 Sep 2026 01:55:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788227752;
-	bh=AhWZElnEwoCu8LRziKRcqbiAUqdkAOPed/PNuvvLG/c=;
+	d=linux-foundation.org; s=korg; t=1788227750;
+	bh=kvcybdduXO1EDTNV0YE/5Zf7tYqdVxkqhxabcvBiUr0=;
 	h=Date:To:From:Subject;
-	b=ZBrfoROA0lQPYCtuhevkflsF7cwlT+bVaAzlWS2aMQo/JbrolMHfRnHc4wKWlktdT
-	 w23yG4Jt28BWuN03Lh+W4X4FEbXT/1yi7OY1oEwHmLMvW6DVRnqSD1br9XxONgL9Bg
-	 OHcqAWViuTuu5ffHbP7UOKvhv+/czY0nxmRa+UAU=
-Date: Mon, 31 Aug 2026 18:55:51 -0700
+	b=O2/Q9mUcsozanvRkSCZ49CUh04d2eopEWsB5Tqn4zticQoIa7344WZTsFJPvEocRq
+	 E0kNvXB8C3O0du7/sSpnAu4PaONruKtZKYdrKXfJtjhyMt2NezYVottbCyFI3co3Gk
+	 qIg1RVtYYaTLNYIfemOSjZH2QZKFuPxp6gqNAP6A=
+Date: Mon, 31 Aug 2026 18:55:49 -0700
 To: mm-commits@vger.kernel.org,ysato@users.sourceforge.jp,samuel.holland@sifive.com,rppt@kernel.org,ljs@kernel.org,kernel@xen0n.name,james.bottomley@HansenPartnership.com,glaubitz@physik.fu-berlin.de,geert@linux-m68k.org,deller@gmx.de,david@kernel.org,dalias@libc.org,chenhuacai@kernel.org,anshuman.khandual@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + sh-mm-stop-using-pgd_error.patch added to mm-new branch
-Message-Id: <20260901015552.445041F00ADB@smtp.kernel.org>
+Subject: + sh-mm-stop-using-_error.patch added to mm-new branch
+Message-Id: <20260901015550.353201F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: sh/mm: stop using pgd_ERROR()
+     Subject: sh/mm: stop using [p4d|pud|pmd]_ERROR()
 has been added to the -mm mm-new branch.  Its filename is
-     sh-mm-stop-using-pgd_error.patch
+     sh-mm-stop-using-_error.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/sh-mm-stop-using-pgd_error.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/sh-mm-stop-using-_error.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,13 +70,13 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Anshuman Khandual <anshuman.khandual@arm.com>
-Subject: sh/mm: stop using pgd_ERROR()
-Date: Mon, 31 Aug 2026 11:13:29 +0530
+Subject: sh/mm: stop using [p4d|pud|pmd]_ERROR()
+Date: Mon, 31 Aug 2026 11:13:28 +0530
 
-Stop using pgd_ERROR() in __get_pte_phys() when page table entry is
-already known to be empty.
+Stop using [p4d|pud|pmd]_ERROR() in __get_pte_phys() as the pgtable entries
+are known to be NULL and hence could not really be accessed.
 
-Link: https://lore.kernel.org/20260831054331.625505-8-anshuman.khandual@arm.com
+Link: https://lore.kernel.org/20260831054331.625505-7-anshuman.khandual@arm.com
 Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
 Reviewed-by: David Hildenbrand (Arm) <david@kernel.org>
 Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
@@ -93,23 +93,34 @@ Cc: WANG Xuerui <kernel@xen0n.name>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sh/mm/init.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ arch/sh/mm/init.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/arch/sh/mm/init.c~sh-mm-stop-using-pgd_error
+--- a/arch/sh/mm/init.c~sh-mm-stop-using-_error
 +++ a/arch/sh/mm/init.c
-@@ -52,10 +52,8 @@ static pte_t *__get_pte_phys(unsigned lo
- 	pmd_t *pmd;
- 
- 	pgd = pgd_offset_k(addr);
--	if (pgd_none(*pgd)) {
--		pgd_ERROR(*pgd);
-+	if (pgd_none(*pgd))
- 		return NULL;
--	}
+@@ -59,19 +59,19 @@ static pte_t *__get_pte_phys(unsigned lo
  
  	p4d = p4d_alloc(NULL, pgd, addr);
  	if (unlikely(!p4d)) {
+-		p4d_ERROR(*p4d);
++		pr_err("allocating p4d table failed\n");
+ 		return NULL;
+ 	}
+ 
+ 	pud = pud_alloc(NULL, p4d, addr);
+ 	if (unlikely(!pud)) {
+-		pud_ERROR(*pud);
++		pr_err("allocating pud table failed\n");
+ 		return NULL;
+ 	}
+ 
+ 	pmd = pmd_alloc(NULL, pud, addr);
+ 	if (unlikely(!pmd)) {
+-		pmd_ERROR(*pmd);
++		pr_err("allocating pmd table failed\n");
+ 		return NULL;
+ 	}
+ 
 _
 
 Patches currently in -mm which might be from anshuman.khandual@arm.com are
