@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D62A63264F7
-	for <mm-commits@vger.kernel.org>; Tue,  1 Sep 2026 00:24:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ED3383054E4
+	for <mm-commits@vger.kernel.org>; Tue,  1 Sep 2026 00:24:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788222273; cv=none; b=DccXf8DNiM4QIqDQAMwG4dVNcAwVFOtfyXBxN3ZikbWfinx/sGjYvD+ed5we0KtPSu201o311GEHVWUyxogKK3Hybuc4xNQvHBrBX/fBYz51y4+D1i2w5lTp7dJvB7o3JsFogs1ngb232b66e7ZScTQYnkdK/pKnNgJXQDUkXP4=
+	t=1788222275; cv=none; b=IrWns3FZ+/AvcAzz3kzKaMSC05Y5Gc8egCRb5RERxCssd7tVjx1m//7I1m9NweAvDAatGHR0G5L/7rbM2sxdrca05Gf16Ttu/5V3TgoUuEOCEBi6D6UdQDGMfMTVtL5ZHG2wEDwuhoTjYnaguk98JcZ0yNGAhAKVXp2T82FWzgc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788222273; c=relaxed/simple;
-	bh=3xkECFiWjBdilDKXS3V1BjlW0OKwrKL8M1bqeRC7jfc=;
-	h=Date:To:From:Subject:Message-Id; b=jQjtdvG8jF5Cq/iQu2RBC1WTbw56usIJAA8EK/bUm287ZwvyLm7yzFYuPXKJD3chyUAFzuj/OShiK/kAvxs1QrPRlhc0DQfIi+WG4J9l3RdHTFFHPp9E0rUOCQczalEPzyALMafxMiXf//YJHZ4Ctt6jk2Xp1MG/zvXAOV7VgpI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NvtkWlGm; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788222275; c=relaxed/simple;
+	bh=Xhz7EkDMBk7W5Nu9uvM5F+kml6LCokS2NoQHnsJjScw=;
+	h=Date:To:From:Subject:Message-Id; b=H4pljTcpDgVFeeHLjIUYSmQonUZlSB06csBcGZotrBiXOtuIdhEUDU+Byt0NwqW3+abDPKrMW/JZbQvzg6BekQ4uwnEtdxNPgVPtYDUGI5GBF8YqEaTsR73eiHI3I+6iXsj9GTEa2TrRH8+MWWkS9jz0RW3jD2P6JqP8/eSRbsc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gXeBWJ5o; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NvtkWlGm"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9178F1F000E9;
-	Tue,  1 Sep 2026 00:24:31 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gXeBWJ5o"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B48951F000E9;
+	Tue,  1 Sep 2026 00:24:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788222271;
-	bh=1PsGCYSABrPLvruxTUTKgE1C+aNutgr0NsCwlHhujH0=;
+	d=linux-foundation.org; s=korg; t=1788222273;
+	bh=puU8C/dDowT2YzJBh8hpx5TiQLVQgTTNMfDHDFPctrY=;
 	h=Date:To:From:Subject;
-	b=NvtkWlGmKmKmOy87cKxyhSyp83qbUHTuh1AdWGcc2FCK+GPUP2PsdJgzK605ceFyq
-	 NlW3zVoPf6zhvjUSwNtL6ugHqquhNrgFfHOZpR4ISPFhvEt4+99HfDvrt1m8xJJgvy
-	 ZgkMgxG/m7DOdqdEJYgGmJTyyaUBTswefapFOBOc=
-Date: Mon, 31 Aug 2026 17:24:31 -0700
+	b=gXeBWJ5ou1W4WVaanWMbqdHBq5DGWbmluhKa36EBmJhiFgdaiu3DItnd9fqiZ7n4W
+	 5+/yA+C7Ma0ywS3W1tUeJq/PjRh1atihsdqaSU+XaIEmFet3zal4axOcaWriXVcEex
+	 Ixe1kconu6JOuOuewD7WYF5E/+VW3k/wHzPocxtQ=
+Date: Mon, 31 Aug 2026 17:24:33 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,usama.arif@linux.dev,ryan.roberts@arm.com,ljs@kernel.org,liam@infradead.org,lance.yang@linux.dev,kasong@tencent.com,hughd@google.com,hannes@cmpxchg.org,dev.jain@arm.com,david@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,balbirs@nvidia.com,kas@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-huge_memory-do-not-touch-frozen-folios-in-deferred_split_isolate.patch added to mm-new branch
-Message-Id: <20260901002431.9178F1F000E9@smtp.kernel.org>
+Subject: + mm-huge_memory-dequeue-the-deferred-split-after-the-split-freeze.patch added to mm-new branch
+Message-Id: <20260901002433.B48951F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/huge_memory: do not touch frozen folios in deferred_split_isolate()
+     Subject: mm/huge_memory: dequeue the deferred split after the split freeze
 has been added to the -mm mm-new branch.  Its filename is
-     mm-huge_memory-do-not-touch-frozen-folios-in-deferred_split_isolate.patch
+     mm-huge_memory-dequeue-the-deferred-split-after-the-split-freeze.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-do-not-touch-frozen-folios-in-deferred_split_isolate.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-dequeue-the-deferred-split-after-the-split-freeze.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,151 +70,115 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Kiryl Shutsemau (Meta)" <kas@kernel.org>
-Subject: mm/huge_memory: do not touch frozen folios in deferred_split_isolate()
-Date: Mon, 31 Aug 2026 10:15:13 +0100
+Subject: mm/huge_memory: dequeue the deferred split after the split freeze
+Date: Mon, 31 Aug 2026 10:15:14 +0100
 
-Patch series "Fix deferred_split_isolate() and drop the split workaround",
-v2.
+__folio_freeze_and_split_unmapped() takes the deferred split list_lru lock
+across the freeze.  It is only there to stop deferred_split_scan() from
+touching the folio under split.
 
-deferred_split_isolate() probes each queued folio with folio_try_get(). 
-folio_try_get() failure is treated as a lost race with folio_put().
+With deferred_split_isolate() fixed, the workaround can be dropped.
 
-It leads to wrong results when !folio_try_get() was not caused by
-folio_put(): for a frozen folio, PG_partially_mapped gets wrongfully
-cleared and the folio dropped from the queue.
+Unqueue the folio after folio_ref_freeze(), the way
+__folio_migrate_mapping() does: folio_unqueue_deferred_split() needs a
+zero refcount and a memcg still set, and both hold there.
 
-It came up in the review of my collapse RFC series:
+If the split is called from deferred_split_scan(), the unqueue is a no-op
+-- the folio is already removed from the list.  But PG_partially_mapped is
+still set, so it has to be cleared here or
+MTHP_STAT_NR_ANON_PARTIALLY_MAPPED never comes back down.
 
-  https://lore.kernel.org/all/20260824131224.73344-1-lance.yang@linux.dev/
-
-The bug is inert in upstream code:
-
-  - __folio_split() works around it;
-  - __folio_migrate_mapping() freezes a folio it is about to replace;
-  - reclaim freezes only what try_to_unmap() already unmapped.
-
-No stable@ needed.  But my collapse rework steps on it, so it is worth
-fixing.
-
-The branch the first patch removes also hid an inert, pre-existing bug in
-the zone device path:
-
-  https://lore.kernel.org/all/20260827163838.1813081-1-usama.arif@linux.dev/
-
-The first patch fixes deferred_split_isolate().
-
-The second patch removes the workaround for this deferred_split_isolate()
-behaviour from __folio_freeze_and_split_unmapped().
-
-Tested in a VM: split_huge_page_test, folio_split_race_test and cow pass.
-
-Also ran a test that leaves 16 partially mapped THPs on the deferred split
-queue and drives thp-deferred_split through debugfs, checking
-nr_anon_partially_mapped.
-
-
-This patch (of 2):
-
-deferred_split_isolate() probes each queued folio with folio_try_get(). 
-folio_try_get() failure is treated as a lost race with folio_put(): clear
-PG_partially_mapped, correct MTHP_STAT_NR_ANON_PARTIALLY_MAPPED, take the
-folio off the queue.
-
-The folio_put() race is the most common case for !folio_try_get(), but it
-is not the only option.  Another scenario is folio_ref_freeze().
-
-A zero refcount in such cases does not mean the folio is going away.  It
-means "don't touch me" and current deferred_split_isolate() doesn't
-respect it.  It can lead to unqueueing folios from the deferred list for
-no reason:
-
-    CPU 0                            CPU 1
-    ---------------------------      ------------------------------
-    freeze a mapped folio            deferred_split_scan()
-      folio_ref_freeze()               folio_try_get() fails
-                                       folio_clear_partially_mapped()
-                                       NR_ANON_PARTIALLY_MAPPED--
-                                       folio off the queue
-    give up, put it back
-      folio_ref_unfreeze()
-
-The folio is still partially mapped, but it is no longer a split
-candidate.  Nothing queues it again until part of it is unmapped once
-more.
-
-Skip the folio instead: whoever freezes the folio, owns it and owner is
-responsible for its fate.  It also covers the folio_put() case:
-__folio_put() unqueues the folio via folio_unqueue_deferred_split().
-
-Nothing is lost by skipping.  Everything that frees a queued folio
-unqueues it first, and folio_unqueue_deferred_split() clears
-PG_partially_mapped and brings MTHP_STAT_NR_ANON_PARTIALLY_MAPPED down on
-the way:
-
-    __folio_put(), folios_put_refs()   mm/folio.c
-    __folio_migrate_mapping()          mm/migrate.c
-    shrink_folio_list()                mm/vmscan.c
-
-__folio_freeze_and_split_unmapped() does the same by hand, under the
-list_lru lock it holds across the freeze.  A freeze that ends in
-folio_ref_unfreeze() leaves a folio that is still partially mapped and
-still belongs on the queue.
-
-Link: https://lore.kernel.org/20260831091514.1879786-1-kirill@shutemov.name
-Link: https://lore.kernel.org/20260831091514.1879786-2-kirill@shutemov.name
-Fixes: 8422acdc97ed ("mm: introduce a pageflag for partially mapped folios")
-Signed-off-by: Kiryl Shutsemau (Meta) <kas@kernel.org>
-Reported-by: Lance Yang <lance.yang@linux.dev>
-Closes: https://lore.kernel.org/all/20260824131224.73344-1-lance.yang@linux.dev/
 Assisted-by: Claude-Code:claude-opus-5
+Link: https://lore.kernel.org/20260831091514.1879786-3-kirill@shutemov.name
+Signed-off-by: Kiryl Shutsemau (Meta) <kas@kernel.org>
 Reviewed-by: Zi Yan <ziy@nvidia.com>
 Reviewed-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
 Reviewed-by: Lance Yang <lance.yang@linux.dev>
-Acked-by: Usama Arif <usama.arif@linux.dev>
 Cc: Balbir Singh <balbirs@nvidia.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Barry Song <baohua@kernel.org>
-Cc: David Hildenbrand <david@kernel.org>
 Cc: Dev Jain <dev.jain@arm.com>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: Kairui Song <kasong@tencent.com>
 Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
 Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Usama Arif <usama.arif@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   19 ++++---------------
- 1 file changed, 4 insertions(+), 15 deletions(-)
+ mm/huge_memory.c |   46 +++++++++++++--------------------------------
+ 1 file changed, 14 insertions(+), 32 deletions(-)
 
---- a/mm/huge_memory.c~mm-huge_memory-do-not-touch-frozen-folios-in-deferred_split_isolate
+--- a/mm/huge_memory.c~mm-huge_memory-dequeue-the-deferred-split-after-the-split-freeze
 +++ a/mm/huge_memory.c
-@@ -4638,22 +4638,11 @@ static enum lru_status deferred_split_is
- 	struct folio *folio = container_of(item, struct folio, _deferred_list);
- 	struct list_head *freeable = cb_arg;
+@@ -3979,41 +3979,27 @@ static int __folio_freeze_and_split_unma
+ 	struct folio *end_folio = folio_next(folio);
+ 	struct folio *new_folio, *next;
+ 	int old_order = folio_order(folio);
+-	struct list_lru_one *lru;
+-	bool dequeue_deferred;
+ 	int ret = 0;
  
--	if (folio_try_get(folio)) {
--		list_lru_isolate_move(lru, item, freeable);
--		return LRU_REMOVED;
--	}
-+	/* Lost race to folio_put() or the folio is under folio_ref_freeze() */
-+	if (!folio_try_get(folio))
-+		return LRU_SKIP;
- 
+ 	VM_WARN_ON_ONCE(!mapping && end);
 -	/*
--	 * We lost race with folio_put(). Read folio state before the
--	 * isolate: folio_unqueue_deferred_split() checks list_empty()
--	 * locklessly, so once removed the folio can be freed any time.
+-	 * If this folio can be on the deferred split queue, lock out
+-	 * the shrinker before freezing the ref. If the shrinker sees
+-	 * a 0-ref folio, it assumes it beat folio_put() to the list
+-	 * lock and must clean up the LRU state - the same dequeue we
+-	 * will do below as part of the split.
 -	 */
--	if (folio_test_partially_mapped(folio)) {
--		folio_clear_partially_mapped(folio);
--		mod_mthp_stat(folio_order(folio),
--			      MTHP_STAT_NR_ANON_PARTIALLY_MAPPED, -1);
+-	dequeue_deferred = folio_test_anon(folio) && old_order > 1;
+-	if (dequeue_deferred) {
+-		struct mem_cgroup *memcg;
+-
+-		rcu_read_lock();
+-		memcg = folio_memcg(folio);
+-		lru = list_lru_lock(&deferred_split_lru,
+-				    folio_nid(folio), &memcg);
 -	}
--	list_lru_isolate(lru, item);
-+	list_lru_isolate_move(lru, item, freeable);
- 	return LRU_REMOVED;
- }
++
+ 	if (folio_ref_freeze(folio, folio_cache_ref_count(folio) + 1)) {
+ 		struct swap_cluster_info *ci = NULL;
+ 		struct lruvec *lruvec;
+ 
+-		if (dequeue_deferred) {
+-			__list_lru_del(&deferred_split_lru, lru,
+-				       &folio->_deferred_list, folio_nid(folio));
+-			if (folio_test_partially_mapped(folio)) {
+-				folio_clear_partially_mapped(folio);
+-				mod_mthp_stat(old_order,
+-					MTHP_STAT_NR_ANON_PARTIALLY_MAPPED, -1);
+-			}
+-			list_lru_unlock(lru);
+-			rcu_read_unlock();
++		/* Take off the deferred split queue while frozen and memcg set */
++		folio_unqueue_deferred_split(folio);
++
++		/*
++		 * deferred_split_scan() takes the folio off the queue before it
++		 * splits it, so the unqueue above finds an empty list and
++		 * leaves PG_partially_mapped set.
++		 * Clear it here: the flag does not survive the split.
++		 */
++		if (folio_test_partially_mapped(folio)) {
++			folio_clear_partially_mapped(folio);
++			mod_mthp_stat(old_order,
++				      MTHP_STAT_NR_ANON_PARTIALLY_MAPPED, -1);
+ 		}
+ 
+ 		if (mapping) {
+@@ -4115,10 +4101,6 @@ static int __folio_freeze_and_split_unma
+ 		if (ci)
+ 			swap_cluster_unlock(ci);
+ 	} else {
+-		if (dequeue_deferred) {
+-			list_lru_unlock(lru);
+-			rcu_read_unlock();
+-		}
+ 		return -EAGAIN;
+ 	}
  
 _
 
