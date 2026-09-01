@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7CADC488222
-	for <mm-commits@vger.kernel.org>; Tue,  1 Sep 2026 17:18:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8A01748822D;
+	Tue,  1 Sep 2026 17:22:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788283091; cv=none; b=JBjAo4a5BtJgJLWGtcGaH3pVXwxRmj/GRFu9TuEHLzK5OWLxqWxWY6b4VDOgVjXW+OO04Nk56TDsfSvUMZC8rxEy7tULzwuc5fjd4nZxZNChtM0IyN0gss4qRUZvlt0RQC0+zI7dAPs0FlmFWLRp5QimB91IjTMcvZjiIBUHpF0=
+	t=1788283335; cv=none; b=aSlhPLLEjzMNggro3P86gHKJzVYRHlaIJp/rKT0drO/NIpR/o9HeEitax01p3zEvl/xu3xG+kgGS8CHWPHbVXSYP3vyECrTnD4CTT8qtFweNyu9Orh4XnVjFXciSvvjChel4aSJdYF4CXS6P1h9BOawnAA6tAA5RykN93CQqh7A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788283091; c=relaxed/simple;
-	bh=RRC7BKrn5zyS8bIOjLW7YDGx8FBPYYfiZoZ4lEXY2yw=;
-	h=Date:To:From:Subject:Message-Id; b=lADExfwRZgtv1tTZsX0uwuGBtnG9+XjS5p0yhhylrcNs19HE87OMwoduXqux44i34b22s6GZT92irsm3cPl7ud+Jn+e47FB35ucQJKUNlF8M2q6jzgL1A0H4Jt/HmiFvcOCuZQsX23fPL5L/VNOVuW0uKwNYSemnc7Mmz7mYPB4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oZSFQSVr; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788283335; c=relaxed/simple;
+	bh=9unBUaZaf0htxmKEriMfDuhViwVlkmHR05o3hKR4QXA=;
+	h=Date:To:From:Subject:Message-Id; b=b570m1EWSFxv7bbJ8tVjMIqi1A6e2GsnOY5Ke7XqjvqtDay8lF8VSUNh3gbq6xQmPOvprHjQaotarUHp8Wr6juJ5hLrsbT7tJhNsR+nkOi/E0zl+lKTHzRyPLqlKbgG/a3nPTyjUraQruFCAEpvNYQhSqfxkBhAR3v46QHg0ntY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AHHIJn6m; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oZSFQSVr"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 00FBB1F000E9;
-	Tue,  1 Sep 2026 17:18:09 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AHHIJn6m"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 417221F000E9;
+	Tue,  1 Sep 2026 17:22:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788283090;
-	bh=ztcbKGI1qhF1rPGoQKfY+52O5sVgkGdZGKlEI0rwclE=;
+	d=linux-foundation.org; s=korg; t=1788283333;
+	bh=5VC9Wc33hEadvCsBxhOk95iNrTbUDm1o0XCFT2ShQ+U=;
 	h=Date:To:From:Subject;
-	b=oZSFQSVrUkb3CthogejAZlK+y4muECZTOkrc9de2Jmf0PwJiFxzVi03QOg8NFRD95
-	 srs9x8niCbx+VSE8qcWU3VemZrlIzcrGt+xTX+ZorKOpHS9+x9mLRrPiKdUfxOR/0T
-	 7UtPSh1zzIoMt4b1FOVc7rix4pz3D6R077xPZqEg=
-Date: Tue, 01 Sep 2026 10:18:09 -0700
-To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
+	b=AHHIJn6mjA+B5X4rDkShHuQzhU1Tp1SOJI7MOc4GEa2NNOg7v50O8Njq9aU1KgXnl
+	 5CVUb+Iun9cHAKPr5m5xno0VF1xNownPPFOywTVJex0cRrpererZAwcNqQRU84eNAm
+	 RsVmXOXeNnIUrpqTKcDNaHelabSqihzwzm75KRNA=
+Date: Tue, 01 Sep 2026 10:22:12 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,jlbec@evilplan.org,heming.zhao@suse.com,gechangwei@live.cn,joseph.qi@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + docs-abi-damon-document-probe-prep-sysfs-files.patch added to mm-new branch
-Message-Id: <20260901171810.00FBB1F000E9@smtp.kernel.org>
+Subject: + ocfs2-restrict-ocfs2_invalid_slot-suballoc-slot-to-system-inodes.patch added to mm-nonmm-unstable branch
+Message-Id: <20260901172213.417221F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,26 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: Docs/ABI/damon: document probe prep sysfs files
-has been added to the -mm mm-new branch.  Its filename is
-     docs-abi-damon-document-probe-prep-sysfs-files.patch
+     Subject: ocfs2: restrict OCFS2_INVALID_SLOT suballoc slot to system inodes
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     ocfs2-restrict-ocfs2_invalid_slot-suballoc-slot-to-system-inodes.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-abi-damon-document-probe-prep-sysfs-files.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-restrict-ocfs2_invalid_slot-suballoc-slot-to-system-inodes.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,80 +58,151 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: SJ Park <sj@kernel.org>
-Subject: Docs/ABI/damon: document probe prep sysfs files
-Date: Tue, 1 Sep 2026 06:25:04 -0700
+From: Joseph Qi <joseph.qi@linux.alibaba.com>
+Subject: ocfs2: restrict OCFS2_INVALID_SLOT suballoc slot to system inodes
+Date: Tue, 1 Sep 2026 20:52:18 +0800
 
-Update DAMON ABI document for the newly added DAMON probe prep sysfs
-files.
+Patch series "ocfs2: validate suballoc slot and bit of metadata blocks", v3.
 
-Link: https://lore.kernel.org/20260901132506.99243-18-sj@kernel.org
-Signed-off-by: SJ Park <sj@kernel.org>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Randy Dunlap <rdunlap@infradead.org>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
+The ocfs2 metadata validators trust the on-disk suballoc slot and bit
+without checking them against the slot range of the mounted filesystem and
+the capacity of the block group bitmap.  A corrupted image can carry
+OCFS2_INVALID_SLOT or another out-of-range slot, or a suballoc bit beyond
+the bitmap, and once the corresponding inode, extent block, xattr block,
+dir index root or refcount block gets freed, the bad value goes straight
+into ocfs2_get_system_file_inode() or _ocfs2_free_suballoc_bits() and hits
+a BUG_ON() or runs off the end of local_system_inodes[].
+
+This series rejects such values at read time, in the existing validators,
+so corrupted objects fail with -EROFS (and a read-only remount) instead of
+crashing:
+
+  patch 1 restricts OCFS2_INVALID_SLOT dinodes to system inodes,
+        completing fe7a283b3916 ("ocfs2: add suballoc slot check in
+        ocfs2_validate_inode_block()"), and turns the "system file
+        state is ambiguous" BUG_ON() in ocfs2_read_locked_inode() into
+        an ocfs2_error();
+  patch 2 rejects oversized dinode suballoc bits;
+  patch 3 validates the suballoc slot and bit of xattr and dir index
+        blocks;
+  patch 4 validates the suballoc slot and bit of extent and refcount
+        blocks.
+
+The checks only enforce what the kernel and mkfs.ocfs2 already write: a
+valid slot from meta_ac->ac_alloc_slot and a bit within the block group
+bitmap, with system inodes carrying OCFS2_INVALID_SLOT plus
+OCFS2_SYSTEM_FL and extent blocks using slot 0.  Nothing changes for
+healthy filesystems.
+
+Each new check was exercised under QEMU by corrupting the field in
+question with an out-of-range value; with the series applied the access
+fails with -EROFS and the filesystem remounts read-only instead of hitting
+the BUG_ON().
+
+
+This patch (of 4):
+
+ocfs2_validate_inode_block() currently permits i_suballoc_slot to be
+OCFS2_INVALID_SLOT for any dinode.  Only system inodes created by
+mkfs.ocfs2 are allocated from the global allocator and thus legitimately
+carry this value; regular inodes are always allocated from a per-slot
+suballocator and hence must have a valid slot.
+
+If a corrupted regular inode with OCFS2_INVALID_SLOT is accepted,
+ocfs2_remove_inode() will pass the slot to ocfs2_get_system_file_inode()
+and get_local_system_inode() will hit BUG_ON(slot == OCFS2_INVALID_SLOT)
+when the inode is deleted.  This can be triggered by an unprivileged user
+unlinking such a corrupted file.
+
+Reject OCFS2_INVALID_SLOT for non-system dinodes during validation, while
+still accepting it for system inodes.  Note that a crafted dinode carrying
+OCFS2_SYSTEM_FL passes the check above, yet a plain lookup of it still
+used to BUG() in ocfs2_read_locked_inode() ("system file state is
+ambiguous").  Since i_flags comes from disk, handle that mismatch with
+ocfs2_error() instead of BUG_ON() as well.
+
+Link: https://lore.kernel.org/20260901125221.1634686-1-joseph.qi@linux.alibaba.com
+Link: https://lore.kernel.org/20260901125221.1634686-2-joseph.qi@linux.alibaba.com
+Fixes: fe7a283b3916 ("ocfs2: add suballoc slot check in ocfs2_validate_inode_block()")
+Signed-off-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Heming Zhao <heming.zhao@suse.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Jun Piao <piaojun@huawei.com>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/ABI/testing/sysfs-kernel-mm-damon |   13 +++++++++++++
- 1 file changed, 13 insertions(+)
+ fs/ocfs2/inode.c |   39 +++++++++++++++++++++++++++++----------
+ 1 file changed, 29 insertions(+), 10 deletions(-)
 
---- a/Documentation/ABI/testing/sysfs-kernel-mm-damon~docs-abi-damon-document-probe-prep-sysfs-files
-+++ a/Documentation/ABI/testing/sysfs-kernel-mm-damon
-@@ -173,6 +173,19 @@ Contact:	SJ Park <sj@kernel.org>
- Description:	Writing to and reading from this file sets and gets the
- 		per-probe attribute weight.
+--- a/fs/ocfs2/inode.c~ocfs2-restrict-ocfs2_invalid_slot-suballoc-slot-to-system-inodes
++++ a/fs/ocfs2/inode.c
+@@ -638,14 +638,18 @@ static int ocfs2_read_locked_inode(struc
+ 	fe = (struct ocfs2_dinode *) bh->b_data;
  
-+What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/monitoring_attrs/probes/<P>/preps/nr_preps
-+Date:		Jun 2026
-+Contact:	SJ Park <sj@kernel.org>
-+Description:	Writing a number 'N' to this file creates the number of
-+		directories for each DAMON probing preparation action named '0'
-+		to 'N-1' under the preps/ directory.
-+
-+What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/monitoring_attrs/probes/<P>/preps/<R>/prep_action
-+Date:		Jun 2026
-+Contact:	SJ Park <sj@kernel.org>
-+Description:	Writing to and reading from this file sets and gets the probing
-+		preparation action.
-+
- What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/monitoring_attrs/probes/<P>/filters/nr_filters
- Date:		May 2026
- Contact:	SJ Park <sj@kernel.org>
+ 	/*
+-	 * This is a code bug. Right now the caller needs to
+-	 * understand whether it is asking for a system file inode or
+-	 * not so the proper lock names can be built.
+-	 */
+-	mlog_bug_on_msg(!!(fe->i_flags & cpu_to_le32(OCFS2_SYSTEM_FL)) !=
+-			!!(args->fi_flags & OCFS2_FI_FLAG_SYSFILE),
+-			"Inode %llu: system file state is ambiguous\n",
+-			(unsigned long long)args->fi_blkno);
++	 * The caller must know whether it is asking for a system file inode
++	 * or not so the proper lock names can be built.  Since i_flags comes
++	 * from disk, a mismatch is filesystem corruption instead of a code
++	 * bug, so handle it with ocfs2_error() rather than BUG_ON().
++	 */
++	if (!!(fe->i_flags & cpu_to_le32(OCFS2_SYSTEM_FL)) !=
++	    !!(args->fi_flags & OCFS2_FI_FLAG_SYSFILE)) {
++		status = ocfs2_error(osb->sb,
++				     "Inode %llu: system file state is ambiguous\n",
++				     (unsigned long long)args->fi_blkno);
++		goto bail;
++	}
+ 
+ 	if (S_ISCHR(le16_to_cpu(fe->i_mode)) ||
+ 	    S_ISBLK(le16_to_cpu(fe->i_mode)))
+@@ -1520,8 +1524,23 @@ int ocfs2_validate_inode_block(struct su
+ 		goto bail;
+ 	}
+ 
+-	if (le16_to_cpu(di->i_suballoc_slot) != (u16)OCFS2_INVALID_SLOT &&
+-	    (u32)le16_to_cpu(di->i_suballoc_slot) > OCFS2_SB(sb)->max_slots - 1) {
++	/*
++	 * Only system inodes created by mkfs.ocfs2 are allocated from the
++	 * global allocator and thus legitimately carry OCFS2_INVALID_SLOT.
++	 * Regular inodes are always allocated from a per-slot suballocator.
++	 * If a regular inode with OCFS2_INVALID_SLOT was accepted here,
++	 * deleting it would pass the slot to get_local_system_inode() via
++	 * ocfs2_remove_inode() and trigger BUG_ON(slot == OCFS2_INVALID_SLOT).
++	 */
++	if (le16_to_cpu(di->i_suballoc_slot) == (u16)OCFS2_INVALID_SLOT) {
++		if (!(le32_to_cpu(di->i_flags) & OCFS2_SYSTEM_FL)) {
++			rc = ocfs2_error(sb,
++					 "Invalid dinode %llu: suballoc slot %u for non-system inode\n",
++					 (unsigned long long)bh->b_blocknr,
++					 le16_to_cpu(di->i_suballoc_slot));
++			goto bail;
++		}
++	} else if ((u32)le16_to_cpu(di->i_suballoc_slot) > OCFS2_SB(sb)->max_slots - 1) {
+ 		rc = ocfs2_error(sb, "Invalid dinode %llu: suballoc slot %u\n",
+ 				 (unsigned long long)bh->b_blocknr,
+ 				 le16_to_cpu(di->i_suballoc_slot));
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from joseph.qi@linux.alibaba.com are
 
-mm-damon-core-skip-applying-scheme-if-region-split-for-quota-fails.patch
-mm-damon-paddr-respect-folio-end-for-damos_stat.patch
-mm-damon-paddr-respect-folio-end-for-damos-actions-except-stat.patch
-mm-damon-vaddr-respect-folio-end-for-damos_stat.patch
-mm-damon-vaddr-respect-folio-end-for-damos_migrate_hotcold.patch
-mm-damon-core-handle-extreme-memory-state-in-damon_get_node_mem_bp.patch
-mm-damon-core-handle-extreme-memory-state-in-get_node_memcg_used_bp.patch
-mm-damon-core-handle-extreme-memory-state-in-get_in_active_mem_bp.patch
-mm-damon-core-introduce-damon_filter_type_pgidle_unset.patch
-mm-damon-paddr-support-pgidle_unset-probe-filter-type.patch
-mm-damon-sysfs-support-pgidle_unset-probe-filter-type.patch
-docs-mm-damon-design-document-pgidle_unset-probe-filter-type.patch
-mm-damon-core-introduce-damon_prep-struct.patch
-mm-damon-core-commit-preps.patch
-mm-damon-core-introduce-damon_operations-prep_probes.patch
-mm-damon-paddr-support-damon_prep.patch
-mm-damon-sysfs-implement-preps-directory.patch
-mm-damon-sysfs-implement-preps-nr_preps-file.patch
-mm-damon-sysfs-create-directories-for-nr_preps-writes.patch
-mm-damon-sysfs-implement-prep_action-file.patch
-mm-damon-sysfs-pass-preps-to-damon-core.patch
-selftests-damon-sysfssh-test-probe-prep-sysfs-files.patch
-docs-mm-damon-design-document-probe-preps.patch
-docs-admin-guide-mm-damon-usage-document-probe-preps-sysfs-files.patch
-docs-abi-damon-document-probe-prep-sysfs-files.patch
+ocfs2-fix-deadlock-in-inline-data-truncate-transactions.patch
+ocfs2-exit-recovery-thread-on-mount-error-path.patch
+ocfs2-free-replay-slots-in-ocfs2_recovery_exit.patch
+ocfs2-defer-suballocator-block-group-reclaim-to-workqueue.patch
+ocfs2-restrict-ocfs2_invalid_slot-suballoc-slot-to-system-inodes.patch
+ocfs2-validate-suballoc-bit-during-inode-read.patch
+ocfs2-validate-suballoc-slot-and-bit-of-xattr-and-dir-index-blocks.patch
+ocfs2-validate-suballoc-slot-and-bit-of-extent-and-refcount-blocks.patch
 
