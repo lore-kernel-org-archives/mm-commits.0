@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 316042C3257
-	for <mm-commits@vger.kernel.org>; Tue,  1 Sep 2026 04:37:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4C7C5377A84
+	for <mm-commits@vger.kernel.org>; Tue,  1 Sep 2026 04:49:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788237453; cv=none; b=iSYztfjQiVU7d3nBfb/UDiM2z79WRqvLcNwTrOyrpm/7BNYsNOQ9IhI+/IEruuyqaWKL643kFJBm8s2rlMyFqFZVl4vQ5szBInO8slqZg9v7rJRhjTWhFbjHuEBrB+0w7rwpVxy6iIZZ6tPEl8iOmNDp9dh+p6OlUuCuvXdHZHQ=
+	t=1788238164; cv=none; b=F/Wvu9mtI38mnDe74tQXpHpI/ryK5QStQrR/2RFK6Q7X9b6hjvfhiIavzcgzZZmnxNFeOAx6CTC4bzcTwY6+zIz9tRHDVWngXrKJQw9HUFZj57FZTurIlAYCg3lcn6RWAC7httWM9d4dw7KEN4eJVnZif5a4/QPZ6ZyuyvJQOhU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788237453; c=relaxed/simple;
-	bh=UQMT4DBlHdzy5iMi3a+ry6HO+8TV2bH73Oxj8BnK8rU=;
-	h=Date:To:From:Subject:Message-Id; b=QYwkXTSyRGwA571jJyZHgjI8SKubkzMv92L3KuWcN+Q5ARWpyaS8J5yOoeiPIXzX7ify1WJ744d0bGOGZD4RBTsUbn/R14u095uXIIm44fVZvVBU4N4CQuA6sR4Ms5xjicp2G0G5QAHPZ9fy7OqqKSdx8DpJuhS6wBQcbkh0KBo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZlQ0Frwi; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788238164; c=relaxed/simple;
+	bh=ccz8ePhKO/GHlzX3gtFTAFXxZUwIrvdgzkNHB/6Yw3M=;
+	h=Date:To:From:Subject:Message-Id; b=mnLfoYLhpOiYMNv1zOahePafd6J/OWuaEm3sWA9/oFvLaBdbn74RnZNgvsYZGGYVC9icvaYLCe/czlf9TB1iRlD/GutJcBNkZk5YXq24RRCA5RdqtvZAU9kKzMaGLAOVBZu2WnDAvBlrNa32gu8AvzuoMVoCFA8geSGOmTVKfvU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mH4Y2yBd; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZlQ0Frwi"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9717C1F000E9;
-	Tue,  1 Sep 2026 04:37:31 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mH4Y2yBd"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id ACA941F000E9;
+	Tue,  1 Sep 2026 04:49:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788237451;
-	bh=ScjNEmvUhCVxhyviuh9TljY+TB5SQbr53fYY7F6ATdo=;
+	d=linux-foundation.org; s=korg; t=1788238162;
+	bh=pKk3fmFAiVQdup/yJsug98fgQQsJA9yugZXsoubos6c=;
 	h=Date:To:From:Subject;
-	b=ZlQ0FrwixHzGxg1fi6dB26FSPLA18MpVGbUzxds+vkNPsnF18LDvKDfDF+vmctVH6
-	 KjPxPWaOSV1ZV9ha9C8i0RzBgvjstOmMzDl0Om6FdhNIOw2sa2RCUFPiuDkIW45TjS
-	 Z4XCafeRs7VpJB30ahsFFZhLcwnprAIsk4yAaCbw=
-Date: Mon, 31 Aug 2026 21:37:31 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,viro@zeniv.linux.org.uk,jack@suse.cz,brauner@kernel.org,apopple@nvidia.com,seunguk.shin@arm.com,akpm@linux-foundation.org
+	b=mH4Y2yBdsZZWaFWNiCxTVNdtoczyHRnsDcjl+CAZ9nwxtVpIc6aw+0DmjhDapasan
+	 bB2WybTRDItKY7IFtBMk0rSA06zxpGkApxpBKjB5NjoArxe843U4PLmf6gz4oB8j2K
+	 Unk3P/h64l4VIiOeNycUemjdJ1lXPb5QV2DIDhz4=
+Date: Mon, 31 Aug 2026 21:49:22 -0700
+To: mm-commits@vger.kernel.org,bsingharora@gmail.com,balbirs@nvidia.com,akpm@linux-foundation.org,include@grrlz.net,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + fs-dax-check-zero-or-empty-entry-before-converting-xarray-entry.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260901043731.9717C1F000E9@smtp.kernel.org>
+Subject: + taskstats-fold-the-two-pid-tgid-handlers-into-one.patch added to mm-nonmm-unstable branch
+Message-Id: <20260901044922.ACA941F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: fs/dax: check zero or empty entry before converting xarray entry
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     fs-dax-check-zero-or-empty-entry-before-converting-xarray-entry.patch
+     Subject: taskstats: fold the two pid/tgid handlers into one
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     taskstats-fold-the-two-pid-tgid-handlers-into-one.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-dax-check-zero-or-empty-entry-before-converting-xarray-entry.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/taskstats-fold-the-two-pid-tgid-handlers-into-one.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,138 +58,104 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Seunguk Shin <seunguk.shin@arm.com>
-Subject: fs/dax: check zero or empty entry before converting xarray entry
-Date: Mon, 03 Aug 2026 13:34:55 +0100
+From: Bradley Morgan <include@grrlz.net>
+Subject: taskstats: fold the two pid/tgid handlers into one
+Date: Sat, 1 Aug 2026 22:58:44 +0000
 
-Calling dax_to_folio() with empty entry causes kernel panic below when
-booting a VM with DAX enabled storage.
+cmd_attr_pid() and cmd_attr_tgid() are copy paste.  fold them into one
+handler that takes the attr type and fill function as parameters, same
+pattern as the cpumask fold in 59c0bc949c5e.
 
-This patch checks empty entry before calling dax_to_folio() on
-dax_associate_entry(), dax_disassociate_entry(), and dax_busy_page().
+No functional change.
 
-Commit 98c183a4fccf ("fs/dax: don't disassociate zero page entries") added
-guards in the associate and disassociate paths, but the guards still come
-after dax_to_folio(), and dax_busy_page() still has the same problem.
-
-[    0.737679] EXT4-fs (pmem0p1): mounted filesystem 79676804-7c8b-491a-b2a6-9bae3c72af70 ro with ordered data mode. Quota mode: disabled.
-[    0.737891] VFS: Mounted root (ext4 filesystem) readonly on device 259:1.
-[    0.739119] devtmpfs: mounted
-[    0.739476] Freeing unused kernel memory: 1920K
-[    0.740156] Run /sbin/init as init process
-[    0.740229]   with arguments:
-[    0.740286]     /sbin/init
-[    0.740321]   with environment:
-[    0.740369]     HOME=/
-[    0.740400]     TERM=linux
-[    0.743162] Unable to handle kernel paging request at virtual address fffffdffbf000008
-[    0.743285] Mem abort info:
-[    0.743316]   ESR = 0x0000000096000006
-[    0.743371]   EC = 0x25: DABT (current EL), IL = 32 bits
-[    0.743444]   SET = 0, FnV = 0
-[    0.743489]   EA = 0, S1PTW = 0
-[    0.743545]   FSC = 0x06: level 2 translation fault
-[    0.743610] Data abort info:
-[    0.743656]   ISV = 0, ISS = 0x00000006, ISS2 = 0x00000000
-[    0.743720]   CM = 0, WnR = 0, TnD = 0, TagAccess = 0
-[    0.743785]   GCS = 0, Overlay = 0, DirtyBit = 0, Xs = 0
-[    0.743848] swapper pgtable: 4k pages, 48-bit VAs, pgdp=00000000b9d17000
-[    0.743931] [fffffdffbf000008] pgd=10000000bfa3d403, p4d=10000000bfa3d403, pud=1000000040bfe403, pmd=0000000000000000
-[    0.744070] Internal error: Oops: 0000000096000006 [#1]  SMP
-[    0.748888] CPU: 0 UID: 0 PID: 1 Comm: init Not tainted 6.18.4 #1 NONE
-[    0.749421] pstate: 004000c5 (nzcv daIF +PAN -UAO -TCO -DIT -SSBS BTYPE=--)
-[    0.749969] pc : dax_disassociate_entry.constprop.0+0x20/0x50
-[    0.750444] lr : dax_insert_entry+0xcc/0x408
-[    0.750802] sp : ffff80008000b9e0
-[    0.751083] x29: ffff80008000b9e0 x28: 0000000000000000 x27: 0000000000000000
-[    0.751682] x26: 0000000001963d01 x25: ffff0000004f7d90 x24: 0000000000000000
-[    0.752264] x23: 0000000000000000 x22: ffff80008000bcc8 x21: 0000000000000011
-[    0.752836] x20: ffff80008000ba90 x19: 0000000001963d01 x18: 0000000000000000
-[    0.753407] x17: 0000000000000000 x16: 0000000000000000 x15: 0000000000000000
-[    0.753970] x14: ffffbf3154b9ae70 x13: 0000000000000000 x12: ffffbf3154b9ae70
-[    0.754548] x11: ffffffffffffffff x10: 0000000000000000 x9 : 0000000000000000
-[    0.755122] x8 : 000000000000000d x7 : 000000000000001f x6 : 0000000000000000
-[    0.755707] x5 : 0000000000000000 x4 : 0000000000000000 x3 : fffffdffc0000000
-[    0.756287] x2 : 0000000000000008 x1 : 0000000040000000 x0 : fffffdffbf000000
-[    0.756871] Call trace:
-[    0.757107]  dax_disassociate_entry.constprop.0+0x20/0x50 (P)
-[    0.757592]  dax_iomap_pte_fault+0x4fc/0x808
-[    0.757951]  dax_iomap_fault+0x28/0x30
-[    0.758258]  ext4_dax_huge_fault+0x80/0x2dc
-[    0.758594]  ext4_dax_fault+0x10/0x3c
-[    0.758892]  __do_fault+0x38/0x12c
-[    0.759175]  __handle_mm_fault+0x530/0xcf0
-[    0.759518]  handle_mm_fault+0xe4/0x230
-[    0.759833]  do_page_fault+0x17c/0x4dc
-[    0.760144]  do_translation_fault+0x30/0x38
-[    0.760483]  do_mem_abort+0x40/0x8c
-[    0.760771]  el0_ia+0x4c/0x170
-[    0.761032]  el0t_64_sync_handler+0xd8/0xdc
-[    0.761371]  el0t_64_sync+0x168/0x16c
-[    0.761677] Code: f9453021 f2dfbfe3 cb813080 8b001860 (f9400401)
-[    0.762168] ---[ end trace 0000000000000000 ]---
-[    0.762550] note: init[1] exited with irqs disabled
-[    0.762631] Kernel panic - not syncing: Attempted to kill init! exitcode=0x0000000b
-
-Link: https://lore.kernel.org/m2y0enxtzk.fsf@arm.com
-Fixes: 38607c62b34b ("fs/dax: properly refcount fs dax pages")
-Signed-off-by: Seunguk Shin <seunguk.shin@arm.com>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Reviewed-by: Alistair Popple <apopple@nvidia.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Link: https://lore.kernel.org/20260801225845.23855-1-include@grrlz.net
+Signed-off-by: Bradley Morgan <include@grrlz.net>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Balbir Singh <bsingharora@gmail.com>
+Cc: Balbir Singh <balbirs@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dax.c |    9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ kernel/taskstats.c |   47 ++++++++++---------------------------------
+ 1 file changed, 12 insertions(+), 35 deletions(-)
 
---- a/fs/dax.c~fs-dax-check-zero-or-empty-entry-before-converting-xarray-entry
-+++ a/fs/dax.c
-@@ -480,11 +480,12 @@ static void dax_associate_entry(void *en
- 				unsigned long address, bool shared)
- {
- 	unsigned long size = dax_entry_size(entry), index;
--	struct folio *folio = dax_to_folio(entry);
-+	struct folio *folio;
- 
- 	if (dax_is_zero_entry(entry) || dax_is_empty_entry(entry))
- 		return;
- 
-+	folio = dax_to_folio(entry);
- 	index = linear_page_index(vma, address & ~(size - 1));
- 	if (shared && (folio->mapping || dax_folio_is_shared(folio))) {
- 		if (folio->mapping)
-@@ -505,21 +506,23 @@ static void dax_associate_entry(void *en
- static void dax_disassociate_entry(void *entry, struct address_space *mapping,
- 				bool trunc)
- {
--	struct folio *folio = dax_to_folio(entry);
-+	struct folio *folio;
- 
- 	if (dax_is_zero_entry(entry) || dax_is_empty_entry(entry))
- 		return;
- 
-+	folio = dax_to_folio(entry);
- 	dax_folio_put(folio);
+--- a/kernel/taskstats.c~taskstats-fold-the-two-pid-tgid-handlers-into-one
++++ a/kernel/taskstats.c
+@@ -473,7 +473,8 @@ static size_t taskstats_packet_size(void
+ 	return size;
  }
  
- static struct page *dax_busy_page(void *entry)
+-static int cmd_attr_pid(struct genl_info *info)
++static int cmd_attr_pid_tgid(struct genl_info *info, int attr,
++			     int (*fill)(pid_t, struct taskstats *))
  {
--	struct folio *folio = dax_to_folio(entry);
-+	struct folio *folio;
+ 	struct taskstats *stats;
+ 	struct sk_buff *rep_skb;
+@@ -488,41 +489,15 @@ static int cmd_attr_pid(struct genl_info
+ 		return rc;
  
- 	if (dax_is_zero_entry(entry) || dax_is_empty_entry(entry))
- 		return NULL;
+ 	rc = -EINVAL;
+-	pid = nla_get_u32(info->attrs[TASKSTATS_CMD_ATTR_PID]);
+-	stats = mk_reply(rep_skb, TASKSTATS_TYPE_PID, pid);
++	pid = nla_get_u32(info->attrs[attr]);
++	stats = mk_reply(rep_skb,
++			 attr == TASKSTATS_CMD_ATTR_PID
++				? TASKSTATS_TYPE_PID : TASKSTATS_TYPE_TGID,
++			 pid);
+ 	if (!stats)
+ 		goto err;
  
-+	folio = dax_to_folio(entry);
- 	if (folio_ref_count(folio) - folio_mapcount(folio))
- 		return &folio->page;
+-	rc = fill_stats_for_pid(pid, stats);
+-	if (rc < 0)
+-		goto err;
+-	return send_reply(rep_skb, info);
+-err:
+-	nlmsg_free(rep_skb);
+-	return rc;
+-}
+-
+-static int cmd_attr_tgid(struct genl_info *info)
+-{
+-	struct taskstats *stats;
+-	struct sk_buff *rep_skb;
+-	size_t size;
+-	u32 tgid;
+-	int rc;
+-
+-	size = taskstats_packet_size();
+-
+-	rc = prepare_reply(info, TASKSTATS_CMD_NEW, &rep_skb, size);
+-	if (rc < 0)
+-		return rc;
+-
+-	rc = -EINVAL;
+-	tgid = nla_get_u32(info->attrs[TASKSTATS_CMD_ATTR_TGID]);
+-	stats = mk_reply(rep_skb, TASKSTATS_TYPE_TGID, tgid);
+-	if (!stats)
+-		goto err;
+-
+-	rc = fill_stats_for_tgid(tgid, stats);
++	rc = fill(pid, stats);
+ 	if (rc < 0)
+ 		goto err;
+ 	return send_reply(rep_skb, info);
+@@ -542,9 +517,11 @@ static int taskstats_user_cmd(struct sk_
+ 					TASKSTATS_CMD_ATTR_DEREGISTER_CPUMASK,
+ 					DEREGISTER);
+ 	else if (info->attrs[TASKSTATS_CMD_ATTR_PID])
+-		return cmd_attr_pid(info);
++		return cmd_attr_pid_tgid(info, TASKSTATS_CMD_ATTR_PID,
++					 fill_stats_for_pid);
+ 	else if (info->attrs[TASKSTATS_CMD_ATTR_TGID])
+-		return cmd_attr_tgid(info);
++		return cmd_attr_pid_tgid(info, TASKSTATS_CMD_ATTR_TGID,
++					 fill_stats_for_tgid);
  	else
+ 		return -EINVAL;
+ }
 _
 
-Patches currently in -mm which might be from seunguk.shin@arm.com are
+Patches currently in -mm which might be from include@grrlz.net are
 
-fs-dax-check-zero-or-empty-entry-before-converting-xarray-entry.patch
+taskstats-fold-the-two-pid-tgid-handlers-into-one.patch
 
