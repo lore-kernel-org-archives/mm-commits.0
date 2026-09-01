@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6EFF3489875
-	for <mm-commits@vger.kernel.org>; Tue,  1 Sep 2026 17:22:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 354B2481253;
+	Tue,  1 Sep 2026 17:29:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788283342; cv=none; b=TBbAk1R8Q5HZeeFKVIW0gGmIMeq4w/BExEk4QicboOPf0G4ucoGIvHS9G4RdEXYWl84HS9LPc4vJoGuQ1Z/E/rUlZuJKiG6Y9Owp43bmpW0P+2gYYtPNxNllis2r0xDPmv2KJpFjJpb8xxT04crC9ff0INcMdRwsVklwejGj2z0=
+	t=1788283796; cv=none; b=PsxcnDeOzrsEI2mlObh2GXMHGrkvu9Za2GiKrNoQM5PYg+V/ZKa7llyANrwcGSD9VpN2zivc74znxCtxEVcRu6otCZmFP4iZ0Wu6HaMsB1RqfaBDHosYbLw+Nf6JP2QUfrm4Hw2ZwpnGz+vskH4N+krI4mBQT5ZyWfKyiwx5QKM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788283342; c=relaxed/simple;
-	bh=vt3wT2/l64xyctjGXDSHJCI+6sDqQmxWUGtgDTz23F4=;
-	h=Date:To:From:Subject:Message-Id; b=Bdtm3KQ/+MAkXJFGit0kdS2mNbIOszqnS0sp6I5SSR9uM0cXLfsPsVEe8eVAol70UY1uDlRJVnogyWfLYDHxuyxpkg3Qgr1B5XF7n3+wJKgd68isSVxkSO0hkBo46rO5G7Hq84HWE8krw6cI0HxFYv+CYuBC2O1cKDFJP0ZYNy4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RWeM6tpO; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788283796; c=relaxed/simple;
+	bh=XgAgMt83WR5JZmohgcgxN/eKWPWoNP6kK5bWy+ejKv8=;
+	h=Date:To:From:Subject:Message-Id; b=tf9qZfAVSi/7e3NMvsT8inDReWwDNYuwDaWMxR7onNtF95t2xrY0FE4S52hiDjg4OVurrJ9lfVq9ZVDTjQh2X6+cJG83Y0We4GknhrSSUqcYfu1O+HT1clXicsqab972U/ENiMkI05eofqQMuxfL+mrT59Rz/1voE+JCJqkX83E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=C4YXJSOt; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RWeM6tpO"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 01A601F000E9;
-	Tue,  1 Sep 2026 17:22:20 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="C4YXJSOt"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BB3251F000E9;
+	Tue,  1 Sep 2026 17:29:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788283341;
-	bh=h2TfiakfQuRPsxt14o+19TnNDJorsBihJWaIccZL7FA=;
+	d=linux-foundation.org; s=korg; t=1788283794;
+	bh=jvm/HKiMmeJIdMrMJyMkbzF2E1iHezjHutK+RooSl8U=;
 	h=Date:To:From:Subject;
-	b=RWeM6tpOqMGQQV0Z28WcsY20mpRkYB2zFvIb4SpLVrSuWZsT3f0QOkvgqDUg3tLEk
-	 JAAjIEjm9YN40yylM1IOo1dH+b4hwoSRc+lVE6hd8c1sslQ4xasvr4rE9l+DwgLkZq
-	 M2wuPF+fEXdNHtlShEb78WF7PHgHlOA2D2YpiNeg=
-Date: Tue, 01 Sep 2026 10:22:20 -0700
-To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,jlbec@evilplan.org,heming.zhao@suse.com,gechangwei@live.cn,joseph.qi@linux.alibaba.com,akpm@linux-foundation.org
+	b=C4YXJSOt0oUXpWO7CqxPJILPUAoFXX8HMj3oMjMY9Gl+CvmirAa8SfINoa0/us94+
+	 PXiEu4SDr1tabvlrw4CVmEYI7AWchpoy205/hOTzUwfaHlGoIrITskPGjKgyg7EX9W
+	 o35m4Kxr3fgUy8O3uCJnM+Hxw9ph/EoSHxs3hAX8=
+Date: Tue, 01 Sep 2026 10:29:54 -0700
+To: mm-commits@vger.kernel.org,xlpang@linux.alibaba.com,stable@vger.kernel.org,songmuchun@bytedance.com,shakeel.butt@linux.dev,roman.gushchin@linux.dev,mkoutny@suse.com,mhocko@suse.com,lance.yang@linux.dev,hannes@cmpxchg.org,david@kernel.org,david@fromorbit.com,baolin.wang@linux.alibaba.com,qinyuntan@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + ocfs2-validate-suballoc-slot-and-bit-of-extent-and-refcount-blocks.patch added to mm-nonmm-unstable branch
-Message-Id: <20260901172221.01A601F000E9@smtp.kernel.org>
+Subject: + mm-list_lru-dont-copy-stale-shrinker-id-from-non-memcg-aware-shrinkers.patch added to mm-new branch
+Message-Id: <20260901172954.BB3251F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,26 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: ocfs2: validate suballoc slot and bit of extent and refcount blocks
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     ocfs2-validate-suballoc-slot-and-bit-of-extent-and-refcount-blocks.patch
+     Subject: mm/list_lru: don't copy stale shrinker id from non-memcg-aware shrinkers
+has been added to the -mm mm-new branch.  Its filename is
+     mm-list_lru-dont-copy-stale-shrinker-id-from-non-memcg-aware-shrinkers.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-validate-suballoc-slot-and-bit-of-extent-and-refcount-blocks.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-list_lru-dont-copy-stale-shrinker-id-from-non-memcg-aware-shrinkers.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,158 +69,87 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Joseph Qi <joseph.qi@linux.alibaba.com>
-Subject: ocfs2: validate suballoc slot and bit of extent and refcount blocks
-Date: Tue, 1 Sep 2026 20:52:21 +0800
+From: Qinyun Tan <qinyuntan@linux.alibaba.com>
+Subject: mm/list_lru: don't copy stale shrinker id from non-memcg-aware shrinkers
+Date: Tue, 1 Sep 2026 19:51:04 +0800
 
-ocfs2_validate_extent_block() and ocfs2_validate_refcount_block() do not
-validate h_suballoc_slot, h_suballoc_bit, rf_suballoc_slot and
-rf_suballoc_bit at all.  Since extent blocks and refcount blocks are
-allocated from a per-slot suballocator at runtime, their suballoc slots
-must be within range and their suballoc bits must fit in a block group
-bitmap.
+With cgroup.memory=nokmem, shrinker_memcg_alloc() fails with -ENOSYS for
+shrinkers without SHRINKER_NONSLAB, and shrinker_alloc() falls back to a
+non-memcg-aware shrinker.  On this fallback path, shrinker->id is never
+assigned and keeps 0 from kzalloc(), which is a valid id belonging to
+whichever memcg-aware shrinker registers first.
 
-Otherwise a corrupted image can carry an out-of-range slot.  When the
-extent block is freed, ocfs2_cache_extent_block_free() caches it and
-ocfs2_free_cached_blocks() later passes the unvalidated slot to
-ocfs2_get_system_file_inode(); when the refcount block is freed,
-ocfs2_remove_refcount_extent() passes it via ocfs2_cache_block_dealloc(). 
-get_local_system_inode() will then either hit BUG_ON(slot ==
-OCFS2_INVALID_SLOT) or compute an out-of-bounds index into the
-local_system_inodes array.  Similarly an oversized suballoc bit will error
-out the filesystem in _ocfs2_free_suballoc_bits().
+__list_lru_init() copies shrinker->id unconditionally, so every list_lru
+backed by such a fallback shrinker (thp-deferred_split, zswap-shrinker,
+workingset shadow nodes, superblock lrus, ...) ends up with
+lru->shrinker_id == 0 instead of -1.
 
-Furthermore group descriptor validation only guarantees bg_bits within the
-physical bitmap size, so a corrupted image can still carry a suballoc bit
-beyond bg_bits, which would let ocfs2_block_group_clear_bits() clear bits
-beyond bg_bitmap.  Convert the remaining BUG_ON against group->bg_bits in
-_ocfs2_free_suballoc_bits() to ocfs2_error() as well.
+Under nokmem the list_lru collapses to the shared per-node lists, but
+__list_lru_add() still calls set_shrinker_bit() against the memcg of the
+added object.  Most list_lru users are unaffected because their objects
+resolve to a NULL memcg without kmem accounting, but the THP deferred
+split queue holds user folios, which are charged regardless of nokmem. 
+Since no memcg-aware shrinker can register under nokmem, shrinker_nr_max
+stays 0 and every memcg's shrinker_info has map_nr_max == 0, so the first
+folio added by khugepaged triggers on every boot:
 
-Reject out-of-range suballoc slots and oversized suballoc bits during
-validation.
+  WARNING: mm/shrinker.c:212 at set_shrinker_bit+0x99/0xa0
 
-Link: https://lore.kernel.org/20260901125221.1634686-5-joseph.qi@linux.alibaba.com
-Signed-off-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Jun Piao <piaojun@huawei.com>
-Cc: Heming Zhao <heming.zhao@suse.com>
+On systems where a SHRINKER_NONSLAB shrinker (btrfs, xfs) did register and
+expand the maps, there is no warning; instead bit 0 is set spuriously for
+an unrelated shrinker.
+
+shrinker->id is only meaningful while SHRINKER_MEMCG_AWARE is set, and all
+readers inside mm/shrinker.c already check the flag before using the id. 
+Make __list_lru_init() do the same and fall back to -1, so
+set_shrinker_bit() is never reached with a bogus id.  The stale
+shrinker->id itself is left as is; cleaning that up is a separate topic.
+
+Verified on a machine booting with cgroup.memory=nokmem and
+CONFIG_TRANSPARENT_HUGEPAGE=y: the warning fires once per boot from
+khugepaged, disappears when nokmem is removed from the command line, and
+no longer triggers with this fix applied and nokmem set.
+
+Link: https://lore.kernel.org/20260901115104.2944996-1-qinyuntan@linux.alibaba.com
+Fixes: 03375203e1da8 ("mm: do not allocate shrinker info with cgroup.memory=nokmem")
+Signed-off-by: Qinyun Tan <qinyuntan@linux.alibaba.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Muchun Song <songmuchun@bytedance.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Lance Yang <lance.yang@linux.dev>
+Cc: Michal Koutný <mkoutny@suse.com>
+Cc: Xunlei Pang <xlpang@linux.alibaba.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/alloc.c        |   27 +++++++++++++++++++++++++++
- fs/ocfs2/refcounttree.c |   27 +++++++++++++++++++++++++++
- fs/ocfs2/suballoc.c     |   15 ++++++++++++++-
- 3 files changed, 68 insertions(+), 1 deletion(-)
+ mm/list_lru.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
---- a/fs/ocfs2/alloc.c~ocfs2-validate-suballoc-slot-and-bit-of-extent-and-refcount-blocks
-+++ a/fs/ocfs2/alloc.c
-@@ -925,6 +925,33 @@ static int ocfs2_validate_extent_block(s
- 		goto bail;
- 	}
+--- a/mm/list_lru.c~mm-list_lru-dont-copy-stale-shrinker-id-from-non-memcg-aware-shrinkers
++++ a/mm/list_lru.c
+@@ -666,7 +666,12 @@ int __list_lru_init(struct list_lru *lru
+ 	int i;
  
+ #ifdef CONFIG_MEMCG
+-	if (shrinker)
 +	/*
-+	 * Extent blocks are allocated from a per-slot suballocator, so the
-+	 * slot must be in range.  Otherwise freeing the block passes it to
-+	 * get_local_system_inode(), which hits BUG_ON() for
-+	 * OCFS2_INVALID_SLOT or computes an out-of-bounds index otherwise.
++	 * If the shrinker fell back to being non-memcg-aware (e.g. with
++	 * cgroup.memory=nokmem), its id was never assigned and holds a
++	 * stale 0. Don't let set_shrinker_bit() act on it.
 +	 */
-+	if ((u32)le16_to_cpu(eb->h_suballoc_slot) >= OCFS2_SB(sb)->max_slots) {
-+		rc = ocfs2_error(sb,
-+				 "Extent block #%llu has an invalid h_suballoc_slot of %u\n",
-+				 (unsigned long long)bh->b_blocknr,
-+				 le16_to_cpu(eb->h_suballoc_slot));
-+		goto bail;
-+	}
-+
-+	/*
-+	 * Similarly the suballoc bit must fit in a block group bitmap.
-+	 * Otherwise freeing the block will pass the oversized bit to
-+	 * _ocfs2_free_suballoc_bits() and trigger ocfs2_error() there.
-+	 */
-+	if (le16_to_cpu(eb->h_suballoc_bit) >= ocfs2_suballoc_bits_per_block(sb)) {
-+		rc = ocfs2_error(sb,
-+				 "Extent block #%llu has an invalid h_suballoc_bit of %u\n",
-+				 (unsigned long long)bh->b_blocknr,
-+				 le16_to_cpu(eb->h_suballoc_bit));
-+		goto bail;
-+	}
-+
- 	if (le16_to_cpu(eb->h_list.l_count) != ocfs2_extent_recs_per_eb(sb)) {
- 		rc = ocfs2_error(sb,
- 				 "Extent block #%llu has invalid l_count %u (expected %u)\n",
---- a/fs/ocfs2/refcounttree.c~ocfs2-validate-suballoc-slot-and-bit-of-extent-and-refcount-blocks
-+++ a/fs/ocfs2/refcounttree.c
-@@ -118,6 +118,33 @@ static int ocfs2_validate_refcount_block
- 	}
- 
- 	/*
-+	 * Refcount blocks are allocated from a per-slot suballocator, so the
-+	 * slot must be in range.  Otherwise freeing the block passes it to
-+	 * get_local_system_inode(), which hits BUG_ON() for
-+	 * OCFS2_INVALID_SLOT or computes an out-of-bounds index otherwise.
-+	 */
-+	if ((u32)le16_to_cpu(rb->rf_suballoc_slot) >= OCFS2_SB(sb)->max_slots) {
-+		rc = ocfs2_error(sb,
-+				 "Refcount block #%llu has an invalid rf_suballoc_slot of %u\n",
-+				 (unsigned long long)bh->b_blocknr,
-+				 le16_to_cpu(rb->rf_suballoc_slot));
-+		goto out;
-+	}
-+
-+	/*
-+	 * Similarly the suballoc bit must fit in a block group bitmap.
-+	 * Otherwise freeing the block will pass the oversized bit to
-+	 * _ocfs2_free_suballoc_bits() and trigger ocfs2_error() there.
-+	 */
-+	if (le16_to_cpu(rb->rf_suballoc_bit) >= ocfs2_suballoc_bits_per_block(sb)) {
-+		rc = ocfs2_error(sb,
-+				 "Refcount block #%llu has an invalid rf_suballoc_bit of %u\n",
-+				 (unsigned long long)bh->b_blocknr,
-+				 le16_to_cpu(rb->rf_suballoc_bit));
-+		goto out;
-+	}
-+
-+	/*
- 	 * rf_records (rl_count/rl_used/rl_recs[]) is only meaningful when
- 	 * this block is not an interior tree block (OCFS2_REFCOUNT_TREE_FL);
- 	 * in that case the same union bytes hold an extent list (rf_list)
---- a/fs/ocfs2/suballoc.c~ocfs2-validate-suballoc-slot-and-bit-of-extent-and-refcount-blocks
-+++ a/fs/ocfs2/suballoc.c
-@@ -3070,7 +3070,20 @@ static int _ocfs2_free_suballoc_bits(han
- 	}
- 	group = (struct ocfs2_group_desc *) group_bh->b_data;
- 
--	BUG_ON((count + start_bit) > le16_to_cpu(group->bg_bits));
-+	/*
-+	 * Group descriptor validation only guarantees bg_bits within the
-+	 * physical bitmap size, so double check the freeing range here.
-+	 * Otherwise ocfs2_block_group_clear_bits() would clear bits beyond
-+	 * bg_bitmap.
-+	 */
-+	if ((count + start_bit) > le16_to_cpu(group->bg_bits)) {
-+		status = ocfs2_error(alloc_inode->i_sb,
-+				     "Group descriptor #%llu has %u bits, cannot free bits %u+%u\n",
-+				     (unsigned long long)le64_to_cpu(group->bg_blkno),
-+				     le16_to_cpu(group->bg_bits),
-+				     count, start_bit);
-+		goto bail;
-+	}
- 
- 	if (ocfs2_is_cluster_bitmap(alloc_inode))
- 		old_bg_contig_free_bits = group->bg_contig_free_bits;
++	if (shrinker && (shrinker->flags & SHRINKER_MEMCG_AWARE))
+ 		lru->shrinker_id = shrinker->id;
+ 	else
+ 		lru->shrinker_id = -1;
 _
 
-Patches currently in -mm which might be from joseph.qi@linux.alibaba.com are
+Patches currently in -mm which might be from qinyuntan@linux.alibaba.com are
 
-ocfs2-fix-deadlock-in-inline-data-truncate-transactions.patch
-ocfs2-exit-recovery-thread-on-mount-error-path.patch
-ocfs2-free-replay-slots-in-ocfs2_recovery_exit.patch
-ocfs2-defer-suballocator-block-group-reclaim-to-workqueue.patch
-ocfs2-restrict-ocfs2_invalid_slot-suballoc-slot-to-system-inodes.patch
-ocfs2-validate-suballoc-bit-during-inode-read.patch
-ocfs2-validate-suballoc-slot-and-bit-of-xattr-and-dir-index-blocks.patch
-ocfs2-validate-suballoc-slot-and-bit-of-extent-and-refcount-blocks.patch
+mm-list_lru-dont-copy-stale-shrinker-id-from-non-memcg-aware-shrinkers.patch
 
