@@ -1,108 +1,141 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6EDE0306776
-	for <mm-commits@vger.kernel.org>; Tue,  1 Sep 2026 06:13:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 93861485CF9;
+	Tue,  1 Sep 2026 17:10:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788243228; cv=none; b=Xe0rf5MgKlm8o2ZgHPG3dCbOcYHCns+4NxDBWy8W6IUGtKiQezb/JzTGwjVYPmxXXjrEAbXK4xJm/jMF7HA/0B9RjKH4uesvg3HbrtHj6qJmcktCDh+oW6qqq0P+/BTN2lq8lt8qSmdpebBlHqoEsq4+48i1Q4pTi9F42gHGp5k=
+	t=1788282636; cv=none; b=UmJMDqHntr34/FZ018ObI/ZOBmS+0wtucN0tjWf2HHOAcqd2wINZHqL76bLE1rqs1fLAhqerKxMfKXk84mvnkUqULY9Lk/2m39QE4N7JH/gRwyjFJPVVtykiW7IfUjWcAPspHjNaXbuBNlLlmr9ikZ6uYdewpiEAnmBs8gklenw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788243228; c=relaxed/simple;
-	bh=sHXHnXfL+q9gS0pEHqw88Z8Fs3j7NJALVvyZ115ZvSU=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=WymRYrutmaH6XhlCH9TPjNjOBZf50O329n6pITm78lwe37F6CKtkQJAYBbCqYTGBTesZeei78Clr2mKyICbBO5iHQP2H8AVeIx/5N+gMzEGqgtSu9A7QQ2Zt2d5SY/zLy/Ab/SZzrDo5ABJ5MB1oHA25jq/wC9m1Itk+rFj6DYE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=JyJ+BXPP; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788282636; c=relaxed/simple;
+	bh=e4VrAREP5Sy/PF/J26FL2/2kxqpM8gdomdLbq5y4nbY=;
+	h=Date:To:From:Subject:Message-Id; b=U1LfMP7JACeYfQR2iOhT+HMRsLnFerz8ixAiUgvZhedW5Vesdb0i45xxIgPGJvW67q17xc9tuWXAz/W7n3cITC4n1/JV9p2SYKRzPhwzlXFvMeHS7lj6jtbJOQd/urikQxoP6zM92YG1xkKQorBxdTWCbpVqi++IXkGb/+t3h4w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vliEwh3V; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="JyJ+BXPP"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 470EB1F000E9;
-	Tue,  1 Sep 2026 06:13:46 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1788243226;
-	bh=adTR2P64EFni8ZOZywKDurp8df9Iq2ppJ5M7V4Fyra0=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=JyJ+BXPPCoo282jxpZjefVV0JmiR7gzzA0nu5hdAxKJRb/x9QRlXRWAchl6EnE+J9
-	 0VWPJYuFy4mu0yCGNSklTvdDUsU+7CyWN30bSftoEECV4J0EpitkbmzobS2ZhlSDvC
-	 ThlhfEFv2G0AA8XUagl2Br9ExBBSmvXnV3qjp2lh2KLuhBXR70AS+XPysU5znyCQ48
-	 eNwU2G4UR9SgtGl+auy1GHIJY8kvWSlPN5UNBT8M/fwcPe9Nsp+LkBoll6PWx8LNgw
-	 e+IlXGnqCFW1VLn2DX0bM2UIy10bHPDgreucD2qB7YBbEl6ibwQpcanA//jJsAzZFO
-	 /8pvOXxG6QPHg==
-From: SJ Park <sj@kernel.org>
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: SJ Park <sj@kernel.org>,
-	mm-commits@vger.kernel.org,
-	vbabka@kernel.org,
-	surenb@google.com,
-	rppt@kernel.org,
-	rdunlap@infradead.org,
-	mhocko@suse.com,
-	ljs@kernel.org,
-	liam@infradead.org,
-	david@kernel.org,
-	corbet@lwn.net,
-	gutierrez.asier@huawei-partners.com
-Subject: Re: + mm-damon-introduce-damos_quota_hugepage-auto-tuning.patch added to mm-new branch
-Date: Mon, 31 Aug 2026 23:13:38 -0700
-Message-ID: <20260901061339.117806-1-sj@kernel.org>
-X-Mailer: git-send-email 2.47.3
-In-Reply-To: <20260831232424.6C29F1F000E9@smtp.kernel.org>
-References: 
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vliEwh3V"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3524C1F00A3E;
+	Tue,  1 Sep 2026 17:10:34 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=linux-foundation.org; s=korg; t=1788282634;
+	bh=w0abYA/bmK0V38SSzNG6SEcg0ldYgeumE42k73Qp3nY=;
+	h=Date:To:From:Subject;
+	b=vliEwh3Vdy2L2JAcLCuMc6mS5k2eLbBtoic+VO34aWgs/dqAXPlH9AFx8Wc5LQnOZ
+	 4mmslW65YQTrR3/rulDvD6AeaWsc197BwfqzyvKCiGVgxrhZbYGLmwTn40JbUC/m/F
+	 CP+YK+o5inmUnrVXj0IzTxQtE/T78ZIkR0iHOH78=
+Date: Tue, 01 Sep 2026 10:10:33 -0700
+To: mm-commits@vger.kernel.org,usamaarif642@gmail.com,stable@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: + mm-damon-core-skip-applying-scheme-if-region-split-for-quota-fails.patch added to mm-new branch
+Message-Id: <20260901171034.3524C1F00A3E@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-
-Hello Andrew,
-
-On Mon, 31 Aug 2026 16:24:24 -0700 Andrew Morton <akpm@linux-foundation.org> wrote:
-
-> 
-> The patch titled
->      Subject: mm/damon: introduce DAMOS_QUOTA_HUGEPAGE auto tuning
-> has been added to the -mm mm-new branch.  Its filename is
->      mm-damon-introduce-damos_quota_hugepage-auto-tuning.patch
-[...]
-> This patch (of 3):
-> 
-> Introduce DAMOS_QUOTA_HUGEPAGE_MEM_BP auto tuning.  Add a new DAMOS quota
-> goal metric to measure the amount of huge page consumption to total memory
-> consumption ratio.
-> 
-> Vmstat may lag, which in some cases may lead to NR_FREE_PAGES being
-> greater than or equal to the amount of RAM in the system.  A guard is
-> added to avoid the extremely unlikely case [6].  In the case, return 100%
-> (10000 bp).
-> 
-> Link: https://lore.kernel.org/20260831144732.80910-1-sj@kernel.org
-> Link: https://lore.kernel.org/20260831144732.80910-2-sj@kernel.org
-> Link: https://dl.acm.org/doi/pdf/10.1145/3307650.3322227 [1]
-> Link: https://lore.kernel.org/e67f05ad-dbb9-45e6-ba30-b167a99ac67d@huawei-partners.com [2]
-> Link: https://lore.kernel.org/20260616150316.580819-3-gutierrez.asier@huawei-partners.com [3]
-> Link: https://github.com/asierHuawei/damo/commit/79ae1a4ab1c012a7161db85a000d14f08fa36736 [4]
-> Link: https://lore.kernel.org/all/03f678dd-9ef3-4b97-b753-c2e4554c5159@huawei-partners.com/ [5]
-> Link: https://lore.kernel.org/all/20260715151615.99767-1-sj@kernel.org/ [6]
-> Signed-off-by: Asier Gutierrez <gutierrez.asier@huawei-partners.com>
-> Signed-off-by: SJ Park <sj@kernel.org>
-> Reviewed-by: SJ Park <sj@kernel.org>
-> Cc: David Hildenbrand <david@kernel.org>
-> Cc: Jonathan Corbet <corbet@lwn.net>
-> Cc: Liam R. Howlett <liam@infradead.org>
-> Cc: Lorenzo Stoakes <ljs@kernel.org>
-> Cc: Michal Hocko <mhocko@suse.com>
-> Cc: Mike Rapoport <rppt@kernel.org>
-> Cc: Randy Dunlap <rdunlap@infradead.org>
-> Cc: Suren Baghdasaryan <surenb@google.com>
-> Cc: Vlastimil Babka <vbabka@kernel.org>
-> 
-> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-
-Seems an empty line before your S-o-b: line is accidentally added.  Could we
-remove that?
 
 
-Thanks,
-SJ
+The patch titled
+     Subject: mm/damon/core: skip applying scheme if region split for quota fails
+has been added to the -mm mm-new branch.  Its filename is
+     mm-damon-core-skip-applying-scheme-if-region-split-for-quota-fails.patch
 
-[...]
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-skip-applying-scheme-if-region-split-for-quota-fails.patch
+
+This patch will later appear in the mm-new branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
+
+------------------------------------------------------
+From: SJ Park <sj@kernel.org>
+Subject: mm/damon/core: skip applying scheme if region split for quota fails
+Date: Tue, 1 Sep 2026 06:18:42 -0700
+
+Patch series "mm/damon: fix DAMOS bugs in core, paddr and vaddr".
+
+Fix misc bugs of DAMOS.  Patch 1 makes DAMOS less stress memory allocator
+under extreme situation.  Patches 2 and 3 fix wrong folios walking in
+DAMON_PADDR.  Patches 4 and 5 fix wrong folios walking in DAMON_VADDR. 
+Patches 6-8 handle extreme and unlikely memory situations that can cause
+divide by zero and underflow.
+
+All bugs are discovered by Sashiko.
+
+
+This patch (of 8):
+
+damos_apply_scheme() splits a region and apply the action to the subregion
+if it is needed for not violating the quota.  The split operation
+(damon_split_region_at()) could fail for allocation failure.  In the case,
+the quota could be violated.  From the user's perspective, DAMOS becomes
+more aggressive than expected under the extreme situation.  Handle the
+failure.
+
+The user impact is not critical.  The failure of damon_split_region_at()
+is unlikely since it is arguably too small to fail.  Also DAMOS being
+aggressive is limited to the single region.  Users can set min_nr_regions
+to set the maximum size of each region.  If it is reasonably set, the
+transient overhead shouldn't be critical.
+
+The issue was discovered [1] by Sashiko.
+
+Link: https://lore.kernel.org/20260901131850.98037-1-sj@kernel.org
+Link: https://lore.kernel.org/20260901131850.98037-2-sj@kernel.org
+Link: https://lore.kernel.org/20260718171523.87547-1-sj@kernel.org [1]
+Fixes: 2b8a248d5873 ("mm/damon/schemes: implement size quota for schemes application speed control")
+Signed-off-by: SJ Park <sj@kernel.org>
+Cc: Usama Arif <usamaarif642@gmail.com>
+Cc: <stable@vger.kernel.org> # 5.16.x
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ mm/damon/core.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+--- a/mm/damon/core.c~mm-damon-core-skip-applying-scheme-if-region-split-for-quota-fails
++++ a/mm/damon/core.c
+@@ -2604,7 +2604,8 @@ static void damos_apply_scheme(struct da
+ 					c->min_region_sz);
+ 			if (!sz)
+ 				goto update_stat;
+-			damon_split_region_at(t, r, sz);
++			if (damon_split_region_at(t, r, sz))
++				goto update_stat;
+ 		}
+ 		if (damos_core_filter_out(c, t, r, s))
+ 			return;
+_
+
+Patches currently in -mm which might be from sj@kernel.org are
+
+mm-damon-core-skip-applying-scheme-if-region-split-for-quota-fails.patch
+mm-damon-paddr-respect-folio-end-for-damos_stat.patch
+mm-damon-paddr-respect-folio-end-for-damos-actions-except-stat.patch
+mm-damon-vaddr-respect-folio-end-for-damos_stat.patch
+mm-damon-vaddr-respect-folio-end-for-damos_migrate_hotcold.patch
+mm-damon-core-handle-extreme-memory-state-in-damon_get_node_mem_bp.patch
+mm-damon-core-handle-extreme-memory-state-in-get_node_memcg_used_bp.patch
+mm-damon-core-handle-extreme-memory-state-in-get_in_active_mem_bp.patch
+
