@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0A9B73382F7
-	for <mm-commits@vger.kernel.org>; Tue,  1 Sep 2026 21:54:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4C79A4746A9
+	for <mm-commits@vger.kernel.org>; Tue,  1 Sep 2026 22:08:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788299697; cv=none; b=ZDrF7RA1AliDbxLdSH+H0Vq5FGeLEuayFZ5dBpXeggiY14L6nktN28mYTLFM2+xUCbDM/xxXGUjSCdwNMQEolKbmI68i9ndX1emBUpsoHGBfjV93hopPqNqkbOl1qTZ/dlrrYWmFAf5VH01s7dt86i9r6UDP6D6eeXk6OE4aKCM=
+	t=1788300524; cv=none; b=Xx06ZB9Lms9rpRAHhpBGd8djfGTdD2edm51dl5vntifTp+y2jpLDwZWFwkD7m8HXCjc89PznBUqjq09SOZsHErSV98lqpmNUr7ik0lb1tXMIIfRxpS0lRAZWZKgucr3aSu9qkuzqjQO1Ca0f/dWs0bSia8Y9N0HNgPxmqYruldk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788299697; c=relaxed/simple;
-	bh=JgW00RJ7pbr5ttqPxBvF/z6qAFG37Hs5FV9JZWLm8VU=;
-	h=Date:To:From:Subject:Message-Id; b=mDRczILpOQ9jp5CZQSyysqhHFVUFEHNbtDwwXrCHnddDW3iie7OTKs8hDVo7Kw4RwGR4AKtD83+8gEa5R4YmWQaqAAgVRApvewxZRvd4MMk63yfSnjeFZpT0ADdOt916TeR8K+QOP1+PrN9DKLzCNElTfLwQnTksj6SeJ3QX5Bo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uXQikyCS; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788300524; c=relaxed/simple;
+	bh=mTxLbs3YHrlL0ivg/kP5g+jbJVDiC+gQh+eObHD5sDM=;
+	h=Date:To:From:Subject:Message-Id; b=OWFlPH0VcpowXPmLy/xu5aio4k0ox3GNYIMG0Xx5ogT7IYa7PvQFMMxdUDr2AyalsupRrTQUmS2eqGZo6Y0K4t3c4Ysx9suh6qNmX7EuW1RIqPvDzKQz17dUeOZkFMx6+WKnaWpTGbjqpUwNtaQO0LqFWbQTYxeE4rxJrKpK8MY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fW4qb6SC; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uXQikyCS"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9C8C61F000E9;
-	Tue,  1 Sep 2026 21:54:55 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fW4qb6SC"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 549A01F00A3E;
+	Tue,  1 Sep 2026 22:08:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788299695;
-	bh=KL3bWPNNj36B6axjrHB70XJXD6zlGlJ3RhAUmRjreXU=;
+	d=linux-foundation.org; s=korg; t=1788300520;
+	bh=NZEk/55vfoJx/fTGJbXv4AGxPX1CqdB4JoVxj12GsnI=;
 	h=Date:To:From:Subject;
-	b=uXQikyCSq0qmg/fgd1MvP5Kf1U6tbWWGD2ihQs1u4F6RiZYIWP+zCfMb+3ChPu6w5
-	 pHiqeYPLhwRVixrqiNZjiwLEkgF6Gdy0LZfPLDNk4IPersZJG+9fzhwl66ClzbZu91
-	 C4Z2h6DXr7u51ida4aKXtPchiNfqCPZY0ABy9lZU=
-Date: Tue, 01 Sep 2026 14:54:55 -0700
-To: mm-commits@vger.kernel.org,tj@kernel.org,dennis@kernel.org,cl@linux.com,ekffu200098@gmail.com,akpm@linux-foundation.org
+	b=fW4qb6SC37VZUoN9255ul/t4t3viU/n8UACpNFnWD0VUlJRGijQOyZN0Crho+HGVv
+	 DMbo1h6+6G2hHvRiSsrQrjvYoPOjcVtSBL3mMBDbu8ViDNawRVojZfLaWEyJwFcwOc
+	 TZz3oNy0dOBXFahh5TmPLBaZYQiq3yjEevn6jT8I=
+Date: Tue, 01 Sep 2026 15:08:39 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,rakie.kim@sk.com,matthew.brost@intel.com,joshua.hahnjy@gmail.com,gourry@gourry.net,david@kernel.org,byungchul@sk.com,apopple@nvidia.com,zhaozhengzhuo@uniontech.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + percpu-remove-unnecessary-return-in-pcpu_populate_pte.patch added to mm-new branch
-Message-Id: <20260901215455.9C8C61F000E9@smtp.kernel.org>
+Subject: + mm-migrate_device-fix-function-name-in-kernel-doc.patch added to mm-new branch
+Message-Id: <20260901220840.549A01F00A3E@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: percpu: remove unnecessary return in pcpu_populate_pte()
+     Subject: mm/migrate_device: fix function name in kernel-doc
 has been added to the -mm mm-new branch.  Its filename is
-     percpu-remove-unnecessary-return-in-pcpu_populate_pte.patch
+     mm-migrate_device-fix-function-name-in-kernel-doc.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/percpu-remove-unnecessary-return-in-pcpu_populate_pte.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-migrate_device-fix-function-name-in-kernel-doc.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,47 +69,52 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Sang-Heon Jeon <ekffu200098@gmail.com>
-Subject: percpu: remove unnecessary return in pcpu_populate_pte()
-Date: Wed, 2 Sep 2026 01:53:04 +0900
+From: zhaozhengzhuo <zhaozhengzhuo@uniontech.com>
+Subject: mm/migrate_device: fix function name in kernel-doc
+Date: Tue, 1 Sep 2026 14:51:31 +0800
 
-Since commit c6f239796b55 ("mm/memblock: add memblock_alloc_or_panic
-interface"), pcpu_populate_pte() no longer has an error label after the
-return statement, so the return statement has no effect.
+The kernel-doc for migrate_device_range() says that migrate_vma_setup() is
+similar to itself.  Refer to migrate_device_range() as the subject of the
+comparison, making the distinction between virtual-address-based and
+device-PFN-based migration clear.
 
-Remove unnecessary return.
-
-No functional change.
-
-Link: https://lore.kernel.org/20260901165307.1026248-5-ekffu200098@gmail.com
-Signed-off-by: Sang-Heon Jeon <ekffu200098@gmail.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Dennis Zhou <dennis@kernel.org>
-Cc: Tejun Heo <tj@kernel.org>
+Link: https://lore.kernel.org/7D206FC95BDCAA0F+20260901065131.1759298-1-zhaozhengzhuo@uniontech.com
+Fixes: e778406b40db ("mm/migrate_device.c: add migrate_device_range()")
+Signed-off-by: zhaozhengzhuo <zhaozhengzhuo@uniontech.com>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Byungchul Park <byungchul@sk.com>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Gregory Price <gourry@gourry.net>
+Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
+Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
+Cc: Matthew Brost <matthew.brost@intel.com>
+Cc: Rakie Kim <rakie.kim@sk.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/percpu.c |    2 --
- 1 file changed, 2 deletions(-)
+ mm/migrate_device.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/mm/percpu.c~percpu-remove-unnecessary-return-in-pcpu_populate_pte
-+++ a/mm/percpu.c
-@@ -3178,8 +3178,6 @@ void __init __weak pcpu_populate_pte(uns
- 		new = memblock_alloc_or_panic(PTE_TABLE_SIZE, PTE_TABLE_SIZE);
- 		pmd_populate_kernel(&init_mm, pmd, new);
- 	}
--
--	return;
- }
- 
- /**
+--- a/mm/migrate_device.c~mm-migrate_device-fix-function-name-in-kernel-doc
++++ a/mm/migrate_device.c
+@@ -1398,9 +1398,9 @@ static unsigned long migrate_device_pfn_
+  * @start: starting pfn in the range to migrate.
+  * @npages: number of pages to migrate.
+  *
+- * migrate_vma_setup() is similar in concept to migrate_vma_setup() except that
+- * instead of looking up pages based on virtual address mappings a range of
+- * device pfns that should be migrated to system memory is used instead.
++ * migrate_device_range() is similar in concept to migrate_vma_setup(), except
++ * that instead of looking up pages based on virtual address mappings a range
++ * of device pfns that should be migrated to system memory is used instead.
+  *
+  * This is useful when a driver needs to free device memory but doesn't know the
+  * virtual mappings of every page that may be in device memory. For example this
 _
 
-Patches currently in -mm which might be from ekffu200098@gmail.com are
+Patches currently in -mm which might be from zhaozhengzhuo@uniontech.com are
 
-percpu-fix-the-comment-about-which-sizes-share-a-slot.patch
-percpu-remove-redundant-assignments-to-bits.patch
-percpu-remove-unnecessary-initialization-in-pcpu_build_alloc_info.patch
-percpu-remove-unnecessary-cpumask_clear-in-pcpu_build_alloc_info.patch
-percpu-remove-unnecessary-return-in-pcpu_populate_pte.patch
+selftests-damon-prevent-remaining-cross-object-state-pollution.patch
+mm-migrate_device-fix-function-name-in-kernel-doc.patch
 
