@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C760E442386
-	for <mm-commits@vger.kernel.org>; Tue,  1 Sep 2026 03:47:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1B6131A6813;
+	Tue,  1 Sep 2026 04:16:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788234473; cv=none; b=i34s6CfPNJ8hpJFnlSNE/ik599vmNCQZoMGta1HU1pDK3JWG/menowoWLWXkL2goNA3fxW0nN7Z7yxc8Weh8ny664rRCshQSz1RKdWclNaVF/cblS2HXy/pm0luKv2Ko268DAvw1uXWOi/puWO5DuTqvIZEPjTxHt8mvU8MXXZE=
+	t=1788236163; cv=none; b=g+SQdNp5gKQUZX9XXszIZuxE6tq2jWxW7YKnWZQdRIYeMU8XpZWh78gkwcNaBEjtHwFCwkAesOnOyH2RGKZp1LCqeR8Bom5RT2MxvZKXdwLIpX5L4efqywf2/f0vdCHJbP+mI/y2w4n2XszVeq/Jx415EMELeJZ2lBkoDr1VqYU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788234473; c=relaxed/simple;
-	bh=rlnYpIpl/qlzak+xuJH3SQI6iFq4OIUb/8541cOhzq0=;
-	h=Date:To:From:Subject:Message-Id; b=pEz7BLCB2Q34HwIGccpXxVL+JnmbZq9whZWOBvTQpMXqBu8bnqpqqIvQfSfFCaad1Q/FQ68c3E3Nz7Y5BAqzXopZ92wfxuUC9/mOqI0/AKa91R2lskABwRrnGWoJUfhE7wZJy1LelSgX0/GpsgbadnKfgLLzZKSZwgBhF9cGXhA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mkkbWZ5q; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788236163; c=relaxed/simple;
+	bh=Nr3l65j+yMsckMZwTYky1wx1WToEu1iqF1wLz+MjE60=;
+	h=Date:To:From:Subject:Message-Id; b=puWkZoWOa4dgyRjpsEDAePFxYUIIS9PDZUWcsFZTHZytgIKGsmhu8NvzI5dma/Xbxe6hJhq08U9AhVFhYFo+w3wWIG8me11bG6YfR5Cyc+OQE8tU87pn31QDyNwlnJbhP+1bV4MTJ3bJaksnGs5NEJu6aPkEcqwZfxMI6rtIxNU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=e1xL4/S6; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mkkbWZ5q"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4836A1F000E9;
-	Tue,  1 Sep 2026 03:47:51 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="e1xL4/S6"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 51F9B1F000E9;
+	Tue,  1 Sep 2026 04:16:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788234471;
-	bh=+tgtADD+Hkj0owD8DKj8by60IaCxbNEqKdNr7+s3Olc=;
+	d=linux-foundation.org; s=korg; t=1788236161;
+	bh=tDOJpA4F+kiYZM6pgRbyRLBw8HcmPlzv+ppYrxuLoHA=;
 	h=Date:To:From:Subject;
-	b=mkkbWZ5qcabsOPLG/raoXvX2YTzUFuskAzUX2vGmFHdig/tFPgG2mIX2safBgWzgy
-	 LBHWk9D30oY+/1/m3eoG6xSm4VipobuuUnMRHsAe4qPxKEGwuf+cUK/d5wklgVU+ec
-	 Ic8xIg7t83Vyj5pH/HWXltpQ1fY05GtawwHkhk0U=
-Date: Mon, 31 Aug 2026 20:47:50 -0700
-To: mm-commits@vger.kernel.org,jim.cromie@gmail.com,jbaron@akamai.com,yuntao.wang@linux.dev,akpm@linux-foundation.org
+	b=e1xL4/S6dML6Hl8tJ3L+/xBurjC3cxwLw51RKw/BjcSIVaiPyUXINLioslxXJA/2i
+	 h81zlunyZ+nz8GCDkkTGvNycYHpTZTDnav9gj5tbNFF/RqGx1Ry4JG0aNG53X20hJc
+	 lS6r8NCDlaheOQJ6JuhcnQaUXXNOmTe+5yJUQFjI=
+Date: Mon, 31 Aug 2026 21:16:00 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,stable@vger.kernel.org,peterz@infradead.org,mingo@redhat.com,kees@kernel.org,include@grrlz.net,kmehltretter@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + dyndbg-clean-up-dynamic_debug_init-to-improve-readability.patch added to mm-nonmm-unstable branch
-Message-Id: <20260901034751.4836A1F000E9@smtp.kernel.org>
+Subject: + fork-honor-task_structs-declared-alignment.patch added to mm-nonmm-unstable branch
+Message-Id: <20260901041601.51F9B1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: dyndbg: clean up dynamic_debug_init() to improve readability
+     Subject: fork: honor task_struct's declared alignment
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     dyndbg-clean-up-dynamic_debug_init-to-improve-readability.patch
+     fork-honor-task_structs-declared-alignment.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/dyndbg-clean-up-dynamic_debug_init-to-improve-readability.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fork-honor-task_structs-declared-alignment.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,68 +58,70 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Yuntao Wang <yuntao.wang@linux.dev>
-Subject: dyndbg: clean up dynamic_debug_init() to improve readability
-Date: Tue, 11 Aug 2026 20:18:31 +0800
+From: Karl Mehltretter <kmehltretter@gmail.com>
+Subject: fork: honor task_struct's declared alignment
+Date: Fri, 10 Jul 2026 14:39:57 +0200
 
-Keep variable assignments in the same order throughout the function to
-make the code easier to follow.
+Since commit cb7ca40a3882 ("x86/fpu: Make task_struct::thread constant
+size"), struct task_struct is declared __attribute__((aligned(64))) on all
+architectures.
 
-No functional changes.
+But fork_init() still sets the task_struct slab cache's alignment to
 
-Link: https://lore.kernel.org/20260811121831.577848-3-yuntao.wang@linux.dev
-Signed-off-by: Yuntao Wang <yuntao.wang@linux.dev>
-Cc: Jason Baron <jbaron@akamai.com>
-Cc: Jim Cromie <jim.cromie@gmail.com>
+	align = max(L1_CACHE_BYTES, ARCH_MIN_TASKALIGN)
+
+which is smaller than 64 on architectures whose cache lines are below 64
+bytes: e.g.  32 on ARMv5.
+
+In practice plain SLUB happens to hand out 64-byte-aligned objects anyway.
+With CONFIG_SLUB_DEBUG_ON the red-zone padding shifts objects to the
+requested alignment.
+
+With CONFIG_UBSAN_ALIGNMENT=y a boot on QEMU versatilepb (ARM926EJ-S,
+v7.2-rc2, gcc 13.3) floods the console with reports like:
+
+  UBSAN: misaligned-access in include/linux/sched.h:2087:9
+  member access within misaligned address c295d7e0 for type 'struct task_struct'
+  which requires 64 byte alignment
+  CPU: 0 UID: 0 PID: 15 Comm: pr/ttyAMA-1 Not tainted 7.2.0-rc2 #1 VOLUNTARY
+
+Set the slab alignment to at least the type's declared alignment.
+
+Link: https://lore.kernel.org/20260710123957.31774-1-kmehltretter@gmail.com
+Fixes: cb7ca40a3882 ("x86/fpu: Make task_struct::thread constant size")
+Signed-off-by: Karl Mehltretter <kmehltretter@gmail.com>
+Reviewed-by: Bradley Morgan <include@grrlz.net>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Karl Mehltretter <kmehltretter@gmail.com>
+Cc: Kees Cook <kees@kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Assisted-by: Claude:claude-fable-5
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/dynamic_debug.c |   15 ++++++++-------
- 1 file changed, 8 insertions(+), 7 deletions(-)
+ kernel/fork.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/lib/dynamic_debug.c~dyndbg-clean-up-dynamic_debug_init-to-improve-readability
-+++ a/lib/dynamic_debug.c
-@@ -1442,28 +1442,29 @@ static int __init dynamic_debug_init(voi
- 	i = mod_sites = mod_ct = 0;
+--- a/kernel/fork.c~fork-honor-task_structs-declared-alignment
++++ a/kernel/fork.c
+@@ -858,7 +858,8 @@ void __init fork_init(void)
+ #ifndef ARCH_MIN_TASKALIGN
+ #define ARCH_MIN_TASKALIGN	0
+ #endif
+-	int align = max_t(int, L1_CACHE_BYTES, ARCH_MIN_TASKALIGN);
++	int align = max3(L1_CACHE_BYTES, ARCH_MIN_TASKALIGN,
++			 __alignof__(struct task_struct));
+ 	unsigned long useroffset, usersize;
  
- 	for (; iter < __stop___dyndbg; iter++, i++, mod_sites++) {
--
- 		if (strcmp(modname, iter->modname)) {
--			mod_ct++;
--			di.num_descs = mod_sites;
- 			di.descs = iter_mod_start;
-+			di.num_descs = mod_sites;
- 			ret = ddebug_add_module(&di, modname);
- 			if (ret)
- 				goto out_err;
- 
--			mod_sites = 0;
--			modname = iter->modname;
-+			mod_ct++;
-+
- 			iter_mod_start = iter;
-+			modname = iter->modname;
-+			mod_sites = 0;
- 		}
- 	}
- 
--	mod_ct++;
--	di.num_descs = mod_sites;
- 	di.descs = iter_mod_start;
-+	di.num_descs = mod_sites;
- 	ret = ddebug_add_module(&di, modname);
- 	if (ret)
- 		goto out_err;
- 
-+	mod_ct++;
-+
- 	ddebug_init_success = 1;
- 	vpr_info("%d prdebugs in %d modules, %d KiB in ddebug tables, %d kiB in __dyndbg section\n",
- 		 i, mod_ct, (int)((mod_ct * sizeof(struct ddebug_table)) >> 10),
+ 	/* create a slab on which task_structs can be allocated */
 _
 
-Patches currently in -mm which might be from yuntao.wang@linux.dev are
+Patches currently in -mm which might be from kmehltretter@gmail.com are
 
-dyndbg-fix-incorrect-mod_ct-value-in-dynamic_debug_init.patch
-dyndbg-clean-up-dynamic_debug_init-to-improve-readability.patch
+klist-avoid-accesses-after-waking-klist_remove.patch
+squashfs-fix-fragment-index-table-sizing-overflow-on-32-bit.patch
+squashfs-make-the-fragment-index-table-bounds-check-overflow-safe.patch
+fork-honor-task_structs-declared-alignment.patch
 
