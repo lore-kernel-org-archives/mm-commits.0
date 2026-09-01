@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4017D3382F7
-	for <mm-commits@vger.kernel.org>; Tue,  1 Sep 2026 21:54:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0A9B73382F7
+	for <mm-commits@vger.kernel.org>; Tue,  1 Sep 2026 21:54:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788299695; cv=none; b=GJ/FWCKXNTHHIzoMf5X5xLKDb143uQMqPG9zKdJxOUVvXwO8FxrSRc0c0c5OTrMsyTkkyMQPJjqZKROsAJ2XDBpQ0reuIuM/7Lno375yFvMAaPw31/PDYNNMF3JLafaE6pVnSiwWdu4KsN3U9AxRvZektqmIyvnjAZG0KXDKF2Q=
+	t=1788299697; cv=none; b=ZDrF7RA1AliDbxLdSH+H0Vq5FGeLEuayFZ5dBpXeggiY14L6nktN28mYTLFM2+xUCbDM/xxXGUjSCdwNMQEolKbmI68i9ndX1emBUpsoHGBfjV93hopPqNqkbOl1qTZ/dlrrYWmFAf5VH01s7dt86i9r6UDP6D6eeXk6OE4aKCM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788299695; c=relaxed/simple;
-	bh=KyTHS691hGiVUCVrdlfJ2w9i6sqJxw8RQ2qQfTx5KUk=;
-	h=Date:To:From:Subject:Message-Id; b=qXmJDBpBdwBl07MrX5Y47x0yW79gjIRuPpwKDPo0M/O3OX6gRzVbh9HtB1O7DIu0q5uBah2BslGcQb7Bt+dejZ2/GZPiKwbi0N21gdFM6tunJzA/JqkTd+vLBZ8LeFQOpW7l96i30UXP1un7JlSP+0oK1SJvFpfE5mtwQWL0WJA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZLzK8KMR; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788299697; c=relaxed/simple;
+	bh=JgW00RJ7pbr5ttqPxBvF/z6qAFG37Hs5FV9JZWLm8VU=;
+	h=Date:To:From:Subject:Message-Id; b=mDRczILpOQ9jp5CZQSyysqhHFVUFEHNbtDwwXrCHnddDW3iie7OTKs8hDVo7Kw4RwGR4AKtD83+8gEa5R4YmWQaqAAgVRApvewxZRvd4MMk63yfSnjeFZpT0ADdOt916TeR8K+QOP1+PrN9DKLzCNElTfLwQnTksj6SeJ3QX5Bo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uXQikyCS; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZLzK8KMR"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BB7911F00A3E;
-	Tue,  1 Sep 2026 21:54:53 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uXQikyCS"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9C8C61F000E9;
+	Tue,  1 Sep 2026 21:54:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788299693;
-	bh=0XoKbWmx7+JChmQU5aBlDBR6DzdFWrAvF0afem2+K90=;
+	d=linux-foundation.org; s=korg; t=1788299695;
+	bh=KL3bWPNNj36B6axjrHB70XJXD6zlGlJ3RhAUmRjreXU=;
 	h=Date:To:From:Subject;
-	b=ZLzK8KMRaFcfCv5/z++FL3DpHKFW1wALwF/gElEOA/EEHOQJCKaD4NTUsxDuF4B/h
-	 UHLNPXin60LNYWF0MWvjrFerwe5DyrSlSAd9ECVvYPksyOW6WEjvX4Sn1Id6lPWYMe
-	 VmK5+Vc8+3nXRMq2Ki0AF4cosWnDg971SEikfMFg=
-Date: Tue, 01 Sep 2026 14:54:53 -0700
+	b=uXQikyCSq0qmg/fgd1MvP5Kf1U6tbWWGD2ihQs1u4F6RiZYIWP+zCfMb+3ChPu6w5
+	 pHiqeYPLhwRVixrqiNZjiwLEkgF6Gdy0LZfPLDNk4IPersZJG+9fzhwl66ClzbZu91
+	 C4Z2h6DXr7u51ida4aKXtPchiNfqCPZY0ABy9lZU=
+Date: Tue, 01 Sep 2026 14:54:55 -0700
 To: mm-commits@vger.kernel.org,tj@kernel.org,dennis@kernel.org,cl@linux.com,ekffu200098@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + percpu-remove-unnecessary-cpumask_clear-in-pcpu_build_alloc_info.patch added to mm-new branch
-Message-Id: <20260901215453.BB7911F00A3E@smtp.kernel.org>
+Subject: + percpu-remove-unnecessary-return-in-pcpu_populate_pte.patch added to mm-new branch
+Message-Id: <20260901215455.9C8C61F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: percpu: remove unnecessary cpumask_clear() in pcpu_build_alloc_info()
+     Subject: percpu: remove unnecessary return in pcpu_populate_pte()
 has been added to the -mm mm-new branch.  Its filename is
-     percpu-remove-unnecessary-cpumask_clear-in-pcpu_build_alloc_info.patch
+     percpu-remove-unnecessary-return-in-pcpu_populate_pte.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/percpu-remove-unnecessary-cpumask_clear-in-pcpu_build_alloc_info.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/percpu-remove-unnecessary-return-in-pcpu_populate_pte.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,18 +70,18 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Sang-Heon Jeon <ekffu200098@gmail.com>
-Subject: percpu: remove unnecessary cpumask_clear() in pcpu_build_alloc_info()
-Date: Wed, 2 Sep 2026 01:53:03 +0900
+Subject: percpu: remove unnecessary return in pcpu_populate_pte()
+Date: Wed, 2 Sep 2026 01:53:04 +0900
 
-pcpu_build_alloc_info() clears mask and unconditionally sets it to
-cpu_possible_mask.  Nothing uses it in between, so cpumask_clear() has no
-effect.
+Since commit c6f239796b55 ("mm/memblock: add memblock_alloc_or_panic
+interface"), pcpu_populate_pte() no longer has an error label after the
+return statement, so the return statement has no effect.
 
-Remove unnecessary cpumask_clear().
+Remove unnecessary return.
 
 No functional change.
 
-Link: https://lore.kernel.org/20260901165307.1026248-4-ekffu200098@gmail.com
+Link: https://lore.kernel.org/20260901165307.1026248-5-ekffu200098@gmail.com
 Signed-off-by: Sang-Heon Jeon <ekffu200098@gmail.com>
 Cc: Christoph Lameter <cl@linux.com>
 Cc: Dennis Zhou <dennis@kernel.org>
@@ -89,19 +89,20 @@ Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/percpu.c |    1 -
- 1 file changed, 1 deletion(-)
+ mm/percpu.c |    2 --
+ 1 file changed, 2 deletions(-)
 
---- a/mm/percpu.c~percpu-remove-unnecessary-cpumask_clear-in-pcpu_build_alloc_info
+--- a/mm/percpu.c~percpu-remove-unnecessary-return-in-pcpu_populate_pte
 +++ a/mm/percpu.c
-@@ -2828,7 +2828,6 @@ static struct pcpu_alloc_info * __init _
- 	/* this function may be called multiple times */
- 	memset(group_map, 0, sizeof(group_map));
- 	memset(group_cnt, 0, sizeof(group_cnt));
--	cpumask_clear(&mask);
+@@ -3178,8 +3178,6 @@ void __init __weak pcpu_populate_pte(uns
+ 		new = memblock_alloc_or_panic(PTE_TABLE_SIZE, PTE_TABLE_SIZE);
+ 		pmd_populate_kernel(&init_mm, pmd, new);
+ 	}
+-
+-	return;
+ }
  
- 	/* calculate size_sum and ensure dyn_size is enough for early alloc */
- 	size_sum = PFN_ALIGN(static_size + reserved_size +
+ /**
 _
 
 Patches currently in -mm which might be from ekffu200098@gmail.com are
