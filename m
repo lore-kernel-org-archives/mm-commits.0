@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E13624A3D26
-	for <mm-commits@vger.kernel.org>; Tue,  1 Sep 2026 22:40:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 72E4147AF75
+	for <mm-commits@vger.kernel.org>; Tue,  1 Sep 2026 22:40:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788302442; cv=none; b=rSklCKG2baVZ/GWLNg8YVqJ2m4DinplbluCOA66YY//skMQyw5HLeJbkiZpv9kGBGnjDSY/TC6VF1WfrGRjJuqtDmeAGSIhZ0N5ydJgmDKLRsl6UDggTOAl1YAEorfBklzJqHSxLrbkaI1CijtINFY7KWAW9X3jkd7eYHGT671E=
+	t=1788302444; cv=none; b=C1ptNXgjU43oNhepL7hx0Gu2S8iLSAyD9zDgHy5nZwD4Nq7xZslS4QQGcHsNjV/Mesmbe+P1TdxBlgAi62CBHq+KK23RdbN6LBmuANi4iT1XBH6Zjzio0mlFP5v5kV9bl1Oq0b3YCIocirkDP1/wWYWd4hZ07yJdbEpxogQ9l9Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788302442; c=relaxed/simple;
-	bh=OqvEvQi6CYSIbsljZIFjiz9Vgkq+AanOot3PUKvFijs=;
-	h=Date:To:From:Subject:Message-Id; b=DdcVKkdXicALMnlXgRXMcBDBH9E+iCleaa/N3bMk+EdSUCwkTPilJRwJK1YDuvn8sRqCt13pQroUW6lBt5rpCdaKhS4DjyXfXWRf9wkNVbapPKiz2sx0VNjOg3IZWByHgOsTKn8rCrd5wPK18y5JFehyKDwnFLXcTBQ+vQdxCNI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BEv4YkFk; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788302444; c=relaxed/simple;
+	bh=0kNqrpPZ9QnAIMlgIOZbzxKXYrJCVuXXAAlMHtA6OEc=;
+	h=Date:To:From:Subject:Message-Id; b=VgY/1/rn/xtnI+2VwvYzVkZxAQMwgCilro69+ojBI34JNSF46Cr+kyi0SFe9RqkZr3G67bnTrca9SejUNXH0WnZ5yGKhR86Y01yRjzS5dJBiFllg2jPQ60VNOCzsQoseV7VKrJ390RrSRNWD6KwhyMEiUfRvnxZS0DihCaf+q8s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0yMGYxqg; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BEv4YkFk"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 68D821F00A3A;
-	Tue,  1 Sep 2026 22:40:37 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0yMGYxqg"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 205721F00A3E;
+	Tue,  1 Sep 2026 22:40:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788302437;
-	bh=cu+nTFk1cOeVIbrcvdObKKgim2srOwWyaQA496VDLpQ=;
+	d=linux-foundation.org; s=korg; t=1788302440;
+	bh=u2VwJWjWlVDJm3qRF3IFFtmiHJVEplaCqjAr7yrJflE=;
 	h=Date:To:From:Subject;
-	b=BEv4YkFkrKeuffaTYYx7N2EHS/7LJE/2tZ5H4mL5TsEOQqwUYXNq3lLHj3SK1aP2f
-	 jLMXLWTmfGT5g3tKQMHq+AjWn/08wQ74b5YdfOyToBPiB2lVkI0tyEedLD/L37aSMW
-	 vKnG8km0Q9Mo/vtdGbTeQKW7oBK6TdaAsR83PZds=
-Date: Tue, 01 Sep 2026 15:40:37 -0700
+	b=0yMGYxqg4rmcL9OAPZnWK2zOXte1boinpL5njFFXwsjLUplkyNdIwS4vrCukeQBQv
+	 im0CiFnVrsXMAngxToPaq1uyhn5WlZ0o7zwUu8dPaaPAvK21WV10YXhxJM/mt6orv6
+	 o0KJF55Oy/MX5Eob2odCaFHgyjeUITm9mZfiLIAk=
+Date: Tue, 01 Sep 2026 15:40:39 -0700
 To: mm-commits@vger.kernel.org,kasong@tencent.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-mglru-introduce-helpers-for-manipulating-gen-and-refs-flags.patch removed from -mm tree
-Message-Id: <20260901224037.68D821F00A3A@smtp.kernel.org>
+Subject: [to-be-updated] mm-mglru-move-max_seq-read-into-walk_update_folio.patch removed from -mm tree
+Message-Id: <20260901224040.205721F00A3E@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,42 +35,43 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/mglru: introduce helpers for manipulating gen and refs flags
+     Subject: mm/mglru: move max_seq read into walk_update_folio
 has been removed from the -mm tree.  Its filename was
-     mm-mglru-introduce-helpers-for-manipulating-gen-and-refs-flags.patch
+     mm-mglru-move-max_seq-read-into-walk_update_folio.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
 From: Kairui Song <kasong@tencent.com>
-Subject: mm/mglru: introduce helpers for manipulating gen and refs flags
-Date: Wed, 26 Aug 2026 01:53:35 +0800
+Subject: mm/mglru: move max_seq read into walk_update_folio
+Date: Wed, 26 Aug 2026 01:53:37 +0800
 
-Instead of doing bit ops on folio->flags.f, introduce helpers for
-adjusting a folio's refs and generation info, making the code easier to
-debug and understand.
+walk_pte_range(), walk_pmd_range_locked(), and lru_gen_look_around() each
+read lrugen->max_seq to compute the target generation used by
+walk_update_folio(), then pass it as a parameter.  Move the read into
+walk_update_folio() itself so the callers no longer need to compute or
+pass the value.
 
-No functional change is intended: some combined atomic operations are
-split into two, which only creates harmless transient states.  There is no
-measurable performance impact, and some paths even look slightly better in
-the generated assembly.
+The max_seq read now happens once per folio update rather than once per
+walk range, so folios always get promoted to the current youngest
+generation.
 
-Link: https://lore.kernel.org/20260826-mglru-flags-cleanup-v3-2-d9f1c75549c8@tencent.com
+Link: https://lore.kernel.org/20260826-mglru-flags-cleanup-v3-4-d9f1c75549c8@tencent.com
 Signed-off-by: Kairui Song <kasong@tencent.com>
-Acked-by: Qi Zheng <qi.zheng@linux.dev>
+Reviewed-by: Baoquan He <baoquan.he@linux.dev>
+Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Reviewed-by: Ridong Chen <ridong.chen@linux.dev>
+Reviewed-by: Lian Wang <lianux.mm@gmail.com>
 Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Baoquan He <baoquan.he@linux.dev>
 Cc: Barry Song <baohua@kernel.org>
 Cc: Chris Li <chrisl@kernel.org>
 Cc: David Hildenbrand (Arm) <david@kernel.org>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Lian Wang <lianux.mm@gmail.com>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
 Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Ridong Chen <ridong.chen@linux.dev>
+Cc: Qi Zheng <qi.zheng@linux.dev>
 Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Cc: Shakeel Butt <shakeel.butt@linux.dev>
 Cc: Vlastimil Babka <vbabka@kernel.org>
@@ -81,322 +82,131 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm_inline.h |   78 +++++++++++++++++++++++++++++++-----
- include/linux/mmzone.h    |    1 
- mm/folio.c                |   19 +++++---
- mm/vmscan.c               |   61 +++++++++++++++-------------
- 4 files changed, 115 insertions(+), 44 deletions(-)
+ mm/vmscan.c |   29 ++++++++++++-----------------
+ 1 file changed, 12 insertions(+), 17 deletions(-)
 
---- a/include/linux/mm_inline.h~mm-mglru-introduce-helpers-for-manipulating-gen-and-refs-flags
-+++ a/include/linux/mm_inline.h
-@@ -142,10 +142,42 @@ static inline int lru_tier_from_refs(int
- 	return workingset ? MAX_NR_TIERS - 1 : order_base_2(refs);
- }
- 
--static inline int folio_lru_refs(const struct folio *folio)
-+/**
-+ * lru_gen_from_flags - Return the LRU generation number from folio flags.
-+ * @flags: folio flags
-+ *
-+ * Returns: A number between 0 and (MAX_NR_GENS - 1), inclusive. Returns
-+ * -1 if the flags indicate the folio is off the list (e.g., isolated).
-+ */
-+static inline int lru_gen_from_flags(unsigned long flags)
-+{
-+	int gen = ((flags & LRU_GEN_MASK) >> LRU_GEN_PGOFF);
-+
-+	BUILD_BUG_ON(LRU_GEN_MASK & LRU_REFS_MASK);
-+	gen -= 1;
-+	VM_WARN_ON_ONCE(gen != -1 && gen >= MAX_NR_GENS);
-+	return gen;
-+}
-+
-+/**
-+ * lru_gen_set_flags - Set the LRU generation number to specified folio flags.
-+ * @flags: pointer to the folio flags
-+ * @gen: generation number, between 0 and (MAX_NR_GENS - 1), inclusive.
-+ */
-+static inline void lru_gen_set_flags(unsigned long *flags, int gen)
-+{
-+	VM_WARN_ON_ONCE(gen >= MAX_NR_GENS || gen < 0);
-+
-+	*flags &= ~LRU_GEN_MASK;
-+	*flags |= (gen + 1UL) << LRU_GEN_PGOFF;
-+}
-+
-+/**
-+ * lru_refs_from_flags - Return LRU referenced / access count from folio flags.
-+ * @flags: folio flags
-+ */
-+static inline int lru_refs_from_flags(unsigned long flags)
- {
--	unsigned long flags = READ_ONCE(folio->flags.f);
--
- 	if (!(flags & BIT(PG_referenced)))
- 		return 0;
- 	/*
-@@ -155,11 +187,40 @@ static inline int folio_lru_refs(const s
- 	return ((flags & LRU_REFS_MASK) >> LRU_REFS_PGOFF) + 1;
- }
- 
--static inline int folio_lru_gen(const struct folio *folio)
-+/**
-+ * lru_refs_set_flags - Set the LRU referenced / access count to specified folio flags.
-+ * @flags: pointer to the folio flags
-+ * @refs: referenced / access count number, between 0 and LRU_REFS_MAX, inclusive.
-+ */
-+static inline void lru_refs_set_flags(unsigned long *flags, unsigned int refs)
- {
--	unsigned long flags = READ_ONCE(folio->flags.f);
-+	VM_WARN_ON_ONCE(refs > LRU_REFS_MAX);
-+	BUILD_BUG_ON(LRU_REFS_MAX != (LRU_REFS_MASK >> LRU_REFS_PGOFF) + 1);
- 
--	return ((flags & LRU_GEN_MASK) >> LRU_GEN_PGOFF) - 1;
-+	*flags &= ~LRU_REFS_FLAGS;
-+	if (!refs)
-+		return;
-+	*flags |= (BIT(PG_referenced) | ((refs - 1UL) << LRU_REFS_PGOFF));
-+}
-+
-+static inline int folio_lru_refs(const struct folio *folio)
-+{
-+	return lru_refs_from_flags(READ_ONCE(*const_folio_flags(folio, 0)));
-+}
-+
-+static inline void folio_set_lru_refs(struct folio *folio, unsigned int refs)
-+{
-+	unsigned long new_flags, old_flags = READ_ONCE(*folio_flags(folio, 0));
-+
-+	do {
-+		new_flags = old_flags;
-+		lru_refs_set_flags(&new_flags, refs);
-+	} while (!try_cmpxchg(folio_flags(folio, 0), &old_flags, new_flags));
-+}
-+
-+static inline int folio_lru_gen(const struct folio *folio)
-+{
-+	return lru_gen_from_flags(READ_ONCE(*const_folio_flags(folio, 0)));
- }
- 
- static inline bool lru_gen_is_active(const struct lruvec *lruvec, int gen)
-@@ -270,7 +331,7 @@ static inline bool lru_gen_add_folio(str
- 	gen = lru_gen_from_seq(seq);
- 	flags = (gen + 1UL) << LRU_GEN_PGOFF;
- 	/* see the comment on MIN_NR_GENS about PG_active */
--	set_mask_bits(&folio->flags.f, LRU_GEN_MASK | BIT(PG_active), flags);
-+	set_mask_bits(folio_flags(folio, 0), LRU_GEN_MASK | BIT(PG_active), flags);
- 
- 	lru_gen_update_size(lruvec, folio, -1, gen);
- 	/* for folio_rotate_reclaimable() */
-@@ -295,7 +356,7 @@ static inline bool lru_gen_del_folio(str
- 
- 	/* for folio_migrate_flags() */
- 	flags = !reclaiming && lru_gen_is_active(lruvec, gen) ? BIT(PG_active) : 0;
--	flags = set_mask_bits(&folio->flags.f, LRU_GEN_MASK, flags);
-+	flags = set_mask_bits(folio_flags(folio, 0), LRU_GEN_MASK, flags);
- 	gen = ((flags & LRU_GEN_MASK) >> LRU_GEN_PGOFF) - 1;
- 
- 	lru_gen_update_size(lruvec, folio, gen, -1);
-@@ -339,7 +400,6 @@ static inline bool lru_gen_del_folio(str
- 
- static inline void folio_migrate_refs(struct folio *new, const struct folio *old)
- {
--
- }
- #endif /* CONFIG_LRU_GEN */
- 
---- a/include/linux/mmzone.h~mm-mglru-introduce-helpers-for-manipulating-gen-and-refs-flags
-+++ a/include/linux/mmzone.h
-@@ -500,6 +500,7 @@ enum lruvec_flags {
- 
- #define LRU_GEN_MASK		((BIT(LRU_GEN_WIDTH) - 1) << LRU_GEN_PGOFF)
- #define LRU_REFS_MASK		((BIT(LRU_REFS_WIDTH) - 1) << LRU_REFS_PGOFF)
-+#define LRU_REFS_MAX		BIT(LRU_REFS_WIDTH)
- 
- /*
-  * For folios accessed multiple times through file descriptors,
---- a/mm/folio.c~mm-mglru-introduce-helpers-for-manipulating-gen-and-refs-flags
-+++ a/mm/folio.c
-@@ -353,26 +353,28 @@ static void __lru_cache_activate_folio(s
- 
- static void lru_gen_inc_refs(struct folio *folio)
- {
--	unsigned long new_flags, old_flags = READ_ONCE(folio->flags.f);
-+	unsigned long new_flags, old_flags = READ_ONCE(*folio_flags(folio, 0));
-+	int refs;
- 
- 	if (folio_test_unevictable(folio))
- 		return;
- 
- 	/* see the comment on LRU_REFS_FLAGS */
--	if (!folio_test_referenced(folio)) {
--		set_mask_bits(&folio->flags.f, LRU_REFS_MASK, BIT(PG_referenced));
-+	if (!folio_lru_refs(folio)) {
-+		folio_set_lru_refs(folio, 1);
- 		return;
- 	}
- 
- 	do {
--		if ((old_flags & LRU_REFS_MASK) == LRU_REFS_MASK) {
-+		new_flags = old_flags;
-+		refs = lru_refs_from_flags(old_flags);
-+		if (refs == LRU_REFS_MAX) {
- 			if (!folio_test_workingset(folio))
- 				folio_set_workingset(folio);
- 			return;
- 		}
--
--		new_flags = old_flags + BIT(LRU_REFS_PGOFF);
--	} while (!try_cmpxchg(&folio->flags.f, &old_flags, new_flags));
-+		lru_refs_set_flags(&new_flags, refs + 1);
-+	} while (!try_cmpxchg(folio_flags(folio, 0), &old_flags, new_flags));
- }
- 
- static bool lru_gen_clear_refs(struct folio *folio)
-@@ -384,7 +386,8 @@ static bool lru_gen_clear_refs(struct fo
- 	if (gen < 0)
- 		return true;
- 
--	set_mask_bits(&folio->flags.f, LRU_REFS_FLAGS | BIT(PG_workingset), 0);
-+	folio_set_lru_refs(folio, 0);
-+	folio_clear_workingset(folio);
- 
- 	rcu_read_lock();
- 	seq = READ_ONCE(folio_lruvec(folio)->lrugen.min_seq[type]);
---- a/mm/vmscan.c~mm-mglru-introduce-helpers-for-manipulating-gen-and-refs-flags
+--- a/mm/vmscan.c~mm-mglru-move-max_seq-read-into-walk_update_folio
 +++ a/mm/vmscan.c
-@@ -843,19 +843,22 @@ static bool lru_gen_set_refs(struct foli
- 	if (!folio_test_referenced(folio) && !folio_test_workingset(folio)) {
- 		/* Activate file-backed executable folios after first usage. */
- 		if (is_exec_file_folio(folio, vma_flags)) {
--			set_mask_bits(&folio->flags.f, LRU_REFS_FLAGS, BIT(PG_workingset));
-+			folio_set_workingset(folio);
-+			folio_set_lru_refs(folio, 0);
- 			return true;
- 		}
- 
--		set_mask_bits(&folio->flags.f, LRU_REFS_MASK, BIT(PG_referenced));
-+		folio_set_lru_refs(folio, 1);
- 		return false;
- 	}
- 
- 	/* Promote on second access */
--	if (folio_lru_refs(folio) > 1)
--		set_mask_bits(&folio->flags.f, LRU_REFS_FLAGS, BIT(PG_workingset));
--	else
-+	if (folio_lru_refs(folio) > 1) {
-+		folio_set_workingset(folio);
-+		folio_set_lru_refs(folio, 0);
-+	} else {
- 		folio_mark_accessed(folio);
-+	}
- 	return true;
+@@ -3517,13 +3517,15 @@ static bool suitable_to_scan(int total,
  }
- #else
-@@ -3266,11 +3269,10 @@ static bool positive_ctrl_err(struct ctr
-  ******************************************************************************/
  
- /* promote pages accessed through page tables */
--static int folio_update_gen(struct folio *folio, int gen, const vma_flags_t *vma_flags)
-+static int folio_update_gen(struct folio *folio, int new_gen, const vma_flags_t *vma_flags)
+ static void walk_update_folio(struct lru_gen_mm_walk *walk, struct vm_area_struct *vma,
+-		struct folio *folio, int new_gen, bool dirty)
++		struct lruvec *lruvec, struct folio *folio, bool dirty)
  {
--	unsigned long new_flags, old_flags = READ_ONCE(folio->flags.f);
--
--	VM_WARN_ON_ONCE(gen >= MAX_NR_GENS);
-+	unsigned long new_flags, old_flags = READ_ONCE(*folio_flags(folio, 0));
-+	int old_gen;
+-	int old_gen;
++	int new_gen, old_gen;
  
- 	/*
- 	 * See the comment on LRU_REFS_FLAGS, and activate file-backed
-@@ -3279,20 +3281,24 @@ static int folio_update_gen(struct folio
- 	 */
- 	if (!folio_test_referenced(folio) && !folio_test_workingset(folio) &&
- 	    !is_exec_file_folio(folio, vma_flags)) {
--		set_mask_bits(&folio->flags.f, LRU_REFS_MASK, BIT(PG_referenced));
-+		folio_set_lru_refs(folio, 1);
- 		return -1;
+ 	if (!folio)
+ 		return;
+ 
++	new_gen = lru_gen_from_seq(READ_ONCE(lruvec->lrugen.max_seq));
++
+ 	if (dirty && !folio_test_dirty(folio) &&
+ 	    !(folio_test_anon(folio) && folio_test_swapbacked(folio) &&
+ 	      !folio_test_swapcache(folio)))
+@@ -3554,8 +3556,6 @@ static bool walk_pte_range(pmd_t *pmd, u
+ 	struct lru_gen_mm_walk *walk = args->private;
+ 	struct mem_cgroup *memcg = lruvec_memcg(walk->lruvec);
+ 	struct pglist_data *pgdat = lruvec_pgdat(walk->lruvec);
+-	DEFINE_MAX_SEQ(walk->lruvec);
+-	int gen = lru_gen_from_seq(max_seq);
+ 	unsigned int nr;
+ 	pmd_t pmdval;
+ 
+@@ -3606,7 +3606,7 @@ restart:
+ 			continue;
+ 
+ 		if (last != folio) {
+-			walk_update_folio(walk, args->vma, last, gen, dirty);
++			walk_update_folio(walk, args->vma, walk->lruvec, last, dirty);
+ 
+ 			last = folio;
+ 			dirty = false;
+@@ -3619,7 +3619,7 @@ restart:
+ 		walk->mm_stats[MM_LEAF_YOUNG] += nr;
  	}
  
- 	do {
-+		old_gen = lru_gen_from_flags(old_flags);
-+		new_flags = old_flags;
-+
- 		/* lru_gen_del_folio() has isolated this page? */
--		if (!(old_flags & LRU_GEN_MASK))
--			return -1;
-+		if (old_gen < 0)
-+			break;
+-	walk_update_folio(walk, args->vma, last, gen, dirty);
++	walk_update_folio(walk, args->vma, walk->lruvec, last, dirty);
+ 	last = NULL;
  
--		new_flags = old_flags & ~(LRU_GEN_MASK | LRU_REFS_FLAGS);
--		new_flags |= ((gen + 1UL) << LRU_GEN_PGOFF) | BIT(PG_workingset);
--	} while (!try_cmpxchg(&folio->flags.f, &old_flags, new_flags));
-+		lru_gen_set_flags(&new_flags, new_gen);
-+		lru_refs_set_flags(&new_flags, 0);
-+		new_flags |= BIT(PG_workingset);
-+	} while (!try_cmpxchg(folio_flags(folio, 0), &old_flags, new_flags));
+ 	if (i < PTRS_PER_PTE && get_next_vma(PMD_MASK, PAGE_SIZE, args, &start, &end))
+@@ -3642,8 +3642,6 @@ static void walk_pmd_range_locked(pud_t
+ 	struct lru_gen_mm_walk *walk = args->private;
+ 	struct mem_cgroup *memcg = lruvec_memcg(walk->lruvec);
+ 	struct pglist_data *pgdat = lruvec_pgdat(walk->lruvec);
+-	DEFINE_MAX_SEQ(walk->lruvec);
+-	int gen = lru_gen_from_seq(max_seq);
  
--	return ((old_flags & LRU_GEN_MASK) >> LRU_GEN_PGOFF) - 1;
-+	return old_gen;
- }
+ 	VM_WARN_ON_ONCE(pud_leaf(*pud));
  
- /* protect pages accessed multiple times through file descriptors */
-@@ -3301,21 +3307,20 @@ static int folio_inc_gen(struct lruvec *
- 	int type = folio_is_file_lru(folio);
- 	struct lru_gen_folio *lrugen = &lruvec->lrugen;
- 	int new_gen, old_gen = lru_gen_from_seq(lrugen->min_seq[type]);
--	unsigned long new_flags, old_flags = READ_ONCE(folio->flags.f);
--
--	VM_WARN_ON_ONCE_FOLIO(!(old_flags & LRU_GEN_MASK), folio);
-+	unsigned long new_flags, old_flags = READ_ONCE(*folio_flags(folio, 0));
+@@ -3697,7 +3695,7 @@ static void walk_pmd_range_locked(pud_t
+ 			goto next;
  
- 	do {
--		new_gen = ((old_flags & LRU_GEN_MASK) >> LRU_GEN_PGOFF) - 1;
-+		new_gen = lru_gen_from_flags(old_flags);
-+
- 		/* folio_update_gen() has promoted this page? */
- 		if (new_gen >= 0 && new_gen != old_gen)
- 			return new_gen;
+ 		if (last != folio) {
+-			walk_update_folio(walk, vma, last, gen, dirty);
++			walk_update_folio(walk, vma, walk->lruvec, last, dirty);
  
-+		new_flags = old_flags;
- 		new_gen = (old_gen + 1) % MAX_NR_GENS;
--
--		new_flags = old_flags & ~(LRU_GEN_MASK | LRU_REFS_FLAGS);
--		new_flags |= (new_gen + 1UL) << LRU_GEN_PGOFF;
--	} while (!try_cmpxchg(&folio->flags.f, &old_flags, new_flags));
-+		lru_gen_set_flags(&new_flags, new_gen);
-+		lru_refs_set_flags(&new_flags, 0);
-+	} while (!try_cmpxchg(folio_flags(folio, 0), &old_flags, new_flags));
+ 			last = folio;
+ 			dirty = false;
+@@ -3711,7 +3709,7 @@ next:
+ 		i = i > MIN_LRU_BATCH ? 0 : find_next_bit(bitmap, MIN_LRU_BATCH, i) + 1;
+ 	} while (i <= MIN_LRU_BATCH);
  
- 	lru_gen_update_size(lruvec, folio, old_gen, new_gen);
+-	walk_update_folio(walk, vma, last, gen, dirty);
++	walk_update_folio(walk, vma, walk->lruvec, last, dirty);
  
-@@ -4716,7 +4721,7 @@ static bool isolate_folio(struct lruvec
+ 	lazy_mmu_mode_disable();
+ 	spin_unlock(ptl);
+@@ -4275,8 +4273,6 @@ bool lru_gen_look_around(struct page_vma
+ 	struct pglist_data *pgdat = folio_pgdat(folio);
+ 	struct lruvec *lruvec;
+ 	struct lru_gen_mm_state *mm_state;
+-	unsigned long max_seq;
+-	int gen;
  
- 	/* see the comment on LRU_REFS_FLAGS */
- 	if (!folio_test_referenced(folio))
--		set_mask_bits(&folio->flags.f, LRU_REFS_MASK, 0);
-+		folio_set_lru_refs(folio, 0);
+ 	lockdep_assert_held(pvmw->ptl);
+ 	VM_WARN_ON_ONCE_FOLIO(folio_test_lru(folio), folio);
+@@ -4313,8 +4309,6 @@ bool lru_gen_look_around(struct page_vma
  
- 	success = lru_gen_del_folio(lruvec, folio, true);
- 	VM_WARN_ON_ONCE_FOLIO(!success, folio);
-@@ -4932,8 +4937,10 @@ retry:
- 		}
+ 	memcg = get_mem_cgroup_from_folio(folio);
+ 	lruvec = mem_cgroup_lruvec(memcg, pgdat);
+-	max_seq = READ_ONCE((lruvec)->lrugen.max_seq);
+-	gen = lru_gen_from_seq(max_seq);
+ 	mm_state = get_mm_state(lruvec);
  
- 		/* don't add rejected folios to the oldest generation */
--		if (lru_gen_folio_seq(lruvec, folio, false) == min_seq[type])
--			set_mask_bits(&folio->flags.f, LRU_REFS_FLAGS, BIT(PG_active));
-+		if (lru_gen_folio_seq(lruvec, folio, false) == min_seq[type]) {
-+			folio_set_lru_refs(folio, 0);
-+			folio_set_active(folio);
-+		}
+ 	lazy_mmu_mode_enable();
+@@ -4346,7 +4340,7 @@ bool lru_gen_look_around(struct page_vma
+ 			continue;
+ 
+ 		if (last != folio) {
+-			walk_update_folio(walk, vma, last, gen, dirty);
++			walk_update_folio(walk, vma, lruvec, last, dirty);
+ 
+ 			last = folio;
+ 			dirty = false;
+@@ -4358,13 +4352,14 @@ bool lru_gen_look_around(struct page_vma
+ 		young += nr;
  	}
  
- 	move_folios_to_lru(&list);
+-	walk_update_folio(walk, vma, last, gen, dirty);
++	walk_update_folio(walk, vma, lruvec, last, dirty);
+ 
+ 	lazy_mmu_mode_disable();
+ 
+ 	/* feedback from rmap walkers to page table walkers */
+ 	if (mm_state && suitable_to_scan(i, young))
+-		update_bloom_filter(mm_state, max_seq, pvmw->pmd);
++		update_bloom_filter(mm_state, READ_ONCE(lruvec->lrugen.max_seq),
++				    pvmw->pmd);
+ 
+ 	mem_cgroup_put(memcg);
+ 
 _
 
 Patches currently in -mm which might be from kasong@tencent.com are
 
-mm-migrate-copy-all-referenced-state-via-folio_migrate_lru_refs.patch
-mm-mglru-move-max_seq-read-into-walk_update_folio.patch
 mm-mglru-use-explicit-tier-range-in-read_ctrl_pos.patch
 mm-mglru-fix-potential-generation-folio-number-leak.patch
 
