@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DD2AD442B3E
-	for <mm-commits@vger.kernel.org>; Tue,  1 Sep 2026 03:40:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 07B9344162A
+	for <mm-commits@vger.kernel.org>; Tue,  1 Sep 2026 03:40:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788234006; cv=none; b=CfShZRNUI0QdFbwj4DFIkCh7jUDVluIo7Xfvho/Mf9N9VJblFEeYMbywCuDIBzqCPmTjkWmD3VV51a2SQ3DZoBzjC30Bv5LCZedSq38kMX+6ZTWH8cxOkM6k1LkWTF/blUHPtnBMY3TxS7/HpKx3KqX44h8O9QZl+e2AWS80VEg=
+	t=1788234009; cv=none; b=e1NCWYTxqvWNbeQZ4ibsTVCkcPnTMAPipRkn9WjyXCUrxBtAfdomPAp7L0lrqpy7nAxQPg19gDQtLk1NU4Ohf2hiicD3u+ojr1XZbH3U4SVYJ4MPE5pxoTTyMckaZUZ3Vl/MO+oPRYMMxG+0LbOd6QYb1+fOh3FSZ3ulHz0Amvg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788234006; c=relaxed/simple;
-	bh=g6JKp/w2iLrZqzXIhkfLDfxbTjUQAlLG9deKzVQAZGY=;
-	h=Date:To:From:Subject:Message-Id; b=SWqupzFP1QUPFVaNRz/62XBssLVUe99a70NUjQbICrKdnAthg4TwelZVfFnkjW5WLrE4/vTGCGDKxfNMd9Y2qMCOz+89EtDh45WgKJuI4jw92YAI/gBoh0QcG6fNaSZuRiHNR7Nq5RPxJHJpz081u/4sudQoO/qXTJbiyr6QFr0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yCcHjeq9; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788234009; c=relaxed/simple;
+	bh=ucrrkM4TotSG1t89+GUvaaTeA0r1qlaD4fjJ3sGD9FI=;
+	h=Date:To:From:Subject:Message-Id; b=uaIpj8Nk03tv8qCe7lSrAIKJh0Q6f2lbNX7gi6xNV2Nlw53VpB9vL4c6p84veGx9M1AWLR/sV5sWAk2on+OySlXEuSpuuKtgFheDWbY2KmZFXRd87RUK7RiGsM5AB4ZYTj/udC29EGKdIZRliF2DVMr50VJMFu01jCoDmY+HYtM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=s9nq6Xcw; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yCcHjeq9"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6B8DD1F000E9;
-	Tue,  1 Sep 2026 03:40:04 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="s9nq6Xcw"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7F46E1F000E9;
+	Tue,  1 Sep 2026 03:40:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788234004;
-	bh=KtZBsas7Ow6zHTi56biPsNVy1JCHnBQtuCpZ0OPtroc=;
+	d=linux-foundation.org; s=korg; t=1788234007;
+	bh=bvV8O3sJ1SGHrwRD/5jm3uS7q3CBG8fZXFhZmCdP+xA=;
 	h=Date:To:From:Subject;
-	b=yCcHjeq9aP/e5uiOaiABpUTJkKpFfSPfN71y/p/zfdfX330P7GMkpDy554CUwSCuq
-	 E908rsxXpqWknwfIo6K5sMw4CmiVQQXo9S2rr5c+GS6+byGBah1sXwpUO7g2f6/V5p
-	 T96yvEtKoueFUO+fRCZEMtayyyrHFWQfktxvvBZA=
-Date: Mon, 31 Aug 2026 20:40:04 -0700
-To: mm-commits@vger.kernel.org,zhaonanzhe@xiaomi.com,youngjun.park@lge.com,shikemeng@huaweicloud.com,shakeel.butt@linux.dev,ryncsn@gmail.com,roman.gushchin@linux.dev,nphamcs@gmail.com,muchun.song@linux.dev,mhocko@kernel.org,ljs@kernel.org,hughd@google.com,hannes@cmpxchg.org,david@kernel.org,chrisl@kernel.org,baoquan.he@linux.dev,baolin.wang@linux.alibaba.com,baohua@kernel.org,xueyuan.chen21@gmail.com,akpm@linux-foundation.org
+	b=s9nq6XcwFPuNZzb8N0YbTImFifLYap7Rxv3LslZj8R6263sMG1HE6nAHZLlFW+cXb
+	 Gq6nm4NL2jYoIprMXqfeppZDyYK82VP1AWB9cS3K6gsn/lp+27Nt34C9SNLL9VpIex
+	 xTWpCT4v42MIjKDv1uJnU19desBgae9LI5XJ5cVA=
+Date: Mon, 31 Aug 2026 20:40:07 -0700
+To: mm-commits@vger.kernel.org,zhaonanzhe@xiaomi.com,youngjun.park@lge.com,xueyuan.chen21@gmail.com,shikemeng@huaweicloud.com,shakeel.butt@linux.dev,ryncsn@gmail.com,roman.gushchin@linux.dev,nphamcs@gmail.com,muchun.song@linux.dev,mhocko@kernel.org,ljs@kernel.org,hughd@google.com,hannes@cmpxchg.org,david@kernel.org,chrisl@kernel.org,baoquan.he@linux.dev,baolin.wang@linux.alibaba.com,baohua@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-distinguish-large-folio-swap-allocation-failures.patch added to mm-new branch
-Message-Id: <20260901034004.6B8DD1F000E9@smtp.kernel.org>
+Subject: + mm-vmscan-avoid-pointless-large-folio-splits-without-swap.patch added to mm-new branch
+Message-Id: <20260901034007.7F46E1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: distinguish large folio swap allocation failures
+     Subject: mm/vmscan: avoid pointless large folio splits without swap
 has been added to the -mm mm-new branch.  Its filename is
-     mm-distinguish-large-folio-swap-allocation-failures.patch
+     mm-vmscan-avoid-pointless-large-folio-splits-without-swap.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-distinguish-large-folio-swap-allocation-failures.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmscan-avoid-pointless-large-folio-splits-without-swap.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,174 +69,78 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Xueyuan Chen <xueyuan.chen21@gmail.com>
-Subject: mm: distinguish large folio swap allocation failures
-Date: Sun, 30 Aug 2026 12:29:18 +0800
+From: "Barry Song (Xiaomi)" <baohua@kernel.org>
+Subject: mm/vmscan: avoid pointless large folio splits without swap
+Date: Sun, 30 Aug 2026 12:29:19 +0800
 
-folio_alloc_swap() reports most failures with generic negative error
-codes.  Reclaim callers consequently cannot tell whether splitting a large
-folio could make progress, or whether no swap space is available for even
-a single page.
+When swap is disabled, exhausted, or unavailable due to memcg swap limits,
+splitting a large anonymous folio cannot make swapout progress.  The
+fallback only destroys the large folio and inflates split statistics.
 
-Classify failures using both the global free swap count and the remaining
-capacity in the folio's memcg swap hierarchy.  Return -ENOSPC when global
-swap space is exhausted, -ENOMEM when splitting cannot overcome the
-failure, and -E2BIG for a large folio when allocating or charging a
-smaller folio might still succeed.
+Use -E2BIG from folio_alloc_swap() as the explicit signal that splitting
+the folio might allow swapout of smaller pieces.  For other allocation
+failures, keep the existing activation path and avoid the split.
 
-Use this classification for all folio_alloc_swap() failure paths,
-including capability rejection, swap slot allocation failure, and memcg
-swap charge failure.  Callers are updated separately to split large folios
-only on -E2BIG.
+This preserves the split fallback for fragmented or partially available
+swap, while avoiding it when there is no backing space for any part of the
+folio.
 
-Link: https://lore.kernel.org/20260830042920.2280454-3-xueyuan.chen21@gmail.com
+Link: https://lore.kernel.org/20260830042920.2280454-4-xueyuan.chen21@gmail.com
+Signed-off-by: Barry Song (Xiaomi) <baohua@kernel.org>
 Signed-off-by: Xueyuan Chen <xueyuan.chen21@gmail.com>
-Suggested-by: Kairui Song <ryncsn@gmail.com>
-Suggested-by: Barry Song <baohua@kernel.org>
-Suggested-by: Youngjun Park <youngjun.park@lge.com>
+Reported-by: Nanzhe Zhao <zhaonanzhe@xiaomi.com>
 Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Baoquan He <baoquan.he@linux.dev>
 Cc: Chris Li <chrisl@kernel.org>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Kairui Song <ryncsn@gmail.com>
 Cc: Kemeng Shi <shikemeng@huaweicloud.com>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
 Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Nanzhe Zhao <zhaonanzhe@xiaomi.com>
 Cc: Nhat Pham <nphamcs@gmail.com>
 Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Youngjun Park <youngjun.park@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |    6 ++++++
- mm/memcontrol.c      |   23 +++++++++++++++++++++++
- mm/swapfile.c        |   26 +++++++++++++++++++-------
- 3 files changed, 48 insertions(+), 7 deletions(-)
+ mm/vmscan.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
---- a/include/linux/swap.h~mm-distinguish-large-folio-swap-allocation-failures
-+++ a/include/linux/swap.h
-@@ -508,6 +508,7 @@ static inline void mem_cgroup_uncharge_s
- 	__mem_cgroup_uncharge_swap(id, nr_pages);
- }
- 
-+long mem_cgroup_get_folio_swap_margin(struct folio *folio);
- extern long mem_cgroup_get_nr_swap_pages(struct mem_cgroup *memcg);
- extern bool mem_cgroup_swap_full(struct folio *folio);
- #else
-@@ -521,6 +522,11 @@ static inline void mem_cgroup_uncharge_s
- {
- }
- 
-+static inline long mem_cgroup_get_folio_swap_margin(struct folio *folio)
-+{
-+	return PAGE_COUNTER_MAX;
-+}
-+
- static inline long mem_cgroup_get_nr_swap_pages(struct mem_cgroup *memcg)
- {
- 	return get_nr_swap_pages();
---- a/mm/memcontrol.c~mm-distinguish-large-folio-swap-allocation-failures
-+++ a/mm/memcontrol.c
-@@ -5832,6 +5832,29 @@ long mem_cgroup_get_nr_swap_pages(struct
- 	return nr_swap_pages;
- }
- 
-+/**
-+ * mem_cgroup_get_folio_swap_margin - get a folio's memcg swap margin
-+ * @folio: folio whose memcg margin is queried
-+ *
-+ * Return: Remaining chargeable pages in the folio's memcg hierarchy.
-+ */
-+long mem_cgroup_get_folio_swap_margin(struct folio *folio)
-+{
-+	struct mem_cgroup *memcg;
-+	long margin;
-+
-+	if (mem_cgroup_disabled() || do_memsw_account() ||
-+	    !folio_memcg_charged(folio))
-+		return PAGE_COUNTER_MAX;
-+
-+	rcu_read_lock();
-+	memcg = folio_memcg(folio);
-+	margin = page_counter_margin(&memcg->swap);
-+	rcu_read_unlock();
-+
-+	return margin;
-+}
-+
- bool mem_cgroup_swap_full(struct folio *folio)
- {
- 	struct mem_cgroup *memcg;
---- a/mm/swapfile.c~mm-distinguish-large-folio-swap-allocation-failures
-+++ a/mm/swapfile.c
-@@ -1735,7 +1735,9 @@ failed:
-  * swap cache.
-  *
-  * Context: Caller needs to hold the folio lock.
-- * Return: Whether the folio was added to the swap cache.
-+ * Return: %0 on success, %-E2BIG if splitting the folio might allow swapout,
-+ * %-ENOSPC if no global swap space is available, or %-ENOMEM if splitting
-+ * would not help.
-  */
- int folio_alloc_swap(struct folio *folio)
- {
-@@ -1747,11 +1749,11 @@ int folio_alloc_swap(struct folio *folio
- 
- 	if (order) {
- 		/*
--		 * Reject large allocation when THP_SWAP is disabled,
--		 * the caller should split the folio and try again.
-+		 * Reject large allocation when THP_SWAP is disabled. Check below
-+		 * whether splitting and retrying can make progress.
+--- a/mm/vmscan.c~mm-vmscan-avoid-pointless-large-folio-splits-without-swap
++++ a/mm/vmscan.c
+@@ -1262,6 +1262,8 @@ retry:
  		 */
- 		if (!IS_ENABLED(CONFIG_THP_SWAP))
--			return -EAGAIN;
-+			goto failed;
- 
- 		/*
- 		 * Allocation size should never exceed cluster size
-@@ -1759,7 +1761,7 @@ int folio_alloc_swap(struct folio *folio
- 		 */
- 		if (size > SWAPFILE_CLUSTER) {
- 			VM_WARN_ON_ONCE(1);
--			return -EINVAL;
-+			goto failed;
- 		}
- 	}
- 
-@@ -1775,13 +1777,23 @@ again:
- 	}
- 
- 	/* Need to call this even if allocation failed, for MEMCG_SWAP_FAIL. */
--	if (unlikely(mem_cgroup_try_charge_swap(folio)))
-+	if (unlikely(mem_cgroup_try_charge_swap(folio))) {
- 		swap_cache_del_folio(folio);
-+		goto failed;
-+	}
- 
- 	if (unlikely(!folio_test_swapcache(folio)))
--		return -ENOMEM;
-+		goto failed;
- 
- 	return 0;
+ 		if (folio_test_anon(folio) && folio_test_swapbacked(folio) &&
+ 				!folio_test_swapcache(folio)) {
++			int ret;
 +
-+failed:
-+	if (get_nr_swap_pages() <= 0)
-+		return -ENOSPC;
-+	if (mem_cgroup_get_folio_swap_margin(folio) <= 0)
-+		return -ENOMEM;
-+
-+	return order ? -E2BIG : -ENOMEM;
- }
+ 			if (!(sc->gfp_mask & __GFP_IO))
+ 				goto keep_locked;
+ 			if (folio_maybe_dma_pinned(folio))
+@@ -1280,11 +1282,14 @@ retry:
+ 				    split_folio_to_list(folio, folio_list))
+ 					goto activate_locked;
+ 			}
+-			if (folio_alloc_swap(folio)) {
++			ret = folio_alloc_swap(folio);
++			if (ret) {
+ 				int __maybe_unused order = folio_order(folio);
  
- /**
+ 				if (!folio_test_large(folio))
+ 					goto activate_locked_split;
++				if (ret != -E2BIG)
++					goto activate_locked;
+ 				/* Fallback to swap normal pages */
+ 				if (split_folio_to_list(folio, folio_list))
+ 					goto activate_locked;
 _
 
-Patches currently in -mm which might be from xueyuan.chen21@gmail.com are
+Patches currently in -mm which might be from baohua@kernel.org are
 
-mm-distinguish-large-folio-swap-allocation-failures.patch
-mm-shmem-split-large-folios-only-on-e2big.patch
+mm-mglru-make-retry-logic-explicit-in-isolate_folios.patch
+mm-vmscan-avoid-pointless-large-folio-splits-without-swap.patch
 
