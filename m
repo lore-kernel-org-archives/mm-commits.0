@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4C7C5377A84
-	for <mm-commits@vger.kernel.org>; Tue,  1 Sep 2026 04:49:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7A080379989;
+	Tue,  1 Sep 2026 05:07:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788238164; cv=none; b=F/Wvu9mtI38mnDe74tQXpHpI/ryK5QStQrR/2RFK6Q7X9b6hjvfhiIavzcgzZZmnxNFeOAx6CTC4bzcTwY6+zIz9tRHDVWngXrKJQw9HUFZj57FZTurIlAYCg3lcn6RWAC7httWM9d4dw7KEN4eJVnZif5a4/QPZ6ZyuyvJQOhU=
+	t=1788239272; cv=none; b=HlvWZHcDD4pCq924v0wZA/aRxELpCyV6ono0swduedHUpAf4ht65UTgGAxEoS7LrCg7aFv1CuBZQmK2fnAgHlP8LoRqS4MxMSXN7S+5hxRqjwOTNAtu8e/7uumeblaIjvAJajQiS5WfVLOitNh2Wq/n5Z2vcg6lmOhBBNBWUyuE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788238164; c=relaxed/simple;
-	bh=ccz8ePhKO/GHlzX3gtFTAFXxZUwIrvdgzkNHB/6Yw3M=;
-	h=Date:To:From:Subject:Message-Id; b=mnLfoYLhpOiYMNv1zOahePafd6J/OWuaEm3sWA9/oFvLaBdbn74RnZNgvsYZGGYVC9icvaYLCe/czlf9TB1iRlD/GutJcBNkZk5YXq24RRCA5RdqtvZAU9kKzMaGLAOVBZu2WnDAvBlrNa32gu8AvzuoMVoCFA8geSGOmTVKfvU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mH4Y2yBd; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788239272; c=relaxed/simple;
+	bh=41W8OLx1dG7/4ry/IjNcmGSZBJlYp4/DL6Kl88tZpmE=;
+	h=Date:To:From:Subject:Message-Id; b=kUlVh6YCMFWXYRQotWvcadJZTskFN45XeM7TyVWv1xqfH6rfN7VFKAydIKtW6n6Yq1S03v3N/Pa+ZsU5pd2rRHDJ60BLDf/dgqgh4NN0YHNaYlt22DnskLrjwte2Y9CtHgW5eyBwkie2bKgIVJnnwNn3iU08fYYbYygz6061yCY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=T9qqVKGv; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mH4Y2yBd"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id ACA941F000E9;
-	Tue,  1 Sep 2026 04:49:22 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="T9qqVKGv"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E76DE1F000E9;
+	Tue,  1 Sep 2026 05:07:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788238162;
-	bh=pKk3fmFAiVQdup/yJsug98fgQQsJA9yugZXsoubos6c=;
+	d=linux-foundation.org; s=korg; t=1788239271;
+	bh=ExawsuqHNUg2AFF+Jf06Kay9gpoR2oLYDLuGdIjOHb0=;
 	h=Date:To:From:Subject;
-	b=mH4Y2yBdsZZWaFWNiCxTVNdtoczyHRnsDcjl+CAZ9nwxtVpIc6aw+0DmjhDapasan
-	 bB2WybTRDItKY7IFtBMk0rSA06zxpGkApxpBKjB5NjoArxe843U4PLmf6gz4oB8j2K
-	 Unk3P/h64l4VIiOeNycUemjdJ1lXPb5QV2DIDhz4=
-Date: Mon, 31 Aug 2026 21:49:22 -0700
-To: mm-commits@vger.kernel.org,bsingharora@gmail.com,balbirs@nvidia.com,akpm@linux-foundation.org,include@grrlz.net,akpm@linux-foundation.org
+	b=T9qqVKGvSKifeNHiXyUqOmbqYCu0RvzEKYk0MmavukX94jVqaSKnJaXwXv2Ubhhs3
+	 MYhiKAJAvsYJruEmweliPxYoWln3MMmwgX8GFx27Pr2cQmJLu2j8VvN3/kvQs0up31
+	 6y4/apJ6Fy5S6ldvAA2Gharcb+ZpJdD5sRYDAm5U=
+Date: Mon, 31 Aug 2026 22:07:50 -0700
+To: mm-commits@vger.kernel.org,vega@nebusec.ai,stable@vger.kernel.org,enjou1224z@gmail.com,roxy520tt@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + taskstats-fold-the-two-pid-tgid-handlers-into-one.patch added to mm-nonmm-unstable branch
-Message-Id: <20260901044922.ACA941F000E9@smtp.kernel.org>
+Subject: + mm-page_table_check-skip-zero-pages.patch added to mm-new branch
+Message-Id: <20260901050750.E76DE1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,26 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: taskstats: fold the two pid/tgid handlers into one
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     taskstats-fold-the-two-pid-tgid-handlers-into-one.patch
+     Subject: mm/page_table_check: skip zero pages
+has been added to the -mm mm-new branch.  Its filename is
+     mm-page_table_check-skip-zero-pages.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/taskstats-fold-the-two-pid-tgid-handlers-into-one.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_table_check-skip-zero-pages.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,104 +69,60 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Bradley Morgan <include@grrlz.net>
-Subject: taskstats: fold the two pid/tgid handlers into one
-Date: Sat, 1 Aug 2026 22:58:44 +0000
+From: Zhiling Zou <roxy520tt@gmail.com>
+Subject: mm/page_table_check: skip zero pages
+Date: Tue, 21 Jul 2026 23:56:38 +0800
 
-cmd_attr_pid() and cmd_attr_tgid() are copy paste.  fold them into one
-handler that takes the attr type and fill function as parameters, same
-pattern as the cpumask fold in 59c0bc949c5e.
+page_table_check_set() accounts pages by whether they are PageAnon().  The
+shared zero page is a special page, not an ordinary file-backed page. 
+Read faults on private anonymous mappings can install many read-only PTEs
+that point at the zero page, but page_table_check currently accounts them
+in file_map_count.
 
-No functional change.
+That lets an unprivileged process populate enough zero-page mappings to
+overflow file_map_count and trip the BUG_ON() in page_table_check_set().
 
-Link: https://lore.kernel.org/20260801225845.23855-1-include@grrlz.net
-Signed-off-by: Bradley Morgan <include@grrlz.net>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Balbir Singh <bsingharora@gmail.com>
-Cc: Balbir Singh <balbirs@nvidia.com>
+Skip zero pages in page_table_check accounting.  They do not need the
+anonymous/file mapping conflict checks that page_table_check performs for
+ordinary pages, and this keeps the existing counter size and page_ext
+layout unchanged.
+
+Link: https://lore.kernel.org/1f8848512d2e3ded944f8d595c29faee8fdaeab0.1784645969.git.roxy520tt@gmail.com
+Fixes: df4e817b7108 ("mm: page table check")
+Signed-off-by: Zhiling Zou <roxy520tt@gmail.com>
+Signed-off-by: Ren Wei <enjou1224z@gmail.com>
+Reported-by: Vega <vega@nebusec.ai>
+Assisted-by: Codex:gpt-5.4
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/taskstats.c |   47 ++++++++++---------------------------------
- 1 file changed, 12 insertions(+), 35 deletions(-)
+ mm/page_table_check.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/kernel/taskstats.c~taskstats-fold-the-two-pid-tgid-handlers-into-one
-+++ a/kernel/taskstats.c
-@@ -473,7 +473,8 @@ static size_t taskstats_packet_size(void
- 	return size;
- }
+--- a/mm/page_table_check.c~mm-page_table_check-skip-zero-pages
++++ a/mm/page_table_check.c
+@@ -67,7 +67,7 @@ static void page_table_check_clear(unsig
+ 	struct page *page;
+ 	bool anon;
  
--static int cmd_attr_pid(struct genl_info *info)
-+static int cmd_attr_pid_tgid(struct genl_info *info, int attr,
-+			     int (*fill)(pid_t, struct taskstats *))
- {
- 	struct taskstats *stats;
- 	struct sk_buff *rep_skb;
-@@ -488,41 +489,15 @@ static int cmd_attr_pid(struct genl_info
- 		return rc;
+-	if (!pfn_valid(pfn))
++	if (!pfn_valid(pfn) || is_zero_pfn(pfn) || is_huge_zero_pfn(pfn))
+ 		return;
  
- 	rc = -EINVAL;
--	pid = nla_get_u32(info->attrs[TASKSTATS_CMD_ATTR_PID]);
--	stats = mk_reply(rep_skb, TASKSTATS_TYPE_PID, pid);
-+	pid = nla_get_u32(info->attrs[attr]);
-+	stats = mk_reply(rep_skb,
-+			 attr == TASKSTATS_CMD_ATTR_PID
-+				? TASKSTATS_TYPE_PID : TASKSTATS_TYPE_TGID,
-+			 pid);
- 	if (!stats)
- 		goto err;
+ 	page = pfn_to_page(pfn);
+@@ -102,7 +102,7 @@ static void page_table_check_set(unsigne
+ 	struct page *page;
+ 	bool anon;
  
--	rc = fill_stats_for_pid(pid, stats);
--	if (rc < 0)
--		goto err;
--	return send_reply(rep_skb, info);
--err:
--	nlmsg_free(rep_skb);
--	return rc;
--}
--
--static int cmd_attr_tgid(struct genl_info *info)
--{
--	struct taskstats *stats;
--	struct sk_buff *rep_skb;
--	size_t size;
--	u32 tgid;
--	int rc;
--
--	size = taskstats_packet_size();
--
--	rc = prepare_reply(info, TASKSTATS_CMD_NEW, &rep_skb, size);
--	if (rc < 0)
--		return rc;
--
--	rc = -EINVAL;
--	tgid = nla_get_u32(info->attrs[TASKSTATS_CMD_ATTR_TGID]);
--	stats = mk_reply(rep_skb, TASKSTATS_TYPE_TGID, tgid);
--	if (!stats)
--		goto err;
--
--	rc = fill_stats_for_tgid(tgid, stats);
-+	rc = fill(pid, stats);
- 	if (rc < 0)
- 		goto err;
- 	return send_reply(rep_skb, info);
-@@ -542,9 +517,11 @@ static int taskstats_user_cmd(struct sk_
- 					TASKSTATS_CMD_ATTR_DEREGISTER_CPUMASK,
- 					DEREGISTER);
- 	else if (info->attrs[TASKSTATS_CMD_ATTR_PID])
--		return cmd_attr_pid(info);
-+		return cmd_attr_pid_tgid(info, TASKSTATS_CMD_ATTR_PID,
-+					 fill_stats_for_pid);
- 	else if (info->attrs[TASKSTATS_CMD_ATTR_TGID])
--		return cmd_attr_tgid(info);
-+		return cmd_attr_pid_tgid(info, TASKSTATS_CMD_ATTR_TGID,
-+					 fill_stats_for_tgid);
- 	else
- 		return -EINVAL;
- }
+-	if (!pfn_valid(pfn))
++	if (!pfn_valid(pfn) || is_zero_pfn(pfn) || is_huge_zero_pfn(pfn))
+ 		return;
+ 
+ 	page = pfn_to_page(pfn);
 _
 
-Patches currently in -mm which might be from include@grrlz.net are
+Patches currently in -mm which might be from roxy520tt@gmail.com are
 
-taskstats-fold-the-two-pid-tgid-handlers-into-one.patch
+mm-page_table_check-skip-zero-pages.patch
 
