@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0B9D9305687
-	for <mm-commits@vger.kernel.org>; Tue,  1 Sep 2026 00:19:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 90D5F299920
+	for <mm-commits@vger.kernel.org>; Tue,  1 Sep 2026 00:19:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788221990; cv=none; b=LG/pz1FoEu6Dzk/9XyYgeIkPULIT4FjtgjGyDa8OP6thoapmyjEu59g+9M/nXs3Y7NHaZq0CdVORuAbydAr/1/awoxgBtDfqNziJwhtU+dOVdkJUOl+Nn6vSnbKhNQi9es9bAtvoIRO07FR4ThfVMfDZrdw9kYAi7XT7G+MvF6g=
+	t=1788221993; cv=none; b=dRg05CEG1BSSoaw/pN8BurG3dqurtvo0Gi8Ay6GnXAYtx4waZPUjv7XW8EXOMRtIrchfdZvZTL7Wd1o3h/c6XMP0IymBwx6fyQxWuH8Rt3Me3CY8//dyi6gIRB9w+358w4qqDMeIu4LdBsZ0CcZbL411zv3aHt2eOFb16dzUvTk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788221990; c=relaxed/simple;
-	bh=4cgTl5OYCFxfTIFzXVTrStW2WaXXoxT0FdEAzy8R+Eg=;
-	h=Date:To:From:Subject:Message-Id; b=YsLSKjQgP9GgVbbXSUqcZbxKJu81GhipsSvEh3Nsm6NxW/jnA0yozRVPOVIBy3AvaCj0cLYJi06Ft18BidWLsRXOef8Fe5A0ZtpfFEorW6nPrfDsiqo8ielcl7H60SMzj4mFHN/TVKc9Z5fceP/gZbHIvHBGrEgMXqL54dEzU4s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=O+MN4Dso; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788221993; c=relaxed/simple;
+	bh=Cmojlp/Oe62uAjpdKM8A9H9A8YEKtq3XRRKHghJf+Vk=;
+	h=Date:To:From:Subject:Message-Id; b=BV/Ym18z2qhIU0b0o3FTcN2b/uds5JElef3HSGtcIEfCfzxaeUzdzMmFP2PowTXXQg3m919WPgGVQ7ndhqEKz2K/15sJd3VzpSk4NHY/bzjUY+B9fz++034/crnfuyxchJbtELwxKMBE6xbgm8h2Vz/r3uolB6600MhVyzz+sXk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=grWqsdIm; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="O+MN4Dso"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 925DA1F000E9;
-	Tue,  1 Sep 2026 00:19:48 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="grWqsdIm"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0911E1F000E9;
+	Tue,  1 Sep 2026 00:19:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788221988;
-	bh=nuBoXlsKy2WTtfZtUy8REN/wWjT+qgVfpe9THXswUlI=;
+	d=linux-foundation.org; s=korg; t=1788221991;
+	bh=gd7rO1Cfuc3m4tCsUcM2eTijP5zkogBy93DFBEv7isI=;
 	h=Date:To:From:Subject;
-	b=O+MN4DsotllebzT0YTZyWJS9s2n8HUZ/c49jxHLhC2ndTz4P8GUiEv7IAB3Dap6sW
-	 bGXZfgvp1VeUJ0SDaCQYolXHpaCZ2XsRmIgpmlJuct//3gpLyK24fdGKaAxFExYTyj
-	 wzQQ0xoZGSqlf7QtjXg0RhGYiDiGPmiBuprz7n8M=
-Date: Mon, 31 Aug 2026 17:19:48 -0700
+	b=grWqsdImovI4YaFW+Xp+Ynv2Jf2ZqKCMSEtpg30ZFsO11VNvV/O/t2UttUyFpCZ1m
+	 XAkw5DyVPi/Sr5/hAIgAwMrTE88KXaTWCDrXOAgI1C1Fyuu51xH6zbj/YVIoM2c92k
+	 2wERMbYeS6g3t/DvOEu8m3lDqBiX0zYibpN4jVN8=
+Date: Mon, 31 Aug 2026 17:19:50 -0700
 To: mm-commits@vger.kernel.org,svens@linux.ibm.com,pmladek@suse.com,include@grrlz.net,hca@linux.ibm.com,gor@linux.ibm.com,davem@davemloft.net,borntraeger@linux.ibm.com,andreas@gaisler.com,akpm@linux-foundation.org,agordeev@linux.ibm.com,meted@linux.ibm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + s390-implement-arch_do_panic.patch added to mm-nonmm-unstable branch
-Message-Id: <20260901001948.925DA1F000E9@smtp.kernel.org>
+Subject: + sparc-implement-arch_do_panic.patch added to mm-nonmm-unstable branch
+Message-Id: <20260901001951.0911E1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: s390: implement arch_do_panic
+     Subject: sparc: implement arch_do_panic
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     s390-implement-arch_do_panic.patch
+     sparc-implement-arch_do_panic.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/s390-implement-arch_do_panic.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/sparc-implement-arch_do_panic.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,70 +59,71 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Mete Durlu <meted@linux.ibm.com>
-Subject: s390: implement arch_do_panic
-Date: Mon, 31 Aug 2026 11:57:16 +0200
+Subject: sparc: implement arch_do_panic
+Date: Mon, 31 Aug 2026 11:57:17 +0200
 
-Implement s390 specific arch_do_panic() instead of using s390 specific
-ifdef sections in vpanic() code.  disabled_wait() is now called after "end
-Kernel panic" marker.  No functional changes.
+Implement sparc specific arch_do_panic() instead of using sparc specific
+ifdef sections in vpanic() code.  Reorder arch specific panic handling,
+sparc's Stop-A messages are now printed after "end Kernel panic" marker.
 
-Link: https://lore.kernel.org/20260831-arch_do_panic-v6-2-a1e170a9e7fd@linux.ibm.com
+Link: https://lore.kernel.org/20260831-arch_do_panic-v6-3-a1e170a9e7fd@linux.ibm.com
 Signed-off-by: Mete Durlu <meted@linux.ibm.com>
-Acked-by: Heiko Carstens <hca@linux.ibm.com>
 Reviewed-by: Bradley Morgan <include@grrlz.net>
 Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Andreas Larsson <andreas@gaisler.com>
 Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
 Cc: David S. Miller <davem@davemloft.net>
+Cc: Heiko Carstens <hca@linux.ibm.com>
 Cc: Petr Mladek <pmladek@suse.com>
 Cc: Sven Schnelle <svens@linux.ibm.com>
 Cc: Vasily Gorbik <gor@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/kernel/traps.c |    7 +++++++
- kernel/panic.c           |    3 ---
- 2 files changed, 7 insertions(+), 3 deletions(-)
+ arch/sparc/kernel/setup.c |    9 +++++++++
+ kernel/panic.c            |    9 ---------
+ 2 files changed, 9 insertions(+), 9 deletions(-)
 
---- a/arch/s390/kernel/traps.c~s390-implement-arch_do_panic
-+++ a/arch/s390/kernel/traps.c
-@@ -26,6 +26,7 @@
- #include <linux/entry-common.h>
- #include <linux/kmsan.h>
- #include <linux/bug.h>
-+#include <linux/panic.h>
- #include <asm/entry-percpu.h>
- #include <asm/asm-extable.h>
- #include <asm/irqflags.h>
-@@ -33,6 +34,7 @@
- #include <asm/vtime.h>
- #include <asm/fpu.h>
- #include <asm/fault.h>
-+#include <asm/processor.h>
- #include "entry.h"
+--- a/arch/sparc/kernel/setup.c~sparc-implement-arch_do_panic
++++ a/arch/sparc/kernel/setup.c
+@@ -2,6 +2,8 @@
  
- struct pgm_stat {
-@@ -283,6 +285,11 @@ static void monitor_event_exception(stru
- 	}
- }
+ #include <asm/setup.h>
+ #include <linux/sysctl.h>
++#include <linux/panic.h>
++#include <linux/printk.h>
+ 
+ static const struct ctl_table sparc_sysctl_table[] = {
+ 	{
+@@ -36,6 +38,13 @@ static const struct ctl_table sparc_sysc
+ #endif
+ };
  
 +void arch_do_panic(void)
 +{
-+	disabled_wait();
++	/* Make sure the user can actually press Stop-A (L1-A) */
++	stop_a_enabled = 1;
++	pr_emerg("Press Stop-A (L1-A) from sun keyboard or send break\n"
++		 "twice on console to return to the boot prom\n");
 +}
-+
- void kernel_stack_invalid(struct pt_regs *regs)
+ 
+ static int __init init_sparc_sysctls(void)
  {
- 	/*
---- a/kernel/panic.c~s390-implement-arch_do_panic
+--- a/kernel/panic.c~sparc-implement-arch_do_panic
 +++ a/kernel/panic.c
-@@ -753,9 +753,6 @@ void vpanic(const char *fmt, va_list arg
- 			 "twice on console to return to the boot prom\n");
+@@ -744,15 +744,6 @@ void vpanic(const char *fmt, va_list arg
+ 			reboot_mode = panic_reboot_mode;
+ 		emergency_restart();
  	}
- #endif
--#if defined(CONFIG_S390)
--	disabled_wait();
+-#ifdef __sparc__
+-	{
+-		extern int stop_a_enabled;
+-		/* Make sure the user can actually press Stop-A (L1-A) */
+-		stop_a_enabled = 1;
+-		pr_emerg("Press Stop-A (L1-A) from sun keyboard or send break\n"
+-			 "twice on console to return to the boot prom\n");
+-	}
 -#endif
  	pr_emerg("---[ end Kernel panic - not syncing: %s ]---\n", buf);
  
