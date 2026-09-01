@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7606B49DBB3
-	for <mm-commits@vger.kernel.org>; Tue,  1 Sep 2026 22:40:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8DF4E4A3D37
+	for <mm-commits@vger.kernel.org>; Tue,  1 Sep 2026 22:40:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788302445; cv=none; b=h4WfSoBzzA7tyAIPWu/D4HUhue+Jjc+5qiuVHQMwLjOmz+/59cbZwpQ8GodziGs1tIQC+7YIiYCKqqWAeONhGOLd9a/FCzGey6JtmZSdgXFasdy6UbYF555MlkrRtIm8KZK2yzq7VomP/z7aBwOdUzJAuaGqKmjHPYPI4t/evVU=
+	t=1788302446; cv=none; b=l6wiYxPuJ2o5DDKyVXuZI2TAaWHr1Rw5/SKASH2tuPFelE1NmNWS7gdZ06NWgfvDdRpx7aQMn64IHMfP2zaBgVLFVy6Zp5j1IyrbsIT+uUtig8xNE7/e1OXgA0+8dfEdLjug/Ea9bK8WtxlRTcr6Jx9aASZnUtpOOq0PKk9wOYA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788302445; c=relaxed/simple;
-	bh=7l05W4M8Kz7Wx3DPpD3TibJLu77QtZPbDBfPZ003WpI=;
-	h=Date:To:From:Subject:Message-Id; b=eXyudX7it0TOz03T3n9LQe+anhsZFh1WuD7DzulQYhJis78ZB/ePkVdv41sVZtwCzVw4sVVVpec8ITVct7xWiR0spO6jyoj5t8pn4icm5Q2gwdGvmsnbilbFC4VrkhTaGuuyAjOgcOrQXk4xgdloh/PWxs6m38ewGa8IDxdWomI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oVr7wc+8; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788302446; c=relaxed/simple;
+	bh=5rGiWKl9zj4vzQwC/3wrcHdOxjfCWMANbf7mKeDXGRg=;
+	h=Date:To:From:Subject:Message-Id; b=CVDybJattp+ms9sl3KsBH2F28t7m/p2obtpPwB2EoEzus8Ic3I79Mn2Zgu7iG2mC+KsVa7K+lMOkqxakgoM9BcvZH203Y5JqhCqMnZEpxHy97ul233AZQOtwFiY5YjOkULb08bPWGUTcyGHXh8xlTMonw5V0afogrT55LFKhUuY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=p2MLJ4S8; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oVr7wc+8"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C315F1F00A3D;
-	Tue,  1 Sep 2026 22:40:38 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="p2MLJ4S8"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 76A631F000E9;
+	Tue,  1 Sep 2026 22:40:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788302438;
-	bh=sMWZ0eq+qm5UYwm2ll7HuKhl+UxUj2/k7be1Ic4HPjg=;
+	d=linux-foundation.org; s=korg; t=1788302441;
+	bh=0FGszTKXDHeiT+fi5f4/4fGS1k8iGSynAITJl42pSXw=;
 	h=Date:To:From:Subject;
-	b=oVr7wc+85vnfHVFOjmmcSDp1DTH4AiT900fq5Z9y+5FhGQYVw2RivqAvPyzJgtXk0
-	 BroEm9l4i9OoGOza2e8na/NW0k+y16NqEbjslOPMxNwSrfo3yvBb6RpY/m3XU1rJPf
-	 0gUKWBLxuAYMGO1qXZT+Lhjyy2i1g45Kyo+u/L5c=
-Date: Tue, 01 Sep 2026 15:40:38 -0700
+	b=p2MLJ4S8RnRJ1IxQ90HQbJs1rVysy6PepxTBzs7zAaDdcb+xPrgrcMnqsYlLbr8sx
+	 PeIcwVZs/f2vDrRXgtxv2KALIy6xXxTuob3FIHcLCa63y4+LahkXTRiPu3MomZdCw+
+	 4nRoI/iL1wJvFmWkgscbjumVQPM4nC720L9A2Eu0=
+Date: Tue, 01 Sep 2026 15:40:41 -0700
 To: mm-commits@vger.kernel.org,kasong@tencent.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-migrate-copy-all-referenced-state-via-folio_migrate_lru_refs.patch removed from -mm tree
-Message-Id: <20260901224038.C315F1F00A3D@smtp.kernel.org>
+Subject: [to-be-updated] mm-mglru-use-explicit-tier-range-in-read_ctrl_pos.patch removed from -mm tree
+Message-Id: <20260901224041.76A631F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,46 +35,44 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/migrate: copy all referenced state via folio_migrate_lru_refs
+     Subject: mm/mglru: use explicit tier range in read_ctrl_pos()
 has been removed from the -mm tree.  Its filename was
-     mm-migrate-copy-all-referenced-state-via-folio_migrate_lru_refs.patch
+     mm-mglru-use-explicit-tier-range-in-read_ctrl_pos.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
 From: Kairui Song <kasong@tencent.com>
-Subject: mm/migrate: copy all referenced state via folio_migrate_lru_refs
-Date: Wed, 26 Aug 2026 01:53:36 +0800
+Subject: mm/mglru: use explicit tier range in read_ctrl_pos()
+Date: Wed, 26 Aug 2026 01:53:38 +0800
 
-folio_migrate_flags() copies PG_referenced separately from the MGLRU refs
-counter, which folio_migrate_refs() transfers.  Yet under MGLRU,
-PG_referenced and the refs counter bits together describe the referenced
-status of a folio.
+read_ctrl_pos() encodes the tier range in a single "tier" parameter via
+"tier % MAX_NR_TIERS" as the start and "min(tier, MAX_NR_TIERS-1)" as the
+end.  This is hard to follow, maintain, or extend.  Tier values 0..3
+select a single tier, while tier == MAX_NR_TIERS selects the full range.
 
-Consolidate the two: rename folio_migrate_refs() to
-folio_migrate_lru_refs() and let it copy the complete referenced status,
-i.e., the MGLRU refs count including PG_referenced, or just PG_referenced
-for the active/inactive LRU.  Drop the open-coded PG_referenced copy so
-the referenced status is transferred in one place.  No behavior change is
-intended: under the active/inactive LRU the extra bits are unused, so
-operating on them is a noop.
+Replace it with explicit (tier_min, tier_max) parameters using a closed
+[tier_min, tier_max] interval, and add LRU_TIER_MIN and LRU_TIER_MAX for
+the tier bounds.  The call sites now become self-documenting:
 
-Transfer the reference state first, before the destination folio is marked
-uptodate, so a concurrent lockless reader cannot have its reference update
-overwritten by the copy.
+  - get_tier_idx:   (LRU_TIER_MIN, LRU_TIER_MIN) for the first tier,
+                    (tier, tier) for each subsequent tier
+  - get_type_to_scan: (LRU_TIER_MIN, LRU_TIER_MAX) for the full range
 
-Link: https://lore.kernel.org/20260826-mglru-flags-cleanup-v3-3-d9f1c75549c8@tencent.com
+No functional change.
+
+Link: https://lore.kernel.org/20260826-mglru-flags-cleanup-v3-5-d9f1c75549c8@tencent.com
 Signed-off-by: Kairui Song <kasong@tencent.com>
-Reviewed-by: Baoquan He <baoquan.he@linux.dev>
 Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Reviewed-by: Lian Wang <lianux.mm@gmail.com>
+Reviewed-by: Baoquan He <baoquan.he@linux.dev>
 Reviewed-by: Barry Song <baohua@kernel.org>
 Reviewed-by: Ridong Chen <ridong.chen@linux.dev>
 Cc: Axel Rasmussen <axelrasmussen@google.com>
 Cc: Chris Li <chrisl@kernel.org>
+Cc: David Hildenbrand (Arm) <david@kernel.org>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Lian Wang <lianux.mm@gmail.com>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
 Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Muchun Song <muchun.song@linux.dev>
@@ -89,75 +87,72 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm_inline.h |   20 +++++++++++++++-----
- mm/migrate.c              |    6 +++---
- 2 files changed, 18 insertions(+), 8 deletions(-)
+ include/linux/mmzone.h |    2 ++
+ mm/vmscan.c            |   18 ++++++++++--------
+ 2 files changed, 12 insertions(+), 8 deletions(-)
 
---- a/include/linux/mm_inline.h~mm-migrate-copy-all-referenced-state-via-folio_migrate_lru_refs
-+++ a/include/linux/mm_inline.h
-@@ -365,11 +365,19 @@ static inline bool lru_gen_del_folio(str
- 	return true;
- }
+--- a/include/linux/mmzone.h~mm-mglru-use-explicit-tier-range-in-read_ctrl_pos
++++ a/include/linux/mmzone.h
+@@ -495,6 +495,8 @@ enum lruvec_flags {
+  * folio->flags, masked by LRU_REFS_MASK.
+  */
+ #define MAX_NR_TIERS		4U
++#define LRU_TIER_MIN		0U
++#define LRU_TIER_MAX		(MAX_NR_TIERS - 1)
  
--static inline void folio_migrate_refs(struct folio *new, const struct folio *old)
-+/**
-+ * folio_migrate_lru_refs - copy the reference state to a new folio
-+ * @new: the destination folio
-+ * @old: the source folio
-+ *
-+ * Transfer the reference state to @new during migration: the MGLRU
-+ * refs count, including PG_referenced, or just PG_referenced for the
-+ * active/inactive LRU.
-+ */
-+static inline void folio_migrate_lru_refs(struct folio *new, const struct folio *old)
+ #ifndef __GENERATING_BOUNDS_H
+ 
+--- a/mm/vmscan.c~mm-mglru-use-explicit-tier-range-in-read_ctrl_pos
++++ a/mm/vmscan.c
+@@ -3198,8 +3198,8 @@ struct ctrl_pos {
+ 	int gain;
+ };
+ 
+-static void read_ctrl_pos(struct lruvec *lruvec, int type, int tier, int gain,
+-			  struct ctrl_pos *pos)
++static void read_ctrl_pos(struct lruvec *lruvec, int type, int tier_min,
++			  int tier_max, int gain, struct ctrl_pos *pos)
  {
--	unsigned long refs = READ_ONCE(old->flags.f) & LRU_REFS_MASK;
--
--	set_mask_bits(&new->flags.f, LRU_REFS_MASK, refs);
-+	BUILD_BUG_ON(LRU_REFS_MASK & BIT(PG_referenced));
-+	folio_set_lru_refs(new, folio_lru_refs(old));
+ 	int i;
+ 	struct lru_gen_folio *lrugen = &lruvec->lrugen;
+@@ -3208,7 +3208,7 @@ static void read_ctrl_pos(struct lruvec
+ 	pos->gain = gain;
+ 	pos->refaulted = pos->total = 0;
+ 
+-	for (i = tier % MAX_NR_TIERS; i <= min(tier, MAX_NR_TIERS - 1); i++) {
++	for (i = tier_min; i <= tier_max; i++) {
+ 		pos->refaulted += lrugen->avg_refaulted[type][i] +
+ 				  atomic_long_read(&lrugen->refaulted[hist][type][i]);
+ 		pos->total += lrugen->avg_total[type][i] +
+@@ -4809,9 +4809,9 @@ static int get_tier_idx(struct lruvec *l
+ 	 * This value is chosen because any other tier would have at least twice
+ 	 * as many refaults as the first tier.
+ 	 */
+-	read_ctrl_pos(lruvec, type, 0, 2, &sp);
+-	for (tier = 1; tier < MAX_NR_TIERS; tier++) {
+-		read_ctrl_pos(lruvec, type, tier, 3, &pv);
++	read_ctrl_pos(lruvec, type, LRU_TIER_MIN, LRU_TIER_MIN, 2, &sp);
++	for (tier = LRU_TIER_MIN + 1; tier <= LRU_TIER_MAX; tier++) {
++		read_ctrl_pos(lruvec, type, tier, tier, 3, &pv);
+ 		if (!positive_ctrl_err(&sp, &pv))
+ 			break;
+ 	}
+@@ -4832,8 +4832,10 @@ static int get_type_to_scan(struct lruve
+ 	 * Compare the sum of all tiers of anon with that of file to determine
+ 	 * which type to scan.
+ 	 */
+-	read_ctrl_pos(lruvec, LRU_GEN_ANON, MAX_NR_TIERS, swappiness, &sp);
+-	read_ctrl_pos(lruvec, LRU_GEN_FILE, MAX_NR_TIERS, MAX_SWAPPINESS - swappiness, &pv);
++	read_ctrl_pos(lruvec, LRU_GEN_ANON, LRU_TIER_MIN, LRU_TIER_MAX,
++		      swappiness, &sp);
++	read_ctrl_pos(lruvec, LRU_GEN_FILE, LRU_TIER_MIN, LRU_TIER_MAX,
++		      MAX_SWAPPINESS - swappiness, &pv);
+ 
+ 	return positive_ctrl_err(&sp, &pv);
  }
- #else /* !CONFIG_LRU_GEN */
- 
-@@ -398,8 +406,10 @@ static inline bool lru_gen_del_folio(str
- 	return false;
- }
- 
--static inline void folio_migrate_refs(struct folio *new, const struct folio *old)
-+static inline void folio_migrate_lru_refs(struct folio *new, const struct folio *old)
- {
-+	if (folio_test_referenced(old))
-+		folio_set_referenced(new);
- }
- #endif /* CONFIG_LRU_GEN */
- 
---- a/mm/migrate.c~mm-migrate-copy-all-referenced-state-via-folio_migrate_lru_refs
-+++ a/mm/migrate.c
-@@ -776,8 +776,9 @@ void folio_migrate_flags(struct folio *n
- {
- 	int cpupid;
- 
--	if (folio_test_referenced(folio))
--		folio_set_referenced(newfolio);
-+	/* Copy the reference state, including PG_referenced */
-+	folio_migrate_lru_refs(newfolio, folio);
-+
- 	if (folio_test_uptodate(folio))
- 		folio_mark_uptodate(newfolio);
- 	if (folio_test_clear_active(folio)) {
-@@ -807,7 +808,6 @@ void folio_migrate_flags(struct folio *n
- 	if (folio_test_idle(folio))
- 		folio_set_idle(newfolio);
- 
--	folio_migrate_refs(newfolio, folio);
- 	/*
- 	 * Copy NUMA information to the new page, to prevent over-eager
- 	 * future migrations of this same page.
 _
 
 Patches currently in -mm which might be from kasong@tencent.com are
 
-mm-mglru-move-max_seq-read-into-walk_update_folio.patch
-mm-mglru-use-explicit-tier-range-in-read_ctrl_pos.patch
 mm-mglru-fix-potential-generation-folio-number-leak.patch
 
