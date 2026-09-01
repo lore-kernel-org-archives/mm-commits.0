@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 201B63CB544
-	for <mm-commits@vger.kernel.org>; Tue,  1 Sep 2026 01:55:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 390703E3C73
+	for <mm-commits@vger.kernel.org>; Tue,  1 Sep 2026 01:55:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788227759; cv=none; b=JKlan9vCZGEhd9P25ycA4Elf7jkCYl+vMGcSVtEmwxiiQwu6wzfdAqs7PXESBX/30O45PysQ3vHDGGaFWFfRSEPL8f7vm2B/S19u/vCJ8QFE4ZWT5rcwf7llZEmJNRS2aSUCHPOtjkJ64mGJrLxN/SptJd6fCXHYTTBqzEuKThM=
+	t=1788227763; cv=none; b=gX2lO9eR3lf8KoVA6Np5YS+osmPFvwSE8HlUAwqIJngbBPRH4Lk0FYOkS0ygEIpHI2w2n9CbS5d+RqYj+//DMCML4dnZLCZ1nTmiKotBfwRhWgYSEVc17NRIbq2vH8x4uZxIpMndJBD7+bKAy/A9Rw8A2J57fjwEUQOez7fYH4o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788227759; c=relaxed/simple;
-	bh=51R+K8a/huSVHR6EM3+jy1LnnFTW9SKmbp+qVzzSwrs=;
-	h=Date:To:From:Subject:Message-Id; b=bVA3ihZj/rXo9nf12mG3D9+fs9DJw1hdyEz0agQSdw7nUl0jK1EyH7QxCPhXD0H0++Hy6FM8ZaMvCAwNHPu4f2cWZqGHe7Ly4q3o0YKF/jlllO/8ekN0b1MZ1jiXLBQ/2RreqhMfbRfqXgUaBsMt+Zh1dyWiDZxXdTgzsWUbvSk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tL7ZPHtk; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788227763; c=relaxed/simple;
+	bh=uYJ40luOh2u6h21cdFjNeIsbYvBTGXJfvhh/Z7x/7do=;
+	h=Date:To:From:Subject:Message-Id; b=l6hZhQANHihuUJoG9SJVnkJaFgH8fqfDsyqb2ZCB5mV+wg6nyimR/GYhN8BUeMmbtcGH8ZIIcpZzVefY/PJZehoL6KJDsiqGz/ca3bhENA55Ls8YdQPtEvdCu+ROTnllUFb6lIfbgbaZ6FIzlOnKdr09djJMT9z63xQRgam+kHU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UoF+tHPv; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tL7ZPHtk"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 11BF91F00A3F;
-	Tue,  1 Sep 2026 01:55:41 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UoF+tHPv"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id ADCDC1F00ACA;
+	Tue,  1 Sep 2026 01:55:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788227741;
-	bh=7gZ4l0XlOin3fnVgUNLGiMJ821qwD+FvBJWCjZRabgg=;
+	d=linux-foundation.org; s=korg; t=1788227745;
+	bh=mInybQxtu3y3uUHUBd0+0QXmOTEM4awZMcRSWKERW8Y=;
 	h=Date:To:From:Subject;
-	b=tL7ZPHtkhxwcLt7UMQxMo+uW/+DV7sqeqWGMG2UAITdqlweY56iIEN/RsUWrh8OGe
-	 7by5iS1COdmNxtLZPTaKIsF6j32R/DiBlyyJi88FR2Irr0xMmbqGbspg+uwEZg7nA1
-	 cEuu5wrkq1+QO7TJ4kHjjsANcps+ynVH2ZwL8jZA=
-Date: Mon, 31 Aug 2026 18:55:40 -0700
-To: mm-commits@vger.kernel.org,ysato@users.sourceforge.jp,samuel.holland@sifive.com,rppt@kernel.org,ljs@kernel.org,kernel@xen0n.name,james.bottomley@HansenPartnership.com,glaubitz@physik.fu-berlin.de,geert@linux-m68k.org,deller@gmx.de,david@kernel.org,dalias@libc.org,chenhuacai@kernel.org,anshuman.khandual@arm.com,akpm@linux-foundation.org
+	b=UoF+tHPvNH7v05CtU640M9y2rg37vDWs/cjxzTCfKR0bZKrSSgQKCta2x4EK9Sh17
+	 yUn7yvDe1lUdq95xkO2Tt4popJ8ArUiMTvX0wyIO+y7Tl9e5xzWBd52ImgD7wihlHZ
+	 AwhDfEabE7EWd54WGWLPqCiENzcBopDqr+a1lGzo=
+Date: Mon, 31 Aug 2026 18:55:45 -0700
+To: mm-commits@vger.kernel.org,ysato@users.sourceforge.jp,samuel.holland@sifive.com,rppt@kernel.org,ljs@kernel.org,kernel@xen0n.name,James.Bottomley@HansenPartnership.com,glaubitz@physik.fu-berlin.de,geert@linux-m68k.org,deller@gmx.de,david@kernel.org,dalias@libc.org,chenhuacai@kernel.org,anshuman.khandual@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-stop-using-pxd_error.patch added to mm-new branch
-Message-Id: <20260901015541.11BF91F00A3F@smtp.kernel.org>
+Subject: + parisc-mm-directly-use-generic-_clear_bad.patch added to mm-new branch
+Message-Id: <20260901015545.ADCDC1F00ACA@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: stop using pxd_ERROR()
+     Subject: parisc/mm: directly use generic [pmd|pgd]_clear_bad()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-stop-using-pxd_error.patch
+     parisc-mm-directly-use-generic-_clear_bad.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-stop-using-pxd_error.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/parisc-mm-directly-use-generic-_clear_bad.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,29 +70,24 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Anshuman Khandual <anshuman.khandual@arm.com>
-Subject: mm: stop using pxd_ERROR()
-Date: Mon, 31 Aug 2026 11:13:24 +0530
+Subject: parisc/mm: directly use generic [pmd|pgd]_clear_bad()
+Date: Mon, 31 Aug 2026 11:13:26 +0530
 
-pxd_ERROR() has been used in generic mm just to print the page table entry
-in pxd_clear_bad() before clearing those out with pxd_clear() later. 
-These pxd_ERROR() macros have been provided by all platforms which
-basically did the same thing.
+Drop [pmd|pgd]_ERROR() followed by [pmd|pgd]_clear() instances.  But
+instead directly use semantically equivalent generic helpers
+[pmd|pgd]_clear_bad() in unmap_uncached_[pte|pmd]() which helps in
+dropping their corresponding [pmd|pgd]_ERROR() macros across the tree.
 
-Make pxd_clear_bad() use recently added ptval_to_str() instead for
-printing page table entries thus completely dropping dependency on
-platform provided pxd_ERROR() macros which can then be dropped off later
-on.
-
-Link: https://lore.kernel.org/20260831054331.625505-3-anshuman.khandual@arm.com
+Link: https://lore.kernel.org/20260831054331.625505-5-anshuman.khandual@arm.com
 Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Reviewed-by: David Hildenbrand (Arm) <david@kernel.org>
 Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: James E.J. Bottomley <James.Bottomley@HansenPartnership.com>
 Cc: Helge Deller <deller@gmx.de>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Cc: Huacai Chen <chenhuacai@kernel.org>
-Cc: James Bottomley <james.bottomley@HansenPartnership.com>
 Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
 Cc: Rich Felker <dalias@libc.org>
 Cc: Samuel Holland <samuel.holland@sifive.com>
 Cc: WANG Xuerui <kernel@xen0n.name>
@@ -100,58 +95,31 @@ Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/pgtable-generic.c |   20 ++++++++++++++++----
- 1 file changed, 16 insertions(+), 4 deletions(-)
+ arch/parisc/kernel/pci-dma.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
---- a/mm/pgtable-generic.c~mm-stop-using-pxd_error
-+++ a/mm/pgtable-generic.c
-@@ -26,14 +26,20 @@
- 
- void pgd_clear_bad(pgd_t *pgd)
- {
--	pgd_ERROR(*pgd);
-+	char str[PTVAL_STR_MAX];
-+
-+	ptval_to_str(str, pgd_val(*pgd));
-+	pr_err("bad pgd %s.\n", str);
- 	pgd_clear(pgd);
- }
- 
- #ifndef __PAGETABLE_P4D_FOLDED
- void p4d_clear_bad(p4d_t *p4d)
- {
--	p4d_ERROR(*p4d);
-+	char str[PTVAL_STR_MAX];
-+
-+	ptval_to_str(str, p4d_val(*p4d));
-+	pr_err("bad p4d %s.\n", str);
- 	p4d_clear(p4d);
- }
- #endif
-@@ -41,7 +47,10 @@ void p4d_clear_bad(p4d_t *p4d)
- #ifndef __PAGETABLE_PUD_FOLDED
- void pud_clear_bad(pud_t *pud)
- {
--	pud_ERROR(*pud);
-+	char str[PTVAL_STR_MAX];
-+
-+	ptval_to_str(str, pud_val(*pud));
-+	pr_err("bad pud %s.\n", str);
- 	pud_clear(pud);
- }
- #endif
-@@ -53,7 +62,10 @@ void pud_clear_bad(pud_t *pud)
-  */
- void pmd_clear_bad(pmd_t *pmd)
- {
--	pmd_ERROR(*pmd);
-+	char str[PTVAL_STR_MAX];
-+
-+	ptval_to_str(str, pmd_val(*pmd));
-+	pr_err("bad pmd %s.\n", str);
- 	pmd_clear(pmd);
- }
- 
+--- a/arch/parisc/kernel/pci-dma.c~parisc-mm-directly-use-generic-_clear_bad
++++ a/arch/parisc/kernel/pci-dma.c
+@@ -160,8 +160,7 @@ static inline void unmap_uncached_pte(pm
+ 	if (pmd_none(*pmd))
+ 		return;
+ 	if (pmd_bad(*pmd)) {
+-		pmd_ERROR(*pmd);
+-		pmd_clear(pmd);
++		pmd_clear_bad(pmd);
+ 		return;
+ 	}
+ 	pte = pte_offset_kernel(pmd, vaddr);
+@@ -196,8 +195,7 @@ static inline void unmap_uncached_pmd(pg
+ 	if (pgd_none(*dir))
+ 		return;
+ 	if (pgd_bad(*dir)) {
+-		pgd_ERROR(*dir);
+-		pgd_clear(dir);
++		pgd_clear_bad(dir);
+ 		return;
+ 	}
+ 	pmd = pmd_offset(pud_offset(p4d_offset(dir, vaddr), vaddr), vaddr);
 _
 
 Patches currently in -mm which might be from anshuman.khandual@arm.com are
