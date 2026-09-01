@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 97BF0399369
-	for <mm-commits@vger.kernel.org>; Tue,  1 Sep 2026 04:20:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 574E230649C
+	for <mm-commits@vger.kernel.org>; Tue,  1 Sep 2026 04:23:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788236435; cv=none; b=irSBNQdINyZs0vLeO/yH8ALAR3OMwjVGilQUk0acp0lPdyPyRDaMWftKhhTGRoS1qv/cyU20KTlGEQNNojc1ZN7QyoG2wO7PWp/hKgsRcUTptueL9EXMArYjBYlJ7+fwU/vOYf8HIXVxL2L8oASpuLhYMzenrEtk+LVylQg1g4E=
+	t=1788236593; cv=none; b=NmBcqeMxNy9//6oXI+3WJWt2zK1dKj2pohr2WzPa7hUOaRG7hKM7E9ErYmZFmMIiBIvZg48u7M5wm/qvT2njZnO/PH3+fjJTAWB6B+362DY/nzYmqCWt5s40YkNJtXDCAGtyc4L5XHwQlTIqpwTOX4cSDomjSoxb9FoZfbs7MZI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788236435; c=relaxed/simple;
-	bh=pARGqt0yOJCEd2feih4ka+Tk8ua2vuH6a3jeamF5zyg=;
-	h=Date:To:From:Subject:Message-Id; b=Avvp4V/iFrssr8D5Zeki6wWZy806ImwOVW9L7xo7gVU5iHM6gnfudEaEx0rL+jOSWi44oZNmIfPn2wvQl3VBJISe+wHnIAOsNmISsjChyTuxZiqHUrJo4dn+MIEIBuodqIt2icMekbFTIhy/683JOMkD4F9U/9BZykZvVR8SSyY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ENYNiRl4; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788236593; c=relaxed/simple;
+	bh=fW+iLZBmXqqUDwZXaG7KB3qpDqATXnY/RcMv+rcUqYQ=;
+	h=Date:To:From:Subject:Message-Id; b=gQdRwAlkhFWDNx3iq3y7Xvz1OZ1d1d/86Bz1RYcpSi/XpPMOavFG2zWpiGWtER3z/GVCEJIg3BPTlTHSFTu0fvq6WtvsOCNlhY5yM8BWPLr4XYVccx6MO3xpqHe5fx/72C5c/N1j8GxmHBcWAeEeqj/FJi9uRef2r8whZWcUaOs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KvEiI4XE; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ENYNiRl4"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3D0261F000E9;
-	Tue,  1 Sep 2026 04:20:33 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KvEiI4XE"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BE9571F000E9;
+	Tue,  1 Sep 2026 04:23:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788236433;
-	bh=ko3Tyno0yUj112QCH08h3K160e68c2xRjN/DQBdDcXM=;
+	d=linux-foundation.org; s=korg; t=1788236591;
+	bh=7VvMbNhADMUkFl+5nU+EQi9sBoipnOvX7YEjYY5wAOk=;
 	h=Date:To:From:Subject;
-	b=ENYNiRl4/gSCrIwkyFU3cqPzyQJ7RTz4+jexW6pLm38xp0Q9aF7rOHbBV+eQUWjOU
-	 BZeuyLYuISntB19mng9lOjJ5IPGjHYIp0/wYvGXnpa3o8BpLTd3m+y8JtY13mTAItv
-	 DWOza0v9PXQyCwHSXKUVDx4t/S9C0fq2wbx2nmGM=
-Date: Mon, 31 Aug 2026 21:20:32 -0700
-To: mm-commits@vger.kernel.org,peterx@redhat.com,jhubbard@nvidia.com,jgg@ziepe.ca,david@kernel.org,aris@ruivo.org,akpm@linux-foundation.org
+	b=KvEiI4XEhdHkamfwFjhoShaIlaUE9iLMz0G0qAxmKUCjAW/MjUv25y/XN1a+jbmjd
+	 nxA65kU3YC46TpQ2TWNZohyCSMcVmuPTUR3Oa5lsmhlZa0deklYIalNTJ/c7G5gw9r
+	 cY2/RN+pKNARM0v3dTJydQtk8x2aopun/ONlhHEE=
+Date: Mon, 31 Aug 2026 21:23:11 -0700
+To: mm-commits@vger.kernel.org,pasha.tatashin@soleen.com,palmer@dabbelt.com,aou@eecs.berkeley.edu,alex@ghiti.fr,liuye@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-gup-cleanup-the-gup_fast_-call-chain.patch added to mm-new branch
-Message-Id: <20260901042033.3D0261F000E9@smtp.kernel.org>
+Subject: + mm-page_table_check-add-explicit-pmd_none-check-in-pte_clear_range.patch added to mm-new branch
+Message-Id: <20260901042311.BE9571F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: gup: cleanup the gup_fast_*() call chain
+     Subject: mm/page_table_check: add explicit pmd_none check in pte_clear_range
 has been added to the -mm mm-new branch.  Its filename is
-     mm-gup-cleanup-the-gup_fast_-call-chain.patch
+     mm-page_table_check-add-explicit-pmd_none-check-in-pte_clear_range.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-gup-cleanup-the-gup_fast_-call-chain.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_table_check-add-explicit-pmd_none-check-in-pte_clear_range.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,371 +69,53 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Aristeu Rozanski <aris@ruivo.org>
-Subject: mm: gup: cleanup the gup_fast_*() call chain
-Date: Thu, 27 Aug 2026 21:55:44 -0400
+From: Ye Liu <liuye@kylinos.cn>
+Subject: mm/page_table_check: add explicit pmd_none check in pte_clear_range
+Date: Wed, 19 Aug 2026 10:55:15 +0800
 
-Refactor gup_fast functions so each step of the way returns the number of
-pages pinned.  Because the previous step of the chain knows what the
-number it should be, less indicates an error.  This way there's no need to
-pass *nr along.
+In __page_table_check_pte_clear_range(), the condition to determine
+whether to iterate over PTEs only checked pmd_bad() and pmd_leaf().  This
+relies on the implicit assumption that pmd_none() is always a subset of
+pmd_bad() on all architectures supporting PAGE_TABLE_CHECK.
 
-Link: https://lore.kernel.org/20260828015542.334186653@ruivo.org
-Signed-off-by: Aristeu Rozanski <aris@ruivo.org>
-Suggested-by: David Hildenbrand <david@kernel.org>
-Link: https://lore.kernel.org/all/85e760cf-b994-40db-8d13-221feee55c60@redhat.com/T/#u
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Peter Xu <peterx@redhat.com>
+While this assumption currently holds for x86_64, arm64, s390, riscv, and
+powerpc, it is an architecture-dependent behavior that may not hold for
+future architectures.  Add an explicit pmd_none() check to make the intent
+clear and avoid calling pte_offset_map() on an empty PMD, which could lead
+to undefined behavior.
+
+Link: https://lore.kernel.org/20260819025516.2967199-1-ye.liu@linux.dev
+Signed-off-by: Ye Liu <liuye@kylinos.cn>
+Cc: Albert Ou <aou@eecs.berkeley.edu>
+Cc: Alexandre Ghiti <alex@ghiti.fr>
+Cc: Palmer Dabbelt <palmer@dabbelt.com>
+Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |  179 +++++++++++++++++++++++++++--------------------------
- 1 file changed, 94 insertions(+), 85 deletions(-)
+ mm/page_table_check.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/gup.c~mm-gup-cleanup-the-gup_fast_-call-chain
-+++ a/mm/gup.c
-@@ -2826,11 +2826,11 @@ static bool gup_fast_folio_allowed(struc
-  * also check pmd here to make sure pmd doesn't change (corresponds to
-  * pmdp_collapse_flush() in the THP collapse code path).
-  */
--static int gup_fast_pte_range(pmd_t pmd, pmd_t *pmdp, unsigned long addr,
--		unsigned long end, unsigned int flags, struct page **pages,
--		int *nr)
-+static unsigned long gup_fast_pte_range(pmd_t pmd, pmd_t *pmdp,
-+		unsigned long addr, unsigned long end,
-+		unsigned int flags, struct page **pages)
- {
--	int ret = 0;
-+	unsigned long nr_pages = 0;
- 	pte_t *ptep, *ptem;
+--- a/mm/page_table_check.c~mm-page_table_check-add-explicit-pmd_none-check-in-pte_clear_range
++++ a/mm/page_table_check.c
+@@ -278,7 +278,7 @@ void __page_table_check_pte_clear_range(
+ 	if (&init_mm == mm)
+ 		return;
  
- 	ptem = ptep = pte_offset_map(&pmd, addr);
-@@ -2892,15 +2892,13 @@ static int gup_fast_pte_range(pmd_t pmd,
- 			goto pte_unmap;
- 		}
- 		folio_set_referenced(folio);
--		pages[*nr] = page;
--		(*nr)++;
-+		pages[nr_pages] = page;
-+		nr_pages++;
- 	} while (ptep++, addr += PAGE_SIZE, addr != end);
+-	if (!pmd_bad(pmd) && !pmd_leaf(pmd)) {
++	if (!pmd_none(pmd) && !pmd_bad(pmd) && !pmd_leaf(pmd)) {
+ 		pte_t *ptep = pte_offset_map(&pmd, addr);
+ 		unsigned long i;
  
--	ret = 1;
--
- pte_unmap:
- 	pte_unmap(ptem);
--	return ret;
-+	return nr_pages;
- }
- #else
- 
-@@ -2913,21 +2911,21 @@ pte_unmap:
-  * get_user_pages_fast_only implementation that can pin pages. Thus it's still
-  * useful to have gup_fast_pmd_leaf even if we can't operate on ptes.
-  */
--static int gup_fast_pte_range(pmd_t pmd, pmd_t *pmdp, unsigned long addr,
--		unsigned long end, unsigned int flags, struct page **pages,
--		int *nr)
-+static unsigned long gup_fast_pte_range(pmd_t pmd, pmd_t *pmdp,
-+		unsigned long addr, unsigned long end,
-+		unsigned int flags, struct page **pages)
- {
- 	return 0;
- }
- #endif /* CONFIG_ARCH_HAS_PTE_SPECIAL */
- 
--static int gup_fast_pmd_leaf(pmd_t orig, pmd_t *pmdp, unsigned long addr,
--		unsigned long end, unsigned int flags, struct page **pages,
--		int *nr)
-+static unsigned long gup_fast_pmd_leaf(pmd_t orig, pmd_t *pmdp,
-+		unsigned long addr, unsigned long end,
-+		unsigned int flags, struct page **pages)
- {
- 	struct page *page;
- 	struct folio *folio;
--	int refs;
-+	unsigned long nr_pages, i;
- 
- 	/* See gup_fast_pte_range() */
- 	if (pmd_protnone(orig))
-@@ -2939,42 +2937,40 @@ static int gup_fast_pmd_leaf(pmd_t orig,
- 	if (pmd_special(orig))
- 		return 0;
- 
--	refs = (end - addr) >> PAGE_SHIFT;
-+	nr_pages = (end - addr) >> PAGE_SHIFT;
- 	page = pmd_page(orig) + ((addr & ~PMD_MASK) >> PAGE_SHIFT);
- 
--	folio = try_grab_folio_fast(page, refs, flags);
-+	folio = try_grab_folio_fast(page, nr_pages, flags);
- 	if (!folio)
- 		return 0;
- 
- 	if (unlikely(pmd_val(orig) != pmd_val(pmdp_get_lockless(pmdp)))) {
--		gup_put_folio(folio, refs, flags);
-+		gup_put_folio(folio, nr_pages, flags);
- 		return 0;
- 	}
- 
- 	if (!gup_fast_folio_allowed(folio, flags)) {
--		gup_put_folio(folio, refs, flags);
-+		gup_put_folio(folio, nr_pages, flags);
- 		return 0;
- 	}
- 	if (!pmd_write(orig) && gup_must_unshare(NULL, flags, &folio->page)) {
--		gup_put_folio(folio, refs, flags);
-+		gup_put_folio(folio, nr_pages, flags);
- 		return 0;
- 	}
- 
--	pages += *nr;
--	*nr += refs;
--	for (; refs; refs--)
-+	for (i = 0; i < nr_pages; i++)
- 		*(pages++) = page++;
- 	folio_set_referenced(folio);
--	return 1;
-+	return nr_pages;
- }
- 
--static int gup_fast_pud_leaf(pud_t orig, pud_t *pudp, unsigned long addr,
--		unsigned long end, unsigned int flags, struct page **pages,
--		int *nr)
-+static unsigned long gup_fast_pud_leaf(pud_t orig, pud_t *pudp,
-+		unsigned long addr, unsigned long end,
-+		unsigned int flags, struct page **pages)
- {
- 	struct page *page;
- 	struct folio *folio;
--	int refs;
-+	unsigned long nr_pages, i;
- 
- 	if (!pud_access_permitted(orig, flags & FOLL_WRITE))
- 		return 0;
-@@ -2982,41 +2978,39 @@ static int gup_fast_pud_leaf(pud_t orig,
- 	if (pud_special(orig))
- 		return 0;
- 
--	refs = (end - addr) >> PAGE_SHIFT;
-+	nr_pages = (end - addr) >> PAGE_SHIFT;
- 	page = pud_page(orig) + ((addr & ~PUD_MASK) >> PAGE_SHIFT);
- 
--	folio = try_grab_folio_fast(page, refs, flags);
-+	folio = try_grab_folio_fast(page, nr_pages, flags);
- 	if (!folio)
- 		return 0;
- 
- 	if (unlikely(pud_val(orig) != pud_val(pudp_get(pudp)))) {
--		gup_put_folio(folio, refs, flags);
-+		gup_put_folio(folio, nr_pages, flags);
- 		return 0;
- 	}
- 
- 	if (!gup_fast_folio_allowed(folio, flags)) {
--		gup_put_folio(folio, refs, flags);
-+		gup_put_folio(folio, nr_pages, flags);
- 		return 0;
- 	}
- 
- 	if (!pud_write(orig) && gup_must_unshare(NULL, flags, &folio->page)) {
--		gup_put_folio(folio, refs, flags);
-+		gup_put_folio(folio, nr_pages, flags);
- 		return 0;
- 	}
- 
--	pages += *nr;
--	*nr += refs;
--	for (; refs; refs--)
-+	for (i = 0; i < nr_pages; i++)
- 		*(pages++) = page++;
- 	folio_set_referenced(folio);
--	return 1;
-+	return nr_pages;
- }
- 
--static int gup_fast_pmd_range(pud_t *pudp, pud_t pud, unsigned long addr,
--		unsigned long end, unsigned int flags, struct page **pages,
--		int *nr)
-+static unsigned long gup_fast_pmd_range(pud_t *pudp, pud_t pud,
-+		unsigned long addr, unsigned long end,
-+		unsigned int flags, struct page **pages)
- {
--	unsigned long next;
-+	unsigned long next, nr_pages = 0, chunk_nr_pages;
- 	pmd_t *pmdp;
- 
- 	pmdp = pmd_offset_lockless(pudp, pud, addr);
-@@ -3025,26 +3019,30 @@ static int gup_fast_pmd_range(pud_t *pud
- 
- 		next = pmd_addr_end(addr, end);
- 		if (!pmd_present(pmd))
--			return 0;
-+			break;
- 
- 		if (unlikely(pmd_leaf(pmd))) {
--			if (!gup_fast_pmd_leaf(pmd, pmdp, addr, next, flags,
--				pages, nr))
--				return 0;
--
--		} else if (!gup_fast_pte_range(pmd, pmdp, addr, next, flags,
--					       pages, nr))
--			return 0;
-+			chunk_nr_pages = gup_fast_pmd_leaf(pmd, pmdp, addr,
-+							   next, flags,
-+							   &pages[nr_pages]);
-+
-+		} else
-+			chunk_nr_pages = gup_fast_pte_range(pmd, pmdp, addr,
-+							    next, flags,
-+							    &pages[nr_pages]);
-+		nr_pages += chunk_nr_pages;
-+		if (chunk_nr_pages != (next - addr) >> PAGE_SHIFT)
-+			break;
- 	} while (pmdp++, addr = next, addr != end);
- 
--	return 1;
-+	return nr_pages;
- }
- 
--static int gup_fast_pud_range(p4d_t *p4dp, p4d_t p4d, unsigned long addr,
--		unsigned long end, unsigned int flags, struct page **pages,
--		int *nr)
-+static unsigned long gup_fast_pud_range(p4d_t *p4dp, p4d_t p4d,
-+		unsigned long addr, unsigned long end,
-+		unsigned int flags, struct page **pages)
- {
--	unsigned long next;
-+	unsigned long next, nr_pages = 0, chunk_nr_pages;
- 	pud_t *pudp;
- 
- 	pudp = pud_offset_lockless(p4dp, p4d, addr);
-@@ -3053,24 +3051,27 @@ static int gup_fast_pud_range(p4d_t *p4d
- 
- 		next = pud_addr_end(addr, end);
- 		if (unlikely(!pud_present(pud)))
--			return 0;
--		if (unlikely(pud_leaf(pud))) {
--			if (!gup_fast_pud_leaf(pud, pudp, addr, next, flags,
--					       pages, nr))
--				return 0;
--		} else if (!gup_fast_pmd_range(pudp, pud, addr, next, flags,
--					       pages, nr))
--			return 0;
-+			break;
-+		if (unlikely(pud_leaf(pud)))
-+			chunk_nr_pages = gup_fast_pud_leaf(pud, pudp, addr,
-+							   next, flags,
-+							   &pages[nr_pages]);
-+		else
-+			chunk_nr_pages = gup_fast_pmd_range(pudp, pud, addr,
-+							    next, flags,
-+							    &pages[nr_pages]);
-+		nr_pages += chunk_nr_pages;
-+		if (chunk_nr_pages != (next - addr) >> PAGE_SHIFT)
-+			break;
- 	} while (pudp++, addr = next, addr != end);
- 
--	return 1;
-+	return nr_pages;
- }
- 
--static int gup_fast_p4d_range(pgd_t *pgdp, pgd_t pgd, unsigned long addr,
--		unsigned long end, unsigned int flags, struct page **pages,
--		int *nr)
-+static unsigned long gup_fast_p4d_range(pgd_t *pgdp, pgd_t pgd, unsigned long addr,
-+		unsigned long end, unsigned int flags, struct page **pages)
- {
--	unsigned long next;
-+	unsigned long next, nr_pages = 0, chunk_nr_pages;
- 	p4d_t *p4dp;
- 
- 	p4dp = p4d_offset_lockless(pgdp, pgd, addr);
-@@ -3079,20 +3080,23 @@ static int gup_fast_p4d_range(pgd_t *pgd
- 
- 		next = p4d_addr_end(addr, end);
- 		if (!p4d_present(p4d))
--			return 0;
-+			break;
- 		BUILD_BUG_ON(p4d_leaf(p4d));
--		if (!gup_fast_pud_range(p4dp, p4d, addr, next, flags,
--					pages, nr))
--			return 0;
-+		chunk_nr_pages = gup_fast_pud_range(p4dp, p4d, addr, next,
-+						    flags, &pages[nr_pages]);
-+		nr_pages += chunk_nr_pages;
-+		if (chunk_nr_pages != (next - addr) >> PAGE_SHIFT)
-+			break;
- 	} while (p4dp++, addr = next, addr != end);
- 
--	return 1;
-+	return nr_pages;
- }
- 
--static void gup_fast_pgd_range(unsigned long addr, unsigned long end,
--		unsigned int flags, struct page **pages, int *nr)
-+static unsigned long gup_fast_pgd_range(unsigned long addr,
-+		unsigned long end, unsigned int flags,
-+		struct page **pages)
- {
--	unsigned long next;
-+	unsigned long next, nr_pages = 0, chunk_nr_pages;
- 	pgd_t *pgdp;
- 
- 	pgdp = pgd_offset(current->mm, addr);
-@@ -3101,17 +3105,23 @@ static void gup_fast_pgd_range(unsigned
- 
- 		next = pgd_addr_end(addr, end);
- 		if (pgd_none(pgd))
--			return;
-+			break;
- 		BUILD_BUG_ON(pgd_leaf(pgd));
--		if (!gup_fast_p4d_range(pgdp, pgd, addr, next, flags,
--					pages, nr))
--			return;
-+		chunk_nr_pages = gup_fast_p4d_range(pgdp, pgd, addr, next,
-+						    flags, &pages[nr_pages]);
-+		nr_pages += chunk_nr_pages;
-+		if (chunk_nr_pages != (next - addr) >> PAGE_SHIFT)
-+			break;
- 	} while (pgdp++, addr = next, addr != end);
-+
-+	return nr_pages;
- }
- #else
--static inline void gup_fast_pgd_range(unsigned long addr, unsigned long end,
--		unsigned int flags, struct page **pages, int *nr)
-+static inline unsigned long gup_fast_pgd_range(unsigned long addr,
-+		unsigned long end, unsigned int flags,
-+		struct page **pages)
- {
-+	return 0;
- }
- #endif /* CONFIG_HAVE_GUP_FAST */
- 
-@@ -3129,8 +3139,7 @@ static bool gup_fast_permitted(unsigned
- static unsigned long gup_fast(unsigned long start, unsigned long end,
- 		unsigned int gup_flags, struct page **pages)
- {
--	unsigned long flags;
--	int nr_pinned = 0;
-+	unsigned long flags, nr_pinned;
- 	unsigned seq;
- 
- 	if (!IS_ENABLED(CONFIG_HAVE_GUP_FAST) ||
-@@ -3154,7 +3163,7 @@ static unsigned long gup_fast(unsigned l
- 	 * that come from callers of tlb_remove_table_sync_one().
- 	 */
- 	local_irq_save(flags);
--	gup_fast_pgd_range(start, end, gup_flags, pages, &nr_pinned);
-+	nr_pinned = gup_fast_pgd_range(start, end, gup_flags, pages);
- 	local_irq_restore(flags);
- 
- 	/*
 _
 
-Patches currently in -mm which might be from aris@ruivo.org are
+Patches currently in -mm which might be from liuye@kylinos.cn are
 
-mm-gup-move-pmd_protnone-into-gup_fast_pmd_leaf.patch
-mm-gup-cleanup-the-gup_fast_-call-chain.patch
+mm-vmalloc-fix-vmap_purge_lock-livelock-under-memory-pressure.patch
+tools-mm-page_owner_sort-fix-sort-option-being-silently-ignored.patch
+tools-mm-page_owner_sort-add-module-name-sort-cull-filter-support.patch
+tools-mm-page_owner_sort-show-available-sort-keys-in-usage-text.patch
+mm-oom_kill-remove-unreachable-__gfp_thisnode-check-in-constrained_alloc.patch
+mm-oom_kill-proc-replace-magic-number-1000-with-oom_score_adj_max.patch
+mm-page_table_check-add-explicit-pmd_none-check-in-pte_clear_range.patch
 
