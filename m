@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4C79A4746A9
-	for <mm-commits@vger.kernel.org>; Tue,  1 Sep 2026 22:08:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6B0743BE64C
+	for <mm-commits@vger.kernel.org>; Tue,  1 Sep 2026 22:14:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788300524; cv=none; b=Xx06ZB9Lms9rpRAHhpBGd8djfGTdD2edm51dl5vntifTp+y2jpLDwZWFwkD7m8HXCjc89PznBUqjq09SOZsHErSV98lqpmNUr7ik0lb1tXMIIfRxpS0lRAZWZKgucr3aSu9qkuzqjQO1Ca0f/dWs0bSia8Y9N0HNgPxmqYruldk=
+	t=1788300882; cv=none; b=AXRAwGtqrhY25epUpU73h4Jxwbx6vq/s/oLt+nsJeN2NZFAOFCUwV9AOXlbrWhqXQVGP58c79n26SKvJbXY3Q2ZgY8kJfsLhRUdBmjiQsPKiPqZph3QgwRwLUS/p9jkCtCTukCGx1uNenVBJI74F6Q2AkM7HZsUT0L1L0mWrWVM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788300524; c=relaxed/simple;
-	bh=mTxLbs3YHrlL0ivg/kP5g+jbJVDiC+gQh+eObHD5sDM=;
-	h=Date:To:From:Subject:Message-Id; b=OWFlPH0VcpowXPmLy/xu5aio4k0ox3GNYIMG0Xx5ogT7IYa7PvQFMMxdUDr2AyalsupRrTQUmS2eqGZo6Y0K4t3c4Ysx9suh6qNmX7EuW1RIqPvDzKQz17dUeOZkFMx6+WKnaWpTGbjqpUwNtaQO0LqFWbQTYxeE4rxJrKpK8MY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fW4qb6SC; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788300882; c=relaxed/simple;
+	bh=yjsgW6lqAS7xHtW5lGdMQv99+/TBAWu7CXOhKaoC4ts=;
+	h=Date:To:From:Subject:Message-Id; b=nmhWkjEVcLzxPpP3WY7jlH+fsb5Gt6hjS4rqhwlfqYXG5/P2+u5zPLxtXVctwzT8ApM/HQWMiOHXZjDVyJKeF4/GRYrAxrzhqYff+N0PfVACbwELpdmNrPpRi5b8xnNzXmNUL0mGhTcJaNNnvn3HIWSIPcd8qYPRTZuvJatMV8U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vPF6ZKc5; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fW4qb6SC"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 549A01F00A3E;
-	Tue,  1 Sep 2026 22:08:40 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vPF6ZKc5"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C1F041F000E9;
+	Tue,  1 Sep 2026 22:14:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788300520;
-	bh=NZEk/55vfoJx/fTGJbXv4AGxPX1CqdB4JoVxj12GsnI=;
+	d=linux-foundation.org; s=korg; t=1788300880;
+	bh=VaXopG/Rr7/DwCw1+NXnk73e3MExJUoWKmjpj8TYyMQ=;
 	h=Date:To:From:Subject;
-	b=fW4qb6SC37VZUoN9255ul/t4t3viU/n8UACpNFnWD0VUlJRGijQOyZN0Crho+HGVv
-	 DMbo1h6+6G2hHvRiSsrQrjvYoPOjcVtSBL3mMBDbu8ViDNawRVojZfLaWEyJwFcwOc
-	 TZz3oNy0dOBXFahh5TmPLBaZYQiq3yjEevn6jT8I=
-Date: Tue, 01 Sep 2026 15:08:39 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,rakie.kim@sk.com,matthew.brost@intel.com,joshua.hahnjy@gmail.com,gourry@gourry.net,david@kernel.org,byungchul@sk.com,apopple@nvidia.com,zhaozhengzhuo@uniontech.com,akpm@linux-foundation.org
+	b=vPF6ZKc5Fc6kGN/EtG9pzXLhINPH6Q+ut/T5TOONlQqGU9HQaIYpHk+C2AsIkkuTC
+	 RpTNF8XtmXTPrFRAC+xNapWbCdjjQ5j1OGdZvYLE8RYNn8HseyuWynhcDhUJb+7tq+
+	 VcQqAjgRm4Rx7CedwIXrOA+tPI2j9PUvzQbrqqos=
+Date: Tue, 01 Sep 2026 15:14:40 -0700
+To: mm-commits@vger.kernel.org,haoqinhuang7@gmail.com,senozhatsky@chromium.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-migrate_device-fix-function-name-in-kernel-doc.patch added to mm-new branch
-Message-Id: <20260901220840.549A01F00A3E@smtp.kernel.org>
+Subject: + zram-remove-unreachable-kernel_read_file_from_path-return-check.patch added to mm-new branch
+Message-Id: <20260901221440.C1F041F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/migrate_device: fix function name in kernel-doc
+     Subject: zram: remove unreachable kernel_read_file_from_path() return check
 has been added to the -mm mm-new branch.  Its filename is
-     mm-migrate_device-fix-function-name-in-kernel-doc.patch
+     zram-remove-unreachable-kernel_read_file_from_path-return-check.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-migrate_device-fix-function-name-in-kernel-doc.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-remove-unreachable-kernel_read_file_from_path-return-check.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,52 +69,41 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: zhaozhengzhuo <zhaozhengzhuo@uniontech.com>
-Subject: mm/migrate_device: fix function name in kernel-doc
-Date: Tue, 1 Sep 2026 14:51:31 +0800
+From: Sergey Senozhatsky <senozhatsky@chromium.org>
+Subject: zram: remove unreachable kernel_read_file_from_path() return check
+Date: Tue, 1 Sep 2026 14:13:05 +0900
 
-The kernel-doc for migrate_device_range() says that migrate_vma_setup() is
-similar to itself.  Refer to migrate_device_range() as the subject of the
-comparison, making the distinction between virtual-address-based and
-device-PFN-based migration clear.
+Sashiko reported that:
+kernel_read_file_from_path() returns negative error for zero-sized
+files, so we cannot have "sz == 0" return, remove it and use a
+generic error message instead.
 
-Link: https://lore.kernel.org/7D206FC95BDCAA0F+20260901065131.1759298-1-zhaozhengzhuo@uniontech.com
-Fixes: e778406b40db ("mm/migrate_device.c: add migrate_device_range()")
-Signed-off-by: zhaozhengzhuo <zhaozhengzhuo@uniontech.com>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Byungchul Park <byungchul@sk.com>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Gregory Price <gourry@gourry.net>
-Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
-Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
-Cc: Matthew Brost <matthew.brost@intel.com>
-Cc: Rakie Kim <rakie.kim@sk.com>
-Cc: Zi Yan <ziy@nvidia.com>
+Link: https://lore.kernel.org/20260901051335.2202390-1-senozhatsky@chromium.org
+Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
+Cc: Haoqin Huang <haoqinhuang7@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate_device.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/block/zram/zram_drv.c |    5 -----
+ 1 file changed, 5 deletions(-)
 
---- a/mm/migrate_device.c~mm-migrate_device-fix-function-name-in-kernel-doc
-+++ a/mm/migrate_device.c
-@@ -1398,9 +1398,9 @@ static unsigned long migrate_device_pfn_
-  * @start: starting pfn in the range to migrate.
-  * @npages: number of pages to migrate.
-  *
-- * migrate_vma_setup() is similar in concept to migrate_vma_setup() except that
-- * instead of looking up pages based on virtual address mappings a range of
-- * device pfns that should be migrated to system memory is used instead.
-+ * migrate_device_range() is similar in concept to migrate_vma_setup(), except
-+ * that instead of looking up pages based on virtual address mappings a range
-+ * of device pfns that should be migrated to system memory is used instead.
-  *
-  * This is useful when a driver needs to free device memory but doesn't know the
-  * virtual mappings of every page that may be in device memory. For example this
+--- a/drivers/block/zram/zram_drv.c~zram-remove-unreachable-kernel_read_file_from_path-return-check
++++ a/drivers/block/zram/zram_drv.c
+@@ -1722,11 +1722,6 @@ static int comp_params_store(struct zram
+ 			       dict_path, sz);
+ 			return sz;
+ 		}
+-		if (sz == 0) {
+-			pr_err("failed to load dictionary %s (empty file)\n",
+-			       dict_path);
+-			return -EINVAL;
+-		}
+ 	}
+ 
+ 	zram->params[prio].dict_sz = sz;
 _
 
-Patches currently in -mm which might be from zhaozhengzhuo@uniontech.com are
+Patches currently in -mm which might be from senozhatsky@chromium.org are
 
-selftests-damon-prevent-remaining-cross-object-state-pollution.patch
-mm-migrate_device-fix-function-name-in-kernel-doc.patch
+zram-remove-unreachable-kernel_read_file_from_path-return-check.patch
 
