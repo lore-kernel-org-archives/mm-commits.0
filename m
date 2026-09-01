@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 93861485CF9;
-	Tue,  1 Sep 2026 17:10:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C690E488222;
+	Tue,  1 Sep 2026 17:10:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788282636; cv=none; b=UmJMDqHntr34/FZ018ObI/ZOBmS+0wtucN0tjWf2HHOAcqd2wINZHqL76bLE1rqs1fLAhqerKxMfKXk84mvnkUqULY9Lk/2m39QE4N7JH/gRwyjFJPVVtykiW7IfUjWcAPspHjNaXbuBNlLlmr9ikZ6uYdewpiEAnmBs8gklenw=
+	t=1788282638; cv=none; b=uuHxHql4iIZceHYfhKhn9yg/K4wfYND9TFVfug6Rp1599ntfNtVL4rYPD83ax1iLvFqupu/SUSK5xDx0s6XCcVUJgnSxtipjYVF33kKBZkJR82oGK/usiCWLa4dsLFINXUuAkp8JU5FejnqTMahE91p+JULqnBS3jRdZ30xV/Zk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788282636; c=relaxed/simple;
-	bh=e4VrAREP5Sy/PF/J26FL2/2kxqpM8gdomdLbq5y4nbY=;
-	h=Date:To:From:Subject:Message-Id; b=U1LfMP7JACeYfQR2iOhT+HMRsLnFerz8ixAiUgvZhedW5Vesdb0i45xxIgPGJvW67q17xc9tuWXAz/W7n3cITC4n1/JV9p2SYKRzPhwzlXFvMeHS7lj6jtbJOQd/urikQxoP6zM92YG1xkKQorBxdTWCbpVqi++IXkGb/+t3h4w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vliEwh3V; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788282638; c=relaxed/simple;
+	bh=PuCrFXSpvfBX9zbhG6UHco1lpbKcBCajfcsH3T3W9P0=;
+	h=Date:To:From:Subject:Message-Id; b=L/3UhQeLxzrLz79mG+tWJ7x3Ph8uTIHTlMQPyfPcC4+02kdMB+3s7hX8uZnCC5KmN9jGWm5bifI2aqQJe3kpqJ/+FTbQG4IihYtSEYj3NlkFgKQG3qKLLQh0gdbB4bgkcx+swJw2elWYlqy08WEOWPL8lAAyjdjcST8YiEAYm8k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FwH5tEb1; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vliEwh3V"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3524C1F00A3E;
-	Tue,  1 Sep 2026 17:10:34 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FwH5tEb1"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3BF411F00A3A;
+	Tue,  1 Sep 2026 17:10:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788282634;
-	bh=w0abYA/bmK0V38SSzNG6SEcg0ldYgeumE42k73Qp3nY=;
+	d=linux-foundation.org; s=korg; t=1788282636;
+	bh=k5rBUz6W7IrfQVaPtk5rDYJY+h4xWt3ng59BZlhbtho=;
 	h=Date:To:From:Subject;
-	b=vliEwh3Vdy2L2JAcLCuMc6mS5k2eLbBtoic+VO34aWgs/dqAXPlH9AFx8Wc5LQnOZ
-	 4mmslW65YQTrR3/rulDvD6AeaWsc197BwfqzyvKCiGVgxrhZbYGLmwTn40JbUC/m/F
-	 CP+YK+o5inmUnrVXj0IzTxQtE/T78ZIkR0iHOH78=
-Date: Tue, 01 Sep 2026 10:10:33 -0700
+	b=FwH5tEb1FULdWxczoxX2nO4BYbGLNEg1K1Wlm1n+v/G5ZFIbRvoSSvfQ56ugEg015
+	 v3OWvIkhi1PZ7lgn34yVWnw7jNuuWVMd5ivdqQDuLBD9nICWWqvRnqeLdYvRIeXr9L
+	 Bdc608TPfIIFzfBW0+h1xBRSerNeOjbRGd/AslDg=
+Date: Tue, 01 Sep 2026 10:10:35 -0700
 To: mm-commits@vger.kernel.org,usamaarif642@gmail.com,stable@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-core-skip-applying-scheme-if-region-split-for-quota-fails.patch added to mm-new branch
-Message-Id: <20260901171034.3524C1F00A3E@smtp.kernel.org>
+Subject: + mm-damon-paddr-respect-folio-end-for-damos_stat.patch added to mm-new branch
+Message-Id: <20260901171036.3BF411F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/core: skip applying scheme if region split for quota fails
+     Subject: mm/damon/paddr: respect folio end for DAMOS_STAT
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-core-skip-applying-scheme-if-region-split-for-quota-fails.patch
+     mm-damon-paddr-respect-folio-end-for-damos_stat.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-skip-applying-scheme-if-region-split-for-quota-fails.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-paddr-respect-folio-end-for-damos_stat.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,62 +70,45 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/core: skip applying scheme if region split for quota fails
-Date: Tue, 1 Sep 2026 06:18:42 -0700
+Subject: mm/damon/paddr: respect folio end for DAMOS_STAT
+Date: Tue, 1 Sep 2026 06:18:43 -0700
 
-Patch series "mm/damon: fix DAMOS bugs in core, paddr and vaddr".
+The function for applying DAMOS_STAT in DAMON physical address space
+operation set (paddr), namely damon_pa_stat(), applies DAMOS filters to
+folios of the given region.  For that, it gets folios of addresses in the
+region.  It starts from the region start address and advances the address
+by the size of the folio of the address until it goes out of the region. 
+If the start address is in the middle of a large folio, and if the next
+folios are small, some of the next folios could be skipped.  Fix the issue
+by advancing the address to exactly the start address of the next folio.
 
-Fix misc bugs of DAMOS.  Patch 1 makes DAMOS less stress memory allocator
-under extreme situation.  Patches 2 and 3 fix wrong folios walking in
-DAMON_PADDR.  Patches 4 and 5 fix wrong folios walking in DAMON_VADDR. 
-Patches 6-8 handle extreme and unlikely memory situations that can cause
-divide by zero and underflow.
+The user impact is that the DAMOS_STAT-based page level monitoring results
+become inaccurate.  Since the page level monitoring is supposed to provide
+relatively high precision, this is definitely a problem.  It is arguably
+not critical since it is only monitoring quality degradation.
 
-All bugs are discovered by Sashiko.
-
-
-This patch (of 8):
-
-damos_apply_scheme() splits a region and apply the action to the subregion
-if it is needed for not violating the quota.  The split operation
-(damon_split_region_at()) could fail for allocation failure.  In the case,
-the quota could be violated.  From the user's perspective, DAMOS becomes
-more aggressive than expected under the extreme situation.  Handle the
-failure.
-
-The user impact is not critical.  The failure of damon_split_region_at()
-is unlikely since it is arguably too small to fail.  Also DAMOS being
-aggressive is limited to the single region.  Users can set min_nr_regions
-to set the maximum size of each region.  If it is reasonably set, the
-transient overhead shouldn't be critical.
-
-The issue was discovered [1] by Sashiko.
-
-Link: https://lore.kernel.org/20260901131850.98037-1-sj@kernel.org
-Link: https://lore.kernel.org/20260901131850.98037-2-sj@kernel.org
-Link: https://lore.kernel.org/20260718171523.87547-1-sj@kernel.org [1]
-Fixes: 2b8a248d5873 ("mm/damon/schemes: implement size quota for schemes application speed control")
+Link: https://lore.kernel.org/20260901131850.98037-3-sj@kernel.org
+Fixes: bdbe1d7bc325 ("mm/damon/paddr: increment pa_stat damon address range by folio size")
 Signed-off-by: SJ Park <sj@kernel.org>
 Cc: Usama Arif <usamaarif642@gmail.com>
-Cc: <stable@vger.kernel.org> # 5.16.x
+Cc: <stable@vger.kernel.org> # 6.14.x
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/core.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/damon/paddr.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/damon/core.c~mm-damon-core-skip-applying-scheme-if-region-split-for-quota-fails
-+++ a/mm/damon/core.c
-@@ -2604,7 +2604,8 @@ static void damos_apply_scheme(struct da
- 					c->min_region_sz);
- 			if (!sz)
- 				goto update_stat;
--			damon_split_region_at(t, r, sz);
-+			if (damon_split_region_at(t, r, sz))
-+				goto update_stat;
- 		}
- 		if (damos_core_filter_out(c, t, r, s))
- 			return;
+--- a/mm/damon/paddr.c~mm-damon-paddr-respect-folio-end-for-damos_stat
++++ a/mm/damon/paddr.c
+@@ -379,7 +379,7 @@ static unsigned long damon_pa_stat(struc
+ 
+ 		if (!damos_pa_filter_out(s, folio))
+ 			*sz_filter_passed += folio_size(folio) / addr_unit;
+-		addr += folio_size(folio);
++		addr = PFN_PHYS(folio_pfn(folio)) + folio_size(folio);
+ 		folio_put(folio);
+ 	}
+ 	s->last_applied = folio;
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
