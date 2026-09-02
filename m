@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E38E533C192
-	for <mm-commits@vger.kernel.org>; Wed,  2 Sep 2026 20:30:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 807DB485516
+	for <mm-commits@vger.kernel.org>; Wed,  2 Sep 2026 20:30:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788381035; cv=none; b=kW1MKTa6iCNaNs2of9NMhaIUoHryw6sq8wZBShCpFOt7IRY5aF8IsnVmC3XL6nzlCdsQqKNT/RiDnkV0PBbGtEHlWzwLIYKCqs/TRO2Qb892Qg53SIANG/Wrr5LK9AqDbPw6xJ3/nQd/0cfLva7Lvlz6y8t32omfCzTWnRCt28c=
+	t=1788381036; cv=none; b=FSAlET9OP/vXtB3chJ/e5y983Gip/PaHAvUMh6NWUh6bp51Ke0UiZbCO+sCkyXTajqK8Tc50kOy6sbEHgYbF1K1hbQM3w+L9hxmdFu91vAtZ5PAaCI+vKeCEBsTZq4xShSY+Rs9/TP5qjvrAXoInNuZ3m9Ra1fT3NUCefZvG7E8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788381035; c=relaxed/simple;
-	bh=zRfGAM/lE7D8mMF6/uYfJaup4XZ3I6TEn8PSUC51O+A=;
-	h=Date:To:From:Subject:Message-Id; b=unU5+epOL1Is4tzEEp7fKOrsL9yNTinap58JPJuktnpKd81SiTcQv+NR+IP6KnrRlUhTo7kBxVzjIsAUE/OQAlfYOZUi60Fd56cYvv/4Gx65hJTHZTk92M1dpyE274wF5n+l97mvEhWAY2oYVANdv1agpJHL6KZHl42Q+uFonUg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YKJJwZaw; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788381036; c=relaxed/simple;
+	bh=IUk/it7kBNlul2aK7cBkY8BPEo18czFgYV5BCDuBIFw=;
+	h=Date:To:From:Subject:Message-Id; b=U02O5M2R4+xGnj9znxiQerMLEJaGYADVH+SdR/G/JqzGMmbGRRlqFjq1PloERuIF+PbwIT7Fzrv+mSOTrH/nWBzw2yUGMTcF5aHUcbEy6tBvw1ZBMXOEk5+4Q4jOhd+NJfSFuLx4KjfDBeXVrsG+hh3X5LrBcS/Qm6G9UJr1s2s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=k0CeojSq; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YKJJwZaw"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6CA5D1F000E9;
-	Wed,  2 Sep 2026 20:30:33 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="k0CeojSq"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 570201F00A3A;
+	Wed,  2 Sep 2026 20:30:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788381033;
-	bh=jY4Y436r11TKyYhgNuupvEkPRfnlBE2oVOW6U58XJPY=;
+	d=linux-foundation.org; s=korg; t=1788381035;
+	bh=21pkjtUvG3DQNS/jxraEbU11eQZV6DqRe8fGFZJuP90=;
 	h=Date:To:From:Subject;
-	b=YKJJwZawkmVvrWlr6w5xhjl4/s6ly+Vbifhq0NY5RthsGhxvQDJbbt+e8Qe7uAzZi
-	 sWSoXfeqyZnrX4P+G0v1ElWFmBSSuBcqbOk8/0pmIlVANx33o18k0qnNNEBJ6tN/WQ
-	 7sN1EDubukzzHNkXhQQh2NlKyXTWnRXVT0MnoAR0=
-Date: Wed, 02 Sep 2026 13:30:33 -0700
+	b=k0CeojSqZ+vZVfGgrLc0rEiEjZbWoEdRetZK88DldaFypOxcebcH5HRt3XIDnH2b3
+	 N1uT+5eUEkawfWdMrOxI6Wa3RIKdM06OM+XH1g1TQGb3aAyyQC2sY6EqvXbomczmUJ
+	 AtfAJNTSfB/h9HDgcdsxEO9TBgDtYAEfHWDxA7vE=
+Date: Wed, 02 Sep 2026 13:30:34 -0700
 To: mm-commits@vger.kernel.org,shuah@kernel.org,davidgow@davidgow.net,brendan.higgins@linux.dev,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-damon-_damon_sysfs-implement-damonprobes.patch added to mm-new branch
-Message-Id: <20260902203033.6CA5D1F000E9@smtp.kernel.org>
+Subject: + selftests-damon-drgn_dump_damon_status-dump-probes.patch added to mm-new branch
+Message-Id: <20260902203035.570201F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/damon/_damon_sysfs: implement DamonProbes
+     Subject: selftests/damon/drgn_dump_damon_status: dump probes
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-damon-_damon_sysfs-implement-damonprobes.patch
+     selftests-damon-drgn_dump_damon_status-dump-probes.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-damon-_damon_sysfs-implement-damonprobes.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-damon-drgn_dump_damon_status-dump-probes.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,14 +70,14 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: selftests/damon/_damon_sysfs: implement DamonProbes
-Date: Wed, 2 Sep 2026 07:03:09 -0700
+Subject: selftests/damon/drgn_dump_damon_status: dump probes
+Date: Wed, 2 Sep 2026 07:03:10 -0700
 
-Extend _damon_sysfs.py to support staging and committing DAMON probes.  It
-will be used for setting DAMON probes via sysfs changes for testing
-purposes.
+Extend drgn_dump_damon_status.py to dump damon_ctx->probes.  It will be
+used to see if in-kernel DAMON status are changed as the user sets the
+probes via sysfs.
 
-Link: https://lore.kernel.org/20260902140313.85983-4-sj@kernel.org
+Link: https://lore.kernel.org/20260902140313.85983-5-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Cc: Brendan Higgins <brendan.higgins@linux.dev>
 Cc: David Gow <davidgow@davidgow.net>
@@ -85,175 +85,57 @@ Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/damon/_damon_sysfs.py |  125 +++++++++++++++-
- 1 file changed, 124 insertions(+), 1 deletion(-)
+ tools/testing/selftests/damon/drgn_dump_damon_status.py |   32 ++++++++++
+ 1 file changed, 32 insertions(+)
 
---- a/tools/testing/selftests/damon/_damon_sysfs.py~selftests-damon-_damon_sysfs-implement-damonprobes
-+++ a/tools/testing/selftests/damon/_damon_sysfs.py
-@@ -570,6 +570,117 @@ class IntervalsGoal:
-             return err
-         return None
+--- a/tools/testing/selftests/damon/drgn_dump_damon_status.py~selftests-damon-drgn_dump_damon_status-dump-probes
++++ a/tools/testing/selftests/damon/drgn_dump_damon_status.py
+@@ -48,6 +48,37 @@ def attrs_to_dict(attrs):
+         ['max_nr_regions', int],
+         ])
  
-+class DamonFilter:
-+    type_ = None
-+    matching = None
-+    allow = None
-+    filters = None
-+    path = None
-+    idx = None
++def filter_to_dict(damon_filter):
++    filter_type_keyword = {
++            0: 'anon',
++            1: 'memcg',
++            }
++    dict_ = {
++            'type': filter_type_keyword[int(damon_filter.type)],
++            'matching': bool(damon_filter.matching),
++            'allow': bool(damon_filter.allow),
++            }
++    type_ = dict_['type']
++    if type_ == 'memcg':
++        dict_['memcg_id'] = int(damon_filter.memcg_id)
++    return dict_
 +
-+    def __init__(self, type_='anon', matching=False, allow=False, path=None):
-+        self.type_ = type_
-+        self.matching = matching
-+        self.allow = allow
-+        self.path = path
++def filters_to_list(filters):
++    return [filter_to_dict(f)
++            for f in list_for_each_entry(
++                'struct damon_filter', filters.address_of_(), 'list')]
 +
-+    def sysfs_dir(self):
-+        return os.path.join(self.filters.sysfs_dir(), '%d' % self.idx)
++def probe_to_dict(probe):
++    return to_dict(probe, [
++        ['weight', int],
++        ['filters', filters_to_list],
++        ])
 +
-+    def stage(self):
-+        err = write_file(os.path.join(self.sysfs_dir(), 'type'), self.type_)
-+        if err is not None:
-+            return err
-+        err = write_file(os.path.join(self.sysfs_dir(), 'matching'),
-+                         'Y' if self.matching else 'N')
-+        if err is not None:
-+            return err
-+        err = write_file(os.path.join(self.sysfs_dir(), 'allow'),
-+                         'Y' if self.allow else 'N')
-+        if err is not None:
-+            return err
-+        if self.type_ == 'memcg':
-+            err = write_file(os.path.join(self.sysfs_dir(), 'path'), self.path)
-+            if err is not None:
-+                return err
-+        return None
++def probes_to_list(probes):
++    return [probe_to_dict(p)
++            for p in list_for_each_entry(
++                'struct damon_probe', probes.address_of_(), 'list')]
 +
-+class DamonFilters:
-+    filters = None
-+    probe = None
-+
-+    def __init__(self, filters=None):
-+        if filters is None:
-+            filters = []
-+        self.filters = filters
-+        for idx, filter in enumerate(self.filters):
-+            filter.filters = self
-+            filter.idx = idx
-+
-+    def sysfs_dir(self):
-+        return os.path.join(self.probe.sysfs_dir(), 'filters')
-+
-+    def stage(self):
-+        err = write_file(
-+                os.path.join(self.sysfs_dir(), 'nr_filters'),
-+                len(self.filters))
-+        if err is not None:
-+            return err
-+        for filter in self.filters:
-+            err = filter.stage()
-+            if err is not None:
-+                return err
-+        return None
-+
-+class DamonProbe:
-+    weight = None
-+    filters = None
-+    probes = None
-+    idx = None
-+
-+    def __init__(self, weight=0, filters=None):
-+        self.weight = weight
-+        if filters is None:
-+            filters = DamonFilters()
-+        self.filters = filters
-+        self.filters.probe = self
-+
-+    def sysfs_dir(self):
-+        return os.path.join(self.probes.sysfs_dir(), '%d' % self.idx)
-+
-+    def stage(self):
-+        err = write_file(
-+                os.path.join(self.sysfs_dir(), 'weight'), '%d' % self.weight)
-+        if err is not None:
-+            return err
-+        return self.filters.stage()
-+
-+class DamonProbes:
-+    probes = None
-+    attrs = None
-+
-+    def __init__(self, probes=None):
-+        if probes is None:
-+            probes = []
-+        self.probes = probes
-+        for idx, probe in enumerate(self.probes):
-+            probe.probes = self
-+            probe.idx = idx
-+
-+    def sysfs_dir(self):
-+        return os.path.join(self.attrs.sysfs_dir(), 'probes')
-+
-+    def stage(self):
-+        err = write_file(os.path.join(self.sysfs_dir(), 'nr_probes'),
-+                         len(self.probes))
-+        if err is not None:
-+            return err
-+        for probe in self.probes:
-+            err = probe.stage()
-+            if err is not None:
-+                return err
-+        return None
-+
- class DamonAttrs:
-     sample_us = None
-     aggr_us = None
-@@ -577,11 +688,12 @@ class DamonAttrs:
-     update_us = None
-     min_nr_regions = None
-     max_nr_regions = None
-+    probes = None
-     context = None
- 
-     def __init__(self, sample_us=5000, aggr_us=100000,
-                  intervals_goal=None, update_us=1000000, min_nr_regions=10,
--                 max_nr_regions=1000):
-+                 max_nr_regions=1000, probes=None):
-         self.sample_us = sample_us
-         self.aggr_us = aggr_us
-         if intervals_goal is None:
-@@ -591,6 +703,10 @@ class DamonAttrs:
-         self.update_us = update_us
-         self.min_nr_regions = min_nr_regions
-         self.max_nr_regions = max_nr_regions
-+        if probes is None:
-+            probes = DamonProbes()
-+        self.probes = probes
-+        self.probes.attrs = self
- 
-     def interval_sysfs_dir(self):
-         return os.path.join(self.context.sysfs_dir(), 'monitoring_attrs',
-@@ -600,6 +716,9 @@ class DamonAttrs:
-         return os.path.join(self.context.sysfs_dir(), 'monitoring_attrs',
-                 'nr_regions')
- 
-+    def sysfs_dir(self):
-+        return os.path.join(self.context.sysfs_dir(), 'monitoring_attrs')
-+
-     def stage(self):
-         err = write_file(os.path.join(self.interval_sysfs_dir(), 'sample_us'),
-                 self.sample_us)
-@@ -629,6 +748,10 @@ class DamonAttrs:
-         if err is not None:
-             return err
- 
-+        err = self.probes.stage()
-+        if err is not None:
-+            return err
-+
- class DamonCtx:
-     ops = None
-     monitoring_attrs = None
+ def addr_range_to_dict(addr_range):
+     return to_dict(addr_range, [
+         ['start', int],
+@@ -199,6 +230,7 @@ def damon_ctx_to_dict(ctx):
+     return to_dict(ctx, [
+         ['ops', ops_to_dict],
+         ['attrs', attrs_to_dict],
++        ['probes', probes_to_list],
+         ['adaptive_targets', targets_to_list],
+         ['schemes', schemes_to_list],
+         ['pause', bool],
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
