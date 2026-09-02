@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8A2CB4B049D
-	for <mm-commits@vger.kernel.org>; Wed,  2 Sep 2026 22:42:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E72444AF9FC
+	for <mm-commits@vger.kernel.org>; Wed,  2 Sep 2026 22:42:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788388941; cv=none; b=gUc9KdwVL+FGQ/eCmTtWk9K+i1pUBDDCTTKtqVCL3646+YW6d7SvwqZ6tnDA35/FmrWpk9AS+yEaTrx83IDlFoJ98LspjH4xcrCO2KRJd9jAyYcwiaj+ELWyD4sAZ22iTQ1njOem4Pt/KkPrYDbit79mD6KiIkgzUrCV21oJ0B4=
+	t=1788388947; cv=none; b=YlHHr7CFb3Dd9ND4vXicq7qlIl8RZDt5BjgCDlVeGNcowYDu+yuATuzuDNHWpDhFbz/xA6xBJSHLo/OgsWvTjOM9PnJxYtE9F0R3tyZUU7Ii1MjZjuF6UkjiawUBVElM8ddT5R2gX37jYaICsM+hyMvgwMeT9q5TAKi6fgArwRo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788388941; c=relaxed/simple;
-	bh=6ZSDMJi8AzkfmJ9d33IRoIJg4LvGnAftVK4VUirHKfE=;
-	h=Date:To:From:Subject:Message-Id; b=Zr+JBcKOPwmWr2K0bsrDqYySQQ7NyhB/I7N40GtOWzAD4kA50QZ/mYTedE4x2kpdV5fOCkSUuo+vjBpCQxMjuQzt6EvWbueqWD8cVI5KUnkQdW0/CquRRrQJYzTSMfsEKwxn2Rgh8R77KB5WGkZExGaxDAe/pYOXSXcBrPlEJTg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vzvS+mFw; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788388947; c=relaxed/simple;
+	bh=yd5ZdOIjXZVpmf5bAmE393o99dO3hx7QvpiBnLs2yQ4=;
+	h=Date:To:From:Subject:Message-Id; b=dxLaeut64cRDOFmUzCO3HP0IJ+0Zl9KUlDvtly1xEXQ1vnnHXJoewhw6pxgthg3Q1GBpQU4/+lTaxtSjpNOwc4KQJQeGSnARP4lSHcbcEnY1yrTvyHRb+kSXfisgd/YDXrYOLJIp1s+q1o0sC5zCSiVAv/TbC/rsoClxvwWAz+M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=o8jMFFug; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vzvS+mFw"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3F8431F00A3A;
-	Wed,  2 Sep 2026 22:42:12 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="o8jMFFug"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 88E6C1F00A3A;
+	Wed,  2 Sep 2026 22:42:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788388932;
-	bh=sT7uModoPqFwLekwP3H6Ed0zyoTie0daMKlCXlhbBfI=;
+	d=linux-foundation.org; s=korg; t=1788388942;
+	bh=TJ0hHYu2kLAW0KL4s3hffC4O1xWKg5RLJSZM9rxhb58=;
 	h=Date:To:From:Subject;
-	b=vzvS+mFw6xg5V5msCSonnBl8xesXUlLc5qegSOXci3NEhVhuiGFmrqHbV7kNX372n
-	 vNDAxd9Ia+SfBSYyUrzs8jn1C8o/f7WjUXVMuw8vnQIIWZn+X4fs5LWRFRkDlcyzlR
-	 9iyO7amCNiDWKk/s+nNUNsbNbdiwb7FOOEXeBIYQ=
-Date: Wed, 02 Sep 2026 15:42:11 -0700
+	b=o8jMFFugEwzovF+M4d67jBn56GQAn1H6MCYxLnnZZYkCW5vdFI0FMxAtsbY6jo83N
+	 ImUAEnzhO8J7l6AnnYEm2Xq0Xjj+xC6SERFJUqjbnnkfIBh6pAdv33Y7sETEM01hIJ
+	 dAp272KjWQeJZ+iiTUhr1wpREazEN/Yri7NfLKkU=
+Date: Wed, 02 Sep 2026 15:42:22 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-tests-core-kunit-test-=0-size-damon_set_regions-inputs.patch added to mm-new branch
-Message-Id: <20260902224212.3F8431F00A3A@smtp.kernel.org>
+Subject: + docs-abi-damon-recommend-subsystem-doc-instead-of-admin-guide.patch added to mm-new branch
+Message-Id: <20260902224222.88E6C1F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/tests/core-kunit: test <=0 size damon_set_regions() inputs
+     Subject: Docs/ABI/damon: recommend subsystem doc instead of admin-guide
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-tests-core-kunit-test-=0-size-damon_set_regions-inputs.patch
+     docs-abi-damon-recommend-subsystem-doc-instead-of-admin-guide.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-tests-core-kunit-test-=0-size-damon_set_regions-inputs.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-abi-damon-recommend-subsystem-doc-instead-of-admin-guide.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,14 +70,15 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/tests/core-kunit: test <=0 size damon_set_regions() inputs
-Date: Tue, 1 Sep 2026 22:47:40 -0700
+Subject: Docs/ABI/damon: recommend subsystem doc instead of admin-guide
+Date: Tue, 1 Sep 2026 22:47:45 -0700
 
-Commit 1292c0ecb1ca ("mm/damon/core: validate ranges in
-damon_set_regions()") disallowed passing zero or negative size input
-ranges to damon_set_regions().  Add kunit test cases for those inputs.
+DAMON ABI doc is recommending DAMON admin-guide for people who are willing
+to know further about DAMON.  Nowadays the subsystem doc
+(Documentation/mm/damon) is a more recommended place for even beginners. 
+Recommend the subsystem doc over admin-guide.
 
-Link: https://lore.kernel.org/20260902054747.99370-8-sj@kernel.org
+Link: https://lore.kernel.org/20260902054747.99370-13-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Cc: Brendan Higgins <brendan.higgins@linux.dev>
 Cc: David Gow <davidgow@davidgow.net>
@@ -95,32 +96,20 @@ Cc: Kunwu Chan <kunwu.chan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/tests/core-kunit.h |   14 ++++++++++++++
- 1 file changed, 14 insertions(+)
+ Documentation/ABI/testing/sysfs-kernel-mm-damon |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/damon/tests/core-kunit.h~mm-damon-tests-core-kunit-test-=0-size-damon_set_regions-inputs
-+++ a/mm/damon/tests/core-kunit.h
-@@ -598,6 +598,20 @@ static void damon_test_set_regions(struc
- 			{.start = 25, .end = 40},
- 			{.start = 44, .end = 50},
- 			}, 3, 0);
-+	/* Zero size regions should return -EINVAL. */
-+	damon_test_set_regions_for(test,
-+			(struct damon_addr_range[]){}, 0,
-+			(struct damon_addr_range[]){
-+			{.start = 42, .end = 42},
-+			}, 1, 1,
-+			(struct damon_addr_range[]){}, 0, -EINVAL);
-+	/* Negative size regions should return -EINVAL. */
-+	damon_test_set_regions_for(test,
-+			(struct damon_addr_range[]){}, 0,
-+			(struct damon_addr_range[]){
-+			{.start = 42, .end = 21},
-+			}, 1, 1,
-+			(struct damon_addr_range[]){}, 0, -EINVAL);
- }
+--- a/Documentation/ABI/testing/sysfs-kernel-mm-damon~docs-abi-damon-recommend-subsystem-doc-instead-of-admin-guide
++++ a/Documentation/ABI/testing/sysfs-kernel-mm-damon
+@@ -3,7 +3,7 @@ Date:		Mar 2022
+ Contact:	SJ Park <sj@kernel.org>
+ Description:	Interface for Data Access MONitoring (DAMON).  Contains files
+ 		for controlling DAMON.  For more details on DAMON itself,
+-		please refer to Documentation/admin-guide/mm/damon/index.rst.
++		please refer to Documentation/mm/damon/index.rst.
  
- static void damon_test_update_monitoring_result(struct kunit *test)
+ What:		/sys/kernel/mm/damon/admin/
+ Date:		Mar 2022
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
