@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 02800463B6F
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 024984078FB
 	for <mm-commits@vger.kernel.org>; Wed,  2 Sep 2026 22:42:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788388951; cv=none; b=NKFqZjd6orAcrYn1GQBq7sW0AYVooR2Qqu6Joq95lQqY7HlTUzcJ2syjEpidge/5UwtoG/bA9g3Fv1EoDy5wqQOlfNr/vAMnJ9mOmMkI2ylEyF8eZOu65m6y6+kwASPJExVj8T/EYAoKLMAryolRt/xDpNZDCyj9InQ6cKSpwrk=
+	t=1788388946; cv=none; b=OcNl9P1Rkaz3ZprEG87IVkVNXxkFrSgRuZIxLvFdav+lTdHe6f8nOZgDvs6aEvXSTtJY+EilbB0O8BHpteWKmSO6OipCX/CEK+21K6UrgkJM0j+CdSiMX/xIdoAf4SJyva5UlFVtJH/8rCeOLryWRPnURfnlZKZYoMa8KtfbRZE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788388951; c=relaxed/simple;
-	bh=wfGu8ogDs8ZXkDXGgt8PGiqCQMW3tZ+tCbtdACYaZ/4=;
-	h=Date:To:From:Subject:Message-Id; b=da0WPSTgtml3ViNBK84u+sP0mjHrzyFZLVlX2DZj+5cMivRbgcBpn+8LMpQmi0tuJ3gK9Hmfag/HnZ2i55L4QByh92KjlZf+jLLY/Oymlu2G5UuGiFS5RlNDnA3Yfr9/ONUCUzPkGTN7vdTiVHg/SRYquhJS31PpSL3fZ6mvvyc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Dp/aBGDH; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788388946; c=relaxed/simple;
+	bh=YAMOn9xheqFHHx2cgWsuNqjA2d3u5fbbaHWzliFV754=;
+	h=Date:To:From:Subject:Message-Id; b=L2KM8Dr1+Kya8GVq2xfuKcQLFh7DAT+H3YATpIbcoXsV2nf6oL/9hohTZv+yhJgPFH2TFPn+JVwEW1cz5+eKeV6RUIfM1uvs3tfy96jKPZWlK81aeQLZx+ukCiCSw2kJUbUjZATn4/nXow4LXp9ZljEBv5gicrfHYPmZLrtd0yA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=udmziEez; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Dp/aBGDH"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 561F81F00AC4;
-	Wed,  2 Sep 2026 22:42:14 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="udmziEez"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6E1D61F00A3E;
+	Wed,  2 Sep 2026 22:42:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788388934;
-	bh=SZ1rjpYVCjts33aovJhPkNjVlHLKFaKtxviVEYvy55M=;
+	d=linux-foundation.org; s=korg; t=1788388936;
+	bh=oP29S3BwX7u4D5v3c+d9hwgrCypinPtU2ztRcxWpQg8=;
 	h=Date:To:From:Subject;
-	b=Dp/aBGDHBJftOO8FLhh9jkWrCAPIKkb+vw3P3QNIJ68ViVpiO7PRdbvQKXupXCNGY
-	 W3wY77D/w4OC38L7jB4XwI608zciWVezLTLRcirLPUOY4+mOtQSsHprRkMtOdC2PrP
-	 Vs0Y5G/NJaOedyYk0rmnOfIe/KzimcrsaOfH77ew=
-Date: Wed, 02 Sep 2026 15:42:13 -0700
+	b=udmziEezIAZxawZJh/7GUMCO1nkDUqrX+4izYmXJ0Tu8mTEohJJa++k8nJC1VzA3z
+	 SOQiyB5sH+KQpusn0sYzU6Mdb4ahvv5BirE+yZAR4eeob7xwy56gI4LX8W8EDuD4WF
+	 l/3IhFi4SuB0DSgmzVQKsdlbPGlwmHXwarf5GDq8=
+Date: Wed, 02 Sep 2026 15:42:16 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-tests-core-kunit-test-overlapping-ranges-for-set_regions.patch added to mm-new branch
-Message-Id: <20260902224214.561F81F00AC4@smtp.kernel.org>
+Subject: + mm-damon-tests-core-kunit-test-damon_nr_samples_per_aggr.patch added to mm-new branch
+Message-Id: <20260902224216.6E1D61F00A3E@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/tests/core-kunit: test overlapping ranges for set_regions()
+     Subject: mm/damon/tests/core-kunit: test damon_nr_samples_per_aggr()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-tests-core-kunit-test-overlapping-ranges-for-set_regions.patch
+     mm-damon-tests-core-kunit-test-damon_nr_samples_per_aggr.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-tests-core-kunit-test-overlapping-ranges-for-set_regions.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-tests-core-kunit-test-damon_nr_samples_per_aggr.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,15 +70,19 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/tests/core-kunit: test overlapping ranges for set_regions()
-Date: Tue, 1 Sep 2026 22:47:41 -0700
+Subject: mm/damon/tests/core-kunit: test damon_nr_samples_per_aggr()
+Date: Tue, 1 Sep 2026 22:47:42 -0700
 
-Commit 954157679ec3 ("mm/damon/core: disallow overlapping input ranges for
-damon_set_regions()") disallowed passing overlapping input ranges to
-damon_set_regions().  Add a kunit test case for the overlapping input.
+damon_max_nr_accesses(), which is a previous version of
+damon_nr_samples_per_aggr() before the renaming, was wrongly returning
+zero or random overflowed values for extreme intervals setup.  Commit
+35d4a3cf70a8 ("mm/damon/ops-common: handle extreme intervals in
+damon_hot_score()") updated the function to return correct or more valid
+values.  Add a kunit test to ensure it is working as expected.
 
-Link: https://lore.kernel.org/20260902054747.99370-9-sj@kernel.org
+Link: https://lore.kernel.org/20260902054747.99370-10-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
+Reviewed-by: Kunwu Chan <kunwu.chan@gmail.com>
 Cc: Brendan Higgins <brendan.higgins@linux.dev>
 Cc: David Gow <davidgow@davidgow.net>
 Cc: David Hildenbrand <david@kernel.org>
@@ -91,33 +95,50 @@ Cc: Randy Dunlap <rdunlap@infradead.org>
 Cc: Shuah Khan <shuah@kernel.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Kunwu Chan <kunwu.chan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/tests/core-kunit.h |   11 +++++++++++
- 1 file changed, 11 insertions(+)
+ mm/damon/tests/core-kunit.h |   22 ++++++++++++++++++++++
+ 1 file changed, 22 insertions(+)
 
---- a/mm/damon/tests/core-kunit.h~mm-damon-tests-core-kunit-test-overlapping-ranges-for-set_regions
+--- a/mm/damon/tests/core-kunit.h~mm-damon-tests-core-kunit-test-damon_nr_samples_per_aggr
 +++ a/mm/damon/tests/core-kunit.h
-@@ -612,6 +612,17 @@ static void damon_test_set_regions(struc
- 			{.start = 42, .end = 21},
- 			}, 1, 1,
+@@ -625,6 +625,27 @@ static void damon_test_set_regions(struc
  			(struct damon_addr_range[]){}, 0, -EINVAL);
-+	/*
-+	 * Regions resulting in same region after alignment should return
-+	 * -EINVAL.
-+	 */
-+	damon_test_set_regions_for(test,
-+			(struct damon_addr_range[]){}, 0,
-+			(struct damon_addr_range[]){
-+			{.start = 10, .end = 20},
-+			{.start = 20, .end = 30},
-+			}, 2, 4096,
-+			(struct damon_addr_range[]){}, 0, -EINVAL);
  }
  
++static void damon_test_nr_samples_per_aggr(struct kunit *test)
++{
++	struct damon_attrs attrs = {
++		.sample_interval = 0,
++		.aggr_interval = 0,
++	};
++
++	/* Zero aggregation interval doesn't cause division by zero */
++	KUNIT_EXPECT_EQ(test, damon_nr_samples_per_aggr(&attrs), 1);
++
++	/*
++	 * Too large aggregation interval on 64 bit system doesn't cause
++	 * overflow
++	 */
++	if (ULONG_MAX > UINT_MAX) {
++		attrs.aggr_interval = (unsigned long)UINT_MAX + 1;
++		KUNIT_EXPECT_EQ(test, damon_nr_samples_per_aggr(&attrs),
++				UINT_MAX);
++	}
++}
++
  static void damon_test_update_monitoring_result(struct kunit *test)
+ {
+ 	struct damon_attrs old_attrs = {
+@@ -1858,6 +1879,7 @@ static struct kunit_case damon_test_case
+ 	KUNIT_CASE(damon_test_split_above_half_progresses),
+ 	KUNIT_CASE(damon_test_ops_registration),
+ 	KUNIT_CASE(damon_test_set_regions),
++	KUNIT_CASE(damon_test_nr_samples_per_aggr),
+ 	KUNIT_CASE(damon_test_update_monitoring_result),
+ 	KUNIT_CASE(damon_test_set_attrs),
+ 	KUNIT_CASE(damon_test_mvsum),
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
