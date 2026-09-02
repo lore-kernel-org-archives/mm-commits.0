@@ -1,153 +1,122 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.12])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0B625306D2A
-	for <mm-commits@vger.kernel.org>; Wed,  2 Sep 2026 18:53:49 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.12
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 285D838DC64;
+	Wed,  2 Sep 2026 19:18:09 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788375231; cv=none; b=VLTkPs5FVYJTT6nGCvO8pvh2bIP/kZX6Bccf8nJN47y+NfUbs0oD/fHeSceTfs0eWZV0ULcU9W0g6D8Y9PAQi04/BWSYvYJgkgOtsMDL2do5wKW6FG1cTDTCB9oVdmzQ+veaj2GjyZI7bzg52kyY0K8+BwVFY3wdrDaGCjRjE+I=
+	t=1788376693; cv=none; b=uEV8woNWv8GvmxOTKlfurUwE4LoKXgK+d5R2zyeRa6ejSl+uI8xawGtMx6VSSaLEpKHkL2AXRZNFc1MCjX9jjNliKPwR6IymgiZhCC5k1f3q4AXwGMFtUtAl10nbCIdWzGs6t6NlBqoW3AjEIFQA//ixkmBrlsvNgERi1QsyWws=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788375231; c=relaxed/simple;
-	bh=tyqBvBhaitEafSk7IFlesfHWtTBrzO7CcS/spKtX6XM=;
-	h=Date:From:To:Cc:Subject:Message-ID; b=C5MNV6215m9jTywe0uEaBCxhR7iB5e2zOxlA9gyvRDsiKaPCQQRejTnOVDojfyUJm9O6KIWletS/8V+YQPqlCz2nXLvFdvCTEm404FUmKwTfpYfjTZZTBTwt/gi2q203ZvK/jejfXjz/A44BRWV1xt/EHbg360rMT6kYhkUMPOI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=N0ooNUqt; arc=none smtp.client-ip=198.175.65.12
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	s=arc-20240116; t=1788376693; c=relaxed/simple;
+	bh=tUWAZg5rJssCok4Jzqfcoam18XtefVWpxelMN6Ec6E8=;
+	h=Date:To:From:Subject:Message-Id; b=lqPxnV9/Rup7ZBtCPcLAIX5StDrL7PfEM3yEugmHstzHv3uYSKNt5+0CQ4+iwlm6BbME2fS++blxMVymCZTUGV1L6a7ZJcUrZVFpAZr01d0qUyhwBn5uIATMkdslV/Bek65gSvkHyRdrXwc+q20HIAtxhZX4Cz5Twviu15YL36Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CaDjMIzn; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="N0ooNUqt"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1788375230; x=1819911230;
-  h=date:from:to:cc:subject:message-id;
-  bh=tyqBvBhaitEafSk7IFlesfHWtTBrzO7CcS/spKtX6XM=;
-  b=N0ooNUqtj5TqHKgEISOT4JYGunLppLGEJ/WzIg8YAlOLhWGu1OPlKRsc
-   XpjFcp7VY7SqXhxBT+hzzrWYB604t8hVegmIwscOnadzHZqd4YMdmW8qt
-   TRwmKD3qhNt2T3WsL6osHo8SY4iY+WpahcOPATg7VVPUXsKIPRjKpsaJ8
-   TZYmY7RJuhJQOgkEDaX4gCtc+NUhsmBLPJuxmc5uArJP9o1bouKLxGo1b
-   yzJ0iSaH1CKUVuGBRfA3U7E00E1yqlteiCDCkeV0exTXNdIW3fc1t6wS9
-   m4L4ZHNdNDNwOj8hsKrKLyLGmhXQBm4FV/wA6Do+fSpDF612Hq8gTYeWM
-   A==;
-X-CSE-ConnectionGUID: zSykX9ORQlS3bZj1gt3SOA==
-X-CSE-MsgGUID: yCTTtruITLGkA+W+65PqpA==
-X-IronPort-AV: E=McAfee;i="6800,10657,11894"; a="100359920"
-X-IronPort-AV: E=Sophos;i="6.25,258,1779174000"; 
-   d="scan'208";a="100359920"
-Received: from orviesa003.jf.intel.com ([10.64.159.143])
-  by orvoesa104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Sep 2026 11:53:50 -0700
-X-CSE-ConnectionGUID: J9AHT+yTSoqIutuyyWVedQ==
-X-CSE-MsgGUID: D0CqvWLBTSCCfTY9H3a+IA==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.25,258,1779174000"; 
-   d="scan'208";a="272995110"
-Received: from lkp-server01.sh.intel.com (HELO bfac249b2189) ([10.239.97.150])
-  by orviesa003.jf.intel.com with ESMTP; 02 Sep 2026 11:53:47 -0700
-Received: from kbuild by bfac249b2189 with local (Exim 4.98.2)
-	(envelope-from <lkp@intel.com>)
-	id 1x1q5h-000000003AI-28ct;
-	Wed, 02 Sep 2026 18:53:45 +0000
-Date: Thu, 03 Sep 2026 02:53:11 +0800
-From: kernel test robot <lkp@intel.com>
-To: David Hildenbrand <david@kernel.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>,
- Linux Memory Management List <linux-mm@kvack.org>,
- mm-commits@vger.kernel.org
-Subject: [akpm-mm:mm-new] BUILD SUCCESS
- 178b3d97bf1f15f598ea7cc615a40c115e528e1c
-Message-ID: <202609030205.mM0yURLh-lkp@intel.com>
-User-Agent: s-nail v14.9.25
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CaDjMIzn"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0735A1F000E9;
+	Wed,  2 Sep 2026 19:18:07 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=linux-foundation.org; s=korg; t=1788376687;
+	bh=jTmWdVY//G8EJgNSC4FOCmbrA0bLt0bYwl9tIeAmH7w=;
+	h=Date:To:From:Subject;
+	b=CaDjMIznm17CRbCRPJDb9tFH33xOgwlxaPLpC8JH8sGJPFl5WvDDbVN9iXW8QoCwn
+	 wQPNGGs+vZHhLg6PrxIP5NNnNcQyT+oGun3cPYxCUd9xrTzoFeLjcCbfQrya0YwpLY
+	 HkKEbhi/OsrQCj8uX6yskbFPvFfR0K/StAtrwgok=
+Date: Wed, 02 Sep 2026 12:18:06 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,stable@vger.kernel.org,pfalcato@suse.de,liam@infradead.org,jannh@google.com,ljs@kernel.org,akpm@linux-foundation.org
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: + mm-vma-correctly-unaccount-on-mmap_prepare-failure.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260902191807.0735A1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
-tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm.git mm-new
-branch HEAD: 178b3d97bf1f15f598ea7cc615a40c115e528e1c  mm/swap, PM: hibernate: atomically replace hibernation pin
 
-elapsed time: 896m
+The patch titled
+     Subject: mm/vma: correctly unaccount on mmap_prepare() failure
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-vma-correctly-unaccount-on-mmap_prepare-failure.patch
 
-configs tested: 74
-configs skipped: 0
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vma-correctly-unaccount-on-mmap_prepare-failure.patch
 
-The following configs have been built successfully.
-More configs may be tested in the coming days.
+This patch will later appear in the mm-hotfixes-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
-tested configs:
-alpha                    allnoconfig    gcc-16.1.0
-alpha                   allyesconfig    gcc-16.1.0
-arc                     allmodconfig    gcc-16.1.0
-arc                      allnoconfig    gcc-16.1.0
-arc                     allyesconfig    gcc-16.1.0
-arc         randconfig-r072-20260902    gcc-10.5.0
-arm                      allnoconfig    clang-17
-arm                     allyesconfig    gcc-16.1.0
-arm64                   allmodconfig    clang-24
-arm64                    allnoconfig    gcc-16.1.0
-arm64       randconfig-r112-20260902    clang-24
-csky                    allmodconfig    gcc-16.1.0
-csky                     allnoconfig    gcc-16.1.0
-hexagon                 allmodconfig    clang-24
-hexagon                  allnoconfig    clang-24
-i386                    allmodconfig    gcc-14
-i386                     allnoconfig    gcc-14
-i386                    allyesconfig    gcc-14
-i386         randconfig-061-20260902    clang-22
-i386         randconfig-062-20260902    gcc-14
-i386         randconfig-063-20260902    gcc-14
-i386         randconfig-141-20260902    clang-22
-loongarch               allmodconfig    clang-19
-loongarch                allnoconfig    clang-20
-m68k                    allmodconfig    gcc-16.1.0
-m68k                     allnoconfig    gcc-16.1.0
-m68k                    allyesconfig    gcc-16.1.0
-m68k        randconfig-r052-20260902    gcc-16.1.0
-microblaze               allnoconfig    gcc-16.1.0
-microblaze              allyesconfig    gcc-16.1.0
-microblaze  randconfig-r071-20260902    gcc-12.5.0
-microblaze  randconfig-r111-20260902    gcc-11.5.0
-microblaze  randconfig-r113-20260902    gcc-11.5.0
-mips                    allmodconfig    gcc-16.1.0
-mips                     allnoconfig    gcc-16.1.0
-mips                    allyesconfig    gcc-16.1.0
-nios2                   allmodconfig    gcc-11.5.0
-nios2                    allnoconfig    gcc-11.5.0
-nios2       randconfig-r054-20260902    gcc-11.5.0
-openrisc                allmodconfig    gcc-16.1.0
-openrisc                 allnoconfig    gcc-16.1.0
-parisc                  allmodconfig    gcc-16.1.0
-parisc                   allnoconfig    gcc-16.1.0
-parisc                  allyesconfig    gcc-16.1.0
-parisc      randconfig-r121-20260902    gcc-9.5.0
-powerpc                 allmodconfig    gcc-16.1.0
-powerpc                  allnoconfig    gcc-16.1.0
-riscv                   allmodconfig    clang-24
-riscv                    allnoconfig    gcc-16.1.0
-riscv                   allyesconfig    clang-24
-s390                    allmodconfig    clang-24
-s390                     allnoconfig    clang-24
-s390                    allyesconfig    gcc-16.1.0
-sh                      allmodconfig    gcc-16.1.0
-sh                       allnoconfig    gcc-16.1.0
-sh                      allyesconfig    gcc-16.1.0
-sparc                    allnoconfig    gcc-16.1.0
-sparc64                 allmodconfig    clang-20
-um                      allmodconfig    clang-17
-um                       allnoconfig    clang-17
-um                      allyesconfig    gcc-14
-um          randconfig-r051-20260902    gcc-12
-x86_64                  allmodconfig    clang-22
-x86_64                   allnoconfig    clang-22
-x86_64                  allyesconfig    clang-22
-x86_64       randconfig-121-20260902    clang-22
-x86_64       randconfig-122-20260902    clang-22
-x86_64       randconfig-123-20260902    clang-22
-x86_64       randconfig-161-20260902    clang-22
-x86_64      randconfig-r122-20260902    gcc-14
-x86_64                 rhel-9.4-rust    clang-22
-xtensa                   allnoconfig    gcc-16.1.0
-xtensa                  allyesconfig    gcc-16.1.0
-xtensa      randconfig-r123-20260902    gcc-8.5.0
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
---
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests/wiki
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
+
+------------------------------------------------------
+From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
+Subject: mm/vma: correctly unaccount on mmap_prepare() failure
+Date: Wed, 02 Sep 2026 19:08:08 +0100
+
+__mmap_setup() accounts memory for relevant mappings via:
+
+security_vm_enough_memory_mm()
+  -> __vm_enough_memory()
+    -> vm_acct_memory()
+
+If __mmap_setup() fails, this indicates that this accounting did not take
+place, and thus it's appropriate for __mmap_region() to jump to
+abort_munmap.
+
+However if call_mmap_prepare() fails, it also jumps there and any accounted
+memory is not correctly unaccounted.
+
+Fix this by handling each error separately.
+
+Link: https://lore.kernel.org/20260902-fix-unaccount-mmap_prepare-v1-1-ea070189fdfb@kernel.org
+Fixes: c84bf6dd2b83 ("mm: introduce new .mmap_prepare() file callback")
+Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+Cc: Jann Horn <jannh@google.com>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Pedro Falcato <pfalcato@suse.de>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: <stable@vger.kernel.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ mm/vma.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+--- a/mm/vma.c~mm-vma-correctly-unaccount-on-mmap_prepare-failure
++++ a/mm/vma.c
+@@ -2859,10 +2859,12 @@ static unsigned long __mmap_region(struc
+ 	map.check_ksm_early = can_set_ksm_flags_early(&map);
+ 
+ 	error = __mmap_setup(&map, &desc, uf);
+-	if (!error && have_mmap_prepare)
+-		error = call_mmap_prepare(&map, &desc);
+ 	if (error)
+ 		goto abort_munmap;
++	if (have_mmap_prepare)
++		error = call_mmap_prepare(&map, &desc);
++	if (error)
++		goto unacct_error;
+ 
+ 	if (map.check_ksm_early)
+ 		update_ksm_flags(&map);
+_
+
+Patches currently in -mm which might be from ljs@kernel.org are
+
+mm-mremap-reset-unfaulted-vma-page-offset-for-mremap_dontunmap.patch
+mm-secretmem-properly-account-locked-pages.patch
+mm-huge_memory-bypass-thp-tuneables-for-huge-pfnmap-mappings.patch
+mm-mremap-account-mm-locked_vm-correctly-for-mremap_dontunmap.patch
+mm-vma-correctly-unaccount-on-mmap_prepare-failure.patch
+mm-vmpressure-remove-window-size-todo.patch
+tools-testing-selftests-mm-add-missing-gitignore-entries.patch
+
