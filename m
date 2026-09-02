@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8EBF54AD4AE
-	for <mm-commits@vger.kernel.org>; Wed,  2 Sep 2026 20:44:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4296D3C5826
+	for <mm-commits@vger.kernel.org>; Wed,  2 Sep 2026 20:55:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788381892; cv=none; b=ELaWe0+kmOtga3vBRbFmMHz9JWsnlcMknPWjidZZrvw9BtR0BdtHb6QpJlsA8vngYOZaNYrgieCue+oeau56okfm7fXiq306/COgZwq9Y1MHMHQZnmc1CMNAvJ0+aWWjieaxwy6j12uPdcZwaeXv9dlLwNBv3HWZWQyciXlB0pw=
+	t=1788382535; cv=none; b=RBZAA1+f6FvzhDaJCdTRYWnoqHcQMHdMHWzrsG8Y9zByqdAiPNnVxsjPT3mAqPOG9M2DurrY5BB64kMq1Vqf3yOBZE5qjGKcPU+/Uklps59pxVaJxh+h33SeYQHsK0QmGwUytXa/gclEgLvnkdTNPbNFKNMm2PXTSTLWxDFM6Kw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788381892; c=relaxed/simple;
-	bh=/NppNBn9KExU5mns1y+8UWthQEaljm0YOLeOnemVgdM=;
-	h=Date:To:From:Subject:Message-Id; b=gpJjKQUiGWl+5w7tA63BFer/UiouAOFH5gtvlVUudo8yt+iXOFrVweBF0OQZDoQdYXzqm9K+nZPozAe6djuy0s6pIR35gJ6s49wVynLmGOUHVy9KR0teSep62Gjh/0xGb1BYyUCwTb08cUn1LneGD+9GWuu8pP0gfNUU4t25lgU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZRuwFBTT; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788382535; c=relaxed/simple;
+	bh=SeHZU96MIHv4chs+a9JxRBLbxD4wieKN9jutpzV1YY8=;
+	h=Date:To:From:Subject:Message-Id; b=cwxTtOpRmLxU9kJLo+T31HzX8UObsbI5rz8Ser4lF6jCF3ye5HLadRefjbdUOBbzjPXUC4FrmYSpT8b3eRZ+IAHRm60A7vAK7orxz3P3mafFfIgxSqJpcSDsilwU5BQQ4dbCCU6NsRR4cwROGmIkXaYUwa16QzI5XLHtQ70NdeU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=js3KtqkN; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZRuwFBTT"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9C6881F00A3A;
-	Wed,  2 Sep 2026 20:44:46 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="js3KtqkN"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BB4471F000E9;
+	Wed,  2 Sep 2026 20:55:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788381886;
-	bh=ZB47sYA90ZHBE8kE2cTJmAoPUBmwHci3+8V4ZMBgL88=;
+	d=linux-foundation.org; s=korg; t=1788382524;
+	bh=0XRYt7kjr7Cfv6TAIlFe6XGZJq8vkoSifvi7Tl7V8mA=;
 	h=Date:To:From:Subject;
-	b=ZRuwFBTTVfKGhGsb7BF/KqZ8jqzq3M41Nr170KZrf8n/xGRzmqu/rMCGbafpgquJR
-	 Ixa3/wab5WlP1LQ2xrQPy648v0FeB3+waPP6/p9CVek8jQi4vN0M6lA8b9bqWc0t3m
-	 OejwjzZl+GkB3o22DqVhFRrnbc0SZbpIFK4KacrE=
-Date: Wed, 02 Sep 2026 13:44:46 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,surenb@google.com,shakeel.butt@linux.dev,mhocko@suse.com,ljs@kernel.org,hch@lst.de,hannes@cmpxchg.org,djwong@kernel.org,david@kernel.org,cem@kernel.org,brendan.jackman@linux.dev,brauner@kernel.org,wangkefeng.wang@huawei.com,akpm@linux-foundation.org
+	b=js3KtqkNjDdmRMf3p7scXbHM/BPOlw09RSmBTvZnYzk+rjKVHyMJoOQ3H9OTqcBZs
+	 es2ema9cp0tyl9s76oWaYdGQ6VP2JBSQBid1c7GqHkOVyxoHocnYycyY9822Lqv7lE
+	 I8E82kX+sMOqN45Sl9ZltjwCqg8qd4Id3RwPLmf4=
+Date: Wed, 02 Sep 2026 13:55:24 -0700
+To: mm-commits@vger.kernel.org,pmladek@suse.com,brads@mainlining.org,akpm@linux-foundation.org,feng.tang@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-replace-pf_kcompactd-flag-with-kthread_func-check.patch added to mm-new branch
-Message-Id: <20260902204446.9C6881F00A3A@smtp.kernel.org>
+Subject: + panic-remove-the-unneeded-panic_print_get.patch added to mm-nonmm-unstable branch
+Message-Id: <20260902205524.BB4471F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,26 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: replace PF_KCOMPACTD flag with kthread_func() check
-has been added to the -mm mm-new branch.  Its filename is
-     mm-replace-pf_kcompactd-flag-with-kthread_func-check.patch
+     Subject: panic: remove the unneeded panic_print_get()
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     panic-remove-the-unneeded-panic_print_get.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-replace-pf_kcompactd-flag-with-kthread_func-check.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/panic-remove-the-unneeded-panic_print_get.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,132 +58,50 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm: replace PF_KCOMPACTD flag with kthread_func() check
-Date: Wed, 2 Sep 2026 21:16:53 +0800
+From: Feng Tang <feng.tang@linux.alibaba.com>
+Subject: panic: remove the unneeded panic_print_get()
+Date: Wed, 2 Sep 2026 19:48:51 +0800
 
-PF_KCOMPACTD was introduced by commit ce6d9c1c2b5c ("NFS: fix
-nfs_release_folio() to not deadlock via kcompactd writeback") so
-nfs_release_folio() could detect kcompactd context and skip writeback. 
-The flag is only consumed by current_is_kcompactd(), whose sole caller is
-nfs_release_folio().
+panic_print_get() was introduced in commit 2683df6539cb ("panic: add
+note that 'panic_print' parameter is deprecated") to print out warning
+message of the deprecation of 'panic_print' on read access.
 
-Replace the flag-based check with kthread_func(current) == kcompactd,
-freeing the 0x00010000 PF flag bit.
+Since commit 90f3c123247e ("panic: only warn about deprecated panic_print
+on write access"), panic_print_get() wrapper is not needed anymore for
+read access, so remove it and use param_get_ulong() instead.
 
-Link: https://lore.kernel.org/20260902131653.1338227-5-wangkefeng.wang@huawei.com
-Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
-Acked-by: Zi Yan <ziy@nvidia.com>
-Acked-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
-Cc: Brendan Jackman <brendan.jackman@linux.dev>
-Cc: Carlos Maiolino <cem@kernel.org>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: "Darrick J. Wong" <djwong@kernel.org>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
+Link: https://lore.kernel.org/20260902114851.77062-1-feng.tang@linux.alibaba.com
+Signed-off-by: Feng Tang <feng.tang@linux.alibaba.com>
+Reviewed-by: Bradley Morgan <brads@mainlining.org>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Petr Mladek <pmladek@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/compaction.h               |   11 ++++++-----
- include/linux/sched.h                    |    2 +-
- mm/compaction.c                          |    9 ++++++---
- tools/sched_ext/include/scx/common.bpf.h |    1 -
- 4 files changed, 13 insertions(+), 10 deletions(-)
+ kernel/panic.c |    7 +------
+ 1 file changed, 1 insertion(+), 6 deletions(-)
 
---- a/include/linux/compaction.h~mm-replace-pf_kcompactd-flag-with-kthread_func-check
-+++ a/include/linux/compaction.h
-@@ -81,10 +81,6 @@ static inline unsigned long compact_gap(
- 	return min(2UL << order, COMPACT_CLUSTER_MAX);
+--- a/kernel/panic.c~panic-remove-the-unneeded-panic_print_get
++++ a/kernel/panic.c
+@@ -1216,14 +1216,9 @@ static int panic_print_set(const char *v
+ 	return  param_set_ulong(val, kp);
  }
  
--static inline int current_is_kcompactd(void)
+-static int panic_print_get(char *val, const struct kernel_param *kp)
 -{
--	return current->flags & PF_KCOMPACTD;
+-	return  param_get_ulong(val, kp);
 -}
- 
- #ifdef CONFIG_COMPACTION
- 
-@@ -103,7 +99,7 @@ extern void compaction_defer_reset(struc
- 
- bool compaction_zonelist_suitable(struct alloc_context *ac, int order,
- 					int alloc_flags, gfp_t gfp_mask);
 -
-+bool current_is_kcompactd(void);
- extern void __meminit kcompactd_run(int nid);
- extern void __meminit kcompactd_stop(int nid);
- extern void wakeup_kcompactd(pg_data_t *pgdat, int order, int highest_zoneidx);
-@@ -119,6 +115,11 @@ static inline bool compaction_suitable(s
- {
- 	return false;
- }
-+
-+static inline bool current_is_kcompactd(void)
-+{
-+	return false;
-+}
+ static const struct kernel_param_ops panic_print_ops = {
+ 	.set	= panic_print_set,
+-	.get	= panic_print_get,
++	.get	= param_get_ulong,
+ };
+ __core_param_cb(panic_print, &panic_print_ops, &panic_print, 0644);
  
- static inline void kcompactd_run(int nid)
- {
---- a/include/linux/sched.h~mm-replace-pf_kcompactd-flag-with-kthread_func-check
-+++ a/include/linux/sched.h
-@@ -1808,7 +1808,7 @@ extern struct pid *cad_pid;
- #define PF_USED_MATH		0x00002000	/* If unset the fpu must be initialized before use */
- #define PF_USER_WORKER		0x00004000	/* Kernel thread cloned from userspace thread */
- #define PF_NOFREEZE		0x00008000	/* This thread should not be frozen */
--#define PF_KCOMPACTD		0x00010000	/* I am kcompactd */
-+#define PF__HOLE__00010000	0x00010000
- #define PF__HOLE__00020000	0x00020000
- #define PF_MEMALLOC_NOFS	0x00040000	/* All allocations inherit GFP_NOFS. See memalloc_nfs_save() */
- #define PF_MEMALLOC_NOIO	0x00080000	/* All allocations inherit GFP_NOIO. See memalloc_noio_save() */
---- a/mm/compaction.c~mm-replace-pf_kcompactd-flag-with-kthread_func-check
-+++ a/mm/compaction.c
-@@ -3197,7 +3197,6 @@ static int kcompactd(void *p)
- 	long default_timeout = msecs_to_jiffies(HPAGE_FRAG_CHECK_INTERVAL_MSEC);
- 	long timeout = default_timeout;
- 
--	current->flags |= PF_KCOMPACTD;
- 	set_freezable();
- 
- 	pgdat->kcompactd_max_order = 0;
-@@ -3254,11 +3253,15 @@ static int kcompactd(void *p)
- 			pgdat->proactive_compact_trigger = false;
- 	}
- 
--	current->flags &= ~PF_KCOMPACTD;
--
- 	return 0;
- }
- 
-+bool current_is_kcompactd(void)
-+{
-+	return kthread_func(current) == kcompactd;
-+}
-+EXPORT_SYMBOL_GPL(current_is_kcompactd);
-+
- /*
-  * This kcompactd start function will be called by init and node-hot-add.
-  * On node-hot-add, kcompactd will moved to proper cpus if cpus are hot-added.
---- a/tools/sched_ext/include/scx/common.bpf.h~mm-replace-pf_kcompactd-flag-with-kthread_func-check
-+++ a/tools/sched_ext/include/scx/common.bpf.h
-@@ -31,7 +31,6 @@
- #define PF_IDLE				0x00000002	/* I am an IDLE thread */
- #define PF_IO_WORKER			0x00000010	/* Task is an IO worker */
- #define PF_WQ_WORKER			0x00000020	/* I'm a workqueue worker */
--#define PF_KCOMPACTD			0x00010000      /* I am kcompactd */
- #define PF_KTHREAD			0x00200000	/* I am a kernel thread */
- #define PF_EXITING			0x00000004
- #define CLOCK_MONOTONIC			1
 _
 
-Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
+Patches currently in -mm which might be from feng.tang@linux.alibaba.com are
 
-xfs-remove-dead-kswapd-flag-inheritance-from-btree-split-worker.patch
-iomap-simplify-writepages-reclaim-guard.patch
-mm-replace-pf_kswapd-flag-with-kthread_func-check.patch
-mm-replace-pf_kcompactd-flag-with-kthread_func-check.patch
+panic-remove-the-unneeded-panic_print_get.patch
 
