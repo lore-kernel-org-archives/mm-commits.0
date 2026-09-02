@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BBDDD62809
-	for <mm-commits@vger.kernel.org>; Wed,  2 Sep 2026 03:00:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CE0001FC110
+	for <mm-commits@vger.kernel.org>; Wed,  2 Sep 2026 03:00:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788318007; cv=none; b=GCkvYQLvkw6ToT+qVmbrw6/HkWipXqV8JOl//zRKmxpzRIBcTjkUtwR6wG/+uR7M8hll6Pccpqk96ACkMzTiJEh7LkYe2jqvlvOHY0g0ZAKKOp3Kesb/zmlD2XVFUobF5x/PIdUoIbIdkJuugvFlYdYTunUkk0VhgjfaN1pMQ6k=
+	t=1788318009; cv=none; b=rs0YbYFryQEJdU/lexUjpex4QCN6OaUCsqE86Ew1g24eyX2xh8wVvaqQn/ho5TaPcw7thDQsmBmdx2hPG9oTMIbseweUnXA38UhBpBInrNq/M4WJT8NtPAhK7gb34+NPxUnUDjGD/QHc6s2HqlkVuKpEik7oOzeQYIa9BzbftD4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788318007; c=relaxed/simple;
-	bh=m4NW+I+Z/7oPSO8QiTZN8LH4g6Qmu8btm66IH64m5T0=;
-	h=Date:To:From:Subject:Message-Id; b=jChzYlrvL3ZSZqQKf3k2quOYw5Ip7ll3nS5xgLfb+lpCVccZleBajX/Yd1ylow44H73y29Qr1VwuvMeAxs38Rx45/GNrJsoay9GeAcwe/LesGREbc37O+tfWC1MNaY6jq2XgBJhWL7viU5b0y7gTuCXLB0zi3OWfHjCj9tX6YiI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=leHtAfCc; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788318009; c=relaxed/simple;
+	bh=LZURQQ9frKH4+ivvCKRnOJAoiY87s0g7rXKYx9AoXao=;
+	h=Date:To:From:Subject:Message-Id; b=OGtOlVhMG1CFAsCkMFz45rYF4fR7yJlqTxdAHnlvfirStAJTBY46MdFRKDiVf91Uq6yzVxENzBX6cENH88ucPPqj5mKcJy9njZWn/s5LD/e0jE/MSTvbdZEZrACN43NgvgHVHQqQC1rFw6+/AmZUWzwIkSe+1IbBp3s7FhMN2Ek=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=By7X9KEL; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="leHtAfCc"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2AE441F00A3A;
-	Wed,  2 Sep 2026 03:00:05 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="By7X9KEL"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 54B001F000E9;
+	Wed,  2 Sep 2026 03:00:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788318005;
-	bh=TY/wP0kYgdEaBCo8R7RDTx19hK/7QNBYyPV0DY9ndRo=;
+	d=linux-foundation.org; s=korg; t=1788318007;
+	bh=/lLtj/8B1wMscpRpDwoSUK46zcRSyNknsKD7h/QBdkY=;
 	h=Date:To:From:Subject;
-	b=leHtAfCcPKg6LTs/8+w5m7P5pRf/7XRZ96+6YwMAQKsUz52KLolsMu/htJWB6KiEv
-	 Umot00I9kG13sUpiOLeyqw5bKnBOG0jspic9IiH0eliw3vgB5P8HeE2qYXvfT5AiIY
-	 Gs5Nk1IQ4sl5MKhbtX3A08zTm5y4LKPdVJIAw3fE=
-Date: Tue, 01 Sep 2026 20:00:04 -0700
+	b=By7X9KELl+2dLVICSkb9spPii3FtaONY0/tVq5VgyN3oEpG+eJBGB+iBPYp5siNb0
+	 cJJJgjxgkxUsjfraMzLJmXEHu0KG08I4NqOKPr+I65YfsySqE5CYTvti7ll21Xe7jW
+	 I/FaM5bFcxGnoaD8VUC+M0rxY8LJlqk1Y3BoGWbw=
+Date: Tue, 01 Sep 2026 20:00:06 -0700
 To: mm-commits@vger.kernel.org,yuanchu@google.com,xueyuan.chen21@gmail.com,weixugc@google.com,stevensd@chromium.org,shakeel.butt@linux.dev,ridong.chen@linux.dev,mhocko@kernel.org,ljs@kernel.org,lianux.mm@gmail.com,kunwu.chan@gmail.com,kasong@tencent.com,hannes@cmpxchg.org,david@kernel.org,baoquan.he@linux.dev,baolin.wang@linux.alibaba.com,axelrasmussen@google.com,baohua@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mglru-move-folios-from-oldest-gen-to-second-oldest-gen-from-head-to-tail.patch added to mm-new branch
-Message-Id: <20260902030005.2AE441F00A3A@smtp.kernel.org>
+Subject: + mm-mglru-batch-move-folios-to-the-second-oldest-gens-lru.patch added to mm-new branch
+Message-Id: <20260902030007.54B001F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/mglru: move folios from oldest gen to second-oldest gen from head to tail
+     Subject: mm/mglru: batch move folios to the second-oldest gen's LRU
 has been added to the -mm mm-new branch.  Its filename is
-     mm-mglru-move-folios-from-oldest-gen-to-second-oldest-gen-from-head-to-tail.patch
+     mm-mglru-batch-move-folios-to-the-second-oldest-gens-lru.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mglru-move-folios-from-oldest-gen-to-second-oldest-gen-from-head-to-tail.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mglru-batch-move-folios-to-the-second-oldest-gens-lru.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,15 +70,16 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Barry Song (Xiaomi)" <baohua@kernel.org>
-Subject: mm/mglru: move folios from oldest gen to second-oldest gen from head to tail
-Date: Wed, 2 Sep 2026 07:24:20 +0800
+Subject: mm/mglru: batch move folios to the second-oldest gen's LRU
+Date: Wed, 2 Sep 2026 07:24:21 +0800
 
-For reclamation, it makes sense to reclaim folios from tail to head, as
-folios near the head are relatively hot.  However, when moving folios from
-the oldest generation to the second-oldest generation, using the
-tail-to-head order would effectively cause a cold/hot inversion.
+Detect folios that need to move from the oldest generation to the
+second-oldest generation, and batch-move them together.  This can
+significantly reduce the sys time of inc_min_seq(), especially when the
+other type is significantly behind the preferred type.
 
-Link: https://lore.kernel.org/20260901232421.40157-7-baohua@kernel.org
+Assisted-by: gemini:gemini-3.6-flash
+Link: https://lore.kernel.org/20260901232421.40157-8-baohua@kernel.org
 Signed-off-by: Barry Song (Xiaomi) <baohua@kernel.org>
 Reviewed-by: Baoquan He <baoquan.he@linux.dev>
 Tested-by: Xueyuan Chen <xueyuan.chen21@gmail.com>
@@ -99,62 +100,66 @@ Cc: Yuanchu Xie <yuanchu@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   23 +++++++++++++++++++++--
- 1 file changed, 21 insertions(+), 2 deletions(-)
+ mm/vmscan.c |   20 +++++++++++++++++++-
+ 1 file changed, 19 insertions(+), 1 deletion(-)
 
---- a/mm/vmscan.c~mm-mglru-move-folios-from-oldest-gen-to-second-oldest-gen-from-head-to-tail
+--- a/mm/vmscan.c~mm-mglru-batch-move-folios-to-the-second-oldest-gens-lru
 +++ a/mm/vmscan.c
-@@ -192,11 +192,27 @@ static inline void prefetchw_prev_lru_fo
- 		prefetchw(&prev->flags);
- 	}
+@@ -3936,6 +3936,19 @@ static void clear_mm_walk(void)
+ 		kfree(walk);
  }
-+
-+static inline void prefetchw_next_lru_folio(struct folio *folio,
-+		struct list_head *base)
-+{
-+	if (folio->lru.next != base) {
-+		struct folio *next;
-+
-+		next = list_entry(folio->lru.next, struct folio, lru);
-+		prefetchw(&next->flags);
-+	}
-+}
- #else
- static inline void prefetchw_prev_lru_folio(struct folio *folio,
- 		struct list_head *base)
- {
- }
-+
-+static inline void prefetchw_next_lru_folio(struct folio *folio,
-+		struct list_head *base)
-+{
-+}
- #endif
  
- /*
-@@ -3943,10 +3959,11 @@ static bool inc_min_seq(struct lruvec *l
++static inline void flush_lru_batch(struct list_head *head, struct list_head **batch_end,
++				   struct list_head *dst)
++{
++	LIST_HEAD(movable);
++
++	if (!*batch_end)
++		return;
++
++	list_cut_position(&movable, head, *batch_end);
++	list_splice_tail_init(&movable, dst);
++	*batch_end = NULL;
++}
++
+ static bool inc_min_seq(struct lruvec *lruvec, int type, int swappiness)
+ {
+ 	int zone;
+@@ -3958,8 +3971,10 @@ static bool inc_min_seq(struct lruvec *l
+ 			lru_gen_is_active(lruvec, target_gen));
  	/* prevent cold/hot inversion if the type is evictable */
  	for (zone = 0; zone < MAX_NR_ZONES; zone++) {
++		struct list_head *target_list = &lrugen->folios[target_gen][type][zone];
  		struct list_head *head = &lrugen->folios[old_gen][type][zone];
-+		struct list_head *pos = head->next;
+ 		struct list_head *pos = head->next;
++		struct list_head *batch_end = NULL;
  		long delta = 0;
  
--		while (!list_empty(head)) {
--			struct folio *folio = lru_to_folio(head);
-+		while (pos != head) {
-+			struct folio *folio = list_entry(pos, struct folio, lru);
- 			long nr_pages = folio_nr_pages(folio);
- 			int refs = folio_lru_refs(folio);
- 			bool workingset = folio_test_workingset(folio);
-@@ -3957,6 +3974,8 @@ static bool inc_min_seq(struct lruvec *l
- 			VM_WARN_ON_ONCE_FOLIO(folio_is_file_lru(folio) != type, folio);
- 			VM_WARN_ON_ONCE_FOLIO(folio_zonenum(folio) != zone, folio);
+ 		while (pos != head) {
+@@ -3984,7 +3999,7 @@ static bool inc_min_seq(struct lruvec *l
+ 			 */
+ 			if (gen_increased) {
+ 				delta += nr_pages;
+-				list_move_tail(&folio->lru, &lrugen->folios[new_gen][type][zone]);
++				batch_end = &folio->lru;
  
-+			prefetchw_next_lru_folio(folio, head);
-+			pos = pos->next;
- 			new_gen = __folio_inc_gen(folio, old_gen, &gen_increased);
- 			/*
- 			 * If gen_increased is false, this is a promotion. Put folios
+ 				/* don't count the workingset being lazily promoted */
+ 				if (refs + workingset != BIT(LRU_REFS_WIDTH) + 1) {
+@@ -3994,11 +4009,14 @@ static bool inc_min_seq(struct lruvec *l
+ 						   lrugen->protected[hist][type][tier] + nr_pages);
+ 				}
+ 			} else {
++				flush_lru_batch(head, &batch_end, target_list);
+ 				list_move(&folio->lru, &lrugen->folios[new_gen][type][zone]);
+ 			}
+ 			if (!--remaining)
+ 				break;
+ 		}
++		flush_lru_batch(head, &batch_end, target_list);
++
+ 		WRITE_ONCE(lrugen->nr_pages[old_gen][type][zone],
+ 			   lrugen->nr_pages[old_gen][type][zone] - delta);
+ 		WRITE_ONCE(lrugen->nr_pages[target_gen][type][zone],
 _
 
 Patches currently in -mm which might be from baohua@kernel.org are
