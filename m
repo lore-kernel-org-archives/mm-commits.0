@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 462994AFE2A
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4253245DF71
 	for <mm-commits@vger.kernel.org>; Wed,  2 Sep 2026 22:42:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788388929; cv=none; b=l/opKoDFUZdwDwGXrbRWoHL/RAsTsVBXK35I2M+klBZLhr/G+6aKla5mrE7KIYwnv7UTeH9QkMCTtwrughotBYRcfSfxYhlhQ8tPNUWqF5YBzDo4YzH9mRjkPWyqHufaHM+gSAGn2T8xZ+PDGbFtnYdh9pF2SpgWYUyma5qSiLc=
+	t=1788388929; cv=none; b=Uj2dmrN8Gn3N2IsZpRLzsa0pVDgKUtZ/dZNyPQJTSza+jS4SROsX3iugCyoZ80g6f5jky4eL0T5R048V0zfCRSkH4p3qcAcw5mGf+U29oOsu7MXzifJuvl6M0YJwXBi0pHQA98rqhPP1PjRCMtqVrj8icpgIAJN+4wNFGjaAlUo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1788388929; c=relaxed/simple;
-	bh=beSJKYivEMKN1VTbLwQOaXlHZTr82JqN4GnKmzUIC3c=;
-	h=Date:To:From:Subject:Message-Id; b=uWAKqak/NS6mGi3gMC1k8/dNoGqfvAEFUnopQdOZSZOyh74YFKBJhJrI8qvwcNAmPiGJrAYqy/V+/zrYwtQD4TCLJNTE9xHEA5NFCzCgGDoiT7LGi/ZCh3hbZNSaaAd0JlHG5lHHjkn2IucfsAFMtEqdhNw1rWBXENfQSBmCRPU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0HnEC5xP; arc=none smtp.client-ip=100.103.45.18
+	bh=HTytKWGxs1MeXIgqRREwZv0Ych/U4JdzPGOoR+/lhS0=;
+	h=Date:To:From:Subject:Message-Id; b=JRktEDo+rZWS1+x1bkCDbXlizMSEytbFU7bo3s6Jseh/XCWn+IUc7z3vnFoBVKpfsiZdSA1BUnSVEjDaVCO9/fPNg2+7tnFCmgn3OmURLPtMq5HxRg6SZbIVjuF20jOPSElB4+0fvGInp1V9KYVXYe3LSzBzR0cgVHetUNw22LI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=stZgqMXq; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0HnEC5xP"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B79C71F000E9;
-	Wed,  2 Sep 2026 22:41:57 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="stZgqMXq"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BDBB11F00A3A;
+	Wed,  2 Sep 2026 22:41:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788388917;
-	bh=O0t1eO+mzLJzwNoiUo/trh0ubSkB+wIzJP5jKzzwzy8=;
+	d=linux-foundation.org; s=korg; t=1788388919;
+	bh=363fCftvz6vIhruat1DmPXERaF6RNZFXJQ4o5PJJjIw=;
 	h=Date:To:From:Subject;
-	b=0HnEC5xPtSGMImcjC8d2618G6iianZUznMBa3GkHJZAZvZBSFJJ47Mbdb2vXcxXQr
-	 /rtG+2YUvl68sJJdVdHCkKy9A7CMRHfhL1E7mMjtpK+i4blUnUYXNxOwktN0E6FPT1
-	 E/zSSV9DJcNroZwkRNJlewWwoxiEYDe+wYSrJl2w=
-Date: Wed, 02 Sep 2026 15:41:57 -0700
+	b=stZgqMXqKaCTWDTtcPxrdv1vDkHSiRSewQ73atHLsMZZ3fa6npXLYxhhdgVZZ6lwe
+	 OBYk9FzyPYJu25aAjZKiFwcTINys+pvU6pwSpYRuVmPAfA6AsOHoOrZgG+qE1RjvPE
+	 3y/CtGRR2LxtiLoplgPkE3w1u96qNXvMzQ6NvVDQ=
+Date: Wed, 02 Sep 2026 15:41:59 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-core-use-damon_nr_samples_per_aggr-for-max-merge-threshold.patch added to mm-new branch
-Message-Id: <20260902224157.B79C71F000E9@smtp.kernel.org>
+Subject: + mm-damon-core-remove-debug-messages.patch added to mm-new branch
+Message-Id: <20260902224159.BDBB11F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/core: use damon_nr_samples_per_aggr() for max merge threshold
+     Subject: mm/damon/core: remove debug messages
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-core-use-damon_nr_samples_per_aggr-for-max-merge-threshold.patch
+     mm-damon-core-remove-debug-messages.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-use-damon_nr_samples_per_aggr-for-max-merge-threshold.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-remove-debug-messages.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,30 +70,13 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/core: use damon_nr_samples_per_aggr() for max merge threshold
-Date: Tue, 1 Sep 2026 22:47:34 -0700
+Subject: mm/damon/core: remove debug messages
+Date: Tue, 1 Sep 2026 22:47:35 -0700
 
-Patch series "mm/damon: cleanup code, add test cases, and update guidances
-in docs".
+There are a few debug messages in DAMON core.  Those have not really been
+used in a meaningful way for the last few years, though.  Remove those.
 
-Misc cleanup, improvements and updates of code, test, and documents.
-
-Patches 1-5 cleanup DAMON code.  Patches 6-10 adds kunit and selftest test
-cases for recently fixed bugs and a new feature.  Patches 11 and 12 update
-guidelines for AI review and what document to read, on DAMON documents.
-
-
-This patch (of 12):
-
-kdamond_merge_regions() open-codes max region merge threshold calculation.
-What it does is fundamentally the same as damon_nr_samples_per_aggr() but
-missing a few corner cases.  The unhandled corner cases should be rare and
-make only a negligible level of monitoring results degradation.  But
-having the inconsistency could increase future maintenance burden.  Use
-the dedicated function.
-
-Link: https://lore.kernel.org/20260902054747.99370-1-sj@kernel.org
-Link: https://lore.kernel.org/20260902054747.99370-2-sj@kernel.org
+Link: https://lore.kernel.org/20260902054747.99370-3-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Cc: Brendan Higgins <brendan.higgins@linux.dev>
 Cc: David Gow <davidgow@davidgow.net>
@@ -111,21 +94,48 @@ Cc: Kunwu Chan <kunwu.chan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/core.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ mm/damon/core.c |    9 ---------
+ 1 file changed, 9 deletions(-)
 
---- a/mm/damon/core.c~mm-damon-core-use-damon_nr_samples_per_aggr-for-max-merge-threshold
+--- a/mm/damon/core.c~mm-damon-core-remove-debug-messages
 +++ a/mm/damon/core.c
-@@ -3506,8 +3506,7 @@ static void kdamond_merge_regions(struct
- 	unsigned int max_thres;
- 	bool count_age = true;
+@@ -3729,10 +3729,6 @@ static unsigned long damos_wmark_wait_us
  
--	max_thres = c->attrs.aggr_interval /
--		(c->attrs.sample_interval ?  c->attrs.sample_interval : 1);
-+	max_thres = damon_nr_samples_per_aggr(&c->attrs);
- 	while (true) {
- 		nr_regions = 0;
- 		damon_for_each_target(t, c) {
+ 	/* higher than high watermark or lower than low watermark */
+ 	if (metric > scheme->wmarks.high || scheme->wmarks.low > metric) {
+-		if (scheme->wmarks.activated)
+-			pr_debug("deactivate a scheme (%d) for %s wmark\n",
+-				 scheme->action,
+-				 str_high_low(metric > scheme->wmarks.high));
+ 		scheme->wmarks.activated = false;
+ 		return scheme->wmarks.interval;
+ 	}
+@@ -3742,8 +3738,6 @@ static unsigned long damos_wmark_wait_us
+ 			!scheme->wmarks.activated)
+ 		return scheme->wmarks.interval;
+ 
+-	if (!scheme->wmarks.activated)
+-		pr_debug("activate a scheme (%d)\n", scheme->action);
+ 	scheme->wmarks.activated = true;
+ 	return 0;
+ }
+@@ -3886,8 +3880,6 @@ static int kdamond_fn(void *data)
+ 	struct damon_ctx *ctx = data;
+ 	unsigned long sz_limit = 0;
+ 
+-	pr_debug("kdamond (%d) starts\n", current->pid);
+-
+ 	mutex_lock(&ctx->call_controls_lock);
+ 	ctx->call_controls_obsolete = false;
+ 	mutex_unlock(&ctx->call_controls_lock);
+@@ -4041,7 +4033,6 @@ done:
+ 	mutex_unlock(&ctx->walk_control_lock);
+ 	damos_walk_cancel(ctx);
+ 
+-	pr_debug("kdamond (%d) finishes\n", current->pid);
+ 	mutex_lock(&ctx->kdamond_lock);
+ 	ctx->kdamond = NULL;
+ 	mutex_unlock(&ctx->kdamond_lock);
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
