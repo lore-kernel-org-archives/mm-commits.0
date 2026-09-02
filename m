@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7BEB24ACC7C
-	for <mm-commits@vger.kernel.org>; Wed,  2 Sep 2026 22:37:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 96E6B448B9A
+	for <mm-commits@vger.kernel.org>; Wed,  2 Sep 2026 22:37:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788388642; cv=none; b=loxeGCrtnWKw0dS5YpFLnH/Gv5+Izn+yuTnN2afTR4yxReE6NOhgcO1JXm3oN0bb77cokeWNpOgRymaTLT5Lkhz7jmfI5M+BQaHw9AqEqtwU15BxulB6hapq/mluiqtOw3JbHJf/O6efi9cmkP+oh/a0IcBzlJNx0WGu/GTRdoQ=
+	t=1788388644; cv=none; b=SEMpnJ3X2OTv2JN2TdXiCPEY22pgnKnSpM8hyyPd7FuYGDOFx2cnNw2qTeyKBRQpcYxk3nrhRGn0wA5PUf9hpQcYybAKrXzcFo1zcenBprrJQlqGQ0Ys+7gwli0R+GiIiYWSUkw2OArSGhKyHEnyJbgM1j3TAGJajsnuFFpzA8o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788388642; c=relaxed/simple;
-	bh=9UDbL82qJ1Ds7UsmfZj7PivVVXeQsxT3zscMcsl94xg=;
-	h=Date:To:From:Subject:Message-Id; b=kegRWgkLam8nQ51sxO03ME9XL0pY6v+qu6DRmmLShYALW87Qyjc0zhueGXtsvyO8HN4SITCyXEBvhzwi5h0/6q0USQNCJ4pYGeWS8xnD1lyX0aUspR4yx6xe6cUCat8X5LDMYVkTbnlWIJGVPN6RqQNJ3iQPUSFGMFtChtipvoo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lX57dPnN; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788388644; c=relaxed/simple;
+	bh=PdYvm+PFI+uPS3nTijpMcyGwDZfi9314HTGDcuwGViY=;
+	h=Date:To:From:Subject:Message-Id; b=DPV6y9ntxLkuvu9WmAV7kh+R0a4O5GWrBy23ZU78KauKmeT6/yY+fhJ4IdnTXWTX5hDqYx7uPLreq5IidE9aa5ungO9YtTHobnvnrYzacgFtBAhat+49RH0CcO943pLZlsXAjEa0Zsvf33KKyadX5NNKO7aFPjDtgmj151gy9KA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OMMIeLtJ; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lX57dPnN"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3727C1F000E9;
-	Wed,  2 Sep 2026 22:37:13 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OMMIeLtJ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 35F6E1F00A3A;
+	Wed,  2 Sep 2026 22:37:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788388633;
-	bh=2jT8ysj3ybpCLgIh6jQlXrjuU+gRjVHRgmOGvDdQpr4=;
+	d=linux-foundation.org; s=korg; t=1788388635;
+	bh=78Yz6A8tFcjMoIkp+MKWY6/6uX3kg1nrYKnV8BPOzSQ=;
 	h=Date:To:From:Subject;
-	b=lX57dPnNaL2upiQVVHBkNL/4/H5zM9j32HWaVR+FgyIXmuw0QLHAzbzX54tIwbcPo
-	 u3xSn0c7fU+qbNqVRFwHL6odO4JDT2nlcylU1EeFibw/sOiWeIEn1KWWKPkRtUmZAQ
-	 3u+LN0go5xBfu1SuieI0xc1KaSu9FOAaYtO6Vnr4=
-Date: Wed, 02 Sep 2026 15:37:12 -0700
+	b=OMMIeLtJVVBTJN5hNDFDCFL/15rBqcXZhKoE2VMe6lkfd7H1sWY+5LiCK6udmNCxr
+	 v0OA3zBLR+rJ4O+ga4AiHaDySUfZnla5BIeeIQaU0mtqEyPnpkjm2y+JvqekHzJo57
+	 OyM2FYlfPX4ljRAset/0VYHlE/nYV2FrYg7oFPF8=
+Date: Wed, 02 Sep 2026 15:37:14 -0700
 To: mm-commits@vger.kernel.org,rostedt@goodmis.org,mhiramat@kernel.org,mathieu.desnoyers@efficios.com,ljs@kernel.org,zhaomeijing@lixiang.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-trace-decode-arm64-and-sparc64-vm_arch_1-flags.patch added to mm-new branch
-Message-Id: <20260902223713.3727C1F000E9@smtp.kernel.org>
+Subject: + mm-trace-decode-mte-and-shadow-stack-vma-flags.patch added to mm-new branch
+Message-Id: <20260902223715.35F6E1F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: trace: decode arm64 and sparc64 VM_ARCH_1 flags
+     Subject: mm: trace: decode MTE and shadow stack VMA flags
 has been added to the -mm mm-new branch.  Its filename is
-     mm-trace-decode-arm64-and-sparc64-vm_arch_1-flags.patch
+     mm-trace-decode-mte-and-shadow-stack-vma-flags.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-trace-decode-arm64-and-sparc64-vm_arch_1-flags.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-trace-decode-mte-and-shadow-stack-vma-flags.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,34 +70,31 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Meijing Zhao <zhaomeijing@lixiang.com>
-Subject: mm: trace: decode arm64 and sparc64 VM_ARCH_1 flags
-Date: Wed, 2 Sep 2026 14:45:08 +0800
+Subject: mm: trace: decode MTE and shadow stack VMA flags
+Date: Wed, 2 Sep 2026 14:45:09 +0800
 
-Patch series "mm: trace: decode architecture-specific VMA flags", v2.
+show_vma_flags(), which is used by VMA tracepoints and %pGv, leaves
+architecture-specific HIGH_ARCH_* bits unnamed.  Arm64 MTE flags and user
+shadow stack flags are therefore printed as raw hexadecimal values.
 
-show_vma_flags(), which is used by VMA tracepoints and %pGv, names generic
-VM_* bits but does not fully decode architecture-specific flag positions. 
-As a result, trace output and VMA dumps can show a generic "arch_1" name
-or a raw hexadecimal value instead of the meaning assigned by the target
-architecture.
+These bit positions are shared between architectures.  For example, bit 37
+represents VM_MTE_ALLOWED on arm64 but VM_SHADOW_STACK on x86, so a shared
+HIGH_ARCH_* bit cannot be given an unconditional name.
 
-This series adds symbolic names for the arm64 and sparc64 meanings of
-VM_ARCH_1, arm64 MTE flags, user shadow stack flags, and protection-key
-encoding bits under their corresponding configuration guards.
+Add conditionally compiled names for VM_MTE, VM_MTE_ALLOWED and
+VM_SHADOW_STACK.  Keep the configuration guards aligned with the
+definitions of these aliases so each shared bit position is decoded
+according to the target architecture.
 
+For example, an arm64 VMA containing VM_MTE_ALLOWED is now printed as:
 
-This patch (of 3):
+  ...|account|mte_allowed|...
 
-The VM_ARCH_1 bit has architecture-specific meanings.  show_vma_flags(),
-which is used by VMA tracepoints and %pGv, already reports the powerpc,
-parisc and no-MMU meanings, but falls back to the generic "arch_1" name on
-arm64 and sparc64.
+instead of:
 
-Report VM_ARM64_BTI as "bti" and VM_SPARC_ADI as "adi" so trace output and
-%pGv dumps expose the actual architecture-specific state.
+  ...|account|0x2000000000
 
-Link: https://lore.kernel.org/cover.1788330432.git.zhaomeijing@lixiang.com
-Link: https://lore.kernel.org/bcf0fea58240c4b6daa253739683ed7709e42fbb.1788330432.git.zhaomeijing@lixiang.com
+Link: https://lore.kernel.org/1c7f7003cff8d00209baa8498f1efee113f5b5a4.1788330432.git.zhaomeijing@lixiang.com
 Signed-off-by: Meijing Zhao <zhaomeijing@lixiang.com>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
 Cc: "Masami Hiramatsu (Google)" <mhiramat@kernel.org>
@@ -106,22 +103,41 @@ Cc: Steven Rostedt <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/trace/events/mmflags.h |    4 ++++
- 1 file changed, 4 insertions(+)
+ include/trace/events/mmflags.h |   16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
 
---- a/include/trace/events/mmflags.h~mm-trace-decode-arm64-and-sparc64-vm_arch_1-flags
+--- a/include/trace/events/mmflags.h~mm-trace-decode-mte-and-shadow-stack-vma-flags
 +++ a/include/trace/events/mmflags.h
-@@ -168,6 +168,10 @@ IF_HAVE_PG_ARCH_3(arch_3)
- #define __VM_ARCH_SPECIFIC_1 {VM_SAO,     "sao"           }
- #elif defined(CONFIG_PARISC)
- #define __VM_ARCH_SPECIFIC_1 {VM_GROWSUP,	"growsup"	}
-+#elif defined(CONFIG_SPARC64)
-+#define __VM_ARCH_SPECIFIC_1 {VM_SPARC_ADI, "adi"		}
-+#elif defined(CONFIG_ARM64)
-+#define __VM_ARCH_SPECIFIC_1 {VM_ARM64_BTI, "bti"		}
- #elif !defined(CONFIG_MMU)
- #define __VM_ARCH_SPECIFIC_1 {VM_MAPPED_COPY,"mappedcopy"	}
- #else
+@@ -202,6 +202,19 @@ IF_HAVE_PG_ARCH_3(arch_3)
+ # define IF_HAVE_VM_DROPPABLE(flag, name)
+ #endif
+ 
++#ifdef CONFIG_ARM64_MTE
++# define IF_HAVE_VM_MTE(flag, name) {flag, name},
++#else
++# define IF_HAVE_VM_MTE(flag, name)
++#endif
++
++#if defined(CONFIG_X86_USER_SHADOW_STACK) || defined(CONFIG_RISCV_USER_CFI) || \
++	defined(CONFIG_ARM64_GCS)
++# define IF_HAVE_VM_SHADOW_STACK(flag, name) {flag, name},
++#else
++# define IF_HAVE_VM_SHADOW_STACK(flag, name)
++#endif
++
+ #define __def_vmaflag_names						\
+ 	{VM_READ,			"read"		},		\
+ 	{VM_WRITE,			"write"		},		\
+@@ -237,6 +250,9 @@ IF_HAVE_VM_SOFTDIRTY(VM_SOFTDIRTY,	"soft
+ 	{VM_HUGEPAGE,			"hugepage"	},		\
+ 	{VM_NOHUGEPAGE,			"nohugepage"	},		\
+ IF_HAVE_VM_DROPPABLE(VM_DROPPABLE,	"droppable"	)		\
++IF_HAVE_VM_MTE(VM_MTE,			"mte")			\
++IF_HAVE_VM_MTE(VM_MTE_ALLOWED,		"mte_allowed")		\
++IF_HAVE_VM_SHADOW_STACK(VM_SHADOW_STACK, "shadow_stack")	\
+ 	{VM_MERGEABLE,			"mergeable"	}		\
+ 
+ #define show_vma_flags(flags)						\
 _
 
 Patches currently in -mm which might be from zhaomeijing@lixiang.com are
