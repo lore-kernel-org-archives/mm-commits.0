@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4253245DF71
-	for <mm-commits@vger.kernel.org>; Wed,  2 Sep 2026 22:42:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 87DD14B0C8D
+	for <mm-commits@vger.kernel.org>; Wed,  2 Sep 2026 22:42:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788388929; cv=none; b=Uj2dmrN8Gn3N2IsZpRLzsa0pVDgKUtZ/dZNyPQJTSza+jS4SROsX3iugCyoZ80g6f5jky4eL0T5R048V0zfCRSkH4p3qcAcw5mGf+U29oOsu7MXzifJuvl6M0YJwXBi0pHQA98rqhPP1PjRCMtqVrj8icpgIAJN+4wNFGjaAlUo=
+	t=1788388934; cv=none; b=RWLsUZV+GAJWRhUGYxG3XlKOSbiXkMlFUnRCyOJWbnENhm8FcqkY9R2zNZpmxa5ScM/LSIg2VAZfcxeaUgIuQYGpL856kH+pC7dIfwtV7/HhOcZXGc9WlgzDC6t6lhMZpQE5e5zAe726UgR+JjCUDDY9S95gSUsox9BlV3fPP5U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788388929; c=relaxed/simple;
-	bh=HTytKWGxs1MeXIgqRREwZv0Ych/U4JdzPGOoR+/lhS0=;
-	h=Date:To:From:Subject:Message-Id; b=JRktEDo+rZWS1+x1bkCDbXlizMSEytbFU7bo3s6Jseh/XCWn+IUc7z3vnFoBVKpfsiZdSA1BUnSVEjDaVCO9/fPNg2+7tnFCmgn3OmURLPtMq5HxRg6SZbIVjuF20jOPSElB4+0fvGInp1V9KYVXYe3LSzBzR0cgVHetUNw22LI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=stZgqMXq; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788388934; c=relaxed/simple;
+	bh=q27J0zWWOVgyJbRT3MA59B/3sgolayjEbcIcjegcvWs=;
+	h=Date:To:From:Subject:Message-Id; b=HnNB+Bwjdf17wgPJXar92uzoYzoQ7EfCKjy/FWF+FpX4Iw34UE9CVTqH/wUSBgZw67nW2Y2HomTPzjO1hIttHCXi1yqdKxTUdhfaInFsDBP5ubug3Ke22Yqs+lrXYdS+6rOGPswOI4yLMiYMKua72Jf7WRO/KbaOOgGMyQXhXjc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GFlKZtLT; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="stZgqMXq"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BDBB11F00A3A;
-	Wed,  2 Sep 2026 22:41:59 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GFlKZtLT"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E41CA1F00A3E;
+	Wed,  2 Sep 2026 22:42:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788388919;
-	bh=363fCftvz6vIhruat1DmPXERaF6RNZFXJQ4o5PJJjIw=;
+	d=linux-foundation.org; s=korg; t=1788388924;
+	bh=ipf6mZB0P7mRqH7kFZZQe7rWIgW3hTdWE9cnKQ4QVmg=;
 	h=Date:To:From:Subject;
-	b=stZgqMXqKaCTWDTtcPxrdv1vDkHSiRSewQ73atHLsMZZ3fa6npXLYxhhdgVZZ6lwe
-	 OBYk9FzyPYJu25aAjZKiFwcTINys+pvU6pwSpYRuVmPAfA6AsOHoOrZgG+qE1RjvPE
-	 3y/CtGRR2LxtiLoplgPkE3w1u96qNXvMzQ6NvVDQ=
-Date: Wed, 02 Sep 2026 15:41:59 -0700
+	b=GFlKZtLTdpKLVSD/DZAobfMq69AZ5RqSEB72avZ+01x7poTLbj64k+q+Ivo5TitC0
+	 2btOW37HO+OyI9HVyxGKZwW9ddMjPdtd2MnaotSaEQq5DTTsd+FJqWlvbUvF51gRfD
+	 dNErEUz8FduyAtnyyDk5o5wi4QFVeTjMcCMSBCfg=
+Date: Wed, 02 Sep 2026 15:42:03 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-core-remove-debug-messages.patch added to mm-new branch
-Message-Id: <20260902224159.BDBB11F00A3A@smtp.kernel.org>
+Subject: + mm-damon-vaddr-remove-a-debug-message.patch added to mm-new branch
+Message-Id: <20260902224203.E41CA1F00A3E@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/core: remove debug messages
+     Subject: mm/damon/vaddr: remove a debug message
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-core-remove-debug-messages.patch
+     mm-damon-vaddr-remove-a-debug-message.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-remove-debug-messages.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-vaddr-remove-a-debug-message.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,13 +70,14 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/core: remove debug messages
-Date: Tue, 1 Sep 2026 22:47:35 -0700
+Subject: mm/damon/vaddr: remove a debug message
+Date: Tue, 1 Sep 2026 22:47:36 -0700
 
-There are a few debug messages in DAMON core.  Those have not really been
-used in a meaningful way for the last few years, though.  Remove those.
+There is a debug message in the DAMON virtual address space operation set.
+It has not really been used in a meaningful way for the last few years,
+though.  Remove it.
 
-Link: https://lore.kernel.org/20260902054747.99370-3-sj@kernel.org
+Link: https://lore.kernel.org/20260902054747.99370-4-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Cc: Brendan Higgins <brendan.higgins@linux.dev>
 Cc: David Gow <davidgow@davidgow.net>
@@ -94,48 +95,45 @@ Cc: Kunwu Chan <kunwu.chan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/core.c |    9 ---------
- 1 file changed, 9 deletions(-)
+ mm/damon/vaddr.c |   16 +++-------------
+ 1 file changed, 3 insertions(+), 13 deletions(-)
 
---- a/mm/damon/core.c~mm-damon-core-remove-debug-messages
-+++ a/mm/damon/core.c
-@@ -3729,10 +3729,6 @@ static unsigned long damos_wmark_wait_us
+--- a/mm/damon/vaddr.c~mm-damon-vaddr-remove-a-debug-message
++++ a/mm/damon/vaddr.c
+@@ -189,22 +189,12 @@ static int damon_va_three_regions(struct
+  *   <BIG UNMAPPED REGION 2>
+  *   <stack>
+  */
+-static void __damon_va_init_regions(struct damon_ctx *ctx,
+-				     struct damon_target *t)
++static void __damon_va_init_regions(struct damon_target *t)
+ {
+-	struct damon_target *ti;
+ 	struct damon_addr_range regions[3];
+-	int tidx = 0;
  
- 	/* higher than high watermark or lower than low watermark */
- 	if (metric > scheme->wmarks.high || scheme->wmarks.low > metric) {
--		if (scheme->wmarks.activated)
--			pr_debug("deactivate a scheme (%d) for %s wmark\n",
--				 scheme->action,
--				 str_high_low(metric > scheme->wmarks.high));
- 		scheme->wmarks.activated = false;
- 		return scheme->wmarks.interval;
- 	}
-@@ -3742,8 +3738,6 @@ static unsigned long damos_wmark_wait_us
- 			!scheme->wmarks.activated)
- 		return scheme->wmarks.interval;
+-	if (damon_va_three_regions(t, regions)) {
+-		damon_for_each_target(ti, ctx) {
+-			if (ti == t)
+-				break;
+-			tidx++;
+-		}
+-		pr_debug("Failed to get three regions of %dth target\n", tidx);
++	if (damon_va_three_regions(t, regions))
+ 		return;
+-	}
  
--	if (!scheme->wmarks.activated)
--		pr_debug("activate a scheme (%d)\n", scheme->action);
- 	scheme->wmarks.activated = true;
- 	return 0;
+ 	damon_set_regions(t, regions, 3, DAMON_MIN_REGION_SZ);
  }
-@@ -3886,8 +3880,6 @@ static int kdamond_fn(void *data)
- 	struct damon_ctx *ctx = data;
- 	unsigned long sz_limit = 0;
+@@ -217,7 +207,7 @@ static void damon_va_init(struct damon_c
+ 	damon_for_each_target(t, ctx) {
+ 		/* the user may set the target regions as they want */
+ 		if (!damon_nr_regions(t))
+-			__damon_va_init_regions(ctx, t);
++			__damon_va_init_regions(t);
+ 	}
+ }
  
--	pr_debug("kdamond (%d) starts\n", current->pid);
--
- 	mutex_lock(&ctx->call_controls_lock);
- 	ctx->call_controls_obsolete = false;
- 	mutex_unlock(&ctx->call_controls_lock);
-@@ -4041,7 +4033,6 @@ done:
- 	mutex_unlock(&ctx->walk_control_lock);
- 	damos_walk_cancel(ctx);
- 
--	pr_debug("kdamond (%d) finishes\n", current->pid);
- 	mutex_lock(&ctx->kdamond_lock);
- 	ctx->kdamond = NULL;
- 	mutex_unlock(&ctx->kdamond_lock);
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
