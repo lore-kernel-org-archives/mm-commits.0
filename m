@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E72444AF9FC
-	for <mm-commits@vger.kernel.org>; Wed,  2 Sep 2026 22:42:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 53E964B0CA9
+	for <mm-commits@vger.kernel.org>; Wed,  2 Sep 2026 22:42:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788388947; cv=none; b=YlHHr7CFb3Dd9ND4vXicq7qlIl8RZDt5BjgCDlVeGNcowYDu+yuATuzuDNHWpDhFbz/xA6xBJSHLo/OgsWvTjOM9PnJxYtE9F0R3tyZUU7Ii1MjZjuF6UkjiawUBVElM8ddT5R2gX37jYaICsM+hyMvgwMeT9q5TAKi6fgArwRo=
+	t=1788388947; cv=none; b=heyZxq3ov0iuf98w4eD4dyA3+K+ScoZ+jh0m/8ViZYTcxEm7s1p5mhppwMEQIrQpoSU0ZzqGzSGkXwuxNheZ/NhIjYrr5BWNarK8e7Gw5/8Lvh2lf8+V5DovPZP6Hu0f6SfQdDeSl0D01UKJ2pJXIYZPIqveshgNUxyeFq0prAI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1788388947; c=relaxed/simple;
-	bh=yd5ZdOIjXZVpmf5bAmE393o99dO3hx7QvpiBnLs2yQ4=;
-	h=Date:To:From:Subject:Message-Id; b=dxLaeut64cRDOFmUzCO3HP0IJ+0Zl9KUlDvtly1xEXQ1vnnHXJoewhw6pxgthg3Q1GBpQU4/+lTaxtSjpNOwc4KQJQeGSnARP4lSHcbcEnY1yrTvyHRb+kSXfisgd/YDXrYOLJIp1s+q1o0sC5zCSiVAv/TbC/rsoClxvwWAz+M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=o8jMFFug; arc=none smtp.client-ip=100.103.45.18
+	bh=uNS782oEVGzkzN53QEvQ2JDzA1S6zLdjx/dQMcNVvKE=;
+	h=Date:To:From:Subject:Message-Id; b=qTJemVtnLV5OADdKXs+coEi9R8sXwqnhQ1GhH6ewmW9Dt1FyXXtt+2U3YmRf/eSjbGu9aE+FvP5TkVfMaEBXHkIyq/ZF5aXeUdyJlC/prj8msYfM99MaKnZfBqqdyc/Orh49adNBAioZux0jjSYKdZ+mPTlWGnURvXuhIBDRLyw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Sn7X+Cq7; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="o8jMFFug"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 88E6C1F00A3A;
-	Wed,  2 Sep 2026 22:42:22 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Sn7X+Cq7"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8ADCF1F00A3D;
+	Wed,  2 Sep 2026 22:42:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788388942;
-	bh=TJ0hHYu2kLAW0KL4s3hffC4O1xWKg5RLJSZM9rxhb58=;
+	d=linux-foundation.org; s=korg; t=1788388938;
+	bh=f6sbfml6sSjcZuuFV9a0zmWvF2uiXp9uUwh7MNqAlak=;
 	h=Date:To:From:Subject;
-	b=o8jMFFugEwzovF+M4d67jBn56GQAn1H6MCYxLnnZZYkCW5vdFI0FMxAtsbY6jo83N
-	 ImUAEnzhO8J7l6AnnYEm2Xq0Xjj+xC6SERFJUqjbnnkfIBh6pAdv33Y7sETEM01hIJ
-	 dAp272KjWQeJZ+iiTUhr1wpREazEN/Yri7NfLKkU=
-Date: Wed, 02 Sep 2026 15:42:22 -0700
+	b=Sn7X+Cq7Ep/FlUJB5SR/1lkON6OBq0u8raYH7UQVSqrbXeRiCufA8OmVr8GUR/0S5
+	 6hwmJjdMC0xE/fccH6Lh1LfazY6V0GplMJkdfWdljdd51QdO7Ws1eHW61CSQtSYmzg
+	 rOMrwJXPu3QmfH4etQd+TTlsIEPH7zcT+FUGTfGE=
+Date: Wed, 02 Sep 2026 15:42:18 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + docs-abi-damon-recommend-subsystem-doc-instead-of-admin-guide.patch added to mm-new branch
-Message-Id: <20260902224222.88E6C1F00A3A@smtp.kernel.org>
+Subject: + selftests-damon-sysfssh-test-hugepage_mem_bp-quota-goal.patch added to mm-new branch
+Message-Id: <20260902224218.8ADCF1F00A3D@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: Docs/ABI/damon: recommend subsystem doc instead of admin-guide
+     Subject: selftests/damon/sysfs.sh: test hugepage_mem_bp quota goal
 has been added to the -mm mm-new branch.  Its filename is
-     docs-abi-damon-recommend-subsystem-doc-instead-of-admin-guide.patch
+     selftests-damon-sysfssh-test-hugepage_mem_bp-quota-goal.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-abi-damon-recommend-subsystem-doc-instead-of-admin-guide.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-damon-sysfssh-test-hugepage_mem_bp-quota-goal.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,15 +70,14 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: Docs/ABI/damon: recommend subsystem doc instead of admin-guide
-Date: Tue, 1 Sep 2026 22:47:45 -0700
+Subject: selftests/damon/sysfs.sh: test hugepage_mem_bp quota goal
+Date: Tue, 1 Sep 2026 22:47:43 -0700
 
-DAMON ABI doc is recommending DAMON admin-guide for people who are willing
-to know further about DAMON.  Nowadays the subsystem doc
-(Documentation/mm/damon) is a more recommended place for even beginners. 
-Recommend the subsystem doc over admin-guide.
+DAMON sysfs quota goal target_metric file now accepts 'hugepage_mem_bp'
+input.  Test it is accepted in fundamental DAMON sysfs file operation
+selftest.
 
-Link: https://lore.kernel.org/20260902054747.99370-13-sj@kernel.org
+Link: https://lore.kernel.org/20260902054747.99370-11-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Cc: Brendan Higgins <brendan.higgins@linux.dev>
 Cc: David Gow <davidgow@davidgow.net>
@@ -96,20 +95,19 @@ Cc: Kunwu Chan <kunwu.chan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/ABI/testing/sysfs-kernel-mm-damon |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ tools/testing/selftests/damon/sysfs.sh |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/Documentation/ABI/testing/sysfs-kernel-mm-damon~docs-abi-damon-recommend-subsystem-doc-instead-of-admin-guide
-+++ a/Documentation/ABI/testing/sysfs-kernel-mm-damon
-@@ -3,7 +3,7 @@ Date:		Mar 2022
- Contact:	SJ Park <sj@kernel.org>
- Description:	Interface for Data Access MONitoring (DAMON).  Contains files
- 		for controlling DAMON.  For more details on DAMON itself,
--		please refer to Documentation/admin-guide/mm/damon/index.rst.
-+		please refer to Documentation/mm/damon/index.rst.
- 
- What:		/sys/kernel/mm/damon/admin/
- Date:		Mar 2022
+--- a/tools/testing/selftests/damon/sysfs.sh~selftests-damon-sysfssh-test-hugepage_mem_bp-quota-goal
++++ a/tools/testing/selftests/damon/sysfs.sh
+@@ -210,6 +210,7 @@ test_goal()
+ 	ensure_write_succ "$fpath" "active_mem_bp" "valid input"
+ 	ensure_write_succ "$fpath" "inactive_mem_bp" "valid input"
+ 	ensure_write_succ "$fpath" "node_eligible_mem_bp" "valid input"
++	ensure_write_succ "$fpath" "hugepage_mem_bp" "valid input"
+ 	ensure_write_fail "$fpath" "foo" "invalid input"
+ 	ensure_file "$goal_dir/nid" "exist" "600"
+ 	ensure_file "$goal_dir/path" "exist" "600"
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
