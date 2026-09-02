@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8DB17381AE5
-	for <mm-commits@vger.kernel.org>; Wed,  2 Sep 2026 19:33:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0E6D13BF694
+	for <mm-commits@vger.kernel.org>; Wed,  2 Sep 2026 19:33:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788377598; cv=none; b=LTkC2UJtgtXrYUOpYpZddfdfQgatvbWH0zxz+7FN3TVvR915v4w7kp9oG5TRgMXsJ6bjb2g4TgQhLXC0rJPBvFULRdCihOuSLjvPrC12UmWRlpsBOvs4FznGv09HSEri228gtpbnHzo38VVZmhxfsyhbWPJwcfJvNWLi8DZoGIw=
+	t=1788377598; cv=none; b=G6R37TGvRmSjCxTIZCZuHMinx8KoxkMOBojHO1fYCi+e8RamsXTnOTgt0tIC38dDvChWYX3Xq9PFNR/edkDwwbVB8aQA363wagnCzkbyWD+lOzGPRtiFj3ay7g61ll0AnxETdq3u861Z89sOtr9AJga6ujHnk45eEytBAuvi+ZI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1788377598; c=relaxed/simple;
-	bh=quD+YDYrEbU6/7xgSLe1R0bMI7UQ9SXGsIMMoHLjvAc=;
-	h=Date:To:From:Subject:Message-Id; b=pHGLuL9ug2Tw49h8UExyCzQIvkQLhf67g4uaZk8EefDbF3akwyqqxm3hZ5Z7QdlOwRp05soB7GGoQX+ooK1YKfWgU8aeqXh22wAxlrrJN8B89QPpwF16Ssw71fA/RNdvkpYqDn0zKzym4tm1yIK+uvZppZmRK9k4rTnhCIx3tqM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=a1vkDwNn; arc=none smtp.client-ip=100.103.45.18
+	bh=rcf8X8H6js9XjMy3CWu5CwZ3LcUYsGdsYCzhzyI9PpI=;
+	h=Date:To:From:Subject:Message-Id; b=eNX5p1cc6nBY4jh0nVBBOEE+geNQA5PJlsr2cKvZOuDw/5G4B7gJ3m3E9y1KF1WF3zfL8f1ok93d2gbB1pe01XZsvqn2vGq9uJqsrL5hLJv8bG4fr2x8JuGXoWR7jQVpJVrIYEd31+GATmnEyUe96y6ekJAW0zkxkZQAhuxjIgk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PlBwwGD4; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="a1vkDwNn"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BC79B1F00A3E;
-	Wed,  2 Sep 2026 19:33:10 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PlBwwGD4"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 415111F00A3A;
+	Wed,  2 Sep 2026 19:33:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788377590;
-	bh=iFFxLoE+Sl0iqOzySfya3A9vPTGKvzMnSDMhZuWGcsQ=;
+	d=linux-foundation.org; s=korg; t=1788377588;
+	bh=gM2CzFw26p1YwBsLgTgUQMH6AOA2VfANyiRHPH1IdDo=;
 	h=Date:To:From:Subject;
-	b=a1vkDwNniKMUSckgJhvuB8Yfsr21HrJjqw61G0d/UD37tS1GiikdXfXakOo1CJsjo
-	 ECLiZIXppZpmZTMEK5dSmEjLVWgx2AOkS9N17JlO218jDP3d36j6CvY0T3bg305mJX
-	 l4VpQmIMrn8JhE2Ynruv9+4qtMIBO9z9ZI8NHnW0=
-Date: Wed, 02 Sep 2026 12:33:10 -0700
+	b=PlBwwGD4aDvk8FJlqxf6HbZFisOfKjIO0NURdTquQwMnS8IkcVywZmlDxCeOb4IXr
+	 CNeCQHzX9w/Xu/ZWx59RAhg/5oL5cLtHFLvKdsoHG0hQFTeJimc3iffPKmJcd8FZoc
+	 ZC+4yoWxkJmHVyqgqfbtvihzBgeTQrgkkjNESQlI=
+Date: Wed, 02 Sep 2026 12:33:07 -0700
 To: mm-commits@vger.kernel.org,shakeel.butt@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] memcg-remove-the-soft-limit-rbtree.patch removed from -mm tree
-Message-Id: <20260902193310.BC79B1F00A3E@smtp.kernel.org>
+Subject: [to-be-updated] memcg-remove-mem_cgroup_shrink_node.patch removed from -mm tree
+Message-Id: <20260902193308.415111F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,24 +35,20 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: memcg: remove the soft limit rbtree
+     Subject: memcg: remove mem_cgroup_shrink_node()
 has been removed from the -mm tree.  Its filename was
-     memcg-remove-the-soft-limit-rbtree.patch
+     memcg-remove-mem_cgroup_shrink_node.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
 From: Shakeel Butt <shakeel.butt@linux.dev>
-Subject: memcg: remove the soft limit rbtree
-Date: Tue, 11 Aug 2026 13:31:59 -0700
+Subject: memcg: remove mem_cgroup_shrink_node()
+Date: Tue, 11 Aug 2026 13:31:57 -0700
 
-With soft limit reclaim gone, the per-node rbtree of cgroups in excess has
-no readers left.  Remove the tree, the helpers maintaining it, and the
-subsys_initcall that existed only to allocate it.  memcg1_check_events()
-no longer needs to feed it, which also drops the last caller of
-lru_gen_soft_reclaim().
+Its only caller was soft limit reclaim, which is gone.
 
-Link: https://lore.kernel.org/20260811203203.3456029-6-shakeel.butt@linux.dev
+Link: https://lore.kernel.org/20260811203203.3456029-4-shakeel.butt@linux.dev
 Signed-off-by: Shakeel Butt <shakeel.butt@linux.dev>
 Acked-by: Michal Hocko <mhocko@suse.com>
 Acked-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
@@ -67,250 +63,73 @@ Cc: T.J. Mercier <tjmercier@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol-v1.c |  176 -------------------------------------------
- mm/memcontrol-v1.h |    2 
- mm/memcontrol.c    |    1 
- 3 files changed, 2 insertions(+), 177 deletions(-)
+ mm/internal.h |    4 ----
+ mm/vmscan.c   |   41 -----------------------------------------
+ 2 files changed, 45 deletions(-)
 
---- a/mm/memcontrol.c~memcg-remove-the-soft-limit-rbtree
-+++ a/mm/memcontrol.c
-@@ -4429,7 +4429,6 @@ static void mem_cgroup_css_free(struct c
+--- a/mm/internal.h~memcg-remove-mem_cgroup_shrink_node
++++ a/mm/internal.h
+@@ -78,10 +78,6 @@ unsigned long try_to_free_mem_cgroup_pag
+ 					   gfp_t gfp_mask,
+ 					   unsigned int reclaim_options,
+ 					   int *swappiness);
+-unsigned long mem_cgroup_shrink_node(struct mem_cgroup *memcg,
+-				     gfp_t gfp_mask, bool noswap,
+-				     pg_data_t *pgdat,
+-				     unsigned long *nr_scanned);
  
- 	vmpressure_cleanup(&memcg->vmpressure);
- 	cancel_work_sync(&memcg->high_work);
--	memcg1_remove_from_trees(memcg);
- 	free_shrinker_info(memcg);
- 	mem_cgroup_free(memcg);
- }
---- a/mm/memcontrol-v1.c~memcg-remove-the-soft-limit-rbtree
-+++ a/mm/memcontrol-v1.c
-@@ -17,23 +17,6 @@
- #include "swap_table.h"
- #include "memcontrol-v1.h"
+ #ifdef CONFIG_NUMA
+ extern int sysctl_min_unmapped_ratio;
+--- a/mm/vmscan.c~memcg-remove-mem_cgroup_shrink_node
++++ a/mm/vmscan.c
+@@ -6805,47 +6805,6 @@ unsigned long try_to_free_pages(struct z
  
--/*
-- * Cgroups above their limits are maintained in a RB-Tree, independent of
-- * their hierarchy representation
-- */
--
--struct mem_cgroup_tree_per_node {
--	struct rb_root rb_root;
--	struct rb_node *rb_rightmost;
--	spinlock_t lock;
--};
--
--struct mem_cgroup_tree {
--	struct mem_cgroup_tree_per_node *rb_tree_per_node[MAX_NUMNODES];
--};
--
--static struct mem_cgroup_tree soft_limit_tree __read_mostly;
--
- /* for OOM */
- struct mem_cgroup_eventfd_list {
- 	struct list_head list;
-@@ -99,133 +82,6 @@ static struct lockdep_map memcg_oom_lock
+ #ifdef CONFIG_MEMCG
  
- DEFINE_SPINLOCK(memcg_oom_lock);
- 
--static void __mem_cgroup_insert_exceeded(struct mem_cgroup_per_node *mz,
--					 struct mem_cgroup_tree_per_node *mctz,
--					 unsigned long new_usage_in_excess)
+-/* Only used by soft limit reclaim. Do not reuse for anything else. */
+-unsigned long mem_cgroup_shrink_node(struct mem_cgroup *memcg,
+-						gfp_t gfp_mask, bool noswap,
+-						pg_data_t *pgdat,
+-						unsigned long *nr_scanned)
 -{
--	struct rb_node **p = &mctz->rb_root.rb_node;
--	struct rb_node *parent = NULL;
--	struct mem_cgroup_per_node *mz_node;
--	bool rightmost = true;
+-	struct lruvec *lruvec = mem_cgroup_lruvec(memcg, pgdat);
+-	struct scan_control sc = {
+-		.nr_to_reclaim = SWAP_CLUSTER_MAX,
+-		.target_mem_cgroup = memcg,
+-		.may_writepage = 1,
+-		.may_unmap = 1,
+-		.reclaim_idx = MAX_NR_ZONES - 1,
+-		.may_swap = !noswap,
+-	};
 -
--	if (mz->on_tree)
--		return;
+-	WARN_ON_ONCE(!current->reclaim_state);
 -
--	mz->usage_in_excess = new_usage_in_excess;
--	if (!mz->usage_in_excess)
--		return;
--	while (*p) {
--		parent = *p;
--		mz_node = rb_entry(parent, struct mem_cgroup_per_node,
--					tree_node);
--		if (mz->usage_in_excess < mz_node->usage_in_excess) {
--			p = &(*p)->rb_left;
--			rightmost = false;
--		} else {
--			p = &(*p)->rb_right;
--		}
--	}
+-	sc.gfp_mask = (gfp_mask & GFP_RECLAIM_MASK) |
+-			(GFP_HIGHUSER_MOVABLE & ~GFP_RECLAIM_MASK);
 -
--	if (rightmost)
--		mctz->rb_rightmost = &mz->tree_node;
+-	trace_mm_vmscan_memcg_softlimit_reclaim_begin(sc.gfp_mask,
+-						      sc.order,
+-						      memcg);
 -
--	rb_link_node(&mz->tree_node, parent, p);
--	rb_insert_color(&mz->tree_node, &mctz->rb_root);
--	mz->on_tree = true;
--}
--
--static void __mem_cgroup_remove_exceeded(struct mem_cgroup_per_node *mz,
--					 struct mem_cgroup_tree_per_node *mctz)
--{
--	if (!mz->on_tree)
--		return;
--
--	if (&mz->tree_node == mctz->rb_rightmost)
--		mctz->rb_rightmost = rb_prev(&mz->tree_node);
--
--	rb_erase(&mz->tree_node, &mctz->rb_root);
--	mz->on_tree = false;
--}
--
--static void mem_cgroup_remove_exceeded(struct mem_cgroup_per_node *mz,
--				       struct mem_cgroup_tree_per_node *mctz)
--{
--	unsigned long flags;
--
--	spin_lock_irqsave(&mctz->lock, flags);
--	__mem_cgroup_remove_exceeded(mz, mctz);
--	spin_unlock_irqrestore(&mctz->lock, flags);
--}
--
--static unsigned long soft_limit_excess(struct mem_cgroup *memcg)
--{
--	unsigned long nr_pages = page_counter_read(&memcg->memory);
--	unsigned long soft_limit = READ_ONCE(memcg->soft_limit);
--	unsigned long excess = 0;
--
--	if (nr_pages > soft_limit)
--		excess = nr_pages - soft_limit;
--
--	return excess;
--}
--
--static void memcg1_update_tree(struct mem_cgroup *memcg, int nid)
--{
--	unsigned long excess;
--	struct mem_cgroup_per_node *mz;
--	struct mem_cgroup_tree_per_node *mctz;
--
--	if (lru_gen_enabled()) {
--		if (soft_limit_excess(memcg))
--			lru_gen_soft_reclaim(memcg, nid);
--		return;
--	}
--
--	mctz = soft_limit_tree.rb_tree_per_node[nid];
--	if (!mctz)
--		return;
 -	/*
--	 * Necessary to update all ancestors when hierarchy is used.
--	 * because their event counter is not touched.
+-	 * NOTE: Although we can get the priority field, using it
+-	 * here is not a good idea, since it limits the pages we can scan.
+-	 * if we don't reclaim here, the shrink_node from balance_pgdat
+-	 * will pick up pages from other mem cgroup's as well. We hack
+-	 * the priority and make it zero.
 -	 */
--	for (; memcg; memcg = parent_mem_cgroup(memcg)) {
--		mz = memcg->nodeinfo[nid];
--		excess = soft_limit_excess(memcg);
--		/*
--		 * We have to update the tree if mz is on RB-tree or
--		 * mem is over its softlimit.
--		 */
--		if (excess || mz->on_tree) {
--			unsigned long flags;
+-	shrink_lruvec(lruvec, &sc);
 -
--			spin_lock_irqsave(&mctz->lock, flags);
--			/* if on-tree, remove it */
--			if (mz->on_tree)
--				__mem_cgroup_remove_exceeded(mz, mctz);
--			/*
--			 * Insert again. mz->usage_in_excess will be updated.
--			 * If excess is 0, no tree ops.
--			 */
--			__mem_cgroup_insert_exceeded(mz, mctz, excess);
--			spin_unlock_irqrestore(&mctz->lock, flags);
--		}
--	}
+-	trace_mm_vmscan_memcg_softlimit_reclaim_end(sc.nr_reclaimed, memcg);
+-
+-	*nr_scanned = sc.nr_scanned;
+-
+-	return sc.nr_reclaimed;
 -}
 -
--void memcg1_remove_from_trees(struct mem_cgroup *memcg)
--{
--	struct mem_cgroup_tree_per_node *mctz;
--	struct mem_cgroup_per_node *mz;
--	int nid;
--
--	for_each_node(nid) {
--		mz = memcg->nodeinfo[nid];
--		mctz = soft_limit_tree.rb_tree_per_node[nid];
--		if (mctz)
--			mem_cgroup_remove_exceeded(mz, mctz);
--	}
--}
--
- static u64 mem_cgroup_move_charge_read(struct cgroup_subsys_state *css,
- 				struct cftype *cft)
- {
-@@ -336,7 +192,7 @@ static void mem_cgroup_threshold(struct
- 	}
- }
- 
--/* Cgroup1: threshold notifications & softlimit tree updates */
-+/* Cgroup1: threshold notifications */
- 
- /*
-  * Per memcg event counter is incremented at every pagein/pageout. With THP,
-@@ -405,17 +261,8 @@ static void memcg1_check_events(struct m
- 	if (IS_ENABLED(CONFIG_PREEMPT_RT))
- 		return;
- 
--	/* threshold event is triggered in finer grain than soft limit */
--	if (unlikely(memcg1_event_ratelimit(memcg,
--						MEM_CGROUP_TARGET_THRESH))) {
--		bool do_softlimit;
--
--		do_softlimit = memcg1_event_ratelimit(memcg,
--						MEM_CGROUP_TARGET_SOFTLIMIT);
-+	if (unlikely(memcg1_event_ratelimit(memcg, MEM_CGROUP_TARGET_THRESH)))
- 		mem_cgroup_threshold(memcg);
--		if (unlikely(do_softlimit))
--			memcg1_update_tree(memcg, nid);
--	}
- }
- 
- void memcg1_commit_charge(struct folio *folio, struct mem_cgroup *memcg)
-@@ -2391,22 +2238,3 @@ void memcg1_free_events(struct mem_cgrou
- {
- 	free_percpu(memcg->events_percpu);
- }
--
--static int __init memcg1_init(void)
--{
--	int node;
--
--	for_each_node(node) {
--		struct mem_cgroup_tree_per_node *rtpn;
--
--		rtpn = kzalloc_node(sizeof(*rtpn), GFP_KERNEL, node);
--
--		rtpn->rb_root = RB_ROOT;
--		rtpn->rb_rightmost = NULL;
--		spin_lock_init(&rtpn->lock);
--		soft_limit_tree.rb_tree_per_node[node] = rtpn;
--	}
--
--	return 0;
--}
--subsys_initcall(memcg1_init);
---- a/mm/memcontrol-v1.h~memcg-remove-the-soft-limit-rbtree
-+++ a/mm/memcontrol-v1.h
-@@ -41,7 +41,6 @@ bool memcg1_alloc_events(struct mem_cgro
- void memcg1_free_events(struct mem_cgroup *memcg);
- 
- void memcg1_memcg_init(struct mem_cgroup *memcg);
--void memcg1_remove_from_trees(struct mem_cgroup *memcg);
- 
- static inline void memcg1_soft_limit_reset(struct mem_cgroup *memcg)
- {
-@@ -98,7 +97,6 @@ static inline bool memcg1_alloc_events(s
- static inline void memcg1_free_events(struct mem_cgroup *memcg) {}
- 
- static inline void memcg1_memcg_init(struct mem_cgroup *memcg) {}
--static inline void memcg1_remove_from_trees(struct mem_cgroup *memcg) {}
- static inline void memcg1_soft_limit_reset(struct mem_cgroup *memcg) {}
- static inline void memcg1_css_offline(struct mem_cgroup *memcg) {}
- 
+ unsigned long try_to_free_mem_cgroup_pages(struct mem_cgroup *memcg,
+ 					   unsigned long nr_pages,
+ 					   gfp_t gfp_mask,
 _
 
 Patches currently in -mm which might be from shakeel.butt@linux.dev are
@@ -319,6 +138,8 @@ memcg-avoid-charging-the-root-memcg-from-obj_cgroup_charge_pages.patch
 mm-mlock-use-the-irq-safe-accessor-for-nr_mlock-in-__munlock_folio.patch
 memcg-clear-flushing_cached_charge-on-cpu-offline.patch
 memcg-trim-the-per-cpu-charge-stock-instead-of-draining-it.patch
+memcg-remove-the-soft-limit-reclaim-tracepoints.patch
+memcg-remove-the-soft-limit-rbtree.patch
 memcg-remove-lru_gen_soft_reclaim.patch
 memcg-remove-the-per-node-soft-limit-tree-fields.patch
 memcg-remove-mem_cgroup-soft_limit.patch
