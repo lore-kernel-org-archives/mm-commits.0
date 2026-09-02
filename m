@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 87DD14B0C8D
-	for <mm-commits@vger.kernel.org>; Wed,  2 Sep 2026 22:42:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 200AF2DF13B
+	for <mm-commits@vger.kernel.org>; Wed,  2 Sep 2026 22:42:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788388934; cv=none; b=RWLsUZV+GAJWRhUGYxG3XlKOSbiXkMlFUnRCyOJWbnENhm8FcqkY9R2zNZpmxa5ScM/LSIg2VAZfcxeaUgIuQYGpL856kH+pC7dIfwtV7/HhOcZXGc9WlgzDC6t6lhMZpQE5e5zAe726UgR+JjCUDDY9S95gSUsox9BlV3fPP5U=
+	t=1788388937; cv=none; b=bZ2v1VAMhuKr7RImfEzt1EOIe4oY2duPYe3XGL7IFzrtYp9oUeUeuVptY5nyPBGBAP+Su8jZMooLW16L0rZGYyfLz/04KRg7cBIHHktMof3MzYEEScBQyg7JPvONrHcKnGhe1JNQV0YC/zaqBp9/Zb3L8XyxM+tTPQNSKEOjBQ0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788388934; c=relaxed/simple;
-	bh=q27J0zWWOVgyJbRT3MA59B/3sgolayjEbcIcjegcvWs=;
-	h=Date:To:From:Subject:Message-Id; b=HnNB+Bwjdf17wgPJXar92uzoYzoQ7EfCKjy/FWF+FpX4Iw34UE9CVTqH/wUSBgZw67nW2Y2HomTPzjO1hIttHCXi1yqdKxTUdhfaInFsDBP5ubug3Ke22Yqs+lrXYdS+6rOGPswOI4yLMiYMKua72Jf7WRO/KbaOOgGMyQXhXjc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GFlKZtLT; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788388937; c=relaxed/simple;
+	bh=8AKB6wGntdREe1ATLSBa8veRvzWPP+v7SjjxeCadstY=;
+	h=Date:To:From:Subject:Message-Id; b=GilkCiw/vGO6n6RBHJrPfvmmrgWaSgaAtcgMRAO3j9ak0DgcaIJT/PKs2bSgm7v5RUiu/71YBcYFhgnaNFYftl/5dMCH6ya+JL8DM8PUWxcy0WGxC5fWK/lN9RyLZYytIykte09yaeAcqUABF4KHA7nsPAlttNvKYMzBbA3clOM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LKGVWBnk; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GFlKZtLT"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E41CA1F00A3E;
-	Wed,  2 Sep 2026 22:42:03 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LKGVWBnk"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 18B3B1F00A3D;
+	Wed,  2 Sep 2026 22:42:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788388924;
-	bh=ipf6mZB0P7mRqH7kFZZQe7rWIgW3hTdWE9cnKQ4QVmg=;
+	d=linux-foundation.org; s=korg; t=1788388928;
+	bh=aKglM7ZOE4uDVB5KlTbDZ8AudQa3iZem/nLou9J+Dlw=;
 	h=Date:To:From:Subject;
-	b=GFlKZtLTdpKLVSD/DZAobfMq69AZ5RqSEB72avZ+01x7poTLbj64k+q+Ivo5TitC0
-	 2btOW37HO+OyI9HVyxGKZwW9ddMjPdtd2MnaotSaEQq5DTTsd+FJqWlvbUvF51gRfD
-	 dNErEUz8FduyAtnyyDk5o5wi4QFVeTjMcCMSBCfg=
-Date: Wed, 02 Sep 2026 15:42:03 -0700
+	b=LKGVWBnkP6mT4mMZ6vrg95jgDZxzfPyCzKuKqSPioMx12gR4se5j7ITSL4zxTaPcB
+	 4JVbnT2Ggnt26WluMstYt92zgDRvfF+EWxzHuU3+05eJ06E16wc3AHd/t2zgIREDPy
+	 QWW5Z7Ci9wOrAjTF5nLnm3Oh2tQ9uMgyqJ9u0ep8=
+Date: Wed, 02 Sep 2026 15:42:07 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-vaddr-remove-a-debug-message.patch added to mm-new branch
-Message-Id: <20260902224203.E41CA1F00A3E@smtp.kernel.org>
+Subject: + mm-damon-sysfs-remove-probes-number-validation.patch added to mm-new branch
+Message-Id: <20260902224208.18B3B1F00A3D@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/vaddr: remove a debug message
+     Subject: mm/damon/sysfs: remove probes number validation
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-vaddr-remove-a-debug-message.patch
+     mm-damon-sysfs-remove-probes-number-validation.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-vaddr-remove-a-debug-message.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-remove-probes-number-validation.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,15 +70,19 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/vaddr: remove a debug message
-Date: Tue, 1 Sep 2026 22:47:36 -0700
+Subject: mm/damon/sysfs: remove probes number validation
+Date: Tue, 1 Sep 2026 22:47:38 -0700
 
-There is a debug message in the DAMON virtual address space operation set.
-It has not really been used in a meaningful way for the last few years,
-though.  Remove it.
+DAMON sysfs interface is disallowing >DAMON_MAX_PROBES nr_probes input,
+since DAMON_MAX_PROBES is the upper limit of probes per DAMON context. 
+The core layer is validating the upper limit again, though.  It is
+preferred to let DAMON API callers such as sysfs interface to set
+parameters in flexible ways, and do parameters validation in the core
+layer.  Drop the duplicated validation in the sysfs interface.
 
-Link: https://lore.kernel.org/20260902054747.99370-4-sj@kernel.org
+Link: https://lore.kernel.org/20260902054747.99370-6-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
+Reviewed-by: Kunwu Chan <kunwu.chan@gmail.com>
 Cc: Brendan Higgins <brendan.higgins@linux.dev>
 Cc: David Gow <davidgow@davidgow.net>
 Cc: David Hildenbrand <david@kernel.org>
@@ -91,49 +95,23 @@ Cc: Randy Dunlap <rdunlap@infradead.org>
 Cc: Shuah Khan <shuah@kernel.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Kunwu Chan <kunwu.chan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/vaddr.c |   16 +++-------------
- 1 file changed, 3 insertions(+), 13 deletions(-)
+ mm/damon/sysfs.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/damon/vaddr.c~mm-damon-vaddr-remove-a-debug-message
-+++ a/mm/damon/vaddr.c
-@@ -189,22 +189,12 @@ static int damon_va_three_regions(struct
-  *   <BIG UNMAPPED REGION 2>
-  *   <stack>
-  */
--static void __damon_va_init_regions(struct damon_ctx *ctx,
--				     struct damon_target *t)
-+static void __damon_va_init_regions(struct damon_target *t)
- {
--	struct damon_target *ti;
- 	struct damon_addr_range regions[3];
--	int tidx = 0;
+--- a/mm/damon/sysfs.c~mm-damon-sysfs-remove-probes-number-validation
++++ a/mm/damon/sysfs.c
+@@ -1479,7 +1479,7 @@ static ssize_t nr_probes_store(struct ko
  
--	if (damon_va_three_regions(t, regions)) {
--		damon_for_each_target(ti, ctx) {
--			if (ti == t)
--				break;
--			tidx++;
--		}
--		pr_debug("Failed to get three regions of %dth target\n", tidx);
-+	if (damon_va_three_regions(t, regions))
- 		return;
--	}
+ 	if (err)
+ 		return err;
+-	if (nr < 0 || nr > DAMON_MAX_PROBES)
++	if (nr < 0)
+ 		return -EINVAL;
  
- 	damon_set_regions(t, regions, 3, DAMON_MIN_REGION_SZ);
- }
-@@ -217,7 +207,7 @@ static void damon_va_init(struct damon_c
- 	damon_for_each_target(t, ctx) {
- 		/* the user may set the target regions as they want */
- 		if (!damon_nr_regions(t))
--			__damon_va_init_regions(ctx, t);
-+			__damon_va_init_regions(t);
- 	}
- }
- 
+ 	probes = container_of(kobj, struct damon_sysfs_probes, kobj);
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
