@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 807DB485516
-	for <mm-commits@vger.kernel.org>; Wed,  2 Sep 2026 20:30:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B8338485516
+	for <mm-commits@vger.kernel.org>; Wed,  2 Sep 2026 20:30:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788381036; cv=none; b=FSAlET9OP/vXtB3chJ/e5y983Gip/PaHAvUMh6NWUh6bp51Ke0UiZbCO+sCkyXTajqK8Tc50kOy6sbEHgYbF1K1hbQM3w+L9hxmdFu91vAtZ5PAaCI+vKeCEBsTZq4xShSY+Rs9/TP5qjvrAXoInNuZ3m9Ra1fT3NUCefZvG7E8=
+	t=1788381039; cv=none; b=jC7xqpyWhbvuk5F9bICJX6pJSj/eYdSqSuePUjcdIjSLO+o5yk+6yHAUgzA3oz2m0ss4fU0z9X586vU/JfNtXr4m7OgT10zjJ6qnPmHCUdUj9D+RQls70lKnJiZmcxkhzLh/e48TujkYtvyMR1le4zW+iG5owCHqDCAm2X4dOvc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788381036; c=relaxed/simple;
-	bh=IUk/it7kBNlul2aK7cBkY8BPEo18czFgYV5BCDuBIFw=;
-	h=Date:To:From:Subject:Message-Id; b=U02O5M2R4+xGnj9znxiQerMLEJaGYADVH+SdR/G/JqzGMmbGRRlqFjq1PloERuIF+PbwIT7Fzrv+mSOTrH/nWBzw2yUGMTcF5aHUcbEy6tBvw1ZBMXOEk5+4Q4jOhd+NJfSFuLx4KjfDBeXVrsG+hh3X5LrBcS/Qm6G9UJr1s2s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=k0CeojSq; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788381039; c=relaxed/simple;
+	bh=KSrGfZiu5SwpfCIRbfjvQbDhQhK8ZFS2/8DFwetcA9w=;
+	h=Date:To:From:Subject:Message-Id; b=GEmfQBtXQ9qVojSLs7yjVKwkShf+EcXIzdTfwbWQEhLYVIq1lxGtxQPtrhTMkU5xxGwhIx0mr7SL3kGxkEkD07WtaitzfU9M4M7Vq+9nXbN1TrSIpGl7iYZwXgaq4Igoly5af/VJgA2/qMNdbKbbYulefQQrHrVQIeRf7RfWfBs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=e1IQzfyp; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="k0CeojSq"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 570201F00A3A;
-	Wed,  2 Sep 2026 20:30:35 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="e1IQzfyp"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3E7331F000E9;
+	Wed,  2 Sep 2026 20:30:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788381035;
-	bh=21pkjtUvG3DQNS/jxraEbU11eQZV6DqRe8fGFZJuP90=;
+	d=linux-foundation.org; s=korg; t=1788381037;
+	bh=yvHv5jtg4nvxeKNQ64bw2XKj3n1gu/yRJ5lBlAdv4Ws=;
 	h=Date:To:From:Subject;
-	b=k0CeojSqZ+vZVfGgrLc0rEiEjZbWoEdRetZK88DldaFypOxcebcH5HRt3XIDnH2b3
-	 N1uT+5eUEkawfWdMrOxI6Wa3RIKdM06OM+XH1g1TQGb3aAyyQC2sY6EqvXbomczmUJ
-	 AtfAJNTSfB/h9HDgcdsxEO9TBgDtYAEfHWDxA7vE=
-Date: Wed, 02 Sep 2026 13:30:34 -0700
+	b=e1IQzfypwoq4OYdjxJhaCKJiZ9Lj8ca0sa3IZuWu/eF9uIHaouOTHy0Lqq7+SOG5c
+	 PQhEf2y4iq2yttmDVJS8N7Vc0e2JUTNguxrcbSHTvMuvpzVFn97+fslSNfykZ7UviU
+	 4l1q/AxCtl1RCq6xJrOGlG90DlsuT2CBSrK5Ikm4=
+Date: Wed, 02 Sep 2026 13:30:36 -0700
 To: mm-commits@vger.kernel.org,shuah@kernel.org,davidgow@davidgow.net,brendan.higgins@linux.dev,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-damon-drgn_dump_damon_status-dump-probes.patch added to mm-new branch
-Message-Id: <20260902203035.570201F00A3A@smtp.kernel.org>
+Subject: + selftests-damon-sysfspy-extend-commit-assertion-function-for-probes.patch added to mm-new branch
+Message-Id: <20260902203037.3E7331F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/damon/drgn_dump_damon_status: dump probes
+     Subject: selftests/damon/sysfs.py: extend commit assertion function for probes
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-damon-drgn_dump_damon_status-dump-probes.patch
+     selftests-damon-sysfspy-extend-commit-assertion-function-for-probes.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-damon-drgn_dump_damon_status-dump-probes.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-damon-sysfspy-extend-commit-assertion-function-for-probes.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,14 +70,13 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: selftests/damon/drgn_dump_damon_status: dump probes
-Date: Wed, 2 Sep 2026 07:03:10 -0700
+Subject: selftests/damon/sysfs.py: extend commit assertion function for probes
+Date: Wed, 2 Sep 2026 07:03:11 -0700
 
-Extend drgn_dump_damon_status.py to dump damon_ctx->probes.  It will be
-used to see if in-kernel DAMON status are changed as the user sets the
-probes via sysfs.
+Extend DAMON sysfs testing commit assertion helper function to check
+probes too.
 
-Link: https://lore.kernel.org/20260902140313.85983-5-sj@kernel.org
+Link: https://lore.kernel.org/20260902140313.85983-6-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Cc: Brendan Higgins <brendan.higgins@linux.dev>
 Cc: David Gow <davidgow@davidgow.net>
@@ -85,57 +84,44 @@ Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/damon/drgn_dump_damon_status.py |   32 ++++++++++
- 1 file changed, 32 insertions(+)
+ tools/testing/selftests/damon/sysfs.py |   19 +++++++++++++++++++
+ 1 file changed, 19 insertions(+)
 
---- a/tools/testing/selftests/damon/drgn_dump_damon_status.py~selftests-damon-drgn_dump_damon_status-dump-probes
-+++ a/tools/testing/selftests/damon/drgn_dump_damon_status.py
-@@ -48,6 +48,37 @@ def attrs_to_dict(attrs):
-         ['max_nr_regions', int],
-         ])
+--- a/tools/testing/selftests/damon/sysfs.py~selftests-damon-sysfspy-extend-commit-assertion-function-for-probes
++++ a/tools/testing/selftests/damon/sysfs.py
+@@ -178,6 +178,24 @@ def assert_monitoring_attrs_committed(at
+     assert_true(dump['max_nr_regions'] == attrs.max_nr_regions,
+                 'max_nr_regions', dump)
  
-+def filter_to_dict(damon_filter):
-+    filter_type_keyword = {
-+            0: 'anon',
-+            1: 'memcg',
-+            }
-+    dict_ = {
-+            'type': filter_type_keyword[int(damon_filter.type)],
-+            'matching': bool(damon_filter.matching),
-+            'allow': bool(damon_filter.allow),
-+            }
-+    type_ = dict_['type']
-+    if type_ == 'memcg':
-+        dict_['memcg_id'] = int(damon_filter.memcg_id)
-+    return dict_
++def assert_damon_filters_committed(filters, dump):
++    assert_true(len(dump) == len(filters.filters), 'probe filters', dump)
++    for idx, damon_filter in enumerate(filters.filters):
++        filter_dump = dump[idx]
++        assert_true(filter_dump['type'] == damon_filter.type_, 'type',
++                    filter_dump)
++        assert_true(filter_dump['matching'] == damon_filter.matching,
++                    'matching', filter_dump)
++        assert_true(filter_dump['allow'] == damon_filter.allow, 'allow',
++                    filter_dump)
 +
-+def filters_to_list(filters):
-+    return [filter_to_dict(f)
-+            for f in list_for_each_entry(
-+                'struct damon_filter', filters.address_of_(), 'list')]
++def assert_probes_committed(probes, dump):
++    assert_true(len(dump) == len(probes.probes), 'probes length', dump)
++    for idx, probe in enumerate(probes.probes):
++        probe_dump = dump[idx]
++        assert_true(probe.weight == probe_dump['weight'], 'weight', probe_dump)
++        assert_damon_filters_committed(probe.filters, probe_dump['filters'])
 +
-+def probe_to_dict(probe):
-+    return to_dict(probe, [
-+        ['weight', int],
-+        ['filters', filters_to_list],
-+        ])
-+
-+def probes_to_list(probes):
-+    return [probe_to_dict(p)
-+            for p in list_for_each_entry(
-+                'struct damon_probe', probes.address_of_(), 'list')]
-+
- def addr_range_to_dict(addr_range):
-     return to_dict(addr_range, [
-         ['start', int],
-@@ -199,6 +230,7 @@ def damon_ctx_to_dict(ctx):
-     return to_dict(ctx, [
-         ['ops', ops_to_dict],
-         ['attrs', attrs_to_dict],
-+        ['probes', probes_to_list],
-         ['adaptive_targets', targets_to_list],
-         ['schemes', schemes_to_list],
-         ['pause', bool],
+ def assert_monitoring_target_committed(target, dump):
+     # target.pid is the pid "number", while dump['pid'] is 'struct pid'
+     # pointer, and hence cannot be compared.
+@@ -196,6 +214,7 @@ def assert_ctx_committed(ctx, dump):
+             }
+     assert_true(dump['ops']['id'] == ops_val[ctx.ops], 'ops_id', dump)
+     assert_monitoring_attrs_committed(ctx.monitoring_attrs, dump['attrs'])
++    assert_probes_committed(ctx.monitoring_attrs.probes, dump['probes'])
+     assert_monitoring_targets_committed(ctx.targets, dump['adaptive_targets'])
+     assert_schemes_committed(ctx.schemes, dump['schemes'])
+     assert_true(dump['pause'] == ctx.pause, 'pause', dump)
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
