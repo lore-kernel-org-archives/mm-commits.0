@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 024984078FB
-	for <mm-commits@vger.kernel.org>; Wed,  2 Sep 2026 22:42:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 04BFF45DF71
+	for <mm-commits@vger.kernel.org>; Wed,  2 Sep 2026 22:42:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788388946; cv=none; b=OcNl9P1Rkaz3ZprEG87IVkVNXxkFrSgRuZIxLvFdav+lTdHe6f8nOZgDvs6aEvXSTtJY+EilbB0O8BHpteWKmSO6OipCX/CEK+21K6UrgkJM0j+CdSiMX/xIdoAf4SJyva5UlFVtJH/8rCeOLryWRPnURfnlZKZYoMa8KtfbRZE=
+	t=1788388951; cv=none; b=OF9gGmu+Z1AtEllmDlAcCiDc+2OWT8VxhkiJnQ3YLO3ss8rys6ZLXclV0Mr80H3wNuBvwDrLxrzrtA6/b8A5a3xa56hLwEESRV0aXcR1Or0rlIGnIOJejI2y4T0axalaOM58Ckm9rSp+GIeaXD3WagWtjbwSLK8j0K2xrsC8udk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788388946; c=relaxed/simple;
-	bh=YAMOn9xheqFHHx2cgWsuNqjA2d3u5fbbaHWzliFV754=;
-	h=Date:To:From:Subject:Message-Id; b=L2KM8Dr1+Kya8GVq2xfuKcQLFh7DAT+H3YATpIbcoXsV2nf6oL/9hohTZv+yhJgPFH2TFPn+JVwEW1cz5+eKeV6RUIfM1uvs3tfy96jKPZWlK81aeQLZx+ukCiCSw2kJUbUjZATn4/nXow4LXp9ZljEBv5gicrfHYPmZLrtd0yA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=udmziEez; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788388951; c=relaxed/simple;
+	bh=ObF93u4FHQHr5Q6542P+aMHLitKaXoZ40tM2mKRA2x8=;
+	h=Date:To:From:Subject:Message-Id; b=W+gKqVqyR70EvR6UzvjrTG7y4TnMsRLc9MZQeOgf4tQvgmeZV24z6qLW8/w5JJXxJaDEPRBS41Urap/MFGpVOo0WOBVDKrhb6poogx7CH0NOgk5CJ99AwQoTN50gryiF+v+493VuzpdL5t9VsAcE0bPL39xlqDRg/Yh04sjfg6c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PU1d2d3r; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="udmziEez"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6E1D61F00A3E;
-	Wed,  2 Sep 2026 22:42:16 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PU1d2d3r"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 89AA31F000E9;
+	Wed,  2 Sep 2026 22:42:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788388936;
-	bh=oP29S3BwX7u4D5v3c+d9hwgrCypinPtU2ztRcxWpQg8=;
+	d=linux-foundation.org; s=korg; t=1788388940;
+	bh=9Msrejr1KNk8EljKJT/RnVDUEhBeVMFZkKPrsIlMEdY=;
 	h=Date:To:From:Subject;
-	b=udmziEezIAZxawZJh/7GUMCO1nkDUqrX+4izYmXJ0Tu8mTEohJJa++k8nJC1VzA3z
-	 SOQiyB5sH+KQpusn0sYzU6Mdb4ahvv5BirE+yZAR4eeob7xwy56gI4LX8W8EDuD4WF
-	 l/3IhFi4SuB0DSgmzVQKsdlbPGlwmHXwarf5GDq8=
-Date: Wed, 02 Sep 2026 15:42:16 -0700
+	b=PU1d2d3r8EAQreO7b/Zg+UXssnlIisfO8wJ+WWRtWBV8zAqdYv4bmXdy7CZQZII/9
+	 qBWteZak3OzLdT1NR82nvfLxEixqvkNyPhsSf00fStYdsHKbpJOM01dWo43b7Zt+Wp
+	 u3RYIL8yuw+1Pwgtd1rYEj8aDONK4kirTWNqCLAs=
+Date: Wed, 02 Sep 2026 15:42:20 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-tests-core-kunit-test-damon_nr_samples_per_aggr.patch added to mm-new branch
-Message-Id: <20260902224216.6E1D61F00A3E@smtp.kernel.org>
+Subject: + docs-mm-damon-maintainer-profile-update-ai-review-for-sashiko-replies.patch added to mm-new branch
+Message-Id: <20260902224220.89AA31F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/tests/core-kunit: test damon_nr_samples_per_aggr()
+     Subject: Docs/mm/damon/maintainer-profile: update AI review for Sashiko replies
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-tests-core-kunit-test-damon_nr_samples_per_aggr.patch
+     docs-mm-damon-maintainer-profile-update-ai-review-for-sashiko-replies.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-tests-core-kunit-test-damon_nr_samples_per_aggr.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-mm-damon-maintainer-profile-update-ai-review-for-sashiko-replies.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,19 +70,25 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/tests/core-kunit: test damon_nr_samples_per_aggr()
-Date: Tue, 1 Sep 2026 22:47:42 -0700
+Subject: Docs/mm/damon/maintainer-profile: update AI review for Sashiko replies
+Date: Tue, 1 Sep 2026 22:47:44 -0700
 
-damon_max_nr_accesses(), which is a previous version of
-damon_nr_samples_per_aggr() before the renaming, was wrongly returning
-zero or random overflowed values for extreme intervals setup.  Commit
-35d4a3cf70a8 ("mm/damon/ops-common: handle extreme intervals in
-damon_hot_score()") updated the function to return correct or more valid
-values.  Add a kunit test to ensure it is working as expected.
+In the past, sharing Sashiko review results was tedious.  Also it was
+suggested to minimize the recipients on the sharing mails.  Hence the AI
+review section of DAMON maintainer profile document was updated to give
+guidance about available tools for making the sharing easier, and how the
+recipients list should be managed.
 
-Link: https://lore.kernel.org/20260902054747.99370-10-sj@kernel.org
+Now DAMON is onboarded [1] to Sashiko's automatic review replies feature. 
+Sashiko directly sends its reviews as replies to the patch mail thread. 
+It also reduces the recipients list to deliver the reporting to only the
+author and the mailing list.
+
+Remove the old guidance that is no more necessary but only confusing.
+
+Link: https://lore.kernel.org/20260902054747.99370-12-sj@kernel.org
+Link: https://github.com/sashiko-dev/sashiko/commit/b554c7b6e733 [1]
 Signed-off-by: SJ Park <sj@kernel.org>
-Reviewed-by: Kunwu Chan <kunwu.chan@gmail.com>
 Cc: Brendan Higgins <brendan.higgins@linux.dev>
 Cc: David Gow <davidgow@davidgow.net>
 Cc: David Hildenbrand <david@kernel.org>
@@ -95,50 +101,39 @@ Cc: Randy Dunlap <rdunlap@infradead.org>
 Cc: Shuah Khan <shuah@kernel.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Kunwu Chan <kunwu.chan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/tests/core-kunit.h |   22 ++++++++++++++++++++++
- 1 file changed, 22 insertions(+)
+ Documentation/mm/damon/maintainer-profile.rst |   19 ++++------------
+ 1 file changed, 5 insertions(+), 14 deletions(-)
 
---- a/mm/damon/tests/core-kunit.h~mm-damon-tests-core-kunit-test-damon_nr_samples_per_aggr
-+++ a/mm/damon/tests/core-kunit.h
-@@ -625,6 +625,27 @@ static void damon_test_set_regions(struc
- 			(struct damon_addr_range[]){}, 0, -EINVAL);
- }
+--- a/Documentation/mm/damon/maintainer-profile.rst~docs-mm-damon-maintainer-profile-update-ai-review-for-sashiko-replies
++++ a/Documentation/mm/damon/maintainer-profile.rst
+@@ -106,18 +106,9 @@ AI Review
  
-+static void damon_test_nr_samples_per_aggr(struct kunit *test)
-+{
-+	struct damon_attrs attrs = {
-+		.sample_interval = 0,
-+		.aggr_interval = 0,
-+	};
-+
-+	/* Zero aggregation interval doesn't cause division by zero */
-+	KUNIT_EXPECT_EQ(test, damon_nr_samples_per_aggr(&attrs), 1);
-+
-+	/*
-+	 * Too large aggregation interval on 64 bit system doesn't cause
-+	 * overflow
-+	 */
-+	if (ULONG_MAX > UINT_MAX) {
-+		attrs.aggr_interval = (unsigned long)UINT_MAX + 1;
-+		KUNIT_EXPECT_EQ(test, damon_nr_samples_per_aggr(&attrs),
-+				UINT_MAX);
-+	}
-+}
-+
- static void damon_test_update_monitoring_result(struct kunit *test)
- {
- 	struct damon_attrs old_attrs = {
-@@ -1858,6 +1879,7 @@ static struct kunit_case damon_test_case
- 	KUNIT_CASE(damon_test_split_above_half_progresses),
- 	KUNIT_CASE(damon_test_ops_registration),
- 	KUNIT_CASE(damon_test_set_regions),
-+	KUNIT_CASE(damon_test_nr_samples_per_aggr),
- 	KUNIT_CASE(damon_test_update_monitoring_result),
- 	KUNIT_CASE(damon_test_set_attrs),
- 	KUNIT_CASE(damon_test_mvsum),
+ For patches that are publicly posted to DAMON mailing list
+ (damon@lists.linux.dev), AI reviews of the patches will be available at
+-sashiko.dev.  The reviews could also be sent as mails to the author of the
+-patch.
++sashiko.dev.  The reviews will also be sent as replies to the author of the
++patch and the mailing list.
+ 
+-Patch authors are encouraged to check the AI reviews and share their opinions.
+-The sharing could be done as a reply to the mail thread.  Consider reducing the
+-recipients list for such sharing, since some people are not really interested
+-in AI reviews.  As a rule of thumb, drop stable@vger.kernel.org and individuals
+-except DAMON maintainer.
+-
+-`hkml` also provides a `feature
+-<https://github.com/sjp38/hackermail/blob/master/USAGE.md#forwarding-sashikodev-statuscomments-to-mailing-list>`_
+-for such sharing.  Please feel free to use the feature.
+-
+-It is only an optional recommendation.  DAMON maintainer could also ask any
+-question about the AI reviews, though.
++Patch authors are encouraged to check the AI reviews and share their opinions
++by replying on the mail thread.  It is only an optional recommendation.  DAMON
++maintainer could also ask any question about the AI reviews, though.
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
