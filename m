@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2B23C31F9AC;
-	Wed,  2 Sep 2026 02:55:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 810C7296BBC
+	for <mm-commits@vger.kernel.org>; Wed,  2 Sep 2026 02:59:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788317749; cv=none; b=hYbaGvgYO627QX1YrCNFEMgjZRO6ZdtyK9tFUfLmalDhsjXcqudItm9b98MyYKWyENwr6ff6lPALwxZNuNDBG8fpvRgbjWx8C3donOa4VHSMqASk24D6lOPS9yZ6yZSssqqhp2LBnPAp/nmS/KU/nYgQhCLwl4VjDp9An5aoYEI=
+	t=1788317996; cv=none; b=Pjs3YS7WQvY4tfuOgTg7azuKLTscAAwl/kqyZWNsqK9WOBNta7A2CqYz87/IxCJIz/GTSktzsIkgVxCTpfnu/uLbZRqFUzwQ75olx4JeB7+f41fHdIHVNO+LBC7xnSc1hga2wr+/so4LoOeGLgvdJPDe1IM+sBFcG/gdAEv7+EI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788317749; c=relaxed/simple;
-	bh=NaoaSBlS+DgdYtL3sNFRga7o+bN4A787+ju70cdYb1Y=;
-	h=Date:To:From:Subject:Message-Id; b=fj45XyjeZq5x85UP5cMpmrjXkZwcPeHQ1cv7jA9CpILgOmUXYPl7iV/Ky2YER1GRzMN1G9sLiYIrT8w/NAGgADeY6CeEgPlktw+iRt+XYyNgArF/BLFEmv9g5GU2PI7zpM52e70h4qYH57IWW8208HTrYId8rVyd1/Pif7CeRNI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ijyciQKw; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788317996; c=relaxed/simple;
+	bh=kLAzHFlDwtc+K8bQHaIKG2gAPSYEuVcsxnd/NrZoR2k=;
+	h=Date:To:From:Subject:Message-Id; b=eQ8ER4UI3r/6rnkHJCIK1nKxt7j0J1/Jp5g9FK1NE7zRStcm9fR2Y8tnbm93ORVgpkYLLjTETtQDhSklKn3Tk2lhxZYVp9YIckQ1e6A44plOMwRLz+UClmaHsTZd0VLy0sXLLxOrlZ9hGL0AOKk+4S4qyQqgnGdtucYoFFj5RNA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=trgbJmlv; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ijyciQKw"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A441F1F000E9;
-	Wed,  2 Sep 2026 02:55:47 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="trgbJmlv"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 120361F000E9;
+	Wed,  2 Sep 2026 02:59:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788317747;
-	bh=XrH/boMVa4pLRXFR1JyiFi287EWlfnZXBEHMgPpi75c=;
+	d=linux-foundation.org; s=korg; t=1788317994;
+	bh=C4qszz4tGSu3hyo+/A93LZnXYeMAwIk1cCDJrgCuTHM=;
 	h=Date:To:From:Subject;
-	b=ijyciQKw9foAlauhmpYtpjFmVRJ7qWJAQQeYfZJzjPe64Zh/15biGFImtDbP6w/Sm
-	 kFYWQvptIt/SOCPloAIgV7F4NuNJSKu5zfWvkPLUretP5+ErVLs0rbgyiLokLgsBQh
-	 wuTmWdzSMr/v72M9qoClRPZgnNFdD8jyxLdcp5Lw=
-Date: Tue, 01 Sep 2026 19:55:47 -0700
-To: mm-commits@vger.kernel.org,yanquanmin1@huawei.com,stable@vger.kernel.org,davidgow@davidgow.net,brendan.higgins@linux.dev,sj@kernel.org,akpm@linux-foundation.org
+	b=trgbJmlvg40UqxYof2pwKC7bND96qU76zqZhkigyoacjFEMDJfq51aC27UtvEcHHE
+	 uOCq0QUuEvTFFp524MDUieAeCXaE++9u5sQt3rPGQ36+4oc1FrT+lSxuiZfXLP6ty4
+	 Q9BGbfKM/gBpdRwSzKR3SbuwyaSiLaEL4gPGwg24=
+Date: Tue, 01 Sep 2026 19:59:53 -0700
+To: mm-commits@vger.kernel.org,yuanchu@google.com,xueyuan.chen21@gmail.com,weixugc@google.com,stevensd@chromium.org,shakeel.butt@linux.dev,ridong.chen@linux.dev,mhocko@kernel.org,ljs@kernel.org,lianux.mm@gmail.com,kunwu.chan@gmail.com,kasong@tencent.com,hannes@cmpxchg.org,david@kernel.org,baoquan.he@linux.dev,baolin.wang@linux.alibaba.com,axelrasmussen@google.com,baohua@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-sysfs-set-next-refresh-jiffies-per-sysfs-context.patch added to mm-new branch
-Message-Id: <20260902025547.A441F1F000E9@smtp.kernel.org>
+Subject: + mm-mglru-separate-folio-generation-update-from-lru-accounting.patch added to mm-new branch
+Message-Id: <20260902025954.120361F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/sysfs: set next refresh jiffies per sysfs context
+     Subject: mm/mglru: separate folio generation update from LRU accounting
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-sysfs-set-next-refresh-jiffies-per-sysfs-context.patch
+     mm-mglru-separate-folio-generation-update-from-lru-accounting.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-set-next-refresh-jiffies-per-sysfs-context.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mglru-separate-folio-generation-update-from-lru-accounting.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,111 +69,362 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: SJ Park <sj@kernel.org>
-Subject: mm/damon/sysfs: set next refresh jiffies per sysfs context
-Date: Tue, 1 Sep 2026 17:27:23 -0700
+From: "Barry Song (Xiaomi)" <baohua@kernel.org>
+Subject: mm/mglru: separate folio generation update from LRU accounting
+Date: Wed, 2 Sep 2026 07:24:15 +0800
 
-When 'refresh_ms' is set, DAMON sysfs interface periodically updates
-auto-tuned parameters and DAMOS stats.  The timestamp for the next refresh
-is initialized when a DAMON context starts, and updated in its
-damon_call() callback function.  That is, each DAMON context updates it. 
-However, the timestamp is a global variable that is shared with all the
-contexts.  When there are multiple DAMON contexts having different
-refresh_ms, the update frequency will be changed, depending on the order
-of the contexts.  When there are multiple kdamonds, it will be even more
-chaotic.  Fix the problem by having the timestamp per each context.
+Patch series "mm/mglru: speed up inc_min_seq() and fix cold/hot
+inversions", v3.
 
-The user impact is not very critical.  It does not leak, corrupt or crash.
-The update will not be faster or slower than the lowest and largest
-refresh_ms values of the contexts, respectively.  The user can also
-manually ask the updates on demand using kdamond state commands.  That
-said, clearly this is a bug and can easily be reproduced.
 
-Link: https://lore.kernel.org/20260902002725.108635-5-sj@kernel.org
-Fixes: 9fd7bb5083d1 ("mm/damon/sysfs: change next_update_jiffies to a global variable")
-Signed-off-by: SJ Park <sj@kernel.org>
-Cc: Brendan Higgins <brendan.higgins@linux.dev>
-Cc: David Gow <davidgow@davidgow.net>
-Cc: Quanmin Yan <yanquanmin1@huawei.com>
-Cc: <stable@vger.kernel.org> # 6.18.x
+This is an aging speedup series split out from the MGLRU swappiness series
+[1], with the inc_min_seq changes separated to make them easier to review.
+
+Currently, inc_min_seq() has two primary issues that affect both
+performance and folio hotness assessment:
+
+1. It processes each folio one by one, while many operations can be
+   batched or skipped.  For example, a batch of folios can be moved
+   together from the oldest generation to the second-oldest generation,
+   and the associated counting can also be done in batches.
+
+2. It may cause potential cold/hot inversion by placing promoted
+   folios (which have been scanned and found to have young PTEs) behind
+   non-promoted folios.  A similar inversion can also occur among
+   non-promoted folios, as tail folios from the oldest generation are
+   placed before head folios when moving them to the second-oldest
+   generation.
+
+This series tries to batch operations as much as possible and fix the
+potential cold/hot inversion by keeping promoted folios ahead of
+non-promoted folios, while also preserving the order of non-promoted
+folios when moving them from the oldest generation to the second-oldest
+generation.
+
+Minor issue: inc_min_seq() also counts protected folios improperly, as
+promoted folios should be skipped, as in sort_folio().
+
+We need a stable workload with a stable number of folios to measure aging
+and evaluate the speedup in inc_min_seq().  So I asked ChatGPT to generate
+the microbenchmark below.  It ages an LRU vec containing 512 MB of memory
+100 times:
+
+ #define _GNU_SOURCE
+
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <string.h>
+ #include <stdint.h>
+ #include <unistd.h>
+ #include <fcntl.h>
+ #include <errno.h>
+ #include <time.h>
+ #include <sys/mman.h>
+
+ #define SIZE		(512UL * 1024 * 1024)
+ #define LRU_GEN		"/sys/kernel/debug/lru_gen"
+ #define TARGET_CGROUP	"/system.slice/agetest.scope"
+ #define START_GEN	3
+ #define END_GEN	103
+
+ static long long nsec_diff(const struct timespec *start,
+ 			   const struct timespec *end)
+ {
+ 	return (end->tv_sec - start->tv_sec) * 1000000000LL +
+ 	       (end->tv_nsec - start->tv_nsec);
+ }
+
+ static int find_memcg_id(void)
+ {
+ 	FILE *fp;
+ 	char line[4096];
+ 	int memcg_id;
+
+ 	fp = fopen(LRU_GEN, "r");
+ 	if (!fp) {
+ 		perror("fopen lru_gen");
+ 		return -1;
+ 	}
+
+ 	while (fgets(line, sizeof(line), fp)) {
+ 		char *p;
+
+ 		if (strncmp(line, "memcg ", 6))
+ 			continue;
+
+ 		p = line + 6;
+
+ 		if (sscanf(p, "%d", &memcg_id) != 1)
+ 			continue;
+
+ 		/*
+ 		 * The memcg path follows the numeric ID.
+ 		 */
+ 		p = strchr(p, ' ');
+ 		if (!p)
+ 			continue;
+
+ 		if (strstr(p, TARGET_CGROUP)) {
+ 			fclose(fp);
+ 			return memcg_id;
+ 		}
+ 	}
+
+ 	fclose(fp);
+
+ 	fprintf(stderr, "Cannot find %s\n", TARGET_CGROUP);
+ 	return -1;
+ }
+
+ int main(void)
+ {
+ 	void *addr;
+ 	int memcg_id;
+ 	int fd;
+ 	long long total_ns = 0;
+
+ 	/*
+ 	 * mmap 512 MB and touch every page.
+ 	 */
+ 	addr = mmap(NULL, SIZE, PROT_READ | PROT_WRITE,
+ 		    MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+ 	if (addr == MAP_FAILED) {
+ 		perror("mmap");
+ 		return 1;
+ 	}
+
+ 	memset(addr, 0x55, SIZE);
+
+ 	printf("mmap: %p, size: %lu MB\n",
+ 	       addr, SIZE / 1024 / 1024);
+
+ 	/*
+ 	 * Find the memcg ID automatically.
+ 	 */
+ 	memcg_id = find_memcg_id();
+ 	if (memcg_id < 0)
+ 		return 1;
+
+ 	printf("memcg: %d (%s)\n", memcg_id, TARGET_CGROUP);
+ 	printf("aging generation %d -> %d\n",
+ 	       START_GEN, END_GEN);
+
+ 	fd = open(LRU_GEN, O_WRONLY);
+ 	if (fd < 0) {
+ 		perror("open lru_gen");
+ 		return 1;
+ 	}
+
+ 	for (int gen = START_GEN; gen <= END_GEN; gen++) {
+ 		char buf[128];
+ 		int len;
+ 		struct timespec start, end;
+ 		long long ns;
+
+ 		len = snprintf(buf, sizeof(buf),
+ 			       "+ %d 0 %d\n", memcg_id, gen);
+
+ 		clock_gettime(CLOCK_MONOTONIC, &start);
+
+ 		if (write(fd, buf, len) != len) {
+ 			perror("write lru_gen");
+ 			close(fd);
+ 			return 1;
+ 		}
+
+ 		clock_gettime(CLOCK_MONOTONIC, &end);
+
+ 		ns = nsec_diff(&start, &end);
+ 		total_ns += ns;
+
+ 		printf("gen %3d: %8.3f ms\n",
+ 		       gen, ns / 1000000.0);
+ 		fflush(stdout);
+ 	}
+
+ 	close(fd);
+
+ 	printf("\nTotal:   %.3f ms\n",
+ 	       total_ns / 1000000.0);
+ 	printf("Average: %.3f ms\n",
+ 	       total_ns / (double)(END_GEN - START_GEN + 1) /
+ 	       1000000.0);
+
+ 	while (1)
+ 		sleep(1);
+
+ 	return 0;
+ }
+
+Run the above microbenchmark with:
+systemd-run --scope --unit=agetest -p MemoryMax=1024M ./agetest
+
+I’m seeing a significant speedup in inc_min_seq() on my x86 PC:
+
+W/o patch:
+
+Running scope as unit: agetest.scope
+mmap: 0x72c1b5a00000, size: 512 MB
+memcg: 12673 (/system.slice/agetest.scope)
+aging generation 3 -> 103
+gen   3:    7.433 ms
+gen   4:    0.949 ms
+gen   5:    2.535 ms
+gen   6:    5.043 ms
+gen   7:    5.041 ms
+gen   8:    5.027 ms
+...
+gen 100:    5.035 ms
+gen 101:    5.011 ms
+gen 102:    5.029 ms
+gen 103:    5.056 ms
+
+Total:   503.946 ms
+Average: 4.990 ms
+
+W/ patch:
+
+Running scope as unit: agetest.scope
+mmap: 0x775ec5200000, size: 512 MB
+memcg: 12717 (/system.slice/agetest.scope)
+aging generation 3 -> 103
+gen   3:    7.558 ms
+gen   4:    0.916 ms
+gen   5:    2.277 ms
+gen   6:    2.328 ms
+…
+gen 100:    2.303 ms
+gen 101:    2.297 ms
+gen 102:    2.305 ms
+gen 103:    2.312 ms
+
+Total:   236.635 ms
+Average: 2.343 ms
+
+The average aging time drops from 4.990 ms to 2.343 ms!
+
+Thanks, Xueyuan, for testing this on ARM[2].  It actually shows an even
+larger improvement.
+
+Xueyuan tested this series on his arm64 machine (24 cores, 4K base pages)
+and reproduced the improvement:
+
+THP=never (PTE):
+  baseline: 7.644 ms
+  patched:  2.964 ms (-61.2%)
+
+THP=always (PMD):
+  baseline: 0.0373 ms
+  patched:  0.0292 ms (-21.8%)
+
+
+This patch (of 7):
+
+
+folio_inc_gen() currently updates both the folio's generation and the LRU
+size accounting.  This makes it difficult to batch the LRU size updates
+when moving multiple folios.
+
+Extract the generation update into __folio_inc_gen(), which only updates
+the folio's generation and reports whether the generation was actually
+increased.  Keep folio_inc_gen() as the wrapper that performs the LRU size
+accounting when needed.
+
+This separates the per-folio generation update from LRU accounting and
+allows the latter to be batched by subsequent changes.
+
+Link: https://lore.kernel.org/20260901232421.40157-1-baohua@kernel.org
+Link: https://lore.kernel.org/20260901232421.40157-2-baohua@kernel.org
+Link: https://lore.kernel.org/linux-mm/20260812121658.69965-1-baohua@kernel.org/ [1]
+Link: https://lore.kernel.org/linux-mm/20260827035416.3012015-1-xueyuan.chen21@gmail.com/ [2]
+Signed-off-by: Barry Song (Xiaomi) <baohua@kernel.org>
+Tested-by: Xueyuan Chen <xueyuan.chen21@gmail.com>
+Reviewed-by: Lian Wang <lianux.mm@gmail.com>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Baoquan He <baoquan.he@linux.dev>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: David Stevens <stevensd@chromium.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Kairui Song <kasong@tencent.com>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Wei Xu <weixugc@google.com>
+Cc: Yuanchu Xie <yuanchu@google.com>
+Cc: Kunwu Chan <kunwu.chan@gmail.com>
+Cc: Ridong Chen <ridong.chen@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/sysfs.c |   11 +++++------
- 1 file changed, 5 insertions(+), 6 deletions(-)
+ mm/vmscan.c |   28 +++++++++++++++++++++-------
+ 1 file changed, 21 insertions(+), 7 deletions(-)
 
---- a/mm/damon/sysfs.c~mm-damon-sysfs-set-next-refresh-jiffies-per-sysfs-context
-+++ a/mm/damon/sysfs.c
-@@ -2034,6 +2034,7 @@ struct damon_sysfs_kdamond {
- 	struct damon_sysfs_contexts *contexts;
- 	struct damon_ctx *damon_ctx;
- 	unsigned int refresh_ms;
-+	unsigned long next_refresh_jiffies;
- };
- 
- static struct damon_sysfs_kdamond *damon_sysfs_kdamond_alloc(void)
-@@ -2484,17 +2485,15 @@ static struct damon_ctx *damon_sysfs_bui
- 	return ctx;
+--- a/mm/vmscan.c~mm-mglru-separate-folio-generation-update-from-lru-accounting
++++ a/mm/vmscan.c
+@@ -3300,21 +3300,21 @@ static int folio_update_gen(struct folio
+ 	return ((old_flags & LRU_GEN_MASK) >> LRU_GEN_PGOFF) - 1;
  }
  
--static unsigned long damon_sysfs_next_update_jiffies;
--
- static int damon_sysfs_repeat_call_fn(void *data)
+-/* protect pages accessed multiple times through file descriptors */
+-static int folio_inc_gen(struct lruvec *lruvec, struct folio *folio)
++static int __folio_inc_gen(struct folio *folio, int old_gen, bool *increased)
  {
- 	struct damon_sysfs_kdamond *sysfs_kdamond = data;
+-	int type = folio_is_file_lru(folio);
+-	struct lru_gen_folio *lrugen = &lruvec->lrugen;
+-	int new_gen, old_gen = lru_gen_from_seq(lrugen->min_seq[type]);
+ 	unsigned long new_flags, old_flags = READ_ONCE(folio->flags.f);
++	int new_gen;
  
- 	if (!sysfs_kdamond->refresh_ms)
- 		return 0;
--	if (time_before(jiffies, damon_sysfs_next_update_jiffies))
-+	if (time_before(jiffies, sysfs_kdamond->next_refresh_jiffies))
- 		return 0;
--	damon_sysfs_next_update_jiffies = jiffies +
-+	sysfs_kdamond->next_refresh_jiffies = jiffies +
- 		msecs_to_jiffies(sysfs_kdamond->refresh_ms);
+ 	VM_WARN_ON_ONCE_FOLIO(!(old_flags & LRU_GEN_MASK), folio);
  
- 	if (!mutex_trylock(&damon_sysfs_lock))
-@@ -2542,8 +2541,8 @@ static int damon_sysfs_turn_damon_on(str
- 	}
- 	kdamond->damon_ctx = ctx;
+ 	do {
+ 		new_gen = ((old_flags & LRU_GEN_MASK) >> LRU_GEN_PGOFF) - 1;
+ 		/* folio_update_gen() has promoted this page? */
+-		if (new_gen >= 0 && new_gen != old_gen)
++		if (new_gen >= 0 && new_gen != old_gen) {
++			if (increased)
++				*increased = false;
+ 			return new_gen;
++		}
  
--	damon_sysfs_next_update_jiffies =
--		jiffies + msecs_to_jiffies(kdamond->refresh_ms);
-+	kdamond->next_refresh_jiffies = jiffies +
-+		msecs_to_jiffies(kdamond->refresh_ms);
+ 		new_gen = (old_gen + 1) % MAX_NR_GENS;
  
- 	repeat_call_control->fn = damon_sysfs_repeat_call_fn;
- 	repeat_call_control->data = kdamond;
+@@ -3322,8 +3322,22 @@ static int folio_inc_gen(struct lruvec *
+ 		new_flags |= (new_gen + 1UL) << LRU_GEN_PGOFF;
+ 	} while (!try_cmpxchg(&folio->flags.f, &old_flags, new_flags));
+ 
+-	lru_gen_update_size(lruvec, folio, old_gen, new_gen);
++	if (increased)
++		*increased = true;
++	return new_gen;
++}
++
++/* protect pages accessed multiple times through file descriptors */
++static int folio_inc_gen(struct lruvec *lruvec, struct folio *folio)
++{
++	int type = folio_is_file_lru(folio);
++	struct lru_gen_folio *lrugen = &lruvec->lrugen;
++	int new_gen, old_gen = lru_gen_from_seq(lrugen->min_seq[type]);
++	bool gen_increased;
+ 
++	new_gen = __folio_inc_gen(folio, old_gen, &gen_increased);
++	if (gen_increased)
++		lru_gen_update_size(lruvec, folio, old_gen, new_gen);
+ 	return new_gen;
+ }
+ 
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from baohua@kernel.org are
 
-mm-damon-core-skip-applying-scheme-if-region-split-for-quota-fails.patch
-mm-damon-paddr-respect-folio-end-for-damos_stat.patch
-mm-damon-paddr-respect-folio-end-for-damos-actions-except-stat.patch
-mm-damon-vaddr-respect-folio-end-for-damos_stat.patch
-mm-damon-vaddr-respect-folio-end-for-damos_migrate_hotcold.patch
-mm-damon-core-handle-extreme-memory-state-in-damon_get_node_mem_bp.patch
-mm-damon-core-handle-extreme-memory-state-in-get_node_memcg_used_bp.patch
-mm-damon-core-handle-extreme-memory-state-in-get_in_active_mem_bp.patch
-mm-damon-core-introduce-damon_filter_type_pgidle_unset.patch
-mm-damon-paddr-support-pgidle_unset-probe-filter-type.patch
-mm-damon-sysfs-support-pgidle_unset-probe-filter-type.patch
-docs-mm-damon-design-document-pgidle_unset-probe-filter-type.patch
-mm-damon-core-introduce-damon_prep-struct.patch
-mm-damon-core-commit-preps.patch
-mm-damon-core-introduce-damon_operations-prep_probes.patch
-mm-damon-paddr-support-damon_prep.patch
-mm-damon-sysfs-implement-preps-directory.patch
-mm-damon-sysfs-implement-preps-nr_preps-file.patch
-mm-damon-sysfs-create-directories-for-nr_preps-writes.patch
-mm-damon-sysfs-implement-prep_action-file.patch
-mm-damon-sysfs-pass-preps-to-damon-core.patch
-selftests-damon-sysfssh-test-probe-prep-sysfs-files.patch
-docs-mm-damon-design-document-probe-preps.patch
-docs-admin-guide-mm-damon-usage-document-probe-preps-sysfs-files.patch
-docs-abi-damon-document-probe-prep-sysfs-files.patch
-mm-damon-tests-core-kunit-test-committing-psi-goal-to-psi-goal.patch
-mm-damon-core-handle-uninitialized-damos_quota_goal-last_psi_total.patch
-mm-damon-core-copy-nid-for-eligible_mem_bp-damos-quota-goal-commit.patch
-mm-damon-sysfs-set-next-refresh-jiffies-per-sysfs-context.patch
+mm-mglru-make-retry-logic-explicit-in-isolate_folios.patch
+mm-vmscan-avoid-pointless-large-folio-splits-without-swap.patch
+mm-mglru-separate-folio-generation-update-from-lru-accounting.patch
+mm-mglru-batch-update-lrugen-nr_pages-in-inc_min_seq.patch
+mm-mglru-enhance-cold-hot-inversion-handling-in-inc_min_seq.patch
+mm-mglru-exclude-folios-promoted-by-aging-from-protected-in-inc_min_seq.patch
+mm-mglru-make-lru-folio-prefetch-helper-an-inline-function.patch
+mm-mglru-move-folios-from-oldest-gen-to-second-oldest-gen-from-head-to-tail.patch
+mm-mglru-batch-move-folios-to-the-second-oldest-gens-lru.patch
 
