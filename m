@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1196F30D407;
-	Wed,  2 Sep 2026 02:55:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2B23C31F9AC;
+	Wed,  2 Sep 2026 02:55:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788317747; cv=none; b=nJoYOqxyvKTTF6DJMkUmqzzFlTv8YFIee2qEwQs/1FzE+0CA90plL6tuKKBWl0u1GgJ0AwhmLa1We4wvT1jaw7v7ECstczJozi4+1LbR4g4RXZMMorbQPmABpMBaLbWvhv8tliQ/LuAujBcG9rO7ZNPgPyDuweJolgU5Y6M6Ty8=
+	t=1788317749; cv=none; b=hYbaGvgYO627QX1YrCNFEMgjZRO6ZdtyK9tFUfLmalDhsjXcqudItm9b98MyYKWyENwr6ff6lPALwxZNuNDBG8fpvRgbjWx8C3donOa4VHSMqASk24D6lOPS9yZ6yZSssqqhp2LBnPAp/nmS/KU/nYgQhCLwl4VjDp9An5aoYEI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788317747; c=relaxed/simple;
-	bh=R9xUaicX/YWBHgJA0kBpQll1VTv2Ef66TSUI6DSRu8c=;
-	h=Date:To:From:Subject:Message-Id; b=sw3OQacHllVRZgLYlb/4bcE2gRBN+VTLU4tZgBNcFZvNMKW93SOrgnI0dewV5NHRRNvCrWznRpxLYZXa8SrSRZyW35erF9jdvD11mk77IiwHEUvW75LyEp9HsPsP1i8jWHi+T30ppvZChJ3s4kAYH7DUMxswd/couXFrsjqdbOQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=M6BgDjbQ; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788317749; c=relaxed/simple;
+	bh=NaoaSBlS+DgdYtL3sNFRga7o+bN4A787+ju70cdYb1Y=;
+	h=Date:To:From:Subject:Message-Id; b=fj45XyjeZq5x85UP5cMpmrjXkZwcPeHQ1cv7jA9CpILgOmUXYPl7iV/Ky2YER1GRzMN1G9sLiYIrT8w/NAGgADeY6CeEgPlktw+iRt+XYyNgArF/BLFEmv9g5GU2PI7zpM52e70h4qYH57IWW8208HTrYId8rVyd1/Pif7CeRNI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ijyciQKw; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="M6BgDjbQ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AD6661F000E9;
-	Wed,  2 Sep 2026 02:55:45 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ijyciQKw"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A441F1F000E9;
+	Wed,  2 Sep 2026 02:55:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788317745;
-	bh=joCdN6Ok79coiMA+NqGeza3bS04u3Y7k9GLoVTKfL5Y=;
+	d=linux-foundation.org; s=korg; t=1788317747;
+	bh=XrH/boMVa4pLRXFR1JyiFi287EWlfnZXBEHMgPpi75c=;
 	h=Date:To:From:Subject;
-	b=M6BgDjbQKROYE6H/VVVO9j/cmU9jpTWCCl+jcoN5twGngTQzrkLtTJUhLdg+Erioi
-	 Ald1Z4Ao+FNjjBfXdgYZykFyFKYhFH4JjdDaEofJ9q9CLCgL3V8eDJWAmNXggIi6qw
-	 mLZppw3WDQ6qT2LbOYLw4KTP7tBnwLWE+thKbJeI=
-Date: Tue, 01 Sep 2026 19:55:45 -0700
+	b=ijyciQKw9foAlauhmpYtpjFmVRJ7qWJAQQeYfZJzjPe64Zh/15biGFImtDbP6w/Sm
+	 kFYWQvptIt/SOCPloAIgV7F4NuNJSKu5zfWvkPLUretP5+ErVLs0rbgyiLokLgsBQh
+	 wuTmWdzSMr/v72M9qoClRPZgnNFdD8jyxLdcp5Lw=
+Date: Tue, 01 Sep 2026 19:55:47 -0700
 To: mm-commits@vger.kernel.org,yanquanmin1@huawei.com,stable@vger.kernel.org,davidgow@davidgow.net,brendan.higgins@linux.dev,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-core-copy-nid-for-eligible_mem_bp-damos-quota-goal-commit.patch added to mm-new branch
-Message-Id: <20260902025545.AD6661F000E9@smtp.kernel.org>
+Subject: + mm-damon-sysfs-set-next-refresh-jiffies-per-sysfs-context.patch added to mm-new branch
+Message-Id: <20260902025547.A441F1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/core: copy nid for eligible_mem_bp damos quota goal commit
+     Subject: mm/damon/sysfs: set next refresh jiffies per sysfs context
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-core-copy-nid-for-eligible_mem_bp-damos-quota-goal-commit.patch
+     mm-damon-sysfs-set-next-refresh-jiffies-per-sysfs-context.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-copy-nid-for-eligible_mem_bp-damos-quota-goal-commit.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-set-next-refresh-jiffies-per-sysfs-context.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,49 +70,79 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/core: copy nid for eligible_mem_bp damos quota goal commit
-Date: Tue, 1 Sep 2026 17:27:22 -0700
+Subject: mm/damon/sysfs: set next refresh jiffies per sysfs context
+Date: Tue, 1 Sep 2026 17:27:23 -0700
 
-damos_commit_quota_goal_union() is not updating the ->nid union field when
-the goal metric is DAMOS_QUOTA_NODE_ELIGIBLE_MEM_BP.  Hence, if a DAMOS
-quota goal of the type is online committed in a way that it will reuse
-other quota goal's memory space, the new goal will work with a garbage nid
-value.  As a result, the DAMOS scheme can show unexpected aggressiveness. 
-Do the update.
+When 'refresh_ms' is set, DAMON sysfs interface periodically updates
+auto-tuned parameters and DAMOS stats.  The timestamp for the next refresh
+is initialized when a DAMON context starts, and updated in its
+damon_call() callback function.  That is, each DAMON context updates it. 
+However, the timestamp is a global variable that is shared with all the
+contexts.  When there are multiple DAMON contexts having different
+refresh_ms, the update frequency will be changed, depending on the order
+of the contexts.  When there are multiple kdamonds, it will be even more
+chaotic.  Fix the problem by having the timestamp per each context.
 
-The user impact is not catastrophic.  No leak or crash happens.  Doing the
-quota goal online commit that can reproduce the issue is expected to be
-not common.  This issue was not found by real users but the AI review. 
-That said, the issue can reliably be reproduced.
+The user impact is not very critical.  It does not leak, corrupt or crash.
+The update will not be faster or slower than the lowest and largest
+refresh_ms values of the contexts, respectively.  The user can also
+manually ask the updates on demand using kdamond state commands.  That
+said, clearly this is a bug and can easily be reproduced.
 
-This issue was discovered [1] by Sashiko.
-
-Link: https://lore.kernel.org/20260902002725.108635-4-sj@kernel.org
-Link: https://lore.kkernel.org/20260827045035.94611-1-sj@kernel.org [1]
-Fixes: 9138e27a3bc3 ("mm/damon: add node_eligible_mem_bp goal metric")
+Link: https://lore.kernel.org/20260902002725.108635-5-sj@kernel.org
+Fixes: 9fd7bb5083d1 ("mm/damon/sysfs: change next_update_jiffies to a global variable")
 Signed-off-by: SJ Park <sj@kernel.org>
 Cc: Brendan Higgins <brendan.higgins@linux.dev>
 Cc: David Gow <davidgow@davidgow.net>
 Cc: Quanmin Yan <yanquanmin1@huawei.com>
-Cc: <stable@vger.kernel.org> # 7.2.x
+Cc: <stable@vger.kernel.org> # 6.18.x
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/core.c |    3 +++
- 1 file changed, 3 insertions(+)
+ mm/damon/sysfs.c |   11 +++++------
+ 1 file changed, 5 insertions(+), 6 deletions(-)
 
---- a/mm/damon/core.c~mm-damon-core-copy-nid-for-eligible_mem_bp-damos-quota-goal-commit
-+++ a/mm/damon/core.c
-@@ -1204,6 +1204,9 @@ static void damos_commit_quota_goal_unio
- 		dst->nid = src->nid;
- 		dst->memcg_id = src->memcg_id;
- 		break;
-+	case DAMOS_QUOTA_NODE_ELIGIBLE_MEM_BP:
-+		dst->nid = src->nid;
-+		break;
- 	default:
- 		break;
+--- a/mm/damon/sysfs.c~mm-damon-sysfs-set-next-refresh-jiffies-per-sysfs-context
++++ a/mm/damon/sysfs.c
+@@ -2034,6 +2034,7 @@ struct damon_sysfs_kdamond {
+ 	struct damon_sysfs_contexts *contexts;
+ 	struct damon_ctx *damon_ctx;
+ 	unsigned int refresh_ms;
++	unsigned long next_refresh_jiffies;
+ };
+ 
+ static struct damon_sysfs_kdamond *damon_sysfs_kdamond_alloc(void)
+@@ -2484,17 +2485,15 @@ static struct damon_ctx *damon_sysfs_bui
+ 	return ctx;
+ }
+ 
+-static unsigned long damon_sysfs_next_update_jiffies;
+-
+ static int damon_sysfs_repeat_call_fn(void *data)
+ {
+ 	struct damon_sysfs_kdamond *sysfs_kdamond = data;
+ 
+ 	if (!sysfs_kdamond->refresh_ms)
+ 		return 0;
+-	if (time_before(jiffies, damon_sysfs_next_update_jiffies))
++	if (time_before(jiffies, sysfs_kdamond->next_refresh_jiffies))
+ 		return 0;
+-	damon_sysfs_next_update_jiffies = jiffies +
++	sysfs_kdamond->next_refresh_jiffies = jiffies +
+ 		msecs_to_jiffies(sysfs_kdamond->refresh_ms);
+ 
+ 	if (!mutex_trylock(&damon_sysfs_lock))
+@@ -2542,8 +2541,8 @@ static int damon_sysfs_turn_damon_on(str
  	}
+ 	kdamond->damon_ctx = ctx;
+ 
+-	damon_sysfs_next_update_jiffies =
+-		jiffies + msecs_to_jiffies(kdamond->refresh_ms);
++	kdamond->next_refresh_jiffies = jiffies +
++		msecs_to_jiffies(kdamond->refresh_ms);
+ 
+ 	repeat_call_control->fn = damon_sysfs_repeat_call_fn;
+ 	repeat_call_control->data = kdamond;
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
