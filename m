@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 96E6B448B9A
-	for <mm-commits@vger.kernel.org>; Wed,  2 Sep 2026 22:37:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2B4F44AF667
+	for <mm-commits@vger.kernel.org>; Wed,  2 Sep 2026 22:37:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788388644; cv=none; b=SEMpnJ3X2OTv2JN2TdXiCPEY22pgnKnSpM8hyyPd7FuYGDOFx2cnNw2qTeyKBRQpcYxk3nrhRGn0wA5PUf9hpQcYybAKrXzcFo1zcenBprrJQlqGQ0Ys+7gwli0R+GiIiYWSUkw2OArSGhKyHEnyJbgM1j3TAGJajsnuFFpzA8o=
+	t=1788388645; cv=none; b=Cfc8Dy8+HMjbdbGdWX2OYkI/bZA/YpAlibG8wEbu0KdCtaxCLd7/pUDX4W3SRe0iDTvAdDjPvEaG9rAQSjma12T6cDWBYJVN6vJJm4/fOKa5gzuh0ObZKbHkAf9s3te71YKxuCnIU8UZwbgcG6+kI7bytNoq7BHkQcF84u6+F0w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788388644; c=relaxed/simple;
-	bh=PdYvm+PFI+uPS3nTijpMcyGwDZfi9314HTGDcuwGViY=;
-	h=Date:To:From:Subject:Message-Id; b=DPV6y9ntxLkuvu9WmAV7kh+R0a4O5GWrBy23ZU78KauKmeT6/yY+fhJ4IdnTXWTX5hDqYx7uPLreq5IidE9aa5ungO9YtTHobnvnrYzacgFtBAhat+49RH0CcO943pLZlsXAjEa0Zsvf33KKyadX5NNKO7aFPjDtgmj151gy9KA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OMMIeLtJ; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788388645; c=relaxed/simple;
+	bh=ptQiJ3xBJ1OgvN9eMF8BC9kBeusf2KJkJ8OdQRRN2VM=;
+	h=Date:To:From:Subject:Message-Id; b=bFaudPdzj2X/15dsQt5LHrxVl3eJeYTCv1ApCds4IVBWO3Tz496jTZpcvz9Q1G3yd0u4PnOCwOIY24+N1i/1qCY2WLQ5yi0O+CDBYH43d0DrPlRE0PySgshJCNRdFOUL/jFOJL9rZn8F7QT3abeRWC4etiYUZi4XCpuiDzjLrqM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gdP49C0m; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OMMIeLtJ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 35F6E1F00A3A;
-	Wed,  2 Sep 2026 22:37:15 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gdP49C0m"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2937E1F00A3D;
+	Wed,  2 Sep 2026 22:37:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788388635;
-	bh=78Yz6A8tFcjMoIkp+MKWY6/6uX3kg1nrYKnV8BPOzSQ=;
+	d=linux-foundation.org; s=korg; t=1788388637;
+	bh=uXh6gQBz1zR9CZliVxjshLUuUyNpEMOTp+WqbujcUkU=;
 	h=Date:To:From:Subject;
-	b=OMMIeLtJVVBTJN5hNDFDCFL/15rBqcXZhKoE2VMe6lkfd7H1sWY+5LiCK6udmNCxr
-	 v0OA3zBLR+rJ4O+ga4AiHaDySUfZnla5BIeeIQaU0mtqEyPnpkjm2y+JvqekHzJo57
-	 OyM2FYlfPX4ljRAset/0VYHlE/nYV2FrYg7oFPF8=
-Date: Wed, 02 Sep 2026 15:37:14 -0700
+	b=gdP49C0mkYQF5bt0VbWC5GjoFDWPjrqQGXfGtvAbym3PLxStMmuovW/nj18gIlmHw
+	 Zzc/FfXrgc/54zeoMAjsxnJipkATXRHJQ67q8/SgypJmXCdsmegEnRMC1zPrsEd8JI
+	 K5gAE2OW8s4kBF9JyXi4FU/LLiEGjq4DOKa58g+A=
+Date: Wed, 02 Sep 2026 15:37:16 -0700
 To: mm-commits@vger.kernel.org,rostedt@goodmis.org,mhiramat@kernel.org,mathieu.desnoyers@efficios.com,ljs@kernel.org,zhaomeijing@lixiang.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-trace-decode-mte-and-shadow-stack-vma-flags.patch added to mm-new branch
-Message-Id: <20260902223715.35F6E1F00A3A@smtp.kernel.org>
+Subject: + mm-trace-name-protection-key-encoding-bits.patch added to mm-new branch
+Message-Id: <20260902223717.2937E1F00A3D@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: trace: decode MTE and shadow stack VMA flags
+     Subject: mm: trace: name protection key encoding bits
 has been added to the -mm mm-new branch.  Its filename is
-     mm-trace-decode-mte-and-shadow-stack-vma-flags.patch
+     mm-trace-name-protection-key-encoding-bits.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-trace-decode-mte-and-shadow-stack-vma-flags.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-trace-name-protection-key-encoding-bits.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,31 +70,24 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Meijing Zhao <zhaomeijing@lixiang.com>
-Subject: mm: trace: decode MTE and shadow stack VMA flags
-Date: Wed, 2 Sep 2026 14:45:09 +0800
+Subject: mm: trace: name protection key encoding bits
+Date: Wed, 2 Sep 2026 14:45:10 +0800
 
-show_vma_flags(), which is used by VMA tracepoints and %pGv, leaves
-architecture-specific HIGH_ARCH_* bits unnamed.  Arm64 MTE flags and user
-shadow stack flags are therefore printed as raw hexadecimal values.
+Protection keys are encoded in architecture-specific HIGH_ARCH_* VMA flag
+bits.  show_vma_flags(), which is used by VMA tracepoints and %pGv, does
+not name those bits, leaving them as raw hexadecimal values.
 
-These bit positions are shared between architectures.  For example, bit 37
-represents VM_MTE_ALLOWED on arm64 but VM_SHADOW_STACK on x86, so a shared
-HIGH_ARCH_* bit cannot be given an unconditional name.
+Name the protection-key encoding bits pkey_bit0 through pkey_bit4 under
+CONFIG_ARCH_HAS_PKEYS.  The names make clear that these are bits of one
+protection-key value rather than independent protection keys.  For
+example, protection key 3 is represented as:
 
-Add conditionally compiled names for VM_MTE, VM_MTE_ALLOWED and
-VM_SHADOW_STACK.  Keep the configuration guards aligned with the
-definitions of these aliases so each shared bit position is decoded
-according to the target architecture.
+  pkey_bit0|pkey_bit1
 
-For example, an arm64 VMA containing VM_MTE_ALLOWED is now printed as:
+Honor CONFIG_ARCH_PKEY_BITS when exposing bit 3 and bit 4 so only bits
+provided by the architecture are included.
 
-  ...|account|mte_allowed|...
-
-instead of:
-
-  ...|account|0x2000000000
-
-Link: https://lore.kernel.org/1c7f7003cff8d00209baa8498f1efee113f5b5a4.1788330432.git.zhaomeijing@lixiang.com
+Link: https://lore.kernel.org/1871da32001243b37147bac5af02d2f2ec64304e.1788330432.git.zhaomeijing@lixiang.com
 Signed-off-by: Meijing Zhao <zhaomeijing@lixiang.com>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
 Cc: "Masami Hiramatsu (Google)" <mhiramat@kernel.org>
@@ -103,41 +96,48 @@ Cc: Steven Rostedt <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/trace/events/mmflags.h |   16 ++++++++++++++++
- 1 file changed, 16 insertions(+)
+ include/trace/events/mmflags.h |   23 +++++++++++++++++++++++
+ 1 file changed, 23 insertions(+)
 
---- a/include/trace/events/mmflags.h~mm-trace-decode-mte-and-shadow-stack-vma-flags
+--- a/include/trace/events/mmflags.h~mm-trace-name-protection-key-encoding-bits
 +++ a/include/trace/events/mmflags.h
-@@ -202,6 +202,19 @@ IF_HAVE_PG_ARCH_3(arch_3)
+@@ -202,6 +202,24 @@ IF_HAVE_PG_ARCH_3(arch_3)
  # define IF_HAVE_VM_DROPPABLE(flag, name)
  #endif
  
-+#ifdef CONFIG_ARM64_MTE
-+# define IF_HAVE_VM_MTE(flag, name) {flag, name},
++#ifdef CONFIG_ARCH_HAS_PKEYS
++# define IF_HAVE_VM_PKEY(flag, name) {flag, name},
++#if CONFIG_ARCH_PKEY_BITS > 3
++# define IF_HAVE_VM_PKEY3(flag, name) {flag, name},
 +#else
-+# define IF_HAVE_VM_MTE(flag, name)
++# define IF_HAVE_VM_PKEY3(flag, name)
++#endif
++#if CONFIG_ARCH_PKEY_BITS > 4
++# define IF_HAVE_VM_PKEY4(flag, name) {flag, name},
++#else
++# define IF_HAVE_VM_PKEY4(flag, name)
++#endif
++#else
++# define IF_HAVE_VM_PKEY(flag, name)
++# define IF_HAVE_VM_PKEY3(flag, name)
++# define IF_HAVE_VM_PKEY4(flag, name)
 +#endif
 +
-+#if defined(CONFIG_X86_USER_SHADOW_STACK) || defined(CONFIG_RISCV_USER_CFI) || \
-+	defined(CONFIG_ARM64_GCS)
-+# define IF_HAVE_VM_SHADOW_STACK(flag, name) {flag, name},
-+#else
-+# define IF_HAVE_VM_SHADOW_STACK(flag, name)
-+#endif
-+
- #define __def_vmaflag_names						\
- 	{VM_READ,			"read"		},		\
- 	{VM_WRITE,			"write"		},		\
-@@ -237,6 +250,9 @@ IF_HAVE_VM_SOFTDIRTY(VM_SOFTDIRTY,	"soft
+ #ifdef CONFIG_ARM64_MTE
+ # define IF_HAVE_VM_MTE(flag, name) {flag, name},
+ #else
+@@ -250,6 +268,11 @@ IF_HAVE_VM_SOFTDIRTY(VM_SOFTDIRTY,	"soft
  	{VM_HUGEPAGE,			"hugepage"	},		\
  	{VM_NOHUGEPAGE,			"nohugepage"	},		\
  IF_HAVE_VM_DROPPABLE(VM_DROPPABLE,	"droppable"	)		\
-+IF_HAVE_VM_MTE(VM_MTE,			"mte")			\
-+IF_HAVE_VM_MTE(VM_MTE_ALLOWED,		"mte_allowed")		\
-+IF_HAVE_VM_SHADOW_STACK(VM_SHADOW_STACK, "shadow_stack")	\
- 	{VM_MERGEABLE,			"mergeable"	}		\
- 
- #define show_vma_flags(flags)						\
++IF_HAVE_VM_PKEY(VM_PKEY_BIT0,		"pkey_bit0")		\
++IF_HAVE_VM_PKEY(VM_PKEY_BIT1,		"pkey_bit1")		\
++IF_HAVE_VM_PKEY(VM_PKEY_BIT2,		"pkey_bit2")		\
++IF_HAVE_VM_PKEY3(VM_PKEY_BIT3,		"pkey_bit3")		\
++IF_HAVE_VM_PKEY4(VM_PKEY_BIT4,		"pkey_bit4")		\
+ IF_HAVE_VM_MTE(VM_MTE,			"mte")			\
+ IF_HAVE_VM_MTE(VM_MTE_ALLOWED,		"mte_allowed")		\
+ IF_HAVE_VM_SHADOW_STACK(VM_SHADOW_STACK, "shadow_stack")	\
 _
 
 Patches currently in -mm which might be from zhaomeijing@lixiang.com are
