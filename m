@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 431714AD4C1
-	for <mm-commits@vger.kernel.org>; Wed,  2 Sep 2026 22:42:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 462994AFE2A
+	for <mm-commits@vger.kernel.org>; Wed,  2 Sep 2026 22:42:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788388927; cv=none; b=dPPH/vmguAZXBp131wn1fdsEgyZve0TtyTs85YXgezUhVsYWJA3oGBCy/3ie1O6PqqaAa7Bfn2c3xQRgAb9wEdeLdJ47wVSiew3rqjL7g8kzWzkhXegby49Wbem4AdlOTwCxTy/xjV0PgTWTU7wSScLA8ruUho9LTrytIMCa22s=
+	t=1788388929; cv=none; b=l/opKoDFUZdwDwGXrbRWoHL/RAsTsVBXK35I2M+klBZLhr/G+6aKla5mrE7KIYwnv7UTeH9QkMCTtwrughotBYRcfSfxYhlhQ8tPNUWqF5YBzDo4YzH9mRjkPWyqHufaHM+gSAGn2T8xZ+PDGbFtnYdh9pF2SpgWYUyma5qSiLc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788388927; c=relaxed/simple;
-	bh=957o9Q3k+XJfBzuz+vdgpX4/bHTfJTTINrikIlxEu2g=;
-	h=Date:To:From:Subject:Message-Id; b=KtXMjqBuayrc0P/9Fszs8/1QcuMJFnIL64Hbx/abOv6V9OBfo4kPAMfJUp4ppFT2sTGlowFseDHfpCC4XKrbhdszKSx8Fdl0BlaBnF/GrGgnBwDEyoeJMsQqD2R7Zu82EBCaPsILnWGX5b9WPLATyiMSIr24t8ij9SJ1fkmRLXw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1FUPlI0v; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788388929; c=relaxed/simple;
+	bh=beSJKYivEMKN1VTbLwQOaXlHZTr82JqN4GnKmzUIC3c=;
+	h=Date:To:From:Subject:Message-Id; b=uWAKqak/NS6mGi3gMC1k8/dNoGqfvAEFUnopQdOZSZOyh74YFKBJhJrI8qvwcNAmPiGJrAYqy/V+/zrYwtQD4TCLJNTE9xHEA5NFCzCgGDoiT7LGi/ZCh3hbZNSaaAd0JlHG5lHHjkn2IucfsAFMtEqdhNw1rWBXENfQSBmCRPU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0HnEC5xP; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1FUPlI0v"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E08831F00A3D;
-	Wed,  2 Sep 2026 22:42:01 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0HnEC5xP"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B79C71F000E9;
+	Wed,  2 Sep 2026 22:41:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788388922;
-	bh=NzpFwuaTct58Gy5ASTmlPLULcLx2F/gYbu9O/0bCDbs=;
+	d=linux-foundation.org; s=korg; t=1788388917;
+	bh=O0t1eO+mzLJzwNoiUo/trh0ubSkB+wIzJP5jKzzwzy8=;
 	h=Date:To:From:Subject;
-	b=1FUPlI0vieYsCxDbX4df3/4VNFEuP6Wn5Mh0NdFSbvJ3HAEhv0zzE1hE4acVJMVP2
-	 CuzysxsVqt/dllbunAJ+ltmyk8dpFmu8MG4nIq0ENAvT1iXMeYXF1l2VXo3q2ZIsGf
-	 hsE2QXn1eY1pzZv6OyXSwcmLAjkQ+YvsofF2HIbY=
-Date: Wed, 02 Sep 2026 15:42:01 -0700
+	b=0HnEC5xPtSGMImcjC8d2618G6iianZUznMBa3GkHJZAZvZBSFJJ47Mbdb2vXcxXQr
+	 /rtG+2YUvl68sJJdVdHCkKy9A7CMRHfhL1E7mMjtpK+i4blUnUYXNxOwktN0E6FPT1
+	 E/zSSV9DJcNroZwkRNJlewWwoxiEYDe+wYSrJl2w=
+Date: Wed, 02 Sep 2026 15:41:57 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-core-remove-debug-messages-fix.patch added to mm-new branch
-Message-Id: <20260902224201.E08831F00A3D@smtp.kernel.org>
+Subject: + mm-damon-core-use-damon_nr_samples_per_aggr-for-max-merge-threshold.patch added to mm-new branch
+Message-Id: <20260902224157.B79C71F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/core: remove string_choices.h include
+     Subject: mm/damon/core: use damon_nr_samples_per_aggr() for max merge threshold
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-core-remove-debug-messages-fix.patch
+     mm-damon-core-use-damon_nr_samples_per_aggr-for-max-merge-threshold.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-remove-debug-messages-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-use-damon_nr_samples_per_aggr-for-max-merge-threshold.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,12 +70,30 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/core: remove string_choices.h include
-Date: Tue, 1 Sep 2026 23:08:16 -0700
+Subject: mm/damon/core: use damon_nr_samples_per_aggr() for max merge threshold
+Date: Tue, 1 Sep 2026 22:47:34 -0700
 
-It is no more being used.
+Patch series "mm/damon: cleanup code, add test cases, and update guidances
+in docs".
 
-Link: https://lore.kernel.org/20260902061401.104419-1-sj@kernel.org
+Misc cleanup, improvements and updates of code, test, and documents.
+
+Patches 1-5 cleanup DAMON code.  Patches 6-10 adds kunit and selftest test
+cases for recently fixed bugs and a new feature.  Patches 11 and 12 update
+guidelines for AI review and what document to read, on DAMON documents.
+
+
+This patch (of 12):
+
+kdamond_merge_regions() open-codes max region merge threshold calculation.
+What it does is fundamentally the same as damon_nr_samples_per_aggr() but
+missing a few corner cases.  The unhandled corner cases should be rare and
+make only a negligible level of monitoring results degradation.  But
+having the inconsistency could increase future maintenance burden.  Use
+the dedicated function.
+
+Link: https://lore.kernel.org/20260902054747.99370-1-sj@kernel.org
+Link: https://lore.kernel.org/20260902054747.99370-2-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Cc: Brendan Higgins <brendan.higgins@linux.dev>
 Cc: David Gow <davidgow@davidgow.net>
@@ -93,19 +111,21 @@ Cc: Kunwu Chan <kunwu.chan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/core.c |    1 -
- 1 file changed, 1 deletion(-)
+ mm/damon/core.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/mm/damon/core.c~mm-damon-core-remove-debug-messages-fix
+--- a/mm/damon/core.c~mm-damon-core-use-damon_nr_samples_per_aggr-for-max-merge-threshold
 +++ a/mm/damon/core.c
-@@ -15,7 +15,6 @@
- #include <linux/sched.h>
- #include <linux/slab.h>
- #include <linux/string.h>
--#include <linux/string_choices.h>
+@@ -3506,8 +3506,7 @@ static void kdamond_merge_regions(struct
+ 	unsigned int max_thres;
+ 	bool count_age = true;
  
- /* for damon_get_folio() used by node eligible memory metrics */
- #include "ops-common.h"
+-	max_thres = c->attrs.aggr_interval /
+-		(c->attrs.sample_interval ?  c->attrs.sample_interval : 1);
++	max_thres = damon_nr_samples_per_aggr(&c->attrs);
+ 	while (true) {
+ 		nr_regions = 0;
+ 		damon_for_each_target(t, c) {
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
