@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4296D3C5826
-	for <mm-commits@vger.kernel.org>; Wed,  2 Sep 2026 20:55:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AC1634A384C
+	for <mm-commits@vger.kernel.org>; Wed,  2 Sep 2026 21:27:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788382535; cv=none; b=RBZAA1+f6FvzhDaJCdTRYWnoqHcQMHdMHWzrsG8Y9zByqdAiPNnVxsjPT3mAqPOG9M2DurrY5BB64kMq1Vqf3yOBZE5qjGKcPU+/Uklps59pxVaJxh+h33SeYQHsK0QmGwUytXa/gclEgLvnkdTNPbNFKNMm2PXTSTLWxDFM6Kw=
+	t=1788384479; cv=none; b=m0ydlRp/5Fu2GzJSNOjY9/+1WAqk9VJoqBbP7YNuBMUBQtwPJoA1SGVvbGvShdlS/Z2q6ZR2Xxhev7rN6/XMAuyNfsNB5opFvuStqQYTFLzIpApxOuomgwKJDAhHXUDd0KVWjSvY9CBZwm/pQnrVqGn01z/xsKZSqcC2LmKzudE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788382535; c=relaxed/simple;
-	bh=SeHZU96MIHv4chs+a9JxRBLbxD4wieKN9jutpzV1YY8=;
-	h=Date:To:From:Subject:Message-Id; b=cwxTtOpRmLxU9kJLo+T31HzX8UObsbI5rz8Ser4lF6jCF3ye5HLadRefjbdUOBbzjPXUC4FrmYSpT8b3eRZ+IAHRm60A7vAK7orxz3P3mafFfIgxSqJpcSDsilwU5BQQ4dbCCU6NsRR4cwROGmIkXaYUwa16QzI5XLHtQ70NdeU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=js3KtqkN; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788384479; c=relaxed/simple;
+	bh=TyWEtWfcpTaYlTR3OOEfPVeHhV7wjI8/n3bIJrWg6Og=;
+	h=Date:To:From:Subject:Message-Id; b=rrIvlkLWjZMpw1EHLYbcreBzUqCXKyWMWQSE1Zy2m7iG/NYUtH8VFY/w4UHDhWLf+cDTyEzI0nPYg8cJpGqJmOdtMFDOQqAc0aXrqLDuW4o9oT/832ujrIyijiTVYQ7MDf+Duly9WKBdAL7puSbDD/BxNm95rSi/HQ50jkUkD0w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tq3v7WqC; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="js3KtqkN"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BB4471F000E9;
-	Wed,  2 Sep 2026 20:55:24 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tq3v7WqC"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6FFE71F000E9;
+	Wed,  2 Sep 2026 21:27:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788382524;
-	bh=0XRYt7kjr7Cfv6TAIlFe6XGZJq8vkoSifvi7Tl7V8mA=;
+	d=linux-foundation.org; s=korg; t=1788384471;
+	bh=dL8riWdl+n7PnY/gHNpe/cB91wXfUwtNiC86WfHq1i4=;
 	h=Date:To:From:Subject;
-	b=js3KtqkNjDdmRMf3p7scXbHM/BPOlw09RSmBTvZnYzk+rjKVHyMJoOQ3H9OTqcBZs
-	 es2ema9cp0tyl9s76oWaYdGQ6VP2JBSQBid1c7GqHkOVyxoHocnYycyY9822Lqv7lE
-	 I8E82kX+sMOqN45Sl9ZltjwCqg8qd4Id3RwPLmf4=
-Date: Wed, 02 Sep 2026 13:55:24 -0700
-To: mm-commits@vger.kernel.org,pmladek@suse.com,brads@mainlining.org,akpm@linux-foundation.org,feng.tang@linux.alibaba.com,akpm@linux-foundation.org
+	b=tq3v7WqCPqI9YVUnGKPIcQwXvwSiPGj/A8pXmglnauSpKI0A+6ImkDn3UP/UPC752
+	 GZNu1QiwEQbrGjLj8BdNaRnq8HQppU3aIWCRXWE3MxXhPKVot6jkP8MEqU8kms0ETs
+	 qUoh+0w3B7ALexLv40BQtRLi2WPMESuMcY8JyRTk=
+Date: Wed, 02 Sep 2026 14:27:51 -0700
+To: mm-commits@vger.kernel.org,zhengqi.arch@bytedance.com,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,hughd@google.com,hannes@cmpxchg.org,david@kernel.org,brauner@kernel.org,baolin.wang@linux.alibaba.com,qinyuntan@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + panic-remove-the-unneeded-panic_print_get.patch added to mm-nonmm-unstable branch
-Message-Id: <20260902205524.BB4471F000E9@smtp.kernel.org>
+Subject: + mm-shmem-make-unused-huge-shrinker-memcg-aware-fix.patch added to mm-unstable branch
+Message-Id: <20260902212751.6FFE71F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: panic: remove the unneeded panic_print_get()
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     panic-remove-the-unneeded-panic_print_get.patch
+     Subject: mm/list_lru: disable memcg awareness under cgroup_disable=memory
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-shmem-make-unused-huge-shrinker-memcg-aware-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/panic-remove-the-unneeded-panic_print_get.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-shmem-make-unused-huge-shrinker-memcg-aware-fix.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,50 +58,86 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Feng Tang <feng.tang@linux.alibaba.com>
-Subject: panic: remove the unneeded panic_print_get()
-Date: Wed, 2 Sep 2026 19:48:51 +0800
+From: Qinyun Tan <qinyuntan@linux.alibaba.com>
+Subject: mm/list_lru: disable memcg awareness under cgroup_disable=memory
+Date: Wed, 2 Sep 2026 17:32:02 +0800
 
-panic_print_get() was introduced in commit 2683df6539cb ("panic: add
-note that 'panic_print' parameter is deprecated") to print out warning
-message of the deprecation of 'panic_print' on read access.
+__list_lru_init() only collapses a memcg-aware list_lru into plain
+per-node lists when kmem accounting is disabled (cgroup.memory=nokmem). 
+When the memory controller is disabled entirely (cgroup_disable=memory),
+mem_cgroup_kmem_disabled() is false, so the lru stays memcg aware even
+though no object will ever be charged to a memcg.
 
-Since commit 90f3c123247e ("panic: only warn about deprecated panic_print
-on write access"), panic_print_get() wrapper is not needed anymore for
-read access, so remove it and use param_get_ulong() instead.
+This is more than a semantic inconsistency.  folio_memcg_list_lru_alloc()
+trusts list_lru_memcg_aware() and dereferences the folio's memcg, which is
+always NULL with the controller disabled.  The only mainline caller,
+folio_memcg_alloc_deferred(), papers over this with an explicit
+mem_cgroup_disabled() check.  The shmem unused-huge shrinker conversion
+("mm: shmem: make unused huge shrinker memcg aware") adds a second caller
+without such a guard, so booting with cgroup_disable=memory and writing to
+a huge=always tmpfs oopses:
 
-Link: https://lore.kernel.org/20260902114851.77062-1-feng.tang@linux.alibaba.com
-Signed-off-by: Feng Tang <feng.tang@linux.alibaba.com>
-Reviewed-by: Bradley Morgan <brads@mainlining.org>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Petr Mladek <pmladek@suse.com>
+  BUG: unable to handle page fault for address: 0000000000000488
+  RIP: 0010:folio_memcg_list_lru_alloc+0x41/0xf0
+  Call Trace:
+   <TASK>
+   shmem_get_folio_gfp+0x1cd/0x7c0
+   shmem_write_begin+0x5d/0x100
+   generic_perform_write+0x89/0x2a0
+   shmem_file_write_iter+0x82/0x90
+   vfs_write+0x256/0x410
+   ksys_write+0x61/0xe0
+   do_syscall_64+0x8d/0x460
+   entry_SYSCALL_64_after_hwframe+0x76/0x7e
+
+The faulting address is the offset of mem_cgroup->kmemcg_id, dereferenced
+on a NULL memcg in memcg_list_lru_allocated():
+
+  folio_memcg_list_lru_alloc()
+    list_lru_memcg_aware()               <- true, only nokmem checked
+    memcg = folio_memcg(folio)           <- NULL
+    memcg_list_lru_allocated(memcg, lru)
+      memcg->kmemcg_id                   <- NULL pointer dereference
+
+Check mem_cgroup_disabled() in __list_lru_init() so that all list_lrus
+fall back to plain per-node lists when the controller is disabled,
+matching what the shrinker side already does (shrinker_memcg_alloc() bails
+out on mem_cgroup_disabled()).  This makes the mem_cgroup_disabled() check
+in callers unnecessary rather than mandatory.
+
+Link: https://lore.kernel.org/20260902093202.609559-1-qinyuntan@linux.alibaba.com
+Signed-off-by: Qinyun Tan <qinyuntan@linux.alibaba.com>
+Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Qi Zheng <zhengqi.arch@bytedance.com>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/panic.c |    7 +------
- 1 file changed, 1 insertion(+), 6 deletions(-)
+ mm/list_lru.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/kernel/panic.c~panic-remove-the-unneeded-panic_print_get
-+++ a/kernel/panic.c
-@@ -1216,14 +1216,9 @@ static int panic_print_set(const char *v
- 	return  param_set_ulong(val, kp);
- }
+--- a/mm/list_lru.c~mm-shmem-make-unused-huge-shrinker-memcg-aware-fix
++++ a/mm/list_lru.c
+@@ -671,7 +671,7 @@ int __list_lru_init(struct list_lru *lru
+ 	else
+ 		lru->shrinker_id = -1;
  
--static int panic_print_get(char *val, const struct kernel_param *kp)
--{
--	return  param_get_ulong(val, kp);
--}
--
- static const struct kernel_param_ops panic_print_ops = {
- 	.set	= panic_print_set,
--	.get	= panic_print_get,
-+	.get	= param_get_ulong,
- };
- __core_param_cb(panic_print, &panic_print_ops, &panic_print, 0644);
+-	if (mem_cgroup_kmem_disabled())
++	if (mem_cgroup_disabled() || mem_cgroup_kmem_disabled())
+ 		memcg_aware = false;
+ #endif
  
 _
 
-Patches currently in -mm which might be from feng.tang@linux.alibaba.com are
+Patches currently in -mm which might be from qinyuntan@linux.alibaba.com are
 
-panic-remove-the-unneeded-panic_print_get.patch
+mm-shmem-make-unused-huge-shrinker-memcg-aware-fix.patch
+mm-list_lru-dont-copy-stale-shrinker-id-from-non-memcg-aware-shrinkers.patch
 
