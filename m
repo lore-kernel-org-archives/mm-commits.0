@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 53E964B0CA9
-	for <mm-commits@vger.kernel.org>; Wed,  2 Sep 2026 22:42:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 02800463B6F
+	for <mm-commits@vger.kernel.org>; Wed,  2 Sep 2026 22:42:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788388947; cv=none; b=heyZxq3ov0iuf98w4eD4dyA3+K+ScoZ+jh0m/8ViZYTcxEm7s1p5mhppwMEQIrQpoSU0ZzqGzSGkXwuxNheZ/NhIjYrr5BWNarK8e7Gw5/8Lvh2lf8+V5DovPZP6Hu0f6SfQdDeSl0D01UKJ2pJXIYZPIqveshgNUxyeFq0prAI=
+	t=1788388951; cv=none; b=NKFqZjd6orAcrYn1GQBq7sW0AYVooR2Qqu6Joq95lQqY7HlTUzcJ2syjEpidge/5UwtoG/bA9g3Fv1EoDy5wqQOlfNr/vAMnJ9mOmMkI2ylEyF8eZOu65m6y6+kwASPJExVj8T/EYAoKLMAryolRt/xDpNZDCyj9InQ6cKSpwrk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788388947; c=relaxed/simple;
-	bh=uNS782oEVGzkzN53QEvQ2JDzA1S6zLdjx/dQMcNVvKE=;
-	h=Date:To:From:Subject:Message-Id; b=qTJemVtnLV5OADdKXs+coEi9R8sXwqnhQ1GhH6ewmW9Dt1FyXXtt+2U3YmRf/eSjbGu9aE+FvP5TkVfMaEBXHkIyq/ZF5aXeUdyJlC/prj8msYfM99MaKnZfBqqdyc/Orh49adNBAioZux0jjSYKdZ+mPTlWGnURvXuhIBDRLyw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Sn7X+Cq7; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788388951; c=relaxed/simple;
+	bh=wfGu8ogDs8ZXkDXGgt8PGiqCQMW3tZ+tCbtdACYaZ/4=;
+	h=Date:To:From:Subject:Message-Id; b=da0WPSTgtml3ViNBK84u+sP0mjHrzyFZLVlX2DZj+5cMivRbgcBpn+8LMpQmi0tuJ3gK9Hmfag/HnZ2i55L4QByh92KjlZf+jLLY/Oymlu2G5UuGiFS5RlNDnA3Yfr9/ONUCUzPkGTN7vdTiVHg/SRYquhJS31PpSL3fZ6mvvyc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Dp/aBGDH; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Sn7X+Cq7"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8ADCF1F00A3D;
-	Wed,  2 Sep 2026 22:42:18 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Dp/aBGDH"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 561F81F00AC4;
+	Wed,  2 Sep 2026 22:42:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788388938;
-	bh=f6sbfml6sSjcZuuFV9a0zmWvF2uiXp9uUwh7MNqAlak=;
+	d=linux-foundation.org; s=korg; t=1788388934;
+	bh=SZ1rjpYVCjts33aovJhPkNjVlHLKFaKtxviVEYvy55M=;
 	h=Date:To:From:Subject;
-	b=Sn7X+Cq7Ep/FlUJB5SR/1lkON6OBq0u8raYH7UQVSqrbXeRiCufA8OmVr8GUR/0S5
-	 6hwmJjdMC0xE/fccH6Lh1LfazY6V0GplMJkdfWdljdd51QdO7Ws1eHW61CSQtSYmzg
-	 rOMrwJXPu3QmfH4etQd+TTlsIEPH7zcT+FUGTfGE=
-Date: Wed, 02 Sep 2026 15:42:18 -0700
+	b=Dp/aBGDHBJftOO8FLhh9jkWrCAPIKkb+vw3P3QNIJ68ViVpiO7PRdbvQKXupXCNGY
+	 W3wY77D/w4OC38L7jB4XwI608zciWVezLTLRcirLPUOY4+mOtQSsHprRkMtOdC2PrP
+	 Vs0Y5G/NJaOedyYk0rmnOfIe/KzimcrsaOfH77ew=
+Date: Wed, 02 Sep 2026 15:42:13 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-damon-sysfssh-test-hugepage_mem_bp-quota-goal.patch added to mm-new branch
-Message-Id: <20260902224218.8ADCF1F00A3D@smtp.kernel.org>
+Subject: + mm-damon-tests-core-kunit-test-overlapping-ranges-for-set_regions.patch added to mm-new branch
+Message-Id: <20260902224214.561F81F00AC4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/damon/sysfs.sh: test hugepage_mem_bp quota goal
+     Subject: mm/damon/tests/core-kunit: test overlapping ranges for set_regions()
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-damon-sysfssh-test-hugepage_mem_bp-quota-goal.patch
+     mm-damon-tests-core-kunit-test-overlapping-ranges-for-set_regions.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-damon-sysfssh-test-hugepage_mem_bp-quota-goal.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-tests-core-kunit-test-overlapping-ranges-for-set_regions.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,14 +70,14 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: selftests/damon/sysfs.sh: test hugepage_mem_bp quota goal
-Date: Tue, 1 Sep 2026 22:47:43 -0700
+Subject: mm/damon/tests/core-kunit: test overlapping ranges for set_regions()
+Date: Tue, 1 Sep 2026 22:47:41 -0700
 
-DAMON sysfs quota goal target_metric file now accepts 'hugepage_mem_bp'
-input.  Test it is accepted in fundamental DAMON sysfs file operation
-selftest.
+Commit 954157679ec3 ("mm/damon/core: disallow overlapping input ranges for
+damon_set_regions()") disallowed passing overlapping input ranges to
+damon_set_regions().  Add a kunit test case for the overlapping input.
 
-Link: https://lore.kernel.org/20260902054747.99370-11-sj@kernel.org
+Link: https://lore.kernel.org/20260902054747.99370-9-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Cc: Brendan Higgins <brendan.higgins@linux.dev>
 Cc: David Gow <davidgow@davidgow.net>
@@ -95,19 +95,29 @@ Cc: Kunwu Chan <kunwu.chan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/damon/sysfs.sh |    1 +
- 1 file changed, 1 insertion(+)
+ mm/damon/tests/core-kunit.h |   11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
---- a/tools/testing/selftests/damon/sysfs.sh~selftests-damon-sysfssh-test-hugepage_mem_bp-quota-goal
-+++ a/tools/testing/selftests/damon/sysfs.sh
-@@ -210,6 +210,7 @@ test_goal()
- 	ensure_write_succ "$fpath" "active_mem_bp" "valid input"
- 	ensure_write_succ "$fpath" "inactive_mem_bp" "valid input"
- 	ensure_write_succ "$fpath" "node_eligible_mem_bp" "valid input"
-+	ensure_write_succ "$fpath" "hugepage_mem_bp" "valid input"
- 	ensure_write_fail "$fpath" "foo" "invalid input"
- 	ensure_file "$goal_dir/nid" "exist" "600"
- 	ensure_file "$goal_dir/path" "exist" "600"
+--- a/mm/damon/tests/core-kunit.h~mm-damon-tests-core-kunit-test-overlapping-ranges-for-set_regions
++++ a/mm/damon/tests/core-kunit.h
+@@ -612,6 +612,17 @@ static void damon_test_set_regions(struc
+ 			{.start = 42, .end = 21},
+ 			}, 1, 1,
+ 			(struct damon_addr_range[]){}, 0, -EINVAL);
++	/*
++	 * Regions resulting in same region after alignment should return
++	 * -EINVAL.
++	 */
++	damon_test_set_regions_for(test,
++			(struct damon_addr_range[]){}, 0,
++			(struct damon_addr_range[]){
++			{.start = 10, .end = 20},
++			{.start = 20, .end = 30},
++			}, 2, 4096,
++			(struct damon_addr_range[]){}, 0, -EINVAL);
+ }
+ 
+ static void damon_test_update_monitoring_result(struct kunit *test)
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
