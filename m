@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DCC513290C7
-	for <mm-commits@vger.kernel.org>; Wed,  2 Sep 2026 20:30:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C97E93290C7
+	for <mm-commits@vger.kernel.org>; Wed,  2 Sep 2026 20:30:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788381031; cv=none; b=QihECvW3kkzDNQAnxW1fDMKFQyHXau4NgrPqqmcOBF1go1KsICO1C6/GW9NkmZKS+qCcA9y7+tYs31MqL2vD6aA4a10gk1P12cc+6z9q9zEFN45Q98NLUStJ5DPgqpAgexAAKiucA5zmoC3od2eSQz52N/hwn1EaIbZLIjYhzpE=
+	t=1788381033; cv=none; b=RajEr4R6iOZJc7vn35EmbdoeRuHef5ZlA/rMg7IFtVN5vR1ngwTXt7zcBvq345TrGEhAXvr5JesjJCjEkBbJJVbFTQVpGPNRJQdP/nu0xFI2r2luOl7pPlhtNRdMAEit8sGXI+N6Azuajfjs7aUu9S++4tKuT6ebxebE5yodlns=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788381031; c=relaxed/simple;
-	bh=ta7Hqopss/UmeUCug8deV+8v6qmwMRukRXqCyQTxGKM=;
-	h=Date:To:From:Subject:Message-Id; b=CI95Ci05SjE9YmrwUzAVVaj20ITyf4x9Z061JbOUcc84HafQzyq+f8Zi/3uuITOgBBThz7Z/420t4Q7t9Xb2Y764EtFMT1DXVefD6Zvhoz2HMIfz+e7GG8xc8BK7jH6iQpyBde1U4ZWqrqViaK8c1u3hL+i9prAm8gvAnMxAZAA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=n1XMeY4m; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788381033; c=relaxed/simple;
+	bh=yJkzcHv+52kwDK6rxL4wUst953lBMtd5jk6sWuwa1Fs=;
+	h=Date:To:From:Subject:Message-Id; b=up0zC5LIrXSBZWgGK9WWEqMSXTws2XwgxbTN1HfsTTyY6LEshXeqCWPyqxgHeYnXyVxiwjzuraOATgcL+tYGZxZbnMT2Rie+Eo7prNeOpA3FMLXdd2ZIHLS9XKFwS/hhMQPunSRu8JK5eL40DORf+qCuimStTjYnmQc+Fb/Rc30=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bU/JLwZQ; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="n1XMeY4m"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 565861F000E9;
-	Wed,  2 Sep 2026 20:30:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bU/JLwZQ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 560A61F00A3A;
+	Wed,  2 Sep 2026 20:30:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788381029;
-	bh=XF6QIZWDQwWAn7//DatdMghynZtIln7q5sBb6qBikME=;
+	d=linux-foundation.org; s=korg; t=1788381031;
+	bh=8eOkb8TJuO12o25EfGjSLnJB5Kyvw4DeY6AKKDudcvg=;
 	h=Date:To:From:Subject;
-	b=n1XMeY4mrKBnulkpm8X1b3+/TUFOLAt96lJmo3PKGl8Tye5MyyH/LUnEMWiSORnHw
-	 cfDZ6z+SaDJBcuXmXbPrR1wcy5r9qSPMJgUiuHi6TnmAQ9uL+w7LmmuClrtf0X5gFp
-	 +2YR6VbgslRFkg51/hbWlclC9hkBESrV0CCeXQgw=
-Date: Wed, 02 Sep 2026 13:30:28 -0700
+	b=bU/JLwZQ/FzTVVxRZ0y7RgHNTCpGJ6i919D4ZCeJnctn9Lp1O9BuwM7hd/Cx/66mV
+	 XEfIbnCV6xYOcXZ5cQjW1HADnGtRUy8f2ZdFWjSG6E57DkktHtGRK4VFf7WFAGdcfu
+	 57KmeSg18ulzVPUX6bMHQATU3xWAlcN/JhuPEbpg=
+Date: Wed, 02 Sep 2026 13:30:30 -0700
 To: mm-commits@vger.kernel.org,shuah@kernel.org,davidgow@davidgow.net,brendan.higgins@linux.dev,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-tests-core-kunit-test-damon_commit_filter.patch added to mm-new branch
-Message-Id: <20260902203029.565861F000E9@smtp.kernel.org>
+Subject: + mm-damon-tests-core-kunit-add-damon_commit_probes-test.patch added to mm-new branch
+Message-Id: <20260902203031.560A61F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/tests/core-kunit: test damon_commit_filter()
+     Subject: mm/damon/tests/core-kunit: add damon_commit_probes() test
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-tests-core-kunit-test-damon_commit_filter.patch
+     mm-damon-tests-core-kunit-add-damon_commit_probes-test.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-tests-core-kunit-test-damon_commit_filter.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-tests-core-kunit-add-damon_commit_probes-test.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,24 +70,13 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/tests/core-kunit: test damon_commit_filter()
-Date: Wed, 2 Sep 2026 07:03:07 -0700
+Subject: mm/damon/tests/core-kunit: add damon_commit_probes() test
+Date: Wed, 2 Sep 2026 07:03:08 -0700
 
-Patch series "mm/damon: add kunit and selftests for probes and probe
-weights".
+Add kunit test to ensure damon_commit_probes() updates destination DAMON
+context with source probes as expected.
 
-DAMON recently introduced probes and probe weights.  Add kunit and
-selftests for ensuring the parameters for features can be set using the
-core API and the sysfs ABI, respectively.
-
-
-This patch (of 6):
-
-Add kunit test to ensure damon_commit_filter() updates destination filter
-as expected for valid inputs.
-
-Link: https://lore.kernel.org/20260902140313.85983-1-sj@kernel.org
-Link: https://lore.kernel.org/20260902140313.85983-2-sj@kernel.org
+Link: https://lore.kernel.org/20260902140313.85983-3-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Cc: Brendan Higgins <brendan.higgins@linux.dev>
 Cc: David Gow <davidgow@davidgow.net>
@@ -95,62 +84,106 @@ Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/tests/core-kunit.h |   40 ++++++++++++++++++++++++++++++++++
- 1 file changed, 40 insertions(+)
+ mm/damon/tests/core-kunit.h |   84 ++++++++++++++++++++++++++++++++++
+ 1 file changed, 84 insertions(+)
 
---- a/mm/damon/tests/core-kunit.h~mm-damon-tests-core-kunit-test-damon_commit_filter
+--- a/mm/damon/tests/core-kunit.h~mm-damon-tests-core-kunit-add-damon_commit_probes-test
 +++ a/mm/damon/tests/core-kunit.h
-@@ -1316,6 +1316,45 @@ static void damon_test_commit_target_reg
- 			(unsigned long[][2]) {{3, 8}, {8, 10}}, 2);
+@@ -1355,6 +1355,89 @@ static void damon_test_commit_filter(str
+ 			});
  }
  
-+static void damon_test_commit_filter_for(struct kunit *test,
-+		struct damon_filter *dst, struct damon_filter *src)
++static struct damon_ctx *damon_test_help_setup_probes(unsigned int weights[],
++		int nr_weights)
 +{
-+	damon_commit_filter(dst, src);
-+	KUNIT_EXPECT_EQ(test, dst->type, src->type);
-+	KUNIT_EXPECT_EQ(test, dst->matching, src->matching);
-+	KUNIT_EXPECT_EQ(test, dst->allow, src->allow);
-+	switch (src->type) {
-+	case DAMON_FILTER_TYPE_MEMCG:
-+		KUNIT_EXPECT_EQ(test, dst->memcg_id, src->memcg_id);
-+		break;
-+	default:
-+		break;
++	struct damon_ctx *ctx;
++	struct damon_probe *probe;
++	int i;
++
++	ctx = damon_new_ctx();
++	if (!ctx)
++		return NULL;
++	for (i = 0; i < nr_weights; i++) {
++		probe = damon_new_probe();
++		if (!probe) {
++			damon_destroy_ctx(ctx);
++			return NULL;
++		}
++		probe->weight = weights[i];
++		damon_add_probe(ctx, probe);
 +	}
++	return ctx;
 +}
 +
-+static void damon_test_commit_filter(struct kunit *test)
++static void damon_test_commit_probes_for(struct kunit *test,
++		unsigned int dst_weights[], int nr_dst_probes,
++		unsigned int src_weights[], int nr_src_probes)
 +{
-+	struct damon_filter dst = {
-+		.type = DAMON_FILTER_TYPE_ANON,
-+		.matching = false,
-+		.allow = false,
-+	};
++	struct damon_ctx *dst, *src;
++	int err;
++	struct damon_probe *dst_probe, *src_probe;
 +
-+	damon_test_commit_filter_for(test, &dst,
-+			&(struct damon_filter){
-+			.type = DAMON_FILTER_TYPE_ANON,
-+			.matching = true,
-+			.allow = true,
-+			});
-+	damon_test_commit_filter_for(test, &dst,
-+			&(struct damon_filter){
-+			.type = DAMON_FILTER_TYPE_MEMCG,
-+			.matching = false,
-+			.allow = false,
-+			.memcg_id = 123,
-+			});
++	dst = damon_test_help_setup_probes(dst_weights, nr_dst_probes);
++	if (!dst)
++		kunit_skip(test, "dst alloc fail");
++	src = damon_test_help_setup_probes(src_weights, nr_src_probes);
++	if (!src) {
++		damon_destroy_ctx(dst);
++		kunit_skip(test, "src alloc fail");
++	}
++
++	err = damon_commit_probes(dst, src);
++	KUNIT_EXPECT_EQ(test, err, 0);
++	if (err)
++		goto out;
++	nr_dst_probes = 0;
++	damon_for_each_probe(dst_probe, dst)
++		nr_dst_probes++;
++	nr_src_probes = 0;
++	damon_for_each_probe(src_probe, src)
++		nr_src_probes++;
++	KUNIT_EXPECT_EQ(test, nr_dst_probes, nr_src_probes);
++	if (nr_dst_probes != nr_src_probes)
++		goto out;
++	nr_dst_probes = 0;
++	damon_for_each_probe(dst_probe, dst) {
++		src_probe = damon_nth_probe(nr_dst_probes, src);
++		KUNIT_EXPECT_EQ(test, src_probe->weight, dst_probe->weight);
++		nr_dst_probes++;
++	}
++out:
++	damon_destroy_ctx(dst);
++	damon_destroy_ctx(src);
++}
++
++static void damon_test_commit_probes(struct kunit *test)
++{
++	damon_test_commit_probes_for(test,
++			(unsigned int[]){}, 0, (unsigned int[]){}, 0);
++	damon_test_commit_probes_for(test,
++			(unsigned int[]){}, 0, (unsigned int[]){1}, 1);
++	damon_test_commit_probes_for(test,
++			(unsigned int[]){}, 0, (unsigned int[]){1, 2}, 2);
++	damon_test_commit_probes_for(test,
++			(unsigned int[]){1}, 1, (unsigned int[]){2}, 1);
++	damon_test_commit_probes_for(test,
++			(unsigned int[]){1}, 1, (unsigned int[]){2, 3}, 2);
++	damon_test_commit_probes_for(test,
++			(unsigned int[]){2, 3}, 2, (unsigned int[]){1}, 1);
++	damon_test_commit_probes_for(test,
++			(unsigned int[]){2, 3}, 2, (unsigned int[]){}, 0);
++	damon_test_commit_probes_for(test,
++			(unsigned int[]){2}, 1, (unsigned int[]){}, 0);
 +}
 +
  static void damon_test_commit_ctx(struct kunit *test)
  {
  	struct damon_ctx *src, *dst;
-@@ -1722,6 +1761,7 @@ static struct kunit_case damon_test_case
- 	KUNIT_CASE(damos_test_commit_pageout),
+@@ -1762,6 +1845,7 @@ static struct kunit_case damon_test_case
  	KUNIT_CASE(damos_test_commit_migrate_hot),
  	KUNIT_CASE(damon_test_commit_target_regions),
-+	KUNIT_CASE(damon_test_commit_filter),
+ 	KUNIT_CASE(damon_test_commit_filter),
++	KUNIT_CASE(damon_test_commit_probes),
  	KUNIT_CASE(damon_test_commit_ctx),
  	KUNIT_CASE(damon_test_valid_probe_params),
  	KUNIT_CASE(damos_test_filter_out),
