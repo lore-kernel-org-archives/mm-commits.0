@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E17C282866
-	for <mm-commits@vger.kernel.org>; Wed,  2 Sep 2026 03:00:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BBDDD62809
+	for <mm-commits@vger.kernel.org>; Wed,  2 Sep 2026 03:00:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788318005; cv=none; b=Smt72DQKYgvhrXf/Tgvnjerk12zINK84PCCn93Gb51gpRKOprLCnjZ9naOtswrm4iuvjIPKZgLAHYR7FppcJ18w7yH3g96Rmeo0qwqzWaOZk1gSQ2MGFAtl85g1AXmD11P+fQIP6KDIBd+C6BtUTvuoyZ04IOaYdlOHOEoy0MTk=
+	t=1788318007; cv=none; b=GCkvYQLvkw6ToT+qVmbrw6/HkWipXqV8JOl//zRKmxpzRIBcTjkUtwR6wG/+uR7M8hll6Pccpqk96ACkMzTiJEh7LkYe2jqvlvOHY0g0ZAKKOp3Kesb/zmlD2XVFUobF5x/PIdUoIbIdkJuugvFlYdYTunUkk0VhgjfaN1pMQ6k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788318005; c=relaxed/simple;
-	bh=y0ZXKJ8w2UVrDYbb2nSd/u5Kl35Uit37TxPgs203OcU=;
-	h=Date:To:From:Subject:Message-Id; b=JLBe2WftBy/65RTsO8uUtMMUscwCrkCgge49x+7vh0E5UcmmZS8nFahFtASXGncCSbAZ2yHjIy5n8AGBzqKhthUqNBjo4eCID4EJRuceNikL6CZ7NFJGZc+jAvRgxI2Zr7wvo1pR6tntIQ2TrixWm+FWqonhHmOOq2qupjhnPt4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XAQRlyFP; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788318007; c=relaxed/simple;
+	bh=m4NW+I+Z/7oPSO8QiTZN8LH4g6Qmu8btm66IH64m5T0=;
+	h=Date:To:From:Subject:Message-Id; b=jChzYlrvL3ZSZqQKf3k2quOYw5Ip7ll3nS5xgLfb+lpCVccZleBajX/Yd1ylow44H73y29Qr1VwuvMeAxs38Rx45/GNrJsoay9GeAcwe/LesGREbc37O+tfWC1MNaY6jq2XgBJhWL7viU5b0y7gTuCXLB0zi3OWfHjCj9tX6YiI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=leHtAfCc; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XAQRlyFP"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 09EEA1F000E9;
-	Wed,  2 Sep 2026 03:00:03 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="leHtAfCc"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2AE441F00A3A;
+	Wed,  2 Sep 2026 03:00:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788318003;
-	bh=by4qZSXczR79U0j0hdTDmCYZebgQoh+OnIoPHsiaynU=;
+	d=linux-foundation.org; s=korg; t=1788318005;
+	bh=TY/wP0kYgdEaBCo8R7RDTx19hK/7QNBYyPV0DY9ndRo=;
 	h=Date:To:From:Subject;
-	b=XAQRlyFP8i0F2kLeVEgSRjeeA/cIGLK3aAEEzVk5dZBicO6IUQb/L5txJ8zYfb+dM
-	 AiVLwobd9BhP+fnU/3smt7WmABiVB7sFHUhkALUbOenQ5J1/ChCHh5xKfCBVadn9a9
-	 B5H7eV5HXxe9rHXiSkprgN0Y3oJfE5ciR5kYz89A=
-Date: Tue, 01 Sep 2026 20:00:02 -0700
+	b=leHtAfCcPKg6LTs/8+w5m7P5pRf/7XRZ96+6YwMAQKsUz52KLolsMu/htJWB6KiEv
+	 Umot00I9kG13sUpiOLeyqw5bKnBOG0jspic9IiH0eliw3vgB5P8HeE2qYXvfT5AiIY
+	 Gs5Nk1IQ4sl5MKhbtX3A08zTm5y4LKPdVJIAw3fE=
+Date: Tue, 01 Sep 2026 20:00:04 -0700
 To: mm-commits@vger.kernel.org,yuanchu@google.com,xueyuan.chen21@gmail.com,weixugc@google.com,stevensd@chromium.org,shakeel.butt@linux.dev,ridong.chen@linux.dev,mhocko@kernel.org,ljs@kernel.org,lianux.mm@gmail.com,kunwu.chan@gmail.com,kasong@tencent.com,hannes@cmpxchg.org,david@kernel.org,baoquan.he@linux.dev,baolin.wang@linux.alibaba.com,axelrasmussen@google.com,baohua@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mglru-make-lru-folio-prefetch-helper-an-inline-function.patch added to mm-new branch
-Message-Id: <20260902030003.09EEA1F000E9@smtp.kernel.org>
+Subject: + mm-mglru-move-folios-from-oldest-gen-to-second-oldest-gen-from-head-to-tail.patch added to mm-new branch
+Message-Id: <20260902030005.2AE441F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/mglru: make LRU folio prefetch helper an inline function
+     Subject: mm/mglru: move folios from oldest gen to second-oldest gen from head to tail
 has been added to the -mm mm-new branch.  Its filename is
-     mm-mglru-make-lru-folio-prefetch-helper-an-inline-function.patch
+     mm-mglru-move-folios-from-oldest-gen-to-second-oldest-gen-from-head-to-tail.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mglru-make-lru-folio-prefetch-helper-an-inline-function.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mglru-move-folios-from-oldest-gen-to-second-oldest-gen-from-head-to-tail.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,24 +70,21 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Barry Song (Xiaomi)" <baohua@kernel.org>
-Subject: mm/mglru: make LRU folio prefetch helper an inline function
-Date: Wed, 2 Sep 2026 07:24:19 +0800
+Subject: mm/mglru: move folios from oldest gen to second-oldest gen from head to tail
+Date: Wed, 2 Sep 2026 07:24:20 +0800
 
-`prefetchw_prev_lru_folio()` is currently implemented as a macro with a
-potentially unused argument.  This makes the helper harder to read and can
-also trigger checkpatch warnings about unused macro arguments.
+For reclamation, it makes sense to reclaim folios from tail to head, as
+folios near the head are relatively hot.  However, when moving folios from
+the oldest generation to the second-oldest generation, using the
+tail-to-head order would effectively cause a cold/hot inversion.
 
-Make it a `static inline` function and remove the unnecessary `_field`
-argument.  The helper always prefetches the previous folio's `flags`, so
-there is no need to make the field configurable.
-
-Link: https://lore.kernel.org/20260901232421.40157-6-baohua@kernel.org
+Link: https://lore.kernel.org/20260901232421.40157-7-baohua@kernel.org
 Signed-off-by: Barry Song (Xiaomi) <baohua@kernel.org>
+Reviewed-by: Baoquan He <baoquan.he@linux.dev>
 Tested-by: Xueyuan Chen <xueyuan.chen21@gmail.com>
 Reviewed-by: Lian Wang <lianux.mm@gmail.com>
 Cc: Axel Rasmussen <axelrasmussen@google.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Baoquan He <baoquan.he@linux.dev>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: David Stevens <stevensd@chromium.org>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
@@ -102,52 +99,62 @@ Cc: Yuanchu Xie <yuanchu@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   26 +++++++++++++++-----------
- 1 file changed, 15 insertions(+), 11 deletions(-)
+ mm/vmscan.c |   23 +++++++++++++++++++++--
+ 1 file changed, 21 insertions(+), 2 deletions(-)
 
---- a/mm/vmscan.c~mm-mglru-make-lru-folio-prefetch-helper-an-inline-function
+--- a/mm/vmscan.c~mm-mglru-move-folios-from-oldest-gen-to-second-oldest-gen-from-head-to-tail
 +++ a/mm/vmscan.c
-@@ -182,17 +182,21 @@ struct scan_control {
- };
- 
- #ifdef ARCH_HAS_PREFETCHW
--#define prefetchw_prev_lru_folio(_folio, _base, _field)			\
--	do {								\
--		if ((_folio)->lru.prev != _base) {			\
--			struct folio *prev;				\
--									\
--			prev = lru_to_folio(&(_folio->lru));		\
--			prefetchw(&prev->_field);			\
--		}							\
--	} while (0)
-+static inline void prefetchw_prev_lru_folio(struct folio *folio,
+@@ -192,11 +192,27 @@ static inline void prefetchw_prev_lru_fo
+ 		prefetchw(&prev->flags);
+ 	}
+ }
++
++static inline void prefetchw_next_lru_folio(struct folio *folio,
 +		struct list_head *base)
 +{
-+	if (folio->lru.prev != base) {
-+		struct folio *prev;
++	if (folio->lru.next != base) {
++		struct folio *next;
 +
-+		prev = lru_to_folio(&folio->lru);
-+		prefetchw(&prev->flags);
++		next = list_entry(folio->lru.next, struct folio, lru);
++		prefetchw(&next->flags);
 +	}
 +}
  #else
--#define prefetchw_prev_lru_folio(_folio, _base, _field) do { } while (0)
-+static inline void prefetchw_prev_lru_folio(struct folio *folio,
+ static inline void prefetchw_prev_lru_folio(struct folio *folio,
+ 		struct list_head *base)
+ {
+ }
++
++static inline void prefetchw_next_lru_folio(struct folio *folio,
 +		struct list_head *base)
 +{
 +}
  #endif
  
  /*
-@@ -1700,7 +1704,7 @@ static unsigned long isolate_lru_folios(
- 		struct folio *folio;
+@@ -3943,10 +3959,11 @@ static bool inc_min_seq(struct lruvec *l
+ 	/* prevent cold/hot inversion if the type is evictable */
+ 	for (zone = 0; zone < MAX_NR_ZONES; zone++) {
+ 		struct list_head *head = &lrugen->folios[old_gen][type][zone];
++		struct list_head *pos = head->next;
+ 		long delta = 0;
  
- 		folio = lru_to_folio(src);
--		prefetchw_prev_lru_folio(folio, src, flags);
-+		prefetchw_prev_lru_folio(folio, src);
+-		while (!list_empty(head)) {
+-			struct folio *folio = lru_to_folio(head);
++		while (pos != head) {
++			struct folio *folio = list_entry(pos, struct folio, lru);
+ 			long nr_pages = folio_nr_pages(folio);
+ 			int refs = folio_lru_refs(folio);
+ 			bool workingset = folio_test_workingset(folio);
+@@ -3957,6 +3974,8 @@ static bool inc_min_seq(struct lruvec *l
+ 			VM_WARN_ON_ONCE_FOLIO(folio_is_file_lru(folio) != type, folio);
+ 			VM_WARN_ON_ONCE_FOLIO(folio_zonenum(folio) != zone, folio);
  
- 		nr_pages = folio_nr_pages(folio);
- 		total_scan += nr_pages;
++			prefetchw_next_lru_folio(folio, head);
++			pos = pos->next;
+ 			new_gen = __folio_inc_gen(folio, old_gen, &gen_increased);
+ 			/*
+ 			 * If gen_increased is false, this is a promotion. Put folios
 _
 
 Patches currently in -mm which might be from baohua@kernel.org are
