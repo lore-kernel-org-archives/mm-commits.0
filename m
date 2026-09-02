@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 200AF2DF13B
-	for <mm-commits@vger.kernel.org>; Wed,  2 Sep 2026 22:42:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 59EAD44C505
+	for <mm-commits@vger.kernel.org>; Wed,  2 Sep 2026 22:42:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788388937; cv=none; b=bZ2v1VAMhuKr7RImfEzt1EOIe4oY2duPYe3XGL7IFzrtYp9oUeUeuVptY5nyPBGBAP+Su8jZMooLW16L0rZGYyfLz/04KRg7cBIHHktMof3MzYEEScBQyg7JPvONrHcKnGhe1JNQV0YC/zaqBp9/Zb3L8XyxM+tTPQNSKEOjBQ0=
+	t=1788388936; cv=none; b=ba0TMrYVJ8XQRIqF5btChHNR0aXSFxEuDwyyaBB6kQjOaeKL5t+HZKcY18/TzphNjmDXoSNG6o3O2CrCuf2doGot4AQrEQ/AcSazaGTBG1qYHTWibBFK9cd7tUc9fUCULViViTVWi4MW5NNHWwyWwK7Dy0oe4ECFtuJm+UC0bZ0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788388937; c=relaxed/simple;
-	bh=8AKB6wGntdREe1ATLSBa8veRvzWPP+v7SjjxeCadstY=;
-	h=Date:To:From:Subject:Message-Id; b=GilkCiw/vGO6n6RBHJrPfvmmrgWaSgaAtcgMRAO3j9ak0DgcaIJT/PKs2bSgm7v5RUiu/71YBcYFhgnaNFYftl/5dMCH6ya+JL8DM8PUWxcy0WGxC5fWK/lN9RyLZYytIykte09yaeAcqUABF4KHA7nsPAlttNvKYMzBbA3clOM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LKGVWBnk; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788388936; c=relaxed/simple;
+	bh=0VJjxxfPnCpPIRIG1dwQM5g6nG71uBd2dQovgrtkMCI=;
+	h=Date:To:From:Subject:Message-Id; b=dy3KYmYkwSoZNSvWDSGG9DNSYaJO6iVWh2/G4nFp68SkmDK0TPri9S/UhOeZ6uQrlE5wwLziQhEbAjZ6GAOUlgzgwf2dkYRM5wq8aSyrdSFbGhSXRhbsHDxuo82hgaArp6OZischgBFlHMED763zwYYCPfdeciATeiRcy+YyUVY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=G7Z9B+tE; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LKGVWBnk"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 18B3B1F00A3D;
-	Wed,  2 Sep 2026 22:42:08 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="G7Z9B+tE"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F1B741F00A3F;
+	Wed,  2 Sep 2026 22:42:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788388928;
-	bh=aKglM7ZOE4uDVB5KlTbDZ8AudQa3iZem/nLou9J+Dlw=;
+	d=linux-foundation.org; s=korg; t=1788388926;
+	bh=RlvTiKr+uRB1Wct60vsBiFuavLsFepjPZhBPYHMzPgg=;
 	h=Date:To:From:Subject;
-	b=LKGVWBnkP6mT4mMZ6vrg95jgDZxzfPyCzKuKqSPioMx12gR4se5j7ITSL4zxTaPcB
-	 4JVbnT2Ggnt26WluMstYt92zgDRvfF+EWxzHuU3+05eJ06E16wc3AHd/t2zgIREDPy
-	 QWW5Z7Ci9wOrAjTF5nLnm3Oh2tQ9uMgyqJ9u0ep8=
-Date: Wed, 02 Sep 2026 15:42:07 -0700
+	b=G7Z9B+tEY2xOEWVrDHt3XhQwQewQjmQh6x2DNez4msl2Ab58Xmx0KwPmt0ITPCpFW
+	 qOTdiyteokcq0OABTFIQ+Elxsaa4TTWZ/tRRVuxVMqgEY7VXNF4h9S54M6HyLe4Q7N
+	 p4vVoTogIezc7Iw5pon9YF7OV9Oal/vMyQogYQvI=
+Date: Wed, 02 Sep 2026 15:42:05 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-sysfs-remove-probes-number-validation.patch added to mm-new branch
-Message-Id: <20260902224208.18B3B1F00A3D@smtp.kernel.org>
+Subject: + mm-damon-core-validate-number-of-probes-in-valid_probe_params.patch added to mm-new branch
+Message-Id: <20260902224205.F1B741F00A3F@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/sysfs: remove probes number validation
+     Subject: mm/damon/core: validate number of probes in valid_probe_params()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-sysfs-remove-probes-number-validation.patch
+     mm-damon-core-validate-number-of-probes-in-valid_probe_params.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-remove-probes-number-validation.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-validate-number-of-probes-in-valid_probe_params.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,17 +70,15 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/sysfs: remove probes number validation
-Date: Tue, 1 Sep 2026 22:47:38 -0700
+Subject: mm/damon/core: validate number of probes in valid_probe_params()
+Date: Tue, 1 Sep 2026 22:47:37 -0700
 
-DAMON sysfs interface is disallowing >DAMON_MAX_PROBES nr_probes input,
-since DAMON_MAX_PROBES is the upper limit of probes per DAMON context. 
-The core layer is validating the upper limit again, though.  It is
-preferred to let DAMON API callers such as sysfs interface to set
-parameters in flexible ways, and do parameters validation in the core
-layer.  Drop the duplicated validation in the sysfs interface.
+Each DAMON context is allowed to have only up to DAMON_MAX_PROBES probes. 
+The central place for validating DAMON probe parameters,
+damon_valid_probe_params(), is not validating the upper limit, though.  Do
+the validation.
 
-Link: https://lore.kernel.org/20260902054747.99370-6-sj@kernel.org
+Link: https://lore.kernel.org/20260902054747.99370-5-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Reviewed-by: Kunwu Chan <kunwu.chan@gmail.com>
 Cc: Brendan Higgins <brendan.higgins@linux.dev>
@@ -98,20 +96,25 @@ Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/sysfs.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/damon/core.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
---- a/mm/damon/sysfs.c~mm-damon-sysfs-remove-probes-number-validation
-+++ a/mm/damon/sysfs.c
-@@ -1479,7 +1479,7 @@ static ssize_t nr_probes_store(struct ko
+--- a/mm/damon/core.c~mm-damon-core-validate-number-of-probes-in-valid_probe_params
++++ a/mm/damon/core.c
+@@ -1419,6 +1419,13 @@ static bool damon_valid_probe_params(str
+ 	unsigned char max_probe_hits;
+ 	struct damon_probe *probe;
+ 	unsigned int wsum, wsum_to_add;
++	int nr_probes;
++
++	nr_probes = 0;
++	damon_for_each_probe(probe, ctx)
++		nr_probes++;
++	if (nr_probes > DAMON_MAX_PROBES)
++		return false;
  
- 	if (err)
- 		return err;
--	if (nr < 0 || nr > DAMON_MAX_PROBES)
-+	if (nr < 0)
- 		return -EINVAL;
- 
- 	probes = container_of(kobj, struct damon_sysfs_probes, kobj);
+ 	if (!damon_has_probe_weights(ctx))
+ 		return true;
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
