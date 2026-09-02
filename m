@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2B4F44AF667
-	for <mm-commits@vger.kernel.org>; Wed,  2 Sep 2026 22:37:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 431714AD4C1
+	for <mm-commits@vger.kernel.org>; Wed,  2 Sep 2026 22:42:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788388645; cv=none; b=Cfc8Dy8+HMjbdbGdWX2OYkI/bZA/YpAlibG8wEbu0KdCtaxCLd7/pUDX4W3SRe0iDTvAdDjPvEaG9rAQSjma12T6cDWBYJVN6vJJm4/fOKa5gzuh0ObZKbHkAf9s3te71YKxuCnIU8UZwbgcG6+kI7bytNoq7BHkQcF84u6+F0w=
+	t=1788388927; cv=none; b=dPPH/vmguAZXBp131wn1fdsEgyZve0TtyTs85YXgezUhVsYWJA3oGBCy/3ie1O6PqqaAa7Bfn2c3xQRgAb9wEdeLdJ47wVSiew3rqjL7g8kzWzkhXegby49Wbem4AdlOTwCxTy/xjV0PgTWTU7wSScLA8ruUho9LTrytIMCa22s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788388645; c=relaxed/simple;
-	bh=ptQiJ3xBJ1OgvN9eMF8BC9kBeusf2KJkJ8OdQRRN2VM=;
-	h=Date:To:From:Subject:Message-Id; b=bFaudPdzj2X/15dsQt5LHrxVl3eJeYTCv1ApCds4IVBWO3Tz496jTZpcvz9Q1G3yd0u4PnOCwOIY24+N1i/1qCY2WLQ5yi0O+CDBYH43d0DrPlRE0PySgshJCNRdFOUL/jFOJL9rZn8F7QT3abeRWC4etiYUZi4XCpuiDzjLrqM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gdP49C0m; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788388927; c=relaxed/simple;
+	bh=957o9Q3k+XJfBzuz+vdgpX4/bHTfJTTINrikIlxEu2g=;
+	h=Date:To:From:Subject:Message-Id; b=KtXMjqBuayrc0P/9Fszs8/1QcuMJFnIL64Hbx/abOv6V9OBfo4kPAMfJUp4ppFT2sTGlowFseDHfpCC4XKrbhdszKSx8Fdl0BlaBnF/GrGgnBwDEyoeJMsQqD2R7Zu82EBCaPsILnWGX5b9WPLATyiMSIr24t8ij9SJ1fkmRLXw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1FUPlI0v; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gdP49C0m"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2937E1F00A3D;
-	Wed,  2 Sep 2026 22:37:17 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1FUPlI0v"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E08831F00A3D;
+	Wed,  2 Sep 2026 22:42:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788388637;
-	bh=uXh6gQBz1zR9CZliVxjshLUuUyNpEMOTp+WqbujcUkU=;
+	d=linux-foundation.org; s=korg; t=1788388922;
+	bh=NzpFwuaTct58Gy5ASTmlPLULcLx2F/gYbu9O/0bCDbs=;
 	h=Date:To:From:Subject;
-	b=gdP49C0mkYQF5bt0VbWC5GjoFDWPjrqQGXfGtvAbym3PLxStMmuovW/nj18gIlmHw
-	 Zzc/FfXrgc/54zeoMAjsxnJipkATXRHJQ67q8/SgypJmXCdsmegEnRMC1zPrsEd8JI
-	 K5gAE2OW8s4kBF9JyXi4FU/LLiEGjq4DOKa58g+A=
-Date: Wed, 02 Sep 2026 15:37:16 -0700
-To: mm-commits@vger.kernel.org,rostedt@goodmis.org,mhiramat@kernel.org,mathieu.desnoyers@efficios.com,ljs@kernel.org,zhaomeijing@lixiang.com,akpm@linux-foundation.org
+	b=1FUPlI0vieYsCxDbX4df3/4VNFEuP6Wn5Mh0NdFSbvJ3HAEhv0zzE1hE4acVJMVP2
+	 CuzysxsVqt/dllbunAJ+ltmyk8dpFmu8MG4nIq0ENAvT1iXMeYXF1l2VXo3q2ZIsGf
+	 hsE2QXn1eY1pzZv6OyXSwcmLAjkQ+YvsofF2HIbY=
+Date: Wed, 02 Sep 2026 15:42:01 -0700
+To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-trace-name-protection-key-encoding-bits.patch added to mm-new branch
-Message-Id: <20260902223717.2937E1F00A3D@smtp.kernel.org>
+Subject: + mm-damon-core-remove-debug-messages-fix.patch added to mm-new branch
+Message-Id: <20260902224201.E08831F00A3D@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: trace: name protection key encoding bits
+     Subject: mm/damon/core: remove string_choices.h include
 has been added to the -mm mm-new branch.  Its filename is
-     mm-trace-name-protection-key-encoding-bits.patch
+     mm-damon-core-remove-debug-messages-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-trace-name-protection-key-encoding-bits.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-remove-debug-messages-fix.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,80 +69,93 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Meijing Zhao <zhaomeijing@lixiang.com>
-Subject: mm: trace: name protection key encoding bits
-Date: Wed, 2 Sep 2026 14:45:10 +0800
+From: SJ Park <sj@kernel.org>
+Subject: mm/damon/core: remove string_choices.h include
+Date: Tue, 1 Sep 2026 23:08:16 -0700
 
-Protection keys are encoded in architecture-specific HIGH_ARCH_* VMA flag
-bits.  show_vma_flags(), which is used by VMA tracepoints and %pGv, does
-not name those bits, leaving them as raw hexadecimal values.
+It is no more being used.
 
-Name the protection-key encoding bits pkey_bit0 through pkey_bit4 under
-CONFIG_ARCH_HAS_PKEYS.  The names make clear that these are bits of one
-protection-key value rather than independent protection keys.  For
-example, protection key 3 is represented as:
-
-  pkey_bit0|pkey_bit1
-
-Honor CONFIG_ARCH_PKEY_BITS when exposing bit 3 and bit 4 so only bits
-provided by the architecture are included.
-
-Link: https://lore.kernel.org/1871da32001243b37147bac5af02d2f2ec64304e.1788330432.git.zhaomeijing@lixiang.com
-Signed-off-by: Meijing Zhao <zhaomeijing@lixiang.com>
+Link: https://lore.kernel.org/20260902061401.104419-1-sj@kernel.org
+Signed-off-by: SJ Park <sj@kernel.org>
+Cc: Brendan Higgins <brendan.higgins@linux.dev>
+Cc: David Gow <davidgow@davidgow.net>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: "Masami Hiramatsu (Google)" <mhiramat@kernel.org>
-Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Kunwu Chan <kunwu.chan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/trace/events/mmflags.h |   23 +++++++++++++++++++++++
- 1 file changed, 23 insertions(+)
+ mm/damon/core.c |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/include/trace/events/mmflags.h~mm-trace-name-protection-key-encoding-bits
-+++ a/include/trace/events/mmflags.h
-@@ -202,6 +202,24 @@ IF_HAVE_PG_ARCH_3(arch_3)
- # define IF_HAVE_VM_DROPPABLE(flag, name)
- #endif
+--- a/mm/damon/core.c~mm-damon-core-remove-debug-messages-fix
++++ a/mm/damon/core.c
+@@ -15,7 +15,6 @@
+ #include <linux/sched.h>
+ #include <linux/slab.h>
+ #include <linux/string.h>
+-#include <linux/string_choices.h>
  
-+#ifdef CONFIG_ARCH_HAS_PKEYS
-+# define IF_HAVE_VM_PKEY(flag, name) {flag, name},
-+#if CONFIG_ARCH_PKEY_BITS > 3
-+# define IF_HAVE_VM_PKEY3(flag, name) {flag, name},
-+#else
-+# define IF_HAVE_VM_PKEY3(flag, name)
-+#endif
-+#if CONFIG_ARCH_PKEY_BITS > 4
-+# define IF_HAVE_VM_PKEY4(flag, name) {flag, name},
-+#else
-+# define IF_HAVE_VM_PKEY4(flag, name)
-+#endif
-+#else
-+# define IF_HAVE_VM_PKEY(flag, name)
-+# define IF_HAVE_VM_PKEY3(flag, name)
-+# define IF_HAVE_VM_PKEY4(flag, name)
-+#endif
-+
- #ifdef CONFIG_ARM64_MTE
- # define IF_HAVE_VM_MTE(flag, name) {flag, name},
- #else
-@@ -250,6 +268,11 @@ IF_HAVE_VM_SOFTDIRTY(VM_SOFTDIRTY,	"soft
- 	{VM_HUGEPAGE,			"hugepage"	},		\
- 	{VM_NOHUGEPAGE,			"nohugepage"	},		\
- IF_HAVE_VM_DROPPABLE(VM_DROPPABLE,	"droppable"	)		\
-+IF_HAVE_VM_PKEY(VM_PKEY_BIT0,		"pkey_bit0")		\
-+IF_HAVE_VM_PKEY(VM_PKEY_BIT1,		"pkey_bit1")		\
-+IF_HAVE_VM_PKEY(VM_PKEY_BIT2,		"pkey_bit2")		\
-+IF_HAVE_VM_PKEY3(VM_PKEY_BIT3,		"pkey_bit3")		\
-+IF_HAVE_VM_PKEY4(VM_PKEY_BIT4,		"pkey_bit4")		\
- IF_HAVE_VM_MTE(VM_MTE,			"mte")			\
- IF_HAVE_VM_MTE(VM_MTE_ALLOWED,		"mte_allowed")		\
- IF_HAVE_VM_SHADOW_STACK(VM_SHADOW_STACK, "shadow_stack")	\
+ /* for damon_get_folio() used by node eligible memory metrics */
+ #include "ops-common.h"
 _
 
-Patches currently in -mm which might be from zhaomeijing@lixiang.com are
+Patches currently in -mm which might be from sj@kernel.org are
 
-mm-trace-decode-arm64-and-sparc64-vm_arch_1-flags.patch
-mm-trace-decode-mte-and-shadow-stack-vma-flags.patch
-mm-trace-name-protection-key-encoding-bits.patch
+mm-damon-core-skip-applying-scheme-if-region-split-for-quota-fails.patch
+mm-damon-paddr-respect-folio-end-for-damos_stat.patch
+mm-damon-paddr-respect-folio-end-for-damos-actions-except-stat.patch
+mm-damon-vaddr-respect-folio-end-for-damos_stat.patch
+mm-damon-vaddr-respect-folio-end-for-damos_migrate_hotcold.patch
+mm-damon-core-handle-extreme-memory-state-in-damon_get_node_mem_bp.patch
+mm-damon-core-handle-extreme-memory-state-in-get_node_memcg_used_bp.patch
+mm-damon-core-handle-extreme-memory-state-in-get_in_active_mem_bp.patch
+mm-damon-core-introduce-damon_filter_type_pgidle_unset.patch
+mm-damon-paddr-support-pgidle_unset-probe-filter-type.patch
+mm-damon-sysfs-support-pgidle_unset-probe-filter-type.patch
+docs-mm-damon-design-document-pgidle_unset-probe-filter-type.patch
+mm-damon-core-introduce-damon_prep-struct.patch
+mm-damon-core-commit-preps.patch
+mm-damon-core-introduce-damon_operations-prep_probes.patch
+mm-damon-paddr-support-damon_prep.patch
+mm-damon-sysfs-implement-preps-directory.patch
+mm-damon-sysfs-implement-preps-nr_preps-file.patch
+mm-damon-sysfs-create-directories-for-nr_preps-writes.patch
+mm-damon-sysfs-implement-prep_action-file.patch
+mm-damon-sysfs-pass-preps-to-damon-core.patch
+selftests-damon-sysfssh-test-probe-prep-sysfs-files.patch
+docs-mm-damon-design-document-probe-preps.patch
+docs-admin-guide-mm-damon-usage-document-probe-preps-sysfs-files.patch
+docs-abi-damon-document-probe-prep-sysfs-files.patch
+mm-damon-tests-core-kunit-test-committing-psi-goal-to-psi-goal.patch
+mm-damon-core-handle-uninitialized-damos_quota_goal-last_psi_total.patch
+mm-damon-core-copy-nid-for-eligible_mem_bp-damos-quota-goal-commit.patch
+mm-damon-sysfs-set-next-refresh-jiffies-per-sysfs-context.patch
+mm-damon-tests-core-kunit-test-damon_commit_filter.patch
+mm-damon-tests-core-kunit-add-damon_commit_probes-test.patch
+selftests-damon-_damon_sysfs-implement-damonprobes.patch
+selftests-damon-drgn_dump_damon_status-dump-probes.patch
+selftests-damon-sysfspy-extend-commit-assertion-function-for-probes.patch
+selftests-damon-sysfspy-test-damon-probes.patch
+mm-damon-core-use-damon_nr_samples_per_aggr-for-max-merge-threshold.patch
+mm-damon-core-remove-debug-messages.patch
+mm-damon-core-remove-debug-messages-fix.patch
+mm-damon-vaddr-remove-a-debug-message.patch
+mm-damon-core-validate-number-of-probes-in-valid_probe_params.patch
+mm-damon-sysfs-remove-probes-number-validation.patch
+mm-damon-tests-core-kunit-extend-set_regions-test-for-error-case.patch
+mm-damon-tests-core-kunit-test-=0-size-damon_set_regions-inputs.patch
+mm-damon-tests-core-kunit-test-overlapping-ranges-for-set_regions.patch
+mm-damon-tests-core-kunit-test-damon_nr_samples_per_aggr.patch
+selftests-damon-sysfssh-test-hugepage_mem_bp-quota-goal.patch
+docs-mm-damon-maintainer-profile-update-ai-review-for-sashiko-replies.patch
+docs-abi-damon-recommend-subsystem-doc-instead-of-admin-guide.patch
 
