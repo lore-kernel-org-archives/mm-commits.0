@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 15A864195A0
-	for <mm-commits@vger.kernel.org>; Wed,  2 Sep 2026 22:51:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D1BFC26AC5
+	for <mm-commits@vger.kernel.org>; Thu,  3 Sep 2026 00:52:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788389472; cv=none; b=ErNzHB93Is6b11ayz994DmEYVi2XKXxCIZDlGB9p3yr1e6+I/rL/C8ztm0Wpm6JcU1Ryxi7n0+7k3DaEBsXVbqrKEAmYN660tTPFViyyzRjr5/YGi4Bx/wteDrbiD9x2r/JV4vQtzdg/d+P4BzOYkXp3ZdNkW6UWslvy5QqV9Pk=
+	t=1788396747; cv=none; b=jj9s8r21zSHA+NvafbgCQanRTtVSu4PYzmAsldTqXqjRtuKOIrhHECwS26j9tmj0BoxClgjfETkZ3PiYrB/wlCABZGYkzi1+l73wNv9iff/rGJWLD2yARAM1kWXcACiz+SAkAv94LK8/tEE4fgVKs81wWWrde4waBsWryIuvz1c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788389472; c=relaxed/simple;
-	bh=uxEBcOUJU611ArD2ALKzt/fdj/HJEcR9cnxIJX2jJwQ=;
-	h=Date:To:From:Subject:Message-Id; b=C5DbJm2jA44HykS9I3LwZWEa/6g+7gjtvsdiT2ubOw81l6Yw2cKcONDTYxAB6BEHzo6hOqs0ddKupLXeA4WNylJVS9YFTZw4oS8wtBQpwDrY9E4yWdvghnBgSe0zqOmC3BWhnifXCAPAP8s6PfgsURD5zrMjssVr6VpAApNmxuk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sXUmHwq2; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788396747; c=relaxed/simple;
+	bh=7PJUgAGGVo7TLvcIpYtpqs2Lb+lrDX5VkkdUjhKRs2w=;
+	h=Date:To:From:Subject:Message-Id; b=pkzGtN6RdRUD8GDGK9vag1YAzbqf1t6Uib747yx2GCsNyAxYp23zkdimGOcmm8GtyuJZZxuoxVAe94KYds32DlL/IqU6ZZfc+jGTT2jwCyMCYjfUj5xPuNbie75et5kdcSF7lLEDjGIJb4uihIcjwp/x9lxb+87n6ubWziffQvg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oazMS1VP; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sXUmHwq2"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C57E21F000E9;
-	Wed,  2 Sep 2026 22:51:01 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oazMS1VP"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6AF201F000E9;
+	Thu,  3 Sep 2026 00:52:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788389461;
-	bh=ISzpSuu3fIaUkFGVE7ja7lI1OKWHrVfada84C3YoGSI=;
+	d=linux-foundation.org; s=korg; t=1788396745;
+	bh=B064liZZsN0kN2v+hX+bRpRUwW3VbfpinASKtshvSlU=;
 	h=Date:To:From:Subject;
-	b=sXUmHwq2hdNf+PAKhFZhYjP71N1sLpCDUkptVF4QiUJ9JJ8KQCds1qcoE5oyLZDPM
-	 SpvaRiXY7C4ZCBvy+uTvMjvKpy2xFej6JJqbbll3ThOsJOgy09qIoyK+r4ydwHpVit
-	 V9Og55mTc68QLJWlihhH7ARXvF7SMapoGoJhfypw=
-Date: Wed, 02 Sep 2026 15:51:01 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,rakie.kim@sk.com,matthew.brost@intel.com,joshua.hahnjy@gmail.com,gourry@gourry.net,david@kernel.org,byungchul@sk.com,apopple@nvidia.com,zhaozhengzhuo@uniontech.com,akpm@linux-foundation.org
+	b=oazMS1VPkm+v4/ilFUDJFdUFSvZSyswCNWOmUjgApRUtrjJfGgVewJg13YCAjq68e
+	 rRpqJ3V2mDf8kHABm0bUMsrk+IxyJ6YUVUStM92GG8Ndobz91fU7hlQHBomqysX8Co
+	 3wVMy/41aVgvk7tXns2t1s33/Luqew/pqhoveDXk=
+Date: Wed, 02 Sep 2026 17:52:25 -0700
+To: mm-commits@vger.kernel.org,nathan@kernel.org,morbo@google.com,justinstitt@google.com,ndesaulniers@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-migrate_device-fix-function-name-in-kernel-doc.patch added to mm-new branch
-Message-Id: <20260902225101.C57E21F000E9@smtp.kernel.org>
+Subject: + scripts-checkstackpl-support-llvm-objdump-disassembly-for-x86.patch added to mm-nonmm-unstable branch
+Message-Id: <20260903005225.6AF201F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,26 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/migrate_device: fix function name in kernel-doc
-has been added to the -mm mm-new branch.  Its filename is
-     mm-migrate_device-fix-function-name-in-kernel-doc.patch
+     Subject: scripts/checkstack.pl: support llvm-objdump disassembly for x86
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     scripts-checkstackpl-support-llvm-objdump-disassembly-for-x86.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-migrate_device-fix-function-name-in-kernel-doc.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/scripts-checkstackpl-support-llvm-objdump-disassembly-for-x86.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,52 +58,54 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: zhaozhengzhuo <zhaozhengzhuo@uniontech.com>
-Subject: mm/migrate_device: fix function name in kernel-doc
-Date: Wed, 2 Sep 2026 11:12:29 +0800
+From: Nick Desaulniers <ndesaulniers@google.com>
+Subject: scripts/checkstack.pl: support llvm-objdump disassembly for x86
+Date: Wed, 02 Sep 2026 14:01:53 -0700
 
-The kernel-doc for migrate_device_range() says that migrate_vma_setup() is
-similar to itself.  Refer to migrate_device_range() as the subject of the
-comparison, making the distinction between virtual-address-based and
-device-PFN-based migration clear.
+When running `make LLVM=1 checkstack`, OBJDUMP is set to llvm-objdump. 
+llvm-objdump outputs disassembly with instruction size suffixes (such as
+subq/addq/subl/addl), tabs/whitespace differences, spaces after commas,
+and trailing comments (e.g.  `# imm = 0x...`).
 
-Link: https://lore.kernel.org/13768B0F4A5FC1F5+20260902031229.1821112-1-zhaozhengzhuo@uniontech.com
-Fixes: e778406b40db ("mm/migrate_device.c: add migrate_device_range()")
-Signed-off-by: zhaozhengzhuo <zhaozhengzhuo@uniontech.com>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Byungchul Park <byungchul@sk.com>
-Cc: Gregory Price <gourry@gourry.net>
-Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
-Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
-Cc: Matthew Brost <matthew.brost@intel.com>
-Cc: Rakie Kim <rakie.kim@sk.com>
+Because scripts/checkstack.pl used rigid regular expressions specifically
+tuned to GNU objdump format (e.g.  requiring exactly four spaces, no
+suffix, and no space after comma), checkstack.pl failed to match any stack
+adjustment instructions and yielded no output when using llvm-objdump on
+x86.
+
+Update the regular expressions for x86 to match optional suffixes,
+variable whitespace, and trailing comments.
+
+Link: https://lore.kernel.org/20260902-checkstack_llvm_objdump-v1-1-edb4eca5f163@google.com
+Signed-off-by: Nick Desaulniers <ndesaulniers@google.com>
+Assisted-by: LLM Gemini
+Cc: Bill Wendling <morbo@google.com>
+Cc: Justin Stitt <justinstitt@google.com>
+Cc: Nathan Chancellor <nathan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate_device.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ scripts/checkstack.pl |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
---- a/mm/migrate_device.c~mm-migrate_device-fix-function-name-in-kernel-doc
-+++ a/mm/migrate_device.c
-@@ -1398,9 +1398,9 @@ static unsigned long migrate_device_pfn_
-  * @start: starting pfn in the range to migrate.
-  * @npages: number of pages to migrate.
-  *
-- * migrate_vma_setup() is similar in concept to migrate_vma_setup() except that
-- * instead of looking up pages based on virtual address mappings a range of
-- * device pfns that should be migrated to system memory is used instead.
-+ * migrate_device_range() is similar in concept to migrate_vma_setup(), except
-+ * that instead of looking up pages based on virtual address mappings, a range
-+ * of device pfns that should be migrated to system memory is used.
-  *
-  * This is useful when a driver needs to free device memory but doesn't know the
-  * virtual mappings of every page that may be in device memory. For example this
+--- a/scripts/checkstack.pl~scripts-checkstackpl-support-llvm-objdump-disassembly-for-x86
++++ a/scripts/checkstack.pl
+@@ -66,8 +66,10 @@ my (@stack, $re, $dre, $sub, $x, $xs, $f
+ 		#c0105234:       81 ec ac 05 00 00       sub    $0x5ac,%esp
+ 		# or
+ 		#    2f60:    48 81 ec e8 05 00 00       sub    $0x5e8,%rsp
+-		$re = qr/^.*[as][du][db]    \$(0x$x{1,8}),\%(e|r)sp$/o;
+-		$dre = qr/^.*[as][du][db]    (%.*),\%(e|r)sp$/o;
++		# or
++		#       0: 48 81 ec e8 05 00 00          subq   $0x5e8, %rsp
++		$re = qr/^.*[as][du][db][ql]?\s+\$(0x$x{1,8}),\s*\%(e|r)sp/o;
++		$dre = qr/^.*[as][du][db][ql]?\s+(%.*),\s*\%(e|r)sp/o;
+ 	} elsif ($arch eq 'm68k') {
+ 		#    2b6c:       4e56 fb70       linkw %fp,#-1168
+ 		#  1df770:       defc ffe4       addaw #-28,%sp
 _
 
-Patches currently in -mm which might be from zhaozhengzhuo@uniontech.com are
+Patches currently in -mm which might be from ndesaulniers@google.com are
 
-selftests-damon-prevent-remaining-cross-object-state-pollution.patch
-mm-migrate_device-fix-function-name-in-kernel-doc.patch
+scripts-checkstackpl-support-llvm-objdump-disassembly-for-x86.patch
 
