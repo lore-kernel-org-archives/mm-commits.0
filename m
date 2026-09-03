@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7E80E511E7F
-	for <mm-commits@vger.kernel.org>; Thu,  3 Sep 2026 20:43:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 168B3418359
+	for <mm-commits@vger.kernel.org>; Thu,  3 Sep 2026 20:44:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788468208; cv=none; b=UA252gXDVthZCkS4BUGUqyLbPLsoLKQTtgIAfRav5Uno1ZdIGI6R4KN4c7ifkFGQC7pcEuyYX+0CLFYE9hqTMuG5tFsJ7mjiT4rmvClZiuObvQ0RMOe38eNKxUy7iBo16lOC6at3LNm7Z9GeVPB1B7yJ5jaf8fDZ+p4zFDrLNJ0=
+	t=1788468308; cv=none; b=CyvKXFoD74qV3SVX2nuRkT6vRFrYIfRL+CUaZLhCfIfzUqa39F7X3VAGT6rIJ/ST3ulxcwgWJs4t+i3ATIXwL0aQCP4PgIXYxkEyKhh1EuGV/cNS9VkepwA1qm1rmisPQ+SphpCwEqP+h4T7lvb+y9vQhfSZjgsTh4kZVZzV39Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788468208; c=relaxed/simple;
-	bh=hXTp71UFbpjf/I19rhWcYWYeo/2lallV2t5IKMb2EY8=;
-	h=Date:To:From:Subject:Message-Id; b=t1mRL0yv0yKvNreb1hQMFy7192AJHOOqCg3xLDChMdJpysKVEL4bq+MM/kuL6iFhiafNiav9DeuHqvBnGFX9DEO2rFmJPGSWTsx9kiwVuDL7QjKuCH3xeIPmT6cYizapKhNuOUGP7xteG/ksdBMtI8Ey3YhEShxjfjJJYdPCeaM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sGMjae3g; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788468308; c=relaxed/simple;
+	bh=LWvbc9G1X3FOZUEiDw0BThl0UZ3XhEVsSH7qfI8MA2Y=;
+	h=Date:To:From:Subject:Message-Id; b=fMCKlUy1OM5VYOlaX+3ukjnXiY45GyUrbQGUDmzZRVT8BWQORa7FjkNFrxghKNwp73kNxl5rkikxPBLH3r9Hqi/oCSFGzgdrRIGwkciVzzHkXUxxINb8kJB3PkVDn2vac4GTBH+5a8d9DsXOJnjhC/G/G8QaQC+1dEVz2h7IIEc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TkrdK2FS; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sGMjae3g"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 746F91F00A3E;
-	Thu,  3 Sep 2026 20:43:10 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TkrdK2FS"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 56C061F000E9;
+	Thu,  3 Sep 2026 20:44:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788468190;
-	bh=uwFZcmwpzwLQZMXcn46ArOCOmO8FDytU3CJNn959hrM=;
+	d=linux-foundation.org; s=korg; t=1788468295;
+	bh=VEABHH8CiiZzWj4NM8h/1QSMxVUUcBbU6Enn4Cn5hhE=;
 	h=Date:To:From:Subject;
-	b=sGMjae3gmlaOEeBIII/dwgyIYW8T/WCuzjryk97hHkqm/Mxsa5wi5XmifDXSb9DjL
-	 RgQZgDXRliAC5JvSyd7YT8XQfd3guJc3T+wIM9rAY6j/xIPBpUHnLKS8/+mnaLBIpS
-	 r170NIBlllMiVLF9H7tGwVRkIF33RzhgTVNCLAaQ=
-Date: Thu, 03 Sep 2026 13:43:10 -0700
+	b=TkrdK2FS5BDLSuOj8IoTAC9Q3Efi7Bf+Dg2StxnhsKLiMrdYcyWbeA0fVGSi/JPHB
+	 s1RMVK2gIjNLmsxexcdCeLwKV9yi2kyUfL1+xoqs90mTI9o5WkYWK7HrITKPgpuBBW
+	 A7jkmlwL0/9bmBc28u2zTgE9tMzzmVWtBkUUC/R8=
+Date: Thu, 03 Sep 2026 13:44:54 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + revert-samples-damon-mtier-error-out-for-zero-quota-goal-target-values.patch added to mm-new branch
-Message-Id: <20260903204310.746F91F00A3E@smtp.kernel.org>
+Subject: + mm-damon-core-handle-null-ctx-parameter-in-damon_call.patch added to mm-new branch
+Message-Id: <20260903204455.56C061F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: Revert "samples/damon/mtier: error out for zero quota goal target values"
+     Subject: mm/damon/core: handle NULL ctx parameter in damon_call()
 has been added to the -mm mm-new branch.  Its filename is
-     revert-samples-damon-mtier-error-out-for-zero-quota-goal-target-values.patch
+     mm-damon-core-handle-null-ctx-parameter-in-damon_call.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/revert-samples-damon-mtier-error-out-for-zero-quota-goal-target-values.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-handle-null-ctx-parameter-in-damon_call.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,37 +70,53 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: Revert "samples/damon/mtier: error out for zero quota goal target values"
-Date: Wed, 2 Sep 2026 18:07:21 -0700
+Subject: mm/damon/core: handle NULL ctx parameter in damon_call()
+Date: Wed, 2 Sep 2026 18:03:30 -0700
 
-This reverts commit a16fd3ad9d89b05475864da97327870464611736.
+Patch series "mm/damon: allow NULL or unstarted damon_ctx parameter for
+damon_call()".
 
-The commit was made to avoid zero damos quota goal target value, because
-it can trigger division-by-zero.  Now the core layer handles the corner
-case.  It returns an error for any attempt setting the aero target_value. 
-The corner case handling in DAMON_SAMPLE_MTIER is hence no more needed. 
-Remove it.
+Callers of damon_call() should validate the damon_ctx object parameter. 
+If it is NULL or never damon_start()-ed object, damon_call() could
+dereference the NULL pointer or indefinitely hang.  Ensuring all callers
+doing the validation correctly has turned out to be difficult.  Handle the
+corner cases inside the core layer and remove callers' validations.
 
-Link: https://lore.kernel.org/20260903010722.94244-4-sj@kernel.org
+Patches 1 and 2 respectively allow passing NULL and not yet
+damon_start()-ed ctx parameter to damon_call().  Patches 3 and 4 remove
+the callers side validations in DMON_RECLAIM and DASMON_LRU_SORT,
+respectively.
+
+
+This patch (of 4):
+
+When NULL damon_ctx pointer parameter is passed, damon_call() could do
+NULL dereference.  The caller is responsible to avoid that.  It is easy to
+forget, and there are many damon_call() callers.  Meanwhile, damon_call()
+is never meant to be performance critical.  It uses mutex and completion. 
+Add the NULL pointer check inside damon_call() so that callers can pass
+the parameter without NULL checks.
+
+Link: https://lore.kernel.org/20260903010334.93622-1-sj@kernel.org
+Link: https://lore.kernel.org/20260903010334.93622-2-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- samples/damon/mtier.c |    3 ---
- 1 file changed, 3 deletions(-)
+ mm/damon/core.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/samples/damon/mtier.c~revert-samples-damon-mtier-error-out-for-zero-quota-goal-target-values
-+++ a/samples/damon/mtier.c
-@@ -161,9 +161,6 @@ static struct damon_ctx *damon_sample_mt
- 	if (!scheme)
- 		goto free_out;
- 	damon_set_schemes(ctx, &scheme, 1);
--	/* zero target value causes division by zero in damos_quota_store() */
--	if (!node0_mem_used_bp || !node0_mem_free_bp)
--		goto free_out;
- 	quota_goal = damos_new_quota_goal(
- 			promote ? DAMOS_QUOTA_NODE_MEM_USED_BP :
- 			DAMOS_QUOTA_NODE_MEM_FREE_BP,
+--- a/mm/damon/core.c~mm-damon-core-handle-null-ctx-parameter-in-damon_call
++++ a/mm/damon/core.c
+@@ -2216,6 +2216,8 @@ int damon_kdamond_pid(struct damon_ctx *
+  */
+ int damon_call(struct damon_ctx *ctx, struct damon_call_control *control)
+ {
++	if (!ctx)
++		return -EINVAL;
+ 	if (!control->repeat)
+ 		init_completion(&control->completion);
+ 	control->canceled = false;
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
@@ -156,4 +172,8 @@ docs-abi-damon-recommend-subsystem-doc-instead-of-admin-guide.patch
 mm-damon-core-error-damos_commit_quota_goal-for-zero-target_value.patch
 revert-mm-damon-lru_sort-error-out-for-10000-active_mem_bp.patch
 revert-samples-damon-mtier-error-out-for-zero-quota-goal-target-values.patch
+mm-damon-core-handle-null-ctx-parameter-in-damon_call.patch
+mm-damon-core-set-ctx-call_controls_obsolete-in-damon_new_ctx.patch
+mm-damon-reclaim-remove-unnecessary-damon_call-param-validation.patch
+mm-damon-lru_sort-remove-unnecessary-damon_call-param-validation.patch
 
