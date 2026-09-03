@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 589134FDE75
-	for <mm-commits@vger.kernel.org>; Thu,  3 Sep 2026 19:23:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8C77A5013DF
+	for <mm-commits@vger.kernel.org>; Thu,  3 Sep 2026 19:27:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788463411; cv=none; b=p+qYmo9SRIkbjihvP6gu5k7QKIj+lMYbLlCa3dUBKm6/T9tBWVO7Bf4/x/dFMFtUxDkillTpc+8SgemuJrAL/rgfLrHsd4rnSem0NyS3AljSsO1sFWso+rld3dmDY+p1WwzhTDk5R5fzV0+UUql1djmmvHAllVe8vj6/PYL2ZiY=
+	t=1788463647; cv=none; b=Zjwnm8WkLZKhQ0HZSeYFsKAJwCrUAPL8jwoXTfOZd2L9dj6pcikUynEw8xla2HtH9t3GvbSkW7fGloMqBdPxX8JbiqnBObKLA9gzFIejji0aCnXGo/CeWpqN4JIlTp12p4pagAAvQf854Nmi8YZqAMac99X8E7I/f6yYwhZOePo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788463411; c=relaxed/simple;
-	bh=D8B8spozbLIKoP3TT6ud/lLwUmxNdRHx0JUna1RH5GU=;
-	h=Date:To:From:Subject:Message-Id; b=BHBUKaSam71LAToyqlFEfuB5IG/0SE8IVaccTUKZMl/+OWEMaT/6o5cDu6HAIe7c7IT3PbjjsZK5rTbXktdcySt0nzZc01Eolv2kkmQlqiIUbpWuxIJlq5S9FDjka/BQJBPnuOAlqsUwfc0+/NoGQdwmbH25T8cvWFHTFR+r95g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YBZ7q2RD; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788463647; c=relaxed/simple;
+	bh=jDNT579G/YgbvE5U2IgJB3eaxZ64VCRQoYr/klq21iU=;
+	h=Date:To:From:Subject:Message-Id; b=OQvvojei/yxmaUVdKdc6dVdaFcLyaEStcBHa7p5hRYzTRPt+A3D/bs2TOC973hfR3nMdBY5ut2KPjOg1edBppaJFXFhpb127ElCvaVdNdzm1SZKduRmKjuhDGrye/aLjSYgwl2kUCh7Cg5ff/sC5M2XAg4xPHK9Ynsr6IDxxBr0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Mfh6dbph; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YBZ7q2RD"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EDE091F00A3D;
-	Thu,  3 Sep 2026 19:23:17 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Mfh6dbph"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 94F9C1F00A3D;
+	Thu,  3 Sep 2026 19:27:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788463398;
-	bh=T7kISHY9RHu6lMMRlHBFn4eZcCcTZc7DQgPVrTm4upg=;
+	d=linux-foundation.org; s=korg; t=1788463634;
+	bh=U0qivrcuD8ks/zk5QatwZdGpIWgcLLElT3HwXNG/IS0=;
 	h=Date:To:From:Subject;
-	b=YBZ7q2RD4VbCwDe70EcL67mxLwktVUXAD01zOULFDPWvZyv9UlgiEgV5FnvdezvlO
-	 QQ2/Hc4Fk76SPxP9nHxkk3MOxfZrXpxURdN9OF8/01ONzPIf4Cv1Qf9Mvi5b8REyn7
-	 jtOteDyNMy8SJKNBJYY0xm7Z4r51VSXdUxN+6aWk=
-Date: Thu, 03 Sep 2026 12:23:17 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,ryan.roberts@arm.com,ljs@kernel.org,liam@infradead.org,lance.yang@linux.dev,dev.jain@arm.com,david@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,christosskarlos.kernel@gmail.com,akpm@linux-foundation.org
+	b=Mfh6dbphmaf5NK5KQxTtb0AdU6gNO1s5J3k/Emg3YlSYirwEreBCbv5/wI9B72FEI
+	 g7X4DWXGzCm6ETcl4q27YIUTLwHEpHwSa6uZYuxdWtATiRH+/Q2dXJ2QXPPOLHZumd
+	 DJBLolJrqk1V3Mnn2Vy5trS1pINy8pbzxSKR05ew=
+Date: Thu, 03 Sep 2026 12:27:14 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,surenb@google.com,mhocko@suse.com,hannes@cmpxchg.org,brendan.jackman@linux.dev,lihongfu@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-huge_memory-fix-various-coding-style-warnings.patch added to mm-new branch
-Message-Id: <20260903192317.EDE091F00A3D@smtp.kernel.org>
+Subject: + mm-page_owner-preserve-original-free_pid-free_tgid-during-folio-migration.patch added to mm-new branch
+Message-Id: <20260903192714.94F9C1F00A3D@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/huge_memory: fix various coding style warnings
+     Subject: mm/page_owner: preserve original free_pid/free_tgid during folio migration
 has been added to the -mm mm-new branch.  Its filename is
-     mm-huge_memory-fix-various-coding-style-warnings.patch
+     mm-page_owner-preserve-original-free_pid-free_tgid-during-folio-migration.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-fix-various-coding-style-warnings.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_owner-preserve-original-free_pid-free_tgid-during-folio-migration.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,73 +69,53 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Christos Skarlos <christosskarlos.kernel@gmail.com>
-Subject: mm/huge_memory: fix various coding style warnings
-Date: Thu, 3 Sep 2026 12:22:00 +0300
+From: Hongfu Li <lihongfu@kylinos.cn>
+Subject: mm/page_owner: preserve original free_pid/free_tgid during folio migration
+Date: Thu, 3 Sep 2026 17:21:26 +0800
 
-Resolve coding style issues flagged by checkpatch.pl Specifically:
-- Add missing blank lines after variable declarations.
-- Remove unnecessary braces {} for a single statement block.
+__update_page_owner_free_handle() accepts pid and tgid, but ignores them,
+always storing current->pid and current->tgid.
 
-No functional changes are introduced.
+__folio_copy_owner() forwards the original free pid/tgid during folio
+migration, yet these values were overwritten by the migrating task.
 
-Link: https://lore.kernel.org/20260903092200.88910-1-christosskarlos.kernel@gmail.com
-Signed-off-by: Christos Skarlos <christosskarlos.kernel@gmail.com>
-Reviewed-by: Barry Song <baohua@kernel.org>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
-Reviewed-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Lance Yang <lance.yang@linux.dev>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
+Store the passed-in pid/tgid so the migrated folio keeps the original free
+attribution.
+
+Link: https://lore.kernel.org/20260903092126.24685-1-hongfu.li@linux.dev
+Signed-off-by: Hongfu Li <lihongfu@kylinos.cn>
+Acked-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
+Cc: Brendan Jackman <brendan.jackman@linux.dev>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ mm/page_owner.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/huge_memory.c~mm-huge_memory-fix-various-coding-style-warnings
-+++ a/mm/huge_memory.c
-@@ -1146,6 +1146,7 @@ subsys_initcall(hugepage_init);
- static int __init setup_transparent_hugepage(char *str)
- {
- 	int ret = 0;
-+
- 	if (!str)
- 		goto out;
- 	if (!strcmp(str, "always")) {
-@@ -1552,6 +1553,7 @@ static void set_huge_zero_folio(pgtable_
- 		struct folio *zero_folio)
- {
- 	pmd_t entry;
-+
- 	entry = folio_mk_pmd(zero_folio, vma->vm_page_prot);
- 	entry = pmd_mkspecial(entry);
- 	pgtable_trans_huge_deposit(mm, pmd, pgtable);
-@@ -2661,6 +2663,7 @@ bool move_huge_pmd(struct vm_area_struct
- 
- 		if (pmd_move_must_withdraw(new_ptl, old_ptl, vma)) {
- 			pgtable_t pgtable;
-+
- 			pgtable = pgtable_trans_huge_withdraw(mm, old_pmd);
- 			pgtable_trans_huge_deposit(mm, new_pmd, pgtable);
+--- a/mm/page_owner.c~mm-page_owner-preserve-original-free_pid-free_tgid-during-folio-migration
++++ a/mm/page_owner.c
+@@ -307,8 +307,8 @@ static inline void __update_page_owner_f
+ 			page_owner->free_handle = handle;
  		}
-@@ -3949,9 +3952,8 @@ int folio_check_splittable(struct folio
- 	 * swapcache folio split. Only uniform split to order-0 can be used
- 	 * here.
- 	 */
--	if ((split_type == SPLIT_TYPE_NON_UNIFORM || new_order) && folio_test_swapcache(folio)) {
-+	if ((split_type == SPLIT_TYPE_NON_UNIFORM || new_order) && folio_test_swapcache(folio))
- 		return -EINVAL;
--	}
- 
- 	if (is_huge_zero_folio(folio))
- 		return -EINVAL;
+ 		page_owner->free_ts_nsec = free_ts_nsec;
+-		page_owner->free_pid = current->pid;
+-		page_owner->free_tgid = current->tgid;
++		page_owner->free_pid = pid;
++		page_owner->free_tgid = tgid;
+ 	}
+ 	rcu_read_unlock();
+ }
 _
 
-Patches currently in -mm which might be from christosskarlos.kernel@gmail.com are
+Patches currently in -mm which might be from lihongfu@kylinos.cn are
 
-mm-huge_memory-fix-various-coding-style-warnings.patch
+mm-use-a-folio-in-the-softleaf_is_device_private-path.patch
+mm-hugetlb-fix-resv_huge_pages-double-decrement-in-memfd-error-path.patch
+mm-memcontrol-remove-unused-memcg-parameter-in-calculate_high_delay.patch
+selftests-mm-khugepaged-consolidate-error-exits-via-kselftest-helpers.patch
+mm-page_owner-preserve-original-free_pid-free_tgid-during-folio-migration.patch
 
