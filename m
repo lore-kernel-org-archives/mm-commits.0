@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 075F92F49F6
-	for <mm-commits@vger.kernel.org>; Thu,  3 Sep 2026 20:35:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A739C218EBA
+	for <mm-commits@vger.kernel.org>; Thu,  3 Sep 2026 20:40:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788467730; cv=none; b=IAAjVOl1lIGVkn4B01ckYgmIJmwtxMawaMWfo1s4NIFVaELJjlpu8kKvS+MwmLKsqG7xISttsZjoGdB3n7lBbjOG3IQfyVqIz6cSZiYuexOpDou4lLYDE2fll1T7T/tQDFJ7OdCPtTaMxoOf8dITrTG1j2B5z0zSltiTwEcig6I=
+	t=1788468057; cv=none; b=HdncyYviEaG95e43Dwbolb6kWMIy38sKhI7Y40JvmLQ8n6IyLnDF6N4vvfXEHKggHC7UvPlhMZPo+jD9U6FjOudu++fRrQHrlJTkwbhiRlBcGGbdFjbr3AXphC4xmQu/aBgX7y/QWRrt0SuOE6Cmmhq4ZbsLSc9Z+BNanV6Epd4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788467730; c=relaxed/simple;
-	bh=ntu0Bq0JVTH4wOwCoEIMBAmWIMkCP+cmXP5kSaQFyKw=;
-	h=Date:To:From:Subject:Message-Id; b=s12355U3fvlCLCzj5jIACCXu+ky1RQ7RnLdzgc+AEPXyGL5edk5BvdubnLfKtva0k7kgLSH3ptWU+qKRAnvvMcVy430wszHJ7j8GIYv/BXn5PZmvWOtxLiuaWkCrV/dUMGFgQCBElsCeuKdCVrLySjVkIglsavDJcdNtiuhg/aw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xINFalcZ; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788468057; c=relaxed/simple;
+	bh=OxpPe1NR2wEzZJ4k6UuAVe55Qz14DzadxwHxQITNlpM=;
+	h=Date:To:From:Subject:Message-Id; b=nTw7oeOMgq0cLr9q4BWXTc8SKBbnUNYSNqg5PkJ/i5eB1zGqgt8B7skP5OkUHxohlau7Q7y2/r+iAJruKu99MJ4fkWZtmbOqO/uX93/YGyUKrmED0fozn0CBRLkQTqhbz/sjvcwaWej+2cl/X/prDgcPJCuF9PvY9Wr307KQBAI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=d5daFcOD; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xINFalcZ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 852EA1F000E9;
-	Thu,  3 Sep 2026 20:35:22 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="d5daFcOD"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9A2FF1F000E9;
+	Thu,  3 Sep 2026 20:40:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788467722;
-	bh=JnYAN0c4MGrx1/xYxcMWGjBwVMuIo90P+ps9nCAL+8g=;
+	d=linux-foundation.org; s=korg; t=1788468039;
+	bh=5/oI66evUZY7CYxVi6foGGzMnvxM8izxg1UOTgIpDRs=;
 	h=Date:To:From:Subject;
-	b=xINFalcZ3xeG4McZ2Ab4AaIrDDPlAxpgrYl3E/dhc1D3mjolvzG730szSM4MkirUO
-	 FZtzuxZVPFBdeWco3Fon7qYxT0ku8KofayYVzSR6rQOwbOwc8RyTSTu9jN1a3rXjh4
-	 ppp9ExiW5M/DgBApndefYrOoVSumec6/LVxs7y+4=
-Date: Thu, 03 Sep 2026 13:35:22 -0700
-To: mm-commits@vger.kernel.org,zhengqi.arch@bytedance.com,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,hughd@google.com,hannes@cmpxchg.org,david@kernel.org,brauner@kernel.org,baolin.wang@linux.alibaba.com,qinyuntan@linux.alibaba.com,akpm@linux-foundation.org
+	b=d5daFcOD8lIwKyKoFPc2ucu1uT6tj2CNzTxYpImFp1TNH/XozaeF3ckA5uw/3UfBy
+	 7npxH+mwZq6kyRe0sB9TWmwM7SRdqpyzYGFe4dNfNfKP1HlCDyZZsq9TagOD4v47Y1
+	 hRH+L8eU4QJnyOH+ddjtQTmY2HS7d3DjjoU5Mi8M=
+Date: Thu, 03 Sep 2026 13:40:39 -0700
+To: mm-commits@vger.kernel.org,yuanchu@google.com,weixugc@google.com,stevensd@chromium.org,shakeel.butt@linux.dev,mhocko@kernel.org,ljs@kernel.org,kasong@tencent.com,hannes@cmpxchg.org,david@kernel.org,chenridong@xiaomi.com,baoquan.he@linux.dev,baolin.wang@linux.alibaba.com,axelrasmussen@google.com,baohua@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-list_lru-disable-memcg-awareness-under-cgroup_disable=memory.patch added to mm-unstable branch
-Message-Id: <20260903203522.852EA1F000E9@smtp.kernel.org>
+Subject: + mm-mglru-make-retry-logic-explicit-in-isolate_folios-fix.patch added to mm-unstable branch
+Message-Id: <20260903204039.9A2FF1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/list_lru: disable memcg awareness under cgroup_disable=memory
+     Subject: mm: revert slight behavior change for swappiness 1-200
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-list_lru-disable-memcg-awareness-under-cgroup_disable=memory.patch
+     mm-mglru-make-retry-logic-explicit-in-isolate_folios-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-list_lru-disable-memcg-awareness-under-cgroup_disable=memory.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mglru-make-retry-logic-explicit-in-isolate_folios-fix.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,86 +58,64 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Qinyun Tan <qinyuntan@linux.alibaba.com>
-Subject: mm/list_lru: disable memcg awareness under cgroup_disable=memory
-Date: Wed, 2 Sep 2026 17:32:02 +0800
+From: "Barry Song (Xiaomi)" <baohua@kernel.org>
+Subject: mm: revert slight behavior change for swappiness 1-200
+Date: Thu, 3 Sep 2026 14:48:52 +0800
 
-__list_lru_init() only collapses a memcg-aware list_lru into plain
-per-node lists when kmem accounting is disabled (cgroup.memory=nokmem). 
-When the memory controller is disabled entirely (cgroup_disable=memory),
-mem_cgroup_kmem_disabled() is false, so the lru stays memcg aware even
-though no object will ever be charged to a memcg.
+Baoquan's review found that we unexpectedly introduced a slight behavior
+change for swappiness 1-200. We could now have a case like:
 
-This is more than a semantic inconsistency.  folio_memcg_list_lru_alloc()
-trusts list_lru_memcg_aware() and dereferences the folio's memcg, which is
-always NULL with the controller disabled.  The only mainline caller,
-folio_memcg_alloc_deferred(), papers over this with an explicit
-mem_cgroup_disabled() check.  The shmem unused-huge shrinker conversion
-("mm: shmem: make unused huge shrinker memcg aware") adds a second caller
-without such a guard, so booting with cgroup_disable=memory and writing to
-a huge=always tmpfs oopses:
+1. First scan -> `scanned != 0`
+2. Second scan -> `scanned = 0`
+3. Type fallback
 
-  BUG: unable to handle page fault for address: 0000000000000488
-  RIP: 0010:folio_memcg_list_lru_alloc+0x41/0xf0
-  Call Trace:
-   <TASK>
-   shmem_get_folio_gfp+0x1cd/0x7c0
-   shmem_write_begin+0x5d/0x100
-   generic_perform_write+0x89/0x2a0
-   shmem_file_write_iter+0x82/0x90
-   vfs_write+0x256/0x410
-   ksys_write+0x61/0xe0
-   do_syscall_64+0x8d/0x460
-   entry_SYSCALL_64_after_hwframe+0x76/0x7e
+Step 3 was impossible before. Let's remove this possibility.
 
-The faulting address is the offset of mem_cgroup->kmemcg_id, dereferenced
-on a NULL memcg in memcg_list_lru_allocated():
-
-  folio_memcg_list_lru_alloc()
-    list_lru_memcg_aware()               <- true, only nokmem checked
-    memcg = folio_memcg(folio)           <- NULL
-    memcg_list_lru_allocated(memcg, lru)
-      memcg->kmemcg_id                   <- NULL pointer dereference
-
-Check mem_cgroup_disabled() in __list_lru_init() so that all list_lrus
-fall back to plain per-node lists when the controller is disabled,
-matching what the shrinker side already does (shrinker_memcg_alloc() bails
-out on mem_cgroup_disabled()).  This makes the mem_cgroup_disabled() check
-in callers unnecessary rather than mandatory.
-
-Link: https://lore.kernel.org/20260902093202.609559-1-qinyuntan@linux.alibaba.com
-Signed-off-by: Qinyun Tan <qinyuntan@linux.alibaba.com>
-Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Christian Brauner <brauner@kernel.org>
+Link: https://lore.kernel.org/20260903070500.76379-1-baohua@kernel.org
+Signed-off-by: Barry Song (Xiaomi) <baohua@kernel.org>
+Reported-by: Baoquan He <baoquan.he@linux.dev>
+Closes: https://lore.kernel.org/linux-mm/apfZQE1X6zGAsBb_@fedora/
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: David Hildenbrand <david@kernel.org>
-Cc: Hugh Dickins <hughd@google.com>
+Cc: David Stevens <stevensd@chromium.org>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Kairui Song <kasong@tencent.com>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
 Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Qi Zheng <zhengqi.arch@bytedance.com>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Ridong Chen <chenridong@xiaomi.com>
 Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Wei Xu <weixugc@google.com>
+Cc: Yuanchu Xie <yuanchu@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/list_lru.c |    2 +-
+ mm/vmscan.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/list_lru.c~mm-list_lru-disable-memcg-awareness-under-cgroup_disable=memory
-+++ a/mm/list_lru.c
-@@ -671,7 +671,7 @@ int __list_lru_init(struct list_lru *lru
- 	else
- 		lru->shrinker_id = -1;
- 
--	if (mem_cgroup_kmem_disabled())
-+	if (mem_cgroup_disabled() || mem_cgroup_kmem_disabled())
- 		memcg_aware = false;
- #endif
- 
+--- a/mm/vmscan.c~mm-mglru-make-retry-logic-explicit-in-isolate_folios-fix
++++ a/mm/vmscan.c
+@@ -4858,7 +4858,7 @@ retry:
+ 	 * We are running out of the current reclaim type. Fall back to
+ 	 * the other type if allowed.
+ 	 */
+-	if (!scanned && type_fallback_allowed) {
++	if (!scanned && !tried && type_fallback_allowed) {
+ 		type = !type;
+ 		tried = true;
+ 		type_fallback_allowed = false;
 _
 
-Patches currently in -mm which might be from qinyuntan@linux.alibaba.com are
+Patches currently in -mm which might be from baohua@kernel.org are
 
-mm-list_lru-disable-memcg-awareness-under-cgroup_disable=memory.patch
-mm-list_lru-dont-copy-stale-shrinker-id-from-non-memcg-aware-shrinkers.patch
+mm-mglru-make-retry-logic-explicit-in-isolate_folios.patch
+mm-mglru-make-retry-logic-explicit-in-isolate_folios-fix.patch
+mm-vmscan-avoid-pointless-large-folio-splits-without-swap.patch
+mm-mglru-separate-folio-generation-update-from-lru-accounting.patch
+mm-mglru-batch-update-lrugen-nr_pages-in-inc_min_seq.patch
+mm-mglru-enhance-cold-hot-inversion-handling-in-inc_min_seq.patch
+mm-mglru-exclude-folios-promoted-by-aging-from-protected-in-inc_min_seq.patch
+mm-mglru-make-lru-folio-prefetch-helper-an-inline-function.patch
+mm-mglru-move-folios-from-oldest-gen-to-second-oldest-gen-from-head-to-tail.patch
+mm-mglru-batch-move-folios-to-the-second-oldest-gens-lru.patch
 
