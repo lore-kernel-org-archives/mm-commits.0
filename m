@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8DC454FB9C1
-	for <mm-commits@vger.kernel.org>; Thu,  3 Sep 2026 20:44:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F0ED743CE7E
+	for <mm-commits@vger.kernel.org>; Thu,  3 Sep 2026 20:45:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788468311; cv=none; b=nAZD+Z6qYLwU/W5M61VV7ZI/CW0ptRA2tnXL2Cs3ARVjcAEt14SlofdOCtentvnvwyS2kW9M7NDBZO/3fXdgM/oA1rQRn95v6b8Yf+uQoaVi/9wQFPdoOvqZalPiD7K9YkBaANxXVn/ZwQHh+QzYavKLGWzmVVjiOrVHdwIk9tY=
+	t=1788468315; cv=none; b=OXJNH20qokOS/QHdmgXj1Av50xsQkofDLeXVo1u/CI78/bflMOzCC1MJw6e51nHUqA9NQzPTMdQWUbgHMfsOnC9vj1czJXnwXKclLK50+cZaqEixJJeHu0okUGuKmbJesqqpS8BwCLiyC93rvk0vY+suSQOdvoIF213WibHYRPM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788468311; c=relaxed/simple;
-	bh=F8HEMKpJybEw1lTKZMcjtIHiEgt7ggxJ6as34glhZMM=;
-	h=Date:To:From:Subject:Message-Id; b=W8kmBi4uFQwRY++qqMmWmM3Oyin8R92R2AzqS9dNEHhYS+Z7Mv+54WiyQ60n9B3NlPXJ4pV9pY0rTpvI639hrf1NWxJksA/UKE1DnC6EQLoOt/L1/hkgoM+VuPNdKn47Egfh2aDw6aBkwDMGW6DnPMdJEPBAAfL4MbmzyihGl+8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=k1hHRMrU; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788468315; c=relaxed/simple;
+	bh=X9RO7LYhWXiM7y79P7KRkYXtbFe47v+czYzp056n8/Y=;
+	h=Date:To:From:Subject:Message-Id; b=cc5yB0yQEKMtSYkQCmD3lIWv6aL4/d1zduFNx2LhthXX9Rv7if776W+Bgan5dkhwZob1yapqxJX6mW/bQK8JwOndvmVhYK9e4hS2JTtGwWm4ih7WsF+wbFLAR8YI/u2zbIbdUO2P2jDRMYPeU3fClKmlgiI0+4lo17AxKFltw2U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OfmBkYVd; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="k1hHRMrU"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4AA0F1F00A3D;
-	Thu,  3 Sep 2026 20:44:57 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OfmBkYVd"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 107E31F00A3F;
+	Thu,  3 Sep 2026 20:45:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788468297;
-	bh=rwbObD8dv74Ncge2VvElERqCBn+YzaB7UHPaY9ELwcs=;
+	d=linux-foundation.org; s=korg; t=1788468301;
+	bh=3O42cJF5ok3T0z1uMVyUwQLuED5DmqjCvL6I2FuNNWc=;
 	h=Date:To:From:Subject;
-	b=k1hHRMrUaMAZq1N1X3X7QbNuVY+NKVLvnwUMRjv955KvoLdBxrWfgvR5hEJ79M57p
-	 +ixyU5SgYhq6V1e24JEaGMwHGcmKQ8jBPz7B6Ydd/PP0ZeQjOuHSexMtGAyXf7UJ2n
-	 c7CpAvWz9BAXyK17M4NzE2JbPa9d4bYq2rJlwjtE=
-Date: Thu, 03 Sep 2026 13:44:56 -0700
+	b=OfmBkYVdKjwSxYPWq5nLGI4vNiydLmuoDpMi7dcvLrHeaSz1IGKw5pkqzKTJgSlcH
+	 n9AMLIuhHDcKc2cfw/1D9hVJZ9zdJTUlyTYkiVu9gZ5mGLwekoNC7sg+NP/rAxOfeA
+	 SXi5Re2RFErG2vlQ9l5RFsWeJBlBWqTY21+M6zvw=
+Date: Thu, 03 Sep 2026 13:45:00 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-core-set-ctx-call_controls_obsolete-in-damon_new_ctx.patch added to mm-new branch
-Message-Id: <20260903204457.4AA0F1F00A3D@smtp.kernel.org>
+Subject: + mm-damon-lru_sort-remove-unnecessary-damon_call-param-validation.patch added to mm-new branch
+Message-Id: <20260903204501.107E31F00A3F@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/core: set ctx->call_controls_obsolete in damon_new_ctx()
+     Subject: mm/damon/lru_sort: remove unnecessary damon_call() param validation
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-core-set-ctx-call_controls_obsolete-in-damon_new_ctx.patch
+     mm-damon-lru_sort-remove-unnecessary-damon_call-param-validation.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-set-ctx-call_controls_obsolete-in-damon_new_ctx.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-lru_sort-remove-unnecessary-damon_call-param-validation.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,55 +70,53 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/core: set ctx->call_controls_obsolete in damon_new_ctx()
-Date: Wed, 2 Sep 2026 18:03:31 -0700
+Subject: mm/damon/lru_sort: remove unnecessary damon_call() param validation
+Date: Wed, 2 Sep 2026 18:03:33 -0700
 
-damon_ctx->call_controls_obsolete is used to disallow damon_call()
-requests when the request cannot be served.  The field is unset and set
-when the context execution is started and terminated, respectively.  The
-intention is to allow damon_call() requests only while the context is
-actively being executed.
+DAMON_LRU_SORT avoids passing NULL or unstarted damon_ctx to damon_call()
+with its own validation.  The validation is no longer needed, because the
+DAMON core layer now handles the corner cases itself.  Remove the
+unnecessary check.
 
-damon_ctx constructor, damon_new_ctx() unsets the field, though.  As a
-result, passing the damon_ctx parameter that never successfully
-damon_start()-ed to damon_call() can indefinitely hang.  The callers
-should ensure to avoid the case.  Such parameter validation is not always
-simple.  Actually such bugs in DAMON_RECLAIM and DAMON_LRU_SORT have been
-found and fixed [1].
-
-Set the field in damon_new_ctx(), so that DAMON API callers can pass the
-context parameter to damon_call() without the additional check.
-
-Link: https://lore.kernel.org/20260903010334.93622-3-sj@kernel.org
-Link: https://lore.kernel.org/20260803134646.16640-1-sj@kernel.org [1]
+Link: https://lore.kernel.org/20260903010334.93622-5-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/core.c |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ mm/damon/lru_sort.c |    8 --------
+ 1 file changed, 8 deletions(-)
 
---- a/mm/damon/core.c~mm-damon-core-set-ctx-call_controls_obsolete-in-damon_new_ctx
-+++ a/mm/damon/core.c
-@@ -933,6 +933,7 @@ struct damon_ctx *damon_new_ctx(void)
- 	INIT_LIST_HEAD(&ctx->adaptive_targets);
- 	INIT_LIST_HEAD(&ctx->schemes);
+--- a/mm/damon/lru_sort.c~mm-damon-lru_sort-remove-unnecessary-damon_call-param-validation
++++ a/mm/damon/lru_sort.c
+@@ -344,8 +344,6 @@ static int damon_lru_sort_commit_inputs_
+ 	return damon_lru_sort_apply_parameters();
+ }
  
-+	ctx->call_controls_obsolete = true;
- 	prandom_seed_state(&ctx->rnd_state, get_random_u64());
+-static bool damon_lru_sort_damon_has_started;
+-
+ static int damon_lru_sort_commit_inputs_store(const char *val,
+ 					      const struct kernel_param *kp)
+ {
+@@ -366,10 +364,6 @@ static int damon_lru_sort_commit_inputs_
+ 	if (!commit_inputs_request)
+ 		return 0;
  
- 	return ctx;
-@@ -2206,10 +2207,6 @@ int damon_kdamond_pid(struct damon_ctx *
-  * synchronization.  The return value of the function will be saved in
-  * &damon_call_control->return_code.
-  *
-- * Note that this function should be called only after damon_start() with the
-- * @ctx has succeeded.  Otherwise, this function could fall into an indefinite
-- * wait.
-- *
-  * When this function is failed, the @ctx is guaranteed to be stopped.
-  *
-  * Return: 0 on success, negative error code otherwise.
+-	/* Skip damon_call() if ctx has not successfully started. */
+-	if (!damon_lru_sort_damon_has_started)
+-		return -EINVAL;
+-
+ 	err = damon_call(ctx, &control);
+ 
+ 	return err ? err : control.return_code;
+@@ -420,8 +414,6 @@ static int damon_lru_sort_turn(bool on)
+ 	err = damon_start(&ctx, 1, true);
+ 	if (err)
+ 		return err;
+-	if (!damon_lru_sort_damon_has_started)
+-		damon_lru_sort_damon_has_started = true;
+ 	return damon_call(ctx, &call_control);
+ }
+ 
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
