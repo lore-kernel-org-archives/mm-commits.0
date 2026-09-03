@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 168B3418359
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8DC454FB9C1
 	for <mm-commits@vger.kernel.org>; Thu,  3 Sep 2026 20:44:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788468308; cv=none; b=CyvKXFoD74qV3SVX2nuRkT6vRFrYIfRL+CUaZLhCfIfzUqa39F7X3VAGT6rIJ/ST3ulxcwgWJs4t+i3ATIXwL0aQCP4PgIXYxkEyKhh1EuGV/cNS9VkepwA1qm1rmisPQ+SphpCwEqP+h4T7lvb+y9vQhfSZjgsTh4kZVZzV39Y=
+	t=1788468311; cv=none; b=nAZD+Z6qYLwU/W5M61VV7ZI/CW0ptRA2tnXL2Cs3ARVjcAEt14SlofdOCtentvnvwyS2kW9M7NDBZO/3fXdgM/oA1rQRn95v6b8Yf+uQoaVi/9wQFPdoOvqZalPiD7K9YkBaANxXVn/ZwQHh+QzYavKLGWzmVVjiOrVHdwIk9tY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788468308; c=relaxed/simple;
-	bh=LWvbc9G1X3FOZUEiDw0BThl0UZ3XhEVsSH7qfI8MA2Y=;
-	h=Date:To:From:Subject:Message-Id; b=fMCKlUy1OM5VYOlaX+3ukjnXiY45GyUrbQGUDmzZRVT8BWQORa7FjkNFrxghKNwp73kNxl5rkikxPBLH3r9Hqi/oCSFGzgdrRIGwkciVzzHkXUxxINb8kJB3PkVDn2vac4GTBH+5a8d9DsXOJnjhC/G/G8QaQC+1dEVz2h7IIEc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TkrdK2FS; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788468311; c=relaxed/simple;
+	bh=F8HEMKpJybEw1lTKZMcjtIHiEgt7ggxJ6as34glhZMM=;
+	h=Date:To:From:Subject:Message-Id; b=W8kmBi4uFQwRY++qqMmWmM3Oyin8R92R2AzqS9dNEHhYS+Z7Mv+54WiyQ60n9B3NlPXJ4pV9pY0rTpvI639hrf1NWxJksA/UKE1DnC6EQLoOt/L1/hkgoM+VuPNdKn47Egfh2aDw6aBkwDMGW6DnPMdJEPBAAfL4MbmzyihGl+8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=k1hHRMrU; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TkrdK2FS"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 56C061F000E9;
-	Thu,  3 Sep 2026 20:44:55 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="k1hHRMrU"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4AA0F1F00A3D;
+	Thu,  3 Sep 2026 20:44:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788468295;
-	bh=VEABHH8CiiZzWj4NM8h/1QSMxVUUcBbU6Enn4Cn5hhE=;
+	d=linux-foundation.org; s=korg; t=1788468297;
+	bh=rwbObD8dv74Ncge2VvElERqCBn+YzaB7UHPaY9ELwcs=;
 	h=Date:To:From:Subject;
-	b=TkrdK2FS5BDLSuOj8IoTAC9Q3Efi7Bf+Dg2StxnhsKLiMrdYcyWbeA0fVGSi/JPHB
-	 s1RMVK2gIjNLmsxexcdCeLwKV9yi2kyUfL1+xoqs90mTI9o5WkYWK7HrITKPgpuBBW
-	 A7jkmlwL0/9bmBc28u2zTgE9tMzzmVWtBkUUC/R8=
-Date: Thu, 03 Sep 2026 13:44:54 -0700
+	b=k1hHRMrUaMAZq1N1X3X7QbNuVY+NKVLvnwUMRjv955KvoLdBxrWfgvR5hEJ79M57p
+	 +ixyU5SgYhq6V1e24JEaGMwHGcmKQ8jBPz7B6Ydd/PP0ZeQjOuHSexMtGAyXf7UJ2n
+	 c7CpAvWz9BAXyK17M4NzE2JbPa9d4bYq2rJlwjtE=
+Date: Thu, 03 Sep 2026 13:44:56 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-core-handle-null-ctx-parameter-in-damon_call.patch added to mm-new branch
-Message-Id: <20260903204455.56C061F000E9@smtp.kernel.org>
+Subject: + mm-damon-core-set-ctx-call_controls_obsolete-in-damon_new_ctx.patch added to mm-new branch
+Message-Id: <20260903204457.4AA0F1F00A3D@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/core: handle NULL ctx parameter in damon_call()
+     Subject: mm/damon/core: set ctx->call_controls_obsolete in damon_new_ctx()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-core-handle-null-ctx-parameter-in-damon_call.patch
+     mm-damon-core-set-ctx-call_controls_obsolete-in-damon_new_ctx.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-handle-null-ctx-parameter-in-damon_call.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-set-ctx-call_controls_obsolete-in-damon_new_ctx.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,53 +70,55 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/core: handle NULL ctx parameter in damon_call()
-Date: Wed, 2 Sep 2026 18:03:30 -0700
+Subject: mm/damon/core: set ctx->call_controls_obsolete in damon_new_ctx()
+Date: Wed, 2 Sep 2026 18:03:31 -0700
 
-Patch series "mm/damon: allow NULL or unstarted damon_ctx parameter for
-damon_call()".
+damon_ctx->call_controls_obsolete is used to disallow damon_call()
+requests when the request cannot be served.  The field is unset and set
+when the context execution is started and terminated, respectively.  The
+intention is to allow damon_call() requests only while the context is
+actively being executed.
 
-Callers of damon_call() should validate the damon_ctx object parameter. 
-If it is NULL or never damon_start()-ed object, damon_call() could
-dereference the NULL pointer or indefinitely hang.  Ensuring all callers
-doing the validation correctly has turned out to be difficult.  Handle the
-corner cases inside the core layer and remove callers' validations.
+damon_ctx constructor, damon_new_ctx() unsets the field, though.  As a
+result, passing the damon_ctx parameter that never successfully
+damon_start()-ed to damon_call() can indefinitely hang.  The callers
+should ensure to avoid the case.  Such parameter validation is not always
+simple.  Actually such bugs in DAMON_RECLAIM and DAMON_LRU_SORT have been
+found and fixed [1].
 
-Patches 1 and 2 respectively allow passing NULL and not yet
-damon_start()-ed ctx parameter to damon_call().  Patches 3 and 4 remove
-the callers side validations in DMON_RECLAIM and DASMON_LRU_SORT,
-respectively.
+Set the field in damon_new_ctx(), so that DAMON API callers can pass the
+context parameter to damon_call() without the additional check.
 
-
-This patch (of 4):
-
-When NULL damon_ctx pointer parameter is passed, damon_call() could do
-NULL dereference.  The caller is responsible to avoid that.  It is easy to
-forget, and there are many damon_call() callers.  Meanwhile, damon_call()
-is never meant to be performance critical.  It uses mutex and completion. 
-Add the NULL pointer check inside damon_call() so that callers can pass
-the parameter without NULL checks.
-
-Link: https://lore.kernel.org/20260903010334.93622-1-sj@kernel.org
-Link: https://lore.kernel.org/20260903010334.93622-2-sj@kernel.org
+Link: https://lore.kernel.org/20260903010334.93622-3-sj@kernel.org
+Link: https://lore.kernel.org/20260803134646.16640-1-sj@kernel.org [1]
 Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/core.c |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/damon/core.c |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
---- a/mm/damon/core.c~mm-damon-core-handle-null-ctx-parameter-in-damon_call
+--- a/mm/damon/core.c~mm-damon-core-set-ctx-call_controls_obsolete-in-damon_new_ctx
 +++ a/mm/damon/core.c
-@@ -2216,6 +2216,8 @@ int damon_kdamond_pid(struct damon_ctx *
-  */
- int damon_call(struct damon_ctx *ctx, struct damon_call_control *control)
- {
-+	if (!ctx)
-+		return -EINVAL;
- 	if (!control->repeat)
- 		init_completion(&control->completion);
- 	control->canceled = false;
+@@ -933,6 +933,7 @@ struct damon_ctx *damon_new_ctx(void)
+ 	INIT_LIST_HEAD(&ctx->adaptive_targets);
+ 	INIT_LIST_HEAD(&ctx->schemes);
+ 
++	ctx->call_controls_obsolete = true;
+ 	prandom_seed_state(&ctx->rnd_state, get_random_u64());
+ 
+ 	return ctx;
+@@ -2206,10 +2207,6 @@ int damon_kdamond_pid(struct damon_ctx *
+  * synchronization.  The return value of the function will be saved in
+  * &damon_call_control->return_code.
+  *
+- * Note that this function should be called only after damon_start() with the
+- * @ctx has succeeded.  Otherwise, this function could fall into an indefinite
+- * wait.
+- *
+  * When this function is failed, the @ctx is guaranteed to be stopped.
+  *
+  * Return: 0 on success, negative error code otherwise.
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
