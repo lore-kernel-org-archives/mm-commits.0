@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F0ED743CE7E
-	for <mm-commits@vger.kernel.org>; Thu,  3 Sep 2026 20:45:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8EB9650C2B7
+	for <mm-commits@vger.kernel.org>; Thu,  3 Sep 2026 20:45:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788468315; cv=none; b=OXJNH20qokOS/QHdmgXj1Av50xsQkofDLeXVo1u/CI78/bflMOzCC1MJw6e51nHUqA9NQzPTMdQWUbgHMfsOnC9vj1czJXnwXKclLK50+cZaqEixJJeHu0okUGuKmbJesqqpS8BwCLiyC93rvk0vY+suSQOdvoIF213WibHYRPM=
+	t=1788468319; cv=none; b=WYvyDO+0l22qFMV/5w1bGYSaSVM4cwOskB1BOnHRcI0Z3ZDyxlvsu+M7p+UJLUmPIPZBi/TR83/hx5xwoG1XJpwI81glc4gnSX3ckpj9/JnuvjpVyLzclcKzgpEYN1P9dFE4XFThA0vGsQ0NLdjBkESkisc0LaOXeBe3+w+VSh0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788468315; c=relaxed/simple;
-	bh=X9RO7LYhWXiM7y79P7KRkYXtbFe47v+czYzp056n8/Y=;
-	h=Date:To:From:Subject:Message-Id; b=cc5yB0yQEKMtSYkQCmD3lIWv6aL4/d1zduFNx2LhthXX9Rv7if776W+Bgan5dkhwZob1yapqxJX6mW/bQK8JwOndvmVhYK9e4hS2JTtGwWm4ih7WsF+wbFLAR8YI/u2zbIbdUO2P2jDRMYPeU3fClKmlgiI0+4lo17AxKFltw2U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OfmBkYVd; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788468319; c=relaxed/simple;
+	bh=9Vyk9OLWWLODflkZhb/roxjS7xoD8GZgm2zxhfKc/K4=;
+	h=Date:To:From:Subject:Message-Id; b=lrLly2y/NOMlAIL+FRe+RoSGD5skJYXtZ81emfIQqro2k50WZDEe3lTrwU+5DV02je65zPQtyWjQAhFYrXafB/ukNHCbEbmCfrcz0BPvLbUlu8SYus+u2DP6pIU5vsrJ/+jJI5dsthqUvFh04t8+aSvLvSe3AkWlGfO6u9/4U8U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IrbjegbO; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OfmBkYVd"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 107E31F00A3F;
-	Thu,  3 Sep 2026 20:45:01 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IrbjegbO"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 301001F00A3E;
+	Thu,  3 Sep 2026 20:44:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788468301;
-	bh=3O42cJF5ok3T0z1uMVyUwQLuED5DmqjCvL6I2FuNNWc=;
+	d=linux-foundation.org; s=korg; t=1788468299;
+	bh=z+1WT6HezKMmPIEGJkTenTyagnt8lb0ZAa91NKf202o=;
 	h=Date:To:From:Subject;
-	b=OfmBkYVdKjwSxYPWq5nLGI4vNiydLmuoDpMi7dcvLrHeaSz1IGKw5pkqzKTJgSlcH
-	 n9AMLIuhHDcKc2cfw/1D9hVJZ9zdJTUlyTYkiVu9gZ5mGLwekoNC7sg+NP/rAxOfeA
-	 SXi5Re2RFErG2vlQ9l5RFsWeJBlBWqTY21+M6zvw=
-Date: Thu, 03 Sep 2026 13:45:00 -0700
+	b=IrbjegbOGUggnvlys3VyjAsmCAPjrO5rwVFdWOIdP9AePaIV4bak4cI4tQurLrNH/
+	 V8gZsdig7Th8SMrx5N9HeIsAIaKzYklZHTKkurUiHNyQ3lDWiVsVfI3bGDj69WtPqp
+	 Q1mTkNnNWgx6KtjE/a+qL+b41/s3nxgSxhammX8E=
+Date: Thu, 03 Sep 2026 13:44:58 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-lru_sort-remove-unnecessary-damon_call-param-validation.patch added to mm-new branch
-Message-Id: <20260903204501.107E31F00A3F@smtp.kernel.org>
+Subject: + mm-damon-reclaim-remove-unnecessary-damon_call-param-validation.patch added to mm-new branch
+Message-Id: <20260903204459.301001F00A3E@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/lru_sort: remove unnecessary damon_call() param validation
+     Subject: mm/damon/reclaim: remove unnecessary damon_call() param validation
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-lru_sort-remove-unnecessary-damon_call-param-validation.patch
+     mm-damon-reclaim-remove-unnecessary-damon_call-param-validation.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-lru_sort-remove-unnecessary-damon_call-param-validation.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-reclaim-remove-unnecessary-damon_call-param-validation.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,50 +70,50 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/lru_sort: remove unnecessary damon_call() param validation
-Date: Wed, 2 Sep 2026 18:03:33 -0700
+Subject: mm/damon/reclaim: remove unnecessary damon_call() param validation
+Date: Wed, 2 Sep 2026 18:03:32 -0700
 
-DAMON_LRU_SORT avoids passing NULL or unstarted damon_ctx to damon_call()
+DAMON_RECLAIM avoids passing NULL or unstarted damon_ctx to damon_call()
 with its own validation.  The validation is no longer needed, because the
 DAMON core layer now handles the corner cases itself.  Remove the
 unnecessary check.
 
-Link: https://lore.kernel.org/20260903010334.93622-5-sj@kernel.org
+Link: https://lore.kernel.org/20260903010334.93622-4-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/lru_sort.c |    8 --------
+ mm/damon/reclaim.c |    8 --------
  1 file changed, 8 deletions(-)
 
---- a/mm/damon/lru_sort.c~mm-damon-lru_sort-remove-unnecessary-damon_call-param-validation
-+++ a/mm/damon/lru_sort.c
-@@ -344,8 +344,6 @@ static int damon_lru_sort_commit_inputs_
- 	return damon_lru_sort_apply_parameters();
+--- a/mm/damon/reclaim.c~mm-damon-reclaim-remove-unnecessary-damon_call-param-validation
++++ a/mm/damon/reclaim.c
+@@ -271,8 +271,6 @@ static int damon_reclaim_commit_inputs_f
+ 	return damon_reclaim_apply_parameters();
  }
  
--static bool damon_lru_sort_damon_has_started;
+-static bool damon_reclaim_damon_has_started;
 -
- static int damon_lru_sort_commit_inputs_store(const char *val,
- 					      const struct kernel_param *kp)
+ static int damon_reclaim_commit_inputs_store(const char *val,
+ 					     const struct kernel_param *kp)
  {
-@@ -366,10 +364,6 @@ static int damon_lru_sort_commit_inputs_
+@@ -293,10 +291,6 @@ static int damon_reclaim_commit_inputs_s
  	if (!commit_inputs_request)
  		return 0;
  
 -	/* Skip damon_call() if ctx has not successfully started. */
--	if (!damon_lru_sort_damon_has_started)
+-	if (!damon_reclaim_damon_has_started)
 -		return -EINVAL;
 -
  	err = damon_call(ctx, &control);
  
  	return err ? err : control.return_code;
-@@ -420,8 +414,6 @@ static int damon_lru_sort_turn(bool on)
+@@ -343,8 +337,6 @@ static int damon_reclaim_turn(bool on)
  	err = damon_start(&ctx, 1, true);
  	if (err)
  		return err;
--	if (!damon_lru_sort_damon_has_started)
--		damon_lru_sort_damon_has_started = true;
+-	if (!damon_reclaim_damon_has_started)
+-		damon_reclaim_damon_has_started = true;
  	return damon_call(ctx, &call_control);
  }
  
