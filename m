@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EFE8C51121C
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7E80E511E7F
 	for <mm-commits@vger.kernel.org>; Thu,  3 Sep 2026 20:43:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788468206; cv=none; b=GaCb9hvP181lGLUDrBh5aEvKi5JylpGaO6AcBK9tDywOA4Cifdhgnr4DsDCGu8VcenBw3cb2vb93yVUduo5YCv0wruVOS4gFWjQsh6Mt2eU8Wxjx32+Xn7doYMrByqSfZS52SObub7ZH/99HWbK6f2vjInW7Om2WjvajmMcHtyg=
+	t=1788468208; cv=none; b=UA252gXDVthZCkS4BUGUqyLbPLsoLKQTtgIAfRav5Uno1ZdIGI6R4KN4c7ifkFGQC7pcEuyYX+0CLFYE9hqTMuG5tFsJ7mjiT4rmvClZiuObvQ0RMOe38eNKxUy7iBo16lOC6at3LNm7Z9GeVPB1B7yJ5jaf8fDZ+p4zFDrLNJ0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788468206; c=relaxed/simple;
-	bh=5PNjZpnHD1PcLvt7bUfaqrNfMJ0klpirn/RsR7wA8Qo=;
-	h=Date:To:From:Subject:Message-Id; b=hHly3mBeYolCkn25bMIi0N9tMhBY/EwjyZCQHcREMamF6DigzvcM8E/aF90yQKhLkG4xNM86ybWSfWJQdv2AbukEAfDussa+BfRej3R6i0lhgeV5/POlNT73Lq1aO8A8kAQMjhMRxTRwU65EKRPp9x6yHuD0eopeZVhp14P+zic=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IAnW/6eG; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788468208; c=relaxed/simple;
+	bh=hXTp71UFbpjf/I19rhWcYWYeo/2lallV2t5IKMb2EY8=;
+	h=Date:To:From:Subject:Message-Id; b=t1mRL0yv0yKvNreb1hQMFy7192AJHOOqCg3xLDChMdJpysKVEL4bq+MM/kuL6iFhiafNiav9DeuHqvBnGFX9DEO2rFmJPGSWTsx9kiwVuDL7QjKuCH3xeIPmT6cYizapKhNuOUGP7xteG/ksdBMtI8Ey3YhEShxjfjJJYdPCeaM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sGMjae3g; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IAnW/6eG"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 950111F00A3D;
-	Thu,  3 Sep 2026 20:43:08 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sGMjae3g"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 746F91F00A3E;
+	Thu,  3 Sep 2026 20:43:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788468188;
-	bh=psHe+o2qAX3fktjYzEr0r4EVbegRbWsao95i/rvMtAw=;
+	d=linux-foundation.org; s=korg; t=1788468190;
+	bh=uwFZcmwpzwLQZMXcn46ArOCOmO8FDytU3CJNn959hrM=;
 	h=Date:To:From:Subject;
-	b=IAnW/6eGSEpB7u9xAeQC+69PHkyTe+KiNrB5cEYtWFsbw6ObtBNzezfy0iWZmoYxA
-	 kEM3v+GuPbN24ut3vEe2c/d/XngEkqKSMLizSQV+h2wx0rrTAQnGqAQi7RRwsTCKKq
-	 zDP1HXrC0dfXzW+plRvJvTpATHfCDiyEKCy6Qons=
-Date: Thu, 03 Sep 2026 13:43:08 -0700
+	b=sGMjae3gmlaOEeBIII/dwgyIYW8T/WCuzjryk97hHkqm/Mxsa5wi5XmifDXSb9DjL
+	 RgQZgDXRliAC5JvSyd7YT8XQfd3guJc3T+wIM9rAY6j/xIPBpUHnLKS8/+mnaLBIpS
+	 r170NIBlllMiVLF9H7tGwVRkIF33RzhgTVNCLAaQ=
+Date: Thu, 03 Sep 2026 13:43:10 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + revert-mm-damon-lru_sort-error-out-for-10000-active_mem_bp.patch added to mm-new branch
-Message-Id: <20260903204308.950111F00A3D@smtp.kernel.org>
+Subject: + revert-samples-damon-mtier-error-out-for-zero-quota-goal-target-values.patch added to mm-new branch
+Message-Id: <20260903204310.746F91F00A3E@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: Revert "mm/damon/lru_sort: error out for >10000 active_mem_bp"
+     Subject: Revert "samples/damon/mtier: error out for zero quota goal target values"
 has been added to the -mm mm-new branch.  Its filename is
-     revert-mm-damon-lru_sort-error-out-for-10000-active_mem_bp.patch
+     revert-samples-damon-mtier-error-out-for-zero-quota-goal-target-values.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/revert-mm-damon-lru_sort-error-out-for-10000-active_mem_bp.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/revert-samples-damon-mtier-error-out-for-zero-quota-goal-target-values.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,42 +70,37 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: Revert "mm/damon/lru_sort: error out for >10000 active_mem_bp"
-Date: Wed, 2 Sep 2026 18:07:20 -0700
+Subject: Revert "samples/damon/mtier: error out for zero quota goal target values"
+Date: Wed, 2 Sep 2026 18:07:21 -0700
 
-This reverts commit 06befa61c427e74319781e6f35a364cfc32dbae8.
+This reverts commit a16fd3ad9d89b05475864da97327870464611736.
 
 The commit was made to avoid zero damos quota goal target value, because
 it can trigger division-by-zero.  Now the core layer handles the corner
 case.  It returns an error for any attempt setting the aero target_value. 
-The corner case handling in DAMON_LRU_SORT is hence no more needed. 
+The corner case handling in DAMON_SAMPLE_MTIER is hence no more needed. 
 Remove it.
 
-Note that this slightly changes the user behavior.  It still disallows
-active_mem_bp of 10,002.  But now it allows other >10,000 active_mem_bp
-values.  Setting >10,000 active_mem_bp makes not much sense.  But it
-doesn't cause critical problems such as memory leak or crash, either. 
-Arguably that doesn't deserve additional code complexity.  Just allow it.
-
-Link: https://lore.kernel.org/20260903010722.94244-3-sj@kernel.org
+Link: https://lore.kernel.org/20260903010722.94244-4-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/lru_sort.c |    2 --
- 1 file changed, 2 deletions(-)
+ samples/damon/mtier.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
---- a/mm/damon/lru_sort.c~revert-mm-damon-lru_sort-error-out-for-10000-active_mem_bp
-+++ a/mm/damon/lru_sort.c
-@@ -233,8 +233,6 @@ static int damon_lru_sort_add_quota_goal
- 
- 	if (!active_mem_bp)
- 		return 0;
--	if (10000 < active_mem_bp)
--		return -EINVAL;
- 	goal = damos_new_quota_goal(DAMOS_QUOTA_ACTIVE_MEM_BP, active_mem_bp);
- 	if (!goal)
- 		return -ENOMEM;
+--- a/samples/damon/mtier.c~revert-samples-damon-mtier-error-out-for-zero-quota-goal-target-values
++++ a/samples/damon/mtier.c
+@@ -161,9 +161,6 @@ static struct damon_ctx *damon_sample_mt
+ 	if (!scheme)
+ 		goto free_out;
+ 	damon_set_schemes(ctx, &scheme, 1);
+-	/* zero target value causes division by zero in damos_quota_store() */
+-	if (!node0_mem_used_bp || !node0_mem_free_bp)
+-		goto free_out;
+ 	quota_goal = damos_new_quota_goal(
+ 			promote ? DAMOS_QUOTA_NODE_MEM_USED_BP :
+ 			DAMOS_QUOTA_NODE_MEM_FREE_BP,
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
