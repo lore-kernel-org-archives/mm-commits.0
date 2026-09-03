@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3184C4FB9B3
-	for <mm-commits@vger.kernel.org>; Thu,  3 Sep 2026 20:24:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 075F92F49F6
+	for <mm-commits@vger.kernel.org>; Thu,  3 Sep 2026 20:35:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788467077; cv=none; b=fkiYLoq8un99Si0PHD0hjbl2w4Ch1Nqy1gau3SOlD/GEReS81TB1j24Dx9mePIkuLyMHYRBW8AUea14zy/nkLxJpbL3E9XlhOvykGR6YRuCJHo5e5F1mzlggOQWWwEDxujF1XaqkVjFkb4G9ak+v+JXVu7aSdofNzxBbVkbWrVE=
+	t=1788467730; cv=none; b=IAAjVOl1lIGVkn4B01ckYgmIJmwtxMawaMWfo1s4NIFVaELJjlpu8kKvS+MwmLKsqG7xISttsZjoGdB3n7lBbjOG3IQfyVqIz6cSZiYuexOpDou4lLYDE2fll1T7T/tQDFJ7OdCPtTaMxoOf8dITrTG1j2B5z0zSltiTwEcig6I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788467077; c=relaxed/simple;
-	bh=91tOBAtUNTPvyl8zADJQ64SnfC7LZMb9iFzDVTr5+B0=;
-	h=Date:To:From:Subject:Message-Id; b=kqdA8Tf+QrA/0W5owZKzpQznkl2Q02Hmr3Opm1Mz8mFzAwtZ3p6Xp8kJg0FXt2ea1mkPRUDket7EMX6XVsoLAG9e6xBYyIhRX0/1wNE97dJucqMax/OOn8+sMMJqp7Re9QPxB8WmDT4r4Ap6dPwq5vEi0ibnhzP/wt0/mkqF+6g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gVfusjtG; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788467730; c=relaxed/simple;
+	bh=ntu0Bq0JVTH4wOwCoEIMBAmWIMkCP+cmXP5kSaQFyKw=;
+	h=Date:To:From:Subject:Message-Id; b=s12355U3fvlCLCzj5jIACCXu+ky1RQ7RnLdzgc+AEPXyGL5edk5BvdubnLfKtva0k7kgLSH3ptWU+qKRAnvvMcVy430wszHJ7j8GIYv/BXn5PZmvWOtxLiuaWkCrV/dUMGFgQCBElsCeuKdCVrLySjVkIglsavDJcdNtiuhg/aw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xINFalcZ; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gVfusjtG"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1656A1F000E9;
-	Thu,  3 Sep 2026 20:24:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xINFalcZ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 852EA1F000E9;
+	Thu,  3 Sep 2026 20:35:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788467070;
-	bh=BUIUsx45qxQqyLxGyhmpEwRWA61aRb+Tpylb9mVyJXs=;
+	d=linux-foundation.org; s=korg; t=1788467722;
+	bh=JnYAN0c4MGrx1/xYxcMWGjBwVMuIo90P+ps9nCAL+8g=;
 	h=Date:To:From:Subject;
-	b=gVfusjtGxNyPgA1builnrBGBurmcEm7vOXg2KrKD20uRzI+ZaujWCSQM/rCwFK1Xh
-	 idlmLKed3ivGTeqEwdmx7S8mHTrq4zVQg1a+QXNaFwqymh9ftbIDbVE8XfIurCSjFw
-	 quHpIYuBW9BDE5K2EGNukl19UG9JmhykM/Z2rVb4=
-Date: Thu, 03 Sep 2026 13:24:29 -0700
-To: mm-commits@vger.kernel.org,rppt@kernel.org,lizhe.67@bytedance.com,akpm@linux-foundation.org
+	b=xINFalcZ3xeG4McZ2Ab4AaIrDDPlAxpgrYl3E/dhc1D3mjolvzG730szSM4MkirUO
+	 FZtzuxZVPFBdeWco3Fon7qYxT0ku8KofayYVzSR6rQOwbOwc8RyTSTu9jN1a3rXjh4
+	 ppp9ExiW5M/DgBApndefYrOoVSumec6/LVxs7y+4=
+Date: Thu, 03 Sep 2026 13:35:22 -0700
+To: mm-commits@vger.kernel.org,zhengqi.arch@bytedance.com,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,hughd@google.com,hannes@cmpxchg.org,david@kernel.org,brauner@kernel.org,baolin.wang@linux.alibaba.com,qinyuntan@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-add-a-template-based-fast-path-for-zone-device-page-init-fix.patch added to mm-unstable branch
-Message-Id: <20260903202430.1656A1F000E9@smtp.kernel.org>
+Subject: + mm-list_lru-disable-memcg-awareness-under-cgroup_disable=memory.patch added to mm-unstable branch
+Message-Id: <20260903203522.852EA1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm-add-a-template-based-fast-path-for-zone-device-page-init-fix
+     Subject: mm/list_lru: disable memcg awareness under cgroup_disable=memory
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-add-a-template-based-fast-path-for-zone-device-page-init-fix.patch
+     mm-list_lru-disable-memcg-awareness-under-cgroup_disable=memory.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-a-template-based-fast-path-for-zone-device-page-init-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-list_lru-disable-memcg-awareness-under-cgroup_disable=memory.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,43 +58,86 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: "Li Zhe" <lizhe.67@bytedance.com>
-Subject: mm-add-a-template-based-fast-path-for-zone-device-page-init-fix
-Date: Thu, 3 Sep 2026 10:58:06 +0800
+From: Qinyun Tan <qinyuntan@linux.alibaba.com>
+Subject: mm/list_lru: disable memcg awareness under cgroup_disable=memory
+Date: Wed, 2 Sep 2026 17:32:02 +0800
 
-whitespace fix, per Mike
+__list_lru_init() only collapses a memcg-aware list_lru into plain
+per-node lists when kmem accounting is disabled (cgroup.memory=nokmem). 
+When the memory controller is disabled entirely (cgroup_disable=memory),
+mem_cgroup_kmem_disabled() is false, so the lru stays memcg aware even
+though no object will ever be charged to a memcg.
 
-Link: https://lore.kernel.org/20260903025806.70825-1-lizhe.67@bytedance.com
-Signed-off-by: Li Zhe <lizhe.67@bytedance.com>
-Cc: Mike Rapoport (Microsoft) <rppt@kernel.org>
+This is more than a semantic inconsistency.  folio_memcg_list_lru_alloc()
+trusts list_lru_memcg_aware() and dereferences the folio's memcg, which is
+always NULL with the controller disabled.  The only mainline caller,
+folio_memcg_alloc_deferred(), papers over this with an explicit
+mem_cgroup_disabled() check.  The shmem unused-huge shrinker conversion
+("mm: shmem: make unused huge shrinker memcg aware") adds a second caller
+without such a guard, so booting with cgroup_disable=memory and writing to
+a huge=always tmpfs oopses:
+
+  BUG: unable to handle page fault for address: 0000000000000488
+  RIP: 0010:folio_memcg_list_lru_alloc+0x41/0xf0
+  Call Trace:
+   <TASK>
+   shmem_get_folio_gfp+0x1cd/0x7c0
+   shmem_write_begin+0x5d/0x100
+   generic_perform_write+0x89/0x2a0
+   shmem_file_write_iter+0x82/0x90
+   vfs_write+0x256/0x410
+   ksys_write+0x61/0xe0
+   do_syscall_64+0x8d/0x460
+   entry_SYSCALL_64_after_hwframe+0x76/0x7e
+
+The faulting address is the offset of mem_cgroup->kmemcg_id, dereferenced
+on a NULL memcg in memcg_list_lru_allocated():
+
+  folio_memcg_list_lru_alloc()
+    list_lru_memcg_aware()               <- true, only nokmem checked
+    memcg = folio_memcg(folio)           <- NULL
+    memcg_list_lru_allocated(memcg, lru)
+      memcg->kmemcg_id                   <- NULL pointer dereference
+
+Check mem_cgroup_disabled() in __list_lru_init() so that all list_lrus
+fall back to plain per-node lists when the controller is disabled,
+matching what the shrinker side already does (shrinker_memcg_alloc() bails
+out on mem_cgroup_disabled()).  This makes the mem_cgroup_disabled() check
+in callers unnecessary rather than mandatory.
+
+Link: https://lore.kernel.org/20260902093202.609559-1-qinyuntan@linux.alibaba.com
+Signed-off-by: Qinyun Tan <qinyuntan@linux.alibaba.com>
+Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Qi Zheng <zhengqi.arch@bytedance.com>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mm_init.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ mm/list_lru.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/mm_init.c~mm-add-a-template-based-fast-path-for-zone-device-page-init-fix
-+++ a/mm/mm_init.c
-@@ -1139,8 +1139,7 @@ void __ref memmap_init_zone_device(struc
- 	for (; pfn < end_pfn; pfn += pfns_per_compound) {
- 		page = pfn_to_page(pfn);
+--- a/mm/list_lru.c~mm-list_lru-disable-memcg-awareness-under-cgroup_disable=memory
++++ a/mm/list_lru.c
+@@ -671,7 +671,7 @@ int __list_lru_init(struct list_lru *lru
+ 	else
+ 		lru->shrinker_id = -1;
  
--		zone_device_page_init_from_template(page, pfn,
--						    &template);
-+		zone_device_page_init_from_template(page, pfn, &template);
+-	if (mem_cgroup_kmem_disabled())
++	if (mem_cgroup_disabled() || mem_cgroup_kmem_disabled())
+ 		memcg_aware = false;
+ #endif
  
- 		if (IS_ALIGNED(pfn, PAGES_PER_SECTION))
- 			cond_resched();
 _
 
-Patches currently in -mm which might be from lizhe.67@bytedance.com are
+Patches currently in -mm which might be from qinyuntan@linux.alibaba.com are
 
-mm-fix-stale-zone_device-refcount-comment.patch
-mm-add-a-set_page_section_from_pfn-helper.patch
-mm-add-a-template-based-fast-path-for-zone-device-page-init.patch
-mm-add-a-template-based-fast-path-for-zone-device-page-init-fix.patch
-mm-extend-the-template-fast-path-to-zone-device-compound-tails.patch
-string-introduce-memcpy_nontemporal.patch
-mm-use-memcpy_nontemporal-in-zone-device-template-copies.patch
-x86-string-extend-memcpy_flushcache-fixed-size-fastpaths.patch
+mm-list_lru-disable-memcg-awareness-under-cgroup_disable=memory.patch
+mm-list_lru-dont-copy-stale-shrinker-id-from-non-memcg-aware-shrinkers.patch
 
