@@ -1,150 +1,136 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9C48736896D;
-	Thu,  3 Sep 2026 23:55:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 678E16FC3;
+	Fri,  4 Sep 2026 00:48:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788479736; cv=none; b=LiAnnJ4RXjA7+WrMZbr2AvsGHgx/mnrTt+uN0oCoIxs2bD1cBQWwzAul62qESuF0bNt4z8RZ+rQQWwQojVlyDyVpr0CjetDUUg606JcpcwMVvIKmyDwgxU3XL8v0iee31Jmhnv/OyTwkLUfFMn8vJx9rbVti0NsZgrbtsUTBkc4=
+	t=1788482929; cv=none; b=m/eaWLNQuVHY0wuh8M23xkP+ine7GqWR2K/FtYzh4pAu3N2eO/Moi4QuQFox5rgedFOq0VAAT+J/o4JTCWZM+qHoyjlO/QLMnM3aj7tSLJ0L2VU4xX2F3dSpg6Vp0oTEWitHITM53aSp3ezKzYB5Z2icdy1UmJCkPhd2gdf5QDg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788479736; c=relaxed/simple;
-	bh=EWIqrdXxmFzBpVvYQZAvyQrAaWzx2aA4+vuWt/WTOBU=;
-	h=Date:To:From:Subject:Message-Id; b=hYb+xsylMo+vxIWV8396y2DZjGLD0YVqxZ6DvGlJINJpxJREJlxMPQaL5v3X66VzgaVBag6lu9eArqOuzsYcEYyobIrqtcrO2rYCvfbt12ge1fGRDetqVsc0+TCZ13IO5wdlbDlOpV1InLkX1TKKRMxVpJwRkRAYv+GkDyyDQ+k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1qMeO2ys; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788482929; c=relaxed/simple;
+	bh=jh5O5cyOclG+OYyDl9N1sQbIplNvsglrZxAJbd097No=;
+	h=Date:From:To:Cc:Subject:Message-Id:Mime-Version:Content-Type; b=JUigRbdXfzSsYwjs0+mplvEMzaw8/XtvT9MWYldEPhPuBiYsShrJSo8qyW7zHFxrkglhhtD4rwh5vYK96Y9SlvcA2Hd0X4olNQDoewA8OoCBYUOBhHucYuQBavuppbuxZ2VNawk7iWajimV3KRJh6vYv82aoD2y9hzAfojTzsXo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=av8liggb; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1qMeO2ys"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F05831F000E9;
-	Thu,  3 Sep 2026 23:55:34 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="av8liggb"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C81D11F000E9;
+	Fri,  4 Sep 2026 00:48:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788479735;
-	bh=gQ43+T65oPryyT5UvnBbA9jnzO/m3sStBQrel6+PjF4=;
-	h=Date:To:From:Subject;
-	b=1qMeO2yspt+nVRgZe2eHRGLLsuy2khh/XVbPpJbi21azHPAlqNVDe885w0XVUH0Si
-	 LkAX7Tx1PO0x578wwFoU3neHK5KKouxUmNENdjJQB3M/ceTgggyItInnSRkj8R3bpu
-	 ynjn5A/iVB0GHGBwU6Dj0JBX+sUVAh+fEoF5J5DM=
-Date: Thu, 03 Sep 2026 16:55:34 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,richard120310@gmail.com,handyhandyman.adam@gmail.com,akpm@linux-foundation.org
+	d=linux-foundation.org; s=korg; t=1788482928;
+	bh=fZiJnm472/wWBjeAyig4dXl/rRisSJv+rJypmqNg45g=;
+	h=Date:From:To:Cc:Subject;
+	b=av8liggbntRqzftSpXrzTrkaUzYy6Vz8VFx+yEzAnncDQhHkX69PGCq6Kcbkx57k6
+	 X7ekPLlCqHJWeBUN/c+OG1GBixVgh49MxLwYUEdSQVN93k9msX+Zow607ykTBVr5ej
+	 FUnhH8PKf4l05O3+eYaZKva0N6AjnyjomiNb4Izw=
+Date: Thu, 3 Sep 2026 17:48:47 -0700
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-plist-fix-plist_requeue-corrupting-order-in-the-last-bucket.patch added to mm-nonmm-unstable branch
-Message-Id: <20260903235534.F05831F000E9@smtp.kernel.org>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org,
+ mm-commits@vger.kernel.org
+Subject: [GIT PULL] hotfixes for 7.3-rc2
+Message-Id: <20260903174847.a7f81bd5400d48cc8d0feaf9@linux-foundation.org>
+X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
 
-The patch titled
-     Subject: lib/plist: fix plist_requeue() corrupting order in the last bucket
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     lib-plist-fix-plist_requeue-corrupting-order-in-the-last-bucket.patch
+Linus, please merge this batch of hotfixes.
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-plist-fix-plist_requeue-corrupting-order-in-the-last-bucket.patch
+There are no fixes (yet) for all the stuff we added in the most recent
+merge window.  Hopefully a good sign.
 
-This patch will later appear in the mm-nonmm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+Thanks.
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+The following changes since commit 786262be6048deab760f68c8acc2c85607165894:
 
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+  Merge tag 'edac_updates_for_v7.3_rc2' of git://git.kernel.org/pub/scm/linux/kernel/git/ras/ras (2026-08-31 20:10:39 -0700)
 
-------------------------------------------------------
-From: Adam Harshbarger <handyhandyman.adam@gmail.com>
-Subject: lib/plist: fix plist_requeue() corrupting order in the last bucket
-Date: Thu, 3 Sep 2026 17:24:56 -0500
+are available in the Git repository at:
 
-plist_requeue() is meant to move a node to the end of its own priority
-run.  When the node heads the *last* priority bucket it is instead placed
-at the head of the whole list, leaving the plist unsorted:
+  git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2026-09-03-17-45
 
-  built:      A(prio 0) B(prio 1) C(prio 1)
-  requeue(B): B(prio 1) A(prio 0) C(prio 1)
-  expected:   A(prio 0) C(prio 1) B(prio 1)
+for you to fetch changes up to 97d34aa65c29cca85e3e9050f4c936389b38a054:
 
-prio_list is a *headless* circular ring of the nodes that lead each
-priority bucket.  The shortcut added by commit 95d4b3450ebe ("lib/plist.c:
-add shortcut for plist_requeue()") takes
+  mm/secretmem: properly account locked pages (2026-09-03 10:56:10 -0700)
 
-	iter = list_entry(iter->prio_list.next, struct plist_node,
-			  prio_list);
-	node_next = &iter->node_list;
+----------------------------------------------------------------
+18 hotfixes.  13 are cc:stable.  15 are for MM.
 
-which from the last bucket wraps round to the *first* bucket, so node_next
-ends up pointing at the head of the list rather than at its end.  The
-plist_for_each_continue() loop immediately below it computes the correct
-answer (&head->node_list) for that case.
+All are singletons - please see the changelogs for details.
 
-With any bucket after it the shortcut is correct, which is why this went
-unnoticed: the benchmark in that commit measured elapsed time and never
-checked the resulting order.
+----------------------------------------------------------------
+Baolin Wang (1):
+      mm: fix incorrect vm_flags usage when checking allowable orders for tmpfs
 
-Keep the shortcut -- it is a real win -- but exclude the case where iter's
-bucket is the last one, which is exactly when its ring successor is the
-first bucket again.
+Bryan Lim (1):
+      userfaultfd: reset err to be 0 when move_pages_ptes succeeded
 
-Reachable from mm/swapfile.c, which rotates swap_avail_heads[] with
-plist_requeue().  It takes three or more swap devices: at least two
-distinct priorities, so that a later bucket exists for the ring to wrap
-round from, and two or more devices sharing the lowest priority, so that
-plist_requeue() does not return early.  One device per priority returns
-early at the node->prio != iter->prio test.  A single priority is also
-safe, but for a different reason worth stating: with one bucket no node is
-ever linked onto prio_list at all -- plist_add() skips it for the first
-node and for every node whose predecessor shares its priority -- so
-list_empty(&iter->prio_list) holds and the shortcut is never entered.
+Eric Dumazet (2):
+      mm/mempolicy: fix sleeping allocation in alloc_pages_bulk_weighted_interleave()
+      Revert "once: don't use a work queue to reset sleepable static key"
 
-Tested by driving three implementations -- the pre-95d4b3450ebe code,
-current mainline, and this patch -- through 1,084,492 identical random
-add/del/requeue operations over 24 nodes and 1..5 distinct priorities,
-comparing the resulting node_list node for node after every operation:
+Geert Uytterhoeven (1):
+      MAINTAINERS: cover all of RAID
 
-  variant             differs from pre-95d4b3450ebe  left list unsorted
-  pre-95d4b3450ebe    -- (reference)                                  0
-  mainline                                  289,297             276,660
-  this patch                                      0                   0
+Hui Su (1):
+      mm/migrate_device: avoid out-of-bounds writes for compound folios
 
-Link: https://lore.kernel.org/20260903222456.1881786-1-handyhandyman.adam@gmail.com
-Fixes: 95d4b3450ebe ("lib/plist.c: add shortcut for plist_requeue()")
-Signed-off-by: Adam Harshbarger <handyhandyman.adam@gmail.com>
-Assisted-by: Claude:claude-opus-5
-Cc: I Hsin Cheng <richard120310@gmail.com>
-Cc: <stable@vger.kernel.org> # v6.15+
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+Kiryl Shutsemau (Meta) (1):
+      MAINTAINERS: add Kiryl as a THP reviewer
 
- lib/plist.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+Lance Yang (1):
+      MAINTAINERS: add Lance Yang as a hung task detector co-maintainer
 
---- a/lib/plist.c~lib-plist-fix-plist_requeue-corrupting-order-in-the-last-bucket
-+++ a/lib/plist.c
-@@ -174,8 +174,15 @@ void plist_requeue(struct plist_node *no
- 	/*
- 	 * After plist_del(), iter is the replacement of the node.  If the node
- 	 * was on prio_list, take shortcut to find node_next instead of looping.
-+	 *
-+	 * prio_list is a headless ring, so from the LAST bucket ->next wraps
-+	 * round to the first one; in that case node_next is the list head.
- 	 */
- 	if (!list_empty(&iter->prio_list)) {
-+		struct plist_node *first = plist_first(head);
-+
-+		if (iter->prio_list.next == &first->prio_list)
-+			goto queue;
- 		iter = list_entry(iter->prio_list.next, struct plist_node,
- 				  prio_list);
- 		node_next = &iter->node_list;
-_
+Longlong Xia (1):
+      mm/hugetlb: keep max_huge_pages when dissolving surplus folios
 
-Patches currently in -mm which might be from handyhandyman.adam@gmail.com are
+Lorenzo Stoakes (ARM) (3):
+      MAINTAINERS: remove Lorenzo as THP co-maintainer
+      mm/mremap: reset unfaulted VMA page offset for MREMAP_DONTUNMAP
+      mm/secretmem: properly account locked pages
 
-lib-plist-fix-plist_requeue-corrupting-order-in-the-last-bucket.patch
+Narek Jilavyan (1):
+      mm/hugetlb_cgroup: call page_counter_set_max() outside VM_BUG_ON()
+
+Shakeel Butt (1):
+      memcg: make the v1 soft limit knob inert
+
+Sourav Panda (1):
+      mm/hugetlb_cma: fix null nodemask dereference in hugetlb_cma_alloc_frozen_folio
+
+Thorsten Blum (1):
+      MAINTAINERS: mailmap: update entries for Thorsten Blum
+
+Usama Arif (1):
+      mm/huge_memory: transfer the pmd dirty bit to the folio on zap
+
+Wupeng Ma (1):
+      mm/hugetlb: fix missing migratable flag on same-node hugetlb migration
+
+ .mailmap                                       |   3 +-
+ Documentation/admin-guide/cgroup-v1/memory.rst |  49 ++---------
+ MAINTAINERS                                    |  10 +--
+ include/linux/sched/user.h                     |   3 +-
+ lib/once.c                                     |   2 +-
+ mm/huge_memory.c                               |   2 +
+ mm/hugetlb.c                                   |  20 +++--
+ mm/hugetlb_cgroup.c                            |   7 +-
+ mm/hugetlb_cma.c                               |  21 ++++-
+ mm/khugepaged.c                                |   6 --
+ mm/madvise.c                                   |   8 ++
+ mm/memcontrol-v1.c                             |  43 +++++----
+ mm/mempolicy.c                                 |   2 +-
+ mm/migrate_device.c                            |  18 ++++
+ mm/mremap.c                                    |  22 +++--
+ mm/secretmem.c                                 | 116 +++++++++++++++++++++++--
+ mm/userfaultfd.c                               |   4 +-
+ tools/testing/selftests/mm/memfd_secret.c      |  30 +------
+ 18 files changed, 233 insertions(+), 133 deletions(-)
 
