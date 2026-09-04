@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 488F033D6FA;
-	Fri,  4 Sep 2026 18:05:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 16E883EC807
+	for <mm-commits@vger.kernel.org>; Fri,  4 Sep 2026 18:10:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788545130; cv=none; b=RF1K7b5LD48Vk9OmiHN+Kx/KVO9lq6TzaiJP5h7DJrvzPqYruylmU78YTIsfvoXgM5IJfmjuHMRsgScq/QWdQEjG/ddVCMbE8YJmfc9ROr3OpZTKdOzdm9s/qU51GPNKrAcfxqf4yPtv+Aot+p6b4YVaTgT99m5exaSu7ib9S24=
+	t=1788545409; cv=none; b=ZRkHdFiX8blsbPoyxWLrg2kfsjT6vRx392TGxY4+TBTgEjdHKqu7dVCScyHJFlA5heS/REjqgdYq5mHcZt2DER4L9UkSEZWrtlNZqZyKcpF+v7KpznPL0HlKeNPV5FYz+2l2gygJCG5JbJxMjta7iSjBzNZJA3e75tVhcArUpRQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788545130; c=relaxed/simple;
-	bh=xf9YQpqV6O8beA59SFNGAUbmUMNLPdBTWfTr7C154Jw=;
-	h=Date:To:From:Subject:Message-Id; b=Ok+fPZ50raQg5fj9zF18vFemdj7NxLKaY41HmXyglt9n5UI1J+ByfbprgQfwlRhVCOT09zACZTuvS7cx3uVSeYqOmOjzA/WPep3D+wSVlstC38LdeL5/lXIsUnEgQqP568GkFtoxA4ht2o67y8zHkTLMHXzLbFwlvGdio9bHNmA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oviO/jcm; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788545409; c=relaxed/simple;
+	bh=SeBzVDEoF8P4hnaLWma2gtJ8FzWRlnwYDtK150UxNRA=;
+	h=Date:To:From:Subject:Message-Id; b=S71PoBZ8t4iG/DAYPUmcmDU9UYukahG/6rQJp9W64pE3uY0Tno3EJQSmDrv7T5MaaIcQYGuOi18cfzvf6qUwM1KoFoVPeAFU3F34oXOEQThHq3SmUorsIYQ66AKbKv5Lu6hrjn7mti5TVTQu33lE2fumAOEL210uUe4VbntafXg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yZx3VQpY; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oviO/jcm"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C16E51F00A3D;
-	Fri,  4 Sep 2026 18:05:28 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yZx3VQpY"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1BC321F00A3D;
+	Fri,  4 Sep 2026 18:10:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788545128;
-	bh=wRykqgwPDdTt6UUjETqzys0HEo1jI/qE+UtDoXbnxjs=;
+	d=linux-foundation.org; s=korg; t=1788545401;
+	bh=GWTATCEWDL3lTk0md655kiukdCQod1bxJ3TY65tnO30=;
 	h=Date:To:From:Subject;
-	b=oviO/jcm6M/sjNtl9F2r5VAVS3XykRt+/si1aveSVUN2qjPMWbNdGfLI1LVb0319b
-	 uZEZtd6yvulP0eLW6qrLf/9PL3SgZZE7wz6WKdjVqYfkm/H+jJUgIlQSA5dSJ2A2GP
-	 LbADkbzSVKcrjL3qhZclMQrvzDbZG5m88/DdQ478=
-Date: Fri, 04 Sep 2026 11:05:28 -0700
-To: mm-commits@vger.kernel.org,viro@zeniv.linux.org.uk,stable@vger.kernel.org,jack@suse.cz,brauner@kernel.org,fadouse@pm.me,akpm@linux-foundation.org
+	b=yZx3VQpYLGSwaXMiQuecX0EYBJi7duA5awAgu/I6clJaR07wTTipfOa8/RbTtFaJE
+	 jwsBmXEe+E3KUot+Aq9K1fpz27qcsSPEH/NDnK2O5qKfANyaHzyHepXP7Vkw1cnAbi
+	 kZaISUIPLj6BXxNpLIaz6p4AMODA7q5UTw75fpVk=
+Date: Fri, 04 Sep 2026 11:10:00 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,ljs@kernel.org,liam@infradead.org,hannes@cmpxchg.org,david@kernel.org,stevensd@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged] ufs-use-u64-for-directory-size-in-ufs_last_byte.patch removed from -mm tree
-Message-Id: <20260904180528.C16E51F00A3D@smtp.kernel.org>
+Subject: [to-be-updated] memcg-dont-call-schedule_work-when-no-spinning-is-allowed.patch removed from -mm tree
+Message-Id: <20260904181001.1BC321F00A3D@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,85 +35,95 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: ufs: use u64 for directory size in ufs_last_byte
+     Subject: memcg: don't call schedule_work when no spinning is allowed
 has been removed from the -mm tree.  Its filename was
-     ufs-use-u64-for-directory-size-in-ufs_last_byte.patch
+     memcg-dont-call-schedule_work-when-no-spinning-is-allowed.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: YANXIN LI <fadouse@pm.me>
-Subject: ufs: use u64 for directory size in ufs_last_byte
-Date: Sat, 18 Jul 2026 19:03:07 +0000
+From: David Stevens <stevensd@google.com>
+Subject: memcg: don't call schedule_work when no spinning is allowed
+Date: Mon, 31 Aug 2026 16:43:39 -0700
 
-ufs1_read_inode() and ufs2_read_inode() copy the untrusted 64-bit on-disk
-size into inode->i_size.  ufs_last_byte() then truncates that value to an
-unsigned int before calculating the valid extent of a directory folio.
+Memcg charging can be done from any context, but calling schedule_work()
+isn't safe from an NMI.  If memory.high is breached from a context where
+spinning isn't allowed, use irq_work to schedule the reclaim work.
 
-A directory size of exactly 4 GiB is truncated to zero.  In
-ufs_find_entry(), subtracting the requested record length from that zero
-forms an endpoint almost 4 GiB beyond the mapped folio.  A crafted UFS2
-image produces:
-
-  BUG: KASAN: use-after-free in ufs_find_entry+0x583/0x6e0 [ufs]
-  Read of size 1
-  ...
-  ufs_find_entry
-  ufs_inode_by_name
-  ufs_lookup
-  __lookup_slow
-  path_lookupat
-
-The KASAN classification reflects that the adjacent physical page was
-free; the source-level operation is an out-of-folio read.  A controlled
-UFS1 test with CONFIG_UFS_FS_WRITE enabled also made ufs_find_entry()
-return a directory entry from an adjacent anonymous page.  unlink() then
-passed that pointer to ufs_delete_entry(), which cleared the adjacent
-page's 32-bit d_ino.  This write result reproduced three out of three
-times.
-
-UFS normally requires a privileged mount path.  A relevant boundary is a
-privileged automounter or image-processing service handling an
-attacker-supplied filesystem.  The write primitive additionally requires
-UFS1 to be mounted read-write with CONFIG_UFS_FS_WRITE enabled; the read
-is reachable with read-only UFS2.
-
-Keep the intermediate size arithmetic at 64 bits so non-final pages are
-bounded at PAGE_SIZE.  With this change, the same controlled tests reach
-the real on-disk directory entry and produce no adjacent-page write or
-KASAN report.  A reproducer and full validation logs are available on
-request.
-
-The vulnerable helper is present in v7.2-rc3, v7.1, v6.18.38, v6.12.95,
-v6.6.111, and upstream master at 1229e2e57a5c.  Runtime reproduction and
-fix validation were performed in an x86-64 QEMU guest running v7.2-rc3
-with generic KASAN.
-
-Signed-off-by: YANXIN LI <fadouse@pm.me>
-Fixes: b71034e5e67d ("[PATCH] ufs: directory and page cache: from blocks to pages")
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Jan Kara <jack@suse.cz>
-Cc: <stable@vger.kernel.org>
+Link: https://lore.kernel.org/20260831234339.280376-1-stevensd@google.com
+Fixes: 3ac4638a734a ("memcg: make memcg_rstat_updated nmi safe")
+Signed-off-by: David Stevens <stevensd@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ufs/dir.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/memcontrol.h |    1 +
+ mm/memcontrol.c            |   12 +++++++++++-
+ 2 files changed, 12 insertions(+), 1 deletion(-)
 
---- a/fs/ufs/dir.c~ufs-use-u64-for-directory-size-in-ufs_last_byte
-+++ a/fs/ufs/dir.c
-@@ -213,7 +213,7 @@ fail:
- static unsigned
- ufs_last_byte(struct inode *inode, unsigned long page_nr)
- {
--	unsigned last_byte = inode->i_size;
-+	u64 last_byte = inode->i_size;
+--- a/include/linux/memcontrol.h~memcg-dont-call-schedule_work-when-no-spinning-is-allowed
++++ a/include/linux/memcontrol.h
+@@ -206,6 +206,7 @@ struct mem_cgroup {
+ 	spinlock_t	 peaks_lock;
  
- 	last_byte -= page_nr << PAGE_SHIFT;
- 	if (last_byte > PAGE_SIZE)
+ 	/* Range enforcement for interrupt charges */
++	struct irq_work high_irq_work;
+ 	struct work_struct high_work;
+ 
+ #ifdef CONFIG_ZSWAP
+--- a/mm/memcontrol.c~memcg-dont-call-schedule_work-when-no-spinning-is-allowed
++++ a/mm/memcontrol.c
+@@ -2440,6 +2440,11 @@ static void high_work_func(struct work_s
+ 	reclaim_high(memcg, MEMCG_CHARGE_BATCH, GFP_KERNEL);
+ }
+ 
++static void high_irq_work_func(struct irq_work *work)
++{
++	schedule_work(&container_of(work, struct mem_cgroup, high_irq_work)->high_work);
++}
++
+ /*
+  * Clamp the maximum sleep time per allocation batch to 2 seconds. This is
+  * enough to still cause a significant slowdown in most cases, while still
+@@ -2848,7 +2853,10 @@ done_restock:
+ 		/* Don't bother a random interrupted task */
+ 		if (!in_task()) {
+ 			if (mem_high) {
+-				schedule_work(&memcg->high_work);
++				if (allow_spinning)
++					schedule_work(&memcg->high_work);
++				else
++					irq_work_queue(&memcg->high_irq_work);
+ 				break;
+ 			}
+ 			continue;
+@@ -4223,6 +4231,7 @@ static struct mem_cgroup *mem_cgroup_all
+ 		goto fail;
+ 
+ 	INIT_WORK(&memcg->high_work, high_work_func);
++	init_irq_work(&memcg->high_irq_work, high_irq_work_func);
+ 	vmpressure_init(&memcg->vmpressure);
+ 	INIT_LIST_HEAD(&memcg->memory_peaks);
+ 	INIT_LIST_HEAD(&memcg->swap_peaks);
+@@ -4431,6 +4440,7 @@ static void mem_cgroup_css_free(struct c
+ 		static_branch_dec(&memcg_bpf_enabled_key);
+ 
+ 	vmpressure_cleanup(&memcg->vmpressure);
++	irq_work_sync(&memcg->high_irq_work);
+ 	cancel_work_sync(&memcg->high_work);
+ 	free_shrinker_info(memcg);
+ 	mem_cgroup_free(memcg);
 _
 
-Patches currently in -mm which might be from fadouse@pm.me are
+Patches currently in -mm which might be from stevensd@google.com are
 
 
