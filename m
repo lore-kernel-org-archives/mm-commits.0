@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 61ECA3DA7CC
-	for <mm-commits@vger.kernel.org>; Fri,  4 Sep 2026 17:48:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 488F033D6FA;
+	Fri,  4 Sep 2026 18:05:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788544138; cv=none; b=HrQw3KEmfHMghzfHrZ1xdWVV9xYP9UoTwTKKzoEl3GKMmgGgfEj7AyCKZka4KlbEmErTqMN9nsg9qpjs3Y+jNQeApEiMdbXyF5hLTYhj069Ht8P5DKvfOoS8Dvriq63NAoLkf8KW+9aBzAPrdO78yVN1j89Pm/Iq58B0TzYzh3s=
+	t=1788545130; cv=none; b=RF1K7b5LD48Vk9OmiHN+Kx/KVO9lq6TzaiJP5h7DJrvzPqYruylmU78YTIsfvoXgM5IJfmjuHMRsgScq/QWdQEjG/ddVCMbE8YJmfc9ROr3OpZTKdOzdm9s/qU51GPNKrAcfxqf4yPtv+Aot+p6b4YVaTgT99m5exaSu7ib9S24=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788544138; c=relaxed/simple;
-	bh=D0TDeUzPzKHmqhKMbKoCKVqBgYMzWt40IW9MV3q1I4A=;
-	h=Date:To:From:Subject:Message-Id; b=mnVbP1R3AAKEX94RAkVbuYFG8Rbfu/FhFPBdITxMIdP8UjcRY+zr9Po3Moh0yVipe9uvQKJM7945czWc7083MNIDw228pDbvkDiV6v9whjP15aR0ImVFR5IKgEHO2ThtHI8TjY+QZXoelzj06t16bMP+pP737S0uzVst7DZZMVg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CFyUsoFU; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788545130; c=relaxed/simple;
+	bh=xf9YQpqV6O8beA59SFNGAUbmUMNLPdBTWfTr7C154Jw=;
+	h=Date:To:From:Subject:Message-Id; b=Ok+fPZ50raQg5fj9zF18vFemdj7NxLKaY41HmXyglt9n5UI1J+ByfbprgQfwlRhVCOT09zACZTuvS7cx3uVSeYqOmOjzA/WPep3D+wSVlstC38LdeL5/lXIsUnEgQqP568GkFtoxA4ht2o67y8zHkTLMHXzLbFwlvGdio9bHNmA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oviO/jcm; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CFyUsoFU"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E10501F00A3D;
-	Fri,  4 Sep 2026 17:48:56 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oviO/jcm"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C16E51F00A3D;
+	Fri,  4 Sep 2026 18:05:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788544137;
-	bh=grCHhCPxkAG6zeYcLRtqASMESxAawb6xDPRKm1ggEwo=;
+	d=linux-foundation.org; s=korg; t=1788545128;
+	bh=wRykqgwPDdTt6UUjETqzys0HEo1jI/qE+UtDoXbnxjs=;
 	h=Date:To:From:Subject;
-	b=CFyUsoFUIE8JlbPuszuIGCeWVlAdYFcOtHJmnm1kdPJZF5c2jOMDb+XD5y6MiEhkT
-	 t/wE9DJaAoGAVP/xQhVI4j1SGotcZm/T7WpEi21ebER5odIMxthjXfo1rpvrUd5lnK
-	 9CpwXiRIcUyKgsQw6yetnocm1Mh+Yv5+ST+kWn3U=
-Date: Fri, 04 Sep 2026 10:48:56 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,shuah@kernel.org,rppt@kernel.org,osalvador@suse.de,muchun.song@linux.dev,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,almasrymina@google.com,akpm@linux-foundation.org,husong@kylinos.cn,akpm@linux-foundation.org
+	b=oviO/jcm6M/sjNtl9F2r5VAVS3XykRt+/si1aveSVUN2qjPMWbNdGfLI1LVb0319b
+	 uZEZtd6yvulP0eLW6qrLf/9PL3SgZZE7wz6WKdjVqYfkm/H+jJUgIlQSA5dSJ2A2GP
+	 LbADkbzSVKcrjL3qhZclMQrvzDbZG5m88/DdQ478=
+Date: Fri, 04 Sep 2026 11:05:28 -0700
+To: mm-commits@vger.kernel.org,viro@zeniv.linux.org.uk,stable@vger.kernel.org,jack@suse.cz,brauner@kernel.org,fadouse@pm.me,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] selftests-mm-restore-hidden-hugetlb-reservation-scenarios.patch removed from -mm tree
-Message-Id: <20260904174856.E10501F00A3D@smtp.kernel.org>
+Subject: [merged] ufs-use-u64-for-directory-size-in-ufs_last_byte.patch removed from -mm tree
+Message-Id: <20260904180528.C16E51F00A3D@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,94 +35,85 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests/mm: restore hidden hugetlb reservation scenarios
+     Subject: ufs: use u64 for directory size in ufs_last_byte
 has been removed from the -mm tree.  Its filename was
-     selftests-mm-restore-hidden-hugetlb-reservation-scenarios.patch
+     ufs-use-u64-for-directory-size-in-ufs_last_byte.patch
 
-This patch was dropped because an updated version will be issued
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Song Hu <husong@kylinos.cn>
-Subject: selftests/mm: restore hidden hugetlb reservation scenarios
-Date: Tue, 14 Jul 2026 10:16:30 +0800
+From: YANXIN LI <fadouse@pm.me>
+Subject: ufs: use u64 for directory size in ufs_last_byte
+Date: Sat, 18 Jul 2026 19:03:07 +0000
 
-A stray 'continue' in the main loop of charge_reserved_hugetlb.sh made the
-"more than reservation", "more than cgroup limit", and "multiple cgroups"
-scenarios unreachable, so they never ran.
+ufs1_read_inode() and ufs2_read_inode() copy the untrusted 64-bit on-disk
+size into inode->i_size.  ufs_last_byte() then truncates that value to an
+unsigned int before calculating the valid extent of a directory folio.
 
-Remove it so the first two run again.  The third,
-run_multiple_cgroup_test(), is separately broken -- a backslash
-line-continuation breaks its local declarations and its hugetlb
-reservation accounting does not charge as expected -- and has never run in
-CI; skip it explicitly with a comment until fixed.  Also correct two `[[
-"$method" == 2"" ]]` typos (harmless empty-string concatenation) to plain
-`2`.
+A directory size of exactly 4 GiB is truncated to zero.  In
+ufs_find_entry(), subtracting the requested record length from that zero
+forms an endpoint almost 4 GiB beyond the mapped folio.  A crafted UFS2
+image produces:
 
-Link: https://lore.kernel.org/20260714021630.1063823-1-husong@kylinos.cn
-Signed-off-by: Song Hu <husong@kylinos.cn>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Mina Almasry <almasrymina@google.com>
+  BUG: KASAN: use-after-free in ufs_find_entry+0x583/0x6e0 [ufs]
+  Read of size 1
+  ...
+  ufs_find_entry
+  ufs_inode_by_name
+  ufs_lookup
+  __lookup_slow
+  path_lookupat
+
+The KASAN classification reflects that the adjacent physical page was
+free; the source-level operation is an out-of-folio read.  A controlled
+UFS1 test with CONFIG_UFS_FS_WRITE enabled also made ufs_find_entry()
+return a directory entry from an adjacent anonymous page.  unlink() then
+passed that pointer to ufs_delete_entry(), which cleared the adjacent
+page's 32-bit d_ino.  This write result reproduced three out of three
+times.
+
+UFS normally requires a privileged mount path.  A relevant boundary is a
+privileged automounter or image-processing service handling an
+attacker-supplied filesystem.  The write primitive additionally requires
+UFS1 to be mounted read-write with CONFIG_UFS_FS_WRITE enabled; the read
+is reachable with read-only UFS2.
+
+Keep the intermediate size arithmetic at 64 bits so non-final pages are
+bounded at PAGE_SIZE.  With this change, the same controlled tests reach
+the real on-disk directory entry and produce no adjacent-page write or
+KASAN report.  A reproducer and full validation logs are available on
+request.
+
+The vulnerable helper is present in v7.2-rc3, v7.1, v6.18.38, v6.12.95,
+v6.6.111, and upstream master at 1229e2e57a5c.  Runtime reproduction and
+fix validation were performed in an x86-64 QEMU guest running v7.2-rc3
+with generic KASAN.
+
+Signed-off-by: YANXIN LI <fadouse@pm.me>
+Fixes: b71034e5e67d ("[PATCH] ufs: directory and page cache: from blocks to pages")
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Jan Kara <jack@suse.cz>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/charge_reserved_hugetlb.sh |   14 +++++++---
- 1 file changed, 11 insertions(+), 3 deletions(-)
+ fs/ufs/dir.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/tools/testing/selftests/mm/charge_reserved_hugetlb.sh~selftests-mm-restore-hidden-hugetlb-reservation-scenarios
-+++ a/tools/testing/selftests/mm/charge_reserved_hugetlb.sh
-@@ -439,11 +439,11 @@ for populate in "" "-o"; do
-         fi
+--- a/fs/ufs/dir.c~ufs-use-u64-for-directory-size-in-ufs_last_byte
++++ a/fs/ufs/dir.c
+@@ -213,7 +213,7 @@ fail:
+ static unsigned
+ ufs_last_byte(struct inode *inode, unsigned long page_nr)
+ {
+-	unsigned last_byte = inode->i_size;
++	u64 last_byte = inode->i_size;
  
-         # Skip populated shmem tests. Doesn't seem to be supported.
--        if [[ "$method" == 2"" ]] && [[ "$populate" == "-o" ]]; then
-+        if [[ "$method" == 2 ]] && [[ "$populate" == "-o" ]]; then
-           continue
-         fi
- 
--        if [[ "$method" == 2"" ]] && [[ "$reserve" == "-n" ]]; then
-+        if [[ "$method" == 2 ]] && [[ "$reserve" == "-n" ]]; then
-           continue
-         fi
- 
-@@ -496,7 +496,6 @@ for populate in "" "-o"; do
-         echo 'PASS'
- 
-         cleanup
--        continue
-         echo
-         echo
-         echo
-@@ -530,6 +529,15 @@ for populate in "" "-o"; do
- 
-         cleanup
- 
-+        # The "multiple cgroups" scenario (run_multiple_cgroup_test) is
-+        # multiply broken and has never run in CI: a backslash
-+        # line-continuation breaks its local declarations, it passes
-+        # reservation sizes in bytes rather than pages (unlike
-+        # run_test), and its assertions compare page counts to byte
-+        # values. Skip it until properly rewritten; the two scenarios
-+        # above are restored by this change.
-+        continue
-+
-         echo
-         echo
-         echo
+ 	last_byte -= page_nr << PAGE_SHIFT;
+ 	if (last_byte > PAGE_SIZE)
 _
 
-Patches currently in -mm which might be from husong@kylinos.cn are
+Patches currently in -mm which might be from fadouse@pm.me are
 
-selftests-mm-emit-tap-header-in-uffd-wp-mremap.patch
-selftests-mm-emit-tap-header-and-use-tap-skip-in-mremap_test.patch
-selftests-mm-restore-enable_soft_offline-in-hugetlb-soft-offline.patch
 
