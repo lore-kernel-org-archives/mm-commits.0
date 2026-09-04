@@ -1,134 +1,186 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.18])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F22653F54AA
-	for <mm-commits@vger.kernel.org>; Fri,  4 Sep 2026 04:28:58 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C37273B14B2
+	for <mm-commits@vger.kernel.org>; Fri,  4 Sep 2026 04:36:41 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788496140; cv=none; b=V0SuIyvZrgJQRxwq5lujrmSBiJb/2TnEkQMNx6B0Ge4rrn6iInrLICYKuqF3kAqCg+sMyPrQVzCRq1Q77N906mynHOFif2I9Jlz74UrN2sP7gHavBpk/P8gG1Y5Zto+E/qynkJSH4PnC7IBZwd6OzW/q93O3iYkidV48I9rorgQ=
+	t=1788496603; cv=none; b=RSc79yf/wLeXQOLbySJA1uj90QHW/phs//nRJYIR78SUQ9fg/uSSK7eTfEOTXNBcXLXk0+IZoSVxJnlYE+XOUemwdYm7JloLTT6gayYtrdzFCTzZ12AtPI0+GIAF7+VzDBHOCGgvkAEIBWNBut2WfghqHort2JkInEG3DB40EnU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788496140; c=relaxed/simple;
-	bh=WN9sRFSBjG3KbS0pSPM9R/IHsjFtneeG71XFWety+6o=;
-	h=Date:From:To:Cc:Subject:Message-ID; b=W8fE5v9/tleiN/Ho67raeyKK3ncrpomT7dB9lL/C7RnSV1CIV7aPLgwDnojgSuGVQ41EpY6/64RSLMMkDaOi5b+G5ZeUEXyL1oB+tFKG/AA1jYWj+BpusxgSx9htIUfQpRNXa9nS7tiRNxFbkVoDl7wNDxTcpiZ6LkDOY4JYHiQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=QRRm25iv; arc=none smtp.client-ip=192.198.163.18
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	s=arc-20240116; t=1788496603; c=relaxed/simple;
+	bh=Ff/b5j7LaqqFDl/e841p4Wyyqxr1dq3wyAwuTVr0YH4=;
+	h=Date:To:From:Subject:Message-Id; b=Uu26Rq/2qTXx6gapNqsbD7RpAO/XpRn/QMD/nE4Wr0/6vaCQFE8rwitW9ixiNDXrcKyr5xwSgpXgCEahx9p8EA3hmO8Bm0LRkipRn2b1VcZkh75Oj6HWUDWTGBhUGac1r6d9LVv01Or0Ydpy4p1Jii8/DYKiQNupfs2ZO+VpTWc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RMoN46iw; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="QRRm25iv"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1788496139; x=1820032139;
-  h=date:from:to:cc:subject:message-id;
-  bh=WN9sRFSBjG3KbS0pSPM9R/IHsjFtneeG71XFWety+6o=;
-  b=QRRm25ivC+VGju6nHnCI//Af/en+1WQt+/8BilUGQW+FGu/BRydenrbT
-   8jM9wdOG6weHD0bCGAmtfr2A4pgJtl0KVcBz0l5V/6OTVdTMLusaTwX+t
-   r5egQSrOhJ1m4sHy/U2O/HKS9G8W48VDfijpJJImnc6PnKlKsoVqHHF/8
-   KVm+jLuDwxMEAK1r0+seD9GyRqx7t2zDeq7h/ntZYfKxBMC4wsB2vqYEA
-   dRBn4KWQOTht0klxvpCDQ59oyxls4BMySf7ZaqVoYXo3lyocjBpKbemLr
-   pbH9qQV2v9RXlo+tZv7t/X68xUdbKbBkf18Wm9K7nVoS5QcaCzmwczbGS
-   A==;
-X-CSE-ConnectionGUID: 8CriQiUTRnmPQ4ni2n4/UA==
-X-CSE-MsgGUID: sW2YfW9rQ4CZXrQkHm0nKg==
-X-IronPort-AV: E=McAfee;i="6800,10657,11895"; a="88135127"
-X-IronPort-AV: E=Sophos;i="6.25,260,1779174000"; 
-   d="scan'208";a="88135127"
-Received: from orviesa008.jf.intel.com ([10.64.159.148])
-  by fmvoesa112.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Sep 2026 21:28:55 -0700
-X-CSE-ConnectionGUID: xq2RwAX9S3ahmoD6BPf/RA==
-X-CSE-MsgGUID: VpTHI7cZTQCPCI8KHPgImQ==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.25,260,1779174000"; 
-   d="scan'208";a="269389494"
-Received: from lkp-server01.sh.intel.com (HELO bfac249b2189) ([10.239.97.150])
-  by orviesa008.jf.intel.com with ESMTP; 03 Sep 2026 21:28:53 -0700
-Received: from kbuild by bfac249b2189 with local (Exim 4.98.2)
-	(envelope-from <lkp@intel.com>)
-	id 1x2LXm-000000005kM-2G36;
-	Fri, 04 Sep 2026 04:28:50 +0000
-Date: Fri, 04 Sep 2026 12:28:36 +0800
-From: kernel test robot <lkp@intel.com>
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: oe-kbuild-all@lists.linux.dev, David Hildenbrand <david@kernel.org>,
- Linux Memory Management List <linux-mm@kvack.org>,
- mm-commits@vger.kernel.org
-Subject: [akpm-mm:mm-new 302/317] mm/memory.c:2271:17: error: too
- many arguments to function 'hugetlb_zap_begin'; expected 3, have 4
-Message-ID: <202609041213.bgAPQEek-lkp@intel.com>
-User-Agent: s-nail v14.9.25
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RMoN46iw"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5E64A1F00A3D;
+	Fri,  4 Sep 2026 04:36:41 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=linux-foundation.org; s=korg; t=1788496601;
+	bh=jEU241X3ncov3if8eXlRwkzDxtaMX4d3Jom5kjZdEOg=;
+	h=Date:To:From:Subject;
+	b=RMoN46iwoo9b1lxlZJwdFaVzCv7Ts2BJdoYoeQ5bQPbcwlzbJ+NOmQzpklvoso3tY
+	 BJS+nF/0QtuWLP1gcyyIQQgNOBZ4P0Dc4KJDivCLC9ejGIYiJgJI11BiKCAWMW2pc7
+	 uZZrw3a9Jhsjiwo1n1B4if58xfPDprp0v4+N2Lho=
+Date: Thu, 03 Sep 2026 21:36:40 -0700
+To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,lkp@intel.com,junxiao.bi@oracle.com,jlbec@evilplan.org,heming.zhao@suse.com,gechangwei@live.cn,joseph.qi@linux.alibaba.com,akpm@linux-foundation.org
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: + ocfs2-make-ocfs2_calc_xattr_init-return-void.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260904043641.5E64A1F00A3D@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
-tree:   https://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm.git mm-new
-head:   2aeb49124a2b3d0c9aa8c0a2124c8cae21ab4e0b
-commit: f1fc44daf6183604b96243805877ee0b1626daaf [302/317] mm/hugetlb: don't lock private resv_map during final unmap
-config: openrisc-allnoconfig (https://download.01.org/0day-ci/archive/20260904/202609041213.bgAPQEek-lkp@intel.com/config)
-compiler: or1k-linux-gcc (GCC) 16.1.0
-reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20260904/202609041213.bgAPQEek-lkp@intel.com/reproduce)
 
-If you fix the issue in a separate patch/commit (i.e. not just a new version of
-the same patch/commit), kindly add following tags
-| Reported-by: kernel test robot <lkp@intel.com>
-| Closes: https://lore.kernel.org/oe-kbuild-all/202609041213.bgAPQEek-lkp@intel.com/
+The patch titled
+     Subject: ocfs2: make ocfs2_calc_xattr_init() return void
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     ocfs2-make-ocfs2_calc_xattr_init-return-void.patch
 
-All errors (new ones prefixed by >>):
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-make-ocfs2_calc_xattr_init-return-void.patch
 
-   mm/memory.c: In function 'unmap_vmas':
->> mm/memory.c:2271:17: error: too many arguments to function 'hugetlb_zap_begin'; expected 3, have 4
-    2271 |                 hugetlb_zap_begin(vma, &start, &end, &details);
-         |                 ^~~~~~~~~~~~~~~~~                    ~~~~~~~~
-   In file included from mm/memory.c:48:
-   include/linux/hugetlb.h:322:20: note: declared here
-     322 | static inline void hugetlb_zap_begin(
-         |                    ^~~~~~~~~~~~~~~~~
+This patch will later appear in the mm-hotfixes-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-vim +/hugetlb_zap_begin +2271 mm/memory.c
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
 
-  2238	
-  2239	/**
-  2240	 * unmap_vmas - unmap a range of memory covered by a list of vma's
-  2241	 * @tlb: address of the caller's struct mmu_gather
-  2242	 * @unmap: The unmap_desc
-  2243	 *
-  2244	 * Unmap all pages in the vma list.
-  2245	 *
-  2246	 * Only addresses between `start' and `end' will be unmapped.
-  2247	 *
-  2248	 * The VMA list must be sorted in ascending virtual address order.
-  2249	 *
-  2250	 * unmap_vmas() assumes that the caller will flush the whole unmapped address
-  2251	 * range after unmap_vmas() returns.  So the only responsibility here is to
-  2252	 * ensure that any thus-far unmapped pages are flushed before unmap_vmas()
-  2253	 * drops the lock and schedules.
-  2254	 */
-  2255	void unmap_vmas(struct mmu_gather *tlb, struct unmap_desc *unmap)
-  2256	{
-  2257		struct vm_area_struct *vma;
-  2258		struct mmu_notifier_range range;
-  2259		struct zap_details details = {
-  2260			.zap_flags = ZAP_FLAG_DROP_MARKER | ZAP_FLAG_UNMAP,
-  2261		};
-  2262	
-  2263		vma = unmap->first;
-  2264		mmu_notifier_range_init(&range, MMU_NOTIFY_UNMAP, 0, vma->vm_mm,
-  2265					unmap->vma_start, unmap->vma_end);
-  2266		mmu_notifier_invalidate_range_start(&range);
-  2267		do {
-  2268			unsigned long start = max(vma->vm_start, unmap->vma_start);
-  2269			unsigned long end = min(vma->vm_end, unmap->vma_end);
-  2270	
-> 2271			hugetlb_zap_begin(vma, &start, &end, &details);
-  2272			__zap_vma_range(tlb, vma, start, end, &details);
-  2273			hugetlb_zap_end(vma, &details);
-  2274			vma = mas_find(unmap->mas, unmap->tree_end - 1);
-  2275		} while (vma);
-  2276		mmu_notifier_invalidate_range_end(&range);
-  2277	}
-  2278	
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
---
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests/wiki
+------------------------------------------------------
+From: Joseph Qi <joseph.qi@linux.alibaba.com>
+Subject: ocfs2: make ocfs2_calc_xattr_init() return void
+Date: Fri, 4 Sep 2026 10:37:51 +0800
+
+ocfs2_calc_xattr_init() used to read the default ACL off the parent inode
+itself, so it could return an error from ocfs2_xattr_get_nolock().  Commit
+bd7c05fb4a47 ("ocfs2: fix circular locking dependency in
+ocfs2_init_acl()") moved that lookup before the transaction starts and
+deleted the error path, but left the now vestigial 'int ret = 0'
+declaration and both 'return ret' statements behind, along with an
+unreachable error branch in ocfs2_mknod().
+
+Drop the leftover variable and convert the return type to void, so the
+callee states that it always succeeds and the caller no longer carries a
+check that can never trigger.
+
+No functional change.
+
+Link: https://lore.kernel.org/20260904023751.3703334-1-joseph.qi@linux.alibaba.com
+Fixes: bd7c05fb4a47 ("ocfs2: fix circular locking dependency in ocfs2_init_acl()")
+Signed-off-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Reported-by: kernel test robot <lkp@intel.com>
+Closes: https://lore.kernel.org/oe-kbuild-all/202609040247.8B3lmoqX-lkp@intel.com/
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Jun Piao <piaojun@huawei.com>
+Cc: Heming Zhao <heming.zhao@suse.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ fs/ocfs2/namei.c |    9 ++-------
+ fs/ocfs2/xattr.c |   13 +++++--------
+ fs/ocfs2/xattr.h |    8 ++++----
+ 3 files changed, 11 insertions(+), 19 deletions(-)
+
+--- a/fs/ocfs2/namei.c~ocfs2-make-ocfs2_calc_xattr_init-return-void
++++ a/fs/ocfs2/namei.c
+@@ -336,13 +336,8 @@ static int ocfs2_mknod(struct mnt_idmap
+ 		goto leave;
+ 
+ 	/* calculate meta data/clusters for setting security and acl xattr */
+-	status = ocfs2_calc_xattr_init(dir, mode, &si, &want_clusters,
+-				       &xattr_credits, &want_meta,
+-				       &acl_state);
+-	if (status < 0) {
+-		mlog_errno(status);
+-		goto leave;
+-	}
++	ocfs2_calc_xattr_init(dir, mode, &si, &want_clusters, &xattr_credits,
++			      &want_meta, &acl_state);
+ 
+ 	/* Reserve a cluster if creating an extent based directory. */
+ 	if (S_ISDIR(mode) && !ocfs2_supports_inline_data(osb)) {
+--- a/fs/ocfs2/xattr.c~ocfs2-make-ocfs2_calc_xattr_init-return-void
++++ a/fs/ocfs2/xattr.c
+@@ -635,12 +635,11 @@ int ocfs2_calc_security_init(struct inod
+ 	return ret;
+ }
+ 
+-int ocfs2_calc_xattr_init(struct inode *dir, umode_t mode,
+-			  struct ocfs2_security_xattr_info *si,
+-			  int *want_clusters, int *xattr_credits,
+-			  int *want_meta, struct ocfs2_acl_state *acl_state)
++void ocfs2_calc_xattr_init(struct inode *dir, umode_t mode,
++			   struct ocfs2_security_xattr_info *si,
++			   int *want_clusters, int *xattr_credits,
++			   int *want_meta, struct ocfs2_acl_state *acl_state)
+ {
+-	int ret = 0;
+ 	struct ocfs2_super *osb = OCFS2_SB(dir->i_sb);
+ 	int s_size = 0, a_size = 0, acl_len = 0, new_clusters;
+ 
+@@ -662,7 +661,7 @@ int ocfs2_calc_xattr_init(struct inode *
+ 	}
+ 
+ 	if (!(s_size + a_size))
+-		return ret;
++		return;
+ 
+ 	/*
+ 	 * The max space of security xattr taken inline is
+@@ -728,8 +727,6 @@ int ocfs2_calc_xattr_init(struct inode *
+ 			}
+ 		}
+ 	}
+-
+-	return ret;
+ }
+ 
+ static int ocfs2_xattr_extend_allocation(struct inode *inode,
+--- a/fs/ocfs2/xattr.h~ocfs2-make-ocfs2_calc_xattr_init-return-void
++++ a/fs/ocfs2/xattr.h
+@@ -59,10 +59,10 @@ int ocfs2_calc_security_init(struct inod
+ 			     int *, int *, struct ocfs2_alloc_context **);
+ 
+ struct ocfs2_acl_state;
+-int ocfs2_calc_xattr_init(struct inode *dir, umode_t mode,
+-			  struct ocfs2_security_xattr_info *si,
+-			  int *want_clusters, int *xattr_credits,
+-			  int *want_meta, struct ocfs2_acl_state *acl_state);
++void ocfs2_calc_xattr_init(struct inode *dir, umode_t mode,
++			   struct ocfs2_security_xattr_info *si,
++			   int *want_clusters, int *xattr_credits,
++			   int *want_meta, struct ocfs2_acl_state *acl_state);
+ 
+ /*
+  * xattrs can live inside an inode, as part of an external xattr block,
+_
+
+Patches currently in -mm which might be from joseph.qi@linux.alibaba.com are
+
+ocfs2-make-ocfs2_calc_xattr_init-return-void.patch
+ocfs2-fix-deadlock-in-inline-data-truncate-transactions.patch
+ocfs2-exit-recovery-thread-on-mount-error-path.patch
+ocfs2-free-replay-slots-in-ocfs2_recovery_exit.patch
+ocfs2-defer-suballocator-block-group-reclaim-to-workqueue.patch
+ocfs2-restrict-ocfs2_invalid_slot-suballoc-slot-to-system-inodes.patch
+ocfs2-validate-suballoc-bit-during-inode-read.patch
+ocfs2-validate-suballoc-slot-and-bit-of-xattr-and-dir-index-blocks.patch
+ocfs2-validate-suballoc-slot-and-bit-of-extent-and-refcount-blocks.patch
+ocfs2-allow-xattr-bucket-entries-to-span-multiple-blocks.patch
+ocfs2-reject-inconsistent-xattr-bucket-during-defrag.patch
+ocfs2-skip-uninitialized-lockres-in-ocfs2_mark_lockres_freeing.patch
+
