@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5F47E4F797E;
-	Sat,  5 Sep 2026 18:48:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9F9175478D;
+	Sat,  5 Sep 2026 18:48:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788634098; cv=none; b=OahAhEkapkPdZKewsRQruPjQysIB0M7YnSba1CF6zH/oWVceMsr3BuI5dsf63j5vmaqVBQMAKhX4sYYnc4jz0KRxh2OYk5LEDMfBV/buT3mPQo08h/bQTXV7uB9B8J630fDK658FDCuvir0bOKv35Rt+UY77zgb3Rg5T3P15aUo=
+	t=1788634099; cv=none; b=CtBWygf/UFsfaioeF93ztodXuF6JviJt8ijyXXOxvIGE89yb9W4FtTJ62008twc8X7Tn8seeSh1Rb+mvlwVlpaUCnS7gljIxQIkzYVA9yoFzsh1gAtGKjRpzuMvVkvke+uIKXPjX6ddiPEvhrepEAOkHYGVOrNoSIGczAKwJK8k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788634098; c=relaxed/simple;
-	bh=D4w3qePoNZYqHWaqI+xsHlyV+AjezfqXTsUdm9yZr9c=;
-	h=Date:To:From:Subject:Message-Id; b=pxHrdVg9x0J9EBcu9TTp5tH0xCSvd7zm+BhvFwHFBsA2J5FpMg1ZuCWYVQ7w5Hg1mMoKNDHOFpTYDW+rgoHMKDyxZarWoSiWmJv8WSxuQhZipJvmCiMpBpqaXGQRHimYL9NMi7j+W32okAU5y/fQn/gPCt+AbOpYv/E4kW4csOs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=U2xjSmzq; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788634099; c=relaxed/simple;
+	bh=ERVF8mcsvrRP3a/zdbtALWHFyYVRyqmW11Iz9NNdEbk=;
+	h=Date:To:From:Subject:Message-Id; b=Bi2c9UzltWxArpFK3PgQZAwx2YwN3XogssZr8SBdW3KI3Hh1jZZmw/ozmtGgbxKkgJ3OpmAEXsE4Zh6IlG2B53DqbmS0Gbv7Ig8xCt0jFd/x2Mn/k/GLj7KWwcbiTUGpfvOad7zlwT7xmdSK93F1hUnx0tiWe6gbFPUYii9uohg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AXTc+QVS; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="U2xjSmzq"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 361BB1F00A3D;
-	Sat,  5 Sep 2026 18:48:17 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AXTc+QVS"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 77F771F00A3A;
+	Sat,  5 Sep 2026 18:48:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788634097;
-	bh=vVBtpfQ2hM1cFUHrPwG07kltDJyj1ypfgC4JgnHNuMg=;
+	d=linux-foundation.org; s=korg; t=1788634098;
+	bh=FQrndT84UChCIu9daBB2CGf51YAeQSge6xo5Rs32/hM=;
 	h=Date:To:From:Subject;
-	b=U2xjSmzqUVTnIJ0UCuR53Mg2AyGufUFvtMGmqi432+w4bsB1xNVEUy3L9aORmkGL2
-	 FKis5NfEoJ9yfScT7ej7EGBE9uUnwZ4HmahCsTivocdu+rw9SBwhBBm9XnYI77oteU
-	 Bdl8MISSwr0xFH8jkzjgaF8aYFXXP+Zi+KRqVXRo=
-Date: Sat, 05 Sep 2026 11:48:16 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,tz2294@columbia.edu,trond.myklebust@hammerspace.com,stable@vger.kernel.org,jack@suse.cz,baohua@kernel.org,axboe@kernel.dk,qiwenjie@xiaomi.com,akpm@linux-foundation.org
+	b=AXTc+QVSF8V+jnTg7A5gBG1qwBZPUNJUyg2I/OzGhXFgDlWFUPFYtzejVf4Xl91QN
+	 ASApxb9FwtYCjZ4oJSbH/jNXPKrPrXvkI1g7HKuC1cQqWZ4jXEhbicZTtjIHrSrrSd
+	 BLgnClVXTuNHHED/uVTGFFNNLXDtiFEKDDvjhXVI=
+Date: Sat, 05 Sep 2026 11:48:18 -0700
+To: mm-commits@vger.kernel.org,usama.arif@linux.dev,stable@vger.kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,hughd@google.com,hannes@cmpxchg.org,david@kernel.org,brauner@kernel.org,baolin.wang@linux.alibaba.com,zhengqi.arch@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-filemap-retain-mapped-dropbehind-folios.patch removed from -mm tree
-Message-Id: <20260905184817.361BB1F00A3D@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] fs-fix-missed-removal-of-super_fs_objects_eligible.patch removed from -mm tree
+Message-Id: <20260905184818.77F771F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,63 +35,114 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: filemap: retain mapped dropbehind folios
+     Subject: fs: fix missed removal of super_fs_objects_eligible()
 has been removed from the -mm tree.  Its filename was
-     mm-filemap-retain-mapped-dropbehind-folios.patch
+     fs-fix-missed-removal-of-super_fs_objects_eligible.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Wenjie Qi <qiwenjie@xiaomi.com>
-Subject: mm: filemap: retain mapped dropbehind folios
-Date: Sun, 30 Aug 2026 01:36:12 +0800
+From: Qi Zheng <zhengqi.arch@bytedance.com>
+Subject: fs: fix missed removal of super_fs_objects_eligible()
+Date: Mon, 17 Aug 2026 17:03:25 +0800
 
-Fault-around can map ready dropbehind folios without going through the
-normal page-cache lookup that clears dropbehind.  A mapping represents a
-competing cached user, so retain the folio instead of forcibly unmapping
-it when writeback completes.
+Commit 0ef8faff490be ("fs: push nr_cached_objects memcg gating into
+individual filesystems") was meant to drop the blanket memcg gate in
+fs/super.c and let each ->nr_cached_objects() implementation decide for
+itself whether it is meaningful in per-memcg reclaim.  However, when
+that patch was applied the removal of super_fs_objects_eligible() and
+its two call sites in super_cache_scan() / super_cache_count() was
+lost, so the helper is still gating every ->nr_cached_objects() hook
+and 0ef8faff490be is effectively a no-op.
 
-For a mapped folio, folio_unmap_invalidate() can call
-unmap_mapping_folio(), which takes i_mmap_rwsem and may sleep.  Retaining
-mapped folios avoids this path when folio_end_dropbehind() runs in
-non-preemptible task context.
+Consequences of the leftover gate:
 
-Tal was able to trigger a sleeping-in-atomic warning due to this [1].
+   - XFS's inode-reclaim hook, which is intentionally driven from
+     per-memcg contexts to free memcg-charged slab, is still
+     short-circuited in fs/super.c  exactly the regression from
+     commit 0baad6f9b997 ("fs/super: skip non-memcg-aware
+     nr_cached_objects in memcg slab shrink") that 0ef8faff490be was
+     written to undo. Memcg-charged XFS inode slab therefore keeps
+     piling up under per-memcg pressure until global reclaim kicks in.
 
-Unmapped dropbehind folios continue through the existing invalidation path.
+   - Any future ->nr_cached_objects()/->free_cached_objects() that
+     grows memcg awareness is likewise blocked before it can run, so
+     filesystems cannot opt in to per-memcg reclaim on their own 
+     defeating the whole point of pushing the gating decision down
+     into the callbacks.
 
-Link: https://lore.kernel.org/4aba05e1a2c3b61cb337d373eb9b7a8db4ddd822.1788024049.git.qiwenjie@xiaomi.com
-Link: https://lore.kernel.org/076bb01b-6fcf-4691-be8c-0e8507c9fe64@columbia.edu [1]
-Fixes: fb7d3bc41493 ("mm/filemap: drop streaming/uncached pages when writeback completes")
-Signed-off-by: Wenjie Qi <qiwenjie@xiaomi.com>
-Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reviewed-by: Tal Zussman <tz2294@columbia.edu>
-Tested-by: Tal Zussman <tz2294@columbia.edu>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Trond Myklebust <trond.myklebust@hammerspace.com>
+Drop the leftover helper and its call sites so the intent of
+0ef8faff490be actually takes effect.
+
+Link: https://lore.kernel.org/cover.1786955972.git.zhengqi.arch@bytedance.com
+Link: https://lore.kernel.org/3b038d373c70ebac7cdabfb0035bb91d1d6e6cfe.1786955972.git.zhengqi.arch@bytedance.com
+Link: https://lore.kernel.org/all/20260715103516.2410175-1-usama.arif@linux.dev/ [0]
+Fixes: 0ef8faff490b ("fs: push nr_cached_objects memcg gating into individual filesystems")
+Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
+Acked-by: Usama Arif <usama.arif@linux.dev>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/super.c |   18 ++----------------
+ 1 file changed, 2 insertions(+), 16 deletions(-)
 
---- a/mm/filemap.c~mm-filemap-retain-mapped-dropbehind-folios
-+++ a/mm/filemap.c
-@@ -1616,7 +1616,7 @@ static void filemap_end_dropbehind(struc
- 		return;
- 	if (!folio_test_clear_dropbehind(folio))
- 		return;
--	if (mapping)
-+	if (mapping && !folio_mapped(folio))
- 		folio_unmap_invalidate(mapping, folio, 0);
+--- a/fs/super.c~fs-fix-missed-removal-of-super_fs_objects_eligible
++++ a/fs/super.c
+@@ -172,19 +172,6 @@ static void super_wake(struct super_bloc
  }
  
+ /*
+- * The s_op->nr_cached_objects hooks (used for example by btrfs and xfs)
+- * operate on filesystem-global state and ignore sc->memcg. Driving them
+- * from per-memcg shrink_slab_memcg() invocations only burns CPU walking
+- * per-cpu counters and queueing duplicate work: the actual reclaim happens on
+- * the global path (kswapd or root direct reclaim) regardless. Restrict them
+- * to that path.
+- */
+-static inline bool super_fs_objects_eligible(struct shrink_control *sc)
+-{
+-	return !sc->memcg || mem_cgroup_is_root(sc->memcg);
+-}
+-
+-/*
+  * One thing we have to be careful of with a per-sb shrinker is that we don't
+  * drop the last active reference to the superblock from within the shrinker.
+  * If that happens we could trigger unregistering the shrinker from within the
+@@ -213,7 +200,7 @@ static unsigned long super_cache_scan(st
+ 	if (!super_trylock_shared(sb))
+ 		return SHRINK_STOP;
+ 
+-	if (sb->s_op->nr_cached_objects && super_fs_objects_eligible(sc))
++	if (sb->s_op->nr_cached_objects)
+ 		fs_objects = sb->s_op->nr_cached_objects(sb, sc);
+ 
+ 	inodes = list_lru_shrink_count(&sb->s_inode_lru, sc);
+@@ -274,8 +261,7 @@ static unsigned long super_cache_count(s
+ 		return 0;
+ 	smp_rmb();
+ 
+-	if (sb->s_op && sb->s_op->nr_cached_objects &&
+-	    super_fs_objects_eligible(sc))
++	if (sb->s_op && sb->s_op->nr_cached_objects)
+ 		total_objects = sb->s_op->nr_cached_objects(sb, sc);
+ 
+ 	total_objects += list_lru_shrink_count(&sb->s_dentry_lru, sc);
 _
 
-Patches currently in -mm which might be from qiwenjie@xiaomi.com are
+Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
 
+mm-memcontrol-make-obj_cgroup_memcg-handle-null-objcg.patch
+mm-shmem-move-unused-huge-shrinklist-queuing-past-the-truncation-check.patch
+mm-shmem-make-unused-huge-shrinker-memcg-aware.patch
 
