@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 27B765478D
-	for <mm-commits@vger.kernel.org>; Sat,  5 Sep 2026 18:48:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5F47E4F797E;
+	Sat,  5 Sep 2026 18:48:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788634097; cv=none; b=ju2+eWdbI105/txZneIfISkQIASMwyXxVgY9/t09fwDFrOGScUBnowEtJ6Sze4vl0I64j8gfJjEBtz1emuxAACSP17ouWV69aqVIqdTAXU/fcrdXNRXtqgQyVB7d07vaEsE1qGC+3qSzHrBYHMUfWXZcpHnIF1cIx+Kiy0bc9o4=
+	t=1788634098; cv=none; b=OahAhEkapkPdZKewsRQruPjQysIB0M7YnSba1CF6zH/oWVceMsr3BuI5dsf63j5vmaqVBQMAKhX4sYYnc4jz0KRxh2OYk5LEDMfBV/buT3mPQo08h/bQTXV7uB9B8J630fDK658FDCuvir0bOKv35Rt+UY77zgb3Rg5T3P15aUo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788634097; c=relaxed/simple;
-	bh=CGff9PK/UHFBqDBDd011V449BTRZpOoNHk3xau7Aopg=;
-	h=Date:To:From:Subject:Message-Id; b=E772XS+dGea8z39GvJ+cRW4M7e1AbmUVVif/1glP6/Gpw0JrJThfX3KtZ9EziISL2UCh1J3ZHL0kcYKqI/75Av8gDP0xFmCYGXwWH0mQnBrjR9ePBvkphxoFYDFNt6B3L7pzOiHxr6YO6akUZVDPhbfDATLPd3vFMesyaF6wgoE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BWN5DJ2Y; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788634098; c=relaxed/simple;
+	bh=D4w3qePoNZYqHWaqI+xsHlyV+AjezfqXTsUdm9yZr9c=;
+	h=Date:To:From:Subject:Message-Id; b=pxHrdVg9x0J9EBcu9TTp5tH0xCSvd7zm+BhvFwHFBsA2J5FpMg1ZuCWYVQ7w5Hg1mMoKNDHOFpTYDW+rgoHMKDyxZarWoSiWmJv8WSxuQhZipJvmCiMpBpqaXGQRHimYL9NMi7j+W32okAU5y/fQn/gPCt+AbOpYv/E4kW4csOs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=U2xjSmzq; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BWN5DJ2Y"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F316D1F00A3A;
-	Sat,  5 Sep 2026 18:48:15 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="U2xjSmzq"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 361BB1F00A3D;
+	Sat,  5 Sep 2026 18:48:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788634096;
-	bh=xUj6qLjEPcJWDM5TME5h7GuLY5sastlrRmObOejDBeo=;
+	d=linux-foundation.org; s=korg; t=1788634097;
+	bh=vVBtpfQ2hM1cFUHrPwG07kltDJyj1ypfgC4JgnHNuMg=;
 	h=Date:To:From:Subject;
-	b=BWN5DJ2YBAxYTtUV0xKCRNmeL9ySNlnCY/4DVsfXJIuj+ijgwZRiznMldREWqAOCJ
-	 Q4nofgmb+Fn7/wzih7FT5ecvHGGDsQ1tTrhI0v7tOPDQiTI6JGg15hCsMyns72oPVk
-	 e4221wCdDRPqDCSBk1RFA7ptiNn3cqO/Sg/6Zyvs=
-Date: Sat, 05 Sep 2026 11:48:15 -0700
-To: mm-commits@vger.kernel.org,chris.obbard@oss.qualcomm.com,akpm@linux-foundation.org
+	b=U2xjSmzqUVTnIJ0UCuR53Mg2AyGufUFvtMGmqi432+w4bsB1xNVEUy3L9aORmkGL2
+	 FKis5NfEoJ9yfScT7ej7EGBE9uUnwZ4HmahCsTivocdu+rw9SBwhBBm9XnYI77oteU
+	 Bdl8MISSwr0xFH8jkzjgaF8aYFXXP+Zi+KRqVXRo=
+Date: Sat, 05 Sep 2026 11:48:16 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,tz2294@columbia.edu,trond.myklebust@hammerspace.com,stable@vger.kernel.org,jack@suse.cz,baohua@kernel.org,axboe@kernel.dk,qiwenjie@xiaomi.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mailmap-update-entry-for-christopher-obbard.patch removed from -mm tree
-Message-Id: <20260905184815.F316D1F00A3A@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-filemap-retain-mapped-dropbehind-folios.patch removed from -mm tree
+Message-Id: <20260905184817.361BB1F00A3D@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,43 +35,63 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mailmap: update entry for Christopher Obbard
+     Subject: mm: filemap: retain mapped dropbehind folios
 has been removed from the -mm tree.  Its filename was
-     mailmap-update-entry-for-christopher-obbard.patch
+     mm-filemap-retain-mapped-dropbehind-folios.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Christopher Obbard <chris.obbard@oss.qualcomm.com>
-Subject: mailmap: update entry for Christopher Obbard
-Date: Sat, 29 Aug 2026 12:28:23 +0100
+From: Wenjie Qi <qiwenjie@xiaomi.com>
+Subject: mm: filemap: retain mapped dropbehind folios
+Date: Sun, 30 Aug 2026 01:36:12 +0800
 
-I have changed employer; update my mailmap entry to point at my new email
-address.
+Fault-around can map ready dropbehind folios without going through the
+normal page-cache lookup that clears dropbehind.  A mapping represents a
+competing cached user, so retain the folio instead of forcibly unmapping
+it when writeback completes.
 
-Link: https://lore.kernel.org/20260829-update-mail-oss-qualcomm-v2-1-1670c515f225@oss.qualcomm.com
-Signed-off-by: Christopher Obbard <chris.obbard@oss.qualcomm.com>
+For a mapped folio, folio_unmap_invalidate() can call
+unmap_mapping_folio(), which takes i_mmap_rwsem and may sleep.  Retaining
+mapped folios avoids this path when folio_end_dropbehind() runs in
+non-preemptible task context.
+
+Tal was able to trigger a sleeping-in-atomic warning due to this [1].
+
+Unmapped dropbehind folios continue through the existing invalidation path.
+
+Link: https://lore.kernel.org/4aba05e1a2c3b61cb337d373eb9b7a8db4ddd822.1788024049.git.qiwenjie@xiaomi.com
+Link: https://lore.kernel.org/076bb01b-6fcf-4691-be8c-0e8507c9fe64@columbia.edu [1]
+Fixes: fb7d3bc41493 ("mm/filemap: drop streaming/uncached pages when writeback completes")
+Signed-off-by: Wenjie Qi <qiwenjie@xiaomi.com>
+Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Reviewed-by: Tal Zussman <tz2294@columbia.edu>
+Tested-by: Tal Zussman <tz2294@columbia.edu>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Trond Myklebust <trond.myklebust@hammerspace.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- .mailmap |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/filemap.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/.mailmap~mailmap-update-entry-for-christopher-obbard
-+++ a/.mailmap
-@@ -211,7 +211,8 @@ Christophe Leroy <chleroy@kernel.org> <c
- Christophe Leroy <chleroy@kernel.org> <christophe.leroy@csgroup.eu>
- Christophe Leroy <chleroy@kernel.org> <christophe.leroy2@cs-soprasteria.com>
- Christophe Ricard <christophe.ricard@gmail.com>
--Christopher Obbard <christopher.obbard@linaro.org> <chris.obbard@collabora.com>
-+Christopher Obbard <chris.obbard@oss.qualcomm.com> <chris.obbard@collabora.com>
-+Christopher Obbard <chris.obbard@oss.qualcomm.com> <christopher.obbard@linaro.org>
- Christoph Hellwig <hch@lst.de>
- Christoph Manszewski <c.manszewski@gmail.com> <christoph.manszewski@intel.com>
- Christoph Paasch <cpaasch@openai.com> <christoph.paasch@gmail.com>
+--- a/mm/filemap.c~mm-filemap-retain-mapped-dropbehind-folios
++++ a/mm/filemap.c
+@@ -1616,7 +1616,7 @@ static void filemap_end_dropbehind(struc
+ 		return;
+ 	if (!folio_test_clear_dropbehind(folio))
+ 		return;
+-	if (mapping)
++	if (mapping && !folio_mapped(folio))
+ 		folio_unmap_invalidate(mapping, folio, 0);
+ }
+ 
 _
 
-Patches currently in -mm which might be from chris.obbard@oss.qualcomm.com are
+Patches currently in -mm which might be from qiwenjie@xiaomi.com are
 
 
