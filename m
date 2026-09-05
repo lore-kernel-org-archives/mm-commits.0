@@ -1,174 +1,140 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.8])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B743D3033CB
-	for <mm-commits@vger.kernel.org>; Sat,  5 Sep 2026 01:57:43 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 37A1A3932C8
+	for <mm-commits@vger.kernel.org>; Sat,  5 Sep 2026 06:01:10 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.8
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788573465; cv=none; b=OrmYFrOjS+CEXZg/mmr3EsvlAZozEL0HcqVLwA+6tpxFdPTpHnUfNNBuyRq/eJRRcowkOsqNY+/3dlxmlk7aMa2whzBkA4xP19ScS7yqrm7bSxMqEbBISa4cg62hZlspLlfre1a94JuDR3K1NKioDgor7I9ZlYY+MarJRrb0ICk=
+	t=1788588073; cv=none; b=qp9lZKQ0JgWFcBmi1RFKdLeQB6Rkc0jSNMQHZibJlPFy9HZRdmhVpEGYNwCJ/rmM4GQkuX/pQ7ihgIejpVbxmV6m49vB94vlgWLzFsdx39pUKkjAszW7lpW1Ps5idRf3BGudjc0l+MSfARDFwABgW8Rnds3uC3i3M7s0pG4p4Sw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788573465; c=relaxed/simple;
-	bh=gKxyQiIdFZDPHdeNqF4JaHdiZh6HPfkebubfkQw3gmU=;
-	h=Date:To:From:Subject:Message-Id; b=ExO5TZ5rIAKAGI1mAMKUt12EgCgx12ZTCLdfbn+ZRCM8/cOqdgORitPnw443fntRJePvdoJNCahSAVTkRwVNxptlStJIEZ1KlABjhMKOmbS5U2Zy7dA0rxR6qrlVwkN4BS8ym5OhBffFAshFSjA401bcHD5qKKHSFabvE6G8is0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hA/w5UHT; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788588073; c=relaxed/simple;
+	bh=lM22okNgFz1OuO8OLS+hbAQLYLsF6ANgD6I/iw0cgQU=;
+	h=Date:From:To:Cc:Subject:Message-ID; b=k3bOOSpzulr4tQtUlq3VkEnZQDMuE3t5t8kKjOuQTUMA6Wn9cHl1dC7J9ibSC6YklCaU94a9Gh/I2wFwpixK1JDa9nYX8JftOdJVBFN2uP5ubTMKmHngO88SmCc0xWaxDWILRjJfy82TidwvBWevyEFZLl9UuRvV16ICrz6kisk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=J+I9aY96; arc=none smtp.client-ip=192.198.163.8
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hA/w5UHT"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 51AC61F00A3D;
-	Sat,  5 Sep 2026 01:57:43 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788573463;
-	bh=hMGFDZQI1mZwF021AcpZhOtrjht/tEyiS92B8PKeAFs=;
-	h=Date:To:From:Subject;
-	b=hA/w5UHTwswJHmxtKaEck1sQn2V2wfnlK0UBIeoynTnNcvNPjbg405OcfORjLwJ1W
-	 ksfA6+Hyb3JUeZBNRChwPWq6meJYKAt3Z3//10fjNjOSGHLstYk/ZcCs5Zxyq4SXKK
-	 ZwDvw8GnBrDpKX9PIBKSRXUZr7LcDT86DsR/CpWo=
-Date: Fri, 04 Sep 2026 18:57:42 -0700
-To: mm-commits@vger.kernel.org,osalvador@suse.de,lkp@intel.com,gourry@gourry.net,david@kernel.org,akpm@linux-foundation.org,akpm@linux-foundation.org
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memory_hotplug-factor-out-node_is_memoryless-fix.patch added to mm-new branch
-Message-Id: <20260905015743.51AC61F00A3D@smtp.kernel.org>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="J+I9aY96"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1788588071; x=1820124071;
+  h=date:from:to:cc:subject:message-id;
+  bh=lM22okNgFz1OuO8OLS+hbAQLYLsF6ANgD6I/iw0cgQU=;
+  b=J+I9aY96uUlyDU1JK7qhDRCq7JH4GgICLJHpPd3ZY8W5jCGjMb1nJmtm
+   IQ6JmO80nf6UtH5CaYU0p4YQeN3x08gooWHiCQoQhfq07UfLnclAapNmG
+   UykDtwfYnuA6cBYzBtQDq5pUIX74FzUIAUjVO5a9vqvs0Qrx6xTmEy/Bp
+   tR5EbQemLZPThRPopqCqvRB9S6EpGPR3rwFQwDpYy/Woa81gfRABcW8Qw
+   G15I3G8hH/P09QwF05uD2s079l4yje0N3LBnsyfhunpAKV4paqU+AaqIu
+   4L0lx87SEP5ZQg1AZrfZEv7OujNW9mVpMbAypcMluKwHIzibD0f617791
+   A==;
+X-CSE-ConnectionGUID: 66ETm53jRH268tIVXFk6eA==
+X-CSE-MsgGUID: rvolg7RwSUuezvVbEYOPGA==
+X-IronPort-AV: E=McAfee;i="6800,10657,11896"; a="106601154"
+X-IronPort-AV: E=Sophos;i="6.25,263,1779174000"; 
+   d="scan'208";a="106601154"
+Received: from fmviesa008.fm.intel.com ([10.60.135.148])
+  by fmvoesa102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Sep 2026 23:01:10 -0700
+X-CSE-ConnectionGUID: jHx/Xdi8Qc+O/62lcj6/xA==
+X-CSE-MsgGUID: Up5SPOhLSqCiO1GgvNOexw==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.25,263,1779174000"; 
+   d="scan'208";a="267655865"
+Received: from lkp-server01.sh.intel.com (HELO 73f3364bc37e) ([10.239.97.150])
+  by fmviesa008.fm.intel.com with ESMTP; 04 Sep 2026 23:01:09 -0700
+Received: from kbuild by 73f3364bc37e with local (Exim 4.98.2)
+	(envelope-from <lkp@intel.com>)
+	id 1x2jSc-0000000009j-28qD;
+	Sat, 05 Sep 2026 06:01:06 +0000
+Date: Sat, 05 Sep 2026 14:01:06 +0800
+From: kernel test robot <lkp@intel.com>
+To: David Hildenbrand <david@kernel.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>,
+ Linux Memory Management List <linux-mm@kvack.org>,
+ mm-commits@vger.kernel.org
+Subject: [akpm-mm:mm-new] BUILD SUCCESS WITH WARNING
+ e3fc12b08aadde9cec7b3799ac0e0c9a1aa245c4
+Message-ID: <202609051403.2OSmiAZR-lkp@intel.com>
+User-Agent: s-nail v14.9.25
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
+tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm.git mm-new
+branch HEAD: e3fc12b08aadde9cec7b3799ac0e0c9a1aa245c4  mm/swap, PM: hibernate: atomically replace hibernation pin
 
-The patch titled
-     Subject: mm-memory_hotplug-factor-out-node_is_memoryless-fix
-has been added to the -mm mm-new branch.  Its filename is
-     mm-memory_hotplug-factor-out-node_is_memoryless-fix.patch
+Warning (recently discovered and may have been fixed):
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory_hotplug-factor-out-node_is_memoryless-fix.patch
+    https://lore.kernel.org/oe-kbuild-all/202609050628.ywCLhOj5-lkp@intel.com
 
-This patch will later appear in the mm-new branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+    mm/memory_hotplug.c:1507:13: warning: 'node_is_memoryless' defined but not used [-Wunused-function]
 
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
+Warning ids grouped by kconfigs:
 
-The mm-new branch of mm.git is not included in linux-next
+recent_errors
+`-- x86_64-randconfig-161-20260904
+    `-- mm-memory_hotplug.c:warning:node_is_memoryless-defined-but-not-used
 
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
+elapsed time: 1477m
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+configs tested: 52
+configs skipped: 3
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+tested configs:
+alpha         allnoconfig    gcc-16.1.0
+alpha        allyesconfig    gcc-16.1.0
+arc          allmodconfig    gcc-16.1.0
+arc           allnoconfig    gcc-16.1.0
+arc          allyesconfig    gcc-16.1.0
+arm           allnoconfig    clang-17
+arm          allyesconfig    gcc-16.1.0
+arm64        allmodconfig    clang-24
+arm64         allnoconfig    gcc-16.1.0
+csky         allmodconfig    gcc-16.1.0
+csky          allnoconfig    gcc-16.1.0
+hexagon      allmodconfig    clang-24
+hexagon       allnoconfig    clang-24
+i386         allmodconfig    gcc-14
+i386          allnoconfig    gcc-14
+loongarch    allmodconfig    clang-19
+loongarch     allnoconfig    clang-20
+m68k         allmodconfig    gcc-16.1.0
+m68k          allnoconfig    gcc-16.1.0
+m68k         allyesconfig    gcc-16.1.0
+microblaze    allnoconfig    gcc-16.1.0
+microblaze   allyesconfig    gcc-16.1.0
+mips         allmodconfig    gcc-16.1.0
+mips          allnoconfig    gcc-16.1.0
+mips         allyesconfig    gcc-16.1.0
+nios2        allmodconfig    gcc-11.5.0
+nios2         allnoconfig    gcc-11.5.0
+openrisc     allmodconfig    gcc-16.1.0
+openrisc      allnoconfig    gcc-16.1.0
+parisc       allmodconfig    gcc-16.1.0
+parisc        allnoconfig    gcc-16.1.0
+parisc       allyesconfig    gcc-16.1.0
+powerpc      allmodconfig    gcc-16.1.0
+powerpc       allnoconfig    gcc-16.1.0
+riscv        allmodconfig    clang-24
+riscv         allnoconfig    gcc-16.1.0
+riscv        allyesconfig    clang-24
+s390         allmodconfig    clang-24
+s390          allnoconfig    clang-24
+s390         allyesconfig    gcc-16.1.0
+sh           allmodconfig    gcc-16.1.0
+sh            allnoconfig    gcc-16.1.0
+sh           allyesconfig    gcc-16.1.0
+sparc         allnoconfig    gcc-16.1.0
+sparc64      allmodconfig    clang-20
+um           allmodconfig    clang-17
+um            allnoconfig    clang-17
+um           allyesconfig    gcc-14
+x86_64        allnoconfig    clang-22
+x86_64      rhel-9.4-rust    clang-22
+xtensa        allnoconfig    gcc-16.1.0
+xtensa       allyesconfig    gcc-16.1.0
 
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
-
-------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-memory_hotplug-factor-out-node_is_memoryless-fix
-Date: Fri Sep  4 06:54:43 PM PDT 2026
-
-move node_is_memoryless() inside CONFIG_MEMORY_HOTREMOVE
-
-Reported-by: kernel test robot <lkp@intel.com>
-Closes: https://lore.kernel.org/oe-kbuild-all/202609050628.ywCLhOj5-lkp@intel.com/
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Gregory Price <gourry@gourry.net>
-Cc: Oscar Salvador <osalvador@suse.de>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- mm/memory_hotplug.c |   61 +++++++++++++++++++++---------------------
- 1 file changed, 31 insertions(+), 30 deletions(-)
-
---- a/mm/memory_hotplug.c~mm-memory_hotplug-factor-out-node_is_memoryless-fix
-+++ a/mm/memory_hotplug.c
-@@ -1491,36 +1491,6 @@ out:
- 	return ret;
- }
- 
--static int check_no_memblock_for_node_cb(struct memory_block *mem, void *arg)
--{
--	int nid = *(int *)arg;
--
--	/*
--	 * If a memory block belongs to multiple nodes, the stored nid is not
--	 * reliable. However, such blocks are always online (e.g., cannot get
--	 * offlined) and, therefore, are still spanned by the node.
--	 */
--	return mem->nid == nid ? -EEXIST : 0;
--}
--
--/* Caller must hold the memory hotplug lock for this check. */
--static bool node_is_memoryless(int nid)
--{
--	/*
--	 * A node still spanning pages (especially ZONE_DEVICE) is not
--	 * memoryless.  A node spans memory after move_pfn_range_to_zone(),
--	 * e.g. once a memory block has been onlined.
--	 */
--	if (node_spanned_pages(nid))
--		return false;
--	/*
--	 * Offline memory blocks may not be spanned by the node yet, but they
--	 * link to it in sysfs and can be onlined later, so the node is not
--	 * memoryless while any remain.
--	 */
--	return !for_each_memory_block(&nid, check_no_memblock_for_node_cb);
--}
--
- /*
-  * NOTE: The caller must call lock_device_hotplug() to serialize hotplug
-  * and online/offline operations (triggered e.g. by sysfs).
-@@ -1815,6 +1785,37 @@ bool mhp_range_allowed(u64 start, u64 si
- }
- 
- #ifdef CONFIG_MEMORY_HOTREMOVE
-+
-+static int check_no_memblock_for_node_cb(struct memory_block *mem, void *arg)
-+{
-+	int nid = *(int *)arg;
-+
-+	/*
-+	 * If a memory block belongs to multiple nodes, the stored nid is not
-+	 * reliable. However, such blocks are always online (e.g., cannot get
-+	 * offlined) and, therefore, are still spanned by the node.
-+	 */
-+	return mem->nid == nid ? -EEXIST : 0;
-+}
-+
-+/* Caller must hold the memory hotplug lock for this check. */
-+static bool node_is_memoryless(int nid)
-+{
-+	/*
-+	 * A node still spanning pages (especially ZONE_DEVICE) is not
-+	 * memoryless.  A node spans memory after move_pfn_range_to_zone(),
-+	 * e.g. once a memory block has been onlined.
-+	 */
-+	if (node_spanned_pages(nid))
-+		return false;
-+	/*
-+	 * Offline memory blocks may not be spanned by the node yet, but they
-+	 * link to it in sysfs and can be onlined later, so the node is not
-+	 * memoryless while any remain.
-+	 */
-+	return !for_each_memory_block(&nid, check_no_memblock_for_node_cb);
-+}
-+
- /*
-  * Scan pfn range [start,end) to find movable/migratable pages (LRU and
-  * hugetlb folio, movable_ops pages). Will skip over most unmovable
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-remove-old-lib-alloc_tagc.patch
-mm-memory_hotplug-factor-out-node_is_memoryless-fix.patch
-mm-hugetlb-dont-lock-private-resv_map-during-final-unmap.patch
-drivers-media-v4l2-core-v4l2-vp9c-reduce-inlining.patch
-
+--
+0-DAY CI Kernel Test Service
+https://github.com/intel/lkp-tests/wiki
