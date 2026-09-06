@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5B0511DED5C
-	for <mm-commits@vger.kernel.org>; Sun,  6 Sep 2026 02:01:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 020ED38DD3
+	for <mm-commits@vger.kernel.org>; Sun,  6 Sep 2026 02:01:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788660078; cv=none; b=S8QNNtXOxK8MDePgK0LN248qeAERxQRZ3xN4csHm35ze9Yom7DX7Mzc5X+rpsY6zbwg19d4yy6/hA6Jnu4nVRuB3DiMfxOA5qlc6XWvSwYcYVrqBVOw1R5CGdoBLWMqisQp2IkW86eEBC03WLH0umdzy8cU64IZpBIfovf9M27Y=
+	t=1788660081; cv=none; b=LKFhdDDT4Cu4Y2bN6DzLDGLhdQ42/3jsuWlELYEp6PHa7OgBr/25kRRCD1UBfZGVWn9GmYBv9n4C4L1IxAFe3noP2kHJzXgYUjd2br5XQZDhb54UtcRNcvt8BOwQgBkClRdgEdEHOR6/kIJAZyoV8FisZTJ6BZR8ZdE7C+nhuns=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788660078; c=relaxed/simple;
-	bh=Hf+izdv0Smbo6P8Ag1RzTqw7ZV9rLgQa0G6p2duBrHI=;
-	h=Date:To:From:Subject:Message-Id; b=mfsWcrqH9HYUGMowxDmXb1zsbngOK6CBlfbPhD+sZognhPB1Kxfqwrgk4xe9n/0NjuVaBlp2H6S5QEEkiDAF3Eqh/zJuJDyEp9bHa2EJ+0+Kc1KtkjdsDIudLdyJmasIeHkzSSyMbpRMffGa0NJcD/Vy64YsjatDzCcGSK6tv/Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dH6rLpSG; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788660081; c=relaxed/simple;
+	bh=d/rvnt2r1AX5D2isNdaIemNFlTZNQ+oky44VLU5SCqA=;
+	h=Date:To:From:Subject:Message-Id; b=jeab9QIrirOv0qWMsIREX9TQQICmZyiljnBnqw0Z5YZgNdzgnSt/e5G5FG5OLSI7JYeS7VTjrRtFGzRMnWTTjF98DuHwskD01L0OQwdHHgdXEhVrhnBLxsoB3HtggtkJP44aohXuXjei1WSw8tzPOG/UF2xkTwpAjwhCEAWPUvQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RHPGWfJM; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dH6rLpSG"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CA8191F00A3A;
-	Sun,  6 Sep 2026 02:01:16 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RHPGWfJM"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7F21A1F00A3A;
+	Sun,  6 Sep 2026 02:01:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788660076;
-	bh=WuPkj9ZNtNZEPn6SsumHNyMg4afOlij4UXra5DdiR5w=;
+	d=linux-foundation.org; s=korg; t=1788660079;
+	bh=OTjf/jNw/M2K4iLzOMOKFY9ZN7Xc06RdWjsI++f0SZw=;
 	h=Date:To:From:Subject;
-	b=dH6rLpSGSDb302sRwIBiNiooifO8/hAb9yj+rSuzEFtwRCQHdo/aVuMmVBYROVtjf
-	 4S77KiNRT01gaedS3ps0fDltex3YaE4jsO1fN1159F5ASbTL/YuqcleTesWUt6pl1T
-	 0njlnkVG5zx5KWgQ32PvXECRQ5yaAVT3W+QqYX0Q=
-Date: Sat, 05 Sep 2026 19:01:16 -0700
+	b=RHPGWfJMLh9f6EOUIYV4TRkV0IonbT8KOMDxh776E99NIVTnnEvVbq1tN88Xs4DXj
+	 v6NGROTWtam/2/vw40a8bOFTqTn2SzHic/7kErZasTjUMe3M0RDI54FurBINRiMvXn
+	 UKRXMiSMUtTAeuz4qX5q72qR2/NYyKDZB1fD8b4k=
+Date: Sat, 05 Sep 2026 19:01:19 -0700
 To: mm-commits@vger.kernel.org,rppt@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmalloc-constify-vm-parameter-of-get_vm_area_page_order.patch added to mm-unstable branch
-Message-Id: <20260906020116.CA8191F00A3A@smtp.kernel.org>
+Subject: + mm-vmalloc-make-set_area_direct_map-huge_vmap-friendly.patch added to mm-unstable branch
+Message-Id: <20260906020119.7F21A1F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/vmalloc: constify vm parameter of get_vm_area_page_order()
+     Subject: mm/vmalloc: make set_area_direct_map HUGE_VMAP friendly
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-vmalloc-constify-vm-parameter-of-get_vm_area_page_order.patch
+     mm-vmalloc-make-set_area_direct_map-huge_vmap-friendly.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmalloc-constify-vm-parameter-of-get_vm_area_page_order.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmalloc-make-set_area_direct_map-huge_vmap-friendly.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,18 +59,28 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
-Subject: mm/vmalloc: constify vm parameter of get_vm_area_page_order()
-Date: Thu, 03 Sep 2026 12:28:29 +0300
+Subject: mm/vmalloc: make set_area_direct_map HUGE_VMAP friendly
+Date: Thu, 03 Sep 2026 12:28:30 +0300
 
-get_vm_area_page_order() and vm_area_page_order() do not need to modify
-struct vm_struct passed to them.
+set_area_direct_map() always updates direct map alias permissions in
+single page increments.
 
-Constify the parameter.
+For HUGE_VMAP areas it's suboptimal.  Not only the loop in
+set_area_direct_map() needlessly has more iterations (e.g times 512 on
+x86), but it also causes fragmentation of the direct map that could be
+avoided for the HUGE_VMAP areas populated with large pages.
 
-Link: https://lore.kernel.org/20260903-execmem-set-vm-perms-v0-2-v3-3-949b64a9f755@kernel.org
+All pages in an area are always of the same order: either same-order large
+pages when VM_ALLOW_HUGE_VMAP is set and all huge pages were successfully
+allocated, or order-0 page when VM_ALLOW_HUGE_VMAP is cleared or when huge
+pages allocation fails and fallback path is taken.
+
+Instead of updating the direct map permissions for every order-0 page in
+an area, use the area's page_order as the loop increment and update the
+large pages in one call to set_direct_map_{invalid,default}_noflush().
+
+Link: https://lore.kernel.org/20260903-execmem-set-vm-perms-v0-2-v3-4-949b64a9f755@kernel.org
 Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Reviewed-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
-Reviewed-by: Dev Jain <dev.jain@arm.com>
 Cc: Albert Ou <aou@eecs.berkeley.edu>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Alexandre Ghiti <alex@ghiti.fr>
@@ -92,47 +102,40 @@ Cc: Peter Zijlstra <peterz@infradead.org>
 Cc: "Rafael J. Wysocki" <rafael@kernel.org>
 Cc: Ryan Roberts <ryan.roberts@arm.com>
 Cc: Sven Schnelle <svens@linux.ibm.com>
+Cc: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
 Cc: Vasily Gorbik <gor@linux.ibm.com>
 Cc: WANG Xuerui <kernel@xen0n.name>
 Cc: Will Deacon <will@kernel.org>
+Cc: Dev Jain <dev.jain@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    4 ++--
- mm/vmalloc.h |    2 +-
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ mm/vmalloc.c |   13 ++++++++-----
+ 1 file changed, 8 insertions(+), 5 deletions(-)
 
---- a/mm/vmalloc.c~mm-vmalloc-constify-vm-parameter-of-get_vm_area_page_order
+--- a/mm/vmalloc.c~mm-vmalloc-make-set_area_direct_map-huge_vmap-friendly
 +++ a/mm/vmalloc.c
-@@ -3137,7 +3137,7 @@ EXPORT_SYMBOL(vm_map_ram);
- 
- static struct vm_struct *vmlist __initdata;
- 
--static inline unsigned int vm_area_page_order(struct vm_struct *vm)
-+static inline unsigned int vm_area_page_order(const struct vm_struct *vm)
+@@ -3374,12 +3374,15 @@ static inline void set_area_direct_map(c
+ 				       int (*set_direct_map)(struct page *page,
+ 							     unsigned int nr))
  {
- #ifdef CONFIG_HAVE_ARCH_HUGE_VMALLOC
- 	return vm->page_order;
-@@ -3146,7 +3146,7 @@ static inline unsigned int vm_area_page_
- #endif
+-	unsigned long i;
++	unsigned int nr = (1U << vm_area_page_order(area));
+ 
+-	/* HUGE_VMALLOC passes small pages to set_direct_map */
+-	for (i = 0; i < area->nr_pages; i++)
+-		if (page_address(area->pages[i]))
+-			set_direct_map(area->pages[i], 1);
++	for (unsigned long i = 0; i < area->nr_pages; i += nr) {
++		if (page_address(area->pages[i])) {
++			int err = set_direct_map(area->pages[i], nr);
++
++			WARN_ON_ONCE(err);
++		}
++	}
  }
  
--unsigned int get_vm_area_page_order(struct vm_struct *vm)
-+unsigned int get_vm_area_page_order(const struct vm_struct *vm)
- {
- 	return vm_area_page_order(vm);
- }
---- a/mm/vmalloc.h~mm-vmalloc-constify-vm-parameter-of-get_vm_area_page_order
-+++ a/mm/vmalloc.h
-@@ -12,7 +12,7 @@ void __init vmalloc_init(void);
- int __must_check vmap_pages_range_noflush(unsigned long addr, unsigned long end,
- 		pgprot_t prot, struct page **pages,
- 		unsigned int page_shift, gfp_t gfp_mask);
--unsigned int get_vm_area_page_order(struct vm_struct *vm);
-+unsigned int get_vm_area_page_order(const struct vm_struct *vm);
- #else
- static inline void vmalloc_init(void) {}
- 
+ /*
 _
 
 Patches currently in -mm which might be from rppt@kernel.org are
