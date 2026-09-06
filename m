@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3422128E0F
-	for <mm-commits@vger.kernel.org>; Sun,  6 Sep 2026 00:18:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0C87A242925
+	for <mm-commits@vger.kernel.org>; Sun,  6 Sep 2026 00:32:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788653896; cv=none; b=trm9RrXMcUpCDLEfn8djoGkLZ4bhIGglomm14wR5tORhQ0tp7d5CriJWdlyZJZyXD5zGkp2KiD4rIRHRwdCxuCB6lnTLiXaz8L1gpgT2Ezp2Z8xUFmeAra588KG0n01DWQW1RtNAlcqiMDrLjn8iFvIIA/u8svi6fd6HiOyUmJA=
+	t=1788654734; cv=none; b=E2KejvHnVXv+sRreut8xoVipWsib46ZVjZ8hFvKPvMwpCx741j9a2ACDRxUCNStSMy2L07pj0p1eZXDxQ9EcgqA+eSfNprcBZ/biv/hwhAcWeSsLsYpE3BLEzAvSQuiaiRmGucvE061evmiHeXpVodcrIqkAy6p8pjh6VnYMZDE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788653896; c=relaxed/simple;
-	bh=UgdmKxY74OYOpdmBaYIVnbBTOunxSLvhsGZUl9LvQyc=;
-	h=Date:To:From:Subject:Message-Id; b=hfknGBCWS5TSQRvsnuzKfNM8bC9hosVhdp08BybiAjGs+egjrHQg1w3ygozFoVMswYWcM3S5GAYCe4ksLCFi9hd6NvMygtM0LKiDlWxUllkF/W8xx/on7GAq7exgVXvus3NdLGf70CumtJ06oQ3sXRvqSS2C7VdZ/vgxvje4MYA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZISypgqy; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788654734; c=relaxed/simple;
+	bh=InCbdjOSQESjAnstTqK4cYAIV5NPcXTmQs1EFFtj7KQ=;
+	h=Date:To:From:Subject:Message-Id; b=qIh8LYcwnO4nAyqEfj0xNq19FMR+FpjEfyeFTSLwDhMce9dxDwWBi9KNVEeMJl3sCaRQNg1LTjM387aZtHXLIwkpF7KZ9dvG5sJ+i/HLiqmugZ5hEckWcoew1VANb9v+3aW5Wm/3StgoBY43KGRQwayUJNsiP9SYyDTveUzZFO0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=n1gplnWq; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZISypgqy"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9F4951F00A3A;
-	Sun,  6 Sep 2026 00:18:14 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="n1gplnWq"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 27E291F00A3A;
+	Sun,  6 Sep 2026 00:32:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788653894;
-	bh=R9ryUsMdyzwUuTv7OXikeOJ25QJhTKvb4lLyja9REC0=;
+	d=linux-foundation.org; s=korg; t=1788654732;
+	bh=Fvz17hUgJ3aOP9eVjdDcSqkRDuIkM0sUVOzU4kOnDjc=;
 	h=Date:To:From:Subject;
-	b=ZISypgqyLsXq2dUSVhFG/yQwjLEZzGhYXIcEQPbaI/iQtVJKf6/65K3oUk9PfvMrQ
-	 0V7LmMm4zKML+8dBKWm+o+1mer/suwEZZLytOl0N0xqO+fKaBA3t7k+CBaUbXmYN+O
-	 dt6JAUoHUWRZgTPBhcOjJWvLYxyifWWWMix2iUvg=
-Date: Sat, 05 Sep 2026 17:18:14 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,pfalcato@suse.de,mike@recall.ai,liam@infradead.org,jannh@google.com,david@kernel.org,ljs@kernel.org,akpm@linux-foundation.org
+	b=n1gplnWq5alvcZ76IMrzmzUqsKz3uJDZKDeFSfWl8+IbGFMRK0ug0apcnXNLm6yLA
+	 4YL1NLQiqRbFbKhqZUbzIBM/8tNxYyIGLviiFfLB8Wiq+756Alstd+swYnc9S0nsMA
+	 hkE7zw+J6WBmbw/NlRsQ87SxsGdAuB9Nc2LK+uUY=
+Date: Sat, 05 Sep 2026 17:32:11 -0700
+To: mm-commits@vger.kernel.org,sarthak.sharma@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-madvise-swap-in-cowd-map_private-file-mappings-on-madv_willneed.patch added to mm-new branch
-Message-Id: <20260906001814.9F4951F00A3A@smtp.kernel.org>
+Subject: + selftests-mm-make-file-helpers-return-errors.patch added to mm-new branch
+Message-Id: <20260906003212.27E291F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/madvise: swap in CoW'd MAP_PRIVATE-file mappings on MADV_WILLNEED
+     Subject: selftests/mm: make file helpers return errors
 has been added to the -mm mm-new branch.  Its filename is
-     mm-madvise-swap-in-cowd-map_private-file-mappings-on-madv_willneed.patch
+     selftests-mm-make-file-helpers-return-errors.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-madvise-swap-in-cowd-map_private-file-mappings-on-madv_willneed.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-make-file-helpers-return-errors.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,69 +69,643 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: mm/madvise: swap in CoW'd MAP_PRIVATE-file mappings on MADV_WILLNEED
-Date: Thu, 3 Sep 2026 20:08:39 +0100
+From: Sarthak Sharma <sarthak.sharma@arm.com>
+Subject: selftests/mm: make file helpers return errors
+Date: Fri, 4 Sep 2026 18:06:26 +0530
 
-Currently MADV_WILLNEED treats file-backed and pure anonymous mappings
-entirely separately - using POSIX_FADV_WILLNEED (equivalent of a
-readahead) for the former and a tree walk and swap in to swap cache for
-the latter.
+Patch series "selftests/mm: separate GUP microbenchmarking from functional
+testing", v9.
 
-MAP_PRIVATE-file backed mappings straddle the two and currently get
-treated as if they were purely file-backed, meaning any swapped out
-private pages remain swapped out.
+gup_test.c currently serves two separate purposes: benchmarking
+(GUP_FAST_BENCHMARK, PIN_FAST_BENCHMARK and PIN_LONGTERM_BENCHMARK) and
+functional testing (GUP_BASIC_TEST, PIN_BASIC_TEST and
+DUMP_USER_PAGES_TEST).  Keeping both in one program makes the functional
+tests harder to run and report individually, while run_vmtests.sh has to
+invoke the program repeatedly with different options.
 
-Resolve the issue by explicitly checking for CoW'd MAP_PRIVATE-file backed
-mappings and performing both walks in this case.
+Separate these roles into tools/mm/gup_bench for benchmarking and
+tools/testing/selftests/mm/gup for functional testing.  Move the shared
+file and hugepage helpers to tools/lib/mm/ so both programs can use them
+without duplicating the implementation.
 
-Since the logic checks for vma->anon_vma this means un-CoW'd
-MAP_PRIVATE-file backed mappings retain only the single file walk.
+Patch 1 makes read_file(), write_file(), read_num(), write_num() and
+write_num_ignore_einval() return errors to their callers instead of
+exiting.  It also makes read_num() reject negative and malformed values
+and updates the existing callers to handle failures.
 
-Link: https://lore.kernel.org/aprjOxDy3JCPb2oa@gremlin
-Reported-by: Mike Kaplinskiy <mike@recall.ai>
-Closes: https://lore.kernel.org/all/CABeknB_S2XJSHFgnHdgnN0rjzHhH4oQJs_APq9fvxHztQ_pgiA@mail.gmail.com/
-Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Jann Horn <jannh@google.com>
+Patch 2 moves these file helpers from vm_util.c to tools/lib/mm/.  It
+keeps them available to the mm selftests through vm_util.h and adjusts the
+selftests build accordingly.
+
+Patch 3 moves hugepage_settings.[ch] from selftests/mm to tools/lib/mm/. 
+It also removes its kselftest dependency while preserving TAP-compatible
+diagnostics for selftest users.
+
+Patch 4 moves the existing gup_test implementation from selftests/mm to
+tools/mm as gup_bench.  This keeps the code movement separate from the
+subsequent changes and makes it easier to review.
+
+Patch 5 removes the functional test modes and kselftest dependency from
+gup_bench.  When run without arguments, it performs one GUP_FAST benchmark
+using the existing defaults instead of running the whole matrix.  Other
+benchmark configurations can be selected through command-line options.
+
+Patch 6 adds a new harness-based GUP selftest.  It covers THP, non-THP and
+HugeTLB mappings across private/shared and read/write variants.  For each
+variant, it tests get_user_pages(), get_user_pages_fast(),
+pin_user_pages(), pin_user_pages_fast() and long-term pinning modes using
+four batch sizes.  The HugeTLB variants share a one-time setup, with the
+page count chosen using a 256 MiB target and a minimum of one page.
+
+
+This patch (of 6):
+
+Change read_file(), write_file(), read_num(), write_num() and
+write_num_ignore_einval() in vm_util.c to report failures to callers
+instead of exiting from the helper.
+
+Make read_file() return a negative errno on failure and 0 on success, so
+callers can distinguish a successful read from an I/O error.  Also make
+read_num() reject negative and malformed values.
+
+Keep write_num_ignore_einval() silent for -EINVAL while returning other
+errors to its caller.
+
+Update callers to print diagnostics and fail wherever required.  Modify a
+comment which implies write_num() uses ksft_exit_fail_msg().  Also add a
+helper print_file_access_error() in hugepage_settings.c to print
+TAP-compatible errors without a kselftest dependency.  This prepares the
+helpers to be moved to tools/lib/mm without a kselftest dependency.
+
+Link: https://lore.kernel.org/20260904123631.198697-1-sarthak.sharma@arm.com
+Link: https://lore.kernel.org/20260904123631.198697-2-sarthak.sharma@arm.com
+Signed-off-by: Sarthak Sharma <sarthak.sharma@arm.com>
+Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Tested-by: Muhammad Usama Anjum <usama.anjum@arm.com>
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Lance Yang <lance.yang@linux.dev>
+Cc: Leon Romanovsky <leon@kernel.org>
 Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Pedro Falcato <pfalcato@suse.de>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Mark Brown <broonie@kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Nico Pache <npache@redhat.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/madvise.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ tools/testing/selftests/mm/hugepage_settings.c    |   98 +++++++--
+ tools/testing/selftests/mm/hugetlb-soft-offline.c |   16 +
+ tools/testing/selftests/mm/khugepaged.c           |   14 -
+ tools/testing/selftests/mm/split_huge_page_test.c |    5 
+ tools/testing/selftests/mm/vm_util.c              |  122 +++++++-----
+ tools/testing/selftests/mm/vm_util.h              |    8 
+ 6 files changed, 192 insertions(+), 71 deletions(-)
 
---- a/mm/madvise.c~mm-madvise-swap-in-cowd-map_private-file-mappings-on-madv_willneed
-+++ a/mm/madvise.c
-@@ -297,11 +297,12 @@ static long madvise_willneed(struct madv
- 	loff_t offset;
+--- a/tools/testing/selftests/mm/hugepage_settings.c~selftests-mm-make-file-helpers-return-errors
++++ a/tools/testing/selftests/mm/hugepage_settings.c
+@@ -8,6 +8,7 @@
+ #include <stdlib.h>
+ #include <string.h>
+ #include <unistd.h>
++#include <errno.h>
  
- #ifdef CONFIG_SWAP
--	if (!file) {
-+	if (vma_is_cow_mapping(vma) && vma->anon_vma) {
- 		walk_page_range_vma(vma, start, end, &swapin_walk_ops, vma);
- 		lru_add_drain(); /* Push any new pages onto the LRU now */
--		return 0;
+ #include "vm_util.h"
+ #include "hugepage_settings.h"
+@@ -48,6 +49,11 @@ static const char * const shmem_enabled_
+ 	NULL
+ };
+ 
++static void print_file_access_error(const char *path, int ret)
++{
++	printf("# %s: %s (%d)\n", path, strerror(-ret), -ret);
++}
++
+ int thp_read_string(const char *name, const char * const strings[])
+ {
+ 	char path[PATH_MAX];
+@@ -61,8 +67,9 @@ int thp_read_string(const char *name, co
+ 		exit(EXIT_FAILURE);
  	}
-+	if (!file)
-+		return 0;
  
- 	if (shmem_mapping(file->f_mapping)) {
- 		shmem_swapin_range(vma, start, end, file->f_mapping);
+-	if (!read_file(path, buf, sizeof(buf))) {
+-		perror(path);
++	ret = read_file(path, buf, sizeof(buf));
++	if (ret) {
++		print_file_access_error(path, ret);
+ 		exit(EXIT_FAILURE);
+ 	}
+ 
+@@ -103,12 +110,17 @@ void thp_write_string(const char *name,
+ 		printf("%s: Pathname is too long\n", __func__);
+ 		exit(EXIT_FAILURE);
+ 	}
+-	write_file(path, val, strlen(val) + 1);
++	ret = write_file(path, val, strlen(val) + 1);
++	if (ret) {
++		print_file_access_error(path, ret);
++		exit(EXIT_FAILURE);
++	}
+ }
+ 
+ unsigned long thp_read_num(const char *name)
+ {
+ 	char path[PATH_MAX];
++	unsigned long num;
+ 	int ret;
+ 
+ 	ret = snprintf(path, PATH_MAX, THP_SYSFS "%s", name);
+@@ -116,7 +128,13 @@ unsigned long thp_read_num(const char *n
+ 		printf("%s: Pathname is too long\n", __func__);
+ 		exit(EXIT_FAILURE);
+ 	}
+-	return read_num(path);
++	ret = read_num(path, &num);
++	if (ret) {
++		print_file_access_error(path, ret);
++		exit(EXIT_FAILURE);
++	}
++
++	return num;
+ }
+ 
+ void thp_write_num(const char *name, unsigned long num)
+@@ -129,7 +147,11 @@ void thp_write_num(const char *name, uns
+ 		printf("%s: Pathname is too long\n", __func__);
+ 		exit(EXIT_FAILURE);
+ 	}
+-	write_num(path, num);
++	ret = write_num(path, num);
++	if (ret) {
++		print_file_access_error(path, ret);
++		exit(EXIT_FAILURE);
++	}
+ }
+ 
+ void thp_read_settings(struct thp_settings *settings)
+@@ -157,8 +179,15 @@ void thp_read_settings(struct thp_settin
+ 		.max_ptes_shared = thp_read_num("khugepaged/max_ptes_shared"),
+ 		.pages_to_scan = thp_read_num("khugepaged/pages_to_scan"),
+ 	};
+-	if (dev_queue_read_ahead_path[0])
+-		settings->read_ahead_kb = read_num(dev_queue_read_ahead_path);
++	if (dev_queue_read_ahead_path[0]) {
++		int ret = read_num(dev_queue_read_ahead_path,
++				   &settings->read_ahead_kb);
++
++		if (ret) {
++			print_file_access_error(dev_queue_read_ahead_path, ret);
++			exit(EXIT_FAILURE);
++		}
++	}
+ 
+ 	for (i = 0; i < NR_ORDERS; i++) {
+ 		if (!((1 << i) & orders)) {
+@@ -208,8 +237,15 @@ void thp_write_settings(struct thp_setti
+ 	thp_write_num("khugepaged/max_ptes_shared", khugepaged->max_ptes_shared);
+ 	thp_write_num("khugepaged/pages_to_scan", khugepaged->pages_to_scan);
+ 
+-	if (dev_queue_read_ahead_path[0])
+-		write_num(dev_queue_read_ahead_path, settings->read_ahead_kb);
++	if (dev_queue_read_ahead_path[0]) {
++		int ret = write_num(dev_queue_read_ahead_path,
++				    settings->read_ahead_kb);
++
++		if (ret) {
++			print_file_access_error(dev_queue_read_ahead_path, ret);
++			exit(EXIT_FAILURE);
++		}
++	}
+ 
+ 	for (i = 0; i < NR_ORDERS; i++) {
+ 		if (!((1 << i) & orders))
+@@ -307,8 +343,15 @@ static unsigned long __thp_supported_ord
+ 		}
+ 
+ 		ret = read_file(path, buf, sizeof(buf));
+-		if (ret)
+-			orders |= 1UL << i;
++		if (ret) {
++			if (ret != -ENOENT) {
++				print_file_access_error(path, ret);
++				exit(EXIT_FAILURE);
++			}
++			continue;
++		}
++
++		orders |= 1UL << i;
+ 	}
+ 
+ 	return orders;
+@@ -382,8 +425,7 @@ int detect_hugetlb_page_sizes(unsigned l
+ 		if (sscanf(entry->d_name, "hugepages-%zukB", &kb) != 1)
+ 			continue;
+ 		sizes[count++] = kb * 1024;
+-		ksft_print_msg("[INFO] detected hugetlb page size: %zu KiB\n",
+-			       kb);
++		printf("# [INFO] detected hugetlb page size: %zu KiB\n", kb);
+ 	}
+ 	closedir(dir);
+ 	return count;
+@@ -425,28 +467,49 @@ static void hugetlb_sysfs_path(char *buf
+ unsigned long hugetlb_nr_pages(unsigned long size)
+ {
+ 	char path[PATH_MAX];
++	unsigned long nr;
++	int ret;
+ 
+ 	hugetlb_sysfs_path(path, sizeof(path), size, "nr_hugepages");
+ 
+-	return read_num(path);
++	ret = read_num(path, &nr);
++	if (ret) {
++		print_file_access_error(path, ret);
++		exit(EXIT_FAILURE);
++	}
++
++	return nr;
+ }
+ 
+ void hugetlb_set_nr_pages(unsigned long size, unsigned long nr)
+ {
+ 	char path[PATH_MAX];
++	int ret;
+ 
+ 	hugetlb_sysfs_path(path, sizeof(path), size, "nr_hugepages");
+ 
+-	write_num_ignore_einval(path, nr);
++	ret = write_num_ignore_einval(path, nr);
++	if (ret) {
++		print_file_access_error(path, ret);
++		exit(EXIT_FAILURE);
++	}
+ }
+ 
+ unsigned long hugetlb_free_pages(unsigned long size)
+ {
+ 	char path[PATH_MAX];
++	unsigned long nr;
++	int ret;
+ 
+ 	hugetlb_sysfs_path(path, sizeof(path), size, "free_hugepages");
+ 
+-	return read_num(path);
++	ret = read_num(path, &nr);
++	if (ret) {
++		print_file_access_error(path, ret);
++		exit(EXIT_FAILURE);
++	}
++
++	return nr;
+ }
+ 
+ static bool __hugetlb_setup(unsigned long size, unsigned long nr)
+@@ -502,7 +565,8 @@ unsigned long hugetlb_setup(unsigned lon
+ 		return 0;
+ 
+ 	if (nr_enabled > max) {
+-		ksft_print_msg("detected %d huge page sizes, will only test %d\n", nr_enabled, max);
++		printf("# detected %d huge page sizes, will only test %d\n",
++		       nr_enabled, max);
+ 		nr_enabled = max;
+ 	}
+ 
+--- a/tools/testing/selftests/mm/hugetlb-soft-offline.c~selftests-mm-make-file-helpers-return-errors
++++ a/tools/testing/selftests/mm/hugetlb-soft-offline.c
+@@ -85,8 +85,7 @@ static unsigned long orig_enable_soft_of
+ 
+ /*
+  * Runs from an atexit handler, so it must not call anything that
+- * exits on failure: write_num() would re-enter exit() through
+- * ksft_exit_fail_msg().
++ * exits on failure.
+  */
+ static void restore_enable_soft_offline(void)
+ {
+@@ -152,7 +151,10 @@ static void test_soft_offline_common(int
+ 	hugepagesize_kb = file_stat.f_bsize / 1024;
+ 	ksft_print_msg("Hugepagesize is %ldkB\n", hugepagesize_kb);
+ 
+-	write_num(ENABLE_SOFT_OFFLINE_PATH, enable_soft_offline);
++	ret = write_num(ENABLE_SOFT_OFFLINE_PATH, enable_soft_offline);
++	if (ret)
++		ksft_exit_fail_msg("Failed to write to %s: %s\n",
++				   ENABLE_SOFT_OFFLINE_PATH, strerror(-ret));
+ 
+ 	nr_hugepages_before = hugetlb_nr_default_pages();
+ 
+@@ -189,6 +191,8 @@ static void test_soft_offline_common(int
+ 
+ int main(int argc, char **argv)
+ {
++	int ret;
++
+ 	ksft_print_header();
+ 
+ 	if (!hugetlb_setup_default(8))
+@@ -196,7 +200,11 @@ int main(int argc, char **argv)
+ 
+ 	ksft_set_plan(2);
+ 
+-	orig_enable_soft_offline = read_num(ENABLE_SOFT_OFFLINE_PATH);
++	ret = read_num(ENABLE_SOFT_OFFLINE_PATH, &orig_enable_soft_offline);
++	if (ret)
++		ksft_exit_fail_msg("Failed to read %s: %s\n",
++				   ENABLE_SOFT_OFFLINE_PATH, strerror(-ret));
++
+ 	atexit(restore_enable_soft_offline);
+ 
+ 	test_soft_offline_common(1);
+--- a/tools/testing/selftests/mm/khugepaged.c~selftests-mm-make-file-helpers-return-errors
++++ a/tools/testing/selftests/mm/khugepaged.c
+@@ -122,6 +122,7 @@ static void get_finfo(const char *dir)
+ 	char buf[1 << 10];
+ 	char path[PATH_MAX];
+ 	char *str, *end;
++	int ret;
+ 
+ 	finfo.dir = dir;
+ 	if (stat(finfo.dir, &path_stat))
+@@ -142,8 +143,9 @@ static void get_finfo(const char *dir)
+ 		     major(path_stat.st_dev), minor(path_stat.st_dev))
+ 	    >= sizeof(path))
+ 		ksft_exit_fail_msg("%s: Pathname is too long\n", __func__);
+-	if (!read_file(path, buf, sizeof(buf)))
+-		ksft_exit_fail_perror("read_file(uevent)");
++	ret = read_file(path, buf, sizeof(buf));
++	if (ret)
++		ksft_exit_fail_msg("read_file(%s): %s\n", path, strerror(-ret));
+ 	if (strstr(buf, "DEVTYPE=disk")) {
+ 		/* Found it */
+ 		if (snprintf(finfo.dev_queue_read_ahead_path,
+@@ -324,7 +326,7 @@ static void *file_setup_area_common(int
+ {
+ 	const int open_opt = setup == FILE_SETUP_READ_ONLY_FS ? O_RDONLY : O_RDWR;
+ 	const int mmap_prot = setup == FILE_SETUP_READ_ONLY_FS ? PROT_READ : (PROT_READ | PROT_WRITE);
+-	int fd;
++	int fd, ret;
+ 	void *p;
+ 	unsigned long size;
+ 
+@@ -362,7 +364,11 @@ static void *file_setup_area_common(int
+ 		ksft_exit_fail_perror("mmap()");
+ 
+ 	/* Drop page cache */
+-	write_file("/proc/sys/vm/drop_caches", "3", 2);
++	ret = write_file("/proc/sys/vm/drop_caches", "3", 2);
++	if (ret)
++		ksft_exit_fail_msg("write_file(drop_caches): %s\n",
++				   strerror(-ret));
++
+ 	success("OK");
+ 	return p;
+ }
+--- a/tools/testing/selftests/mm/split_huge_page_test.c~selftests-mm-make-file-helpers-return-errors
++++ a/tools/testing/selftests/mm/split_huge_page_test.c
+@@ -145,7 +145,10 @@ static void write_debugfs(const char *fm
+ 	if (ret >= INPUT_MAX)
+ 		ksft_exit_fail_msg("%s: Debugfs input is too long\n", __func__);
+ 
+-	write_file(SPLIT_DEBUGFS, input, ret + 1);
++	ret = write_file(SPLIT_DEBUGFS, input, ret + 1);
++	if (ret)
++		ksft_exit_fail_msg("write_file(%s): %s\n", SPLIT_DEBUGFS,
++				   strerror(-ret));
+ }
+ 
+ static char *allocate_zero_filled_hugepage(size_t len)
+--- a/tools/testing/selftests/mm/vm_util.c~selftests-mm-make-file-helpers-return-errors
++++ a/tools/testing/selftests/mm/vm_util.c
+@@ -887,109 +887,149 @@ int unpoison_memory(unsigned long pfn)
+ 
+ int read_file(const char *path, char *buf, size_t buflen)
+ {
+-	int fd;
++	int fd, err;
+ 	ssize_t numread;
+ 
+ 	fd = open(path, O_RDONLY);
+ 	if (fd == -1)
+-		return 0;
++		return -errno;
+ 
+ 	numread = read(fd, buf, buflen - 1);
+ 	if (numread < 1) {
++		err = numread ? errno : ENODATA;
+ 		close(fd);
+-		return 0;
++		return -err;
+ 	}
+ 
+ 	buf[numread] = '\0';
+ 	close(fd);
+ 
+-	return (unsigned int) numread;
++	return 0;
+ }
+ 
+-static void __write_file(const char *path, const char *buf, size_t buflen, bool ignore_einval)
++int write_file(const char *path, const char *buf, size_t buflen)
+ {
+ 	int fd, saved_errno;
+ 	ssize_t numwritten;
+ 
+ 	if (buflen < 2)
+-		ksft_exit_fail_msg("Incorrect buffer len: %zu\n", buflen);
++		return -EINVAL;
+ 
+ 	fd = open(path, O_WRONLY);
+ 	if (fd == -1)
+-		ksft_exit_fail_msg("%s open failed: %s\n", path, strerror(errno));
++		return -errno;
+ 
+ 	numwritten = write(fd, buf, buflen - 1);
+ 	saved_errno = errno;
+ 	close(fd);
+-	errno = saved_errno;
+-	if (numwritten < 0) {
+-		if (ignore_einval && errno == EINVAL)
+-			return;
+-		ksft_exit_fail_msg("%s write(%.*s) failed: %s\n", path, (int)(buflen - 1),
+-				buf, strerror(errno));
+-	}
+-	if (numwritten != buflen - 1)
+-		ksft_exit_fail_msg("%s write(%.*s) is truncated, expected %zu bytes, got %zd bytes\n",
+-				path, (int)(buflen - 1), buf, buflen - 1, numwritten);
+-}
+ 
+-void write_file(const char *path, const char *buf, size_t buflen)
+-{
+-	__write_file(path, buf, buflen, /* ignore_einval = */ false);
++	if (numwritten < 0)
++		return -saved_errno;
++
++	if (numwritten != (ssize_t)(buflen - 1))
++		return -EIO;
++
++	return 0;
+ }
+ 
+-unsigned long read_num(const char *path)
++int read_num(const char *path, unsigned long *num)
+ {
++	unsigned long val;
++	int ret;
+ 	char buf[21];
++	char *end;
++
++	if (!num)
++		return -EINVAL;
++
++	ret = read_file(path, buf, sizeof(buf));
++	if (ret)
++		return ret;
++
++	/* Reject signs and leading whitespace that are accepted by strtoul() */
++	if (buf[0] < '0' || buf[0] > '9')
++		return -EINVAL;
+ 
+-	if (!read_file(path, buf, sizeof(buf)))
+-		ksft_exit_fail_perror("read_file()");
++	errno = 0;
++	val = strtoul(buf, &end, 10);
++	if (errno)
++		return -errno;
+ 
+-	return strtoul(buf, NULL, 10);
++	/* Only allow a newline after the number */
++	if (*end == '\n')
++		end++;
++
++	if (*end != '\0')
++		return -EINVAL;
++
++	*num = val;
++	return 0;
+ }
+ 
+-static void __write_num(const char *path, unsigned long num, bool ignore_einval)
++int write_num(const char *path, unsigned long num)
+ {
+ 	char buf[21];
+ 
+ 	sprintf(buf, "%lu", num);
+-	__write_file(path, buf, strlen(buf) + 1, ignore_einval);
++	return write_file(path, buf, strlen(buf) + 1);
+ }
+ 
+-void write_num(const char *path, unsigned long num)
++int write_num_ignore_einval(const char *path, unsigned long num)
+ {
+-	return __write_num(path, num, /* ignore_einval = */ false);
+-}
++	int ret;
+ 
+-void write_num_ignore_einval(const char *path, unsigned long num)
+-{
+-	return __write_num(path, num, /* ignore_einval = */ true);
++	ret = write_num(path, num);
++	return ret == -EINVAL ? 0 : ret;
+ }
+ 
+ static unsigned long shmall, shmmax;
+ 
+ void __shm_limits_restore(void)
+ {
+-	if (shmmax)
+-		write_num("/proc/sys/kernel/shmmax", shmmax);
+-	if (shmall)
+-		write_num("/proc/sys/kernel/shmall", shmall);
++	int ret;
++
++	if (shmmax) {
++		ret = write_num("/proc/sys/kernel/shmmax", shmmax);
++		if (ret < 0)
++			ksft_exit_fail_msg("Failed to restore shmmax: %s\n",
++					   strerror(-ret));
++	}
++	if (shmall) {
++		ret = write_num("/proc/sys/kernel/shmall", shmall);
++		if (ret < 0)
++			ksft_exit_fail_msg("Failed to restore shmall: %s\n",
++					   strerror(-ret));
++	}
+ }
+ 
+ void shm_limits_prepare(unsigned long length)
+ {
+ 	unsigned long nr = length / psize();
+ 	unsigned long val;
++	int ret;
++
++	ret = read_num("/proc/sys/kernel/shmmax", &val);
++	if (ret < 0)
++		ksft_exit_fail_msg("Failed to read /proc/sys/kernel/shmmax: %s\n",
++				   strerror(-ret));
+ 
+-	val = read_num("/proc/sys/kernel/shmmax");
+ 	if (val < length) {
+-		write_num("/proc/sys/kernel/shmmax", length);
++		ret = write_num("/proc/sys/kernel/shmmax", length);
++		if (ret < 0)
++			ksft_exit_fail_msg("Failed to write %lu to /proc/sys/kernel/shmmax: %s\n",
++					   length, strerror(-ret));
+ 		shmmax = val;
+ 	}
+ 
+-	val = read_num("/proc/sys/kernel/shmall");
++	ret = read_num("/proc/sys/kernel/shmall", &val);
++	if (ret < 0)
++		ksft_exit_fail_msg("Failed to read /proc/sys/kernel/shmall: %s\n",
++				   strerror(-ret));
+ 	if (val < nr) {
+-		write_num("/proc/sys/kernel/shmall", nr);
++		ret = write_num("/proc/sys/kernel/shmall", nr);
++		if (ret < 0)
++			ksft_exit_fail_msg("Failed to write %lu to /proc/sys/kernel/shmall: %s\n",
++					   nr, strerror(-ret));
+ 		shmall = val;
+ 	}
+ }
+--- a/tools/testing/selftests/mm/vm_util.h~selftests-mm-make-file-helpers-return-errors
++++ a/tools/testing/selftests/mm/vm_util.h
+@@ -166,11 +166,11 @@ int unpoison_memory(unsigned long pfn);
+ #define PAGEMAP_PRESENT(ent)	(((ent) & (1ull << 63)) != 0)
+ #define PAGEMAP_PFN(ent)	((ent) & ((1ull << 55) - 1))
+ 
+-void write_file(const char *path, const char *buf, size_t buflen);
++int write_file(const char *path, const char *buf, size_t buflen);
+ int read_file(const char *path, char *buf, size_t buflen);
+-unsigned long read_num(const char *path);
+-void write_num(const char *path, unsigned long num);
+-void write_num_ignore_einval(const char *path, unsigned long num);
++int read_num(const char *path, unsigned long *num);
++int write_num(const char *path, unsigned long num);
++int write_num_ignore_einval(const char *path, unsigned long num);
+ 
+ void shm_limits_prepare(unsigned long length);
+ void __shm_limits_restore(void);
 _
 
-Patches currently in -mm which might be from ljs@kernel.org are
+Patches currently in -mm which might be from sarthak.sharma@arm.com are
 
-mm-vma-correctly-unaccount-on-mmap_prepare-failure.patch
-mm-vmpressure-remove-window-size-todo.patch
-tools-testing-selftests-mm-add-missing-gitignore-entries.patch
-mm-move-drivers-char-memc-to-mm-char-memc.patch
-mm-implement-file_is_dev_zero-to-uniquely-identify-dev-zero.patch
-mm-vma-only-permit-map_private-dev-zero-to-be-mapped-anonymous.patch
-mm-vma-make-map_private-mapped-dev-zero-mappings-truly-anonymous.patch
-tools-testing-vma-add-test-to-assert-map_private-dev-zero-is-anon.patch
-tools-testing-selftests-mm-add-map_private-dev-zero-merge-tests.patch
-mm-madvise-swap-in-cowd-map_private-file-mappings-on-madv_willneed.patch
+mm-gup_test-report-actual-pinned-bytes.patch
+selftests-mm-make-file-helpers-return-errors.patch
+tools-lib-mm-add-shared-file-helpers.patch
+tools-lib-mm-move-hugepage_settings-out-of-selftests.patch
+tools-mm-move-gup_test-from-selftests-mm-to-tools-mm.patch
+tools-mm-make-gup_bench-a-benchmark-only-tool.patch
+selftests-mm-add-a-gup-selftest.patch
 
