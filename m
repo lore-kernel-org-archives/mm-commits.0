@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 42FB03128B8
-	for <mm-commits@vger.kernel.org>; Sun,  6 Sep 2026 02:06:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A44223515D0;
+	Sun,  6 Sep 2026 02:21:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788660362; cv=none; b=V32z7vxuv46cko4kwnAE6+R7xpLIyaz5/Fm5GmRkZKScllxudZF2AQ+BtLE9gRLxiE7F3vcAVczZOdWXk4o4cIfPiBpMFuryOVqbVFyZ+MskfIxdHc6LzcjsjhS5cGrAI4TkQXvlHo65ejL4RrwXJUoh6+FXv3vB6usjcKyudzA=
+	t=1788661269; cv=none; b=qpP3hqfBZ3V6VpId4LhMfryCm2JYvalyQFMgPlAYCJ4H7Kitef13NoLyj4NhgUMVgFd9E+SRj2HcJgSXs10O40rPgicPNFR0tJ1ohJG/7NEU+HdZ8vWZ/p1Gx1CAvaG7XdAvnD2jQp3pt1d314AcP/5XMMC6b9MR5WQZpmAP9Xw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788660362; c=relaxed/simple;
-	bh=hgKEqNKkmgbf6udbg21a3mOsGufRclNemArjRJ/GJoE=;
-	h=Date:To:From:Subject:Message-Id; b=bwr250gRxDWjfrtWlhXnds6smdxCvKWVCF6hA9Bal0xdj24WLYlckmmL55SaJYDSud+dtj0VncYQjdzzIuK9EzCsVd3cvlScaM6+/WqOucrstWr2gE/Urue7STiuQRRXYL19WuXdBTxKJQ7L7Zy/upy80ZstC63/EX/29mcT0gg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XOXnE9Va; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788661269; c=relaxed/simple;
+	bh=VwC/moHV3gO6v1K0dYD8s5ePunbjQ2UbAuY6/SxRDGM=;
+	h=Date:To:From:Subject:Message-Id; b=HtUiuXgdNB1MtPmMbtfGzwseZJ6AVJLbNBJDiZhWpBR7mTOOoeO4DklnsUROw98gqom+LxQPlbwzMwHC8tEItaUpgo9+acaQnfmKwMLnB98BoV80VRQnGmkSeJ9RnEygdHq8q+mS0W3ohEJ2e9G3hXLE9qJ4rab2TKtUJG1rayc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wMai3k2n; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XOXnE9Va"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5DB891F00A3A;
-	Sun,  6 Sep 2026 02:06:00 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wMai3k2n"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3C7981F00A3A;
+	Sun,  6 Sep 2026 02:21:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788660360;
-	bh=QWRDRCuat5JkNJZP7iUyRtJ7P7g/qO8/C3vDqdp0DeE=;
+	d=linux-foundation.org; s=korg; t=1788661267;
+	bh=6AjcLBECKuqmISJ7Inwb1of+H4FR5as5IUxEHdYAj7Q=;
 	h=Date:To:From:Subject;
-	b=XOXnE9VaIcqE1XpzEWfMzrKtI9ZeQQ14aWQjBCOpKGpZS2dj+0bRgUTYr8Lo8k9zM
-	 mlDrjaeg/NALXVhoyLJi4UpVvIROpFkaUh/JiOtje3Fj2pNo/NlwyPZy90vRZmhvqc
-	 XS6vu3bgBGYJypTgC09uuYgzJ4Wigu2dIVVXf7eA=
-Date: Sat, 05 Sep 2026 19:05:59 -0700
-To: mm-commits@vger.kernel.org,urezki@gmail.com,mcgrof@kernel.org,jikos@kernel.org,bentiss@kernel.org,rppt@kernel.org,akpm@linux-foundation.org
+	b=wMai3k2nteVKXdZVbWTzNk7C3dX1Nyn3QJ0vzhAAwKMloh8Zw20tuuw5IiGmKkIK8
+	 7ZitJMp95Po/qEsXkT2rRStqyhjjZWfKFuqHbJcfTXd19zPTcZQZiJHhO7rHP6byOj
+	 YTC33OuuF23aDE7SKe6PJnQ01vwxsC+Z18Nf4xj0=
+Date: Sat, 05 Sep 2026 19:21:06 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,sj@kernel.org,ryan.roberts@arm.com,david@kernel.org,baolin.wang@linux.alibaba.com,zcgao@amazon.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-execmem-use-cleanup-infrastructure-in-rox-cache-functions.patch added to mm-new branch
-Message-Id: <20260906020600.5DB891F00A3A@smtp.kernel.org>
+Subject: + mm-damon-ops-common-use-a-page-aligned-address-in-damon_ptep_mkold.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260906022107.3C7981F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,26 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/execmem: use cleanup infrastructure in ROX cache functions
-has been added to the -mm mm-new branch.  Its filename is
-     mm-execmem-use-cleanup-infrastructure-in-rox-cache-functions.patch
+     Subject: mm/damon/ops-common: use a page-aligned address in damon_ptep_mkold()
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-damon-ops-common-use-a-page-aligned-address-in-damon_ptep_mkold.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-execmem-use-cleanup-infrastructure-in-rox-cache-functions.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-ops-common-use-a-page-aligned-address-in-damon_ptep_mkold.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,138 +58,113 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
-Subject: mm/execmem: use cleanup infrastructure in ROX cache functions
-Date: Thu, 03 Sep 2026 18:50:02 +0300
+From: Nathan Gao <zcgao@amazon.com>
+Subject: mm/damon/ops-common: use a page-aligned address in damon_ptep_mkold()
+Date: Thu, 3 Sep 2026 17:28:27 -0700
 
-After splitting out execmem_alloc_rox() from
-execmem_cache_populate_alloc(), the error paths of both functions became
-less complex and can be easily switched to use the cleanup infrastructure.
+__damon_va_prepare_access_check() picks a random byte address within the
+region and stores it in r->sampling_addr.  damon_va_mkold() passes it into
+a page table walk, which hands it to damon_ptep_mkold() as the address of
+the page to sample:
 
-Use __free(vfree) to free allocated memory on the error paths and
-guard(mutex) for synchronization in ROX cache functions.
+  damon_va_mkold(mm, r->sampling_addr)
+    damon_va_walk_page_range(mm, addr, addr + 1)
+      damon_mkold_pmd_entry()
+        damon_ptep_mkold(pte, vma, addr)
+          ptep_test_and_clear_young(vma, addr, pte)
+          mmu_notifier_clear_young(mm, addr, addr + PAGE_SIZE)
 
-Link: https://lore.kernel.org/20260903-execmem-rox-cache-pmd-v1-v1-5-11beb2a3d249@kernel.org
-Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Cc: Benjamin Tissoires <bentiss@kernel.org>
-Cc: Jiri Kosina <jikos@kernel.org>
-Cc: Luis Chamberalin <mcgrof@kernel.org>
-Cc: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
+For arm64, before commit 6f0e1142173a ("arm64: mm: support batch clearing
+of the young flag for large folios"), the contpte helper walked exactly
+CONT_PTES entries from the aligned-down page table pointer and used @addr
+only to pass down to each entry, so an unaligned value was harmless:
+
+        ptep = contpte_align_down(ptep);
+        addr = ALIGN_DOWN(addr, CONT_PTE_SIZE);
+        for (i = 0; i < CONT_PTES; i++, ptep++, addr += PAGE_SIZE)
+
+Now the range to walk is derived from @addr instead: end = addr + nr *
+PAGE_SIZE, rounded up to CONT_PTE_SIZE.  For a sample in the last page of
+a contpte block, the sub-page offset puts end just past the block
+boundary, so the round-up lands a whole block further and the walk clears
+PTE_AF in CONT_PTES entries beyond the sampled block.  For the last block
+in a page table page, those entries are past the end of that page, so the
+walk writes into the page that follows.
+
+Triggered by the full 7.1/7.2 kernel selftest suite on arm64 (EC2
+c/m6g.4xlarge).  The kernel sometimes crashes at or shortly after the
+DAMON test.
+
+What the overrun does depends on the page that happens to follow the page
+table, so there is no single signature.  If that page is read-only, the
+write faults in the sampling path itself:
+
+  Unable to handle kernel write to read-only memory at virtual address ffff0003c5d2d000
+    FSC = 0x0f: level 3 permission fault
+    CM = 0, WnR = 1, TnD = 0, TagAccess = 0
+  CPU: 10 UID: 0 PID: 3487 Comm: kdamond.2
+  pc : contpte_test_and_clear_young_ptes+0x70/0xc0
+  lr : damon_ptep_mkold+0x1e8/0x1f8
+  Call trace:
+   contpte_test_and_clear_young_ptes+0x70/0xc0 (P)
+   damon_mkold_pmd_entry+0x150/0x170
+   walk_pmd_range+0x110/0x2b0
+   walk_pud_range+0x10c/0x208
+   walk_pgd_range+0x134/0x258
+   __walk_page_range+0x98/0x1b0
+   walk_page_range_vma_unsafe+0x90/0x148
+   walk_page_range_vma+0x28/0x40
+   damon_va_walk_page_range+0x114/0x2b8
+   damon_va_prepare_access_checks+0xec/0x1a8
+   kdamond_fn+0x534/0x770
+   kthread+0x128/0x138
+   ret_from_fork+0x10/0x20
+
+Otherwise the page is writable, the PTE_AF clearing succeeds silently and
+the damage only surfaces later, in whatever happened to own the page, so
+the backtrace is unrelated to DAMON and differs between runs.
+
+Pass a page-aligned address to the ptep_test_and_clear_young() call in
+damon_ptep_mkold(), which is the only place DAMON can reach
+contpte_test_and_clear_young_ptes() from.  Nothing else sees the aligned
+address, and r->sampling_addr itself is left as is, so the sampling and
+region bookkeeping semantics are unchanged.
+
+Link: https://lore.kernel.org/20260904002829.116381-1-sj@kernel.org
+Fixes: 6f0e1142173a ("arm64: mm: support batch clearing of the young flag for large folios")
+Signed-off-by: Nathan Gao <zcgao@amazon.com>
+Signed-off-by: SJ Park <sj@kernel.org>
+Reviewed-by: SJ Park <sj@kernel.org>
+Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: David Hildenbrand (Arm) <david@kernel.org>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/execmem.c |   32 ++++++++++----------------------
- 1 file changed, 10 insertions(+), 22 deletions(-)
+ mm/damon/ops-common.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
---- a/mm/execmem.c~mm-execmem-use-cleanup-infrastructure-in-rox-cache-functions
-+++ a/mm/execmem.c
-@@ -138,11 +138,10 @@ int execmem_restore_rox(void *ptr, size_
- static void execmem_cache_clean(struct work_struct *work)
- {
- 	struct maple_tree *free_areas = &execmem_cache.free_areas;
--	struct mutex *mutex = &execmem_cache.mutex;
- 	MA_STATE(mas, free_areas, 0, ULONG_MAX);
- 	void *area;
- 
--	mutex_lock(mutex);
-+	guard(mutex)(&execmem_cache.mutex);
- 	mas_for_each(&mas, area, ULONG_MAX) {
- 		struct vm_struct *vm = find_vm_area(area);
- 		size_t size = mas_range_len(&mas);
-@@ -163,7 +162,6 @@ static void execmem_cache_clean(struct w
- 			vfree(area);
- 		}
- 	}
--	mutex_unlock(mutex);
- }
- 
- static DECLARE_WORK(execmem_cache_clean_work, execmem_cache_clean);
-@@ -269,7 +267,7 @@ static void *__execmem_cache_alloc(struc
- static void *execmem_vmalloc_rox(struct execmem_range *range, size_t size,
- 				 unsigned long vm_flags)
- {
--	void *p = execmem_vmalloc(range, size, PAGE_KERNEL, vm_flags);
-+	void *p __free(vfree) = execmem_vmalloc(range, size, PAGE_KERNEL, vm_flags);
- 	int err;
- 
- 	if (!p)
-@@ -280,22 +278,17 @@ static void *execmem_vmalloc_rox(struct
- 	set_vm_flush_reset_perms(p);
- 	err = set_memory_rox((unsigned long)p, size >> PAGE_SHIFT);
- 	if (err)
--		goto err_free_mem;
--
--	return p;
-+		return NULL;
- 
--err_free_mem:
--	vfree(p);
--	return NULL;
-+	return no_free_ptr(p);
- }
- 
- static void *execmem_cache_populate_alloc(struct execmem_range *range, size_t size)
- {
- 	unsigned long vm_flags = VM_REQUIRE_HUGE_VMAP;
- 	size_t alloc_size = round_up(size, PMD_SIZE);
--	struct mutex *mutex = &execmem_cache.mutex;
-+	void *p __free(vfree) = NULL;
- 	int err;
--	void *p;
- 
- 	p = execmem_vmalloc_rox(range, alloc_size, vm_flags);
- 	if (!p)
-@@ -306,20 +299,15 @@ static void *execmem_cache_populate_allo
- 	 * as an atomic operation, otherwise they may be consumed
- 	 * by a parallel call to the execmem_cache_alloc function.
+--- a/mm/damon/ops-common.c~mm-damon-ops-common-use-a-page-aligned-address-in-damon_ptep_mkold
++++ a/mm/damon/ops-common.c
+@@ -61,7 +61,12 @@ void damon_ptep_mkold(pte_t *pte, struct
+ 	 * device aspects.
  	 */
--	mutex_lock(mutex);
-+	guard(mutex)(&execmem_cache.mutex);
- 	err = execmem_cache_add_locked(p, alloc_size, GFP_KERNEL);
--	if (!err)
--		p = execmem_cache_alloc_locked(range, size);
--	mutex_unlock(mutex);
--
- 	if (err)
--		goto err_free_mem;
-+		return NULL;
- 
--	return p;
-+	/* the chunk belongs to the cache now */
-+	retain_and_null_ptr(p);
- 
--err_free_mem:
--	vfree(p);
--	return NULL;
-+	return execmem_cache_alloc_locked(range, size);
- }
- 
- static void *execmem_alloc_rox(struct execmem_range *range, size_t size)
+ 	if (likely(pte_present(pteval)))
+-		young |= ptep_test_and_clear_young(vma, addr, pte);
++		/*
++		 * Arch implementation of ptep_test_and_clear_young() may
++		 * require aligned @addr
++		 */
++		young |= ptep_test_and_clear_young(vma, PAGE_ALIGN_DOWN(addr),
++				pte);
+ 	young |= mmu_notifier_clear_young(vma->vm_mm, addr, addr + PAGE_SIZE);
+ 	if (young)
+ 		folio_set_young(folio);
 _
 
-Patches currently in -mm which might be from rppt@kernel.org are
+Patches currently in -mm which might be from zcgao@amazon.com are
 
-set_memory-add-number-of-pages-parameter-to-set_direct_map-apis.patch
-mm-vmalloc-set-areas-page_order-after-allocation-succeeds.patch
-mm-vmalloc-constify-vm-parameter-of-get_vm_area_page_order.patch
-mm-vmalloc-make-set_area_direct_map-huge_vmap-friendly.patch
-mm-execmem-use-vm_flush_reset_perms-for-rox-cache-allocations.patch
-revert-arch-introduce-set_direct_map_valid_noflush.patch
-docs-core-api-memory-allocation-add-kalloc_obj-and-clarify-kmalloc.patch
-maintainers-add-memory-related-docs-in-core-mm-to-mm-misc-section.patch
-mm-execmem-free-rox-cache-chunks-only-when-they-span-an-entire-vm-area.patch
-mm-execmem-handle-potential-allocation-errors-in-the-maple-tree.patch
-mm-execmem-make-sure-rox-cache-always-contains-multiples-of-pmd_size.patch
-mm-vmalloc-add-define_free-for-vfree.patch
-mm-execmem-use-cleanup-infrastructure-in-rox-cache-functions.patch
-sh-remove-config_numa-and-realted-configuration-options.patch
-sh-mm-remove-numac.patch
-sh-mm-drop-allocate_pgdat.patch
-sh-remove-setup_bootmem_node-and-plat_mem_setup.patch
-sh-drop-dead-code-guarded-by-ifdef-config_numa.patch
-sh-drop-include-asm-mmzoneh.patch
-init-kconfig-drop-arch_want_numa_variable_locality.patch
-sh-init-remove-call-the-memblock_set_node.patch
-sh-remove-sparsemem-related-entries-from-kconfig.patch
-sh-drop-include-asm-sparsememh.patch
+mm-damon-ops-common-use-a-page-aligned-address-in-damon_ptep_mkold.patch
 
