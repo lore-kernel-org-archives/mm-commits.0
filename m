@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7224226E71E
-	for <mm-commits@vger.kernel.org>; Sun,  6 Sep 2026 00:32:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1672E2E8DEA;
+	Sun,  6 Sep 2026 00:35:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788654771; cv=none; b=VR3Dg6OiVRGS9snnkwpFEJ4OtgdKfFwnrcHmGcwEvLAgCd4eG0t808H44yp4L9QJ5QHuyAekiOR1rSwR95GiMHb8LDu+UL1pBJpBLUYKUOedCaSNOXGji303BkwVvRuHwGCOObc/rfcABplJrm6y09tKVueSYbVG+h71L909qBk=
+	t=1788654922; cv=none; b=cAd1AYjfNneSWcmBzOhAInZVcVTGaXf0Uk/r45bfUrbguFF2AQo5jovxdBU29anP9943jkLbea0hAIhogMn/skJDQbRq5fgXfBNJHVEh3OQmb+0vSFUL7lgoeiWMShWKevGOZieG0c5PyS3m1aapfVrANX/mhnReB80EmukSKG8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788654771; c=relaxed/simple;
-	bh=sfyRKYuYRBXFuKGp8UbIiyDSgX1gpEtDHfdfiJrPyCk=;
-	h=Date:To:From:Subject:Message-Id; b=BE6vjQwCsWgkBfGTS97Zt0gFF1HNCI1pDr8vYcCbiXqoMzYwyYzso6RHr24y5uJaLoRluH2ChBO1wX/1YnKokBc57CzgjlYvLez2Ahzbw+83JnqmHjAyD/94MgI3H3VR7EdfHgqWwZ4taUSimow0ZCYKWSmj7Ovh8bvulOSHa6c=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=R8i+xV8J; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788654922; c=relaxed/simple;
+	bh=JPlWoB4DXow6nbg9rJrJMG26hOHZCU/65RpKG60qAgk=;
+	h=Date:To:From:Subject:Message-Id; b=C1ovO8cLTWE1y/QBAyp8ullRjlWqJ9obNNHlJ/rRhArglB54YGUjdO9ReaDMXGXHFCsRmGFOwQni+Bg2BgFaxW2sOZcpxjgCqU20Rdk4zqyV+BPTnOab8RDMh/Et6Vg3O0tFYDhvSQm3/FMzJVeT3DS+XHp3/739E5pKO1tLyYw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uRSKXqd9; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="R8i+xV8J"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 06CD11F00A3A;
-	Sun,  6 Sep 2026 00:32:49 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uRSKXqd9"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8958A1F00A3A;
+	Sun,  6 Sep 2026 00:35:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788654769;
-	bh=LPsVTtBeNe3eOz9CqHNSN9GcC4cuy39fQVm6ePJE+3E=;
+	d=linux-foundation.org; s=korg; t=1788654920;
+	bh=IgY0KNzUHJ/fYTASL01kGfcHFX2ExSozWX8mnJ2vOE4=;
 	h=Date:To:From:Subject;
-	b=R8i+xV8JtKAfdlbPv2CpJnq3kQG1jbJkbgs6lLdXTBQWat+XkZ0vaSQQc/r9BOV2P
-	 eCCvJISsn80F8x7rWFxdAXFH8RyRoojLVxXD1rlMCf6u7547HWKj0M6a60bWQxCnzG
-	 BqrY53fb1QBF3fLL0W9ewUQi0zubHUksm9hXsCjo=
-Date: Sat, 05 Sep 2026 17:32:48 -0700
-To: mm-commits@vger.kernel.org,sarthak.sharma@arm.com,akpm@linux-foundation.org
+	b=uRSKXqd9nlvCMU0q09KdAnE/IRcdC/roaDnVV2U3seKW3ukqu+A7G2Gr/93arujg+
+	 +bDORW2LSDSfCP4rsVikktL70DKfJwcG1ZrnPGgRk18cBUMmv6/2jygkjQ1rLaAz2a
+	 eb8HKgi6GCHFHgZe5oCUrg+FiM1YLM3ye3aDfZPk=
+Date: Sat, 05 Sep 2026 17:35:20 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,stable@vger.kernel.org,rppt@kernel.org,krystianmkaniewski@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-add-a-gup-selftest.patch added to mm-new branch
-Message-Id: <20260906003249.06CD11F00A3A@smtp.kernel.org>
+Subject: + xarray-fix-index-jumping-backwards-in-xas_find.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260906003520.8958A1F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,26 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: add a GUP selftest
-has been added to the -mm mm-new branch.  Its filename is
-     selftests-mm-add-a-gup-selftest.patch
+     Subject: xarray: fix index jumping backwards in xas_find()
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     xarray-fix-index-jumping-backwards-in-xas_find.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-add-a-gup-selftest.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/xarray-fix-index-jumping-backwards-in-xas_find.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,436 +58,166 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Sarthak Sharma <sarthak.sharma@arm.com>
-Subject: selftests/mm: add a GUP selftest
-Date: Fri, 4 Sep 2026 18:06:31 +0530
+From: Krystian Kaniewski <krystianmkaniewski@gmail.com>
+Subject: xarray: fix index jumping backwards in xas_find()
+Date: Fri, 4 Sep 2026 14:12:59 +0200
 
-Add a new GUP selftest which uses kselftest_harness.h.  Cover 12 mapping
-configurations: THP enabled, THP disabled and HugeTLB, each across
-private/shared mappings and with/without FOLL_WRITE.  Run 5 test cases for
-every variant: get_user_pages, get_user_pages_fast, pin_user_pages,
-pin_user_pages_fast and pin_user_pages_longterm.
+A bug in the XArray iterator xas_find() causes the iterator's index
+(xas->xa_index) to jump backwards when iterating over a multi-index entry
+(like a THP) that resides in a non-leaf node and is concurrently split.
 
-Choose the number of default hugeTLB pages using a 256 MiB target, with a
-minimum of 1 page and derive the mapping size from that number.  This
-avoids reserving excess memory when the hugeTLB page size is too large and
-retains 128 pages for the most common case of 2MiB hugeTLB pages.
+When iterating over a multi-index entry in a non-leaf node, xas_load()
+sets xas->xa_offset to the base offset of the entry, but leaves
+xas->xa_index at the requested index.  When the caller subsequently wants
+to advance to the next entry, xas_find() is called.  xas_find() attempts
+to synchronize xas->xa_offset with xas->xa_index before advancing. 
+However, the fixup logic was incorrectly restricted to leaf nodes
+(!xas->xa_node->shift).  Because the THP resides in a non-leaf node, the
+fixup is skipped.
 
-Sweep four nr_pages_per_call values for each test: 1, 512, 123 and all
-pages.  This preserves the coverage previously provided by
-run_gup_matrix(): 12 mapping combinations x 5 GUP/PUP operations x 4 batch
-sizes.  In total the selftest reports 60 TAP cases and issues 240 ioctls.
+As a result, xas_find() simply increments xas->xa_offset and recalculates
+xas->xa_index based on this new offset.  This causes xas->xa_index to jump
+backwards.  If the THP was concurrently split, the entry at the new offset
+is a node pointer, so xas_find() descends into it and returns the folio at
+the backwards index.  The caller (filemap_map_pages()) then calculates the
+PTE pointer based on this backwards index, resulting in an invalid memory
+access such as an out-of-bounds read or use-after-free on a page-table
+page freed via tlb_remove_table_rcu().
 
-Do not carry DUMP_USER_PAGES_TEST into the new selftest because its output
-is written to the kernel log and the selftest does not verify that output.
+A userspace access that faults in a file-backed mapping can trigger this
+path.  When the index moves backwards, filemap_map_pages() can calculate a
+PTE outside the page locked for fault-around and dereference a freed
+page-table page, resulting in a KASAN-detected use-after-free read.
 
-Add the new gup binary to the selftests/mm build, run_vmtests.sh and
-MAINTAINERS.  Update mm/Kconfig to describe the benchmark and selftest
-split.
+To fix this, check if xas->xa_offset matches get_offset(xas->xa_index,
+xas->xa_node).  If it does not and the node is a non-leaf node, set
+xas->xa_offset to get_offset(xas->xa_index, xas->xa_node) before
+advancing.  Also add test cases in test_xarray to verify xas_find()
+behavior when iterating over and splitting multi-index entries.
 
-Link: https://lore.kernel.org/20260904123631.198697-7-sarthak.sharma@arm.com
-Signed-off-by: Sarthak Sharma <sarthak.sharma@arm.com>
-Suggested-by: David Hildenbrand (Arm) <david@kernel.org>
-Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Tested-by: Muhammad Usama Anjum <usama.anjum@arm.com>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Lance Yang <lance.yang@linux.dev>
-Cc: Leon Romanovsky <leon@kernel.org>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Mark Brown <broonie@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Nico Pache <npache@redhat.com>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Zi Yan <ziy@nvidia.com>
+Link: https://lore.kernel.org/20260904121301.200049-1-krystianmkaniewski@gmail.com
+Fixes: b803b42823d0 ("xarray: Add XArray iterators")
+Assisted-by: Gemini:gemini-3.7-flash syzbot
+Reported-by: syzbot+b72767277f29b6407083@syzkaller.appspotmail.com
+Closes: https://syzkaller.appspot.com/bug?extid=b72767277f29b6407083
+Link: https://syzkaller.appspot.com/ai_job?id=a01c56bd-74d0-411c-afb4-ee6f0cb6cb61
+Signed-off-by: Krystian Kaniewski <krystianmkaniewski@gmail.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS                               |    1 
- mm/Kconfig                                |   21 -
- tools/testing/selftests/mm/Makefile       |    1 
- tools/testing/selftests/mm/gup.c          |  287 ++++++++++++++++++++
- tools/testing/selftests/mm/run_vmtests.sh |    1 
- 5 files changed, 300 insertions(+), 11 deletions(-)
+ lib/test_xarray.c |   70 ++++++++++++++++++++++++++++++++++++++++++++
+ lib/xarray.c      |    8 +++--
+ 2 files changed, 75 insertions(+), 3 deletions(-)
 
---- a/MAINTAINERS~selftests-mm-add-a-gup-selftest
-+++ a/MAINTAINERS
-@@ -17187,6 +17187,7 @@ F:	mm/gup.c
- F:	mm/gup_test.c
- F:	mm/gup_test.h
- F:	tools/mm/gup_bench.c
-+F:	tools/testing/selftests/mm/gup.c
- F:	tools/testing/selftests/mm/gup_longterm.c
+--- a/lib/test_xarray.c~xarray-fix-index-jumping-backwards-in-xas_find
++++ a/lib/test_xarray.c
+@@ -1247,6 +1247,75 @@ static noinline void check_multi_find_3(
+ 	}
+ }
  
- MEMORY MANAGEMENT - KSM (Kernel Samepage Merging)
---- a/mm/Kconfig~selftests-mm-add-a-gup-selftest
-+++ a/mm/Kconfig
-@@ -1287,24 +1287,23 @@ config PERCPU_STATS
- 	  be used to help understand percpu memory usage.
- 
- config GUP_TEST
--	bool "Enable infrastructure for get_user_pages()-related unit tests"
-+	bool "Enable infrastructure for get_user_pages()-related unit tests and benchmarks"
- 	depends on DEBUG_FS
- 	help
- 	  Provides /sys/kernel/debug/gup_test, which in turn provides a way
--	  to make ioctl calls that can launch kernel-based unit tests for
--	  the get_user_pages*() and pin_user_pages*() family of API calls.
-+	  to make ioctl calls that can launch kernel-based unit tests and
-+	  benchmarks for the get_user_pages*() and pin_user_pages*() families
-+	  of API calls.
- 
--	  These tests include benchmark testing of the _fast variants of
--	  get_user_pages*() and pin_user_pages*(), as well as smoke tests of
-+	  These include benchmark testing of the _fast variants of
-+	  get_user_pages*() and pin_user_pages*(), as well as tests of
- 	  the non-_fast variants.
- 
--	  There is also a sub-test that allows running dump_page() on any
--	  of up to eight pages (selected by command line args) within the
--	  range of user-space addresses. These pages are either pinned via
--	  pin_user_pages*(), or pinned via get_user_pages*(), as specified
--	  by other command line arguments.
-+	  There is also a test that allows running dump_page() on any of up
-+	  to eight pages within the range of user-space addresses. These
-+	  pages are either acquired via pin_user_pages*() or get_user_pages*().
- 
--	  See tools/testing/selftests/mm/gup_test.c
-+	  See tools/testing/selftests/mm/gup.c and tools/mm/gup_bench.c.
- 
- comment "GUP_TEST needs to have DEBUG_FS enabled"
- 	depends on !GUP_TEST && !DEBUG_FS
-diff --git a/tools/testing/selftests/mm/gup.c a/tools/testing/selftests/mm/gup.c
-new file mode 100644
---- /dev/null
-+++ a/tools/testing/selftests/mm/gup.c
-@@ -0,0 +1,287 @@
-+// SPDX-License-Identifier: GPL-2.0
-+#define __SANE_USERSPACE_TYPES__ // Use ll64
-+#include <fcntl.h>
-+#include <errno.h>
-+#include <stdbool.h>
-+#include <string.h>
-+#include <unistd.h>
-+#include <dirent.h>
-+#include <sys/ioctl.h>
-+#include <sys/mman.h>
-+#include <mm/gup_test.h>
-+#include "vm_util.h"
-+#include "kselftest_harness.h"
-+
-+#define MB (1UL << 20)
-+
-+/* Just the flags we need, copied from the kernel internals. */
-+#define FOLL_WRITE	0x01	/* check pte is writable */
-+
-+/* Page counts exercising single, THP-batch, partial, and full-mapping GUP. */
-+static const int nr_pages_list[] = { 1, 512, 123, -1 };
-+
-+#define GUP_TEST_FILE "/sys/kernel/debug/gup_test"
-+#define HUGETLB_TARGET_SIZE (256 * MB)
-+
-+static unsigned long nr_huge_pages, hp_size;
-+static bool hugetlb_setup_succeeded;
-+
-+FIXTURE(gup_test)
++static noinline void check_multi_find_4(struct xarray *xa)
 +{
-+	int gup_fd;
-+	char *addr;
-+	unsigned long size;
-+};
++#ifdef CONFIG_XARRAY_MULTI
++	unsigned int order = XA_CHUNK_SHIFT + 1;
++	unsigned long next = 1UL << order;
++	unsigned long start = next - 1;
++	XA_STATE(xas, xa, start);
++	XA_STATE_ORDER(split, xa, 0, 0);
++	void *entry;
++	unsigned long i;
 +
-+FIXTURE_VARIANT(gup_test)
-+{
-+	bool thp;
-+	bool hugetlb;
-+	bool write;
-+	bool shared;
-+};
++	/* Multi-index entry in two slots of a non-leaf node. */
++	xa_store_order(xa, 0, order, xa_mk_index(0), GFP_KERNEL);
++	XA_BUG_ON(xa, xa_store_index(xa, next, GFP_KERNEL) != NULL);
 +
-+FIXTURE_VARIANT_ADD(gup_test, private_write)
-+{
-+	.thp = false,
-+	.hugetlb = false,
-+	.write = true,
-+	.shared = false,
-+};
++	rcu_read_lock();
++	entry = xas_find(&xas, ULONG_MAX);
++	XA_BUG_ON(xa, entry != xa_mk_index(0));
++	XA_BUG_ON(xa, xas.xa_index != start);
 +
-+FIXTURE_VARIANT_ADD(gup_test, private_read)
-+{
-+	.thp = false,
-+	.hugetlb = false,
-+	.write = false,
-+	.shared = false,
-+};
++	entry = xas_find(&xas, ULONG_MAX);
++	XA_BUG_ON(xa, entry != xa_mk_index(next));
++	XA_BUG_ON(xa, xas.xa_index != next);
 +
-+FIXTURE_VARIANT_ADD(gup_test, private_write_thp)
-+{
-+	.thp = true,
-+	.hugetlb = false,
-+	.write = true,
-+	.shared = false,
-+};
++	entry = xas_find(&xas, ULONG_MAX);
++	XA_BUG_ON(xa, entry != NULL);
++	rcu_read_unlock();
 +
-+FIXTURE_VARIANT_ADD(gup_test, private_read_thp)
-+{
-+	.thp = true,
-+	.hugetlb = false,
-+	.write = false,
-+	.shared = false,
-+};
++	xa_erase_index(xa, next);
++	xa_erase_index(xa, 0);
++	XA_BUG_ON(xa, !xa_empty(xa));
 +
-+FIXTURE_VARIANT_ADD(gup_test, private_write_hugetlb)
-+{
-+	.thp = false,
-+	.hugetlb = true,
-+	.write = true,
-+	.shared = false,
-+};
++	/* Split the multi-index entry after a lookup begins inside it. */
++	xa_store_order(xa, 0, order, xa_mk_index(0), GFP_KERNEL);
++	XA_BUG_ON(xa, xa_store_index(xa, next, GFP_KERNEL) != NULL);
 +
-+FIXTURE_VARIANT_ADD(gup_test, private_read_hugetlb)
-+{
-+	.thp = false,
-+	.hugetlb = true,
-+	.write = false,
-+	.shared = false,
-+};
++	xas_set(&xas, start);
++	rcu_read_lock();
++	entry = xas_find(&xas, ULONG_MAX);
++	XA_BUG_ON(xa, entry != xa_mk_index(0));
++	XA_BUG_ON(xa, xas.xa_index != start);
++	rcu_read_unlock();
 +
-+FIXTURE_VARIANT_ADD(gup_test, shared_write)
-+{
-+	.thp = false,
-+	.hugetlb = false,
-+	.write = true,
-+	.shared = true,
-+};
-+
-+FIXTURE_VARIANT_ADD(gup_test, shared_read)
-+{
-+	.thp = false,
-+	.hugetlb = false,
-+	.write = false,
-+	.shared = true,
-+};
-+
-+FIXTURE_VARIANT_ADD(gup_test, shared_write_thp)
-+{
-+	.thp = true,
-+	.hugetlb = false,
-+	.write = true,
-+	.shared = true,
-+};
-+
-+FIXTURE_VARIANT_ADD(gup_test, shared_read_thp)
-+{
-+	.thp = true,
-+	.hugetlb = false,
-+	.write = false,
-+	.shared = true,
-+};
-+
-+FIXTURE_VARIANT_ADD(gup_test, shared_write_hugetlb)
-+{
-+	.thp = false,
-+	.hugetlb = true,
-+	.write = true,
-+	.shared = true,
-+};
-+
-+FIXTURE_VARIANT_ADD(gup_test, shared_read_hugetlb)
-+{
-+	.thp = false,
-+	.hugetlb = true,
-+	.write = false,
-+	.shared = true,
-+};
-+
-+FIXTURE_SETUP(gup_test)
-+{
-+	int mmap_flags = MAP_PRIVATE;
-+	int zero_fd;
-+	char *p;
-+
-+	self->size = 128 * MB;
-+
-+	if (variant->hugetlb) {
-+		if (!hp_size)
-+			SKIP(return, "HugeTLB not available\n");
-+
-+		if (!hugetlb_setup_succeeded ||
-+		    hugetlb_free_default_pages() < nr_huge_pages)
-+			SKIP(return, "Not enough huge pages\n");
-+
-+		self->size = nr_huge_pages * hp_size;
-+		mmap_flags |= (MAP_HUGETLB | MAP_ANONYMOUS);
++	xas_split_alloc(&split, xa_mk_index(0), order, GFP_KERNEL);
++	if (xas_error(&split)) {
++		XA_BUG_ON(xa, true);
++		goto out;
 +	}
++	xas_lock(&split);
++	xas_split(&split, xa_mk_index(0), order);
++	for (i = 0; i < next; i++)
++		__xa_store(xa, i, xa_mk_index(i), 0);
++	xas_unlock(&split);
 +
-+	if (variant->shared)
-+		mmap_flags = (mmap_flags & ~MAP_PRIVATE) | MAP_SHARED;
++	rcu_read_lock();
++	entry = xas_find(&xas, ULONG_MAX);
++	XA_BUG_ON(xa, entry != xa_mk_index(next));
++	XA_BUG_ON(xa, xas.xa_index != next);
 +
-+	/* zero_fd has to be >= 0. Already checked in main() */
-+	zero_fd = open("/dev/zero", O_RDWR);
-+	ASSERT_GE(zero_fd, 0);
++	entry = xas_find(&xas, ULONG_MAX);
++	XA_BUG_ON(xa, entry != NULL);
++	rcu_read_unlock();
 +
-+	/* gup_fd has to be >= 0. Already checked in main() */
-+	self->gup_fd = open(GUP_TEST_FILE, O_RDWR);
-+	ASSERT_GE(self->gup_fd, 0);
-+
-+	self->addr = mmap(NULL, self->size, PROT_READ | PROT_WRITE,
-+			  mmap_flags, zero_fd, 0);
-+
-+	ASSERT_NE(self->addr, MAP_FAILED) {
-+		int err = errno;
-+
-+		close(zero_fd);
-+		close(self->gup_fd);
-+		TH_LOG("mmap failed: %s", strerror(err));
-+	}
-+	close(zero_fd);
-+
-+	if (variant->thp)
-+		madvise(self->addr, self->size, MADV_HUGEPAGE);
-+	else if (!variant->hugetlb)
-+		madvise(self->addr, self->size, MADV_NOHUGEPAGE);
-+
-+	for (p = self->addr; (unsigned long)p < (unsigned long)self->addr
-+			+ self->size; p += psize())
-+		p[0] = 0;
++out:
++	xa_destroy(xa);
++	XA_BUG_ON(xa, !xa_empty(xa));
++#endif
 +}
 +
-+FIXTURE_TEARDOWN(gup_test)
-+{
-+	munmap(self->addr, self->size);
-+	close(self->gup_fd);
-+}
-+
-+static void run_gup_cmd(struct __test_metadata *_metadata,
-+			 FIXTURE_DATA(gup_test) *self,
-+			 const FIXTURE_VARIANT(gup_test) *variant,
-+			 unsigned long command)
-+{
-+	int i;
-+
-+	for (i = 0; i < (int)ARRAY_SIZE(nr_pages_list); i++) {
-+		struct gup_test gup = {
-+			.addr = (unsigned long)self->addr,
-+			.size = self->size,
-+			.nr_pages_per_call = nr_pages_list[i] < 0 ?
-+				self->size / psize() : nr_pages_list[i],
-+			.gup_flags = variant->write ? FOLL_WRITE : 0,
-+		};
-+
-+		TH_LOG("nr_pages_per_call=%u", gup.nr_pages_per_call);
-+		ASSERT_EQ(ioctl(self->gup_fd, command, &gup), 0);
-+		ASSERT_EQ(gup.size, self->size);
-+	}
-+}
-+
-+TEST_F(gup_test, get_user_pages)
-+{
-+	run_gup_cmd(_metadata, self, variant, GUP_BASIC_TEST);
-+}
-+
-+TEST_F(gup_test, pin_user_pages)
-+{
-+	run_gup_cmd(_metadata, self, variant, PIN_BASIC_TEST);
-+}
-+
-+TEST_F(gup_test, get_user_pages_fast)
-+{
-+	run_gup_cmd(_metadata, self, variant, GUP_FAST_BENCHMARK);
-+}
-+
-+TEST_F(gup_test, pin_user_pages_fast)
-+{
-+	run_gup_cmd(_metadata, self, variant, PIN_FAST_BENCHMARK);
-+}
-+
-+TEST_F(gup_test, pin_user_pages_longterm)
-+{
-+	run_gup_cmd(_metadata, self, variant, PIN_LONGTERM_BENCHMARK);
-+}
-+
-+int main(int argc, char **argv)
-+{
-+	char *file = "/dev/zero";
-+	int fd;
-+
-+	fd = open(file, O_RDWR);
-+	if (fd < 0) {
-+		ksft_print_header();
-+		ksft_exit_fail_msg("Unable to open %s: %s\n", file, strerror(errno));
-+	}
-+	close(fd);
-+
-+	fd = open(GUP_TEST_FILE, O_RDWR);
-+	if (fd == -1) {
-+		ksft_print_header();
-+		if (errno == EACCES)
-+			ksft_exit_skip("Please run this test as root\n");
-+		if (errno == ENOENT) {
-+			DIR *debugfs = opendir("/sys/kernel/debug");
-+
-+			if (!debugfs) {
-+				ksft_exit_skip("Mount debugfs at /sys/kernel/debug\n");
-+			} else {
-+				closedir(debugfs);
-+				ksft_exit_skip("Check CONFIG_GUP_TEST in kernel config\n");
-+			}
-+		}
-+		ksft_exit_fail_msg("Failed to open %s: %s\n", GUP_TEST_FILE, strerror(errno));
-+	}
-+	close(fd);
-+
-+	hp_size = default_huge_page_size();
-+	if (hp_size) {
-+		nr_huge_pages = HUGETLB_TARGET_SIZE / hp_size;
-+		if (!nr_huge_pages)
-+			nr_huge_pages = 1;
-+
-+		hugetlb_setup_succeeded = hugetlb_setup_default(nr_huge_pages);
-+	}
-+
-+	return test_harness_run(argc, argv);
-+}
---- a/tools/testing/selftests/mm/Makefile~selftests-mm-add-a-gup-selftest
-+++ a/tools/testing/selftests/mm/Makefile
-@@ -58,6 +58,7 @@ endif
+ static noinline void check_find_1(struct xarray *xa)
+ {
+ 	unsigned long i, j, k;
+@@ -1370,6 +1439,7 @@ static noinline void check_find(struct x
+ 		check_multi_find_1(xa, i);
+ 	check_multi_find_2(xa);
+ 	check_multi_find_3(xa);
++	check_multi_find_4(xa);
+ }
  
- TEST_GEN_FILES = cow
- TEST_GEN_FILES += compaction_test
-+TEST_GEN_FILES += gup
- TEST_GEN_FILES += gup_longterm
- TEST_GEN_FILES += hmm-tests
- TEST_GEN_FILES += hugetlb-madvise
---- a/tools/testing/selftests/mm/run_vmtests.sh~selftests-mm-add-a-gup-selftest
-+++ a/tools/testing/selftests/mm/run_vmtests.sh
-@@ -251,6 +251,7 @@ fi
+ /* See find_swap_entry() in mm/shmem.c */
+--- a/lib/xarray.c~xarray-fix-index-jumping-backwards-in-xas_find
++++ a/lib/xarray.c
+@@ -1409,9 +1409,11 @@ void *xas_find(struct xa_state *xas, uns
+ 		entry = xas_load(xas);
+ 		if (entry || xas_not_node(xas->xa_node))
+ 			return entry;
+-	} else if (!xas->xa_node->shift &&
+-		    xas->xa_offset != (xas->xa_index & XA_CHUNK_MASK)) {
+-		xas->xa_offset = ((xas->xa_index - 1) & XA_CHUNK_MASK) + 1;
++	} else if (xas->xa_offset != get_offset(xas->xa_index, xas->xa_node)) {
++		if (!xas->xa_node->shift)
++			xas->xa_offset = ((xas->xa_index - 1) & XA_CHUNK_MASK) + 1;
++		else
++			xas->xa_offset = get_offset(xas->xa_index, xas->xa_node);
+ 	}
  
- CATEGORY="mmap" run_test ./map_fixed_noreplace
- 
-+CATEGORY="gup_test" run_test ./gup
- CATEGORY="gup_test" run_test ./gup_longterm
- 
- CATEGORY="userfaultfd" run_test ./uffd-unit-tests
+ 	xas_next_offset(xas);
 _
 
-Patches currently in -mm which might be from sarthak.sharma@arm.com are
+Patches currently in -mm which might be from krystianmkaniewski@gmail.com are
 
-mm-gup_test-report-actual-pinned-bytes.patch
-selftests-mm-make-file-helpers-return-errors.patch
-tools-lib-mm-add-shared-file-helpers.patch
-tools-lib-mm-move-hugepage_settings-out-of-selftests.patch
-tools-mm-move-gup_test-from-selftests-mm-to-tools-mm.patch
-tools-mm-make-gup_bench-a-benchmark-only-tool.patch
-selftests-mm-add-a-gup-selftest.patch
+xarray-fix-index-jumping-backwards-in-xas_find.patch
 
