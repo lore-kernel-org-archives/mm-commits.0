@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 41872246778
-	for <mm-commits@vger.kernel.org>; Sun,  6 Sep 2026 01:48:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C184A3126B0
+	for <mm-commits@vger.kernel.org>; Sun,  6 Sep 2026 01:48:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788659302; cv=none; b=p3jgqscBEZj2WVF5wZb4Me4S1tvfIJ0qz7W9IzLUlIrZVY59ZiDiIDpGBnAzryhsUaJk01R+QFA0sbLEj/eLNPgU1WBXjeXIjsroP3dVjmVwY3XZlJ6abQ/gWsYEJUjCQU+45IY5zGBejgWJ253VsJRQwZeqdTi9dOrU5oPO7JE=
+	t=1788659304; cv=none; b=WmAMG2qtOQtnZg8Yx64OrIl3Lv8fL2Phs7JfEJPMuy3GcrRKo1zkx3Qravyy+YOmv9U64sAjr5p3eAD3bHq0D4k3bLZOadQcASAp5Q43/2J+81aeD3DU6VjCSTya5wz3oUfQ7cL18roghAyKcOZ9BBsBXwV0K93k6V659+yQFHE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788659302; c=relaxed/simple;
-	bh=BXSgO29C6qwneVJIkfpp4UiUWW71vKn+Gh49+GXZ80U=;
-	h=Date:To:From:Subject:Message-Id; b=ncdLkMKzDOuwxm0HMO2d22hOcXqjZ0Ao+nQSGX7I+H32fubsWmnrtuir7q2yGsaNuDarWjGxgmfBavCmzRg56i24ca+IsuTTXj/wsTqS6Ey7INdHvdLZuD0esgpPxbqAi1sQjP9uNNa6lb6wSdx4Dp/2CocZPmZpvVDjvuFQctU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=agFTFvza; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788659304; c=relaxed/simple;
+	bh=LC7UxDV/qIaRrLXMJma8GuTAAtOKKLvsBCDZrDSoRog=;
+	h=Date:To:From:Subject:Message-Id; b=F/20krmpsT0ZwcV6qVtLNaX9J8jzst50WQNngjZ0V5ddV5VAEuP1ULR1JAIQHt6ta/nPDow3puAPeRg7QzkNtAJ0quGnietGDcTW1i5hPQprmItIV2wKkMf6jLY+dmduflhadfDZ4vqVNALS/VNMYeW/++1hsw3cfCurSq3f124=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LG+kQ5hY; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="agFTFvza"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E36471F00A3D;
-	Sun,  6 Sep 2026 01:48:20 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LG+kQ5hY"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 545F81F00A3A;
+	Sun,  6 Sep 2026 01:48:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788659301;
-	bh=sxBCnH7MWgdfNGM+kFZn8HCknRtl8KmABdNEJwI9iPU=;
+	d=linux-foundation.org; s=korg; t=1788659302;
+	bh=0Td/N05xoLqr+FazewuPRMKjyMrfb0Jan0iHHs8mgho=;
 	h=Date:To:From:Subject;
-	b=agFTFvzabtfunOkJB7Xm7zOhMSMJF+IATJFrjFii0ntQOd/NS3LbyoQimtUumB5GD
-	 bMCu4xXzSw+gC6UQZ3M9Eu8ui6igsWoi8wvD5YrcfLrLcsnhEFcctWvaFHjA2LLQ38
-	 /AdbdK3qFeAlAKnJ/Ii65aOlBPkpqdsevAbi6T4A=
-Date: Sat, 05 Sep 2026 18:48:20 -0700
+	b=LG+kQ5hYRHn7npGzocRDmbUh1/FFXAShWkgJzdua1MhTMqGH85i55iVR8Gz6viftI
+	 0JEemqdE4mOArYtgQiMr4aWC6vbEcvJuwCokJSXNXkiYtKbgCWT6V8aVuis+fHVTRw
+	 fICd1mZZyZJcJLQkPLB7vy7oQZWjY07FH8v9eB4k=
+Date: Sat, 05 Sep 2026 18:48:21 -0700
 To: mm-commits@vger.kernel.org,rppt@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-vmalloc-set-areas-page_order-after-allocation-succeeds.patch removed from -mm tree
-Message-Id: <20260906014820.E36471F00A3D@smtp.kernel.org>
+Subject: [to-be-updated] mm-vmalloc-constify-vm-parameter-of-get_vm_area_page_order.patch removed from -mm tree
+Message-Id: <20260906014822.545F81F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,38 +35,23 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/vmalloc: set area's page_order after allocation succeeds
+     Subject: mm/vmalloc: constify vm parameter of get_vm_area_page_order()
 has been removed from the -mm tree.  Its filename was
-     mm-vmalloc-set-areas-page_order-after-allocation-succeeds.patch
+     mm-vmalloc-constify-vm-parameter-of-get_vm_area_page_order.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
 From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
-Subject: mm/vmalloc: set area's page_order after allocation succeeds
-Date: Sun, 23 Aug 2026 14:46:13 +0300
+Subject: mm/vmalloc: constify vm parameter of get_vm_area_page_order()
+Date: Sun, 23 Aug 2026 14:46:14 +0300
 
-__vmalloc_area_node() calls set_vm_area_page_order() to set area's
-page_order before actually allocating pages to populate the area.
+get_vm_area_page_order() and vm_area_page_order() do not need to modify
+struct vm_struct passed to them.
 
-If allocation of large pages in HUGE_VMAP case fails midway, this leaves
-the area with elevated page_order throughout the cleanup path.
+Constify the parameter.
 
-There is no actual issue with this because the only place that currently
-relies on area->page_order on the cleanup path is the loop calculating the
-direct map alias range in vm_reset_perms() and it anyway skips unpopulated
-pages.
-
-But having set_vm_area_page_order() in the middle of __vmalloc_area_node()
-makes things very obscure, hard to reason about and error prone against
-future changes of the cleanup path.
-
-Move the call to set_vm_area_page_order() just before the successful
-return from __vmalloc_area_node() where page order is guaranteed.
-
-While on it, initialize local page_order variable with its declaration.
-
-Link: https://lore.kernel.org/20260823-execmem-set-vm-perms-v0-2-v2-2-b013a37d84b3@kernel.org
+Link: https://lore.kernel.org/20260823-execmem-set-vm-perms-v0-2-v2-3-b013a37d84b3@kernel.org
 Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Reviewed-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
 Cc: Albert Ou <aou@eecs.berkeley.edu>
@@ -96,43 +81,45 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ mm/vmalloc.c |    4 ++--
+ mm/vmalloc.h |    2 +-
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
---- a/mm/vmalloc.c~mm-vmalloc-set-areas-page_order-after-allocation-succeeds
+--- a/mm/vmalloc.c~mm-vmalloc-constify-vm-parameter-of-get_vm_area_page_order
 +++ a/mm/vmalloc.c
-@@ -3878,7 +3878,7 @@ static void *__vmalloc_area_node(struct
- 	unsigned long size = get_vm_area_size(area);
- 	unsigned long array_size;
- 	unsigned long nr_small_pages = size >> PAGE_SHIFT;
--	unsigned int page_order;
-+	unsigned int page_order = page_shift - PAGE_SHIFT;
- 	unsigned int flags;
- 	int ret;
+@@ -3129,7 +3129,7 @@ EXPORT_SYMBOL(vm_map_ram);
  
-@@ -3906,9 +3906,6 @@ static void *__vmalloc_area_node(struct
- 		goto fail;
- 	}
+ static struct vm_struct *vmlist __initdata;
  
--	set_vm_area_page_order(area, page_shift - PAGE_SHIFT);
--	page_order = vm_area_page_order(area);
--
- 	/*
- 	 * High-order nofail allocations are really expensive and
- 	 * potentially dangerous (pre-mature OOM, disruptive reclaim
-@@ -3963,6 +3960,7 @@ static void *__vmalloc_area_node(struct
- 		goto fail;
- 	}
+-static inline unsigned int vm_area_page_order(struct vm_struct *vm)
++static inline unsigned int vm_area_page_order(const struct vm_struct *vm)
+ {
+ #ifdef CONFIG_HAVE_ARCH_HUGE_VMALLOC
+ 	return vm->page_order;
+@@ -3138,7 +3138,7 @@ static inline unsigned int vm_area_page_
+ #endif
+ }
  
-+	set_vm_area_page_order(area, page_order);
- 	return area->addr;
+-unsigned int get_vm_area_page_order(struct vm_struct *vm)
++unsigned int get_vm_area_page_order(const struct vm_struct *vm)
+ {
+ 	return vm_area_page_order(vm);
+ }
+--- a/mm/vmalloc.h~mm-vmalloc-constify-vm-parameter-of-get_vm_area_page_order
++++ a/mm/vmalloc.h
+@@ -12,7 +12,7 @@ void __init vmalloc_init(void);
+ int __must_check vmap_pages_range_noflush(unsigned long addr, unsigned long end,
+ 		pgprot_t prot, struct page **pages,
+ 		unsigned int page_shift, gfp_t gfp_mask);
+-unsigned int get_vm_area_page_order(struct vm_struct *vm);
++unsigned int get_vm_area_page_order(const struct vm_struct *vm);
+ #else
+ static inline void vmalloc_init(void) {}
  
- fail:
 _
 
 Patches currently in -mm which might be from rppt@kernel.org are
 
-mm-vmalloc-constify-vm-parameter-of-get_vm_area_page_order.patch
 mm-vmalloc-make-set_area_direct_map-huge_vmap-friendly.patch
 mm-execmem-use-vm_flush_reset_perms-for-rox-cache-allocations.patch
 revert-arch-introduce-set_direct_map_valid_noflush.patch
