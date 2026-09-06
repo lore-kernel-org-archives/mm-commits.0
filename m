@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A6E1B30F7EA
-	for <mm-commits@vger.kernel.org>; Sun,  6 Sep 2026 01:22:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D33D73126B0
+	for <mm-commits@vger.kernel.org>; Sun,  6 Sep 2026 01:22:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788657735; cv=none; b=HB0idos4twDnQczcr0ipaRiOuuELn/EIcxN4D6Py5It+Sbao3XZEo8jjtQ9i1AQfF8skM0WAJNP/7Vle+gYG1byemZO5riHqD2k8lmfAnowMmk1uwQ+1pdzpbbvLBtpR49Hj5LVzfoSHX4j5fGurubUOAvsqJvunWWWbxpojkD8=
+	t=1788657738; cv=none; b=kAB18sF1jnWs7m+oyC48ZgEme1tSi2RA8tY0UHS4pxY29u/bHyskDh6VjXAcX2KkJDvuy4668lqzG7etOEzrNk+5TrUJX6chu/yNqQMU3krWSA7m51M/Q1VvmfXpO+F9qJFQaOVE/e8o0u+Yae7OADr4aMT1XZxbpxYAE+txz/E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788657735; c=relaxed/simple;
-	bh=M32kJA/+erPF++dxRSkxQo5uC+6lm7rQupPjgzA0vWg=;
-	h=Date:To:From:Subject:Message-Id; b=Mg1ErulfK1mvantA/3z3k507J79wqA3AsNo6Gv8kwe2NLKOTw0HwfQ6eFVPhfrG0MyjN5H/O3DNWMdWo/e6fMCLY2jZZDP2p8bcA4J8Xirro176lFDSf2/1R6BVhOqVDYea+Et/JaeyW0/gwMxKUf9J3HT8ceTcaTMOQLOy1j/0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ewJYYTWt; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788657738; c=relaxed/simple;
+	bh=3y0taDbZEOwcW4CdeKaWMqJKkFHKlaEgMbOg7GJgj08=;
+	h=Date:To:From:Subject:Message-Id; b=IYVmTteVx5WsqUIPgnEbsAPX5E5kbzJUtYeKo7a5dvrj3EAjhSnErMBiz3PjbD7NSCRgN48oaisUX8ofpsv13+ddXcYesPqxUE7rhCjz60LogiF2a5yYQn9ToVKjcdaDl0QfiqAGPlDCeq0R0T74WfqZYem+wUCHxr/nRFHzMv4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=g1i2sdVw; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ewJYYTWt"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 51C141F00A3A;
-	Sun,  6 Sep 2026 01:22:14 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="g1i2sdVw"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3A97F1F00A3A;
+	Sun,  6 Sep 2026 01:22:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788657734;
-	bh=Hi5RGyt1z144WJIiNrppGIZ2Fr1ASXvM8f6SNQl1OF8=;
+	d=linux-foundation.org; s=korg; t=1788657736;
+	bh=zzEbuneJABHIedkpd+6ANDDy13kmQFbRHp5Z3jTDbXk=;
 	h=Date:To:From:Subject;
-	b=ewJYYTWtGgAKxBbnsAo/l4RnD5Y/rTGyj8sYiPYoINGkR2mBDGKfzbdhgvs6DpT4Y
-	 3XEdu5NKlglp4vZVvIAZtkI/azblCNjByE6hH8Ty+MKDG37PVU/+bT3jgdBlP3WdJ/
-	 cuS1TtQGmHl7NLdMfKqZZ0dhWFZulxlS8vTjtHZk=
-Date: Sat, 05 Sep 2026 18:22:13 -0700
+	b=g1i2sdVwMaBVAIi1ioCoyeOd8+nTI98IKqdLkH4VrPVZcQNy/4o/P5dTgtyr8aYst
+	 94R8VxMZS4ovmhxQQqH+/DIBPN27nFiSfVf8yWBpCc80uK58Zg6NAJ4mC/d0htJkFT
+	 Xyf4bEhPRL3JtQb1C7uWxd72MZxxe7jzsfHPfSW0=
+Date: Sat, 05 Sep 2026 18:22:15 -0700
 To: mm-commits@vger.kernel.org,lukas.bulwahn@gmail.com,joe@perches.com,dwaipayanray1@gmail.com,apw@canonical.com,pvorel@suse.cz,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + checkpatch-add-userspace-to-force-userspace-rules.patch added to mm-nonmm-unstable branch
-Message-Id: <20260906012214.51C141F00A3A@smtp.kernel.org>
+Subject: + checkpatch-skip-kernel-specific-checks-for-userspace.patch added to mm-nonmm-unstable branch
+Message-Id: <20260906012216.3A97F1F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: checkpatch: add --userspace to force userspace rules
+     Subject: checkpatch: skip kernel specific checks for userspace
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     checkpatch-add-userspace-to-force-userspace-rules.patch
+     checkpatch-skip-kernel-specific-checks-for-userspace.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/checkpatch-add-userspace-to-force-userspace-rules.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/checkpatch-skip-kernel-specific-checks-for-userspace.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,14 +59,22 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Petr Vorel <pvorel@suse.cz>
-Subject: checkpatch: add --userspace to force userspace rules
-Date: Fri, 4 Sep 2026 13:02:29 +0200
+Subject: checkpatch: skip kernel specific checks for userspace
+Date: Fri, 4 Sep 2026 13:02:30 +0200
 
-Also allow to use --no-userspace for userspace projects which vendored
-checkpatch.pl and use --userspace globally to be able switch it off for
-files with kernel code.
+These check are kernel specific, do not warn about it when testing
+userspace code:
 
-Link: https://lore.kernel.org/20260904110230.1219037-4-pvorel@suse.cz
+* BIT_MACRO
+* LONG_UDELAY
+* MSLEEP
+* PREFER_KERNEL_TYPES
+* USLEEP_RANGE
+
+This is a follow-up to 99b70ece33d8 ("checkpatch: suppress strscpy
+warnings for userspace tools").
+
+Link: https://lore.kernel.org/20260904110230.1219037-5-pvorel@suse.cz
 Signed-off-by: Petr Vorel <pvorel@suse.cz>
 Cc: Andy Whitcroft <apw@canonical.com>
 Cc: Dwaipayan Ray <dwaipayanray1@gmail.com>
@@ -75,45 +83,56 @@ Cc: Lukas Bulwahn <lukas.bulwahn@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    6 ++++++
- 1 file changed, 6 insertions(+)
+ scripts/checkpatch.pl |   10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
 
---- a/scripts/checkpatch.pl~checkpatch-add-userspace-to-force-userspace-rules
+--- a/scripts/checkpatch.pl~checkpatch-skip-kernel-specific-checks-for-userspace
 +++ a/scripts/checkpatch.pl
-@@ -63,6 +63,7 @@ my $env_config_dir = 'CHECKPATCH_CONFIG_
- my $max_line_length = 100;
- my $ignore_perl_version = 0;
- my $spdx_cxx_comments = 0;
-+my $userspace;
- my $minimum_perl_version = 5.10.0;
- my $min_conf_desc_length = 4;
- my $spelling_file = "$D/spelling.txt";
-@@ -143,6 +144,7 @@ Options:
-                              (required by old toolchains), allow also C++
-                              comments (//).
-                              NOTE: it should *not* be used for Linux mainline.
-+  --userspace                Force rules specific for userspace.
-   --codespell                Use the codespell dictionary for spelling/typos
-                              (default:$codespellfile)
-   --codespellfile            Use this codespell dictionary
-@@ -358,6 +360,7 @@ GetOptions(
- 	'codespell!'	=> \$codespell,
- 	'codespellfile=s'	=> \$user_codespellfile,
- 	'typedefsfile=s'	=> \$typedefsfile,
-+	'userspace!'	=> \$userspace,
- 	'color=s'	=> \$color,
- 	'no-color'	=> \$color,	#keep old behaviors of -nocolor
- 	'nocolor'	=> \$color,	#keep old behaviors of -nocolor
-@@ -2667,6 +2670,9 @@ sub exclude_global_initialisers {
+@@ -6696,7 +6696,8 @@ sub process {
+ 		}
  
- sub is_userspace {
-     my ($realfile) = @_;
-+
-+    return $userspace if (defined $userspace);
-+
-     return ($realfile =~ m@^tools/@ ||
- 		$realfile =~ m@^scripts/@ ||
- 		$realfile =~ m@^arch/.*/tools/@);
+ # prefer usleep_range over udelay
+-		if ($line =~ /\budelay\s*\(\s*(\d+)\s*\)/) {
++		if (!is_userspace($realfile) &&
++			$line =~ /\budelay\s*\(\s*(\d+)\s*\)/) {
+ 			my $delay = $1;
+ 			# ignore udelay's < 10, however
+ 			if (! ($delay < 10) ) {
+@@ -6710,7 +6711,8 @@ sub process {
+ 		}
+ 
+ # warn about unexpectedly long msleep's
+-		if ($line =~ /\bmsleep\s*\((\d+)\);/) {
++		if (!is_userspace($realfile) &&
++			$line =~ /\bmsleep\s*\((\d+)\);/) {
+ 			if ($1 < 20) {
+ 				WARN("MSLEEP",
+ 				     "msleep < 20ms can sleep for up to 20ms; see function description of msleep().\n" . $herecurr);
+@@ -6932,7 +6934,7 @@ sub process {
+ 
+ # check for c99 types like uint8_t used outside of uapi/ and tools/
+ 		if ($realfile !~ m@\binclude/uapi/@ &&
+-		    $realfile !~ m@\btools/@ &&
++		    !is_userspace($realfile) &&
+ 		    $line =~ /\b($Declare)\s*$Ident\s*[=;,\[]/) {
+ 			my $type = $1;
+ 			if ($type =~ /\b($typeC99Typedefs)\b/) {
+@@ -7182,6 +7184,7 @@ sub process {
+ # check usleep_range arguments
+ 		if ($perl_version_ok &&
+ 		    defined $stat &&
++		    !is_userspace($realfile) &&
+ 		    $stat =~ /^\+(?:.*?)\busleep_range\s*\(\s*($FuncArg)\s*,\s*($FuncArg)\s*\)/) {
+ 			my $min = $1;
+ 			my $max = $7;
+@@ -7425,6 +7428,7 @@ sub process {
+ 
+ # check for #defines like: 1 << <digit> that could be BIT(digit), it is not exported to uapi
+ 		if ($realfile !~ m@^include/uapi/@ &&
++		    !is_userspace($realfile) &&
+ 		    $line =~ /#\s*define\s+\w+\s+\(?\s*1\s*([ulUL]*)\s*\<\<\s*(?:\d+|$Ident)\s*\)?/) {
+ 			my $ull = "";
+ 			$ull = "_ULL" if (defined($1) && $1 =~ /ll/i);
 _
 
 Patches currently in -mm which might be from pvorel@suse.cz are
