@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 558C231B114
-	for <mm-commits@vger.kernel.org>; Sun,  6 Sep 2026 01:45:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 47D4F246778
+	for <mm-commits@vger.kernel.org>; Sun,  6 Sep 2026 01:45:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788659121; cv=none; b=a/D/xCOi8cBnYi5IVgDQLdmJgzZV4owlfPWBwq64etfpYG+zypP18WAlX3LRIBl2qHAmG8yIuK8Q9RTkIBbLKz3Qjahit982pAJhquJVj2ksWyQ/TZ0EHFI+1B7qaEPj+0TimA25wGGdEhWfnWa+GuEASrvNXItGOwWUPHO5hFA=
+	t=1788659123; cv=none; b=GDpmvkkCwV7oR7PnAG5Y3R5dpQ6bQv12tHsVFOFygjOsxlW3QhIsIQTsN5KuYFIB3MWhAFFi908xLY14oOZPkU940zqX+So+1q/zEBtNKdgg3ySlVk9Ec7RzjxHnZqLOPEjOexD02wGqn330E9UpDQWuyNxTKw0yo5sXio9cmCc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788659121; c=relaxed/simple;
-	bh=GfUE4wn71O4+9thLkktVyYKZBLdr9Sk1f0lwMd7ZwFM=;
-	h=Date:To:From:Subject:Message-Id; b=Zm0cg7HhixhLipPWF/xSq6Fw+8CwYCtsRdNYP9K7LRvdiPdwc3qo20t+jIKqNV2ZXHko+2lQYoXVotwdXV7wo6xh9C6PLZ7waDnODMXyAr8cGK0Kk2wmxKcJY4WsdcoSzmNyWaFUjGRMEhaJODJCxHylFLhQYX1Wojp3BkbMVWY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=B78jhAFu; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788659123; c=relaxed/simple;
+	bh=rM0qeLGrmyB1KI97DSJvTzr46EgZfKgegu/pr1qBcEo=;
+	h=Date:To:From:Subject:Message-Id; b=nLveVcOET6KFbL476LuxGg0Avhaz6ymEmobFMEoR6cX6Qr9uVrApWliPdiEU1lAlXOi8P9pBkvRgHCJR6CG+1goStqF8j07KNvE+MWtxl/kb8Hr0w3qyEhFtpO6KF6rAeKyLIQYTUifb7iyUEU+E0LL6sAwUKi0akpp6X/nIoDQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bJKGKVsE; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="B78jhAFu"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E2DB81F00A3A;
-	Sun,  6 Sep 2026 01:45:19 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bJKGKVsE"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 09AF31F00A3A;
+	Sun,  6 Sep 2026 01:45:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788659120;
-	bh=9FQ0mr59W5z5ahYbnvNTJIXV3Qro7d4MOfp8g9nXqa8=;
+	d=linux-foundation.org; s=korg; t=1788659122;
+	bh=/bhPQZ+lDxQZtO52zGAVL7pveFEtwgDrBcFEapxjUI4=;
 	h=Date:To:From:Subject;
-	b=B78jhAFuGAGfPDE+rBaIRWjCdwxp6swiT7zbk30Hkk1MVGTTwe3WMolfvXyRVv8Ue
-	 w/hLC/SDpyU/vULNHKVriUWwfzz1024qMlmQMUglRlIbCCj0P8CLCoIdnuNZJI2y32
-	 iLch32OmwzNovAvtE9en3WLA7Qsp+j/xXU4WBTO4=
-Date: Sat, 05 Sep 2026 18:45:19 -0700
+	b=bJKGKVsENpQ63S4LUrJMNuOHCSlZ1lb9CDQO7udObGgHVp5Fxdeq4vSHUlt9qcMZh
+	 FnDssaAzL1+hVEJG8mDzUzpLY8Vpe7t58QFPCpqEcvR+GD+8QYlmL6KpFngLht3uJL
+	 QPg73cuZjqYwJMJMRiEUHpz5sjDKzoKjPo68Gq1M=
+Date: Sat, 05 Sep 2026 18:45:21 -0700
 To: mm-commits@vger.kernel.org,yuanchu@google.com,weixugc@google.com,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,ljs@kernel.org,kasong@tencent.com,hannes@cmpxchg.org,david@kernel.org,baohua@kernel.org,axelrasmussen@google.com,zhuhui@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-workingset-use-lruvec_page_state_local-to-count-lru-pages.patch added to mm-new branch
-Message-Id: <20260906014519.E2DB81F00A3A@smtp.kernel.org>
+Subject: + mm-memcg-skip-the-rcu-lock-when-the-memcg-is-not-dying.patch added to mm-new branch
+Message-Id: <20260906014522.09AF31F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: workingset: use lruvec_page_state_local() to count lru pages
+     Subject: mm: memcg: skip the RCU lock when the memcg is not dying
 has been added to the -mm mm-new branch.  Its filename is
-     mm-workingset-use-lruvec_page_state_local-to-count-lru-pages.patch
+     mm-memcg-skip-the-rcu-lock-when-the-memcg-is-not-dying.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-workingset-use-lruvec_page_state_local-to-count-lru-pages.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcg-skip-the-rcu-lock-when-the-memcg-is-not-dying.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,26 +70,22 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Hui Zhu <zhuhui@kylinos.cn>
-Subject: mm: workingset: use lruvec_page_state_local() to count lru pages
-Date: Fri, 4 Sep 2026 17:45:55 +0800
+Subject: mm: memcg: skip the RCU lock when the memcg is not dying
+Date: Fri, 4 Sep 2026 17:45:56 +0800
 
-Commit 7404bd37cfbe ("mm: workingset: use lruvec_lru_size() to get the
-number of lru pages") switched count_shadow_nodes() to lruvec_lru_size(). 
-With CONFIG_MEMCG enabled, lruvec_lru_size() reads mz->lru_zone_size,
-which only the classic LRU paths maintain.  MGLRU accounts its pages
-through __update_lru_size(), which skips that array, so with MGLRU on the
-four evictable LRU lists are always seen as empty.  The shadow node budget
-(pages >> 3) then collapses to slab plus unevictable pages, and the
-workingset shadow shrinker reclaims eviction tokens almost as fast as they
-are created, losing thrashing protection.
+get_non_dying_memcg_start() takes rcu_read_lock() on every stat update,
+but the lock only protects the upward walk to a non-dying ancestor, which
+happens solely while a memcg is being offlined.  The dying check itself
+reads the CSS_DYING flag of a memcg the caller already holds a reference
+to, so it is safe without the lock.
 
-lruvec_page_state_local() reads lruvec_stats->state_local instead, which
-both classic LRU and MGLRU maintain.  Switch back to it.  The reparenting
-race this re-exposes on cgroup v2 is closed by the follow-up patch that
-redirects dying-memcg stat updates for all hierarchies.
+Check memcg_is_dying() first and return immediately when the memcg is
+alive, taking the RCU lock only on the rare dying path.  On an anon
+fault/charge churn workload in a memcg this recovers the ~0.6% overhead
+added by the previous patch (4368077 vs 4343159 pages/s before, back to
+~4377000 pages/s after).
 
-Link: https://lore.kernel.org/2ec3a7f73e85ee5f5739c9dc2e58e9a0e2091925.1788514750.git.zhuhui@kylinos.cn
-Fixes: 7404bd37cfbe ("mm: workingset: use lruvec_lru_size() to get the number of lru pages")
+Link: https://lore.kernel.org/0db657472c5278b2e2b87fbca7590b47ca520303.1788514750.git.zhuhui@kylinos.cn
 Signed-off-by: Hui Zhu <zhuhui@kylinos.cn>
 Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
 Cc: Axel Rasmussen <axelrasmussen@google.com>
@@ -106,24 +102,39 @@ Cc: Yuanchu Xie <yuanchu@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/workingset.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ mm/memcontrol.c |   14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
 
---- a/mm/workingset.c~mm-workingset-use-lruvec_page_state_local-to-count-lru-pages
-+++ a/mm/workingset.c
-@@ -688,10 +688,9 @@ static unsigned long count_shadow_nodes(
+--- a/mm/memcontrol.c~mm-memcg-skip-the-rcu-lock-when-the-memcg-is-not-dying
++++ a/mm/memcontrol.c
+@@ -881,6 +881,17 @@ static long memcg_state_val_in_pages(int
+ static inline struct mem_cgroup *
+ get_non_dying_memcg_start(struct mem_cgroup *memcg, bool *rcu_locked)
+ {
++	/*
++	 * Fast path: the caller holds a reference to @memcg, so reading
++	 * its CSS_DYING flag without the RCU lock is safe.  The RCU lock
++	 * is only needed to walk up to a non-dying ancestor, which
++	 * happens only while a memcg is actually being offlined.
++	 */
++	if (!memcg_is_dying(memcg)) {
++		*rcu_locked = false;
++		return memcg;
++	}
++
+ 	rcu_read_lock();
+ 	*rcu_locked = true;
  
- 		mem_cgroup_flush_stats_ratelimited(sc->memcg);
- 		lruvec = mem_cgroup_lruvec(sc->memcg, NODE_DATA(sc->nid));
--
- 		for (pages = 0, i = 0; i < NR_LRU_LISTS; i++)
--			pages += lruvec_lru_size(lruvec, i, MAX_NR_ZONES - 1);
--
-+			pages += lruvec_page_state_local(lruvec,
-+							 NR_LRU_BASE + i);
- 		pages += lruvec_page_state_local(
- 			lruvec, NR_SLAB_RECLAIMABLE_B) >> PAGE_SHIFT;
- 		pages += lruvec_page_state_local(
+@@ -892,6 +903,9 @@ get_non_dying_memcg_start(struct mem_cgr
+ 
+ static inline void get_non_dying_memcg_end(bool rcu_locked)
+ {
++	if (!rcu_locked)
++		return;
++
+ 	rcu_read_unlock();
+ }
+ 
 _
 
 Patches currently in -mm which might be from zhuhui@kylinos.cn are
