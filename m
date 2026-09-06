@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F39EA3515EF;
-	Sun,  6 Sep 2026 02:05:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 62D943128B8
+	for <mm-commits@vger.kernel.org>; Sun,  6 Sep 2026 02:05:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788660353; cv=none; b=hIwDkUCki2OiA2+vLZcq2iJog16a8jO0oRvvwd9HHJkPHo5nEfdnvRJV6UJj2gpF18L/SrFBb0GU9fKcJ6BpDe5GA95a01nlHSdZQZQmJkUD2j8EKxjM14vhzVv3wPFo5V7mPBI9s5qZVSQ0AhgEHU9TKD56E6AzMxGWda6e4yw=
+	t=1788660354; cv=none; b=Cq5C75wZY3MXOJDJ+SMc0XWwK3YEf4ABPLnOkm2vhfpEEWKvpxvedoegKvVaeaGi9ofTbyMe1+EVwKdiIB5Qcrj9kZ6OXJWW1udqiIqzT0b8uGBiGX1rRxYPN0TNBzSGPPPWcyzV+2IOwrH3PzCcR5IC0hiajgVGDN4EHDM2LlY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788660353; c=relaxed/simple;
-	bh=lprfz5f/ny4eZoFJut86cxjKFDgJwRHZywd9kCg4tbg=;
-	h=Date:To:From:Subject:Message-Id; b=XpArZQHWYF5+LS6C3qGE+MoIoVve1kTFSIsaC3OtHeNWWJKtj97xcEt8UFbJz+aNKnM84Q2gIaDCG3VdY2gujYax84CKAzWiVn3S1BfH8HPSALhirCs6kWwloZxA6H8WjnsHJi+D7fGJHNTPpBMAjG7Jge7W5xYgjj8nmHxQixQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IDgVc9e4; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788660354; c=relaxed/simple;
+	bh=u9VhSg4GHHPUviAjeJSij3o5/2Dhnm6UrGdhZW154e8=;
+	h=Date:To:From:Subject:Message-Id; b=HGDI5hUzfSOdEljc3U/srsoc8BvlhWIGKMNjrRPTEEkQ7LV9l8nDb5BtcaeleAF9P/J1EfjYjXg+6gzXXefYB6g8vJQt0nbK1c4PJdJJF0B0jZRMB5DiPSoEgny/HyetXUNzrXMrjECBHVREdvFM3nQrUMznrZAGGmJGUmRliZ4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gc3oEFjK; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IDgVc9e4"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E3E381F00A3A;
-	Sun,  6 Sep 2026 02:05:50 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gc3oEFjK"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D31901F00A3D;
+	Sun,  6 Sep 2026 02:05:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788660351;
-	bh=KoX+/OCCHHOvZYwkwWTyoLyhaRppa6tZFqQqcEXIack=;
+	d=linux-foundation.org; s=korg; t=1788660352;
+	bh=5k3crMXmR2YnFPempFktpPzKaLUbbTTuCGGCvt2msoQ=;
 	h=Date:To:From:Subject;
-	b=IDgVc9e4mQ/fayp3j43nRxx15QzG1BnJoFk82JmTV7pNLISlVHRtA6pG/m9dywR9K
-	 tDZ95BdvTT4LcE7PvmDJJD0KXDDHRtkWrk25bGLvHDtaOoKgPToJma0+WQPF45qn8P
-	 y/VPPmHpRVCXZWib6fkYZWMTwqBSa/BNGOjyoynI=
-Date: Sat, 05 Sep 2026 19:05:50 -0700
-To: mm-commits@vger.kernel.org,urezki@gmail.com,stable@vger.kernel.org,mcgrof@kernel.org,jikos@kernel.org,bentiss@kernel.org,rppt@kernel.org,akpm@linux-foundation.org
+	b=gc3oEFjKpyLdWzy+f9HtX5or20pPvHnWAHEHBlRqZaqfwRppG3BIw+N7VadkF1t7O
+	 23kg+1Y6Djadk1RToQJRwZVhiuV3Vgb8GY4wsqDwdk5Z65BS7iyLk6tw5M2KKEmkEe
+	 kCW12SSkH6tWkCFSqFo4ij3nzytcViEYF5jruPtw=
+Date: Sat, 05 Sep 2026 19:05:52 -0700
+To: mm-commits@vger.kernel.org,urezki@gmail.com,mcgrof@kernel.org,jikos@kernel.org,bentiss@kernel.org,rppt@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-execmem-free-rox-cache-chunks-only-when-they-span-an-entire-vm-area.patch added to mm-new branch
-Message-Id: <20260906020550.E3E381F00A3A@smtp.kernel.org>
+Subject: + mm-execmem-handle-potential-allocation-errors-in-the-maple-tree.patch added to mm-new branch
+Message-Id: <20260906020552.D31901F00A3D@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/execmem: free ROX cache chunks only when they span an entire vm area
+     Subject: mm/execmem: handle potential allocation errors in the maple tree
 has been added to the -mm mm-new branch.  Its filename is
-     mm-execmem-free-rox-cache-chunks-only-when-they-span-an-entire-vm-area.patch
+     mm-execmem-handle-potential-allocation-errors-in-the-maple-tree.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-execmem-free-rox-cache-chunks-only-when-they-span-an-entire-vm-area.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-execmem-handle-potential-allocation-errors-in-the-maple-tree.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,111 +70,95 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
-Subject: mm/execmem: free ROX cache chunks only when they span an entire vm area
-Date: Thu, 03 Sep 2026 18:49:58 +0300
+Subject: mm/execmem: handle potential allocation errors in the maple tree
+Date: Thu, 03 Sep 2026 18:49:59 +0300
 
-Patch series "mm/execmem: fixes and cleanups for the ROX cache".
+execmem_cache_clean() and execmem_cache_alloc_locked() ignore potential
+allocation failures in mas_store_gfp().
 
-Sashiko review of the ROX cache refill path asked what happens when the
-PMD_SIZE allocation fails there.  Pulling that thread uncovered a bit more
-than the fallback.
+While in practice they are unlikely to happen, it's better to handle those
+errors and ensure the integrity of the ROX cache.
 
-Patch 1 fixes a real bug, although rare bug: execmem_cache_clean() can
-free a chunk that is still partially in use, because a PMD sized and PMD
-aligned free range in the middle of a larger chunk looks exactly like a
-chunk that nobody uses.
+Preallocate the maple tree nodes for the stores that must not fail and
+order the maple tree updates so that there won't be any failures once a
+tree has been modified.
 
-Patch 2 handles maple tree allocation failures in the cache.  They are
-unlikely, but silently dropping an area from the tree is not a great way
-to deal with them.
-
-Patch 3 deals with the fallback that started all this.  The cache exists
-to keep the direct map free of unnecessary splits, and the fallback
-happily filled it with base page mapped areas that could never be freed
-from the cache again.  Ask vmalloc for a huge mapping or nothing, and
-serve whatever does not fit outside the cache.
-
-Patches 4 and 5 convert the ROX cache to scope based cleanup.
-
-The series was tested on x86 with module load/unload cycles, with PTDUMP
-confirming that the cache is using 2M mappings, and with nohugevmalloc to
-exercise the uncached fallback.
-
-
-This patch (of 5):
-
-When execmem refills the ROX cache, it vmalloc()s multiples of PMD_SIZE
-aligned to PMD_SIZE.  For every such allocation vmalloc creates a vm area.
-
-The first part of the vmalloc()ed chunk is returned to the allocation that
-triggered the cache refill and the remaining part is added to the cache
-and handed out for subsequent allocations with execmem_alloc().
-
-When only the first part is freed, the entire vm area remains in the ROX
-cache and can be handed out again.
-
-In the case when the first allocation is larger than PMD_SIZE and the
-second allocation from the freed first part of the chunk is exactly
-PMD_SIZE, execmem_cache_clean() will free the entire chunk while part of
-it is still in use.
-
-For example:
-
-	/*
-	 * vmalloc(4M), return p0 to the caller
-	 * add [p0 + 3M, p0 + 4M) to the cache
-	 */
-	p0 = execmem_alloc(3M);
-
-	/* return p0 + 3M from the cache to the caller */
-	p1 = execmem_alloc(1M);
-
-	/* put [p0, p0 + 3M) back into the cache */
-	execmem_free(p0);
-
-	/* return p0 from the cache to the caller */
-	p2 = execmem_alloc(2M);
-
-	/* return p0 + 2M from the cache to the caller */
-	p3 = execmem_alloc(1M);
-
-	/* bah! execmem_cache_clean() frees the entire 4M chunk */
-	execmem_free(p2);
-
-Make sure that the ranges that execmem_cache_clean() frees cover the
-entire vm area.
-
-Link: https://lore.kernel.org/20260903-execmem-rox-cache-pmd-v1-v1-0-11beb2a3d249@kernel.org
-Link: https://lore.kernel.org/20260903-execmem-rox-cache-pmd-v1-v1-1-11beb2a3d249@kernel.org
-Fixes: 2e45474ab14f ("execmem: add support for cache of large ROX pages")
 Assisted-by: copilot:claude-opus-5
+Link: https://lore.kernel.org/20260903-execmem-rox-cache-pmd-v1-v1-2-11beb2a3d249@kernel.org
 Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Cc: Benjamin Tissoires <bentiss@kernel.org>
 Cc: Jiri Kosina <jikos@kernel.org>
 Cc: Luis Chamberalin <mcgrof@kernel.org>
 Cc: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
-Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/execmem.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ mm/execmem.c |   32 ++++++++++++++++++++++----------
+ 1 file changed, 22 insertions(+), 10 deletions(-)
 
---- a/mm/execmem.c~mm-execmem-free-rox-cache-chunks-only-when-they-span-an-entire-vm-area
+--- a/mm/execmem.c~mm-execmem-handle-potential-allocation-errors-in-the-maple-tree
 +++ a/mm/execmem.c
-@@ -143,9 +143,11 @@ static void execmem_cache_clean(struct w
- 
- 	mutex_lock(mutex);
- 	mas_for_each(&mas, area, ULONG_MAX) {
-+		struct vm_struct *vm = find_vm_area(area);
- 		size_t size = mas_range_len(&mas);
- 
--		if (IS_ALIGNED(size, PMD_SIZE) &&
-+		if (vm && get_vm_area_size(vm) == size &&
-+		    IS_ALIGNED(size, PMD_SIZE) &&
+@@ -149,7 +149,15 @@ static void execmem_cache_clean(struct w
+ 		if (vm && get_vm_area_size(vm) == size &&
+ 		    IS_ALIGNED(size, PMD_SIZE) &&
  		    IS_ALIGNED(mas.index, PMD_SIZE)) {
- 			mas_store_gfp(&mas, NULL, GFP_KERNEL);
+-			mas_store_gfp(&mas, NULL, GFP_KERNEL);
++			/*
++			 * Preallocate to ensure mas_store does not fail
++			 * If there is no memory for the tree update, bail out,
++			 * next execmem_free() might be more lucky
++			 */
++			if (mas_preallocate(&mas, NULL, GFP_KERNEL))
++				break;
++
++			mas_store_prealloc(&mas, NULL);
  			vfree(area);
+ 		}
+ 	}
+@@ -219,30 +227,34 @@ static void *execmem_cache_alloc_locked(
+ 	addr = mas_free.index;
+ 	last = mas_free.last;
+ 
++	mas_set_range(&mas_free, addr, addr + size - 1);
++	if (mas_preallocate(&mas_free, NULL, GFP_KERNEL))
++		return NULL;
++
+ 	/* insert allocated size to busy_areas at range [addr, addr + size) */
+ 	mas_set_range(&mas_busy, addr, addr + size - 1);
+ 	err = mas_store_gfp(&mas_busy, (void *)addr, GFP_KERNEL);
+ 	if (err)
+-		return NULL;
++		goto err_destroy_mas_free;
+ 
+-	mas_store_gfp(&mas_free, NULL, GFP_KERNEL);
++	mas_store_prealloc(&mas_free, NULL);
+ 	if (area_size > size) {
+-		void *ptr = (void *)(addr + size);
+-
+ 		/*
+ 		 * re-insert remaining free size to free_areas at range
+ 		 * [addr + size, last]
++		 * the range matches an existing entry, so this cannot allocate
+ 		 */
++		ptr = (void *)(addr + size);
+ 		mas_set_range(&mas_free, addr + size, last);
+-		err = mas_store_gfp(&mas_free, ptr, GFP_KERNEL);
+-		if (err) {
+-			mas_store_gfp(&mas_busy, NULL, GFP_KERNEL);
+-			return NULL;
+-		}
++		mas_store_gfp(&mas_free, ptr, GFP_KERNEL);
+ 	}
+ 	ptr = (void *)addr;
+ 
+ 	return ptr;
++
++err_destroy_mas_free:
++	mas_destroy(&mas_free);
++	return NULL;
+ }
+ 
+ static void *__execmem_cache_alloc(struct execmem_range *range, size_t size)
 _
 
 Patches currently in -mm which might be from rppt@kernel.org are
