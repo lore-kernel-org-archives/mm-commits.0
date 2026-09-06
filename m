@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9021F38B7D7
-	for <mm-commits@vger.kernel.org>; Sat,  5 Sep 2026 23:49:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CA78A1922FD
+	for <mm-commits@vger.kernel.org>; Sun,  6 Sep 2026 00:12:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788652195; cv=none; b=VApzjHhfCyiGGh9kOXTtywM1N3P7y2KPjMJXhNV+cvKtDKy0ricYizYupQUnXfO5HPmOp3Rmztj9UnKzh5QczBTze/dOdHdB0UE3wozdb2Vqlhx2vLJh1tzAdx58SSotwZZ3kjtQWYWfZUqorcudDntuDSw8JY8U+L6U0UfTLlQ=
+	t=1788653561; cv=none; b=FMlaYolm7kuourq/1nVNvzY4hR8q+fhSzCdvACv9xy5neKMZGRCX7bkO5lYlzaVW7hDsM0KH72WYT0XYj5hz4QeogG9/zsSvLqd2pyv8q/EBs3JAOrKWH2TCD/PCLzvmnMYJFW1fLcfcpjW2TmHG9wWKNAmAjao7MlNbD7IU52Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788652195; c=relaxed/simple;
-	bh=fxlYDkbPyH+W4fE6k8dJxUtrD4xFGWpd6kZCPC8ygjY=;
-	h=Date:To:From:Subject:Message-Id; b=p6hQEzIcoM8H4Rgne9cgH4BH8FgKbfhu5emdhXhnx5vSlTVhrd7vp3qG8BJFZsgHR7O33ec99+k8V64zUssv9K+4yfJ/SGjc7lHiJ23dRgs2T0XHXO7nOUQ7HCk+WlbEUAQXmVdNlo9RNo/HUJreD8KxWfpls0aUp2cCJIYNtTY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jEOQ8R9n; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788653561; c=relaxed/simple;
+	bh=bTKNYTi/d2r9rGgEBoRKOmPRPnLhCUq4lfdxaXx+M/w=;
+	h=Date:To:From:Subject:Message-Id; b=Cxze/tX9rvJA+1hCYcSUza0sP2j+q6+AChZcdOCL5iVfxrA0c0osct3iaVnPsnQzIJl+bhAT4LTEgHEViWG0bxJXO51zJrMl9aR1cDO8ELMwgzib+H2XysuQ6d7fPmbWAKXBsNqpTWe1nxhAzhxiw81Pj6aufWGEBDovItn+tMs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zkOmUu0v; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jEOQ8R9n"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3ED861F00A3D;
-	Sat,  5 Sep 2026 23:49:54 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zkOmUu0v"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4D33F1F00A3A;
+	Sun,  6 Sep 2026 00:12:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788652194;
-	bh=5sM1pitRbeUpKnRhMGM/cSuCzfLSwDww9bfy1YXZ7VM=;
+	d=linux-foundation.org; s=korg; t=1788653559;
+	bh=6Ly5yqYmbLm+Ffx2cYtzEkINs0d5NdgIc0GemV/23Pg=;
 	h=Date:To:From:Subject;
-	b=jEOQ8R9n/L01t4jk2jxfMSpcFjPSLnHR8WAXHecTRWnlAQqxt1nIN7TWOL0M7Ijy3
-	 K0vWqJTOQzpoCeH51ep/OnT10nQO3LmtgHRpomidn1jXWV5DKKfiYCp4jv46ea6JcS
-	 FXBp4oH06QYy+wNmh8CrhwvRmz9Y1H5KxdkLihpc=
-Date: Sat, 05 Sep 2026 16:49:53 -0700
-To: mm-commits@vger.kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@suse.com,ljs@kernel.org,hannes@cmpxchg.org,stevensd@google.com,akpm@linux-foundation.org
+	b=zkOmUu0vgWXQodA7hvEubegi0vBk7AypFonSBE/F7SKblErG12uhJVGmAtI9+zWf6
+	 ABNaXU6NZzr/dXwPXP8SGn+9oezKxOLgTlYhjam6tpbXCJ7q14jJlS7Y3qcgjpj7KB
+	 4YmlMTBzSILSkrFKb7Bbujkp3cF4bVpUA7R41WyU=
+Date: Sat, 05 Sep 2026 17:12:38 -0700
+To: mm-commits@vger.kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,joannelkoong@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + memcg-dont-call-schedule_work-when-no-spinning-is-allowed.patch added to mm-new branch
-Message-Id: <20260905234954.3ED861F00A3D@smtp.kernel.org>
+Subject: + mm-memcontrol-skip-non-hierarchical-memcg-wide-stats-when-v1-is-unavailable.patch added to mm-new branch
+Message-Id: <20260906001239.4D33F1F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: memcg: don't call schedule_work when no spinning is allowed
+     Subject: mm/memcontrol: skip non-hierarchical memcg-wide stats when v1 is unavailable
 has been added to the -mm mm-new branch.  Its filename is
-     memcg-dont-call-schedule_work-when-no-spinning-is-allowed.patch
+     mm-memcontrol-skip-non-hierarchical-memcg-wide-stats-when-v1-is-unavailable.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memcg-dont-call-schedule_work-when-no-spinning-is-allowed.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcontrol-skip-non-hierarchical-memcg-wide-stats-when-v1-is-unavailable.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,105 +69,219 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: David Stevens <stevensd@google.com>
-Subject: memcg: don't call schedule_work when no spinning is allowed
-Date: Fri, 4 Sep 2026 10:31:45 -0700
+From: Joanne Koong <joannelkoong@gmail.com>
+Subject: mm/memcontrol: skip non-hierarchical memcg-wide stats when v1 is unavailable
+Date: Thu, 3 Sep 2026 14:56:16 -0700
 
-Memcg charging can be done from any context, but calling schedule_work()
-isn't safe from an NMI.  If memory.high is breached from a context where
-spinning isn't allowed, use irq_work to schedule the reclaim work.
+memcg_vmstats keeps a non-hierarchical copy of every memcg-wide stat item
+and event alongside the hierarchical one.  The only readers however are
+the legacy memory.stat and memory.numa_stat, and reparenting on offline. 
+All of them live under CONFIG_MEMCG_V1, and their accessors
+(memcg_page_state_local() and memcg_events_local()) are already compiled
+out with it.  This means on a CONFIG_MEMCG_V1=n kernel, memcg_vmstats's
+non-hierarchical arrays are written to on every rstat flush, despite their
+values never being read / accessed.
 
-Found this via code inspection.  I spent a little bit trying to trigger it
-for real, but the only way I managed was by writing a hacky driver absuing
-alloc_pages_nolock().
+The same holds when the kernel does support v1 but the controller has been
+blocked from v1 hierarchies with the boot param cgroup_no_v1={memory,all}.
+A v1 mount is refused in that case, so the legacy memory.stat can never
+exist and the arrays are just as unread / unaccessed.
 
-Link: https://lore.kernel.org/20260904173145.2028377-1-stevensd@google.com
-Fixes: 3ac4638a734a ("memcg: make memcg_rstat_updated nmi safe")
-Signed-off-by: David Stevens <stevensd@google.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
+Compile out the non-hierarchical memcg-wide arrays if CONFIG_MEMCG_V1 is
+not set.  If it is set but cgroup_no_v1= has blocked the controller, skip
+updates on the arrays.
+
+This makes flushes cheaper.  mem_cgroup_stat_aggregate() can now skip the
+read-modify-write of ac->local[i].  Nothing else accesses state_local or
+events_local, so those cachelines were getting pulled in solely for the
+writes and they are separate from the ones the loop is already walking.
+
+On an 80-cpu x86_64 machine with 500 cgroups each running a workload that
+dirties anon, file, dirty/writeback, slab, kmem, mlock, and reclaim
+counters, timing mem_cgroup_css_rstat_flush() in-kernel in TSC ticks per
+flush showed roughly
+
+                         before   after    delta
+memcg-wide aggregation   1231     1180     -4.1%
+overall flush function   2452     2397     -2.2%
+
+These numbers are from taking the median of 70 samples, one per 20s window
+on each kernel.  The 95% intervals observed on the two deltas are [-5.41%,
+-1.76%] and [-4.53%, -0.14%].  The values above include the timing
+overhead itself, so only the delta is meaningful here.
+
+Counting the items that actually changed, a median of 1.5 of the 77
+memcg-wide items (57 state + 20 events) had a non-zero per-cpu delta at
+each flush, which means the benchmarks above are with one or two fewer
+cachelines pulled in per flush.  The count is low because the benchmark
+reads memory.stat in a loop to keep the flush rate up.  For cases where
+flushes are triggered only by the 2s periodic worker, more changes will
+have accumulated between flushes, so more cachelines are skipped and the
+per-flush saving should be larger.
+
+Link: https://lore.kernel.org/20260903215616.1456239-1-joannelkoong@gmail.com
+Signed-off-by: Joanne Koong <joannelkoong@gmail.com>
 Reviewed-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Muchun Song <muchun.song@linux.dev>
 Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    2 ++
- mm/memcontrol.c            |   13 ++++++++++++-
- 2 files changed, 14 insertions(+), 1 deletion(-)
+ include/linux/cgroup.h          |    3 +
+ kernel/cgroup/cgroup-internal.h |    1 
+ mm/memcontrol.c                 |   48 +++++++++++++++++++++++++-----
+ 3 files changed, 44 insertions(+), 8 deletions(-)
 
---- a/include/linux/memcontrol.h~memcg-dont-call-schedule_work-when-no-spinning-is-allowed
-+++ a/include/linux/memcontrol.h
-@@ -23,6 +23,7 @@
- #include <linux/writeback.h>
- #include <linux/page-flags.h>
- #include <linux/shrinker.h>
-+#include <linux/irq_work_types.h>
+--- a/include/linux/cgroup.h~mm-memcontrol-skip-non-hierarchical-memcg-wide-stats-when-v1-is-unavailable
++++ a/include/linux/cgroup.h
+@@ -154,6 +154,9 @@ struct cgroup *cgroup_get_from_path(cons
+ struct cgroup *cgroup_get_from_fd(int fd);
+ struct cgroup *cgroup_v1v2_get_from_fd(int fd);
  
- struct mem_cgroup;
- struct obj_cgroup;
-@@ -233,6 +234,7 @@ struct mem_cgroup {
- #endif
++/* Was this controller blocked from v1 hierarchies by cgroup_no_v1= ? */
++bool cgroup1_ssid_disabled(int ssid);
++
+ int cgroup_attach_task_all(struct task_struct *from, struct task_struct *);
+ int cgroup_transfer_tasks(struct cgroup *to, struct cgroup *from);
  
- 	/* Range enforcement for interrupt charges */
-+	struct irq_work high_irq_work;
- 	struct work_struct high_work;
+--- a/kernel/cgroup/cgroup-internal.h~mm-memcontrol-skip-non-hierarchical-memcg-wide-stats-when-v1-is-unavailable
++++ a/kernel/cgroup/cgroup-internal.h
+@@ -285,7 +285,6 @@ extern struct kernfs_syscall_ops cgroup1
+ extern const struct fs_parameter_spec cgroup1_fs_parameters[];
  
- 	__cacheline_group_end_aligned(memcg_write_hot);
---- a/mm/memcontrol.c~memcg-dont-call-schedule_work-when-no-spinning-is-allowed
+ int proc_cgroupstats_show(struct seq_file *m, void *v);
+-bool cgroup1_ssid_disabled(int ssid);
+ void cgroup1_pidlist_destroy_all(struct cgroup *cgrp);
+ void cgroup1_release_agent(struct work_struct *work);
+ void cgroup1_check_for_release(struct cgroup *cgrp);
+--- a/mm/memcontrol.c~mm-memcontrol-skip-non-hierarchical-memcg-wide-stats-when-v1-is-unavailable
 +++ a/mm/memcontrol.c
-@@ -62,6 +62,7 @@
- #include <linux/seq_buf.h>
- #include <linux/sched/isolation.h>
- #include <linux/kmemleak.h>
-+#include <linux/irq_work.h>
- #include "internal.h"
- #include "swap.h"
- #include "swap_table.h"
-@@ -2424,6 +2425,11 @@ static void high_work_func(struct work_s
- 	reclaim_high(memcg, MEMCG_CHARGE_BATCH, GFP_KERNEL);
- }
+@@ -676,9 +676,11 @@ struct memcg_vmstats {
+ 	long			state[MEMCG_VMSTAT_SIZE];
+ 	unsigned long		events[NR_MEMCG_EVENTS];
  
-+static void high_irq_work_func(struct irq_work *work)
++#ifdef CONFIG_MEMCG_V1
+ 	/* Non-hierarchical (CPU aggregated) page state & events */
+ 	long			state_local[MEMCG_VMSTAT_SIZE];
+ 	unsigned long		events_local[NR_MEMCG_EVENTS];
++#endif
+ 
+ 	/* Pending child counts during tree propagation */
+ 	long			state_pending[MEMCG_VMSTAT_SIZE];
+@@ -689,6 +691,31 @@ struct memcg_vmstats {
+ };
+ 
+ /*
++ * The non-hierarchical memcg-wide counters are read back only by the legacy
++ * memory.stat and memory.numa_stat, and by reparenting on offline, all of which
++ * are v1-only. If the kernel is built without CONFIG_MEMCG_V1, or if the boot
++ * param cgroup_no_v1= has blocked the memory controller from v1 hierarchies,
++ * then nothing reads them and writers can skip the updates.
++ */
++static long *memcg_state_local_array(struct mem_cgroup *memcg)
 +{
-+	schedule_work(&container_of(work, struct mem_cgroup, high_irq_work)->high_work);
++#ifdef CONFIG_MEMCG_V1
++	if (!cgroup1_ssid_disabled(memory_cgrp_id))
++		return memcg->vmstats->state_local;
++#endif
++	return NULL;
 +}
 +
- /*
-  * Clamp the maximum sleep time per allocation batch to 2 seconds. This is
-  * enough to still cause a significant slowdown in most cases, while still
-@@ -2832,7 +2838,10 @@ done_restock:
- 		/* Don't bother a random interrupted task */
- 		if (!in_task()) {
- 			if (mem_high) {
--				schedule_work(&memcg->high_work);
-+				if (allow_spinning)
-+					schedule_work(&memcg->high_work);
-+				else
-+					irq_work_queue(&memcg->high_irq_work);
- 				break;
- 			}
- 			continue;
-@@ -4207,6 +4216,7 @@ static struct mem_cgroup *mem_cgroup_all
- 		goto fail;
++static unsigned long *memcg_events_local_array(struct mem_cgroup *memcg)
++{
++#ifdef CONFIG_MEMCG_V1
++	if (!cgroup1_ssid_disabled(memory_cgrp_id))
++		return memcg->vmstats->events_local;
++#endif
++	return NULL;
++}
++
++/*
+  * memcg and lruvec stats flushing
+  *
+  * Many codepaths leading to stats update or read are performance sensitive and
+@@ -4469,7 +4496,10 @@ static void mem_cgroup_css_reset(struct
+ struct aggregate_control {
+ 	/* pointer to the aggregated (CPU and subtree aggregated) counters */
+ 	long *aggregate;
+-	/* pointer to the non-hierarchichal (CPU aggregated) counters */
++	/*
++	 * pointer to the non-hierarchical (CPU aggregated) counters or NULL to
++	 * skip updating them (see memcg_state_local_array())
++	 */
+ 	long *local;
+ 	/* pointer to the pending child counters during tree propagation */
+ 	long *pending;
+@@ -4508,7 +4538,7 @@ static void mem_cgroup_stat_aggregate(st
+ 		}
  
- 	INIT_WORK(&memcg->high_work, high_work_func);
-+	init_irq_work(&memcg->high_irq_work, high_irq_work_func);
- 	vmpressure_init(&memcg->vmpressure);
- 	INIT_LIST_HEAD(&memcg->memory_peaks);
- 	INIT_LIST_HEAD(&memcg->swap_peaks);
-@@ -4415,6 +4425,7 @@ static void mem_cgroup_css_free(struct c
- 		static_branch_dec(&memcg_bpf_enabled_key);
+ 		/* Aggregate counts on this level and propagate upwards */
+-		if (delta_cpu)
++		if (delta_cpu && ac->local)
+ 			ac->local[i] += delta_cpu;
  
- 	vmpressure_cleanup(&memcg->vmpressure);
-+	irq_work_sync(&memcg->high_irq_work);
- 	cancel_work_sync(&memcg->high_work);
- 	free_shrinker_info(memcg);
- 	mem_cgroup_free(memcg);
+ 		if (delta) {
+@@ -4522,6 +4552,7 @@ static void mem_cgroup_stat_aggregate(st
+ #ifdef CONFIG_MEMCG_NMI_SAFETY_REQUIRES_ATOMIC
+ static void flush_nmi_stats(struct mem_cgroup *memcg, struct mem_cgroup *parent)
+ {
++	long *state_local = memcg_state_local_array(memcg);
+ 	int nid;
+ 
+ 	if (atomic_read(&memcg->kmem_stat)) {
+@@ -4529,7 +4560,8 @@ static void flush_nmi_stats(struct mem_c
+ 		int index = memcg_stats_index(MEMCG_KMEM);
+ 
+ 		memcg->vmstats->state[index] += kmem;
+-		memcg->vmstats->state_local[index] += kmem;
++		if (state_local)
++			state_local[index] += kmem;
+ 		if (parent)
+ 			parent->vmstats->state_pending[index] += kmem;
+ 	}
+@@ -4551,7 +4583,8 @@ static void flush_nmi_stats(struct mem_c
+ 			if (plstats)
+ 				plstats->state_pending[index] += slab;
+ 			memcg->vmstats->state[index] += slab;
+-			memcg->vmstats->state_local[index] += slab;
++			if (state_local)
++				state_local[index] += slab;
+ 			if (parent)
+ 				parent->vmstats->state_pending[index] += slab;
+ 		}
+@@ -4564,7 +4597,8 @@ static void flush_nmi_stats(struct mem_c
+ 			if (plstats)
+ 				plstats->state_pending[index] += slab;
+ 			memcg->vmstats->state[index] += slab;
+-			memcg->vmstats->state_local[index] += slab;
++			if (state_local)
++				state_local[index] += slab;
+ 			if (parent)
+ 				parent->vmstats->state_pending[index] += slab;
+ 		}
+@@ -4589,7 +4623,7 @@ static void mem_cgroup_css_rstat_flush(s
+ 
+ 	ac = (struct aggregate_control) {
+ 		.aggregate = memcg->vmstats->state,
+-		.local = memcg->vmstats->state_local,
++		.local = memcg_state_local_array(memcg),
+ 		.pending = memcg->vmstats->state_pending,
+ 		.ppending = parent ? parent->vmstats->state_pending : NULL,
+ 		.cstat = statc->state,
+@@ -4600,7 +4634,7 @@ static void mem_cgroup_css_rstat_flush(s
+ 
+ 	ac = (struct aggregate_control) {
+ 		.aggregate = memcg->vmstats->events,
+-		.local = memcg->vmstats->events_local,
++		.local = memcg_events_local_array(memcg),
+ 		.pending = memcg->vmstats->events_pending,
+ 		.ppending = parent ? parent->vmstats->events_pending : NULL,
+ 		.cstat = statc->events,
 _
 
-Patches currently in -mm which might be from stevensd@google.com are
+Patches currently in -mm which might be from joannelkoong@gmail.com are
 
-memcg-dont-call-schedule_work-when-no-spinning-is-allowed.patch
+mm-memcontrol-skip-non-hierarchical-memcg-wide-stats-when-v1-is-unavailable.patch
 
