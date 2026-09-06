@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 38E3523D297
-	for <mm-commits@vger.kernel.org>; Sun,  6 Sep 2026 01:22:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A6E1B30F7EA
+	for <mm-commits@vger.kernel.org>; Sun,  6 Sep 2026 01:22:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788657734; cv=none; b=L1VeIhKERI6HxHqa5GUY6hckFmEwvz3YnJxTpnXCi5C9R5AHK/29rltQs1T3Z0mP+gRBZwepJITTGCjoezUk+l9+V2QRM/XAjQByXAMMO1guIg7QVL4nkuiv46oUuzQ4A6Lg4jJm1GLlyzKiuKPn54zIrtNj4lkJasAHuMPjp4M=
+	t=1788657735; cv=none; b=HB0idos4twDnQczcr0ipaRiOuuELn/EIcxN4D6Py5It+Sbao3XZEo8jjtQ9i1AQfF8skM0WAJNP/7Vle+gYG1byemZO5riHqD2k8lmfAnowMmk1uwQ+1pdzpbbvLBtpR49Hj5LVzfoSHX4j5fGurubUOAvsqJvunWWWbxpojkD8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788657734; c=relaxed/simple;
-	bh=lVCqav/awqnljUWV8ighNZUn2erXX1sLNKfXu3uXhG4=;
-	h=Date:To:From:Subject:Message-Id; b=t/eKfs5xLgca+rX3IQokoBNlkUcT8FOG/OUppoaMxzIF0CqaV5z6PM4dANQvevsX9yNoUjidhWEHY+nK/t49WgpGQjY2i+gbP0raGPCpP4uYkUouunWmMxUwx/oYbPrKD8f+Vfj7xCKsQ6mZGM0eZ6wX+uivOJSOdaumsLpp66c=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=S9+rQXZl; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788657735; c=relaxed/simple;
+	bh=M32kJA/+erPF++dxRSkxQo5uC+6lm7rQupPjgzA0vWg=;
+	h=Date:To:From:Subject:Message-Id; b=Mg1ErulfK1mvantA/3z3k507J79wqA3AsNo6Gv8kwe2NLKOTw0HwfQ6eFVPhfrG0MyjN5H/O3DNWMdWo/e6fMCLY2jZZDP2p8bcA4J8Xirro176lFDSf2/1R6BVhOqVDYea+Et/JaeyW0/gwMxKUf9J3HT8ceTcaTMOQLOy1j/0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ewJYYTWt; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="S9+rQXZl"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6EDB41F00A3D;
-	Sun,  6 Sep 2026 01:22:12 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ewJYYTWt"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 51C141F00A3A;
+	Sun,  6 Sep 2026 01:22:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788657732;
-	bh=mOWaO1g0P3sn7p36Ne7yytSL0de/NzLkAsZXJ5BHboY=;
+	d=linux-foundation.org; s=korg; t=1788657734;
+	bh=Hi5RGyt1z144WJIiNrppGIZ2Fr1ASXvM8f6SNQl1OF8=;
 	h=Date:To:From:Subject;
-	b=S9+rQXZla/d2RErYzVZUi1Vfjn15I0q3P4PAt+3SWuCWfDcC0aP6bbDOC5H98solF
-	 0YbQ6kaGh880q00AakZyxJW39M5aol6hog7Badq6I1sWJbplqHxlMLbXXmy93KVdbn
-	 fFa5wDp+t58B/AmLTfM22lAKEKWp0uU3WCZXPDBA=
-Date: Sat, 05 Sep 2026 18:22:12 -0700
+	b=ewJYYTWtGgAKxBbnsAo/l4RnD5Y/rTGyj8sYiPYoINGkR2mBDGKfzbdhgvs6DpT4Y
+	 3XEdu5NKlglp4vZVvIAZtkI/azblCNjByE6hH8Ty+MKDG37PVU/+bT3jgdBlP3WdJ/
+	 cuS1TtQGmHl7NLdMfKqZZ0dhWFZulxlS8vTjtHZk=
+Date: Sat, 05 Sep 2026 18:22:13 -0700
 To: mm-commits@vger.kernel.org,lukas.bulwahn@gmail.com,joe@perches.com,dwaipayanray1@gmail.com,apw@canonical.com,pvorel@suse.cz,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + checkpatch-ignore-inttypesh-format-macros-for-userspace-tools.patch added to mm-nonmm-unstable branch
-Message-Id: <20260906012212.6EDB41F00A3D@smtp.kernel.org>
+Subject: + checkpatch-add-userspace-to-force-userspace-rules.patch added to mm-nonmm-unstable branch
+Message-Id: <20260906012214.51C141F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: checkpatch: ignore <inttypes.h> format macros for userspace tools
+     Subject: checkpatch: add --userspace to force userspace rules
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     checkpatch-ignore-inttypesh-format-macros-for-userspace-tools.patch
+     checkpatch-add-userspace-to-force-userspace-rules.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/checkpatch-ignore-inttypesh-format-macros-for-userspace-tools.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/checkpatch-add-userspace-to-force-userspace-rules.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,17 +59,14 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Petr Vorel <pvorel@suse.cz>
-Subject: checkpatch: ignore <inttypes.h> format macros for userspace tools
-Date: Fri, 4 Sep 2026 13:02:28 +0200
+Subject: checkpatch: add --userspace to force userspace rules
+Date: Fri, 4 Sep 2026 13:02:29 +0200
 
-Constants from <inttypes.h> are used only in userspace tools, they are
-from ISO C99, let's don't report it:
+Also allow to use --no-userspace for userspace projects which vendored
+checkpatch.pl and use --userspace globally to be able switch it off for
+files with kernel code.
 
-    arch/mips/boot/tools/relocs.c:572: CHECK: Avoid CamelCase: <PRIx32>
-    arch/s390/tools/relocs.c:52: CHECK: Avoid CamelCase: <PRIu64>
-    tools/testing/selftests/mm/vm_util.c:244: CHECK: Avoid CamelCase: <SCNu64>
-
-Link: https://lore.kernel.org/20260904110230.1219037-3-pvorel@suse.cz
+Link: https://lore.kernel.org/20260904110230.1219037-4-pvorel@suse.cz
 Signed-off-by: Petr Vorel <pvorel@suse.cz>
 Cc: Andy Whitcroft <apw@canonical.com>
 Cc: Dwaipayan Ray <dwaipayanray1@gmail.com>
@@ -78,20 +75,45 @@ Cc: Lukas Bulwahn <lukas.bulwahn@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    2 ++
- 1 file changed, 2 insertions(+)
+ scripts/checkpatch.pl |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
---- a/scripts/checkpatch.pl~checkpatch-ignore-inttypesh-format-macros-for-userspace-tools
+--- a/scripts/checkpatch.pl~checkpatch-add-userspace-to-force-userspace-rules
 +++ a/scripts/checkpatch.pl
-@@ -5950,6 +5950,8 @@ sub process {
- #Ignore SI style variants like nS, mV and dB
- #(ie: max_uV, regulator_min_uA_show, RANGE_mA_VALUE)
- 			    $var !~ /^(?:[a-z0-9_]*|[A-Z0-9_]*)?_?[a-z][A-Z](?:_[a-z0-9_]+|_[A-Z0-9_]+)?$/ &&
-+#Ignore <inttypes.h> format macros (e.g. PRIu64, SCNu64)
-+			    (is_userspace($realfile) ? $var !~ /^(?:PRI|SCN)[dioux][A-Z0-9]+$/ : 1) &&
- #Ignore some three character SI units explicitly, like MiB and KHz
- 			    $var !~ /^(?:[a-z_]*?)_?(?:[KMGT]iB|[KMGT]?Hz)(?:_[a-z_]+)?$/) {
- 				while ($var =~ m{\b($Ident)}g) {
+@@ -63,6 +63,7 @@ my $env_config_dir = 'CHECKPATCH_CONFIG_
+ my $max_line_length = 100;
+ my $ignore_perl_version = 0;
+ my $spdx_cxx_comments = 0;
++my $userspace;
+ my $minimum_perl_version = 5.10.0;
+ my $min_conf_desc_length = 4;
+ my $spelling_file = "$D/spelling.txt";
+@@ -143,6 +144,7 @@ Options:
+                              (required by old toolchains), allow also C++
+                              comments (//).
+                              NOTE: it should *not* be used for Linux mainline.
++  --userspace                Force rules specific for userspace.
+   --codespell                Use the codespell dictionary for spelling/typos
+                              (default:$codespellfile)
+   --codespellfile            Use this codespell dictionary
+@@ -358,6 +360,7 @@ GetOptions(
+ 	'codespell!'	=> \$codespell,
+ 	'codespellfile=s'	=> \$user_codespellfile,
+ 	'typedefsfile=s'	=> \$typedefsfile,
++	'userspace!'	=> \$userspace,
+ 	'color=s'	=> \$color,
+ 	'no-color'	=> \$color,	#keep old behaviors of -nocolor
+ 	'nocolor'	=> \$color,	#keep old behaviors of -nocolor
+@@ -2667,6 +2670,9 @@ sub exclude_global_initialisers {
+ 
+ sub is_userspace {
+     my ($realfile) = @_;
++
++    return $userspace if (defined $userspace);
++
+     return ($realfile =~ m@^tools/@ ||
+ 		$realfile =~ m@^scripts/@ ||
+ 		$realfile =~ m@^arch/.*/tools/@);
 _
 
 Patches currently in -mm which might be from pvorel@suse.cz are
