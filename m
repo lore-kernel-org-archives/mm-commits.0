@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1672E2E8DEA;
-	Sun,  6 Sep 2026 00:35:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6BAD1285CB9;
+	Sun,  6 Sep 2026 00:43:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788654922; cv=none; b=cAd1AYjfNneSWcmBzOhAInZVcVTGaXf0Uk/r45bfUrbguFF2AQo5jovxdBU29anP9943jkLbea0hAIhogMn/skJDQbRq5fgXfBNJHVEh3OQmb+0vSFUL7lgoeiWMShWKevGOZieG0c5PyS3m1aapfVrANX/mhnReB80EmukSKG8=
+	t=1788655388; cv=none; b=aSPUbQEQ+7kznzpqG28/+Hgyz55O9zRmqJMgQhOG5QUgMHmWXcJX+Bj5+ucB0aEODpC18M+tPj56KonCAyABJ+2Ie55CLPC8lnD8pQkB+q3ArLFMTtv5fv9YEvnZ/L89pAMOyTQVNkaHak0e6d/TCPa7cc5pyhSRTmm3TVnv3II=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788654922; c=relaxed/simple;
-	bh=JPlWoB4DXow6nbg9rJrJMG26hOHZCU/65RpKG60qAgk=;
-	h=Date:To:From:Subject:Message-Id; b=C1ovO8cLTWE1y/QBAyp8ullRjlWqJ9obNNHlJ/rRhArglB54YGUjdO9ReaDMXGXHFCsRmGFOwQni+Bg2BgFaxW2sOZcpxjgCqU20Rdk4zqyV+BPTnOab8RDMh/Et6Vg3O0tFYDhvSQm3/FMzJVeT3DS+XHp3/739E5pKO1tLyYw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uRSKXqd9; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788655388; c=relaxed/simple;
+	bh=+rg6kU7KQY2HkCnMoR+N32x5OXVjhAPzDp/FvUrlfTc=;
+	h=Date:To:From:Subject:Message-Id; b=lYKMCwc/JlGfsSJSjGjZ7izQXcNnPc5enktusTLJnca9MwvRYEATDNEGu8dbnJnjOQT7muEYWiMHwFWxrr8FYXUXmoofleU+hiVDl9NM3oEWjPfN8M/8+I6Qu9lzjRmrL/UfnW8I+YaCWQyLogN2IDu7ZoHOdAUV7fJ/8N5hero=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sE2qP+TA; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uRSKXqd9"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8958A1F00A3A;
-	Sun,  6 Sep 2026 00:35:20 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sE2qP+TA"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 161831F00A3A;
+	Sun,  6 Sep 2026 00:43:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788654920;
-	bh=IgY0KNzUHJ/fYTASL01kGfcHFX2ExSozWX8mnJ2vOE4=;
+	d=linux-foundation.org; s=korg; t=1788655387;
+	bh=eHppg9msSp1Fl1lkqx3YfQrnVxX7arrdss9Cxf1RB0w=;
 	h=Date:To:From:Subject;
-	b=uRSKXqd9nlvCMU0q09KdAnE/IRcdC/roaDnVV2U3seKW3ukqu+A7G2Gr/93arujg+
-	 +bDORW2LSDSfCP4rsVikktL70DKfJwcG1ZrnPGgRk18cBUMmv6/2jygkjQ1rLaAz2a
-	 eb8HKgi6GCHFHgZe5oCUrg+FiM1YLM3ye3aDfZPk=
-Date: Sat, 05 Sep 2026 17:35:20 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,stable@vger.kernel.org,rppt@kernel.org,krystianmkaniewski@gmail.com,akpm@linux-foundation.org
+	b=sE2qP+TA1dGbGUCL5BtCG9YOWv5EPgbyCgJxQzCAWbP34auMDXzlrQWWWglc+FMTm
+	 GnzXJ70IKxnJ7sBdVNlvOZItRROBIIdhPLsOOBkmVvd7Sv5JRnGzlCVTeTn7UCcJWW
+	 FeOkNr7VkF1YWCgb2TxLHbjwI4Lnlfpqz1PrkJus=
+Date: Sat, 05 Sep 2026 17:43:06 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,vbabka@kernel.org,stable@vger.kernel.org,ritesh.list@gmail.com,mhocko@suse.com,hch@lst.de,hannes@cmpxchg.org,dgc@kernel.org,david@redhat.com,dipiets@amazon.it,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + xarray-fix-index-jumping-backwards-in-xas_find.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260906003520.8958A1F00A3A@smtp.kernel.org>
+Subject: + mm-page_alloc-avoid-direct-compaction-for-costly-__gfp_noretry-allocations.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260906004307.161831F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: xarray: fix index jumping backwards in xas_find()
+     Subject: mm/page_alloc: avoid direct compaction for costly __GFP_NORETRY allocations
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     xarray-fix-index-jumping-backwards-in-xas_find.patch
+     mm-page_alloc-avoid-direct-compaction-for-costly-__gfp_noretry-allocations.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/xarray-fix-index-jumping-backwards-in-xas_find.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-avoid-direct-compaction-for-costly-__gfp_noretry-allocations.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,166 +58,114 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Krystian Kaniewski <krystianmkaniewski@gmail.com>
-Subject: xarray: fix index jumping backwards in xas_find()
-Date: Fri, 4 Sep 2026 14:12:59 +0200
+From: Salvatore Dipietro <dipiets@amazon.it>
+Subject: mm/page_alloc: avoid direct compaction for costly __GFP_NORETRY allocations
+Date: Fri, 4 Sep 2026 11:56:28 +0000
 
-A bug in the XArray iterator xas_find() causes the iterator's index
-(xas->xa_index) to jump backwards when iterating over a multi-index entry
-(like a THP) that resides in a non-leaf node and is concurrently split.
+Commit 5d8edfb900d5 ("iomap: Copy larger chunks from userspace")
+introduced high-order folio allocations in the iomap buffered write path. 
+When memory is fragmented, each failed costly-order allocation enters
+__alloc_pages_slowpath() which runs direct compaction and
+drain_all_pages(), causing a 0.38x throughput drop on PostgreSQL pgbench
+(simple-update) with 1024 clients on a 96-vCPU arm64 system.
 
-When iterating over a multi-index entry in a non-leaf node, xas_load()
-sets xas->xa_offset to the base offset of the entry, but leaves
-xas->xa_index at the requested index.  When the caller subsequently wants
-to advance to the next entry, xas_find() is called.  xas_find() attempts
-to synchronize xas->xa_offset with xas->xa_index before advancing. 
-However, the fixup logic was incorrectly restricted to leaf nodes
-(!xas->xa_node->shift).  Because the THP resides in a non-leaf node, the
-fixup is skipped.
+The root issue is that direct compaction is too expensive for hot
+allocation paths that have fallbacks to smaller allocations. 
+__filemap_get_folio_mpol() already marks higher-order allocations with
+__GFP_NORETRY | __GFP_NOWARN, signalling that the caller can handle
+failure.  However, the page allocator still attempts full direct
+compaction for costly orders with __GFP_NORETRY, which is unnecessarily
+aggressive when the caller will simply retry at a lower order.
 
-As a result, xas_find() simply increments xas->xa_offset and recalculates
-xas->xa_index based on this new offset.  This causes xas->xa_index to jump
-backwards.  If the THP was concurrently split, the entry at the new offset
-is a node pointer, so xas_find() descends into it and returns the folio at
-the backwards index.  The caller (filemap_map_pages()) then calculates the
-PTE pointer based on this backwards index, resulting in an invalid memory
-access such as an out-of-bounds read or use-after-free on a page-table
-page freed via tlb_remove_table_rcu().
+For costly-order allocations with __GFP_NORETRY, clear
+__GFP_DIRECT_RECLAIM at the very start of the slowpath, before
+can_direct_reclaim, can_compact and the nofail checks are evaluated.  This
+makes the entire slowpath treat the request as non-blocking: no direct
+reclaim, no direct compaction and no drain_all_pages() IPI across every
+CPU.  kswapd (and in turn kcompactd) is still woken further down for
+background defragmentation, so compaction keeps working for long-term
+system health while being removed from the latency-critical direct
+allocation path.
 
-A userspace access that faults in a file-backed mapping can trigger this
-path.  When the index moves backwards, filemap_map_pages() can calculate a
-PTE outside the page locked for fault-around and dereference a freed
-page-table page, resulting in a KASAN-detected use-after-free read.
+Allocations that also request __GFP_THISNODE are exempted.  That flag
+pairing identifies the local-node-first THP attempt issued by
+alloc_pages_mpol() (mempolicy.c), which relies on direct compaction to
+form transparent huge pages.
 
-To fix this, check if xas->xa_offset matches get_offset(xas->xa_index,
-xas->xa_node).  If it does not and the node is a non-leaf node, set
-xas->xa_offset to get_offset(xas->xa_index, xas->xa_node) before
-advancing.  Also add test cases in test_xarray to verify xas_find()
-behavior when iterating over and splitting multi-index entries.
+Test environment:
+  Hardware:  AWS EC2 m8g.24xlarge (96 vCPU, arm64)
+             12x 1TB IO2 32000 IOPS RAID0 XFS
+  OS:        AL2023
+  Kernel:    v7.3-rc1
+  Database:  PostgreSQL 18.4
+  Workload:  pgbench simple-update, 1024 clients, 96 threads, 1200s
 
-Link: https://lore.kernel.org/20260904121301.200049-1-krystianmkaniewski@gmail.com
-Fixes: b803b42823d0 ("xarray: Add XArray iterators")
-Assisted-by: Gemini:gemini-3.7-flash syzbot
-Reported-by: syzbot+b72767277f29b6407083@syzkaller.appspotmail.com
-Closes: https://syzkaller.appspot.com/bug?extid=b72767277f29b6407083
-Link: https://syzkaller.appspot.com/ai_job?id=a01c56bd-74d0-411c-afb4-ee6f0cb6cb61
-Signed-off-by: Krystian Kaniewski <krystianmkaniewski@gmail.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Mike Rapoport <rppt@kernel.org>
+Results (average of 3 runs, TPS):
+
+  Config                   Avg TPS      % vs Baseline
+  baseline (no patch)       59,408       -
+  With this patch          155,409      +161.6%
+
+Link: https://lore.kernel.org/all/20260403193535.9970-1-dipiets@amazon.it/T/#t [v1]
+Link: https://lore.kernel.org/linux-mm/20260420161404.642-1-dipiets@amazon.it/T/#u [v2]
+Link: https://lore.kernel.org/all/20260710143437.12379-1-dipiets@amazon.it/T/#u [v3]
+Link: https://lore.kernel.org/20260904115629.3993331-1-dipiets@amazon.it
+Fixes: 5d8edfb900d5 ("iomap: Copy larger chunks from userspace")
+Signed-off-by: Salvatore Dipietro <dipiets@amazon.it>
+Acked-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
+Acked-by: Zi Yan <ziy@nvidia.com>
+Reviewed-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Dave Chinner <dgc@kernel.org>
+Cc: Ritesh Harjani <ritesh.list@gmail.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_xarray.c |   70 ++++++++++++++++++++++++++++++++++++++++++++
- lib/xarray.c      |    8 +++--
- 2 files changed, 75 insertions(+), 3 deletions(-)
+ mm/page_alloc.c |   18 +++++++++++++++---
+ 1 file changed, 15 insertions(+), 3 deletions(-)
 
---- a/lib/test_xarray.c~xarray-fix-index-jumping-backwards-in-xas_find
-+++ a/lib/test_xarray.c
-@@ -1247,6 +1247,75 @@ static noinline void check_multi_find_3(
- 	}
- }
- 
-+static noinline void check_multi_find_4(struct xarray *xa)
-+{
-+#ifdef CONFIG_XARRAY_MULTI
-+	unsigned int order = XA_CHUNK_SHIFT + 1;
-+	unsigned long next = 1UL << order;
-+	unsigned long start = next - 1;
-+	XA_STATE(xas, xa, start);
-+	XA_STATE_ORDER(split, xa, 0, 0);
-+	void *entry;
-+	unsigned long i;
-+
-+	/* Multi-index entry in two slots of a non-leaf node. */
-+	xa_store_order(xa, 0, order, xa_mk_index(0), GFP_KERNEL);
-+	XA_BUG_ON(xa, xa_store_index(xa, next, GFP_KERNEL) != NULL);
-+
-+	rcu_read_lock();
-+	entry = xas_find(&xas, ULONG_MAX);
-+	XA_BUG_ON(xa, entry != xa_mk_index(0));
-+	XA_BUG_ON(xa, xas.xa_index != start);
-+
-+	entry = xas_find(&xas, ULONG_MAX);
-+	XA_BUG_ON(xa, entry != xa_mk_index(next));
-+	XA_BUG_ON(xa, xas.xa_index != next);
-+
-+	entry = xas_find(&xas, ULONG_MAX);
-+	XA_BUG_ON(xa, entry != NULL);
-+	rcu_read_unlock();
-+
-+	xa_erase_index(xa, next);
-+	xa_erase_index(xa, 0);
-+	XA_BUG_ON(xa, !xa_empty(xa));
-+
-+	/* Split the multi-index entry after a lookup begins inside it. */
-+	xa_store_order(xa, 0, order, xa_mk_index(0), GFP_KERNEL);
-+	XA_BUG_ON(xa, xa_store_index(xa, next, GFP_KERNEL) != NULL);
-+
-+	xas_set(&xas, start);
-+	rcu_read_lock();
-+	entry = xas_find(&xas, ULONG_MAX);
-+	XA_BUG_ON(xa, entry != xa_mk_index(0));
-+	XA_BUG_ON(xa, xas.xa_index != start);
-+	rcu_read_unlock();
-+
-+	xas_split_alloc(&split, xa_mk_index(0), order, GFP_KERNEL);
-+	if (xas_error(&split)) {
-+		XA_BUG_ON(xa, true);
-+		goto out;
-+	}
-+	xas_lock(&split);
-+	xas_split(&split, xa_mk_index(0), order);
-+	for (i = 0; i < next; i++)
-+		__xa_store(xa, i, xa_mk_index(i), 0);
-+	xas_unlock(&split);
-+
-+	rcu_read_lock();
-+	entry = xas_find(&xas, ULONG_MAX);
-+	XA_BUG_ON(xa, entry != xa_mk_index(next));
-+	XA_BUG_ON(xa, xas.xa_index != next);
-+
-+	entry = xas_find(&xas, ULONG_MAX);
-+	XA_BUG_ON(xa, entry != NULL);
-+	rcu_read_unlock();
-+
-+out:
-+	xa_destroy(xa);
-+	XA_BUG_ON(xa, !xa_empty(xa));
-+#endif
-+}
-+
- static noinline void check_find_1(struct xarray *xa)
+--- a/mm/page_alloc.c~mm-page_alloc-avoid-direct-compaction-for-costly-__gfp_noretry-allocations
++++ a/mm/page_alloc.c
+@@ -4784,10 +4784,10 @@ static inline struct page *
+ __alloc_pages_slowpath(gfp_t gfp_mask, unsigned int order,
+ 						struct alloc_context *ac)
  {
- 	unsigned long i, j, k;
-@@ -1370,6 +1439,7 @@ static noinline void check_find(struct x
- 		check_multi_find_1(xa, i);
- 	check_multi_find_2(xa);
- 	check_multi_find_3(xa);
-+	check_multi_find_4(xa);
- }
+-	bool can_direct_reclaim = gfp_mask & __GFP_DIRECT_RECLAIM;
+-	bool can_compact = can_direct_reclaim && gfp_compaction_allowed(gfp_mask);
+-	bool nofail = gfp_mask & __GFP_NOFAIL;
+ 	const bool costly_order = order > PAGE_ALLOC_COSTLY_ORDER;
++	bool can_direct_reclaim;
++	bool can_compact;
++	bool nofail;
+ 	struct page *page = NULL;
+ 	unsigned int alloc_flags;
+ 	unsigned long did_some_progress;
+@@ -4802,6 +4802,18 @@ __alloc_pages_slowpath(gfp_t gfp_mask, u
+ 	bool can_retry_reserves = true;
+ 	unsigned long alloc_start_time = jiffies;
  
- /* See find_swap_entry() in mm/shmem.c */
---- a/lib/xarray.c~xarray-fix-index-jumping-backwards-in-xas_find
-+++ a/lib/xarray.c
-@@ -1409,9 +1409,11 @@ void *xas_find(struct xa_state *xas, uns
- 		entry = xas_load(xas);
- 		if (entry || xas_not_node(xas->xa_node))
- 			return entry;
--	} else if (!xas->xa_node->shift &&
--		    xas->xa_offset != (xas->xa_index & XA_CHUNK_MASK)) {
--		xas->xa_offset = ((xas->xa_index - 1) & XA_CHUNK_MASK) + 1;
-+	} else if (xas->xa_offset != get_offset(xas->xa_index, xas->xa_node)) {
-+		if (!xas->xa_node->shift)
-+			xas->xa_offset = ((xas->xa_index - 1) & XA_CHUNK_MASK) + 1;
-+		else
-+			xas->xa_offset = get_offset(xas->xa_index, xas->xa_node);
- 	}
- 
- 	xas_next_offset(xas);
++	/*
++	 * Costly __GFP_NORETRY callers have a cheap fallback, so don't stall
++	 * them in reclaim or compaction. __GFP_THISNODE callers are exempt.
++	 */
++	if (costly_order && (gfp_mask & __GFP_NORETRY) &&
++	    !(gfp_mask & __GFP_THISNODE))
++		gfp_mask &= ~__GFP_DIRECT_RECLAIM;
++
++	can_direct_reclaim = gfp_mask & __GFP_DIRECT_RECLAIM;
++	can_compact = can_direct_reclaim && gfp_compaction_allowed(gfp_mask);
++	nofail = gfp_mask & __GFP_NOFAIL;
++
+ 	if (unlikely(nofail)) {
+ 		/*
+ 		 * Also we don't support __GFP_NOFAIL without __GFP_DIRECT_RECLAIM,
 _
 
-Patches currently in -mm which might be from krystianmkaniewski@gmail.com are
+Patches currently in -mm which might be from dipiets@amazon.it are
 
-xarray-fix-index-jumping-backwards-in-xas_find.patch
+mm-page_alloc-avoid-direct-compaction-for-costly-__gfp_noretry-allocations.patch
 
