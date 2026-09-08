@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6112553B61E
-	for <mm-commits@vger.kernel.org>; Tue,  8 Sep 2026 19:50:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E094753B61E
+	for <mm-commits@vger.kernel.org>; Tue,  8 Sep 2026 19:50:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788897053; cv=none; b=GfYXXkpL9G2pKHAhnXVyg4Xyf2Xywr843Xkur829YHMLtwLLRGen37AbEkYZH3Xx1cKvhMzWtP2j8RwQ9jZ4c5WnaAjGb3k/Z2pQywfRLfnXqYclIJ3YREWSFx6fRpvnDGyP00TtvtROa3i5Mv7hE9PSb/g+ooPsY1nxSm/8yF4=
+	t=1788897055; cv=none; b=tN1+I6BxZvXtOOdUA7gp6SzEUWJHyJ/8u/LSw/qP0/7lF5qk6OWHH24L1isPDv8mGOmUg0TO8wRrM/cuKP1A6KqOV/tTeBMAjv7nZx+tdn5f4ummTJQm4kdIQqBtFxdjyWOWr9AiXk/WaN65/9UOFl+T9MSLYNg479m5lNr41BQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788897053; c=relaxed/simple;
-	bh=xN+5A6TkKWg/CVjlx7UfsRZFu6CqhgXUWwMcOM3ebKQ=;
-	h=Date:To:From:Subject:Message-Id; b=S8uDEVBam4yQ96M+Ww9nIly2dV9SPvhdA3bM7m3Zj/N2Q7Faj2ShMYKlDOZyroReDbE8B1YdBXmO0Lt5tHlrlXno6i42LlilmvYnXT8gtLE4rluIziPKUmVWOL/mzGiqBhfvA+K4bhYsEvDrd8JGbM+auhntU8XW9AhnOlTFgtE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YjzG89aU; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788897055; c=relaxed/simple;
+	bh=EHXJE1qQa8fOVZg0S0S+Kcwz9wLW2YSuGIpAJYSvQNk=;
+	h=Date:To:From:Subject:Message-Id; b=BNYpNk1Rfue0i7AvsX9McXqyrRJYXMIUBNttpi/guh9Q/nq/6ooo80r4YyObW0LImiI9u/jxzJtXGitOcsTLIi+bkoUr67o9QZiPm96JbEM7EHkqwhXEyttHiTv9vWHQYTCtmraxlMyfZujdSY5wEaIPkYJSt35WcZgNLynjHUw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DlMaFzJX; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YjzG89aU"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E95181F00A3A;
-	Tue,  8 Sep 2026 19:50:50 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DlMaFzJX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4F0451F00A3A;
+	Tue,  8 Sep 2026 19:50:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788897051;
-	bh=Ac0z/UpHidAng8AI0MrDvYRjZJs1vxKOfKvAMfTBwb4=;
+	d=linux-foundation.org; s=korg; t=1788897053;
+	bh=f1vGvirlRJN8LfpGDsnDF2oPygqhpq53FkWJkvqka/k=;
 	h=Date:To:From:Subject;
-	b=YjzG89aUltkJ94EpnyMmucH1cU4qMGtuFzh1H7Kae4CyVu8NcITsQgDUUo5Y2mUQI
-	 IU8ue5wu3sdkjdRkQRpWh6NZLqq7vzNTn9+UIEdPXWdrG6oD9BkE/qUV0YntVuhMCE
-	 0tpqeleYMnlhsfhiGe4Utp8vBE/9MabiYzzFaEJw=
-Date: Tue, 08 Sep 2026 12:50:50 -0700
+	b=DlMaFzJXqY9ePNXHoFwTT8moa2kQU7OnGAME7db7WBaFxha7Oo0Hi7sWpZJ9hHWMv
+	 NGsCtzTBFakLSyTYLAWwVCvptx/L3vt7IewxxM0IxsMtFsFKAuKjh+rlPsn8Zb/yN7
+	 QJOzTtQjn5+gJMxTlWNS+UuRW0LZ+7gJ48A+HUkU=
+Date: Tue, 08 Sep 2026 12:50:52 -0700
 To: mm-commits@vger.kernel.org,kas@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-add-memory-pressure-threads-to-the-khugepaged-race-harness.patch added to mm-new branch
-Message-Id: <20260908195050.E95181F00A3A@smtp.kernel.org>
+Subject: + selftests-mm-zap-whole-pte-tables-in-the-khugepaged-race-harness.patch added to mm-new branch
+Message-Id: <20260908195053.4F0451F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: add memory-pressure threads to the khugepaged race harness
+     Subject: selftests/mm: zap whole PTE tables in the khugepaged race harness
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-mm-add-memory-pressure-threads-to-the-khugepaged-race-harness.patch
+     selftests-mm-zap-whole-pte-tables-in-the-khugepaged-race-harness.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-add-memory-pressure-threads-to-the-khugepaged-race-harness.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-zap-whole-pte-tables-in-the-khugepaged-race-harness.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,35 +70,19 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Kiryl Shutsemau (Meta)" <kas@kernel.org>
-Subject: selftests/mm: add memory-pressure threads to the khugepaged race harness
-Date: Tue, 8 Sep 2026 13:51:04 +0100
+Subject: selftests/mm: zap whole PTE tables in the khugepaged race harness
+Date: Tue, 8 Sep 2026 13:51:05 +0100
 
-The harness races collapse against faults, pins, fork, mremap and
-MADV_DONTNEED, but nothing in it runs reclaim or compaction against the
-collapse.
+The harness's MADV_DONTNEED thread zaps 1 to 32 pages at a time, never a
+whole PMD-aligned area, and only a zap that covers a full table frees the
+table itself (CONFIG_PT_RECLAIM).
 
-Add two more threads, and run every mode and occupancy limit both with and
-without them:
-
- - pageout: cycles MADV_PAGEOUT over a region of its own, faults it back
-   in and checks the content each round, since a page's pattern must
-   survive the trip through swap.  Left out when the host has no swap,
-   because then there is no anon reclaim to drive.
-
- - compactor: writes /proc/sys/vm/compact_memory in a loop.  Compaction
-   isolates and migrates folios, so it competes with a collapse for the
-   pages it is gathering, with refcount elevations and migration entries
-   of its own.
-
-Each result says whether it ran under pressure:
-
-  ok 2 stepped/strict/pressure: 5s, 88 steps, no corruption
-
-A full run is now twelve combinations; -m picks one mode, -d shortens each
-run.
+Make the thread zap a whole PMD-aligned area about one iteration in 64,
+and keep the fine-grained zaps as the common case.  The new case frees
+page tables, racing that against a collapse walking the same table.
 
 Assisted-by: LLM
-Link: https://lore.kernel.org/20260908125105.1510704-19-kirill@shutemov.name
+Link: https://lore.kernel.org/20260908125105.1510704-20-kirill@shutemov.name
 Signed-off-by: Kiryl Shutsemau (Meta) <kas@kernel.org>
 Tested-by: Muhammad Usama Anjum <usama.anjum@arm.com>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
@@ -123,224 +107,35 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/khugepaged_race.c |  142 ++++++++++++++---
- 1 file changed, 122 insertions(+), 20 deletions(-)
+ tools/testing/selftests/mm/khugepaged_race.c |   17 +++++++++++++++--
+ 1 file changed, 15 insertions(+), 2 deletions(-)
 
---- a/tools/testing/selftests/mm/khugepaged_race.c~selftests-mm-add-memory-pressure-threads-to-the-khugepaged-race-harness
+--- a/tools/testing/selftests/mm/khugepaged_race.c~selftests-mm-zap-whole-pte-tables-in-the-khugepaged-race-harness
 +++ a/tools/testing/selftests/mm/khugepaged_race.c
-@@ -44,6 +44,8 @@ static unsigned long page_size;
- static char *region;
- static char *mremap_area;
- static char *mremap_scratch;
-+static char *pageout_area;
-+static size_t pageout_size;
- static int gup_fd = -1;
- static volatile int stop;
- static volatile int corrupted;
-@@ -199,6 +201,69 @@ static void *mremapper_fn(void *arg)
- 	return NULL;
- }
+@@ -118,8 +118,21 @@ static void *dontneed_fn(void *arg)
+ 		unsigned long page_idx = rand_page(&seed);
+ 		unsigned long nr = 1UL << (rand_r(&seed) % 6);	/* 1..32 pages */
  
-+/*
-+ * Swap traffic and LRU churn on a region nothing else writes, so a page's
-+ * pattern must survive the trip through swap exactly.
-+ */
-+static void *pageout_fn(void *arg)
-+{
-+	unsigned int seed = (unsigned long)arg;
-+	unsigned long nr = pageout_size / page_size;
-+	unsigned long i;
+-		madvise(region + page_idx * page_size,
+-			room_from(page_idx, nr) * page_size, MADV_DONTNEED);
++		/*
++		 * Now and then zap a whole PMD-aligned area: only a zap that
++		 * covers the full table frees the table itself (CONFIG_PT_RECLAIM).
++		 */
++		if (!(rand_r(&seed) % 64)) {
++			unsigned long area = page_idx /
++					(hpage_pmd_size / page_size);
 +
-+	for (i = 0; i < nr; i++)
-+		*(unsigned int *)(pageout_area + i * page_size) = pattern(i);
-+
-+	while (!stop) {
-+		madvise(pageout_area, pageout_size, MADV_PAGEOUT);
-+		for (i = 0; i < nr && !stop; i++) {
-+			unsigned int val = *(unsigned int *)(pageout_area +
-+							     i * page_size);
-+
-+			if (val != pattern(i)) {
-+				corrupted = 1;
-+				ksft_print_msg("Pageout corruption at page %lu: %#x != %#x\n",
-+					       i, val, pattern(i));
-+			}
++			madvise(region + area * hpage_pmd_size,
++				hpage_pmd_size, MADV_DONTNEED);
++		} else {
++			madvise(region + page_idx * page_size,
++				room_from(page_idx, nr) * page_size,
++				MADV_DONTNEED);
 +		}
-+		usleep(rand_r(&seed) % 2000);
-+	}
-+	return NULL;
-+}
-+
-+/* Compaction migrates the collapse sources while they are being gathered */
-+static void *compactor_fn(void *arg)
-+{
-+	unsigned int seed = (unsigned long)arg;
-+	int fd = open("/proc/sys/vm/compact_memory", O_WRONLY);
-+
-+	if (fd < 0) {
-+		ksft_print_msg("No compact_memory; compactor idle\n");
-+		return NULL;
-+	}
-+	while (!stop) {
-+		if (write(fd, "1", 1) < 0)
-+			break;
-+		usleep(10000 + rand_r(&seed) % 100000);
-+	}
-+	close(fd);
-+	return NULL;
-+}
-+
-+static bool swap_available(void)
-+{
-+	char line[256];
-+	int lines = 0;
-+	FILE *fp = fopen("/proc/swaps", "r");
-+
-+	if (!fp)
-+		return false;
-+	while (fgets(line, sizeof(line), fp))
-+		lines++;
-+	fclose(fp);
-+	return lines > 1;
-+}
-+
- static unsigned long now_ms(void)
- {
- 	struct timeval tv;
-@@ -222,17 +287,23 @@ int main(int argc, char **argv)
- {
- 	static const char * const thread_names[] = {
- 		"faulter", "faulter2", "dontneed", "pinner", "forker",
--		"mremapper",
-+		"mremapper", "pageout", "compactor",
- 	};
- 	void *(*const thread_fns[])(void *) = {
- 		faulter_fn, faulter_fn, dontneed_fn, pinner_fn, forker_fn,
--		mremapper_fn,
-+		mremapper_fn, pageout_fn, compactor_fn,
- 	};
-+	enum { T_FAULTER, T_FAULTER2, T_DONTNEED, T_PINNER, T_FORKER,
-+	       T_MREMAPPER, T_PAGEOUT, T_COMPACTOR };
-+	const unsigned long pageout_bit = 1UL << T_PAGEOUT;
-+	const unsigned long compactor_bit = 1UL << T_COMPACTOR;
- 	const int nr_threads = ARRAY_SIZE(thread_names);
- 	pthread_t threads[ARRAY_SIZE(thread_names)];
- 	static const char * const all_modes[] = { "stepped", "free", "madvise" };
- 	static const bool occupancies[] = { false, true };	/* strict, holes */
-+	static const bool pressures[] = { false, true };	/* quiet, under pressure */
- 	const int nr_occupancies = ARRAY_SIZE(occupancies);
-+	const int nr_pressures = ARRAY_SIZE(pressures);
- 	const char *one_mode[1];
- 	const char * const *modes = all_modes;
- 	int nr_modes = ARRAY_SIZE(all_modes);
-@@ -241,6 +312,9 @@ int main(int argc, char **argv)
- 	unsigned long end_ms;
- 	int duration_s = 5;
- 	unsigned long thread_mask = ~0UL;
-+	unsigned long base_mask;
-+	bool have_swap;
-+	char label[64];
- 	int nr_areas_arg = 0;
- 	unsigned long i;
- 	int steps = 0;
-@@ -300,7 +374,13 @@ int main(int argc, char **argv)
- 		 -1, 0) != (void *)mremap_scratch)
- 		ksft_exit_fail_perror("mmap() mremap scratch");
- 
--	ksft_set_plan(nr_modes * nr_occupancies);
-+	base_mask = thread_mask;
-+	have_swap = swap_available();
-+	if (!have_swap)
-+		/* No swap, no anon reclaim: compaction-only pressure */
-+		ksft_print_msg("no swap: the pageout thread is not started\n");
-+
-+	ksft_set_plan(nr_modes * nr_occupancies * nr_pressures);
- 
- 	thp_save_settings();
- 	thp_read_settings(&settings);
-@@ -308,9 +388,25 @@ int main(int argc, char **argv)
- 	/* Base of the settings stack; the bottom entry is never popped */
- 	thp_push_settings(&settings);
- 
--	for (int run = 0; run < nr_modes * nr_occupancies; run++) {
--		const char *mode = modes[run / nr_occupancies];
--		bool holes = occupancies[run % nr_occupancies];
-+	for (int run = 0; run < nr_modes * nr_occupancies * nr_pressures; run++) {
-+		int rem = run % (nr_occupancies * nr_pressures);
-+		const char *mode = modes[run / (nr_occupancies * nr_pressures)];
-+		bool holes = occupancies[rem / nr_pressures];
-+		bool pressure = pressures[rem % nr_pressures];
-+
-+		snprintf(label, sizeof(label), "%s/%s%s", mode,
-+			 holes ? "holes" : "strict", pressure ? "/pressure" : "");
-+		if (corrupted) {
-+			/* Memory is suspect; the rest would prove nothing */
-+			ksft_test_result_skip("%s: skipped after corruption\n", label);
-+			continue;
-+		}
-+
-+		thread_mask = base_mask;
-+		if (!pressure)
-+			thread_mask &= ~(pageout_bit | compactor_bit);
-+		else if (!have_swap)
-+			thread_mask &= ~pageout_bit;
- 
- 		thp_read_settings(&settings);
- 		settings.thp_enabled = THP_MADVISE;
-@@ -344,6 +440,20 @@ int main(int argc, char **argv)
- 			ksft_exit_fail_perror("mmap() playground");
- 		mremap_area = region + nr_shared_areas * hpage_pmd_size;
- 
-+		if (thread_mask & pageout_bit) {
-+			/* Enough to drive real reclaim without swamping a small guest */
-+			pageout_size = 4 * hpage_pmd_size;
-+			if (pageout_size < 16UL << 20)
-+				pageout_size = 16UL << 20;
-+			if (pageout_size > 64UL << 20)
-+				pageout_size = 64UL << 20;
-+			pageout_area = mmap(NULL, pageout_size,
-+					    PROT_READ | PROT_WRITE,
-+					    MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
-+			if (pageout_area == MAP_FAILED)
-+				ksft_exit_fail_perror("mmap() pageout area");
-+		}
-+
- 		/* Populate so the first pass has something to collapse */
- 		for (i = 0; i < nr_shared_areas * hpage_pmd_size / page_size; i++)
- 			*(unsigned int *)(region + i * page_size) = pattern(i);
-@@ -392,26 +502,18 @@ int main(int argc, char **argv)
- 		for (i = 0; i < nr_shared_areas * hpage_pmd_size / page_size; i++)
- 			check_page(i);
- 
--		ksft_test_result(!corrupted,
--				 "%s/%s: %ds, %d steps, no corruption\n",
--				 mode, holes ? "holes" : "strict",
--				 duration_s, steps);
-+		ksft_test_result(!corrupted, "%s: %ds, %d steps, no corruption\n",
-+				 label, duration_s, steps);
- 
- 		/* The next mode maps the same fixed address with its own settings */
- 		munmap(region, nr_areas * hpage_pmd_size);
-+		if (pageout_area) {
-+			munmap(pageout_area, pageout_size);
-+			pageout_area = NULL;
-+		}
- 		thp_pop_settings();
- 		stop = 0;
- 		steps = 0;
--
--		if (corrupted) {
--			/* Memory is suspect; the rest would prove nothing */
--			while (++run < nr_modes * nr_occupancies)
--				ksft_test_result_skip("%s/%s: skipped after corruption\n",
--						      modes[run / nr_occupancies],
--						      occupancies[run % nr_occupancies] ?
--						      "holes" : "strict");
--			break;
--		}
+ 		usleep(rand_r(&seed) % 500);
  	}
- 
- 	ksft_finished();
+ 	return NULL;
 _
 
 Patches currently in -mm which might be from kas@kernel.org are
