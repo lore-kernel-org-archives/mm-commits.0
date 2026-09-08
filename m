@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F038749AA31
-	for <mm-commits@vger.kernel.org>; Tue,  8 Sep 2026 23:08:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 98EB830C159
+	for <mm-commits@vger.kernel.org>; Tue,  8 Sep 2026 23:08:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788908883; cv=none; b=M/v1v8/KB7oSSxLt6tyBRA2XlOYKSYfApioHseEfJIF5BX+BZL7zpSdK7uF4Kx6YmhfVctehqhn5FQA5SW4ocvwnoIGhrMqlEeowH8D32b5JY04Aa0n+WbzRkbZlhYPBFdFcjGWkoPs0QJnYvXP4FMEwfuIjU439AMjr1IvrN3g=
+	t=1788908888; cv=none; b=CK8QpvcSaUE39p2g+cZ1HSniIhg32SxUdaba736MgsG0dFiWt5q/a7b90X2uCdV8NiTrMRWSgPW4/Q3NxRUnYHzegk4rGDxjp+sX2rWTydpKQHPH5RYqkwLWPiG1W7Nt+vVKI2+yqgfdO9H5t0ONbIZyPjYmIy0SL9JEr83nxVo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788908883; c=relaxed/simple;
-	bh=IjJ3Sg1x7387+0xZQ7isXqTVaswmGCT0ATWOi8BxUP8=;
-	h=Date:To:From:Subject:Message-Id; b=fqYgguAvgIk2+hiBV/scNcf8lBibhQEtMMhN6hsM0hX95VbkNyKFqUOZKHbWMQgl66qKBFKgbI8/KIqdv2ZAlgsPA/QARO6JJ4wgqZwn0V0GOTH6+f/ZHO9gEucllhuhGVdE6Y+nZlpXehjGzmWmrQF7f2bs6uAVUWg3K8OajaI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wXpQYnZ/; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788908888; c=relaxed/simple;
+	bh=kbMQBk5pEle5UEYxzXFIutBI6RnNJnXeJ4oR1B5yTRA=;
+	h=Date:To:From:Subject:Message-Id; b=kO79YSDVYF2fZJOLL5odpyt3kYqjMO9DdvH8ijMegFOQpCEuPE8ZbrwF/W4XYSGjAm7tJFUsoOW8ODL6Q6UJw1uox9kKqZcJw7Dt/Y2WKOPxs2FaH1kNhJ4Jleh60ysJgMmeJayCdt23SBx8Ae+W9LAbIBcQgZXe0iTaWPhG9/A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IpeIRCgk; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wXpQYnZ/"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id ECEF31F00A3D;
-	Tue,  8 Sep 2026 23:07:59 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IpeIRCgk"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 352DA1F00A3F;
+	Tue,  8 Sep 2026 23:08:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788908880;
-	bh=ZeeG8i1lLlNPqf0EqB2mmQdVit+keVonGk1RbIyGfYE=;
+	d=linux-foundation.org; s=korg; t=1788908882;
+	bh=H+OU2tEetWb1MbDgoMlJ2X8wFllJHgvRNzhIbS8gbcQ=;
 	h=Date:To:From:Subject;
-	b=wXpQYnZ/lOHJgiLiMBK3fcuMLX7rgN72HJV0RsOXCSqF51cqWztaaydzi6vgoEU/K
-	 Nr/3+W6PjS9+i1NwvNzvkNmP63xT/dVmYFc7J1r6PmvwgQHylCnOGNZ2e3MW5/IeXW
-	 4DKG4/I6MCsB64ItcNCCL8N0tjTf6BPnE0yMUeTI=
-Date: Tue, 08 Sep 2026 16:07:59 -0700
+	b=IpeIRCgkJm+xTwFNE8odpzpWO91N/4nWBcmrj8puvotxwfpjx1gK+sLnQlpPoQVJB
+	 ClMzsakggjVGt3bXRSu5LUWrZ4BLPXz2zfL5IQvHg9XBCRpbfD4tKRzO2tg3RTrVIY
+	 kCzEzaYcY4A+NjGxlNzUMyXtGXUYjz7WXqIQ5DII=
+Date: Tue, 08 Sep 2026 16:08:01 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] selftests-damon-drgn_dump_damon_status-dump-probes.patch removed from -mm tree
-Message-Id: <20260908230759.ECEF31F00A3D@smtp.kernel.org>
+Subject: [to-be-updated] selftests-damon-sysfspy-test-damon-probes.patch removed from -mm tree
+Message-Id: <20260908230802.352DA1F00A3F@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,22 +35,21 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests/damon/drgn_dump_damon_status: dump probes
+     Subject: selftests/damon/sysfs.py: test damon probes
 has been removed from the -mm tree.  Its filename was
-     selftests-damon-drgn_dump_damon_status-dump-probes.patch
+     selftests-damon-sysfspy-test-damon-probes.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: selftests/damon/drgn_dump_damon_status: dump probes
-Date: Wed, 2 Sep 2026 07:03:10 -0700
+Subject: selftests/damon/sysfs.py: test damon probes
+Date: Wed, 2 Sep 2026 07:03:12 -0700
 
-Extend drgn_dump_damon_status.py to dump damon_ctx->probes.  It will be
-used to see if in-kernel DAMON status are changed as the user sets the
-probes via sysfs.
+Extend sysfs.py to commit DAMON probes via sysfs, and see if it changed
+in-kernel DAMON status as expected using drgn.
 
-Link: https://lore.kernel.org/20260902140313.85983-5-sj@kernel.org
+Link: https://lore.kernel.org/20260902140313.85983-7-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Cc: Brendan Higgins <brendan.higgins@linux.dev>
 Cc: David Gow <davidgow@davidgow.net>
@@ -58,57 +57,34 @@ Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/damon/drgn_dump_damon_status.py |   32 ++++++++++
- 1 file changed, 32 insertions(+)
+ tools/testing/selftests/damon/sysfs.py |   16 +++++++++++++++-
+ 1 file changed, 15 insertions(+), 1 deletion(-)
 
---- a/tools/testing/selftests/damon/drgn_dump_damon_status.py~selftests-damon-drgn_dump_damon_status-dump-probes
-+++ a/tools/testing/selftests/damon/drgn_dump_damon_status.py
-@@ -48,6 +48,37 @@ def attrs_to_dict(attrs):
-         ['max_nr_regions', int],
-         ])
- 
-+def filter_to_dict(damon_filter):
-+    filter_type_keyword = {
-+            0: 'anon',
-+            1: 'memcg',
-+            }
-+    dict_ = {
-+            'type': filter_type_keyword[int(damon_filter.type)],
-+            'matching': bool(damon_filter.matching),
-+            'allow': bool(damon_filter.allow),
-+            }
-+    type_ = dict_['type']
-+    if type_ == 'memcg':
-+        dict_['memcg_id'] = int(damon_filter.memcg_id)
-+    return dict_
-+
-+def filters_to_list(filters):
-+    return [filter_to_dict(f)
-+            for f in list_for_each_entry(
-+                'struct damon_filter', filters.address_of_(), 'list')]
-+
-+def probe_to_dict(probe):
-+    return to_dict(probe, [
-+        ['weight', int],
-+        ['filters', filters_to_list],
-+        ])
-+
-+def probes_to_list(probes):
-+    return [probe_to_dict(p)
-+            for p in list_for_each_entry(
-+                'struct damon_probe', probes.address_of_(), 'list')]
-+
- def addr_range_to_dict(addr_range):
-     return to_dict(addr_range, [
-         ['start', int],
-@@ -199,6 +230,7 @@ def damon_ctx_to_dict(ctx):
-     return to_dict(ctx, [
-         ['ops', ops_to_dict],
-         ['attrs', attrs_to_dict],
-+        ['probes', probes_to_list],
-         ['adaptive_targets', targets_to_list],
-         ['schemes', schemes_to_list],
-         ['pause', bool],
+--- a/tools/testing/selftests/damon/sysfs.py~selftests-damon-sysfspy-test-damon-probes
++++ a/tools/testing/selftests/damon/sysfs.py
+@@ -319,7 +319,21 @@ def main():
+                 intervals_goal=_damon_sysfs.IntervalsGoal(
+                     access_bp=400, aggrs=3, min_sample_us=5000,
+                     max_sample_us=10000000),
+-                update_us=2000000),
++                update_us=2000000,
++                probes=_damon_sysfs.DamonProbes(
++                    probes=[_damon_sysfs.DamonProbe(
++                        weight=42,
++                        filters=_damon_sysfs.DamonFilters(
++                            filters=[
++                                _damon_sysfs.DamonFilter(
++                                    type_='anon',
++                                    matching=True,
++                                    allow=True,
++                                    ),
++                                ]),
++                            ),
++                            ]),
++                    ),
+             schemes=[_damon_sysfs.Damos(
+                 action='pageout',
+                 access_pattern=_damon_sysfs.DamosAccessPattern(
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
@@ -143,8 +119,6 @@ mm-damon-tests-core-kunit-test-committing-psi-goal-to-psi-goal.patch
 mm-damon-core-handle-uninitialized-damos_quota_goal-last_psi_total.patch
 mm-damon-core-copy-nid-for-eligible_mem_bp-damos-quota-goal-commit.patch
 mm-damon-sysfs-set-next-refresh-jiffies-per-sysfs-context.patch
-selftests-damon-sysfspy-extend-commit-assertion-function-for-probes.patch
-selftests-damon-sysfspy-test-damon-probes.patch
 mm-damon-core-use-damon_nr_samples_per_aggr-for-max-merge-threshold.patch
 mm-damon-core-remove-debug-messages.patch
 mm-damon-core-remove-debug-messages-fix.patch
