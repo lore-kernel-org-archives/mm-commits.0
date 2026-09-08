@@ -1,158 +1,197 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.11])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6128A51A72F
-	for <mm-commits@vger.kernel.org>; Tue,  8 Sep 2026 10:02:55 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.11
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F39CB5921EF
+	for <mm-commits@vger.kernel.org>; Tue,  8 Sep 2026 17:55:23 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788861777; cv=none; b=T/ksZEGpPwfpYLQiMPhIMhSXFFZAPSH4FQfwHA/FKaYtyzWsBpJXKofVjklLKYezb2Um2whZiLFrB6Nu26e4xGZWWZbBml2a4x+hs0h1PRy77CIm79svQ19363IxlEJl6YyEaUYDFVdjuxL6/KD/l6VumQnRuD6x8JL7qWkw8c0=
+	t=1788890125; cv=none; b=pEVyd6los0j1jjl9GOalLlw7HlHnLyw0UA94JxJQjDHPJBKqk/Ga47+KstwK0hU3Y7WhfCA+jJIjRYqoU2Y5H5/XVqs6p/2bAq4ajIv4IyWTZlD5TVu77xzGsPYdGH5w+62wEY2jzwSQPkKmFzZsjBaWT9TTl/ZJS+BBm0xXhOE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788861777; c=relaxed/simple;
-	bh=lOenf34xndDiZJzMvpI/y4dJR0P8wkP4cRibhZ8Cg3E=;
-	h=Date:From:To:Cc:Subject:Message-ID; b=T/Aj/JqipYYPG9g15H3BlU4MUkMPq4VoApAnc8niRjd44fOarxO+v9d1acAM9gHDetHQx0ondSDZ+jOAhHoqCc3JKBwOROeYzSA3CXrlLtTCdQ7pmHGbeYMqsAiWJRJp4PvwpkD59SqfOvT5GQxR8GRxQ8W2I3I6WNBeHH+nMPI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=X2csJ4hA; arc=none smtp.client-ip=192.198.163.11
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	s=arc-20240116; t=1788890125; c=relaxed/simple;
+	bh=HdpaWnWK6iCht2CBnGxfB3RIh8fGCp0r9MQi5ww3x10=;
+	h=Date:To:From:Subject:Message-Id; b=klMYMib+FPKun1eexYMFcjD1sVxO1UdVHOeuVU44P/d0A9zBUbcNU95M0qBAeCwKSKTn56TE7taJ/8sgGPbwcYK6aJw7iI1smNv5wdOCu7o0JmmGtr6J1EXzIzCIMdFsxYvJtveujHmp/aZ58nA3ckhIBsFCHJkg1Ep/1Q0iQcM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=osr5I5QB; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="X2csJ4hA"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1788861775; x=1820397775;
-  h=date:from:to:cc:subject:message-id;
-  bh=lOenf34xndDiZJzMvpI/y4dJR0P8wkP4cRibhZ8Cg3E=;
-  b=X2csJ4hA3ZvArlFFL2b3Pst8ovOVa7VvTEAv/7VlvpzuUqlLWzWXNNbR
-   mMXFnrQJdaX5sITGUB4I7rOHAeo9DIri2TEHnnH1jgEDFKDJVVX3zHlro
-   8VBVPxwVI3Wt5jI2hcmO5xc7AOEaiA8UQFka3+R6dvRpk+LOLaUutAeoG
-   Kdh0p25auCu6EdwVPVR59MiOBNxTUPzeuEHITcEJ92a8fRk903FK3m8nH
-   itYzc7pTl4lOxhk7BhDapD99zoXplldiAkg89zL16FyKnQ2YURTcwX3jU
-   1/UJv78qTs3mCSpO2mM2NBDqgIo0kLP7fP8SWPnc6u8zp/O9p6Evg7ARP
-   w==;
-X-CSE-ConnectionGUID: 33HFpz+AROqJuMzkYePZ8w==
-X-CSE-MsgGUID: r0lvrMyEQm+JB9mKKCGdAQ==
-X-IronPort-AV: E=McAfee;i="6800,10657,11899"; a="99852938"
-X-IronPort-AV: E=Sophos;i="6.25,268,1779174000"; 
-   d="scan'208";a="99852938"
-Received: from orviesa003.jf.intel.com ([10.64.159.143])
-  by fmvoesa105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 08 Sep 2026 03:02:54 -0700
-X-CSE-ConnectionGUID: 69z3aZ3YQc6vTCP9kvNpNg==
-X-CSE-MsgGUID: CvDo7uGIR6W/UNHeQIyZ3Q==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.25,268,1779174000"; 
-   d="scan'208";a="274470861"
-Received: from lkp-server01.sh.intel.com (HELO dff15f1b2031) ([10.239.97.150])
-  by orviesa003.jf.intel.com with ESMTP; 08 Sep 2026 03:02:53 -0700
-Received: from kbuild by dff15f1b2031 with local (Exim 4.98.2)
-	(envelope-from <lkp@intel.com>)
-	id 1x3sfB-000000001xF-3ykp;
-	Tue, 08 Sep 2026 10:02:49 +0000
-Date: Tue, 08 Sep 2026 18:02:41 +0800
-From: kernel test robot <lkp@intel.com>
-To: David Hildenbrand <david@kernel.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>,
- Linux Memory Management List <linux-mm@kvack.org>,
- mm-commits@vger.kernel.org
-Subject: [akpm-mm:mm-new] BUILD SUCCESS
- 9d3243fc689fef444f87e0a703b4c99653137e1b
-Message-ID: <202609081839.rwV5qR0y-lkp@intel.com>
-User-Agent: s-nail v14.9.25
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="osr5I5QB"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AD9E01F00ACF;
+	Tue,  8 Sep 2026 17:55:23 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=linux-foundation.org; s=korg; t=1788890123;
+	bh=9tQbeszmrXhSx0i5ZmRcNza5o7usjCyfHlWCaigk7w8=;
+	h=Date:To:From:Subject;
+	b=osr5I5QBRt8Z5t4iM/XpK3KHOJ3a8tuScrSKi1r5FrHZzY83mKvtYtAwEUioRZa74
+	 wbi/C4IqywtetBgLzNAxQLdF/9Fw6gdMNybKyaiTQyKQaT4JkMU8nh8fbIEgAt/eJ7
+	 SovVQmaExfSUYd8UyW5Y1r/4/aGtQIglk2vm/+5Q=
+Date: Tue, 08 Sep 2026 10:55:23 -0700
+To: mm-commits@vger.kernel.org,tz2294@columbia.edu,akpm@linux-foundation.org
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: + mm-swap-add-folio_swap_entry-and-folio_page_swap_entry.patch added to mm-new branch
+Message-Id: <20260908175523.AD9E01F00ACF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
-tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm.git mm-new
-branch HEAD: 9d3243fc689fef444f87e0a703b4c99653137e1b  mm/swap, PM: hibernate: atomically replace hibernation pin
 
-elapsed time: 1865m
+The patch titled
+     Subject: mm/swap: add folio_swap_entry() and folio_page_swap_entry()
+has been added to the -mm mm-new branch.  Its filename is
+     mm-swap-add-folio_swap_entry-and-folio_page_swap_entry.patch
 
-configs tested: 79
-configs skipped: 2
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-add-folio_swap_entry-and-folio_page_swap_entry.patch
 
-The following configs have been built successfully.
-More configs may be tested in the coming days.
+This patch will later appear in the mm-new branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
-tested configs:
-alpha         allnoconfig    gcc-16.1.0
-alpha        allyesconfig    gcc-16.1.0
-arc          allmodconfig    clang-24
-arc          allmodconfig    gcc-16.1.0
-arc           allnoconfig    gcc-16.1.0
-arc          allyesconfig    gcc-16.1.0
-arm           allnoconfig    clang-17
-arm           allnoconfig    gcc-16.1.0
-arm          allyesconfig    clang-24
-arm64        allmodconfig    clang-24
-arm64         allnoconfig    gcc-16.1.0
-csky         allmodconfig    gcc-16.1.0
-csky          allnoconfig    gcc-16.1.0
-hexagon      allmodconfig    clang-24
-hexagon      allmodconfig    gcc-16.1.0
-hexagon       allnoconfig    clang-24
-hexagon       allnoconfig    gcc-16.1.0
-i386         allmodconfig    clang-22
-i386          allnoconfig    gcc-14
-i386          allnoconfig    gcc-16.1.0
-i386         allyesconfig    clang-22
-loongarch    allmodconfig    clang-19
-loongarch     allnoconfig    clang-20
-loongarch     allnoconfig    gcc-16.1.0
-m68k         allmodconfig    gcc-16.1.0
-m68k          allnoconfig    gcc-16.1.0
-m68k         allyesconfig    clang-24
-m68k         allyesconfig    gcc-16.1.0
-microblaze    allnoconfig    gcc-16.1.0
-microblaze   allyesconfig    gcc-16.1.0
-mips         allmodconfig    gcc-16.1.0
-mips          allnoconfig    gcc-16.1.0
-mips         allyesconfig    gcc-16.1.0
-nios2        allmodconfig    clang-20
-nios2        allmodconfig    gcc-11.5.0
-nios2         allnoconfig    clang-24
-nios2         allnoconfig    gcc-11.5.0
-openrisc     allmodconfig    clang-20
-openrisc     allmodconfig    gcc-16.1.0
-openrisc      allnoconfig    clang-24
-openrisc      allnoconfig    gcc-16.1.0
-parisc       allmodconfig    gcc-16.1.0
-parisc        allnoconfig    clang-24
-parisc        allnoconfig    gcc-16.1.0
-parisc       allyesconfig    clang-17
-parisc       allyesconfig    gcc-16.1.0
-powerpc      allmodconfig    gcc-16.1.0
-powerpc       allnoconfig    clang-24
-powerpc       allnoconfig    gcc-16.1.0
-riscv        allmodconfig    clang-24
-riscv         allnoconfig    clang-24
-riscv         allnoconfig    gcc-16.1.0
-riscv        allyesconfig    clang-24
-s390         allmodconfig    clang-17
-s390         allmodconfig    clang-24
-s390          allnoconfig    clang-24
-s390         allyesconfig    gcc-16.1.0
-sh           allmodconfig    gcc-16.1.0
-sh            allnoconfig    clang-24
-sh            allnoconfig    gcc-16.1.0
-sh           allyesconfig    clang-17
-sh           allyesconfig    gcc-16.1.0
-sparc         allnoconfig    clang-24
-sparc         allnoconfig    gcc-16.1.0
-sparc64      allmodconfig    clang-20
-um           allmodconfig    clang-17
-um            allnoconfig    clang-17
-um            allnoconfig    clang-24
-um           allyesconfig    gcc-14
-um           allyesconfig    gcc-16.1.0
-x86_64       allmodconfig    clang-22
-x86_64        allnoconfig    clang-22
-x86_64        allnoconfig    clang-24
-x86_64       allyesconfig    clang-22
-x86_64      rhel-9.4-rust    clang-22
-xtensa        allnoconfig    clang-24
-xtensa        allnoconfig    gcc-16.1.0
-xtensa       allyesconfig    clang-20
-xtensa       allyesconfig    gcc-16.1.0
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
 
---
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests/wiki
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
+
+------------------------------------------------------
+From: Tal Zussman <tz2294@columbia.edu>
+Subject: mm/swap: add folio_swap_entry() and folio_page_swap_entry()
+Date: Tue, 08 Sep 2026 11:16:31 -0400
+
+Patch series "mm: remove page_swap_entry()", v2.
+
+A folio in the swap cache occupies folio_nr_pages() contiguous swap
+entries starting at folio->swap, so a page's swap entry is just
+folio->swap plus the page's index in the folio.  The swap entry is folio
+state, but the only helper for it is page-based: page_swap_entry() takes a
+page and recomputes the folio its callers already hold.  Several callers
+avoid it by open-coding the arithmetic on folio->swap instead.
+
+Add folio_swap_entry() and folio_page_swap_entry(), convert all users, and
+remove page_swap_entry(), with a few other cleanups along the way.
+
+
+This patch (of 8):
+
+A folio in the swap cache occupies folio_nr_pages() contiguous swap
+entries starting at folio->swap, so a page's swap entry is just
+folio->swap plus the page's index in the folio.  page_swap_entry() hides
+this behind a compound_head() call, and callers that already have the
+folio sometimes open-code the arithmetic instead.
+
+Add folio_swap_entry(), which takes a folio and a page index, and
+folio_page_swap_entry() for callers that have the page.
+
+Link: https://lore.kernel.org/20260908-folio_swap_entry-v2-0-ee6d01dfa5e1@columbia.edu
+Link: https://lore.kernel.org/20260908-folio_swap_entry-v2-1-ee6d01dfa5e1@columbia.edu
+Signed-off-by: Tal Zussman <tz2294@columbia.edu>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Baoquan He <baoquan.he@linux.dev>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Chengming Zhou <chengming.zhou@linux.dev>
+Cc: Chris Li <chrisl@kernel.org>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Harry Yoo <harry@kernel.org>
+Cc: Jann Horn <jannh@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Kairui Song <kasong@tencent.com>
+Cc: Kemeng Shi <shikemeng@huaweicloud.com>
+Cc: Kiryl Shutsemau <kas@kernel.org>
+Cc: Lance Yang <lance.yang@linux.dev>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Marc Rutland <mark.rutland@arm.com>
+Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Will Deacon <will@kernel.org>
+Cc: Zi Yan <ziy@nvidia.com>
+
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ include/linux/swap.h |   33 +++++++++++++++++++++++++++++++++
+ 1 file changed, 33 insertions(+)
+
+--- a/include/linux/swap.h~mm-swap-add-folio_swap_entry-and-folio_page_swap_entry
++++ a/include/linux/swap.h
+@@ -272,6 +272,39 @@ struct swap_info_struct {
+ 	const struct swap_ops *ops;
+ };
+ 
++/**
++ * folio_swap_entry - Return the swap entry for a page within a folio.
++ * @folio: The folio.
++ * @idx: The index of the page within the folio.
++ *
++ * A folio in the swap cache occupies folio_nr_pages() contiguous swap
++ * entries starting at folio->swap. The caller must ensure the folio is
++ * in the swap cache and that @idx is within the folio.
++ */
++static inline
++swp_entry_t folio_swap_entry(const struct folio *folio, unsigned long idx)
++{
++	swp_entry_t entry = folio->swap;
++
++	VM_WARN_ON_ONCE_FOLIO(idx >= folio_nr_pages(folio), folio);
++	entry.val += idx;
++	return entry;
++}
++
++/**
++ * folio_page_swap_entry - Return the swap entry of a page in a folio.
++ * @folio: The folio containing @page.
++ * @page: A page within @folio.
++ *
++ * The caller must ensure the folio is in the swap cache and that @page
++ * is part of @folio.
++ */
++static inline swp_entry_t folio_page_swap_entry(const struct folio *folio,
++		const struct page *page)
++{
++	return folio_swap_entry(folio, folio_page_idx(folio, page));
++}
++
+ static inline swp_entry_t page_swap_entry(struct page *page)
+ {
+ 	struct folio *folio = page_folio(page);
+_
+
+Patches currently in -mm which might be from tz2294@columbia.edu are
+
+mm-page_io-convert-write-completion-handlers-to-folios.patch
+mm-remove-pagereclaim.patch
+mm-page_io-use-swap-entries-directly-in-zeromap-helpers.patch
+mm-page_io-rename-bio_associate_blkg_from_page.patch
+mm-page_io-refer-to-folios-in-swap_writeout-comments.patch
+mm-swap-rename-__swap_writepage-to-__swap_writeout.patch
+mm-remove-unused-mark_page_reserved.patch
+mm-remove-unused-totalram_pages_inc-and-totalram_pages_dec.patch
+mm-remove-pagewriteback.patch
+mm-swap-add-folio_swap_entry-and-folio_page_swap_entry.patch
+mm-huge_memory-add-a-comment-to-the-open-coded-swap-entry.patch
+mm-rmap-use-folio_page_swap_entry-in-ttu_anon_swapbacked_folio.patch
+mm-zswap-use-folio_swap_entry-in-zswap_store_page.patch
+mm-swapfile-use-folio_page_swap_entry.patch
+arm64-mte-make-mte_save_tags-and-mte_restore_tags-static.patch
+arm64-mte-pass-the-swap-entry-to-mte_save_tags.patch
+mm-swap-remove-page_swap_entry.patch
+
