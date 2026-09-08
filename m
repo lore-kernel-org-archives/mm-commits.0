@@ -1,143 +1,158 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.11])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7C61D3451CD
-	for <mm-commits@vger.kernel.org>; Sun,  6 Sep 2026 02:35:59 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6128A51A72F
+	for <mm-commits@vger.kernel.org>; Tue,  8 Sep 2026 10:02:55 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.11
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788662160; cv=none; b=SpRva3An5pNZ6t3ZRUE6h0srucr2TL0b6IPRHT4kyN+i5+xAzury7UQSOHjjDTGrIHaw8C522ywogibN9keGqQGY9nzQvd0m+EHtLIUib0Xc3Ohqo1YTNlRZkrwji1wNY1/Zq9NTTIHBPJbX9QyxH+MKNXwv+mNhCcEZ7qqMEAw=
+	t=1788861777; cv=none; b=T/ksZEGpPwfpYLQiMPhIMhSXFFZAPSH4FQfwHA/FKaYtyzWsBpJXKofVjklLKYezb2Um2whZiLFrB6Nu26e4xGZWWZbBml2a4x+hs0h1PRy77CIm79svQ19363IxlEJl6YyEaUYDFVdjuxL6/KD/l6VumQnRuD6x8JL7qWkw8c0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788662160; c=relaxed/simple;
-	bh=fU/LWf6lI7Fz6c4tCiTiro+/on61agjONT73gQ16jlk=;
-	h=Date:To:From:Subject:Message-Id; b=efWm2fytQCuNJ7v+CLd2ITw+ftlewA/wCiXWADXppK3ghKLANG0XfokdtDg9cjcOPmOvNSLZYsMwHY3u9TJdJUlPbuyC0Sahh+Px2cIOTLGxoutAYhLNdhyMxEfjFHXNjP0oPy2WiesHNBujabX0vWQmWmTpZtLK9C1Xv1q1oX0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lpP8IMex; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788861777; c=relaxed/simple;
+	bh=lOenf34xndDiZJzMvpI/y4dJR0P8wkP4cRibhZ8Cg3E=;
+	h=Date:From:To:Cc:Subject:Message-ID; b=T/Aj/JqipYYPG9g15H3BlU4MUkMPq4VoApAnc8niRjd44fOarxO+v9d1acAM9gHDetHQx0ondSDZ+jOAhHoqCc3JKBwOROeYzSA3CXrlLtTCdQ7pmHGbeYMqsAiWJRJp4PvwpkD59SqfOvT5GQxR8GRxQ8W2I3I6WNBeHH+nMPI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=X2csJ4hA; arc=none smtp.client-ip=192.198.163.11
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lpP8IMex"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id ED7721F00A3A;
-	Sun,  6 Sep 2026 02:35:58 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788662159;
-	bh=5uWsHyOYWermtTLb3Kv2v6CKeelDRh0Rh6o6sNYYuac=;
-	h=Date:To:From:Subject;
-	b=lpP8IMexM30ijfjBSpt4GreCrPR4kvN7gD1o+GkSnWS7oO2uteLu4MshHWFgvt+j4
-	 vHtGghU2KqJhGBTf+6Z1XD9ijHx9o0NiVKCOLSK7ahQyq0HSj4VuUPgEGOsDBI64l7
-	 vA+8o1MPwAWZ/mtAYHh/9GSF9sFWpWX2E1PL6LB4=
-Date: Sat, 05 Sep 2026 19:35:58 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,xlpang@linux.alibaba.com,shakeel.butt@linux.dev,ryan.roberts@arm.com,nphamcs@gmail.com,mkoutny@suse.com,ljs@kernel.org,liam@infradead.org,lance.yang@linux.dev,kasong@tencent.com,hannes@cmpxchg.org,dev.jain@arm.com,david@kernel.org,chengming.zhou@linux.dev,baolin.wang@linux.alibaba.com,baohua@kernel.org,qinyuntan@linux.alibaba.com,akpm@linux-foundation.org
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-zswap-mark-the-zswap-shrinker-shrinker_nonslab.patch added to mm-new branch
-Message-Id: <20260906023558.ED7721F00A3A@smtp.kernel.org>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="X2csJ4hA"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1788861775; x=1820397775;
+  h=date:from:to:cc:subject:message-id;
+  bh=lOenf34xndDiZJzMvpI/y4dJR0P8wkP4cRibhZ8Cg3E=;
+  b=X2csJ4hA3ZvArlFFL2b3Pst8ovOVa7VvTEAv/7VlvpzuUqlLWzWXNNbR
+   mMXFnrQJdaX5sITGUB4I7rOHAeo9DIri2TEHnnH1jgEDFKDJVVX3zHlro
+   8VBVPxwVI3Wt5jI2hcmO5xc7AOEaiA8UQFka3+R6dvRpk+LOLaUutAeoG
+   Kdh0p25auCu6EdwVPVR59MiOBNxTUPzeuEHITcEJ92a8fRk903FK3m8nH
+   itYzc7pTl4lOxhk7BhDapD99zoXplldiAkg89zL16FyKnQ2YURTcwX3jU
+   1/UJv78qTs3mCSpO2mM2NBDqgIo0kLP7fP8SWPnc6u8zp/O9p6Evg7ARP
+   w==;
+X-CSE-ConnectionGUID: 33HFpz+AROqJuMzkYePZ8w==
+X-CSE-MsgGUID: r0lvrMyEQm+JB9mKKCGdAQ==
+X-IronPort-AV: E=McAfee;i="6800,10657,11899"; a="99852938"
+X-IronPort-AV: E=Sophos;i="6.25,268,1779174000"; 
+   d="scan'208";a="99852938"
+Received: from orviesa003.jf.intel.com ([10.64.159.143])
+  by fmvoesa105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 08 Sep 2026 03:02:54 -0700
+X-CSE-ConnectionGUID: 69z3aZ3YQc6vTCP9kvNpNg==
+X-CSE-MsgGUID: CvDo7uGIR6W/UNHeQIyZ3Q==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.25,268,1779174000"; 
+   d="scan'208";a="274470861"
+Received: from lkp-server01.sh.intel.com (HELO dff15f1b2031) ([10.239.97.150])
+  by orviesa003.jf.intel.com with ESMTP; 08 Sep 2026 03:02:53 -0700
+Received: from kbuild by dff15f1b2031 with local (Exim 4.98.2)
+	(envelope-from <lkp@intel.com>)
+	id 1x3sfB-000000001xF-3ykp;
+	Tue, 08 Sep 2026 10:02:49 +0000
+Date: Tue, 08 Sep 2026 18:02:41 +0800
+From: kernel test robot <lkp@intel.com>
+To: David Hildenbrand <david@kernel.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>,
+ Linux Memory Management List <linux-mm@kvack.org>,
+ mm-commits@vger.kernel.org
+Subject: [akpm-mm:mm-new] BUILD SUCCESS
+ 9d3243fc689fef444f87e0a703b4c99653137e1b
+Message-ID: <202609081839.rwV5qR0y-lkp@intel.com>
+User-Agent: s-nail v14.9.25
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
+tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm.git mm-new
+branch HEAD: 9d3243fc689fef444f87e0a703b4c99653137e1b  mm/swap, PM: hibernate: atomically replace hibernation pin
 
-The patch titled
-     Subject: mm: zswap: mark the zswap shrinker SHRINKER_NONSLAB
-has been added to the -mm mm-new branch.  Its filename is
-     mm-zswap-mark-the-zswap-shrinker-shrinker_nonslab.patch
+elapsed time: 1865m
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zswap-mark-the-zswap-shrinker-shrinker_nonslab.patch
+configs tested: 79
+configs skipped: 2
 
-This patch will later appear in the mm-new branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+The following configs have been built successfully.
+More configs may be tested in the coming days.
 
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
+tested configs:
+alpha         allnoconfig    gcc-16.1.0
+alpha        allyesconfig    gcc-16.1.0
+arc          allmodconfig    clang-24
+arc          allmodconfig    gcc-16.1.0
+arc           allnoconfig    gcc-16.1.0
+arc          allyesconfig    gcc-16.1.0
+arm           allnoconfig    clang-17
+arm           allnoconfig    gcc-16.1.0
+arm          allyesconfig    clang-24
+arm64        allmodconfig    clang-24
+arm64         allnoconfig    gcc-16.1.0
+csky         allmodconfig    gcc-16.1.0
+csky          allnoconfig    gcc-16.1.0
+hexagon      allmodconfig    clang-24
+hexagon      allmodconfig    gcc-16.1.0
+hexagon       allnoconfig    clang-24
+hexagon       allnoconfig    gcc-16.1.0
+i386         allmodconfig    clang-22
+i386          allnoconfig    gcc-14
+i386          allnoconfig    gcc-16.1.0
+i386         allyesconfig    clang-22
+loongarch    allmodconfig    clang-19
+loongarch     allnoconfig    clang-20
+loongarch     allnoconfig    gcc-16.1.0
+m68k         allmodconfig    gcc-16.1.0
+m68k          allnoconfig    gcc-16.1.0
+m68k         allyesconfig    clang-24
+m68k         allyesconfig    gcc-16.1.0
+microblaze    allnoconfig    gcc-16.1.0
+microblaze   allyesconfig    gcc-16.1.0
+mips         allmodconfig    gcc-16.1.0
+mips          allnoconfig    gcc-16.1.0
+mips         allyesconfig    gcc-16.1.0
+nios2        allmodconfig    clang-20
+nios2        allmodconfig    gcc-11.5.0
+nios2         allnoconfig    clang-24
+nios2         allnoconfig    gcc-11.5.0
+openrisc     allmodconfig    clang-20
+openrisc     allmodconfig    gcc-16.1.0
+openrisc      allnoconfig    clang-24
+openrisc      allnoconfig    gcc-16.1.0
+parisc       allmodconfig    gcc-16.1.0
+parisc        allnoconfig    clang-24
+parisc        allnoconfig    gcc-16.1.0
+parisc       allyesconfig    clang-17
+parisc       allyesconfig    gcc-16.1.0
+powerpc      allmodconfig    gcc-16.1.0
+powerpc       allnoconfig    clang-24
+powerpc       allnoconfig    gcc-16.1.0
+riscv        allmodconfig    clang-24
+riscv         allnoconfig    clang-24
+riscv         allnoconfig    gcc-16.1.0
+riscv        allyesconfig    clang-24
+s390         allmodconfig    clang-17
+s390         allmodconfig    clang-24
+s390          allnoconfig    clang-24
+s390         allyesconfig    gcc-16.1.0
+sh           allmodconfig    gcc-16.1.0
+sh            allnoconfig    clang-24
+sh            allnoconfig    gcc-16.1.0
+sh           allyesconfig    clang-17
+sh           allyesconfig    gcc-16.1.0
+sparc         allnoconfig    clang-24
+sparc         allnoconfig    gcc-16.1.0
+sparc64      allmodconfig    clang-20
+um           allmodconfig    clang-17
+um            allnoconfig    clang-17
+um            allnoconfig    clang-24
+um           allyesconfig    gcc-14
+um           allyesconfig    gcc-16.1.0
+x86_64       allmodconfig    clang-22
+x86_64        allnoconfig    clang-22
+x86_64        allnoconfig    clang-24
+x86_64       allyesconfig    clang-22
+x86_64      rhel-9.4-rust    clang-22
+xtensa        allnoconfig    clang-24
+xtensa        allnoconfig    gcc-16.1.0
+xtensa       allyesconfig    clang-20
+xtensa       allyesconfig    gcc-16.1.0
 
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
-
-------------------------------------------------------
-From: Qinyun Tan <qinyuntan@linux.alibaba.com>
-Subject: mm: zswap: mark the zswap shrinker SHRINKER_NONSLAB
-Date: Fri, 4 Sep 2026 11:35:03 +0800
-
-With kmem accounting disabled (cgroup.memory=nokmem), memcg reclaim never
-invokes the zswap shrinker: a cgroup under memory pressure does not write
-back its own zswapped pages to make room; they are only written back by
-global reclaim or once the global pool limit kicks in.
-
-The zswap shrinker is registered memcg-aware but without SHRINKER_NONSLAB,
-so under nokmem it is treated as a slab shrinker: before commit
-03375203e1da ("mm: do not allocate shrinker info with
-cgroup.memory=nokmem") it was skipped by the !memcg_kmem_online() check in
-shrink_slab_memcg(); since that commit it is demoted to non-memcg-aware at
-registration.  But the zswap shrinker is not a slab shrinker: it tracks
-zswap entries and resolves the owning memcg from the folio's objcg,
-independent of kmem accounting.
-
-This was noticed by Michal during review of the patch "mm/list_lru: don't
-copy stale shrinker id from non-memcg-aware shrinkers" [1].
-
-Mark it SHRINKER_NONSLAB so it keeps its memcg awareness and runs under
-memcg reclaim with nokmem.
-
-Link: https://lore.kernel.org/20260904033503.4067283-3-qinyuntan@linux.alibaba.com
-Link: https://lore.kernel.org/lkml/697713c4-0857-485b-aba7-c74f37a3c8b4@linux.alibaba.com/ [1]
-Fixes: b5ba474f3f51 ("zswap: shrink zswap pool based on memory pressure")
-Signed-off-by: Qinyun Tan <qinyuntan@linux.alibaba.com>
-Suggested-by: Michal Koutný <mkoutny@suse.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Chengming Zhou <chengming.zhou@linux.dev>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Kairui Song <kasong@tencent.com>
-Cc: Lance Yang <lance.yang@linux.dev>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Xunlei Pang <xlpang@linux.alibaba.com>
-Cc: Zi Yan <ziy@nvidia.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- mm/zswap.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
---- a/mm/zswap.c~mm-zswap-mark-the-zswap-shrinker-shrinker_nonslab
-+++ a/mm/zswap.c
-@@ -1254,8 +1254,8 @@ static struct shrinker *zswap_alloc_shri
- {
- 	struct shrinker *shrinker;
- 
--	shrinker =
--		shrinker_alloc(SHRINKER_NUMA_AWARE | SHRINKER_MEMCG_AWARE, "mm-zswap");
-+	shrinker = shrinker_alloc(SHRINKER_NUMA_AWARE | SHRINKER_MEMCG_AWARE |
-+				  SHRINKER_NONSLAB, "mm-zswap");
- 	if (!shrinker)
- 		return NULL;
- 
-_
-
-Patches currently in -mm which might be from qinyuntan@linux.alibaba.com are
-
-mm-list_lru-disable-memcg-awareness-under-cgroup_disable=memory.patch
-mm-list_lru-dont-copy-stale-shrinker-id-from-non-memcg-aware-shrinkers.patch
-mm-thp-restore-shrinker_nonslab-on-the-deferred-split-shrinker.patch
-mm-zswap-mark-the-zswap-shrinker-shrinker_nonslab.patch
-
+--
+0-DAY CI Kernel Test Service
+https://github.com/intel/lkp-tests/wiki
