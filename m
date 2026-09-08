@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 007B6545DA2
-	for <mm-commits@vger.kernel.org>; Tue,  8 Sep 2026 17:55:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5EFE3598BEB;
+	Tue,  8 Sep 2026 18:52:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788890141; cv=none; b=dFBiVhAkfbV0CppsH5xUbhk938naa+oCxnXE/I6/hooNIWp+bfqBIXmq6VsKOJbFkDfJ95F1tvN8RWR5DADSoQp/jD1dteYyt1o5eVSFhRfGvDCDDHIjvDEFo4hVZYLwCUnyXawWbOPOzGBHLxHTM64df6FvXH3HfMUQ4Dn5jP4=
+	t=1788893580; cv=none; b=tfizELLd50BkstzacofZznMuNRBe9adlQd9OmObLzJg6tnCYtFn4Daa6aqm1CsMnzlAvglwVr5vChrYK18MD4fqaZxwmqm+WyrM/gG9aPKnUMchRl7g3urDxCCM2HNltBsmKqllEraLvO/uHpIyu3FkjqACin652+8Q6ygdgwjg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788890141; c=relaxed/simple;
-	bh=paUHNIjPe4R98G3Ucy0axpc+2DHCAHPk7WWcls2+dtQ=;
-	h=Date:To:From:Subject:Message-Id; b=hMkLZ1EPwNgBhuWhzneH21ePEwxZDzsgjbAjr92zGWv95TgrEyZ2efWVcdJeGqzprWlfs/yt5fLAbywLtcZ8XPTZB5+54GY1wlfZ5HaFNe/bxPQfVQY8bQaqLXSpybhXcScof+rWMGEmqFu73ZA+ViHA2z2LrVCeiUuilzZY4ao=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Yuj1JN9g; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788893580; c=relaxed/simple;
+	bh=FkOlW4BSLjtPbdVhL1BHPnX43nPaswMx+gHYElEBNUs=;
+	h=Date:To:From:Subject:Message-Id; b=YlrQTuxWMivyrbIUeyHp9ATAYvxFHGynZceHMAAm5Ehnd3W1gdrf7IPZ1BnAg7yb8M7MnRB0CsWCuu1aCIQADlBOImwcooapZBsNH0rynPd7DHIzcA/P1/Lm5CVPhpXyFPyPkhbqRbpp4pjL6pZ/XK3kyAWw4fwG/2YNOc+if2I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AHCLzMSY; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Yuj1JN9g"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BC4361F00A3D;
-	Tue,  8 Sep 2026 17:55:39 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AHCLzMSY"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E51551F00A3D;
+	Tue,  8 Sep 2026 18:52:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788890139;
-	bh=mtH1xIWg/h021iewdV5LTLcaAi6ZR2RB25wVj0FEfM8=;
+	d=linux-foundation.org; s=korg; t=1788893579;
+	bh=BKe8T6nROiVRH3fvgVTEmXzzXU79Kao3I62VQ9CFsR4=;
 	h=Date:To:From:Subject;
-	b=Yuj1JN9gv0LyoNi1k53x6+a0LHlr3At69ulB+D+d4mvS6mIZGsoroppbVDIEDRTLz
-	 6JL1mybyTIKkKPlbJz5ciYPnEyarmHf274g5s5nV1ooH7+/JOLfXHOdNXI/uPapMTX
-	 vymoagm0WNCtY1YyHZskAJMbBtrsJkm4Zsc5AqJI=
-Date: Tue, 08 Sep 2026 10:55:39 -0700
-To: mm-commits@vger.kernel.org,tz2294@columbia.edu,akpm@linux-foundation.org
+	b=AHCLzMSYmWVBdO/rkwGg58oOqdTv4As56fek05xsKOrIeVCaB6PJ4zWqzSBmsfoIp
+	 PKm8IFACiNumibz9+4W4FWy4PPF9HqnVXnCC56XRfVQjRQbQ3RUgeynZqz49hLjmFy
+	 d5FWVjbx1KfuV9k+z2jWx+XRvv/NnocQU/SC3jKo=
+Date: Tue, 08 Sep 2026 11:52:58 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,sj@kernel.org,aethernet65535@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-swap-remove-page_swap_entry.patch added to mm-new branch
-Message-Id: <20260908175539.BC4361F00A3D@smtp.kernel.org>
+Subject: + mm-damon-core-allow-esz-to-be-set-to-zero.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260908185258.E51551F00A3D@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,26 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/swap: remove page_swap_entry()
-has been added to the -mm mm-new branch.  Its filename is
-     mm-swap-remove-page_swap_entry.patch
+     Subject: mm/damon/core: allow esz to be set to zero
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-damon-core-allow-esz-to-be-set-to-zero.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-remove-page_swap_entry.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-allow-esz-to-be-set-to-zero.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,82 +58,60 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Tal Zussman <tz2294@columbia.edu>
-Subject: mm/swap: remove page_swap_entry()
-Date: Tue, 08 Sep 2026 11:16:38 -0400
+From: Liew Rui Yan <aethernet65535@gmail.com>
+Subject: mm/damon/core: allow esz to be set to zero
+Date: Tue, 8 Sep 2026 06:54:11 -0700
 
-All callers have been converted to folio_swap_entry() and
-folio_page_swap_entry(), so remove it.
+When the temporal quota goal tuner determines that the goal has been
+achieved (score >= 10000), it sets esz_bp to zero so that the esz becomes
+zero.  However, damos_set_effective_quota() clamps the esz to
+min_region_sz when quota->ms is set.
 
-Link: https://lore.kernel.org/20260908-folio_swap_entry-v2-8-ee6d01dfa5e1@columbia.edu
-Signed-off-by: Tal Zussman <tz2294@columbia.edu>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Baoquan He <baoquan.he@linux.dev>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Chengming Zhou <chengming.zhou@linux.dev>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Harry Yoo <harry@kernel.org>
-Cc: Jann Horn <jannh@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Kairui Song <kasong@tencent.com>
-Cc: Kemeng Shi <shikemeng@huaweicloud.com>
-Cc: Kiryl Shutsemau <kas@kernel.org>
-Cc: Lance Yang <lance.yang@linux.dev>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Marc Rutland <mark.rutland@arm.com>
-Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Will Deacon <will@kernel.org>
-Cc: Zi Yan <ziy@nvidia.com>
+This is a minor issue, the main problem is that it doesn't match the
+description in the documentation, which state that if the goal has already
+been [over-]achieved, the quota will be set to zero.
+
+Fix this by set quota (esz) as minimum as possible.
+
+Link: https://lore.kernel.org/20260908135413.97570-1-sj@kernel.org
+Fixes: 8bbde987c2b8 ("mm/damon/core: disallow time-quota setting zero esz")
+Signed-off-by: SJ Park <sj@kernel.org>
+Signed-off-by: Liew Rui Yan <aethernet65535@gmail.com>
+Reviewed-by: SJ Park <sj@kernel.org>
+Cc: <stable@vger.kernel.org> # v7.1.x
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |    9 ---------
- 1 file changed, 9 deletions(-)
+ mm/damon/core.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
---- a/include/linux/swap.h~mm-swap-remove-page_swap_entry
-+++ a/include/linux/swap.h
-@@ -305,15 +305,6 @@ static inline swp_entry_t folio_page_swa
- 	return folio_swap_entry(folio, folio_page_idx(folio, page));
- }
+--- a/mm/damon/core.c~mm-damon-core-allow-esz-to-be-set-to-zero
++++ a/mm/damon/core.c
+@@ -3091,6 +3091,7 @@ static void damos_set_effective_quota(st
+ 	struct damos_quota *quota = &s->quota;
+ 	unsigned long throughput;
+ 	unsigned long esz = ULONG_MAX;
++	unsigned long esz_time;
  
--static inline swp_entry_t page_swap_entry(struct page *page)
--{
--	struct folio *folio = page_folio(page);
--	swp_entry_t entry = folio->swap;
--
--	entry.val += folio_page_idx(folio, page);
--	return entry;
--}
--
- /* linux/mm/page_alloc.c */
- extern unsigned long totalreserve_pages;
+ 	if (!quota->ms && list_empty(&quota->goals)) {
+ 		quota->esz = quota->sz;
+@@ -3111,8 +3112,8 @@ static void damos_set_effective_quota(st
+ 					1000000, quota->total_charged_ns);
+ 		else
+ 			throughput = PAGE_SIZE * 1024;
+-		esz = min(throughput * quota->ms, esz);
+-		esz = max(ctx->min_region_sz, esz);
++		esz_time = max(throughput * quota->ms, ctx->min_region_sz);
++		esz = min(esz_time, esz);
+ 	}
  
+ 	if (quota->sz && quota->sz < esz)
 _
 
-Patches currently in -mm which might be from tz2294@columbia.edu are
+Patches currently in -mm which might be from aethernet65535@gmail.com are
 
-mm-page_io-convert-write-completion-handlers-to-folios.patch
-mm-remove-pagereclaim.patch
-mm-page_io-use-swap-entries-directly-in-zeromap-helpers.patch
-mm-page_io-rename-bio_associate_blkg_from_page.patch
-mm-page_io-refer-to-folios-in-swap_writeout-comments.patch
-mm-swap-rename-__swap_writepage-to-__swap_writeout.patch
-mm-remove-unused-mark_page_reserved.patch
-mm-remove-unused-totalram_pages_inc-and-totalram_pages_dec.patch
-mm-remove-pagewriteback.patch
-mm-swap-add-folio_swap_entry-and-folio_page_swap_entry.patch
-mm-huge_memory-add-a-comment-to-the-open-coded-swap-entry.patch
-mm-rmap-use-folio_page_swap_entry-in-ttu_anon_swapbacked_folio.patch
-mm-zswap-use-folio_swap_entry-in-zswap_store_page.patch
-mm-swapfile-use-folio_page_swap_entry.patch
-arm64-mte-make-mte_save_tags-and-mte_restore_tags-static.patch
-arm64-mte-pass-the-swap-entry-to-mte_save_tags.patch
-mm-swap-remove-page_swap_entry.patch
+mm-damon-core-allow-esz-to-be-set-to-zero.patch
+docs-mm-damon-design-accurate-semantics-of-nr_snapshots.patch
+docs-mm-damon-design-difference-between-watermarks-and-nr_snapshots.patch
+docs-mm-damon-design-fix-typo-of-max_nr_snapshots.patch
 
