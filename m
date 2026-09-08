@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 940955921EF
-	for <mm-commits@vger.kernel.org>; Tue,  8 Sep 2026 17:55:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0F3E9534457
+	for <mm-commits@vger.kernel.org>; Tue,  8 Sep 2026 17:55:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788890131; cv=none; b=Eqof8jqntUTRIntg8DIYTRkxmTAwZ2RO8LUfLemJdOoBRHvuMPfkXV6YnsMhC0muRA5uq87srvCv/+Wl8YlG/2nRHdUa98/RlGYJ3n8Z/S3Zcb8Wr47ycpwyxv4CJIeqdQ457yk7mcgYldD4juZCdjI93uRoDAWvp3Irk5euXNo=
+	t=1788890134; cv=none; b=pYRabbtIYnWfrMIpfw1rJVmv2jbCBojHF59hWiip0//uEJe8I64jpgDTi7sSg4zdi3dBrJQMfXt3LpIpdAcARdngyOXpgXS6FBSQc2dchN12K1pynZ2aTxRHFzRG65g8B0nvCyoryZmpnBTFwULvLWOTAkS+Ay79chG1UbLnqmY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788890131; c=relaxed/simple;
-	bh=VKidOnBtG/Fh7GG2wABClDt4Yc/WO+E+8aTmPNh8xEs=;
-	h=Date:To:From:Subject:Message-Id; b=j+LpROY4aaz8BHiXJWIcJ2GsIBXXS1Tl5xSNL0TSuH8QiV0+fYs/fNpnQmL2tKukhWGKmJtyINz6dBU4SHMnJB3zm/lgDq3PDtFv8VM1+RpWXwY/Fqld1UJInne1Zd9rB9Vo1PkAYd5oUBLY4RZTsSl8VNwanpG/2nDlG1xzHTE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ac9SdXWx; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788890134; c=relaxed/simple;
+	bh=nDXVdPZBAfIiT3M15L/eeUhkBv6Aqdx3/NlxwXxnNOc=;
+	h=Date:To:From:Subject:Message-Id; b=ULD9bvpHxnqs1/0VpWOMgambM2RwPSMgC2wgGilQLGvdnFTao0Zg+iA2+IwLAannDJ1FiZIdAD4QvASfARzVbF6/z6WYIFjbSrjXuOF2swEPhvOOYTriG6BJlEmg5gLScQhwPEl24tmaxMNd8y4rQUcwP4ho4Rgb781RygkrT/4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=m6hXwpGG; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ac9SdXWx"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 60D1D1F00A3D;
-	Tue,  8 Sep 2026 17:55:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="m6hXwpGG"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 959081F00A3D;
+	Tue,  8 Sep 2026 17:55:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788890130;
-	bh=8Vxe2ZA5MF8tXcMRo020jp6yNjBmp9xLJ4dHgjJvQiA=;
+	d=linux-foundation.org; s=korg; t=1788890132;
+	bh=+EpU4JYNwdgi75um4b+BhhTI35NY6SszwPmTFbkvzhs=;
 	h=Date:To:From:Subject;
-	b=ac9SdXWx0RRXoX5RVpbjQ6x0ecjILg0Dgb7R2uWYbDrKTBotNKLLRWPezjPOv9Q07
-	 LnAzmmfpJnlPQwvd/b5sY6E3tYFXZqMPh0Xr7ONpM1pM1kH3lFv2z42D/yJKSZFbIi
-	 Eubv+SDIhE+qqBUo9C9hSLwQoSwJBZMV6fD3BoUY=
-Date: Tue, 08 Sep 2026 10:55:29 -0700
+	b=m6hXwpGGJBDDsjdcosr/VIxLkZSbDE1oyC7LxNGCltBO+OR6ew7igvJ4hqG1fW1wd
+	 ZvOWnloYw00SuksAOn4rUYFf5HVToilnCMMmG9HIxcEN5fUA/vLCMdePm5DKUiebGg
+	 oA+fcYuK23L0kz4z7siIRHb60O1CLfO7Zxu95nNY=
+Date: Tue, 08 Sep 2026 10:55:32 -0700
 To: mm-commits@vger.kernel.org,tz2294@columbia.edu,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-zswap-use-folio_swap_entry-in-zswap_store_page.patch added to mm-new branch
-Message-Id: <20260908175530.60D1D1F00A3D@smtp.kernel.org>
+Subject: + mm-swapfile-use-folio_page_swap_entry.patch added to mm-new branch
+Message-Id: <20260908175532.959081F00A3D@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/zswap: use folio_swap_entry() in zswap_store_page()
+     Subject: mm/swapfile: use folio_page_swap_entry()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-zswap-use-folio_swap_entry-in-zswap_store_page.patch
+     mm-swapfile-use-folio_page_swap_entry.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zswap-use-folio_swap_entry-in-zswap_store_page.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swapfile-use-folio_page_swap_entry.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,15 +70,16 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Tal Zussman <tz2294@columbia.edu>
-Subject: mm/zswap: use folio_swap_entry() in zswap_store_page()
-Date: Tue, 08 Sep 2026 11:16:34 -0400
+Subject: mm/swapfile: use folio_page_swap_entry()
+Date: Tue, 08 Sep 2026 11:16:35 -0400
 
-zswap_store_page() open-codes the swap entry computation from folio->swap
-and the page index.  Use folio_swap_entry() instead.
+folio_dup_swap() and folio_put_swap() open-code the swap entry computation
+from folio->swap and folio_page_idx().  Use folio_page_swap_entry()
+instead.
 
 No functional change.
 
-Link: https://lore.kernel.org/20260908-folio_swap_entry-v2-4-ee6d01dfa5e1@columbia.edu
+Link: https://lore.kernel.org/20260908-folio_swap_entry-v2-5-ee6d01dfa5e1@columbia.edu
 Signed-off-by: Tal Zussman <tz2294@columbia.edu>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Baoquan He <baoquan.he@linux.dev>
@@ -107,21 +108,29 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zswap.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ mm/swapfile.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/zswap.c~mm-zswap-use-folio_swap_entry-in-zswap_store_page
-+++ a/mm/zswap.c
-@@ -1398,8 +1398,7 @@ static bool zswap_store_page(struct foli
- 			     struct obj_cgroup *objcg,
- 			     struct zswap_pool *pool)
- {
--	swp_entry_t page_swpentry = swp_entry(swp_type(folio->swap),
--					      swp_offset(folio->swap) + index);
-+	swp_entry_t page_swpentry = folio_swap_entry(folio, index);
- 	struct zswap_entry *entry, *old;
+--- a/mm/swapfile.c~mm-swapfile-use-folio_page_swap_entry
++++ a/mm/swapfile.c
+@@ -1822,7 +1822,7 @@ int folio_dup_swap(struct folio *folio,
+ 	VM_WARN_ON_FOLIO(!folio_test_swapcache(folio), folio);
  
- 	/* allocate entry */
+ 	if (page) {
+-		entry.val += folio_page_idx(folio, page);
++		entry = folio_page_swap_entry(folio, page);
+ 		nr_pages = 1;
+ 	}
+ 
+@@ -1849,7 +1849,7 @@ void folio_put_swap(struct folio *folio,
+ 	VM_WARN_ON_FOLIO(!folio_test_swapcache(folio), folio);
+ 
+ 	if (page) {
+-		entry.val += folio_page_idx(folio, page);
++		entry = folio_page_swap_entry(folio, page);
+ 		nr_pages = 1;
+ 	}
+ 
 _
 
 Patches currently in -mm which might be from tz2294@columbia.edu are
